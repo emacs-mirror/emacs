@@ -258,6 +258,10 @@ Archive and member name will be added.")
 (defvar archive-files nil "Vector of file descriptors.  Each descriptor is
 a vector of [ext-file-name int-file-name case-fiddled mode ...]")
 (make-variable-buffer-local 'archive-files)
+
+(defvar archive-lemacs
+  (string-match "\\(Lucid\\|Xemacs\\)" emacs-version)
+  "*Non-nil when running under under Lucid Emacs or Xemacs.")
 ;; -------------------------------------------------------------------------
 ;; Section: Support functions.
 
@@ -478,7 +482,6 @@ archive.
   (define-key archive-mode-map "e" 'archive-extract)
   (define-key archive-mode-map "f" 'archive-extract)
   (define-key archive-mode-map "\C-m" 'archive-extract)
-  (define-key archive-mode-map [mouse-2] 'archive-mouse-extract)
   (define-key archive-mode-map "g" 'revert-buffer)
   (define-key archive-mode-map "h" 'describe-mode)
   (define-key archive-mode-map "m" 'archive-mark)
@@ -499,60 +502,72 @@ archive.
   (define-key archive-mode-map "M" 'archive-chmod-entry)
   (define-key archive-mode-map "G" 'archive-chgrp-entry)
   (define-key archive-mode-map "O" 'archive-chown-entry)
-  (substitute-key-definition 'undo 'archive-undo archive-mode-map global-map)
 
-  ;; Get rid of the Edit menu bar item to save space.
-  (define-key archive-mode-map [menu-bar edit] 'undefined)
+  (if archive-lemacs
+      (progn
+	;; Not a nice "solution" but it'll have to do
+	(define-key archive-mode-map "\C-xu" 'archive-undo)
+	(define-key archive-mode-map "\C-_" 'archive-undo))
+    (substitute-key-definition 'undo 'archive-undo
+			       archive-mode-map global-map))
 
-  (define-key archive-mode-map [menu-bar immediate]
-    (cons "Immediate" (make-sparse-keymap "Immediate")))
-  (define-key archive-mode-map [menu-bar immediate alternate]
-    '("Alternate Display" . archive-alternate-display))
-  (put 'archive-alternate-display 'menu-enable
-       '(boundp (archive-name "alternate-display")))
-  (define-key archive-mode-map [menu-bar immediate view]
-    '("View This File" . archive-view))
-  (define-key archive-mode-map [menu-bar immediate display]
-    '("Display in Other Window" . archive-display-other-window))
-  (define-key archive-mode-map [menu-bar immediate find-file-other-window]
-    '("Find in Other Window" . archive-extract-other-window))
-  (define-key archive-mode-map [menu-bar immediate find-file]
-    '("Find This File" . archive-extract))
+  (define-key archive-mode-map
+    (if archive-lemacs 'button2 [mouse-2]) 'archive-mouse-extract)
 
-  (define-key archive-mode-map [menu-bar mark]
-    (cons "Mark" (make-sparse-keymap "Mark")))
-  (define-key archive-mode-map [menu-bar mark unmark-all]
-    '("Unmark All" . archive-unmark-all-files))
-  (define-key archive-mode-map [menu-bar mark deletion]
-    '("Flag" . archive-flag-deleted))
-  (define-key archive-mode-map [menu-bar mark unmark]
-    '("Unflag" . archive-unflag))
-  (define-key archive-mode-map [menu-bar mark mark]
-    '("Mark" . archive-mark))
+  (if archive-lemacs
+      ()				; out of luck
+    ;; Get rid of the Edit menu bar item to save space.
+    (define-key archive-mode-map [menu-bar edit] 'undefined)
 
-  (define-key archive-mode-map [menu-bar operate]
-    (cons "Operate" (make-sparse-keymap "Operate")))
-  (define-key archive-mode-map [menu-bar operate chown]
-    '("Change Owner..." . archive-chown-entry))
-  (put 'archive-chown-entry 'menu-enable
-       '(fboundp (archive-name "chown-entry")))
-  (define-key archive-mode-map [menu-bar operate chgrp]
-    '("Change Group..." . archive-chgrp-entry))
-  (put 'archive-chgrp-entry 'menu-enable
-       '(fboundp (archive-name "chgrp-entry")))
-  (define-key archive-mode-map [menu-bar operate chmod]
-    '("Change Mode..." . archive-chmod-entry))
-  (put 'archive-chmod-entry 'menu-enable
-       '(fboundp (archive-name "chmod-entry")))
-  (define-key archive-mode-map [menu-bar operate rename]
-    '("Rename to..." . archive-rename-entry))
-  (put 'archive-rename-entry 'menu-enable
-       '(fboundp (archive-name "rename-entry")))
-  ;;(define-key archive-mode-map [menu-bar operate copy]
-  ;;  '("Copy to..." . archive-copy))
-  (define-key archive-mode-map [menu-bar operate expunge]
-    '("Expunge Marked Files" . archive-expunge))
-  )
+    (define-key archive-mode-map [menu-bar immediate]
+      (cons "Immediate" (make-sparse-keymap "Immediate")))
+    (define-key archive-mode-map [menu-bar immediate alternate]
+      '("Alternate Display" . archive-alternate-display))
+    (put 'archive-alternate-display 'menu-enable
+	 '(boundp (archive-name "alternate-display")))
+    (define-key archive-mode-map [menu-bar immediate view]
+      '("View This File" . archive-view))
+    (define-key archive-mode-map [menu-bar immediate display]
+      '("Display in Other Window" . archive-display-other-window))
+    (define-key archive-mode-map [menu-bar immediate find-file-other-window]
+      '("Find in Other Window" . archive-extract-other-window))
+    (define-key archive-mode-map [menu-bar immediate find-file]
+      '("Find This File" . archive-extract))
+
+    (define-key archive-mode-map [menu-bar mark]
+      (cons "Mark" (make-sparse-keymap "Mark")))
+    (define-key archive-mode-map [menu-bar mark unmark-all]
+      '("Unmark All" . archive-unmark-all-files))
+    (define-key archive-mode-map [menu-bar mark deletion]
+      '("Flag" . archive-flag-deleted))
+    (define-key archive-mode-map [menu-bar mark unmark]
+      '("Unflag" . archive-unflag))
+    (define-key archive-mode-map [menu-bar mark mark]
+      '("Mark" . archive-mark))
+
+    (define-key archive-mode-map [menu-bar operate]
+      (cons "Operate" (make-sparse-keymap "Operate")))
+    (define-key archive-mode-map [menu-bar operate chown]
+      '("Change Owner..." . archive-chown-entry))
+    (put 'archive-chown-entry 'menu-enable
+	 '(fboundp (archive-name "chown-entry")))
+    (define-key archive-mode-map [menu-bar operate chgrp]
+      '("Change Group..." . archive-chgrp-entry))
+    (put 'archive-chgrp-entry 'menu-enable
+	 '(fboundp (archive-name "chgrp-entry")))
+    (define-key archive-mode-map [menu-bar operate chmod]
+      '("Change Mode..." . archive-chmod-entry))
+    (put 'archive-chmod-entry 'menu-enable
+	 '(fboundp (archive-name "chmod-entry")))
+    (define-key archive-mode-map [menu-bar operate rename]
+      '("Rename to..." . archive-rename-entry))
+    (put 'archive-rename-entry 'menu-enable
+	 '(fboundp (archive-name "rename-entry")))
+    ;;(define-key archive-mode-map [menu-bar operate copy]
+    ;;  '("Copy to..." . archive-copy))
+    (define-key archive-mode-map [menu-bar operate expunge]
+      '("Expunge Marked Files" . archive-expunge))
+  ))
 
 (let* ((item1 '(archive-subfile-mode " Archive"))
        (item2 '(archive-subfile-dos " Dos"))
@@ -617,14 +632,17 @@ is visible (and the real data of the buffer is hidden)."
    (apply
     (function concat)
     (mapcar
-     (lambda (fil)
-       ;; Using `concat' here copies the text also, so we can add
-       ;; properties without problems.
-       (let ((text (concat (aref fil 0) "\n")))
-	 (put-text-property (aref fil 1) (aref fil 2)
-			    'mouse-face 'highlight
-			    text)
-	 text))
+     (function 
+      (lambda (fil)
+	;; Using `concat' here copies the text also, so we can add
+	;; properties without problems.
+	(let ((text (concat (aref fil 0) "\n")))
+	  (if archive-lemacs
+	      ()			; out of luck
+	    (put-text-property (aref fil 1) (aref fil 2)
+			       'mouse-face 'highlight
+			       text))
+	  text)))
      files)))
   (setq archive-file-list-end (point-marker)))
 
@@ -686,15 +704,11 @@ value of `archive-tmpdir'."
 (defun archive-mouse-extract (event)
   "Extract a file whose name you click on."
   (interactive "e")
-  (save-excursion
-    (set-buffer (window-buffer (posn-window (event-end event))))
-    (save-excursion
-      (goto-char (posn-point (event-end event)))
-      ;; Just make sure this doesn't get an error.
-      (archive-get-descr)))
-  (select-window (posn-window (event-end event)))
-  (goto-char (posn-point (event-end event)))
-  (archive-extract))
+  (mouse-set-point event)
+  (switch-to-buffer
+   (save-excursion
+     (archive-extract)
+     (current-buffer))))
 
 (defun archive-extract (&optional other-window-p)
   "In archive mode, extract this entry of the archive into its own buffer."
@@ -1304,7 +1318,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 (defun archive-lzh-chmod-entry (newmode files)
   (archive-lzh-ogm
    ;; This should work even though newmode will be dynamically accessed.
-   (lambda (old) (archive-calc-mode old newmode t))
+   (function (lambda (old) (archive-calc-mode old newmode t)))
    files "a unix-style mode" 8))
 ;; -------------------------------------------------------------------------
 ;; Section: Zip Archives
