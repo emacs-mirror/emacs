@@ -461,7 +461,7 @@
   (set-case-syntax-pair ?Ĳ ?ĳ tbl)
   (set-case-syntax-pair ?Ĵ ?ĵ tbl)
   (set-case-syntax-pair ?Ķ ?ķ tbl)
-;;;  (set-case-syntax-pair ?Ÿ ?ÿ tbl)	; these two have different length!
+  (set-case-syntax-pair ?Ÿ ?ÿ tbl)
   (set-case-syntax-pair ?Ź ?ź tbl)
   (set-case-syntax-pair ?Ż ?ż tbl)
   (set-case-syntax-pair ?Ž ?ž tbl)
