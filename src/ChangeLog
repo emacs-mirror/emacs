@@ -1,5 +1,8 @@
 2004-05-02  Eli Zaretskii  <eliz@gnu.org>
 
+	* syntax.h (SET_RAW_SYNTAX_ENTRY, SYNTAX_ENTRY_INT): Avoid
+	compiler warnings.
+
 	* Makefile.in (region-cache.o): Depend on config.h.
 
 2004-05-02  Romain Francoise  <romain@orebokech.com>  (tiny change)
