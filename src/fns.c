@@ -1049,16 +1049,24 @@ string_make_unibyte (string)
      Lisp_Object string;
 {
   unsigned char *buf;
+  Lisp_Object ret;
 
   if (! STRING_MULTIBYTE (string))
     return string;
 
-  buf = (unsigned char *) alloca (SCHARS (string));
+  /* We can not use alloca here, because string might be very long.
+     For example when selecting megabytes of text and then pasting it to
+     another application.  */
+  buf = (unsigned char *) xmalloc (SCHARS (string));
 
   copy_text (SDATA (string), buf, SBYTES (string),
 	     1, 0);
 
-  return make_unibyte_string (buf, SCHARS (string));
+  ret = make_unibyte_string (buf, SCHARS (string));
+
+  xfree (buf);
+
+  return ret;
 }
 
 DEFUN ("string-make-multibyte", Fstring_make_multibyte, Sstring_make_multibyte,

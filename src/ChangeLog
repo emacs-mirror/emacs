@@ -1,5 +1,7 @@
 2004-06-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* fns.c (string_to_multibyte): Use xmalloc/xfree instead of alloca.
+
 	* macfns.c (Fx_display_color_cells): Do not limit return value to 256.
 
 	* macterm.c (mac_initialize_display_info): Initialize n_planes correctly
