@@ -4570,7 +4570,7 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 (define-key ctl-x-map "i" 'insert-file)
 (define-key esc-map "~" 'not-modified)
 (define-key ctl-x-map "\C-d" 'list-directory)
-(define-key ctl-x-map "\C-c" 'save-buffers-kill-emacs)
+(define-key ctl-x-map "\C-c" 'server-save-buffers-kill-display)
 (define-key ctl-x-map "\C-q" 'toggle-read-only)
 
 (define-key ctl-x-4-map "f" 'find-file-other-window)

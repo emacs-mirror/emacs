@@ -883,7 +883,20 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
 	      ;; a minibuffer/dedicated-window (if there's no other).
 	      (error (pop-to-buffer next-buffer)))))))))
 
-(global-set-key "\C-x#" 'server-edit)
+(defun server-save-buffers-kill-display (&optional arg)
+  "Offer to save each buffer, then kill the current connection.
+If the current frame has no client, kill Emacs itself.
+
+With prefix arg, silently save all file-visiting buffers, then kill."
+  (interactive "P")
+  (let ((proc (frame-parameter (selected-frame) 'client)))
+    (if (and proc)
+	(progn
+	  (save-some-buffers arg t)
+	  (server-delete-client proc))
+      (save-buffers-kill-emacs))))
+
+(global-set-key "\C-#" 'server-edit)
 
 ;;;###autoload
 (defun server-getenv (variable &optional frame)
