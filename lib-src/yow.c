@@ -81,7 +81,7 @@ main (argc, argv)
   }
 
   /* initialize random seed */
-  srand((int) (getpid() + time((long *) 0)));
+  srand((int) (getpid() + time((time_t *) 0)));
 
   setup_yow(fp);
   yow(fp);
