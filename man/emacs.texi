@@ -228,6 +228,7 @@ Here are some other nodes which are really inferiors of the ones
 already listed, mentioned here so you can get to them in one step:
 
  --- The Detailed Node Listing ---
+ --- These nodes are subnodes of the ones above ---
 
 The Organization of the Screen
 
@@ -676,6 +677,9 @@ Dired, the Directory Editor
 * Hiding Subdirectories::    Making subdirectories visible or invisible.
 * Dired Updating::           Discarding lines for files of no interest.
 * Dired and Find::	     Using `find' to choose the files for Dired.
+* Dired and Find::           Using `find' to choose the files for Dired.
+* Wdired::                   Operating on files by editing the Dired buffer.
+* Misc Dired Features::      Various other features.
 
 The Calendar and the Diary
 
