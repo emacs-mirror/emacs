@@ -1,3 +1,8 @@
+2004-05-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* select.el (xselect-convert-to-string): Move comment to intended
+	line.
+
 2004-05-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* toolbar/tool-bar.el (tool-bar-setup): Use lookup-key for
