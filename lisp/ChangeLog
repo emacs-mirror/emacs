@@ -1,3 +1,8 @@
+2002-09-18  Colin Walters  <walters@debian.org>
+
+	* calc/calc.el (calc-mode): Add font-lock-defontify to
+	change-major-mode-hook.
+
 2002-09-18  Richard M. Stallman  <rms@gnu.org>
 
 	* Makefile.in (bootstrap-clean): Use cd to shorten arg strings.
