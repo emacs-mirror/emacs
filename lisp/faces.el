@@ -224,7 +224,7 @@ Value is FACE."
 ;; support faces in display table entries.
 
 (defun face-id (face &optional frame)
-  "Return the interNal ID of face with name FACE.
+  "Return the internal ID of face with name FACE.
 If optional argument FRAME is nil or omitted, use the selected frame."
   (check-face face)
   (get face 'face))
