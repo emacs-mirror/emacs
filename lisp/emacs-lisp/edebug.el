@@ -8,7 +8,7 @@
 ;; LCD Archive Entry:
 ;; edebug|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |A source level debugger for Emacs Lisp.
-;; |$Date: 1996/10/02 21:41:56 $|$Revision: 3.11 $|~/modes/edebug.el|
+;; |$Date: 1996/11/09 21:48:07 $|$Revision: 3.12 $|~/modes/edebug.el|
 
 ;; This file is part of GNU Emacs.
 
@@ -85,7 +85,7 @@
 ;;; Code:
 
 (defconst edebug-version
-  (let ((raw-version "$Revision: 3.11 $"))
+  (let ((raw-version "$Revision: 3.12 $"))
     (substring raw-version (string-match "[0-9.]*" raw-version)
 	       (match-end 0))))
      
@@ -752,15 +752,8 @@ or if an error occurs, leave point after it with mark at the original point."
     (cond
      ;; read goes one too far if a (possibly quoted) string or symbol
      ;; is immediately followed by non-whitespace.
-     ((eq class 'symbol) (prog1
-			     (edebug-original-read (current-buffer))
-			   (if (not (eq (aref edebug-read-syntax-table 
-					      (preceding-char)) 'symbol))
-			       (forward-char -1))))
-     ((eq class 'string) (prog1
-			     (edebug-original-read (current-buffer))
-			   (if (/= (preceding-char) ?\")
-			       (forward-char -1))))
+     ((eq class 'symbol) (edebug-original-read (current-buffer)))
+     ((eq class 'string) (edebug-original-read (current-buffer)))
      ((eq class 'quote) (forward-char 1)
       (list 'quote (edebug-read-sexp)))
      ((eq class 'backquote)
@@ -872,18 +865,10 @@ or if an error occurs, leave point after it with mark at the original point."
       )))
 
 (defun edebug-read-symbol (stream)
-  (prog1
-      (edebug-original-read stream)
-    ;; loses for escaped chars
-    (if (not (eq (aref edebug-read-syntax-table 
-		       (preceding-char)) 'symbol))
-	(forward-char -1))))
+  (edebug-original-read stream))
 
 (defun edebug-read-string (stream)
-  (prog1
-      (edebug-original-read stream)
-    (if (/= (preceding-char) ?\")
-	(forward-char -1))))
+  (edebug-original-read stream))
 
 (defun edebug-read-quote (stream)
   ;; Turn 'thing into (quote thing)
