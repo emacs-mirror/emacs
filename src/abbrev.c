@@ -356,10 +356,13 @@ Returns the abbrev symbol, if expansion took place.  */)
     {
       SET_PT (wordstart);
 
-      del_range_both (wordstart, wordstart_byte, wordend, wordend_byte, 1);
-
       insert_from_string (expansion, 0, 0, SCHARS (expansion),
 			  SBYTES (expansion), 1);
+      del_range_both (PT, PT_BYTE,
+		      wordend + (PT - wordstart),
+		      wordend_byte + (PT_BYTE - wordstart_byte),
+		      1);
+
       SET_PT (PT + whitecnt);
 
       if (uccount && !lccount)
