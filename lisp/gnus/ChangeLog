@@ -1,3 +1,11 @@
+2003-02-28  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* nnfolder.el (nnfolder-request-accept-article): Don't use
+	mail-header-unfold-field.
+
+	* imap.el (imap-ssl-open): Don't depend on ssl.el.
+	* nntp.el (nntp-open-ssl-stream): Don't depend on ssl.el.
+
 2003-02-18  Juanma Barranquero  <lektu@terra.es>
 
 	* ietf-drums.el (ietf-drums-remove-whitespace): Fix character

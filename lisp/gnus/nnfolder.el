@@ -411,7 +411,9 @@ If nil, `nnfolder-file-coding-system' is used.")
 	  result art-group)
       (goto-char (point-min))
       (when (looking-at "X-From-Line: ")
-	(replace-match "From "))
+	(replace-match "From ")
+	(while (progn (forward-line) (looking-at "[ \t]"))
+	  (delete-char -1)))
       (and
        (nnfolder-request-list)
        (save-excursion

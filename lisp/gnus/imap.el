@@ -1,5 +1,5 @@
 ;;; imap.el --- imap library
-;; Copyright (C) 1998, 1999, 2000, 2002
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <jas@pdc.kth.se>
@@ -138,7 +138,6 @@
 
 (eval-when-compile (require 'cl))
 (eval-and-compile
-  (autoload 'open-ssl-stream "ssl")
   (autoload 'base64-decode-string "base64")
   (autoload 'base64-encode-string "base64")
   (autoload 'starttls-open-stream "starttls")
@@ -188,10 +187,10 @@ the list is tried until a successful connection is made."
   :group 'imap
   :type '(repeat string))
 
-(defcustom imap-ssl-program '("openssl s_client -ssl3 -connect %s:%p"
-			      "openssl s_client -ssl2 -connect %s:%p"
-			      "s_client -ssl3 -connect %s:%p"
-			      "s_client -ssl2 -connect %s:%p")
+(defcustom imap-ssl-program '("openssl s_client -quiet -ssl3 -connect %s:%p"
+			      "openssl s_client -quiet -ssl2 -connect %s:%p"
+			      "s_client -quiet -ssl3 -connect %s:%p"
+			      "s_client -quiet -ssl2 -connect %s:%p")
   "A string, or list of strings, containing commands for SSL connections.
 Within a string, %s is replaced with the server address and %p with
 port number on server.  The program should accept IMAP commands on
@@ -569,18 +568,22 @@ If ARGS, PROMPT is used as an argument to `format'."
       (let* ((port (or port imap-default-ssl-port))
 	     (coding-system-for-read imap-coding-system-for-read)
 	     (coding-system-for-write imap-coding-system-for-write)
-	     (ssl-program-name shell-file-name)
-	     (ssl-program-arguments
-	      (list shell-command-switch
-		    (format-spec cmd (format-spec-make
-				      ?s server
-				      ?p (number-to-string port)))))
+	     (process-connection-type nil)
 	     process)
-	(when (setq process (ignore-errors (open-ssl-stream
-					    name buffer server port)))
+	(when (progn
+		(setq process (start-process 
+			       name buffer shell-file-name
+			       shell-command-switch
+			       (format-spec cmd 
+					    (format-spec-make
+					     ?s server
+					     ?p (number-to-string port)))))
+		(process-kill-without-query process)
+		process)
 	  (with-current-buffer buffer
 	    (goto-char (point-min))
 	    (while (and (memq (process-status process) '(open run))
+			(set-buffer buffer) ;; XXX "blue moon" nntp.el bug
 			(goto-char (point-max))
 			(forward-line -1)
 			(not (imap-parse-greeting)))
