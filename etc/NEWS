@@ -626,6 +626,13 @@ This is like window-height but does not count the mode line
 or the header line.
 
 +++
+** The function `atan' now accepts an optional second argument.
+
+When called with 2 arguments, as in `(atan Y X)', `atan' returns the
+angle in radians between the vector [X, Y] and the X axis.  (This is
+equivalent to the standard C library function `atan2'.)
+
++++
 ** You can now make a window as short as one line.
 
 A window that is just one line tall does not display either a mode
