@@ -912,6 +912,7 @@ if it isn't already recorded.")
     {
       struct text_pos startp;
       struct it it;
+      struct buffer *old_buffer = NULL, *b = XBUFFER (buf);
 
       /* In case W->start is out of the range, use something
          reasonable.  This situation occured when loading a file with
@@ -927,10 +928,19 @@ if it isn't already recorded.")
 
       /* Cannot use Fvertical_motion because that function doesn't
 	 cope with variable-height lines.  */
+      if (b != current_buffer)
+	{
+	  old_buffer = current_buffer;
+	  set_buffer_internal (b);
+	}
+      
       start_display (&it, w, startp);
       move_it_vertically (&it, window_box_height (w));
       move_it_past_eol (&it);
       value = make_number (IT_CHARPOS (it));
+      
+      if (old_buffer)
+	set_buffer_internal (old_buffer);
     }
   else
     XSETINT (value, BUF_Z (XBUFFER (buf)) - XFASTINT (w->window_end_pos));
