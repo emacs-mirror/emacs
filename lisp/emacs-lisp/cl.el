@@ -347,6 +347,7 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 	  (nreverse cl-res)))
     (mapcar cl-func cl-x)))
 
+(defalias 'svref 'aref)
 
 ;;; List functions.
 
