@@ -5761,11 +5761,9 @@ which includes both saved text and other data.  */);
 
   DEFVAR_LISP ("gc-elapsed", &Vgc_elapsed,
 	       doc: /* Accumulated time elapsed in garbage collections.
-The time is in seconds as a floating point value.
-Programs may reset this to get statistics in a specific period.  */);
+The time is in seconds as a floating point value.  */);
   DEFVAR_INT ("gcs-done", &gcs_done,
-	      doc: /* Accumulated number of garbage collections done.
-Programs may reset this to get statistics in a specific period.  */);
+	      doc: /* Accumulated number of garbage collections done.  */);
 
   defsubr (&Scons);
   defsubr (&Slist);
