@@ -1,5 +1,11 @@
 2002-06-26  Richard M. Stallman  <rms@gnu.org>
 
+	* window.c (Frecenter): Don't set force_start flag.
+
+	* minibuf.c (do_completion, Fminibuffer_complete_word) 
+	(Fminibuffer_completion_help): Complete just the text before point.
+	(minibuffer_completion_contents): New function.
+
 	* buffer.c (Fbury_buffer): Use frames_discard_buffer.
 
 	* frame.c (frames_bury_buffer): Function deleted.
