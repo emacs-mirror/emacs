@@ -1,8 +1,9 @@
 ;;; cc-defs.el --- compile time definitions for CC Mode
 
-;; Copyright (C) 1985,1987,1992-1999 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-2000 Free Software Foundation, Inc.
 
-;; Authors:    1998-1999 Barry A. Warsaw and Martin Stjernholm
+;; Authors:    2000- Martin Stjernholm
+;;	       1998-1999 Barry A. Warsaw and Martin Stjernholm
 ;;             1992-1997 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
 ;;             1985 Richard M. Stallman
@@ -153,13 +154,16 @@
 
 (defsubst c-end-of-defun-1 ()
   ;; Replacement for end-of-defun that use c-beginning-of-defun-1.
-  (while (and (c-safe (down-list 1) t)
-	      (not (eq (char-before) ?{)))
-    ;; skip down into the next defun-block
-    (forward-char -1)
-    (c-forward-sexp))
-  (c-beginning-of-defun-1)
-  (c-forward-sexp))
+  (let ((start (point)))
+    ;; Skip forward into the next defun block. Don't bother to avoid
+    ;; comments, literals etc, since beginning-of-defun doesn't do that
+    ;; anyway.
+    (skip-chars-forward "^}")
+    (c-beginning-of-defun-1)
+    (if (eq (char-after) ?{)
+	(c-forward-sexp))
+    (if (< (point) start)
+	(goto-char (point-max)))))
 
 (defmacro c-forward-sexp (&optional arg)
   ;; like forward-sexp except
@@ -245,13 +249,6 @@
 	 (if (and c-inexpr-class-key (c-looking-at-inexpr-block))
 	     (c-add-syntax 'inexpr-class))))))
 
-(defmacro c-auto-newline ()
-  ;; if auto-newline feature is turned on, insert a newline character
-  ;; and return t, otherwise return nil.
-  `(and c-auto-newline
-	(not (c-in-literal))
-	(not (newline))))
-
 (defsubst c-intersect-lists (list alist)
   ;; return the element of ALIST that matches the first element found
   ;; in LIST.  Uses assq.
@@ -269,12 +266,14 @@
 (defsubst c-langelem-col (langelem &optional preserve-point)
   ;; convenience routine to return the column of langelem's relpos.
   ;; Leaves point at the relpos unless preserve-point is non-nil.
-  (let ((here (point)))
-    (goto-char (cdr langelem))
-    (prog1 (current-column)
-      (if preserve-point
-	  (goto-char here))
-      )))
+  (if (cdr langelem)
+      (let ((here (point)))
+	(goto-char (cdr langelem))
+	(prog1 (current-column)
+	  (if preserve-point
+	      (goto-char here))
+	  ))
+    0))
 
 (defmacro c-update-modeline ()
   ;; set the c-auto-hungry-string for the correct designation on the modeline
