@@ -27,12 +27,12 @@
 (require 'mm-bodies)
 (require 'mm-encode)
 (require 'mm-decode)
-(require 'gnus-ems)
 (eval-when-compile (require 'cl))
 
 (eval-and-compile
   (autoload 'message-make-message-id "message")
   (autoload 'gnus-setup-posting-charset "gnus-msg")
+  (autoload 'gnus-add-minor-mode "gnus-ems")
   (autoload 'message-fetch-field "message")
   (autoload 'message-posting-charset "message"))
 

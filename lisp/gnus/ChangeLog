@@ -1,3 +1,23 @@
+2000-12-21 14:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* mml.el (gnus-add-minor-mode): Autoload.
+
+	* message.el (message-forward): Save-restriction.
+
+	* message.el (message-mail-user-agent): Add :version.
+
+	* message.el (message-mail-user-agent): New variable.
+	(message-setup): Renamed to message-setup-1. Support
+	mail-user-agent.
+	(message-mail-user-agent): New function.
+	(message-mail): Use it.
+	(message-reply): Use it.
+	(message-resend): Use it.
+	(message-mail-other-window): Use it.
+	(message-mail-other-frame): Use it.
+
+	* gnus-msg.el (gnus-bug): Support mail-user-agent.
+
 2000-12-21  Miles Bader  <miles@gnu.org>
 
 	* message.el (message-mode): Set `comment-start' to the  yank prefix.

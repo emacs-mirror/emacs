@@ -893,15 +893,17 @@ If YANK is non-nil, include the original article."
   (interactive)
   (unless (gnus-alive-p)
     (error "Gnus has been shut down"))
-  (gnus-setup-message 'bug
-    (delete-other-windows)
-    (when gnus-bug-create-help-buffer
-      (switch-to-buffer "*Gnus Help Bug*")
-      (erase-buffer)
-      (insert gnus-bug-message)
-      (goto-char (point-min)))
-    (message-pop-to-buffer "*Gnus Bug*")
-    (message-setup `((To . ,gnus-maintainer) (Subject . "")))
+  (gnus-setup-message (if (message-mail-user-agent) 'message 'bug)
+    (unless (message-mail-user-agent)
+      (delete-other-windows)
+      (when gnus-bug-create-help-buffer
+	(switch-to-buffer "*Gnus Help Bug*")
+	(erase-buffer)
+	(insert gnus-bug-message)
+	(goto-char (point-min)))
+      (message-pop-to-buffer "*Gnus Bug*"))
+    (let ((message-this-is-mail t))
+      (message-setup `((To . ,gnus-maintainer) (Subject . ""))))
     (when gnus-bug-create-help-buffer
       (push `(gnus-bug-kill-buffer) message-send-actions))
     (goto-char (point-min))
