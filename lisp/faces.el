@@ -58,7 +58,7 @@ a font height that isn't optimal."
 
 (defcustom face-font-family-alternatives
   '(("courier" "fixed")
-    ("helv" "helvetica" "fixed"))
+    ("helv" "helvetica" "arial" "fixed"))
   "*Alist of alternative font family names.
 Each element has the the form (FAMILY ALTERNATIVE1 ALTERNATIVE2 ...).
 If fonts of family FAMILY can't be loaded, try ALTERNATIVE1, then
@@ -1480,6 +1480,8 @@ created."
 (defface mode-line
   '((((type x) (class color))
      (:box (:line-width 2 :style released-button) :background "grey75"))
+    (((type w32) (class color))
+     (:box (:line-width 2 :style released-button) :background "grey75"))
     (t
      (:inverse-video t)))
   "Basic mode line face."
@@ -1493,6 +1495,8 @@ created."
 (defface header-line
   '((((type x) (class color))
      (:box (:line-width 2 :style released-button) :background "grey75"))
+    (((type w32) (class color))
+     (:box (:line-width 2 :style released-button) :background "grey75"))
     (t
      (:inverse-video t)))
   "Basic header-line face."
@@ -1505,6 +1509,8 @@ created."
      (:box (:line-width 1 :style released-button) :background "grey75"))
     (((type x) (class mono))
      (:box (:line-width 1 :style released-button) :background "grey"))
+    (((type w32) (class color))
+     (:box (:line-width 1 :style released-button) :background "grey75"))
     (t
      ()))
   "Basic tool-bar face."
@@ -1618,12 +1624,12 @@ created."
   :group 'basic-faces)
 
 
-(defface fixed-pitch '((t (:family "courier*")))
+(defface fixed-pitch '((t (:family "courier")))
   "The basic fixed-pitch face."
   :group 'basic-faces)
 
 
-(defface variable-pitch '((t (:family "helv*")))
+(defface variable-pitch '((t (:family "helv")))
   "The basic variable-pitch face."
   :group 'basic-faces)
 
