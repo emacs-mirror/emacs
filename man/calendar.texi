@@ -21,9 +21,9 @@ Calendar mode.
   @kbd{Mouse-2} in the calendar brings up a menu of operations on a
 particular date; @kbd{C-Mouse-3} brings up a menu of commonly used
 calendar features that are independent of any particular date.  To exit
-the calendar, type @kbd{q}.  @xref{Calendar, Customizing the Calendar
-and Diary,, elisp, The Emacs Lisp Reference Manual}, for customization
-information about the calendar and diary.
+the calendar, type @kbd{q}.  @xref{Advanced Calendar/Diary Usage,
+Customizing the Calendar and Diary,, emacs-xtra, Specialized Emacs
+Features}, for customization information about the calendar and diary.
 
 @menu
 * Calendar Motion::     Moving through the calendar; selecting a date.
@@ -1029,8 +1029,9 @@ directly to the printer.  You can customize it like @code{lpr-region}
   The command @kbd{M-x diary} displays the diary entries for the current
 date, independently of the calendar display, and optionally for the next
 few days as well; the variable @code{number-of-diary-entries} specifies
-how many days to include.  @xref{Calendar, Customizing the Calendar
-and Diary,, elisp, The Emacs Lisp Reference Manual}.
+how many days to include.  @xref{Advanced Calendar/Diary Usage,
+Customizing the Calendar and Diary,, emacs-xtra, Specialized Emacs
+Features}.
 
   If you put @code{(diary)} in your @file{.emacs} file, this
 automatically displays a window with the day's diary entries, when you
@@ -1335,8 +1336,8 @@ entry applies to all months of the year.@refill
 specifying the name of a face or a single-character string to use when
 marking the entry in the calendar.  Most generally, sexp diary entries
 can perform arbitrary computations to determine when they apply.
-@xref{Sexp Diary Entries,, Sexp Diary Entries, elisp, The Emacs Lisp
-Reference Manual}.
+@xref{Sexp Diary Entries,, Sexp Diary Entries, emacs-xtra, Specialized
+Emacs Features}.
 
 @node Appointments
 @section Appointments
@@ -1442,7 +1443,7 @@ and adds the results to an Emacs diary file.  For example:
 @noindent
 You can use an @code{#include} directive to add the import file contents
 to the main diary file, if these are distinct.  @xref{Fancy Diary
-Display,,, elisp, The Emacs Lisp Reference Manual}.
+Display,,, emacs-xtra, Specialized Emacs Features}.
 
 @findex icalendar-export-file, icalendar-export-region
   Use @code{icalendar-export-file} to interactively export an entire
