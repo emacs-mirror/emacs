@@ -1,3 +1,29 @@
+2002-11-14  Dave Love  <fx@gnu.org>
+
+	* alloc.c (SETJMP_WILL_NOT_WORK): Add note.
+
+	* xterm.c (x_draw_relief_rect, x_draw_box_rect, x_update_cursor): 
+	* xmenu.c (unuse_menu_items, digest_single_submenu): 
+	* xfns.c (x_put_x_image): 
+	* xdisp.c (message2_nolog, set_message): 
+	* undo.c (record_point): 
+	* terminfo.c (tparam): 
+	* syntax.c (scan_sexps_forward): 
+	* scroll.c (calculate_scrolling, calculate_direct_scrolling): 
+	* composite.c (update_compositions): 
+	* cm.c (calccost, cmgoto): 
+	* charset.c (c_string_width): Declare all args (per C99).
+
+	* frame.h (get_specified_cursor_type, get_window_cursor_type):
+	Declare.
+
+	* lisp.h (get_specified_cursor_type, get_window_cursor_type):
+	Don't declare.
+
+	* emacs.c (main) [!VMS]: Avoid third arg.
+
+	* fns.c (Fcopy_sequence): Doc fix.
+
 2002-11-14  Francesco Potorti`  <pot@gnu.org>
 
 	* s/sol2-8.h: New file.

@@ -1,3 +1,15 @@
+2002-11-14  Dave Love  <fx@gnu.org>
+
+	* quail/slovak.el: Add coding cookie.
+
+	* quail/latin-ltx.el: Fix coding cookie.
+
+	* quail/hebrew.el: Add coding cookie.
+
+	* quail/czech.el: Add coding cookie.
+
+	* quail/welsh.el: Undo last change.
+
 2002-09-11  Dave Love  <fx@gnu.org>
 
 	* quail/latin-post.el ("slovenian"): New.
@@ -1134,7 +1146,7 @@
 
 1997-08-16  Valery Alexeev  <valery@domovoy.math.uga.edu>
 
-        * quail/cyrillic.el (cyrillic-translit-bulgarian): New input method.
+	* quail/cyrillic.el (cyrillic-translit-bulgarian): New input method.
 
 1997-08-16  Kenichi Handa  <handa@etl.go.jp>
 

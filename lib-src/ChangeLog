@@ -1,4 +1,8 @@
-2002-11-04  Dave Love  <fx@gnu.org>
+2002-11-14  Dave Love  <fx@gnu.org>
+
+	* movemail.c (pop_retr): Declare comment.
+
+	* make-docfile.c (read_c_string_or_comment): Declare msgno.
 
 	* Makefile.in (YACC): Deleted.
 
