@@ -239,6 +239,7 @@ if test "$build_in_place" = "no"; then
         tempbuild="make-package.build.$$"
 	builddir="`pwd`/${tempbuild}"
 	removable_build_dir=${builddir}
+	mkdir -p ${builddir}
 	;;
       [\\/]* | ?:[\\/]* ) #Absolutepath.
         mkdir -p ${builddir}
@@ -331,7 +332,7 @@ fi
 
 echo "Creating Package Info file"
 
-mkdir ${packagedir}
+mkdir -p ${packagedir}
 mkdir ${packagedir}/Contents
 mkdir ${packagedir}/Contents/Resources
 mkdir ${packagedir}/Contents/Resources/English.lproj
