@@ -27,6 +27,8 @@
 (eval-when-compile (require 'cl))
 (require 'mail-parse)
 (require 'mailcap)
+(eval-and-compile
+  (autoload 'mm-body-7-or-8 "mm-bodies"))
 
 (defvar mm-content-transfer-encoding-defaults
   '(("text/x-patch" 8bit)
