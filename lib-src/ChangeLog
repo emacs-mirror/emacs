@@ -4168,5 +4168,5 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	* loadst.c (main) [XENIX]: use /usr/spool/mail, not /usr/mail.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: iso-2022-7bit-unix
 ;; End:
