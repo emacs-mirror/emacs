@@ -2,7 +2,7 @@
  *
  *                GENERIC TRACER IMPLEMENTATION
  *
- *  $HopeName: MMsrc/!trace.c(trunk.4)$
+ *  $HopeName: MMsrc!trace.c(trunk.5) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -64,9 +64,10 @@ Bool TraceIsValid(Trace trace, ValidationType validParam)
   AVER(ISVALIDNESTED(TraceId, trace->id));
   AVER(ISVALIDNESTED(DequeNode, &trace->spaceDeque));
   AVER(ISVALIDNESTED(Space, trace->space));
-  AVER(ISVALIDNESTED(RefSig, trace->condemned));
+  AVER(ISVALIDNESTED(RefSig, trace->ss.condemned));
   for(rank = 0; rank < RefRankMAX; ++rank)
     AVER(trace->work[rank].marked >= trace->work[rank].scanned);
+  AVER(ISVALIDNESTED(RefRank, trace->rank));
   return TRUE;
 }
 
@@ -158,11 +159,16 @@ Error TraceInit(Trace trace, Space space)
   DequeNodeInit(&trace->spaceDeque);
   trace->id = id;
   trace->space = space;
-  trace->condemned = RefSigEmpty(SpaceArena(space));
   for(rank = 0; rank < RefRankMAX; ++rank) {
     trace->work[rank].scanned = 0;
     trace->work[rank].marked = 0;
   }
+  trace->ss.fix = TraceFix;
+  trace->ss.zoneShift = 0;        /* zoneShift */
+  /* trace->ss.condemned = RefSigEmpty(SpaceArena(space)); */
+  trace->ss.condemned = (Addr)-1; /* condemned */
+  trace->ss.summary = 0;          /* summary   */
+  trace->rank = 0;                /* current rank */
 
 #ifdef DEBUG_SIGN
   SigInit(&TraceSigStruct, "Trace");
@@ -248,7 +254,7 @@ Error TraceDescribe(Trace trace, LibStream stream)
             (void *)trace,
             (unsigned long)trace->id,
             (void *)trace->space,
-            (unsigned long)trace->condemned);
+            (unsigned long)trace->ss.condemned);
   
   LibFormat(stream, "  rank    marked   scanned\n");
   for(rank = 0; rank < RefRankMAX; ++rank)
@@ -275,6 +281,23 @@ Space TraceSpace(Trace trace)
   return trace->space;
 }
 
+RefRank TraceRank(Trace trace)
+{
+  AVER(ISVALID(Trace, trace));
+  return trace->rank;
+}
+
+ScanState TraceScanState(Trace trace)
+{
+  AVER(ISVALID(Trace, trace));
+  return &trace->ss;
+}
+
+/* thread safe */
+Trace TraceOfScanState(ScanState ss)
+{
+  return PARENT(TraceStruct, ss, ss);
+}
 
 void TraceCondemn(Trace trace, RefSig refsig)
 {
@@ -283,7 +306,8 @@ void TraceCondemn(Trace trace, RefSig refsig)
   AVER(ISVALID(Trace, trace));
 
   arena = SpaceArena(trace->space);
-  trace->condemned = RefSigUnion(trace->condemned, refsig, arena);
+  /* trace->ss.condemned = RefSigUnion(trace->ss.condemned, refsig, arena); */
+  trace->ss.condemned = (Addr)-1;
 }
 
 
@@ -305,21 +329,23 @@ void TraceNoteScanned(Trace trace, RefRank rank, Addr count)
 }
 
 
-Error TraceFix(Trace trace, RefRank rank, Ref *refIO)
+Error TraceFix(ScanState ss, Ref *refIO)
 {
   Arena arena;
   Pool pool;
   Ref ref;
+  Trace trace = PARENT(TraceStruct, ss, ss);
+  RefRank rank;
 
   AVER(ISVALID(Trace, trace));
-  AVER(ISVALID(RefRank, rank));
   AVER(refIO != NULL);
+  rank = trace->rank;
+  AVER(ISVALID(RefRank, rank));
 
   arena = SpaceArena(trace->space);
   ref = *refIO;
-  if(RefSigIsMember(trace->condemned, arena, ref))
-    if(PoolOfAddr(&pool, arena, ref))
-      return PoolFix(pool, trace, rank, arena, refIO);
+  if(PoolOfAddr(&pool, arena, ref))
+    return PoolFix(pool, trace, rank, arena, refIO);
 
   return ErrSUCCESS;
 }
@@ -334,7 +360,7 @@ Error TraceScanArea(Addr *base, Addr *limit, Trace trace, RefRank rank)
   AVER(base < limit);
 
   while(base < limit) {
-    e = TraceFix(trace, rank, (Ref *)base);
+    e = TraceFix(TraceScanState(trace), (Ref *)base);
     if(e != ErrSUCCESS)
       return e;
     ++base;
@@ -364,6 +390,8 @@ Error TraceRunAtomic(Trace trace)
     DequeNode node;
 
     ShieldEnter(shield);
+
+    trace->rank = rank;
 
     deque = SpaceRootDeque(trace->space);
     node = DequeFirst(deque);
@@ -400,6 +428,9 @@ Error TraceRun(Trace trace, Bool *finishedReturn)
   shield = SpaceShield(trace->space);
 
   for(rank = 0; rank < RefRankMAX; ++rank) {
+
+    trace->rank = rank;
+
     if(trace->work[rank].scanned < trace->work[rank].marked) {
       Deque deque;
       DequeNode node;
