@@ -335,7 +335,22 @@ The state of activation of the mark is also restored.")
   int count = specpdl_ptr - specpdl;
 
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
-			 
+
+  val = Fprogn (args);
+  return unbind_to (count, val);
+}
+
+DEFUN ("save-current-buffer", Fsave_current_buffer, Ssave_current_buffer, 0, UNEVALLED, 0,
+  "Save the current buffer; execute BODY; restore the current buffer.\n\
+Executes BODY just like `progn'.")
+  (args)
+     Lisp_Object args;
+{
+  register Lisp_Object val;
+  int count = specpdl_ptr - specpdl;
+
+  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+
   val = Fprogn (args);
   return unbind_to (count, val);
 }
@@ -2515,6 +2530,7 @@ functions if all the text being accessed has this property.");
 /*  defsubr (&Smark); */
 /*  defsubr (&Sset_mark); */
   defsubr (&Ssave_excursion);
+  defsubr (&Ssave_current_buffer);
 
   defsubr (&Sbufsize);
   defsubr (&Spoint_max);
