@@ -2908,8 +2908,8 @@ SPC, it is ignored; if it is anything else, it is processed as a command."
 	    (while (and (not (pos-visible-in-window-p))
 			(> (1- (frame-height)) (window-height)))
 	      (enlarge-window 1))
-	    (let ((c (read-char)))
-	      (if (/= c 32)
+	    (let ((c (read-event)))
+	      (if (not (eq c 32))
 		  (setq unread-command-events (list c)))))))))
 
 ;; Improved auto-save file names.
