@@ -937,7 +937,8 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
   (set (make-local-variable 'compilation-error-list) nil)
   (set (make-local-variable 'compilation-old-error-list) nil)
   (set (make-local-variable 'compilation-parsing-end) 1)
-  (set (make-local-variable 'compilation-directory-stack) nil)
+  (set (make-local-variable 'compilation-directory-stack)
+       (list default-directory))
   (setq compilation-last-buffer (current-buffer)))
 
 (defvar compilation-shell-minor-mode nil
@@ -1260,6 +1261,8 @@ Does NOT find the source line like \\[next-error]."
 	    ;; Mouse-Highlight (the first line of) each error message when the
 	    ;; mouse pointer moves over it:
 	    (let ((inhibit-read-only t)
+		  (buffer-undo-list t)
+		  deactivate-mark
 		  (error-list compilation-error-list))
 	      (while error-list
 		(save-excursion
@@ -1666,7 +1669,9 @@ Selects a window with point at SOURCE, with another window displaying ERROR."
 	compilation-directory-stack (list default-directory)
 	compilation-parsing-end 1)
   ;; Remove the highlighting added by compile-reinitialize-errors:
-  (let ((inhibit-read-only t))
+  (let ((inhibit-read-only t)
+	(buffer-undo-list t)
+	deactivate-mark)
     (remove-text-properties (point-min) (point-max) '(mouse-face highlight)))
   )
 
