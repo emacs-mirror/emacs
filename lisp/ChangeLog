@@ -1,3 +1,8 @@
+2003-07-10  John Paul Wallington  <jpw@gnu.org>
+
+	* progmodes/etags.el (visit-tags-table-buffer): Add autoload cookie;
+	this function can be called from `add-completions-from-tags-table'.
+
 2003-07-10  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/timeclock.el (timeclock-use-display-time)
