@@ -326,12 +326,14 @@ A large number or nil slows down menu responsiveness."
 (define-key menu-bar-goto-menu [next-tag-otherw]
   '(menu-item "Next Tag in Other Window"
 	      (function (lambda () (find-tag-other-window nil t)))
-	      :enable (not (ring-empty-p tags-location-ring))
+	      :enable (and (boundp 'tags-location-ring)
+			   (not (ring-empty-p tags-location-ring)))
 	      :help "Find next function/variable matching last tag name in another window"))
 (define-key menu-bar-goto-menu [next-tag]
   '(menu-item "Find Next Tag"
 	      (function (lambda () (find-tag nil t)))
-	      :enable (not (ring-empty-p tags-location-ring))
+	      :enable (and (boundp 'tags-location-ring)
+			   (not (ring-empty-p tags-location-ring)))
 	      :help "Find next function/variable matching last tag name"))
 (define-key menu-bar-goto-menu [find-tag-otherw]
   '(menu-item "Find Tag in Other Window..." find-tag-other-window
