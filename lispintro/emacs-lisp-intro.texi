@@ -14930,11 +14930,11 @@ Here is the function:
        ;; check whether filename is that of a directory
        ((eq t (car (cdr (car current-directory-list))))
         ;; decide whether to skip or recurse
-        (if
-            (equal (or "." "..")
+        (if 
+            (equal "."
                    (substring (car (car current-directory-list)) -1))
-            ;; then do nothing if filename is that of
-            ;;   current directory or parent
+            ;; then do nothing since filename is that of
+            ;;   current directory or parent, "." or ".."
             ()
 @end group
 @group
