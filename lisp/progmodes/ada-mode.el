@@ -1116,7 +1116,7 @@ If you use ada-xref.el:
   (interactive)
   (kill-all-local-variables)
 
-  (set (make-local-variable 'require-final-newline) t)
+  (set (make-local-variable 'require-final-newline) mode-require-final-newline)
 
   ;;  Set the paragraph delimiters so that one can select a whole block
   ;;  simply with M-h
