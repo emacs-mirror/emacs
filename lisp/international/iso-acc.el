@@ -275,13 +275,11 @@ the language you choose).")
 	 (entry (cdr (assq second-char list))))
     (if entry
 	;; Found it: return the mapped char
-	(if (and enable-multibyte-characters
-		 (>= entry ?\200))
-	    (let ((char (+ iso-accents-insert-offset entry)))
-	      (setq unread-command-events
-		    (cons (list char) unread-command-events))
-	      (vector ?\C-q))
-	  (vector entry))
+	(vector
+	 (if (and enable-multibyte-characters
+		  (>= entry ?\200))
+	     (+ iso-accents-insert-offset entry)
+	   entry))
       ;; Otherwise, advance and schedule the second key for execution.
       (setq unread-command-events
 	    (cons (list second-char) unread-command-events))
