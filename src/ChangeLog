@@ -1,3 +1,38 @@
+2004-11-09  Kim F. Storm  <storm@cua.dk>
+
+	* xselect.c: Include <sys/types.h> and <unistd.h> (for getpid).
+	Fix various comments referring to XEvents instead of input events.
+	(x_queue_event): Fix format strings.
+	(x_stop_queuing_selection_requests): Likewise.
+
+	* xdisp.c (produce_image_glyph): Remove unused variable 'face_ascent'.
+	(pint2hrstr): Add extra braces to silence compiler.
+
+	* print.c (print_object): Fix format string.
+
+	* lread.c (read1): Fix next_char matching.
+
+	* lisp.h (Fdelete): Add EXFUN.
+	(replace_range_2): Add prototype.
+
+	* keyboard.c (read_avail_input): Remove unused variable 'discard'.
+
+	* intervals.h (NULL_INTERVAL_P): Add separate version when
+	ENABLE_CHECKING is not defined to silence compiler.
+	(compare_string_intervals): Add prototype.
+
+	* fringe.c (destroy_fringe_bitmap): Fix return type.
+	(Ffringe_bitmaps_at_pos): Remove unused var 'old_buffer'.
+
+	* emacs.c (Fdump_emacs): Fix format string.
+
+	* doc.c: Include <ctype.h>.
+	(Fsubstitute_command_keys): Remove unused variable 'firstkey'.
+
+	* data.c (store_symval_forwarding): Remove unused variables.
+
+	* callint.c (Fcall_interactively): Remove unused variable 'funcar'.
+
 2004-11-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* Makefile.in (stamp-oldxmenu): If HAVE_GTK, don't add dependencies
@@ -10,7 +45,7 @@
 	start over rather than sleeping and retry with same socket.
 
 2004-11-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
-	
+
 	* .cvsignore: Add buildobj.lst.
 
 	* doc.c: New variable Vbuild_files.
