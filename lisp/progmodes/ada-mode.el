@@ -79,7 +79,7 @@
 ;;; =======
 ;;;
 ;;; Many thanks to
-;;;    Philippe Warroquiers (PW) <philippe@cfmu.eurocontrol.be> in particular,
+;;;    Philippe Waroquiers (PW) <philippe@cfmu.eurocontrol.be> in particular,
 ;;;    woodruff@stc.llnl.gov (John Woodruff)
 ;;;    jj@ddci.dk (Jesper Joergensen)
 ;;;    gse@ocsystems.com (Scott Evans)
@@ -151,7 +151,7 @@ not to 'begin'.")
   "*Do we program in `ada83' or `ada95'?")
 
 (defvar ada-case-keyword 'downcase-word
-  "*Function to call to adjust the case of Ada keyworrds.
+  "*Function to call to adjust the case of Ada keywords.
 It may be `downcase-word', `upcase-word', `ada-loose-case-word' or 
 `capitalize-word'.")
 
@@ -166,7 +166,7 @@ It may be `downcase-word', `upcase-word', `ada-loose-case-word' or
 `capitalize-word'.")
 
 (defvar ada-auto-case t
-  "*Non-nil automatically changes casing of preceeding word while typing.
+  "*Non-nil automatically changes case of preceding word while typing.
 Casing is done according to `ada-case-keyword', `ada-case-identifier'
 and `ada-cacse-attribute'.")
 
@@ -192,7 +192,7 @@ with `ada-fill-comment-paragraph-postfix'.")
 
 (defvar ada-krunch-args "0"
   "*Argument of gnatk8, a string containing the max number of characters.
-Set to 0, if you dont use crunched filenames.")
+Set to 0, if you don't use crunched filenames.")
 
 ;;; ---- end of user configurable variables
 
@@ -660,7 +660,7 @@ If `ada-indent-comment-as-code' is non-nil, the paragraph is idented."
 The name is specified in `ada-external-pretty-print-program'.  Saves the
 current buffer in a directory specified by `ada-tmp-directory',
 starts the pretty printer as external process on that file and then
-reloads the beautyfied program in the buffer and cleans up
+reloads the beautified program in the buffer and cleans up
 `ada-tmp-directory'."
   (interactive)
   (let ((filename-with-path buffer-file-name)
@@ -1405,7 +1405,7 @@ Moves to 'begin' if in a declarative part."
           (forward-line 1)
 	  (setq block-done (1+ block-done))
 	  (setq lines-remaining (1- lines-remaining)))
-      ;; show line number where the error occured
+      ;; show line number where the error occurred
       (error
        (error (format "line %d: %s"
                       (1+ (count-lines (point-min) (point)))
@@ -1850,7 +1850,7 @@ This works by two steps:
 
 (defun ada-get-indent-open-paren (orgpoint)
   ;; Returns the indentation (column #) for the new line after ORGPOINT.
-  ;; Assumes point to be behind an open paranthesis not yet closed.
+  ;; Assumes point to be behind an open parenthesis not yet closed.
   (ada-in-open-paren-p))
 
 
@@ -2386,7 +2386,7 @@ This works by two steps:
               ;;
               (setq match-dat (ada-search-prev-end-stmt limit)))
           ;;
-          ;; if found the correct end-stetement => goto next non-ws
+          ;; if found the correct end-statement => goto next non-ws
           ;;
           (if match-dat
               (goto-char (cdr match-dat)))
@@ -3108,7 +3108,7 @@ This works by two steps:
      ;; inside parentheses ?
      (looking-at "(")
      (backward-word 2)
-     ;; right keyword before paranthesis ?
+     ;; right keyword before parenthesis ?
      (looking-at (concat "\\<\\("
                          "procedure\\|function\\|body\\|package\\|"
                          "task\\|entry\\|accept\\)\\>"))
