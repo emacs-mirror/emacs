@@ -73,7 +73,9 @@ if test `pwd` != `(cd ${srcdir} && pwd)` \
    now do \`make distclean' in ${srcdir},
    and then run $0 again.])
 
+changequote(, )dnl
   extrasub='/^VPATH[	 ]*=/c\
+changequote([, ])dnl
 vpath %.c $(srcdir)\
 vpath %.h $(srcdir)\
 vpath %.y $(srcdir)\
@@ -1249,7 +1251,7 @@ done
 # Build src/Makefile from ${srcdir}/src/Makefile.in.  This must be done
 # after src/config.h is built, since we rely on that file.
 
-changequote(,)dnl The horror, the horror.
+changequote(, )dnl The horror, the horror.
 # Now get this: Some word that is part of the ${srcdir} directory name
 # or the ${configuration} value might, just might, happen to be an
 # identifier like `sun4' or `i386' or something, and be predefined by
@@ -1260,7 +1262,7 @@ undefs="`echo $top_srcdir $configuration $canonical |
 sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/^/ /' -e 's/  *$//' \
     -e 's/  */ -U/g' -e 's/-U[0-9][^ ]*//g' \
 `"
-changequote([,])dnl
+changequote([, ])dnl
 
 echo creating lib-src/Makefile
 ( cd lib-src
