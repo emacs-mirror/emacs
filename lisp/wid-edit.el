@@ -2910,6 +2910,7 @@ It will read a file name from the minibuffer when invoked."
 ;;;    (widget-setup)
 ;;;    (widget-apply widget :notify widget event)))
 
+;; Fixme: use file-name-as-directory.
 (define-widget 'directory 'file
   "A directory widget.
 It will read a directory name from the minibuffer when invoked."
@@ -2960,6 +2961,7 @@ It will read a directory name from the minibuffer when invoked."
   :prompt-match 'fboundp
   :prompt-history 'widget-function-prompt-value-history
   :action 'widget-field-action
+  :match-alternatives '(functionp)
   :validate (lambda (widget)
 	      (unless (functionp (widget-value widget))
 		(widget-put widget :error (format "Invalid function: %S"
@@ -2972,7 +2974,6 @@ It will read a directory name from the minibuffer when invoked."
   "History of input to `widget-variable-prompt-value'.")
 
 (define-widget 'variable 'symbol
-  ;; Should complete on variables.
   "A Lisp variable."
   :prompt-match 'boundp
   :prompt-history 'widget-variable-prompt-value-history
@@ -3346,6 +3347,7 @@ To use this type, you must define :match or :match-alternatives."
 
 ;;; The `color' Widget.
 
+;; Fixme: match 
 (define-widget 'color 'editable-field
   "Choose a color name (with sample)."
   :format "%t: %v (%{sample%})\n"
@@ -3387,7 +3389,7 @@ To use this type, you must define :match or :match-alternatives."
       (error 'default))))
 
 (defun widget-color-action (widget &optional event)
-  ;; Prompt for a color.
+  "Prompt for a color."
   (let* ((tag (widget-apply widget :menu-tag-get))
 	 (prompt (concat tag ": "))
 	 (value (widget-value widget))
