@@ -5896,13 +5896,6 @@ This enforces rescanning the buffer on next use."
 
 (provide 'reftex) 
 
-; Make sure tables are compiled
-(message "updating internal tables...")
-(reftex-compute-ref-cite-tables)
-(message "updating internal tables...done")
-(setq reftex-tables-dirty nil)
-
 ;;;============================================================================
 
 ;;; reftex.el ends here
-
