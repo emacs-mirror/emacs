@@ -1054,7 +1054,6 @@ struct standard_args standard_args[] =
   { "-T", "--title", 10, 1 },
   { "-title", 0, 10, 1 },
   { "-name", "--name", 10, 1 },
-  { "-rn", 0, 10, 1 },
   { "-xrm", "--xrm", 10, 1 },
   { "-r", "--reverse-video", 5, 0 },
   { "-rv", 0, 5, 0 },
