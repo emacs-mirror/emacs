@@ -1,6 +1,6 @@
 /*  ==== POOLS ====
  *
- *  $HopeName: MMsrc/!pool.c(trunk.3)$
+ *  $HopeName: MMsrc/!pool.c(trunk.4)$
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
@@ -19,6 +19,7 @@
 #include "space.h"
 #include "ref.h"
 #include "trace.h"
+#include "prot.h"
 #include <stddef.h>
 #include <stdarg.h>
 
@@ -173,6 +174,12 @@ void PoolReclaim(Pool pool, Trace trace)
   (*pool->class->reclaim)(pool, trace);
 }
 
+void PoolAccess(Pool pool, Addr seg, ProtMode mode)
+{
+  if(pool->class->access != NULL)
+    (*pool->class->access)(pool, seg, mode);
+}
+
 
 Error PoolDescribe(Pool pool, LibStream stream)
 {
@@ -180,12 +187,12 @@ Error PoolDescribe(Pool pool, LibStream stream)
   AVER(stream != NULL);
 
   LibFormat(stream,
-	  "Pool %p {\n"
-	  "  Class %s\n"
-	  "  alignment %lu\n",
-	  pool,
-	  pool->class->name,
-	  (unsigned long)pool->alignment);
+          "Pool %p {\n"
+          "  Class %s\n"
+          "  alignment %lu\n",
+          pool,
+          pool->class->name,
+          (unsigned long)pool->alignment);
 
   if(DequeLength(&pool->bufferDeque) > 0)
   {

@@ -1,6 +1,6 @@
 /*  ==== MANUAL VARIABLE POOL ====
  *
- *  $HopeName: MMsrc/!poolmv.c(trunk.4)$
+ *  $HopeName: MMsrc/!poolmv.c(trunk.5)$
  *
  *  Copyright (C) 1994, 1995 Harlequin Group, all rights reserved
  *
@@ -44,8 +44,8 @@
 #include <stdarg.h>
 
 
-#define BLOCKPOOL(mv)	(PoolMFSPool(&(mv)->blockPoolStruct))
-#define SPANPOOL(mv)	(PoolMFSPool(&(mv)->spanPoolStruct))
+#define BLOCKPOOL(mv)   (PoolMFSPool(&(mv)->blockPoolStruct))
+#define SPANPOOL(mv)    (PoolMFSPool(&(mv)->spanPoolStruct))
 
 
 /*  == Class Structure ==  */
@@ -65,9 +65,10 @@ PoolClass PoolClassMV(void)
                 sizeof(PoolMVStruct), offsetof(PoolMVStruct, poolStruct),
                 create, destroy,
                 alloc, free_,
-                NULL, NULL,		/* bufferCreate, bufferDestroy */
-                NULL, NULL, NULL,	/* condemn, mark, scan */
-                NULL, NULL,		/* fix, relcaim */
+                NULL, NULL,             /* bufferCreate, bufferDestroy */
+                NULL, NULL, NULL,       /* condemn, mark, scan */
+                NULL, NULL,             /* fix, relcaim */
+                NULL,                   /* access */
                 describe);
   return(&PoolClassMVStruct);
 }
@@ -115,12 +116,12 @@ static Bool BlockIsValid(Block block, ValidationType validParam)
 typedef struct SpanStruct
 {
   struct SpanStruct *next;
-  Addr seg;		        /* segment underlying the span */
-  BlockStruct base;		/* sentinel at base of span */
-  BlockStruct limit;		/* sentinel at limit of span */
-  Block blocks;			/* allocated blocks */
-  Addr space;			/* total free space in segment */
-  unsigned blockCount;		/* number of blocks on chain */
+  Addr seg;                     /* segment underlying the span */
+  BlockStruct base;             /* sentinel at base of span */
+  BlockStruct limit;            /* sentinel at limit of span */
+  Block blocks;                 /* allocated blocks */
+  Addr space;                   /* total free space in segment */
+  unsigned blockCount;          /* number of blocks on chain */
 } SpanStruct, *Span;
 
 
@@ -360,14 +361,14 @@ static Bool SpanAlloc(Addr *addrReturn, Span span, Addr size,
 
       if(gap == size && block->next != &span->limit)
       {
-	Block old = block->next;
-	block->limit = old->limit;
-	block->next = old->next;
-	PoolFree(blockPool, (Addr)old, sizeof(BlockStruct));
-	--span->blockCount;
+        Block old = block->next;
+        block->limit = old->limit;
+        block->next = old->next;
+        PoolFree(blockPool, (Addr)old, sizeof(BlockStruct));
+        --span->blockCount;
       }
       else
-	block->limit += size;
+        block->limit += size;
 
       span->space -= size;
       *addrReturn = new;
@@ -415,48 +416,48 @@ static Error SpanFree(Span span, Addr base, Addr limit, Pool blockPool)
     {
       if(!isSentinel && block->base == base && limit == block->limit)
       {
-	AVER(block->next != NULL); /* should at least be a sentinel */
-	*prev = block->next;
-	PoolFree(blockPool, (Addr)block, sizeof(BlockStruct));
-	--span->blockCount;
+        AVER(block->next != NULL); /* should at least be a sentinel */
+        *prev = block->next;
+        PoolFree(blockPool, (Addr)block, sizeof(BlockStruct));
+        --span->blockCount;
       }
       else if(!isBase && block->base == base)
-	block->base = limit;
+        block->base = limit;
       else if(!isLimit && limit == block->limit)
-	block->limit = base;
+        block->limit = base;
       else
       {
-	Error e;
-	Block new;
+        Error e;
+        Block new;
 
-	/* The freed area is buried in the middle of the block, so the */
-	/* block must be split into two parts.  */
+        /* The freed area is buried in the middle of the block, so the */
+        /* block must be split into two parts.  */
 
-	e = PoolAlloc((Addr *)&new, blockPool, sizeof(BlockStruct));
-	if(e != ErrSUCCESS) return(e);
+        e = PoolAlloc((Addr *)&new, blockPool, sizeof(BlockStruct));
+        if(e != ErrSUCCESS) return(e);
 
-	/* If the freed area is in the base sentinel then insert the new */
-	/* descriptor after it, otherwise insert before. */
-	if(isBase)
-	{
-	  new->base = limit;
-	  new->limit = block->limit;
-	  block->limit = base;
-	  new->next = block->next;
-	  AVER(new->next != NULL); /* should at least be a sentinel */
-	  block->next = new;
-	}
-	else
-	{
-	  new->base = block->base;
-	  new->limit = base;
-	  block->base = limit;
-	  new->next = block;
-	  *prev = new;
-	}
+        /* If the freed area is in the base sentinel then insert the new */
+        /* descriptor after it, otherwise insert before. */
+        if(isBase)
+        {
+          new->base = limit;
+          new->limit = block->limit;
+          block->limit = base;
+          new->next = block->next;
+          AVER(new->next != NULL); /* should at least be a sentinel */
+          block->next = new;
+        }
+        else
+        {
+          new->base = block->base;
+          new->limit = base;
+          block->base = limit;
+          new->next = block;
+          *prev = new;
+        }
 
-	AVER(ISVALID(Block, new));
-	++span->blockCount;
+        AVER(ISVALID(Block, new));
+        ++span->blockCount;
       }
 
       AVER(ISVALID(Block, block));
@@ -507,15 +508,15 @@ static Error alloc(Addr *pReturn, Pool pool, Size size)
     {
       if(size <= span->space)
       {
-	Addr new;
+        Addr new;
 
-	if(SpanAlloc(&new, span, size, BLOCKPOOL(poolMV)))
-	{
-	  poolMV->space -= size;
-	  AVER(IsAligned(pool->alignment, new));
-	  *pReturn = new;
-	  return ErrSUCCESS;
-	}
+        if(SpanAlloc(&new, span, size, BLOCKPOOL(poolMV)))
+        {
+          poolMV->space -= size;
+          AVER(IsAligned(pool->alignment, new));
+          *pReturn = new;
+          return ErrSUCCESS;
+        }
       }
 
       span = span->next;
@@ -674,24 +675,24 @@ static Error describe(Pool pool, LibStream stream)
 
       for(j=i; j<i+length && j<span->limit.limit; j+=step)
       {
-	if(j == block->base) {
-	  if(j+step == block->limit)
-	    LibPutChar(stream, '@');
-	  else
-	    LibPutChar(stream, '[');
-	}
-	else if(j+step == block->limit)
-	  LibPutChar(stream, ']');
-	else if(j > block->base && j < block->limit)
-	  LibPutChar(stream, '=');
-	else
-	  LibPutChar(stream, '.');
+        if(j == block->base) {
+          if(j+step == block->limit)
+            LibPutChar(stream, '@');
+          else
+            LibPutChar(stream, '[');
+        }
+        else if(j+step == block->limit)
+          LibPutChar(stream, ']');
+        else if(j > block->base && j < block->limit)
+          LibPutChar(stream, '=');
+        else
+          LibPutChar(stream, '.');
 
-	if(j >= block->limit)
-	{
-	  block = block->next;
-	  AVER(block != NULL);  /* shouldn't pass limit sentinel */
-	}
+        if(j >= block->limit)
+        {
+          block = block->next;
+          AVER(block != NULL);  /* shouldn't pass limit sentinel */
+        }
       }
       LibPutChar(stream, '\n');
     }

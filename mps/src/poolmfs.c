@@ -1,6 +1,6 @@
 /*  ==== MANUAL FIXED SMALL UNIT POOL ====
  *
- *  $HopeName: MMsrc/!poolmfs.c(trunk.4)$
+ *  $HopeName: MMsrc/!poolmfs.c(trunk.5)$
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
@@ -70,9 +70,10 @@ PoolClass PoolClassMFS(void)
                 sizeof(PoolMFSStruct), offsetof(PoolMFSStruct, poolStruct),
                 create, destroy,
                 alloc, free_,
-                NULL, NULL,		/* bufferCreate, bufferDestroy */
-                NULL, NULL, NULL,	/* comdemn, mark, scan */
-                NULL, NULL,		/* fix, relcaim */
+                NULL, NULL,             /* bufferCreate, bufferDestroy */
+                NULL, NULL, NULL,       /* comdemn, mark, scan */
+                NULL, NULL,             /* fix, relcaim */
+                NULL,                   /* access */
                 describe);
   return(&PoolClassMFSStruct);
 }
