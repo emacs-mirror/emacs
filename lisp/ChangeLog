@@ -1,3 +1,10 @@
+2003-01-18  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/sh-script.el (sh-indent-line): Use indent-line-to.
+	(sh-non-closing-paren): New const.
+	(sh-case, sh-while-getopts): Use it to make props non-sticky.
+	(sh-add-completer): Use test-completion.
+
 2003-01-18  Vasily Korytov  <deskpot@myrealbox.com>  (tiny change)
 
 	* progmodes/cperl-mode.el: Don't make faces depend on window-system.
@@ -6,10 +13,14 @@
 
 	* cus-edit.el (customize-changed-options): Undo last doc change.
 
+2003-01-17  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* skeleton.el (skeleton-internal-list, skeleton-internal-1):
+	Don't treat \n specially in sub-skeletons.
+
 2003-01-17  Dave Love  <fx@gnu.org>
 
-	* international/ucs-tables.el: Redo 8859-6 change in the right
-	place.
+	* international/ucs-tables.el: Redo 8859-6 change in the right place.
 
 2003-01-17  Kenichi Handa  <handa@m17n.org>
 
@@ -24,6 +35,11 @@
 	* term/w32-win.el: Call setup-default-fontset.
 
 	* term/mac-win.el: Require fontset and call setup-default-fontset.
+
+2003-01-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/fill.el (fill-region-as-paragraph): Only erase `hard'
+	property until end-of-paragraph.
 
 2003-01-16  Kenichi Handa  <handa@m17n.org>
 
@@ -44,8 +60,8 @@
 
 2003-01-15  John Wiegley  <johnw@gnu.org>
 
-	* eshell/em-hist.el (eshell-save-history-on-exit): Renamed
-	`eshell-ask-to-save-history' to `eshell-save-history-on-exit',
+	* eshell/em-hist.el (eshell-save-history-on-exit):
+	Rename `eshell-ask-to-save-history' to `eshell-save-history-on-exit',
 	because the former name is somewhat unrelated to the variables'
 	possible values.
 
@@ -55,8 +71,7 @@
 
 	* calc/*: Ditto.
 
-	* calc/calc.el (calc-bug-address): Change address to
-	deego@gnufans.org
+	* calc/calc.el (calc-bug-address): Change address to deego@gnufans.org.
 
 2003-01-15  Andrew Innes  <andrewi@gnu.org>
 
@@ -79,9 +94,16 @@
 2003-01-15  YAMAMOTO Mitsuharu <mituharu@math.s.chiba-u.ac.jp>  (tiny change)
 
 	* international/mule.el (optimize-char-coding-system-table):
-	  Optimize it.
+	Optimize it.
 
 	* term/mac-win.el: Setup the fontset "fontset-mac" correctly.
+
+2003-01-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* pcvs-info.el (cvs-fileinfo-from-entries): Deal with Solaris'
+	occasional use of "05" rather than " 5" for day-of-month.
+
+	* log-view.el (log-view-message-re): The rev might be locked.
 
 2003-01-14  Nick Roberts  <nick@nick.uklinux.net>
 
@@ -134,11 +156,11 @@
 2003-01-14  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el: Doc fixes.
-	(ido-max-file-prompt-width): Renamed from ido-max-prompt-path.
-	(ido-rewrite-file-prompt-functions): Renamed from
+	(ido-max-file-prompt-width): Rename from ido-max-prompt-path.
+	(ido-rewrite-file-prompt-functions): Rename from
 	ido-make-file-prompt-hook.  Directory name is now in dynamic
 	variable `dirname' (instead of `path').
-	(ido-rewrite-file-prompt-rules): Renamed from
+	(ido-rewrite-file-prompt-rules): Rename from
 	ido-rewrite-prompt-path-rules.
 	(ido-make-prompt): Directory name now in `dirname' var.
 	(ido-complete): Fix error message.
@@ -151,8 +173,8 @@
 
 2003-01-13  Dave Love  <fx@gnu.org>
 
-	* international/utf-16.el (mule-utf-16-be, mule-utf-16-le): Remove
-	pre-write-conversion.
+	* international/utf-16.el (mule-utf-16-be, mule-utf-16-le):
+	Remove pre-write-conversion.
 
 2003-01-13  Kim F. Storm  <storm@cua.dk>
 
@@ -168,8 +190,8 @@
 	* ruler-mode.el (ruler-mode-comment-column-char)
 	(ruler-mode-goal-column-char, ruler-mode-set-goal-column-ding-flag)
 	(ruler-mode-mouse-current-grab-object): New variables.
-	(ruler-mode-comment-column-face, ruler-mode-goal-column-face): New
-	faces.
+	(ruler-mode-comment-column-face, ruler-mode-goal-column-face):
+	New faces.
 	(ruler-mode-mouse-set-fill-column): Removed.
 	(ruler-mode-mouse-grab-any-column)
 	(ruler-mode-mouse-drag-any-column-iteration)
@@ -177,17 +199,17 @@
 	(ruler-mode-map): [header-line down-mouse-2] Bound to
 	`ruler-mode-mouse-grab-any-column' instead of
 	`ruler-mode-mouse-set-fill-column'.
-	(ruler-mode-ruler-help-echo): Updated its value.
-	(ruler-mode-ruler-help-echo-when-goal-column): New help string used when
-	goal-column is already set.
-	(ruler-mode-ruler-help-echo-tab): Renamed to...
+	(ruler-mode-ruler-help-echo): Update its value.
+	(ruler-mode-ruler-help-echo-when-goal-column): New help string used
+	when goal-column is already set.
+	(ruler-mode-ruler-help-echo-tab): Rename to...
 	(ruler-mode-ruler-help-echo-when-tab-stops): New.
 	(ruler-mode-fill-column-help-echo, ruler-mode-comment-column-help-echo)
 	(ruler-mode-goal-column-help-echo): New help strings.
 	(ruler-mode-ruler): Use `ruler-mode-ruler-help-echo-when-goal-column'
-	instead of `ruler-mode-ruler-help-echo' if `goal-column' is set.  Show
-	`comment-column' and `goal-column'.  Echo the different help string for
-	each *-column characters on the ruler.
+	instead of `ruler-mode-ruler-help-echo' if `goal-column' is set.
+	Show `comment-column' and `goal-column'.  Echo the different help
+	string for each *-column characters on the ruler.
 
 2003-01-13  Richard M. Stallman  <rms@gnu.org>
 
@@ -284,7 +306,7 @@
 
 2003-01-09  John Wiegley  <johnw@gnu.org>
 
-	* pcomplete.el (pcomplete-termination-string): Added a variable
+	* pcomplete.el (pcomplete-termination-string): Add a variable
 	for modifying the string which is inserted after a completion or
 	expansion using pcomplete.
 
@@ -382,7 +404,7 @@
 
 2003-01-05  Richard M. Stallman  <rms@gnu.org>
 
-	* obsolete/uncompress.el: Display message that this package is obsolete.
+	* obsolete/uncompress.el: Display message that this pkg is obsolete.
 
 	* isearch.el (isearch-repeat): Error if try to repeat search and
 	there was no previous search.
@@ -565,11 +587,9 @@
 	use $(lisp).
 	(compile-calc): Fix command substitution.
 	* cus-dep.el (generated-custom-dependencies-file): New variable.
-	(custom-make-dependencies): Use it instead of hardcoding
-	cus-load.el.
+	(custom-make-dependencies): Use it instead of hardcoding cus-load.el.
 	* finder.el (generated-finder-keywords-file): New variable.
-	(finder-compile-keywords): Use it instead of hardcoding
-	finder-inf.el.
+	(finder-compile-keywords): Use it instead of hardcoding finder-inf.el.
 
 2002-12-28  Richard M. Stallman  <rms@gnu.org>
 
@@ -588,9 +608,9 @@
 
 2002-12-28  Andreas Schwab  <schwab@suse.de>
 
-	* progmodes/make-mode.el (makefile-font-lock-keywords): Highlight
-	automatic variable references enclosed in parens and optionally
-	suffixed by F or D.
+	* progmodes/make-mode.el (makefile-font-lock-keywords):
+	Highlight automatic variable references enclosed in parens and
+	optionally suffixed by F or D.
 
 2002-12-27  Miles Bader  <miles@gnu.org>
 
@@ -886,7 +906,7 @@
 
 2002-12-16  Kim F. Storm  <storm@cua.dk>
 
-	* ido.el (ido-read-file-name): Removed debug message.
+	* ido.el (ido-read-file-name): Remove debug message.
 
 2002-12-16  Daniel Pfeiffer  <occitan@esperanto.org>
 
@@ -933,7 +953,7 @@
 2002-12-15  Dave Love  <fx@gnu.org>
 
 	* international/mule-cmds.el (standard-keyboard-coding-systems):
-	Deleted.
+	Delete.
 	(set-locale-environment): Don't use it.
 
 	* international/utf-8.el (ucs-mule-cjk-to-unicode)
