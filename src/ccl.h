@@ -68,8 +68,8 @@ struct ccl_spec {
 extern Lisp_Object Vfont_ccl_encoder_alist;
 
 /* Setup fields of the structure pointed by CCL appropriately for the
-   execution of compiled CCL code in VEC (vector of integer).  */
-extern void setup_ccl_program P_ ((struct ccl_program *, Lisp_Object));
+   execution of ccl program CCL_PROG (symbol or vector).  */
+extern int setup_ccl_program P_ ((struct ccl_program *, Lisp_Object));
 
 extern int ccl_driver P_ ((struct ccl_program *, unsigned char *,
 			   unsigned char *, int, int, int *));
