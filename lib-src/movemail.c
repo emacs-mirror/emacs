@@ -303,13 +303,15 @@ main (argc, argv)
 #endif
 
 #ifndef MAIL_USE_FLOCK
-      /* Delete the input file; if we can't, at least get rid of its contents.  */
+      /* Delete the input file; if we can't, at least get rid of its
+	 contents.  */
 #ifdef MAIL_UNLINK_SPOOL
       /* This is generally bad to do, because it destroys the permissions
 	 that were set on the file.  Better to just empty the file.  */
       if (unlink (inname) < 0 && errno != ENOENT)
 #endif /* MAIL_UNLINK_SPOOL */
 	creat (inname, 0600);
+#endif /* not MAIL_USE_FLOCK */
 
       exit (0);
     }
@@ -320,10 +322,9 @@ main (argc, argv)
   else if (WRETCODE (status) != 0)
     exit (WRETCODE (status));
 
-#ifndef MAIL_USE_MMDF
+#if !defined (MAIL_USE_MMDF) && !defined (MAIL_USE_FLOCK)
   unlink (lockname);
-#endif /* not MAIL_USE_MMDF */
-#endif /* not MAIL_USE_FLOCK */
+#endif /* not MAIL_USE_MMDF and not MAIL_USE_FLOCK */
   exit (0);
 }
 
@@ -769,3 +770,18 @@ mbx_delimit_end (mbf)
 }
 
 #endif /* MAIL_USE_POP */
+
+#ifndef HAVE_STRERROR
+char *
+strerror (errnum)
+     int errnum;
+{
+  extern char *sys_errlist[];
+  extern int sys_nerr;
+
+  if (errnum >= 0 && errnum < sys_nerr)
+    return sys_errlist[errnum];
+  return (char *) "Unknown error";
+}
+
+#endif /* ! HAVE_STRERROR */
