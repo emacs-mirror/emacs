@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.34) $
+ * $HopeName: MMsrc!poolamc.c(trunk.35) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -9,7 +9,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.34) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.35) $");
 
 
 /* Binary i/f used by ASG (drj 1998-06-11) */
@@ -913,7 +913,7 @@ static double AMCBenefit(Pool pool, Action action)
   AMCGen gen;           /* generation which owns action */
   AMC amc;
   Arena arena;
-  double f;             /* frequency of collection, in Mb of alloc */
+  double f;             /* frequency of collection, in kB of alloc */
   Bool inRampMode;
 
   AVERT(Pool, pool);
@@ -955,7 +955,7 @@ static double AMCBenefit(Pool pool, Action action)
 
   arena = PoolArena(pool);
 
-  return (ArenaMutatorAllocSize(arena) - gen->collected) - f * 1024*1024L;
+  return (ArenaMutatorAllocSize(arena) - gen->collected) - f * 1024uL;
 }
 
 
@@ -1167,8 +1167,7 @@ static Res AMCAct(Pool pool, Action action)
   }
 
   TraceStart(trace, TraceMortalityEstimate,
-             AMCGen0Frequency * TraceGen0IncrementalityMultiple
-             * 1024*1024uL);
+             TraceGen0IncrementalityMultiple * AMCGen0Frequency * 1024uL);
 
   /* Make sure the generation collection time gets updated even */
   /* if the collection is empty. */
@@ -1193,6 +1192,7 @@ failCreate:
  * also if during emergency fixing any new marks got added to the
  * nail board.
  */
+
 static Res AMCScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
                              ScanState ss, Pool pool,
                              Seg seg, AMC amc)
