@@ -127,7 +127,12 @@ The value of this variable is used when JIT Lock mode is turned on."
 		 (other :tag "syntax-driven" syntax-driven))
   :group 'jit-lock)
 
-
+(defcustom jit-lock-defer-time nil ;; 0.5
+  "Idle time after which deferred fontification should take place.
+If nil, fontification is not deferred."
+  :group 'jit-lock
+  :type '(choice (const :tag "never" nil)
+	         (number :tag "seconds")))
 
 ;;; Variables that are not customizable.
 
@@ -148,6 +153,12 @@ If nil, contextual fontification is disabled.")
 
 (defvar jit-lock-stealth-timer nil
   "Timer for stealth fontification in Just-in-time Lock mode.")
+
+(defvar jit-lock-defer-timer nil
+  "Timer for deferred fontification in Just-in-time Lock mode.")
+
+(defvar jit-lock-buffers nil
+  "List of buffers with pending deferred fontification.")
 
 ;;; JIT lock mode
 
@@ -186,15 +197,20 @@ the variable `jit-lock-stealth-nice'."
   (cond (;; Turn Just-in-time Lock mode on.
 	 jit-lock-mode
 
- 	 ;; Mark the buffer for refontification
+ 	 ;; Mark the buffer for refontification.
 	 (jit-lock-refontify)
 
 	 ;; Install an idle timer for stealth fontification.
 	 (when (and jit-lock-stealth-time (null jit-lock-stealth-timer))
 	   (setq jit-lock-stealth-timer
-		 (run-with-idle-timer jit-lock-stealth-time
-				      jit-lock-stealth-time
+		 (run-with-idle-timer jit-lock-stealth-time t
 				      'jit-lock-stealth-fontify)))
+
+	 ;; Init deferred fontification timer.
+	 (when (and jit-lock-defer-time (null jit-lock-defer-timer))
+	   (setq jit-lock-defer-timer
+		 (run-with-idle-timer jit-lock-defer-time t
+				      'jit-lock-deferred-fontify)))
 
 	 ;; Initialize deferred contextual fontification if requested.
 	 (when (eq jit-lock-defer-contextually t)
@@ -207,10 +223,19 @@ the variable `jit-lock-stealth-nice'."
 
 	;; Turn Just-in-time Lock mode off.
 	(t
-	 ;; Cancel our idle timer.
-	 (when jit-lock-stealth-timer
-	   (cancel-timer jit-lock-stealth-timer)
-	   (setq jit-lock-stealth-timer nil))
+	 ;; Cancel our idle timers.
+	 (when (and (or jit-lock-stealth-timer jit-lock-defer-timer)
+		    ;; Only if there's no other buffer using them.
+		    (not (catch 'found
+			   (dolist (buf (buffer-list))
+			     (with-current-buffer buf
+			       (when jit-lock-mode (throw 'found t)))))))
+	   (when jit-lock-stealth-timer
+	     (cancel-timer jit-lock-stealth-timer)
+	     (setq jit-lock-stealth-timer nil))
+	   (when jit-lock-defer-timer
+	     (cancel-timer jit-lock-defer-timer)
+	     (setq jit-lock-defer-timer nil)))
 
 	 ;; Remove hooks.
 	 (remove-hook 'after-change-functions 'jit-lock-after-change t)
@@ -242,8 +267,8 @@ Only applies to the current buffer."
   (with-buffer-prepared-for-jit-lock
    (save-restriction
      (widen)
-     (add-text-properties (or beg (point-min)) (or end (point-max))
-			  '(fontified nil)))))
+     (put-text-property (or beg (point-min)) (or end (point-max))
+			'fontified nil))))
 
 ;;; On demand fontification.
 
@@ -252,8 +277,20 @@ Only applies to the current buffer."
 This function is added to `fontification-functions' when `jit-lock-mode'
 is active."
   (when jit-lock-mode
-    (jit-lock-fontify-now start (+ start jit-lock-chunk-size))))
-     
+    (if (null jit-lock-defer-time)
+	;; No deferral.
+	(jit-lock-fontify-now start (+ start jit-lock-chunk-size))
+      ;; Record the buffer for later fontification.
+      (unless (memq (current-buffer) jit-lock-buffers)
+	(push (current-buffer) jit-lock-buffers))
+      ;; Mark the area as defer-fontified so that the redisplay engine
+      ;; is happy and so that the idle timer can find the places to fontify.
+      (with-buffer-prepared-for-jit-lock
+       (put-text-property start
+			  (next-single-property-change
+			   start 'fontified nil
+			   (min (point-max) (+ start jit-lock-chunk-size)))
+			  'fontified 'defer)))))
 
 (defun jit-lock-fontify-now (&optional start end)
   "Fontify current buffer from START to END.
@@ -294,9 +331,9 @@ Defaults to the whole buffer.  END can be out of bounds."
 	     ;; Fontify the chunk, and mark it as fontified.
 	     ;; We mark it first, to make sure that we don't indefinitely
 	     ;; re-execute this fontification if an error occurs.
-	     (add-text-properties start next '(fontified t))
+	     (put-text-property start next 'fontified t)
 	     (run-hook-with-args 'jit-lock-functions start next)
-		   
+
 	     ;; Find the start of the next chunk, if any.
 	     (setq start (text-property-any next end 'fontified nil)))))))))
 
@@ -310,7 +347,7 @@ Value is nil if there is nothing more to fontify."
       nil
     (save-restriction
       (widen)
-      (let* ((next (text-property-any around (point-max) 'fontified nil))
+      (let* ((next (text-property-not-all around (point-max) 'fontified t))
 	     (prev (previous-single-property-change around 'fontified))
 	     (prop (get-text-property (max (point-min) (1- around))
 				      'fontified))
@@ -320,11 +357,11 @@ Value is nil if there is nothing more to fontify."
 		      ;; and the start of the buffer.  If PROP is
 		      ;; non-nil, everything in front of AROUND is
 		      ;; fontified, otherwise nothing is fontified.
-		      (if prop
+		      (if (eq prop t)
 			  nil
 			(max (point-min)
 			     (- around (/ jit-lock-chunk-size 2)))))
-		     (prop
+		     ((eq prop t)
 		      ;; PREV is the start of a region of fontified
 		      ;; text containing AROUND.  Start fontifying a
 		      ;; chunk size before the end of the unfontified
@@ -349,6 +386,7 @@ Value is nil if there is nothing more to fontify."
   "Fontify buffers stealthily.
 This functions is called after Emacs has been idle for
 `jit-lock-stealth-time' seconds."
+  ;; I used to check `inhibit-read-only' here, but I can't remember why.  -stef
   (unless (or executing-kbd-macro
 	      (window-minibuffer-p (selected-window)))
     (let ((buffers (buffer-list))
@@ -384,9 +422,20 @@ This functions is called after Emacs has been idle for
 		    (widen)
 		    (when (and (>= jit-lock-first-unfontify-pos (point-min))
 			       (< jit-lock-first-unfontify-pos (point-max)))
+		      ;; If we're in text that matches a complex multi-line
+		      ;; font-lock pattern, make sure the whole text will be
+		      ;; redisplayed eventually.
+		      (when (get-text-property jit-lock-first-unfontify-pos
+					       'jit-lock-defer-multiline)
+			(setq jit-lock-first-unfontify-pos
+			      (or (previous-single-property-change
+				   jit-lock-first-unfontify-pos
+				   'jit-lock-defer-multiline)
+				  (point-min))))
 		      (with-buffer-prepared-for-jit-lock
-		       (put-text-property jit-lock-first-unfontify-pos
-					  (point-max) 'fontified nil))
+			(remove-text-properties
+			 jit-lock-first-unfontify-pos (point-max)
+			 '(fontified nil jit-lock-defer-multiline nil)))
 		      (setq jit-lock-first-unfontify-pos (point-max)))))
 
 		;; In the following code, the `sit-for' calls cause a
@@ -396,24 +445,53 @@ This functions is called after Emacs has been idle for
 		;; an unmodified buffer would show a `*'.
 		(let (start
 		      (nice (or jit-lock-stealth-nice 0))
-		      (point (point)))
+		      (point (point-min)))
 		  (while (and (setq start
 				    (jit-lock-stealth-chunk-start point))
 			      (sit-for nice))
 		    
+		    ;; fontify a block.
+		    (jit-lock-fontify-now start (+ start jit-lock-chunk-size))
+		    ;; If stealth jit-locking is done backwards, this leads to
+		    ;; excessive O(n^2) refontification.   -stef
+		    ;; (when (>= jit-lock-first-unfontify-pos start)
+		    ;;   (setq jit-lock-first-unfontify-pos end))
+		    
 		    ;; Wait a little if load is too high.
 		    (when (and jit-lock-stealth-load
 			       (> (car (load-average)) jit-lock-stealth-load))
-		      (sit-for (or jit-lock-stealth-time 30)))
-		    
-		    ;; Unless there's input pending now, fontify.
-		    (unless (input-pending-p)
-		      (jit-lock-fontify-now
-		       start (+ start jit-lock-chunk-size)))))))))))))
+		      (sit-for (or jit-lock-stealth-time 30)))))))))))))
 
 
 
 ;;; Deferred fontification.
+
+(defun jit-lock-deferred-fontify ()
+  "Fontify what was deferred."
+  (when jit-lock-buffers
+    ;; Mark the deferred regions back to `fontified = nil'
+    (dolist (buffer jit-lock-buffers)
+      (when (buffer-live-p buffer)
+	(with-current-buffer buffer
+	  ;; (message "Jit-Defer %s" (buffer-name))
+	  (with-buffer-prepared-for-jit-lock
+	   (let ((pos (point-min)))
+	     (while
+		 (progn
+		   (when (eq (get-text-property pos 'fontified) 'defer)
+		     (put-text-property
+		      pos (setq pos (next-single-property-change
+				     pos 'fontified nil (point-max)))
+		      'fontified nil))
+		   (setq pos (next-single-property-change pos 'fontified)))))))))
+    (setq jit-lock-buffers nil)
+    ;; Force fontification of the visible parts.
+    (let ((jit-lock-defer-time nil))
+      ;; (message "Jit-Defer Now")
+      (sit-for 0)
+      ;; (message "Jit-Defer Done")
+      )))
+      
 
 (defun jit-lock-after-change (start end old-len)
   "Mark the rest of the buffer as not fontified after a change.
@@ -435,6 +513,7 @@ will take place when text is fontified stealthily."
        
        ;; If we're in text that matches a multi-line font-lock pattern,
        ;; make sure the whole text will be redisplayed.
+       ;; I'm not sure this is ever necessary and/or sufficient.  -stef
        (when (get-text-property start 'font-lock-multiline)
 	 (setq start (or (previous-single-property-change
 			  start 'font-lock-multiline)
