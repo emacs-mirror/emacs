@@ -165,9 +165,10 @@ construct which matches the actual executable.")
 
 
 
-(defvar sh-chmod-argument "755"
+(defvar sh-chmod-argument "+x"
   "*After saving, if the file is not executable, set this mode.
-The mode can be absolute \"511\" or relative \"u+x\".  Do nothing if this is nil.")
+The mode can be absolute, such as \"777\", or relative, such as \"+x\".
+Do nothing if this is nil.")
 
 
 (defvar sh-shell-path (or (getenv "SHELL") "/bin/sh")
