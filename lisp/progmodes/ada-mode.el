@@ -6,7 +6,7 @@
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.37 $
+;; Ada Core Technologies's version:   $Revision: 1.38 $
 ;; Keywords: languages ada
 
 ;; This file is not part of GNU Emacs
@@ -311,7 +311,7 @@ not to 'begin'."
 (defcustom ada-popup-key '[down-mouse-3]
   "*Key used for binding the contextual menu.
 If nil, no contextual menu is available."
-  :type '(restricted-regexp :match-alternatives '(stringp vectorp))
+  :type '(restricted-sexp :match-alternatives (stringp vectorp))
   :group 'ada)
 
 (defcustom ada-search-directories
