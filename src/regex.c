@@ -1011,7 +1011,8 @@ typedef struct
 #define FAIL_STACK_FULL()      (fail_stack.avail == fail_stack.size)
 
 
-/* Initialize `fail_stack'.  Do `return -2' if the alloc fails.  */
+/* Define macros to initialize and free the failure stack.
+   Do `return -2' if the alloc fails.  */
 
 #ifdef MATCH_MAY_ALLOCATE
 #define INIT_FAIL_STACK()						\
@@ -1025,11 +1026,15 @@ typedef struct
     fail_stack.size = INIT_FAILURE_ALLOC;				\
     fail_stack.avail = 0;						\
   } while (0)
+
+#define RESET_FAIL_STACK()  REGEX_FREE_STACK (fail_stack.stack)
 #else
 #define INIT_FAIL_STACK()						\
   do {									\
     fail_stack.avail = 0;						\
   } while (0)
+
+#define RESET_FAIL_STACK()
 #endif
 
 
@@ -3080,7 +3085,7 @@ re_compile_fastmap (bufp)
             {
               if (!PUSH_PATTERN_OP (p + j, fail_stack))
 		{
-		  REGEX_FREE_STACK (fail_stack.stack);
+		  RESET_FAIL_STACK ();
 		  return -2;
 		}
             }
@@ -3141,8 +3146,7 @@ re_compile_fastmap (bufp)
   bufp->can_be_null |= path_can_be_null;
 
  done:
-  if (!FAIL_STACK_EMPTY ())
-     REGEX_FREE_STACK (fail_stack.stack);
+  RESET_FAIL_STACK ();
   return 0;
 } /* re_compile_fastmap */
 
