@@ -24,13 +24,17 @@ Boston, MA 02111-1307, USA.  */
 
 #include <config.h>
 
+#ifdef HAVE_X_WINDOWS
+
 /* On 4.3 these lose if they come after xterm.h.  */
 /* Putting these at the beginning seems to be standard for other .c files.  */
 #include <signal.h>
 
 #include <stdio.h>
 
-#ifdef HAVE_X_WINDOWS
+#ifdef BOEHM_GC
+#include <gc.h>
+#endif
 
 #include "lisp.h"
 #include "blockinput.h"
@@ -7106,7 +7110,6 @@ XTread_socket (sd, bufp, numchars, expected)
 
       while (gtk_events_pending ())
         {
-          static int nr = 0;
           current_count = count;
           current_numcharsp = &numchars;
           current_bufp = &bufp;
@@ -10241,7 +10244,7 @@ x_term_init (display_name, xrm_option, resource_name)
       dpyinfo->kboard = share->kboard;
     else
       {
-	dpyinfo->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
+	dpyinfo->kboard = (KBOARD *) XGC_MALLOC (sizeof (KBOARD));
 	init_kboard (dpyinfo->kboard);
 	if (!EQ (XSYMBOL (Qvendor_specific_keysyms)->function, Qunbound))
 	  {
