@@ -1040,7 +1040,7 @@ name, or it may get an error.  If such a problem happens, use @kbd{C-x
 C-w} to specify a new file name for that buffer.
 
 @vindex locale-coding-system
-@cindex decoding non-ASCII characters on X
+@cindex decoding non-ASCII keyboard input on X
   The variable @code{locale-coding-system} specifies a coding system
 to use when encoding and decoding system strings such as system error
 messages and @code{format-time-string} formats and time stamps.  That
