@@ -19,12 +19,11 @@ rem   the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 rem   ----------------------------------------------------------------------
 rem   YOU'LL NEED THE FOLLOWING UTILITIES TO MAKE EMACS:
 rem
-rem   + djgpp.
+rem   + djgpp version 1,11
 rem   + make utility that allows breaking of 128 chars limit of commands.
 rem     ndmake (as of version 4.5) won't work due to a line length limit.
 rem   + rm, mv, chmod (From GNU file utilities).
 rem   + sed.
-rem   + patch (Larry Wall's for instance.  I think it's supplied with djgpp).
 rem   ----------------------------------------------------------------------
 if not "%2" == "" goto usage
 if "%1" == "msdos" goto msdos
@@ -77,15 +76,10 @@ rem   On my system dir.h gets in the way.  It's a VMS file so who cares.
 if exist dir.h ren dir.h vmsdir.h
 
 rem   Create "makefile" from "makefile.in.in" using a context patch.
-rm -f makefile
-cp %MAKEFILEIN% makefile
-patch -p1 -B ! -r patch.rjt makefile ../msdos/patch1
-echo All hunks above should have passed!  If they didn't, you'll have to
-echo update manually.  That should be easy though.
-mv makefile junk.c
+rm -f makefile junk.c
+cp %MAKEFILEIN% junk.c
 gcc -E junk.c | sed -f ../msdos/sed1.inp >makefile
-del !makefile
-del junk.c
+rm -f junk.c
 cd ..
 rem   ----------------------------------------------------------------------
 Echo Configuring the library source directory...
