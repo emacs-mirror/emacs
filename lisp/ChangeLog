@@ -1,3 +1,8 @@
+2002-01-02  Richard M. Stallman  <rms@gnu.org>
+
+	* facemenu.el (facemenu-active-faces):
+	Use face-attributes-as-vector, not face-attributes-vector.
+
 2002-01-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* bindings.el (function-key-map): Don't bind shifted keypad
