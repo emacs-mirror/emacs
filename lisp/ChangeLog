@@ -1,3 +1,25 @@
+2003-05-17  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdb-info-frames-custom): Reverse contrast of face for
+	selected frame.
+	(gdb-annotation-rules): Stop using frames-invalid and
+	breakpoints-invalid annotations. Update after post-prompt instead.
+	(gdb-post-prompt): Update frames and breakpoints here.
+	(gdb-invalidate-frame-and-assembler)
+	(gdb-invalidate-breakpoints-and-assembler): Remove.
+	(gdb-current-address): Remove.
+	(gdb-previous-address): New variable.
+	(gud-until): Extend to work in Assembler buffer
+	(gdb-append-to-inferior-io): Select IO buffer when there is
+	output.
+	(gdb-assembler-custom): Try to get line marker (arrow) to display
+	in window. Correct parsing for OS dependent output syntax of Gdb
+	command, where.
+	(gdb-frame-handler): Correct parsing for OS dependent output
+	syntax of Gdb command, frame.
+	(gdb-invalidate-assembler): Update assembler buffer correctly when
+	frame changes (revisited).
+
 2003-05-16  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* imenu.el (imenu--split-menu): Remove unused var `count'.
