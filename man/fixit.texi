@@ -255,7 +255,7 @@ Insert this word in your private dictionary file so that Ispell will
 consider it correct it from now on, even in future sessions.
 
 @item u
-Insert the lower-case version of this word in your private dictionary
+Insert the lower-case version of this word in your private dic@-tion@-ary
 file.
 
 @item m
