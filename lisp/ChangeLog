@@ -1,3 +1,8 @@
+2001-11-17  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/checkdoc.el (princ-list, checkdoc-read-event)
+	(add-to-list): Delete compatibility code.
+
 2001-11-17  Stephen Eglen  <stephen@gnu.org>
 
 	* locate.el (locate): Show default locate pattern within the
@@ -67,8 +72,6 @@
 	(mail-extr-leading-garbage): Match non-word characters only.
 
 2001-11-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
-
-	* emulation/viper.el: Fix typo.
 
 	* startup.el (command-line-processed): Doc fix.
 
