@@ -100,6 +100,12 @@ and sent with `smtpmail-send-queued-mail'."
   "File name of queued mail index,
 This is relative to `smtpmail-queue-dir'.")
 
+(defvar smtpmail-address-buffer)
+(defvar smtpmail-recipient-address-list)
+
+;; Buffer-local variable.
+(defvar smtpmail-read-point)
+
 (defvar smtpmail-queue-index (concat smtpmail-queue-dir
 				     smtpmail-queue-index-file))
 
@@ -558,8 +564,8 @@ This is relative to `smtpmail-queue-dir'.")
 (defun smtpmail-send-data-1 (process data)
   (goto-char (point-max))
 
-  (if (not (null smtpmail-code-conv-from))
-      (setq data (code-convert-string data smtpmail-code-conv-from *internal*)))
+  (when smtpmail-code-conv-from
+    (setq data (encode-coding-string data *internal* smtpmail-code-conv-from)))
 	
   (if smtpmail-debug-info
       (insert data "\r\n"))
