@@ -910,7 +910,9 @@ window_box_height (w)
 	height -= estimate_mode_line_height (f, HEADER_LINE_FACE_ID);
     }
 
-  return height;
+  /* With a very small font and a mode-line that's taller than
+     default, we might end up with a negative height.  */
+  return max (0, height);
 }
 
 
