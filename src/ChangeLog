@@ -1,5 +1,16 @@
 2000-12-28  Kenichi Handa  <handa@etl.go.jp>
 
+	* ccl.c (CCL_WRITE_CHAR): Check variable `extra_bytes'.
+	(ccl_driver): New local variable `extra_bytes'.
+
+	* ccl.h (struct ccl_spec): New member eight_bit_carryover.
+
+	* coding.c (setup_coding_system): Initialize
+	coding->spec.ccl.eight_bit_carryover.
+	(ccl_coding_driver): Pay attention to carried over 8-bit bytes.
+
+2000-12-28  Kenichi Handa  <handa@etl.go.jp>
+
 	* coding.c (SAFE_ONE_MORE_BYTE): New macro.
 	(DECODE_EMACS_MULE_COMPOSITION_CHAR): New macro.
 	(DECODE_EMACS_MULE_COMPOSITION_RULE): New macro.
