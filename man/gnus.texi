@@ -14039,7 +14039,7 @@ if it thinks that the mail belongs in that group.
 Nnmail users might recollect that the last regexp had to be empty to
 match all articles (like in the example above).  This is not required in
 nnimap.  Articles not matching any of the regexps will not be moved out
-of your inbox.  (This might might affect performance if you keep lots of
+of your inbox.  (This might affect performance if you keep lots of
 unread articles in your inbox, since the splitting code would go over
 them every time you fetch new mail.)
 
@@ -14708,7 +14708,7 @@ your desired @code{downloading} criteria for a group are the same as your
 
 These directives in either the category definition or a group's
 parameters will cause the agent to read in all the applicable score
-files for a group, *filtering out* those those sections that do not
+files for a group, *filtering out* those sections that do not
 relate to one of the permitted subset of scoring keywords.
 
 @itemize @bullet
@@ -16128,7 +16128,7 @@ A list.  The elements in this list can be:
 @enumerate
 @item
 @code{(@var{regexp} @var{file-name})}.  If the @var{regexp} matches the
-group name, the @var{file-name} will will be used as the home score file.
+group name, the @var{file-name} will be used as the home score file.
 
 @item
 A function.  If the function returns non-nil, the result will be used as
@@ -18056,7 +18056,7 @@ never be totally undoable.
 @findex gnus-undo
 The undoability is provided by the @code{gnus-undo-mode} minor mode.  It
 is used if @code{gnus-use-undo} is non-@code{nil}, which is the
-default.  The @kbd{M-C-_} key performs the @code{gnus-undo} command
+default.  The @kbd{M-C-_} key performs the @code{gnus-undo} 
 command, which should feel kinda like the normal Emacs @code{undo}
 command.
 
