@@ -397,6 +397,10 @@ struct coding_system
   /* Index number of coding category of the coding system.  */
   int category_idx;
 
+  /* The following two members specify how characters 128..159 are
+     represented in source and destination text respectively.  1 means
+     they are represented by 2-byte sequence, 0 means they are
+     represented by 1-byte as is (see the comment in charset.h).  */
   unsigned src_multibyte : 1;
   unsigned dst_multibyte : 1;
 
