@@ -15,6 +15,15 @@
 
 2002-12-05  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* gdb-ui.el: Replace uses of (gdb-get-instance-buffer 'gdba) and
+	gdb-proc with gud-comint-buffer instead.
+	(gdb-proc): Remove.
+	(def-gdb-var): Simplify.
+	(gdb-get-create-instance-buffer): Avoid make-variable-buffer-local.
+	Set gud-comint-buffer as well as gud-minor-mode and tool-bar-map.
+	(gdb-goto-bp-this-line): Select the window while doing the goto-line.
+	(gdb-info-locals-handler): Avoid replace-regexp.
+
 	* calendar/calendar.el (facemenu-unlisted-faces): Only update
 	after facemenu is loaded.
 	(calendar-font-lock-keywords): Accept non-ASCII month names.
@@ -109,7 +118,10 @@
 
 2002-12-04  Richard M. Stallman  <rms@gnu.org>
 
-	* gud.el (gud-menu-map): Delete CVS conflict markers.
+	* gud.el (gud-menu-map): Update for bashdb.
+	(perldb): Change prompt regexp.
+	(gud-bashdb-history, gud-bashdb-massage-args, gud-bashdb-marker-filter)
+	(gud-bashdb-find-file, gud-bashdb-command-name, bashdb): New.
 
 	* progmodes/cc-vars.el: Simply require wid-edit and custom
 	in eval-when-compile.
