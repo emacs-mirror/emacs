@@ -4212,8 +4212,8 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	 articles fetched-articles cached)
 
     (unless (gnus-check-server
-	     (setq gnus-current-select-method
-		   (gnus-find-method-for-group group)))
+	     (set (make-local-variable 'gnus-current-select-method)
+		  (gnus-find-method-for-group group)))
       (error "Couldn't open server"))
 
     (or (and entry (not (eq (car entry) t))) ; Either it's active...
