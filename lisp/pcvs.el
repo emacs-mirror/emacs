@@ -14,7 +14,7 @@
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs.el,v 1.13 2000/10/15 05:18:33 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.14 2000/11/03 22:34:26 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -57,10 +57,17 @@
 ;; ******** FIX THE DOCUMENTATION *********
 ;; 
 ;; - use UP-TO-DATE rather than DEAD when cleaning before `examine'.
-;; - Allow to flush messages only
-;; - Allow to protect files like ChangeLog from flushing
-;; - Automatically cvs-mode-insert files from find-file-hook
+;; - allow to flush messages only
+;; - allow to protect files like ChangeLog from flushing
+;; - automatically cvs-mode-insert files from find-file-hook
 ;;   (and don't flush them as long as they are visited)
+;; - query the user for cvs-get-marked (for some cmds or if nothing's selected)
+;; - don't return the first (resp last) FI if the cursor is before
+;;   (resp after) it.
+;; - allow cvs-confirm-removals to force always confirmation.
+;;   also, use a fancier "temp buffer popup scheme".
+;; - cvs-checkout should ask for a revision (with completion).
+;; - removal confirmation should allow specifying another file name.
 ;; 
 ;; - hide fileinfos without getting rid of them (will require ewok work).
 ;; - add toolbar entries
@@ -318,14 +325,11 @@ the primay since reading the primary can deactivate it."
 
 ;;;;
 
-(define-minor-mode
- cvs-minor-mode
- "
-This mode is used for buffers related to a main *cvs* buffer.
+(define-minor-mode cvs-minor-mode
+  "This mode is used for buffers related to a main *cvs* buffer.
 All the `cvs-mode' buffer operations are simply rebound under
-the \\[cvs-mode-map] prefix.
-"
- nil " CVS")
+the \\[cvs-mode-map] prefix."
+  nil " CVS")
 (put 'cvs-minor-mode 'permanent-local t)
 
 
@@ -563,29 +567,29 @@ Working dir: " (abbreviate-file-name dir) "
 		       (mapcar 'cvs-fileinfo->full-path fis))))
 	 (str (if args (concat "-- Running " cvs-program " " arg " ...\n")
 		"\n")))
-    (if nil (insert str) ;inline
+    (if nil (insert str)		;inline
       ;;(with-current-buffer cvs-buffer
-	(let* ((prev-msg (car (ewoc-get-hf cvs-cookies)))
-	       (tin (ewoc-nth cvs-cookies 0)))
-	  ;; look for the first *real* fileinfo (to determine emptyness)
-	  (while
-	      (and tin
-		   (memq (cvs-fileinfo->type (ewoc-data tin))
-			 '(MESSAGE DIRCHANGE)))
-	    (setq tin (ewoc-next cvs-cookies tin)))
-	  ;; cleanup the prev-msg
-	  (when (string-match "Running \\(.*\\) ...\n" prev-msg)
-	    (setq prev-msg
-		  (concat
-		   "-- last cmd: "
-		   (match-string 1 prev-msg)
-		   " --")))
-	  ;; set the new header and footer
-	  (ewoc-set-hf cvs-cookies
-		       str (concat "\n--------------------- "
-				   (if tin "End" "Empty")
-				   " ---------------------\n"
-				   prev-msg))))))
+      (let* ((prev-msg (car (ewoc-get-hf cvs-cookies)))
+	     (tin (ewoc-nth cvs-cookies 0)))
+	;; look for the first *real* fileinfo (to determine emptyness)
+	(while
+	    (and tin
+		 (memq (cvs-fileinfo->type (ewoc-data tin))
+		       '(MESSAGE DIRCHANGE)))
+	  (setq tin (ewoc-next cvs-cookies tin)))
+	;; cleanup the prev-msg
+	(when (string-match "Running \\(.*\\) ...\n" prev-msg)
+	  (setq prev-msg
+		(concat
+		 "-- last cmd: "
+		 (match-string 1 prev-msg)
+		 " --")))
+	;; set the new header and footer
+	(ewoc-set-hf cvs-cookies
+		     str (concat "\n--------------------- "
+				 (if tin "End" "Empty")
+				 " ---------------------\n"
+				 prev-msg))))))
 
 
 (defun cvs-sentinel (proc msg)
@@ -970,7 +974,7 @@ for a lock file.  If so, it inserts a message cookie in the *cvs* buffer."
 	  ;;  (tin-delete cookies
 	  ;;	      (tin-nth cookies 1)))
 	  ;; Check if CVS is waiting for a lock.
-	  (beginning-of-line 0)		;Move to beginning of last complete line.
+	  (beginning-of-line 0)	      ;Move to beginning of last complete line.
 	  (when (looking-at "^[ a-z]+: \\(.*waiting for .*lock in \\(.*\\)\\)$")
 	    (let ((msg (match-string 1))
 		  (lock (match-string 2)))
@@ -1060,7 +1064,7 @@ Full documentation is in the Texinfo file."
   "Display help for various PCL-CVS commands."
   (interactive)
   (if (eq last-command 'cvs-help)
-      (describe-function 'cvs-mode)	; would need to use minor-mode for cvs-edit-mode
+      (describe-function 'cvs-mode)   ; would need minor-mode for cvs-edit-mode
     (message
      (substitute-command-keys
       "`\\[cvs-help]':help `\\[cvs-mode-add]':add `\\[cvs-mode-commit]':commit \
@@ -1112,7 +1116,7 @@ marked instead. A directory can never be marked."
 	   (when (cvs-dir-member-p f dir)
 	     (setf (cvs-fileinfo->marked f)
 		   (not (if (eq arg 'toggle) (cvs-fileinfo->marked f) arg)))
-	     t))		;Tell cookie to redisplay this cookie.
+	     t))			;Tell cookie to redisplay this cookie.
 	 cvs-cookies
 	 (cvs-fileinfo->dir fi))
       ;; not a directory: just do the obvious
@@ -1137,18 +1141,18 @@ marked instead. A directory can never be marked."
   "Mark all files."
   (interactive)
   (ewoc-map (lambda (cookie)
-		(unless (eq (cvs-fileinfo->type cookie) 'DIRCHANGE)
-		  (setf (cvs-fileinfo->marked cookie) t)))
-	      cvs-cookies))
+	      (unless (eq (cvs-fileinfo->type cookie) 'DIRCHANGE)
+		(setf (cvs-fileinfo->marked cookie) t)))
+	    cvs-cookies))
 
 (defun-cvs-mode cvs-mode-mark-matching-files (regex)
   "Mark all files matching REGEX."
   (interactive "sMark files matching: ")
   (ewoc-map (lambda (cookie)
-		(when (and (not (eq (cvs-fileinfo->type cookie) 'DIRCHANGE))
-			   (string-match regex (cvs-fileinfo->file cookie)))
-		  (setf (cvs-fileinfo->marked cookie) t)))
-              cvs-cookies))
+	      (when (and (not (eq (cvs-fileinfo->type cookie) 'DIRCHANGE))
+			 (string-match regex (cvs-fileinfo->file cookie)))
+		(setf (cvs-fileinfo->marked cookie) t)))
+	    cvs-cookies))
 
 (defun-cvs-mode cvs-mode-unmark-all-files ()
   "Unmark all files.
@@ -1156,9 +1160,9 @@ Directories are also unmarked, but that doesn't matter, since
 they should always be unmarked."
   (interactive)
   (ewoc-map (lambda (cookie)
-		(setf (cvs-fileinfo->marked cookie) nil)
-		t)
-	      cvs-cookies))
+	      (setf (cvs-fileinfo->marked cookie) nil)
+	      t)
+	    cvs-cookies))
 
 (defun-cvs-mode cvs-mode-unmark-up ()
   "Unmark the file on the previous line."
@@ -1233,8 +1237,7 @@ Args: &optional IGNORE-MARKS IGNORE-CONTENTS."
 				'UNKNOWN (or dir "") file ""))))))
 		     cvs-minor-current-files)
 		  (or (and (not ignore-marks)
-			   (ewoc-collect cvs-cookies
-					      'cvs-fileinfo->marked))
+			   (ewoc-collect cvs-cookies 'cvs-fileinfo->marked))
 		      (list (ewoc-data (ewoc-locate cvs-cookies))))))
 
       (if (or ignore-contents (not (eq (cvs-fileinfo->type fi) 'DIRCHANGE)))
@@ -1242,13 +1245,13 @@ Args: &optional IGNORE-MARKS IGNORE-CONTENTS."
 	;; If a directory is selected, return members, if any.
 	(setq fis
 	      (append (ewoc-collect cvs-cookies
-					 'cvs-dir-member-p
-					 (cvs-fileinfo->dir fi))
+				    'cvs-dir-member-p
+				    (cvs-fileinfo->dir fi))
 		      fis))))
     (nreverse fis)))
 
 (defun* cvs-mode-marked (filter &optional (cmd (symbol-name filter))
-				&key read-only one file)
+				&key read-only one file noquery)
   "Get the list of marked FIS.
 CMD is used to determine whether to use the marks or not.
 Only files for which FILTER is applicable are returned.
@@ -1256,23 +1259,24 @@ If READ-ONLY is non-nil, the current toggling is left intact.
 If ONE is non-nil, marks are ignored and a single FI is returned.
 If FILE is non-nil, directory entries won't be selected."
   (let* ((fis (cvs-get-marked (or one (cvs-ignore-marks-p cmd read-only))
-				  (and (not file)
-				       (cvs-applicable-p 'DIRCHANGE filter))))
+			      (and (not file)
+				   (cvs-applicable-p 'DIRCHANGE filter))))
 	 (force (cvs-prefix-get 'cvs-force-command))
 	 (fis (car (cvs-partition
 		    (lambda (fi) (cvs-applicable-p fi (and (not force) filter)))
 		    fis))))
-    (cond
-     ((null fis)
-      (error "`%s' is not applicable to any of the selected files." filter))
-     ((and one (cdr fis))
-      (error "`%s' is only applicable to a single file." cmd))
-     (one (car fis))
-     (t fis))))
+    (when (and (or (null fis) (and one (cdr fis))) (not noquery))
+      (message (if (null fis)
+		   "`%s' is not applicable to any of the selected files."
+		 "`%s' is only applicable to a single file.") cmd)
+      (sit-for 0.5)
+      (setq fis (list (cvs-insert-file
+		       (read-file-name (format "File to %s: " cmd))))))
+    (if one (car fis) fis)))
 
 (defun cvs-enabledp (filter)
   "Determine whether FILTER applies to at least one of the selected files."
-  (ignore-errors (cvs-mode-marked filter nil :read-only t)))
+  (cvs-mode-marked filter nil :read-only t :noquery t))
 
 (defun cvs-mode-files (&rest -cvs-mode-files-args)
   (cvs-mode!
@@ -1332,18 +1336,24 @@ The POSTPROC specified there (typically `cvs-edit') is then called,
 (defun-cvs-mode (cvs-mode-insert . NOARGS) (file)
   "Insert an entry for a specific file."
   (interactive
-   (list (read-file-name "File to insert: " nil nil nil
+   (list (read-file-name "File to insert: "
 			 ;; Can't use ignore-errors here because interactive
 			 ;; specs aren't byte-compiled.
 			 (condition-case nil
-			     (cvs-fileinfo->dir
-			      (car (cvs-mode-marked nil nil :read-only t)))
+			     (expand-file-name
+			      (cvs-fileinfo->dir
+			       (car (cvs-mode-marked nil nil :read-only t))))
 			   (error nil)))))
+  (cvs-insert-file file))
+
+(defun cvs-insert-file (file)
+  "Insert FILE (and its contents if it's a dir) and return its FI."
   (let ((file (file-relative-name (directory-file-name file))) last)
     (dolist (fi (cvs-fileinfo-from-entries file))
       (setq last (cvs-addto-collection cvs-cookies fi last)))
     ;; There should have been at least one entry.
-    (goto-char (ewoc-location last))))
+    (goto-char (ewoc-location last))
+    (ewoc-data last)))
 
 (defun-cvs-mode (cvs-mode-add . SIMPLE) (flags)
   "Add marked files to the cvs repository.
@@ -1407,7 +1417,7 @@ or \"Conflict\" in the *cvs* buffer."
 	 ;;(tins (cvs-filter-applicable filter marked))
 	 (fis (delete-if-not 'cvs-fileinfo->backup-file marked)))
     (unless (consp fis)
-	(error "No files with a backup file selected!"))
+      (error "No files with a backup file selected!"))
     ;; let's extract some info into the environment for `buffer-name'
     (let* ((dir (cvs-fileinfo->dir (car fis)))
 	   (file (cvs-fileinfo->file (car fis))))
@@ -1538,8 +1548,8 @@ Signal an error if there is no backup file."
 	   (rev2-buf (if rev2 (cvs-retrieve-revision fi rev2)))
 	   ;; this binding is used by cvs-ediff-startup-hook
 	   (cvs-transient-buffers (list rev1-buf rev2-buf)))
-       (funcall (car cvs-idiff-imerge-handlers)
-		rev1-buf (or rev2-buf (find-file-noselect file))))))
+      (funcall (car cvs-idiff-imerge-handlers)
+	       rev1-buf (or rev2-buf (find-file-noselect file))))))
 
 (defun-cvs-mode (cvs-mode-idiff-other . NOARGS) ()
   "Diff interactively current file to revisions."
@@ -1569,7 +1579,7 @@ Signal an error if there is no backup file."
   "Mark a fileinfo xor its members (in case of a directory) as dead."
   (if (eq (cvs-fileinfo->type fi) 'DIRCHANGE)
       (dolist (fi (ewoc-collect c 'cvs-dir-member-p
-				     (cvs-fileinfo->dir fi)))
+				(cvs-fileinfo->dir fi)))
 	(setf (cvs-fileinfo->type fi) 'DEAD))
     (setf (cvs-fileinfo->type fi) 'DEAD)))
 
@@ -1658,7 +1668,7 @@ With prefix argument, prompt for cvs flags."
   (cvs-mode-run "status" (cons "-v" flags) (cvs-mode-marked nil "status")
 		:buf (cvs-temp-buffer "tree")
 		:dont-change-disc t
-		:postproc '((cvs-status-trees))))
+		:postproc '((cvs-status-cvstrees))))
 
 ;; cvs log
 
