@@ -10053,6 +10053,15 @@ selection dialog's entry field, if MUSTMATCH is non-nil.")
       XmListSetPos (list, item_pos);
     }
 
+#ifdef HAVE_MOTIF_2_1
+
+  /* Process events until the user presses Cancel or OK.  */
+  result = 0;
+  while (result == 0 || XtAppPending (Xt_app_con))
+    XtAppProcessEvent (Xt_app_con, XtIMAll);
+
+#else /* not HAVE_MOTIF_2_1 */
+  
   /* Process all events until the user presses Cancel or OK.  */
   for (result = 0; result == 0;)
     {
@@ -10068,12 +10077,14 @@ selection dialog's entry field, if MUSTMATCH is non-nil.")
       parent = widget;
       while (parent && parent != dialog)
 	parent = XtParent (parent);
-      
+
       if (parent == dialog
 	  || (event.type == Expose
 	      && !process_expose_from_menu (event)))
 	XtDispatchEvent (&event);
     }
+
+#endif /* not HAVE_MOTIF_2_1 */
 
   /* Get the result.  */
   if (result == XmCR_OK)
