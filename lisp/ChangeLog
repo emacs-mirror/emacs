@@ -1,3 +1,8 @@
+2000-10-09  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* vc.el (with-vc-file, edit-vc-file): Specify `indent-function'
+	property.
+
 2000-10-09  Dave Love  <fx@gnu.org>
 
 	* toolbar/tool-bar.el (tool-bar-mode): Check whether tool-bar-map
@@ -46,7 +51,7 @@
 	* vc.el (vc-version-diff): diff-switches can be a list.
 	Use relative filenames for prettier output.
 
-	* pcvs.el (cvs-append-to-ignore, cvs-vc-command-advice) 
+	* pcvs.el (cvs-append-to-ignore, cvs-vc-command-advice)
 	(vc-post-command-functions): Remove old-VC compatibility code.
 
 	* newcomment.el (comment-indent-default): Autoload.
