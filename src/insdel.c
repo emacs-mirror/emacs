@@ -62,8 +62,6 @@ Lisp_Object combine_after_change_list;
 
 /* Buffer which combine_after_change_list is about.  */
 Lisp_Object combine_after_change_buffer;
-
-#define DEFAULT_NONASCII_INSERT_OFFSET 0x800
 
 /* Move gap to position CHARPOS.
    Note that this can quit!  */
@@ -592,15 +590,9 @@ copy_text (from_addr, to_addr, nbytes,
 	  unsigned char workbuf[4], *str;
 	  int len;
 
-	  if (c >= 0200 && c < 0400)
+	  if (c >= 0240 && c < 0400)
 	    {
-	      if (! NILP (Vnonascii_translate_table))
-		c = XINT (Faref (Vnonascii_translate_table, make_number (c)));
-	      else if (nonascii_insert_offset > 0)
-		c += nonascii_insert_offset;
-	      else
-		c += DEFAULT_NONASCII_INSERT_OFFSET;
-
+	      c = unibyte_char_to_multibyte (c);
 	      len = CHAR_STRING (c, workbuf, str);
 	      bcopy (str, to_addr, len);
 	      to_addr += len;
@@ -629,16 +621,14 @@ count_size_as_multibyte (ptr, nbytes)
   for (i = 0; i < nbytes; i++)
     {
       unsigned int c = *ptr++;
-      if (c >= 0200 && c < 0400)
+
+      if (c < 0240)
+	outgoing_nbytes++;
+      else
 	{
-	  if (! NILP (Vnonascii_translate_table))
-	    c = XINT (Faref (Vnonascii_translate_table, make_number (c)));
-	  else if (nonascii_insert_offset > 0)
-	    c += nonascii_insert_offset;
-	  else
-	    c += DEFAULT_NONASCII_INSERT_OFFSET;
+	  c = unibyte_char_to_multibyte (c);
+	  outgoing_nbytes += XINT (Fchar_bytes (make_number (c)));
 	}
-      outgoing_nbytes += XINT (Fchar_bytes (make_number (c)));
     }
 
   return outgoing_nbytes;
@@ -1077,10 +1067,9 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
 }
 
 /* This function should be called after moving gap to FROM and before
-   altering LEN chars of text starting from FROM.  This adjusts
-   various position keepers and markers and as if the text is deleted.
-   Don't forget to call adjust_after_replace after you actually alter
-   the text.  */
+   altering text between FROM and TO.  This adjusts various position
+   keepers and markers as if the text is deleted.  Don't forget to
+   call adjust_after_replace after you actually alter the text.  */
 
 void
 adjust_before_replace (from, from_byte, to, to_byte)
