@@ -493,6 +493,7 @@ static Lisp_Object make_lispy_event ();
 static Lisp_Object make_lispy_movement ();
 static Lisp_Object modify_event_symbol ();
 static Lisp_Object make_lispy_switch_frame ();
+static int parse_solitary_modifier ();
 
 /* > 0 if we are to echo keystrokes.  */
 static int echo_keystrokes;
@@ -3228,9 +3229,6 @@ make_lispy_switch_frame (frame)
    SYMBOL's name of the end of the modifiers; the string from this
    position is the unmodified symbol name.
 
-   If MODIFIER_END is -1, parse *only* a modifier; expect
-   the symbol name to be just one modifier, with no dash.
-
    This doesn't use any caches.  */
 
 static int
@@ -3241,7 +3239,6 @@ parse_modifiers_uncached (symbol, modifier_end)
   struct Lisp_String *name;
   int i;
   int modifiers;
-  int just_one = ((int *) (-1) == modifier_end);
 
   CHECK_SYMBOL (symbol, 1);
   
@@ -3262,46 +3259,20 @@ parse_modifiers_uncached (symbol, modifier_end)
 #define SINGLE_LETTER_MOD(BIT)				\
 	  (this_mod_end = i + 1, this_mod = BIT)
 
-#define MULTI_LETTER_MOD(BIT, NAME, LEN)		\
-	  if (i + LEN <= name->size			\
-	      && ! strncmp (name->data + i, NAME, LEN))	\
-	    {						\
-	      this_mod_end = i + LEN;			\
-	      this_mod = BIT;				\
-	      break;					\
-	    }
-
 	case 'A':
 	  SINGLE_LETTER_MOD (alt_modifier);
-	  break;
-
-	case 'a':
-	  MULTI_LETTER_MOD (alt_modifier, "alt", 3);
 	  break;
 
 	case 'C':
 	  SINGLE_LETTER_MOD (ctrl_modifier);
 	  break;
 
-	case 'c':
-	  MULTI_LETTER_MOD (ctrl_modifier, "ctrl", 4);
-	  MULTI_LETTER_MOD (ctrl_modifier, "control", 7);
-	  break;
-
 	case 'H':
 	  SINGLE_LETTER_MOD (hyper_modifier);
 	  break;
 
-	case 'h':
-	  MULTI_LETTER_MOD (hyper_modifier, "hyper", 5);
-	  break;
-
 	case 'M':
 	  SINGLE_LETTER_MOD (meta_modifier);
-	  break;
-
-	case 'm':
-	  MULTI_LETTER_MOD (meta_modifier, "meta", 4);
 	  break;
 
 	case 'S':
@@ -3309,34 +3280,10 @@ parse_modifiers_uncached (symbol, modifier_end)
 	  break;
 
 	case 's':
-	  MULTI_LETTER_MOD (shift_modifier, "shift", 5);
-	  MULTI_LETTER_MOD (super_modifier, "super", 5);
 	  SINGLE_LETTER_MOD (super_modifier);
 	  break;
 
-	case 'd':
-	  MULTI_LETTER_MOD (drag_modifier, "drag", 4);
-	  MULTI_LETTER_MOD (down_modifier, "down", 4);
-	  MULTI_LETTER_MOD (double_modifier, "double", 6);
-	  break;
-
-	case 't':
-	  MULTI_LETTER_MOD (triple_modifier, "triple", 6);
-	  break;
-
 #undef SINGLE_LETTER_MOD
-#undef MULTI_LETTER_MOD
-	}
-
-      /* If we are looking for just a modifier, return now.
-	 Return 0 if we didn't find one; return the
-	 modifier bit if we did find one.  */
-      if (just_one)
-	{
-	  if (this_mod_end == name->size)
-	    return this_mod;
-	  else
-	    return 0;
 	}
 
       /* If we found no modifier, stop looking for them.  */
@@ -3454,6 +3401,7 @@ lispy_modifier_list (modifiers)
    This is similar to parse_modifiers_uncached, but uses the cache in
    SYMBOL's Qevent_symbol_element_mask property, and maintains the
    Qevent_symbol_elements property.  */
+
 static Lisp_Object
 parse_modifiers (symbol)
      Lisp_Object symbol;
@@ -3704,8 +3652,9 @@ convert_event_type_list (event)
 
       elt = XCONS (rest)->car;
 
+      /* Given a symbol, see if it is a modifier name.  */
       if (SYMBOLP (elt))
-	this = parse_modifiers_uncached (elt, -1);
+	this = parse_solitary_modifier (elt);
 
       if (this != 0)
 	modifiers |= this;
@@ -3717,10 +3666,23 @@ convert_event_type_list (event)
       rest = XCONS (rest)->cdr;
     }
 
+  /* Let the symbol A refer to the character A.  */
+  if (SYMBOLP (base) && XSYMBOL (base)->name->size == 1)
+    XSETINT (base, XSYMBOL (base)->name->data[0]);
+
   if (INTEGERP (base))
     {
+      /* Turn (shift a) into A.  */
+      if ((modifiers & shift_modifier) != 0
+	  && (XINT (base) >= 'a' && XINT (base) <= 'z'))
+	{
+	  XSETINT (base, XINT (base) - ('a' - 'A'));
+	  modifiers &= ~shift_modifier;
+	}
+
+      /* Turn (control a) into C-a.  */
       if (modifiers & ctrl_modifier)
-	return make_number ((modifiers & ~ ctrl_modifier)
+	return make_number ((modifiers & ~ctrl_modifier)
 			    | make_ctrl_char (XINT (base)));
       else
 	return make_number (modifiers | XINT (base));
@@ -3729,6 +3691,86 @@ convert_event_type_list (event)
     return apply_modifiers (modifiers, base);
   else
     error ("Invalid base event");
+}
+
+/* Try to recognize SYMBOL as a modifier name.
+   Return the modifier flag bit, or 0 if not recognized.  */
+
+static int
+parse_solitary_modifier (symbol)
+     Lisp_Object symbol;
+{
+  struct Lisp_String *name = XSYMBOL (symbol)->name;
+
+  switch (name->data[0])
+    {
+#define SINGLE_LETTER_MOD(BIT)				\
+      if (name->size == 1)				\
+	return BIT;
+
+#define MULTI_LETTER_MOD(BIT, NAME, LEN)		\
+      if (LEN == name->size				\
+	  && ! strncmp (name->data, NAME, LEN))		\
+	return BIT;
+
+    case 'A':
+      SINGLE_LETTER_MOD (alt_modifier);
+      break;
+
+    case 'a':
+      MULTI_LETTER_MOD (alt_modifier, "alt", 3);
+      break;
+
+    case 'C':
+      SINGLE_LETTER_MOD (ctrl_modifier);
+      break;
+
+    case 'c':
+      MULTI_LETTER_MOD (ctrl_modifier, "ctrl", 4);
+      MULTI_LETTER_MOD (ctrl_modifier, "control", 7);
+      break;
+
+    case 'H':
+      SINGLE_LETTER_MOD (hyper_modifier);
+      break;
+
+    case 'h':
+      MULTI_LETTER_MOD (hyper_modifier, "hyper", 5);
+      break;
+
+    case 'M':
+      SINGLE_LETTER_MOD (meta_modifier);
+      break;
+
+    case 'm':
+      MULTI_LETTER_MOD (meta_modifier, "meta", 4);
+      break;
+
+    case 'S':
+      SINGLE_LETTER_MOD (shift_modifier);
+      break;
+
+    case 's':
+      MULTI_LETTER_MOD (shift_modifier, "shift", 5);
+      MULTI_LETTER_MOD (super_modifier, "super", 5);
+      SINGLE_LETTER_MOD (super_modifier);
+      break;
+
+    case 'd':
+      MULTI_LETTER_MOD (drag_modifier, "drag", 4);
+      MULTI_LETTER_MOD (down_modifier, "down", 4);
+      MULTI_LETTER_MOD (double_modifier, "double", 6);
+      break;
+
+    case 't':
+      MULTI_LETTER_MOD (triple_modifier, "triple", 6);
+      break;
+
+#undef SINGLE_LETTER_MOD
+#undef MULTI_LETTER_MOD
+    }
+
+  return 0;
 }
 
 /* Return 1 if EVENT is a list whose elements are all integers or symbols.
@@ -3754,8 +3796,6 @@ lucid_event_type_list_p (object)
 
   return NILP (tail);
 }
-
-
 
 /* Store into *addr a value nonzero if terminal input chars are available.
    Serves the purpose of ioctl (0, FIONREAD, addr)
