@@ -1,5 +1,5 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
-   Copyright (C) 1985,86,87,93,94,95,97,98,1999,2001,02,2003
+   Copyright (C) 1985,86,87,93,94,95,97,98,1999,2001,02,03,2004
       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -86,9 +86,18 @@ extern char *index P_ ((const char *, int));
 
 /* Make these values available in GDB, which doesn't see macros.  */
 
+#ifdef USE_LSB_TAG
+int gdb_use_lsb = 1;
+#else
+int gdb_use_lsb = 0;
+#endif
+#ifdef NO_UNION_TYPE
+int gdb_use_union = 0;
+#else
+int gdb_use_union = 1;
+#endif
 EMACS_INT gdb_valbits = VALBITS;
 EMACS_INT gdb_gctypebits = GCTYPEBITS;
-EMACS_INT gdb_emacs_intbits = sizeof (EMACS_INT) * BITS_PER_CHAR;
 #ifdef DATA_SEG_BITS
 EMACS_INT gdb_data_seg_bits = DATA_SEG_BITS;
 #else
