@@ -611,12 +611,16 @@ Redefining FUNCTION also cancels it."
   (interactive "aDebug on entry (to function): ")
   (debugger-reenable)
   ;; Handle a function that has been aliased to some other function.
-  (if (symbolp (symbol-function function))
+  (if (and (subrp (symbol-function function))
+	   (eq (cdr (subr-arity (symbol-function function))) 'unevalled))
+      (error "Function %s is a special form" function))
+  (if (or (symbolp (symbol-function function))
+	  (subrp (symbol-function function)))
+      ;; Create a wrapper in which we can then add the necessary debug call.
       (fset function `(lambda (&rest debug-on-entry-args)
+			,(interactive-form (symbol-function function))
 			(apply ',(symbol-function function)
 			       debug-on-entry-args))))
-  (if (subrp (symbol-function function))
-      (error "Function %s is a primitive" function))
   (or (consp (symbol-function function))
       (debug-convert-byte-code function))
   (or (consp (symbol-function function))
@@ -639,8 +643,15 @@ If argument is nil or an empty string, cancel for all functions."
   (debugger-reenable)
   (if (and function (not (string= function "")))
       (progn
-	(fset function
-	      (debug-on-entry-1 function (symbol-function function) nil))
+	(let ((f (debug-on-entry-1 function (symbol-function function) nil)))
+	  (condition-case nil
+	      (if (and (equal (nth 1 f) '(&rest debug-on-entry-args))
+		       (eq (car (nth 3 f)) 'apply))
+		  ;; `f' is a wrapper introduced in debug-on-entry.
+		  ;; Get rid of it since we don't need it any more.
+		  (setq f (nth 1 (nth 1 (nth 3 f)))))
+	    (error nil))
+	  (fset function f))
 	(setq debug-function-list (delq function debug-function-list))
 	function)
     (message "Cancelling debug-on-entry for all functions")
@@ -670,18 +681,19 @@ If argument is nil or an empty string, cancel for all functions."
 	(debug-on-entry-1 function (cdr defn) flag)
       (or (eq (car defn) 'lambda)
 	  (error "%s not user-defined Lisp function" function))
-      (let (tail prec)
-	(if (stringp (car (nthcdr 2 defn)))
-	    (setq tail (nthcdr 3 defn)
-		  prec (list (car defn) (car (cdr defn))
-			     (car (cdr (cdr defn)))))
-	  (setq tail (nthcdr 2 defn)
-		prec (list (car defn) (car (cdr defn)))))
-	(if (eq flag (equal (car tail) '(debug 'debug)))
-	    defn
-	  (if flag
-	      (nconc prec (cons '(debug 'debug) tail))
-	    (nconc prec (cdr tail))))))))
+      (let ((tail (cddr defn)))
+	;; Skip the docstring.
+	(if (stringp (car tail)) (setq tail (cdr tail)))
+	;; Skip the interactive form.
+	(if (eq 'interactive (car-safe (car tail))) (setq tail (cdr tail)))
+	(unless (eq flag (equal (car tail) '(debug 'debug)))
+	  ;; Add/remove debug statement as needed.
+	  (if (not flag)
+	      (progn (setcar tail (cadr tail))
+		     (setcdr tail (cddr tail)))
+	    (setcdr tail (cons (car tail) (cdr tail)))
+	    (setcar tail '(debug 'debug))))
+	defn))))
 
 (defun debugger-list-functions ()
   "Display a list of all the functions now set to debug on entry."
