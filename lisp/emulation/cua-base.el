@@ -954,6 +954,13 @@ Extra commands should be added to `cua-user-movement-commands'")
   (unless (listp key) (setq key (list key)))
   (define-key map (vector (cons (if cua-use-hyper-key 'hyper 'meta) key)) fct))
 
+(defun cua--self-insert-char-p (def)
+  ;; Return DEF if current key sequence is self-inserting in
+  ;; global-map.
+  (if (memq (global-key-binding (this-single-command-keys))
+	    '(self-insert-command self-insert-iso))
+      def nil))
+
 (defvar cua-global-keymap (make-sparse-keymap)
   "Global keymap for cua-mode; users may add to this keymap.")
 
