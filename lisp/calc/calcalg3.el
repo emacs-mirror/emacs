@@ -27,12 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-alg-3 () nil)
-
 
 (defun calc-find-root (var)
   (interactive "sVariable(s) to solve for: ")
@@ -1825,6 +1822,8 @@
 		(setq math-all-vars-vars (cons (cons expr 1) math-all-vars-vars)))))
     (while (setq expr (cdr expr))
       (math-all-vars-rec (car expr)))))
+
+(provide 'calcalg3)
 
 ;;; arch-tag: ff9f2920-8111-48b5-b3fa-b0682c3e44a6
 ;;; calcalg3.el ends here
