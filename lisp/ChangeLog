@@ -1,5 +1,8 @@
 2001-11-21  Richard M. Stallman  <rms@gnu.org>
 
+	* files.el (temporary-file-directory, null-device) 
+	(small-temporary-file-directory): Definitions moved up.
+
 	* international/encoded-kb.el: Don't alter minor-mode-alist.
 
 2001-11-20  Kai Grossjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
