@@ -425,19 +425,19 @@ prev_char_comend_first (pos, pos_byte)
 
 /* Return the SYNTAX_COMSTART_FIRST of the character before POS, POS_BYTE.  */
 
-static int
-prev_char_comstart_first (pos, pos_byte)
-     int pos, pos_byte;
-{
-  int c, val;
-
-  DEC_BOTH (pos, pos_byte);
-  UPDATE_SYNTAX_TABLE_BACKWARD (pos);
-  c = FETCH_CHAR (pos_byte);
-  val = SYNTAX_COMSTART_FIRST (c);
-  UPDATE_SYNTAX_TABLE_FORWARD (pos + 1);
-  return val;
-}
+/* static int
+ * prev_char_comstart_first (pos, pos_byte)
+ *      int pos, pos_byte;
+ * {
+ *   int c, val;
+ * 
+ *   DEC_BOTH (pos, pos_byte);
+ *   UPDATE_SYNTAX_TABLE_BACKWARD (pos);
+ *   c = FETCH_CHAR (pos_byte);
+ *   val = SYNTAX_COMSTART_FIRST (c);
+ *   UPDATE_SYNTAX_TABLE_FORWARD (pos + 1);
+ *   return val;
+ * } */
 
 /* Checks whether charpos FROM is at the end of a comment.
    FROM_BYTE is the bytepos corresponding to FROM.
@@ -479,7 +479,6 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
   int comment_end_byte = from_byte;
   int comstart_pos = 0;
   int comstart_byte;
-  int scanstart = from - 1;
   /* Place where the containing defun starts,
      or 0 if we didn't come across it yet.  */
   int defun_start = 0;
@@ -487,44 +486,82 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
   register enum syntaxcode code;
   int nesting = 1;		/* current comment nesting */
   int c;
+  int syntax = 0;
+
+  /* FIXME: A }} comment-ender style leads to incorrect behavior
+     in the case of {{ c }}} because we ignore the last two chars which are
+     assumed to be comment-enders although they aren't.  */
 
   /* At beginning of range to scan, we're outside of strings;
      that determines quote parity to the comment-end.  */
   while (from != stop)
     {
-      int temp_byte;
+      int temp_byte, prev_syntax;
+      int com2start, com2end;
 
       /* Move back and examine a character.  */
       DEC_BOTH (from, from_byte);
       UPDATE_SYNTAX_TABLE_BACKWARD (from);
 
+      prev_syntax = syntax;
       c = FETCH_CHAR (from_byte);
+      syntax = SYNTAX_WITH_FLAGS (c);
       code = SYNTAX (c);
 
-      /* If this char is the second of a 2-char comment end sequence,
-	 back up and give the pair the appropriate syntax.  */
-      if (from > stop && SYNTAX_COMEND_SECOND (c)
-	  && prev_char_comend_first (from, from_byte))
+      /* Check for 2-char comment markers.  */
+      com2start = (SYNTAX_FLAGS_COMSTART_FIRST (syntax)
+		   && SYNTAX_FLAGS_COMSTART_SECOND (prev_syntax)
+		   && comstyle == SYNTAX_FLAGS_COMMENT_STYLE (prev_syntax)
+		   && (SYNTAX_FLAGS_COMMENT_NESTED (prev_syntax)
+		       || SYNTAX_FLAGS_COMMENT_NESTED (syntax)) == comnested);
+      com2end = (SYNTAX_FLAGS_COMEND_FIRST (syntax)
+		 && SYNTAX_FLAGS_COMEND_SECOND (prev_syntax));
+
+      /* Nasty cases with overlapping 2-char comment markers:
+	 - snmp-mode: -- c -- foo -- c --
+	              --- c --
+		      ------ c --
+	 - c-mode:    *||*
+		      |* *|* *|
+		      |*| |* |*|
+		      ///   */
+
+      /* If a 2-char comment sequence partly overlaps with another,
+	 we don't try to be clever.  */
+      if (from > stop && (com2end || com2start))
 	{
-	  code = Sendcomment;
-	  DEC_BOTH (from, from_byte);
-	  UPDATE_SYNTAX_TABLE_BACKWARD (from);
-	  c = FETCH_CHAR (from_byte);
+	  int next = from, next_byte = from_byte, next_c, next_syntax;
+	  DEC_BOTH (next, next_byte);
+	  UPDATE_SYNTAX_TABLE_BACKWARD (next);
+	  next_c = FETCH_CHAR (next_byte);
+	  next_syntax = SYNTAX_WITH_FLAGS (next_c);
+	  if (((com2start || comnested)
+	       && SYNTAX_FLAGS_COMEND_SECOND (syntax)
+	       && SYNTAX_FLAGS_COMEND_FIRST (next_syntax))
+	      || ((com2end || comnested)
+		  && SYNTAX_FLAGS_COMSTART_SECOND (syntax)
+		  && comstyle == SYNTAX_FLAGS_COMMENT_STYLE (syntax)
+		  && SYNTAX_FLAGS_COMSTART_FIRST (next_syntax)))
+	    goto lossage;
+	  /* UPDATE_SYNTAX_TABLE_FORWARD (next + 1); */
 	}
-			
-      /* If this char starts a 2-char comment start sequence,
-	 treat it like a 1-char comment starter.  */
-      if (from < scanstart && SYNTAX_COMSTART_FIRST (c))
-	{
-	  temp_byte = inc_bytepos (from_byte);
-	  UPDATE_SYNTAX_TABLE_FORWARD (from + 1);
-	  if (SYNTAX_COMSTART_SECOND (FETCH_CHAR (temp_byte))
-	      && comstyle == SYNTAX_COMMENT_STYLE (FETCH_CHAR (temp_byte)))
-	    code = Scomment;
-	  UPDATE_SYNTAX_TABLE_BACKWARD (from);
-	}
-      else if (code == Scomment && comstyle != SYNTAX_COMMENT_STYLE (c))
-	/* Ignore comment starters of a different style.  */
+
+      if (com2start && comstart_pos == 0)
+	/* We're looking at a comment starter.  But it might be a comment
+	   ender as well (see snmp-mode).  The first time we see one, we
+	   need to consider it as a comment starter,
+	   and the subsequent times as a comment ender.  */
+	com2end = 0;
+
+      /* Turn a 2-char comment sequences into the appropriate syntax.  */
+      if (com2end)
+	code = Sendcomment;
+      else if (com2start)
+	code = Scomment;
+      /* Ignore comment starters of a different style.  */
+      else if (code == Scomment
+	       && (comstyle != SYNTAX_FLAGS_COMMENT_STYLE (syntax)
+		   || SYNTAX_FLAGS_COMMENT_NESTED (syntax) != comnested))
 	continue;
 
       /* Ignore escaped characters, except comment-enders.  */
@@ -573,7 +610,9 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
 	  break;
 
 	case Sendcomment:
-	  if (SYNTAX_COMMENT_STYLE (FETCH_CHAR (from_byte)) == comstyle)
+	  if (SYNTAX_FLAGS_COMMENT_STYLE (syntax) == comstyle
+	      && (SYNTAX_FLAGS_COMMENT_NESTED (prev_syntax)
+		  || SYNTAX_FLAGS_COMMENT_NESTED (syntax)) == comnested)
 	    /* This is the same style of comment ender as ours. */
 	    {
 	      if (comnested)
