@@ -609,20 +609,20 @@ if that history list is empty)."
      (unless grep-command
        (grep-compute-defaults))
      (when arg
-       (let* ((tag-default
-	       (funcall (or find-tag-default-function
-			    (get major-mode 'find-tag-default-function)
-			    ;; We use grep-tag-default instead of
-			    ;; find-tag-default, to avoid loading etags.
-			    'grep-tag-default))))
+       (let ((tag-default
+	      (funcall (or find-tag-default-function
+			   (get major-mode 'find-tag-default-function)
+			   ;; We use grep-tag-default instead of
+			   ;; find-tag-default, to avoid loading etags.
+			   'grep-tag-default))))
 	 (setq grep-default (or (car grep-history) grep-command))
 	 ;; Replace the thing matching for with that around cursor
 	 (when (string-match "[^ ]+\\s +\\(-[^ ]+\\s +\\)*\\(\"[^\"]+\"\\|[^ ]+\\)\\(\\s-+\\S-+\\)?" grep-default)
 	   (unless (or (match-beginning 3) (not (stringp buffer-file-name)))
 	     (setq grep-default (concat grep-default "*."
 					(file-name-extension buffer-file-name))))
-	   (setq grep-default (replace-match tag-default t t
-					       grep-default 2)))))
+	   (setq grep-default (replace-match (or tag-default "")
+					     t t grep-default 2)))))
      (list (read-from-minibuffer "Run grep (like this): "
 				 (or grep-default grep-command)
 				 nil nil 'grep-history))))
