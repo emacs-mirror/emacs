@@ -346,7 +346,13 @@ With argument, print output into current buffer."
 
 (defun eval-defun (eval-defun-arg-internal)
   "Evaluate defun that point is in or before.
-Print value in minibuffer.
+The value is displayed in the minibuffer.
+If the current defun is actually a call to `defvar',
+then reset the variable using the initial value expression
+even if the variable already has some other value.
+\(Normally `defvar' does not change the variable's value
+if it already has a value.\)
+
 With argument, insert value in current buffer after the defun.
 Return the result of evaluation."
   (interactive "P")
