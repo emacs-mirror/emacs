@@ -1,3 +1,139 @@
+2000-08-28  John Wiegley  <johnw@gnu.org>
+
+	* align.el: Test align-region-separate to see if it's a symbol.
+
+2000-08-27  John Wiegley  <johnw@gnu.org>
+
+	* eshell/esh-util.el (eshell-flatten-list): Made this function
+	into a defsubst form.  It gets used very frequently, although
+	calls don't occur all that often.
+
+	* eshell/em-dirs.el (eshell/cd): Flatten the argument list before
+	examining it.
+
+	* eshell/esh-cmd.el (eshell-rewrite-while-command):
+	(eshell-rewrite-for-command): Use `eshell-copy-handles' instead of
+	`eshell-protect'.
+	(eshell-copy-handles): Created a new macro for duplicating the
+	current set of open handles.  This is needed by the looping
+	functions.
+	(eshell-do-eval): Fixed while and if, so that the eshell-test-body
+	is not incorrectly stomped on.
+
+	* eshell/em-cmpl.el (eshell-cmpl-use-paring): Mirror
+	declaration for pcomplete-use-paring.
+	(eshell-cmpl-initialize): Set pcomplete-use-paring based on the
+	value of eshell-cmpl-use-paring.
+	* pcomplete.el (pcomplete-use-paring): New config variable, to
+	indicate whether paring should be used.
+	(pcomplete-do-complete): If pcomplete-use-paring is t, pare out
+	completion alternatives that have already been used.
+
+	* eshell/esh-mode.el (eshell-repeat-argument): Added function,
+	bound to C-c C-y, which will repeat the previous N arguments
+	(based on prefix argument).
+	(eshell-mode): Bind C-c C-y to eshell-repeat-argument.
+
+	* eshell/esh-cmd.el (eshell/which): Don't kill the *Help* buffer
+	if there is no *Help* buffer.  This is for XEmacs, which renames
+	its help buffers uniquely.  TODO: Find out what the current buffer
+	name to delete is.
+
+	* eshell/esh-util.el (eshell-read-passwd-file): Only keep the
+	first entry that correlates to a passwd/group number.  Later
+	entries (used for group/user name aliasing to multiple IDs) are
+	ignored.
+
+	* eshell/em-xtra.el (eshell/expr): 
+	* eshell/em-unix.el (eshell/du, eshell/cat, eshell/make) 
+	(eshell-grep, eshell/diff, eshell/locate): 
+	* eshell/em-dirs.el (eshell-dirs-substitute-cd): Flatten the
+	argument list, before passing it to the system command.
+
+	* eshell/esh-mode.el (eshell-find-tag): Added a special version of
+	`find-tag' for use at final position in Eshell buffers (which
+	otherwise triggers an error on Emacs 21).
+	(eshell-mode): Bind M-. to `eshell-find-tag' with the Eshell
+	buffer, if it is currently bound to `find-tag'.
+
+	* pcmpl-gnu.el (pcmpl-gnu-makefile-regexps): Include GNUmakefile
+	in the list of matched Makefile names.
+	(pcmpl-gnu-make-rule-names): If GNUmakefile exists in the current
+	directory, prefer its contents to Makefile.
+
+	* eshell/em-dirs.el (eshell/cd): cd commands that look up
+	directory parts (like "cd old new", or "cd =regexp"), are now case
+	sensitive on non-Windows/DOS platforms.
+
+	* eshell/esh-mode.el (eshell-parse-command-input): When a user
+	types RET after an open delimiter (like "), display a message
+	indicating that Eshell is waiting for the closing delimiter.
+
+	* eshell/esh-var.el (eshell/unset): Added a command for unsetting
+	environment variables.
+
+	* eshell/em-unix.el (eshell/diff): Added logic to fail more
+	gracefully if the user enters incorrect arguments.
+
+	* eshell/esh-mode.el (eshell-mode): Disable auto-fill-function in
+	Eshell buffers.
+
+	* eshell/esh-var.el (eshell-interpolate-variable): 
+	* eshell/esh-mode.el (eshell-move-argument): 
+	* eshell/em-unix.el (eshell-du-sum-directory):
+	* eshell/em-rebind.el (eshell-delchar-or-maybe-eof):
+	* eshell/em-ls.el (eshell-ls-decorated-name): Use /= instead of
+	(not (= ...)).
+
+	* eshell/em-unix.el (eshell-shuffle-files): Added use of `apply',
+	to ensure the `preserve' flag gets propagated when doing recursive
+	directory copies.
+
+2000-08-09  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* eshell/em-hist.el (eshell-put-history, eshell-get-history):
+	Don't convert \n into \0177 in memory.
+	(eshell-read-history, eshell-write-history): Convert \n to \0177,
+	and back again, when reading and writing.
+	
+2000-07-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* eshell/esh-util.el (eshell-processp): Added to relieve constant
+	testing of `fboundp' on `processp'.
+
+	* eshell/esh-proc.el (eshell/kill): Use eshell-processp.
+	(eshell/jobs): Don't call process-list if it is not bound.
+	(eshell-gather-process-output): Support systems where async
+	subprocesses aren't supported.
+	(eshell-scratch-buffer, eshell-last-sync-output-start): New
+	variables.
+
+	* eshell/esh-cmd.el (eshell-resume-eval): Handle the case when
+	eshell-do-eval returns t.
+	(eshell-do-pipelines-synchronously): New defmacro.
+	(eshell-execute-pipeline): Call it instead of eshell-do-pipelines
+	when async subprocesses aren't supported.
+	(eshell-do-eval): Use eshell-processp.  Don't throw eshell-defer
+	if async subprocesses aren't supported.
+	(eshell-resume-command): Don't assume STATUS is a string.
+
+	* eshell/em-unix.el (eshell/rm): Use eshell-processp.
+
+	* eshell/esh-io.el (eshell-virtual-targets): Doc fix.
+	(eshell-close-target, eshell-get-target): Use eshell-processp.
+	(eshell-print, eshell-error, eshell-errorn, eshell-printn): Doc
+	fix.
+	(eshell-get-target, eshell-create-handles): Doc fix.
+
+2000-06-28  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* em-smart.el (eshell-smart-maybe-jump-to-end): Change the
+	criterion to include commands that output something, as long as it
+	leaves both the command and the end-of-buffer visible when the
+	command has exited.
+	(eshell-review-quick-commands): Adjust the help doc string
+	accordingly.
+
 2000-08-28  Peter Breton  <pbreton@ne.mediaone.net>
 
 	* locate.el (locate): Cleaned up locate command's interactive prompting
