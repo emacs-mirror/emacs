@@ -1718,6 +1718,7 @@ print_object (obj, printcharfun, escapeflag)
 	  {
 	    register int i;
 	    register Lisp_Object tem;
+	    int real_size = size;
 
 	    /* Don't print more elements than the specified maximum.  */
 	    if (NATNUMP (Vprint_length)
@@ -1730,6 +1731,8 @@ print_object (obj, printcharfun, escapeflag)
 		tem = XVECTOR (obj)->contents[i];
 		print_object (tem, printcharfun, escapeflag);
 	      }
+	    if (size < real_size)
+	      strout (" ...", 4, 4, printcharfun, 0);
 	  }
 	  PRINTCHAR (']');
 	}
