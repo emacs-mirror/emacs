@@ -25,6 +25,13 @@ displays a buffer menu.  This option turns the buffer menu off.
 compilation, it is now made sure that the compilation buffer is reused
 in case it has been renamed.
 
+** New modes and packages
+
+*** The ruler-mode.el library provides a minor mode for displaying an
+"active" ruler in the header line.  You can use the mouse to visually
+change the `fill-column', `window-margins' and `tab-stop-list'
+settings.
+
 
 * Lisp Changes in Emacs 21.2
 
