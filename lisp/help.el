@@ -467,6 +467,7 @@ C-w print information on absence of warranty for GNU Emacs."
     (prin1 function)
     (princ ": ")
     (let* ((def (symbol-function function))
+	   file-name
 	   (beg (if (commandp def) "an interactive " "a ")))
       (princ (cond ((or (stringp def)
 			(vectorp def))
@@ -484,21 +485,21 @@ C-w print information on absence of warranty for GNU Emacs."
 		   ((eq (car-safe def) 'mocklisp)
 		    "a mocklisp function")
 		   ((eq (car-safe def) 'autoload)
+		    (setq file-name (nth 1 def))
 		    (format "%s autoloaded Lisp %s"
 			    (if (commandp def) "an interactive" "an")
 			    (if (nth 4 def) "macro" "function")
-;;; Including the file name made this line too long.
-;;;			    (nth 1 def)
 			    ))
 		   (t "")))
-      (let ((file (describe-function-find-file function)))
-	(if file
-	    (progn
-	      (princ " in `")
-	      ;; We used to add .el to the file name,
-	      ;; but that's completely wrong when the user used load-file.
-	      (princ file)
-	      (princ "'"))))
+      (or file-name
+	  (setq file-name (describe-function-find-file function)))
+      (if file-name
+	  (progn
+	    (princ " in `")
+	    ;; We used to add .el to the file name,
+	    ;; but that's completely wrong when the user used load-file.
+	    (princ file-name)
+	    (princ "'")))
       (princ ".")
       (terpri)
       (let ((arglist (cond ((byte-code-function-p def)
