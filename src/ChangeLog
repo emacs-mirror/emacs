@@ -1,3 +1,7 @@
+2002-03-03  Richard M. Stallman  <rms@gnu.org>
+
+	* fileio.c (Fmake_temp_name): Doc fix.
+
 2002-03-03  Gary Wong  <gtw@gnu.org>
 
 	* termcap.c [!emacs]: Replace ospeed for building standalone

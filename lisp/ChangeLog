@@ -1,3 +1,20 @@
+2002-03-03  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/artist.el (artist-system): Use make-temp-file.
+
+	* progmodes/ps-mode.el (ps-run-make-tmp-filename): Use make-temp-file.
+
+	* mail/sendmail.el (mail-recover-1): Increase non-random-len
+	by 1 since we changed make-auto-save-file-name to add one
+	fewer character to the buffer name.
+	(mail-recover): Really show point at the right place
+	in the *Directory* buffer.
+
+	* files.el (make-auto-save-file-name): Use make-temp-file.
+
+	* terminal.el (te-create-terminfo): Use make-temp-file
+	to create the source file in a safe way.
+
 2002-03-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* cus-start.el: Rename automatic-hscroll-step and
