@@ -58,6 +58,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/file.h>
+#include <stdio.h>
 #include <errno.h>
 #include <../src/syswait.h>
 #ifdef MAIL_USE_POP
@@ -105,15 +106,28 @@ extern int lk_open (), lk_close ();
 #undef write
 #undef close
 
-char *concat ();
-char *xmalloc ();
 #ifndef errno
 extern int errno;
 #endif
+char *strerror ();
+char *malloc ();
+
+void fatal ();
+void error ();
+void pfatal_with_name ();
+void pfatal_and_delete ();
+char *concat ();
+char *xmalloc ();
+int popmail ();
+int pop_retr ();
+int mbx_write ();
+int mbx_delimit_begin ();
+int mbx_delimit_end ();
 
 /* Nonzero means this is name of a lock file to delete on fatal error.  */
 char *delete_lockname;
 
+int
 main (argc, argv)
      int argc;
      char **argv;
@@ -135,7 +149,10 @@ main (argc, argv)
   delete_lockname = 0;
 
   if (argc < 3)
-    fatal ("two arguments required");
+    {
+      fprintf (stderr, "Usage: movemail inbox destfile");
+      exit(1);
+    }
 
   inname = argv[1];
   outname = argv[2];
@@ -151,7 +168,7 @@ main (argc, argv)
   /* Also check that outname's directory is writeable to the real uid.  */
   {
     char *buf = (char *) xmalloc (strlen (outname) + 1);
-    char *p, q;
+    char *p;
     strcpy (buf, outname);
     p = buf + strlen (buf);
     while (p > buf && p[-1] != '/')
@@ -351,11 +368,12 @@ main (argc, argv)
 #if !defined (MAIL_USE_MMDF) && !defined (MAIL_USE_SYSTEM_LOCK)
   unlink (lockname);
 #endif /* not MAIL_USE_MMDF and not MAIL_USE_SYSTEM_LOCK */
-  exit (0);
+  return 0;
 }
 
 /* Print error message and exit.  */
 
+void
 fatal (s1, s2)
      char *s1, *s2;
 {
@@ -367,33 +385,28 @@ fatal (s1, s2)
 
 /* Print error message.  `s1' is printf control string, `s2' is arg for it. */
 
+void
 error (s1, s2, s3)
      char *s1, *s2, *s3;
 {
-  printf ("movemail: ");
-  printf (s1, s2, s3);
-  printf ("\n");
+  fprintf (stderr, "movemail: ");
+  fprintf (stderr, s1, s2, s3);
+  fprintf (stderr, "\n");
 }
 
+void
 pfatal_with_name (name)
      char *name;
 {
-  extern int errno;
-  extern char *strerror ();
-  char *s;
-
-  s = concat ("", strerror (errno), " for %s");
+  char *s = concat ("", strerror (errno), " for %s");
   fatal (s, name);
 }
 
+void
 pfatal_and_delete (name)
      char *name;
 {
-  extern int errno;
-  extern char *strerror ();
-  char *s;
-
-  s = concat ("", strerror (errno), " for %s");
+  char *s = concat ("", strerror (errno), " for %s");
   unlink (name);
   fatal (s, name);
 }
