@@ -1,3 +1,12 @@
+2001-10-05  Miles Bader  <miles@gnu.org>
+
+	* minibuf.c (Fminibuffer_prompt_end, Fminibuffer_contents) 
+	(Fminibuffer_contents_no_properties, Fdelete_minibuffer_contents): 
+	New functions (were in simple.el).
+	(Fminibuffer_complete_and_exit, Fminibuffer_complete_word) 
+	(read_minibuf, do_completion, Fminibuffer_completion_help): Use them.
+	(syms_of_minibuf): Initialize them.
+
 2001-10-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (tiff_error_handler, tiff_warning_handler): New functions.

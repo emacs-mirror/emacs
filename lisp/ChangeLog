@@ -1,3 +1,30 @@
+2001-10-05  Miles Bader  <miles@gnu.org>
+
+	* progmodes/compile.el (grep-use-null-device): New variable.
+	(grep-command): Mention `grep-use-null-device'.
+	(grep-compute-defaults): Compute `grep-use-null-device' if necessary.
+	Make computation of `grep-command' respect `grep-use-null-device'.
+	(grep): Respect `grep-use-null-device'.
+	Call `grep-compute-defaults' even if grep-command is set, if
+	grep-use-null-device is still tentative.
+
+	* subr.el (call-process-shell-command): New function.
+
+2001-10-05  Miles Bader  <miles@gnu.org>
+
+	* simple.el (previous-matching-history-element)
+	(next-history-element, next-complete-history-element): Use
+	`minibuffer-' functions instead of calling `field-' functions
+	directly.
+	(minibuffer-prompt-end, minibuffer-contents):
+	(minibuffer-contents-no-properties, delete-minibuffer-contents):
+	Functions removed (now subrs).
+	(minibuffer-prompt-width): Use `minibuffer-prompt-end'.
+	* minibuf-eldef.el (minibuf-eldef-setup-minibuffer)
+	(minibuf-eldef-update-minibuffer): Use `minibuffer-' functions
+	instead of calling `field-' functions directly.
+	(minibuf-eldef-setup-minibuffer): Remove unused variable `prompt'.
+
 2001-10-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* files.el (find-file-noselect): If file's read-only status has
