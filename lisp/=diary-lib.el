@@ -357,11 +357,8 @@ This function is provided for optional use as the `diary-display-hook'."
           (display-buffer holiday-buffer)
           (message  "No diary entries for %s" date-string)))
     (save-excursion;; Prepare the fancy diary buffer.
-      (set-buffer (get-buffer-create fancy-diary-buffer))
+      (set-buffer (make-fancy-diary-buffer))
       (setq buffer-read-only nil)
-      (make-local-variable 'mode-line-format)
-      (calendar-set-mode-line "Diary Entries")
-      (erase-buffer)
       (let ((entry-list diary-entries-list)
             (holiday-list)
             (holiday-list-last-month 1)
@@ -417,6 +414,18 @@ This function is provided for optional use as the `diary-display-hook'."
       (setq buffer-read-only t)
       (display-buffer fancy-diary-buffer)
       (message "Preparing diary...done"))))
+
+(defun make-fancy-diary-buffer ()
+  "Create and return the initial fancy diary buffer."
+  (save-excursion
+    (set-buffer (get-buffer-create fancy-diary-buffer))
+    (setq buffer-read-only nil)
+    (make-local-variable 'mode-line-format)
+    (calendar-set-mode-line "Diary Entries")
+    (erase-buffer)
+    (set-buffer-modified-p nil)
+    (setq buffer-read-only t)
+    (get-buffer fancy-diary-buffer)))
 
 (defun print-diary-entries ()
   "Print a hard copy of the diary display.
