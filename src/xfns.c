@@ -3239,7 +3239,8 @@ even if they match PATTERN and FACE.")
           if (thisinfo && same_size_fonts (thisinfo, size_ref))
 	    newlist = Fcons (XCONS (tem)->car, newlist);
 
-	  XFreeFont (FRAME_X_DISPLAY (f), thisinfo);
+	  if (thisinfo != 0)
+	    XFreeFont (FRAME_X_DISPLAY (f), thisinfo);
         }
 
       UNBLOCK_INPUT;
