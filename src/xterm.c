@@ -98,6 +98,11 @@ Boston, MA 02111-1307, USA.  */
 #include <unistd.h>
 #endif
 
+#ifdef USE_LUCID
+extern int xlwmenu_window_p (Widget w, Window window);
+extern void xlwmenu_redisplay P_ ((Widget));
+#endif
+
 #ifdef USE_X_TOOLKIT
 
 extern void free_frame_menubar P_ ((struct frame *));
@@ -10315,8 +10320,8 @@ XTread_socket (sd, bufp, numchars, expected)
 	      break;
 
 	    case GraphicsExpose:	/* This occurs when an XCopyArea's
-				      source area was obscured or not
-				      available.*/
+					   source area was obscured or not
+					   available.  */
 	      f = x_window_to_frame (dpyinfo, event.xgraphicsexpose.drawable);
 	      if (f)
 		{
@@ -10333,7 +10338,7 @@ XTread_socket (sd, bufp, numchars, expected)
 
 	    case NoExpose:		/* This occurs when an XCopyArea's
 					   source area was completely
-					   available */
+					   available.  */
 	      break;
 
 	    case UnmapNotify:
@@ -10346,7 +10351,7 @@ XTread_socket (sd, bufp, numchars, expected)
 	      
 	      f = x_top_window_to_frame (dpyinfo, event.xunmap.window);
 	      if (f)		/* F may no longer exist if
-				       the frame was deleted.  */
+				   the frame was deleted.  */
 		{
 		  /* While a frame is unmapped, display generation is
 		     disabled; you don't want to spend time updating a
