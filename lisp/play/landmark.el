@@ -1651,7 +1651,7 @@ none / 1   | yes                   | no
 You start by moving to a square and typing \\[lm-start-robot],
 if you did not use a prefix arg to ask for automatic start.
 Use \\[describe-mode] for more info."
-  (interactive "P")
+  (interactive "p")
 
   (setf lm-n nil lm-m nil)
   (lm-switch-to-window)
