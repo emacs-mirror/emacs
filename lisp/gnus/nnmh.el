@@ -265,6 +265,13 @@ as unread by Gnus.")
 		 (setq is-old
 		       (nnmail-expired-article-p newsgroup mod-time force)))
 	    (progn
+	      ;; Allow a special target group. -- jcn
+	      (unless (eq nnmail-expiry-target 'delete)
+		(with-temp-buffer
+		  (nnmh-request-article (car articles)
+					newsgroup server (current-buffer))
+		  (nnmail-expiry-target-group
+		   nnmail-expiry-target newsgroup)))
 	      (nnheader-message 5 "Deleting article %s in %s..."
 				article newsgroup)
 	      (condition-case ()

@@ -280,6 +280,14 @@
 		     (buffer-substring
 		      (point) (progn (end-of-line) (point))) force))
 	      (progn
+		(unless (eq nnmail-expiry-target 'delete)
+		  (with-temp-buffer
+		    (nnbabyl-request-article (car articles) 
+					     newsgroup server 
+					     (current-buffer))
+		    (let ((nnml-current-directory nil))
+		      (nnmail-expiry-target-group
+		       nnmail-expiry-target newsgroup))))
 		(nnheader-message 5 "Deleting article %d in %s..."
 				  (car articles) newsgroup)
 		(nnbabyl-delete-mail))
