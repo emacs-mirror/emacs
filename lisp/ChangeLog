@@ -1,3 +1,11 @@
+2002-09-12  Francesco Potorti`  <pot@gnu.org>
+
+	* play/gamegrid.el (gamegrid-display-type): Treat any
+	color-capable display as color-x, if display-color-p is fboundp.
+	(gamegrid-make-color-x-face): Don't call gamegrid-color twice.
+	(gamegrid-make-color-tty-face): Use the value of color, not the
+	symbol itself.  Don't call gamegrid-color.
+
 2002-09-11  Dave Love  <fx@gnu.org>
 
 	* language/cyrillic.el (cyrillic-alternativnyj): Remove bogus
