@@ -1,3 +1,21 @@
+2002-05-24  Dave Love  <fx@gnu.org>
+
+	* term.c (costs_set): Declare static, non-initialized for pcc.
+	(encode_terminal_code): Remove ensued var.
+
+	* keyboard.c (kbd_buffer_store_event): Fix interrupt_signal decl
+	for K&R.
+
+	* xterm.c (xlwmenu_window_p): Fix prototype for K&R.
+
+	* coding.c (setup_iso_safe_charsets): Fix arg decl for K&R.
+	(suffixes): Moved out of make_subsidiaries for K&R.
+
+	* charset.c (map_charset_chars): Fix c_function declaration for
+	K&R.
+
+	* lisp.h (DEFUN) [!PROTOTYPES]: Remove spurious `args'.
+
 2002-05-23  Dave Love  <fx@gnu.org>
 
 	* data.c (Fchar_or_string_p): Doc fix.  Use CHARACTERP.
@@ -16763,6 +16781,6 @@ See ChangeLog.8 for earlier changes.
 ;; coding: iso-2022-7bit
 ;; End:
 
-    Copyright (C) 2001 Free Software Foundation, Inc.
+    Copyright (C) 2001, 2002 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
