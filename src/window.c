@@ -4653,6 +4653,15 @@ displayed_window_lines (w)
   move_it_vertically (&it, height);
   bottom_y = line_bottom_y (&it);
 
+  /* rms: On a non-window display,
+     the value of it.vpos at the bottom of the screen
+     seems to be 1 larger than window_box_height (w).
+     This kludge fixes a bug whereby (move-to-window-line -1)
+     when ZV is on the last screen line
+     moves to the previous screen line instead of the last one.  */
+  if (! FRAME_WINDOW_P (XFRAME (w->frame)))
+    height++;
+
   /* Add in empty lines at the bottom of the window.  */
   if (bottom_y < height)
     {
