@@ -109,23 +109,18 @@ strings or patterns."
 		    ((eq char ?\,)
 		     (setq pos (read-from-string to))
 		     (push `(replace-quote ,(car pos)) list)
-		     (let ((end
-			    ;; Swallow a space after a symbol
-			    ;; if there is a space.
-			    (if (and (or (symbolp (car pos))
-					 ;; Swallow a space after 'foo
-					 ;; but not after (quote foo).
-					 (and (eq (car-safe (car pos)) 'quote)
-					      (= ?\( (aref to-string 0))))
-				     (equal " " (substring to-string (cdr pos)
-							   (1+ (cdr pos)))))
-				(1+ (cdr pos))
-			      (cdr pos))))
-		       (setq to (substring to end)))))
+		     (setq to (substring
+			       to (+ (cdr pos)
+				     ;; Swallow a space after a symbol
+				     ;; if there is a space.
+				     (if (string-match
+                                          "^[^])\"] "
+                                          (substring to (1- (cdr pos))))
+					 1 0))))))
 	      (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\\\[,#]" to)))
 	(setq to (nreverse (delete "" (cons to list)))))
       (replace-match-string-symbols to)
-      (setq to (cons 'replace-eval-replacement 
+      (setq to (cons 'replace-eval-replacement
 		     (if (> (length to) 1)
 			 (cons 'concat to)
 		       (car to)))))
@@ -1397,7 +1392,7 @@ make, or the user didn't cancel the call."
 			((eq def 'act-and-exit)
 			 (or replaced
 			     (setq noedit
-				   (replace-match-maybe-edit 
+				   (replace-match-maybe-edit
 				    next-replacement nocasify literal
 				    noedit real-match-data)
 				   replace-count (1+ replace-count)))
