@@ -30,11 +30,22 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <rmsdef.h>
 #endif
 
+/* The d_nameln member of a struct dirent includes the '\0' character
+   on some systems, but not on others.  What's worse, you can't tell
+   at compile-time which one it will be, since it really depends on
+   the sort of system providing the filesystem you're reading from,
+   not the system you are running on.  Paul Eggert
+   <eggert@bi.twinsun.com> says this occurs when Emacs is running on a
+   SunOS 4.1.2 host, reading a directory that is remote-mounted from a
+   Solaris 2.1 host and is in a native Solaris 2.1 filesystem.
+
+   Since applying strlen to the name always works, we'll just do that.  */
+#define NAMLEN(p) strlen (p->d_name)
+
 #ifdef SYSV_SYSTEM_DIR
 
 #include <dirent.h>
 #define DIRENTRY struct dirent
-#define NAMLEN(p) strlen (p->d_name)
 
 #else
 
@@ -45,7 +56,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif /* not NONSYSTEM_DIR_LIBRARY */
 
 #define DIRENTRY struct direct
-#define NAMLEN(p) p->d_namlen
 
 extern DIR *opendir ();
 extern struct direct *readdir ();
