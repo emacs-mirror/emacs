@@ -198,7 +198,7 @@ enum sound_attr
 extern Lisp_Object QCfile;
 Lisp_Object QCvolume, QCdevice;
 Lisp_Object Qsound;
-Lisp_Object Qplay_sound_hook;
+Lisp_Object Qplay_sound_functions;
 
 /* These are set during `play-sound' so that sound_cleanup has
    access to them.  */
@@ -260,7 +260,8 @@ sound_perror (msg)
 
    - `:volume VOL'
 
-   VOL must be an integer in the range 0..100.  */
+   VOL must be an integer in the range [0, 100], or a float in the
+   range [0, 1].  */
 
 static int
 parse_sound (sound, attrs)
@@ -283,10 +284,19 @@ parse_sound (sound, attrs)
   /* Volume must be in the range 0..100 or unspecified.  */
   if (!NILP (attrs[SOUND_VOLUME]))
     {
-      if (!INTEGERP (attrs[SOUND_VOLUME]))
-	return 0;
-      if (XINT (attrs[SOUND_VOLUME]) < 0
-	  || XINT (attrs[SOUND_VOLUME]) > 100)
+      if (INTEGERP (attrs[SOUND_VOLUME]))
+	{
+	  if (XINT (attrs[SOUND_VOLUME]) < 0
+	      || XINT (attrs[SOUND_VOLUME]) > 100)
+	    return 0;
+	}
+      else if (FLOATP (attrs[SOUND_VOLUME]))
+	{
+	  if (XFLOAT_DATA (attrs[SOUND_VOLUME]) < 0
+	      || XFLOAT_DATA (attrs[SOUND_VOLUME]) > 1)
+	    return 0;
+	}
+      else
 	return 0;
     }
 
@@ -383,8 +393,10 @@ DEFUN ("play-sound", Fplay_sound, Splay_sound, 1, 1, 0,
     }
   if (INTEGERP (attrs[SOUND_VOLUME]))
     sd.volume = XFASTINT (attrs[SOUND_VOLUME]);
+  else if (FLOATP (attrs[SOUND_VOLUME]))
+    sd.volume = XFLOAT_DATA (attrs[SOUND_VOLUME]) * 100;
 
-  args[0] = Qplay_sound_hook;
+  args[0] = Qplay_sound_functions;
   args[1] = sound;
   Frun_hook_with_args (make_number (2), args);
 
@@ -809,8 +821,8 @@ syms_of_sound ()
   staticpro (&QCvolume);
   Qsound = intern ("sound");
   staticpro (&Qsound);
-  Qplay_sound_hook = intern ("play-sound-hook");
-  staticpro (&Qplay_sound_hook);
+  Qplay_sound_functions = intern ("play-sound-functions");
+  staticpro (&Qplay_sound_functions);
 
   defsubr (&Splay_sound);
 }
