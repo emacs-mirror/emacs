@@ -45,6 +45,7 @@ enum output_method
   output_x_window,
   output_msdos_raw,
   output_w32,
+  output_w32_console,
   output_mac
 };
 
@@ -389,6 +390,7 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_TERMCAP_P(f) ((f)->output_method == output_termcap)
 #define FRAME_X_P(f) ((f)->output_method == output_x_window)
 #define FRAME_W32_P(f) ((f)->output_method == output_w32)
+#define FRAME_W32_CONSOLE_P(f) ((f)->output_method == output_w32_console)
 #define FRAME_MSDOS_P(f) ((f)->output_method == output_msdos_raw)
 #define FRAME_MAC_P(f) ((f)->output_method == output_mac)
 
