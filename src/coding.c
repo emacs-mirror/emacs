@@ -6092,10 +6092,10 @@ encode_coding_string (str, coding, nocopy)
 /*** 8. Emacs Lisp library functions ***/
 
 DEFUN ("coding-system-p", Fcoding_system_p, Scoding_system_p, 1, 1, 0,
-  "Return t if OBJECT is nil or a coding-system.\n\
-See the documentation of `make-coding-system' for information\n\
-about coding-system objects.")
-  (obj)
+       doc: /* Return t if OBJECT is nil or a coding-system.
+See the documentation of `make-coding-system' for information
+about coding-system objects.  */)
+     (obj)
      Lisp_Object obj;
 {
   if (NILP (obj))
@@ -6110,8 +6110,8 @@ about coding-system objects.")
 
 DEFUN ("read-non-nil-coding-system", Fread_non_nil_coding_system,
        Sread_non_nil_coding_system, 1, 1, 0,
-  "Read a coding system from the minibuffer, prompting with string PROMPT.")
-  (prompt)
+       doc: /* Read a coding system from the minibuffer, prompting with string PROMPT.  */)
+     (prompt)
      Lisp_Object prompt;
 {
   Lisp_Object val;
@@ -6125,9 +6125,9 @@ DEFUN ("read-non-nil-coding-system", Fread_non_nil_coding_system,
 }
 
 DEFUN ("read-coding-system", Fread_coding_system, Sread_coding_system, 1, 2, 0,
-  "Read a coding system from the minibuffer, prompting with string PROMPT.\n\
-If the user enters null input, return second argument DEFAULT-CODING-SYSTEM.")
-  (prompt, default_coding_system)
+       doc: /* Read a coding system from the minibuffer, prompting with string PROMPT.
+If the user enters null input, return second argument DEFAULT-CODING-SYSTEM.  */)
+     (prompt, default_coding_system)
      Lisp_Object prompt, default_coding_system;
 {
   Lisp_Object val;
@@ -6141,11 +6141,11 @@ If the user enters null input, return second argument DEFAULT-CODING-SYSTEM.")
 
 DEFUN ("check-coding-system", Fcheck_coding_system, Scheck_coding_system,
        1, 1, 0,
-  "Check validity of CODING-SYSTEM.\n\
-If valid, return CODING-SYSTEM, else signal a `coding-system-error' error.\n\
-It is valid if it is a symbol with a non-nil `coding-system' property.\n\
-The value of property should be a vector of length 5.")
-  (coding_system)
+       doc: /* Check validity of CODING-SYSTEM.
+If valid, return CODING-SYSTEM, else signal a `coding-system-error' error.
+It is valid if it is a symbol with a non-nil `coding-system' property.
+The value of property should be a vector of length 5.  */)
+     (coding_system)
      Lisp_Object coding_system;
 {
   CHECK_SYMBOL (coding_system);
@@ -6220,16 +6220,16 @@ detect_coding_system (src, src_bytes, highest, multibytep)
 
 DEFUN ("detect-coding-region", Fdetect_coding_region, Sdetect_coding_region,
        2, 3, 0,
-  "Detect coding system of the text in the region between START and END.\n\
-Return a list of possible coding systems ordered by priority.\n\
-\n\
-If only ASCII characters are found, it returns a list of single element\n\
-`undecided' or its subsidiary coding system according to a detected\n\
-end-of-line format.\n\
-\n\
-If optional argument HIGHEST is non-nil, return the coding system of\n\
-highest priority.")
-  (start, end, highest)
+       doc: /* Detect coding system of the text in the region between START and END.
+Return a list of possible coding systems ordered by priority.
+
+If only ASCII characters are found, it returns a list of single element
+`undecided' or its subsidiary coding system according to a detected
+end-of-line format.
+
+If optional argument HIGHEST is non-nil, return the coding system of
+highest priority.  */)
+     (start, end, highest)
      Lisp_Object start, end, highest;
 {
   int from, to;
@@ -6264,16 +6264,16 @@ highest priority.")
 
 DEFUN ("detect-coding-string", Fdetect_coding_string, Sdetect_coding_string,
        1, 2, 0,
-  "Detect coding system of the text in STRING.\n\
-Return a list of possible coding systems ordered by priority.\n\
-\n\
-If only ASCII characters are found, it returns a list of single element\n\
-`undecided' or its subsidiary coding system according to a detected\n\
-end-of-line format.\n\
-\n\
-If optional argument HIGHEST is non-nil, return the coding system of\n\
-highest priority.")
-  (string, highest)
+       doc: /* Detect coding system of the text in STRING.
+Return a list of possible coding systems ordered by priority.
+
+If only ASCII characters are found, it returns a list of single element
+`undecided' or its subsidiary coding system according to a detected
+end-of-line format.
+
+If optional argument HIGHEST is non-nil, return the coding system of
+highest priority.  */)
+     (string, highest)
      Lisp_Object string, highest;
 {
   CHECK_STRING (string);
@@ -6364,8 +6364,8 @@ find_safe_codings (p, pend, safe_codings, work_table, single_byte_char_found)
 DEFUN ("find-coding-systems-region-internal",
        Ffind_coding_systems_region_internal,
        Sfind_coding_systems_region_internal, 2, 2, 0,
-  "Internal use only.")
-  (start, end)
+       doc: /* Internal use only.  */)
+     (start, end)
      Lisp_Object start, end;
 {
   Lisp_Object work_table, safe_codings;
@@ -6478,14 +6478,14 @@ code_convert_region1 (start, end, coding_system, encodep)
 
 DEFUN ("decode-coding-region", Fdecode_coding_region, Sdecode_coding_region,
        3, 3, "r\nzCoding system: ",
-  "Decode the current region from the specified coding system.\n\
-When called from a program, takes three arguments:\n\
-START, END, and CODING-SYSTEM.  START and END are buffer positions.\n\
-This function sets `last-coding-system-used' to the precise coding system\n\
-used (which may be different from CODING-SYSTEM if CODING-SYSTEM is\n\
-not fully specified.)\n\
-It returns the length of the decoded text.")
-  (start, end, coding_system)
+       doc: /* Decode the current region from the specified coding system.
+When called from a program, takes three arguments:
+START, END, and CODING-SYSTEM.  START and END are buffer positions.
+This function sets `last-coding-system-used' to the precise coding system
+used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
+not fully specified.)
+It returns the length of the decoded text.  */)
+     (start, end, coding_system)
      Lisp_Object start, end, coding_system;
 {
   return code_convert_region1 (start, end, coding_system, 0);
@@ -6493,14 +6493,14 @@ It returns the length of the decoded text.")
 
 DEFUN ("encode-coding-region", Fencode_coding_region, Sencode_coding_region,
        3, 3, "r\nzCoding system: ",
-  "Encode the current region into the specified coding system.\n\
-When called from a program, takes three arguments:\n\
-START, END, and CODING-SYSTEM.  START and END are buffer positions.\n\
-This function sets `last-coding-system-used' to the precise coding system\n\
-used (which may be different from CODING-SYSTEM if CODING-SYSTEM is\n\
-not fully specified.)\n\
-It returns the length of the encoded text.")
-  (start, end, coding_system)
+       doc: /* Encode the current region into the specified coding system.
+When called from a program, takes three arguments:
+START, END, and CODING-SYSTEM.  START and END are buffer positions.
+This function sets `last-coding-system-used' to the precise coding system
+used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
+not fully specified.)
+It returns the length of the encoded text.  */)
+     (start, end, coding_system)
      Lisp_Object start, end, coding_system;
 {
   return code_convert_region1 (start, end, coding_system, 1);
@@ -6533,13 +6533,13 @@ code_convert_string1 (string, coding_system, nocopy, encodep)
 
 DEFUN ("decode-coding-string", Fdecode_coding_string, Sdecode_coding_string,
        2, 3, 0,
-  "Decode STRING which is encoded in CODING-SYSTEM, and return the result.\n\
-Optional arg NOCOPY non-nil means it is OK to return STRING itself\n\
-if the decoding operation is trivial.\n\
-This function sets `last-coding-system-used' to the precise coding system\n\
-used (which may be different from CODING-SYSTEM if CODING-SYSTEM is\n\
-not fully specified.)")
-  (string, coding_system, nocopy)
+       doc: /* Decode STRING which is encoded in CODING-SYSTEM, and return the result.
+Optional arg NOCOPY non-nil means it is OK to return STRING itself
+if the decoding operation is trivial.
+This function sets `last-coding-system-used' to the precise coding system
+used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
+not fully specified.)  */)
+     (string, coding_system, nocopy)
      Lisp_Object string, coding_system, nocopy;
 {
   return code_convert_string1 (string, coding_system, nocopy, 0);
@@ -6547,13 +6547,13 @@ not fully specified.)")
 
 DEFUN ("encode-coding-string", Fencode_coding_string, Sencode_coding_string,
        2, 3, 0,
-  "Encode STRING to CODING-SYSTEM, and return the result.\n\
-Optional arg NOCOPY non-nil means it is OK to return STRING itself\n\
-if the encoding operation is trivial.\n\
-This function sets `last-coding-system-used' to the precise coding system\n\
-used (which may be different from CODING-SYSTEM if CODING-SYSTEM is\n\
-not fully specified.)")
-  (string, coding_system, nocopy)
+       doc: /* Encode STRING to CODING-SYSTEM, and return the result.
+Optional arg NOCOPY non-nil means it is OK to return STRING itself
+if the encoding operation is trivial.
+This function sets `last-coding-system-used' to the precise coding system
+used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
+not fully specified.)  */)
+     (string, coding_system, nocopy)
      Lisp_Object string, coding_system, nocopy;
 {
   return code_convert_string1 (string, coding_system, nocopy, 1);
@@ -6589,9 +6589,9 @@ code_convert_string_norecord (string, coding_system, encodep)
 }
 
 DEFUN ("decode-sjis-char", Fdecode_sjis_char, Sdecode_sjis_char, 1, 1, 0,
-  "Decode a Japanese character which has CODE in shift_jis encoding.\n\
-Return the corresponding character.")
-  (code)
+       doc: /* Decode a Japanese character which has CODE in shift_jis encoding.
+Return the corresponding character.  */)
+     (code)
      Lisp_Object code;
 {
   unsigned char c1, c2, s1, s2;
@@ -6620,9 +6620,9 @@ Return the corresponding character.")
 }
 
 DEFUN ("encode-sjis-char", Fencode_sjis_char, Sencode_sjis_char, 1, 1, 0,
-  "Encode a Japanese character CHAR to shift_jis encoding.\n\
-Return the corresponding code in SJIS.")
-  (ch)
+       doc: /* Encode a Japanese character CHAR to shift_jis encoding.
+Return the corresponding code in SJIS.  */)
+     (ch)
      Lisp_Object ch;
 {
   int charset, c1, c2, s1, s2;
@@ -6651,9 +6651,9 @@ Return the corresponding code in SJIS.")
 }
 
 DEFUN ("decode-big5-char", Fdecode_big5_char, Sdecode_big5_char, 1, 1, 0,
-  "Decode a Big5 character which has CODE in BIG5 coding system.\n\
-Return the corresponding character.")
-  (code)
+       doc: /* Decode a Big5 character which has CODE in BIG5 coding system.
+Return the corresponding character.  */)
+     (code)
      Lisp_Object code;
 {
   int charset;
@@ -6680,9 +6680,9 @@ Return the corresponding character.")
 }
 
 DEFUN ("encode-big5-char", Fencode_big5_char, Sencode_big5_char, 1, 1, 0,
-  "Encode the Big5 character CHAR to BIG5 coding system.\n\
-Return the corresponding character code in Big5.")
-  (ch)
+       doc: /* Encode the Big5 character CHAR to BIG5 coding system.
+Return the corresponding character code in Big5.  */)
+     (ch)
      Lisp_Object ch;
 {
   int charset, c1, c2, b1, b2;
@@ -6709,8 +6709,9 @@ Return the corresponding character code in Big5.")
 
 DEFUN ("set-terminal-coding-system-internal",
        Fset_terminal_coding_system_internal,
-       Sset_terminal_coding_system_internal, 1, 1, 0, "")
-  (coding_system)
+       Sset_terminal_coding_system_internal, 1, 1, 0,
+       doc: /* Internal use only.  */)
+     (coding_system)
      Lisp_Object coding_system;
 {
   CHECK_SYMBOL (coding_system);
@@ -6728,8 +6729,9 @@ DEFUN ("set-terminal-coding-system-internal",
 
 DEFUN ("set-safe-terminal-coding-system-internal",
        Fset_safe_terminal_coding_system_internal,
-       Sset_safe_terminal_coding_system_internal, 1, 1, 0, "")
-  (coding_system)
+       Sset_safe_terminal_coding_system_internal, 1, 1, 0,
+       doc: /* Internal use only. */)
+     (coding_system)
      Lisp_Object coding_system;
 {
   CHECK_SYMBOL (coding_system);
@@ -6746,16 +6748,17 @@ DEFUN ("set-safe-terminal-coding-system-internal",
 
 DEFUN ("terminal-coding-system",
        Fterminal_coding_system, Sterminal_coding_system, 0, 0, 0,
-  "Return coding system specified for terminal output.")
-  ()
+       doc: /* Return coding system specified for terminal output.  */)
+     ()
 {
   return terminal_coding.symbol;
 }
 
 DEFUN ("set-keyboard-coding-system-internal",
        Fset_keyboard_coding_system_internal,
-       Sset_keyboard_coding_system_internal, 1, 1, 0, "")
-  (coding_system)
+       Sset_keyboard_coding_system_internal, 1, 1, 0,
+       doc: /* Internal use only.  */)
+     (coding_system)
      Lisp_Object coding_system;
 {
   CHECK_SYMBOL (coding_system);
@@ -6767,8 +6770,8 @@ DEFUN ("set-keyboard-coding-system-internal",
 
 DEFUN ("keyboard-coding-system",
        Fkeyboard_coding_system, Skeyboard_coding_system, 0, 0, 0,
-  "Return coding system specified for decoding keyboard input.")
-  ()
+       doc: /* Return coding system specified for decoding keyboard input.  */)
+     ()
 {
   return keyboard_coding.symbol;
 }
@@ -6776,37 +6779,37 @@ DEFUN ("keyboard-coding-system",
 
 DEFUN ("find-operation-coding-system", Ffind_operation_coding_system,
        Sfind_operation_coding_system,  1, MANY, 0,
-  "Choose a coding system for an operation based on the target name.\n\
-The value names a pair of coding systems: (DECODING-SYSTEM . ENCODING-SYSTEM).\n\
-DECODING-SYSTEM is the coding system to use for decoding\n\
-\(in case OPERATION does decoding), and ENCODING-SYSTEM is the coding system\n\
-for encoding (in case OPERATION does encoding).\n\
-\n\
-The first argument OPERATION specifies an I/O primitive:\n\
-  For file I/O, `insert-file-contents' or `write-region'.\n\
-  For process I/O, `call-process', `call-process-region', or `start-process'.\n\
-  For network I/O, `open-network-stream'.\n\
-\n\
-The remaining arguments should be the same arguments that were passed\n\
-to the primitive.  Depending on which primitive, one of those arguments\n\
-is selected as the TARGET.  For example, if OPERATION does file I/O,\n\
-whichever argument specifies the file name is TARGET.\n\
-\n\
-TARGET has a meaning which depends on OPERATION:\n\
-  For file I/O, TARGET is a file name.\n\
-  For process I/O, TARGET is a process name.\n\
-  For network I/O, TARGET is a service name or a port number\n\
-\n\
-This function looks up what specified for TARGET in,\n\
-`file-coding-system-alist', `process-coding-system-alist',\n\
-or `network-coding-system-alist' depending on OPERATION.\n\
-They may specify a coding system, a cons of coding systems,\n\
-or a function symbol to call.\n\
-In the last case, we call the function with one argument,\n\
-which is a list of all the arguments given to this function.\n\
-\n\
-usage: (find-operation-coding-system OPERATION ARGUMENTS ...)")
-  (nargs, args)
+       doc: /* Choose a coding system for an operation based on the target name.
+The value names a pair of coding systems: (DECODING-SYSTEM . ENCODING-SYSTEM).
+DECODING-SYSTEM is the coding system to use for decoding
+\(in case OPERATION does decoding), and ENCODING-SYSTEM is the coding system
+for encoding (in case OPERATION does encoding).
+
+The first argument OPERATION specifies an I/O primitive:
+  For file I/O, `insert-file-contents' or `write-region'.
+  For process I/O, `call-process', `call-process-region', or `start-process'.
+  For network I/O, `open-network-stream'.
+
+The remaining arguments should be the same arguments that were passed
+to the primitive.  Depending on which primitive, one of those arguments
+is selected as the TARGET.  For example, if OPERATION does file I/O,
+whichever argument specifies the file name is TARGET.
+
+TARGET has a meaning which depends on OPERATION:
+  For file I/O, TARGET is a file name.
+  For process I/O, TARGET is a process name.
+  For network I/O, TARGET is a service name or a port number
+
+This function looks up what specified for TARGET in,
+`file-coding-system-alist', `process-coding-system-alist',
+or `network-coding-system-alist' depending on OPERATION.
+They may specify a coding system, a cons of coding systems,
+or a function symbol to call.
+In the last case, we call the function with one argument,
+which is a list of all the arguments given to this function.
+
+usage: (find-operation-coding-system OPERATION ARGUMENTS ...)  */)
+     (nargs, args)
      int nargs;
      Lisp_Object *args;
 {
@@ -6872,10 +6875,10 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS ...)")
 
 DEFUN ("update-coding-systems-internal",  Fupdate_coding_systems_internal,
        Supdate_coding_systems_internal, 0, 0, 0,
-  "Update internal database for ISO2022 and CCL based coding systems.\n\
-When values of any coding categories are changed, you must\n\
-call this function")
-  ()
+       doc: /* Update internal database for ISO2022 and CCL based coding systems.
+When values of any coding categories are changed, you must
+call this function.  */)
+     ()
 {
   int i;
 
@@ -6903,9 +6906,9 @@ call this function")
 
 DEFUN ("set-coding-priority-internal", Fset_coding_priority_internal,
        Sset_coding_priority_internal, 0, 0, 0,
-  "Update internal database for the current value of `coding-category-list'.\n\
-This function is internal use only.")
-  ()
+       doc: /* Update internal database for the current value of `coding-category-list'.
+This function is internal use only.  */)
+     ()
 {
   int i = 0, idx;
   Lisp_Object val;
@@ -7144,30 +7147,30 @@ syms_of_coding ()
   defsubr (&Sset_coding_priority_internal);
 
   DEFVAR_LISP ("coding-system-list", &Vcoding_system_list,
-    "List of coding systems.\n\
-\n\
-Do not alter the value of this variable manually.  This variable should be\n\
-updated by the functions `make-coding-system' and\n\
-`define-coding-system-alias'.");
+	       doc: /* List of coding systems.
+
+Do not alter the value of this variable manually.  This variable should be
+updated by the functions `make-coding-system' and
+`define-coding-system-alias'.  */);
   Vcoding_system_list = Qnil;
 
   DEFVAR_LISP ("coding-system-alist", &Vcoding_system_alist,
-    "Alist of coding system names.\n\
-Each element is one element list of coding system name.\n\
-This variable is given to `completing-read' as TABLE argument.\n\
-\n\
-Do not alter the value of this variable manually.  This variable should be\n\
-updated by the functions `make-coding-system' and\n\
-`define-coding-system-alias'.");
+	       doc: /* Alist of coding system names.
+Each element is one element list of coding system name.
+This variable is given to `completing-read' as TABLE argument.
+
+Do not alter the value of this variable manually.  This variable should be
+updated by the functions `make-coding-system' and
+`define-coding-system-alias'.  */);
   Vcoding_system_alist = Qnil;
 
   DEFVAR_LISP ("coding-category-list", &Vcoding_category_list,
-    "List of coding-categories (symbols) ordered by priority.\n\
-\n\
-On detecting a coding system, Emacs tries code detection algorithms\n\
-associated with each coding-category one by one in this order.  When\n\
-one algorithm agrees with a byte sequence of source text, the coding\n\
-system bound to the corresponding coding-category is selected.");
+	       doc: /* List of coding-categories (symbols) ordered by priority.
+
+On detecting a coding system, Emacs tries code detection algorithms
+associated with each coding-category one by one in this order.  When
+one algorithm agrees with a byte sequence of source text, the coding
+system bound to the corresponding coding-category is selected.  */);
   {
     int i;
 
@@ -7179,193 +7182,193 @@ system bound to the corresponding coding-category is selected.");
   }
 
   DEFVAR_LISP ("coding-system-for-read", &Vcoding_system_for_read,
-    "Specify the coding system for read operations.\n\
-It is useful to bind this variable with `let', but do not set it globally.\n\
-If the value is a coding system, it is used for decoding on read operation.\n\
-If not, an appropriate element is used from one of the coding system alists:\n\
-There are three such tables, `file-coding-system-alist',\n\
-`process-coding-system-alist', and `network-coding-system-alist'.");
+	       doc: /* Specify the coding system for read operations.
+It is useful to bind this variable with `let', but do not set it globally.
+If the value is a coding system, it is used for decoding on read operation.
+If not, an appropriate element is used from one of the coding system alists:
+There are three such tables, `file-coding-system-alist',
+`process-coding-system-alist', and `network-coding-system-alist'.  */);
   Vcoding_system_for_read = Qnil;
 
   DEFVAR_LISP ("coding-system-for-write", &Vcoding_system_for_write,
-    "Specify the coding system for write operations.\n\
-Programs bind this variable with `let', but you should not set it globally.\n\
-If the value is a coding system, it is used for encoding of output,\n\
-when writing it to a file and when sending it to a file or subprocess.\n\
-\n\
-If this does not specify a coding system, an appropriate element\n\
-is used from one of the coding system alists:\n\
-There are three such tables, `file-coding-system-alist',\n\
-`process-coding-system-alist', and `network-coding-system-alist'.\n\
-For output to files, if the above procedure does not specify a coding system,\n\
-the value of `buffer-file-coding-system' is used.");
+	       doc: /* Specify the coding system for write operations.
+Programs bind this variable with `let', but you should not set it globally.
+If the value is a coding system, it is used for encoding of output,
+when writing it to a file and when sending it to a file or subprocess.
+
+If this does not specify a coding system, an appropriate element
+is used from one of the coding system alists:
+There are three such tables, `file-coding-system-alist',
+`process-coding-system-alist', and `network-coding-system-alist'.
+For output to files, if the above procedure does not specify a coding system,
+the value of `buffer-file-coding-system' is used.  */);
   Vcoding_system_for_write = Qnil;
 
   DEFVAR_LISP ("last-coding-system-used", &Vlast_coding_system_used,
-    "Coding system used in the latest file or process I/O.");
+	       doc: /* Coding system used in the latest file or process I/O.  */);
   Vlast_coding_system_used = Qnil;
 
   DEFVAR_BOOL ("inhibit-eol-conversion", &inhibit_eol_conversion,
-    "*Non-nil means always inhibit code conversion of end-of-line format.\n\
-See info node `Coding Systems' and info node `Text and Binary' concerning\n\
-such conversion.");
+	       doc: /* *Non-nil means always inhibit code conversion of end-of-line format.
+See info node `Coding Systems' and info node `Text and Binary' concerning
+such conversion.  */);
   inhibit_eol_conversion = 0;
 
   DEFVAR_BOOL ("inherit-process-coding-system", &inherit_process_coding_system,
-    "Non-nil means process buffer inherits coding system of process output.\n\
-Bind it to t if the process output is to be treated as if it were a file\n\
-read from some filesystem.");
+	       doc: /* Non-nil means process buffer inherits coding system of process output.
+Bind it to t if the process output is to be treated as if it were a file
+read from some filesystem.  */);
   inherit_process_coding_system = 0;
 
   DEFVAR_LISP ("file-coding-system-alist", &Vfile_coding_system_alist,
-    "Alist to decide a coding system to use for a file I/O operation.\n\
-The format is ((PATTERN . VAL) ...),\n\
-where PATTERN is a regular expression matching a file name,\n\
-VAL is a coding system, a cons of coding systems, or a function symbol.\n\
-If VAL is a coding system, it is used for both decoding and encoding\n\
-the file contents.\n\
-If VAL is a cons of coding systems, the car part is used for decoding,\n\
-and the cdr part is used for encoding.\n\
-If VAL is a function symbol, the function must return a coding system\n\
-or a cons of coding systems which are used as above.\n\
-\n\
-See also the function `find-operation-coding-system'\n\
-and the variable `auto-coding-alist'.");
+	       doc: /* Alist to decide a coding system to use for a file I/O operation.
+The format is ((PATTERN . VAL) ...),
+where PATTERN is a regular expression matching a file name,
+VAL is a coding system, a cons of coding systems, or a function symbol.
+If VAL is a coding system, it is used for both decoding and encoding
+the file contents.
+If VAL is a cons of coding systems, the car part is used for decoding,
+and the cdr part is used for encoding.
+If VAL is a function symbol, the function must return a coding system
+or a cons of coding systems which are used as above.
+
+See also the function `find-operation-coding-system'
+and the variable `auto-coding-alist'.  */);
   Vfile_coding_system_alist = Qnil;
 
   DEFVAR_LISP ("process-coding-system-alist", &Vprocess_coding_system_alist,
-    "Alist to decide a coding system to use for a process I/O operation.\n\
-The format is ((PATTERN . VAL) ...),\n\
-where PATTERN is a regular expression matching a program name,\n\
-VAL is a coding system, a cons of coding systems, or a function symbol.\n\
-If VAL is a coding system, it is used for both decoding what received\n\
-from the program and encoding what sent to the program.\n\
-If VAL is a cons of coding systems, the car part is used for decoding,\n\
-and the cdr part is used for encoding.\n\
-If VAL is a function symbol, the function must return a coding system\n\
-or a cons of coding systems which are used as above.\n\
-\n\
-See also the function `find-operation-coding-system'.");
+    doc: /* Alist to decide a coding system to use for a process I/O operation.
+The format is ((PATTERN . VAL) ...),
+where PATTERN is a regular expression matching a program name,
+VAL is a coding system, a cons of coding systems, or a function symbol.
+If VAL is a coding system, it is used for both decoding what received
+from the program and encoding what sent to the program.
+If VAL is a cons of coding systems, the car part is used for decoding,
+and the cdr part is used for encoding.
+If VAL is a function symbol, the function must return a coding system
+or a cons of coding systems which are used as above.
+
+See also the function `find-operation-coding-system'.  */);
   Vprocess_coding_system_alist = Qnil;
 
   DEFVAR_LISP ("network-coding-system-alist", &Vnetwork_coding_system_alist,
-    "Alist to decide a coding system to use for a network I/O operation.\n\
-The format is ((PATTERN . VAL) ...),\n\
-where PATTERN is a regular expression matching a network service name\n\
-or is a port number to connect to,\n\
-VAL is a coding system, a cons of coding systems, or a function symbol.\n\
-If VAL is a coding system, it is used for both decoding what received\n\
-from the network stream and encoding what sent to the network stream.\n\
-If VAL is a cons of coding systems, the car part is used for decoding,\n\
-and the cdr part is used for encoding.\n\
-If VAL is a function symbol, the function must return a coding system\n\
-or a cons of coding systems which are used as above.\n\
-\n\
-See also the function `find-operation-coding-system'.");
+    doc: /* Alist to decide a coding system to use for a network I/O operation.
+The format is ((PATTERN . VAL) ...),
+where PATTERN is a regular expression matching a network service name
+or is a port number to connect to,
+VAL is a coding system, a cons of coding systems, or a function symbol.
+If VAL is a coding system, it is used for both decoding what received
+from the network stream and encoding what sent to the network stream.
+If VAL is a cons of coding systems, the car part is used for decoding,
+and the cdr part is used for encoding.
+If VAL is a function symbol, the function must return a coding system
+or a cons of coding systems which are used as above.
+
+See also the function `find-operation-coding-system'.  */);
   Vnetwork_coding_system_alist = Qnil;
 
   DEFVAR_LISP ("locale-coding-system", &Vlocale_coding_system,
-    "Coding system to use with system messages.  Also used for decoding\n\
-keyboard input on X Window system.");
+	       doc: /* Coding system to use with system messages.  Also used for decoding
+keyboard input on X Window system.  */);
   Vlocale_coding_system = Qnil;
 
   /* The eol mnemonics are reset in startup.el system-dependently.  */
   DEFVAR_LISP ("eol-mnemonic-unix", &eol_mnemonic_unix,
-    "*String displayed in mode line for UNIX-like (LF) end-of-line format.");
+	       doc: /* *String displayed in mode line for UNIX-like (LF) end-of-line format.  */);
   eol_mnemonic_unix = build_string (":");
 
   DEFVAR_LISP ("eol-mnemonic-dos", &eol_mnemonic_dos,
-    "*String displayed in mode line for DOS-like (CRLF) end-of-line format.");
+	       doc: /* *String displayed in mode line for DOS-like (CRLF) end-of-line format.  */);
   eol_mnemonic_dos = build_string ("\\");
 
   DEFVAR_LISP ("eol-mnemonic-mac", &eol_mnemonic_mac,
-    "*String displayed in mode line for MAC-like (CR) end-of-line format.");
+	       doc: /* *String displayed in mode line for MAC-like (CR) end-of-line format.  */);
   eol_mnemonic_mac = build_string ("/");
 
   DEFVAR_LISP ("eol-mnemonic-undecided", &eol_mnemonic_undecided,
-    "*String displayed in mode line when end-of-line format is not yet determined.");
+	       doc: /* *String displayed in mode line when end-of-line format is not yet determined.  */);
   eol_mnemonic_undecided = build_string (":");
 
   DEFVAR_LISP ("enable-character-translation", &Venable_character_translation,
-    "*Non-nil enables character translation while encoding and decoding.");
+	       doc: /* *Non-nil enables character translation while encoding and decoding.  */);
   Venable_character_translation = Qt;
 
   DEFVAR_LISP ("standard-translation-table-for-decode",
-    &Vstandard_translation_table_for_decode,
-    "Table for translating characters while decoding.");
+	       &Vstandard_translation_table_for_decode,
+	       doc: /* Table for translating characters while decoding.  */);
   Vstandard_translation_table_for_decode = Qnil;
 
   DEFVAR_LISP ("standard-translation-table-for-encode",
-    &Vstandard_translation_table_for_encode,
-    "Table for translating characters while encoding.");
+	       &Vstandard_translation_table_for_encode,
+	       doc: /* Table for translating characters while encoding.  */);
   Vstandard_translation_table_for_encode = Qnil;
 
   DEFVAR_LISP ("charset-revision-table", &Vcharset_revision_alist,
-    "Alist of charsets vs revision numbers.\n\
-While encoding, if a charset (car part of an element) is found,\n\
-designate it with the escape sequence identifying revision (cdr part of the element).");
+	       doc: /* Alist of charsets vs revision numbers.
+While encoding, if a charset (car part of an element) is found,
+designate it with the escape sequence identifying revision (cdr part of the element).  */);
   Vcharset_revision_alist = Qnil;
 
   DEFVAR_LISP ("default-process-coding-system",
 	       &Vdefault_process_coding_system,
-    "Cons of coding systems used for process I/O by default.\n\
-The car part is used for decoding a process output,\n\
-the cdr part is used for encoding a text to be sent to a process.");
+	       doc: /* Cons of coding systems used for process I/O by default.
+The car part is used for decoding a process output,
+the cdr part is used for encoding a text to be sent to a process.  */);
   Vdefault_process_coding_system = Qnil;
 
   DEFVAR_LISP ("latin-extra-code-table", &Vlatin_extra_code_table,
-    "Table of extra Latin codes in the range 128..159 (inclusive).\n\
-This is a vector of length 256.\n\
-If Nth element is non-nil, the existence of code N in a file\n\
-\(or output of subprocess) doesn't prevent it to be detected as\n\
-a coding system of ISO 2022 variant which has a flag\n\
-`accept-latin-extra-code' t (e.g. iso-latin-1) on reading a file\n\
-or reading output of a subprocess.\n\
-Only 128th through 159th elements has a meaning.");
+	       doc: /* Table of extra Latin codes in the range 128..159 (inclusive).
+This is a vector of length 256.
+If Nth element is non-nil, the existence of code N in a file
+\(or output of subprocess) doesn't prevent it to be detected as
+a coding system of ISO 2022 variant which has a flag
+`accept-latin-extra-code' t (e.g. iso-latin-1) on reading a file
+or reading output of a subprocess.
+Only 128th through 159th elements has a meaning.  */);
   Vlatin_extra_code_table = Fmake_vector (make_number (256), Qnil);
 
   DEFVAR_LISP ("select-safe-coding-system-function",
 	       &Vselect_safe_coding_system_function,
-    "Function to call to select safe coding system for encoding a text.\n\
-\n\
-If set, this function is called to force a user to select a proper\n\
-coding system which can encode the text in the case that a default\n\
-coding system used in each operation can't encode the text.\n\
-\n\
-The default value is `select-safe-coding-system' (which see).");
+	       doc: /* Function to call to select safe coding system for encoding a text.
+
+If set, this function is called to force a user to select a proper
+coding system which can encode the text in the case that a default
+coding system used in each operation can't encode the text.
+
+The default value is `select-safe-coding-system' (which see).  */);
   Vselect_safe_coding_system_function = Qnil;
 
   DEFVAR_LISP ("char-coding-system-table", &Vchar_coding_system_table,
-    "Char-table containing safe coding systems of each characters.\n\
-Each element doesn't include such generic coding systems that can\n\
-encode any characters.   They are in the first extra slot.");
+	       doc: /* Char-table containing safe coding systems of each characters.
+Each element doesn't include such generic coding systems that can
+encode any characters.   They are in the first extra slot.  */);
   Vchar_coding_system_table = Fmake_char_table (Qchar_coding_system, Qnil);
 
   DEFVAR_BOOL ("inhibit-iso-escape-detection",
 	       &inhibit_iso_escape_detection,
-    "If non-nil, Emacs ignores ISO2022's escape sequence on code detection.\n\
-\n\
-By default, on reading a file, Emacs tries to detect how the text is\n\
-encoded.  This code detection is sensitive to escape sequences.  If\n\
-the sequence is valid as ISO2022, the code is determined as one of\n\
-the ISO2022 encodings, and the file is decoded by the corresponding\n\
-coding system (e.g. `iso-2022-7bit').\n\
-\n\
-However, there may be a case that you want to read escape sequences in\n\
-a file as is.  In such a case, you can set this variable to non-nil.\n\
-Then, as the code detection ignores any escape sequences, no file is\n\
-detected as encoded in some ISO2022 encoding.  The result is that all\n\
-escape sequences become visible in a buffer.\n\
-\n\
-The default value is nil, and it is strongly recommended not to change\n\
-it.  That is because many Emacs Lisp source files that contain\n\
-non-ASCII characters are encoded by the coding system `iso-2022-7bit'\n\
-in Emacs's distribution, and they won't be decoded correctly on\n\
-reading if you suppress escape sequence detection.\n\
-\n\
-The other way to read escape sequences in a file without decoding is\n\
-to explicitly specify some coding system that doesn't use ISO2022's\n\
-escape sequence (e.g `latin-1') on reading by \\[universal-coding-system-argument].");
+	       doc: /* If non-nil, Emacs ignores ISO2022's escape sequence on code detection.
+
+By default, on reading a file, Emacs tries to detect how the text is
+encoded.  This code detection is sensitive to escape sequences.  If
+the sequence is valid as ISO2022, the code is determined as one of
+the ISO2022 encodings, and the file is decoded by the corresponding
+coding system (e.g. `iso-2022-7bit').
+
+However, there may be a case that you want to read escape sequences in
+a file as is.  In such a case, you can set this variable to non-nil.
+Then, as the code detection ignores any escape sequences, no file is
+detected as encoded in some ISO2022 encoding.  The result is that all
+escape sequences become visible in a buffer.
+
+The default value is nil, and it is strongly recommended not to change
+it.  That is because many Emacs Lisp source files that contain
+non-ASCII characters are encoded by the coding system `iso-2022-7bit'
+in Emacs's distribution, and they won't be decoded correctly on
+reading if you suppress escape sequence detection.
+
+The other way to read escape sequences in a file without decoding is
+to explicitly specify some coding system that doesn't use ISO2022's
+escape sequence (e.g `latin-1') on reading by \\[universal-coding-system-argument].  */);
   inhibit_iso_escape_detection = 0;
 }
 
