@@ -1,3 +1,7 @@
+2002-05-26  Simon Josefsson  <jas@extundo.com>
+
+	* fringe.el (fringe-query-style): New fringe style "minimal".
+
 2002-05-24  Simon Josefsson  <jas@extundo.com>
 
 	* rot13.el (rot13-translate-table): New variable.
