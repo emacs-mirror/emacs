@@ -157,11 +157,12 @@ int region_face;
 
 Lisp_Object Qface, Qwindow, Qpriority;
 
-static void build_face ();
-int face_name_id_number ();
+static void build_face ( /* FRAME_PTR, struct face * */ );
+int face_name_id_number ( /* FRAME_PTR, Lisp_Object name */ );
 
-struct face *intern_face ();
-static void ensure_face_ready ();
+struct face *intern_face ( /* FRAME_PTR, struct face * */ );
+static void ensure_face_ready ( /* FRAME_PTR, int id */ );
+static void recompute_basic_faces ( /* FRAME_PTR f */ );
 
 /* Allocating, copying, and comparing struct faces.  */
 
