@@ -1,3 +1,19 @@
+2004-11-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* doc.c: New variable Vbuild_files.
+	(Fsnarf_documentation): If Vbuild_files is nil, populate it with
+	file names from buildobh.lst.  Only attach docstrings from files
+	that are in Vbuild_files.
+	(syms_of_doc): Defvar Vbuild_files.
+
+	* Makefile.in (SOME_MACHINE_OBJECTS): Add fringe.o, image.o
+	and w32*.o.
+	(temacs${EXEEXT}): Generate buildobj.lst when temacs is linked.
+	(mostlyclean): rm buildobj.lst 
+
+	* makefile.w32-in ($(TEMACS)): Generate buildobj.lst when temacs
+	is linked.
+
 2004-11-09  Kim F. Storm  <storm@cua.dk>
 
 	* fringe.c (update_window_fringes): Update fringe bitmaps if

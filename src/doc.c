@@ -51,6 +51,9 @@ Lisp_Object Vdoc_file_name;
 
 Lisp_Object Qfunction_documentation;
 
+/* A list of files used to build this Emacs binary.  */
+static Lisp_Object Vbuild_files;
+
 extern Lisp_Object Voverriding_local_map;
 
 /* For VMS versions with limited file name syntax,
@@ -581,6 +584,7 @@ the same file name is found in the `doc-directory'.  */)
   register char *p, *end;
   Lisp_Object sym;
   char *name;
+  int skip_file = 0;
 
   CHECK_STRING (filename);
 
@@ -618,6 +622,54 @@ the same file name is found in the `doc-directory'.  */)
 #endif /* VMS4_4 */
 #endif /* VMS */
 
+  /* Vbuild_files is nil when temacs is run, and non-nil after that.  */
+  if (NILP (Vbuild_files))
+  {
+    size_t cp_size = 0;
+    size_t to_read;
+    int nr_read;
+    char *cp = NULL;
+    char *beg, *end;
+
+    fd = emacs_open ("buildobj.lst", O_RDONLY, 0);
+    if (fd < 0)
+      report_file_error ("Opening file buildobj.lst", Qnil);
+
+    filled = 0;
+    for (;;)
+      {
+        cp_size += 1024;
+        to_read = cp_size - 1 - filled;
+        cp = xrealloc (cp, cp_size);
+        nr_read = emacs_read (fd, &cp[filled], to_read);
+        filled += nr_read;
+        if (nr_read < to_read)
+          break;
+      }
+
+    emacs_close (fd);
+    cp[filled] = 0;
+
+    for (beg = cp; *beg; beg = end)
+      {
+        int len;
+
+        while (*beg && isspace (*beg)) ++beg;
+
+        for (end = beg; *end && ! isspace (*end); ++end)
+          if (*end == '/') beg = end+1;  /* skip directory part  */
+
+        len = end - beg;
+        if (len > 4 && end[-4] == '.' && end[-3] == 'o')
+          len -= 2;  /* Just take .o if it ends in .obj  */
+
+        if (len > 0)
+          Vbuild_files = Fcons (make_string (beg, len), Vbuild_files);
+      }
+
+    xfree (cp);
+  }
+
   fd = emacs_open (name, O_RDONLY, 0);
   if (fd < 0)
     report_file_error ("Opening doc string file",
@@ -640,10 +692,28 @@ the same file name is found in the `doc-directory'.  */)
       if (p != end)
 	{
 	  end = (char *) index (p, '\n');
+
+          /* See if this is a file name, and if it is a file in build-files.  */
+          if (p[1] == 'S' && end - p > 4 && end[-2] == '.'
+              && (end[-1] == 'o' || end[-1] == 'c'))
+            {
+              int len = end - p - 2;
+              char *fromfile = alloca (len + 1);
+              strncpy (fromfile, &p[2], len);
+              fromfile[len] = 0;
+              if (fromfile[len-1] == 'c')
+                fromfile[len-1] = 'o';
+
+              if (EQ (Fmember (build_string (fromfile), Vbuild_files), Qnil))
+                skip_file = 1;
+              else
+                skip_file = 0;
+            }
+
 	  sym = oblookup (Vobarray, p + 2,
 			  multibyte_chars_in_text (p + 2, end - p - 2),
 			  end - p - 2);
-	  if (SYMBOLP (sym))
+	  if (! skip_file && SYMBOLP (sym))
 	    {
 	      /* Attach a docstring to a variable?  */
 	      if (p[1] == 'V')
@@ -918,6 +988,10 @@ syms_of_doc ()
   DEFVAR_LISP ("internal-doc-file-name", &Vdoc_file_name,
 	       doc: /* Name of file containing documentation strings of built-in symbols.  */);
   Vdoc_file_name = Qnil;
+
+  DEFVAR_LISP ("build-files", &Vbuild_files,
+               doc: /* A list of files used to build this Emacs binary.  */);
+  Vbuild_files = Qnil;
 
   defsubr (&Sdocumentation);
   defsubr (&Sdocumentation_property);
