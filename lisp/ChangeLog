@@ -1,3 +1,7 @@
+2000-05-09  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* term/internal.el (IT-character-translations): Fix last change.
+
 2000-05-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* woman.el: New file
