@@ -807,7 +807,7 @@ These buffers can be cycled through via :R and :P commands.")
 (defvar vip-always t
   "t means, arrange that vi-state will be a default.")
 
-(defvar vip-custom-file-name "~/.vip"
+(defvar vip-custom-file-name (convert-standard-filename "~/.vip")
   "Viper customisation file.
 This variable must be set _before_ loading Viper.")
 
