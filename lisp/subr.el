@@ -1048,6 +1048,19 @@ or `set-process-query-on-exit-flag' instead."
     (set-process-query-on-exit-flag process nil)
     old))
 
+;; process plist management
+
+(defun process-get (process propname)
+  "Return the value of PROCESS' PROPNAME property.
+This is the last value stored with `(process-put PROCESS PROPNAME VALUE)'."
+  (plist-get (process-plist process) propname))
+
+(defun process-put (process propname value)
+  "Change PROCESS' PROPNAME property to VALUE.
+It can be retrieved with `(process-get PROCESS PROPNAME)'."
+  (set-process-plist process 
+		     (plist-put (process-plist process) propname value)))
+
 
 ;;;; Input and display facilities.
 
