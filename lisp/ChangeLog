@@ -1,3 +1,28 @@
+2000-10-19  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: Even/odd pages fix.  Fix little bug on XEmacs.  Avoid
+	compilation gripes.  Doc fix.
+	(ps-print-version): New version number (6.2).
+	(ps-x-color-instance-p, ps-x-color-instance-rgb-components)
+	(ps-x-color-name, ps-x-color-specifier-p, ps-x-copy-coding-system)
+	(ps-x-device-class, ps-x-extent-end-position, ps-x-extent-face)
+	(ps-x-extent-priority, ps-x-extent-start-position)
+	(ps-x-face-font-instance, ps-x-find-coding-system)
+	(ps-x-font-instance-properties, ps-x-make-color-instance)
+	(ps-x-map-extents): Alias for functions without the prefix `ps-x-', to
+	avoid compilation gripes without defining functions.
+	(ps-e-find-composition): Alias for function find-composition, to have a
+	suitable function depending on Emacs version.
+	(ps-color-device, ps-color-values, ps-face-foreground-name)
+	(ps-face-background-name, ps-face-bold-p, ps-face-italic-p, ps-mapper)
+	(ps-extent-sorter, ps-xemacs-face-kind-p, ps-xemacs-color-name)
+	(ps-print-ensure-fontified): Function definitions surrounded by
+	`eval-and-compile' to avoid compilation gripes.
+	(ps-font-lock-face-attributes): `font-lock-face-attributes' evaluated
+	by symbol-value to avoid compilation gripes.
+	(ps-end-file, ps-header-sheet, ps-plot-region): Even/odd pages fix.
+	(ps-generate-postscript-with-faces): Fix little bug on XEmacs.
+
 2000-10-19  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* startup.el (normal-top-level): Call `frame-set-background-mode'
