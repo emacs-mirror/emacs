@@ -1,27 +1,43 @@
 /* impl.h.eventcom -- Event Logging Common Definitions
  *
  * Copyright (C) 1997, 1998, 1999 Harlequin Group plc.  All rights reserved.
- * $HopeName: MMsrc!eventcom.h(trunk.15) $
+ * $HopeName: MMsrc!eventcom.h(trunk.16) $
  *
- * .readership: MPS developers.
+ * .readership: MPS developers
  * .sources: mps.design.telemetry
  */
 
 #ifndef eventcom_h
 #define eventcom_h
 
-#include "eventgen.h"
+/* #include "eventgen.h" later in the file */
 #include "mpmtypes.h" /* for Word */
 
 
-/* @@@@ Put these in eventdef? */
-#define EventArgsMAX ((size_t)16)
-#define EventNameMAX ((size_t)19)
-#define EventCodeMAX ((Word)0x0041)
+/* Types for event fields */
 
 
 typedef Word EventType;
 typedef size_t EventCode;
+typedef Index EventKind;
+
+typedef Byte EventStringLen;
+
+typedef struct {
+  EventStringLen len;
+  char str[EventStringLengthMAX];
+} EventStringStruct;
+
+typedef EventStringStruct *EventString;
+
+
+/* @@@@ Put these in eventdef? */
+#define EventNameMAX ((size_t)19)
+#define EventCodeMAX ((EventCode)0x0041)
+
+
+/* eventgen.h is just the automatically generated part of this file */
+#include "eventgen.h"
 
 
 /* Event types -- see design.mps.telemetry
