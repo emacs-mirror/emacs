@@ -197,63 +197,59 @@ Return a modified address list."
 				      nil 'literal address 2)))
        address))))
 
-; rmail-dont-reply-to-names is defined in loaddefs
-(defun rmail-dont-reply-to (userids)
-  "Returns string of mail addresses USERIDS sans any recipients
-that start with matches for `rmail-dont-reply-to-names'.
-Usenet paths ending in an element that matches are removed also."
+;;; The following piece of ugliness is legacy code.  The name was an
+;;; unfortunate choice --- a flagrant violation of the Emacs Lisp
+;;; coding conventions.  `mail-dont-reply-to' would have been
+;;; infinitely better.  Also, `rmail-dont-reply-to-names' might have
+;;; been better named `mail-dont-reply-to-names' and sourced from this
+;;; file instead of in rmail.el.  Yuck.  -pmr
+(defun rmail-dont-reply-to (destinations)
+  "Prune addresses from DESTINATIONS, a list of recipient addresses.
+All addresses matching `rmail-dont-reply-to-names' are removed from
+the comma-separated list.  The pruned list is returned."
   (if (null rmail-dont-reply-to-names)
       (setq rmail-dont-reply-to-names
 	    (concat (if rmail-default-dont-reply-to-names
 			(concat rmail-default-dont-reply-to-names "\\|")
-		        "")
-		    (concat (regexp-quote (user-login-name))
-			    "\\>"))))
-  (let ((match (concat "\\(^\\|,\\)[ \t\n]*"
-		       ;; Can anyone figure out what this is for?
-		       ;; Is it an obsolete remnant of another way of
-		       ;; handling Foo Bar <foo@machine>?
-		       "\\([^,\n]*[!<]\\|\\)"
-		       "\\("
-			     rmail-dont-reply-to-names
-		       "\\|"
-		             ;; Include the human name that precedes <foo@bar>.
-			     "\\([^\,.<\"]\\|\"[^\"]*\"\\)*"
-			     "<\\(" rmail-dont-reply-to-names "\\)"
-		       "\\)[^,]*"))
-	(case-fold-search t)
-	pos epos)
-    (while (and (setq pos (string-match match userids pos))
-		(> (length userids) 0))
-      ;; If there's a match, it starts at the beginning of the string,
-      ;; or with `,'.  We must delete from that position to the
-      ;; end of the user-id which starts at match-beginning 2.
-      (let (inside-quotes quote-pos last-quote-pos)
-	(save-match-data
-	  (while (and (setq quote-pos (string-match "\"" userids quote-pos))
-		      (< quote-pos pos))
-	    (setq last-quote-pos quote-pos)
-	    (setq quote-pos (1+ quote-pos))
-	    (setq inside-quotes (not inside-quotes))))
-	(if inside-quotes
-	    (if (string-match "\"" userids pos)
-		(setq pos (string-match "\"" userids pos))
+                      "")
+                    (if (and user-mail-address
+                             (not (equal user-mail-address user-login-name)))
+                        (concat (regexp-quote user-mail-address) "\\|")
+                      "")
+                    (concat (regexp-quote user-login-name) "\\>"))))
+  ;; Split up DESTINATIONS and match each element separately.
+  (let ((start-pos 0) (cur-pos 0)
+	(case-fold-search t))
+    (while start-pos
+      (setq cur-pos (string-match "[,\"]" destinations cur-pos))
+      (if (and cur-pos (equal (match-string 0 destinations) "\""))
+	  ;; Search for matching quote.
+	  (let ((next-pos (string-match "\"" destinations (1+ cur-pos))))
+	    (if next-pos
+		(setq cur-pos (1+ next-pos))
 	      ;; If the open-quote has no close-quote,
 	      ;; delete the open-quote to get something well-defined.
 	      ;; This case is not valid, but it can happen if things
 	      ;; are weird elsewhere.
-	      (setq userids (replace-match "" nil nil userids))
-	      (setq userids (concat (substring userids 0 last-quote-pos)
-				    (substring userids (1+ last-quote-pos))))
-	      (setq pos (1- pos)))
-	  (setq userids (replace-match "" nil nil userids)))))
-    ;; get rid of any trailing commas
-    (if (setq pos (string-match "[ ,\t\n]*\\'" userids))
-	(setq userids (substring userids 0 pos)))
-    ;; remove leading spaces. they bother me.
-    (if (string-match "\\(\\s \\|,\\)*" userids)
-	(substring userids (match-end 0))
-      userids)))
+	      (setq destinations (concat (substring destinations 0 cur-pos)
+				    (substring destinations (1+ cur-pos))))
+	      (setq cur-pos start-pos)))
+	(let* ((address (substring destinations start-pos cur-pos))
+	       (naked-address (mail-strip-quoted-names address)))
+	  (if (string-match rmail-dont-reply-to-names naked-address)
+	      (setq destinations (concat (substring destinations 0 start-pos)
+				    (and cur-pos (substring destinations 
+							    (1+ cur-pos))))
+		    cur-pos start-pos)
+	    (setq cur-pos (and cur-pos (1+ cur-pos))
+		  start-pos cur-pos))))))
+  ;; get rid of any trailing commas
+  (if (setq pos (string-match "[ ,\t\n]*\\'" destinations))
+      (setq destinations (substring destinations 0 pos)))
+  ;; remove leading spaces. they bother me.
+  (if (string-match "\\(\\s \\|,\\)*" destinations)
+      (substring destinations (match-end 0))
+    destinations))
 
 
 ;;;###autoload
