@@ -32,9 +32,9 @@ maximum buffer size.  See etc/MACHINES for instructions.
 ** Note that the MS-Windows port does not yet implement various of the
 new display features described below.
 
-** There is some code for Macintosh support, but this is from the
-Emacs 20 port.  It needs updating before this version of Emacs will
-work on Macintosh.
+** This version can be built for the Macintosh, but does not implement
+all of the new display features describe below.  The port currently
+lacks unexec, asynchronous processes, and networking support.
 
 
 * Changes in Emacs 21.1
