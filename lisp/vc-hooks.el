@@ -38,6 +38,10 @@ when creating new masters.")
   "*If non-nil, backups of registered files are made according to
 the make-backup-files variable.  Otherwise, prevents backups being made.")
 
+(defvar vc-rcs-status t
+  "*If non-nil, revision and locks on RCS working file displayed in modeline.
+Otherwise, not displayed.")
+
 ;; Tell Emacs about this new kind of minor mode
 (if (not (assoc 'vc-mode minor-mode-alist))
     (setq minor-mode-alist (cons '(vc-mode vc-mode)
@@ -126,12 +130,138 @@ visiting FILE."
   (interactive (list buffer-file-name nil))
   (let ((vc-type (vc-backend-deduce file)))
     (if vc-type
-	(progn
-	  (setq vc-mode
-		(concat " " (or label (symbol-name vc-type))))))
+        (setq vc-mode
+              (concat (if (and vc-rcs-status (eq vc-type 'RCS))
+                          (vc-rcs-status file))
+                      " " (or label (symbol-name vc-type)))))
     ;; force update of mode line
     (set-buffer-modified-p (buffer-modified-p))
     vc-type))
+
+(defun vc-rcs-status (file)
+  ;; Return string " [LOCKERS:]REV" if FILE under RCS control, otherwise nil,
+  ;; for placement in modeline by `vc-mode-line'.
+
+  ;; If FILE is not locked then return just " REV", where
+  ;; REV is the number of last revision checked in.  If the FILE is locked
+  ;; then return *all* the locks currently set, in a single string of the
+  ;; form " LOCKER1:REV1 LOCKER2:REV2 ..."
+
+  ;; Algorithm: 
+
+  ;; 1. Check for master file corresponding to FILE being visited in
+  ;; subdirectory RCS of current directory and then, if not found there, in
+  ;; the current directory.  some of the vc-hooks machinery could be used
+  ;; here.
+  ;; 
+  ;; 2. Insert the header, first 200 characters, of master file into a work
+  ;; buffer.
+  ;;  
+  ;; 3. Search work buffer for line starting with "date" indicating enough
+  ;; of header was included; if not found, then successive increments of 100
+  ;; characters are inserted until "date" is located or 1000 characters is
+  ;; reached.
+  ;; 
+  ;; 4. Search work buffer for line starting with "locks" and *not* followed
+  ;; immediately by a semi-colon; this indicates that locks exist; it extracts
+  ;; all the locks currently enabled and removes controls characters
+  ;; separating them, like newlines; the string " user1:revision1
+  ;; user2:revision2 ..." is returned.
+  ;; 
+  ;; 5. If "locks;" is found instead, indicating no locks, then search work
+  ;; buffer for lines starting with string "head" and "branch" and parses
+  ;; their contents; if contents of branch is non-nil then it is returned
+  ;; otherwise the contents of head is returned either as string " revision".
+
+  ;; Limitations:
+
+  ;; The output doesn't show which version you are actually looking at.
+  ;; The modeline can get quite cluttered when there are multiple locks.
+
+  ;; Make sure name is expanded -- not needed?
+  (setq file (expand-file-name file))
+
+  (let (master found locks head branch status (eof 200))
+
+    ;; Find the name of the master file -- perhaps use `vc-name'?
+    (setq master (concat (file-name-directory file) "RCS/"
+                         (file-name-nondirectory file) ",v"))
+
+    ;; If master file exists, then parse its contents, otherwise we return the 
+    ;; nil value of this if form.
+    (if (or (file-readable-p master)
+            (file-readable-p (setq master (concat file ",v")))) ; current dir?
+
+        (save-excursion
+
+          ;; Create work buffer.
+          (set-buffer (get-buffer-create "*vc-rcs-status*"))
+          (setq buffer-read-only nil
+                default-directory (file-name-directory master))
+          (erase-buffer)
+
+          ;; Limit search to header.
+          (insert-file-contents master nil 0 eof)
+          (goto-char (point-min))
+
+          ;; Check if we have enough of the header.  If not, then keep
+          ;; including more until enough or until 1000 chars is reached.
+          (setq found (re-search-forward "^date" nil t))
+
+          (while (and (not found) (<= eof 1000))
+            (goto-char (point-max))
+            (insert-file-contents master nil (+ eof 1) (setq eof (+ eof 100)))
+            (goto-char (point-min))
+            (setq found (re-search-forward "^date" nil t)))
+
+          ;; If we located "^date" we can extract the status information, 
+          ;; otherwise we return `status' which was initialized to nil.
+          (if found
+              (progn
+                (goto-char (point-min))
+
+                ;; First see if any revisions have any locks on them.
+                (if (re-search-forward "^locks[ \t\n\r\f]+\\([^;]*\\)" nil t)
+
+                    ;; At least one lock - clean controls characters from text.
+                    (save-restriction
+                      (narrow-to-region (match-beginning 1) (match-end 1))
+                      (goto-char (point-min))
+                      (while (re-search-forward "[ \t\n\r\f]+" nil t)
+                        (replace-match " " t t))
+                      (setq locks (buffer-string)))
+
+                  ;; Not locked - find head and branch.
+                  ;; ...more information could be extracted here.
+                  (setq locks ""
+                        head (vc-rcs-glean-field "head")
+                        branch (vc-rcs-glean-field "branch")))
+
+                ;; In case of RCS unlocked files: if non-nil branch is
+                ;; displayed, else if non-nil head is displayed.  if both nil,
+                ;; nothing is displayed.  In case of RCS locked files: locks
+                ;; is displayed.
+
+                (setq status (concat " " (or branch head locks)))))
+
+          ;; Clean work buffer.
+          (erase-buffer)
+          (set-buffer-modified-p nil)
+
+          ;; Return status, which is nil if "^date" was not located.
+          status))))
+
+(defun vc-rcs-glean-field (field)
+  ;; Parse ,v file in current buffer and return contents of FIELD,
+  ;; which should be a field like "head" or "branch", with a
+  ;; revision number as value.
+  ;; Returns nil if FIELD is not found.
+  (goto-char (point-min))
+  (if (re-search-forward
+       (concat "^" (regexp-quote field) "[ \t\n\r\f]+\\([0-9.]+\\)")
+       nil t)
+      (buffer-substring (match-beginning 1)
+                        (match-end 1))))
 
 ;;; install a call to the above as a find-file hook
 (defun vc-find-file-hook ()
