@@ -1742,7 +1742,8 @@ If `interprogram-cut-function' is set, pass the resulting kill to
 it."
   (kill-new (if before-p
 		(concat string (car kill-ring))
-	      (concat (car kill-ring) string)) t))
+	      (concat (car kill-ring) string))
+	    t))
 
 (defun current-kill (n &optional do-not-move)
   "Rotate the yanking point by N places, and then return that kill.
