@@ -71,6 +71,9 @@ extern Lisp_Object Qevent_symbol_element_mask;
 /* non-zero if inside `load' */
 int load_in_progress;
 
+/* Directory in which the sources were found.  */
+Lisp_Object Vsource_directory;
+
 /* Search path for files to be loaded. */
 Lisp_Object Vload_path;
 
@@ -2244,6 +2247,10 @@ init_lread ()
       Lisp_Object dump_path;
 
       dump_path = decode_env_path (0, PATH_DUMPLOADSEARCH);
+
+      Vsource_directory = Fexpand_file_name (build_string ("../"),
+					     Fcar (dump_path));
+
       if (! NILP (Fequal (dump_path, Vload_path)))
 	{
 	  Vload_path = decode_env_path (0, normal);
@@ -2407,6 +2414,10 @@ The default is nil, which means use the function `read'.");
 This is useful when the file being loaded is a temporary copy.");
   load_force_doc_strings = 0;
 
+  DEFVAR_LISP ("source-directory", &Vsource_directory,
+     "Directory in which Emacs sources were found when Emacs was built.\n\
+You cannot count on them to still be there!");
+  Vsource_directory = Qnil;
   load_descriptor_list = Qnil;
   staticpro (&load_descriptor_list);
 
