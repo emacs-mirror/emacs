@@ -57,7 +57,7 @@
 	* net/tramp.el (tramp-send-region): Protect against
 	tramp-chunksize being nil.
 
-2003-02-04  Michael Albinus  <Michael.Albinus@alcatel.de>
+2003-02-05  Michael Albinus  <Michael.Albinus@alcatel.de>
 
 	* net/tramp.el (tramp-handle-directory-file-name): Handle the case
 	PATH is "".
@@ -80,19 +80,19 @@
 	Apply `tramp-handle-directory-file-name' in order to profit from Kai's
 	yesterday changes.
 
-2003-02-03  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+2003-02-05  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* net/tramp.el (tramp-chunksize): Set default to 500 as workaround
 	for some ssh connections.
 	(tramp-handle-directory-file-name): New implementation.  Not sure
 	if it works.
 
-2003-01-28  Michael Albinus  <Michael.Albinus@alcatel.de>
+2003-02-05  Michael Albinus  <Michael.Albinus@alcatel.de>
 
 	* net/tramp.el (tramp-get-device): `tramp-make-tramp-file-name'
 	must not be called with NIL path.  It fails in case of multi-method.
 
-2003-01-27  Michael Albinus  <Michael.Albinus@alcatel.de>
+2003-02-05  Michael Albinus  <Michael.Albinus@alcatel.de>
 
 	* net/tramp.el (tramp-file-name-for-operation):
 	Apply `expand-file-name' for relative file names only.  Otherwise there
@@ -102,7 +102,7 @@
 	a Tramp file name.  It isn't if it comes from an expanded file
 	name (like "/xx:yy//zz").
 
-2003-01-25  Michael Albinus  <Michael.Albinus@alcatel.de>
+2003-02-05  Michael Albinus  <Michael.Albinus@alcatel.de>
 
 	* net/tramp.el (tramp-devices): New variable.  Keeps virtual
 	device numbers.  Devices must distinguish physical file systems.
@@ -131,7 +131,7 @@
 	instead of calling tramp-smb-handle-* equivalents directly.
 	(tramp-smb-read-file-entry): Return size as a number but a string.
 
-2003-01-24  Michael Albinus  <Michael.Albinus@alcatel.de>
+2003-02-05  Michael Albinus  <Michael.Albinus@alcatel.de>
 
 	* net/tramp.el (tramp-completion-function-alist-ssh): Add parsing
 	of "/etc/ssh_config" and "~/.ssh/config".  Suggested by Kai.
@@ -140,13 +140,13 @@
 	(tramp-parse-sconfig, tramp-parse-sconfig-group): New functions.
 	Provide parsing of "~/.ssh/config" style files.
 
-2003-01-21  Michael Albinus  <Michael.Albinus@alcatel.de>
+2003-02-05  Michael Albinus  <Michael.Albinus@alcatel.de>
 
 	* net/tramp.el (tramp-completion-handle-expand-file-name):
 	Apply `tramp-drop-volume-letter'.  Otherwise, there are problems on W32
 	systems.
 
-2003-01-21  Michael Albinus  <Michael.Albinus@alcatel.de>
+2003-02-05  Michael Albinus  <Michael.Albinus@alcatel.de>
 
 	* net/tramp-smb.el (tramp-smb-get-device, tramp-smb-get-inode):
 	New functions.  Device number and inode number don't exist for SMB
@@ -155,26 +155,26 @@
 	generated virtual device numbers and inodes numbers for SMB files.
 	(tramp-smb-handle-file-attributes): Apply them.
 
-2003-01-14  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+2003-02-05  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* net/tramp.el (tramp-md5-function): Require md5 before checking
 	function md5.  If using md5-encode, put wrapper around it that
 	converts vector of bytes to ascii text.
 
-2003-01-13  Michael Albinus  <Michael.Albinus@alcatel.de>
+2003-02-05  Michael Albinus  <Michael.Albinus@alcatel.de>
 
 	* net/tramp.el (tramp-completion-mode): Perform check (integerp
 	last-input-event) before (event-modifiers last-input-event) -
 	there might be problems if `last-input-event' is a mouse event.
 
-2003-01-12  Michael Albinus  <Michael.Albinus@alcatel.de>
+2003-02-05  Michael Albinus  <Michael.Albinus@alcatel.de>
 
 	* net/tramp.el (tramp-parse-rhosts, tramp-parse-shosts)
 	(tramp-parse-hosts, tramp-parse-passwd, tramp-parse-netrc):
 	Use `file-readable-p' instead of `file-exists-p'.  Otherwise these
 	functions might block.  Reported by <kin@neoscale.com>.
 
-2003-01-02  Michael Albinus  <Michael.Albinus@alcatel.de>
+2003-02-05  Michael Albinus  <Michael.Albinus@alcatel.de>
 
 	* net/tramp-ftp.el (top-level): Defaults for
 	`tramp-default-method-alist' must be a list.
@@ -182,7 +182,7 @@
 	* net/tramp-smb.el (top-level): Defaults for
 	`tramp-default-method-alist' must be a list.
 
-2003-01-02  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+2003-02-05  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* net/tramp.el (top-level): Avoid byte-compiler warnings of unused
 	variables if the byte-compiler supports this.  This is for the
