@@ -2437,15 +2437,18 @@ in the list takes precedence.");
 This allows Emacs to recognize function keys sent from ASCII\n\
 terminals at any point in a key sequence.\n\
 \n\
-The read-key-sequence function replaces subsequences bound by\n\
-function-key-map with their bindings.  When the current local and global\n\
+The `read-key-sequence' function replaces any subsequence bound by\n\
+`function-key-map' with its binding.  More precisely, when the active\n\
 keymaps have no binding for the current key sequence but\n\
-function-key-map binds a suffix of the sequence to a vector or string,\n\
-read-key-sequence replaces the matching suffix with its binding, and\n\
+`function-key-map' binds a suffix of the sequence to a vector or string,\n\
+`read-key-sequence' replaces the matching suffix with its binding, and\n\
 continues with the new sequence.\n\
 \n\
-For example, suppose function-key-map binds `ESC O P' to [f1].\n\
-Typing `ESC O P' to read-key-sequence would return [f1].  Typing\n\
+The events that come from bindings in `function-key-map' are not\n\
+themselves looked up in `function-key-map'.\n\
+\n\
+For example, suppose `function-key-map' binds `ESC O P' to [f1].\n\
+Typing `ESC O P' to `read-key-sequence' would return [f1].  Typing\n\
 `C-x ESC O P' would return [?\\C-x f1].  If [f1] were a prefix\n\
 key, typing `ESC O P x' would return [f1 x].");
   Vfunction_key_map = Fmake_sparse_keymap (Qnil);
