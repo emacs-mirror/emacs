@@ -2,7 +2,7 @@
 ;; Copyright (C) 1987, 1988, 1989, 1990, 1993 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Header: /home/fsf/rms/e19/lisp/RCS/gnus.el,v 1.31 1993/12/23 04:58:26 rms Exp rms $
+;; Version: $Header: /gd/gnu/emacs/19.0/lisp/RCS/gnus.el,v 1.32 1994/01/08 12:46:53 rms Exp kwzh $
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -205,7 +205,7 @@ or your confirmations may be required.")
 
 (defvar gnus-user-login-name nil
   "*The login name of the user.
-Got from the USER and LOGNAME environment variable if undefined.")
+Got from the function `user-login-name' if undefined.")
 
 (defvar gnus-user-full-name nil
   "*The full name of the user.
