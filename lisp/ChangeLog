@@ -1,5 +1,7 @@
 2004-03-01  Juanma Barranquero  <lektu@terra.es>
 
+	* allout.el (allout-rebullet-heading): Fix typo in docstring.
+
 	* desktop.el (desktop-file-version)
 	(desktop-after-read-hook): Fix typos.
 	(desktop-clear-preserve-buffers): Remove redundant info in
