@@ -11,6 +11,9 @@
 
 	* help.el (describe-mode): Doc fix.
 
+	* url/url-cookie.el (url-cookie-handle-set-cookie): Replace calls
+	to obsolete `assoc-ignore-case' with calls to `assoc-string'.
+
 2004-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el (compilation-mode-font-lock-keywords): Fix test
