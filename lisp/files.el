@@ -4487,10 +4487,12 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 			  (directory-file-name . nil)
 			  (file-name-sans-versions . nil)
 			  ;; `identity' means just return the first arg
-			  ;; as stripped of its quoting.
-			  (substitute-in-file-name . identity)
+			  ;; not stripped of its quoting.
+			  (substitute-in-file-name identity)
 			  (file-name-completion 1)
 			  (file-name-all-completions 1)
+			  ;; t means add "/:" to the result.
+			  (file-truename t 0)
 			  (rename-file 0 1)
 			  (copy-file 0 1)
 			  (make-symbolic-link 0 1)
@@ -4498,9 +4500,12 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 		  ;; For all other operations, treat the first argument only
 		  ;; as the file name.
 		  '(nil 0))))
+	method
 	;; Copy ARGUMENTS so we can replace elements in it.
 	(arguments (copy-sequence arguments)))
-    ;; Strip off the /: from the file names that have this handler.
+    (if (symbolp (car file-arg-indices))
+	(setq method (pop file-arg-indices)))
+    ;; Strip off the /: from the file names that have it.
     (save-match-data
       (while (consp file-arg-indices)
 	(let ((pair (nthcdr (car file-arg-indices) arguments)))
@@ -4511,9 +4516,12 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 			   "/"
 			 (substring (car pair) 2)))))
 	(setq file-arg-indices (cdr file-arg-indices))))
-    (if (eq file-arg-indices 'identity)
-	(car arguments)
-      (apply operation arguments))))
+    (cond ((eq method 'identity)
+	   (car arguments))
+	  (method
+	   (concat "/:" (apply operation arguments)))
+	  (t
+	   (apply operation arguments)))))
 
 (define-key ctl-x-map "\C-f" 'find-file)
 (define-key ctl-x-map "\C-r" 'find-file-read-only)
