@@ -29,7 +29,8 @@
 
 ;;; Code:
 
-(require 'cl)
+(eval-when-compile (require 'cl))
+
 (require 'mailheader)
 (require 'rmail)
 (require 'nnheader)
@@ -583,11 +584,14 @@ actually occur."
   :group 'message-sending
   :type 'sexp)
 
+;; Ignore errors in case this is used in Emacs 19.
+;; Don't use ignore-errors because this is copied into loaddefs.el.
 ;;;###autoload
-(ignore-errors
-  (define-mail-user-agent 'message-user-agent
-    'message-mail 'message-send-and-exit
-    'message-kill-buffer 'message-send-hook))
+(condition-case nil
+    (define-mail-user-agent 'message-user-agent
+      'message-mail 'message-send-and-exit
+      'message-kill-buffer 'message-send-hook)
+  (error nil))
 
 (defvar message-mh-deletable-headers '(Message-ID Date Lines Sender)
   "If non-nil, delete the deletable headers before feeding to mh.")
@@ -3568,7 +3572,8 @@ Do a `tab-to-tab-stop' if not in those headers."
 ;;; Help stuff.
 
 (defun message-talkative-question (ask question show &rest text)
-  "Call FUNCTION with argument QUESTION, displaying the rest of the arguments in a temporary buffer if SHOW.
+  "Call FUNCTION with argument QUESTION; optionally display TEXT... args.
+If SHOW is non-nil, the arguments TEXT... are displayed in a temp buffer.
 The following arguments may contain lists of values."
   (if (and show
 	   (setq text (message-flatten-list text)))
