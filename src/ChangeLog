@@ -1,3 +1,16 @@
+2000-05-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispextern.h (Vimage_types): Add extern declaration.
+
+	* xdisp.c (Vimage_types): Moved here from xfns.c.
+	(syms_of_xdisp): Move `image-types' variable here from xfns.c.
+
+	* xfns.c (Vimages_types): Moved to xdisp.c.
+	(syms_of_xfns): Move `image-types' to xdisp.c.
+
+	* w32fns.c (Vimage_types): Removed.
+	(syms_of_w32fns): Remove `image-types'.
+
 2000-05-18  Kenichi Handa  <handa@etl.go.jp>
 
 	* fns.c (map_char_table): Pay attention to character number of
