@@ -467,7 +467,7 @@
 		     (byte-compile-log
 		      "  all subforms of %s called for effect; deleted" form))
 		 (and backwards
-		      (cons fn (nreverse backwards))))
+		      (cons fn (nreverse (mapcar 'byte-optimize-form backwards)))))
 	     (cons fn (mapcar 'byte-optimize-form (cdr form)))))
 
 	  ((eq fn 'interactive)
@@ -1159,6 +1159,8 @@
 
 (put 'featurep 'byte-optimizer 'byte-optimize-featurep)
 (defun byte-optimize-featurep (form)
+  ;; Emacs-21's byte-code doesn't run under XEmacs anyway, so we can
+  ;; safely optimize away this test.
   (if (equal '((quote xemacs)) (cdr-safe form))
       nil
     form))
