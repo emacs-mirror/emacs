@@ -1,5 +1,9 @@
 2004-12-06  Richard M. Stallman  <rms@gnu.org>
 
+	* info-look.el (info-lookup-maybe-add-help cfengine-mode): Regexp typo.
+
+	* cus-edit.el (custom-file): Doc fix.
+
 	* textmodes/org.el: New file.
 
 2004-12-06  Kenichi Handa  <handa@m17n.org>
