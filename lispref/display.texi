@@ -1209,7 +1209,7 @@ or shorter, higher or lower, wider or narrower, or replaced with an image.
 @xref{Display Property}.
 
 @item help-echo
-@kindex help-echo @r{(text property)}
+@kindex help-echo @r{(overlay property)}
 If an overlay has a @code{help-echo} property, then when you move the
 mouse onto the text in the overlay, Emacs displays a help string in the
 echo area, or in the tooltip window.  For details see @ref{Text
