@@ -501,16 +501,22 @@ wm_delete_window (shell, closure, call_data)
      XtPointer call_data;
 {
   LWLIB_ID id;
+  Cardinal nkids;
+  int i;
   Widget *kids = 0;
   Widget widget;
   if (! XtIsSubclass (shell, shellWidgetClass))
     abort ();
+  XtVaGetValues (shell, XtNnumChildren, &nkids, 0);
   XtVaGetValues (shell, XtNchildren, &kids, 0);
   if (!kids || !*kids)
     abort ();
-  widget = kids [0];
-  if (! XtIsSubclass (widget, dialogWidgetClass))
-    abort ();
+  for (i = 0; i < nkids; i++)
+    {
+      widget = kids[i];
+      if (XtIsSubclass (widget, dialogWidgetClass))
+	break;
+    }
   id = lw_get_widget_id (widget);
   if (! id) abort ();
 
