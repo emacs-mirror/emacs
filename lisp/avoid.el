@@ -32,7 +32,9 @@
 ;;
 ;; (if window-system (mouse-avoidance-mode 'animate))
 ;;
-;; The 'animate can be 'jump or 'banish or 'exile or 'protean if you prefer.
+;; Other legitimate alternatives include
+;; `banish', `exile', `jump', `cat-and-mouse', and `proteus'.
+;; They do somewhat different things.
 ;; See the documentation for function `mouse-avoidance-mode' for
 ;; details of the different modes.
 ;;
@@ -75,11 +77,20 @@
   :group 'mouse)
 
 
-(defvar mouse-avoidance-mode nil
-  "Value is t or a symbol if the mouse pointer should avoid the cursor.
-See function `mouse-avoidance-mode' for possible values.  Changing this
-variable is NOT the recommended way to change modes; use that function 
-instead.")
+(defcustom mouse-avoidance-mode nil
+  "Activate mouse avoidance mode.  
+See function `mouse-avoidance-mode' for possible values.
+You must modify via \\[customize] for this variable to have an effect."
+  :set (lambda (symbol value)
+	 ;; 'none below prevents toggling when value is nil.
+	 (mouse-avoidance-mode (or value 'none))) 
+  :initialize 'custom-initialize-default
+  :type '(choice (const :tag "none" nil) (const banish) (const jump) 
+		 (const animate) (const exile) (const proteus)
+		 )
+  :group 'avoid
+  :require 'avoid)
+
 
 (defcustom mouse-avoidance-nudge-dist 15
   "*Average distance that mouse will be moved when approached by cursor.
@@ -378,4 +389,8 @@ definition of \"random distance\".)"
 ;;    (setq minor-mode-alist (cons '(mouse-avoidance-mode " Avoid")
 ;;				 minor-mode-alist)))
 
-;;; End of avoid.el
+;; Needed for custom.
+(if mouse-avoidance-mode 
+    (mouse-avoidance-mode mouse-avoidance-mode))
+
+;;; avoid.el ends here
