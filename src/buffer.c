@@ -163,6 +163,16 @@ nsberror (spec)
   error ("Invalid buffer argument");
 }
 
+DEFUN ("buffer-live-p", Fbuffer_live_p, Sbuffer_live_p, 1, 1, 0,
+  "Return non-nil if OBJECT is a buffer which has not been killed.\n\
+Value is nil if OBJECT is not a buffer or if it has been killed.")
+  (object)
+     Lisp_Object object;
+{
+  return ((BUFFERP (object) && ! NILP (XBUFFER (object)->name))
+	  ? Qt : Qnil);
+}
+
 DEFUN ("buffer-list", Fbuffer_list, Sbuffer_list, 0, 0, 0,
   "Return a list of all existing live buffers.")
   ()
@@ -3946,6 +3956,7 @@ is a member of the list.");
     "List of functions called with no args to query before killing a buffer.");
   Vkill_buffer_query_functions = Qnil;
 
+  defsubr (&Sbuffer_live_p);
   defsubr (&Sbuffer_list);
   defsubr (&Sget_buffer);
   defsubr (&Sget_file_buffer);
