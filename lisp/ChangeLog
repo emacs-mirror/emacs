@@ -1,3 +1,20 @@
+2002-02-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* international/mule-diag.el: Various doc and message fixes.
+	(non-iso-charset-alist): Add mac-roman.  Don't add entries for
+	codepages already present.
+	(list-block-of-chars): Display space for null entries in
+	translation table.  Display tab specially.
+	(list-non-iso-charset-chars): Check for null charsets.  Use pop
+	for clarity.  Don't break 8-bit sets into sections between ranges.
+	(list-charset-chars): Avoid indent-tabs-mode.
+	(describe-char-after): Maybe use the text property for syntax
+	table information.  Maybe report char-code-property-table info.
+	Maybe report character's unicode.  Tweak printing of list info.
+	(list-input-methods): Add xref buttons.
+	(dump-charsets, dump-codings): Deleted (obsolete).
+	From Dave Love <fx@gnu.org>.
+
 2002-02-10  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* menu-bar.el (menu-bar-showhide-menu): Rename functions for
