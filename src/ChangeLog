@@ -1,3 +1,8 @@
+2003-01-07  Kenichi Handa  <handa@etl.go.jp>
+
+	* xterm.c (x_new_font): Optimize for the case that the font is
+	already set for the frame.
+
 2003-01-06  Kenichi Handa  <handa@m17n.org>
 
 	* chartab.c (char_table_ascii): Check if the char table contents
