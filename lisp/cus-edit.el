@@ -2289,7 +2289,12 @@ Match frames with dark backgrounds.")
 					     symbol (selected-frame))))))
 		    (form (widget-get widget :custom-form))
 		    (indent (widget-get widget :indent))
-		    (edit (widget-create-child-and-convert
+		    edit)
+	       ;; If the user has changed this face in some other way,
+	       ;; edit it as the user has specified it.
+	       (if (not (face-spec-match-p symbol spec (selected-frame)))
+		   (setq spec (list (list t (face-attr-construct symbol (selected-frame))))))
+	       (setq edit (widget-create-child-and-convert
 			   widget
 			   (cond ((and (eq form 'selected)
 				       (widget-apply custom-face-selected 
@@ -2303,7 +2308,7 @@ Match frames with dark backgrounds.")
 				 (t 
 				  (when indent (insert-char ?\  indent))
 				  'sexp))
-			   :value spec)))
+			   :value spec))
 	       (custom-face-state-set widget)
 	       (widget-put widget :children (list edit)))
 	     (message "Creating face editor...done"))))))
