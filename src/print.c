@@ -1616,15 +1616,27 @@ print (obj, printcharfun, escapeflag)
 	  strout ("#<some_buffer_local_value ", -1, -1, printcharfun, 0);
 	do_buffer_local:
 	  strout ("[realvalue] ", -1, -1, printcharfun, 0);
-	  print (XBUFFER_LOCAL_VALUE (obj)->car, printcharfun, escapeflag);
-	  strout ("[buffer] ", -1, -1, printcharfun, 0);
+	  print (XBUFFER_LOCAL_VALUE (obj)->realvalue, printcharfun, escapeflag);
+	  if (XBUFFER_LOCAL_VALUE (obj)->found_for_buffer)
+	    strout ("[local in buffer] ", -1, -1, printcharfun, 0);
+	  else
+	    strout ("[buffer] ", -1, -1, printcharfun, 0);
+	  print (XBUFFER_LOCAL_VALUE (obj)->buffer,
+		 printcharfun, escapeflag);
+	  if (XBUFFER_LOCAL_VALUE (obj)->check_frame)
+	    {
+	      if (XBUFFER_LOCAL_VALUE (obj)->found_for_frame)
+		strout ("[local in frame] ", -1, -1, printcharfun, 0);
+	      else
+		strout ("[frame] ", -1, -1, printcharfun, 0);
+	      print (XBUFFER_LOCAL_VALUE (obj)->frame,
+		     printcharfun, escapeflag);
+	    }
+	  strout ("[alist-elt] ", -1, -1, printcharfun, 0);
 	  print (XCONS (XBUFFER_LOCAL_VALUE (obj)->cdr)->car,
 		 printcharfun, escapeflag);
-	  strout ("[alist-elt] ", -1, -1, printcharfun, 0);
-	  print (XCONS (XCONS (XBUFFER_LOCAL_VALUE (obj)->cdr)->cdr)->car,
-		 printcharfun, escapeflag);
 	  strout ("[default-value] ", -1, -1, printcharfun, 0);
-	  print (XCONS (XCONS (XBUFFER_LOCAL_VALUE (obj)->cdr)->cdr)->cdr,
+	  print (XCONS (XBUFFER_LOCAL_VALUE (obj)->cdr)->cdr,
 		 printcharfun, escapeflag);
 	  PRINTCHAR ('>');
 	  break;
