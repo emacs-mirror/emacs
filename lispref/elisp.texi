@@ -118,6 +118,7 @@ Reference Manual, corresponding to GNU Emacs version 19.34.
 @menu
 * Copying::                 Conditions for copying and changing GNU Emacs.
 * Introduction::            Introduction and conventions used.
+* Standards: Coding Conventions.    Coding conventions for Emacs Lisp.
 
 * Lisp Data Types::         Data types of objects in Emacs Lisp.
 * Numbers::                 Numbers and arithmetic functions.
@@ -171,7 +172,7 @@ Reference Manual, corresponding to GNU Emacs version 19.34.
 
 Appendices
 
-* Tips::                    Advice for writing Lisp programs.
+* Tips::                    Advice and coding conventions for Emacs Lisp.
 * GNU Emacs Internals::     Building and dumping Emacs;
                               internal data structures.
 * Standard Errors::         List of all error symbols.
@@ -203,6 +204,14 @@ Conventions
 * Error Messages::          The format we use for examples of errors.
 * Buffer Text Notation::    The format we use for buffer contents in examples.
 * Format of Descriptions::  Notation for describing functions, variables, etc.
+
+Tips and Conventions
+
+* Coding Conventions::      Conventions for clean and robust programs.
+* Compilation Tips::        Making compiled code run fast.
+* Documentation Tips::      Writing readable documentation strings.
+* Comment Tips::	    Conventions for writing comments.
+* Library Headers::         Standard headers for library packages.
 
 Format of Descriptions
 
