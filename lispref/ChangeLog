@@ -1,3 +1,7 @@
+2000-10-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* files.texi (Visiting Functions): Typos.
+
 2000-10-25  Kenichi Handa  <handa@etl.go.jp>
 
 	* files.texi (Visiting Functions): Return value of
