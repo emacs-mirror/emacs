@@ -118,6 +118,16 @@ Lisp_Object Qfile_name_all_completions;
 Lisp_Object Qfile_attributes;
 Lisp_Object Qfile_attributes_lessp;
 
+
+Lisp_Object
+directory_files_internal_unwind (dh)
+     Lisp_Object dh;
+{
+  DIR *d = (DIR *) ((XINT (XCAR (dh)) << 16) + XINT (XCDR (dh)));
+  closedir (d);
+  return Qnil;
+}
+
 /* Function shared by Fdirectory_files and Fdirectory_files_and_attributes.  
    When ATTRS is zero, return a list of directory filenames; when
    non-zero, return a list of directory filenames and their attributes.  */
@@ -133,6 +143,7 @@ directory_files_internal (directory, full, match, nosort, attrs)
   Lisp_Object handler;
   struct re_pattern_buffer *bufp = NULL;
   int needsep = 0;
+  int count = specpdl_ptr - specpdl;
   struct gcpro gcpro1, gcpro2;
 
   /* Because of file name handlers, these functions might call
@@ -176,6 +187,13 @@ directory_files_internal (directory, full, match, nosort, attrs)
   if (! d)
     report_file_error ("Opening directory", Fcons (directory, Qnil));
 
+  /* Unfortunately, we can now invoke expand-file-name and
+     file-attributes on filenames, both of which can throw, so we must
+     do a proper unwind-protect.  */
+  record_unwind_protect (directory_files_internal_unwind,
+			 Fcons (make_number (((unsigned long) d) >> 16),
+				make_number (((unsigned long) d) & 0xffff)));
+
   list = Qnil;
   dirnamelen = STRING_BYTES (XSTRING (directory));
   re_match_object = Qt;
@@ -198,13 +216,26 @@ directory_files_internal (directory, full, match, nosort, attrs)
       if (DIRENTRY_NONEMPTY (dp))
 	{
 	  int len;
+	  int wanted = 0;
 
 	  len = NAMLEN (dp);
 	  name = DECODE_FILE (make_string (dp->d_name, len));
 	  len = STRING_BYTES (XSTRING (name));
 
+	  /* Now that we have unwind_protect in place, we might as well
+             allow matching to be interrupted.  */
+	  immediate_quit = 1;
+	  QUIT;
+
 	  if (NILP (match)
 	      || (0 <= re_search (bufp, XSTRING (name)->data, len, 0, len, 0)))
+	    {
+	      wanted = 1;
+	    }
+
+	  immediate_quit = 0;
+
+	  if (wanted)
 	    {
 	      Lisp_Object finalname;
 
@@ -251,7 +282,12 @@ directory_files_internal (directory, full, match, nosort, attrs)
 	    }
 	}
     }
+
   closedir (d);
+
+  /* Discard the unwind protect.  */
+  specpdl_ptr = specpdl + count;
+
   UNGCPRO;
   if (!NILP (nosort))
     return list;
