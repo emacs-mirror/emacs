@@ -391,6 +391,18 @@ but it selects the Dutch tutorial and input method."))
 	     (features code-pages)
 	     (documentation . "Support for Latvian."))
  '("European"))
+
+(set-language-info-alist
+ "Swedish" '((tutorial . "TUTORIAL.se")
+	    (charset ascii latin-iso8859-1)
+	    (coding-system iso-latin-1)
+	    (coding-priority iso-latin-1)
+	    (nonascii-translation . iso-8859-1)
+	    (unibyte-syntax . "latin-1")
+	    (unibyte-display . iso-latin-1)
+	    (sample-text . "Goddag Hej")
+	    (documentation . "Support for Swedish"))
+ '("European"))
 
 ;; Definitions for the Mac Roman character sets and coding system.
 ;; The Mac Roman encoding uses all 128 code points in the range 128 to
