@@ -617,7 +617,7 @@ This function returns @code{t} if the containing function (the one
 whose code includes the call to @code{interactive-p}) was called in
 direct response to user input.  This means that it was called with the
 function @code{call-interactively}, and that a keyboard macro is
-not running.
+not running, and that Emacs is not running in batch mode.
 
 If the containing function was called by Lisp evaluation (or with
 @code{apply} or @code{funcall}), then it was not called interactively.
@@ -678,6 +678,15 @@ non-@code{nil}.  Here's an example:
 Defined in this way, the function does display the message when called
 from a keyboard macro.  We use @code{"p"} because the numeric prefix
 argument is never @code{nil}.
+
+@defun called-interactively-p
+This function returns @code{t} when the calling function was called
+using @code{call-interactively}.
+
+When possible, instead of using this function, you should use the
+method in the example above; that method makes it possible for a
+caller to ``pretend'' that the function was called interactively.
+@end defun
 
 @node Command Loop Info
 @comment  node-name,  next,  previous,  up
