@@ -256,8 +256,9 @@ make_frame (mini_p)
    default (the global minibuffer).  */
 
 struct frame *
-make_frame_without_minibuffer (mini_window)
+make_frame_without_minibuffer (mini_window, kb)
      register Lisp_Object mini_window;
+     KBOARD *kb;
 {
   register struct frame *f;
 
@@ -274,6 +275,11 @@ make_frame_without_minibuffer (mini_window)
     {
       CHECK_LIVE_WINDOW (mini_window, 0);
     }
+
+#ifdef MULTI_KBOARD
+  if (XFRAME (XWINDOW (mini_window)->frame)->kboard != kb)
+    error ("frame and minibuffer must be on the same display");
+#endif
 
   /* Make a frame containing just a root window.  */
   f = make_frame (0);
