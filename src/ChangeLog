@@ -25,6 +25,11 @@
 	* .gdbinit (xbacktrace): Handle case that $bt->function isn't
 	a symbol.
 
+2000-10-24  Colin Walters  <walters@cis.ohio-state.edu>
+
+	* filelock.c (unlock_all_files): Use unlock_file to expand each
+	buffer's file_truename before trying remove its lock file.
+
 2000-10-24  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* coding.c (decode_coding_emacs_mule): If coding->eol_type is CR
