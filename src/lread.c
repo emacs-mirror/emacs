@@ -3548,7 +3548,8 @@ otherwise to default specified by file `epaths.h' when Emacs was built.");
 This list should not include the empty string.");
   Vload_suffixes = Fcons (build_string (".elc"),
 			  Fcons (build_string (".el"), Qnil));
-  default_suffixes = Fcons (empty_string, Qnil);
+  /* We don't use empty_string because it's not initialized yet.  */
+  default_suffixes = Fcons (build_string (""), Qnil);
   staticpro (&default_suffixes);
 
   DEFVAR_BOOL ("load-in-progress", &load_in_progress,
