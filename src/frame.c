@@ -809,8 +809,10 @@ DEFUN ("frame-list", Fframe_list, Sframe_list,
 {
   Lisp_Object frames;
   frames = Fcopy_sequence (Vframe_list);
+#ifdef HAVE_WINDOW_SYSTEM
   if (FRAMEP (tip_frame))
     frames = Fdelq (tip_frame, frames);
+#endif
   return frames;
 }
 
