@@ -542,50 +542,67 @@ The value may be different for frames on different X displays."
 (put 'return 'ascii-character 13)
 (put 'escape 'ascii-character ?\e)
 
-;; Set up to recognize vendor-specific keysyms.
-;; Unless/until there is a real conflict,
-;; we need not try to make this list depend on
-;; the type of X server in use.
-(setq system-key-alist
-      '(
-	;; These are some HP keys.
-	(  168 . mute-acute)
-	(  169 . mute-grave)
-	(  170 . mute-asciicircum)
-	(  171 . mute-diaeresis)
-	(  172 . mute-asciitilde)
-	(  175 . lira)
-	(  190 . guilder)
-	(  252 . block)
-	(  256 . longminus)
-	(65388 . reset)
-	(65389 . system)
-	(65390 . user)
-	(65391 . clearline)
-	(65392 . insertline)
-	(65393 . deleteline)
-	(65394 . insertchar)
-	(65395 . deletechar)
-	(65396 . backtab)
-	(65397 . kp-backtab)
-	;; This is used by DEC's X server.
-	(65280 . remove)
-	;; These are for Sun.
- 	(392963 . mute-acute)
-	(392960 . mute-grave)
-	(392964 . mute-diaeresis)
-	(392961 . mute-asciicircum)
-	(392976 . f36)
-    	(392977 . f37)
-	(393056 . req)
-	;; These are for Sun under X11R6
-	(393072 . props)
-	(393073 . front)
-	(393074 . copy)
-	(393075 . open)
-	(393076 . paste)
-	(393077 . cut)
-	))
+(defun vendor-specific-keysyms (vendor)
+  "Return the appropriate value of system-key-alist for VENDOR.
+VENDOR is a string containing the name of the X Server's vendor,
+as returned by (x-server-vendor)."
+  (cond ((string-equal vendor "Apollo Computer Inc.")
+	 '((65280 . linedel)
+	   (65281 . chardel)
+	   (65282 . copy)
+	   (65283 . cut)
+	   (65284 . paste)
+	   (65285 . move)
+	   (65286 . grow)
+	   (65287 . cmd)
+	   (65288 . shell)
+	   (65289 . leftbar)
+	   (65290 . rightbar)
+	   (65291 . leftbox)
+	   (65292 . rightbox)
+	   (65293 . upbox)
+	   (65294 . downbox)
+	   (65295 . pop)
+	   (65296 . read)
+	   (65297 . edit)
+	   (65298 . save)
+	   (65299 . exit)
+	   (65300 . repeat)))
+	((string-equal vendor "Hewlett-Packard Incorporated")
+	 '((  168 . mute-acute)
+	   (  169 . mute-grave)
+	   (  170 . mute-asciicircum)
+	   (  171 . mute-diaeresis)
+	   (  172 . mute-asciitilde)
+	   (  175 . lira)
+	   (  190 . guilder)
+	   (  252 . block)
+	   (  256 . longminus)
+	   (65388 . reset)
+	   (65389 . system)
+	   (65390 . user)
+	   (65391 . clearline)
+	   (65392 . insertline)
+	   (65393 . deleteline)
+	   (65394 . insertchar)
+	   (65395 . deletechar)
+	   (65396 . backtab)
+	   (65397 . kp-backtab)))
+	((string-equal vendor "X11/NeWS - Sun Microsystems Inc.")
+	 '((392976 . f35)
+	   (392977 . f36)
+	   (393056 . req)
+	   ;; These are for Sun under X11R6
+	   (393072 . props)
+	   (393073 . front)
+	   (393074 . copy)
+	   (393075 . open)
+	   (393076 . paste)
+	   (393077 . cut)))
+	(t
+	 ;; This is used by DEC's X server.
+	 '((65280 . remove)))))
+
 
 ;;;; Selections and cut buffers
 
@@ -697,6 +714,11 @@ This is in addition to the primary selection.")
   (if res-geometry
       (progn
 	(setq parsed (x-parse-geometry res-geometry))
+	;; If the resource specifies a position,
+	;; call the position and size "user-specified".
+	(if (or (assq 'top parsed) (assq 'left parsed))
+	    (setq parsed (cons '(user-position . t)
+			       (cons '(user-size . t) parsed))))
 	;; All geometry parms apply to the initial frame.
 	(setq initial-frame-alist (append initial-frame-alist parsed))
 	;; The size parms apply to all frames.
