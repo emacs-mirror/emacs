@@ -229,12 +229,20 @@ property of the major mode name.")
 (put 'message-mode 'flyspell-mode-predicate 'mail-mode-flyspell-verify)
 (defun mail-mode-flyspell-verify ()
   "This function is used for `flyspell-generic-check-word-p' in Mail mode."
-  (save-excursion
-    (not (or (re-search-forward mail-header-separator nil t)
-	     (re-search-backward message-signature-separator nil t)
-	     (progn
-	       (beginning-of-line)
-	       (looking-at "[>}|]\\To:"))))))
+  (let ((in-headers (save-excursion
+		      (re-search-forward mail-header-separator nil t)))
+	(in-signature (save-excursion
+			(re-search-backward message-signature-separator nil t))))
+    (cond (in-headers
+	   (save-excursion
+	     (beginning-of-line)
+	     (looking-at "^Subject:")))
+	  (in-signature
+	   nil)
+	  (t
+	   (save-excursion
+	     (beginning-of-line)
+	     (not (looking-at "[>}|]\\To:")))))))
 
 ;*--- texinfo mode ----------------------------------------------------*/
 (put 'texinfo-mode 'flyspell-mode-predicate 'texinfo-mode-flyspell-verify)
