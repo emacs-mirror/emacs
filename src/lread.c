@@ -2106,22 +2106,35 @@ read1 (readcharfun, pch, first_in_list)
 #ifdef LISP_FLOAT_TYPE
 	    if (isfloat_string (read_buffer))
 	      {
+		/* Compute NaN and infinities using 0.0 in a variable,
+		   to cope with compilers that think they are smarter
+		   than us.  */
 		double zero = 0.0;
-		double value = atof (read_buffer);
-		if (read_buffer[0] == '-' && value == 0.0)
-		  value *= -1.0;
-		/* The only way this can be true, after isfloat_string
+
+		double value;
+
+		/* Negate the value ourselves.  This treats 0, NaNs,
+		   and infinity properly on IEEE floating point hosts,
+		   and works around a common bug where atof ("-0.0")
+		   drops the sign.  */
+		int negative = read_buffer[0] == '-';
+
+		/* The only way p[-1] can be 'F' or 'N', after isfloat_string
 		   returns 1, is if the input ends in e+INF or e+NaN.  */
-		if (p[-1] == 'F' || p[-1] == 'N')
+		switch (p[-1])
 		  {
-		    if (p[-1] == 'N')
-		      value = zero / zero;
-		    else if (read_buffer[0] == '-')
-		      value = - 1.0 / zero;
-		    else
-		      value = 1.0 / zero;
+		  case 'F':
+		    value = 1.0 / zero;
+		    break;
+		  case 'N':
+		    value = zero / zero;
+		    break;
+		  default:
+		    value = atof (read_buffer + negative);
+		    break;
 		  }
-		return make_float (value);
+
+		return make_float (negative ? - value : value);
 	      }
 #endif
 	  }
