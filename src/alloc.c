@@ -258,18 +258,6 @@ static void sweep_strings P_ ((void));
 
 extern int message_enable_multibyte;
 
-
-#if GC_MARK_STACK
-
-#if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
-#include <stdio.h>		/* For fprintf.  */
-#endif
-
-/* A unique object in pure space used to make some Lisp objects
-   on free lists recognizable in O(1).  */
-
-Lisp_Object Vdead;
-
 /* When scanning the C stack for live Lisp objects, Emacs keeps track
    of what memory allocated via lisp_malloc is intended for what
    purpose.  This enumeration specifies the type of memory.  */
@@ -285,6 +273,17 @@ enum mem_type
   MEM_TYPE_FLOAT,
   MEM_TYPE_VECTOR
 };
+
+#if GC_MARK_STACK
+
+#if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
+#include <stdio.h>		/* For fprintf.  */
+#endif
+
+/* A unique object in pure space used to make some Lisp objects
+   on free lists recognizable in O(1).  */
+
+Lisp_Object Vdead;
 
 struct mem_node;
 static void *lisp_malloc P_ ((int, enum mem_type));
