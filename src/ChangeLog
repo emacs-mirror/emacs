@@ -1,5 +1,10 @@
 2001-07-02  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.h (x_free_dpy_colors): Add prototype.
+
+	* xterm.c (cvt_pixel_dtor): Call x_free_dpy_colors with the
+	right number of arguments.
+
 	* Makefile.in (tags): Depend on $(lwlibdir)/TAGS.
 	($(lwlibdir)TAGS): New target.
 	(TAGS): Fix depedency list.
