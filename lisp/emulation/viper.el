@@ -114,7 +114,7 @@
 ;; default. 
 ;; However, some modes do not appear in the right mode in the beginning,
 ;; usually because they neglect to follow Emacs conventions (e.g., they don't
-;; use (kill-all-local-variables) when they start. Some major modes
+;; use (kill-all-local-variables) when they start). Some major modes
 ;; may fail to come up in emacs-state if they call hooks, such as
 ;; text-hook, for no good reason. 
 ;; 
@@ -5382,9 +5382,9 @@ Mail anyway (y or n)? ")
   ;; This is only necessary when the user uses vip-modify-major-mode
   (add-hook 'dired-mode-hook 'vip-change-state-to-emacs)
 
-  (defvar view-hook nil
+  (defvar view-mode-hook nil
     "View hook. Run after view mode.")
-  (add-hook 'view-hook 'vip-change-state-to-emacs)
+  (add-hook 'view-mode-hook 'vip-change-state-to-emacs)
   
   ;; For VM users.
   ;; Put summary and other VM buffers in Emacs state.
