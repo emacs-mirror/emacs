@@ -1,3 +1,11 @@
+2001-01-02  Dave Love  <fx@gnu.org>
+
+	* calendar/todo-mode.el (todo): Add :link, :version.
+	(todo-save-top-priorities): Remove autoload cookie.
+	(todo-add-category, todo-add-item-non-interactively)
+	(todo-insert-item, todo-mode, todo-cp, todo-show): Fix autoload
+	cookie.
+
 2001-01-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* comint.el (comint-input-history-ignore): New variable.
