@@ -239,31 +239,37 @@ extern char syntax_code_spec[16];
 
    This is meant for regex.c to use.  For buffers, regex.c passes arguments
    to the UPDATE_SYNTAX_TABLE macros which are relative to BEGV.
-   So if it is a buffer,a we set the offset field to BEGV.  */
+   So if it is a buffer, we set the offset field to BEGV.  */
 
 #define SETUP_SYNTAX_TABLE_FOR_OBJECT(object, from, count)		\
-  if (BUFFERP (object) || NILP (object))				\
-    {									\
-      gl_state.b_property = BEGV - 1;					\
-      gl_state.e_property = ZV;						\
-      gl_state.offset = BEGV - 1;					\
-    }									\
-  else if (EQ (object, Qt))						\
-    {									\
-      gl_state.b_property = - 1;					\
-      gl_state.e_property = 1500000000;					\
-      gl_state.offset = 0;						\
-    }									\
-  else									\
-    {									\
-      gl_state.b_property = -1;						\
-      gl_state.e_property = 1 + XSTRING (object)->size;			\
-      gl_state.offset = 0;						\
-    }									\
-  gl_state.use_global = 0;						\
-  gl_state.current_syntax_table = current_buffer->syntax_table;		\
-  if (parse_sexp_lookup_properties) 					\
-      update_syntax_table (count > 0 ? (from) : (from) - 1, count, 1, object);
+if (1)									\
+  {									\
+    if (BUFFERP (object) || NILP (object))				\
+      {									\
+	gl_state.b_property = BEGV - 1;					\
+	gl_state.e_property = ZV;					\
+	gl_state.offset = BEGV - 1;					\
+      }									\
+    else if (EQ (object, Qt))						\
+      {									\
+	gl_state.b_property = - 1;					\
+	gl_state.e_property = 1500000000;				\
+	gl_state.offset = 0;						\
+      }									\
+    else								\
+      {									\
+	gl_state.b_property = -1;					\
+	gl_state.e_property = 1 + XSTRING (object)->size;		\
+	gl_state.offset = 0;						\
+      }									\
+    gl_state.use_global = 0;						\
+    gl_state.current_syntax_table = current_buffer->syntax_table;	\
+    if (parse_sexp_lookup_properties)					\
+      update_syntax_table ((bytepos_to_charpos (from)			\
+			    + (count > 0 ? 0 :  -1)),			\
+			   count, 1, object);				\
+  }									\
+else
 
 struct gl_state_s
 {
