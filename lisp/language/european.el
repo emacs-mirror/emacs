@@ -57,9 +57,9 @@
 
   ;; If this is a Latin-N character set, set up syntax for it in
   ;; single-byte mode.  We can't use require because the file
-  ;; must be eval'd each time.
+  ;; must be eval'd each time in case we change from one Latin-N to another.
   (if (string-match "^Latin-\\([1-9]\\)$" language)
-      (load (downcase language))))
+      (load (downcase language) nil t)))
 
 ;; Latin-1 (ISO-8859-1)
 
