@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-sccs.el,v 1.4 2000/09/09 00:48:40 monnier Exp $
+;; $Id: vc-sccs.el,v 1.5 2000/11/16 18:14:41 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -122,12 +122,6 @@ For a description of possible values, see `vc-check-master-templates'."
     (vc-insert-file (vc-name file) "^\001e")
     (vc-parse-buffer "^\001d D \\([^ ]+\\)" 1)))
 
-(defun vc-sccs-latest-on-branch-p (file)
-  "Return t iff the current workfile version of FILE is latest on its branch."
-  ;; Always return t; we do not support previous versions in the workfile
-  ;; under SCCS.
-  t)
-
 (defun vc-sccs-checkout-model (file)
   "SCCS-specific version of `vc-checkout-model'."
   'locking)
@@ -196,10 +190,10 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
     (if vc-keep-workfiles
 	(vc-do-command nil 0 "get" (vc-name file)))))
 
-(defun vc-sccs-checkout (file &optional writable rev workfile)
+(defun vc-sccs-checkout (file &optional editable rev workfile)
   "Retrieve a copy of a saved version of SCCS controlled FILE into a WORKFILE.
-WRITABLE non-nil means that the file should be writable.  REV is the
-revision to check out into WORKFILE."
+EDITABLE non-nil means that the file should be writable and
+locked.  REV is the revision to check out into WORKFILE."
   (let ((filename (or workfile file))
 	(file-buffer (get-file-buffer file))
 	switches)
@@ -226,7 +220,7 @@ revision to check out into WORKFILE."
 	      ;; least common denominator approach and use the -p option
 	      ;; ala RCS.
 	      (let ((vc-modes (logior (file-modes (vc-name file))
-				      (if writable 128 0)))
+				      (if editable 128 0)))
 		    (failed t))
 		(unwind-protect
 		    (progn
@@ -236,7 +230,7 @@ revision to check out into WORKFILE."
                           (apply 'vc-do-command
                                  (current-buffer) 0 "get" (vc-name file)
                                  "-s" ;; suppress diagnostic output
-                                 (if writable "-e")
+                                 (if editable "-e")
                                  "-p"
                                  (and rev
                                       (concat "-r"
@@ -244,12 +238,12 @@ revision to check out into WORKFILE."
                                  switches)))
                       (set-file-modes filename
                                       (logior (file-modes (vc-name file))
-                                              (if writable 128 0)))
+                                              (if editable 128 0)))
 		      (setq failed nil))
 		  (and failed (file-exists-p filename)
 		       (delete-file filename))))
 	    (apply 'vc-do-command nil 0 "get" (vc-name file)
-		   (if writable "-e")
+		   (if editable "-e")
 		   (and rev (concat "-r" (vc-sccs-lookup-triple file rev)))
 		   switches)))))
     (message "Checking out %s...done" filename)))
@@ -263,15 +257,15 @@ revision to check out into WORKFILE."
   ;; vc-workfile-version is cleared here so that it gets recomputed.
   (vc-file-setprop file 'vc-workfile-version nil))
 
-(defun vc-sccs-cancel-version (file writable)
+(defun vc-sccs-cancel-version (file editable)
   "Undo the most recent checkin of FILE.
-WRITABLE non-nil means previous version should be locked."
+EDITABLE non-nil means previous version should be locked."
   (vc-do-command nil 0 "rmdel"
 		 (vc-name file)
 		 (concat "-r" (vc-workfile-version file)))
   (vc-do-command nil 0 "get"
 		 (vc-name file)
-		 (if writable "-e")))
+		 (if editable "-e")))
 
 (defun vc-sccs-steal-lock (file &optional rev)
   "Steal the lock on the current workfile for FILE and revision REV."
