@@ -15,7 +15,6 @@
 #define C_SWITCH_SYSTEM -ma -qmaxmem=4000
 #endif
 
-#define HAVE_ALLOCA
 /* Adrian Colley <Adrian.Colley@three.serpentine.com> says this is needed.  */
 #ifndef NOT_C_CODE
 #ifndef AIX4

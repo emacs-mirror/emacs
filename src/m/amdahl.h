@@ -1,5 +1,5 @@
 /* amdahl machine description file 
-   Copyright (C) 1987, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1987, 1999, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -90,16 +90,6 @@ compiler is so brain damaged that it is not even worth trying to use it.
 
 /* #define VIRT_ADDR_VARIES*/
 
-/* Define C_ALLOCA if this machine does not support a true alloca
-   and the one written in C should be used instead.
-   Define HAVE_ALLOCA to say that the system provides a properly
-   working alloca function and it should be used.
-   Define neither one if an assembler-language alloca
-   in the file alloca.s should be used.  */
-
-#define C_ALLOCA
-/*#define HAVE_ALLOCA */
-
 #ifdef HAVE_ALLOCA
 #define LIB_STANDARD -lPW -lc
 #endif
@@ -145,9 +135,6 @@ extern int sign_extend_temp;
 /* Mask for address bits within a memory segment */
 #define SEGSIZ 0x10000		/* Should this not be defined elsewhere ? */
 #define SEGMENT_MASK (SEGSIZ - 1)
-
-/* Tell alloca.c which direction stack grows.  */
-#define STACK_DIRECTION -1
 
 /* Compensate for error in signal.h.  */
 #define NSIG_MINIMUM 20

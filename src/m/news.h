@@ -1,5 +1,5 @@
 /* machine description file for Sony's NEWS workstations, NEWS-OS 3.0.
-   Copyright (C) 1985, 1986, 1989 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1989, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -47,10 +47,6 @@ NOTE-END  */
 /* Use type int rather than a union, to represent Lisp_Object */
 
 #define NO_UNION_TYPE
-
-/* The News machine has alloca. */
-
-#define HAVE_ALLOCA
 
 /* Data type of load average, as read out of kmem.  */
 

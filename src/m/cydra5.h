@@ -1,5 +1,5 @@
 /* machine description file for Cydrome's CYDRA 5 mini super computer
-   Copyright (C) 1988, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1988, 1999, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -79,16 +79,6 @@ Boston, MA 02111-1307, USA.  */
 
 #undef VIRT_ADDR_VARIES
 
-/* Define C_ALLOCA if this machine does not support a true alloca
-   and the one written in C should be used instead.
-   Define HAVE_ALLOCA to say that the system provides a properly
-   working alloca function and it should be used.
-   Define neither one if an assembler-language alloca
-   in the file alloca.s should be used.  */
-
-#define C_ALLOCA
-#undef HAVE_ALLOCA
-
 /* The data segment in this machine always starts at address 0x10000000.
    An address of data cannot be stored correctly in a Lisp object;
    we always lose the high bits.  We must tell XPNTR to add them back.  */
@@ -104,9 +94,6 @@ Boston, MA 02111-1307, USA.  */
 #define NO_REMAP
 #define BROKEN_FIONREAD /* We son't even have it */
 #define	LIBS_MACHINE	-lsocket -lnsl
-
-/* Stack grows downward in memory.  */
-#define	STACK_DIRECTION -1
 
 /* The data section in a coff file must be aligned in the file.  */
 #define	DATA_SECTION_ALIGNMENT	0xFFF

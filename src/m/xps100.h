@@ -1,7 +1,7 @@
 /* xps100.h for the Honeywell XPS100 running UNIX System V.2
    Mark J. Hewitt (mjh@uk.co.kernel)
 
-   Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -81,23 +81,12 @@ Boston, MA 02111-1307, USA.  */
 
 /* #define VIRT_ADDR_VARIES */
 
-/* Define C_ALLOCA if this machine does not support a true alloca
-   and the one written in C should be used instead.
-   Define HAVE_ALLOCA to say that the system provides a properly
-   working alloca function and it should be used.
-   Define neither one if an assembler-language alloca
-   in the file alloca.s should be used.  */
-
-#define C_ALLOCA
-/* #define HAVE_ALLOCA */
-
 /* Define NO_REMAP if memory segmentation makes it not work well
    to change the boundary between the text section and data section
    when Emacs is dumped.  If you define this, the preloaded Lisp
    code will not be sharable; but that's better than failing completely.  */
 
 #define NO_REMAP
-#define STACK_DIRECTION -1
 #define TERMINFO
 #define SWITCH_ENUM_BUG
 #define LIB_STANDARD  -lc

@@ -1,5 +1,5 @@
 /* machine description file for hp9000 series 200 or 300 on either HPUX or BSD.
-   Copyright (C) 1985 Free Software Foundation, Inc.
+   Copyright (C) 1985, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -120,8 +120,6 @@ NOTE-END */
 
 #define CRT0_DUMMIES		bogus_a6,
 
-#define HAVE_ALLOCA
-
 #ifndef __GNUC__
 #define LIBS_DEBUG		/* don't have -lg that works */
 #define C_DEBUG_SWITCH		/* don't support -g */
@@ -149,10 +147,6 @@ NOTE-END */
 /* Convert that into an integer that is 100 for a load average of 1.0  */
 
 #define LOAD_AVE_CVT(x) ((int) ((x) * 100.0))
-
-#ifdef __GNUC__
-#define HAVE_ALLOCA
-#endif
 
 /* This library is needed with -g, on the 200/300 only.  */
 

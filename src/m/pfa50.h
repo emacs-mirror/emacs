@@ -1,5 +1,5 @@
 /* Machine description file for PFU A-series.
-   Copyright (C) 1988, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1988, 1999, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -75,7 +75,6 @@ Boston, MA 02111-1307, USA.  */
 /* SX/A has alloca in the PW library.  */
 
 #define LIB_STANDARD -lPW -lc
-#define HAVE_ALLOCA
 
 /* SX/A uses terminfo and lib/curses   */
 

@@ -1,5 +1,5 @@
 /* Configuration file for the NeXT machine.
-   Copyright (C) 1990 Free Software Foundation, Inc.
+   Copyright (C) 1990, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -64,8 +64,6 @@ Boston, MA 02111-1307, USA.  */
 
 #define SEGSIZ 0x20000
 #define SEGMENT_MASK (SEGSIZ - 1)
-
-#define HAVE_ALLOCA
 
 #define SYSTEM_MALLOC
 

@@ -1,5 +1,5 @@
 /* machine description file for the NCR Tower 32 running System V.2.
-   Copyright (C) 1986 Free Software Foundation, Inc.
+   Copyright (C) 1986, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -79,16 +79,6 @@ Boston, MA 02111-1307, USA.  */
    numerically.  */
 
 /* #define VIRT_ADDR_VARIES */
-
-/* Define C_ALLOCA if this machine does not support a true alloca
-   and the one written in C should be used instead.
-   Define HAVE_ALLOCA to say that the system provides a properly
-   working alloca function and it should be used.
-   Define neither one if an assembler-language alloca
-   in the file alloca.s should be used.  */
-
-/* #define C_ALLOCA */
-#define HAVE_ALLOCA
 
 /* Change some things to avoid bugs in compiler */
 

@@ -1,5 +1,5 @@
 /* System description file for SCO 3.2v5.
-   Copyright (C) 1996  Free Software Foundation, Inc.
+   Copyright (C) 1996, 2002  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -161,9 +161,6 @@ extern SIGMASKTYPE sigprocmask_set;
 #define C_SWITCH_SYSTEM -belf
 #define LD_SWITCH_SYSTEM -belf
 #endif
-
-/* SCO has a working alloca in libPW */
-#define HAVE_ALLOCA
 
 /* Don't disable static function, as SCO's header files have some.*/
 #undef static

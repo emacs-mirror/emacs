@@ -1,6 +1,6 @@
 /* machine description for Harris NightHawk 88k based machines
    (includes nh4000 and nh5000 machines).
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -81,16 +81,6 @@ Boston, MA 02111-1307, USA.  */
    numerically.  */
 
 /* #define VIRT_ADDR_VARIES */
-
-/* Define C_ALLOCA if this machine does not support a true alloca
-   and the one written in C should be used instead.
-   Define HAVE_ALLOCA to say that the system provides a properly
-   working alloca function and it should be used.
-   Define neither one if an assembler-language alloca
-   in the file alloca.s should be used.  */
-
-/* #define C_ALLOCA */
-#define HAVE_ALLOCA
 
 /* Define NO_REMAP if memory segmentation makes it not work well
    to change the boundary between the text section and data section

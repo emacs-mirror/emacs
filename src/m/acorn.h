@@ -1,5 +1,5 @@
 /* Machine description file for Acorn RISCiX machines.
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -119,26 +119,12 @@ Boston, MA 02111-1307, USA.  */
 
 #define ADJUST_EXEC_HEADER {hdr.a_magic &= ~MF_SQUEEZED;}
 
-/* Define C_ALLOCA if this machine does not support a true alloca
-   and the one written in C should be used instead.
-   Define HAVE_ALLOCA to say that the system provides a properly
-   working alloca function and it should be used.
-   Define neither one if an assembler-language alloca
-   in the file alloca.s should be used.  */
-
 #ifdef __GNUC__
-
-/* Use builtin alloca. Also be sure that no other ones are tried out. */
-#define alloca __builtin_alloca
-#define HAVE_ALLOCA
 
 /* Keep gcc/RISCiX happy - it uses __gccmain where other versions of
    gcc use __main, because of a library routine name clash. */
 #define __main __gccmain
 
-#else
-#define C_ALLOCA
-#undef HAVE_ALLOCA
 #endif  /* __GNUC__ */
 
 /* Define NO_REMAP if memory segmentation makes it not work well
@@ -183,9 +169,6 @@ extern int _edata;
 
 /* Use <dirent.h>. */
 #define SYSV_SYSTEM_DIR
-
-/* For the portable alloca */
-#define STACK_DIRECTION -1
 
 #ifdef NO_REMAP
 /* CRT0_O is defined in s/riscix1-1.h or s/riscix1-2.h, as appropriate. */

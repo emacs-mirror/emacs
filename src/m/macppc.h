@@ -1,5 +1,5 @@
 /* machine description file For the powerpc Macintosh.
-   Copyright (C) 1994, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -50,15 +50,6 @@ Boston, MA 02111-1307, USA.  */
 /* Convert that into an integer that is 100 for a load average of 1.0  */
 
 #define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / FSCALE)
-
-/* Define C_ALLOCA if this machine does not support a true alloca
-   and the one written in C should be used instead.
-   Define HAVE_ALLOCA to say that the system provides a properly
-   working alloca function and it should be used.
-   Define neither one if an assembler-language alloca
-   in the file alloca.s should be used.  */
-
-#define HAVE_ALLOCA
 
 /* Some really obscure 4.2-based systems (like Sequent DYNIX)
  * do not support asynchronous I/O (using SIGIO) on sockets,

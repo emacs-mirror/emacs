@@ -1,5 +1,5 @@
 /* machine description file for AT&T UNIX PC model 7300
-   Copyright (C) 1986 Free Software Foundation, Inc.
+   Copyright (C) 1986, 2002 Free Software Foundation, Inc.
    Modified for this machine by mtxinu!rtech!gonzo!daveb
 
 This file is part of GNU Emacs.
@@ -66,15 +66,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* #define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0) */
 
-#ifdef __GNUC__
-
-#define HAVE_ALLOCA
-
-#else
+#ifndef __GNUC__
 
 #define SWITCH_ENUM_BUG
-#define C_ALLOCA
-#define STACK_DIRECTION -1
 
 #endif
 

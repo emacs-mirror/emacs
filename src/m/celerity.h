@@ -1,5 +1,5 @@
 /* machine description file for Celerity.
-   Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -51,10 +51,6 @@ Boston, MA 02111-1307, USA.  */
 /* A machine-specific loader switch is needed.  */
 
 #define LD_SWITCH_MACHINE -k100000
-
-/* alloca is provided by the system.  */
-
-#define HAVE_ALLOCA
 
 /* (short) negative-int doesn't sign-extend correctly */
 #define SHORT_CAST_BUG

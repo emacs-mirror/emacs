@@ -1,5 +1,5 @@
 /* machine description file for gec63
-   Copyright (C) 1986 Free Software Foundation, Inc.
+   Copyright (C) 1986, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -38,7 +38,6 @@ Boston, MA 02111-1307, USA.  */
 
 /* GEC63 has alloca in the PW/ux63 library.  */
 #define LIB_STANDARD -lPW -lc
-#define HAVE_ALLOCA
 
 /* Do not define LOAD_AVE_TYPE or LOAD_AVE_CVT
    since there is no /dev/kmem */

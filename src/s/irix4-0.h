@@ -5,7 +5,6 @@
 /* XPointer is not defined in the older X headers  -- JPff@maths.bath.ac.uk */
 #define XPointer caddr_t
 
-#define HAVE_ALLOCA
 #ifndef NOT_C_CODE
 #include <alloca.h>
 #endif

@@ -1,5 +1,5 @@
 /* machine description file for HLH Orion.
-   Copyright (C) 1985 Free Software Foundation, Inc.
+   Copyright (C) 1985, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -64,8 +64,3 @@ Boston, MA 02111-1307, USA.  */
 #define FSCALE 1.0
 #endif
 #define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / FSCALE)
-
-/* It is necessary to use the portable imitation of alloca,
-   since a true stack-allocating one is impossible.  */
-
-#define C_ALLOCA

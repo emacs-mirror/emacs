@@ -1,6 +1,6 @@
 /* machine description file for Silicon Graphics Iris 2500 Turbos;
    also possibly for non-turbo Irises with system release 2.5.
-   Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -49,7 +49,7 @@ NOTE-END */
       /* Eric - May 4, 1987 */
       report_file_error ("Worked just find\n", Qnil);
 
-  Without any sort of debugger that works on emacs (I know... but I don't have
+  Without any sort of debugger that works on emacs (I know... but I dont have
   *time* right now to start with gdb), it was quite time consuming to track
   it down to this.
 
@@ -117,16 +117,6 @@ NOTE-END */
    numerically.  */
 
 /* #define VIRT_ADDR_VARIES */
-
-/* Define C_ALLOCA if this machine does not support a true alloca
-   and the one written in C should be used instead.
-   Define HAVE_ALLOCA to say that the system provides a properly
-   working alloca function and it should be used.
-   Define neither one if an assembler-language alloca
-   in the file alloca.s should be used.  */
-
-/* #define C_ALLOCA */
-#define HAVE_ALLOCA
 
 /* Define NO_REMAP if memory segmentation makes it not work well
    to change the boundary between the text section and data section

@@ -1,5 +1,5 @@
 /* machine description file for vax.
-   Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -100,7 +100,6 @@ NOTE-END  */
 
 #ifdef USG
 #define LIB_STANDARD -lPW -lc
-#define HAVE_ALLOCA
 
 /* There is some bug in unexec in for usg 5.2 on a vax
    which nobody who runs such a system has yet tracked down. */
@@ -110,14 +109,6 @@ NOTE-END  */
 
 #define TEXT_START 0
 #endif /* USG */
-
-#ifdef BSD_SYSTEM
-#define HAVE_ALLOCA
-#endif /* BSD_SYSTEM */
-
-#ifdef VMS
-#define C_ALLOCA
-#endif
 
 #ifdef BSD4_2
 #define HAVE_FTIME

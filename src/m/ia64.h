@@ -1,5 +1,5 @@
 /* machine description file for the IA-64 architecture.
-   Copyright (C) 2000 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2002 Free Software Foundation, Inc.
      Contributed by David Mosberger <davidm@hpl.hp.com>
 
 This file is part of GNU Emacs.
@@ -86,15 +86,6 @@ Boston, MA 02111-1307, USA.  */
    numerically.  */
 
 /* #define VIRT_ADDR_VARIES */
-
-/* Define C_ALLOCA if this machine does not support a true alloca
-   and the one written in C should be used instead.
-   Define HAVE_ALLOCA to say that the system provides a properly
-   working alloca function and it should be used.
-   Define neither one if an assembler-language alloca
-   in the file alloca.s should be used.  */
-
-#define HAVE_ALLOCA
 
 /* Define the following if GNU malloc and the relocating allocator do
    not work together with X.  */

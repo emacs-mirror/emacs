@@ -1,5 +1,5 @@
 /* machine description file for ibm ps/2 aix386.
-   Copyright (C) 1989 Free Software Foundation, Inc.
+   Copyright (C) 1989, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -187,15 +187,7 @@ so disable it for them.  */
 
 /* Here override various assumptions in ymakefile */
 
-/* Define C_ALLOCA if this machine does not support a true alloca
-   and the one written in C should be used instead.
-   Define HAVE_ALLOCA to say that the system provides a properly
-   working alloca function and it should be used.
-   Define neither one if an assembler-language alloca
-   in the file alloca.s should be used.  */
-
 #ifdef __GNUC__
-#define HAVE_ALLOCA
 #define alloca(n) __builtin_alloca(n)
 #if __GNUC__ < 2
 #define LIB_STANDARD /usr/local/lib/gcc-gnulib -lbsd -lrts -lc 
@@ -204,8 +196,6 @@ so disable it for them.  */
 /* tranle says that -fstrength-reduce does not help.  */
 #define C_DEBUG_SWITCH
 #else
-#define C_ALLOCA
-#define STACK_DIRECTION -1 /* tell alloca.c which way it grows */
 #define LIBS_MACHINE -lbsd -lrts
 #endif
 

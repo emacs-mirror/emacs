@@ -1,5 +1,5 @@
 /* machine description file for the NCR Tower 32 running System V.3.
-   Copyright (C) 1986 Free Software Foundation, Inc.
+   Copyright (C) 1986, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -81,27 +81,16 @@ Boston, MA 02111-1307, USA.  */
 
 /* #define VIRT_ADDR_VARIES */
 
-/* Define C_ALLOCA if this machine does not support a true alloca
-   and the one written in C should be used instead.
-   Define HAVE_ALLOCA to say that the system provides a properly
-   working alloca function and it should be used.
-   Define neither one if an assembler-language alloca
-   in the file alloca.s should be used.  */
-
 #ifdef __GNUC__
-#define HAVE_ALLOCA
 #define alloca __builtin_alloca
 #define C_OPTIMIZE_SWITCH -O -fstrength-reduce -fomit-frame-pointer
 #define LIB_STANDARD -lc /lib/crtn.o
 #else
 /* This section is correct if you do *not* change src/ymakefile so that
    CFLAGS includes C_OPTIMIZE_SWITCH rather than C_DEBUG_SWITCH.  */
-#define HAVE_ALLOCA
 #define C_DEBUG_SWITCH -g -O0
 #define LIB_STANDARD -lc -lPW /lib/crtn.o
 /* This section is correct if you do enable C_OPTIMIZE_SWITCH.  */
-/* #define C_ALLOCA */
-/* #define STACK_DIRECTION -1 */
 /* #define C_OPTIMIZE_SWITCH -O2 */
 /* #define LIB_STANDARD -lc /lib/crtn.o */
 #endif

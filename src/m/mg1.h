@@ -1,5 +1,5 @@
 /* machine description file for Whitechapel Computer Works MG1 (ns16000 based).
-   Copyright (C) 1985 Free Software Foundation, Inc.
+   Copyright (C) 1985, 2002 Free Software Foundation, Inc.
    MG-1 version by L.M.McLoughlin
 
 This file is part of GNU Emacs.
@@ -91,16 +91,6 @@ NOTE-END  */
    numerically.  */
 /* hmmmm... not sure.  copied sequent.h */
 #undef VIRT_ADDR_VARIES
-
-/* Define C_ALLOCA if this machine does not support a true alloca
-   and the one written in C should be used instead.
-   Define HAVE_ALLOCA to say that the system provides a properly
-   working alloca function and it should be used.
-   Define neither one if an assembler-language alloca
-   in the file alloca.s should be used.  */
-/* hmmmm... again not sure.  so copied sequent.h again! */
-#undef C_ALLOCA
-#undef HAVE_ALLOCA
 
 /* Define NO_REMAP if memory segmentation makes it not work well
    to change the boundary between the text section and data section

@@ -1,5 +1,5 @@
 /* machine description file for ISI 68000's
-   Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -83,7 +83,6 @@ NOTE-END */
 /* A few changes for the newer systems.  */
 
 #ifdef BSD4_3
-#define HAVE_ALLOCA
 /* The following line affects crt0.c.  */
 #undef m68k
 

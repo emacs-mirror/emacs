@@ -1,5 +1,5 @@
 /* m- file for Mips machines.
-   Copyright (C) 1987, 1992, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1987, 1992, 1999, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -98,19 +98,6 @@ NOTE-END  */
    numerically.  */
 
 /* #define VIRT_ADDR_VARIES */
-
-/* Define C_ALLOCA if this machine does not support a true alloca
-   and the one written in C should be used instead.
-   Define HAVE_ALLOCA to say that the system provides a properly
-   working alloca function and it should be used.
-   Define neither one if an assembler-language alloca
-   in the file alloca.s should be used.  */
-
-#ifdef __GNUC__
-#define HAVE_ALLOCA
-#else
-#define C_ALLOCA
-#endif
 
 /* Define NO_REMAP if memory segmentation makes it not work well
    to change the boundary between the text section and data section

@@ -1,5 +1,5 @@
 /* machine description file for Apollo machine.
-   Copyright (C) 1985, 1986, 1994, Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1994, 2002, Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -51,10 +51,6 @@ Boston, MA 02111-1307, USA.  */
    pure and impure space as loaded do not vary.  */
 
 #undef VIRT_ADDR_VARIES
-
-/* Define HAVE_ALLOCA because we use the system's version of alloca.  */
-
-#define HAVE_ALLOCA
 
 /* Prevent -lg from being used for debugging.  Not needed.  */
 

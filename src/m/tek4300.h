@@ -1,5 +1,5 @@
 /* machine description file for tek4300.
-   Copyright (C) 1988 Free Software Foundation, Inc.
+   Copyright (C) 1988, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -63,11 +63,6 @@ Boston, MA 02111-1307, USA.  */
    code will not be sharable; but that's better than failing completely.  */
 
 #define NO_REMAP
-
-/* Define C_ALLOCA if this machine does not support a true alloca
-   and the one written in C should be used instead. */
-
-#define C_ALLOCA
 
 /* setjmp and longjmp can safely replace _setjmp and _longjmp, */
 

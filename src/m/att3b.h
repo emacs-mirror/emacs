@@ -1,5 +1,5 @@
 /* Machine-dependent configuration for GNU Emacs for AT&T 3b machines.
-   Copyright (C) 1986 Free Software Foundation, Inc.
+   Copyright (C) 1986, 2002 Free Software Foundation, Inc.
 
    Modified by David Robinson (daver@csvax.caltech.edu) 6/6/86
 
@@ -78,17 +78,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* #define VIRT_ADDR_VARIES */  /* Karl Kleinpaste says this isn't needed.  */
 
-/* Define C_ALLOCA if this machine does not support a true alloca
-   and the one written in C should be used instead.
-   Define HAVE_ALLOCA to say that the system provides a properly
-   working alloca function and it should be used.
-   Define neither one if an assembler-language alloca
-   in the file alloca.s should be used.  */
-
 /* SysV has alloca in the PW library */
 
 #define LIB_STANDARD -lPW -lc
-#define HAVE_ALLOCA
 
 /* Define NO_REMAP if memory segmentation makes it not work well
    to change the boundary between the text section and data section
@@ -135,10 +127,6 @@ extern int sign_extend_temp;
 #endif /* 3b2, 3b5 or 3b15 */
 
 #define TEXT_START 0
-
-
-/* For alloca.c (not actually used, since HAVE_ALLOCA) */
-#define STACK_DIRECTION 1
 
 /* (short) negative-int doesn't sign-extend correctly */
 #define SHORT_CAST_BUG

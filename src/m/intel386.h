@@ -1,5 +1,5 @@
 /* Machine description file for intel 386.
-   Copyright (C) 1987 Free Software Foundation, Inc.
+   Copyright (C) 1987, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -166,8 +166,6 @@ NOTE-END */
 
 #define NO_REMAP
 
-#define STACK_DIRECTION -1
-
 /* Since cannot purify, use standard Xenix 386 startup code. */
 
 #define START_FILES	/lib/386/Sseg.o pre-crt0.o /lib/386/Scrt0.o
@@ -192,25 +190,14 @@ NOTE-END */
 #endif /* not USG5_4 */
 #endif /* LIB_STANDARD */
 
-/* Paul Abrahams <abrahams@acm.org> says that
-   Unixware does not have alloca when using cc.  */
-#if ! (defined (USG5_4) && ! defined (SOLARIS2) && ! defined (__GNUC__))
-#define HAVE_ALLOCA
-#endif
-
 #define NO_REMAP 
 #define TEXT_START 0
 #endif /* USG */
 #endif /* not XENIX */
 
-#ifdef BSD_SYSTEM
-#define HAVE_ALLOCA
-#endif /* BSD_SYSTEM */
-
 /* If compiling with GCC, let GCC implement alloca.  */
 #if defined(__GNUC__) && !defined(alloca)
 #define alloca(n) __builtin_alloca(n)
-#define HAVE_ALLOCA
 #endif
 
 #ifdef USG5_4
@@ -225,7 +212,6 @@ NOTE-END */
 #define VIRT_ADDR_VARIES
 #define DATA_END 	get_data_end ()
 #define DATA_START 	get_data_start ()
-#define HAVE_ALLOCA
 #define NO_ARG_ARRAY
 #endif
 

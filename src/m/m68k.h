@@ -1,5 +1,5 @@
 /* Machine description file for generic Motorola 68k.
-   Copyright (C) 1985, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1995, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -85,5 +85,4 @@ Boston, MA 02111-1307, USA.  */
 /* If compiling with GCC, let GCC implement alloca.  */
 #if defined(__GNUC__) && !defined(alloca)
 #define alloca(n) __builtin_alloca(n)
-#define HAVE_ALLOCA
 #endif

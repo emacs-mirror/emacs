@@ -61,11 +61,6 @@ NOTE-END  */
 #define BROKEN_O_NONBLOCK
 #endif
 
-#if defined (OSF1) || defined (MACH)
-#undef C_ALLOCA
-#define HAVE_ALLOCA
-#endif
-
 #ifndef __NetBSD__
 /* mcc@timessqr.gc.cuny.edu says this makes Emacs work with DECnet.  */
 #ifdef HAVE_LIBDNET

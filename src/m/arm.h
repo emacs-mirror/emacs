@@ -1,5 +1,5 @@
 /* Machine description file for ARM-based non-RISCiX machines.
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -51,13 +51,7 @@ Boston, MA 02111-1307, USA.  */
 
 /* Use builtin alloca. Also be sure that no other ones are tried out. */
 #define alloca __builtin_alloca
-#define HAVE_ALLOCA
 
-#else
-#define C_ALLOCA
-#undef HAVE_ALLOCA
 #endif  /* __GNUC__ */
 
 #define NO_REMAP
-
-#define STACK_DIRECTION -1

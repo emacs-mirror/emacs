@@ -1,5 +1,5 @@
 /* altos machine description file	Altos 3068 Unix System V Release 2
-   Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -36,18 +36,9 @@ Boston, MA 02111-1307, USA.  */
 
 #define LIB_STANDARD -lc
 
-#ifdef __GNUC__
-#define alloca __builtin_alloca
-#define HAVE_ALLOCA
-#else
-#define C_ALLOCA		/* we have -lPW and alloca but it's broken!
-				   <vsedev!ron> */
-#endif
-
 #define SWITCH_ENUM_BUG
 
 #define NO_REMAP
-#define STACK_DIRECTION -1
 
 #undef TERMINFO
 
