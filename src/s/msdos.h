@@ -198,6 +198,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define HAVE_INVERSE_HYPERBOLIC
 #define FLOAT_CHECK_DOMAIN
+#define NO_MATHERR
 
 /* When $TERM is "internal" then this is substituted:  */
 #define INTERNAL_TERMINAL "pc|bios|IBM PC with colour display:\
