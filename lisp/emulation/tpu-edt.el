@@ -316,14 +316,14 @@ CSI is DEC's name for the sequence <ESC>[.")
 SS3 is DEC's name for the sequence <ESC>O.")
 
 (defvar GOLD-map (make-keymap)
-  "Maps the function keys on the VT100 keyboard preceeded by PF1.
+  "Maps the function keys on the VT100 keyboard preceded by PF1.
 GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
 
 (defvar GOLD-CSI-map (make-sparse-keymap)
-  "Maps the function keys on the VT100 keyboard preceeded by GOLD-CSI.")
+  "Maps the function keys on the VT100 keyboard preceded by GOLD-CSI.")
 
 (defvar GOLD-SS3-map (make-sparse-keymap)
-  "Maps the function keys on the VT100 keyboard preceeded by GOLD-SS3.")
+  "Maps the function keys on the VT100 keyboard preceded by GOLD-SS3.")
 
 (defvar tpu-global-map nil "TPU-edt global keymap.")
 (defvar tpu-original-global-map (copy-keymap global-map)
@@ -543,7 +543,7 @@ version of Emacs."
 
 (defun tpu-set-mark (pos)
   "TPU-edt verion of the `set-mark' function.
-Sets the mark at POS and activates the region acording to the
+Sets the mark at POS and activates the region according to the
 current version of Emacs."
   (set-mark pos)
   (and tpu-lucid-emacs19-p pos (zmacs-activate-region)))
@@ -1203,7 +1203,7 @@ direction.  If an argument is specified, don't set the search direction."
 
 (defun tpu-check-search-case (string)
   "Returns t if string contains upper case."
-  ;; if using regexp, elimiate upper case forms (\B \W \S.)
+  ;; if using regexp, eliminate upper case forms (\B \W \S.)
   (if tpu-regexp-p
       (let ((pat (copy-sequence string)) (case-fold-search nil) (pos 0))
 	(while (setq pos (string-match "\\\\\\\\" pat)) (aset pat (+ 1 pos) ?.))
