@@ -23,7 +23,7 @@
 #include <malloc.h>
 
 void sleep(int seconds);
-int getwd (char *dir);
+char *getwd (char *dir);
 int getppid(void);
 char * getlogin ();
 char * cuserid (char * s);
