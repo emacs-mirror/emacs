@@ -39,7 +39,7 @@
 ;;
 ;; (add-hook 'mh-show-mode-hook 'goto-address)
 ;;
-;; The mouse click method is bound to [mouse-2] on highlighted URL's or
+;; The mouse click method is bound to [mouse-2] on highlighted URLs or
 ;; e-mail addresses only; it functions normally everywhere else.  To bind
 ;; another mouse click to the function, add the following to your .emacs
 ;; (for example):
@@ -75,18 +75,18 @@
 
 ;;; I don't expect users to want fontify'ing without highlighting.
 (defcustom goto-address-fontify-p t
-  "*If t, URL's and e-mail addresses in buffer are fontified.
+  "*If t, URLs and e-mail addresses in buffer are fontified.
 But only if `goto-address-highlight-p' is also non-nil."
   :type 'boolean
   :group 'goto-address)
 
 (defcustom goto-address-highlight-p t
-  "*If t, URL's and e-mail addresses in buffer are highlighted."
+  "*If t, URLs and e-mail addresses in buffer are highlighted."
   :type 'boolean
   :group 'goto-address)
 
 (defcustom goto-address-fontify-maximum-size 30000
-  "*Maximum size of file in which to fontify and/or highlight URL's."
+  "*Maximum size of file in which to fontify and/or highlight URLs."
   :type 'integer
   :group 'goto-address)
 
@@ -129,7 +129,7 @@ But only if `goto-address-highlight-p' is also non-nil."
   :group 'goto-address)
 
 (defun goto-address-fontify ()
-  "Fontify the URL's and e-mail addresses in the current buffer.
+  "Fontify the URLs and e-mail addresses in the current buffer.
 This function implements `goto-address-highlight-p'
 and `goto-address-fontify-p'."
   (save-excursion
@@ -150,7 +150,7 @@ and `goto-address-fontify-p'."
 		(overlay-put this-overlay
 			     'help-echo "mouse-2: follow URL")
 		(overlay-put this-overlay
-                             'local-map goto-address-highlight-keymap)))
+                             'keymap goto-address-highlight-keymap)))
 	    (goto-char (point-min))
 	    (while (re-search-forward goto-address-mail-regexp nil t)
               (let* ((s (match-beginning 0))
@@ -163,7 +163,7 @@ and `goto-address-fontify-p'."
 		(overlay-put this-overlay
 			     'help-echo "mouse-2: follow URL")
                 (overlay-put this-overlay
-                             'local-map goto-address-highlight-keymap)))))
+                             'keymap goto-address-highlight-keymap)))))
       (and (buffer-modified-p)
 	   (not modified)
 	   (set-buffer-modified-p nil)))))
