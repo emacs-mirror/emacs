@@ -1453,6 +1453,7 @@ the inserted text.  Value is always t."
   (define-key calendar-mode-map "u"   'calendar-unmark)
   (define-key calendar-mode-map "m"   'mark-diary-entries)
   (define-key calendar-mode-map "d"   'view-diary-entries)
+  (define-key calendar-mode-map "D"   'view-other-diary-entries)
   (define-key calendar-mode-map "s"   'show-all-diary-entries)
   (define-key calendar-mode-map "pd"  'calendar-print-day-of-year)
   (define-key calendar-mode-map "pc"  'calendar-print-iso-date)
