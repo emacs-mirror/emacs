@@ -861,19 +861,22 @@ mode.
 
 ** Comint (subshell) changes
 
-By default, comint no longer uses the variable `comint-prompt-regexp' to
-distinguish prompts from user-input.  Instead, it notices which parts of
-the text were output by the process, and which entered by the user, and
-attaches `field' properties to allow emacs commands to use this information.
-Common movement commands, notably beginning-of-line, respect field
-boundaries in a fairly natural manner.
-To disable this feature, and use the old behavior, set the variable
-`comint-use-prompt-regexp-instead-of-fields' to a non-nil value.
+These changes generally affect all modes derived from comint mode, which
+include shell-mode, gdb-mode, scheme-interaction-mode, etc.
 
-Comint now includes new features to send commands to running processes
+*** By default, comint no longer uses the variable `comint-prompt-regexp'
+to distinguish prompts from user-input.  Instead, it notices which
+parts of the text were output by the process, and which entered by the
+user, and attaches `field' properties to allow emacs commands to use
+this information.  Common movement commands, notably beginning-of-line,
+respect field boundaries in a fairly natural manner.  To disable this
+feature, and use the old behavior, customize the user option
+`comint-use-prompt-regexp-instead-of-fields'.
+
+*** Comint now includes new features to send commands to running processes
 and redirect the output to a designated buffer or buffers.
 
-The command M-x comint-redirect-send-command reads a command and
+*** The command M-x comint-redirect-send-command reads a command and
 buffer name from the mini-buffer.  The command is sent to the current
 buffer's process, and its output is inserted into the specified buffer.
 
@@ -881,16 +884,15 @@ The command M-x comint-redirect-send-command-to-process acts like
 M-x comint-redirect-send-command but additionally reads the name of
 the buffer whose process should be used from the mini-buffer.
 
-Packages based on comint.el like shell-mode, and scheme-interaction-mode
-now highlight user input and program prompts, and support choosing
-previous input with mouse-2.  To control these feature, see the
-user-options `comint-highlight-input' and `comint-highlight-prompt'.
+*** Packages based on comint now highlight user input and program prompts,
+and support choosing previous input with mouse-2.  To control these features,
+see the user-options `comint-highlight-input' and `comint-highlight-prompt'.
 
-The new command `comint-write-output' (usually bound to `C-c C-s')
+*** The new command `comint-write-output' (usually bound to `C-c C-s')
 saves the output from the most recent command to a file.  With a prefix
 argument, it appends to the file.
 
-The command `comint-kill-output' has been renamed `comint-delete-output'
+*** The command `comint-kill-output' has been renamed `comint-delete-output'
 (usually bound to `C-c C-o'); the old name is aliased to it for
 compatibility.
 
