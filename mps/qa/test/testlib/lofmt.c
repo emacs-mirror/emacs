@@ -111,7 +111,7 @@ static void mycopy(mps_addr_t object, mps_addr_t to)
  locell *toj = to;
 
  asserts(allowlocopies, "locopy on LO object");
- asserts(boj->tag = LOdata, "locopy: non-data object");
+ asserts(boj->tag == LOdata, "locopy: non-data object");
 
  memmove(to, object, boj->data.size);
  toj->data.copycount = (toj->data.copycount)+1;
@@ -177,19 +177,19 @@ static void myfwd(mps_addr_t object, mps_addr_t to)
 
 long int getloid(locell *obj)
 {
- asserts(obj->tag = LOdata, "getloid: non-data object.");
+ asserts(obj->tag == LOdata, "getloid: non-data object.");
  return obj->data.id;
 }
 
 long int getlocopycount(locell *obj)
 {
- asserts(obj->tag = LOdata, "getlocopycount: non-data object.");
+ asserts(obj->tag == LOdata, "getlocopycount: non-data object.");
  return obj->data.copycount;
 }
 
 long int getlosize(locell *obj)
 {
- asserts(obj->tag = LOdata, "getlosize: non-data object.");
+ asserts(obj->tag == LOdata, "getlosize: non-data object.");
  return obj->data.size - offsetof(struct lodata, data);
 }
 
