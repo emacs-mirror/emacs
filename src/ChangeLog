@@ -1,4 +1,9 @@
-2003-04-04  Kenichi Handa  <handa@etlken2>
+2003-04-06  Gareth Jones  <emacs@referential.org.uk>  (tiny change)
+
+	* fns.c (Flength): Return SUB_CHAR_TABLE_ORDINARY_SLOTS for sub
+	char tables.
+
+2003-04-04  Kenichi Handa  <handa@m17n.org>
 
 	* editfns.c (Fformat): Use a copy of FORMAT string so that we can
 	destructively change "%S" to "%s".
@@ -21,7 +26,7 @@
 
 	* macterm.h (struct mac_output): Define x_pixels_diff and
 	y_pixels_diff.
-	
+
 2003-03-31  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in ($(BLD)/frame.$(O)): Add dependency on
