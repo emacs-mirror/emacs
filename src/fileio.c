@@ -1527,13 +1527,6 @@ duplicates what `expand-file-name' does.")
 
 	/* Get variable value */
 	o = (unsigned char *) egetenv (target);
-/* The presence of this code makes vax 5.0 crash, for reasons yet unknown */
-#if 0
-#ifdef USG
-	if (!o && !strcmp (target, "USER"))
-	  o = egetenv ("LOGNAME");
-#endif /* USG */
-#endif /* 0 */
 	if (!o) goto badvar;
 	total += strlen (o);
 	substituted = 1;
@@ -1585,13 +1578,6 @@ duplicates what `expand-file-name' does.")
 
 	/* Get variable value */
 	o = (unsigned char *) egetenv (target);
-/* The presence of this code makes vax 5.0 crash, for reasons yet unknown */
-#if 0
-#ifdef USG
-	if (!o && !strcmp (target, "USER"))
-	  o = egetenv ("LOGNAME");
-#endif /* USG */
-#endif /* 0 */
 	if (!o)
 	  goto badvar;
 
