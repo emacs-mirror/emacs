@@ -1,21 +1,20 @@
 ;;; winner.el  --- Restore window configuration or change buffer
 
-;; (C) 1997 Ivar Rummelhoff
+;; Copyright (C) 1997 Free Software Foundation. Inc.
 
 ;; Author: Ivar Rummelhoff <ivarr@ifi.uio.no>
 ;; Maintainer: Ivar Rummelhoff <ivarr@ifi.uio.no>
 ;; Created: 27 Feb 1997
-;; Version: 1.13
-;; RCS: $Id: winner.el,v 1.13 1997/04/01 11:11:12 ivarr Exp ivarr $
 ;; Keywords: extensions,windows
-;; Location: http://www.ifi.uio.no/~ivarr/share/elisp/
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
@@ -27,7 +26,7 @@
 
 ;;; Commentary:
 ;; 
-;;   Winner.el provides a minor mode (`winner-mode') that does
+;;   winner.el provides a minor mode (`winner-mode') that does
 ;;   essentially two things:
 ;;
 ;;     1) It keeps track of changing window configurations, so that
@@ -36,21 +35,9 @@
 ;;
 ;;     2) It lets you switch to other buffers by pressing C-right.
 ;;
+;; To use Winner mode, put this line in your .emacs file:
 ;;
-;; Installation:
-;;
-;;   1. Put this file in a directory on your (emacs) load-path
-;;   2. Byte-compile the file (eg. with M-x byte-compile-file)
-;;   3. Put these two lines in your .emacs - file:
-;;
-;;      (autoload 'winner-mode "winner" "Toggle Winner mode." t)
 ;;      (add-hook 'after-init-hook (lambda () (winner-mode 1)))
-;;
-;;   4. Restart emacs for changes to take effect.
-;;
-;;   (This version of) Winner will only run properly
-;;   on Emacs-19.35 or newer.
-;;
 
 ;; Details:
 ;;
@@ -130,6 +117,8 @@ which excludes \"invisible buffers\".")
 
 (defvar winner-mode nil)		; For the modeline.
 (defvar winner-mode-map nil "Keymap for Winner mode.")
+
+;;;###autoload
 (defun winner-mode (&optional arg)
   "Toggle Winner mode.
 With arg, turn Winner mode on if and only if arg is positive."
@@ -353,4 +342,4 @@ Winner mode must be turned on.\)"
 
 (provide 'winner)
 
-;;; Winner.el ends here
+;;; winner.el ends here
