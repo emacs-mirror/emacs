@@ -1176,7 +1176,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 			 as we don't step by infinity.  So pick the kind
 			 that works when we do step by infinity.  */
 		      if ((EMACS_INT) (p_limit + infinity) > (EMACS_INT) p_limit)
-			while ((EMACS_INT) cursor <= (int) p_limit)
+			while ((EMACS_INT) cursor <= (EMACS_INT) p_limit)
 			  cursor += BM_tab[*cursor];
 		      else
 			while ((unsigned EMACS_INT) cursor <= (unsigned EMACS_INT) p_limit)
