@@ -23,6 +23,8 @@
 
 ;;; Code:
 
+(require 'rmail)
+
 ;; Temporary until Emacs always has this variable.
 (defvar rmail-delete-after-output nil
   "*Non-nil means automatically delete a message that is copied to a file.")
