@@ -74,12 +74,6 @@
 ;;   :code-space [128 255]
 ;;   :code-offset #x3FFF80)
 ;;
-;; (define-charset 'eight-bit
-;;   ""
-;;   :dimension 1
-;;   :code-space [128 255]
-;;   :code-offset #x3FFF80)
-;;
 ;; We now set :docstring, :short-name, and :long-name properties.
 
 (put-charset-property
@@ -915,13 +909,7 @@
   "Unicode Basic Multilingual Plane"
   :short-name "Unicode BMP"
   :code-space [0 255 0 255]
-  :subset '(unicode 0 #xFFFF 0))
-
-(define-charset 'unicode-bmp
-  "Unicode Basic Multilingual Plane"
-  :short-name "Unicode BMP"
-  :code-space [0 255 0 255]
-  :subset '(unicode 0 #xFFFF 0))
+  :code-offset 0)
 
 (define-charset 'ethiopic
   "Ethiopic characters for Amharic and Tigrigna."
