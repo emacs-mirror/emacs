@@ -665,12 +665,8 @@ useful, such as version control."
   "*Regexp matching files we don't want displayed in a speedbar buffer.
 It is generated from the variable `completion-ignored-extensions'")
 
-;; This can't be further down, since it is needed just after.
-(defvar speedbar-file-regexp
-  (speedbar-extension-list-to-regex speedbar-supported-extension-expressions)
-  "Regular expression matching files we know how to expand.
-Created from `speedbar-supported-extension-expression' with the
-function `speedbar-extension-list-to-regex'")
+;; Ugly compiler silencing trick.  The real defvar comes later in this file.
+(defvar speedbar-file-regexp)
 
 ;; this is dangerous to customize, because the defaults will probably
 ;; change in the future.
@@ -697,6 +693,12 @@ file."
   :set (lambda (sym val)
 	 (setq speedbar-supported-extension-expressions val
 	       speedbar-file-regexp (speedbar-extension-list-to-regex val))))
+
+(defvar speedbar-file-regexp
+  (speedbar-extension-list-to-regex speedbar-supported-extension-expressions)
+  "Regular expression matching files we know how to expand.
+Created from `speedbar-supported-extension-expression' with the
+function `speedbar-extension-list-to-regex'")
 
 (defcustom speedbar-scan-subdirs nil
   "*Non-nil means speedbar will check if subdirs are empty.
