@@ -772,6 +772,7 @@ static int invisible_text_between_p P_ ((struct it *, int, int));
 
 static int next_element_from_ellipsis P_ ((struct it *));
 static void pint2str P_ ((char *, int, int));
+static void pint2hrstr P_ ((char *, int, int));
 static struct text_pos run_window_scroll_functions P_ ((Lisp_Object,
 							struct text_pos));
 static void reconsider_clip_changes P_ ((struct window *, struct buffer *));
@@ -15582,6 +15583,117 @@ pint2str (buf, width, d)
     }
 }
 
+/* Write a null-terminated, right justified decimal and "human
+   readable" representation of the nonnegative integer D to BUF using
+   a minimal field width WIDTH.	 D should be smaller than 999.5e24. */
+
+static const char power_letter[] =
+  {
+    0,	 /* not used */
+    'k', /* kilo */
+    'M', /* mega */
+    'G', /* giga */
+    'T', /* tera */
+    'P', /* peta */
+    'E', /* exa */
+    'Z', /* zetta */
+    'Y'	 /* yotta */
+  };
+
+static void
+pint2hrstr (buf, width, d)
+     char *buf;
+     int width;
+     int d;
+{
+  /* We aim to represent the nonnegative integer D as
+     QUOTIENT.TENTHS * 10 ^ (3 * EXPONENT). */
+  int quotient = d;
+  int remainder = 0;
+  /* -1 means: do not use TENTHS. */
+  int tenths = -1;
+  int exponent = 0;
+
+  /* Length of QUOTIENT.TENTHS as a string. */
+  int length;
+
+  char * psuffix;
+  char * p;
+
+  if (1000 <= quotient)
+    {
+      /* Scale to the appropriate EXPONENT. */
+      do
+	{
+	  remainder = quotient % 1000;
+	  quotient /= 1000;
+	  exponent++;
+	}
+      while (1000 <= quotient);
+
+      /* Round to nearest and decide whether to use TENTHS or not. */
+      if (quotient <= 9)
+	{
+	  tenths = remainder / 100;
+	  if (50 <= remainder % 100)
+	    if (tenths < 9)
+	      tenths++;
+	    else
+	      {
+		quotient++;
+		if (quotient == 10)
+		  tenths = -1;
+		else
+		  tenths = 0;
+	      }
+	}
+      else
+	if (500 <= remainder)
+	  if (quotient < 999)
+	    quotient++;
+	  else
+	    {
+	      quotient = 1;
+	      exponent++;
+	      tenths = 0;
+	    }
+    }
+
+  /* Calculate the LENGTH of QUOTIENT.TENTHS as a string. */
+  if (tenths == -1 && quotient <= 99)
+    if (quotient <= 9)
+      length = 1;
+    else
+      length = 2;
+  else
+    length = 3;
+  p = psuffix = buf + max (width, length);
+
+  /* Print EXPONENT. */
+  if (exponent)
+    *psuffix++ = power_letter[exponent];
+  *psuffix = '\0';
+
+  /* Print TENTHS. */
+  if (tenths >= 0)
+    {
+      *--p = '0' + tenths;
+      *--p = '.';
+    }
+
+  /* Print QUOTIENT. */
+  do
+    {
+      int digit = quotient % 10;
+      *--p =  '0' + digit;
+    }
+  while ((quotient /= 10) != 0);
+
+  /* Print leading spaces. */
+  while (buf < p)
+    *--p = ' ';
+}
+
 /* Set a mnemonic character for coding_system (Lisp symbol) in BUF.
    If EOL_FLAG is 1, set also a mnemonic character for end-of-line
    type of CODING_SYSTEM.  Return updated pointer into BUF.  */
@@ -15783,6 +15895,20 @@ decode_mode_spec (w, c, field_width, precision, multibyte)
     case 'f':
       obj = b->filename;
       break;
+
+    case 'i':
+      {
+	int size = ZV - BEGV;
+	pint2str (decode_mode_spec_buf, field_width, size);
+	return decode_mode_spec_buf;
+      }
+
+    case 'I':
+      {
+	int size = ZV - BEGV;
+	pint2hrstr (decode_mode_spec_buf, field_width, size);
+	return decode_mode_spec_buf;
+      }
 
     case 'l':
       {
