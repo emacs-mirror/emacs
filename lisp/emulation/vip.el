@@ -926,9 +926,13 @@ the query replace mode will toggle between string replace and regexp replace."
 			   (if vip-re-replace "regexp replace"
 			     "string replace"))))
       (if vip-re-replace
-	  (replace-regexp
-	   str
-	   (vip-read-string (format "Replace regexp \"%s\" with: " str)))
+	  ;; (replace-regexp
+	  ;;  str
+	  ;;  (vip-read-string (format "Replace regexp \"%s\" with: " str)))
+	  (while (re-search-forward str nil t)
+	    (replace-match (vip-read-string
+			    (format "Replace regexp \"%s\" with: " str))
+			   nil nil))
 	(replace-string
 	 str
 	 (vip-read-string (format "Replace \"%s\" with: " str)))))))
