@@ -2683,8 +2683,7 @@ With argument 0, interchanges line point is in with line mark is in."
 
 (defun backward-word (arg)
   "Move backward until encountering the end of a word.
-With argument, do this that many times.
-In programs, it is faster to call `forward-word' with negative arg."
+With argument, do this that many times."
   (interactive "p")
   (forward-word (- arg)))
 
