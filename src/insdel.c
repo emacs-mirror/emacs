@@ -1004,8 +1004,7 @@ count_combining_after (string, length, pos, pos_byte)
 
    This function does not adjust markers for byte combining.  That
    should be done in advance by the functions
-   adjust_markers_for_insert, adjust_markers_for_delete, or
-   adjust_markers_for_replace.  */
+   adjust_markers_for_insert or adjust_markers_for_replace.  */
 
 static void
 combine_bytes (pos, pos_byte, nbytes)
@@ -1645,8 +1644,14 @@ adjust_after_replace (from, from_byte, prev_text, len, len_byte)
       adjust_point (len - nchars_del, len_byte - nbytes_del);
 
     if (combined_after_bytes)
-      combine_bytes (from + len, from_byte + len_byte, combined_after_bytes);
-
+      {
+	if (combined_before_bytes == len_byte)
+	  /* This is the case that all new bytes are combined.  */
+	  combined_before_bytes += combined_after_bytes;
+	else
+	  combine_bytes (from + len, from_byte + len_byte,
+			 combined_after_bytes);
+      }
     if (combined_before_bytes)
       combine_bytes (from, from_byte, combined_before_bytes);
   }
@@ -1896,8 +1901,14 @@ replace_range (from, to, new, prepare, inherit, markers)
 		   - (PT_BYTE < to_byte ? PT_BYTE : to_byte)));
 
   if (combined_after_bytes)
-    combine_bytes (from + inschars, from_byte + outgoing_insbytes,
-		   combined_after_bytes);
+    {
+      if (combined_before_bytes == outgoing_insbytes)
+	/* This is the case that all new bytes are combined.  */
+	combined_before_bytes += combined_after_bytes;
+      else
+	combine_bytes (from + inschars, from_byte + outgoing_insbytes,
+		       combined_after_bytes);
+    }
   if (combined_before_bytes)
     combine_bytes (from, from_byte, combined_before_bytes);
 
