@@ -50,17 +50,17 @@
 ;;; Code:
 
 (defvar asm-comment-char ?;
-  "*The comment-start character assumed by asm-mode.")
+  "*The comment-start character assumed by Asm mode.")
 
 (defvar asm-mode-syntax-table nil
-  "Syntax table used while in asm mode.")
+  "Syntax table used while in Asm mode.")
 
 (defvar asm-mode-abbrev-table nil
-  "Abbrev table used while in asm mode.")
+  "Abbrev table used while in Asm mode.")
 (define-abbrev-table 'asm-mode-abbrev-table ())
 
 (defvar asm-mode-map nil
-  "Keymap for asm-mode")
+  "Keymap for Asm mode.")
 
 (if asm-mode-map
     nil
@@ -79,7 +79,7 @@
 ;;;###autoload
 (defun asm-mode ()
   "Major mode for editing typical assembler code.
-Features a private asm-mode-abbrev-table and the following bindings:
+Features a private abbrev table and the following bindings:
 
 \\[asm-colon]\toutdent a preceding label, tab to next tab stop.
 \\[tab-to-tab-stop]\ttab to next tab stop.
@@ -87,14 +87,12 @@ Features a private asm-mode-abbrev-table and the following bindings:
 \\[asm-comment]\tsmart placement of assembler comments.
 
 The character used for making comments is set by the variable
-asm-comment-char (which defaults to ?;).  You may want to set this
-appropriately for the assembler on your machine in defaults.el.
+`asm-comment-char' (which defaults to `?;').
 
-Alternatively, you may set this variable in asm-set-comment-hook, which is
+Alternatively, you may set this variable in `asm-set-comment-hook', which is
 called near the beginning of mode initialization.
 
-Turning on asm-mode calls the value of the variable asm-mode-hook,
-if that value is non-nil, at the end of initialization.
+Turning on Asm mode runs the hook `asm-mode-hook' at the end of initialization.
 
 Special commands:\\{asm-mode-map}
 "
