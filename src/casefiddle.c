@@ -47,26 +47,25 @@ casify_object (flag, obj)
     {
       if (INTEGERP (obj))
 	{
-	  tem = Faref (current_buffer->downcase_table, obj);
-	  if (EQ (tem, Qidentity))
-	    tem = obj;
-	  if (inword)
-	    obj = tem;
-	  else if (EQ (tem, obj))
-	    {
-	      tem = Faref (current_buffer->upcase_table, obj);
-	      if (!EQ (tem, Qidentity))
-		obj = tem;
-	    }
+	  c = DOWNCASE (obj);
+	  if (!inword && c == XFASTINT (obj))
+	    c = UPCASE1 (obj);
+	  XSETFASTINT (obj, c);
 	  return obj;
 	}
       if (STRINGP (obj))
 	{
+	  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+
 	  obj = Fcopy_sequence (obj);
 	  len = XSTRING (obj)->size;
 	  for (i = 0; i < len; i++)
 	    {
 	      c = XSTRING (obj)->data[i];
+	      if (multibyte && c >= 0x80)
+		/* A multibyte character can't be handled in this
+                   simple loop.  */
+		break;
 	      if (inword && flag != CASE_CAPITALIZE_UP)
 		c = DOWNCASE (c);
 	      else if (!UPPERCASEP (c)
@@ -75,6 +74,37 @@ casify_object (flag, obj)
 	      XSTRING (obj)->data[i] = c;
 	      if ((int) flag >= (int) CASE_CAPITALIZE)
 		inword = SYNTAX (c) == Sword;
+	    }
+	  if (i < len)
+	    {
+	      /* The work is not yet finished because of a multibyte
+		 character just encountered.  */
+	      int fromlen, tolen, j = i;
+	      char *buf
+		= (char *) alloca ((len - i) * MAX_LENGTH_OF_MULTI_BYTE_FORM
+				   + i);
+	      char *str, workbuf[4];
+
+	      /* Copy data already handled.  */
+	      bcopy (XSTRING (obj)->data, buf, i);
+
+	      while (i < len)
+		{
+		  c = STRING_CHAR_AND_LENGTH (XSTRING (obj)->data + i,
+					      len - i, fromlen);
+		  if (inword && flag != CASE_CAPITALIZE_UP)
+		    c = DOWNCASE (c);
+		  else if (!UPPERCASEP (c)
+			   && (!inword || flag != CASE_CAPITALIZE_UP))
+		    c = UPCASE1 (c);
+		  tolen = CHAR_STRING (c, workbuf, str);
+		  bcopy (str, buf + j, tolen);
+		  i += fromlen;
+		  j += tolen;
+		  if ((int) flag >= (int) CASE_CAPITALIZE)
+		    inword = SYNTAX (c) == Sword;
+		}
+	      obj = make_string (buf, j);
 	    }
 	  return obj;
 	}
@@ -138,6 +168,7 @@ casify_region (flag, b, e)
   register int i;
   register int c;
   register int inword = flag == CASE_DOWN;
+  register int multibyte = !NILP (current_buffer->enable_multibyte_characters);
   int start, end;
   Lisp_Object ch, downch, val;
 
@@ -155,58 +186,47 @@ casify_region (flag, b, e)
   modify_region (current_buffer, start, end);
   record_change (start, end - start);
 
-  if (NILP (current_buffer->enable_multibyte_characters))
+  for (i = start; i < end; i++)
     {
-      for (i = start; i < end; i++)
+      c = FETCH_BYTE (i);
+      if (multibyte && c >= 0x80)
+	/* A multibyte character can't be handled in this simple loop.  */
+	break;
+      if (inword && flag != CASE_CAPITALIZE_UP)
+	c = DOWNCASE (c);
+      else if (!UPPERCASEP (c)
+	       && (!inword || flag != CASE_CAPITALIZE_UP))
+	c = UPCASE1 (c);
+      FETCH_BYTE (i) = c;
+      if ((int) flag >= (int) CASE_CAPITALIZE)
+	inword = SYNTAX (c) == Sword;
+    }
+  if (i < end)
+    {
+      /* The work is not yet finished because of a multibyte character
+	 just encountered.  */
+      int opoint = PT, c2;
+
+      while (i < end)
 	{
-	  c = FETCH_BYTE (i);
+	  if ((c = FETCH_BYTE (i)) >= 0x80)
+	    c = FETCH_MULTIBYTE_CHAR (i);
+	  c2 = c;
 	  if (inword && flag != CASE_CAPITALIZE_UP)
-	    c = DOWNCASE (c);
+	    c2 = DOWNCASE (c);
 	  else if (!UPPERCASEP (c)
 		   && (!inword || flag != CASE_CAPITALIZE_UP))
-	    c = UPCASE1 (c);
-	  FETCH_BYTE (i) = c;
-	  if ((int) flag >= (int) CASE_CAPITALIZE)
-	    inword = SYNTAX (c) == Sword;
-	}
-    }
-  else
-    {
-      Lisp_Object down, up;
-      int opoint = PT;
-
-      down = current_buffer->downcase_table;
-      up = current_buffer->upcase_table;
-      for (i = start; i < end;)
-	{
-	  c = FETCH_MULTIBYTE_CHAR (i);
-	  XSETFASTINT (ch, c);
-	  downch = Faref (down, ch);
-	  if (EQ (downch, Qidentity))
-	    downch = ch;
-	  if (inword && flag != CASE_CAPITALIZE_UP)
-	    val = downch;
-	  else if (EQ (downch, ch)
-		   && (!inword || flag != CASE_CAPITALIZE_UP))
-	    {
-	      val = Faref (up, ch);
-	      if (EQ (val, Qidentity))
-		val = ch;
-	    }
-	  else
-	    val = ch;
-	  if (!EQ (val, ch))
+	    c2 = UPCASE1 (c);
+	  if (c != c2)
 	    {
 	      int fromlen, tolen, j;
 	      char workbuf[4], *str;
 
-	      if (!NATNUMP (val))
-		error ("Inappropriate value found in case table");
 	      /* Handle the most likely case */
-	      if (c < 0400 && XFASTINT (val) < 0400)
-		FETCH_BYTE (i) = XFASTINT (val);
+	      if (c < 0400 && c2 < 0400)
+		FETCH_BYTE (i) = c2;
 	      else if (fromlen = CHAR_STRING (c, workbuf, str),
-		       tolen = CHAR_STRING (XFASTINT (val), workbuf, str),
+		       tolen = CHAR_STRING (c2, workbuf, str),
 		       fromlen == tolen)
 		{
 		  for (j = 0; j < tolen; ++j)
@@ -227,7 +247,7 @@ casify_region (flag, b, e)
 		}
 	    }
 	  if ((int) flag >= (int) CASE_CAPITALIZE)
-	    inword = SYNTAX (XFASTINT (val)) == Sword;
+	    inword = SYNTAX (c2) == Sword;
 	  INC_POS (i);
 	}
       TEMP_SET_PT (opoint);
