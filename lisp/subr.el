@@ -1133,8 +1133,7 @@ that you make with this function."
   (interactive "KSet key globally: \nCSet key %s to command: ")
   (or (vectorp key) (stringp key)
       (signal 'wrong-type-argument (list 'arrayp key)))
-  (define-key (current-global-map) key command)
-  nil)
+  (define-key (current-global-map) key command))
 
 (defun local-set-key (key command)
   "Give KEY a local binding as COMMAND.
@@ -1152,8 +1151,7 @@ which in most cases is shared with all other buffers in the same major mode."
 	(use-local-map (setq map (make-sparse-keymap))))
     (or (vectorp key) (stringp key)
 	(signal 'wrong-type-argument (list 'arrayp key)))
-    (define-key map key command))
-  nil)
+    (define-key map key command)))
 
 (defun global-unset-key (key)
   "Remove global binding of KEY.
