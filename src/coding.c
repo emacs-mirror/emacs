@@ -1551,12 +1551,22 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
     else								  \
       charset_alt = charset;						  \
     if (CHARSET_DIMENSION (charset_alt) == 1)				  \
-      ENCODE_ISO_CHARACTER_DIMENSION1 (charset_alt, c1);		  \
+      {									  \
+	if (charset == CHARSET_ASCII					  \
+	    && coding->flags & CODING_FLAG_ISO_USE_ROMAN)		  \
+	  charset_alt = charset_latin_jisx0201;				  \
+	ENCODE_ISO_CHARACTER_DIMENSION1 (charset_alt, c1);		  \
+      }									  \
     else								  \
-      ENCODE_ISO_CHARACTER_DIMENSION2 (charset_alt, c1, c2);		  \
+      {									  \
+	if (charset == charset_jisx0208					  \
+	    && coding->flags & CODING_FLAG_ISO_USE_OLDJIS)		  \
+	  charset_alt = charset_jisx0208_1978;				  \
+	ENCODE_ISO_CHARACTER_DIMENSION2 (charset_alt, c1, c2);		  \
+      }									  \
     if (! COMPOSING_P (coding->composing))				  \
       coding->consumed_char++;						  \
-  } while (0)
+     } while (0)
 
 /* Produce designation and invocation codes at a place pointed by DST
    to use CHARSET.  The element `spec.iso2022' of *CODING is updated.
@@ -4344,17 +4354,13 @@ highest priority.")
 			       !NILP (highest));
 }
 
-DEFUN ("decode-coding-region", Fdecode_coding_region, Sdecode_coding_region,
-       3, 3, "r\nzCoding system: ",
-  "Decode the current region by specified coding system.\n\
-When called from a program, takes three arguments:\n\
-START, END, and CODING-SYSTEM.  START and END are buffer positions.\n\
-Return length of decoded text.")
-  (start, end, coding_system)
+Lisp_Object
+code_convert_region1 (start, end, coding_system, encodep)
      Lisp_Object start, end, coding_system;
+     int encodep;
 {
   struct coding_system coding;
-  int from, to;
+  int from, to, len;
 
   CHECK_NUMBER_COERCE_MARKER (start, 0);
   CHECK_NUMBER_COERCE_MARKER (end, 1);
@@ -4371,7 +4377,20 @@ Return length of decoded text.")
     error ("Invalid coding system: %s", XSYMBOL (coding_system)->name->data);
 
   coding.mode |= CODING_MODE_LAST_BLOCK;
-  return code_convert_region (from, to, &coding, 0, 1);
+  len = code_convert_region (from, to, &coding, encodep, 1);
+  return make_number (len);
+}
+
+DEFUN ("decode-coding-region", Fdecode_coding_region, Sdecode_coding_region,
+       3, 3, "r\nzCoding system: ",
+  "Decode the current region by specified coding system.\n\
+When called from a program, takes three arguments:\n\
+START, END, and CODING-SYSTEM.  START and END are buffer positions.\n\
+Return length of decoded text.")
+  (start, end, coding_system)
+     Lisp_Object start, end, coding_system;
+{
+  return code_convert_region1 (start, end, coding_system, 0);
 }
 
 DEFUN ("encode-coding-region", Fencode_coding_region, Sencode_coding_region,
@@ -4383,25 +4402,27 @@ Return length of encoded text.")
   (start, end, coding_system)
      Lisp_Object start, end, coding_system;
 {
+  return code_convert_region1 (start, end, coding_system, 1);
+}
+
+Lisp_Object
+code_convert_string1 (string, coding_system, nocopy, encodep)
+     Lisp_Object string, coding_system, nocopy;
+     int encodep;
+{
   struct coding_system coding;
-  int from, to;
 
-  CHECK_NUMBER_COERCE_MARKER (start, 0);
-  CHECK_NUMBER_COERCE_MARKER (end, 1);
-  CHECK_SYMBOL (coding_system, 2);
-
-  validate_region (&start, &end);
-  from = XFASTINT (start);
-  to = XFASTINT (end);
+  CHECK_STRING (string, 0);
+  CHECK_SYMBOL (coding_system, 1);
 
   if (NILP (coding_system))
-    return make_number (to - from);
+    return (NILP (nocopy) ? Fcopy_sequence (string) : string);
 
   if (setup_coding_system (Fcheck_coding_system (coding_system), &coding) < 0)
     error ("Invalid coding system: %s", XSYMBOL (coding_system)->name->data);
 
   coding.mode |= CODING_MODE_LAST_BLOCK;
-  return code_convert_region (from, to, &coding, 1, 1);
+  return code_convert_string (string, &coding, encodep, !NILP (nocopy));
 }
 
 DEFUN ("decode-coding-string", Fdecode_coding_string, Sdecode_coding_string,
@@ -4412,19 +4433,7 @@ if the decoding operation is trivial.")
   (string, coding_system, nocopy)
      Lisp_Object string, coding_system, nocopy;
 {
-  struct coding_system coding;
-
-  CHECK_STRING (string, 0);
-  CHECK_SYMBOL (coding_system, 1);
-
-  if (NILP (coding_system))
-    return (NILP (nocopy) ? Fcopy_sequence (string) : string);
-
-  if (setup_coding_system (Fcheck_coding_system (coding_system), &coding) < 0)
-    error ("Invalid coding system: %s", XSYMBOL (coding_system)->name->data);
-
-  coding.mode |= CODING_MODE_LAST_BLOCK;
-  return code_convert_string (string, &coding, 0, !NILP (nocopy));
+  return code_convert_string1(string, coding_system, nocopy, 0);
 }
 
 DEFUN ("encode-coding-string", Fencode_coding_string, Sencode_coding_string,
@@ -4435,20 +4444,9 @@ if the encoding operation is trivial.")
   (string, coding_system, nocopy)
      Lisp_Object string, coding_system, nocopy;
 {
-  struct coding_system coding;
-
-  CHECK_STRING (string, 0);
-  CHECK_SYMBOL (coding_system, 1);
-
-  if (NILP (coding_system))
-    return (NILP (nocopy) ? Fcopy_sequence (string) : string);
-
-  if (setup_coding_system (Fcheck_coding_system (coding_system), &coding) < 0)
-    error ("Invalid coding system: %s", XSYMBOL (coding_system)->name->data);
-
-  coding.mode |= CODING_MODE_LAST_BLOCK;
-  return code_convert_string (string, &coding, 1, !NILP (nocopy));
+  return code_convert_string1(string, coding_system, nocopy, 1);
 }
+
 
 DEFUN ("decode-sjis-char", Fdecode_sjis_char, Sdecode_sjis_char, 1, 1, 0,
   "Decode a JISX0208 character of shift-jis encoding.\n\
