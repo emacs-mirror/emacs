@@ -1,6 +1,6 @@
 ;;; ethio-util.el --- utilities for Ethiopic
 
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
+;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 
 ;; Keywords: mule, multilingual, Ethiopic
@@ -31,35 +31,66 @@
   "Setup multilingual environment for Ethiopic."
   (interactive)
   (setup-english-environment)
+  (setq default-input-method "ethiopic"))
 
-  (setq default-input-method "ethiopic")
+;;
+;; Ethio minor mode
+;;
 
-  ;;
-  ;;  key bindings
-  ;;
-  (define-key global-map [f4] 'ethio-sera-to-fidel-buffer)
-  (define-key global-map [S-f4] 'ethio-sera-to-fidel-region)
-  (define-key global-map [C-f4] 'ethio-sera-to-fidel-marker)
-  (define-key global-map [f5] 'ethio-fidel-to-sera-buffer)
-  (define-key global-map [S-f5] 'ethio-fidel-to-sera-region)
-  (define-key global-map [C-f5] 'ethio-fidel-to-sera-marker)
-  (define-key global-map [f6] 'ethio-modify-vowel)
-  (define-key global-map [f7] 'ethio-replace-space)
-  (define-key global-map [f8] 'ethio-input-special-character)
-  (define-key global-map [S-f2] 'ethio-replace-space) ; as requested
+(defvar ethio-mode nil "Non-nil if in Ethio minor mode.")
+(make-variable-buffer-local 'ethio-mode)
 
-  (add-hook
-   'rmail-mode-hook
-   '(lambda ()
-      (define-key rmail-mode-map [C-f4] 'ethio-sera-to-fidel-mail)
-      (define-key rmail-mode-map [C-f5] 'ethio-fidel-to-sera-mail)))
+(or (assq 'ethio-mode minor-mode-alist)
+    (setq minor-mode-alist
+	  (cons '(ethio-mode " Ethio") minor-mode-alist)))
 
-  (add-hook
-   'mail-mode-hook
-   '(lambda ()
-      (define-key mail-mode-map [C-f4] 'ethio-sera-to-fidel-mail)
-      (define-key mail-mode-map [C-f5] 'ethio-fidel-to-sera-mail)))
-  )
+(defvar ethio-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map " "     'ethio-insert-space)
+    (define-key map [?\S- ] 'ethio-insert-ethio-space)
+    (define-key map [?\C-'] 'ethio-gemination)
+    (define-key map [f2]    'ethio-toggle-space)
+    (define-key map [S-f2]  'ethio-replace-space) ; as requested
+    (define-key map [f3]    'ethio-toggle-punctuation)
+    (define-key map [f4]    'ethio-sera-to-fidel-buffer)
+    (define-key map [S-f4]  'ethio-sera-to-fidel-region)
+    (define-key map [C-f4]  'ethio-sera-to-fidel-mail-or-marker)
+    (define-key map [f5]    'ethio-fidel-to-sera-buffer)
+    (define-key map [S-f5]  'ethio-fidel-to-sera-region)
+    (define-key map [C-f5]  'ethio-fidel-to-sera-mail-or-marker)
+    (define-key map [f6]    'ethio-modify-vowel)
+    (define-key map [f7]    'ethio-replace-space)
+    (define-key map [f8]    'ethio-input-special-character)
+    map)
+  "Keymap for Ethio minor mode.")
+
+(or (assq 'ethio-mode minor-mode-map-alist)
+    (setq minor-mode-map-alist
+	  (cons (cons 'ethio-mode ethio-mode-map) minor-mode-map-alist)))
+
+;;;###autoload
+(defun ethio-mode (&optional arg)
+  "Toggle Ethio minor mode.
+With arg, turn Ethio mode on if and only if arg is positive.
+
+Also, Ethio minor mode is automatically turned on
+when you activate the Ethiopic quail package.
+
+The keys that are defined in ethio-mode are:
+\\{ethio-mode-map}"
+
+  (interactive)
+  (setq ethio-mode
+	(if (null arg) (not ethio-mode)
+	  (> (prefix-numeric-value arg) 0)))
+  (if ethio-mode
+      (progn
+	(add-hook 'find-file-hooks 'ethio-find-file)
+	(add-hook 'write-file-hooks 'ethio-write-file)
+	(add-hook 'after-save-hook 'ethio-find-file))
+    (remove-hook 'find-file-hooks 'ethio-find-file)
+    (remove-hook 'write-file-hooks 'ethio-write-file)
+    (remove-hook 'after-save-hook 'ethio-find-file)))
 
 ;;
 ;; ETHIOPIC UTILITY FUNCTIONS
@@ -776,6 +807,17 @@ Delete the escape even it is not recognised."
       (insert-char ?$(3%%(B (/ z 4)))))
 
 ;;;###autoload
+(defun ethio-sera-to-fidel-mail-or-marker (&optional arg)
+  "Execute ethio-sera-to-fidel-mail or ethio-sera-to-fidel-marker depending on the current major mode.
+If in rmail-mode or in mail-mode, execute the former; otherwise latter."
+
+  (interactive "P")
+  (if (or (eq major-mode 'rmail-mode)
+	  (eq major-mode 'mail-mode))
+      (ethio-sera-to-fidel-mail (prefix-numeric-value arg))
+    (ethio-sera-to-fidel-marker arg)))
+
+;;;###autoload
 (defun ethio-sera-to-fidel-mail (&optional arg)
   "Convert SERA to FIDEL to read/write mail and news.
 
@@ -1155,6 +1197,17 @@ See also the descriptions of the variables
 
       ;;                     `q  `k   X  `g  mW  bW  GW  fW  pW  wW
       (memq ethiocode '(389 405 421 437 440 441 442 443 444 457))))
+
+;;;###autoload
+(defun ethio-fidel-to-sera-mail-or-marker (&optional arg)
+  "Execute ethio-fidel-to-sera-mail or ethio-fidel-to-sera-marker depending on the current major mode.
+If in rmail-mode or in mail-mode, execute the former; otherwise latter."
+
+  (interactive "P")
+  (if (or (eq major-mode 'rmail-mode)
+	  (eq major-mode 'mail-mode))
+      (ethio-fidel-to-sera-mail)
+    (ethio-fidel-to-sera-marker arg)))
 
 ;;;###autoload
 (defun ethio-fidel-to-sera-mail nil
@@ -1781,6 +1834,9 @@ Otherwise, [0-9A-F]."
   "Transcribe file content into Ethiopic dependig on filename suffix."
   (cond
 
+   ((null ethio-mode)
+    nil)
+
    ((string-match "\\.sera$" (buffer-file-name))
     (save-excursion
       (ethio-sera-to-fidel-buffer nil 'force)
@@ -1814,6 +1870,9 @@ Otherwise, [0-9A-F]."
 (defun ethio-write-file nil
   "Transcribe Ethiopic characters in ASCII depending on the file extension."
   (cond
+
+   ((null ethio-mode)
+    nil)
 
    ((string-match "\\.sera$" (buffer-file-name))
     (save-excursion
@@ -1857,9 +1916,98 @@ Otherwise, [0-9A-F]."
   (insert (if ethio-use-colon-for-colon "\\~-: " "\\~`: ")
 	  (if ethio-use-three-dot-question "\\~`| " "\\~`? ")))
 
-(add-hook 'find-file-hooks 'ethio-find-file)
-(add-hook 'write-file-hooks 'ethio-write-file)
-(add-hook 'after-save-hook 'ethio-find-file)
+;;
+;; Ethiopic word separator vs. ASCII space
+;;
+
+(defvar ethio-prefer-ascii-space t)
+(make-variable-buffer-local 'ethio-prefer-ascii-space)
+
+(defun ethio-toggle-space nil
+  "Toggle ASCII space and Ethiopic separator for keyboard input."
+  (interactive)
+  (setq ethio-prefer-ascii-space
+	(not ethio-prefer-ascii-space))
+  (force-mode-line-update))
+
+(defun ethio-insert-space (arg)
+  "Insert ASCII spaces or Ethiopic word separators depending on context.
+
+If the current word separator (indicated in mode-line) is the ASCII space,
+insert an ASCII space.  With ARG, insert that many ASCII spaces.
+
+If the current word separator is the colon-like Ethiopic word
+separator and the point is preceded by `an Ethiopic punctuation mark
+followed by zero or more ASCII spaces', then insert also an ASCII
+space.  With ARG, insert that many ASCII spaces.
+
+Otherwise, insert a colon-like Ethiopic word separator.  With ARG, insert that
+many Ethiopic word separators."
+
+  (interactive "*p")
+  (cond
+   (ethio-prefer-ascii-space
+    (insert-char 32 arg))
+   ((save-excursion
+      (skip-chars-backward " ")
+      (memq (preceding-char)
+	    '(?$(3$h(B ?$(3$i(B ?$(3$j(B ?$(3$k(B ?$(3$l(B ?$(3$m(B ?$(3$n(B ?$(3$o(B ?$(3%t(B ?$(3%u(B ?$(3%v(B ?$(3%w(B ?$(3%x(B)))
+    (insert-char 32 arg))
+   (t
+    (insert-char ?$(3$h(B arg))))
+
+(defun ethio-insert-ethio-space (arg)
+  "Insert the Ethiopic word delimiter (the colon-like character).
+With ARG, insert that many delimiters."
+  (interactive "*p")
+  (insert-char ?$(3$h(B arg))
+
+;;
+;; Ethiopic punctuation vs. ASCII punctuation
+;;
+
+(defvar ethio-prefer-ascii-punctuation nil)
+(make-variable-buffer-local 'ethio-prefer-ascii-punctuation)
+
+(defun ethio-toggle-punctuation nil
+  "Toggle Ethiopic punctuations and ASCII punctuations for keyboard input."
+  (interactive)
+  (setq ethio-prefer-ascii-punctuation
+	(not ethio-prefer-ascii-punctuation))
+  (let* ((keys '("." ".." "..." "," ",," ";" ";;" ":" "::" ":::" "*" "**"))
+	 (puncs
+	  (if ethio-prefer-ascii-punctuation
+	      '(?. [".."] ["..."] ?, [",,"] ?\; [";;"] ?: ["::"] [":::"] ?* ["**"])
+	    '(?$(3$i(B ?$(3%u(B ?. ?$(3$j(B ?, ?$(3$k(B ?\; ?$(3$h(B ?$(3$i(B ?: ?* ?$(3$o(B))))
+    (while keys
+      (quail-defrule (car keys) (car puncs) "ethiopic")
+      (setq keys (cdr keys)
+	    puncs (cdr puncs)))
+    (force-mode-line-update)))
+
+;;
+;; Gemination
+;;
+
+(defun ethio-gemination nil
+  "Compose the character before the point with the Ethiopic gemination mark.
+If the characater is already composed, decompose it and remove the gemination
+mark."
+  (interactive "*")
+  (cond
+   ((eq (char-charset (preceding-char)) 'ethiopic)
+    (insert "$(3%s(B")
+    (compose-region
+     (save-excursion (backward-char 2) (point))
+     (point))
+    (forward-char 1))
+   ((eq (char-charset (preceding-char)) 'leading-code-composition)
+    (decompose-region
+     (save-excursion (backward-char 1) (point))
+     (point))
+    (delete-backward-char 1))
+   (t
+    (error ""))))
 
 ;;
 (provide 'ethio-util)
