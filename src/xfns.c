@@ -217,6 +217,7 @@ extern Lisp_Object Qdisplay;
 Lisp_Object Qscroll_bar_foreground, Qscroll_bar_background;
 Lisp_Object Qscreen_gamma, Qline_spacing, Qcenter;
 Lisp_Object Qcompound_text, Qcancel_timer;
+Lisp_Object Qdouble_buffer;
 
 /* The below are defined in frame.c.  */
 
@@ -732,6 +733,7 @@ static void x_create_im P_ ((struct frame *));
 void x_set_foreground_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
 static void x_set_line_spacing P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_background_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
+static void x_set_double_buffer P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_mouse_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_cursor_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_border_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
@@ -799,7 +801,8 @@ static struct x_frame_parm_table x_frame_parms[] =
   "scroll-bar-foreground",	x_set_scroll_bar_foreground,
   "scroll-bar-background",	x_set_scroll_bar_background,
   "screen-gamma",		x_set_screen_gamma,
-  "line-spacing",		x_set_line_spacing
+  "line-spacing",		x_set_line_spacing,
+  "double-buffer",		x_set_double_buffer
 };
 
 /* Attach the `x-frame-parameter' properties to
@@ -1309,6 +1312,20 @@ x_set_line_spacing (f, new_value, old_value)
 			    Fcons (new_value, Qnil)));
   if (FRAME_VISIBLE_P (f))
     redraw_frame (f);
+}
+
+
+/* Change the `double-buffer' frame parameter of frame F.  OLD_VALUE is
+   the previous value of that parameter, NEW_VALUE is the new value.  */
+
+static void
+x_set_double_buffer (f, new_value, old_value)
+     struct frame *f;
+     Lisp_Object new_value, old_value;
+{
+#ifdef HAVE_DBE
+  dbe_make_frame_buffered (f, !NILP (new_value));
+#endif
 }
 
 
@@ -4380,9 +4397,8 @@ This function is an internal primitive--use `make-frame' instead.")
   x_window (f);
 #endif
 
-#ifdef HAVE_DBE
-  dbe_make_frame_buffered (f);
-#endif
+  x_default_parameter (f, parms, Qdouble_buffer, Qnil,
+		       "doubleBuffer", "DoubleBuffer", RES_TYPE_BOOLEAN);
   
   x_icon (f, parms);
   x_make_gc (f);
@@ -11419,7 +11435,8 @@ syms_of_xfns ()
   staticpro (&Qcompound_text);
   Qcancel_timer = intern ("cancel-timer");
   staticpro (&Qcancel_timer);
-  /* This is the end of symbol initialization.  */
+  Qdouble_buffer = intern ("double-buffer");
+  staticpro (&Qdouble_buffer);
 
   /* Text property `display' should be nonsticky by default.  */
   Vtext_property_default_nonsticky
@@ -11761,23 +11778,38 @@ init_dbe (dpy)
 }
 
 
-/* Make frame F double buffered, if possible.  Note that the back
-   buffer is destroyed automatically when the frame's X window is
-   destroyed.  */
+/* Make frame F double buffered or remove double-buffering if ON is
+   zero.  Note that the back buffer is destroyed automatically when
+   the frame's X window is destroyed.  */
 
 void
-dbe_make_frame_buffered (f)
+dbe_make_frame_buffered (f, on)
      struct frame *f;
+     int on;
 {
   if (FRAME_X_DISPLAY_INFO (f)->dbe)
     {
-      BLOCK_INPUT;
-      f->output_data.x->back_buffer
-	= XdbeAllocateBackBufferName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-				      XdbeCopied);
-      if (f->output_data.x->back_buffer == XdbeBadBuffer)
-	abort ();
-      UNBLOCK_INPUT;
+      struct x_output *x = f->output_data.x;
+      
+      if (on && x->back_buffer == XdbeBadBuffer)
+	{
+	  BLOCK_INPUT;
+	  f->output_data.x->back_buffer
+	    = XdbeAllocateBackBufferName (FRAME_X_DISPLAY (f),
+					  FRAME_X_WINDOW (f),
+					  XdbeCopied);
+	  if (x->back_buffer == XdbeBadBuffer)
+	    abort ();
+	  UNBLOCK_INPUT;
+	}
+      else if (!on && x->back_buffer != XdbeBadBuffer)
+	{
+	  BLOCK_INPUT;
+	  XdbeDeallocateBackBufferName (FRAME_X_DISPLAY (f),
+					x->back_buffer);
+	  x->back_buffer = XdbeBadBuffer;
+	  UNBLOCK_INPUT;
+	}
     }
 }
 
@@ -11817,9 +11849,10 @@ void
 dbe_show (f)
      struct frame *f;
 {
-  if (f->output_data.x->back_buffer != XdbeBadBuffer)
+  struct x_output *x = f->output_data.x;
+
+  if (x->back_buffer != XdbeBadBuffer)
     {
-      struct x_output *x = f->output_data.x;
       if (x->dbe_min_y != INFINITY
 	  && x->dbe_max_y - x->dbe_min_y > 0)
 	{
