@@ -168,6 +168,38 @@ mouse_off ()
 }
 
 static void
+mouse_setup_buttons (int n_buttons)
+{
+  if (n_buttons == 3)
+    {
+      mouse_button_count = 3;
+      mouse_button_translate[0] = 0; /* Left */
+      mouse_button_translate[1] = 2; /* Middle */
+      mouse_button_translate[2] = 1; /* Right */
+    }
+  else	/* two, what else? */
+    {
+      mouse_button_count = 2;
+      mouse_button_translate[0] = 0;
+      mouse_button_translate[1] = 1;
+    }
+}
+
+DEFUN ("msdos-set-mouse-buttons", Fmsdos_set_mouse_buttons, Smsdos_set_mouse_buttons,
+       1, 1, "NSet number of mouse buttons to: ",
+  "Set the number of mouse buttons to use by Emacs.\n
+This is useful with mice that report the number of buttons inconsistently,\n
+e.g., if the number of buttons is reported as 3, but Emacs only sees 2 of\n
+them.  This happens with wheeled mice on Windows 9X, for example.")
+  (nbuttons)
+     Lisp_Object nbuttons;
+{
+  CHECK_NUMBER (nbuttons, 0);
+  mouse_setup_buttons (XINT (nbuttons));
+  return Qnil;
+}
+
+static void
 mouse_get_xy (int *x, int *y)
 {
   union REGS regs;
@@ -4517,20 +4549,7 @@ dos_ttraw ()
 	    {
 	      have_mouse = 1;	/* enable mouse */
 	      mouse_visible = 0;
-	      
-	      if (outregs.x.bx == 3)
-		{
-		  mouse_button_count = 3;
-		  mouse_button_translate[0] = 0; /* Left */
-		  mouse_button_translate[1] = 2; /* Middle */
-		  mouse_button_translate[2] = 1; /* Right */
-		}
-	      else
-		{
-		  mouse_button_count = 2;
-		  mouse_button_translate[0] = 0;
-		  mouse_button_translate[1] = 1;
-		}
+	      mouse_setup_buttons (outregs.x.bx);
 	      mouse_position_hook = &mouse_get_pos;
 	      mouse_init ();
 	    }
@@ -5224,6 +5243,7 @@ nil means don't delete them until `list-processes' is run.");
   defsubr (&Smsdos_long_file_names);
   defsubr (&Smsdos_downcase_filename);
   defsubr (&Smsdos_remember_default_colors);
+  defsubr (&Smsdos_set_mouse_buttons);
 }
 
 #endif /* MSDOS */
