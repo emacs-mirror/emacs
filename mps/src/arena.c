@@ -1,7 +1,7 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.30) $
- * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
+ * $HopeName: MMsrc!arena.c(trunk.31) $
+ * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
  *
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.30) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.31) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -1079,8 +1079,8 @@ Bool SegPrefCheck(SegPref pref)
 
 static SegPrefStruct segPrefDefault = {
   SegPrefSig,                           /* sig */
-  FALSE,                                /* high */
-  RefSetUNIV,                           /* refSet */
+  ARENA_DEFAULT_SEG_HIGH,               /* high */
+  ARENA_DEFAULT_REFSET                  /* refSet */
   FALSE,                                /* isCollected */
   FALSE,                                /* isGen */
   (Serial)0,                            /* gen */
