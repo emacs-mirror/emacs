@@ -44,7 +44,7 @@
   '(
     ("[:/].*config.sys$" . nil)		; config.sys text
     ("\\.elc$" . t)			; emacs stuff
-    ("\\.\\(obj\\|exe\\|com\\|lib\\|sym\\|sys\\|chk\\|out\\|bin\\|ico\\|pif\\|dos\\|class\\)$" . t)
+    ("\\.\\(obj\\|exe\\|com\\|lib\\|sym\\|sys\\|chk\\|out\\|bin\\|ico\\|pif\\|class\\)$" . t)
 					; MS-Dos stuff
     ("\\.\\(dll\\|drv\\|cpl\\|scr\\vbx\\|386\\|vxd\\|fon\\|fnt\\|fot\\|ttf\\|grp\\)$" . t)
 					; Windows stuff
