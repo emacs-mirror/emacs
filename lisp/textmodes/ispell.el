@@ -868,7 +868,7 @@ You can set this variable in hooks in your init file -- eg:
       (buffer-substring start end)))
 
 ;;;###autoload
-(define-key global-map "\M-$" 'ispell-word)
+(define-key esc-map "$" 'ispell-word)
 
 ;;;###autoload
 (defun ispell-word (&optional following quietly continue)
