@@ -214,3 +214,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Let's try this out, just in case.
    Nah.  Rik Faith <faith@cs.unc.edu> says it doesn't work well.  */
 /* #define SIGNALS_VIA_CHARACTERS */
+
+/* Rob Malouf <malouf@csli.stanford.edu> says:
+   SYSV IPC is standard a standard part of Linux since version 0.99pl10,
+   and is a very common addition to previous versions.  */
+#define LIBS_MACHINE -lipc
+#define HAVE_SYSVIPC
