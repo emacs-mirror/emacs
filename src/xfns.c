@@ -590,6 +590,9 @@ x_create_bitmap_from_file (f, file)
   fd = openp (Vx_bitmap_file_path, file, "", &found, 0);
   if (fd < 0)
     return -1;
+  /* XReadBitmapFile won't handle magic file names.  */
+  if (fd == 0)
+    return -1;
   close (fd);
 
   filename = (char *) XSTRING (found)->data;
