@@ -732,6 +732,10 @@ If DIR is positive skip forward; if negative, skip backward."
       nil)))
 
 ;; Momentarily show where the mark is, if highlighting doesn't show it. 
+
+(defvar mouse-region-delete-keys '([delete])
+  "List of keys which shall cause the mouse region to be deleted.")
+
 (defun mouse-show-mark ()
   (if transient-mark-mode
       (if window-system
@@ -739,15 +743,22 @@ If DIR is positive skip forward; if negative, skip backward."
     (if window-system
 	(let ((inhibit-quit t)
 	      (echo-keystrokes 0)
-	      event events)
+	      event events key)
 	  (move-overlay mouse-drag-overlay (point) (mark t))
 	  (while (progn (setq event (read-event))
 			(setq events (append events (list event)))
+			(setq key (apply 'vector events))
 			(and (memq 'down (event-modifiers event))
-			     (not (key-binding (apply 'vector events)))
+			     (not (key-binding key))
+			     (not (member key mouse-region-delete-keys))
 			     (not (mouse-undouble-last-event events)))))
-	  (setq unread-command-events
-		(nconc events unread-command-events))
+	  ;; For certain special keys, delete the region.
+	  (if (member key mouse-region-delete-keys)
+	      (delete-region (overlay-start mouse-drag-overlay)
+			     (overlay-end mouse-drag-overlay))
+	    ;; Otherwise, unread the key so it gets executed normally.
+	    (setq unread-command-events
+		  (nconc events unread-command-events)))
 	  (setq quit-flag nil)
 	  (delete-overlay mouse-drag-overlay))
       (save-excursion
