@@ -58,6 +58,13 @@
 
 	* progmodes/idlwave.el (idlwave-show-begin): Likewise.
 
+2003-02-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* international/mule-cmds.el (sort-coding-systems): Use \'.
+	(select-safe-coding-system): Remove redundant assq check.
+	Remove raw-text, emacs-mule and no-conversion from the list of
+	proposed encodings unless there's nothing else.
+
 2003-02-13  Markus Rost  <rost@math.ohio-state.edu>
 
 	* files.el (find-alternate-file): Undo last change.
