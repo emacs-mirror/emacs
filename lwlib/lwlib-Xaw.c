@@ -73,7 +73,7 @@ xaw_update_scrollbar (instance, widget, val)
 		     XtNy, &pos_y,
 		     XtNtopOfThumb, &widget_topOfThumb,
 		     XtNshown, &widget_shown,
-		     0);
+		     NULL);
 
       /*
        * First size and position the scrollbar widget.
@@ -88,7 +88,7 @@ xaw_update_scrollbar (instance, widget, val)
 	  XtVaSetValues (widget,
 			 XtNlength, data->scrollbar_height,
 			 XtNthickness, width,
-			 0);
+			 NULL);
 	}
 
       /*
@@ -141,7 +141,7 @@ xaw_update_one_widget (instance, widget, val, deep_p)
       Dimension bw = 0;
       Arg al[3];
 
-      XtVaGetValues (widget, XtNborderWidth, &bw, 0);
+      XtVaGetValues (widget, XtNborderWidth, &bw, NULL);
       if (bw == 0)
 	/* Don't let buttons end up with 0 borderwidth, that's ugly...
 	   Yeah, all this should really be done through app-defaults files
@@ -476,7 +476,7 @@ xaw_generic_callback (widget, closure, call_data)
 
 #if 0
   user_data = NULL;
-  XtVaGetValues (widget, XtNuserData, &user_data, 0);
+  XtVaGetValues (widget, XtNuserData, &user_data, NULL);
 #else
   /* Damn!  Athena doesn't give us a way to hang our own data on the
      buttons, so we have to go find it...  I guess this assumes that
@@ -512,8 +512,8 @@ wm_delete_window (shell, closure, call_data)
   Widget widget;
   if (! XtIsSubclass (shell, shellWidgetClass))
     abort ();
-  XtVaGetValues (shell, XtNnumChildren, &nkids, 0);
-  XtVaGetValues (shell, XtNchildren, &kids, 0);
+  XtVaGetValues (shell, XtNnumChildren, &nkids, NULL);
+  XtVaGetValues (shell, XtNchildren, &kids, NULL);
   if (!kids || !*kids)
     abort ();
   for (i = 0; i < nkids; i++)
@@ -607,7 +607,7 @@ xaw_create_scrollbar (instance)
   Dimension width;
   Widget scrollbar;
 
-  XtVaGetValues (instance->parent, XtNwidth, &width, 0);
+  XtVaGetValues (instance->parent, XtNwidth, &width, NULL);
   
   XtSetArg (av[ac], XtNshowGrip, 0); ac++;
   XtSetArg (av[ac], XtNresizeToPreferred, 1); ac++;
@@ -622,7 +622,7 @@ xaw_create_scrollbar (instance)
 
   /* We have to force the border width to be 0 otherwise the
      geometry manager likes to start looping for awhile... */
-  XtVaSetValues (scrollbar, XtNborderWidth, 0, 0);
+  XtVaSetValues (scrollbar, XtNborderWidth, 0, NULL);
 
   XtRemoveAllCallbacks (scrollbar, "jumpProc");
   XtRemoveAllCallbacks (scrollbar, "scrollProc");

@@ -1383,11 +1383,11 @@ show_one_widget_busy (w, flag)
   XtVaGetValues (widget_to_invert,
 		 XtNforeground, &foreground,
 		 XtNbackground, &background,
-		 0);
+		 NULL);
   XtVaSetValues (widget_to_invert,
 		 XtNforeground, background,
 		 XtNbackground, foreground,
-		 0);
+		 NULL);
 }
 
 void

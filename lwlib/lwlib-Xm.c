@@ -388,7 +388,7 @@ xm_update_pushbutton (instance, widget, val)
      Widget widget;
      widget_value* val;
 {
-  XtVaSetValues (widget, XmNalignment, XmALIGNMENT_CENTER, 0);
+  XtVaSetValues (widget, XmNalignment, XmALIGNMENT_CENTER, NULL);
   XtRemoveAllCallbacks (widget, XmNactivateCallback);
   XtAddCallback (widget, XmNactivateCallback, xm_generic_callback, instance);
 }
@@ -416,7 +416,7 @@ xm_update_toggle (instance, widget, val)
   XtAddCallback (widget, XmNvalueChangedCallback,
 		 xm_generic_callback, instance);
   XtVaSetValues (widget, XmNset, val->selected,
-		 XmNalignment, XmALIGNMENT_BEGINNING, 0);
+		 XmNalignment, XmALIGNMENT_BEGINNING, NULL);
 }
 
 static void
@@ -444,11 +444,11 @@ xm_update_radiobox (instance, widget, val)
       toggle = XtNameToWidget (widget, cur->value);
       if (toggle)
 	{
-	  XtVaSetValues (toggle, XmNsensitive, cur->enabled, 0);
+	  XtVaSetValues (toggle, XmNsensitive, cur->enabled, NULL);
 	  if (!val->value && cur->selected)
-	    XtVaSetValues (toggle, XmNset, cur->selected, 0);
+	    XtVaSetValues (toggle, XmNset, cur->selected, NULL);
 	  if (val->value && strcmp (val->value, cur->value))
-	    XtVaSetValues (toggle, XmNset, False, 0);
+	    XtVaSetValues (toggle, XmNset, False, NULL);
 	}
     }
 
@@ -457,7 +457,7 @@ xm_update_radiobox (instance, widget, val)
     {
       toggle = XtNameToWidget (widget, val->value);
       if (toggle)
-	XtVaSetValues (toggle, XmNset, True, 0);
+	XtVaSetValues (toggle, XmNset, True, NULL);
     }
 }
 
@@ -619,13 +619,13 @@ make_menu_in_widget (instance, widget, val, keep_first_children)
      XmNmenuHelpWidget work, we need to set it before managing the
      children.. --gerd.  */
   if (button)
-    XtVaSetValues (widget, XmNmenuHelpWidget, button, 0);
+    XtVaSetValues (widget, XmNmenuHelpWidget, button, NULL);
 
   /* LessTif apparently doesn't recompute centered text when more
      widgets are added.  So, do it after all widgets have been
      created.  */
   if (title)
-    XtVaSetValues (title, XmNalignment, XmALIGNMENT_CENTER, 0);
+    XtVaSetValues (title, XmNalignment, XmALIGNMENT_CENTER, NULL);
 
   if (num_children)
     XtManageChildren (children, num_children);
@@ -655,7 +655,7 @@ update_one_menu_entry (instance, widget, val, deep_p)
   XtVaSetValues (widget,
 		 XmNsensitive, val->enabled,
 		 XmNuserData, val->call_data,
-		 0);
+		 NULL);
 
   /* update the menu button as a label. */
   if (val->this_one_change >= VISIBLE_CHANGE)
@@ -858,7 +858,7 @@ xm_update_one_widget (instance, widget, val, deep_p)
   XtVaSetValues (widget,
 		 XmNsensitive, val->enabled,
 		 XmNuserData, val->call_data,
-		 0);
+		 NULL);
   
   /* Common to all label like widgets */
   if (XtIsSubclass (widget, xmLabelWidgetClass))
@@ -928,7 +928,7 @@ xm_update_one_value (instance, widget, val)
   
   if (class == xmToggleButtonWidgetClass || class == xmToggleButtonGadgetClass)
     {
-      XtVaGetValues (widget, XmNset, &val->selected, 0);
+      XtVaGetValues (widget, XmNset, &val->selected, NULL);
       val->edited = True;
     }
   else if (class == xmTextWidgetClass)
@@ -963,7 +963,7 @@ xm_update_one_value (instance, widget, val)
 	      int set = False;
 	      Widget toggle = radio->composite.children [i];
 	      
-	      XtVaGetValues (toggle, XmNset, &set, 0);
+	      XtVaGetValues (toggle, XmNset, &set, NULL);
 	      if (set)
 		{
 		  if (val->value)
@@ -1343,9 +1343,9 @@ recenter_widget (widget)
   Position x;
   Position y;
 
-  XtVaGetValues (widget, XtNwidth, &child_width, XtNheight, &child_height, 0);
+  XtVaGetValues (widget, XtNwidth, &child_width, XtNheight, &child_height, NULL);
   XtVaGetValues (parent, XtNwidth, &parent_width, XtNheight, &parent_height,
-		 0);
+		 NULL);
 
   x = (((Position)parent_width) - ((Position)child_width)) / 2;
   y = (((Position)parent_height) - ((Position)child_height)) / 2;
@@ -1362,7 +1362,7 @@ recenter_widget (widget)
   if (y < 0)
     y = 0;
 
-  XtVaSetValues (widget, XtNx, x, XtNy, y, 0);
+  XtVaSetValues (widget, XtNx, x, XtNy, y, NULL);
 }
 
 static Widget
@@ -1393,7 +1393,7 @@ recycle_instance (instance)
       /* shrink the separator label back to their original size */
       separator = XtNameToWidget (widget, "*separator_button");
       if (separator)
-	XtVaSetValues (separator, XtNwidth, 5, XtNheight, 5, 0);
+	XtVaSetValues (separator, XtNwidth, 5, XtNheight, 5, NULL);
 
       /* Center the dialog in its parent */
       recenter_widget (widget);
@@ -1739,7 +1739,7 @@ xm_popup_menu (widget, event)
       else if (event->xbutton.state & Button3Mask) trans = "<Btn3Down>";
       else if (event->xbutton.state & Button2Mask) trans = "<Btn2Down>";
       else if (event->xbutton.state & Button1Mask) trans = "<Btn1Down>";
-      if (trans) XtVaSetValues (widget, XmNmenuPost, trans, 0);
+      if (trans) XtVaSetValues (widget, XmNmenuPost, trans, NULL);
       XmMenuPosition (widget, (XButtonPressedEvent *) event);
     }
   XtManageChild (widget);
@@ -1751,8 +1751,8 @@ set_min_dialog_size (w)
 {
   short width;
   short height;
-  XtVaGetValues (w, XmNwidth, &width, XmNheight, &height, 0);
-  XtVaSetValues (w, XmNminWidth, width, XmNminHeight, height, 0);
+  XtVaGetValues (w, XmNwidth, &width, XmNheight, &height, NULL);
+  XtVaSetValues (w, XmNminWidth, width, XmNminHeight, height, NULL);
 }
 
 void
