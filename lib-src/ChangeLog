@@ -1,3 +1,8 @@
+2002-05-17  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* pop.c (socket_connection): Move the code to resolve the POP
+	host right before trying to connect with it.
+
 2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Version 21.2 released.
