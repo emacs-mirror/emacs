@@ -62,23 +62,15 @@
 
 ;;; Face attributes.
 
-;; Below, nil is used in widget specifications for `unspecified' face
-;; attributes and `off' is used instead of nil attribute values.  The
-;; reason for this is that nil corresponds to the result you get when
-;; looking up an attribute in a defface spec that isn't contained in
-;; the spec.
-
 (defconst custom-face-attributes
   '((:family
-     (choice :tag "Font family"
-	     :help-echo "Font family or fontset alias name."
-	     (const :tag "*" nil)
-	     (string :tag "Family")))
+     (string :tag "Font Family"
+	     :help-echo "Font family or fontset alias name."))
     
     (:width
      (choice :tag "Width"
 	     :help-echo "Font width."
-	     (const :tag "*" nil)
+	     :value normal		; default
 	     (const :tag "compressed" condensed)
 	     (const :tag "condensed" condensed)
 	     (const :tag "demiexpanded" semi-expanded)
@@ -98,14 +90,14 @@
     (:height
      (choice :tag "Height"
 	     :help-echo "Face's font height."
-	     (const :tag "*" nil)
+	     :value 1.0			; default
 	     (integer :tag "Height in 1/10 pt")
 	     (number :tag "Scale" 1.0)))
 
     (:weight
      (choice :tag "Weight"
 	     :help-echo "Font weight."
-	     (const :tag "*" nil)
+	     :value normal		; default
 	     (const :tag "black" ultra_bold)
 	     (const :tag "bold" bold)
 	     (const :tag "book" semi-light)
@@ -125,7 +117,7 @@
     (:slant
      (choice :tag "Slant"
 	     :help-echo "Font slant."
-	     (const :tag "*" nil)
+	     :value normal		; default
 	     (const :tag "italic" italic)
 	     (const :tag "oblique" oblique)
 	     (const :tag "normal" normal)))
@@ -133,33 +125,29 @@
     (:underline
      (choice :tag "Underline"
 	     :help-echo "Control text underlining."
-	     (const :tag "*" nil)
+	     (const :tag "Off" nil)
 	     (const :tag "On" t)
-	     (const :tag "Off" off)
 	     (color :tag "Colored")))
     
     (:overline
      (choice :tag "Overline"
 	     :help-echo "Control text overlining."
-	     (const :tag "*" nil)
+	     (const :tag "Off" nil)
 	     (const :tag "On" t)
-	     (const :tag "Off" off)
 	     (color :tag "Colored")))
     
     (:strike-through
      (choice :tag "Strike-through"
 	     :help-echo "Control text strike-through."
-	     (const :tag "*" nil)
+	     (const :tag "Off" nil)
 	     (const :tag "On" t)
-	     (const :tag "Off" off)
 	     (color :tag "Colored")))
     
     (:box
      ;; Fixme: this can probably be done better.
      (choice :tag "Box around text"
 	     :help-echo "Control box around text."
-	     (const :tag "*" nil)
-	     (const :tag "Off" off)
+	     (const :tag "Off" nil)
 	     (list :tag "Box"
 		   :value (:line-width 2 :color "grey75" :style released-button)
 		   (const :format "" :value :line-width)
@@ -173,64 +161,54 @@
 			   (const :tag "None" nil))))
      ;; filter to make value suitable for customize
      (lambda (real-value)
-       (if (null real-value)
-	   'off
-	 (let ((lwidth
-		(or (and (consp real-value) (plist-get real-value :line-width))
-		    (and (integerp real-value) real-value)
-		    1))
-	       (color
-		(or (and (consp real-value) (plist-get real-value :color))
-		    (and (stringp real-value) real-value)
-		    nil))
-	       (style
-		(and (consp real-value) (plist-get real-value :style))))
-	   (list :line-width lwidth :color color :style style))))
+       (and real-value
+	    (let ((lwidth
+		   (or (and (consp real-value)
+			    (plist-get real-value :line-width))
+		       (and (integerp real-value) real-value)
+		       1))
+		  (color
+		   (or (and (consp real-value) (plist-get real-value :color))
+		       (and (stringp real-value) real-value)
+		       nil))
+		  (style
+		   (and (consp real-value) (plist-get real-value :style))))
+	      (list :line-width lwidth :color color :style style))))
      ;; filter to make customized-value suitable for storing
      (lambda (cus-value)
-       (cond ((null cus-value)
-	      'unspecified)
-	     ((eq cus-value 'off)
-	      nil)
-	     (t
-	      (let ((lwidth (plist-get cus-value :line-width))
-		    (color (plist-get cus-value :color))
-		    (style (plist-get cus-value :style)))
-		(cond ((and (null color) (null style))
-		       lwidth)
-		      ((and (null lwidth) (null style))
-		       ;; actually can't happen, because LWIDTH is always an int
-		       color)
-		      (t
-		       ;; Keep as a plist, but remove null entries
-		       (nconc (and lwidth `(:line-width ,lwidth))
-			      (and color  `(:color ,color))
-			      (and style  `(:style ,style))))))))))
+       (and cus-value
+	    (let ((lwidth (plist-get cus-value :line-width))
+		  (color (plist-get cus-value :color))
+		  (style (plist-get cus-value :style)))
+	      (cond ((and (null color) (null style))
+		     lwidth)
+		    ((and (null lwidth) (null style))
+		     ;; actually can't happen, because LWIDTH is always an int
+		     color)
+		    (t
+		     ;; Keep as a plist, but remove null entries
+		     (nconc (and lwidth `(:line-width ,lwidth))
+			    (and color  `(:color ,color))
+			    (and style  `(:style ,style)))))))))
     
     (:inverse-video
      (choice :tag "Inverse-video"
 	     :help-echo "Control whether text should be in inverse-video."
-	     (const :tag "*" nil)
-	     (const :tag "On" t)
-	     (const :tag "Off" off)))
+	     (const :tag "Off" nil)
+	     (const :tag "On" t)))
     
     (:foreground
-     (choice :tag "Foreground"
-	     :help-echo "Set foreground color."
-	     (const :tag "*" nil)
-	     (color :tag "Color")))
+     (color :tag "Foreground"
+	    :help-echo "Set foreground color."))
     
     (:background
-     (choice :tag "Background"
-	     :help-echo "Set background color."
-	     (const :tag "*" nil)
-	     (color :tag "Color")))
+     (color :tag "Background"
+	    :help-echo "Set background color."))
     
     (:stipple
      (choice :tag "Stipple"
 	     :help-echo "Background bit-mask"
-	     (const :tag "*" nil)
-	     (const :tag "None" off)
+	     (const :tag "None" nil)
 	     (file :tag "File"
 		   :help-echo "Name of bitmap file."
 		   :must-match t)))
