@@ -439,9 +439,8 @@ also the same size as FACE on FRAME."
   (and (eq frame t)
        (setq frame nil))
   (if pattern
-      (let ((fonts (x-list-fonts pattern
-				 (if (face-font face) face nil)
-				 frame)))
+      ;; Note that x-list-fonts has code to handle a face with nil as its font.
+      (let ((fonts (x-list-fonts pattern face frame)))
 	(or fonts
 	    (if face
 		(error "No fonts matching pattern are the same size as `%s'"
