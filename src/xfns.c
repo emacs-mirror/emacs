@@ -70,8 +70,9 @@ extern void abort ();
 
 #include "../lwlib/lwlib.h"
 
-/* Do the EDITRES protocol if running X11R5 */
-#if (XtSpecificationRelease >= 5)
+/* Do the EDITRES protocol if running X11R5
+   Exception: HP-UX (at least version A.09.05) has X11R5 without EditRes */
+#if (XtSpecificationRelease >= 5) && !defined(NO_EDITRES)
 #define HACK_EDITRES
 extern void _XEditResCheckMessages ();
 #endif /* R5 + Athena */
