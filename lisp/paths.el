@@ -101,11 +101,12 @@ This variable `Info-default-directory-list' is used as the default
 for initializing `Info-directory-list' when Info is started, unless
 the environment variable INFOPATH is set.")
 
-(defvar news-path
+(defvar news-directory
   (if (file-exists-p "/usr/spool/news/")
       "/usr/spool/news/"
     "/var/spool/news/")
   "The root directory below which all news files are stored.")
+(defalias 'news-path 'news-directory)
 
 (defvar news-inews-program
   (cond ((file-exists-p "/usr/bin/inews") "/usr/bin/inews")
@@ -136,7 +137,7 @@ The `ORGANIZATION' environment variable is used instead if defined.")
   :group 'rmail
   :version "21.1")
 
-(defconst rmail-spool-directory
+(defvar rmail-spool-directory
   (cond ((string-match "^[^-]+-[^-]+-sco3.2v4" system-configuration)
 	 "/usr/spool/mail/")
 	;; On The Bull DPX/2 /usr/spool/mail is used although
@@ -157,15 +158,17 @@ The `ORGANIZATION' environment variable is used instead if defined.")
   "Name of directory used by system mailer for delivering new mail.
 Its name should end with a slash.")
 
-(defconst sendmail-program
+(defcustom sendmail-program
   (cond
     ((file-exists-p "/usr/sbin/sendmail") "/usr/sbin/sendmail")
     ((file-exists-p "/usr/lib/sendmail") "/usr/lib/sendmail")
     ((file-exists-p "/usr/ucblib/sendmail") "/usr/ucblib/sendmail")
     (t "fakemail"))			;In ../etc, to interface to /bin/mail.
-  "Program used to send messages.")
+  "Program used to send messages."
+  :group 'mail
+  :type 'file)
 
-(defconst remote-shell-program
+(defcustom remote-shell-program
   (cond
    ;; Some systems use rsh for the remote shell; others use that name for the
    ;; restricted shell and use remsh for the remote shell.  Let's try to guess
@@ -186,14 +189,16 @@ Its name should end with a slash.")
    ((file-exists-p "/bin/rsh") "/bin/rsh")
    ((file-exists-p "/usr/bin/rsh") "/usr/bin/rsh")
    (t "rsh"))
-  "File name for remote-shell program (often rsh or remsh).")
+  "File name for remote-shell program (often rsh or remsh)."
+  :group 'environment
+  :type 'file)
 
-(defconst term-file-prefix (if (eq system-type 'vax-vms) "[.term]" "term/") "\
+(defvar term-file-prefix (if (eq system-type 'vax-vms) "[.term]" "term/") "\
 If non-nil, Emacs startup does (load (concat term-file-prefix (getenv \"TERM\")))
 You may set this variable to nil in your `.emacs' file if you do not wish
 the terminal-initialization file to be loaded.")
 
-(defconst abbrev-file-name
+(defvar abbrev-file-name
   (if (eq system-type 'vax-vms)
       "~/abbrev.def"
     (convert-standard-filename "~/.abbrev_defs"))
