@@ -233,7 +233,7 @@ These hooks have the following distinct roles:
              (d-file (substitute-in-file-name diary-file)))
         (message "Preparing diary...")
         (save-excursion
-          (let ((diary-buffer (get-file-buffer d-file)))
+          (let ((diary-buffer (find-buffer-visiting d-file)))
             (set-buffer (if diary-buffer
                             diary-buffer
                          (find-file-noselect d-file t))))
@@ -364,7 +364,7 @@ changing the variable `diary-include-string'."
                   (setq diary-entries-list
                         (append diary-entries-list
                                 (list-diary-entries original-date number)))
-                (kill-buffer (get-file-buffer diary-file)))
+                (kill-buffer (find-buffer-visiting diary-file)))
             (beep)
             (message "Can't read included diary file %s" diary-file)
             (sleep-for 2))
@@ -399,14 +399,14 @@ changing the variable `diary-include-string'."
        (concat "Diary for " date-string
                (if holiday-list ": " "")
                (mapconcat 'identity holiday-list "; ")))
-      (display-buffer (get-file-buffer d-file))
+      (display-buffer (find-buffer-visiting d-file))
       (message "Preparing diary...done"))))
 
 (defun fancy-diary-display ()
   "Prepare a diary buffer with relevant entries in a fancy, noneditable form.
 This function is provided for optional use as the `diary-display-hook'."
   (save-excursion;; Turn off selective-display in the diary file's buffer.
-    (set-buffer (get-file-buffer (substitute-in-file-name diary-file)))
+    (set-buffer (find-buffer-visiting (substitute-in-file-name diary-file)))
     (let ((diary-modified (buffer-modified-p)))
       (subst-char-in-region (point-min) (point-max) ?\^M ?\n t)
       (setq selective-display nil)
@@ -520,7 +520,7 @@ the actual printing."
         (set-buffer (get-buffer fancy-diary-buffer))
         (run-hooks 'print-diary-entries-hook))
     (let ((diary-buffer
-           (get-file-buffer (substitute-in-file-name diary-file))))
+           (find-buffer-visiting (substitute-in-file-name diary-file))))
       (if diary-buffer
           (let ((temp-buffer (get-buffer-create "*Printable Diary Entries*"))
                 (heading))
@@ -553,7 +553,7 @@ is created."
     (if (and d-file (file-exists-p d-file))
         (if (file-readable-p d-file)
             (save-excursion
-              (let ((diary-buffer (get-file-buffer d-file)))
+              (let ((diary-buffer (find-buffer-visiting d-file)))
                 (set-buffer (if diary-buffer
                                 diary-buffer
                               (find-file-noselect d-file t)))
@@ -800,7 +800,7 @@ changing the variable `diary-include-string'."
           (if (file-readable-p diary-file)
               (progn
                 (mark-diary-entries)
-                (kill-buffer (get-file-buffer diary-file)))
+                (kill-buffer (find-buffer-visiting diary-file)))
             (beep)
             (message "Can't read included diary file %s" diary-file)
             (sleep-for 2))
