@@ -1,5 +1,8 @@
 2000-06-02  Dave Love  <fx@gnu.org>
 
+	* Makefile.in: (install-arch-indep): Add pcl-cvs to list of info
+	files.
+
 	* configure.in: Don't specify -n32 flag for mips-sgi-irix6.5.
 	Check for struct exception.  Use AC_SYS_LARGEFILE and move ftello
 	test.

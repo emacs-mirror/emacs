@@ -1,3 +1,7 @@
+2000-06-02  Dave Love  <fx@gnu.org>
+
+	* lread.c (_XOPEN_SOURCE, __EXTENSIONS__): Don't define.
+
 2000-06-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c (realize_x_face): When copying BASE_FACE bitwise to the
