@@ -289,7 +289,7 @@ struct x_display_info
   Atom Xatom_CLIPBOARD, Xatom_TIMESTAMP, Xatom_TEXT, Xatom_DELETE,
   Xatom_MULTIPLE, Xatom_INCR, Xatom_EMACS_TMP, Xatom_TARGETS, Xatom_NULL,
   Xatom_ATOM_PAIR;
-  PERD display_perd;
+  PERDISPLAY perdisplay;
 };
 
 /* This is a chain of structures for all the X displays currently in use.  */
