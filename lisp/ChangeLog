@@ -2,12 +2,20 @@
 
 	* paren.el (show-paren-match-face): Add dark-background variant.
 
+2001-11-06  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression): Paren typo.
+	(lisp-mode-variables): Don't set paragraph-{start,separate}.
+	Don't disable adaptive-fill-mode.
+	(lisp-fill-paragraph): Use tab-width rather than 8.
+	Prevent filling the first line of docstrings.
+
 2001-11-06  Richard M. Stallman  <rms@gnu.org>
 
 	* play/gomoku.el (gomoku): Doc fix.
 
-	* jka-compr.el (jka-compr-partial-uncompress): Support
-	an alternative of not using dd.
+	* jka-compr.el (jka-compr-partial-uncompress):
+	Support an alternative of not using dd.
 	(jka-compr-dd-program): Use defcustom to define this.
 	(jka-compr-load-suffixes): Use defcustom.
 	(jka-compr-mode-alist-additions): Use defcustom.
@@ -60,6 +68,8 @@
 	shadow of the splash image grey on a dark background instead of black.
 
 2001-11-03  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* term.el (all faces): Don't (copy-face 'default <foo>).
 
 	* term/xterm.el (function-key-map):
 	Add entry for `ESC [ 3 ~' -> <delete>

@@ -18,6 +18,8 @@
 
 2001-11-06  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* lread.c (read1): Fix behavior with nested backquoting.
+
 	* keyboard.c (make_lispy_event): Check integerness and fix
 	Lisp_Object/int mixup.
 
@@ -86,7 +88,7 @@
 2001-11-04  Michael Welsh Duggan  <md5i@cs.cmu.edu>
 
 	* buffer.c (Fbuffer_local_value): New function.
-	(syms_of_buffer): defsubr it.
+	(syms_of_buffer): Defsubr it.
 
 	* xterm.c, w32term.c (x_display_and_set_cursor): Use buffer-local
 	value of `cursor-in-non-selected-windows'.
@@ -139,8 +141,7 @@
 	and #ifdef'd-out code.
 	Fix and reindent comments.
 
-	* mocklisp.h: Remove comment which is a copy of comment in
-	mocklisp.c.
+	* mocklisp.h: Remove comment which is a copy of comment in mocklisp.c.
 
 	* category.h (CHECK_CATEGORY, CHECK_CATEGORY_SET): Remove unused
 	argument `i' in macros.
