@@ -48,6 +48,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 #if defined (USE_MOTIF)
 #include "lwlib-Xm.h"
+#else /* not USE_MOTIF */
+#if defined (USE_LUCID)
+#define USE_XAW
+#endif /* not USE_MOTIF && USE_LUCID */
 #endif
 #if defined (USE_OLIT)
 #include "lwlib-Xol.h"

@@ -21,8 +21,8 @@ USE_X_TOOLKIT=@X_TOOLKIT_TYPE@
            RANLIB = ranlib
                RM = rm -f
 
-     LUCID_SRCS = lwlib-Xlw.c xlwmenu.c
-     LUCID_OBJS = lwlib-Xlw.o xlwmenu.o
+     LUCID_SRCS = lwlib-Xlw.c xlwmenu.c lwlib-Xaw.c
+     LUCID_OBJS = lwlib-Xlw.o xlwmenu.o lwlib-Xaw.o
      MOTIF_SRCS = lwlib-Xm.c
      MOTIF_OBJS = lwlib-Xm.o
       OLIT_SRCS = lwlib-Xol.c lwlib-Xolmb.c
@@ -62,6 +62,7 @@ xrdb-cpp.o:  xrdb-cpp.c
 lwlib-utils.o: lwlib-utils.h
 lwlib.o:       lwlib.h lwlib-int.h
 lwlib-Xlw.o:   lwlib.h lwlib-int.h
+lwlib-Xaw.o:   lwlib.h lwlib-int.h
 lwlib-Xm.o:    lwlib.h lwlib-int.h lwlib-utils.h
 lwlib-Xol.o:   lwlib.h lwlib-int.h
 lwlib-Xolmb.o: lwlib-Xolmb.h lwlib-XolmbP.h
