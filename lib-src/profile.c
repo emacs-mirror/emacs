@@ -38,6 +38,14 @@ static struct timezone *tzp = (struct timezone *) NULL; /* no need timezone */
 static int watch_not_started = 1; /* flag */
 static char time_string[30];
 
+#ifndef HAVE_GETTIMEOFDAY
+gettimeofday ()
+{
+  fprintf (stderr, "profile: this system does not support gettimeofday\n");
+  exit (1);
+}
+#endif
+
 /* Reset the stopwatch to zero.  */
 
 int
