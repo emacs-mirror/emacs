@@ -9,12 +9,12 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<2000/10/28 23:38:44 Vinicius>
-;; Version:	6.3
+;; Time-stamp:	<2000/11/01 14:39:00 vinicius>
+;; Version:	6.3.1
 ;; X-URL:	http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.3"
-  "ps-print.el, v 6.3 <2000/10/28 vinicius>
+(defconst ps-print-version "6.3.1"
+  "ps-print.el, v 6.3.1 <2000/10/30 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -275,11 +275,17 @@ Please send all bug fixes and enhancements to
 ;;
 ;; nil		print all pages.
 ;;
-;; even		print only even pages.
+;; even-page	print only even pages.
 ;;
-;; odd		print only odd pages.
+;; odd-page	print only odd pages.
+;;
+;; even-sheet	print only even sheets.
+;;
+;; odd-sheet	print only odd sheets.
 ;;
 ;; Any other value is treated as nil.  The default value is nil.
+;;
+;; See `ps-even-or-odd-pages' for more detailed documentation.
 ;;
 ;;
 ;; Horizontal layout
@@ -1743,9 +1749,19 @@ Valid values are:
 
    nil		print all pages.
 
-   `even'	print only even pages.
+   `even-page'	print only even pages.
 
-   `odd'	print only odd pages.
+   `odd-page'	print only odd pages.
+
+   `even-sheet'	print only even sheets.
+		That is, if `ps-n-up-printing' is 1, it behaves as `even'; but
+		for values greater than 1, it'll print only the even sheet of
+		paper.
+
+   `odd-sheet'	print only odd sheets.
+		That is, if `ps-n-up-printing' is 1, it behaves as `odd'; but
+		for values greater than 1, it'll print only the odd sheet of
+		paper.
 
 Any other value is treated as nil.
 
@@ -1753,19 +1769,35 @@ If you set `ps-selected-pages' (see it for documentation), first the pages are
 filtered by `ps-selected-pages' and then by `ps-even-or-odd-pages'.  For
 example, if we have:
 
-   (setq ps-selected-pages '(1 4 (6 . 10) 12))
+   (setq ps-selected-pages '(1 4 (6 . 10) (12 . 16) 20))
 
-We have the following results:
+Combining with `ps-even-or-odd-pages' and `ps-n-up-printing', we have:
 
+`ps-n-up-printing' = 1:
    `ps-even-or-odd-pages'	PAGES PRINTED
-	nil			1, 4, 6, 7, 8, 9, 10, 12
-	even			4, 6, 8, 10, 12
-	odd			1, 7, 9"
+	nil			1, 4, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16, 20
+	even-page		4, 6, 8, 10, 12, 14, 16, 20
+	odd-page		1, 7, 9, 13, 15
+	even-sheet		4, 6, 8, 10, 12, 14, 16, 20
+	odd-sheet		1, 7, 9, 13, 15
+
+`ps-n-up-printing' = 2:
+   `ps-even-or-odd-pages'	PAGES PRINTED
+	nil			1/4, 6/7, 8/9, 10/12, 13/14, 15/16, 20
+	even-page		4/6, 8/10, 12/14, 16/20
+	odd-page		1/7, 9/13, 15
+	even-sheet		6/7, 10/12, 15/16
+	odd-sheet		1/4, 8/9, 13/14, 20
+
+So even-page/odd-page are about page parity and even-sheet/odd-sheet are about
+sheet parity."
   :type '(choice :menu-tag "Print Even/Odd Pages"
 		 :tag "Print Even/Odd Pages"
 		 (const :tag "All Pages" nil)
-		 (const :tag "Only Even Pages" even)
-		 (const :tag "Only Odd Pages" odd))
+		 (const :tag "Only Even Pages" even-page)
+		 (const :tag "Only Odd Pages" odd-page)
+		 (const :tag "Only Even Sheets" even-sheet)
+		 (const :tag "Only Odd Sheets" odd-sheet))
   :group 'ps-print-page)
 
 (defcustom ps-print-control-characters 'control-8-bit
@@ -3080,10 +3112,12 @@ The table depends on the current ps-print setup."
 (defvar ps-output-head nil)
 (defvar ps-output-tail nil)
 
-(defvar ps-page-postscript 0)
-(defvar ps-page-order 0)
-(defvar ps-page-count 0)
-(defvar ps-page-n-up 0)
+(defvar ps-page-postscript 0)		; page number
+(defvar ps-page-order 0)		; PostScript page counter
+(defvar ps-page-sheet 0)		; sheet counter
+(defvar ps-page-column 0)		; column counter
+(defvar ps-page-printed 0)		; total pages printed
+(defvar ps-page-n-up 0)			; n-up counter
 (defvar ps-showline-count 1)
 (defvar ps-first-page nil)
 (defvar ps-last-page nil)
@@ -3733,12 +3767,22 @@ page-height == bm + print-height + tm - ho - hh
 			 (<= ps-page-postscript ps-last-page)))
 		   (t
 		    nil))
-	     (cond ((eq ps-even-or-odd-pages 'even)
+	     (cond ((eq ps-even-or-odd-pages 'even-page)
 		    (= (logand ps-page-postscript 1) 0))
-		   ((eq ps-even-or-odd-pages 'odd)
+		   ((eq ps-even-or-odd-pages 'odd-page)
 		    (= (logand ps-page-postscript 1) 1))
 		   (t)
 		   ))))
+
+
+(defun ps-print-sheet-p ()
+  (setq ps-print-page-p
+	(cond ((eq ps-even-or-odd-pages 'even-sheet)
+	       (= (logand ps-page-sheet 1) 0))
+	      ((eq ps-even-or-odd-pages 'odd-sheet)
+	       (= (logand ps-page-sheet 1) 1))
+	      (t)
+	      )))
 
 
 (defun ps-output (&rest args)
@@ -4420,7 +4464,9 @@ XSTART YSTART are the relative position for the first page in a sheet.")
   (ps-get-page-dimensions)
   (setq ps-page-postscript 0
 	ps-page-order 0
+	ps-page-sheet 0
 	ps-page-n-up 0
+	ps-page-printed 0
 	ps-print-page-p t
 	ps-background-text-count 0
 	ps-background-image-count 0
@@ -4734,7 +4780,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	 (delete-region (match-beginning 0) (point-max))))
   ;; miscellaneous
   (setq ps-showline-count (car ps-printing-region)
-	ps-page-count 0
+	ps-page-column 0
 	ps-font-size-internal        (ps-get-font-size 'ps-font-size)
 	ps-header-font-size-internal (ps-get-font-size 'ps-header-font-size)
 	ps-header-title-font-size-internal
@@ -4769,8 +4815,8 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 
 (defun ps-page-number ()
   (if ps-print-only-one-header
-      (1+ (/ (1- ps-page-count) ps-number-of-columns))
-    ps-page-count))
+      (1+ (/ (1- ps-page-column) ps-number-of-columns))
+    ps-page-column))
 
 
 (defun ps-next-page ()
@@ -4781,25 +4827,28 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 
 (defun ps-header-sheet ()
   ;; Print only when a new sheet begins.
-  (setq ps-page-order (1+ ps-page-order))
-  (and (> ps-page-order 1)
+  (and ps-print-page-p (> ps-page-sheet 0)
        (ps-output "EndSheet\n"))
-  (ps-output (if ps-n-up-on
-		 (format "\n%%%%Page: (%d \\(%d\\)) %d\n"
-			 ps-page-order ps-page-postscript ps-page-order)
-	       (format "\n%%%%Page: %d %d\n"
-		       ps-page-postscript ps-page-order))
-	     (format "%d BeginSheet\nBeginDSCPage\n"
-		     ps-n-up-printing)))
+  (setq ps-page-sheet (1+ ps-page-sheet))
+  (when (ps-print-sheet-p)
+    (setq ps-page-order (1+ ps-page-order))
+    (ps-output (if ps-n-up-on
+		   (format "\n%%%%Page: (%d \\(%d\\)) %d\n"
+			   ps-page-order ps-page-postscript ps-page-order)
+		 (format "\n%%%%Page: %d %d\n"
+			 ps-page-postscript ps-page-order))
+	       (format "%d BeginSheet\nBeginDSCPage\n"
+		       ps-n-up-printing))))
 
 
 (defun ps-header-page ()
   ;; set total line and page number when printing has finished
   ;; (see `ps-generate')
-  (if (zerop (mod ps-page-count ps-number-of-columns))
+  (if (zerop (mod ps-page-column ps-number-of-columns))
       (progn
 	(setq ps-page-postscript (1+ ps-page-postscript))
 	(when (ps-print-page-p)
+	  (ps-print-sheet-p)
 	  (if (zerop (mod ps-page-n-up ps-n-up-printing))
 	      ;; Print only when a new sheet begins.
 	      (progn
@@ -4809,11 +4858,13 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	    (ps-output "BeginDSCPage\n")
 	    (run-hooks 'ps-print-begin-page-hook))
 	  (ps-background ps-page-postscript)
-	  (setq ps-page-n-up (1+ ps-page-n-up))))
+	  (setq ps-page-n-up (1+ ps-page-n-up))
+	  (and ps-print-page-p
+	       (setq ps-page-printed (1+ ps-page-printed)))))
     ;; Print only when a new column begins.
     (ps-output "BeginDSCPage\n")
     (run-hooks 'ps-print-begin-column-hook))
-  (setq ps-page-count (1+ ps-page-count)))
+  (setq ps-page-column (1+ ps-page-column)))
 
 (defun ps-begin-page ()
   (ps-get-page-dimensions)
@@ -5395,10 +5446,11 @@ If FACE is not a valid face name, it is used default face."
 
 
 (defun ps-end-job (needs-begin-file)
-  (let ((ps-print-page-p t))
+  (let ((previous-print ps-print-page-p)
+	(ps-print-page-p t))
     (ps-flush-output)
     (save-excursion
-      (let ((pages-per-sheet (mod ps-page-n-up ps-n-up-printing))
+      (let ((pages-per-sheet (mod ps-page-printed ps-n-up-printing))
 	    (total-lines (cdr ps-printing-region))
 	    (total-pages (ps-page-number))
 	    case-fold-search)
@@ -5421,7 +5473,9 @@ If FACE is not a valid face name, it is used default face."
 		      "/PrintLineNumber false def\nBeginPage\n")
 	   (ps-end-page)))
     ;; Set end of PostScript file
-    (ps-output "EndSheet\n\n%%Trailer\n%%Pages: "
+    (and previous-print
+	 (ps-output "EndSheet\n"))
+    (ps-output "\n%%Trailer\n%%Pages: "
 	       (number-to-string
 		(if (and needs-begin-file
 			 ps-banner-page-when-duplexing)
