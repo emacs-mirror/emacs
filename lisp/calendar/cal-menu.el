@@ -42,6 +42,12 @@
 (defvar calendar-mouse-3-map (make-sparse-keymap "Calendar"))
 (define-key calendar-mode-map [down-mouse-3] calendar-mouse-3-map)
 
+(define-key calendar-mode-map [menu-bar moon]
+  (cons "Moon" (make-sparse-keymap "Moon")))
+
+(define-key calendar-mode-map [menu-bar moon moon]
+  '("Lunar phases" . calendar-phases-of-moon))
+
 (define-key calendar-mode-map [menu-bar diary]
   (cons "Diary" (make-sparse-keymap "Diary")))
 
@@ -277,7 +283,6 @@ ERROR is t, otherwise just returns nil."
            (list "Menu"
                  (list
                   (calendar-date-string date t t)
-		  '("Moon phase" . calendar-phases-of-moon)
                   '("Diary entries" . calendar-mouse-view-diary-entries)
                   '("Holidays" . calendar-mouse-holidays)
                   '("Mark date" . calendar-mouse-set-mark)
