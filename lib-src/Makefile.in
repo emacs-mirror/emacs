@@ -120,10 +120,10 @@ ${archlibdir}: all
 	./make-path ${archlibdir}
 	if [ `(cd ${archlibdir} && /bin/pwd)` != `/bin/pwd` ]; then \
 	  for file in ${UTILITIES}; do \
-	    $(INSTALL_PROGRAM) $$file ${archlibdir}/$$file ; \
+	    (cd ..; $(INSTALL_PROGRAM) lib-src/$$file ${archlibdir}/$$file) ; \
 	  done ; \
 	  for file in ${SCRIPTS}; do \
-	    $(INSTALL_PROGRAM) ${srcdir}/$$file ${archlibdir}/$$file ; \
+	    (cd ..; $(INSTALL_PROGRAM) ${srcdir}/$$file ${archlibdir}/$$file); \
 	  done ; \
 	fi
 
@@ -133,10 +133,10 @@ install: ${archlibdir}
 	@echo
 	@echo "Installing utilities for users to run."
 	for file in ${INSTALLABLES} ; do \
-	  $(INSTALL_PROGRAM) $${file} ${bindir}/$${file} ; \
+	  (cd ..; $(INSTALL_PROGRAM) lib-src/$${file} ${bindir}/$${file}) ; \
 	done
 	for file in ${INSTALLABLE_SCRIPTS} ; do \
-	  $(INSTALL_PROGRAM) ${srcdir}/$${file} ${bindir}/$${file} ; \
+	  (cd ..; $(INSTALL_PROGRAM) ${srcdir}/$${file} ${bindir}/$${file}) ; \
 	done
 
 uninstall:
