@@ -1,3 +1,8 @@
+2005-03-20  Juri Linkov  <juri@jurta.org>
+
+	* subr.el (progress-reporter-do-update): When `min-value' is equal
+	to `max-value', set `percentage' to 0 and prevent division by zero.
+
 2005-03-20  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.0.48.
