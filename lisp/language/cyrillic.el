@@ -240,4 +240,6 @@
 		  (documentation . "Support for Cyrillic ALTERNATIVNYJ."))
  '("Cyrillic"))
 
+(provide 'cyrillic)
+
 ;;; cyrillic.el ends here

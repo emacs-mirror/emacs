@@ -52,4 +52,6 @@
       '(("\\c0\\c9?\\(\\(\\c2\\|\\c3\\)\\c4?\\|\\c4\\)?"
 	 . lao-composition-function)))
 
+(provide 'lao)
+
 ;;; lao.el ends here

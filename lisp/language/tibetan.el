@@ -623,4 +623,6 @@ This also matches some punctuation characters which need conversion.")
 (defvar tibetan-decomposed nil)
 (defvar tibetan-decomposed-temp nil)
 
+(provide 'tibetan)
+
 ;;; language/tibetan.el ends here

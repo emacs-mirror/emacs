@@ -59,4 +59,6 @@
 	      (sample-text . "$(3$Q#U!.(B")
 	      (documentation . t)))
 
+(provide 'ethiopic)
+
 ;;; ethiopic.el ends here

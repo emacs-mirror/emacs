@@ -56,4 +56,6 @@
 	    (documentation . "Right-to-left writing is not yet supported.")
 	    ))
 
+(provide 'hebrew)
+
 ;;; hebrew.el ends here

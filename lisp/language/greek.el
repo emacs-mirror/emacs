@@ -47,4 +47,6 @@
 	   (unibyte-display . greek-iso-8bit)
 	   (documentation . t)))
 
+(provide 'greek)
+
 ;;; greek.el ends here

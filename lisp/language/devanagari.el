@@ -499,4 +499,6 @@ are supported in this language environment."))
     (?$(5$~(B . nil)
     ))
 
+(provide 'devanagari)
+
 ;;; devanagari.el ends here

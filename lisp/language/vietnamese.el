@@ -189,4 +189,6 @@ Current setting put higher priority to the coding system VISCII than VSCII.
 If you prefer VSCII, please do: (prefer-coding-system 'vietnamese-vscii)")
 		))
 
+(provide 'vietnamese)
+
 ;;; vietnamese.el ends here

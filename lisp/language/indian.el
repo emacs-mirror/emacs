@@ -308,5 +308,7 @@ positions (integers or markers) specifying the stretch of the region."
 	      (delete-region (match-beginning 0) (match-end 0))
 	      (insert ch)))))
     (goto-char (point-min))))
+
+(provide 'indian)
   
 ;;; indian.el ends here

@@ -59,4 +59,6 @@
 (aset composition-function-table (make-char 'thai-tis620)
       '(("\\c0\\c4\\|\\c0\\(\\c2\\|\\c3\\)\\c4?" . thai-composition-function)))
 
+(provide 'thai)
+
 ;;; thai.el ends here

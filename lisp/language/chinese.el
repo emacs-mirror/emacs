@@ -178,4 +178,6 @@
 		 (documentation . "Support for Chinese CNS character sets."))
  '("Chinese"))
 
+(provide 'chinese)
+
 ;;; chinese.el ends here

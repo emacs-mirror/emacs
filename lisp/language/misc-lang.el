@@ -37,5 +37,7 @@
 IPA is International Phonetic Alphabet for English, French, German
 and Italian.")))
 
+(provide 'misc-lang)
+
 ;;; misc-lang.el ends here
 

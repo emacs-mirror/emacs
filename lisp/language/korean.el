@@ -67,4 +67,6 @@ The following key bindings are available while using Korean input methods:
   F9:		quail-hangul-switch-hanja")
 	    ))
 
+(provide 'korean)
+
 ;;; korean.el ends here

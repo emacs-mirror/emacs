@@ -107,4 +107,6 @@
 	      (sample-text . "Japanese (日本語)	こんにちは, ｺﾝﾆﾁﾊ")
 	      (documentation . t)))
 
+(provide 'japanese)
+
 ;;; japanese.el ends here
