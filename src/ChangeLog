@@ -1,3 +1,27 @@
+2001-02-09  Kenichi Handa  <handa@etl.go.jp>
+
+	The following changes are to draw box lines inside characters area
+	if line-width is negative.
+	
+	* xterm.c (x_produce_image_glyph): Pay attention to the case that
+	face->box_line_width is negative.
+	(x_produce_stretch_glyph): Likewise.
+	(x_produce_glyphs): Likewise.
+	(x_estimate_mode_line_height): Likewise.
+	(x_draw_glyph_string_background): Likewise.
+	(x_draw_glyph_string_foreground): Likewise.
+	(x_draw_composite_glyph_string_foreground): Likewise.
+	(x_draw_glyph_string_box): Likewise.
+	(x_draw_image_foreground): Likewise.
+	(x_draw_image_relief): Likewise.
+	(x_draw_image_foreground_1): Likewise.
+	(x_draw_image_glyph_string): Likewise.
+
+	* xfaces.c (Finternal_set_lisp_face_attribute): The value of :box
+	and :line-width can be negative.
+	(realize_x_face): The value of attrs[LFACE_BOX_INDEX] can be
+	negative.
+
 2001-02-09  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_encode_char): Treat eight bit graphic and control
