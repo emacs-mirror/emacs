@@ -5625,8 +5625,9 @@ menu_item_eval_property (sexpr)
    ITEM is a key binding, a possible menu item.
    If NOTREAL is nonzero, only check for equivalent key bindings, don't
    evaluate dynamic expressions in the menu item.
-   INMENUBAR is true when this is considered for an entry in a menu bar
+   INMENUBAR is > 0 when this is considered for an entry in a menu bar
    top level.
+   INMENUBAR is < 0 when this is considered for an entry in a keyboard menu.
    parse_menu_item returns true if the item is a menu item and false
    otherwise.  */
 
@@ -6175,7 +6176,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
       /* Loop over elements of map.  */
       while (i < width)
 	{
-	  Lisp_Object s, elt;
+	  Lisp_Object elt;
 
 	  /* If reached end of map, start at beginning of next map.  */
 	  if (NILP (rest))
@@ -6208,26 +6209,27 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 	  else
 	    {
 	      /* An ordinary element.  */
-	      Lisp_Object event;
+	      Lisp_Object event, tem;
 
 	      if (idx < 0)
 		{
-		  s = Fcar_safe (Fcdr_safe (elt));	/* alist */
-		  event = Fcar_safe (elt);
+		  event = Fcar_safe (elt); /* alist */
+		  elt = Fcdr_safe (elt);
 		}
 	      else
 		{
-		  s = Fcar_safe (elt);			/* vector */
-		  XSETINT (event, idx);
+		  XSETINT (event, idx); /* vector */
 		}
 
 	      /* Ignore the element if it has no prompt string.  */
-	      if (STRINGP (s) && INTEGERP (event))
+	      if (INTEGERP (event) && parse_menu_item (elt, 0, -1))
 		{
 		  /* 1 if the char to type matches the string.  */
 		  int char_matches;
 		  Lisp_Object upcased_event, downcased_event;
 		  Lisp_Object desc;
+		  Lisp_Object s
+		    = XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME];
 
 		  upcased_event = Fupcase (event);
 		  downcased_event = Fdowncase (event);
@@ -6235,6 +6237,27 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 				  || XINT (downcased_event) == XSTRING (s)->data[0]);
 		  if (! char_matches)
 		    desc = Fsingle_key_description (event);
+
+		  tem
+		    = XVECTOR (item_properties)->contents[ITEM_PROPERTY_KEYEQ];
+		  if (!NILP (tem))
+		    /* Insert equivalent keybinding. */
+		    s = concat2 (s, tem);
+
+		  tem
+		    = XVECTOR (item_properties)->contents[ITEM_PROPERTY_TYPE];
+		  if (EQ (tem, QCradio) || EQ (tem, QCtoggle))
+		    {
+		      /* Insert button prefix. */
+		      Lisp_Object selected
+			= XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED];
+		      if (EQ (tem, QCradio))
+			tem = build_string (NILP (selected) ? "(*) " : "( ) ");
+		      else
+			tem = build_string (NILP (selected) ? "[X] " : "[ ] ");
+		      s = concat2 (tem, s);
+		    }
+		  
 
 		  /* If we have room for the prompt string, add it to this line.
 		     If this is the first on the line, always add it.  */
