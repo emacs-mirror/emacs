@@ -138,7 +138,7 @@
  ("?" ?？))
 
 ;; Local Variables:
-;; buffer-file-coding-system: iso-2022-7bit
+;; coding: iso-2022-7bit
 ;; End:
 
 ;;; cyril-jis.el ends here
