@@ -1,3 +1,16 @@
+2002-03-18  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-rcs.el (vc-rcs-register): Fix handling of
+	vc-[rcs-]register-switches.
+	(vc-rcs-checkin-switches, vc-rcs-checkout-switches): Variables
+	removed, since they weren't used yet.
+
+	* vc-cvs.el (vc-cvs-register): Fix handling of
+	vc-[cvs-]register-switches.
+
+	* vc-sccs.el (vc-sccs-register): Fix handling of
+	vc-[sccs-]register-switches.
+
 2002-03-18  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* eshell/esh-ext.el (eshell-binary-suffixes): Use exec-suffixes.
