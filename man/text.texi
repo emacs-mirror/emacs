@@ -1834,9 +1834,13 @@ Delete @emph{all} text properties from the region
 (@code{facemenu-remove-all}).
 
 @findex describe-text-at
+@cindex text properties of characters
+@cindex overlays at character position
+@cindex widgets at buffer position
+@cindex buttons at buffer position
 @item Describe Text
-List all the text properties of the character following point
-(@code{list-text-properties-at}).
+List all the text properties, widgets, buttons, and overlays of the
+character following point (@code{describe-text-at}).
 
 @item Display Faces
 Display a list of all the defined faces (@code{list-faces-display}).
@@ -1844,7 +1848,7 @@ Display a list of all the defined faces (@code{list-faces-display}).
 @item Display Colors
 Display a list of all the defined colors (@code{list-colors-display}).
 @end table
-            
+
 @node Format Faces
 @subsection Faces in Formatted Text
 
