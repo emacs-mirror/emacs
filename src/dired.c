@@ -195,7 +195,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 		  int total = len + index;
 #ifndef VMS
 		  if (length == 0
-		      || XSTRING (dirname)->data[length - 1] != '/')
+		      || !IS_ANY_SEP (XSTRING (dirname)->data[length - 1]))
 		    total++;
 #endif /* VMS */
 
@@ -204,8 +204,8 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 			 index);
 #ifndef VMS
 		  if (length == 0
-		      || XSTRING (dirname)->data[length - 1] != '/')
-		    XSTRING (name)->data[index++] = '/';
+		      || IS_ANY_SEP (XSTRING (dirname)->data[length - 1]))
+		    XSTRING (name)->data[index++] = DIRECTORY_SEP;
 #endif /* VMS */
 		  bcopy (dp->d_name, XSTRING (name)->data + index, len);
 		}
@@ -466,7 +466,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 	      if (directoryp
 		  && compare == matchsize
 		  && bestmatchsize > matchsize
-		  && p1[matchsize] == '/')
+		  && IS_ANY_SEP (p1[matchsize]))
 		matchsize++;
 	      bestmatchsize = matchsize;
 	    }
@@ -500,8 +500,8 @@ file_name_completion_stat (dirname, dp, st_addr)
 
   bcopy (XSTRING (dirname)->data, fullname, pos);
 #ifndef VMS
-  if (fullname[pos - 1] != '/')
-    fullname[pos++] = '/';
+  if (!IS_DIRECTORY_SEP (fullname[pos - 1]))
+    fullname[pos++] = DIRECTORY_SEP;
 #endif
 
   bcopy (dp->d_name, fullname + pos, len);
@@ -657,13 +657,24 @@ If file does not exist, returns nil.")
   else					/* if we can't tell, assume worst */
     values[9] = Qt;
 #else					/* file gid will be egid */
+#ifdef WINDOWSNT
+  values[9] = Qnil;	/* sorry, no group IDs on NT */
+#else  /* not WINDOWSNT */
   values[9] = (s.st_gid != getegid ()) ? Qt : Qnil;
+#endif /* not WINDOWSNT */
 #endif	/* BSD4_2 (or BSD4_3) */
 #ifdef BSD4_3
 #undef BSD4_2 /* ok, you can look again without throwing up */
 #endif
+#ifdef WINDOWSNT
+  /* NT inodes are 64 bits, so we need to dance a little...  */
+  if (!get_inode_and_device_vals (filename, &values[10], &values[11])) {   ????
+      return Qnil;
+  }
+#else  /* not WINDOWSNT */
   values[10] = make_number (s.st_ino);
   values[11] = make_number (s.st_dev);
+#endif /* not WINDOWSNT */
   return Flist (sizeof(values) / sizeof(values[0]), values);
 }
 
