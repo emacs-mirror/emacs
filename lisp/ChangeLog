@@ -1,9 +1,17 @@
+2005-02-03  Richard M. Stallman  <rms@gnu.org>
+
+	* hi-lock.el (hi-lock-mode): Turning on Hi-Lock turns on Font-Lock.
+
+2005-02-03  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* faces.el (list-faces-display): Add optional argument.
+
 2005-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* font-core.el (font-lock-default-function): Handle the rare case where
 	only font-lock-keywords is set.
 
-2005-02-03  Kenichi Handa  <handa@m17n.org>
+2005-02-02  Kenichi Handa  <handa@m17n.org>
 
 	* international/characters.el: Cancel previous change for
 	I-WITH-DOT-ABOVE and DOTLESS-i.

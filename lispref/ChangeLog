@@ -1,8 +1,51 @@
-2005-01-31  Luc Teirlinck  <teirllm@auburn.edu>
+2005-02-03  Richard M. Stallman  <rms@gnu.org>
+
+	* windows.texi (Basic Windows): Add cursor-in-non-selected-windows.
+	Clarify.
+	(Selecting Windows): Clarify save-selected-window.
+	(Cyclic Window Ordering): Clarify walk-windows.
+	(Window Point): Clarify.
+	(Window Start): Add comment to example.
+	(Resizing Windows): Add `interactive' specs in examples.
+	Document fit-window-to-buffer.
+
+	* text.texi (User-Level Deletion): just-one-space takes numeric arg.
+	(Undo, Maintaining Undo): Clarify last change.
+	(Sorting): In sort-numeric-fields, explain about octal and hex.
+	Mention sort-numeric-base.
+	(Format Properties): Add xref for hard newlines.
+
+	* frames.texi (Window Frame Parameters): Explain pixel=char on tty.
+	(Pop-Up Menus): Fix typo.
+	(Color Names): Explain all types of color names.
+	Explain color-values on B&W terminal.
+	(Text Terminal Colors): Explain "rgb values" are lists.  Fix arg names.
+
+	* files.texi (File Locks): Not supported on MS systems.
+	(Testing Accessibility): Clarify.
+
+	* edebug.texi (Printing in Edebug): Fix edebug-print-circle.
+	(Coverage Testing): Fix typo.
+
+	* commands.texi (Misc Events): Remove stray space.
+
+	* buffers.texi (Buffer Names): Clarify generate-new-buffer-name.
+	(Modification Time): Clarify when visited-file-modtime returns 0.
+	(The Buffer List): Clarify bury-buffer.
+	(Killing Buffers): Clarify.
+	(Indirect Buffers): Add clone-indirect-buffer.
+
+2005-02-02  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* edebug.texi (Printing in Edebug): Fix default value of
+	edebug-print-circle.
+	(Coverage Testing): Fix displayed frequency count data.
+
+2005-02-02  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* text.texi (Maintaining Undo): Add `undo-outer-limit'.
 
-2005-02-01  Kim F. Storm  <storm@cua.dk>
+2005-02-02  Kim F. Storm  <storm@cua.dk>
 
 	* text.texi (Undo) <buffer-undo-list>: Describe `apply' elements.
 

@@ -1,3 +1,11 @@
+2005-02-03  Richard M. Stallman  <rms@gnu.org>
+
+	* xterm.c (x_error_quitter): On GCC 3 and up, specify noinline.
+
+	* xdisp.c (echo_area_display): Clear echo_message_buffer.
+
+	* buffer.c (Fbury_buffer): Doc fix.
+
 2005-02-02  Steven Tamm  <steventamm@mac.com>
 
 	* macfns.c (unwind_create_frame): Fixing compile error due to
