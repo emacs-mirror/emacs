@@ -1,3 +1,8 @@
+2001-03-08  Andrew Innes  <andrewi@gnu.org>
+
+	* w32menu.c (add_menu_item): Fix problems with using ownerdraw for
+	menu titles.
+
 2001-03-08  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (handle_display_prop): Use it->w->buffer as object,
