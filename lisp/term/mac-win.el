@@ -230,6 +230,55 @@ This function returns ARGS minus the arguments that have been processed."
 	    (funcall handler this-switch))
 	(setq args (cons orig-this-switch args)))))
   (nconc (nreverse args) x-invocation-args))
+
+
+;;
+;; Standard Mac cursor shapes
+;;
+
+(defconst mac-pointer-arrow 0)
+(defconst mac-pointer-copy-arrow 1)
+(defconst mac-pointer-alias-arrow 2)
+(defconst mac-pointer-contextual-menu-arrow 3)
+(defconst mac-pointer-I-beam 4)
+(defconst mac-pointer-cross 5)
+(defconst mac-pointer-plus 6)
+(defconst mac-pointer-watch 7)
+(defconst mac-pointer-closed-hand 8)
+(defconst mac-pointer-open-hand 9)
+(defconst mac-pointer-pointing-hand 10)
+(defconst mac-pointer-counting-up-hand 11)
+(defconst mac-pointer-counting-down-hand 12)
+(defconst mac-pointer-counting-up-and-down-hand 13)
+(defconst mac-pointer-spinning 14)
+(defconst mac-pointer-resize-left 15)
+(defconst mac-pointer-resize-right 16)
+(defconst mac-pointer-resize-left-right 17)
+;; Mac OS X 10.2 and later
+(defconst mac-pointer-not-allowed 18)
+;; Mac OS X 10.3 and later
+(defconst mac-pointer-resize-up 19)
+(defconst mac-pointer-resize-down 20)
+(defconst mac-pointer-resize-up-down 21)
+(defconst mac-pointer-poof 22)
+
+;;
+;; Standard X cursor shapes that have Mac counterparts
+;;
+
+(defconst x-pointer-left-ptr mac-pointer-arrow)
+(defconst x-pointer-xterm mac-pointer-I-beam)
+(defconst x-pointer-crosshair mac-pointer-cross)
+(defconst x-pointer-plus mac-pointer-plus)
+(defconst x-pointer-watch mac-pointer-watch)
+(defconst x-pointer-hand2 mac-pointer-pointing-hand)
+(defconst x-pointer-left-side mac-pointer-resize-left)
+(defconst x-pointer-right-side mac-pointer-resize-right)
+(defconst x-pointer-sb-h-double-arrow mac-pointer-resize-left-right)
+(defconst x-pointer-top-side mac-pointer-resize-up)
+(defconst x-pointer-bottom-side mac-pointer-resize-down)
+(defconst x-pointer-sb-v-double-arrow mac-pointer-resize-up-down)
+
 
 ;;
 ;; Available colors
