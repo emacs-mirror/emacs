@@ -2555,7 +2555,7 @@ x_rubber_band (f, x, y, width, height, geo, str, hscroll, vscroll)
 			     + (hscroll ? HSCROLL_HEIGHT : 0)),
 			    width, height, f->display.x->font,
 			    FONT_WIDTH (f->display.x->font),
-			    FONT_HEIGHT (f->display.x->font));
+			    f->display.x->line_height);
   XFreePixmap (frame.border);
   XFreePixmap (frame.background);
 
@@ -2927,7 +2927,7 @@ x_char_width (f)
 x_char_height (f)
      register struct frame *f;
 {
-  return FONT_HEIGHT (f->display.x->font);
+  return f->display.x->line_height;
 }
 
 #if 0  /* These no longer seem like the right way to do things.  */
@@ -2946,7 +2946,7 @@ x_rectangle (f, gc, left_char, top_char, chars, lines)
   int height;
   int left = (left_char * FONT_WIDTH (f->display.x->font)
 		    + f->display.x->internal_border_width);
-  int top = (top_char *  FONT_HEIGHT (f->display.x->font)
+  int top = (top_char * f->display.x->line_height
 		   + f->display.x->internal_border_width);
 
   if (chars < 0)
@@ -2954,9 +2954,9 @@ x_rectangle (f, gc, left_char, top_char, chars, lines)
   else
     width = FONT_WIDTH (f->display.x->font) * chars;
   if (lines < 0)
-    height = FONT_HEIGHT (f->display.x->font) / 2;
+    height = f->display.x->line_height / 2;
   else
-    height = FONT_HEIGHT (f->display.x->font) * lines;
+    height = f->display.x->line_height * lines;
 
   XDrawRectangle (x_current_display, FRAME_X_WINDOW (f),
 		  gc, left, top, width, height);
@@ -3074,7 +3074,7 @@ outline_region (f, gc, top_x, top_y, bottom_x, bottom_y)
 {
   register int ibw = f->display.x->internal_border_width;
   register int font_w = FONT_WIDTH (f->display.x->font);
-  register int font_h = FONT_HEIGHT (f->display.x->font);
+  register int font_h = f->display.x->line_height;
   int y = top_y;
   int x = line_len (y);
   XPoint *pixel_points
@@ -3411,7 +3411,7 @@ DEFUN ("x-horizontal-line", Fx_horizontal_line, Sx_horizontal_line, 1, 1, "e",
   XGCValues gc_values;
 #endif
   register int previous_y;
-  register int line = (x_mouse_y + 1) * FONT_HEIGHT (f->display.x->font)
+  register int line = (x_mouse_y + 1) * f->display.x->line_height
     + f->display.x->internal_border_width;
   register int left = f->display.x->internal_border_width
     + (w->left
@@ -3450,7 +3450,7 @@ DEFUN ("x-horizontal-line", Fx_horizontal_line, Sx_horizontal_line, 1, 1, "e",
 	  && x_mouse_y < XINT (w->top) + XINT (w->height) - 1)
 	{
 	  previous_y = x_mouse_y;
-	  line = (x_mouse_y + 1) * FONT_HEIGHT (f->display.x->font)
+	  line = (x_mouse_y + 1) * f->display.x->line_height
 	    + f->display.x->internal_border_width;
 	  XDrawLine (x_current_display, FRAME_X_WINDOW (f),
 		     line_gc, left, line, right, line);
