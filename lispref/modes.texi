@@ -1262,10 +1262,17 @@ up in the @file{.emacs} file, but Lisp programs can set them also.
 @xref{Standard Hooks}, for a list of standard hook variables.
 
   Most of the hooks in Emacs are @dfn{normal hooks}.  These variables
-contain lists of functions to be called with no arguments.  The reason
-most hooks are normal hooks is so that you can use them in a uniform
-way.  You can always tell when a hook is a normal hook, because its 
-name ends in @samp{-hook}.
+contain lists of functions to be called with no arguments.  When the
+hook name ends in @samp{-hook}, that tells you it is normal.  We try to
+make all hooks normal, as much as possible, so that you can use them in
+a uniform way.
+
+  Every major mode function is supposed to run a normal hook called the
+@dfn{mode hook} as the last step of initialization.  This makes it easy
+for a user to customize the behavior of the mode, by overriding the
+local variable assignments already made by the mode.  But hooks are used
+in other contexts too.  For example, the hook @code{suspend-hook} runs
+just before Emacs suspends itself (@pxref{Suspending Emacs}).
 
   The recommended way to add a hook function to a normal hook is by
 calling @code{add-hook} (see below).  The hook functions may be any of
@@ -1273,20 +1280,20 @@ the valid kinds of functions that @code{funcall} accepts (@pxref{What Is
 a Function}).  Most normal hook variables are initially void;
 @code{add-hook} knows how to deal with this.
 
-  As for abnormal hooks, those whose names end in @samp{-function} have
-a value that is a single function.  Those whose names end in
-@samp{-hooks} have a value that is a list of functions.  Any hook that
-is abnormal is abnormal because a normal hook won't do the job; either
-the functions are called with arguments, or their values are meaningful.
-The name shows you that the hook is abnormal and that you should look at
-its documentation string to see how to use it properly.
+  If the hook variable's name does not end with @samp{-hook}, that
+indicates it is probably an abnormal hook; you should look at its
+documentation to see how to use the hook properly.
 
-  Major mode functions are supposed to run a hook called the @dfn{mode
-hook} as the last step of initialization.  This makes it easy for a user
-to customize the behavior of the mode, by overriding the local variable
-assignments already made by the mode.  But hooks are used in other
-contexts too.  For example, the hook @code{suspend-hook} runs just
-before Emacs suspends itself (@pxref{Suspending Emacs}).
+  If the variable's name ends in @samp{-functions} or @samp{-hooks},
+then the value is a list of functions, but it is abnormal in that either
+these functions are called with arguments or their values are used in
+some way.  You can use @code{add-hook} to add a function to the list,
+but you must take care in writing the function.  (A few of these
+variables are actually normal hooks which were named before we
+established the convention of using @samp{-hook} for them.)
+
+  If the variable's name ends in @samp{-function}, then its value
+is just a single function, not a list of functions.
 
   Here's an expression that uses a mode hook to turn on Auto Fill mode
 when in Lisp Interaction mode:
