@@ -97,6 +97,7 @@
   :group 'minibuffer
   :group 'convenience)
 
+;;;###autoload
 (defcustom partial-completion-mode nil
   "Toggle Partial Completion mode.
 When Partial Completion mode is enabled, TAB (or M-TAB if `PC-meta-flag' is
@@ -829,7 +830,7 @@ or properties are considered."
 			  (or (string-match "\\.el$" name)
 			      (setq name (concat name ".el")))))
 		    (error "Not on an #include line"))))))
-	(or (string-match "\\.[a-zA-Z0-9]+$" name)
+	(or (string-match "\\.[[:alnum:]]+$" name)
 	    (setq name (concat name ".h")))
 	(if (eq punc ?\<)
 	    (let ((path (or path (PC-include-file-path))))
