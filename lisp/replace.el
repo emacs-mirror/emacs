@@ -142,13 +142,18 @@ which will run faster and will not set the mark or print anything."
   (interactive (query-replace-read-args "Replace regexp"))
   (perform-replace regexp to-string nil t delimited)
   (or unread-command-events (message "Done")))
+
+(defvar regexp-history nil
+  "History list for some commands that read regular expressions.")
 
 (fset 'delete-non-matching-lines 'keep-lines)
 (defun keep-lines (regexp)
   "Delete all lines except those containing matches for REGEXP.
 A match split across lines preserves all the lines it lies in.
 Applies to all lines after point."
-  (interactive "sKeep lines (containing match for regexp): ")
+  (interactive (list (read-from-minibuffer
+		      "sKeep lines (containing match for regexp): "
+		      nil nil nil 'regexp-history)))
   (save-excursion
     (or (bolp) (forward-line 1))
     (let ((start (point)))
@@ -173,7 +178,9 @@ Applies to all lines after point."
   "Delete lines containing matches for REGEXP.
 If a match is split across lines, all the lines it lies in are deleted.
 Applies to lines after point."
-  (interactive "sFlush lines (containing match for regexp): ")
+  (interactive (list (read-from-minibuffer
+		      "sFlush lines (containing match for regexp): "
+		      nil nil nil 'regexp-history)))
   (save-excursion
     (while (and (not (eobp))
 		(re-search-forward regexp nil t))
@@ -185,7 +192,9 @@ Applies to lines after point."
 (fset 'count-matches 'how-many)
 (defun how-many (regexp)
   "Print number of matches for REGEXP following point."
-  (interactive "sHow many matches for (regexp): ")
+  (interactive (list (read-from-minibuffer
+		      "sHow many matches for (regexp): "
+		      nil nil nil 'regexp-history)))
   (let ((count 0) opoint)
     (save-excursion
      (while (and (not (eobp))
@@ -195,7 +204,7 @@ Applies to lines after point."
 	   (forward-char 1)
 	 (setq count (1+ count))))
      (message "%d occurrences" count))))
-
+
 (defvar occur-mode-map ())
 (if occur-mode-map
     ()
@@ -205,7 +214,6 @@ Applies to lines after point."
 (defvar occur-buffer nil)
 (defvar occur-nlines nil)
 (defvar occur-pos-list nil)
-(defvar occur-last-string "")
 
 (defun occur-mode ()
   "Major mode for output from \\[occur].
@@ -244,7 +252,7 @@ in the buffer that the occurrences were found in.
 	 (pos (nth occur-number occur-pos-list)))
     (pop-to-buffer occur-buffer)
     (goto-char (marker-position pos))))
-
+
 (defvar list-matching-lines-default-context-lines 0
   "*Default number of context lines to include around a `list-matching-lines'
 match.  A negative number means to include that many lines before the match.
@@ -254,8 +262,6 @@ A positive number means to include that many lines both before and after.")
 
 (defun occur (regexp &optional nlines)
   "Show all lines in the current buffer containing a match for REGEXP.
-Interactively, REGEXP defaults to the last REGEXP
-used interactively with \\[occur].
 
 If a match spreads across multiple lines, all those lines are shown.
 
@@ -264,12 +270,17 @@ before if NLINES is negative.
 NLINES defaults to `list-matching-lines-default-context-lines'.
 Interactively it is the prefix arg.
 
-The lines are shown in a buffer named *Occur*.
+The lines are shown in a buffer named `*Occur*'.
 It serves as a menu to find any of the occurrences in this buffer.
 \\[describe-mode] in that buffer will explain how."
-  (interactive (list (setq occur-last-string
-			   (read-string "List lines matching regexp: "
-					occur-last-string))
+  (interactive (list (let* ((default (car regexp-history))
+			    (input 
+			     (read-from-minibuffer
+			      (format "List lines matching regexp (default `%s'): " default)
+			      nil nil nil
+			      'regexp-history)))
+		       (if (> (length input) 0) input
+			 (setcar regexp-history default)))
 		     current-prefix-arg))
   (setq nlines (if nlines (prefix-numeric-value nlines)
 		 list-matching-lines-default-context-lines))
@@ -301,7 +312,8 @@ It serves as a menu to find any of the occurrences in this buffer.
 		    (re-search-forward regexp nil t))
 	  (goto-char (match-beginning 0))
 	  (beginning-of-line)
-	  (setq linenum (+ linenum (count-lines prevpos (point))))
+	  (save-match-data
+	    (setq linenum (+ linenum (count-lines prevpos (point)))))
 	  (setq prevpos (point))
 	  (goto-char (match-end 0))
 	  (let* ((start (save-excursion
