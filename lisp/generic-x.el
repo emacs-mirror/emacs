@@ -92,6 +92,7 @@
 
 ;;; Code:
 
+(require 'generic)
 (require 'font-lock)
 
 (defgroup generic-x nil
