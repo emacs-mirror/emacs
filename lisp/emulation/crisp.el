@@ -186,4 +186,4 @@ consecutive use moves point to the end of the buffer."
 
 (provide 'crisp)
 
-;; crisp.el ends here
+;;; crisp.el ends here
