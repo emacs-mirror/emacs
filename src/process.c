@@ -6011,7 +6011,6 @@ void
 init_process ()
 {
   register int i;
-  Lisp_Object subfeatures;
 
 #ifdef SIGCHLD
 #ifndef CANNOT_DUMP
@@ -6039,50 +6038,54 @@ init_process ()
   bzero (datagram_address, sizeof datagram_address);
 #endif
 
+#ifdef HAVE_SOCKETS
+ {
+   Lisp_Object subfeatures = Qnil;
 #define ADD_SUBFEATURE(key, val) \
   subfeatures = Fcons (Fcons (key, Fcons (val, Qnil)), subfeatures)
 
-  subfeatures = Qnil;
 #ifdef NON_BLOCKING_CONNECT
-  ADD_SUBFEATURE (QCnowait, Qt);
+   ADD_SUBFEATURE (QCnowait, Qt);
 #endif
 #ifdef DATAGRAM_SOCKETS
-  ADD_SUBFEATURE (QCtype, Qdatagram);
+   ADD_SUBFEATURE (QCtype, Qdatagram);
 #endif
 #ifdef HAVE_LOCAL_SOCKETS
-  ADD_SUBFEATURE (QCfamily, Qlocal);
+   ADD_SUBFEATURE (QCfamily, Qlocal);
 #endif
 #ifdef HAVE_GETSOCKNAME
-  ADD_SUBFEATURE (QCservice, Qt);
+   ADD_SUBFEATURE (QCservice, Qt);
 #endif
 #ifndef TERM
-  ADD_SUBFEATURE (QCserver, Qt);
+   ADD_SUBFEATURE (QCserver, Qt);
 #endif
 #ifdef SO_BINDTODEVICE
-  ADD_SUBFEATURE (QCoptions, intern ("bindtodevice"));
+   ADD_SUBFEATURE (QCoptions, intern ("bindtodevice"));
 #endif
 #ifdef SO_BROADCAST
-  ADD_SUBFEATURE (QCoptions, intern ("broadcast"));
+   ADD_SUBFEATURE (QCoptions, intern ("broadcast"));
 #endif
 #ifdef SO_DONTROUTE
-  ADD_SUBFEATURE (QCoptions, intern ("dontroute"));
+   ADD_SUBFEATURE (QCoptions, intern ("dontroute"));
 #endif
 #ifdef SO_KEEPALIVE
-  ADD_SUBFEATURE (QCoptions, intern ("keepalive"));
+   ADD_SUBFEATURE (QCoptions, intern ("keepalive"));
 #endif
 #ifdef SO_LINGER
-  ADD_SUBFEATURE (QCoptions, intern ("linger"));
+   ADD_SUBFEATURE (QCoptions, intern ("linger"));
 #endif
 #ifdef SO_OOBINLINE
-  ADD_SUBFEATURE (QCoptions, intern ("oobinline"));
+   ADD_SUBFEATURE (QCoptions, intern ("oobinline"));
 #endif
 #ifdef SO_PRIORITY
-  ADD_SUBFEATURE (QCoptions, intern ("priority"));
+   ADD_SUBFEATURE (QCoptions, intern ("priority"));
 #endif
 #ifdef SO_REUSEADDR
-  ADD_SUBFEATURE (QCoptions, intern ("reuseaddr"));
+   ADD_SUBFEATURE (QCoptions, intern ("reuseaddr"));
 #endif
-  Fprovide (intern ("make-network-process"), subfeatures);
+   Fprovide (intern ("make-network-process"), subfeatures);
+ }
+#endif /* HAVE_SOCKETS */
 }
 
 void
