@@ -1140,8 +1140,6 @@ w32_per_char_metric (hdc, font, char2b, font_type)
 {
   /* The result metric information.  */
   XCharStruct *pcm;
-  ABC char_widths;
-  SIZE sz;
   BOOL retval;
 
   xassert (font && char2b);
@@ -1161,37 +1159,63 @@ w32_per_char_metric (hdc, font, char2b, font_type)
   if (font->hfont)
     SelectObject (hdc, font->hfont);
 
-  if (font_type == UNICODE_FONT)
-    retval = GetCharABCWidthsW (hdc, *char2b, *char2b, &char_widths);
-  else if (font_type == ANSI_FONT)
-    retval = GetCharABCWidthsA (hdc, *char2b, *char2b, &char_widths);
-
-  if (retval)
+  if ((font->tm.tmPitchAndFamily & TMPF_TRUETYPE) != 0)
     {
-      pcm->width = char_widths.abcA + char_widths.abcB + char_widths.abcC;
-      pcm->lbearing = char_widths.abcA;
-      pcm->rbearing = pcm->width - char_widths.abcC;
+      ABC char_widths;
+
+      if (font_type == UNICODE_FONT)
+	retval = GetCharABCWidthsW (hdc, *char2b, *char2b, &char_widths);
+      else if (font_type == ANSI_FONT)
+	retval = GetCharABCWidthsA (hdc, *char2b, *char2b, &char_widths);
+
+      if (retval)
+	{
+	  pcm->width = char_widths.abcA + char_widths.abcB + char_widths.abcC;
+	  pcm->lbearing = char_widths.abcA;
+	  pcm->rbearing = pcm->width - char_widths.abcC;
+	}
+      else
+	{
+	  /* Windows 9x does not implement GetCharABCWidthsW, so if that
+	     failed, try GetTextExtentPoint32W, which is implemented and
+	     at least gives us some of the info we are after (total
+	     character width). */
+	  SIZE sz;
+
+	  if (font_type == UNICODE_FONT)
+	    retval = GetTextExtentPoint32W (hdc, char2b, 1, &sz);
+
+	  if (retval)
+	    {
+	      pcm->width = sz.cx;
+	      pcm->rbearing = sz.cx;
+	      pcm->lbearing = 0;
+	    }
+	  else
+	    {
+	      xfree (pcm);
+	      return NULL;
+	    }
+	}
     }
   else
     {
-      /* Windows 9x does not implement GetCharABCWidthsW, so if that
-         failed, try GetTextExtentPoint32W, which is implemented and
-         at least gives us some of the info we are after (total
-         character width). */
-      if (font_type == UNICODE_FONT)
-          retval = GetTextExtentPoint32W (hdc, char2b, 1, &sz);
+      /* Do our best to deduce the desired metrics data for non-Truetype
+         fonts (generally, raster fonts).  */
+      INT char_width;
 
+      retval = GetCharWidth (hdc, *char2b, *char2b, &char_width);
       if (retval)
-        {
-          pcm->width = sz.cx;
-          pcm->rbearing = sz.cx;
-          pcm->lbearing = 0;
-        }
+	{
+	  pcm->width = char_width;
+	  pcm->rbearing = char_width;
+	  pcm->lbearing = 0;
+	}
       else
-        {
-          xfree (pcm);
-          return NULL;
-        }
+	{
+	  xfree (pcm);
+	  return NULL;
+	}
     }
 
   pcm->ascent = FONT_BASE (font);
