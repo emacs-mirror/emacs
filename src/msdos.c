@@ -5368,7 +5368,7 @@ This variable is used only by MSDOS terminals.  */);
 
   DEFVAR_BOOL ("mouse-autoselect-window", &mouse_autoselect_window,
     doc: /* *Non-nil means autoselect window with mouse pointer.  */);
-  mouse_autoselect_window_p = 0;
+  mouse_autoselect_window = 0;
 #endif
 #ifndef subprocesses
   DEFVAR_BOOL ("delete-exited-processes", &delete_exited_processes,
