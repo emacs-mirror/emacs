@@ -367,11 +367,11 @@ This is relative to `smtpmail-queue-dir'.")
 (defun smtpmail-send-queued-mail ()
   "Send mail that was queued as a result of setting `smtpmail-queue-mail'."
   (interactive)
-  ;;; Get index, get first mail, send it, get second mail, etc...
-  (let ((buffer-index (find-file-noselect smtpmail-queue-index))
-	(file-msg "")
-	(tembuf nil))
-    (with-current-buffer buffer-index
+  (with-temp-buffer
+    ;;; Get index, get first mail, send it, update index, get second
+    ;;; mail, send it, etc...
+    (let ((file-msg ""))
+      (insert-file-contents smtpmail-queue-index)
       (beginning-of-buffer)
       (while (not (eobp))
 	(setq file-msg (buffer-substring (point) (line-end-position)))
@@ -379,20 +379,18 @@ This is relative to `smtpmail-queue-dir'.")
 	;; Insert the message literally: it is already encoded as per
 	;; the MIME headers, and code conversions might guess the
 	;; encoding wrongly.
-	(setq tembuf (find-file-noselect file-msg nil t))
-	(if (not (null smtpmail-recipient-address-list))
-	    (if (not (smtpmail-via-smtp smtpmail-recipient-address-list 
-					tembuf))
-		(error "Sending failed; SMTP protocol error"))
-	  (error "Sending failed; no recipients"))  
+	(with-temp-buffer
+	  (let ((coding-system-for-read 'no-conversion))
+	    (insert-file-contents file-msg))
+	  (if (not (null smtpmail-recipient-address-list))
+	      (if (not (smtpmail-via-smtp smtpmail-recipient-address-list
+					  (current-buffer)))
+		  (error "Sending failed; SMTP protocol error"))
+	    (error "Sending failed; no recipients")))
 	(delete-file file-msg)
 	(delete-file (concat file-msg ".el"))
-	(kill-buffer tembuf)
-	(kill-line 1))      
-      (set-buffer buffer-index)
-      (save-buffer smtpmail-queue-index)
-      (kill-buffer buffer-index)
-      )))
+	(kill-line 1))
+      (write-region (point-min) (point-max) smtpmail-queue-index))))
 
 ;(defun smtpmail-via-smtp (host,port,sender,destination,smtpmail-text-buffer)
 
