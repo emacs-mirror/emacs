@@ -68,9 +68,12 @@ all:
 sh_output := $(shell echo)
 ifeq "$(findstring ECHO, $(sh_output))" "ECHO"
 THE_SHELL = $(COMSPEC)$(ComSpec)
+SHELLTYPE=CMD
 else
 USING_SH = 1
 THE_SHELL = $(SHELL)
+SHELLTYPE=SH
+SETLOADPATH=EMACSLOADPATH=$(lisp)
 endif
 
 MAKEDIR = $(CURDIR)
