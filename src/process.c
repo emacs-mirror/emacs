@@ -1519,42 +1519,47 @@ create_process (process, new_argv, current_dir)
     environ = save_environ;
   }
 
+  /* This runs in the Emacs process.  */
   if (pid < 0)
     {
       if (forkin >= 0)
 	close (forkin);
       if (forkin != forkout && forkout >= 0)
 	close (forkout);
-      report_file_error ("Doing vfork", Qnil);
     }
-  
-  XSETFASTINT (XPROCESS (process)->pid, pid);
+  else
+    {
+      /* vfork succeeded.  */
+      XSETFASTINT (XPROCESS (process)->pid, pid);
 
 #ifdef WINDOWSNT
-  register_child (pid, inchannel);
+      register_child (pid, inchannel);
 #endif /* WINDOWSNT */
 
-  /* If the subfork execv fails, and it exits,
-     this close hangs.  I don't know why.
-     So have an interrupt jar it loose.  */
-  stop_polling ();
-  signal (SIGALRM, create_process_1);
-  alarm (1);
-  XPROCESS (process)->subtty = Qnil;
-  if (forkin >= 0)
-    close (forkin);
-  alarm (0);
-  start_polling ();
-  if (forkin != forkout && forkout >= 0)
-    close (forkout);
+      /* If the subfork execv fails, and it exits,
+	 this close hangs.  I don't know why.
+	 So have an interrupt jar it loose.  */
+      stop_polling ();
+      signal (SIGALRM, create_process_1);
+      alarm (1);
+      XPROCESS (process)->subtty = Qnil;
+      if (forkin >= 0)
+	close (forkin);
+      alarm (0);
+      start_polling ();
+      if (forkin != forkout && forkout >= 0)
+	close (forkout);
 
 #ifdef HAVE_PTYS
-  if (pty_flag)
-    XPROCESS (process)->tty_name = build_string (pty_name);
-  else
+      if (pty_flag)
+	XPROCESS (process)->tty_name = build_string (pty_name);
+      else
 #endif
-    XPROCESS (process)->tty_name = Qnil;
+	XPROCESS (process)->tty_name = Qnil;
+    }
 
+  /* Restore the signal state whether vfork succeeded or not.
+     (We will signal an error, below, if it failed.)  */
 #ifdef POSIX_SIGNALS
 #ifdef HAVE_VFORK
   /* Restore the parent's signal handlers.  */
@@ -1585,6 +1590,10 @@ create_process (process, new_argv, current_dir)
 #endif /* not BSD4_1 */
 #endif /* SIGCHLD */
 #endif /* !POSIX_SIGNALS */
+
+  /* Now generate the error if vfork failed.  */
+  if (pid < 0)
+    report_file_error ("Doing vfork", Qnil);
 }
 #endif /* not VMS */
 
