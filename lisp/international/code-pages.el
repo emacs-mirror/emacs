@@ -36,7 +36,7 @@
 ;; cp869, cp874, cp1125, windows-1250, windows-1251, windows-1252,
 ;; windows-1253, windows-1254, windows-1255, windows-1256,
 ;; windows-1257, windows-1258, next, koi8-u, iso-8859-6,
-;; iso-8859-10, iso-8859-12, iso-8859-16, koi8-t, georgian-ps.  This
+;; iso-8859-10, iso-8859-11, iso-8859-16, koi8-t, georgian-ps.  This
 ;; is meant to include all the single-byte ones relevant to GNU (used
 ;; in glibc-defined locales); we don't yet get all the multibyte ones
 ;; in base Emacs.
@@ -4709,6 +4709,20 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 (define-coding-system-alias 'ruscii 'cp1125)
 ;; Original name for cp1125, says Serhii Hlodin <hlodin@lutsk.bank.gov.ua>
 (define-coding-system-alias 'cp866u 'cp1125)
+
+(cp-make-coding-system
+ iso-8859-11
+ [
+nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
+nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
+?   ?ก  ?ข  ?ฃ  ?ค  ?ฅ  ?ฆ  ?ง  ?จ  ?ฉ  ?ช  ?ซ  ?ฌ  ?ญ  ?ฎ  ?ฏ
+?ฐ  ?ฑ  ?ฒ  ?ณ  ?ด  ?ต  ?ถ  ?ท  ?ธ  ?น  ?บ  ?ป  ?ผ  ?ฝ  ?พ  ?ฟ
+?ภ  ?ม  ?ย  ?ร  ?ฤ  ?ล  ?ฦ  ?ว  ?ศ  ?ษ  ?ส  ?ห  ?ฬ  ?อ  ?ฮ  ?ฯ
+?ะ  ?ั  ?า  ?ำ  ?ิ  ?ี  ?ึ  ?ื  ?ุ  ?ู  ?ฺ  nil nil nil nil ?฿
+?เ  ?แ  ?โ  ?ใ  ?ไ  ?ๅ  ?ๆ  ?็  ?่  ?้  ?๊  ?๋  ?์  ?ํ  ?๎  ?๏
+?๐  ?๑  ?๒  ?๓  ?๔  ?๕  ?๖  ?๗  ?๘  ?๙  ?๚  ?๛   nil nil nil nil          
+]
+ "ISO-8859-11.  This is `thai-tis620' with the addition of no-break-space.")
 
 (dotimes (i 8)
   (let ((w (intern (format "windows-125%d" i)))
