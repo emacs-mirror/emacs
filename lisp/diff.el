@@ -159,7 +159,7 @@ is nil, REGEXP matches only half a section.")
 ;;;###autoload
 (defun diff (old new &optional switches)
   "Find and display the differences between OLD and NEW files.
-Interactively the current buffer's file name is the default for for NEW
+Interactively the current buffer's file name is the default for NEW
 and a backup file for NEW is the default for OLD.
 With prefix arg, prompt for diff switches."
   (interactive
