@@ -1491,6 +1491,7 @@ edit files while running shell commands.
 @include custom.texi
 @include trouble.texi
 @include cmdargs.texi
+@include xresources.texi
 
 @include anti.texi
 @include macos.texi
