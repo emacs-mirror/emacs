@@ -91,11 +91,13 @@ This command must be bound to a mouse click."
 	(split-window-horizontally
 	 (min (max new-width first-col) last-col))))))
 
-(defun mouse-set-point (click)
+(defun mouse-set-point (event)
   "Move point to the position clicked on with the mouse.
-This must be bound to a mouse click."
+This should be bound to a mouse click event type."
   (interactive "e")
-  (let ((posn (event-start click)))
+  ;; Use event-end in case called from mouse-drag-region.
+  ;; If EVENT is a click, event-end and event-start give same value.
+  (let ((posn (event-end event)))
     (and (window-minibuffer-p (posn-window posn))
 	 (not (minibuffer-window-active-p (posn-window posn)))
 	 (error "Minibuffer window is not active"))
@@ -105,7 +107,7 @@ This must be bound to a mouse click."
 
 (defun mouse-set-region (click)
   "Set the region to the text that the mouse is dragged over.
-This must be bound to a mouse drag event."
+This should be bound to a mouse drag event."
   (interactive "e")
   (let ((posn (event-start click))
 	(end (event-end click)))
