@@ -1307,9 +1307,9 @@ if test "${window_system}" = "x11"; then
 [#if XlibSpecificationRelease < 6
 fail;
 #endif
-], [AC_MSG_RESULT(6)
+], [AC_MSG_RESULT(6 or newer)
     AC_DEFINE(HAVE_X11R6)],
-   [AC_MSG_RESULT(not 6)])
+   [AC_MSG_RESULT(before 6)])
 fi
 
 if test x"${USE_X_TOOLKIT}" = xmaybe; then
@@ -1318,10 +1318,10 @@ if test x"${USE_X_TOOLKIT}" = xmaybe; then
 [#if XlibSpecificationRelease < 5
 fail;
 #endif
-], [AC_MSG_RESULT(5, use toolkit)
+], [AC_MSG_RESULT(5 or newer; use toolkit by default)
     USE_X_TOOLKIT=LUCID
     AC_DEFINE(HAVE_X11R5)],
-   [AC_MSG_RESULT(not 5, do not use toolkit)
+   [AC_MSG_RESULT(before 5; do not use toolkit by default)
     USE_X_TOOLKIT=none])
 fi
 
@@ -1333,14 +1333,20 @@ if test "${USE_X_TOOLKIT}" != "none"; then
 [#if XtSpecificationRelease < 6
 fail;
 #endif
-], [AC_MSG_RESULT(6)
+], [AC_MSG_RESULT(6 or newer)
+    HAVE_X11XTR6=yes
     AC_DEFINE(HAVE_X11XTR6)],
-   [AC_MSG_RESULT(not 6)])
+   [AC_MSG_RESULT(before 6)
+    HAVE_X11XTR6=no])
 
 dnl If using toolkit, check whether libXmu.a exists.
 dnl tranle@intellicorp.com says libXmu.a can need XtMalloc in libXt.a to link.
   OLDLIBS="$LIBS"
-  LIBS="-lXt $LIBS"
+  if test x$HAVE_X11XTR6 = xyes; then
+    LIBS="-lXt -lSM -lICE $LIBS"
+  else
+    LIBS="-lXt $LIBS"
+  fi
   AC_CHECK_LIB(Xmu, XmuConvertStandardSelection)
   LIBS="$OLDLIBS"
 fi
@@ -1364,7 +1370,7 @@ strerror fpathconf select mktime eaccess getpagesize tzset)
 
 AC_MSG_CHECKING(whether localtime caches TZ)
 AC_CACHE_VAL(emacs_cv_localtime_cache,
-[if test $ac_cv_func_tzset = yes; then
+[if test x$ac_cv_func_tzset = xyes; then
 AC_TRY_RUN([#include <time.h>
 #if STDC_HEADERS
 # include <stdlib.h>
