@@ -318,9 +318,7 @@ access_keymap (map, idx, t_ok, noinherit)
 	    break;
 
 	  case Lisp_Vector:
-	    if (INTEGERP (idx)
-		&& XINT (idx) >= 0
-		&& XINT (idx) < XVECTOR (binding)->size)
+	    if (NATNUMP (idx) && XFASTINT (idx) < XVECTOR (binding)->size)
 	      {
 		val = XVECTOR (binding)->contents[XINT (idx)];
 		if (noprefix && CONSP (val) && EQ (XCONS (val)->car, Qkeymap))
@@ -437,8 +435,7 @@ store_in_keymap (keymap, idx, def)
 	switch (XTYPE (elt))
 	  {
 	  case Lisp_Vector:
-	    if (INTEGERP (idx)
-		&& XINT (idx) >= 0 && XINT (idx) < XVECTOR (elt)->size)
+	    if (NATNUMP (idx) && XFASTINT (idx) < XVECTOR (elt)->size)
 	      {
 		XVECTOR (elt)->contents[XFASTINT (idx)] = def;
 		return def;
