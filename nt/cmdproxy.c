@@ -496,21 +496,21 @@ main (int argc, char ** argv)
 	 passed on to real shell if used (only really of benefit for
 	 interactive use, but allow for batch use as well).  Accept / as
 	 switch char for compatability with cmd.exe.  */
-      if ( ((*argv)[0] == '-' || (*argv)[0] == '/') && (*argv)[1] != '\0' )
+      if (((*argv)[0] == '-' || (*argv)[0] == '/') && (*argv)[1] != '\0')
 	{
-	  if ( ((*argv)[1] == 'c') && ((*argv)[2] == '\0')  )
+	  if (((*argv)[1] == 'c' || (*argv)[1] == 'C') && ((*argv)[2] == '\0'))
 	    {
 	      if (--argc == 0)
 		fail ("error: expecting arg for %s\n", *argv);
 	      cmdline = *(++argv);
 	      interactive = FALSE;
 	    }
-	  else if ( ((*argv)[1] == 'i') && ((*argv)[2] == '\0')  )
+	  else if (((*argv)[1] == 'i' || (*argv)[1] == 'I') && ((*argv)[2] == '\0'))
 	    {
 	      if (cmdline)
 		warn ("warning: %s ignored because of -c\n", *argv);
 	    }
-	  else if ( ((*argv)[1] == 'e') && ((*argv)[2] == ':')  )
+	  else if (((*argv)[1] == 'e' || (*argv[1] == 'E')) && ((*argv)[2] == ':'))
 	    {
 	      int requested_envsize = atoi (*argv + 3);
 	      /* Enforce a reasonable minimum size, as above.  */
