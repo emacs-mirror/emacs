@@ -1060,8 +1060,7 @@ articles in the topic and its subtopics."
     ;; Remove topic infestation.
     (unless gnus-topic-mode
       (remove-hook 'gnus-summary-exit-hook 'gnus-topic-update-topic)
-      (remove-hook 'gnus-group-change-level-function
-		   'gnus-topic-change-level)
+      (setq gnus-group-change-level-function nil)
       (remove-hook 'gnus-check-bogus-groups-hook 'gnus-topic-clean-alist)
       (setq gnus-group-prepare-function 'gnus-group-prepare-flat)
       (setq gnus-group-sort-alist-function 'gnus-group-sort-flat))
