@@ -23,7 +23,7 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;; $Id: rlogin.el,v 1.37 1997/04/12 02:55:04 rms Exp $
+;; $Id: rlogin.el,v 1.38 1997/04/15 10:39:07 friedman Exp rms $
 
 ;;; Commentary:
 
@@ -244,6 +244,8 @@ variable."
                 (t
                  (cd-absolute (concat comint-file-name-prefix "~/"))))
         (error nil))))))
+
+(put 'rlogin-mode 'mode-class 'special)
 
 (defun rlogin-mode ()
   "Set major-mode for rlogin sessions.
