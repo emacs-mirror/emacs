@@ -1,3 +1,17 @@
+2002-06-18  Juanma Barranquero  <lektu@terra.es>
+
+	* filesets.el (filesets-update-pre010505): Fix typo.
+
+	* eshell/em-pred.el (eshell-modifier-help-string): Fix typos.
+
+	* emulation/edt.el (edt-substitute): Fix typo.
+
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine): Fix typo.
+
+	* comint.el (comint-next-prompt, comint-previous-prompt): Fix typos.
+
+	* progmodes/sh-script.el (sh-electric-rparen-needed): Remove.
+
 2002-06-17  Richard M. Stallman  <rms@gnu.org>
 
 	* facemenu.el (facemenu-map): Rename to Describe Text

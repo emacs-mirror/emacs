@@ -4102,7 +4102,7 @@ CHAR
 
 `(minimal-match SEXP)'
      produce a non-greedy regexp for SEXP.  Normally, regexps matching
-     zero or more occurrances of something are \"greedy\" in that they
+     zero or more occurrences of something are \"greedy\" in that they
      match as much as they can, as long as the overall regexp can
      still match.  A non-greedy regexp matches as little as possible.
 
