@@ -24,7 +24,6 @@ Boston, MA 02111-1307, USA.  */
 #include <stdlib.h>
 #include "lisp.h"
 #include "charset.h"
-#include "fontset.h"
 #include "blockinput.h"
 
 #include "w32heap.h"
@@ -43,6 +42,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include "frame.h"
 #include "dispextern.h"
+#include "fontset.h"
 #include "termhooks.h"
 #include "termopts.h"
 #include "termchar.h"
@@ -174,6 +174,8 @@ extern unsigned int msh_mousewheel;
 
 extern void free_frame_menubar ();
 
+extern void w32_menu_display_help (HMENU menu, UINT menu_item, UINT flags);
+
 extern Lisp_Object Vwindow_system;
 
 #define x_any_window_to_frame x_window_to_frame
@@ -287,7 +289,7 @@ int last_mouse_scroll_bar_pos;
 Time last_mouse_movement_time;
 
 /* Associative list linking character set strings to Windows codepages. */
-Lisp_Object Vw32_charset_to_codepage_alist;
+Lisp_Object Vw32_charset_info_alist;
 
 /* Incremented by w32_read_socket whenever it really tries to read events.  */
 #ifdef __STDC__
@@ -391,6 +393,32 @@ static void w32_clip_to_row P_ ((struct window *, struct glyph_row *,
                                HDC, int));
 
 static Lisp_Object Qvendor_specific_keysyms;
+
+Lisp_Object Qw32_charset_ansi;
+Lisp_Object Qw32_charset_default;
+Lisp_Object Qw32_charset_symbol;
+Lisp_Object Qw32_charset_shiftjis;
+Lisp_Object Qw32_charset_hangul;
+Lisp_Object Qw32_charset_gb2312;
+Lisp_Object Qw32_charset_chinesebig5;
+Lisp_Object Qw32_charset_oem;
+
+#ifdef JOHAB_CHARSET
+Lisp_Object Qw32_charset_easteurope;
+Lisp_Object Qw32_charset_turkish;
+Lisp_Object Qw32_charset_baltic;
+Lisp_Object Qw32_charset_russian;
+Lisp_Object Qw32_charset_arabic;
+Lisp_Object Qw32_charset_greek;
+Lisp_Object Qw32_charset_hebrew;
+Lisp_Object Qw32_charset_thai;
+Lisp_Object Qw32_charset_johab;
+Lisp_Object Qw32_charset_mac;
+#endif
+
+#ifdef UNICODE_CHARSET
+Lisp_Object Qw32_charset_unicode;
+#endif
 
 
 #if 0
@@ -1046,7 +1074,8 @@ w32_cursor_to (vpos, hpos, y, x)
 
 static struct face *x_get_glyph_face_and_encoding P_ ((struct frame *,
 						       struct glyph *,
-						       wchar_t *));
+						       wchar_t *,
+                                                       int *));
 static struct face *x_get_char_face_and_encoding P_ ((struct frame *, int,
 						      int, wchar_t *, int));
 static XCharStruct *w32_per_char_metric P_ ((HDC hdc, XFontStruct *,
@@ -1071,6 +1100,8 @@ static void x_produce_image_glyph P_ ((struct it *it));
 #define BYTE2(ch) \
  ((ch) & 0x00ff)
 
+
+/* NTEMACS_TODO: Add support for bdf fonts back in. */
 
 /* Get metrics of character CHAR2B in FONT.  Value is always non-null.
    If CHAR2B is not contained in FONT, the font's default character
@@ -1133,6 +1164,12 @@ w32_per_char_metric (hdc, font, char2b, unicode_p)
 
   pcm->ascent = FONT_BASE (font);
   pcm->descent = FONT_DESCENT (font);
+
+  if (pcm->width == 0 && (pcm->rbearing - pcm->lbearing) == 0)
+    {
+      xfree (pcm);
+      pcm = NULL;
+    }
 
   return pcm;
 }
@@ -1246,12 +1283,8 @@ x_get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p)
       /* Unibyte case.  We don't have to encode, but we have to make
 	 sure to use a face suitable for unibyte.  */
       *char2b = BUILD_WCHAR_T (0, c);
-      
-      if (!FACE_SUITABLE_FOR_CHARSET_P (face, -1))
-	{
-	  face_id = FACE_FOR_CHARSET (f, face_id, -1);
-	  face = FACE_FROM_ID (f, face_id);
-	}
+      face_id = FACE_FOR_CHAR (f, face, c);
+      face = FACE_FROM_ID (f, face_id);
     }
   else if (c < 128 && face_id < BASIC_FACE_ID_SENTINEL)
     {
@@ -1269,32 +1302,14 @@ x_get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p)
 	*char2b = BUILD_WCHAR_T (c1, c2);
       else
 	*char2b = BUILD_WCHAR_T (0, c1);
-
-      /* Get the face for displaying C.  If `face' is not suitable for
-	 charset, get the one that fits.  (This can happen for the
-	 translations of a composition where the glyph
-	 specifies a face for the first component, but the other
-         components have a different charset.)  */
-      if (!FACE_SUITABLE_FOR_CHARSET_P (face, charset))
-	{
-	  face_id = FACE_FOR_CHARSET (f, face_id, charset);
-	  face = FACE_FROM_ID (f, face_id);
-	}
   
       /* Maybe encode the character in *CHAR2B.  */
-      if (charset != CHARSET_ASCII)
+      if (face->font != NULL)
 	{
 	  struct font_info *font_info
 	    = FONT_INFO_FROM_ID (f, face->font_info_id);
 	  if (font_info)
-	    {
 	      x_encode_char (c, char2b, font_info);
-#if 0 /* NTEMACS_TODO: Isn't this undoing what we just did?  Investigate. */
-	      if (charset == charset_latin_iso8859_1)
-                *char2b = BUILD_WCHAR_T (BYTE1 (*char2b),
-                                         BYTE2 (*char2b) | 0x80);
-#endif
-	    }
 	}
     }
 
@@ -1306,20 +1321,33 @@ x_get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p)
 }
 
 
+/* Determine if a font is double byte. */
+int w32_font_is_double_byte (XFontStruct *font)
+{
+  /* NTEMACS_TODO: Determine this properly using GetFontLanguageInfo
+     or similar.  Returning 1 might work, as we use Unicode anyway. */
+  return 1;
+}
+
+
 /* Get face and two-byte form of character glyph GLYPH on frame F.
    The encoding of GLYPH->u.ch is returned in *CHAR2B.  Value is
    a pointer to a realized face that is ready for display.  */
 
 static INLINE struct face *
-x_get_glyph_face_and_encoding (f, glyph, char2b)
+x_get_glyph_face_and_encoding (f, glyph, char2b, two_byte_p)
      struct frame *f;
      struct glyph *glyph;
      wchar_t *char2b;
+     int *two_byte_p;
 {
   struct face *face;
 
   xassert (glyph->type == CHAR_GLYPH);
   face = FACE_FROM_ID (f, glyph->face_id);
+
+  if (two_byte_p)
+    *two_byte_p = 0;
 
   if (!glyph->multibyte_p)
     {
@@ -1353,11 +1381,8 @@ x_get_glyph_face_and_encoding (f, glyph, char2b)
 	  if (font_info)
 	    {
 	      x_encode_char (glyph->u.ch, char2b, font_info);
-#if 0 /* NTEMACS_TODO: Isn't this undoing what we just did?  Investigate. */
-	      if (charset == charset_latin_iso8859_1)
-		*char2b = BUILD_WCHAR_T (BYTE1 (*char2b),
-                                         BYTE2 (*char2b) | 0x80);
-#endif
+              if (two_byte_p)
+                *two_byte_p = w32_font_is_double_byte (font_info->font);
 	    }
 	}
     }
@@ -1402,6 +1427,7 @@ x_append_glyph (it)
       glyph->multibyte_p = it->multibyte_p;
       glyph->overlaps_vertically_p = (it->phys_ascent > it->ascent
 				      || it->phys_descent > it->descent);
+      glyph->glyph_not_available_p = it->glyph_not_available_p;
       ++it->glyph_row->used[area];
     }
 }
@@ -1748,35 +1774,48 @@ static void
 x_produce_glyphs (it)
      struct it *it;
 {
+  it->glyph_not_available_p = 0;
+
   if (it->what == IT_CHARACTER)
     {
       wchar_t char2b;
       XFontStruct *font;
-      struct face *face;
+      struct face *face = FACE_FROM_ID (it->f, it->face_id);
       XCharStruct *pcm;
-     int font_not_found_p;
+      int font_not_found_p;
       struct font_info *font_info;
       int boff;                 /* baseline offset */
       HDC hdc;
 
       hdc = get_frame_dc (it->f);
 
-      /* Maybe translate single-byte characters to multibyte.  */
+      /* Maybe translate single-byte characters to multibyte, or the
+         other way.  */
       it->char_to_display = it->c;
-      if (unibyte_display_via_language_environment
-	  && SINGLE_BYTE_CHAR_P (it->c)
-	  && (it->c >= 0240
-	      || (it->c >= 0200
-		  && !NILP (Vnonascii_translation_table))))
-	{
-	  it->char_to_display = unibyte_char_to_multibyte (it->c);
-	  it->charset = CHAR_CHARSET (it->char_to_display);
-	}
+      if (!ASCII_BYTE_P (it->c))
+        {
+          if (unibyte_display_via_language_environment
+              && SINGLE_BYTE_CHAR_P (it->c)
+              && (it->c >= 0240
+                  || !NILP (Vnonascii_translation_table)))
+            {
+              it->char_to_display = unibyte_char_to_multibyte (it->c);
+	      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display);
+	      face = FACE_FROM_ID (it->f, it->face_id);
+	    }
+	  else if (!SINGLE_BYTE_CHAR_P (it->c)
+		   && !it->multibyte_p)
+	    {
+	      it->char_to_display = multibyte_char_to_unibyte (it->c, Qnil);
+	      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display);
+	      face = FACE_FROM_ID (it->f, it->face_id);
+	    }
+        }
       
-      /* Get face and font to use.  Encode IT->char_to_display.  */
-      face = x_get_char_face_and_encoding (it->f, it->char_to_display,
-					   it->face_id, &char2b,
-					   it->multibyte_p);
+      /* Get font to use.  Encode IT->char_to_display.  */
+      x_get_char_face_and_encoding (it->f, it->char_to_display,
+                                    it->face_id, &char2b,
+                                    it->multibyte_p);
       font = face->font;
 
       /* When no suitable font found, use the default font.  */
@@ -1863,6 +1902,7 @@ x_produce_glyphs (it)
 	      if (pcm->lbearing < 0
 		  || pcm->rbearing > pcm->width)
 		it->glyph_row->contains_overlapping_glyphs_p = 1;
+              xfree (pcm);
 	    }
 	}
       else if (it->char_to_display == '\n')
@@ -1908,33 +1948,31 @@ x_produce_glyphs (it)
              default font and calculate the width of the character
              from the charset width; this is what old redisplay code
              did.  */
-          if (font_not_found_p)
-            {
-              wchar_t dummy = BUILD_WCHAR_T (0, 'X');
+          pcm = w32_per_char_metric (hdc, font, &char2b, 1);
 
-              /* Get some metrics for the default font.  */
-              pcm = w32_per_char_metric (hdc, font, &dummy, 0);
+	  if (font_not_found_p || !pcm)
+	    {
+	      int charset = CHAR_CHARSET (it->char_to_display);
 
-              /* Ignore the width obtained above, and use the average
-                 width of a character in the default font. */
-              it->pixel_width = FONT_WIDTH (font)
-                * CHARSET_WIDTH (it->charset);
-            }
-          else
-            {
-              pcm = w32_per_char_metric (hdc, font, &char2b, 1);
-              it->pixel_width = pcm->width;
+	      it->glyph_not_available_p = 1;
+	      it->pixel_width = (FONT_WIDTH (FRAME_FONT (it->f))
+				 * CHARSET_WIDTH (charset));
+	      it->phys_ascent = FONT_BASE (font) + boff;
+	      it->phys_descent = FONT_DESCENT (font) - boff;
+	    }
+	  else
+	    {
+              it->phys_ascent = pcm->ascent + boff;
+              it->phys_descent = pcm->descent - boff;
+              if (it->glyph_row
+                  && (pcm->lbearing < 0
+                      || pcm->rbearing > pcm->width))
+                it->glyph_row->contains_overlapping_glyphs_p = 1;
             }
 
           it->nglyphs = 1;
           it->ascent = FONT_BASE (font) + boff;
           it->descent = FONT_DESCENT (font) - boff;
-          it->phys_ascent = pcm->ascent + boff;
-          it->phys_descent = pcm->descent - boff;
-          if (it->glyph_row
-              && (pcm->lbearing < 0
-                  || pcm->rbearing > pcm->width))
-            it->glyph_row->contains_overlapping_glyphs_p = 1;
 
 	  if (face->box != FACE_NO_BOX)
 	    {
@@ -1957,249 +1995,14 @@ x_produce_glyphs (it)
   
 	  if (it->glyph_row)
 	    x_append_glyph (it);
+
+          xfree (pcm);
 	}
       release_frame_dc (it->f, hdc);
     }
   else if (it->what == IT_COMPOSITION)
     {
-#if 0 /* NTEMACS_TODO: Composite glyphs.  */
-      /* Note: A composition is represented as one glyph in the
-	 glyph matrix.  There are no padding glyphs.  */
-      XChar2b char2b;
-      XFontStruct *font;
-      struct face *face;
-      XCharStruct *pcm;
-      int font_not_found_p;
-      struct font_info *font_info;
-      int boff;			/* baseline offset */
-      struct composition *cmp = composition_table[it->cmp_id];
-
-      /* Maybe translate single-byte characters to multibyte.  */
-      it->char_to_display = it->c;
-      if (unibyte_display_via_language_environment
-	  && SINGLE_BYTE_CHAR_P (it->c)
-	  && (it->c >= 0240
-	      || (it->c >= 0200
-		  && !NILP (Vnonascii_translation_table))))
-	{
-	  it->char_to_display = unibyte_char_to_multibyte (it->c);
-	  it->charset = CHAR_CHARSET (it->char_to_display);
-	}
-      
-      /* Get face and font to use.  Encode IT->char_to_display.  */
-      face = x_get_char_face_and_encoding (it->f, it->char_to_display,
-					   it->face_id, &char2b,
-					   it->multibyte_p);
-      font = face->font;
-
-      /* When no suitable font found, use the default font.  */
-      font_not_found_p = font == NULL;
-      if (font_not_found_p)
-	{
-	  font = FRAME_FONT (it->f);
-	  boff = it->f->output_data.x->baseline_offset;
-	  font_info = NULL;
-	}
-      else
-	{
-	  font_info = FONT_INFO_FROM_ID (it->f, face->font_info_id);
-	  boff = font_info->baseline_offset;
-	  if (font_info->vertical_centering)
-	    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
-	}
-
-      /* There are no padding glyphs, so there is only one glyph to
-	 produce for the composition.  Important is that pixel_width,
-	 ascent and descent are the values of what is drawn by
-	 draw_glyphs (i.e. the values of the overall glyphs composed).  */
-      it->nglyphs = 1;
-
-      /* If we have not yet calculated pixel size data of glyphs of
-	 the composition for the current face font, calculate them
-	 now.  Theoretically, we have to check all fonts for the
-	 glyphs, but that requires much time and memory space.  So,
-	 here we check only the font of the first glyph.  This leads
-	 to incorrect display very rarely, and C-l (recenter) can
-	 correct the display anyway.  */
-      if (cmp->font != (void *) font)
-	{
-	  /* Ascent and descent of the font of the first character of
-	     this composition (adjusted by baseline offset).  Ascent
-	     and descent of overall glyphs should not be less than
-	     them respectively.  */
-	  int font_ascent = font->ascent + boff;
-	  int font_descent = font->descent - boff;
-	  /* Bounding box of the overall glyphs.  */
-	  int leftmost, rightmost, lowest, highest;
-	  int i;
-
-	  cmp->font = (void *) font;
-
-	  /* Initialize the bounding box.  */
-	  pcm = x_per_char_metric (font, &char2b);
-	  leftmost = 0;
-	  rightmost = pcm->width;
-	  lowest = - pcm->descent + boff;
-	  highest = pcm->ascent + boff;
-	  if (font_info
-	      && font_info->default_ascent
-	      && CHAR_TABLE_P (Vuse_default_ascent)
-	      && !NILP (Faref (Vuse_default_ascent,
-			       make_number (it->char_to_display))))
-	    highest = font_info->default_ascent + boff;
-
-	  /* Draw the first glyph at the normal position.  It may be
-	     shifted to right later if some other glyphs are drawn at
-	     the left.  */
-	  cmp->offsets[0] = 0;
-	  cmp->offsets[1] = boff;
-
-	  /* Set cmp->offsets for the remaining glyphs.  */
-	  for (i = 1; i < cmp->glyph_len; i++)
-	    {
-	      int left, right, btm, top;
-	      int ch = COMPOSITION_GLYPH (cmp, i);
-
-	      face = x_get_char_face_and_encoding (it->f, ch,
-						   it->face_id, &char2b,
-						   it->multibyte_p);
-	      font = face->font;
-	      if (font == NULL)
-		{
-		  font = FRAME_FONT (it->f);
-		  boff = it->f->output_data.x->baseline_offset;
-		  font_info = NULL;
-		}
-	      else
-		{
-		  font_info
-		    = FONT_INFO_FROM_ID (it->f, face->font_info_id);
-		  boff = font_info->baseline_offset;
-		  if (font_info->vertical_centering)
-		    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
-		}
-
-	      pcm = x_per_char_metric (font, &char2b);
-
-	      if (cmp->method != COMPOSITION_WITH_RULE_ALTCHARS)
-		{
-		  /* Relative composition with or without
-		     alternate chars.  */
-		  left = (leftmost + rightmost - pcm->width) / 2;
-		  btm = - pcm->descent + boff;
-		  if (font_info && font_info->relative_compose
-		      && (! CHAR_TABLE_P (Vignore_relative_composition)
-			  || NILP (Faref (Vignore_relative_composition,
-					  make_number (ch)))))
-		    {
-
-		      if (- pcm->descent
-			  >= font_info->relative_compose)
-			/* One extra pixel between two glyphs.  */
-			btm = highest + 1;
-		      else if (pcm->ascent <= 0)
-			/* One extra pixel between two glyphs.  */
-			btm = lowest - 1 - pcm->ascent - pcm->descent;
-		    }
-		}
-	      else
-		{
-		  /* A composition rule is specified by an integer
-		     value that encodes global and new reference
-		     points (GREF and NREF).  GREF and NREF are
-		     specified by numbers as below:
-
-			0---1---2 -- ascent
-			|       |
-			|       |
-			|       |
-			9--10--11 -- center
-			|       |
-		     ---3---4---5--- baseline
-			|       |
-			6---7---8 -- descent
-		  */
-		  int rule = COMPOSITION_RULE (cmp, i);
-		  int gref, nref, grefx, grefy, nrefx, nrefy;
-
-		  COMPOSITION_DECODE_RULE (rule, gref, nref);
-		  grefx = gref % 3, nrefx = nref % 3;
-		  grefy = gref / 3, nrefy = nref / 3;
-
-		  left = (leftmost
-			  + grefx * (rightmost - leftmost) / 2
-			  - nrefx * pcm->width / 2);
-		  btm = ((grefy == 0 ? highest
-			  : grefy == 1 ? 0
-			  : grefy == 2 ? lowest
-			  : (highest + lowest) / 2)
-			 - (nrefy == 0 ? pcm->ascent + pcm->descent
-			    : nrefy == 1 ? pcm->descent - boff
-			    : nrefy == 2 ? 0
-			    : (pcm->ascent + pcm->descent) / 2));
-		}
-
-	      cmp->offsets[i * 2] = left;
-	      cmp->offsets[i * 2 + 1] = btm + pcm->descent;
-
-	      /* Update the bounding box of the overall glyphs. */
-	      right = left + pcm->width;
-	      top = btm + pcm->descent + pcm->ascent;
-	      if (left < leftmost)
-		leftmost = left;
-	      if (right > rightmost)
-		rightmost = right;
-	      if (top > highest)
-		highest = top;
-	      if (btm < lowest)
-		lowest = btm;
-	    }
-
-	  /* If there are glyphs whose x-offsets are negative,
-	     shift all glyphs to the right and make all x-offsets
-	     non-negative.  */
-	  if (leftmost < 0)
-	    {
-	      for (i = 0; i < cmp->glyph_len; i++)
-		cmp->offsets[i * 2] -= leftmost;
-	      rightmost -= leftmost;
-	    }
-
-	  cmp->pixel_width = rightmost;
-	  cmp->ascent = highest;
-	  cmp->descent = - lowest;
-	  if (cmp->ascent < font_ascent)
-	    cmp->ascent = font_ascent;
-	  if (cmp->descent < font_descent)
-	    cmp->descent = font_descent;
-	}
-
-      it->pixel_width = cmp->pixel_width;
-      it->ascent = it->phys_ascent = cmp->ascent;
-      it->descent = it->phys_descent = cmp->descent;
-
-      if (face->box != FACE_NO_BOX)
-	{
-	  int thick = face->box_line_width;
-	  it->ascent += thick;
-	  it->descent += thick;
-	  
-	  if (it->start_of_box_run_p)
-	    it->pixel_width += thick;
-	  if (it->end_of_box_run_p)
-	    it->pixel_width += thick;
-	}
-  
-      /* If face has an overline, add the height of the overline
-	 (1 pixel) and a 1 pixel margin to the character height.  */
-      if (face->overline_p)
-	it->ascent += 2;
-
-      take_vertical_position_into_account (it);
-  
-      if (it->glyph_row)
-	x_append_composite_glyph (it);
-#endif
+      /* NTEMACS_TODO: Composite glyphs.  */
     }
   else if (it->what == IT_IMAGE)
     x_produce_image_glyph (it);
@@ -2233,7 +2036,7 @@ x_estimate_mode_line_height (f, face_id)
   if (FRAME_FACE_CACHE (f))
       {
 	struct face *face = FACE_FROM_ID (f, face_id);
-	if (face)
+	if (face && face->font)
 	  height = FONT_HEIGHT (face->font) + 2 * face->box_line_width;
       }
   
@@ -2270,9 +2073,8 @@ w32_codepage_for_font (char *fontname)
         *end = '\0';
       }
 
-  codepage = Fcdr (Fassoc (build_string(charset),
-                           Vw32_charset_to_codepage_alist));
-
+  codepage = Fcdr (Fcdr (Fassoc (build_string(charset),
+                                 Vw32_charset_info_alist)));
   if (INTEGERP (codepage))
     return XINT (codepage);
   else
@@ -2349,9 +2151,6 @@ struct glyph_string
   wchar_t *char2b;
   int nchars;
 
-  /* Character set of this glyph string.  */
-  int charset;
-
   /* A face-override for drawing cursors, mouse face and similar.  */
   enum draw_glyphs_face hl;
 
@@ -2422,16 +2221,16 @@ void W32_TEXTOUT(s, x, y,chars,nchars)
      wchar_t * chars;
      int nchars;
 {
-  int charset_dim = CHARSET_DIMENSION (s->charset);
-
+  /* NTEMACS_TODO: Find way to figure out charset_dim. */
+  /*  int charset_dim = CHARSET_DIMENSION (s->charset); */
   if (s->gc->font->bdf)
     w32_BDF_TextOut (s->gc->font->bdf, s->hdc,
-                     x, y, (char *) chars, charset_dim, nchars, 0);
+                     x, y, (char *) chars, 1 /* charset_dim */, nchars, 0);
   else if (s->two_byte_p)
     ExtTextOutW (s->hdc, x, y, 0, NULL, chars, nchars, NULL);
   else
     ExtTextOut (s->hdc, x, y, 0, NULL, (char *) chars,
-                nchars * charset_dim, NULL);
+                nchars /* * charset_dim */, NULL);
 }
 
 #if 0
@@ -2634,10 +2433,12 @@ x_set_mouse_face_gc (s)
      struct glyph_string *s;
 {     
   int face_id;
+  struct face *face;
 
   /* What face has to be used for the mouse face?  */
   face_id = FRAME_W32_DISPLAY_INFO (s->f)->mouse_face_face_id;
-  face_id = FACE_FOR_CHARSET (s->f, face_id, s->charset);
+  face = FACE_FROM_ID (s->f, face_id);
+  face_id = FACE_FOR_CHAR (s->f, face, s->first_glyph->u.ch);
   s->face = FACE_FROM_ID (s->f, face_id);
   PREPARE_FACE_FOR_DISPLAY (s->f, s->face);
 
@@ -2887,19 +2688,19 @@ w32_get_glyph_overhangs (hdc, glyph, f, left, right, unicode_p)
       struct face *face;
       struct font_info *font_info;
       wchar_t char2b;
-      
-      face = x_get_glyph_face_and_encoding (f, glyph, &char2b);
+      XCharStruct *pcm;
+
+      face = x_get_glyph_face_and_encoding (f, glyph, &char2b, NULL);
       font = face->font;
       font_info = FONT_INFO_FROM_ID (f, face->font_info_id);
-      if (font)
+      if (font
+          && (pcm = w32_per_char_metric (hdc, font, &char2b, unicode_p)))
 	{
-	  XCharStruct *pcm = w32_per_char_metric (hdc, font, &char2b,
-                                                  unicode_p);
-
 	  if (pcm->rbearing > pcm->width)
 	    *right = pcm->rbearing - pcm->width;
 	  if (pcm->lbearing < 0)
 	    *left = -pcm->lbearing;
+          xfree (pcm);
 	}
     }
 }
@@ -3228,6 +3029,9 @@ w32_alloc_lighter_color (f, color, factor, delta)
                       max (0, min (0xff, delta + GetGValue (*color))),
                       max (0, min (0xff, delta + GetBValue (*color))));
 
+  /* NTEMACS_TODO: Map to palette and retry with delta if same? */
+  /* NTEMACS_TODO: Free colors (if using palette)? */
+
   if (new == *color)
     return 0;
 
@@ -3258,6 +3062,8 @@ w32_setup_relief_color (f, relief, factor, delta, default_pixel)
   COLORREF pixel;
   COLORREF background = di->relief_background;
   struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
+
+  /* NTEMACS_TODO: Free colors (if using palette)? */
 
   /* Allocate new color.  */
   xgcv.foreground = default_pixel;
@@ -4125,6 +3931,7 @@ x_fill_glyph_string (s, face_id, start, end, overlaps_p)
 {
   struct glyph *glyph, *last;
   int voffset;
+  int glyph_not_available_p;
 
   xassert (s->f == XFRAME (s->w->frame));
   xassert (s->nchars == 0);
@@ -4135,18 +3942,22 @@ x_fill_glyph_string (s, face_id, start, end, overlaps_p)
   glyph = s->row->glyphs[s->area] + start;
   last = s->row->glyphs[s->area] + end;
   voffset = glyph->voffset;
-  
+
+  glyph_not_available_p = glyph->glyph_not_available_p;
+
   while (glyph < last
 	 && glyph->type == CHAR_GLYPH
 	 && glyph->voffset == voffset
-	 /* Same face id implies same charset, nowadays.  */
-	 && glyph->face_id == face_id)
+	 /* Same face id implies same font, nowadays.  */
+	 && glyph->face_id == face_id
+         && glyph->glyph_not_available_p == glyph_not_available_p)
     {
+      int two_byte_p;
+
       s->face = x_get_glyph_face_and_encoding (s->f, glyph,
-					       s->char2b + s->nchars);
-      if (BYTE2(s->char2b[s->nchars]) != 0)
-	s->two_byte_p = 1;
-      
+					       s->char2b + s->nchars,
+                                               &two_byte_p);
+      s->two_byte_p = two_byte_p;
       ++s->nchars;
       xassert (s->nchars <= end - start);
       s->width += glyph->pixel_width;
@@ -4160,7 +3971,7 @@ x_fill_glyph_string (s, face_id, start, end, overlaps_p)
      but record the fact that we couldn't load it in
      S->font_not_found_p so that we can draw rectangles for the
      characters of the glyph string.  */
-  if (s->font == NULL)
+  if (s->font == NULL || glyph_not_available_p)
     {
       s->font_not_found_p = 1;
       s->font = FRAME_FONT (s->f);
@@ -4337,13 +4148,11 @@ x_set_glyph_string_background_width (s, start, last_x)
 	 wchar_t *char2b;						   \
 									   \
 	 c = (ROW)->glyphs[AREA][START].u.ch;				   \
-	 charset = CHAR_CHARSET (c);					   \
 	 face_id = (ROW)->glyphs[AREA][START].face_id;			   \
 	 s = (struct glyph_string *) alloca (sizeof *s);		   \
 	 char2b = (wchar_t *) alloca ((END - START) * sizeof *char2b);	   \
 	 w32_init_glyph_string (s, hdc, char2b, W, ROW, AREA, START, HL);  \
 	 x_append_glyph_string (&HEAD, &TAIL, s);			   \
-	 s->charset = charset;						   \
 	 s->x = (X);							   \
 	 START = x_fill_glyph_string (s, face_id, START, END,		   \
                                           OVERLAPS_P);			   \
@@ -4364,6 +4173,7 @@ x_set_glyph_string_background_width (s, start, last_x)
   do {									  \
     int cmp_id = (ROW)->glyphs[AREA][START].u.cmp_id;			  \
     int face_id = (ROW)->glyphs[AREA][START].face_id;			  \
+    struct face *base_face = FACE_FROM_ID (XFRAME (w->frame), face_id);	  \
     struct composition *cmp = composition_table[cmp_id];		  \
     int glyph_len = cmp->glyph_len;					  \
     wchar_t *char2b;							  \
@@ -4371,14 +4181,17 @@ x_set_glyph_string_background_width (s, start, last_x)
     struct glyph_string *first_s = NULL;				  \
     int n;								  \
     									  \
+    base_face = base_face->ascii_face;					  \
     char2b = (wchar_t *) alloca ((sizeof *char2b) * glyph_len);		  \
     faces = (struct face **) alloca ((sizeof *faces) * glyph_len);	  \
     /* At first, fill in `char2b' and `faces'.  */			  \
     for (n = 0; n < glyph_len; n++)					  \
       {									  \
 	int c = COMPOSITION_GLYPH (cmp, n);				  \
-	faces[n] = x_get_char_face_and_encoding (XFRAME (w->frame), c,	  \
-						 face_id, char2b + n, 1); \
+	int this_face_id = FACE_FOR_CHAR (XFRAME (w->frame), base_face, c); \
+	faces[n] = FACE_FROM_ID (XFRAME (w->frame), this_face_id);	  \
+	x_get_char_face_and_encoding (XFRAME (w->frame), c,		  \
+				      this_face_id, char2b + n, 1);	  \
       }									  \
     									  \
     /* Make glyph_strings for each glyph sequence that is drawable by	  \
@@ -4390,7 +4203,6 @@ x_set_glyph_string_background_width (s, start, last_x)
 	x_append_glyph_string (&(HEAD), &(TAIL), s);			  \
 	s->cmp = cmp;							  \
 	s->gidx = n;							  \
-	s->charset = 0;							  \
 	s->x = (X);							  \
 									  \
 	if (n == 0)							  \
@@ -6025,7 +5837,7 @@ note_mouse_highlight (f, x, y)
   if (popup_activated ())
     return;
 
-  if (disable_mouse_highlight)
+  if (disable_mouse_highlight || !f->glyphs_initialized_p)
     return;
 
   dpyinfo->mouse_face_mouse_x = x;
@@ -7900,6 +7712,16 @@ w32_read_socket (sd, bufp, numchars, expected)
             }
 	  break;
 
+        case WM_MENUSELECT:
+          {
+            HMENU menu = (HMENU) msg.msg.lParam;
+            UINT menu_item = (UINT) LOWORD (msg.msg.wParam);
+            UINT flags = (UINT) HIWORD (msg.msg.wParam);
+ 
+            w32_menu_display_help (menu, menu_item, flags);
+          }
+          break;
+
 	case WM_DROPFILES:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 
@@ -8818,8 +8640,7 @@ x_new_font (f, fontname)
      register char *fontname;
 {
   struct font_info *fontp
-    = fs_load_font (f, FRAME_W32_FONT_TABLE (f), CHARSET_ASCII,
-                    fontname, -1);
+    = FS_LOAD_FONT (f, 0, fontname, -1);
 
   if (!fontp)
     return Qnil;
@@ -8861,9 +8682,9 @@ x_new_fontset (f, fontsetname)
      struct frame *f;
      char *fontsetname;
 {
-  int fontset = fs_query_fontset (f, fontsetname);
-  struct fontset_info *fontsetp;
+  int fontset = fs_query_fontset (build_string (fontsetname), 0);
   Lisp_Object result;
+  char *fontname;
 
   if (fontset < 0)
     return Qnil;
@@ -8871,15 +8692,9 @@ x_new_fontset (f, fontsetname)
   if (FRAME_FONTSET (f) == fontset)
     /* This fontset is already set in frame F.  There's nothing more
        to do.  */
-    return build_string (fontsetname);
+    return fontset_name (fontset);
 
-  fontsetp = FRAME_FONTSET_DATA (f)->fontset_table[fontset];
-
-  if (!fontsetp->fontname[CHARSET_ASCII])
-    /* This fontset doesn't contain ASCII font.  */
-    return Qnil;
-
-  result = x_new_font (f, fontsetp->fontname[CHARSET_ASCII]);
+  result = x_new_font (f, (XSTRING (fontset_ascii (fontset))->data));
 
   if (!STRINGP (result))
     /* Can't load ASCII font.  */
@@ -8887,8 +8702,6 @@ x_new_fontset (f, fontsetname)
 
   /* Since x_new_font doesn't update any fontset information, do it now.  */
   FRAME_FONTSET(f) = fontset;
-  FS_LOAD_FONT (f, FRAME_W32_FONT_TABLE (f),
-		CHARSET_ASCII, XSTRING (result)->data, fontset);
 
   return build_string (fontsetname);
 }
@@ -9901,64 +9714,91 @@ NT uses Unicode internally anyway, so this flag will probably have no\n\
 affect on NT machines.");
   w32_enable_unicode_output = 1;
 
-  DEFVAR_LISP ("w32-charset-to-codepage-alist",
-               &Vw32_charset_to_codepage_alist,
-               "Alist linking character sets to Windows Codepages.");
-  Vw32_charset_to_codepage_alist = Qnil;
-  /* Initialise the alist with some defaults.  */
-  XSETFASTINT (codepage, 936);
-  store_in_alist (&Vw32_charset_to_codepage_alist,
-                  build_string ("gb2312"), codepage);
-  XSETFASTINT (codepage, 950);
-  store_in_alist (&Vw32_charset_to_codepage_alist,
-                  build_string ("big5"), codepage);
-  XSETFASTINT (codepage, 949);
-  store_in_alist (&Vw32_charset_to_codepage_alist,
-                  build_string ("ksc5601.1987"), codepage);
-  XSETFASTINT (codepage, 1361);
-  store_in_alist (&Vw32_charset_to_codepage_alist,
-                  build_string ("ksc5601.1992"), codepage);
-  XSETFASTINT (codepage, 932);
-  store_in_alist (&Vw32_charset_to_codepage_alist,
-                  build_string ("jisx0208-sjis"), codepage);
-  XSETFASTINT (codepage, 874);
-  store_in_alist (&Vw32_charset_to_codepage_alist,
-                  build_string ("tis620"), codepage);
-  XSETFASTINT (codepage, 20866);
-  store_in_alist (&Vw32_charset_to_codepage_alist,
-                  build_string ("koi8-r"), codepage);
-  /* iso8859-13 is not yet officially adopted, but it is conveniently
-     covered by CP 1257.  */
-  XSETFASTINT (codepage, 1257);
-  store_in_alist (&Vw32_charset_to_codepage_alist,
-                  build_string ("iso8859-13"), codepage);
-  XSETFASTINT (codepage, 1254);
-  store_in_alist (&Vw32_charset_to_codepage_alist,
-                  build_string ("iso8859-9"), codepage);
-  XSETFASTINT (codepage, 1255);
-  store_in_alist (&Vw32_charset_to_codepage_alist,
-                  build_string ("iso8859-8"), codepage);
-  XSETFASTINT (codepage, 28597);
-  store_in_alist (&Vw32_charset_to_codepage_alist,
-                  build_string ("iso8859-7"), codepage);
-  XSETFASTINT (codepage, 28596);
-  store_in_alist (&Vw32_charset_to_codepage_alist,
-                  build_string ("iso8859-6"), codepage);
-  XSETFASTINT (codepage, 28595);
-  store_in_alist (&Vw32_charset_to_codepage_alist,
-                  build_string ("iso8859-5"), codepage);
-  XSETFASTINT (codepage, 28594);
-  store_in_alist (&Vw32_charset_to_codepage_alist,
-                  build_string ("iso8859-4"), codepage);
-  XSETFASTINT (codepage, 28593);
-  store_in_alist (&Vw32_charset_to_codepage_alist,
-                  build_string ("iso8859-3"), codepage);
-  XSETFASTINT (codepage, 28592);
-  store_in_alist (&Vw32_charset_to_codepage_alist,
-                  build_string ("iso8859-2"), codepage);
-  XSETFASTINT (codepage, 1252);
-  store_in_alist (&Vw32_charset_to_codepage_alist,
-                  build_string ("iso8859-1"), codepage);
+/* VIETNAMESE_CHARSET is not defined in some versions of MSVC.  */
+#ifndef VIETNAMESE_CHARSET
+#define VIETNAMESE_CHARSET 163
+#endif
+
+  DEFVAR_LISP ("w32-charset-info-alist",
+               &Vw32_charset_info_alist,
+               "Alist linking Emacs character sets to Windows fonts\n\
+and codepages. Each entry should be of the form:\n\
+\n\
+   (CHARSET_NAME . (WINDOWS_CHARSET . CODEPAGE))\n\
+\n\
+where CHARSET_NAME is a string used in font names to identify the charset,\n\
+WINDOWS_CHARSET is a symbol that can be one of:\n\
+w32-charset-ansi, w32-charset-default, w32-charset-symbol,\n\
+w32-charset-shiftjis, w32-charset-hangul, w32-charset-gb2312,\n\
+w32-charset-chinesebig5, "
+#ifdef JOHAB_CHARSET
+"w32-charset-johab, w32-charset-hebrew,\n\
+w32-charset-arabic, w32-charset-greek, w32-charset-turkish,\n\
+w32-charset-vietnamese, w32-charset-thai, w32-charset-easteurope,\n\
+w32-charset-russian, w32-charset-mac, w32-charset-baltic,\n"
+#endif
+#ifdef UNICODE_CHARSET
+"w32-charset-unicode, "
+#endif
+"or w32-charset-oem.\n\
+CODEPAGE should be an integer specifying the codepage that should be used\n\
+to display the character set, t to do no translation and output as Unicode,\n\
+or nil to do no translation and output as 8 bit (or multibyte on far-east\n\
+versions of Windows) characters.");
+    Vw32_charset_info_alist = Qnil;
+
+  staticpro (&Qw32_charset_ansi);
+  Qw32_charset_ansi = intern ("w32-charset-ansi");
+  staticpro (&Qw32_charset_symbol);
+  Qw32_charset_symbol = intern ("w32-charset-symbol");
+  staticpro (&Qw32_charset_shiftjis);
+  Qw32_charset_shiftjis = intern ("w32-charset-shiftjis");
+  staticpro (&Qw32_charset_hangul);
+  Qw32_charset_hangul = intern ("w32-charset-hangul");
+  staticpro (&Qw32_charset_chinesebig5);
+  Qw32_charset_chinesebig5 = intern ("w32-charset-chinesebig5");
+  staticpro (&Qw32_charset_gb2312);
+  Qw32_charset_gb2312 = intern ("w32-charset-gb2312");
+  staticpro (&Qw32_charset_oem);
+  Qw32_charset_oem = intern ("w32-charset-oem");
+
+#ifdef JOHAB_CHARSET
+  {
+    static int w32_extra_charsets_defined = 1;
+    DEFVAR_BOOL ("w32-extra-charsets-defined", w32_extra_charsets_defined, "");
+
+    staticpro (&Qw32_charset_johab);
+    Qw32_charset_johab = intern ("w32-charset-johab");
+    staticpro (&Qw32_charset_easteurope);
+    Qw32_charset_easteurope = intern ("w32-charset-easteurope");
+    staticpro (&Qw32_charset_turkish);
+    Qw32_charset_turkish = intern ("w32-charset-turkish");
+    staticpro (&Qw32_charset_baltic);
+    Qw32_charset_baltic = intern ("w32-charset-baltic");
+    staticpro (&Qw32_charset_russian);
+    Qw32_charset_russian = intern ("w32-charset-russian");
+    staticpro (&Qw32_charset_arabic);
+    Qw32_charset_arabic = intern ("w32-charset-arabic");
+    staticpro (&Qw32_charset_greek);
+    Qw32_charset_greek = intern ("w32-charset-greek");
+    staticpro (&Qw32_charset_hebrew);
+    Qw32_charset_hebrew = intern ("w32-charset-hebrew");
+    staticpro (&Qw32_charset_thai);
+    Qw32_charset_thai = intern ("w32-charset-thai");
+    staticpro (&Qw32_charset_mac);
+    Qw32_charset_mac = intern ("w32-charset-mac");
+  }
+#endif
+
+#ifdef UNICODE_CHARSET
+  {
+    static int w32_unicode_charset_defined = 1;
+    DEFVAR_BOOL ("w32-unicode-charset-defined",
+                 w32_unicode_charset_defined, "");
+
+    staticpro (&Qw32_charset_unicode);
+    Qw32_charset_unicode = intern ("w32-charset-unicode");
+#endif
 
   staticpro (&help_echo);
   help_echo = Qnil;
