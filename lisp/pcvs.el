@@ -14,7 +14,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.38 2002/06/25 00:11:28 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.39 2002/09/03 01:40:29 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1888,7 +1888,7 @@ This command ignores files that are not flagged as `Unknown'."
 With a prefix, opens the buffer in an OTHER window."
   (interactive (list last-input-event current-prefix-arg))
   (when (ignore-errors (mouse-set-point e) t)	;for invocation via the mouse
-    (unless (memq (get-text-property (point) 'face)
+    (unless (memq (get-text-property (1- (line-end-position)) 'face)
 		  '(cvs-header-face cvs-filename-face))
       (error "Not a file name")))
   (cvs-mode!
