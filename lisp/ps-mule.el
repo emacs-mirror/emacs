@@ -584,7 +584,7 @@ STRING should contain only ASCII characters."
       /BaselineOffset 0 def
     } ifelse
     currentdict /RelativeCompose known not {
-      /RelativeCompose [ 0 0 ] def
+      /RelativeCompose [ 0 0.1 ] def
     } {
       RelativeCompose false ne {
         [ BaselineOffset RelativeCompose BaselineOffset add
@@ -819,7 +819,7 @@ the sequence."
     dup GetPathBox
     LLX 0 lt { RIGHT currentpoint exch pop moveto } if
     CmpcharRelativeCompose type /arraytype eq {
-	LLY CmpcharRelativeCompose 1 get gt {	% compose on top
+	LLY CmpcharRelativeCompose 1 get ge {	% compose on top
 	    currentpoint pop HIGH LLY sub CmpcharRelativeSkip add moveto
 	    /HIGH HIGH URY LLY sub add CmpcharRelativeSkip add def
 	} { URY CmpcharRelativeCompose 0 get le { % compose under bottom
