@@ -24,7 +24,13 @@
 	(f90-end-type-re): Add closing "\\>".
 	(f90-indent-region): Correctly indent comments embedded in
 	continued lines.
-	(f90-indent-new-line): Make it indent the current line, as it should.
+	(f90-indent-new-line): Make it indent the current line, as it
+	should.
+	(f90-line-continued, f90-get-present-comment-type,
+	f90-looking-at-if-then, f90-indent-line, f90-indent-new-line,
+	f90-indent-region, f90-indent-subprogram, f90-do-auto-fill,
+	f90-join-lines, f90-fill-region, f90-match-end, f90-insert-end,
+	f90-change-keywords): Minor code tidying.
 
 	* progmodes/fortran.el (fortran-strip-sequence-nos): Rename from
 	typo `fortran-strip-sqeuence-nos'.
