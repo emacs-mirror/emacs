@@ -166,11 +166,13 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
       /* MATCH might be a flawed regular expression.  Rather than
 	 catching and signaling our own errors, we just call
 	 compile_pattern to do the work for us.  */
+      /* Pass 1 for the MULTIBYTE arg
+	 because we do make multibyte strings if the contents warrant.  */
 #ifdef VMS
       bufp = compile_pattern (match, 0,
-			      buffer_defaults.downcase_table->contents, 0);
+			      buffer_defaults.downcase_table->contents, 0, 1);
 #else
-      bufp = compile_pattern (match, 0, 0, 0);
+      bufp = compile_pattern (match, 0, 0, 0, 1);
 #endif
     }
 
