@@ -149,8 +149,7 @@ If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
   (interactive (internal-face-interactive "font"))
   (if (stringp font)
-      (setq font (or (and (not (eq window-system 'w32))
-			  (resolve-fontset-name font))
+      (setq font (or (resolve-fontset-name font)
 		     (x-resolve-font-name font 'default frame))))
   (internal-set-face-1 face 'font font 3 frame)
   ;; Record that this face's font was set explicitly, not automatically,
@@ -165,8 +164,7 @@ If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
   (interactive (internal-face-interactive "font"))
   (if (stringp font)
-      (setq font (or (and (not (eq window-system 'w32))
-			  (resolve-fontset-name font))
+      (setq font (or (resolve-fontset-name font)
 		     (x-resolve-font-name font 'default frame))))
   (internal-set-face-1 face 'font font 3 frame))
 
