@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.137 2001/12/14 07:58:33 spiegel Exp $
+;; $Id: vc-hooks.el,v 1.138 2002/02/21 20:56:58 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -724,16 +724,18 @@ Used in `find-file-not-found-hooks'."
   (define-key vc-menu-map [vc-rename-file] '("Rename File" . vc-rename-file))
   (define-key vc-menu-map [vc-version-other-window]
     '("Show Other Version" . vc-version-other-window))
-  (define-key vc-menu-map [vc-diff] '("Compare with Last Version" . vc-diff))
+  (define-key vc-menu-map [vc-diff] '("Compare with Base Version" . vc-diff))
   (define-key vc-menu-map [vc-update-change-log]
     '("Update ChangeLog" . vc-update-change-log))
   (define-key vc-menu-map [vc-print-log] '("Show History" . vc-print-log))
   (define-key vc-menu-map [separator2] '("----"))
-  (define-key vc-menu-map [undo] '("Undo Last Check-In" . vc-cancel-version))
-  (define-key vc-menu-map [vc-revert-buffer]
-    '("Revert to Last Version" . vc-revert-buffer))
   (define-key vc-menu-map [vc-insert-header]
     '("Insert Header" . vc-insert-headers))
+  (define-key vc-menu-map [undo] '("Undo Last Check-In" . vc-cancel-version))
+  (define-key vc-menu-map [vc-revert-buffer]
+    '("Revert to Base Version" . vc-revert-buffer))
+  (define-key vc-menu-map [vc-update]
+    '("Update to Latest Version" . vc-update))
   (define-key vc-menu-map [vc-next-action] '("Check In/Out" . vc-next-action))
   (define-key vc-menu-map [vc-register] '("Register" . vc-register)))
 
