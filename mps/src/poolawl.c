@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.48) $
+ * $HopeName: MMsrc!poolawl.c(trunk.49) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * READERSHIP
@@ -39,14 +39,13 @@
  * .assume.alltraceable: The pool assumes that all objects are entirely
  * traceable. This must be documented elsewhere for the benefit of the 
  * client.
- *
  */
 
 #include "mpscawl.h"
 #include "mpm.h"
 
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.48) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.49) $");
 
 
 #define AWLSig  ((Sig)0x519b7a37)       /* SIGPooLAWL */
@@ -1181,6 +1180,8 @@ struct PoolClassStruct PoolClassAWLStruct = {
   AWLReclaim,
   AWLBenefit,
   PoolCollectAct,
+  PoolNoRampBegin,
+  PoolNoRampEnd,
   AWLWalk,
   PoolTrivDescribe,
   PoolClassSig
