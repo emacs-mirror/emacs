@@ -113,6 +113,8 @@ or `-k' to enable Kerberos authentication."
 If you get an incorrect-password error that this expression does not match,
 please report it with \\[report-emacs-bug].")
 
+(defvar rmail-encoded-pop-password nil)
+
 (defcustom rmail-preserve-inbox nil
   "*Non-nil if incoming mail should be left in the user's inbox,
 rather than deleted, after it is retrieved."
