@@ -1262,7 +1262,6 @@ extern void error ();
 extern Lisp_Object un_autoload ();
 
 /* Defined in editfns.c */
-extern Lisp_Object Vprefix_arg, Qminus, Vcurrent_prefix_arg;
 extern Lisp_Object Fgoto_char ();
 extern Lisp_Object Fpoint_min_marker (), Fpoint_max_marker ();
 extern Lisp_Object Fpoint_min (), Fpoint_max ();
@@ -1328,6 +1327,7 @@ extern Lisp_Object Fread_no_blanks_input ();
 
 /* Defined in callint.c */
 
+extern Lisp_Object Vprefix_arg, Qminus, Qplus, Vcurrent_prefix_arg;
 extern Lisp_Object Vcommand_history;
 extern Lisp_Object Qcall_interactively;
 extern Lisp_Object Fcall_interactively ();
