@@ -161,8 +161,10 @@ DEL_TREE	= rm -r
 
 !ifdef NODEBUG
 DEBUG_FLAG = 
+DEBUG_LINK = 
 !else
 DEBUG_FLAG = -Zi
+DEBUG_LINK = -debug:full -debugtype:both
 !endif
 
 !if "$(ARCH)" == "i386"
@@ -200,7 +202,7 @@ ARCH_LDFLAGS	= $(SYS_LDFLAGS)
 !endif
 !endif
 
-LINK_FLAGS	= $(ARCH_LDFLAGS) $(USER_LDFLAGS)
+LINK_FLAGS	= $(ARCH_LDFLAGS) $(DEBUG_LINK) $(USER_LDFLAGS)
 
 # From MSVC 5.0 onwards, it seem base relocation information is not included,
 # at least in release builds.  We need to ensure the reloc info is included

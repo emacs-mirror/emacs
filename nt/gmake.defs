@@ -226,8 +226,10 @@ endif
 
 ifdef NODEBUG
 DEBUG_FLAG = 
+DEBUG_LINK =
 else
 DEBUG_FLAG = -g
+DEBUG_LINK = -g
 endif
 
 ifdef NOCYGWIN
@@ -248,7 +250,7 @@ else
 ERROR Unknown architecture type "$(ARCH)".
 endif
 
-LINK_FLAGS	= $(ARCH_LDFLAGS) $(NOCYGWIN) $(USER_LDFLAGS)
+LINK_FLAGS	= $(ARCH_LDFLAGS) $(DEBUG_LINK) $(NOCYGWIN) $(USER_LDFLAGS)
 
 .DEFAULT:
 
