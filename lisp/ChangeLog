@@ -1,3 +1,7 @@
+2003-09-28  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+
+	* textmodes/text-mode.el (paragraph-indent-minor-mode): Doc fix.
+
 2003-09-28  David Ponce  <david@dponce.com>
 
 	* recentf.el (recentf-initialize-file-name-history): New
