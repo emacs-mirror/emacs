@@ -1505,6 +1505,7 @@ extern Lisp_Object Vfundamental_mode_abbrev_table;
 extern Lisp_Object Fstring_match ();
 extern Lisp_Object Fscan_buffer ();
 extern void restore_match_data ();
+extern Lisp_Object Fmatch_data (), Fstore_match_data ();
 
 /* defined in minibuf.c */
 
