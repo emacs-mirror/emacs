@@ -346,25 +346,34 @@ list maintained for regexps, global history maintained for faces.
 
 Interactively, prompt for REGEXP.  Buffer-local history of inserted
 regexp's maintained.  Will accept only regexps inserted by hi-lock
-interactive functions. (See `hi-lock-interactive-patterns')
+interactive functions. \(See `hi-lock-interactive-patterns'.\)
 \\<minibuffer-local-must-match-map>Use \\[minibuffer-complete] to complete a partially typed regexp.
-(See info node `Minibuffer History'.)"
+\(See info node `Minibuffer History'.\)"
   (interactive
    (if (vectorp (this-command-keys))
-       (x-popup-menu
-        t
-        (cons
-         `keymap
-         (cons "Select Pattern to Unhighlight"
-               (mapcar (lambda (pattern)
-                         (list (car pattern)
-                               (format
-                                "%s (%s)" (car pattern)
-                                (symbol-name
-                                 (car (cdr (car (cdr (car (cdr pattern))))))))
-                               (cons nil nil)
-                               (car pattern)))
-                       hi-lock-interactive-patterns))))
+       (catch 'snafu
+	 (or
+	  (x-popup-menu
+	   t
+	   (cons
+	    `keymap
+	    (cons "Select Pattern to Unhighlight"
+		  (mapcar (lambda (pattern)
+			    (list (car pattern)
+				  (format
+				   "%s (%s)" (car pattern)
+				   (symbol-name
+				    (car
+				     (cdr (car (cdr (car (cdr pattern))))))))
+				  (cons nil nil)
+				  (car pattern)))
+			  hi-lock-interactive-patterns))))
+	  ;; If the user clicks outside the menu, meaning that they
+	  ;; change their mind, x-popup-menu returns nil, and
+	  ;; interactive signals a wrong number of arguments error.
+	  ;; To prevent that, we return an empty string, which will
+	  ;; effectively disable the rest of the function.
+	  (throw 'snafu '(""))))
      (let ((history-list (mapcar (lambda (p) (car p))
                                  hi-lock-interactive-patterns)))
        (unless hi-lock-interactive-patterns
