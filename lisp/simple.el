@@ -2809,6 +2809,67 @@ select the completion near point.\n\n"))
   (search-forward "\n\n")
   (forward-line 1))
 
+;; Support keyboard commands to turn on various modifiers.
+
+;; These functions -- which are not commands -- each add one modifier
+;; to the following event.
+
+(defun event-apply-alt-modifier (ignore-prompt)
+  (vector (event-apply-modifier (read-event) 'alt 22 "A-")))
+(defun event-apply-super-modifier (ignore-prompt)
+  (vector (event-apply-modifier (read-event) 'super 23 "s-")))
+(defun event-apply-hyper-modifier (ignore-prompt)
+  (vector (event-apply-modifier (read-event) 'hyper 24 "H-")))
+(defun event-apply-shift-modifier (ignore-prompt)
+  (vector (event-apply-modifier (read-event) 'shift 25 "S-")))
+(defun event-apply-control-modifier (ignore-prompt)
+  (vector (event-apply-modifier (read-event) 'control 26 "C-")))
+(defun event-apply-meta-modifier (ignore-prompt)
+  (vector (event-apply-modifier (read-event) 'meta 27 "M-")))
+
+(defun event-apply-modifier (event symbol lshiftby prefix)
+  "Apply a modifier flag to event EVENT.
+SYMBOL is the name of this modifier, as a symbol.
+LSHIFTBY is the numeric value of this modifier, in keyboard events.
+PREFIX is the string that represents this modifier in an event type symbol."
+  (if (numberp event)
+      (cond ((eq symbol 'control)
+	     (if (and (< (downcase event) ?z)
+		      (> (downcase event) ?a))
+		 (- (downcase event) ?a -1)
+	       (if (and (< (downcase event) ?Z)
+			(> (downcase event) ?A))
+		   (- (downcase event) ?A -1)
+		 (logior (lsh 1 lshiftby) event))))
+	    ((eq symbol 'shift)
+	     (if (and (<= (downcase event) ?z)
+		      (>= (downcase event) ?a))
+		 (upcase event)
+	       (logior (lsh 1 lshiftby) event)))
+	    (t
+	     (logior (lsh 1 lshiftby) event)))
+    (if (memq symbol (event-modifiers event))
+	event
+      (let ((event-type (if (symbolp event) event (car event))))
+	(setq event-type (intern (concat prefix (symbol-name event-type))))
+	(if (symbolp event)
+	    event-type
+	  (cons event-type (cdr event)))))))
+
+(define-key function-key-map [?\C-x escape ?h] 'event-apply-hyper-modifier)
+(define-key function-key-map [?\C-x escape ?s] 'event-apply-super-modifier)
+(define-key function-key-map [?\C-x escape ?m] 'event-apply-meta-modifier)
+(define-key function-key-map [?\C-x escape ?a] 'event-apply-alt-modifier)
+(define-key function-key-map [?\C-x escape ?S] 'event-apply-shift-modifier)
+(define-key function-key-map [?\C-x escape ?c] 'event-apply-control-modifier)
+
+(define-key function-key-map [?\C-x ?\e ?h] 'event-apply-hyper-modifier)
+(define-key function-key-map [?\C-x ?\e ?s] 'event-apply-super-modifier)
+(define-key function-key-map [?\C-x ?\e ?m] 'event-apply-meta-modifier)
+(define-key function-key-map [?\C-x ?\e ?a] 'event-apply-alt-modifier)
+(define-key function-key-map [?\C-x ?\e ?S] 'event-apply-shift-modifier)
+(define-key function-key-map [?\C-x ?\e ?c] 'event-apply-control-modifier)
+
 ;;;; Keypad support.
 
 ;;; Make the keypad keys act like ordinary typing keys.  If people add
