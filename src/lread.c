@@ -1481,8 +1481,8 @@ START and END optionally delimit a substring of STRING from which to read;
      Lisp_Object string, start, end;
 {
   CHECK_STRING (string);
-  return Fcons (read_internal_start (string, start, end),
-		make_number (read_from_string_index));
+  Lisp_Object ret = read_internal_start (string, start, end);
+  return Fcons (ret, make_number (read_from_string_index));
 }
 
 /* Function to set up the global context we need in toplevel read
