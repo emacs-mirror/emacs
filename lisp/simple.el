@@ -491,9 +491,9 @@ addition, the encoding is fully shown."
 	 (col (current-column)))
     (if (= pos end)
 	(if (or (/= beg 1) (/= end (1+ total)))
-	    (message "point=%d of %d(%d%%) <%d - %d>  column %d %s"
+	    (message "point=%d of %d (%d%%) <%d - %d> column %d %s"
 		     pos total percent beg end col hscroll)
-	  (message "point=%d of %d(%d%%)  column %d %s"
+	  (message "point=%d of %d (%d%%) column %d %s"
 		   pos total percent col hscroll))
       (let ((coding buffer-file-coding-system)
 	    encoded encoding-msg)
@@ -524,12 +524,12 @@ addition, the encoding is fully shown."
 		       (buffer-substring-no-properties (point) (1+ (point))))
 		     encoding-msg (split-char char))
 	  (if (or (/= beg 1) (/= end (1+ total)))
-	      (message "Char: %s %s point=%d of %d(%d%%) <%d - %d>  column %d %s"
+	      (message "Char: %s %s point=%d of %d (%d%%) <%d - %d> column %d %s"
 		       (if (< char 256)
 			   (single-key-description char)
 			 (buffer-substring-no-properties (point) (1+ (point))))
 		       encoding-msg pos total percent beg end col hscroll)
-	    (message "Char: %s %s point=%d of %d(%d%%)  column %d %s"
+	    (message "Char: %s %s point=%d of %d (%d%%) column %d %s"
 		     (if (< char 256)
 			 (single-key-description char)
 		       (buffer-substring-no-properties (point) (1+ (point))))
