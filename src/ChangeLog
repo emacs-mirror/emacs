@@ -43,7 +43,7 @@
 	(add_command_key): Use larger_vector.
 	(read_char_x_menu_prompt): Instead of converting symbol and
 	integer events into conses (EVENT . nil), use (EVENT . disabled)
-	which cannot be confused with legal events.
+	which cannot be confused with valid events.
 	(read_char): When reading from Vunread_command_events, check for
 	events of the form (EVENT . disabled) instead of
 	(EVENT . nil).
