@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-info.el,v 1.11 2002/06/18 21:47:41 monnier Exp $
+;; Revision: $Id: pcvs-info.el,v 1.12 2002/06/18 23:03:55 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -235,7 +235,6 @@ to confuse some users sometimes."
 
 ;; Predicate:
 
-(defun boolp (x) (or (eq t x) (null x)))
 (defun cvs-check-fileinfo (fi)
   "Check FI's conformance to some conventions."
   (let ((check 'none)
@@ -247,7 +246,7 @@ to confuse some users sometimes."
 	(base-rev (cvs-fileinfo->base-rev fi))
 	(head-rev (cvs-fileinfo->head-rev fi))
 	(full-log (cvs-fileinfo->full-log fi)))
-    (if (and (setq check 'marked)	(boolp marked)
+    (if (and (setq check 'marked)	(memq marked '(t nil))
 	     (setq check 'base-rev)	(or (null base-rev) (stringp base-rev))
 	     (setq check 'head-rev)	(or (null head-rev) (stringp head-rev))
 	     (setq check 'full-log)	(stringp full-log)
