@@ -657,7 +657,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	(list (list "\\`/[^/]*:\\(.+/\\)*\\(.*\\)"
 		    ;; Don't put "\\2" inside expand-file-name, since
 		    ;; it will be transformed to "/2" on DOS/Windows.
-		    (concat temporary-file-directory "\\2"))))
+		    (concat temporary-file-directory "\\2") t)))
 
   ;; See if we should import version-control from the environment variable.
   (let ((vc (getenv "VERSION_CONTROL")))
