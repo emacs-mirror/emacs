@@ -1094,7 +1094,8 @@ for this to be permanent."
   (let ((hibits (car timeval)) (lobits (car (cdr timeval))))
     (insert (format "%05o%01o%05o"
 		    (lsh hibits -2)
-		    (logior (lsh (logand 3 hibits) 1) (> (logand lobits 32768) 0))
+		    (logior (lsh (logand 3 hibits) 1)
+			    (if (> (logand lobits 32768) 0) 1 0))
 		    (logand 32767 lobits)
 		    ))))
 
