@@ -4,7 +4,7 @@
 
 2002-04-05  Gerd Moellmann  <gerd@gnu.org>
 
-	* callint.c (Fcall_interactively): Use INTEGERP instead of 
+	* callint.c (Fcall_interactively): Use INTEGERP instead of
 	NUMBERP for checking Vhistory_length.
 
 2002-04-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
@@ -19,6 +19,11 @@
 	that isn't marked risky-local-variable.
 	(Qrisky_local_variable): New variable.
 	(syms_of_xdisp): Init and staticpro it.
+
+2002-04-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* undo.c (record_point): New fun.
+	(record_delete, record_insert): Use it.
 
 2002-04-03  Juanma Barranquero  <lektu@terra.es>
 
