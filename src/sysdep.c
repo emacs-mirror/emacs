@@ -1,5 +1,5 @@
 /* Interfaces to system-dependent kernel and library entries.
-   Copyright (C) 1985, 86,87,88,93,94,95, 1999, 2000, 2001
+   Copyright (C) 1985, 86,87,88,93,94,95,1999,2000,01,2003
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2008,6 +2008,8 @@ kbd_input_ast ()
   if (c >= 0)
     {
       struct input_event e;
+      EVENT_INIT (e);
+
       e.kind = ASCII_KEYSTROKE_EVENT;
       XSETINT (e.code, c);
       e.frame_or_window = selected_frame;
@@ -2622,14 +2624,15 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 void
 read_input_waiting ()
 {
-  struct input_event e;
   int nread, i;
   extern int quit_char;
 
   if (read_socket_hook)
     {
       struct input_event buf[256];
-
+      for (i = 0; i < 256; i++)
+	EVENT_INIT (buf[i]);
+      
       read_alarm_should_throw = 0;
       if (! setjmp (read_alarm_throw))
 	nread = (*read_socket_hook) (0, buf, 256, 1);
@@ -2649,8 +2652,10 @@ read_input_waiting ()
     }
   else
     {
+      struct input_event e;
       char buf[3];
       nread = read (fileno (stdin), buf, 1);
+      EVENT_INIT (e);
 
       /* Scan the chars for C-g and store them in kbd_buffer.  */
       e.kind = ASCII_KEYSTROKE_EVENT;
