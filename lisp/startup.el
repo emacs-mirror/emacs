@@ -872,11 +872,10 @@ opening the first frame (e.g. open a connection to the server).")
 
   ;; Register default TTY colors for the case the terminal hasn't a
   ;; terminal init file.
-  (unless (memq initial-window-system '(x w32))
-    ;; We do this regardles of whether the terminal supports colors
-    ;; or not, since they can switch that support on or off in
-    ;; mid-session by setting the tty-color-mode frame parameter.
-    (tty-register-default-colors))
+  ;; We do this regardles of whether the terminal supports colors
+  ;; or not, since they can switch that support on or off in
+  ;; mid-session by setting the tty-color-mode frame parameter.
+  (tty-register-default-colors)
 
   ;; Record whether the tool-bar is present before the user and site
   ;; init files are processed.  frame-notice-user-settings uses this

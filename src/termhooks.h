@@ -472,8 +472,27 @@ struct display
   void (*judge_scroll_bars_hook) P_ ((struct frame *FRAME));
 
 
-  /* Called to read input events.  */
-  int (*read_socket_hook) P_ ((struct display *, struct input_event *, int, int));
+  /* Called to read input events.
+
+     DISPLAY indicates which display to read from.  Input events
+     should be read into BUF, the size of which is given in SIZE.
+     EXPECTED is non-zero if the caller suspects that new input is
+     available.
+
+     A positive return value indicates that that many input events
+     where read into BUF.
+     Zero means no events were immediately available.
+     A value of -1 means a transient read error, while -2 indicates
+     that the display was closed (hangup), and it should be deleted.
+
+     XXX Please note that a non-zero value of EXPECTED only means that
+     there is available input on at least one of the currently opened
+     display devices -- but not necessarily on this device.
+     Therefore, in most cases EXPECTED should be simply ignored.
+  */
+  int (*read_socket_hook) P_ ((struct display *display,
+                               struct input_event *buf,
+                               int size, int expected));
 
   /* Called when a frame's display becomes entirely up to date.  */
   void (*frame_up_to_date_hook) P_ ((struct frame *));
@@ -483,11 +502,16 @@ struct display
      on this display. */
   void (*delete_frame_hook) P_ ((struct frame *));
 
-  /* Called after the last frame on this display is deleted.
-     If this is NULL, then the generic delete_frame() is called.
+  /* Called after the last frame on this display is deleted, or when
+     the display device was closed (hangup).
+     
+     If this is NULL, then the generic delete_frame() is called
+     instead.
 
-     Fdelete_frame ensures that there are no live frames on the
-     display when it calls this hook. */
+     The hook must check for and close any live frames that are still
+     on the display.  Fdelete_frame ensures that there are no live
+     frames on the display when it calls this hook, so infinite
+     recursion is prevented.  */
   void (*delete_display_hook) P_ ((struct display *));
 
 };

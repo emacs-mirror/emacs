@@ -6580,14 +6580,36 @@ read_avail_input (expected)
   for (i = 0; i < KBD_BUFFER_SIZE; i++)
     EVENT_INIT (buf[i]);
 
-  for (d = display_list; d; d = d->next_display)
+  d = display_list;
+  while (d)
     {
+      struct display *next = d->next_display;
+      
       if (d->read_socket_hook)
         /* No need for FIONREAD or fcntl; just say don't wait.  */
         nread = (*d->read_socket_hook) (d, buf, KBD_BUFFER_SIZE, expected);
 
-      if (nread > 0)
-        break;
+      if (nread == -2)
+        {
+          /* The display device terminated; it should be closed. */
+
+          /* Kill Emacs if this was our last display. */
+          if (! display_list->next_display)
+            kill (getpid (), SIGHUP);
+
+          /* XXX Is calling delete_display safe here?  It calls Fdelete_frame. */
+          if (d->delete_display_hook)
+            (*d->delete_display_hook) (d);
+          else
+            delete_display (d);
+        }
+      else if (nread > 0)
+        {
+          /* We've got input. */
+          break;
+        }
+
+      d = next;
     }
 
   /* Scan the chars for C-g and store them in kbd_buffer.  */
@@ -6609,6 +6631,7 @@ read_avail_input (expected)
    Note that each terminal device has its own `struct display' object,
    and so this function is called once for each individual termcap
    display.  The first parameter indicates which device to read from.  */
+
 int
 tty_read_avail_input (struct display *display,
                       struct input_event *buf,
@@ -6650,23 +6673,9 @@ tty_read_avail_input (struct display *display,
   if (ioctl (fileno (TTY_INPUT (tty)), FIONREAD, &n_to_read) < 0)
     {
       if (! noninteractive)
-        {
-          delete_tty (tty); /* XXX I wonder if this is safe here. */
-          
-          /* Formerly simply reported no input, but that sometimes led to
-             a failure of Emacs to terminate.
-             SIGHUP seems appropriate if we can't reach the terminal.  */
-          /* ??? Is it really right to send the signal just to this process
-             rather than to the whole process group?
-             Perhaps on systems with FIONREAD Emacs is alone in its group.  */
-          /* It appears to be the case, see narrow_foreground_group. */
-          if (! tty_list->next)
-            kill (getpid (), SIGHUP); /* This was the last terminal. */
-        }
+        return -2;          /* Close this display. */
       else
-        {
-          n_to_read = 0;
-        }
+        n_to_read = 0;
     }
   if (n_to_read == 0)
     return 0;
@@ -6694,10 +6703,7 @@ tty_read_avail_input (struct display *display,
          Jeffrey Honig <jch@bsdi.com> says this is generally safe.  */
       if (nread == -1 && errno == EIO)
         {
-          if (! tty_list->next)
-            kill (0, SIGHUP); /* This was the last terminal. */
-          else
-            delete_tty (tty); /* XXX I wonder if this is safe here. */
+          return -2;          /* Close this display. */
         }
 #if defined (AIX) && (! defined (aix386) && defined (_BSD))
       /* The kernel sometimes fails to deliver SIGHUP for ptys.
@@ -6706,10 +6712,7 @@ tty_read_avail_input (struct display *display,
          and that causes a value other than 0 when there is no input.  */
       if (nread == 0)
         {
-          if (! tty_list->next)
-            kill (0, SIGHUP); /* This was the last terminal. */
-          else
-            delete_tty (tty); /* XXX I wonder if this is safe here. */
+          return -2;          /* Close this display. */
         }
 #endif
     }

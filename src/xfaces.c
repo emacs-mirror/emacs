@@ -6830,8 +6830,13 @@ realize_face (cache, attrs, c, base_face, former_face_id)
 
   if (FRAME_WINDOW_P (cache->f))
     face = realize_x_face (cache, attrs, c, base_face);
-  else if (FRAME_INITIAL_P (cache->f) || FRAME_TERMCAP_P (cache->f) || FRAME_MSDOS_P (cache->f))
+  else if (FRAME_TERMCAP_P (cache->f) || FRAME_MSDOS_P (cache->f))
     face = realize_tty_face (cache, attrs, c);
+  else if (FRAME_INITIAL_P (cache->f))
+    {
+      /* Create a dummy face. */
+      face = make_realized_face (attrs);
+    }
   else
     abort ();
 

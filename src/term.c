@@ -2843,7 +2843,6 @@ delete_tty (struct display *display)
       if (FRAME_TERMCAP_P (f) && FRAME_LIVE_P (f) && FRAME_TTY (f) == tty)
         {
           Fdelete_frame (frame, Qt);
-          f->output_data.tty = 0;
         }
     }
 
@@ -2968,6 +2967,19 @@ void
 delete_display (struct display *dev)
 {
   struct display **dp;
+  Lisp_Object tail, frame;
+  
+  /* Check for and close live frames that are still on this
+     display. */
+  FOR_EACH_FRAME (tail, frame)
+    {
+      struct frame *f = XFRAME (frame);
+      if (FRAME_LIVE_P (f) && f->display == dev)
+        {
+          Fdelete_frame (frame, Qt);
+        }
+    }
+
   for (dp = &display_list; *dp != dev; dp = &(*dp)->next_display)
     if (! *dp)
       abort ();

@@ -2797,6 +2797,7 @@ extern void tty_setup_colors P_ ((struct tty_display_info *, int));
 extern struct display *get_named_tty_display P_ ((char *));
 extern struct display *init_initial_display P_ ((void));
 extern struct display *term_init P_ ((char *, char *, int));
+extern void delete_tty P_ ((struct display *));
 extern void fatal P_ ((/* char *, ... */));
 extern void cursor_to P_ ((int, int));
 extern int tty_capable_p P_ ((struct tty_display_info *, unsigned, unsigned long, unsigned long));
