@@ -1206,7 +1206,7 @@ char _sobuf[BUFSIZ];
 static struct ltchars new_ltchars = {-1,-1,-1,-1,-1,-1};
 #endif
 #ifdef HAVE_TCHARS
-  static struct tchars new_tchars = {-1,-1,-1,-1,-1,-1};
+static struct tchars new_tchars = {-1,-1,-1,-1,-1,-1};
 #endif 
 
 init_sys_modes ()
@@ -1219,6 +1219,8 @@ init_sys_modes ()
   extern int (*interrupt_signal) ();
 #endif
 #endif
+
+  Vtty_erase_char = Qnil;
 
   if (noninteractive)
     return;
@@ -1273,6 +1275,8 @@ init_sys_modes ()
       tty = old_tty;
 
 #if defined (HAVE_TERMIO) || defined (HAVE_TERMIOS)
+      Vtty_erase_char = old_tty.main.c_cc[VERASE];
+
 #ifdef DGUX
       /* This allows meta to be sent on 8th bit.  */
       tty.main.c_iflag &= ~INPCK;	/* don't check input for parity */
@@ -1386,6 +1390,7 @@ init_sys_modes ()
       tty.main.tt2_char |= TT2$M_PASTHRU | TT2$M_XON;
 #else /* not VMS (BSD, that is) */
 #ifndef DOS_NT
+      Vtty_erase_char = tty.main.sg_erase;
       tty.main.sg_flags &= ~(ECHO | CRMOD | XTABS);
       if (meta_key)
 	tty.main.sg_flags |= ANYP;
