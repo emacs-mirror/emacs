@@ -1,3 +1,9 @@
+1999-12-31  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c: New image functions adapted to Emacs conventions.
+	(png_load, tiff_load, jpeg_load, gif_load): Always GCPRO local
+	variable `file'.
+
 1999-12-31  William M. Perry  <wmperry@aventail.com>
 
 	* xfns.c (jpeg_format): Added the :data keyword
