@@ -160,12 +160,14 @@ char *callint_argfuns[]
     = {"", "point", "mark", "region-beginning", "region-end"};
 
 static void
-check_mark ()
+check_mark (for_region)
+     int for_region;
 {
   Lisp_Object tem;
   tem = Fmarker_buffer (current_buffer->mark);
   if (NILP (tem) || (XBUFFER (tem) != current_buffer))
-    error ("The mark is not set now");
+    error (for_region ? "The mark is not set now, so there is no region"
+	   : "The mark is not set now");
   if (!NILP (Vtransient_mark_mode) && NILP (Vmark_even_if_inactive)
       && NILP (current_buffer->mark_active))
     Fsignal (Qmark_inactive, Qnil);
@@ -609,7 +611,7 @@ supply if the command inquires which events were used to invoke it.  */)
 	  break;
 
 	case 'm':		/* Value of mark.  Does not do I/O.  */
-	  check_mark ();
+	  check_mark (0);
 	  /* visargs[i] = Qnil; */
 	  args[i] = current_buffer->mark;
 	  varies[i] = 2;
@@ -664,7 +666,7 @@ supply if the command inquires which events were used to invoke it.  */)
 	  break;
 
 	case 'r':		/* Region, point and mark as 2 args. */
-	  check_mark ();
+	  check_mark (1);
 	  set_marker_both (point_marker, Qnil, PT, PT_BYTE);
 	  /* visargs[i+1] = Qnil; */
 	  foo = marker_position (current_buffer->mark);
