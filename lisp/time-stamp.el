@@ -113,7 +113,7 @@ If nil, no notification is given."
 (defcustom time-stamp-time-zone nil
   "If non-nil, a string naming the timezone to be used by \\[time-stamp].
 Format is the same as that used by the environment variable TZ on your system."
-  :type 'string
+  :type '(choice (const nil) string)
   :group 'time-stamp)
 
 
