@@ -326,9 +326,12 @@ See also `write-file-hooks'.")
 The value can be t, nil or something else.
 A value of t means file local variables specifications are obeyed;
 nil means they are ignored; anything else means query.
+This variable also controls use of major modes specified in
+a -*- line.
 
-The command \\[normal-mode] always obeys file local variable
-specifications and ignores this variable."
+The command \\[normal-mode], when used interactively,
+always obeys file local variable specifications and the -*- line,
+and ignores this variable."
   :type '(choice (const :tag "Obey" t)
 		 (const :tag "Ignore" nil)
 		 (other :tag "Query" other))
@@ -336,8 +339,12 @@ specifications and ignores this variable."
 
 (defvar local-enable-local-variables t
   "Like `enable-local-variables' but meant for buffer-local bindings.
+The meaningful values are nil and non-nil.  The default is non-nil.
 If a major mode sets this to nil, buffer-locally, then any local
-variables list in the file will be ignored.")
+variables list in the file will be ignored.
+
+This variable does not affect the use of major modes
+specified in a -*- line.")
 
 (defcustom enable-local-eval 'maybe
   "*Control processing of the \"variable\" `eval' in a file's local variables.
@@ -1168,10 +1175,15 @@ Also sets up any specified local variables of the file.
 Uses the visited file name, the -*- line, and the local variables spec.
 
 This function is called automatically from `find-file'.  In that case,
-we may set up specified local variables depending on the value of
-`enable-local-variables': if it is t, we do; if it is nil, we don't;
-otherwise, we query.  `enable-local-variables' is ignored if you
-run `normal-mode' explicitly."
+we may set up the file-specified mode and local variables,
+depending on the value of `enable-local-variables': if it is t, we do;
+if it is nil, we don't; otherwise, we query.
+In addition, if `local-enable-local-variables' is nil, we do
+not set local variables (though we do notice a mode specified with -*-.)
+
+`enable-local-variables' is ignored if you run `normal-mode' interactively,
+or from Lisp without specifying the optional argument FIND-FILE;
+in that case, this function acts as if `enable-local-variables' were t."
   (interactive)
   (or find-file (funcall (or default-major-mode 'fundamental-mode)))
   (condition-case err
@@ -1391,7 +1403,6 @@ and we don't even do that unless it would come from the file name."
       (goto-char (point-min))
       (skip-chars-forward " \t\n")
       (and enable-local-variables
-	   local-enable-local-variables
 	   ;; Don't look for -*- if this file name matches any
 	   ;; of the regexps in inhibit-first-line-modes-regexps.
 	   (let ((temp inhibit-first-line-modes-regexps)
@@ -1512,7 +1523,9 @@ and we don't even do that unless it would come from the file name."
   (save-excursion
     (goto-char (point-min))
     (let ((result nil)
-	  (end (save-excursion (end-of-line (and (looking-at "^#!") 2)) (point))))
+	  (end (save-excursion (end-of-line (and (looking-at "^#!") 2)) (point)))
+	  (enable-local-variables
+	   (and local-enable-local-variables enable-local-variables)))
       ;; Parse the -*- line into the `result' alist.
       (cond ((not (search-forward "-*-" end t))
 	     ;; doesn't have one.
@@ -1584,7 +1597,9 @@ is specified, returning t if it is specified."
   (unless mode-only
     (hack-local-variables-prop-line))
   ;; Look for "Local variables:" line in last page.
-  (let (mode-specified)
+  (let (mode-specified
+	(enable-local-variables
+	 (and local-enable-local-variables enable-local-variables)))
     (save-excursion
       (goto-char (point-max))
       (search-backward "\n\^L" (max (- (point-max) 3000) (point-min)) 'move)
