@@ -1,3 +1,9 @@
+2004-04-29  John Paul Wallington  <jpw@gnu.org>
+
+	* thumbs.el (toplevel): Require cl at compile time.
+	Remove conditional definitions of `ignore-errors' and `caddar'
+	because they occur at run time.
+
 2004-04-28  Nick Roberts  <nickrob@gnu.org>
 
 	* progmodes/gdb-ui.el (gdb-frame-breakpoints-buffer)
