@@ -668,7 +668,7 @@ concat (nargs, args, target_type, last_special)
 	  if (some_multibyte
 	      && toindex_byte > 0
 	      && !ASCII_BYTE_P (XSTRING (val)->data[toindex_byte - 1])
-	      && !CHAR_HEAD_P (XSTRING (this)->data[0] >= 0xA0))
+	      && !CHAR_HEAD_P (XSTRING (this)->data[0]))
 	    maybe_combine_byte = 1;
 	  toindex_byte += thislen_byte;
 	  toindex += thisleni;
