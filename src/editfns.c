@@ -2158,8 +2158,7 @@ they can be in either order.")
 DEFUN ("buffer-string", Fbuffer_string, Sbuffer_string, 0, 0, 0,
   "Return the contents of the current buffer as a string.\n\
 If narrowing is in effect, this function returns only the visible part\n\
-of the buffer.  If in a mini-buffer, don't include the prompt in the\n\
-string returned.")
+of the buffer.")
   ()
 {
   return make_buffer_string (BEGV, ZV, 1);
