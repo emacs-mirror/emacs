@@ -52,3 +52,6 @@
    on HP-UX.  (You get duplicate symbol errors on linking). */
 
 #undef _FILE_OFFSET_BITS
+
+/* Don't define _BSD */
+#undef C_SWITCH_SYSTEM
