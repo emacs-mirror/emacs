@@ -56,6 +56,7 @@ internationalized software, such as word processors, mailers, etc.
 * Fontsets::                Fontsets are collections of fonts
                               that cover the whole spectrum of characters.
 * Defining Fontsets::       Defining a new fontset.
+* Undisplayable Characters:: When characters don't display.
 * Single-Byte Character Support::
                             You can pick one European character set
                             to use without multibyte characters.
@@ -80,7 +81,8 @@ cases) in the @kbd{C-q} command (@pxref{Multibyte Conversion}).
 @file{etc/HELLO}, which shows how to say ``hello'' in many languages.
 This illustrates various scripts.  If the font you're using doesn't have
 characters for all those different languages, you will see some hollow
-boxes instead of characters; see @ref{Fontsets}.
+boxes instead of characters; see @ref{Fontsets}.  On non-windowing
+displays, @samp{?} is displayed in place of the hollow box.
 
 @findex list-charset-chars
 @cindex characters in a certain charset
@@ -187,7 +189,7 @@ set-language-environment}.  It makes no difference which buffer is
 current when you use this command, because the effects apply globally to
 the Emacs session.  The supported language environments include:
 
-@cindex euro sign
+@cindex Euro sign
 @quotation
 Chinese-BIG5, Chinese-CNS, Chinese-GB, Cyrillic-ALT, Cyrillic-ISO,
 Cyrillic-KOI8, Czech, Devanagari, English, Ethiopic, German, Greek,
@@ -208,6 +210,7 @@ fonts.
 @findex set-locale-environment
 @vindex locale-language-names
 @vindex locale-charset-language-names
+@cindex locales
   Some operating systems let you specify the language you are using by
 setting the locale environment variables @env{LC_ALL}, @env{LC_CTYPE},
 and @env{LANG}; the first of these which is nonempty specifies your
@@ -433,7 +436,7 @@ method, including the string that stands for it in the mode line.
 through 0377 (octal) are not really legitimate in the buffer.  The valid
 non-ASCII printing characters have codes that start from 0400.
 
-  If you type a self-inserting character in the invalid range 0240
+  If you type a self-inserting character in the range 0240
 through 0377, Emacs assumes you intended to use one of the ISO
 Latin-@var{n} character sets, and converts it to the Emacs code
 representing that Latin-@var{n} character.  You select @emph{which} ISO
@@ -447,7 +450,12 @@ Latin character set to use through your choice of language environment
 If you do not specify a choice, the default is Latin-1.
 
   The same thing happens when you use @kbd{C-q} to enter an octal code
-in this range.
+in this range.  If you enter a code in the range 0200 through 0237,
+which forms the @code{eight-bit-control} character set, it is inserted
+literally.  You should normally avoid doing this since buffers
+containing such characters have to be written out in either the
+@code{emacs-mule} or @code{raw-text} coding system, which is usually not
+what you want.
 
 @node Coding Systems
 @section Coding Systems
@@ -830,7 +838,8 @@ specify the terminal coding system when using multibyte text, so that
 Emacs knows which characters the terminal can actually handle.
 
   By default, output to the terminal is not translated at all, unless
-Emacs can deduce the proper coding system from your terminal type.
+Emacs can deduce the proper coding system from your terminal type or
+your locale specification (@pxref{Language Environments}).
 
 @kindex C-x RET k
 @findex set-keyboard-coding-system
@@ -923,7 +932,8 @@ specifying its name, anywhere that you could use a single font.  Of
 course, Emacs fontsets can use only the fonts that the X server
 supports; if certain characters appear on the screen as hollow boxes,
 this means that the fontset in use for them has no font for those
-characters.
+characters.@footnote{The installation instructions have information on
+additional font support.}
 
   Emacs creates two fontsets automatically: the @dfn{standard fontset}
 and the @dfn{startup fontset}.  The standard fontset is most likely to
@@ -1076,6 +1086,27 @@ fontset is called @code{create-fontset-from-fontset-spec}.  You can also
 call this function explicitly to create a fontset.
 
   @xref{Font X}, for more information about font naming in X.
+
+@node Undisplayable Characters
+@section Undisplayable Characters
+
+Your terminal may not be able to display some non-@sc{ascii} characters.
+Most non-windowing terminals can only use a single character set,
+specified by the variable @code{default-terminal-coding-system}
+(@pxref{Specify Coding}) and characters which can't be encoded in it are
+displayed as @samp{?} by default.  Windowing terminals may not have the
+necessary font available to display a given character and display a
+hollow box instead.  You can change the default behavior.
+
+If you use Latin-1 characters but your terminal can't display Latin-1,
+you can arrange to display mnemonic @sc{ascii} sequences instead, e.g.@:
+@samp{"o} for o-umlaut.  Load the library @file{iso-ascii} to do this.
+
+If your terminal can display Latin-1, you can display characters from
+other European character sets using a mixture of equivalent Latin-1
+characters and @sc{ascii} mnemonics.  Use the Custom option
+@code{latin1-display} to enable this.  The mnemonic @sc{ascii} sequences
+mostly correspond to those of the prefix input methods.
 
 @node Single-Byte Character Support
 @section Single-byte Character Set Support
