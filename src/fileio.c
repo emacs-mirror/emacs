@@ -3863,14 +3863,18 @@ actually used.")
 	  while (total_read < trial)
 	    {
 	      nread = emacs_read (fd, buffer + total_read, trial - total_read);
-	      if (nread <= 0)
+	      if (nread < 0)
 		error ("IO error reading %s: %s",
 		       XSTRING (orig_filename)->data, emacs_strerror (errno));
+	      else if (nread == 0)
+		break;
 	      total_read += nread;
 	    }
+	  
 	  /* Scan this bufferful from the end, comparing with
 	     the Emacs buffer.  */
 	  bufpos = total_read;
+	  
 	  /* Compare with same_at_start to avoid counting some buffer text
 	     as matching both at the file's beginning and at the end.  */
 	  while (bufpos > 0 && same_at_end > same_at_start
