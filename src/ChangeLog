@@ -1,3 +1,9 @@
+2001-02-09  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (code_convert_region): After detecting a coding, if
+	nothing found, set coding->composing to COMPOSITION_NO.
+	(decode_coding_string): Likewise.
+
 2001-02-08  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* w32term.c (w32_set_scroll_bar_thumb): Use `double' for `range'
