@@ -1855,6 +1855,28 @@ Undo previous insertion and inserts new."
     (funcall hook)
     ))
 
+;; Thie is a temp hook that uses free variables init-message and initial.
+;; A dirty feature, but it is the simplest way to have it do the right thing.
+(defun viper-minibuffer-standard-hook ()
+  (if (stringp init-message)
+      (viper-tmp-insert-at-eob init-message))
+  (if (stringp initial)
+      (progn
+	;; don't wait if we have unread events or in kbd macro
+	(or unread-command-events
+	    executing-kbd-macro
+	    (sit-for 840))
+	(if (fboundp 'minibuffer-prompt-end)
+	    (delete-region (minibuffer-prompt-end) (point-max))
+	  (erase-buffer))
+	(insert initial)))
+  (viper-minibuffer-setup-sentinel))
+
+(defsubst viper-minibuffer-real-start ()
+  (if (fboundp 'minibuffer-prompt-end)
+      (minibuffer-prompt-end)
+    (point-min)))
+
 
 ;; Interpret last event in the local map first; if fails, use exit-minibuffer.
 ;; Run viper-minibuffer-exit-hook before exiting.
@@ -1893,7 +1915,8 @@ To turn this feature off, set this variable to nil."
 (defun viper-file-add-suffix ()
   (let ((count 0)
 	(len (length viper-smart-suffix-list))
-	(file (buffer-string))
+	(file (buffer-substring-no-properties
+	       (viper-minibuffer-real-start) (point-max)))
 	found key cmd suff)
     (goto-char (point-max))
     (if (and viper-smart-suffix-list (string-match "\\.$" file))
@@ -1932,7 +1955,7 @@ Remove this function from `viper-minibuffer-exit-hook', if this causes
 problems."
   (if (viper-is-in-minibuffer)
       (progn
-	(goto-char (point-min))
+	(goto-char (viper-minibuffer-real-start))
 	(end-of-line)
 	(delete-region (point) (point-max)))))
 
@@ -1950,19 +1973,7 @@ problems."
   ;; KEYMAP is used, if given, instead of minibuffer-local-map.
   ;; INIT-MESSAGE is the message temporarily displayed after entering the
   ;; minibuffer.
-  (let ((minibuffer-setup-hook
-	 (lambda ()
-	   (if (stringp init-message)
-	       (viper-tmp-insert-at-eob init-message))
-	   (if (stringp initial)
-	       (progn
-		 ;; don't wait if we have unread events or in kbd macro
-		 (or unread-command-events
-		     executing-kbd-macro
-		     (sit-for 840))
-		 (erase-buffer)
-		 (insert initial)))
-	   (viper-minibuffer-setup-sentinel)))
+  (let ((minibuffer-setup-hook 'viper-minibuffer-standard-hook)
 	(val "")
 	(padding "")
 	temp-msg)

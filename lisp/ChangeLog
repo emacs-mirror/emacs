@@ -1,3 +1,11 @@
+1999-12-06  Michael Kifer  <kifer@cs.sunysb.edu>
+	
+	* viper-cmd.el (viper-minibuffer-standard-hook,
+	viper-minibuffer-real-start): new functions.
+	(viper-read-string-with-history,viper-file-add-suffix,
+	viper-trim-replace-chars-to-delete-if-necessary): adapt to the
+	change in the status of the minibuffer prompt.
+	
 1999-12-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* comint.el (comint-redirect-results-list)
