@@ -16,11 +16,11 @@
 
 	* generic.el (generic-mode-internal): Fix 2005-03-31 change.
 	(define-generic-mode): Ditto.  Fix debug declaration.
-	
+
 	* generic-x.el (show-tabs-tab-face, show-tabs-space-face): Put
 	them in the generic-x group.
 
-	* calendar/timeclock.el (timeclock): Docstring fix.
+	* calendar/timeclock.el (timeclock): Doc fix.
 
 	* generic.el (define-generic-mode): Don't use custom-current-group.
 	Document default :group value.
@@ -44,7 +44,7 @@
 
 2005-04-05  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el (org-diary-default-entry): Fixed call to
+	* textmodes/org.el (org-diary-default-entry): Fix call to
 	`add-to-diary-entry'.
 
 2005-04-05  Kim F. Storm  <storm@cua.dk>
@@ -76,7 +76,7 @@
 
 2005-04-04  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el (org-insert-mode-line-in-empty-file): Changed
+	* textmodes/org.el (org-insert-mode-line-in-empty-file): Change
 	default value to nil.
 
 2005-04-04  Lute Kamstra  <lute@gnu.org>
@@ -163,7 +163,7 @@
 	* generic-x.el: Specify :group for all generic modes.
 
 	* desktop.el (desktop-no-desktop-file-hook)
-	(desktop-after-read-hook): Fix docstring.
+	(desktop-after-read-hook): Doc fix.
 
 2005-04-02  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -277,12 +277,12 @@
 
 2005-03-31  Karl Berry  <karl@freefriends.org>
 
-	* textmodes/tex-mode.el (tex-compile): shell-quote-argument,
+	* textmodes/tex-mode.el (tex-compile): Use shell-quote-argument,
 	not comint-quote-filename.
 
 2005-03-31  Olive Lin  <olive.lin@versateladsl.be> (tiny change)
 
-	* textmodes/tex-mode.el (tex-start-tex) shell-quote-argument,
+	* textmodes/tex-mode.el (tex-start-tex) Use shell-quote-argument,
 	not comint-quote-filename.
 
 2005-03-31  Thien-Thi Nguyen  <ttn@gnu.org>
