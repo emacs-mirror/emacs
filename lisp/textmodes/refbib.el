@@ -84,22 +84,22 @@ BibTeX macro \"ijcai7\".")
 (defvar r2b-proceedings-list
    '()
    "  Assoc list of books or journals which are really conference proceedings,
-but whose name and whose abbrev expansion (as defined in r2b-journal-abbrevs
-and r2b-booktitle-abbrevs) does not contain the words 'conference' or
-'proceedings'.  (Those cases are handled automatically.)
+but whose name and whose abbrev expansion (as defined in `r2b-journal-abbrevs'
+and `r2b-booktitle-abbrevs') does not contain the words \"conference\" or
+\"proceedings\".  (Those cases are handled automatically.)
 The entry must match the given data exactly.
   Because titles are capitalized before matching, the items in this list 
 should begin with a capital letter.
   For example, suppose the title \"Ijcai81\" is used for the proceedings of
-a conference, and it's expansion is the BibTeX macro \"ijcai7\".  Then 
-r2b-proceedings-list should be '((\"Ijcai81\") ...).  If instead its 
+a conference, and it's expansion is the BibTeX macro \"ijcai7\".  Then
+`r2b-proceedings-list' should be '((\"Ijcai81\") ...).  If instead its
 expansion were \"Proceedings of the Seventh International Conference
-on Artificial Intelligence\", then you would NOT need to include Ijcai81 
-in r2b-proceedings-list (although it wouldn't cause an error).")
+on Artificial Intelligence\", then you would NOT need to include Ijcai81
+in `r2b-proceedings-list' (although it wouldn't cause an error).")
 
 (defvar r2b-additional-stop-words
 	 "Some\\|What"
-   "Words other than the capitialize-title-stop-words
+   "Words other than the `capitialize-title-stop-words'
 which are not to be used to build the citation key")
 
 
@@ -121,7 +121,7 @@ word in the title)")
    (concat "\\(" capitalize-title-stop-words "\\)\\(\\b\\|'\\)"))
 
 (defun capitalize-title-region (begin end)
-   "Like capitalize-region, but don't capitalize stop words, except the first"
+   "Like `capitalize-region', but don't capitalize stop words, except the first."
    (interactive "r")
    (let ((case-fold-search nil) (orig-syntax-table (syntax-table)))
       (unwind-protect
@@ -144,7 +144,7 @@ word in the title)")
 
 
 (defun capitalize-title (s)
-   "Like capitalize, but don't capitalize stop words, except the first"
+   "Like capitalize, but don't capitalize stop words, except the first."
    (save-excursion
       (set-buffer (get-buffer-create "$$$Scratch$$$"))
       (erase-buffer)
@@ -154,7 +154,7 @@ word in the title)")
 
 ;*********************************************************
 (defun r2b-reset ()
-   "unbind defvars, for debugging"
+   "Unbind defvars, for debugging."
    (interactive)
    (makunbound 'r2b-journal-abbrevs)
    (makunbound 'r2b-booktitle-abbrevs)
@@ -162,8 +162,7 @@ word in the title)")
    (makunbound 'capitalize-title-stop-words)
    (makunbound 'capitalize-title-stop-regexp)
    (makunbound 'r2b-additional-stop-words)
-   (makunbound 'r2b-stop-regexp)
-   )
+   (makunbound 'r2b-stop-regexp))
 
 (defvar r2b-stop-regexp
    (concat "\\`\\(\\(" 
@@ -175,11 +174,10 @@ word in the title)")
    (if r2b-trace-on
       (progn
 	 (apply (function message) args)
-	 (sit-for 0)
-	 )))
+	 (sit-for 0))))
 
 (defun r2b-match (exp)
-   "returns string matched in current buffer"
+   "Returns string matched in current buffer."
    (buffer-substring (match-beginning exp) (match-end exp)))
 
 (defvar r2b-out-buf-name "*Out*" "*output from refer-to-bibtex" )
@@ -223,12 +221,11 @@ word in the title)")
 			  ))
 
 (defun r2b-clear-variables ()
-   "set all global vars used by r2b to nil"
+   "Set all global vars used by r2b to nil."
    (let ((vars r2b-variables))
       (while vars
 	 (set (car vars) nil)
-	 (setq vars (cdr vars)))
-      ))
+	 (setq vars (cdr vars)))))
 
 (defun r2b-warning (&rest args)
    (setq r2b-error-found t)
@@ -236,8 +233,7 @@ word in the title)")
    (princ "\n" r2b-log)
    (princ "\n" r2b-out-buf)
    (princ "% " r2b-out-buf)
-   (princ (apply (function format) args) r2b-out-buf)
-   )
+   (princ (apply (function format) args) r2b-out-buf))
 
 (defun r2b-get-field (var field &optional unique required capitalize)
    "Set VAR to string value of FIELD, if any.  If none, VAR is set to
@@ -278,7 +274,7 @@ title if CAPITALIZE is true.  Returns value of VAR."
       ))
 
 (defun r2b-set-match (var n regexp string )
-   "set VAR to the Nth subpattern in REGEXP matched by STRING, or nil if none"
+   "Set VAR to the Nth subpattern in REGEXP matched by STRING, or nil if none."
    (set var
       (if (and (stringp string) (string-match regexp string))
 	 (substring string (match-beginning n) (match-end n))
@@ -291,7 +287,7 @@ title if CAPITALIZE is true.  Returns value of VAR."
        ("sep") ("oct") ("nov") ("dec")))
 
 (defun r2b-convert-month ()
-   "Try to convert r2bv-month to a standard 3 letter name"
+   "Try to convert `r2bv-month' to a standard 3 letter name."
    (if r2bv-month
       (let ((months r2b-month-abbrevs))
 	 (if (string-match "[^0-9]" r2bv-month)
@@ -316,7 +312,7 @@ title if CAPITALIZE is true.  Returns value of VAR."
    )
 
 (defun r2b-snarf-input ()
-   "parse buffer into global variables"
+   "Parse buffer into global variables."
    (let ((case-fold-search t))
       (r2b-trace "snarfing...")
       (sit-for 0)
@@ -376,9 +372,9 @@ title if CAPITALIZE is true.  Returns value of VAR."
 
 
 (defun r2b-put-field (field data &optional abbrevs)
-  "print bibtex FIELD = {DATA} if DATA not null; precede
+  "Print bibtex FIELD = {DATA} if DATA not null; precede
 with a comma and newline; if ABBREVS list is given, then
-try to replace the {DATA} with an abbreviation"
+try to replace the {DATA} with an abbreviation."
   (if data
     (let (match nodelim multi-line index)
       (cond
@@ -433,7 +429,7 @@ try to replace the {DATA} with an abbreviation"
 
 
 (defun r2b-require (vars)
-   "If any of VARS is null, set to empty string and log error"
+   "If any of VARS is null, set to empty string and log error."
    (cond 
       ((null vars))
       ((listp vars) (r2b-require (car vars)) (r2b-require (cdr vars)))
@@ -448,11 +444,11 @@ try to replace the {DATA} with an abbreviation"
 
 
 (defmacro r2b-moveq (new old)
-   "set NEW to OLD and set OLD to nil"
+   "Set NEW to OLD and set OLD to nil."
    (list 'progn (list 'setq new old) (list 'setq old 'nil)))
 
 (defun r2b-isa-proceedings (name)
-   "return t if NAME is the name of proceedings"
+   "Return t if NAME is the name of proceedings."
    (and
       name
       (or
@@ -464,8 +460,8 @@ try to replace the {DATA} with an abbreviation"
       )))
 
 (defun r2b-isa-university (name)
-   "return t if NAME is a university or similar organization, 
-but not a publisher"
+   "Return t if NAME is a university or similar organization,
+but not a publisher."
    (and 
       name
       (string-match "university" name)
@@ -474,7 +470,7 @@ but not a publisher"
    ))
 
 (defun r2b-barf-output ()
-   "generate bibtex based on global variables"
+   "Generate bibtex based on global variables."
    (let ((standard-output r2b-out-buf) (case-fold-search t) match)
 
       (r2b-trace "...barfing")
@@ -604,8 +600,8 @@ but not a publisher"
 
 
 (defun r2b-convert-record (output-name)
-   "transform current bib entry and append to buffer OUTPUT;
-do M-x r2b-help for more info"
+   "Transform current bib entry and append to buffer OUTPUT;
+do \"M-x r2b-help\" for more info."
    (interactive 
       (list (read-string "Output to buffer: " r2b-out-buf-name)))
    (let (rec-end rec-begin not-done)
@@ -641,8 +637,8 @@ do M-x r2b-help for more info"
       
       
 (defun r2b-convert-buffer (output-name)
-   "transform current buffer and append to buffer OUTPUT;
-do M-x r2b-help for more info"
+   "Transform current buffer and append to buffer OUTPUT;
+do \"M-x r2b-help\" for more info."
    (interactive 
       (list (read-string "Output to buffer: " r2b-out-buf-name)))
    (save-excursion
@@ -703,7 +699,7 @@ To see this message again, perform
 
 
 (defun r2b-help ()
-   "print help message"
+   "Print help message."
    (interactive)
    (with-output-to-temp-buffer "*Help*"
       (princ r2b-help-message)))
@@ -712,4 +708,3 @@ To see this message again, perform
    (r2b-help))
 
 (message "r2b loaded")
-

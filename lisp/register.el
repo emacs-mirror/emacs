@@ -29,8 +29,7 @@ A list represents a rectangle; its elements are strings.")
   (cdr (assq char register-alist)))
 
 (defun set-register (char value)
-  "Set contents of Emacs register named CHAR to VALUE.
-Returns VALUE."
+  "Set contents of Emacs register named CHAR to VALUE.  Returns VALUE."
   (let ((aelt (assq char register-alist)))
     (if aelt
 	(setcdr aelt value)
@@ -136,20 +135,16 @@ Interactively, second arg is non-nil if prefix arg is supplied."
   (if (not arg) (exchange-point-and-mark)))
 
 (defun copy-to-register (char start end &optional delete-flag)
-  "Copy region into register REG.
-With prefix arg, delete as well.
-Called from program, takes four args:
-REG, START, END and DELETE-FLAG.
+  "Copy region into register REG.  With prefix arg, delete as well.
+Called from program, takes four args: REG, START, END and DELETE-FLAG.
 START and END are buffer positions indicating what to copy."
   (interactive "cCopy to register: \nr\nP")
   (set-register char (buffer-substring start end))
   (if delete-flag (delete-region start end)))
 
 (defun append-to-register (char start end &optional delete-flag)
-  "Append region to text in register REG.
-With prefix arg, delete as well.
-Called from program, takes four args:
-REG, START, END and DELETE-FLAG.
+  "Append region to text in register REG.  With prefix arg, delete as well.
+Called from program, takes four args: REG, START, END and DELETE-FLAG.
 START and END are buffer positions indicating what to append."
   (interactive "cAppend to register: \nr\nP")
   (or (stringp (get-register char))
@@ -159,10 +154,8 @@ START and END are buffer positions indicating what to append."
   (if delete-flag (delete-region start end)))
 
 (defun prepend-to-register (char start end &optional delete-flag)
-  "Prepend region to text in register REG.
-With prefix arg, delete as well.
-Called from program, takes four args:
-REG, START, END and DELETE-FLAG.
+  "Prepend region to text in register REG.  With prefix arg, delete as well.
+Called from program, takes four args: REG, START, END and DELETE-FLAG.
 START and END are buffer positions indicating what to prepend."
   (interactive "cPrepend to register: \nr\nP")
   (or (stringp (get-register char))
@@ -172,10 +165,8 @@ START and END are buffer positions indicating what to prepend."
   (if delete-flag (delete-region start end)))
 
 (defun copy-rectangle-to-register (char start end &optional delete-flag)
-  "Copy rectangular region into register REG.
-With prefix arg, delete as well.
-Called from program, takes four args:
-REG, START, END and DELETE-FLAG.
+  "Copy rectangular region into register REG.  With prefix arg, delete as well.
+Called from program, takes four args: REG, START, END and DELETE-FLAG.
 START and END are buffer positions giving two corners of rectangle."
   (interactive "cCopy rectangle to register: \nr\nP")
   (set-register char
