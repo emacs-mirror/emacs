@@ -1,3 +1,37 @@
+2000-08-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* textmodes/ispell.el (ispell-dictionary-alist-6): Add
+	`portugues'.
+
+	* bindings.el (esc-map): Bind `C-delete' and `C-backspace' to
+	backward-kill-sexp, analogous to kill-sexp.
+
+	* progmodes/icon.el (icon-indent-line)
+	(icon-is-continuation-line): Handle comments specially.
+
+2000-08-17  Ken Stevens <k.stevens@ieee.org>
+
+	* ispell.el: Set to standard author/maintainer/keyword fields.
+	Fine tuning to menu map appearance and operation, and added help.
+	Remove `start' and `end' error messages when compiling.
+	(ispell-choices-win-default-height): Fixed comment string.
+	(ispell-dictionary-alist-1): Fixed regexp in castellano and
+	castellano8 dictionaries.
+	(ispell-dictionary-alist-3): Fixed regexp in francais dictionary.
+	(ispell-dictionary-alist-4): Fixed regexp in francais-tex
+	dictionary, added italiano dictionary.
+	(ispell-skip-region-alist): Removed regexp thrashing when `-' is a
+	word character
+	(ispell-tex-skip-alists): Added psfig support.
+	(ispell-skip-html): Renamed from ispell-skip-sgml.
+	(ispell-begin-skip-region-regexp, ispell-skip-region)
+	(ispell-minor-check): Improved html skipping support to skip across
+	code, and recognize `&' commands without propper `;' syntax;
+	(ispell-process-line): Fix alignment error when manually
+	correcting spelling.
+	(ispell): Fix comment string.
+	(ispell-add-per-file-word-list): Always put word list on new line.
+
 2000-08-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* format.el (format-encode-run-method): Fix error message to say

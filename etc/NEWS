@@ -784,7 +784,7 @@ added.
 *** An "alignment error" bug was fixed when a manual spelling
 correction is made and re-checked.
 
-*** An Italian dictionary definition has been added.
+*** An Italian and a Portuguese dictionary definition has been added.
 
 *** Region skipping performance has been vastly improved in some
 cases.
