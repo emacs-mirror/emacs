@@ -9470,10 +9470,12 @@ run_window_scroll_functions (window, startp)
 }
 
 
-/* Modify the desired matrix of window W and W->vscroll so that the
-   line containing the cursor is fully visible.
-   A value of 1 means there is nothing to be done or we did it.
-   A value of 0 causes redisplay.  */
+/* Make sure the line containing the cursor is fully visible.
+   A value of 1 means there is nothing to be done.
+   (Either the line is fully visible, or it cannot be made so,
+   or we cannot tell.)
+   A value of 0 means the caller should do scrolling
+   as if point had gone off the screen.  */
 
 static int
 make_cursor_line_fully_visible (w)
@@ -9500,6 +9502,13 @@ make_cursor_line_fully_visible (w)
   window_height = window_box_height (w);
   if (row->height >= window_height)
     return 1;
+
+  return 0;
+
+#if 0
+  /* This code used to try to scroll the window just enough to make
+     the line visible.  It returned 0 to say that the caller should
+     allocate larger glyph matrices.  */
 
   if (MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P (w, row))
     {
@@ -9532,6 +9541,7 @@ make_cursor_line_fully_visible (w)
     }
 
   return 1;
+#endif /* 0 */
 }
 
 
@@ -9628,6 +9638,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
     {
       int y0;
 
+    too_near_end:
       /* Point is in the scroll margin at the bottom of the window, or
 	 below.  Compute a new window start that makes point visible.  */
 
@@ -9748,13 +9759,11 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	  || BEG_UNCHANGED < CHARPOS (startp))
 	w->base_line_number = Qnil;
 
-      /* If cursor ends up on a partially visible line, shift display
-	 lines up or down.  If that fails because we need larger
-	 matrices, give up.  */
-      if (!make_cursor_line_fully_visible (w))
-	rc = SCROLLING_NEED_LARGER_MATRICES;
-      else
-	rc = SCROLLING_SUCCESS;
+      /* If cursor ends up on a partially visible line,
+	 treat that as being off the bottom of the screen.  */
+      if (! make_cursor_line_fully_visible (w))
+	goto too_near_end;
+      rc = SCROLLING_SUCCESS;
     }
 
   return rc;
@@ -10043,7 +10052,7 @@ try_cursor_movement (window, startp, scroll_step)
 		  set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
 		  try_window (window, startp);
 		  if (!make_cursor_line_fully_visible (w))
-		    rc = CURSOR_MOVEMENT_NEED_LARGER_MATRICES;
+		    rc = CURSOR_MOVEMENT_MUST_SCROLL;
 		  else
 		    rc = CURSOR_MOVEMENT_SUCCESS;
 		}
@@ -10083,6 +10092,7 @@ redisplay_window (window, just_this_one_p)
   int temp_scroll_step = 0;
   int count = BINDING_STACK_SIZE ();
   int rc;
+  int centering_position;
 
   SET_TEXT_POS (lpoint, PT, PT_BYTE);
   opoint = lpoint;
@@ -10333,7 +10343,7 @@ redisplay_window (window, just_this_one_p)
 	}
 
       if (!make_cursor_line_fully_visible (w))
-	goto need_larger_matrices;
+	goto try_to_scroll;
 #if GLYPH_DEBUG
       debug_method_add (w, "forced window start");
 #endif
@@ -10429,7 +10439,8 @@ redisplay_window (window, just_this_one_p)
 	    w->base_line_number = Qnil;
 
 	  if (!make_cursor_line_fully_visible (w))
-	    goto need_larger_matrices;
+	    /* Drop through and scroll.  */
+	    ;
 	  goto done;
 	}
       else
@@ -10483,6 +10494,10 @@ redisplay_window (window, just_this_one_p)
   /* Finally, just choose place to start which centers point */
 
  recenter:
+  centering_position = window_box_height (w) / 2;
+
+ point_at_top:
+  /* Jump here with centering_position already set to 0.  */
 
 #if GLYPH_DEBUG
   debug_method_add (w, "recenter");
@@ -10498,7 +10513,7 @@ redisplay_window (window, just_this_one_p)
   /* Move backward half the height of the window.  */
   init_iterator (&it, w, PT, PT_BYTE, NULL, DEFAULT_FACE_ID);
   it.current_y = it.last_visible_y;
-  move_it_vertically_backward (&it, window_box_height (w) / 2);
+  move_it_vertically_backward (&it, centering_position);
   xassert (IT_CHARPOS (it) >= BEGV);
 
   /* The function move_it_vertically_backward may move over more
@@ -10580,7 +10595,13 @@ redisplay_window (window, just_this_one_p)
     }
 
   if (!make_cursor_line_fully_visible (w))
-    goto need_larger_matrices;
+    {
+      /* If centering point failed to make the whole line visible,
+	 put point at the top instead.  That has to make the whole line
+	 visible, if it can be done.  */
+      centering_position = 0;
+      goto point_at_top;
+    }
 
  done:
 
