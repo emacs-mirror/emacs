@@ -1,5 +1,7 @@
 2004-05-18  Eli Zaretskii  <eliz@gnu.org>
 
+	* lisp.h (DECL_ALIGN): Remove restriction on MS-DOS systems.
+
 	* msdos.c (syms_of_msdos): Initialize dos-unsupported-char-glyph
 	with make_number.
 	(IT_write_glyphs): Extract glyph from dos-unsupported-char-glyph
