@@ -76,7 +76,7 @@
   :prefix "mouse-avoidance-"
   :group 'mouse)
 
-
+;;;###autoload
 (defcustom mouse-avoidance-mode nil
   "Activate mouse avoidance mode.  
 See function `mouse-avoidance-mode' for possible values.
