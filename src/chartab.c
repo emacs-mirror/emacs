@@ -99,7 +99,6 @@ make_sub_char_table (depth, min_char, defalt)
 {
   Lisp_Object table;
   int size = VECSIZE (struct Lisp_Sub_Char_Table) - 1 + chartab_size[depth];
-  int i;
 
   table = Fmake_vector (make_number (size), defalt);
   XSUB_CHAR_TABLE (table)->depth = make_number (depth);
@@ -632,9 +631,7 @@ a cons of character codes (for characters in the range), or a character code.  *
 DEFUN ("set-char-table-default", Fset_char_table_default,
        Sset_char_table_default, 3, 3, 0,
        doc: /*
-Set the default value in CHAR-TABLE for a generic character CHAR to VALUE.
-The generic character specifies the group of characters.
-See also the documentation of make-char.  */)
+This function is obsolete and has no effect.  */)
      (char_table, ch, value)
      Lisp_Object char_table, ch, value;
 {
@@ -652,7 +649,7 @@ char_table_translate (table, ch)
 {
   Lisp_Object value;
   value = Faref (table, make_number (ch));
-  if (! INTEGERP (value))
+  if (! INTEGERP (value))	/* fixme: use CHARACTERP? */
     return ch;
   return XINT (value);
 }
@@ -798,7 +795,7 @@ map_char_table (c_function, function, table, arg, depth, indices)
 DEFUN ("map-char-table", Fmap_char_table, Smap_char_table,
   2, 2, 0,
        doc: /*
-Call FUNCTION for each (normal and generic) characters in CHAR-TABLE.
+Call FUNCTION for each character in CHAR-TABLE.
 FUNCTION is called with two arguments--a key and a value.
 The key is always a possible IDX argument to `aref'.  */)
      (function, char_table)
