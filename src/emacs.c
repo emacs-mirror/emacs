@@ -906,6 +906,16 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
 #endif /* CANNOT_DUMP */
     }
 
+  if (initialized)
+    {
+      /* Erase any pre-dump messages in the message log, to avoid confusion */
+      Lisp_Object old_log_max;
+      old_log_max = Vmessage_log_max;
+      XSETFASTINT (Vmessage_log_max, 0);
+      message_dolog ("", 0, 1);
+      Vmessage_log_max = old_log_max;
+    }
+
   initialized = 1;
 
 #if defined (sun) || defined (LOCALTIME_CACHE)
