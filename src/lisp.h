@@ -1272,7 +1272,7 @@ typedef unsigned char UCHAR;
 #endif
 
 /* Declare the prototype for a general external function.  */
-#ifdef __STDC__
+#if defined (__STDC__) || defined (WINDOWSNT)
 #define P_(proto) proto
 #else
 #define P_(proto) ()
