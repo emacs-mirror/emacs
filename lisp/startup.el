@@ -241,10 +241,10 @@ this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
     (setcdr command-line-args args))
 
   ;; Under X Windows, this creates the X frame and deletes the terminal frame.
-  (if (fboundp 'frame-initialize)
-      (frame-initialize))
   (if (fboundp 'face-initialize)
       (face-initialize))
+  (if (fboundp 'frame-initialize)
+      (frame-initialize))
 
   (run-hooks 'before-init-hook)
 
