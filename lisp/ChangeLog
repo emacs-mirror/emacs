@@ -3,6 +3,107 @@
 	* facemenu.el (facemenu-active-faces):
 	Use face-attributes-as-vector, not face-attributes-vector.
 
+2002-01-02  Chris Hanson  <cph@aarau.ai.mit.edu>
+
+	* xscheme.el: Eleven years of updates on a private copy.
+		      
+	Extensive changes to support multiple xscheme buffers:
+	(run-scheme): Break up into new functions to facilitate starting
+	processes in other buffers.
+	(xscheme-start, xscheme-read-command-line): New functions.
+	(start-scheme, select-scheme)
+	(default-xscheme-runlight)
+	(global-set-scheme-interaction-buffer)
+	(local-set-scheme-interaction-buffer)
+	(local-clear-scheme-interaction-buffer)
+	(exit-scheme-interaction-mode)
+	(verify-xscheme-buffer): New functions.
+	(xscheme-process-name, xscheme-buffer-name)
+	(xscheme-runlight): New internal vars.
+	(default-xscheme-runlight): New const.
+	(xscheme-start-process): Add args for the process/buffer names.
+	(reset-scheme): Pass process/buffer names.
+	(scheme-interaction-mode): Initialize new local vars.
+	(reset-scheme, xscheme-send-string-2, xscheme-process-running-p)
+	(xscheme-select-process-buffer, xscheme-process-buffer)
+	(xscheme-send-region, xscheme-send-char, xscheme-send-interrupt)
+	(xscheme-goto-output-point, xscheme-write-message-1): Use new
+	var xscheme-process-name.
+	(xscheme-start-process): Initialize xscheme-process-name and
+	xscheme-buffer-name in the process buffer.  Pass buffer name to
+	xscheme-modeline-initialize.
+	(xscheme-modeline-initialize): Add argument to specify buffer name
+	for mode-line vars.
+	(xscheme-process-sentinel): Make sure sentinel is run in the
+	process buffer so it sees its local vars.
+	(xscheme-process-filter-initialize, xscheme-set-runlight): More
+	elaborate logic to handle multiple-buffer mode lines.
+
+	(xscheme-enter-input-wait): Re-enable control-G handler upon
+	entering input wait.
+
+	(scheme-interaction-mode): Add arg to preserve local vars.
+	(xscheme-enter-interaction-mode)
+	(xscheme-enter-debugger-mode): Preserve local vars.
+	(xscheme-start-process): Clobber local vars.
+
+	(scheme-interaction-mode-commands): Allow end user to add commands
+	to scheme-interaction-mode keymap.
+	(scheme-interaction-mode-commands-alist): New variable.
+
+	(xscheme-send-string): Don't use insert-before-markers.
+
+	Implement a per-buffer kill ring:
+	(xscheme-insert-expression)
+	(xscheme-rotate-yank-pointer, xscheme-yank)
+	(xscheme-yank-pop, xscheme-yank-push): New functions.
+	(xscheme-expressions-ring)
+	(xscheme-expressions-ring-yank-pointer)
+	(xscheme-expressions-ring-max): New variables.
+	(xscheme-send-string-1): Call xscheme-insert-expression to save
+	expression in ring.
+	(xscheme-yank-previous-send): Now an alias for xscheme-yank.
+	(xscheme-previous-send): Deleted variable.
+
+	(xscheme-send-string-2, xscheme-send-char, xscheme-send-proceed,
+	xscheme-send-control-g-interrupt): Use process-send-string rather
+	than send-string.
+
+	(xscheme-send-region): Insert a newline after an expression that
+	is submitted in the interaction buffer, for consistency with
+	recent changes to Edwin.
+
+	(xscheme-delete-output): New function mimics comint-delete-output.
+	(xscheme-last-input-end): New internal variable.
+	(xscheme-process-filter-output): Update xscheme-last-input-end.
+
+	(xscheme-send-control-g-interrupt): Make sure that
+	xscheme-control-g-disabled-p is looked up in the right buffer.
+
+	(xscheme-enable-control-g): Clear C-g message if visible.
+	(xscheme-control-g-message-string): New internal var.
+	(xscheme-send-control-g-interrupt): Use new var.
+
+	(xscheme-send-control-g-interrupt, xscheme-send-interrupt): Delay
+	after sending interrupt in order to work around race condition.
+
+	(xscheme-send-control-g-interrupt, xscheme-send-interrupt)
+	(xscheme-send-char): Use xscheme-send-char rather than send-string
+	to send single char.
+
+	(xscheme-process-filter, xscheme-process-filter-alist): Add
+	support for evaluating expressions outside of the call-excursion.
+	(xscheme-process-filter:string-action-noexcursion): New func.
+
+	(xscheme-write-value): Change output string to match that used by
+	Edwin.
+
+	(xscheme-coerce-prompt): Don't write a space after a command
+	prompt.  The PROMPT-FOR-COMMAND- procedures will take care of this
+	for us.
+
+	(reset-scheme): Delete process after killing it.
+
 2002-01-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* bindings.el (function-key-map): Don't bind shifted keypad
