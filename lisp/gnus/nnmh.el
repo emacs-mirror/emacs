@@ -34,7 +34,7 @@
 (require 'nnmail)
 (require 'gnus-start)
 (require 'nnoo)
-(require 'cl)
+(eval-when-compile (require 'cl))
 
 (nnoo-declare nnmh)
 

@@ -31,7 +31,7 @@
 
 ;;; Code:
 
-(require 'cl)
+(eval-when-compile (require 'cl))
 
 (defvar running-xemacs (string-match "XEmacs\\|Lucid" emacs-version))
 

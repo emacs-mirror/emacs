@@ -33,7 +33,7 @@
 (require 'nnheader)
 (require 'nnmail)
 (require 'nnoo)
-(require 'cl)
+(eval-when-compile (require 'cl))
 
 (nnoo-declare nnml)
 
