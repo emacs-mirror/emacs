@@ -150,17 +150,16 @@ string is passed through `substitute-command-keys'.")
 
   fun = Findirect_function (function);
 
-  switch (XTYPE (fun))
+  if (SUBRP (fun))
     {
-    case Lisp_Subr:
       if (XSUBR (fun)->doc == 0) return Qnil;
       if ((EMACS_INT) XSUBR (fun)->doc >= 0)
 	doc = build_string (XSUBR (fun)->doc);
       else
 	doc = get_doc_string (- (EMACS_INT) XSUBR (fun)->doc);
-      break;
-      
-    case Lisp_Compiled:
+    }
+  else if (COMPILEDP (fun))
+    {
       if (XVECTOR (fun)->size <= COMPILED_DOC_STRING)
 	return Qnil;
       tem = XVECTOR (fun)->contents[COMPILED_DOC_STRING];
@@ -170,13 +169,13 @@ string is passed through `substitute-command-keys'.")
 	doc = get_doc_string (XFASTINT (tem));
       else
 	return Qnil;
-      break;
-
-    case Lisp_String:
-    case Lisp_Vector:
+    }
+  else if (STRINGP (fun) || VECTORP (fun))
+    {
       return build_string ("Keyboard macro.");
-
-    case Lisp_Cons:
+    }
+  else if (CONSP (fun))
+    {
       funcar = Fcar (fun);
       if (!SYMBOLP (funcar))
 	return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
@@ -193,18 +192,18 @@ subcommands.)");
 	    doc = get_doc_string (XFASTINT (tem));
 	  else
 	    return Qnil;
-
-	  break;
 	}
       else if (EQ (funcar, Qmocklisp))
 	return Qnil;
       else if (EQ (funcar, Qmacro))
 	return Fdocumentation (Fcdr (fun), raw);
-
-      /* Fall through to the default to report an error.  */
-
-    default:
-      return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
+      else
+	goto oops;
+    }
+  else
+    {
+    oops:
+      Fsignal (Qinvalid_function, Fcons (fun, Qnil));
     }
 
   if (NILP (raw))
