@@ -38,8 +38,9 @@ enum Lisp_Type
     /* Symbol.  XSYMBOL (object) points to a struct Lisp_Symbol. */
     Lisp_Symbol,
 
-    /* Marker (buffer ptr).  XMARKER(object) points to a struct Lisp_Marker. */
-    Lisp_Marker,
+    /* Miscellaneous.  XMISC (object) points to a union Lisp_Misc,
+       whose first member indicates the subtype.  */
+    Lisp_Misc,
 
     /* String.  XSTRING (object) points to a struct Lisp_String.
        The length of the string, and its contents, are stored therein. */
@@ -161,11 +162,12 @@ enum Lisp_Type
     Lisp_Overlay
   };
 
-/* This is the set of datatypes that share the marker structure.
+/* This is the set of datatypes that share a common structure.
    The first member of the structure is a type code from this set.  */
 enum Lisp_Misc_Type
   {
-    Lisp_Misc_Marker
+    Lisp_Misc_Marker,
+    Lisp_Misc_Free
   };
 
 #ifndef NO_UNION_TYPE
@@ -429,12 +431,13 @@ extern int pure_size;
 #define XSUBR(a) ((struct Lisp_Subr *) XPNTR(a))
 #define XSTRING(a) ((struct Lisp_String *) XPNTR(a))
 #define XSYMBOL(a) ((struct Lisp_Symbol *) XPNTR(a))
-#define XMARKER(a) ((struct Lisp_Marker *) XPNTR(a))
+#define XMISC(a)   ((union Lisp_Misc *) XPNTR(a))
 #define XOBJFWD(a) ((Lisp_Object *) XPNTR(a))
 #define XINTPTR(a) ((int *) XPNTR(a))
 #define XWINDOW(a) ((struct window *) XPNTR(a))
 #define XPROCESS(a) ((struct Lisp_Process *) XPNTR(a))
 #define XFLOAT(a) ((struct Lisp_Float *) XPNTR(a))
+#define XMARKER(a) (&(XMISC(a)->u_marker))
 
 #define XSETINT(a, b) XSET (a, Lisp_Int, b)
 #define XSETCONS(a, b) XSET (a, Lisp_Cons, b)
@@ -443,7 +446,7 @@ extern int pure_size;
 #define XSETSUBR(a, b) XSET (a, Lisp_Subr, b)
 #define XSETSTRING(a, b) XSET (a, Lisp_String, b)
 #define XSETSYMBOL(a, b) XSET (a, Lisp_Symbol, b)
-#define XSETMARKER(a, b) XSET (a, Lisp_Marker, b)
+#define XSETMISC(a, b) XSET (a, Lisp_Misc, b)
 #define XSETOBJFWD(a, b) XSET (a, Lisp_Objfwd, b)
 #define XSETWINDOW(a, b) XSET (a, Lisp_Window, b)
 #define XSETPROCESS(a, b) XSET (a, Lisp_Process, b)
@@ -452,6 +455,7 @@ extern int pure_size;
 #define XSETBUFFER_OBJFWD(a, b) XSET (a, Lisp_Buffer_Objfwd, b)
 #define XSETWINDOW_CONFIGURATION(a, b) XSET (a, Lisp_Window_Configuration, b)
 #define XSETINTFWD(a, b) XSET (a, Lisp_Intfwd, b)
+#define XSETMARKER(a, b) (XSETMISC (a, b), XMISC (a)->type = Lisp_Misc_Marker)
 
 #ifdef USE_TEXT_PROPERTIES
 /* Basic data type for use of intervals.  See the macros in intervals.h */
@@ -584,6 +588,20 @@ struct Lisp_Marker
     int bufpos;
   };
 
+/* A miscellaneous object, when it's on the free list.  */
+struct Lisp_Free
+  {
+    enum Lisp_Misc_Type type;	/* = Lisp_Misc_Free */
+    union Lisp_Misc *chain;
+  };
+
+union Lisp_Misc
+  {
+    enum Lisp_Misc_Type type;
+    struct Lisp_Free u_free;
+    struct Lisp_Marker u_marker;
+  };
+
 #ifdef LISP_FLOAT_TYPE
 /* Optional Lisp floating point type */
 struct Lisp_Float
@@ -700,7 +718,7 @@ typedef unsigned char UCHAR;
 
 #define INTEGERP(x) (XTYPE ((x)) == Lisp_Int)
 #define SYMBOLP(x) (XTYPE ((x)) == Lisp_Symbol)
-#define MARKERP(x) (XTYPE ((x)) == Lisp_Marker)
+#define MISCP(x) (XTYPE ((x)) == Lisp_Misc)
 #define STRINGP(x) (XTYPE ((x)) == Lisp_String)
 #define VECTORP(x) (XTYPE ((x)) == Lisp_Vector)
 #define CONSP(x) (XTYPE ((x)) == Lisp_Cons)
@@ -723,6 +741,7 @@ typedef unsigned char UCHAR;
 #define BUFFER_LOCAL_VALUEP(x) (XTYPE ((x)) == Lisp_Buffer_Local_Value)
 #define SOME_BUFFER_LOCAL_VALUEP(x) (XTYPE ((x)) == Lisp_Some_Buffer_Local_Value)
 #define BUFFER_OBJFWDP(x) (XTYPE ((x)) == Lisp_Buffer_Objfwd)
+#define MARKERP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Marker)
 
 #define EQ(x, y) (XFASTINT (x) == XFASTINT (y))
 #define GC_EQ(x, y) (XGCTYPE (x) == XGCTYPE (y) && XPNTR (x) == XPNTR (y))
