@@ -6,9 +6,6 @@
 /* For mem-limits.h.  */
 #define BSD4_2
 
-#undef SYSTEM_TYPE
-#define SYSTEM_TYPE "netbsd"
-
 #undef KERNEL_FILE
 #undef LDAV_SYMBOL
 #define HAVE_GETLOADAVG
