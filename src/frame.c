@@ -571,7 +571,7 @@ Note that changing the size of one terminal frame automatically affects all.")
 
   f = make_terminal_frame ();
   change_frame_size (f, FRAME_HEIGHT (selected_frame),
-		     FRAME_WIDTH (selected_frame), 0, 0);
+		     FRAME_WIDTH (selected_frame), 0, 0, 0);
   adjust_glyphs (f);
   calculate_costs (f);
   XSETFRAME (frame, f);
@@ -1193,12 +1193,6 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 
   Vframe_list = Fdelq (frame, Vframe_list);
   FRAME_SET_VISIBLE (f, 0);
-
-  if (echo_area_glyphs == FRAME_MESSAGE_BUF (f))
-    {
-      echo_area_glyphs = 0;
-      previous_echo_glyphs = 0;
-    }
 
   if (f->namebuf)
     xfree (f->namebuf);
@@ -2201,11 +2195,11 @@ but that the idea of the actual height of the frame should not be changed.")
     {
       if (XINT (lines) != f->height)
 	x_set_window_size (f, 1, f->width, XINT (lines));
-      do_pending_window_change ();
+      do_pending_window_change (0);
     }
   else
 #endif
-    change_frame_size (f, XINT (lines), 0, !NILP (pretend), 0);
+    change_frame_size (f, XINT (lines), 0, !NILP (pretend), 0, 0);
   return Qnil;
 }
 
@@ -2232,11 +2226,11 @@ but that the idea of the actual width of the frame should not be changed.")
     {
       if (XINT (cols) != f->width)
 	x_set_window_size (f, 1, XINT (cols), f->height);
-      do_pending_window_change ();
+      do_pending_window_change (0);
     }
   else
 #endif
-    change_frame_size (f, 0, XINT (cols), !NILP (pretend), 0);
+    change_frame_size (f, 0, XINT (cols), !NILP (pretend), 0, 0);
   return Qnil;
 }
 
@@ -2260,11 +2254,11 @@ DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 3, 0,
       if (XINT (rows) != f->height || XINT (cols) != f->width
 	  || FRAME_NEW_HEIGHT (f) || FRAME_NEW_WIDTH (f))
 	x_set_window_size (f, 1, XINT (cols), XINT (rows));
-      do_pending_window_change ();
+      do_pending_window_change (0);
     }
   else
 #endif
-    change_frame_size (f, XINT (rows), XINT (cols), 0, 0);
+    change_frame_size (f, XINT (rows), XINT (cols), 0, 0, 0);
 
   return Qnil;
 }
