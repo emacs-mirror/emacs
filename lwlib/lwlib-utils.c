@@ -21,6 +21,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <config.h>
 #endif
 
+/* Definitions of these in config.h can cause
+   declaration conflicts later on between declarations for index
+   and declarations for strchr.  This file doesn't use
+   index and rindex, so cancel them.  */
+#undef index
+#undef rindex
+
 #include <X11/Xatom.h>
 #include <X11/IntrinsicP.h>
 #include <X11/ObjectP.h>
