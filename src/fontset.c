@@ -31,9 +31,9 @@ Boston, MA 02111-1307, USA.  */
 #include "frame.h"
 
 Lisp_Object Vglobal_fontset_alist;
-
 Lisp_Object Vfont_encoding_alist;
 Lisp_Object Vuse_default_ascent;
+Lisp_Object Valternative_fontname_alist;
 
 /* We had better have our own strcasecmp function because some system
    doesn't have it.  */
@@ -826,6 +826,12 @@ ENCODING is one of the following integer values:\n\
 If an entry for a character is non-nil, the ascent value of the glyph\n\
 is assumed to be what specified by _MULE_DEFAULT_ASCENT property of a font.");
   Vuse_default_ascent = Qnil;
+
+  DEFVAR_LISP ("alternative-fontname-alist", &Valternative_fontname_alist,
+     "Alist of fontname vs list of the alternative fontnames.
+When no font can be opened by a fontname, the corresponding
+alternative fontnames are tried.");
+  Valternative_fontname_alist = Qnil;
 
   defsubr (&Squery_fontset);
   defsubr (&Snew_fontset);
