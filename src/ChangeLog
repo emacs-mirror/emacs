@@ -1,3 +1,11 @@
+2004-11-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* eval.c (Feval): Remove check for INPUT_BLOCKED_P.
+
+	* xmenu.c (popup_get_selection, create_and_show_popup_menu)
+	(create_and_show_dialog): Revert change from 2004-10-31.
+	
+
 2004-11-05  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* macros.c (syms_of_macros) <defining-kbd-macro>: Doc fix.
