@@ -42,10 +42,10 @@
 ;;;###dont-autoload
 (setq auto-mode-alist
       ;; matches files
-      ;;	- who's path contains /bin/, but not directories
+      ;;	- whose path contains /bin/, but not directories
       (cons '("/bin/" . sh-or-other-mode)
 	    ;;	- that have a suffix .sh or .shar (shell archive)
-	    ;;	- that contain ressources for the various shells
+	    ;;	- that contain resources for the various shells
 	    ;;	- startup files for X11
 	    (cons '("\\.sh$\\|\\.shar$\\|/\\.\\(profile\\|bash_profile\\|login\\|bash_login\\|logout\\|bash_logout\\|bashrc\\|t?cshrc\\|xinitrc\\|startxrc\\|xsession\\)$" . sh-mode)
 		  auto-mode-alist)))
