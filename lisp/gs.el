@@ -115,10 +115,10 @@ SPEC is a GS image specification.  IMG-WIDTH is the width of the
 requested image, and IMG-HEIGHT is the height of the requested
 image in pixels."
   (let* ((box (plist-get (cdr spec) :bounding-box))
-	 (llx (elt 0 box))
-	 (lly (elt 1 box))
-	 (urx (elt 2 box))
-	 (ury (elt 3 box))
+	 (llx (elt box 0))
+	 (lly (elt box 1))
+	 (urx (elt box 2))
+	 (ury (elt box 3))
 	 (rotation (or (plist-get (cdr spec) :rotate) 0))
 	 ;; The pixel width IMG-WIDTH of the pixmap gives the
 	 ;; dots, URX - LLX give the inch.
