@@ -300,7 +300,7 @@ Emacs loads this file at startup time.")
 ;; in the same directory as this file.  Loading this file registeres
 ;; the whole input methods in Emacs.
 ;;
-;; Each entry is has the form:
+;; Each entry has the form:
 ;;   (register-input-method
 ;;    INPUT-METHOD LANGUAGE-NAME ACTIVATE-FUNC
 ;;    TITLE DESCRIPTION
