@@ -1,5 +1,5 @@
 /* Minibuffer input and completion.
-   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1996, 1997, 1998
+   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1996, 1997, 1998, 1999
          Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -131,6 +131,7 @@ Lisp_Object Qcurrent_input_method, Qactivate_input_method;
 
 extern Lisp_Object Qmouse_face;
 
+extern Lisp_Object Qfield;
 
 /* Put minibuf on currently selected frame's minibuffer.
    We do this whenever the user starts a new minibuffer
@@ -318,9 +319,6 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 				  Fcons (Vminibuffer_history_position,
 					 Fcons (Vminibuffer_history_variable,
 						minibuf_save_list))))));
-  minibuf_save_list
-    = Fcons (current_buffer->prompt_end_charpos,
-	     minibuf_save_list);
 
   record_unwind_protect (read_minibuf_unwind, Qnil);
   minibuf_level++;
@@ -385,7 +383,6 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   Fmake_local_variable (Qprint_escape_newlines);
   print_escape_newlines = 1;
-  XSETFASTINT (current_buffer->prompt_end_charpos, 0);
 
   /* Erase the buffer.  */
   {
@@ -401,13 +398,14 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   /* Insert the prompt, record where it ends.  */
   Finsert (1, &minibuf_prompt);
-  XSETFASTINT (current_buffer->prompt_end_charpos, PT);
   if (PT > BEG)
     {
       Fput_text_property (make_number (BEG), make_number (PT),
 			  Qfront_sticky, Qt, Qnil);
       Fput_text_property (make_number (BEG), make_number (PT),
 			  Qrear_nonsticky, Qt, Qnil);
+      Fput_text_property (make_number (BEG), make_number (PT),
+			  Qfield, Qt, Qnil);
       Fput_text_property (make_number (BEG), make_number (PT),
 			  Qread_only, Qt, Qnil);
     }
@@ -457,8 +455,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   /* Make minibuffer contents into a string.  */
   Fset_buffer (minibuffer);
-  val = make_buffer_string (current_buffer->prompt_end_charpos,
-			    Z, allow_props);
+  val = Ffield_string (make_number (ZV), allow_props ? Qt : Qnil);
 
   /* VAL is the string of minibuffer text.  */
 
@@ -610,9 +607,6 @@ read_minibuf_unwind (data)
   Fset_buffer (XWINDOW (window)->buffer);
 
   /* Restore prompt, etc, from outer minibuffer level.  */
-  current_buffer->prompt_end_charpos = Fcar (minibuf_save_list);
-  minibuf_save_list = Fcdr (minibuf_save_list);
-
   minibuf_prompt = Fcar (minibuf_save_list);
   minibuf_save_list = Fcdr (minibuf_save_list);
   minibuf_prompt_width = XFASTINT (Fcar (minibuf_save_list));
@@ -1484,7 +1478,8 @@ do_completion ()
   Lisp_Object last;
   struct gcpro gcpro1, gcpro2;
 
-  completion = Ftry_completion (Fbuffer_string (), Vminibuffer_completion_table,
+  completion = Ftry_completion (Ffield_string (ZV),
+				Vminibuffer_completion_table,
 				Vminibuffer_completion_predicate);
   last = last_exact_completion;
   last_exact_completion = Qnil;
@@ -1506,16 +1501,16 @@ do_completion ()
     }
 
   /* compiler bug */
-  tem = Fstring_equal (completion, Fbuffer_string());
+  tem = Fstring_equal (completion, Ffield_string(ZV));
   completedp = NILP (tem);
   if (completedp)
     {
-      Ferase_buffer ();		/* Some completion happened */
+      Ferase_field (make_number (ZV)); /* Some completion happened */
       Finsert (1, &completion);
     }
 
   /* It did find a match.  Do we match some possibility exactly now? */
-  tem = test_completion (Fbuffer_string ());
+  tem = test_completion (Ffield_string(ZV));
   if (NILP (tem))
     {
       /* not an exact match */
@@ -1539,7 +1534,7 @@ do_completion ()
   last_exact_completion = completion;
   if (!NILP (last))
     {
-      tem = Fbuffer_string ();
+      tem = Ffield_string (ZV);
       if (!NILP (Fequal (tem, last)))
 	Fminibuffer_completion_help ();
     }
@@ -1660,10 +1655,10 @@ a repetition of this command will exit.")
   Lisp_Object val;
 
   /* Allow user to specify null string */
-  if (XFASTINT (current_buffer->prompt_end_charpos) == ZV)
+  if (Ffield_beginning (ZV, Qnil) == ZV)
     goto exit;
 
-  if (!NILP (test_completion (Fbuffer_string ())))
+  if (!NILP (test_completion (Ffield_string (ZV))))
     goto exit;
 
   /* Call do_completion, but ignore errors.  */
@@ -1706,11 +1701,12 @@ Return nil if there is no valid completion, else t.")
   register int i, i_byte;
   register unsigned char *completion_string;
   struct gcpro gcpro1, gcpro2;
+  int prompt_end_charpos;
 
   /* We keep calling Fbuffer_string rather than arrange for GC to
      hold onto a pointer to one of the strings thus made.  */
 
-  completion = Ftry_completion (Fbuffer_string (),
+  completion = Ftry_completion (Ffield_string (ZV),
 				Vminibuffer_completion_table,
 				Vminibuffer_completion_predicate);
   if (NILP (completion))
@@ -1723,7 +1719,7 @@ Return nil if there is no valid completion, else t.")
     return Qnil;
 
 #if 0 /* How the below code used to look, for reference. */
-  tem = Fbuffer_string ();
+  tem = Ffield_string (ZV);
   b = XSTRING (tem)->data;
   i = ZV - 1 - XSTRING (completion)->size;
   p = XSTRING (completion)->data;
@@ -1742,7 +1738,7 @@ Return nil if there is no valid completion, else t.")
     int buffer_nchars, completion_nchars;
 
     CHECK_STRING (completion, 0);
-    tem = Fbuffer_string ();
+    tem = Ffield_string (ZV);
     GCPRO2 (completion, tem);
     /* If reading a file name,
        expand any $ENVVAR refs in the buffer and in TEM.  */
@@ -1753,7 +1749,7 @@ Return nil if there is no valid completion, else t.")
 	if (! EQ (substituted, tem))
 	  {
 	    tem = substituted;
-	    Ferase_buffer ();
+	    Ferase_field (make_number (ZV));
 	    insert_from_string (tem, 0, 0, XSTRING (tem)->size,
 				STRING_BYTES (XSTRING (tem)), 0);
 	  }
@@ -1795,9 +1791,10 @@ Return nil if there is no valid completion, else t.")
   }
 #endif /* Rewritten code */
   
+  prompt_end_charpos = Ffield_beginning (make_number (ZV), Qnil);
+
   {
-    int prompt_end_charpos, prompt_end_bytepos;
-    prompt_end_charpos = XFASTINT (current_buffer->prompt_end_charpos);
+    int prompt_end_bytepos;
     prompt_end_bytepos = CHAR_TO_BYTE (prompt_end_charpos);
     i = ZV - prompt_end_charpos;
     i_byte = ZV_BYTE - prompt_end_bytepos;
@@ -1808,7 +1805,7 @@ Return nil if there is no valid completion, else t.")
   if (i == XSTRING (completion)->size)
     {
       GCPRO1 (completion);
-      tem = Ftry_completion (concat2 (Fbuffer_string (), build_string (" ")),
+      tem = Ftry_completion (concat2 (Ffield_string (ZV), build_string (" ")),
 			     Vminibuffer_completion_table,
 			     Vminibuffer_completion_predicate);
       UNGCPRO;
@@ -1819,7 +1816,7 @@ Return nil if there is no valid completion, else t.")
 	{
 	  GCPRO1 (completion);
 	  tem =
-	    Ftry_completion (concat2 (Fbuffer_string (), build_string ("-")),
+	    Ftry_completion (concat2 (Ffield_string (ZV), build_string ("-")),
 			     Vminibuffer_completion_table,
 			     Vminibuffer_completion_predicate);
 	  UNGCPRO;
@@ -1851,7 +1848,7 @@ Return nil if there is no valid completion, else t.")
 
   /* If got no characters, print help for user.  */
 
-  if (i == ZV - XFASTINT (current_buffer->prompt_end_charpos))
+  if (i == ZV - prompt_end_charpos)
     {
       if (auto_help)
 	Fminibuffer_completion_help ();
@@ -1860,7 +1857,7 @@ Return nil if there is no valid completion, else t.")
 
   /* Otherwise insert in minibuffer the chars we got */
 
-  Ferase_buffer ();
+  Ferase_field (make_number (ZV));
   insert_from_string (completion, 0, 0, i, i_byte, 1);
   return Qt;
 }
@@ -2054,7 +2051,7 @@ DEFUN ("minibuffer-completion-help", Fminibuffer_completion_help, Sminibuffer_co
   Lisp_Object completions;
 
   message ("Making completion list...");
-  completions = Fall_completions (Fbuffer_string (),
+  completions = Fall_completions (Ffield_string (ZV),
 				  Vminibuffer_completion_table,
 				  Vminibuffer_completion_predicate,
 				  Qt);
@@ -2105,27 +2102,6 @@ If no minibuffer is active, return nil.")
 {
   return Fcopy_sequence (minibuf_prompt);
 }
-
-DEFUN ("minibuffer-prompt-width", Fminibuffer_prompt_width,
-  Sminibuffer_prompt_width, 0, 0, 0,
-  "Return the display width of the minibuffer prompt.")
-  ()
-{
-  return make_number (minibuf_prompt_width);
-}
-
-
-DEFUN ("minibuffer-prompt-end", Fminibuffer_prompt_end,
-       Sminibuffer_prompt_end, 0, 0, 0,
-  "Return the end buffer position of the mini-buffer prompt.\n\
-Value is 0 if current buffer is not a mini-buffer.")
-     ()
-{
-  return (NILP (current_buffer->prompt_end_charpos)
-	  ? make_number (0)
-	  : make_number (current_buffer->prompt_end_charpos));
-}
-
 
 
 /* Temporarily display the string M at the end of the current
@@ -2342,8 +2318,6 @@ with completion; they always discard text properties.");
   defsubr (&Sread_no_blanks_input);
   defsubr (&Sminibuffer_depth);
   defsubr (&Sminibuffer_prompt);
-  defsubr (&Sminibuffer_prompt_width);
-  defsubr (&Sminibuffer_prompt_end);
 
   defsubr (&Stry_completion);
   defsubr (&Sall_completions);
