@@ -670,7 +670,10 @@ and don't delete any header fields."
   (interactive "P")
   (if mail-reply-buffer
       (let ((start (point)))
-	(delete-windows-on mail-reply-buffer)
+	;; If the original message is in another window in the same frame,
+	;; delete that window to save screen space.
+	;; t means don't alter other frames.
+	(delete-windows-on mail-reply-buffer t)
 	(insert-buffer mail-reply-buffer)
 	(if (consp arg)
 	    nil
