@@ -1,3 +1,8 @@
+2002-09-11  Kim F. Storm  <storm@cua.dk>
+
+	* edmacro.el (edit-kbd-macro): Recognize new C-x e binding,
+	kmacro-end-and-call-macro.
+
 2002-09-11  Juanma Barranquero  <lektu@terra.es>
 
 	* newcomment.el (uncomment-region): Fix let/let* use.
