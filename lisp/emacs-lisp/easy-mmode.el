@@ -144,14 +144,14 @@ BODY contains code that will be executed each time the mode is (dis)activated.
        ,(if (not globalp)
 	    `(progn
 	       (defvar ,mode ,init-value ,(format "Non-nil if %s is enabled.
-Use the function `%s' to change this variable." pretty-name mode))
+Use the command `%s' to change this variable." pretty-name mode))
 	       (make-variable-buffer-local ',mode))
 
 	  (let ((curfile (or (and (boundp 'byte-compile-current-file)
 				  byte-compile-current-file)
 			     load-file-name)))
 	    `(defcustom ,mode ,init-value
-	       ,(format "Toggle %s on or off.
+	       ,(format "Non-nil if %s is enabled.
 See the command `%s' for a description of this minor-mode.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `%s'."
