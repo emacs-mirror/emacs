@@ -974,7 +974,7 @@ command_loop_1 ()
 		  SET_PT (point + 1);
 		  if ((dp
 		       ? (XTYPE (DISP_CHAR_VECTOR (dp, lose)) != Lisp_Vector
-			  XVECTOR (DISP_CHAR_VECTOR (dp, lose))->size == 1)
+			  && XVECTOR (DISP_CHAR_VECTOR (dp, lose))->size == 1)
 		       : (lose >= 0x20 && lose < 0x7f))
 		      && (XFASTINT (XWINDOW (selected_window)->last_modified)
 			  >= MODIFF)
@@ -995,7 +995,7 @@ command_loop_1 ()
 		  lose = FETCH_CHAR (point);
 		  if ((dp
 		       ? (XTYPE (DISP_CHAR_VECTOR (dp, lose)) != Lisp_Vector
-			  XVECTOR (DISP_CHAR_VECTOR (dp, lose))->size == 1)
+			  && XVECTOR (DISP_CHAR_VECTOR (dp, lose))->size == 1)
 		       : (lose >= 0x20 && lose < 0x7f))
 		      && (XFASTINT (XWINDOW (selected_window)->last_modified)
 			  >= MODIFF)
