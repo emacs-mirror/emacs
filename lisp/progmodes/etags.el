@@ -562,7 +562,9 @@ Assumes the tags table is the current buffer."
 ;; but builds tags-completion-table on demand.
 (defun tags-complete-tag (string predicate what)
   (save-excursion
-    (visit-tags-table-buffer)
+    ;; If we need to ask for the tag table, allow that.
+    (let ((enable-recursive-minibuffers t))
+      (visit-tags-table-buffer))
     (if (eq what t)
 	(all-completions string (tags-completion-table) predicate)
       (try-completion string (tags-completion-table) predicate))))
