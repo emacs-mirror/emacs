@@ -1,5 +1,8 @@
 2000-11-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* buffer.c (MAP_FAILED): Define it as `((void *) -1)' if it's
+	not defined in mman.h.
+
 	* xterm.c (scroll_bar_windows, scroll_bar_windows_size): New
 	variables.
 	(x_send_scroll_bar_event): Store the window in scroll_bar_windows
