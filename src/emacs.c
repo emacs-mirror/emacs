@@ -85,6 +85,9 @@ Lisp_Object Vsignal_USR2_hook;
 #endif 
 #endif
 
+/* Search path separator.  */
+Lisp_Object Vpath_separator;
+
 /* Set nonzero after Emacs has started up the first time.
   Prevents reinitialization of the Lisp world and keymaps
   on subsequent starts.  */
@@ -1819,6 +1822,13 @@ This value is effective only if set before Emacs is dumped,\n\
 and only if the Emacs executable is installed with setuid to permit\n\
 it to change priority.  (Emacs sets its uid back to the real uid.)\n\
 Currently, you need to define SET_EMACS_PRIORITY in `config.h'\n\
+
+  DEFVAR_LISP ("path-separator", &Vpath_separator,
+    "The directory separator in search paths, as a string.");
+  {
+    char c = SEPCHAR;
+    Vpath_separator = make_string (&c, 1);
+  }
 before you compile Emacs, to enable the code for this feature.");
   emacs_priority = 0;
 
