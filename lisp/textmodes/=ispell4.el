@@ -575,4 +575,6 @@ L lookup; Q quit\n")
       (kill-emacs 1))
   (write-region (point-min) (point-max) "ispell.info"))
 
+(provide 'ispell)
+
 ;;; ispell.el ends here
