@@ -276,7 +276,8 @@ and should insert whatever you want to insert."
 Value of `default-directory' for mail buffers.
 This directory is used for auto-save files of mail buffers."
   :type '(directory :tag "Directory")
-  :group 'sendmail)
+  :group 'sendmail
+  :version "21.4")
 
 (defvar mail-reply-action nil)
 (defvar mail-send-actions nil
