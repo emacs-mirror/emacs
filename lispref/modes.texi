@@ -2024,9 +2024,10 @@ If you use @code{regexp-opt} to produce the regular expression
 @var{matcher}, then you can use @code{regexp-opt-depth} (@pxref{Syntax
 of Regexps}) to calculate the value for @var{match}.
 
-@item (@var{matcher} . @var{facename})
-In this kind of element, @var{facename} is an expression whose value
-specifies the face name to use for highlighting.
+@item (@var{matcher} . @var{facespec})
+In this kind of element, @var{facespec} is an object which specifies
+the face variable to use for highlighting.  In the simplest case, it
+is a Lisp variable (a symbol), whose value should be a face name.
 
 @example
 ;; @r{Highlight occurrences of @samp{fubar},}
@@ -2034,8 +2035,7 @@ specifies the face name to use for highlighting.
 ("fubar" . fubar-face)
 @end example
 
-The value of @var{facename} is usually a face name (a symbol), but it
-can also be a list of the form
+However, @var{facespec} can also be a list of the form
 
 @example
 (face @var{face} @var{prop1} @var{val1} @var{prop2} @var{val2}@dots{})
@@ -2053,21 +2053,21 @@ which specifies how to highlight matches found by @var{matcher}.
 It has the form
 
 @example
-(@var{subexp} @var{facename} @var{override} @var{laxmatch})
+(@var{subexp} @var{facespec} @var{override} @var{laxmatch})
 @end example
 
 The @sc{car}, @var{subexp}, is an integer specifying which subexpression
 of the match to fontify (0 means the entire matching text).  The second
-subelement, @var{facename}, specifies the face, as described above.
+subelement, @var{facespec}, specifies the face, as described above.
 
 The last two values in @var{highlighter}, @var{override} and
 @var{laxmatch}, are flags.  If @var{override} is @code{t}, this
 element can override existing fontification made by previous elements
 of @code{font-lock-keywords}.  If it is @code{keep}, then each
 character is fontified if it has not been fontified already by some
-other element.  If it is @code{prepend}, the face @var{facename} is
-added to the beginning of the @code{font-lock-face} property.  If it
-is @code{append}, the face @var{facename} is added to the end of the
+other element.  If it is @code{prepend}, the face specified by
+@var{facespec} is added to the beginning of the @code{font-lock-face}
+property.  If it is @code{append}, the face is added to the end of the
 @code{font-lock-face} property.
 
 If @var{laxmatch} is non-@code{nil}, it means there should be no error
@@ -2231,7 +2231,7 @@ textual modes.
 Additional properties (other than @code{font-lock-face}) that are
 being managed by Font Lock mode.  Font Lock mode normally manages only
 the @code{font-lock-face} property; if you want it to manage others as
-well, you must specify them in a @var{facename} in
+well, you must specify them in a @var{facespec} in
 @code{font-lock-keywords} as well as adding them to this list.
 @end defvar
 
