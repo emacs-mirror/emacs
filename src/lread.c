@@ -1696,7 +1696,8 @@ read_integer (readcharfun, radix)
      Lisp_Object readcharfun;
      int radix;
 {
-  int number = 0, ndigits = 0, invalid_p, c, sign = 0;
+  int ndigits = 0, invalid_p, c, sign = 0;
+  EMACS_INT number = 0;
 
   if (radix < 2 || radix > 36)
     invalid_p = 1;
