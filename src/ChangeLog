@@ -1,5 +1,8 @@
 2001-09-13  Gerd Moellmann  <gerd@gnu.org>
 
+	* filelock.c (current_lock_owner): If readlink returns ERANGE,
+	take that to mean that the buffer is too small.
+
 	* fileio.c (Ffile_symlink_p): If readlink returns ERANGE, take
 	that to mean that the buffer is too small.
 
