@@ -1749,6 +1749,32 @@ init_from_display_pos (it, w, pos)
      struct window *w;
      struct display_pos *pos;
 {
+  int charpos = CHARPOS (pos->pos), bytepos = BYTEPOS (pos->pos);
+  Lisp_Object prop, window;
+  
+  /* If POS specifies a position in a display vector, this might
+     be for an ellipsis displayed for invisible text.  We won't
+     get the iterator set up for delivering that ellipsis unless
+     we make sure that it gets aware of the invisible text.  */
+  if (pos->dpvec_index >= 0
+      && pos->overlay_string_index < 0
+      && CHARPOS (pos->string_pos) < 0
+      && charpos > BEGV
+      && (XSETWINDOW (window, w),
+	  prop = Fget_char_property (make_number (charpos),
+				     Qinvisible, window),
+	  NILP (prop)))
+    {
+      prop = Fget_char_property (make_number (charpos - 1), Qinvisible,
+				 window);
+      if (TEXT_PROP_MEANS_INVISIBLE (prop)
+	  && TEXT_PROP_MEANS_INVISIBLE_WITH_ELLIPSIS (prop))
+	{
+	  --charpos;
+	  bytepos = 0;
+	}
+    }
+    
   /* Keep in mind: the call to reseat in init_iterator skips invisible
      text, so we might end up at a position different from POS.  This
      is only a problem when POS is a row start after a newline and an
@@ -1758,8 +1784,8 @@ init_from_display_pos (it, w, pos)
      newline before the row start, such a POS will not be in a string,
      but the call to init_iterator below will move us to the
      after-string.  */
-  init_iterator (it, w, CHARPOS (pos->pos), BYTEPOS (pos->pos),
-		 NULL, DEFAULT_FACE_ID);
+  init_iterator (it, w, charpos, bytepos, NULL, DEFAULT_FACE_ID);
+  xassert (IT_CHARPOS (*it) == CHARPOS (pos->pos));
 
   /* If position is within an overlay string, set up IT to
      the right overlay string.  */
@@ -1812,14 +1838,26 @@ init_from_display_pos (it, w, pos)
       xassert (STRINGP (it->string));
     }
 
-  /* Restore position in display vector translations or control
-     character translations.  */
+  /* Restore position in display vector translations, control
+     character translations or ellipses.  */
   if (pos->dpvec_index >= 0)
     {
-      /* This fills IT->dpvec.  */
-      get_next_display_element (it);
+      if (it->dpvec == NULL)
+	get_next_display_element (it);
       xassert (it->dpvec && it->current.dpvec_index == 0);
       it->current.dpvec_index = pos->dpvec_index;
+    }
+  else if (it->current.dpvec_index >= 0)
+    {
+      /* I don't think this can happen, just being paranoid...  */
+      it->dpvec = NULL;
+      it->current.dpvec_index = -1;
+      if (it->s)
+	it->method = next_element_from_c_string;
+      else if (STRINGP (it->string))
+	it->method = next_element_from_string;
+      else
+	it->method = next_element_from_buffer;
     }
   
   CHECK_IT (it);
@@ -1936,7 +1974,7 @@ compute_stop_pos (it)
 	 properties.  */
       object = it->string;
       limit = Qnil;
-      XSETFASTINT (position, IT_STRING_CHARPOS (*it));
+      position = make_number (IT_STRING_CHARPOS (*it));
     }
   else
     {
@@ -1963,8 +2001,8 @@ compute_stop_pos (it)
       /* Set up variables for computing the stop position from text
          property changes.  */
       XSETBUFFER (object, current_buffer);
-      XSETFASTINT (limit, IT_CHARPOS (*it) + TEXT_PROP_DISTANCE_LIMIT);
-      XSETFASTINT (position, IT_CHARPOS (*it));
+      limit = make_number (IT_CHARPOS (*it) + TEXT_PROP_DISTANCE_LIMIT);
+      position = make_number (IT_CHARPOS (*it));
 
     }
 
@@ -2409,7 +2447,7 @@ handle_invisible_prop (it)
       /* Get the value of the invisible text property at the
 	 current position.  Value will be nil if there is no such
 	 property.  */
-      XSETFASTINT (charpos, IT_STRING_CHARPOS (*it));
+      charpos = make_number (IT_STRING_CHARPOS (*it));
       prop = Fget_text_property (charpos, Qinvisible, it->string);
 
       if (!NILP (prop)
@@ -2463,7 +2501,7 @@ handle_invisible_prop (it)
       Lisp_Object pos, prop;
 
       /* First of all, is there invisible text at this position?  */
-      XSETFASTINT (pos, IT_CHARPOS (*it));
+      pos = make_number (IT_CHARPOS (*it));
       prop = Fget_char_property (pos, Qinvisible, it->window);
       
       /* If we are on invisible text, skip over it.  */
@@ -2502,7 +2540,7 @@ handle_invisible_prop (it)
 		     the char before the given position, i.e. if we
 		     get visible_p = 1, this means that the char at
 		     newpos is visible.  */
-		  XSETFASTINT (pos, newpos);
+		  pos = make_number (newpos);
 		  prop = Fget_char_property (pos, Qinvisible, it->window);
 		  visible_p = !TEXT_PROP_MEANS_INVISIBLE (prop);
 		}
@@ -8687,15 +8725,15 @@ redisplay_internal (preserve_echo_area)
 	mark_window_display_accurate (FRAME_ROOT_WINDOW (sf), 1);
       else
 	{
-	  XSETFASTINT (w->last_point, BUF_PT (b));
+	  w->last_point = make_number (BUF_PT (b));
 	  w->last_cursor = w->cursor;
 	  w->last_cursor_off_p = w->cursor_off_p;
 
 	  b->clip_changed = 0;
 	  b->prevent_redisplay_optimizations_p = 0;
 	  w->update_mode_line = Qnil;
-	  XSETFASTINT (w->last_modified, BUF_MODIFF (b));
-	  XSETFASTINT (w->last_overlay_modified, BUF_OVERLAY_MODIFF (b));
+	  w->last_modified = make_number (BUF_MODIFF (b));
+	  w->last_overlay_modified = make_number (BUF_OVERLAY_MODIFF (b));
 	  w->last_had_star
 	    = (BUF_MODIFF (XBUFFER (w->buffer)) > BUF_SAVE_MODIFF (XBUFFER (w->buffer))
 	       ? Qt : Qnil);
@@ -8839,10 +8877,10 @@ mark_window_display_accurate (window, accurate_p)
 	{
 	  struct buffer *b = XBUFFER (w->buffer);
 	  
-	  XSETFASTINT (w->last_modified,
-		       accurate_p ? BUF_MODIFF (b) : 0);
-	  XSETFASTINT (w->last_overlay_modified,
-		       accurate_p ? BUF_OVERLAY_MODIFF (b) : 0);
+	  w->last_modified
+	    = make_number (accurate_p ? BUF_MODIFF (b) : 0);
+	  w->last_overlay_modified
+	    = make_number (accurate_p ? BUF_OVERLAY_MODIFF (b) : 0);
 	  w->last_had_star = (BUF_MODIFF (b) > BUF_SAVE_MODIFF (b)
 			      ? Qt : Qnil);
 
@@ -9840,8 +9878,8 @@ redisplay_window (window, just_this_one_p)
 	  startp = run_window_scroll_functions (window, startp);
 	}
       
-      XSETFASTINT (w->last_modified, 0);
-      XSETFASTINT (w->last_overlay_modified, 0);
+      w->last_modified = make_number (0);
+      w->last_overlay_modified = make_number (0);
       if (CHARPOS (startp) < BEGV)
 	SET_TEXT_POS (startp, BEGV, BEGV_BYTE);
       else if (CHARPOS (startp) > ZV)
@@ -10010,8 +10048,8 @@ redisplay_window (window, just_this_one_p)
 
  try_to_scroll:
 
-  XSETFASTINT (w->last_modified, 0);
-  XSETFASTINT (w->last_overlay_modified, 0);
+  w->last_modified = make_number (0);
+  w->last_overlay_modified = make_number (0);
 
   /* Redisplay the mode line.  Select the buffer properly for that.  */
   if (!update_mode_line)
@@ -10330,18 +10368,17 @@ try_window (window, pos)
       xassert (MATRIX_ROW_DISPLAYS_TEXT_P (last_text_row));
       w->window_end_bytepos
 	= Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_text_row);
-      XSETFASTINT (w->window_end_pos,
-		   Z - MATRIX_ROW_END_CHARPOS (last_text_row));
-      XSETFASTINT (w->window_end_vpos,
-		   MATRIX_ROW_VPOS (last_text_row, w->desired_matrix));
+      w->window_end_pos
+	= make_number (Z - MATRIX_ROW_END_CHARPOS (last_text_row));
+      w->window_end_vpos
+	= make_number (MATRIX_ROW_VPOS (last_text_row, w->desired_matrix));
       xassert (MATRIX_ROW (w->desired_matrix, XFASTINT (w->window_end_vpos))
 	       ->displays_text_p);
     }
   else
     {
       w->window_end_bytepos = 0;
-      XSETFASTINT (w->window_end_pos, 0);
-      XSETFASTINT (w->window_end_vpos, 0);
+      w->window_end_pos = w->window_end_vpos = make_number (0);
     }
   
   /* But that is not valid info until redisplay finishes.  */
@@ -10446,8 +10483,7 @@ try_window_reusing_current_matrix (w)
 	      row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
 	      while (MATRIX_ROW_DISPLAYS_TEXT_P (row))
 		{
-		  if (PT >= MATRIX_ROW_START_CHARPOS (row)
-		      && PT < MATRIX_ROW_END_CHARPOS (row))
+		  if (cursor_row_p (w, row))
 		    {
 		      set_cursor_from_row (w, row, w->current_matrix, 0, 0,
 					   dy, nrows_scrolled);
@@ -10540,27 +10576,26 @@ try_window_reusing_current_matrix (w)
 	{
 	  w->window_end_bytepos
 	    = Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_reused_text_row);
-	  XSETFASTINT (w->window_end_pos,
-		       Z - MATRIX_ROW_END_CHARPOS (last_reused_text_row));
-	  XSETFASTINT (w->window_end_vpos,
-		       MATRIX_ROW_VPOS (last_reused_text_row,
-					w->current_matrix));
+	  w->window_end_pos
+	    = make_number (Z - MATRIX_ROW_END_CHARPOS (last_reused_text_row));
+	  w->window_end_vpos
+	    = make_number (MATRIX_ROW_VPOS (last_reused_text_row,
+					    w->current_matrix));
 	}
       else if (last_text_row)
 	{
 	  w->window_end_bytepos
 	    = Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_text_row);
-	  XSETFASTINT (w->window_end_pos,
-		       Z - MATRIX_ROW_END_CHARPOS (last_text_row));
-	  XSETFASTINT (w->window_end_vpos,
-		       MATRIX_ROW_VPOS (last_text_row, w->desired_matrix));
+	  w->window_end_pos
+	    = make_number (Z - MATRIX_ROW_END_CHARPOS (last_text_row));
+	  w->window_end_vpos
+	    = make_number (MATRIX_ROW_VPOS (last_text_row, w->desired_matrix));
 	}
       else
 	{
 	  /* This window must be completely empty.  */
 	  w->window_end_bytepos = 0;
-	  XSETFASTINT (w->window_end_pos, 0);
-	  XSETFASTINT (w->window_end_vpos, 0);
+	  w->window_end_pos = w->window_end_vpos = make_number (0);
 	}
       w->window_end_valid = Qnil;
 
@@ -10580,8 +10615,6 @@ try_window_reusing_current_matrix (w)
       int dy;
       int yb = window_text_bottom_y (w);
 
-      IF_DEBUG (debug_method_add (w, "twu2"));
-      
       /* Find the row starting at new_start, if there is one.  Don't
 	 reuse a partially visible line at the end.  */
       first_reusable_row = start_row;
@@ -10602,15 +10635,13 @@ try_window_reusing_current_matrix (w)
          first_reusable_row to the end of the window.  Set
          first_row_to_display to the first row that cannot be reused.
          Set pt_row to the row containing point, if there is any.  */
-      first_row_to_display = first_reusable_row;
       pt_row = NULL;
-      while (MATRIX_ROW_BOTTOM_Y (first_row_to_display) < yb)
+      for (first_row_to_display = first_reusable_row;
+	   MATRIX_ROW_BOTTOM_Y (first_row_to_display) < yb;
+	   ++first_row_to_display)
 	{
-	  if (PT >= MATRIX_ROW_START_CHARPOS (first_row_to_display)
-	      && PT < MATRIX_ROW_END_CHARPOS (first_row_to_display))
+	  if (cursor_row_p (w, first_row_to_display))
 	    pt_row = first_row_to_display;
-
-	  ++first_row_to_display;
 	}
 
       /* Start displaying at the start of first_row_to_display.  */
@@ -10683,19 +10714,16 @@ try_window_reusing_current_matrix (w)
 	    row->visible_height = row->height;
 	}
 
-      /* Disable rows not reused.  */
-      while (row < bottom_row)
-	{
-	  row->enabled_p = 0;
-	  ++row;
-	}
-
       /* Scroll the current matrix.  */
       xassert (nrows_scrolled > 0);
       rotate_matrix (w->current_matrix,
 		     start_vpos,
 		     MATRIX_ROW_VPOS (bottom_row, w->current_matrix),
 		     -nrows_scrolled);
+
+      /* Disable rows not reused.  */
+      for (row -= nrows_scrolled; row < bottom_row; ++row)
+	row->enabled_p = 0;
 
       /* Adjust window end.  A null value of last_text_row means that
 	 the window end is in reused rows which in turn means that
@@ -10704,15 +10732,15 @@ try_window_reusing_current_matrix (w)
 	{
 	  w->window_end_bytepos
 	    = Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_text_row);
-	  XSETFASTINT (w->window_end_pos,
-		       Z - MATRIX_ROW_END_CHARPOS (last_text_row));
-	  XSETFASTINT (w->window_end_vpos,
-		       MATRIX_ROW_VPOS (last_text_row, w->desired_matrix));
+	  w->window_end_pos
+	    = make_number (Z - MATRIX_ROW_END_CHARPOS (last_text_row));
+	  w->window_end_vpos
+	    = make_number (MATRIX_ROW_VPOS (last_text_row, w->desired_matrix));
 	}
       else
 	{
-	  XSETFASTINT (w->window_end_vpos,
-		       XFASTINT (w->window_end_vpos) - nrows_scrolled);
+	  w->window_end_vpos
+	    = make_number (XFASTINT (w->window_end_vpos) - nrows_scrolled);
 	}
       
       w->window_end_valid = Qnil;
@@ -11511,31 +11539,31 @@ try_window_id (w)
 					   first_unchanged_at_end_row);
       xassert (row && MATRIX_ROW_DISPLAYS_TEXT_P (row));
       
-      XSETFASTINT (w->window_end_pos, Z - MATRIX_ROW_END_CHARPOS (row));
+      w->window_end_pos = make_number (Z - MATRIX_ROW_END_CHARPOS (row));
       w->window_end_bytepos = Z_BYTE - MATRIX_ROW_END_BYTEPOS (row);
-      XSETFASTINT (w->window_end_vpos,
-		   MATRIX_ROW_VPOS (row, w->current_matrix));
+      w->window_end_vpos
+	= make_number (MATRIX_ROW_VPOS (row, w->current_matrix));
     }
   else if (last_text_row_at_end)
     {
-      XSETFASTINT (w->window_end_pos,
-		   Z - MATRIX_ROW_END_CHARPOS (last_text_row_at_end));
+      w->window_end_pos
+	= make_number (Z - MATRIX_ROW_END_CHARPOS (last_text_row_at_end));
       w->window_end_bytepos
 	= Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_text_row_at_end);
-      XSETFASTINT (w->window_end_vpos,
-		   MATRIX_ROW_VPOS (last_text_row_at_end, desired_matrix));
+      w->window_end_vpos
+	= make_number (MATRIX_ROW_VPOS (last_text_row_at_end, desired_matrix));
     }
   else if (last_text_row)
     {
       /* We have displayed either to the end of the window or at the
 	 end of the window, i.e. the last row with text is to be found
 	 in the desired matrix.  */
-      XSETFASTINT (w->window_end_pos,
-		   Z - MATRIX_ROW_END_CHARPOS (last_text_row));
+      w->window_end_pos
+	= make_number (Z - MATRIX_ROW_END_CHARPOS (last_text_row));
       w->window_end_bytepos
 	= Z_BYTE - MATRIX_ROW_END_BYTEPOS (last_text_row);
-      XSETFASTINT (w->window_end_vpos,
-		   MATRIX_ROW_VPOS (last_text_row, desired_matrix));
+      w->window_end_vpos
+	= make_number (MATRIX_ROW_VPOS (last_text_row, desired_matrix));
     }
   else if (first_unchanged_at_end_row == NULL
 	   && last_text_row == NULL
@@ -11557,6 +11585,12 @@ try_window_id (w)
     }
   else
     abort ();
+
+  /* Disable rows below what's displayed in the window.  This makes
+     debugging easier.  */
+  enable_glyph_matrix_rows (current_matrix,
+			    XFASTINT (w->window_end_vpos) + 1,
+			    bottom_vpos, 0);
   
   IF_DEBUG (debug_end_pos = XFASTINT (w->window_end_pos);
 	    debug_end_vpos = XFASTINT (w->window_end_vpos));
@@ -11892,7 +11926,7 @@ get_overlay_arrow_glyph_row (w)
       p += it.len;
       
       /* Get its face.  */
-      XSETFASTINT (ilisp, p - arrow_string);
+      ilisp = make_number (p - arrow_string);
       face = Fget_text_property (ilisp, Qface, Voverlay_arrow_string);
       it.face_id = compute_char_face (f, it.c, face);
 
@@ -13486,7 +13520,7 @@ decode_mode_spec (w, c, field_width, precision)
     case 'c':
       {
 	int col = current_column ();
-	XSETFASTINT (w->column_number_displayed, col);
+	w->column_number_displayed = make_number (col);
 	pint2str (decode_mode_spec_buf, field_width, col);
 	return decode_mode_spec_buf;
       }
@@ -13556,8 +13590,8 @@ decode_mode_spec (w, c, field_width, precision)
 	   go back past it.  */
 	if (startpos == BUF_BEGV (b))
 	  {
-	    XSETFASTINT (w->base_line_number, topline);
-	    XSETFASTINT (w->base_line_pos, BUF_BEGV (b));
+	    w->base_line_number = make_number (topline);
+	    w->base_line_pos = make_number (BUF_BEGV (b));
 	  }
 	else if (nlines < height + 25 || nlines > height * 3 + 50
 		 || linepos == BUF_BEGV (b))
@@ -13587,8 +13621,8 @@ decode_mode_spec (w, c, field_width, precision)
 		goto no_value;
 	      }
 
-	    XSETFASTINT (w->base_line_number, topline - nlines);
-	    XSETFASTINT (w->base_line_pos, BYTE_TO_CHAR (position));
+	    w->base_line_number = make_number (topline - nlines);
+	    w->base_line_pos = make_number (BYTE_TO_CHAR (position));
 	  }
 
 	/* Now count lines from the start pos to point.  */
@@ -14374,7 +14408,7 @@ and is used only on frames for which no explicit name has been set\n\
     "Maximum number of lines to keep in the message log buffer.\n\
 If nil, disable message logging.  If t, log messages but don't truncate\n\
 the buffer when it becomes large.");
-  XSETFASTINT (Vmessage_log_max, 50);
+  Vmessage_log_max = make_number (50);
 
   DEFVAR_LISP ("window-size-change-functions", &Vwindow_size_change_functions,
     "Functions called before redisplay, if window sizes have changed.\n\
@@ -14498,15 +14532,15 @@ init_xdisp ()
       struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (root_window)));
       int i;
 
-      XSETFASTINT (XWINDOW (root_window)->top, FRAME_TOP_MARGIN (f));
+      XWINDOW (root_window)->top = make_number (FRAME_TOP_MARGIN (f));
       set_window_height (root_window,
 			 FRAME_HEIGHT (f) - 1 - FRAME_TOP_MARGIN (f),
 			 0);
-      XSETFASTINT (mini_w->top, FRAME_HEIGHT (f) - 1);
+      mini_w->top = make_number (FRAME_HEIGHT (f) - 1);
       set_window_height (minibuf_window, 1, 0);
 
-      XSETFASTINT (XWINDOW (root_window)->width, FRAME_WIDTH (f));
-      XSETFASTINT (mini_w->width, FRAME_WIDTH (f));
+      XWINDOW (root_window)->width = make_number (FRAME_WIDTH (f));
+      mini_w->width = make_number (FRAME_WIDTH (f));
 
       scratch_glyph_row.glyphs[TEXT_AREA] = scratch_glyphs;
       scratch_glyph_row.glyphs[TEXT_AREA + 1]
@@ -14514,7 +14548,7 @@ init_xdisp ()
 
       /* The default ellipsis glyphs `...'.  */ 
       for (i = 0; i < 3; ++i)
-	XSETFASTINT (default_invis_vector[i], '.');
+	default_invis_vector[i] = make_number ('.');
     }
 
 #ifdef HAVE_WINDOW_SYSTEM
