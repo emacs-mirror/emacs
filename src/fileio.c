@@ -839,22 +839,29 @@ static char make_temp_name_tbl[64] =
   'w','x','y','z','0','1','2','3',
   '4','5','6','7','8','9','-','_'
 };
+
 static unsigned make_temp_name_count, make_temp_name_count_initialized_p;
 
-DEFUN ("make-temp-name", Fmake_temp_name, Smake_temp_name, 1, 1, 0,
-  "Generate temporary file name (string) starting with PREFIX (a string).\n\
-The Emacs process number forms part of the result,\n\
-so there is no danger of generating a name being used by another process.\n\
-\n\
-In addition, this function makes an attempt to choose a name\n\
-which has no existing file.  To make this work,\n\
-PREFIX should be an absolute file name.\n\
-\n\
-There is a race condition between calling `make-temp-name' and creating the\n\
-file which opens all kinds of security holes.  For that reason, you should\n\
-probably use `make-temp-file' instead.")
-  (prefix)
+/* Value is a temporary file name starting with PREFIX, a string.
+   
+   The Emacs process number forms part of the result, so there is
+   no danger of generating a name being used by another process.
+   In addition, this function makes an attempt to choose a name
+   which has no existing file.  To make this work, PREFIX should be
+   an absolute file name.
+   
+   BASE64_P non-zero means add the pid as 3 characters in base64
+   encoding.  In this case, 6 characters will be added to PREFIX to
+   form the file name.  Otherwise, if Emacs is running on a system
+   with long file names, add the pid as a decimal number.
+
+   This function signals an error if no unique file name could be
+   generated.  */
+
+Lisp_Object
+make_temp_name (prefix, base64_p)
      Lisp_Object prefix;
+     int base64_p;
 {
   Lisp_Object val;
   int len;
@@ -862,7 +869,7 @@ probably use `make-temp-file' instead.")
   unsigned char *p, *data;
   char pidbuf[20];
   int pidlen;
-
+     
   CHECK_STRING (prefix, 0);
 
   /* VAL is created by adding 6 characters to PREFIX.  The first
@@ -872,16 +879,26 @@ probably use `make-temp-file' instead.")
 
   pid = (int) getpid ();
 
+  if (base64_p)
+    {
+      pidbuf[0] = make_temp_name_tbl[pid & 63], pid >>= 6;
+      pidbuf[1] = make_temp_name_tbl[pid & 63], pid >>= 6;
+      pidbuf[2] = make_temp_name_tbl[pid & 63], pid >>= 6;
+      pidlen = 3;
+    }
+  else
+    {
 #ifdef HAVE_LONG_FILE_NAMES
-  sprintf (pidbuf, "%d", pid);
-  pidlen = strlen (pidbuf);
+      sprintf (pidbuf, "%d", pid);
+      pidlen = strlen (pidbuf);
 #else
-  pidbuf[0] = make_temp_name_tbl[pid & 63], pid >>= 6;
-  pidbuf[1] = make_temp_name_tbl[pid & 63], pid >>= 6;
-  pidbuf[2] = make_temp_name_tbl[pid & 63], pid >>= 6;
-  pidlen = 3;
+      pidbuf[0] = make_temp_name_tbl[pid & 63], pid >>= 6;
+      pidbuf[1] = make_temp_name_tbl[pid & 63], pid >>= 6;
+      pidbuf[2] = make_temp_name_tbl[pid & 63], pid >>= 6;
+      pidlen = 3;
 #endif
-
+    }
+  
   len = XSTRING (prefix)->size;
   val = make_uninit_string (len + 3 + pidlen);
   data = XSTRING (val)->data;
@@ -943,6 +960,26 @@ probably use `make-temp-file' instead.")
 	 XSTRING (prefix)->data);
   return Qnil;
 }
+
+
+DEFUN ("make-temp-name", Fmake_temp_name, Smake_temp_name, 1, 1, 0,
+  "Generate temporary file name (string) starting with PREFIX (a string).\n\
+The Emacs process number forms part of the result,\n\
+so there is no danger of generating a name being used by another process.\n\
+\n\
+In addition, this function makes an attempt to choose a name\n\
+which has no existing file.  To make this work,\n\
+PREFIX should be an absolute file name.\n\
+\n\
+There is a race condition between calling `make-temp-name' and creating the\n\
+file which opens all kinds of security holes.  For that reason, you should\n\
+probably use `make-temp-file' instead.")
+  (prefix)
+     Lisp_Object prefix;
+{
+  return make_temp_name (prefix, 0);
+}
+
 
 
 DEFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
