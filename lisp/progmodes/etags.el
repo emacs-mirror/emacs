@@ -163,14 +163,46 @@ file the tag was in."
 						       default-directory)
 				     t)
 		     current-prefix-arg))
-  (if (file-directory-p file)
-      (setq file (expand-file-name "TAGS" file)))
+  (let ((tags-file-name file))
+    (save-excursion
+      (or (visit-tags-file t)
+	  (signal 'file-error (list "Visiting tags table"
+				    "file does not exist"
+				    file)))
+      (setq file tags-file-name)))
   (if local
       (setq tags-file-name file)
     (kill-local-variable 'tags-file-name)
-    (setq-default tags-file-name file))
-  (save-excursion
-    (visit-tags-file t)))
+    (setq-default tags-file-name file)))
+
+;; Move tags-table-list-pointer along and set tags-file-name.
+;; Returns nil when out of tables.
+(defun tags-next-table ()
+  (if (tags-included-tables)
+      (progn
+	;; Move into the included tags tables.
+	(if tags-table-list-pointer
+	    (setq tags-table-parent-pointer-list
+		  (cons tags-table-list-pointer
+			tags-table-parent-pointer-list)))
+	(setq tags-table-list-pointer tags-included-tables))
+
+    (if tags-table-list-pointer
+	;; Go to the next table in the list.
+	(setq tags-table-list-pointer
+	      (cdr tags-table-list-pointer))
+
+      ;; Pop back to the tags table which includes this one.
+      (setq tags-table-list-pointer
+	    (car tags-table-parent-pointer-list)
+	    tags-table-parent-pointer-list
+	    (cdr tags-table-parent-pointer-list))))
+
+  (and tags-table-list-pointer
+      (setq tags-file-name
+	    (or (car tags-table-list-pointer)
+		;; nil means look for TAGS in current directory.
+		(expand-file-name "TAGS" default-directory)))))
 
 (defun visit-tags-table-buffer (&optional cont)
   "Select the buffer containing the current tags table.
@@ -181,173 +213,155 @@ If optional arg is the atom `same', don't look for a new table;
 If arg is nil or absent, choose a buffer from information in
 `tags-file-name', `tags-table-list', `tags-table-list-pointer'.
 Returns t if it visits a tags table, or nil if there are no more in the list."
-  (if (eq cont 'same)
-      (let ((tags-file-name (car tags-table-list-pointer)))
-	(if (null tags-file-name)
-	    nil
-	  (visit-tags-file nil)
-	  t))
-    (let ((put-in-list t))
-      (if (cond ((eq cont 'reset)
-		 (setq tags-table-list-pointer tags-table-list
-		       cont nil)
-		 nil)
-		(cont
-		 (setq tags-table-list-pointer (cdr tags-table-list-pointer))
-		 (if (tags-included-tables)
-		     (progn
-		       ;; Move into the included tags tables.
-		       (if tags-table-list-pointer
-			   (setq tags-table-parent-pointer-list
-				 (cons tags-table-list-pointer
-				       tags-table-parent-pointer-list)))
-		       (setq tags-table-list-pointer tags-included-tables)))
-		 (or tags-table-list-pointer
-		     ;; Pop back to the tags table after the one which includes
-		     ;; this one.
-		     (setq tags-table-list-pointer
-			   (car tags-table-parent-pointer-list)
-			   tags-table-parent-pointer-list
-			   (cdr tags-table-parent-pointer-list)))
-		 (setq put-in-list nil)
-		 (null tags-table-list-pointer)))
-	  ;; No more tags table files in the list.
-	  nil
-	(setq tags-file-name
-	      (or (if cont
-		      (and tags-table-list-pointer
-			   (or (car tags-table-list-pointer)
-			       ;; nil means look for TAGS in current directory.
-			       (if (file-exists-p
-				    (expand-file-name "TAGS"
-						      default-directory))
-				   (expand-file-name "TAGS"
-						     default-directory))))
-		    (cdr (assq 'tags-file-name (buffer-local-variables))))
-		  (and default-tags-table-function
-		       (funcall default-tags-table-function))
-		  ;; Look for a tags table that contains
-		  ;; tags for the current buffer's file.
-		  (let ((tables tags-table-list)
-			(this-file (buffer-file-name))
-			(found nil))
-		    (save-excursion
-		      (while tables
-			(if (assoc this-file
-				   (let ((tags-file-name (car tables)))
-				     (visit-tags-file nil)
-				     (or tags-table-files
-					 (setq tags-table-files
-					       (funcall
-						tags-table-files-function)))))
-			    (setq found (car tables)
-				  tables nil)
-			  (setq tables (cdr tables)))))
-		    found)
-		  (car tags-table-list-pointer)
-		  tags-file-name
-		  (expand-file-name
-		   (read-file-name "Visit tags table: (default TAGS) "
-				   default-directory
-				   (expand-file-name "TAGS" default-directory)
-				   t))))
-	(visit-tags-file put-in-list)
-	t))))
+  (cond ((eq cont 'same)
+	 (let ((tags-file-name (car tags-table-list-pointer)))
+	   (and tags-file-name
+		(visit-tags-file nil)))
 
-;; Visit tags-file-name and check that it's a valid tags table.
-;; On return, tags-table-list and tags-table-list-pointer
-;; point to tags-file-name.
+	 (cont
+	  (if (eq cont 'reset)
+	      (setq tags-table-list-pointer tags-table-list)
+	    (tags-next-table))
+
+	  (while (and (not (visit-tags-file nil)) ;Skip over nonexistent files.
+		      (tags-next-table)))
+	  (not (null tags-table-list-pointer)))
+
+	 (t
+	  (setq tags-file-name
+		(or (cdr (assq 'tags-file-name (buffer-local-variables)))
+		    (and default-tags-table-function
+			 (funcall default-tags-table-function))
+		    ;; Look for a tags table that contains
+		    ;; tags for the current buffer's file.
+		    (let ((tables tags-table-list)
+			  (this-file (buffer-file-name))
+			  (found nil))
+		      (save-excursion
+			(while tables
+			  (let ((tags-file-name (car tables)))
+			    (if (and (file-exists-p tags-file-name)
+				     (progn
+				       (visit-tags-file nil)
+				       (or tags-table-files
+					   (setq tags-table-files
+						 (funcall
+						  tags-table-files-function)))
+				       (assoc this-file tags-file-files)))
+				(setq found (car tables)
+				      tables nil)
+			      (setq tables (cdr tables))))))
+		      found)
+		    (car tags-table-list-pointer)
+		    tags-file-name
+		    (expand-file-name
+		     (read-file-name "Visit tags table: (default TAGS) "
+				     default-directory
+				     (expand-file-name "TAGS"
+						       default-directory)
+				     t))))
+	  (visit-tags-file t)))))
+
+;; Visit tags-file-name and check that it's a valid tags table.  Returns
+;; nil and does nothing if tags-file-name does not exist.  Otherwise, on
+;; return tags-table-list and tags-table-list-pointer point to
+;; tags-file-name.
 (defun visit-tags-file (put-in-list)
-  ;; FILE is never changed, but we don't just use tags-file-name
-  ;; directly because we don't want to get its buffer-local value
-  ;; in the buffer we switch to.
   (let ((file tags-file-name))
     (if (file-directory-p file)
 	(setq file (expand-file-name "TAGS" file)))
-    (if (if (get-file-buffer file)
-	    (let (win)
-	      (set-buffer (get-file-buffer file))
-	      (setq win (or verify-tags-table-function
-			    (initialize-new-tags-table)))
-	      (if (or (verify-visited-file-modtime (current-buffer))
-		      (not (yes-or-no-p
-			    "Tags file has changed, read new contents? ")))
-		  (and win (funcall verify-tags-table-function))
-		(revert-buffer t t)
-		(initialize-new-tags-table)))
-	  (set-buffer (find-file-noselect file))
-	  (or (string= file buffer-file-name)
-	      ;; find-file-noselect has changed the file name.
-	      ;; Propagate the change to tags-file-name and tags-table-list.
-	      (let ((tail (assoc file tags-table-list)))
-		(if tail
-		    (setcar tail buffer-file-name))
-		(setq tags-file-name buffer-file-name)))
-	  (initialize-new-tags-table))
+    (if (or (get-file-buffer file)
+	    (file-exists-p file))
+	(if (if (get-file-buffer file)
+		(let (win)
+		  (set-buffer (get-file-buffer file))
+		  (setq win (or verify-tags-table-function
+				(initialize-new-tags-table)))
+		  (if (or (verify-visited-file-modtime (current-buffer))
+			  (not (yes-or-no-p
+				"Tags file has changed, read new contents? ")))
+		      (and win (funcall verify-tags-table-function))
+		    (revert-buffer t t)
+		    (initialize-new-tags-table)))
+	      (set-buffer (find-file-noselect file))
+	      (or (string= file buffer-file-name)
+		  ;; find-file-noselect has changed the file name.
+		  ;; Propagate change to tags-file-name and tags-table-list.
+		  (let ((tail (assoc file tags-table-list)))
+		    (if tail
+			(setcar tail buffer-file-name))
+		    (setq tags-file-name buffer-file-name)))
+	      (initialize-new-tags-table))
 	
-	(if (and put-in-list
-		 (not (equal file (car tags-table-list-pointer))))
-	    (let (elt)
-	      ;; Bury the tags table buffer so it
-	      ;; doesn't get in the user's way.
-	      (bury-buffer (current-buffer))
-	      ;; Look for this file in the current list of tags files.
-	      (if (setq elt (member file tags-table-list))
-		  (if (eq elt tags-table-list)
-		      ;; Already at the head of the list.
-		      ()
-		    ;; Rotate this element to the head of the search list.
-		    (setq tags-table-list-pointer (nconc elt tags-table-list))
-		    (while (not (eq (cdr tags-table-list) elt))
-		      (setq tags-table-list (cdr tags-table-list)))
-		    (setcdr tags-table-list nil)
-		    (setq tags-table-list tags-table-list-pointer))
-		;; The table is not in the current set.
-		;; Try to find it in another previously used set.
-		(let ((sets tags-table-set-list))
-		  (while (and sets
-			      (not (setq elt (member file
-						     (car sets)))))
-		    (setq sets (cdr sets)))
-		  (if sets
-		      (progn
-			;; Found in some other set.  Switch to that set, making
-			;; the selected tags table the head of the search list.
-			(or (memq tags-table-list tags-table-set-list)
-			    ;; Save the current list.
-			    (setq tags-table-set-list
-				  (cons tags-table-list tags-table-set-list)))
-			(setq tags-table-list (car sets))
-			(if (eq elt tags-table-list)
-			    ;; Already at the head of the list
-			    ()
-			  ;; Rotate this element to the head of the list.
-			  (setq tags-table-list-pointer
-				(nconc elt tags-table-list))
-			  (while (not (eq (cdr tags-table-list) elt))
-			    (setq tags-table-list (cdr tags-table-list)))
-			  (setcdr tags-table-list nil)
-			  (setq tags-table-list tags-table-list-pointer)
-			  (setcar sets tags-table-list)))
-		    ;; Not found in any current set.
-		    (if (and tags-table-list
-			     (y-or-n-p
-			      (concat "Add " file
-				      " to current list of tags tables? ")))
-			;; Add it to the current list.
-			(setq tags-table-list
-			      (cons file tags-table-list))
-		      ;; Make a fresh list, and store the old one.
-		      (or (memq tags-table-list tags-table-set-list)
-			  (setq tags-table-set-list
-				(cons tags-table-list tags-table-set-list)))
-		      (setq tags-table-list (cons file nil)))
-		    (setq tags-table-list-pointer tags-table-list))))))
+	    (if (and put-in-list
+		     (not (equal file (car tags-table-list-pointer))))
+		(let (elt)
+		  ;; Bury the tags table buffer so it
+		  ;; doesn't get in the user's way.
+		  (bury-buffer (current-buffer))
+		  ;; Look for this file in the current list of tags files.
+		  (if (setq elt (member file tags-table-list))
+		      (if (eq elt tags-table-list)
+			  ;; Already at the head of the list.
+			  ()
+			;; Rotate this element to the head of the search list.
+			(setq tags-table-list-pointer
+			      (nconc elt tags-table-list))
+			(while (not (eq (cdr tags-table-list) elt))
+			  (setq tags-table-list (cdr tags-table-list)))
+			(setcdr tags-table-list nil)
+			(setq tags-table-list tags-table-list-pointer))
+		    ;; The table is not in the current set.
+		    ;; Try to find it in another previously used set.
+		    (let ((sets tags-table-set-list))
+		      (while (and sets
+				  (not (setq elt (member file
+							 (car sets)))))
+			(setq sets (cdr sets)))
+		      (if sets
+			  (progn
+			    ;; Found in some other set.  Switch to that
+			    ;; set, making the selected tags table the head
+			    ;; of the search list.
+			    (or (memq tags-table-list tags-table-set-list)
+				;; Save the current list.
+				(setq tags-table-set-list
+				      (cons tags-table-list
+					    tags-table-set-list)))
+			    (setq tags-table-list (car sets))
+			    (if (eq elt tags-table-list)
+				;; Already at the head of the list
+				()
+			      ;; Rotate this element to the head of the list.
+			      (setq tags-table-list-pointer
+				    (nconc elt tags-table-list))
+			      (while (not (eq (cdr tags-table-list) elt))
+				(setq tags-table-list (cdr tags-table-list)))
+			      (setcdr tags-table-list nil)
+			      (setq tags-table-list tags-table-list-pointer)
+			      (setcar sets tags-table-list)))
+			;; Not found in any current set.
+			(if (and tags-table-list
+				 (y-or-n-p
+				  (concat "Add " file " to current list"
+					  " of tags tables? ")))
+			    ;; Add it to the current list.
+			    (setq tags-table-list
+				  (cons file tags-table-list))
+			  ;; Make a fresh list, and store the old one.
+			  (or (memq tags-table-list tags-table-set-list)
+			      (setq tags-table-set-list
+				    (cons tags-table-list
+					  tags-table-set-list)))
+			  (setq tags-table-list (cons file nil)))
+			(setq tags-table-list-pointer tags-table-list))))
+		  t)
+	      t)
       
-      ;; The buffer was not valid.  Don't use it again.
-      (kill-local-variable 'tags-file-name)
-      (setq tags-file-name nil)
-      (error "File %s is not a valid tags table" buffer-file-name))))
+	  ;; The buffer was not valid.  Don't use it again.
+	  (kill-local-variable 'tags-file-name)
+	  (setq tags-file-name nil)
+	  (error "File %s is not a valid tags table" buffer-file-name)))))
 
 (defun file-of-tag ()
   "Return the file name of the file whose tags point is within.
