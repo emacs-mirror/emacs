@@ -74,7 +74,7 @@ Lisp_Object Qchar_or_string_p, Qmarkerp, Qinteger_or_marker_p, Qvectorp;
 Lisp_Object Qbuffer_or_string_p;
 Lisp_Object Qboundp, Qfboundp;
 Lisp_Object Qcdr;
-Lisp_Object Qadvice_info, Qactivate_advice;
+Lisp_Object Qad_advice_info, Qad_activate;
 
 Lisp_Object Qrange_error, Qdomain_error, Qsingularity_error;
 Lisp_Object Qoverflow_error, Qunderflow_error;
@@ -556,9 +556,9 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
 			     Vautoload_queue);
   XSYMBOL (sym)->function = newdef;
   /* Handle automatic advice activation */
-  if (CONSP (XSYMBOL (sym)->plist) && !NILP (Fget (sym, Qadvice_info)))
+  if (CONSP (XSYMBOL (sym)->plist) && !NILP (Fget (sym, Qad_advice_info)))
     {
-      call2 (Qactivate_advice, sym, Fbyte_code_function_p (newdef));
+      call2 (Qad_activate, sym, Qnil);
       newdef = XSYMBOL (sym)->function;
     }
   return newdef;
@@ -577,6 +577,12 @@ Associates the function with the current load file, if any.")
     Vautoload_queue = Fcons (Fcons (sym, XSYMBOL (sym)->function),
 			     Vautoload_queue);
   XSYMBOL (sym)->function = newdef;
+  /* Handle automatic advice activation */
+  if (CONSP (XSYMBOL (sym)->plist) && !NILP (Fget (sym, Qad_advice_info)))
+    {
+      call2 (Qad_activate, sym, Qnil);
+      newdef = XSYMBOL (sym)->function;
+    }
   LOADHIST_ATTACH (sym);
   return newdef;
 }
@@ -592,6 +598,12 @@ Associates the function with the current load file, if any.")
     Vautoload_queue = Fcons (Fcons (sym, XSYMBOL (sym)->function),
 			     Vautoload_queue);
   XSYMBOL (sym)->function = newdef;
+  /* Handle automatic advice activation */
+  if (CONSP (XSYMBOL (sym)->plist) && !NILP (Fget (sym, Qad_advice_info)))
+    {
+      call2 (Qad_activate, sym, Qnil);
+      newdef = XSYMBOL (sym)->function;
+    }
   LOADHIST_ATTACH (sym);
   return newdef;
 }
@@ -2058,8 +2070,8 @@ syms_of_data ()
   Qcdr = intern ("cdr");
 
   /* Handle automatic advice activation */
-  Qadvice_info = intern ("advice-info");
-  Qactivate_advice = intern ("ad-activate");
+  Qad_advice_info = intern ("ad-advice-info");
+  Qad_activate = intern ("ad-activate");
 
   error_tail = Fcons (Qerror, Qnil);
 
@@ -2243,8 +2255,8 @@ syms_of_data ()
   staticpro (&Qboundp);
   staticpro (&Qfboundp);
   staticpro (&Qcdr);
-  staticpro (&Qadvice_info);
-  staticpro (&Qactivate_advice);
+  staticpro (&Qad_advice_info);
+  staticpro (&Qad_activate);
 
   defsubr (&Seq);
   defsubr (&Snull);
