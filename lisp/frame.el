@@ -832,6 +832,9 @@ DISPLAY can be a display name, a frame, or nil (meaning the selected
 frame's display)."
   (not (null (memq (framep-on-display display) '(x w32 mac)))))
 
+(defalias 'display-multi-frame-p 'display-graphic-p)
+(defalias 'display-multi-font-p 'display-graphic-p)
+
 (defun display-selections-p (&optional display)
   "Return non-nil if DISPLAY supports selections.
 A selection is a way to transfer text or other data between programs
