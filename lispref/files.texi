@@ -348,8 +348,13 @@ to save the data in a corresponding way.
 This works just like @code{write-file-hooks}, but it is intended for
 hooks that pertain to the contents of the file, as opposed to hooks that
 pertain to where the file came from.  Such hooks are usually set up by
-major modes, as buffer-local bindings for this variable.  Switching to a
-new major mode always resets this variable.
+major modes, as buffer-local bindings for this variable.
+
+This variable automatically becomes buffer-local whenever it is set;
+switching to a new major mode always resets this variable.  When you use
+@code{add-hooks} to add an element to this hook, you should @emph{not}
+specify a non-@code{nil} @var{local} argument, since this variable is
+used @emph{only} locally.
 @end defvar
 
 @c Emacs 19 feature
