@@ -83,6 +83,23 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
+** New command `display-local-help' displays any local help at point
+in the echo area.  It is bound to `C-h .'.  It normally displays the
+same string that would be displayed on mouse-over using the
+`help-echo' property, but, in certain cases, it can display a more
+keyboard oriented alternative.
+
+** New user option `help-at-pt-display-when-idle' allows to
+automatically show the help provided by `display-local-help' on
+point-over, after suitable idle time.  The amount of idle time is
+determined by the user option `help-at-pt-timer-delay' and defaults
+to one second.  This feature is turned off by default.
+
+** New commands `scan-buf-next-region' and `scan-buf-previous-region'
+move to the start of the next (previous, respectively) region with
+non-nil help-echo property and display any help found there in the
+echo area, using `display-local-help'.
+
 +++
 ** Help mode now only makes hyperlinks for faces when the face name is
 preceded or followed by the word `face'.  It no longer makes
@@ -1433,7 +1450,7 @@ compilation mode settings for grep commands.
 
 *** Source line is temporarily highlighted when going to next match.
 
-*** New key bindings in grep output window:  
+*** New key bindings in grep output window:
 SPC and DEL scrolls window up and down.  C-n and C-p moves to next and
 previous match in the grep window.  RET jumps to the source line of
 the current match.  `n' and `p' shows next and previous match in
@@ -1721,6 +1738,12 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
+** New function `get-char-property-and-overlay' accepts the same
+arguments as `get-char-property' and returns a cons whose car is the
+return value of `get-char-property' called with those arguments and
+whose cdr is the overlay in which the property was found, or nil if
+it was found as a text property or not found at all.
+
 ** Mouse event enhancements:
 
 *** Mouse clicks on fringes now generates left-fringe or right-fringes
@@ -1749,7 +1772,7 @@ text area).
 
 +++
 *** Mouse events include relative x and y pixel coordinates relative to
-the top left corner of the object (image or character) clicked on.  
+the top left corner of the object (image or character) clicked on.
 
 *** New functions 'posn-object' and 'posn-object-x-y' return the image
 or string object of a mouse click, and the x and y pixel coordinates
@@ -1784,6 +1807,7 @@ documented.
 locally to provide Eldoc functionality by some method appropriate to
 the language.
 
+---
 ** New coding system property `mime-text-unsuitable' indicates that
 the coding system's `mime-charset' is not suitable for MIME text
 parts, e.g. utf-16.
@@ -2750,7 +2774,7 @@ refontification of `bar' whenever the `e' is added/removed.
 called to print the entries' values.  It defaults to `princ'.
 
 ** defcustom and other custom declarations now use a default group
-(the last group defined in the same file) when no :group was given.
+(the last prior group defined in the same file) when no :group was given.
 
 +++
 ** emacsserver now runs pre-command-hook and post-command-hook when
