@@ -195,8 +195,9 @@ static int curs_y;
 
 /* Where the mouse was last time we reported a mouse event.  */
 static FRAME_PTR last_mouse_frame;
-static FRAME_PTR last_mouse_press_frame;
 static XRectangle last_mouse_glyph;
+
+static Lisp_Object last_mouse_press_frame;
 
 /* The scroll bar in which the last X motion event occurred.
 
@@ -3633,7 +3634,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  unsigned char copy_buffer[81];
 		  int modifiers;
 
-#ifdef USE_X_TOOLKIT
+#ifdef USE_MOTIF
                   if (lw_window_is_in_menubar (event.xkey.window,
                                                f->output_data.x->menubar_widget
                                                ))
@@ -3641,7 +3642,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
                       SET_SAVED_KEY_EVENT;
                       break;
                     }
-#endif /* USE_X_TOOLKIT */
+#endif /* USE_MOTIF */
 
 		  event.xkey.state
 		    |= x_emacs_to_x_modifiers (FRAME_X_DISPLAY_INFO (f),
@@ -4048,17 +4049,26 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		    && event.xbutton.same_screen)
 		  {
 		    SET_SAVED_BUTTON_EVENT;
-		    last_mouse_press_frame = f;
+		    XSETFRAME (last_mouse_press_frame, f);
 		  }
+		else if (event.type == ButtonPress)
+		  {
+		    last_mouse_press_frame = Qnil;
+		  }
+#ifdef USE_MOTIF /* This should do not harm for Lucid,
+		    but I am trying to be cautious.  */
 		else if (event.type == ButtonRelease)
 		  {
-		    if (!f)
-		      f = last_mouse_press_frame;
-		    if (f)
+		    if (!NILP (last_mouse_press_frame))
 		      {
-			SET_SAVED_BUTTON_EVENT;
+			f = XFRAME (last_mouse_press_frame);
+			if (f->output_data.x)
+			  {
+			    SET_SAVED_BUTTON_EVENT;
+			  }
 		      }
 		  }
+#endif /* USE_MOTIF */
 		else
 		  goto OTHER;
 #endif /* USE_X_TOOLKIT */
@@ -6223,6 +6233,9 @@ syms_of_xterm ()
 
   staticpro (&Qvendor_specific_keysyms);
   Qvendor_specific_keysyms = intern ("vendor-specific-keysyms");
+
+  staticpro (&last_mouse_press_frame);
+  last_mouse_press_frame = Qnil;
 }
 
 #endif /* not HAVE_X_WINDOWS */
