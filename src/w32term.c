@@ -8719,9 +8719,19 @@ w32_read_socket (sd, bufp, numchars, expected)
 	  if (FRAME_W32_P (f) && f->async_visible)
 	    {
 	      RECT clipbox;
-	      HDC  hdc = get_frame_dc (f);
+	      HDC  hdc;
+
+	      enter_crit ();
+	      /* Query clipping rectangle for the entire window area
+                 (GetWindowDC), not just the client portion (GetDC).
+                 Otherwise, the scrollbars and menubar aren't counted as
+                 part of the visible area of the frame, and we may think
+                 the frame is obscured when really a scrollbar is still
+                 visible and gets WM_PAINT messages above.  */
+	      hdc = GetWindowDC (FRAME_W32_WINDOW (f));
 	      GetClipBox (hdc, &clipbox);
-	      release_frame_dc (f, hdc);
+	      ReleaseDC (FRAME_W32_WINDOW (f), hdc);
+	      leave_crit ();
 
 	      if (clipbox.right == clipbox.left
 		  || clipbox.bottom == clipbox.top)
