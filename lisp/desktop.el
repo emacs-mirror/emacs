@@ -217,6 +217,17 @@ the like shorter.")
 	     nil
 	   (signal (car err) (cdr err)))))))
 ;; ----------------------------------------------------------------------------
+(defun desktop-list* (&rest args)
+  (if (null (cdr args))
+      (car args)
+    (setq args (nreverse args))
+    (let ((value (cons (nth 1 args) (car args))))
+      (setq args (cdr (cdr args)))
+      (while args
+	(setq value (cons (car args) value))
+	(setq args (cdr args)))
+      value)))
+
 (defun desktop-internal-v2s (val)
   "Convert VALUE to a pair (QUOTE . TXT); (eval (read TXT)) gives VALUE.
 TXT is a string that when read and evaluated yields value.
@@ -254,6 +265,7 @@ QUOTE may be `may' (value may be quoted),
    ((consp val)
     (let ((p val)
 	  newlist
+	  use-list*
 	  anynil)
       (while (consp p)
 	(let ((q.txt (desktop-internal-v2s (car p))))
@@ -263,22 +275,15 @@ QUOTE may be `may' (value may be quoted),
       (if p
 	  (let ((last (desktop-internal-v2s p))
 		(el (car newlist)))
-	    (setcar newlist
-		    (if (or anynil (setq anynil (null (car last))))
-			(cons nil
-			      (concat "(cons "
-				      (if (eq (car el) 'must) "'" "")
-				      (cdr el)
-				      " "
-				      (if (eq (car last) 'must) "'" "")
-				      (cdr last)
-				      ")"))
-		      (cons 'must
-			    (concat (cdr el) " . " (cdr last)))))))
+	    (or anynil (setq anynil (null (car last))))
+	    (or anynil
+		(setq newlist (cons '(must . ".") newlist)))
+	    (setq use-list* t)
+	    (setq newlist (cons last newlist))))
       (setq newlist (nreverse newlist))
       (if anynil
 	  (cons nil
-		(concat "(list "
+		(concat (if use-list* "(desktop-list* "  "(list ")
 			(mapconcat (lambda (el)
 				     (if (eq (car el) 'must)
 					 (concat "'" (cdr el))
