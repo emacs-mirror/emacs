@@ -641,7 +641,7 @@ lower types.")
   ;; Scan for @-commands.
   (goto-char (point-min))
   (while (search-forward "@" nil t)
-    (if (looking-at "[@{}'` *]")
+    (if (looking-at "[@{}^'` *\"?!-]")
         ;; Handle a few special @-followed-by-one-char commands.
         (if (= (following-char) ?*)
             (progn
@@ -1581,6 +1581,10 @@ Used by @refill indenting command to avoid indenting within lists, etc.")
 ; must follow the command name with two commas in a row; otherwise,
 ; the Info formatting commands will misinterpret the end delimiter
 ; string as a start delimiter string.
+;
+; If you do a @definfoenclose{} on the name of a pre-defined macro (such
+; as @emph{}, @strong{}, @tt{}, or @i{}) the enclosure definition will
+; override the built-in definition.
 ; 
 ; An enclosure command defined this way takes one argument in braces.
 ;
