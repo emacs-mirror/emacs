@@ -1,3 +1,8 @@
+2002-07-03  Juanma Barranquero  <lektu@terra.es>
+
+	* subr.el (chars-in-region): Add obsolescence declaration for
+	`chars-in-region'.
+
 2002-07-03  Miles Bader  <miles@gnu.org>
 
 	* faces.el (header-line): Don't use a `common' clause for
@@ -13,7 +18,7 @@
 	Check for `eval:' calling fn with `safe-local-eval-function' property.
 	(hack-one-local-variable): Use hack-one-local-variable-eval-safep.
 	(c-add-style, c-set-style): Add safe-local-eval-function property.
-	
+
 	* files.el (insert-directory): Handle --dired option to ls.
 
 	* files.el (file-remote-p): New function.
