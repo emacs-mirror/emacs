@@ -308,18 +308,20 @@ default.  Also, installing them may be rather slow."
     ((r5 = ,(charset-id 'eight-bit-control))
      (r6 = ,(charset-id 'eight-bit-graphic))
      (loop
+      (r0 = -1)
       (read r0)
 
       ;; 1byte encoding, i.e., ascii
       (if (r0 < #x80)
-	  (write r0)
+	  ((write r0))
 	(if (r0 < #xc0)		    ; continuation byte (invalid here)
-	    (if (r0 < #xa0)
-		(write-multibyte-character r5 r0)
-	      (write-multibyte-character r6 r0))
+	    ((if (r0 < #xa0)
+		 (write-multibyte-character r5 r0)
+	       (write-multibyte-character r6 r0)))
 	  ;; 2 byte encoding 00000yyyyyxxxxxx = 110yyyyy 10xxxxxx
 	  (if (r0 < #xe0)
-	      ((read r1)
+	      ((r1 = -1)
+	       (read r1)
 
 	       (if ((r1 & #b11000000) != #b10000000)
 		   ;; Invalid 2-byte sequence
@@ -373,7 +375,9 @@ default.  Also, installing them may be rather slow."
 	    ;; 3byte encoding
 	    ;; zzzzyyyyyyxxxxxx = 1110zzzz 10yyyyyy 10xxxxxx
 	    (if (r0 < #xf0)
-		((read r1 r2)
+		((r1 = -1)
+		 (r2 = -1)
+		 (read r1 r2)
 
 		 ;; This is set to 1 if the encoding is invalid.
 		 (r4 = 0)
@@ -478,7 +482,10 @@ default.  Also, installing them may be rather slow."
 		  ;; 4byte encoding
 		  ;; keep those bytes as eight-bit-{control|graphic}
 		  ;; Fixme: allow lookup in utf-subst-table-for-decode.
-		  ((read r1 r2 r3)
+		  ((r1 = -1)
+		   (r2 = -1)
+		   (r3 = -1)
+		   (read r1 r2 r3)
 		   ;; r0 > #xf0, thus eight-bit-graphic
 		   (write-multibyte-character r6 r0)
 		   (if (r1 < #xa0)
@@ -512,7 +519,33 @@ default.  Also, installing them may be rather slow."
 			       (write-multibyte-character r6 r1)))))))
 		;; else invalid byte >= #xfe
 		(write-multibyte-character r6 r0))))))
-      (repeat))))
+      (repeat)))
+
+    ;; At EOF...
+    (if (r0 >= 0)
+	((if (r0 < #x80)
+	     (write r0)
+	   (if (r0 < #xa0)
+	       (write-multibyte-character r5 r0)
+	     ((write-multibyte-character r6 r0))))
+	 (if (r1 >= 0)
+	     ((if (r1 < #x80)
+		  (write r1)
+		(if (r1 < #xa0)
+		    (write-multibyte-character r5 r1)
+		  ((write-multibyte-character r6 r1))))
+	      (if (r2 >= 0)
+		  ((if (r2 < #x80)
+		       (write r2)
+		     (if (r2 < #xa0)
+			 (write-multibyte-character r5 r2)
+		       ((write-multibyte-character r6 r2))))
+		   (if (r3 >= 0)
+		       (if (r3 < #x80)
+			   (write r3)
+			 (if (r3 < #xa0)
+			     (write-multibyte-character r5 r3)
+			   ((write-multibyte-character r6 r3))))))))))))
 
   "CCL program to decode UTF-8.
 Basic decoding is done into the charsets ascii, latin-iso8859-1 and
