@@ -1105,7 +1105,7 @@ as such should normally be set via a file local variable entry.")
 (defun bibtex-string ()
   (interactive)
   (bibtex-move-outside-of-entry)
-  (insert "@string{ = """"}\n")
+  (insert "@string{ = \"\"}\n")
   (previous-line 1)
   (forward-char 8))
 

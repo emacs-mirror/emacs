@@ -168,7 +168,7 @@ spawned Emacs and doing things like \"emacs -l myfile.el -f doit\""
 	 (send-command-to-subprocess
 	  1
 	  (concat command
-		  " sys$login:delete-me.txt/name=""GNUprintbuffer"" "
+		  " sys$login:delete-me.txt/name=\"GNUprintbuffer\" "
 		  (mapconcat 'identity switches " "))
 	  nil nil nil)))
 
