@@ -1370,7 +1370,7 @@ skip_chars (forwardp, syntaxp, string, lim)
       if (nbytes != size_byte)
 	{
 	  str = (unsigned char *) alloca (nbytes);
-	  copy_text (XSTRING (string)->data, str, nbytes,
+	  copy_text (XSTRING (string)->data, str, size_byte,
 		     string_multibyte, multibyte);
 	  size_byte = nbytes;
 	}
@@ -1440,22 +1440,34 @@ skip_chars (forwardp, syntaxp, string, lim)
 	      if (SINGLE_BYTE_CHAR_P (c))
 		{
 		  if (! SINGLE_BYTE_CHAR_P (c2))
-		    error ("Invalid character range: %s",
-			   XSTRING (string)->data);
+		    {
+		      /* Handle a range such as \177-\377 in multibyte
+			 mode.  Split that into two ranges, the low
+			 one ending at 0237, and the high one starting
+			 at the smallest character in the charset of
+			 C2 and ending at C2.  */
+		      int charset = CHAR_CHARSET (c2);
+		      int c1 = MAKE_CHAR (charset, 0, 0);
+
+		      fastmap[c2_leading_code] = 1;
+		      char_ranges[n_char_ranges++] = c1;
+		      char_ranges[n_char_ranges++] = c2;
+		      c2 = 0237;
+		    }
 		  while (c <= c2)
 		    {
 		      fastmap[c] = 1;
 		      c++;
 		    }
 		}
-	      else
+	      else if (! SINGLE_BYTE_CHAR_P (c2))
 		{
 		  if (c_leading_code != c2_leading_code)
 		    error ("Invalid character range: %s",
 			   XSTRING (string)->data);
-		  fastmap[c_leading_code] = 1;
 		  if (c <= c2)
 		    {
+		      fastmap[c_leading_code] = 1;
 		      char_ranges[n_char_ranges++] = c;
 		      char_ranges[n_char_ranges++] = c2;
 		    }
@@ -1463,9 +1475,11 @@ skip_chars (forwardp, syntaxp, string, lim)
 	    }
 	  else
 	    {
-	      fastmap[c_leading_code] = 1;
-	      if (!SINGLE_BYTE_CHAR_P (c))
+	      if (SINGLE_BYTE_CHAR_P (c))
+		fastmap[c] = 1;
+	      else
 		{
+		  fastmap[c_leading_code] = 1;
 		  char_ranges[n_char_ranges++] = c;
 		  char_ranges[n_char_ranges++] = c;
 		}
@@ -1562,26 +1576,24 @@ skip_chars (forwardp, syntaxp, string, lim)
 	    if (multibyte)
 	      while (pos < XINT (lim) && fastmap[(c = FETCH_BYTE (pos_byte))])
 		{
-		  if (!BASE_LEADING_CODE_P (c))
-		    INC_BOTH (pos, pos_byte);
-		  else if (n_char_ranges)
+		  /* If we are looking at a multibyte character, we
+		     must look up the character in the table
+		     CHAR_RANGES.  If there's no data in the table,
+		     that character is not what we want to skip.  */
+		  if (BASE_LEADING_CODE_P (c)
+		      && (c = FETCH_MULTIBYTE_CHAR (pos_byte),
+			  ! SINGLE_BYTE_CHAR_P (c)))
 		    {
-		      /* We much check CHAR_RANGES for a multibyte
-			 character.  */
-		      ch = FETCH_MULTIBYTE_CHAR (pos_byte);
+		      /* The following code do the right thing even if
+			 n_char_ranges is zero (i.e. no data in
+			 CHAR_RANGES).  */
 		      for (i = 0; i < n_char_ranges; i += 2)
-			if ((ch >= char_ranges[i] && ch <= char_ranges[i + 1]))
+			if (c >= char_ranges[i] && c <= char_ranges[i + 1])
 			  break;
 		      if (!(negate ^ (i < n_char_ranges)))
 			break;
-
-		      INC_BOTH (pos, pos_byte);
 		    }
-		  else
-		    {
-		      if (!negate) break;
-		      INC_BOTH (pos, pos_byte);
-		    }
+		  INC_BOTH (pos, pos_byte);
 		}
 	    else
 	      while (pos < XINT (lim) && fastmap[FETCH_BYTE (pos)])
@@ -1592,41 +1604,25 @@ skip_chars (forwardp, syntaxp, string, lim)
 	    if (multibyte)
 	      while (pos > XINT (lim))
 		{
-		  int savepos = pos_byte;
-		  DEC_BOTH (pos, pos_byte);
-		  if (fastmap[(c = FETCH_BYTE (pos_byte))])
+		  int prev_pos_byte = pos_byte;
+
+		  DEC_POS (prev_pos_byte);
+		  if (!fastmap[(c = FETCH_BYTE (prev_pos_byte))])
+		    break;
+
+		  /* See the comment in the previous similar code.  */
+		  if (BASE_LEADING_CODE_P (c)
+		      && (c = FETCH_MULTIBYTE_CHAR (prev_pos_byte),
+			  ! SINGLE_BYTE_CHAR_P (c)))
 		    {
-		      if (!BASE_LEADING_CODE_P (c))
-			;
-		      else if (n_char_ranges)
-			{
-			  /* We much check CHAR_RANGES for a multibyte
-			     character.  */
-			  ch = FETCH_MULTIBYTE_CHAR (pos_byte);
-			  for (i = 0; i < n_char_ranges; i += 2)
-			    if (ch >= char_ranges[i] && ch <= char_ranges[i + 1])
-			      break;
-			  if (!(negate ^ (i < n_char_ranges)))
-			    {
-			      pos++;
-			      pos_byte = savepos;
-			      break;
-			    }
-			}
-		      else
-			if (!negate)
-			  {
-			    pos++;
-			    pos_byte = savepos;
-			    break;
-			  }
+		      for (i = 0; i < n_char_ranges; i += 2)
+			if (c >= char_ranges[i] && c <= char_ranges[i + 1])
+			  break;
+		      if (!(negate ^ (i < n_char_ranges)))
+			break;
 		    }
-		  else
-		    {
-		      pos++;
-		      pos_byte = savepos;
-		      break;
-		    }
+		  pos--;
+		  pos_byte = prev_pos_byte;
 		}
 	    else
 	      while (pos > XINT (lim) && fastmap[FETCH_BYTE (pos - 1)])
