@@ -714,7 +714,7 @@ concat (nargs, args, target_type, last_special)
 	    }
 	  toindex_byte += thislen_byte;
 	  toindex += thisleni - combined;
-	  SCHARS (val) -= combined;
+	  STRING_SET_CHARS (val, SCHARS (val) - combined);
 	}
       /* Copy a single-byte string to a multibyte string.  */
       else if (STRINGP (this) && STRINGP (val))
@@ -804,7 +804,7 @@ concat (nargs, args, target_type, last_special)
 			&& toindex_byte > 0
 			&& count_combining (SDATA (val),
 					    toindex_byte, toindex_byte - 1))
-		      SCHARS (val)--;
+		      STRING_SET_CHARS (val, SCHARS (val) - 1);
 		    else
 		      toindex++;
 		  }
