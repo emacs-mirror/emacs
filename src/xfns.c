@@ -3323,7 +3323,7 @@ This function is an internal primitive--use `make-frame' instead.")
 #endif
 
   x_default_parameter (f, parms, Qborder_width, make_number (2),
-		       "borderwidth", "BorderWidth", number);
+		       "borderWidth", "BorderWidth", number);
   /* This defaults to 2 in order to match xterm.  We recognize either
      internalBorderWidth or internalBorder (which is what xterm calls
      it).  */
