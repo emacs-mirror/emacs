@@ -131,15 +131,15 @@ latter are unique to Emacs Lisp.
 * Floating Point Type:: Numbers with fractional parts and with a large range.
 * Character Type::      The representation of letters, numbers and
                         control characters.
+* Symbol Type::         A multi-use object that refers to a function,
+                        variable, or property list, and has a unique identity.
 * Sequence Type::       Both lists and arrays are classified as sequences.
 * Cons Cell Type::      Cons cells, and lists (which are made from cons cells).
 * Array Type::          Arrays include strings and vectors.
 * String Type::         An (efficient) array of characters.
 * Vector Type::         One-dimensional arrays.
-* Symbol Type::         A multi-use object that refers to a function,
-                        variable, property list, or itself.
-* Lisp Function Type::  A piece of executable code you can call from elsewhere.
-* Lisp Macro Type::     A method of expanding an expression into another
+* Function Type::       A piece of executable code you can call from elsewhere.
+* Macro Type::          A method of expanding an expression into another
                           expression, more fundamental but less pretty.
 * Primitive Function Type::     A function written in C, callable from Lisp.
 * Byte-Code Type::      A function written in Lisp, then compiled.
@@ -1150,7 +1150,7 @@ Area}).
   Streams have no special printed representation or read syntax, and
 print as whatever primitive type they are.
 
-  @xref{Streams, Reading and Printing}, for a description of functions
+  @xref{Read and Print}, for a description of functions
 related to streams, including parsing and printing functions.
 
 @node Keymap Type

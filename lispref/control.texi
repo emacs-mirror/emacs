@@ -11,22 +11,27 @@
   A Lisp program consists of expressions or @dfn{forms} (@pxref{Forms}).
 We control the order of execution of the forms by enclosing them in
 @dfn{control structures}.  Control structures are special forms which
-control when, whether, or how many times to execute the forms they contain.
+control when, whether, or how many times to execute the forms they
+contain.
 
-  The simplest control structure is sequential execution: first form
+  The simplest order of execution is sequential execution: first form
 @var{a}, then form @var{b}, and so on.  This is what happens when you
 write several forms in succession in the body of a function, or at top
-level in a file of Lisp code---the forms are executed in the order they
-are written.  We call this @dfn{textual order}.  For example, if a
-function body consists of two forms @var{a} and @var{b}, evaluation of
-the function evaluates first @var{a} and then @var{b}, and the
-function's value is the value of @var{b}.
+level in a file of Lisp code---the forms are executed in the order
+written.  We call this @dfn{textual order}.  For example, if a function
+body consists of two forms @var{a} and @var{b}, evaluation of the
+function evaluates first @var{a} and then @var{b}, and the function's
+value is the value of @var{b}.
+
+  Explicit control structures make possible an order of execution other
+than sequential.
 
   Emacs Lisp provides several kinds of control structure, including
-other varieties of sequencing, function calls, conditionals, iteration,
-and (controlled) jumps.  The built-in control structures are special
-forms since their subforms are not necessarily evaluated.  You can use
-macros to define your own control structure constructs (@pxref{Macros}).
+other varieties of sequencing, conditionals, iteration, and (controlled)
+jumps---all discussed below.  The built-in control structures are
+special forms since their subforms are not necessarily evaluated or not
+evaluated sequentially.  You can use macros to define your own control
+structure constructs (@pxref{Macros}).
 
 @menu
 * Sequencing::             Evaluation in textual order.
@@ -39,10 +44,11 @@ macros to define your own control structure constructs (@pxref{Macros}).
 @node Sequencing
 @section Sequencing
 
-  Evaluating forms in the order they are written is the most common
-control structure.  Sometimes this happens automatically, such as in a
-function body.  Elsewhere you must use a control structure construct to
-do this: @code{progn}, the simplest control construct of Lisp.
+  Evaluating forms in the order they appear is the most common way
+control passes from one form to another.  In some contexts, such as in a
+function body, this happens automatically.  Elsewhere you must use a
+control structure construct to do this: @code{progn}, the simplest
+control construct of Lisp.
 
   A @code{progn} special form looks like this:
 
@@ -67,8 +73,8 @@ the body of a function was made into an ``implicit @code{progn}'':
 several forms are allowed just as in the body of an actual @code{progn}.
 Many other control structures likewise contain an implicit @code{progn}.
 As a result, @code{progn} is not used as often as it used to be.  It is
-needed now most often inside of an @code{unwind-protect}, @code{and},
-@code{or}, or the @var{else}-part of an @code{if}.
+needed now most often inside an @code{unwind-protect}, @code{and},
+@code{or}, or in the @var{then}-part of an @code{if}.
 
 @defspec progn forms@dots{}
 This special form evaluates all of the @var{forms}, in textual
@@ -151,7 +157,7 @@ an example of an implicit @code{progn}.  @xref{Sequencing}.)
 If @var{condition} has the value @code{nil}, and no @var{else-forms} are
 given, @code{if} returns @code{nil}.
 
-@code{if} is a special form because the branch which is not selected is
+@code{if} is a special form because the branch that is not selected is
 never evaluated---it is ignored.  Thus, in the example below,
 @code{true} is not printed because @code{print} is never called.
 
@@ -224,7 +230,7 @@ For example,
 
 @example
 @group
-(cond ((eq a 1) 'foo)
+(cond ((eq a 'hack) 'foo)
       (t "default"))
 @result{} "default"
 @end group
@@ -235,9 +241,9 @@ This expression is a @code{cond} which returns @code{foo} if the value
 of @code{a} is 1, and returns the string @code{"default"} otherwise.
 @end defspec
 
-Both @code{cond} and @code{if} can usually be written in terms of the
-other.  Therefore, the choice between them is a matter of style.  For
-example:
+Any conditional construct can be expressed with @code{cond} or with
+@code{if}.  Therefore, the choice between them is a matter of style.
+For example:
 
 @example
 @group
@@ -418,8 +424,9 @@ first argument of @code{while}, as shown here:
 @end example
 
 @noindent
-This moves forward one line and continues moving by lines until an empty
-line is reached.
+This moves forward one line and continues moving by lines until it
+reaches an empty.  It is unusual in that the @code{while} has no body,
+just the end test (which also does the real work of moving point).
 @end defspec
 
 @node Nonlocal Exits
@@ -454,7 +461,7 @@ that @code{catch}.  For example:
 (catch 'foo
   (progn
     @dots{}
-      (throw 'foo t)
+    (throw 'foo t)
     @dots{}))
 @end group
 @end example
@@ -481,7 +488,8 @@ and position saved by @code{save-excursion} (@pxref{Excursions}), and
 the narrowing status saved by @code{save-restriction} and the window
 selection saved by @code{save-window-excursion} (@pxref{Window
 Configurations}).  It also runs any cleanups established with the
-@code{unwind-protect} special form when it exits that form.
+@code{unwind-protect} special form when it exits that form
+(@pxref{Cleanups}).
 
   The @code{throw} need not appear lexically within the @code{catch}
 that it jumps to.  It can equally well be called from another function
@@ -489,11 +497,11 @@ called within the @code{catch}.  As long as the @code{throw} takes place
 chronologically after entry to the @code{catch}, and chronologically
 before exit from it, it has access to that @code{catch}.  This is why
 @code{throw} can be used in commands such as @code{exit-recursive-edit}
-which throw back to the editor command loop (@pxref{Recursive Editing}).
+that throw back to the editor command loop (@pxref{Recursive Editing}).
 
 @cindex CL note---only @code{throw} in Emacs
 @quotation
-@b{Common Lisp note:} most other versions of Lisp, including Common Lisp,
+@b{Common Lisp note:} Most other versions of Lisp, including Common Lisp,
 have several ways of transferring control nonsequentially: @code{return},
 @code{return-from}, and @code{go}, for example.  Emacs Lisp has only
 @code{throw}.
@@ -607,11 +615,11 @@ printed.  Finally the second body form in the outer @code{catch}, which is
 @end example
 
 @noindent
-We still have two return points, but this time only the outer one has the
-tag @code{hack}; the inner one has the tag @code{quux} instead.  Therefore,
-the @code{throw} returns the value @code{yes} from the outer return point.
-The function @code{print} is never called, and the body-form @code{'no} is
-never evaluated.
+We still have two return points, but this time only the outer one has
+the tag @code{hack}; the inner one has the tag @code{quux} instead.
+Therefore, @code{throw} makes the outer @code{catch} return the value
+@code{yes}.  The function @code{print} is never called, and the
+body-form @code{'no} is never evaluated.
 
 @node Errors
 @subsection Errors
@@ -627,13 +635,13 @@ the end of the buffer.
 
   In complicated programs, simple termination may not be what you want.
 For example, the program may have made temporary changes in data
-structures, or created temporary buffers which should be deleted before
+structures, or created temporary buffers that should be deleted before
 the program is finished.  In such cases, you would use
 @code{unwind-protect} to establish @dfn{cleanup expressions} to be
-evaluated in case of error.  Occasionally, you may wish the program to
-continue execution despite an error in a subroutine.  In these cases,
-you would use @code{condition-case} to establish @dfn{error handlers} to
-recover control in case of error.
+evaluated in case of error.  (@xref{Cleanups}.)  Occasionally, you may
+wish the program to continue execution despite an error in a subroutine.
+In these cases, you would use @code{condition-case} to establish
+@dfn{error handlers} to recover control in case of error.
 
   Resist the temptation to use error handling to transfer control from
 one part of the program to another; use @code{catch} and @code{throw}
@@ -643,7 +651,7 @@ instead.  @xref{Catch and Throw}.
 * Signaling Errors::      How to report an error.
 * Processing of Errors::  What Emacs does when you report an error.
 * Handling Errors::       How you can trap errors and continue execution.
-* Error Names::           How errors are classified for trapping them.
+* Error Symbols::         How errors are classified for trapping them.
 @end menu
 
 @node Signaling Errors
@@ -703,12 +711,12 @@ errors.
 
 The number and significance of the objects in @var{data} depends on
 @var{error-symbol}.  For example, with a @code{wrong-type-arg} error,
-there are two objects in the list: a predicate which describes the type
-that was expected, and the object which failed to fit that type.
-@xref{Error Names}, for a description of error symbols.
+there are two objects in the list: a predicate that describes the type
+that was expected, and the object that failed to fit that type.
+@xref{Error Symbols}, for a description of error symbols.
 
 Both @var{error-symbol} and @var{data} are available to any error
-handlers which handle the error: @code{condition-case} binds a local
+handlers that handle the error: @code{condition-case} binds a local
 variable to a list of the form @code{(@var{error-symbol} .@:
 @var{data})} (@pxref{Handling Errors}).  If the error is not handled,
 these two values are used in printing the error message.
@@ -743,7 +751,7 @@ When an error is signaled, @code{signal} searches for an active
 expressions designated to be executed if an error happens in part of the
 Lisp program.  If the error has an applicable handler, the handler is
 executed, and control resumes following the handler.  The handler
-executes in the environment of the @code{condition-case} which
+executes in the environment of the @code{condition-case} that
 established it; all functions called within that @code{condition-case}
 have already been exited, and the handler cannot return to them.
 
@@ -788,8 +796,8 @@ returning @code{nil} if an error occurs.
 call to @code{delete-file}.)  The error handlers go into effect when
 this form begins execution and are deactivated when this form returns.
 They remain in effect for all the intervening time.  In particular, they
-are in effect during the execution of subroutines called by this form,
-and their subroutines, and so on.  This is a good thing, since, strictly
+are in effect during the execution of functions called by this form, in
+their subroutines, and so on.  This is a good thing, since, strictly
 speaking, errors can be signaled only by Lisp primitives (including
 @code{signal} and @code{error}) called by the protected form, not by the
 protected form itself.
@@ -830,7 +838,7 @@ read from the user.
 @code{catch}, but they are entirely separate facilities.  An error
 cannot be caught by a @code{catch}, and a @code{throw} cannot be handled
 by an error handler (though using @code{throw} when there is no suitable
-@code{catch} signals an error which can be handled).
+@code{catch} signals an error that can be handled).
 
 @defspec condition-case var protected-form handlers@dots{}
 This special form establishes the error handlers @var{handlers} around
@@ -858,10 +866,10 @@ Here are examples of handlers:
 @end group
 @end smallexample
 
-Each error that occurs has an @dfn{error symbol} which describes what
+Each error that occurs has an @dfn{error symbol} that describes what
 kind of error it is.  The @code{error-conditions} property of this
-symbol is a list of condition names (@pxref{Error Names}).  Emacs
-searches all the active @code{condition-case} forms for a handler which
+symbol is a list of condition names (@pxref{Error Symbols}).  Emacs
+searches all the active @code{condition-case} forms for a handler that
 specifies one or more of these condition names; the innermost matching
 @code{condition-case} handles the error.  Within this
 @code{condition-case}, the first applicable handler handles the error.
@@ -941,7 +949,7 @@ including those signaled with @code{error}:
 @end group
 @end smallexample
 
-@node Error Names
+@node Error Symbols
 @subsubsection Error Symbols and Condition Names
 @cindex error symbol
 @cindex error name
@@ -966,7 +974,7 @@ classifications.
 
   In order for a symbol to be an error symbol, it must have an
 @code{error-conditions} property which gives a list of condition names.
-This list defines the conditions which this kind of error belongs to.
+This list defines the conditions that this kind of error belongs to.
 (The error symbol itself, and the symbol @code{error}, should always be
 members of this list.)  Thus, the hierarchy of condition names is
 defined by the @code{error-conditions} properties of the error symbols.
@@ -999,8 +1007,8 @@ classification; @code{my-own-errors}, which we imagine is a wider
 classification; and @code{error}, which is the widest of all.
  
   Naturally, Emacs will never signal @code{new-error} on its own; only
-an explicit call to @code{signal} (@pxref{Errors}) in your code can do
-this:
+an explicit call to @code{signal} (@pxref{Signaling Errors}) in your
+code can do this:
 
 @example
 @group
@@ -1094,12 +1102,13 @@ write another @code{save-excursion} around the body, to ensure that the
 temporary buffer becomes current in time to kill it.)
 
 @findex ftp-login
-  Here is an actual example taken from the file @file{ftp.el}.  It creates
-a process (@pxref{Processes}) to try to establish a connection to a remote
-machine.  As the function @code{ftp-login} is highly susceptible to
-numerous problems which the writer of the function cannot anticipate, it is
-protected with a form that guarantees deletion of the process in the event
-of failure.  Otherwise, Emacs might fill up with useless subprocesses.
+  Here is an actual example taken from the file @file{ftp.el}.  It
+creates a process (@pxref{Processes}) to try to establish a connection
+to a remote machine.  As the function @code{ftp-login} is highly
+susceptible to numerous problems that the writer of the function cannot
+anticipate, it is protected with a form that guarantees deletion of the
+process in the event of failure.  Otherwise, Emacs might fill up with
+useless subprocesses.
 
 @smallexample
 @group

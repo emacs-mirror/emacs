@@ -1408,12 +1408,12 @@ the new alist without changing the old one.
     (cdr (car (cdr copy))))
      @result{} t
 @end group
-@end example
+@end smallexample
 
   This example shows how @code{copy-alist} makes it possible to change
 the associations of one copy without affecting the other:
 
-@example
+@smallexample
 @group
 (setcdr (assq 3 needles-per-cluster)
         '("Martian Vacuum Pine"))

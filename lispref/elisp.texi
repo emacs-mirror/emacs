@@ -69,7 +69,7 @@ instead of in the original English.
 @c The edition number appears in several places in this file
 @c and also in the file intro.texi.
 @subtitle Second Edition, June 1993
-@subtitle Revision 2.3, April 1994
+@subtitle Revision 2.3, May 1994
 
 @author by Bil Lewis, Dan LaLiberte, Richard Stallman
 @author and the GNU Manual Group
@@ -80,7 +80,7 @@ Copyright @copyright{} 1990, 1991, 1992, 1993, 1994 Free Software Foundation, In
 @sp 2
 Second Edition @*
 Revised for Emacs Version 19.23,@*
-April 1994.@*
+May 1994.@*
 @sp 2
 ISBN 1-882114-40-X
 
@@ -121,7 +121,7 @@ Reference Manual, corresponding to GNU Emacs version 19.23.
 * Copying::                 Conditions for copying and changing GNU Emacs.
 * Introduction::            Introduction and conventions used.
 
-* Types of Lisp Object::    Data types in Emacs Lisp.
+* Lisp Data Types::         Data types of objects in Emacs Lisp.
 * Numbers::                 Numbers and arithmetic functions.
 * Strings and Characters::  Strings, and functions that work on them.
 * Lists::                   Lists, cons cells, and related functions.
@@ -141,7 +141,7 @@ Reference Manual, corresponding to GNU Emacs version 19.23.
 * Byte Compilation::        Compilation makes programs run faster.
 * Debugging::               Tools and tips for debugging Lisp programs.
 
-* Streams::                 Converting Lisp objects to text and back.
+* Read and Print::          Converting Lisp objects to text and back.
 * Minibuffers::             Using the minibuffer to read input.
 * Command Loop::            How the editor command loop works,
                               and how you can call its subroutines.
@@ -229,14 +229,14 @@ Programming Types
 * Character Type::      The representation of letters, numbers and
                         control characters.
 * Sequence Type::       Both lists and arrays are classified as sequences.
-* List Type::           Lists gave Lisp its name (not to mention reputation).
+* Cons Cell Type::      Cons cells, and lists (which are made from cons cells).
 * Array Type::          Arrays include strings and vectors.
 * String Type::         An (efficient) array of characters.
 * Vector Type::         One-dimensional arrays.
 * Symbol Type::         A multi-use object that refers to a function,
                         variable, property list, or itself.
-* Lisp Function Type::  A piece of executable code you can call from elsewhere.
-* Lisp Macro Type::     A method of expanding an expression into another
+* Function Type::       A piece of executable code you can call from elsewhere.
+* Macro Type::          A method of expanding an expression into another
                           expression, more fundamental but less pretty.
 * Primitive Function Type::     A function written in C, callable from Lisp.
 * Byte-Code Type::      A function written in Lisp, then compiled.
@@ -356,7 +356,7 @@ Errors
 * Signaling Errors::        How to report an error.
 * Processing of Errors::    What Emacs does when you report an error.
 * Handling Errors::         How you can trap errors and continue execution.
-* Error Names::             How errors are classified for trapping them.
+* Error Symbols::           How errors are classified for trapping them.
 
 Variables
 
@@ -699,7 +699,6 @@ Text
 * Columns::                 Computing horizontal positions, and using them.
 * Case Changes::            Case conversion of parts of the buffer.
 * Substitution::            Replacing a given character wherever it appears.
-* Underlining::             Inserting or deleting underlining-by-overstrike.
 * Registers::               How registers are implemented.  Accessing
                               the text or position stored in a register.
                               
