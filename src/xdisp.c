@@ -14125,7 +14125,7 @@ go back to their normal size.");
   Vresize_mini_windows = Qgrow_only;
 
   DEFVAR_BOOL ("cursor-in-non-selected-windows",
-	       cursor_in_non_selected_windows,
+	       &cursor_in_non_selected_windows,
     "*Non-nil means display a hollow cursor in non-selected windows.\n\
 Nil means don't display a cursor there.");
   cursor_in_non_selected_windows = 1;
