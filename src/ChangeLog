@@ -1,3 +1,22 @@
+2002-09-06  Juanma Barranquero  <lektu@terra.es>
+
+	* coding.c (syms_of_coding): Fix spacing.
+
+	* composite.c (Fcompose_region_internal)
+	(Fcompose_string_internal): Likewise.
+
+	* data.c (Flsh): Likewise.
+
+	* fontset.c (Fset_fontset_font): Likewise.
+
+	* macfns.c (Fx_server_max_request_size): Likewise.
+
+	* w16select.c (syms_of_win16select): Likewise.
+
+	* w32select.c (syms_of_w32select): Likewise.
+
+	* xselect.c (syms_of_xselect): Likewise.
+
 2002-09-05  Richard M. Stallman  <rms@gnu.org>
 
 	* regex.c (set_image_of_range_1): In no-TRANSLATE case,
