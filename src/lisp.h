@@ -1622,21 +1622,6 @@ extern void defvar_kboard P_ ((char *, int));
 /* Macros we use to define forwarded Lisp variables.
    These are used in the syms_of_FILENAME functions.  */
 
-#ifdef DOC_STRINGS_IN_COMMENTS
-
-#define DEFVAR_LISP(lname, vname) defvar_lisp (lname, vname)
-#define DEFVAR_LISP_NOPRO(lname, vname) defvar_lisp_nopro (lname, vname)
-#define DEFVAR_BOOL(lname, vname) defvar_bool (lname, vname)
-#define DEFVAR_INT(lname, vname) defvar_int (lname, vname)
-#define DEFVAR_PER_BUFFER(lname, vname, type)  \
- defvar_per_buffer (lname, vname, type, 0)
-#define DEFVAR_KBOARD(lname, vname) \
- defvar_kboard (lname, \
-		(int)((char *)(&current_kboard->vname) \
-		      - (char *)current_kboard))
-
-#else /* not DOC_STRINGS_IN_COMMENTS  */
-
 #define DEFVAR_LISP(lname, vname, doc) defvar_lisp (lname, vname)
 #define DEFVAR_LISP_NOPRO(lname, vname, doc) defvar_lisp_nopro (lname, vname)
 #define DEFVAR_BOOL(lname, vname, doc) defvar_bool (lname, vname)
@@ -1647,8 +1632,6 @@ extern void defvar_kboard P_ ((char *, int));
  defvar_kboard (lname, \
 		(int)((char *)(&current_kboard->vname) \
 		      - (char *)current_kboard))
-
-#endif /* not DOC_STRINGS_IN_COMMENTS */
 
 
 
