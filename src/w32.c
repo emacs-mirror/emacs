@@ -122,6 +122,8 @@ static HANDLE dir_find_handle = INVALID_HANDLE_VALUE;
 static int    dir_is_fat;
 static char   dir_pathname[MAXPATHLEN+1];
 
+extern Lisp_Object Vwin32_downcase_file_names;
+
 DIR *
 opendir (char *filename)
 {
@@ -197,6 +199,15 @@ readdir (DIR *dirp)
   strcpy (dir_static.d_name, find_data.cFileName);
   if (dir_is_fat)
     _strlwr (dir_static.d_name);
+  else if (!NILP (Vwin32_downcase_file_names))
+    {
+      register char *p;
+      for (p = dir_static.d_name; *p; p++)
+	if (*p >= 'a' && *p <= 'z')
+	  break;
+      if (!*p)
+	_strlwr (dir_static.d_name);
+    }
   
   return &dir_static;
 }
@@ -378,17 +389,62 @@ srandom (int seed)
   srand (seed);
 }
 
+/* Normalize filename by converting all path separators to
+   the specified separator.  Also conditionally convert upper
+   case path name components to lower case.  */
+
+static void
+normalize_filename (fp, path_sep)
+     register char *fp;
+     char path_sep;
+{
+  char sep;
+  char *elem;
+
+  if (NILP (Vwin32_downcase_file_names))
+    {
+      while (*fp)
+	{
+	  if (*fp == '/' || *fp == '\\')
+	    *fp = path_sep;
+	  fp++;
+	}
+      return;
+    }
+
+  sep = path_sep;		/* convert to this path separator */
+  elem = fp;			/* start of current path element */
+
+  do {
+    if (*fp >= 'a' && *fp <= 'z')
+      elem = 0;			/* don't convert this element */
+
+    if (*fp == 0 || *fp == ':')
+      {
+	sep = *fp;		/* restore current separator (or 0) */
+	*fp = '/';		/* after conversion of this element */
+      }
+
+    if (*fp == '/' || *fp == '\\')
+      {
+	if (elem && elem != fp)
+	  {
+	    *fp = 0;		/* temporary end of string */
+	    _strlwr (elem);	/* while we convert to lower case */
+	  }
+	*fp = sep;		/* convert (or restore) path separator */
+	elem = fp + 1;		/* next element starts after separator */
+	sep = path_sep;
+      }
+  } while (*fp++);
+}
+
 /* Destructively turn backslashes into slashes.  */
 void
 dostounix_filename (p)
      register char *p;
 {
-  while (*p)
-    {
-      if (*p == '\\')
-	*p = '/';
-      p++;
-    }
+  normalize_filename (p, '/');
 }
 
 /* Destructively turn slashes into backslashes.  */
@@ -396,12 +452,7 @@ void
 unixtodos_filename (p)
      register char *p;
 {
-  while (*p)
-    {
-      if (*p == '/')
-	*p = '\\';
-      p++;
-    }
+  normalize_filename (p, '\\');
 }
 
 /* Remove all CR's that are followed by a LF.
