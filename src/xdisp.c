@@ -7224,11 +7224,13 @@ x_consider_frame_title (frame)
 
       for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
 	{
-	  struct frame *tf = XFRAME (XCAR (tail));
+	  Lisp_Object other_frame = XCAR (tail);
+	  struct frame *tf = XFRAME (other_frame);
 
 	  if (tf != f 
 	      && FRAME_KBOARD (tf) == FRAME_KBOARD (f)
 	      && !FRAME_MINIBUF_ONLY_P (tf)
+	      && !EQ (other_frame, tip_frame)
 	      && (FRAME_VISIBLE_P (tf) || FRAME_ICONIFIED_P (tf)))
 	    break;
 	}
