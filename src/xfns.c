@@ -1742,6 +1742,8 @@ x_make_gc (f)
   GC temp_gc;
   XImage tileimage;
 
+  BLOCK_INPUT;
+
   /* Create the GC's of this frame.
      Note that many default values are used. */
 
@@ -1788,6 +1790,8 @@ x_make_gc (f)
 	f->display.x->foreground_pixel,
 	f->display.x->background_pixel,
 	DefaultDepth (x_current_display, XDefaultScreen (x_current_display))));
+
+  UNBLOCK_INPUT;
 }
 #endif /* HAVE_X11 */
 
@@ -3721,7 +3725,7 @@ select_visual (screen, depth)
 #ifdef HAVE_X11R4
   vinfo_template.visualid = XVisualIDFromVisual (v);
 #else
-  vinfo_template.visualid = x->visualid;
+  vinfo_template.visualid = v->visualid;
 #endif
 
   vinfo = XGetVisualInfo (x_current_display, VisualIDMask, &vinfo_template,
