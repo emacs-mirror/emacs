@@ -85,8 +85,8 @@ variable is set using \\[customize]."
     (if image-file-name-regexps
 	(mapconcat 'identity
 		   (if exts-regexp
-		       (cons exts-regexp image-file-regexps)
-		     image-file-regexps)
+		       (cons exts-regexp image-file-name-regexps)
+		     image-file-name-regexps)
 		   "\\|")
       exts-regexp)))
 
