@@ -6,6 +6,24 @@
 
 2001-11-30  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* mail/smtpmail.el: Use with-current-buffer.
+	(message-make-date, message-make-message-id): Autoload when needed.
+	(smtpmail-send-it): Use them to add `Date:' and `Message-Id:'
+	headers when missing.
+
+	* international/encoded-kb.el (encoded-kbd-mode):
+	Use define-minor-mode.
+
+	* enriched.el (enriched-mode): Use define-minor-mode.
+	Use dolist and pop and push.
+
+	* info.el (Info-find-node-2): Don't call info-insert-file-contents
+	with the `visit' argument.
+	(Info-extract-menu-node-name): Use `replace-regexps-in-string'.
+
+	* progmodes/hideif.el (hide-ifdef-mode): Only modify
+	`change-major-mode-hook' locally.  Reset invisibility spec.
+
 	* man.el (Man-build-section-alist): Remove last Man-match-substring.
 
 2001-11-30  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
