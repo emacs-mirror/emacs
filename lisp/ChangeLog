@@ -142,10 +142,6 @@
 
 2002-11-14  Kenichi Handa  <handa@m17n.org>
 
-	* gud.el: Provide gud, not mygud.
-
-	* gdb-ui.el: Don't require mygud.
-
 	* progmodes/cc-vars.el: Don't cc-bytecomp-defun char-table-p.
 
 2002-11-14  Kim F. Storm  <storm@cua.dk>
