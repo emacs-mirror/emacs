@@ -1,7 +1,7 @@
-;;; iso-cvt.el --- translate to ISO 8859-1 from/to net/TeX conventions
+;;; iso-cvt.-el -- translate ISO 8859-1 from/to various encodings
 ;; This file was formerly called gm-lingo.el.
 
-;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
 ;; Author: Michael Gschwind <mike@vlsivie.tuwien.ac.at>
 ;; Keywords: tex, iso, latin, i18n
@@ -24,49 +24,30 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary: 
+;; This lisp code is a general framework for translating various 
+;; representations of the same data.
+;; among other things it can be used to translate TeX, HTML, and compressed
+;; files to ISO 8859-1.  It can also be used to translate different charsets 
+;; such as IBM PC, Macintosh or HP Roman8.
+;; Note that many translations use the GNU recode tool to do the actual
+;; conversion.  So you might want to install that tool to get the full
+;; benefit of iso-cvt.el
+;
 
-;; This lisp code serves two purposes, both of which involve 
-;; the translation of various conventions for representing European 
-;; character sets to ISO 8859-1.
+; TO DO:
+; Cover more cases for translation (There is an infinite number of ways to 
+; represent accented characters in TeX)
 
-;; Net support: 
-;; Various conventions exist in Newsgroups on how to represent national 
-;; characters. The functions provided here translate these net conventions 
-;; to ISO.
-;;
-;; Calling `iso-german' will turn the net convention for umlauts ("a etc.) 
-;; into ISO latin1 umlauts for easy reading.
-;; 'iso-spanish' will turn net conventions for representing spanish 
-;; to ISO latin1. (Note that accents are omitted in news posts most 
-;; of the time, only enye is escaped.)
-
-;; TeX support
-;; This mode installs hooks which change TeX files to ISO Latin-1 for 
-;; simplified editing. When the TeX file is saved, ISO latin1 characters are
-;; translated back to escape sequences.
-;;
-;; An alternative is a TeX style that handles 8 bit ISO files 
-;; (available on ftp.vlsivie.tuwien.ac.at in /pub/8bit)  
-;; - but these files are difficult to transmit ... so while the net is  
-;; still @ 7 bit this may be useful
-
-;;; TO DO:
-;; The net support should install hooks (like TeX support does) 
-;; which recognizes certain news groups and translates all articles from 
-;; those groups. 
-;;
-;; Cover more cases for translation (There is an infinite number of ways to 
-;; represent accented characters in TeX)
-
-;;; SEE ALSO:
-;; If you are interested in questions related to using the ISO 8859-1 
-;; characters set (configuring emacs, Unix, etc. to use ISO), then you
-;; can get the ISO 8859-1 FAQ via anonymous ftp from 
-;; ftp.vlsivie.tuwien.ac.at in /pub/bit/FAQ-ISO-8859-1
+;; SEE ALSO:
+; If you are interested in questions related to using the ISO 8859-1 
+; characters set (configuring emacs, Unix, etc. to use ISO), then you
+; can get the ISO 8859-1 FAQ via anonymous ftp from 
+; ftp.vlsivie.tuwien.ac.at in /pub/bit/FAQ-ISO-8859-1
 
 ;;; Code:
 
 (provide 'iso-cvt)
+(require 'format)
 
 (defvar iso-spanish-trans-tab
   '(
@@ -86,24 +67,27 @@
     )
   "Spanish translation table.")
 
-(defun iso-translate-conventions (trans-tab)
+(defun iso-translate-conventions (from to trans-tab)
   "Use the translation table TRANS-TAB to translate the current buffer."
   (save-excursion
-    (goto-char (point-min))
-    (let ((work-tab trans-tab)
-	  (buffer-read-only nil)
-	  (case-fold-search nil))
-      (while work-tab
-	(save-excursion
-	  (let ((trans-this (car work-tab)))
-	    (while (re-search-forward (car trans-this) nil t)
-	      (replace-match (car (cdr trans-this)) t nil)))
-	  (setq work-tab (cdr work-tab)))))))
+    (save-restriction
+      (narrow-to-region from to)
+      (goto-char from)
+      (let ((work-tab trans-tab)
+	    (buffer-read-only nil)
+	    (case-fold-search nil))
+	(while work-tab
+	  (save-excursion
+	    (let ((trans-this (car work-tab)))
+	      (while (re-search-forward (car trans-this) nil t)
+		(replace-match (car (cdr trans-this)) t nil)))
+	    (setq work-tab (cdr work-tab)))))
+      (point-max))))
 
-(defun iso-spanish ()
+(defun iso-spanish (from to)
   "Translate net conventions for Spanish to ISO 8859-1."
   (interactive)
-  (iso-translate-conventions iso-spanish-trans-tab))
+  (iso-translate-conventions from to iso-spanish-trans-tab))
 
 (defvar iso-aggressive-german-trans-tab
   '(
@@ -139,10 +123,10 @@ little.")
 (defvar iso-german-trans-tab iso-aggressive-german-trans-tab 
   "Currently active translation table for German.")
 
-(defun iso-german ()
+(defun iso-german (from to)
  "Translate net conventions for German to ISO 8859-1."
  (interactive)
- (iso-translate-conventions iso-german-trans-tab))
+ (iso-translate-conventions from to iso-german-trans-tab))
  
 (defvar iso-iso2tex-trans-tab
   '(
@@ -211,10 +195,10 @@ little.")
 
 
 
-(defun iso-iso2tex ()
+(defun iso-iso2tex (from to)
  "Translate ISO 8859-1 characters to TeX sequences."
  (interactive)
- (iso-translate-conventions iso-iso2tex-trans-tab))
+ (iso-translate-conventions from to iso-iso2tex-trans-tab))
 
 
 (defvar iso-tex2iso-trans-tab
@@ -395,10 +379,10 @@ little.")
 This table is not exhaustive (and due to TeX's power can never be). It only
 contains commonly used sequences.")
 
-(defun iso-tex2iso ()
+(defun iso-tex2iso (from to)
  "Translate TeX sequences to ISO 8859-1 characters."
  (interactive)
- (iso-translate-conventions iso-tex2iso-trans-tab))
+ (iso-translate-conventions from to iso-tex2iso-trans-tab))
 
 (defvar iso-gtex2iso-trans-tab
   '(
@@ -650,68 +634,96 @@ contains commonly used sequences.")
     )
   "Translation table for translating ISO 8859-1 characters to German TeX.")
 
-(defun iso-gtex2iso ()
+(defun iso-gtex2iso (from to)
  "Translate German TeX sequences to ISO 8859-1 characters."
  (interactive)
- (iso-translate-conventions iso-gtex2iso-trans-tab))
+ (iso-translate-conventions from to iso-gtex2iso-trans-tab))
 
 
-(defun iso-iso2gtex ()
+(defun iso-iso2gtex (from to)
  "Translate ISO 8859-1 characters to German TeX sequences."
  (interactive)
- (iso-translate-conventions iso-iso2gtex-trans-tab))
+ (iso-translate-conventions from to iso-iso2gtex-trans-tab))
 
+(defvar iso-iso2duden-trans-tab
+  '(("ä" "ae")
+    ("Ä" "Ae")
+    ("ö" "oe")
+    ("Ö" "Oe")
+    ("ü" "ue")
+    ("Ü" "Ue")
+    ("ß" "ss")))
 
-(defun iso-german-tex-p ()
- "Check if tex buffer is German LaTeX."
- (save-excursion
-   (save-restriction
-     (widen)
-     (goto-char (point-min))
-     (re-search-forward "\\\\documentstyle\\[.*german.*\\]" nil t))))
+(defun iso-iso2duden (from to)
+ "Translate ISO 8859-1 characters to German TeX sequences."
+ (interactive)
+ (iso-translate-conventions from to iso-iso2duden-trans-tab))
 
-(defun iso-fix-iso2tex ()
-  "Turn ISO 8859-1 (aka. ISO Latin-1) buffer into TeX sequences.
-If German TeX is used, German TeX sequences are generated."
-  (if (or (equal major-mode 'latex-mode)
-	  (equal major-mode 'LaTeX-mode)) ; AucTeX wants this
-      (if (iso-german-tex-p)
-	  (iso-iso2gtex)
-	(iso-iso2tex)))
-  (if (or (equal major-mode 'tex-mode)
-	  (equal major-mode 'TeX-mode) ; AucTeX wants this
-	  (equal major-mode 'plain-tex-mode))
-      (iso-iso2tex)))
+(defun iso-cvt-read-only ()
+  (interactive)
+  (error "This format is read-only; specify another format for writing"))
 
-(defun iso-fix-tex2iso ()
-  "Turn TeX sequences into ISO 8859-1 (aka. ISO Latin-1) characters.
-This function recognizes German TeX buffers."
-  (if (or (equal major-mode 'latex-mode)
-	  (equal major-mode 'Latex-mode)) ; AucTeX wants this
-      (if (iso-german-tex-p)
-	  (iso-gtex2iso)
-	(iso-tex2iso)))
-  (if (or (equal major-mode 'tex-mode)
-	  (equal major-mode 'TeX-mode)  ; AucTeX wants this
-	  (equal major-mode 'plain-tex-mode))
-      (iso-tex2iso)))
+(defun iso-cvt-write-only ()
+  (interactive)
+  (error "This format is write-only"))
+			 
+(defun iso-cvt-define-menu ()
+  "Add submenus to the Files menu, to convert to and from various formats."
+  (interactive)
 
-(defun iso-cvt-ffh ()
-  "find-file-hook for iso-cvt.el."
-  (iso-fix-tex2iso)
-  (set-buffer-modified-p nil))
+  (define-key menu-bar-files-menu [load-as-separator] '("--"))
 
-(defun iso-cvt-wfh ()
-  "write file hook for iso-cvt.el."
-  (iso-fix-iso2tex))
+  (define-key menu-bar-files-menu [load-as] '("Load As..."  . load-as))
+  (defvar load-as-menu-map (make-sparse-keymap "Load As..."))
+  (fset 'load-as load-as-menu-map)
 
-(defun iso-cvt-ash ()
-  "after save hook for iso-cvt.el."
-  (iso-fix-tex2iso)
-  (set-buffer-modified-p nil))
+  ;;(define-key menu-bar-files-menu [insert-as] '("Insert As..."  . insert-as))
+  (defvar insert-as-menu-map (make-sparse-keymap "Insert As..."))
+  (fset 'insert-as insert-as-menu-map)
 
-(add-hook 'find-file-hooks 'iso-cvt-ffh)
-(add-hook 'write-file-hooks 'iso-cvt-wfh)
-(add-hook 'after-save-hook 'iso-cvt-ash)
+  (define-key menu-bar-files-menu [write-as] '("Write As..."  . write-as))
+  (defvar write-as-menu-map (make-sparse-keymap "Write As..."))
+  (fset 'write-as write-as-menu-map)
+
+  (define-key menu-bar-files-menu [translate-separator] '("--"))
+
+  (define-key menu-bar-files-menu [translate-to] '("Translate to..."  . translate-to))
+  (defvar translate-to-menu-map (make-sparse-keymap "Translate to..."))
+  (fset 'translate-to translate-to-menu-map)
+
+  (define-key menu-bar-files-menu [translate-from] '("Translate from..."  . translate-from))
+  (defvar translate-from-menu-map (make-sparse-keymap "Translate from..."))
+  (fset 'translate-from translate-from-menu-map)
+
+  (let ((file-types (reverse format-alist))
+	name
+	str-name)
+    (while file-types 
+      (setq name (car (car file-types))
+	    str-name (car (cdr (car file-types)))
+	    file-types (cdr file-types))
+      (if (stringp str-name)
+	  (progn
+	    (define-key load-as-menu-map (vector name)
+	      (cons str-name		    
+		    (list 'lambda '(file) (list 'interactive (format "FFind file (as %s): " name))
+			  (list 'format-find-file 'file (list 'quote name)))))
+	    (define-key insert-as-menu-map (vector name)
+	      (cons str-name		    
+		    (list 'lambda '(file) (list 'interactive (format "FInsert file (as %s): " name))
+			  (list 'format-insert-file 'file (list 'quote name)))))
+	    (define-key write-as-menu-map (vector name)
+	      (cons str-name		    
+		    (list 'lambda '(file) (list 'interactive (format "FWrite file (as %s): " name))
+			  (list 'format-write-file 'file (list 'quote (list name))))))
+	    (define-key translate-to-menu-map (vector name)
+	      (cons str-name		    
+		    (list 'lambda '() '(interactive)
+			  (list 'format-encode-buffer (list 'quote name)))))
+	    (define-key translate-from-menu-map (vector name)
+	      (cons str-name		    
+		    (list 'lambda '() '(interactive)
+			  (list 'format-decode-buffer (list 'quote (list name))))))
+	    )))))
 
 ;;; iso-cvt.el ends here
