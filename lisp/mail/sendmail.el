@@ -547,10 +547,7 @@ the user from the mailer."
 		      (if max (narrow-to-region (point-min) max))))))
 	    ;; Else append to the file directly.
 	    (write-region
-	     ;; Include a blank line before if file already exists.
-
-	     (if (file-exists-p (car fcc-list)) (point-min) (1+ (point-min)))
-	     (point-max) (car fcc-list) t)))
+	     (1+ (point-min)) (point-max) (car fcc-list) t)))
 	(setq fcc-list (cdr fcc-list))))
     (kill-buffer tembuf)))
 
