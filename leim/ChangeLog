@@ -1,3 +1,7 @@
+2004-05-17  Werner Lemberg  <wl@gnu.org>
+
+	* quail/sisheng.el: New file.
+
 2004-05-17  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (OTHERS): Add ${srcdir}/quail/sisheng.elc.
