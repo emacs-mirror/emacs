@@ -1,6 +1,6 @@
 ;;; cus-start.el --- define customization properties of builtins.
 ;;
-;; Copyright (C) 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -54,6 +54,9 @@
 	     (truncate-lines display boolean)
 	     (selective-display-ellipses display boolean)
 	     (transient-mark-mode editing-basics boolean)
+	     (indicate-empty-lines display boolean)
+	     (scroll-up-aggressively windows boolean)
+	     (scroll-down-aggressively windows boolean)
 	     ;; callint.c
 	     (mark-even-if-inactive editing-basics boolean)
 	     ;; callproc.c
@@ -70,7 +73,7 @@
 	     ;; dired.c
 	     (completion-ignored-extensions dired 
 					    (repeat (string :format "%v")))
-	     ;; dispnew.el
+	     ;; dispnew.c
 	     (baud-rate display integer)
 	     (inverse-video display boolean)
 	     (visible-bell display boolean)
@@ -196,7 +199,9 @@
 	     (unibyte-display-via-language-environment mule boolean)
 	     ;; xfns.c
 	     (x-bitmap-file-path installation
-				 (repeat (directory :format "%v")))))
+				 (repeat (directory :format "%v")))
+	     ;; xterm.c
+	     (x-stretch-cursor display boolean)))
       this symbol group type native-p
       ;; This function turns a value
       ;; into an expression which produces that value.
