@@ -1708,13 +1708,27 @@ created."
 	   :background "grey75" :foreground "black"))
     (t
      (:inverse-video t)))
-  "Basic mode line face."
+  "Basic mode line face for selected window."
   :version "21.1"
+  :group 'modeline
+  :group 'basic-faces)
+
+(defface mode-line-inactive
+  '((((type x w32 mac) (class color))
+     :inherit mode-line
+     :weight light
+     :box (:line-width -1 :color "grey75" :style nil)
+     :foreground "grey20" :background "grey90")
+    (t
+     :inverse-video t))
+  "Basic mode line face for non-selected windows."
+  :version "21.2"
   :group 'modeline
   :group 'basic-faces)
 
 ;; Make `modeline' an alias for `mode-line', for compatibility.
 (put 'modeline 'face-alias 'mode-line)
+(put 'modeline-inactive 'face-alias 'mode-line-inactive)
 
 (defface header-line
   '((((type tty))
