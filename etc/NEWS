@@ -1,5 +1,5 @@
-GNU Emacs NEWS -- history of user-visible changes.  2000-10-12
-Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+GNU Emacs NEWS -- history of user-visible changes.  2001-01-16
+Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -42,6 +42,10 @@ description of aspects specific to the Mac.
 
 
 * Changes in Emacs 21.1
+
+** The user option `backward-delete-char-untabify-method' controls the
+behaviour of `backward-delete-char-untabify'.  [This change was made
+in Emacs 20.3 but not mentioned then.]
 
 ** The new user-option `confirm-kill-emacs' can be customized to
 let Emacs ask for confirmation before exiting.
@@ -9394,7 +9398,7 @@ lm-synopsis extracts first line "synopsis'"information.
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
