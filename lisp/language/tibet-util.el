@@ -40,7 +40,7 @@
 
   (setq-default buffer-file-coding-system 'iso-2022-7)
 
-  (setq default-input-method '("Tibetan" . "quail-tibetan-wylie"))
+  (setq default-input-method  "quail-tibetan-wylie")
 
   (setq sendmail-coding-system 'iso-2022-7
 	rmail-file-coding-system 'iso-2022-7))
