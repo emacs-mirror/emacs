@@ -771,6 +771,7 @@ cached information about equivalent key sequences.")
   int for_click = 0;
   struct gcpro gcpro1;
 
+#ifdef HAVE_MENUS
   if (! NILP (position))
     {
       check_x ();
@@ -844,6 +845,7 @@ cached information about equivalent key sequences.")
       xpos += XINT (x);
       ypos += XINT (y);
     }
+#endif /* HAVE_MENUS */
 
   title = Qnil;
   GCPRO1 (title);
@@ -923,6 +925,7 @@ cached information about equivalent key sequences.")
       return Qnil;
     }
 
+#ifdef HAVE_MENUS
   /* Display them in a menu.  */
   BLOCK_INPUT;
 
@@ -933,10 +936,13 @@ cached information about equivalent key sequences.")
   discard_menu_items ();
 
   UNGCPRO;
+#endif /* HAVE_MENUS */
 
   if (error_name) error (error_name);
   return selection;
 }
+
+#ifdef HAVE_MENUS
 
 DEFUN ("x-popup-dialog", Fx_popup_dialog, Sx_popup_dialog, 2, 2, 0,
   "Pop up a dialog box and return user's selection.\n\
@@ -2631,6 +2637,8 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 }
 
 #endif /* not USE_X_TOOLKIT */
+
+#endif /* HAVE_MENUS */
 
 syms_of_xmenu ()
 {
@@ -2646,5 +2654,7 @@ syms_of_xmenu ()
 #endif
 
   defsubr (&Sx_popup_menu);
+#ifdef HAVE_MENUS
   defsubr (&Sx_popup_dialog);
+#endif
 }
