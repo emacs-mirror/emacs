@@ -2945,11 +2945,11 @@ Gregorian date Sunday, December 31, 1 BC."
      ((= death-month 13)
       (calendar-absolute-from-hebrew
        (list (hebrew-calendar-last-month-of-year year) death-day year)))
-     ;; If it's the 30th in Adar I and $year$ is not a leap year
+     ;; If it's the 30th in Adar I and year is not a leap year
      ;; (so Adar has only 29 days), use the last day in Shevat.
      ((and (= death-day 30)
            (= death-month 12)
-           (not (hebrew-calendar-leap-year-p death-year)))
+           (not (hebrew-calendar-leap-year-p year)))
       (calendar-absolute-from-hebrew (list 11 30 year)))
      ;; In all other cases, use the normal anniversary of the date of death.
      (t (calendar-absolute-from-hebrew
