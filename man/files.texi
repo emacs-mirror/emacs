@@ -723,7 +723,7 @@ collision when you try to save a file and overwrite someone else's
 changes.
 
   If Emacs or the operating system crashes, this may leave behind lock
-files which are stale.  So you may occasionally get warnings about
+files which are stale, so you may occasionally get warnings about
 spurious collisions.  When you determine that the collision is spurious,
 just use @kbd{p} to tell Emacs to go ahead anyway.
 
