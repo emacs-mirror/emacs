@@ -684,10 +684,9 @@ eight-bit-control and eight-bit-graphic characters.")
 	  ;;       0000 0yyy yyxx xxxx    110y yyyy 10xx xxxx
 	  ;; 20    0000 0000 1010 0000    1100 0010 1010 0000
 	  ;; 7f    0000 0000 1111 1111    1100 0011 1011 1111
-	  ((r0 = (((r1 & #x40) >> 6) | #xc2))
+	  ((write ((r1 >> 6) | #xc2))
 	   (r1 &= #x3f)
 	   (r1 |= #x80)
-	   (write r0)
 	   (write-repeat r1)))
 
       (if (r0 == ,(charset-id 'mule-unicode-0100-24ff))
@@ -759,15 +758,13 @@ eight-bit-control and eight-bit-graphic characters.")
 	  (if (r0 < #x800)
 	      ;; 2byte encoding
 	      ((write ((r0 >> 6) | #xC0))
-	       (r1 &= #x3F)
-	       (r1 |= #x80)
-	       (write-repeat r1))
+	       (r0 = ((r0 & #x3F) | #x80))
+	       (write-repeat r0))
 	    ;; 3byte encoding
 	    ((write ((r0 >> 12) | #xE0))
 	     (write  (((r0 & #x0FC0) >> 6) | #x80))
-	     (r1 &= #x3F)
-	     (r1 |= #x80)
-	     (write-repeat r1))))
+	     (r0 = ((r0 & #x3F) | #x80))
+	     (write-repeat r0))))
 
       ;; Unsupported character.
       ;; Output U+FFFD, which is `ef bf bd' in UTF-8.
