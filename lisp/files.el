@@ -956,7 +956,9 @@ run `normal-mode' explicitly."
     ("\\.hxx\\'" . c++-mode)
     ("\\.c\\+\\+\\'" . c++-mode)
     ("\\.h\\+\\+\\'" . c++-mode)
+    ("\\.m\\'" . objc-mode)
     ("\\.java\\'" . java-mode)
+    ("\\.sim\\'" . simula-mode)
     ("\\.mk\\'" . makefile-mode)
     ("\\(M\\|m\\|GNUm\\)akefile\\(.in\\)?\\'" . makefile-mode)
 ;;; Less common extensions come here
