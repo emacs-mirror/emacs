@@ -1,7 +1,7 @@
 /* impl.c.lockutnt
  *                     LOCK COVERAGE TEST
  *
- * $HopeName: MMsrc!lockutnt.c(trunk.1) $
+ * $HopeName: MMsrc!lockutnt.c(trunk.2) $
  */
 
 #include "std.h"
@@ -9,7 +9,7 @@
 #include "lock.h"
 #include "lockst.h"
 
-#ifndef MPS_OS_NT
+#ifndef MPS_OS_W3
 #error "Relies on NT threads"
 #endif
 
