@@ -402,12 +402,13 @@ The following commands are available, based on the current shell's syntax:
 	font-lock-keywords-case-fold-search nil
 	pair-alist '((?` _ ?`))
 	pair-filter 'sh-quoted-p)
-  ; parse or insert magic number for exec()
-  (goto-char (point-min))
-  (sh-set-shell
-   (if (looking-at "#![\t ]*\\([^\t\n ]+\\)")
-       (buffer-substring (match-beginning 1) (match-end 1))
-     sh-shell-path))
+  ;; parse or insert magic number for exec
+  (save-excursion
+    (goto-char (point-min))
+    (sh-set-shell
+     (if (looking-at "#![\t ]*\\([^\t\n ]+\\)")
+	 (buffer-substring (match-beginning 1) (match-end 1))
+       sh-shell-path)))
   ;; find-file is set by `normal-mode' when called by `after-find-file'
   (and (boundp 'find-file) find-file
        (or (eq sh-find-file-modifies t)
@@ -852,7 +853,10 @@ Calls the value of `sh-set-shell-hook' if set."
 			     (buffer-substring (point-min) (point))))
 		  (not (delete-region (point) (progn (end-of-line) (point))))
 		  (insert shell))
-	   (insert "#! " shell ?\n))))
+	   (if (if sh-query-for-magic
+		   (y-or-n-p (concat "Add ``#! " shell "''? "))
+		 t)
+	       (insert "#! " shell ?\n)))))
   (run-hooks 'sh-set-shell-hook))
 
 
