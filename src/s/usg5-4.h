@@ -71,6 +71,12 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define UNEXEC unexelf.o
 
+/* <sys/stat.h> *defines* stat(2) as a static function.  If "static"
+ * is blank, then many files will have a public definition for stat(2).
+ */
+
+#undef static
+
 /* Get FIONREAD from <sys/filio.h>.  Get <sys/ttold.h> to get struct
  * tchars. But get <termio.h> first to make sure ttold.h doesn't
  * interfere.  And don't try to use SIGIO yet.
@@ -101,12 +107,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define HAVE_SELECT
 #define HAVE_TIMEVAL
-
-/* <sys/stat.h> *defines* stat(2) as a static function.  If "static"
- * is blank, then many files will have a public definition for stat(2).
- */
-
-#undef static
 
 /* We need bss_end from emacs.c for undumping */
 
