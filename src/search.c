@@ -97,12 +97,6 @@ matcher_overflow ()
   error ("Stack overflow in regexp matcher");
 }
 
-#ifdef __STDC__
-#define CONST const
-#else
-#define CONST
-#endif
-
 /* Compile a regexp and signal a Lisp error if anything goes wrong.
    PATTERN is the pattern to compile.
    CP is the place to put the result.
