@@ -1,3 +1,8 @@
+2002-11-06  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (coding-system-eol-type-mnemonic): Use
+	eol-mnemonic-undecided if CODING-SYSTEM is nil.
+
 2002-11-06  Kim F. Storm  <storm@cua.dk>
 
 	* info.el (Info-fontify-node): Fixed hiding of *note references
