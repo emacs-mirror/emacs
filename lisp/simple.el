@@ -938,6 +938,7 @@ In either case, the output is inserted after point (leaving mark after it)."
 (defconst universal-argument-map
   (let ((map (make-sparse-keymap)))
     (define-key map [t] 'universal-argument-other-key)
+    (define-key map (vector meta-prefix-char t) 'universal-argument-other-key)
     (define-key map [switch-frame] nil)
     (define-key map [?\C-u] 'universal-argument-more)
     (define-key map [?-] 'universal-argument-minus)
@@ -983,7 +984,8 @@ Repeating \\[universal-argument] without digits or minus sign
 	((eq arg '-)
 	 (setq prefix-arg nil))
 	(t
-	 (setq prefix-arg '-))))
+	 (setq prefix-arg '-)))
+  (setq overriding-terminal-local-map universal-argument-map))
 
 (defun digit-argument (arg)
   "Part of the numeric argument for the next command.
@@ -997,7 +999,8 @@ Repeating \\[universal-argument] without digits or minus sign
 	   ;; Treat -0 as just -, so that -01 will work.
 	   (setq prefix-arg (if (zerop digit) '- (- digit))))
 	  (t
-	   (setq prefix-arg digit)))))
+	   (setq prefix-arg digit))))
+  (setq overriding-terminal-local-map universal-argument-map))
 
 ;; For backward compatibility, minus with no modifiers is an ordinary
 ;; command if digits have already been entered.
