@@ -81,6 +81,8 @@ Lisp_Object Qbuffer_predicate;
 
 Lisp_Object Vterminal_frame;
 
+Lisp_Object Qmouse_leave_buffer_hook;
+
 static void
 syms_of_frame_1 ()
 {
@@ -113,6 +115,9 @@ syms_of_frame_1 ()
   staticpro (&Qvisible);
   Qbuffer_predicate = intern ("buffer-predicate");
   staticpro (&Qbuffer_predicate);
+
+  Qmouse_leave_buffer_hook = intern ("mouse-leave-buffer-hook");
+  staticpro (&Qmouse_leave_buffer_hook);
 }
 
 static void
@@ -602,6 +607,7 @@ to that frame.")
 {
   /* Preserve prefix arg that the command loop just cleared.  */
   current_kboard->Vprefix_arg = Vcurrent_prefix_arg;
+  call1 (Vrun_hooks, Qmouse_leave_buffer_hook);
   return do_switch_frame (frame, no_enter, 0);
 }
 
