@@ -2248,11 +2248,13 @@ Command symbols are `byte-compile', `chgrp', `chmod', `chown', `compress',
 `uncompress'.")
 
 (defun dired-mark-pop-up (bufname op-symbol files function &rest args)
-  "Return FUNCTION's result on ARGS after popping up a window
-\(in a buffer named BUFNAME, nil gives \" *Marked Files*\") showing the marked
-files.  Uses function `dired-pop-to-buffer' to do that.
- FUNCTION should not manipulate files.
- It should only read input (an argument or confirmation).
+  "Return FUNCTION's result on ARGS after showing which files are marked.
+Displays the file names in a buffer named BUFNAME;
+ nil gives \" *Marked Files*\".
+This uses function `dired-pop-to-buffer' to do that.
+
+FUNCTION should not manipulate files, just read input
+ (an argument or confirmation).
 The window is not shown if there is just one file or
  OP-SYMBOL is a member of the list in `dired-no-confirm'.
 FILES is the list of marked files."
