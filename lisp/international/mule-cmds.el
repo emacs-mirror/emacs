@@ -387,7 +387,7 @@ non-nil, it is used to sort CODINGS in the different way than above."
 		  (lambda (x)
 		    (let ((base (coding-system-base x)))
 		      (+ (if (eq base most-preferred) 64 0)
-			 (let ((mime (coding-system-get base 'mime-charset)))
+			 (let ((mime (coding-system-get base :mime-charset)))
 			   (if mime
 			       (if (string-match "^x-" (symbol-name mime))
 				   16 32)
@@ -580,7 +580,7 @@ and TO is ignored."
 	base)
     (and (coding-system-p preferred)
 	 (setq base (coding-system-base preferred))
-	 (coding-system-get preferred 'mime-charset)
+	 (coding-system-get preferred :mime-charset)
 	 (not (assq preferred default-coding-system))
 	 (not (rassq base default-coding-system))
 	 (setq default-coding-system
@@ -613,7 +613,7 @@ and TO is ignored."
       (let ((l codings)
 	    mime-charset)
 	(while l
-	  (setq mime-charset (coding-system-get (car l) 'mime-charset))
+	  (setq mime-charset (coding-system-get (car l) :mime-charset))
 	  (if (and mime-charset (coding-system-p mime-charset))
 	      (setcar l mime-charset))
 	  (setq l (cdr l))))
@@ -708,12 +708,12 @@ it asks the user to select a proper coding system."
 		     default-sendmail-coding-system
 		     default-buffer-file-coding-system)))
     (if (eq coding 'no-conversion)
-	;; We should never use no-conversion for outgoing mails.
+	;; We should never use no-conversion for outgoing mail.
 	(setq coding nil))
     (if (fboundp select-safe-coding-system-function)
 	(funcall select-safe-coding-system-function
 		 (point-min) (point-max) coding
-		 (function (lambda (x) (coding-system-get x 'mime-charset))))
+		 (function (lambda (x) (coding-system-get x :mime-charset))))
       coding)))
 
 ;;; Language support stuff.
