@@ -1400,8 +1400,8 @@ x_set_cursor_color (f, arg, oldval)
 
       if (FRAME_VISIBLE_P (f))
 	{
-	  x_display_cursor (f, 0);
-	  x_display_cursor (f, 1);
+	  x_update_cursor (f, 0);
+	  x_update_cursor (f, 1);
 	}
     }
 }
