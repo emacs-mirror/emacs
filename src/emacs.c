@@ -858,6 +858,7 @@ shut_down_emacs (sig, no_x, stuff)
   kill_vms_processes ();
 #endif
 
+#if 0 /* This triggers a bug in XCloseDisplay and is not needed.  */
 #ifdef HAVE_X_WINDOWS
   /* It's not safe to call intern here.  Maybe we are crashing.  */
   if (!noninteractive && SYMBOLP (Vwindow_system)
@@ -866,6 +867,7 @@ shut_down_emacs (sig, no_x, stuff)
       && ! no_x)
     Fx_close_current_connection ();
 #endif /* HAVE_X_WINDOWS */
+#endif
 
 #ifdef SIGIO
   /* There is a tendency for a SIGIO signal to arrive within exit,
