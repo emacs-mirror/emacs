@@ -4448,7 +4448,10 @@ This applies only to the operation `inhibit-file-name-operation'.");
   Vinhibit_file_name_operation = Qnil;
 
   DEFVAR_LISP ("auto-save-list-file-name", &Vauto_save_list_file_name,
-    "File name in which we write a list of all auto save file names.");
+    "File name in which we write a list of all auto save file names.\n\
+This variable is initialized automatically from `auto-save-list-file-prefix'\n\
+shortly after Emacs reads your `.emacs' file, if you have not yet given it\n\
+a non-nil value.");
   Vauto_save_list_file_name = Qnil;
 
   defsubr (&Sfind_file_name_handler);
