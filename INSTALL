@@ -203,7 +203,7 @@ again.  If you do this, you are on your own!
 Note that, on some systems, the code you place in site-init.el must
 not use expand-file-name or any other function which may look
 something up in the system's password and user information database.
-See `./PROBLEMS' for more details on which systems this affects.
+See `./etc/PROBLEMS' for more details on which systems this affects.
 
 The `site-*.el' files are nonexistent in the distribution.  You do not
 need to create them if you have nothing to put in them.
@@ -551,7 +551,7 @@ the source on line for debugging.
 
 PROBLEMS
 
-See the file PROBLEMS in this directory for a list of various
+See the file PROBLEMS in etc subdirectory for a list of various
 problems sometimes encountered, and what to do about them.
 
 
