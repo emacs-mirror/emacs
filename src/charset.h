@@ -244,6 +244,7 @@ extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
   ((MIN_CHARSET_PRIVATE_DIMENSION2 - 0xE0) << 14)
 #define MIN_CHAR_COMPOSITION \
   (0x1F << 14)
+#define MAX_CHAR_COMPOSITION GLYPH_MASK_CHAR
 
 /* 1 if C is an ASCII character, else 0.  */
 #define SINGLE_BYTE_CHAR_P(c) ((c) < 0x100)
@@ -404,7 +405,9 @@ extern int width_by_char_head[256];
 	 ? CHAR_FIELD1 (c) + 0x8F	 	\
 	 : ((c) < MIN_CHAR_COMPOSITION	 	\
 	    ? CHAR_FIELD1 (c) + 0xE0	 	\
-	    : CHARSET_COMPOSITION))))
+	    : ((c) <= MAX_CHAR_COMPOSITION	\
+	       ? CHARSET_COMPOSITION		\
+	       : CHARSET_ASCII)))))
 
 /* Return charset at the place pointed by P.  */
 #define CHARSET_AT(p)			   	\
@@ -762,5 +765,20 @@ extern int get_charset_id P_ ((Lisp_Object));
 extern int cmpchar_component P_ ((unsigned int, unsigned int));
 extern int find_charset_in_str P_ ((unsigned char *, int, int *, Lisp_Object));
 extern int strwidth P_ ((unsigned char *, int));
+
+extern Lisp_Object Vcharacter_unification_table_vector;
+#define UNIFICATION_ID_TABLE(id) \
+  (XCONS(XVECTOR(Vcharacter_unification_table_vector)->contents[(id)])->cdr)
+
+/* Copy LEN bytes from FROM to TO.  This macro should be used only
+   when a caller knows that LEN is short and the obvious copy loop is
+   faster than calling bcopy which has some overhead.  */
+
+#define BCOPY_SHORT(from, to, len)		\
+  do {						\
+    int i = len;				\
+    unsigined char *from_p = from, *to_p = to;	\
+    while (i--) *from_p++ = *to_p++;		\
+  } while (0)
 
 #endif /* _CHARSET_H */
