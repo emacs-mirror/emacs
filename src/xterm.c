@@ -86,6 +86,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifdef USE_X_TOOLKIT
 extern void free_frame_menubar ();
 extern void _XEditResCheckMessages ();
+extern FRAME_PTR x_menubar_window_to_frame ();
 #endif /* USE_X_TOOLKIT */
 
 #ifndef USE_X_TOOLKIT
@@ -3218,12 +3219,18 @@ static XComposeStatus compose_status;
 
 /* Record the last 100 characters stored
    to help debug the loss-of-chars-during-GC problem.  */
-int temp_index;
-short temp_buffer[100];
+static int temp_index;
+static short temp_buffer[100];
 
 /* Set this to nonzero to fake an "X I/O error"
    on a particular display.  */
 struct x_display_info *XTread_socket_fake_io_error;
+
+/* When we find no input here, we occasionally do a no-op command
+   to verify that the X server is still running and we can still talk with it.
+   We try all the open displays, one by one.
+   This variable is used for cycling thru the displays.  */
+static struct x_display_info *next_noop_dpyinfo;
 
 /* Read events coming from the X server.
    This routine is called by the SIGIO handler.
@@ -3965,7 +3972,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		    && FRAME_LIVE_P (last_mouse_frame))
 		  f = last_mouse_frame;
 		else
-		  f = x_window_to_frame (dpyinfo, event.xmotion.window);
+		  f = x_window_to_frame (dpyinfo, event.xbutton.window);
 
 		if (f)
 		  {
@@ -3979,18 +3986,6 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 		    if (bar)
 		      x_scroll_bar_handle_click (bar, &event, &emacs_event);
-#if 0 /* It doesn't make sense to do this.
-	 Menu bar clicks are handled within the toolkit itself.  */
-#ifdef USE_X_TOOLKIT
-		    else
-		      {
-			/* Assume we have a menubar button press. A bad
-			   assumption should behave benignly. */
-			popup_get_selection (&event, dpyinfo);
-			break;
-		      }
-#endif /* USE_X_TOOLKIT */
-#endif
 		  }
 
 		if (event.type == ButtonPress)
@@ -4012,7 +4007,30 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  }
 
 #ifdef USE_X_TOOLKIT
-		goto OTHER;
+		f = x_menubar_window_to_frame (dpyinfo, event.xbutton.window);
+		/* For a down-event in the menu bar,
+		   don't pass it to Xt right now.
+		   Instead, save it away
+		   and we will pass it to Xt from kbd_buffer_get_event.
+		   That way, we can run some Lisp code first.  */
+		if (f && event.type == ButtonPress)
+		  {
+		    if (f->display.x->saved_button_event == 0)
+		      f->display.x->saved_button_event
+			= (XButtonEvent *) xmalloc (sizeof (XButtonEvent)); 
+		    bcopy (&event, f->display.x->saved_button_event,
+			   sizeof (XButtonEvent));
+		    if (numchars >= 1)
+		      {
+			bufp->kind = menu_bar_activate_event;
+			XSETFRAME (bufp->frame_or_window, f);
+			bufp++;
+			count++;
+			numchars--;
+		      }
+		  }
+		else
+		  goto OTHER;
 #endif /* USE_X_TOOLKIT */
 	      }
 	      break;
@@ -4061,8 +4079,14 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
       if (x_noop_count >= 100)
 	{
 	  x_noop_count=0;
-	  /* Use the first display in the list.  Why not?  */
-	  XNoOp (x_display_list->display);
+
+	  if (next_noop_dpyinfo == 0)
+	    next_noop_dpyinfo = x_display_list;
+
+	  XNoOp (next_noop_dpyinfo->display);
+
+	  /* Each time we get here, cycle through the displays now open.  */
+	  next_noop_dpyinfo = next_noop_dpyinfo->next;
 	}
     }
 
