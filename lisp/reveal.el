@@ -175,6 +175,7 @@ Reveal mode renders invisible text around point visible again.
 Interactively, with no prefix argument, toggle the mode.
 With universal prefix ARG (or if ARG is nil) turn mode on.
 With zero or negative ARG turn mode off."
+  :group 'reveal
   :lighter (global-reveal-mode nil " Reveal")
   :keymap reveal-mode-map
   (if reveal-mode
