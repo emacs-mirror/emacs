@@ -4259,7 +4259,7 @@ Mail anyway? (y or n) ")
     (cdr result)))
 
 (if (fboundp 'copy-sequence)
-    (fset 'ediff-copy-list (symbol-function 'copy-sequence))
+    (defalias 'ediff-copy-list 'copy-sequence)
   (defun ediff-copy-list (list)
     (if (consp list)
       ;;;(let ((res nil))
