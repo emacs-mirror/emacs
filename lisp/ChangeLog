@@ -1,15 +1,15 @@
 2004-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* pcvs-info.el (cvs-status-map): Update binding name.
-
-	* pcvs.el (cvs-mode-toggle-mark): Rename from cvs-mouse-toggle-mark.
-	Make it work for non-mouse events.
+	* info.el (info): Always jump to *info*.
 
 	* subr.el (posn-set-point): New function.
 
 	* mouse.el (mouse-set-point): Use it.
 
 	* progmodes/compile.el (compile-goto-error): Use it.
+	(compilation-button-map): New keymap.
+	(compilation-error-properties): Use it.
+	(compilation-shell-minor-mode-map): Don't bind mouse-2.
 
 	* smerge-mode.el (smerge-popup-context-menu): Use it.
 
@@ -20,14 +20,44 @@
 	* diff-mode.el (diff-goto-source): Make it work for mouse bindings.
 	(diff-mouse-goto-source): Make it an alias of diff-goto-source.
 
+	* pcvs.el (cvs-mode-toggle-mark): Rename from cvs-mouse-toggle-mark.
+	Make it work for non-mouse events.
+
+	* pcvs-info.el (cvs-status-map): Update binding name.
+
+2004-04-14  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (xml-maybe-do-ns): New function to handle namespace
+	parsing of both attribute and element names.
+	(xml-ns-parse-ns-attrs, xml-ns-expand-el, xml-ns-expand-attr)
+	(xml-intern-attrlist): Remove in favor of xml-maybe-do-ns.
+	(xml-parse-tag): Update assumed namespaces.  Clean up namespace parsing.
+	(xml-parse-attlist): Make it do its own namespace parsing.
+
+2004-04-14  Dave Love  <fx@gnu.org>
+
+	* comint.el: Doc fixes.
+	(comint-last-input-start, comint-last-input-end)
+	(comint-last-output-start): Give them values.
+	(comint-arguments): Avoid warning.
+	(comint-skip-prompt): Use line-end-position.
+	(comint-backward-matching-input): Rename arg to agree with doc.
+	(comint-extract-string): Use syntax-ppss.
+	(comint-dynamic-simple-complete): Delete useless list construction.
+	(comint-redirect-subvert-readonly): New.
+	(comint-redirect-preoutput-filter): Use it.
+
+	* emacs-lisp/lisp.el (beginning-of-defun-raw, end-of-defun):
+	Correctly handle negative arguments when calling hook functions.
+
 2004-04-14  Jesper Harder  <harder@ifa.au.dk>
 
 	* info.el (info-apropos): Don't clobber Info-history-list.
 
 2004-04-14  Daniel Pfeiffer  <occitan@esperanto.org>
 
-	* progmodes/compile.el (compilation-setup): Localize
-	overlay-arrow-position.
+	* progmodes/compile.el (compilation-setup):
+	Localize overlay-arrow-position.
 	(compilation-sentinel): Restructure code equivalently.
 	(compilation-next-error): Find message on same line after point if
 	not found before point.
