@@ -1,3 +1,7 @@
+2004-11-03  Kim F. Storm  <storm@cua.dk>
+
+	* .gdbinit (ppt): New function.
+
 2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_window_to_scroll_bar): Only call
