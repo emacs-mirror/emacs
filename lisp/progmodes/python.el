@@ -103,7 +103,7 @@
 (defconst python-font-lock-syntactic-keywords
   ;; Make outer chars of matching triple-quote sequences into generic
   ;; string delimiters.  Fixme: Is there a better way?
-  `((,(rx (and (or buffer-start (not (syntax escape))) ; avoid escaped
+  `((,(rx (and (or line-start buffer-start (not (syntax escape))) ; avoid escaped
 						       ; leading quote
 	       (group (optional (any "uUrR"))) ; prefix gets syntax property
 	       (optional (any "rR"))	; possible second prefix
