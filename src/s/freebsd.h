@@ -154,10 +154,6 @@ Boston, MA 02111-1307, USA.  */
 #define WRETCODE(w) (_W_INT(w) >> 8)
 #endif
 
-/* Needed to avoid hanging when child process writes an error message
-   and exits -- enami tsugutomo <enami@ba2.so-net.or.jp>.  */
-#define vfork fork
-
 /* Don't close pty in process.c to make it as controlling terminal.
    It is already a controlling terminal of subprocess, because we did
    ioctl TIOCSCTTY.  */
