@@ -10990,7 +10990,6 @@ xim_open_dpy (dpyinfo, resource_name)
 
   if (xim)
     {
-      XIMValuesList *xim_values_list;
 #ifdef HAVE_X11R6
       XIMCallback destroy;
 #endif
