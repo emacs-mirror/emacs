@@ -1,4 +1,4 @@
-;; crisp.el --- CRiSP/Brief Emacs emulator
+;;; crisp.el --- CRiSP/Brief Emacs emulator
 
 ;; Copyright (C) 1997, 1998 Free Software Foundation, Inc.
 
@@ -54,7 +54,7 @@
 
 ;; All these overrides should go *before* the (require 'crisp) statement.
 
-;; Code:
+;;; Code:
 
 ;; local variables
 
