@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 2000
+@c Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 2000, 2001
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Buffers, Windows, Files, Top
@@ -39,6 +39,12 @@ modified, and what major mode and minor modes are in effect in it
 (@pxref{Major Modes}).  Any Emacs variable can be made @dfn{local to} a
 particular buffer, meaning its value in that buffer can be different from
 the value in other buffers.  @xref{Locals}.
+
+@cindex buffer size, maximum
+  A buffer's size cannot be larger than some maximum, which is defined
+by largest buffer position representable by the @dfn{Emacs integer} data
+type.  This is because Emacs tracks buffer positions using that data
+type.  For 32-bit machines, the largest buffer size is 128 megabytes.
 
 @menu
 * Select Buffer::       Creating a new buffer or reselecting an old one.
