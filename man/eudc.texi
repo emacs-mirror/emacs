@@ -88,6 +88,7 @@ LDAP or the CCSO white pages directory system (PH/QI)
 * Installation::                How to install EUDC
 * Usage::                       The various usage possibilities explained
 * Credits::                     Who's done what
+* Command and Function Index::
 * Variables Index::             
 @end menu
 
@@ -99,7 +100,7 @@ LDAP or the CCSO white pages directory system (PH/QI)
 @comment  node-name,   next,  previous,  up
 @chapter Overview
 
-EUDC, the Emacs Unified Directory Client, provides a common user
+EUDC, the @dfn{Emacs Unified Directory Client}, provides a common user
 interface to access directory servers using different directory
 protocols. 
 
@@ -145,7 +146,7 @@ Interface to BBDB to let you insert server records into your own BBDB database
 @comment  node-name,  next,  previous,  up
 @section LDAP
 
-LDAP, Lightweight Directory Access Protocol, is a communication
+LDAP, @dfn{the Lightweight Directory Access Protocol}, is a communication
 protocol for directory applications defined in RFC 1777.
 
 Quoted from RFC 1777:
@@ -196,7 +197,7 @@ EUDC.
 @comment  node-name,  next,  previous,  up
 @section BBDB
 
-BBDB is the Big Brother's Insiduous Database, a package for Emacs
+BBDB is the @dfn{Big Brother's Insiduous Database}, a package for Emacs
 originally written by Jamie Zawinski which provides rolodex-like
 database functionality featuring tight integration with the Emacs mail
 and news readers.
@@ -252,7 +253,7 @@ email composition buffers (@pxref{Inline Query Expansion})
 
 LDAP support is added by means of @file{ldap.el} which is part of Emacs.
 @file{ldap.el} needs an external command line utility named
-@file{ldapsearch} which is available as part of LDAP toolkits.  above.
+@file{ldapsearch} which is available as part of LDAP toolkits:
 
 @itemize @bullet
 @item
@@ -334,7 +335,7 @@ protocols in this version of EUDC are @code{ph}, @code{ldap} and @code{bbdb}.
 @end defvar
 
 @deffn Command eudc-set-server
-This command accessible from @samp{Server} submenu lets you specify a
+This command accessible from @samp{New Server} submenu lets you specify a
 new directory server and protocol.
 @end deffn
 
@@ -437,11 +438,12 @@ defined by EUDC are @code{name}, @code{firstname}, @code{email} and
 @code{phone}.
 
 @defvar eudc-query-form-attributes
+@findex eudc-get-attribute-list
 A list of attributes presented in the query form.  Attribute names in
 this list should be either EUDC attribute names or valid attribute
 names.  You can get a list of valid attribute names for the current
 protocol with the @samp{List Valid Attribute Names} menu item or the
-@kbd{M-x eudc-get-attribute-list} command. Defaults to @code{name},
+@kbd{M-x eudc-get-attribute-list} command.  Defaults to @code{name},
 @code{email} and @code{phone}.
 @end defvar
 
@@ -554,12 +556,12 @@ be passed to the program.
 @section Inline Query Expansion
 
 Inline query expansion is a powerful method to get completion from your
-directory server. The most common usage is for expanding names to email
-addresses in mail message buffers. The expansion is performed by the
+directory server.  The most common usage is for expanding names to email
+addresses in mail message buffers.  The expansion is performed by the
 command @kbd{M-x eudc-expand-inline} which is available from the
-@samp{Directory Search} menu but can also be conveniently bound to a key
-shortcut (@pxref{Installation})  The operation is controlled by the
-variables @code{eudc-inline-expansion-format},
+@samp{Expand Inline Query} menu item but can also be conveniently
+bound to a key shortcut (@pxref{Installation}).  The operation is
+controlled by the variables @code{eudc-inline-expansion-format},
 @code{eudc-inline-query-format},
 @code{eudc-expanding-overwrites-query} and
 @code{eudc-multiple-match-handling-method}.
@@ -571,7 +573,7 @@ until one of them finds a match (@pxref{Multi-server Queries}).
 Query the server and expand the query string before point.  The query
 string consists of the buffer substring from the point back to the
 preceding comma, colon or beginning of
-line. @code{eudc-inline-query-format} controls how individual words
+line.  @code{eudc-inline-query-format} controls how individual words
 are mapped onto directory attribute names.  After querying the server
 for the given string, the expansion specified by
 @code{eudc-inline-expansion-format} is inserted in the buffer at
@@ -595,6 +597,7 @@ For instance, use the following
                                  (firstname)
                                  (firstname name)))
 @end lisp
+@noindent
 to indicate that single word expansion queries are to be considered as
 surnames and if no match is found then they should be tried as first
 names.  Inline queries consisting of two words are considered as
@@ -620,10 +623,10 @@ against the @code{cn} attribute of LDAP servers:
 
 @defvar eudc-inline-expansion-format
 This variable lets you control exactly what is inserted into the buffer
-upon an inline expansion request. It is a list whose first element is a
-string passed to @code{format}. Remaining elements are symbols
+upon an inline expansion request.  It is a list whose first element is a
+string passed to @code{format}.  Remaining elements are symbols
 corresponding to directory attribute names.  The corresponding attribute
-values are passed as additional arguments to @code{format}. Default is
+values are passed as additional arguments to @code{format}.  Default is
 @code{("%s" email)} but you may want to consider a value like @code{("%s
 <%s>" name email)}
 @end defvar
@@ -636,16 +639,15 @@ for an inline expansion.  Possible values are:
 The first match is considered as being the only one, the others are
 discarded.
 @item select
-A selection buffer pops up where you can choose a particular match. This 
+A selection buffer pops up where you can choose a particular match.  This 
 is the default value of the variable.
 @item all
 The expansion uses all records successively
 @item abort
-An error is signaled. The expansion aborts.
+An error is signaled.  The expansion aborts.
 @end table
 
-
-Defaults to @code{select}
+Default is @code{select}
 @end defvar
 
 
@@ -655,16 +657,16 @@ Defaults to @code{select}
 @section The Server Hotlist
 
 EUDC lets you maintain a list of frequently used servers so that you 
-can easily switch from one to another. This hotlist appears in the
-@samp{Server} submenu. You select a server in this list by clicking on
-its name. You can add the current server to the list with the command
-@kbd{M-x eudc-bookmark-current-server}. The list is contained in the variable
+can easily switch from one to another.  This hotlist appears in the
+@samp{Server} submenu.  You select a server in this list by clicking on
+its name.  You can add the current server to the list with the command
+@kbd{M-x eudc-bookmark-current-server}.  The list is contained in the variable
 @code{eudc-server-hotlist} which is stored in and retrieved from the file
 designated by @code{eudc-options-file}.  EUDC also provides a facility to
 edit the hotlist interactively (@pxref{The Hotlist Edit Buffer}).
 
 The hotlist is also used to make queries on multiple servers
-successively (@pxref{Multi-server Queries}). The order in which the
+successively (@pxref{Multi-server Queries}).  The order in which the
 servers are tried is the order they appear in the hotlist, therefore it
 is important to sort the hotlist appropriately.
 
@@ -678,7 +680,7 @@ Add the current server to the hotlist of servers
 
 @defvar eudc-options-file
 The name of a file where EUDC stores its internal variables
-(the hotlist and the current server). EUDC will try to load 
+(the hotlist and the current server).  EUDC will try to load 
 that file upon initialization so, if you choose a file name
 different from the defaults @file{~/.eudc-options}, be sure to set this
 variable to the appropriate value @emph{before} EUDC is itself
@@ -736,7 +738,7 @@ of them successfully finds a match for the query.
 
 @defvar eudc-inline-expansion-servers
 This variable controls which servers are tried and in which order when
-trying to perform an inline query. Possible values are:
+trying to perform an inline query.  Possible values are:
 @table @code
 @item current-server
 Only the current directory server is tried
@@ -752,7 +754,7 @@ order they appear in the hotlist until one of them finds a match or
 
 @defvar eudc-max-servers-to-query
 This variable indicates the maximum number of servers to query when
-performing a multi-server query. The default, @code{nil}, indicates
+performing a multi-server query.  The default, @code{nil}, indicates
 that all available servers should be tried.
 @end defvar
 
@@ -762,25 +764,28 @@ that all available servers should be tried.
 @comment  node-name,  next,  previous,  up
 @section Creating BBDB Records
 
+@findex eudc-insert-record-at-point-into-bbdb
+@findex eudc-try-bbdb-insert
 With EUDC, you can automatically create BBDB records
 (@pxref{Top,,BBDB,bbdb,BBDB Manual}) from records you get from a
-directory server. You do this by moving point to the appropriate
+directory server.  You do this by moving point to the appropriate
 record in a query result display buffer and invoking the command
 @kbd{M-x eudc-insert-record-at-point-into-bbdb} with the
-keyboard binding @kbd{b} @footnote{This key binding does not actually
+keyboard binding @kbd{b}@footnote{This key binding does not actually
 call @code{eudc-insert-record-at-point-into-bbdb} but uses
-@code{eudc-try-bbdb-insert} instead.}, or with the menu. EUDC
+@code{eudc-try-bbdb-insert} instead.}, or with the menu.  EUDC
 cannot update an existing BBDB record and will signal an error if you
 try to insert a record matching an existing one.
 
+@findex eudc-batch-export-records-to-bbdb
 It is also possible to export to BBDB the whole batch of records
 contained in the directory query result with the command
 @kbd{M-x eudc-batch-export-records-to-bbdb}.
 
 Because directory systems may not enforce a strict record format, local
 server installations may use different attribute names and have
-different ways to organize the information. Furthermore BBDB has its own
-record structure. For these reasons converting a record from its
+different ways to organize the information.  Furthermore BBDB has its own
+record structure.  For these reasons converting a record from its
 external directory format to the BBDB format is a highly customizable
 process.
 
@@ -788,14 +793,14 @@ process.
 The value of this variable should be a symbol naming an alist defining a
 mapping between BBDB field names onto directory attribute names records.
 This is a protocol-local variable and is initialized upon protocol
-switch (@pxref{Server/Protocol Locals})  The alist is made of cells of the
+switch (@pxref{Server/Protocol Locals}).  The alist is made of cells of the
 form @code{(@var{bbdb-field} . @var{spec-or-list})}. 
 @var{bbdb-field} is the name of a field
 that must be defined in your BBDB environment (standard field names are
 @code{name}, @code{company}, @code{net}, @code{phone}, @code{address}
 and @code{notes}). 
 @var{spec-or-list} is either a single mapping specification or a list of
-mapping specifications. Lists of mapping specifications are valid for
+mapping specifications.  Lists of mapping specifications are valid for
 the @code{phone} and @code{address} BBDB fields only. @var{spec}s are
 actually s-expressions which are evaluated as follows:
 
@@ -803,12 +808,12 @@ actually s-expressions which are evaluated as follows:
 @item a string 
 evaluates to itself
 @item a symbol
-evaluates to the symbol value. Symbols corresponding to directory
+evaluates to the symbol value.  Symbols corresponding to directory
 attribute names present in the record evaluate to the value of the field
 in the record
 @item a form
-is evaluated as a function. The argument list may contain attribute 
-names which evaluate to the corresponding values in the record. The form
+is evaluated as a function.  The argument list may contain attribute 
+names which evaluate to the corresponding values in the record.  The form
 evaluation should return something appropriate for the particular
 @var{bbdb-field} (see @code{bbdb-create-internal}).
 @code{eudc-bbdbify-phone} and @code{eudc-bbdbify-address} are provided as
@@ -844,25 +849,25 @@ the @code{address} field of the BBDB record is obtained by parsing the
 two @code{phone} fields are created (when possible) in the BBDB record.
 The first one has @cite{Phone} for location and its value is obtained by
 parsing the @code{phone} attribute of the PH/QI record with the function
-@code{eudc-bbdbify-phone}. The second one has @cite{Office Phone} for location
+@code{eudc-bbdbify-phone}.  The second one has @cite{Office Phone} for location
 its value is obtained by parsing the @code{office_phone} attribute of the
 PH/QI record with the function @code{eudc-bbdbify-phone}.
 @end itemize
 
 @defun eudc-bbdbify-phone phone location
 This is a convenience function provided for use in
-@code{eudc-bbdb-conversion-alist}. It parses @var{phone} into a vector
-compatible with @code{bbdb-create-internal}. @var{phone} is either a string
+@code{eudc-bbdb-conversion-alist}.  It parses @var{phone} into a vector
+compatible with @code{bbdb-create-internal}.  @var{phone} is either a string
 supposedly containing a phone number or a list of such strings which are
 concatenated. @var{location} is used as the phone location for BBDB.
 @end defun
 
 @defun eudc-bbdbify-address addr location
 This is a convenience function provided for use in
-@code{eudc-bbdb-conversion-alist}. It parses @var{addr} into a vector
-compatible with @code{bbdb-create-internal}. @var{addr} should be an
-address string of no more than four lines or a list of lines. The last
-line is searched for the zip code, city and state name. @var{location}
+@code{eudc-bbdb-conversion-alist}.  It parses @var{addr} into a vector
+compatible with @code{bbdb-create-internal}.  @var{addr} should be an
+address string of no more than four lines or a list of lines.  The last
+line is searched for the zip code, city and state name.  @var{location}
 is used as the phone location for BBDB.
 @end defun
 
@@ -877,7 +882,7 @@ actually be inserted as part of the newly created BBDB record.
 
 EUDC can be customized independently for each server or directory
 protocol.  All variables can be given local bindings that are activated
-when a particular server and/or protocol becomes active. This is much
+when a particular server and/or protocol becomes active.  This is much
 like buffer-local bindings but on a per server or per protocol basis.
 
 @menu
@@ -951,7 +956,6 @@ Return @code{unbound} if @var{var} has no value local to @var{server}.
 @var{server} defaults to @code{eudc-server}.
 @end defun
 
-
 Changing a protocol-local or server-local value of a variable has no
 effect on its current value.  The following command is used to
 synchronize the current values of variables with their local values
@@ -963,7 +967,7 @@ Update all EUDC variables according to their local settings.
 
 
 
-@node Credits, Variables Index, Usage, Top
+@node Credits, Command and Function Index, Usage, Top
 @comment  node-name,  next,  previous,  up
 @chapter Credits
 
@@ -973,7 +977,13 @@ same author.
 Thanks to Soren Dayton for his suggestions, his enthusiasm and his help
 in testing and proofreading the code and docs of @file{ph.el}.
 
-@node Variables Index,  , Credits, Top
+@node Command and Function Index, Variables Index, Credits, Top
+@comment  node-name,  next,  previous,  up
+@unnumbered Command and Function Index
+
+@printindex fn
+
+@node Variables Index,  , Command and Function Index, Top
 @comment  node-name,  next,  previous,  up
 @unnumbered Variables Index
 
