@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.6 2000/03/21 16:59:17 monnier Exp $
+;; Revision: $Id: diff-mode.el,v 1.7 2000/05/10 22:12:46 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -199,9 +199,9 @@ when editing big diffs)."
 (defvar diff-changed-face 'diff-changed-face)
 
 (defvar diff-font-lock-keywords
-  '(("^@@ .+ @@$" . diff-hunk-header-face) ;unified
+  '(("^@@ -[0-9,]+ \\+[0-9,]+ @@.*$" . diff-hunk-header-face) ;unified
     ("^--- .+ ----$" . diff-hunk-header-face) ;context
-    ("^\\*\\*\\*.+\\*\\*\\*\n" . diff-hunk-header-face) ;context
+    ("^\\*\\*\\*\\(.+\\*\\*\\*\\|\\*\\{12\\}.*\\)\n" . diff-hunk-header-face) ;context
     ("^\\(---\\|\\+\\+\\+\\|\\*\\*\\*\\) .*\n" . diff-file-header-face)
     ("^[0-9,]+[acd][0-9,]+$" . diff-hunk-header-face)
     ("^!.*\n" . diff-changed-face)	;context
@@ -230,7 +230,7 @@ when editing big diffs)."
 ;;;; Movement
 ;;;; 
 
-(defconst diff-hunk-header-re "^\\(@@ .+ @@\\|\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\n\\*\\*\\* .+ \\*\\*\\*\\*\\|[0-9]+\\(,[0-9]+\\)?[acd][0-9]+\\(,[0-9]+\\)?\\)$")
+(defconst diff-hunk-header-re "^\\(@@ -[0-9,]+ \\+[0-9,]+ @@.*\\|\\*\\{15\\}.*\n\\*\\*\\* .+ \\*\\*\\*\\*\\|[0-9]+\\(,[0-9]+\\)?[acd][0-9]+\\(,[0-9]+\\)?\\)$")
 (defconst diff-file-header-re (concat "^\\(--- .+\n\\+\\+\\+\\|\\*\\*\\* .+\n---\\|[^-+!<>0-9@* ]\\).+\n" (substring diff-hunk-header-re 1)))
 (defvar diff-narrowed-to nil)
 
@@ -433,7 +433,7 @@ If the prefix arg is bigger than 8 (for example with \\[universal-argument] \\[u
       (when (> (prefix-numeric-value other-file) 8)
 	(setq diff-jump-to-old-file-flag old))
       (diff-beginning-of-hunk)
-      (let* ((loc (if (not (looking-at "[-@*\n ]*\\([0-9,]+\\)\\([ acd+]+\\([0-9,]+\\)\\)?"))
+      (let* ((loc (if (not (looking-at "\\(?:\\*\\{15\\}.*\n\\)?[-@* ]*\\([0-9,]+\\)\\([ acd+]+\\([0-9,]+\\)\\)?"))
 		      (error "Can't find the hunk header")
 		    (if old (match-string 1)
 		      (if (match-end 3) (match-string 3)
@@ -484,7 +484,7 @@ else cover the whole bufer."
 	(inhibit-read-only t))
     (save-excursion
       (goto-char start)
-      (while (and (re-search-forward "^\\(\\(---\\) .+\n\\(\\+\\+\\+\\) .+\\|@@ -\\([0-9]+\\),\\([0-9]+\\) \\+\\([0-9]+\\),\\([0-9]+\\) @@\\)$" nil t)
+      (while (and (re-search-forward "^\\(\\(---\\) .+\n\\(\\+\\+\\+\\) .+\\|@@ -\\([0-9]+\\),\\([0-9]+\\) \\+\\([0-9]+\\),\\([0-9]+\\) @@.*\\)$" nil t)
 		  (< (point) end))
 	(combine-after-change-calls
 	  (if (match-beginning 2)
@@ -571,7 +571,7 @@ else cover the whole bufer."
 	(inhibit-read-only t))
     (save-excursion
       (goto-char start)
-      (while (and (re-search-forward "^\\(\\(\\*\\*\\*\\) .+\n\\(---\\) .+\\|\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\n\\*\\*\\* \\([0-9]+\\),\\(-?[0-9]+\\) \\*\\*\\*\\*\\)$" nil t)
+      (while (and (re-search-forward "^\\(\\(\\*\\*\\*\\) .+\n\\(---\\) .+\\|\\*\\{15\\}.*\n\\*\\*\\* \\([0-9]+\\),\\(-?[0-9]+\\) \\*\\*\\*\\*\\)$" nil t)
 		  (< (point) end))
 	(combine-after-change-calls
 	  (if (match-beginning 2)
@@ -643,7 +643,7 @@ else cover the whole bufer."
 	(inhibit-read-only t))
     (save-excursion
       (goto-char start)
-      (while (and (re-search-forward "^\\(\\([-*][-*][-*] \\)\\(.+\\)\n\\([-+][-+][-+] \\)\\(.+\\)\\|\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\n\\*\\*\\* \\(.+\\) \\*\\*\\*\\*\\|@@ -\\(.+\\) \\+\\(.+\\) @@\\)$" nil t)
+      (while (and (re-search-forward "^\\(\\([-*][-*][-*] \\)\\(.+\\)\n\\([-+][-+][-+] \\)\\(.+\\)\\|\\*\\{15\\}.*\n\\*\\*\\* \\(.+\\) \\*\\*\\*\\*\\|@@ -\\([0-9,]+\\) \\+\\([0-9,]+\\) @@.*\\)$" nil t)
 		  (< (point) end))
 	(combine-after-change-calls
 	  (cond
@@ -708,7 +708,7 @@ else cover the whole bufer."
       (goto-char end) (diff-end-of-hunk)
       (let ((plus 0) (minus 0) (space 0) (bang 0))
 	(while (and (= (forward-line -1) 0) (<= start (point)))
-	  (if (not (looking-at "\\(@@ .+ @@\\|[-*][-*][-*] .+ [-*][-*][-*][-*]\\)$"))
+	  (if (not (looking-at "\\(@@ -[0-9,]+ \\+[0-9,]+ @@.*\\|[-*][-*][-*] .+ [-*][-*][-*][-*]\\)$"))
 	      (case (char-after)
 		(?\  (incf space))
 		(?+ (incf plus))
@@ -717,7 +717,7 @@ else cover the whole bufer."
 		((?\\ ?#) nil)
 		(t  (setq space 0 plus 0 minus 0 bang 0)))
 	    (cond
-	     ((looking-at "@@ -[0-9]+,\\([0-9]*\\) \\+[0-9]+,\\([0-9]*\\) @@$")
+	     ((looking-at "@@ -[0-9]+,\\([0-9]*\\) \\+[0-9]+,\\([0-9]*\\) @@.*$")
 	      (let* ((old1 (match-string 1))
 		     (old2 (match-string 2))
 		     (new1 (number-to-string (+ space minus)))
@@ -756,6 +756,11 @@ else cover the whole bufer."
 (defun diff-after-change-function (beg end len)
   "Remember to fixup the hunk header.
 See `after-change-functions' for the meaning of BEG, END and LEN."
+  ;; Ignoring changes when inhibit-read-only is set is strictly speaking
+  ;; incorrect, but it turns out that inhibit-read-only is normally not set
+  ;; inside editing commands, while it tends to be set when the buffer gets
+  ;; updated by an async process or by a conversion function, both of which
+  ;; would rather not be uselessly slowed down by this hook.
   (when (and (not undo-in-progress) (not inhibit-read-only))
     (if diff-unhandled-changes
 	(setq diff-unhandled-changes
@@ -836,6 +841,14 @@ This mode runs `diff-mode-hook'.
 
 ;;; Change Log:
 ;; $Log: diff-mode.el,v $
+;; Revision 1.7  2000/05/10 22:12:46  monnier
+;; (diff-font-lock-keywords): Recognize comments.
+;; (diff-font-lock-defaults): Explicitly turn off multiline.
+;; (diff-end-of-hunk): Handle comments and fix end-of-buffer bug.
+;; (diff-ediff-patch): Fix call to ediff-patch-file.
+;; (diff-end-of-file, diff-reverse-direction, diff-fixup-modifs):
+;; Handle comments.
+;;
 ;; Revision 1.6  2000/03/21 16:59:17  monnier
 ;; (diff-mode-*-map): use `easy-mmode-defmap'.
 ;; (diff-end-of-hunk): Return the end position for use in
