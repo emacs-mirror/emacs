@@ -8,6 +8,8 @@
 	(speedbar-mouse-hscroll): Likewise.
 	(speedbar-file-lists): Likewise.
 
+	* emacs-lisp/authors.el (authors-obsolete-file-p): Fix typo.
+
 2002-07-09  Juanma Barranquero  <lektu@terra.es>
 
 	* faces.el (face-id): Fix typo.
