@@ -30,6 +30,17 @@
 
 ;;; Code:
 
+(defcustom easy-menu-precalculate-equivalent-keybindings t
+  "Determine when equivalent key bindings are computed for easy-menu menus.
+It can take some time to calculate the equivalent key bindings that are shown
+in a menu.  If the variable is on, then this calculation gives a (maybe
+noticeable) delay when a mode is first entered.  If the variable is off, then
+this delay will come when a menu is displayed the first time.  If you never use
+menus, turn this variable off, otherwise it is probably better to keep it on."
+  :type 'boolean
+  :group 'menu
+  :version "20.3")
+
 ;;;###autoload
 (defmacro easy-menu-define (symbol maps doc menu)
   "Define a menu bar submenu in maps MAPS, according to MENU.
@@ -198,17 +209,17 @@ shadow\\(Double\\)?Etched\\(In\\|Out\\)\\(Dash\\)?\\)\\)$"
 	    (setq prop (cddr prop)))
 	  (setq command (symbol-function command)))))
      ((vectorp item)
-      (let ((active (if (> (length item) 2) (or (aref item 2) ''nil) t))
-	    (no-name (not (symbolp (setq command (aref item 1)))))
-	    cache cache-specified
-	    (count 2))
+      (let* ((ilen (length item))
+	     (active (if (> ilen 2) (or (aref item 2) ''nil) t))
+	     (no-name (not (symbolp (setq command (aref item 1)))))
+	     cache cache-specified)
 	(setq label (setq name (aref item 0)))
 	(if no-name (setq command (easy-menu-make-symbol command)))
 	(if (and (symbolp active) (= ?: (aref (symbol-name active) 0)))
 	    (let ((count 2)
 		  keyword arg suffix visible style selected keys)
 	      (setq active nil)
-	      (while (> (length item) count)
+	      (while (> ilen count)
 		(setq keyword (aref item count))
 		(setq arg (aref item (1+ count)))
 		(setq count (+ 2 count))
@@ -241,11 +252,11 @@ shadow\\(Double\\)?Etched\\(In\\|Out\\)\\(Dash\\)?\\)\\)$"
 				(substring keys (match-end 1))))
 			   (cmd (intern (substring keys (match-beginning 2)
 						   (match-end 2)))))
+		       (setq keys (and (or prefix postfix)
+				       (cons prefix postfix)))
 		       (setq keys
-			     (and (or prefix postfix (not (eq command cmd)))
-				  (cons cmd
-					(and (or prefix postfix)
-					     (cons prefix postfix))))))
+			     (and (or keys (not (eq command cmd)))
+				  (cons cmd keys))))
 		   (setq cache-specified nil))
 		 (if keys (setq prop (cons :keys (cons keys prop)))))
 	      (if (and visible (not (easy-menu-always-true visible)))
@@ -333,10 +344,18 @@ to implement dynamic menus."
 
 ;; XEmacs needs the following two functions to add and remove menus.
 ;; In Emacs this is done automatically when switching keymaps, so
-;; here these functions are noops.
+;; here easy-menu-remove is a noop and easy-menu-add only precalculates
+;; equivalent keybindings (if easy-menu-precalculate-equivalent-keybindings
+;; is on).
 (defun easy-menu-remove (menu))
 
-(defun easy-menu-add (menu &optional map))
+(defun easy-menu-add (menu &optional map)
+  "Maybe precalculate equivalent key bindings.
+Do it if `easy-menu-precalculate-equivalent-keybindings' is on,"
+  (when easy-menu-precalculate-equivalent-keybindings
+    (if (and (symbolp menu) (not (keymapp menu)) (boundp menu))
+	(setq menu (symbol-value menu)))
+    (if (keymapp menu) (x-popup-menu nil menu))))
 
 (defun easy-menu-add-item (menu path item &optional before)
   "At the end of the submenu of MENU with path PATH add ITEM.
