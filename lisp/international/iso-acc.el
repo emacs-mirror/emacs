@@ -86,7 +86,7 @@
     ((?` ?u) ?\371)
     ((?` ? ) ?`)
     ((?` ?`) ?`)		; no special code?
-    ((?` ?A) ?\302)
+    ((?^ ?A) ?\302)
     ((?^ ?E) ?\312)
     ((?^ ?I) ?\316)
     ((?^ ?O) ?\324)
@@ -121,6 +121,8 @@
     ((?\~ ?d) ?\360)
     ((?\~ ?n) ?\361)
     ((?\~ ?o) ?\365)
+    ((?\~ ?>) ?\273)
+    ((?\~ ?<) ?\253)
     ((?\/ ?O) ?\330)
     ((?\/ ?o) ?\370)
     )
@@ -201,6 +203,7 @@ letter key so that it inserts an ISO accented letter.
 
 Special combinations: ~c gives a c with cedilla,
 ~d gives a d with dash.
+~< and ~> give guillemets.
 
 With an argument, a positive argument enables ISO-accents mode, 
 and a negative argument disables it."
