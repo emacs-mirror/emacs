@@ -653,7 +653,8 @@ To make a hook variable buffer-local, always use
 	    ;; Detect the case where make-local-variable was used on a hook
 	    ;; and do what we used to do.
 	    (and (local-variable-p hook)
-		 (not (memq t (symbol-value hook)))))
+		  (consp (symbol-value hook))
+		  (not (memq t (symbol-value hook)))))
 	(let ((hook-value (symbol-value hook)))
 	  (if (consp hook-value)
 	      (if (member function hook-value)
@@ -662,7 +663,7 @@ To make a hook variable buffer-local, always use
 		(setq hook-value nil)))
 	  (set hook hook-value))
       (let ((hook-value (default-value hook)))
-	(if (consp hook-value)
+	(if (and (consp hook-value) (not (functionp hook-value)))
 	    (if (member function hook-value)
 		(setq hook-value (delete function (copy-sequence hook-value))))
 	  (if (equal hook-value function)
