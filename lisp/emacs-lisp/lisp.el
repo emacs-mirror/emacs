@@ -30,8 +30,8 @@
 (defvar defun-prompt-regexp nil
   "Non-nil => regexp to ignore, before the `(' that starts a defun.")
 
-(defvar parens-dont-require-spaces nil
-  "Non-nil => `insert-parentheses' should not insert whitespace.")
+(defvar parens-require-spaces t
+  "Non-nil => `insert-parentheses' should insert whitespace as needed.")
 
 (defun forward-sexp (&optional arg)
   "Move forward across one balanced expression (sexp).
@@ -205,14 +205,14 @@ depending on the surrounding characters."
   (if arg (setq arg (prefix-numeric-value arg))
     (setq arg 0))
   (or (eq arg 0) (skip-chars-forward " \t"))
-  (and (not parens-dont-require-spaces)
+  (and parens-require-spaces
        (memq (char-syntax (preceding-char)) '(?w ?_ ?\) ))
        (insert " "))
   (insert ?\()
   (save-excursion
     (or (eq arg 0) (forward-sexp arg))
     (insert ?\))
-    (and (not parens-dont-require-spaces)
+    (and parens-require-spaces
 	 (memq (char-syntax (following-char)) '(?w ?_ ?\( ))
 	 (insert " "))))
 
