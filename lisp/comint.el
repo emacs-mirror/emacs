@@ -65,14 +65,15 @@
 ;; Comint Mode Commands: (common to all derived modes, like shell & cmulisp
 ;; mode)
 ;;
-;; m-p	    comint-previous-input    	    Cycle backwards in input history
-;; m-n	    comint-next-input  	    	    Cycle forwards
+;; m-p	   comint-previous-input   	   Cycle backwards in input history
+;; m-n	   comint-next-input  	   	   Cycle forwards
 ;; m-r     comint-previous-matching-input  Previous input matching a regexp
 ;; m-s     comint-next-matching-input      Next input that matches
-;; m-c-l   comint-show-output		    Show last batch of process output
+;; m-c-l   comint-show-output		   Show last batch of process output
 ;; return  comint-send-input
-;; c-d	    comint-delchar-or-maybe-eof     Delete char unless at end of buff
-;; c-c c-a comint-bol                      Beginning of line; skip prompt
+;; c-d	   comint-delchar-or-maybe-eof     Delete char unless at end of buff
+;; c-c c-a comint-bol-or-process-mark      First time, move point to bol;
+;;					    second time, move to process-mark.
 ;; c-c c-u comint-kill-input	    	    ^u
 ;; c-c c-w backward-kill-word    	    ^w
 ;; c-c c-c comint-interrupt-subjob 	    ^c
@@ -98,6 +99,11 @@
 ;; comint-continue-subjob		Send CONT signal to buffer's process
 ;;					group. Useful if you accidentally
 ;;					suspend your process (with C-c C-z).
+;; comint-get-next-from-history        Fetch successive input history lines
+;; comint-accumulate		       Combine lines to send them together
+;;					as input.
+;; comint-goto-process-mark	       Move point to where process-mark is.
+;; comint-set-process-mark	       Set process-mark to point.
 
 ;; comint-mode-hook is the comint mode hook. Basically for your keybindings.
 
@@ -115,6 +121,7 @@
 ;;  comint-input-ring-size		integer	For the input history
 ;;  comint-input-ring			ring	mechanism
 ;;  comint-input-ring-index		number	...
+;;  comint-save-input-ring-index	number	...
 ;;  comint-input-autoexpand		symbol	...
 ;;  comint-input-ignoredups		boolean	...
 ;;  comint-last-input-match		string	...
@@ -133,6 +140,7 @@
 ;;  comint-scroll-to-bottom-on-input	symbol	For scroll behavior
 ;;  comint-scroll-to-bottom-on-output	symbol	...
 ;;  comint-scroll-show-maximum-output	boolean	...	
+;;  comint-accum-marker			maker	  For comint-accumulate
 ;;
 ;; Comint mode non-buffer local variables:
 ;;  comint-completion-addsuffix		boolean/cons	For file name
@@ -359,10 +367,18 @@ This is to work around a bug in Emacs process signaling.")
   "Index of last matched history element.")
 (defvar comint-matching-input-from-input-string ""
   "Input previously used to match input history.")
+(defvar comint-save-input-ring-index
+  "Last input ring index which you copied.
+This is to support the command \\[comint-get-next-from-history].")
+
+(defvar comint-accum-marker nil
+  "Non-nil if you are accumulating input lines to send as input together.
+The command \\[comint-accumulate] sets this.")
 
 (put 'comint-replace-by-expanded-history 'menu-enable 'comint-input-autoexpand)
 (put 'comint-input-ring 'permanent-local t)
 (put 'comint-input-ring-index 'permanent-local t)
+(put 'comint-save-input-ring-index 'permanent-local t)
 (put 'comint-input-autoexpand 'permanent-local t)
 (put 'comint-input-filter-functions 'permanent-local t)
 (put 'comint-output-filter-functions 'permanent-local t)
@@ -432,8 +448,11 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (or (and (boundp 'comint-input-ring) comint-input-ring)
       (setq comint-input-ring (make-ring comint-input-ring-size)))
   (make-local-variable 'comint-input-ring-index)
+  (make-local-variable 'comint-save-input-ring-index)
   (or (and (boundp 'comint-input-ring-index) comint-input-ring-index)
       (setq comint-input-ring-index nil))
+  (or (and (boundp 'comint-save-input-ring-index) comint-save-input-ring-index)
+      (setq comint-save-input-ring-index nil))
   (make-local-variable 'comint-matching-input-from-input-string)
   (make-local-variable 'comint-input-autoexpand)
   (make-local-variable 'comint-input-ignoredups)
@@ -456,6 +475,9 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-process-echoes)
   (make-local-variable 'comint-file-name-chars)
   (make-local-variable 'comint-file-name-quote-list)
+  (make-local-variable 'comint-accum-marker)
+  (setq comint-accum-marker (make-marker))
+  (set-marker comint-accum-marker nil)
   (run-hooks 'comint-mode-hook))
 
 (if comint-mode-map
@@ -473,7 +495,9 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (define-key comint-mode-map "\e\C-l" 'comint-show-output)
   (define-key comint-mode-map "\C-m" 'comint-send-input)
   (define-key comint-mode-map "\C-d" 'comint-delchar-or-maybe-eof)
-  (define-key comint-mode-map "\C-c\C-a" 'comint-bol)
+  (define-key comint-mode-map "\C-c " 'comint-accumulate)
+  (define-key comint-mode-map "\C-c\C-q" 'comint-get-next-from-history)
+  (define-key comint-mode-map "\C-c\C-a" 'comint-bol-or-process-mark)
   (define-key comint-mode-map "\C-c\C-u" 'comint-kill-input)
   (define-key comint-mode-map "\C-c\C-w" 'backward-kill-word)
   (define-key comint-mode-map "\C-c\C-c" 'comint-interrupt-subjob)
@@ -897,7 +921,9 @@ If N is negative, find the next or Nth next match."
       (message "History item: %d" (1+ pos))
       (delete-region 
        ;; Can't use kill-region as it sets this-command
-       (process-mark (get-buffer-process (current-buffer))) (point))
+       (or  (marker-position comint-accum-marker)
+	    (process-mark (get-buffer-process (current-buffer))))
+       (point))
       (insert (ring-ref comint-input-ring pos)))))
 
 (defun comint-next-matching-input (regexp arg)
@@ -919,7 +945,8 @@ If N is negative, search forwards for the -Nth following match."
       ;; Starting a new search
       (setq comint-matching-input-from-input-string
 	    (buffer-substring 
-	     (process-mark (get-buffer-process (current-buffer))) 
+	     (or (marker-position comint-accum-marker)
+		 (process-mark (get-buffer-process (current-buffer))))
 	     (point))
 	    comint-input-ring-index nil))
   (comint-previous-matching-input
@@ -1255,12 +1282,15 @@ Similarly for Soar, Scheme, etc."
 	      (ring-insert comint-input-ring history))
 	  (run-hook-with-args 'comint-input-filter-functions
 			      (concat input "\n"))
+	  (setq comint-save-input-ring-index comint-input-ring-index)
 	  (setq comint-input-ring-index nil)
 	  ;; Update the markers before we send the input
 	  ;; in case we get output amidst sending the input.
 	  (set-marker comint-last-input-start pmark)
 	  (set-marker comint-last-input-end (point))
 	  (set-marker (process-mark proc) (point))
+	  ;; clear the "accumulation" marker
+	  (set-marker comint-accum-marker nil)
 	  (funcall comint-input-sender proc input)
 	  ;; This used to call comint-output-filter-functions,
 	  ;; but that scrolled the buffer in undesirable ways.
@@ -2240,6 +2270,66 @@ Typing SPC flushes the help buffer."
 	(if (eq first ?\ )
 	    (set-window-configuration conf)
 	  (setq unread-command-events (listify-key-sequence key)))))))
+
+(defun comint-get-next-from-history ()
+  "After fetching a line from input history, this fetches the following line.
+In other words, this recalls the input line after the line you recalled last.
+You can use this to repeat a sequence of input lines."
+  (interactive)
+  (if comint-save-input-ring-index
+      (progn
+	(setq comint-input-ring-index (1+ comint-save-input-ring-index))
+	(comint-next-input 1))
+    (message "No previous history command")))
+
+(defun comint-accumulate ()
+  "Accumulate a line to send as input along with more lines.
+This inserts a newline so that you can enter more text
+to be sent along with this line.  Use \\[comint-send-input]
+to send all the accumulated input, at once.
+The entire accumulated text becomes one item in the input history
+when you send it."
+  (interactive)
+  (insert "\n")
+  (set-marker comint-accum-marker (point))
+  (if comint-input-ring-index
+      (setq comint-save-input-ring-index
+	    (- comint-input-ring-index 1))))
+
+(defun comint-goto-process-mark ()
+  "Move point to the process mark.
+The process mark separates output, and input already sent,
+from input that has not yet been sent."
+  (interactive)
+  (let ((proc (or (get-buffer-process (current-buffer))
+		  (error "Current buffer has no process"))))
+    (goto-char (process-mark proc))
+    (message "Point is now at the process mark")))
+
+(defun comint-bol-or-process-mark ()
+  "Move point beginning of line (after prompt) or to the process mark.
+The first time you use this command, it moves to the beginning of the line
+\(but after the prompt, if any).  If you repeat it again immediately,
+it moves point to the process mark.
+
+The process mark separates the process output, along with input already sent,
+from input that has not yet been sent.  Ordinarily, the process mark
+is at the beginning of the current input line; but if you have
+used \\[comint-accumulate] to send multiple lines at once,
+the process mark is at the beginning of the accumulated input."
+  (interactive)
+  (if (not (eq last-command 'comint-bol-or-mark))
+      (comint-bol nil)
+    (comint-goto-process-mark)))
+
+(defun comint-set-process-mark ()
+  "Set the process mark at point."
+  (interactive)
+  (let ((proc (or (get-buffer-process (current-buffer))
+		  (error "Current buffer has no process"))))
+    (set-marker (process-mark proc) (point))
+    (message "Process mark set")))
+
 
 ;; Converting process modes to use comint mode
 ;; ===========================================================================
