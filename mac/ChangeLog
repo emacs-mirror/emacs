@@ -1,3 +1,13 @@
+2001-02-20  Andrew Choi  <akochoi@i-cable.com>
+
+	* mac/INSTALL:
+	* mac/README:
+	* mac/cw5-mcp.xml:
+	* mac/cw6-mcp.xml:
+	* mac/inc/alloca.h:
+	* mac/inc/defs-cw5.h:
+	* mac/inc/defs-cw6.h: Added copyright notice.
+
 2001-01-28  Andrew Choi  <akochoi@i-cable.com>
 
 	* src/macterm.c (mac_font_pattern_match): Allocate three more
