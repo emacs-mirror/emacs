@@ -1482,7 +1482,7 @@ main (argc, argv
   init_ntproc ();	/* must precede init_editfns.  */
 #endif
 
-#ifdef HAVE_CARBON
+#if defined (MAC_OSX) && defined (HAVE_CARBON)
   if (initialized)
     init_mac_osx_environment ();
 #endif
@@ -1626,12 +1626,12 @@ main (argc, argv
       syms_of_fontset ();
 #endif /* HAVE_NTGUI */
 
-#ifdef HAVE_CARBON
+#if defined (MAC_OSX) && defined (HAVE_CARBON)
       syms_of_macterm ();
       syms_of_macfns ();
       syms_of_macmenu ();
       syms_of_fontset ();
-#endif /* HAVE_CARBON */
+#endif /* MAC_OSX && HAVE_CARBON */
 
 #ifdef SYMS_SYSTEM
       SYMS_SYSTEM;
