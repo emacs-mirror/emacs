@@ -686,12 +686,7 @@ which will run faster and probably do exactly what you want."
 	      ;; since lots of markers slow down editing.
 	      (setq stack
 		    (cons (cons (point)
-				(or replaced
-				    (mapcar (lambda (elt)
-					      (and elt
-						   (prog1 (marker-position elt)
-						     (set-marker elt nil))))
-				     (match-data))))
+				(or replaced (match-data t)))
 			  stack))))
 	  (setq lastrepl (point)))
       (replace-dehighlight))
