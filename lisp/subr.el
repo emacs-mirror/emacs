@@ -93,6 +93,18 @@ If N is bigger than the length of X, return X."
     (while (cdr x)
       (setq x (cdr x)))
     x))
+
+(defun assoc-default (el alist test default)
+  "Find object EL in a pseudo-alist ALIST.
+ALIST is a list of conses or objects.  Each element (or the element's
+car, if it. is a cons) is compared with EL by calling TEST.
+If TEST returns non-nil, the element matches;
+then `assoc-default' returns the cdr of the element (if it is a cons),
+or DEFAULT if the element is not a cons.
+If no element matches, the value is nil."
+  (dolist (rr alist)
+    (when (funcall test el (if (consp rr) (car rr) rr))
+      (return (if (consp rr) (cdr rr) default)))))
 
 ;;;; Keymap support.
 
