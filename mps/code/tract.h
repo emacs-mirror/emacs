@@ -1,7 +1,7 @@
-/* impl.h.tract: PAGE TABLE INTERFACE
+/* tract.h: PAGE TABLE INTERFACE
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  */
 
 
@@ -16,14 +16,14 @@
 /* TractStruct -- tract structure
  *
  * .tract: Tracts represent the grains of memory allocation from
- * the arena.  See design.mps.arena.
+ * the arena.  See <design/arena/>.
  *
  * .bool: The hasSeg field is a boolean, but can't be represented
- * as type Bool. See design.mps.arena.tract.field.hasSeg.
+ * as type Bool. See <design/arena/#tract.field.hasSeg>.
  */
 
 typedef struct TractStruct { /* Tract structure */
-  Pool pool;      /* MUST BE FIRST (design.mps.arena.tract.field pool) */
+  Pool pool;      /* MUST BE FIRST (<design/arena/#tract.field> pool) */
   void *p;                     /* pointer for use of owning pool */
   Addr base;                   /* Base address of the tract */
   TraceSet white : TraceLIMIT; /* traces for which tract is white */
@@ -67,10 +67,10 @@ extern void TractFinish(Tract tract);
  *
  * .page-table: The page table (defined as a PageStruct array)
  * is central to the design of the arena.
- * See design.mps.arena.vm.table.*.
+ * See <design/arenavm/#table>.*.
  *
  * .page: The "pool" field must be the first field of the "tail"
- * field of this union.  See design.mps.arena.tract.field.pool.
+ * field of this union.  See <design/arena/#tract.field.pool>.
  *
  * .states: Pages (hence PageStructs that describe them) can be in
  * one of 3 states:
@@ -119,7 +119,7 @@ typedef struct PageStruct {     /* page structure */
 
 /* PageIsAllocated -- is a page allocated?
  *
- * See design.mps.arena.vm.table.disc.
+ * See <design/arenavm/#table.disc>.
  */
 
 #define PageIsAllocated(page) ((page)->the.rest.pool != NULL)
@@ -135,7 +135,7 @@ typedef struct PageStruct {     /* page structure */
 #define ChunkSig ((Sig)0x519C804C) /* SIGnature CHUNK */
 
 typedef struct ChunkStruct {
-  Sig sig;              /* design.mps.sig */
+  Sig sig;              /* <design/sig/> */
   Serial serial;        /* serial within the arena */
   Arena arena;          /* parent arena */
   RingStruct chunkRing; /* ring of all chunks in arena */
@@ -225,7 +225,7 @@ extern Index IndexOfAddr(Chunk chunk, Addr addr);
 
 /* PageIndexBase -- map page index to base address of page
  *
- * See design.mps.arena.vm.table.linear
+ * See <design/arenavm/#table.linear>
  */
 
 #define PageIndexBase(chunk, i) \
@@ -249,7 +249,7 @@ extern Bool TractNext(Tract *tractReturn, Arena arena, Addr addr);
 
 /* TRACT_TRACT_FOR -- iterate over a range of tracts
  *
- * See design.mps.arena.tract-iter.if.macro.
+ * See <design/arena/#tract-iter.if.macro>.
  * Parameters arena & limit are evaluated multiple times.
  * Check first tract & last tract lie with the same chunk.
  */
@@ -266,7 +266,7 @@ extern Bool TractNext(Tract *tractReturn, Arena arena, Addr addr);
 
 /* TRACT_FOR -- iterate over a range of tracts
  *
- * See design.mps.arena.tract.for.
+ * See <design/arena/#tract.for>.
  * Parameters arena & limit are evaluated multiple times.
  */
 
@@ -280,3 +280,45 @@ extern void PageFree(Chunk chunk, Index pi);
 
 
 #endif /* tract_h */
+
+
+/* C. COPYRIGHT AND LICENSE
+ *
+ * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * All rights reserved.  This is an open source license.  Contact
+ * Ravenbrook for commercial licensing options.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * 
+ * 3. Redistributions in any form must be accompanied by information on how
+ * to obtain complete source code for this software and any accompanying
+ * software that uses this software.  The source code must either be
+ * included in the distribution or be available for no more than the cost
+ * of distribution plus a nominal fee, and must be freely redistributable
+ * under reasonable conditions.  For an executable file, complete source
+ * code means the source code for all modules it contains. It does not
+ * include source code for modules or files that typically accompany the
+ * major components of the operating system on which the executable file
+ * runs.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */

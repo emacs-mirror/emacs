@@ -1,7 +1,7 @@
-/* impl.c.poolmvff: Manual Variable First Fit Pool
+/* poolmvff.c: First Fit Manual Variable Pool
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  * Copyright (C) 2002 Global Graphics Software.
  *
  * .purpose: This is a pool class for manually managed objects of
@@ -9,7 +9,7 @@
  * policy.  Provision is made to allocate in reverse.  This pool
  * can allocate across segment boundaries.
  *
- * .design: design.mps.poolmvff
+ * .design: <design/poolmvff/>
  *
  *
  * TRANSGRESSIONS
@@ -33,7 +33,7 @@ extern PoolClass PoolClassMVFF(void);
 /* MVFFStruct -- MVFF (Manual Variable First Fit) pool outer structure
  *
  * The signature is placed at the end, see
- * design.mps.pool.outer-structure.sig
+ * <design/pool/#outer-structure.sig>
  */
 
 #define MVFFSig           ((Sig)0x5193FFF9) /* SIGnature MVFF */
@@ -50,7 +50,7 @@ typedef struct MVFFStruct {     /* MVFF pool outer structure */
   CBSStruct cbsStruct;          /* free list */
   Bool firstFit;                /* as opposed to last fit */
   Bool slotHigh;                /* prefers high part of large block */
-  Sig sig;                      /* design.mps.sig */
+  Sig sig;                      /* <design/sig/> */
 } MVFFStruct;
 
 
@@ -189,7 +189,7 @@ static Res MVFFAddSeg(Seg *segReturn,
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
 
   /* Use extendBy unless it's too small (see */
-  /* design.mps.poolmvff.design.seg-size). */
+  /* <design/poolmvff/#design.seg-size>). */
   if (size <= mvff->extendBy)
     segSize = mvff->extendBy;
   else
@@ -201,7 +201,7 @@ static Res MVFFAddSeg(Seg *segReturn,
                  withReservoirPermit);
   if (res != ResOK) {
     /* try again for a seg just large enough for object */
-    /* see design.mps.poolmvff.design.seg-fail */
+    /* see <design/poolmvff/#design.seg-fail> */
     segSize = SizeAlignUp(size, align);
     res = SegAlloc(&seg, SegClassGet(), mvff->segPref, segSize, pool,
                    withReservoirPermit);
@@ -422,7 +422,7 @@ static Res MVFFInit(Pool pool, va_list arg)
   AVERT(Pool, pool);
 
   /* .arg: class-specific additional arguments; see */
-  /* design.mps.poolmvff.method.init */
+  /* <design/poolmvff/#method.init> */
   /* .arg.check: we do the same checks here and in MVFFCheck */
   /* except for arenaHigh, which is stored only in the segPref. */
   extendBy = va_arg(arg, Size);
@@ -613,7 +613,7 @@ mps_class_t mps_class_mvff_debug(void)
 }
 
 
-/* Total free bytes. See design.mps.poolmvff.design.arena-enter */
+/* Total free bytes. See <design/poolmvff/#design.arena-enter> */
 
 size_t mps_mvff_free_size(mps_pool_t mps_pool)
 {
@@ -628,7 +628,7 @@ size_t mps_mvff_free_size(mps_pool_t mps_pool)
   return (size_t)mvff->free;
 }
 
-/* Total owned bytes. See design.mps.poolmvff.design.arena-enter */
+/* Total owned bytes. See <design/poolmvff/#design.arena-enter> */
 
 size_t mps_mvff_size(mps_pool_t mps_pool)
 {
@@ -689,3 +689,45 @@ void mps_mvff_stat(mps_pool_t mps_pool)
   METER_EMIT(&CBSOfMVFF(mvff)->eblSearch);
   METER_EMIT(&CBSOfMVFF(mvff)->eglSearch);
 }
+
+
+/* C. COPYRIGHT AND LICENSE
+ *
+ * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * All rights reserved.  This is an open source license.  Contact
+ * Ravenbrook for commercial licensing options.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * 
+ * 3. Redistributions in any form must be accompanied by information on how
+ * to obtain complete source code for this software and any accompanying
+ * software that uses this software.  The source code must either be
+ * included in the distribution or be available for no more than the cost
+ * of distribution plus a nominal fee, and must be freely redistributable
+ * under reasonable conditions.  For an executable file, complete source
+ * code means the source code for all modules it contains. It does not
+ * include source code for modules or files that typically accompany the
+ * major components of the operating system on which the executable file
+ * runs.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */

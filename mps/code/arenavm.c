@@ -1,12 +1,12 @@
-/* impl.c.arenavm: VIRTUAL MEMORY ARENA CLASS
+/* arenavm.c: VIRTUAL MEMORY ARENA CLASS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  *
  * DESIGN
  *
- * .design: See design.mps.arena.vm, and design.mps.arena.coop-vm
+ * .design: See <design/arenavm/>, and <design/arena/#coop-vm>
  *
  * .vm.addr-is-star: In this file, Addr is compatible with C
  * pointers, and Count with size_t (Index), because all refer to the
@@ -48,7 +48,7 @@ typedef struct VMChunkStruct {
   Addr overheadMappedLimit;           /* limit of pages mapped for overhead */
   BT pageTableMapped;           /* indicates mapped state of page table */
   BT noSparePages;             /* 1 bit per page of pageTable */
-  Sig sig;                      /* design.mps.sig */
+  Sig sig;                      /* <design/sig/> */
 } VMChunkStruct;
 
 #define VMChunk2Chunk(vmchunk) (&(vmchunk)->chunkStruct)
@@ -63,7 +63,7 @@ typedef struct VMChunkStruct {
 
 /* VMArena
  *
- * See design.mps.arena.coop-vm.struct.vmarena for description.
+ * See <design/arena/#coop-vm.struct.vmarena> for description.
  */
 
 typedef struct VMArenaStruct *VMArena;
@@ -78,7 +78,7 @@ typedef struct VMArenaStruct {  /* VM arena structure */
   ZoneSet genZoneSet[VMArenaGenCount]; /* .gencount.const */
   ZoneSet freeSet;               /* unassigned zones */
   Size extendBy;
-  Sig sig;                      /* design.mps.sig */
+  Sig sig;                      /* <design/sig/> */
 } VMArenaStruct;
 
 #define Arena2VMArena(arena) PARENT(VMArenaStruct, arenaStruct, arena)
@@ -274,7 +274,7 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
     goto failBootInit;
 
   /* Allocate and map the descriptor. */
-  /* See design.mps.arena.@@@@ */
+  /* See <design/arena/>.@@@@ */
   res = BootAlloc(&p, boot, sizeof(VMChunkStruct), MPS_PF_ALIGN);
   if (res != ResOK)
     goto failChunkAlloc;
@@ -334,7 +334,7 @@ static Res VMChunkInit(Chunk chunk, BootBlock boot)
     goto failnoSparePages;
   vmChunk->noSparePages = p;
 
-  /* Actually commit all the tables. design.mps.arena.vm.@@@@ */
+  /* Actually commit all the tables. <design/arenavm/>.@@@@ */
   overheadLimit = AddrAdd(chunk->base, (Size)BootAllocated(boot));
   if (vmChunk->overheadMappedLimit < overheadLimit) {
     overheadLimit = AddrAlignUp(overheadLimit, ChunkPageSize(chunk));
@@ -422,7 +422,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
   vmArena = (VMArena)VMBase(arenaVM);
 
   arena = VMArena2Arena(vmArena);
-  /* impl.c.arena.init.caller */
+  /* <code/arena.c#init.caller> */
   res = ArenaInit(arena, class);
   if (res != ResOK)
     goto failArenaInit;
@@ -439,7 +439,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
     vmArena->genZoneSet[gen] = ZoneSetEMPTY;
   }
   vmArena->freeSet = ZoneSetUNIV; /* includes blacklist */
-  /* design.mps.arena.coop-vm.struct.vmarena.extendby.init */
+  /* <design/arena/#coop-vm.struct.vmarena.extendby.init> */
   vmArena->extendBy = userSize;
 
   /* have to have a valid arena before calling ChunkCreate */
@@ -453,7 +453,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
   /* number of stripes as will fit into a reference set (the number of */
   /* bits in a word).  Fail if the chunk is so small stripes are smaller */
   /* than pages.  Note that some zones are discontiguous in the chunk if */
-  /* the size is not a power of 2.  See design.mps.arena.class.fields. */
+  /* the size is not a power of 2.  See <design/arena/#class.fields>. */
   chunkSize = AddrOffset(chunk->base, chunk->limit);
   arena->zoneShift = SizeFloorLog2(chunkSize >> MPS_WORD_SHIFT);
 
@@ -498,7 +498,7 @@ static void VMArenaFinish(Arena arena)
 
   vmArena->sig = SigInvalid;
 
-  ArenaFinish(arena); /* impl.c.global.finish.caller */
+  ArenaFinish(arena); /* <code/global.c#finish.caller> */
 
   VMUnmap(arenaVM, VMBase(arenaVM), VMLimit(arenaVM));
   VMDestroy(arenaVM);
@@ -1222,7 +1222,7 @@ static Res vmAllocComm(Addr *baseReturn, Tract *baseTractReturn,
   AVER(SizeIsAligned(size, ChunkPageSize(arena->primary)));
  
   /* NULL is used as a discriminator */
-  /* (see design.mps.arena.vm.table.disc) therefore the real pool */
+  /* (see <design/arenavm/table.disc>) therefore the real pool */
   /* must be non-NULL. */
   AVER(pool != NULL);
 
@@ -1546,3 +1546,45 @@ mps_arena_class_t mps_arena_class_vmnz(void)
 {
   return (mps_arena_class_t)VMNZArenaClassGet();
 }
+
+
+/* C. COPYRIGHT AND LICENSE
+ *
+ * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * All rights reserved.  This is an open source license.  Contact
+ * Ravenbrook for commercial licensing options.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * 
+ * 3. Redistributions in any form must be accompanied by information on how
+ * to obtain complete source code for this software and any accompanying
+ * software that uses this software.  The source code must either be
+ * included in the distribution or be available for no more than the cost
+ * of distribution plus a nominal fee, and must be freely redistributable
+ * under reasonable conditions.  For an executable file, complete source
+ * code means the source code for all modules it contains. It does not
+ * include source code for modules or files that typically accompany the
+ * major components of the operating system on which the executable file
+ * runs.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */

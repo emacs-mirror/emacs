@@ -1,9 +1,9 @@
-/* impl.c.arena: ARENA ALLOCATION FEATURES
+/* arena.c: ARENA ALLOCATION FEATURES
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- * .sources: design.mps.arena is the main design document.  */
+ * .sources: <design/arena/> is the main design document.  */
 
 #include "tract.h"
 #include "poolmv.h"
@@ -32,7 +32,7 @@ static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream)
 /* AbstractArenaClass  -- The abstact arena class definition
  *
  * .null: Most abstract class methods are set to NULL.  See
- * design.mps.arena.class.abstract.null.  */
+ * <design/arena/#class.abstract.null>.  */
 
 typedef ArenaClassStruct AbstractArenaClassStruct;
 
@@ -91,7 +91,7 @@ Bool ArenaCheck(Arena arena)
   CHECKD(ArenaClass, arena->class);
 
   CHECKL(BoolCheck(arena->poolReady));
-  if (arena->poolReady) { /* design.mps.arena.pool.ready */
+  if (arena->poolReady) { /* <design/arena/#pool.ready> */
     CHECKD(MV, &arena->controlPoolStruct);
     CHECKD(Reservoir, &arena->reservoirStruct);
   }
@@ -154,7 +154,7 @@ Res ArenaInit(Arena arena, ArenaClass class)
   arena->alignment = 1 << ARENA_ZONESHIFT;
   /* zoneShift is usually overridden by init */
   arena->zoneShift = ARENA_ZONESHIFT;
-  arena->poolReady = FALSE;     /* design.mps.arena.pool.ready */
+  arena->poolReady = FALSE;     /* <design/arena/#pool.ready> */
   arena->lastTract = NULL;
   arena->lastTractBase = NULL;
 
@@ -171,7 +171,7 @@ Res ArenaInit(Arena arena, ArenaClass class)
 
   arena->sig = ArenaSig;
 
-  /* initialize the reservoir, design.mps.reservoir */
+  /* initialize the reservoir, <design/reservoir/> */
   res = ReservoirInit(&arena->reservoirStruct, arena);
   if (res != ResOK)
     goto failReservoirInit;
@@ -256,7 +256,7 @@ void ArenaDestroy(Arena arena)
 
   GlobalsPrepareToDestroy(ArenaGlobals(arena));
 
-  /* Empty the reservoir - see impl.c.reserv.reservoir.finish */
+  /* Empty the reservoir - see <code/reserv.c#reservoir.finish> */
   ReservoirSetLimit(ArenaReservoir(arena), 0);
 
   arena->poolReady = FALSE;
@@ -282,7 +282,7 @@ Res ControlInit(Arena arena)
                  ARENA_CONTROL_MAXSIZE);
   if (res != ResOK)
     return res;
-  arena->poolReady = TRUE;      /* design.mps.arena.pool.ready */
+  arena->poolReady = TRUE;      /* <design/arena/#pool.ready> */
   return ResOK;
 }
 
@@ -393,7 +393,7 @@ Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream)
  * control pool, which is an MV pool embedded in the arena itself.
  *
  * .controlalloc.addr: In implementations where Addr is not compatible
- * with void* (design.mps.type.addr.use), ControlAlloc must take care of
+ * with void* (<design/type/#addr.use>), ControlAlloc must take care of
  * allocating so that the block can be addressed with a void*.  */
 
 Res ControlAlloc(void **baseReturn, Arena arena, size_t size,
@@ -474,7 +474,7 @@ Res ArenaAlloc(Addr *baseReturn, SegPref pref, Size size, Pool pool,
   return res;
 
 goodAlloc:
-  /* cache the tract - design.mps.arena.tract.cache */
+  /* cache the tract - <design/arena/#tract.cache> */
   arena->lastTract = baseTract;
   arena->lastTractBase = base;
 
@@ -503,7 +503,7 @@ void ArenaFree(Addr base, Size size, Pool pool)
   AVER(AddrIsAligned(base, arena->alignment));
   AVER(SizeIsAligned(size, arena->alignment));
 
-  /* uncache the tract if in range - design.mps.arena.tract.uncache */
+  /* uncache the tract if in range - <design/arena/#tract.uncache> */
   limit = AddrAdd(base, size);
   if ((arena->lastTractBase >= base) && (arena->lastTractBase < limit)) {
     arena->lastTract = NULL;
@@ -658,3 +658,45 @@ Bool ArenaHasAddr(Arena arena, Addr addr)
   AVERT(Arena, arena);
   return SegOfAddr(&seg, arena, addr);
 }
+
+
+/* C. COPYRIGHT AND LICENSE
+ *
+ * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * All rights reserved.  This is an open source license.  Contact
+ * Ravenbrook for commercial licensing options.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * 
+ * 3. Redistributions in any form must be accompanied by information on how
+ * to obtain complete source code for this software and any accompanying
+ * software that uses this software.  The source code must either be
+ * included in the distribution or be available for no more than the cost
+ * of distribution plus a nominal fee, and must be freely redistributable
+ * under reasonable conditions.  For an executable file, complete source
+ * code means the source code for all modules it contains. It does not
+ * include source code for modules or files that typically accompany the
+ * major components of the operating system on which the executable file
+ * runs.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */

@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>The design of the MPS segment data structure</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+</div>
+
+<pre>
+              THE DESIGN OF THE MPS SEGMENT DATA STRUCTURE
+                             design.mps.seg
+                           incomplete design
+                             drj 1997-04-03
+
+INTRODUCTION
+
+<a id="intro" name="intro">.intro</a>: This document describes the MPS Segment data structure.
+
+
+Document History
+
+<a id="hist.2" name="hist.2">.hist.2</a>: The initial draft (replacing various notes in revisions 0 and 1) was 
+drafted by Richard Brooksby &lt;richard&gt; on 1997-04-03 as part of editing 
+MMsrc!seg.c(MMdevel_action2.1).
+
+<a id="hist.3" name="hist.3">.hist.3</a>: Rewritten to separate segments and tracts, following 
+mail.tony.1998-11-02.10-26.  tony 1999-04-16
+
+OVERVIEW
+
+<a id="over.segments" name="over.segments">.over.segments</a>: Segments are the basic units of tracing and shielding.  The MPM 
+also uses them as units of scanning and colour, although pool classes may 
+subdivide segments and be able to maintain colour on a finer grain (down to the 
+object level, for example).
+
+<a id="over.objects" name="over.objects">.over.objects</a>: The mutator's objects are stored in segments.  Segments are 
+contiguous blocks of memory managed by some pool.  <a id="segments.pool" name="segments.pool">.segments.pool</a>: The 
+arrangement of objects within a segment is determined by the class of the pool 
+which owns the segment. The pool is associated with the segment indirectly via 
+the first tract of the segment.
+
+<a id="over.memory" name="over.memory">.over.memory</a>: The relationship between segments and areas of memory is 
+maintained by the segment module.  Pools acquire tracts from the arena, and 
+release them back to the arena when they don't need them any longer. The 
+segment module can associate contiguous tracts owned by the same pool with a 
+segment. The segment module provides the methods SegBase, SegLimit, and SegSize 
+which map a segment onto the addresses of the memory block it represents.
+
+<a id="over.hierarchy" name="over.hierarchy">.over.hierarchy</a>: The Segment datastructure is designed to be subclassable (see 
+design.mps.protocol). The basic segment class (Seg) supports colour and 
+protection for use by the tracer, as well as support for a pool ring, and all 
+generic segment functions. Clients may use Seg directly, but will most probably 
+want to use a subclass with additional properties.
+
+<a id="over.hierarchy.gcseg" name="over.hierarchy.gcseg">.over.hierarchy.gcseg</a>: The segment module provides GCSeg - a subclass of Seg 
+which has full support for GC including buffering and the ability to be linked 
+onto the grey ring.
+
+DATA STRUCTURE
+
+
+typedef struct SegStruct {      /* segment structure */
+  Sig sig;                      /* impl.h.misc.sig */
+  SegClass class;               /* segment class structure */
+  Tract firstTract;             /* first tract of segment */
+  RingStruct poolRing;          /* link in list of segs in pool */
+  Addr limit;                   /* limit of segment */
+  unsigned depth : SHIELD_DEPTH_WIDTH; /* see impl.c.shield.def.depth */
+  AccessSet pm : AccessMAX;     /* protection mode, impl.c.shield */
+  AccessSet sm : AccessMAX;     /* shield mode, impl.c.shield */
+  TraceSet grey : TRACE_MAX;    /* traces for which seg is grey */
+  TraceSet white : TRACE_MAX;   /* traces for which seg is white */
+  TraceSet nailed : TRACE_MAX;  /* traces for which seg has nailed objects */
+  RankSet rankSet : RankMAX;    /* ranks of references in this seg */
+} SegStruct;
+
+
+typedef struct GCSegStruct {    /* GC segment structure */
+  SegStruct segStruct;          /* superclass fields must come first */
+  RingStruct greyRing;          /* link in list of grey segs */
+  RefSet summary;               /* summary of references out of seg */
+  Buffer buffer;                /* non-NULL if seg is buffered */
+  Sig sig;                      /* design.mps.sig */
+} GCSegStruct;
+
+
+<a id="field.rankSet" name="field.rankSet">.field.rankSet</a>: The "rankSet" field represents the set of ranks of the 
+references in the segment.  It is initialized to empty by SegInit.  
+<a id="field.rankSet.single" name="field.rankSet.single">.field.rankSet.single</a>: The Tracer only permits one rank per segment [ref?] so 
+this field is either empty or a singleton.  <a id="field.rankSet.empty" name="field.rankSet.empty">.field.rankSet.empty</a>: An empty 
+rankSet indicates that there are no references.  If there are no references in 
+the segment then it cannot contain black or grey references.  
+<a id="field.rankSet.start" name="field.rankSet.start">.field.rankSet.start</a>: If references are stored in the segment then it must be 
+updated, along with the summary (.field.summary.start).
+
+<a id="field.depth" name="field.depth">.field.depth</a>: The "depth" field is used by the Sheild (impl.c.shield) to manage 
+protection of the segment.  It is initialized to zero by SegInit.
+
+<a id="field.sm" name="field.sm">.field.sm</a>: The "sm" field is used by the Shield (impl.c.shield) to manage 
+protection of the segment.  It is initialized to AccessSetEMPTY by SegInit.
+
+<a id="field.pm" name="field.pm">.field.pm</a>: The "pm" field is used by the Shield (impl.c.shield) to manage 
+protection of the segment.  It is initialized to AccessSetEMPTY by SegInit.  
+The field is used by both the shield and the ANSI fake protection 
+(impl.c.protan).
+
+<a id="field.black" name="field.black">.field.black</a>: The "black" field is the set of traces for which there may be 
+black objects (i.e. objects containing references, but no references to white 
+objects) in the segment.  More precisely, if there is a black object for a 
+trace in the segment then that trace will appear in the "black" field.  It is 
+initialized to TraceSetEMPTY by SegInit.
+
+<a id="field.grey" name="field.grey">.field.grey</a>: The "grey" field is the set of traces for which there may be grey 
+objects (i.e containing refrences to white objects) in the segment.  More 
+precisely, if there is a reference to a white object for a trace in the segment 
+then that trace will appear in the "grey" field.  It is initialized to 
+TraceSetEMPTY by SegInit.
+
+<a id="field.white" name="field.white">.field.white</a>: The "white" field is the set of traces for which there may be 
+white objects in the segment.  More precisely, if there is a white object for a 
+trace in the segment then that trace will appear in the "white" field.  It is 
+initialized to TraceSetEMPTY by SegInit.
+
+<a id="field.summary" name="field.summary">.field.summary</a>: The "summary" field is an approximation to the set of all 
+references in the segment.  If there is a reference R in the segment, then 
+RefSetIsMember(summary, R) is TRUE.  The summary is initialized to RefSetEMPTY 
+by SegInit.  <a id="field.summary.start" name="field.summary.start">.field.summary.start</a>: If references are stored in the segment then 
+it must be updated, along with rankSet (.field.rankSet.start).
+
+<a id="field.buffer" name="field.buffer">.field.buffer</a>: The "buffer" field is either NULL, or points to the descriptor 
+structure of the buffer which is currently allocating in the segment.  The 
+field is initialized to NULL by SegInit.  <a id="field.buffer.owner" name="field.buffer.owner">.field.buffer.owner</a>: This buffer must 
+belong to the same pool as the segment, because only that pool has the right to 
+attach it.
+
+INTERFACE
+
+Splitting and Merging
+
+<a id="split-and-merge" name="split-and-merge">.split-and-merge</a>: There is support for splitting and merging segments, to give 
+pools the flexibility to rearrange their tracts among segments as they see fit.
+
+<a id="split" name="split">.split</a>: Segments may be split with the function SegSplit
+
+Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
+             Bool withReservoirPermit, ...);
+
+If successful, segment "seg" is split at address "at", yielding two segments 
+which are returned in segLoReturn and segHiReturn for the low and high segments 
+respectively. The base of the low segment is the old base of "seg". The limit 
+of the low segment is "at". The base of the high segment is "at". This limit of 
+the high segment is the old limit of "seg". "seg" is effectively destroyed 
+during this operation (actually, it might be reused as one of the returned 
+segments). Segment subclasses may make use of the optional arguments; the 
+built-in classes do not.
+
+<a id="split.invariants" name="split.invariants">.split.invariants</a>: The client must ensure some invariants are met before 
+calling SegSplit:
+
+<a id="split.inv.align" name="split.inv.align">.split.inv.align</a>: "at" must be appropriately aligned to the arena alignment, 
+and lie between the base and limit of "seg". Justification: the split segments 
+cannot be represented if this is not so.
+
+<a id="split.inv.buffer" name="split.inv.buffer">.split.inv.buffer</a>: If "seg" is attached to a buffer, the buffered region must 
+not include address "at". Justification: the segment module is not in a 
+position to know how (or whether) a pool might wish to split a buffer. This 
+permits the buffer to remain attached to just one of the returned segments.
+
+<a id="split.state" name="split.state">.split.state</a>: Except as noted above, the segments returned have the same 
+properties as "seg". I.e. their colour, summary, rankset, nailedness etc. are 
+set to the values of "seg".
+
+<a id="merge" name="merge">.merge</a>: Segments may be merged with the function SegMerge
+
+Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi,
+             Bool withReservoirPermit, ...);
+
+If successful, segments "segLo" and "segHi" are merged together, yielding a 
+segment which is returned in mergedSegReturn. "segLo" and "segHi" are 
+effectively destroyed during this operation (actually, one of them might be 
+reused as the merged segment). Segment subclasses may make use of the optional 
+arguments; the built-in classes do not.
+
+<a id="merge.invariants" name="merge.invariants">.merge.invariants</a>: The client must ensure some invariants are met before 
+calling SegMerge:
+
+<a id="merge.inv.abut" name="merge.inv.abut">.merge.inv.abut</a>: The limit of "segLo" must be the same as the base of "segHi". 
+Justification: the merged segment cannot be represented if this is not so.
+
+<a id="merge.inv.buffer" name="merge.inv.buffer">.merge.inv.buffer</a>: One or other of "segLo" and "segHi" may attached to a 
+buffer, but not both. Justification: the segment module does not support 
+attachment of a single seg to 2 buffers.
+
+<a id="merge.inv.similar" name="merge.inv.similar">.merge.inv.similar</a>: "segLo" and "segHi" must be sufficiently similar. Two 
+segments are sufficiently similar if they have identical values for each of the 
+following fields: class, sm, grey, white, nailed, rankSet. Justification: there 
+is no single choice of behaviour for cases where these fields are not 
+identical. The pool class must make it's own choices about this if it wishes to 
+permit more flexible merging. If so, it should be a simple matter for the pool 
+to arrange for the segments to look sufficiently similar before calling 
+SegMerge.
+
+<a id="merge.state" name="merge.state">.merge.state</a>: The merged segment will share the same state as "segLo" and 
+"segHi" for those fields which are identical (see .merge.inv.similar). The 
+summary will be the union of the summaries of "segLo" and "segHi".
+
+
+EXTENSIBILITY
+
+Splitting and Merging
+
+<a id="method.split" name="method.split">.method.split</a>: Segment subclasses may extend the support for segment splitting 
+by defining their own "split" method.
+
+Res segSplit(Seg seg, Seg segHi, 
+             Addr base, Addr mid, Addr limit,
+             Bool withReservoirPermit, va_list args)
+
+On entry, "seg" is a segment with region [base,limit), "segHi" is 
+uninitialized, "mid" is the address at which the segment is to be split. The 
+method is responsible for destructively modifying "seg" and initializing 
+"segHi" so that on exit "seg" is a segment with region [base,mid) and segHi is 
+a segment with region [mid,limit). Usually a method would only directly modify 
+the fields defined for the segment subclass. This might involve allocation, 
+which may use the reservoir if "withReservoirPermit" is TRUE. 
+<a id="method.split.next" name="method.split.next">.method.split.next</a>: A split method should always call the next method, either 
+before or after any class-specific code (see design.mps.protocol
+.overview.next-method).
+
+<a id="method.merge" name="method.merge">.method.merge</a>: Segment subclasses may extend the support for segment merging by 
+defining their own "merge" method.
+
+Res segMerge(Seg seg, Seg segHi, 
+             Addr base, Addr mid, Addr limit,
+             Bool withReservoirPermit, va_list args)
+
+On entry, "seg" is a segment with region [base,mid), "segHi" is a segment with 
+region [mid,limit), The method is responsible for destructively modifying "seg" 
+and finishing "segHi" so that on exit "seg" is a segment with region 
+[base,limit) and segHi is garbage. Usually a method would only modify the 
+fields defined for the segment subclass. This might involve allocation, which 
+may use the reservoir if "withReservoirPermit" is TRUE. <a id="method.merge.next" name="method.merge.next">.method.merge.next</a>: A 
+merge method should always call the next method, either before or after any 
+class-specific code (see design.mps.protocol.overview.next-method).
+
+<a id="split-merge.shield" name="split-merge.shield">.split-merge.shield</a>: Split and merge methods may assume that the segments they 
+are manipulating are not in the shield cache. <a id="split-merge.shield.flush" name="split-merge.shield.flush">.split-merge.shield.flush</a>: The 
+shield cache is flushed before any split or merge methods are invoked. 
+<a id="split-merge.shield.re-flush" name="split-merge.shield.re-flush">.split-merge.shield.re-flush</a>: If a split or merge method performs an operation 
+on a segment which might cause the segment to be cached, the method must flush 
+the shield cache before returning or calling another split or merge method.
+
+<a id="split-merge.fail" name="split-merge.fail">.split-merge.fail</a>: Split and merge methods might fail, in which case segments 
+"seg" and "segHi" must be equivalently valid and configured at exit as they 
+were according to the entry conditions. It's simplest if the failure can be 
+detected before calling the next method (e.g. by allocating any objects early 
+in the method). <a id="split-merge.fail.anti" name="split-merge.fail.anti">.split-merge.fail.anti</a>: If it's not possible to detect failure 
+before calling the next method, the appropriate anti-method must be used (see 
+design.mps.protocol.guide.fail.after-next). Split methods are anti-methods for 
+merge methods, and vice-versa. <a id="split-merge.fail.anti.constrain" name="split-merge.fail.anti.constrain">.split-merge.fail.anti.constrain</a>: In general, 
+care should be taken when writing split and merge methods to ensure that they 
+really are anti-methods for each other. The anti-method must not fail if the 
+initial method succeeded. The anti-method should reverse any side effects of 
+the initial method, except where it's known to be safe to avoid this (see 
+.split-merge.fail.summary for an example of a safe case).  
+<a id="split-merge.fail.anti.no" name="split-merge.fail.anti.no">.split-merge.fail.anti.no</a>: If this isn't possible (it might not be) then the 
+methods won't support after-next failure. This fact should be documented, if 
+the methods are intended to support further specialization. Note that using 
+va_arg with the "args" parameter is sufficient to make it impossible to reverse 
+all side effects.
+
+<a id="split-merge.fail.summary" name="split-merge.fail.summary">.split-merge.fail.summary</a>: The segment summary might not be restored exactly 
+after a failed merge operation. Each segment would be left with a summary which 
+is the union of the original summaries (see .merge.state). This increases the 
+conservatism in the summaries, but is otherwise safe.
+
+<a id="split-merge.unsupported" name="split-merge.unsupported">.split-merge.unsupported</a>: Segment classes need not support segment merging at 
+all. The function SegClassMixInNoSplitMerge is supplied to set the split and 
+merge methods to unsupporting methods that will report an error in checking 
+varieties.
+
+
+</pre>
+
+
+<h2><a id="section-A" name="section-A">A. References</a></h2>
+
+<!-- Template Entry
+
+<table>
+
+<tr valign="top">
+
+  <td>[<a id="ref-#REF#" name="ref-#REF#" href="#REF_URL#">#REF_NAME#</a>]</td>
+
+  <td>
+    "#REF_TITLE#";
+    #REF_AUTHOR#;
+    &lt;URL: <a href="#REF_URL#">#REF_URL#</a>&gt;;
+    #REF_DATE#.
+  </td>
+
+</tr>
+
+</table>
+
+-->
+
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<table>
+
+<tr valign="top">
+
+  <td>2002-06-07</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td>Converted from MMInfo database design document.</td>
+
+</tr>
+
+</table>
+
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 1995-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div align="center">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+</div>
+
+</body>
+
+</html>

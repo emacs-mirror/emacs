@@ -1,10 +1,10 @@
-/* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
+/* poolamc.c: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  * Copyright (C) 2002 Global Graphics Software.
  *
- * .sources: design.mps.poolamc.
+ * .sources: <design/poolamc/>.
  */
 
 #include "mpscamc.h"
@@ -44,7 +44,7 @@ typedef struct amcGenStruct {
   RingStruct amcRing;           /* link in list of gens in pool */
   Buffer forward;               /* forwarding buffer */
   Count segs;                   /* number of segs in gen */
-  Sig sig;                      /* impl.h.misc.sig */
+  Sig sig;                      /* <code/misc.h#sig> */
 } amcGenStruct;
 
 #define amcGenAMC(amcgen) Pool2AMC((amcgen)->pgen.pool)
@@ -78,7 +78,7 @@ typedef struct amcNailboardStruct {
  * .segtype: AMC segs have a pointer to the type field of either
  * a nailboard or a generation. This initial value is passed
  * as an additional parameter when the segment is allocated.
- * See design.mps.poolamc.fix.nail.distinguish.
+ * See <design/poolamc/#fix.nail.distinguish>.
  */
 
 typedef struct amcSegStruct *amcSeg;
@@ -89,7 +89,7 @@ typedef struct amcSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
   int *segTypeP;            /* .segtype */
   Bool new;                 /* allocated since last GC */
-  Sig sig;                  /* impl.h.misc.sig */
+  Sig sig;                  /* <code/misc.h#sig> */
 } amcSegStruct;
 
 #define Seg2amcSeg(seg)             ((amcSeg)(seg))
@@ -142,7 +142,7 @@ static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size,
 
 /* AMCSegDescribe -- describe the contents of a segment
  *
- * See design.mps.poolamc.seg-describe.
+ * See <design/poolamc/#seg-describe>.
  */
 static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
 {
@@ -233,7 +233,7 @@ DEFINE_SEG_CLASS(amcSegClass, class)
 
 /* amcSegHasNailboard -- test whether the segment has a nailboard
  *
- * See design.mps.poolamc.fix.nail.distinguish.
+ * See <design/poolamc/#fix.nail.distinguish>.
  */
 static Bool amcSegHasNailboard(Seg seg)
 {
@@ -274,12 +274,12 @@ static amcGen amcSegGen(Seg seg)
 
 /* AMCStruct -- pool AMC descriptor
  *
- * See design.mps.poolamc.struct.
+ * See <design/poolamc/#struct>.
  */
 
 #define AMCSig          ((Sig)0x519A3C99) /* SIGnature AMC */
 
-typedef struct AMCStruct {      /* design.mps.poolamc.struct */
+typedef struct AMCStruct {      /* <design/poolamc/#struct> */
   PoolStruct poolStruct;        /* generic pool structure */
   RankSet rankSet;              /* rankSet for entire pool */
   RingStruct genRing;           /* ring of generations */
@@ -290,9 +290,9 @@ typedef struct AMCStruct {      /* design.mps.poolamc.struct */
   amcGen nursery;               /* the default mutator generation */
   amcGen rampGen;               /* the ramp generation */
   amcGen afterRampGen;          /* the generation after rampGen */
-  unsigned rampCount;           /* design.mps.poolamc.ramp.count */
-  int rampMode;                 /* design.mps.poolamc.ramp.mode */
-  Sig sig;                      /* design.mps.pool.outer-structure.sig */
+  unsigned rampCount;           /* <design/poolamc/#ramp.count> */
+  int rampMode;                 /* <design/poolamc/#ramp.mode> */
+  Sig sig;                      /* <design/pool/#outer-structure.sig> */
 } AMCStruct;
 
 #define Pool2AMC(pool) PARENT(AMCStruct, poolStruct, (pool))
@@ -350,7 +350,7 @@ typedef struct amcBufStruct *amcBuf;
 typedef struct amcBufStruct {
   SegBufStruct segbufStruct;      /* superclass fields must come first */
   amcGen gen;                     /* The AMC generation */
-  Sig sig;                        /* design.mps.sig */
+  Sig sig;                        /* <design/sig/> */
 } amcBufStruct;
 
 
@@ -421,7 +421,7 @@ static Res AMCBufInit(Buffer buffer, Pool pool, va_list args)
     /* Set up the buffer to be allocating in the nursery. */
     amcbuf->gen = amc->nursery;
   } else {
-    amcbuf->gen = NULL; /* no gen yet -- see design.mps.poolamc.forward.gen */
+    amcbuf->gen = NULL; /* no gen yet -- see <design/poolamc/#forward.gen> */
   }
   amcbuf->sig = amcBufSig;
   AVERT(amcBuf, amcbuf);
@@ -709,7 +709,7 @@ static Bool amcNailRangeIsMarked(Seg seg, Addr base, Addr limit)
 
 /* amcInitComm -- initialize AMC/Z pool
  *
- * See design.mps.poolamc.init.
+ * See <design/poolamc/#init>.
  * Shared by AMCInit and AMCZinit.
  */
 static Res amcInitComm(Pool pool, RankSet rankSet, va_list arg)
@@ -813,7 +813,7 @@ static Res AMCZInit(Pool pool, va_list arg)
 
 /* AMCFinish -- finish AMC pool
  *
- * See design.mps.poolamc.finish.
+ * See <design/poolamc/#finish>.
  */
 static void AMCFinish(Pool pool)
 {
@@ -867,7 +867,7 @@ static void AMCFinish(Pool pool)
 
 /* AMCBufferFill -- refill an allocation buffer
  *
- * See design.mps.poolamc.fill.
+ * See <design/poolamc/#fill>.
  */
 static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
                          Pool pool, Buffer buffer, Size size,
@@ -911,7 +911,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   if (res != ResOK)
     return res;
 
-  /* design.mps.seg.field.rankSet.start */
+  /* <design/seg/#field.rankSet.start> */
   if (BufferRankSet(buffer) == RankSetEMPTY)
     SegSetRankAndSummary(seg, BufferRankSet(buffer), RefSetEMPTY);
   else
@@ -941,7 +941,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
 
 /* amcBufferEmpty -- detach a buffer from a segment
  *
- * See design.mps.poolamc.flush.
+ * See <design/poolamc/#flush>.
  */
 static void AMCBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
 {
@@ -962,7 +962,7 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
 
   arena = BufferArena(buffer);
 
-  /* design.mps.poolamc.flush.pad */
+  /* <design/poolamc/#flush.pad> */
   size = AddrOffset(init, limit);
   if (size > 0) {
     ShieldExpose(arena, seg);
@@ -1111,7 +1111,7 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
 
   amc = Pool2AMC(pool);
   AVERT(AMC, amc);
-  /* see design.mps.poolamc.gen.ramp */
+  /* see <design/poolamc/#gen.ramp> */
   /* This switching needs to be more complex for multiple traces. */
   AVER(TraceSetIsSingle(PoolArena(pool)->busyTraces));
   if (amc->rampMode == beginRamp && gen == amc->rampGen) {
@@ -1235,7 +1235,7 @@ static Res amcScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
 
 /* AMCScan -- scan a single seg, turning it black
  *
- * See design.mps.poolamc.seg-scan.
+ * See <design/poolamc/#seg-scan>.
  */
 static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 {
@@ -1263,7 +1263,7 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   EVENT_PPP(AMCScanBegin, amc, seg, ss);
 
   base = AddrAdd(SegBase(seg), format->headerSize);
-  while(SegBuffer(seg) != NULL) {  /* design.mps.poolamc.seg-scan.loop */
+  while(SegBuffer(seg) != NULL) {  /* <design/poolamc/#seg-scan.loop> */
     limit = AddrAdd(BufferScanLimit(SegBuffer(seg)), format->headerSize);
     if (base >= limit) {
       /* @@@@ Are we sure we don't need scan the rest of the segment? */
@@ -1280,7 +1280,7 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
     base = limit;
   }
 
-  /* design.mps.poolamc.seg-scan.finish @@@@ base? */
+  /* <design/poolamc/#seg-scan.finish> @@@@ base? */
   limit = AddrAdd(SegLimit(seg), format->headerSize);
   AVER(SegBase(seg) <= base
        && base <= AddrAdd(SegLimit(seg), format->headerSize));
@@ -1340,7 +1340,7 @@ static void amcFixInPlace(Pool pool, Seg seg, ScanState ss, Ref *refIO)
 
 /* AMCFixEmergency -- fix a reference, without allocating
  *
- * See design.mps.poolamc.emergency.fix.
+ * See <design/poolamc/#emergency.fix>.
  */
 static Res AMCFixEmergency(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 {
@@ -1373,7 +1373,7 @@ static Res AMCFixEmergency(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     return ResOK;
   }
 
-fixInPlace: /* see design.mps.poolamc.Nailboard.emergency */
+fixInPlace: /* see <design/poolamc/>.Nailboard.emergency */
   amcFixInPlace(pool, seg, ss, refIO);
   return ResOK;
 }
@@ -1381,7 +1381,7 @@ fixInPlace: /* see design.mps.poolamc.Nailboard.emergency */
 
 /* AMCFix -- fix a reference to the pool
  *
- * See design.mps.poolamc.fix.
+ * See <design/poolamc/#fix>.
  */
 Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 {
@@ -1400,7 +1400,7 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   RefSet toSummary;     /* summary of object's destination */
   Seg toSeg;            /* segment to which object is being relocated */
 
-  /* design.mps.trace.fix.noaver */
+  /* <design/trace/#fix.noaver> */
   AVERT_CRITICAL(Pool, pool);
   AVERT_CRITICAL(ScanState, ss);
   AVERT_CRITICAL(Seg, seg);
@@ -1498,7 +1498,7 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
       if (RefSetDiff(summary, toSummary) != RefSetEMPTY)
         SegSetSummary(toSeg, RefSetUnion(toSummary, summary));
 
-      /* design.mps.trace.fix.copy */
+      /* <design/trace/#fix.copy> */
       (void)AddrCopy(newRef, ref, length);
 
       ShieldCover(arena, toSeg);
@@ -1527,7 +1527,7 @@ returnRes:
 
 /* AMCHeaderFix -- fix a reference to the pool, with headers
  *
- * See design.mps.poolamc.header.fix.
+ * See <design/poolamc/#header.fix>.
  */
 static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 {
@@ -1547,7 +1547,7 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   RefSet toSummary;     /* summary of object's destination */
   Seg toSeg;            /* segment to which object is being relocated */
 
-  /* design.mps.trace.fix.noaver */
+  /* <design/trace/#fix.noaver> */
   AVERT_CRITICAL(Pool, pool);
   AVERT_CRITICAL(ScanState, ss);
   AVERT_CRITICAL(Seg, seg);
@@ -1647,7 +1647,7 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
       if (RefSetDiff(summary, toSummary) != RefSetEMPTY)
         SegSetSummary(toSeg, RefSetUnion(toSummary, summary));
 
-      /* design.mps.trace.fix.copy */
+      /* <design/trace/#fix.copy> */
       (void)AddrCopy(newBase, AddrSub(ref, headerSize), length);
 
       ShieldCover(arena, toSeg);
@@ -1696,7 +1696,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   arena = PoolArena(pool);
   AVERT(Arena, arena);
 
-  /* see design.mps.poolamc.nailboard.limitations for improvements */
+  /* see <design/poolamc/#nailboard.limitations> for improvements */
   headerSize = format->headerSize;
   ShieldExpose(arena, seg);
   p = AddrAdd(SegBase(seg), headerSize);
@@ -1743,7 +1743,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
 
 /* AMCReclaim -- recycle a segment if it is still white
  *
- * See design.mps.poolamc.reclaim.
+ * See <design/poolamc/#reclaim>.
  */
 static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 {
@@ -1860,7 +1860,7 @@ static void amcWalkAll(Pool pool, FormattedObjectsStepMethod f,
 
 /* AMCDescribe -- describe the contents of the AMC pool
  *
- * See design.mps.poolamc.describe.
+ * See <design/poolamc/#describe>.
  */
 static Res AMCDescribe(Pool pool, mps_lib_FILE *stream)
 {
@@ -2013,7 +2013,7 @@ void mps_amc_apply(mps_pool_t mps_pool,
 
 /* AMCCheck -- check consistency of the AMC pool
  *
- * See design.mps.poolamc.check.
+ * See <design/poolamc/#check>.
  */
 static Bool AMCCheck(AMC amc)
 {
@@ -2034,3 +2034,45 @@ static Bool AMCCheck(AMC amc)
 
   return TRUE;
 }
+
+
+/* C. COPYRIGHT AND LICENSE
+ *
+ * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * All rights reserved.  This is an open source license.  Contact
+ * Ravenbrook for commercial licensing options.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * 
+ * 3. Redistributions in any form must be accompanied by information on how
+ * to obtain complete source code for this software and any accompanying
+ * software that uses this software.  The source code must either be
+ * included in the distribution or be available for no more than the cost
+ * of distribution plus a nominal fee, and must be freely redistributable
+ * under reasonable conditions.  For an executable file, complete source
+ * code means the source code for all modules it contains. It does not
+ * include source code for modules or files that typically accompany the
+ * major components of the operating system on which the executable file
+ * runs.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */

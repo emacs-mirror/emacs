@@ -1,8 +1,0 @@
-% testset for daily builds of mmsw
-% (functional testing, expecting assertions)
-%
-
-function/142.c
-function/156.c
-function/158.c
-function/161.c

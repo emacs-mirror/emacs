@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>Finalization</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+</div>
+
+<pre>
+                              FINALIZATION
+                          design.mps.finalize
+                           incomplete design
+                             drj 1997-02-14
+
+
+OVERVIEW:
+
+Finalization is implemented internally using the Guardian Pool Class 
+(design.mps.poolmrg).  Objects can be registered for finalization using an 
+interface function (called mps_finalize).  Notification of finalization is 
+given to the client via the messaging interface.  PoolClassMRG 
+(design.mps.poolmrg) implements a Message Class which implements the 
+finalization messages.
+
+
+REQUIREMENTS:
+
+<a id="req" name="req">.req</a>: Currently only Dylan has requirements for finalization, see 
+req.dylan.fun.final.
+
+
+ARCHITECTURE:
+
+External Interface
+
+
+<a id="if.register" name="if.register">.if.register</a>:
+mps_res_t mps_finalize(mps_arena_t arena, mps_addr_t obj);
+
+increases the number of times that the object located at obj has been 
+registered for finalization by one.  The object must have been allocated from 
+the arena (space).  Any finalization messages that are created for this object 
+will appear on the arena's message queue.  The MPS will attempt to finalize the 
+object that number of times.
+
+<a id="if.deregister" name="if.deregister">.if.deregister</a>:
+void mps_definalize(mps_arena_t arena, mps_addr_t obj);
+
+mps_definalize reduces the number of times that the object located at obj has 
+been registered for finalization by one.  It is an error to definalize that has 
+not been registered for finalization.
+
+<a id="if.deregister.not" name="if.deregister.not">.if.deregister.not</a>: At the moment (1997-08-20) mps_definalize is not implemented
+
+<a id="if.get-ref" name="if.get-ref">.if.get-ref</a>:
+void mps_message_finalization_ref(mps_addr_t *mps_addr_return,
+                                  mps_arena_t mps_arena,
+                                  mps_message_t mps_message)
+
+
+mps_message_finalization_ref returns the reference to the finalized object 
+stored in the finalization message.
+
+
+IMPLEMENTATION:
+
+<a id="int.over" name="int.over">.int.over</a>: Registering an object for finalization corresponds to allocating a 
+reference of rank FINAL to that object.  This reference is allocated in a 
+guardian object in a pool of PoolClassMRG (see design.mps.poolmrg).
+
+<a id="int.arena.struct" name="int.arena.struct">.int.arena.struct</a>: The MRG pool used for managing final references is kept in 
+the Arena (Space), referred to as the "final pool".  <a id="int.arena.lazy" name="int.arena.lazy">.int.arena.lazy</a>: The pool 
+is lazily created, it will not be created until the first object is registered 
+for finalization.  <a id="int.arena.flag" name="int.arena.flag">.int.arena.flag</a>: There is a flag in the Arena that indicates 
+whether the final pool has been created yet or not.
+
+<a id="int.finalize" name="int.finalize">.int.finalize</a>:
+
+Res ArenaFinalize(Arena arena, Ref addr)
+
+<a id="int.finalize.create" name="int.finalize.create">.int.finalize.create</a>: Creates the final pool if it has not been created yet.  
+<a id="int.finalize.alloc" name="int.finalize.alloc">.int.finalize.alloc</a>: Allocates a guardian in the final pool.  
+<a id="int.finalize.write" name="int.finalize.write">.int.finalize.write</a>: Writes a reference to the object into the guardian 
+object.  <a id="int.finalize.all" name="int.finalize.all">.int.finalize.all</a>: That's all.  <a id="int.finalize.error" name="int.finalize.error">.int.finalize.error</a>: if either the 
+creation of the pool or the allocation of the object fails then the error will 
+be reported back to the caller.  <a id="int.finalize.error.no-unwind" name="int.finalize.error.no-unwind">.int.finalize.error.no-unwind</a>: This function 
+does not need to do any unwinding in the error cases because the creation of 
+the pool is not something that needs to be undone.
+
+<a id="int.arena-destroy.empty" name="int.arena-destroy.empty">.int.arena-destroy.empty</a>: ArenaDestroy empties the message queue by calling 
+MessageEmpty.
+
+<a id="int.arena-destroy.final-pool" name="int.arena-destroy.final-pool">.int.arena-destroy.final-pool</a>: If the final pool has been created then 
+ArenaDestroy destroys the final pool.
+
+<a id="access" name="access">.access</a>: mps_message_finalization_ref needs to access the finalization message 
+to retrieve the reference and then write it to where the client asks.  This 
+must be done carefully, in order to avoid breaking the invariants or creating a 
+hidden root.
+
+<a id="access.invariants" name="access.invariants">.access.invariants</a>: We protect the invariants by using special routines 
+ArenaRead and ArenaPoke to read and write the reference.  This works as long as 
+there's no write-barrier collection.  [Instead of ArenaPoke, we could put in an 
+ArenaWrite that would be identical to ArenaPoke, except for AVERring the 
+invariant (or it can just AVER there are no busy traces unflipped).  When we 
+get write-barrier collection, we could change it to do the real thing, but in 
+the absence of a write-barrier, it's functionally identical to ArenaPoke.  
+Pekka 1997-12-09]
+
+</pre>
+
+
+<h2><a id="section-A" name="section-A">A. References</a></h2>
+
+<!-- Template Entry
+
+<table>
+
+<tr valign="top">
+
+  <td>[<a id="ref-#REF#" name="ref-#REF#" href="#REF_URL#">#REF_NAME#</a>]</td>
+
+  <td>
+    "#REF_TITLE#";
+    #REF_AUTHOR#;
+    &lt;URL: <a href="#REF_URL#">#REF_URL#</a>&gt;;
+    #REF_DATE#.
+  </td>
+
+</tr>
+
+</table>
+
+-->
+
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<table>
+
+<tr valign="top">
+
+  <td>2002-06-07</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td>Converted from MMInfo database design document.</td>
+
+</tr>
+
+</table>
+
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 1995-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div align="center">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+</div>
+
+</body>
+
+</html>

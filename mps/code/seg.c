@@ -1,9 +1,9 @@
-/* impl.c.seg: SEGMENTS
+/* seg.c: SEGMENTS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- * .design: The design for this module is design.mps.seg.
+ * .design: The design for this module is <design/seg/>.
  *
  * PURPOSE
  *
@@ -21,7 +21,7 @@
  *
  * .check.shield: The "pm", "sm", and "depth" fields are not checked by
  * SegCheck, because I haven't spent time working out the invariants.
- * We should certainly work them out, by studying impl.c.shield, and
+ * We should certainly work them out, by studying <code/shield.c>, and
  * assert things about shielding, protection, shield cache consistency,
  * etc.  richard 1997-04-03
  */
@@ -169,7 +169,7 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
   seg->sig = SegSig;  /* set sig now so tract checks will see it */
 
   TRACT_FOR(tract, addr, arena, base, limit) {
-    AVER(TractCheck(tract));  /* design.mps.check.type.no-sig */
+    AVER(TractCheck(tract));  /* <design/check/#type.no-sig> */
     AVER(TractP(tract) == NULL);
     AVER(!TractHasSeg(tract));
     AVER(TractPool(tract) == pool);
@@ -197,7 +197,7 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
 failInit:
   RingFinish(SegPoolRing(seg));
   TRACT_FOR(tract, addr, arena, base, limit) {
-    AVER(TractCheck(tract));  /* design.mps.check.type.no-sig */
+    AVER(TractCheck(tract));  /* <design/check/#type.no-sig> */
     TRACT_UNSET_SEG(tract);
   }
   seg->sig = SigInvalid;
@@ -228,13 +228,13 @@ static void SegFinish(Seg seg)
 
   seg->rankSet = RankSetEMPTY;
 
-  /* See impl.c.shield.shield.flush */
+  /* See <code/shield.c#shield.flush> */
   ShieldFlush(PoolArena(SegPool(seg)));
 
   base = SegBase(seg);
   limit = SegLimit(seg);
   TRACT_TRACT_FOR(tract, addr, arena, seg->firstTract, limit) {
-    AVER(TractCheck(tract));  /* design.mps.check.type.no-sig */
+    AVER(TractCheck(tract));  /* <design/check/#type.no-sig> */
     TractSetWhite(tract, TraceSetEMPTY);
     TRACT_UNSET_SEG(tract);
   }
@@ -246,7 +246,7 @@ static void SegFinish(Seg seg)
   seg->sig = SigInvalid;
 
   /* Check that the segment is not exposed, or in the shield */
-  /* cache (see impl.c.shield.def.depth). */
+  /* cache (see <code/shield.c#def.depth>). */
   AVER(seg->depth == 0);
   /* Check not shielded or protected (so that pages in hysteresis */
   /* fund are not protected) */
@@ -491,7 +491,7 @@ Bool SegNext(Seg *segReturn, Arena arena, Addr addr)
 
 /* SegMerge -- Merge two adjacent segments
  *
- * See design.mps.seg.merge
+ * See <design/seg/#merge>
  */
 
 Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi,
@@ -516,7 +516,7 @@ Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi,
   AVER(BoolCheck(withReservoirPermit));
   arena = PoolArena(SegPool(segLo));
 
-  ShieldFlush(arena);  /* see design.mps.seg.split-merge.shield */
+  ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
 
   /* Invoke class-specific methods to do the merge */
   va_start(args, withReservoirPermit);
@@ -543,7 +543,7 @@ failMerge:
 /* SegSplit -- Split a segment
  *
  * The segment is split at the indicated position.
- * See design.mps.seg.split
+ * See <design/seg/#split>
  */
 
 Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
@@ -569,7 +569,7 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
   AVER(at < limit);
   AVER(BoolCheck(withReservoirPermit));
 
-  ShieldFlush(arena);  /* see design.mps.seg.split-merge.shield */
+  ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
 
   /* Allocate the new segment object from the control pool */
   res = ControlAlloc((void **)&segNew, arena, class->size,
@@ -625,7 +625,7 @@ Bool SegCheck(Seg seg)
   /* can't assume nailed is subset of white - mightn't be during whiten */
   /* CHECKL(TraceSetSub(seg->nailed, seg->white)); */
   CHECKL(TraceSetCheck(seg->grey));
-  CHECKL(TractCheck(seg->firstTract));  /* design.mps.check.type.no-sig */
+  CHECKL(TractCheck(seg->firstTract));  /* <design/check/#type.no-sig> */
   pool = SegPool(seg);
   CHECKU(Pool, pool);
   arena = PoolArena(pool);
@@ -640,7 +640,7 @@ Bool SegCheck(Seg seg)
     Seg trseg = NULL; /* suppress compiler warning */
 
     UNUSED(trseg); /* @@@@ unused in hot varieties */
-    CHECKL(TractCheck(tract));  /* design.mps.check.type.no-sig */
+    CHECKL(TractCheck(tract));  /* <design/check/#type.no-sig> */
     CHECKL(TRACT_SEG(&trseg, tract) && (trseg == seg));
     CHECKL(TractWhite(tract) == seg->white);
     CHECKL(TractPool(tract) == pool);
@@ -657,13 +657,13 @@ Bool SegCheck(Seg seg)
   /* "pm", "sm", and "depth" not checked.  See .check.shield. */
   CHECKL(RankSetCheck(seg->rankSet));
   if (seg->rankSet == RankSetEMPTY) {
-    /* design.mps.seg.field.rankSet.empty: If there are no refs */
+    /* <design/seg/#field.rankSet.empty>: If there are no refs */
     /* in the segment then it cannot contain black or grey refs. */
     CHECKL(seg->grey == TraceSetEMPTY);
     CHECKL(seg->sm == AccessSetEMPTY);
     CHECKL(seg->pm == AccessSetEMPTY);
   } else {
-    /* design.mps.seg.field.rankSet.single: The Tracer only permits */
+    /* <design/seg/#field.rankSet.single>: The Tracer only permits */
     /* one rank per segment [ref?] so this field is either empty or a */
     /* singleton. */
     CHECKL(RankSetIsSingle(seg->rankSet));
@@ -807,7 +807,7 @@ static Res segNoMerge(Seg seg, Seg segHi,
 /* segTrivMerge -- Basic Seg merge method
  *
  * .similar: Segments must be "sufficiently similar".
- * See design.mps.seg.merge.inv.similar
+ * See <design/seg/#merge.inv.similar>
  */
 
 static Res segTrivMerge(Seg seg, Seg segHi,
@@ -846,14 +846,14 @@ static Res segTrivMerge(Seg seg, Seg segHi,
   AVER(seg->sm == segHi->sm);
   AVER(seg->depth == segHi->depth);
   /* Neither segment may be exposed, or in the shield cache */
-  /* See design.mps.seg.split-merge.shield & impl.c.shield.def.depth */
+  /* See <design/seg/#split-merge.shield> & <code/shield.c#def.depth> */
   AVER(seg->depth == 0);
 
   /* no need to update fields which match. See .similar */
 
   seg->limit = limit;
   TRACT_FOR(tract, addr, arena, mid, limit) {
-    AVER(TractCheck(tract));  /* design.mps.check.type.no-sig */
+    AVER(TractCheck(tract));  /* <design/check/#type.no-sig> */
     AVER(TractHasSeg(tract));
     AVER(segHi == TractP(tract));
     AVER(TractPool(tract) == pool);
@@ -919,7 +919,7 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   UNUSED(args);
 
   /* Segment may not be exposed, or in the shield cache */
-  /* See design.mps.seg.split-merge.shield & impl.c.shield.def.depth */
+  /* See <design/seg/#split-merge.shield> & <code/shield.c#def.depth> */
   AVER(seg->depth == 0);
  
   /* Full initialization for segHi. Just modify seg. */
@@ -938,7 +938,7 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   RingInit(SegPoolRing(segHi));
 
   TRACT_FOR(tract, addr, arena, mid, limit) {
-    AVER(TractCheck(tract));  /* design.mps.check.type.no-sig */
+    AVER(TractCheck(tract));  /* <design/check/#type.no-sig> */
     AVER(TractHasSeg(tract));
     AVER(seg == TractP(tract));
     AVER(TractPool(tract) == pool);
@@ -1032,7 +1032,7 @@ Bool GCSegCheck(GCSeg gcseg)
 
   if (gcseg->buffer != NULL) {
     CHECKU(Buffer, gcseg->buffer);
-    /* design.mps.seg.field.buffer.owner */
+    /* <design/seg/#field.buffer.owner> */
     CHECKL(BufferPool(gcseg->buffer) == SegPool(seg));
     CHECKL(BufferRankSet(gcseg->buffer) == SegRankSet(seg));
   }
@@ -1043,7 +1043,7 @@ Bool GCSegCheck(GCSeg gcseg)
          RingIsSingle(&gcseg->greyRing));
 
   if (seg->rankSet == RankSetEMPTY) {
-    /* design.mps.seg.field.rankSet.empty */
+    /* <design/seg/#field.rankSet.empty> */
     CHECKL(gcseg->summary == RefSetEMPTY);
   }
 
@@ -1244,7 +1244,7 @@ static void gcSegSetWhite(Seg seg, TraceSet white)
     Seg trseg = NULL; /* suppress compiler warning */
 
     UNUSED(trseg); /* @@@@ unused in hot varieties */
-    AVER_CRITICAL(TractCheck(tract));  /* design.mps.check.type.no-sig */
+    AVER_CRITICAL(TractCheck(tract));  /* <design/check/#type.no-sig> */
     AVER_CRITICAL(TRACT_SEG(&trseg, tract) && (trseg == seg));
     TractSetWhite(tract, white);
   }
@@ -1406,7 +1406,7 @@ static void gcSegSetBuffer(Seg seg, Buffer buffer)
 /* gcSegMerge -- GCSeg merge method
  *
  * .buffer: Can't merge two segments both with buffers.
- * See design.mps.seg.merge.inv.buffer.
+ * See <design/seg/#merge.inv.buffer>.
  */
 
 static Res gcSegMerge(Seg seg, Seg segHi,
@@ -1450,7 +1450,7 @@ static Res gcSegMerge(Seg seg, Seg segHi,
   summary = RefSetUnion(gcseg->summary, gcsegHi->summary);
   if (summary != gcseg->summary) {
     gcSegSetSummary(seg, summary);
-    /* design.mps.seg.split-merge.shield.re-flush */
+    /* <design/seg/#split-merge.shield.re-flush> */
     ShieldFlush(PoolArena(SegPool(seg)));
   }
 
@@ -1651,3 +1651,45 @@ void SegClassMixInNoSplitMerge(SegClass class)
   class->merge = segNoMerge;
   class->split = segNoSplit;
 }
+
+
+/* C. COPYRIGHT AND LICENSE
+ *
+ * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * All rights reserved.  This is an open source license.  Contact
+ * Ravenbrook for commercial licensing options.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * 
+ * 3. Redistributions in any form must be accompanied by information on how
+ * to obtain complete source code for this software and any accompanying
+ * software that uses this software.  The source code must either be
+ * included in the distribution or be available for no more than the cost
+ * of distribution plus a nominal fee, and must be freely redistributable
+ * under reasonable conditions.  For an executable file, complete source
+ * code means the source code for all modules it contains. It does not
+ * include source code for modules or files that typically accompany the
+ * major components of the operating system on which the executable file
+ * runs.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
