@@ -1280,8 +1280,8 @@ the frame has already been deiconified, Emacs has no work to do.
 The purpose of this event type is so that you can keep track of such
 events if you want to.
 
-@cindex @code{deiconify-frame} event
-@item (deiconify-frame (@var{frame}))
+@cindex @code{make-frame-visible} event
+@item (make-frame-visible (@var{frame}))
 This kind of event indicates that the user deiconified @var{frame} using
 the window manager.  Its standard definition is @code{ignore}; since the
 frame has already been iconified, Emacs has no work to do.
