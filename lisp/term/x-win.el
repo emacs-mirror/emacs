@@ -63,6 +63,7 @@
 	 
 (require 'frame)
 (require 'mouse)
+(require 'scrollbar)
 
 (setq command-switch-alist
       (append '(("-bw" .	x-handle-numeric-switch)
