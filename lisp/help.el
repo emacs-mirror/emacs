@@ -874,7 +874,7 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
      (setq val (completing-read (if fn
 				    (format "Where is command (default %s): " fn)
 				  "Where is command: ")
-				obarray 'fboundp t))
+				obarray 'commandp t))
      (list (if (equal val "")
 	       fn (intern val))
 	   current-prefix-arg)))
