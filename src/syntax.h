@@ -49,9 +49,9 @@ enum syntaxcode
     Sendcomment, /* for a comment-ending character */
     Sinherit,    /* use the standard syntax table for this character */
     Scomment_fence, /* Starts/ends comment which is delimited on the
-		       other side by a char with the same syntaxcode.  */
+		       other side by any char with the same syntaxcode.  */
     Sstring_fence,  /* Starts/ends string which is delimited on the
-		       other side by a char with the same syntaxcode.  */
+		       other side by any char with the same syntaxcode.  */
     Smax	 /* Upper bound on codes that are meaningful */
   };
 
