@@ -954,9 +954,19 @@ Automatic uncompression is also disabled."
   (interactive "FFind file literally: ")
   (let ((coding-system-for-read 'no-conversion)
 	(coding-system-for-write 'no-conversion)
+	(auto-mode-alist (copy-sequence auto-mode-alist))
 	(jka-compr-compression-info-list nil)
 	(format-alist nil)
-	(after-insert-file-functions nil))
+	(after-insert-file-functions nil)
+	tail)
+    ;; Turn off use of tar-mode and archive-mode
+    ;; for this one file.  (We copied auto-mode-alist above
+    ;; so as not to alter it permanently.)
+    (setq tail auto-mode-alist)
+    (while tail
+      (if (memq (cdr (car tail)) '(tar-mode archive-mode))
+	  (setq auto-mode-alist (delq (car tail) auto-mode-alist)))
+      (setq tail (cdr tail)))
     (prog1
 	(find-file filename)
       (setq enable-multibyte-characters nil))))
