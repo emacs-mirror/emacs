@@ -265,26 +265,23 @@ xm_arm_callback (w, client_data, call_data)
   widget_value *wv = (widget_value *) client_data;
   widget_instance *instance;
 
-  /* During the pretest of 21.1, there was a case where this callback
-     was called with a null widget on hpux 10.2.  I think that's
-     likely a bug in the Motif lib there.  */
-  if (w != None)
+  /* Get the id of the menu bar or popup menu this widget is in.  */
+  while (w != None)
     {
-      /* Get the id of the menu bar or popup menu this widget is in.  */
-      while (1)
+      if (XmIsRowColumn (w))
 	{
-	  if (XmIsRowColumn (w))
-	    {
-	      unsigned char type = 0xff;
+	  unsigned char type = 0xff;
 
-	      XtVaGetValues (w, XmNrowColumnType, &type, NULL);
-	      if (type == XmMENU_BAR || type == XmMENU_POPUP)
-		break;
-	    }
-
-	  w = XtParent (w);
+	  XtVaGetValues (w, XmNrowColumnType, &type, NULL);
+	  if (type == XmMENU_BAR || type == XmMENU_POPUP)
+	    break;
 	}
 
+      w = XtParent (w);
+    }
+
+  if (w != None)
+    {
       instance = lw_get_widget_instance (w);
       if (instance && instance->info->highlight_cb)
 	{
