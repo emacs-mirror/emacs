@@ -3519,14 +3519,6 @@ read_key_sequence (keybuf, bufsize, prompt)
   if (NILP (Fkeymapp (Vfunction_key_map)))
     fkey_start = fkey_end = bufsize + 1;
 
-  /* We need to save the current buffer in case we switch buffers to
-     find the right binding for a mouse click.  Note that we can't use
-     save_excursion_{save,restore} here, because they save point as
-     well as the current buffer; we don't want to save point, because
-     redisplay may change it, to accomodate a Fset_window_start or
-     something.  */
-  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
-			 
   last_nonmenu_event = Qnil;
 
   if (INTERACTIVE)
@@ -3697,6 +3689,18 @@ read_key_sequence (keybuf, bufsize, prompt)
 			  mock_input = t + 1;
 			}
 
+		      /* Arrange to go back to the original buffer once we're
+			 done reading the key sequence.  Note that we can't
+			 use save_excursion_{save,restore} here, because they
+			 save point as well as the current buffer; we don't
+			 want to save point, because redisplay may change it,
+			 to accomodate a Fset_window_start or something.  We
+			 don't want to do this at the top of the function,
+			 because we may get input from a subprocess which
+			 wants to change the selected window and stuff (say,
+			 emacsclient).  */
+		      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+			 
 		      set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
 		      goto replay_sequence;
 		    }
