@@ -1,9 +1,9 @@
 ;;; eudcb-ldap.el --- Emacs Unified Directory Client - LDAP Backend
 
-;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2002 Free Software Foundation, Inc.
 
-;; Author: Oscar Figueiredo <oscar@xemacs.org>
-;; Maintainer: Oscar Figueiredo <oscar@xemacs.org>
+;; Author: Oscar Figueiredo <oscar@cpe.fr>
+;; Maintainer: Pavel Janík <Pavel@Janik.cz>
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
@@ -68,6 +68,7 @@
 		     ("labeledurl" . eudc-display-url)
 		     ("audio" . eudc-display-sound)
 		     ("labeleduri" . eudc-display-url)
+		     ("mail" . eudc-display-mail)
 		     ("url" . eudc-display-url))
 		   'ldap)
 (eudc-protocol-set 'eudc-switch-to-server-hook
