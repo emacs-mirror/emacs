@@ -338,7 +338,7 @@ With argument, insert value in current buffer after the defun."
   (if (looking-at "\\s<\\s<\\s<")
       (current-column)
     (if (looking-at "\\s<\\s<")
-	(let ((tem (calculate-lisp-indent)))
+	(let ((tem (or (calculate-lisp-indent) (current-column))))
 	  (if (listp tem) (car tem) tem))
       (skip-chars-backward " \t")
       (max (if (bolp) 0 (1+ (current-column)))
@@ -357,8 +357,9 @@ rigidly along with this one."
     (beginning-of-line)
     (setq beg (point))
     (skip-chars-forward " \t")
-    (if (looking-at "\\s<\\s<\\s<")
-	;; Don't alter indentation of a ;;; comment line.
+    (if (or (null indent) (looking-at "\\s<\\s<\\s<"))
+	;; Don't alter indentation of a ;;; comment line
+	;; or a line that starts in a string.
 	(goto-char (- (point-max) pos))
       (if (and (looking-at "\\s<") (not (looking-at "\\s<\\s<")))
 	  ;; Single-semicolon comment lines should be indented
@@ -391,11 +392,14 @@ rigidly along with this one."
 (defun calculate-lisp-indent (&optional parse-start)
   "Return appropriate indentation for current line as Lisp code.
 In usual case returns an integer: the column to indent to.
-Can instead return a list, whose car is the column to indent to.
+If the value is nil, that means don't change the indentation
+because the line starts inside a string.
+
+The value can also be a list of the form (COLUMN CONTAINING-SEXP-START).
 This means that following lines at the same level of indentation
-should not necessarily be indented the same way.
-The second element of the list is the buffer position
-of the start of the containing expression."
+should not necessarily be indented the same as this line.
+Then COLUMN is the column to indent to, and CONTAINING-SEXP-START
+is the buffer position of the start of the containing expression."
   (save-excursion
     (beginning-of-line)
     (let ((indent-point (point))
@@ -470,9 +474,7 @@ of the start of the containing expression."
       (let ((normal-indent (current-column)))
         (cond ((elt state 3)
                ;; Inside a string, don't change indentation.
-               (goto-char indent-point)
-               (skip-chars-forward " \t")
-               (current-column))
+	       nil)
               ((and (integerp lisp-indent-offset) containing-sexp)
                ;; Indent by constant offset
                (goto-char containing-sexp)
@@ -692,12 +694,14 @@ ENDPOS is encountered."
 	      (let ((val (calculate-lisp-indent
 			  (if (car indent-stack) (- (car indent-stack))
 			    starting-point))))
-		(if (integerp val)
-		    (setcar indent-stack
-			    (setq this-indent val))
-		  (setcar indent-stack (- (car (cdr val))))
-		  (setq this-indent (car val)))))
-	    (if (/= (current-column) this-indent)
+		(if (null val)
+		    (setq this-indent val)
+		  (if (integerp val)
+		      (setcar indent-stack
+			      (setq this-indent val))
+		    (setcar indent-stack (- (car (cdr val))))
+		    (setq this-indent (car val))))))
+	    (if (and this-indent (/= (current-column) this-indent))
 		(progn (delete-region bol (point))
 		       (indent-to this-indent)))))
 	(or outer-loop-done
