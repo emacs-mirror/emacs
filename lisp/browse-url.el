@@ -262,16 +262,14 @@ regexp should probably be \".\" to specify a default browser."
   :group 'browse-url)
 
 (defcustom browse-url-netscape-program "netscape"
-  ;; Info about netscape-remote from Kurt Swanson in gnu.emacs.gnus
+  ;; Info about netscape-remote from Karl Berry.
   "The name by which to invoke Netscape.
 
-It is said that source is available for a program `netscape-remote'
-which starts up very much quicker than `netscape' and that it is
-useful to set this variable to the name of a script which invokes that
-program like:
- #!/bin/sh
- /usr/local/bin/netscape-remote \"$@\" > /dev/null 2>&1
-"
+The free program `netscape-remote' from
+<URL:http://home.netscape.com/newsref/std/remote.c> is said to start
+up very much quicker than `netscape'.  Reported to compile on a GNU
+system, given vroot.h from the same directory, with cc flags
+ -DSTANDALONE -L/usr/X11R6/lib -lXmu -lX11."
   :type 'string
   :group 'browse-url)
 
