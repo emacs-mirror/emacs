@@ -113,6 +113,9 @@ srcdir=@srcdir@
 # Tell make where to find source files; this is needed for the makefiles.
 VPATH=@srcdir@
 
+# Where to find the application default.
+x_default_search_path=@x_default_search_path@
+
 # ==================== Emacs-specific directories ====================
 
 # These variables hold the values Emacs will actually use.  They are
@@ -204,6 +207,7 @@ removenullpaths=sed -e 's/^://g' -e 's/:$$//g' -e 's/::/:/g'
 paths-force: FRC
 	@(lisppath=`echo ${lisppath} | ${removenullpaths}` ;		\
 	  buildlisppath=`echo ${buildlisppath} | ${removenullpaths}` ;	\
+	  x_default_search_path=`echo ${x_default_search_path}`; \
 	  sed < ${srcdir}/src/paths.in > paths.h.$$$$		\
 	  -e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "'$${lisppath}'";'	\
 	  -e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "'$${buildlisppath}'";' \
@@ -211,6 +215,7 @@ paths-force: FRC
 	  -e 's;\(#.*PATH_INFO\).*$$;\1 "${infodir}";'			\
 	  -e 's;\(#.*PATH_DATA\).*$$;\1 "${etcdir}";'			\
 	  -e 's;\(#.*PATH_BITMAPS\).*$$;\1 "${bitmapdir}";'		\
+	  -e 's;\(#.*PATH_X_DEFAULTS\).*$$;\1 "${x_default_search_path}";' \
 	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";') &&		\
 	${srcdir}/move-if-change paths.h.$$$$ src/paths.h
 
