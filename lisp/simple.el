@@ -2832,22 +2832,25 @@ Go to the window from which completion was requested."
 WIth prefix argument N, move N items (negative N means move backward)."
   (interactive "p")
   (while (and (> n 0) (not (eobp)))
-    (let ((prop (get-text-property (point) 'mouse-face)))
+    (let ((prop (get-text-property (point) 'mouse-face))
+	  (end (point-max)))
       ;; If in a completion, move to the end of it.
       (if prop
-	  (goto-char (next-single-property-change (point) 'mouse-face)))
+	  (goto-char (next-single-property-change (point) 'mouse-face nil end)))
       ;; Move to start of next one.
-      (goto-char (next-single-property-change (point) 'mouse-face)))
+      (goto-char (next-single-property-change (point) 'mouse-face nil end)))
     (setq n (1- n)))
   (while (and (< n 0) (not (bobp)))
-    (let ((prop (get-text-property (1- (point)) 'mouse-face)))
+    (let ((prop (get-text-property (1- (point)) 'mouse-face))
+	  (end (point-min)))
       ;; If in a completion, move to the start of it.
       (if prop
-	  (goto-char (previous-single-property-change (point) 'mouse-face)))
+	  (goto-char (previous-single-property-change
+		      (point) 'mouse-face nil end)))
       ;; Move to end of the previous completion.
-      (goto-char (previous-single-property-change (point) 'mouse-face))
+      (goto-char (previous-single-property-change (point) 'mouse-face nil end))
       ;; Move to the start of that one.
-      (goto-char (previous-single-property-change (point) 'mouse-face)))
+      (goto-char (previous-single-property-change (point) 'mouse-face nil end)))
     (setq n (1+ n))))
 
 (defun choose-completion ()
