@@ -7435,7 +7435,7 @@ update_menu_bar (f, save_match_data)
   window = FRAME_SELECTED_WINDOW (f);
   w = XWINDOW (window);
   
-#if 0 /* The if statment below this if statement used to include the
+#if 0 /* The if statement below this if statement used to include the
          condition !NILP (w->update_mode_line), rather than using
          update_mode_lines directly, and this if statement may have
          been added to make that condition work.  Now the if
