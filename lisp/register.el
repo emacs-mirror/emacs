@@ -74,19 +74,21 @@ Argument is a character, naming the register."
   (set-register char (current-frame-configuration)))
 
 (defalias 'register-to-point 'jump-to-register)
-(defun jump-to-register (char)
+(defun jump-to-register (char &optional nodelete)
   "Move point to location stored in a register.
 If the register contains a file name, find that file.
  \(To put a file name in a register, you must use `set-register'.)
 If the register contains a window configuration (one frame) or a frame
 configuration (all frames), restore that frame or all frames accordingly.
-Argument is a character, naming the register."
-  (interactive "cJump to register: ")
+First argument is a character, naming the register.
+Optional second arg non-nil (interactively, prefix argument) says not to
+delete any existing frames when restoring a frame configuration."
+  (interactive "cJump to register: \nP")
   (let ((val (get-register char)))
     (cond
      ((and (fboundp 'frame-configuration-p)
 	   (frame-configuration-p val))
-      (set-frame-configuration val))
+      (set-frame-configuration val nodelete))
      ((window-configuration-p val)
       (set-window-configuration val))
      ((markerp val)
