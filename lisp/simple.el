@@ -1331,10 +1331,13 @@ specifies the value of ERROR-BUFFER."
 						  command)))
 	      ;; Clear the output buffer, then run the command with
 	      ;; output there.
-	      (save-excursion
-		(set-buffer buffer)
-		(setq buffer-read-only nil)
-		(erase-buffer))
+	      (let ((directory default-directory))
+		(save-excursion
+		  (set-buffer buffer)
+		  (setq buffer-read-only nil)
+		  (if (not output-buffer)
+		      (setq default-directory directory))
+		  (erase-buffer)))
 	      (setq exit-status
 		    (call-process-region start end shell-file-name nil
 					 (if error-file
