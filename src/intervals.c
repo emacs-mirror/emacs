@@ -1644,20 +1644,24 @@ set_point (position, buffer)
       return;
     }
 
-  /* If the new position is between two intangible characters,
-     move forward or backward across all such characters.  */
+  /* If the new position is between two intangible characters
+     with the same intangible property value,
+     move forward or backward until a change in that property.  */
   if (NILP (Vinhibit_point_motion_hooks) && ! NULL_INTERVAL_P (to)
       && ! NULL_INTERVAL_P (toprev))
     {
       if (backwards)
 	{
-	  /* Make sure the following character is intangible
-	     if the previous one is.  */
-	  if (toprev == to
-	      || ! NILP (textget (to->plist, Qintangible)))
-	    /* Ok, that is so.  Back up across intangible text.  */
-	    while (! NULL_INTERVAL_P (toprev)
-		   && ! NILP (textget (toprev->plist, Qintangible)))
+	  Lisp_Object intangible_propval;
+	  intangible_propval = textget (to->plist, Qintangible);
+
+	  /* If following char is intangible,
+	     skip back over all chars with matching intangible property.  */
+	  if (! NILP (intangible_propval))
+	    while (to == toprev
+		   || ((! NULL_INTERVAL_P (toprev)
+			&& EQ (textget (toprev->plist, Qintangible),
+			       intangible_propval))))
 	      {
 		to = toprev;
 		toprev = previous_interval (toprev);
@@ -1673,13 +1677,16 @@ set_point (position, buffer)
 	}
       else
 	{
-	  /* Make sure the previous character is intangible
-	     if the following one is.  */
-	  if (toprev == to
-	      || ! NILP (textget (toprev->plist, Qintangible)))
-	    /* Ok, that is so.  Advance across intangible text.  */
-	    while (! NULL_INTERVAL_P (to)
-		   && ! NILP (textget (to->plist, Qintangible)))
+	  Lisp_Object intangible_propval;
+	  intangible_propval = textget (toprev->plist, Qintangible);
+
+	  /* If previous char is intangible,
+	     skip fwd over all chars with matching intangible property.  */
+	  if (! NILP (intangible_propval))
+	    while (to == toprev
+		   || ((! NULL_INTERVAL_P (to)
+			&& EQ (textget (to->plist, Qintangible),
+			       intangible_propval))))
 	      {
 		toprev = to;
 		to = next_interval (to);
@@ -1689,10 +1696,11 @@ set_point (position, buffer)
 		  position = to->position;
 	      }
 	}
-      /* Here TO is the interval after the stopping point
-	 and TOPREV is the interval before the stopping point.
-	 One or the other may be null.  */
     }
+
+  /* Here TO is the interval after the stopping point
+     and TOPREV is the interval before the stopping point.
+     One or the other may be null.  */
 
   BUF_PT (buffer) = position;
 
