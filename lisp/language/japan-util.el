@@ -49,8 +49,6 @@
   (setq default-input-method "japanese")
   (setq-default default-input-method "japanese")
 
-  (setq sendmail-coding-system 'iso-2022-jp
-	rmail-file-coding-system 'iso-2022-jp)
   )
 
 (defconst japanese-kana-table
