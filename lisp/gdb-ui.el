@@ -313,12 +313,9 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
 (gdb-set-buffer-rules 'gdba 'error)
 
 ;;
-;; partial-output buffers
-;;
-;; These accumulate output from a command executed on
+;; Partial-output buffer : This accumulates output from a command executed on
 ;; behalf of emacs (rather than the user).
 ;;
-
 (gdb-set-buffer-rules 'gdb-partial-output-buffer
 		      'gdb-partial-output-name)
 
@@ -535,34 +532,6 @@ This filter may simply queue output for a later time."
   ;;update with new frame for machine code if necessary
   (gdb-invalidate-assembler))
 
-(defun gdb-prompt (ignored)
-  "An annotation handler for `prompt'. 
-This sends the next command (if any) to gdb."
-  (let ((sink (gdb-get-output-sink)))
-    (cond
-     ((eq sink 'user) t)
-     ((eq sink 'post-emacs)
-      (gdb-set-output-sink 'user))
-     (t
-      (gdb-set-output-sink 'user)
-      (error "Phase error in gdb-prompt (got %s)" sink))))
-  (let ((highest (gdb-dequeue-input)))
-    (if highest
-	(gdb-send-item highest)
-      (let ((lowest (gdb-dequeue-idle-input)))
-	(if lowest
-	    (gdb-send-item lowest)
-	  (progn
-	    (gdb-set-prompting t)
-	    (gud-display-frame)))))))
-
-(defun gdb-subprompt (ignored)
-  "An annotation handler for non-top-level prompts."
-  (let ((highest (gdb-dequeue-input)))
-    (if highest
-	(gdb-send-item highest)
-      (gdb-set-prompting t))))
-
 (defun gdb-send-item (item)
   (gdb-set-current-item item)
   (if (stringp item)
@@ -593,6 +562,34 @@ output from a previous command if that happens to be in effect."
       (gdb-set-output-sink 'user)
       (error "Output sink phase error 1")))))
 
+(defun gdb-prompt (ignored)
+  "An annotation handler for `prompt'. 
+This sends the next command (if any) to gdb."
+  (let ((sink (gdb-get-output-sink)))
+    (cond
+     ((eq sink 'user) t)
+     ((eq sink 'post-emacs)
+      (gdb-set-output-sink 'user))
+     (t
+      (gdb-set-output-sink 'user)
+      (error "Phase error in gdb-prompt (got %s)" sink))))
+  (let ((highest (gdb-dequeue-input)))
+    (if highest
+	(gdb-send-item highest)
+      (let ((lowest (gdb-dequeue-idle-input)))
+	(if lowest
+	    (gdb-send-item lowest)
+	  (progn
+	    (gdb-set-prompting t)
+	    (gud-display-frame)))))))
+
+(defun gdb-subprompt (ignored)
+  "An annotation handler for non-top-level prompts."
+  (let ((highest (gdb-dequeue-input)))
+    (if highest
+	(gdb-send-item highest)
+      (gdb-set-prompting t))))
+
 (defun gdb-starting (ignored)
   "An annotation handler for `starting'.  This says that I/O for the
 subprocess is now the program being debugged, not GDB."
@@ -613,6 +610,15 @@ for the subprocess is now GDB, not the program being debugged."
       (gdb-set-output-sink 'user))
      (t (error "Unexpected stopping annotation")))))
 
+(defun gdb-frame-begin (ignored)
+  (let ((sink (gdb-get-output-sink)))
+    (cond
+     ((eq sink 'inferior)
+      (gdb-set-output-sink 'user))
+     ((eq sink 'user) t)
+     ((eq sink 'emacs) t)
+     (t (error "Unexpected frame-begin annotation (%S)" sink)))))
+
 (defun gdb-stopped (ignored)
   "An annotation handler for `stopped'.  It is just like gdb-stopping, except
 that if we already set the output sink to 'user in gdb-stopping, that is fine."
@@ -624,20 +630,12 @@ that if we already set the output sink to 'user in gdb-stopping, that is fine."
      ((eq sink 'user) t)
      (t (error "Unexpected stopped annotation")))))
 
-(defun gdb-frame-begin (ignored)
-  (let ((sink (gdb-get-output-sink)))
-    (cond
-     ((eq sink 'inferior)
-      (gdb-set-output-sink 'user))
-     ((eq sink 'user) t)
-     ((eq sink 'emacs) t)
-     (t (error "Unexpected frame-begin annotation (%S)" sink)))))
-
 (defun gdb-post-prompt (ignored)
   "An annotation handler for `post-prompt'. This begins the collection of
 output from the current command if that happens to be appropriate."
   (if (not (gdb-get-pending-triggers))
       (progn
+	(gdb-get-current-frame)
 	(gdb-invalidate-registers ignored)
 	(gdb-invalidate-locals ignored)
 	(gdb-invalidate-display ignored)))
@@ -681,17 +679,18 @@ output from the current command if that happens to be appropriate."
 	    (gdb-expressions-mode)
 	    (setq gdb-dive-display-number number)))
       (set-buffer (get-buffer-create gdb-expression-buffer-name))
+      (gdb-expressions-mode)
       (if (and (display-graphic-p) (not gdb-dive))
 	  (catch 'frame-exists
 	    (dolist (frame (frame-list))
 	      (if (string-equal (frame-parameter frame 'name)
 				gdb-expression-buffer-name)
 		  (throw 'frame-exists nil)))
-	    (gdb-expressions-mode)
 	    (make-frame '((height . 20) (width . 40)
 			  (tool-bar-lines . nil)
 			  (menu-bar-lines . nil)
-			  (minibuffer . nil)))))))
+			  (minibuffer . nil))))
+	(gdb-display-buffer (get-buffer gdb-expression-buffer-name)))))
   (set-buffer (gdb-get-buffer 'gdb-partial-output-buffer))
   (setq gdb-dive nil))
 
@@ -1213,11 +1212,8 @@ output from the current command if that happens to be appropriate."
 
 
 ;;
-;; Breakpoint buffers
+;; Breakpoint buffer : This displays the output of `info breakpoints'.
 ;;
-;; These display the output of `info breakpoints'.
-;;
-
 (gdb-set-buffer-rules 'gdb-breakpoints-buffer
 		      'gdb-breakpoints-buffer-name
 		      'gdb-breakpoints-mode)
@@ -1249,17 +1245,14 @@ output from the current command if that happens to be appropriate."
   (let ((flag)(address))
 
     ;; remove all breakpoint-icons in source buffers but not assembler buffer
-    (let ((buffers (buffer-list)))
+    (dolist (buffer (buffer-list))
       (save-excursion
-	(while buffers
-	  (set-buffer (car buffers))
-	  (if (and (eq gud-minor-mode 'gdba)
-		   (not (string-match "^\*" (buffer-name))))
-	      (if (display-graphic-p)
-		  (remove-images (point-min) (point-max))
-		(remove-strings (point-min) (point-max))))
-	  (setq buffers (cdr buffers)))))
-
+	(set-buffer buffer)
+	(if (and (eq gud-minor-mode 'gdba)
+		 (not (string-match "^\*" (buffer-name))))
+	    (if (display-graphic-p)
+		(remove-images (point-min) (point-max))
+	      (remove-strings (point-min) (point-max))))))
     (save-excursion
       (set-buffer (gdb-get-buffer 'gdb-breakpoints-buffer))
       (save-excursion
@@ -1401,12 +1394,11 @@ output from the current command if that happens to be appropriate."
 	  (goto-line (string-to-number line))))))
 
 ;;
-;; Frames buffers.  These display a perpetually correct bactracktrace
+;; Frames buffer.  This displays a perpetually correct bactracktrace
 ;; (from the command `where').
 ;;
-;; Alas, if your stack is deep, they are costly.
+;; Alas, if your stack is deep, it is costly.
 ;;
-
 (gdb-set-buffer-rules 'gdb-stack-buffer
 		      'gdb-stack-buffer-name
 		      'gdb-frames-mode)
@@ -1422,8 +1414,6 @@ output from the current command if that happens to be appropriate."
     (set-buffer (gdb-get-buffer 'gdb-stack-buffer))
     (let ((buffer-read-only nil))
       (goto-char (point-min))
-      (looking-at "\\S-*\\s-*\\(\\S-*\\)")
-      (setq gdb-current-frame (match-string 1))
       (while (< (point) (point-max))
 	(put-text-property (progn (beginning-of-line) (point))
 			   (progn (end-of-line) (point))
@@ -1487,8 +1477,11 @@ display the source in the source buffer."
 
 
 ;;
-;; Registers buffers
+;; Registers buffer.
 ;;
+(gdb-set-buffer-rules 'gdb-registers-buffer
+		      'gdb-registers-buffer-name
+		      'gdb-registers-mode)
 
 (def-gdb-auto-updated-buffer gdb-registers-buffer
   gdb-invalidate-registers
@@ -1497,10 +1490,6 @@ display the source in the source buffer."
   gdb-info-registers-custom)
 
 (defun gdb-info-registers-custom ())
-
-(gdb-set-buffer-rules 'gdb-registers-buffer
-		      'gdb-registers-buffer-name
-		      'gdb-registers-mode)
 
 (defvar gdb-registers-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1530,10 +1519,13 @@ display the source in the source buffer."
   (interactive)
   (switch-to-buffer-other-frame
    (gdb-get-create-buffer 'gdb-registers-buffer)))
-
+
 ;;
-;; Locals buffers
+;; Locals buffer.
 ;;
+(gdb-set-buffer-rules 'gdb-locals-buffer
+		      'gdb-locals-buffer-name
+		      'gdb-locals-mode)
 
 (def-gdb-auto-updated-buffer gdb-locals-buffer
   gdb-invalidate-locals
@@ -1572,10 +1564,6 @@ display the source in the source buffer."
 (defun gdb-info-locals-custom ()
   nil)
 
-(gdb-set-buffer-rules 'gdb-locals-buffer
-		      'gdb-locals-buffer-name
-		      'gdb-locals-mode)
-
 (defvar gdb-locals-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
@@ -1604,8 +1592,9 @@ display the source in the source buffer."
   (interactive)
   (switch-to-buffer-other-frame
    (gdb-get-create-buffer 'gdb-locals-buffer)))
+
 ;;
-;; Display expression buffers (just allow one to start with)
+;; Display expression buffer.
 ;;
 (gdb-set-buffer-rules 'gdb-display-buffer
 		      'gdb-display-buffer-name
@@ -1916,26 +1905,24 @@ static char *magick[] = {
 Use this command to exit a debugging session cleanly and reset
 things like the toolbar and margin in the source buffers."
   (interactive)
-  (let ((buffers (buffer-list)))
+  (dolist (buffer (buffer-list))
     (save-excursion
-      (while buffers
-	(set-buffer (car buffers))
-	(if (eq gud-minor-mode 'gdba)
-	    (if (string-match "^\*" (buffer-name))
-		(kill-buffer nil)
-	      (if (display-graphic-p)
-		  (remove-images (point-min) (point-max))
-		(remove-strings (point-min) (point-max)))
-	      (setq left-margin-width 0)
-	      (setq gud-minor-mode nil)
-	      (kill-local-variable 'tool-bar-map)
-	      (setq gud-running nil)
-	      (if (get-buffer-window (current-buffer))
-		  (set-window-margins (get-buffer-window
-				       (current-buffer))
-				      left-margin-width
-				      right-margin-width))))
-	(setq buffers (cdr buffers)))))
+      (set-buffer buffer)
+      (if (eq gud-minor-mode 'gdba)
+	  (if (string-match "^\*" (buffer-name))
+	      (kill-buffer nil)
+	    (if (display-graphic-p)
+		(remove-images (point-min) (point-max))
+	      (remove-strings (point-min) (point-max)))
+	    (setq left-margin-width 0)
+	    (setq gud-minor-mode nil)
+	    (kill-local-variable 'tool-bar-map)
+	    (setq gud-running nil)
+	    (if (get-buffer-window (current-buffer))
+		(set-window-margins (get-buffer-window
+				     (current-buffer))
+				    left-margin-width
+				    right-margin-width))))))
   (if (eq (selected-window) (minibuffer-window))
       (other-window 1))
   (delete-other-windows))
@@ -1963,8 +1950,8 @@ buffers."
       (split-window)
       (other-window 1)
       (switch-to-buffer (gud-find-file gdb-main-file))
-      (setq gdb-source-window (get-buffer-window (current-buffer))))
-    (other-window 1)))
+      (setq gdb-source-window (get-buffer-window (current-buffer)))
+      (other-window 1))))
 
 ;;from put-image
 (defun put-string (putstring pos &optional string area)
@@ -2070,10 +2057,13 @@ BUFFER nil or omitted means use the current buffer."
 	 'ignore))
   (kill-buffer nil)
   (delete-frame))
-
+
 ;;
-;; Assembler buffer
+;; Assembler buffer.
 ;;
+(gdb-set-buffer-rules 'gdb-assembler-buffer
+		      'gdb-assembler-buffer-name
+		      'gdb-assembler-mode)
 
 (def-gdb-auto-updated-buffer gdb-assembler-buffer
   gdb-invalidate-assembler
@@ -2135,10 +2125,6 @@ BUFFER nil or omitted means use the current buffer."
 				      'left-margin))))))))))
     (if gdb-current-address
 	(set-window-point (get-buffer-window buffer) gdb-arrow-position))))
-
-(gdb-set-buffer-rules 'gdb-assembler-buffer
-		      'gdb-assembler-buffer-name
-		      'gdb-assembler-mode)
 
 (defvar gdb-assembler-mode-map
   (let ((map (make-sparse-keymap)))
@@ -2207,6 +2193,24 @@ BUFFER nil or omitted means use the current buffer."
 	 (cons 'gdb-invalidate-assembler
 	       (gdb-get-pending-triggers)))
 	(setq gdb-prev-main-or-pc gdb-main-or-pc))))
+
+(defun gdb-get-current-frame ()
+  (if (not (member 'gdb-get-current-frame (gdb-get-pending-triggers)))
+      (progn 
+	(gdb-enqueue-idle-input
+	 (list (concat "server frame\n") 'gdb-frame-handler))
+	(gdb-set-pending-triggers 
+	 (cons 'gdb-get-current-frame
+	       (gdb-get-pending-triggers))))))
+
+(defun gdb-frame-handler ()
+  (gdb-set-pending-triggers 
+   (delq 'gdb-get-current-frame (gdb-get-pending-triggers)))
+  (save-excursion 
+    (set-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer))
+    (goto-char (point-min))
+    (if (looking-at "^#[0-9]*\\s-*\\(\\S-*\\)")
+	(setq gdb-current-frame (match-string 1)))))
 
 (provide 'gdb-ui)
 
