@@ -376,7 +376,7 @@ actually occur.")
 	       (beginning-of-line) (end-of-line)
 	       (2 font-lock-constant-face nil t)
 	       (4 font-lock-comment-face nil t)))
-	    '("^\\(X-[A-Za-z0-9-]+\\|In-reply-to\\):.*"
+	    '("^\\(X-[A-Za-z0-9-]+\\|In-reply-to\\):.*\\(\n[ \t]+.*\\)*$"
 	      . font-lock-string-face))))
   "Additional expressions to highlight in Mail mode.")
 
