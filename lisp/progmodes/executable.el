@@ -21,15 +21,18 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ;;; Commentary:
+
+;; executable.el is used by certain major modes to insert a suitable
+;; #! line at the beginning of the file, if the file does not already
+;; have one.
+
 ;; This is support code for the likes of sh-, awk-, perl-, tcl- or
 ;; makefile-mode.  Those mode-setting commands can call the like of
 ;; `(executable-set-magic "sh")' or `(executable-set-magic "perl" "-f")'.
 ;; Unless the file name matches `executable-magicless-file-regexp' this will
 ;; search $PATH if the given interpreter isn't absolute, and then insert a
-;; first line like `#! /bin/sh' or `#! /usr/local/bin/perl -f' and the file
-;; will be made executable as soon as it's saved if it wasn't.
-
-;; Would someone please explain clearly what this is to be used for? -- rms.
+;; first line like `#! /bin/sh' or `#! /usr/local/bin/perl -f'.
+;; Also it makes the file executable as soon as it's saved, if it wasn't.
 
 ;;; Code:
 
