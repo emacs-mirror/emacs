@@ -1218,10 +1218,8 @@ range FROM and TO (inclusive).
 CHARACTER may be a script name symbol.  In that case, use FONT-SPEC
 for all characters that belong to the script.
 
-CHARACTER may be a charset which has a :code-offset attribute and the
-attribute value is greater than the maximum Unicode character
-\(#x10FFFF).  In that case, use FONT-SPEC for all characters in the
-charset.
+CHARACTER may be a charset.  In that case, use FONT-SPEC for all
+characters in the charset.
 
 FONT-SPEC may be:
  * A vector [ FAMILY WEIGHT SLANT WIDTH ADSTYLE REGISTRY ].
