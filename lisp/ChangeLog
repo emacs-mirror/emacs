@@ -5,6 +5,15 @@
 	(gdb-script-mode): Use `gdb-script-beginning-of-defun' and
 	`gdb-script-end-of-defun' as *-of-defun-function.
 
+2004-10-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-annotate-display-select): Fix typo.
+
+	* subr.el (substitute-key-definition-key): New function.
+	(substitute-key-definition): Use it with map-keymap.
+	(event-modifiers): Use push.
+	(mouse-movement-p, with-temp-buffer): Simplify.
+
 2004-10-12  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.0.45.
@@ -58,7 +67,7 @@
 	* subr.el (substitute-key-definition): Mention command remapping
 	in doc string.
 
-2004-10-11  Stefan  <monnier@iro.umontreal.ca>
+2004-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcvs-defs.el (pcl-cvs-load-hook): Remove unused var.
 
@@ -72,7 +81,7 @@
 	(smtpmail-open-stream): Don't overwrite user settings of
 	starttls-extra-arguments and starttls-extra-args.
 
-2004-10-10  Stefan  <monnier@iro.umontreal.ca>
+2004-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* comint.el (comint-mouse-insert-input): Remove.
 	(comint-insert-input): Make it work for mouse bindings.
@@ -207,7 +216,7 @@
 	* textmodes/enriched.el (enriched-mode-map): Give `set-left-margin' and
 	`set-right-margin' bindings that follow the minor mode conventions.
 
-2004-10-03  Stefan  <monnier@iro.umontreal.ca>
+2004-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/tex-mode.el (tex-dvi-view-command): Use `yap' on w32.
 	(tex-font-lock-keywords-1): Add url and nolinkurl for args with `_'.
@@ -271,7 +280,7 @@
 	* diff-mode.el (diff-file-header-re): Tighten up regexp a tiny bit.
 	(diff-fixup-modifs): Catch unified-diff file-headers.
 
-2004-09-28  Stefan  <monnier@iro.umontreal.ca>
+2004-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dired.el (dired-view-command-alist): Use more efficient regexps.
 	Remove dubious arguments.
@@ -311,7 +320,7 @@
 	(pr-delete-file): Check if file exists before deleting it.
 	Reported by Lennart Borgman <lennart.borgman.073@student.lu.se>.
 
-2004-09-26  Stefan  <monnier@iro.umontreal.ca>
+2004-09-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term.el (term-display-table): New variable.
 	(term-mode): Use it.
@@ -335,7 +344,7 @@
 	(term-stop-output-log): Rename from `term-stop-photo'.
 	(term-switch-to-alternate-sub-buffer): Comment out, unused.
 
-2004-09-25  Stefan  <monnier@iro.umontreal.ca>
+2004-09-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dired.el (dired-move-to-filename): Don't output a message if
 	raise-error is non-nil.  Fix return position and value.
@@ -479,7 +488,7 @@
 	* progmodes/sh-script.el (sh-mode-default-syntax-table): Set syntax
 	of = to "." (punctuation).
 
-2004-09-19  Stefan  <monnier@iro.umontreal.ca>
+2004-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (event-basic-type): Fix mask (extend to 22bits).
 
