@@ -1,3 +1,8 @@
+2003-08-17  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* info.el (Info-scroll-prefer-subnodes): Add :version keyword to
+	defcustom, because the default was recently changed.
+
 2003-08-16  Richard M. Stallman  <rms@gnu.org>
 
 	* net/ange-ftp.el (ange-ftp-error): Add save-excursion.
