@@ -1,13 +1,34 @@
 2002-06-27  Dave Love  <fx@gnu.org>
 
+	* composite.el (compose-string): Doc fix.
+
+	* language/georgian.el ("Georgian"): Delete code-pages feature,
+	add nonascii-translation.
+
+	* language/european.el ("German", "French", "Spanish"): Add
+	latin-9 as alternative coding system.
+	("Slovenian", "Polish"): Add windows-1250 as alternative coding
+	system.
+	("Dutch"): Add latin-9 as alternative coding system.  Add input
+	method.
+	("Turkish"): Add windows-1254 and latin-3 as alternative coding
+	systems.
+	("Lithuanian", "Latvian"): Add windows-1257 as alternative coding
+	system.
+
+	* emacs-lisp/byte-opt.el (side-effect-free-fns): Add decode-char,
+	encode-coding-char.
+	(side-effect-and-error-free-fns): Add charsetp, max-char,
+	primary-charset.
+
 	* simple.el: Don't require cl when compiling.
 
 	* Makefile.in (DONTCOMPILE): Fix duplicates.
 
 	* emacs-lisp/bytecomp.el (byte-compile-insert-header): Fix typo.
 
-	* international/mule.el (load-with-code-conversion): Fix
-	coding-system-type test.
+	* international/mule.el: Doc fixes.
+	(load-with-code-conversion): Fix coding-system-type test.
 
 	* international/mule-cmds.el (sort-coding-systems): Comment out
 	iso-2022 case.
