@@ -1,3 +1,8 @@
+2005-01-24  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (redisplay_window): Only try to make cursor line fully
+	visible once (to avoid redisplay loop).
+
 2005-01-23  Kim F. Storm  <storm@cua.dk>
 
 	* window.c (Fpos_visible_in_window_p): Simplify return value for
