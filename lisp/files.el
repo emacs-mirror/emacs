@@ -1135,7 +1135,7 @@ from the end of the file name anything that matches one of these regexps.")
   "" ; set by command-line
   "File name including directory of user's initialization file.")
 
-(defun set-auto-mode ()
+(defun set-auto-mode (&optional just-from-file-name)
   "Select major mode appropriate for current buffer.
 This checks for a -*- mode tag in the buffer's text,
 compares the filename against the entries in `auto-mode-alist',
@@ -1146,7 +1146,11 @@ It does not check for the `mode:' local variable in the
 Local Variables section of the file; for that, use `hack-local-variables'.
 
 If `enable-local-variables' is nil, this function does not check for a
--*- mode tag."
+-*- mode tag.
+
+If the optional argument JUST-FROM-FILE-NAME is non-nil,
+then we do not set anything but the major mode,
+and we don't even do that unless it would come from the file name."
   ;; Look for -*-MODENAME-*- or -*- ... mode: MODENAME; ... -*-
   (let (beg end done modes)
     (save-excursion
@@ -1211,8 +1215,9 @@ If `enable-local-variables' is nil, this function does not check for a
     ;; If we found modes to use, invoke them now,
     ;; outside the save-excursion.
     (if modes
-	(progn (mapcar 'funcall (nreverse modes))
-	       (setq done t)))
+	(unless just-from-file-name
+	  (mapcar 'funcall (nreverse modes))
+	  (setq done t)))
     ;; If we didn't find a mode from a -*- line, try using the file name.
     (if (and (not done) buffer-file-name)
 	(let ((name buffer-file-name)
@@ -1254,8 +1259,9 @@ If `enable-local-variables' is nil, this function does not check for a
 		  ;; Map interpreter name to a mode.
 		  (setq elt (assoc (file-name-nondirectory interpreter)
 				   interpreter-mode-alist))
-		  (if elt
-		      (funcall (cdr elt)))))))))))
+		  (unless just-from-file-name
+		    (if elt
+			(funcall (cdr elt))))))))))))
 
 (defun hack-local-variables-prop-line ()
   ;; Set local variables specified in the -*- line.
@@ -1327,78 +1333,89 @@ If `enable-local-variables' is nil, this function does not check for a
 Major modes can use this to examine user-specified local variables
 in order to initialize other data structure based on them.")
 
-(defun hack-local-variables ()
-  "Parse and put into effect this buffer's local variables spec."
-  (hack-local-variables-prop-line)
+(defun hack-local-variables (&optional mode-only)
+  "Parse and put into effect this buffer's local variables spec.
+If MODE-ONLY is non-nil, all we do is check whether the major mode
+is specified, returning t if it is specified."
+  (unless mode-only
+    (hack-local-variables-prop-line))
   ;; Look for "Local variables:" line in last page.
-  (save-excursion
-    (goto-char (point-max))
-    (search-backward "\n\^L" (max (- (point-max) 3000) (point-min)) 'move)
-    (if (let ((case-fold-search t))
-	  (and (search-forward "Local Variables:" nil t)
-	       (or (eq enable-local-variables t)
-		   (and enable-local-variables
-			(save-window-excursion
-			  (switch-to-buffer (current-buffer))
-			  (save-excursion
-			    (beginning-of-line)
-			    (set-window-start (selected-window) (point)))
-			  (y-or-n-p (format "Set local variables as specified at end of %s? "
- 					    (if buffer-file-name
- 						(file-name-nondirectory
- 						 buffer-file-name)
- 					      (concat "buffer "
- 						      (buffer-name))))))))))
-	(let ((continue t)
-	      prefix prefixlen suffix beg
-	      (enable-local-eval enable-local-eval))
-	  ;; The prefix is what comes before "local variables:" in its line.
-	  ;; The suffix is what comes after "local variables:" in its line.
-	  (skip-chars-forward " \t")
-	  (or (eolp)
-	      (setq suffix (buffer-substring (point)
-					     (progn (end-of-line) (point)))))
-	  (goto-char (match-beginning 0))
-	  (or (bolp)
-	      (setq prefix
-		    (buffer-substring (point)
-				      (progn (beginning-of-line) (point)))))
-
-	  (if prefix (setq prefixlen (length prefix)
-			   prefix (regexp-quote prefix)))
-	  (if suffix (setq suffix (concat (regexp-quote suffix) "$")))
-	  (while continue
-	    ;; Look at next local variable spec.
-	    (if selective-display (re-search-forward "[\n\C-m]")
-	      (forward-line 1))
-	    ;; Skip the prefix, if any.
-	    (if prefix
-		(if (looking-at prefix)
-		    (forward-char prefixlen)
-		  (error "Local variables entry is missing the prefix")))
-	    ;; Find the variable name; strip whitespace.
+  (let (mode-specified)
+    (save-excursion
+      (goto-char (point-max))
+      (search-backward "\n\^L" (max (- (point-max) 3000) (point-min)) 'move)
+      (if (let ((case-fold-search t))
+	    (and (search-forward "Local Variables:" nil t)
+		 (or (eq enable-local-variables t)
+		     mode-only
+		     (and enable-local-variables
+			  (save-window-excursion
+			    (switch-to-buffer (current-buffer))
+			    (save-excursion
+			      (beginning-of-line)
+			      (set-window-start (selected-window) (point)))
+			    (y-or-n-p (format "Set local variables as specified at end of %s? "
+					      (if buffer-file-name
+						  (file-name-nondirectory
+						   buffer-file-name)
+						(concat "buffer "
+							(buffer-name))))))))))
+	  (let ((continue t)
+		prefix prefixlen suffix beg
+		mode-specified
+		(enable-local-eval enable-local-eval))
+	    ;; The prefix is what comes before "local variables:" in its line.
+	    ;; The suffix is what comes after "local variables:" in its line.
 	    (skip-chars-forward " \t")
-	    (setq beg (point))
-	    (skip-chars-forward "^:\n")
-	    (if (eolp) (error "Missing colon in local variables entry"))
-	    (skip-chars-backward " \t")
-	    (let* ((str (buffer-substring beg (point)))
-		   (var (read str))
-		  val)
-	      ;; Setting variable named "end" means end of list.
-	      (if (string-equal (downcase str) "end")
-		  (setq continue nil)
-		;; Otherwise read the variable value.
-		(skip-chars-forward "^:")
-		(forward-char 1)
-		(setq val (read (current-buffer)))
-		(skip-chars-backward "\n")
-		(skip-chars-forward " \t")
-		(or (if suffix (looking-at suffix) (eolp))
-		    (error "Local variables entry is terminated incorrectly"))
-		;; Set the variable.  "Variables" mode and eval are funny.
-		(hack-one-local-variable var val)))))))
-  (run-hooks 'hack-local-variables-hook))
+	    (or (eolp)
+		(setq suffix (buffer-substring (point)
+					       (progn (end-of-line) (point)))))
+	    (goto-char (match-beginning 0))
+	    (or (bolp)
+		(setq prefix
+		      (buffer-substring (point)
+					(progn (beginning-of-line) (point)))))
+
+	    (if prefix (setq prefixlen (length prefix)
+			     prefix (regexp-quote prefix)))
+	    (if suffix (setq suffix (concat (regexp-quote suffix) "$")))
+	    (while continue
+	      ;; Look at next local variable spec.
+	      (if selective-display (re-search-forward "[\n\C-m]")
+		(forward-line 1))
+	      ;; Skip the prefix, if any.
+	      (if prefix
+		  (if (looking-at prefix)
+		      (forward-char prefixlen)
+		    (error "Local variables entry is missing the prefix")))
+	      ;; Find the variable name; strip whitespace.
+	      (skip-chars-forward " \t")
+	      (setq beg (point))
+	      (skip-chars-forward "^:\n")
+	      (if (eolp) (error "Missing colon in local variables entry"))
+	      (skip-chars-backward " \t")
+	      (let* ((str (buffer-substring beg (point)))
+		     (var (read str))
+		    val)
+		;; Setting variable named "end" means end of list.
+		(if (string-equal (downcase str) "end")
+		    (setq continue nil)
+		  ;; Otherwise read the variable value.
+		  (skip-chars-forward "^:")
+		  (forward-char 1)
+		  (setq val (read (current-buffer)))
+		  (skip-chars-backward "\n")
+		  (skip-chars-forward " \t")
+		  (or (if suffix (looking-at suffix) (eolp))
+		      (error "Local variables entry is terminated incorrectly"))
+		  (if mode-only
+		      (if (eq var 'mode)
+			  (setq mode-specified t))
+		    ;; Set the variable.  "Variables" mode and eval are funny.
+		    (hack-one-local-variable var val))))))))
+    (unless mode-only
+      (run-hooks 'hack-local-variables-hook))
+    mode-specified))
 
 (defvar ignored-local-variables
   '(enable-local-eval)
@@ -1481,6 +1498,14 @@ in order to initialize other data structure based on them.")
 	   (set var val))))
 
 
+(defvar change-major-mode-with-file-name t
+  "*Non-nil means \\[write-file] should set the major mode from the file name.
+However, the mode will not be changed if
+\(1) a local variables list or the `-*-' line specifies a major mode, or
+\(2) the current major mode is a \"special\" mode,
+     not suitable for ordinary files, or
+\(3) the new file name does not particularly specify any mode.")
+
 (defun set-visited-file-name (filename &optional no-query along-with-file)
   "Change name of file visited in current buffer to FILENAME.
 The next time the buffer is saved it will go in the newly specified file.
@@ -1576,7 +1601,16 @@ the old visited file has been renamed to the new name FILENAME."
 	 (rename-file oauto buffer-auto-save-file-name t)))
   (and buffer-file-name
        (not along-with-file)
-       (set-buffer-modified-p t)))
+       (set-buffer-modified-p t))
+  ;; Update the major mode, if the file name determines it.
+  (condition-case nil
+      ;; Don't change the mode if it is special.
+      (or (not change-major-mode-with-file-name)
+	  (get major-mode 'mode-class)
+	  ;; Don't change the mode if the local variable list specifies it.
+	  (hack-local-variables t)
+	  (set-auto-mode t))
+    (error nil)))
 
 (defun write-file (filename &optional confirm coding-system)
   "Write current buffer into file FILENAME.
