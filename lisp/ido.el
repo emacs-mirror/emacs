@@ -553,6 +553,20 @@ the `ido-work-directory-list' list."
   :group 'ido)
 
 
+(defcustom ido-use-filename-at-point nil
+  "*Non-nil means that ido shall look for a filename at point.
+If found, use that as the starting point for filename selection."
+  :type 'boolean
+  :group 'ido)
+
+
+(defcustom ido-use-url-at-point nil
+  "*Non-nil means that ido shall look for a URL at point.
+If found, call `find-file-at-point' to visit it."
+  :type 'boolean
+  :group 'ido)
+
+
 (defcustom ido-enable-tramp-completion t
   "*Non-nil means that ido shall perform tramp method and server name completion.
 A tramp file name uses the following syntax: /method:user@host:filename."
@@ -954,8 +968,8 @@ it doesn't interfere with other minibuffer usage.")
 ;; Value is a list (ido-text dir cur-list ignored-list matches).
 (defvar ido-pre-merge-state)
 
-;; Original value of vc-master-templates for use in ido-toggle-vc.
-(defvar ido-saved-vc-mt)
+;; Original value of vc-handled-backends for use in ido-toggle-vc.
+(defvar ido-saved-vc-hb)
 
 ;; Stores temporary state of literal find file.
 (defvar ido-find-literal)
@@ -1372,6 +1386,13 @@ This function also adds a hook to the minibuffer."
    (fix-it (concat dir "/"))
    (t nil)))
 
+(defun ido-no-final-slash (s)
+  ;; Remove optional final slash from string S
+  (let ((l (1- (length s))))
+    (if (and (> l 0) (eq (aref s l) ?/))
+	(substring s 0 l)
+      s)))
+
 (defun ido-set-current-directory (dir &optional subdir no-merge)
   ;; Set ido's current directory to DIR or DIR/SUBDIR
   (setq dir (ido-final-slash dir t))
@@ -1408,7 +1429,7 @@ This function also adds a hook to the minibuffer."
 			 (floor (* (frame-width) ido-max-file-prompt-width))
 		       ido-max-file-prompt-width))
 	  (literal (and (boundp 'ido-find-literal) ido-find-literal "(literal) "))
-	  (vc-off (and ido-saved-vc-mt (not vc-master-templates) "[-VC] "))
+	  (vc-off (and ido-saved-vc-hb (not vc-handled-backends) "[-VC] "))
 	  (prefix nil)
 	  (rule ido-rewrite-file-prompt-rules))
       (let ((case-fold-search nil))
@@ -1832,22 +1853,46 @@ If INITIAL is non-nil, it specifies the initial input string."
 
 (defun ido-file-internal (method &optional fallback default prompt item initial)
   ;; Internal function for ido-find-file and friends
+  (unless item
+    (setq item 'file))
   (let ((ido-current-directory (expand-file-name (or default default-directory)))
 	filename)
 
-    (if (or (not ido-mode) (ido-is-slow-ftp-host))
-	(setq filename t
-	      ido-exit 'fallback))
+    (cond
+     ((or (not ido-mode) (ido-is-slow-ftp-host))
+      (setq filename t
+	    ido-exit 'fallback))
 
-    (let (ido-saved-vc-mt
-	  (vc-master-templates (and (boundp 'vc-master-templates) vc-master-templates))
+     ((and (eq item 'file)
+	   (or ido-use-url-at-point ido-use-filename-at-point))
+      (let (fn d)
+	(require 'ffap)
+	;; Duplicate code from ffap-guesser as we want different behaviour for files and URLs.
+	(cond
+	 ((and ido-use-url-at-point
+	       ffap-url-regexp
+	       (ffap-fixup-url (or (ffap-url-at-point)
+				   (ffap-gopher-at-point))))
+	  (setq ido-exit 'ffap
+		filename t))
+
+	 ((and ido-use-filename-at-point
+	       (setq fn (ffap-string-at-point))
+	       (not (string-match "^http:/" fn)) 
+	       (setq d (file-name-directory fn))
+	       (file-directory-p d))
+	  (setq ido-current-directory d)
+	  (setq initial (file-name-nondirectory fn)))))))
+
+    (let (ido-saved-vc-hb
+	  (vc-handled-backends (and (boundp 'vc-handled-backends) vc-handled-backends))
 	  (ido-work-directory-index -1)
 	  (ido-work-file-index -1)
        	  (ido-find-literal nil))
 
       (unless filename
-	(setq ido-saved-vc-mt vc-master-templates)
-	(setq filename (ido-read-internal (or item 'file)
+	(setq ido-saved-vc-hb vc-handled-backends)
+	(setq filename (ido-read-internal item
 					  (or prompt "Find file: ")
 					  'ido-file-history nil nil initial)))
 
@@ -1867,6 +1912,9 @@ If INITIAL is non-nil, it specifies the initial input string."
 
        ((eq ido-exit 'dired)
 	(dired (concat ido-current-directory (or ido-text ""))))
+
+       ((eq ido-exit 'ffap)
+	(find-file-at-point))
 
        ((eq method 'alt-file)
 	(ido-record-work-file filename)
@@ -2087,8 +2135,8 @@ If no merge has yet taken place, toggle automatic merging option."
   (interactive)
   (if (and ido-mode (eq ido-cur-item 'file))
       (progn
-	(setq vc-master-templates
-	      (if vc-master-templates nil ido-saved-vc-mt))
+	(setq vc-handled-backends
+	      (if vc-handled-backends nil ido-saved-vc-hb))
 	(setq ido-text-init ido-text)
 	(setq ido-exit 'keep)
 	(exit-minibuffer))))
@@ -2477,7 +2525,8 @@ for first matching file."
 
 (defun ido-sort-list (items)
   ;; Simple list of file or buffer names
-  (sort items (lambda (a b) (string-lessp a b))))
+  (sort items (lambda (a b) (string-lessp (ido-no-final-slash a)
+					  (ido-no-final-slash b)))))
 
 (defun ido-sort-merged-list (items promote)
   ;; Input is list of ("file" . "dir") cons cells.
@@ -3723,8 +3772,8 @@ See `read-file-name' for additional parameters."
   ((and (not (memq this-command ido-read-file-name-non-ido))
 	(or (null predicate) (eq predicate 'file-exists-p)))
    (let (filename
-	 ido-saved-vc-mt
-	 (vc-master-templates (and (boundp 'vc-master-templates) vc-master-templates))
+	 ido-saved-vc-hb
+	 (vc-handled-backends (and (boundp 'vc-handled-backends) vc-handled-backends))
 	 (ido-current-directory (expand-file-name (or dir default-directory)))
 	 (ido-work-directory-index -1)
 	 (ido-work-file-index -1)
@@ -3742,7 +3791,7 @@ See `read-file-name' for additional parameters."
   "Read directory name, prompting with PROMPT and completing in directory DIR.
 See `read-file-name' for additional parameters."
   (let (filename
-	ido-saved-vc-mt
+	ido-saved-vc-hb
 	(ido-current-directory (expand-file-name (or dir default-directory)))
 	(ido-work-directory-index -1)
 	(ido-work-file-index -1))
