@@ -55,6 +55,7 @@
 
 ;;; Code:
 
+;;;###autoload
 (defvar ls-lisp-support-shell-wildcards t
   "*Non-nil means file patterns are treated as shell wildcards.
 nil means they are treated as Emacs regexps (for backward compatibility).
