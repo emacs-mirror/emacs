@@ -316,7 +316,7 @@ display tables, and the language environment options as appropriate."
 	     ;; upper case.  This will look funny on terminals which
 	     ;; display other code pages.  In particular, what is
 	     ;; displayed as blanks or triangles are not what they
-	     ;; look lile at all!  (Use `C-x =' to see what they
+	     ;; look like at all!  (Use `C-x =' to see what they
 	     ;; really are.)
 	     (chars
 	      (cond
