@@ -1,4 +1,4 @@
-;;; ffap.el --- find file (or url) at point
+;; ffap.el --- find file (or url) at point
 ;;
 ;; Copyright (C) 1995, 96, 97, 2000  Free Software Foundation, Inc.
 ;;
@@ -1658,7 +1658,8 @@ ffap most of the time."
       (if (file-directory-p filename)
 	  (dired (expand-file-name filename))
 	(dired (concat (expand-file-name filename) "*"))))
-     ((y-or-n-p "Directory does not exist, create it? ")
+     ((and (file-writable-p (file-name-directory filename))
+           (y-or-n-p "Directory does not exist, create it? "))
       (make-directory filename)
       (dired filename))
      ((error "No such file or directory `%s'" filename)))))
