@@ -1,5 +1,7 @@
 2001-10-30  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* bindings.el (ctl-x-map): Add binding for C-x (, C-x ) and C-x e.
+
 	* simple.el (reindent-then-newline-and-indent): Insert the newline
 	before indenting the first line.
 	(undo-get-state, undo-revert-to-state): New funs.

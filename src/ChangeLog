@@ -1,3 +1,7 @@
+2001-10-30  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xfaces.c (Fface_attribute_relative_p): Declare args.
+
 2001-10-30  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (w32_to_x_charset): Increase size of XLFD charset buffer.
@@ -22,7 +26,7 @@
 
 	* lread.c (to_multibyte): Ensure read_buffer is at least twice
 	as large as the number of bytes to convert.
-	
+
 	* lread.c (to_multibyte): New function.
 	(read1): Use it.
 
@@ -33,9 +37,9 @@
 2001-10-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_draw_relief_rect): Correct bottom relief by 1 pixel.
-	(x_set_glyph_string_background_width): Set
-	extends_to_end_of_line_p if the row's fill_line_p is set and
-	drawing the last glyph with DRAW_IMAGE_{RAISED,SUNKEN}.
+	(x_set_glyph_string_background_width): Set extends_to_end_of_line_p
+	if the row's fill_line_p is set and drawing the last glyph with
+	DRAW_IMAGE_{RAISED,SUNKEN}.
 
 	* xdisp.c (clear_garbaged_frames): Call Fredraw_frame.
 
