@@ -1,3 +1,8 @@
+2001-06-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* sound.c (vox_configure, vox_close): Turn off atimers
+	around ioctls.
+
 2001-06-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* keyboard.c (read_char) <non_reread>: Record the previous idle
