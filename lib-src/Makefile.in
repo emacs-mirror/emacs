@@ -261,7 +261,21 @@ BASE_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -DHAVE_CONFIG_H \
 .c.o:
 	${CC} -c ${CPP_CFLAGS} $<
 
-all: ${DONT_INSTALL} ${UTILITIES} ${INSTALLABLES}
+all: ${DONT_INSTALL} ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}
+
+# These targets copy the scripts into the build directory
+# so that they can be run from there in an uninstalled Emacs.
+rcs2log: $(srcdir)/rcs2log
+	cp -p $(srcdir)/rcs2log rcs2log
+
+rcs-checkin: $(srcdir)/rcs-checkin
+	cp -p $(srcdir)/rcs-checkin rcs-checkin
+
+grep-changelog: $(srcdir)/grep-changelog
+	cp -p $(srcdir)/grep-changelog grep-changelog
+
+vcdiff: $(srcdir)/vcdiff
+	cp -p $(srcdir)/vcdiff vcdiff
 
 #ifdef MOVEMAIL_NEEDS_BLESSING
 blessmail:
