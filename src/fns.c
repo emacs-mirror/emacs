@@ -870,9 +870,10 @@ do_cdr:
     }
   if (XTYPE (o1) == Lisp_Marker)
     {
-      return (XMARKER (o1)->buffer == XMARKER (o2)->buffer
-	      && XMARKER (o1)->bufpos == XMARKER (o2)->bufpos)
-	? Qt : Qnil;
+      return ((XMARKER (o1)->buffer == XMARKER (o2)->buffer
+	      && (NILP (XMARKER (o1)->buffer)
+		  || XMARKER (o1)->bufpos == XMARKER (o2)->bufpos))
+	      ? Qt : Qnil);
     }
   if (XTYPE (o1) == Lisp_Vector
       || XTYPE (o1) == Lisp_Compiled)
