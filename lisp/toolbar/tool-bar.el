@@ -28,6 +28,14 @@
 ;; bindings for the global tool bar with convenience functions
 ;; `tool-bar-add-item' and `tool-bar-add-item-from-menu'.
 
+;; The normal global binding for [tool-bar] (below) uses the value of
+;; `tool-bar-map' as the actual keymap used to define the tool bar.
+;; Modes may either bind items under the [tool-bar] prefix key of the
+;; local map to add to the global bar or may set `tool-bar-map'
+;; buffer-locally to overirde it.  (Some items are removed from the
+;; global bar in modes which have `special' as their `mode-class'
+;; properlty.)
+
 ;;; Code:
 
 ;;;###autoload
@@ -55,31 +63,36 @@ conveniently adding tool bar items."
   (if (and tool-bar-mode (display-graphic-p))
       (tool-bar-setup)))
 
-(defvar tool-bar-global-map (let ((map (make-sparse-keymap)))
-			     (global-set-key [tool-bar] map))
-  "Keymap for the tool bar in the global map.")
+(defvar tool-bar-map (make-sparse-keymap)
+  "Keymap for the tool bar.
+Define this locally to override the global tool bar.")
+
+(global-set-key [tool-bar]
+		'(menu-item "tool bar" ignore
+			    :filter (lambda (ignore) tool-bar-map)))
 
 ;;;###autoload
-(defun tool-bar-add-item (icon def key &optional map &rest props)
+(defun tool-bar-add-item (icon def key &rest props)
   "Add an item to the tool bar.
 ICON names the image, DEF is the key definition and KEY is a symbol
-for the fake function key in the menu keymap.  MAP is the tool bar
-keymap in which to define the item; it defaults to
-`tool-bar-global-map'.  Remaining arguments PROPS are additional items
-to add to the menu item specification.  See Info node `(elisp)Tool
-Bar'.  Items are added from left to right.
+for the fake function key in the menu keymap.  Remaining arguments
+PROPS are additional items to add to the menu item specification.  See
+Info node `(elisp)Tool Bar'.  Items are added from left to right.
 
 ICON is the base name of a file cnntaining the image to use.  The
-function will try to use first ICON.xpm, then ICON.xbm using
-`find-image'.  If PROPS contains `:enable', a `disabled' version of
-the icon is generated automatically using the Laplace algorithm (see
-Info node `(elisp)Image Descriptors')."
-  (let ((image (find-image `((:type xbm :file ,(concat icon ".xbm"))
-			     (:type xpm :file ,(concat icon ".xpm"))))))
+function will try to use first ICON.xpm, ICON.pbm then ICON.xbm using
+`find-image'.
+
+Keybindings are made in the map `tool-bar-map'.  To define items in
+some local map, bind `tool-bar-map' with `let' around calls of this
+function."
+  (let ((image (find-image `((:type xpm :file ,(concat icon ".xpm"))
+			     (:type pbm :file ,(concat icon ".pbm"))
+			     (:type xbm :file ,(concat icon ".xbm"))))))
     (when image
       (unless (image-mask-p image)
 	(setq image (append image '(:mask heuristic))))
-      (define-key-after (or map tool-bar-global-map) (vector key)
+      (define-key-after tool-bar-map (vector key)
 	`(menu-item ,(symbol-name key) ,def :image ,image ,@props)))))
 
 (defun tool-bar-add-item-from-menu (command icon &optional map &rest props)
@@ -87,15 +100,18 @@ Info node `(elisp)Image Descriptors')."
 The binding of COMMAND is looked up in the menu bar in MAP (default
 `global-map') and modified to add an image specification for ICON, which
 is looked for as by `tool-bar-add-item'.
-MAP must contain appropriate keymaps bound to `[menu-bar]' and
-`[tool-bar]'.
-PROPS is a list of additional properties to add to the binding."
+MAP must contain an appropriate keymap bound to `[menu-bar]'.
+PROPS is a list of additional properties to add to the binding.
+
+Keybindings are made in the map `tool-bar-map'.  To define items in
+some local map, bind `tool-bar-map' with `let' around calls of this
+function."
   (unless map
     (setq map global-map))
   (let* ((menu-bar-map (lookup-key map [menu-bar]))
 	 (keys (where-is-internal command menu-bar-map))
-	 (tb-map (key-binding [tool-bar] map))
 	 (image (find-image `((:type xpm :file ,(concat icon ".xpm"))
+			      (:type pbm :file ,(concat icon ".pbm"))
 			      (:type xbm :file ,(concat icon ".xbm")))))
 	 submap key)
     (when image
@@ -118,7 +134,7 @@ PROPS is a list of additional properties to add to the binding."
 	(setq submap (eval submap)))
       (unless (image-mask-p image)
 	(setq image (append image '(:mask heuristic))))
-      (define-key-after tb-map (vector key)
+      (define-key-after tool-bar-map (vector key)
 	(append (cdr (assq key (cdr submap))) (list :image image) props)))))
 
 ;;; Set up some global items.  Additions/deletions up for grabs.
@@ -152,14 +168,14 @@ PROPS is a list of additional properties to add to the binding."
   ;;(tool-bar-add-item-from-menu 'compose-mail "mail_compose")
 
   (tool-bar-add-item-from-menu 'print-buffer "print")
-  (tool-bar-add-item "preferences" 'customize 'customize nil
+  (tool-bar-add-item "preferences" 'customize 'customize
 		     :help "Edit preferences (customize)")
 
-  (tool-bar-add-item "help"
-		     (lambda ()
-		       (interactive)
-		       (popup-menu menu-bar-help-menu))
-		     'help nil :help "Pop up the Help menu")
+  (tool-bar-add-item "help" (lambda ()
+			      (interactive)
+			      (popup-menu menu-bar-help-menu))
+		     'help
+		     :help "Pop up the Help menu")
   )
 
 (provide 'tool-bar)
