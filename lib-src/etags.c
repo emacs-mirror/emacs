@@ -1380,7 +1380,7 @@ typedef enum
   skeyseen,			/* struct-like keyword seen */
   stagseen,			/* struct-like tag seen */
   scolonseen,			/* colon seen after struct-like tag */
-  sinbody			/* in class body: recognize member func defs */
+  sinbody			/* in struct body: recognize member func defs*/
 } STRUCTST;
 STRUCTST structdef;
 /*
@@ -1419,14 +1419,6 @@ logical yacc_rules;
  * 	struct/union/enum definitions in C syntax and adds them
  *	to the list.
  */
-
-/*
- * LEVEL_OK_FOR_FUNCDEF allows C++ function definition within class body.
- * Currently typdef and structdef stuff (typedefs and struct
- * definitions) are only noticed when level==0, but that may change.
- */
-#define LEVEL_OK_FOR_FUNCDEF()					\
-	(level==0 || (cplpl && level==1 && structdef==sinbody))
 
 #define curlb (lbs[curndx].lb)
 #define othlb (lbs[1-curndx].lb)
@@ -1467,7 +1459,7 @@ C_entries (c_ext)
   char tokb[BUFSIZ];		/* latest token name for funcdef & structdef */
   register int tokoff;		/* offset in line of start of latest token */
   register int toklen;		/* length of latest token */
-  int level;			/* current curly brace level */
+  int cblev;			/* current curly brace level */
   logical incomm, inquote, inchar, quotednl, midtoken;
   logical cplpl;
 
@@ -1480,7 +1472,7 @@ C_entries (c_ext)
   definedef = dnone; funcdef = fnone; typdef= tnone; structdef= snone;
   next_token_is_func = yacc_rules = FALSE;
   midtoken = inquote = inchar = incomm = quotednl = FALSE;
-  level = 0;
+  cblev = 0;
   cplpl = c_ext & C_PLPL;
 
   C_create_stabs ();
@@ -1573,10 +1565,10 @@ C_entries (c_ext)
 		typdef= tnone; structdef= snone;
 		next_token_is_func = FALSE;
 		midtoken = inquote = inchar = incomm = quotednl = FALSE;
-		level = 0;
+		cblev = 0;
 		yacc_rules = !yacc_rules;
 		continue;
-	      }
+ 	      }
 	  case '#':
 	    if (lp == newlb.buffer + 1 && definedef == dnone)
 	      definedef = dsharpseen;
@@ -1584,9 +1576,10 @@ C_entries (c_ext)
 	  } /* switch (c) */
 
 
-      if (LEVEL_OK_FOR_FUNCDEF ()
+      /* Consider token only if some complicated conditions are satisfied. */
+      if (((cblev == 0 && structdef != scolonseen)
+	   || (cblev == 1 && cplpl && structdef == sinbody))
 	  && definedef != dignorerest
-	  && structdef != scolonseen
 	  && funcdef != finlist)
 	{
 	  if (midtoken)
@@ -1612,7 +1605,7 @@ C_entries (c_ext)
 		      tok.rewritten = FALSE;
 		      if (yacc_rules
 			  || consider_token (c, lp, &tok,
-					     c_ext, level, &is_func))
+					     c_ext, cblev, &is_func))
 			{
 			  if (structdef == sinbody
 			      && definedef == dnone && is_func)
@@ -1628,7 +1621,9 @@ C_entries (c_ext)
 			      sprintf (tokb, "%.*s", tok.len, tok.p);
 			    }
 
-			  if (funcdef == ftagseen || structdef == stagseen)
+			  if (funcdef == ftagseen
+			      || structdef == stagseen
+			      || typdef == tend)
 			    {
 			      if (newndx == curndx)
 				curndx = 1 - curndx; /* switch line buffers */
@@ -1683,13 +1678,14 @@ C_entries (c_ext)
 	    }
 	  break;
 	case ';':
+	  if (cblev == 0 && typdef == tend)
+	    {
+	      typdef = tnone;
+	      MAKE_TAG_FROM_OTH_LB (FALSE);
+	    }
 	  funcdef = fnone;
 	  /* FALLTHRU */
 	case ',':
-	  if (funcdef != finlist)
-	    funcdef = fnone;
-	  if (level == 0 && typdef == tend)
-	    typdef = tnone;
 	  /* FALLTHRU */
 	case '[':
 	  if (funcdef != finlist)
@@ -1728,7 +1724,7 @@ C_entries (c_ext)
 	      MAKE_TAG_FROM_OTH_LB (FALSE);
 	      break;
 	    }
-	  level++;
+	  cblev++;
 	  /* FALLTHRU */
 	case '*':
 	  if (funcdef == flistseen)
@@ -1739,10 +1735,10 @@ C_entries (c_ext)
 	  break;
 	case '}':
 	  if (!noindentypedefs && lp == newlb.buffer + 1)
-	    level = 0;	/* reset level if first column */
-	  else if (level > 0)
-	    level--;
-	  if (level == 0)
+	    cblev = 0;	/* reset curly brace level if first column */
+	  else if (cblev > 0)
+	    cblev--;
+	  if (cblev == 0)
 	    {
 	      if (typdef == tinbody)
 		typdef = tend;
@@ -1785,12 +1781,12 @@ C_entries (c_ext)
  */
 
 logical
-consider_token (c, lp, tokp, c_ext, level, is_func)
+consider_token (c, lp, tokp, c_ext, cblev, is_func)
      register char c;		/* IN: first char after the token */
      register char *lp;		/* IN: lp points to 2nd char after the token */
-     register TOKEN *tokp;	/* IN */
-     int c_ext;			/* IN */
-     int level;			/* IN */
+     register TOKEN *tokp;	/* IN: token pointer */
+     int c_ext;			/* IN: C extensions mask */
+     int cblev;			/* IN: curly brace level */
      logical *is_func;		/* OUT */
 {
   logical firsttok;		/* TRUE if have seen first token in ()'s */
@@ -1871,9 +1867,10 @@ consider_token (c, lp, tokp, c_ext, level, is_func)
     }
 
   /*
-   * This structdef business is currently only invoked when level==0.
-   * It should be recursively invoked whatever the level, and a stack of
-   * states kept, to allow for definitions of structs within structs.
+   * This structdef business is currently only invoked when cblev==0.
+   * It should be recursively invoked whatever the curly brace level,
+   * and a stack of states kept, to allow for definitions of structs
+   * within structs.
    *
    * This structdef business is NOT invoked when we are ctags and the
    * file is plain C.  This is because a struct tag may have the same
@@ -1889,7 +1886,7 @@ consider_token (c, lp, tokp, c_ext, level, is_func)
     case st_C_struct:
     case st_C_enum:
       if (typdef == ttypedseen
-	  || (typedefs_and_cplusplus && level == 0 && structdef == snone))
+	  || (typedefs_and_cplusplus && cblev == 0 && structdef == snone))
 	{
 	  structdef = skeyseen;
 	  structkey = tokse;
@@ -1938,6 +1935,7 @@ consider_token (c, lp, tokp, c_ext, level, is_func)
   if (next_token_is_func)
     {
       next_token_is_func = FALSE;
+      *is_func = TRUE;
       return (TRUE);
     }
 
@@ -1945,7 +1943,7 @@ consider_token (c, lp, tokp, c_ext, level, is_func)
   switch (toktype)
     {
     case st_C_typespec:
-      funcdef == fnone;		/* should be useless */
+      funcdef = fnone;		/* should be useless */
       return (FALSE);
     default:
       funcdef = ftagseen;
@@ -2406,7 +2404,8 @@ L_getit ()
   cp[0] = 0;
   (void) strcpy (nambuf, dbp);
   cp[0] = c;
-  pfnote (nambuf, TRUE, FALSE, lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+  pfnote (nambuf, TRUE, FALSE, lb.buffer,
+	  cp - lb.buffer + 1, lineno, linecharno);
   pfcnt++;
 }
 
