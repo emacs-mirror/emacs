@@ -1,3 +1,12 @@
+2002-10-14  Juanma Barranquero  <lektu@terra.es>
+
+	* xselect.c (syms_of_xselect): Fix docstring for
+	`selection-coding-system'.
+
+	* w16select.c (syms_of_win16select): Likewise.
+
+	* w32select.c (syms_of_w32select): Likewise.
+
 2002-10-09  Jan D.  <jan.h.d@swipnet.se>
 
 	* xterm.c (XTread_socket):  Pass ReparentNotify to Xt.
