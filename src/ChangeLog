@@ -1,3 +1,8 @@
+2002-11-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+
+	* process.c (Fformat_network_address): Removed unused locals p,
+	cp, and i.
+
 2002-11-06  Dave Love  <fx@gnu.org>
 
 	* buffer.c (Qset_buffer_major_mode_hook): New.
