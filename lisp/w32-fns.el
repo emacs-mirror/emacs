@@ -403,9 +403,11 @@ bit output with no translation."
       (w32-add-charset-info "mac" 'w32-charset-mac nil)))
 (if (boundp 'w32-unicode-charset-defined)
     (progn
-      (w32-add-charset-info "iso10646" 'w32-charset-unicode t)
-      (w32-add-charset-info "unicode" 'w32-charset-unicode t)))
-
+      (w32-add-charset-info "iso10646-1" 'w32-charset-unicode t)
+      (w32-add-charset-info "unicode" 'w32-charset-unicode t))
+  ;; Most Windows fonts cover a large part of the Unicode range,
+  ;; so use ansi fonts if unicode is not an option.
+  (w32-add-charset-info "iso10646-1" 'w32-charset-ansi t))
 
 (make-obsolete-variable 'w32-enable-italics
                         'w32-enable-synthesized-fonts "21.1")

@@ -1,3 +1,8 @@
+2002-02-24  Jason Rumney  <jasonr@gnu.org>
+
+	* w32-fns.el (w32-charset-info-alist): Use ansi fonts for
+	iso10646-1 if unicode is not available.
+
 2002-02-22  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* diff-mode.el (diff-end-of-hunk): Watch out for ambiguous headers.
