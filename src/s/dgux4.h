@@ -56,6 +56,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "dgux5-4-3.h"
 
 #define LIBS_DEBUG /* nothing, -lg doesn't exist */
+#define LIBS_SYSTEM -lsocket -lnsl
 
 #ifndef NOT_C_CODE
 
