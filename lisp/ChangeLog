@@ -2,6 +2,8 @@
 
 	* ansi-color.el (ansi-colors) <defgroup>: Fix :version.
 
+	* eshell/esh-util.el (eshell-ange-ls-uids): Fix :type.
+
 2001-01-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* simple.el (set-variable): Force a thorough redisplay for the
