@@ -924,6 +924,7 @@ struct frame *check_x_frame P_ ((Lisp_Object));
 EXFUN (Fx_display_color_p, 1);
 EXFUN (Fx_display_grayscale_p, 1);
 int image_ascent P_ ((struct image *, struct face *));
+extern void x_free_gcs P_ ((struct frame *));
 
 /* From xrdb.c.  */
 
