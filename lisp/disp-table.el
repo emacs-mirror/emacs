@@ -182,11 +182,12 @@ When enabled, characters in the range of 160 to 255 display not
 as octal escapes, but as accented characters.
 With prefix argument, enable European character display iff arg is positive.
 
-Ordinarily, we turn off `enable-multibyte-characters' throughout
-Emacs, since someone who uses this function manually
-probably wants to edit European characters in single-byte mode.
-However, if the optional argument AUTO is non-nil, we don't
-alter `enable-multibyte-characters'."
+Normally, this function turns off `enable-multibyte-characters'
+for all Emacs buffers, because users who call this function
+probably want to edit European characters in single-byte mode.
+
+However, if the optional argument AUTO is non-nil, this function
+does not alter `enable-multibyte-characters'."
   (interactive "P")
   (if (or (<= (prefix-numeric-value arg) 0)
 	  (and (null arg)
