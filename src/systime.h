@@ -100,11 +100,16 @@ extern time_t timezone;
 #ifdef GETTIMEOFDAY_ONE_ARGUMENT
 #define EMACS_GET_TIME(time) gettimeofday (&(time))
 #else /* not GETTIMEOFDAY_ONE_ARGUMENT */
+#ifdef HAVE_STRUCT_TIMEZONE
 #define EMACS_GET_TIME(time)			\
   do {						\
     struct timezone dummy;			\
     gettimeofday (&(time), &dummy);		\
   } while (0)
+#else
+/* Presumably the second arg is ignored.  */
+#define EMACS_GET_TIME(time) gettimeofday (&(time), NULL)
+#endif /* HAVE_STRUCT_TIMEZONE */
 #endif /* not GETTIMEOFDAY_ONE_ARGUMENT */
 
 #define EMACS_ADD_TIME(dest, src1, src2)		\
