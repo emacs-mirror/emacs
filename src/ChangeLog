@@ -1,3 +1,9 @@
+1999-10-27  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* data.c (Qad_activate_internal): Renamed from Qad_activate.
+	(Ffset): Call Qad_activate_internal.
+	(syms_of_data): Initialize Qad_activate_internal.
+
 1999-10-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (echo_area_display) [HAVE_X_WINDOWS]: Do nothing if

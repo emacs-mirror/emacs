@@ -1,3 +1,13 @@
+1999-10-27  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* emacs-lisp/advice.el (ad-activate-internal): Renamed from
+	ad-activate.  All callers changed, including those in data.c.
+	(ad-activate-internal-off): Renamed from ad-activate-off.
+	All uses changed.
+	(ad-activate): Renamed from ad-activate-on.  All uses changed.
+	(ad-start-advice, ad-stop-advice, ad-recover-normality): 
+	Alter the definition of ad-activate-internal, not ad-activate.
+
 1999-10-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (command-line-1): Add support for command line
