@@ -1004,8 +1004,27 @@ If this is nil, no message will be displayed."
 using the mouse.\n\n"
 	   :face (variable-pitch :weight bold)
 	   "Important Help menu items:\n"
-	   :face variable-pitch "\
-Emacs Tutorial\tLearn-by-doing tutorial for using Emacs efficiently
+	   :face variable-pitch
+           (lambda ()
+             (let* ((en "TUTORIAL")
+                    (tut (or (get-language-info current-language-environment
+                                                'tutorial)
+                             en))
+                    (title (with-temp-buffer
+                             (insert-file-contents
+                              (expand-file-name tut data-directory)
+                              nil 0 256)
+                             (search-forward ".")
+                             (buffer-substring (point-min) (1- (point))))))
+               ;; If there is a specific tutorial for the current language
+               ;; environment and it is not English, append its title.
+               (concat
+                "Emacs Tutorial\tLearn how to use Emacs efficiently"
+                (if (string= en tut)
+                    ""
+                  (concat " (" title ")"))
+                "\n")))
+           :face variable-pitch "\
 Emacs FAQ\tFrequently asked questions and answers
 Read the Emacs Manual\tView the Emacs manual using Info
 \(Non)Warranty\tGNU Emacs comes with "
@@ -1069,14 +1088,18 @@ Values less than 60 seconds are ignored."
 
 (defun fancy-splash-insert (&rest args)
   "Insert text into the current buffer, with faces.
-Arguments from ARGS should be either strings or pairs `:face FACE',
+Arguments from ARGS should be either strings, functions called
+with no args that return a string, or pairs `:face FACE',
 where FACE is a valid face specification, as it can be used with
 `put-text-properties'."
   (let ((current-face nil))
     (while args
       (if (eq (car args) :face)
 	  (setq args (cdr args) current-face (car args))
-	(insert (propertize (car args)
+	(insert (propertize (let ((it (car args)))
+                              (if (functionp it)
+                                  (funcall it)
+                                it))
 			    'face current-face
 			    'help-echo fancy-splash-help-echo)))
       (setq args (cdr args)))))
