@@ -1,3 +1,12 @@
+1999-10-08  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile (EMACSOPT, DONTCOMPILE, EL): New.
+	(emacs): Use it everywhere instead of EMACS.
+	(compile): New target.  Compile all Lisp files from scratch.
+	(recompile): New target.  Recompile lisp directory.
+	(autoloads-with-other-emacs): New target.  Build loaddefs.el with
+	an Emacs executable not built in the current directory tree.
+
 1999-10-07  Peter Breton  <pbreton@ne.mediaone.net>
 
 	* filecache.el (file-cache-completion-ignore-case): New variable,
