@@ -376,7 +376,7 @@ program signals a Lisp error and then handles it with
 @code{condition-case}, the user won't see the error message; it could
 show the message to the user by reporting it as a warning.)
 
-@cinedex warning type
+@cindex warning type
   Each warning has a @dfn{warning type} to classify it.  The type is a
 list of symbols.  The first symbol should be the custom group that you
 use for the program's user options.  For example, byte compiler
@@ -2519,8 +2519,8 @@ should appear outside of the display margins.
 
 @defun window-fringes window
 This function returns information about the fringes of a window
-@var{window}.  The value as the form @code{(@var{left-width}
-@var{right-width} @var{frames-outside-margins}).
+@var{window}.  The value has the form @code{(@var{left-width}
+@var{right-width} @var{frames-outside-margins})}.
 @end defun
 
 @node Display Property
