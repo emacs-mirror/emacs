@@ -480,6 +480,10 @@ Leaves the region surrounding the rectangle."
     (progn
       (setq picture-mode-map (list 'keymap (make-vector 256 nil)))
       (picture-substitute 'self-insert-command 'picture-self-insert)
+      (picture-substitute 'completion-separator-self-insert-command
+			  'picture-self-insert)
+      (picture-substitute 'completion-separator-self-insert-autofilling
+			  'picture-self-insert)
       (picture-substitute 'forward-char 'picture-forward-column)
       (picture-substitute 'backward-char 'picture-backward-column)
       (picture-substitute 'delete-char 'picture-clear-column)
