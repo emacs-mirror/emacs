@@ -1,3 +1,21 @@
+2000-10-28  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	Support for -fg, -bg, and -rv command-line arguments for TTYs:
+	* faces.el (tty-handle-reverse-video): New function.
+	(tty-create-frame-with-faces): Call it.
+
+	* frame.el (frame-notice-user-settings): Don't apply
+	default-frame-alist and initial-frame-alist to MS-DOS frames.
+	Call tty-handle-reverse-video, frame-set-background-mode, and
+	face-set-after-frame-default for non-MS-DOS frames.
+
+	* startup.el (tty-long-option-alist): New variable.
+	(tty-handle-args): New function.
+	(command-line): Call tty-handle-args.
+
+	* term/pc-win.el (x-long-option-alist, msdos-handle-args): Remove;
+	startup.el now does that for all character-terminal frames.
+
 2000-10-28  Miles Bader  <miles@gnu.org>
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Generate

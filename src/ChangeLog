@@ -1,3 +1,12 @@
+2000-10-28  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* frame.c (Fframe_parameters): Fix the change from 2000-10-16:
+	don't override the colors in frame's param_alist, unless they are
+	unspecified.
+
+	* term.c (reassert_line_highlight): If inverse_video is non-zero,
+	reverse the effect of the highlight flag.
+
 2000-10-27  Ken Raeburn  <raeburn@gnu.org>
 
 	* window.h (Fwindow_live_p): Declare.

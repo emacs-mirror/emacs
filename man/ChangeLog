@@ -1,3 +1,9 @@
+2000-10-28  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* cmdargs.texi (Colors X): Document support for -fg, -bg, and -rv
+	on TTYs.  Suggest use of list-colors-display to see what colors
+	are supported.  Add index entries for list-colors-display.
+
 2000-10-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* gnus.texi: Update from version 5.213 from the Gnus repository.
