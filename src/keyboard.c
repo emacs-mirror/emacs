@@ -2363,24 +2363,64 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       && (unsigned) XINT (c) < 127)
     {
       Lisp_Object keys; 
-      int key_count = this_command_key_count;
-      int saved = current_kboard->immediate_echo;
+      int key_count;
       struct gcpro gcpro1;
 
-      keys = Fcopy_sequence (this_command_keys);
+      /* Save the echo status.  */
+      int saved_immediate_echo = current_kboard->immediate_echo;
+      char *saved_ok_to_echo = ok_to_echo_at_next_pause;
+      int saved_echo_after_prompt = current_kboard->echo_after_prompt;
+
+      if (before_command_restore_flag)
+	{
+	  this_command_key_count = before_command_key_count_1;
+	  if (this_command_key_count < this_single_command_key_start)
+	    this_single_command_key_start = this_command_key_count;
+	  echo_truncate (before_command_echo_length_1);
+	  before_command_restore_flag = 0;
+	}
+
+      /* Save the this_command_keys status.  */
+      key_count = this_command_key_count;
+
+      if (key_count > 0)
+	keys = Fcopy_sequence (this_command_keys);
+      else
+	keys = Qnil;
       GCPRO1 (keys);
+
+      /* Clear out this_command_keys.  */
+      this_command_key_count = 0;
+
+      /* Now wipe the echo area.  */
+      if (echo_area_glyphs)
+	safe_run_hooks (Qecho_area_clear_hook);
+      echo_area_glyphs = 0;
+      echo_truncate (0);
+
+      /* Call the input method.  */
       tem = call1 (Vinput_method_function, c);
+      
+      /* Restore the saved echoing state
+	 and this_command_keys state.  */
+      this_command_key_count = key_count;
+      if (key_count > 0)
+	this_command_keys = keys;
+
+      cancel_echoing ();
+      ok_to_echo_at_next_pause = saved_ok_to_echo;
+      current_kboard->echo_after_prompt = saved_echo_after_prompt;
+      if (saved_immediate_echo)
+	echo_now ();
+
       UNGCPRO;
-      current_kboard->immediate_echo = saved;
+
       /* The input method can return no events.  */
       if (! CONSP (tem))
 	{
 	  /* Bring back the previous message, if any.  */
-	  if (! NILP (Vinput_method_previous_message))
+	  if (! NILP (echo_area_message))
 	    message_with_string ("%s", echo_area_message, 0);
-	  this_command_keys = keys;
-	  this_command_key_count = key_count;
-	  cancel_echoing ();
 	  goto retry;
 	}
       /* It returned one event or more.  */
@@ -8175,6 +8215,7 @@ appears in the echo area and in the value of `this-command-keys.'.")
   before_command_restore_flag = 1;
   before_command_key_count_1 = before_command_key_count;
   before_command_echo_length_1 = before_command_echo_length;
+  return Qnil;
 }
 
 DEFUN ("recursion-depth", Frecursion_depth, Srecursion_depth, 0, 0, 0,
