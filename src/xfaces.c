@@ -1251,7 +1251,7 @@ face_color_supported_p (f, color_name, background_p)
 }
 
 
-DEFUN ("face-color-gray-p", Fface_color_gray_p, Sface_color_gray_p, 1, 2, 0,
+DEFUN ("color-gray-p", Fcolor_gray_p, Scolor_gray_p, 1, 2, 0,
   "Return non-nil if COLOR is a shade of gray (or white or black).\n\
 FRAME specifies the frame and thus the display for interpreting COLOR.\n\
 If FRAME is nil or omitted, use the selected frame.")
@@ -1267,13 +1267,13 @@ If FRAME is nil or omitted, use the selected frame.")
 }
 
 
-DEFUN ("face-color-supported-p", Fface_color_supported_p,
-       Sface_color_supported_p, 2, 3, 0,
+DEFUN ("color-supported-p", Fcolor_supported_p,
+       Scolor_supported_p, 2, 3, 0,
   "Return non-nil if COLOR can be displayed on FRAME.\n\
 BACKGROUND-P non-nil means COLOR is used as a background.\n\
 If FRAME is nil or omitted, use the selected frame.\n\
 COLOR must be a valid color name.")
-   (frame, color, background_p)
+   (color, frame, background_p)
      Lisp_Object frame, color, background_p;
 {
   struct frame *f;
