@@ -625,9 +625,13 @@ customized.
 Emacs supports a tool bar at the top of a frame under X.  For details
 of how to define a tool bar, see the page describing Lisp-level
 changes.  Tool-bar global minor mode controls whether or not it is
-displayed and is on by default.  To make the tool bar more useful, we
-need contributions of extra icons for specific modes (with copyright
-assignments).
+displayed and is on by default.  The appearance of the bar is improved
+if Emacs has been built with XPM image support.  Otherwise monochrome
+icons will be used.
+
+To make the tool bar more useful, we need contributions of extra icons
+for specific modes (with copyright assignments).  Contributions would
+also be useful manually to touch up some of the PBM icons.
 
 +++
 ** Mouse-sensitive mode line.
@@ -934,7 +938,7 @@ ring (history).
 
 ** Changes to Rmail mode
 
-*** The new user-option rmail-rmail-user-mail-address-regexp can be
+*** The new user-option rmail-user-mail-address-regexp can be
 set to fine tune the identification of of the correspondent when
 receiving new mail.  If it matches the address of the sender, the
 recipient is taken as correspondent of a mail.  If nil, the default,

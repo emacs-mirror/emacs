@@ -1,3 +1,13 @@
+2000-11-30  Dave Love  <fx@gnu.org>
+
+	* message.el (message-auto-save-directory): Use
+	file-name-as-directory.
+	(message-set-auto-save-file-name): Create
+	message-auto-save-directory if necessary.
+	(message-replace-chars-in-string): Removed -- unused.
+	(message-mail-alias-type): Customize.
+	(message-headers): Remove duplicate defgroup.
+
 2000-11-29  Dave Love  <fx@gnu.org>
 
 	* qp.el (quoted-printable-decode-region): Use error, not message
