@@ -105,7 +105,7 @@ the wheel is moved with the modifier key depressed.
 Elements of the list have the form (MODIFIERS . AMOUNT) or just AMOUNT if
 MODIFIERS is nil.
 
-AMOUNT should be the number of lines to scroll, or `nil' for near full
+AMOUNT should be the number of lines to scroll, or nil for near full
 screen.  It can also be a floating point number, specifying the fraction of
 a full screen to scroll.  A near full screen is `next-screen-context-lines'
 less than a full screen."
