@@ -144,7 +144,7 @@
 (define-key gnus-uu-ctl-map "\C-a" 'gnus-uu-decode-and-view-all-unread-articles)
 (define-key gnus-uu-ctl-map "\C-w" 'gnus-uu-decode-and-view-all-articles)
 
-(define-key gnus-uu-ctl-map "\C-h" 'gnus-uu-threaded-decode-and-view)
+(define-key gnus-uu-ctl-map "\C-d" 'gnus-uu-threaded-decode-and-view)
 (define-key gnus-uu-ctl-map "h" 'gnus-uu-threaded-decode-and-save)
 (define-key gnus-uu-ctl-map "\C-j" 'gnus-uu-threaded-multi-decode-and-view)
 (define-key gnus-uu-ctl-map "j" 'gnus-uu-threaded-multi-decode-and-save)
