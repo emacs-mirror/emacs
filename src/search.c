@@ -1273,7 +1273,7 @@ Leaves point at end of replacement text.")
 		  (Fcurrent_buffer (),
 		   make_number (search_regs.start[0] + offset),
 		   make_number (search_regs.end[0] + offset));
-	      else if (c >= '1' && c <= search_regs.num_regs + '0')
+	      else if (c >= '1' && c <= '9' && c <= search_regs.num_regs + '0')
 		{
 		  if (search_regs.start[c - '0'] >= 1)
 		    Finsert_buffer_substring
