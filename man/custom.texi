@@ -1897,7 +1897,9 @@ click.  Its value is in units of milliseconds.  If the value is
 @vindex double-click-fuzz
   The variable @code{double-click-fuzz} specifies how much the mouse
 can move between clicks still allow them to be grouped as a multiple
-click.  Its value is in units of pixels; the default is 3.
+click.  Its value is in units of pixels on windowed displays and in
+units of 1/8 of a character cell on text-mode terminals; the default is
+3.
 
   The symbols for mouse events also indicate the status of the modifier
 keys, with the usual prefixes @samp{C-}, @samp{M-}, @samp{H-},
