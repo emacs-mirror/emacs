@@ -591,11 +591,7 @@ sys_suspend ()
 #ifdef SIGTSTP
 
   {
-#ifdef USG
-    int pgrp = getpgrp ();
-#else
-    int pgrp = getpgrp (0);
-#endif
+    int pgrp = EMACS_GETPGRP (0);
     EMACS_KILLPG (pgrp, SIGTSTP);
   }
 
