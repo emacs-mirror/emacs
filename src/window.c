@@ -1911,6 +1911,21 @@ before each command.")
   return window;
 }
 
+/* Deiconify the frame containing the window WINDOW, then return WINDOW.  */
+
+static Lisp_Object
+display_buffer_1 (window)
+     Lisp_Object window;
+{
+#ifdef MULTI_FRAME
+  FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
+  FRAME_SAMPLE_VISIBILITY (f);
+  if (FRAME_ICONIFIED_P (f))
+    Fmake_frame_visible (WINDOW_FRAME (XWINDOW (window)));
+#endif
+  return window;
+}
+
 DEFUN ("display-buffer", Fdisplay_buffer, Sdisplay_buffer, 1, 2,
        "bDisplay buffer: \nP",
   "Make BUFFER appear in some window but don't select it.\n\
@@ -1933,7 +1948,7 @@ Returns the window displaying BUFFER.")
 
   if (NILP (not_this_window)
       && XBUFFER (XWINDOW (selected_window)->buffer) == XBUFFER (buffer))
-    return selected_window;
+    return display_buffer_1 (selected_window);
 
   /* See if the user has specified this buffer should appear
      in the selected window.  */
@@ -1943,14 +1958,14 @@ Returns the window displaying BUFFER.")
       if (!NILP (tem))
 	{
 	  Fswitch_to_buffer (buffer, Qnil);
-	  return selected_window;
+	  return display_buffer_1 (selected_window);
 	}
 
       tem = Fassoc (XBUFFER (buffer)->name, Vsame_window_buffer_names);
       if (!NILP (tem))
 	{
 	  Fswitch_to_buffer (buffer, Qnil);
-	  return selected_window;
+	  return display_buffer_1 (selected_window);
 	}
 
       for (tem = Vsame_window_regexps; CONSP (tem); tem = XCONS (tem)->cdr)
@@ -1960,7 +1975,7 @@ Returns the window displaying BUFFER.")
 	      && fast_string_match (car, XBUFFER (buffer)->name) >= 0)
 	    {
 	      Fswitch_to_buffer (buffer, Qnil);
-	      return selected_window;
+	      return display_buffer_1 (selected_window);
 	    }
 	  else if (CONSP (car)
 		   && STRINGP (XCONS (car)->car)
@@ -1968,7 +1983,7 @@ Returns the window displaying BUFFER.")
 					 XBUFFER (buffer)->name) >= 0)
 	    {
 	      Fswitch_to_buffer (buffer, Qnil);
-	      return selected_window;
+	      return display_buffer_1 (selected_window);
 	    }
 	}
     }
@@ -1986,11 +2001,7 @@ Returns the window displaying BUFFER.")
   if (!NILP (window)
       && (NILP (not_this_window) || !EQ (window, selected_window)))
     {
-#ifdef MULTI_FRAME
-      if (FRAME_ICONIFIED_P (XFRAME (WINDOW_FRAME (XWINDOW (window)))))
-	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (window)));
-#endif
-      return window;
+      return display_buffer_1 (window);
     }
 
   /* Certain buffer names get special handling.  */
@@ -2027,7 +2038,7 @@ Returns the window displaying BUFFER.")
     {
       window = Fframe_selected_window (call0 (Vpop_up_frame_function));
       Fset_window_buffer (window, buffer);
-      return window;
+      return display_buffer_1 (window);
     }
 #endif /* MULTI_FRAME */
 
@@ -2139,7 +2150,7 @@ Returns the window displaying BUFFER.")
     window = Fget_lru_window (Qnil);
 
   Fset_window_buffer (window, buffer);
-  return window;
+  return display_buffer_1 (window);
 }
 
 void
