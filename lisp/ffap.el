@@ -1624,6 +1624,52 @@ Only intended for interactive use."
   (interactive) (ffap-gnus-wrapper '(ffap-menu)))
 
 
+(defcustom dired-at-point-require-prefix nil
+  "*If set, reverses the prefix argument to `dired-at-point'.
+This is nil so neophytes notice ffap.  Experts may prefer to disable
+ffap most of the time."
+  :type 'boolean
+  :group 'ffap
+  :version "20.3")
+
+;;;###autoload
+(defun dired-at-point (&optional filename)
+  "Start Dired, defaulting to file at point.  See `ffap'."
+  (interactive)
+  (if (and (interactive-p)
+	   (if dired-at-point-require-prefix
+	       (not current-prefix-arg)
+	     current-prefix-arg))
+      (let (current-prefix-arg)		; already interpreted
+	(call-interactively dired-function))
+    (or filename (setq filename (dired-at-point-prompter)))
+    (cond
+     ((ffap-url-p filename)
+      (funcall ffap-url-fetcher filename))
+     ((and ffap-dired-wildcards
+	   (string-match ffap-dired-wildcards filename))
+      (dired filename))
+     ((file-exists-p filename)
+      (if (file-directory-p filename)
+	  (dired (expand-file-name filename))
+	(dired (concat (expand-file-name filename) "*"))))
+     ((y-or-n-p "Directory does not exist, create it? ")
+      (make-directory filename)
+      (dired filename))
+     ((error "No such file or directory `%s'" filename)))))
+
+(defun dired-at-point-prompter (&optional guess)
+  ;; Does guess and prompt step for find-file-at-point.
+  ;; Extra complication for the temporary highlighting.
+  (unwind-protect
+      (ffap-read-file-or-url
+       (if ffap-url-regexp "Dired file or URL: " "Dired file: ")
+       (prog1
+	   (setq guess (or guess (ffap-guesser)))
+	 (and guess (ffap-highlight))
+	 ))
+    (ffap-highlight t)))
+
 ;;; Offer default global bindings (`ffap-bindings'):
 
 (defvar ffap-bindings
