@@ -1438,6 +1438,26 @@ becomes clearer if the association is written in dotted pair notation:
 @end smallexample
 @end defun
 
+@tindex assoc-default
+@defun assoc-default key alist test default
+This function searches @var{alist} for a match for @var{key}.  For each
+element of @var{alist}, it compares the element (if it is an atom) or
+the element's @sc{car} (if it is a cons) against @var{key}, by calling
+@var{test} with two arguments: the element or its @sc{car}, and
+@var{key}.  The arguments are passed in that order so that you can get
+useful results using @code{string-match} with an alist that contains
+regular expressions (@pxref{Regexp Search}).  If @var{test} is omitted
+or @code{nil}, @code{equal} is used for comparison.
+
+If an alist element matches @var{key} by this criterion,
+then @code{assoc-default} returns a value based on this element.
+If the element is a cons, then the value is the element's @sc{cdr}.
+Otherwise, the return value is @var{default}.
+
+If no alist element matches @var{key}, @code{assoc-default} returns
+@code{nil}.
+@end defun
+
 @defun copy-alist alist
 @cindex copying alists
 This function returns a two-level deep copy of @var{alist}: it creates a
