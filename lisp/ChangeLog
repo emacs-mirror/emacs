@@ -1,3 +1,15 @@
+2000-03-21  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* derived.el (define-derived-mode): Don't autoload anymore.
+	Prefer the macro-only version provided by easy-mmode.el.
+
+	* emacs-lisp/easy-mmode.el (define-derived-mode): New name for
+	`easy-mmode-define-derived-mode'.
+	Use `combine-run-hooks'.
+	(easy-mmode-define-navigation): New macro.
+
+	* subr.el (combine-run-hooks): New function.
+
 2000-03-21  Kenichi HANDA  <handa@etl.go.jp>
 
 	* term/x-win.el: Fontsets related initialization is simplified.
