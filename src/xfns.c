@@ -39,6 +39,7 @@ Boston, MA 02111-1307, USA.  */
 #include "blockinput.h"
 #include <epaths.h>
 #include "charset.h"
+#include "coding.h"
 #include "fontset.h"
 #include "systime.h"
 #include "termhooks.h"
@@ -237,6 +238,7 @@ Lisp_Object Quser_size;
 extern Lisp_Object Qdisplay;
 Lisp_Object Qscroll_bar_foreground, Qscroll_bar_background;
 Lisp_Object Qscreen_gamma, Qline_spacing, Qcenter;
+Lisp_Object Qcompound_text;
 
 /* The below are defined in frame.c.  */
 
@@ -2076,6 +2078,56 @@ x_set_scroll_bar_background (f, value, oldval)
 }
 
 
+/* Encode Lisp string STRINT as a text in a format appropriate for
+   XICCC (X Inter Client Communication Conventions).
+
+   If STRING contains only ASCII characters, do no conversion and
+   return the string data of STRING.  Otherwise, encode the text by
+   CODING_SYSTEM, and return a newly allocated memory area which
+   should be freed by `xfree' by a caller.
+
+   Store the byte length of resulting text in *TEXT_BYTES.
+
+   If the text contains only ASCII and Latin-1, store 1 in *LATIN1_P,
+   which means that the `encoding' of the result can be `STRING'.
+   Otherwise store 0 in *LATIN1_P, which means that the `encoding' of
+   the result should be `COMPOUND_TEXT'.  */
+
+unsigned char *
+x_encode_text (string, coding_system, text_bytes, latin1_p)
+     Lisp_Object string, coding_system;
+     int *text_bytes, *latin1_p;
+{
+  unsigned char *str = XSTRING (string)->data;
+  int chars = XSTRING (string)->size;
+  int bytes = STRING_BYTES (XSTRING (string));
+  int charset_info;
+  int bufsize;
+  unsigned char *buf;
+  struct coding_system coding;
+
+  charset_info = find_charset_in_text (str, chars, bytes, NULL, Qnil);
+  if (charset_info == 0)
+    {
+      /* No multibyte character in OBJ.  We need not encode it.  */
+      *text_bytes = bytes;
+      *latin1_p = 1;
+      return str;
+    }
+
+  setup_coding_system (coding_system, &coding);
+  coding.src_multibyte = 1;
+  coding.dst_multibyte = 0;
+  coding.mode |= CODING_MODE_LAST_BLOCK;
+  bufsize = encoding_buffer_size (&coding, bytes);
+  buf = (unsigned char *) xmalloc (bufsize);
+  encode_coding (&coding, str, buf, bytes, bufsize);
+  *text_bytes = coding.produced;
+  *latin1_p = (charset_info == 1);
+  return buf;
+}
+
+
 /* Change the name of frame F to NAME.  If NAME is nil, set F's name to
        x_id_name.
 
@@ -2137,19 +2189,27 @@ x_set_name (f, name, explicit)
 #ifdef HAVE_X11R4
       {
 	XTextProperty text, icon;
-	Lisp_Object icon_name;
+	int bytes, latin1_p;
 
-	text.value = XSTRING (name)->data;
-	text.encoding = XA_STRING;
+	text.value = x_encode_text (name, Qcompound_text, &bytes, &latin1_p);
+	text.encoding = (latin1_p ? XA_STRING
+			 : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
 	text.format = 8;
-	text.nitems = STRING_BYTES (XSTRING (name));
+	text.nitems = bytes;
 
-	icon_name = (!NILP (f->icon_name) ? f->icon_name : name);
-
-	icon.value = XSTRING (icon_name)->data;
-	icon.encoding = XA_STRING;
-	icon.format = 8;
-	icon.nitems = STRING_BYTES (XSTRING (icon_name));
+	if (NILP (f->icon_name))
+	  {
+	    icon = text;
+	  }
+	else
+	  {
+	    icon.value = x_encode_text (f->icon_name, Qcompound_text,
+					&bytes, &latin1_p);
+	    icon.encoding = (latin1_p ? XA_STRING
+			     : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
+	    icon.format = 8;
+	    icon.nitems = bytes;
+	  }
 #ifdef USE_X_TOOLKIT
 	XSetWMName (FRAME_X_DISPLAY (f),
 		    XtWindow (f->output_data.x->widget), &text);
@@ -2159,6 +2219,11 @@ x_set_name (f, name, explicit)
 	XSetWMName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &text);
 	XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &icon);
 #endif /* not USE_X_TOOLKIT */
+	if (!NILP (f->icon_name)
+	    && icon.value != XSTRING (f->icon_name)->data)
+	  xfree (icon.value);
+	if (text.value != XSTRING (name)->data)
+	  xfree (text.value);
       }
 #else /* not HAVE_X11R4 */
       XSetIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
@@ -2227,19 +2292,27 @@ x_set_title (f, name, old_name)
 #ifdef HAVE_X11R4
       {
 	XTextProperty text, icon;
-	Lisp_Object icon_name;
+	int bytes, latin1_p;
 
-	text.value = XSTRING (name)->data;
-	text.encoding = XA_STRING;
+	text.value = x_encode_text (name, Qcompound_text, &bytes, &latin1_p);
+	text.encoding = (latin1_p ? XA_STRING
+			 : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
 	text.format = 8;
-	text.nitems = STRING_BYTES (XSTRING (name));
+	text.nitems = bytes;
 
-	icon_name = (!NILP (f->icon_name) ? f->icon_name : name);
-
-	icon.value = XSTRING (icon_name)->data;
-	icon.encoding = XA_STRING;
-	icon.format = 8;
-	icon.nitems = STRING_BYTES (XSTRING (icon_name));
+	if (NILP (f->icon_name))
+	  {
+	    icon = text;
+	  }
+	else
+	  {
+	    icon.value = x_encode_text (f->icon_name, Qcompound_text,
+					&bytes, &latin1_p);
+	    icon.encoding = (latin1_p ? XA_STRING
+			     : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
+	    icon.format = 8;
+	    icon.nitems = bytes;
+	  }
 #ifdef USE_X_TOOLKIT
 	XSetWMName (FRAME_X_DISPLAY (f),
 		    XtWindow (f->output_data.x->widget), &text);
@@ -2249,6 +2322,11 @@ x_set_title (f, name, old_name)
 	XSetWMName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &text);
 	XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &icon);
 #endif /* not USE_X_TOOLKIT */
+	if (!NILP (f->icon_name)
+	    && icon.value != XSTRING (f->icon_name)->data)
+	  xfree (icon.value);
+	if (text.value != XSTRING (name)->data)
+	  xfree (text.value);
       }
 #else /* not HAVE_X11R4 */
       XSetIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
@@ -10297,6 +10375,8 @@ syms_of_xfns ()
   staticpro (&Qline_spacing);
   Qcenter = intern ("center");
   staticpro (&Qcenter);
+  Qcompound_text = intern ("compound-text");
+  staticpro (&Qcompound_text);
   /* This is the end of symbol initialization.  */
 
   /* Text property `display' should be nonsticky by default.  */
