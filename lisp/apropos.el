@@ -386,7 +386,7 @@ Returns list of symbols and values found."
 	(if (or f v p)
 	    (setq apropos-accumulator (cons (list symbol f v p)
 					    apropos-accumulator))))))
-  (apropos-print nil t))
+  (apropos-print nil "\n----------------\n"))
 
 
 ;;;###autoload
@@ -424,7 +424,7 @@ Returns list of symbols and documentation found."
 		       (setq apropos-accumulator
 			     (cons (list symbol f v)
 				   apropos-accumulator)))))))
-	  (apropos-print nil t))
+	  (apropos-print nil "\n----------------\n"))
       (kill-buffer standard-input))))
 
 
@@ -585,7 +585,10 @@ The value of `apropos-accumulator' is the list of items to output.
 Each element should have the format (SYMBOL FN-DOC VAR-DOC [PLIST-DOC]).
 The return value is the list that was in `apropos-accumulator', sorted
 alphabetically by symbol name; but this function also sets
-`apropos-accumulator' to nil before returning."
+`apropos-accumulator' to nil before returning.
+
+If SPACING is non-nil, it should be a string;
+separate items with that string."
   (if (null apropos-accumulator)
       (message "No apropos matches for `%s'" apropos-regexp)
     (setq apropos-accumulator
@@ -606,7 +609,8 @@ alphabetically by symbol name; but this function also sets
 		(substitute-command-keys
 		 "and type \\[apropos-follow] to get full documentation.\n\n"))
 	(while (consp p)
-	  (or (not spacing) (bobp) (terpri))
+	  (when (and spacing (not (bobp)))
+	    (princ spacing))
 	  (setq apropos-item (car p)
 		symbol (car apropos-item)
 		p (cdr p))
