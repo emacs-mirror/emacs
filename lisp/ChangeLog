@@ -1,5 +1,8 @@
 2000-02-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* faces.el (list-faces-display): Use display-mouse-p instead of
+        window-system.
+
 	* menu-bar.el (global-map): Menu-bar items converted to the new
 	format (menu-item..., rearranged for better CUA compliance, and
 	their names changed for better clarity.  Help strings added.
