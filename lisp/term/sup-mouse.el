@@ -193,6 +193,7 @@ X and Y are 0-based character positions in the window."
 (defun sup-pos-to-window (x y)
   "Find window corresponding to frame coordinates.
 X and Y are 0-based character positions on the frame."
-  (some-window (lambda (w) (coordinates-in-window-p (cons x y) w))))
+  (get-window-with-predicate (lambda (w)
+			       (coordinates-in-window-p (cons x y) w))))
 
 ;;; sup-mouse.el ends here
