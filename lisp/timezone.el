@@ -1,6 +1,6 @@
 ;;; timezone.el --- time zone package for GNU Emacs
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 1996, 1999 Free Software Foundation, Inc.
 
 ;; Author: Masanobu Umeda
 ;; Maintainer: umerin@mse.kyutech.ac.jp
@@ -24,8 +24,6 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Code:
-
-(provide 'timezone)
 
 (defvar timezone-world-timezones
   '(("PST" .  -800)
@@ -196,49 +194,42 @@ Understands the following styles:
 	   ;; Styles: (8) without timezone.
 	   (setq year 1 month 2 day 3 time 4 zone nil))
 	  )
-    (if year
-	(progn
-	  (setq year
-		(substring date (match-beginning year) (match-end year)))
-	  ;; It is now Dec 1992.  8 years before the end of the World.
-	  (if (= (length year) 1)
-	      (setq year (concat "190" (substring year -1 nil)))
-	    (if (< (length year) 4)
-		(setq year (concat "19" (substring year -2 nil)))))
-          (setq month
-		(if (= (aref date (+ (match-beginning month) 2)) ?-)
-		    ;; Handle numeric months, spanning exactly two digits.
-		    (substring date
-			       (match-beginning month)
-			       (+ (match-beginning month) 2))
- 	          (let* ((string (substring date
-					    (match-beginning month)
-					    (+ (match-beginning month) 3)))
-			 (monthnum
-			  (cdr (assoc (upcase string) timezone-months-assoc))))
-		    (if monthnum
-			(int-to-string monthnum)
-		      nil))))
-	  (setq day
-		(substring date (match-beginning day) (match-end day)))
-	  (setq time
-		(substring date (match-beginning time) (match-end time)))))
-    (if zone
-	(setq zone
-	      (substring date (match-beginning zone) (match-end zone))))
+    (when year
+      (setq year (match-string year date))
+      ;; Guess ambiguous years.  Assume years < 70 don't predate the
+      ;; Unix Epoch, so are 2000+.  Three-digit years -- do they ever
+      ;; occur? -- are (arbitrarily) assumed to be 21st century.
+      (if (< (length year) 4)
+	  (let ((y (string-to-int year)))
+	    (if (< y 70)
+		(setq y (+ y 100)))
+	    (setq year (int-to-string (+ 1900 y)))))
+      (setq month
+	    (if (= (aref date (+ (match-beginning month) 2)) ?-)
+		;; Handle numeric months, spanning exactly two digits.
+		(substring date
+			   (match-beginning month)
+			   (+ (match-beginning month) 2))
+	      (let* ((string (substring date
+					(match-beginning month)
+					(+ (match-beginning month) 3)))
+		     (monthnum
+		      (cdr (assoc (upcase string) timezone-months-assoc))))
+		(if monthnum
+		    (int-to-string monthnum)))))
+      (setq day (match-string day date))
+      (setq time (match-string time date)))
+    (if zone (setq zone (match-string zone date)))
     ;; Return a vector.
     (if (and year month)
 	(vector year month day time zone)
-      (vector "0" "0" "0" "0" nil))
-    ))
+      (vector "0" "0" "0" "0" nil))))
 
 (defun timezone-parse-time (time)
   "Parse TIME (HH:MM:SS) and return a vector [hour minute second].
 Recognize HH:MM:SS, HH:MM, HHMMSS, HHMM."
   (let ((time (or time ""))
-	(hour nil)
-	(minute nil)
-	(second nil))
+	hour minute second)
     (cond ((string-match "\\`\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\)\\'" time)
 	   ;; HH:MM:SS
 	   (setq hour 1 minute 2 second 3))
@@ -254,13 +245,9 @@ Recognize HH:MM:SS, HH:MM, HHMMSS, HHMM."
 	  )
     ;; Return [hour minute second]
     (vector
-     (if hour
-	 (substring time (match-beginning hour) (match-end hour)) "0")
-     (if minute
-	 (substring time (match-beginning minute) (match-end minute)) "0")
-     (if second
-	 (substring time (match-beginning second) (match-end second)) "0"))
-    ))
+     (if hour (match-string hour time) "0")
+     (if minute (match-string minute time) "0")
+     (if second (match-string second time) "0"))))
 
 
 ;; Miscellaneous
@@ -409,5 +396,7 @@ The Gregorian date Sunday, December 31, 1 BC is imaginary."
      (/ (1- year) 4);;		+ Julian leap years
      (- (/ (1- year) 100));;	- century years
      (/ (1- year) 400)));;	+ Gregorian leap years
+
+(provide 'timezone)
 
 ;;; timezone.el ends here
