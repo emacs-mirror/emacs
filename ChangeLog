@@ -1,3 +1,8 @@
+2003-03-16  Nelson H. F. Beebe  <beebe@math.utah.edu>  (tiny change)
+
+	* configure.in: Check for need for bigtoc support on IBM AIX for
+	solving a linker table overflow problem.
+
 2003-02-17  Klaus Zeitler  <kzeitler@lucent.com>
 
 	* configure.in: Set new hpux10-20.h as "major" include for 10.20.
