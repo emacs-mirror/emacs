@@ -653,7 +653,7 @@ See also `desktop-base-file-name'."
       (erase-buffer)
 
       (insert
-        ";; -*- coding: emacs-mule; -*-\n"
+        ";; -*- mode: emacs-lisp; coding: emacs-mule; -*-\n"
         desktop-header
         ";; Created " (current-time-string) "\n"
         ";; Desktop file format version " desktop-file-version "\n"
