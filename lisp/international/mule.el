@@ -1044,7 +1044,7 @@ function by default."
   "Return a coding system for a buffer when a file of CODING is inserted.
 The local variable `buffer-file-coding-system' of the current buffer
 is set to the returned value.
-Return nil if there's no need of setting new buffer-file-coding-system."
+Return nil if there's no need to set `buffer-file-coding-system'."
   (let (local-coding local-eol
 	found-coding found-eol
 	new-coding new-eol)
