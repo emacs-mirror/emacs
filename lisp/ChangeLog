@@ -8,6 +8,43 @@
 
 	* hexl.el (hexl-mode): Likewise.
 
+	* progmodes/idlw-shell.el (idlwave-shell-set-bp): Likewise.
+
+	* progmodes/ebnf-yac.el (ebnf-yac-error): Likewise.
+
+	* speedbar.el (speedbar-make-specialized-keymap): Fix docstring.
+	(speedbar-desired-buffer): Likewise.
+	(speedbar-line-file): Likewise.
+	(speedbar-special-mode-key-map): Fix typo.
+	(speedbar-dynamic-tags-function-list): Likewise.
+	(speedbar-use-images): Likewise.
+	(speedbar-up-directory): Likewise.
+	(speedbar-item-info): Likewise.
+	(speedbar-set-timer): Likewise.
+	(speedbar-insert-button): Likewise.
+	(speedbar-make-button): Likewise.
+	(speedbar-make-tag-line): Likewise.
+	(speedbar-insert-files-at-point): Likewise.
+	(speedbar-update-special-contents): Likewise.
+	(speedbar-find-selected-file): Likewise.
+	(speedbar-add-indicator): Likewise.
+	(speedbar-do-function-pointer): Likewise.
+	(speedbar-goto-this-file): Likewise.
+	(speedbar-line-path): Likewise.
+	(speedbar-mouse-event-p): Likewise.
+	(speedbar-dir-follow): Likewise.
+	(speedbar-tag-find): Likewise.
+	(speedbar-fetch-etags-command): Likewise.
+	(speedbar-fetch-etags-arguments): Likewise.
+	(speedbar-toggle-etags): Likewise.
+	(speedbar-extract-one-symbol): Likewise.
+	(speedbar-parse-c-or-c++tag): Likewise.
+	(speedbar-unhighlight-one-tag-line): Likewise.
+	(speedbar-directory-face): Likewise.
+	(defimage-speedbar): Likewise.
+	(speedbar-convert-emacs21-imagespec-to-xemacs): Likewise.
+	(defimage-speedbar): Likewise.
+
 2002-07-09  Miles Bader  <miles@gnu.org>
 
 	* hexl.el (hexl-find-file): Bind `completion-ignored-extensions'
