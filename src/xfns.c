@@ -10347,6 +10347,8 @@ hide_busy_cursor ()
 
 static Lisp_Object x_create_tip_frame P_ ((struct x_display_info *,
 					   Lisp_Object));
+static void compute_tip_xy P_ ((struct frame *, Lisp_Object, Lisp_Object,
+				Lisp_Object, int *, int *));
      
 /* The frame of a currently visible tooltip.  */
 
@@ -10357,6 +10359,11 @@ Lisp_Object tip_frame;
 
 Lisp_Object tip_timer;
 Window tip_window;
+
+/* If non-nil, a vector of 3 elements containing the last args
+   with which x-show-tip was called.  See there.  */
+
+Lisp_Object last_show_tip_args;
 
 
 static Lisp_Object
@@ -10397,6 +10404,7 @@ x_create_tip_frame (dpyinfo, parms)
   int count = BINDING_STACK_SIZE ();
   struct gcpro gcpro1, gcpro2, gcpro3;
   struct kboard *kb;
+  int face_change_count_before = face_change_count;
 
   check_x ();
 
@@ -10655,8 +10663,52 @@ x_create_tip_frame (dpyinfo, parms)
      its display.  */
   FRAME_X_DISPLAY_INFO (f)->reference_count++;
 
+  /* Setting attributes of faces of the tooltip frame from resources
+     and similar will increment face_change_count, which leads to the
+     clearing of all current matrices.  Since this isn't necessary
+     here, avoid it by resetting face_change_count to the value it
+     had before we created the tip frame.  */
+  face_change_count = face_change_count_before;
+
   /* Discard the unwind_protect.  */
   return unbind_to (count, frame);
+}
+
+
+/* Compute where to display tip frame F.  PARMS is the list of frame
+   parameters for F.  DX and DY are specified offsets from the current
+   location of the mouse.  Return coordinates relative to the root
+   window of the display in *ROOT_X, and *ROOT_Y.  */
+
+static void
+compute_tip_xy (f, parms, dx, dy, root_x, root_y)
+     struct frame *f;
+     Lisp_Object parms, dx, dy;
+     int *root_x, *root_y;
+{
+  Lisp_Object left, top;
+  int win_x, win_y;
+  Window root, child;
+  unsigned pmask;
+  
+  /* User-specified position?  */
+  left = Fcdr (Fassq (Qleft, parms));
+  top  = Fcdr (Fassq (Qtop, parms));
+  
+  /* Move the tooltip window where the mouse pointer is.  Resize and
+     show it.  */
+  BLOCK_INPUT;
+  XQueryPointer (FRAME_X_DISPLAY (f), FRAME_X_DISPLAY_INFO (f)->root_window,
+		 &root, &child, root_x, root_y, &win_x, &win_y, &pmask);
+  UNBLOCK_INPUT;
+
+  *root_x += XINT (dx);
+  *root_y += XINT (dy);
+  
+  if (INTEGERP (left))
+    *root_x = XINT (left);
+  if (INTEGERP (top))
+    *root_y = XINT (top);
 }
 
 
@@ -10684,16 +10736,14 @@ DY added (default is -10).")
 {
   struct frame *f;
   struct window *w;
-  Window root, child;
   Lisp_Object buffer, top, left;
+  int root_x, root_y;
   struct buffer *old_buffer;
   struct text_pos pos;
   int i, width, height;
-  int root_x, root_y, win_x, win_y;
-  unsigned pmask;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   int old_windows_or_buffers_changed = windows_or_buffers_changed;
-  int count = specpdl_ptr - specpdl;
+  int count = BINDING_STACK_SIZE ();
   
   specbind (Qinhibit_redisplay, Qt);
 
@@ -10716,8 +10766,40 @@ DY added (default is -10).")
   else
     CHECK_NUMBER (dy, 6);
 
+  if (NILP (last_show_tip_args))
+    last_show_tip_args = Fmake_vector (make_number (3), Qnil);
+
+  if (!NILP (tip_frame))
+    {
+      Lisp_Object last_string = AREF (last_show_tip_args, 0);
+      Lisp_Object last_frame = AREF (last_show_tip_args, 1);
+      Lisp_Object last_parms = AREF (last_show_tip_args, 2);
+
+      if (EQ (frame, last_frame)
+	  && !NILP (Fequal (last_string, string))
+	  && !NILP (Fequal (last_parms, parms)))
+	{
+	  struct frame *f = XFRAME (tip_frame);
+	  
+	  /* Only DX and DY have changed.  */
+	  if (!NILP (tip_timer))
+	    call1 (intern ("cancel-timer"), tip_timer);
+
+	  BLOCK_INPUT;
+	  compute_tip_xy (f, parms, dx, dy, &root_x, &root_y);
+	  XMoveWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		       root_x, root_y - PIXEL_HEIGHT (f));
+	  UNBLOCK_INPUT;
+	  goto start_timer;
+	}
+    }
+
   /* Hide a previous tip, if any.  */
   Fx_hide_tip ();
+
+  ASET (last_show_tip_args, 0, string);
+  ASET (last_show_tip_args, 1, frame);
+  ASET (last_show_tip_args, 2, parms);
 
   /* Add default values to frame parameters.  */
   if (NILP (Fassq (Qname, parms)))
@@ -10793,31 +10875,16 @@ DY added (default is -10).")
   height += 2 * FRAME_INTERNAL_BORDER_WIDTH (f);
   width += 2 * FRAME_INTERNAL_BORDER_WIDTH (f);
 
-  /* User-specified position?  */
-  left = Fcdr (Fassq (Qleft, parms));
-  top  = Fcdr (Fassq (Qtop, parms));
-  
   /* Move the tooltip window where the mouse pointer is.  Resize and
      show it.  */
-  BLOCK_INPUT;
-  XQueryPointer (FRAME_X_DISPLAY (f), FRAME_X_DISPLAY_INFO (f)->root_window,
-		 &root, &child, &root_x, &root_y, &win_x, &win_y, &pmask);
-  UNBLOCK_INPUT;
+  compute_tip_xy (f, parms, dx, dy, &root_x, &root_y);
 
-  root_x += XINT (dx);
-  root_y += XINT (dy);
-  
-  if (INTEGERP (left))
-    root_x = XINT (left);
-  if (INTEGERP (top))
-    root_y = XINT (top);
-  
   BLOCK_INPUT;
   XMoveResizeWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		     root_x, root_y - height, width, height);
   XMapRaised (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
   UNBLOCK_INPUT;
-
+  
   /* Draw into the window.  */
   w->must_be_updated_p = 1;
   update_single_window (w, 1);
@@ -10826,6 +10893,7 @@ DY added (default is -10).")
   set_buffer_internal_1 (old_buffer);
   windows_or_buffers_changed = old_windows_or_buffers_changed;
 
+ start_timer:
   /* Let the tip disappear after timeout seconds.  */
   tip_timer = call3 (intern ("run-at-time"), timeout, Qnil,
 		     intern ("x-hide-tip"));
@@ -11507,6 +11575,9 @@ meaning don't clear the cache.");
   staticpro (&tip_timer);
   tip_frame = Qnil;
   staticpro (&tip_frame);
+
+  last_show_tip_args = Qnil;
+  staticpro (&last_show_tip_args);
 
 #ifdef USE_MOTIF
   defsubr (&Sx_file_dialog);
