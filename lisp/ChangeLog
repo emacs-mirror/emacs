@@ -1,3 +1,8 @@
+2003-03-10  Andreas Schwab  <schwab@suse.de>
+
+	* info.el (Info-extract-menu-node-name)
+	(Info-following-node-name): Revert last change.
+
 2003-03-10  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* progmodes/scheme.el (scheme-mode-syntax-table): Construct
