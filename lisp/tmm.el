@@ -193,7 +193,8 @@ Its value should be an event that has a binding in MENU."
 		     ;; Be careful to count only the elements of MENU
 		     ;; that actually constitute menu bar items.
 		     (if (and (consp (car tail))
-			      (stringp (car-safe (cdr (car tail)))))
+			      (or (stringp (car-safe (cdr (car tail))))
+				  (eq (car-safe (cdr (car tail))) 'menu-item)))
 			 (setq index-of-default (1+ index-of-default)))
 		     (setq tail (cdr tail)))))
 	     (setq history (reverse (mapcar 'car tmm-km-list)))
