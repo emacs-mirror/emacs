@@ -1,3 +1,16 @@
+2004-11-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* dosfns.c (Fdos_memget, Fdos_memput): Use integer variable offs in
+	comparisons with integers instead of Lisp_Object address.
+	(Fmsdos_set_keyboard): Declare argument allkeys.
+
+	* msdos.c (IT_set_frame_parameters): Use EQ, not ==, for Lisp_Object:s.
+
+	* dired.c: extern declare Fmsdos_downcase_filename on MSDOS to avoid
+	int/Lisp_Object mixup.
+
+	* fileio.c: Ditto.
+
 2004-11-06  Steven Tamm  <steventamm@mac.com>
 
 	* editfns.c: Need to include sys/time.h before resource.h on darwin.
