@@ -2595,6 +2595,21 @@ void w32_init_fringe P_ ((void));
 void w32_reset_fringes P_ ((void));
 #endif
 
+/* Defined in image.c */
+
+extern int x_bitmap_height P_ ((struct frame *, int));
+extern int x_bitmap_width P_ ((struct frame *, int));
+extern int x_bitmap_pixmap P_ ((struct frame *, int));
+extern void x_reference_bitmap P_ ((struct frame *, int));
+extern int x_create_bitmap_from_data P_ ((struct frame *, char *,
+					  unsigned int, unsigned int));
+extern int x_create_bitmap_from_file P_ ((struct frame *, Lisp_Object));
+#ifndef x_destroy_bitmap
+extern void x_destroy_bitmap P_ ((struct frame *, int));
+#endif
+extern void x_destroy_all_bitmaps P_ ((Display_Info *));
+extern int x_create_bitmap_mask P_ ((struct frame * , int));
+
 /* Defined in sysdep.c */
 
 void get_frame_size P_ ((int *, int *));
@@ -2646,6 +2661,9 @@ void gamma_correct P_ ((struct frame *, XColor *));
 #endif
 #ifdef WINDOWSNT
 void gamma_correct P_ ((struct frame *, COLORREF *));
+#endif
+#ifdef MAC_OS
+void gamma_correct P_ ((struct frame *, unsigned long *));
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM
