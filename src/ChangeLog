@@ -1,5 +1,8 @@
 2002-02-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* xterm.c (x-autoselect-window): New variable.
+	(note_mouse_movement): Use it.
+
 	* keyboard.c: Do not include "systime.h" twice.
 
 2002-02-15  Andreas Schwab  <schwab@suse.de>

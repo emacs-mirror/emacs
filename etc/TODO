@@ -116,9 +116,6 @@
 
 * Make the Lucid menu widget display multilingual text.
 
-* Implement, in C, a ``focus follows mouse'' mode that selects a window
-  when the mouse enters it.
-
 * Check what hooks would help Emacspeak -- see the defadvising in W3.
 
 * Implement some variety of (non-gtk) drag-and-drop support under X.

@@ -32,6 +32,10 @@ Emacs with Leim.
 
 * Changes in Emacs 21.3
 
+** New display feature: focus follows mouse.
+By setting the variable x-autoselect-window to non-nil value, mouse will
+autoselect the window it is in.  It is turned off by default.
+
 ** The new command `describe-text-at' pops up a buffer with description
 of text properties, overlays, and widgets at point, and lets you get
 more information about them, by clicking on mouse-sensitive areas or

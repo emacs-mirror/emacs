@@ -1,5 +1,7 @@
 2002-02-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* cus-start.el (x-autoselect-window): Allow customization.
+
 	* eshell/em-alias.el (eshell-alias-initialize): Do not use
 	make-local-hook.
 
