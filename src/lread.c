@@ -1121,8 +1121,8 @@ openp (path, str, suffixes, storeptr, predicate)
 		  handler = Ffind_file_name_handler (filename, Qfile_exists_p);
 	     It's not clear why that was the case and it breaks things like
 	     (load "/bar.el") where the file is actually "/bar.el.gz".  */
-	  handler = Ffind_file_name_handler (filename, Qfile_exists_p);
 	  string = build_string (fn);
+	  handler = Ffind_file_name_handler (string, Qfile_exists_p);
 	  if ((!NILP (handler) || !NILP (predicate)) && !NATNUMP (predicate))
             {
 	      if (NILP (predicate))
