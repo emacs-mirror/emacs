@@ -18786,10 +18786,7 @@ x_fix_overlapping_area (w, row, area)
 
   BLOCK_INPUT;
 
-  x = window_box_left_offset (w, area);
-  if (area == TEXT_AREA)
-    x += row->x;
-
+  x = 0;
   for (i = 0; i < row->used[area];)
     {
       if (row->glyphs[area][i].overlaps_vertically_p)
