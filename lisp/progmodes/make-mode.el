@@ -103,6 +103,13 @@
   :group 'tools
   :prefix "makefile-")
 
+(defface makefile-space-face
+   '((((class color)) (:background  "hotpink"))
+         (t (:reverse-video t)))
+  "Face to use for highlighting leading spaces in Font-Lock mode."
+  :group 'faces
+  :group 'makemode)
+
 (defcustom makefile-browser-buffer-name "*Macros and Targets*"
   "Name of the macro- and target browser buffer."
   :type 'string
@@ -538,8 +545,6 @@ makefile-special-targets-list:
   (make-local-variable 'makefile-need-macro-pickup)
 
   ;; Font lock.
-  (if (fboundp 'make-face)
-      (makefile-define-space-face))
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(makefile-font-lock-keywords))
 
@@ -1517,21 +1522,5 @@ If it isn't in one, return nil."
 		     alist))))
     (imenu-progress-message stupid 100)
     (nreverse alist)))
-
-(defun makefile-define-space-face ()
-  (make-face 'makefile-space-face)
-  (or (not (eq window-system 'x))
-      (face-differs-from-default-p 'makefile-space-face)
-      (let* ((params (frame-parameters))
-	     (light-bg (cdr (assq 'background-mode params)))
-	     (bg-color (cond ((eq (cdr (assq 'display-type params)) 'mono)
-			      (if light-bg "black" "white"))
-			     ((eq (cdr (assq 'display-type params)) 'grayscale)
-			      (if light-bg "black" "white"))
-			     (light-bg	; Light color background.
-			      "hotpink")
-			     (t		; Dark color background.
-			      "hotpink"))))
-	(set-face-background 'makefile-space-face bg-color))))
 
 ;;; make-mode.el ends here
