@@ -432,6 +432,10 @@ See the Gnus manual for an explanation of the syntax used.")
 	  ;; put point in the assigned buffer, and do not touch the
 	  ;; winconf.
 	  (select-window all-visible)
+	
+	;; Make sure "the other" buffer, nntp-server-buffer, is live.
+	(unless (gnus-buffer-live-p nntp-server-buffer)
+	  (nnheader-init-server-buffer))
 
 	;; Either remove all windows or just remove all Gnus windows.
 	(let ((frame (selected-frame)))
@@ -536,7 +540,7 @@ should have point."
 		  lowest-buf buf))))
       (when lowest-buf
 	(pop-to-buffer lowest-buf)
-	(switch-to-buffer nntp-server-buffer))
+	(set-buffer nntp-server-buffer))
       (mapcar (lambda (b) (delete-windows-on b t)) bufs))))
 
 (provide 'gnus-win)
