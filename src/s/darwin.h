@@ -308,3 +308,10 @@ struct kboard;
 #define realloc unexec_realloc
 #define free unexec_free
 #endif
+
+/* Reroute calls to SELECT to the version defined in mac.c to fix the
+   problem of Emacs requiring an extra return to be typed to start
+   working when started from the command line.  */
+#if defined (emacs) || defined (temacs)
+#define select sys_select
+#endif

@@ -366,6 +366,7 @@ extern XrmDatabase x_load_resources P_ ((Display *, char *, char *, char *));
 
 extern Lisp_Object x_icon_type P_ ((struct frame *));
 
+extern int inhibit_window_system;
 
 #if __MRC__
 QDGlobals qd;  /* QuickDraw global information structure.  */
@@ -13405,6 +13406,18 @@ mac_term_init (display_name, xrm_option, resource_name)
   return dpyinfo;
 }
 
+#ifdef MAC_OSX
+void MakeMeTheFrontProcess ()
+{
+  ProcessSerialNumber psn;
+  OSErr err;
+  
+  err = GetCurrentProcess (&psn);
+  if (err == noErr)
+    (void) SetFrontProcess (&psn);
+}
+#endif /* MAC_OSX */
+
 /* Set up use of X before we make the first connection.  */
 
 static struct redisplay_interface x_redisplay_interface =
@@ -13514,6 +13527,9 @@ mac_initialize ()
 #endif
 
   DisableMenuCommand (NULL, kHICommandQuit);
+
+  if (!inhibit_window_system)
+    MakeMeTheFrontProcess ();
 #endif
 }
 

@@ -2745,6 +2745,30 @@ and t is the same as `SECONDARY'.  */)
   return Qnil;
 }
 
+#ifdef MAC_OSX
+#undef select
+
+extern int inhibit_window_system;
+
+/* When Emacs is started from the Finder, SELECT always immediately
+   returns as if input is present when file descriptor 0 is polled for
+   input.  Strangely, when Emacs is run as a GUI application from the
+   command line, it blocks in the same situation.  This `wrapper' of
+   the system call SELECT corrects this discrepancy.  */
+int
+sys_select (n, rfds, wfds, efds, timeout)
+  int n;
+  SELECT_TYPE *rfds;
+  SELECT_TYPE *wfds;
+  SELECT_TYPE *efds;
+  struct timeval *timeout;
+{
+  if (!inhibit_window_system && rfds && FD_ISSET (0, rfds))
+    return 1;
+  else
+    return select (n, rfds, wfds, efds, timeout);
+}
+#endif /* MAC_OSX */
 
 void
 syms_of_mac ()
