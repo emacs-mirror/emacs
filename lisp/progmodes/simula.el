@@ -1798,6 +1798,6 @@ If not nil and not t, move to limit of search and return nil."
      'simula-tab-always-indent
      ))))
 
-(provide 'simula-mode)
+(provide 'simula)
 
 ;;; simula.el ends here
