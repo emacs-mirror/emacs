@@ -91,7 +91,6 @@ if that value is non-nil."
 				   "*Pp Eval Output*"
 				 (princ (widget-get widget :value))))
 		     pp))))
-  
 
 (defun describe-text-properties (properties)
   "Insert a description of PROPERTIES in the current buffer.
@@ -200,5 +199,7 @@ The `category' property is made into a widget button that call
 	    (describe-text-properties properties))
 	  (describe-text-mode)
 	  (goto-char (point-min)))))))
+
+(provide 'descr-text)
 
 ;;; descr-text.el ends here
