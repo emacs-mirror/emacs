@@ -1295,6 +1295,16 @@ create_process (process, new_argv, current_dir)
 	setpgrp ();
 #endif /* USG */
 #endif /* not HAVE_SETSID */
+#if defined (HAVE_TERMIOS) && defined (LDISC1)
+	if (pty_flag && xforkin >= 0)
+	  {
+	    struct termios t;
+	    tcgetattr (xforkin, &t);
+	    t.c_lflag = LDISC1;
+	    if (tcsetattr (xforkin, TCSANOW, &t) < 0)
+	      write (1, "create_process/tcsetattr LDISC1 failed\n", 39);
+	  }
+#else
 #if defined (NTTYDISC) && defined (TIOCSETD)
 	if (pty_flag && xforkin >= 0)
 	  {
@@ -1303,6 +1313,7 @@ create_process (process, new_argv, current_dir)
 	    if (ioctl (xforkin, TIOCSETD, &ldisc) < 0)
 	      write (1, "create_process/TIOCSETD failed\n", 31);
 	  }
+#endif
 #endif
 #ifdef TIOCNOTTY 
 	/* In 4.3BSD, the TIOCSPGRP bug has been fixed, and now you
