@@ -58,6 +58,16 @@ srcdir=.
 # be installed at once.
 archlibdir=${libdir}/emacs/${version}/${configname}
 
+# ====================== Developer's configuration =======================
+
+# The following assignments make sense if you're running Emacs on a single
+# machine, one version at a time, and  you want changes to the lisp and etc
+# directories in the source tree to show up immediately in your working
+# environment.  It saves a great deal of disk space by not duplicating the
+# lisp and etc directories.
+#
+# archlibdir=${srcdir}/bin
+
 # ==================== Utility Programs for the Build ====================
 
 # Allow the user to specify the install program.
@@ -81,6 +91,9 @@ UTILITIES= test-distrib make-path wakeup make-docfile digest-doc sorted-doc \
 SCRIPTS= rcs2log vcdiff
 
 EXECUTABLES= ${UTILITIES} ${INSTALLABLES} ${SCRIPTS}
+
+SOURCES = COPYING ChangeLog Makefile.in README aixcc.lex emacs.csh \
+	makedoc.com *.[chy] rcs2log vcdiff
 
 ### We need to #define emacs to get the right versions of some files.
 ### Some other files - those shared with other GNU utilities - need
@@ -139,6 +152,12 @@ realclean: distclean
 
 extraclean: realclean
 	-rm -f *~ \#*
+
+unlock:
+	chmod u+w $(SOURCES)
+
+relock:
+	chmod u-w $(SOURCES)
 
 # Test the contents of the directory.
 check:
