@@ -1,3 +1,8 @@
+2000-12-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (display_tool_bar_line): Make sure that tool bar
+	lines start with a relief line.
+
 2000-12-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (fast_find_position): Don't overstep the last window
