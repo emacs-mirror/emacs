@@ -468,7 +468,7 @@ insert_before_markers (string, length)
   if (length > 0)
     {
       register int opoint = PT;
-      insert_1 (string, length, 1);
+      insert_1 (string, length, 0);
       adjust_markers (opoint - 1, opoint, length);
       signal_after_change (PT-length, 0, length);
     }
