@@ -3724,6 +3724,14 @@ easier.")
   return Qnil;
 }
 
+/* Wait for responses to all X commands issued so far for FRAME.  */
+
+void
+x_sync (frame)
+     Lisp_Object frame;
+{
+  XSync (x_current_display, False);
+}
 
 syms_of_xfns ()
 {
