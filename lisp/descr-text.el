@@ -584,8 +584,6 @@ as well as widgets, buttons, overlays, and text properties."
 		(describe-text-properties pos buf)))
 	    (buffer-string)))
 
-    ;;(when (eq (current-buffer) (get-buffer "*Help*"))
-    ;;(error "Can't describe char in Help buffer"))
     (with-output-to-temp-buffer "*Help*"
       (with-current-buffer standard-output
 	(set-buffer-multibyte multibyte-p)
