@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs log
 ;; Version: $Name:  $
-;; Revision: $Id: log-view.el,v 1.1 2000/03/11 03:42:28 monnier Exp $
+;; Revision: $Id: log-view.el,v 1.2 2000/03/22 01:10:09 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -107,6 +107,13 @@
 (easy-mmode-define-navigation log-view-msg log-view-message-re "log message")
 (easy-mmode-define-navigation log-view-file log-view-file-re "file")
 
+(defun log-view-goto-rev (rev)
+  (goto-char (point-min))
+  (ignore-errors
+    (while (not (equal rev (log-view-current-tag)))
+      (log-view-msg-next))
+    t))
+
 ;;;;
 ;;;; Linkage to PCL-CVS (mostly copied from cvs-status.el)
 ;;;;
@@ -143,8 +150,7 @@
 		(cons
 		 (cons (log-view-current-file)
 		       (log-view-current-tag))
-		 (when (ignore-errors (mark))
-		   ;; `mark-active' is not provided by XEmacs :-(
+		 (when mark-active
 		   (save-excursion
 		     (goto-char (mark))
 		     (cons (log-view-current-file)
@@ -162,6 +168,14 @@
 (provide 'log-view)
 
 ;;; Change Log:
-;; $Log$
+;; $Log: log-view.el,v $
+;; Revision 1.2  2000/03/22 01:10:09  monnier
+;; (log-view-(msg|file)-(prev|next)): Rename from
+;; log-view-*-(message|file) and use easy-mmode-define-navigation.
+;; (log-view-message-re): Match SCCS format as well.
+;; And match the revision line rather than the dashed separator line.
+;; (log-view-mode): Use the new define-derived-mode.
+;; (log-view-current-tag): Fill in with an actual implementation.
+;;
 
 ;;; log-view.el ends here
