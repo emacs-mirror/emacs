@@ -1603,7 +1603,7 @@ update_frame_menubar (f)
     {
       XtManageChild (x->menubar_widget);
       XtMapWidget (x->menubar_widget);
-      XtVaSetValues (x->menubar_widget, XtNmappedWhenManaged, 1, 0);
+      XtVaSetValues (x->menubar_widget, XtNmappedWhenManaged, 1, NULL);
     }
 
   /* Re-manage the text-area widget, and then thrash the sizes.  */
