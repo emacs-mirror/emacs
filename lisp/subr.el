@@ -1148,8 +1148,19 @@ Unless optional argument INPLACE is non-nil, return a new string."
 (defun shell-quote-argument (argument)
   "Quote an argument for passing as argument to an inferior shell."
   (if (eq system-type 'ms-dos)
-      ;; MS-DOS shells don't have quoting, so don't do any.
-      argument
+      ;; Quote using double quotes, but escape any existing quotes in
+      ;; the argument with backslashes.
+      (let ((result "")
+	    (start 0)
+	    end)
+	(if (or (null (string-match "[^\"]" argument))
+		(< (match-end 0) (length argument)))
+	    (while (string-match "[\"]" argument start)
+	      (setq end (match-beginning 0)
+		    result (concat result (substring argument start end)
+				   "\\" (substring argument end (1+ end)))
+		    start (1+ end))))
+	(concat "\"" result (substring argument start) "\""))
     (if (eq system-type 'windows-nt)
 	(concat "\"" argument "\"")
       (if (equal argument "")
