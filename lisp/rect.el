@@ -335,6 +335,7 @@ Called from a program, takes three args; START, END and STRING."
 			(car string-rectangle-history)))))
   (apply-on-rectangle 'string-rectangle-line start end string t))
 
+;;;###autoload
 (defalias 'replace-rectangle 'string-rectangle)
 
 ;;;###autoload
