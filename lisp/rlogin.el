@@ -20,7 +20,7 @@
 ;; along with this program; if not, write to: The Free Software Foundation,
 ;; Inc.; 675 Massachusetts Avenue.; Cambridge, MA 02139, USA.
 
-;; $Id: rlogin.el,v 1.25 1995/03/12 18:18:29 rms Exp friedman $
+;; $Id: rlogin.el,v 1.26 1995/04/07 22:17:06 friedman Exp friedman $
 
 ;;; Commentary:
 
@@ -222,18 +222,18 @@ local one share the same directories (through NFS)."
    ((or (null prefix)
         (consp prefix))
     (setq rlogin-directory-tracking-mode t)
-    (setq shell-dirtrack-p t)
+    (setq shell-dirtrackp t)
     (setq comint-file-name-prefix
           (concat "/" rlogin-remote-user "@" rlogin-host ":")))
    ((< prefix 0)
     (setq rlogin-directory-tracking-mode nil)
-    (setq shell-dirtrack-p nil))
+    (setq shell-dirtrackp nil))
    (t
     (setq rlogin-directory-tracking-mode 'local)
     (setq comint-file-name-prefix "")
-    (setq shell-dirtrack-p t)))
+    (setq shell-dirtrackp t)))
   (cond
-   (shell-dirtrack-p
+   (shell-dirtrackp
     (let* ((proc (get-buffer-process (current-buffer)))
            (proc-mark (process-mark proc))
            (current-input (buffer-substring proc-mark (point-max)))
