@@ -3542,7 +3542,6 @@ Lisp_Object Qhash_table_test;
 /* Function prototypes.  */
 
 static struct Lisp_Hash_Table *check_hash_table P_ ((Lisp_Object));
-static int next_almost_prime P_ ((int));
 static int get_key_arg P_ ((Lisp_Object, int, Lisp_Object *, char *));
 static void maybe_resize_hash_table P_ ((struct Lisp_Hash_Table *));
 static int cmpfn_eql P_ ((struct Lisp_Hash_Table *, Lisp_Object, unsigned,
@@ -3583,7 +3582,7 @@ check_hash_table (obj)
 /* Value is the next integer I >= N, N >= 0 which is "almost" a prime
    number.  */
 
-static int
+int
 next_almost_prime (n)
      int n;
 {
