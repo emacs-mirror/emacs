@@ -1,6 +1,38 @@
+2004-01-04  Karl Berry  <karl@gnu.org>
+
+	* emacs-lisp/copyright.el (copyright-regexp): allow the common
+	comment characters % and # in the copyright year notice,
+	as well as ;.
+
+2004-01-04  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* wid-edit.el (default): Define dummy :value-delete.
+	Reported by Jesper Harder <harder@ifa.au.dk>.
+
+2004-01-03  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (compile-internal): Use point, not point-min,
+	for set-window-point.
+
+	* textmodes/tex-mode.el (latex-find-indent): Avoid error at end of buf.
+
+	* emacs-lisp/lisp-mnt.el (lm-section-end): require outline.
+
+	* progmodes/grep.el (grep-mode-map):
+	Don't remap next-line, previous-line.
+
+2004-01-03  Eric M. Ludlam  <eric@siege-engine.com>
+
+	* speedbar.el (speedbar-edit-line): Change regexp to position
+	the cursor on the first character of this line's button.
+
+2004-01-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (functionp): Doc fix.
+
 2004-01-03  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
 
-	* progmodes/idlwave.el (idlwave-make-tags): 
+	* progmodes/idlwave.el (idlwave-make-tags):
 	* textmodes/flyspell.el (flyspell-large-region):.
 	* progmodes/make-mode.el (makefile-query-by-make-minus-q):
 	* emulation/viper-util.el (viper-glob-unix-files):
@@ -68,6 +100,9 @@
 	clashes on 8+3 DOS filesystems.
 
 2003-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/mail-utils.el (mail-unquote-printable-hexdigit):
+	Upcase the character.
 
 	* textmodes/flyspell.el (mail-mode-flyspell-verify):
 	Search for header separator alone on a line, literally,

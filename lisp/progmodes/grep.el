@@ -157,8 +157,9 @@ The following place holders should be present in the string:
     (define-key map " " 'scroll-up)
     (define-key map "\^?" 'scroll-down)
 
-    (define-key map [remap next-line] 'compilation-next-error)
-    (define-key map [remap previous-line] 'compilation-previous-error)
+    ;; This is intolerable -- rms
+;;;    (define-key map [remap next-line] 'compilation-next-error)
+;;;    (define-key map [remap previous-line] 'compilation-previous-error)
 
     (define-key map "\r" 'compile-goto-error)  ;; ?
     (define-key map "n" 'next-error-no-select)

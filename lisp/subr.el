@@ -2205,7 +2205,10 @@ configuration."
        (eq (car object) 'frame-configuration)))
 
 (defun functionp (object)
-  "Non-nil iff OBJECT is a type of object that can be called as a function."
+  "Non-nil if OBJECT is any kind of function or a special form.
+Also non-nil if OBJECT is a symbol and its function definition is
+\(recursively) a function or special form.  This does not include
+macros."
   (or (and (symbolp object) (fboundp object)
 	   (condition-case nil
 	       (setq object (indirect-function object))

@@ -1,6 +1,6 @@
 ;;; wid-edit.el --- Functions for creating and using widgets -*-byte-compile-dynamic: t;-*-
 ;;
-;; Copyright (C) 1996,97,1999,2000,01,02,2003  Free Software Foundation, Inc.
+;; Copyright (C) 1996,97,1999,2000,01,02,2003, 2004  Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -1348,6 +1348,7 @@ The value of the :type attribute should be an unconverted widget type."
   :copy 'identity
   :value-set 'widget-default-value-set
   :value-inline 'widget-default-value-inline
+  :value-delete 'ignore
   :default-get 'widget-default-default-get
   :menu-tag-get 'widget-default-menu-tag-get
   :validate #'ignore

@@ -214,6 +214,7 @@ The end of the section is defined as the beginning of the next
 section of the same level or lower.  The function
 `lisp-outline-level' is used to compute the level of a section.
 If no such section exists, return the end of the buffer."
+  (require 'outline)   ;; for outline-regexp.
   (let ((start (lm-section-start header)))
     (when start
       (save-excursion

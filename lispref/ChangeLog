@@ -1,3 +1,21 @@
+2004-01-03  Richard M. Stallman  <rms@gnu.org>
+
+	* frames.texi (Frames and Windows): Delete frame-root-window.
+
+2004-01-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* eval.texi, hash.texi, help.texi, symbols.texi: Add anchors.
+
+	* functions.texi: Various small changes in addition to the
+	following.
+	(What Is a Function): `functionp' returns nil for macros.  Clarify
+	behavior of this and following functions for symbol arguments.
+	(Function Documentation): Add `\' in front of (fn @var{arglist})
+	and explain why.
+	(Defining Functions): Mention DOCSTRING argument to `defalias'.
+	Add anchor.
+	(Mapping Functions): Add anchor.  Unquote nil in mapcar* example.
+
 2004-01-01  Miles Bader  <miles@gnu.org>
 
 	* display.texi (Buttons): New section.
