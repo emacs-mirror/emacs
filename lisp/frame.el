@@ -193,22 +193,6 @@ under the X Window System."
   (funcall frame-creation-function parameters))
 
 
-;;;; Iconification
-
-;;; A possible enhancement for the below: if you iconify a surrogate
-;;; minibuffer frame, iconify all of its minibuffer's users too; 
-;;; de-iconify them as a group.  This will need to wait until frames
-;;; have mapping and unmapping hooks.
-
-(defun iconify ()
-  "Iconify or deiconify the selected frame."
-  (interactive)
-  (let ((frame (selected-frame)))
-    (if (eq (frame-visible-p frame) t)
-	(iconify-frame frame)
-      (make-frame-visible frame))))
-
-
 ;;;; Frame configurations
 
 (defun current-frame-configuration ()

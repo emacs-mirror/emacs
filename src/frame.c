@@ -697,12 +697,15 @@ DEFUN ("restore-frame-configuration", Frestore_frame_configuration,
 #endif
 
 DEFUN ("make-frame-visible", Fmake_frame_visible, Smake_frame_visible,
-       1, 1, 0,
+       0, 1, 0,
   "Make the frame FRAME visible (assuming it is an X-window).\n\
 Also raises the frame so that nothing obscures it.")
   (frame)
      Lisp_Object frame;
 {
+  if (NILP (frame))
+    frame = selected_frame;
+
   CHECK_LIVE_FRAME (frame, 0);
 
   if (FRAME_IS_X (XFRAME (frame)))
@@ -712,11 +715,14 @@ Also raises the frame so that nothing obscures it.")
 }
 
 DEFUN ("make-frame-invisible", Fmake_frame_invisible, Smake_frame_invisible,
-       1, 1, 0,
+       0, 1, "",
   "Make the frame FRAME invisible (assuming it is an X-window).")
   (frame)
      Lisp_Object frame;
 {
+  if (NILP (frame))
+    frame = selected_frame;
+
   CHECK_LIVE_FRAME (frame, 0);
 
   if (FRAME_IS_X (XFRAME (frame)))
@@ -726,11 +732,14 @@ DEFUN ("make-frame-invisible", Fmake_frame_invisible, Smake_frame_invisible,
 }
 
 DEFUN ("iconify-frame", Ficonify_frame, Siconify_frame,
-       1, 1, 0,
+       0, 1, "",
   "Make the frame FRAME into an icon.")
   (frame)
      Lisp_Object frame;
 {
+  if (NILP (frame))
+    frame = selected_frame;
+  
   CHECK_LIVE_FRAME (frame, 0);
 
   if (FRAME_IS_X (XFRAME (frame)))
