@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:clib(trunk.4) $
+# $HopeName: MMQA_harness!script:clib(trunk.5) $
 #
 # subroutines to compile test libraries, and check whether they
 # need to be compiled
@@ -230,7 +230,7 @@ sub scrutinize {
  }
  $command = &convdirseps(
   "$cc_command $cc_opts $comobj $cc_exe$obj_dir/symtest".
-  " $obj_dir/symtest.c $MPS_LINK_OBJ $cc_link_opts $stderr_merge |");
+  " $obj_dir/symtest.c $MPS_LINK_OBJ $cc_link_opts |");
 
  &debug("OPEN >>$command<<");
 
