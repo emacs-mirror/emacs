@@ -1480,8 +1480,12 @@ names of tags files in the *Tags List* buffer.
 *** You can now search for tags that are part of the filename itself.
 If you have tagged the files topfile.c subdir/subfile.c
 /tmp/tempfile.c, you can now search for tags "topfile.c", "subfile.c",
-"dir/sub", "tempfile", "tempfile.c".  If the tag matches the filename,
+"dir/sub", "tempfile", "tempfile.c".  If the tag matches the file name,
 point will go to the beginning of the file.
+
+*** compressed files are now transparently supported if
+auto-compression-mode is active.  You can tag (with Etags) and search
+(with find-tag) both compressed and uncompressed files.
 
 +++
 ** Emacs now attempts to determine the initial language environment
