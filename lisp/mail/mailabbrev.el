@@ -413,6 +413,9 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
 	  (w (aref (standard-syntax-table) ?w)))
       (map-char-table
        (function (lambda (key value)
+		   (if (null value)
+		       ;; Fetch the inherited value
+		       (setq value (aref tab key)))
 		   (if (equal value _)
 		       (set-char-table-range tab key w))))
        tab)
