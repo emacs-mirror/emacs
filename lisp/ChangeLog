@@ -1,3 +1,24 @@
+2003-01-03  Dave Love  <fx@gnu.org>
+
+	* international/mule-cmds.el (sort-coding-systems): Adjust
+	priority of utf-16 and x-ctext.
+
+	* international/utf-8.el (utf-translate-cjk): Call
+	optimize-char-coding-system-table.
+
+	* international/ucs-tables.el (ucs-unify-8859, ucs-fragment-8859):
+	Call optimize-char-coding-system-table.
+
+	* international/mule.el (register-char-codings): Don't call
+	optimize-char-coding-system-table here.
+	(keyboard-coding-system): Doc fix.  Update :version.
+
+	* textmodes/nroff-mode.el (nroff-mode-hook): Customize.
+	(nroff-imenu-expression): New.
+	(nroff-mode): Use it.
+
+	* autoinsert.el (auto-insert-alist): Add man page skeleton.
+
 2003-01-03  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-rcs.el (vc-rcs-revert): Unlock only if the user does have
