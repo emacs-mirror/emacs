@@ -24,5 +24,5 @@
 #endif /* GCC */
 
 #undef LIBS_SYSTEM
-#define LIBS_SYSTEM -lsocket -lnsl -lelf -lkvm
+#define LIBS_SYSTEM -lsocket -lnsl -lkstat
 #define HAVE_VFORK
