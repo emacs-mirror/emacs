@@ -1,3 +1,8 @@
+1999-10-18  Dave Love  <fx@gnu.org>
+
+	* abbrev.el (add-abbrev, inverse-add-abbrev)
+	(expand-region-abbrevs): Remove properties from buffer text.
+
 1999-10-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* iswitchb.el (iswitchb-exhibit): Extract user-input only
