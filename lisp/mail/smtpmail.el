@@ -84,7 +84,8 @@
 
 
 (defcustom smtpmail-default-smtp-server nil
-  "*Specify default SMTP server."
+  "*Specify default SMTP server.
+This only has effect if you specify it before loading the smtpmail library."
   :type '(choice (const nil) string)
   :group 'smtpmail)
 
