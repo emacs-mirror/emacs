@@ -1,5 +1,11 @@
 2002-03-21  Richard M. Stallman  <rms@gnu.org>
 
+	* regex.c (DISCARD_FAILURE_REG_OR_COUNT): New macro.
+	(CHECK_INFINITE_LOOP): Use DISCARD_FAILURE_REG_OR_COUNT
+	when jumping to `fail' to avoid undoing reg changes in the
+	last iteration of the loop.
+	(GET_UNSIGNED_NUMBER): Skip spaces around the number.
+
 	* Makefile.in (dispnew.o, sysdep.o, xdisp.o, xselect.o, alloc.o):
 	Depend on process.h.
 
