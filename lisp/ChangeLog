@@ -1,8 +1,16 @@
+2001-05-23  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* gud.el (gud-gdb-run-command-fetch-lines): Use forward-line
+	rather than beginning-of-line to avoid problems with fields.
+	(gud-perldb-massage-args): Use unless and push.
+	(gud-chdir-before-run): New var.
+	(gud-common-init): Use it.
+
 2001-05-24  Andrew Choi  <akochoi@i-cable.com>
 
 	* international/titdic-cnv.el (quail-cxterm-package-ext-info):
 	delete entries for chinese-ctlau and chinese-ctlaub.
-	(quail-misc-package-ext-info): add entries for chinese-ctlau and
+	(quail-misc-package-ext-info): Add entries for chinese-ctlau and
 	chinese-ctlaub.
 	(ctlau-converter): New function.
 	(ctlau-gb-converter): New function.
