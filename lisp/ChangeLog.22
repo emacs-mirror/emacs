@@ -1,3 +1,7 @@
+2003-10-24  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (compose-region): Doc fix (delete duplicated line).
+
 2003-10-17  Kenichi Handa  <handa@m17n.org>
 
 	* international/characters.el: Fix syntax for Ethiopic.
