@@ -103,11 +103,11 @@ int max_lisp_eval_depth;
 int debug_on_next_call;
 
 /* List of conditions (non-nil atom means all) which cause a backtrace
-   if an error is handled by the command loop's error handler.
+   if an error is handled by the command loop's error handler.  */
 Lisp_Object Vstack_trace_on_error;
 
 /* List of conditions (non-nil atom means all) which enter the debugger
-   if an error is handled by the command loop's error handler.
+   if an error is handled by the command loop's error handler.  */
 Lisp_Object Vdebug_on_error;
 
 /* Nonzero means enter debugger if a quit signal
@@ -1139,17 +1139,17 @@ wants_debugger (list, conditions)
       return 1;
     }
 
-  if (NULL (list))
+  if (NILP (list))
     return 0;
   if (! CONSP (list))
     return 1;
 
   looking = 1;
-  while (!NULL (conditions))
+  while (!NILP (conditions))
     {
       Lisp_Object tem;
       tem = Fmemq (XCONS (conditions)->car, list);
-      if (! NULL (tem))
+      if (! NILP (tem))
 	{
 	  looking = 0;
 	  return 1;
