@@ -1,6 +1,6 @@
 ;;; lselect.el --- Lucid interface to X Selections
 
-;; Copyright (C) 1990, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1993, 2004  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: emulations
@@ -146,7 +146,7 @@ secondary selection instead of the primary selection."
   (x-disown-selection-internal (if secondary-p 'SECONDARY 'PRIMARY)))
 
 (defun x-dehilight-selection (selection)
-  "for use as a value of x-lost-selection-hooks."
+  "for use as a value of `x-lost-selection-functions'."
   (cond ((eq selection 'PRIMARY)
 	 (if primary-selection-extent
 	     (let ((inhibit-quit t))
@@ -160,23 +160,23 @@ secondary selection instead of the primary selection."
 	       (setq secondary-selection-extent nil)))))
   nil)
 
-(setq x-lost-selection-hooks 'x-dehilight-selection)
+(setq x-lost-selection-functions 'x-dehilight-selection)
 
 (defun x-notice-selection-requests (selection type successful)
-  "for possible use as the value of x-sent-selection-hooks."
+  "for possible use as the value of `x-sent-selection-functions'."
   (if (not successful)
       (message "Selection request failed to convert %s to %s"
 	       selection type)
     (message "Sent selection %s as %s" selection type)))
 
 (defun x-notice-selection-failures (selection type successful)
-  "for possible use as the value of x-sent-selection-hooks."
+  "for possible use as the value of `x-sent-selection-functions'."
   (or successful
       (message "Selection request failed to convert %s to %s"
 	       selection type)))
 
-;(setq x-sent-selection-hooks 'x-notice-selection-requests)
-;(setq x-sent-selection-hooks 'x-notice-selection-failures)
+;(setq x-sent-selection-functions 'x-notice-selection-requests)
+;(setq x-sent-selection-functions 'x-notice-selection-failures)
 
 
 ;; Random utility functions
@@ -232,5 +232,5 @@ the kill ring or the Clipboard."
 
 (provide 'lselect)
 
-;;; arch-tag: 92fa54d4-c5d1-4e9b-ad58-cf1e13930556
+;; arch-tag: 92fa54d4-c5d1-4e9b-ad58-cf1e13930556
 ;;; lselect.el ends here
