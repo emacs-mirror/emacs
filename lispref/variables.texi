@@ -1213,6 +1213,15 @@ buffer-local, so that any subsequent attempt to set it will make it
 local to the current buffer at the time.
 
 The value returned is @var{variable}.
+
+@strong{Note:} It is a mistake to use @code{make-variable-buffer-local}
+for user-option variables, simply because users @emph{might} want to
+customize them differently in different buffers.  Users can make any
+variable local, when they wish to.
+
+The main use of @code{make-variable-buffer-local} is when a variable is
+used for internal purposes, and the Lisp program depends on having
+separate values in separate buffers.
 @end deffn
 
 @defun local-variable-p variable &optional buffer
