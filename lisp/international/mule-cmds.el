@@ -706,17 +706,20 @@ in the European submenu in each of those two menus."
 	(setup-map setup-language-environment-map))
     (if parents
 	(let ((l parents)
-	      map parent-symbol parent)
+	      map parent-symbol parent prompt)
 	  (while l
 	    (if (symbolp (setq parent-symbol (car l)))
 		(setq parent (symbol-name parent))
 	      (setq parent parent-symbol parent-symbol (intern parent)))
 	    (setq map (lookup-key describe-map (vector parent-symbol)))
+	    ;; This prompt string is for define-prefix-command, so
+	    ;; that the map it creates will be suitable for a menu.
+	    (or map (setq prompt (format "%s Environment" parent)))
 	    (if (not map)
 		(progn
 		  (setq map (intern (format "describe-%s-environment-map"
 					    (downcase parent))))
-		  (define-prefix-command map)
+		  (define-prefix-command map nil prompt)
 		  (define-key-after describe-map (vector parent-symbol)
 		    (cons parent map) t)))
 	    (setq describe-map (symbol-value map))
@@ -725,7 +728,7 @@ in the European submenu in each of those two menus."
 		(progn
 		  (setq map (intern (format "setup-%s-environment-map"
 					    (downcase parent))))
-		  (define-prefix-command map)
+		  (define-prefix-command map nil prompt)
 		  (define-key-after setup-map (vector parent-symbol)
 		    (cons parent map) t)))
 	    (setq setup-map (symbol-value map))
