@@ -5,7 +5,7 @@
 ;; Author: Oliver Seidel <os10000@seidel-space.de>
 ;;   [Not clear the above works, July 2000]
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.43 2000/07/04 11:15:24 fx Exp $
+;; Version: $Id: todo-mode.el,v 1.44 2000/11/22 22:51:33 fx Exp $
 ;; Keywords: calendar, todo
 
 ;; This file is part of GNU Emacs.
@@ -97,7 +97,7 @@
 ;;
 ;;      Which version of todo-mode.el does this documentation refer to?
 ;;
-;;      $Id: todo-mode.el,v 1.43 2000/07/04 11:15:24 fx Exp $
+;;      $Id: todo-mode.el,v 1.44 2000/11/22 22:51:33 fx Exp $
 ;;
 ;;  Pre-Requisites
 ;;
@@ -268,6 +268,8 @@
 
 (defgroup todo nil
   "Maintain a list of todo items."
+  :link '(emacs-commentary-link "todo-mode")
+  :version "21.1"
   :group 'calendar)
 
 (defcustom todo-prefix     "*/*"
@@ -530,7 +532,7 @@ Use `todo-categories' instead.")
     (todo-edit-mode)
     (narrow-to-region (todo-item-start) (todo-item-end))))
 
-;;;### autoload
+;;;###autoload
 (defun todo-add-category (cat)
   "Add new category CAT to the TODO list."
   (interactive "sCategory: ")
@@ -554,7 +556,7 @@ Use `todo-categories' instead.")
                     todo-prefix todo-category-sep)))
   0)
 
-;;;### autoload
+;;;###autoload
 (defun todo-add-item-non-interactively (new-item category)
   "Insert NEW-ITEM in TODO list as a new entry in CATEGORY."
   (save-excursion
@@ -587,7 +589,7 @@ Use `todo-categories' instead.")
     (todo-save)
     (message "")))
 
-;;;### autoload
+;;;###autoload
 (defun todo-insert-item (arg)
   "Insert new TODO list entry.
 With a prefix argument solicit the category, otherwise use the current
@@ -613,7 +615,6 @@ category."
 
 (defalias 'todo-cmd-inst 'todo-insert-item)
 
-;;;### autoload
 (defun todo-insert-item-here ()
   "Insert new TODO list entry under the cursor."
   (interactive "")
@@ -775,7 +776,6 @@ between each category."
     (message "Type C-x 1 to remove %s window.  M-C-v to scroll the help."
              todo-print-buffer-name)))
 
-;;;###autoload
 (defun todo-save-top-priorities (&optional nof-priorities)
   "Save top priorities for each category in `todo-file-top'.
 
@@ -904,7 +904,7 @@ Number of entries for each category is given by `todo-print-priorities'."
                     ))
 
 ;; As calendar reads .todo-do before todo-mode is loaded.
-;;;### autoload
+;;;###autoload
 (defun todo-mode ()
   "Major mode for editing TODO lists.
 
@@ -921,7 +921,7 @@ Number of entries for each category is given by `todo-print-priorities'."
   (defvar entry))
 
 ;; Read about this function in the setup instructions above!
-;;;### autoload
+;;;###autoload
 (defun todo-cp ()
   "Make a diary entry appear only in the current date's diary."
   (if (equal (calendar-current-date) date)
@@ -932,7 +932,7 @@ Number of entries for each category is given by `todo-print-priorities'."
 
 \\{todo-edit-mode-map}")
 
-;;;### autoload
+;;;###autoload
 (defun todo-show ()
   "Show TODO list."
   (interactive)
