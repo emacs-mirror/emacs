@@ -34,6 +34,12 @@ invalid pointer from string_free_list.
 
 * BUGS
 
+** Mailabbrev should quote addresses to correspond to RFC 822.
+See http://article.gmane.org/gmane.emacs.devel/27585
+
+** The '@' character should not expand addresses in mailabbrev
+See http://article.gmane.org/gmane.emacs.devel/27585
+
 ** Bug in url-http-parse-headers, reported in
 From: Vivek Dasmohapatra <vivek@zeus.com>
 Date: Tue, 28 Sep 2004 16:13:13 +0100
