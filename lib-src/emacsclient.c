@@ -42,7 +42,7 @@ main (argc, argv)
 
 #else /* HAVE_SOCKETS or HAVE_SYSVIPC */
 
-#if ! defined (HAVE_SYSVIPC)
+#if defined (HAVE_SOCKETS)
 /* BSD code is very different from SYSV IPC code */
 
 #include <sys/types.h>
@@ -135,7 +135,11 @@ main (argc, argv)
       exit (1);
     }
 
+#ifdef BSD
   cwd = getwd (string);
+#else
+  cwd = getcwd (string, sizeof string);
+#endif
   if (cwd == 0)
     {
       /* getwd puts message in STRING if it fails.  */
