@@ -252,7 +252,49 @@ If you set the marker not to point anywhere, the buffer will have no mark.")
 {
   return current_buffer->mark;
 }
+
+DEFUN ("line-beginning-position", Fline_beginning_position, Sline_beginning_position,
+  0, 1, 0,
+  "Return the character position of the first character on the current line.\n\
+With argument N not nil or 1, move forward N - 1 lines first.\n\
+If scan reaches end of buffer, return that position.\n\
+This function does not move point.")
+  (n)
+     Lisp_Object n;
+{
+  register int orig, end;
 
+  if (NILP (n))
+    XSETFASTINT (n, 1);
+  else
+    CHECK_NUMBER (n, 0);
+
+  orig = PT;
+  Fforward_line (make_number (XINT (n) - 1));
+  end = PT;
+  SET_PT (orig);
+
+  return make_number (end);
+}
+
+DEFUN ("line-end-position", Fline_end_position, Sline_end_position,
+  0, 1, 0,
+  "Return the character position of the last character on the current line.\n\
+With argument N not nil or 1, move forward N - 1 lines first.\n\
+If scan reaches end of buffer, return that position.\n\
+This function does not move point.")
+  (n)
+     Lisp_Object n;
+{
+  if (NILP (n))
+    XSETFASTINT (n, 1);
+  else
+    CHECK_NUMBER (n, 0);
+
+  return make_number (find_before_next_newline 
+		      (PT, 0, XINT (n) - (XINT (n) <= 0)));
+}
+
 Lisp_Object
 save_excursion_save ()
 {
@@ -541,11 +583,21 @@ DEFUN ("user-real-uid", Fuser_real_uid, Suser_real_uid, 0, 0, 0,
   return make_number (getuid ());
 }
 
-DEFUN ("user-full-name", Fuser_full_name, Suser_full_name, 0, 0, 0,
-  "Return the full name of the user logged in, as a string.")
-  ()
+DEFUN ("user-full-name", Fuser_full_name, Suser_full_name, 0, 1, 0,
+  "Return the full name of the user logged in, as a string.\n\
+If optional argument UID is an integer, return the full name of the user\n\
+with that uid, or nil if there is no such user.")
+  (uid)
+     Lisp_Object uid;
 {
-  return Vuser_full_name;
+  struct passwd *pw;
+
+  if (NILP (uid))
+    return Vuser_full_name;
+
+  CHECK_NUMBER (uid, 0);
+  pw = (struct passwd *) getpwuid (XINT (uid));
+  return (pw ? build_string (pw->pw_gecos) : Qnil);
 }
 
 DEFUN ("system-name", Fsystem_name, Ssystem_name, 0, 0, 0,
@@ -2536,6 +2588,9 @@ functions if all the text being accessed has this property.");
   defsubr (&Spoint_min);
   defsubr (&Spoint_min_marker);
   defsubr (&Spoint_max_marker);
+
+  defsubr (&Sline_beginning_position);
+  defsubr (&Sline_end_position);
 
   defsubr (&Sbobp);
   defsubr (&Seobp);
