@@ -28,7 +28,7 @@ pertaining to the terminal and the screen.
 * Terminal Input::      Recording terminal input for debugging.
 * Terminal Output::     Recording terminal output for debugging.
 * Sound Output::        Playing sounds on the computer's speaker.
-* Special Keysyms::     Defining system-specific key symbols for X.
+* X11 Keysyms::         Operating on key symbols for X Windows
 * Flow Control::        How to turn output flow control on or off.
 * Batch Mode::          Running Emacs without terminal interaction.
 * Session Management::  Saving and restoring state with X Session Management.
@@ -1848,8 +1848,8 @@ A list of functions to be called before playing a sound.  Each function
 is called with one argument, a property list that describes the sound.
 @end defvar
 
-@node Special Keysyms
-@section System-Specific X11 Keysyms
+@node X11 Keysyms
+@section Operating on X11 Keysyms
 
 To define system-specific X11 keysyms, set the variable
 @code{system-key-alist}.
@@ -1883,6 +1883,21 @@ used by the X server actually in use.
 
 The variable is always local to the current terminal, and cannot be
 buffer-local.  @xref{Multiple Displays}.
+@end defvar
+
+You can specify which keysyms Emacs should use for the Meta, Alt, Hyper, and Super modifiers by setting these variables:
+
+@defvar x-alt-keysym
+@defvarx x-meta-keysym
+@defvarx x-hyper-keysym
+@defvarx x-super-keysym
+The name of the keysym that should stand for the Alt modifier
+(respectively, for Meta, Hyper, and Super).  For example, here is
+how to swap the Meta and Alt modifiers within Emacs:
+@lisp
+(setq x-alt-keysym 'meta)
+(setq x-meta-keysym 'alt)
+@end lisp
 @end defvar
 
 @node Flow Control
