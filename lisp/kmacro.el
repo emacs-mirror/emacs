@@ -174,7 +174,7 @@ macro to be executed before appending to it."
 
 (defvar kmacro-keymap
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-s" 'kmacro-start-macro)
+    (define-key map "s"    'kmacro-start-macro)
     (define-key map "\C-k" 'kmacro-end-or-call-macro-repeat)
     (define-key map "\C-e" 'kmacro-edit-macro-repeat)
     (define-key map "\r"   'kmacro-edit-macro)
@@ -190,7 +190,7 @@ macro to be executed before appending to it."
     (define-key map "\C-f" 'kmacro-set-format)
     (define-key map "\C-c" 'kmacro-set-counter)
     (define-key map "\C-t" 'kmacro-swap-ring)
-    (define-key map "\C-b" 'kmacro-bind-to-key)
+    (define-key map "b"    'kmacro-bind-to-key)
     (define-key map "\C-d" 'kmacro-delete-ring-head)
     ;; Compatibility bindings
     (define-key map "q"    'kbd-macro-query)
