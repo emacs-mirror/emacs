@@ -1815,7 +1815,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 ;; faces declared above via `custom-declare-face'.
 (defface font-lock-comment-face
   '((((type tty pc) (class color) (background light)) (:foreground "red"))
-    (((type tty pc) (class color) (background dark)) (:foreground "lightred"))
+    (((type tty pc) (class color) (background dark)) (:foreground "red1"))
     (((class grayscale) (background light))
      (:foreground "DimGray" :bold t :italic t))
     (((class grayscale) (background dark))
