@@ -224,7 +224,7 @@ Called with region narrowed to the message, including headers.")
 
      ;; The time the message was sent.
      "\\([^ \n]*\\) *"			; day of the week
-     "\\([^ ]*\\) *"			; month
+     "\\([^ \n]*\\) *"			; month
      "\\([0-9]*\\) *"			; day of month
      "\\([0-9:]*\\) *"			; time of day
 
