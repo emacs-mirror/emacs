@@ -38,7 +38,8 @@
 	      (unibyte-display . iso-8859-2)
 	      (tutorial . "TUTORIAL.ro")
 	      (sample-text . "Bunã ziua, bine aþi venit!")
-	      (documentation . t))
+	      (documentation . "Rmoanian environment using Latin-2 encoding.
+An environment for generic Latin-10 encoding is also available."))
  '("European"))
 
 (define-coding-system 'iso-latin-10
@@ -46,9 +47,7 @@
   :coding-type 'charset
   :mnemonic ?*
   :charset-list '(iso-885916)
-  ;; not in current IANA list
-  ;; :mime-charset 'iso-885916
-  )
+  :mime-charset 'iso-885916)
 
 (define-coding-system-alias 'iso-885916 'iso-latin-10)
 (define-coding-system-alias 'latin-10 'iso-latin-10)
