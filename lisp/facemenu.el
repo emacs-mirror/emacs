@@ -799,8 +799,7 @@ use the selected frame.  If t, then the global, non-frame faces are used."
 (defun facemenu-get-face (symbol)
   "Make sure FACE exists.
 If not, create it and add it to the appropriate menu.  Return the SYMBOL."
-  (let ((name (symbol-name symbol))
-	foreground)
+  (let ((name (symbol-name symbol)))
     (cond ((facep symbol))
 	  (t (make-face symbol))))
   symbol)
