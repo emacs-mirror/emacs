@@ -1,5 +1,6 @@
 /* Keyboard and mouse input; editor command loop.
-   Copyright (C) 1985,86,87,88,89,93,94,95,96,97,99 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,87,88,89,93,94,95,96,97,99, 2000
+     Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -378,6 +379,9 @@ Lisp_Object Qtimer_event_handler;
    key sequence that it reads.  */
 Lisp_Object read_key_sequence_cmd;
 
+/* Echo unfinished commands after this many seconds of pause.  */
+Lisp_Object Vecho_keystrokes;
+
 /* Form to evaluate (if non-nil) when Emacs is started.  */
 Lisp_Object Vtop_level;
 
@@ -637,9 +641,6 @@ static int parse_solitary_modifier ();
 static void save_getcjmp ();
 static void restore_getcjmp ();
 static Lisp_Object apply_modifiers P_ ((int, Lisp_Object));
-
-/* > 0 if we are to echo keystrokes.  */
-static int echo_keystrokes;
 
 /* Nonzero means don't try to suspend even if the operating system seems
    to support it.  */
@@ -2150,7 +2151,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       && !current_kboard->immediate_echo
       && this_command_key_count > 0
       && ! noninteractive
-      && echo_keystrokes > 0
+      && !NILP (Vecho_keystrokes)
       && (/* No message.  */
 	  NILP (echo_area_buffer[0])
 	  /* Or empty message.  */
@@ -2170,9 +2171,13 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	echo_now ();
       else
 	{
+	  int sec, usec;
+	  double duration = extract_float (Vecho_keystrokes);
+	  sec = (int) duration;
+	  usec += (duration - sec) * 1000000;
 	  save_getcjmp (save_jump);
 	  restore_getcjmp (local_getcjmp);
-	  tem0 = sit_for (echo_keystrokes, 0, 1, 1, 0);
+	  tem0 = sit_for (sec, usec, 1, 1, 0);
 	  restore_getcjmp (save_jump);
 	  if (EQ (tem0, Qt)
 	      && ! CONSP (Vunread_command_events))
@@ -2603,7 +2608,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       before_command_echo_length = echo_length ();
 
       /* Don't echo mouse motion events.  */
-      if (echo_keystrokes
+      if (! NILP (Vecho_keystrokes)
 	  && ! (EVENT_HAS_PARAMETERS (c)
 		&& EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_movement)))
 	{
@@ -2673,7 +2678,7 @@ record_menu_key (c)
   before_command_echo_length = echo_length ();
 
   /* Don't echo mouse motion events.  */
-  if (echo_keystrokes)
+  if (! NILP (Vecho_keystrokes))
     {
       echo_char (c);
 
@@ -7453,7 +7458,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
     {
       if (!NILP (prompt))
 	echo_prompt (XSTRING (prompt)->data);
-      else if (cursor_in_echo_area && echo_keystrokes)
+      else if (cursor_in_echo_area && !NILP (Vecho_keystrokes))
 	/* This doesn't put in a dash if the echo buffer is empty, so
 	   you don't always see a dash hanging out in the minibuffer.  */
 	echo_dash ();
@@ -7599,7 +7604,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	{
 	  key = keybuf[t];
 	  add_command_key (key);
-	  if (echo_keystrokes)
+	  if (!NILP (Vecho_keystrokes))
 	    echo_char (key);
 	}
 
@@ -8388,7 +8393,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
      Better ideas?  */
   for (; t < mock_input; t++)
     {
-      if (echo_keystrokes)
+      if (!NILP (Vecho_keystrokes))
 	echo_char (keybuf[t]);
       add_command_key (keybuf[t]);
     }
@@ -9933,9 +9938,9 @@ After auto-saving due to this many seconds of idle time,\n\
 Emacs also does a garbage collection if that seems to be warranted.");
   XSETFASTINT (Vauto_save_timeout, 30);
 
-  DEFVAR_INT ("echo-keystrokes", &echo_keystrokes,
+  DEFVAR_LISP ("echo-keystrokes", &Vecho_keystrokes,
     "*Nonzero means echo unfinished commands after this many seconds of pause.");
-  echo_keystrokes = 1;
+  Vecho_keystrokes = make_number (1);
 
   DEFVAR_INT ("polling-period", &polling_period,
     "*Interval between polling for input during Lisp execution.\n\
