@@ -560,7 +560,7 @@ ENDPOS is encountered."
 	(or outer-loop-done
 	    (setq outer-loop-done (<= next-depth 0)))
 	(if outer-loop-done
-	    nil
+	    (forward-line 1)
 	  (while (> last-depth next-depth)
 	    (setq indent-stack (cdr indent-stack)
 		  last-depth (1- last-depth)))
