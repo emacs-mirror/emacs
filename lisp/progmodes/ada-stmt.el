@@ -3,7 +3,7 @@
 ;; Copyright(C) 1987, 93, 94, 96, 97, 98, 99, 2000
 ;;   Free Software Foundation, Inc.
 
-;; Ada Core Technologies's version:   $Revision: 1.22 $
+;; Ada Core Technologies's version:   $Revision: 1.23 $
 
 ;; This file is part of GNU Emacs.
 
@@ -61,11 +61,9 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (condition-case nil  (require 'skeleton)
-    (error nil)))
-
+(require 'skeleton nil t)
 (require 'easymenu)
+(require 'ada-mode)
 
 (defun ada-func-or-proc-name ()
   ;; Get the name of the current function or procedure."

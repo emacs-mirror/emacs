@@ -126,6 +126,12 @@
 ;;;   `abbrev-mode': Provides the capability to define abbreviations, which
 ;;;      are automatically expanded when you type them. See the Emacs manual.
 
+(eval-when-compile
+  (require 'ispell nil t)
+  (require 'find-file nil t)
+  (require 'align nil t)
+  (require 'which-func nil t)
+  (require 'compile nil t))
 
 ;; this function is needed at compile time
 (eval-and-compile
@@ -140,16 +146,6 @@ If IS-XEMACS is non-nil, check for XEmacs instead of Emacs."
                (and (= emacs-major-version major)
                     (>= emacs-minor-version minor)))))))
 
-
-;;  We create a constant for that, for efficiency only
-;;  This should be evaluated both at compile time, only a runtime
-(eval-and-compile
-  (defconst ada-xemacs (and (boundp 'running-xemacs)
-                            (symbol-value 'running-xemacs))
-    "Return t if we are using XEmacs."))
-
-(eval-and-compile
-  (condition-case nil (require 'find-file) (error nil)))
 
 ;;  This call should not be made in the release that is done for the
 ;;  official Emacs, since it does nothing useful for the latest version
@@ -381,14 +377,19 @@ If nil, no contextual menu is available."
 	  '("/usr/adainclude" "/usr/local/adainclude"
 	    "/opt/gnu/adainclude"))
   "*List of directories to search for Ada files.
-See the description for the `ff-search-directories' variable.
-Emacs will automatically add the paths defined in your project file, and if you
-are using the GNAT compiler the output of the gnatls command to find where the
-runtime really is."
+See the description for the `ff-search-directories' variable. This variable
+is the initial value of this variable, and is copied and modified in
+`ada-search-directories-internal'."
   :type '(repeat (choice :tag "Directory"
                          (const :tag "default" nil)
                          (directory :format "%v")))
   :group 'ada)
+
+(defvar ada-search-directories-internal ada-search-directories
+  "Internal version of `ada-search-directories'.
+Its value is the concatenation of the search path as read in the project file
+and the standard runtime location, and the value of the user-defined
+ada-search-directories.")
 
 (defcustom ada-stmt-end-indent 0
   "*Number of columns to indent the end of a statement on a separate line.
@@ -850,7 +851,7 @@ declares it as a word constituent."
 
   ;; See the comment above on grammar related function for the special
   ;; setup for '#'.
-  (if ada-xemacs
+  (if (featurep 'xemacs)
       (modify-syntax-entry ?#  "<" ada-mode-syntax-table)
     (modify-syntax-entry ?#  "$" ada-mode-syntax-table))
 
@@ -872,7 +873,7 @@ declares it as a word constituent."
 ;;  Support of special characters in XEmacs (see the comments at the beginning
 ;;  of the section on Grammar related functions).
 
-(if ada-xemacs
+(if (featurep 'xemacs)
     (defadvice parse-partial-sexp (around parse-partial-sexp-protect-constants)
       "Handles special character constants and gnatprep statements."
       (let (change)
@@ -927,7 +928,6 @@ as numbers instead of gnatprep comments."
       ;;  Setting this only if font-lock is not set won't work
       ;;  if the user activates or deactivates font-lock-mode,
       ;;  but will make things faster most of the time
-      (make-local-hook 'after-change-functions)
       (add-hook 'after-change-functions 'ada-after-change-function nil t)
       )))
 
@@ -1071,7 +1071,7 @@ name"
 ;;;###autoload
 (defun ada-mode ()
   "Ada mode is the major mode for editing Ada code.
-This version was built on $Date: 2003/01/31 09:21:42 $.
+This version was built on $Date: 2003/05/04 13:55:51 $.
 
 Bindings are as follows: (Note: 'LFD' is control-j.)
 \\{ada-mode-map}
@@ -1148,7 +1148,7 @@ If you use ada-xref.el:
   ;;  Emacs 20.3 defines a comment-padding to insert spaces between
   ;;  the comment and the text. We do not want any, this is already
   ;;  included in comment-start
-  (unless ada-xemacs
+  (unless (featurep 'xemacs)
     (progn
       (if (ada-check-emacs-version 20 3)
           (progn
@@ -1184,7 +1184,7 @@ If you use ada-xref.el:
   ;;  We need to set some properties for XEmacs, and define some variables
   ;;  for Emacs
 
-  (if ada-xemacs
+  (if (featurep 'xemacs)
       ;;  XEmacs
       (put 'ada-mode 'font-lock-defaults
            '(ada-font-lock-keywords
@@ -1202,10 +1202,10 @@ If you use ada-xref.el:
   (set (make-local-variable 'ff-other-file-alist)
        'ada-other-file-alist)
   (set (make-local-variable 'ff-search-directories)
-       'ada-search-directories)
-  (setq ff-post-load-hooks    'ada-set-point-accordingly
-        ff-file-created-hooks 'ada-make-body)
-  (add-hook 'ff-pre-load-hooks 'ada-which-function-are-we-in)
+       'ada-search-directories-internal)
+  (setq ff-post-load-hook    'ada-set-point-accordingly
+        ff-file-created-hook 'ada-make-body)
+  (add-hook 'ff-pre-load-hook 'ada-which-function-are-we-in)
 
   ;; Some special constructs for find-file.el
   ;; We do not need to add the construction for 'with', which is in the
@@ -1219,21 +1219,26 @@ If you use ada-xref.el:
                                "\\(body[ \t]+\\)?"
                                "\\(\\(\\sw\\|[_.]\\)+\\)\\.\\(\\sw\\|_\\)+[ \t\n]+is"))
                      (lambda ()
-		       (set 'fname (ff-get-file
-				    ada-search-directories
-				    (ada-make-filename-from-adaname
-				     (match-string 3))
-				    ada-spec-suffixes)))))
+		       (if (fboundp 'ff-get-file)
+			   (if (boundp 'fname)
+			       (set 'fname (ff-get-file
+					    ada-search-directories-internal
+					    (ada-make-filename-from-adaname
+					     (match-string 3))
+					    ada-spec-suffixes)))))))
   ;; Another special construct for find-file.el : when in a separate clause,
   ;; go to the correct package.
   (add-to-list 'ff-special-constructs
                (cons "^separate[ \t\n]*(\\(\\(\\sw\\|[_.]\\)+\\))"
                      (lambda ()
-		       (set 'fname (ff-get-file
-				    ada-search-directories
-				    (ada-make-filename-from-adaname
-				     (match-string 1))
-				    ada-spec-suffixes)))))
+		       (if (fboundp 'ff-get-file)
+			   (if (boundp 'fname)
+			       (setq fname (ff-get-file
+					    ada-search-directories-internal
+					    (ada-make-filename-from-adaname
+					     (match-string 1))
+					    ada-spec-suffixes)))))))
+
   ;; Another special construct, that redefines the one in find-file.el. The
   ;; old one can handle only one possible type of extension for Ada files
   ;;  remove from the list the standard "with..." that is put by find-file.el,
@@ -1244,11 +1249,13 @@ If you use ada-xref.el:
          (assoc "^with[ \t]+\\([a-zA-Z0-9_\\.]+\\)" ff-special-constructs))
         (new-cdr
          (lambda ()
-	   (set 'fname (ff-get-file
-			ada-search-directories
-			(ada-make-filename-from-adaname
-			 (match-string 1))
-			ada-spec-suffixes)))))
+	   (if (fboundp 'ff-get-file)
+	       (if (boundp 'fname)
+		   (set 'fname (ff-get-file
+				ada-search-directories-internal
+				(ada-make-filename-from-adaname
+				 (match-string 1))
+				ada-spec-suffixes)))))))
     (if old-construct
         (setcdr old-construct new-cdr)
       (add-to-list 'ff-special-constructs
@@ -1335,7 +1342,7 @@ If you use ada-xref.el:
   ;; Fix is: redefine a new function ada-which-function, and call it when the
   ;; major-mode is ada-mode.
 
-  (unless ada-xemacs
+  (unless (featurep 'xemacs)
     ;;  This function do not require that we load which-func now.
     ;;  This can be done by the user if he decides to use which-func-mode
 
@@ -1384,10 +1391,9 @@ use imenu."
   ;;  Run this after the hook to give the users a chance to activate
   ;;  font-lock-mode
 
-  (unless ada-xemacs
+  (unless (featurep 'xemacs)
     (progn
       (ada-initialize-properties)
-      (make-local-hook 'font-lock-mode-hook)
       (add-hook 'font-lock-mode-hook 'ada-deactivate-properties nil t)))
 
   ;; the following has to be done after running the ada-mode-hook
@@ -1406,8 +1412,8 @@ use imenu."
 ;;  transient-mark-mode and mark-active are not defined in XEmacs
 (defun ada-region-selected ()
   "t if a region has been selected by the user and is still active."
-  (or (and ada-xemacs (funcall (symbol-function 'region-active-p)))
-      (and (not ada-xemacs)
+  (or (and (featurep 'xemacs) (funcall (symbol-function 'region-active-p)))
+      (and (not (featurep 'xemacs))
 	   (symbol-value 'transient-mark-mode)
 	   (symbol-value 'mark-active))))
 
@@ -2240,7 +2246,7 @@ offset."
 
           ;;  This need to be done here so that the advice is not always
           ;;  activated (this might interact badly with other modes)
-          (if ada-xemacs
+          (if (featurep 'xemacs)
               (ad-activate 'parse-partial-sexp t))
 
           (save-excursion
@@ -2287,7 +2293,7 @@ offset."
 
       ;; restore syntax-table
       (set-syntax-table previous-syntax-table)
-      (if ada-xemacs
+      (if (featurep 'xemacs)
           (ad-deactivate 'parse-partial-sexp))
       )
 
@@ -3557,7 +3563,7 @@ If NOERROR is non-nil, it only returns nil if no match was found."
 	;;  "begin" we encounter.
         (first (not recursive))
         (count-generic nil)
-        (stop-at-when nil)
+	(stop-at-when nil)
         )
 
     ;;  Ignore "when" most of the time, except if we are looking at the
@@ -4005,7 +4011,7 @@ Point is moved at the beginning of the search-re."
        ;; If inside a string, skip it (and the following comments)
        ;;
        ((ada-in-string-p parse-result)
-        (if ada-xemacs
+        (if (featurep 'xemacs)
             (search-backward "\"" nil t)
           (goto-char (nth 8 parse-result)))
         (unless backward (forward-sexp 1)))
@@ -4014,7 +4020,7 @@ Point is moved at the beginning of the search-re."
        ;; There is a special code for comments at the end of the file
        ;;
        ((ada-in-comment-p parse-result)
-        (if ada-xemacs
+        (if (featurep 'xemacs)
             (progn
               (forward-line 1)
               (beginning-of-line)
@@ -4489,7 +4495,7 @@ Moves to 'begin' if in a declarative part."
   (define-key ada-mode-map "\t"       'ada-tab)
   (define-key ada-mode-map "\C-c\t"   'ada-justified-indent-current)
   (define-key ada-mode-map "\C-c\C-l" 'ada-indent-region)
-  (if ada-xemacs
+  (if (featurep 'xemacs)
       (define-key ada-mode-map '(shift tab)    'ada-untab)
     (define-key ada-mode-map [(shift tab)]    'ada-untab))
   (define-key ada-mode-map "\C-c\C-f" 'ada-format-paramlist)
@@ -4528,7 +4534,7 @@ Moves to 'begin' if in a declarative part."
   ;; The following keys are bound to functions defined in ada-xref.el or
   ;; ada-prj,el., However, RMS rightly thinks that the code should be shared,
   ;; and activated only if the right compiler is used
-  (if ada-xemacs
+  (if (featurep 'xemacs)
       (progn
         (define-key ada-mode-map '(shift button3) 'ada-point-and-xref)
         (define-key ada-mode-map '(control tab) 'ada-complete-identifier))
@@ -4661,8 +4667,8 @@ Moves to 'begin' if in a declarative part."
 	      ["Previous Package"        ada-previous-package   t]
 	      ["Next Package"            ada-next-package       t]
 	      ["Previous Procedure"      ada-previous-procedure t]
-                  ["Next Procedure" ada-next-procedure t]
-                  ["Goto Start Of Statement" ada-move-to-start t]
+	      ["Next Procedure"          ada-next-procedure     t]
+	      ["Goto Start Of Statement" ada-move-to-start      t]
 	      ["Goto End Of Statement"   ada-move-to-end        t]
 	      ["-"                       nil                    nil]
 	      ["Other File"              ff-find-other-file     t]
@@ -4690,8 +4696,8 @@ Moves to 'begin' if in a declarative part."
 	      ["---"                         nil                          nil]
 	      ["Adjust Case Selection"       ada-adjust-case-region       t]
 	      ["Adjust Case in File"         ada-adjust-case-buffer       t]
-                  ["Create Case Exception"  ada-create-case-exception t]
-                  ["Create Case Exception Substring"
+	      ["Create Case Exception"       ada-create-case-exception    t]
+	      ["Create Case Exception Substring"
 	       ada-create-case-exception-substring                        t]
 	      ["Reload Case Exceptions"      ada-case-read-exceptions     t]
 	      ["----"                        nil                          nil]
@@ -4740,13 +4746,12 @@ Moves to 'begin' if in a declarative part."
 	      ["When"            ada-when            t])
 	     )))
 
-;    (autoload 'easy-menu-define "easymenu")
     (easy-menu-define ada-mode-menu ada-mode-map "Menu keymap for Ada mode" m)
     (easy-menu-add ada-mode-menu ada-mode-map)
-    (when ada-xemacs
-      ;; This looks bogus to me!   -stef
-      (define-key ada-mode-map [menu-bar] ada-mode-menu)
-      (set 'mode-popup-menu (cons "Ada mode" ada-mode-menu)))))
+    (if (featurep 'xemacs)
+	(progn
+	  (define-key ada-mode-map [menu-bar] ada-mode-menu)
+	  (set 'mode-popup-menu (cons "Ada mode" ada-mode-menu))))))
 
 
 ;; -------------------------------------------------------
@@ -4778,7 +4783,7 @@ Moves to 'begin' if in a declarative part."
 
   ;;  This advice is not needed anymore with Emacs21. However, for older
   ;;  versions, as well as for XEmacs, we still need to enable it.
-  (if (or (<= emacs-major-version 20) ada-xemacs)
+  (if (or (<= emacs-major-version 20) (featurep 'xemacs))
       (progn
 	(ad-activate 'comment-region)
 	(comment-region beg end (- (or arg 2)))
@@ -4883,7 +4888,7 @@ The paragraph is indented on the first line."
 
     ;;  In Emacs <= 20.2 and XEmacs <=20.4, there is a bug, and a newline is
     ;;  inserted at the end. Delete it
-    (if (or ada-xemacs
+    (if (or (featurep 'xemacs)
             (<= emacs-major-version 19)
             (and (= emacs-major-version 20)
                  (<= emacs-minor-version 2)))
@@ -4962,7 +4967,7 @@ otherwise."
 	;;  If we are using project file, search for the other file in all
 	;;  the possible src directories.
 
-	(if (functionp 'ada-find-src-file-in-dir)
+	(if (fboundp 'ada-find-src-file-in-dir)
 	    (let ((other
 		   (ada-find-src-file-in-dir
 		    (file-name-nondirectory (concat name (car suffixes))))))
@@ -5101,8 +5106,8 @@ Returns nil if no body was found."
       (setq suffixes (cdr suffixes))))
 
   ;; If find-file.el was available, use its functions
-  (if (functionp 'ff-get-file)
-      (ff-get-file-name ada-search-directories
+  (if (fboundp 'ff-get-file-name)
+      (ff-get-file-name ada-search-directories-internal
                         (ada-make-filename-from-adaname
                          (file-name-nondirectory
                           (file-name-sans-extension spec-name)))

@@ -3,7 +3,7 @@
 ;; Copyright (C) 1998, 99, 2000-2003 Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.60 $
+;; Ada Core Technologies's version:   $Revision: 1.61 $
 ;; Keywords: languages, ada, project file
 
 ;; This file is part of GNU Emacs.
@@ -38,19 +38,20 @@
 
 ;; ----- Requirements -----------------------------------------------------
 
-(eval-when-compile
- (require 'ada-mode))
 (require 'cus-edit)
 (require 'ada-xref)
+
+(eval-when-compile
+   (require 'ada-mode))
 
 ;; ----- Buffer local variables -------------------------------------------
 
 (defvar ada-prj-current-values nil
-  "Hold the current value of the fields; this is a property list.")
+  "Hold the current value of the fields, This is a property list.")
 (make-variable-buffer-local 'ada-prj-current-values)
 
 (defvar ada-prj-default-values nil
-  "Hold the default value for the fields; this is a property list.")
+  "Hold the default value for the fields, This is a property list.")
 (make-variable-buffer-local 'ada-prj-default-values)
 
 (defvar ada-prj-ada-buffer nil
@@ -245,7 +246,7 @@ The current buffer must be the project editing buffer."
     (erase-buffer))
 
   ;;  Widget support in Emacs 21 requires that we clear the buffer first
-  (if (and (not ada-xemacs) (>= emacs-major-version 21))
+  (if (and (not (featurep 'xemacs)) (>= emacs-major-version 21))
       (progn
 	(setq widget-field-new  nil
 	      widget-field-list nil)
