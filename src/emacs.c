@@ -1043,6 +1043,7 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
 #ifdef CLASH_DETECTION
   init_filelock ();;
 #endif
+  init_atimer ();
   running_asynch_code = 0;
 
   /* Handle --unibyte and the EMACS_UNIBYTE envvar,
