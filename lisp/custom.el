@@ -817,7 +817,7 @@ this sets the local binding in that buffer instead."
 
 If the default value of SYMBOL is different from the standard value, 
 set the `saved-value' property to a list whose car evaluates to the
-default value. Otherwise, set it til nil.
+default value.  Otherwise, set it to nil.
 
 To actually save the value, call `custom-save-all'.
 
@@ -847,7 +847,7 @@ Return non-nil iff the `saved-value' property actually changed."
 If the default value of SYMBOL is different from the saved value if any, 
 or else if it is different from the standard value, set the
 `customized-value' property to a list whose car evaluates to the 
-default value. Otherwise, set it til nil.
+default value.  Otherwise, set it to nil.
 
 Return non-nil iff the `customized-value' property actually changed."
   (let* ((get (or (get symbol 'custom-get) 'default-value))
@@ -896,7 +896,7 @@ by `custom-make-theme-feature'."
 	       (custom-make-theme-feature theme))))
 
 (defun custom-remove-theme (spec-alist theme)
-  "Detelete all elements from SPEC-ALIST whose car is THEME."
+  "Delete all elements from SPEC-ALIST whose car is THEME."
   (let ((elt (assoc theme spec-alist)))
     (while elt
 	(setq spec-alist (delete elt spec-alist)

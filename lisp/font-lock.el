@@ -1793,7 +1793,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 		   ;; Variable declarations.
 		   "\\(const\\(ant\\)?\\|custom\\|face\\|parameter\\|var\\)\\|"
 		   ;; Structure declarations.
-		   "\\(class\\|group\\|package\\|struct\\|type\\)"
+		   "\\(class\\|group\\|theme\\|package\\|struct\\|type\\)"
 		   "\\)\\)\\>"
 		   ;; Any whitespace and defined object.
 		   "[ \t'\(]*"
@@ -2003,6 +2003,7 @@ The value of this variable is used when Font Lock mode is turned on."
 	     "ifndef" "include" "line" "pragma" "undef"))))
        (c-preprocessor-directives-depth
 	(regexp-opt-depth c-preprocessor-directives)))
+
  (defconst c-font-lock-keywords-1
   (list
    ;;

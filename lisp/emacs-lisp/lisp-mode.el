@@ -107,9 +107,9 @@
 	 (purecopy (concat "^\\s-*("
 			   (eval-when-compile
 			     (regexp-opt
-			      '("defgroup" "deftype" "defstruct" "defclass"
-				"define-condition" "define-widget" "defface"
-				"defpackage") t))
+			      '("defgroup" "deftheme" "deftype" "defstruct"
+				"defclass" "define-condition" "define-widget"
+				"defface" "defpackage") t))
 			   "\\s-+'?\\(\\sw\\(\\sw\\|\\s_\\)+\\)"))
 	 2))
 
@@ -121,6 +121,7 @@
 (put 'defun*    'doc-string-elt 3)
 (put 'defvar   'doc-string-elt 3)
 (put 'defcustom 'doc-string-elt 3)
+(put 'deftheme 'doc-string-elt 2)
 (put 'defconst 'doc-string-elt 3)
 (put 'defmacro 'doc-string-elt 3)
 (put 'defmacro* 'doc-string-elt 3)
@@ -132,9 +133,9 @@
 (put 'define-generic-mode 'doc-string-elt 7)
 ;; define-global-mode has no explicit docstring.
 (put 'easy-mmode-define-global-mode 'doc-string-elt 0)
-(put 'define-ibuffer-filter 'doc-string-elt 3)
+(put 'define-ibuffer-filter 'doc-string-elt 2)
 (put 'define-ibuffer-op 'doc-string-elt 3)
-(put 'define-ibuffer-sorter 'doc-string-elt 3)
+(put 'define-ibuffer-sorter 'doc-string-elt 2)
 
 (defun lisp-font-lock-syntactic-face-function (state)
   (if (nth 3 state)
