@@ -1,3 +1,8 @@
+2000-02-17  Ken Raeburn  <raeburn@gnu.org>
+
+	* configure.in: Include -lz and -ljpeg (if it's available) when
+	testing for the tiff library.
+
 2000-02-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in: Remove LISP_FLOAT_TYPE.

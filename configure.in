@@ -1740,7 +1740,10 @@ if test "${HAVE_X11}" = "yes"; then
     old_c_flags="${CFLAGS}"
     CFLAGS="${LD_SWITCH_X_SITE} ${CFLAGS}"
     AC_CHECK_HEADER(tiffio.h,
-      AC_CHECK_LIB(tiff, TIFFGetVersion, HAVE_TIFF=yes, , -lX11 -lm))
+      tifflibs="-lX11 -lz -lm"
+      # At least one tiff package requires the jpeg library.
+      if test "${HAVE_JPEG}" = yes; then tifflibs="-ljpeg $tifflibs"; fi
+      AC_CHECK_LIB(tiff, TIFFGetVersion, HAVE_TIFF=yes, , $tifflibs))
     CFLAGS="${old_c_flags}"
   fi
 
