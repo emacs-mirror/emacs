@@ -526,16 +526,16 @@ for reading certain kinds of names with completion.
 @node Basic Completion
 @subsection Basic Completion Functions
 
-  The two functions @code{try-completion} and @code{all-completions}
-have nothing in themselves to do with minibuffers.  We describe them in
-this chapter so as to keep them near the higher-level completion
-features that do use the minibuffer.
+  The functions @code{try-completion}, @code{all-completions} and
+@code{test-completion} have nothing in themselves to do with
+minibuffers.  We describe them in this chapter so as to keep them near
+the higher-level completion features that do use the minibuffer.
 
 @defun try-completion string collection &optional predicate
 This function returns the longest common substring of all possible
 completions of @var{string} in @var{collection}.  The value of
-@var{collection} must be an alist, an obarray, or a function that
-implements a virtual set of strings (see below).
+@var{collection} must be a list of strings, an alist, an obarray, or a
+function that implements a virtual set of strings (see below).
 
 Completion compares @var{string} against each of the permissible
 completions specified by @var{collection}; if the beginning of the
@@ -559,13 +559,6 @@ Note that the only valid way to make a new obarray is to create it
 empty and then add symbols to it one by one using @code{intern}.
 Also, you cannot intern a given symbol in more than one obarray.
 
-If the argument @var{predicate} is non-@code{nil}, then it must be a
-function of one argument.  It is used to test each possible match, and
-the match is accepted only if @var{predicate} returns non-@code{nil}.
-The argument given to @var{predicate} is either a cons cell from the alist
-(the @sc{car} of which is a string) or else it is a symbol (@emph{not} a
-symbol name) from the obarray.
-
 You can also use a symbol that is a function as @var{collection}.  Then
 the function is solely responsible for performing completion;
 @code{try-completion} returns whatever this function returns.  The
@@ -573,6 +566,13 @@ function is called with three arguments: @var{string}, @var{predicate}
 and @code{nil}.  (The reason for the third argument is so that the same
 function can be used in @code{all-completions} and do the appropriate
 thing in either case.)  @xref{Programmed Completion}.
+
+If the argument @var{predicate} is non-@code{nil}, then it must be a
+function of one argument.  It is used to test each possible match, and
+the match is accepted only if @var{predicate} returns non-@code{nil}.
+The argument given to @var{predicate} is either a string from the
+list, a cons cell from the alist (the @sc{car} of which is a string)
+or a symbol (@emph{not} a symbol name) from the obarray.
 
 In the first of the following examples, the string @samp{foo} is
 matched by three of the alist @sc{car}s.  All of the matches begin with
@@ -657,22 +657,38 @@ example for @code{try-completion}:
 @end smallexample
 @end defun
 
+@defun test-completion string collection &optional predicate
+This function returns non-@code{nil} if @var{string} is a valid
+completion possibility specified by @var{collection} and
+@var{predicate}.  The other arguments are the same as in
+@code{try-completion}.  For instance, if @var{collection} is a list,
+this is true if @var{string} appears in the list and @var{predicate}
+is satisfied.
+
+If @var{collection} is a function, it is called with three arguments,
+the values @var{string}, @var{predicate} and @code{lambda}; whatever
+it returns, @code{test-completion} returns in turn.
+@end defun
+
 @defvar completion-ignore-case
-If the value of this variable is
-non-@code{nil}, Emacs does not consider case significant in completion.
+If the value of this variable is non-@code{nil}, Emacs does not
+consider case significant in completion.
 @end defvar
 
 @defmac lazy-completion-table var fun &rest args
 This macro provides a way to initialize the variable @var{var} as a
-completion table in a lazy way, not computing its actual contents
-until they are first needed.  You use this macro to produce a value
-that you store in @var{var}.  The actual computation of the proper
-value is done the first time you do completion using @var{var}.  It is
-done by calling @var{fun} with the arguments @var{args}.  The value
-@var{fun} returns becomes the permanent value of @var{var}.
+collection for completion in a lazy way, not computing its actual
+contents until they are first needed.  You use this macro to produce a
+value that you store in @var{var}.  The actual computation of the
+proper value is done the first time you do completion using @var{var}.
+It is done by calling @var{fun} with the arguments @var{args}.  The
+value @var{fun} returns becomes the permanent value of @var{var}.
+
+Here are two examples of use:
 
 @example
 (defvar foo (lazy-completion-table foo make-my-alist 'global))
+
 (make-local-variable 'bar)
 (setq bar (lazy-completion-table foo make-my-alist 'local)
 @end example
@@ -1219,7 +1235,7 @@ should return a list of all possible completions of the specified
 string.
 
 @item
-@code{lambda} specifies a test for an exact match.  The completion
+@code{lambda} specifies @code{test-completion}.  The completion
 function should return @code{t} if the specified string is an exact
 match for some possibility; @code{nil} otherwise.
 @end itemize
@@ -1227,10 +1243,10 @@ match for some possibility; @code{nil} otherwise.
   It would be consistent and clean for completion functions to allow
 lambda expressions (lists that are functions) as well as function
 symbols as @var{collection}, but this is impossible.  Lists as
-completion tables are already assigned another meaning---as alists.  It
-would be unreliable to fail to handle an alist normally because it is
-also a possible function.  So you must arrange for any function you wish
-to use for completion to be encapsulated in a symbol.
+completion tables already have other meanings, and it would be
+unreliable to treat one differently just because it is also a possible
+function.  So you must arrange for any function you wish to use for
+completion to be encapsulated in a symbol.
 
   Emacs uses programmed completion when completing file names.
 @xref{File Name Completion}.
@@ -1594,6 +1610,11 @@ This is a normal hook that is run whenever the minibuffer is exited.
 The current value of this variable is used to rebind @code{help-form}
 locally inside the minibuffer (@pxref{Help Functions}).
 @end defvar
+
+@defun minibufferp &optional buffer
+This function returns non-@code{nil} if @var{buffer} is a minibuffer.
+If @var{buffer} is omitted, it tests the current buffer.
+@end defun
 
 @defun active-minibuffer-window
 This function returns the currently active minibuffer window, or
