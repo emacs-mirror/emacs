@@ -677,6 +677,28 @@ prepare_menu_bars ()
   all_windows = (update_mode_lines || buffer_shared > 1
 		 || clip_changed || windows_or_buffers_changed);
 
+  /* Update all frame titles based on their buffer names, etc.
+     We do this before the menu bars so that the buffer-menu
+     will show the up-to-date frame titles.
+
+     This used to be done after the menu bars, for a reason that
+     was stated as follows but which I do not understand:
+     "We do this after the menu bars so that the frame will first
+     create its menu bar using the name `emacs' if no other name
+     has yet been specified."
+     I think that is no longer a concern.  */
+#ifdef HAVE_X_WINDOWS
+  if (windows_or_buffers_changed)
+    {
+      Lisp_Object tail, frame;
+
+      FOR_EACH_FRAME (tail, frame)
+	if (FRAME_VISIBLE_P (XFRAME (frame))
+	    || FRAME_ICONIFIED_P (XFRAME (frame)))
+	  x_consider_frame_title (frame);
+    }
+#endif
+
   /* Update the menu bar item lists, if appropriate.
      This has to be done before any actual redisplay
      or generation of display lines.  */
@@ -714,22 +736,6 @@ prepare_menu_bars ()
     }
   else
     update_menu_bar (selected_frame, 1);
-
-  /* Update all frame titles based on their buffer names, etc.
-     We do this after the menu bars so that the frame will first
-     create its menu bar using the name `emacs' if no other name
-     has yet been specified.  */
-#ifdef HAVE_X_WINDOWS
-  if (windows_or_buffers_changed)
-    {
-      Lisp_Object tail, frame;
-
-      FOR_EACH_FRAME (tail, frame)
-	if (FRAME_VISIBLE_P (XFRAME (frame))
-	    || FRAME_ICONIFIED_P (XFRAME (frame)))
-	  x_consider_frame_title (frame);
-    }
-#endif
 }
 
 /* Do a frame update, taking possible shortcuts into account.
