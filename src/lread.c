@@ -34,6 +34,7 @@ Boston, MA 02111-1307, USA.  */
 #include "commands.h"
 #include "keyboard.h"
 #include "termhooks.h"
+#include "coding.h"
 
 #ifdef lint
 #include <sys/inode.h>
@@ -633,7 +634,7 @@ Return t if file exists.  */)
   int count = specpdl_ptr - specpdl;
   Lisp_Object temp;
   struct gcpro gcpro1;
-  Lisp_Object found;
+  Lisp_Object found, efound;
   /* 1 means we printed the ".el is newer" message.  */
   int newer = 0;
   /* 1 means we are loading a compiled file.  */
@@ -770,14 +771,18 @@ Return t if file exists.  */)
 
 	  compiled = 1;
 
+	  GCPRO1 (efound);
+	  efound = ENCODE_FILE (found);
+
 #ifdef DOS_NT
 	  fmode = "rb";
 #endif /* DOS_NT */
-	  stat ((char *)XSTRING (found)->data, &s1);
-	  XSTRING (found)->data[STRING_BYTES (XSTRING (found)) - 1] = 0;
-	  result = stat ((char *)XSTRING (found)->data, &s2);
-	  XSTRING (found)->data[STRING_BYTES (XSTRING (found)) - 1] = 'c';
-	  
+	  stat ((char *)XSTRING (efound)->data, &s1);
+	  XSTRING (efound)->data[STRING_BYTES (XSTRING (efound)) - 1] = 0;
+	  result = stat ((char *)XSTRING (efound)->data, &s2);
+	  XSTRING (efound)->data[STRING_BYTES (XSTRING (efound)) - 1] = 'c';
+	  UNGCPRO;
+
 	  if (result >= 0 && (unsigned) s1.st_mtime < (unsigned) s2.st_mtime)
 	    {
 	      /* Make the progress messages mention that source is newer.  */
@@ -812,7 +817,10 @@ Return t if file exists.  */)
 
 #ifdef WINDOWSNT
   emacs_close (fd);
-  stream = fopen ((char *) XSTRING (found)->data, fmode);
+  GCPRO1 (efound);
+  efound = ENCODE_FILE (found);
+  stream = fopen ((char *) XSTRING (efound)->data, fmode);
+  UNGCPRO;
 #else  /* not WINDOWSNT */
   stream = fdopen (fd, fmode);
 #endif /* not WINDOWSNT */
@@ -968,8 +976,8 @@ openp (path, str, suffixes, storeptr, exec_only)
   int want_size;
   Lisp_Object filename;
   struct stat st;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
-  Lisp_Object string, tail;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
+  Lisp_Object string, tail, encoded_fn;
   int max_suffix_len = 0;
 
   for (tail = suffixes; CONSP (tail); tail = XCDR (tail))
@@ -980,8 +988,8 @@ openp (path, str, suffixes, storeptr, exec_only)
     }
 
   string = filename = Qnil;
-  GCPRO5 (str, string, filename, path, suffixes);
-  
+  GCPRO6 (str, string, filename, path, suffixes, encoded_fn);
+
   if (storeptr)
     *storeptr = Qnil;
 
@@ -1014,6 +1022,7 @@ openp (path, str, suffixes, storeptr, exec_only)
 	{
 	  int lsuffix = STRING_BYTES (XSTRING (XCAR (tail)));
 	  Lisp_Object handler;
+	  int exists;
 
 	  /* Concatenate path element/specified name with the suffix.
 	     If the directory starts with /:, remove that.  */
@@ -1034,7 +1043,7 @@ openp (path, str, suffixes, storeptr, exec_only)
 
 	  if (lsuffix != 0)  /* Bug happens on CCI if lsuffix is 0.  */
 	    strncat (fn, XSTRING (XCAR (tail))->data, lsuffix);
-	  
+
 	  /* Check that the file exists and is not a directory.  */
 	  /* We used to only check for handlers on non-absolute file names:
 	        if (absolute)
@@ -1044,41 +1053,43 @@ openp (path, str, suffixes, storeptr, exec_only)
 	     It's not clear why that was the case and it breaks things like
 	     (load "/bar.el") where the file is actually "/bar.el.gz".  */
 	  handler = Ffind_file_name_handler (filename, Qfile_exists_p);
+	  string = build_string (fn);
 	  if (!NILP (handler) && !exec_only)
 	    {
-	      int exists;
-
-	      string = build_string (fn);
 	      exists = !NILP (Ffile_readable_p (string));
-	      if (exists && !NILP (Ffile_directory_p (build_string (fn))))
+	      if (exists && !NILP (Ffile_directory_p (string)))
 		exists = 0;
 
 	      if (exists)
 		{
 		  /* We succeeded; return this descriptor and filename.  */
 		  if (storeptr)
-		    *storeptr = build_string (fn);
+		    *storeptr = string;
 		  UNGCPRO;
 		  return -2;
 		}
 	    }
 	  else
 	    {
-	      int exists = (stat (fn, &st) >= 0
-			    && (st.st_mode & S_IFMT) != S_IFDIR);
+	      char *pfn;
+
+	      encoded_fn = ENCODE_FILE (string);
+	      pfn = XSTRING (encoded_fn)->data;
+	      exists = (stat (pfn, &st) >= 0
+			&& (st.st_mode & S_IFMT) != S_IFDIR);
 	      if (exists)
 		{
 		  /* Check that we can access or open it.  */
 		  if (exec_only)
-		    fd = (access (fn, X_OK) == 0) ? 1 : -1;
+		    fd = (access (pfn, X_OK) == 0) ? 1 : -1;
 		  else
-		    fd = emacs_open (fn, O_RDONLY, 0);
+		    fd = emacs_open (pfn, O_RDONLY, 0);
 
 		  if (fd >= 0)
 		    {
 		      /* We succeeded; return this descriptor and filename.  */
 		      if (storeptr)
-			*storeptr = build_string (fn);
+			*storeptr = string;
 		      UNGCPRO;
 		      return fd;
 		    }
