@@ -1590,29 +1590,73 @@ If that fails to bring point back on frame, point is centered instead.
 If this is zero, point is always centered after it moves off frame.")
 
 (defun hscroll-point-visible ()
-  "Scrolls the window horizontally to make point visible."
-  (let* ((here (current-column))
-	 (left (window-hscroll))
-	 (right (- (+ left (window-width)) 3)))
-    (cond
-     ;; Should we recenter?
-     ((or (< here (- left  hscroll-step))
-	  (> here (+ right hscroll-step)))
-      (set-window-hscroll
-       (selected-window)
-       ;; Recenter, but don't show too much white space off the end of
-       ;; the line.
-       (max 0
-	    (min (- (save-excursion (end-of-line) (current-column))
-		    (window-width)
-		    -5)
-		 (- here (/ (window-width) 2))))))
-     ;; Should we scroll left?
-     ((> here right)
-      (scroll-left hscroll-step))
-     ;; Or right?
-     ((< here left)
-      (scroll-right hscroll-step)))))
+  "Scrolls the selected window horizontally to make point visible."
+  (save-excursion
+    (set-buffer (window-buffer))
+    (if (not (or truncate-lines
+		 (> (window-hscroll) 0)
+		 (and truncate-partial-width-windows
+		      (< (window-width) (frame-width)))))
+	;; Point is always visible when lines are wrapped.
+	()
+      ;; If point is on the invisible part of the line before window-start,
+      ;; then hscrolling can't bring it back, so reset window-start first.
+      (and (< (point) (window-start))
+	   (let ((ws-bol (save-excursion
+			   (goto-char (window-start))
+			   (beginning-of-line)
+			   (point))))
+	     (and (>= (point) ws-bol)
+		  (set-window-start nil ws-bol))))
+      (let* ((here (hscroll-window-column))
+	     (left (min (window-hscroll) 1))
+	     (right (1- (window-width))))
+	;; Allow for the truncation glyph, if we're not exactly at eol.
+	(if (not (and (= here right)
+		      (= (following-char) ?\n)))
+	    (setq right (1- right)))
+	(cond
+	 ;; If too far away, just recenter.  But don't show too much
+	 ;; white space off the end of the line.
+	 ((or (< here (- left  hscroll-step))
+	      (> here (+ right hscroll-step)))
+	  (let ((eol (save-excursion (end-of-line) (hscroll-window-column))))
+	    (scroll-left (min (- here (/ (window-width) 2))
+			      (- eol (window-width) -5)))))
+	 ;; Within range.  Scroll by one step (or maybe not at all).
+	 ((< here left)
+	  (scroll-right hscroll-step))
+	 ((> here right)
+	  (scroll-left hscroll-step)))))))
+
+;; This function returns the window's idea of the display column of point,
+;; assuming that the window is already known to be truncated rather than
+;; wrapped, and that we've already handled the case where point is on the
+;; part of the line before window-start.  We ignore window-width; if point
+;; is beyond the right margin, we want to know how far.  The return value
+;; includes the effects of window-hscroll, window-start, and the prompt
+;; string in the minibuffer.  It may be negative due to hscroll.
+(defun hscroll-window-column ()
+  (let* ((hscroll (window-hscroll))
+	 (startpos (save-excursion
+		     (beginning-of-line)
+		     (if (= (point) (save-excursion
+				      (goto-char (window-start))
+				      (beginning-of-line)
+				      (point)))
+			 (goto-char (window-start)))
+		     (point)))
+	 (hpos (+ (if (and (eq (selected-window) (minibuffer-window))
+			   (= 1 (window-start))
+			   (= startpos (point-min)))
+		      (minibuffer-prompt-width)
+		    0)
+		  (min 0 (- 1 hscroll))))
+	 val)
+    (car (cdr (compute-motion startpos (cons hpos 0)
+			      (point) (cons 0 1)
+			      1000000 (cons hscroll 0) nil)))))
+
   
 ;; rms: (1) The definitions of arrow keys should not simply restate
 ;; what keys they are.  The arrow keys should run the ordinary commands.
