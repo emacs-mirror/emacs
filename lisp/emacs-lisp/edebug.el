@@ -307,7 +307,7 @@ A lambda list keyword is a symbol that starts with `&'."
 
 (defun edebug-window-live-p (window)
   "Return non-nil if WINDOW is visible."
-  (some-window (lambda (w) (eq w window))))
+  (get-window-with-predicate (lambda (w) (eq w window))))
 
 ;; Not used.
 '(defun edebug-two-window-p ()
