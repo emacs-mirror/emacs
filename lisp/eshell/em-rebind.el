@@ -147,12 +147,9 @@ This is default behavior of shells like bash."
 (defun eshell-rebind-initialize ()
   "Initialize the inputing code."
   (unless eshell-non-interactive-p
-    (make-local-hook 'eshell-mode-hook)
     (add-hook 'eshell-mode-hook 'eshell-setup-input-keymap nil t)
-    (make-local-hook 'pre-command-hook)
     (make-local-variable 'eshell-previous-point)
     (add-hook 'pre-command-hook 'eshell-save-previous-point nil t)
-    (make-local-hook 'post-command-hook)
     (make-local-variable 'overriding-local-map)
     (add-hook 'post-command-hook 'eshell-rebind-input-map nil t)
     (set (make-local-variable 'eshell-lock-keymap) nil)
