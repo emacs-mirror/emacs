@@ -61,7 +61,7 @@
   (define-key news-fkey-prefix "m" [kp-subtract])
   (define-key news-fkey-prefix "k" [kp-add])
   (define-key news-fkey-prefix "l" [kp-separator])
-  (define-key news-fkey-prefix "n" [kp-period])
+  (define-key news-fkey-prefix "n" [kp-decimal])
   (define-key news-fkey-prefix "p" [kp-0])
   (define-key news-fkey-prefix "r" [kp-2])
   (define-key news-fkey-prefix "t" [kp-4])
