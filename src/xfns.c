@@ -4901,9 +4901,6 @@ terminate Emacs if we can't open the connection.")
   else
     xrm_option = (unsigned char *) 0;
 
-  /* Use this general default value to start with.  */
-  Vx_resource_name = Vinvocation_name;
-
   validate_x_resource_name ();
 
   /* This is what opens the connection and sets x_current_display.
