@@ -4595,9 +4595,9 @@ rm -f conftest*
 fi
 if eval "test \"`echo '$ac_cv_header_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
-  echo $ac_n "checking for XpmReadFileToPixmap in -lXpm""... $ac_c" 1>&6
-echo "configure:4600: checking for XpmReadFileToPixmap in -lXpm" >&5
-ac_lib_var=`echo Xpm'_'XpmReadFileToPixmap | sed 'y%./+-%__p_%'`
+  echo $ac_n "checking for XpmReturnAllocPixels in -lXpm""... $ac_c" 1>&6
+echo "configure:4600: checking for XpmReturnAllocPixels in -lXpm" >&5
+ac_lib_var=`echo Xpm'_'XpmReturnAllocPixels | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -4609,10 +4609,10 @@ cat > conftest.$ac_ext <<EOF
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
     builtin and then its argument prototype would still apply.  */
-char XpmReadFileToPixmap();
+char XpmReturnAllocPixels();
 
 int main() {
-XpmReadFileToPixmap()
+XpmReturnAllocPixels()
 ; return 0; }
 EOF
 if { (eval echo configure:4619: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
