@@ -125,7 +125,7 @@ COMPILE_FIRST = \
 
 # The actual Emacs command run in the targets below.
 
-emacs = EMACSLOADPATH=$(lisp) LC_ALL=C LANG=C $(EMACS) $(EMACSOPT)
+emacs = EMACSLOADPATH=$(lisp) LC_ALL=C $(EMACS) $(EMACSOPT)
 
 # Common command to find subdirectories
 
@@ -150,14 +150,14 @@ cus-load.el:
 custom-deps: cus-load.el doit
 	wd=$(lisp); $(setwins); \
 	echo Directories: $$wins; \
-	LC_ALL=C LANG=C $(EMACS) $(EMACSOPT) -l cus-dep -f custom-make-dependencies $$wins
+	LC_ALL=C $(EMACS) $(EMACSOPT) -l cus-dep -f custom-make-dependencies $$wins
 
 finder-inf.el:
 	echo "(provide 'finder-inf)" >> $@
 finder-data: finder-inf.el doit
 	wd=$(lisp); $(finder_setwins); \
 	echo Directories: $$wins; \
-	LC_ALL=C LANG=C $(EMACS) $(EMACSOPT) -l finder -f finder-compile-keywords-make-dist $$wins
+	LC_ALL=C $(EMACS) $(EMACSOPT) -l finder -f finder-compile-keywords-make-dist $$wins
 
 loaddefs.el:
 	echo ";;; loaddefs.el --- automatically extracted autoloads" >> $@
@@ -172,7 +172,7 @@ loaddefs.el:
 autoloads: loaddefs.el doit
 	wd=$(lisp); $(setwins); \
 	echo Directories: $$wins; \
-	LC_ALL=C LANG=C $(EMACS) $(EMACSOPT) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
+	LC_ALL=C $(EMACS) $(EMACSOPT) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
 
 subdirs.el:
 	$(MAKE) $(MFLAGS) update-subdirs
@@ -225,7 +225,7 @@ compile: subdirs.el doit
 		tr '	 ' '\012\012' | sort | uniq -u`; \
 	for el in $(COMPILE_FIRST) $$els; do \
 	  echo Compiling $$el; \
-	  LC_ALL=C LANG=C $(emacs) -f batch-byte-compile-if-not-done $$el || exit 1; \
+	  LC_ALL=C $(emacs) -f batch-byte-compile-if-not-done $$el || exit 1; \
 	done
 
 # Compile all Lisp files, except those from DONTCOMPILE.  This
@@ -239,13 +239,13 @@ compile-always: subdirs.el doit
 		tr '	 ' '\012\012' | sort | uniq -u`; \
 	for el in $(COMPILE_FIRST) $$els; do \
 	  echo Compiling $$el; \
-	  LC_ALL=C LANG=C $(emacs) -f batch-byte-compile $$el || exit 1; \
+	  LC_ALL=C $(emacs) -f batch-byte-compile $$el || exit 1; \
 	done
 
 compile-calc: 
 	for el in $(find $(lisp)/calc -name '*.el'); do \
 	  echo Compiling $$el; \
-	  LC_ALL=C LANG=C $(emacs) -f batch-byte-compile $$el || exit 1; \
+	  LC_ALL=C $(emacs) -f batch-byte-compile $$el || exit 1; \
 	done
 
 # Backup compiled Lisp files in elc.tar.gz.  If that file already
@@ -264,7 +264,7 @@ compile-after-backup: backup-compiled-files compile-always
 # .elc is present.
 
 recompile: doit
-	LC_ALL=C LANG=C $(EMACS) $(EMACSOPT) -f batch-byte-recompile-directory $(lisp)
+	LC_ALL=C $(EMACS) $(EMACSOPT) -f batch-byte-recompile-directory $(lisp)
 
 # Prepare a bootstrap in the lisp subdirectory.  Build loaddefs.el,
 # because it's not sure it's up-to-date, and if it's not, that might
