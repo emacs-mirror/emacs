@@ -416,6 +416,7 @@ int
 lock_file(const char *filename, void **state)
 {
   int fd;
+  struct stat buf;
   int attempts = 0;
   char *lockext = ".lockfile";
   char *lockpath = malloc(strlen(filename) + strlen(lockext) + 60);
@@ -426,6 +427,10 @@ lock_file(const char *filename, void **state)
   *state = lockpath;
  trylock:
   attempts++;
+  /* If the lock is over an hour old, delete it. */
+  if (stat(lockpath, &buf) == 0
+      && (difftime(buf.st_ctime, time(NULL) > 60*60)))
+    unlink(lockpath);
   if ((fd = open(lockpath, O_CREAT | O_EXCL, 0600)) < 0)
     {
       if (errno == EEXIST)
@@ -433,7 +438,10 @@ lock_file(const char *filename, void **state)
 	  /* Break the lock; we won't corrupt the file, but we might
 	     lose some scores. */
 	  if (attempts > MAX_ATTEMPTS)
-	    unlink(lockpath);
+	    {
+	      unlink(lockpath);
+	      attempts = 0;
+	    }
 	  sleep((rand() % 2)+1);
 	  goto trylock;
 	}
