@@ -1,6 +1,6 @@
 /* impl.c.poolmv: MANUAL VARIABLE POOL
  *
- * $HopeName: MMsrc!poolmv.c(trunk.15) $
+ * $HopeName: MMsrc!poolmv.c(trunk.16) $
  * Copyright (C) 1994, 1995 Harlequin Group, all rights reserved
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
@@ -37,7 +37,7 @@
 #include "poolmfs.h"
 #include "mpscmv.h"
 
-SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.15) $");
+SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.16) $");
 
 
 #define BLOCKPOOL(mv)   (MFSPool(&(mv)->blockPoolStruct))
@@ -166,6 +166,9 @@ static Res MVInit(Pool pool, va_list arg)
   /* At 100% fragmentation we will need one block descriptor for every other */
   /* allocated block, or (extendBy/avgSize)/2 descriptors.  See note 1. */
   blockExtendBy = sizeof(MVBlockStruct) * (extendBy/avgSize)/2;
+  if(blockExtendBy < sizeof(MVBlockStruct)) {
+    blockExtendBy = sizeof(MVBlockStruct);
+  }
 
   res = PoolInit(&mv->blockPoolStruct.poolStruct, space, PoolClassMFS(),
                  blockExtendBy, sizeof(MVBlockStruct));
