@@ -1,3 +1,19 @@
+2004-09-03  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-toggle-regexp): Set `isearch-success' and
+	`isearch-adjusted' to `t'.
+	(isearch-toggle-case-fold): Set `isearch-success' to `t'.
+	(isearch-message-prefix): Add "pending" for isearch-adjusted.
+	(isearch-other-meta-char): Restore isearch-point unconditionally.
+	(isearch-query-replace): Add new arg `regexp-flag' and use it.
+	Set point to start of match if region is not active in transient
+	mark mode (to include the current match to region boundaries).
+	Push the search string to `query-replace-from-history-variable'.
+	Add prompt "Query replace regexp" for isearch-regexp.
+	Add region beginning/end as last arguments of `perform-replace.'
+	(isearch-query-replace-regexp): Replace code by the call to
+	`isearch-query-replace' with arg `t'.
+
 2004-09-03  Richard M. Stallman  <rms@gnu.org>
 
 	* startup.el (normal-top-level): Undo previous TERM change.

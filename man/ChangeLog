@@ -1,3 +1,7 @@
+2004-09-03  Juri Linkov  <juri@jurta.org>
+
+	* search.texi (Incremental Search): Update wording for M-%.
+
 2004-09-02  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* killing.texi (Killing): Correct description of kill commands in
