@@ -100,8 +100,7 @@ The `ORGANIZATION' environment variable is used instead if defined.")
 Will use `gnus-startup-file'-SERVER instead if exists.")
 
 (defconst rmail-spool-directory
-  (cond ((memq system-type '(dgux-unix hpux usg-unix-v unisoft-unix rtu
-				       irix))
+  (cond ((memq system-type '(dgux hpux usg-unix-v unisoft-unix rtu irix))
 	 "/usr/mail/")
 	((eq system-type 'netbsd)
 	 "/var/mail/")
