@@ -732,7 +732,7 @@ found the discrepancy, undo the @kbd{C-M-q} with @kbd{C-_}, since the
 old indentation is probably appropriate to the intended parentheses.
 
   After you think you have fixed the problem, use @kbd{C-M-q} again.  If
-the old indentation actually fit the intended nesting of parentheses,
+the old indentation actually fits the intended nesting of parentheses,
 and you have put back those parentheses, @kbd{C-M-q} should not change
 anything.
 

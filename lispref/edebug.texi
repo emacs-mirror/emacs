@@ -97,7 +97,7 @@ which stops execution.  @xref{Edebug Execution Modes}.
 
   Within Edebug, you normally view an Emacs buffer showing the source of
 the Lisp code you are debugging.  This is referred to as the @dfn{source
-code buffer}, and is is temporarily read-only.
+code buffer}, and it is temporarily read-only.
 
   An arrow at the left margin indicates the line where the function is
 executing.  Point initially shows where within the line the function is

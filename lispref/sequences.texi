@@ -221,8 +221,8 @@ in the list.
   Emacs defines four types of array, all one-dimensional: @dfn{strings},
 @dfn{vectors}, @dfn{bool-vectors} and @dfn{char-tables}.  A vector is a
 general array; its elements can be any Lisp objects.  A string is a
-specialized array; its elements must be characters (i.e., integers
-between 0 and 255).  Each type of array has its own read syntax.
+specialized array; its elements must be characters.  Each type of array 
+has its own read syntax.
 @xref{String Type}, and @ref{Vector Type}.
 
   All four kinds of array share these characteristics:
