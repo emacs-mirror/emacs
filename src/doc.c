@@ -663,7 +663,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  else if (start[-1] == '<')
 	    keymap = tem;
 	  else
-	    describe_map_tree (tem, 1, Qnil, Qnil, (char *)0, 1);
+	    describe_map_tree (tem, 1, Qnil, Qnil, (char *)0, 1, 0);
 	  tem = Fbuffer_string ();
 	  Ferase_buffer ();
 	  set_buffer_internal (oldbuf);
