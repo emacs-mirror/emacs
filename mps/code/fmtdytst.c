@@ -109,8 +109,9 @@ mps_res_t dylan_init(mps_addr_t addr, size_t size,
       else
         p[2+i] = (mps_word_t)refs[(r >> 1) % nr_refs]; /* random ptr */
     }
-  } else
+  } else {
     dylan_pad(addr, size);
+  }
 
   return MPS_RES_OK;
 }
@@ -165,6 +166,31 @@ void dylan_write(mps_addr_t addr, mps_addr_t *refs, size_t nr_refs)
   }
 }
 
+/*  Writes to a dylan object.
+    Currently just swaps two refs if it can.
+    This is only used in a certain way by certain tests, it doesn't have
+    to be very general. */
+void dylan_mutate(mps_addr_t addr)
+{
+  mps_word_t *p = (mps_word_t *)addr;
+
+  if(p[0] == (mps_word_t)tvw) {
+    mps_word_t t = p[1] >> 2;
+
+    if(t > 0) {
+      mps_word_t tmp;
+      size_t i, j;
+
+      i = 2 + (rnd() % t);
+      j = 2 + (rnd() % t);
+
+      tmp = p[i];
+      p[i] = p[j];
+      p[j] = tmp;
+    }
+  }
+  return;
+}
 
 mps_addr_t dylan_read(mps_addr_t addr)
 {
