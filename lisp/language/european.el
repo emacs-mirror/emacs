@@ -233,6 +233,14 @@ addition of the Euro sign and some additional French and Finnish letters.
 Latin-9 is sometimes nicknamed `Latin-0'."))
  '("European"))
 
+(define-coding-system 'windows-1252
+  "windows-1252 8-bit encoding for Cyrillic (MIME: WINDOWS-1252)"
+  :coding-type 'charset
+  :mnemonic ?*
+  :charset-list '(windows-1252)
+  :mime-charset 'windows-1252)
+(define-coding-system-alias 'cp1252 'windows-1252)
+
 (set-language-info-alist
  "German" '((tutorial . "TUTORIAL.de")
 	    (charset iso-8859-1)
