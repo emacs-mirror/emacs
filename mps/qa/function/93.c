@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!93.c(trunk.2) $
+ id = $HopeName: MMQA_test_function!93.c(trunk.3) $
  summary = EPVM time allocations with checklevels
  language = c
  link = testlib.o epvmfmt.o
@@ -42,7 +42,8 @@ static void timealloc(mps_pool_t pool, mps_ap_t ap, size_t size, int num, int st
  }
  mps_epvm_restore(pool, 0);
 
-};
+}
+
 
 static void test(void)
 {
@@ -86,6 +87,7 @@ static void test(void)
 
 }
 
+
 int main(void) {
  void *m;
  stackpointer=&m;
@@ -94,6 +96,3 @@ int main(void) {
  pass();
  return 0;
 }
-
-
-
