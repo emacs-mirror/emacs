@@ -1,3 +1,7 @@
+2003-10-21  Dave Love  <fx@gnu.org>
+
+	* progmodes/cfengine.el: New file.
+
 2003-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* complete.el (PC-do-completion): Do not forget to use `pred' as the
