@@ -63,6 +63,7 @@ With ARG, you are asked to choose which language."
       (setq default-directory (expand-file-name "~/"))
       (setq buffer-auto-save-file-name nil)
       (insert-file-contents (expand-file-name filename data-directory))
+      (hack-local-variables)
       (goto-char (point-min))
       (search-forward "\n<<")
       (beginning-of-line)
