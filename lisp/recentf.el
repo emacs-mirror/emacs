@@ -1021,7 +1021,6 @@ Returns non-nil if the new state is enabled.
 
 When recentf mode is enabled, it maintains a menu for visiting files that
 were operated on recently."
-  nil nil nil
   :global t
   :group 'recentf
   (if recentf-mode
