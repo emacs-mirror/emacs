@@ -132,10 +132,10 @@ static int highlight;
 static int curs_x;
 static int curs_y;
 
-/* Flag to disable Unicode output in case users wish to use programs
+/* Flag to enable Unicode output in case users wish to use programs
    like Twinbridge on '95 rather than installed system level support
    for Far East languages.  */
-int w32_no_unicode_output;
+int w32_enable_unicode_output;
 
 DWORD dwWindowsThreadId = 0;
 HANDLE hWindowsThread = NULL;
@@ -558,7 +558,7 @@ BOOL
 w32_use_unicode_for_codepage (codepage)
 {
   /* If the current codepage is supported, use Unicode for output. */
-  return (!w32_no_unicode_output
+  return (w32_enable_unicode_output
           && codepage != CP_DEFAULT && IsValidCodePage (codepage));
 }
 
@@ -5169,12 +5169,12 @@ When nil, the right-alt and left-ctrl key combination is\n\
 interpreted normally."); 
   Vw32_recognize_altgr = Qt;
 
-  DEFVAR_BOOL ("w32-no-unicode-output",
-               &w32_no_unicode_output,
-               "Disable the use of Unicode for text output if non-nil.\n\
+  DEFVAR_BOOL ("w32-enable-unicode-output",
+               &w32_enable_unicode_output,
+               "Enable the use of Unicode for text output if non-nil.\n\
 Unicode output may prevent some third party applications for displaying\n\
 Far-East Languages on Windows 95/98 from working properly.\n\
 NT uses Unicode internally anyway, so this flag will probably have no\n\
 affect on NT machines.");
-  w32_no_unicode_output = 0;
+  w32_enable_unicode_output = 1;
 }
