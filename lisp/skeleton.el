@@ -491,16 +491,15 @@ symmetrical ones, and the same character twice for the others."
 		     (funcall skeleton-pair-filter))))
 	(self-insert-command (prefix-numeric-value arg))
       (setq last-command-char (logand last-command-char 255))
-      (or skeleton-abbrev-cleanup
-	  (skeleton-insert
-	   (cons nil (or (assq last-command-char skeleton-pair-alist)
-			 (assq last-command-char '((?( _ ?))
-						   (?[ _ ?])
-						   (?{ _ ?})
-						   (?< _ ?>)
-						   (?` _ ?')))
-			 `(,last-command-char _ ,last-command-char)))
-	   (if mark -1))))))
+      (skeleton-insert
+       (cons nil (or (assq last-command-char skeleton-pair-alist)
+                     (assq last-command-char '((?( _ ?))
+                                               (?[ _ ?])
+                                               (?{ _ ?})
+                                               (?< _ ?>)
+                                               (?` _ ?')))
+                     `(,last-command-char _ ,last-command-char)))
+       (if mark -1)))))
 
 
 ;; A more serious example can be found in sh-script.el
