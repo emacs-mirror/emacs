@@ -64,13 +64,18 @@
 (load "simple")
 (load "files")
 
+(load "faces")  ; after here, `defface' may be used.
+
 (message "Lists of integers (garbage collection statistics) are normal output")
 (message "while building Emacs; they do not indicate a problem.")
 (message "%s" (garbage-collect))
 (load "loaddefs.el")  ;Don't get confused if someone compiled this by mistake.
 (message "%s" (garbage-collect))
 
+(load "button") ; used by help
+
 (load "help")
+
 ;; Any Emacs Lisp source file (*.el) loaded here after can contain
 ;; multilingual text.
 (load "international/mule-cmds")
@@ -112,7 +117,7 @@
 (load "window")
 (load "frame")
 (load "term/tty-colors")
-(load "faces")
+
 (if (fboundp 'frame-face-alist)
     (progn
       (load "facemenu")))
