@@ -338,7 +338,7 @@ as returned by the `event-start' and `event-end' functions."
   "Return the timestamp of POSITION.
 POSITION should be a list of the form
    (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
-nas returned by the `event-start' and `event-end' functions."
+as returned by the `event-start' and `event-end' functions."
   (nth 3 position))
 
 
