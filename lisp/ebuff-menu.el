@@ -64,6 +64,7 @@ Calls value of `electric-buffer-menu-mode-hook' on entry if non-nil.
 	  (progn
 	    (set-buffer buffer)
 	    (Electric-buffer-menu-mode)
+	    (electric-buffer-update-highlight)
 	    (setq select
 		  (catch 'electric-buffer-menu-select
 		    (message "<<< Press Return to bury the buffer list >>>")
@@ -116,7 +117,8 @@ Calls value of `electric-buffer-menu-mode-hook' on entry if non-nil.
 	 (goto-char (point-max))
 	 (forward-line -1)
 	 (if (pos-visible-in-window-p (point-max))
-	     (recenter -1)))))
+	     (recenter -1))))
+  (electric-buffer-update-highlight))
 
 (put 'Electric-buffer-menu-mode 'mode-class 'special)
 (defun Electric-buffer-menu-mode ()
@@ -262,6 +264,18 @@ Returns to Electric Buffer Menu when done."
       (ding)
       (message "Buffer %s does not exist!" bufnam)
       (sit-for 4))))
+
+(defvar electric-buffer-overlay nil)
+(defun electric-buffer-update-highlight ()
+  ;; Make sure we have an overlay to use.
+  (or electric-buffer-overlay
+      (progn
+        (make-local-variable 'electric-buffer-overlay)
+        (setq electric-buffer-overlay (make-overlay (point) (point)))))
+  (move-overlay electric-buffer-overlay
+                (save-excursion (beginning-of-line) (point))
+                (save-excursion (end-of-line) (point)))
+  (overlay-put electric-buffer-overlay 'face 'highlight))
 
 (provide 'ebuff-menu)
 
