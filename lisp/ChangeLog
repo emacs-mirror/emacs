@@ -1,3 +1,9 @@
+2001-12-28  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/sendmail.el (mail-envelope-from): Fix custom type.
+	(sendmail-send-it): Check mail-specify-envelope-from
+	and mail-envelope-from in the mail buffer at start.
+
 2001-12-28  Simon Josefsson  <jas@extundo.com>
 
 	* mail/sendmail.el (mail-envelope-from): Fix :type.

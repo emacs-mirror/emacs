@@ -1,5 +1,12 @@
 2001-12-28  Richard M. Stallman  <rms@gnu.org>
 
+	* config.in (HAVE_MBSINIT): Add #undef.
+
+	* strftime.c (mbsinit): Define as no-op if not available.
+
+	* s/sco5.h (LIBX11_SYSTEM) [MOTIF]: Add -lgen.
+	(sigprocmask_set): Conditionalize decl on ! NOT_C_CODE.
+
 	* keymap.c (Flookup_key): Error message if key has wrong data type.
 	(Fdefine_key): Add error message for trying to bind [DEL], [RET], etc.
 	(exclude_key): New variable.
