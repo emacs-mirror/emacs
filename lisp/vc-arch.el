@@ -1,6 +1,7 @@
 ;;; vc-arch.el --- VC backend for the Arch version-control system
 
-;; Copyright (C) 1995,98,99,2000,01,02,03,2004  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998, 1999, 2000, 2001, 2002, 2003, 2004
+;;           Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>
@@ -303,7 +304,9 @@ Return non-nil if FILE is unchanged."
 		   (or (not sealed) (eq (aref file 0) ?v))
 		   (>= tmp rev-nb))
 	      (setq rev-nb tmp rev file)))
-	(concat defbranch "--" rev)))))
+	;; Use "none-000" if the tree hasn't yet been committed on the
+	;; default branch.  We'll then get "Arch:000[branch]" on the mode-line.
+	(concat defbranch "--" (or rev "none-000"))))))
 
 
 (defcustom vc-arch-mode-line-rewrite
@@ -418,5 +421,5 @@ Return non-nil if FILE is unchanged."
 
 (provide 'vc-arch)
 
-;;; arch-tag: a35c7c1c-5237-429d-88ef-3d718fd2e704
+;; arch-tag: a35c7c1c-5237-429d-88ef-3d718fd2e704
 ;;; vc-arch.el ends here
