@@ -1,3 +1,11 @@
+2003-10-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* display.texi (Temporary Displays): Add xref to `Documentation
+	Tips'.
+
+	* functions.texi (Function Safety): Use inforef instead of pxref
+	for SES.
+
 2003-10-23  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (TEX, texinputdir): Don't define.
