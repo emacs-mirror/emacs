@@ -3916,30 +3916,29 @@ x_new_font (f, fontname)
   font_names = (char **) XListFontsWithInfo (x_current_display, fontname,
 					     1024, &n_matching_fonts,
 					     &font_info);
-
-  /* If the server couldn't find any fonts whose named matched fontname,
-     return an error code.  */
-  if (n_matching_fonts == 0)
-    return Qnil;
+  /* Don't just give up if n_matching_fonts is 0.
+     Apparently there's a bug on Suns: XListFontsWithInfo can
+     fail to find a font, but XLoadQueryFont may still find it.  */
 
   /* See if we've already loaded a matching font. */
-  {
-    int i, j;
+  already_loaded = -1;
+  if (n_matching_fonts != 0)
+    {
+      int i, j;
 
-    already_loaded = 0;
-    for (i = 0; i < n_fonts; i++)
-      for (j = 0; j < n_matching_fonts; j++)
-	if (x_font_table[i]->fid == font_info[j].fid)
-	  {
-	    already_loaded = i;
-	    fontname = font_names[j];
-	    goto found_font;
-	  }
-  }
+      for (i = 0; i < n_fonts; i++)
+	for (j = 0; j < n_matching_fonts; j++)
+	  if (x_font_table[i]->fid == font_info[j].fid)
+	    {
+	      already_loaded = i;
+	      fontname = font_names[j];
+	      goto found_font;
+	    }
+    }
  found_font:
   
   /* If we have, just return it from the table.  */
-  if (already_loaded)
+  if (already_loaded > 0)
     f->display.x->font = x_font_table[already_loaded];
   
   /* Otherwise, load the font and add it to the table.  */
@@ -3958,14 +3957,18 @@ x_new_font (f, fontname)
       i = 0;
 #endif
 
-      if (i >= n_matching_fonts)
-	return Qt;
-      else
+      /* See comment above.  */
+      if (n_matching_fonts != 0)
 	fontname = font_names[i];
 
       font = (XFontStruct *) XLoadQueryFont (x_current_display, fontname);
       if (! font)
-	return Qnil;
+	{
+	  /* Free the information from XListFontsWithInfo.  */
+	  if (n_matching_fonts)
+	    XFreeFontInfo (font_names, font_info, n_matching_fonts);
+	  return Qnil;
+	}
 
       /* Do we need to create the table?  */
       if (x_font_table_size == 0)
