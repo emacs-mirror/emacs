@@ -3949,7 +3949,7 @@ Works according to reconceal state registration."
           (outline-search-reconceal nil))
       (real-isearch-terminate)))
 ;;;_  > isearch-done/outline-provisions ()
-(defun isearch-done/outline-provisions (&optional nopush)
+(defun isearch-done/outline-provisions (&optional nopush edit)
   (interactive)
   (if (and (outline-mode-p) outline-enwrap-isearch-mode)
       (progn (if (and outline-search-reconceal
