@@ -79,15 +79,6 @@ enum bitmap_type
   ZV_LINE_BITMAP
 };
 
-enum w32_char_font_type
-{
-  UNKNOWN_FONT,
-  ANSI_FONT,
-  UNICODE_FONT,
-  BDF_1D_FONT,
-  BDF_2D_FONT
-};
-
 /* Bitmaps are all unsigned short, as Windows requires bitmap data to
    be Word aligned.  For some reason they are horizontally reflected
    compared to how they appear on X, so changes in xterm.c should be
@@ -189,6 +180,8 @@ extern void w32_menu_display_help (HMENU menu, UINT menu_item, UINT flags);
 
 extern int w32_codepage_for_font (char *fontname);
 
+extern glyph_metric *w32_BDF_TextMetric(bdffont *fontp,
+					unsigned char *text, int dim);
 extern Lisp_Object Vwindow_system;
 
 #define x_any_window_to_frame x_window_to_frame
@@ -1101,7 +1094,7 @@ static struct face *x_get_glyph_face_and_encoding P_ ((struct frame *,
                                                        int *));
 static struct face *x_get_char_face_and_encoding P_ ((struct frame *, int,
 						      int, wchar_t *, int));
-static XCharStruct *w32_per_char_metric P_ ((HDC hdc, XFontStruct *,
+static XCharStruct *w32_per_char_metric P_ ((XFontStruct *,
                                              wchar_t *,
                                              enum w32_char_font_type));
 static enum w32_char_font_type
@@ -1130,15 +1123,15 @@ static void x_produce_image_glyph P_ ((struct it *it));
    If CHAR2B is not contained in FONT, the font's default character
    metric is returned. */
 
-static XCharStruct *
-w32_bdf_per_char_metric (font, char2b, dim)
+static int
+w32_bdf_per_char_metric (font, char2b, dim, pcm)
      XFontStruct *font;
      wchar_t *char2b;
      int dim;
+     XCharStruct * pcm;
 {
   glyph_metric * bdf_metric;
   char buf[2];
-  XCharStruct * pcm = (XCharStruct *) xmalloc (sizeof (XCharStruct));
 
   if (dim == 1)
     buf[0] = (char)char2b;
@@ -1158,42 +1151,32 @@ w32_bdf_per_char_metric (font, char2b, dim)
                     - (bdf_metric->bbox + bdf_metric->bbw);
       pcm->ascent = bdf_metric->bboy + bdf_metric->bbh;
       pcm->descent = bdf_metric->bboy;
+
+      return 1;
     }
-  else
-    {
-      xfree (pcm);
-      return NULL;
-    }
-  return pcm;
+  return 0;
 }
 
 
-static XCharStruct *
-w32_per_char_metric (hdc, font, char2b, font_type)
-     HDC hdc;
+static int
+w32_native_per_char_metric (font, char2b, font_type, pcm)
      XFontStruct *font;
      wchar_t *char2b;
      enum w32_char_font_type font_type;
+     XCharStruct * pcm;
 {
   /* NTEMACS_TODO: Use GetGlyphOutline where possible (no Unicode
      version on W9x) */
 
-  /* The result metric information.  */
-  XCharStruct *pcm;
-  BOOL retval;
+  HDC hdc = GetDC (NULL);
+  HFONT old_font;
+  BOOL retval = FALSE;
 
   xassert (font && char2b);
-  xassert (font_type != UNKNOWN_FONT);
+  xassert (font->hfont);
+  xassert (font_type == UNICODE_FONT || font_type == ANSI_FONT);
 
-  if (font_type == BDF_1D_FONT)
-    return w32_bdf_per_char_metric (font, char2b, 1);
-  else if (font_type == BDF_2D_FONT)
-    return w32_bdf_per_char_metric (font, char2b, 2);
-
-  pcm = (XCharStruct *) xmalloc (sizeof (XCharStruct));
-
-  if (font->hfont)
-    SelectObject (hdc, font->hfont);
+  old_font = SelectObject (hdc, font->hfont);
 
   if ((font->tm.tmPitchAndFamily & TMPF_TRUETYPE) != 0)
     {
@@ -1201,7 +1184,7 @@ w32_per_char_metric (hdc, font, char2b, font_type)
 
       if (font_type == UNICODE_FONT)
 	retval = GetCharABCWidthsW (hdc, *char2b, *char2b, &char_widths);
-      else if (font_type == ANSI_FONT)
+      else
 	retval = GetCharABCWidthsA (hdc, *char2b, *char2b, &char_widths);
 
       if (retval)
@@ -1209,61 +1192,119 @@ w32_per_char_metric (hdc, font, char2b, font_type)
 	  pcm->width = char_widths.abcA + char_widths.abcB + char_widths.abcC;
 	  pcm->lbearing = char_widths.abcA;
 	  pcm->rbearing = pcm->width - char_widths.abcC;
-	}
-      else
-	{
-	  /* Windows 9x does not implement GetCharABCWidthsW, so if that
-	     failed, try GetTextExtentPoint32W, which is implemented and
-	     at least gives us some of the info we are after (total
-	     character width). */
-	  SIZE sz;
-
-	  if (font_type == UNICODE_FONT)
-	    retval = GetTextExtentPoint32W (hdc, char2b, 1, &sz);
-
-	  if (retval)
-	    {
-	      pcm->width = sz.cx;
-	      pcm->rbearing = sz.cx;
-	      pcm->lbearing = 0;
-	    }
-	  else
-	    {
-	      xfree (pcm);
-	      return NULL;
-	    }
+	  pcm->ascent = FONT_BASE (font);
+	  pcm->descent = FONT_DESCENT (font);
 	}
     }
-  else
-    {
-      /* Do our best to deduce the desired metrics data for non-Truetype
-         fonts (generally, raster fonts).  */
-      INT char_width;
 
-      retval = GetCharWidth (hdc, *char2b, *char2b, &char_width);
+  if (!retval)
+    {
+      /* Either font is not a True-type font, or GetCharABCWidthsW
+	 failed (it is not supported on Windows 9x for instance), so we
+	 can't determine the full info we would like.  All is not lost
+	 though - we can call GetTextExtentPoint32 to get rbearing and
+	 deduce width based on the font's per-string overhang.  lbearing
+	 is assumed to be zero.  */
+      SIZE sz;
+
+      if (font_type == UNICODE_FONT)
+	retval = GetTextExtentPoint32W (hdc, char2b, 1, &sz);
+      else
+	retval = GetTextExtentPoint32A (hdc, (char*)char2b, 1, &sz);
+
       if (retval)
 	{
-	  pcm->width = char_width;
-	  pcm->rbearing = char_width;
+	  pcm->width = sz.cx - font->tm.tmOverhang;
+	  pcm->rbearing = sz.cx;
 	  pcm->lbearing = 0;
-	}
-      else
-	{
-	  xfree (pcm);
-	  return NULL;
+	  pcm->ascent = FONT_BASE (font);
+	  pcm->descent = FONT_DESCENT (font);
 	}
     }
 
-  pcm->ascent = FONT_BASE (font);
-  pcm->descent = FONT_DESCENT (font);
 
   if (pcm->width == 0 && (pcm->rbearing - pcm->lbearing) == 0)
     {
-      xfree (pcm);
-      return NULL;
+      retval = FALSE;
     }
 
-  return pcm;
+  SelectObject (hdc, old_font);
+  ReleaseDC (NULL, hdc);
+
+  return retval;
+}
+
+
+static XCharStruct *
+w32_per_char_metric (font, char2b, font_type)
+     XFontStruct *font;
+     wchar_t *char2b;
+     enum w32_char_font_type font_type;
+{
+  /* The result metric information.  */
+  XCharStruct *pcm;
+  BOOL retval;
+
+  xassert (font && char2b);
+  xassert (font_type != UNKNOWN_FONT);
+
+  /* Handle the common cases quickly.  */
+  if (font->per_char == NULL)
+    /* TODO: determine whether char2b exists in font?  */
+    return &font->max_bounds;
+  else if (*char2b < 128)
+    return &font->per_char[*char2b];
+
+  pcm = &font->scratch;
+
+  if (font_type == BDF_1D_FONT)
+    retval = w32_bdf_per_char_metric (font, char2b, 1, pcm);
+  else if (font_type == BDF_2D_FONT)
+    retval = w32_bdf_per_char_metric (font, char2b, 2, pcm);
+  else
+    retval = w32_native_per_char_metric (font, char2b, font_type, pcm);
+
+  if (retval)
+    return pcm;
+
+  return NULL;
+}
+
+void
+w32_cache_char_metrics (font)
+     XFontStruct *font;
+{
+  wchar_t char2b = L'x';
+
+  /* Cache char metrics for the common cases.  */
+  if (font->bdf)
+    {
+      /* TODO: determine whether font is fixed-pitch.  */
+      w32_bdf_per_char_metric (font, &char2b, 1, &font->max_bounds);
+    }
+  else
+    {
+      if ((font->tm.tmPitchAndFamily & TMPF_FIXED_PITCH) != 0)
+	{
+	  /* Font is not fixed pitch, so cache per_char info for the
+             ASCII characters.  It would be much more work, and probably
+             not worth it, to cache other chars, since we may change
+             between using Unicode and ANSI text drawing functions at
+             run-time.  */
+	  int i;
+
+	  font->per_char = xmalloc (128 * sizeof(XCharStruct));
+	  for (i = 0; i < 128; i++)
+	    {
+	      char2b = i;
+	      w32_native_per_char_metric (font, &char2b, ANSI_FONT,
+					  &font->per_char[i]);
+	    }
+	}
+      else
+	w32_native_per_char_metric (font, &char2b, ANSI_FONT,
+				    &font->max_bounds);
+    }
 }
 
 
@@ -1893,7 +1934,6 @@ x_produce_glyphs (it)
       int font_not_found_p;
       struct font_info *font_info;
       int boff;                 /* baseline offset */
-      HDC hdc;
       /* We may change it->multibyte_p upon unibyte<->multibyte
 	 conversion.  So, save the current value now and restore it
 	 later.
@@ -1905,8 +1945,6 @@ x_produce_glyphs (it)
 	 glyph.
       */
       int saved_multibyte_p = it->multibyte_p;
-
-      hdc = get_frame_dc (it->f);
 
       /* Maybe translate single-byte characters to multibyte, or the
          other way.  */
@@ -1955,9 +1993,6 @@ x_produce_glyphs (it)
 	    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
 	}
 
-      if (font->hfont)
-        SelectObject (hdc, font->hfont);
-
       if (it->char_to_display >= ' '
 	  && (!it->multibyte_p || it->char_to_display < 128))
 	{
@@ -1966,7 +2001,7 @@ x_produce_glyphs (it)
 
 	  it->nglyphs = 1;
 
-          pcm = w32_per_char_metric (hdc, font, &char2b,
+          pcm = w32_per_char_metric (font, &char2b,
                                      font->bdf ? BDF_1D_FONT : ANSI_FONT);
 	  it->ascent = FONT_BASE (font) + boff;
 	  it->descent = FONT_DESCENT (font) - boff;
@@ -2034,8 +2069,6 @@ x_produce_glyphs (it)
 		 glyph row.  This is used to optimize X output code.  */
 	      if (pcm && (pcm->lbearing < 0 || pcm->rbearing > pcm->width))
 		it->glyph_row->contains_overlapping_glyphs_p = 1;
-              if (pcm)
-                xfree (pcm);
 	    }
 	}
       else if (it->char_to_display == '\n')
@@ -2094,7 +2127,7 @@ x_produce_glyphs (it)
           else
             type = UNICODE_FONT;
 
-          pcm = w32_per_char_metric (hdc, font, &char2b, type);
+          pcm = w32_per_char_metric (font, &char2b, type);
 
 	  if (font_not_found_p || !pcm)
 	    {
@@ -2141,11 +2174,7 @@ x_produce_glyphs (it)
   
 	  if (it->glyph_row)
 	    x_append_glyph (it);
-
-          if (pcm)
-            xfree (pcm);
 	}
-      release_frame_dc (it->f, hdc);
       it->multibyte_p = saved_multibyte_p;
     }
   else if (it->what == IT_COMPOSITION)
@@ -2798,14 +2827,13 @@ w32_get_glyph_overhangs (hdc, glyph, f, left, right)
       font = face->font;
 
       if (font
-          && (pcm = w32_per_char_metric (hdc, font, &char2b,
+          && (pcm = w32_per_char_metric (font, &char2b,
                                          glyph->w32_font_type)))
 	{
 	  if (pcm->rbearing > pcm->width)
 	    *right = pcm->rbearing - pcm->width;
 	  if (pcm->lbearing < 0)
 	    *left = -pcm->lbearing;
-          xfree (pcm);
 	}
     }
 }
