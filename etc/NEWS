@@ -305,6 +305,12 @@ specifies a number of lines.  If nil, don't resize.
 
 Default is 0.25.
 
+** Changes in Font Lock
+
+*** The new function `font-lock-remove-keywords' can be used to remove
+font-lock keywords from the current buffer or from a specific major
+mode.
+
 ** Comint (subshell) changes
 
 Comint now includes new features to send commands to running processes
@@ -687,6 +693,13 @@ appropriate for C-style escape sequences in strings.
 ** A new command `view-emacs-problems' (C-h P) displays the PROBLEMS file.
 
 ** New modes and packages
+
+*** The minor modes cwarn-mode and global-cwarn-mode highlights
+suspicious C and C++ constructions.  Currently, assignments inside
+expressions, semicolon following `if', `for' and `while' (except, of
+course, after a `do .. while' statement), and C++ functions with
+reference parameters are recognized.  The modes require font-lock mode
+to be enabled.
 
 *** 5x5.el is a simple puzzle game.
 
