@@ -3782,8 +3782,12 @@ shrink_decoding_region (beg, end, coding, str)
 	{
 	  if (coding->heading_ascii < 0)
 	    while (begp < endp && *begp != '\r' && *begp < 0x80) begp++;
-	  while (begp < endp && *(endp - 1) != '\r' && *(endp - 1) < 0x80)
+	  while (begp < endp && endp[-1] != '\r' && endp[-1] < 0x80)
 	    endp--;
+	  /* Do not consider LF as ascii if preceded by CR, since that
+             confuses eol decoding. */
+	  if (begp < endp && endp < endp_orig && endp[-1] == '\r' && endp[0] == '\n')
+	    endp++;
 	}
       else
 	begp = endp;
@@ -3805,6 +3809,10 @@ shrink_decoding_region (beg, end, coding, str)
 	while (begp < endp && endp[-1] < 0x80 && endp[-1] != '\r') endp--;
       else
 	while (begp < endp && endp[-1] < 0x80) endp--;
+      /* Do not consider LF as ascii if preceded by CR, since that
+	 confuses eol decoding. */
+      if (begp < endp && endp < endp_orig && endp[-1] == '\r' && endp[0] == '\n')
+	endp++;
       if (begp < endp && endp < endp_orig && endp[-1] >= 0x80)
 	endp++;
       break;
@@ -3829,6 +3837,10 @@ shrink_decoding_region (beg, end, coding, str)
 	    while (begp < endp && (c = endp[-1]) < 0x80 && c != '\r') endp--;
 	  else
 	    while (begp < endp && endp[-1] < 0x80) endp--;
+	  /* Do not consider LF as ascii if preceded by CR, since that
+             confuses eol decoding. */
+	  if (begp < endp && endp < endp_orig && endp[-1] == '\r' && endp[0] == '\n')
+	    endp++;
 	  break;
 
 	case CODING_CATEGORY_IDX_ISO_7:
@@ -3843,6 +3855,10 @@ shrink_decoding_region (beg, end, coding, str)
 	    while (begp < endp
 		   && (c = endp[-1]) < 0x80 && c != ISO_CODE_ESC)
 	      endp--;
+	  /* Do not consider LF as ascii if preceded by CR, since that
+             confuses eol decoding. */
+	  if (begp < endp && endp < endp_orig && endp[-1] == '\r' && endp[0] == '\n')
+	    endp++;
 	  if (begp < endp && endp[-1] == ISO_CODE_ESC)
 	    {
 	      if (endp + 1 < endp_orig && end[0] == '(' && end[1] == 'B')
@@ -4222,7 +4238,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 	  inserted += len_byte;
 	  inserted_byte += len_byte;
 	  while (len_byte--)
-	    *src++ = *dst++;
+	    *dst++ = *src++;
 	  fake_multibyte = 1;
 	  break;
 	}
