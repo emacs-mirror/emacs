@@ -1,3 +1,8 @@
+2004-05-08  Peter Whaite  <emacs@whaite.ca>  (tiny change)
+
+	* data.c (Fquo): If any argument is float, do the computation in
+	floating point.
+
 2004-05-08  Juanma Barranquero  <lektu@terra.es>
 
 	* editfns.c (Finsert_buffer_substring): Make argument names match their
