@@ -507,6 +507,30 @@ For example,
         (const :tag "Ask" foo))
 @end example
 
+@noindent
+describes a variable for which @code{t} means yes, @code{nil} means no,
+and @code{foo} means ``ask.''
+
+@item (other @var{value})
+This alternative can match any Lisp value, but if the user chooses this
+alternative, that selects the value @var{value}.
+
+The main use of @code{other} is as the last element of @code{choice}.
+For example,
+
+@example
+(choice (const :tag "Yes" t)
+        (const :tag "No" nil)
+        (other :tag "Ask" foo))
+@end example
+
+@noindent
+describes a variable for which @code{t} means yes, @code{nil} means no,
+and anything else means ``ask.''  If the user chooses @samp{Ask} from
+the menu of alternatives, that specifies the value @code{foo}; but any
+other value (not @code{t}, @code{nil} or @code{foo}) displays as
+@samp{Ask}, just like @code{foo}.
+
 @item (function-item @var{function})
 Like @code{const}, but used for values which are functions.  This
 displays the documentation string as well as the function name.
