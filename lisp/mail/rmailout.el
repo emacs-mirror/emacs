@@ -177,7 +177,7 @@ When called from lisp code, N may be omitted."
 					     (mail-fetch-field "really-from")
 					     (mail-fetch-field "sender")
 					     "unknown"))
-		" " (or (mail-fetch-field "date") (current-time-string)) "\n")
+		" " (current-time-string) "\n")
 	;; ``Quote'' "\nFrom " as "\n>From "
 	;;  (note that this isn't really quoting, as there is no requirement
 	;;   that "\n[>]+From " be quoted in the same transparent way.)
