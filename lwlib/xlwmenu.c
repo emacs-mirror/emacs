@@ -1455,8 +1455,7 @@ make_drawing_gcs (mw)
      XlwMenuWidget mw;
 {
   XGCValues xgcv;
-  XColor temp;
-  int delta;
+  float scale;
 
   xgcv.font = mw->menu.font->fid;
   xgcv.foreground = mw->menu.foreground;
@@ -1478,23 +1477,17 @@ make_drawing_gcs (mw)
 #define BRIGHTNESS(color) (((color) & 0xff) + (((color) >> 8) & 0xff) + (((color) >> 16) & 0xff))
 
   /* Allocate color for disabled menu-items.  */
+  mw->menu.disabled_foreground = mw->menu.foreground;
   if (BRIGHTNESS(mw->menu.foreground) < BRIGHTNESS(mw->core.background_pixel))
-    {
-      delta = 2.3;
-      temp.pixel = mw->menu.foreground;
-    }
+    scale = 2.3;
   else
-    {
-      delta = 1.2;
-      temp.pixel = mw->core.background_pixel;
-    }
+    scale = 0.55;
 
   x_alloc_lighter_color_for_widget ((Widget) mw, XtDisplay ((Widget) mw),
 				    mw->core.colormap,
-				    &temp.pixel,
-				    delta,
+				    &mw->menu.disabled_foreground,
+				    scale,
 				    0x8000);
-  mw->menu.disabled_foreground = temp.pixel;
 
   if (mw->menu.foreground == mw->menu.disabled_foreground
       || mw->core.background_pixel == mw->menu.disabled_foreground)
