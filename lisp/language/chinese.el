@@ -74,15 +74,19 @@
  'chinese-hz 0 ?z
  "Hz/ZW 7-bit encoding for Chinese GB2312 (MIME:HZ-GB-2312)"
  nil)
-(put 'chinese-hz 'post-read-conversion 'post-read-decode-hz)
-(put 'chinese-hz 'pre-write-conversion 'pre-write-encode-hz)
+(coding-system-put 'chinese-hz 'post-read-conversion 'post-read-decode-hz)
+(coding-system-put 'chinese-hz 'pre-write-conversion 'pre-write-encode-hz)
 
 (define-coding-system-alias 'hz-gb-2312 'chinese-hz)
 (define-coding-system-alias 'hz 'chinese-hz)
 
 (defun post-read-decode-hz (len)
-  (let ((pos (point)))
-    (decode-hz-region pos (+ pos len))))
+  (let ((pos (point))
+	(buffer-modified-p (buffer-modified-p))
+	last-coding-system-used)
+    (prog1
+	(decode-hz-region pos (+ pos len))
+      (set-buffer-modified-p buffer-modified-p))))
 
 (defun pre-write-encode-hz (from to)
   (let ((buf (current-buffer))
@@ -92,7 +96,8 @@
     (if (stringp from)
 	(insert from)
       (insert-buffer-substring buf from to))
-    (encode-hz-region 1 (point-max))
+    (let (last-coding-system-used)
+      (encode-hz-region 1 (point-max)))
     nil))
 
 (set-language-info-alist
