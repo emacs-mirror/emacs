@@ -1,7 +1,10 @@
+2002-06-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* minibuf.c (minibuffer_completion_contents): Add return type.
+
 2002-06-27  Juanma Barranquero  <lektu@terra.es>
 
-	* charset.c (Fchar_bytes): Remove obsolescence info from
-	docstring.
+	* charset.c (Fchar_bytes): Remove obsolescence info from docstring.
 
 2002-06-26  Juanma Barranquero  <lektu@terra.es>
 
@@ -11,7 +14,7 @@
 
 	* window.c (Frecenter): Don't set force_start flag.
 
-	* minibuf.c (do_completion, Fminibuffer_complete_word) 
+	* minibuf.c (do_completion, Fminibuffer_complete_word)
 	(Fminibuffer_completion_help): Complete just the text before point.
 	(minibuffer_completion_contents): New function.
 
