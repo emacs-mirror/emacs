@@ -17,7 +17,7 @@ Copyright (c) 1992, 1994 Free software Foundation, Inc.
 
 BUILDING AND INSTALLATION:
 (This is for a Unix or Unix-like system.  For MSDOS, see below;
-search for MSDOG.)
+search for MSDOG.  For Windows NT, see the file nt/install.)
 
 1) Make sure your system has enough swapping space allocated to handle
 a program whose pure code is 900k bytes and whose data area is at
