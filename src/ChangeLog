@@ -1,5 +1,8 @@
 2000-12-12  Gerd Moellmann  <gerd@gnu.org>
 
+	* s/freebsd.h, s/netbsd.h (GC_MARK_STACK): Use
+	GC_MAKE_GCPROS_NOOPS instead of `1'.
+
 	* s/gnu-linux.h (GC_MARK_STACK): Define as GC_MAKE_GCPROS_NOOPS.
 
 2000-12-11  Gerd Moellmann  <gerd@gnu.org>

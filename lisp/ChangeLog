@@ -1,3 +1,10 @@
+2000-12-12  Milan Zamazal  <pdm@freesoft.cz>
+
+	* progmodes/glasses.el: Use `define-minor-mode' for the minor mode
+	definition (patch by Stefan Monnier).
+	(glasses-mode): Use jit-lock instead of `after-change-functions'
+	(patch by Stefan Monnier).
+
 2000-12-12  Miles Bader  <miles@gnu.org>
 
 	* info.el (Info-last-preorder): Don't barf on nodes without a prev.
