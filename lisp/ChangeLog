@@ -1,5 +1,8 @@
 2001-01-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* isearch.el (isearch-lazy-highlight-remove-overlays): Doc fix.
+	(isearch-lazy-highlight-update): Doc fix.
+
 	* ffap.el (ffap-bindings): Doc fix.
 
 	* dired-x.el (dired-virtual-guess-dir): Doc fix.
