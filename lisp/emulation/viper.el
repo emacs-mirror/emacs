@@ -3,16 +3,16 @@
 ;;		 and a venomous VI PERil.
 ;;		 Viper Is also a Package for Emacs Rebels.
 
-;;  Version:  2.71
+;;  Version:  2.72
 ;;  Keywords: emulations
 ;;  Author: Michael Kifer <kifer@cs.sunysb.edu>
 
 ;; LCD Archive Entry:
 ;; viper|Michael Kifer|kifer@cs.sunysb.edu|
 ;; A full-featured  Vi emulator for GNU Emacs 19 and XEmacs 19|
-;; 17-February-95|2.71|~/modes/viper.tar.Z|
+;; 19-February-95|2.72|~/modes/viper.tar.Z|
 
-(defconst viper-version "2.71 of February 17, 1995"
+(defconst viper-version "2.72 of February 19, 1995"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
@@ -736,20 +736,20 @@ These buffers can be cycled through via :R and :P commands.")
 
 
 (defvar vip-heading-start 
-  (concat "^\\s-*(\\s-*defun\\s-\\|"			        ;; lisp
-	  "^{\\s-*$\\|^[_a-zA-Z][^()]*[()].*{\\s-*$\\|"	        ;; C/C++
+  (concat "^\\s-*(\\s-*defun\\s-\\|"			        ; lisp
+	  "^{\\s-*$\\|^[_a-zA-Z][^()]*[()].*{\\s-*$\\|"	        ; C/C++
 	  "^\\s-*class.*{\\|^\\s-*struct.*{\\|^\\s-*enum.*{\\|"
-	  "^\\\\[sb][a-z]*{.*}\\s-*$\\|"	    		;; latex
-	  "^@node\\|@table\\|^@m?enu\\|^@itemize\\|^@if\\|"	;; texinfo
-	  "^.+:-")			                        ;; prolog
+	  "^\\\\[sb][a-z]*{.*}\\s-*$\\|"	    		; latex
+	  "^@node\\|@table\\|^@m?enu\\|^@itemize\\|^@if\\|"	; texinfo
+	  "^.+:-")			                        ; prolog
   "*Regexps for Headings. Used by \[\[ and \]\].")
 
 (defvar vip-heading-end 
-  (concat "^}\\|"						;; C/C++
-	  "^\\\\end{\\|"					;; latex
-	  "^@end \\|"						;; texinfo
-	  ")\n\n[ \t\n]*\\|"					;; lisp
-	  "\\.\\s-*$")						;; prolog
+  (concat "^}\\|"						; C/C++
+	  "^\\\\end{\\|"					; latex
+	  "^@end \\|"						; texinfo
+	  ")\n\n[ \t\n]*\\|"					; lisp
+	  "\\.\\s-*$")						; prolog
       "*Regexps to end Headings/Sections. Used by \[\].")
 
 
