@@ -873,9 +873,9 @@ This is relative to `smtpmail-queue-dir'.")
 			  (mail-strip-quoted-names (buffer-substring this-line this-line-end))))
 	    )
 	  (erase-buffer)
-	  (insert-string " ")
-	  (insert-string simple-address-list)
-	  (insert-string "\n")
+	  (insert " ")
+	  (insert simple-address-list)
+	  (insert "\n")
 	  (subst-char-in-region (point-min) (point-max) 10 ?  t);; newline --> blank
 	  (subst-char-in-region (point-min) (point-max) ?, ?  t);; comma   --> blank
 	  (subst-char-in-region (point-min) (point-max)  9 ?  t);; tab     --> blank
