@@ -80,7 +80,7 @@ Searches for entries that match ARG days, starting with the date indicated
 by the cursor position in the displayed three-month calendar.
 D-FILE specifies the file to use as the diary file."
   (interactive
-   (list (if arg (prefix-numeric-value arg) 1)
+   (list (prefix-numeric-value current-prefix-arg)
          (read-file-name "Enter diary file name: " default-directory nil t)))
   (let ((diary-file d-file))
     (view-diary-entries arg)))
