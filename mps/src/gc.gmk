@@ -142,14 +142,16 @@ endif
 # "all" builds all varieties of all targets
 # %%TARGET: Add the target to the all dependencies.
 
-all: dwstress amcdev lockcov stdcover mpmstres std.a poolncv protcv
+all: dwstress amcdev lockcov stdcover mpmstres std.a poolncv protcv \
+     faultcv
 
 # These convenience targets allow one to type "make foo" to build target
 # foo in all varieties.
 #
 # %%TARGET: Add a pseudo-target for the new target here.
 
-dwstress amcdev lockcov stdcover mpmstres std.a poolncv protcv: phony
+dwstress amcdev lockcov stdcover mpmstres std.a poolncv protcv \
+     faultcv: phony
 	$(MAKE) -f $(PFM).gmk TARGET=$@ target
 
 # "clean" removes the directory containing the build results for the platform.
@@ -204,6 +206,13 @@ $(PFM)/$(VARIETY)/amcdev: $(PFM)/$(VARIETY)/amcdev.o \
 
 $(PFM)/$(VARIETY)/dwstress: $(PFM)/$(VARIETY)/dwstress.o \
 	$(MPMOBJ) $(STDOBJ) $(AMCOBJ) $(DWOBJ) $(TESTLIBOBJ)
+
+$(PFM)/$(VARIETY)/protcv: $(PFM)/$(VARIETY)/protcv.o \
+	$(MPMOBJ) $(STDOBJ) $(TESTLIBOBJ)
+
+$(PFM)/$(VARIETY)/faultcv: $(PFM)/$(VARIETY)/faultcv.o \
+	$(PFM)/$(VARIETY)/fault.o \
+	$(MPMOBJ) $(STDOBJ)
 
 $(PFM)/$(VARIETY)/poolncv: $(PFM)/$(VARIETY)/poolncv.o \
 	$(PFM)/$(VARIETY)/pooln.o \
