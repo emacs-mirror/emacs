@@ -2468,6 +2468,12 @@ configuration files.
 * Incompatible Lisp Changes in Emacs 21.4
 
 +++
+** `suppress-keymap' now works by remapping `self-insert-command' to
+the command `undefined'.  (In earlier Emacs versions, it used
+`substitute-key-definition' to rebind self inserting characters to
+`undefined'.)
+
++++
 ** Mode line display ignores text properties as well as the
 :propertize and :eval forms in the value of a variable whose
 `risky-local-variable' property is nil.
