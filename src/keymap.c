@@ -342,6 +342,7 @@ keymap_memberp (map, maps)
 
 DEFUN ("set-keymap-parent", Fset_keymap_parent, Sset_keymap_parent, 2, 2, 0,
        doc: /* Modify KEYMAP to set its parent map to PARENT.
+Return PARENT.
 PARENT should be nil or another keymap.  */)
      (keymap, parent)
      Lisp_Object keymap, parent;
@@ -1686,7 +1687,8 @@ If a second optional argument MAPVAR is given, the map is stored as
 its value instead of as COMMAND's value; but COMMAND is still defined
 as a function.
 The third optional argument NAME, if given, supplies a menu name
-string for the map.  This is required to use the keymap as a menu.  */)
+string for the map.  This is required to use the keymap as a menu.
+This function returns COMMAND.  */)
      (command, mapvar, name)
      Lisp_Object command, mapvar, name;
 {
