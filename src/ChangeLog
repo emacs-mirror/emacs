@@ -1,3 +1,9 @@
+2000-09-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispnew.c (update_window): Make sure to make desired rows
+	current even if they are completely invisible at the top
+	of a window.
+
 2000-09-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (lookup_image): Build mask before applying an algorithm.
