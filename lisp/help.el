@@ -1470,6 +1470,11 @@ out of view."
            (min-height (1- window-min-height))
            (text-height (count-screen-lines))
            (new-height (max (min text-height max-height) min-height)))
+      (when (display-graphic-p)
+	;; This egregious hack is because mode-lines on graphics
+	;; displays often use faces that make them more than one `line'
+	;; high, and so obscure the last line of the window proper.
+	(setq win-height (1- win-height)))
       (enlarge-window (- new-height win-height)))))
 
 ;; `help-manyarg-func-alist' is defined primitively (in doc.c).
