@@ -133,12 +133,14 @@ detailed description of this mode.
 (defcustom gdb-enable-debug-log nil
  "Non-nil means record the process input and output in `gdb-debug-log'."
   :type 'boolean
-  :group 'gud)
+  :group 'gud
+  :version "21.4")
 
 (defcustom gdb-use-inferior-io-buffer nil
  "Non-nil means display output from the inferior in a separate buffer."
   :type 'boolean
-  :group 'gud)
+  :group 'gud
+  :version "21.4")
 
 (defun gdb-ann3 ()
   (setq gdb-debug-log nil)
@@ -211,7 +213,8 @@ detailed description of this mode.
 (defcustom gdb-use-colon-colon-notation nil
   "If non-nil use FUN::VAR format to display variables in the speedbar." ;
   :type 'boolean
-  :group 'gud)
+  :group 'gud
+  :version "21.4")
 
 (defun gud-watch ()
   "Watch expression at point."
@@ -658,7 +661,8 @@ This filter may simply queue input for a later time."
 (defcustom gud-gdba-command-name "gdb -annotate=3"
   "Default command to execute an executable under the GDB-UI debugger."
   :type 'string
-  :group 'gud)
+  :group 'gud
+  :version "21.4")
 
 (defvar gdb-annotation-rules
   '(("pre-prompt" gdb-pre-prompt)
@@ -1685,7 +1689,8 @@ static char *magick[] = {
 (defcustom gdb-show-main nil
   "Nil means don't display source file containing the main routine."
   :type 'boolean
-  :group 'gud)
+  :group 'gud
+  :version "21.4")
 
 (defun gdb-setup-windows ()
   "Layout the window pattern for gdb-many-windows."
@@ -1726,7 +1731,8 @@ buffer and the other with the source file with the main routine
 of the inferior.  Non-nil means display the layout shown for
 `gdba'."
   :type 'boolean
-  :group 'gud)
+  :group 'gud
+  :version "21.4")
 
 (defun gdb-many-windows (arg)
 "Toggle the number of windows in the basic arrangement."
