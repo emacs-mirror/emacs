@@ -1230,6 +1230,8 @@ old Emacs versions.
 @item mode-line-inactive
 @kindex mode-line-inactive @r{(face name)}
 This face is used for mode lines of non-selected windows.
+This face inherits from @code{mode-line}, so changes
+in that face affect all windows.
 
 @item header-line
 @kindex header-line @r{(face name)}
