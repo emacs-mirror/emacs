@@ -9490,10 +9490,24 @@ XTread_socket (sd, bufp, numchars, expected)
 		  else
 		    abort ();
 		}
+#ifdef HAVE_X_I18N
+	      /* Don't dispatch this event since XtDispatchEvent calls
+		 XFilterEvent, and two calls in a row may freeze the
+		 client.  */
+	      break;
+#else
 	      goto OTHER;
+#endif
 
 	    case KeyRelease:
+#ifdef HAVE_X_I18N
+	      /* Don't dispatch this event since XtDispatchEvent calls
+		 XFilterEvent, and two calls in a row may freeze the
+		 client.  */
+	      break;
+#else
 	      goto OTHER;
+#endif
 
 	      /* Here's a possible interpretation of the whole
 		 FocusIn-EnterNotify FocusOut-LeaveNotify mess.  If
@@ -10387,6 +10401,12 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
 	default:
 	  abort ();
 	}
+      
+#ifdef HAVE_X_I18N
+      if (w == XWINDOW (f->selected_window))
+	if (FRAME_XIC (f) && (FRAME_XIC_STYLE (f) & XIMPreeditPosition))
+	  xic_set_preeditarea (w, x, y);
+#endif
     }
 
 #ifndef XFlush
@@ -10409,17 +10429,6 @@ x_display_cursor (w, on, hpos, vpos, x, y)
 {
   BLOCK_INPUT;
   x_display_and_set_cursor (w, on, hpos, vpos, x, y);
-  
-#ifdef HAVE_X_I18N
-  {
-    struct frame *f = XFRAME (w->frame);
-
-    if (w == XWINDOW (f->selected_window))
-      if (FRAME_XIC (f) && (FRAME_XIC_STYLE (f) & XIMPreeditPosition))
-	xic_set_preeditarea (w, x, y);
-  }
-#endif
-  
   UNBLOCK_INPUT;
 }
 
