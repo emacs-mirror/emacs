@@ -1,3 +1,9 @@
+2004-10-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* textmodes/enriched.el (enriched-mode-map): Give
+	`set-left-margin' and `set-right-margin' bindings that follow the
+	minor mode conventions.
+
 2004-10-03  Stefan  <monnier@iro.umontreal.ca>
 
 	* textmodes/tex-mode.el (tex-dvi-view-command): Use `yap' on w32.

@@ -99,6 +99,11 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 * Changes in Emacs 21.4
 
 +++
+** In Enriched mode, `set-left-margin' and `set-right-margin' are now
+by default bound to `C-c [' and `C-c ]' instead of the former `C-c C-l'
+and `C-c C-r'.
+
++++
 ** In processing a local variables list, Emacs strips the prefix and
 suffix are from every line before processing all the lines.
 

@@ -1,3 +1,8 @@
+2004-10-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* enriched.doc: Update for new bindings of `set-left-margin' and
+	`set-right-margin'.
+
 2004-10-04  Kim F. Storm  <storm@cua.dk>
 
 	* DEBUG: Mention pp and ff commands.
