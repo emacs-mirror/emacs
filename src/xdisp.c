@@ -427,28 +427,6 @@ int message_enable_multibyte;
 
 int update_mode_lines;
 
-/* Smallest number of characters before the gap at any time since last
-   redisplay that finished.  Valid for current buffer when
-   try_window_id can be called.  */
-
-int beg_unchanged;
-
-/* Smallest number of characters after the gap at any time since last
-   redisplay that finished.  Valid for current buffer when
-   try_window_id can be called.  */
-
-int end_unchanged;
-
-/* MODIFF as of last redisplay that finished; if it matches MODIFF,
-   and overlay_unchanged_modified matches OVERLAY_MODIFF, that means
-   beg_unchanged and end_unchanged contain no useful information.  */
-
-int unchanged_modified;
-
-/* OVERLAY_MODIFF as of last redisplay that finished.  */
-
-int overlay_unchanged_modified;
-
 /* Nonzero if window sizes or contents have changed since last
    redisplay that finished */
 
@@ -495,9 +473,15 @@ static int display_last_displayed_message_p;
 
 int message_buf_print;
 
-/* Maximum height for resizing mini-windows.  */
+/* Maximum height for resizing mini-windows.  Either a float
+   specifying a fraction of the available height, or an integer
+   specifying a number of lines.  */
 
 static Lisp_Object Vmax_mini_window_height;
+
+/* Window configuration saved in resize_mini_window.  */
+
+static Lisp_Object Vresize_mini_config;
 
 /* A scratch glyph row with contents used for generating truncation
    glyphs.  Also used in direct_output_for_insert.  */
@@ -5221,7 +5205,7 @@ with_echo_area_buffer (w, which, fn, a1, a2, a3, a4, a5)
      Fset_window_buffer.  We must also change w->pointm, though,
      because otherwise an assertions in unshow_buffer fails, and Emacs
      aborts.  */
-  set_buffer_internal (XBUFFER (buffer));
+  set_buffer_internal_1 (XBUFFER (buffer));
   if (w)
     {
       w->buffer = buffer;
@@ -5263,13 +5247,11 @@ with_echo_area_buffer_unwind_data (w)
   Vwith_echo_area_save_vector = Qnil;
   
   if (NILP (vector))
-    vector = Fmake_vector (make_number (9), Qnil);
+    vector = Fmake_vector (make_number (7), Qnil);
   
   XSETBUFFER (XVECTOR (vector)->contents[i], current_buffer); ++i;
   XVECTOR (vector)->contents[i++] = Vdeactivate_mark;
   XVECTOR (vector)->contents[i++] = make_number (windows_or_buffers_changed);
-  XVECTOR (vector)->contents[i++] = make_number (beg_unchanged);
-  XVECTOR (vector)->contents[i++] = make_number (end_unchanged);
   
   if (w)
     {
@@ -5301,11 +5283,9 @@ unwind_with_echo_area_buffer (vector)
 {
   int i = 0;
   
-  set_buffer_internal (XBUFFER (XVECTOR (vector)->contents[i])); ++i;
+  set_buffer_internal_1 (XBUFFER (XVECTOR (vector)->contents[i])); ++i;
   Vdeactivate_mark = XVECTOR (vector)->contents[i]; ++i;
   windows_or_buffers_changed = XFASTINT (XVECTOR (vector)->contents[i]); ++i;
-  beg_unchanged = XFASTINT (XVECTOR (vector)->contents[i]); ++i;
-  end_unchanged = XFASTINT (XVECTOR (vector)->contents[i]); ++i;
 
   if (WINDOWP (XVECTOR (vector)->contents[i]))
     {
@@ -5447,7 +5427,7 @@ resize_mini_window (w)
       int height, max_height;
       int unit = CANON_Y_UNIT (f);
       struct text_pos start;
-      
+
       init_iterator (&it, w, BEGV, BEGV_BYTE, NULL, DEFAULT_FACE_ID);
 
       /* Compute the max. number of lines specified by the user.  */
@@ -5478,14 +5458,26 @@ resize_mini_window (w)
       SET_MARKER_FROM_TEXT_POS (w->start, start);
       
       /* Change window's height, if necessary.  */
-      if (height != XFASTINT (w->height))
+      if (height > XFASTINT (w->height)
+	  || (height < XFASTINT (w->height)
+	      && NILP (Vresize_mini_config)))
 	{
 	  Lisp_Object old_selected_window;
+
+	  if (NILP (Vresize_mini_config))
+	    Vresize_mini_config = Fcurrent_window_configuration (Qnil);
 	  
 	  old_selected_window = selected_window;
 	  XSETWINDOW (selected_window, w);
 	  change_window_height (height - XFASTINT (w->height), 0);
 	  selected_window = old_selected_window;
+	  window_height_changed_p = 1;
+	}
+      else if (height < XFASTINT (w->height)
+	       && !NILP (Vresize_mini_config))
+	{
+	  Fset_window_configuration (Vresize_mini_config);
+	  Vresize_mini_config = Qnil;
 	  window_height_changed_p = 1;
 	}
     }
@@ -6729,11 +6721,6 @@ hscroll_windows (window)
 
 #if GLYPH_DEBUG
 
-/* Values of beg_unchanged and end_unchanged as of last call to
-   try_window_id.  */
-
-int debug_beg_unchanged, debug_end_unchanged;
-
 /* First and last unchanged row for try_window_id.  */
 
 int debug_first_unchanged_at_end_vpos;
@@ -6830,8 +6817,8 @@ text_outside_line_unchanged_p (w, start, end)
 
       /* Changes start in front of the line, or end after it?  */
       if (unchanged_p
-	  && (beg_unchanged < start - 1
-	      || end_unchanged < end))
+	  && (BEG_UNCHANGED < start - 1
+	      || END_UNCHANGED < end))
 	unchanged_p = 0;
       
       /* If selective display, can't optimize if changes start at the
@@ -6839,7 +6826,7 @@ text_outside_line_unchanged_p (w, start, end)
       if (unchanged_p
 	  && INTEGERP (current_buffer->selective_display)
 	  && XINT (current_buffer->selective_display) > 0
-	  && (beg_unchanged < start || GPT <= start))
+	  && (BEG_UNCHANGED < start || GPT <= start))
 	unchanged_p = 0;
     }
 
@@ -6858,6 +6845,25 @@ void
 redisplay ()
 {
   redisplay_internal (0);
+}
+
+
+/* Reconsider the setting of B->clip_changed which is displayed
+   in window W.  */
+
+static INLINE void
+reconsider_clip_changes (w, b)
+     struct window *w;
+     struct buffer *b;
+{
+  if (b->prevent_redisplay_optimizations_p)
+    b->clip_changed = 1;
+  else if (b->clip_changed
+	   && !NILP (w->window_end_valid)
+	   && w->current_matrix->buffer == b
+	   && w->current_matrix->zv == BUF_ZV (b)
+	   && w->current_matrix->begv == BUF_BEGV (b))
+    b->clip_changed = 0;
 }
 
 
@@ -6920,6 +6926,8 @@ redisplay_internal (preserve_echo_area)
   
  retry:
 
+  reconsider_clip_changes (w, current_buffer);
+
   /* If new fonts have been loaded that make a glyph matrix adjustment
      necessary, do it.  */
   if (fonts_changed_p)
@@ -6970,8 +6978,6 @@ redisplay_internal (preserve_echo_area)
 
   /* Build menubar and toolbar items.  */
   prepare_menu_bars ();
-
- retry_1:
 
   if (windows_or_buffers_changed)
     update_mode_lines++;
@@ -7024,6 +7030,12 @@ redisplay_internal (preserve_echo_area)
 	  consider_all_windows_p = 1;
 	  ++update_mode_lines;
 	  ++windows_or_buffers_changed;
+	  
+	  /* If window configuration was changed, frames may have been
+	     marked garbaged.  Clear them or we will experience
+	     surprises wrt scrolling.  */
+	  if (frame_garbaged)
+	    clear_garbaged_frames ();
 	}
     }
   else if (w == XWINDOW (minibuf_window)
@@ -7038,6 +7050,12 @@ redisplay_internal (preserve_echo_area)
       consider_all_windows_p = 1;
       ++windows_or_buffers_changed;
       ++update_mode_lines;
+      
+      /* If window configuration was changed, frames may have been
+	 marked garbaged.  Clear them or we will experience
+	 surprises wrt scrolling.  */
+      if (frame_garbaged)
+	clear_garbaged_frames ();
     }
   
 
@@ -7417,10 +7435,10 @@ update:
     {
       register struct buffer *b = XBUFFER (w->buffer);
 
-      unchanged_modified = BUF_MODIFF (b);
-      overlay_unchanged_modified = BUF_OVERLAY_MODIFF (b);
-      beg_unchanged = BUF_GPT (b) - BUF_BEG (b);
-      end_unchanged = BUF_Z (b) - BUF_GPT (b);
+      BUF_UNCHANGED_MODIFIED (b) = BUF_MODIFF (b);
+      BUF_OVERLAY_UNCHANGED_MODIFIED (b) = BUF_OVERLAY_MODIFF (b);
+      BUF_BEG_UNCHANGED (b) = BUF_GPT (b) - BUF_BEG (b);
+      BUF_END_UNCHANGED (b) = BUF_Z (b) - BUF_GPT (b);
 
       if (consider_all_windows_p)
 	mark_window_display_accurate (FRAME_ROOT_WINDOW (selected_frame), 1);
@@ -7431,6 +7449,7 @@ update:
 	  w->last_cursor_off_p = w->cursor_off_p;
 
 	  b->clip_changed = 0;
+	  b->prevent_redisplay_optimizations_p = 0;
 	  w->update_mode_line = Qnil;
 	  XSETFASTINT (w->last_modified, BUF_MODIFF (b));
 	  XSETFASTINT (w->last_overlay_modified, BUF_OVERLAY_MODIFF (b));
@@ -7452,6 +7471,10 @@ update:
 	  last_arrow_string = Voverlay_arrow_string;
 	  if (frame_up_to_date_hook != 0)
 	    (*frame_up_to_date_hook) (selected_frame);
+
+	  w->current_matrix->buffer = b;
+	  w->current_matrix->begv = BUF_BEGV (b);
+	  w->current_matrix->zv = BUF_ZV (b);
 	}
       
       update_mode_lines = 0;
@@ -7589,6 +7612,10 @@ mark_window_display_accurate (window, accurate_p)
 	  if (accurate_p)
 	    {
 	      b->clip_changed = 0;
+	      b->prevent_redisplay_optimizations_p = 0;
+	      w->current_matrix->buffer = b;
+	      w->current_matrix->begv = BUF_BEGV (b);
+	      w->current_matrix->zv = BUF_ZV (b);
 	      w->last_cursor = w->cursor;
 	      w->last_cursor_off_p = w->cursor_off_p;
 	      if (w == XWINDOW (selected_window))
@@ -8039,7 +8066,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
       /* Maybe forget recorded base line for line number display.  */
       if (!just_this_one_p 
 	  || current_buffer->clip_changed
-	  || beg_unchanged < CHARPOS (startp))
+	  || BEG_UNCHANGED < CHARPOS (startp))
 	w->base_line_number = Qnil;
       
       /* If cursor ends up on a partially visible line, shift display
@@ -8150,7 +8177,9 @@ redisplay_window (window, just_this_one_p)
 #endif
 
   specbind (Qinhibit_point_motion_hooks, Qt);
-  
+
+  reconsider_clip_changes (w, buffer);
+    
   /* Has the mode line to be updated?  */ 
   update_mode_line = (!NILP (w->update_mode_line)
 		      || update_mode_lines
@@ -8573,7 +8602,8 @@ redisplay_window (window, just_this_one_p)
     }
   
   /* Try scrolling with try_window_id.  */
-  else if (!windows_or_buffers_changed
+  else if (/* Windows and buffers haven't changed.  */
+	   !windows_or_buffers_changed
 	   /* Window must be either use window-based redisplay or
 	      be full width.  */
 	   && (FRAME_WINDOW_P (f)
@@ -8647,7 +8677,7 @@ redisplay_window (window, just_this_one_p)
 	{
 	  if (!just_this_one_p 
 	      || current_buffer->clip_changed
-	      || beg_unchanged < CHARPOS (startp))
+	      || BEG_UNCHANGED < CHARPOS (startp))
 	    /* Forget any recorded base line for line number display.  */
 	    w->base_line_number = Qnil;
 	  
@@ -9428,7 +9458,7 @@ static struct glyph_row *
 get_last_unchanged_at_beg_row (w)
      struct window *w;
 {
-  int first_changed_pos = BEG + beg_unchanged;
+  int first_changed_pos = BEG + BEG_UNCHANGED;
   struct glyph_row *row;
   struct glyph_row *row_found = NULL;
   int yb = window_text_bottom_y (w);
@@ -9488,7 +9518,7 @@ get_first_unchanged_at_end_row (w, delta, delta_bytes)
      end is in the range of changed text.  If so, there is no
      unchanged row at the end of W's current matrix.  */
   xassert (!NILP (w->window_end_valid));
-  if (XFASTINT (w->window_end_pos) >= end_unchanged)
+  if (XFASTINT (w->window_end_pos) >= END_UNCHANGED)
     return NULL;
 
   /* Set row to the last row in W's current matrix displaying text.  */
@@ -9517,7 +9547,7 @@ get_first_unchanged_at_end_row (w, delta, delta_bytes)
 	 subtracting end_unchanged we get the index of the last
 	 unchanged character, and we have to add BEG to get its buffer
 	 position.  */
-      last_unchanged_pos = Z - end_unchanged + BEG;
+      last_unchanged_pos = Z - END_UNCHANGED + BEG;
       last_unchanged_pos_old = last_unchanged_pos - *delta;
       
       /* Search backward from ROW for a row displaying a line that
@@ -9644,10 +9674,10 @@ try_window_id (w)
      set end_unchanged to 0 in that case.  */
   if (MODIFF > SAVE_MODIFF)
     {
-      if (GPT - BEG < beg_unchanged)
-	beg_unchanged = GPT - BEG;
-      if (Z - GPT < end_unchanged)
-	end_unchanged = Z - GPT;
+      if (GPT - BEG < BEG_UNCHANGED)
+	BEG_UNCHANGED = GPT - BEG;
+      if (Z - GPT < END_UNCHANGED)
+	END_UNCHANGED = Z - GPT;
     }
   
   /* If window starts after a line end, and the last change is in
@@ -9655,7 +9685,7 @@ try_window_id (w)
      This case happens with stealth-fontification.  */
   row = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
   if (CHARPOS (start) > BEGV
-      && Z - end_unchanged < CHARPOS (start) - 1
+      && Z - END_UNCHANGED < CHARPOS (start) - 1
       && FETCH_BYTE (BYTEPOS (start) - 1) == '\n'
       && PT < MATRIX_ROW_END_CHARPOS (row))
     {
@@ -9670,7 +9700,7 @@ try_window_id (w)
 
   /* Return quickly if changes are all below what is displayed in the
      window, and if PT is in the window.  */
-  if (beg_unchanged > MATRIX_ROW_END_CHARPOS (row)
+  if (BEG_UNCHANGED > MATRIX_ROW_END_CHARPOS (row)
       && PT < MATRIX_ROW_END_CHARPOS (row))
     {
       /* We have to update window end positions because the buffer's
@@ -9689,10 +9719,6 @@ try_window_id (w)
   row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
   if (!TEXT_POS_EQUAL_P (start, row->start.pos))
     return 0;
-
-  /* Remember beg_unchanged and end_unchanged for debugging purposes.  */
-  IF_DEBUG (debug_beg_unchanged = beg_unchanged;
-	    debug_end_unchanged = end_unchanged);
 
   /* Compute the position at which we have to start displaying new
      lines.  Some of the lines at the top of the window might be
@@ -9769,7 +9795,7 @@ try_window_id (w)
 		      + delta);
 	  first_unchanged_at_end_vpos
 	    = MATRIX_ROW_VPOS (first_unchanged_at_end_row, current_matrix);
-	  xassert (stop_pos >= Z - end_unchanged);
+	  xassert (stop_pos >= Z - END_UNCHANGED);
 	}
     }
   else if (last_unchanged_at_beg_row == NULL)
@@ -12408,6 +12434,9 @@ invisible_ellipsis_p (propval, list)
 void
 syms_of_xdisp ()
 {
+  Vresize_mini_config = Qnil;
+  staticpro (&Vresize_mini_config);
+
   Vwith_echo_area_save_vector = Qnil;
   staticpro (&Vwith_echo_area_save_vector);
 
