@@ -647,11 +647,13 @@ echo_area_display ()
 	     i < vpos + XFASTINT (XWINDOW (mini_window)->height); i++)
 	  {
 	    get_display_line (f, i, 0);
+	    /* We don't use FRAME_SCROLL_BAR_WIDTH (f) as the starting
+	       hpos, because it is good to clear whatever is behind the
+	       scroll bar.  This does not affect the scroll bar itself.  */
 	    display_string (XWINDOW (mini_window), i,
 			    "", 0, 
-                            FRAME_LEFT_SCROLL_BAR_WIDTH (f),
-			    0, 0, 0,
-			    FRAME_WIDTH (f) + FRAME_LEFT_SCROLL_BAR_WIDTH (f));
+                            0, 0, 0,
+                            0, FRAME_WIDTH (f) + FRAME_SCROLL_BAR_WIDTH (f));
 	  }
       }
     }
