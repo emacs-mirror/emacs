@@ -1,6 +1,6 @@
 ;;; cpp.el --- Highlight or hide text according to cpp conditionals.
 
-;; Copyright (C) 1994 Free Software Foundation
+;; Copyright (C) 1994, 1995 Free Software Foundation
 
 ;; Author: Per Abrahamsen <abraham@iesd.auc.dk>
 ;; Keywords: c, faces, tools
@@ -64,6 +64,86 @@ screens, and none if you don't use a window system.")
 (defvar cpp-unknown-writable t
   "*Non-nil means you are allowed to modify the unknown conditionals.")
 
+(defvar cpp-edit-list nil
+  "Alist of cpp macros and information about how they should be displayed.
+Each entry is a list with the following elements:
+0. The name of the macro (a string).
+1. Face used for text that is `ifdef' the macro.
+2. Face used for text that is `ifndef' the macro.
+3. `t', `nil', or `both' depending on what text may be edited.")
+
+(defvar cpp-overlay-list nil)
+;; List of cpp overlays active in the current buffer.
+(make-variable-buffer-local 'cpp-overlay-list)
+
+(defvar cpp-callback-data)
+(defvar cpp-state-stack)
+
+(defconst cpp-face-type-list
+  '(("light color background" . light)
+    ("dark color background" . dark)
+    ("monochrome" . mono)
+    ("tty" . none))
+  "Alist of strings and names of the defined face collections.")
+
+(defconst cpp-writable-list
+  ;; Names used for the writable property.
+  '(("writable" . t)
+    ("read-only" . nil)))
+
+(defvar cpp-button-event nil)
+;; This will be t in the callback for `cpp-make-button'.
+
+(defvar cpp-edit-buffer nil)
+;; Real buffer whose cpp display information we are editing.
+(make-variable-buffer-local 'cpp-edit-buffer)
+
+(defconst cpp-branch-list
+  ;; Alist of branches.
+  '(("false" . nil)
+    ("true" . t)
+    ("both" . both)))
+
+(defvar cpp-face-default-list nil
+  "List of faces you can choose from for cpp conditionals.")
+
+(defvar cpp-face-light-name-list
+  '("light gray" "light blue" "light cyan" "light yellow" "light pink"
+    "pale green" "beige" "orange" "magenta" "violet" "medium purple"
+    "turquoise")
+  "Background colours useful with dark foreground colors.")
+
+(defvar cpp-face-dark-name-list
+  '("dim gray" "blue" "cyan" "yellow" "red"
+    "dark green" "brown" "dark orange" "dark khaki" "dark violet" "purple"
+    "dark turquoise")
+  "Background colours useful with light foreground colors.")
+
+(defvar cpp-face-light-list nil
+  "Alist of names and faces to be used for light backgrounds.")
+
+(defvar cpp-face-dark-list nil
+  "Alist of names and faces to be used for dark backgrounds.")
+
+(defvar cpp-face-mono-list
+  '(("bold" . 'bold)
+    ("bold-italic" . 'bold-italic)
+    ("italic" . 'italic)
+    ("underline" . 'underline))
+  "Alist of names and faces to be used for monocrome screens.")
+
+(defvar cpp-face-none-list
+   '(("default" . default)
+     ("invisible" . invisible))
+   "Alist of names and faces available even if you don't use a window system.")
+
+(defvar cpp-face-all-list
+  (append cpp-face-light-list
+	  cpp-face-dark-list
+	  cpp-face-mono-list
+	  cpp-face-none-list)
+  "All faces used for highligting text inside cpp conditionals.")
+
 ;;; Parse Buffer:
 
 (defvar cpp-parse-symbols nil
@@ -88,7 +168,7 @@ A prefix arg suppresses display of that buffer."
   (cpp-parse-reset)
   (if (null cpp-edit-list)
       (cpp-edit-load))
-  (let (stack)
+  (let (cpp-state-stack)
     (save-excursion
       (goto-char (point-min))
       (cpp-progress-message "Parsing...")
@@ -126,27 +206,28 @@ A prefix arg suppresses display of that buffer."
 			    (cpp-parse-close from to))
 			  (cpp-parse-open t expr from to))
 			 ((string-equal type "else")
-			  (or stack (cpp-parse-error "Top level #else"))
-			  (let ((entry (list (not (nth 0 (car stack)))
-					     (nth 1 (car stack))
+			  (or cpp-state-stack
+			      (cpp-parse-error "Top level #else"))
+			  (let ((entry (list (not (nth 0 (car cpp-state-stack)))
+					     (nth 1 (car cpp-state-stack))
 					     from to)))
 			    (cpp-parse-close from to)
-			    (setq stack (cons entry stack))))
+			    (setq cpp-state-stack (cons entry cpp-state-stack))))
 			 ((string-equal type "endif")
 			  (cpp-parse-close from to))
 			 (t
 			  (cpp-parse-error "Parser error"))))))))
       (message "Parsing...done"))
-    (if stack
+    (if cpp-state-stack
       (save-excursion
-	(goto-char (nth 3 (car stack)))
+	(goto-char (nth 3 (car cpp-state-stack)))
 	(cpp-parse-error "Unclosed conditional"))))
   (or arg
       (null cpp-parse-symbols)
       (cpp-parse-edit)))
 
 (defun cpp-parse-open (branch expr begin end)
-  "Push information about conditional-beginning onto stack."
+  "Push information about conditional-beginning onto `cpp-state-stack'."
   ;; Discard comments within this line.
   (while (string-match "\\b[ \t]*/\\*.*\\*/[ \t]*\\b" expr)
     (setq expr (concat (substring expr 0 (match-beginning 0))
@@ -160,7 +241,7 @@ A prefix arg suppresses display of that buffer."
   (while (string-match "[ \t]+" expr)
       (setq expr (concat (substring expr 0 (match-beginning 0))
 			 (substring expr (match-end 0)))))
-  (setq stack (cons (list branch expr begin end) stack))
+  (setq cpp-state-stack (cons (list branch expr begin end) cpp-state-stack))
   (or (member expr cpp-parse-symbols)
       (setq cpp-parse-symbols
 	    (cons expr cpp-parse-symbols)))
@@ -169,16 +250,16 @@ A prefix arg suppresses display of that buffer."
     (cpp-make-unknown-overlay begin end)))
 
 (defun cpp-parse-close (from to)
-  ;; Pop top of stack and create overlay.
-  (let ((entry (assoc (nth 1 (car stack)) cpp-edit-list))
-	(branch (nth 0 (car stack)))
-	(begin (nth 2 (car stack)))
-	(end (nth 3 (car stack))))
-    (setq stack (cdr stack))
+  ;; Pop top of cpp-state-stack and create overlay.
+  (let ((entry (assoc (nth 1 (car cpp-state-stack)) cpp-edit-list))
+	(branch (nth 0 (car cpp-state-stack)))
+	(begin (nth 2 (car cpp-state-stack)))
+	(end (nth 3 (car cpp-state-stack))))
+    (setq cpp-state-stack (cdr cpp-state-stack))
     (if entry
 	(let ((face (nth (if branch 1 2) entry))
 	      (read-only (eq (not branch) (nth 3 entry)))
-	      (priority (length stack))
+	      (priority (length cpp-state-stack))
 	      (overlay (make-overlay end from)))
 	  (cpp-make-known-overlay from to)
 	  (setq cpp-overlay-list (cons overlay cpp-overlay-list))
@@ -217,10 +298,6 @@ A prefix arg suppresses display of that buffer."
     (cpp-edit-reset)))
 
 ;;; Overlays:
-
-(defvar cpp-overlay-list nil)
-;; List of cpp overlays active in the current buffer.
-(make-variable-buffer-local 'cpp-overlay-list)
 
 (defun cpp-make-known-overlay (start end)
   ;; Create an overlay for a known cpp command from START to END.
@@ -283,14 +360,6 @@ A prefix arg suppresses display of that buffer."
 
 ;;; Edit Buffer:
 
-(defvar cpp-edit-list nil
-  "Alist of cpp macros and information about how they should be displayed.
-Each entry is a list with the following elements:
-0. The name of the macro (a string).
-1. Face used for text that is `ifdef' the macro.
-2. Face used for text that is `ifndef' the macro.
-3. `t', `nil', or `both' depending on what text may be edited.")
-
 (defvar cpp-edit-map nil)
 ;; Keymap for `cpp-edit-mode'.
 
@@ -332,10 +401,6 @@ Each entry is a list with the following elements:
   (define-key cpp-edit-map "y" 'cpp-edit-toggle-unknown)
   (define-key cpp-edit-map "q" 'bury-buffer)
   (define-key cpp-edit-map "Q" 'bury-buffer))
-
-(defvar cpp-edit-buffer nil)
-;; Real buffer whose cpp display information we are editing.
-(make-variable-buffer-local 'cpp-edit-buffer)
 
 (defvar cpp-edit-symbols nil)
 ;; Symbols defined in the edit buffer.
@@ -493,11 +558,6 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
   (setq cpp-unknown-face (cpp-choose-face "Unknown face" cpp-unknown-face))
   (cpp-edit-reset))
 
-(defconst cpp-writable-list
-  ;; Names used for the writable property.
-  '(("writable" . t)
-    ("read-only" . nil)))
-
 (defun cpp-edit-toggle-known (arg)
   "Toggle writable status for known conditionals.
 With optional argument ARG, make them writable iff ARG is positive."
@@ -559,14 +619,8 @@ BRANCH should be either nil (false branch), t (true branch) or 'both."
 (defun cpp-choose-symbol ()
   ;; Choose a symbol if called from keyboard, otherwise use the one clicked on.
   (if cpp-button-event
-      data
+      cpp-callback-data
     (completing-read "Symbol: " (mapcar 'list cpp-edit-symbols) nil t)))
-
-(defconst cpp-branch-list
-  ;; Alist of branches.
-  '(("false" . nil)
-    ("true" . t)
-    ("both" . both)))
 
 (defun cpp-choose-branch ()
   ;; Choose a branch, either nil, t, or both.
@@ -591,13 +645,6 @@ BRANCH should be either nil (false branch), t (true branch) or 'both."
 				       cpp-face-default-list nil t)
 		      cpp-face-all-list))))
       default))
-
-(defconst cpp-face-type-list
-  '(("light color background" . light)
-    ("dark color background" . dark)
-    ("monochrome" . mono)
-    ("tty" . none))
-  "Alist of strings and names of the defined face collections.")
 
 (defun cpp-choose-default-face (type)
   ;; Choose default face list for screen of TYPE.
@@ -642,14 +689,12 @@ BRANCH should be either nil (false branch), t (true branch) or 'both."
 
 ;;; Buttons:
 
-(defvar cpp-button-event nil)
-;; This will be t in the callback for `cpp-make-button'.
-
 (defun cpp-make-button (name callback &optional data face padding)
   ;; Create a button at point.
   ;; NAME is the name of the button.
   ;; CALLBACK is the function to call when the button is pushed.
-  ;; DATA will be available to CALLBACK as a free variable.
+  ;; DATA will be made available to CALLBACK
+  ;;in the free variable cpp-callback-data.
   ;; FACE means that NAME is the name of a face in `cpp-face-all-list'.
   ;; PADDING means NAME will be right justified at that length.
   (let ((name (format "%s" name))
@@ -683,7 +728,7 @@ BRANCH should be either nil (false branch), t (true branch) or 'both."
   (interactive "@e")
   (set-buffer (window-buffer (posn-window (event-start event))))
   (let ((pos (posn-point (event-start event))))
-    (let ((data (get-text-property pos 'cpp-data))
+    (let ((cpp-callback-data (get-text-property pos 'cpp-data))
 	  (fun (get-text-property pos 'cpp-callback))
 	  (cpp-button-event event))
       (cond (fun
@@ -692,46 +737,6 @@ BRANCH should be either nil (false branch), t (true branch) or 'both."
 	     (call-interactively (lookup-key global-map [ down-mouse-2])))))))
 
 ;;; Faces:
-
-(defvar cpp-face-light-name-list
-  '("light gray" "light blue" "light cyan" "light yellow" "light pink"
-    "pale green" "beige" "orange" "magenta" "violet" "medium purple"
-    "turquoise")
-  "Background colours useful with dark foreground colors.")
-
-(defvar cpp-face-dark-name-list
-  '("dim gray" "blue" "cyan" "yellow" "red"
-    "dark green" "brown" "dark orange" "dark khaki" "dark violet" "purple"
-    "dark turquoise")
-  "Background colours useful with light foreground colors.")
-
-(defvar cpp-face-light-list nil
-  "Alist of names and faces to be used for light backgrounds.")
-
-(defvar cpp-face-dark-list nil
-  "Alist of names and faces to be used for dark backgrounds.")
-
-(defvar cpp-face-mono-list
-  '(("bold" . 'bold)
-    ("bold-italic" . 'bold-italic)
-    ("italic" . 'italic)
-    ("underline" . 'underline))
-  "Alist of names and faces to be used for monocrome screens.")
-
-(defvar cpp-face-none-list
-   '(("default" . default)
-     ("invisible" . invisible))
-   "Alist of names and faces available even if you don't use a window system.")
-
-(defvar cpp-face-all-list
-  (append cpp-face-light-list
-	  cpp-face-dark-list
-	  cpp-face-mono-list
-	  cpp-face-none-list)
-  "All faces used for highligting text inside cpp conditionals.")
-
-(defvar cpp-face-default-list nil
-  "List of faces you can choose from for cpp conditionals.")
 
 (defun cpp-create-bg-face (color)
   ;; Create entry for face with background COLOR.
