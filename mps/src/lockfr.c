@@ -1,28 +1,26 @@
-/* impl.c.lockli: RECURSIVE LOCKS FOR POSIX SYSTEMS
+/* impl.c.lockfr: RECURSIVE LOCKS FOR POSIX SYSTEMS
  *
  * $HopeName$
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
- * .linux: This implementation currently just supports LinuxThreads 
- * (platform MPS_OS_LI), Single Unix i/f.
+ * .freebsd: This implementation supports FreeBSD (platform
+ * MPS_OS_FR).
  *
  * .posix: In fact, the implementation should be reusable for most POSIX
- * implementations, but may need some customization for each. 
+ * implementations, but may need some customization for each.
  *
  * .design: These locks are implemented using mutexes.
  *
- * .recursive: Mutexes support both non-recursive and recursive locking, but 
- * only at initialization time.  This doesn't match the API of MPS Lock module, 
- * which chooses at locking time, so all locks are made (non-recursive)
- * errorchecking.  Recursive locks are implemented by checking the error
- * code.
+ * .recursive: Mutexes support both non-recursive and recursive
+ * locking, but only at initialization time.  This doesn't match the
+ * API of MPS Lock module, which chooses at locking time, so all locks
+ * are made (non-recursive) errorchecking.  Recursive locks are
+ * implemented by checking the error code.
  *
- * .claims: During use the claims field is updated to remember the number of
- * claims acquired on a lock.  This field must only be modified
- * while we hold the mutex.  
- */
+ * .claims: During use the claims field is updated to remember the
+ * number of claims acquired on a lock.  This field must only be
+ * modified while we hold the mutex.  */
 
-#define _XOPEN_SOURCE 500
 #include <pthread.h>
 #include <semaphore.h>
 #include <errno.h>
@@ -32,31 +30,15 @@
 #include "config.h"
 
 
-#ifndef MPS_OS_LI
-#error "lockli.c is specific to LinuxThreads but MPS_OS_LI not defined"
+#ifndef MPS_OS_FR
+#error "lockfr.c is FreeBSD specific but MPS_OS_FR not defined"
 #endif
 
 SRCID(lockli, "$HopeName$");
 
 
-/* LockAttrSetRecursive -- Set mutexattr to permit recursive locking
- *
- * There's a standard way to do this - but early LinuxThreads doesn't
- * quite follow the standard.  Some other implementations might not
- * either.
- */
-
-#ifdef OLD_LINUXTHREADS
-
-#define LockAttrSetRecursive(attrptr) \
-  pthread_mutexattr_setkind_np(attrptr, PTHREAD_MUTEX_ERRORCHECK_NP)
-    
-#else
-
 #define LockAttrSetRecursive(attrptr) \
   pthread_mutexattr_settype(attrptr, PTHREAD_MUTEX_ERRORCHECK)
-
-#endif
 
 
 /* LockStruct -- the MPS lock structure
@@ -173,7 +155,7 @@ void LockClaimRecursive(Lock lock)
   /* pthread_mutex_lock will return: */
   /*     0 if we have just claimed the lock */
   /*     EDEADLK if we own the lock already. */
-  AVER((res == 0 && lock->claims == 0)  ||  
+  AVER((res == 0 && lock->claims == 0)  ||
        (res == EDEADLK && lock->claims > 0));
 
   ++lock->claims;

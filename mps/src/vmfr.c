@@ -1,16 +1,16 @@
-/* impl.c.vmli: VIRTUAL MEMORY MAPPING FOR LINUX
+/* impl.c.vmli: VIRTUAL MEMORY MAPPING FOR FreeBSD
  *
  * $HopeName: MMsrc!vmli.c(trunk.7) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
- * .purpose: This is the implementation of the virtual memory mapping 
- * interface (vm.h) for Linux.  It was created by copying vmo1.c (the 
+ * .purpose: This is the implementation of the virtual memory mapping
+ * interface (vm.h) for FreeBSD.  It was created by copying vmli.c (the
  * DIGITAL UNIX implementation) as that seemed to be closest.
  *
- * .design: See design.mps.vm.  .design.linux: mmap(2) is used to
+ * .design: See design.mps.vm.  .design.freebsd: mmap(2) is used to
  * reserve address space by creating a mapping with page access none.
  * mmap(2) is used to map pages onto store by creating a copy-on-write
- * (MAP_PRIVATE) mapping with the flag MAP_ANONYMOUS.
+ * (MAP_PRIVATE) mapping with the flag MAP_ANON.
  *
  * .assume.not-last: The implementation of VMCreate assumes that
  * mmap() will not choose a region which contains the last page
@@ -31,31 +31,24 @@
  * seem to be a problem.
  */
 
-/* Use all extensions */
-#define _GNU_SOURCE 1
-
-/* for open(2) */
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <fcntl.h>
-
 /* for mmap(2), munmap(2) */
+#include <sys/types.h>
 #include <sys/mman.h>
 
 /* for errno(2) */
 #include <errno.h>
 
-/* for sysconf(2), close(2) */
+/* for getpagesize(3) */
 #include <unistd.h>
 
 #include "mpm.h"
 
 
-#ifndef MPS_OS_LI
-#error "vmli.c is LINUX specific, but MPS_OS_LI is not set"
+#ifndef MPS_OS_FR
+#error "vmfr.c is FreeBSD specific, but MPS_OS_FR is not set"
 #endif
 
-SRCID(vmli, "$HopeName: MMsrc!vmli.c(trunk.7) $");
+SRCID(vmfr, "$HopeName: MMsrc!vmli.c(trunk.7) $");
 
 
 /* VMStruct -- virtual memory structure */
@@ -101,20 +94,19 @@ Res VMCreate(VM *vmReturn, Size size)
 {
   Align align;
   VM vm;
-  long pagesize;
+  int pagesize;
   void *addr;
   Res res;
 
   AVER(vmReturn != NULL);
 
-  /* sysconf code copied wholesale from vmso.c */
   /* Find out the page size from the OS */
-  pagesize = sysconf(_SC_PAGESIZE);
+  pagesize = getpagesize();
   /* check the actual returned pagesize will fit in an object of */
   /* type Align. */
   AVER(pagesize > 0);
   AVER((unsigned long)pagesize <= (unsigned long)(Align)-1);
-  /* Note implicit conversion from "long" to "Align". */
+  /* Note implicit conversion from "int" to "Align". */
   align = pagesize;
   AVER(SizeIsP2(align));
   size = SizeAlignUp(size, align);
