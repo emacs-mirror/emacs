@@ -838,6 +838,24 @@ set_frame_menubar (f)
 
   UNBLOCK_INPUT;
 }
+
+void
+free_frame_menubar (f)
+     FRAME_PTR f;
+{
+  Widget menubar_widget;
+  int id;
+
+  menubar_widget = f->display.x->menubar_widget;
+  id = (int) f;
+  
+  if (menubar_widget)
+    {
+      BLOCK_INPUT;
+      lw_destroy_all_widgets (id);
+      UNBLOCK_INPUT;
+    }
+}
 #endif /* USE_X_TOOLKIT */
 
 struct indices {
