@@ -198,18 +198,18 @@ is omitted, @code{nil} is used.
 
 All of the @var{value-form}s in @var{bindings} are evaluated in the
 order they appear and @emph{before} binding any of the symbols to them.
-Here is an example of this: @code{Z} is bound to the old value of
-@code{Y}, which is 2, not the new value of @code{Y}, which is 1.
+Here is an example of this: @code{z} is bound to the old value of
+@code{y}, which is 2, not the new value of @code{y}, which is 1.
 
 @example
 @group
-(setq Y 2)
+(setq y 2)
      @result{} 2
 @end group
 @group
-(let ((Y 1)
-      (Z Y))
-  (list Y Z))
+(let ((y 1)
+      (z y))
+  (list y z))
      @result{} (1 2)
 @end group
 @end example
@@ -225,13 +225,13 @@ form.  Compare the following example with the example above for
 
 @example
 @group
-(setq Y 2)
+(setq y 2)
      @result{} 2
 @end group
 @group
-(let* ((Y 1)
-       (Z Y))    ; @r{Use the just-established value of @code{Y}.}
-  (list Y Z))
+(let* ((y 1)
+       (z y))    ; @r{Use the just-established value of @code{y}.}
+  (list y z))
      @result{} (1 1)
 @end group
 @end example
