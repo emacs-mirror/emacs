@@ -946,10 +946,7 @@ DISPLAY can be a display name, a frame, or nil (meaning the selected
 frame's display)."
   (and (display-graphic-p display)
        (fboundp 'image-mask-p)
-       (fboundp 'image-size)
-       ;; FIXME: this will need to be revisited when the Windows port
-       ;; supports images.
-       (not (eq (framep-on-display display) 'w32))))
+       (fboundp 'image-size)))
 
 (defalias 'display-multi-frame-p 'display-graphic-p)
 (defalias 'display-multi-font-p 'display-graphic-p)
