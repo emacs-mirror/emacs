@@ -471,7 +471,7 @@ reset_buffer (b)
   b->mark_active = Qnil;
   b->point_before_scroll = Qnil;
   b->file_format = Qnil;
-  b->extra1 = Qnil;
+  b->last_selected_window = Qnil;
   b->extra2 = Qnil;
   b->extra3 = Qnil;
 }
