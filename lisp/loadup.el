@@ -226,9 +226,13 @@
   (princ ")))\n" (current-buffer))
   (write-region (point-min) (point-max)
 		(expand-file-name
-		 (if (eq system-type 'ms-dos)
-		     "../lib-src/fns.el"
-		   (format "../lib-src/fns-%s.el" emacs-version))
+		 (cond 
+		  ((eq system-type 'ms-dos)
+		   "../lib-src/fns.el")
+		  ((eq system-type 'windows-nt)
+		   (format "../../../lib-src/fns-%s.el" emacs-version))
+		  (t
+		   (format "../lib-src/fns-%s.el" emacs-version)))
 		 invocation-directory))
   (erase-buffer))
 (setq load-history nil)
