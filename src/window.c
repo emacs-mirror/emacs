@@ -1244,6 +1244,46 @@ DEFUN ("replace-buffer-in-windows", Freplace_buffer_in_windows,
 }
 
 /* Set the height of WINDOW and all its inferiors.  */
+
+/* The smallest acceptable dimensions for a window.  Anything smaller
+   might crash Emacs.  */
+#define MIN_SAFE_WINDOW_WIDTH  (2)
+#define MIN_SAFE_WINDOW_HEIGHT (2)
+
+/* Make sure that window_min_height and window_min_width are
+   not too small; if they are, set them to safe minima.  */
+
+static void
+check_min_window_sizes ()
+{
+  /* Smaller values might permit a crash.  */
+  if (window_min_width < MIN_SAFE_WINDOW_WIDTH)
+    window_min_width = MIN_SAFE_WINDOW_WIDTH;
+  if (window_min_height < MIN_SAFE_WINDOW_HEIGHT)
+    window_min_height = MIN_SAFE_WINDOW_HEIGHT;
+}
+
+/* If *ROWS or *COLS are too small a size for FRAME, set them to the
+   minimum allowable size.  */
+extern void
+check_frame_size (frame, rows, cols)
+FRAME_PTR frame;
+int *rows, *cols;
+{
+  /* For height, we have to see whether the frame has a minibuffer, and
+     whether it wants a mode line.  */
+  int min_height =
+    ((FRAME_MINIBUF_ONLY_P (frame)
+      || ! FRAME_HAS_MINIBUF_P (frame))
+     ? MIN_SAFE_WINDOW_HEIGHT
+     : 2 * MIN_SAFE_WINDOW_HEIGHT - 1);
+
+  if (*rows < min_height)
+    *rows = min_height;
+  if (*cols  < MIN_SAFE_WINDOW_WIDTH)
+    *cols = MIN_SAFE_WINDOW_WIDTH;
+}
+
 /* Normally the window is deleted if it gets too small.
    nodelete nonzero means do not do this.
    (The caller should check later and do so if appropriate)  */
@@ -1258,6 +1298,8 @@ set_window_height (window, height, nodelete)
   int oheight = XFASTINT (w->height);
   int top, pos, lastbot, opos, lastobot;
   Lisp_Object child;
+
+  check_min_window_sizes ();
 
   if (!nodelete
       && ! NILP (w->parent)
@@ -1657,11 +1699,7 @@ and put SIZE columns in the first of the pair.")
   else if (FRAME_NO_SPLIT_P (XFRAME (WINDOW_FRAME (o))))
     error ("Attempt to split unsplittable frame");
 
-  /* Smaller values might permit a crash.  */
-  if (window_min_width < 2)
-    window_min_width = 2;
-  if (window_min_height < 2)
-    window_min_height = 2;
+  check_min_window_sizes ();
 
   if (NILP (horflag))
     {
@@ -1795,11 +1833,7 @@ change_window_height (delta, widthflag)
 				   ? set_window_width
 				   : set_window_height);
 
-  /* Smaller values might permit a crash.  */
-  if (window_min_width < 2)
-    window_min_width = 2;
-  if (window_min_height < 2)
-    window_min_height = 2;
+  check_min_window_sizes ();
 
   window = selected_window;
   while (1)
@@ -2415,7 +2449,7 @@ by `current-window-configuration' (which see).")
   FRAME_ROOT_WINDOW (f) = data->root_window;
 
 #ifdef MULTI_FRAME
-  if (f != selected_frame && ! FRAME_IS_TERMCAP (f))
+  if (f != selected_frame && ! FRAME_TERMCAP_P (f))
     Fselect_frame (WINDOW_FRAME (XWINDOW (data->root_window)), Qnil);
 #endif
 
