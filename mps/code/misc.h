@@ -52,14 +52,14 @@ enum {
 typedef const struct SrcIdStruct *SrcId;
 typedef const struct SrcIdStruct {
   const char *file;
-  const char *hopename;
+  const char *scmid;
   const char *build_date;
   const char *build_time;
 } SrcIdStruct;
 
-#define SRCID(id, hopename) \
+#define SRCID(id, scmid) \
   static SrcIdStruct FileSrcIdStruct = \
-  {__FILE__, (hopename), __DATE__, __TIME__}; \
+  {__FILE__, (scmid), __DATE__, __TIME__}; \
   SrcId id ## SrcId = &FileSrcIdStruct
 
 
