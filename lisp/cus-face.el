@@ -1,11 +1,11 @@
 ;;; cus-face.el -- customization support for faces.
 ;;
-;; Copyright (C) 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
 ;; Version: Emacs
-;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
+;; X-URL: http://www.dina.kvl.dk/~abraham/custom/ (probably obsolete)
 
 ;; This file is part of GNU Emacs.
 
@@ -168,9 +168,8 @@
        (set-face-attribute face frame :underline value))
      (lambda (face &optional frame)
        (let ((underline (face-attribute face :underline frame)))
-	 (cond ((eq underline 'unspecified) (setq underline nil))
-	       ((null underline) (setq underline 'off)))
-	 underline)))
+	 (cond ((eq underline 'unspecified) nil)
+	       ((null underline) 'off)))))
     
     (:overline
      (choice :tag "Overline"
@@ -185,9 +184,8 @@
        (set-face-attribute face frame :overline value))
      (lambda (face &optional frame)
        (let ((overline (face-attribute face :overline frame)))
-	 (cond ((eq overline 'unspecified) (setq overline nil))
-	       ((null overline) (setq overline 'off)))
-	 overline)))
+	 (cond ((eq overline 'unspecified) nil)
+	       ((null overline) 'off)))))
     
     (:strike-through
      (choice :tag "Strike-through"
@@ -207,41 +205,32 @@
 	 value)))
     
     (:box
+     ;; Fixme: this can probably be done better.
      (choice :tag "Box around text"
 	     :help-echo "Control box around text."
-	     (const :tag "*" nil)
-	     (const :tag "Off" off)
+	     (const :tag "*" t)
+	     (const :tag "Off" nil)
 	     (list :tag "Box"
-		   :value (1 "black" nil)
+		   :value (:line-width 2 :color "grey75"
+				       :style released-button)
+		   (const :format "" :value :line-width)
 		   (integer :tag "Width")
-		   (color :tag "Color")
-		   (choice :tag "Shadows"
-			   (const :tag "None" nil)
-			   (const :tag "Raised" raised)
-			   (const :tag "Sunken" sunken))))
+		   (const :format "" :value :color)
+		   (choice :tag "Color" (const :tag "*" nil) color)
+		   (const :format "" :value :style)
+		   (choice :tag "Style"
+			   (const :tag "Raised" released-button)
+			   (const :tag "Sunken" pressed-button)
+			   (const :tag "None" nil))))
      (lambda (face value &optional frame)
-       (cond ((consp value)
-	      (let ((width (nth 0 value))
-		    (color (nth 1 value))
-		    (shadow (nth 2 value)))
-		(setq value (list :width width :color color :shadow shadow))))
-	     ((eq value 'off)
-	      (setq value nil))
-	     ((null value)
-	      (setq value 'unspecified)))
        (set-face-attribute face frame :box value))
      (lambda (face &optional frame)
        (let ((value (face-attribute face :box frame)))
-	 (cond ((consp value)
-		(let ((width (plist-get value :width))
-		      (color (plist-get value :color))
-		      (shadow (plist-get value :shadow)))
-		  (setq value (list width color shadow))))
-	       ((eq value 'unspecified)
-		(setq value nil))
-	       ((null value)
-		(setq value 'off)))
-	 value)))
+	 (if (consp value)
+	     (list :line-width (or (plist-get value :line-width) 1)
+		   :color (plist-get value :color)
+		   :style (plist-get value :style))
+	   value))))
     
     (:inverse-video
      (choice :tag "Inverse-video"
@@ -255,9 +244,9 @@
        (set-face-attribute face frame :inverse-video value))
      (lambda (face &optional frame)
        (let ((value (face-attribute face :inverse-video frame)))
-	 (cond ((eq value 'unspecified) (setq value nil))
-	       ((null value) (setq value 'off)))
-	 value)))
+	 (cond ((eq value 'unspecified)
+		nil)
+	       ((null value)'off)))))
     
     (:foreground
      (choice :tag "Foreground"
@@ -330,10 +319,11 @@ If FRAME is nil, use the global defaults for FACE."
   "Initialize faces according to user preferences.
 The arguments should be a list where each entry has the form:
 
-  (FACE SPEC [NOW])
+  (FACE SPEC [NOW [COMMENT]])
 
 SPEC is stored as the saved value for FACE.
 If NOW is present and non-nil, FACE is created now, according to SPEC.
+COMMENT is a string comment about FACE.
 
 See `defface' for the format of SPEC."
   (while args
@@ -341,11 +331,14 @@ See `defface' for the format of SPEC."
       (if (listp entry)
 	  (let ((face (nth 0 entry))
 		(spec (nth 1 entry))
-		(now (nth 2 entry)))
+		(now (nth 2 entry))
+		(comment (nth 3 entry)))
 	    (put face 'saved-face spec)
+	    (put face 'saved-face-comment comment)
 	    (when now
 	      (put face 'force-face t))
 	    (when (or now (facep face))
+	      (put face 'face-comment comment)
 	      (make-empty-face face)
 	      (face-spec-set face spec))
 	    (setq args (cdr args)))
@@ -359,4 +352,4 @@ See `defface' for the format of SPEC."
 
 (provide 'cus-face)
 
-;; cus-face.el ends here
+;;; cus-face.el ends here
