@@ -141,6 +141,20 @@ non_ascii_char_to_string (c, workbuf, str)
 {
   int charset, c1, c2;
 
+  if (c & ~GLYPH_MASK_CHAR)
+    {
+      if (c & CHAR_META)
+	/* Move the meta bit to the right place for a string.  */
+	c |= 0x80;
+      if (c & CHAR_CTL)
+	c &= 0x9F;
+      else if (c & CHAR_SHIFT && (c & 0x7F) >= 'a' && (c & 0x7F) <= 'z')
+	c -= 'a' - 'A';
+      *str = workbuf;
+      *workbuf = c;
+      return 1;
+    }
+
   if (c < 0)
     invalid_character (c);
 
@@ -1077,6 +1091,9 @@ char_bytes (c)
      int c;
 {
   int bytes;
+
+  if (SINGLE_BYTE_CHAR_P (c) || (c & ~GLYPH_MASK_CHAR))
+    return 1;
 
   if (COMPOSITE_CHAR_P (c))
     {
