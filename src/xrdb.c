@@ -1,5 +1,5 @@
 /* Deal with the X Resource Manager.
-   Copyright (C) 1990, 1993, 1994 Free Software Foundation.
+   Copyright (C) 1990, 1993, 1994, 2000, 2001 Free Software Foundation.
 
 This file is part of GNU Emacs.
 
@@ -548,7 +548,7 @@ x_load_resources (display, xrm_string, myname, myclass)
   XrmPutLineResource (&rdb, line);
   sprintf (line, "%s*menu*background: grey75", myclass);
   XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*menubar*background: grey75", myclass, helv);
+  sprintf (line, "%s*menubar*background: grey75", myclass);
   XrmPutLineResource (&rdb, line);
   sprintf (line, "%s*verticalScrollBar.background: grey75", myclass);
   XrmPutLineResource (&rdb, line);
