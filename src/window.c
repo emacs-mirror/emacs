@@ -2652,10 +2652,7 @@ window_scroll (window, n, noerror)
   register Lisp_Object tem;
   int lose;
   Lisp_Object bolp, nmoved;
-
-  /* Always set force_start so that redisplay_window will run
-     the window-scroll-functions.  */
-  w->force_start = Qt;
+  int startpos;
 
   XSETFASTINT (tem, PT);
   tem = Fpos_visible_in_window_p (tem, window);
@@ -2663,11 +2660,12 @@ window_scroll (window, n, noerror)
   if (NILP (tem))
     {
       Fvertical_motion (make_number (- (ht / 2)), window);
-      XSETFASTINT (tem, PT);
-      Fset_marker (w->start, tem, w->buffer);
+      startpos = PT;
     }
+  else
+    startpos = marker_position (w->start);
 
-  SET_PT (marker_position (w->start));
+  SET_PT (startpos);
   lose = n < 0 && PT == BEGV;
   Fvertical_motion (make_number (n), window);
   pos = PT;
@@ -2700,6 +2698,9 @@ window_scroll (window, n, noerror)
       w->update_mode_line = Qt;
       XSETFASTINT (w->last_modified, 0);
       XSETFASTINT (w->last_overlay_modified, 0);
+      /* Set force_start so that redisplay_window will run
+	 the window-scroll-functions.  */
+      w->force_start = Qt;
 
       /* If we scrolled forward, put point enough lines down
 	 that it is outside the scroll margin.  */
