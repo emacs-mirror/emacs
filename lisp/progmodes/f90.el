@@ -1598,22 +1598,11 @@ Leave point at the end of line."
             end-name  (car (cdr end-struct)))
       (save-excursion
         (beginning-of-line)
-        (while
-            (and (not (zerop count))
-                 (let ((stop nil) notexist)
-                   (while (not stop)
-                     (setq notexist
-                           (not (re-search-backward
-                                 (concat "\\(" f90-blocks-re "\\)") nil t)))
-                     (if notexist
-                         (setq stop t)
-                       (setq stop
-                             (not (or (f90-in-string)
-                                      (f90-in-comment))))))
-                   (not notexist)))
+        (while (and (> count 0) (re-search-backward f90-blocks-re nil t))
           (beginning-of-line)
           (skip-chars-forward " \t0-9")
-          (cond ((setq matching-beg
+          (cond ((or (f90-in-string) (f90-in-comment)))
+                ((setq matching-beg
                        (or
                         (f90-looking-at-do)
                         (f90-looking-at-if-then)
@@ -1622,9 +1611,9 @@ Leave point at the end of line."
                         (f90-looking-at-type-like)
                         (f90-looking-at-program-block-start)))
                  (setq count (1- count)))
-                ((looking-at (concat "end[ \t]*" f90-blocks-re "\\b"))
+                ((looking-at (concat "end[ \t]*" f90-blocks-re))
                  (setq count (1+ count)))))
-        (if (not (zerop count))
+        (if (> count 0)
             (message "No matching beginning.")
           (f90-update-line)
           (if (eq f90-smart-end 'blink)
