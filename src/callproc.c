@@ -74,7 +74,12 @@ extern char **environ;
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
 #ifdef MSDOS
-Lisp_Object Vbinary_process;
+/* When we are starting external processes we need to know whether they
+   take binary input (no conversion) or text input (\n is converted to
+   \r\n).  Similar for output: if newlines are written as \r\n then it's
+   text process output, otherwise it's binary.  */
+Lisp_Object Vbinary_process_input;
+Lisp_Object Vbinary_process_output;
 #endif
 
 Lisp_Object Vexec_path, Vexec_directory, Vdata_directory, Vdoc_directory;
@@ -83,6 +88,10 @@ Lisp_Object Vconfigure_info_directory;
 Lisp_Object Vshell_file_name;
 
 Lisp_Object Vprocess_environment;
+
+#ifdef MSDOS
+Lisp_Object Qbuffer_file_type;
+#endif
 
 /* True iff we are about to fork off a synchronous process or if we
    are waiting for it.  */
@@ -342,7 +351,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     pid = run_msdos_command (new_argv, current_dir, filefd, outfilefd);
     close (outfilefd);
     fd1 = -1; /* No harm in closing that one!  */
-    fd[0] = open (tempfile, NILP (Vbinary_process) ? O_TEXT : O_BINARY);
+    fd[0] = open (tempfile, NILP (Vbinary_process_output) ? O_TEXT : O_BINARY);
     if (fd[0] < 0)
       {
 	unlink (tempfile);
@@ -511,7 +520,14 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   filename_string = build_string (tempfile);
   start = args[0];
   end = args[1];
+#ifdef MSDOS
+  specbind (Qbuffer_file_type, Vbinary_process_input);
   Fwrite_region (start, end, filename_string, Qnil, Qlambda);
+  unbind_to (count, Qnil);
+#else
+  Fwrite_region (start, end, filename_string, Qnil, Qlambda);
+#endif
+
   record_unwind_protect (delete_temp_file, filename_string);
 
   if (!NILP (args[3]))
@@ -817,6 +833,7 @@ init_callproc ()
   register char * sh;
   Lisp_Object tempdir;
 
+#ifndef MSDOS
   if (initialized && !NILP (Vinstallation_directory))
     {
       /* Add to the path the lib-src subdir of the installation dir.  */
@@ -838,6 +855,7 @@ init_callproc ()
 	    }
 	}
     }
+#endif
 
   tempdir = Fdirectory_file_name (Vexec_directory);
   if (access (XSTRING (tempdir)->data, 0) < 0)
@@ -881,9 +899,16 @@ set_process_environment ()
 syms_of_callproc ()
 {
 #ifdef MSDOS
-  DEFVAR_LISP ("binary-process", &Vbinary_process,
+  Qbuffer_file_type = intern ("buffer-file-type");
+  staticpro (&Qbuffer_file_type);
+
+  DEFVAR_LISP ("binary-process-input", &Vbinary_process_input,
+    "*If non-nil then new subprocesses are assumed to take binary input.");
+  Vbinary_process_input = Qnil;
+
+  DEFVAR_LISP ("binary-process-output", &Vbinary_process_output,
     "*If non-nil then new subprocesses are assumed to produce binary output.");
-  Vbinary_process = Qnil;
+  Vbinary_process_output = Qnil;
 #endif
 
   DEFVAR_LISP ("shell-file-name", &Vshell_file_name,
