@@ -45,7 +45,12 @@ Return t if file exists."
     (let* ((buffer
 	    ;; To avoid any autoloading, set default-major-mode to
 	    ;; fundamental-mode.
-	    (let ((default-major-mode 'fundamental-mode))
+	    ;; So that we don't get completely screwed if the
+	    ;; file is encoded in some complicated character set,
+	    ;; read it with real decoding, as a multibyte buffer,
+	    ;; even if this is a --unibyte Emacs session.
+	    (let ((default-major-mode 'fundamental-mode)
+		  (default-enable-multibyte-characters t))
 	      ;; We can't use `generate-new-buffer' because files.el
 	      ;; is not yet loaded.
 	      (get-buffer-create (generate-new-buffer-name " *load*"))))
@@ -66,7 +71,11 @@ Return t if file exists."
 	      ;; Make `kill-buffer' quiet.
 	      (set-buffer-modified-p nil))
 	    ;; Have the original buffer current while we eval.
-	    (eval-buffer buffer nil file))
+	    (eval-buffer buffer nil file
+			 ;; If this Emacs is running with --unibyte,
+			 ;; convert multibyte strings to unibyte
+			 ;; after reading them.
+			 (not default-enable-multibyte-characters)))
 	(let (kill-buffer-hook kill-buffer-query-functions)
 	  (kill-buffer buffer)))
       (let ((hook (assoc file after-load-alist)))
