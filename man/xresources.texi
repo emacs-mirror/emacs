@@ -688,10 +688,12 @@ The names for the emacs widgets, and their classes, are:
 @tab @code{GtkVHbox}
 @item @code{emacs}
 @tab @code{GtkFixed}
-@item @code{menubar}
-@tab @code{GtkMenuBar}
 @item @code{verticalScrollbar}
 @tab @code{GtkVScrollbar}
+@item @code{emacs-toolbar}
+@tab @code{GtkToolbar}
+@item @code{menubar}
+@tab @code{GtkMenuBar}
 @item @code{emacs-menuitem}
 @tab anything in menus
 @end multitable
