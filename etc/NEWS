@@ -108,6 +108,12 @@ in case it has been renamed.
 This enables Emacs to work better with programs that need to track
 the cursor, for example screen magnifiers and text to speech programs.
 
+---
+** A French translation of the `Emacs Survival Guide' is available.
+
+---
+** A French translation of the Emacs Tutorial is available.
+
 ** New modes and packages
 
 +++
