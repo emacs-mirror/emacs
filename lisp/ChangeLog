@@ -1,5 +1,8 @@
 2000-10-22  Miles Bader  <miles@gnu.org>
 
+	* window.el (fit-window-to-buffer): Change defaulting of
+	MAX-HEIGHT slightly.
+
 	* faces.el (color-values, color-defined-p): Use `member', not
 	`memq', because it works correctly for strings.
 	(frame-set-background-mode): Actually, "unspecified-fg" and
