@@ -33,7 +33,7 @@
 ;; With argments to perl:
 ;; #!/usr/bin/perl -P-	 # -*-Perl-*-
 ;; To handle files included with do 'filename.pl';, add something like
-;; (setq auto-mode-alist (append (list (cons "\\.pl$" 'perl-mode))
+;; (setq auto-mode-alist (append (list (cons "\\.pl\\'" 'perl-mode))
 ;;                               auto-mode-alist))
 ;; to your .emacs file; otherwise the .pl suffix defaults to prolog-mode.
 
