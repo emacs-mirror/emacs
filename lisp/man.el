@@ -80,6 +80,7 @@
   "*Selects the behavior when manpage is ready.
 This variable may have one of the following values:
 
+newframe   -- put the manpage in its own frame (see `Man-frame-parameters')
 bully      -- make the manpage the current buffer and only window
 aggressive -- make the manpage the current buffer in the other window
 friendly   -- display manpage in other window but don't make current
@@ -88,6 +89,9 @@ quiet      -- like `polite', but don't beep
 meek       -- make no indication that manpage is ready
 
 Any other value of `Man-notify' is equivalent to `meek'.")
+
+(defvar Man-frame-parameters nil
+  "*Frame parameter list for creating a new frame for a manual page.")
 
 (defvar Man-reuse-okay-p t
   "*Reuse a manpage buffer if possible.
@@ -448,6 +452,9 @@ start a background process even if a buffer already exists and
   "Notify the user when MAN-BUFFER is ready.
 See the variable `Man-notify' for the different notification behaviors."
   (cond
+   ((eq Man-notify 'newframe)
+    (set-buffer man-buffer)
+    (new-frame Man-frame-parameters))
    ((eq Man-notify 'bully)
     (pop-to-buffer man-buffer)
     (delete-other-windows))
