@@ -1,3 +1,7 @@
+2000-11-03  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* log-edit.el (log-edit-menu): New menu.
+
 2000-11-03  Miles Bader  <miles@gnu.org>
 
 	* wid-edit.el (widget-end-of-line): Reinstate, with a new
