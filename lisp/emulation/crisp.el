@@ -1,6 +1,6 @@
 ;;; crisp.el --- CRiSP/Brief Emacs emulator
 
-;; Copyright (C) 1997, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999 Free Software Foundation, Inc.
 
 ;; Author: Gary D. Foster <gfoster@suzieq.ml.org>
 ;; Keywords: emulations brief crisp
@@ -42,9 +42,9 @@
 ;; key to exit the editor.  If you don't like this functionality, you
 ;; can prevent this behavior (or redefine it dynamically) by setting
 ;; the value of `crisp-override-meta-x' either in your .emacs or
-;; interactively.  The default setting is nil, which means that M-x will
-;; by default run `execute-extended-command' instead of the command
-;; `save-buffers-kill-emacs'.
+;; interactively.  The default setting is t, which means that M-x will
+;; by default run `save-buffers-kill-emacs' instead of the command
+;; `execute-extended-command'.
 
 ;; Finally, if you want to change the string displayed in the modeline
 ;; when this mode is in effect, override the definition of
@@ -64,7 +64,6 @@
   :group 'emulations)
 
 (defvar crisp-mode-map (let ((map (make-sparse-keymap)))
-			 (set-keymap-parent map (current-global-map))
 			 map)
   "Local keymap for CRiSP emulation mode.
 All the bindings are done here instead of globally to try and be
@@ -75,14 +74,17 @@ nice to the world.")
   :type 'string
   :group 'crisp)
 
-(defvar crisp-mode-original-keymap (current-global-map)
-  "The original keymap before CRiSP emulation mode remaps anything.
-This keymap is restored when CRiSP emulation mode is disabled.")
-
-(defcustom crisp-mode-enabled nil
+;;;###autoload
+(defcustom crisp-mode nil
   "Track status of CRiSP emulation mode.
 A value of nil means CRiSP mode is not enabled.  A value of t
-indicates CRiSP mode is enabled."
+indicates CRiSP mode is enabled.
+
+Setting this variable directly does not take effect;
+use either M-x customize or the function `crisp-mode'."
+  :set (lambda (symbol value) (crisp-mode (if value 1 0)))
+  :require 'crisp
+  :version "20.4"
   :type 'boolean
   :group 'crisp)
 
@@ -109,7 +111,12 @@ does not load the scroll-all package."
   :type 'hook
   :group 'crisp)
 
-(defconst crisp-version "1.33"
+(defcustom crisp-mode-hook nil
+  "Hook run by the function `crisp-mode'."
+  :type 'hook
+  :group 'crisp)
+
+(defconst crisp-version "1.34"
   "The version of the CRiSP emulator.")
 
 (defconst crisp-mode-help-address "gfoster@suzieq.ml.org"
@@ -191,7 +198,7 @@ does not load the scroll-all package."
 (define-key crisp-mode-map [(f24)]          'crisp-kill-line)
 (define-key crisp-mode-map [(insert)]       'crisp-yank-clipboard)
 (define-key crisp-mode-map [(f16)]          'crisp-set-clipboard) ; copy on Sun5 kbd
-(define-key crisp-mode-map [(f20)]          'crisp-kill-region) ; cut on Sun5 kbd 
+(define-key crisp-mode-map [(f20)]          'crisp-kill-region) ; cut on Sun5 kbd
 (define-key crisp-mode-map [(f18)]          'crisp-yank-clipboard) ; paste on Sun5 kbd
 
 (define-key crisp-mode-map [(control f)]    'fill-paragraph-or-region)
@@ -270,7 +277,8 @@ If ARG, insert results at point."
       (message foo))))
 
 (defun crisp-mark-line (arg)
-  "Set mark at the end of the line.  Arg works as in `end-of-line'."
+  "Set mark at the end of the line.
+Arg works as in `end-of-line'."
   (interactive "p")
   (let (newmark)
     (save-excursion
@@ -337,7 +345,7 @@ consecutive use moves point to the end of the buffer."
   (setq crisp-last-last-command last-command))
 
 (defun crisp-unbury-buffer ()
-  "Go back one buffer"
+  "Go back one buffer."
   (interactive)
   (switch-to-buffer (car (last (buffer-list)))))
  
@@ -374,30 +382,30 @@ normal CRiSP binding) and when it is nil M-x will run
 
 ;; Now enable the mode
 
+;;;###autoload
 (defun crisp-mode (&optional arg)
   "Toggle CRiSP emulation minor mode.
 With ARG, turn CRiSP mode on if ARG is positive, off otherwise."
   (interactive "P")
-  (setq crisp-mode-enabled (if (null arg)
-			       (not crisp-mode-enabled)
-			     (> (prefix-numeric-value arg) 0)))
-  (cond
-   ((eq crisp-mode-enabled 't)
-    (use-global-map crisp-mode-map)
+  (setq crisp-mode (if (null arg)
+		       (not crisp-mode)
+		     (> (prefix-numeric-value arg) 0)))
+  (when crisp-mode
     (if crisp-load-scroll-all
 	(require 'scroll-all))
     (if (featurep 'scroll-all)
 	(define-key crisp-mode-map [(meta f1)] 'scroll-all-mode))
-    (run-hooks 'crisp-load-hook))
-   ((eq crisp-mode-enabled 'nil)
-    (use-global-map crisp-mode-original-keymap))))
+    (run-hooks 'crisp-load-hook)))
 
 (if (fboundp 'add-minor-mode)
-    (add-minor-mode 'crisp-mode-enabled 'crisp-mode-modeline-string
-		    nil nil 'crisp-mode)
-  (or (assq 'crisp-mode-enabled minor-mode-alist)
+    (add-minor-mode 'crisp-mode 'crisp-mode-modeline-string
+		    crisp-mode-map nil 'crisp-mode)
+  (or (assq 'crisp-mode minor-mode-alist)
       (setq minor-mode-alist
-	    (cons '(crisp-mode-enabled crisp-mode-modeline-string) minor-mode-alist))))
+	    (cons '(crisp-mode crisp-mode-modeline-string) minor-mode-alist)))
+  (or (assq 'crisp-mode minor-mode-map-alist)
+      (setq minor-mode-map-alist (cons (cons 'crisp-mode crisp-mode-map)
+				       minor-mode-map-alist))))
 
 (provide 'crisp)
 
