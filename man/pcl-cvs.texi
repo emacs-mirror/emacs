@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 
-@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.4 2000/08/16 18:54:37 fx Exp $"
+@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.5 2000/10/01 00:10:51 monnier Exp $"
 
 @c Documentation for the GNU Emacs CVS mode.
 @c Copyright (C) 1991-2000  Free Software Foundation, Inc.
@@ -625,7 +625,7 @@ when a file needs to be updated or merged.
 @end table
 
 The first four of
-Those commands are also reachable from the menubar
+those commands are also reachable from the menubar
 under @samp{Tools->PCL-CVS}.  Finally an alternative way is to visit
 the CVS administrative subdirectory in your work area with a simple
 prefix argument.  For example @kbd{C-u C-x C-f ~/my/work/CVS RET}.  This
