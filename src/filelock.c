@@ -43,6 +43,7 @@ Boston, MA 02111-1307, USA.  */
 #include "buffer.h"
 #include "charset.h"
 #include "coding.h"
+#include "systime.h"
 
 #include <time.h>
 #include <errno.h>
@@ -94,18 +95,113 @@ extern int errno;
 
 static time_t boot_time;
 
+extern Lisp_Object Vshell_file_name;
+
 static time_t
 get_boot_time ()
 {
 #ifdef BOOT_TIME
   struct utmp ut, *utp;
+  int fd;
+  EMACS_TIME time_before, after;
+  int counter;
 
   if (boot_time)
     return boot_time;
 
-  utmpname ("/var/log/wtmp");
+  EMACS_GET_TIME (time_before);
+
+  /* Try calculating the last boot time
+     from the uptime as obtained from /proc/uptime.  */
+
+  while ((fd = open ("/proc/uptime", O_RDONLY)) >= 0)
+    {
+      char buf[BUFSIZ];
+      int res;
+      double upsecs;
+      time_t uptime;
+
+      read (fd, buf, BUFSIZ);
+      close (fd);
+
+      res = sscanf (buf, "%lf", &upsecs);
+
+      /* If the current time did not tick while we were getting the
+	 uptime, we have a valid result.  */
+      EMACS_GET_TIME (after);
+      if (res == 1 && EMACS_SECS (after) == EMACS_SECS (time_before))
+	{
+	  boot_time = EMACS_SECS (time_before) - (time_t) upsecs;
+	  return boot_time;
+	}
+
+      /* Otherwise, try again to read the uptime.  */
+      time_before = after;
+    }
+
+  /* Try to get boot time from the current wtmp file.  */
+  get_boot_time_1 ("/var/log/wtmp");
+
+  /* If we did not find a boot time in wtmp, look at wtmp, and so on.  */
+  for (counter = 0; counter < 20 && boot_time == 1; counter++)
+    {
+      char cmd_string[100];
+      Lisp_Object tempname, filename;
+      int delete_flag = 0;
+
+      filename = Qnil;
+
+      sprintf (cmd_string, "/var/log/wtmp.%d", counter);
+      tempname = build_string (cmd_string);
+      if (! NILP (Ffile_exists_p (filename)))
+	filename = tempname;
+      else
+	{
+	  sprintf (cmd_string, "/var/log/wtmp.%d.gz", counter);
+	  tempname = build_string (cmd_string);
+	  if (! NILP (Ffile_exists_p (tempname)))
+	    {
+	      Lisp_Object args[6];
+	      tempname = Fmake_temp_name (build_string ("wtmp"));
+	      args[0] = Vshell_file_name;
+	      args[1] = Qnil;
+	      args[2] = Qnil;
+	      args[3] = Qnil;
+	      args[4] = build_string ("-c");
+	      sprintf (cmd_string, "gunzip < /var/log/wtmp.%d.gz > %s",
+		       counter, XSTRING (tempname)->data);
+	      args[5] = build_string (cmd_string);
+	      Fcall_process (6, args);
+	      filename = tempname;
+	      delete_flag = 1;
+	    }
+	}
+
+      if (! NILP (filename))
+	{
+	  get_boot_time_1 (XSTRING (filename)->data);
+	  if (delete_flag)
+	    unlink (XSTRING (filename)->data);
+	}
+    }
+
+  return boot_time;
+#else
+  return 0;
+#endif
+}
+
+/* Try to get the boot time from wtmp file FILENAME.
+   This succeeds if that file contains a reboot record.
+   Success is indicated by setting BOOT_TIME.  */
+
+get_boot_time_1 (filename)
+     char *filename;
+{
+  struct utmp ut, *utp;
+
+  utmpname (filename);
   setutent ();
-  boot_time = 1;
   while (1)
     {
       /* Find the next reboot record.  */
@@ -123,11 +219,6 @@ get_boot_time ()
 	break;
     }
   endutent ();
-
-  return boot_time;
-#else
-  return 0;
-#endif
 }
 
 /* Here is the structure that stores information about a lock.  */
@@ -218,7 +309,14 @@ lock_file_1 (lfname, force)
   return err == 0;
 }
 
+/* Return 1 if times A and B are no more than one second apart.  */
 
+int
+within_one_second (a, b)
+     time_t a, b;
+{
+  return (a - b >= -1 && a - b <= 1);
+}
 
 /* Return 0 if nobody owns the lock file LFNAME or the lock is obsolete,
    1 if another process owns it (and set OWNER (if non-null) to info),
@@ -309,7 +407,7 @@ current_lock_owner (owner, lfname)
       else if (owner->pid > 0
                && (kill (owner->pid, 0) >= 0 || errno == EPERM)
 	       && (owner->boot_time == 0
-		   || owner->boot_time == get_boot_time ()))
+		   || within_one_second (owner->boot_time, get_boot_time ())))
         ret = 1; /* An existing process on this machine owns it.  */
       /* The owner process is dead or has a strange pid (<=0), so try to
          zap the lockfile.  */
