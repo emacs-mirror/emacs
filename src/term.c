@@ -297,6 +297,7 @@ extern char *tgetstr ();
 
 
 #ifdef WINDOWSNT
+#ifndef HAVE_NTGUI
 /* We aren't X windows, but we aren't termcap either.  This makes me
    uncertain as to what value to use for frame.output_method.  For
    this file, we'll define FRAME_TERMCAP_P to be zero so that our
@@ -305,6 +306,7 @@ extern char *tgetstr ();
 
 #undef FRAME_TERMCAP_P
 #define FRAME_TERMCAP_P(_f_) 0
+#endif /* not HAVE_NTGUI */
 #endif /* WINDOWSNT */
 
 ring_bell ()
