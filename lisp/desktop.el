@@ -834,11 +834,13 @@ This function always sets `desktop-enable' to t."
       ;; First element of `desktop-buffer-misc' is the value of `dired-directory'.
       ;; This value is a directory name, optionally with with shell wildcard or
       ;; a directory name followed by list of files.
-      (let* ((dired-directory (car desktop-buffer-misc))
-	     (dir (if (consp dired-directory) (car dired-directory) dired-directory)))
+      (let* ((dired-dir (car desktop-buffer-misc))
+	     (dir (if (consp dired-dir) (car dired-dir) dired-dir)))
 	(if (file-directory-p (file-name-directory dir))
 	    (progn
-	      (dired dired-directory)
+	      (dired dired-dir)
+              ;; The following elements of `desktop-buffer-misc' are the keys
+              ;; from `dired-subdir-alist'.
 	      (mapcar 'dired-maybe-insert-subdir (cdr desktop-buffer-misc))
 	      (current-buffer))
 	  (message "Directory %s no longer exists." dir)
