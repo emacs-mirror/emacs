@@ -52,7 +52,7 @@
   "List of strings recognized as Windows NT/9X system shells.")
 
 (defun w32-using-nt ()
-  "Return t if literally running on Windows NT (i.e., not Windows 9X)."
+  "Return non-nil if literally running on Windows NT (i.e., not Windows 9X)."
   (and (eq system-type 'windows-nt) (getenv "SystemRoot")))
 
 (defun w32-shell-name ()
