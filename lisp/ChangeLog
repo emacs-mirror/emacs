@@ -1,3 +1,8 @@
+2003-04-28  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-cl-warn): Avoid cl warnings
+	from caaar & al.
+
 2003-04-28  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (reset-language-environment): Raise
