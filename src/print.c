@@ -1,5 +1,5 @@
 /* Lisp object printing and output streams.
-   Copyright (C) 1985, 1986, 1988, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1988, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -31,6 +31,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "dispextern.h"
 #include "termchar.h"
 #endif /* not standalone */
+
+#ifdef USE_TEXT_PROPERTIES
+#include "intervals.h"
+#endif
 
 Lisp_Object Vstandard_output, Qstandard_output;
 
@@ -69,6 +73,8 @@ extern int noninteractive_need_newline;
 static int print_chars;
 static int max_print;
 #endif /* MAX_PRINT_CHARS */
+
+void print_interval ();
 
 #if 0
 /* Convert between chars and GLYPHs */
@@ -663,11 +669,7 @@ float_to_string (buf, data)
 
 static void
 print (obj, printcharfun, escapeflag)
-#ifndef RTPC_REGISTER_BUG
-     register Lisp_Object obj;
-#else
      Lisp_Object obj;
-#endif
      register Lisp_Object printcharfun;
      int escapeflag;
 {
@@ -744,14 +746,17 @@ print (obj, printcharfun, escapeflag)
 	{
 	  register int i;
 	  register unsigned char c;
-	  Lisp_Object obj1;
 	  struct gcpro gcpro1;
 
-	  /* You can't gcpro register variables, so copy obj to a
-	     non-register variable so we can gcpro it without
-	     making it non-register.  */
-	  obj1 = obj;
-	  GCPRO1 (obj1);
+	  GCPRO1 (obj);
+
+#ifdef USE_TEXT_PROPERTIES
+	  if (!NULL_INTERVAL_P (XSTRING (obj)->intervals))
+	    {
+	      PRINTCHAR ('#');
+	      PRINTCHAR ('(');
+	    }
+#endif
 
 	  PRINTCHAR ('\"');
 	  for (i = 0; i < XSTRING (obj)->size; i++)
@@ -771,6 +776,17 @@ print (obj, printcharfun, escapeflag)
 		}
 	    }
 	  PRINTCHAR ('\"');
+
+#ifdef USE_TEXT_PROPERTIES
+	  if (!NULL_INTERVAL_P (XSTRING (obj)->intervals))
+	    {
+	      PRINTCHAR (' ');
+	      traverse_intervals (XSTRING (obj)->intervals,
+				  0, 0, print_interval, printcharfun);
+	      PRINTCHAR (')');
+	    }
+#endif
+
 	  UNGCPRO;
 	}
       break;
@@ -943,6 +959,27 @@ print (obj, printcharfun, escapeflag)
 
   print_depth--;
 }
+
+#ifdef USE_TEXT_PROPERTIES
+
+/* Print a description of INTERVAL using PRINTCHARFUN.
+   This is part of printing a string that has text properties.  */
+
+void
+print_interval (interval, printcharfun)
+     INTERVAL interval;
+     Lisp_Object printcharfun;
+{
+  print (make_number (interval->position), printcharfun, 1);
+  PRINTCHAR (' ');
+  print (make_number (interval->position + LENGTH (interval)),
+	 printcharfun, 1);
+  PRINTCHAR (' ');
+  print (interval->plist, printcharfun, 1);
+  PRINTCHAR (' ');
+}
+
+#endif /* USE_TEXT_PROPERTIES */
 
 void
 syms_of_print ()
