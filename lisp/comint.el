@@ -1422,7 +1422,8 @@ This function should be in the list `comint-output-filter-functions'."
 				  (and (eq scroll 'this) (eq selected window))
 				  (and (eq scroll 'others) (not (eq selected window)))
 				  ;; If point was at the end, keep it at end.
-				  (>= (point) comint-last-output-start)))
+                                  (and (marker-position comint-last-output-start)
+                                       (>= (point) comint-last-output-start))))
 			 (goto-char (process-mark process)))
 		     ;; Optionally scroll so that the text
 		     ;; ends at the bottom of the window.
