@@ -751,6 +751,9 @@ for modes which use `imenu--generic-function'.  If it is not set, but
 
 PATTERNS is an alist with elements that look like this:
  (MENU-TITLE REGEXP INDEX).
+or like this:
+ (MENU-TITLE REGEXP INDEX FUNCTION ARGUMENTS...)
+with zero or more ARGUMENTS.
 
 MENU-TITLE is a string used as the title for the submenu or nil if the
 entries are not nested.
@@ -766,9 +769,13 @@ function, variable or type) that is to appear in the menu.
 See `lisp-imenu-generic-expression' for an example of PATTERNS.
 
 Returns an index of the current buffer as an alist.  The elements in
-the alist look like: (INDEX-NAME . INDEX-POSITION).  They may also be
-nested index lists like (INDEX-NAME . INDEX-ALIST) depending on
-PATTERNS."
+the alist look like:
+ (INDEX-NAME . INDEX-POSITION)
+or like:
+ (INDEX-NAME INDEX-POSITION FUNCTION ARGUMENTS...)
+They may also be nested index alists like: 
+ (INDEX-NAME . INDEX-ALIST)
+depending on PATTERNS."
 
   (let ((index-alist (list 'dummy))
 	prev-pos beg
