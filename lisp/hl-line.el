@@ -46,9 +46,6 @@
 ;; `hl-line-highlight', on `post-command-hook', activates it again
 ;; across the window width.
 
-;; You could make variable `hl-line-mode' buffer-local to avoid
-;; highlighting specific buffers, when the global mode is used.
-
 ;;; Code:
 
 (defgroup hl-line nil
@@ -72,21 +69,21 @@ Uses functions `hl-line-unhighlight' and `hl-line-highlight' on
   nil nil nil
   (if hl-line-mode
       (progn
-	(add-hook 'pre-command-hook #'hl-line-unhighlight)
-	(add-hook 'post-command-hook #'hl-line-highlight))
+	(add-hook 'pre-command-hook #'hl-line-unhighlight nil t)
+	(add-hook 'post-command-hook #'hl-line-highlight nil t))
     (hl-line-unhighlight)
-    (remove-hook 'pre-command-hook #'hl-line-unhighlight)
-    (remove-hook 'post-command-hook #'hl-line-highlight)))
+    (remove-hook 'pre-command-hook #'hl-line-unhighlight t)
+    (remove-hook 'post-command-hook #'hl-line-highlight t)))
 
 ;;;###autoload
 (easy-mmode-define-global-mode
- global-hl-line-mode hl-line-mode hl-line-mode
+ global-hl-line-mode hl-line-mode (lambda () (hl-line-mode 1))
  :group 'hl-line)
 
 (defun hl-line-highlight ()
   "Active the Hl-Line overlay on the current line in the current window.
 \(Unless it's a minibuffer window.)"
-  (when hl-line-mode			; Could be made buffer-local.
+  (when hl-line-mode		; Might be changed outside the mode function.
     (unless (window-minibuffer-p (selected-window)) ; silly in minibuffer
       (unless hl-line-overlay
 	(setq hl-line-overlay (make-overlay 1 1)) ; to be moved
