@@ -100,7 +100,7 @@
      (1 (unless (nth 3 (syntax-ppss (match-beginning 1))) "."))))
   "Syntactic keywords for `awk-mode'.")
 
-;;;###autoload
+;; No longer autoloaded since it might clobber the autoload directive in CC Mode.
 (define-derived-mode awk-mode c-mode "AWK"
   "Major mode for editing AWK code.
 This is much like C mode except for the syntax of comments.  Its keymap

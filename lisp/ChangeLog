@@ -1,3 +1,8 @@
+2003-07-17  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/awk-mode.el: Obsoleted by the AWK support in CC Mode -
+	moved to the directory obsolete.
+
 2003-07-16  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* info.el (Info-menu-entry-name-re): Allow newlines in
