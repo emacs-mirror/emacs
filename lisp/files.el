@@ -481,7 +481,18 @@ Type \\[describe-variable] directory-abbrev-alist RET for more information."
     ;; make it start with `~' instead.
     (if (string-match abbreviated-home-dir filename)
 	(setq filename
-	      (concat "~" (substring filename (match-end 0)))))
+	      (concat "~"
+		      ;; If abbreviated-home-dir ends with a slash,
+		      ;; don't remove the corresponding slash from
+		      ;; filename.  On MS-DOS and OS/2, you can have
+		      ;; home directories like "g:/", in which it is
+		      ;; important not to remove the slash.  And what
+		      ;; about poor root on Unix systems?
+		      (if (eq ?/ (aref abbreviated-home-dir
+				       (1- (length abbreviated-home-dir))))
+			  "/"
+			"")
+		      (substring filename (match-end 0)))))
     filename))
 
 (defvar find-file-not-true-dirname-list nil
@@ -1778,13 +1789,17 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 			    "-c" (concat insert-directory-program
 					 " -d " switches " "
 					 (file-name-nondirectory file))))
-	  ;; Chase links till we reach a non-link.
-	  ;; This used to be commented out, but Barry Margolin says:
-	  ;; SunOS 4.1.3 (and SV and POSIX?) lists the link
-	  ;; if we give a link to a directory - yuck!
-	  (let (symlink)
-	    (while (setq symlink (file-symlink-p file))
-	      (setq file symlink)))
+	  ;; Barry Margolin says: "SunOS 4.1.3 (and SV and POSIX?)
+	  ;; lists the link if we give a link to a directory - yuck!"
+	  ;; That's why we used to chase symlinks.  But we don't want
+	  ;; to chase links before passing the filename to ls; that
+	  ;; would mean that our line of output would not display
+	  ;; FILE's name as given.  To really address the problem that
+	  ;; SunOS 4.1.3 has, we need to find the right switch to get
+	  ;; a descripton of the link itself.
+	  ;; (let (symlink)
+	  ;;   (while (setq symlink (file-symlink-p file))
+	  ;;     (setq file symlink)))
 	  (call-process insert-directory-program nil t nil switches file))))))
 
 (defun save-buffers-kill-emacs (&optional arg)
