@@ -544,7 +544,13 @@ It is important to understand that the runtime support of long file
 names by the Emacs binary is NOT affected by the LFN setting during
 compilation; Emacs compiled with DJGPP v2.0 or later will always
 support long file names on Windows 95 no matter what was the setting
-of LFN at compile time.
+of LFN at compile time.  However, if you compiled with LFN disabled
+and want to enable LFN support after Emacs was already built, you need
+to make sure that the support files in the lisp, etc and info
+directories are called by their original long names as found in the
+distribution.  You can do this either by renaming the files manually,
+or by extracting them from the original distribution archive with
+djtar after you set LFN=y in the environment.
 
 To unpack Emacs with djtar, type this command:
 
@@ -552,10 +558,11 @@ To unpack Emacs with djtar, type this command:
 
 (This assumes that the Emacs distribution is called `emacs.tgz' on
 your system.)  There are a few files in the archive whose names
-collide with other files under the 8.3 DOS naming.  If you have set
-LFN=n, djtar will ask you to supply alternate names for these files;
-you can just press `Enter' when this happens (which makes djtar skip
-these files) because they aren't required for MS-DOS.
+collide with other files under the 8.3 DOS naming.  On native MSDOS,
+or if you have set LFN=n on Win95, djtar will ask you to supply
+alternate names for these files; you can just press `Enter' when this
+happens (which makes djtar skip these files) because they aren't
+required for MS-DOS.
 
 When unpacking is done, a directory called `emacs-XX.YY' will be
 created, where XX.YY is the Emacs version.  To build and install
