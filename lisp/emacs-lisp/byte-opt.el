@@ -1,6 +1,6 @@
 ;;; byte-opt.el --- the optimization passes of the emacs-lisp byte compiler.
 
-;;; Copyright (c) 1991, 1994, 2000 Free Software Foundation, Inc.
+;;; Copyright (c) 1991, 1994, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -445,6 +445,8 @@
 	      (byte-optimize-body (cdr (cdr form)) for-effect))))
 	  
 	  ((eq fn 'if)
+	   (when (< (length form) 3)
+	     (byte-compile-warn "Too few arguments for `if'"))
 	   (cons fn
 	     (cons (byte-optimize-form (nth 1 form) nil)
 	       (cons
@@ -1014,6 +1016,8 @@
 	   (list 'progn clause nil)))))
 
 (defun byte-optimize-while (form)
+  (when (< (length form) 2)
+    (byte-compile-warn "Too few arguments for `while'"))
   (if (nth 1 form)
       form))
 
