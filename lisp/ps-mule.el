@@ -170,7 +170,7 @@ Valid values are:
 
   nil                     This is the value to use the default settings which
 			  is by default for printing buffer with only ASCII
-			  and Latin characters.   The default setting can be
+			  and Latin characters.  The default setting can be
 			  changed by setting the variable
 			  `ps-mule-font-info-database-default' differently.
 			  The initial value of this variable is
