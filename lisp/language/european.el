@@ -391,7 +391,7 @@ Latin-9 is sometimes nicknamed `Latin-0'."))
 (set-language-info-alist
  "German" '((tutorial . "TUTORIAL.de")
 	    (charset iso-8859-1)
-	    (coding-system iso-latin-1)
+	    (coding-system iso-latin-1 iso-latin-9)
 	    (coding-priority iso-latin-1)
 	    (nonascii-translation . iso-8859-1)
 	    (input-method . "german-postfix")
@@ -409,7 +409,7 @@ Additionally, it selects the German tutorial."))
 (set-language-info-alist
  "French" '((tutorial . "TUTORIAL.fr")
 	    (charset iso-8859-1)
-	    (coding-system iso-latin-1)
+	    (coding-system iso-latin-1 iso-latin-9)
 	    (coding-priority iso-latin-1)
 	    (nonascii-translation . iso-8859-1)
 	    (unibyte-syntax . "latin-1")
@@ -423,7 +423,7 @@ but it selects the French tutorial."))
 
 (set-language-info-alist
  "Slovenian" '((charset iso-8859-2)
-	      (coding-system . (iso-8859-2))
+	      (coding-system . (iso-8859-2 windows-1250))
 	      (coding-priority . (iso-8859-2))
 	      (nonascii-translation . iso-8859-2)
 	      (input-method . "latin-2-postfix")
@@ -437,7 +437,7 @@ but it selects the French tutorial."))
 (set-language-info-alist
  "Spanish" '((tutorial . "TUTORIAL.es")
 	    (charset iso-8859-1)
-	    (coding-system iso-latin-1)
+	    (coding-system iso-latin-1 iso-latin-9)
 	    (coding-priority iso-latin-1)
 	    (nonascii-translation . iso-8859-1)
 	    (input-method . "spanish-postfix")
@@ -453,15 +453,16 @@ and it selects the Spanish tutorial."))
 (set-language-info-alist
  "Dutch" '((tutorial . "TUTORIAL.nl")
 	   (charset iso-8859-1)
-	   (coding-system iso-latin-1)
+	   (coding-system iso-latin-1 iso-latin-9)
 	   (coding-priority iso-latin-1)
 	   (nonascii-translation . iso-8859-1)
 	   (unibyte-syntax . "latin-1")
 	   (unibyte-display . iso-latin-1)
+	   (input-method . "dutch")
 	   (sample-text . "Er is een aantal manieren waarop je dit kan doen")
 	   (documentation . "\
 This language environment is almost the same as Latin-1,
-but it selects the Dutch tutorial."))
+but it selects the Dutch tutorial and input method."))
  '("European"))
 
 ;; For Turkish, the character set ISO-8859-9 (Latin-5) is used.  But,
@@ -471,7 +472,7 @@ but it selects the Dutch tutorial."))
 
 (set-language-info-alist
  "Turkish" '((charset iso-8859-9)
-	     (coding-system iso-latin-5)
+	     (coding-system iso-latin-5 windows-1254 iso-latin-3)
 	     (coding-priority iso-latin-5)
 	     (nonascii-translation . iso-8859-9)
 	     (unibyte-syntax . "latin-5")
@@ -486,7 +487,7 @@ but it selects the Dutch tutorial."))
 
 (set-language-info-alist
  "Polish" '((charset . (iso-8859-2))
-	   (coding-system . (iso-8859-2))
+	   (coding-system . (iso-8859-2 windows-1250))
 	   (coding-priority . (iso-8859-2))
 	   (nonascii-translation . iso-8859-2)
 	   (input-method . "polish-slash")
@@ -514,7 +515,7 @@ but it selects the Dutch tutorial."))
  '("European"))
 
 (set-language-info-alist
- "Lithuanian" `((coding-system latin-7)
+ "Lithuanian" `((coding-system latin-7 windows-1257)
 		(coding-priority latin-7)
 		(nonascii-translation . iso-8859-13)
 		(input-method . "lithuanian-keyboard")
@@ -522,7 +523,7 @@ but it selects the Dutch tutorial."))
  '("European"))
 
 (set-language-info-alist
- "Latvian" `((coding-system latin-7)
+ "Latvian" `((coding-system latin-7 windows-1257)
 	     (coding-priority latin-7)
 	     (nonascii-translation . iso-8859-13)
 	     (input-method . "latvian-keyboard")
