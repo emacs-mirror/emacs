@@ -285,11 +285,11 @@ truncate_undo_list (list, minsize, maxsize)
 DEFUN ("primitive-undo", Fprimitive_undo, Sprimitive_undo, 2, 2, 0,
   "Undo N records from the front of the list LIST.\n\
 Return what remains of the list.")
-  (count, list)
-     Lisp_Object count, list;
+  (n, list)
+     Lisp_Object n, list;
 {
   int count = specpdl_ptr - specpdl;
-  register int arg = XINT (count);
+  register int arg = XINT (n);
 #if 0  /* This is a good feature, but would make undo-start
 	  unable to do what is expected.  */
   Lisp_Object tem;
