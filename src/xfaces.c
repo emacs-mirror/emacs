@@ -471,15 +471,16 @@ init_frame_faces (f)
 
   /* Make sure that all faces valid on the selected frame are also valid
      on this new frame.  */
-  {
-    int i;
-    int n_faces = selected_frame->display.x->n_faces;
-    struct face **faces = selected_frame->display.x->faces;
+  if (FRAME_X_P (selected_frame))
+    {
+      int i;
+      int n_faces = selected_frame->display.x->n_faces;
+      struct face **faces = selected_frame->display.x->faces;
 
-    for (i = 2; i < n_faces; i++)
-      if (faces[i])
-	ensure_face_ready (f, i);
-  }
+      for (i = 2; i < n_faces; i++)
+	if (faces[i])
+	  ensure_face_ready (f, i);
+    }
 }
 
 
