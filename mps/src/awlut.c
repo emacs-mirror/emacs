@@ -1,6 +1,6 @@
 /* impl.c.awlut: POOL CLASS AWL UNIT TEST
  *
- * $HopeName: MMsrc!awlut.c(trunk.5) $
+ * $HopeName: MMsrc!awlut.c(trunk.6) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -228,6 +228,7 @@ static void *setup(void *v, size_t s)
   mps_thr_t thr;
 
   guff = (struct guff_s *)v;
+  (void)s;
   space = guff->space;
   thr = guff->thr;
 
