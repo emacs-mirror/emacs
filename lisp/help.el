@@ -743,6 +743,23 @@ Returns the documentation as a string, also."
 		    (help-xref-button 1 #'(lambda (v)
 					    (customize-variable v)) variable)
 		    ))))
+	  ;; Make a hyperlink to the library if appropriate.  (Don't
+	  ;; change the format of the buffer's initial line in case
+	  ;; anything expects the current format.)
+	  (let ((file-name (describe-function-find-file variable)))
+	    (when file-name
+	      (princ "\n\nDefined in `")
+	      (princ file-name)
+	      (princ "'.")
+	      (with-current-buffer "*Help*"
+		(save-excursion
+		  (re-search-backward "`\\([^`']+\\)'" nil t)
+		  (help-xref-button 1 (lambda (arg)
+					(let ((location
+					       (find-variable-noselect arg)))
+					  (pop-to-buffer (car location))
+					  (goto-char (cdr location))))
+				    variable)))))
 
 	  (print-help-return-message)
 	  (save-excursion
