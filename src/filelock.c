@@ -112,50 +112,19 @@ extern Lisp_Object Vshell_file_name;
 static time_t
 get_boot_time ()
 {
-  struct utmp ut, *utp;
-  int fd;
-  EMACS_TIME time_before, after;
   int counter;
+  struct stat st;
 
   if (boot_time_initialized)
     return boot_time;
   boot_time_initialized = 1;
 
-  EMACS_GET_TIME (time_before);
-
-  /* Try calculating the last boot time
-     from the uptime as obtained from /proc/uptime.
-
-     This has a disadvantage in that if the system time has been
-     changed (say to correct the clock),
-     then current_time - uptime != wtmp_boot_time.
-     However, the speedup from doing this can be so great
-     that I think it is worth that problem occasionally.  */
-
-  while ((fd = open ("/proc/uptime", O_RDONLY)) >= 0)
+  if (stat ("/var/run/random-seed", &st) == 0)
     {
-      char buf[100];
-      int res;
-      double upsecs;
-      time_t uptime;
-
-      read (fd, buf, sizeof buf);
-      close (fd);
-
-      res = sscanf (buf, "%lf", &upsecs);
-
-      /* If the current time did not tick while we were getting the
-	 uptime, we have a valid result.  */
-      EMACS_GET_TIME (after);
-      if (res == 1 && EMACS_SECS (after) == EMACS_SECS (time_before))
-	{
-	  boot_time = EMACS_SECS (time_before) - (time_t) upsecs;
-	  return boot_time;
-	}
-
-      /* Otherwise, try again to read the uptime.  */
-      time_before = after;
+      boot_time = st.st_mtime;
+      return boot_time;
     }
+
 #if defined (CTL_KERN) && defined (KERN_BOOTTIME)
   {
     int mib[2];
