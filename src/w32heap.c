@@ -142,19 +142,25 @@ allocate_heap (void)
   unsigned long end  = 1 << VALBITS; /* 256MB */
   void *ptr = NULL;
 
-#ifdef NTHEAP_PROBE_BASE
+#if NTHEAP_PROBE_BASE /* This is never normally defined */
+  /* Try various addresses looking for one the kernel will let us have.  */
   while (!ptr && (base < end))
     {
-#endif
       reserved_heap_size = end - base;
       ptr = VirtualAlloc ((void *) base,
 			  get_reserved_heap_size (),
 			  MEM_RESERVE,
 			  PAGE_NOACCESS);
-#ifdef NTHEAP_PROBE_BASE
       base += 0x00100000;  /* 1MB increment */
     }
+#else
+  reserved_heap_size = end - base;
+  ptr = VirtualAlloc ((void *) base,
+		      get_reserved_heap_size (),
+		      MEM_RESERVE,
+		      PAGE_NOACCESS);
 #endif
+
   return ptr;
 }
 
