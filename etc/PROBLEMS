@@ -200,6 +200,12 @@ click in a scroll bar might be ignored by the scroll bar widget.  This
 is probably a bug in Xaw3d; when Xaw3d is compiled with arrows, the
 problem disappears.
 
+* There are known binary incompatibilities between Xaw, Xaw3d, neXtaw,
+XawM and the few other derivatives of Xaw.  So when you compile with
+one of these, it may not work to dynamically link with another one.
+If you try it and it does not work, try rebuilding Emacs with the
+toolkit version you actually want to use.
+
 * Clicking C-mouse-2 in the scroll bar doesn't split the window.
 
 This currently doesn't work with scroll-bar widgets (and we don't know
