@@ -1157,6 +1157,10 @@ DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 7, 0,
   Lisp_Object val, histvar, histpos, position;
   int pos = 0;
   int count = specpdl_ptr - specpdl;
+  struct gcpro gcpro1;
+
+  GCPRO1 (def);
+
   specbind (Qminibuffer_completion_table, table);
   specbind (Qminibuffer_completion_predicate, predicate);
   specbind (Qminibuffer_completion_confirm,
@@ -1202,7 +1206,7 @@ DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 7, 0,
 		      histvar, histpos, def, 0);
   if (STRINGP (val) && XSTRING (val)->size == 0 && ! NILP (def))
     val = def;
-  return unbind_to (count, val);
+  RETURN_UNGCPRO (unbind_to (count, val));
 }
 
 Lisp_Object Fminibuffer_completion_help ();
