@@ -1,7 +1,7 @@
 2000-06-30  Gerd Moellmann  <gerd@gnu.org>
 
-	* frame.c (next_frame): Don't check frame-focus redirection in
-	case MINIBUF is a window.  Doing so excludes frames using MINIBUF
+	* frame.c (next_frame): Don't check focus redirection in case
+	MINIBUF is a window.  Doing so excludes frames using MINIBUF
 	unless their focus is redirected, which contradicts the
 	specification of next-frame, and leads to infinite loops in
 	certain situations when cycling through windows with next-window.
@@ -15,7 +15,7 @@
 2000-06-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (try_window_reusing_current_matrix): Don't try to reuse
-	 the display if windows_or_buffers_changed.
+	the display if windows_or_buffers_changed.
 
 	* dispnew.c (struct row_entry): New structure.
 	(row_entry_pool, row_entry_pool_size, row_entry_idx, row_table)
@@ -23,7 +23,7 @@
 	(new_lines_size, run_pool, runs_size, runs): New variables.
 	(add_row_entry): New function.
 	(scrolling_window): Use data structures allocated with xmalloc and
-	held in global variables, instead of allocing them with alloca and
+	held in global variables, instead of allocating them with alloca and
 	holding them in local variables.  Use a larger hash table whose
 	size depends on glyph matrix sizes.  Don't use bzero to clear the
 	hash table; instead, clear used slots only.
@@ -47,7 +47,7 @@
 
 2000-06-27  Gerd Moellmann  <gerd@gnu.org>
 
-	* xdisp.c (resize_mini_window): Subract the extra line spacing
+	* xdisp.c (resize_mini_window): Subtract the extra line spacing
 	below the last line from the needed window height.
 
 2000-06-26  Stefan Monnier  <monnier@cs.yale.edu>
