@@ -467,7 +467,11 @@ file_name_completion_stat (dirname, dp, st_addr)
   bcopy (dp->d_name, fullname + pos, len);
   fullname[pos + len] = 0;
 
+#ifdef S_IFLNK
+  return lstat (fullname, st_addr);
+#else
   return stat (fullname, st_addr);
+#endif
 }
 
 #ifdef VMS
