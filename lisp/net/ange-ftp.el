@@ -3437,8 +3437,12 @@ Value is (0 0) if the modification time cannot be determined."
                                  (list 'quote "mdtm" (cadr (cdr parsed)))))
 	 (line (cdr res))
 	 (modtime '(0 0)))
-    (when (string-match "^213" line)
-	;; MDTM should return "213 YYYYMMDDhhmmss" GMT on success.
+    ;; MDTM should return "213 YYYYMMDDhhmmss" GMT on success
+    ;; following the Internet draft for FTP extensions.
+    ;; Bob@rattlesnake.com reports that is returns something different
+    ;; for at least one FTP server.  So, let's use the response only
+    ;; if it matches the Internet draft.
+    (when (string-match "^213 [0-9]\\{14\\}$" line)
       (setq modtime
 	    (encode-time
 	     (string-to-number (substring line 16 18))
