@@ -83,7 +83,7 @@
 (defvar lisp-imenu-generic-expression
       '(
 	(nil 
-	 "^\\s-*(def\\(un\\|subst\\|macro\\|advice\\)\\s-+\\([-A-Za-z0-9+*|:/]+\\)" 2)
+	 "^\\s-*(def\\(un\\|subst\\|macro\\|advice\\|ine-skeleton\\)\\s-+\\([-A-Za-z0-9+*|:/]+\\)" 2)
 	("Variables" 
 	 "^\\s-*(def\\(var\\|const\\|custom\\)\\s-+\\([-A-Za-z0-9+*|:/]+\\)" 2)
 	("Types" 
