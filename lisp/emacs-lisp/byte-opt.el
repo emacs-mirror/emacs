@@ -697,7 +697,7 @@
 	((and (null (nthcdr 3 form))
 	      (or (memq (nth 1 form) '(1 -1))
 		  (memq (nth 2 form) '(1 -1))))
-	 ;; Optiize (+ x 1) into (1+ x) and (+ x -1) into (1- x).
+	 ;; Optimize (+ x 1) into (1+ x) and (+ x -1) into (1- x).
 	 (let ((integer
 		(if (memq (nth 1 form) '(1 -1))
 		    (nth 1 form)
@@ -1075,6 +1075,18 @@
       (setq form (nth 2 form))
       (while (>= (setq count (1- count)) 0)
 	(setq form (list 'cdr form)))
+      form)))
+
+(put 'concat 'byte-optimizer 'byte-optimize-concat)
+(defun byte-optimize-concat (form)
+  (let ((args (cdr form))
+	(constant t))
+    (while (and args constant)
+      (or (byte-compile-constp (car args))
+	  (setq constant nil))
+      (setq args (cdr args)))
+    (if constant
+	(eval form)
       form)))
 
 ;;; enumerating those functions which need not be called if the returned 
