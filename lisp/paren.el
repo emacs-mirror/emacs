@@ -82,8 +82,9 @@
 			   (or (setq show-paren-mismatch-face
 				     (internal-find-face 'paren-mismatch))
 			       (progn
+				 (make-face 'paren-mismatch)
 				 (setq show-paren-mismatch-face
-				       (make-face 'paren-mismatch))
+				       'paren-mismatch)
 				 (set-face-background 'paren-mismatch
 						      "purple"))))
 		      (if show-paren-mismatch-face
