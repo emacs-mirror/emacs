@@ -29,7 +29,7 @@
 
 ;;; !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 ;;;  The log file should be set for your system, and it must
-;;;  be writeable by all.
+;;;  be writable by all.
 
 
       (defvar dun-log-file "/usr/local/dunnet.score"
@@ -790,7 +790,7 @@ huge rocks sliding down from the ceiling, and blocking your way out.\n")
 (defun dun-sauna-heat ()
   (if (= dun-sauna-level 0)
       (dun-mprincl 
-       "The termperature has returned to normal room termperature."))
+       "The temperature has returned to normal room temperature."))
   (if (= dun-sauna-level 1)
       (dun-mprincl "It is now luke warm in here.  You begin to sweat."))
   (if (= dun-sauna-level 2)
@@ -2587,7 +2587,7 @@ treasures for points?" "4" "four")
 	(dun-mprincl "
 Welcome to Unix\n
 Please clean up your directories.  The filesystem is getting full.
-Our tcp/ip link to gamma is a little flakey, but seems to work.
+Our tcp/ip link to gamma is a little flaky, but seems to work.
 The current version of ftp can only send files from the current
 directory, and deletes them after they are sent!  Be careful.
 
@@ -2875,7 +2875,7 @@ drwxr-xr-x  3 root     staff          2048 Jan 1 1970 ..")
 	      (dun-uexit nil))))))))
   
 (defun dun-cd (args)
-  (let (tcdpath tcdroom path-elemants room-check)
+  (let (tcdpath tcdroom path-elements room-check)
     (if (not (car args))
 	(dun-mprincl "Usage: cd <path>")
       (setq tcdpath dun-cdpath)
