@@ -771,7 +771,7 @@ typedef unsigned char UCHAR;
 
 #define CHECK_NATNUM(x, i) \
   do { if (XTYPE ((x)) != Lisp_Int || XINT ((x)) < 0)	\
-      x = wrong_type_argument (Qnatnump, (x)); } while (0)
+      x = wrong_type_argument (Qwholenump, (x)); } while (0)
 
 #define CHECK_MARKER(x, i) \
   do { if (XTYPE ((x)) != Lisp_Marker) x = wrong_type_argument (Qmarkerp, (x)); } while (0)
@@ -1100,7 +1100,8 @@ extern Lisp_Object Qmark_inactive;
 extern Lisp_Object Qrange_error, Qdomain_error, Qsingularity_error;
 extern Lisp_Object Qoverflow_error, Qunderflow_error;
 
-extern Lisp_Object Qintegerp, Qnumberp, Qnatnump, Qsymbolp, Qlistp, Qconsp;
+extern Lisp_Object Qintegerp, Qnumberp, Qnatnump, Qwholenump;
+extern Lisp_Object Qsymbolp, Qlistp, Qconsp;
 extern Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
 extern Lisp_Object Qchar_or_string_p, Qmarkerp, Qvectorp;
 extern Lisp_Object Qinteger_or_marker_p, Qnumber_or_marker_p;
