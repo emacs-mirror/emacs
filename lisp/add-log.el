@@ -113,7 +113,9 @@ Third arg OTHER-WINDOW non-nil means visit in other window."
 	      "  (" login-name "@" site-name ")\n\n"))
 
     ;; Search only within the first paragraph.
-    (forward-paragraph 1)
+    (if (looking-at "\n*[^\n* \t]")
+	(skip-chars-forward "\n")
+      (forward-paragraph 1))
     (setq paragraph-end (point))
     (goto-char (point-min))
 
