@@ -261,7 +261,7 @@ If ELEMENT is a string or a character it gets inserted (see also
 `skeleton-transformation').  Other possibilities are:
 
 	\\n	go to next line and indent according to mode
-	_	interesting point, interregion here, point after termination
+	_	interesting point, interregion here
 	>	indent line (or interregion if > _) according to major mode
 	@	add position to `skeleton-positions'
 	&	do next ELEMENT if previous moved point
@@ -269,6 +269,9 @@ If ELEMENT is a string or a character it gets inserted (see also
 	-num	delete num preceding characters (see `skeleton-untabify')
 	resume:	skipped, continue here if quit is signaled
 	nil	skipped
+
+After termination, point will be positioned at the first occurrence
+of _ or @ or at the end of the inserted text.
 
 Further elements can be defined via `skeleton-further-elements'.  ELEMENT may
 itself be a SKELETON with an INTERACTOR.  The user is prompted repeatedly for
@@ -425,6 +428,7 @@ automatically, and you are prompted to fill in the variable parts.")))
 	   (or (eolp) (newline))
 	   (indent-region (line-beginning-position)
 			  (car skeleton-regions) nil))
+	  ;; \n as last element only inserts \n if not at eol.
 	  ((and (null (cdr skeleton)) (eolp)) nil)
 	  (skeleton-newline-indent-rigidly
 	   (indent-to (prog1 (current-indentation) (newline))))
@@ -445,11 +449,9 @@ automatically, and you are prompted to fill in the variable parts.")))
 	   (or skeleton-point
 	       (setq skeleton-point (point)))))
 	((eq element '&)
-	 (if skeleton-modified
-	     (setq skeleton (cdr skeleton))))
+	 (when skeleton-modified (pop skeleton)))
 	((eq element '|)
-	 (or skeleton-modified
-	     (setq skeleton (cdr skeleton))))
+	 (unless skeleton-modified (pop skeleton)))
 	((eq element '@)
 	 (push (point) skeleton-positions)
 	 (unless skeleton-point (setq skeleton-point (point))))
