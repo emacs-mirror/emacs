@@ -139,7 +139,8 @@ If VARIABLE-P is nil, `find-function-regexp' is used, otherwise
 				  find-variable-regexp
 				find-function-regexp)
 			      (regexp-quote (symbol-name symbol))))
-	      (syn-table (syntax-table)))
+	      (syn-table (syntax-table))
+	      (case-fold-search))
 	  (unwind-protect
 	      (progn
 		(set-syntax-table emacs-lisp-mode-syntax-table)
