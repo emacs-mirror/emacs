@@ -835,7 +835,7 @@ extern Lisp_Object Vauto_fill_chars;
 #define BCOPY_SHORT(from, to, len)		\
   do {						\
     int i = len;				\
-    unsigined char *from_p = from, *to_p = to;	\
+    unsigned char *from_p = from, *to_p = to;	\
     while (i--) *from_p++ = *to_p++;		\
   } while (0)
 
