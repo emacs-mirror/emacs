@@ -193,7 +193,7 @@ Setting this variable outside customize has no effect."
 (define-minor-mode utf-translate-cjk-mode
   "Whether the UTF based coding systems should decode/encode CJK characters.
 Enabling this loads tables which allow the coding systems mule-utf-8,
-mule-utf-16-le and mule-utf-16-be to encode characters in the charsets
+mule-utf-16le and mule-utf-16be to encode characters in the charsets
 `korean-ksc5601', `chinese-gb2312', `chinese-big5-1',
 `chinese-big5-2', `japanese-jisx0208' and `japanese-jisx0212', and to
 decode the corresponding unicodes into such characters.
