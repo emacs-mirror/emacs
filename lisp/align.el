@@ -635,9 +635,9 @@ The following attributes are meaningful:
 	    containing alphabetic character, sometimes you may want
 	    the search to proceed case-insensitively (for languages
 	    that ignore case, such as pascal for example).  In that
-	    case, set `case-fold' to nil, and the regular expression
-	    search will ignore case.  If `regexp' is set to a
-	    function, that function must handle the job of ignoring
+	    case, set `case-fold' to a non-nil value, and the regular
+	    expression search will ignore case.  If `regexp' is set to
+	    a function, that function must handle the job of ignoring
 	    case by itself.
 
 `tab-stop'  If the `tab-stop' attribute is set, and non-nil, the
