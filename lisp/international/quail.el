@@ -673,8 +673,12 @@ If TRANSLATION is a Quail map or a function symbol which returns a Quail map,
 	map)))
 
 ;;;###autoload
-(defun quail-install-map (map)
+(defun quail-install-map (map &optional name)
   "Install the Quail map MAP in the current Quail package.
+
+Optional 2nd arg NAME, if non-nil, is a name of Quail package for
+which to install MAP.
+
 The installed map can be referred by the function `quail-map'."
   (if (null quail-current-package)
       (error "No current Quail package"))
@@ -786,8 +790,10 @@ where VECTOR is a vector of candidates (character or string) for
 the translation, and INDEX points into VECTOR to specify the currently
 selected translation."
   (if (and def (symbolp def))
-      ;; DEF is a symbol of a function which returns valid translation.
-      (setq def (funcall def key len)))
+      (if (functionp def)
+	  ;; DEF is a symbol of a function which returns valid translation.
+	  (setq def (funcall def key len))
+	(setq def nil)))
   (if (and (consp def) (not (vectorp (cdr def))))
       (setq def (car def)))
 
@@ -955,17 +961,33 @@ The returned value is a Quail map specific to KEY."
 		    (quail-error (message "%s" (cdr err)) (beep))))
 	      ;; KEYSEQ is not defined in the translation keymap.
 	      ;; Let's return the event(s) to the caller.
-	      (setq generated-events
+	      (setq unread-command-events
 		    (string-to-list (this-single-command-raw-keys)))
 	      (setq quail-translating nil))))
 	(quail-delete-region)
 	(if (and quail-current-str (> (length quail-current-str) 0))
-	    (setq generated-events
-		  (append (string-to-list
-			   (if enable-multibyte-characters
-			       quail-current-str
-			     (string-make-unibyte quail-current-str)))
-			  generated-events)))
+	    (let* ((len (length quail-current-str))
+		   (idx 0)
+		   (val (find-composition 0 len quail-current-str))
+		   char)
+	      ;; Push characters in quail-current-str one by one to
+	      ;; generated-events while interleaving it with a special
+	      ;; event (compose-last-chars LEN) at each composition
+	      ;; end.
+	      (while (<= idx len)
+		(when (and val (= idx (nth 1 val)))
+		  (setq generated-events
+			(cons (list 'compose-last-chars (- idx (car val)))
+			      generated-events))
+		  (setq val (find-composition idx len quail-current-str)))
+		(when (< idx len)
+		  (setq char (aref quail-current-str idx))
+		  (or enable-multibyte-characters
+		      (setq char (multibyte-char-to-unibyte char)))
+		  (setq generated-events (cons char generated-events)))
+		(setq idx (1+ idx)))
+	      ;; Reorder generated-events.
+	      (setq generated-events (nreverse generated-events))))
 	(if (and input-method-exit-on-first-char generated-events)
 	    (list (car generated-events))
 	  generated-events))
@@ -1125,6 +1147,8 @@ The returned value is a Quail map specific to KEY."
   (let ((def (car map)))
     (if (and (consp def) (not (vectorp (cdr def))))
 	(setq def (car def)))
+    (if (eq def t)
+	(setq def nil))
     def))
 
 ;; Return a string to be shown as the current translation of key
@@ -1339,6 +1363,7 @@ sequence counting from the head."
   (if (= (length quail-current-key) 1)
       (quail-abort-translation)
     (setq quail-current-key (substring quail-current-key 0 -1))
+    (quail-delete-region)
     (quail-update-translation (quail-translate-key))))
 
 ;; For conversion mode.
@@ -1636,7 +1661,8 @@ or in a newly created frame (if the selected frame has no other windows)."
 	    (insert "]")))
 
       ;; Show list of translations.
-      (if current-translations
+      (if (and current-translations
+	       (not (quail-deterministic)))
 	  (let* ((indices (car current-translations))
 		 (cur (car indices))
 		 (start (nth 1 indices))
@@ -1657,10 +1683,13 @@ or in a newly created frame (if the selected frame has no other windows)."
 	      (setq idx (1+ idx)))))
       )))
 
+(defvar quail-completion-max-depth 5
+  "The maximum depth of Quail completion list.")
+
 (defun quail-completion ()
   "List all completions for the current key.
 All possible translations of the current key and whole possible longer keys
- are shown."
+are shown (at most to the depth specified `quail-completion-max-depth')."
   (interactive)
   (quail-setup-completion-buf)
   (let ((win (get-buffer-window quail-completion-buf 'visible))
@@ -1700,10 +1729,12 @@ All possible translations of the current key and whole possible longer keys
 	(quail-completion-list-translations map key (+ indent len 1))
       (insert " -\n"))
     (setq indent (+ indent 2))
-    (if (cdr map)
+    (if (and (cdr map) (< (/ (1- indent) 2) quail-completion-max-depth))
 	(let ((l (cdr map))
 	      (newkey (make-string (1+ len) 0))
 	      (i 0))
+	  (if (functionp l)
+	      (setq l (funcall l)))
 	  ;; Set KEY in the first LEN characters of NEWKEY.
 	  (while (< i len)
 	    (aset newkey i (aref key i))
@@ -1965,6 +1996,122 @@ key		binding
 	  (message nil)
 	  (quail-update-guidance)
 	  ))))
+
+;; Quail map generator from state transition table.
+
+(defun quail-map-from-table (table)
+  "Make quail map from state transition table TABLE.
+
+TABLE is an alist, the form is:
+  ((STATE-0 TRANSITION-0-1 TRANSITION-0-2 ...) (STATE-1 ...) ...)
+
+STATE-n are symbols to denote state.  STATE-0 is the initial state.
+
+TRANSITION-n-m are transition rules from STATE-n, and have the form
+\(RULES . STATE-x) or RULES, where STATE-x is one of STATE-n above,
+RULES is a symbol whose value is an alist of keys \(string) vs the
+correponding characters or strings.  The format of the symbol value of
+RULES is the same as arguments to `quail-define-rules'.
+
+If TRANSITION-n-m has the form (RULES . STATE-x), it means that
+STATE-n transits to STATE-x when keys in RULES are input.  Recursive
+transition is allowed, i.e. STATE-x may be STATE-n.
+
+If TRANSITION-n-m has the form RULES, the transition terminates
+when keys in RULES are input.
+
+The generated map can be set for the current Quail package by the
+function `quail-install-map' (which see)."
+  (let ((state-alist (mapcar (lambda (x) (list (car x))) table))
+	tail elt)
+    ;; STATE-ALIST is an alist of states vs the correponding sub Quail
+    ;; map.  It is now initialized to ((STATE-0) (STATE-1) ...).
+    ;; Set key sequence mapping rules in cdr part of each element.
+    (while table
+      (quail-map-from-table-1 state-alist (car table))
+      (setq table (cdr table)))
+
+    ;; Now STATE-ALIST has the form ((STATE-0 MAPPING-RULES) ...).
+    ;; Elements of MAPPING-RULES may have the form (STATE-x).  Replace
+    ;; them with MAPPING-RULES of STATE-x to make elements of
+    ;; STATE-ALIST valid Quail maps.
+    (setq tail state-alist)
+    (while tail
+      (setq elt (car tail) tail (cdr tail))
+      (quail-map-from-table-2 state-alist elt))
+
+    ;; Return the Quail map for the initial state.
+    (car state-alist)))
+
+;; STATE-INFO has the form (STATE TRANSITION ...).  Set key sequence
+;; mapping rules in the element of STATE-ALIST that corresponds to
+;; STATE according to TRANSITION ...
+(defun quail-map-from-table-1 (state-alist state-info)
+  (let* ((state (car state-info))
+	 (map (assq state state-alist))
+	 (transitions (cdr state-info))
+	 elt)
+    (while transitions
+      (setq elt (car transitions) transitions (cdr transitions))
+      (let (rules dst-state key trans)
+	;; ELT has the form (RULES-SYMBOL . STATE-x) or RULES-SYMBOL.
+	;; STATE-x is one of car parts of STATE-ALIST's elements.
+	(if (consp elt)
+	    (setq rules (symbol-value (car elt))
+		  ;; Set (STATE-x) as branches for all keys in RULES.
+		  ;; It is replaced with actual branches for STATE-x
+		  ;; later in `quail-map-from-table-2'.
+		  dst-state (list (cdr elt)))
+	  (setq rules (symbol-value elt)))
+	(while rules
+	  (setq key (car (car rules)) trans (cdr (car rules))
+		rules (cdr rules))
+	  (if (stringp trans)
+	      (if (= (length trans) 1)
+		  (setq trans (aref trans 0))
+		(setq trans (string-to-vector trans))))
+	  (set-nested-alist key trans map nil dst-state))))))
+
+;; ELEMENT is one element of STATE-ALIST.  ELEMENT is a nested alist;
+;; the form is:
+;;	(STATE (CHAR NESTED-ALIST) ...)
+;; NESTED-ALIST is a nested alist; the form is:
+;;	(TRANS (CHAR NESTED-ALIST) ...)
+;; or
+;;	(TRANS (CHAR NESTED-ALIST) ... . (STATE-x))
+;; Here, the task is to replace all occurrences of (STATE-x) with:
+;;	(cdr (assq STATE-x STATE-ALIST))
+
+(defun quail-map-from-table-2 (state-alist element)
+  (let ((prev element)
+	(tail (cdr element))
+	 elt)
+    (while (cdr tail)
+      (setq elt (car tail) prev tail tail (cdr tail))
+      (quail-map-from-table-2 state-alist (cdr elt)))
+    (setq elt (car tail))
+    (if (consp elt)
+	(quail-map-from-table-2 state-alist (cdr elt))
+      (setcdr prev (cdr (assq elt state-alist))))))
+
+;; Concatenate translations for all heading substrings of KEY in the
+;; current Quail map.  Here, `heading substring' means (substring KEY
+;; 0 LEN), where LEN is 1, 2, ... (length KEY).
+(defun quail-lookup-map-and-concat (key)
+  (let* ((len (length key))
+	 (translation-list nil)
+	 map)
+    (while (> len 0)
+      (setq map (quail-lookup-key key len)
+	    len (1- len))
+      (if map
+	  (let* ((def (quail-map-definition map))
+		 (trans (if (consp def) (aref (cdr def) (car (car def)))
+			  def)))
+	    (if (integerp trans)
+		(setq trans (char-to-string trans)))
+	    (setq translation-list (cons trans translation-list)))))
+    (apply 'concat translation-list)))
 
 
 (defvar quail-directory-name "quail"
