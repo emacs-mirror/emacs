@@ -42,6 +42,8 @@
 (defvar electric-help-map ()
   "Keymap defining commands available in `electric-help-mode'.")
 
+(defvar electric-help-form-to-execute nil)
+
 (put 'electric-help-undefined 'suppress-keymap t)
 (if electric-help-map
     ()
@@ -87,6 +89,7 @@
   (setq mode-line-buffer-identification '(" Help:  %b"))
   (use-local-map electric-help-map)
   (setq mouse-leave-buffer-hook '(electric-help-retain))
+  (view-mode -1)
   ;; this is done below in with-electric-help
   ;(run-hooks 'electric-help-mode-hook)
   )
@@ -120,7 +123,7 @@ BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit."
   (let ((one (one-window-p t))
 	(config (current-window-configuration))
         (bury nil)
-        (to-be-executed nil))
+        (electric-help-form-to-execute nil))
     (unwind-protect
          (save-excursion
            (if one (goto-char (window-start (selected-window))))
@@ -131,7 +134,9 @@ BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit."
              (if (and minheight (< (window-height) minheight))
                  (enlarge-window (- minheight (window-height))))
              (electric-help-mode)
-             (or noerase (erase-buffer)))
+	     (or noerase
+		 (let ((inhibit-read-only t))
+		   (erase-buffer))))
            (let ((standard-output buffer))
              (if (not (funcall thunk))
                  (progn
@@ -159,7 +164,7 @@ BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit."
             (replace-buffer-in-windows buffer)
             ;; must do this outside of save-window-excursion
             (bury-buffer buffer)))
-      (eval to-be-executed))))
+      (eval electric-help-form-to-execute))))
 
 (defun electric-help-command-loop ()
   (catch 'exit
@@ -311,14 +316,14 @@ will select it.)"
 ;; continues with execute-extended-command.
 (defun electric-help-execute-extended (prefixarg)
   (interactive "p")
-  (setq to-be-executed '(execute-extended-command nil))
+  (setq electric-help-form-to-execute '(execute-extended-command nil))
   (electric-help-retain))
 
 ;; This is to be buond to C-x in ehelp mode. Retains ehelp buffer and then
 ;; continues with ctrl-x prefix.
 (defun electric-help-ctrl-x-prefix (prefixarg)
   (interactive "p")
-  (setq to-be-executed '(progn (message nil) (setq unread-command-char ?\C-x)))
+  (setq electric-help-form-to-execute '(progn (message nil) (setq unread-command-char ?\C-x)))
   (electric-help-retain))
 
 
