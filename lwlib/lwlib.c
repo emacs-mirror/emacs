@@ -1340,12 +1340,7 @@ lw_set_main_areas (parent, menubar, work_area)
      Widget work_area;
 {
 #if defined (USE_MOTIF)
-  XmMainWindowSetAreas (parent,
-			menubar,	/* menubar (maybe 0) */
-			0,		/* command area (psheets) */
-			0,		/* horizontal scroll */
-			0,              /* vertical scroll */
-			work_area);	/* work area */
+  xm_set_main_areas (parent, menubar, work_area);
 #endif
 }
 
