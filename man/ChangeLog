@@ -1,10 +1,10 @@
 2005-02-16  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs.texi (Top): Update menu for splitting of node in
-	trouble.texi.
+	msdog.texi.
 	* frames.texi (Frames): Update xref for splitting of node in
-	trouble.texi.
-	* trouble.texi (Quitting): Update xref for splitting of node.
+	msdog.texi.
+	* trouble.texi (Quitting): Ditto.
 
 2005-02-16  Richard M. Stallman  <rms@gnu.org>
 
