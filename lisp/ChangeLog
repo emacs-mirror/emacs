@@ -4,6 +4,8 @@
 	ps-print-translation-table.
 	(ps-mule-begin-job): Call find-charset-region/string with
 	ps-print-translation-table.
+	(ps-mule-printable-p): Return t if CHARSET is ascii or
+	latin-iso8859-1.
 
 	* ps-print.el (ps-print-translation-table): New variable.
 	(ps-plot-region): Translate characters by
