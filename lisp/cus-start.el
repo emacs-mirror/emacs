@@ -109,7 +109,8 @@
 						  (integer :format "%v")))
 	     (echo-keystrokes minibuffer boolean)
 	     (polling-period keyboard integer)
-	     (double-click-time mouse integer)
+	     (double-click-time mouse (restricted-sexp
+				       :match-alternatives (integerp 'nil 't)))
 	     (inhibit-local-menu-bar-menus menu boolean)
 	     (help-char keyboard character)
 	     (help-event-list keyboard (repeat (sexp :format "%v")))
@@ -121,6 +122,7 @@
 	     ;; lread.c
 	     (load-path environment 
 			(repeat (choice :tag "[Current dir?]"
+					:format "%[Current dir?%] %v"
 					(const :tag " current dir" nil)
 					(directory :format "%v"))))
 	     ;; minibuf.c
