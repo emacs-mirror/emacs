@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(MMdevel_bufferscan.2) $
+ * $HopeName: MMsrc!buffer.c(trunk.24) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is (part of) the implementation of allocation buffers.
@@ -29,7 +29,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(MMdevel_bufferscan.2) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.24) $");
 
 
 /* BufferCheck -- check consistency of a buffer */
@@ -606,4 +606,40 @@ Pool (BufferPool)(Buffer buffer)
 {
   AVERT(Buffer, buffer);
   return BufferPool(buffer);
+}
+
+Seg (BufferSeg)(Buffer buffer)
+{
+  AVERT(Buffer, buffer);
+  return BufferSeg(buffer);
+}
+
+RankSet (BufferRankSet)(Buffer buffer)
+{
+  AVERT(Buffer, buffer);
+  return BufferRankSet(buffer);
+}
+
+Addr (BufferBase)(Buffer buffer)
+{
+  AVERT(Buffer, buffer);
+  return BufferBase(buffer);
+}
+
+Addr (BufferGetInit)(Buffer buffer)
+{
+  AVERT(Buffer, buffer);
+  return BufferGetInit(buffer);
+}
+
+Addr (BufferAlloc)(Buffer buffer)
+{
+  AVERT(Buffer, buffer);
+  return BufferAlloc(buffer);
+}
+
+Addr (BufferLimit)(Buffer buffer)
+{
+  AVERT(Buffer, buffer);
+  return BufferLimit(buffer);
 }
