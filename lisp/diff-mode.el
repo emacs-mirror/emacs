@@ -1,6 +1,6 @@
 ;;; diff-mode.el --- a mode for viewing/editing context diffs
 
-;; Copyright (C) 1998, 1999, 2000, 2001  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: convenience patch diff
@@ -889,7 +889,9 @@ a diff with \\[diff-reverse-direction]."
   	 (substring buffer-file-name 0 (match-beginning 0))))
   ;; Be careful not to change compilation-last-buffer when we're just
   ;; doing a C-x v = (for example).
-  (let ((compilation-last-buffer compilation-last-buffer))
+  (let ((compilation-last-buffer
+	 (and (boundp 'compilation-last-buffer)
+	      compilation-last-buffer)))
     (compilation-shell-minor-mode 1))
 
   (when (and (> (point-max) (point-min)) diff-default-read-only)
