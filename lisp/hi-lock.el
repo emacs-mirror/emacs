@@ -119,25 +119,26 @@ calls."
   :group 'hi-lock-interactive-text-highlighting)
 
 (defface hi-yellow
-  '((((background dark)) (:background "yellow" :foreground "black"))
+  '((((background dark))
+     (:background "yellow" :foreground "black"))
     (t (:background "yellow")))
   "Default face for hi-lock mode."
   :group 'hi-lock-faces)
 
 (defface hi-pink
-  '(((background dark) (:background "pink" :foreground "black"))
+  '((((background dark)) (:background "pink" :foreground "black"))
     (t (:background "pink")))
   "Face for hi-lock mode."
   :group 'hi-lock-faces)
 
 (defface hi-green
-  '(((background dark) (:background "green" :foreground "black"))
+  '((((background dark)) (:background "green" :foreground "black"))
     (t (:background "green")))
   "Face for hi-lock mode."
   :group 'hi-lock-faces)
 
 (defface hi-blue
-  '(((background dark) (:background "light blue" :foreground "black"))
+  '((((background dark)) (:background "light blue" :foreground "black"))
     (t (:background "light blue")))
   "Face for hi-lock mode."
   :group 'hi-lock-faces)
@@ -477,7 +478,7 @@ Optional argument END is maximum excursion."
   (interactive)
   (font-lock-unfontify-buffer)
   (cond
-   (jit-lock-mode (jit-lock-fontify-buffer))
+   (jit-lock-mode nil)
    ;; Need a better way, since this assumes too much about lazy lock.
    (lazy-lock-mode
     (let ((windows (get-buffer-window-list (current-buffer) 'nomini t)))
