@@ -158,7 +158,7 @@
  "Tajik" `((coding-system koi8-t)
 	   (coding-priority koi8-t)
 	   (nonascii-translation . cyrillic-koi8-t)
-	   (charset . koi8-t)
+	   (charset koi8-t)
 	   (input-method . "russian-typewriter") ; fixme?
 	   (features code-pages)
 	   (documentation . "Support for Tajik using KOI8-T."))
@@ -168,8 +168,8 @@
  "Bulgarian" `((coding-system windows-1251)
 	       (coding-priority windows-1251)
 	       (nonascii-translation . windows-1251)
-	       (charset . windows-1251)
-	       (input-method . "bulgarian-standard")
+	       (charset windows-1251)
+	       (input-method . "bulgarian-bds")
 	       (features code-pages)
 	       (documentation
 		. "Support for Bulgrian with windows-1251 character set."))
@@ -179,7 +179,7 @@
  "Belarusian" `((coding-system windows-1251)
 		(coding-priority windows-1251)
 		(nonascii-translation . windows-1251)
-		(charset . windows-1251)
+		(charset windows-1251)
 		(input-method . "belarusian")
 		(features code-pages)
 		(documentation
