@@ -1,6 +1,6 @@
 ;;; dired.el --- directory-browsing commands
 
-;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 1997, 2000, 2001, 03, 2004
+;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 97, 2000, 01, 03, 2004
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -768,7 +768,6 @@ If HDR is non-nil, insert a header line with the directory name."
 	;; Insert "wildcard" line where "total" line would be for a full dir.
 	(insert "  wildcard " (file-name-nondirectory dir) "\n")))))
 
-;; Make the file names highlight when the mouse is on them.
 (defun dired-insert-set-properties (beg end)
   "Make the file names highlight when the mouse is on them."
   (save-excursion
@@ -2650,7 +2649,7 @@ A prefix argument says to unflag those files instead."
      "auto save file")))
 
 (defcustom dired-garbage-files-regexp
-  ;; `log' here is dubious, ssince it's typically used for useful log
+  ;; `log' here is dubious, since it's typically used for useful log
   ;; files, not just TeX stuff.  -- fx
   (concat (regexp-opt
 	   '(".log" ".toc" ".dvi" ".bak" ".orig" ".rej" ".aux"))
