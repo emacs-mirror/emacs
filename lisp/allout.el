@@ -1453,9 +1453,9 @@ starting point, and PREV-DEPTH is depth of prior topic."
 			   (or (outline-next-sibling curr-depth)
 			       ;; or no more siblings - proceed to
 			       ;; next heading at lesser depth:
-			       (while (<= curr-depth
-					  (outline-recent-depth))
-				 (outline-next-heading)))
+			       (while (and (<= curr-depth
+					       (outline-recent-depth))
+					   (outline-next-heading))))
 			 (outline-next-heading)))
 
 		      ((and (< prev-depth curr-depth)
