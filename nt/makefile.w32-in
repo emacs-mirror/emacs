@@ -113,21 +113,24 @@ bootstrap-nmake:
 	cd ..\src
 	$(MAKE) $(MFLAGS) clean
 	cd ..\lib-src
-	$(MAKE) $(MFLAGS) clean DOC
+	$(MAKE) $(MFLAGS) clean
 	cd ..\src
 	$(MAKE) $(MFLAGS) bootstrap
 	$(MAKE) $(MFLAGS) bootstrap-clean
 	cd ..\lisp
 	$(MAKE) $(MFLAGS) bootstrap
+	cd ..\lib-src
+	$(MAKE) $(MFLAGS) DOC
 	cd ..\nt
 
 bootstrap-gmake:
 	$(MAKE) $(MFLAGS) -C ../lisp bootstrap-clean
 	$(MAKE) $(MFLAGS) -C ../src clean
-	$(MAKE) $(MFLAGS) -C ../lib-src clean DOC
+	$(MAKE) $(MFLAGS) -C ../lib-src clean
 	$(MAKE) $(MFLAGS) -C ../src bootstrap
 	$(MAKE) $(MFLAGS) -C ../src bootstrap-clean
 	$(MAKE) $(MFLAGS) -C ../lisp bootstrap
+	$(MAKE) $(MFLAGS) -C ../lib-src DOC
 
 bootstrap-clean: bootstrap-clean-$(MAKETYPE)
 
