@@ -927,10 +927,12 @@ See the Emacs 21.1 NEWS entry for tooltips for details.
 
 ---
 ** Some images are now supported on MS Windows.
-PBM and XBM images are supported, PNG is supported if the libpng
-and zlib headers were available when Emacs was built, and libpng
-and zlib DLLs are available at run-time. Other formats which require
-external libraries may be similarly supported in future.
+PBM and XBM images are supported, PNG is supported if the libpng and
+zlib headers were available when Emacs was built, and libpng and zlib
+DLLs are available at run-time. Likewise, JPEG is supported if the
+jpeg headers were available when Emacs was built, and jpeg.dll is
+available at run-time.  Other formats which require external
+libraries may be similarly supported in future.
 
 ---
 ** Sound is now supported on MS Windows.
