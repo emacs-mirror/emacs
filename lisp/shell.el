@@ -271,6 +271,12 @@ Thus, this does not include the shell's current directory.")
 (defvar shell-mode-hook '()
   "*Hook for customising Shell mode.")
 
+(defvar shell-font-lock-keywords
+  (list (cons shell-prompt-pattern 'font-lock-keyword-face)
+	'("[ \t]\\([+-][^ \t\n]+\\)" 1 font-lock-comment-face)
+	'("^[^ \t]+:.*$" . font-lock-string-face)
+	'("^\\[[1-9][0-9]*\\]" . font-lock-string-face))
+  "Additional expressions to highlight in Shell mode.")
 
 ;;; Basic Procedures
 ;;; ===========================================================================
@@ -331,6 +337,8 @@ buffer."
   (setq comint-dynamic-complete-functions shell-dynamic-complete-functions)
   (make-local-variable 'paragraph-start)
   (setq paragraph-start comint-prompt-regexp)
+  (make-local-variable 'font-lock-keywords)
+  (setq font-lock-keywords shell-font-lock-keywords)
   (make-local-variable 'shell-dirstack)
   (setq shell-dirstack nil)
   (setq shell-last-dir nil)
