@@ -1,3 +1,11 @@
+2000-01-05  Dave Love  <fx@gnu.org>
+
+	* lisp.el (beginning-of-defun): New variable.
+	(beginning-of-defun-raw): Use it.
+	(end-of-defun): New variable.
+	(end-of-defun): Use it.
+	(check-parens): New command.
+
 2000-01-05  Thien-Thi Nguyen  <ttn@delysid.gnu.org>
 
 	* progmodes/hideshow.el (hs-discard-overlays, hs-flag-region,
@@ -37,12 +45,11 @@
 	(ps-header-lines, ps-left-header, ps-right-header): No more buffer
 	local.
 	(ps-spool-config): Initialization fix.
-	(ps-print-prologue-1, ps-print-prologue-2, ps-print-duplex-feature):
-	PostScript code moved to separated file.
+	(ps-print-prologue-1, ps-print-prologue-2,
+	ps-print-duplex-feature): PostScript code moved to separated file.
 	(ps-background-image): Little code reformating.
 	(ps-begin-file, ps-begin-job): Fix code.
-	(ps-postscript-code-directory, ps-mark-code-directory): New
-	vars.
+	(ps-postscript-code-directory, ps-mark-code-directory): New vars.
 	(ps-prologue-file): New fun.
 
 2000-01-05  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
@@ -69,7 +76,7 @@
 
 2000-01-03  Dave Love  <fx@gnu.org>
 
-	* elide-head.el (elide-head) [defgroup: Add :version.
+	* elide-head.el (elide-head) [defgroup]: Add :version.
 
 	* cl-extra.el (cl-emacs-type): Remove defvar.
 	(cl-not-hash-table, cl-clrhash, cl-maphash, cl-hash-table-count): Use
