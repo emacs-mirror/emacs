@@ -498,7 +498,8 @@ appears in the texinfo file."
              ;;
              ;; We're interested in the second case.
              (concat "\\* "              ; so only menu entries are found
-                     "\\(.*\\): " (car (car new-menu-list))  "[.,\t\n]")
+		     "\\(.*\\): " (regexp-quote (car (car new-menu-list)))
+		     "[.,\t\n]")
              end-of-menu
              t)
             (setcar
@@ -650,7 +651,7 @@ complements the node name rather than repeats it as a title does."
       (if (re-search-forward
            (concat
             "^@node[ \t]+"
-            node-name
+            (regexp-quote node-name)
             ".*\n"                             ; match node line
             "\\("
             "\\(\\(^@c \\|^@comment\\).*\n\\)" ; match comment line, if any
