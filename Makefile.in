@@ -225,6 +225,7 @@ src/paths.h: Makefile ${srcdir}/src/paths.h.in FRC
 	  -e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "'$${lisppath}'";'	\
 	  -e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "'$${buildlisppath}'";' \
 	  -e 's;\(#.*PATH_EXEC\).*$$;\1 "${archlibdir}";'		\
+	  -e 's;\(#.*PATH_INFO\).*$$;\1 "${infodir}";'			\
 	  -e 's;\(#.*PATH_DATA\).*$$;\1 "${etcdir}";'			\
 	  -e 's;\(#.*PATH_LOCK\).*$$;\1 "${lockdir}/";')
 	@${srcdir}/move-if-change src/paths.h.tmp src/paths.h
@@ -321,15 +322,21 @@ Makefile:
 ## place with their files read-only (perhaps because they are checked
 ## into RCS).  In order to make this safe, we make sure that the
 ## source exists and is distinct from the destination.
-install: all mkdir
-	(cd lib-src; $(MAKE) install ${MFLAGS} bindir=${bindir} libdir=${libdir})
+install: all do-install
+
+do-install: mkdir
+	(cd lib-src; \
+	  $(MAKE) install ${MFLAGS} prefix=${prefix} \
+	    exec_prefix=${exec_prefix} bindir=${bindir} libdir=${libdir} \
+	    archlibdir=${archlibdir})
 	-set ${COPYDESTS} ; \
+	 rm -rf ${COPYDESTS} ; \
+	 mkdir ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \
 	   dest=$$1 ; shift ; \
 	   [ -d $${dir} ] \
 	   && [ `(cd $${dir}; /bin/pwd)` != `(cd $${dest}; /bin/pwd)` ] \
 	   && (echo "Copying $${dir}..." ; \
-	       rm -rf $${dest} ; mkdir $${dest} ; \
 	       (cd $${dir}; tar cf - . )|(cd $${dest}; umask 0; tar xvf - ); \
 	       for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
 		 rm -rf $${subdir}/RCS ; \
@@ -358,7 +365,8 @@ install: all mkdir
 ### /usr/local/lib/emacs/19.0/mips-dec-ultrix4.2), we use make-path
 ### instead of mkdir.  Not all systems' mkdirs have the `-p' flag.
 mkdir: FRC
-	./lib-src/make-path ${COPYDESTS} ${lockdir}
+	./lib-src/make-path ${COPYDESTS} ${lockdir} ${infodir} ${mandir} \
+	  ${bindir} ${datadir} ${libdir} ${sitelisp}
 	chmod 777 ${COPYDESTS} ${lockdir}
 
 FRC:
