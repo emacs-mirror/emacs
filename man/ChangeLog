@@ -1,3 +1,7 @@
+2000-05-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* eudc.texi: Fix @direntry, add @dircategory.
+
 2000-05-23   Gerd Moellmann  <gerd@gnu.org>
 
 	* cmdargs.texi, custom.texi, dired-x.texi, ediff.texi,

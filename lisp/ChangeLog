@@ -44,21 +44,21 @@
 
 2000-05-24  Michael Kifer  <kifer@cs.sunysb.edu>
 	
-	* ediff-diff.el (ediff-forward-word): take syntactic word class into
+	* ediff-diff.el (ediff-forward-word): Take syntactic word class into
 	account.
-	(ediff-test-utility,ediff-diff-mandatory-option,
-	ediff-reset-diff-options): utilities for proper initialization of
+	(ediff-test-utility,ediff-diff-mandatory-option)
+	(ediff-reset-diff-options): Utilities for proper initialization of
 	ediff-diff-options and ediff-diff3-options on Windows.
 	
-	* ediff-init.el (ediff-merge-filename-prefix): new customizable
+	* ediff-init.el (ediff-merge-filename-prefix): New customizable
 	variable.
 	
-	* ediff-mult.el (ediff-filegroup-action): use
+	* ediff-mult.el (ediff-filegroup-action): Use
 	ediff-merge-filename-prefix.
 
 2000-05-24  Michael Kifer  <kifer@cs.sunysb.edu>
 
-	* viper-ex.el (ex-write): set selective display to nil.
+	* viper-ex.el (ex-write): Set selective display to nil.
 	
 2000-05-24  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -687,7 +687,7 @@
 
 2000-05-07  Dave Love  <fx@gnu.org>
 
-	* time.el: Small doc fixes from Pavel Janic.
+	* time.el: Small doc fixes from Pavel Janík ml..
 
 2000-05-05  Dave Love  <fx@gnu.org>
 

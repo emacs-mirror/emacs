@@ -1,3 +1,8 @@
+2000-05-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (handle_invisible_prop): Don't try to skip over
+	invisible text if end of text is already reached.
+
 2000-05-25  Dave Love  <fx@gnu.org>
 
 	* xdisp.c (Fdump_glyph_matrix): Declare the arg.
