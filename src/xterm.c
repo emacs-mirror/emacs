@@ -95,6 +95,7 @@ extern void _XEditResCheckMessages ();
 
 #ifndef USE_X_TOOLKIT
 #define x_any_window_to_frame x_window_to_frame
+#define x_top_window_to_frame x_window_to_frame
 #endif
 
 #ifdef HAVE_X11
@@ -3398,14 +3399,18 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      {
 		if (event.xclient.data.l[0] == Xatom_wm_take_focus)
 		  {
-#ifdef USE_X_TOOLKIT
-		    /* f = x_any_window_to_frame (event.xclient.window); */
 		    f = x_window_to_frame (event.xclient.window);
-#else
-		    f = x_window_to_frame (event.xclient.window);
-#endif
+#if 0 /* x_focus_on_frame is a no-op anyway.  */
 		    if (f)
 		      x_focus_on_frame (f);
+		    else
+#endif
+		      /* Since we set WM_TAKE_FOCUS, we must call
+			 XSetInputFocus explicitly.  */
+		      XSetInputFocus (event.xclient.display,
+				      event.xclient.window,
+				      RevertToPointerRoot,
+				      event.xclient.data.l[1]);
 		    /* Not certain about handling scroll bars here */
 		  }
 		else if (event.xclient.data.l[0] == Xatom_wm_save_yourself)
@@ -3454,13 +3459,13 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		    f->display.x->top_pos = new_y;
 		  }
 	      }
-#ifdef USE_X_TOOLKIT
+#if defined (USE_X_TOOLKIT) && defined (HAVE_X11R5)
 	    else if (event.xclient.message_type == Xatom_editres_name)
 	      {
 		struct frame *f = x_any_window_to_frame (event.xclient.window);
 		_XEditResCheckMessages (f->display.x->widget, NULL, &event, NULL);
 	      }
-#endif /* USE_X_TOOLKIT */
+#endif /* USE_X_TOOLKIT and HAVE_X11R5 */
 	  }
 	  break;
 
@@ -3687,10 +3692,10 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		 disabled; you don't want to spend time updating a
 		 display that won't ever be seen.  */
 	      f->async_visible = 0;
-	      /* The window manager never makes a window invisible
-		 ("withdrawn"); all it does is switch between visible
-		 and iconified.  Frames get into the invisible state
-		 only through x_make_frame_invisible.  */
+	      /* We can't distinguish, from the event, whether the window
+		 has become iconified or invisible.  So assume, if it
+		 was previously visible, than now it is iconified.
+		 We depend on x_make_frame_invisible to mark it iconified.  */
 	      if (FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f))
 		f->async_iconified = 1;
 	    }
@@ -3700,11 +3705,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	  break;
 
 	case MapNotify:
-#ifdef USE_X_TOOLKIT
-	  f = x_any_window_to_frame (event.xmap.window);
-#else /* not USE_X_TOOLKIT */
-	  f = x_window_to_frame (event.xmap.window);
-#endif /* not USE_X_TOOLKIT */
+	  f = x_top_window_to_frame (event.xmap.window);
 	  if (f)
 	    {
 	      f->async_visible = 1;
@@ -5462,24 +5463,25 @@ x_make_frame_invisible (f)
   if (x_highlight_frame == f)
     x_highlight_frame = 0;
 
+#if 0/* This might add unreliability; I don't trust it -- rms.  */
   if (! f->async_visible && ! f->async_iconified)
     return;
+#endif
 
   BLOCK_INPUT;
 
 #ifdef HAVE_X11R4
 
 #ifdef USE_X_TOOLKIT
-  if (! XWithdrawWindow (x_current_display, XtWindow (f->display.x->widget),
-			 DefaultScreen (x_current_display)))
+  XtPopdown (f->display.x->widget);
 #else /* not USE_X_TOOLKIT */
   if (! XWithdrawWindow (x_current_display, FRAME_X_WINDOW (f),
 			 DefaultScreen (x_current_display)))
-#endif /* not USE_X_TOOLKIT */
     {
       UNBLOCK_INPUT_RESIGNAL;
       error ("can't notify window manager of window withdrawal");
     }
+#endif /* not USE_X_TOOLKIT */
 
 #else /* ! defined (HAVE_X11R4) */
 #ifdef HAVE_X11
@@ -5517,14 +5519,24 @@ x_make_frame_invisible (f)
 #else /* ! defined (HAVE_X11) */
 
   XUnmapWindow (FRAME_X_WINDOW (f));
-  f->async_visible = 0;		/* Handled by the UnMap event for X11 */
   if (f->display.x->icon_desc != 0)
     XUnmapWindow (f->display.x->icon_desc);
 
 #endif /* ! defined (HAVE_X11) */
 #endif /* ! defined (HAVE_X11R4) */
 
-  XFlushQueue ();
+  /* We can't distinguish this from iconification
+     just by the event that we get from the server.
+     So we can't win using the usual strategy of letting
+     FRAME_SAMPLE_VISIBILITY set this.  So do it by hand,
+     and synchronize with the server to make sure we agree.  */
+  f->visible = 0;
+  FRAME_ICONIFIED_P (f) = 0;
+  f->async_visible = 0;
+  f->async_iconified = 0;
+
+  x_sync ();
+
   UNBLOCK_INPUT;
 }
 
