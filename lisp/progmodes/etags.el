@@ -782,7 +782,7 @@ Assumes the tags table is the current buffer."
 
 ;; Get interactive args for find-tag{-noselect,-other-window,-regexp}.
 (defun find-tag-interactive (prompt &optional no-default)
-  (if current-prefix-arg
+  (if (and current-prefix-arg last-tag)
       (list nil (if (< (prefix-numeric-value current-prefix-arg) 0)
 		    '-
 		  t))
@@ -839,7 +839,7 @@ See documentation of variable `tags-file-name'."
 	      (run-hooks 'local-find-tag-hook))))
       ;; Record whence we came.
       (ring-insert find-tag-marker-ring (point-marker))
-      (if next-p
+      (if (and next-p last-tag)
 	  ;; Find the same table we last used.
 	  (visit-tags-table-buffer 'same)
 	;; Pick a table to use.
@@ -852,7 +852,7 @@ See documentation of variable `tags-file-name'."
 	  (set-buffer
 	   ;; find-tag-in-order does the real work.
 	   (find-tag-in-order
-	    (if next-p last-tag tagname)
+	    (if (and next-p last-tag) last-tag tagname)
 	    (if regexp-p
 		find-tag-regexp-search-function
 	      find-tag-search-function)
@@ -863,7 +863,7 @@ See documentation of variable `tags-file-name'."
 		find-tag-regexp-next-line-after-failure-p
 	      find-tag-next-line-after-failure-p)
 	    (if regexp-p "matching" "containing")
-	    (not next-p)))
+	    (or (not next-p) (not last-tag))))
 	  (set-marker marker (point))
 	  (run-hooks 'local-find-tag-hook)
 	  (ring-insert tags-location-ring marker)
