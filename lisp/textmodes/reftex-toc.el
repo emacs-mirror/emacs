@@ -1,5 +1,5 @@
 ;;; reftex-toc.el --- RefTeX's table of contents mode
-;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Version: 4.18
@@ -177,9 +177,9 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
 " (abbreviate-file-name reftex-last-toc-master)))
 
       (if (reftex-use-fonts)
-          (put-text-property 1 (point) 'face reftex-toc-header-face))
-      (put-text-property 1 (point) 'intangible t)
-      (put-text-property 1 2 'xr-alist xr-alist)
+          (put-text-property (point-min) (point) 'face reftex-toc-header-face))
+      (put-text-property (point-min) (point) 'intangible t)
+      (put-text-property (point-min) (1+ (point-min)) 'xr-alist xr-alist)
 
       (setq offset
 	    (reftex-insert-docstruct
@@ -268,7 +268,7 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
 	   (error t)))))
 
 (defun reftex-re-enlarge ()
-  ;; Enlarge windiw to a remembered size
+  ;; Enlarge window to a remembered size.
   (if reftex-toc-split-windows-horizontally
       (enlarge-window-horizontally
        (max 0 (- (or reftex-last-window-width (window-width))
@@ -484,7 +484,7 @@ Useful for large TOC's."
   ;; If FINAL is t, stay there
   ;; If FINAL is 'hide, hide the *toc* window.
   ;; Otherwise, move cursor back into *toc* window.
-  ;; NO-REVISIT means don't visit files, just use live biffers.
+  ;; NO-REVISIT means don't visit files, just use live buffers.
   ;; This function is pretty clever about finding back a section heading,
   ;; even if the buffer is not live, or things like outline, x-symbol etc.
   ;; have been active.
@@ -539,7 +539,11 @@ Useful for large TOC's."
      ((eq final 'hide)
       (reftex-unhighlight 0)
       (or (one-window-p) (delete-window))
-      (switch-to-buffer show-buffer)
+      ;; If `show-window' is still live, show-buffer is already visible
+      ;; so let's not make it visible in yet-another-window.
+      (if (window-live-p show-window)
+	  (select-window show-window)
+	(switch-to-buffer show-buffer))
       (reftex-re-enlarge))
      (t nil))))
 
