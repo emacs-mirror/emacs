@@ -363,10 +363,10 @@ property of the major mode name.")
   (let ((map (make-sparse-keymap)))
     (cond
      ((eq flyspell-emacs 'xemacs)
-      (define-key map [(button2)] #'flyspell-correct-word/mouse-keymap)
+      (define-key map [(button2)] #'flyspell-correct-word)
       (define-key map "\M-\t" #'flyspell-auto-correct-word))
      (flyspell-use-local-map
-      (define-key map [(mouse-2)] #'flyspell-correct-word/mouse-keymap)
+      (define-key map [(mouse-2)] #'flyspell-correct-word)
       (define-key map "\M-\t" #'flyspell-auto-correct-word)))
     map))
 
@@ -1664,62 +1664,11 @@ This command proposes various successive corrections for the current word."
 							      old-max))))))))))
 	(setq flyspell-auto-correct-pos (point))
 	(ispell-pdict-save t)))))
-
+  
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-correct-word ...                                        */
 ;*---------------------------------------------------------------------*/
 (defun flyspell-correct-word (event)
-  "Check spelling of word under or before the cursor.
-If the word is not found in dictionary, display possible corrections
-in a popup menu allowing you to choose one.
-
-Word syntax described by `ispell-dictionary-alist' (which see).
-
-This will check or reload the dictionary.  Use \\[ispell-change-dictionary]
-or \\[ispell-region] to update the Ispell process."
-  (interactive "e")
-  (if (eq flyspell-emacs 'xemacs)
-      (flyspell-correct-word/mouse-keymap event)
-      (flyspell-correct-word/local-keymap event)))
-    
-;*---------------------------------------------------------------------*/
-;*    flyspell-correct-word/local-keymap ...                           */
-;*---------------------------------------------------------------------*/
-(defun flyspell-correct-word/local-keymap (event)
-  "emacs 19.xx seems to be buggous. Overlay keymap does not seems
-to work correctly with local map. That is, if a key is not
-defined for the overlay keymap, the current local map, is not
-checked. The binding is resolved with the global map. The
-consequence is that we can not use overlay map with flyspell."
-  (interactive "e")
-  (save-window-excursion
-    (let ((save (point)))
-      (mouse-set-point event)
-      ;; we look for a flyspell overlay here
-      (let ((overlays (overlays-at (point)))
-	    (overlay  nil))
-	(while (consp overlays)
-	  (if (flyspell-overlay-p (car overlays))
-	      (progn
-		(setq overlay (car overlays))
-		(setq overlays nil))
-	    (setq overlays (cdr overlays))))
-	;; we return to the correct location
-	(goto-char save)
-	;; we check to see if button2 has been used overlay a
-	;; flyspell overlay
-	(if overlay
-	    ;; yes, so we use the flyspell function
-	    (flyspell-correct-word/mouse-keymap event)
-	  ;; no so we have to use the non flyspell binding
-	  (let ((flyspell-mode nil))
-	    (if (key-binding (this-command-keys))
-		(command-execute (key-binding (this-command-keys))))))))))
-  
-;*---------------------------------------------------------------------*/
-;*    flyspell-correct-word/mouse-keymap ...                           */
-;*---------------------------------------------------------------------*/
-(defun flyspell-correct-word/mouse-keymap (event)
   "Pop up a menu of possible corrections for a misspelled word.
 The word checked is the word at the mouse position."
   (interactive "e")
