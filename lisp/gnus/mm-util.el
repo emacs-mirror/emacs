@@ -41,6 +41,8 @@
     (iso-8859-7 greek-iso8859-7)
     (iso-8859-8 hebrew-iso8859-8)
     (iso-8859-9 latin-iso8859-9)
+    (iso-8859-14 latin-iso8859-14)
+    (iso-8859-15 latin-iso8859-15)
     (viscii vietnamese-viscii-lower)
     (iso-2022-jp latin-jisx0201 japanese-jisx0208 japanese-jisx0208-1978)
     (euc-kr korean-ksc5601)
@@ -121,8 +123,12 @@
       (setq mm-coding-system-list (mm-coding-system-list))))
 
 (defvar mm-charset-synonym-alist
-  '((big5 . cn-big5)
+  `((big5 . cn-big5)
     (gb2312 . cn-gb-2312)
+    ;; Windows-1252 is actually a superset of Latin-1.  See also
+    ;; `gnus-article-dumbquotes-map'.
+    (unless (mm-coding-system-p 'windows-1252) ; should be defined eventually
+      (windows-1252 . iso-8859-1))
     (x-ctext . ctext))
   "A mapping from invalid charset names to the real charset names.")
 
@@ -264,7 +270,8 @@ If the charset is `composition', return the actual one."
 
 (defun mm-mime-charset (charset)
   "Return the MIME charset corresponding to the MULE CHARSET."
-  (if (and (fboundp 'coding-system-get) (fboundp 'get-charset-property))
+  (if (and (fboundp 'coding-system-get)
+	   (fboundp 'get-charset-property))
       ;; This exists in Emacs 20.
       (or
        (and (mm-preferred-coding-system charset)
