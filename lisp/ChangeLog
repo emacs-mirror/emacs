@@ -1,3 +1,21 @@
+2000-07-05  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/easymenu.el (easy-menu-define): Docstring fix.
+	(easy-menu-do-define): Use `menu-item' format.
+	Handle case where easy-menu-create-menu returns a symbol.
+	Manually call the potential top-level filter in the function binding.
+	(easy-menu-filter-return): New arg NAME.
+	Convert to a keymap if MENU is an XEmacs menu.
+	(easy-menu-convert-item-1): New.  Extracted from easy-menu-do-add-item.
+	(easy-menu-converted-items-table, easy-menu-convert-item):
+	New var and fun to memoize easy-menu-convert-item-1.
+	(easy-menu-do-add-item): Use it.
+	(easy-menu-create-menu): Use easy-menu-convert-item.
+	Wrap easy-menu-filter-return around any :filter specification.
+	Don't convert the menu if a filter was specified.
+	Tell easy-menu-make-symbol not to check for MENU being an expression.
+	(easy-menu-make-symbol): New arg NOEXP.
+
 2000-07-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (eval-defun-2): Remove parameter

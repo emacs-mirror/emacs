@@ -1,3 +1,22 @@
+2000-07-05  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* w32menu.c (w32_menu_display_help):
+	* xmenu.c (menu_help_callback): Use show_help_echo.
+
+	* keyboard.h (show_help_echo): Declare.
+
+	* keyboard.c (show_help_echo): New function, extracted from read_char.
+	Feval its `msg' argument if it's a cons cell.
+	(read_char): Use it.
+
+	* xterm.c (note_mode_line_highlight, note_mouse_highlight) 
+	(note_tool_bar_highlight, XTread_socket):
+	* msdos.c (IT_note_mode_line_highlight, IT_note_mouse_highlight) 
+	(dos_rawgetc):
+	* w32term.c (note_mode_line_highlight, note_mouse_highlight)
+	(note_tool_bar_highlight, w32_read_socket):
+	Do not gratuitously ignore non-string `help-echo' properties.
+
 2000-07-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* eval.c (Feval): Put check for interrupt_input_block in #if 0.
