@@ -1,4 +1,7 @@
 2000-08-12  Miles Bader  <miles@gnu.org>
+	
+	* comint.el (comint-output-filter): Don't bother frobbing
+	window-start, it doesn't seem to be necessary.
 
 	* comint.el (comint-send-string, comint-send-region): Make into
 	real functions.  Snapshot the prompt before sending.
