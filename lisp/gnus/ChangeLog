@@ -1,3 +1,17 @@
+2001-03-17  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* message.el (rmail-output): It is in rmailout.el not rmail.el.
+
+	* message.el (message-forward): local-variable-p takes an extra
+	argument in XEmacs.
+
+	* message.el (message-forward-decoded-p): New variable.
+	(message-forward-subject-author-subject): Use it.
+	(message-make-forward-subject): Use it.
+	(message-forward): Use it.
+	
+	* gnus-uu.el (gnus-uu-digest-mail-forward): Use it.
+
 2001-03-05  Dave Love  <fx@gnu.org>
 
 	* mm-util.el (mm-mime-mule-charset-alist): Fix utf-8 case.

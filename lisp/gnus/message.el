@@ -1059,7 +1059,7 @@ Except if it is nil, use Gnus native MUA; if it is t, use
   (autoload 'gnus-request-post "gnus-int")
   (autoload 'gnus-alive-p "gnus-util")
   (autoload 'gnus-group-name-charset "gnus-group")
-  (autoload 'rmail-output "rmail"))
+  (autoload 'rmail-output "rmailout"))
 
 
 
@@ -4145,15 +4145,22 @@ Previous forwarders, replyers, etc. may add it."
 
 ;;; Forwarding messages.
 
+(defvar message-forward-decoded-p nil
+  "Non-nil means the original message is decoded.")
+
 (defun message-forward-subject-author-subject (subject)
   "Generate a SUBJECT for a forwarded message.
 The form is: [Source] Subject, where if the original message was mail,
 Source is the sender, and if the original message was news, Source is
 the list of newsgroups is was posted to."
   (concat "["
-	  (or (message-fetch-field
-	       (if (message-news-p) "newsgroups" "from"))
-	      "(nowhere)")
+	   (let ((prefix 
+		  (or (message-fetch-field
+		       (if (message-news-p) "newsgroups" "from"))
+		      "(nowhere)")))
+	     (if message-forward-decoded-p
+		 prefix
+	       (mail-decode-encoded-word-string prefix)))
 	  "] " subject))
 
 (defun message-forward-subject-fwd (subject)
@@ -4162,7 +4169,7 @@ The form is: Fwd: Subject, where Subject is the original subject of
 the message."
   (concat "Fwd: " subject))
 
-(defun message-make-forward-subject (&optional decoded)
+(defun message-make-forward-subject ()
   "Return a Subject header suitable for the message in the current buffer."
   (save-excursion
     (save-restriction
@@ -4171,7 +4178,7 @@ the message."
 	    (subject (message-fetch-field "Subject")))
 	(setq subject
 	      (if subject
-		  (if decoded 
+		  (if message-forward-decoded-p
 		      subject
 		    (mail-decode-encoded-word-string subject))
 		""))
@@ -4189,15 +4196,22 @@ the message."
 	  (setq funcs (cdr funcs)))
 	subject))))
 
+(eval-when-compile
+  (defvar gnus-article-decoded-p))
+
 ;;;###autoload
 (defun message-forward (&optional news digest)
   "Forward the current message via mail.
 Optional NEWS will use news to forward instead of mail.
 Optional DIGEST will use digest to forward."
   (interactive "P")
-  (let ((cur (current-buffer))
-	(subject (message-make-forward-subject digest))
-	art-beg)
+  (let* ((cur (current-buffer))
+	 (message-forward-decoded-p 
+	  (if (local-variable-p 'gnus-article-decoded-p (current-buffer))
+	      gnus-article-decoded-p  ;; In an article buffer.
+	    message-forward-decoded-p))
+	 (subject (message-make-forward-subject))
+	 art-beg)
     (if news
 	(message-news nil subject)
       (message-mail nil subject))
@@ -4218,7 +4232,8 @@ Optional DIGEST will use digest to forward."
 	  (if message-forward-as-mime
 	      (insert-buffer-substring cur)
 	    (mml-insert-buffer cur))
-	(if message-forward-show-mml
+	(if (and message-forward-show-mml
+		 (not message-forward-decoded-p))
 	    (insert
 	     (with-temp-buffer
 	       (mm-disable-multibyte-mule4) ;; Must copy buffer in unibyte mode

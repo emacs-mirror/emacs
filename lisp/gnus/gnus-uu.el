@@ -564,7 +564,8 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
       (when (re-search-forward "^From:")
 	(delete-region (point) (gnus-point-at-eol))
 	(insert " " from))
-      (message-forward post t))
+      (let ((message-forward-decoded-p t))
+	(message-forward post t)))
     (setq gnus-uu-digest-from-subject nil)))
 
 (defun gnus-uu-digest-post-forward (&optional n)
