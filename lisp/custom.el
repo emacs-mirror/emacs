@@ -311,6 +311,11 @@ following REQ are defined:
   Should be an integer, it is compared with the result of
   `display-color-cells'.
 
+`supports' (only match frames that support the specified face attributes)
+  Should be a list of face attributes.  See the documentation for
+  the function `display-supports-face-attributes-p' for more
+  information on exactly how testing is done.
+
 Read the section about customization in the Emacs Lisp manual for more
 information."
   ;; It is better not to use backquote in this file,
