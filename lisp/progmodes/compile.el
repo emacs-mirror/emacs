@@ -41,10 +41,9 @@
   "List of error message descriptors for visiting erring functions.
 Each error descriptor is a cons (or nil).  Its car is a marker pointing to
 an error message.  If its cdr is a marker, it points to the text of the
-line the message is about.  If its cdr is a cons, that cons's car is a cons
-\(DIRECTORY . FILE\), specifying the file the message is about, and its cdr
-is the number of the line the message is about.  Or its cdr may be nil if
-that error is not interesting.
+line the message is about.  If its cdr is a cons, it is a list
+\(\(DIRECTORY . FILE\) LINE [COLUMN]\).  Or its cdr may be nil if that
+error is not interesting.
 
 The value may be t instead of a list; this means that the buffer of
 error messages should be reparsed the next time the list of errors is wanted.
@@ -162,7 +161,7 @@ of[ \t]+\"?\\([^\"\n]+\\)\"?:" 3 2)
 Each element has the form (REGEXP FILE-IDX LINE-IDX [COLUMN-IDX]).
 If REGEXP matches, the FILE-IDX'th subexpression gives the file name, and
 the LINE-IDX'th subexpression gives the line number.  If COLUMN-IDX is
-given, the COLUMN-IDX'th subexpression gives the column number on that line."
+given, the COLUMN-IDX'th subexpression gives the column number on that line.")
 
 (defvar compilation-read-command t
   "If not nil, M-x compile reads the compilation command to use.
@@ -1161,7 +1160,7 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 	       (save-excursion
 		 (beginning-of-line 1)
 		 (let ((this (cons (point-marker)
-				   (cons filename linenum column))))
+				   (list filename linenum column))))
 		   ;; Don't add the same source line more than once.
 		   (if (equal (cdr this) (cdr (car compilation-error-list)))
 		       nil
