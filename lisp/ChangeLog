@@ -1,3 +1,8 @@
+2002-10-15  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-workfile-unchanged-p,
+	vc-default-workfile-unchanged-p): Moved here from vc.el.
+
 2002-10-14  Juanma Barranquero  <lektu@terra.es>
 
 	* international/mule.el (set-selection-coding-system): Fix spacing.
