@@ -256,7 +256,7 @@ The backup file is the first file given to `diff'."
   "Return the latest existing backup of FILE, or nil."
   (let ((handler (find-file-name-handler fn)))
     (if handler
-	(funcall handler fn)
+	(funcall handler 'diff-latest-backup-file fn)
       ;; First try simple backup, then the highest numbered of the
       ;; numbered backups.
       ;; Ignore the value of version-control because we look for existing
