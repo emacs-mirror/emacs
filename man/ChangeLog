@@ -1,3 +1,7 @@
+2005-02-08  Kim F. Storm  <storm@cua.dk>
+
+	* texinfo.tex (LaTex): Add def.
+
 2005-02-06  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (TeX Language Mode): Add mention of LaTeX mode, and
@@ -185,7 +189,7 @@
 	remote files.
 
 2005-01-15  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
- 
+
  	* man/rmail.texi (Movemail): Explain differences
 	between standard and mailutils versions of movemail.
 	Describe command line and configuration options introduced
@@ -196,7 +200,7 @@
 	user names and user passwords for rmail.
 	(Remote Mailboxes): New section.  Describe
 	how movemail handles remote mailboxes.  Describe configuration
-	options used to control its behavior. 
+	options used to control its behavior.
 	(Other Mailbox Formats): Explain handling of various mailbox
 	formats.
 
