@@ -2199,7 +2199,14 @@ show_mouse_face (dpyinfo, hl)
   FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
   int i;
   int cursor_off = 0;
+  int old_curs_x = curs_x;
+  int old_curs_y = curs_y;
 
+  /* Set these variables temporarily
+     so that if we have to turn the cursor off and on again
+     we will put it back at the same place.  */
+  curs_x = f->phys_cursor_x;
+  curs_y = f->phys_cursor_y;  
   for (i = FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_row;
        i <= FRAME_X_DISPLAY_INFO (f)->mouse_face_end_row; i++)
     {
@@ -2232,7 +2239,10 @@ show_mouse_face (dpyinfo, hl)
 
   /* If we turned the cursor off, turn it back on.  */
   if (cursor_off)
-    x_update_cursor (f, 1);
+    x_display_cursor (f, 1, curs_x, curs_y);
+
+  curs_x = old_curs_x;
+  curs_y = old_curs_y;
 
   /* Change the mouse cursor according to the value of HL.  */
   if (hl > 0)
