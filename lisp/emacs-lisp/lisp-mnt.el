@@ -1,6 +1,6 @@
 ;;; lisp-mnt.el --- minor mode for Emacs Lisp maintainers
 
-;; Copyright (C) 1992, 1994, 1997, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1997, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
@@ -134,6 +134,11 @@ then $identifier: doc string $ is used by GNU ident(1)"
   :type 'regexp
   :group 'lisp-mnt)
 
+(defcustom lm-copyright-prefix "^;+[ \t]+Copyright (C) "
+  "Prefix that is ignored before the dates in a copyright."
+  :type 'regexp
+  :group 'lisp-mnt)
+
 (defcustom lm-comment-column 16
   "Column used for placing formatted output."
   :type 'integer
@@ -196,6 +201,15 @@ If AFTER is non-nil, return the location of the next line."
   "Return the buffer location of the `History' start marker."
   (lm-section-mark lm-history-header))
 
+(defsubst lm-copyright-mark ()
+  "Return the buffer location of the `Copyright' line."
+  (save-excursion
+    (let ((case-fold-search t))
+      (goto-char (point-min))
+      (if (re-search-forward lm-copyright-prefix nil t)
+	  (point))))
+  )
+
 (defun lm-header (header)
   "Return the contents of the header named HEADER."
   (goto-char (point-min))
@@ -231,6 +245,8 @@ The returned value is a list of strings, one per line."
 ;; These give us smart access to the header fields and commentary
 
 (defmacro lm-with-file (file &rest body)
+  "Make a buffer with FILE current, and execute BODY.
+If FILE isn't in a buffer, load it in, and kill it after BODY is executed."
   (let ((filesym (make-symbol "file")))
     `(save-excursion
        (let ((,filesym ,file))
@@ -240,6 +256,22 @@ The returned value is a list of strings, one per line."
 	       (kill-buffer (current-buffer))))))))
 (put 'lm-with-file 'lisp-indent-function 1)
 (put 'lm-with-file 'edebug-form-spec t)
+
+(defun lm-crack-copyright (&optional file)
+  "Return the copyright holder, and a list of copyright years.
+Use the current buffer if FILE is nil.
+Return argument is of the form (\"HOLDER\" \"YEAR1\" ... \"YEARN\")"
+  (lm-with-file file
+    (goto-char (lm-copyright-mark))
+    (let ((holder nil)
+	  (years nil)
+	  (end (line-end-position)))
+      (while (re-search-forward "\\([0-9]+\\),? +" end t)
+	(setq years (cons (match-string-no-properties 1) years)))
+      (if (looking-at ".*$")
+	  (setq holder (match-string-no-properties 0)))
+      (cons holder (nreverse years))
+    )))
 
 (defun lm-summary (&optional file)
   "Return the one-line summary of file FILE, or current buffer if FILE is nil."
@@ -370,8 +402,10 @@ tags `Code', `Change Log' or `History'."
 
 (defun lm-verify (&optional file showok verb)
   "Check that the current buffer (or FILE if given) is in proper format.
-If FILE is a directory, recurse on its files and generate a report in
-a temporary buffer."
+If FILE is a directory, recurse on its files and generate a report in a
+temporary buffer.
+Optional argument SHOWOK indicates that \"OK\" be displayed in the temp buffer.
+Optional argument VERB specifies verbosity."
   (interactive)
   (let* ((verb (or verb (interactive-p)))
 	 (ret (and verb "Ok."))
@@ -419,6 +453,11 @@ a temporary buffer."
 			    "\\|^;;;[ \t]+ End of file[ \t]+" name)
 		    nil t)))
 		(format "Can't find a footer line for [%s]" name))
+	       ((not (and (lm-copyright-mark) (lm-crack-copyright)))
+		"Can't find a valid Copyright")
+	       ((not (string-match "Free Software Foundation"
+				   (car (lm-crack-copyright))))
+		"Copyright Holder is not the Free Software Foundation.")
 	       (t
 		ret)))))
     (if verb
