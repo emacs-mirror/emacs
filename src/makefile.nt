@@ -54,7 +54,11 @@ TLASTLIB	= $(BLD)\lastfile.lib
 
 # see comments in allocate_heap in w32heap.c before changing any of the
 # -stack, -heap, or -base settings.
+!if "$(BUILD_TYPE)" == "spd"
+LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x00800000 -heap:0x00100000 -base:0x01000000 -pdb:$(BLD)\temacs.pdb -machine:$(ARCH) -subsystem:$(SUBSYSTEM) -entry:_start -map:$(BLD)\temacs.map
+!else
 LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x00800000 -heap:0x00100000 -base:0x01000000 -debug:full -pdb:$(BLD)\temacs.pdb -machine:$(ARCH) -subsystem:$(SUBSYSTEM) -entry:_start -map:$(BLD)\temacs.map
+!endif
 
 #
 # Split up the objects into two sets so that we don't run out of
@@ -154,7 +158,8 @@ LIBS =  $(TLIB0)	\
 	$(BASE_LIBS)	\
 	$(ADVAPI32)	\
 	user32.lib	\
-	mpr.lib
+	mpr.lib		\
+	setargv.obj
 
 #
 # Build the executable and dump it.
@@ -245,9 +250,13 @@ install:        all
 #
 # Maintenance
 # 
-clean:;         - $(DEL) *~ *.pdb config.h paths.h
+clean:;         - $(DEL) *~ s\*~
+		- $(DEL) *.pdb config.h paths.h
+		- $(DEL) *.orig *.rej *.crlf
+		- $(DEL) s\*.orig s\*.rej s\*.crlf
 		- $(DEL_TREE) deleted
-		- $(DEL_TREE) $(OBJDIR)
+		- $(DEL_TREE) obj
+		- $(DEL_TREE) obj-spd
 
 #
 # These files are the ones that compile conditionally on CANNOT_DUMP...
