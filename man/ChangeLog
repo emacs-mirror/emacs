@@ -1,3 +1,7 @@
+2005-03-03  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Slow/Expensive Connection): Don't abbreviate "very".
+
 2005-03-03  Nick Roberts  <nickrob@snap.net.nz>
 
 	* trouble.texi (Contributing): Mention Savannah. Direct users to

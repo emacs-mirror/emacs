@@ -1,9 +1,6 @@
 # Generated files
 precious ^(config\.status|config\.cache)$
 
-# Build-in-place makes these directories, so just ignore them
-precious ^(info)$
-
 # Install-in-place makes these directories, so just ignore them
 backup ^(bin|data|lock|site-lisp)$
 

@@ -1,3 +1,7 @@
+2005-03-01  Lute Kamstra  <lute@gnu.org>
+
+	* debugging.texi (Debugger Commands): Update `j'.
+
 2005-02-28  Lute Kamstra  <lute@gnu.org>
 
 	* debugging.texi (Debugging): Fix typo.

@@ -5675,7 +5675,10 @@ because discussions that are spread over several lists tend to be
 fragmented and very difficult to follow.
 
 Also, some source/announcement lists are not intended for discussion;
-responses here are directed to other addresses.")))
+responses here are directed to other addresses.
+
+You may customize the variable `message-use-mail-followup-to', if you
+want to get rid of this query permanently.")))
 	(setq recipients (concat ", " mft)))
        (to-address
 	(setq recipients (concat ", " to-address))
@@ -5871,7 +5874,10 @@ You should normally obey the Followup-To: header.
 `Followup-To: poster' sends your response via e-mail instead of news.
 
 A typical situation where `Followup-To: poster' is used is when the poster
-does not read the newsgroup, so he wouldn't see any replies sent to it."))
+does not read the newsgroup, so he wouldn't see any replies sent to it.
+
+You may customize the variable `message-use-followup-to', if you
+want to get rid of this query permanently."))
 		  (progn
 		    (setq message-this-is-news nil)
 		    (cons 'To (or mrt reply-to from "")))
@@ -5894,7 +5900,10 @@ because discussions that are spread over several newsgroup tend to
 be fragmented and very difficult to follow.
 
 Also, some source/announcement newsgroups are not intended for discussion;
-responses here are directed to other newsgroups."))
+responses here are directed to other newsgroups.
+
+You may customize the variable `message-use-followup-to', if you
+want to get rid of this query permanently."))
 		  (cons 'Newsgroups followup-to)
 		(cons 'Newsgroups newsgroups))))))
 	  (posted-to

@@ -148,6 +148,10 @@ extern int use_file_dialog;
 #  define lstat stat
 #endif
 
+#ifndef FILE_SYSTEM_CASE
+#define FILE_SYSTEM_CASE(filename)  (filename)
+#endif
+
 /* Nonzero during writing of auto-save files */
 int auto_saving;
 
@@ -413,9 +417,7 @@ on VMS, perhaps instead a string ending in `:', `]' or `>'.  */)
   if (!NILP (handler))
     return call2 (handler, Qfile_name_directory, filename);
 
-#ifdef FILE_SYSTEM_CASE
   filename = FILE_SYSTEM_CASE (filename);
-#endif
   beg = SDATA (filename);
 #ifdef DOS_NT
   beg = strcpy (alloca (strlen (beg) + 1), beg);
@@ -1124,10 +1126,7 @@ See also the function `substitute-in-file-name'.  */)
   /* Filenames on VMS are always upper case.  */
   name = Fupcase (name);
 #endif
-#ifdef FILE_SYSTEM_CASE
   name = FILE_SYSTEM_CASE (name);
-#endif
-
   nm = SDATA (name);
 
 #ifdef DOS_NT
@@ -6385,7 +6384,7 @@ and `read-file-name-function'.  */)
     {
        Lisp_Object val1 = double_dollars (val);
        tem = Fsymbol_value (Qfile_name_history);
-       if (history_delete_duplicates) 
+       if (history_delete_duplicates)
 	 XSETCDR (tem, Fdelete (val1, XCDR(tem)));
        XSETCAR (tem, val1);
     }

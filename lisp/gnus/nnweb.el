@@ -54,11 +54,11 @@ Valid types include `google', `dejanews', and `gmane'.")
 (defvar nnweb-type-definition
   '((google
      (article . ignore)
-     (id . "http://groups.google.com/groups?selm=%s&output=gplain")
+     (id . "http://groups.google.de/groups?selm=%s&output=gplain")
      (reference . identity)
      (map . nnweb-google-create-mapping)
      (search . nnweb-google-search)
-     (address . "http://groups.google.com/groups")
+     (address . "http://groups.google.de/groups?hl=en")
      (identifier . nnweb-google-identity))
     (dejanews ;; alias of google
      (article . ignore)

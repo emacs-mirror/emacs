@@ -26688,7 +26688,7 @@ Gnus has to get from the @acronym{NNTP} server.
 
 @item gnus-read-active-file
 Set this to @code{nil}, which will inhibit Gnus from requesting the
-entire active file from the server.  This file is often v.  large.  You
+entire active file from the server.  This file is often very large.  You
 also have to set @code{gnus-check-new-newsgroups} and
 @code{gnus-check-bogus-newsgroups} to @code{nil} to make sure that Gnus
 doesn't suddenly decide to fetch the active file anyway.
