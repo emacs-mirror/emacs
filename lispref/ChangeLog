@@ -1,3 +1,12 @@
+2003-10-03  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+
+	* modes.texi (Major Mode Conventions): Mention third way to set up
+	Imenu.
+	(Imenu): A number of small fixes.
+	Delete documentation of internal variable imenu--index-alist.
+	Document the return value format of imenu-create-index-function
+	functions.
+
 2003-09-30  Richard M. Stallman  <rms@gnu.org>
 
 	* processes.texi (Network): Say what stopped datagram connections do.
