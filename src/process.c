@@ -1875,7 +1875,11 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 to give it higher priority than subprocesses */
 
       if (XINT (read_kbd) && detect_input_pending ())
-	break;
+	{
+	  swallow_events ();
+	  if (detect_input_pending ())
+	    break;
+	}
 
       /* Exit now if the cell we're waiting for became non-nil.  */
       if (wait_for_cell && ! NILP (*wait_for_cell))
