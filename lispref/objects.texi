@@ -161,24 +161,24 @@ latter are unique to Emacs Lisp.
 @node Integer Type
 @subsection Integer Type
 
-  The range of values for integers in Emacs Lisp is @minus{}134217728 to
-134217727 (28 bits; i.e.,
+  The range of values for integers in Emacs Lisp is @minus{}268435456 to
+268435455 (29 bits; i.e.,
 @ifnottex
--2**27
+-2**28
 @end ifnottex
 @tex
-@math{-2^{27}}
+@math{-2^{28}}
 @end tex
 to
 @ifnottex
-2**27 - 1)
+2**28 - 1)
 @end ifnottex
 @tex
 @math{2^{28}-1})
 @end tex
 on most machines.  (Some machines may provide a wider range.)  It is
 important to note that the Emacs Lisp arithmetic functions do not check
-for overflow.  Thus @code{(1+ 134217727)} is @minus{}134217728 on most
+for overflow.  Thus @code{(1+ 268435455)} is @minus{}268435456 on most
 machines.
 
   The read syntax for integers is a sequence of (base ten) digits with an
@@ -192,7 +192,7 @@ leading @samp{+} or a final @samp{.}.
 1                ; @r{The integer 1.}
 1.               ; @r{Also the integer 1.}
 +1               ; @r{Also the integer 1.}
-268435457        ; @r{Also the integer 1 on a 28-bit implementation.}
+536870913        ; @r{Also the integer 1 on a 29-bit implementation.}
 @end group
 @end example
 
@@ -365,9 +365,8 @@ modifier key.  The integer that represents such a character has the
 @ifnottex
 2**27
 @end ifnottex
-bit set (which on most machines makes it a negative number).  We
-use high bits for this and other modifiers to make possible a wide range
-of basic character codes.
+bit set.  We use high bits for this and other modifiers to make
+possible a wide range of basic character codes.
 
   In a string, the
 @tex
