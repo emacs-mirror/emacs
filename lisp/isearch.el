@@ -301,6 +301,7 @@ Default value, nil, means edit the string instead."
     ;; Nothing special for + because it matches at least once.
     (define-key map "*" 'isearch-*-char)
     (define-key map "?" 'isearch-*-char)
+    (define-key map "{" 'isearch-{-char)
     (define-key map "|" 'isearch-|-char)
 
     ;; Turned off because I find I expect to get the global definition--rms.
@@ -1186,21 +1187,30 @@ might return the position of the end of the line."
   (isearch-update))
 
 
+(defun isearch-{-char ()
+  "Handle \{ specially in regexps."
+  (interactive)
+  (isearch-*-char t))
+
 ;; *, ?, and | chars can make a regexp more liberal.
 ;; They can make a regexp match sooner or make it succeed instead of failing.
 ;; So go back to place last successful search started
 ;; or to the last ^S/^R (barrier), whichever is nearer.
 ;; + needs no special handling because the string must match at least once.
 
-(defun isearch-*-char ()
-  "Handle * and ? specially in regexps."
+(defun isearch-*-char (&optional want-backslash)
+  "Handle * and ? specially in regexps.
+When WANT-BACKSLASH is non-nil, do special handling for \{."
   (interactive)
   (if isearch-regexp
       (let ((idx (length isearch-string)))
 	(while (and (> idx 0)
 		    (eq (aref isearch-string (1- idx)) ?\\))
 	  (setq idx (1- idx)))
-	(when (= (mod (- (length isearch-string) idx) 2) 0)
+	;; * and ? are special when not preceded by \.
+	;; { is special when it is preceded by \.
+	(when (= (mod (- (length isearch-string) idx) 2)
+		 (if want-backslash 1 0))
 	  (setq isearch-adjusted t)
 	  ;; Get the isearch-other-end from before the last search.
 	  ;; We want to start from there,
