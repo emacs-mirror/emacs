@@ -623,18 +623,11 @@ If INITVALUE is missing, SYMBOL's value is not set.")
 
 DEFUN ("defconst", Fdefconst, Sdefconst, 2, UNEVALLED, 0,
   "(defconst SYMBOL INITVALUE DOCSTRING): define SYMBOL as a constant variable.\n\
-The intent is that programs do not change this value, but users may.\n\
+The intent is that nether programs nor users should ever change this value.\n\
 Always sets the value of SYMBOL to the result of evalling INITVALUE.\n\
 If SYMBOL is buffer-local, its default value is what is set;\n\
  buffer-local values are not affected.\n\
-DOCSTRING is optional.\n\
-If DOCSTRING starts with *, this variable is identified as a user option.\n\
- This means that M-x set-variable and M-x edit-options recognize it.\n\n\
-Note: do not use `defconst' for user options in libraries that are not\n\
-normally loaded, since it is useful for users to be able to specify\n\
-their own values for such variables before loading the library.\n\
-Since `defconst' unconditionally assigns the variable,\n\
-it would override the user's choice.")
+DOCSTRING is optional.")
   (args)
      Lisp_Object args;
 {
