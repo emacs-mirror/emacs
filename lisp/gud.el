@@ -1118,8 +1118,9 @@ comint mode, which see."
 	 (file-word (let ((w (cdr words)))
 		      (while (and w (= ?- (aref (car w) 0)))
 			(setq w (cdr w)))
-		      (prog1 (car w)
-			(setcar w t))))
+		      (and w
+			   (prog1 (car w)
+			     (setcar w t)))))
 	 (file-subst
 	  (and file-word (substitute-in-file-name file-word)))
 	 (args (cdr words))
@@ -1132,8 +1133,8 @@ comint mode, which see."
 		    (if (file-name-directory file-subst)
 			(expand-file-name file-subst)
 		      file-subst)))
-	 (filepart (and file-word (file-name-nondirectory file))))
-    (switch-to-buffer (concat "*gud-" filepart "*"))
+	 (filepart (and file-word (concat "-" (file-name-nondirectory file)))))
+    (switch-to-buffer (concat "*gud" filepart "*"))
     ;; Set default-directory to the file's directory.
     (and file-word
 	 ;; Don't set default-directory if no directory was specified.
@@ -1149,8 +1150,9 @@ comint mode, which see."
     (let ((w args))
       (while (and w (not (eq (car w) t)))
 	(setq w (cdr w)))
-      (setcar w file))
-    (apply 'make-comint (concat "gud-" filepart) program nil
+      (if w
+	  (setcar w file)))
+    (apply 'make-comint (concat "gud" filepart) program nil
 	   (if file-word (funcall massage-args file args) args)))
   ;; Since comint clobbered the mode, we don't set it until now.
   (gud-mode)
