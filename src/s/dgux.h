@@ -116,9 +116,33 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define subprocesses
 
 /* If your system uses COFF (Common Object File Format) then define the
-   preprocessor symbol "COFF". */
+   preprocessor symbol "COFF".
 
+   DGUX can use either COFF or ELF.  To use ELF format, define ELF.  */
+
+#ifndef ELF
 #define COFF
+#endif
+
+#ifndef COFF /* People will probably find this apparently unreliable
+		till the NFS dumping bug is fixed.  */
+
+/* It is possible to undump to ELF with DG/UX 5.4, but for revisions below
+   5.4.1 the undump MUST be done on a local file system, or the kernel will
+   panic.  ELF executables have the advantage of using shared libraries,
+   while COFF executables will still work on 4.2x systems. */
+
+#define UNEXEC unexelf.o
+
+/* This makes sure that all segments in the executable are undumped,
+   not just text, data, and bss.  In the case of Mxdb and shared
+   libraries, additional information is stored in other sections.
+   It does not hurt to have this defined if you don't use Mxdb or
+   shared libraries.  In fact, it makes no difference. */
+
+/* Necessary for shared libraries and Mxdb debugging information. */
+#define USG_SHARED_LIBRARIES
+#endif
 
 /* define MAIL_USE_FLOCK if the mailer uses flock
    to interlock access to /usr/spool/mail/$USER.
@@ -201,7 +225,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  */
 
 #ifndef HAVE_TERMIO
+#ifndef _BSD_TTY_FLAVOR		/* Already defined, in dgux 4.30.  */
 #define _BSD_TTY_FLAVOR
+#endif
 #endif
 
 /*
@@ -252,3 +278,28 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* force gcc to be used */
 CC=gcc
 #endif /* not MAKING_MAKEFILE */
+
+/* definitions for xmakefile production */
+#ifdef COFF
+ 
+#define C_COMPILER \
+  TARGET_BINARY_INTERFACE=m88kdguxcoff gcc -traditional
+ 
+#define LINKER \
+  TARGET_BINARY_INTERFACE=m88kdguxcoff gcc -nostdlib
+
+#define MAKE_COMMAND \
+  TARGET_BINARY_INTERFACE=m88kdguxcoff make
+
+#else /* not COFF */
+
+#define C_COMPILER \
+  TARGET_BINARY_INTERFACE=m88kdguxelf gcc -traditional
+ 
+#define LINKER \
+  TARGET_BINARY_INTERFACE=m88kdguxelf gcc -nostdlib
+
+#define MAKE_COMMAND \
+  TARGET_BINARY_INTERFACE=m88kdguxelf make
+
+#endif /* COFF */
