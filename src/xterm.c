@@ -1758,8 +1758,9 @@ x_scrollbar_create (window, top, left, width, height)
 		    | ButtonMotionMask | PointerMotionHintMask
 		    | ExposureMask);
     a.cursor = x_vertical_scrollbar_cursor;
+    a.win_gravity = EastGravity;
 
-    mask = (CWBackPixel | CWEventMask | CWCursor);
+    mask = (CWBackPixel | CWEventMask | CWCursor | CWWinGravity);
 
     SET_SCROLLBAR_X_WINDOW
       (bar, 
@@ -4061,28 +4062,26 @@ x_iconify_frame (f)
   UNBLOCK_INPUT;
 }
 
-/* Destroy the X window of frame F.
-   DISPL is the former f->display (since f->display
-   has already been nulled out).  */
+/* Destroy the X window of frame F.  */
 
-x_destroy_window (f, displ)
+x_destroy_window (f)
      struct frame *f;
-     union display displ;
 {
-  int mask;
-
   BLOCK_INPUT;
-  if (displ.x->icon_desc != 0)
-    XDestroyWindow (XDISPLAY displ.x->icon_desc);
-  XDestroyWindow (XDISPLAY displ.x->window_desc);
-  XFlushQueue ();
-  UNBLOCK_INPUT;
 
-  free (displ.x);
+  if (f->display.x->icon_desc != 0)
+    XDestroyWindow (XDISPLAY f->display.x->icon_desc);
+  XDestroyWindow (XDISPLAY f->display.x->window_desc);
+  XFlushQueue ();
+
+  free (f->display.x);
+  f->display.x = 0;
   if (f == x_focus_frame)
     x_focus_frame = 0;
   if (f == x_highlight_frame)
     x_highlight_frame = 0;
+
+  UNBLOCK_INPUT;
 }
 
 /* Manage event queues for X10.  */
