@@ -13,6 +13,21 @@
 
 2004-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/byte-opt.el (byte-compile-inline-expand): Understand the
+	new byte-compile-function-environment binding to t.
+
+	* font-lock.el (font-lock-fontify-syntactically-region):
+	Don't forget to highlight the last char when we hit `end'.
+
+	* mwheel.el (mouse-wheel-progressive-speed): Fix typo in name.
+	(mwheel-scroll): Adjust accordingly.
+
+	* cvs-status.el: Reduce spurious warnings.
+	(cvs-status-checkout): Remove.
+	(cvs-status-mode-map): Use cvs-mode-checkout instead.
+
+	* pcvs.el (cvs-mode-checkout): New command.
+
 	* international/iso-cvt.el (iso-cvt-define-menu): Fix typo.
 
 	* tooltip.el: Require CL.
