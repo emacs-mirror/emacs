@@ -1,3 +1,7 @@
+2001-12-19  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* loadup.el: Add "language" to the load-path.
+
 2001-12-19  Richard M. Stallman  <rms@gnu.org>
 
 	* international/mule-cmds.el (describe-language-environment): 

@@ -1,5 +1,8 @@
 2001-12-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* dired.c (file_name_completion): Run the elements of
+	completion-ignored-extensions through ENCODE_FILE.
+
 	* lisp.h (scmp): Remove prototype, since it's now a static
 	function private to dired.c.
 
