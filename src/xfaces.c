@@ -484,7 +484,7 @@ struct table_entry;
 static void map_tty_color P_ ((struct frame *, struct face *,
 			       enum lface_attribute_index, int *));
 static Lisp_Object resolve_face_name P_ ((Lisp_Object));
-static int may_use_scalable_font_p P_ ((char *));
+static int may_use_scalable_font_p P_ ((const char *));
 static void set_font_frame_param P_ ((Lisp_Object, Lisp_Object));
 static int better_font_p P_ ((int *, struct font_name *, struct font_name *,
 			      int, int));
@@ -2476,7 +2476,7 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p)
   for (tem = lfonts; CONSP (tem) && n < nfonts; tem = XCDR (tem))
     {
       Lisp_Object elt, tail;
-      char *name = SDATA (XCAR (tem));
+      const char *name = SDATA (XCAR (tem));
 
       /* Ignore fonts matching a pattern from face-ignored-fonts.  */
       for (tail = Vface_ignored_fonts; CONSP (tail); tail = XCDR (tail))
@@ -4528,7 +4528,7 @@ x_update_menu_appearance (f)
       char line[512];
       Lisp_Object lface = lface_from_face_name (f, Qmenu, 1);
       struct face *face = FACE_FROM_ID (f, MENU_FACE_ID);
-      char *myname = SDATA (Vx_resource_name);
+      const char *myname = SDATA (Vx_resource_name);
       int changed_p = 0;
 #ifdef USE_MOTIF
       const char *popup_path = "popup_menu";
@@ -4939,7 +4939,7 @@ static INLINE unsigned
 hash_string_case_insensitive (string)
      Lisp_Object string;
 {
-  unsigned char *s;
+  const unsigned char *s;
   unsigned hash = 0;
   xassert (STRINGP (string));
   for (s = SDATA (string); *s; ++s)
@@ -6126,7 +6126,7 @@ build_scalable_font_name (f, font, specified_pt)
 
 static int
 may_use_scalable_font_p (font)
-     char *font;
+     const char *font;
 {
   if (EQ (Vscalable_fonts_allowed, Qt))
     return 1;
