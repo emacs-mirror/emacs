@@ -59,8 +59,10 @@ character set which supports the following European languages:
  German, Greenlandic, Icelandic, Irish Gaelic (new orthography),
  Italian, Latin, Luxemburgish, Norwegian, Portuguese, Rhaeto-Romanic,
  Scottish Gaelic, Spanish, and Swedish.
-We also have Dutch, German and Spanish-specific language environments
-called \"Dutch\", \"German\" and \"Spanish\" respectively.
+We also have specific language environments for the following languages:
+  For Dutch, \"Dutch\".
+  For German, \"German\".
+  For Spanish, \"Spanish\".
 
 Latin-1 also covers several written languages outside Europe, including
 Indonesian/Malay, Tagalog (Philippines), Swahili and Afrikaans."))
