@@ -2194,7 +2194,37 @@ it were the arg to `interactive' (which see) to interactively read the value."
 					   'arg))
 	       (eval-minibuffer (format "Set %s to value: " var)))))))
   (set var val))
+
+;; Define the major mode for lists of completions.
 
+(defvar completion-mode-map nil)
+(or completion-mode-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map [mouse-2] 'mouse-choose-completion)
+      (setq completion-mode-map map)))
+
+;; Completion mode is suitable only for specially formatted data.
+(put 'completion-mode 'mode-class 'special)
+
+(defun completion-mode ()
+  "Major mode for buffers showing lists of possible completions.
+Type \\<completion-mode-map>\\[mouse-choose-completion] to select
+a completion with the mouse."
+  (interactive)
+  (kill-all-local-variables)
+  (use-local-map completion-mode-map)
+  (setq mode-name "Completion")
+  (setq major-mode 'completion-mode)
+  (run-hooks 'completion-mode-hook))
+
+(defun completion-setup-function ()
+  (save-excursion
+    (completion-mode)
+    (goto-char (point-min))
+    (insert (substitute-command-keys
+	     "Click \\[mouse-choose-completion] on a completion to select it.\n\n"))))
+
+(add-hook 'completion-setup-hook 'completion-setup-function)
 
 ;;;; Keypad support.
 
