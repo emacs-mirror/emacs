@@ -10,8 +10,6 @@
 /* olson@mcs.anl.gov says -li18n is needed by -lXm.  */
 #define LIB_MOTIF -lXm -li18n
 
-/* Cancel definition from aix3-1.h.  */
-#undef sigsetmask
-
-#undef _setjmp
-#undef _longjmp
+#ifdef __GNUC__
+#undef _NO_PROTO
+#endif
