@@ -378,7 +378,8 @@ history list.  Default is to save anything that isn't all whitespace.")
   "Functions to call before input is sent to the process.
 These functions get one argument, a string containing the text to send.
 
-This variable is buffer-local.")
+You can use `add-hook' to add functions to this list
+either globally or locally.")
 
 (defvar comint-output-filter-functions '(comint-postoutput-scroll-to-bottom)
   "Functions to call after output is inserted into the buffer.
@@ -390,7 +391,8 @@ functions have already modified the buffer.
 
 See also `comint-preoutput-filter-functions'.
 
-This variable is buffer-local.")
+You can use `add-hook' to add functions to this list
+either globally or locally.")
 
 (defvar comint-input-sender-no-newline nil
   "Non-nil directs the `comint-input-sender' function not to send a newline.")
@@ -1564,7 +1566,8 @@ given the string returned by the previous one.  The string returned by
 the last function is the text that is actually inserted in the
 redirection buffer.
 
-This variable is permanent-local.")
+You can use `add-hook' to add functions to this list
+either globally or locally.")
 
 ;; When non-nil, this is the last overlay used for output.
 ;; It is kept around so that we can extend it instead of creating
@@ -1631,7 +1634,12 @@ This function should be in the list `comint-output-filter-functions'."
 	;; Run preoutput filters
 	(let ((functions comint-preoutput-filter-functions))
 	  (while (and functions string)
-	    (setq string (funcall (car functions) string))
+	    (if (eq (car functions) t)
+		(let ((functions (default-value 'comint-preoutput-filter-functions)))
+		  (while (and functions string)
+		    (setq string (funcall (car functions) string))
+		    (setq functions (cdr functions))))
+	      (setq string (funcall (car functions) string)))
 	    (setq functions (cdr functions))))
 
 	;; Insert STRING
@@ -2990,9 +2998,10 @@ string.
 
 The functions on the list are called sequentially, and each one is given
 the string returned by the previous one.  The string returned by the
-last function is the text that is actually inserted in the redirection buffer.")
+last function is the text that is actually inserted in the redirection buffer.
 
-(make-variable-buffer-local 'comint-redirect-filter-functions)
+You can use `add-hook' to add functions to this list
+either globally or locally.")
 
 ;; Internal variables
 
@@ -3126,8 +3135,16 @@ This function does not need to be invoked by the end user."
     ;; If there are any filter functions, give them a chance to modify the string
     (let ((functions comint-redirect-filter-functions))
       (while (and functions filtered-input-string)
-	(setq filtered-input-string
-	      (funcall (car functions) filtered-input-string))
+	(if (eq (car functions) t)
+	    ;; If a local value says "use the default value too",
+	    ;; do that.
+	    (let ((functions (default-value 'comint-redirect-filter-functions)))
+	      (while (and functions filtered-input-string)
+		(setq filtered-input-string
+		      (funcall (car functions) filtered-input-string))
+		(setq functions (cdr functions))))
+	  (setq filtered-input-string
+		(funcall (car functions) filtered-input-string)))
 	(setq functions (cdr functions))))
 
     ;; Clobber `comint-redirect-finished-regexp'
