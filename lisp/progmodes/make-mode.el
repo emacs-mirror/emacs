@@ -108,7 +108,7 @@
      (t (:reverse-video t)))
   "Face to use for highlighting leading spaces in Font-Lock mode."
   :group 'faces
-  :group 'makemode)
+  :group 'makefile)
 
 (defcustom makefile-browser-buffer-name "*Macros and Targets*"
   "*Name of the macro- and target browser buffer."
