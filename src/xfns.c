@@ -1,5 +1,5 @@
 /* Functions for the X window system.
-   Copyright (C) 1989, 1992 Free Software Foundation.
+   Copyright (C) 1989, 1992, 1993 Free Software Foundation.
 
 This file is part of GNU Emacs.
 
@@ -246,6 +246,7 @@ Lisp_Object Qsuppress_icon;
 Lisp_Object Qsuppress_initial_map;
 Lisp_Object Qtop;
 Lisp_Object Qundefined_color;
+Lisp_Object Qvertical_scrollbars;
 Lisp_Object Qwindow_id;
 Lisp_Object Qx_frame_parameter;
 
@@ -336,7 +337,7 @@ void x_set_internal_border_width ();
 void x_explicitly_set_name ();
 void x_set_autoraise ();
 void x_set_autolower ();
-void x_set_vertical_scrollbar ();
+void x_set_vertical_scrollbars ();
 
 static struct x_frame_parm_table x_frame_parms[] =
 {
@@ -352,7 +353,7 @@ static struct x_frame_parm_table x_frame_parms[] =
   "name", x_explicitly_set_name,
   "autoraise", x_set_autoraise,
   "autolower", x_set_autolower,
-  "vertical-scrollbar", x_set_vertical_scrollbar,
+  "vertical-scrollbars", x_set_vertical_scrollbars,
 };
 
 /* Attach the `x-frame-parameter' properties to
@@ -947,7 +948,7 @@ x_set_name (f, name, explicit)
       /* If we're switching from explicit to implicit, we had better
 	 update the mode lines and thereby update the title.  */
       if (f->explicit_name && NILP (name))
-	update_mode_lines;
+	update_mode_lines = 1;
 
       f->explicit_name = ! NILP (name);
     }
@@ -1030,7 +1031,7 @@ x_set_autolower (f, arg, oldval)
 }
 
 void
-x_set_vertical_scrollbar (f, arg, oldval)
+x_set_vertical_scrollbars (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
@@ -1038,7 +1039,12 @@ x_set_vertical_scrollbar (f, arg, oldval)
     {
       FRAME_HAS_VERTICAL_SCROLLBARS (f) = ! NILP (arg);
 
-      x_set_window_size (f, FRAME_WIDTH (f), FRAME_HEIGHT (f));
+      /* We set this parameter before creating the X window for the
+	 frame, so we can get the geometry right from the start.
+	 However, if the window hasn't been created yet, we shouldn't
+	 call x_set_window_size.  */
+      if (FRAME_X_WINDOW (f))
+	x_set_window_size (f, FRAME_WIDTH (f), FRAME_HEIGHT (f));
     }
 }
 
@@ -1282,23 +1288,25 @@ The value is a list (FONT FG-COLOR BG-COLOR).")
 extern char *x_get_string_resource ();
 extern XrmDatabase x_load_resources ();
 
-DEFUN ("x-get-resource", Fx_get_resource, Sx_get_resource, 1, 3, 0,
-  "Retrieve the value of ATTRIBUTE from the X defaults database.\n\
-This uses `Emacs' as the class and `INSTANCE.ATTRIBUTE' as the key,\n\
-where INSTANCE is the name under which Emacs was invoked.\n\
+DEFUN ("x-get-resource", Fx_get_resource, Sx_get_resource, 2, 4, 0,
+  "Return the value of ATTRIBUTE, of class CLASS, from the X defaults database.\n\
+This uses `INSTANCE.ATTRIBUTE' as the key and `Emacs.CLASS' as the\n\
+class, where INSTANCE is the name under which Emacs was invoked.\n\
 \n\
 The optional arguments COMPONENT and SUBCLASS add to the key and the\n\
 class, respectively.  You must specify both of them or neither.\n\
 If you specify them, the key is `INSTANCE.COMPONENT.ATTRIBUTE'\n\
-and the class is `Emacs.SUBCLASS'.")
-  (attribute, component, subclass)
-     Lisp_Object attribute, component, subclass;
+and the class is `Emacs.CLASS.SUBCLASS'.")
+  (attribute, class, component, subclass)
+     Lisp_Object attribute, class, component, subclass;
 {
   register char *value;
   char *name_key;
   char *class_key;
 
   CHECK_STRING (attribute, 0);
+  CHECK_STRING (class, 0);
+
   if (!NILP (component))
     CHECK_STRING (component, 1);
   if (!NILP (subclass))
@@ -1308,30 +1316,42 @@ and the class is `Emacs.SUBCLASS'.")
 
   if (NILP (component))
     {
-      name_key = (char *) alloca (XSTRING (invocation_name)->size + 1
-				  + XSTRING (attribute)->size + 1);
+      /* Allocate space for the components, the dots which separate them,
+	 and the final '\0'.  */
+      name_key = (char *) alloca (XSTRING (invocation_name)->size
+				  + XSTRING (attribute)->size
+				  + 2);
+      class_key = (char *) alloca ((sizeof (EMACS_CLASS) - 1)
+				   + XSTRING (class)->size
+				   + 2);
 
       sprintf (name_key, "%s.%s",
 	       XSTRING (invocation_name)->data,
 	       XSTRING (attribute)->data);
-      class_key = EMACS_CLASS;
+      sprintf (class_key, "%s.%s",
+	       EMACS_CLASS,
+	       XSTRING (class)->data);
     }
   else
     {
-      name_key = (char *) alloca (XSTRING (invocation_name)->size + 1
-				  + XSTRING (component)->size + 1
-				  + XSTRING (attribute)->size + 1);
+      name_key = (char *) alloca (XSTRING (invocation_name)->size
+				  + XSTRING (component)->size
+				  + XSTRING (attribute)->size
+				  + 3);
 
-      class_key = (char *) alloca (sizeof (EMACS_CLASS)
-				   + XSTRING (class)->size + 1);
+      class_key = (char *) alloca ((sizeof (EMACS_CLASS) - 1)
+				   + XSTRING (class)->size
+				   + XSTRING (subclass)->size
+				   + 3);
 
       sprintf (name_key, "%s.%s.%s",
 	       XSTRING (invocation_name)->data,
 	       XSTRING (component)->data,
 	       XSTRING (attribute)->data);
-      /* This used to have invocation_name instead of EMACS_CLASS,
-	 but the doc string seems to say it should be EMACS_CLASS.  */
-      sprintf (class_key, "%s.%s", EMACS_CLASS, XSTRING (class)->data);
+      sprintf (class_key, "%s.%s",
+	       EMACS_CLASS,
+	       XSTRING (class)->data,
+	       XSTRING (subclass)->data);
     }
 
   value = x_get_string_resource (xrdb, name_key, class_key);
@@ -1369,7 +1389,8 @@ The defaults are specified in the file `~/.Xdefaults'.")
     return (Qnil);
 }
 
-#define Fx_get_resource(attribute, name, class) Fx_get_default(attribute)
+#define Fx_get_resource(attribute, class, component, subclass) \
+  Fx_get_default(attribute)
 
 #endif	/* X10 */
 
@@ -1382,7 +1403,7 @@ enum resource_types
 /* Return the value of parameter PARAM.
 
    First search ALIST, then Vdefault_frame_alist, then the X defaults
-   database, using ATTRIBUTE as the attribute name.
+   database, using ATTRIBUTE as the attribute name and CLASS as its class.
 
    Convert the resource to the type specified by desired_type.
 
@@ -1391,9 +1412,10 @@ enum resource_types
    and don't let it get stored in any lisp-visible variables!  */
 
 static Lisp_Object
-x_get_arg (alist, param, attribute, type)
+x_get_arg (alist, param, attribute, class, type)
      Lisp_Object alist, param;
      char *attribute;
+     char *class;
      enum resource_types type;
 {
   register Lisp_Object tem;
@@ -1406,7 +1428,9 @@ x_get_arg (alist, param, attribute, type)
 
       if (attribute)
 	{
-	  tem = Fx_get_resource (build_string (attribute), Qnil, Qnil);
+	  tem = Fx_get_resource (build_string (attribute),
+				 build_string (class),
+				 Qnil, Qnil);
 
 	  if (NILP (tem))
 	    return Qunbound;
@@ -1447,17 +1471,18 @@ x_get_arg (alist, param, attribute, type)
    If that is not found either, use the value DEFLT.  */
 
 static Lisp_Object
-x_default_parameter (f, alist, prop, deflt, xprop, type)
+x_default_parameter (f, alist, prop, deflt, xprop, xclass, type)
      struct frame *f;
      Lisp_Object alist;
      Lisp_Object prop;
      Lisp_Object deflt;
      char *xprop;
+     char *xclass;
      enum resource_types type;
 {
   Lisp_Object tem;
 
-  tem = x_get_arg (alist, prop, xprop, type);
+  tem = x_get_arg (alist, prop, xprop, xclass, type);
   if (EQ (tem, Qunbound))
     tem = deflt;
   x_set_frame_parameters (f, Fcons (Fcons (prop, tem), Qnil));
@@ -1544,8 +1569,8 @@ x_figure_window_size (f, parms)
   f->display.x->top_pos = 1;
   f->display.x->left_pos = 1;
 
-  tem0 = x_get_arg (parms, Qheight, 0, number);
-  tem1 = x_get_arg (parms, Qwidth, 0, number);
+  tem0 = x_get_arg (parms, Qheight, 0, 0, number);
+  tem1 = x_get_arg (parms, Qwidth, 0, 0, number);
   if (! EQ (tem0, Qunbound) && ! EQ (tem1, Qunbound))
     {
       CHECK_NUMBER (tem0, 0);
@@ -1557,11 +1582,15 @@ x_figure_window_size (f, parms)
   else if (! EQ (tem0, Qunbound) || ! EQ (tem1, Qunbound))
     error ("Must specify *both* height and width");
 
+  f->display.x->vertical_scrollbar_extra =
+    (FRAME_HAS_VERTICAL_SCROLLBARS (f)
+     ? VERTICAL_SCROLLBAR_PIXEL_WIDTH (f)
+     : 0);
   f->display.x->pixel_width = CHAR_TO_PIXEL_WIDTH (f, f->width);
   f->display.x->pixel_height = CHAR_TO_PIXEL_HEIGHT (f, f->height);
 
-  tem0 = x_get_arg (parms, Qtop, 0, number);
-  tem1 = x_get_arg (parms, Qleft, 0, number);
+  tem0 = x_get_arg (parms, Qtop, 0, 0, number);
+  tem1 = x_get_arg (parms, Qleft, 0, 0, number);
   if (! EQ (tem0, Qunbound) && ! EQ (tem1, Qunbound))
     {
       CHECK_NUMBER (tem0, 0);
@@ -1653,9 +1682,11 @@ x_window (f)
      the X server hasn't been told.  */
   {
     Lisp_Object name = f->name;
+    int explicit = f->explicit_name;
 
     f->name = Qnil;
-    x_implicitly_set_name (f, name, Qnil);
+    f->explicit_name = 0;
+    x_set_name (f, name, explicit);
   }
 
   XDefineCursor (XDISPLAY FRAME_X_WINDOW (f),
@@ -1679,8 +1710,8 @@ x_icon (f, parms)
 
   /* Set the position of the icon.  Note that twm groups all
      icons in an icon window. */
-  icon_x = x_get_arg (parms, Qicon_left, 0, number);
-  icon_y = x_get_arg (parms, Qicon_top, 0, number);
+  icon_x = x_get_arg (parms, Qicon_left, 0, 0, number);
+  icon_y = x_get_arg (parms, Qicon_top, 0, 0, number);
   if (!EQ (icon_x, Qunbound) && !EQ (icon_y, Qunbound))
     {
       CHECK_NUMBER (icon_x, 0);
@@ -1696,7 +1727,8 @@ x_icon (f, parms)
 
   /* Start up iconic or window? */
   x_wm_set_window_state (f,
-			 (EQ (x_get_arg (parms, Qiconic_startup, 0, boolean),
+			 (EQ (x_get_arg (parms, Qiconic_startup,
+					 0, 0, boolean),
 			      Qt)
 			  ? IconicState
 			  : NormalState));
@@ -1815,13 +1847,13 @@ be shared by the new frame.")
   if (x_current_display == 0)
     error ("X windows are not in use or not initialized");
 
-  name = x_get_arg (parms, Qname, "Title", string);
-  if (EQ (name, Qunbound) || NILP (name))
-    name = build_string (x_id_name);
-  if (XTYPE (name) != Lisp_String)
+  name = x_get_arg (parms, Qname, "title", "Title", string);
+  if (XTYPE (name) != Lisp_String
+      && ! EQ (name, Qunbound)
+      && ! NILP (name))
     error ("x-create-frame: name parameter must be a string");
 
-  tem = x_get_arg (parms, Qminibuffer, 0, symbol);
+  tem = x_get_arg (parms, Qminibuffer, 0, 0, symbol);
   if (EQ (tem, Qnone) || NILP (tem))
     f = make_frame_without_minibuffer (Qnil);
   else if (EQ (tem, Qonly))
@@ -1837,9 +1869,18 @@ be shared by the new frame.")
   /* Note that X Windows does support scrollbars.  */
   FRAME_CAN_HAVE_SCROLLBARS (f) = 1;
 
-  /* Set the name; the functions to which we pass f expect the
-     name to be set.  */
-  f->name = name;
+  /* Set the name; the functions to which we pass f expect the name to
+     be set.  */
+  if (EQ (name, Qunbound) || NILP (name))
+    {
+      f->name = build_string (x_id_name);
+      f->explicit_name = 0;
+    }
+  else
+    {
+      f->name = name;
+      f->explicit_name = 1;
+    }
 
   XSET (frame, Lisp_Frame, f);
   f->output_method = output_x_window;
@@ -1851,27 +1892,27 @@ be shared by the new frame.")
 
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
-  x_default_parameter (f, parms, Qfont,
-		       build_string ("9x15"), "font", string);
-  x_default_parameter (f, parms, Qbackground_color,
-		      build_string ("white"), "background", string);
-  x_default_parameter (f, parms, Qborder_width,
-		      make_number (2), "BorderWidth", number);
-  /* This defaults to 2 in order to match XTerms.  */
-  x_default_parameter (f, parms, Qinternal_border_width,
-		      make_number (2), "InternalBorderWidth", number);
-  x_default_parameter (f, parms, Qvertical_scrollbar,
-		       Qt, "VerticalScrollbars", boolean);
+  x_default_parameter (f, parms, Qfont, build_string ("9x15"),
+		       "font", "Font", string);
+  x_default_parameter (f, parms, Qborder_width, make_number (2),
+		       "borderwidth", "BorderWidth", number);
+  /* This defaults to 2 in order to match xterm.  */
+  x_default_parameter (f, parms, Qinternal_border_width, make_number (2),
+		       "internalBorderWidth", "BorderWidth", number);
+  x_default_parameter (f, parms, Qvertical_scrollbars, Qt,
+		       "verticalScrollbars", "Scrollbars", boolean);
 
   /* Also do the stuff which must be set before the window exists. */
-  x_default_parameter (f, parms, Qforeground_color,
-		       build_string ("black"), "foreground", string);
-  x_default_parameter (f, parms, Qmouse_color,
-		      build_string ("black"), "mouse", string);
-  x_default_parameter (f, parms, Qcursor_color,
-		      build_string ("black"), "cursor", string);
-  x_default_parameter (f, parms, Qborder_color,
-		      build_string ("black"), "border", string);
+  x_default_parameter (f, parms, Qforeground_color, build_string ("black"),
+		       "foreground", "Foreground", string);
+  x_default_parameter (f, parms, Qbackground_color, build_string ("white"),
+		       "background", "Background", string);
+  x_default_parameter (f, parms, Qmouse_color, build_string ("black"),
+		       "pointerColor", "Foreground", string);
+  x_default_parameter (f, parms, Qcursor_color, build_string ("black"),
+		       "cursorColor", "Foreground", string);
+  x_default_parameter (f, parms, Qborder_color, build_string ("black"),
+		       "borderColor", "BorderColor", string);
 
   f->display.x->parent_desc = ROOT_WINDOW;
   window_prompting = x_figure_window_size (f, parms);
@@ -1882,10 +1923,13 @@ be shared by the new frame.")
 
   /* We need to do this after creating the X window, so that the
      icon-creation functions can say whose icon they're describing.  */
-  x_default_parameter (f, parms, Qicon_type, Qnil, "IconType", symbol);
+  x_default_parameter (f, parms, Qicon_type, Qnil,
+		       "iconType", "IconType", symbol);
 
-  x_default_parameter (f, parms, Qauto_raise, Qnil, "AutoRaise", boolean);
-  x_default_parameter (f, parms, Qauto_lower, Qnil, "AutoLower", boolean);
+  x_default_parameter (f, parms, Qauto_raise, Qnil,
+		       "autoRaise", "AutoRaiseLower", boolean);
+  x_default_parameter (f, parms, Qauto_lower, Qnil,
+		       "autoLower", "AutoRaiseLower", boolean);
 
   /* Dimensions, especially f->height, must be done via change_frame_size.
      Change will not be effected unless different from the current
@@ -1898,11 +1942,11 @@ be shared by the new frame.")
   x_wm_set_size_hint (f, window_prompting);
   UNBLOCK_INPUT;
 
-  tem = x_get_arg (parms, Qunsplittable, 0, boolean);
+  tem = x_get_arg (parms, Qunsplittable, 0, 0, boolean);
   f->no_split = minibuffer_only || EQ (tem, Qt);
 
   /* Make the window appear on the frame and enable display.  */
-  if (!EQ (x_get_arg (parms, Qsuppress_initial_map, 0, boolean), Qt))
+  if (!EQ (x_get_arg (parms, Qsuppress_initial_map, 0, 0, boolean), Qt))
     x_make_frame_visible (f);
 
   return frame;
@@ -1923,7 +1967,7 @@ be shared by the new frame.")
 
   name = Fassq (Qname, parms);
 
-  tem = x_get_arg (parms, Qminibuffer, 0, symbol);
+  tem = x_get_arg (parms, Qminibuffer, 0, 0, symbol);
   if (EQ (tem, Qnone))
     f = make_frame_without_minibuffer (Qnil);
   else if (EQ (tem, Qonly))
@@ -1960,34 +2004,34 @@ be shared by the new frame.")
   /* Extract some window parameters from the supplied values.
      These are the parameters that affect window geometry.  */
 
-  tem = x_get_arg (parms, Qfont, "BodyFont", string);
+  tem = x_get_arg (parms, Qfont, "BodyFont", 0, string);
   if (EQ (tem, Qunbound))
     tem = build_string ("9x15");
   x_set_font (f, tem, Qnil);
   x_default_parameter (f, parms, Qborder_color,
-		      build_string ("black"), "Border", string);
+		       build_string ("black"), "Border", 0, string);
   x_default_parameter (f, parms, Qbackground_color,
-		      build_string ("white"), "Background", string);
+		       build_string ("white"), "Background", 0, string);
   x_default_parameter (f, parms, Qforeground_color,
-		      build_string ("black"), "Foreground", string);
+		       build_string ("black"), "Foreground", 0, string);
   x_default_parameter (f, parms, Qmouse_color,
-		      build_string ("black"), "Mouse", string);
+		       build_string ("black"), "Mouse", 0, string);
   x_default_parameter (f, parms, Qcursor_color,
-		      build_string ("black"), "Cursor", string);
+		       build_string ("black"), "Cursor", 0, string);
   x_default_parameter (f, parms, Qborder_width,
-		      make_number (2), "BorderWidth", number);
+		       make_number (2), "BorderWidth", 0, number);
   x_default_parameter (f, parms, Qinternal_border_width,
-		      make_number (4), "InternalBorderWidth", number);
+		       make_number (4), "InternalBorderWidth", 0, number);
   x_default_parameter (f, parms, Qauto_raise,
-		       Qnil, "AutoRaise", boolean);
+		       Qnil, "AutoRaise", 0, boolean);
 
-  hscroll = EQ (x_get_arg (parms, Qhorizontal_scroll_bar, 0, boolean), Qt);
-  vscroll = EQ (x_get_arg (parms, Qvertical_scroll_bar, 0, boolean), Qt);
+  hscroll = EQ (x_get_arg (parms, Qhorizontal_scroll_bar, 0, 0, boolean), Qt);
+  vscroll = EQ (x_get_arg (parms, Qvertical_scroll_bar, 0, 0, boolean), Qt);
 
   if (f->display.x->internal_border_width < 0)
     f->display.x->internal_border_width = 0;
 
-  tem = x_get_arg (parms, Qwindow_id, 0, number);
+  tem = x_get_arg (parms, Qwindow_id, 0, 0, number);
   if (!EQ (tem, Qunbound))
     {
       WINDOWINFO_TYPE wininfo;
@@ -2003,10 +2047,8 @@ be shared by the new frame.")
       free (children);
       UNBLOCK_INPUT;
 
-      height = (wininfo.height - 2 * f->display.x->internal_border_width)
-	/ FONT_HEIGHT (f->display.x->font);
-      width = (wininfo.width - 2 * f->display.x->internal_border_width)
-	/ FONT_WIDTH (f->display.x->font);
+      height = PIXEL_TO_CHAR_HEIGHT (f, wininfo.height);
+      width  = PIXEL_TO_CHAR_WIDTH  (f, wininfo.width);
       f->display.x->left_pos = wininfo.x;
       f->display.x->top_pos = wininfo.y;
       FRAME_SET_VISIBILITY (f, wininfo.mapped != 0);
@@ -2015,29 +2057,29 @@ be shared by the new frame.")
     }
   else
     {
-      tem = x_get_arg (parms, Qparent_id, 0, number);
+      tem = x_get_arg (parms, Qparent_id, 0, 0, number);
       if (!EQ (tem, Qunbound))
 	{
 	  CHECK_NUMBER (tem, 0);
 	  parent = (Window) XINT (tem);
 	}
       f->display.x->parent_desc = parent;
-      tem = x_get_arg (parms, Qheight, 0, number);
+      tem = x_get_arg (parms, Qheight, 0, 0, number);
       if (EQ (tem, Qunbound))
 	{
-	  tem = x_get_arg (parms, Qwidth, 0, number);
+	  tem = x_get_arg (parms, Qwidth, 0, 0, number);
 	  if (EQ (tem, Qunbound))
 	    {
-	      tem = x_get_arg (parms, Qtop, 0, number);
+	      tem = x_get_arg (parms, Qtop, 0, 0, number);
 	      if (EQ (tem, Qunbound))
-		tem = x_get_arg (parms, Qleft, 0, number);
+		tem = x_get_arg (parms, Qleft, 0, 0, number);
 	    }
 	}
       /* Now TEM is Qunbound if no edge or size was specified.
 	 In that case, we must do rubber-banding.  */
       if (EQ (tem, Qunbound))
 	{
-	  tem = x_get_arg (parms, Qgeometry, 0, number);
+	  tem = x_get_arg (parms, Qgeometry, 0, 0, number);
 	  x_rubber_band (f,
 			 &f->display.x->left_pos, &f->display.x->top_pos,
 			 &width, &height,
@@ -2050,37 +2092,33 @@ be shared by the new frame.")
 	{
 	  /* Here if at least one edge or size was specified.
 	     Demand that they all were specified, and use them.  */
-	  tem = x_get_arg (parms, Qheight, 0, number);
+	  tem = x_get_arg (parms, Qheight, 0, 0, number);
 	  if (EQ (tem, Qunbound))
 	    error ("Height not specified");
 	  CHECK_NUMBER (tem, 0);
 	  height = XINT (tem);
 
-	  tem = x_get_arg (parms, Qwidth, 0, number);
+	  tem = x_get_arg (parms, Qwidth, 0, 0, number);
 	  if (EQ (tem, Qunbound))
 	    error ("Width not specified");
 	  CHECK_NUMBER (tem, 0);
 	  width = XINT (tem);
 
-	  tem = x_get_arg (parms, Qtop, 0, number);
+	  tem = x_get_arg (parms, Qtop, 0, 0, number);
 	  if (EQ (tem, Qunbound))
 	    error ("Top position not specified");
 	  CHECK_NUMBER (tem, 0);
 	  f->display.x->left_pos = XINT (tem);
 
-	  tem = x_get_arg (parms, Qleft, 0, number);
+	  tem = x_get_arg (parms, Qleft, 0, 0, number);
 	  if (EQ (tem, Qunbound))
 	    error ("Left position not specified");
 	  CHECK_NUMBER (tem, 0);
 	  f->display.x->top_pos = XINT (tem);
 	}
 
-      pixelwidth = (width * FONT_WIDTH (f->display.x->font)
-		    + 2 * f->display.x->internal_border_width
-		    + (!NILP (vscroll) ? VSCROLL_WIDTH : 0));
-      pixelheight = (height * FONT_HEIGHT (f->display.x->font)
-		     + 2 * f->display.x->internal_border_width
-		     + (!NILP (hscroll) ? HSCROLL_HEIGHT : 0));
+      pixelwidth  = CHAR_TO_PIXEL_WIDTH  (f, width);
+      pixelheight = CHAR_TO_PIXEL_HEIGHT (f, height);
       
       BLOCK_INPUT;
       FRAME_X_WINDOW (f)
@@ -2108,16 +2146,16 @@ be shared by the new frame.")
 
   /* Now override the defaults with all the rest of the specified
      parms.  */
-  tem = x_get_arg (parms, Qunsplittable, 0, boolean);
+  tem = x_get_arg (parms, Qunsplittable, 0, 0, boolean);
   f->no_split = minibuffer_only || EQ (tem, Qt);
 
   /* Do not create an icon window if the caller says not to */
-  if (!EQ (x_get_arg (parms, Qsuppress_icon, 0, boolean), Qt)
+  if (!EQ (x_get_arg (parms, Qsuppress_icon, 0, 0, boolean), Qt)
       || f->display.x->parent_desc != ROOT_WINDOW)
     {
       x_text_icon (f, iconidentity);
       x_default_parameter (f, parms, Qicon_type, Qnil,
-			   "BitmapIcon", symbol);
+			   "BitmapIcon", 0, symbol);
     }
 
   /* Tell the X server the previously set values of the
@@ -2137,9 +2175,9 @@ be shared by the new frame.")
 
   /* Make the window appear on the frame and enable display.  */
 
-  if (!EQ (x_get_arg (parms, Qsuppress_initial_map, 0, boolean), Qt))
+  if (!EQ (x_get_arg (parms, Qsuppress_initial_map, 0, 0, boolean), Qt))
     x_make_window_visible (f);
-  FRAME_GARBAGED (f);
+  SET_FRAME_GARBAGED (f);
 
   return frame;
 #endif /* X10 */
@@ -3782,6 +3820,8 @@ syms_of_xfns ()
   staticpro (&Qtop);
   Qundefined_color = intern ("undefined-color");
   staticpro (&Qundefined_color);
+  Qvertical_scrollbars = intern ("vertical-scrollbars");
+  staticpro (&Qvertical_scrollbars);
   Qwindow_id = intern ("window-id");
   staticpro (&Qwindow_id);
   Qx_frame_parameter = intern ("x-frame-parameter");
