@@ -3367,6 +3367,15 @@ Non-nil second argument means save only current buffer.")
 	    && (do_handled_files
 		|| NILP (Ffind_file_name_handler (b->auto_save_file_name))))
 	  {
+	    EMACS_TIME before_time, after_time;
+
+	    EMACS_GET_TIME (before_time);
+
+	    /* If we had a failure, don't try again for 20 minutes.  */
+	    if (b->auto_save_failure_time >= 0
+		&& EMACS_SECS (before_time) - b->auto_save_failure_time < 1200)
+	      continue;
+
 	    if ((XFASTINT (b->save_length) * 10
 		 > (BUF_Z (b) - BUF_BEG (b)) * 13)
 		/* A short file is likely to change a large fraction;
@@ -3394,6 +3403,13 @@ Non-nil second argument means save only current buffer.")
 	    b->auto_save_modified = BUF_MODIFF (b);
 	    XFASTINT (current_buffer->save_length) = Z - BEG;
 	    set_buffer_internal (old);
+
+	    EMACS_GET_TIME (after_time);
+
+	    /* If auto-save took more than 60 seconds,
+	       assume it was an NFS failure that got a timeout.  */
+	    if (EMACS_SECS (after_time) - EMACS_SECS (before_time) > 60)
+	      b->auto_save_failure_time = EMACS_SECS (after_time);
 	  }
       }
 
@@ -3417,6 +3433,16 @@ No auto-save file will be written until the buffer changes again.")
 {
   current_buffer->auto_save_modified = MODIFF;
   XFASTINT (current_buffer->save_length) = Z - BEG;
+  current_buffer->auto_save_failure_time = -1;
+  return Qnil;
+}
+
+DEFUN ("clear-buffer-auto-save-failure", Fclear_buffer_auto_save_failure,
+  Sclear_buffer_auto_save_failure, 0, 0, 0,
+  "Clear any record of a recent auto-save failure in the current buffer.")
+  ()
+{
+  current_buffer->auto_save_failure_time = -1;
   return Qnil;
 }
 
@@ -3849,6 +3875,7 @@ lists are merged destructively.");
   defsubr (&Sset_visited_file_modtime);
   defsubr (&Sdo_auto_save);
   defsubr (&Sset_buffer_auto_saved);
+  defsubr (&Sclear_buffer_auto_save_failure);
   defsubr (&Srecent_auto_save_p);
 
   defsubr (&Sread_file_name_internal);
