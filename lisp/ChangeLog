@@ -1,3 +1,16 @@
+2004-05-25  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-toc): Call Info-mode on intermediate buffer.
+	(Info-index-nodes): Enclose code in condition-case to catch errors.
+	(Info-index-node): Don't search all index nodes if request is only
+	for the current node and file is not in the cache of index nodes.
+	(Info-mode-map): Bind Info-copy-current-node-name to `w'
+	for consistency with dired-copy-filename-as-kill.
+	Bind `S' to Info-search-case-sensitively.
+	(Info-copy-current-node-name): New arg.  With zero prefix arg put
+	the name inside a function call to `info'.  Display copied text in
+	the echo area.
+
 2004-05-25  Sam Steingold  <sds@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (lisp-find-tag-default): New function:
