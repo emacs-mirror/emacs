@@ -1456,7 +1456,7 @@ If ADDRESS contains more than one RFC-822 address, only the first is
 	(let ((cbeg (point)))
 	  (set-syntax-table mail-extr-address-text-comment-syntax-table)
 	  (cond ((memq (following-char) '(?\' ?\`))
-		 (search-forward "'" nil t
+		 (search-forward "'" nil 'move
 				 (if (eq ?\' (following-char)) 2 1)))
 		(t
 		 (or (mail-extr-safe-move-sexp 1)
