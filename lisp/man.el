@@ -1,6 +1,6 @@
 ;;; man.el --- browse UNIX manual pages
 
-;; Copyright (C) 1993, 1994, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1996, 1997, 2001 Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
 ;; Maintainer: FSF
@@ -224,20 +224,6 @@ the associated section number."
 
 (defvar Man-awk-command "awk"
   "Command used for processing awk scripts.")
-
-(defvar Man-mode-line-format
-  '("-"
-    mode-line-mule-info
-    mode-line-modified
-    mode-line-frame-identification
-    mode-line-buffer-identification "  "
-    global-mode-string
-    " " Man-page-mode-string
-    "  %[(" mode-name mode-line-process minor-mode-alist "%n)%]--"
-    (line-number-mode "L%l--")
-    (column-number-mode "C%c--")
-    (-3 . "%p") "-%-")
-  "Mode line format for manual mode buffer.")
 
 (defvar Man-mode-map nil
   "Keymap for Man mode.")
@@ -843,7 +829,6 @@ The following variables may be of some use.  Try
 `Man-circular-pages-flag'	Treat multiple manpage list as circular.
 `Man-section-translations-alist' List of section numbers and their Un*x equiv.
 `Man-filter-list'		Background manpage filter command.
-`Man-mode-line-format'		Mode line format for Man mode buffers.
 `Man-mode-map'			Keymap bindings for Man mode buffers.
 `Man-mode-hook'			Normal hook run on entry to Man mode.
 `Man-section-regexp'		Regexp describing manpage section letters.
@@ -859,7 +844,9 @@ The following key bindings are currently in effect in the buffer:
   (setq major-mode 'Man-mode
 	mode-name "Man"
 	buffer-auto-save-file-name nil
-	mode-line-format Man-mode-line-format
+	mode-line-buffer-identification
+	(list (default-value 'mode-line-buffer-identification)
+	      " {" 'Man-page-mode-string "}")
 	truncate-lines t
 	buffer-read-only t)
   (buffer-disable-undo (current-buffer))
