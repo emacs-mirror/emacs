@@ -940,7 +940,8 @@ Value is a list whose car is the name for the backup file
 (defun file-relative-name (filename &optional directory)
   "Convert FILENAME to be relative to DIRECTORY (default: default-directory)."
   (setq filename (expand-file-name filename)
-	directory (file-name-as-directory (or (expand-file-name directory)
+	directory (file-name-as-directory (if directory
+					      (expand-file-name directory)
 					      default-directory)))
   (while (not (string-match (concat "^" (regexp-quote directory)) filename))
     (setq directory (file-name-directory (substring directory 0 -1))))
