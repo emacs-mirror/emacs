@@ -1,3 +1,8 @@
+2002-01-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* bindings.el (function-key-map): Don't bind shifted keypad
+	numeric keys.
+
 2002-01-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* enriched.el (enriched-handle-display-prop): Remove unused
