@@ -224,7 +224,13 @@ enum glyph_type
 };
 
 
-/* Glyphs.  */
+/* Glyphs.
+
+   Be extra careful when changing this structure!  Esp. make sure that
+   functions producing glyphs, like x_append_glyph, fill ALL of the
+   glyph structure, and that GLYPH_EQUAL_P compares all
+   display-relevant members of glyphs (not to imply that these are the
+   only things to check when you add a member).  */
 
 struct glyph
 {
@@ -324,7 +330,7 @@ struct glyph
 #define CHAR_GLYPH_SPACE_P(GLYPH) \
      (GLYPH_FROM_CHAR_GLYPH ((GLYPH)) == SPACEGLYPH)
 
-/* Are glyphs *X and *Y equal?  */
+/* Are glyphs *X and *Y displayed equal?  */
      
 #define GLYPH_EQUAL_P(X, Y)					\
      ((X)->type == (Y)->type					\
