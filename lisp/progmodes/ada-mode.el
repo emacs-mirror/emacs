@@ -7,7 +7,7 @@
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.41 $
+;; Ada Core Technologies's version:   $Revision: 1.42 $
 ;; Keywords: languages ada
 
 ;; This file is part of GNU Emacs.
@@ -34,7 +34,7 @@
 ;;; ada-prj.el and ada-stmt.el. Only this file (ada-mode.el) is
 ;;; completely independent from the GNU Ada compiler Gnat, distributed
 ;;; by Ada Core Technologies. All the other files rely heavily on
-;;; features provides only by Gnat.
+;;; features provided only by Gnat.
 ;;;
 ;;; Note: this mode will not work with Emacs 19. If you are on a VMS
 ;;; system, where the latest version of Emacs is 19.28, you will need
@@ -1038,18 +1038,12 @@ If you use ada-xref.el:
   ;;  Emacs 20.3 defines a comment-padding to insert spaces between
   ;;  the comment and the text. We do not want any, this is already
   ;;  included in comment-start
-  (unless ada-xemacs
-    (progn
-      (if (ada-check-emacs-version 20 3)
-          (progn
-            (set (make-local-variable 'parse-sexp-ignore-comments) t)
-            (set (make-local-variable 'comment-padding) 0)))
-      (set (make-local-variable 'parse-sexp-lookup-properties) t)
-      ))
+  (set (make-local-variable 'comment-padding) 0)
+  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  (set (make-local-variable 'parse-sexp-lookup-properties) t)
 
   (setq case-fold-search t)
-  (if (boundp 'imenu-case-fold-search)
-      (setq imenu-case-fold-search t))
+  (setq imenu-case-fold-search t)
 
   (set (make-local-variable 'fill-paragraph-function)
        'ada-fill-comment-paragraph)
@@ -1061,37 +1055,27 @@ If you use ada-xref.el:
   ;;  We just substitute our own functions to go to the error.
   (add-hook 'compilation-mode-hook
             (lambda()
-	      (setq compile-auto-highlight 40)
+	      (set (make-local-variable 'compile-auto-highlight) 40)
+	      ;; FIXME: This has global impact!  -stef
 	      (define-key compilation-minor-mode-map [mouse-2]
 		'ada-compile-mouse-goto-error)
 	      (define-key compilation-minor-mode-map "\C-c\C-c"
 		'ada-compile-goto-error)
 	      (define-key compilation-minor-mode-map "\C-m"
-		'ada-compile-goto-error)
-	      ))
+		'ada-compile-goto-error)))
 
-  ;;  font-lock support :
-  ;;  We need to set some properties for XEmacs, and define some variables
-  ;;  for Emacs
-
-  (if ada-xemacs
-      ;;  XEmacs
-      (put 'ada-mode 'font-lock-defaults
-           '(ada-font-lock-keywords
-             nil t ((?\_ . "w") (?# . ".")) beginning-of-line))
-    ;;  Emacs
-    (set (make-local-variable 'font-lock-defaults)
-         '(ada-font-lock-keywords
-           nil t
-           ((?\_ . "w") (?# . "."))
-           beginning-of-line
-           (font-lock-syntactic-keywords . ada-font-lock-syntactic-keywords)))
-    )
+  ;;  font-lock support
+  (set (make-local-variable 'font-lock-defaults)
+       '(ada-font-lock-keywords
+	 nil t
+	 ((?\_ . "w") (?# . "."))
+	 beginning-of-line
+	 (font-lock-syntactic-keywords . ada-font-lock-syntactic-keywords)))
 
   ;; Set up support for find-file.el.
-  (set (make-variable-buffer-local 'ff-other-file-alist)
+  (set (make-local-variable 'ff-other-file-alist)
        'ada-other-file-alist)
-  (set (make-variable-buffer-local 'ff-search-directories)
+  (set (make-local-variable 'ff-search-directories)
        'ada-search-directories)
   (setq ff-post-load-hooks    'ada-set-point-accordingly
         ff-file-created-hooks 'ada-make-body)
@@ -1166,16 +1150,13 @@ If you use ada-xref.el:
 
   ;;  Support for indent-new-comment-line (Especially for XEmacs)
   (setq comment-multi-line nil)
-  (defconst comment-indent-function (lambda () comment-column))
 
   (setq major-mode 'ada-mode)
   (setq mode-name "Ada")
 
   (use-local-map ada-mode-map)
 
-  (if ada-xemacs
-      (funcall (symbol-function 'easy-menu-add)
-               ada-mode-menu ada-mode-map))
+  (easy-menu-add ada-mode-menu ada-mode-map)
 
   (set-syntax-table ada-mode-syntax-table)
 
@@ -1193,10 +1174,9 @@ If you use ada-xref.el:
   ;;  font-lock-mode
 
   (unless ada-xemacs
-    (progn
-      (ada-initialize-properties)
-      (make-local-hook 'font-lock-mode-hook)
-      (add-hook 'font-lock-mode-hook 'ada-deactivate-properties nil t)))
+    (ada-initialize-properties)
+    (make-local-hook 'font-lock-mode-hook)
+    (add-hook 'font-lock-mode-hook 'ada-deactivate-properties nil t))
 
   ;; the following has to be done after running the ada-mode-hook
   ;; because users might want to set the values of these variable
@@ -3977,9 +3957,7 @@ Moves to 'begin' if in a declarative part."
   (define-key ada-mode-map "\t"       'ada-tab)
   (define-key ada-mode-map "\C-c\t"   'ada-justified-indent-current)
   (define-key ada-mode-map "\C-c\C-l" 'ada-indent-region)
-  (if ada-xemacs
-      (define-key ada-mode-map '(shift tab)    'ada-untab)
-    (define-key ada-mode-map [S-tab]    'ada-untab))
+  (define-key ada-mode-map [(shift tab)]    'ada-untab)
   (define-key ada-mode-map "\C-c\C-f" 'ada-format-paramlist)
   ;; We don't want to make meta-characters case-specific.
 
@@ -4061,33 +4039,28 @@ can add its own items."
         )
 
     ;; Option menu present only if in Ada mode
-    (setq m (append m (list (append (list "Options"
-                                          (if ada-xemacs :included  :visible)
-                                          '(string= mode-name "Ada"))
+    (setq m (append m (list (append '("Options"
+				      :included (eq major-mode 'ada-mode))
                                     option))))
 
     ;; Customize menu always present
-    (setq m (append m '(["Customize" (customize-group 'ada)
-                         (>= emacs-major-version 20)])))
+    (when (fboundp 'customize-group)
+      (setq m (append m '(["Customize" (customize-group 'ada)]))))
 
     ;; Goto and Edit menus present only if in Ada mode
-    (setq m (append m (list (append (list "Goto"
-                                          (if ada-xemacs :included :visible)
-                                          '(string= mode-name "Ada"))
+    (setq m (append m (list (append '("Goto"
+				      :included (eq major-mode 'ada-mode))
                                     goto)
-                            (append (list "Edit"
-                                          (if ada-xemacs :included :visible)
-                                          '(string= mode-name "Ada"))
+                            (append '("Edit"
+				      :included (eq major-mode 'ada-mode))
                                     edit))))
 
     (easy-menu-define ada-mode-menu ada-mode-map "Menu keymap for Ada mode" m)
-    (if ada-xemacs
-        (progn
-          (easy-menu-add ada-mode-menu ada-mode-map)
-          (define-key ada-mode-map [menu-bar] ada-mode-menu)
-          (setq mode-popup-menu (cons "Ada mode" ada-mode-menu)))
-      )
-    ))
+    (easy-menu-add ada-mode-menu ada-mode-map)
+    (when ada-xemacs
+      ;; This looks bogus to me!   -stef
+      (define-key ada-mode-map [menu-bar] ada-mode-menu)
+      (setq mode-popup-menu (cons "Ada mode" ada-mode-menu)))))
 
 
 ;; -------------------------------------------------------
