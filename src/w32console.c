@@ -35,11 +35,11 @@ Boston, MA 02111-1307, USA.
 #include "coding.h"
 #include "disptab.h"
 #include "termhooks.h"
-/* Disable features in dispextern.h that require a Window System.  */
+#include "dispextern.h"
+/* Disable features in frame.h that require a Window System.  */
 #undef HAVE_WINDOW_SYSTEM
 #include "frame.h"
 #include "w32inevt.h"
-#include "dispextern.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
@@ -579,10 +579,12 @@ w32_face_attributes (f, face_id)
 
   if (face->background != FACE_TTY_DEFAULT_BG_COLOR
       && face->background != FACE_TTY_DEFAULT_COLOR)
-    char_attr = (char_attr & 0xff0f) + ((face->background % 16) * 16); 
+    char_attr = (char_attr & 0xff0f) + ((face->background % 16) << 4); 
 
 
-  /* Ensure readability (temporary measure until this all works) */
+  /* NTEMACS_TODO: Faces defined during startup get both foreground
+     and background of 0. Need a better way around this - for now detect
+     the problem and invert one of the faces to make the text readable. */
   if (((char_attr & 0x00f0) >> 4) == (char_attr & 0x000f))
     char_attr ^= 0x0007;
 
