@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.138 $")
+(defconst byte-compile-version "$Revision: 2.139 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -75,7 +75,7 @@
 ;; User customization variables:
 ;;
 ;; byte-compile-verbose	Whether to report the function currently being
-;;				compiled in the minibuffer;
+;;				compiled in the echo area;
 ;; byte-optimize		Whether to do optimizations; this may be
 ;;				t, nil, 'source, or 'byte;
 ;; byte-optimize-log		Whether to report (in excruciating detail)
@@ -1658,7 +1658,7 @@ The value is non-nil if there were no errors, nil if errors."
 ;;;###autoload
 (defun compile-defun (&optional arg)
   "Compile and evaluate the current top-level form.
-Print the result in the minibuffer.
+Print the result in the echo area.
 With argument, insert value in current buffer after the form."
   (interactive "P")
   (save-excursion
