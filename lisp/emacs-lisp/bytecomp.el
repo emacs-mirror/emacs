@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.112 $")
+(defconst byte-compile-version "$Revision: 2.113 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1554,7 +1554,9 @@ The value is non-nil if there were no errors, nil if errors."
       ;; It is important that input-buffer not be current at this call,
       ;; so that the value of point set in input-buffer
       ;; within byte-compile-from-buffer lingers in that buffer.
-      (setq output-buffer (byte-compile-from-buffer input-buffer filename))
+      (setq output-buffer
+	    (save-current-buffer
+	      (byte-compile-from-buffer input-buffer filename)))
       (if byte-compiler-error-flag
 	  nil
 	(when byte-compile-verbose
@@ -3833,7 +3835,7 @@ already up-to-date."
 
 ;;;###autoload
 (defun batch-byte-recompile-directory ()
-  "Runs `byte-recompile-directory' on the dirs remaining on the command line.
+  "Run `byte-recompile-directory' on the dirs remaining on the command line.
 Must be used only with `-batch', and kills Emacs on completion.
 For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
   ;; command-line-args-left is what is left of the command line (startup.el)
