@@ -2935,12 +2935,14 @@ specbind (symbol, value)
 	  || SOME_BUFFER_LOCAL_VALUEP (valcontents)
 	  || BUFFER_OBJFWDP (valcontents))
 	{
-	  Lisp_Object where;
+	  Lisp_Object where, current_buffer;
+
+	  current_buffer = Fcurrent_buffer ();
 	  
 	  /* For a local variable, record both the symbol and which
 	     buffer's or frame's value we are saving.  */
 	  if (!NILP (Flocal_variable_p (symbol, Qnil)))
-	    where = Fcurrent_buffer ();
+	    where = current_buffer;
 	  else if (!BUFFER_OBJFWDP (valcontents)
 		   && XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame)
 	    where = XBUFFER_LOCAL_VALUE (valcontents)->frame;
@@ -2950,7 +2952,7 @@ specbind (symbol, value)
 	  /* We're not using the `unused' slot in the specbinding
 	     structure because this would mean we have to do more
 	     work for simple variables.  */
-	  specpdl_ptr->symbol = Fcons (symbol, where);
+	  specpdl_ptr->symbol = Fcons (symbol, Fcons (where, current_buffer));
 
 	  /* If SYMBOL is a per-buffer variable which doesn't have a
 	     buffer-local value here, make the `let' change the global
@@ -3010,17 +3012,19 @@ unbind_to (count, value)
 	 so in that case the "old value" is a list of forms to evaluate.  */
       else if (NILP (specpdl_ptr->symbol))
 	Fprogn (specpdl_ptr->old_value);
-      /* If the symbol is a list, it is really (SYMBOL . WHERE) where
-	 WHERE is either nil, a buffer, or a frame.  If WHERE is a
-	 buffer or frame, this indicates we bound a variable that had
-	 a buffer-local or frmae-local binding..  WHERE nil means that
-	 the variable had the default value when it was bound.  */
+      /* If the symbol is a list, it is really (SYMBOL WHERE
+	 . CURRENT-BUFFER) where WHERE is either nil, a buffer, or a
+	 frame.  If WHERE is a buffer or frame, this indicates we
+	 bound a variable that had a buffer-local or frmae-local
+	 binding..  WHERE nil means that the variable had the default
+	 value when it was bound.  CURRENT-BUFFER is the buffer that
+         was current when the variable was bound.  */
       else if (CONSP (specpdl_ptr->symbol))
 	{
 	  Lisp_Object symbol, where;
 
 	  symbol = XCAR (specpdl_ptr->symbol);
-	  where = XCDR (specpdl_ptr->symbol);
+	  where = XCAR (XCDR (specpdl_ptr->symbol));
 
 	  if (NILP (where))
 	    Fset_default (symbol, specpdl_ptr->old_value);
