@@ -143,7 +143,10 @@ invalid_character (c)
       (charset) = (str)[1], (c1) = (str)[2] & 0x7F, (c2) = (str)[3] & 0x7F;  \
   } while (0)
 
-/* 1 if CHARSET, C1, and C2 compose a valid character, else 0.  */
+/* 1 if CHARSET, C1, and C2 compose a valid character, else 0.
+   Note that this intentionally allows invalid components, such
+   as 0xA0 0xA0, because there exist many files that contain
+   such invalid byte sequences, especially in EUC-GB. */
 #define CHAR_COMPONENTS_VALID_P(charset, c1, c2)	\
   ((charset) == CHARSET_ASCII				\
    ? ((c1) >= 0 && (c1) <= 0x7F)			\
