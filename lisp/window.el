@@ -1,6 +1,6 @@
 ;;; window.el --- GNU Emacs window commands aside from those written in C.
 
-;;; Copyright (C) 1985, 1989, 1992 Free Software Foundation, Inc.
+;;; Copyright (C) 1985, 1989, 1992, 1993 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -158,7 +158,7 @@ or if the window is the only window of its frame."
 	  (modified (buffer-modified-p))
 	  (buffer (current-buffer)))
       (if (and (< 1 (count-windows))
-	       (pos-visible-in-window-p (point-min)))
+	       (pos-visible-in-window-p (point-min) window))
 	  (unwind-protect
 	      (progn
 		(select-window (or window w))
