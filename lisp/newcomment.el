@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
 ;; Version: $Name:  $
-;; Revision: $Id: newcomment.el,v 1.2 1999/11/28 21:33:55 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.3 1999/11/29 00:49:18 monnier Exp $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -27,10 +27,6 @@
 
 ;;; Bugs:
 
-;; - most of the code is not written (just copied from simple.el)
-;; - too many other bugs to mention
-;; - if the region does not start at the beginning of a line,
-;;   comment-region will not align the comment markers properly
 ;; - comment-multi-line already exists with a different meaning
 ;;   and is not orthogonal to comment-extra-lines
 
@@ -42,6 +38,7 @@
 ;; - uncomment-region with a numeric argument
 ;; - uncomment-region with a consp (for blocks) or somehow make the
 ;;   deletion of continuation markers less dangerous
+;; - fix set-comment-column to not use comment-start-skip
 
 ;;; Code:
 
@@ -104,6 +101,16 @@ If nil, use `comment-end' instead."
 		 string)
   :group 'fill-comments)
 
+(defun comment-find (&optional limit noerror)
+  "Find a comment start between the point and LIMIT.
+Moves the point to inside the comment and returns the position of the
+comment-starter.  If no comment is found, moves the point to LIMIT
+and raises an error or returns nil of NOERROR is non-nil."
+  (let ((s (parse-partial-sexp (point) (or limit (point-max)) nil nil nil t)))
+    (if (and (nth 8 s) (not (nth 3 s)))
+	(nth 8 s)
+      (unless noerror (error "No comment")))))
+
 (defun indent-for-comment ()
   "Indent this line's comment to comment column, or insert an empty comment."
   (interactive "*")
@@ -114,26 +121,15 @@ If nil, use `comment-end' instead."
     (cond
      ((null starter)
       (error "No comment syntax defined"))
-     ((null comment-start-skip)
-      (error "This mode doesn't define `comment-start-skip'"))
      (t (let* ((eolpos (save-excursion (end-of-line) (point)))
                cpos indent begpos)
           (beginning-of-line)
-          (if (re-search-forward comment-start-skip eolpos 'move)
-              (progn (setq cpos (point-marker))
-                     ;; Find the start of the comment delimiter.
-                     ;; If there were paren-pairs in comment-start-skip,
-                     ;; position at the end of the first pair.
-                     (if (match-end 1)
-                         (goto-char (match-end 1))
-                       ;; If comment-start-skip matched a string with
-                       ;; internal whitespace (not final whitespace) then
-                       ;; the delimiter start at the end of that
-                       ;; whitespace.  Otherwise, it starts at the
-                       ;; beginning of what was matched.
-                       (skip-syntax-backward " " (match-beginning 0))
-                       (skip-syntax-backward "^ " (match-beginning 0)))))
-          (setq begpos (point))
+          (when (setq begpos (comment-find eolpos t))
+	    (skip-chars-forward
+	     (concat (buffer-substring (1- (point)) (point)) " \t"))
+	    (setq cpos (point-marker))
+	    (goto-char begpos))
+	  (setq begpos (point))
           ;; Compute desired indent.
           (if (= (current-column)
                  (setq indent (if comment-indent-hook
@@ -160,23 +156,19 @@ With just minus as arg, kill any comment on this line.
 With any other arg, set comment column to indentation of the previous comment
  and then align or create a comment on this line at that column."
   (interactive "P")
-  (if (eq arg '-)
-      (kill-comment nil)
-    (if arg
-	(progn
-	  (save-excursion
-	    (beginning-of-line)
-	    (re-search-backward comment-start-skip)
-	    (beginning-of-line)
-	    (re-search-forward comment-start-skip)
-	    (goto-char (match-beginning 0))
-	    (setq comment-column (current-column))
-	    (message "Comment column set to %d" comment-column))
-	  (indent-for-comment))
+  (cond
+   ((eq arg '-) (kill-comment nil))
+   (arg
+    (save-excursion
+      (beginning-of-line)
+      (re-search-backward comment-start-skip)
+      (beginning-of-line)
+      (goto-char (comment-find))
       (setq comment-column (current-column))
+      (message "Comment column set to %d" comment-column))
+    (indent-for-comment))
+   (t (setq comment-column (current-column))
       (message "Comment column set to %d" comment-column))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defcustom comment-nested nil
   "Whether the comments can be nested.")
@@ -209,7 +201,7 @@ With prefix ARG, kill comments on that many lines starting with this one."
 	(end-of-line)
 	(setq endc (point))
 	(beginning-of-line)
-	(let ((cs (nth 8 (parse-partial-sexp (point) endc nil nil nil t))))
+	(let ((cs (comment-find endc t)))
 	  (when cs
 	    (goto-char cs)
 	    (skip-syntax-backward " ")
@@ -270,74 +262,74 @@ ARG is currently ignored."
 		  (setq state (parse-partial-sexp
 			       (point) end
 			       nil nil nil t))
-		  (setq spt (nth 8 state)))
-	(unless (nth 3 state)
-	  (let* ((stxt (buffer-substring spt (point)))
-		 ;; find the end of the comment
-		 (ept (progn
-			(when (nth 8 (parse-partial-sexp
-				      (point) (point-max)
-				      nil nil state 'syntax-table))
-			  (error "Can't find the comment end"))
-			(point-marker)))
-		 ;; find the start of the end-comment
-		 (_ (while (save-excursion
+		  (setq spt (nth 8 state))
+		  (not (nth 3 state)))
+	(let* ((stxt (buffer-substring spt (point)))
+	       ;; find the end of the comment
+	       (ept (progn
+		      (when (nth 8 (parse-partial-sexp
+				    (point) (point-max)
+				    nil nil state 'syntax-table))
+			(error "Can't find the comment end"))
+		      (point-marker)))
+	       ;; find the start of the end-comment
+	       (_ (while (save-excursion
+			   (save-restriction
+			     (narrow-to-region (point) ept)
 			     (nth 8
-				  (save-restriction
-				    (narrow-to-region (point) ept)
-				    (parse-partial-sexp (point) ept
-							nil nil state))))
-		      (backward-char)))
-		 (etxt (buffer-substring (point) ept))
-		 (end-quote-re (comment-end-quote-re etxt "\\\\")))
-	    (save-restriction
-	      (narrow-to-region spt ept)
-	      ;; remove the end-comment (and leading padding and such)
-	      (unless (string= "\n" etxt)
-		(beginning-of-line)
-		(re-search-forward (concat "\\(^\\s-*\\|\\("
-					   (regexp-quote comment-padding)
-					   "\\)?\\)"
-					   (regexp-quote (substring etxt 0 1))
-					   "+"
-					   (regexp-quote (substring etxt 1))
-					   "\\'"))
-		(delete-region (match-beginning 0) (match-end 0)))
+				  (parse-partial-sexp (point) ept
+						      nil nil state))))
+		    (backward-char)))
+	       (etxt (buffer-substring (point) ept))
+	       (end-quote-re (comment-end-quote-re etxt "\\\\")))
+	  (save-restriction
+	    (narrow-to-region spt ept)
+	    ;; remove the end-comment (and leading padding and such)
+	    (unless (string= "\n" etxt)
+	      (beginning-of-line)
+	      (re-search-forward (concat "\\(^\\s-*\\|\\("
+					 (regexp-quote comment-padding)
+					 "\\)?\\)"
+					 (regexp-quote (substring etxt 0 1))
+					 "+"
+					 (regexp-quote (substring etxt 1))
+					 "\\'"))
+	      (delete-region (match-beginning 0) (match-end 0)))
 
-	      ;; remove the comment-start
+	    ;; remove the comment-start
+	    (goto-char (point-min))
+	    (looking-at (concat (regexp-quote stxt)
+				"+\\(\\s-*$\\|"
+				(regexp-quote comment-padding)
+				"\\)"))
+	    (delete-region (match-beginning 0) (match-end 0))
+
+	    ;; unquote any nested end-comment
+	    (when end-quote-re
 	      (goto-char (point-min))
-	      (looking-at (concat (regexp-quote stxt)
-				  "+\\(\\s-*$\\|"
-				  (regexp-quote comment-padding)
-				  "\\)"))
-	      (delete-region (match-beginning 0) (match-end 0))
+	      (while (re-search-forward end-quote-re nil t)
+		(delete-region (match-beginning 1) (match-end 1))))
 
-	      ;; unquote any nested end-comment
-	      (when end-quote-re
+	    ;; eliminate continuation markers as well
+	    (let* ((ccs (car comment-continue))
+		   (cce (cdr comment-continue))
+		   (sre (when (and (stringp ccs) (not (string= "" ccs)))
+			  (concat
+			   "^\\s-*\\(" (regexp-quote ccs)
+			   "+\\(" (regexp-quote comment-padding)
+			   "\\)?\\)")))
+		   (ere (when (and (stringp cce) (not (string= "" cce)))
+			  (concat
+			   "\\(\\(" (regexp-quote comment-padding)
+			   "\\)?" (regexp-quote cce) "\\)\\s-*$")))
+		   (re (if (and sre ere) (concat sre "\\|" ere)
+			 (or sre ere))))
+	      (when re
 		(goto-char (point-min))
-		(while (re-search-forward end-quote-re nil t)
-		  (delete-region (match-beginning 1) (match-end 1))))
-
-	      ;; eliminate continuation markers as well
-	      (let* ((ccs (car comment-continue))
-		     (cce (cdr comment-continue))
-		     (sre (when (and (stringp ccs) (not (string= "" ccs)))
-			    (concat
-			     "^\\s-*\\(" (regexp-quote ccs)
-			     "+\\(" (regexp-quote comment-padding)
-			     "\\)?\\)")))
-		     (ere (when (and (stringp cce) (not (string= "" cce)))
-			    (concat
-			     "\\(\\(" (regexp-quote comment-padding)
-			     "\\)?" (regexp-quote cce) "\\)\\s-*$")))
-		     (re (if (and sre ere) (concat sre "\\|" ere)
-			   (or sre ere))))
-		(when re
-		  (goto-char (point-min))
-		  (while (re-search-forward re nil t)
-		    (replace-match "" t t nil (if (match-end 1) 1 3)))))
-	      ;; go the the end for the next comment
-	      (goto-char (point-max)))))))))
+		(while (re-search-forward re nil t)
+		  (replace-match "" t t nil (if (match-end 1) 1 3)))))
+	    ;; go the the end for the next comment
+	    (goto-char (point-max))))))))
 
 (defun comment-make-extra-lines (cs ce ccs cce min-indent max-indent &optional block)
   (if block
@@ -536,6 +528,15 @@ The strings used as comment starts are built from
 
 ;;; Change Log:
 ;; $Log: newcomment.el,v $
+;; Revision 1.3  1999/11/29 00:49:18  monnier
+;; (kill-comment): Fixed by rewriting it with syntax-tables rather than regexps
+;; (comment-normalize-vars): Set default (cdr comment-continue)
+;; (comment-end-quote-re): new function taken out of `comment-region-internal'
+;; (uncomment-region): Rewritten using syntax-tables.  Also unquotes
+;;   nested comment-ends and eliminates continuation markers.
+;; (comment-region-internal): Don't create a default for cce.
+;;   Use `comment-end-quote-re'.
+;;
 ;; Revision 1.2  1999/11/28 21:33:55  monnier
 ;; (comment-make-extra-lines): Moved out of comment-region-internal.
 ;; (comment-with-narrowing): New macro.  Provides a way to preserve
