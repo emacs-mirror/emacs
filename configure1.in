@@ -89,7 +89,7 @@ g:O:with_x:with_x10:\
 
 config_h_opts=":\
 have_x_windows:have_x11:have_x_menu:\
-c_switch_site:sigtype:gnu_malloc:rel_alloc:\
+c_switch_site:sigtype:gnu_malloc:rel_alloc:lisp_float_type:\
 "
 
 prefix=
