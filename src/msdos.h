@@ -27,6 +27,7 @@ int dos_ttraw ();
 int dos_ttcooked ();
 int dos_get_saved_screen (char **, int *, int *);
 int dos_set_keyboard (int, int);
+void dos_set_window_size (int *, int *);
 
 int getdefdir (int, char*);
 void unixtodos_filename (char *);
