@@ -1,3 +1,8 @@
+2000-06-19  Richard Stallman  <rms@caffeine.ai.mit.edu>
+
+	* data.c (set_internal): If variable is frame-local,
+	store the new value immediately into the frame parameter alist.
+
 2000-06-19  Ken Raeburn  <raeburn@gnu.org>
 
 	* xfns.c (jpeg_load): Fetch error-handling data first, then fill

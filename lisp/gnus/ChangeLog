@@ -1,3 +1,7 @@
+2000-06-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* gnus-uu.el (gnus-uu-default-view-rules): Don't use `xv'.
+
 2000-05-08  Dave Love  <fx@gnu.org>
 
 	* pop3.el: Import changes from current Gnus.
