@@ -6053,6 +6053,8 @@ message_with_string (m, string, log)
      Lisp_Object string;
      int log;
 {
+  CHECK_STRING (string);
+
   if (noninteractive)
     {
       if (m)
