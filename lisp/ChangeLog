@@ -1,5 +1,16 @@
 2003-06-14  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* emacs-lisp/copyright.el (copyright-update-year): New function
+	extracted from copyright-update.
+	When `arg' is set, replace the year, not the `copyright' text.
+	Ignore `copyright-update = nil' if called interactively.
+	Use "," rather than ", " if that's what was used before.
+	Recognize mixes of 2 and 4 digit years.
+	Use replace-match.
+	(copyright-update): Add interactivep arg.
+	Use it instead of use last-command.
+	Use replace-match.  Don't assume (point-min) == 1.
+
 	* textmodes/tex-mode.el (tex-compile-commands):
 	Handle tex-start-commands like tex-start-tex does.
 
