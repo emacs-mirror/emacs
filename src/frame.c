@@ -72,6 +72,8 @@ Lisp_Object Qtitle;
 Lisp_Object Qdisplay_type;
 Lisp_Object Qbackground_mode;
 Lisp_Object Qinhibit_default_face_x_resources;
+Lisp_Object Qleft_fringe;
+Lisp_Object Qright_fringe;
 
 Lisp_Object Vterminal_frame;
 Lisp_Object Vdefault_frame_alist;
@@ -2468,6 +2470,10 @@ syms_of_frame ()
   staticpro (&Qdisplay_type);
   Qbackground_mode = intern ("background-mode");
   staticpro (&Qbackground_mode);
+  Qleft_fringe = intern ("left-fringe");
+  staticpro (&Qleft_fringe);
+  Qright_fringe = intern ("right-fringe");
+  staticpro (&Qright_fringe);
 
   DEFVAR_LISP ("default-frame-alist", &Vdefault_frame_alist,
 	       doc: /* Alist of default values for frame creation.
