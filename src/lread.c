@@ -1671,7 +1671,7 @@ isfloat_string (cp)
       while (*cp >= '0' && *cp <= '9')
 	cp++;
     }
-  if (*cp == 'e')
+  if (*cp == 'e' || *cp == 'E')
     {
       state |= E_CHAR;
       cp++;
