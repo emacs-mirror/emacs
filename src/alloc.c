@@ -341,7 +341,12 @@ int dont_register_blocks;
 
 struct mem_node
 {
-  struct mem_node *left, *right, *parent;
+  /* Children of this node.  These pointers are never NULL.  When there
+     is no child, the value is MEM_NIL, which points to a dummy node.  */
+  struct mem_node *left, *right;
+
+  /* The parent of this node.  In the root node, this is NULL.  */
+  struct mem_node *parent;
 
   /* Start and end of allocated region.  */
   void *start, *end;
