@@ -1,0 +1,40 @@
+README for Edition 2.0.1 of the Emacs Lisp Reference Manual.
+
+* This directory contains the texinfo source files for the Reference
+Manual, make-permuted-index, and the latest version of texinfo.tex,
+which handles forms that cannot be handled by the older versions of
+texinfo.tex.  Also, it contains makeinfo.c.
+
+* The Emacs Lisp Reference Manual is turning out bigger than we
+expected.  It totals over 750 pages when printed on 8.5 by 11 inch
+paper and the info files total almost two megabytes.
+
+* You can format this manual either for Info or for printing hardcopy
+using TeX.  
+
+** This distribution contains a Makefile that you can use with GNU Make.
+Otherwise, here are detailed instructions:
+
+** HARDCOPY: A copy of the version of `texinfo.tex' that formats this
+manual is included in this distribution.
+
+The master file for formatting this manual for Tex is called
+`elisp.texi'.  It contains @include commands to include all the
+chapters that make up the manual.  In addition, `elisp.texi' has
+the title page in a new format designed by Karl Berry, using the
+@titlespec command.
+
+To create a DVI file with a sorted index, execute the following
+commands in the shell:
+
+% make index.texi
+% make elisp.dvi
+
+*** To create a DVI file with a permuted index, you may experiment
+with `make-permuted-index'.  
+
+** INFO: A copy of makeinfo.c that will format this manual for Info is
+included in this distribution.  This program is written in C and can
+be used separately from Emacs.  `makeinfo' produces much better error
+messages than the old `texinfo-format-buffer'.  You can run `makeinfo'
+it on the `elisp.texi' file.
