@@ -572,7 +572,7 @@ and nil for X and Y.")
 
 DEFUN ("set-mouse-position", Fset_mouse_position, Sset_mouse_position, 3, 3, 0,
   "Move the mouse pointer to the center of cell (X,Y) in SCREEN.\n\
-WARNING:  If you use this under X, you should do unfocus-screen afterwards.")
+WARNING:  If you use this under X, you should do `unfocus-screen' afterwards.")
   (screen, x, y)
      Lisp_Object screen, x, y;
 {
@@ -686,20 +686,6 @@ DEFUN ("iconify-screen", Ficonify_screen, Siconify_screen,
   return Qnil;
 }
 
-DEFUN ("deiconify-screen", Fdeiconify_screen, Sdeiconify_screen,
-       1, 1, 0,
-  "Open (de-iconify) the iconified screen SCREEN.")
-  (screen)
-     Lisp_Object screen;
-{
-  CHECK_LIVE_SCREEN (screen, 0);
-
-  if (SCREEN_IS_X (XSCREEN (screen)))
-      x_make_screen_visible (XSCREEN (screen));
-
-  return screen;
-}
-
 DEFUN ("screen-visible-p", Fscreen_visible_p, Sscreen_visible_p,
        1, 1, 0,
        "Return t if SCREEN is now \"visible\" (actually in use for display).\n\
@@ -746,13 +732,13 @@ DEFUN ("redirect-screen-focus", Fredirect_screen_focus, Sredirect_screen_focus,
        1, 2, 0,
   "Arrange for keystrokes typed at SCREEN to be sent to FOCUS-SCREEN.\n\
 This means that, after reading a keystroke typed at SCREEN,\n\
-last-event-screen will be FOCUS-SCREEN.\n\
+`last-event-screen' will be FOCUS-SCREEN.\n\
 \n\
 If FOCUS-SCREEN is omitted or eq to SCREEN, any existing redirection is\n\
 cancelled, and the screen again receives its own keystrokes.\n\
 \n\
-The redirection lasts until the next call to redirect-screen-focus\n\
-or select-screen.\n\
+The redirection lasts until the next call to `redirect-screen-focus'\n\
+or `select-screen'.\n\
 \n\
 This is useful for temporarily redirecting keystrokes to the minibuffer\n\
 window when a screen doesn't have its own minibuffer.")
@@ -777,7 +763,7 @@ window when a screen doesn't have its own minibuffer.")
 
 DEFUN ("screen-focus", Fscreen_focus, Sscreen_focus, 1, 1, 0,
   "Return the screen to which SCREEN's keystrokes are currently being sent.\n\
-See redirect-screen-focus.")
+See `redirect-screen-focus'.")
   (screen)
     Lisp_Object screen;
 {
@@ -1141,9 +1127,9 @@ These may be set in your init file, like this:\n\
   (setq default-screen-alist '((width . 80) (height . 55)))\n\
 These override values given in window system configuration data, like\n\
 X Windows' defaults database.\n\
-For values specific to the first emacs screen, see initial-screen-alist.\n\
+For values specific to the first Emacs screen, see `initial-screen-alist'.\n\
 For values specific to the separate minibuffer screen, see\n\
-minibuffer-screen-alist.");
+`minibuffer-screen-alist'.");
   Vdefault_screen_alist = Qnil;
 
   defsubr (&Sscreenp);
@@ -1165,7 +1151,6 @@ minibuffer-screen-alist.");
   defsubr (&Smake_screen_visible);
   defsubr (&Smake_screen_invisible);
   defsubr (&Siconify_screen);
-  defsubr (&Sdeiconify_screen);
   defsubr (&Sscreen_visible_p);
   defsubr (&Svisible_screen_list);
   defsubr (&Sredirect_screen_focus);
