@@ -76,6 +76,16 @@ SHELLTYPE=SH
 SETLOADPATH=EMACSLOADPATH=../lisp
 endif
 
+# Cygwin has changed quoting rules somewhat since b20, in a way that
+# affects makefiles using sh as the command processor, so we need to
+# detect which rules to use.
+ifdef USING_SH
+sh_output := $(shell echo foo")
+ifeq "$(sh_output)" ""
+NEW_CYGWIN = 1
+endif
+endif
+
 MAKEDIR = $(CURDIR)
 ALL_DEPS	= $^
 EMPTY =
@@ -179,7 +189,9 @@ CP		= cp -f
 CP_DIR		= cp -rf
 DEL		= rm
 DEL_TREE	= rm -r
+
 ifdef USING_SH
+
 IFNOTSAMEDIR	= if [ ! -s ../same-dir.tst ] ; then
 FOREACH		= for f in
 FORVAR		= $${f}
@@ -187,8 +199,14 @@ FORDO		= ; do
 ENDFOR		= ; done
 ENDIF		= ; fi
 ARGQUOTE	= '
-DQUOTE		= ""
+ifdef NEW_CYGWIN
+DQUOTE		= "
 else
+DQUOTE		= ""
+endif
+
+else
+
 IFNOTSAMEDIR	= if not exist ../same-dir.tst
 FOREACH		= for %%f in (
 FORVAR		= %%f
@@ -197,6 +215,7 @@ ENDFOR		=
 ENDIF		=
 ARGQUOTE	= "
 DQUOTE		= \"
+
 endif
 
 # The location of the icon file
