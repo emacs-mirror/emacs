@@ -5,7 +5,7 @@
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.7.2a
 ;; Keywords: file, tags, tools
-;; X-RCS: $Id: speedbar.el,v 1.11 1998/08/24 00:37:22 zappo Exp zappo $
+;; X-RCS: $Id: speedbar.el,v 1.12 1998/08/24 00:55:45 zappo Exp zappo $
 
 ;; This file is part of GNU Emacs.
 
@@ -2615,9 +2615,10 @@ interrupted by the user."
       (let ((l (speedbar-initial-stealthy-functions))
 	    (speedbar-stealthy-update-recurse t))
 	(unwind-protect
-	    (while (and l (funcall (car l)))
-	      ;(sit-for 0)
-	      (setq l (cdr l)))
+	    (speedbar-with-writable
+	     (while (and l (funcall (car l)))
+	       ;;(sit-for 0)
+	       (setq l (cdr l))))
 	  ;;(message "Exit with %S" (car l))
 	  ))))
 
