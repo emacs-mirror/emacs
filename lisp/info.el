@@ -2901,7 +2901,7 @@ the variable `Info-file-list-for-emacs'."
 	(let ((fill-nobreak-invisible t)
 	      (fill-individual-varying-indent nil)
 	      (paragraph-start "\f\\|[ \t]*[-*]\\|[ \t]*$")
-	      (paragraph-separate "[ \t]*[-*]\\|[ \t\f]*$")
+	      (paragraph-separate ".*\\.[ \t]*\n[ \t]\\|[ \t]*[-*]\\|[ \t\f]*$")
 	      (adaptive-fill-mode nil))
 	  (goto-char (point-max))
 	  (while paragraph-markers
