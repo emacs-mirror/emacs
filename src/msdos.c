@@ -997,6 +997,7 @@ IT_write_glyphs (struct glyph *str, int str_len)
 	    }
 	  else
 	    {
+	      coding->src_multibyte = 1;
 	      encode_coding (coding, buf, conversion_buffer, chlen,
 			     conversion_buffer_size);
 	      chlen -= coding->consumed;
