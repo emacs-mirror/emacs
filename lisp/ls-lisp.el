@@ -1,53 +1,98 @@
-;;;; dired-lisp.el - emulate ls completely in Emacs Lisp. $Revision: 1.4 $
-;;;; Copyright (C) 1991 Sebastian Kremer <sk@thp.uni-koeln.de>
+;;;; dired-lisp.el - emulate Dired's ls completely in Emacs Lisp
 
 ;;;; READ THE WARNING BELOW BEFORE USING THIS PROGRAM!
 
-;;;; Useful if you cannot afford to fork Emacs on a real memory UNIX,
-;;;; under VMS, or if you don't have the ls program.
+(defconst dired-lisp-version (substring "$Revision: 5.212 $" 11 -2)
+  "$Id: dired-lisp.el,v 4.19 1991/09/20 13:20:58 sk RelBeta $")
 
-;; This file is part of GNU Emacs.
+;; Copyright (C) 1992 by Sebastian Kremer <sk@thp.uni-koeln.de>
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 1, or (at your option)
 ;; any later version.
-
-;; GNU Emacs is distributed in the hope that it will be useful,
+;;
+;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-
+;;
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with this program; if not, write to the Free Software
+;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;;;; WARNING:
+;; LISPDIR ENTRY for the Elisp Archive ===============================
+;;    LCD Archive Entry:
+;;    dired-lisp|Sebastian Kremer|sk@thp.uni-koeln.de
+;;    |emulate Dired's ls completely in Emacs Lisp 
+;;    |$Date: 1991/09/20 13:20:58 $|$Revision: 4.19 $|
 
-;;;; With earlier version of this program I sometimes got an internal
-;;;; Emacs error:
+;; INSTALLATION =======================================================
+;; 
+;; Put this file into your load-path.  Loading it will result in
+;; redefining function dired-ls to not call ls.
 
-;;;;   Signalling: (wrong-type-argument natnump #<EMACS BUG: ILLEGAL
-;;;;   DATATYPE (#o37777777727) Save your buffers immediately and please
-;;;;   report this bug>)
+;; OVERVIEW ===========================================================
 
-;;;; The datatype differs (I also got #o67 once).
+;; This file overloads tree dired so that all fileinfo is retrieved
+;; directly from Emacs lisp, without using an ls subprocess.
 
-;;;; Sometimes emacs just crashed with a fatal error.
+;; Useful if you cannot afford to fork Emacs on a real memory UNIX,
+;; under VMS, or if you don't have the ls program, or if you want
+;; different format from what ls offers.
 
-;;;; After I've avoided using directory-files and file-attributes
-;;;; together inside a mapcar, the bug didn't surface any longer.
+;; Beware that if you change the output format of dired-ls, you'll
+;; have to change dired-move-to-filename and
+;; dired-move-to-end-of-filename as well.
 
-;;;  RESTRICTIONS:
-;;;; ls switches are mostly ignored
-;;;; Cannot display date of file, displays a fake date "Jan 00 00:00" instead
-;;;; Only numeric uid/gid
-;;;; Loading ange-ftp breaks it
+;; With this package is loaded, dired uses regexps instead of shell
+;; wildcards. If you enter regexps remember to double each $ sign.
+;; For example, to dired all elisp (*.el) files, enter `.*\.el$$',
+;; resulting in the regexp `.*\.el$'.
 
-;;;; It is surprisingly fast, though!
+;; WARNING ===========================================================
 
-;;;; TODO:
-;;;; Recognize at some more ls switches: R F
+;; With earlier version of this program I sometimes got an internal
+;; Emacs error:
+
+;;   Signalling: (wrong-type-argument natnump #<EMACS BUG: ILLEGAL
+;;   DATATYPE (#o37777777727) Save your buffers immediately and please
+;;   report this bug>)
+
+;; The datatype differs (I also got #o67 once).
+
+;; Sometimes emacs just crashed with a fatal error.
+
+;; After I've avoided using directory-files and file-attributes
+;; together inside a mapcar, the bug didn't surface any longer.
+
+;;  RESTRICTIONS =====================================================
+
+;; * ls switches are mostly ignored, see docstring of `dired-ls'.
+
+;; * In Emacs 18: cannot display date of file, displays a fake date
+;;   "Jan 00 00:00" instead (dates do work in Emacs 19)
+
+;; * Only numeric uid/gid
+
+;; * if you load dired-lisp after ange-ftp, remote listings look
+;;   really strange: 
+;;
+;;   total 1
+;;   d?????????  -1 -1       -1             -1 Jan  1  1970 .
+;;   d?????????  -1 -1       -1             -1 Jan  1  1970 ..
+;;
+;;   This is because ange-ftp's file-attributes does not return much
+;;   useful information.
+;;
+;;   If you load dired-lisp first, there seem to be no problems.
+
+;; It is surprisingly fast, though!
+
+;; TODO ==============================================================
+
+;; Recognize at some more ls switches: R F
+
 
 (require 'dired)			; we will redefine dired-ls:
 (or (fboundp 'dired-lisp-unix-ls)
@@ -58,11 +103,13 @@
 (defun dired-lisp-ls (file &optional switches wildcard full-directory-p)
   "dired-lisp.el's version of dired-ls.
 Known switches: A a S r i s
+In Emacs 19, additional known switches are: c u
 Others are ignored.
 
   Insert ls output of FILE, optionally formatted with SWITCHES.
-Optional third arg WILDCARD means treat non-directory part of FILE
-as emacs regexp (_not_ a shell wildcard).
+Optional third arg WILDCARD means treat non-directory part of FILE as
+emacs regexp (_not_ a shell wildcard).  If you enter regexps remember
+to double each $ sign.
 
 Optional fourth arg FULL-DIRECTORY-P means file is a directory and
 switches do not contain `d'.
@@ -137,8 +184,8 @@ SWITCHES default to dired-listing-switches."
 
 (defun dired-lisp-handle-switches (file-alist switches)
   ;; FILE-ALIST's elements are (FILE . FILE-ATTRIBUTES).
-  ;; Return new alist sorted according to switches.
-  ;; Default sorting is alphabetically.
+  ;; Return new alist sorted according to SWITCHES which is a list of
+  ;; characters.  Default sorting is alphabetically.
   (setq file-alist
 	(sort file-alist
 	      (cond ((memq ?S switches)
@@ -147,6 +194,7 @@ SWITCHES default to dired-listing-switches."
 			;; 7th file attribute is file size
 			;; Make largest file come first
 			(< (nth 7 (cdr y)) (nth 7 (cdr x))))))
+		    ;; does Emacs 19 have a way to compare times?
 		    (t			; sorted alphabetically
 		     (function
 		      (lambda (x y)
@@ -173,10 +221,8 @@ SWITCHES default to dired-listing-switches."
 		    (nth 3 file-attr)	; gid
 		    (nth 7 file-attr)	; size in bytes
 		    )
-	    ;; file-attributes's time is in a braindead format
-	    ;; Emacs should have a ctime function
-	    ;; current-time-string could take an optional arg.
-	    "Jan 00 00:00 "		; fake time
+	    (dired-lisp-format-time file-attr switches)
+	    " "
 	    file-name
 	    (if (stringp file-type)	; is a symbolic link
 		(concat " -> " file-type)
@@ -184,3 +230,35 @@ SWITCHES default to dired-listing-switches."
 	    "\n"
 	    )))
 
+(defun dired-lisp-format-time (file-attr switches)
+  ;; Format time string for file with attributes FILE-ATTR according
+  ;; to SWITCHES (a list of ls option letters of which c and u are recognized).
+  ;; file-attributes's time is in a braindead format
+  ;; Emacs 19 can format it using a new optional argument to
+  ;; current-time-string, for Emacs 18 we just return the faked fixed
+  ;; date "Jan 00 00:00 ".
+  (condition-case error-data
+      (let* ((time (current-time-string
+		    (nth (cond
+			  ((memq ?c switches) 6) ; last mode change
+			  ((memq ?u switches) 4) ; last access
+			  ;; default is last modtime
+			  (t 5))
+			 file-attr)))
+	     (date (substring time 4 11)) ; "Apr 30 "
+	     (clock (substring time 11 16)) ; "11:27"
+	     (year (substring time 19 24)) ; " 1992"
+	     (same-year (equal year (substring (current-time-string) 19 24))))
+	(concat date			; has trailing SPC
+		(if same-year
+		    ;; this is not exactly the same test used by ls
+		    ;; ls tests if the file is older than 6 months
+		    ;; but we can't do time differences easily
+		    clock
+		  year)))
+    (error
+     "Jan 00 00:00")))
+
+(provide 'dired-lisp)
+
+; eof
