@@ -592,6 +592,25 @@ character code range.  Thus FUNC should iterate over [START, END]."
 		 (make-char charset (+ i start) start)
 		 (make-char charset (+ i start) (+ start chars -1)))))))
 
+(defun optimize-char-coding-system-table ()
+  "Optimize `char-coding-system-table'.
+Elements which compare `equal' are modified to share the same list."
+  (let (cache)
+    (map-char-table
+     (lambda (k v)
+       ;; This doesn't worry about elements which are permutations of
+       ;; each other.  As it is, with utf-translate-cjk on and
+       ;; code-pages loaded, the table has ~50k elements, which are
+       ;; reduced to ~1k.  (`optimize-char-table' might win if
+       ;; permutations were eliminated, but that's probably a small
+       ;; effect and not easy to test.)
+       (let ((existing (car (member v cache))))
+	 (if existing
+	     (aset char-coding-system-table k existing)
+	   (push v cache))))
+     char-coding-system-table))
+  (optimize-char-table char-coding-system-table))
+
 (defun register-char-codings (coding-system safe-chars)
   "Add entries for CODING-SYSTEM to `char-coding-system-table'.
 If SAFE-CHARS is a char-table, its non-nil entries specify characters
@@ -644,8 +663,8 @@ CODING-SYSTEM as a general one which can encode all characters."
 			       (generic-char-p key))
 		     (push charset partials)))))))
        safe-chars)
+      (optimize-char-coding-system-table)
       (set-char-table-extra-slot char-coding-system-table 1 partials))))
-
 
 (defun make-subsidiary-coding-system (coding-system)
   "Make subsidiary coding systems (eol-type variants) of CODING-SYSTEM."
