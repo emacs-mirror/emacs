@@ -236,7 +236,7 @@ static Lisp_Object Vinhibit_file_name_handlers;
 static Lisp_Object Vinhibit_file_name_operation;
 
 Lisp_Object Qfile_error, Qfile_already_exists, Qfile_date_error;
-
+Lisp_Object Qexcl;
 Lisp_Object Qfile_name_history;
 
 Lisp_Object Qcar_less_than_car;
@@ -251,17 +251,24 @@ report_file_error (string, data)
      Lisp_Object data;
 {
   Lisp_Object errstring;
+  int errorno = errno;
 
   errstring = build_string (strerror (errno));
-
-  /* System error messages are capitalized.  Downcase the initial
-     unless it is followed by a slash.  */
-  if (XSTRING (errstring)->data[1] != '/')
-    XSTRING (errstring)->data[0] = DOWNCASE (XSTRING (errstring)->data[0]);
-
   while (1)
-    Fsignal (Qfile_error,
-	     Fcons (build_string (string), Fcons (errstring, data)));
+    switch (errorno)
+      {
+      case EEXIST:
+	Fsignal (Qfile_already_exists, Fcons (errstring, data));
+	break;
+      default:
+	/* System error messages are capitalized.  Downcase the initial
+	   unless it is followed by a slash.  */
+	if (XSTRING (errstring)->data[1] != '/')
+	  XSTRING (errstring)->data[0] = DOWNCASE (XSTRING (errstring)->data[0]);
+
+	Fsignal (Qfile_error,
+		 Fcons (build_string (string), Fcons (errstring, data)));
+      }
 }
 
 Lisp_Object
@@ -4263,7 +4270,8 @@ If VISIT is neither t nor nil nor a string,\n\
 The optional sixth arg LOCKNAME, if non-nil, specifies the name to\n\
   use for locking and unlocking, overriding FILENAME and VISIT.\n\
 The optional seventh arg CONFIRM, if non-nil, says ask for confirmation\n\
-  before overwriting an existing file.\n\
+  before overwriting an existing file and if equal to `excl', specifies\n\
+  that an error should be raised if the file already exists.\n\
 Kludgy feature: if START is a string, then that string is written\n\
 to the file, instead of any buffer contents, and END is ignored.\n\
 \n\
@@ -4401,7 +4409,7 @@ This does code conversion according to the value of\n\
 
   filename = Fexpand_file_name (filename, Qnil);
 
-  if (! NILP (confirm))
+  if (! NILP (confirm) && confirm != Qexcl)
     barf_or_query_if_file_exists (filename, "overwrite", 1, 0, 1);
 
   if (STRINGP (visit))
@@ -4538,7 +4546,9 @@ This does code conversion according to the value of\n\
 	       O_WRONLY | O_TRUNC | O_CREAT | buffer_file_type,
 	       S_IREAD | S_IWRITE);
 #else  /* not DOS_NT */
-  desc = creat (fn, auto_saving ? auto_save_mode_bits : 0666);
+  desc = open (fn, O_WRONLY | O_TRUNC | O_CREAT
+	       | (confirm == Qexcl ? O_EXCL : 0),
+	       auto_saving ? auto_save_mode_bits : 0666);
 #endif /* not DOS_NT */
 #endif /* not VMS */
 
@@ -5648,6 +5658,8 @@ syms_of_fileio ()
   staticpro (&Qfile_already_exists);
   Qfile_date_error = intern ("file-date-error");
   staticpro (&Qfile_date_error);
+  Qexcl = intern ("excl");
+  staticpro (&Qexcl);
 
 #ifdef DOS_NT
   Qfind_buffer_file_type = intern ("find-buffer-file-type");
