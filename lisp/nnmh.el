@@ -1,6 +1,5 @@
 ;;; nnmh.el --- mhspool access for Gnus
-
-;; Copyright (C) 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1995,96 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
 ;; 	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -32,20 +31,23 @@
 ;;; Code:
 
 (require 'nnheader)
-(require 'rmail)
 (require 'nnmail)
 (require 'gnus)
+(require 'nnoo)
+(eval-and-compile (require 'cl))
 
-(defvar nnmh-directory "~/Mail/"
+(nnoo-declare nnmh)
+
+(defvoo nnmh-directory message-directory
   "*Mail spool directory.")
 
-(defvar nnmh-get-new-mail t
+(defvoo nnmh-get-new-mail t
   "*If non-nil, nnmh will check the incoming mail file and split the mail.")
 
-(defvar nnmh-prepare-save-mail-hook nil
+(defvoo nnmh-prepare-save-mail-hook nil
   "*Hook run narrowed to an article before saving.")
 
-(defvar nnmh-be-safe nil
+(defvoo nnmh-be-safe nil
   "*If non-nil, nnmh will check all articles to make sure whether they are new or not.")
 
 
@@ -53,59 +55,49 @@
 (defconst nnmh-version "nnmh 1.0"
   "nnmh version.")
 
-(defvar nnmh-current-directory nil
+(defvoo nnmh-current-directory nil
   "Current news group directory.")
 
-(defvar nnmh-status-string "")
-(defvar nnmh-group-alist nil)
-
-
-
-(defvar nnmh-current-server nil)
-(defvar nnmh-server-alist nil)
-(defvar nnmh-server-variables 
-  (list
-   (list 'nnmh-directory nnmh-directory)
-   (list 'nnmh-get-new-mail nnmh-get-new-mail)
-   '(nnmh-current-directory nil)
-   '(nnmh-status-string "")
-   '(nnmh-group-alist)))
+(defvoo nnmh-status-string "")
+(defvoo nnmh-group-alist nil)
 
 
 
 ;;; Interface functions.
 
-(defun nnmh-retrieve-headers (sequence &optional newsgroup server)
+(nnoo-define-basics nnmh)
+
+(deffoo nnmh-retrieve-headers (articles &optional newsgroup server fetch-old)
   (save-excursion
     (set-buffer nntp-server-buffer)
     (erase-buffer)
     (let* ((file nil)
-	   (number (length sequence))
+	   (number (length articles))
 	   (large (and (numberp nnmail-large-newsgroup)
 		       (> number nnmail-large-newsgroup)))
 	   (count 0)
 	   beg article)
-      (nnmh-possibly-change-directory newsgroup)
-      (if (stringp (car sequence))
+      (nnmh-possibly-change-directory newsgroup server)
+      ;; We don't support fetching by Message-ID.
+      (if (stringp (car articles))
 	  'headers
-	(while sequence
-	  (setq article (car sequence))
-	  (setq file
-		(concat nnmh-current-directory (int-to-string article)))
-	  (if (and (file-exists-p file)
-		   (not (file-directory-p file)))
-	      (progn
-		(insert (format "221 %d Article retrieved.\n" article))
-		(setq beg (point))
-		(nnheader-insert-head file)
-		(goto-char beg)
-		(if (search-forward "\n\n" nil t)
-		    (forward-char -1)
-		  (goto-char (point-max))
-		  (insert "\n\n"))
-		(insert ".\n")
-		(delete-region (point) (point-max))))
-	  (setq sequence (cdr sequence))
+	(while articles
+	  (when (and (file-exists-p 
+		      (setq file (concat (file-name-as-directory 
+					  nnmh-current-directory)
+					 (int-to-string
+					  (setq article (pop articles))))))
+		     (not (file-directory-p file)))
+	    (insert (format "221 %d Article retrieved.\n" article))
+	    (setq beg (point))
+	    (nnheader-insert-head file)
+	    (goto-char beg)
+	    (if (search-forward "\n\n" nil t)
+		(forward-char -1)
+	      (goto-char (point-max))
+	      (insert "\n\n"))
+	    (insert ".\n")
+	    (delete-region (point) (point-max)))
 	  (setq count (1+ count))
 
 	  (and large
@@ -115,42 +107,29 @@
 
 	(and large (message "nnmh: Receiving headers...done"))
 
-	;; Fold continuation lines.
-	(goto-char (point-min))
-	(while (re-search-forward "\\(\r?\n[ \t]+\\)+" nil t)
-	  (replace-match " " t t))
+	(nnheader-fold-continuation-lines)
 	'headers))))
 
-(defun nnmh-open-server (server &optional defs)
-  (nnheader-init-server-buffer)
-  (if (equal server nnmh-current-server)
-      t
-    (if nnmh-current-server
-	(setq nnmh-server-alist 
-	      (cons (list nnmh-current-server
-			  (nnheader-save-variables nnmh-server-variables))
-		    nnmh-server-alist)))
-    (let ((state (assoc server nnmh-server-alist)))
-      (if state 
-	  (progn
-	    (nnheader-restore-variables (nth 1 state))
-	    (setq nnmh-server-alist (delq state nnmh-server-alist)))
-	(nnheader-set-init-variables nnmh-server-variables defs)))
-    (setq nnmh-current-server server)))
+(deffoo nnmh-open-server (server &optional defs)
+  (nnoo-change-server 'nnmh server defs)
+  (when (not (file-exists-p nnmh-directory))
+    (condition-case ()
+	(make-directory nnmh-directory t)
+      (error t)))
+  (cond 
+   ((not (file-exists-p nnmh-directory))
+    (nnmh-close-server)
+    (nnheader-report 'nnmh "Couldn't create directory: %s" nnmh-directory))
+   ((not (file-directory-p (file-truename nnmh-directory)))
+    (nnmh-close-server)
+    (nnheader-report 'nnmh "Not a directory: %s" nnmh-directory))
+   (t
+    (nnheader-report 'nnmh "Opened server %s using directory %s"
+		     server nnmh-directory)
+    t)))
 
-(defun nnmh-close-server (&optional server)
-  t)
-
-(defun nnmh-server-opened (&optional server)
-  (and (equal server nnmh-current-server)
-       nntp-server-buffer
-       (buffer-name nntp-server-buffer)))
-
-(defun nnmh-status-message (&optional server)
-  nnmh-status-string)
-
-(defun nnmh-request-article (id &optional newsgroup server buffer)
-  (nnmh-possibly-change-directory newsgroup)
+(deffoo nnmh-request-article (id &optional newsgroup server buffer)
+  (nnmh-possibly-change-directory newsgroup server)
   (let ((file (if (stringp id)
 		  nil
 		(concat nnmh-current-directory (int-to-string id))))
@@ -158,105 +137,101 @@
     (and (stringp file)
 	 (file-exists-p file)
 	 (not (file-directory-p file))
-	 (save-excursion (nnmail-find-file file)))))
+	 (save-excursion (nnmail-find-file file))
+	 (string-to-int (file-name-nondirectory file)))))
 
-(defun nnmh-request-group (group &optional server dont-check)
-  (and nnmh-get-new-mail (or dont-check (nnmh-get-new-mail group)))
-  (let ((pathname (nnmh-article-pathname group nnmh-directory))
+(deffoo nnmh-request-group (group &optional server dont-check)
+  (let ((pathname (nnmail-group-pathname group nnmh-directory))
 	dir)
-    (if (file-directory-p pathname)
-	(progn
-	  (setq nnmh-current-directory pathname)
-	  (and nnmh-get-new-mail 
-	       nnmh-be-safe
-	       (nnmh-update-gnus-unreads group))
-	  (or dont-check
-	      (progn
-		(setq dir 
-		      (sort
-		       (mapcar
-			(function
-			 (lambda (name)
-			   (string-to-int name)))
-			(directory-files pathname nil "^[0-9]+$" t))
-		       '<))
-		(save-excursion
-		  (set-buffer nntp-server-buffer)
-		  (erase-buffer)
-		  (if dir
-		      (insert (format "211 %d %d %d %s\n" (length dir) 
-				      (car dir)
-				      (progn (while (cdr dir)
-					       (setq dir (cdr dir)))
-					     (car dir))
-				      group))
-		    (insert (format "211 0 1 0 %s\n" group))))))
-	  t)
-      (setq nnmh-status-string "No such group")
-      nil)))
+    (cond 
+     ((not (file-directory-p pathname))
+      (nnheader-report 
+       'nnmh "Can't select group (no such directory): %s" group))
+     (t
+      (setq nnmh-current-directory pathname)
+      (and nnmh-get-new-mail 
+	   nnmh-be-safe
+	   (nnmh-update-gnus-unreads group))
+      (cond
+       (dont-check
+	(nnheader-report 'nnmh "Selected group %s" group)
+	t)
+       (t
+	(setq dir 
+	      (sort
+	       (mapcar (lambda (name) (string-to-int name))
+		       (directory-files pathname nil "^[0-9]+$" t))
+	       '<))
+	  (cond 
+	   (dir
+	    (nnheader-report 'nnmh "Selected group %s" group)
+	    (nnheader-insert
+	     "211 %d %d %d %s\n" (length dir) (car dir)
+	     (progn (while (cdr dir) (setq dir (cdr dir))) (car dir))
+	     group))
+	   (t
+	    (nnheader-report 'nnmh "Empty group %s" group)
+	    (nnheader-insert (format "211 0 1 0 %s\n" group))))))))))
 
-(defun nnmh-request-list (&optional server dir)
-  (or dir
-      (save-excursion
-	(set-buffer nntp-server-buffer)
-	(erase-buffer)
-	(setq dir (file-truename (file-name-as-directory nnmh-directory)))))
+(deffoo nnmh-request-scan (&optional group server)
+  (nnmail-get-new-mail 'nnmh nil nnmh-directory group))      
+
+(deffoo nnmh-request-list (&optional server dir)
+  (nnheader-insert "")
+  (let ((nnmh-toplev
+	 (or dir (file-truename (file-name-as-directory nnmh-directory)))))
+    (nnmh-request-list-1 nnmh-toplev))
+  (setq nnmh-group-alist (nnmail-get-active))
+  t)
+
+(defvar nnmh-toplev)
+(defun nnmh-request-list-1 (dir)
   (setq dir (expand-file-name dir))
   ;; Recurse down all directories.
   (let ((dirs (and (file-readable-p dir)
 		   (> (nth 1 (file-attributes (file-chase-links dir))) 2)
-		   (directory-files dir t nil t))))
-    (while dirs 
-      (if (and (not (string-match "/\\.\\.?$" (car dirs)))
-	       (file-directory-p (car dirs))
-	       (file-readable-p (car dirs)))
-	  (nnmh-request-list nil (car dirs)))
-      (setq dirs (cdr dirs))))
+		   (directory-files dir t nil t)))
+	dir)
+    ;; Recurse down directories.
+    (while (setq dir (pop dirs))
+      (when (and (not (member (file-name-nondirectory dir) '("." "..")))
+		 (file-directory-p dir)
+		 (file-readable-p dir))
+	(nnmh-request-list-1 dir))))
   ;; For each directory, generate an active file line.
-  (if (not (string= (expand-file-name nnmh-directory) dir))
-      (let ((files (mapcar
-		    (lambda (name) (string-to-int name))
-		    (directory-files dir nil "^[0-9]+$" t))))
-	(if (null files)
-	    ()
-	  (save-excursion
-	    (set-buffer nntp-server-buffer)
-	    (goto-char (point-max))
-	    (insert 
-	     (format 
-	      "%s %d %d y\n" 
-	      (progn
-		(string-match 
-		 (file-truename (file-name-as-directory 
-				 (expand-file-name nnmh-directory))) dir)
-		(nnmail-replace-chars-in-string
-		 (substring dir (match-end 0)) ?/ ?.))
-	      (apply (function max) files) 
-	      (apply (function min) files)))))))
-  (setq nnmh-group-alist (nnmail-get-active))
-  (and server nnmh-get-new-mail (nnmh-get-new-mail))
+  (unless (string= (expand-file-name nnmh-toplev) dir)
+    (let ((files (mapcar
+		  (lambda (name) (string-to-int name))
+		  (directory-files dir nil "^[0-9]+$" t))))
+      (when files
+	(save-excursion
+	  (set-buffer nntp-server-buffer)
+	  (goto-char (point-max))
+	  (insert 
+	   (format 
+	    "%s %d %d y\n" 
+	    (progn
+	      (string-match 
+	       (regexp-quote
+		(file-truename (file-name-as-directory 
+				(expand-file-name nnmh-toplev)))) dir)
+	      (nnheader-replace-chars-in-string
+	       (substring dir (match-end 0)) ?/ ?.))
+	    (apply 'max files) 
+	    (apply 'min files)))))))
   t)
 
-(defun nnmh-request-newgroups (date &optional server)
+(deffoo nnmh-request-newgroups (date &optional server)
   (nnmh-request-list server))
 
-(defun nnmh-request-post (&optional server)
-  (mail-send-and-exit nil))
-
-(defalias 'nnmh-request-post-buffer 'nnmail-request-post-buffer)
-
-(defun nnmh-request-expire-articles (articles newsgroup &optional server force)
-  (nnmh-possibly-change-directory newsgroup)
-  (let* ((days (or (and nnmail-expiry-wait-function
-			(funcall nnmail-expiry-wait-function newsgroup))
-		   nnmail-expiry-wait))
-	 (active-articles 
+(deffoo nnmh-request-expire-articles (articles newsgroup &optional server force)
+  (nnmh-possibly-change-directory newsgroup server)
+  (let* ((active-articles 
 	  (mapcar
 	   (function
 	    (lambda (name)
 	      (string-to-int name)))
 	   (directory-files nnmh-current-directory nil "^[0-9]+$" t)))
-	 (max-article (and active-articles (apply 'max active-articles)))
 	 (is-old t)
 	 article rest mod-time)
     (nnmail-activate 'nnmh)
@@ -265,36 +240,32 @@
       (setq article (concat nnmh-current-directory 
 			    (int-to-string (car articles))))
       (if (setq mod-time (nth 5 (file-attributes article)))
-	  (if (and (or (not nnmail-keep-last-article)
-		       (not max-article)
-		       (not (= (car articles) max-article)))
-		   (not (equal mod-time '(0 0)))
-		   (or force
-		       (setq is-old
-			     (> (nnmail-days-between
-				 (current-time-string)
-				 (current-time-string mod-time))
-				days))))
+	  (if (and (nnmh-deletable-article-p newsgroup (car articles))
+		   (setq is-old
+			 (nnmail-expired-article-p newsgroup mod-time force)))
 	      (progn
-		(and gnus-verbose-backends 
-		     (message "Deleting article %s..." article))
+		(nnheader-message 5 "Deleting article %s in %s..." 
+				  article newsgroup)
 		(condition-case ()
-		    (delete-file article)
+		    (funcall nnmail-delete-file-function article)
 		  (file-error
+		   (nnheader-message 1 "Couldn't delete article %s in %s"
+				     article newsgroup)
 		   (setq rest (cons (car articles) rest)))))
 	    (setq rest (cons (car articles) rest))))
       (setq articles (cdr articles)))
     (message "")
     (nconc rest articles)))
 
-(defun nnmh-close-group (group &optional server)
+(deffoo nnmh-close-group (group &optional server)
   t)
 
-(defun nnmh-request-move-article 
+(deffoo nnmh-request-move-article 
   (article group server accept-form &optional last)
   (let ((buf (get-buffer-create " *nnmh move*"))
 	result)
     (and 
+     (nnmh-deletable-article-p group article)
      (nnmh-request-article article group server)
      (save-excursion
        (set-buffer buf)
@@ -302,65 +273,134 @@
        (setq result (eval accept-form))
        (kill-buffer (current-buffer))
        result)
-     (condition-case ()
-	 (delete-file (concat nnmh-current-directory 
-			      (int-to-string article)))
-       (file-error nil)))
+     (progn
+       (nnmh-possibly-change-directory group server)
+       (condition-case ()
+	   (funcall nnmail-delete-file-function
+		    (concat nnmh-current-directory (int-to-string article)))
+	 (file-error nil))))
     result))
 
-(defun nnmh-request-accept-article (group &optional last)
+(deffoo nnmh-request-accept-article (group &optional server last noinsert)
+  (nnmh-possibly-change-directory group server)
+  (nnmail-check-syntax)
   (if (stringp group)
       (and 
        (nnmail-activate 'nnmh)
        ;; We trick the choosing function into believing that only one
        ;; group is available.  
        (let ((nnmail-split-methods (list (list group ""))))
-	 (car (nnmh-save-mail))))
+	 (car (nnmh-save-mail noinsert))))
     (and
      (nnmail-activate 'nnmh)
-     (car (nnmh-save-mail)))))
+     (car (nnmh-save-mail noinsert)))))
 
-(defun nnmh-request-replace-article (article group buffer)
+(deffoo nnmh-request-replace-article (article group buffer)
   (nnmh-possibly-change-directory group)
   (save-excursion
     (set-buffer buffer)
     (nnmh-possibly-create-directory group)
     (condition-case ()
 	(progn
-	  (write-region (point-min) (point-max)
-			(concat nnmh-current-directory (int-to-string article))
-			nil (if gnus-verbose-backends nil 'nomesg))
+	  (write-region 
+	   (point-min) (point-max)
+	   (concat nnmh-current-directory (int-to-string article))
+	   nil (if (nnheader-be-verbose 5) nil 'nomesg))
 	  t)
       (error nil))))
+
+(deffoo nnmh-request-create-group (group &optional server) 
+  (nnmail-activate 'nnmh)
+  (or (assoc group nnmh-group-alist)
+      (let (active)
+	(setq nnmh-group-alist (cons (list group (setq active (cons 1 0)))
+				     nnmh-group-alist))
+	(nnmh-possibly-create-directory group)
+	(nnmh-possibly-change-directory group server)
+	(let ((articles (mapcar
+			 (lambda (file)
+			   (string-to-int file))
+			 (directory-files 
+			  nnmh-current-directory nil "^[0-9]+$"))))
+	  (and articles
+	       (progn
+		 (setcar active (apply 'min articles))
+		 (setcdr active (apply 'max articles)))))))
+  t)
+
+(deffoo nnmh-request-delete-group (group &optional force server)
+  (nnmh-possibly-change-directory group server)
+  ;; Delete all articles in GROUP.
+  (if (not force)
+      ()				; Don't delete the articles.
+    (let ((articles (directory-files nnmh-current-directory t "^[0-9]+$")))
+      (while articles 
+	(and (file-writable-p (car articles))
+	     (progn
+	       (nnheader-message 5 "Deleting article %s in %s..."
+				 (car articles) group)
+	       (funcall nnmail-delete-file-function (car articles))))
+	(setq articles (cdr articles))))
+    ;; Try to delete the directory itself.
+    (condition-case ()
+	(delete-directory nnmh-current-directory)
+      (error nil)))
+  ;; Remove the group from all structures.
+  (setq nnmh-group-alist 
+	(delq (assoc group nnmh-group-alist) nnmh-group-alist)
+	nnmh-current-directory nil)
+  t)
+
+(deffoo nnmh-request-rename-group (group new-name &optional server)
+  (nnmh-possibly-change-directory group server)
+  ;; Rename directory.
+  (and (file-writable-p nnmh-current-directory)
+       (condition-case ()
+	   (progn
+	     (rename-file 
+	      (directory-file-name nnmh-current-directory)
+	      (directory-file-name 
+	       (nnmail-group-pathname new-name nnmh-directory)))
+	     t)
+	 (error nil))
+       ;; That went ok, so we change the internal structures.
+       (let ((entry (assoc group nnmh-group-alist)))
+	 (and entry (setcar entry new-name))
+	 (setq nnmh-current-directory nil)
+	 t)))
 
 
 ;;; Internal functions.
 
-(defun nnmh-possibly-change-directory (newsgroup)
+(defun nnmh-possibly-change-directory (newsgroup &optional server)
+  (when (and server 
+	     (not (nnmh-server-opened server)))
+    (nnmh-open-server server))
   (if newsgroup
-      (let ((pathname (nnmh-article-pathname newsgroup nnmh-directory)))
+      (let ((pathname (nnmail-group-pathname newsgroup nnmh-directory)))
 	(if (file-directory-p pathname)
 	    (setq nnmh-current-directory pathname)
 	  (error "No such newsgroup: %s" newsgroup)))))
 
 (defun nnmh-possibly-create-directory (group)
   (let (dir dirs)
-    (setq dir (nnmh-article-pathname group nnmh-directory))
+    (setq dir (nnmail-group-pathname group nnmh-directory))
     (while (not (file-directory-p dir))
       (setq dirs (cons dir dirs))
       (setq dir (file-name-directory (directory-file-name dir))))
     (while dirs
       (if (make-directory (directory-file-name (car dirs)))
 	  (error "Could not create directory %s" (car dirs)))
-      (and gnus-verbose-backends 
-	   (message "Creating mail directory %s" (car dirs)))
+      (nnheader-message 5 "Creating mail directory %s" (car dirs))
       (setq dirs (cdr dirs)))))
 	     
-(defun nnmh-save-mail ()
+(defun nnmh-save-mail (&optional noinsert)
   "Called narrowed to an article."
   (let ((group-art (nreverse (nnmail-article-group 'nnmh-active-number))))
-    (nnmail-insert-lines)
-    (nnmail-insert-xref group-art)
+    (unless noinsert
+      (nnmail-insert-lines)
+      (nnmail-insert-xref group-art))
+    (run-hooks 'nnmail-prepare-save-mail-hook)
     (run-hooks 'nnmh-prepare-save-mail-hook)
     (goto-char (point-min))
     (while (looking-at "From ")
@@ -370,13 +410,13 @@
     (let ((ga group-art)
 	  first)
       (while ga
-	(nnmh-possibly-create-directory (car (car ga)))
-	(let ((file (concat (nnmh-article-pathname 
-			     (car (car ga)) nnmh-directory) 
-			    (int-to-string (cdr (car ga))))))
+	(nnmh-possibly-create-directory (caar ga))
+	(let ((file (concat (nnmail-group-pathname 
+			     (caar ga) nnmh-directory) 
+			    (int-to-string (cdar ga)))))
 	  (if first
 	      ;; It was already saved, so we just make a hard link.
-	      (add-name-to-file first file t)
+	      (funcall nnmail-crosspost-link-function first file t)
 	    ;; Save the article.
 	    (write-region (point-min) (point-max) file nil nil)
 	    (setq first file)))
@@ -385,7 +425,7 @@
 
 (defun nnmh-active-number (group)
   "Compute the next article number in GROUP."
-  (let ((active (car (cdr (assoc group nnmh-group-alist)))))
+  (let ((active (cadr (assoc group nnmh-group-alist))))
     ;; The group wasn't known to nnmh, so we just create an active
     ;; entry for it.   
     (or active
@@ -394,58 +434,10 @@
 	  (setq nnmh-group-alist (cons (list group active) nnmh-group-alist))))
     (setcdr active (1+ (cdr active)))
     (while (file-exists-p
-	    (concat (nnmh-article-pathname group nnmh-directory)
+	    (concat (nnmail-group-pathname group nnmh-directory)
 		    (int-to-string (cdr active))))
       (setcdr active (1+ (cdr active))))
     (cdr active)))
-
-(defun nnmh-article-pathname (group mail-dir)
-  "Make pathname for GROUP."
-  (let ((mail-dir (file-name-as-directory (expand-file-name mail-dir))))
-    (if (file-directory-p (concat mail-dir group))
-	(concat mail-dir group "/")
-      (concat mail-dir (nnmail-replace-chars-in-string group ?. ?/) "/"))))
-
-(defun nnmh-get-new-mail (&optional group)
-  "Read new incoming mail."
-  (let* ((spools (nnmail-get-spool-files group))
-	 (group-in group)
-	 incoming incomings)
-    (if (or (not nnmh-get-new-mail) (not nnmail-spool-file))
-	()
-      ;; We first activate all the groups.
-      (or nnmh-group-alist
-	  (nnmh-request-list))
-      ;; The we go through all the existing spool files and split the
-      ;; mail from each.
-      (while spools
-	(and
-	 (file-exists-p (car spools))
-	 (> (nth 7 (file-attributes (car spools))) 0)
-	 (progn
-	   (and gnus-verbose-backends 
-		(message "nnmh: Reading incoming mail..."))
-	   (if (not (setq incoming 
-			  (nnmail-move-inbox 
-			   (car spools) 
-			   (concat (file-name-as-directory nnmh-directory)
-				   "Incoming"))))
-	       ()
-	     (setq incomings (cons incoming incomings))
-	     (setq group (nnmail-get-split-group (car spools) group-in))
-	     (nnmail-split-incoming incoming 'nnmh-save-mail nil group))))
-	(setq spools (cdr spools)))
-      ;; If we did indeed read any incoming spools, we save all info. 
-      (if incoming 
-	  (message "nnmh: Reading incoming mail...done"))
-      (while incomings
-	(setq incoming (car incomings))
-	(and nnmail-delete-incoming
-	     (file-exists-p incoming)
-	     (file-writable-p incoming)
-	     (delete-file incoming))
-	(setq incomings (cdr incomings))))))
-      
 
 (defun nnmh-update-gnus-unreads (group)
   ;; Go through the .nnmh-articles file and compare with the actual
@@ -471,7 +463,7 @@
     ;; Remove all deleted articles.
     (let ((art articles))
       (while art
-	(if (not (memq (car (car art)) files))
+	(if (not (memq (caar art) files))
 	    (setq articles (delq (car art) articles)))
 	(setq art (cdr art))))
     ;; Check whether the highest-numbered articles really are the ones
@@ -480,10 +472,10 @@
       (while (and art 
 		  (not (equal 
 			(nth 5 (file-attributes 
-				(concat dir (int-to-string (car (car art))))))
-			(cdr (car art)))))
+				(concat dir (int-to-string (caar art)))))
+			(cdar art))))
 	(setq articles (delq (car art) articles))
-	(setq new (cons (car (car art)) new))
+	(setq new (cons (caar art) new))
 	(setq art (cdr art))))
     ;; Go through all the new articles and add them, and their
     ;; time-stamps to the list.
@@ -512,6 +504,14 @@
       (insert (prin1-to-string articles) ")\n")
       (write-region (point-min) (point-max) nnmh-file nil 'nomesg)
       (kill-buffer (current-buffer)))))
+
+(defun nnmh-deletable-article-p (group article)
+  "Say whether ARTICLE in GROUP can be deleted."
+  (let ((path (concat nnmh-current-directory (int-to-string article))))
+    (and (file-writable-p path)
+	 (or (not nnmail-keep-last-article)
+	     (not (eq (cdr (nth 1 (assoc group nnmh-group-alist))) 
+		      article))))))
 
 (provide 'nnmh)
 

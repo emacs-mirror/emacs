@@ -1,36 +1,19 @@
 ;;; gnus-edit.el --- Gnus SCORE file editing
-
-;; Copyright (C) 1995 Free Software Foundation, Inc.
-
+;; Copyright (C) 1995,96 Free Software Foundation, Inc.
+;;
 ;; Author: Per Abrahamsen <abraham@iesd.auc.dk>
 ;; Keywords: news, help
 ;; Version: 0.2
 
-;; This file is part of GNU Emacs.
-
-;; GNU Emacs is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
-
-;; GNU Emacs is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
-
 ;;; Commentary:
-
+;;
 ;; Type `M-x gnus-score-customize RET' to invoke.
 
 ;;; Code:
 
 (require 'custom)
 (require 'gnus-score)
+(eval-when-compile (require 'cl))
 
 (defconst gnus-score-custom-data
   '((tag . "Score")
@@ -64,7 +47,7 @@ the score file and the value of the global variable
 		  (query . gnus-score-custom-save))
 		 ((name . file)
 		  (tag . "File")
-		  (directory . "~/News/")
+		  (directory . gnus-kill-files-directory)
 		  (default-file . "SCORE")
 		  (type . file))))
 	  ((name . files)
@@ -79,7 +62,7 @@ delete a score file from the list.")
 	   (data ((type . repeat)
 		  (header . nil)
 		  (data (type . file)
-			(directory . "~/News/")))))
+			(directory . gnus-kill-files-directory)))))
 	  ((name . exclude-files)
 	   (tag . "Exclude Files")
 	   (doc . "\
@@ -94,7 +77,7 @@ delete a score file from the list.")
 	   (data ((type . repeat)
 		  (header . nil)
 		  (data (type . file)
-			(directory . "~/News/")))))
+			(directory . gnus-kill-files-directory)))))
 	  ((name . mark)
 	   (tag . "Mark")
 	   (doc . "\
@@ -554,7 +537,8 @@ groups matched by the current score file.")
 			  'gnus-score-custom-get
 			  'gnus-score-custom-save))
   (make-local-variable 'gnus-score-custom-file)
-  (setq gnus-score-custom-file (expand-file-name  "SCORE" "~/News"))
+  (setq gnus-score-custom-file
+	(expand-file-name "SCORE" gnus-kill-files-directory))
   (make-local-variable 'gnus-score-alist)
   (setq gnus-score-alist nil)
   (custom-reset-all))
@@ -566,9 +550,9 @@ groups matched by the current score file.")
       (if entry 
 	  (mapcar 'gnus-score-custom-sanify (cdr entry))
 	(setq entry (assoc name gnus-score-alist))
-	(if (or (memq name '(files exclude-files local))
-		(and (eq name 'adapt)
-		     (not (symbolp (car (cdr entry))))))
+	(if  (or (memq name '(files exclude-files local))
+		 (and (eq name 'adapt)
+		      (not (symbolp (car (cdr entry))))))
 	    (cdr entry)
 	  (car (cdr entry)))))))
 
@@ -618,11 +602,11 @@ groups matched by the current score file.")
   (let ((file (custom-name-value 'file)))
     (if (eq file custom-nil)
 	(error "You must specify a file name"))
-    (setq file (expand-file-name file "~/News"))
+    (setq file (expand-file-name file gnus-kill-files-directory))
     (gnus-score-load file)
     (setq gnus-score-custom-file file)
     (custom-reset-all)
-    (message "Loaded")))
+    (gnus-message 4 "Loaded")))
 
 (defun gnus-score-custom-save ()
   (interactive)
@@ -639,7 +623,7 @@ groups matched by the current score file.")
       (gnus-make-directory (file-name-directory file))
       (write-region (point-min) (point-max) file nil 'silent)
       (kill-buffer (current-buffer))))
-  (message "Saved"))
+  (gnus-message 4 "Saved"))
 
 (provide 'gnus-edit)
 

@@ -1,6 +1,5 @@
 ;;; gnus-vis.el --- display-oriented parts of Gnus
-
-;; Copyright (C) 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1995,96 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
 ;; 	Per Abrahamsen <abraham@iesd.auc.dk>
@@ -31,6 +30,9 @@
 (require 'gnus-ems)
 (require 'easymenu)
 (require 'custom)
+(require 'browse-url)
+(require 'gnus-score)
+(eval-when-compile (require 'cl))
 
 (defvar gnus-group-menu-hook nil
   "*Hook run after the creation of the group mode menu.")
@@ -41,12 +43,6 @@
 (defvar gnus-article-menu-hook nil
   "*Hook run after the creation of the article mode menu.")
 
-(defvar gnus-server-menu-hook nil
-  "*Hook run after the creation of the server mode menu.")
-
-(defvar gnus-browse-menu-hook nil
-  "*Hook run after the creation of the browse mode menu.")
-  
 ;;; Summary highlights.
 
 ;(defvar gnus-summary-highlight-properties
@@ -212,17 +208,21 @@
 ;(defvar gnus-signature-face 'italic
 ;  "Face used for signature.")
 
+(defvar gnus-button-url-regexp "\\b\\(s?https?\\|ftp\\|file\\|gopher\\|news\\|telnet\\|wais\\|mailto\\):\\(//[-a-zA-Z0-9_.]+:[0-9]*\\)?[-\\wa-zA-Z0-9_=!?#$@~`%&*+|\\/.,]*[-\\wa-zA-Z0-9_=#$@~`%&*+|\\/]"
+  "*Regular expression that matches URLs.")
+
 (defvar gnus-button-alist 
-  '(("in\\( +article\\)? +\\(<\\([^\n @<>]+@[^\n @<>]+\\)>\\)" 2 
-     (assq (count-lines (point-min) (match-end 0)) 
-	   gnus-cite-attribution-alist)
+  `(("\\bin\\( +article\\)? +\\(<\\([^\n @<>]+@[^\n @<>]+\\)>\\)" 2 
+     t gnus-button-message-id 3)
+    ("\\(<?\\(url: ?\\)?news:\\([^>\n\t ]*\\)>?\\)" 1 t
      gnus-button-message-id 3)
+    ("\\(<URL: *\\)?mailto: *\\([^> \n\t]+\\)>?" 0 t gnus-button-reply 2)
     ;; This is how URLs _should_ be embedded in text...
-    ("<URL:\\([^\n\r>]*\\)>" 0 t gnus-button-url 1)
+    ("<URL: *\\([^\n\r>]*\\)>" 0 t gnus-button-url 1)
     ;; Next regexp stolen from highlight-headers.el.
     ;; Modified by Vladimir Alexiev.
-    ("\\b\\(s?https?\\|ftp\\|file\\|gopher\\|news\\|telnet\\|wais\\|mailto\\):\\(//[-a-zA-Z0-9_.]+:[0-9]*\\)?[-a-zA-Z0-9_=?#$@~`%&*+|\\/.,]*[-a-zA-Z0-9_=#$@~`%&*+|\\/]" 0 t gnus-button-url 0))
-  "Alist of regexps matching buttons in an article.
+    (,gnus-button-url-regexp 0 t gnus-button-url 0))
+  "Alist of regexps matching buttons in article bodies.
 
 Each entry has the form (REGEXP BUTTON FORM CALLBACK PAR...), where
 REGEXP: is the string matching text around the button,
@@ -235,25 +235,53 @@ PAR: is a number of a regexp grouping whose text will be passed to CALLBACK.
 CALLBACK can also be a variable, in that case the value of that
 variable it the real callback function.")
 
+(defvar gnus-header-button-alist 
+  `(("^\\(References\\|Message-I[Dd]\\):" "<[^>]+>"
+     0 t gnus-button-message-id 0)
+    ("^\\(From\\|Reply-To\\): " ": *\\(.+\\)$" 1 t gnus-button-reply 0)
+    ("^\\(Cc\\|To\\):" "[^ \t\n<>,()\"]+@[^ \t\n<>,()\"]+" 
+     0 t gnus-button-mailto 0)
+    ("^X-[Uu][Rr][Ll]:" ,gnus-button-url-regexp 0 t gnus-button-url 0)
+    ("^[^:]+:" ,gnus-button-url-regexp 0 t gnus-button-url 0)
+    ("^[^:]+:" "\\(<\\(url: \\)?news:\\([^>\n ]*\\)>\\)" 1 t
+     gnus-button-message-id 3))
+  "Alist of headers and regexps to match buttons in article heads.
+
+This alist is very similar to `gnus-button-alist', except that each
+alist has an additional HEADER element first in each entry:
+
+\(HEADER REGEXP BUTTON FORM CALLBACK PAR)
+
+HEADER is a regexp to match a header.  For a fuller explanation, see
+`gnus-button-alist'.")
+
 ;see gnus-cus.el
 ;(eval-when-compile
 ;  (defvar browse-url-browser-function))
 
-;see gnus-cus.el
-;(defvar gnus-button-url
-;  (cond ((boundp 'browse-url-browser-function) browse-url-browser-function)
-;	((fboundp 'w3-fetch) 'w3-fetch)
-;	((eq window-system 'x) 'gnus-netscape-open-url))
-;  "*Function to fetch URL.
-;The function will be called with one argument, the URL to fetch.
-;Useful values of this function are:
+;;; Group mode highlighting.
 
-;w3-fetch: 
-;   defined in the w3 emacs package by William M. Perry.
-;gnus-netscape-open-url:
-;   open url in existing netscape, start netscape if none found.
-;gnus-netscape-start-url:
-;   start new netscape with url.")
+;see gnus-cus.el
+;(defvar gnus-group-highlight nil
+;  "Group lines are highlighted with the FACE for the first FORM which
+;evaluate to a non-nil value.  
+;
+;Point will be at the beginning of the line when FORM is evaluated.
+;Variables bound when these forms are evaluated include:
+;
+;group: The group name.
+;unread: The number of unread articles.
+;method: The select method.
+;mailp: Whether the select method is a mail method.
+;level: The level of the group.
+;score: The score of the group.
+;ticked: The number of ticked articles in the group.
+;")
+
+
+;;; Internal variables.
+
+(defvar gnus-button-marker-list nil)
 
 
 
@@ -277,49 +305,86 @@ variable it the real callback function.")
    (boundp 'gnus-group-reading-menu)
    (progn
      (easy-menu-define
-      gnus-group-reading-menu
-      gnus-group-mode-map
-      ""
+      gnus-group-reading-menu gnus-group-mode-map ""
       '("Group"
-	["Read" gnus-group-read-group t]
-	["Select" gnus-group-select-group t]
-	["See old articles" gnus-group-select-group-all t]
-	["Catch up" gnus-group-catchup-current t]
-	["Catch up all articles" gnus-group-catchup-current-all t]
-	["Check for new articles" gnus-group-get-new-news-this-group t]
-	["Toggle subscription" gnus-group-unsubscribe-current-group t]
-	["Kill" gnus-group-kill-group t]
-	["Yank" gnus-group-yank-group t]
-	["Describe" gnus-group-describe-group t]
-	["Fetch FAQ" gnus-group-fetch-faq t]
-	["Edit kill file" gnus-group-edit-local-kill t]
-	["Expire articles" gnus-group-expire-articles t]
-	["Set group level" gnus-group-set-current-level t]
+	["Read" gnus-group-read-group (gnus-group-group-name)]
+	["Select" gnus-group-select-group (gnus-group-group-name)]
+	["See old articles" (gnus-group-select-group 'all)
+	 :keys "C-u SPC" :active (gnus-group-group-name)]
+	["Catch up" gnus-group-catchup-current (gnus-group-group-name)]
+	["Catch up all articles" gnus-group-catchup-current-all
+	 (gnus-group-group-name)]
+	["Check for new articles" gnus-group-get-new-news-this-group
+	 (gnus-group-group-name)]
+	["Toggle subscription" gnus-group-unsubscribe-current-group
+	 (gnus-group-group-name)]
+	["Kill" gnus-group-kill-group (gnus-group-group-name)]
+	["Yank" gnus-group-yank-group gnus-list-of-killed-groups]
+	["Describe" gnus-group-describe-group (gnus-group-group-name)]
+	["Fetch FAQ" gnus-group-fetch-faq (gnus-group-group-name)]
+	["Edit kill file" gnus-group-edit-local-kill
+	 (gnus-group-group-name)]
+	;; Actually one should check, if any of the marked groups gives t for
+	;; (gnus-check-backend-function 'request-expire-articles ...)
+	["Expire articles" gnus-group-expire-articles
+	 (or (and (gnus-group-group-name)
+		  (gnus-check-backend-function
+		   'request-expire-articles
+		   (gnus-group-group-name))) gnus-group-marked)]
+	["Set group level" gnus-group-set-current-level
+	 (gnus-group-group-name)]
+	["Select quick" gnus-group-quick-select-group (gnus-group-group-name)]
 	))
   
      (easy-menu-define
-      gnus-group-group-menu
-      gnus-group-mode-map
-      ""
+      gnus-group-group-menu gnus-group-mode-map ""
       '("Groups"
 	("Listing"
-	 ["List subscribed groups" gnus-group-list-groups t]
-	 ["List all groups" gnus-group-list-all-groups t]
-	 ["List groups matching..." gnus-group-list-matching t]
-	 ["List killed groups" gnus-group-list-killed t]
-	 ["List zombie groups" gnus-group-list-zombies t]
+	 ["List unread subscribed groups" gnus-group-list-groups t]
+	 ["List (un)subscribed groups" gnus-group-list-all-groups t]
+	 ["List killed groups" gnus-group-list-killed gnus-killed-list]
+	 ["List zombie groups" gnus-group-list-zombies gnus-zombie-list]
+	 ["List level..." gnus-group-list-level t]
 	 ["Describe all groups" gnus-group-describe-all-groups t]
-	 ["Group apropos" gnus-group-apropos t]
-	 ["Group and description apropos" gnus-group-description-apropos t]
-	 ["List groups matching..." gnus-group-list-matching t])
+	 ["Group apropos..." gnus-group-apropos t]
+	 ["Group and description apropos..." gnus-group-description-apropos t]
+	 ["List groups matching..." gnus-group-list-matching t]
+	 ["List all groups matching..." gnus-group-list-all-matching t]
+	 ["List active file" gnus-group-list-active t])
+	("Sort"
+	 ["Default sort" gnus-group-sort-groups
+	  (or (not (boundp 'gnus-topic-mode)) (not gnus-topic-mode))]
+	 ["Sort by method" gnus-group-sort-groups-by-method
+	  (or (not (boundp 'gnus-topic-mode)) (not gnus-topic-mode))]
+	 ["Sort by rank" gnus-group-sort-groups-by-rank
+	  (or (not (boundp 'gnus-topic-mode)) (not gnus-topic-mode))]
+	 ["Sort by score" gnus-group-sort-groups-by-score
+	  (or (not (boundp 'gnus-topic-mode)) (not gnus-topic-mode))]
+	 ["Sort by level" gnus-group-sort-groups-by-level
+	  (or (not (boundp 'gnus-topic-mode)) (not gnus-topic-mode))]
+	 ["Sort by unread" gnus-group-sort-groups-by-unread
+	  (or (not (boundp 'gnus-topic-mode)) (not gnus-topic-mode))]
+	 ["Sort by name" gnus-group-sort-groups-by-alphabet
+	  (or (not (boundp 'gnus-topic-mode)) (not gnus-topic-mode))])
 	("Mark"
-	 ["Mark group" gnus-group-mark-group t]
-	 ["Unmark group" gnus-group-unmark-group t]
-	 ["Mark region" gnus-group-mark-region t])
+	 ["Mark group" gnus-group-mark-group
+	  (and (gnus-group-group-name)
+	       (not (memq (gnus-group-group-name) gnus-group-marked)))]
+	 ["Unmark group" gnus-group-unmark-group
+	  (and (gnus-group-group-name)
+	       (memq (gnus-group-group-name) gnus-group-marked))]
+	 ["Unmark all" gnus-group-unmark-all-groups gnus-group-marked]
+	 ["Mark regexp..." gnus-group-mark-regexp t]
+	 ["Mark region" gnus-group-mark-region t]
+	 ["Mark buffer" gnus-group-mark-buffer t]
+	 ["Execute command" gnus-group-universal-argument
+	  (or gnus-group-marked (gnus-group-group-name))])
 	("Subscribe"
 	 ["Subscribe to random group" gnus-group-unsubscribe-group t]
 	 ["Kill all newsgroups in region" gnus-group-kill-region t]
-	 ["Kill all zombie groups" gnus-group-kill-all-zombies t])
+	 ["Kill all zombie groups" gnus-group-kill-all-zombies
+	  gnus-zombie-list]
+	 ["Kill all groups on level..." gnus-group-kill-level t])
 	("Foreign groups"
 	 ["Make a foreign group" gnus-group-make-group t]
 	 ["Add a directory group" gnus-group-make-directory-group t]
@@ -328,34 +393,54 @@ variable it the real callback function.")
 	 ["Make a doc group" gnus-group-make-doc-group t]
 	 ["Make a kiboze group" gnus-group-make-kiboze-group t]
 	 ["Make a virtual group" gnus-group-make-empty-virtual t]
-	 ["Add a group to a virtual" gnus-group-add-to-virtual t])
+	 ["Add a group to a virtual" gnus-group-add-to-virtual t]
+	 ["Rename group" gnus-group-rename-group
+	  (gnus-check-backend-function
+	   'request-rename-group (gnus-group-group-name))]
+	 ["Delete group" gnus-group-delete-group
+	  (gnus-check-backend-function
+	   'request-delete-group (gnus-group-group-name))])
 	("Editing groups"
-	 ["Parameters" gnus-group-edit-group-parameters t]
-	 ["Select method" gnus-group-edit-group-method t]
-	 ["Info" gnus-group-edit-group t])
-	["Read a directory as a group" gnus-group-enter-directory t]
-	["Jump to group" gnus-group-jump-to-group t]
-	["Best unread group" gnus-group-best-unread-group t]
+	 ["Parameters" gnus-group-edit-group-parameters
+	  (gnus-group-group-name)]
+	 ["Select method" gnus-group-edit-group-method
+	  (gnus-group-group-name)]
+	 ["Info" gnus-group-edit-group (gnus-group-group-name)])
+	("Score file"
+	 ["Flush cache" gnus-score-flush-cache
+	  (or gnus-score-cache gnus-short-name-score-file-cache)])
+	("Move"
+	 ["Next" gnus-group-next-group t]
+	 ["Previous" gnus-group-prev-group t]
+	 ["Next unread" gnus-group-next-unread-group t]
+	 ["Previous unread" gnus-group-prev-unread-group t]
+	 ["Next unread same level" gnus-group-next-unread-group-same-level t]
+	 ["Previous unread same level"
+	  gnus-group-previous-unread-group-same-level t]
+	 ["Jump to group" gnus-group-jump-to-group t]
+	 ["First unread group" gnus-group-first-unread-group t]
+	 ["Best unread group" gnus-group-best-unread-group t])
+	["Transpose" gnus-group-transpose-groups
+	 (gnus-group-group-name)]
+	["Read a directory as a group..." gnus-group-enter-directory t]
 	))
 
      (easy-menu-define
-      gnus-group-misc-menu
-      gnus-group-mode-map
-      ""
+      gnus-group-misc-menu gnus-group-mode-map ""
       '("Misc"
 	["Send a bug report" gnus-bug t]
 	["Send a mail" gnus-group-mail t]
-	["Post an article" gnus-group-post-news t]
-	["Customize score file" gnus-score-customize 
-	 (not (string-match "XEmacs" emacs-version)) ]
+	["Post an article..." gnus-group-post-news t]
+	["Customize score file" gnus-score-customize t]
 	["Check for new news" gnus-group-get-new-news t]     
+	["Activate all groups" gnus-activate-all-groups t]
 	["Delete bogus groups" gnus-group-check-bogus-groups t]
 	["Find new newsgroups" gnus-find-new-newsgroups t]
 	["Restart Gnus" gnus-group-restart t]
 	["Read init file" gnus-group-read-init-file t]
 	["Browse foreign server" gnus-group-browse-foreign-server t]
 	["Enter server buffer" gnus-group-enter-server-mode t]
-	["Expire expirable articles" gnus-group-expire-all-groups t]
+	["Expire all expirable articles" gnus-group-expire-all-groups t]
 	["Generate any kiboze groups" nnkiboze-generate-groups t]
 	["Gnus version" gnus-version t]
 	["Save .newsrc files" gnus-group-save-newsrc t]
@@ -364,431 +449,395 @@ variable it the real callback function.")
 	["Exit from Gnus" gnus-group-exit t]
 	["Exit without saving" gnus-group-quit t]
 	["Edit global kill file" gnus-group-edit-global-kill t]
-	["Sort group buffer" gnus-group-sort-groups t]
+	["Read manual" gnus-info-find-node t]
+	["Toggle topics" gnus-topic-mode t]
+	("SOUP"
+	 ["Pack replies" nnsoup-pack-replies (fboundp 'nnsoup-request-group)]
+	 ["Send replies" gnus-soup-send-replies
+	  (fboundp 'gnus-soup-pack-packet)]
+	 ["Pack packet" gnus-soup-pack-packet (fboundp 'gnus-soup-pack-packet)]
+	 ["Save areas" gnus-soup-save-areas (fboundp 'gnus-soup-pack-packet)]
+	 ["Brew SOUP" gnus-soup-brew-soup (fboundp 'gnus-soup-pack-packet)])
 	))
      (run-hooks 'gnus-group-menu-hook)
      )))
-
-;; Server mode
-(defun gnus-server-make-menu-bar ()
-  (gnus-visual-turn-off-edit-menu 'server)
-  (or
-   (boundp 'gnus-server-menu)
-   (progn
-     (easy-menu-define
-      gnus-server-menu
-      gnus-server-mode-map
-      ""
-      '("Server"
-	["Add" gnus-server-add-server t]
-	["Browse" gnus-server-read-server t]
-	["List" gnus-server-list-servers t]
-	["Kill" gnus-server-kill-server t]
-	["Yank" gnus-server-yank-server t]
-	["Copy" gnus-server-copy-server t]
-	["Edit" gnus-server-edit-server t]
-	["Exit" gnus-server-exit t]
-	))
-     (run-hooks 'gnus-server-menu-hook)
-     )))
-
-;; Browse mode
-(defun gnus-browse-make-menu-bar ()
-  (gnus-visual-turn-off-edit-menu 'browse)
-  (or
-   (boundp 'gnus-browse-menu)
-   (progn
-     (easy-menu-define
-      gnus-browse-menu
-      gnus-browse-mode-map
-      ""
-      '("Browse"
-	["Subscribe" gnus-browse-unsubscribe-current-group t]
-	["Read" gnus-group-read-group t]
-	["Exit" gnus-browse-exit t]
-	))
-      (run-hooks 'gnus-browse-menu-hook)
-      )))
-
 
 ;; Summary buffer
 (defun gnus-summary-make-menu-bar ()
   (gnus-visual-turn-off-edit-menu 'summary)
 
-  (or
-   (boundp 'gnus-summary-misc-menu)
-   (progn
+  (unless (boundp 'gnus-summary-misc-menu)
 
-     (easy-menu-define
-      gnus-summary-misc-menu
-      gnus-summary-mode-map
-      ""
-      '("Misc"
-	("Mark"
-	 ("Read"
-	  ["Mark as read" gnus-summary-mark-as-read-forward t]
-	  ["Mark same subject and select" gnus-summary-kill-same-subject-and-select t]
-	  ["Mark same subject" gnus-summary-kill-same-subject t]
-	  ["Catchup" gnus-summary-catchup t]
-	  ["Catchup all" gnus-summary-catchup-all t]
-	  ["Catchup to here" gnus-summary-catchup-to-here t]
-	  ["Catchup region" gnus-summary-mark-region-as-read t])
-	 ("Various"
-	  ["Tick" gnus-summary-tick-article-forward t]
-	  ["Mark as dormant" gnus-summary-mark-as-dormant t]
-	  ["Remove marks" gnus-summary-clear-mark-forward t]
-	  ["Set expirable mark" gnus-summary-mark-as-expirable t]
-	  ["Set bookmark" gnus-summary-set-bookmark t]
-	  ["Remove bookmark" gnus-summary-remove-bookmark t])
-	 ("Display"
-	  ["Remove lines marked as read" gnus-summary-remove-lines-marked-as-read t]
-	  ["Remove lines marked with..." gnus-summary-remove-lines-marked-with t]
-	  ["Show dormant articles" gnus-summary-show-all-dormant t]
-	  ["Hide dormant articles" gnus-summary-hide-all-dormant t]
-	  ["Show expunged articles" gnus-summary-show-all-expunged t])
-	 ("Process mark"
-	  ["Set mark" gnus-summary-mark-as-processable t]
-	  ["Remove mark" gnus-summary-unmark-as-processable t]
-	  ["Remove all marks" gnus-summary-unmark-all-processable t]
-	  ["Mark series" gnus-uu-mark-series t]
-	  ["Mark region" gnus-uu-mark-region t]
-	  ["Mark by regexp" gnus-uu-mark-by-regexp t]
-	  ["Mark all" gnus-uu-mark-all t]
-	  ["Mark sparse" gnus-uu-mark-sparse t]
-	  ["Mark thread" gnus-uu-mark-thread t]))
-	("Move"
-	 ["Scroll article forwards" gnus-summary-next-page t]
-	 ["Next unread article" gnus-summary-next-unread-article t]
-	 ["Previous unread article" gnus-summary-prev-unread-article t]
-	 ["Next article" gnus-summary-next-article t]
-	 ["Previous article" gnus-summary-prev-article t]
-	 ["Next article same subject" gnus-summary-next-same-subject t]
-	 ["Previous article same subject" gnus-summary-prev-same-subject t]
-	 ["First unread article" gnus-summary-first-unread-article t]
-	 ["Go to subject number..." gnus-summary-goto-subject t]
-	 ["Go to the last article" gnus-summary-goto-last-article t]
-	 ["Pop article off history" gnus-summary-pop-article t])	
-	("Sort"
-	 ["Sort by number" gnus-summary-sort-by-number t]
-	 ["Sort by author" gnus-summary-sort-by-author t]
-	 ["Sort by subject" gnus-summary-sort-by-subject t]
-	 ["Sort by date" gnus-summary-sort-by-date t]
-	 ["Sort by score" gnus-summary-sort-by-score t])
-	("Exit"
-	 ["Catchup and exit" gnus-summary-catchup-and-exit t]
-	 ["Catchup and goto next" gnus-summary-catchup-and-goto-next-group t]
-	 ["Exit group" gnus-summary-exit t]
-	 ["Exit group without updating" gnus-summary-exit-no-update t]
-	 ["Reselect group" gnus-summary-reselect-current-group t]
-	 ["Rescan group" gnus-summary-rescan-group t])
+    (easy-menu-define
+     gnus-summary-misc-menu gnus-summary-mode-map ""
+     '("Misc"
+       ("Mark"
+	("Read"
+	 ["Mark as read" gnus-summary-mark-as-read-forward t]
+	 ["Mark same subject and select"
+	  gnus-summary-kill-same-subject-and-select t]
+	 ["Mark same subject" gnus-summary-kill-same-subject t]
+	 ["Catchup" gnus-summary-catchup t]
+	 ["Catchup all" gnus-summary-catchup-all t]
+	 ["Catchup to here" gnus-summary-catchup-to-here t]
+	 ["Catchup region" gnus-summary-mark-region-as-read t]
+	 ["Mark excluded" gnus-summary-limit-mark-excluded-as-read t])
+	("Various"
+	 ["Tick" gnus-summary-tick-article-forward t]
+	 ["Mark as dormant" gnus-summary-mark-as-dormant t]
+	 ["Remove marks" gnus-summary-clear-mark-forward t]
+	 ["Set expirable mark" gnus-summary-mark-as-expirable t]
+	 ["Set bookmark" gnus-summary-set-bookmark t]
+	 ["Remove bookmark" gnus-summary-remove-bookmark t])
+	("Limit"
+	 ["Marks..." gnus-summary-limit-to-marks t]
+	 ["Subject..." gnus-summary-limit-to-subject t]
+	 ["Author..." gnus-summary-limit-to-author t]
+	 ["Score" gnus-summary-limit-to-score t]
+	 ["Unread" gnus-summary-limit-to-unread t]
+	 ["Non-dormant" gnus-summary-limit-exclude-dormant t]
+	 ["Articles" gnus-summary-limit-to-articles t]
+	 ["Pop limit" gnus-summary-pop-limit t]
+	 ["Show dormant" gnus-summary-limit-include-dormant t]
+	 ["Hide childless dormant" 
+	  gnus-summary-limit-exclude-childless-dormant t]
+	 ;;["Hide thread" gnus-summary-limit-exclude-thread t]
+	 ["Show expunged" gnus-summary-show-all-expunged t])
+	("Process mark"
+	 ["Set mark" gnus-summary-mark-as-processable t]
+	 ["Remove mark" gnus-summary-unmark-as-processable t]
+	 ["Remove all marks" gnus-summary-unmark-all-processable t]
+	 ["Mark above" gnus-uu-mark-over t]
+	 ["Mark series" gnus-uu-mark-series t]
+	 ["Mark region" gnus-uu-mark-region t]
+	 ["Mark by regexp..." gnus-uu-mark-by-regexp t]
+	 ["Mark all" gnus-uu-mark-all t]
+	 ["Mark buffer" gnus-uu-mark-buffer t]
+	 ["Mark sparse" gnus-uu-mark-sparse t]
+	 ["Mark thread" gnus-uu-mark-thread t]
+	 ["Unmark thread" gnus-uu-unmark-thread t]))
+       ("Scroll article"
+	["Page forward" gnus-summary-next-page t]
+	["Page backward" gnus-summary-prev-page t]
+	["Line forward" gnus-summary-scroll-up t])
+       ("Move"
+	["Next unread article" gnus-summary-next-unread-article t]
+	["Previous unread article" gnus-summary-prev-unread-article t]
+	["Next article" gnus-summary-next-article t]
+	["Previous article" gnus-summary-prev-article t]
+	["Next unread subject" gnus-summary-next-unread-subject t]
+	["Previous unread subject" gnus-summary-prev-unread-subject t]
+	["Next article same subject" gnus-summary-next-same-subject t]
+	["Previous article same subject" gnus-summary-prev-same-subject t]
+	["First unread article" gnus-summary-first-unread-article t]
+	["Best unread article" gnus-summary-best-unread-article t]
+	["Go to subject number..." gnus-summary-goto-subject t]
+	["Go to article number..." gnus-summary-goto-article t]
+	["Go to the last article" gnus-summary-goto-last-article t]
+	["Pop article off history" gnus-summary-pop-article t])	
+       ("Sort"
+	["Sort by number" gnus-summary-sort-by-number t]
+	["Sort by author" gnus-summary-sort-by-author t]
+	["Sort by subject" gnus-summary-sort-by-subject t]
+	["Sort by date" gnus-summary-sort-by-date t]
+	["Sort by score" gnus-summary-sort-by-score t])
+       ("Exit"
+	["Catchup and exit" gnus-summary-catchup-and-exit t]
+	["Catchup all and exit" gnus-summary-catchup-and-exit t]
+	["Catchup and goto next" gnus-summary-catchup-and-goto-next-group t]
+	["Exit group" gnus-summary-exit t]
+	["Exit group without updating" gnus-summary-exit-no-update t]
+	["Exit and goto next group" gnus-summary-next-group t]
+	["Exit and goto prev group" gnus-summary-prev-group t]
+	["Reselect group" gnus-summary-reselect-current-group t]
+	["Rescan group" gnus-summary-rescan-group t])
+       ("Help"
 	["Fetch group FAQ" gnus-summary-fetch-faq t]
-	["Filter articles" gnus-summary-execute-command t]
-	["Toggle line truncation" gnus-summary-toggle-truncation t]
-	["Expire expirable articles" gnus-summary-expire-articles t]
 	["Describe group" gnus-summary-describe-group t]
-	["Edit local kill file" gnus-summary-edit-local-kill t]
-	))
+	["Read manual" gnus-info-find-node t])
+       ("Cache"
+	["Enter article" gnus-cache-enter-article t]
+	["Remove article" gnus-cache-remove-article t])
+       ("Modes"
+	["Pick and read" gnus-pick-mode t]
+	["Binary" gnus-binary-mode t])
+       ["Filter articles..." gnus-summary-execute-command t]
+       ["Run command on subjects..." gnus-summary-universal-argument t]
+       ["Toggle line truncation" gnus-summary-toggle-truncation t]
+       ["Expand window" gnus-summary-expand-window t]
+       ["Expire expirable articles" gnus-summary-expire-articles
+	(gnus-check-backend-function
+	 'request-expire-articles gnus-newsgroup-name)]
+       ["Edit local kill file" gnus-summary-edit-local-kill t]
+       ["Edit main kill file" gnus-summary-edit-global-kill t]
+       ))
 
-     (easy-menu-define
-      gnus-summary-kill-menu
-      gnus-summary-mode-map
-      ""
-      (cons
-       "Score"
-       (nconc
-	(list
-	 ["Enter score" gnus-summary-score-entry t])
-	(gnus-visual-score-map 'increase)
-	(gnus-visual-score-map 'lower)
-	'(["Current score" gnus-summary-current-score t]
-	  ["Set score" gnus-summary-set-score t]
-	  ["Customize score file" gnus-score-customize t]
-	  ["Switch current score file" gnus-score-change-score-file t]
-	  ["Set mark below" gnus-score-set-mark-below t]
-	  ["Set expunge below" gnus-score-set-expunge-below t]
-	  ["Edit current score file" gnus-score-edit-alist t]
-	  ["Edit score file" gnus-score-edit-file t]
-	  ["Trace score" gnus-score-find-trace t]
-	  ["Increase score" gnus-summary-increase-score t]
-	  ["Lower score" gnus-summary-lower-score t]))))
+    (easy-menu-define
+     gnus-summary-kill-menu gnus-summary-mode-map ""
+     (cons
+      "Score"
+      (nconc
+       (list
+	["Enter score..." gnus-summary-score-entry t])
+       (gnus-visual-score-map 'increase)
+       (gnus-visual-score-map 'lower)
+       '(("Mark"
+	  ["Kill below" gnus-summary-kill-below t]
+	  ["Mark above" gnus-summary-mark-above t]
+	  ["Tick above" gnus-summary-tick-above t]
+	  ["Clear above" gnus-summary-clear-above t])
+	 ["Current score" gnus-summary-current-score t]
+	 ["Set score" gnus-summary-set-score t]
+	 ["Customize score file" gnus-score-customize t]
+	 ["Switch current score file..." gnus-score-change-score-file t]
+	 ["Set mark below..." gnus-score-set-mark-below t]
+	 ["Set expunge below..." gnus-score-set-expunge-below t]
+	 ["Edit current score file" gnus-score-edit-current-scores t]
+	 ["Edit score file" gnus-score-edit-file t]
+	 ["Trace score" gnus-score-find-trace t]
+	 ["Rescore buffer" gnus-summary-rescore t]
+	 ["Increase score..." gnus-summary-increase-score t]
+	 ["Lower score..." gnus-summary-lower-score t]))))
 
-     (and nil
-	  '(("Default header"
-	     ["Ask" (gnus-score-set-default 'gnus-score-default-header nil)
-	      :style radio 
-	      :selected (null gnus-score-default-header)]
-	     ["From" (gnus-score-set-default 'gnus-score-default-header 'a)
-	      :style radio 
-	      :selected (eq gnus-score-default-header 'a )]
-	     ["Subject" (gnus-score-set-default 'gnus-score-default-header 's)
-	      :style radio 
-	      :selected (eq gnus-score-default-header 's )]
-	     ["Article body"
-	      (gnus-score-set-default 'gnus-score-default-header 'b)
-	      :style radio 
-	      :selected (eq gnus-score-default-header 'b )]
-	     ["All headers"
-	      (gnus-score-set-default 'gnus-score-default-header 'h)
-	      :style radio 
-	      :selected (eq gnus-score-default-header 'h )]
-	     ["Message-Id" (gnus-score-set-default 'gnus-score-default-header 'i)
-	      :style radio 
-	      :selected (eq gnus-score-default-header 'i )]
-	     ["Thread" (gnus-score-set-default 'gnus-score-default-header 't)
-	      :style radio 
-	      :selected (eq gnus-score-default-header 't )]
-	     ["Crossposting"
-	      (gnus-score-set-default 'gnus-score-default-header 'x)
-	      :style radio 
-	      :selected (eq gnus-score-default-header 'x )]
-	     ["Lines" (gnus-score-set-default 'gnus-score-default-header 'l)
-	      :style radio 
-	      :selected (eq gnus-score-default-header 'l )]
-	     ["Date" (gnus-score-set-default 'gnus-score-default-header 'd)
-	      :style radio 
-	      :selected (eq gnus-score-default-header 'd )]
-	     ["Followups to author"
-	      (gnus-score-set-default 'gnus-score-default-header 'f)
-	      :style radio 
-	      :selected (eq gnus-score-default-header 'f )])
-	    ("Default type"
-	     ["Ask" (gnus-score-set-default 'gnus-score-default-type nil)
-	      :style radio 
-	      :selected (null gnus-score-default-type)]
-	     ;; The `:active' key is commented out in the following,
-	     ;; because the GNU Emacs hack to support radio buttons use
-	     ;; active to indicate which button is selected.  
-	     ["Substring" (gnus-score-set-default 'gnus-score-default-type 's)
-	      :style radio 
-	      ;; :active (not (memq gnus-score-default-header '(l d)))
-	      :selected (eq gnus-score-default-type 's)]
-	     ["Regexp" (gnus-score-set-default 'gnus-score-default-type 'r)
-	      :style radio
-	      ;; :active (not (memq gnus-score-default-header '(l d)))
-	      :selected (eq gnus-score-default-type 'r)]
-	     ["Exact" (gnus-score-set-default 'gnus-score-default-type 'e)
-	      :style radio
-	      ;; :active (not (memq gnus-score-default-header '(l d)))
-	      :selected (eq gnus-score-default-type 'e)]
-	     ["Fuzzy" (gnus-score-set-default 'gnus-score-default-type 'f)
-	      :style radio 
-	      ;; :active (not (memq gnus-score-default-header '(l d)))
-	      :selected (eq gnus-score-default-type 'f)]
-	     ["Before date" (gnus-score-set-default 'gnus-score-default-type 'b)
-	      :style radio 
-	      ;; :active (eq (gnus-score-default-header 'd))
-	      :selected (eq gnus-score-default-type 'b)]
-	     ["At date" (gnus-score-set-default 'gnus-score-default-type 'n)
-	      :style radio 
-	      ;; :active (eq (gnus-score-default-header 'd))
-	      :selected (eq gnus-score-default-type 'n)]
-	     ["After date" (gnus-score-set-default 'gnus-score-default-type 'a)
-	      :style radio 
-	      ;; :active (eq (gnus-score-default-header 'd))
-	      :selected (eq gnus-score-default-type 'a)]
-	     ["Less than number"
-	      (gnus-score-set-default 'gnus-score-default-type '<)
-	      :style radio 
-	      ;; :active (eq (gnus-score-default-header 'l))
-	      :selected (eq gnus-score-default-type '<)]
-	     ["Equal to number"
-	      (gnus-score-set-default 'gnus-score-default-type '=)
-	      :style radio 
-	      ;; :active (eq (gnus-score-default-header 'l))
-	      :selected (eq gnus-score-default-type '=)]
-	     ["Greater than number" 
-	      (gnus-score-set-default 'gnus-score-default-type '>)
-	      :style radio 
-	      ;; :active (eq (gnus-score-default-header 'l))
-	      :selected (eq gnus-score-default-type '>)])
-	    ["Default fold" gnus-score-default-fold-toggle
-	     :style toggle
-	     :selected gnus-score-default-fold]
-	    ("Default duration"
-	     ["Ask" (gnus-score-set-default 'gnus-score-default-duration nil)
-	      :style radio
-	      :selected (null gnus-score-default-duration)]
-	     ["Permanent"
-	      (gnus-score-set-default 'gnus-score-default-duration 'p)
-	      :style radio
-	      :selected (eq gnus-score-default-duration 'p)]
-	     ["Temporary"
-	      (gnus-score-set-default 'gnus-score-default-duration 't)
-	      :style radio
-	      :selected (eq gnus-score-default-duration 't)]
-	     ["Immediate" 
-	      (gnus-score-set-default 'gnus-score-default-duration 'i)
-	      :style radio
-	      :selected (eq gnus-score-default-duration 'i)])
-	    ))
+    '(("Default header"
+       ["Ask" (gnus-score-set-default 'gnus-score-default-header nil)
+	:style radio 
+	:selected (null gnus-score-default-header)]
+       ["From" (gnus-score-set-default 'gnus-score-default-header 'a)
+	:style radio 
+	:selected (eq gnus-score-default-header 'a)]
+       ["Subject" (gnus-score-set-default 'gnus-score-default-header 's)
+	:style radio 
+	:selected (eq gnus-score-default-header 's)]
+       ["Article body"
+	(gnus-score-set-default 'gnus-score-default-header 'b)
+	:style radio 
+	:selected (eq gnus-score-default-header 'b )]
+       ["All headers"
+	(gnus-score-set-default 'gnus-score-default-header 'h)
+	:style radio 
+	:selected (eq gnus-score-default-header 'h )]
+       ["Message-Id" (gnus-score-set-default 'gnus-score-default-header 'i)
+	:style radio 
+	:selected (eq gnus-score-default-header 'i )]
+       ["Thread" (gnus-score-set-default 'gnus-score-default-header 't)
+	:style radio 
+	:selected (eq gnus-score-default-header 't )]
+       ["Crossposting"
+	(gnus-score-set-default 'gnus-score-default-header 'x)
+	:style radio 
+	:selected (eq gnus-score-default-header 'x )]
+       ["Lines" (gnus-score-set-default 'gnus-score-default-header 'l)
+	:style radio 
+	:selected (eq gnus-score-default-header 'l )]
+       ["Date" (gnus-score-set-default 'gnus-score-default-header 'd)
+	:style radio 
+	:selected (eq gnus-score-default-header 'd )]
+       ["Followups to author"
+	(gnus-score-set-default 'gnus-score-default-header 'f)
+	:style radio 
+	:selected (eq gnus-score-default-header 'f )])
+      ("Default type"
+       ["Ask" (gnus-score-set-default 'gnus-score-default-type nil)
+	:style radio 
+	:selected (null gnus-score-default-type)]
+       ;; The `:active' key is commented out in the following,
+       ;; because the GNU Emacs hack to support radio buttons use
+       ;; active to indicate which button is selected.  
+       ["Substring" (gnus-score-set-default 'gnus-score-default-type 's)
+	:style radio 
+	;; :active (not (memq gnus-score-default-header '(l d)))
+	:selected (eq gnus-score-default-type 's)]
+       ["Regexp" (gnus-score-set-default 'gnus-score-default-type 'r)
+	:style radio
+	;; :active (not (memq gnus-score-default-header '(l d)))
+	:selected (eq gnus-score-default-type 'r)]
+       ["Exact" (gnus-score-set-default 'gnus-score-default-type 'e)
+	:style radio
+	;; :active (not (memq gnus-score-default-header '(l d)))
+	:selected (eq gnus-score-default-type 'e)]
+       ["Fuzzy" (gnus-score-set-default 'gnus-score-default-type 'f)
+	:style radio 
+	;; :active (not (memq gnus-score-default-header '(l d)))
+	:selected (eq gnus-score-default-type 'f)]
+       ["Before date" (gnus-score-set-default 'gnus-score-default-type 'b)
+	:style radio 
+	;; :active (eq (gnus-score-default-header 'd))
+	:selected (eq gnus-score-default-type 'b)]
+       ["At date" (gnus-score-set-default 'gnus-score-default-type 'n)
+	:style radio 
+	;; :active (eq (gnus-score-default-header 'd))
+	:selected (eq gnus-score-default-type 'n)]
+       ["After date" (gnus-score-set-default 'gnus-score-default-type 'a)
+	:style radio 
+	;; :active (eq (gnus-score-default-header 'd))
+	:selected (eq gnus-score-default-type 'a)]
+       ["Less than number"
+	(gnus-score-set-default 'gnus-score-default-type '<)
+	:style radio 
+	;; :active (eq (gnus-score-default-header 'l))
+	:selected (eq gnus-score-default-type '<)]
+       ["Equal to number"
+	(gnus-score-set-default 'gnus-score-default-type '=)
+	:style radio 
+	;; :active (eq (gnus-score-default-header 'l))
+	:selected (eq gnus-score-default-type '=)]
+       ["Greater than number" 
+	(gnus-score-set-default 'gnus-score-default-type '>)
+	:style radio 
+	;; :active (eq (gnus-score-default-header 'l))
+	:selected (eq gnus-score-default-type '>)])
+      ["Default fold" gnus-score-default-fold-toggle
+       :style toggle
+       :selected gnus-score-default-fold]
+      ("Default duration"
+       ["Ask" (gnus-score-set-default 'gnus-score-default-duration nil)
+	:style radio
+	:selected (null gnus-score-default-duration)]
+       ["Permanent"
+	(gnus-score-set-default 'gnus-score-default-duration 'p)
+	:style radio
+	:selected (eq gnus-score-default-duration 'p)]
+       ["Temporary"
+	(gnus-score-set-default 'gnus-score-default-duration 't)
+	:style radio
+	:selected (eq gnus-score-default-duration 't)]
+       ["Immediate" 
+	(gnus-score-set-default 'gnus-score-default-duration 'i)
+	:style radio
+	:selected (eq gnus-score-default-duration 'i)]))
 
-     (easy-menu-define
-      gnus-summary-article-menu
-      gnus-summary-mode-map
-      ""
-      '("Article"
-	("Hide"
-	 ["All" gnus-article-hide t]
-	 ["Headers" gnus-article-hide-headers t]
-	 ["Signature" gnus-article-hide-signature t]
-	 ["Citation" gnus-article-hide-citation t])
-	("Highlight"
-	 ["All" gnus-article-highlight t]
-	 ["Headers" gnus-article-highlight-headers t]
-	 ["Signature" gnus-article-highlight-signature t]
-	 ["Citation" gnus-article-highlight-citation t])
-	("Date"
-	 ["Local" gnus-article-date-local t]
-	 ["UT" gnus-article-date-ut t]
-	 ["Lapsed" gnus-article-date-lapsed t])
-	("Filter"
-	 ["Overstrike" gnus-article-treat-overstrike t]
-	 ["Word wrap" gnus-article-word-wrap t]
-	 ["CR" gnus-article-remove-cr t]
-	 ["Show X-Face" gnus-article-display-x-face t]
-	 ["Quoted-Printable" gnus-article-de-quoted-unreadable t]
-	 ["Rot 13" gnus-summary-caesar-message t]
-	 ["Add buttons" gnus-article-add-buttons t]
-	 ["Stop page breaking" gnus-summary-stop-page-breaking t]
-	 ["Toggle MIME" gnus-summary-toggle-mime t]
-	 ["Toggle header" gnus-summary-toggle-header t])
-	("Output"
-	 ["Save in default format" gnus-summary-save-article t]
-	 ["Save in file" gnus-summary-save-article-file t]
-	 ["Save in Unix mail format" gnus-summary-save-article-mail t]
-	 ["Save in MH folder" gnus-summary-save-article-folder t]
-	 ["Save in VM folder" gnus-summary-save-article-vm t]
-	 ["Save in RMAIL mbox" gnus-summary-save-article-rmail t]
-	 ["Pipe through a filter" gnus-summary-pipe-output t])
-	("Backend"
-	 ["Respool article" gnus-summary-respool-article t]
-	 ["Move article" gnus-summary-move-article t]
-	 ["Copy article" gnus-summary-copy-article t]
-	 ["Import file" gnus-summary-import-article t]
-	 ["Edit article" gnus-summary-edit-article t]
-	 ["Delete article" gnus-summary-delete-article t])
-	("Extract"
-	 ["Uudecode" gnus-uu-decode-uu t]
-	 ["Uudecode and save" gnus-uu-decode-uu-and-save t]
-	 ["Unshar" gnus-uu-decode-unshar t]
-	 ["Unshar and save" gnus-uu-decode-unshar-and-save t]
-	 ["Save" gnus-uu-decode-save t]
-	 ["Binhex" gnus-uu-decode-binhex t])
-	["Enter digest buffer" gnus-summary-enter-digest-group t]
-	["Isearch article" gnus-summary-isearch-article t]
-	["Search all articles" gnus-summary-search-article-forward t]
-	["Beginning of the article" gnus-summary-beginning-of-article t]
-	["End of the article" gnus-summary-end-of-article t]
-	["Fetch parent of article" gnus-summary-refer-parent-article t]
-	["Fetch article with id..." gnus-summary-refer-article t]
-	["Redisplay" gnus-summary-show-article t]))
+    (easy-menu-define
+     gnus-summary-article-menu gnus-summary-mode-map ""
+     '("Article"
+       ("Hide"
+	["All" gnus-article-hide t]
+	["Headers" gnus-article-hide-headers t]
+	["Signature" gnus-article-hide-signature t]
+	["Citation" gnus-article-hide-citation t]
+	["PGP" gnus-article-hide-pgp t]
+	["Boring headers" gnus-article-hide-boring-headers t])
+       ("Highlight"
+	["All" gnus-article-highlight t]
+	["Headers" gnus-article-highlight-headers t]
+	["Signature" gnus-article-highlight-signature t]
+	["Citation" gnus-article-highlight-citation t])
+       ("Date"
+	["Local" gnus-article-date-local t]
+	["UT" gnus-article-date-ut t]
+	["Original" gnus-article-date-original t]
+	["Lapsed" gnus-article-date-lapsed t])
+       ("Filter"
+	["Overstrike" gnus-article-treat-overstrike t]
+	["Word wrap" gnus-article-fill-cited-article t]
+	["CR" gnus-article-remove-cr t]
+	["Trailing blank lines" gnus-article-remove-trailing-blank-lines t]
+	["Show X-Face" gnus-article-display-x-face t]
+	["Quoted-Printable" gnus-article-de-quoted-unreadable t]
+	["Rot 13" gnus-summary-caesar-message t]
+	["Add buttons" gnus-article-add-buttons t]
+	["Add buttons to head" gnus-article-add-buttons-to-head t]
+	["Stop page breaking" gnus-summary-stop-page-breaking t]
+	["Toggle MIME" gnus-summary-toggle-mime t]
+	["Verbose header" gnus-summary-verbose-headers t]
+	["Toggle header" gnus-summary-toggle-header t])
+       ("Output"
+	["Save in default format" gnus-summary-save-article t]
+	["Save in file" gnus-summary-save-article-file t]
+	["Save in Unix mail format" gnus-summary-save-article-mail t]
+	["Save in MH folder" gnus-summary-save-article-folder t]
+	["Save in VM folder" gnus-summary-save-article-vm t]
+	["Save in RMAIL mbox" gnus-summary-save-article-rmail t]
+	["Save body in file" gnus-summary-save-article-body-file t]
+	["Pipe through a filter" gnus-summary-pipe-output t]
+	["Add to SOUP packet" gnus-soup-add-article t])
+       ("Backend"
+	["Respool article..." gnus-summary-respool-article t]
+	["Move article..." gnus-summary-move-article
+	 (gnus-check-backend-function
+	  'request-move-article gnus-newsgroup-name)]
+	["Copy article..." gnus-summary-copy-article t]
+	["Crosspost article..." gnus-summary-crosspost-article
+	 (gnus-check-backend-function
+	  'request-replace-article gnus-newsgroup-name)]
+	["Import file..." gnus-summary-import-article t]
+	["Edit article" gnus-summary-edit-article
+	 (not (gnus-group-read-only-p))]
+	["Delete article" gnus-summary-delete-article
+	 (gnus-check-backend-function
+	  'request-expire-articles gnus-newsgroup-name)]
+	["Query respool" gnus-summary-respool-query t]
+	["Delete expirable articles" gnus-summary-expire-articles-now
+	 (gnus-check-backend-function
+	  'request-expire-articles gnus-newsgroup-name)])
+       ("Extract"
+	["Uudecode" gnus-uu-decode-uu t]
+	["Uudecode and save" gnus-uu-decode-uu-and-save t]
+	["Unshar" gnus-uu-decode-unshar t]
+	["Unshar and save" gnus-uu-decode-unshar-and-save t]
+	["Save" gnus-uu-decode-save t]
+	["Binhex" gnus-uu-decode-binhex t]
+	["Postscript" gnus-uu-decode-postscript t])
+       ["Enter digest buffer" gnus-summary-enter-digest-group t]
+       ["Isearch article..." gnus-summary-isearch-article t]
+       ["Search articles forward..." gnus-summary-search-article-forward t]
+       ["Search articles backward..." gnus-summary-search-article-backward t]
+       ["Beginning of the article" gnus-summary-beginning-of-article t]
+       ["End of the article" gnus-summary-end-of-article t]
+       ["Fetch parent of article" gnus-summary-refer-parent-article t]
+       ["Fetch referenced articles" gnus-summary-refer-references t]
+       ["Fetch article with id..." gnus-summary-refer-article t]
+       ["Redisplay" gnus-summary-show-article t]))
 
+    (easy-menu-define
+     gnus-summary-thread-menu gnus-summary-mode-map ""
+     '("Threads"
+       ["Toggle threading" gnus-summary-toggle-threads t]
+       ["Hide threads" gnus-summary-hide-all-threads t]
+       ["Show threads" gnus-summary-show-all-threads t]
+       ["Hide thread" gnus-summary-hide-thread t]
+       ["Show thread" gnus-summary-show-thread t]
+       ["Go to next thread" gnus-summary-next-thread t]
+       ["Go to previous thread" gnus-summary-prev-thread t]
+       ["Go down thread" gnus-summary-down-thread t]
+       ["Go up thread" gnus-summary-up-thread t]
+       ["Top of thread" gnus-summary-top-thread t]
+       ["Mark thread as read" gnus-summary-kill-thread t]
+       ["Lower thread score" gnus-summary-lower-thread t]
+       ["Raise thread score" gnus-summary-raise-thread t]
+       ["Rethread current" gnus-summary-rethread-current t]
+       ))
 
-	 
-     (easy-menu-define
-      gnus-summary-thread-menu
-      gnus-summary-mode-map
-      ""
-      '("Threads"
-	["Toggle threading" gnus-summary-toggle-threads t]
-	["Display hidden thread" gnus-summary-show-thread t]
-	["Hide thread" gnus-summary-hide-thread t]
-	["Go to next thread" gnus-summary-next-thread t]
-	["Go to previous thread" gnus-summary-prev-thread t]
-	["Go down thread" gnus-summary-down-thread t]
-	["Go up thread" gnus-summary-up-thread t]
-	["Mark thread as read" gnus-summary-kill-thread t]
-	["Lower thread score" gnus-summary-lower-thread t]
-	["Raise thread score" gnus-summary-raise-thread t]
-	))
-     (easy-menu-define
-      gnus-summary-post-menu
-      gnus-summary-mode-map
-      ""
-      '("Post"
-	["Post an article" gnus-summary-post-news t]
-	["Followup" gnus-summary-followup t]
-	["Followup and yank" gnus-summary-followup-with-original t]
-	["Supersede article" gnus-summary-supersede-article t]
-	["Cancel article" gnus-summary-cancel-article t]
-	["Reply" gnus-summary-reply t]
-	["Reply and yank" gnus-summary-reply-with-original t]
-	["Mail forward" gnus-summary-mail-forward t]
-	["Post forward" gnus-summary-post-forward t]
-	["Digest and mail" gnus-uu-digest-mail-forward t]
-	["Digest and post" gnus-uu-digest-post-forward t]
-	["Send a mail" gnus-summary-mail-other-window t]
-	["Reply & followup" gnus-summary-followup-and-reply t]
-	["Reply & followup and yank" gnus-summary-followup-and-reply-with-original t]
-	["Uuencode and post" gnus-uu-post-news t]
-	))
-     (run-hooks 'gnus-summary-menu-hook)
-     )))
+    (easy-menu-define
+     gnus-summary-post-menu gnus-summary-mode-map ""
+     '("Post"
+       ["Post an article" gnus-summary-post-news t]
+       ["Followup" gnus-summary-followup t]
+       ["Followup and yank" gnus-summary-followup-with-original t]
+       ["Supersede article" gnus-summary-supersede-article t]
+       ["Cancel article" gnus-summary-cancel-article t]
+       ["Reply" gnus-summary-reply t]
+       ["Reply and yank" gnus-summary-reply-with-original t]
+       ["Mail forward" gnus-summary-mail-forward t]
+       ["Post forward" gnus-summary-post-forward t]
+       ["Digest and mail" gnus-uu-digest-mail-forward t]
+       ["Digest and post" gnus-uu-digest-post-forward t]
+       ["Resend message" gnus-summary-resend-message t]
+       ["Send bounced mail" gnus-summary-resend-bounced-mail t]
+       ["Send a mail" gnus-summary-mail-other-window t]
+       ["Uuencode and post" gnus-uu-post-news t]
+       ;;("Draft"
+       ;;["Send" gnus-summary-send-draft t]
+       ;;["Send bounced" gnus-resend-bounced-mail t])
+       ))
+    (run-hooks 'gnus-summary-menu-hook)
+    ))
 
 (defun gnus-score-set-default (var value)
-  ;; A version of set that updates the GNU Emacs menu-bar.
+  "A version of set that updates the GNU Emacs menu-bar."
   (set var value)
   ;; It is the message that forces the active status to be updated.
   (message ""))
-
-(defvar gnus-score-default-header nil
-  "Default header when entering new scores.
-
-Should be one of the following symbols.
-
- a: from
- s: subject
- b: body
- h: head
- i: message-id
- t: references
- x: xref
- l: lines
- d: date
- f: followup
-
-If nil, the user will be asked for a header.")
-
-(defvar gnus-score-default-type nil
-  "Default match type when entering new scores.
-
-Should be one of the following symbols.
-
- s: substring
- e: exact string
- f: fuzzy string
- r: regexp string
- b: before date
- a: at date
- n: this date
- <: less than number
- >: greater than number
- =: equal to number
-
-If nil, the user will be asked for a match type.")
-
-(defvar gnus-score-default-fold nil
-  "Use case folding for new score file entries iff not nil.")
-
-
-(defun gnus-score-default-fold-toggle ()
-  "Toggle folding for new score file entries."
-  (interactive)
-  (setq gnus-score-default-fold (not gnus-score-default-fold))
-  (if gnus-score-default-fold
-      (message "New score file entries will be case insensitive.")
-    (message "New score file entries will be case sensitive.")))
-
-(defvar gnus-score-default-duration nil
-  "Default duration of effect when entering new scores.
-
-Should be one of the following symbols.
-
- t: temporary
- p: permanent
- i: immediate
-
-If nil, the user will be asked for a duration.")
 
 (defun gnus-visual-score-map (type)
   (if t
@@ -833,14 +882,14 @@ If nil, the user will be asked for a duration.")
 			      (cons 
 			       (apply 
 				'nconc
-				(list (car (car ts)))
+				(list (caar ts))
 				(let ((ps perms)
 				      outp)
 				  (while ps
 				    (setq outp
 					  (cons
 					   (vector
-					    (car (car ps)) 
+					    (caar ps) 
 					    (list
 					     'gnus-summary-score-entry
 					     (nth 1 header)
@@ -873,21 +922,17 @@ If nil, the user will be asked for a duration.")
    (boundp 'gnus-article-article-menu)
    (progn
      (easy-menu-define
-      gnus-article-article-menu
-      gnus-article-mode-map
-      ""
+      gnus-article-article-menu gnus-article-mode-map ""
       '("Article"
-	["Scroll forwards" gnus-article-next-page t]
-	["Scroll backwards" gnus-article-prev-page t]
+	["Scroll forwards" gnus-article-goto-next-page t]
+	["Scroll backwards" gnus-article-goto-prev-page t]
 	["Show summary" gnus-article-show-summary t]
 	["Fetch Message-ID at point" gnus-article-refer-article t]
 	["Mail to address at point" gnus-article-mail t]
 	))
 
      (easy-menu-define
-      gnus-article-treatment-menu
-      gnus-article-mode-map
-      ""
+      gnus-article-treatment-menu gnus-article-mode-map ""
       '("Treatment"
 	["Hide headers" gnus-article-hide-headers t]
 	["Hide signature" gnus-article-hide-signature t]
@@ -896,8 +941,7 @@ If nil, the user will be asked for a duration.")
 	["Remove carriage return" gnus-article-remove-cr t]
 	["Remove quoted-unreadable" gnus-article-de-quoted-unreadable t]
 	))
-     (run-hooks 'gnus-article-menu-hook)
-     )))
+     (run-hooks 'gnus-article-menu-hook))))
 
 ;;;
 ;;; summary highlights
@@ -911,13 +955,13 @@ If nil, the user will be asked for a duration.")
 	(let* ((beg (progn (beginning-of-line) (point)))
 	       (end (progn (end-of-line) (point)))
 	       ;; Fix by Mike Dugan <dugan@bucrf16.bu.edu>.
-	       (from (if (get-text-property beg 'mouse-face) 
+	       (from (if (get-text-property beg gnus-mouse-face-prop) 
 			 beg
 		       (1+ (or (next-single-property-change 
-				beg 'mouse-face nil end) 
+				beg gnus-mouse-face-prop nil end) 
 			       beg))))
 	       (to (1- (or (next-single-property-change
-			    from 'mouse-face nil end)
+			    from gnus-mouse-face-prop nil end)
 			   end))))
 	  ;; If no mouse-face prop on line (e.g. xemacs) we 
 	  ;; will have to = from = end, so we highlight the
@@ -941,20 +985,56 @@ If nil, the user will be asked for a duration.")
 	 (end (progn (end-of-line) (point)))
 	 ;; now find out where the line starts and leave point there.
 	 (beg (progn (beginning-of-line) (point)))
-	 (score (or (cdr (assq (or (get-text-property beg 'gnus-number)
-				   gnus-current-article)
+	 (article (gnus-summary-article-number))
+	 (score (or (cdr (assq (or article gnus-current-article)
 			       gnus-newsgroup-scored))
 		    gnus-summary-default-score 0))
-	 (default gnus-summary-default-score)
-	 (mark (get-text-property beg 'gnus-mark))
+	 (mark (or (gnus-summary-article-mark) gnus-unread-mark))
 	 (inhibit-read-only t))
-    (while (and list (not (eval (car (car list)))))
+    ;; Eval the cars of the lists until we find a match.
+    (let ((default gnus-summary-default-score))
+      (while (and list
+		  (not (eval (caar list))))
+	(setq list (cdr list))))
+    (let ((face (cdar list)))
+      (unless (eq face (get-text-property beg 'face))
+	(gnus-put-text-property 
+	 beg end 'face 
+	 (setq face (if (boundp face) (symbol-value face) face)))
+	(when gnus-summary-highlight-line-function
+	  (funcall gnus-summary-highlight-line-function article face))))
+    (goto-char p)))
+
+(defun gnus-group-highlight-line ()
+  "Highlight the current line according to `gnus-group-highlight'."
+  (let* ((list gnus-group-highlight)
+	 (p (point))
+	 (end (progn (end-of-line) (point)))
+	 ;; now find out where the line starts and leave point there.
+	 (beg (progn (beginning-of-line) (point)))
+	 (group (gnus-group-group-name))
+	 (entry (gnus-group-entry group))
+	 (unread (if (numberp (car entry)) (car entry) 0))
+	 (info (nth 2 entry))
+	 (method (gnus-server-get-method group (gnus-info-method info)))
+	 (marked (gnus-info-marks info))
+	 (mailp (memq 'mail (assoc (symbol-name
+				    (car (or method gnus-select-method)))
+				   gnus-valid-select-methods)))
+	 (level (or (gnus-info-level info) 9))
+	 (score (or (gnus-info-score info) 0))
+	 (ticked (gnus-range-length (cdr (assq 'tick marked))))
+	 (inhibit-read-only t))
+    ;; Eval the cars of the lists until we find a match.
+    (while (and list
+		(not (eval (caar list))))
       (setq list (cdr list)))
-    (let ((face (and list (cdr (car list)))))
-      (or (eobp)
-	  (eq face (get-text-property beg 'face))
-	  (put-text-property beg end 'face 
-			     (if (boundp face) (symbol-value face) face))))
+    (let ((face (cdar list)))
+      (unless (eq face (get-text-property beg 'face))
+	(gnus-put-text-property 
+	 beg end 'face 
+	 (setq face (if (boundp face) (symbol-value face) face)))
+	(gnus-extent-start-open beg)))
     (goto-char p)))
 
 ;;;
@@ -1098,16 +1178,16 @@ The following commands are available:
 	    (setq button (car buttons)
 		  buttons (cdr buttons))
 	    (if (stringp button)
-		(set-text-properties
+		(gnus-set-text-properties
 		 (point)
 		 (prog2 (insert button) (point) (insert " "))
 		 (list 'face gnus-carpal-header-face))
-	      (set-text-properties
+	      (gnus-set-text-properties
 	       (point)
 	       (prog2 (insert (car button)) (point) (insert " "))
 	       (list 'gnus-callback (cdr button)
 		     'face gnus-carpal-button-face
-		     'mouse-face 'highlight))))
+		     gnus-mouse-face-prop 'highlight))))
 	  (let ((fill-column (- (window-width) 2)))
 	    (fill-region (point-min) (point-max)))
 	  (set-window-point (get-buffer-window (current-buffer)) 
@@ -1164,20 +1244,39 @@ call it with the value of the `gnus-data' text property."
 	 (fun (get-text-property (point) 'gnus-callback)))
     (if fun (funcall fun data))))
 
-;; Suggested by Arne Elofsson <arne@hodgkin.mbi.ucla.edu>
-(defun gnus-article-next-button ()
-  "Move point to next button."
-  (interactive)
-  (if (get-text-property (point) 'gnus-callback)
-      (goto-char (next-single-property-change (point) 'gnus-callback
-					      nil (point-max))))
-  (let ((pos (next-single-property-change (point) 'gnus-callback)))
-    (if pos
-	(goto-char pos)
-      (setq pos (next-single-property-change (point-min) 'gnus-callback))
-      (if pos
-	  (goto-char pos)
-	(error "No buttons found")))))
+(defun gnus-article-prev-button (n)
+  "Move point to N buttons backward.
+If N is negative, move forward instead."
+  (interactive "p")
+  (gnus-article-next-button (- n)))
+
+(defun gnus-article-next-button (n)
+  "Move point to N buttons forward.
+If N is negative, move backward instead."
+  (interactive "p")
+  (let ((function (if (< n 0) 'previous-single-property-change
+		    'next-single-property-change))
+	(inhibit-point-motion-hooks t)
+	(backward (< n 0))
+	(limit (if (< n 0) (point-min) (point-max))))
+    (setq n (abs n))
+    (while (and (not (= limit (point)))
+		(> n 0))
+      ;; Skip past the current button.
+      (when (get-text-property (point) 'gnus-callback)
+	(goto-char (funcall function (point) 'gnus-callback nil limit)))
+      ;; Go to the next (or previous) button.
+      (gnus-goto-char (funcall function (point) 'gnus-callback nil limit))
+      ;; Put point at the start of the button.
+      (when (and backward (not (get-text-property (point) 'gnus-callback)))
+	(goto-char (funcall function (point) 'gnus-callback nil limit)))
+      ;; Skip past intangible buttons.
+      (when (get-text-property (point) 'intangible)
+	(incf n))
+      (decf n))
+    (unless (zerop n)
+      (gnus-message 5 "No more buttons"))
+    n))
 
 (defun gnus-article-highlight (&optional force)
   "Highlight current article.
@@ -1189,7 +1288,8 @@ do the highlighting.  See the documentation for those functions."
   (gnus-article-highlight-headers)
   (gnus-article-highlight-citation force)
   (gnus-article-highlight-signature)
-  (gnus-article-add-buttons force))
+  (gnus-article-add-buttons force)
+  (gnus-article-add-buttons-to-head))
 
 (defun gnus-article-highlight-some (&optional force)
   "Highlight current article.
@@ -1201,59 +1301,46 @@ do the highlighting.  See the documentation for those functions."
   (gnus-article-highlight-signature)
   (gnus-article-add-buttons))
 
-(defun gnus-article-hide (&optional force)
-  "Hide current article.
-This function calls `gnus-article-hide-headers',
-`gnus-article-hide-citation-maybe', and `gnus-article-hide-signature'
-to do the hiding.  See the documentation for those functions." 
-  (interactive (list 'force))
-  (gnus-article-hide-headers)
-  (gnus-article-hide-citation-maybe force)
-  (gnus-article-hide-signature))
-
 (defun gnus-article-highlight-headers ()
   "Highlight article headers as specified by `gnus-header-face-alist'."
   (interactive)
   (save-excursion
     (set-buffer gnus-article-buffer)
-    (goto-char (point-min))
-    (if (not (search-forward "\n\n" nil t))
-	()
-      (beginning-of-line 0)
-      (while (not (bobp))
-	(let ((alist gnus-header-face-alist)
-	      (buffer-read-only nil)
-	      (case-fold-search t)
-	      (end (point))
-	      (inhibit-point-motion-hooks t)
-	      begin entry regexp header-face field-face 
-	      header-found field-found)
-	  (re-search-backward "^[^ \t]" nil t)
-	  (setq begin (point))
-	  (while alist
-	    (setq entry (car alist)
-		  regexp (nth 0 entry)
+    (save-restriction
+      (let ((alist gnus-header-face-alist)
+	    (buffer-read-only nil)
+	    (case-fold-search t)
+	    (inhibit-point-motion-hooks t)
+	    entry regexp header-face field-face from hpoints fpoints)
+	(goto-char (point-min))
+	(when (search-forward "\n\n" nil t)
+	  (narrow-to-region (1- (point)) (point-min))
+	  (while (setq entry (pop alist))
+	    (goto-char (point-min))
+	    (setq regexp (concat "^\\("
+				 (if (string-equal "" (nth 0 entry))
+				     "[^\t ]"
+				   (nth 0 entry))
+				 "\\)")
 		  header-face (nth 1 entry)
-		  field-face (nth 2 entry)
-		  alist (cdr alist))
-	    (if (looking-at regexp)
-		(let ((from (point)))
-		  (skip-chars-forward "^:\n")
-		  (and (not header-found)
-		       header-face
-		       (progn
-			 (put-text-property  from (point) 'face header-face)
-			 (setq header-found t)))
-		  (and (not field-found)
-		       field-face
-		       (progn 
-			 (skip-chars-forward ": \t")
-			 (let ((from (point)))
-			   (goto-char end)
-			   (skip-chars-backward " \t")
-			   (put-text-property from (point) 'face field-face)
-			   (setq field-found t))))))
-	    (goto-char begin)))))))
+		  field-face (nth 2 entry))
+	    (while (and (re-search-forward regexp nil t)
+			(not (eobp)))
+	      (beginning-of-line)
+	      (setq from (point))
+	      (or (search-forward ":" nil t)
+		  (forward-char 1))
+	      (when (and header-face
+			 (not (memq (point) hpoints)))
+		(push (point) hpoints)
+		(gnus-put-text-property from (point) 'face header-face))
+	      (when (and field-face
+			 (not (memq (setq from (point)) fpoints)))
+		(push from fpoints)
+		(if (re-search-forward "^[^ \t]" nil t)
+		    (forward-char -2)
+		  (goto-char (point-max)))
+		(gnus-put-text-property from (point) 'face field-face)))))))))
 
 (defun gnus-article-highlight-signature ()
   "Highlight the signature in an article.
@@ -1264,76 +1351,93 @@ It does this by highlighting everything after
     (set-buffer gnus-article-buffer)
     (let ((buffer-read-only nil)
 	  (inhibit-point-motion-hooks t))
-      (goto-char (point-max))
-      (and (re-search-backward gnus-signature-separator nil t)
-	   gnus-signature-face
-	   (let ((start (match-beginning 0))
-		 (end (match-end 0)))
-	     (gnus-article-add-button start end 'gnus-signature-toggle end)
-	     (gnus-overlay-put (gnus-make-overlay end (point-max))
-			       'face gnus-signature-face))))))
+      (save-restriction
+	(when (and gnus-signature-face
+		   (gnus-narrow-to-signature))
+	  (gnus-overlay-put (gnus-make-overlay (point-min) (point-max))
+			    'face gnus-signature-face)
+	  (widen)
+	  (re-search-backward gnus-signature-separator nil t)
+	  (let ((start (match-beginning 0))
+		(end (set-marker (make-marker) (1+ (match-end 0)))))
+	    (gnus-article-add-button start (1- end) 'gnus-signature-toggle
+				     end)))))))
 
-(defun gnus-article-hide-signature ()
-  "Hide the signature in an article.
-It does this by making everything after `gnus-signature-separator' invisible."
+(defun gnus-article-add-buttons (&optional force)
+  "Find external references in the article and make buttons of them.
+\"External references\" are things like Message-IDs and URLs, as
+specified by `gnus-button-alist'."
+  (interactive (list 'force))
+  (save-excursion
+    (set-buffer gnus-article-buffer)
+    ;; Remove all old markers.
+    (while gnus-button-marker-list
+      (set-marker (pop gnus-button-marker-list) nil))
+    (let ((buffer-read-only nil)
+	  (inhibit-point-motion-hooks t)
+	  (case-fold-search t)
+	  (alist gnus-button-alist)
+	  beg entry regexp)
+      (goto-char (point-min))
+      ;; We skip the headers.
+      (unless (search-forward "\n\n" nil t)
+	(goto-char (point-max)))
+      (setq beg (point))
+      (while (setq entry (pop alist))
+	(setq regexp (car entry))
+	(goto-char beg)
+	(while (re-search-forward regexp nil t)
+	  (let* ((start (and entry (match-beginning (nth 1 entry))))
+		 (end (and entry (match-end (nth 1 entry))))
+		 (from (match-beginning 0)))
+	    (when (or (eq t (nth 1 entry))
+		      (eval (nth 1 entry)))
+	      ;; That optional form returned non-nil, so we add the
+	      ;; button. 
+	      (gnus-article-add-button 
+	       start end 'gnus-button-push 
+	       (car (push (set-marker (make-marker) from)
+			  gnus-button-marker-list))))))))))
+
+;; Add buttons to the head of an article.
+(defun gnus-article-add-buttons-to-head ()
+  "Add buttons to the head of the article."
   (interactive)
   (save-excursion
     (set-buffer gnus-article-buffer)
-    (let ((buffer-read-only nil))
-      (goto-char (point-max))
-      (and (re-search-backward gnus-signature-separator nil t)
-	   gnus-signature-face
-	   (add-text-properties (match-end 0) (point-max)
-				gnus-hidden-properties)))))
-
-(defun gnus-article-add-buttons (&optional force)
-  "Find external references in article and make them to buttons.
-
-External references are things like message-ids and URLs, as specified by 
-`gnus-button-alist'."
-  (interactive (list 'force))
-  (if (eq gnus-button-last gnus-button-alist)
-      ()
-    (setq gnus-button-regexp (mapconcat 'car gnus-button-alist  "\\|")
-	  gnus-button-last gnus-button-alist))
-  (save-excursion
-    (set-buffer gnus-article-buffer)
-    (gnus-cite-parse-maybe force)
     (let ((buffer-read-only nil)
 	  (inhibit-point-motion-hooks t)
-	  (case-fold-search t))
-      (goto-char (point-min))
-      (or (search-forward "\n\n" nil t)
-	  (goto-char (point-max)))
-      (while (re-search-forward gnus-button-regexp nil t)
-	(goto-char (match-beginning 0))
-	(let* ((from (point))
-	       (entry (gnus-button-entry))
-	       (start (and entry (match-beginning (nth 1 entry))))
-	       (end (and entry (match-end (nth 1 entry))))
-	       (form (nth 2 entry)))
-	  (if (not entry)
-	      ()
-	    (goto-char (match-end 0))
-	    (if (eval form)
-		(gnus-article-add-button start end 'gnus-button-push
-					 (set-marker (make-marker)
-						     from)))))))))
-(defun gnus-netscape-open-url (url)
-  "Open URL in netscape, or start new scape with URL."
-  (let ((process (start-process (concat "netscape " url)
-				nil
-				"netscape"
-				"-remote" 
-				(concat "openUrl(" url ")'"))))
-    (set-process-sentinel process 
-			  (` (lambda (process change)
-			       (or (eq (process-exit-status process) 0)
-				   (gnus-netscape-start-url (, url))))))))
-
-(defun gnus-netscape-start-url (url)
-  "Start netscape with URL."
-  (start-process (concat "netscape" url) nil "netscape" url))
+	  (case-fold-search t)
+	  (alist gnus-header-button-alist)
+	  entry beg end)
+      (nnheader-narrow-to-headers)
+      (while alist
+	;; Each alist entry.
+	(setq entry (car alist)
+	      alist (cdr alist))
+	(goto-char (point-min))
+	(while (re-search-forward (car entry) nil t)
+	  ;; Each header matching the entry.
+	  (setq beg (match-beginning 0))
+	  (setq end (or (and (re-search-forward "^[^ \t]" nil t)
+			     (match-beginning 0))
+			(point-max)))
+	  (goto-char beg)
+	  (while (re-search-forward (nth 1 entry) end t)
+	    ;; Each match within a header.
+	    (let* ((from (match-beginning 0))
+		   (entry (cdr entry))
+		   (start (match-beginning (nth 1 entry)))
+		   (end (match-end (nth 1 entry)))
+		   (form (nth 2 entry)))
+	      (goto-char (match-end 0))
+	      (and (eval form)
+		   (gnus-article-add-button 
+		    start end (nth 3 entry)
+		    (buffer-substring (match-beginning (nth 4 entry))
+				      (match-end (nth 4 entry)))))))
+	  (goto-char end))))
+    (widen)))
 
 ;;; External functions:
 
@@ -1342,36 +1446,30 @@ External references are things like message-ids and URLs, as specified by
   (and gnus-article-button-face
        (gnus-overlay-put (gnus-make-overlay from to)
 			 'face gnus-article-button-face))
-  (add-text-properties from to
-		       (append (and gnus-article-mouse-face
-				    (list 'mouse-face gnus-article-mouse-face))
-			       (list 'gnus-callback fun)
-			       (and data (list 'gnus-data data)))))
+  (gnus-add-text-properties 
+   from to
+   (nconc (and gnus-article-mouse-face
+	       (list gnus-mouse-face-prop gnus-article-mouse-face))
+	  (list 'gnus-callback fun)
+	  (and data (list 'gnus-data data)))))
 
 ;;; Internal functions:
 
 (defun gnus-signature-toggle (end)
   (save-excursion
     (set-buffer gnus-article-buffer)
-    (let ((buffer-read-only nil))
+    (let ((buffer-read-only nil)
+	  (inhibit-point-motion-hooks t))
       (if (get-text-property end 'invisible)
-	  (remove-text-properties end (point-max) gnus-hidden-properties)
-	(add-text-properties end (point-max) gnus-hidden-properties)))))
-
-;see gnus-cus.el
-;(defun gnus-make-face (color)
-;  ;; Create entry for face with COLOR.
-;  (if gnus-make-foreground
-;      (custom-face-lookup color nil nil nil nil nil)
-;    (custom-face-lookup nil color nil nil nil nil)))
+	  (gnus-unhide-text end (point-max))
+	(gnus-hide-text end (point-max) gnus-hidden-properties)))))
 
 (defun gnus-button-entry ()
   ;; Return the first entry in `gnus-button-alist' matching this place.
   (let ((alist gnus-button-alist)
 	(entry nil))
     (while alist
-      (setq entry (car alist)
-	    alist (cdr alist))
+      (setq entry (pop alist))
       (if (looking-at (car entry))
 	  (setq alist nil)
 	(setq entry nil)))
@@ -1389,23 +1487,102 @@ External references are things like message-ids and URLs, as specified by
 			   (let ((string (buffer-substring
 					  (match-beginning group)
 					  (match-end group))))
-			     (set-text-properties 0 (length string) nil string)
+			     (gnus-set-text-properties
+			      0 (length string) nil string)
 			     string))
 			 (nthcdr 4 entry))))
-      (cond ((fboundp fun)
-	     (apply fun args))
-	    ((and (boundp fun)
-		  (fboundp (symbol-value fun)))
-	     (apply (symbol-value fun) args))
-	    (t
-	     (message "You must define `%S' to use this button"
+      (cond
+       ((fboundp fun)
+	(apply fun args))
+       ((and (boundp fun)
+	     (fboundp (symbol-value fun)))
+	(apply (symbol-value fun) args))
+       (t
+	(gnus-message 1 "You must define `%S' to use this button"
 		      (cons fun args)))))))
 
 (defun gnus-button-message-id (message-id)
-  ;; Push on MESSAGE-ID.
+  "Fetch MESSAGE-ID."
   (save-excursion
     (set-buffer gnus-summary-buffer)
     (gnus-summary-refer-article message-id)))
+
+(defun gnus-button-mailto (address)
+  ;; Mail to ADDRESS.
+  (set-buffer (gnus-copy-article-buffer))
+  (message-reply address))
+
+(defun gnus-button-reply (address)
+  ;; Reply to ADDRESS.
+  (message-reply address))
+
+(defun gnus-button-url (address)
+  "Browse ADDRESS."
+  (funcall browse-url-browser-function address))
+
+;;; Next/prev buttons in the article buffer.
+
+(defvar gnus-next-page-line-format "%{%(Next page...%)%}\n")
+(defvar gnus-prev-page-line-format "%{%(Previous page...%)%}\n")
+
+(defvar gnus-prev-page-map nil)
+(unless gnus-prev-page-map
+  (setq gnus-prev-page-map (make-sparse-keymap))
+  (define-key gnus-prev-page-map gnus-mouse-2 'gnus-button-prev-page)
+  (define-key gnus-prev-page-map "\r" 'gnus-button-prev-page))
+
+(defun gnus-insert-prev-page-button ()
+  (let ((buffer-read-only nil))
+    (gnus-eval-format 
+     gnus-prev-page-line-format nil
+     `(gnus-prev t local-map ,gnus-prev-page-map
+		 gnus-callback gnus-article-button-prev-page))))
+
+(defvar gnus-next-page-map nil)
+(unless gnus-next-page-map
+  (setq gnus-next-page-map (make-keymap))
+  (suppress-keymap gnus-prev-page-map)
+  (define-key gnus-next-page-map gnus-mouse-2 'gnus-button-next-page)
+  (define-key gnus-next-page-map "\r" 'gnus-button-next-page))
+
+(defun gnus-button-next-page ()
+  "Go to the next page."
+  (interactive)
+  (let ((win (selected-window)))
+    (select-window (get-buffer-window gnus-article-buffer t))
+    (gnus-article-next-page)
+    (select-window win)))
+
+(defun gnus-button-prev-page ()
+  "Go to the prev page."
+  (interactive)
+  (let ((win (selected-window)))
+    (select-window (get-buffer-window gnus-article-buffer t))
+    (gnus-article-prev-page)
+    (select-window win)))
+
+(defun gnus-insert-next-page-button ()
+  (let ((buffer-read-only nil))
+    (gnus-eval-format gnus-next-page-line-format nil
+		      `(gnus-next t local-map ,gnus-next-page-map
+				  gnus-callback 
+				  gnus-article-button-next-page))))
+
+(defun gnus-article-button-next-page (arg)
+  "Go to the next page."
+  (interactive "P")
+  (let ((win (selected-window)))
+    (select-window (get-buffer-window gnus-article-buffer t))
+    (gnus-article-next-page)
+    (select-window win)))
+
+(defun gnus-article-button-prev-page (arg)
+  "Go to the prev page."
+  (interactive "P")
+  (let ((win (selected-window)))
+    (select-window (get-buffer-window gnus-article-buffer t))
+    (gnus-article-prev-page)
+    (select-window win)))
 
 ;;; Compatibility Functions:
 

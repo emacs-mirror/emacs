@@ -68,15 +68,50 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'cl))
+
 ;;; Compatibility:
 
-(or (fboundp 'buffer-substring-no-properties)
-    ;; Introduced in Emacs 19.29.
-    (defun buffer-substring-no-properties (beg end)
-      "Return the text from BEG to END, without text properties, as a string."
-      (let ((string (buffer-substring beg end)))
-	(set-text-properties 0 (length string) nil string)
-	string)))
+(defun custom-xmas-add-text-properties (start end props &optional object)
+  (add-text-properties start end props object)
+  (put-text-property start end 'start-open t object)
+  (put-text-property start end 'end-open t object))
+
+(defun custom-xmas-put-text-property (start end prop value &optional object)
+  (put-text-property start end prop value object)
+  (put-text-property start end 'start-open t object)
+  (put-text-property start end 'end-open t object))
+
+(defun custom-xmas-extent-start-open ()
+  (map-extents (lambda (extent arg)
+		 (set-extent-property extent 'start-open t))
+	       nil (point) (min (1+ (point)) (point-max))))
+		  
+(if (string-match "XEmacs\\|Lucid" emacs-version)
+    (progn
+      (fset 'custom-add-text-properties 'custom-xmas-add-text-properties)
+      (fset 'custom-put-text-property 'custom-xmas-put-text-property)
+      (fset 'custom-extent-start-open 'custom-xmas-extent-start-open)
+      (fset 'custom-set-text-properties
+	    (if (fboundp 'set-text-properties)
+		'set-text-properties))
+      (fset 'custom-buffer-substring-no-properties
+	    (if (fboundp 'buffer-substring-no-properties)
+		'buffer-substring-no-properties
+	      'custom-xmas-buffer-substring-no-properties)))
+  (fset 'custom-add-text-properties 'add-text-properties)
+  (fset 'custom-put-text-property 'put-text-property)
+  (fset 'custom-extent-start-open 'ignore)
+  (fset 'custom-set-text-properties 'set-text-properties)
+  (fset 'custom-buffer-substring-no-properties 
+	'buffer-substring-no-properties))
+
+(defun custom-xmas-buffer-substring-no-properties (beg end)
+  "Return the text from BEG to END, without text properties, as a string."
+  (let ((string (buffer-substring beg end)))
+    (custom-set-text-properties 0 (length string) nil string)
+    string))
 
 (or (fboundp 'add-to-list)
     ;; Introduced in Emacs 19.29.
@@ -171,16 +206,14 @@ STRING should be given if the last search was by `string-match' on STRING."
       (and (fboundp 'set-face-underline-p)
 	   (funcall 'set-face-underline-p 'underline t))))
 
-(or (fboundp 'set-text-properties)
-    ;; Missing in XEmacs 19.12.
-    (defun set-text-properties (start end props &optional buffer)
-      (if (or (null buffer) (bufferp buffer))
-	  (if props
-	      (while props
-		(put-text-property 
-		 start end (car props) (nth 1 props) buffer)
-		(setq props (nthcdr 2 props)))
-	    (remove-text-properties start end ())))))
+(defun custom-xmas-set-text-properties (start end props &optional buffer)
+  (if (null buffer)
+      (if props
+	  (while props
+	    (custom-put-text-property 
+	     start end (car props) (nth 1 props) buffer)
+	    (setq props (nthcdr 2 props)))
+	(remove-text-properties start end ()))))
 
 (or (fboundp 'event-point)
     ;; Missing in Emacs 19.29.
@@ -200,60 +233,6 @@ into the buffer visible in the event's window."
   (defvar custom-field-face nil)
   (defvar custom-mouse-face nil)
   (defvar custom-field-active-face nil))
-
-(or (and (fboundp 'modify-face) (not (featurep 'face-lock)))
-    ;; Introduced in Emacs 19.29.  Incompatible definition also introduced
-    ;; by face-lock.el version 3.00 and above for Emacs 19.28 and below.
-    ;; face-lock does not call modify-face, so we can safely redefine it.
-    (defun modify-face (face foreground background stipple
-			     bold-p italic-p underline-p)
-  "Change the display attributes for face FACE.
-FOREGROUND and BACKGROUND should be color strings or nil.
-STIPPLE should be a stipple pattern name or nil.
-BOLD-P, ITALIC-P, and UNDERLINE-P specify whether the face should be set bold,
-in italic, and underlined, respectively.  (Yes if non-nil.)
-If called interactively, prompts for a face and face attributes."
-  (interactive
-   (let* ((completion-ignore-case t)
-	  (face	       (symbol-name (read-face-name "Modify face: ")))
-	  (colors      (mapcar 'list x-colors))
-	  (stipples    (mapcar 'list
-			       (apply 'nconc
-				      (mapcar 'directory-files
-					      x-bitmap-file-path))))
-	  (foreground  (modify-face-read-string
-			face (face-foreground (intern face))
-			"foreground" colors))
-	  (background  (modify-face-read-string
-			face (face-background (intern face))
-			"background" colors))
-	  (stipple     (modify-face-read-string
-			face (face-stipple (intern face))
-			"stipple" stipples))
-	  (bold-p      (y-or-n-p (concat "Set face " face " bold ")))
-	  (italic-p    (y-or-n-p (concat "Set face " face " italic ")))
-	  (underline-p (y-or-n-p (concat "Set face " face " underline "))))
-     (message "Face %s: %s" face
-      (mapconcat 'identity
-       (delq nil
-	(list (and foreground (concat (downcase foreground) " foreground"))
-	      (and background (concat (downcase background) " background"))
-	      (and stipple (concat (downcase stipple) " stipple"))
-	      (and bold-p "bold") (and italic-p "italic")
-	      (and underline-p "underline"))) ", "))
-     (list (intern face) foreground background stipple
-	   bold-p italic-p underline-p)))
-  (condition-case nil (set-face-foreground face foreground) (error nil))
-  (condition-case nil (set-face-background face background) (error nil))
-  (condition-case nil (set-face-stipple face stipple) (error nil))
-  (if (string-match "XEmacs" emacs-version)
-      (progn
-	(funcall (if bold-p 'make-face-bold 'make-face-unbold) face)
-	(funcall (if italic-p 'make-face-italic 'make-face-unitalic) face))
-    (funcall (if bold-p 'make-face-bold 'make-face-unbold) face nil t)
-    (funcall (if italic-p 'make-face-italic 'make-face-unitalic) face nil t))
-  (set-face-underline-p face underline-p)
-  (and (interactive-p) (redraw-display))))
 
 ;; We can't easily check for a working intangible.
 (defconst intangible (if (and (boundp 'emacs-minor-version)
@@ -281,9 +260,10 @@ If called interactively, prompts for a face and face attributes."
 
 ;; Put it in the Help menu, if possible.
 (if (string-match "XEmacs" emacs-version)
-    ;; XEmacs (disabled because it doesn't work)
-    (and current-menubar
-	 (add-menu-item '("Help") "Customize..." 'customize nil))
+    (if (featurep 'menubar)
+	;; XEmacs (disabled because it doesn't work)
+	(and current-menubar
+	     (add-menu-item '("Help") "Customize..." 'customize t)))
   ;; Emacs 19.28 and earlier
   (global-set-key [ menu-bar help customize ]
 		  '("Customize..." . customize))
@@ -359,7 +339,7 @@ If called interactively, prompts for a face and face attributes."
 
   (defun custom-category-set (from to category)
     "Make text between FROM and TWO have category CATEGORY."
-    (put-text-property from to 'category category)))
+    (custom-put-text-property from to 'category category)))
 
 ;;; External Data:
 ;; 
@@ -419,7 +399,7 @@ If called interactively, prompts for a face and face attributes."
 ;; where each CUSTOM is a leaf in the hierarchy defined by the `type'
 ;; property and `custom-type-properties'.
 
-(defvar custom-file (convert-standard-filename "~/.custom.el")
+(defvar custom-file "~/.custom.el"
   "Name of file with customization information.")
 
 (defconst custom-data
@@ -1080,6 +1060,7 @@ If optional ORIGINAL is non-nil, consider VALUE for the original value."
 	 (end (make-marker))
 	 (data (vector repeat nil start end))
 	 field)
+    (custom-extent-start-open)
     (insert-before-markers "\n")
     (backward-char 1)
     (set-marker start (point))
@@ -1309,7 +1290,7 @@ If optional ORIGINAL is non-nil, consider VALUE for the original value."
 	 (face-tag (custom-face-tag custom))
 	 current)
     (if face-tag 
-	(put-text-property from (+ from (length (custom-tag custom)))
+	(custom-put-text-property from (+ from (length (custom-tag custom)))
 			   'face (funcall face-tag field value)))
     (if original 
 	(custom-field-original-set field value))
@@ -1395,9 +1376,10 @@ If optional ORIGINAL is non-nil, consider VALUE for the original value."
 	  ()
 	(setq begin (point)
 	      found (custom-insert (custom-property custom 'none) nil))
-	(add-text-properties begin (point)
-			     (list rear-nonsticky t
-				   'face custom-field-uninitialized-face)))
+	(custom-add-text-properties 
+	 begin (point)
+	 (list rear-nonsticky t
+	       'face custom-field-uninitialized-face)))
       (or original
 	  (custom-field-original-set found (custom-field-original field)))
       (custom-field-accept found value original)
@@ -1483,7 +1465,8 @@ If optional ORIGINAL is non-nil, consider VALUE for the original value."
 
 (defun custom-face-import (custom value)
   "Modify CUSTOM's VALUE to match internal expectations."
-  (let ((name (symbol-name value)))
+  (let ((name (or (and (facep value) (symbol-name (face-name value)))
+		  (symbol-name value))))
     (list (if (string-match "\
 custom-face-\\(.*\\)-\\(.*\\)-\\(.*\\)-\\(.*\\)-\\(.*\\)-\\(.*\\)"
 			    name)
@@ -1496,9 +1479,8 @@ custom-face-\\(.*\\)-\\(.*\\)-\\(.*\\)-\\(.*\\)-\\(.*\\)-\\(.*\\)"
 		    (intern (match-string 6 name)))
 	    value))))
 
-(defun custom-face-lookup (fg bg stipple bold italic underline)
-  "Lookup or create a face with specified attributes.
-FG BG STIPPLE BOLD ITALIC UNDERLINE"
+(defun custom-face-lookup (&optional fg bg stipple bold italic underline)
+  "Lookup or create a face with specified attributes."
   (let ((name (intern (format "custom-face-%s-%s-%s-%S-%S-%S"
 			      (or fg "default")
 			      (or bg "default")
@@ -1507,12 +1489,37 @@ FG BG STIPPLE BOLD ITALIC UNDERLINE"
     (if (and (custom-facep name)
 	     (fboundp 'make-face))
 	()
-      (make-face name)
-      (modify-face name
-		   (if (string-equal fg "default") nil fg)
-		   (if (string-equal bg "default") nil bg)
-		   (if (string-equal stipple "default") nil stipple)
-		   bold italic underline))
+      (copy-face 'default name)
+      (when (and fg
+		 (not (string-equal fg "default")))
+	(condition-case ()
+	    (set-face-foreground name fg)
+	  (error nil)))
+      (when (and bg
+		 (not (string-equal bg "default")))
+	(condition-case ()
+	    (set-face-background name bg)
+	  (error nil)))
+      (when (and stipple
+		 (not (string-equal stipple "default"))
+		 (not (eq stipple 'custom:asis))
+		 (fboundp 'set-face-stipple))
+	(set-face-stipple name stipple))
+      (when (and bold
+		 (not (eq bold 'custom:asis)))
+	(condition-case ()
+	    (make-face-bold name)
+	  (error nil)))
+      (when (and italic
+		 (not (eq italic 'custom:asis)))
+	(condition-case ()
+	    (make-face-italic name)
+	  (error nil)))
+      (when (and underline
+		 (not (eq underline 'custom:asis)))
+	(condition-case ()
+	    (set-face-underline-p name t)
+	  (error nil))))
     name))
 
 (defun custom-face-hack (field value)
@@ -1528,7 +1535,7 @@ FG BG STIPPLE BOLD ITALIC UNDERLINE"
 	 (face (custom-field-face field))
 	 (from (point)))
     (custom-text-insert (custom-tag custom))
-    (add-text-properties from (point) 
+    (custom-add-text-properties from (point) 
 			 (list 'face face
 			       rear-nonsticky t))
     (custom-documentation-insert custom)
@@ -1539,7 +1546,7 @@ FG BG STIPPLE BOLD ITALIC UNDERLINE"
   "Update face of FIELD."
   (let ((from (custom-field-start field))
 	(custom (custom-field-custom field)))
-    (put-text-property from (+ from (length (custom-tag custom)))
+    (custom-put-text-property from (+ from (length (custom-tag custom)))
 		       'face (custom-field-face field))))
 
 (defun custom-const-valid (custom value)
@@ -1828,9 +1835,9 @@ If the optional argument SAVE is non-nil, use that for saving changes."
   (let ((from (point)))
     (insert tag)
     (custom-category-set from (point) 'custom-button-properties)
-    (put-text-property from (point) 'custom-tag field)
+    (custom-put-text-property from (point) 'custom-tag field)
     (if data
-	(add-text-properties from (point) (list 'custom-data data)))))
+	(custom-add-text-properties from (point) (list 'custom-data data)))))
 
 (defun custom-documentation-insert (custom &rest ignore)
   "Insert documentation from CUSTOM in current buffer."
@@ -1849,11 +1856,13 @@ If the optional argument SAVE is non-nil, use that for saving changes."
   "Describe how to execute COMMAND."
   (let ((from (point)))
     (insert "`" (key-description (where-is-internal command nil t)) "'")
-    (set-text-properties from (point)
-			 (list 'face custom-button-face
-			       mouse-face custom-mouse-face
-			       'custom-jump t ;Make TAB jump over it.
-			       'custom-tag command))
+    (custom-set-text-properties from (point)
+				(list 'face custom-button-face
+				      mouse-face custom-mouse-face
+				      'custom-jump t ;Make TAB jump over it.
+				      'custom-tag command
+				      'start-open t
+				      'end-open t))
     (custom-category-set from (point) 'custom-documentation-properties))
   (custom-help-insert ": " (custom-first-line (documentation command)) "\n"))
 
@@ -2175,17 +2184,18 @@ If the optional argument is non-nil, show text iff the argument is positive."
     (insert-char (custom-padding custom)
 		 (- (custom-width custom) (- (point) from)))
     (custom-field-move field from (point))
-    (set-text-properties 
+    (custom-set-text-properties 
      from (point)
      (list 'custom-field field
 	   'custom-tag field
 	   'face (custom-field-face field)
-	   front-sticky t))))
+	   'start-open t
+	   'end-open t))))
 
 (defun custom-field-read (field)
   ;; Read the screen content of FIELD.
   (custom-read (custom-field-custom field)
-	       (buffer-substring-no-properties (custom-field-start field)
+	       (custom-buffer-substring-no-properties (custom-field-start field)
 					       (custom-field-end field))))
 
 ;; Fields are shown in a special `active' face when point is inside
@@ -2196,7 +2206,7 @@ If the optional argument is non-nil, show text iff the argument is positive."
   ;; Deactivate FIELD.
   (let ((before-change-functions nil)
 	(after-change-functions nil))
-    (put-text-property (custom-field-start field) (custom-field-end field)
+    (custom-put-text-property (custom-field-start field) (custom-field-end field)
 		       'face (custom-field-face field))))
 
 (defun custom-field-enter (field)
@@ -2214,7 +2224,7 @@ If the optional argument is non-nil, show text iff the argument is positive."
 	    (setq pos (1- pos)))
 	  (if (< pos (point))
 	      (goto-char pos))))
-    (put-text-property start end 'face custom-field-active-face)))
+    (custom-put-text-property start end 'face custom-field-active-face)))
 
 (defun custom-field-resize (field)
   ;; Resize FIELD after change.
@@ -2296,7 +2306,7 @@ If the optional argument is non-nil, show text iff the argument is positive."
     (let ((field custom-field-was))
       (custom-assert '(prog1 field (setq custom-field-was nil)))
       ;; Prevent mixing fields properties.
-      (put-text-property begin end 'custom-field field)
+      (custom-put-text-property begin end 'custom-field field)
       ;; Update the field after modification.
       (if (eq (custom-field-property begin) field)
 	  (let ((field-end (custom-field-end field)))

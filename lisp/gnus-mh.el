@@ -1,6 +1,5 @@
 ;;; gnus-mh.el --- mh-e interface for Gnus
-
-;; Copyright (C) 1994,95 Free Software Foundation, Inc.
+;; Copyright (C) 1994,95,96 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
@@ -38,6 +37,7 @@
 (require 'mh-comp)
 (require 'gnus)
 (require 'gnus-msg)
+(eval-when-compile (require 'cl))
 
 (defun gnus-summary-save-article-folder (&optional arg)
   "Append the current article to an mh folder.
@@ -55,155 +55,30 @@ Optional argument FOLDER specifies folder name."
   ;; Thanks to yuki@flab.Fujitsu.JUNET and ohm@kaba.junet.
   (mh-find-path)
   (let ((folder
-	 (or folder
-	     (mh-prompt-for-folder 
-	      "Save article in"
-	      (funcall gnus-folder-save-name gnus-newsgroup-name
-		       gnus-current-headers gnus-newsgroup-last-folder)
-	      t)))
-	(errbuf (get-buffer-create " *Gnus rcvstore*")))
-    (gnus-eval-in-buffer-window 
-     gnus-article-buffer
-     (save-restriction
-       (widen)
-       (unwind-protect
-	   (call-process-region (point-min) (point-max)
-				(expand-file-name "rcvstore" mh-lib)
-				nil errbuf nil folder)
-	 (set-buffer errbuf)
-	 (if (zerop (buffer-size))
-	     (message "Article saved in folder: %s" folder)
-	   (message "%s" (buffer-string)))
-	 (kill-buffer errbuf))))
-    (setq gnus-newsgroup-last-folder folder)))
-
-(defun gnus-mail-reply-using-mhe (&optional yank)
-  "Compose reply mail using mh-e.
-Optional argument YANK means yank original article.
-The command \\[mh-yank-cur-msg] yank the original message into current buffer."
-  (let (from cc subject date to reply-to to-userid orig-to
-	     references message-id
-	     (config (current-window-configuration))
-	     buffer)
-    (pop-to-buffer gnus-article-buffer)
-    (setq buffer (current-buffer))
-    (save-excursion
+	 (cond ((and (eq folder 'default)
+		     gnus-newsgroup-last-folder)
+		gnus-newsgroup-last-folder)
+	       (folder folder)
+	       (t (mh-prompt-for-folder 
+		   "Save article in"
+		   (funcall gnus-folder-save-name gnus-newsgroup-name
+			    gnus-current-headers gnus-newsgroup-last-folder)
+		   t))))
+	(errbuf (get-buffer-create " *Gnus rcvstore*"))
+	;; Find the rcvstore program.
+	(exec-path (if mh-lib (cons mh-lib exec-path) exec-path)))
+    (gnus-eval-in-buffer-window gnus-original-article-buffer
       (save-restriction
-	(or gnus-user-login-name	; we need this
-	    (setq gnus-user-login-name (or (getenv "USER")
-					   (getenv "LOGNAME"))))
-
-	(gnus-article-show-all-headers);; so colors are happy
-	;; lots of junk to avoid mh-send deleting other windows
-	(setq from (or (gnus-fetch-field "from") "")
-	      subject (let ((subject (or (gnus-fetch-field "subject")
-					 "(None)")))
-			(if (and subject
-				 (not (string-match "^[Rr][Ee]:.+$" subject)))
-			    (concat "Re: " subject) subject))
-	      reply-to (gnus-fetch-field "reply-to")
-	      cc (gnus-fetch-field "cc")
-	      orig-to (or (gnus-fetch-field "to") "")
-	      date (gnus-fetch-field "date")
-	      references (gnus-fetch-field "references")
-	      message-id (gnus-fetch-field "message-id"))
-	(setq to (or reply-to from))
-	(setq to-userid (mail-strip-quoted-names orig-to))
-	(if (or (string-match "," orig-to)
-		(not (string-match (substring to-userid 0 
-					      (string-match "@" to-userid))
-				   gnus-user-login-name)))
-	    (setq cc (concat (if cc (concat cc ", ") "") orig-to)))
-        ;; mh-yank-cur-msg needs to have mh-show-buffer set in the 
-        ;; *Article* buffer
-	(setq mh-show-buffer buffer)))
-
-    (mh-find-path)
-    (mh-send-sub (or to "") (or cc "") 
-		 (or subject "(None)") config);; Erik Selberg 1/23/94
-
-    (let ((draft (current-buffer))
-	  (gnus-mail-buffer (current-buffer))
-	  mail-buf)
-      (if (not yank)
-	  (gnus-configure-windows 'reply 'force)
-	(gnus-configure-windows 'reply-yank 'force))
-      (setq mail-buf gnus-mail-buffer)
-      (pop-to-buffer mail-buf);; always in the display, so won't have window probs
-      (switch-to-buffer draft))
-
-    ;;    (mh-send to (or cc "") subject);; shouldn't use according to mhe
-    
-    ;; note - current buffer is now draft!
-    (save-excursion
-      (mh-insert-fields
-       "In-reply-to:"
-       (concat
-	(substring from 0 (string-match "  *at \\|  *@ \\| *(\\| *<" from))
-	"'s message of " date))
-      (nnheader-insert-references references message-id))
-
-    ;; need this for mh-yank-cur-msg
-    (setq mh-sent-from-folder buffer)
-    (setq mh-sent-from-msg 1)
-    (setq mh-show-buffer buffer)
-    (setq mh-previous-window-config config))
-
-  ;; Then, yank original article if requested.
-  (if yank
-      (let ((last (point)))
-	(mh-yank-cur-msg)
-	(goto-char last)))
-
-  (run-hooks 'gnus-mail-hook))
-
-
-;; gnus-mail-forward-using-mhe is contributed by Jun-ichiro Itoh
-;; <itojun@ingram.mt.cs.keio.ac.jp>
-
-(defun gnus-mail-forward-using-mhe (&optional buffer)
-  "Forward the current message to another user using mh-e."
-  ;; First of all, prepare mhe mail buffer.
-  (let* ((to (read-string "To: "))
-	 (cc (read-string "Cc: "))
-	 (buffer (or buffer gnus-article-buffer))
-	 (config (current-window-configuration));; need to add this - erik
-	 (subject (gnus-forward-make-subject buffer)))
-    (setq mh-show-buffer buffer)
-    (mh-find-path)
-    (mh-send-sub to (or cc "") (or subject "(None)") config);; Erik Selberg 1/23/94
-    (let ((draft (current-buffer))
-	  (gnus-mail-buffer (current-buffer))
-	  mail-buf)
-      (gnus-configure-windows 'reply-yank 'force)
-      (setq mail-buf (eval (cdr (assq 'mail gnus-window-to-buffer))))
-      (pop-to-buffer mail-buf);; always in the display, so won't have window probs
-      (switch-to-buffer draft)
-      )
-    (save-excursion
-      (goto-char (point-max))
-      (insert "\n------- Forwarded Message\n\n")
-      (insert-buffer buffer)
-      (goto-char (point-max))
-      (insert "\n------- End of Forwarded Message\n")
-      (setq mh-sent-from-folder buffer)
-      (setq mh-sent-from-msg 1)
-      (setq mh-previous-window-config config)
-      (run-hooks 'gnus-mail-hook)
-      )))
-
-(defun gnus-mail-other-window-using-mhe ()
-  "Compose mail other window using mh-e."
-  (let ((to (read-string "To: "))
-	(cc (read-string "Cc: "))
-	(subject (read-string "Subject: ")))
-    (gnus-article-show-all-headers)	;I don't think this is really needed.
-    (setq mh-show-buffer (current-buffer))
-    (mh-find-path)
-    (mh-send-other-window to cc subject)
-    (setq mh-sent-from-folder (current-buffer))
-    (setq mh-sent-from-msg 1)
-    (run-hooks 'gnus-mail-hook)))
+	(widen)
+	(unwind-protect
+	    (call-process-region 
+	     (point-min) (point-max) "rcvstore" nil errbuf nil folder)
+	  (set-buffer errbuf)
+	  (if (zerop (buffer-size))
+	      (message "Article saved in folder: %s" folder)
+	    (message "%s" (buffer-string)))
+	  (kill-buffer errbuf))))
+    (setq gnus-newsgroup-last-folder folder)))
 
 (defun gnus-Folder-save-name (newsgroup headers &optional last-folder)
   "Generate folder name from NEWSGROUP, HEADERS, and optional LAST-FOLDER.
@@ -224,5 +99,7 @@ Otherwise, it is like +news/group."
 	      (if gnus-use-long-file-name
 		  newsgroup
 		(gnus-newsgroup-directory-form newsgroup)))))
+
+(provide 'gnus-mh)
 
 ;;; gnus-mh.el ends here

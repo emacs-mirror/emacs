@@ -1,6 +1,5 @@
 ;;; nnheader.el --- header access macros for Gnus and its backends
-
-;; Copyright (C) 1987,88,89,90,93,94,95 Free Software Foundation, Inc.
+;; Copyright (C) 1987,88,89,90,93,94,95,96 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; 	Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
@@ -25,10 +24,10 @@
 
 ;;; Commentary:
 
-;; These macros may look very much like the ones in GNUS 4.1. They
+;; These macros may look very much like the ones in GNUS 4.1.  They
 ;; are, in a way, but you should note that the indices they use have
-;; been changed from the internal GNUS format to the NOV format. Makes
-;; it possible to read headers from XOVER much faster.
+;; been changed from the internal GNUS format to the NOV format.  The
+;; makes it possible to read headers from XOVER much faster.
 ;;
 ;; The format of a header is now:
 ;; [number subject from date id references chars lines xref]
@@ -38,110 +37,237 @@
 
 ;;; Code:
 
-(defalias 'nntp-header-number 'mail-header-number)
+(require 'mail-utils)
+(eval-when-compile (require 'cl))
+
+(defvar nnheader-max-head-length 4096
+  "*Max length of the head of articles.")
+
+(defvar nnheader-file-name-translation-alist nil
+  "*Alist that says how to translate characters in file names.
+For instance, if \":\" is illegal as a file character in file names
+on your system, you could say something like:
+
+\(setq nnheader-file-name-translation-alist '((?: . ?_)))")
+
+;;; Header access macros.
+
 (defmacro mail-header-number (header)
   "Return article number in HEADER."
-  (` (aref (, header) 0)))
+  `(aref ,header 0))
 
-(defalias 'nntp-set-header-number 'mail-header-set-number)
 (defmacro mail-header-set-number (header number)
   "Set article number of HEADER to NUMBER."
-  (` (aset (, header) 0 (, number))))
+  `(aset ,header 0 ,number))
 
-(defalias 'nntp-header-subject 'mail-header-subject)
 (defmacro mail-header-subject (header)
   "Return subject string in HEADER."
-  (` (aref (, header) 1)))
+  `(aref ,header 1))
 
-(defalias 'nntp-set-header-subject 'mail-header-set-subject)
 (defmacro mail-header-set-subject (header subject)
   "Set article subject of HEADER to SUBJECT."
-  (` (aset (, header) 1 (, subject))))
+  `(aset ,header 1 ,subject))
 
-(defalias 'nntp-header-from 'mail-header-from)
 (defmacro mail-header-from (header)
   "Return author string in HEADER."
-  (` (aref (, header) 2)))
+  `(aref ,header 2))
 
-(defalias 'nntp-set-header-from 'mail-header-set-from)
 (defmacro mail-header-set-from (header from)
   "Set article author of HEADER to FROM."
-  (` (aset (, header) 2 (, from))))
+  `(aset ,header 2 ,from))
 
-(defalias 'nntp-header-date 'mail-header-date)
 (defmacro mail-header-date (header)
   "Return date in HEADER."
-  (` (aref (, header) 3)))
+  `(aref ,header 3))
 
-(defalias 'nntp-set-header-date 'mail-header-set-date)
 (defmacro mail-header-set-date (header date)
   "Set article date of HEADER to DATE."
-  (` (aset (, header) 3 (, date))))
+  `(aset ,header 3 ,date))
 
-(defalias 'nntp-header-id 'mail-header-id)
+(defalias 'mail-header-message-id 'mail-header-id)
 (defmacro mail-header-id (header)
   "Return Id in HEADER."
-  (` (aref (, header) 4)))
+  `(aref ,header 4))
 
-(defalias 'nntp-set-header-id 'mail-header-set-id)
+(defalias 'mail-header-set-message-id 'mail-header-set-id)
 (defmacro mail-header-set-id (header id)
   "Set article Id of HEADER to ID."
-  (` (aset (, header) 4 (, id))))
+  `(aset ,header 4 ,id))
 
-(defalias 'nntp-header-references 'mail-header-references)
 (defmacro mail-header-references (header)
   "Return references in HEADER."
-  (` (aref (, header) 5)))
+  `(aref ,header 5))
 
-(defalias 'nntp-set-header-references 'mail-header-set-references)
 (defmacro mail-header-set-references (header ref)
   "Set article references of HEADER to REF."
-  (` (aset (, header) 5 (, ref))))
+  `(aset ,header 5 ,ref))
 
-(defalias 'nntp-header-chars 'mail-header-chars)
 (defmacro mail-header-chars (header)
   "Return number of chars of article in HEADER."
-  (` (aref (, header) 6)))
+  `(aref ,header 6))
 
-(defalias 'nntp-set-header-chars 'mail-header-set-chars)
 (defmacro mail-header-set-chars (header chars)
   "Set number of chars in article of HEADER to CHARS."
-  (` (aset (, header) 6 (, chars))))
+  `(aset ,header 6 ,chars))
 
-(defalias 'nntp-header-lines 'mail-header-lines)
 (defmacro mail-header-lines (header)
   "Return lines in HEADER."
-  (` (aref (, header) 7)))
+  `(aref ,header 7))
 
-(defalias 'nntp-set-header-lines 'mail-header-set-lines)
 (defmacro mail-header-set-lines (header lines)
   "Set article lines of HEADER to LINES."
-  (` (aset (, header) 7 (, lines))))
+  `(aset ,header 7 ,lines))
 
-(defalias 'nntp-header-xref 'mail-header-xref)
 (defmacro mail-header-xref (header)
   "Return xref string in HEADER."
-  (` (aref (, header) 8)))
+  `(aref ,header 8))
 
-(defalias 'nntp-set-header-xref 'mail-header-set-xref)
 (defmacro mail-header-set-xref (header xref)
   "Set article xref of HEADER to xref."
-  (` (aset (, header) 8 (, xref))))
+  `(aset ,header 8 ,xref))
 
+(defun make-mail-header (&optional init)
+  "Create a new mail header structure initialized with INIT."
+  (make-vector 9 init))
+
+;; Parsing headers and NOV lines.
+
+(defsubst nnheader-header-value ()
+  (buffer-substring (match-end 0) (gnus-point-at-eol)))
+
+(defvar nnheader-newsgroup-none-id 1)
+
+(defun nnheader-parse-head (&optional naked)
+  (let ((case-fold-search t)
+	(cur (current-buffer))
+	(buffer-read-only nil)
+	end ref in-reply-to lines p)
+    (goto-char (point-min))
+    (when naked
+      (insert "\n"))
+    ;; Search to the beginning of the next header. Error messages
+    ;; do not begin with 2 or 3.
+    (prog1
+	(when (or naked (re-search-forward "^[23][0-9]+ " nil t))
+	  ;; This implementation of this function, with nine
+	  ;; search-forwards instead of the one re-search-forward and
+	  ;; a case (which basically was the old function) is actually
+	  ;; about twice as fast, even though it looks messier.	 You
+	  ;; can't have everything, I guess.  Speed and elegance
+	  ;; doesn't always go hand in hand.
+	  (vector
+	   ;; Number.
+	   (if naked
+	       (progn
+		 (setq p (point-min))
+		 0)
+	     (prog1
+		 (read cur)
+	       (end-of-line)
+	       (setq p (point))
+	       (narrow-to-region (point)
+				 (or (and (search-forward "\n.\n" nil t)
+					  (- (point) 2))
+				     (point)))))
+	   ;; Subject.
+	   (progn
+	     (goto-char p)
+	     (if (search-forward "\nsubject: " nil t)
+		 (nnheader-header-value) "(none)"))
+	   ;; From.
+	   (progn
+	     (goto-char p)
+	     (if (search-forward "\nfrom: " nil t)
+		 (nnheader-header-value) "(nobody)"))
+	   ;; Date.
+	   (progn
+	     (goto-char p)
+	     (if (search-forward "\ndate: " nil t)
+		 (nnheader-header-value) ""))
+	   ;; Message-ID.
+	   (progn
+	     (goto-char p)
+	     (if (search-forward "\nmessage-id: " nil t)
+		 (nnheader-header-value)
+	       ;; If there was no message-id, we just fake one to make
+	       ;; subsequent routines simpler.
+	       (concat "none+"
+		       (int-to-string
+			(incf nnheader-newsgroup-none-id)))))
+	   ;; References.
+	   (progn
+	     (goto-char p)
+	     (if (search-forward "\nreferences: " nil t)
+		 (nnheader-header-value)
+	       ;; Get the references from the in-reply-to header if there
+	       ;; were no references and the in-reply-to header looks
+	       ;; promising.
+	       (if (and (search-forward "\nin-reply-to: " nil t)
+			(setq in-reply-to (nnheader-header-value))
+			(string-match "<[^>]+>" in-reply-to))
+		   (substring in-reply-to (match-beginning 0)
+			      (match-end 0))
+		 "")))
+	   ;; Chars.
+	   0
+	   ;; Lines.
+	   (progn
+	     (goto-char p)
+	     (if (search-forward "\nlines: " nil t)
+		 (if (numberp (setq lines (read cur)))
+		     lines 0)
+	       0))
+	   ;; Xref.
+	   (progn
+	     (goto-char p)
+	     (and (search-forward "\nxref: " nil t)
+		  (nnheader-header-value)))))
+      (when naked
+	(goto-char (point-min))
+	(delete-char 1)))))
+
+(defun nnheader-insert-nov (header)
+  (princ (mail-header-number header) (current-buffer))
+  (insert 
+   "\t"
+   (or (mail-header-subject header) "(none)") "\t"
+   (or (mail-header-from header) "(nobody)") "\t"
+   (or (mail-header-date header) "") "\t"
+   (or (mail-header-id header) 
+       (nnmail-message-id)) "\t"
+   (or (mail-header-references header) "") "\t")
+  (princ (or (mail-header-chars header) 0) (current-buffer))
+  (insert "\t")
+  (princ (or (mail-header-lines header) 0) (current-buffer))
+  (insert "\t")
+  (when (mail-header-xref header) 
+    (insert "Xref: " (mail-header-xref header) "\t"))
+  (insert "\n"))
+
+(defun nnheader-insert-article-line (article)
+  (goto-char (point-min))
+  (insert "220 ")
+  (princ article (current-buffer))
+  (insert " Article retrieved.\n")
+  (search-forward "\n\n" nil 'move)
+  (delete-region (point) (point-max))
+  (forward-char -1)
+  (insert "."))
 
 ;; Various cruft the backends and Gnus need to communicate.
 
 (defvar nntp-server-buffer nil)
-(defvar gnus-verbose-backends t
-  "*If non-nil, Gnus backends will generate lots of comments.")
+(defvar gnus-verbose-backends 7
+  "*A number that says how talkative the Gnus backends should be.")
 (defvar gnus-nov-is-evil nil
   "If non-nil, Gnus backends will never output headers in the NOV format.")
 (defvar news-reply-yank-from nil)
 (defvar news-reply-yank-message-id nil)
 
-;; All backends use this function, so I moved it to this file.
+(defvar nnheader-callback-function nil)
 
 (defun nnheader-init-server-buffer ()
+  "Initialize the Gnus-backend communication buffer."
   (save-excursion
     (setq nntp-server-buffer (get-buffer-create " *nntpd*"))
     (set-buffer nntp-server-buffer)
@@ -151,62 +277,41 @@
     (setq case-fold-search t)		;Should ignore case.
     t))
 
-(defun nnheader-set-init-variables (server defs)
-  (let ((s server)
-	val)
-    ;; First we set the server variables in the sequence required.  We
-    ;; use the definitions from the `defs' list where that is
-    ;; possible. 
-    (while s
-      (set (car (car s)) 
-	   (if (setq val (assq (car (car s)) defs))
-	       (nth 1 val)
-	     (nth 1 (car s))))
-      (setq s (cdr s)))
-    ;; The we go through the defs list and set any variables that were
-    ;; not set in the first sweep.
-    (while defs
-      (if (not (assq (car (car defs)) server))
-	  (set (car (car defs)) 
-	       (if (and (symbolp (nth 1 (car defs)))
-			(not (boundp (nth 1 (car defs)))))
-		   (nth 1 (car defs))
-		 (eval (nth 1 (car defs))))))
-      (setq defs (cdr defs)))))
 
-(defun nnheader-save-variables (server)
-  (let (out)
-    (while server
-      (setq out (cons (list (car (car server)) 
-			    (symbol-value (car (car server))))
-		      out))
-      (setq server (cdr server)))
-    (nreverse out)))
+;;; Various functions the backends use.
 
-(defun nnheader-restore-variables (state)
-  (while state
-    (set (car (car state)) (nth 1 (car state)))
-    (setq state (cdr state))))
-
-(defvar nnheader-max-head-length 4096
-  "The maximum length of a HEAD.")
+(defun nnheader-file-error (file)
+  "Return a string that says what is wrong with FILE."
+  (format
+   (cond
+    ((not (file-exists-p file))
+     "%s does not exist")
+    ((file-directory-p file)
+     "%s is a directory")
+    ((not (file-readable-p file))
+     "%s is not readable"))
+   file))
 
 (defun nnheader-insert-head (file)
   "Insert the head of the article."
-  (if (eq nnheader-max-head-length t)
-      ;; Just read the entire file.
-      (insert-file-contents-literally file)
-    ;; Read 1K blocks until we find a separator.
-    (let ((beg 0)
-	  (chop 1024))
-      (while (and (eq chop (nth 1 (insert-file-contents-literally
-				   file nil beg (setq beg (+ beg chop)))))
-		  (prog1 (not (search-forward "\n\n" nil t)) 
-		    (goto-char (point-max)))
-		  (or (null nnheader-max-head-length)
-		      (< beg nnheader-max-head-length)))))))
+  (when (file-exists-p file)
+    (if (eq nnheader-max-head-length t)
+	;; Just read the entire file.
+	(nnheader-insert-file-contents-literally file)
+      ;; Read 1K blocks until we find a separator.
+      (let ((beg 0)
+	    format-alist 
+	    (chop 1024))
+	(while (and (eq chop (nth 1 (insert-file-contents
+				     file nil beg (incf beg chop))))
+		    (prog1 (not (search-forward "\n\n" nil t)) 
+		      (goto-char (point-max)))
+		    (or (null nnheader-max-head-length)
+			(< beg nnheader-max-head-length))))))
+    t))
 
 (defun nnheader-article-p ()
+  "Say whether the current buffer looks like an article."
   (goto-char (point-min))
   (if (not (search-forward "\n\n" nil t))
       nil
@@ -218,151 +323,263 @@
 	(eobp)
       (widen))))    
 
-;; Written by Erik Naggum <erik@naggum.no>.
-(defun nnheader-insert-file-contents-literally (filename &optional visit beg end replace)
-  "Like `insert-file-contents', q.v., but only reads in the file.
-A buffer may be modified in several ways after reading into the buffer due
-to advanced Emacs features, such as file-name-handlers, format decoding,
-find-file-hooks, etc.
-  This function ensures that none of these modifications will take place."
-  (let (				; (file-name-handler-alist nil)
-	(format-alist nil)
-	(after-insert-file-functions nil)
-	(find-buffer-file-type-function 
-	 (if (fboundp 'find-buffer-file-type)
-	     (symbol-function 'find-buffer-file-type)
-	   nil)))
-    (unwind-protect
-	(progn
-	  (fset 'find-buffer-file-type (lambda (filename) t))
-	  (insert-file-contents filename visit beg end replace))
-      (if find-buffer-file-type-function
-	  (fset 'find-buffer-file-type find-buffer-file-type-function)
-	(fmakunbound 'find-buffer-file-type)))))
-
-(defun nnheader-find-file-noselect (filename &optional nowarn rawfile)
-  "Read file FILENAME into a buffer and return the buffer.
-If a buffer exists visiting FILENAME, return that one, but
-verify that the file has not changed since visited or saved.
-The buffer is not selected, just returned to the caller."
-  (setq filename
-	(abbreviate-file-name
-	 (expand-file-name filename)))
-  (if (file-directory-p filename)
-      (if find-file-run-dired
-	  (dired-noselect filename)
-	(error "%s is a directory." filename))
-    (let* ((buf (get-file-buffer filename))
-	   (truename (abbreviate-file-name (file-truename filename)))
-	   (number (nthcdr 10 (file-attributes truename)))
-	   ;; Find any buffer for a file which has same truename.
-	   (other (and (not buf) 
-		       (if (fboundp 'find-buffer-visiting)
-			   (find-buffer-visiting filename)
-			 (get-file-buffer filename))))
-	   error)
-      ;; Let user know if there is a buffer with the same truename.
-      (if other
-	  (progn
-	    (or nowarn
-		(string-equal filename (buffer-file-name other))
-		(message "%s and %s are the same file"
-			 filename (buffer-file-name other)))
-	    ;; Optionally also find that buffer.
-	    (if (or (and (boundp 'find-file-existing-other-name)
-			 find-file-existing-other-name)
-		    find-file-visit-truename)
-		(setq buf other))))
-      (if buf
-	  (or nowarn
-	      (verify-visited-file-modtime buf)
-	      (cond ((not (file-exists-p filename))
-		     (error "File %s no longer exists!" filename))
-		    ((yes-or-no-p
-		      (if (string= (file-name-nondirectory filename)
-				   (buffer-name buf))
-			  (format
-			   (if (buffer-modified-p buf)
-			       "File %s changed on disk.  Discard your edits? "
-			     "File %s changed on disk.  Reread from disk? ")
-			   (file-name-nondirectory filename))
-			(format
-			 (if (buffer-modified-p buf)
-			     "File %s changed on disk.  Discard your edits in %s? "
-			   "File %s changed on disk.  Reread from disk into %s? ")
-			 (file-name-nondirectory filename)
-			 (buffer-name buf))))
-		     (save-excursion
-		       (set-buffer buf)
-		       (revert-buffer t t)))))
-	(save-excursion
-;;; The truename stuff makes this obsolete.
-;;;	  (let* ((link-name (car (file-attributes filename)))
-;;;		 (linked-buf (and (stringp link-name)
-;;;				  (get-file-buffer link-name))))
-;;;	    (if (bufferp linked-buf)
-;;;		(message "Symbolic link to file in buffer %s"
-;;;			 (buffer-name linked-buf))))
-	  (setq buf (create-file-buffer filename))
-	  ;;	  (set-buffer-major-mode buf)
-	  (set-buffer buf)
-	  (erase-buffer)
-	  (if rawfile
-	      (condition-case ()
-		  (nnheader-insert-file-contents-literally filename t)
-		(file-error
-		 ;; Unconditionally set error
-		 (setq error t)))
-	    (condition-case ()
-		(insert-file-contents filename t)
-	      (file-error
-	       ;; Run find-file-not-found-hooks until one returns non-nil.
-	       (or t			; (run-hook-with-args-until-success 'find-file-not-found-hooks)
-		   ;; If they fail too, set error.
-		   (setq error t)))))
-	  ;; Find the file's truename, and maybe use that as visited name.
-	  (setq buffer-file-truename truename)
-	  (setq buffer-file-number number)
-	  ;; On VMS, we may want to remember which directory in a search list
-	  ;; the file was found in.
-	  (and (eq system-type 'vax-vms)
-	       (let (logical)
-		 (if (string-match ":" (file-name-directory filename))
-		     (setq logical (substring (file-name-directory filename)
-					      0 (match-beginning 0))))
-		 (not (member logical find-file-not-true-dirname-list)))
-	       (setq buffer-file-name buffer-file-truename))
-	  (if find-file-visit-truename
-	      (setq buffer-file-name
-		    (setq filename
-			  (expand-file-name buffer-file-truename))))
-	  ;; Set buffer's default directory to that of the file.
-	  (setq default-directory (file-name-directory filename))
-	  ;; Turn off backup files for certain file names.  Since
-	  ;; this is a permanent local, the major mode won't eliminate it.
-	  (and (not (funcall backup-enable-predicate buffer-file-name))
-	       (progn
-		 (make-local-variable 'backup-inhibited)
-		 (setq backup-inhibited t)))
-	  (if rawfile
-	      nil
-	    (after-find-file error (not nowarn)))))
-      buf)))
-
 (defun nnheader-insert-references (references message-id)
+  "Insert a References header based on REFERENCES and MESSAGE-ID."
   (if (and (not references) (not message-id)) 
-      () ; This is illegal, but not all articles have Message-IDs.
+      ()	; This is illegal, but not all articles have Message-IDs.
     (mail-position-on-field "References")
-    ;; Fold long references line to follow RFC1036.
-    (let ((begin (gnus-point-at-bol))
+    (let ((begin (save-excursion (beginning-of-line) (point)))
 	  (fill-column 78)
 	  (fill-prefix "\t"))
       (if references (insert references))
       (if (and references message-id) (insert " "))
       (if message-id (insert message-id))
+      ;; Fold long References lines to conform to RFC1036 (sort of).
       ;; The region must end with a newline to fill the region
       ;; without inserting extra newline.
       (fill-region-as-paragraph begin (1+ (point))))))
+
+(defun nnheader-replace-header (header new-value)
+  "Remove HEADER and insert the NEW-VALUE."
+  (save-excursion
+    (save-restriction
+      (nnheader-narrow-to-headers)
+      (prog1
+	  (message-remove-header header)
+	(goto-char (point-max))
+	(insert header ": " new-value "\n")))))
+
+(defun nnheader-narrow-to-headers ()
+  "Narrow to the head of an article."
+  (widen)
+  (narrow-to-region
+   (goto-char (point-min))
+   (if (search-forward "\n\n" nil t)
+       (1- (point))
+     (point-max)))
+  (goto-char (point-min)))
+
+(defun nnheader-set-temp-buffer (name)
+  "Set-buffer to an empty (possibly new) buffer called NAME with undo disabled."
+  (set-buffer (get-buffer-create name))
+  (buffer-disable-undo (current-buffer))
+  (erase-buffer)
+  (current-buffer))
+
+(defmacro nnheader-temp-write (file &rest forms)
+  "Create a new buffer, evaluate FORM there, and write the buffer to FILE."
+  `(save-excursion
+     (let ((nnheader-temp-file ,file)
+	   (nnheader-temp-cur-buffer
+	    (nnheader-set-temp-buffer
+	     (generate-new-buffer-name " *nnheader temp*"))))
+       (when (and nnheader-temp-file 
+		  (not (file-directory-p (file-name-directory 
+					  nnheader-temp-file))))
+	 (make-directory (file-name-directory nnheader-temp-file) t))
+       (unwind-protect
+	   (prog1
+	       (progn
+		 ,@forms)
+	     (when nnheader-temp-file
+	       (set-buffer nnheader-temp-cur-buffer)
+	       (write-region (point-min) (point-max) 
+			     nnheader-temp-file nil 'nomesg)))
+	 (when (buffer-name nnheader-temp-cur-buffer)
+	   (kill-buffer nnheader-temp-cur-buffer))))))
+
+(put 'nnheader-temp-write 'lisp-indent-function 1)
+(put 'nnheader-temp-write 'lisp-indent-hook 1)
+(put 'nnheader-temp-write 'edebug-form-spec '(form body))
+
+(defvar jka-compr-compression-info-list)
+(defvar nnheader-numerical-files
+  (if (boundp 'jka-compr-compression-info-list)
+      (concat "\\([0-9]+\\)\\(" 
+	      (mapconcat (lambda (i) (aref i 0))
+			 jka-compr-compression-info-list "\\|")
+	      "\\)?")
+    "[0-9]+$")
+  "Regexp that match numerical files.")
+
+(defvar nnheader-numerical-short-files (concat "^" nnheader-numerical-files)
+  "Regexp that matches numerical file names.")
+
+(defvar nnheader-numerical-full-files (concat "/" nnheader-numerical-files)
+  "Regexp that matches numerical full file paths.")
+
+(defsubst nnheader-file-to-number (file)
+  "Take a file name and return the article number."
+  (if (not (boundp 'jka-compr-compression-info-list))
+      (string-to-int file)
+    (string-match nnheader-numerical-short-files file)
+    (string-to-int (match-string 0 file))))
+
+(defun nnheader-directory-files-safe (&rest args)
+  ;; It has been reported numerous times that `directory-files'
+  ;; fails with an alarming frequency on NFS mounted file systems.
+  ;; This function executes that function twice and returns 
+  ;; the longest result.
+  (let ((first (apply 'directory-files args))
+	(second (apply 'directory-files args)))
+    (if (> (length first) (length second))
+	first
+      second)))
+
+(defun nnheader-directory-articles (dir)
+  "Return a list of all article files in a directory."
+  (mapcar 'nnheader-file-to-number
+	  (nnheader-directory-files-safe
+	   dir nil nnheader-numerical-short-files t)))
+
+(defun nnheader-article-to-file-alist (dir)
+  "Return an alist of article/file pairs in DIR."
+  (mapcar (lambda (file) (cons (nnheader-file-to-number file) file))
+	  (nnheader-directory-files-safe
+	   dir nil nnheader-numerical-short-files t)))
+
+(defun nnheader-fold-continuation-lines ()
+  "Fold continuation lines in the current buffer."
+  (goto-char (point-min))
+  (while (re-search-forward "\\(\r?\n[ \t]+\\)+" nil t)
+    (replace-match " " t t)))
+
+(defun nnheader-translate-file-chars (file)
+  (if (null nnheader-file-name-translation-alist)
+      ;; No translation is necessary.
+      file 
+    ;; We translate -- but only the file name.  We leave the directory
+    ;; alone.
+    (let* ((i 0)
+	   trans leaf path len)
+      (if (string-match "/[^/]+\\'" file)
+	  ;; This is needed on NT's and stuff.
+	  (setq leaf (substring file (1+ (match-beginning 0)))
+		path (substring file 0 (1+ (match-beginning 0))))
+	;; Fall back on this.
+	(setq leaf (file-name-nondirectory file)
+	      path (file-name-directory file)))
+      (setq len (length leaf))
+      (while (< i len)
+	(when (setq trans (cdr (assq (aref leaf i)
+				     nnheader-file-name-translation-alist)))
+	  (aset leaf i trans))
+	(incf i))
+      (concat path leaf))))
+
+(defun nnheader-report (backend &rest args)
+  "Report an error from the BACKEND.
+The first string in ARGS can be a format string."
+  (set (intern (format "%s-status-string" backend))
+       (if (< (length args) 2)
+	   (car args)
+	 (apply 'format args)))
+  nil)
+
+(defun nnheader-get-report (backend)
+  (message "%s" (symbol-value (intern (format "%s-status-string" backend)))))
+
+(defun nnheader-insert (format &rest args)
+  "Clear the communicaton buffer and insert FORMAT and ARGS into the buffer.
+If FORMAT isn't a format string, it and all ARGS will be inserted
+without formatting."
+  (save-excursion
+    (set-buffer nntp-server-buffer)
+    (erase-buffer)
+    (if (string-match "%" format)
+	(insert (apply 'format format args))
+      (apply 'insert format args))
+    t))
+
+(defun nnheader-mail-file-mbox-p (file)
+  "Say whether FILE looks like an Unix mbox file."
+  (when (and (file-exists-p file)
+	     (file-readable-p file)
+	     (file-regular-p file))
+    (save-excursion
+      (nnheader-set-temp-buffer " *mail-file-mbox-p*")
+      (nnheader-insert-file-contents-literally file)
+      (goto-char (point-min))
+      (prog1
+	  (looking-at message-unix-mail-delimiter)
+	(kill-buffer (current-buffer))))))
+
+(defun nnheader-replace-chars-in-string (string from to)
+  "Replace characters in STRING from FROM to TO."
+  (let ((string (substring string 0))	;Copy string.
+	(len (length string))
+	(idx 0))
+    ;; Replace all occurrences of FROM with TO.
+    (while (< idx len)
+      (if (= (aref string idx) from)
+	  (aset string idx to))
+      (setq idx (1+ idx)))
+    string))
+
+(defun nnheader-file-to-group (file &optional top)
+  "Return a group name based on FILE and TOP."
+  (nnheader-replace-chars-in-string 
+   (if (not top)
+       file
+     (condition-case ()
+	 (substring (expand-file-name file)
+		    (length 
+		     (expand-file-name
+		      (file-name-as-directory top))))
+       (error "")))
+   ?/ ?.))
+
+(defun nnheader-message (level &rest args)
+  "Message if the Gnus backends are talkative."
+  (if (or (not (numberp gnus-verbose-backends))
+	  (<= level gnus-verbose-backends))
+      (apply 'message args)
+    (apply 'format args)))
+
+(defun nnheader-be-verbose (level)
+  "Return whether the backends should be verbose on LEVEL."
+  (or (not (numberp gnus-verbose-backends))
+      (<= level gnus-verbose-backends)))
+
+(defun nnheader-group-pathname (group dir &optional file)
+  "Make pathname for GROUP."
+  (concat
+   (let ((dir (file-name-as-directory (expand-file-name dir))))
+     ;; If this directory exists, we use it directly.
+     (if (file-directory-p (concat dir group))
+	 (concat dir group "/")
+       ;; If not, we translate dots into slashes.
+       (concat dir (nnheader-replace-chars-in-string group ?. ?/) "/")))
+   (cond ((null file) "")
+	 ((numberp file) (int-to-string file))
+	 (t file))))
+
+(defun nnheader-functionp (form)
+  "Return non-nil if FORM is funcallable."
+  (or (and (symbolp form) (fboundp form))
+      (and (listp form) (eq (car form) 'lambda))))
+
+(defun nnheader-concat (dir file)
+  "Concat DIR as directory to FILE."
+  (concat (file-name-as-directory dir) file))
+
+(defun nnheader-ms-strip-cr ()
+  "Strip ^M from the end of all lines."
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward "\r$" nil t)
+      (delete-backward-char 1))))
+
+(fset 'nnheader-run-at-time 'run-at-time)
+(fset 'nnheader-cancel-timer 'cancel-timer)
+(fset 'nnheader-find-file-noselect 'find-file-noselect)
+(fset 'nnheader-insert-file-contents-literally
+      'insert-file-contents-literally)
+
+(when (string-match "XEmacs\\|Lucid" emacs-version)
+  (require 'nnheaderxm))
+
+(run-hooks 'nnheader-load-hook)
 
 (provide 'nnheader)
 

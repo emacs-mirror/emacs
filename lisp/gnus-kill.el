@@ -1,6 +1,5 @@
 ;;; gnus-kill.el --- kill commands for Gnus
-
-;; Copyright (C) 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1995,96 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@ifi.uio.no>
@@ -28,6 +27,7 @@
 ;;; Code:
 
 (require 'gnus)
+(eval-when-compile (require 'cl))
 
 (defvar gnus-kill-file-mode-hook nil
   "*A hook for Gnus kill file mode.")
@@ -43,12 +43,12 @@
 
 
 (defmacro gnus-raise (field expression level)
-  (` (gnus-kill (, field) (, expression)
-		(function (gnus-summary-raise-score (, level))) t)))
+  `(gnus-kill ,field ,expression
+	      (function (gnus-summary-raise-score ,level)) t))
 
 (defmacro gnus-lower (field expression level)
-  (` (gnus-kill (, field) (, expression)
-		(function (gnus-summary-raise-score (- (, level)))) t)))
+  `(gnus-kill ,field ,expression
+	      (function (gnus-summary-raise-score (- ,level))) t))
 
 ;;;
 ;;; Gnus Kill File Mode
@@ -56,23 +56,16 @@
 
 (defvar gnus-kill-file-mode-map nil)
 
-(if gnus-kill-file-mode-map
-    nil
-  (setq gnus-kill-file-mode-map (copy-keymap emacs-lisp-mode-map))
-  (define-key gnus-kill-file-mode-map 
-    "\C-c\C-k\C-s" 'gnus-kill-file-kill-by-subject)
-  (define-key gnus-kill-file-mode-map
-    "\C-c\C-k\C-a" 'gnus-kill-file-kill-by-author)
-  (define-key gnus-kill-file-mode-map
-    "\C-c\C-k\C-t" 'gnus-kill-file-kill-by-thread)
-  (define-key gnus-kill-file-mode-map 
-    "\C-c\C-k\C-x" 'gnus-kill-file-kill-by-xref)
-  (define-key gnus-kill-file-mode-map
-    "\C-c\C-a" 'gnus-kill-file-apply-buffer)
-  (define-key gnus-kill-file-mode-map
-    "\C-c\C-e" 'gnus-kill-file-apply-last-sexp)
-  (define-key gnus-kill-file-mode-map 
-    "\C-c\C-c" 'gnus-kill-file-exit))
+(unless gnus-kill-file-mode-map
+  (gnus-define-keymap
+   (setq gnus-kill-file-mode-map (copy-keymap emacs-lisp-mode-map))
+   "\C-c\C-k\C-s" gnus-kill-file-kill-by-subject
+   "\C-c\C-k\C-a" gnus-kill-file-kill-by-author
+   "\C-c\C-k\C-t" gnus-kill-file-kill-by-thread
+   "\C-c\C-k\C-x" gnus-kill-file-kill-by-xref
+   "\C-c\C-a" gnus-kill-file-apply-buffer
+   "\C-c\C-e" gnus-kill-file-apply-last-sexp
+   "\C-c\C-c" gnus-kill-file-exit))
 
 (defun gnus-kill-file-mode ()
   "Major mode for editing kill files.
@@ -181,7 +174,7 @@ If NEWSGROUP is nil, the global kill file is selected."
     (gnus-kill-file-mode)
     (bury-buffer buffer)))
 
-(defun gnus-kill-file-enter-kill (field regexp)
+(defun gnus-kill-file-enter-kill (field regexp &optional dont-move)
   ;; Enter kill file entry.
   ;; FIELD: String containing the name of the header field to kill.
   ;; REGEXP: The string to kill.
@@ -189,8 +182,8 @@ If NEWSGROUP is nil, the global kill file is selected."
     (let (string)
       (or (eq major-mode 'gnus-kill-file-mode)
 	  (gnus-kill-set-kill-buffer))
-      (current-buffer)
-      (goto-char (point-max))
+      (unless dont-move
+	(goto-char (point-max)))
       (insert (setq string (format "(gnus-kill %S %S)\n" field regexp)))
       (gnus-kill-file-apply-string string))))
     
@@ -202,7 +195,7 @@ If NEWSGROUP is nil, the global kill file is selected."
    (if (vectorp gnus-current-headers)
        (regexp-quote 
 	(gnus-simplify-subject (mail-header-subject gnus-current-headers)))
-     "")))
+     "") t))
   
 (defun gnus-kill-file-kill-by-author ()
   "Kill by author."
@@ -211,7 +204,7 @@ If NEWSGROUP is nil, the global kill file is selected."
    "From" 
    (if (vectorp gnus-current-headers)
        (regexp-quote (mail-header-from gnus-current-headers))
-     "")))
+     "") t))
  
 (defun gnus-kill-file-kill-by-thread ()
   "Kill by author."
@@ -237,8 +230,8 @@ If NEWSGROUP is nil, the global kill file is selected."
 			  (substring xref (match-beginning 1) (match-end 1)))
 		    gnus-newsgroup-name))
 	      (gnus-kill-file-enter-kill 
-	       "Xref" (concat " " (regexp-quote group) ":"))))
-      (gnus-kill-file-enter-kill "Xref" ""))))
+	       "Xref" (concat " " (regexp-quote group) ":") t)))
+      (gnus-kill-file-enter-kill "Xref" "" t))))
 
 (defun gnus-kill-file-raise-followups-to-author (level)
   "Raise score for all followups to the current author."
@@ -258,7 +251,8 @@ If NEWSGROUP is nil, the global kill file is selected."
 	"From" name level))
       (insert string)
       (gnus-kill-file-apply-string string))
-    (message "Added temporary score file entry for followups to %s." name)))
+    (gnus-message 
+     6 "Added temporary score file entry for followups to %s." name)))
 
 (defun gnus-kill-file-apply-buffer ()
   "Apply current buffer to current newsgroup."
@@ -267,7 +261,7 @@ If NEWSGROUP is nil, the global kill file is selected."
 	   (get-buffer gnus-summary-buffer))
       ;; Assume newsgroup is selected.
       (gnus-kill-file-apply-string (buffer-string))
-    (ding) (message "No newsgroup is selected.")))
+    (ding) (gnus-message 2 "No newsgroup is selected.")))
 
 (defun gnus-kill-file-apply-string (string)
   "Apply STRING to current newsgroup."
@@ -291,7 +285,7 @@ If NEWSGROUP is nil, the global kill file is selected."
 	  (save-window-excursion
 	    (pop-to-buffer gnus-summary-buffer)
 	    (eval (car (read-from-string string))))))
-    (ding) (message "No newsgroup is selected.")))
+    (ding) (gnus-message 2 "No newsgroup is selected.")))
 
 (defun gnus-kill-file-exit ()
   "Save a kill file, then return to the previous buffer."
@@ -318,24 +312,37 @@ If NEWSGROUP is nil, return the global kill file instead."
   (cond ((or (null newsgroup)
 	     (string-equal newsgroup ""))
 	 ;; The global kill file is placed at top of the directory.
-	 (expand-file-name gnus-kill-file-name
-			   (or gnus-kill-files-directory "~/News")))
+	 (expand-file-name gnus-kill-file-name gnus-kill-files-directory))
 	(gnus-use-long-file-name
 	 ;; Append ".KILL" to capitalized newsgroup name.
 	 (expand-file-name (concat (gnus-capitalize-newsgroup newsgroup)
 				   "." gnus-kill-file-name)
-			   (or gnus-kill-files-directory "~/News")))
+			   gnus-kill-files-directory))
 	(t
 	 ;; Place "KILL" under the hierarchical directory.
 	 (expand-file-name (concat (gnus-newsgroup-directory-form newsgroup)
 				   "/" gnus-kill-file-name)
-			   (or gnus-kill-files-directory "~/News")))))
+			   gnus-kill-files-directory))))
 
 (defun gnus-expunge (marks)
   "Remove lines marked with MARKS."
   (save-excursion
     (set-buffer gnus-summary-buffer)
-    (gnus-summary-remove-lines-marked-with marks)))
+    (gnus-summary-limit-to-marks marks 'reverse)))
+
+(defun gnus-apply-kill-file-unless-scored ()
+  "Apply .KILL file, unless a .SCORE file for the same newsgroup exists."
+  (cond ((file-exists-p (gnus-score-file-name gnus-newsgroup-name))
+         ;; Ignores global KILL.
+         (if (file-exists-p (gnus-newsgroup-kill-file gnus-newsgroup-name))
+             (gnus-message 3 "Note: Ignoring %s.KILL; preferring .SCORE"
+			     gnus-newsgroup-name))
+         0)
+        ((or (file-exists-p (gnus-newsgroup-kill-file nil))
+             (file-exists-p (gnus-newsgroup-kill-file gnus-newsgroup-name)))
+         (gnus-apply-kill-file-internal))
+        (t
+         0)))
 
 (defun gnus-apply-kill-file-internal ()
   "Apply a kill file to the current newsgroup.
@@ -346,8 +353,6 @@ Returns the number of articles marked as read."
 	 (gnus-summary-inhibit-highlight t)
 	 beg)
     (setq gnus-newsgroup-kill-headers nil)
-    (or gnus-newsgroup-headers-hashtb-by-number
-	(gnus-make-headers-hashtable-by-number))
     ;; If there are any previously scored articles, we remove these
     ;; from the `gnus-newsgroup-headers' list that the score functions
     ;; will see. This is probably pretty wasteful when it comes to
@@ -378,7 +383,7 @@ Returns the number of articles marked as read."
 	  (while kill-files
 	    (if (not (file-exists-p (car kill-files)))
 		()
-	      (message "Processing kill file %s..." (car kill-files))
+	      (gnus-message 6 "Processing kill file %s..." (car kill-files))
 	      (find-file (car kill-files))
 	      (gnus-add-current-to-buffer-list)
 	      (goto-char (point-min))
@@ -388,7 +393,8 @@ Returns the number of articles marked as read."
 		  (gnus-kill-parse-gnus-kill-file)
 		(gnus-kill-parse-rn-kill-file))
 	    
-	      (message "Processing kill file %s...done" (car kill-files)))
+	      (gnus-message 
+	       6 "Processing kill file %s...done" (car kill-files)))
 	    (setq kill-files (cdr kill-files)))))
 
       (gnus-set-mode-line 'summary)
@@ -396,7 +402,7 @@ Returns the number of articles marked as read."
       (if beg
 	  (let ((nunreads (- unreads (length gnus-newsgroup-unreads))))
 	    (or (eq nunreads 0)
-		(message "Marked %d articles as read" nunreads))
+		(gnus-message 6 "Marked %d articles as read" nunreads))
 	    nunreads)
 	0))))
 
@@ -408,7 +414,7 @@ Returns the number of articles marked as read."
     (erase-buffer)
     (insert string ":\n\n")
     (while alist
-      (insert (format " %c: %s\n" (car (car alist)) (nth idx (car alist))))
+      (insert (format " %c: %s\n" (caar alist) (nth idx (car alist))))
       (setq alist (cdr alist)))))
 
 (defun gnus-kill-parse-gnus-kill-file ()
@@ -538,14 +544,14 @@ COMMAND must be a lisp expression or a string representing a key sequence."
   (if (or (not (consp (nth 2 object)))
 	  (not (consp (cdr (nth 2 object))))
 	  (and (eq 'quote (car (nth 2 object)))
-	       (not (consp (cdr (car (cdr (nth 2 object))))))))
+	       (not (consp (cdadr (nth 2 object))))))
       (concat "\n" (prin1-to-string object))
     (save-excursion
       (set-buffer (get-buffer-create "*Gnus PP*"))
       (buffer-disable-undo (current-buffer))
       (erase-buffer)
       (insert (format "\n(%S %S\n  '(" (nth 0 object) (nth 1 object)))
-      (let ((klist (car (cdr (nth 2 object))))
+      (let ((klist (cadr (nth 2 object)))
 	    (first t))
 	(while klist
 	  (insert (if first (progn (setq first nil) "")  "\n    ")
@@ -580,15 +586,19 @@ COMMAND must be a lisp expression or a string representing a key sequence."
 		     (or (stringp value)
 			 (setq value (prin1-to-string value)))
 		     (setq did-kill (string-match regexp value)))
-		   (if (stringp form)	;Keyboard macro.
-		       (execute-kbd-macro form)
-		     (funcall form))))
+		   (cond ((stringp form)	;Keyboard macro.
+			  (execute-kbd-macro form))
+			 ((gnus-functionp form)
+			  (funcall form))
+			 (t
+			  (eval form)))))
 	  ;; Search article body.
 	  (let ((gnus-current-article nil) ;Save article pointer.
 		(gnus-last-article nil)
 		(gnus-break-pages nil)	;No need to break pages.
 		(gnus-mark-article-hook nil)) ;Inhibit marking as read.
-	    (message "Searching for article: %d..." (mail-header-number header))
+	    (gnus-message 
+	     6 "Searching for article: %d..." (mail-header-number header))
 	    (gnus-article-setup-buffer)
 	    (gnus-article-prepare (mail-header-number header) t)
 	    (if (save-excursion
@@ -609,27 +619,37 @@ marked as read or ticked are ignored."
   (save-excursion
     (let ((killed-no 0)
 	  function article header)
-      (if (or (null field) (string-equal field ""))
-	  (setq function nil)
-	;; Get access function of header filed.
-	(setq function (intern-soft (concat "gnus-header-" (downcase field))))
-	(if (and function (fboundp function))
-	    (setq function (symbol-function function))
-	  (error "Unknown header field: \"%s\"" field))
-	;; Make FORM funcallable.
-	(if (and (listp form) (not (eq (car form) 'lambda)))
-	    (setq form (list 'lambda nil form))))
+      (cond 
+       ;; Search body.
+       ((or (null field) 
+	    (string-equal field ""))
+	(setq function nil))
+       ;; Get access function of header field.
+       ((fboundp
+	 (setq function 
+	       (intern-soft 
+		(concat "mail-header-" (downcase field)))))
+	(setq function `(lambda (h) (,function h))))
+       ;; Signal error.
+       (t
+	(error "Unknown header field: \"%s\"" field)))
       ;; Starting from the current article.
-      (while (or (and (not article)
-		      (setq article (gnus-summary-article-number))
-		      t)
-		 (setq article 
-		       (gnus-summary-search-subject 
-			backward (not ignore-marked))))
+      (while (or
+	      ;; First article.
+	      (and (not article)
+		   (setq article (gnus-summary-article-number)))
+	      ;; Find later articles.
+	      (setq article 
+		    (gnus-summary-search-forward 
+		     (not ignore-marked) nil backward)))
 	(and (or (null gnus-newsgroup-kill-headers)
 		 (memq article gnus-newsgroup-kill-headers))
-	     (vectorp (setq header (gnus-get-header-by-number article)))
+	     (vectorp (setq header (gnus-summary-article-header article)))
 	     (gnus-execute-1 function regexp form header)
 	     (setq killed-no (1+ killed-no))))
+      ;; Return the number of killed articles.
       killed-no)))
 
+(provide 'gnus-kill)
+
+;;; gnus-kill.el ends here

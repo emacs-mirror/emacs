@@ -1,6 +1,5 @@
 ;;; gnus-vm.el --- vm interface for Gnus
-
-;; Copyright (C) 1994,95 Free Software Foundation, Inc.
+;; Copyright (C) 1994,95,96 Free Software Foundation, Inc.
 
 ;; Author: Per Persson <pp@solace.mh.se>
 ;; Keywords: news, mail
@@ -32,6 +31,7 @@
 ;;; Code:
 
 (require 'sendmail)
+(require 'message)
 (require 'gnus)
 (require 'gnus-msg)
 
@@ -90,19 +90,13 @@ save those articles instead."
   (let ((default-name
 	  (funcall gnus-mail-save-name gnus-newsgroup-name
 		   gnus-current-headers gnus-newsgroup-last-mail)))
-    (or folder
-	(setq folder
-	      (read-file-name
-	       (concat "Save article in VM folder: (default "
-		       (file-name-nondirectory default-name) ") ")
-	       (file-name-directory default-name)
-	       default-name)))
     (setq folder
-	  (expand-file-name folder
-			    (and default-name
-				 (file-name-directory default-name))))
+	  (cond ((eq folder 'default) default-name)
+		(folder folder)
+		(t (gnus-read-save-file-name 
+		    "Save article in VM folder:" default-name))))
     (gnus-make-directory (file-name-directory folder))
-    (set-buffer gnus-article-buffer)
+    (set-buffer gnus-original-article-buffer)
     (save-excursion
       (save-restriction
 	(widen)
@@ -111,152 +105,6 @@ save those articles instead."
 	  (kill-buffer vm-folder))))
     ;; Remember the directory name to save articles.
     (setq gnus-newsgroup-last-mail folder)))
-  
-(defun gnus-mail-forward-using-vm (&optional buffer)
-  "Forward the current message to another user using vm."
-  (let* ((gnus-buffer (or buffer (current-buffer)))
-	 (subject (gnus-forward-make-subject gnus-buffer)))
-    (or (featurep 'win-vm)
-	(if gnus-use-full-window
-	    (pop-to-buffer gnus-article-buffer)
-	  (switch-to-buffer gnus-article-buffer)))
-    (gnus-copy-article-buffer)
-    (set-buffer gnus-article-copy)
-    (save-excursion
-      (save-restriction
-	(widen)
-	(let ((vm-folder (gnus-vm-make-folder))
-	      (vm-forward-message-hook
-	       (append (symbol-value 'vm-forward-message-hook)
-		       '((lambda ()
-			   (save-excursion
-			     (mail-position-on-field "Subject")
-			     (beginning-of-line)
-			     (looking-at "^\\(Subject: \\).*$")
-			     (replace-match (concat "\\1" subject))))))))
-	  (vm-forward-message)
-	  (gnus-vm-init-reply-buffer gnus-buffer)
-	  (run-hooks 'gnus-mail-hook)
-	  (kill-buffer vm-folder))))))
-
-(defun gnus-vm-init-reply-buffer (buffer)
-  (make-local-variable 'gnus-summary-buffer)
-  (setq gnus-summary-buffer buffer)
-  (set 'vm-mail-buffer nil)
-  (use-local-map (copy-keymap (current-local-map)))
-  (local-set-key "\C-c\C-y" 'gnus-yank-article))
-  
-(defun gnus-mail-reply-using-vm (&optional yank)
-  "Compose reply mail using vm.
-Optional argument YANK means yank original article.
-The command \\[vm-yank-message] yank the original message into current buffer."
-  (let ((gnus-buffer (current-buffer)))
-    (gnus-copy-article-buffer)
-    (set-buffer gnus-article-copy)
-    (save-excursion
-      (save-restriction
-	(widen)
-	(let ((vm-folder (gnus-vm-make-folder gnus-article-copy)))
-	  (vm-reply 1)
-	  (gnus-vm-init-reply-buffer gnus-buffer)
-	  (setq gnus-buffer (current-buffer))
-	  (and yank
-	       ;; nil will (magically :-)) yank the current article
-	       (gnus-yank-article nil))
-	  (kill-buffer vm-folder))))
-    (if (featurep 'win-vm) nil
-      (pop-to-buffer gnus-buffer))
-    (run-hooks 'gnus-mail-hook)))
-
-(defun gnus-mail-other-window-using-vm ()
-  "Compose mail in the other window using VM."
-  (interactive)
-  (let ((gnus-buffer (current-buffer)))
-    (vm-mail)
-    (gnus-vm-init-reply-buffer gnus-buffer))
-  (run-hooks 'gnus-mail-hook))
-
-(defun gnus-yank-article (article &optional prefix)
-  ;; Based on vm-yank-message by Kyle Jones.
-  "Yank article number N into the current buffer at point.
-When called interactively N is read from the minibuffer.
-
-This command is meant to be used in GNUS created Mail mode buffers;
-the yanked article comes from the newsgroup containing the article
-you are replying to or forwarding.
-
-All article headers are yanked along with the text.  Point is left
-before the inserted text, the mark after.  Any hook functions bound to
-`mail-citation-hook' are run, after inserting the text and setting
-point and mark.
-
-Prefix arg means to ignore `mail-citation-hook', don't set the mark,
-prepend the value of `vm-included-text-prefix' to every yanked line.
-For backwards compatibility, if `mail-citation-hook' is set to nil,
-`mail-yank-hooks' is run instead.  If that is also nil, a default
-action is taken."
-  (interactive
-   (list
-    (let ((result 0)
-	  default prompt)
-      (setq default (and gnus-summary-buffer
-			 (save-excursion
-			   (set-buffer gnus-summary-buffer)
-			   (and gnus-current-article
-				(int-to-string gnus-current-article))))
-	    prompt (if default
-		       (format "Yank article number: (default %s) " default)
-		     "Yank article number: "))
-      (while (and (not (stringp result)) (zerop result))
-	(setq result (read-string prompt))
-	(and (string= result "") default (setq result default))
-	(or (string-match "^<.*>$" result)
-	    (setq result (string-to-int result))))
-      result)
-    current-prefix-arg))
-  (if gnus-summary-buffer
-      (save-excursion
-	(let ((message (current-buffer))
-	      (start (point)) end
-	      (tmp (generate-new-buffer " *tmp-yank*")))
-	  (set-buffer gnus-summary-buffer)
-	  ;; Make sure the connection to the server is alive.
-	  (or (gnus-server-opened (gnus-find-method-for-group
-				   gnus-newsgroup-name))
-	      (progn
-		(gnus-check-server 
-		 (gnus-find-method-for-group gnus-newsgroup-name))
-		(gnus-request-group gnus-newsgroup-name t)))
-	  (and (stringp article) 
-	       (let ((gnus-override-method gnus-refer-article-method))
-		 (gnus-read-header article)))
-	  (gnus-request-article (or article
-				    gnus-current-article)
-				gnus-newsgroup-name tmp)
-	  (set-buffer tmp)
-	  (run-hooks 'gnus-article-prepare-hook)
-	  ;; Decode MIME message.
-	  (if (and gnus-show-mime
-		   (gnus-fetch-field "Mime-Version"))
-	      (funcall gnus-show-mime-method))
-	  ;; Perform the article display hooks.
-	  (let ((buffer-read-only nil))
-	    (run-hooks 'gnus-article-display-hook))
-	  (append-to-buffer message (point-min) (point-max))
-	  (kill-buffer tmp)
-	  (set-buffer message)
-	  (setq end (point))
-	  (goto-char start)
-	  (if (or prefix
-		  (not (or mail-citation-hook mail-yank-hooks)))
-	      (save-excursion
-		(while (< (point) end)
-		  (insert (symbol-value 'vm-included-text-prefix))
-		  (forward-line 1)))
-	    (push-mark end)
-	    (cond
-	     (mail-citation-hook (run-hooks 'mail-citation-hook))
-	     (mail-yank-hooks (run-hooks 'mail-yank-hooks))))))))
 
 (provide 'gnus-vm)
 
