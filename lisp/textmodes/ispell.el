@@ -2059,7 +2059,7 @@ Return non-nil if not aborted."
 	(search-forward comment-end ispell-region-end t)))
      ((and (eq 'exclusive ispell-check-comments) comment-start
 	   (string= key comment-end))
-      (search-forward comment-start ispell-region-end t))
+      (search-forward comment-start ispell-region-end :end))
      ((and ispell-skip-tib (string-match ispell-tib-ref-beginning key))
       (re-search-forward ispell-tib-ref-end ispell-region-end t))
      ((and ispell-skip-sgml (string-match "<" key))
