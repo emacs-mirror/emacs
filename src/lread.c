@@ -677,6 +677,7 @@ Return t if file exists.")
 	return Qnil;
     }
 
+  /* Tell startup.el whether or not we found the user's init file.  */
   if (EQ (Qt, Vuser_init_file))
     Vuser_init_file = found;
 
