@@ -1957,7 +1957,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 	     "(" (regexp-opt
 		  '("when" "unless" "case" "ecase" "typecase" "etypecase"
 		    "loop" "do" "do*" "dotimes" "dolist"
-		    "proclaim" "declaim" "declare"
+		    "proclaim" "declaim" "declare" "defpackage"
 		    "lexical-let" "lexical-let*" "flet" "labels"
 		    "return" "return-from") t)
 	     "\\>")
