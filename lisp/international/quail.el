@@ -1261,7 +1261,7 @@ The returned value is a Quail map specific to KEY."
       (quail-terminate-translation)))
 
 (defun quail-self-insert-command ()
-  "Add the typed character to the key for translation."
+  "Translate the typed character to by the current Quail map."
   (interactive "*")
   (setq quail-current-key
 	(concat quail-current-key (char-to-string last-command-event)))
@@ -1994,51 +1994,48 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 	       (select-window (active-minibuffer-window))
 	     (exit-minibuffer))))))
 
-(defun quail-help ()
-  "Show brief description of the current Quail package."
+(defun quail-help (&optional package)
+  "Show brief description of the current Quail package.
+Optional 2nd arg PACKAGE specifies the alternative Quail package to describe."
   (interactive)
-  (let ((package quail-current-package))
-    (with-output-to-temp-buffer "*Quail-Help*"
+  (or package
+      (setq package quail-current-package))
+  (let ((help-xref-mule-regexp help-xref-mule-regexp-template))
+    (with-output-to-temp-buffer "*Help*"
       (save-excursion
 	(set-buffer standard-output)
-	(let ((quail-current-package package))
-	  (insert "Quail input method (name:"
-		  (quail-name)
-		  ", mode line indicator:["
-		  (quail-title)
-		  "])\n---- Documentation ----\n"
-		  (quail-docstring))
-	  (newline)
-	  (if (quail-show-layout) (quail-show-kbd-layout))
-	  (quail-help-insert-keymap-description
-	   (quail-translation-keymap)
-	   "--- Key bindings (while translating) ---
-key		binding
----		-------\n")
-	  (if (quail-conversion-keymap)
-	      (quail-help-insert-keymap-description
-	       (quail-conversion-keymap)
-	       "--- Key bindings (while converting) ---
-key		binding
----		-------\n"))
-	  (help-mode))))))
+	(setq quail-current-package package)
+	(insert "Quail input method (name:"
+		(quail-name)
+		", mode line indicator:["
+		(quail-title)
+		"])\n\n---- Documentation ----\n"
+		(quail-docstring))
+	(newline)
+	(if (quail-show-layout) (quail-show-kbd-layout))
+	(quail-help-insert-keymap-description
+	 (quail-translation-keymap)
+	 (format "--- Key bindings%s ---\n"
+		 (if (quail-conversion-keymap)
+		     " (while translating)"
+		   "")))
+	(if (quail-conversion-keymap)
+	    (quail-help-insert-keymap-description
+	     (quail-conversion-keymap)
+	     "\n--- Key bindings (while converting) ---\n"))
+	(setq quail-current-package nil)
+	(help-setup-xref (list #'quail-help package)
+			 (interactive-p))))))
 
 (defun quail-help-insert-keymap-description (keymap &optional header)
-  (let (from to)
+  (let (pos)
     (if header
 	(insert header))
-    (save-excursion
-      (save-window-excursion
-	(let ((overriding-terminal-local-map keymap))
-	  (describe-bindings))
-	(set-buffer "*Help*")
-	(goto-char (point-min))
-	(forward-line 4)
-	(setq from (point))
-	(search-forward "Global Bindings:" nil 'move)
-	(beginning-of-line)
-	(setq to (point))))
-    (insert-buffer-substring "*Help*" from to)))
+    (setq pos (point))
+    (insert (substitute-command-keys "\\{keymap}"))
+    (goto-char pos)
+    (while (search-forward "quail-other-command" nil 'move)
+      (delete-region (line-beginning-position) (1+ (line-end-position))))))
 
 (defun quail-show-kbd-layout ()
   "Show keyboard layout with key tops of multilingual characters."
@@ -2098,19 +2095,17 @@ key		binding
 		(format "Translating key sequence %S by input method %S.\n"
 			quail-current-key (quail-name))
 		keymap (quail-translation-keymap)))
-	(with-output-to-temp-buffer "*Quail-Help*"
+	(with-output-to-temp-buffer "*Help*"
 	  (save-excursion
 	    (set-buffer standard-output)
 	    (insert state-msg)
 	    (quail-help-insert-keymap-description
 	     keymap
-	     "-----------------------
-key		binding
----		-------\n")
+	     "-----------------------\n")
 	    (help-mode)))))
   (let (scroll-help)
     (save-selected-window
-      (select-window (get-buffer-window "*Quail-Help*"))
+      (select-window (get-buffer-window "*Help*"))
       (if (eq this-command last-command)
 	  (if (< (window-end) (point-max))
 	      (scroll-up)
