@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs-util.el,v 1.1 2000/08/05 19:33:53 gerd Exp gerd $
+;; Revision: $Id: pcvs-util.el,v 1.4 2000/08/06 09:18:02 gerd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -33,7 +33,7 @@
 
 ;;;;
 ;;;; list processing
-;;;l
+;;;;
 
 (defsubst cvs-car (x) (if (consp x) (car x) x))
 (defalias 'cvs-cdr 'cdr-safe)
@@ -77,6 +77,22 @@ the other elements.  The ordering among elements is maintained."
     (dolist (x l)
       (if (funcall p x) (push x car) (push x cdr)))
     (cons (nreverse car) (nreverse cdr))))
+
+;; Copied from CL ;-(
+
+(defun cvs-butlast (x &optional n)
+  "Returns a copy of LIST with the last N elements removed."
+  (if (and n (<= n 0)) x
+    (cvs-nbutlast (copy-sequence x) n)))
+
+(defun cvs-nbutlast (x &optional n)
+  "Modifies LIST to remove the last N elements."
+  (let ((m (length x)))
+    (or n (setq n 1))
+    (and (< n m)
+	 (progn
+	   (if (> n 0) (setcdr (nthcdr (- (1- m) n) x) nil))
+	   x))))
 
 ;;;; 
 ;;;; frame, window, buffer handling
@@ -137,6 +153,27 @@ If NOREUSE is non-nil, always return a new buffer."
 ;;;;
 ;;;; string processing
 ;;;;
+
+(defun cvs-insert-strings (strings)
+  "Insert a list of STRINGS into the current buffer.
+Uses columns to keep the listing readable but compact."
+  (when (consp strings)
+    (let* ((length (apply 'max (mapcar 'length strings)))
+	   (wwidth (1- (window-width)))
+	   (columns (min
+		     ;; At least 2 columns; at least 2 spaces between columns.
+		     (max 2 (/ wwidth (+ 2 length)))
+		     ;; Don't allocate more columns than we can fill.
+		     (max 1 (/ (length strings) 2))))
+	   (colwidth (/ wwidth columns)))
+      (setq tab-width colwidth)
+      ;; The insertion should be "sensible" no matter what choices were made.
+      (dolist (str strings)
+	(unless (bolp) (insert " \t"))
+	(when (< wwidth (+ (max colwidth (length str)) (current-column)))
+	  (delete-char -2) (insert "\n"))
+	(insert str)))))
+
 
 (defun cvs-file-to-string (file &optional oneline args)
   "Read the content of FILE and return it as a string.
