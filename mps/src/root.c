@@ -1,22 +1,68 @@
 /* impl.c.root: ROOT IMPLEMENTATION
  *
- * $HopeName: MMsrc!root.c(trunk.32) $
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!root.c(trunk.33) $
+ * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is the implementation of the root datatype.
- * .design: For design, see design.mps.root and 
- * design.mps.root-interface
- */
+ *
+ * .design: For design, see design.mps.root and
+ * design.mps.root-interface. */
 
 #include "mpm.h"
 
-SRCID(root, "$HopeName: MMsrc!root.c(trunk.32) $");
+SRCID(root, "$HopeName: MMsrc!root.c(trunk.33) $");
+
+
+/* RootStruct -- tracing root structure */
+
+#define RootSig         ((Sig)0x51960029) /* SIGnature ROOT */
+
+typedef struct RootStruct {
+  Sig sig;
+  Serial serial;                /* from arena->rootSerial */
+  Arena arena;                  /* owning arena */
+  RingStruct arenaRing;         /* attachment to arena */
+  Rank rank;                    /* rank of references in this root */
+  TraceSet grey;                /* traces for which root is grey */
+  RefSet summary;               /* summary of references in root */
+  RootMode mode;                /* mode */
+  Bool protectable;             /* Can protect root? */
+  Addr protBase;                /* base of protectable area */
+  Addr protLimit;               /* limit of protectable area */
+  AccessSet pm;                 /* Protection Mode */
+  RootVar var;                  /* union discriminator */
+  union RootUnion {
+    struct {
+      RootScanMethod scan;      /* the function which does the scanning */
+      void *p;                  /* environment for scan */
+      size_t s;                 /* environment for scan */
+    } fun;
+    struct {
+      Addr *base;               /* beginning of table */
+      Addr *limit;              /* one off end of table */
+    } table;
+    struct {
+      Addr *base;               /* beginning of table */
+      Addr *limit;              /* one off end of table */
+      Word mask;                /* tag mask for scanning */
+    } tableMasked;
+    struct {
+      RootScanRegMethod scan;   /* function for scanning registers */
+      Thread thread;            /* passed to scan */
+      void *p;                  /* passed to scan */
+      size_t s;                 /* passed to scan */
+    } reg;
+    struct {
+      FormatScanMethod scan;    /* format-like scanner */
+      Addr base, limit;         /* passed to scan */
+    } fmt;
+  } the;
+} RootStruct;
 
 
 /* RootVarCheck -- check a Root union discriminator
  *
- * .rootvarcheck: Synchronize with impl.h.mpmtypes.rootvar
- */
+ * .rootvarcheck: Synchronize with impl.h.mpmtypes.rootvar */
 
 Bool RootVarCheck(RootVar rootVar)
 {
@@ -45,14 +91,13 @@ Bool RootModeCheck(RootMode mode)
 
 /* RootCheck -- check the consistency of a root structure
  *
- * .rootcheck: Keep synchonized with impl.h.mpmst.root
- */
+ * .rootcheck: Keep synchonized with impl.h.mpmst.root. */
 
 Bool RootCheck(Root root)
 {
   CHECKS(Root, root);
   CHECKU(Arena, root->arena); 
-  CHECKL(root->serial < root->arena->rootSerial);
+  CHECKL(root->serial < ArenaGlobals(root->arena)->rootSerial);
   CHECKL(RingCheck(&root->arenaRing));
   CHECKL(RankCheck(root->rank));
   CHECKL(TraceSetCheck(root->grey));
@@ -104,29 +149,29 @@ Bool RootCheck(Root root)
 }
 
 
-/* .create: create, RootCreateTable, RootCreateReg, RootCreateFmt, 
- *   RootCreateFun:
+/* rootCreate, RootCreateTable, RootCreateReg, RootCreateFmt, RootCreateFun
+ *
  * RootCreate* set up the appropriate union member, and call the generic
  * create function to do the actual creation 
  * 
- * See design.mps.root.init for initial value
- */
+ * See design.mps.root.init for initial value. */
 
 static Res rootCreate(Root *rootReturn, Arena arena,
-                  Rank rank, RootMode mode, RootVar type,
-                  union RootUnion *theUnionP)
+                      Rank rank, RootMode mode, RootVar type,
+                      union RootUnion *theUnionP)
 {
   Root root;
   Res res;
   void *p;
+  Globals globals;
 
   AVER(rootReturn != NULL);
   AVERT(Arena, arena);
   AVERT(Rank, rank);
   AVERT(RootVar, type);
+  globals = ArenaGlobals(arena);
 
-  res = ControlAlloc(&p, arena, sizeof(RootStruct), 
-                     /* withReservoirPermit */ FALSE);
+  res = ControlAlloc(&p, arena, sizeof(RootStruct), FALSE);
   if (res != ResOK)
     return res;
   root = (Root)p; /* Avoid pun */
@@ -146,21 +191,20 @@ static Res rootCreate(Root *rootReturn, Arena arena,
   /* See design.mps.arena.root-ring */
   RingInit(&root->arenaRing);
 
-  root->serial = arena->rootSerial;
-  ++arena->rootSerial;
+  root->serial = globals->rootSerial;
+  ++globals->rootSerial;
   root->sig = RootSig;
 
   AVERT(Root, root);
 
-  RingAppend(ArenaRootRing(arena), &root->arenaRing);
+  RingAppend(&globals->rootRing, &root->arenaRing);
 
   *rootReturn = root;
   return ResOK;
 }
 
 static Res rootCreateProtectable(Root *rootReturn, Arena arena,
-                                 Rank rank, RootMode mode,
-				 RootVar var,
+                                 Rank rank, RootMode mode, RootVar var,
 				 Addr base, Addr limit,
 				 union RootUnion *theUnion)
 {
@@ -188,11 +232,11 @@ static Res rootCreateProtectable(Root *rootReturn, Arena arena,
   }
 
   /* Check that this root doesn't intersect with any other root */
-  RING_FOR(node, &arena->rootRing, next) {
+  RING_FOR(node, &ArenaGlobals(arena)->rootRing, next) {
     Root trial = RING_ELT(Root, arenaRing, node);
     if (trial != root) {
-      /* (trial->protLimit <= root->protBase || */
-      /*  root->protLimit <= trial->protBase) */
+      /* (trial->protLimit <= root->protBase */
+      /*  || root->protLimit <= trial->protBase) */
       /* is the "okay" state.  The negation of this is: */
       if (root->protBase < trial->protLimit
           && trial->protBase < root->protLimit) {
@@ -230,8 +274,7 @@ Res RootCreateTable(Root *rootReturn, Arena arena,
 }
 
 Res RootCreateTableMasked(Root *rootReturn, Arena arena,
-                          Rank rank, RootMode mode,
-			  Addr *base, Addr *limit,
+                          Rank rank, RootMode mode, Addr *base, Addr *limit,
                           Word mask)
 {
   union RootUnion theUnion;
@@ -247,14 +290,13 @@ Res RootCreateTableMasked(Root *rootReturn, Arena arena,
   theUnion.tableMasked.limit = limit;
   theUnion.tableMasked.mask = mask;
 
-  return rootCreateProtectable(rootReturn, arena, rank, mode,
-                               RootTABLE_MASKED,
+  return rootCreateProtectable(rootReturn, arena, rank, mode, RootTABLE_MASKED,
 			       (Addr)base, (Addr)limit, &theUnion);
 }
 
 Res RootCreateReg(Root *rootReturn, Arena arena,
-                    Rank rank, Thread thread,
-                    RootScanRegMethod scan, void *p, size_t s)
+                  Rank rank, Thread thread,
+                  RootScanRegMethod scan, void *p, size_t s)
 {
   union RootUnion theUnion;
 
@@ -293,10 +335,8 @@ Res RootCreateFmt(Root *rootReturn, Arena arena,
                                RootFMT, base, limit, &theUnion);
 }
 
-Res RootCreateFun(Root *rootReturn, Arena arena,
-                 Rank rank,
-                 RootScanMethod scan,
-                 void *p, size_t s)
+Res RootCreateFun(Root *rootReturn, Arena arena, Rank rank,
+                  RootScanMethod scan, void *p, size_t s)
 {
   union RootUnion theUnion;
 
@@ -334,12 +374,41 @@ void RootDestroy(Root root)
 }
 
 
+/* RootArena -- return the rank of a root
+ *
+ * Must be thread-safe.  */
+
+Arena RootArena(Root root)
+{
+  AVER(CHECKT(Root, root));
+  return root->arena;
+}
+
+
 /* RootRank -- return the rank of a root */
 
 Rank RootRank(Root root)
 {
   AVERT(Root, root);
   return root->rank;
+}
+
+
+/* RootPM -- return the protection mode of a root */
+
+AccessSet RootPM(Root root)
+{
+  AVERT(Root, root);
+  return root->pm;
+}
+
+
+/* RootSummary -- return the summary of a root */
+
+RefSet RootSummary(Root root)
+{
+  AVERT(Root, root);
+  return root->summary;
 }
 
 
@@ -386,7 +455,7 @@ Res RootScan(ScanState ss, Root root)
 
   AVER(ScanStateSummary(ss) == RefSetEMPTY);
 
-  if (RootPM(root) != AccessSetEMPTY) {
+  if (root->pm != AccessSetEMPTY) {
     ProtSet(root->protBase, root->protLimit, AccessSetEMPTY);
   }
 
@@ -440,32 +509,18 @@ Res RootScan(ScanState ss, Root root)
   EVENT_PWW(RootScan, root, ss->traces, ScanStateSummary(ss));
 
 failScan:
-  if (RootPM(root) != AccessSetEMPTY) {
-    ProtSet(root->protBase, root->protLimit, RootPM(root));
+  if (root->pm != AccessSetEMPTY) {
+    ProtSet(root->protBase, root->protLimit, root->pm);
   }
 
   return res;
 }
 
 
-/* RootArena -- return the arena the root belongs to
- *
- * Must be thread-safe.  See design.mps.interface.c.thread-safety.
- */
-
-Arena RootArena(Root root)
-{
-  /* Can't AVER root as that would not be thread-safe */
-  /* AVERT(Root, root); */
-  return root->arena;
-}
-
-
 /* RootOfAddr -- return the root at addr
  *
- * Returns TRUE if the addr is in a root (and the root is in *rootReturn)
- * otherwise returns FALSE.  Cf. SegOfAddr.
- */
+ * Returns TRUE if the addr is in a root (and returns the root in
+ * *rootReturn) otherwise returns FALSE.  Cf. SegOfAddr.  */
 
 Bool RootOfAddr(Root *rootReturn, Arena arena, Addr addr)
 {
@@ -475,7 +530,7 @@ Bool RootOfAddr(Root *rootReturn, Arena arena, Addr addr)
   AVERT(Arena, arena);
   /* addr is arbitrary and can't be checked */
 
-  RING_FOR(node, &arena->rootRing, next) {
+  RING_FOR(node, &ArenaGlobals(arena)->rootRing, next) {
     Root root = RING_ELT(Root, arenaRing, node);
 
     if (root->protectable && root->protBase <= addr && addr < root->protLimit) {
@@ -488,34 +543,49 @@ Bool RootOfAddr(Root *rootReturn, Arena arena, Addr addr)
 }
 
 
+/* RootAccess -- handle barrier hit on root */
+
 void RootAccess(Root root, AccessSet mode)
 {
   AVERT(Root, root);
   /* Can't AVERT mode. */
-  AVER((RootPM(root) & mode) != AccessSetEMPTY);
+  AVER((root->pm & mode) != AccessSetEMPTY);
   AVER(mode == AccessWRITE); /* only write protection supported */
 
   rootSetSummary(root, RefSetUNIV);
 
   /* Access must now be allowed. */
-  AVER((RootPM(root) & mode) == AccessSetEMPTY);
-  ProtSet(root->protBase, root->protLimit, RootPM(root));
+  AVER((root->pm & mode) == AccessSetEMPTY);
+  ProtSet(root->protBase, root->protLimit, root->pm);
 }
 
 
-AccessSet RootPM(Root root)
+/* RootsIterate -- iterate over all the roots in the arena */
+
+Res RootsIterate(Globals arena, RootIterateFn f, void *p)
 {
-  AVERT(Root, root);
-  return root->pm;
+  Res res;
+  Ring node, next;
+
+  RING_FOR(node, &arena->rootRing, next) {
+    Root root = RING_ELT(Root, arenaRing, node);
+
+    res = (*f)(root, p);
+    if (res != ResOK)
+      return res;
+  }
+  return res;
 }
 
+
+/* RootDescribe -- describe a root */
 
 Res RootDescribe(Root root, mps_lib_FILE *stream)
 {
   Res res;
 
-  AVERT(Root, root);
-  AVER(stream != NULL);
+  if (!CHECKT(Root, root)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
 
   res = WriteF(stream,
                "Root $P ($U) {\n", (WriteFP)root, (WriteFU)root->serial,
@@ -531,16 +601,14 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
     case RootTABLE:
     res = WriteF(stream,
                  "  table base $A limit $A\n",
-                 root->the.table.base,
-                 root->the.table.limit,
+                 root->the.table.base, root->the.table.limit,
                  NULL);
     if (res != ResOK) return res;
     break;
 
     case RootTABLE_MASKED:
     res = WriteF(stream, "  table base $A limit $A mask $B\n",
-                 root->the.tableMasked.base,
-                 root->the.tableMasked.limit,
+                 root->the.tableMasked.base, root->the.tableMasked.limit,
                  root->the.tableMasked.mask,
                  NULL);
     if (res != ResOK) return res;
@@ -567,8 +635,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
     res = WriteF(stream,
                  "  scan function $F\n", (WriteFF)root->the.fmt.scan,
                  "  format base $A limit $A\n",
-                 root->the.fmt.base,
-                 root->the.fmt.limit,
+                 root->the.fmt.base, root->the.fmt.limit,
                  NULL);
     if (res != ResOK) return res;
     break;
@@ -583,4 +650,20 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
   if (res != ResOK) return res;
 
   return ResOK;
+}
+
+
+/* RootsDescribe -- describe all roots */
+
+Res RootsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
+{
+  Res res;
+  Ring node, next;
+
+  RING_FOR(node, &arenaGlobals->rootRing, next) {
+    Root root = RING_ELT(Root, arenaRing, node);
+    res = RootDescribe(root, stream); /* this outputs too much */
+    if (res != ResOK) return res;
+  }
+  return res;
 }
