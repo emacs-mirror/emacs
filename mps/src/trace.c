@@ -1,15 +1,16 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.68) $
- * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
+ * $HopeName: MMsrc!trace.c(trunk.69) $
+ * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .design: design.mps.trace.
  */
 
 #include "mpm.h"
-#include "limits.h"
+#include <limits.h>
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.68) $");
+
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.69) $");
 
 
 /* Types
@@ -130,31 +131,31 @@ Bool TraceCheck(Trace trace)
   CHECKL(RefSetSub(trace->mayMove, trace->white));
   /* Use trace->state to check more invariants. */
   switch(trace->state) {
-    case TraceINIT:
+  case TraceINIT:
     /* @@@@ What can be checked here? */
     break;
 
-    case TraceUNFLIPPED:
+  case TraceUNFLIPPED:
     CHECKL(!TraceSetIsMember(trace->arena->flippedTraces, trace->ti));
     /* @@@@ Assert that mutator is grey for trace. */
     break;
 
-    case TraceFLIPPED:
+  case TraceFLIPPED:
     CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace->ti));
     /* @@@@ Assert that mutator is black for trace. */
     break;
 
-    case TraceRECLAIM:
+  case TraceRECLAIM:
     CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace->ti));
     /* @@@@ Assert that grey set is empty for trace. */
     break;
 
-    case TraceFINISHED:
+  case TraceFINISHED:
     CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace->ti));
     /* @@@@ Assert that grey and white sets is empty for trace. */
     break;
 
-    default:
+  default:
     NOTREACHED;
   }
   CHECKL(BoolCheck(trace->emergency));
@@ -367,8 +368,8 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
 
         /* Turn the segment grey if there might be a reference in it */
         /* to the white set.  This is done by seeing if the summary */
-        /* of references in the segment intersects with the approximation */
-        /* to the white set. */
+        /* of references in the segment intersects with the */
+        /* approximation to the white set. */
         if(RefSetInter(SegSummary(seg), trace->white) != RefSetEMPTY) {
           PoolGrey(SegPool(seg), trace, seg);
 	  if(TraceSetIsMember(SegGrey(seg), trace->ti))
@@ -386,7 +387,6 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
 
     if(RefSetInter(root->summary, trace->white) != RefSetEMPTY)
       RootGrey(root, trace);
-
     node = next;
   }
 
@@ -396,10 +396,12 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
     double nPolls = finishingTime / ARENA_POLL_MAX;
 
     /* There must be at least one poll. */
-    if(nPolls < 1.0) nPolls = 1.0;
+    if(nPolls < 1.0)
+      nPolls = 1.0;
     /* We use casting to long to truncate nPolls down to the nearest */
     /* integer, so try to make sure it fits. */
-    if(nPolls >= (double)LONG_MAX) nPolls = (double)LONG_MAX;
+    if(nPolls >= (double)LONG_MAX)
+      nPolls = (double)LONG_MAX;
     /* rate equals scanning work per number of polls available */
     trace->rate = (trace->foundation + sSurvivors) / (long)nPolls + 1;
   }
@@ -660,20 +662,17 @@ static void TraceReclaim(Trace trace)
   AVERT(Trace, trace);
   AVER(trace->state == TraceRECLAIM);
 
-
   EVENT_P(TraceReclaim, trace);
   arena = trace->arena;
   if(SegFirst(&seg, arena)) {
     Addr base;
     do {
       base = SegBase(seg);
-
       /* There shouldn't be any grey stuff left for this trace. */
       AVER_CRITICAL(!TraceSetIsMember(SegGrey(seg), trace->ti));
 
       if(TraceSetIsMember(SegWhite(seg), trace->ti)) {
         AVER_CRITICAL((SegPool(seg)->class->attr & AttrGC) != 0);
-
         ++trace->reclaimCount;
         PoolReclaim(SegPool(seg), trace, seg);
 
@@ -686,8 +685,9 @@ static void TraceReclaim(Trace trace)
 	/* unwhiten the segment could in fact be moved here.   */
         {
           Seg nonWhiteSeg = NULL;	/* prevents compiler warning */
-	  AVER_CRITICAL(!(SegOfAddr(&nonWhiteSeg, arena, base) &&
-		        TraceSetIsMember(SegWhite(nonWhiteSeg), trace->ti)));
+	  AVER_CRITICAL(!(SegOfAddr(&nonWhiteSeg, arena, base)
+                          && TraceSetIsMember(SegWhite(nonWhiteSeg),
+                                              trace->ti)));
         }
       }
     } while(SegNext(&seg, arena, base));
@@ -867,15 +867,15 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
 
   /* If it's a read access, then the segment must be grey for a trace */
   /* which is flipped. */
-  AVER((mode & SegSM(seg) & AccessREAD) == 0 ||
-       TraceSetInter(SegGrey(seg), arena->flippedTraces) !=
-       TraceSetEMPTY);
+  AVER((mode & SegSM(seg) & AccessREAD) == 0
+       || TraceSetInter(SegGrey(seg), arena->flippedTraces)
+       != TraceSetEMPTY);
 
   /* If it's a write acess, then the segment must have a summary that */
   /* is smaller than the mutator's summary (which is assumed to be */
   /* RefSetUNIV). */
-  AVER((mode & SegSM(seg) & AccessWRITE) == 0 ||
-       SegSummary(seg) != RefSetUNIV);
+  AVER((mode & SegSM(seg) & AccessWRITE) == 0
+       || SegSummary(seg) != RefSetUNIV);
 
   EVENT_PPU(TraceAccess, arena, seg, mode);
 
@@ -933,8 +933,7 @@ static Res TraceRun(Trace trace)
 
   if(traceFindGrey(&seg, &rank, arena, trace->ti)) {
     AVER((SegPool(seg)->class->attr & AttrSCAN) != 0);
-    res = TraceScan(TraceSetSingle(trace->ti), rank,
-                    arena, seg);
+    res = TraceScan(TraceSetSingle(trace->ti), rank, arena, seg);
     if(res != ResOK)
       return res;
   } else
@@ -1023,8 +1022,7 @@ void TracePoll(Trace trace)
   do {
     res = TraceStep(trace);
     if(res != ResOK) {
-      AVER(res == ResMEMORY ||
-           res == ResRESOURCE);
+      AVER(res == ResMEMORY || res == ResRESOURCE);
       TraceExpedite(trace);
       AVER(trace->state == TraceFINISHED);
       return;
@@ -1086,8 +1084,8 @@ Res TraceFix(ScanState ss, Ref *refIO)
     }
   } else {
     /* See design.mps.trace.exact.legal */
-    AVER(ss->rank < RankEXACT ||
-	 !ArenaIsReservedAddr(ss->arena, ref));
+    AVER(ss->rank < RankEXACT
+         || !ArenaIsReservedAddr(ss->arena, ref));
   }
 
 
