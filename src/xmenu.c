@@ -859,9 +859,10 @@ xmenu_show (f, val, x, y, menubarp, vw)
      int menubarp;
      widget_value *vw;
 {
-  int menu_id, id = (int)f;
+  int menu_id, item_length;
   Lisp_Object selection;
   Widget menu;
+  XlwMenuWidget menuw = (XlwMenuWidget) f->display.x->menubar_widget;
 
   /*
    * Define and allocate a foreign event queue to hold events
@@ -915,6 +916,14 @@ xmenu_show (f, val, x, y, menubarp, vw)
     pop_up_menu (mw, &dummy);
   }
 
+  if (menubarp)
+    {
+      item_length = (x + string_width (menuw, vw->name) 
+		     + (2 * (menuw->menu.horizontal_spacing 
+			     + menuw->menu.shadow_thickness))
+		     - 4);
+    }
+
   /* Enters XEvent loop */
   while (1)
     {
@@ -929,6 +938,38 @@ xmenu_show (f, val, x, y, menubarp, vw)
       else
 	if (event.type == Expose)
 	  process_expose_from_menu (event);
+      else 
+	if (event.type == MotionNotify 
+	        && menubarp
+	        && ((event.xmotion.y_root 
+		      >= (f->display.x->widget->core.y 
+			       + f->display.x->widget->core.border_width))
+		    && (event.xmotion.y_root
+			< (f->display.x->widget->core.y
+			   + f->display.x->widget->core.border_width
+			   + f->display.x->menubar_widget->core.height)))
+	    && (event.xmotion.x_root >= item_length
+		|| event.xmotion.x_root < (x - 4)))
+	  {
+	    BLOCK_INPUT;
+	    XtUngrabPointer ((Widget)
+			     ((XlwMenuWidget)
+			      ((CompositeWidget)menu)->composite.children[0]),
+			     event.xbutton.time);
+	    lw_destroy_all_widgets (menu_id); 
+	    UNBLOCK_INPUT;
+
+	    event.type = ButtonPress;
+	        event.xbutton.time = CurrentTime;
+	        event.xbutton.button = Button1;
+	    event.xbutton.window = XtWindow (f->display.x->menubar_widget);
+	    event.xbutton.x = (event.xbutton.x_root 
+			       - (f->display.x->widget->core.x
+				  + f->display.x->widget->core.border_width));
+	    XPutBackEvent (XDISPLAY &event);
+	    break;
+	  }
+
       XtDispatchEvent (&event);
       feq_tmp = (XMEventQue *) malloc (sizeof (XMEventQue));
 
