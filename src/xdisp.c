@@ -1278,7 +1278,7 @@ safe_eval_handler (arg)
 
 
 /* Evaluate SEXPR and return the result, or nil if something went
-   wrong.  */
+   wrong.  Prevent redisplay during the evaluation.  */
 
 Lisp_Object
 safe_eval (sexpr)
@@ -1306,7 +1306,8 @@ safe_eval (sexpr)
 
 
 /* Call function ARGS[0] with arguments ARGS[1] to ARGS[NARGS - 1].
-   Return the result, or nil if something went wrong.  */
+   Return the result, or nil if something went wrong.  Prevent
+   redisplay during the evaluation.  */
 
 Lisp_Object
 safe_call (nargs, args)
@@ -6500,10 +6501,13 @@ resize_mini_window (w, exact_p)
 
   xassert (MINI_WINDOW_P (w));
 
-  /* Don't resize windows while redisplaying; it would confuse
-     redisplay functions when the size of the window they are
-     displaying changes from under them.  */
-  if (redisplaying_p)
+  /* Don't resize windows while redisplaying a window; it would
+     confuse redisplay functions when the size of the window they are
+     displaying changes from under them.  Such a resizing can happen,
+     for instance, when which-func prints a long message while
+     we are running fontification-functions.  We're running these
+     functions with safe_call which binds inhibit-redisplay to t.  */
+  if (!NILP (Vinhibit_redisplay))
     return 0;
   
   /* Nil means don't try to resize.  */
@@ -8981,6 +8985,9 @@ mark_window_display_accurate_1 (w, accurate_p)
   if (accurate_p)
     {
       w->window_end_valid = w->buffer;
+      xassert (XINT (w->window_end_vpos)
+	       < (XINT (w->height)
+		  - (WINDOW_WANTS_MODELINE_P (w) ? 1 : 0)));
       w->update_mode_line = Qnil;
     }
 }
