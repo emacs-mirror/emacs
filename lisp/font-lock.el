@@ -532,9 +532,10 @@ the differences are listed below.  MATCH-HIGHLIGHT should be of the form:
 
  (MATCH SYNTAX OVERRIDE LAXMATCH)
 
-where SYNTAX can be of the form (SYNTAX-CODE . MATCHING-CHAR), the name of a
-syntax table, or an expression whose value is such a form or a syntax table.
-OVERRIDE cannot be `prepend' or `append'.
+where SYNTAX can be of the form (SYNTAX-CODE . MATCHING-CHAR) (see
+also `string-to-syntax'), the name of a syntax table, or an expression
+whose value is such a form or a syntax table.  OVERRIDE cannot be
+`prepend' or `append'.
 
 For example, an element of the form highlights syntactically:
 
@@ -1391,8 +1392,10 @@ see `font-lock-syntactic-keywords'."
 	 (start (match-beginning match)) (end (match-end match))
 	 (value (nth 1 highlight))
 	 (override (nth 2 highlight)))
-    (unless (numberp (car-safe value))
-      (setq value (eval value)))
+    (cond ((stringp value)
+	   (setq value (string-to-syntax value)))
+	  ((not (numberp (car-safe value)))
+	   (setq value (eval value))))
     (cond ((not start)
 	   ;; No match but we might not signal an error.
 	   (or (nth 3 highlight)
