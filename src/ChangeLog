@@ -1,5 +1,8 @@
 2002-08-19  Kenichi Handa  <handa@etl.go.jp>
 
+	* fontset.c (Fset_fontset_font): Treate `ascii' as charset, not
+	script.
+
 	* emacs.c (main): In the case of --unibyte, instead of aborting on
 	finding non-empty buffer, make it unibyte.
 
