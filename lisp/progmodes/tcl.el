@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.6 $
+;; Version: $Revision: 1.7 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1994/04/23 16:23:36 $|$Revision: 1.6 $|~/modes/tcl.el.Z|
+;; $Date: 1994/05/03 01:23:42 $|$Revision: 1.7 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+; Revision 1.7  1994/05/03  01:23:42  tromey
+; *** empty log message ***
+;
 ; Revision 1.6  1994/04/23  16:23:36  tromey
 ; Wrote tcl-indent-for-comment
 ;
@@ -187,6 +190,7 @@
 ;;   common cases).
 ;; * M-; sometimes fails (try on "if [blah] then {")
 ;; * `#' shouldn't insert `\#' in string.
+;; * Add bug-reporting code.
 
 
 
@@ -289,34 +293,6 @@ quoted for Tcl.")
 
 (defvar tcl-mode-map ()
   "Keymap used in Tcl mode.")
-(if tcl-mode-map
-    ()
-  (setq tcl-mode-map (make-sparse-keymap))
-  (define-key tcl-mode-map "{" 'tcl-electric-char)
-  (define-key tcl-mode-map "}" 'tcl-electric-brace)
-  (define-key tcl-mode-map "[" 'tcl-electric-char)
-  (define-key tcl-mode-map "]" 'tcl-electric-char)
-  (define-key tcl-mode-map ";" 'tcl-electric-char)
-  (define-key tcl-mode-map "#" 'tcl-electric-hash)
-  ;; FIXME.
-  (define-key tcl-mode-map "\e\C-a" 'tcl-beginning-of-defun)
-  ;; FIXME.
-  (define-key tcl-mode-map "\e\C-e" 'tcl-end-of-defun)
-  ;; FIXME.
-  (define-key tcl-mode-map "\e\C-h" 'mark-tcl-function)
-  (define-key tcl-mode-map "\e\C-q" 'indent-tcl-exp)
-  (define-key tcl-mode-map "\177" 'backward-delete-char-untabify)
-  (define-key tcl-mode-map "\t" 'tcl-indent-command)
-  (define-key tcl-mode-map "\M-;" 'tcl-indent-for-comment)
-  (define-key tcl-mode-map "\M-\C-x" 'tcl-eval-defun)
-  (and (fboundp 'comment-region)
-       (define-key tcl-mode-map "\C-c\C-c" 'comment-region))
-  (define-key tcl-mode-map "\C-c\C-d" 'tcl-help-on-word)
-  (define-key tcl-mode-map "\C-c\C-e" 'tcl-eval-defun)
-  (define-key tcl-mode-map "\C-c\C-l" 'tcl-load-file)
-  (define-key tcl-mode-map "\C-c\C-p" 'inferior-tcl)
-  (define-key tcl-mode-map "\C-c\C-r" 'tcl-eval-region)
-  (define-key tcl-mode-map "\C-c\C-z" 'switch-to-tcl))
 
 (defvar tcl-mode-syntax-table nil
   "Syntax table in use in Tcl-mode buffers.")
@@ -348,21 +324,6 @@ quoted for Tcl.")
 
 (defvar inferior-tcl-mode-map nil
   "Keymap used in Inferior Tcl mode.")
-(if inferior-tcl-mode-map
-    ()
-  ;; FIXME Use keymap inheritance here?  FIXME we override comint
-  ;; keybindings here.  Maybe someone has a better set?
-  (setq inferior-tcl-mode-map (copy-keymap comint-mode-map))
-  (define-key inferior-tcl-mode-map "\e\C-a" 'tcl-beginning-of-defun)
-  (define-key inferior-tcl-mode-map "\e\C-e" 'tcl-end-of-defun)
-  (define-key inferior-tcl-mode-map "\177" 'backward-delete-char-untabify)
-  (define-key inferior-tcl-mode-map "\M-\C-x" 'tcl-eval-defun)
-  (define-key inferior-tcl-mode-map "\C-c\C-d" 'tcl-help-on-word)
-  (define-key inferior-tcl-mode-map "\C-c\C-e" 'tcl-eval-defun)
-  (define-key inferior-tcl-mode-map "\C-c\C-l" 'tcl-load-file)
-  (define-key inferior-tcl-mode-map "\C-c\C-p" 'inferior-tcl)
-  (define-key inferior-tcl-mode-map "\C-c\C-r" 'tcl-eval-region)
-  (define-key inferior-tcl-mode-map "\C-c\C-z" 'switch-to-tcl))
 
 ;; Lucid Emacs menu.
 (defvar tcl-lucid-menu
@@ -380,7 +341,77 @@ quoted for Tcl.")
     ["Send file to Tcl process" tcl-load-file t]
     ["Restart Tcl process with file" tcl-restart-with-file t]
     "----"
-    ["Tcl help" tcl-help-on-word t]))
+    ["Tcl help" tcl-help-on-word t])
+  "Lucid Emacs menu for Tcl mode.")
+
+;; GNU Emacs does menus via keymaps.  Do it in a function in case we
+;; later decide to add it to inferior Tcl mode as well.
+(defun tcl-add-fsf-menu (map)
+  (define-key map [menu-bar] (make-sparse-keymap))
+  (require 'lmenu)
+  (define-key map [menu-bar tcl]
+    (cons "Tcl" (make-lucid-menu-keymap "Tcl" tcl-lucid-menu))))
+
+(defun tcl-fill-mode-map ()
+  (define-key tcl-mode-map "{" 'tcl-electric-char)
+  (define-key tcl-mode-map "}" 'tcl-electric-brace)
+  (define-key tcl-mode-map "[" 'tcl-electric-char)
+  (define-key tcl-mode-map "]" 'tcl-electric-char)
+  (define-key tcl-mode-map ";" 'tcl-electric-char)
+  (define-key tcl-mode-map "#" 'tcl-electric-hash)
+  ;; FIXME.
+  (define-key tcl-mode-map "\e\C-a" 'tcl-beginning-of-defun)
+  ;; FIXME.
+  (define-key tcl-mode-map "\e\C-e" 'tcl-end-of-defun)
+  ;; FIXME.
+  (define-key tcl-mode-map "\e\C-h" 'mark-tcl-function)
+  (define-key tcl-mode-map "\e\C-q" 'indent-tcl-exp)
+  (define-key tcl-mode-map "\177" 'backward-delete-char-untabify)
+  (define-key tcl-mode-map "\t" 'tcl-indent-command)
+  (define-key tcl-mode-map "\M-;" 'tcl-indent-for-comment)
+  (define-key tcl-mode-map "\M-\C-x" 'tcl-eval-defun)
+  (and (fboundp 'comment-region)
+       (define-key tcl-mode-map "\C-c\C-c" 'comment-region))
+  (define-key tcl-mode-map "\C-c\C-d" 'tcl-help-on-word)
+  (define-key tcl-mode-map "\C-c\C-e" 'tcl-eval-defun)
+  (define-key tcl-mode-map "\C-c\C-l" 'tcl-load-file)
+  (define-key tcl-mode-map "\C-c\C-p" 'inferior-tcl)
+  (define-key tcl-mode-map "\C-c\C-r" 'tcl-eval-region)
+  (define-key tcl-mode-map "\C-c\C-z" 'switch-to-tcl)
+
+  ;; Make menus.
+  (if tcl-using-emacs-19
+      (if tcl-using-lemacs-19
+	  ;; In Lucid, button 3 seems to be the standard for this.
+	  (define-key tcl-mode-map 'button3 'tcl-popup-menu)
+	;; In FSF 19, there is no standard, so I use shift-button2.
+	(tcl-add-fsf-menu tcl-mode-map)
+	(define-key tcl-mode-map [S-down-mouse-2] 'tcl-popup-menu))))
+
+(defun tcl-fill-inferior-map ()
+  (define-key inferior-tcl-mode-map "\e\C-a" 'tcl-beginning-of-defun)
+  (define-key inferior-tcl-mode-map "\e\C-e" 'tcl-end-of-defun)
+  (define-key inferior-tcl-mode-map "\177" 'backward-delete-char-untabify)
+  (define-key inferior-tcl-mode-map "\M-\C-x" 'tcl-eval-defun)
+  (define-key inferior-tcl-mode-map "\C-c\C-d" 'tcl-help-on-word)
+  (define-key inferior-tcl-mode-map "\C-c\C-e" 'tcl-eval-defun)
+  (define-key inferior-tcl-mode-map "\C-c\C-l" 'tcl-load-file)
+  (define-key inferior-tcl-mode-map "\C-c\C-p" 'inferior-tcl)
+  (define-key inferior-tcl-mode-map "\C-c\C-r" 'tcl-eval-region)
+  (define-key inferior-tcl-mode-map "\C-c\C-z" 'switch-to-tcl))
+
+(if tcl-mode-map
+    ()
+  (setq tcl-mode-map (make-sparse-keymap))
+  (tcl-fill-mode-map))
+
+(if inferior-tcl-mode-map
+    ()
+  ;; FIXME Use keymap inheritance here?  FIXME we override comint
+  ;; keybindings here.  Maybe someone has a better set?
+  (setq inferior-tcl-mode-map (copy-keymap comint-mode-map))
+  (tcl-fill-inferior-map))
+
 
 (defvar inferior-tcl-buffer nil
   "*The current inferior-tcl process buffer.
@@ -429,8 +460,6 @@ Several functions exist which are useful to run from your
 `tcl-mode-hook' (see each function's documentation for more
 information):
 
-  tcl-install-menubar
-    Puts a \"Tcl\" menu on the menubar.  Doesn't work in Emacs 18.
   tcl-guess-application
     Guesses a default setting for `tcl-application' based on any
     \"#!\" line at the top of the file.
@@ -465,7 +494,7 @@ after changing this list.")
 
 (defvar tcl-typeword-list
   '("global" "upvar")
-  "List of Tcl keywords deonting \"type\".  Used only for highlighting.
+  "List of Tcl keywords denoting \"type\".  Used only for highlighting.
 Call `tcl-set-font-lock-keywords' after changing this list.")
 
 ;; Generally I've picked control operators to be keywords.
@@ -713,17 +742,20 @@ Commands:
   (setq mode-name "Tcl")
   (setq local-abbrev-table tcl-mode-abbrev-table)
   (set-syntax-table tcl-mode-syntax-table)
+
   (make-local-variable 'paragraph-start)
   (setq paragraph-start (concat "^$\\|" page-delimiter))
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate paragraph-start)
   (make-local-variable 'paragraph-ignore-fill-prefix)
   (setq paragraph-ignore-fill-prefix t)
+
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'tcl-indent-line)
   ;; Tcl doesn't require a final newline.
   ;; (make-local-variable 'require-final-newline)
   ;; (setq require-final-newline t)
+
   (make-local-variable 'comment-start)
   (setq comment-start "# ")
   (make-local-variable 'comment-start-skip)
@@ -732,10 +764,12 @@ Commands:
   (setq comment-column 40)
   (make-local-variable 'comment-end)
   (setq comment-end "")
+
   (make-local-variable 'font-lock-keywords)
   (setq font-lock-keywords tcl-font-lock-keywords)
   (setq imenu-create-index-function 'tcl-imenu-create-index-function)
   (make-local-variable 'parse-sexp-ignore-comments)
+
   (if tcl-using-emacs-19
       (progn
 	;; This can only be set to t in Emacs 19 and Lucid Emacs.
@@ -751,6 +785,16 @@ Commands:
 	(make-local-variable 'add-log-current-defun-function)
 	(setq add-log-current-defun-function 'add-log-tcl-defun))
     (setq parse-sexp-ignore-comments nil))
+
+  ;; Put Tcl menu into menubar for Lucid Emacs.  This happens
+  ;; automatically for GNU Emacs.
+  (if (and tcl-using-lemacs-19
+	   current-menubar
+	   (not (assoc "Tcl" current-menubar)))
+      (progn
+	(set-buffer-menubar (copy-sequence current-menubar))
+	(add-menu nil "Tcl" tcl-lucid-menu)))
+
   (run-hooks 'tcl-mode-hook))
 
 
@@ -1797,37 +1841,12 @@ The first line is assumed to look like \"#!.../program ...\"."
 ;; Lucid menu support.
 ;; Taken from schmid@fb3-s7.math.TU-Berlin.DE (Gregor Schmid),
 ;; who wrote a different Tcl mode.
-;; We also have simple support for menus in FSF.  We do this by
+;; We also have support for menus in FSF.  We do this by
 ;; loading the Lucid menu emulation code.
 ;;
 
-;; Put this into your tcl-mode-hook.
-(defun tcl-install-menubar ()
-  (and tcl-using-emacs-19
-       (not tcl-using-lemacs-19)
-       (if tcl-using-emacs-19.23
-	   (require 'lmenu)
-	 ;; CAVEATS:
-	 ;; * lmenu.el provides 'menubar, which is bogus.
-	 ;; * lmenu.el causes menubars to be turned on everywhere.
-	 ;;   Doubly bogus!
-	 ;; Both of these problems are fixed in Emacs 19.23.  People
-	 ;; using an Emacs before that just suffer.
-	 (require 'menubar "lmenu")))
-  (if (not (assoc "Tcl" current-menubar))
-      (progn
-	(set-buffer-menubar (copy-sequence current-menubar))
-	(add-menu nil "Tcl" (cdr tcl-lucid-menu))))
-  ;; You might want to do something like the below.  I have it
-  ;; commented out because it overrides existing bindings.
-  ;; For Lucid:
-  ;;   (define-key tcl-mode-map 'button3 'tcl-popup-menu)
-  ;; For FSF:
-  ;;   (define-key tcl-mode-map [down-mouse-3] 'tcl-popup-menu)
-  )
-
 (defun tcl-popup-menu (e)
-  (interactive "e")
+  (interactive "@e")
   (and tcl-using-emacs-19
        (not tcl-using-lemacs-19)
        (if tcl-using-emacs-19.23
@@ -1839,8 +1858,7 @@ The first line is assumed to look like \"#!.../program ...\"."
 	 ;; Both of these problems are fixed in Emacs 19.23.  People
 	 ;; using an Emacs before that just suffer.
 	 (require 'menubar "lmenu")))  ;; This is annoying
-  ;;(mouse-set-point e)
-  ;; IMHO popup-menu should be autoloaded.  Oh well.
+  ;; IMHO popup-menu should be autoloaded in FSF Emacs.  Oh well.
   (popup-menu tcl-lucid-menu))
 
 
