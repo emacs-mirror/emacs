@@ -2570,8 +2570,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
      and loop around to read another event.  */
   save = Vquit_flag;
   Vquit_flag = Qnil;
-  tem = get_keyelt (access_keymap (get_keymap_1 (Vspecial_event_map, 0, 0),
-				   c, 0, 0), 1);
+  tem = access_keymap (get_keymap_1 (Vspecial_event_map, 0, 0), c, 0, 0, 1);
   Vquit_flag = save;
 
   if (!NILP (tem))
@@ -6254,7 +6253,7 @@ menu_bar_items (old)
   for (mapno = nmaps - 1; mapno >= 0; mapno--)
     if (!NILP (maps[mapno]))
       {
-	def = get_keyelt (access_keymap (maps[mapno], Qmenu_bar, 1, 0), 0);
+	def = access_keymap (maps[mapno], Qmenu_bar, 1, 0, 0);
 	tem = Fkeymapp (def);
 	if (!NILP (tem))
 	  menu_bar_one_keymap (def);
@@ -6911,8 +6910,9 @@ tool_bar_items (reuse, nitems)
     if (!NILP (maps[i]))
       {
 	Lisp_Object keymap;
-      
-	keymap = get_keyelt (access_keymap (maps[i], Qtool_bar, 1, 1), 0);
+
+	/* Why set the `noinherit' flag ?  -sm  */
+	keymap = access_keymap (maps[i], Qtool_bar, 1, 1, 0);
 	if (!NILP (Fkeymapp (keymap)))
 	  {
 	    Lisp_Object tail;
@@ -7599,31 +7599,6 @@ follow_key (key, nmaps, current, defs, next)
   int i, first_binding;
   int did_meta = 0;
 
-  /* If KEY is a meta ASCII character, treat it like meta-prefix-char
-     followed by the corresponding non-meta character.
-     Put the results into DEFS, since we are going to alter that anyway.
-     Do not alter CURRENT or NEXT.  */
-  if (INTEGERP (key) && (XUINT (key) & CHAR_META))
-    {
-      for (i = 0; i < nmaps; i++)
-	if (! NILP (current[i]))
-	  {
-	    Lisp_Object def;
-	    def = get_keyelt (access_keymap (current[i],
-					     meta_prefix_char, 1, 0), 0);
-
-	    /* Note that since we pass the resulting bindings through
-	       get_keymap_1, non-prefix bindings for meta-prefix-char
-	       disappear.  */
-	    defs[i] = get_keymap_1 (def, 0, 1);
-	  }
-	else
-	  defs[i] = Qnil;
-
-      did_meta = 1;
-      XSETINT (key, XFASTINT (key) & ~CHAR_META);
-    }
-
   first_binding = nmaps;
   for (i = nmaps - 1; i >= 0; i--)
     {
@@ -7635,7 +7610,7 @@ follow_key (key, nmaps, current, defs, next)
 	  else
 	    map = current[i];
 
-	  defs[i] = get_keyelt (access_keymap (map, key, 1, 0), 1);
+	  defs[i] = access_keymap (map, key, 1, 0, 1);
 	  if (! NILP (defs[i]))
 	    first_binding = i;
 	}
@@ -8457,22 +8432,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	      Lisp_Object key;
 
 	      key = keybuf[fkey_end++];
-	      /* Look up meta-characters by prefixing them
-		 with meta_prefix_char.  I hate this.  */
-	      if (INTEGERP (key) && XUINT (key) & meta_modifier)
-		{
-		  fkey_next
-		    = get_keymap_1
-		      (get_keyelt
-		       (access_keymap (fkey_map, meta_prefix_char, 1, 0), 0),
-		       0, 1);
-		  XSETFASTINT (key, XFASTINT (key) & ~meta_modifier);
-		}
-	      else
-		fkey_next = fkey_map;
-
 	      fkey_next
-		= get_keyelt (access_keymap (fkey_next, key, 1, 0), 1);
+		= access_keymap (fkey_map, key, 1, 0, 1);
 
 	      /* Handle symbol with autoload definition.  */
 	      if (SYMBOLP (fkey_next) && ! NILP (Ffboundp (fkey_next))
@@ -8581,22 +8542,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	    Lisp_Object key;
 
 	    key = keybuf[keytran_end++];
-	    /* Look up meta-characters by prefixing them
-	       with meta_prefix_char.  I hate this.  */
-	    if (INTEGERP (key) && XUINT (key) & meta_modifier)
-	      {
-		keytran_next
-		  = get_keymap_1
-		    (get_keyelt
-		     (access_keymap (keytran_map, meta_prefix_char, 1, 0), 0),
-		     0, 1);
-		XSETFASTINT (key, XFASTINT (key) & ~meta_modifier);
-	      }
-	    else
-	      keytran_next = keytran_map;
-
 	    keytran_next
-	      = get_keyelt (access_keymap (keytran_next, key, 1, 0), 1);
+	      = access_keymap (keytran_map, key, 1, 0, 1);
 
 	    /* Handle symbol with autoload definition.  */
 	    if (SYMBOLP (keytran_next) && ! NILP (Ffboundp (keytran_next))

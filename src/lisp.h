@@ -2591,7 +2591,7 @@ EXFUN (Fkey_binding, 2);
 EXFUN (Fkey_description, 1);
 EXFUN (Fsingle_key_description, 2);
 EXFUN (Fwhere_is_internal, 4);
-extern Lisp_Object access_keymap P_ ((Lisp_Object, Lisp_Object, int, int));
+extern Lisp_Object access_keymap P_ ((Lisp_Object, Lisp_Object, int, int, int));
 extern Lisp_Object get_keyelt P_ ((Lisp_Object, int));
 extern Lisp_Object get_keymap P_ ((Lisp_Object));
 extern Lisp_Object get_keymap_1 P_ ((Lisp_Object, int, int));

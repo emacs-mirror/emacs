@@ -302,7 +302,7 @@ DEFUN ("keymap-parent", Fkeymap_parent, Skeymap_parent, 1, 1, 0,
 	return list;
     }
 
-  return Qnil;
+  return get_keymap_1(list, 0, autoload);
 }
 
 
@@ -413,7 +413,7 @@ fix_submap_inheritance (map, event, submap)
 
   map_parent = Fkeymap_parent (map);
   if (! NILP (map_parent))
-    parent_entry = get_keyelt (access_keymap (map_parent, event, 0, 0), 0);
+    parent_entry = access_keymap (map_parent, event, 0, 0, 0);
   else
     parent_entry = Qnil;
 
@@ -455,11 +455,12 @@ fix_submap_inheritance (map, event, submap)
    If NOINHERIT, don't accept a subkeymap found in an inherited keymap.  */
 
 Lisp_Object
-access_keymap (map, idx, t_ok, noinherit)
+access_keymap (map, idx, t_ok, noinherit, autoload)
      Lisp_Object map;
      Lisp_Object idx;
      int t_ok;
      int noinherit;
+     int autoload;
 {
   int noprefix = 0;
   Lisp_Object val;
@@ -478,12 +479,23 @@ access_keymap (map, idx, t_ok, noinherit)
        with more than 24 bits of integer.  */
     XSETFASTINT (idx, XINT (idx) & (CHAR_META | (CHAR_META - 1)));
 
+  /* Handle the special meta -> esc mapping. */
+  if (INTEGERP (idx) && XUINT (idx) & meta_modifier)
+    {
+      map = get_keymap_1 (access_keymap
+			  (map, meta_prefix_char, t_ok, noinherit, autoload),
+			  0, autoload);
+      XSETINT (idx, XFASTINT (idx) & ~meta_modifier);
+    }
+
   {
     Lisp_Object tail;
     Lisp_Object t_binding;
 
     t_binding = Qnil;
-    for (tail = map; CONSP (tail); tail = XCDR (tail))
+    for (tail = XCDR (map);
+	 CONSP (tail) || (tail = get_keymap_1(tail, 0, autoload), CONSP (tail));
+	 tail = XCDR (tail))
       {
 	Lisp_Object binding;
 
@@ -492,7 +504,7 @@ access_keymap (map, idx, t_ok, noinherit)
 	  {
 	    /* If NOINHERIT, stop finding prefix definitions
 	       after we pass a second occurrence of the `keymap' symbol.  */
-	    if (noinherit && EQ (binding, Qkeymap) && ! EQ (tail, map))
+	    if (noinherit && EQ (binding, Qkeymap))
 	      noprefix = 1;
 	  }
 	else if (CONSP (binding))
@@ -504,7 +516,7 @@ access_keymap (map, idx, t_ok, noinherit)
 		  return Qnil;
 		if (CONSP (val))
 		  fix_submap_inheritance (map, idx, val);
-		return val;
+		return get_keyelt (val, autoload);
 	      }
 	    if (t_ok && EQ (XCAR (binding), Qt))
 	      t_binding = XCDR (binding);
@@ -518,7 +530,7 @@ access_keymap (map, idx, t_ok, noinherit)
 		  return Qnil;
 		if (CONSP (val))
 		  fix_submap_inheritance (map, idx, val);
-		return val;
+		return get_keyelt (val, autoload);
 	      }
 	  }
 	else if (CHAR_TABLE_P (binding))
@@ -536,14 +548,14 @@ access_keymap (map, idx, t_ok, noinherit)
 		  return Qnil;
 		if (CONSP (val))
 		  fix_submap_inheritance (map, idx, val);
-		return val;
+		return get_keyelt (val, autoload);
 	      }
 	  }
 
 	QUIT;
       }
 
-    return t_binding;
+    return get_keyelt (t_binding, autoload);
   }
 }
 
@@ -635,26 +647,9 @@ get_keyelt (object, autoload)
       else
 	{
 	  Lisp_Object map;
-	  
 	  map = get_keymap_1 (Fcar_safe (object), 0, autoload);
-	  if (NILP (map))
-	    /* Invalid keymap */
-	    return object;
-	  else
-	    {
-	      Lisp_Object key;
-	      key = Fcdr (object);
-	      if (INTEGERP (key) && (XUINT (key) & meta_modifier))
-		{
-		  object = access_keymap (map, meta_prefix_char, 0, 0);
-		  map = get_keymap_1 (object, 0, autoload);
-		  object = access_keymap (map, make_number (XINT (key)
-							    & ~meta_modifier),
-					  0, 0);
-		}
-	      else
-		object = access_keymap (map, key, 0, 0);
-	    }
+	  return (NILP (map) ? object /* Invalid keymap */
+		  : access_keymap (map, Fcdr (object), 0, 0, autoload));
 	}
     }
 }
@@ -973,7 +968,7 @@ the front of KEYMAP.")
       if (idx == length)
 	RETURN_UNGCPRO (store_in_keymap (keymap, c, def));
 
-      cmd = get_keyelt (access_keymap (keymap, c, 0, 1), 1);
+      cmd = access_keymap (keymap, c, 0, 1, 1);
 
       /* If this key is undefined, make it a prefix.  */
       if (NILP (cmd))
@@ -1014,10 +1009,8 @@ recognize the default bindings, just as `read-key-sequence' does.")
   register int idx;
   register Lisp_Object cmd;
   register Lisp_Object c;
-  int metized = 0;
   int length;
   int t_ok = ! NILP (accept_default);
-  int meta_bit;
   struct gcpro gcpro1;
 
   keymap = get_keymap_1 (keymap, 1, 1);
@@ -1029,38 +1022,21 @@ recognize the default bindings, just as `read-key-sequence' does.")
   if (length == 0)
     return keymap;
 
-  if (VECTORP (key))
-    meta_bit = meta_modifier;
-  else
-    meta_bit = 0x80;
-
   GCPRO1 (key);
 
   idx = 0;
   while (1)
     {
-      c = Faref (key, make_number (idx));
+      c = Faref (key, make_number (idx++));
 
       if (CONSP (c) && lucid_event_type_list_p (c))
 	c = Fevent_convert_list (c);
 
-      if (INTEGERP (c)
-	  && (XINT (c) & meta_bit)
-	  && !metized)
-	{
-	  c = meta_prefix_char;
-	  metized = 1;
-	}
-      else
-	{
-	  if (INTEGERP (c))
-	    XSETINT (c, XINT (c) & ~meta_bit);
+      /* Turn the 8th bit of string chars into a meta modifier.  */
+      if (XINT (c) & 0x80 && STRINGP (key))
+	XSETINT (c, (XINT (c) | meta_modifier) & ~0x80);
 
-	  metized = 0;
-	  idx++;
-	}
-
-      cmd = get_keyelt (access_keymap (keymap, c, t_ok, 0), 1);
+      cmd = access_keymap (keymap, c, t_ok, 0, 1);
       if (idx == length)
 	RETURN_UNGCPRO (cmd);
 
@@ -1080,44 +1056,13 @@ static Lisp_Object
 define_as_prefix (keymap, c)
      Lisp_Object keymap, c;
 {
-  Lisp_Object inherit, cmd;
+  Lisp_Object cmd;
 
   cmd = Fmake_sparse_keymap (Qnil);
   /* If this key is defined as a prefix in an inherited keymap,
      make it a prefix in this map, and make its definition
      inherit the other prefix definition.  */
-  inherit = access_keymap (keymap, c, 0, 0);
-#if 0
-  /* This code is needed to do the right thing in the following case:
-     keymap A inherits from B,
-     you define KEY as a prefix in A,
-     then later you define KEY as a prefix in B.
-     We want the old prefix definition in A to inherit from that in B.
-     It is hard to do that retroactively, so this code
-     creates the prefix in B right away.
-
-     But it turns out that this code causes problems immediately
-     when the prefix in A is defined: it causes B to define KEY
-     as a prefix with no subcommands.
-
-     So I took out this code.  */
-  if (NILP (inherit))
-    {
-      /* If there's an inherited keymap
-	 and it doesn't define this key,
-	 make it define this key.  */
-      Lisp_Object tail;
-
-      for (tail = Fcdr (keymap); CONSP (tail); tail = XCDR (tail))
-	if (EQ (XCAR (tail), Qkeymap))
-	  break;
-
-      if (!NILP (tail))
-	inherit = define_as_prefix (tail, c);
-    }
-#endif
-
-  cmd = nconc2 (cmd, inherit);
+  cmd = nconc2 (cmd, access_keymap (keymap, c, 0, 0, 0));
   store_in_keymap (keymap, c, cmd);
 
   return cmd;
@@ -2082,6 +2027,15 @@ static void where_is_internal_2 ();
 
 /* This function can GC if Flookup_key autoloads any keymaps.  */
 
+static INLINE int
+menu_item_p (item)
+     Lisp_Object item;
+{
+  return (CONSP (item)
+	  && (EQ (XCAR (item),Qmenu_item)
+	      || STRINGP (XCAR (item))));
+}
+
 DEFUN ("where-is-internal", Fwhere_is_internal, Swhere_is_internal, 1, 4, 0,
   "Return list of keys that invoke DEFINITION.\n\
 If KEYMAP is non-nil, search only KEYMAP and the global keymap.\n\
@@ -2334,6 +2288,10 @@ where_is_internal_1 (binding, key, definition, noindirect, keymap, this, last,
   int keymap_specified = !NILP (keymap);
   struct gcpro gcpro1, gcpro2;
 
+  /* Skip left-over menu-items.
+     These can appear in a keymap bound to a mouse click, for example.  */
+  if (nomenus && menu_item_p (binding))
+    return Qnil;
   /* Search through indirections unless that's not wanted.  */
   if (NILP (noindirect))
     binding = get_keyelt (binding, 0);
