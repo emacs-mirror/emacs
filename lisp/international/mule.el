@@ -1442,6 +1442,7 @@ character, say TO-ALT, FROM is also translated to TO-ALT."
 	    (let ((to-alt (aref table to)))
 	      (if (and to-alt (> to-i 0))
 		  (setq to to-alt)))
+	    ;; Fixme: set-char-table-default is now a no-op.
 	    (if (> from-i 0)
 		(set-char-table-default table from to)
 	      (aset table from to))
@@ -1540,6 +1541,8 @@ the table in `translation-table-vector'."
 (setq ignore-relative-composition
       (make-char-table 'ignore-relative-composition))
 
+(make-obsolete 'set-char-table-default
+	       "Generic characters no longer exist" "22.1")
 ;;;
 (provide 'mule)
 
