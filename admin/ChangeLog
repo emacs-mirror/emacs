@@ -3,7 +3,7 @@
 	* admin.el (add-release-logs): Expand the directory name before
 	calling find(1).
 	(add-release-logs): Use the same methods as add-log.el for writing
-	the date, and the user's ame and address
+	the date and the user's name and address
 
 2002-10-16  Markus Rost  <rost@math.ohio-state.edu>
 
