@@ -577,7 +577,11 @@ termcapobj = terminfo.o
 #define LIBS_TERMCAP
 termcapobj = termcap.o tparam.o
 #else /* LIBS_TERMCAP */
+#  ifdef TERMCAP_OBJ
+termcapobj = TERMCAP_OBJ
+#  else
 termcapobj = tparam.o
+#  endif /* not TERMCAP_OBJ */
 #endif /* LIBS_TERMCAP */
 #endif /* ! defined (TERMINFO) */
 
