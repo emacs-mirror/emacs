@@ -1,6 +1,6 @@
 ;;; vntelex.el --- Quail package for Vietnamese by Telex method
 
-;; Copyright (C) 2001 Free Software Foundation.
+;; Copyright (C) 2001, 2002 Free Software Foundation.
 
 ;; Author:   Werner Lemberg <wl@gnu.org>
 ;; Keywords: multilingual, input method, Vietnamese
@@ -398,6 +398,22 @@ and postfix: Eee -> Ee, ajj -> aj, etc.
  ("DDD" ["DD"])
  ("Ddd" ["Dd"])
 ;("$$$" ["$$"])
+
+ ;; escape from composition
+ ("\\w" ?w)	; breve or horn 
+ ("\\a" ?a)	; a circumflex
+ ("\\A" ?A)	; A circumflex
+ ("\\e" ?e)	; e circumflex
+ ("\\E" ?E)	; E circumflex
+ ("\\o" ?o)	; o circumflex
+ ("\\O" ?O)	; O circumflex
+ ("\\s" ?s)	; acute
+ ("\\f" ?f)	; grave
+ ("\\r" ?r)	; hook above
+ ("\\x" ?x)	; tilde
+ ("\\j" ?j)	; dot below
+ ("\\d" ?d)	; d-bar (d)
+ ("\\\\" ?\\)	; literal backslash
 )
 
 ;; Local Variables:
