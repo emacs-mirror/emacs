@@ -523,9 +523,9 @@ interval_of (position, object)
 
 DEFUN ("text-properties-at", Ftext_properties_at,
        Stext_properties_at, 1, 2, 0,
-  "Return the list of properties held by the character at POSITION\n\
-in optional argument OBJECT, a string or buffer.  If nil, OBJECT\n\
-defaults to the current buffer.\n\
+  "Return the list of properties of the character at POSITION in OBJECT.\n\
+OBJECT is the string or buffer to look for the properties in;\n\
+nil means the current buffer.\n\
 If POSITION is at the end of OBJECT, the value is nil.")
   (position, object)
      Lisp_Object position, object;
@@ -1553,12 +1553,13 @@ call_mod_hooks (list, start, end)
   UNGCPRO;
 }
 
-/* Check for read-only intervals and signal an error if we find one.
-   Then check for any modification hooks in the range START up to
-   (but not including) END.  Create a list of all these hooks in
-   lexicographic order, eliminating consecutive extra copies of the
-   same hook.  Then call those hooks in order, with START and END - 1
-   as arguments.  */
+/* Check for read-only intervals between character positions START ... END,
+   in BUF, and signal an error if we find one.
+
+   Then check for any modification hooks in the range.
+   Create a list of all these hooks in lexicographic order,
+   eliminating consecutive extra copies of the same hook.  Then call
+   those hooks in order, with START and END - 1 as arguments.  */
 
 void
 verify_interval_modification (buf, start, end)
@@ -1729,7 +1730,7 @@ verify_interval_modification (buf, start, end)
     }
 }
 
-/* Run the interval hooks for an insertion.
+/* Run the interval hooks for an insertion on character range START ... END.
    verify_interval_modification chose which hooks to run;
    this function is called after the insertion happens
    so it can indicate the range of inserted text.  */
