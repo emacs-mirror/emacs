@@ -49,8 +49,17 @@ extern Lisp_Object last_command_char;
    reached by the mouse.  */
 extern Lisp_Object last_nonmenu_event;
 
-/* Command character to be re-read, or -1 */
-extern Lisp_Object unread_command_char;
+/* Command event to be re-read, or Qnil.  */
+extern Lisp_Object unread_command_event;
+
+/* If not Qnil, this is a switch-frame event which we decided to put
+   off until the end of a key sequence.  This should be read as the
+   next command input, after any unread_command_event.
+
+   read_key_sequence uses this to delay switch-frame events until the
+   end of the key sequence; Fread_char uses it to put off switch-frame
+   events until a non-ASCII event is acceptable as input.  */
+extern Lisp_Object unread_switch_frame;
 
 /* Previous command symbol found here for comparison */
 extern Lisp_Object last_command;
