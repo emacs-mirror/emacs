@@ -491,6 +491,7 @@ the matching is case-sensitive."
 		     (tag (format "%5d" linenum))
 		     (empty (make-string (length tag) ?\ ))
 		     tem		
+		     insertion-start
 		     ;; Number of lines of context to show for current match.
 		     occur-marker	
 		     ;; Marker pointing to end of match in source buffer.
@@ -515,7 +516,21 @@ the matching is case-sensitive."
 		  ;; Insert matching text including context lines from
 		  ;; source buffer into *Occur*
 		  (set-marker text-beg (point))
+		  (setq insertion-start (point))
 		  (insert-buffer-substring buffer start end)
+		  (or (and (/= (+ start match-beg) end)
+			   (with-current-buffer buffer
+			     (eq (char-before end) ?\n)))
+		      (insert "\n"))
+		  (set-marker final-context-start 
+			      (+ (- (point) (- end (match-end 0)))
+				 (if (save-excursion
+				       (set-buffer buffer)
+				       (save-excursion
+					 (goto-char (match-end 0))
+					 (end-of-line)
+					 (bolp)))
+				     1 0)))
 		  (set-marker text-end (point))
 		  
 		  ;; Highlight text that was matched.
@@ -531,12 +546,10 @@ the matching is case-sensitive."
 		   (+ (marker-position text-beg) match-beg match-len)
 		   (+ (marker-position text-beg) match-beg match-len 1)
 		   'occur-point t)
-		  (set-marker final-context-start 
-			      (- (point) (- end (match-end 0))))
 		  
 		  ;; Now go back to the start of the matching text
 		  ;; adding the space and colon to the start of each line.
-		  (goto-char (- (point) (- end start)))
+		  (goto-char insertion-start)
 		  ;; Insert space and colon for lines of context before match.
 		  (setq tem (if (< linenum nlines)
 				(- nlines linenum)
@@ -556,7 +569,7 @@ the matching is case-sensitive."
 		      (forward-line 1)
 		      (setq tag nil)
 		      (setq this-linenum (1+ this-linenum)))
-		    (while (<= (point) final-context-start)
+		    (while (and (not (eobp)) (<= (point) final-context-start))
 		      (insert empty ?:)
 		      (forward-line 1)
 		      (setq this-linenum (1+ this-linenum))))
