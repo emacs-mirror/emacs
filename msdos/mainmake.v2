@@ -42,28 +42,25 @@ lib-src: FRC
 src: FRC
 	cd src
 	$(MAKE)
-	cd ..
-
-gdb: src
-	cd src
-	redir -o gdb.tmp sed \
-	 -e '/-geometry/s,^.*,set environment HOME $(topdir),' \
-	 -e '/environment *TERM/s/^.*/set environment TERM internal/' \
-	 -e '/x_error_quitter/s/^.*/set environment NAME root/' _gdbinit
+	redir -o gdb.sed echo '/-geometry/s,^.*,set environment HOME $(topdir),'
+	redir -oa gdb.sed echo '/environment *TERM/s/^.*/set environment TERM internal/'
+	redir -oa gdb.sed echo '/x_error_quitter/s/^.*/set environment NAME root/'
+	redir -o gdb.tmp sed -f gdb.sed _gdbinit
 	redir -oa gdb.tmp echo 'set environment USER root'
 	redir -oa gdb.tmp echo 'set environment EMACSPATH $(topdir)/bin'
 	redir -oa gdb.tmp echo 'set environment SHELL $(subst \,/,$(COMSPEC))'
 	redir -oa gdb.tmp echo 'set environment PATH $(subst \,/,$(PATH))'
 	update gdb.tmp gdb.ini
+	rm -f gdb.tmp gdb.sed
 	cd ..
 
 install: all
-	-md bin
+	if not exist bin\\nul md bin
 	cd lib-src
-	-copy hexl.exe ..\\bin
-	-copy etags.exe ..\\bin
-	-copy ctags.exe ..\\bin
-	-copy b2m.exe ..\\bin
+	if exist hexl.exe mv -f hexl.exe ../bin
+	if exist etags.exe mv -f etags.exe ../bin
+	if exist ctags.exe mv -f ctags.exe ../bin
+	if exist b2m.exe mv -f b2m.exe ../bin
 	cd ..
 	cd src
 	stubify emacs
