@@ -52,10 +52,12 @@ Typical examples might be `upcase' or `capitalize'.")
 (defvar skeleton-filter 'identity
   "Function for transforming a skeleton-proxy's aliases' variable value.")
 
-
 (defvar skeleton-untabify t
   "When non-`nil' untabifies when deleting backwards with element -ARG.")
 
+(defvar skeleton-newline-indent-rigidly nil
+  "When non-`nil', indent rigidly under current line for element `\\n'.
+Else use mode's `indent-line-function'.")
 
 (defvar skeleton-further-elements ()
   "A buffer-local varlist (see `let') of mode specific skeleton elements.
@@ -77,6 +79,11 @@ skeleton elements.")
 (defvar skeleton-debug nil
   "*If non-nil `define-skeleton' will override previous definition.")
 
+;; reduce the number of compiler warnings
+(defvar skeleton)
+(defvar skeleton-modified)
+(defvar skeleton-point)
+(defvar skeleton-regions)
 
 ;;;###autoload
 (defmacro define-skeleton (command documentation &rest skeleton)
@@ -95,33 +102,38 @@ INTERACTOR and ELEMENT ... are as defined under `skeleton-insert'."
 ;; This command isn't meant to be called, only it's aliases with meaningful
 ;; names are.
 ;;;###autoload
-(defun skeleton-proxy (&optional arg)
-  "Insert a skeleton defined by variable of same name (see `skeleton-insert').
+(defun skeleton-proxy (&optional str arg)
+  "Insert skeleton defined by variable of same name (see `skeleton-insert').
 Prefix ARG allows wrapping around words or regions (see `skeleton-insert').
 This command can also be an abbrev expansion (3rd and 4th columns in
-\\[edit-abbrevs]  buffer: \"\"  command-name)."
-  (interactive "*P")
+\\[edit-abbrevs]  buffer: \"\"  command-name).
+
+When called as a function, optional first argument STR may also be a string
+which will be the value of `str' whereas the skeleton's interactor is then
+ignored."
+  (interactive "*P\nP")
   (let ((function (nth 1 (backtrace-frame 1))))
     (if (eq function 'nth)		; uncompiled lisp function
 	(setq function (nth 1 (backtrace-frame 5)))
       (if (eq function 'byte-code)	; tracing byte-compiled function
 	  (setq function (nth 1 (backtrace-frame 2)))))
     (if (not (setq function (funcall skeleton-filter (symbol-value function))))
-	(if (or (eq this-command 'self-insert-command)
-		(eq this-command 'skeleton-pair-insert-maybe)
-		(eq this-command 'expand-abbrev))
-	    (setq buffer-undo-list
-		  (primitive-undo 1 buffer-undo-list)))
+	(if (memq this-command '(self-insert-command
+				 skeleton-pair-insert-maybe
+				 expand-abbrev))
+	    (setq buffer-undo-list (primitive-undo 1 buffer-undo-list)))
       (skeleton-insert function
 		       nil
 		       (if (setq skeleton-abbrev-cleanup
 				 (or (eq this-command 'self-insert-command)
 				     (eq this-command 'skeleton-pair-insert-maybe)))
 			   ()
-			 ;; Pretend  C-x a e  passed the prefix arg to us
+			 ;; Pretend  C-x a e  passed its prefix arg to us
 			 (if (or arg current-prefix-arg)
 			     (prefix-numeric-value (or arg
-						       current-prefix-arg)))))
+						       current-prefix-arg))))
+		       (if (stringp str)
+			   str))
       (if skeleton-abbrev-cleanup
 	  (setq deferred-action-list t
 		deferred-action-function 'skeleton-abbrev-cleanup
@@ -139,7 +151,7 @@ This command can also be an abbrev expansion (3rd and 4th columns in
 
 
 ;;;###autoload
-(defun skeleton-insert (skeleton &optional no-newline regions)
+(defun skeleton-insert (skeleton &optional no-newline skeleton-regions str)
   "Insert the complex statement skeleton SKELETON describes very concisely.
 If optional NO-NEWLINE is nil the skeleton will end on a line of its own.
 
@@ -151,13 +163,17 @@ two contiguous marked points.  If you marked A B C [] (where [] is the cursor)
 in alphabetical order, the 3 interregions are simply the last 3 regions.  But
 if you marked B A [] C, the interregions are B-A, A-[], []-C.
 
+Optional fourth STR is the value for the variable `str' within the skeleton.
+When this is non-`nil' the interactor gets ignored, and this should be a valid
+skeleton element.
+
 SKELETON is made up as (INTERACTOR ELEMENT ...).  INTERACTOR may be nil if
 not needed, a prompt-string or an expression for complex read functions.
 
 If ELEMENT is a string or a character it gets inserted (see also
 `skeleton-transformation').  Other possibilities are:
 
-	\\n	go to next line and align cursor
+	\\n	go to next line and indent according to mode
 	_	interesting point, interregion here, point after termination
 	>	indent line (or interregion if > _) according to major mode
 	&	do next ELEMENT if previous moved point
@@ -172,7 +188,8 @@ different inputs.  The SKELETON is processed as often as the user enters a
 non-empty string.  \\[keyboard-quit] terminates skeleton insertion, but
 continues after `resume:' and positions at `_' if any.  If INTERACTOR in such
 a subskeleton is a prompt-string which contains a \".. %s ..\" it is
-formatted with `skeleton-subprompt'.
+formatted with `skeleton-subprompt'.  Such an INTERACTOR may also a list of
+strings with the subskeleton being repeated once for each string.
 
 Quoted lisp-expressions are evaluated evaluated for their side-effect.
 Other lisp-expressions are evaluated and the value treated as above.
@@ -185,26 +202,29 @@ available:
 		then: insert previously read string once more
 	help	help-form during interaction with the user or `nil'
 	input	initial input (string or cons with index) while reading str
-	quit	non-nil after resume: section is entered by keyboard quit
-	v1, v2	local variables for memorising anything you want"
-  (and regions
-       (setq regions
-	     (if (> regions 0)
+	v1, v2	local variables for memorising anything you want
+
+When done with skeleton, but before going back to `_'-point call
+`skeleton-end-hook' if that is non-`nil'."
+  (and skeleton-regions
+       (setq skeleton-regions
+	     (if (> skeleton-regions 0)
 		 (list (point-marker)
-		       (save-excursion (forward-word regions) (point-marker)))
-	       (setq regions (- regions))
-	       ;; copy regions - 1 elements from `mark-ring'
+		       (save-excursion (forward-word skeleton-regions)
+				       (point-marker)))
+	       (setq skeleton-regions (- skeleton-regions))
+	       ;; copy skeleton-regions - 1 elements from `mark-ring'
 	       (let ((l1 (cons (mark-marker) mark-ring))
 		     (l2 (list (point-marker))))
-		 (while (and l1 (> regions 0))
+		 (while (and l1 (> skeleton-regions 0))
 		   (setq l2 (cons (car l1) l2)
-			 regions (1- regions)
+			 skeleton-regions (1- skeleton-regions)
 			 l1 (cdr l1)))
 		 (sort l2 '<))))
-       (goto-char (car regions))
-       (setq regions (cdr regions)))
+       (goto-char (car skeleton-regions))
+       (setq skeleton-regions (cdr skeleton-regions)))
   (let ((beg (point))
-	modified point resume: help input quit v1 v2)
+	skeleton-modified skeleton-point resume: help input v1 v2)
     (or no-newline
 	(eolp)
 	(goto-char (prog1 (point)
@@ -212,14 +232,15 @@ available:
 				  (newline))))))
     (unwind-protect
 	(eval `(let ,skeleton-further-elements
-		 (skeleton-internal-list skeleton)))
+		 (skeleton-internal-list skeleton str)))
+      (run-hooks 'skeleton-end-hook)
       (sit-for 0)
       (or (pos-visible-in-window-p beg)
 	  (progn
 	    (goto-char beg)
 	    (recenter 0)))
-      (if point
-	  (goto-char point)))))
+      (if skeleton-point
+	  (goto-char skeleton-point)))))
 
 
 
@@ -232,13 +253,15 @@ i.e. we are handling the iterator of a subskeleton, returns empty string if
 user didn't modify input.
 While reading, the value of `minibuffer-help-form' is variable `help' if that
 is non-`nil' or a default string."
-  (or no-newline
+  (setq skeleton-newline nil)
+  (or (symbol-value 'no-newline)	; cheat on compiler warning
       (eolp)
       (goto-char (prog1 (point)
+		   (if recursive (setq skeleton-newline 2))
 		   (indent-to (prog1
 				  (current-indentation)
 				(newline))))))
-  (let ((minibuffer-help-form (or help (if recursive "\
+  (let ((minibuffer-help-form (or (symbol-value 'help) (if recursive "\
 As long as you provide input you will insert another subskeleton.
 
 If you enter the empty string, the loop inserting subskeletons is
@@ -252,7 +275,8 @@ You are inserting a skeleton.  Standard text gets inserted into the buffer
 automatically, and you are prompted to fill in the variable parts."))))
     (setq str (if (stringp str)
 		  (read-string (format str skeleton-subprompt)
-			       (setq initial-input (or initial-input input)))
+			       (setq initial-input (or initial-input
+						       (symbol-value 'input))))
 		(eval str))))
   (if (and recursive
 	   (or (null str)
@@ -262,30 +286,26 @@ automatically, and you are prompted to fill in the variable parts."))))
       (signal 'quit t)
     str))
 
-
-(defun skeleton-internal-list (skeleton &optional recursive)
+(defun skeleton-internal-list (skeleton &optional str recursive)
   (let* ((start (save-excursion (beginning-of-line) (point)))
 	 (column (current-column))
 	 (line (buffer-substring start
 				 (save-excursion (end-of-line) (point))))
-	 (str `(setq str (skeleton-read ',(car skeleton) nil ,recursive)))
 	 opoint)
-    (while (setq modified (eq opoint (point))
+    (or str
+	(setq str `(setq str (skeleton-read ',(car skeleton) nil ,recursive))))
+    (while (setq skeleton-modified (eq opoint (point))
 		 opoint (point)
 		 skeleton (cdr skeleton))
       (condition-case quit
 	  (skeleton-internal-1 (car skeleton))
 	(quit
 	 (if (eq (cdr quit) 'recursive)
-	     (progn
-	       (setq recursive 'quit)
-	       (while (if skeleton
-			  (not (eq (car (setq skeleton (cdr skeleton)))
-				   'resume:)))))
+	     (setq recursive 'quit
+		   skeleton (memq 'resume: skeleton))
 	   ;; remove the subskeleton as far as it has been shown
 	   ;; the subskeleton shouldn't have deleted outside current line
-	   ;; problematic when wrapping text starting on same line
-	   (end-of-line)
+	   (end-of-line skeleton-newline)
 	   (delete-region start (point))
 	   (insert line)
 	   (move-to-column column)
@@ -300,46 +320,59 @@ automatically, and you are prompted to fill in the variable parts."))))
 
 
 (defun skeleton-internal-1 (element &optional literal)
-  (cond ((and (integerp element)	; -num
-	      (< element 0))
-	 (if skeleton-untabify
-	     (backward-delete-char-untabify (- element))
-	   (delete-backward-char (- element))))
-	((char-or-string-p element)
-	 (insert-before-markers (if (and skeleton-transformation
-					 (not literal))
-				    (funcall skeleton-transformation element)
-				  element)))
+  (cond ((char-or-string-p element)
+	 (if (and (integerp element)	; -num
+		  (< element 0))
+	     (if skeleton-untabify
+		 (backward-delete-char-untabify (- element))
+	       (delete-backward-char (- element)))
+	   (insert-before-markers (if (and skeleton-transformation
+					   (not literal))
+				      (funcall skeleton-transformation element)
+				    element))))
 	((eq element '\n)		; actually (eq '\n 'n)
-	 (newline)
-	 (indent-relative t))
-	((eq element '>)
-	 (if (and regions
+	 (if (and skeleton-regions
 		  (eq (nth 1 skeleton) '_))
-	     (indent-region (point) (car regions) nil)
-	   (indent-for-tab-command)))
-	((eq element '_)
-	 (if regions
 	     (progn
-	       (goto-char (car regions))
-	       (setq regions (cdr regions)))
-	   (or point
-	       (setq point (point)))))
+	       (or (eolp)
+		   (newline))
+	       (indent-region (point) (car skeleton-regions) nil))
+	   (if skeleton-newline-indent-rigidly
+	       (indent-to (prog1 (current-indentation)
+			    (newline)))
+	     (newline)
+	     (indent-according-to-mode))))
+	((eq element '>)
+	 (if (and skeleton-regions
+		  (eq (nth 1 skeleton) '_))
+	     (indent-region (point) (car skeleton-regions) nil)
+	   (indent-according-to-mode)))
+	((eq element '_)
+	 (if skeleton-regions
+	     (progn
+	       (goto-char (car skeleton-regions))
+	       (setq skeleton-regions (cdr skeleton-regions)))
+	   (or skeleton-point
+	       (setq skeleton-point (point)))))
 	((eq element '&)
-	 (if modified
+	 (if skeleton-modified
 	     (setq skeleton (cdr skeleton))))
 	((eq element '|)
-	 (or modified
+	 (or skeleton-modified
 	     (setq skeleton (cdr skeleton))))
-	((if (consp element)
-	     (or (stringp (car element))
-		 (consp (car element))))
-	 (while (skeleton-internal-list element t)))
-	((if (consp element)
-	     (eq 'quote (car element)))
+	((eq 'quote (car-safe element))
 	 (eval (nth 1 element)))
+	((or (stringp (car-safe element))
+	     (consp (car-safe element)))
+	 (if (symbolp (car-safe (car element)))
+	     (while (skeleton-internal-list element nil t))
+	   (setq literal (car element))
+	   (while literal
+	     (skeleton-internal-list element (car literal))
+	     (setq literal (cdr literal)))))
 	((null element))
 	((skeleton-internal-1 (eval element) t))))
+
 
 ;; Maybe belongs into simple.el or elsewhere
 
