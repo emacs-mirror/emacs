@@ -552,7 +552,6 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 	else if (CONSP (binding))
 	  {
 	    Lisp_Object key = XCAR (binding);
-	    int c1, c2;
 	    
 	    if (EQ (key, idx))
 	      val = XCDR (binding);
