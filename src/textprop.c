@@ -609,7 +609,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
   if (! NILP (limit) && !(next->position < XFASTINT (limit)))
     return limit;
 
-  XFASTINT (pos) = next->position - (STRINGP (object));
+  XSETFASTINT (pos, next->position - (STRINGP (object)));
   return pos;
 }
 
@@ -623,7 +623,7 @@ property_change_between_p (beg, end)
   Lisp_Object object, pos;
 
   XSETBUFFER (object, current_buffer);
-  XFASTINT (pos) = beg;
+  XSETFASTINT (pos, beg);
 
   i = validate_interval_range (object, &pos, &pos, soft);
   if (NULL_INTERVAL_P (i))
@@ -684,7 +684,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
   if (! NILP (limit) && !(next->position < XFASTINT (limit)))
     return limit;
 
-  XFASTINT (pos) = next->position - (STRINGP (object));
+  XSETFASTINT (pos, next->position - (STRINGP (object)));
   return pos;
 }
 
@@ -728,8 +728,8 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.")
       && !(previous->position + LENGTH (previous) > XFASTINT (limit)))
     return limit;
 
-  XFASTINT (pos) = (previous->position + LENGTH (previous)
-		    - (STRINGP (object)));
+  XSETFASTINT (pos, (previous->position + LENGTH (previous)
+		     - (STRINGP (object))));
   return pos;
 }
 
@@ -778,8 +778,8 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.")
       && !(previous->position + LENGTH (previous) > XFASTINT (limit)))
     return limit;
 
-  XFASTINT (pos) = (previous->position + LENGTH (previous)
-		    - (STRINGP (object)));
+  XSETFASTINT (pos, (previous->position + LENGTH (previous)
+		     - (STRINGP (object))));
   return pos;
 }
 
@@ -1270,7 +1270,7 @@ copy_text_properties (start, end, src, pos, dest, prop)
     Lisp_Object dest_start, dest_end;
 
     dest_start = pos;
-    XFASTINT (dest_end) = XINT (dest_start) + (XINT (end) - XINT (start));
+    XSETFASTINT (dest_end, XINT (dest_start) + (XINT (end) - XINT (start)));
     /* Apply this to a copy of pos; it will try to increment its arguments,
        which we don't want.  */
     validate_interval_range (dest, &dest_start, &dest_end, soft);
