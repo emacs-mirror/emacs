@@ -184,13 +184,19 @@ PLIST (property list) may contain any type of information a user
 
 (defmacro charset-plist (charset)
   (if (quoted-symbol-p charset)
-      (aref (charset-info (nth 1 charset)) 14)
+      `(aref ,(charset-info (nth 1 charset)) 14)
     `(aref (charset-info ,charset) 14)))
 
 (defun set-charset-plist (charset plist)
   (aset (charset-info  charset) 14 plist))
 
 (defmacro make-char (charset &optional c1 c2)
+  "Return a character of CHARSET and position-codes CODE1 and CODE2.
+CODE1 and CODE2 are optional, but if you don't supply
+ sufficient position-codes, return a generic character which stands for
+all characters or group of characters in the character sets.
+A generic character can be an argument of `modify-syntax-entry' and
+`modify-category-entry'."
   (if (quoted-symbol-p charset)
       `(make-char-internal ,(charset-id (nth 1 charset)) ,c1 ,c2)
     `(make-char-internal (charset-id ,charset) ,c1 ,c2)))
