@@ -1401,8 +1401,11 @@ Doubling the postfix separates the letter and postfix: e.g. aee -> ae
  )
 
 (quail-define-package
- "turkish-alt-postfix" "Latin-3" "TR<" t
+ "turkish-latin-3-alt-postfix" "Latin-3" "TR3<<" t
  "Turkish (T,C|(Brk,Cg(Be) input method with postfix modifiers
+
+This is for those who use Latin-3 (ISO-8859-3) for Turkish.  If you
+use Latin-5 (ISO-8859-9), you should use \"turkish-postfix\" instead.
 
 Note for I, ,C9(B, ,C)(B, i.
 
@@ -1439,6 +1442,69 @@ Doubling the postfix separates the letter and postfix: e.g. a^^ -> a^
  ("u\"" ?,C|(B)
  ("U^" ?,C[(B)
  ("u^" ?,C{(B)
+
+ ("A^^" ["A^"])
+ ("a^^" ["a^"])
+ ("C``" ["C`"])
+ ("c``" ["c`"])
+ ("G^^" ["G^"])
+ ("g^^" ["g^"])
+ ("I//" ["I/"])
+ ("i" ["i"])
+ ("i//" ["i/"])
+ ("O\"\"" ["O\""])
+ ("o\"\"" ["o\""])
+ ("S``" ["S`"])
+ ("s``" ["s`"])
+ ("U\"\"" ["U\""])
+ ("u\"\"" ["u\""])
+ ("U^^" ["U^"])
+ ("u^^" ["u^"])
+ )
+
+(quail-define-package
+ "turkish-alt-postfix" "Latin-5" "TR,M+(B" t
+ "Turkish (T,M|(Brk,Mg(Be) input method with postfix modifiers
+
+This is for those who use Latin-5 (ISO-8859-9) for Turkish.  If you
+use Latin-3 (ISO-8859-3), you should use
+\"turkish-alt-latin-3-postfix\" instead.
+
+Note for I, ,M}(B, ,M](B, i.
+
+A^ -> ,MB(B
+C` -> ,MG(B
+G^ -> ,MP(B
+I  -> I
+i  -> ,M}(B
+I/ -> ,M](B
+i/ -> i
+O\" -> ,MV(B
+S` -> ,M^(B
+U\" -> ,M\(B
+U^ -> ,M[(B
+
+Doubling the postfix separates the letter and postfix: e.g. a^^ -> a^
+" nil t nil nil nil nil nil nil nil nil t)
+
+(quail-define-rules
+ ("A^" ?,MB(B)
+ ("a^" ?,Mb(B)
+ ("C`" ?,MG(B)
+ ("c`" ?,Mg(B)
+ ("G^" ?,MP(B)
+ ("g^" ?,Mp(B)
+ ("I/" ?,M](B)
+ ("i" ?,M}(B)
+ ("i/" ?i)
+ ("O\"" ?,MV(B)
+ ("o\"" ?,Cv(B)
+ ("S`" ?,M^(B)
+ ("s`" ?,M~(B)
+ ("U\"" ?,M\(B)
+ ("u\"" ?,M|(B)
+ ("U^" ?,M[(B)
+ ("u^" ?,M{(B)
 
  ("A^^" ["A^"])
  ("a^^" ["a^"])
