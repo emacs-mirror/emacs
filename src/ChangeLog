@@ -1,4 +1,9 @@
-2004-05-11  Steven Tamm  <tamm@Steven-Tamms-Computer.local>
+2004-05-11  Steven Tamm  <steventamm@mac.com>
+
+	* macfns.c (Fx_create_frame): Default to using tool-bar by
+	setting tool-bar-lines to 1 in default-frame-alist.
+
+2004-05-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* image.c (xpm_scan, xpm_make_color_table_v, xpm_put_color_table_v)
 	(xpm_get_color_table_v, xpm_make_color_table_h)
