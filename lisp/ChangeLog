@@ -7,6 +7,9 @@
 	* emacs-lisp/derived.el (define-derived-mode): Mention hook in doc
 	string.  Defvar the derived hook.
 
+	* macros.el (insert-kbd-macro): Escape double quote character.
+	From Thomas W Murphy <twm@andrew.cmu.edu>.
+
 2003-07-22  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/fill.el (fill-comment-paragraph): Construct a regexp
