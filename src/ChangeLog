@@ -1,3 +1,8 @@
+2001-11-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* syswait.h: (HAVE_SYS_WAIT_H): Undef for ISC 4.1.  Reported by
+	Andrew Wiseman <a.wiseman@btclick.com>.
+
 2001-11-16  Kim F. Storm  <storm@cua.dk>
 
 	The following changes are made to clean up the various internal

@@ -1,4 +1,10 @@
-2001-11-15  Eli Zaretskii  <eliz@is.elta.co.il>
+2001-11-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* permute-index: New file.
+
+	* vol1.texi, vol2.texi: Renamed from elisp-vol1.texi and
+	elisp-vol2.texi, respectively, to avoid file-name clashes in DOS
+	8+3 restricted namespace.
 
 	* Makefile.in (infodir): Define relative to $(srcdir).
 	($(infodir)/elisp): Don't chdir into $(srcdir), but add it to the
