@@ -1,3 +1,9 @@
+2000-08-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* progmodes/executable.el
+	(executable-make-buffer-file-executable-if-script-p): Check that
+	buffer contains at least 2 characters.
+
 2000-08-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* help.el (help-make-xrefs, help-xref-mule-regexp): Doc fix.
