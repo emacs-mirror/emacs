@@ -2233,10 +2233,12 @@ a mistake; see the documentation of `set-mark'."
   "Deactivate the mark by setting `mark-active' to nil.
 \(That makes a difference only in Transient Mark mode.)
 Also runs the hook `deactivate-mark-hook'."
-  (if transient-mark-mode
-      (progn
-	(setq mark-active nil)
-	(run-hooks 'deactivate-mark-hook))))
+  (cond
+   ((eq transient-mark-mode 'lambda)
+    (setq transient-mark-mode nil))
+   (transient-mark-mode
+    (setq mark-active nil)
+    (run-hooks 'deactivate-mark-hook))))
 
 (defun set-mark (pos)
   "Set this buffer's mark to POS.  Don't use this function!
@@ -2286,23 +2288,56 @@ Start discarding off end if gets this big."
   :type 'integer
   :group 'editing-basics)
 
+(defun pop-to-mark-command ()
+  "Jump to mark, and pop a new position for mark off the ring
+\(does not affect global mark ring\)."
+  (interactive)
+  (if (null (mark t))
+      (error "No mark set in this buffer")
+    (setq this-command 'pop-to-mark-command)
+    (goto-char (mark t))
+    (pop-mark)))
+
+(defun push-mark-command (arg)
+  "Set mark at where point is.
+If no prefix arg and mark is already set there, just activate it."
+  (interactive "P")
+  (let ((mark (marker-position (mark-marker))))
+    (if (or arg (null mark) (/= mark (point)))
+	(push-mark nil nil t)
+      (setq mark-active t)
+      (message "Mark activated"))))
+
 (defun set-mark-command (arg)
   "Set mark at where point is, or jump to mark.
 With no prefix argument, set mark, push old mark position on local mark
-ring, and push mark on global mark ring.
+ring, and push mark on global mark ring.  Immediately repeating the
+command activates `transient-mark-mode' temporarily.
+
 With argument, jump to mark, and pop a new position for mark off the ring
-\(does not affect global mark ring\).
+\(does not affect global mark ring\).  Repeating the command without
+an argument jumps to the next position off the mark ring.
 
 Novice Emacs Lisp programmers often try to use the mark for the wrong
 purposes.  See the documentation of `set-mark' for more information."
   (interactive "P")
-  (if (null arg)
-      (progn
-	(push-mark nil nil t))
-    (if (null (mark t))
-	(error "No mark set in this buffer")
-      (goto-char (mark t))
-      (pop-mark))))
+  (if (eq transient-mark-mode 'lambda)
+      (setq transient-mark-mode nil))
+  (cond
+   ((not (eq this-command 'set-mark-command))
+    (push-mark-command t))
+   ((eq last-command 'pop-to-mark-command)
+    (if (and (consp arg) (> (prefix-numeric-value arg) 4))
+	(push-mark-command nil)
+      (pop-to-mark-command)))
+   (arg
+    (pop-to-mark-command))
+   ((and (eq last-command 'set-mark-command)
+	 mark-active (null transient-mark-mode))
+    (setq transient-mark-mode 'lambda)
+    (message "Transient-mark-mode temporarily enabled"))
+   (t
+    (push-mark-command nil))))
 
 (defun push-mark (&optional location nomsg activate)
   "Set mark at LOCATION (point, by default) and push old mark on mark ring.
@@ -2354,17 +2389,24 @@ Does not set point.  Does nothing if mark ring is empty."
 	(setq mark-ring (cdr mark-ring)))))
 
 (defalias 'exchange-dot-and-mark 'exchange-point-and-mark)
-(defun exchange-point-and-mark ()
+(defun exchange-point-and-mark (&optional arg)
   "Put the mark where point is now, and point where the mark is now.
 This command works even when the mark is not active,
-and it reactivates the mark."
-  (interactive nil)
-  (let ((omark (mark t)))
-    (if (null omark)
-	(error "No mark set in this buffer"))
-    (set-mark (point))
-    (goto-char omark)
-    nil))
+and it reactivates the mark.
+With prefix arg, `transient-mark-mode' is enabled temporarily."
+  (interactive "P")
+  (if arg
+      (if mark-active 
+	  (if (null transient-mark-mode)
+	      (setq transient-mark-mode 'lambda))
+	(setq arg nil)))
+  (unless arg
+    (let ((omark (mark t)))
+      (if (null omark)
+	  (error "No mark set in this buffer"))
+      (set-mark (point))
+      (goto-char omark)
+      nil)))
 
 (defun transient-mark-mode (arg)
   "Toggle Transient Mark mode.
