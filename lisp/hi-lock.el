@@ -49,12 +49,12 @@
 ;;
 ;;    When writing text, highlight personal cliches.  This can be
 ;;    amusing.
-;;    M-x highlight-regexp as can be seen RET RET
+;;    M-x highlight-phrase as can be seen RET RET
 ;;
-;;  Setup
+;;  Setup:
 ;;
 ;;    Put the following code in your .emacs file.  This turns on
-;;    hi-lock mode and adds an "Automatic Highlighting" entry
+;;    hi-lock mode and adds a "Regexp Highlighting" entry
 ;;    to the edit menu.
 ;;
 ;;    (hi-lock-mode 1)
@@ -65,6 +65,7 @@
 ;;    (define-key hi-lock-map "\C-z\C-h" 'highlight-lines-matching-regexp)
 ;;    (define-key hi-lock-map "\C-zi" 'hi-lock-find-patterns)
 ;;    (define-key hi-lock-map "\C-zh" 'highlight-regexp)
+;;    (define-key hi-lock-map "\C-zp" 'highlight-phrase)
 ;;    (define-key hi-lock-map "\C-zr" 'unhighlight-regexp)
 ;;    (define-key hi-lock-map "\C-zb" 'hi-lock-write-interactive-patterns))
 
@@ -200,6 +201,10 @@ calls."
   '(menu-item "Highlight Regexp..." highlight-regexp
               :help "Highlight text matching PATTERN (a regexp)."))
 
+(define-key-after hi-lock-menu [highlight-phrase]
+  '(menu-item "Highlight Phrase..." highlight-phrase
+              :help "Highlight text matching PATTERN (a regexp processed to match phrases)."))
+
 (define-key-after hi-lock-menu [highlight-lines-matching-regexp]
   '(menu-item "Highlight Lines..." highlight-lines-matching-regexp
               :help "Highlight lines containing match of PATTERN (a regexp).."))
@@ -223,6 +228,7 @@ calls."
 
 (define-key hi-lock-map "\C-xwi" 'hi-lock-find-patterns)
 (define-key hi-lock-map "\C-xwl" 'highlight-lines-matching-regexp)
+(define-key hi-lock-map "\C-xwp" 'highlight-phrase)
 (define-key hi-lock-map "\C-xwh" 'highlight-regexp)
 (define-key hi-lock-map "\C-xwr" 'unhighlight-regexp)
 (define-key hi-lock-map "\C-xwb" 'hi-lock-write-interactive-patterns)
@@ -243,13 +249,18 @@ calls."
   "Toggle minor mode for interactively adding font-lock highlighting patterns.
 
 If ARG positive turn hi-lock on.  Issuing a hi-lock command will also
-turn hi-lock on.  When hi-lock is turned on an \"Automatic Highlighting\"
+turn hi-lock on.  When hi-lock is turned on, a \"Regexp Highlighting\"
 submenu is added to the \"Edit\" menu.  The commands in the submenu,
 which can be called interactively, are:
 
 \\[highlight-regexp] REGEXP FACE
   Highlight matches of pattern REGEXP in current buffer with FACE.
 
+\\[highlight-phrase] PHRASE FACE
+  Highlight matches of phrase PHRASE in current buffer with FACE.
+  (PHRASE can be any REGEXP, but spaces will be replaced by matches
+  to whitespace and initial lower-case letters will become case insensitive.)
+ 
 \\[highlight-lines-matching-regexp] REGEXP FACE
   Highlight lines containing matches of REGEXP in current buffer with FACE.
 
@@ -278,22 +289,26 @@ is found. A mode is excluded if it's in the list `hi-lock-exclude-modes'."
   (interactive)
   (let ((hi-lock-mode-prev hi-lock-mode))
     (setq hi-lock-mode
-           (if (null arg) (not hi-lock-mode)
-             (> (prefix-numeric-value arg) 0)))
+          (if (null arg) (not hi-lock-mode)
+            (> (prefix-numeric-value arg) 0)))
     ;; Turned on.
     (when (and (not hi-lock-mode-prev) hi-lock-mode)
-      (if (not font-lock-mode) (turn-on-font-lock))
       (add-hook 'find-file-hooks 'hi-lock-find-file-hook)
       (add-hook 'font-lock-mode-hook 'hi-lock-font-lock-hook)
       (define-key-after menu-bar-edit-menu [hi-lock]
-        (cons "Automatic Highlighting" hi-lock-menu))
-      (hi-lock-find-patterns))
+        (cons "Regexp Highlighting" hi-lock-menu))
+      (dolist (buffer (buffer-list))
+        (with-current-buffer buffer (hi-lock-find-patterns))))
     ;; Turned off.
     (when (and hi-lock-mode-prev (not hi-lock-mode))
-      (font-lock-remove-keywords nil hi-lock-interactive-patterns)
-      (font-lock-remove-keywords nil hi-lock-file-patterns)
-      (setq hi-lock-interactive-patterns nil)
-      (hi-lock-refontify)
+      (dolist (buffer (buffer-list))
+        (with-current-buffer buffer
+          (when (or hi-lock-interactive-patterns hi-lock-file-patterns)
+            (font-lock-remove-keywords nil hi-lock-interactive-patterns)
+            (font-lock-remove-keywords nil hi-lock-file-patterns)
+            (setq hi-lock-interactive-patterns nil
+                  hi-lock-file-patterns nil)
+            (when font-lock-mode (hi-lock-refontify)))))
       (define-key-after menu-bar-edit-menu [hi-lock] nil)
       (remove-hook 'find-file-hooks 'hi-lock-find-file-hook)
       (remove-hook 'font-lock-mode-hook 'hi-lock-font-lock-hook))))
@@ -303,7 +318,7 @@ is found. A mode is excluded if it's in the list `hi-lock-exclude-modes'."
 (defalias 'highlight-lines-matching-regexp 'hi-lock-line-face-buffer)
 ;;;###autoload
 (defun hi-lock-line-face-buffer (regexp &optional face)
-  "Set face of all lines containing matches of REGEXP to FACE.
+  "Set face of all lines containing a match of REGEXP to FACE.
 
 Interactively, prompt for REGEXP then FACE.  Buffer-local history
 list maintained for regexps, global history maintained for faces.
@@ -321,11 +336,12 @@ list maintained for regexps, global history maintained for faces.
   (hi-lock-set-pattern
    (list (concat "^.*" regexp ".*$") (list 0 (list 'quote face) t))))
 
+
 ;;;###autoload
 (defalias 'highlight-regexp 'hi-lock-face-buffer)
 ;;;###autoload
 (defun hi-lock-face-buffer (regexp &optional face)
-  "Set face of all matches of REGEXP to FACE.
+  "Set face of each match of REGEXP to FACE.
 
 Interactively, prompt for REGEXP then FACE.  Buffer-local history
 list maintained for regexps, global history maintained for faces.
@@ -343,14 +359,34 @@ list maintained for regexps, global history maintained for faces.
   (hi-lock-set-pattern (list regexp (list 0 (list 'quote face) t))))
 
 ;;;###autoload
+(defalias 'highlight-phrase 'hi-lock-face-phrase-buffer)
+;;;###autoload
+(defun hi-lock-face-phrase-buffer (regexp &optional face)
+  "Set face of each match of phrase REGEXP to FACE.
+
+Whitespace in REGEXP converted to arbitrary whitespace and initial
+lower-case letters made case insensitive."
+  (interactive
+   (list
+    (hi-lock-regexp-okay
+     (hi-lock-process-phrase
+      (read-from-minibuffer "Phrase to highlight: "
+                            (cons (or (car hi-lock-regexp-history) "") 1 )
+                            nil nil 'hi-lock-regexp-history)))
+    (hi-lock-read-face-name)))
+  (or (facep face) (setq face 'rwl-yellow))
+  (unless hi-lock-mode (hi-lock-mode))
+  (hi-lock-set-pattern (list regexp (list 0 (list 'quote face) t))))
+
+;;;###autoload
 (defalias 'unhighlight-regexp 'hi-lock-unface-buffer)
 ;;;###autoload
 (defun hi-lock-unface-buffer (regexp)
-  "Remove highlighting of matches to REGEXP set by hi-lock.
+  "Remove highlighting of each match to REGEXP set by hi-lock.
 
 Interactively, prompt for REGEXP.  Buffer-local history of inserted
 regexp's maintained.  Will accept only regexps inserted by hi-lock
-interactive functions. \(See `hi-lock-interactive-patterns'.\)
+interactive functions.  \(See `hi-lock-interactive-patterns'.\)
 \\<minibuffer-local-must-match-map>Use \\[minibuffer-complete] to complete a partially typed regexp.
 \(See info node `Minibuffer History'.\)"
   (interactive
@@ -416,6 +452,19 @@ be found in variable `hi-lock-interactive-patterns'."
 
 ;; Implementation Functions
 
+(defun hi-lock-process-phrase (phrase)
+  "Convert regexp PHRASE to a regexp that matches phrases.
+
+Blanks in PHRASE replaced by regexp that matches arbitrary whitespace
+and initial lower-case letters made case insensitive."
+  (let ((mod-phrase nil))
+    (setq mod-phrase
+          (replace-regexp-in-string
+           "\\<[a-z]" (lambda (m) (format "[%s%s]" (upcase m) m)) phrase))
+    (setq mod-phrase
+          (replace-regexp-in-string
+           "\\s-+" "[ \t\n]+" mod-phrase nil t))))
+
 (defun hi-lock-regexp-okay (regexp)
   "Return REGEXP if it appears suitable for a font-lock pattern.
 
@@ -467,25 +516,17 @@ Optional argument END is maximum excursion."
 
 (defun hi-lock-set-file-patterns (patterns)
   "Replace file patterns list with PATTERNS and refontify."
-  (font-lock-remove-keywords nil hi-lock-file-patterns)
-  (setq hi-lock-file-patterns patterns)
-  (font-lock-add-keywords nil hi-lock-file-patterns)
-  (hi-lock-refontify))
+  (when (or hi-lock-file-patterns patterns)
+    (font-lock-remove-keywords nil hi-lock-file-patterns)
+    (setq hi-lock-file-patterns patterns)
+    (font-lock-add-keywords nil hi-lock-file-patterns)
+    (hi-lock-refontify)))
 
 (defun hi-lock-refontify ()
   "Unfontify then refontify buffer.  Used when hi-lock patterns change."
   (interactive)
-  (font-lock-unfontify-buffer)
-  (cond
-   (jit-lock-mode (jit-lock-refontify))
-   ;; Need a better way, since this assumes too much about lazy lock.
-   (lazy-lock-mode
-    (let ((windows (get-buffer-window-list (current-buffer) 'nomini t)))
-	(while windows
-	  (lazy-lock-fontify-window (car windows))
-	  (setq windows (cdr windows)))))
-   (t (font-lock-fontify-buffer))))
-
+  (unless font-lock-mode (font-lock-mode 1))
+  (font-lock-fontify-buffer))
 
 (defun hi-lock-find-patterns ()
   "Find patterns in current buffer for hi-lock."
@@ -499,23 +540,18 @@ Optional argument END is maximum excursion."
         (re-search-forward target-regexp
                            (+ (point) hi-lock-file-patterns-range) t)
         (beginning-of-line)
-        (while
-            (and
-             (re-search-forward target-regexp (+ (point) 100) t)
-             (not (looking-at "\\s-*end")))
-          (let
-              ((patterns
-                (condition-case nil
-                    (read (current-buffer))
-                  (error  (message
-                           (format "Could not read expression at %d"
-                                   (hi-lock-current-line))) nil))))
+        (while (and (re-search-forward target-regexp (+ (point) 100) t)
+		    (not (looking-at "\\s-*end")))
+          (let ((patterns
+		 (condition-case nil
+		     (read (current-buffer))
+		   (error  (message
+			    (format "Could not read expression at %d"
+				    (hi-lock-current-line))) nil))))
             (if patterns
                 (setq all-patterns (append patterns all-patterns))))))
-      (if (and (not hi-lock-mode) all-patterns)
-          (hi-lock-mode 1))
       (unless font-lock-mode (font-lock-mode))
-      (if hi-lock-mode (hi-lock-set-file-patterns all-patterns))
+      (when hi-lock-mode (hi-lock-set-file-patterns all-patterns))
       (if (interactive-p)
         (message (format "Hi-lock added %d patterns." (length all-patterns)))))))
 
