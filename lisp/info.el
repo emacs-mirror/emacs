@@ -1986,6 +1986,7 @@ parent node."
   (let ((Info-history nil))
     (Info-goto-node (Info-extract-menu-node-name))))
 
+;;;###autoload
 (defun Info-index (topic)
   "Look up a string TOPIC in the index for this file.
 The index is defined as the first node in the top level menu whose
