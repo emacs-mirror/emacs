@@ -493,8 +493,7 @@ Use \\[edit-tab-stops] to edit them interactively."
       (setq tabs (cdr tabs)))
     (if tabs
 	(let ((opoint (point)))
-	  (skip-chars-backward " \t")
-	  (delete-region (point) opoint)
+	  (delete-horizontal-space t)
 	  (indent-to (car tabs)))
       (insert ?\ ))))
 
