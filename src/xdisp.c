@@ -8625,7 +8625,9 @@ redisplay_window (window, just_this_one_p)
 
   /* If someone specified a new starting point but did not insist,
      check whether it can be used.  */
-  if (!NILP (w->optional_new_start))
+  if (!NILP (w->optional_new_start)
+      && CHARPOS (startp) >= BEGV
+      && CHARPOS (startp) <= ZV)
     {
       w->optional_new_start = Qnil;
       /* This takes a mini-buffer prompt into account.  */
