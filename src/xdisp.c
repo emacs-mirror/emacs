@@ -637,11 +637,13 @@ static enum prop_handled handle_display_prop P_ ((struct it *));
 static enum prop_handled handle_composition_prop P_ ((struct it *));
 static enum prop_handled handle_overlay_change P_ ((struct it *));
 static enum prop_handled handle_fontified_prop P_ ((struct it *));
+static enum prop_handled handle_auto_composed_prop P_ ((struct it *));
 
 /* Properties handled by iterators.  */
 
 static struct props it_props[] =
 {
+  {&Qauto_composed,	AUTO_COMPOSED_PROP_IDX,	handle_auto_composed_prop},
   {&Qfontified,		FONTIFIED_PROP_IDX,	handle_fontified_prop},
   /* Handle `face' before `display' because some sub-properties of
      `display' need to know the face.  */
@@ -3284,6 +3286,44 @@ string_buffer_position (w, string, around_charpos)
 /***********************************************************************
 			`composition' property
  ***********************************************************************/
+
+static enum prop_handled
+handle_auto_composed_prop (it)
+     struct it *it;
+{
+  enum prop_handled handled = HANDLED_NORMALLY;
+
+  if (! NILP (Vauto_composition_function))
+    {
+      Lisp_Object val;
+      int pos;
+
+      if (STRINGP (it->string))
+	pos = IT_STRING_CHARPOS (*it);
+      else
+	pos = IT_CHARPOS (*it);
+
+      val =Fget_char_property (make_number (pos), Qauto_composed, it->string);
+      if (NILP (val))
+	{
+	  int count = BINDING_STACK_SIZE ();
+	  Lisp_Object args[3];
+
+	  args[0] = Vauto_composition_function;
+	  specbind (Qauto_composition_function, Qnil);
+	  args[1] = make_number (pos);
+	  args[2] = it->string;
+	  safe_call (3, args);
+	  unbind_to (count, Qnil);
+
+	  val = Fget_char_property (args[1], Qauto_composed, it->string);
+	  if (! NILP (val))
+	    handled = HANDLED_RECOMPUTE_PROPS;
+	}
+    }
+
+  return handled;
+}
 
 /* Set up iterator IT from `composition' property at its current
    position.  Called from handle_stop.  */
