@@ -172,6 +172,12 @@ Lisp_Object Vprefix_help_command;
 /* List of items that should move to the end of the menu bar.  */
 Lisp_Object Vmenu_bar_final_items;
 
+/* Non-nil means show the equivalent key-binding for
+   any M-x command that has one.
+   The value can be a length of time to show the message for.
+   If the value is non-nil and not a number, we wait 2 seconds.  */
+Lisp_Object Vsuggest_key_bindings;
+
 /* Character that causes a quit.  Normally C-g.
 
    If we are running on an ordinary terminal, this must be an ordinary
@@ -6367,7 +6373,74 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
   current_kboard->Vprefix_arg = prefixarg;
   this_command = function;
 
+  /* If enabled, show which key runs this command.  */
+  if (!NILP (Vsuggest_key_bindings)
+      && SYMBOLP (function))
+    {
+      Lisp_Object *maps, bindings;
+      int nmaps, i;
+
+      bindings = Qnil;
+      nmaps = current_active_maps (&maps);
+
+      for (i = 0; i < nmaps && NILP (bindings); i++)
+	bindings = Fwhere_is_internal (function, maps[i], Qt, Qnil);
+
+      free (maps);
+
+      if (!NILP (bindings))
+	{
+	  message ("You can run the command `%s' by typing %s",
+		   XSYMBOL (function)->name->data,
+		   XSTRING (Fkey_description (bindings))->data);
+	  Fsit_for ((NUMBERP (Vsuggest_key_bindings)
+		     ? Vsuggest_key_bindings : make_number (2)),
+		    Qnil, Qnil);
+	}
+    }
+
   return Fcommand_execute (function, Qt);
+}
+
+/* Find the set of keymaps now active.
+   Store into *MAPS_P a vector holding the various maps
+   and return the number of them.  The vector was malloc'd
+   and the caller should free it.  */
+
+int
+current_active_maps (maps_p)
+     Lisp_Object **maps_p;
+{
+  Lisp_Object *tmaps, *maps;
+  int nmaps;
+
+  /* Should overriding-terminal-local-map and overriding-local-map apply?  */
+  if (!NILP (Voverriding_local_map_menu_flag))
+    {
+      /* Yes, use them (if non-nil) as well as the global map.  */
+      maps = (Lisp_Object *) xmalloc (3 * sizeof (maps[0]));
+      nmaps = 0;
+      if (!NILP (current_kboard->Voverriding_terminal_local_map))
+	maps[nmaps++] = current_kboard->Voverriding_terminal_local_map;
+      if (!NILP (Voverriding_local_map))
+	maps[nmaps++] = Voverriding_local_map;
+    }
+  else
+    {
+      /* No, so use major and minor mode keymaps.  */
+      nmaps = current_minor_maps (NULL, &tmaps);
+      maps = (Lisp_Object *) xmalloc ((nmaps + 2) * sizeof (maps[0]));
+      bcopy (tmaps, maps, nmaps * sizeof (maps[0]));
+#ifdef USE_TEXT_PROPERTIES
+      maps[nmaps++] = get_local_map (PT, current_buffer);
+#else
+      maps[nmaps++] = current_buffer->keymap;
+#endif
+    }
+  maps[nmaps++] = current_global_map;
+
+  *maps_p = maps;
+  return nmaps;
 }
 
 
@@ -7407,6 +7480,12 @@ The precise format isn't relevant here; we just check whether it is nil.");
 This function is called with no arguments after each command\n\
 whenever `deferred-action-list' is non-nil.");
   Vdeferred_action_function = Qnil;
+
+  DEFVAR_LISP ("suggest-key-bindings", &Vsuggest_key_bindings,
+    "Non-nil means show the equivalent key-binding when M-x command has one.\n\
+The value can be a length of time to show the message for.\n\
+If the value is non-nil and not a number, we wait 2 seconds.");
+  Vsuggest_key_bindings = Qt;
 }
 
 keys_of_keyboard ()
