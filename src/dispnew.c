@@ -1904,7 +1904,7 @@ the current state.\n")
   if (*vecp == Qlambda)
     return Qnil;
  changed:
-  /* Start with 1 so there is room for at least on lambda at the end.  */
+  /* Start with 1 so there is room for at least one lambda at the end.  */
   n = 1;
   FOR_EACH_FRAME (tail, frame)
     n++;
