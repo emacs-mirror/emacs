@@ -282,10 +282,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.17 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.18 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.17 1995/06/17 13:00:22 rms Exp jvromans $")
+  $Id: forms.el,v 2.18 1995/06/18 14:43:23 jvromans Exp jvromans $")
 
 (defvar forms-mode-hooks nil
   "Hook functions to be run upon entering Forms mode.")
@@ -619,7 +619,7 @@ Commands:                        Equivalent keys in read-only mode:
 	  (save-excursion
 	    (set-buffer forms--file-buffer)
 	    (make-variable-buffer-local 'local-write-file-hooks)
-	    (setq local-write-file-hooks write-file-filter)))))
+	    (setq local-write-file-hooks (list write-file-filter))))))
 
   ;; count the number of records, and set see if it may be modified
   (let (ro)
