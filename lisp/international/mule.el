@@ -1204,6 +1204,14 @@ usual for visiting a file."
   (let ((coding-system-for-read coding-system))
     (revert-buffer)))
 
+(defun set-file-name-coding-system (coding-system)
+  "Set coding system for decoding and encoding file names to CODING-SYSTEM.
+It actually just set the variable `file-name-coding-system' (which
+see) to CODING-SYSTEM."
+  (interactive "zCoding system for file names (default, nil): ")
+  (check-coding-system coding-system)
+  (setq file-name-coding-system coding-system))
+
 (defvar default-terminal-coding-system nil
   "Default value for the terminal coding system.
 This is normally set according to the selected language environment.
