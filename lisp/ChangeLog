@@ -9,6 +9,13 @@
 	* progmodes/compile.el (compilation-parse-errors): Use
 	compilation-buffer-p instead of testing major-mode.
 
+1999-11-18  Dave Pearson  <davep@hagbard.demon.co.uk>
+
+	* quickurl.el Added defcustom of quickurl-completion-ignore-case.
+	(quickurl-ask): completion-ignore-case is set to the value of
+	quickurl-completion-ignore-case for the duration of the call to
+	completing-read.
+	
 1999-11-18  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* mail/rmailedit.el (rmail-cease-edit): Run rmail-mode-hook.
