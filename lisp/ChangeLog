@@ -7,8 +7,8 @@
 
 	* bookmark.el: Provide a generic exit hook, as suggested by
 	Ovidiu Predescu <ovidiu@cup.hp.com>:
-	(bookmark-exit-hook): new var.
-	(bookmark-exit-hook-internal): new func, replaces
+	(bookmark-exit-hook): New var.
+	(bookmark-exit-hook-internal): New func, replaces
 	old raw lambda form in `kill-emacs-hook', and runs new
 	`bookmark-exit-hooks'.  No longer tests for the bookmark feature,
 	as logically that feature must have been provided if this function
@@ -70,7 +70,7 @@
 
 	* term/mac-win.el: Remove load for ls-lisp.
 
-	* loadup.el: Load ls-lisp for system-type macros.
+	* loadup.el: Load ls-lisp for system-type `macos'.
 
 2000-12-12  Miles Bader  <miles@gnu.org>
 
