@@ -248,6 +248,7 @@ message_dolog (m, len, nlflag)
     {
       struct buffer *oldbuf;
       int oldpoint, oldbegv, oldzv;
+      int old_windows_or_buffers_changed = windows_or_buffers_changed;
 
       oldbuf = current_buffer;
       Fset_buffer (Fget_buffer_create (build_string ("*Messages*")));
@@ -316,6 +317,7 @@ message_dolog (m, len, nlflag)
       ZV = oldzv;
       TEMP_SET_PT (oldpoint);
       set_buffer_internal (oldbuf);
+      windows_or_buffers_changed = old_windows_or_buffers_changed;
       message_log_need_newline = !nlflag;
     }
 }
