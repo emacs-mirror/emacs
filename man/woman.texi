@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: woman.texi,v 1.15 2003/09/30 20:42:15 rms Exp $
+@c $Id: woman.texi,v 1.16 2003/11/02 07:01:19 eliz Exp $
 @c %**start of header
 @setfilename ../info/woman
 @settitle WoMan: Browse Unix Manual Pages ``W.O. (without) Man''

@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.359 2003/07/06 19:08:13 jpw Exp $
+;; $Id: vc.el,v 1.360 2003/09/01 15:45:17 miles Exp $
 
 ;; This file is part of GNU Emacs.
 

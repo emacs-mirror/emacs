@@ -6,7 +6,7 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @comment %**end of header
-@comment $Id: info.texi,v 1.36 2003/09/21 20:13:23 karl Exp $
+@comment $Id: info.texi,v 1.37 2003/10/27 00:01:25 karl Exp $
 
 @copying
 This file describes how to use Info, the on-line, menu-driven GNU

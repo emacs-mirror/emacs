@@ -23,7 +23,7 @@
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 #
-#	$Id: vcdiff,v 1.7 2001/02/20 12:36:28 gerd Exp $
+#	$Id: vcdiff,v 1.8 2003/09/01 15:45:03 miles Exp $
 #
 
 DIFF="diff"

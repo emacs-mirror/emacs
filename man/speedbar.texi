@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: speedbar.texi,v 1.12 2003/09/01 15:45:46 miles Exp $
+@c $Id: speedbar.texi,v 1.13 2003/10/08 22:02:52 nickrob Exp $
 
 @setfilename ../info/speedbar
 @settitle Speedbar: File/Tag summarizing utility

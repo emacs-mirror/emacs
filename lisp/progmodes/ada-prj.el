@@ -3,7 +3,7 @@
 ;; Copyright (C) 1998, 99, 2000-2003 Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.12 $
+;; Ada Core Technologies's version:   $Revision: 1.13 $
 ;; Keywords: languages, ada, project file
 
 ;; This file is part of GNU Emacs.

@@ -30,7 +30,7 @@ use Mail::Address;
 use Date::Parse;
 
 my($whoami) = basename $0;
-my($version) = '$Revision: 1.5 $';
+my($version) = '$Revision: 1.6 $';
 my($usage) = "Usage: $whoami [--help] [--version] [--[no]full-headers] [Babyl-file]
 \tBy default, full headers are printed.\n";
 

@@ -301,10 +301,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.48 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.49 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.48 2003/05/29 23:53:21 monnier Exp $")
+  $Id: forms.el,v 2.49 2003/09/01 15:45:12 miles Exp $")
 
 (defcustom forms-mode-hook nil
   "Hook run upon entering Forms mode."

@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id$
+;; $Id: vc-cvs.el,v 1.66 2003/10/01 13:22:53 fx Exp $
 
 ;; This file is part of GNU Emacs.
 

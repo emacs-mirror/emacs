@@ -6,7 +6,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.159 2003/08/30 10:56:38 eliz Exp $
+;; $Id: vc-hooks.el,v 1.160 2003/09/01 15:45:17 miles Exp $
 
 ;; This file is part of GNU Emacs.
 

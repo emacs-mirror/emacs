@@ -6,7 +6,7 @@
 ;; Maintainer: Noah Friedman <friedman@splode.com>
 ;; Keywords: unix, comm
 
-;; $Id: rlogin.el,v 1.4 2003/05/06 17:46:28 lektu Exp $
+;; $Id: rlogin.el,v 1.5 2003/09/01 15:45:33 miles Exp $
 
 ;; This file is part of GNU Emacs.
 
