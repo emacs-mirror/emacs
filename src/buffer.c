@@ -543,6 +543,7 @@ reset_buffer (b)
   b->extra2 = Qnil;
   b->extra3 = Qnil;
   b->enable_multibyte_characters = buffer_defaults.enable_multibyte_characters;
+  b->cursor_type = buffer_defaults.cursor_type;
 }
 
 /* Reset buffer B's local variables info.
@@ -3894,6 +3895,7 @@ init_buffer_once ()
   buffer_defaults.truncate_lines = Qnil;
   buffer_defaults.ctl_arrow = Qt;
   buffer_defaults.direction_reversed = Qnil;
+  buffer_defaults.cursor_type = Qt;
 
 #ifdef DOS_NT
   buffer_defaults.buffer_file_type = Qnil; /* TEXT */
@@ -3937,6 +3939,7 @@ init_buffer_once ()
   XSETINT (buffer_local_flags.display_count, -1);
   XSETINT (buffer_local_flags.display_time, -1);
   XSETINT (buffer_local_flags.enable_multibyte_characters, -1);
+  XSETINT (buffer_local_flags.cursor_type, -1);
 
   idx = 1;
   XSETFASTINT (buffer_local_flags.mode_line_format, idx); ++idx;
@@ -4704,6 +4707,16 @@ text properties.  If the value is a list, disregard `buffer-read-only'\n\
 and disregard a `read-only' text property if the property value\n\
 is a member of the list.");
   Vinhibit_read_only = Qnil;
+
+  DEFVAR_PER_BUFFER ("cursor-type", &current_buffer->cursor_type, Qnil,
+    "Cursor to use in window displaying this buffer.\n\
+Values are interpreted as follows:\n\
+\n\
+  t 		use the cursor specified for the frame\n\
+  nil		don't display a cursor\n\
+  `bar'		display a bar cursor with default width\n\
+  (bar . WIDTH)	display a bar cursor with width WIDTH\n\
+  others	display a box cursor.");
 
   DEFVAR_LISP ("kill-buffer-query-functions", &Vkill_buffer_query_functions,
     "List of functions called with no args to query before killing a buffer.");
