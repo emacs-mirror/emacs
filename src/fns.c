@@ -3082,10 +3082,11 @@ particular subfeatures supported in this version of FEATURE.  */)
 
 Lisp_Object require_nesting_list;
 
+Lisp_Object
 require_unwind (old_value)
      Lisp_Object old_value;
 {
-  require_nesting_list = old_value;
+  return require_nesting_list = old_value;
 }
 
 DEFUN ("require", Frequire, Srequire, 1, 3, 0,
