@@ -10961,7 +10961,6 @@ Text larger than the specified size is clipped.  */)
 {
   struct frame *f;
   struct window *w;
-  Lisp_Object buffer, top, left, max_width, max_height;
   int root_x, root_y;
   struct buffer *old_buffer;
   struct text_pos pos;
