@@ -3905,11 +3905,11 @@ x_draw_image_foreground (s)
 	  SetBkColor (s->hdc, RGB (0, 0, 0));
 
 	  BitBlt (s->hdc, x, y, s->img->width, s->img->height,
-		  compat_hdc, 0, 0, 0x990066);
+		  compat_hdc, 0, 0, SRCINVERT);
 	  BitBlt (s->hdc, x, y, s->img->width, s->img->height,
 		  mask_dc, 0, 0, SRCAND);
 	  BitBlt (s->hdc, x, y, s->img->width, s->img->height,
-		  compat_hdc, 0, 0, 0x990066);
+		  compat_hdc, 0, 0, SRCINVERT);
 
 	  SelectObject (mask_dc, mask_orig_obj);
 	  DeleteDC (mask_dc);
@@ -3920,8 +3920,7 @@ x_draw_image_foreground (s)
 	  SetBkColor (s->hdc, s->gc->background);
 
           BitBlt (s->hdc, x, y, s->img->width, s->img->height,
-                  compat_hdc, 0, 0, NOTSRCCOPY);
-	  /* Meadow uses 0xE20746, previously SRCCOPY and 0xB8074A.  */
+                  compat_hdc, 0, 0, SRCCOPY);
 
 	  /* When the image has a mask, we can expect that at
 	     least part of a mouse highlight or a block cursor will
@@ -4055,7 +4054,7 @@ w32_draw_image_foreground_1 (s, pixmap)
 	  SetBkColor (hdc, s->gc->background);
 
           BitBlt (hdc, x, y, s->img->width, s->img->height,
-                  compat_hdc, 0, 0, NOTSRCCOPY);
+                  compat_hdc, 0, 0, SRCCOPY);
 
 	  /* When the image has a mask, we can expect that at
 	     least part of a mouse highlight or a block cursor will
