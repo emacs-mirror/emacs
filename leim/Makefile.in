@@ -233,7 +233,7 @@ install: all
 	-chmod -R a+r ${INSTALLDIR}
 
 clean mostlyclean:
-	rm -f ${TIT-MISC} ${TIT-MISC:.elc=.el}
+	rm -f ${TIT-MISC} ${TIT-MISC:.elc=.el} \
 		leim-list.el changed.tit changed.misc
 
 distclean: clean
