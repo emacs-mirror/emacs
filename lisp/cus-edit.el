@@ -1130,7 +1130,7 @@ Reset all values in this buffer to their standard settings."
     (widget-insert "\
 Square brackets show active fields; type RET or click mouse-1
 on an active field to invoke its action.
-Invoke [+] or [?] below to expand items, and [-] to collapse items.\n")
+Invoke [+] below to expand a group, and [-] to collapse an expanded group.\n")
     (if custom-browse-only-groups
 	(widget-insert "\
 Invoke the [Group] button below to edit that item in another window.\n\n")
@@ -2566,7 +2566,7 @@ and so forth.  The remaining group tags are shown with
 	   (push (widget-create-child-and-convert
 		  widget 'custom-browse-visibility 
 		  ;; :tag-glyph "plus"
-		  :tag (if (custom-unloaded-widget-p widget) "?" "+"))
+		  :tag "+")
 		 buttons)
 	   (insert "-- ")
 	   ;; (widget-glyph-insert nil "-- " "horizontal")
