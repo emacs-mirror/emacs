@@ -137,6 +137,23 @@ quote_file_name (name)
 
   return copy;
 }
+
+#ifdef C_ALLOCA
+/* Like malloc but get fatal error if memory is exhausted.  */
+
+char *
+xmalloc (size)
+     unsigned int size;
+{
+  char *result = (char *) malloc (size);
+  if (result == NULL)
+  {
+    perror ("malloc");
+    exit (1);
+  }
+  return result;
+}
+#endif /* C_ALLOCA */
 
 #if !defined (HAVE_SOCKETS) && !defined (HAVE_SYSVIPC)
 
