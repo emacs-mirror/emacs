@@ -1,5 +1,7 @@
 2004-09-23  Kim F. Storm  <storm@cua.dk>
 
+	* image.el (insert-sliced-image): Add doc string.
+
 	* ido.el (ido-choice-list): New dynamic var for `list' context.
 	(ido-context-switch-command): New dynamic var.
 	(ido-define-mode-map): Generalize switch between file/buffer contexts.

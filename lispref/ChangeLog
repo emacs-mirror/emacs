@@ -1,3 +1,25 @@
+2004-09-23  Kim F. Storm  <storm@cua.dk>
+
+	* text.texi (Special Properties): Add `cursor', `pointer',
+	`line-height', and `line-spacing' properties.
+
+	* display.texi (Display): Add 'Fringe Bitmaps' and 'Pointer
+	Shapes' to menu.
+	(Standard Faces): Doc fix for fringe face.
+	(Fringes): Add `overflow-newline-into-fringe' and
+	'indicate-buffer-boundaries'.
+	(Fringe Bitmaps, Pointer Shapes): New nodes.
+	(Display Property): Add 'Pixel Specification' and 'Display Fringe
+	Bitmaps' to menu.
+	(Specified Space): Describe pixel width and height.
+	(Pixel Specification): New node.
+	(Other Display Specs): Add `slice' property.
+	(Display Fringe Bitmaps): New node.
+	(Images): Add 'Image Slices' to menu.
+	(Image Descriptors): Add `:pointer' and `:map' properties.
+	(Showing Images): Add slice arg to `insert-image'.  Add
+	'insert-sliced-image'.
+
 2004-09-20  Richard M. Stallman  <rms@gnu.org>
 
 	* commands.texi (Key Sequence Input):
