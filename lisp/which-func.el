@@ -188,21 +188,21 @@ With prefix ARG, turn Which Function mode on iff arg is positive,
 and off otherwise."
   (interactive "P")
   (setq which-func-mode-global
-	(or (and (null arg) which-func-mode-global)
-	    (<= (prefix-numeric-value arg) 0)))
+        (and (or arg (not which-func-mode-global))
+             (> (prefix-numeric-value arg) 0)))
   (if which-func-mode-global
-      ;; Turn it off
+      ;;Turn it on
       (progn
-	(remove-hook 'post-command-idle-hook 'which-func-update)
-	(dolist (buf (buffer-list))
-	  (with-current-buffer buf (setq which-func-mode nil))))
-    ;;Turn it on
-    (add-hook 'post-command-idle-hook 'which-func-update)
+        (add-hook 'post-command-idle-hook 'which-func-update)
+        (dolist (buf (buffer-list))
+          (with-current-buffer buf
+            (setq which-func-mode
+                  (or (eq which-func-modes t)
+                      (member major-mode which-func-modes))))))
+    ;; Turn it off
+    (remove-hook 'post-command-idle-hook 'which-func-update)
     (dolist (buf (buffer-list))
-      (with-current-buffer buf
-	(setq which-func-mode
-	      (or (eq which-func-modes t)
-		  (member major-mode which-func-modes)))))))
+      (with-current-buffer buf (setq which-func-mode nil)))))
 
 (defun which-function ()
   "Return current function name based on point.
