@@ -66,8 +66,7 @@
 ;;;   The following three lines are required:
 ;;; (display-time)
 ;;; (autoload 'appt-make-list "appt.el" nil t)
-;;; (setq diary-display-hook 
-;;;     (list 'appt-make-list 'prepare-fancy-diary-buffer))
+;;; (add-hook 'diary-hook 'appt-make-list)
 ;;;
 ;;; 
 ;;;  This is an example of what can be in your diary file:
