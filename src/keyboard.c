@@ -3059,23 +3059,26 @@ read_avail_input (expected)
       /* Now read; for one reason or another, this will not block.  */
       while (1)
 	{
-	  nread = read (fileno (stdin), cbuf, nread);
+	  int value = read (fileno (stdin), cbuf, nread);
 #ifdef AIX
 	  /* The kernel sometimes fails to deliver SIGHUP for ptys.
 	     This looks incorrect, but it isn't, because _BSD causes
 	     O_NDELAY to be defined in fcntl.h as O_NONBLOCK,
 	     and that causes a value other than 0 when there is no input.  */
-	  if (nread == 0)
+	  if (value == 0)
 	    kill (SIGHUP, 0);
 #endif
 	  /* Retry the read if it is interrupted.  */
-	  if (nread >= 0
+	  if (value >= 0
 	      || ! (errno == EAGAIN || errno == EFAULT
 #ifdef EBADSLT
 		    || errno == EBADSLT
 #endif
 		    ))
-	    break;
+	    {
+	      nread = value;
+	      break;
+	    }
 	}
 
 #ifndef FIONREAD
