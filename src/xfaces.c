@@ -6398,13 +6398,21 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
             }
           else if (EQ (keyword, QCstyle))
             {
-              if (EQ (value, Qline))
-                face->underline = FACE_UNDERLINE_SINGLE;
-              else if (EQ (value, Qwave))
-                face->underline = FACE_UNDERLINE_WAVE;
-              else
-                face->underline = FACE_UNDERLINE_SINGLE;
-            }
+	      if (EQ (value, Qline))
+		face->underline = FACE_UNDERLINE_SINGLE;
+	      else if (EQ (value, Qdouble_line))
+		face->underline = FACE_UNDERLINE_DOUBLE_LINE;
+	      else if (EQ (value, Qwave))
+		face->underline = FACE_UNDERLINE_WAVE;
+#if 0
+	      else if (EQ (value, Qdots))
+		face->underline = FACE_UNDERLINE_DOTS;
+	      else if (EQ (value, Qdashes))
+		face->underline = FACE_UNDERLINE_DASHES;
+#endif /* 0 */
+	      else
+		face->underline = FACE_UNDERLINE_SINGLE;
+	    }
 	  else if (EQ (keyword, QCposition))
 	    {
 	      face->underline_at_descent_line_p = !NILP (value);

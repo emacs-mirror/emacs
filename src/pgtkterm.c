@@ -2553,13 +2553,17 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 	      else
 		pgtk_draw_underwave (s, s->face->underline_color);
 	    }
-	  else if (s->face->underline == FACE_UNDERLINE_SINGLE)
+	  else if (s->face->underline == FACE_UNDERLINE_SINGLE
+		   || s->face->underline == FACE_UNDERLINE_DOUBLE_LINE)
 	    {
 	      unsigned long thickness, position;
 	      int y;
+	      unsigned long foreground;
 
 	      if (s->prev
-		  && s->prev->face->underline == FACE_UNDERLINE_SINGLE
+		  && ((s->prev->face->underline == FACE_UNDERLINE_SINGLE)
+		      || (s->prev->face->underline
+			  == FACE_UNDERLINE_DOUBLE_LINE))
 		  && (s->prev->face->underline_at_descent_line_p
 		      == s->face->underline_at_descent_line_p)
 		  && (s->prev->face->underline_pixels_above_descent_line
@@ -2616,15 +2620,25 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 	      s->underline_thickness = thickness;
 	      s->underline_position = position;
 	      y = s->ybase + position;
+
 	      if (s->face->underline_defaulted_p)
-		pgtk_fill_rectangle (s->f, s->xgcv.foreground,
-				     s->x, y, s->width, thickness,
-				     false);
+		foreground = s->xgcv.foreground;
 	      else
+		foreground = s->face->underline_color;
+
+	      pgtk_fill_rectangle (s->f, foreground, s->x, y, s->width,
+				   thickness, false);
+
+	      /* Place a second underline above the first if this was
+		 requested in the face specification.  */
+
+	      if (s->face->underline == FACE_UNDERLINE_DOUBLE_LINE)
 		{
-		  pgtk_fill_rectangle (s->f, s->face->underline_color,
-				       s->x, y, s->width, thickness,
-				       false);
+		  /* Compute the position of the second underline.  */
+		  position = position - thickness - 1;
+		  y        = s->ybase + position;
+		  pgtk_fill_rectangle (s->f, foreground, s->x, y, s->width,
+				       thickness, false);
 		}
 	    }
 	}

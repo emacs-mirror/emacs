@@ -829,13 +829,15 @@ haiku_draw_text_decoration (struct glyph_string *s, struct face *face,
 
       if (face->underline == FACE_UNDERLINE_WAVE)
 	haiku_draw_underwave (s, width, x);
-      else if (face->underline == FACE_UNDERLINE_SINGLE)
+      else if (face->underline == FACE_UNDERLINE_SINGLE
+	       || face->underline == FACE_UNDERLINE_DOUBLE_LINE))
 	{
 	  unsigned long thickness, position;
 	  int y;
 
 	  if (s->prev
-	      && s->prev->face->underline == FACE_UNDERLINE_SINGLE
+	      && (s->prev->face->underline == FACE_UNDERLINE_SINGLE
+		  || s->prev->face->underline == FACE_UNDERLINE_DOUBLE_LINE)
 	      && (s->prev->face->underline_at_descent_line_p
 		  == s->face->underline_at_descent_line_p)
 	      && (s->prev->face->underline_pixels_above_descent_line
@@ -911,6 +913,17 @@ haiku_draw_text_decoration (struct glyph_string *s, struct face *face,
 	  y = s->ybase + position;
 
 	  BView_FillRectangle (view, s->x, y, s->width, thickness);
+
+	  /* Place a second underline above the first if this was
+	     requested in the face specification.  */
+
+	  if (s->face->underline == FACE_UNDERLINE_DOUBLE_LINE)
+	    {
+	      /* Compute the position of the second underline.  */
+	      position = position - thickness - 1;
+	      y        = s->ybase + position;
+	      BView_FillRectangle (view, s->x, y, s->width, thickness);
+	    }
 	}
     }
 

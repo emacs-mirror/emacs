@@ -10735,10 +10735,10 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
 }
 
 static void
-x_get_scale_factor (Display *disp, int *scale_x, int *scale_y)
+x_get_scale_factor (struct x_display_info *dpyinfo,
+		    int *scale_x, int *scale_y)
 {
-  const int base_res = 96;
-  struct x_display_info * dpyinfo = x_display_info_for_display (disp);
+  int base_res = 96;
 
   *scale_x = *scale_y = 1;
 
@@ -10764,12 +10764,14 @@ x_get_scale_factor (Display *disp, int *scale_x, int *scale_y)
 static void
 x_draw_underwave (struct glyph_string *s, int decoration_width)
 {
-  Display *display = FRAME_X_DISPLAY (s->f);
-
+  Display *display;
+  struct x_display_info *dpyinfo;
   /* Adjust for scale/HiDPI.  */
   int scale_x, scale_y;
 
-  x_get_scale_factor (display, &scale_x, &scale_y);
+  dpyinfo = FRAME_DISPLAY_INFO (s->f);
+  display = dpyinfo->display;
+  x_get_scale_factor (dpyinfo, &scale_x, &scale_y);
 
   int wave_height = 3 * scale_y, wave_length = 2 * scale_x;
 
@@ -10971,13 +10973,16 @@ x_draw_glyph_string (struct glyph_string *s)
                   XSetForeground (display, s->gc, xgcv.foreground);
                 }
             }
-          else if (s->face->underline == FACE_UNDERLINE_SINGLE)
+          else if (s->face->underline == FACE_UNDERLINE_SINGLE
+		   || s->face->underline == FACE_UNDERLINE_DOUBLE_LINE)
             {
               unsigned long thickness, position;
               int y;
 
               if (s->prev
-		  && s->prev->face->underline == FACE_UNDERLINE_SINGLE
+		  && ((s->prev->face->underline == FACE_UNDERLINE_SINGLE)
+		      || (s->prev->face->underline
+			  == FACE_UNDERLINE_DOUBLE_LINE))
 		  && (s->prev->face->underline_at_descent_line_p
 		      == s->face->underline_at_descent_line_p)
 		  && (s->prev->face->underline_pixels_above_descent_line
@@ -11054,22 +11059,40 @@ x_draw_glyph_string (struct glyph_string *s)
                 thickness = (s->y + s->height) - (s->ybase + position);
               s->underline_thickness = thickness;
               s->underline_position = position;
-              y = s->ybase + position;
-              if (s->face->underline_defaulted_p)
-                x_fill_rectangle (s->f, s->gc,
-				  s->x, y, decoration_width, thickness,
-				  false);
-              else
-                {
-                  Display *display = FRAME_X_DISPLAY (s->f);
-                  XGCValues xgcv;
-                  XGetGCValues (display, s->gc, GCForeground, &xgcv);
-                  XSetForeground (display, s->gc, s->face->underline_color);
-                  x_fill_rectangle (s->f, s->gc,
+
+	      {
+		Display *display = FRAME_X_DISPLAY (s->f);
+		XGCValues xgcv;
+
+		y = s->ybase + position;
+		if (s->face->underline_defaulted_p)
+		  x_fill_rectangle (s->f, s->gc,
 				    s->x, y, decoration_width, thickness,
 				    false);
-                  XSetForeground (display, s->gc, xgcv.foreground);
-                }
+		else
+		  {
+		    XGetGCValues (display, s->gc, GCForeground, &xgcv);
+		    XSetForeground (display, s->gc, s->face->underline_color);
+		    x_fill_rectangle (s->f, s->gc,
+				      s->x, y, decoration_width, thickness,
+				      false);
+		  }
+
+		/* Place a second underline above the first if this was
+		   requested in the face specification.  */
+
+		if (s->face->underline == FACE_UNDERLINE_DOUBLE_LINE)
+		  {
+		    /* Compute the position of the second underline.  */
+		    position = position - thickness - 1;
+		    y        = s->ybase + position;
+		    x_fill_rectangle (s->f, s->gc, s->x, y, decoration_width,
+				      thickness, false);
+		  }
+
+		if (!s->face->underline_defaulted_p)
+		  XSetForeground (display, s->gc, xgcv.foreground);
+	      }
             }
         }
       /* Draw overline.  */
