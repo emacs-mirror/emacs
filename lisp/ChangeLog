@@ -1,3 +1,8 @@
+2001-09-22  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info.el (Info-goto-node, Info-menu): Doc fix.  Suggested by
+	Roland Winkler <Roland.Winkler@physik.uni-erlangen.de>.
+
 2001-09-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dired.el (dired-build-subdir-alist): Accept optional arg
