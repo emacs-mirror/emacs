@@ -2,7 +2,7 @@
  *
  *                  ALLOCATION BUFFER IMPLEMENTATION
  *
- *  $HopeName: MMsrc/!buffer.c(trunk.1)$
+ *  $HopeName: MMsrc/!buffer.c(trunk.2)$
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -39,6 +39,10 @@
 #include "lib.h"
 #include "buffer.h"
 #include "pool.h"
+#include "space.h"
+#include "sched.h"
+#include "shield.h"
+#include "trace.h"
 
 
 #ifdef DEBUG_SIGN
@@ -64,6 +68,12 @@ Pool BufferPool(Buffer buffer)
   pool = PARENT(PoolStruct, bufferDeque, deque);
   
   return pool;
+}
+
+
+static Space BufferSpace(Buffer buffer)
+{
+  return PoolSpace(BufferPool(buffer));
 }
 
 
@@ -167,7 +177,7 @@ Bool BufferIsReady(Buffer buffer)
 
 
 void BufferInit(Buffer buffer, Pool pool,
-                BufferFill fill, BufferTrip trip)
+                BufferFillMethod fill, BufferTripMethod trip)
 {
   AVER(ISVALID(Pool, pool));
   AVER(buffer != NULL);
@@ -179,6 +189,7 @@ void BufferInit(Buffer buffer, Pool pool,
   buffer->fill = fill;
   buffer->trip = trip;
   buffer->alignment = pool->alignment;
+  buffer->exposed = FALSE;
   buffer->p = NULL;
   buffer->i = 0;
 
@@ -211,7 +222,6 @@ void BufferFinish(Buffer buffer)
 
 Error BufferReserve(Addr *pReturn, Buffer buffer, Addr size)
 {
-  Error e;
   Addr next;
 
   AVER(pReturn != NULL);
@@ -235,12 +245,32 @@ Error BufferReserve(Addr *pReturn, Buffer buffer, Addr size)
   /* If the buffer can't accommodate the request, fall through to the */
   /* pool-specific allocation method. */
 
+  return BufferFill(pReturn, buffer, size);
+}
+
+
+Error BufferFill(Addr *pReturn, Buffer buffer, Addr size)
+{
+  Error e;
+
+  AVER(pReturn != NULL);
+  AVER(ISVALID(Buffer, buffer));
+  AVER(size > 0);
+  AVER(IsAligned(BufferPool(buffer)->alignment, size));
+  AVER(BufferIsReady(buffer));
+
+  /* At every buffer fill, the scheduler gets to run a bit of work. */
+
+  if(!buffer->exposed) /* @@@@ Not when collecting! */
+    SchedRun(SpaceSched(BufferSpace(buffer)));
+
   e = (*buffer->fill)(pReturn, buffer, size);
   
   AVER(ISVALID(Buffer, buffer));
 
   return e;
 }
+
 
 
 /* After initializing the proto-object, the mutator calls commit to */
@@ -276,13 +306,46 @@ Bool BufferCommit(Buffer buffer, Addr p, Addr size)
   /* trip the buffer if a flip has occurred. */
 
   if(buffer->limit == 0)
-    return (*buffer->trip)(buffer, p, size);
+    return BufferTrip(buffer, p, size);
 
   /* No flip occurred, so succeed. */
 
   return TRUE;
 }
 
+
+Bool BufferTrip(Buffer buffer, Addr p, Addr size)
+{
+  AVER(ISVALID(Buffer, buffer));
+  AVER(size > 0);
+  AVER(IsAligned(BufferPool(buffer)->alignment, size));
+  
+  return (*buffer->trip)(buffer, p, size);
+}
+
+
+void BufferShieldExpose(Buffer buffer)
+{
+  AVER(ISVALID(Buffer, buffer));
+  buffer->exposed = TRUE;
+
+  /* @@@@ Assumes that the buffer buffers a segment. */
+  if(!BufferIsReset(buffer))
+    ShieldExpose(SpaceShield(BufferSpace(buffer)),
+                 buffer->base, buffer->limit);
+}
+
+void BufferShieldCover(Buffer buffer)
+{
+  AVER(ISVALID(Buffer, buffer));
+
+  buffer->exposed = FALSE;
+
+  /* @@@@ Assumes that the buffer buffers a segment. */
+  if(!BufferIsReset(buffer))
+    ShieldCover(SpaceShield(BufferSpace(buffer)),
+                buffer->base, buffer->limit);
+}
 
 
 Error BufferDescribe(Buffer buffer, LibStream stream)

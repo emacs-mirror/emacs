@@ -1,7 +1,7 @@
 #
 #     BUILD FOR SUNOS/SPARC/GCC PLATFORM
 #
-#  $HopeName: MMsrc/!suspgc.gmk(trunk.7)$
+#  $HopeName: MMsrc/!suspgc.gmk(trunk.8)$
 #
 #  Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -13,7 +13,7 @@ PFMDEFS = -DOS_SUNOS -DARCH_SPARC -DBUILD_GCC
 
 STD = asrtosan.c assert.c deque.c error.c liban.c meter.c misc.c sig.c
 MPM = poolarvm.c vmsu.c space.c pool.c poolclas.c poolmfs.c \
-      poolmv.c root.c format.c buffer.c lockan.c collect.c ref.c \
+      poolmv.c root.c format.c buffer.c lockan.c coll.c ref.c \
       trace.c than.c protsu.c fault.c shield.c sched.c
 MPMS = sssusp.s
 AMC = amc.c amcgroup.c
