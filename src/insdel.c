@@ -520,20 +520,7 @@ make_gap (nbytes_added)
       >= ((unsigned) 1 << (min (BITS_PER_INT, VALBITS) - 1)))
     error ("Buffer exceeds maximum size");
 
-  BLOCK_INPUT;
-  /* We allocate extra 1-byte `\0' at the tail for anchoring a search.  */
-  result = BUFFER_REALLOC (BEG_ADDR, (Z_BYTE - BEG_BYTE
-				      + GAP_SIZE + nbytes_added + 1));
-
-  if (result == 0)
-    {
-      UNBLOCK_INPUT;
-      memory_full ();
-    }
-
-  /* We can't unblock until the new address is properly stored.  */
-  BEG_ADDR = result;
-  UNBLOCK_INPUT;
+  enlarge_buffer_text (current_buffer, nbytes_added);
 
   /* Prevent quitting in move_gap.  */
   tem = Vinhibit_quit;
