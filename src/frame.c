@@ -574,7 +574,7 @@ DEFUN ("next-frame", Fnext_frame, Snext_frame, 0, 2, 0,
   "Return the next frame in the frame list after FRAME.\n\
 By default, skip minibuffer-only frames.\n\
 If omitted, FRAME defaults to the selected frame.\n\
-If optional argument MINIFRAME is non-nil, include minibuffer-only frames.\n\
+If optional argument MINIFRAME is nil, exclude minibuffer-only frames.\n\
 If MINIFRAME is a window, include only frames using that window for their\n\
 minibuffer.\n\
 If MINIFRAME is non-nil and not a window, include all frames.")
@@ -615,9 +615,29 @@ A frame may not be deleted if its minibuffer is used by other frames.")
   if (! FRAME_LIVE_P (f))
     return Qnil;
 
-  /* Are there any other frames besides this one?  */
-  if (f == selected_frame && EQ (next_frame (frame, Qt), frame))
-    error ("Attempt to delete the only frame");
+  /* If all other frames are invisible, refuse to delete.
+     (Exception: allow deleting the terminal frame when using X.)  */
+  if (f == selected_frame)
+    {
+      Lisp_Object frames;
+      int count = 0;
+
+      for (frames = Vframe_list;
+	   CONSP (frames);
+	   frames = XCONS (frames)->cdr)
+	{
+	  Lisp_Object this = XCONS (frames)->car;
+
+	  if (FRAME_VISIBLE_P (XFRAME (this))
+	      || FRAME_ICONIFIED_P (XFRAME (this))
+	      /* Allow deleting the terminal frame when at least
+		 one X frame exists!  */
+	      || FRAME_X_P (XFRAME (this)) && !FRAME_X_P (f))
+	    count++;
+	}
+      if (count == 1)
+	error ("Attempt to delete the only frame");
+    }
 
   /* Does this frame have a minibuffer, and is it the surrogate
      minibuffer for any other frame?  */
