@@ -1,3 +1,7 @@
+2002-03-28  Miles Bader  <miles@gnu.org>
+
+	* process.c (DATAGRAM_CONN_P): Make sure PROC is really a process.
+
 2002-03-27  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* process.c (set-network-process-options): Add usage.
