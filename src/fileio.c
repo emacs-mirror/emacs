@@ -4925,7 +4925,7 @@ a_write (desc, string, pos, nchars, annot, coding)
       /* Output buffer text up to the next annotation's position.  */
       if (nextpos > pos)
 	{
-	  if (0 > e_write (desc, string, pos, nextpos, coding));
+	  if (0 > e_write (desc, string, pos, nextpos, coding))
 	    return -1;
 	  pos = nextpos;
 	}
@@ -4933,7 +4933,7 @@ a_write (desc, string, pos, nchars, annot, coding)
       tem = Fcdr (Fcar (*annot));
       if (STRINGP (tem))
 	{
-	  if (0 > e_write (desc, tem, 0, XSTRING (tem)->size, coding));
+	  if (0 > e_write (desc, tem, 0, XSTRING (tem)->size, coding))
 	    return -1;
 	}
       *annot = Fcdr (*annot);
@@ -5020,7 +5020,7 @@ e_write (desc, string, start, end, coding)
       if (coding->cmp_data)
 	coding_adjust_composition_offset (coding, start);
     }
-  return 0;
+  return return_val;
 }
 
 DEFUN ("verify-visited-file-modtime", Fverify_visited_file_modtime,
