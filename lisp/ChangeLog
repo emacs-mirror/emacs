@@ -1,3 +1,15 @@
+2001-12-21  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* ls-lisp.el (insert-directory): Insert the amount of free disk
+	space, like files.el's insert-directory does.
+
+	* files.el (directory-free-space-program): Mention
+	file-system-info in the doc string.
+	(get-free-disk-space): New function; code moved from
+	insert-directory.
+	(insert-directory): Call get-free-disk-space to get the amount of
+	free space.
+
 2001-12-21  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): 
