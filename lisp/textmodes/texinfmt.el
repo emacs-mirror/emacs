@@ -1,4 +1,4 @@
-;;;; texinfmt.el --- convert Texinfo files to Info files.
+;;; texinfmt.el --- convert Texinfo files to Info files.
 
 ;; Copyright (C) 1985, 1986, 1988, 1990 Free Software Foundation, Inc.
 

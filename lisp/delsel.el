@@ -1,7 +1,10 @@
-;;; Pending delete selection
+;;; pending-del.el --- pending delete selection
+
 ;;; Copyright (C) 1992 Free Software Foundation, Inc.
-;;; Created: 14 Jul 92, Matthieu Devin <devin@lucid.com>
-;;; Last change  18-Feb-93, devin.
+
+;; Author: Matthieu Devin <devin@lucid.com>
+;; Created: 14 Jul 92
+;; Last change  18-Feb-93, devin.
 
 ;;; This file is part of GNU Emacs.
 
@@ -19,10 +22,13 @@
 ;;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
 
-;;; This files makes the active region be pending delete, meaning that
+;;; This file makes the active region be pending delete, meaning that
 ;;; text inserted while the region is active will replace the region contents.
 ;;; This is a popular behavior of personal computers text editors.
+
+;;; Code:
 
 (defvar pending-delete-mode t
   "*Non-nil means Pending Delete mode is enabled.
@@ -110,4 +116,4 @@ In Transient Mark mode, if the mark is active, just deactivate it."
 
 (provide 'pending-del)
 
-;; End of pending-del.el.
+;;; pending-del.el ends here

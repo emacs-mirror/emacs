@@ -1,5 +1,8 @@
-;;; rlogin.el -- emacs interface using comint routines from CMU
-;;;
+;;; rlogin.el --- remote login interface
+
+;; Maintainer: Noah Friedman <friedman@prep.ai.mit.edu>
+;; Keywords: unix
+
 ;;; Copyright (C) 1992 Free Software Foundation, Inc.
 ;;;
 ;;; This program is free software; you can redistribute it and/or modify
@@ -20,9 +23,10 @@
 ;;;              675 Massachusetts Avenue.
 ;;;              Cambridge, MA 02139, USA. 
 ;;;
-;;; Please send bug reports, etc. to friedman@prep.ai.mit.edu
 
 ;;; Todo: add directory tracking using ange-ftp style patchnames for the cwd.
+
+;;; Code:
 
 (require 'comint)
 
@@ -108,4 +112,5 @@ buffer."
       (send-string nil "\C-d")
     (delete-char arg)))
 
-;; eof
+;;; rlogin.el ends here
+

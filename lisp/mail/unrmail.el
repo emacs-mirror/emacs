@@ -1,4 +1,5 @@
 ;;; unrmail.el --- convert Rmail files to mailbox files.
+
 ;;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -16,6 +17,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Code:
 
 (defvar command-line-args-left)	;Avoid 'free variable' warning
 
@@ -47,3 +50,5 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
     (rmail-show-message 1)
     (while (not (rmail-output to-file))
       (setq message-count (1+ message-count)))))
+
+;;; unrmail.el ends here

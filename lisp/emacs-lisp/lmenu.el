@@ -1,5 +1,7 @@
 ;;; lmenu.el --- emulate Lucid's menubar support
 
+;; Keywords: emulations
+
 ;; Copyright (C) 1992, 1993 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.

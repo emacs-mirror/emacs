@@ -1,4 +1,4 @@
-;;; profile.el -- generate run time measurements of Emacs Lisp functions
+;;; profile.el --- generate run time measurements of Emacs Lisp functions
 
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
@@ -356,4 +356,4 @@ DEF is (symbol-function FUN) ."
     (interactive)
     (process-send-string profile-timer-process "q\n"))
 
-;; profile.el ends here
+;;; profile.el ends here

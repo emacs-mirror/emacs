@@ -23,7 +23,7 @@
 ;; 
 ;;  Last change: 4 January 1993
 
-;; Commentary:
+;;; Commentary:
 ;;  
 ;;  `hippie-expand' is a single function for a lot of different kinds
 ;;  of completions and expansions.  Called repeatedly it tries all
@@ -125,7 +125,7 @@
 ;;  how to improve it.
 ;;
 
-;; Code:
+;;; Code:
 
 (defvar he-num -1)
 

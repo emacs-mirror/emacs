@@ -1,10 +1,10 @@
-;;; isearch.el ---- incremental search minor mode.
+;;; isearch.el --- incremental search minor mode.
 
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/03/17 15:58:09 $|$Revision: 1.24 $
+;; |$Date: 1993/03/17 16:44:50 $|$Revision: 1.25 $
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -92,8 +92,11 @@
 ;;;====================================================================
 ;;; Change History
 
-;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch.el,v 1.24 1993/03/17 15:58:09 eric Exp eric $
+;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch.el,v 1.25 1993/03/17 16:44:50 eric Exp eric $
 ;;; $Log: isearch.el,v $
+; Revision 1.25  1993/03/17  16:44:50  eric
+; Add standard library headers.
+;
 ; Revision 1.24  1993/03/17  15:58:09  eric
 ; Add standard library headers.
 ;

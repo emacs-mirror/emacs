@@ -1,4 +1,7 @@
-;;;; directory.el - emulate insert-directory completely in Emacs Lisp
+;;; ls-lisp.el --- emulate insert-directory completely in Emacs Lisp
+
+;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
+;; Keywords: unix
 
 ;; Copyright (C) 1992 by Sebastian Kremer <sk@thp.uni-koeln.de>
 
@@ -45,6 +48,8 @@
 
 ;; Recognize some more ls switches: R F
 
+;;; Code:
+
 (defun insert-directory (file &optional switches wildcard full-directory-p)
   "Insert directory listing for of FILE, formatted according to SWITCHES.
 Leaves point after the inserted text.
@@ -227,4 +232,4 @@ The switches that work are: A a c i r S s t u"
 
 (provide 'ls-lisp)
 
-; eof
+;;; ls-lisp.el ends here

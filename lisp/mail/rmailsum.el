@@ -1,4 +1,4 @@
-;; rmailsum.el --- make summary buffers for the mail reader
+;;; rmailsum.el --- make summary buffers for the mail reader
 
 ;; Copyright (C) 1985, 1993 Free Software Foundation, Inc.
 
