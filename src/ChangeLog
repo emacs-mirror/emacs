@@ -1,3 +1,7 @@
+2002-09-03  Dave Love  <fx@gnu.org>
+
+	* charset.h (charset_ordered_list_tick): Declare extern.
+
 2002-09-03  Kenichi Handa  <handa@etl.go.jp>
 
 	The following changes (and some of 2002-08-20 changes of mine) are
@@ -177,11 +181,11 @@
 	* lread.c (safe_to_load_p): Fix the logic.
 
 	* syntax.c (scan_words): Don't treat characters belonging to
-	different scripts constituting a work.
+	different scripts as constituting a word.
 
 	* editfns.c (Fformat): Use ASCII_CHAR_P, not SINGLE_BYTE_CHAR_P.
 
-	* fontset.c (Fset_fontset_font): Treate `ascii' as charset, not
+	* fontset.c (Fset_fontset_font): Treat `ascii' as charset, not
 	script.
 
 	* emacs.c (main): In the case of --unibyte, instead of aborting on
