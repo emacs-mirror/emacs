@@ -4313,11 +4313,12 @@ indentation and initial hashes.  Behaves usually outside of comment."
 			 (looking-at "^[ \t]*#+[ \t]*[^ \t\n#]")))
 	   (point)))
 	;; Remove existing hashes
-	(goto-char (point-min))
-	(while (progn (forward-line 1) (< (point) (point-max)))
-	  (skip-chars-forward " \t")
-	  (and (looking-at "#+")
-	       (delete-char (- (match-end 0) (match-beginning 0)))))
+	(save-excursion
+	  (goto-char (point-min))
+	  (while (progn (forward-line 1) (< (point) (point-max)))
+	    (skip-chars-forward " \t")
+	    (and (looking-at "#+")
+		 (delete-char (- (match-end 0) (match-beginning 0))))))
 
 	;; Lines with only hashes on them can be paragraph boundaries.
 	(let ((paragraph-start (concat paragraph-start "\\|^[ \t#]*$"))
