@@ -925,12 +925,6 @@
       ))
 
     
-(defsubst viper-events-to-keys (events)
-  (viper-cond-compile-for-xemacs-or-emacs
-   (events-to-keys events) ; xemacs
-   events ; emacs
-   ))
-		  
     
 ;; it is suggested that an event must be copied before it is assigned to
 ;; last-command-event in XEmacs
@@ -969,15 +963,21 @@
 		  (elt (listify-key-sequence keyseq) 0)))
     (if (viper-ESC-event-p event)
 	(let (unread-command-events)
-	  (viper-set-unread-command-events keyseq)
 	  (if (viper-fast-keysequence-p)
 	      (let ((viper-vi-global-user-minor-mode  nil)
 		    (viper-vi-local-user-minor-mode  nil)
+		    (viper-vi-intercept-minor-mode nil)
+		    (viper-insert-intercept-minor-mode nil)
 		    (viper-replace-minor-mode nil) ; actually unnecessary
 		    (viper-insert-global-user-minor-mode  nil)
 		    (viper-insert-local-user-minor-mode  nil))
-		(setq keyseq (read-key-sequence prompt continue-echo))) 
-	    (setq keyseq (read-key-sequence prompt continue-echo)))))
+		;; Note: set unread-command-events only after testing for fast
+		;; keysequence. Otherwise, viper-fast-keysequence-p will be
+		;; always t -- whether there is anything after ESC or not
+		(viper-set-unread-command-events keyseq)
+		(setq keyseq (read-key-sequence nil))) 
+	    (viper-set-unread-command-events keyseq)
+	    (setq keyseq (read-key-sequence nil)))))
     keyseq))
 
 

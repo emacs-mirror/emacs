@@ -982,14 +982,12 @@ remains buffer-local."
 
   (defadvice describe-key (before viper-read-keyseq-ad protect activate)
     "Force to read key via `viper-read-key-sequence'."
-    (interactive (list (viper-events-to-keys
-			(viper-read-key-sequence "Describe key: ")))))
+    (interactive (list (viper-read-key-sequence "Describe key: "))))
   
   (defadvice describe-key-briefly
     (before viper-read-keyseq-ad protect activate)
     "Force to read key via `viper-read-key-sequence'."
-    (interactive (list (viper-events-to-keys
-			(viper-read-key-sequence "Describe key briefly: ")))))
+    (interactive (list (viper-read-key-sequence "Describe key briefly: "))))
   
   
   (defadvice find-file (before viper-add-suffix-advice activate)

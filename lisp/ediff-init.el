@@ -87,6 +87,14 @@ that Ediff doesn't know about.")
    nil ; emacs form
    ))
 
+
+(defun ediff-has-gutter-support-p ()
+  (ediff-cond-compile-for-xemacs-or-emacs
+   (and (featurep 'gutter) (console-on-window-system-p)) ; xemacs form
+   nil ; emacs form
+   ))
+
+
 (defun ediff-use-toolbar-p ()
   (and (ediff-has-toolbar-support-p)	;Can it do it ?
        (boundp 'ediff-use-toolbar-p)

@@ -2628,7 +2628,8 @@ delete this buffer in another session as well."
 ;; BUFF is the buffer, BUFF-TYPE is either 'A, or 'B, 'C, 'Ancestor
 (defun ediff-dispose-of-variant-according-to-user (buff bufftype ask keep-variants)
   ;; if this is indirect buffer, kill it and substitute with direct buf
-  (if (ediff-with-current-buffer buff ediff-temp-indirect-buffer)
+  (if (and (ediff-buffer-live-p buff)
+	   (ediff-with-current-buffer buff ediff-temp-indirect-buffer))
       (let ((wind (ediff-get-visible-buffer-window buff))
 	    (base (buffer-base-buffer buff))
 	    (modified-p (buffer-modified-p buff)))

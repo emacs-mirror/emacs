@@ -968,8 +968,8 @@ into icons, regardless of the window manager."
     (if (ediff-has-toolbar-support-p)
 	(ediff-cond-compile-for-xemacs-or-emacs
 	 (progn ; xemacs
-	   (set-specifier top-toolbar-height (list ctl-frame 2))
-	   (set-specifier top-gutter (list ctl-frame nil))
+	   (if (ediff-has-gutter-support-p)
+	       (set-specifier top-gutter (list ctl-frame nil)))
 	   (sit-for 0)
 	   (set-specifier top-toolbar-height (list ctl-frame 0))
 	   ;;(set-specifier bottom-toolbar-height (list ctl-frame 0))
