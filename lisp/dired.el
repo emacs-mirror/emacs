@@ -780,6 +780,8 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   (define-key dired-mode-map " "  'dired-next-line)
   (define-key dired-mode-map "\C-n" 'dired-next-line)
   (define-key dired-mode-map "\C-p" 'dired-previous-line)
+  (define-key dired-mode-map [down] 'dired-next-line)
+  (define-key dired-mode-map [up] 'dired-previous-line)
   ;; hiding
   (define-key dired-mode-map "$" 'dired-hide-subdir)
   (define-key dired-mode-map "\M-$" 'dired-hide-all)
