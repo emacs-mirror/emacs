@@ -14,6 +14,10 @@ and are named similarly.  See the `configure' script if you need to
 know which configuration names use which machine and operating system
 description files.
 
+If you add support for a new configuration, add a section to this
+file, and then edit the `configure' script to tell it which
+configuration name(s) should select your new machine description and
+system description files.
 
 
 Here are the configurations Emacs is intended to work with, with the
@@ -739,25 +743,37 @@ System V rel 3 (usg5.3)
   If you want to link Emacs with shared libraries, define
   USG_SHARED_LIBRARIES.
 
-System V rel 4 (usg5.4)
+  You may have to add ANSI idempotence #-lines to your sys/types.h
+  file to get Emacs to compile correctly.  This may be necessary on
+  other pre-ANSI systems as well.
 
-  Supported, including shared libraries for ELF, but ptys do not
-  work because TIOCGPGRP fails to work on ptys.
-  This failure is probably due to a misunderstanding of the 
-  consequences of the POSIX spec: many system designers mistakenly
+  On an AT&T 6386WGS using System V Release 3.2 and X11R3, the X support
+  cannot be made to work.  Whether or not the GNU relocating malloc is
+  used, the symptom is that the first call Emacs makes to sbrk(0) returns
+  (char *)-1.  Sorry, you're stuck with character-only mode.  Try
+  installing Xfree86 to fix this.
+
+System V rel 4.0.3 and 4.0.4 (usg5.4)
+
+  Supported, including shared libraries for ELF, but ptys do not work
+  because TIOCGPGRP fails to work on ptys (but Dell 2.2 seems to have
+  fixed this).  This failure is probably due to a misunderstanding of
+  the consequences of the POSIX spec: many system designers mistakenly
   think that POSIX requires this feature to fail.  This is untrue;
   ptys are an extension, and POSIX says that extensions *when used*
   may change the action of standard facilities in any fashion.
 
-  The standard C preprocessor generate xmakefile incorrectly.  However,
-  /lib/cpp will work, so use `make CPP=/lib/cpp'.
+  The standard C preprocessor may generate xmakefile incorrectly.  However,
+  /lib/cpp will work, so use `make CPP=/lib/cpp'.  Standard cpp
+  seems to work OK under Dell 2.2.
 
-  Versions 3 and earlier of V.4, on the Intel 386 and 860, had
+  Some versions 3 and earlier of V.4, on the Intel 386 and 860, had
   problems in the X11 libraries.  These prevent Emacs from working
   with X.  You can use Emacs with X provided your copy of X is based
-  on X11 release 4 or newer.  Unfortunately, the only way you can tell
-  whether your X11 library is new enough is to try compiling Emacs to
-  use X.  If xemacs runs, your X11 library is new enough.
+  on X11 release 4 or newer, or is Dell's 2.2 (which is a 4.0.3).
+  Unfortunately, the only way you can tell whether your X11 library is
+  new enough is to try compiling Emacs to use X.  If emacs runs, your
+  X11 library is new enough.
 
   In this context, GSV4 and GSV4i are alternate names for X11R4.
   OL2.* is X11R3 based.  OL3 is in between X11R3 and X11R4, and may or
