@@ -178,7 +178,8 @@ fire repeatedly that menu seconds apart."
 (defun run-at-time (time repeat function &rest args)
   "Run a function at a time, and optionally on a regular interval.
 Arguments are TIME, REPEAT, FUNCTION &rest ARGS.
-TIME is a string like \"11:23pm\" or a value from `encode-time'.
+TIME is a string like \"11:23pm\" or a value from `encode-time',
+or a number of seconds from now.
 REPEAT, an integer number of seconds, is the interval on which to repeat
 the call to the function.  If REPEAT is nil or 0, call it just once.
 
