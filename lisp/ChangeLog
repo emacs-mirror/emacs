@@ -1,3 +1,7 @@
+2001-11-07  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* dabbrev.el (dabbrev-completion): Use "*Completions*".
+
 2001-11-07  Paul Eggert  <eggert@twinsun.com>
 
 	* dired.el (dired-move-to-filename-regexp):
