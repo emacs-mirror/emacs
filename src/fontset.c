@@ -49,6 +49,7 @@ Boston, MA 02111-1307, USA.  */
 #define INLINE
 #endif
 
+EXFUN (Fclear_face_cache, 1);
 
 /* FONTSET
 
@@ -439,7 +440,7 @@ face_for_char (f, face, c)
      struct face *face;
      int c;
 {
-  Lisp_Object fontset, elt;
+  Lisp_Object fontset;
   struct face *new_face;
 
   xassert (fontset_id_valid_p (face->fontset));
@@ -755,9 +756,9 @@ static void
 free_realized_fontsets (base)
      Lisp_Object base;
 {
+#if 0
   int id;
 
-#if 0
   /* For the moment, this doesn't work because free_realized_face
      doesn't remove FACE from a cache.  Until we find a solution, we
      suppress this code, and simply use Fclear_face_cache even though
@@ -828,7 +829,6 @@ FONT-SPEC may be a font name string.  */)
 {
   Lisp_Object fontset;
   Lisp_Object family, registry;
-  int charset_id;
 
   fontset = check_fontset_name (name);
 
@@ -1051,6 +1051,7 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 1, 0,
 }
 
 
+#if 0				/* unused */
 /* Called from Ffontset_info via map_char_table on each leaf of
    fontset.  ARG is a list (LAST FONT-INFO ...), where LAST is `(last
    ARG)' and FONT-INFOs have this form:
@@ -1096,7 +1097,7 @@ accumulate_font_info (arg, character, elt)
   XSETCDR (last, Fcons (Fcons (character, Fcons (elt, Qnil)), Qnil));
   XSETCAR (arg, XCDR (last));
 }
-
+#endif /* 0 */
 
 DEFUN ("fontset-info", Ffontset_info, Sfontset_info, 1, 2, 0,
        doc: /* Return information about a fontset named NAME on frame FRAME.
@@ -1182,13 +1183,9 @@ If FRAME is omitted, it defaults to the currently selected frame.  */)
      FONT-SPEC.  */
   for (tail = val; CONSP (tail); tail = XCDR (tail))
     {
-      int c;
-
       elt = XCAR (tail);
       for (i = 0; i < n_realized; i++)
 	{
-	  int face_id;
-	  struct face *face;
 	  Lisp_Object face_list, fontname;
 
 	  for (face_list = FONTSET_FACE_ALIST (realized[i]);
