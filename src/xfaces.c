@@ -1079,7 +1079,7 @@ face_name_id_number (f, name)
 {
   Lisp_Object tem;
 
-  tem = Fcdr (Fassq (name, f->face_alist));
+  tem = Fcdr (assq_no_quit (name, f->face_alist));
   if (NILP (tem))
     return 0;
   CHECK_VECTOR (tem, 0);
