@@ -1,5 +1,12 @@
 2000-02-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* dispnew.c (flush_stdout) [GLYPH_DEBUG]: New function.
+	(build_frame_matrix_from_leaf_window): Put code handling
+	glyph row's not being a slice of a frame row in #if 0.
+	(sync_window_with_frame_matrix_rows): New function.
+	(frame_row_to_window): New function.
+	(mirror_line_dance): Handle copies between windows.
+
 	* lread.c (Fload): Use `xfree' instead of `free'.
 	(init_obarray): Use `xmalloc' instead of `malloc'.
 
