@@ -1,5 +1,7 @@
 2001-05-09  Gerd Moellmann  <gerd@gnu.org>
 
+	* print.c (syms_of_print) <print-length, print-level>: Doc fix.
+
 	* xterm.c (note_mouse_highlight): Don't change the mouse cursor
 	back to the text cursor shape without need.
 
