@@ -3159,7 +3159,7 @@ The function, belying its name, normally finds a symbol.
 If optional arg REALLY-WORD is non-nil, it finds just a word."
   (save-excursion
     (let* ((oldpoint (point)) (start (point)) (end (point))
-	   (syntaxes (if really-word "w_" "w"))
+	   (syntaxes (if really-word "w" "w_"))
 	   (not-syntaxes (concat "^" syntaxes)))
       (skip-syntax-backward syntaxes) (setq start (point))
       (goto-char oldpoint)
