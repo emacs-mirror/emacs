@@ -1351,10 +1351,14 @@ sys_kill (int pid, int sig)
 	  foreground_window = GetForegroundWindow ();
 	  if (foreground_window && SetForegroundWindow (cp->hwnd))
 	    {
-	      /* Generate keystrokes as if user had typed Ctrl-Break or Ctrl-C.  */
+	      /* Generate keystrokes as if user had typed Ctrl-Break or
+                 Ctrl-C.  */
 	      keybd_event (VK_CONTROL, control_scan_code, 0, 0);
-	      keybd_event (vk_break_code, break_scan_code, 0, 0);
-	      keybd_event (vk_break_code, break_scan_code, KEYEVENTF_KEYUP, 0);
+	      keybd_event (vk_break_code, break_scan_code,
+			   (vk_break_code == 'C' ? 0 : KEYEVENTF_EXTENDEDKEY), 0);
+	      keybd_event (vk_break_code, break_scan_code,
+			   (vk_break_code == 'C' ? 0 : KEYEVENTF_EXTENDEDKEY)
+			   | KEYEVENTF_KEYUP, 0);
 	      keybd_event (VK_CONTROL, control_scan_code, KEYEVENTF_KEYUP, 0);
 
 	      /* Sleep for a bit to give time for Emacs frame to respond
@@ -1713,8 +1717,10 @@ language as the first two characters, and the country or regionial variant\n\
 as the third letter.  For example, ENU refers to `English (United States)',\n\
 while ENC means `English (Canadian)'.\n\
 \n\
-If the optional argument LONGFORM is non-nil, the long form of the locale\n\
-name is returned, e.g. `English (United States)' instead.\n\
+If the optional argument LONGFORM is t, the long form of the locale\n\
+name is returned, e.g. `English (United States)' instead; if LONGFORM\n\
+is a number, it is interpreted as an LCTYPE constant and the corresponding\n\
+locale information is returned.\n\
 \n\
 If LCID (a 16-bit number) is not a valid locale, the result is nil.")
      (lcid, longform)
@@ -1738,13 +1744,21 @@ If LCID (a 16-bit number) is not a valid locale, the result is nil.")
       if (got_abbrev)
 	return build_string (abbrev_name);
     }
-  else
+  else if (EQ (longform, Qt))
     {
       got_full = GetLocaleInfo (XINT (lcid),
 				LOCALE_SLANGUAGE | LOCALE_USE_CP_ACP,
 				full_name, sizeof (full_name));
       if (got_full)
 	return build_string (full_name);
+    }
+  else if (NUMBERP (longform))
+    {
+      got_full = GetLocaleInfo (XINT (lcid),
+				XINT (longform),
+				full_name, sizeof (full_name));
+      if (got_full)
+	return make_unibyte_string (full_name, got_full);
     }
 
   return Qnil;
@@ -1840,6 +1854,177 @@ If successful, the new locale id is returned, otherwise nil.")
   return make_number (GetThreadLocale ());
 }
 
+
+/* We need to build a global list, since the EnumCodePages callback
+   function isn't given a context pointer.  */
+Lisp_Object Vw32_valid_codepages;
+
+BOOL CALLBACK enum_codepage_fn (LPTSTR codepageNum)
+{
+  DWORD id = atoi (codepageNum);
+  Vw32_valid_codepages = Fcons (make_number (id), Vw32_valid_codepages);
+  return TRUE;
+}
+
+DEFUN ("w32-get-valid-codepages", Fw32_get_valid_codepages, Sw32_get_valid_codepages, 0, 0, 0,
+  "Return list of all valid Windows codepages.")
+     ()
+{
+  Vw32_valid_codepages = Qnil;
+
+  EnumSystemCodePages (enum_codepage_fn, CP_SUPPORTED);
+
+  Vw32_valid_codepages = Fnreverse (Vw32_valid_codepages);
+  return Vw32_valid_codepages;
+}
+
+
+DEFUN ("w32-get-console-codepage", Fw32_get_console_codepage, Sw32_get_console_codepage, 0, 0, 0,
+  "Return current Windows codepage for console input.")
+     ()
+{
+  return make_number (GetConsoleCP ());
+}
+
+  
+DEFUN ("w32-set-console-codepage", Fw32_set_console_codepage, Sw32_set_console_codepage, 1, 1, 0,
+  "Make Windows codepage CP be the current codepage setting for Emacs.\n\
+The codepage setting affects keyboard input and display in tty mode.\n\
+If successful, the new CP is returned, otherwise nil.")
+     (cp)
+     Lisp_Object cp;
+{
+  CHECK_NUMBER (cp, 0);
+
+  if (!IsValidCodePage (XINT (cp)))
+    return Qnil;
+
+  if (!SetConsoleCP (XINT (cp)))
+    return Qnil;
+
+  return make_number (GetConsoleCP ());
+}
+
+
+DEFUN ("w32-get-console-output-codepage", Fw32_get_console_output_codepage, Sw32_get_console_output_codepage, 0, 0, 0,
+  "Return current Windows codepage for console output.")
+     ()
+{
+  return make_number (GetConsoleOutputCP ());
+}
+
+  
+DEFUN ("w32-set-console-output-codepage", Fw32_set_console_output_codepage, Sw32_set_console_output_codepage, 1, 1, 0,
+  "Make Windows codepage CP be the current codepage setting for Emacs.\n\
+The codepage setting affects keyboard input and display in tty mode.\n\
+If successful, the new CP is returned, otherwise nil.")
+     (cp)
+     Lisp_Object cp;
+{
+  CHECK_NUMBER (cp, 0);
+
+  if (!IsValidCodePage (XINT (cp)))
+    return Qnil;
+
+  if (!SetConsoleOutputCP (XINT (cp)))
+    return Qnil;
+
+  return make_number (GetConsoleOutputCP ());
+}
+
+
+DEFUN ("w32-get-codepage-charset", Fw32_get_codepage_charset, Sw32_get_codepage_charset, 1, 1, 0,
+  "Return charset of codepage CP.\n\
+Returns nil if the codepage is not valid.")
+     (cp)
+     Lisp_Object cp;
+{
+  CHARSETINFO info;
+
+  CHECK_NUMBER (cp, 0);
+
+  if (!IsValidCodePage (XINT (cp)))
+    return Qnil;
+
+  if (TranslateCharsetInfo ((DWORD *) XINT (cp), &info, TCI_SRCCODEPAGE))
+    return make_number (info.ciCharset);
+
+  return Qnil;
+}
+
+
+DEFUN ("w32-get-valid-keyboard-layouts", Fw32_get_valid_keyboard_layouts, Sw32_get_valid_keyboard_layouts, 0, 0, 0,
+  "Return list of Windows keyboard languages and layouts.\n\
+The return value is a list of pairs of language id and layout id.")
+     ()
+{
+  int num_layouts = GetKeyboardLayoutList (0, NULL);
+  HKL * layouts = (HKL *) alloca (num_layouts * sizeof (HKL));
+  Lisp_Object obj = Qnil;
+
+  if (GetKeyboardLayoutList (num_layouts, layouts) == num_layouts)
+    {
+      while (--num_layouts >= 0)
+	{
+	  DWORD kl = (DWORD) layouts[num_layouts];
+
+	  obj = Fcons (Fcons (make_number (kl & 0xffff),
+			      make_number ((kl >> 16) & 0xffff)),
+		       obj);
+	}
+    }
+
+  return obj;
+}
+
+
+DEFUN ("w32-get-keyboard-layout", Fw32_get_keyboard_layout, Sw32_get_keyboard_layout, 0, 0, 0,
+  "Return current Windows keyboard language and layout.\n\
+The return value is the cons of the language id and the layout id.")
+     ()
+{
+  DWORD kl = (DWORD) GetKeyboardLayout (dwWindowsThreadId);
+
+  return Fcons (make_number (kl & 0xffff),
+		make_number ((kl >> 16) & 0xffff));
+}
+
+  
+DEFUN ("w32-set-keyboard-layout", Fw32_set_keyboard_layout, Sw32_set_keyboard_layout, 1, 1, 0,
+  "Make LAYOUT be the current keyboard layout for Emacs.\n\
+The keyboard layout setting affects interpretation of keyboard input.\n\
+If successful, the new layout id is returned, otherwise nil.")
+     (layout)
+     Lisp_Object layout;
+{
+  DWORD kl;
+
+  CHECK_CONS (layout, 0);
+  CHECK_NUMBER (XCONS (layout)->car, 0);
+  CHECK_NUMBER (XCONS (layout)->cdr, 0);
+
+  kl = (XINT (XCONS (layout)->car) & 0xffff)
+    | (XINT (XCONS (layout)->cdr) << 16);
+
+  /* Synchronize layout with input thread.  */
+  if (dwWindowsThreadId)
+    {
+      if (PostThreadMessage (dwWindowsThreadId, WM_EMACS_SETKEYBOARDLAYOUT,
+			     (WPARAM) kl, 0))
+	{
+	  MSG msg;
+	  GetMessage (&msg, NULL, WM_EMACS_DONE, WM_EMACS_DONE);
+
+	  if (msg.wParam == 0)
+	    return Qnil;
+	}
+    }
+  else if (!ActivateKeyboardLayout ((HKL) kl, 0))
+    return Qnil;
+
+  return Fw32_get_keyboard_layout ();
+}
+
 
 syms_of_ntproc ()
 {
@@ -1858,6 +2043,17 @@ syms_of_ntproc ()
   defsubr (&Sw32_get_default_locale_id);
   defsubr (&Sw32_get_valid_locale_ids);
   defsubr (&Sw32_set_current_locale);
+
+  defsubr (&Sw32_get_console_codepage);
+  defsubr (&Sw32_set_console_codepage);
+  defsubr (&Sw32_get_console_output_codepage);
+  defsubr (&Sw32_set_console_output_codepage);
+  defsubr (&Sw32_get_valid_codepages);
+  defsubr (&Sw32_get_codepage_charset);
+
+  defsubr (&Sw32_get_valid_keyboard_layouts);
+  defsubr (&Sw32_get_keyboard_layout);
+  defsubr (&Sw32_set_keyboard_layout);
 
   DEFVAR_LISP ("w32-quote-process-args", &Vw32_quote_process_args,
     "Non-nil enables quoting of process arguments to ensure correct parsing.\n\
