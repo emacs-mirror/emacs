@@ -1961,6 +1961,7 @@ The number of panes depends on the number of bookmarks."
     (if choice (apply func-sym (list choice)))))
 
 
+;;;###autoload
 (defun bookmark-menu-insert (event)
   "Insert the text of the file pointed to by bookmark BOOKMARK.  
 You may have a problem using this function if the value of variable
@@ -1972,6 +1973,7 @@ this."
    'bookmark-insert "Insert Bookmark Contents" event))
 
 
+;;;###autoload
 (defun bookmark-menu-jump (event)
   "Jump to bookmark BOOKMARK (a point in some file).  
 You may have a problem using this function if the value of variable
@@ -1983,6 +1985,7 @@ this."
    'bookmark-jump "Jump to Bookmark" event))
 
 
+;;;###autoload
 (defun bookmark-menu-locate (event)
   "Insert the name of the file associated with BOOKMARK. 
 \(This is not the same as the contents of that file\)."
@@ -1991,6 +1994,7 @@ this."
    'bookmark-insert-location "Insert Bookmark Location" event))
 
 
+;;;###autoload
 (defun bookmark-menu-rename (event)
   "Change the name of OLD-BOOKMARK to NEWNAME.  
 If called from keyboard, prompts for OLD-BOOKMARK and NEWNAME.
@@ -2008,6 +2012,7 @@ name."
    'bookmark-rename "Rename Bookmark" event))
 
 
+;;;###autoload
 (defun bookmark-menu-delete (event)
   "Delete the bookmark named NAME from the bookmark list.  
 Removes only the first instance of a bookmark with that name.  If
@@ -2022,49 +2027,54 @@ one most recently used in this file, if any\)."
 ;; Thanks to Roland McGrath for fixing menubar.el so that the
 ;; following works, and for explaining what to do to make it work.
 
-(defvar menu-bar-bookmark-map (make-sparse-keymap "Bookmark functions."))
+;; We MUST autoload EACH form used to set up this variable's value, so
+;; that the whole job is done in loaddefs.el.
 
+;;;###autoload
+(defvar menu-bar-bookmark-map (make-sparse-keymap "Bookmark functions"))
+ 
+;;;###autoload
+(fset 'menu-bar-bookmark-map (symbol-value 'menu-bar-bookmark-map))
 
-;; make bookmarks appear toward the right side of the menu.
-(if (boundp 'menu-bar-final-items)
-    (if menu-bar-final-items 
-        (setq menu-bar-final-items
-              (cons 'bookmark menu-bar-final-items)))
-  (setq menu-bar-final-items '(bookmark)))
-
+;;;###autoload
 (define-key menu-bar-bookmark-map [load]
   '("Load a bookmark file" . bookmark-load))
 
+;;;###autoload
 (define-key menu-bar-bookmark-map [write]
   '("Write \(to another file\)" . bookmark-write))
 
+;;;###autoload
 (define-key menu-bar-bookmark-map [save]
   '("Save  \(in default file\)" . bookmark-save))
 
+;;;###autoload
 (define-key menu-bar-bookmark-map [edit]
   '("Edit Bookmark List" . bookmark-bmenu-list))
 
+;;;###autoload
 (define-key menu-bar-bookmark-map [delete]
   '("Delete bookmark" . bookmark-menu-delete))
 
+;;;###autoload
 (define-key menu-bar-bookmark-map [rename]
   '("Rename bookmark" . bookmark-menu-rename))
 
+;;;###autoload
 (define-key menu-bar-bookmark-map [locate]
   '("Insert location" . bookmark-menu-locate))
 
+;;;###autoload
 (define-key menu-bar-bookmark-map [insert]
   '("Insert contents" . bookmark-menu-insert))
 
+;;;###autoload
 (define-key menu-bar-bookmark-map [set]
   '("Set bookmark" . bookmark-set))
 
+;;;###autoload
 (define-key menu-bar-bookmark-map [jump] 
   '("Jump to bookmark" . bookmark-menu-jump))
- 
-;;;###autoload (autoload 'menu-bar-bookmark-map "bookmark" nil t 'keymap)
-
-(fset 'menu-bar-bookmark-map (symbol-value 'menu-bar-bookmark-map))
 
 ;;;; end bookmark menu stuff ;;;;
 
