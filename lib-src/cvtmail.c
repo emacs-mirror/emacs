@@ -33,6 +33,9 @@ Boston, MA 02111-1307, USA.  */
  * Author: Larry Kolodney, 1985
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <stdio.h>
 
@@ -178,4 +181,4 @@ xrealloc (ptr, size)
   return result;
 }
 
-/* cvmtmail.c ends here */
+/* cvtmail.c ends here */

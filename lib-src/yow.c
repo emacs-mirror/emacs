@@ -10,6 +10,10 @@
  * With dynamic memory allocation.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include <ctype.h>
 #include <../src/epaths.h>      /* For PATH_DATA.  */
