@@ -1,3 +1,8 @@
+2003-03-17  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* buff-menu.el (list-buffers-noselect): Use the display property
+	to properly align header-line text with the buffer's contents.
+
 2003-03-17  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (ctext-post-read-conversion): Convert the
@@ -6,7 +11,16 @@
 2003-03-16  Deepak Goel  <deego@gnufans.org>
 
 	* calc/calc-forms.el (math-tzone-names): Introduce UTC as an alias
-	for GMT.  Suggested by bob@rattlesnake.com. 
+	for GMT.  Suggested by bob@rattlesnake.com.
+
+2003-03-15  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* pcvs.el (cvs-mode!): Remove unused argument.
+
+	* emacs-lisp/easymenu.el (easy-menu-name-match): Catch any error
+	that member-ignore-case might signal.
+	(easy-menu-add-item): Default to the global map, as documented.
+	(easy-menu-convert-item-1): Use match-string.
 
 2003-03-15  Mark A. Hershberger  <mah@everybody.org>
 
@@ -14,7 +28,7 @@
 	codepoints to strings.  Uses decode-char (mule.el) if available.
 	(xml-parse-tag, xml-parse-attlist, xml-skip-dtd, xml-parse-dtd)
 	(xml-parse-elem-type): Use ' \t\n\r' instead of '[:space:]'.
-	(xml-parse-attlist): Added attribute normalization.
+	(xml-parse-attlist): Add attribute normalization.
 	(xml-parse-tag): Replace "\r\n" and "\r" with "\n".
 
 2003-03-14  John Paul Wallington  <jpw@gnu.org>
@@ -32,6 +46,16 @@
 	(archive-subfile-mode): Doc fixes.
 
 2003-03-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* indent.el (indent-for-tab-command): If tab-always-indent is non-nil
+	and the user hits TAB a second time, just insert a tab.
+
+	* textmodes/texinfo.el (texinfo-outline-level): Remove.
+	(texinfo-mode): Set outline-heading-alist instead.
+	(texinfo-section-list): Reorder for the needs of outline-heading-alist.
+	(texinfo-insert-block): Don't cons needlessly.
+	(texinfo-enable-quote-macros, texinfo-enable-quote-envs): New vars.
+	(texinfo-insert-quote): Use them.
 
 	* textmodes/outline.el (outline-level): Demote it to defvar.
 	(outline-heading-alist): Document extended semantics.
