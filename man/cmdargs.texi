@@ -60,17 +60,6 @@ the action arguments in the order they are written.
 * Command Example::     Examples of using command line arguments.
 * Resume Arguments::	Specifying arguments when you resume a running Emacs.
 * Environment::         Environment variables that Emacs uses.
-
-* Display X::           Changing the default display and using remote login.
-* Font X::	        Choosing a font for text, under X.
-* Colors X::	        Choosing colors, under X.
-* Window Size X::       Start-up window size, under X.
-* Borders X::	        Internal and external borders, under X.
-* Title X::             Specifying the initial frame's title.
-* Icons X::             Choosing what sort of icon to use, under X.
-* Resources X::         Advanced use of classes and resources, under X.
-* Lucid Resources::     X resources for Lucid menus.
-* LessTif Resources::   X resources for LessTif and Motif menus.
 @end menu
 
 @node Action Arguments
