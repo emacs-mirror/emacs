@@ -1127,8 +1127,8 @@ Don't save anything for STR matching `inferior-python-filter-regexp'."
 	((string-match ".*\n" s)
 	 s)
 	((or (eq t (compare-strings s nil nil "_emacs_ok\n" nil (length s)))
-	     (eq t (compare-strings s nil nil "_emacs_out " nil
-				    (min (length "_emacs_out ") (length s)))))
+	     (let ((end (min (length "_emacs_out ") (length s))))
+	       (eq t (compare-strings s nil end "_emacs_out " nil end))))
 	 (setq python-preoutput-leftover s)
 	 "")
         (t s)))
