@@ -439,8 +439,8 @@ centered around a different month, use @kbd{C-u M-x holidays}, which
 prompts for the month and year.
 
   The holidays known to Emacs include United States holidays and the
-major Christian, Jewish, Islamic and Bah@'a'@'{@dotless{i}} holidays;
-also the solstices and equinoxes.
+major Christian, Jewish, and Islamic holidays; also the solstices and
+equinoxes.
 
 @findex list-holidays
    The command @kbd{M-x list-holidays} displays the list of holidays for
@@ -635,10 +635,6 @@ calculations.  As a consequence, the actual dates of observance can vary
 slightly from the dates computed by Emacs.  Islamic calendar dates begin
 and end at sunset.
 
-@cindex Bah@'a'@'{@dotless{i}} calendar
-  The Bah@'a'@'{@dotless{i}} calendar is used by members of the
-Bah@'a'@'{@dotless{i}} Faith, mostly for dating religious occasions.
-
 @cindex French Revolutionary calendar
   The French Revolutionary calendar was created by the Jacobins after the 1789
 revolution, to represent a more secular and nature-based view of the annual
@@ -704,9 +700,6 @@ Display Hebrew date for selected day (@code{calendar-print-hebrew-date}).
 @findex calendar-print-islamic-date
 @item p i
 Display Islamic date for selected day (@code{calendar-print-islamic-date}).
-@findex calendar-print-bahai-date
-@item p b
-Display Bah@'a'@'{@dotless{i}} date for selected day (@code{calendar-print-bahai-date}).
 @findex calendar-print-french-date
 @item p f
 Display French Revolutionary date for selected day
@@ -756,7 +749,6 @@ other than Mayan; for the Mayan calendar, see the following section.
 @findex calendar-goto-astro-day-number
 @findex calendar-goto-hebrew-date
 @findex calendar-goto-islamic-date
-@findex calendar-goto-bahai-date
 @findex calendar-goto-french-date
 @findex calendar-goto-chinese-date
 @findex calendar-goto-persian-date
@@ -778,9 +770,6 @@ Move to a date specified in the Hebrew calendar
 @item g i
 Move to a date specified in the Islamic calendar
 (@code{calendar-goto-islamic-date}).
-@item g b
-Move to a date specified in the Bah@'a'@'{@dotless{i}} calendar
-(@code{calendar-goto-bahai-date}).
 @item g f
 Move to a date specified in the French Revolutionary calendar
 (@code{calendar-goto-french-date}).
@@ -802,8 +791,7 @@ Move to a date specified in the Ethiopic calendar
 the Gregorian calendar date equivalent to that date, and display the
 other calendar's date in the echo area.  Emacs uses strict completion
 (@pxref{Completion}) whenever it asks you to type a month name, so you
-don't have to worry about the spelling of Hebrew, Islamic,
-Bah@'a'@'{@dotless{i}} or French names.
+don't have to worry about the spelling of Hebrew, Islamic, or French names.
 
 @findex list-yahrzeit-dates
 @cindex yahrzeits
