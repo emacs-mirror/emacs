@@ -1,5 +1,5 @@
 /* Call a Lisp function interactively.
-   Copyright (C) 1985, 1986, 1992, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -69,9 +69,9 @@ c -- Character.\n\
 C -- Command name: symbol with interactive function definition.\n\
 d -- Value of point as number.  Does not do I/O.\n\
 D -- Directory name.\n\
-e -- Event that invoked this command (value of `last-nonmenu-event').\n\
-     This skips events without parameters.\n\
-     If used more than once, the Nth 'e' returns the Nth parameterized event.\n\
+e -- Parametrized event (i.e., one that's a list) that invoked this command.\n\
+     If used more than once, the Nth `e' returns the Nth parameterized event.\n\
+     This skips events that are integers or symbols.\n\
 f -- Existing file name.\n\
 F -- Possibly nonexistent file name.\n\
 k -- Key sequence (string).\n\
@@ -141,6 +141,8 @@ check_mark ()
   Lisp_Object tem = Fmarker_buffer (current_buffer->mark);
   if (NILP (tem) || (XBUFFER (tem) != current_buffer))
     error ("The mark is not set now");
+  if (NILP (current_buffer->mark_active))
+    error ("The mark is not active now");
 }
 
 
