@@ -380,6 +380,8 @@ keys_of_cmds ()
   initial_define_key (global_map, Ctl('I'), "self-insert-command");
   for (n = 040; n < 0177; n++)
     initial_define_key (global_map, n, "self-insert-command");
+  for (n = 0240; n < 0377; n++)
+    initial_define_key (global_map, n, "self-insert-command");
 
   initial_define_key (global_map, Ctl ('A'), "beginning-of-line");
   initial_define_key (global_map, Ctl ('B'), "backward-char");
