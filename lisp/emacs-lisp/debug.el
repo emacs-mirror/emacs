@@ -30,6 +30,19 @@
 (defvar debug-function-list nil
   "List of functions currently set for debug on entry.")
 
+(defvar debugger-outer-track-mouse)
+(defvar debugger-outer-last-command)
+(defvar debugger-outer-this-command)
+(defvar debugger-outer-unread-command-char)
+(defvar debugger-outer-unread-command-events)
+(defvar debugger-outer-last-input-event)
+(defvar debugger-outer-last-command-event)
+(defvar debugger-outer-last-nonmenu-event)
+(defvar debugger-outer-last-event-frame)
+(defvar debugger-outer-standard-input)
+(defvar debugger-outer-standard-output)
+(defvar debugger-outer-cursor-in-echo-area)
+
 ;;;###autoload
 (setq debugger 'debug)
 ;;;###autoload
@@ -52,62 +65,95 @@ first will be printed into the backtrace buffer."
 	(debugger-step-after-exit nil)
 	;; Don't keep reading from an executing kbd macro!
 	(executing-macro nil)
-	last-command this command
-	(cursor-in-echo-area nil))
-    (unwind-protect
-	(save-excursion
-	  (save-window-excursion
-	    (pop-to-buffer debugger-buffer)
-	    (erase-buffer)
-	    (let ((standard-output (current-buffer))
-		  (print-escape-newlines t)
-		  (print-length 50))
-	      (backtrace))
-	    (goto-char (point-min))
-	    (debugger-mode)
-	    (delete-region (point)
-			   (progn
-			     (search-forward "\n  debug(")
-			     (forward-line 1)
-			     (point)))
-	    (debugger-reenable)
-	    (cond ((memq (car debugger-args) '(lambda debug))
-		   (insert "Entering:\n")
-		   (if (eq (car debugger-args) 'debug)
-		       (progn
-			 (backtrace-debug 4 t)
-			 (delete-char 1)
-			 (insert ?*)
-			 (beginning-of-line))))
-		  ((eq (car debugger-args) 'exit)
-		   (insert "Return value: ")
-		   (setq debugger-value (nth 1 debugger-args))
-		   (prin1 debugger-value (current-buffer))
-		   (insert ?\n)
-		   (delete-char 1)
-		   (insert ? )
-		   (beginning-of-line))
-		  ((eq (car debugger-args) 'error)
-		   (insert "Signalling: ")
-		   (prin1 (nth 1 debugger-args) (current-buffer))
-		   (insert ?\n))
-		  ((eq (car debugger-args) t)
-		   (insert "Beginning evaluation of function call form:\n"))
-		  (t
-		   (prin1 (if (eq (car debugger-args) 'nil)
-			      (cdr debugger-args) debugger-args)
-			  (current-buffer))
-		   (insert ?\n)))
-	    (message "")
-	    (let ((inhibit-trace t)
-		  (standard-output nil)
-		  (buffer-read-only t))
+	;; Save the outer values of these vars for the `e' command
+	;; before we replace the values.
+	(debugger-outer-track-mouse track-mouse)
+	(debugger-outer-last-command last-command)
+	(debugger-outer-this-command this-command)
+	(debugger-outer-unread-command-char unread-command-char)
+	(debugger-outer-unread-command-events unread-command-events)
+	(debugger-outer-last-input-event last-input-event)
+	(debugger-outer-last-command-event last-command-event)
+	(debugger-outer-last-nonmenu-event last-nonmenu-event)
+	(debugger-outer-last-event-frame last-event-frame)
+	(debugger-outer-standard-input standard-input)
+	(debugger-outer-standard-output standard-output)
+	(debugger-outer-cursor-in-echo-area cursor-in-echo-area))
+    ;; Don't let these magic variables affect the debugger itself.
+    (let ((last-command nil) this-command track-mouse
+	  unread-command-char unread-command-events
+	  last-input-event last-command-event last-nonmenu-event
+	  last-event-frame
+	  (standard-input t) (standard-output t)
+	  (cursor-in-echo-area nil))
+      (unwind-protect
+	  (save-excursion
+	    (save-window-excursion
+	      (pop-to-buffer debugger-buffer)
+	      (erase-buffer)
+	      (let ((standard-output (current-buffer))
+		    (print-escape-newlines t)
+		    (print-length 50))
+		(backtrace))
+	      (goto-char (point-min))
+	      (debugger-mode)
+	      (delete-region (point)
+			     (progn
+			       (search-forward "\n  debug(")
+			       (forward-line 1)
+			       (point)))
+	      (debugger-reenable)
+	      (cond ((memq (car debugger-args) '(lambda debug))
+		     (insert "Entering:\n")
+		     (if (eq (car debugger-args) 'debug)
+			 (progn
+			   (backtrace-debug 4 t)
+			   (delete-char 1)
+			   (insert ?*)
+			   (beginning-of-line))))
+		    ((eq (car debugger-args) 'exit)
+		     (insert "Return value: ")
+		     (setq debugger-value (nth 1 debugger-args))
+		     (prin1 debugger-value (current-buffer))
+		     (insert ?\n)
+		     (delete-char 1)
+		     (insert ? )
+		     (beginning-of-line))
+		    ((eq (car debugger-args) 'error)
+		     (insert "Signalling: ")
+		     (prin1 (nth 1 debugger-args) (current-buffer))
+		     (insert ?\n))
+		    ((eq (car debugger-args) t)
+		     (insert "Beginning evaluation of function call form:\n"))
+		    (t
+		     (prin1 (if (eq (car debugger-args) 'nil)
+				(cdr debugger-args) debugger-args)
+			    (current-buffer))
+		     (insert ?\n)))
 	      (message "")
-	      (recursive-edit))))
-      ;; So that users do not try to execute debugger commands
-      ;;  in an invalid context
-      (kill-buffer debugger-buffer)
-      (store-match-data debugger-match-data))
+	      (let ((inhibit-trace t)
+		    (standard-output nil)
+		    (buffer-read-only t))
+		(message "")
+		(recursive-edit))))
+	;; So that users do not try to execute debugger commands
+	;;  in an invalid context
+	(kill-buffer debugger-buffer)
+	(store-match-data debugger-match-data)))
+    ;; Put into effect the modified values of these variables
+    ;; in case the user set them with the `e' command.
+    (setq track-mouse debugger-outer-track-mouse)
+    (setq last-command debugger-outer-last-command)
+    (setq this-command debugger-outer-this-command)
+    (setq unread-command-char debugger-outer-unread-command-char)
+    (setq unread-command-events debugger-outer-unread-command-events)
+    (setq last-input-event debugger-outer-last-input-event)
+    (setq last-command-event debugger-outer-last-command-event)
+    (setq last-nonmenu-event debugger-outer-last-nonmenu-event)
+    (setq last-event-frame debugger-outer-last-event-frame)
+    (setq standard-input debugger-outer-standard-input)
+    (setq standard-output debugger-outer-standard-output)
+    (setq cursor-in-echo-area debugger-outer-cursor-in-echo-area))
     (setq debug-on-next-call debugger-step-after-exit)
     debugger-value))
 
@@ -226,7 +272,31 @@ Applies to the frame whose line point is on in the backtrace."
 	;; old buffer deleted
 	(setq debugger-old-buffer (current-buffer)))
     (set-buffer debugger-old-buffer)
-    (eval-expression exp)))
+    (let ((track-mouse debugger-outer-track-mouse)
+	  (last-command debugger-outer-last-command)
+	  (this-command debugger-outer-this-command)
+	  (unread-command-char debugger-outer-unread-command-char)
+	  (unread-command-events debugger-outer-unread-command-events)
+	  (last-input-event debugger-outer-last-input-event)
+	  (last-command-event debugger-outer-last-command-event)
+	  (last-nonmenu-event debugger-outer-last-nonmenu-event)
+	  (last-event-frame debugger-outer-last-event-frame)
+	  (standard-input debugger-outer-standard-input)
+	  (standard-output debugger-outer-standard-output)
+	  (cursor-in-echo-area debugger-outer-cursor-in-echo-area))
+      (prog1 (eval-expression exp)
+	(setq debugger-outer-track-mouse track-mouse)
+	(setq debugger-outer-last-command last-command)
+	(setq debugger-outer-this-command this-command)
+	(setq debugger-outer-unread-command-char unread-command-char)
+	(setq debugger-outer-unread-command-events unread-command-events)
+	(setq debugger-outer-last-input-event last-input-event)
+	(setq debugger-outer-last-command-event last-command-event)
+	(setq debugger-outer-last-nonmenu-event last-nonmenu-event)
+	(setq debugger-outer-last-event-frame last-event-frame)
+	(setq debugger-outer-standard-input standard-input)
+	(setq debugger-outer-standard-output standard-output)
+	(setq debugger-outer-cursor-in-echo-area cursor-in-echo-area)))))
 
 (defvar debugger-mode-map nil)
 (if debugger-mode-map
