@@ -1145,6 +1145,9 @@ with Custom.
 
 * Lisp Changes in Emacs 21.4
 
+** New variables `gc-elapsed' and `gcs-done' provide extra information
+on garbage collection.
+
 ** New function `decode-coding-region-as-inserted-from-file' decodes a
 region as if it is read from a file without decoding.
 

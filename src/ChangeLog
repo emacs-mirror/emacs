@@ -1,3 +1,9 @@
+2003-01-30  Dave Love  <fx@gnu.org>
+
+	* alloc.c (Vgc_elapsed, gcs_done): New variables.
+	(Fgarbage_collect): Use them.
+	(init_alloc, syms_of_alloc): Set them up.
+
 2003-01-30  Juanma Barranquero  <lektu@terra.es>
 
 	* w32fns.c (init_external_image_libraries): Add missing operator.
