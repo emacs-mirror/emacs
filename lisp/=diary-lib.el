@@ -1893,6 +1893,6 @@ A value of 0 in any position is a wildcard."
                  (mark-visible-calendar-date
                   (calendar-gregorian-from-absolute date)))))))))
 
-(provide 'diary)
+(provide 'diary-lib)
 
 ;;; diary-lib.el ends here
