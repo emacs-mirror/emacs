@@ -7,7 +7,9 @@
   The Emacs commands that are used often or that must be quick to type are
 bound to keys---short sequences of characters---for convenient use.  Other
 Emacs commands that do not need to be brief are not bound to keys; to run
-them, you must refer to them by name.
+them, you must refer to them by name.  (Command bound to keys can also
+be invoked by their name.)  @xref{Key Binding}, for the description of
+how to bind commands to keys.
 
   A command name is, by convention, made up of one or more words,
 separated by hyphens; for example, @code{auto-fill-mode} or
