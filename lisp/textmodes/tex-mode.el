@@ -565,6 +565,8 @@ subshell is initiated, `tex-shell-hook' is run."
   (setq imenu-create-index-function 'latex-imenu-create-index)
   (make-local-variable 'tex-face-alist)
   (setq tex-face-alist tex-latex-face-alist)
+  (make-local-variable 'fill-nobreak-predicate)
+  (setq fill-nobreak-predicate 'latex-fill-nobreak-predicate)
   (run-hooks 'text-mode-hook 'tex-mode-hook 'latex-mode-hook))
 
 ;;;###autoload
@@ -638,6 +640,12 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
 \\\\[a-z]*space[ \t]*$\\|\\\\[a-z]*skip[ \t]*$\\|\
 \\\\newpage[ \t]*$\\|\\\\[a-z]*page[a-z]*[ \t]*$\\|\\\\footnote[ \t]*$\\|\
 \\\\marginpar[ \t]*$\\|\\\\parbox[ \t]*$\\|\\\\caption[ \t]*$")
+  (make-local-variable 'imenu-create-index-function)
+  (setq imenu-create-index-function 'latex-imenu-create-index)
+  (make-local-variable 'tex-face-alist)
+  (setq tex-face-alist tex-latex-face-alist)
+  (make-local-variable 'fill-nobreak-predicate)
+  (setq fill-nobreak-predicate 'latex-fill-nobreak-predicate)
   (run-hooks
    'text-mode-hook 'tex-mode-hook 'latex-mode-hook 'slitex-mode-hook))
 
@@ -878,6 +886,21 @@ A prefix arg inhibits the checking."
   (insert ?\{)
   (save-excursion
     (insert ?})))
+
+;; This function is used as the value of fill-nobreak-predicate
+;; in LaTeX mode.  Its job is to prevent line-breaking inside
+;; of a \verb construct.
+(defun latex-fill-nobreak-predicate ()
+  (let ((opoint (point))
+	inside)
+    (save-excursion 
+      (save-restriction
+	(beginning-of-line)
+	(narrow-to-region (point) opoint)
+	(while (re-search-forward "\\\\verb\\(.\\)" nil t)
+	  (unless (re-search-forward (regexp-quote (match-string 1)) nil t)
+	    (setq inside t)))))
+    inside))
 
 ;;; Like tex-insert-braces, but for LaTeX.
 (define-skeleton tex-latex-block
