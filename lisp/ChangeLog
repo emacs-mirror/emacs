@@ -1,5 +1,7 @@
 2000-12-18  Miles Bader  <miles@gnu.org>
 
+	* image-file.el (image-file-name-extensions): Add "pgm" and "ppm".
+
 	* textmodes/artist.el (artist-replace-chars, artist-replace-char): 
 	Check that emacs-major-version is `=' to 20, not `>='.
 	(artist-replace-chars): Use `make-string' instead of a loop.
