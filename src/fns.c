@@ -4380,8 +4380,8 @@ sweep_weak_table (h, remove_entries_p)
 void
 sweep_weak_hash_tables ()
 {
-  Lisp_Object table;
-  struct Lisp_Hash_Table *h, *prev;
+  Lisp_Object table, used, next;
+  struct Lisp_Hash_Table *h;
   int marked;
 
   /* Mark all keys and values that are in use.  Keep on marking until
@@ -4403,27 +4403,24 @@ sweep_weak_hash_tables ()
   while (marked);
 
   /* Remove tables and entries that aren't used.  */
-  prev = NULL;
-  for (table = Vweak_hash_tables; !GC_NILP (table); table = h->next_weak)
+  for (table = Vweak_hash_tables, used = Qnil; !GC_NILP (table); table = next)
     {
-      prev = h;
       h = XHASH_TABLE (table);
-
+      next = h->next_weak;
+      
       if (h->size & ARRAY_MARK_FLAG)
 	{
+	  /* TABLE is marked as used.  Sweep its contents.  */
 	  if (XFASTINT (h->count) > 0)
 	    sweep_weak_table (h, 1);
-	}
-      else
-	{
-	  /* Table is not marked, and will thus be freed.
-	     Take it out of the list of weak hash tables.  */
-	  if (prev)
-	    prev->next_weak = h->next_weak;
-	  else
-	    Vweak_hash_tables = h->next_weak;
+
+	  /* Add table to the list of used weak hash tables.  */
+	  h->next_weak = used;
+	  used = table;
 	}
     }
+
+  Vweak_hash_tables = used;
 }
 
 
