@@ -1492,10 +1492,15 @@ supported, but new code should use the new functions.
 *** Function signal-process now accepts a process object or process
 name in addition to a process id to identify the signalled process.
 
-*** Processes now have an associated `private variables' property list
-where programs can maintain process state and other per-process
-related information.  The new functions process-variable and
-set-process-variable are used to access and modify this list.
+*** Processes now have an associated property list where programs can
+maintain process state and other per-process related information.  
+
+The new functions process-get and process-put are used to access, add,
+and modify elements on this property list.
+
+The new low-level functions process-plist and set-process-plist are
+used to access and replace the entire property list of a process.
+
 
 ** Enhanced networking support.
 
@@ -1508,9 +1513,9 @@ create a stream or datagram server inside emacs.
 - A server can open on a random port using :service t arg.
 - Local sockets are supported using :family 'local arg.
 - Non-blocking connect is supported using :nowait t arg.
-- The process' private variables may be initialized using :vars PLIST arg;
-  a server process' private variables are automatically inherited by
-  new client processes created to handle incoming connections.
+- The process' property list may be initialized using :plist PLIST arg;
+  a copy of the server process' property list is automatically inherited
+  by new client processes created to handle incoming connections.
 
 To test for the availability of a given feature, use featurep like this:
   (featurep 'make-network-process '(:type datagram))
