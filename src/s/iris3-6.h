@@ -191,3 +191,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* This is how to get the device name of the tty end of a pty.  */
 #define PTY_TTY_NAME_SPRINTF \
  	    sprintf (ptyname, "/dev/ttyq%d", minor (stb.st_rdev));
+
+/* The C library does have the getwd function.  */
+#define HAVE_GETWD
