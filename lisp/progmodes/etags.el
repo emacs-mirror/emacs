@@ -1598,8 +1598,6 @@ for \\[find-tag] (which see)."
 	     (display-completion-list
 	      (all-completions pattern 'tags-complete-tag nil)))
 	   (message "Making completion list...%s" "done")))))
-
-;;;###autoload (define-key esc-map "\t" 'complete-tag)
 
 (provide 'etags)
 
