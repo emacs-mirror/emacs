@@ -2690,6 +2690,7 @@ Also change :reverse-video to :inverse-video."
   :value t
   :help-echo "Specify frames where the face attributes should be used."
   :args '((const :tag "all" t)
+	  (const :tag "defaults" default)
 	  (checklist
 	   :offset 0
 	   :extra-offset 9
