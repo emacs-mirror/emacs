@@ -1653,10 +1653,10 @@ system-specific keysym.  An element has this form: @code{(@var{code}
 . @var{symbol})}, where @var{code} is the numeric keysym code (not
 including the ``vendor specific'' bit, 
 @ifinfo 
--2**28,
+-2**28),
 @end ifinfo
 @tex 
-$-2^{28}$,
+$-2^{28}$),
 @end tex
 and @var{symbol} is the name for the function key.
 

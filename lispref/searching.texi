@@ -285,7 +285,7 @@ The beginning and end of a range must be in the same character set
 (@samp{a} with grave accent) is in the Emacs character set for Latin-1.
 
 Note that the usual regexp special characters are not special inside a
-character alternative.  A completely different set of characters are
+character alternative.  A completely different set of characters is
 special inside character alternatives: @samp{]}, @samp{-} and @samp{^}.
 
 To include a @samp{]} in a character alternative, you must make it the
@@ -878,7 +878,7 @@ Interactively it is the prefix arg.
 
 The lines are shown in a buffer named @samp{*Occur*}.
 It serves as a menu to find any of the occurrences in this buffer.
-@kbd{C-h m} (@code{describe-mode} in that buffer gives help.
+@kbd{C-h m} (@code{describe-mode}) in that buffer gives help.
 @end deffn
 
 @defopt list-matching-lines-default-context-lines

@@ -431,8 +431,8 @@ correspondingly.
 
 @defun make-auto-save-file-name
 This function returns the file name to use for auto-saving the current
-buffer.  This is just the file name with hash marks (@samp{#}) appended
-and prepended to it.  This function does not look at the variable
+buffer.  This is just the file name with hash marks (@samp{#}) prepended
+and appended to it.  This function does not look at the variable
 @code{auto-save-visited-file-name} (described below); you should check
 that before calling this function.
 

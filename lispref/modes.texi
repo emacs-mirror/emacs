@@ -108,7 +108,7 @@ special commands available in this mode.  @kbd{C-h m}
 
 The documentation string may include the special documentation
 substrings, @samp{\[@var{command}]}, @samp{\@{@var{keymap}@}}, and
-@samp{\<@var{keymap}>}, that enable the documentation to adapt
+@samp{\<@var{keymap}>}, which enable the documentation to adapt
 automatically to the user's own key bindings.  @xref{Keys in
 Documentation}.
 
@@ -462,7 +462,7 @@ And here is the code to set up the keymap for Lisp mode:
 @end smallexample
 
   Finally, here is the complete major mode function definition for
-Emacs Lisp mode.  
+Lisp mode.  
 
 @smallexample
 @group
@@ -661,7 +661,7 @@ Here is an example of how to prepend several pattern pairs to
 
 @defvar interpreter-mode-alist
 This variable specifies major modes to use for scripts that specify a
-command interpreter in an @samp{#!} line.  Its value is a list of
+command interpreter in a @samp{#!} line.  Its value is a list of
 elements of the form @code{(@var{interpreter} . @var{mode})}; for
 example, @code{("perl" . perl-mode)} is one element present by default.
 The element says to use mode @var{mode} if the file specifies
@@ -915,8 +915,8 @@ characters are reserved for major modes.)
 @subsection Easy-Mmode
 
   The easy-mmode package provides a convenient way of implementing a
-minor mode; with it, you can specify all about a simple minor mode in
-one self-contained definition.
+minor mode; with it, you can specify everything about a simple minor
+mode in one self-contained definition.
 
 @defmac easy-mmode-define-minor-mode mode doc &optional init-value mode-indicator keymap
 @tindex easy-mmode-define-minor-mode
@@ -1583,7 +1583,7 @@ comments and string constants, and highlights them using
 
   There are several variables that control how Font Lock mode highlights
 text.  But major modes should not set any of these variables directly.
-Instead, it should set @code{font-lock-defaults} as a buffer-local
+Instead, they should set @code{font-lock-defaults} as a buffer-local
 variable.  The value assigned to this variable is used, if and when Font
 Lock mode is enabled, to set all the other variables.
 
@@ -1622,7 +1622,7 @@ table is stored in @code{font-lock-syntax-table}.
 The fifth element, @var{syntax-begin}, specifies the value of
 @code{font-lock-beginning-of-syntax-function} (see below).
 
-Any further elements @var{other-vars} are have form
+Any further elements @var{other-vars} are of the form
 @code{(@var{variable} . @var{value})}.  This kind of element means to
 make @var{variable} buffer-local and then set it to @var{value}.  This
 is used to set other variables that affect fontification.
@@ -1676,7 +1676,7 @@ the search.  It should return non-@code{nil} if it succeeds, and set the
 match data to describe the match that was found.
 
 @item (@var{matcher} . @var{match})
-In this kind of element, @var{matcher} stands for either a regular
+In this kind of element, @var{matcher} is either a regular
 expression or a function, as described above.  The @sc{cdr},
 @var{match}, specifies which subexpression of @var{matcher} should be
 highlighted (instead of the entire text that @var{matcher} matched).
