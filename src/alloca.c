@@ -51,7 +51,11 @@
    in order to make unexec workable
    */
 #    ifndef STACK_DIRECTION
-#     error "Must know STACK_DIRECTION at compile-time"
+you
+lose
+-- must know STACK_DIRECTION at compile-time
+/* Using #error here is not wise since this file is for
+   old and obscure compilers.  */
 #    endif /* STACK_DIRECTION undefined */
 #   endif /* static */
 #  endif /* emacs */
