@@ -1707,8 +1707,9 @@ store_frame_param (f, prop, val)
       if (! MINI_WINDOW_P (XWINDOW (val)))
 	error ("Surrogate minibuffer windows must be minibuffer windows.");
 
-      if (FRAME_HAS_MINIBUF_P (f) || FRAME_MINIBUF_ONLY_P (f))
-	error ("can't change the surrogate minibuffer of a frame with its own minibuffer");
+      if (FRAME_HAS_MINIBUF_P (f) || FRAME_MINIBUF_ONLY_P (f)
+	  && !EQ (val, f->minibuffer_window))
+	error ("Can't change the surrogate minibuffer of a frame with its own minibuffer");
 
       /* Install the chosen minibuffer window, with proper buffer.  */
       f->minibuffer_window = val;
