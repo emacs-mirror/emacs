@@ -120,32 +120,21 @@ BODY contains code that will be executed each time the mode is (dis)activated.
 
     `(progn
        ;; Define the variable to enable or disable the mode.
-       ,(if globalp
-	    ;; BEWARE! autoload.el depends on this `defcustom' coming
-	    ;; as the first element after progn.
-	    `(defcustom ,mode ,init-value
-	       ,(format "Toggle %s.
+       ,(if (not globalp)
+	    `(progn
+	       (defvar ,mode ,init-value ,(format "Non-nil if %s is enabled.
+Use the function `%s' to change this variable." pretty-name mode))
+	       (make-variable-buffer-local ',mode))
+
+	  `(defcustom ,mode ,init-value
+	     ,(format "Toggle %s.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `%s'."
-			pretty-name mode)
-	       :set (lambda (symbol value) (funcall symbol (or value 0)))
-	       :initialize 'custom-initialize-default
-	       :group ,group
-	       :type 'boolean)
-	  `(progn
-	     (defvar ,mode ,init-value ,(format "Non-nil if %s is enabled.
-Use the function `%s' to change this variable." pretty-name mode))
-	     (make-variable-buffer-local ',mode)))
-
-       ;; Define the minor-mode keymap.
-       ,(when keymap
-	  `(defvar ,keymap-sym
-	     (cond ((and ,keymap (keymapp ,keymap))
-		    ,keymap)
-		   ((listp ,keymap)
-		    (easy-mmode-define-keymap ,keymap))
-		   (t (error "Invalid keymap %S" ,keymap)))
-	     ,(format "Keymap for `%s'." mode-name)))
+		      pretty-name mode)
+	     :set (lambda (symbol value) (funcall symbol (or value 0)))
+	     :initialize 'custom-initialize-default
+	     :group ,group
+	     :type 'boolean))
 
        ;; The toggle's hook.
        (defcustom ,hook  nil
@@ -174,6 +163,14 @@ With zero or negative ARG turn mode off.
 		      (if ,mode "en" "dis")))
 	 ,mode)
 
+       ;; Define the minor-mode keymap.
+       ,(when keymap
+	  `(defvar ,keymap-sym
+	     (cond ((keymapp ,keymap) ,keymap)
+		   ((listp ,keymap) (easy-mmode-define-keymap ,keymap))
+		   (t (error "Invalid keymap %S" ,keymap)))
+	     ,(format "Keymap for `%s'." mode-name)))
+
        (add-minor-mode ',mode ',lighter
 		       (if (boundp ',keymap-sym) (symbol-value ',keymap-sym)))
        
@@ -184,6 +181,7 @@ With zero or negative ARG turn mode off.
 ;;; make global minor mode
 ;;;
 
+;;;###autoload
 (defmacro easy-mmode-define-global-mode (global-mode mode turn-on
 						     &rest keys)
   "Make GLOBAL-MODE out of the MODE buffer-local minor mode.
@@ -209,9 +207,6 @@ KEYS is a list of CL-style keyword arguments:
 	(t (setq keys (cdr keys)))))
 
     `(progn
-       ;; BEWARE!  autoload.el depends on `define-minor-mode' coming
-       ;; as the first element after progn.
-
        ;; The actual global minor-mode
        (define-minor-mode ,global-mode
 	 ,(format "Toggle %s in every buffer.
@@ -223,7 +218,10 @@ in which `%s' turns it on."
 
 	 ;; Setup hook to handle future mode changes and new buffers.
 	 (if ,global-mode
-	     (add-hook 'change-major-mode-hook ',cmmh)
+	     (progn
+	       (add-hook 'find-file-hooks ',buffers)
+	       (add-hook 'change-major-mode-hook ',cmmh))
+	   (remove-hook 'find-file-hooks ',buffers)
 	   (remove-hook 'change-major-mode-hook ',cmmh))
 
 	 ;; Go through existing buffers.
@@ -236,18 +234,16 @@ in which `%s' turns it on."
 
        ;; The function that calls TURN-ON in each buffer.
        (defun ,buffers ()
-	 (while ,buffers
-	   (when (buffer-name (car ,buffers))
-	     (with-current-buffer (pop ,buffers)
-	       (,turn-on))))
 	 (remove-hook 'post-command-hook ',buffers)
-	 (remove-hook 'after-find-file ',buffers))
+	 (while ,buffers
+	   (let ((buf (pop ,buffers)))
+	     (when (buffer-live-p buf)
+	       (with-current-buffer buf (,turn-on))))))
 
        ;; The function that catches kill-all-local-variables.
        (defun ,cmmh ()
 	 (add-to-list ',buffers (current-buffer))
-	 (add-hook 'post-command-hook ',buffers)
-	 (add-hook 'after-find-file ',buffers)))))
+	 (add-hook 'post-command-hook ',buffers)))))
 
 ;;;
 ;;; easy-mmode-defmap
