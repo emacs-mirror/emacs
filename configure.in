@@ -175,6 +175,19 @@ case "${canonical}" in
     esac
   ;;
 
+  ## OpenBSD ports
+  *-*-openbsd* )
+    opsys=openbsd
+    case "${canonical}" in
+      alpha-*-openbsd*)	machine=alpha ;;
+      i386-*-openbsd*)	machine=intel386 ;;
+      m68k-*-openbsd*)  machine=hp9000s300 ;;  	# This is somewhat bogus.
+      ns32k-*-openbsd*)	machine=ns32000 ;;
+      sparc-*-openbsd*)	machine=sparc ;;
+      vax-*-netbsd*)	machine=vax ;;
+    esac
+  ;;
+
   ## Acorn RISCiX:
   arm-acorn-riscix1.1* )
     machine=acorn opsys=riscix1-1
