@@ -511,7 +511,7 @@ non-negletable amount of time; setting this variable reduces that time."
   :type 'integer
   :group 'ido)
 
-(defcustom ido-max-prompt-width 0.35
+(defcustom ido-max-file-prompt-width 0.35
   "*Non-zero means that the prompt string be limited to than number of characters.
 If value is a floating point number, it specifies a fraction of the frame width."
   :type '(choice
@@ -1395,9 +1395,9 @@ This function also adds a hook to the minibuffer."
   (cond
    ((and (memq item '(file dir)) ido-current-directory)
     (let ((dirname (abbreviate-file-name ido-current-directory))
-	  (max-width (if (and ido-max-prompt-width (floatp ido-max-prompt-width))
-			 (floor (* (frame-width) ido-max-prompt-width))
-		       ido-max-prompt-width))
+	  (max-width (if (and ido-max-file-prompt-width (floatp ido-max-file-prompt-width))
+			 (floor (* (frame-width) ido-max-file-prompt-width))
+		       ido-max-file-prompt-width))
 	  (literal (and (boundp 'ido-find-literal) ido-find-literal "(literal) "))
 	  (vc-off (and ido-saved-vc-mt (not vc-master-templates) "[-VC] "))
 	  (prefix nil)
