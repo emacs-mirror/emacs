@@ -976,7 +976,7 @@ Keybindings:
        (or dirname default-directory))
   ;; list-buffers uses this to display the dir being edited in this buffer.
   (set (make-local-variable 'list-buffers-directory)
-       dired-directory)
+       (expand-file-name dired-directory))
   (set (make-local-variable 'dired-actual-switches)
        (or switches dired-listing-switches))
   (dired-sort-other dired-actual-switches t)
