@@ -313,6 +313,10 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
       (face-initialize))
   (if (fboundp 'frame-initialize)
       (frame-initialize))
+  ;; If frame was created with a menu bar, set menu-bar-mode on.
+  (if (and (eq window-system 'x)
+	   (> (cdr (assq 'menu-bar-lines (frame-parameters))) 0))
+      (menu-bar-mode t))
 
   (run-hooks 'before-init-hook)
 
