@@ -272,8 +272,7 @@ These supersede the values given in `default-frame-alist'.")
 	      ;; the only frame with a minibuffer.  If it is, create a
 	      ;; new one.
 	      (or (delq frame-initial-frame (minibuffer-frame-list))
-		  (make-frame (append minibuffer-frame-alist
-				     '((minibuffer . only)))))
+		  (make-initial-minibuffer-frame nil))
 
 	      ;; If the initial frame is serving as a surrogate
 	      ;; minibuffer frame for any frames, we need to wean them
@@ -363,6 +362,12 @@ These supersede the values given in `default-frame-alist'.")
     ;; Make sure the initial frame can be GC'd if it is ever deleted.
     ;; Make sure frame-notice-user-settings does nothing if called twice.
     (setq frame-initial-frame nil)))
+
+(defun make-initial-minibuffer-frame (display)
+  (let ((parms (append minibuffer-frame-alist '((minibuffer . only)))))
+    (if display
+	(make-frame-on-display display parms)
+      (make-frame parms))))
 
 ;; Delete from ALIST all elements whose car is KEY.
 ;; Return the modified alist.
