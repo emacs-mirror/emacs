@@ -2234,7 +2234,7 @@ set_socket_options (s, opts, no_error)
       if (STRINGP (opt))
 	name = (char *) XSTRING (opt)->data;
       else if (SYMBOLP (opt))
-	name = (char *) XSYMBOL (opt)->name->data;
+	name = (char *) XSTRING (SYMBOL_NAME (opt))->data;
       else {
 	error ("Mal-formed option list");
 	return 0;
@@ -2302,7 +2302,7 @@ set_socket_options (s, opts, no_error)
 		else if (STRINGP (val))
 		  arg = (char *) XSTRING (val)->data;
 		else if (XSYMBOL (val))
-		  arg = (char *) XSYMBOL (val)->name->data;
+		  arg = (char *) XSTRING (SYMBOL_NAME (val))->data;
 		else 
 		  error ("Invalid argument to %s option", name);
 	      }
@@ -5335,7 +5335,7 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
       unsigned char *name;
 
       CHECK_SYMBOL (sigcode);
-      name = XSYMBOL (sigcode)->name->data;
+      name = XSTRING (SYMBOL_NAME (sigcode))->data;
 
       if (0)
 	;
