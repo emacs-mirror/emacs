@@ -1432,7 +1432,10 @@ buffer.  The hook term-exec-hook is run after each exec."
 	   (format "LINES=%d" term-height)
 	   (format "COLUMNS=%d" term-width))
 	  process-environment))
-	(process-connection-type t))
+	(process-connection-type t)
+	;; We should suppress conversion of end-of-line format.
+	(inhibit-eol-conversion t)
+	)
     (apply 'start-process name buffer
 	   "/bin/sh" "-c"
 	   (format "stty -nl echo rows %d columns %d sane 2>/dev/null;\
