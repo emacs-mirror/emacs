@@ -67,6 +67,13 @@ extern void die P_((const char *, const char *, int));
 
 #endif
 
+/* Used for making sure that Emacs is compilable in all
+   conigurations.  */
+
+#ifdef USE_LISP_UNION_TYPE
+#undef NO_UNION_TYPE
+#endif
+
 /* Define an Emacs version of "assert", since some system ones are
    flaky.  */
 #ifndef ENABLE_CHECKING
@@ -331,14 +338,15 @@ enum pvec_type
 /* Extract the value of a Lisp_Object as a signed integer.  */
 
 #ifndef XINT   /* Some machines need to do this differently.  */
-#define XINT(a) (((a) << (BITS_PER_EMACS_INT-VALBITS)) >> (BITS_PER_EMACS_INT-VALBITS))
+#define XINT(a) ((EMACS_INT) (((a) << (BITS_PER_EMACS_INT - VALBITS)) \
+			      >> (BITS_PER_EMACS_INT - VALBITS)))
 #endif
 
 /* Extract the value as an unsigned integer.  This is a basis
    for extracting it as a pointer to a structure in storage.  */
 
 #ifndef XUINT
-#define XUINT(a) ((a) & VALMASK)
+#define XUINT(a) ((EMACS_UINT) ((a) & VALMASK))
 #endif
 
 #ifndef XPNTR
@@ -419,7 +427,8 @@ extern int pure_size;
 
 #ifdef EXPLICIT_SIGN_EXTEND
 /* Make sure we sign-extend; compilers have been known to fail to do so.  */
-#define XINT(a) (((a).i << (BITS_PER_INT-VALBITS)) >> (BITS_PER_INT-VALBITS))
+#define XINT(a) (((a).i << (BITS_PER_EMACS_INT - VALBITS)) \
+		 >> (BITS_PER_EMACS_INT - VALBITS))
 #else
 #define XINT(a) ((a).s.val)
 #endif /* EXPLICIT_SIGN_EXTEND */
