@@ -97,7 +97,11 @@ A header-line does not scroll with the rest of the buffer."
   :group 'info)
 
 (defface info-header-node
-  '((t (:inherit info-node)))
+  '(;; Because header-lines on tty's are usually reverse-video, the
+    ;; normal info-node colors probably won't look good, so just stick
+    ;; with bold-italic
+    (((type tty) (class color)) (:bold t :italic t))
+    (t (:inherit info-node)))
   "Face for Info nodes in a node header."
   :group 'info)
 
