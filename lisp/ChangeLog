@@ -1,3 +1,7 @@
+2003-02-04  Juanma Barranquero  <lektu@terra.es>
+
+	* image.el (image-type-regexps): Fix typo.
+
 2003-02-04  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* mail/rmailout.el (rmail-output): If preserving MIME-version,
