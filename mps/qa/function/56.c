@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!56.c(trunk.4) $
+ id = $HopeName: MMQA_test_function!56.c(trunk.5) $
  summary = use AMC and AMC without inactive LO pool
  language = c
  link = testlib.o awlfmt.o
@@ -53,10 +53,9 @@ static void test(void)
 
  die(mmqa_pool_create_chain(&poolamc, arena, mps_class_amc(), format, chain),
      "create pool(amc)");
-
- cdie(
-  mps_pool_create(&poolawl, arena, mps_class_amc(), format),
-  "create pool");
+ /* Yes, we do intend an AMC pool, even though we call it poolawl (cf. 54.c). */
+ die(mmqa_pool_create_chain(&poolawl, arena, mps_class_amc(), format, chain),
+     "create pool(awl)");
 
  cdie(
   mps_ap_create(&apawl, poolawl, MPS_RANK_EXACT),
