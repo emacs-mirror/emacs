@@ -171,6 +171,7 @@ echo "Creating subdirectories."
 # I've removed it from this list.
 for subdir in lisp lisp/term site-lisp \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
+	      nt nt/inc nt/inc/sys nt/src \
 	      etc lock cpp info man msdos shortnames vms; do
   mkdir ${tempdir}/${subdir}
 done
@@ -183,7 +184,7 @@ echo "Making links to \`lisp'."
  ln [a-zA-Z]*.dat ../${tempdir}/lisp
  ## simula.el doesn't keep abbreviations in simula.defns any more.
  ## ln [a-zA-Z]*.defns ../${tempdir}/lisp
- ln ChangeLog Makefile ChangeLog.? README dired.todo ../${tempdir}/lisp
+ ln ChangeLog Makefile makefile.nt ChangeLog.? README dired.todo ../${tempdir}/lisp
  cd ../${tempdir}/lisp
  rm -f TAGS =*
  rm -f site-init site-init.el site-init.elc
@@ -251,10 +252,26 @@ echo "Making links to \`lib-src'."
 (cd lib-src
  ln [a-zA-Z]*.[chy] [a-zA-Z]*.lex ../${tempdir}/lib-src
  ln ChangeLog Makefile.in.in README testfile vcdiff ../${tempdir}/lib-src
- ln emacs.csh rcs2log rcs-checkin ../${tempdir}/lib-src
+ ln emacs.csh rcs2log rcs-checkin makefile.nt ../${tempdir}/lib-src
  cd ../${tempdir}/lib-src
  rm -f getdate.tab.c y.tab.c y.tab.h
  rm -f =* TAGS)
+
+echo "Making links to \`nt'."
+(cd nt
+ ln [a-z]*.cmd makefile.* todo ChangeLog install readme ../${tempdir}/nt)
+
+echo "Making links to \`nt/inc'."
+(cd nt/inc
+ ln [a-z]*.h ../${tempdir}/nt/inc)
+
+echo "Making links to \`nt/inc/sys'."
+(cd nt/inc/sys
+ ln [a-z]*.h ../${tempdir}/nt/inc/sys)
+
+echo "Making links to \`nt/src'."
+(cd nt/src
+ ln [a-z]*.h ../${tempdir}/nt/src)
 
 echo "Making links to \`msdos'."
 (cd msdos
