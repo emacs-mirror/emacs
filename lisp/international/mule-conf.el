@@ -40,9 +40,9 @@
 ;; Standards docs equivalent to iso-2022 and iso-8859 are at
 ;; http://www.ecma.ch/.
 
-;; FWIW, http://www.microsoft.com/globaldev/reference/ lists the
-;; following for MS Windows, which are presumably the only charsets we
-;; really need to worry about on such systems:
+;; FWIW, http://www.microsoft.com/globaldev/ lists the following for
+;; MS Windows, which are presumably the only charsets we really need
+;; to worry about on such systems:
 ;; `OEM codepages': 437, 720, 737, 775, 850, 852, 855, 857, 858, 862, 866
 ;; `Windows codepages': 1250, 1251, 1252, 1253, 1254, 1255, 1256, 1257,
 ;;                      1258, 874, 932, 936, 949, 950
@@ -252,6 +252,7 @@
   :code-offset #x160000
   :unify-map "gbk")
 (define-charset-alias 'cp936 'chinese-gbk)
+(define-charset-alias 'windows-936 'chinese-gbk)
 
 (define-charset 'chinese-cns11643-1
   "CNS11643 Plane 1 Chinese traditional: ISO-IR-171"
