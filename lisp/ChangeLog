@@ -1,3 +1,8 @@
+2003-06-16  Juanma Barranquero  <lektu@terra.es>
+
+	* progmodes/sh-script.el (sh-while-getopts, sh-if, sh-case):
+	Revert part of previous change.
+
 2003-06-16  Pieter E.J. Pareit  <pieter.pareit@skynet.be>
 
 	* progmodes/mixal-mode.el: New file.
