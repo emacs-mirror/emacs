@@ -202,7 +202,7 @@ int waiting_for_input;
 
 /* True while displaying for echoing.   Delays C-g throwing.  */
 
-static int echoing;
+int echoing;
 
 /* Non-null means we can start echoing at the next input pause even
    though there is something in the echo area.  */
@@ -219,7 +219,7 @@ static struct kboard *echo_kboard;
 /* The buffer used for echoing.  Set in echo_now, reset in
    cancel_echoing.  */
 
-static Lisp_Object echo_message_buffer;
+Lisp_Object echo_message_buffer;
 
 /* Nonzero means disregard local maps for the menu bar.  */
 static int inhibit_local_menu_bar_menus;
