@@ -1,0 +1,90 @@
+#
+#  Makefile definition file for building GNU Emacs on Windows NT
+#  
+#  GNU Emacs is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2, or (at your option)
+#  any later version.
+#  
+#  GNU Emacs is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#  
+#  You should have received a copy of the GNU General Public License
+#  along with GNU Emacs; see the file COPYING.  If not, write to
+#  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+#
+#     Geoff Voelker (voelker@cs.washington.edu)         9-6-94
+
+#
+# BEGIN CONFIGURATION
+#
+
+#
+# Set ARCH to the architecture on which you're building (i386, mips, alpha).
+# Set SYS_INC_DIR and SYS_LIB_DIR to your system include and library dirs.
+#
+
+ARCH            = mips
+SYS_INC_DIR     = C:\mstools\h
+SYS_LIB_DIR     = C:\mstools\lib
+
+# Set this to be the directory into which you want emacs installed
+INSTALL_DIR	= C:\emacs
+
+# May need to be cl386.exe when using the SDK on an x86.
+CC              = cl.exe
+
+# May need to be lib32.exe on NT 3.1, lib.exe on NT 3.5
+AR              = lib32.exe
+
+MAKE            = nmake.exe
+LINK            = link32.exe
+
+# If you are using VC 2.0, define COMPAT_LIB (only tested on i386)
+#COMPAT_LIB	= $(SYS_LIB_DIR)\oldnames.lib
+
+#
+# END CONFIGURATION
+#
+# You shouldn't have to change any of the below to get emacs to build and
+# install on your system.  If you did have to make changes, let me know.
+#
+
+INC             = -I. -I$(SYS_INC_DIR) -I$(SYS_INC_DIR)\crt
+CFLAGS          = -nologo $(INC) $(ARCH_CFLAGS) $(LOCAL_FLAGS) -DWIN32_LEAN_AND_MEAN -D$(ARCH)
+
+OBJDIR          = obj
+$(OBJDIR):;     -mkdir $(OBJDIR)
+BLD             = $(OBJDIR)\$(ARCH)
+$(BLD):         $(OBJDIR)
+		-mkdir $(BLD)
+
+CP		= copy
+CP_DIR		= xcopy /fried
+
+# This is completely braindamaged, but it's the only routine known to be there
+DEL_TREE	= echo y | rmdir /s
+
+!IF "$(ARCH)" == "i386"
+ARCH_CFLAGS     = -nologo -D_X86_=1 -c -Zel -W2 -H63 -G3d -Zi -Od
+ARCH_LDFLAGS	= -align:0x1000
+
+!ELSE
+!IF "$(ARCH)" == "mips"
+CC              = mcl.exe
+ARCH_CFLAGS     = -D_MIPS_=1 -c -W2 -Zi -Od -Gt0 -D__stdcall= -D__cdecl=
+ARCH_LDFLAGS	= -align:0x1000
+
+!ELSE
+!IF "$(ARCH)" == "alpha"
+CC              = claxp.exe
+ARCH_CFLAGS     = -D_ALPHA_=1 -c -Ze -Zi -W2 -D__stdcall= -D__cdecl=
+ARCH_LDFLAGS	= -align:0x2000
+
+!ELSE
+!ERROR Unknown architecture type.
+!ENDIF
+!ENDIF
+!ENDIF

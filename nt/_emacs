@@ -1,0 +1,3 @@
+;;; This is the user emacs startup file (.emacs in Unix land).
+
+(put 'eval-expression 'disabled nil)
