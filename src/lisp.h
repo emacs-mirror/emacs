@@ -19,6 +19,9 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
+#ifndef EMACS_LISP_H
+#define EMACS_LISP_H
+
 /* Declare the prototype for a general external function.  */
 #if defined (PROTOTYPES) || defined (WINDOWSNT)
 #define P_(proto) proto
@@ -2976,7 +2979,6 @@ extern Lisp_Object next_single_char_property_change P_ ((Lisp_Object,
 EXFUN (Fx_popup_menu, 2);
 EXFUN (Fx_popup_dialog, 2);
 extern void syms_of_xmenu P_ ((void));
-extern int popup_activated_flag;
 
 /* defined in sysdep.c */
 extern void stuff_char P_ ((char c));
@@ -3160,3 +3162,5 @@ extern Lisp_Object Vdirectory_sep_char;
    (FIXNUM_OVERFLOW_P (val) \
     ? make_float (val) \
     : make_number ((EMACS_INT)(val)))
+
+#endif /* EMACS_LISP_H */
