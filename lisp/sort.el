@@ -486,7 +486,7 @@ Use \\[untabify] to convert tabs to spaces before sorting."
       (setq col-start (min col-beg1 col-end1))
       (setq col-end (max col-beg1 col-end1))
       (if (search-backward "\t" beg1 t)
-	  (error "sort-columns does not work with tabs.  Use M-x untabify"))
+	  (error "sort-columns does not work with tabs -- use M-x untabify"))
       (if (not (or (eq system-type 'vax-vms)
 		   (text-properties-at beg1)
 		   (< (next-property-change beg1 nil end1) end1)))
