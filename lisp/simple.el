@@ -663,7 +663,8 @@ the echo area."
 	(print-level eval-expression-print-level))
     (if eval-expression-insert-value
 	(with-no-warnings
-	 (eval-last-sexp-print-value (car values)))
+	 (let ((standard-output (current-buffer)))
+	   (eval-last-sexp-print-value (car values))))
       (prin1 (car values) t))))
 
 (defun edit-and-eval-command (prompt command)
