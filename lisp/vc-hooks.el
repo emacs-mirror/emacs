@@ -6,7 +6,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.150 2003/05/08 17:45:08 monnier Exp $
+;; $Id: vc-hooks.el,v 1.151 2003/05/31 17:43:28 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -69,7 +69,8 @@ An empty list disables VC altogether."
   "*If non-nil, backups of registered files are made as with other files.
 If nil (the default), files covered by version control don't get backups."
   :type 'boolean
-  :group 'vc)
+  :group 'vc
+  :group 'backup)
 
 (defcustom vc-follow-symlinks 'ask
   "*What to do if visiting a symbolic link to a file under version control.
