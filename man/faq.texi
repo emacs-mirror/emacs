@@ -2157,11 +2157,11 @@ when you press the @key{TAB} character in certain modes.
 To do this to an entire buffer, type @kbd{M-< M-x replace-regexp
 @key{RET} ^ @key{RET} > @key{RET}}.
 
-To do this to a region, use @code{string-rectangle} (@kbd{C-x r t}).
+To do this to a region, use @code{string-insert-rectangle}.
 Set the mark (@kbd{C-@key{SPC}}) at the beginning of the first line you
 want to prefix, move the cursor to last line to be prefixed, and type
-@kbd{C-x r t > @key{RET}}.  To do this for the whole buffer, type
-@kbd{C-x h C-x r t > @key{RET}}.
+@kbd{M-x string-insert-rectangle @key{RET}}.  To do this for the whole
+buffer, type @kbd{C-x h M-x string-insert-rectangle @key{RET}}.
 
 If you are trying to prefix a yanked mail message with @samp{>}, you
 might want to set the variable @code{mail-yank-prefix}.  Better yet, use
