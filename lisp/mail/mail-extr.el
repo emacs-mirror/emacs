@@ -645,7 +645,7 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\".")
   ;;  which lie outside of the range, one character at that position is
   ;;  replaced with a SPC.
   (or (memq no-replace '(t nil))
-      (error "no-replace must be t or nil, evaluable at macroexpand-time."))
+      (error "no-replace must be t or nil, evaluable at macroexpand-time"))
   (` (let ((temp (, list-symbol))
 	   ch)
        (while temp
@@ -759,7 +759,7 @@ If ADDRESS contains more than one RFC-822 address, only the first is
 	    ((bufferp address)
 	     (insert-buffer-substring address))
 	    (t
-	     (error "Illegal address: %s" address)))
+	     (error "Invalid address: %s" address)))
       
       ;; stolen from rfc822.el
       ;; Unfold multiple lines.
@@ -1955,7 +1955,7 @@ If ADDRESS contains more than one RFC-822 address, only the first is
 			    mail-extr-all-top-level-domains nil t))))
   (or (setq domain (intern-soft (downcase domain)
 				mail-extr-all-top-level-domains))
-      (error "no such domain"))
+      (error "No such domain"))
   (message "%s: %s" (upcase (symbol-name domain)) (get domain 'domain-name)))
 
 
