@@ -198,11 +198,11 @@ been set up by `rfn-eshadow-setup-minibuffer'."
 ;;;###autoload
 (define-minor-mode read-file-name-electric-shadow-mode
   "Toggle Read-File-Name Electric Shadow mode.
-When active, any part of the a filename being read in the minibuffer
+When active, any part of the filename being read in the minibuffer
 that would be ignored because the result is passed through
 `substitute-in-file-name' is given the properties in
 `read-file-name-electric-shadow-properties', which can be used to make
-that portion dim, invisible, or otherwise less visually noticable.
+that portion dim, invisible, or otherwise less visually noticeable.
 
 With prefix argument ARG, turn on if positive, otherwise off.
 Returns non-nil if the new state is enabled."
