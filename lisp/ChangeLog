@@ -1,3 +1,8 @@
+2003-01-03  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-rcs.el (vc-rcs-revert): Unlock only if the user does have
+	the lock.
+
 2003-01-03  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua--pre-command-handler): Corrected
