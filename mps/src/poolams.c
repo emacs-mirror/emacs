@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.46) $
+ * $HopeName: MMsrc!poolams.c(trunk.47) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  * 
  * .design: See design.mps.poolams.
@@ -18,7 +18,7 @@
 #include "mpm.h"
 #include <stdarg.h>
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.46) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.47) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -873,6 +873,7 @@ void AMSBufferEmpty(Pool pool, Buffer buffer,
   Index initIndex, limitIndex;
   Seg seg;
   AMSSeg amsseg;
+  Size size;
 
   AVERT(Pool, pool);
   ams = PoolPoolAMS(pool);
@@ -912,8 +913,12 @@ void AMSBufferEmpty(Pool pool, Buffer buffer,
     }
   }
   amsseg->free += limitIndex - initIndex;
-  ams->pgen.totalSize -= AddrOffset(init, limit);
-  ams->pgen.newSize -= AddrOffset(init, limit);
+  size = AddrOffset(init, limit);
+  ams->pgen.totalSize -= size;
+  if (ams->pgen.newSize < size) /* can happen after GC zeroes newSize */
+    ams->pgen.newSize = 0;
+  else
+    ams->pgen.newSize -= size;
 }
 
 
