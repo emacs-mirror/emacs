@@ -4990,11 +4990,11 @@ x_calc_absolute_position (f)
 			      + f->output_data.x->left_pos);
 
   if (flags & YNegative)
+    /* We used to subtract f->output_data.x->menubar_height here
+       in the toolkit case, but PIXEL_HEIGHT already includes that.  */
     f->output_data.x->top_pos = (FRAME_X_DISPLAY_INFO (f)->height
 			     - 2 * f->output_data.x->border_width - win_y
 			     - PIXEL_HEIGHT (f)
-			     - (FRAME_EXTERNAL_MENU_BAR (f)
-				? f->output_data.x->menubar_height : 0)
 			     + f->output_data.x->top_pos);
   /* The left_pos and top_pos
      are now relative to the top and left screen edges,
