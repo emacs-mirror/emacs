@@ -857,7 +857,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.38 $")
+(defconst ange-ftp-version "$Revision: 1.39 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -1850,8 +1850,9 @@ PROC is the process to the FTP-client."
 			  (concat "USER request failed: "
 				  (cdr result)))))))
 
+;; ange@hplb.hpl.hp.com says this should not be changed.
 (defvar ange-ftp-hash-mark-msgs
-  "[hH]ash mark \\(printing on \\)?(?[^0-9]*\\([0-9]+\\)"
+  "[hH]ash mark [^0-9]*\\([0-9]+\\)"
   "*Regexp matching the FTP client's output upon doing a HASH command.")
 
 (defun ange-ftp-guess-hash-mark-size (proc)
