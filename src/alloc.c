@@ -23,6 +23,11 @@ Boston, MA 02111-1307, USA.  */
 #include <signal.h>
 
 #include <config.h>
+
+#ifdef STDC_HEADERS
+#include <stdlib.h>
+#endif
+
 #include "lisp.h"
 #include "intervals.h"
 #include "puresize.h"

@@ -36,6 +36,10 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/ioctl.h>
 #endif
 
+#ifdef STDC_HEADERS
+#include <stdlib.h>
+#endif
+
 #include "lisp.h"
 #include "commands.h"
 #include "intervals.h"
