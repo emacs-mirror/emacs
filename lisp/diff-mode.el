@@ -1,10 +1,10 @@
 ;;; diff-mode.el --- A mode for viewing/editing context diffs
 
-;; Copyright (C) 1998-1999  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.8 2000/06/05 07:30:09 monnier Exp $
+;; Revision: $Id: diff-mode.el,v 1.9 2000/08/16 19:56:10 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -57,7 +57,6 @@
 ;;   This mostly means ability to jump from half-hunk to half-hunk
 ;;   in context (and normal) diffs and to jump to the corresponding
 ;;   (i.e. new or old) file.
-;; - imenu support.
 ;; - Handle `diff -b' output in context->unified.
 
 ;;; Code:
@@ -67,6 +66,7 @@
 
 (defgroup diff-mode ()
   "Major-mode for viewing/editing diffs"
+  :version "21.1"
   :group 'tools
   :group 'diff)
 
@@ -108,6 +108,7 @@ when editing big diffs)."
     ("}" . diff-file-next)
     ("{" . diff-file-prev)
     ("\C-m" . diff-goto-source)
+    ([mouse-2] . diff-mouse-goto-source)
     ;; From XEmacs' diff-mode.
     ("W" . widen)
     ;;("." . diff-goto-source)		;display-buffer
@@ -219,6 +220,12 @@ when editing big diffs)."
 
 (defconst diff-font-lock-defaults
   '(diff-font-lock-keywords t nil nil nil (font-lock-multiline . nil)))
+
+(defvar diff-imenu-generic-expression
+  ;; Prefer second name as first is most likely to be a backup or
+  ;; version-control name.
+  '((nil "\\+\\+\\+\\ \\([^\t\n]+\\)\t" 1) ; unidiffs
+    (nil "^--- \\([^\t\n]+\\)\t.*\n\\*" 1))) ; context diffs
 
 ;;;;
 ;;;; Compile support
@@ -813,7 +820,9 @@ This mode runs `diff-mode-hook'.
 \\{diff-mode-map}"
   (set (make-local-variable 'font-lock-defaults) diff-font-lock-defaults)
   (set (make-local-variable 'outline-regexp) diff-outline-regexp)
-  ;; compile support
+  (set (make-local-variable 'imenu-generic-expression)
+       diff-imenu-generic-expression)
+ ;; compile support
   (set (make-local-variable 'compilation-file-regexp-alist)
        diff-file-regexp-alist)
   (set (make-local-variable 'compilation-error-regexp-alist)
