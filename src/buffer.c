@@ -1946,6 +1946,7 @@ verify_overlay_modification (start, end)
       ostart = OVERLAY_START (overlay);
       oend = OVERLAY_END (overlay);
       startpos = OVERLAY_POSITION (ostart);
+      endpos = OVERLAY_POSITION (oend);
       if (XFASTINT (end) < startpos)
 	break;
       if (XFASTINT (end) == startpos && insertion)
