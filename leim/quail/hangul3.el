@@ -64,7 +64,7 @@
 --- Example ---
 <key sequence>          k       f       x
 <string inserted>       ㄱ      가      각"
- nil t t)
+ nil t t nil nil nil t)
 
 (quail-define-rules
  ("k" ?ㄱ)
