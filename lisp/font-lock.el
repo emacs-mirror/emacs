@@ -210,6 +210,7 @@
 (defgroup font-lock nil
   "Font Lock mode text highlighting package."
   :link '(custom-manual "(emacs)Font Lock")
+  :link '(custom-manual "(elisp)Font Lock Mode")
   :group 'faces)
 
 (defgroup font-lock-highlighting-faces nil
@@ -237,6 +238,7 @@
 (defgroup jit-lock nil
   "Font Lock support mode to fontify just-in-time."
   :link '(custom-manual "(emacs)Support Modes")
+  :version "21.1"
   :load 'jit-lock
   :group 'font-lock)
 
