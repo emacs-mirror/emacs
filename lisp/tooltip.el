@@ -24,13 +24,6 @@
 
 ;;; Commentary:
 
-;; Put into your `.emacs'
-
-;; (require 'tooltip)
-;; (tooltip-mode 1)
-
-
-
 ;;; Code:
 
 (eval-when-compile
