@@ -75,17 +75,19 @@ The place mark goes is the same place \\[forward-sexp] would
 move to with the same argument.
 If this command is repeated, it marks the next ARG sexps after the ones
 already marked."
-  (interactive "p")
+  (interactive "P")
   (cond ((and (eq last-command this-command) (mark t))
+	 (setq arg (if arg (prefix-numeric-value arg)
+		     (if (> (mark) (point)) 1 -1)))
 	 (set-mark
 	  (save-excursion
 	   (goto-char (mark))
-	   (forward-sexp (or arg 1))
+	   (forward-sexp arg)
 	   (point))))
 	(t
 	 (push-mark
 	  (save-excursion
-	    (forward-sexp (or arg 1))
+	    (forward-sexp (prefix-numeric-value arg))
 	    (point))
 	  nil t))))
 
