@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; Defines a file-name-handler hook that transforms visited (or
-;; inserted) image files so that they are by displayed as emacs as
+;; inserted) image files so that they are displayed by emacs as
 ;; images.  This is done by putting a `display' text-property on the
 ;; image data, with the image-data still present underneath; if the
 ;; resulting buffer file is saved to another name it will correctly save
@@ -37,7 +37,7 @@
 
 
 (defcustom image-file-name-extensions
-  '("png" "jpeg" "jpg" "gif" "tiff" "xbm" "xpm")
+  '("png" "jpeg" "jpg" "gif" "tiff" "xbm" "xpm" "pbm")
   "*A list of image-file filename extensions.
 Filenames having one of these extensions are considered image files,
 in addition to those matching `image-file-name-regexps'.
@@ -60,8 +60,8 @@ variable is set using \\[customize]."
 Filenames matching one of these regexps are considered image files,
 in addition to those with an extension in `image-file-name-extensions'.
 
-See `auto-image-file-mode'; if `auto-image-file-mode' is enabled,
-setting this variable directly does not take effect unless
+See function `auto-image-file-mode'; if `auto-image-file-mode' is
+enabled, setting this variable directly does not take effect unless
 `auto-image-file-mode' is re-enabled; this happens automatically the
 variable is set using \\[customize]."
   :type '(repeat regexp)
