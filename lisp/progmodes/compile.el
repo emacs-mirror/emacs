@@ -108,19 +108,15 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; 	foo.c:8: error message
     ;; or HP-UX 7.0 fc:
     ;; 	foo.f          :16    some horrible error message
-    ;;
-    ;; We refuse to match  file:number:number
-    ;; because we want to leave that for another case (see below, GNAT).
+    ;; or GNU utilities with column (GNAT 1.82):
+    ;;   foo.adb:2:1: Unit name does not match file name
     ;; 
     ;; We'll insist that the number be followed by a colon or closing
     ;; paren, because otherwise this matches just about anything
     ;; containing a number with spaces around it.
-    ("\n\\([^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\)\\([) \t]\\|:[^0-9\n]\\)" 1 2)
-
-    ;; GNU error message with a program name in it.
-    ;;  compilername:file:linenum: error message
-    ("\n\\([^:( \t\n]+\\):\\([^:( \t\n]+\\):[ \t]*\\([0-9]+\\)\\(:[^0-9\n]\\)"
-     2 3)
+    ("\n\
+\\([^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\)\\([) \t]\\|\
+:\\([^0-9\n]\\|\\([0-9]+:\\)\\)\\)" 1 2 5)
 
     ;; Borland C++:
     ;;  Error ping.c 15: Unable to open include file 'sys/types.h'
@@ -179,17 +175,13 @@ of[ \t]+\"?\\([^\":\n]+\\)\"?:" 3 2)
     ;; E, file.cc(35,52) Illegal operation on pointers
     ("\n[EW], \\([^(\n]*\\)(\\([0-9]+\\),[ \t]*\\([0-9]+\\)" 1 2 3)
 
-    ;; GNAT compiler v1.82
-    ;; foo.adb:2:1: Unit name does not match file name
-    ("\n\\([^ \n\t:]+\\):\\([0-9]+\\):\\([0-9]+\\)[: \t]" 1 2 3)
+    ;; GNU messages with program name and optional column number.
+    ("\n[^0-9 \n\t:]+:[ \t]*\\([^ \n\t:]+\\):\
+\\([0-9]+\\):\\(\\([0-9]+\\)[: \t]\\)?" 1 2 4)
 
     ;; SGI Irix 5.2 compiler warnings
     ;; cfe: Warning 835: vpr_tiff.c, line 65: No prototype for the call to rint
     ("ning [0-9]+: \\([^,\" \n\t]+\\)[,:] \\(line \\)?\\([0-9]+\\):" 1 3)
-
-    ;; GNU message with program name and column number.
-    ("\n\\([^ \n\t:]+\\):\\([^ \n\t:]+\\):\
-\\([0-9]+\\):\\([0-9]+\\)[: \t]" 2 3 4)
     )
   "Alist that specifies how to match errors in compiler output.
 Each element has the form (REGEXP FILE-IDX LINE-IDX [COLUMN-IDX]).
@@ -270,6 +262,9 @@ with output going to the buffer `*compilation*'.
 You can then use the command \\[next-error] to find the next error message
 and move to the source code that caused it.
 
+Interactively, prompts for the command if `compilation-read-command' is
+non-nil; otherwise uses `compile-command'.  With prefix arg, always prompts.
+
 To run more than one compilation at once, start one and rename the
 \`*compilation*' buffer to some other name with \\[rename-buffer].
 Then start the next one.
@@ -278,7 +273,7 @@ The name used for the buffer is actually whatever is returned by
 the function in `compilation-buffer-name-function', so you can set that
 to a function that generates a unique name."
   (interactive
-   (if compilation-read-command
+   (if (or compilation-read-command current-prefix-arg)
        (list (read-from-minibuffer "Compile command: "
                                  compile-command nil nil
                                  '(compile-history . 1)))
@@ -1306,6 +1301,7 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 			      (match-beginning (nth 2 alist))
 			      (match-end (nth 2 alist)))))
 		   (column (and (nth 3 alist)
+				(match-beginning (nth 3 alist))
 				(string-to-int
 				 (buffer-substring
 				  (match-beginning (nth 3 alist))
