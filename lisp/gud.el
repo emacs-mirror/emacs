@@ -1316,21 +1316,36 @@ and source-file directory for your debugger."
 ;;
 ;; Type M-n to step over the current line and M-s to step into it.  That,
 ;; along with the JDB 'help' command should get you started.  The 'quit'
-;; JDB command will get out out of the debugger.
+;; JDB command will get out out of the debugger.  There is some truly
+;; pathetic JDB documentation available at:
+;;
+;;     http://java.sun.com/products/jdk/1.1/debugging/
 ;;
 ;; KNOWN PROBLEMS AND FIXME's:
 ;;
-;; Each source file must contain one and only one class or interface
-;; definition.
+;; Not sure what happens with inner classes ... haven't tried them.
 ;;
 ;; Does not grok UNICODE id's.  Only ASCII id's are supported.
-;;
-;; Loses when valid package statements are embedded in certain kinds of
-;; comments and/or string literals, but this should be rare.
 ;;
 ;; You must not put whitespace between "-classpath" and the path to
 ;; search for java classes even though it is required when invoking jdb
 ;; from the command line.  See gud-jdb-massage-args for details.
+;;
+;; If any of the source files in the directories listed in
+;; gud-jdb-directories won't parse you'll have problems.  Make sure
+;; every file ending in ".java" in these directories parses without error.
+;;
+;; All the .java files in the directories in gud-jdb-directories are
+;; syntactically analyzed each time gud jdb is invoked.  It would be
+;; nice to keep as much information as possible between runs.  It would
+;; be really nice to analyze the files only as neccessary (when the
+;; source needs to be displayed.)  I'm not sure to what extent the former
+;; can be accomplished and I'm not sure the latter can be done at all
+;; since I don't know of any general way to tell which .class files are
+;; defined by which .java file without analyzing all the .java files.
+;; If anyone knows why JavaSoft didn't put the source file names in
+;; debuggable .class files please clue me in so I find something else
+;; to be spiteful and bitter about.
 ;;
 ;; ======================================================================
 ;; gud jdb variables and functions
@@ -1352,42 +1367,221 @@ The file names should be absolute, or relative to the current directory.")
 (defun gud-jdb-build-source-files-list (path extn)
   (apply 'nconc (mapcar (lambda (d) (directory-files d t extn nil)) path)))
 
-;; Return the package (with trailing period) to which FILE belongs.
-;; Returns "" if FILE is in the default package.  BUF is the name of a
-;; buffer into which FILE is read so that it can be searched in order
-;; to determine it's package.  As a consequence, the contents of BUF
-;; are erased by this function.
-(defun gud-jdb-package-of-file (buf file)
-  (set-buffer buf)
-  (insert-file-contents file nil nil nil t)
-  ;; FIXME: Java IDs are UNICODE strings - this code does not
-  ;; do the right thing!
-  ;; FIXME: Does not always ignore contents of comments or string literals.
-  (if (re-search-forward
-		  "^[ \t]*package[ \t]+\\([a-zA-Z0-9$_\.]+\\)[ \t]*;" nil t)
-	  (concat (match-string 1) ".")
-	""))
+;; Move point past whitespace.
+(defun gud-jdb-skip-whitespace ()
+  (skip-chars-forward " \n\r\t\014"))
+
+;; Move point past a "// <eol>" type of comment.
+(defun gud-jdb-skip-single-line-comment ()
+  (end-of-line))
+
+;; Move point past a "/* */" or "/** */" type of comment.
+(defun gud-jdb-skip-traditional-or-documentation-comment ()
+  (forward-char 2)
+  (catch 'break
+	(while (not (eobp))
+	  (if (eq (following-char) ?*)
+		  (progn
+			(forward-char)
+			(if (not (eobp))
+				(if (eq (following-char) ?/)
+					(progn
+					  (forward-char)
+					  (throw 'break nil)))))
+		(forward-char)))))
+	  
+;; Move point past any number of consecutive whitespace chars and/or comments.
+(defun gud-jdb-skip-whitespace-and-comments ()
+  (gud-jdb-skip-whitespace)
+  (catch 'done
+	(while t
+	  (cond
+	   ((looking-at "//")
+		(gud-jdb-skip-single-line-comment)
+		(gud-jdb-skip-whitespace))
+	   ((looking-at "/\\*")
+		(gud-jdb-skip-traditional-or-documentation-comment)
+		(gud-jdb-skip-whitespace))
+	   (t (throw 'done nil))))))
+
+;; Move point past things that are id-like.  The intent is to skip regular
+;; id's, such as class or interface names as well as package and interface
+;; names.
+(defun gud-jdb-skip-id-ish-thing ()
+  (skip-chars-forward "^ /\n\r\t\014,;{"))
+
+;; Move point past a string literal.
+(defun gud-jdb-skip-string-literal ()
+  (forward-char)
+  (while
+	  (progn
+		(if (eq (following-char) ?\\)
+			(forward-char 2))
+		(not (eq (following-char) ?\042)))
+	(forward-char))
+  (forward-char))
+
+;; Move point past a character literal.
+(defun gud-jdb-skip-character-literal ()
+  (forward-char)
+  (while
+	  (progn
+		(if (eq (following-char) ?\\)
+			(forward-char 2))
+		(not (eq (following-char) ?\')))
+	(forward-char))
+  (forward-char))
+	
+;; Move point past the following block.  There may be (legal) cruft before
+;; the block's opening brace.  There must be a block or it's the end of life
+;; in petticoat junction.
+(defun gud-jdb-skip-block ()
+  
+  ;; Find the begining of the block.
+  (while
+	  (not (eq (following-char) ?{))
+
+	;; Skip any constructs that can harbor literal block delimiter
+	;; characters and/or the delimiters for the constructs themselves.
+	(cond
+	 ((looking-at "//")
+	  (gud-jdb-skip-single-line-comment))
+	 ((looking-at "/\\*")
+	  (gud-jdb-skip-traditional-or-documentation-comment))
+	 ((eq (following-char) ?\042)
+	  (gud-jdb-skip-string-literal))
+	 ((eq (following-char) ?\')
+	  (gud-jdb-skip-character-literal))
+	 (t (forward-char))))
+  
+  ;; Now at the begining of the block.
+  (forward-char)
+
+  ;; Skip over the body of the block as well as the final brace.
+  (let ((open-level 1))
+	(while (not (eq open-level 0))
+	  (cond
+	   ((looking-at "//")
+		(gud-jdb-skip-single-line-comment))
+	   ((looking-at "/\\*")
+		(gud-jdb-skip-traditional-or-documentation-comment))
+	   ((eq (following-char) ?\042)
+		(gud-jdb-skip-string-literal))
+	   ((eq (following-char) ?\')
+		(gud-jdb-skip-character-literal))
+	   ((eq (following-char) ?{)
+		(setq open-level (+ open-level 1))
+		(forward-char))
+	   ((eq (following-char) ?})
+		(setq open-level (- open-level 1))
+		(forward-char))
+	   (t (forward-char))))))
+
+;; Find the package and class definitions in Java source file FILE.  Assumes
+;; that FILE contains a legal Java program.  BUF is a scratch buffer used
+;; to hold the source during analysis.
+(defun gud-jdb-analyze-source (buf file)
+  (let ((l nil))
+	(set-buffer buf)
+	(insert-file-contents file nil nil nil t)
+	(goto-char 0)
+	(catch 'abort
+	  (let ((p ""))
+		(while (progn
+				 (gud-jdb-skip-whitespace)
+				 (not (eobp)))
+		  (cond
+
+		   ;; Any number of semi's following a block is legal.  Move point
+		   ;; past them.  Note that comments and whitespace may be
+		   ;; interspersed as well.
+		   ((eq (following-char) ?\073)
+			(forward-char))
+
+		   ;; Move point past a single line comment.
+		   ((looking-at "//")
+			(gud-jdb-skip-single-line-comment))
+
+		   ;; Move point past a traditional or documentation comment.
+		   ((looking-at "/\\*")
+			(gud-jdb-skip-traditional-or-documentation-comment))
+
+		   ;; Move point past a package statement, but save the PackageName.
+		   ((looking-at "package")
+			(forward-char 7)
+			(gud-jdb-skip-whitespace-and-comments)
+			(let ((s (point)))
+			  (gud-jdb-skip-id-ish-thing)
+			  (setq p (concat (buffer-substring s (point)) "."))
+			  (gud-jdb-skip-whitespace-and-comments)
+			  (if (eq (following-char) ?\073)
+				  (forward-char))))
+	 
+		   ;; Move point past an import statement.
+		   ((looking-at "import")
+			(forward-char 6)
+			(gud-jdb-skip-whitespace-and-comments)
+			(gud-jdb-skip-id-ish-thing)
+			(gud-jdb-skip-whitespace-and-comments)
+			(if (eq (following-char) ?\073)
+				(forward-char)))
+	 
+		   ;; Move point past the various kinds of ClassModifiers.
+		   ((looking-at "public")
+			(forward-char 6))
+		   ((looking-at "abstract")
+			(forward-char 8))
+		   ((looking-at "final")
+			(forward-char 5))
+	 
+		   ;; Move point past a ClassDeclaraction, but save the class
+		   ;; Identifier.
+		   ((looking-at "class")
+			(forward-char 5)
+			(gud-jdb-skip-whitespace-and-comments)
+			(let ((s (point)))
+			  (gud-jdb-skip-id-ish-thing)
+			  (setq
+			   l (nconc l (list (concat p (buffer-substring s (point)))))))
+			(gud-jdb-skip-block))
+
+		   ;; Move point past an interface statement.
+		   ((looking-at "interface")
+			(forward-char 9)
+			(gud-jdb-skip-block))
+
+		   ;; Anything else means the input is invalid.
+		   (t
+			(message (format "Error parsing file %s." file))
+			(throw 'abort nil))))))
+	l))
+
+(defun gud-jdb-build-class-source-alist-for-file (file)
+  (mapcar
+   (lambda (c)
+	 (cons c file))
+   (gud-jdb-analyze-source gud-jdb-analysis-buffer file)))
 
 ;; Association list of fully qualified class names (package + class name) and
 ;; their source files.
 (defvar gud-jdb-class-source-alist nil)
 
+;; This is used to hold a source file during analysis.
+(defvar gud-jdb-analysis-buffer nil)
+
 ;; Return an alist of fully qualified classes and the source files
 ;; holding their definitions.  SOURCES holds a list of all the source
 ;; files to examine.
 (defun gud-jdb-build-class-source-alist (sources)
-  (let ((tmpbuf (get-buffer-create "*gud-jdb-scratch*")))
-	(prog1
-		(mapcar
-		 (lambda (s)
-		   (cons
-			(concat
-			 (gud-jdb-package-of-file tmpbuf s)
-			 (file-name-sans-versions
-				   (file-name-sans-extension
-						 (file-name-nondirectory s))))
-			s)) sources)
-	  (kill-buffer tmpbuf))))
+  (setq gud-jdb-analysis-buffer (get-buffer-create "*gud-jdb-scratch*"))
+  (prog1
+	  (apply
+	   'nconc
+	   (mapcar
+		'gud-jdb-build-class-source-alist-for-file
+		sources))
+	(kill-buffer gud-jdb-analysis-buffer)
+	(setq gud-jdb-analysis-buffer nil)))
 
 ;; Change what was given in the minibuffer to something that can be used to
 ;; invoke the debugger.
