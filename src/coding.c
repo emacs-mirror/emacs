@@ -491,7 +491,6 @@ enum iso_code_class_type
     ISO_control_0,		/* Control codes in the range
 				   0x00..0x1F and 0x7F, except for the
 				   following 5 codes.  */
-    ISO_carriage_return,	/* ISO_CODE_CR (0x0D) */
     ISO_shift_out,		/* ISO_CODE_SO (0x0E) */
     ISO_shift_in,		/* ISO_CODE_SI (0x0F) */
     ISO_single_shift_2_7,	/* ISO_CODE_SS2_7 (0x19) */
@@ -710,13 +709,10 @@ static struct coding_system coding_categories[coding_category_max];
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #endif
 
-#define CODING_GET_INFO(coding, attrs, eol_type, charset_list)	\
-  do {								\
-    attrs = CODING_ID_ATTRS (coding->id);			\
-    eol_type = CODING_ID_EOL_TYPE (coding->id);			\
-    if (VECTORP (eol_type))					\
-      eol_type = Qunix;						\
-    charset_list = CODING_ATTR_CHARSET_LIST (attrs);		\
+#define CODING_GET_INFO(coding, attrs, charset_list)	\
+  do {							\
+    (attrs) = CODING_ID_ATTRS ((coding)->id);		\
+    (charset_list) = CODING_ATTR_CHARSET_LIST (attrs);	\
   } while (0)
 
 
@@ -1132,9 +1128,9 @@ decode_coding_utf_8 (coding)
   int *charbuf_end = charbuf + coding->charbuf_size;
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
-  Lisp_Object attr, eol_type, charset_list;
+  Lisp_Object attr, charset_list;
 
-  CODING_GET_INFO (coding, attr, eol_type, charset_list);
+  CODING_GET_INFO (coding, attr, charset_list);
 
   while (1)
     {
@@ -1150,21 +1146,6 @@ decode_coding_utf_8 (coding)
       if (UTF_8_1_OCTET_P(c1))
 	{
 	  c = c1;
-	  if (c == '\r')
-	    {
-	      if (EQ (eol_type, Qdos))
-		{
-		  if (src == src_end)
-		    {
-		      coding->result = CODING_RESULT_INSUFFICIENT_SRC;
-		      goto no_more_source;
-		    }
-		  if (*src == '\n')
-		    ONE_MORE_BYTE (c);
-		}
-	      else if (EQ (eol_type, Qmac))
-		c = '\n';
-	    }
 	}
       else
 	{
@@ -1325,27 +1306,52 @@ detect_coding_utf_16 (coding, detect_info)
   int c1, c2;
 
   detect_info->checked |= CATEGORY_MASK_UTF_16;
-
   if (coding->mode & CODING_MODE_LAST_BLOCK
-      && (coding->src_bytes & 1))
+      && (coding->src_chars & 1))
     {
       detect_info->rejected |= CATEGORY_MASK_UTF_16;
       return 0;
     }
+
   ONE_MORE_BYTE (c1);
   ONE_MORE_BYTE (c2);
-
   if ((c1 == 0xFF) && (c2 == 0xFE))
     {
       detect_info->found |= (CATEGORY_MASK_UTF_16_LE
 			     | CATEGORY_MASK_UTF_16_AUTO);
-      detect_info->rejected |= CATEGORY_MASK_UTF_16_BE;
+      detect_info->rejected |= (CATEGORY_MASK_UTF_16_BE
+				| CATEGORY_MASK_UTF_16_BE_NOSIG
+				| CATEGORY_MASK_UTF_16_LE_NOSIG);
     }
   else if ((c1 == 0xFE) && (c2 == 0xFF))
     {
       detect_info->found |= (CATEGORY_MASK_UTF_16_BE
 			     | CATEGORY_MASK_UTF_16_AUTO);
-      detect_info->rejected |= CATEGORY_MASK_UTF_16_LE;
+      detect_info->rejected |= (CATEGORY_MASK_UTF_16_LE
+				| CATEGORY_MASK_UTF_16_BE_NOSIG
+				| CATEGORY_MASK_UTF_16_LE_NOSIG);
+    }
+  else
+    {
+      unsigned char b1[256], b2[256];
+      int b1_variants = 1, b2_variants = 1;
+      int n;
+
+      bzero (b1, 256), bzero (b2, 256);
+      b1[c1]++, b2[c2]++;
+      for (n = 0; n < 256 && src < src_end; n++)
+	{
+	  ONE_MORE_BYTE (c1);
+	  ONE_MORE_BYTE (c2);
+	  if (! b1[c1++]) b1_variants++;
+	  if (! b2[c2++]) b2_variants++;
+	}
+      if (b1_variants < b2_variants)
+	detect_info->found |= CATEGORY_MASK_UTF_16_BE_NOSIG;
+      else
+	detect_info->found |= CATEGORY_MASK_UTF_16_LE_NOSIG;      
+      detect_info->rejected
+	|= (CATEGORY_MASK_UTF_16_BE | CATEGORY_MASK_UTF_16_LE);
     }
  no_more_source:
   return 1;
@@ -1365,9 +1371,9 @@ decode_coding_utf_16 (coding)
   enum utf_16_bom_type bom = CODING_UTF_16_BOM (coding);
   enum utf_16_endian_type endian = CODING_UTF_16_ENDIAN (coding);
   int surrogate = CODING_UTF_16_SURROGATE (coding);
-  Lisp_Object attr, eol_type, charset_list;
+  Lisp_Object attr, charset_list;
 
-  CODING_GET_INFO (coding, attr, eol_type, charset_list);
+  CODING_GET_INFO (coding, attr, charset_list);
 
   if (bom == utf_16_with_bom)
     {
@@ -1460,10 +1466,10 @@ encode_coding_utf_16 (coding)
   enum utf_16_bom_type bom = CODING_UTF_16_BOM (coding);
   int big_endian = CODING_UTF_16_ENDIAN (coding) == utf_16_big_endian;
   int produced_chars = 0;
-  Lisp_Object attrs, eol_type, charset_list;
+  Lisp_Object attrs, charset_list;
   int c;
 
-  CODING_GET_INFO (coding, attrs, eol_type, charset_list);
+  CODING_GET_INFO (coding, attrs, charset_list);
 
   if (bom != utf_16_without_bom)
     {
@@ -1928,12 +1934,12 @@ decode_coding_emacs_mule (coding)
   int *charbuf_end = charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
-  Lisp_Object attrs, eol_type, charset_list;
+  Lisp_Object attrs, charset_list;
   int char_offset = coding->produced_char;
   int last_offset = char_offset;
   int last_id = charset_ascii;
 
-  CODING_GET_INFO (coding, attrs, eol_type, charset_list);
+  CODING_GET_INFO (coding, attrs, charset_list);
 
   while (1)
     {
@@ -1949,21 +1955,6 @@ decode_coding_emacs_mule (coding)
 
       if (c < 0x80)
 	{
-	  if (c == '\r')
-	    {
-	      if (EQ (eol_type, Qdos))
-		{
-		  if (src == src_end)
-		    {
-		      coding->result = CODING_RESULT_INSUFFICIENT_SRC;
-		      goto no_more_source;
-		    }
-		  if (*src == '\n')
-		    ONE_MORE_BYTE (c);
-		}
-	      else if (EQ (eol_type, Qmac))
-		c = '\n';
-	    }
 	  *charbuf++ = c;
 	  char_offset++;
 	}
@@ -2052,11 +2043,11 @@ encode_coding_emacs_mule (coding)
   unsigned char *dst_end = coding->destination + coding->dst_bytes;
   int safe_room = 8;
   int produced_chars = 0;
-  Lisp_Object attrs, eol_type, charset_list;
+  Lisp_Object attrs, charset_list;
   int c;
   int preferred_charset_id = -1;
 
-  CODING_GET_INFO (coding, attrs, eol_type, charset_list);
+  CODING_GET_INFO (coding, attrs, charset_list);
   if (! EQ (charset_list, Vemacs_mule_charset_list))
     {
       CODING_ATTR_CHARSET_LIST (attrs)
@@ -2806,12 +2797,12 @@ decode_coding_iso_2022 (coding)
   int components[MAX_COMPOSITION_COMPONENTS * 2 + 1];
   int component_idx;
   int component_len;
-  Lisp_Object attrs, eol_type, charset_list;
+  Lisp_Object attrs, charset_list;
   int char_offset = coding->produced_char;
   int last_offset = char_offset;
   int last_id = charset_ascii;
 
-  CODING_GET_INFO (coding, attrs, eol_type, charset_list);
+  CODING_GET_INFO (coding, attrs, charset_list);
   setup_iso_safe_charsets (attrs);
 
   while (1)
@@ -2876,24 +2867,6 @@ decode_coding_iso_2022 (coding)
 	    goto invalid_code;
 	  charset = CHARSET_FROM_ID (charset_id_1);
 	  break;
-
-	case ISO_carriage_return:
-	  if (c1 == '\r')
-	    {
-	      if (EQ (eol_type, Qdos))
-		{
-		  if (src == src_end)
-		    {
-		      coding->result = CODING_RESULT_INSUFFICIENT_SRC;
-		      goto no_more_source;
-		    }
-		  if (*src == '\n')
-		    ONE_MORE_BYTE (c1);
-		}
-	      else if (EQ (eol_type, Qmac))
-		c1 = '\n';
-	    }
-	  /* fall through */
 
 	case ISO_control_0:
 	  MAYBE_FINISH_COMPOSITION ();
@@ -3648,7 +3621,11 @@ encode_coding_iso_2022 (coding)
   int c;
   int preferred_charset_id = -1;
 
-  CODING_GET_INFO (coding, attrs, eol_type, charset_list);
+  CODING_GET_INFO (coding, attrs, charset_list);
+  eol_type = CODING_ID_EOL_TYPE (coding->id);
+  if (VECTORP (eol_type))
+    eol_type = Qunix;
+
   setup_iso_safe_charsets (attrs);
   /* Charset list may have been changed.  */
   charset_list = CODING_ATTR_CHARSET_LIST (attrs);		\
@@ -3931,12 +3908,12 @@ decode_coding_sjis (coding)
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   struct charset *charset_roman, *charset_kanji, *charset_kana;
-  Lisp_Object attrs, eol_type, charset_list, val;
+  Lisp_Object attrs, charset_list, val;
   int char_offset = coding->produced_char;
   int last_offset = char_offset;
   int last_id = charset_ascii;
 
-  CODING_GET_INFO (coding, attrs, eol_type, charset_list);
+  CODING_GET_INFO (coding, attrs, charset_list);
 
   val = charset_list;
   charset_roman = CHARSET_FROM_ID (XINT (XCAR (val))), val = XCDR (val);
@@ -3946,6 +3923,7 @@ decode_coding_sjis (coding)
   while (1)
     {
       int c, c1;
+      struct charset *charset;
 
       src_base = src;
       consumed_chars_base = consumed_chars;
@@ -3955,60 +3933,40 @@ decode_coding_sjis (coding)
 
       ONE_MORE_BYTE (c);
 
-      if (c == '\r')
-	{
-	  if (EQ (eol_type, Qdos))
-	    {
-	      if (src == src_end)
-		{
-		  coding->result = CODING_RESULT_INSUFFICIENT_SRC;
-		  goto no_more_source;
-		}
-	      if (*src == '\n')
-		ONE_MORE_BYTE (c);
-	    }
-	  else if (EQ (eol_type, Qmac))
-	    c = '\n';
-	}
+      if (c < 0x80)
+	charset = charset_roman;
       else
 	{
-	  struct charset *charset;
-
-	  if (c < 0x80)
-	    charset = charset_roman;
+	  if (c >= 0xF0)
+	    goto invalid_code;
+	  if (c < 0xA0 || c >= 0xE0)
+	    {
+	      /* SJIS -> JISX0208 */
+	      ONE_MORE_BYTE (c1);
+	      if (c1 < 0x40 || c1 == 0x7F || c1 > 0xFC)
+		goto invalid_code;
+	      c = (c << 8) | c1;
+	      SJIS_TO_JIS (c);
+	      charset = charset_kanji;
+	    }
+	  else if (c > 0xA0)
+	    {
+	      /* SJIS -> JISX0201-Kana */
+	      c &= 0x7F;
+	      charset = charset_kana;
+	    }
 	  else
-	    {
-	      if (c >= 0xF0)
-		goto invalid_code;
-	      if (c < 0xA0 || c >= 0xE0)
-		{
-		  /* SJIS -> JISX0208 */
-		  ONE_MORE_BYTE (c1);
-		  if (c1 < 0x40 || c1 == 0x7F || c1 > 0xFC)
-		    goto invalid_code;
-		  c = (c << 8) | c1;
-		  SJIS_TO_JIS (c);
-		  charset = charset_kanji;
-		}
-	      else if (c > 0xA0)
-		{
-		  /* SJIS -> JISX0201-Kana */
-		  c &= 0x7F;
-		  charset = charset_kana;
-		}
-	      else
-		goto invalid_code;
-	    }
-	  if (charset->id != charset_ascii
-	      && last_id != charset->id)
-	    {
-	      if (last_id != charset_ascii)
-		ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
-	      last_id = charset->id;
-	      last_offset = char_offset;
-	    }
-	  CODING_DECODE_CHAR (coding, src, src_base, src_end, charset, c, c);
+	    goto invalid_code;
 	}
+      if (charset->id != charset_ascii
+	  && last_id != charset->id)
+	{
+	  if (last_id != charset_ascii)
+	    ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
+	  last_id = charset->id;
+	  last_offset = char_offset;
+	}
+      CODING_DECODE_CHAR (coding, src, src_base, src_end, charset, c, c);
       *charbuf++ = c;
       char_offset++;
       continue;
@@ -4042,12 +4000,12 @@ decode_coding_big5 (coding)
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   struct charset *charset_roman, *charset_big5;
-  Lisp_Object attrs, eol_type, charset_list, val;
+  Lisp_Object attrs, charset_list, val;
   int char_offset = coding->produced_char;
   int last_offset = char_offset;
   int last_id = charset_ascii;
 
-  CODING_GET_INFO (coding, attrs, eol_type, charset_list);
+  CODING_GET_INFO (coding, attrs, charset_list);
   val = charset_list;
   charset_roman = CHARSET_FROM_ID (XINT (XCAR (val))), val = XCDR (val);
   charset_big5 = CHARSET_FROM_ID (XINT (XCAR (val)));
@@ -4055,6 +4013,7 @@ decode_coding_big5 (coding)
   while (1)
     {
       int c, c1;
+      struct charset *charset;
 
       src_base = src;
       consumed_chars_base = consumed_chars;
@@ -4064,48 +4023,28 @@ decode_coding_big5 (coding)
 
       ONE_MORE_BYTE (c);
 
-      if (c == '\r')
-	{
-	  if (EQ (eol_type, Qdos))
-	    {
-	      if (src == src_end)
-		{
-		  coding->result = CODING_RESULT_INSUFFICIENT_SRC;
-		  goto no_more_source;
-		}
-	      if (*src == '\n')
-		ONE_MORE_BYTE (c);
-	    }
-	  else if (EQ (eol_type, Qmac))
-	    c = '\n';
-	}
+      if (c < 0x80)
+	charset = charset_roman;
       else
 	{
-	  struct charset *charset;
-	  if (c < 0x80)
-	    charset = charset_roman;
-	  else
-	    {
-	      /* BIG5 -> Big5 */
-	      if (c < 0xA1 || c > 0xFE)
-		goto invalid_code;
-	      ONE_MORE_BYTE (c1);
-	      if (c1 < 0x40 || (c1 > 0x7E && c1 < 0xA1) || c1 > 0xFE)
-		goto invalid_code;
-	      c = c << 8 | c1;
-	      charset = charset_big5;
-	    }
-	  if (charset->id != charset_ascii
-	      && last_id != charset->id)
-	    {
-	      if (last_id != charset_ascii)
-		ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
-	      last_id = charset->id;
-	      last_offset = char_offset;
-	    }
-	  CODING_DECODE_CHAR (coding, src, src_base, src_end, charset, c, c);
+	  /* BIG5 -> Big5 */
+	  if (c < 0xA1 || c > 0xFE)
+	    goto invalid_code;
+	  ONE_MORE_BYTE (c1);
+	  if (c1 < 0x40 || (c1 > 0x7E && c1 < 0xA1) || c1 > 0xFE)
+	    goto invalid_code;
+	  c = c << 8 | c1;
+	  charset = charset_big5;
 	}
-
+      if (charset->id != charset_ascii
+	  && last_id != charset->id)
+	{
+	  if (last_id != charset_ascii)
+	    ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
+	  last_id = charset->id;
+	  last_offset = char_offset;
+	}
+      CODING_DECODE_CHAR (coding, src, src_base, src_end, charset, c, c);
       *charbuf++ = c;
       char_offset++;
       continue;
@@ -4146,12 +4085,12 @@ encode_coding_sjis (coding)
   unsigned char *dst_end = coding->destination + coding->dst_bytes;
   int safe_room = 4;
   int produced_chars = 0;
-  Lisp_Object attrs, eol_type, charset_list, val;
+  Lisp_Object attrs, charset_list, val;
   int ascii_compatible;
   struct charset *charset_roman, *charset_kanji, *charset_kana;
   int c;
 
-  CODING_GET_INFO (coding, attrs, eol_type, charset_list);
+  CODING_GET_INFO (coding, attrs, charset_list);
   val = charset_list;
   charset_roman = CHARSET_FROM_ID (XINT (XCAR (val))), val = XCDR (val);
   charset_kana = CHARSET_FROM_ID (XINT (XCAR (val))), val = XCDR (val);
@@ -4221,12 +4160,12 @@ encode_coding_big5 (coding)
   unsigned char *dst_end = coding->destination + coding->dst_bytes;
   int safe_room = 4;
   int produced_chars = 0;
-  Lisp_Object attrs, eol_type, charset_list, val;
+  Lisp_Object attrs, charset_list, val;
   int ascii_compatible;
   struct charset *charset_roman, *charset_big5;
   int c;
 
-  CODING_GET_INFO (coding, attrs, eol_type, charset_list);
+  CODING_GET_INFO (coding, attrs, charset_list);
   val = charset_list;
   charset_roman = CHARSET_FROM_ID (XINT (XCAR (val))), val = XCDR (val);
   charset_big5 = CHARSET_FROM_ID (XINT (XCAR (val)));
@@ -4340,9 +4279,9 @@ decode_coding_ccl (coding)
   struct ccl_program ccl;
   int source_charbuf[1024];
   int source_byteidx[1024];
-  Lisp_Object attrs, eol_type, charset_list;
+  Lisp_Object attrs, charset_list;
 
-  CODING_GET_INFO (coding, attrs, eol_type, charset_list);
+  CODING_GET_INFO (coding, attrs, charset_list);
   setup_ccl_program (&ccl, CODING_CCL_DECODER (coding));
 
   while (src < src_end)
@@ -4420,9 +4359,9 @@ encode_coding_ccl (coding)
   unsigned char *adjusted_dst_end = dst_end - 1;
   int destination_charbuf[1024];
   int i, produced_chars = 0;
-  Lisp_Object attrs, eol_type, charset_list;
+  Lisp_Object attrs, charset_list;
 
-  CODING_GET_INFO (coding, attrs, eol_type, charset_list);
+  CODING_GET_INFO (coding, attrs, charset_list);
   setup_ccl_program (&ccl, CODING_CCL_ENCODER (coding));
 
   ccl.last_block = coding->mode & CODING_MODE_LAST_BLOCK;
@@ -4621,17 +4560,22 @@ decode_coding_charset (coding)
   int *charbuf_end = charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
-  Lisp_Object attrs, eol_type, charset_list, valids;
+  Lisp_Object attrs, charset_list, valids;
   int char_offset = coding->produced_char;
   int last_offset = char_offset;
   int last_id = charset_ascii;
 
-  CODING_GET_INFO (coding, attrs, eol_type, charset_list);
+  CODING_GET_INFO (coding, attrs, charset_list);
   valids = AREF (attrs, coding_attr_charset_valids);
 
   while (1)
     {
       int c;
+      Lisp_Object val;
+      struct charset *charset;
+      int dim;
+      int len = 1;
+      unsigned code;
 
       src_base = src;
       consumed_chars_base = consumed_chars;
@@ -4640,37 +4584,32 @@ decode_coding_charset (coding)
 	break;
 
       ONE_MORE_BYTE (c);
-      if (c == '\r')
+      code = c;
+
+      val = AREF (valids, c);
+      if (NILP (val))
+	goto invalid_code;
+      if (INTEGERP (val))
 	{
-	  /* Here we assume that no charset maps '\r' to something
-	     else.  */
-	  if (EQ (eol_type, Qdos))
+	  charset = CHARSET_FROM_ID (XFASTINT (val));
+	  dim = CHARSET_DIMENSION (charset);
+	  while (len < dim)
 	    {
-	      if (src == src_end)
-		{
-		  coding->result = CODING_RESULT_INSUFFICIENT_SRC;
-		  goto no_more_source;
-		}
-	      if (*src == '\n')
-		ONE_MORE_BYTE (c);
+	      ONE_MORE_BYTE (c);
+	      code = (code << 8) | c;
+	      len++;
 	    }
-	  else if (EQ (eol_type, Qmac))
-	    c = '\n';
+	  CODING_DECODE_CHAR (coding, src, src_base, src_end,
+			      charset, code, c);
 	}
       else
 	{
-	  Lisp_Object val;
-	  struct charset *charset;
-	  int dim;
-	  int len = 1;
-	  unsigned code = c;
-
-	  val = AREF (valids, c);
-	  if (NILP (val))
-	    goto invalid_code;
-	  if (INTEGERP (val))
+	  /* VAL is a list of charset IDs.  It is assured that the
+	     list is sorted by charset dimensions (smaller one
+	     comes first).  */
+	  while (CONSP (val))
 	    {
-	      charset = CHARSET_FROM_ID (XFASTINT (val));
+	      charset = CHARSET_FROM_ID (XFASTINT (XCAR (val)));
 	      dim = CHARSET_DIMENSION (charset);
 	      while (len < dim)
 		{
@@ -4678,42 +4617,24 @@ decode_coding_charset (coding)
 		  code = (code << 8) | c;
 		  len++;
 		}
-	      CODING_DECODE_CHAR (coding, src, src_base, src_end,
-				  charset, code, c);
-	    }
-	  else
-	    {
-	      /* VAL is a list of charset IDs.  It is assured that the
-		 list is sorted by charset dimensions (smaller one
-		 comes first).  */
-	      while (CONSP (val))
-		{
-		  charset = CHARSET_FROM_ID (XFASTINT (XCAR (val)));
-		  dim = CHARSET_DIMENSION (charset);
-		  while (len < dim)
-		    {
-		      ONE_MORE_BYTE (c);
-		      code = (code << 8) | c;
-		      len++;
-		    }
-		  CODING_DECODE_CHAR (coding, src, src_base,
-				      src_end, charset, code, c);
-		  if (c >= 0)
-		    break;
-		  val = XCDR (val);
-		}
-	    }
-	  if (c < 0)
-	    goto invalid_code;
-	  if (charset->id != charset_ascii
-	      && last_id != charset->id)
-	    {
-	      if (last_id != charset_ascii)
-		ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
-	      last_id = charset->id;
-	      last_offset = char_offset;
+	      CODING_DECODE_CHAR (coding, src, src_base,
+				  src_end, charset, code, c);
+	      if (c >= 0)
+		break;
+	      val = XCDR (val);
 	    }
 	}
+      if (c < 0)
+	goto invalid_code;
+      if (charset->id != charset_ascii
+	  && last_id != charset->id)
+	{
+	  if (last_id != charset_ascii)
+	    ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
+	  last_id = charset->id;
+	  last_offset = char_offset;
+	}
+
       *charbuf++ = c;
       char_offset++;
       continue;
@@ -4746,11 +4667,11 @@ encode_coding_charset (coding)
   unsigned char *dst_end = coding->destination + coding->dst_bytes;
   int safe_room = MAX_MULTIBYTE_LENGTH;
   int produced_chars = 0;
-  Lisp_Object attrs, eol_type, charset_list;
+  Lisp_Object attrs, charset_list;
   int ascii_compatible;
   int c;
 
-  CODING_GET_INFO (coding, attrs, eol_type, charset_list);
+  CODING_GET_INFO (coding, attrs, charset_list);
   ascii_compatible = ! NILP (CODING_ATTR_ASCII_COMPAT (attrs));
 
   while (charbuf < charbuf_end)
@@ -5250,7 +5171,7 @@ detect_eol (source, src_bytes, category)
 }
 
 
-static void
+static Lisp_Object
 adjust_coding_eol_type (coding, eol_seen)
      struct coding_system *coding;
      int eol_seen;
@@ -5259,11 +5180,21 @@ adjust_coding_eol_type (coding, eol_seen)
 
   eol_type = CODING_ID_EOL_TYPE (coding->id);
   if (eol_seen & EOL_SEEN_LF)
-    coding->id = CODING_SYSTEM_ID (AREF (eol_type, 0));
+    {
+      coding->id = CODING_SYSTEM_ID (AREF (eol_type, 0));
+      eol_type = Qunix;
+    }
   else if (eol_seen & EOL_SEEN_CRLF)
-    coding->id = CODING_SYSTEM_ID (AREF (eol_type, 1));
+    {
+      coding->id = CODING_SYSTEM_ID (AREF (eol_type, 1));
+      eol_type = Qdos;
+    }
   else if (eol_seen & EOL_SEEN_CR)
-    coding->id = CODING_SYSTEM_ID (AREF (eol_type, 2));
+    {
+      coding->id = CODING_SYSTEM_ID (AREF (eol_type, 2));
+      eol_type = Qmac;
+    }
+  return eol_type;
 }
 
 /* Detect how a text specified in CODING is encoded.  If a coding
@@ -5289,14 +5220,18 @@ detect_coding (coding)
     {
       int c, i;
 
-      for (src = coding->source; src < src_end; src++)
+      for (i = 0, src = coding->source; src < src_end; i++, src++)
 	{
 	  c = *src;
-	  if (c & 0x80 || (c < 0x20 && (c == ISO_CODE_ESC
+	  if (c & 0x80 || (c < 0x20 && (c == 0
+					|| c == ISO_CODE_ESC
 					|| c == ISO_CODE_SI
 					|| c == ISO_CODE_SO)))
 	    break;
 	}
+      /* Skipped bytes must be even for utf-16 detector.  */
+      if (i % 2)
+	src--;
       coding->head_ascii = src - (coding->source + coding->consumed);
 
       if (coding->head_ascii < coding->src_bytes)
@@ -5324,7 +5259,16 @@ detect_coding (coding)
 		}
 	      else if ((*(this->detector)) (coding, &detect_info)
 		       && detect_info.found & (1 << category))
-		break;
+		{
+		  if (category == coding_category_utf_16_auto)
+		    {
+		      if (detect_info.found & CATEGORY_MASK_UTF_16_LE)
+			category = coding_category_utf_16_le;
+		      else
+			category = coding_category_utf_16_be;
+		    }
+		  break;
+		}
 	    }
 	  if (i < coding_category_raw_text)
 	    setup_coding_system (CODING_ID_NAME (this->id), coding);
@@ -5340,7 +5284,8 @@ detect_coding (coding)
 		}
 	}
     }
-  else if (EQ (CODING_ATTR_TYPE (CODING_ID_ATTRS (coding->id)), Qutf_16))
+  else if (XINT (CODING_ATTR_CATEGORY (CODING_ID_ATTRS (coding->id)))
+	   == coding_category_utf_16_auto)
     {
       Lisp_Object coding_systems;
       struct coding_detection_info detect_info;
@@ -5349,31 +5294,13 @@ detect_coding (coding)
 	= AREF (CODING_ID_ATTRS (coding->id), coding_attr_utf_16_bom);
       detect_info.found = detect_info.rejected = 0;
       if (CONSP (coding_systems)
-	  && detect_coding_utf_16 (coding, &detect_info)
-	  && (detect_info.found & (CATEGORY_MASK_UTF_16_LE
-				   | CATEGORY_MASK_UTF_16_BE)))
+	  && detect_coding_utf_16 (coding, &detect_info))
 	{
 	  if (detect_info.found & CATEGORY_MASK_UTF_16_LE)
 	    setup_coding_system (XCAR (coding_systems), coding);
-	  else
+	  else if (detect_info.found & CATEGORY_MASK_UTF_16_BE)
 	    setup_coding_system (XCDR (coding_systems), coding);
 	}
-    }
-
-  attrs = CODING_ID_ATTRS (coding->id);
-  coding_type = CODING_ATTR_TYPE (attrs);
-
-  /* If we have not yet decided the EOL type, detect it now.  But, the
-     detection is impossible for a CCL based coding system, in which
-     case, we detct the EOL type after decoding.  */
-  if (VECTORP (CODING_ID_EOL_TYPE (coding->id))
-      && ! EQ (coding_type, Qccl))
-    {
-      int eol_seen = detect_eol (coding->source, coding->src_bytes,
-				 (enum coding_category) XINT (CODING_ATTR_CATEGORY (attrs)));
-
-      if (eol_seen != EOL_SEEN_NONE)
-	adjust_coding_eol_type (coding, eol_seen);
     }
 }
 
@@ -5382,13 +5309,24 @@ static void
 decode_eol (coding)
      struct coding_system *coding;
 {
-  if (VECTORP (CODING_ID_EOL_TYPE (coding->id)))
+  Lisp_Object eol_type;
+  unsigned char *p, *pbeg, *pend;
+  
+  eol_type = CODING_ID_EOL_TYPE (coding->id);
+  if (EQ (eol_type, Qunix))
+    return;
+
+  if (NILP (coding->dst_object))
+    pbeg = coding->destination;
+  else
+    pbeg = BYTE_POS_ADDR (coding->dst_pos_byte);
+  pend = pbeg + coding->produced;
+
+  if (VECTORP (eol_type))
     {
-      unsigned char *p = CHAR_POS_ADDR (coding->dst_pos);
-      unsigned char *pend = p + coding->produced;
       int eol_seen = EOL_SEEN_NONE;
 
-      for (; p < pend; p++)
+      for (p = pbeg; p < pend; p++)
 	{
 	  if (*p == '\n')
 	    eol_seen |= EOL_SEEN_LF;
@@ -5403,42 +5341,48 @@ decode_eol (coding)
 		eol_seen |= EOL_SEEN_CR;
 	    }
 	}
+      if (eol_seen != EOL_SEEN_NONE
+	  && eol_seen != EOL_SEEN_LF
+	  && eol_seen != EOL_SEEN_CRLF
+	  && eol_seen != EOL_SEEN_CR)
+	eol_seen = EOL_SEEN_LF;
       if (eol_seen != EOL_SEEN_NONE)
-	adjust_coding_eol_type (coding, eol_seen);
+	eol_type = adjust_coding_eol_type (coding, eol_seen);
     }
 
-  if (EQ (CODING_ID_EOL_TYPE (coding->id), Qmac))
+  if (EQ (eol_type, Qmac))
     {
-      unsigned char *p = CHAR_POS_ADDR (coding->dst_pos);
-      unsigned char *pend = p + coding->produced;
-
-      for (; p < pend; p++)
+      for (p = pbeg; p < pend; p++)
 	if (*p == '\r')
 	  *p = '\n';
     }
-  else if (EQ (CODING_ID_EOL_TYPE (coding->id), Qdos))
+  else if (EQ (eol_type, Qdos))
     {
-      unsigned char *p, *pbeg, *pend;
-      Lisp_Object undo_list;
+      int n = 0;
 
-      move_gap_both (coding->dst_pos + coding->produced_char,
-		     coding->dst_pos_byte + coding->produced);
-      undo_list = current_buffer->undo_list;
-      current_buffer->undo_list = Qt;
-      del_range_2 (coding->dst_pos, coding->dst_pos_byte, GPT, GPT_BYTE, 0);
-      current_buffer->undo_list = undo_list;
-      pbeg = GPT_ADDR;
-      pend = pbeg + coding->produced;
-
-      for (p = pend - 1; p >= pbeg; p--)
-	if (*p == '\r')
-	  {
-	    safe_bcopy ((char *) (p + 1), (char *) p, pend - p - 1);
-	    pend--;
-	  }
-      coding->produced_char -= coding->produced - (pend - pbeg);
-      coding->produced = pend - pbeg;
-      insert_from_gap (coding->produced_char, coding->produced);
+      if (NILP (coding->dst_object))
+	{
+	  for (p = pend - 2; p >= pbeg; p--)
+	    if (*p == '\r')
+	      {
+		safe_bcopy ((char *) (p + 1), (char *) p, pend-- - p - 1);
+		n++;
+	      }
+	}
+      else
+	{
+	  for (p = pend - 2; p >= pbeg; p--)
+	    if (*p == '\r')
+	      {
+		int pos_byte = coding->dst_pos_byte + (p - pbeg);
+		int pos = BYTE_TO_CHAR (pos_byte);
+		
+		del_range_2 (pos, pos_byte, pos + 1, pos_byte + 1, 0);
+		n++;
+	      }
+	}
+      coding->produced -= n;
+      coding->produced_char -= n;
     }
 }
 
@@ -5796,6 +5740,7 @@ decode_coding (coding)
      struct coding_system *coding;
 {
   Lisp_Object attrs;
+  Lisp_Object undo_list;
 
   if (BUFFERP (coding->src_object)
       && coding->src_pos > 0
@@ -5803,12 +5748,15 @@ decode_coding (coding)
       && coding->src_pos + coding->src_chars > GPT)
     move_gap_both (coding->src_pos, coding->src_pos_byte);
 
+  undo_list = Qt;
   if (BUFFERP (coding->dst_object))
     {
       if (current_buffer != XBUFFER (coding->dst_object))
 	set_buffer_internal (XBUFFER (coding->dst_object));
       if (GPT != PT)
 	move_gap_both (PT, PT_BYTE);
+      undo_list = current_buffer->undo_list;
+      current_buffer->undo_list = Qt;
     }
 
   coding->consumed = coding->consumed_char = 0;
@@ -5837,11 +5785,6 @@ decode_coding (coding)
     }
   while (coding->consumed < coding->src_bytes
 	 && ! coding->result);
-
-  if (EQ (CODING_ATTR_TYPE (CODING_ID_ATTRS (coding->id)), Qccl)
-      && SYMBOLP (CODING_ID_EOL_TYPE (coding->id))
-      && ! EQ (CODING_ID_EOL_TYPE (coding->id), Qunix))
-    decode_eol (coding);
 
   coding->carryover_bytes = 0;
   if (coding->consumed < coding->src_bytes)
@@ -5880,6 +5823,13 @@ decode_coding (coding)
       coding->consumed = coding->src_bytes;
     }
 
+  if (BUFFERP (coding->dst_object))
+    {
+      current_buffer->undo_list = undo_list;
+      record_insert (coding->dst_pos, coding->produced_char);
+    }
+  if (! EQ (CODING_ID_EOL_TYPE (coding->id), Qunix))
+    decode_eol (coding);
   return coding->result;
 }
 
@@ -6039,7 +5989,7 @@ consume_chars (coding)
 	stop_charset = end_pos;
     }
 
-  /* Compensate for CRLF and annotation.  */
+  /* Compensate for CRLF and conversion.  */
   buf_end -= 1 + MAX_ANNOTATION_LENGTH;
   while (buf < buf_end)
     {
@@ -6154,91 +6104,73 @@ encode_coding (coding)
 }
 
 
-/* Stack of working buffers used in code conversion.  An nil element
-   means that the code conversion of that level is not using a working
-   buffer.  */
-Lisp_Object Vcode_conversion_work_buf_list;
+/* Name (or base name) of work buffer for code conversion.  */
+static Lisp_Object Vcode_conversion_workbuf_name;
 
-/* A working buffer used by the top level conversion.  */
-Lisp_Object Vcode_conversion_reused_work_buf;
+/* A working buffer used by the top level conversion.  Once it is
+   created, it is never destroyed.  It has the name
+   Vcode_conversion_workbuf_name.  The other working buffers are
+   destroyed after the use is finished, and their names are modified
+   versions of Vcode_conversion_workbuf_name.  */
+static Lisp_Object Vcode_conversion_reused_workbuf;
+
+/* 1 iff Vcode_conversion_reused_workbuf is already in use.  */
+static int reused_workbuf_in_use;
 
 
-/* Return a working buffer that can be freely used by the following
-   code conversion.  MULTIBYTEP specifies the multibyteness of the
-   buffer.  */
+/* Return a working buffer of code convesion.  MULTIBYTE specifies the
+   multibyteness of returning buffer.  */
 
 Lisp_Object
-make_conversion_work_buffer (multibytep, depth)
-     int multibytep, depth;
+make_conversion_work_buffer (multibyte)
 {
-  struct buffer *current = current_buffer;
-  Lisp_Object buf, name;
+  Lisp_Object name, workbuf;
+  struct buffer *current;
 
-  if (depth == 0)
-    {
-      if (NILP (Vcode_conversion_reused_work_buf))
-	Vcode_conversion_reused_work_buf
-	  = Fget_buffer_create (build_string (" *code-converting-work<0>*"));
-      buf = Vcode_conversion_reused_work_buf;
-    }
+  if (reused_workbuf_in_use++)
+    name = Fgenerate_new_buffer_name (Vcode_conversion_workbuf_name, Qnil);
   else
-    {
-      if (depth < 0)
-	{
-	  name = build_string (" *code-converting-work*");
-	  name = Fgenerate_new_buffer_name (name, Qnil);
-	}
-      else
-	{
-	  char str[128];
-
-	  sprintf (str, " *code-converting-work*<%d>", depth);
-	  name = build_string (str);
-	}
-      buf = Fget_buffer_create (name);
-    }
-  set_buffer_internal (XBUFFER (buf));
+    name = Vcode_conversion_workbuf_name;
+  workbuf = Fget_buffer_create (name);
+  current = current_buffer;
+  set_buffer_internal (XBUFFER (workbuf));
+  Ferase_buffer ();      
   current_buffer->undo_list = Qt;
-  Ferase_buffer ();
-  Fset_buffer_multibyte (multibytep ? Qt : Qnil);
+  current_buffer->enable_multibyte_characters = multibyte ? Qt : Qnil;
   set_buffer_internal (current);
-  return buf;
+  return workbuf;
 }
 
-static Lisp_Object
-code_conversion_restore (buffer)
-     Lisp_Object buffer;
-{
-  Lisp_Object workbuf;
 
-  workbuf = XCAR (Vcode_conversion_work_buf_list);
-  if (! NILP (workbuf)
-      && ! EQ (workbuf, Vcode_conversion_reused_work_buf)
-      && ! NILP (Fbuffer_live_p (workbuf)))
-    Fkill_buffer (workbuf);
-  Vcode_conversion_work_buf_list = XCDR (Vcode_conversion_work_buf_list);
-  set_buffer_internal (XBUFFER (buffer));
+static Lisp_Object
+code_conversion_restore (arg)
+     Lisp_Object arg;
+{
+  Lisp_Object current, workbuf;
+
+  current = XCAR (arg);
+  workbuf = XCDR (arg);
+  if (! NILP (workbuf))
+    {
+      if (EQ (workbuf, Vcode_conversion_reused_workbuf))
+	reused_workbuf_in_use = 0;
+      else if (! NILP (Fbuffer_live_p (workbuf)))
+	Fkill_buffer (workbuf);
+    }
+  set_buffer_internal (XBUFFER (current));
   return Qnil;
 }
 
-static Lisp_Object
-code_conversion_save (buffer, with_work_buf, multibyte)
-     Lisp_Object buffer;
+Lisp_Object
+code_conversion_save (with_work_buf, multibyte)
      int with_work_buf, multibyte;
 {
-  Lisp_Object workbuf;
+  Lisp_Object workbuf = Qnil;
 
   if (with_work_buf)
-    {
-      int depth = XINT (Flength (Vcode_conversion_work_buf_list));
-
-      workbuf = make_conversion_work_buffer (multibyte, depth);
-    }
-  else
-    workbuf = Qnil;
-  Vcode_conversion_work_buf_list
-    = Fcons (workbuf, Vcode_conversion_work_buf_list);
-  record_unwind_protect (code_conversion_restore, buffer);
+    workbuf = make_conversion_work_buffer (multibyte);
+  record_unwind_protect (code_conversion_restore,
+			 Fcons (Fcurrent_buffer (), workbuf));
   return workbuf;
 }
 
@@ -6249,18 +6181,16 @@ decode_coding_gap (coding, chars, bytes)
 {
   int count = specpdl_ptr - specpdl;
   Lisp_Object attrs;
-  Lisp_Object buffer;
 
-  buffer = Fcurrent_buffer ();
-  code_conversion_save (buffer, 0, 0);
+  code_conversion_save (0, 0);
 
-  coding->src_object = buffer;
+  coding->src_object = Fcurrent_buffer ();
   coding->src_chars = chars;
   coding->src_bytes = bytes;
   coding->src_pos = -chars;
   coding->src_pos_byte = -bytes;
   coding->src_multibyte = chars < bytes;
-  coding->dst_object = buffer;
+  coding->dst_object = coding->src_object;
   coding->dst_pos = PT;
   coding->dst_pos_byte = PT_BYTE;
   coding->dst_multibyte = ! NILP (current_buffer->enable_multibyte_characters);
@@ -6295,12 +6225,10 @@ encode_coding_gap (coding, chars, bytes)
      EMACS_INT chars, bytes;
 {
   int count = specpdl_ptr - specpdl;
-  Lisp_Object buffer;
 
-  buffer = Fcurrent_buffer ();
-  code_conversion_save (buffer, 0, 0);
+  code_conversion_save (0, 0);
 
-  coding->src_object = buffer;
+  coding->src_object = Fcurrent_buffer ();
   coding->src_chars = chars;
   coding->src_bytes = bytes;
   coding->src_pos = -chars;
@@ -6409,14 +6337,14 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
       || (! NILP (CODING_ATTR_POST_READ (attrs))
 	  && NILP (dst_object)))
     {
-      coding->dst_object = code_conversion_save (buffer, 1, 1);
+      coding->dst_object = code_conversion_save (1, 1);
       coding->dst_pos = BEG;
       coding->dst_pos_byte = BEG_BYTE;
       coding->dst_multibyte = 1;
     }
   else if (BUFFERP (dst_object))
     {
-      code_conversion_save (buffer, 0, 0);
+      code_conversion_save (0, 0);
       coding->dst_object = dst_object;
       coding->dst_pos = BUF_PT (XBUFFER (dst_object));
       coding->dst_pos_byte = BUF_PT_BYTE (XBUFFER (dst_object));
@@ -6425,7 +6353,7 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
     }
   else
     {
-      code_conversion_save (buffer, 0, 0);
+      code_conversion_save (0, 0);
       coding->dst_object = Qnil;
       coding->dst_multibyte = 1;
     }
@@ -6524,8 +6452,7 @@ encode_coding_object (coding, src_object, from, from_byte, to, to_byte,
 
   if (! NILP (CODING_ATTR_PRE_WRITE (attrs)))
     {
-      coding->src_object = code_conversion_save (buffer, 1,
-						 coding->src_multibyte);
+      coding->src_object = code_conversion_save (1, coding->src_multibyte);
       set_buffer_internal (XBUFFER (coding->src_object));
       if (STRINGP (src_object))
 	insert_from_string (src_object, from, from_byte, chars, bytes, 0);
@@ -6555,13 +6482,13 @@ encode_coding_object (coding, src_object, from, from_byte, to, to_byte,
     }
   else if (STRINGP (src_object))
     {
-      code_conversion_save (buffer, 0, 0);
+      code_conversion_save (0, 0);
       coding->src_pos = from;
       coding->src_pos_byte = from_byte;
     }
   else if (BUFFERP (src_object))
     {
-      code_conversion_save (buffer, 0, 0);
+      code_conversion_save (0, 0);
       set_buffer_internal (XBUFFER (src_object));
       if (EQ (src_object, dst_object))
 	{
@@ -6579,7 +6506,7 @@ encode_coding_object (coding, src_object, from, from_byte, to, to_byte,
 	}
     }
   else
-    code_conversion_save (buffer, 0, 0);
+    code_conversion_save (0, 0);
 
   if (BUFFERP (dst_object))
     {
@@ -6735,9 +6662,10 @@ If valid, return CODING-SYSTEM, else signal a `coding-system-error' error.  */)
    detect only text-format.  */
 
 Lisp_Object
-detect_coding_system (src, src_bytes, highest, multibytep, coding_system)
+detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
+		      coding_system)
      const unsigned char *src;
-     int src_bytes, highest;
+     int src_chars, src_bytes, highest;
      int multibytep;
      Lisp_Object coding_system;
 {
@@ -6747,6 +6675,7 @@ detect_coding_system (src, src_bytes, highest, multibytep, coding_system)
   struct coding_system coding;
   int id;
   struct coding_detection_info detect_info;
+  enum coding_category base_category;
 
   if (NILP (coding_system))
     coding_system = Qundecided;
@@ -6756,6 +6685,7 @@ detect_coding_system (src, src_bytes, highest, multibytep, coding_system)
   coding_system = CODING_ATTR_BASE_NAME (attrs);
 
   coding.source = src;
+  coding.src_chars = src_chars;
   coding.src_bytes = src_bytes;
   coding.src_multibyte = multibytep;
   coding.consumed = 0;
@@ -6764,21 +6694,26 @@ detect_coding_system (src, src_bytes, highest, multibytep, coding_system)
   detect_info.checked = detect_info.found = detect_info.rejected = 0;
 
   /* At first, detect text-format if necessary.  */
-  if (XINT (CODING_ATTR_CATEGORY (attrs)) == coding_category_undecided)
+  base_category = XINT (CODING_ATTR_CATEGORY (attrs));
+  if (base_category == coding_category_undecided)
     {
       enum coding_category category;
       struct coding_system *this;
       int c, i;
 
-      for (; src < src_end; src++)
+      /* Skip all ASCII bytes except for a few ISO2022 controls.  */
+      for (i = 0; src < src_end; i++, src++)
 	{
 	  c = *src;
-	  if (c & 0x80
-	      || (c < 0x20 && (c == ISO_CODE_ESC
-			       || c == ISO_CODE_SI
-			       || c == ISO_CODE_SO)))
+	  if (c & 0x80 || (c < 0x20 && (c == 0
+					|| c == ISO_CODE_ESC
+					|| c == ISO_CODE_SI
+					|| c == ISO_CODE_SO)))
 	    break;
 	}
+      /* Skipped bytes must be even for utf-16 detecor.  */
+      if (i % 2)
+	src--;
       coding.head_ascii = src - coding.source;
 
       if (src < src_end)
@@ -6805,10 +6740,18 @@ detect_coding_system (src, src_bytes, highest, multibytep, coding_system)
 		if ((*(this->detector)) (&coding, &detect_info)
 		    && highest
 		    && (detect_info.found & (1 << category)))
-		  break;
+		  {
+		    if (category == coding_category_utf_16_auto)
+		      {
+			if (detect_info.found & CATEGORY_MASK_UTF_16_LE)
+			  category = coding_category_utf_16_le;
+			else
+			  category = coding_category_utf_16_be;
+		      }
+		    break;
+		  }
 	      }
 	  }
-
 
       if (detect_info.rejected == CATEGORY_MASK_ANY)
 	{
@@ -6865,6 +6808,24 @@ detect_coding_system (src, src_bytes, highest, multibytep, coding_system)
 		}
 	    }
 	  detect_info.found |= found;
+	}
+    }
+  else if (base_category == coding_category_utf_16_auto)
+    {
+      if (detect_coding_utf_16 (&coding, &detect_info))
+	{
+	  enum coding_category category;
+	  struct coding_system *this;
+
+	  if (detect_info.found & CATEGORY_MASK_UTF_16_LE)
+	    this = coding_categories + coding_category_utf_16_le;
+	  else if (detect_info.found & CATEGORY_MASK_UTF_16_BE)
+	    this = coding_categories + coding_category_utf_16_be;
+	  else if (detect_info.rejected & CATEGORY_MASK_UTF_16_LE_NOSIG)
+	    this = coding_categories + coding_category_utf_16_be_nosig;
+	  else
+	    this = coding_categories + coding_category_utf_16_le_nosig;
+	  val = Fcons (make_number (this->id), Qnil);
 	}
     }
   else
@@ -6969,7 +6930,7 @@ highest priority.  */)
     move_gap_both (to, to_byte);
 
   return detect_coding_system (BYTE_POS_ADDR (from_byte),
-			       to_byte - from_byte,
+			       to - from, to_byte - from_byte,
 			       !NILP (highest),
 			       !NILP (current_buffer
 				      ->enable_multibyte_characters),
@@ -6992,7 +6953,8 @@ highest priority.  */)
 {
   CHECK_STRING (string);
 
-  return detect_coding_system (SDATA (string), SBYTES (string),
+  return detect_coding_system (SDATA (string),
+			       SCHARS (string), SBYTES (string),
 			       !NILP (highest), STRING_MULTIBYTE (string),
 			       Qnil);
 }
@@ -8617,7 +8579,6 @@ init_coding_once ()
     iso_code_class[i] = ISO_graphic_plane_1;
   iso_code_class[0x20] = iso_code_class[0x7F] = ISO_0x20_or_0x7F;
   iso_code_class[0xA0] = iso_code_class[0xFF] = ISO_0xA0_or_0xFF;
-  iso_code_class[ISO_CODE_CR] = ISO_carriage_return;
   iso_code_class[ISO_CODE_SO] = ISO_shift_out;
   iso_code_class[ISO_CODE_SI] = ISO_shift_in;
   iso_code_class[ISO_CODE_SS2_7] = ISO_single_shift_2_7;
@@ -8655,11 +8616,13 @@ syms_of_coding ()
   staticpro (&Vbig5_coding_system);
   Vbig5_coding_system = Qnil;
 
-  staticpro (&Vcode_conversion_work_buf_list);
-  Vcode_conversion_work_buf_list = Qnil;
+  staticpro (&Vcode_conversion_reused_workbuf);
+  Vcode_conversion_reused_workbuf = Qnil;
 
-  staticpro (&Vcode_conversion_reused_work_buf);
-  Vcode_conversion_reused_work_buf = Qnil;
+  staticpro (&Vcode_conversion_workbuf_name);
+  Vcode_conversion_workbuf_name = build_string (" *code-conversion-work*");
+
+  reused_workbuf_in_use = 0;
 
   DEFSYM (Qcharset, "charset");
   DEFSYM (Qtarget_idx, "target-idx");
