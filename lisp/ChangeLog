@@ -1,3 +1,12 @@
+2000-08-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* pcvs.el (require): Require `cl' during compilation, only.
+
+	* emacs-lisp/cl.el (first, ..., tenth): Make them macros.
+	(toplevel): Remove `remq' and `remove' from autoloads.
+	(cl-fake-autoloads): New variable.  If set, arrange for an error
+	when CL functions etc. are autoloaded.
+
 2000-08-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* play/zone.el (zone, zone-pgm-stress): Don't use window-system.

@@ -1,9 +1,25 @@
 2000-08-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* xmenu.c (popup_get_selection): Use xfree instead of free.
+
+	* fileio.c (Finsert_file_contents): Use xfree instead of free.
+
+	* editfns.c (Ftranspose_regions): Use xfree instead of free.
+
+	* callproc.c (child_setup): Use xfree instead of free.
+
+	* sysdep.c (opendir, GetTempDirName, run_mac_command): Use xmalloc
+	instead of malloc.
+	(run_mac_command, closedir): Use `xfree' instead of `free'.
+
+	* keymap.c (current_minor_maps): Use xmalloc instead of malloc.
+
+	* eval.c (error): Use xfree instead of free.
+
 	* xfaces.c, xfns.c, w32fns.c: Replace `illegal' with `invalid'.
 
 	* fns.c: Replace `illegal' with `invalid'.
-	(Fmake_hash_table, amke_hash_table): Allow table size of 0.
+	(Fmake_hash_table, make_hash_table): Allow table size of 0.
 
 2000-08-05  Kenichi Handa  <handa@etl.go.jp>
 
