@@ -624,10 +624,11 @@ directory listing."
       (if view-p
 	  (progn
 	    (view-buffer buffer)
-	    (and just-created (kill-buffer buffer)))
-	  (if other-window-p
-	      (switch-to-buffer-other-window buffer)
-	      (switch-to-buffer buffer))))))
+	    (and just-created
+		 (setq view-exit-action 'kill-buffer)))
+	(if other-window-p
+	    (switch-to-buffer-other-window buffer)
+	  (switch-to-buffer buffer))))))
 
 
 (defun tar-extract-other-window ()
