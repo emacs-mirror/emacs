@@ -432,17 +432,15 @@ mark_x (name)
 }
 
 static void
-fatal_unexec (s, va_alist)
-    char *s;
-    va_dcl
+fatal_unexec (s, arg)
+     char *s;
+     char *arg;
 {
-  va_list ap;
   if (errno == EEOF)
     fputs ("unexec: unexpected end of file, ", stderr);
   else
     fprintf (stderr, "unexec: %s, ", strerror (errno));
-  va_start (ap);
-  vfprintf (stderr, s, ap);
+  fprintf (stderr, s, arg);
   fputs (".\n", stderr);
   exit (1);
 }
