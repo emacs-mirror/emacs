@@ -2143,6 +2143,11 @@ anyone has committed to the repository since you last executed
 "checkout", "update" or "commit".  That means using cvs diff options
 -rBASE -rHEAD.
 
+** New variable `hs-set-up-overlay' allows customization of the overlay
+used to effect hiding for hideshow minor mode.  Integration with isearch
+handles the overlay property `display' specially, preserving it during
+temporary overlay showing in the course of an isearch operation.
+
 
 * New modes and packages in Emacs 21.4
 
