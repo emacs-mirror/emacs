@@ -169,29 +169,38 @@ cancel_atimer (timer)
      struct atimer *timer;
 {
   struct atimer *t, *prev;
-
-  /* May not be called when some timers are stopped.  */
-  if (stopped_atimers)
-    abort ();
+  struct atimer **list;
 
   BLOCK_ATIMERS;
 
-  /* See if TIMER is active.  */
-  for (t = atimers, prev = 0; t && t != timer; t = t->next)
-    ;
-
-  /* If it is, take it off the list of active timers, put in on the
-     free-list.  We don't bother to arrange for setting a different
-     alarm time, since a too early one doesn't hurt.  */
-  if (t)
+  /* If we've stopped all other timers except TIMER, we can
+     just reset the list of active atimers to null.  */
+  if (stopped_atimers && timer == atimers)
     {
-      if (prev)
-	prev->next = t->next;
-      else
-	atimers = t->next;
+      timer->next = free_atimers;
+      free_atimers = timer;
+      atimers = NULL;
+    }
+  else
+    {
+      /* See if TIMER is active or stopped.  */
+      list = stopped_atimers ? &stopped_atimers : &atimers;
+      for (t = *list, prev = 0; t && t != timer; t = t->next)
+	;
 
-      t->next = free_atimers;
-      free_atimers = t;
+      /* If it is, take it off the list of its list, and put in on the
+	 free-list.  We don't bother to arrange for setting a
+	 different alarm time, since a too early one doesn't hurt.  */
+      if (t)
+	{
+	  if (prev)
+	    prev->next = t->next;
+	  else
+	    *list = t->next;
+	  
+	  t->next = free_atimers;
+	  free_atimers = t;
+	}
     }
 
   UNBLOCK_ATIMERS;
