@@ -9,11 +9,11 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<2000/03/10 15:49:24 vinicius>
-;; Version:	5.1
+;; Time-stamp:	<2000/03/21 00:02:42 vinicius>
+;; Version:	5.1.1
 
-(defconst ps-print-version "5.1"
-  "ps-print.el, v 5.1 <2000/03/10 vinicius>
+(defconst ps-print-version "5.1.1"
+  "ps-print.el, v 5.1.1 <2000/03/21 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs,
@@ -3937,6 +3937,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
   `(1+ (/ (1- ps-page-count) ps-number-of-columns)))
 
 (defun ps-end-file ()
+  (ps-flush-output)
   ;; Back to the PS output buffer to set the last page n-up printing
   (save-excursion
     (let ((pages-per-sheet (mod ps-page-postscript ps-n-up-printing))
@@ -4619,7 +4620,6 @@ If FACE is not a valid face name, it is used default face."
 		(ps-end-page)
 
 		(ps-end-file)
-		(ps-flush-output)
 		(ps-end-job)
 
 		;; Setting this variable tells the unwind form that the
@@ -4639,6 +4639,7 @@ If FACE is not a valid face name, it is used default face."
 
 
 (defun ps-end-job ()
+  (ps-flush-output)
   (let ((total-lines (cdr ps-printing-region))
 	(total-pages (if ps-print-only-one-header
 			 (ps-page-number)
