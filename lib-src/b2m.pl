@@ -30,7 +30,7 @@ use Mail::Address;
 use Date::Parse;
 
 my($whoami) = basename $0;
-my($version) = '$Revision: 1.2 $';
+my($version) = '$Revision: 1.3 $';
 my($usage) = "Usage: $whoami [--help] [--version] [--[no]full-headers] [Babyl-file]
 \tBy default, full headers are printed.\n";
 
@@ -102,8 +102,9 @@ while (<>) {
 	$full_header = $header;
     }
 
-    # End message with a single newline
-    s/\s+$/\n/;
+    # End message with two newlines (some mbox parsers require a blank
+    # line before the next "From " line).
+    s/\s+$/\n\n/;
 
     # Quote "^From "
     s/(^|\n)From /$1>From /g;
