@@ -1334,8 +1334,9 @@ With argument, insert value in current buffer after the form."
   ;; writes the given form to the output buffer, being careful of docstrings
   ;; in defun, defmacro, defvar, defconst and autoload because make-docfile is
   ;; so amazingly stupid.
-  ;; define-functions are output directly by byte-compile-file-form-defmumble; it does
-  ;; not pay to first build the define-function in defmumble and then parse it here.
+  ;; defalias calls are output directly by byte-compile-file-form-defmumble;
+  ;; it does not pay to first build the defalias in defmumble and then parse
+  ;; it here.
   (if (and (memq (car-safe form) '(defun defmacro defvar defconst autoload))
 	   (stringp (nth 3 form)))
       (byte-compile-output-docform '("\n(" 3 ")") form)
@@ -1376,7 +1377,7 @@ With argument, insert value in current buffer after the form."
       (let ((for-effect t))
 	;; To avoid consing up monstrously large forms at load time, we split
 	;; the output regularly.
-	(and (eq (car-safe form) 'define-function) (nthcdr 300 byte-compile-output)
+	(and (eq (car-safe form) 'defalias) (nthcdr 300 byte-compile-output)
 	     (byte-compile-flush-pending))
 	(funcall handler form)
 	(if for-effect
@@ -1569,9 +1570,9 @@ With argument, insert value in current buffer after the form."
 					 new-one)))))
 	     'byte-compile-two-args)
 	  ;; Output the form by hand, that's much simpler than having
-	  ;; b-c-output-file-form analyze the define-function.
+	  ;; b-c-output-file-form analyze the defalias.
 	  (byte-compile-flush-pending)
-	  (princ "\n(define-function '" outbuffer)
+	  (princ "\n(defalias '" outbuffer)
 	  (prin1 name outbuffer)
 	  (byte-compile-output-docform
 	   (cond ((atom code)
@@ -1602,7 +1603,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 			   (cons 'macro (byte-compile-lambda fun))
 			 (byte-compile-lambda fun)))
 	     (if (symbolp form)
-		 (define-function form fun)
+		 (defalias form fun)
 	       fun)))))))
 
 (defun byte-compile-sexp (sexp)
