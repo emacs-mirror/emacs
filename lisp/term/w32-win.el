@@ -155,7 +155,9 @@
   "Edit the files listed in the drag-n-drop event.
 Switch to a buffer editing the last file dropped."
   (interactive "e")
-  (mapcar 'find-file (car (cdr (cdr event))))
+  (save-excursion
+    (set-frame-selected-window nil (posn-window (event-start event)))
+    (mapcar 'find-file (car (cdr (cdr event)))))
   (raise-frame))
 
 (defun w32-drag-n-drop-other-frame (event)
