@@ -366,7 +366,7 @@ static void *go(void *p, size_t s)
   testlib_unused(p);
   testlib_unused(s);
 
-  die(mps_pool_create(&mpool, arena, mps_class_mv(), 
+  die(mps_pool_create(&mpool, arena, mps_class_mv(),
                       (size_t)65536, sizeof(QSCellStruct) * 1000,
                       (size_t)65536),
       "MVCreate");

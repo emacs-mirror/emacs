@@ -77,16 +77,16 @@ Res VMCreate(VM *vmReturn, Size size)
   AVER(vm->limit < AddrAdd((Addr)vm->block, size));
 
   memset((void *)vm->block, VM_JUNKBYTE, size);
-  
+ 
   /* Lie about the reserved address space, to simulate real */
   /* virtual memory. */
   vm->reserved = size - VMAN_ALIGN;
   vm->mapped = (Size)0;
-  
+ 
   vm->sig = VMSig;
 
   AVERT(VM, vm);
-  
+ 
   EVENT_PAA(VMCreate, vm, vm->base, vm->limit);
 
   *vmReturn = vm;
@@ -102,10 +102,10 @@ void VMDestroy(VM vm)
 
   memset((void *)vm->base, VM_JUNKBYTE, AddrOffset(vm->base, vm->limit));
   free(vm->block);
-  
+ 
   vm->sig = SigInvalid;
   free(vm);
-  
+ 
   EVENT_P(VMDestroy, vm);
 }
 
@@ -144,10 +144,10 @@ Res VMMap(VM vm, Addr base, Addr limit)
   AVER(limit <= vm->limit);
   AVER(AddrIsAligned(base, VMAN_ALIGN));
   AVER(AddrIsAligned(limit, VMAN_ALIGN));
-  
+ 
   size = AddrOffset(base, limit);
   memset((void *)base, (int)0, size);
-  
+ 
   vm->mapped += size;
 
   EVENT_PAA(VMMap, vm, base, limit);
@@ -166,7 +166,7 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   AVER(limit <= vm->limit);
   AVER(AddrIsAligned(base, VMAN_ALIGN));
   AVER(AddrIsAligned(limit, VMAN_ALIGN));
-  
+ 
   size = AddrOffset(base, limit);
   memset((void *)base, VM_JUNKBYTE, size);
 

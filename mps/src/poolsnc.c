@@ -8,9 +8,9 @@
  * .design: design.mps.poolsnc
  *
  * LIGHTWEIGHT FRAMES
- * 
+ *
  * .lw-frame-state: The pool uses lightweight frames as its only
- * type of allocation frame. The lightweight frame state is set to 
+ * type of allocation frame. The lightweight frame state is set to
  * Valid whenever a buffer has a segment and Disabled otherwise.
  * See design.mps.alloc-frame.lw-frame.states.
  *
@@ -68,7 +68,7 @@ static void sncPopPartialSegChain(SNC snc, Buffer buf, Seg upTo);
  * This subclass of RankBuf holds a segment chain.
  */
 
-#define SNCBufSig ((Sig)0x51954CBF) /* SIGnature SNC BuFfer  */ 
+#define SNCBufSig ((Sig)0x51954CBF) /* SIGnature SNC BuFfer  */
 
 typedef struct SNCBufStruct *SNCBuf;
 
@@ -228,7 +228,7 @@ static Bool SNCSegCheck(SNCSeg sncseg)
 
 /* sncSegInit -- Init method for SNC segments */
 
-static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size, 
+static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size,
                       Bool reservoirPermit, va_list args)
 {
   SegClass super;
@@ -328,7 +328,7 @@ static void sncPopPartialSegChain(SNC snc, Buffer buf, Seg upTo)
 
 /* sncFindFreeSeg
  *
- * attempts to find and detach a large enough segment from the 
+ * attempts to find and detach a large enough segment from the
  * freelist. returns TRUE on success.
  */
 
@@ -435,7 +435,7 @@ static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
   /* No free seg, so create a new one */
   arena = PoolArena(pool);
   asize = SizeAlignUp(size, ArenaAlign(arena));
-  res = SegAlloc(&seg, EnsureSNCSegClass(), &snc->segPrefStruct, 
+  res = SegAlloc(&seg, EnsureSNCSegClass(), &snc->segPrefStruct,
                  asize, pool, withReservoirPermit);
   if(res != ResOK) {
     return res;
@@ -460,7 +460,7 @@ found:
 }
 
 
-static void SNCBufferEmpty(Pool pool, Buffer buffer, 
+static void SNCBufferEmpty(Pool pool, Buffer buffer,
                            Addr init, Addr limit)
 {
   SNC snc;
@@ -477,7 +477,7 @@ static void SNCBufferEmpty(Pool pool, Buffer buffer,
   AVERT(SNC, snc);
   AVER(BufferFrameState(buffer) == BufferFrameVALID);
   /* .lw-frame-state */
-  BufferFrameSetState(buffer, BufferFrameDISABLED); 
+  BufferFrameSetState(buffer, BufferFrameDISABLED);
 
   arena = BufferArena(buffer);
 
@@ -507,7 +507,7 @@ static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
   format = pool->format;
   base = SegBase(seg);
-    
+   
   /* If the segment is buffered, only walk as far as the end */
   /* of the initialized objects.  */
   if(SegBuffer(seg) != NULL) {
@@ -515,7 +515,7 @@ static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   } else {
     limit = SegLimit(seg);
   }
-  
+ 
   if(base < limit) {
     res = (*format->scan)(ss, base, limit);
     if(res != ResOK) {
@@ -583,7 +583,7 @@ static void SNCFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
   AVERT(SNC, snc);
 
   AVER(BufferFrameState(buf) == BufferFrameVALID);
-  
+ 
   if (frame == NULL) {
     /* corresponds to a pop to bottom of stack. .lw-frame-null */
     BufferDetach(buf, pool);

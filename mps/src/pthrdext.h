@@ -26,7 +26,7 @@ typedef struct PThreadextStruct *PThreadext;
 
 /* PThreadextStruct -- structure definition
  *
- * Should be embedded in a client structure 
+ * Should be embedded in a client structure
  */
 
 typedef struct PThreadextStruct {
@@ -56,7 +56,7 @@ extern void PThreadextFinish(PThreadext pthreadext);
 
 /*  PThreadextSuspend -- Suspend a pthreadext and return its context. */
 
-extern Res PThreadextSuspend(PThreadext pthreadext, 
+extern Res PThreadextSuspend(PThreadext pthreadext,
 			     struct sigcontext **contextReturn);
 
 

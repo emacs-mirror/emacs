@@ -4,9 +4,9 @@
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .readership: MM developers
- * 
+ *
  * .design: See design.mps.arena.client.
- * 
+ *
  * .improve.remember: One possible performance improvement is to
  * remember (a conservative approximation to) the indices of the first
  * and last free pages in each chunk, and start searching from these
@@ -130,7 +130,7 @@ static Bool ChunkCheck(Chunk chunk)
         /* enough size for chunk struct: */
   CHECKL(AddrOffset(chunk, chunk->pageTable) >= sizeof(ChunkStruct));
         /* enough space for page table: */
-  CHECKL(AddrOffset(chunk->pageTable, chunk->allocTable) / 
+  CHECKL(AddrOffset(chunk->pageTable, chunk->allocTable) /
     sizeof(PageStruct) >= chunk->pages);
         /* enough space for alloc table: */
   CHECKL(AddrOffset(chunk->allocTable, chunk->pageBase) / sizeof(Word)
@@ -175,7 +175,7 @@ static Bool ChunkCheck(Chunk chunk)
 #define PageOfTract(tract)      PARENT(PageStruct, the.tractStruct, tract)
 
 
-/* ChunkPageIndexOfAddr -- base address to page index (within a chunk) 
+/* ChunkPageIndexOfAddr -- base address to page index (within a chunk)
  *                         mapping
  */
 
@@ -189,7 +189,7 @@ static Index ChunkPageIndexOfAddr(Chunk chunk, Addr addr)
   return (Index)(AddrOffset(chunk->pageBase, addr) >>
               chunk->arena->pageShift);
 }
-  
+ 
 
 /* ClientArenaCheck -- check the consistency of a client arena */
 
@@ -233,7 +233,7 @@ static Res ChunkCreate(Chunk *chunkReturn, Addr base, Addr limit,
   tablePages = AddrOffset(a, limit) >> clientArena->pageShift;
 
   chunk->pageTable = (Page)a;
-  a = AddrAlignUp(AddrAdd(a, sizeof(PageStruct) * tablePages), 
+  a = AddrAlignUp(AddrAdd(a, sizeof(PageStruct) * tablePages),
     MPS_PF_ALIGN);
 
   chunk->allocTable = (BT)a;
@@ -299,15 +299,15 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class,
   Addr base, limit, chunkBase;
   Res res;
   Chunk chunk;
-  
+ 
   size = va_arg(args, Size);
   base = va_arg(args, Addr);
   AVER(arenaReturn != NULL);
   AVER((ArenaClass)mps_arena_class_cl() == class);
   AVER(base != (Addr)0);
 
-  clArenaSize = SizeAlignUp(sizeof(ClientArenaStruct), MPS_PF_ALIGN); 
-  if (size < (clArenaSize + LockSize())) 
+  clArenaSize = SizeAlignUp(sizeof(ClientArenaStruct), MPS_PF_ALIGN);
+  if (size < (clArenaSize + LockSize()))
     return ResMEMORY;
 
   limit = AddrAdd(base, size);
@@ -331,19 +331,19 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class,
 
   /* have to have a valid arena before calling ChunkCreate */
   clientArena->sig = ClientArenaSig;
-  
+ 
   AVERT(ClientArena, clientArena);
 
   res = ChunkCreate(&chunk, chunkBase, limit, clientArena);
   if (res) return res;
-  
+ 
   /* Set the zone shift to divide the initial chunk into the same */
   /* number of zones as will fit into a reference set (the number of */
   /* bits in a word). Note that some zones are discontiguous in the */
   /* arena if the size is not a power of 2. */
   arena->zoneShift = SizeFloorLog2(size >> MPS_WORD_SHIFT);
   arena->alignment = clientArena->pageSize;
-  
+ 
   EVENT_PWA(ArenaCreateCL, arena, size, base);
 
   *arenaReturn = arena;
@@ -378,7 +378,7 @@ static Res ClientArenaExtend(Arena arena, Addr base, Size size)
   AVER(base != (Addr)0);
   AVER(size > 0);
   limit = AddrAdd(base, size);
-  
+ 
   clientArena = ArenaClientArena(arena);
   res = ChunkCreate(&chunk, base, limit, clientArena);
   return res;
@@ -396,7 +396,7 @@ static Res ClientArenaRetract(Arena arena, Addr base, Size size)
   ClientArena clientArena;
   Ring node, nextNode;
   Addr limit;
-  
+ 
   clientArena = ArenaClientArena(arena);
   AVERT(ClientArena, clientArena);
   AVER(base != (Addr)0);
@@ -420,8 +420,8 @@ static Res ClientArenaRetract(Arena arena, Addr base, Size size)
 
 /* ClientArenaReserved -- return the amount of reserved address space
  * ClientArenaCommitted -- return the amount of committed virtual memory
- * 
- * (actually for the client arena, ArenaCommitted returns the amount 
+ *
+ * (actually for the client arena, ArenaCommitted returns the amount
  * allocated in tracts).
  */
 
@@ -436,7 +436,7 @@ static Size ClientArenaReserved(Arena arena)
 
   size = 0;
   /* .req.extend.slow */
-  RING_FOR(node, &clientArena->chunkRing, nextNode) { 
+  RING_FOR(node, &clientArena->chunkRing, nextNode) {
     Chunk chunk = RING_ELT(Chunk, arenaRing, node);
     AVERT(Chunk, chunk);
     size += AddrOffset(chunk->base, chunk->limit);
@@ -488,15 +488,15 @@ static Res ChunkAlloc(Addr *baseReturn, Tract *baseTractReturn,
 				chunk->allocTable,
 				0, chunk->pages,
 				pages);
-  else 
+  else
     b = BTFindShortResRange(&baseIndex, &limitIndex,
 			    chunk->allocTable,
 			    0, chunk->pages,
 			    pages);
-  
+ 
   if (!b)
     return ResRESOURCE;
-  
+ 
   /* check commit limit, note that if there are multiple reasons */
   /* for failing the allocation we attempt to return other result codes */
   /* in preference to ResCOMMIT_LIMIT.  See design.mps.arena.commit-limit */
@@ -518,10 +518,10 @@ static Res ChunkAlloc(Addr *baseReturn, Tract *baseTractReturn,
   }
 
   chunk->freePages -= pages;
-  
+ 
   *baseReturn = PageBase(chunk, baseIndex);
   *baseTractReturn = PageTract(&chunk->pageTable[baseIndex]);
-    
+   
   return ResOK;
 }
 
@@ -553,7 +553,7 @@ static Res ClientAlloc(Addr *baseReturn, Tract *baseTractReturn,
   pages = size >> clientArena->pageShift;
 
   /* .req.extend.slow */
-  RING_FOR(node, &clientArena->chunkRing, nextNode) { 
+  RING_FOR(node, &clientArena->chunkRing, nextNode) {
     Chunk chunk = RING_ELT(Chunk, arenaRing, node);
     res = ChunkAlloc(baseReturn, baseTractReturn, pref, pages, pool, chunk);
     if(res == ResOK || res == ResCOMMIT_LIMIT) {
@@ -568,7 +568,7 @@ static Res ClientAlloc(Addr *baseReturn, Tract *baseTractReturn,
  *
  */
 
-static Bool ClientChunkOfAddr(Chunk *chunkReturn, 
+static Bool ClientChunkOfAddr(Chunk *chunkReturn,
                               ClientArena clientArena, Addr addr)
 {
   Ring node, nextNode;
@@ -610,7 +610,7 @@ static void ClientFree(Addr base, Size size, Pool pool)
   AVER(foundChunk);
 
   pages = size >> clientArena->pageShift;
-  baseIndex = AddrOffset(chunk->pageBase, base) >> 
+  baseIndex = AddrOffset(chunk->pageBase, base) >>
                 clientArena->pageShift;
   limitIndex = baseIndex + pages;
   AVER(baseIndex < limitIndex);
@@ -630,8 +630,8 @@ static void ClientFree(Addr base, Size size, Pool pool)
 }
 
 
-/* .tract.critical: These Tract functions are low-level and are on 
- * the critical path in various ways.  The more common therefore 
+/* .tract.critical: These Tract functions are low-level and are on
+ * the critical path in various ways.  The more common therefore
  * use AVER_CRITICAL.
  */
 
@@ -649,7 +649,7 @@ static Bool ClientTractOfAddr(Tract *tractReturn, Arena arena, Addr addr)
   Chunk chunk;
   Index index;
   ClientArena clientArena;
-  
+ 
   AVER_CRITICAL(tractReturn != NULL);
   clientArena = ArenaClientArena(arena);
   AVERT_CRITICAL(ClientArena, clientArena);
@@ -683,8 +683,8 @@ static Bool ClientIsReserved(Arena arena, Addr addr)
 
 /* tractSearchChunk -- search for a tract in a given chunk
  *
- * .tract-search: Searches for a tract in the chunk starting at page 
- * 'index', return NULL if there is none.  A tract is present if its 
+ * .tract-search: Searches for a tract in the chunk starting at page
+ * 'index', return NULL if there is none.  A tract is present if its
  * page is not free, and its pool is not NULL.
  *
  * This function is private to this module and is used in the tract
@@ -702,13 +702,13 @@ static Tract tractSearchChunk(Chunk chunk, Index index)
     /* AVER_CRITICAL(PagePool(&chunk->pageTable[index]) == NULL); */
     ++index;
   }
-    
+   
   if(index < chunk->pages) {
     Tract tract = PageTract(&chunk->pageTable[index]);
     AVER_CRITICAL(TractPool(tract) != NULL);
     return tract;
   }
-  
+ 
   AVER_CRITICAL(index == chunk->pages);
   return NULL;
 }
@@ -803,15 +803,15 @@ static Tract ClientTractNextContig(Arena arena, Tract tract)
     UNUSED(ch1);
     UNUSED(ch2);
     AVER_CRITICAL(ClientChunkOfAddr(&ch1, clArena, TractBase(tract)) &&
-                  ClientChunkOfAddr(&ch2, clArena, 
-                                    AddrAdd(TractBase(tract), 
+                  ClientChunkOfAddr(&ch2, clArena,
+                                    AddrAdd(TractBase(tract),
                                             arena->alignment)) &&
                   (ch1 == ch2));
   }
 
   /* the next contiguous tract is contiguous in the page table */
   page = PageOfTract(tract);
-  next = page + 1;  
+  next = page + 1; 
   tnext = PageTract(next);
   AVERT_CRITICAL(Tract, tnext);
   AVER_CRITICAL(PagePool(next) != NULL);

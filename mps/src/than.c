@@ -51,7 +51,7 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
 
   AVER(threadReturn != NULL);
 
-  res = ControlAlloc(&p, arena, sizeof(ThreadStruct), 
+  res = ControlAlloc(&p, arena, sizeof(ThreadStruct),
                      /* withReservoirPermit */ FALSE);
   if(res != ResOK) return res;
   thread = (Thread)p;
@@ -131,10 +131,10 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
 Res ThreadDescribe(Thread thread, mps_lib_FILE *stream)
 {
   Res res;
-  
+ 
   res = WriteF(stream,
                "Thread $P ($U) {\n", (WriteFP)thread, (WriteFU)thread->serial,
-               "  arena $P ($U)\n",  
+               "  arena $P ($U)\n", 
                (WriteFP)thread->arena, (WriteFU)thread->arena->serial,
                "} Thread $P ($U)\n", (WriteFP)thread, (WriteFU)thread->serial,
                NULL);

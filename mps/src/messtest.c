@@ -5,7 +5,7 @@
  */
 
 #include "mpm.h"
-#include "mpsaan.h" 
+#include "mpsaan.h"
 #include "mps.h"
 #include "testlib.h"
 
@@ -46,7 +46,7 @@ static MessageClassStruct DFMessageClassStruct = {
   "DummyFinal",                /* name */
   dfMessageDelete,             /* Delete */
   MessageNoFinalizationRef,    /* FinalizationRef */
-  MessageNoGCLiveSize,         /* GCLiveSize */    
+  MessageNoGCLiveSize,         /* GCLiveSize */   
   MessageNoGCCondemnedSize,    /* GCCondemnedSize */
   MessageNoGCNotCondemnedSize, /* GCNoteCondemnedSize */
   MessageClassSig              /* design.mps.message.class.sig.double */
@@ -60,7 +60,7 @@ static MessageClassStruct DGCMessageClassStruct = {
   "DummyGC",                   /* name */
   dfMessageDelete,             /* Delete */
   MessageNoFinalizationRef,    /* FinalizationRef */
-  MessageNoGCLiveSize,         /* GCLiveSize */    
+  MessageNoGCLiveSize,         /* GCLiveSize */   
   MessageNoGCCondemnedSize,    /* GCCondemnedSize */
   MessageNoGCNotCondemnedSize, /* GCNoteCondemnedSize */
   MessageClassSig              /* design.mps.message.class.sig.double */
@@ -136,7 +136,7 @@ static void eatMessageOfType(Arena arena, MessageType type)
 }
 
 
-/* eatHiddenMessage -- get a message which isn't at top of queue 
+/* eatHiddenMessage -- get a message which isn't at top of queue
  *
  * Assumes there is at least 1 message of each of Finalization
  * and GC types.
@@ -156,7 +156,7 @@ static void eatHiddenMessage(Arena arena)
 }
 
 
-/* eatTopMessageOfType -- get a message which is at top of queue 
+/* eatTopMessageOfType -- get a message which is at top of queue
  *
  * The message must be of the specified type.
  * Assumes there is at least 1 message on the queue.
@@ -172,7 +172,7 @@ static void eatTopMessageOfType(Arena arena, MessageType type)
 }
 
 
-/* eatTopMessage -- get a message which is at top of queue 
+/* eatTopMessage -- get a message which is at top of queue
  *
  * Assumes there is at least 1 message on the queue.
  */
@@ -190,7 +190,7 @@ static void eatTopMessage(Arena arena)
 /* testInterleaving -- test interleaving messages of different types
  *
  * See request.dylan.160204
- * must be able to retrieve a message even if a message of 
+ * must be able to retrieve a message even if a message of
  * another type is at the head of the queue.
  */
 
@@ -260,7 +260,7 @@ static void testGetEmpty(Arena arena)
   MessageEmpty(arena);
   checkNoMessages(arena);
   die_false(MessageGet(&message, arena, MessageTypeGC),
-           "Got non-existent message"); 
+           "Got non-existent message");
 }
 
 
@@ -269,7 +269,7 @@ extern int main(int argc, char *argv[])
   mps_arena_t mpsArena;
   Arena arena; /* an ANSI arena for managing the mesasge queue */
 
-  testlib_unused(argc); 
+  testlib_unused(argc);
   testlib_unused(argv);
 
   die((mps_res_t)mps_arena_create(&mpsArena, mps_arena_class_an()),

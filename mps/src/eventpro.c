@@ -91,7 +91,7 @@ static eventRecord eventTypes[] = {
 static size_t eventType2Index(EventType type)
 {
   size_t i;
-  
+ 
   for(i = 0; i < eventTypeCount; ++i)
     if (eventTypes[i].type == type)
       return i;
@@ -105,7 +105,7 @@ static size_t eventType2Index(EventType type)
 static size_t eventCode2Index(EventCode code, Bool errorp)
 {
   size_t i;
-  
+ 
   for(i = 0; i < eventTypeCount; ++i)
     if (eventTypes[i].code == code)
       return i;
@@ -120,7 +120,7 @@ static size_t eventCode2Index(EventCode code, Bool errorp)
 EventCode EventName2Code(char *name)
 {
   size_t i;
-  
+ 
   for(i = 0; i < eventTypeCount; ++i)
     if (strcmp(eventTypes[i].name, name) == 0) {
       assert(eventTypes[i].code <= EventCodeMAX);
@@ -306,7 +306,7 @@ Res EventRecord(EventProc proc, Event event, Word etime)
   switch(event->any.code) {
   case EventIntern: {   	/* id, label */
     Symbol sym = malloc(sizeof(symbolStruct));
-      
+     
     if (sym == NULL) return ResMEMORY;
     sym->id = event->ws.w0;
     res = eventStringCopy(&(sym->name), &(event->ws.s1));
@@ -332,7 +332,7 @@ Res EventRecord(EventProc proc, Event event, Word etime)
     else
       res = TableDefine(proc->labelTable, (Word)label->addr, label);
   } break;
-  default: 
+  default:
     res = ResOK;
     break;
   }

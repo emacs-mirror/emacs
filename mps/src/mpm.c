@@ -69,7 +69,7 @@ Bool MPMCheck(void)
     CHECKL(-(DBL_MIN_10_EXP) <= DBL_MAX_10_EXP);
   }
 
-  return TRUE;  
+  return TRUE; 
 }
 
 
@@ -293,7 +293,7 @@ extern void *(PointerAlignUp)(void *p, size_t align)
 }
 
 
-/* ResIsAllocFailure 
+/* ResIsAllocFailure
  *
  * Test whether a result code is in the set of allocation failure codes.
  */
@@ -308,7 +308,7 @@ Bool ResIsAllocFailure(Res res)
 /* as an unsigned value in the given base (2-16), */
 /* padded to the given width */
 
-static Res WriteWord(mps_lib_FILE *stream, Word w, unsigned base, 
+static Res WriteWord(mps_lib_FILE *stream, Word w, unsigned base,
                      unsigned width)
 {
   static const char digit[16] = "0123456789ABCDEF";
@@ -321,7 +321,7 @@ static Res WriteWord(mps_lib_FILE *stream, Word w, unsigned base,
   AVER(stream != NULL);
   AVER(2 <= base && base <= 16);
   AVER(width <= MPS_WORD_WIDTH);
-  
+ 
   /* Add digits to the buffer starting at the right-hand end, so that */
   /* the buffer forms a string representing the number.  A do...while */
   /* loop is used to ensure that at least one digit (zero) is written */
@@ -362,7 +362,7 @@ static Res WriteWord(mps_lib_FILE *stream, Word w, unsigned base,
  * is less than DBL_DIG.
  */
 
-static Res WriteDouble(mps_lib_FILE *stream, double d) 
+static Res WriteDouble(mps_lib_FILE *stream, double d)
 {
   double F = d;
   int E = 0, i, x = 0;
@@ -383,7 +383,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
      terminator.  See .write.double.check */
   char buf[1+DBL_DIG+2+1+1+DBL_DIG+1];
   int j = 0;
-  
+ 
   if (F == 0.0) {
     if(mps_lib_fputs("0", stream) == mps_lib_EOF)
       return ResIO;
@@ -395,7 +395,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
     j++;
     F = - F;
   }
-  
+ 
   /* This scaling operation could introduce rounding errors */
   for ( ; F >= 1.0 ; F /= 10.0) {
     E++;
@@ -407,7 +407,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
   }
   for ( ; F < 0.1; F *= 10)
     E--;
-    
+   
   /* See if %e notation is required */
   if (E > expmax || E <= expmin) {
     x = E - 1;
@@ -432,7 +432,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
      the exponent.  This is Steele and White's FP3 algorithm. */
   do {
     int U;
-    
+   
     if (E == 0) {
       buf[j] = '.';
       j++;
@@ -453,7 +453,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
     buf[j] = digits[U];
     j++;
   } while (1);
-  
+ 
   /* Insert trailing 0's */
   for (i = E; i > 0; i--) {
     buf[j] = '0';
@@ -487,7 +487,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
     } while (i > 0);
   }
   buf[j] = '\0';                /* arnold */
-  
+ 
   if(mps_lib_fputs(buf, stream) == mps_lib_EOF)
     return ResIO;
   return ResOK;
@@ -517,9 +517,9 @@ Res WriteF(mps_lib_FILE *stream, ...)
   va_list args;
 
   AVER(stream != NULL);
-  
+ 
   va_start(args, stream);
-  
+ 
   for(;;) {
     format = va_arg(args, const char *);
     if(format == NULL)
@@ -537,14 +537,14 @@ Res WriteF(mps_lib_FILE *stream, ...)
         switch(*format) {
           case 'A': {                   /* address */
             WriteFA addr = va_arg(args, WriteFA);
-            res = WriteWord(stream, (Word)addr, 16, 
+            res = WriteWord(stream, (Word)addr, 16,
                             (sizeof(WriteFA) * CHAR_BIT + 3) / 4);
             if(res != ResOK) return res;
           } break;
 
           case 'P': {                   /* pointer, see .writef.p */
             WriteFP p = va_arg(args, WriteFP);
-            res = WriteWord(stream, (Word)p, 16, 
+            res = WriteWord(stream, (Word)p, 16,
                             (sizeof(WriteFP) * CHAR_BIT + 3)/ 4);
             if(res != ResOK) return res;
           } break;
@@ -553,26 +553,26 @@ Res WriteF(mps_lib_FILE *stream, ...)
             WriteFF f = va_arg(args, WriteFF);
             Byte *b = (Byte *)&f;
             for(i=0; i < sizeof(WriteFF); i++) {
-              res = WriteWord(stream, (Word)(b[i]), 16, 
+              res = WriteWord(stream, (Word)(b[i]), 16,
                               (CHAR_BIT + 3) / 4);
               if(res != ResOK) return res;
             }
           } break;
-            
+           
           case 'S': {                   /* string */
             WriteFS s = va_arg(args, WriteFS);
             r = mps_lib_fputs((const char *)s, stream);
             if(r == mps_lib_EOF)
               return ResIO;
           } break;
-        
+       
           case 'C': {                   /* character */
             WriteFC c = va_arg(args, WriteFC); /* promoted */
             r = mps_lib_fputc((int)c, stream);
             if(r == mps_lib_EOF)
               return ResIO;
           } break;
-        
+       
           case 'W': {                   /* word */
             WriteFW w = va_arg(args, WriteFW);
             res = WriteWord(stream, (Word)w, 16,
@@ -591,7 +591,7 @@ Res WriteF(mps_lib_FILE *stream, ...)
             res = WriteWord(stream, (Word)b, 2, sizeof(WriteFB) * CHAR_BIT);
             if(res != ResOK) return res;
           } break;
-        
+       
           case '$': {                   /* dollar char */
             r = mps_lib_fputc('$', stream);
             if(r == mps_lib_EOF)
@@ -603,7 +603,7 @@ Res WriteF(mps_lib_FILE *stream, ...)
             res = WriteDouble(stream, d);
             if (res != ResOK) return res;
           } break;
-               
+              
           default:
           NOTREACHED;
         }
@@ -612,9 +612,9 @@ Res WriteF(mps_lib_FILE *stream, ...)
       ++format;
     }
   }
-  
+ 
   va_end(args);
-  
+ 
   return ResOK;
 }
 
@@ -627,7 +627,7 @@ size_t StringLength(const char *s)
 
   AVER(s != NULL);
 
-  for(i = 0; s[i] != '\0'; i++) 
+  for(i = 0; s[i] != '\0'; i++)
     NOOP;
   return(i);
 }

@@ -38,14 +38,14 @@ static int deleted = 0;
 
 typedef struct TestStruct *Test;
 
-typedef struct TestStruct 
+typedef struct TestStruct
 {
   Test next;
   int id;
   CBSBlockStruct cbsBlockStruct;
 } TestStruct;
 
-static CBSBlock TestCBSBlock(Test t) 
+static CBSBlock TestCBSBlock(Test t)
 {
   return &t->cbsBlockStruct;
 }
@@ -71,7 +71,7 @@ static CBSBlock CreateCBSBlock(int no)
 
   return TestCBSBlock(b);
 }
- 
+
 
 static void DestroyCBSBlock(CBSBlock c)
 {
@@ -81,7 +81,7 @@ static void DestroyCBSBlock(CBSBlock c)
     testBlocks = b->next;
   else {
     Test prev;
-  
+ 
     for (prev = testBlocks; prev != 0; prev = prev->next)
       if (prev->next == b) {
         prev->next = b->next;
@@ -124,7 +124,7 @@ static void step(void)
     default:
       if (!deleted & (pushee > popee)) {
         Test b;
-      
+     
         deleted = random (pushee - popee) + popee;
         for (b = testBlocks; b != NULL; b = b->next)
           if (b->id == deleted)

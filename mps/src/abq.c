@@ -41,8 +41,8 @@ Res ABQInit(Arena arena, ABQ abq, void *owner, Count items)
   AVER(items > 0);
 
   elements = items + 1;
-  
-  res = ControlAlloc(&p, arena, ABQQueueSize(elements), 
+ 
+  res = ControlAlloc(&p, arena, ABQQueueSize(elements),
                      /* withReservoirPermit */ FALSE);
   if (res != ResOK)
     return res;
@@ -56,7 +56,7 @@ Res ABQInit(Arena arena, ABQ abq, void *owner, Count items)
   METER_INIT(abq->pop, "pop", owner);
   METER_INIT(abq->peek, "peek", owner);
   METER_INIT(abq->delete, "delete", owner);
-  
+ 
   abq->sig = ABQSig;
 
   AVERT(ABQ, abq);
@@ -68,7 +68,7 @@ Res ABQInit(Arena arena, ABQ abq, void *owner, Count items)
 Bool ABQCheck(ABQ abq)
 {
   Index index;
-  
+ 
   CHECKS(ABQ, abq);
   CHECKL(abq->elements > 0);
   CHECKL(abq->in < abq->elements);
@@ -96,7 +96,7 @@ void ABQFinish(Arena arena, ABQ abq)
   METER_EMIT(&abq->peek);
   METER_EMIT(&abq->delete);
   ControlFree(arena, abq->queue, ABQQueueSize(abq->elements));
-  
+ 
   abq->elements = 0;
   abq->queue = NULL;
 
@@ -114,7 +114,7 @@ Res ABQPush(ABQ abq, CBSBlock block)
 
   if (ABQIsFull(abq))
     return ResFAIL;
-  
+ 
   abq->queue[abq->in] = block;
   abq->in = ABQNextIndex(abq, abq->in);
 
@@ -130,7 +130,7 @@ Res ABQPop(ABQ abq, CBSBlock *blockReturn)
   AVERT(ABQ, abq);
 
   METER_ACC(abq->pop, ABQDepth(abq));
-  
+ 
   if (ABQIsEmpty(abq))
     return ResFAIL;
 
@@ -138,7 +138,7 @@ Res ABQPop(ABQ abq, CBSBlock *blockReturn)
   AVERT(CBSBlock, *blockReturn);
 
   abq->out = ABQNextIndex(abq, abq->out);
-  
+ 
   AVERT(ABQ, abq);
   return ResOK;
 }
@@ -180,7 +180,7 @@ Res ABQDelete(ABQ abq, CBSBlock block)
   in = abq->in;
   elements = abq->elements;
   queue = abq->queue;
-  
+ 
   while (index != in) {
     if (queue[index] == block) {
       goto found;
@@ -248,17 +248,17 @@ Res ABQDescribe(ABQ abq, mps_lib_FILE *stream)
   res = METER_WRITE(abq->delete, stream);
   if(res != ResOK)
     return res;
-  
+ 
   res = WriteF(stream, "}\n", NULL);
   if(res != ResOK)
     return res;
-  
+ 
   return ResOK;
 }
 
 
 /* ABQIsEmpty -- Is an ABQ empty? */
-Bool ABQIsEmpty(ABQ abq) 
+Bool ABQIsEmpty(ABQ abq)
 {
   AVERT(ABQ, abq);
 
@@ -279,7 +279,7 @@ Bool ABQIsFull(ABQ abq)
 Count ABQDepth(ABQ abq)
 {
   Index out, in;
-  
+ 
   AVERT(ABQ, abq);
   out = abq->out;
   in = abq->in;

@@ -147,7 +147,7 @@ static Res DebugPoolInit(Pool pool, va_list args)
     }
     debug->fenceTemplate = options->fenceTemplate;
   }
-  
+ 
   /* tag init */
   debug->tagInit = tagInit;
   if (debug->tagInit != NULL) {
@@ -417,7 +417,7 @@ static void TagWalk(Pool pool, ObjectsStepMethod step, void *p)
 
   debug = DebugPoolDebugMixin(pool);
   AVER(debug != NULL);
-  AVERT(PoolDebugMixin, debug); 
+  AVERT(PoolDebugMixin, debug);
 
   node = SplayTreeFirst(&debug->index, (void *)&dummy);
   while (node != NULL) {
@@ -475,7 +475,7 @@ void mps_pool_check_fenceposts(mps_pool_t mps_pool)
 {
   Pool pool = (Pool)mps_pool;
   Arena arena;
-  
+ 
   /* CHECKT not AVERT, see design.mps.interface.c.check.space */
   AVER(CHECKT(Pool, pool));
   arena = PoolArena(pool);

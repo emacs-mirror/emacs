@@ -100,7 +100,7 @@ static Res VMRAMSize(VM vm, Size *vmRAMSizeReturn)
   MEMORYSTATUS memstat;
 
   AVERT(VM, vm);
- 
+
   memstat.dwLength = sizeof(MEMORYSTATUS);
   GlobalMemoryStatus(&memstat);
   *vmRAMSizeReturn = (Size)memstat.dwTotalPhys;

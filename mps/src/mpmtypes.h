@@ -47,7 +47,7 @@ typedef unsigned TraceSet;              /* design.mps.tracer */
 typedef unsigned TraceState;            /* design.mps.tracer */
 typedef unsigned AccessSet;             /* design.mps.type.access-set */
 typedef unsigned Attr;                  /* design.mps.type.attr */
-typedef unsigned FormatVariety;         
+typedef unsigned FormatVariety;        
 typedef int RootVar;                    /* design.mps.type.rootvar */
 typedef unsigned Serial;                /* design.mps.type.serial */
 typedef struct RingStruct *Ring;        /* design.mps.ring */
@@ -107,14 +107,14 @@ typedef void (*ArenaSpareCommitExceededMethod)(Arena arena);
 typedef Res (*ArenaExtendMethod)(Arena arena, Addr base, Size size);
 typedef Res (*ArenaRetractMethod)(Arena arena, Addr base, Size size);
 typedef Bool (*ArenaIsReservedAddrMethod)(Arena arena, Addr addr);
-typedef Res (*ArenaAllocMethod)(Addr *baseReturn, 
+typedef Res (*ArenaAllocMethod)(Addr *baseReturn,
                                 Tract *baseTractReturn,
                                 SegPref pref, Size size, Pool pool);
 typedef void (*ArenaFreeMethod)(Addr base, Size size, Pool pool);
-typedef Bool (*ArenaTractOfAddrMethod)(Tract *tractReturn, 
+typedef Bool (*ArenaTractOfAddrMethod)(Tract *tractReturn,
                                        Arena arena, Addr addr);
 typedef Bool (*ArenaTractFirstMethod)(Tract *tractReturn, Arena arena);
-typedef Bool (*ArenaTractNextMethod)(Tract *tractReturn, 
+typedef Bool (*ArenaTractNextMethod)(Tract *tractReturn,
                                      Arena arena, Addr addr);
 typedef Tract (*ArenaTractNextContigMethod)(Arena arena, Tract tract);
 typedef Res (*ArenaDescribeMethod)(Arena arena, mps_lib_FILE *stream);
@@ -148,16 +148,16 @@ typedef void (*SegFinishMethod)(Seg seg);
 typedef void (*SegSetGreyMethod)(Seg seg, TraceSet grey);
 typedef void (*SegSetWhiteMethod)(Seg seg, TraceSet white);
 typedef void (*SegSetRankSetMethod)(Seg seg, RankSet rankSet);
-typedef void (*SegSetRankSummaryMethod)(Seg seg, RankSet rankSet, 
+typedef void (*SegSetRankSummaryMethod)(Seg seg, RankSet rankSet,
                                         RefSet summary);
 typedef void (*SegSetSummaryMethod)(Seg seg, RefSet summary);
 typedef Buffer (*SegBufferMethod)(Seg seg);
 typedef void (*SegSetBufferMethod)(Seg seg, Buffer buffer);
 typedef Res (*SegDescribeMethod)(Seg seg, mps_lib_FILE *stream);
-typedef Res (*SegMergeMethod)(Seg seg, Seg segHi, 
+typedef Res (*SegMergeMethod)(Seg seg, Seg segHi,
                               Addr base, Addr mid, Addr limit,
                               Bool withReservoirPermit, va_list args);
-typedef Res (*SegSplitMethod)(Seg seg, Seg segHi, 
+typedef Res (*SegSplitMethod)(Seg seg, Seg segHi,
                               Addr base, Addr mid, Addr limit,
                               Bool withReservoirPermit, va_list args);
 
@@ -165,7 +165,7 @@ typedef Res (*SegSplitMethod)(Seg seg, Seg segHi,
 
 typedef Res (*BufferInitMethod)(Buffer buffer, Pool pool, va_list args);
 typedef void (*BufferFinishMethod)(Buffer buffer);
-typedef void (*BufferAttachMethod)(Buffer buffer, Addr base, Addr limit, 
+typedef void (*BufferAttachMethod)(Buffer buffer, Addr base, Addr limit,
                                    Addr init, Size size);
 typedef void (*BufferDetachMethod)(Buffer buffer);
 typedef Seg (*BufferSegMethod)(Buffer buffer);
@@ -187,7 +187,7 @@ typedef void (*PoolFreeMethod)(Pool pool, Addr old, Size size);
 typedef Res (*PoolBufferFillMethod)(Addr *baseReturn, Addr *limitReturn,
                                     Pool pool, Buffer buffer, Size size,
                                     Bool withReservoirPermit);
-typedef void (*PoolBufferEmptyMethod)(Pool pool, Buffer buffer, 
+typedef void (*PoolBufferEmptyMethod)(Pool pool, Buffer buffer,
                                       Addr init, Addr limit);
 typedef Res (*PoolTraceBeginMethod)(Pool pool, Trace trace);
 typedef Res (*PoolAccessMethod)(Pool pool, Seg seg, Addr addr,
@@ -206,7 +206,7 @@ typedef double (*PoolBenefitMethod)(Pool pool, Action action);
 typedef Res (*PoolActMethod)(Pool pool, Action action);
 typedef void (*PoolRampBeginMethod)(Pool pool, Buffer buf, Bool collectAll);
 typedef void (*PoolRampEndMethod)(Pool pool, Buffer buf);
-typedef Res (*PoolFramePushMethod)(AllocFrame *frameReturn, 
+typedef Res (*PoolFramePushMethod)(AllocFrame *frameReturn,
                                    Pool pool, Buffer buf);
 typedef Res (*PoolFramePopMethod)(Pool pool, Buffer buf,
                                   AllocFrame frame);
@@ -253,14 +253,14 @@ typedef Addr (*FormatClassMethod)(Addr object);
 /* MPS C Interface.  (See impl.h.mps.root-methods.) */
 
 typedef Res (*RootScanMethod)(ScanState ss, void *p, size_t s);
-typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p, 
+typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
                                  size_t s);
 
 
 /* CONSTANTS */
 
 /* design.mps.sig SIGnature IS BAD */
-#define SigInvalid      ((Sig)0x51915BAD) 
+#define SigInvalid      ((Sig)0x51915BAD)
 
 #define SizeMAX         ((Size)-1)
 #define AccessSetEMPTY  ((AccessSet)0) /* design.mps.type.access-set */

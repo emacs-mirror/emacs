@@ -68,9 +68,9 @@ void ActionPoll(Arena arena)
   Ring poolNode, nextPoolNode;
   double bestBenefit;
   Action bestAction;
-  
+ 
   AVERT(Arena, arena);
-  
+ 
   bestBenefit = -DBL_MAX;
   bestAction = NULL;
 
@@ -82,7 +82,7 @@ void ActionPoll(Arena arena)
       Action action = RING_ELT(Action, poolRing, actionNode);
       double benefit;
       AVERT(Action, action);
-      
+     
       benefit = PoolBenefit(action->pool, action);
       if(benefit >= bestBenefit) {
         bestBenefit = benefit;

@@ -3,7 +3,7 @@
  * $HopeName: !sslii3.c(trunk.2) $
  * Copyright (C) 1999.  Harlequin Group plc.  All rights reserved.
  *
- *  This scans the stack and fixes the registers which may contain 
+ *  This scans the stack and fixes the registers which may contain
  *  roots.  See design.mps.thread-manager
  *
  *  The registers edi, esi, ebx are the registers defined to be preserved

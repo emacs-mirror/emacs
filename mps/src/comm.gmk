@@ -42,7 +42,7 @@
 # have to change the makefiles for all the platforms which use this
 # makefile to define the source list for that part, and the GNUmakefile
 # to include a recursive call to the name of that part.
-# 
+#
 # CHECK PARAMETERS
 #
 # GNU make doesn't really have an "error" directive, but these lines
@@ -126,7 +126,7 @@ CFLAGSCOMMON = $(PFMDEFS) $(CFLAGSTARGET) $(CFLAGSCOMPILER)
 # These flags are added to compilations for the indicated variety.
 CFWE = -DCONFIG_VAR_WE -DNDEBUG $(CFLAGSOPTNODEBUG)
 CFWI = -DCONFIG_VAR_WI -DNDEBUG $(CFLAGSOPT)
-CFHE = -DCONFIG_VAR_HE -DNDEBUG $(CFLAGSOPTNODEBUG) 
+CFHE = -DCONFIG_VAR_HE -DNDEBUG $(CFLAGSOPTNODEBUG)
 CFHI = -DCONFIG_VAR_HI -DNDEBUG $(CFLAGSOPT)
 CFII = -DCONFIG_VAR_II -DNDEBUG $(CFLAGSOPT)
 CFCE = -DCONFIG_VAR_CE          $(CFLAGSOPTNODEBUG)
@@ -206,7 +206,7 @@ SW = $(SWCOMMON) $(SWPF)
 
 # These map the source file lists onto object files and dependency files
 # in the platform/variety directory.
-# 
+#
 # %%PART: Add a new macro which expands to the files included in the
 #         part.
 
@@ -303,7 +303,7 @@ clean: phony
 	rm -rf "$(PFM)"
 
 # "target" builds some varieties of the target named in the TARGET macro.
-# %%VARIETY: Optionally, add a recursive make call for the new variety, 
+# %%VARIETY: Optionally, add a recursive make call for the new variety,
 #  if it should be built by default.
 
 ifdef TARGET

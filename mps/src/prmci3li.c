@@ -10,11 +10,11 @@
  * PURPOSE
  *
  * .purpose: This module implements the part of the protection module
- * that decodes the MutatorFaultContext.  
+ * that decodes the MutatorFaultContext. 
  *
  * SOURCES
  *
- * .source.i486: Intel486 Microprocessor Family Programmer's 
+ * .source.i486: Intel486 Microprocessor Family Programmer's
  * Reference Manual
  *
  * .source.linux.kernel: Linux kernel source files.
@@ -31,10 +31,10 @@
 #include "prmci3.h"
 
 
-/* Return an address for a machine register given a context and a 
+/* Return an address for a machine register given a context and a
  * register number
  */
-MRef Prmci3AddressHoldingReg(MutatorFaultContext context, 
+MRef Prmci3AddressHoldingReg(MutatorFaultContext context,
                                     unsigned int regnum)
 {
   struct sigcontext *scp;
@@ -61,8 +61,8 @@ MRef Prmci3AddressHoldingReg(MutatorFaultContext context,
 }
 
 
-void Prmci3DecodeFaultContext(MRef *faultmemReturn, 
-                              Byte **insvecReturn, 
+void Prmci3DecodeFaultContext(MRef *faultmemReturn,
+                              Byte **insvecReturn,
                               MutatorFaultContext context)
 {
   struct sigcontext *scp;

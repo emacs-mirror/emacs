@@ -48,8 +48,8 @@ typedef EventUnion *Event;
 
 /* Event types -- see design.mps.telemetry
  *
- * These names are intended to be mnemonic.  They are derived from 
- * selected letters as indicated, using the transliteration in 
+ * These names are intended to be mnemonic.  They are derived from
+ * selected letters as indicated, using the transliteration in
  * guide.hex.trans.
  *
  * These definitions will be unnecessary when the event codes are

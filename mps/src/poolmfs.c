@@ -10,11 +10,11 @@
  * .design.misplaced: This design is misplaced, it should be in a
  * separate document.
  *
- * MFS operates in a very simple manner: each region allocated from 
- * the arena is divided into units.  Free units are kept on a linked 
- * list using a header stored in the unit itself.  The linked list is 
- * not ordered; allocation anddeallocation simply pop and push from 
- * the head of the list.  This is fast, but successive allocations might 
+ * MFS operates in a very simple manner: each region allocated from
+ * the arena is divided into units.  Free units are kept on a linked
+ * list using a header stored in the unit itself.  The linked list is
+ * not ordered; allocation anddeallocation simply pop and push from
+ * the head of the list.  This is fast, but successive allocations might
  * have poor locality if previous successive frees did.
  *
  * .restriction: This pool cannot allocate from the arena control
@@ -26,7 +26,7 @@
  *
  * .freelist.fragments: The simple freelist policy might lead to poor
  * locality of allocation if the list gets fragmented.
- * 
+ *
  * .buffer.not: This pool doesn't support fast cache allocation, which
  * is a shame.
  */
@@ -89,7 +89,7 @@ static Res MFSInit(Pool pool, va_list arg)
 
   AVER(unitSize >= UNIT_MIN);
   AVER(extendBy >= unitSize);
-  
+ 
   mfs = PoolPoolMFS(pool);
   arena = PoolArena(pool);
 
@@ -134,7 +134,7 @@ static void MFSFinish(Pool pool)
 /*  == Allocate ==
  *
  *  Allocation simply involves taking a unit from the front of the freelist
- *  and returning it.  If there are none, a new region is allocated from the 
+ *  and returning it.  If there are none, a new region is allocated from the
  *  arena.
  */
 

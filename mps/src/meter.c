@@ -71,7 +71,7 @@ Res MeterWrite(Meter meter, mps_lib_FILE *stream)
     return res;
   if (meter->count > 0) {
     double mean = meter->total / (double)meter->count;
-    
+   
     res = WriteF(stream,
                  ", total: $D", meter->total,
                  ", max: $U", meter->max,

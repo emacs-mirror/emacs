@@ -157,7 +157,7 @@ Bool LDIsStale(LD ld, Arena arena, Addr addr)
  *
  * This stores the fact that a set of references has changed in
  * the history in the arena structure, and increments the epoch.
- * 
+ *
  * This is only called during a 'flip', because it must be atomic
  * w.r.t. the mutator (and therefore w.r.t. LdIsStale). This is
  * because it updates the notion of the 'current' and 'oldest' history

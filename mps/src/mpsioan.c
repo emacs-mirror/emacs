@@ -39,7 +39,7 @@ mps_res_t mps_io_create(mps_io_t *mps_io_r)
   f = fopen("mpsio.log", "wb");
   if(f == NULL)
     return MPS_RES_IO;
-  
+ 
   *mps_io_r = (mps_io_t)f;
   ioFile = f;
   return MPS_RES_OK;
@@ -62,7 +62,7 @@ mps_res_t mps_io_write(mps_io_t mps_io, void *buf, size_t size)
   n = fwrite(buf, size, 1, f);
   if(n != 1)
     return MPS_RES_IO;
-  
+ 
   return MPS_RES_OK;
 }
 
@@ -71,10 +71,10 @@ mps_res_t mps_io_flush(mps_io_t mps_io)
 {
   FILE *f = (FILE *)mps_io; /* Should check f == ioFile */
   int e;
-  
+ 
   e = fflush(f);
   if(e == EOF)
     return MPS_RES_IO;
-  
+ 
   return MPS_RES_OK;
 }

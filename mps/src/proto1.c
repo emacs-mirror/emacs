@@ -90,7 +90,7 @@ static void sigHandle(int sig, siginfo_t *info, void *context)
 
   /* @@ This is really weak.
    * Need to implement rest of the contract of sigaction */
-  
+ 
   e = sigaction(SIGSEGV, &sigNext, &sa);
   AVER(e == 0);
   sigemptyset(&sigset);

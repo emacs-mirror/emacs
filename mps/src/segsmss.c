@@ -3,8 +3,8 @@
  * $HopeName: !segsmss.c(trunk.4) $
  * Copyright (C) 2000.  Harlequin Limited.  All rights reserved.
  *
- * .design: Adapted from amsss.c (because AMS already supports 
- * a protocol for subclassing AMS segments). Defines a new pool 
+ * .design: Adapted from amsss.c (because AMS already supports
+ * a protocol for subclassing AMS segments). Defines a new pool
  * class, AMST. Segments are split and merged during BufferFill
  * operations. Buffered segments are also split and merged between
  * allocation requests.
@@ -111,7 +111,7 @@ static Bool AMSTSegCheck(AMSTSeg amstseg)
 
 /* amstSegInit -- initialise an amst segment */
 
-static Res amstSegInit(Seg seg, Pool pool, Addr base, Size size, 
+static Res amstSegInit(Seg seg, Pool pool, Addr base, Size size,
                        Bool reservoirPermit, va_list args)
 {
   SegClass super;
@@ -162,21 +162,21 @@ static void amstSegFinish(Seg seg)
   /* finish the superclass fields last */
   super = SEG_SUPERCLASS(AMSTSegClass);
   super->finish(seg);
-}  
+} 
 
 
 
-/* amstSegMerge -- AMSTSeg merge method 
+/* amstSegMerge -- AMSTSeg merge method
  *
- * .fail: Test proper handling of the most complex failure cases 
- * by deliberately detecting failure sometimes after calling the 
- * next method. We handle the error by calling the anti-method. 
+ * .fail: Test proper handling of the most complex failure cases
+ * by deliberately detecting failure sometimes after calling the
+ * next method. We handle the error by calling the anti-method.
  * This isn't strictly safe (see design.mps.poolams.split-merge.fail).
- * But we assume here that we won't run out of memory when calling the 
+ * But we assume here that we won't run out of memory when calling the
  * anti-method.
  */
 
-static Res amstSegMerge(Seg seg, Seg segHi, 
+static Res amstSegMerge(Seg seg, Seg segHi,
                         Addr base, Addr mid, Addr limit,
                         Bool withReservoirPermit, va_list args)
 {
@@ -195,7 +195,7 @@ static Res amstSegMerge(Seg seg, Seg segHi,
 
   /* Merge the superclass fields via direct next-method call */
   super = SEG_SUPERCLASS(AMSTSegClass);
-  res = super->merge(seg, segHi, base, mid, limit, 
+  res = super->merge(seg, segHi, base, mid, limit,
                      withReservoirPermit, args);
   if(res != ResOK)
     goto failSuper;
@@ -215,7 +215,7 @@ static Res amstSegMerge(Seg seg, Seg segHi,
 
 failDeliberate:
   /* Call the anti-method (see .fail) */
-  res = super->split(seg, segHi, base, mid, limit, 
+  res = super->split(seg, segHi, base, mid, limit,
                      withReservoirPermit, args);
   AVER(res == ResOK);
   res = ResFAIL;
@@ -228,7 +228,7 @@ failSuper:
 
 /* amstSegSplit -- AMSTSeg split method */
 
-static Res amstSegSplit(Seg seg, Seg segHi, 
+static Res amstSegSplit(Seg seg, Seg segHi,
                         Addr base, Addr mid, Addr limit,
                         Bool withReservoirPermit, va_list args)
 {
@@ -246,7 +246,7 @@ static Res amstSegSplit(Seg seg, Seg segHi,
 
   /* Split the superclass fields via direct next-method call */
   super = SEG_SUPERCLASS(AMSTSegClass);
-  res = super->split(seg, segHi, base, mid, limit, 
+  res = super->split(seg, segHi, base, mid, limit,
                      withReservoirPermit, args);
   if(res != ResOK)
     goto failSuper;
@@ -270,7 +270,7 @@ static Res amstSegSplit(Seg seg, Seg segHi,
 
 failDeliberate:
   /* Call the anti-method. (see .fail) */
-  res = super->merge(seg, segHi, base, mid, limit, 
+  res = super->merge(seg, segHi, base, mid, limit,
                      withReservoirPermit, args);
   AVER(res == ResOK);
   res = ResFAIL;
@@ -407,7 +407,7 @@ static Bool AMSSegRegionIsFree(Seg seg, Addr base, Addr limit)
   sbase = SegBase(seg);
   ams = PoolPoolAMS(SegPool(seg));
 
-  bgrain = AMSGrains(ams, AddrOffset(sbase, base)); 
+  bgrain = AMSGrains(ams, AddrOffset(sbase, base));
   lgrain = AMSGrains(ams, AddrOffset(sbase, limit));
 
   if(amsseg->allocTableInUse) {
@@ -504,17 +504,17 @@ static void AMSAllocateRange(Seg seg, Addr base, Addr limit)
 
 
 /* AMSTBufferFill -- the pool class buffer fill method
- * 
- * Calls next method - but possibly splits or merges the chosen 
+ *
+ * Calls next method - but possibly splits or merges the chosen
  * segment.
  *
- * .merge: A merge is performed when the next method returns 
+ * .merge: A merge is performed when the next method returns
  * the entire segment, this segment had previously been split
  * from the segment below, and the segment below is appropriately
  * similar (i.e. not already attached to a buffer and similarly grey)
  *
- * .split: If we're not merging, a split is performed if the next method 
- * returns the entire segment, and yet lower half of the segment would 
+ * .split: If we're not merging, a split is performed if the next method
+ * returns the entire segment, and yet lower half of the segment would
  * meet the request.
  */
 
@@ -575,7 +575,7 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
         Seg segLo, segHi;
         Res sres;
         AMSUnallocateRange(seg, mid, limit);
-        sres = SegSplit(&segLo, &segHi, seg, mid, withReservoirPermit);        
+        sres = SegSplit(&segLo, &segHi, seg, mid, withReservoirPermit);       
         if(ResOK == sres) { /* successful split */
           limit = mid;  /* range is lower segment */
         } else {            /* failed to split */
@@ -601,7 +601,7 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
  * been split and the segment above meets the constraints (i.e. empty,
  * not already attached to a buffer and similar colour)
  *
- * .bsplit: Whether or not a merge happpened, a split is performed if 
+ * .bsplit: Whether or not a merge happpened, a split is performed if
  * the limit of the buffered region is arena aligned, and yet does not
  * correspond to the segment limit, provided that the part of the segment
  * above the buffer is all free.
@@ -636,12 +636,12 @@ static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
         printf("J");
       } else {
         /* deliberate fails only */
-        AVER(amst->failSegs); 
+        AVER(amst->failSegs);
       }
     }
   }
 
-  if (SegLimit(seg) != limit && 
+  if (SegLimit(seg) != limit &&
       AddrIsAligned(limit, ArenaAlign(arena)) &&
       AMSSegRegionIsFree(seg, limit, SegLimit(seg))) {
     /* .bsplit */
@@ -653,7 +653,7 @@ static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
       printf("C");
     } else {
       /* deliberate fails only */
-      AVER(amst->failSegs); 
+      AVER(amst->failSegs);
     }
   }
 }
@@ -702,7 +702,7 @@ static mps_class_t mps_class_amst(void)
 #define exactRootsCOUNT 50
 #define ambigRootsCOUNT 100
 #define sizeScale       4
-/* This is enough for five GCs. */ 
+/* This is enough for five GCs. */
 #define totalSizeMAX    sizeScale * 800 * (size_t)1024
 #define totalSizeSTEP   200 * (size_t)1024
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
@@ -812,7 +812,7 @@ static void *test(void *arg, size_t s)
 
     if(rnd() % stressTestFREQ == 0)
       mps_amst_ap_stress(ap); /* stress active buffer */
-    
+   
     if(rnd() % initTestFREQ == 0)
       *(int*)busy_init = -1; /* check that the buffer is still there */
 

@@ -3,12 +3,12 @@
  * $HopeName: !splay.c(trunk.9) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
- * .purpose: Splay trees are used to manage potentially unbounded 
+ * .purpose: Splay trees are used to manage potentially unbounded
  * collections of ordered things.
  *
  * .source: design.mps.splay
  *
- * .note.stack: It's important that the MPS have a bounded stack 
+ * .note.stack: It's important that the MPS have a bounded stack
  * size, and this is a problem for tree algorithms.  Basically,
  * we have to avoid recursion.
  */
@@ -33,7 +33,7 @@ SRCID(splay, "$HopeName: !splay.c(trunk.9) $");
 #define SplayCompare(tree, key, node) \
   (((tree)->compare)((key), (node)))
 
-Bool SplayTreeCheck(SplayTree tree) 
+Bool SplayTreeCheck(SplayTree tree)
 {
   UNUSED(tree);
   CHECKL(tree != NULL);
@@ -42,7 +42,7 @@ Bool SplayTreeCheck(SplayTree tree)
   return TRUE;
 }
 
-Bool SplayNodeCheck(SplayNode node) 
+Bool SplayNodeCheck(SplayNode node)
 {
   UNUSED(node);
   CHECKL(node != NULL);
@@ -51,7 +51,7 @@ Bool SplayNodeCheck(SplayNode node)
 
 
 void SplayTreeInit(SplayTree tree, SplayCompareMethod compare,
-                   SplayUpdateNodeMethod updateNode) 
+                   SplayUpdateNodeMethod updateNode)
 {
   AVER(tree != NULL);
   AVER(FUNCHECK(compare));
@@ -64,7 +64,7 @@ void SplayTreeInit(SplayTree tree, SplayCompareMethod compare,
   AVERT(SplayTree, tree);
 }
 
-void SplayNodeInit(SplayNode node) 
+void SplayNodeInit(SplayNode node)
 {
   AVER(node != NULL);
 
@@ -75,7 +75,7 @@ void SplayNodeInit(SplayNode node)
   AVERT(SplayNode, node);
 }
 
-void SplayNodeFinish(SplayNode node) 
+void SplayNodeFinish(SplayNode node)
 {
   AVERT(SplayNode, node);
 
@@ -84,14 +84,14 @@ void SplayNodeFinish(SplayNode node)
   SplayNodeSetRightChild(node, NULL);
 }
 
-void SplayTreeFinish(SplayTree tree) 
+void SplayTreeFinish(SplayTree tree)
 {
   AVERT(SplayTree, tree);
   SplayTreeSetRoot(tree, NULL);
   tree->compare = NULL;
 }
 
-static void SplayNodeUpdate(SplayTree tree, SplayNode node) 
+static void SplayNodeUpdate(SplayTree tree, SplayNode node)
 {
   AVERT(SplayTree, tree);
   AVERT(SplayNode, node);
@@ -111,7 +111,7 @@ static void SplayNodeUpdate(SplayTree tree, SplayNode node)
  * See design.mps.splay.impl.link.right.
  */
 
-static void SplayLinkRight(SplayNode *topIO, SplayNode *rightIO) 
+static void SplayLinkRight(SplayNode *topIO, SplayNode *rightIO)
 {
   AVERT(SplayNode, *topIO);
   AVERT(SplayNode, *rightIO);
@@ -127,7 +127,7 @@ static void SplayLinkRight(SplayNode *topIO, SplayNode *rightIO)
   *topIO = SplayNodeLeftChild(*topIO);
 
   /* The following line is only required for .link.right.first. */
-  SplayNodeSetLeftChild(*rightIO, NULL); 
+  SplayNodeSetLeftChild(*rightIO, NULL);
 }
 
 /* SplayLinkLeft -- Move top to right child of top
@@ -153,7 +153,7 @@ static void SplayLinkLeft(SplayNode *topIO, SplayNode *leftIO) {
   *topIO = SplayNodeRightChild(*topIO);
 
   /* The following line is only required for .link.left.first. */
-  SplayNodeSetRightChild(*leftIO, NULL); 
+  SplayNodeSetRightChild(*leftIO, NULL);
 }
 
 /* SplayRotateLeft -- Rotate right child edge of node
@@ -220,27 +220,27 @@ static void SplayRotateRight(SplayNode *nodeIO, SplayTree tree) {
 
 /* SplayAssemble -- Assemble left right and top trees into one
  *
- * We do this by moving the children of the top tree to the last and 
+ * We do this by moving the children of the top tree to the last and
  * first nodes in the left and right trees, and then moving the tops
  * of the left and right trees to the children of the top tree.
- * 
- * When we reach this function, the nodes between the roots of the 
+ *
+ * When we reach this function, the nodes between the roots of the
  * left and right trees and their last and first nodes respectively
  * will have out of date client properties.
  *
  * See design.mps.splay.impl.assemble.
  */
 
-static void SplayAssemble(SplayTree tree, SplayNode top, 
+static void SplayAssemble(SplayTree tree, SplayNode top,
                           SplayNode leftTop, SplayNode leftLast,
                           SplayNode rightTop, SplayNode rightFirst) {
   AVERT(SplayTree, tree);
   AVERT(SplayNode, top);
-  AVER(leftTop == NULL || 
+  AVER(leftTop == NULL ||
        (SplayNodeCheck(leftTop) && SplayNodeCheck(leftLast)));
-  AVER(rightTop == NULL || 
+  AVER(rightTop == NULL ||
        (SplayNodeCheck(rightTop) && SplayNodeCheck(rightFirst)));
- 
+
   if(leftTop != NULL) {
     SplayNodeSetRightChild(leftLast, SplayNodeLeftChild(top));
     SplayNodeSetLeftChild(top, leftTop);
@@ -307,7 +307,7 @@ static void SplayAssemble(SplayTree tree, SplayNode top,
   }
   /* otherwise leave top->right alone */
 
-  if(tree->updateNode != NULL) 
+  if(tree->updateNode != NULL)
     SplayNodeUpdate(tree, top);
 }
 
@@ -320,11 +320,11 @@ static void SplayAssemble(SplayTree tree, SplayNode top,
  * See design.mps.splay.impl.splay.
  */
 
-static Bool SplaySplay(SplayNode *nodeReturn, SplayTree tree, 
+static Bool SplaySplay(SplayNode *nodeReturn, SplayTree tree,
                        void *key, SplayCompareMethod compareMethod) {
   /* The sides structure avoids a boundary case in SplayLink* */
   SplayNodeStruct sides; /* rightTop and leftTop */
-  SplayNode top, leftLast, rightFirst;  
+  SplayNode top, leftLast, rightFirst; 
   Bool found;
   Compare compareTop;
 
@@ -338,7 +338,7 @@ static Bool SplaySplay(SplayNode *nodeReturn, SplayTree tree,
     *nodeReturn = NULL;
     return FALSE;
   }
-    
+   
   /* short-circuit case where node is already top */
   compareTop = (*compareMethod)(key, top);
   if(compareTop == CompareEQUAL) {
@@ -439,7 +439,7 @@ static Bool SplaySplay(SplayNode *nodeReturn, SplayTree tree,
     }
     compareTop = (*compareMethod)(key, top);
   } /* end while(TRUE) */
-      
+     
 terminalZig:
   SplayLinkRight(&top, &rightFirst);
   found = FALSE;
@@ -451,7 +451,7 @@ terminalZag:
   goto assemble;
 
 assemble:
-  SplayAssemble(tree, top, 
+  SplayAssemble(tree, top,
                 SplayNodeRightChild(&sides), leftLast,
                 SplayNodeLeftChild(&sides), rightFirst);
 
@@ -579,7 +579,7 @@ Res SplayTreeSearch(SplayNode *nodeReturn, SplayTree tree, void *key) {
 }
 
 
-/* SplayTreePredecessor -- Splays a tree at the root's predecessor 
+/* SplayTreePredecessor -- Splays a tree at the root's predecessor
  *
  * Must not be called on en empty tree.  Predecessor need not exist,
  * in which case NULL is returned, and the tree is unchanged.
@@ -616,7 +616,7 @@ static SplayNode SplayTreePredecessor(SplayTree tree, void *key) {
 }
 
 
-/* SplayTreeSuccessor -- Splays a tree at the root's successor 
+/* SplayTreeSuccessor -- Splays a tree at the root's successor
  *
  * Must not be called on en empty tree.  Successor need not exist,
  * in which case NULL is returned, and the tree is unchanged.
@@ -699,14 +699,14 @@ Res SplayTreeNeighbours(SplayNode *leftReturn, SplayNode *rightReturn,
 
 /* SplayTreeFirst, SplayTreeNext -- Iterators
  *
- * SplayTreeFirst receives a key that must precede all 
- * nodes in the tree.  It returns NULL if the tree is empty.  
- * Otherwise, it splays the tree to the first node, and returns the 
+ * SplayTreeFirst receives a key that must precede all
+ * nodes in the tree.  It returns NULL if the tree is empty. 
+ * Otherwise, it splays the tree to the first node, and returns the
  * new root.  See design.mps.splay.function.splay.tree.first.
  *
- * SplayTreeNext takes a tree and splays it to the successor of the 
- * old root, and returns the new root.  Returns NULL is there are 
- * no successors.  It takes a key for the old root.  See 
+ * SplayTreeNext takes a tree and splays it to the successor of the
+ * old root, and returns the new root.  Returns NULL is there are
+ * no successors.  It takes a key for the old root.  See
  * design.mps.splay.function.splay.tree.next.
  */
 
@@ -797,7 +797,7 @@ typedef struct {
   SplayTree tree;
 } SplayFindClosureStruct, *SplayFindClosure;
 
-static Compare SplayFindFirstCompare(void *key, SplayNode node) 
+static Compare SplayFindFirstCompare(void *key, SplayNode node)
 {
   SplayFindClosure closure;
   void *closureP;
@@ -828,7 +828,7 @@ static Compare SplayFindFirstCompare(void *key, SplayNode node)
   }
 }
 
-static Compare SplayFindLastCompare(void *key, SplayNode node) 
+static Compare SplayFindLastCompare(void *key, SplayNode node)
 {
   SplayFindClosure closure;
   void *closureP;
@@ -863,10 +863,10 @@ static Compare SplayFindLastCompare(void *key, SplayNode node)
 /* SplayFindFirst -- Find first node that satisfies client property
  *
  * This function finds the first node (in address order) in the given
- * tree that satisfies some property defined by the client.  The 
+ * tree that satisfies some property defined by the client.  The
  * property is such that the client can detect, given a sub-tree,
  * whether that sub-tree contains any nodes satisfying the property.
- * 
+ *
  * The given callbacks testNode and testTree detect this property in
  * a single node or a sub-tree rooted at a node, and both receive the
  * arbitrary closures closureP and closureS.
@@ -896,7 +896,7 @@ Bool SplayFindFirst(SplayNode *nodeReturn, SplayTree tree,
   closureStruct.testTree = testTree;
   closureStruct.tree = tree;
 
-  if(SplaySplay(&node, tree, (void *)&closureStruct, 
+  if(SplaySplay(&node, tree, (void *)&closureStruct,
     &SplayFindFirstCompare)) {
     *nodeReturn = node;
     return TRUE;
@@ -932,7 +932,7 @@ Bool SplayFindLast(SplayNode *nodeReturn, SplayTree tree,
   closureStruct.testTree = testTree;
   closureStruct.tree = tree;
 
-  if(SplaySplay(&node, tree, (void *)&closureStruct, 
+  if(SplaySplay(&node, tree, (void *)&closureStruct,
     &SplayFindLastCompare)) {
     *nodeReturn = node;
     return TRUE;
@@ -964,7 +964,7 @@ Bool SplayRoot(SplayNode *nodeReturn, SplayTree tree)
 /* SplayNodeRefresh -- Updates the client property that has changed at a node
  *
  * This function undertakes to call the client updateNode callback for each
- * node affected by the change in properties at the given node (which has 
+ * node affected by the change in properties at the given node (which has
  * the given key) in an appropriate order.
  *
  * The function fullfils its job by first splaying at the given node, and
@@ -984,7 +984,7 @@ void SplayNodeRefresh(SplayTree tree, SplayNode node, void *key)
   AVER(node == node2);
 
   (*tree->updateNode)(tree, node, SplayNodeLeftChild(node),
-                      SplayNodeRightChild(node)); 
+                      SplayNodeRightChild(node));
 }
 
 
@@ -993,7 +993,7 @@ void SplayNodeRefresh(SplayTree tree, SplayNode node, void *key)
  * See design.mps.splay.function.splay.tree.describe.
  */
 
-Res SplayTreeDescribe(SplayTree tree, mps_lib_FILE *stream, 
+Res SplayTreeDescribe(SplayTree tree, mps_lib_FILE *stream,
                       SplayNodeDescribeMethod nodeDescribe) {
   Res res;
 

@@ -10,13 +10,13 @@
  * PURPOSE
  *
  * .purpose: This defines the abstract pool classes, giving
- * a single-inheritance framework which concrete classes 
- * may utilize.  The purpose is to reduce the fragility of class 
- * definitions for pool implementations when small changes are 
+ * a single-inheritance framework which concrete classes
+ * may utilize.  The purpose is to reduce the fragility of class
+ * definitions for pool implementations when small changes are
  * made to the pool protocol.   For now, the class hierarchy for
  * the abstract classes is intended to be useful, but not to
  * represent any particular design for pool inheritance.
- * 
+ *
  * HIERARCHY
  *
  * .hierarchy: define the following hierarchy of abstract pool classes:-
@@ -24,9 +24,9 @@
  *    AbstractPoolClass     - implements init, finish, describe
  *     AbstractAllocFreePoolClass - implements alloc & free
  *     AbstractBufferPoolClass - implements the buffer protocol
- *      AbstractSegBufPoolClass - uses SegBuf buffer class 
+ *      AbstractSegBufPoolClass - uses SegBuf buffer class
  *       AbstractScanPoolClass - implements basic scanning
- *        AbstractCollectPoolClass - implements basic GC 
+ *        AbstractCollectPoolClass - implements basic GC
  */
 
 #include "mpm.h"
@@ -43,8 +43,8 @@ typedef PoolClassStruct AbstractCollectPoolClassStruct;
 
 /* Mixins:
  *
- * For now (at least) we're avoiding multiple inheritance. 
- * However, there is a significant use of multiple inheritance 
+ * For now (at least) we're avoiding multiple inheritance.
+ * However, there is a significant use of multiple inheritance
  * in practice amongst the pool classes, as there are several
  * orthogonal sub-protocols included in the pool protocol.
  * The following mixin functions help to provide the inheritance
@@ -78,7 +78,7 @@ void PoolClassMixInBuffer(PoolClass class)
   class->bufferFill = PoolTrivBufferFill;
   class->bufferEmpty = PoolTrivBufferEmpty;
   /* By default, buffered pools treat frame operations as NOOPs */
-  class->framePush = PoolTrivFramePush; 
+  class->framePush = PoolTrivFramePush;
   class->framePop = PoolTrivFramePop;
   class->bufferClass = EnsureBufferClass;
 }

@@ -136,13 +136,13 @@ extern Bool ResIsAllocFailure(Res res);
 
 
 /* Logs and Powers
- * 
+ *
  * SizeIsP2 returns TRUE if and only if size is a non-negative integer
  * power of 2, and FALSE otherwise.
- * 
+ *
  * SizeLog2 returns the logarithm in base 2 of size.  size must be a
  * power of 2.
- * 
+ *
  * SizeFloorLog2 returns the floor of the logarithm in base 2 of size.
  * size can be any positive non-zero value.
  */
@@ -317,7 +317,7 @@ extern void BTCopyOffsetRange(BT fromBT, BT toBT,
 
 extern Res PoolInit(Pool pool, Arena arena,
                     PoolClass class, ...);
-extern Res PoolInitV(Pool pool, Arena arena, 
+extern Res PoolInitV(Pool pool, Arena arena,
                      PoolClass class, va_list args);
 extern void PoolFinish(Pool pool);
 extern Bool PoolClassCheck(PoolClass class);
@@ -339,13 +339,13 @@ extern Ring (PoolSegRing)(Pool pool);
 extern Bool PoolOfAddr(Pool *poolReturn, Arena arena, Addr addr);
 extern Bool PoolHasAddr(Pool pool, Addr addr);
 
-extern Res PoolCreate(Pool *poolReturn, Arena arena, 
+extern Res PoolCreate(Pool *poolReturn, Arena arena,
                       PoolClass class, ...);
 extern Res PoolCreateV(Pool *poolReturn, Arena arena,
                        PoolClass class, va_list arg);
 extern void PoolDestroy(Pool pool);
 extern BufferClass PoolDefaultBufferClass(Pool pool);
-extern Res PoolAlloc(Addr *pReturn, Pool pool, Size size, 
+extern Res PoolAlloc(Addr *pReturn, Pool pool, Size size,
                      Bool withReservoirPermit);
 extern void PoolFree(Pool pool, Addr old, Size size);
 extern Res PoolTraceBegin(Pool pool, Trace trace);
@@ -378,9 +378,9 @@ extern Res PoolNoBufferFill(Addr *baseReturn, Addr *limitReturn,
 extern Res PoolTrivBufferFill(Addr *baseReturn, Addr *limitReturn,
                               Pool pool, Buffer buffer, Size size,
                               Bool withReservoirPermit);
-extern void PoolNoBufferEmpty(Pool pool, Buffer buffer, 
+extern void PoolNoBufferEmpty(Pool pool, Buffer buffer,
                               Addr init, Addr limit);
-extern void PoolTrivBufferEmpty(Pool pool, Buffer buffer, 
+extern void PoolTrivBufferEmpty(Pool pool, Buffer buffer,
                                 Addr init, Addr limit);
 extern Res PoolNoDescribe(Pool pool, mps_lib_FILE *stream);
 extern Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream);
@@ -441,7 +441,7 @@ extern AbstractScanPoolClass EnsureAbstractScanPoolClass(void);
 extern AbstractCollectPoolClass EnsureAbstractCollectPoolClass(void);
 
 /* DEFINE_POOL_CLASS
- * convenience macro -- see design.mps.protocol.int.define-special 
+ * convenience macro -- see design.mps.protocol.int.define-special
  */
 
 #define DEFINE_POOL_CLASS(className, var) \
@@ -600,7 +600,7 @@ extern Res TraceScanAreaTagged(ScanState ss,
                                Addr *base, Addr *limit);
 extern Res TraceScanAreaMasked(ScanState ss,
                                Addr *base, Addr *limit, Word mask);
-extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena, 
+extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
                                Seg seg, Ref *refIO);
 
 
@@ -615,7 +615,7 @@ extern void ActionPoll(Arena arena);
 /* Arena Interface -- see impl.c.arena */
 
 /* DEFINE_ARENA_CLASS
- * convenience macro -- see design.mps.protocol.int.define-special 
+ * convenience macro -- see design.mps.protocol.int.define-special
  */
 
 #define DEFINE_ARENA_CLASS(className, var) \
@@ -659,7 +659,7 @@ extern void ArenaPark(Arena arena);
 extern Res ArenaCollect(Arena arena);
 extern Bool ArenaHasAddr(Arena arena, Addr addr);
 
-extern Res ControlAlloc(void **baseReturn, Arena arena, size_t size, 
+extern Res ControlAlloc(void **baseReturn, Arena arena, size_t size,
                         Bool withReservoirPermit);
 extern void ControlFree(Arena arena, void *base, size_t size);
 
@@ -763,7 +763,7 @@ extern void TractFinish(Tract tract);
 
 /* TRACT_*SEG -- Test / set / unset seg->tract associations
  *
- * These macros all multiply evaluate the tract parameter 
+ * These macros all multiply evaluate the tract parameter
  */
 
 #define TRACT_SEG(segReturn, tract) \
@@ -836,7 +836,7 @@ extern void SegClassMixInNoSplitMerge(SegClass class);
 
 
 /* DEFINE_SEG_CLASS
- * convenience macro -- see design.mps.protocol.int.define-special 
+ * convenience macro -- see design.mps.protocol.int.define-special
  */
 
 #define DEFINE_SEG_CLASS(className, var) \
@@ -875,9 +875,9 @@ extern Addr (SegLimit)(Seg seg);
 
 /* Buffer Interface -- see impl.c.buffer */
 
-extern Res BufferCreate(Buffer *bufferReturn, BufferClass class, 
+extern Res BufferCreate(Buffer *bufferReturn, BufferClass class,
                         Pool pool, Bool isMutator, ...);
-extern Res BufferCreateV(Buffer *bufferReturn, BufferClass class, 
+extern Res BufferCreateV(Buffer *bufferReturn, BufferClass class,
                          Pool pool, Bool isMutator, va_list args);
 extern void BufferDestroy(Buffer buffer);
 extern Bool BufferCheck(Buffer buffer);
@@ -885,7 +885,7 @@ extern Bool SegBufCheck(SegBuf segbuf);
 extern Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream);
 extern Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
                          Bool withReservoirPermit);
-/* macro equivalent for BufferReserve, keep in sync with 
+/* macro equivalent for BufferReserve, keep in sync with
  * impl.c.buffer */
 #define BUFFER_RESERVE(pReturn, buffer, size, withReservoirPermit) \
   (AddrAdd(BufferAlloc(buffer), size) > BufferAlloc(buffer) && \
@@ -909,7 +909,7 @@ extern Bool BufferIsReset(Buffer buffer);
 extern Bool BufferIsReady(Buffer buffer);
 extern Bool BufferIsMutator(Buffer buffer);
 extern void BufferSetAllocAddr(Buffer buffer, Addr addr);
-extern void BufferAttach(Buffer buffer, 
+extern void BufferAttach(Buffer buffer,
                          Addr base, Addr limit, Addr init, Size size);
 extern void BufferDetach(Buffer buffer, Pool pool);
 extern void BufferFlip(Buffer buffer);
@@ -946,7 +946,7 @@ extern void BufferFrameSetState(Buffer buffer, FrameState state);
 
 
 /* DEFINE_BUFFER_CLASS
- * convenience macro -- see design.mps.protocol.int.define-special 
+ * convenience macro -- see design.mps.protocol.int.define-special
  */
 #define DEFINE_BUFFER_CLASS(className, var) \
   DEFINE_ALIAS_CLASS(className, BufferClass, var)
@@ -966,7 +966,7 @@ extern AllocPattern AllocPatternRampCollectAll(void);
 /* Format Interface -- see impl.c.format */
 
 extern Bool FormatCheck(Format format);
-extern Res FormatCreate(Format *formatReturn, Arena arena, 
+extern Res FormatCreate(Format *formatReturn, Arena arena,
                         Align alignment,
 			FormatVariety variety,
                         FormatScanMethod scan,
@@ -1027,13 +1027,13 @@ extern void (ShieldFlush)(Arena arena);
 #define ShieldRaise(arena, seg, mode) \
   BEGIN UNUSED(arena); UNUSED(seg); UNUSED(mode); END
 #define ShieldLower(arena, seg, mode) \
-  BEGIN UNUSED(arena); UNUSED(seg); UNUSED(mode); END 
+  BEGIN UNUSED(arena); UNUSED(seg); UNUSED(mode); END
 #define ShieldEnter(arena) BEGIN UNUSED(arena); END
 #define ShieldLeave(arena) BEGIN UNUSED(arena); END
 #define ShieldExpose(arena, seg)  \
-  BEGIN UNUSED(arena); UNUSED(seg); END 
+  BEGIN UNUSED(arena); UNUSED(seg); END
 #define ShieldCover(arena, seg) \
-  BEGIN UNUSED(arena); UNUSED(seg); END 
+  BEGIN UNUSED(arena); UNUSED(seg); END
 #define ShieldSuspend(arena) BEGIN UNUSED(arena); END
 #define ShieldResume(arena) BEGIN UNUSED(arena); END
 #define ShieldFlush(arena) BEGIN UNUSED(arena); END
@@ -1082,7 +1082,7 @@ extern Res RootCreateReg(Root *rootReturn, Arena arena,
                            RootScanRegMethod scan,
                            void *p, size_t s);
 extern Res RootCreateFmt(Root *rootReturn, Arena arena,
-                           Rank rank, RootMode mode, 
+                           Rank rank, RootMode mode,
                            FormatScanMethod scan,
                            Addr base, Addr limit);
 extern Res RootCreateFun(Root *rootReturn, Arena arena,
@@ -1130,9 +1130,9 @@ extern void StackProbe(Word depth);
  * STATISTIC_WRITE is inserted in WriteF arguments to output the values
  * of diagnostic fields.
  *
- * .statistic.whitehot: The implementation of STATISTIC for 
+ * .statistic.whitehot: The implementation of STATISTIC for
  * non-statistical varieties passes the parameter to DISCARD to ensure
- * the parameter is syntactically an expression.  The parameter is 
+ * the parameter is syntactically an expression.  The parameter is
  * passed as part of a comma-expression so that its type is not
  * important.  This permits an expression of type void.
  */

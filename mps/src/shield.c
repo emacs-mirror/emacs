@@ -61,7 +61,7 @@
  * As the depth of a segment cannot be negative
  *   total depth == 0 => for all segments, depth == 0
  *                    => all segs are synced (by .inv.unsynced.depth)
- * 
+ *
  * If the mutator is running then all segs must be synced
  * (.inv.unsynced.suspend).  Which means that the hardware protection
  * (prot mode) must reflect the software protection (shield mode).
@@ -92,7 +92,7 @@ void (ShieldResume)(Arena arena)
   AVERT(Arena, arena);
   AVER(arena->insideShield);
   AVER(arena->suspended);
-  /* It is only correct to actually resume the mutator here if 
+  /* It is only correct to actually resume the mutator here if
    * shDepth is 0
    */
 }
@@ -137,7 +137,7 @@ static void flush(Arena arena, Size i)
   AVER(SegDepth(seg) > 0);
   --arena->shDepth;
   SegSetDepth(seg, SegDepth(seg) - 1);
-  
+ 
   if(SegDepth(seg) == 0)
     sync(arena, seg);
 
