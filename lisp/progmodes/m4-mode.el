@@ -2,8 +2,8 @@
 
 ;;; Copyright (C) 1996, 1997 Free Software Foundation, Inc.
 
-;; Author: Andrew Csillag <drew@staff.prodigy.com>
-;; Maintainer: Andrew Csillag <drew@staff.prodigy.com>
+;; Author: Andrew Csillag <drew_csillag@geocities.com>
+;; Maintainer: Andrew Csillag <drew_csillag@geocities.com>
 ;; Keywords: languages, faces
 
 ;; This file is part of GNU Emacs.
