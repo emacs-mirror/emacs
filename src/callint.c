@@ -254,7 +254,12 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
       specs = Fcar (Fcdr (specs));
     }
   else if (EQ (funcar, Qmocklisp))
-    return ml_apply (fun, Qinteractive);
+    {
+#ifdef MULTI_PERDISPLAY
+      display_locked = 1;
+#endif
+      return ml_apply (fun, Qinteractive);
+    }
   else
     goto lose;
 
@@ -306,6 +311,9 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  Vcommand_history
 	    = Fcons (Fcons (function, values), Vcommand_history);
 	}
+#ifdef MULTI_PERDISPLAY
+      display_locked = 1;
+#endif
       return apply1 (function, specs);
     }
 
