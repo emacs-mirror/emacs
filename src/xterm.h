@@ -928,7 +928,7 @@ int x_text_icon P_ ((struct frame *, char *));
 int x_bitmap_icon P_ ((struct frame *, Lisp_Object));
 void x_set_window_size P_ ((struct frame *, int, int, int));
 void x_wm_set_window_state P_ ((struct frame *, int));
-int x_alloc_nearest_color P_ ((Display *, Screen *, Colormap, XColor *));
+int x_alloc_nearest_color P_ ((struct frame *, Colormap, XColor *));
 
 extern void pixel_to_glyph_coords P_ ((struct frame *, int, int,
 				       int *, int *, XRectangle *, int));
