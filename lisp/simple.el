@@ -1491,8 +1491,8 @@ and more reliable (no dependence on goal column, etc.)."
   (interactive "p")
   (if (and next-line-add-newlines (= arg 1))
       (let ((opoint (point)))
-	(forward-line 1)
-	(if (or (= opoint (point)) (not (eq (preceding-char) ?\n)))
+	(end-of-line)
+	(if (eobp)
 	    (insert ?\n)
 	  (goto-char opoint)
 	  (line-move arg)))
@@ -1542,8 +1542,15 @@ When the `track-eol' feature is doing its job, the value is 9999.")
 		9999
 	      (current-column))))
   (if (not (integerp selective-display))
-      (or (and (zerop (forward-line arg))
-	       (bolp))
+      (or (if (> arg 0)
+	      (progn (if (> arg 1) (forward-line (1- arg)))
+		     ;; This way of moving forward ARG lines
+		     ;; verifies that we have a newline after the last one.
+		     ;; It doesn't get confused by intangible text.
+		     (end-of-line)
+		     (zerop (forward-line 1)))
+	    (and (zerop (forward-line arg))
+		 (bolp)))
 	  (signal (if (bobp)
 		      'beginning-of-buffer
 		    'end-of-buffer)
