@@ -183,6 +183,7 @@ Conditions are:
 
   (and (window-minibuffer-p (selected-window))
        (not executing-kbd-macro)
+       minibuffer-completion-table
        ;; (or minibuffer-completing-file-name
        (not (functionp minibuffer-completion-table)))) ;; )
 
