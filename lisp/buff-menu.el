@@ -1,8 +1,10 @@
 ;;; buff-menu.el --- buffer menu main function and support functions.
 
-;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1993 Free Software Foundation, Inc.
 
+;; Author: Bob Weiner <rsw@cs.brown.edu>
 ;; Maintainer: FSF
+;; Adapted-by: Eric S. Raymond <esr@snark.thyrsus.com>
 
 ;; This file is part of GNU Emacs.
 
@@ -25,9 +27,32 @@
 ;; Edit, delete, or change attributes of all currently active Emacs
 ;; buffers from a list summarizing thir state.  A good way to browse
 ;; any special or scratch buffers you have loaded, since you can't find
-;; them by filename.
+;; them by filename.  The single entry point is `Buffer-menu-mode',
+;; normally bound to C-x C-b.
+
+;;; Change Log:
+
+;; Merged by esr with recent mods to Emacs 19 buff-menu, 23 Mar 1993
+;;
+;; Modified by Bob Weiner, Motorola, Inc., 3/1/89
+;;
+;; Save window configuration when 'buffer-menu' is called so that
+;; previous window configuration is restored. prior to selecting
+;; buffers.
+;; Made 'Buffer-menu-select' also perform a 'Buffer-menu-execute'.
+;; 
+;; Modified by Bob Weiner, Motorola, Inc., 4/14/89
+;;
+;; Added optional backup argument to 'Buffer-menu-unmark' to make it undelete
+;; current entry and then move to previous one.
+;;
+;; Based on FSF code dating back to 1985.
 
 ;;; Code:
+ 
+(defvar *buff-window-config* nil
+  "Stores window configuration upon entry of 'buffer-menu'.  Used to
+restore window configuration when only one buffer is selected.")
 
 ; Put buffer *Buffer List* into proper mode right away
 ; so that from now on even list-buffers is enough to get a buffer menu.
@@ -85,6 +110,7 @@ Letters do not insert themselves; instead, they are commands.
 \\[Buffer-menu-delete-backwards] -- mark that buffer to be deleted, and move up.
 \\[Buffer-menu-execute] -- delete or save marked buffers.
 \\[Buffer-menu-unmark] -- remove all kinds of marks from current line.
+  With prefix argument, also move up one line.
 \\[Buffer-menu-backup-unmark] -- back up a line and remove marks."
   (kill-all-local-variables)
   (use-local-map Buffer-menu-mode-map)
@@ -94,10 +120,21 @@ Letters do not insert themselves; instead, they are commands.
   (setq mode-name "Buffer Menu")
   (run-hooks 'buffer-menu-mode-hook))
 
-(defvar Buffer-menu-buffer-column 4)
+(defvar Buffer-menu-buffer-column nil)
+
+(defvar Buffer-menu-size-column nil)
 
 (defun Buffer-menu-buffer (error-if-non-existent-p)
   "Return buffer described by this line of buffer menu."
+  (if (null Buffer-menu-buffer-column)
+      (save-excursion
+       (goto-char (point-min))
+       (search-forward "Buffer")
+       (backward-word 1)
+       (setq Buffer-menu-buffer-column (current-column))
+       (search-forward "Size")
+       (backward-word 1)
+       (setq Buffer-menu-size-column (current-column))))
   (save-excursion
     (beginning-of-line)
     (forward-char Buffer-menu-buffer-column)
@@ -116,13 +153,15 @@ Letters do not insert themselves; instead, they are commands.
   "Make a menu of buffers so you can save, delete or select them.
 With argument, show only buffers that are visiting files.
 Type ? after invocation to get help on commands available.
-Type q immediately to make the buffer menu go away."
+Type q immediately to make the buffer menu go away and to restore
+previous window configuration."
   (interactive "P")
+  (setq *buff-window-config* (current-window-configuration))
   (list-buffers arg)
   (pop-to-buffer "*Buffer List*")
   (forward-line 2)
   (message
-   "Commands: d, s, x; 1, 2, m, u, q; delete; ~;  ? for help."))
+   "Commands: d, s, x; 1, 2, m, u; delete; ~; q to quit; ? for help."))
 
 (defun Buffer-menu-mark ()
   "Mark buffer on this line for being displayed by \\<Buffer-menu-mode-map>\\[Buffer-menu-select] command."
@@ -135,9 +174,10 @@ Type q immediately to make the buffer menu go away."
       (insert ?>)
       (forward-line 1))))
 
-(defun Buffer-menu-unmark ()
-  "Cancel all requested operations on buffer on this line."
-  (interactive)
+(defun Buffer-menu-unmark (&optional backup)
+  "Cancel all requested operations on buffer on this line and move down.
+Optional ARG means move up."
+  (interactive "P")
   (beginning-of-line)
   (if (looking-at " [-M]")
       (ding)
@@ -147,7 +187,7 @@ Type q immediately to make the buffer menu go away."
 	   (buffer-read-only nil))
       (delete-char 3)
       (insert (if readonly (if mod " *%" "  %") (if mod " * " "   ")))))
-  (forward-line 1))
+  (forward-line (if backup -1 1)))
 
 (defun Buffer-menu-backup-unmark ()
   "Move up and cancel all requested operations on buffer on line above."
@@ -250,16 +290,28 @@ You can mark buffers with the \\<Buffer-menu-mode-map>\\[Buffer-menu-mark] comma
       (or (eq tem buff) (memq tem others) (setq others (cons tem others))))
     (setq others (nreverse others)
 	  tem (/ (1- (frame-height)) (1+ (length others))))
+    (Buffer-menu-execute)
     (delete-other-windows)
     (switch-to-buffer buff)
     (or (eq menu buff)
 	(bury-buffer menu))
-    (while others
-      (split-window nil tem)
-      (other-window 1)
-      (switch-to-buffer (car others))
-      (setq others (cdr others)))
-    (other-window 1)))			;back to the beginning!
+    (if (equal (length others) 0)
+	(progn
+	  ;; Restore previous window configuration before displaying
+	  ;; selected buffers.
+	  (if *buff-window-config*
+	      (progn
+		(set-window-configuration *buff-window-config*)
+		(setq *buff-window-config* nil)))
+	  (switch-to-buffer buff))
+      (while others
+	(split-window nil tem)
+	(other-window 1)
+	(switch-to-buffer (car others))
+	(setq others (cdr others)))
+      (other-window 1)  			;back to the beginning!
+)))
+
 
 (defun Buffer-menu-visit-tags-table ()
   "Visit the tags table in the buffer on this line.  See `visit-tags-table'."
@@ -298,6 +350,7 @@ The current window remains selected."
   (let ((buff (Buffer-menu-buffer t))
 	(menu (current-buffer))
 	(pop-up-windows t))
+    (delete-other-windows)
     (switch-to-buffer (other-buffer))
     (pop-to-buffer buff)
     (bury-buffer menu)))
