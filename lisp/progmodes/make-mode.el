@@ -248,7 +248,7 @@ not be enclosed in { } or ( )."
 ;; that if you change this regexp you might have to fix the imenu
 ;; index in makefile-imenu-generic-expression.
 (defconst makefile-macroassign-regex
-  "^ *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*[*:+]?:?="
+  "^ *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*[*:+]?[:?]?="
   "Regex used to find macro assignment lines in a makefile.")
 
 (defconst makefile-ignored-files-in-pickup-regex
