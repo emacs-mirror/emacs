@@ -505,6 +505,25 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 
 ;;;; Creation of additional frames, and other frame miscellanea
 
+(defun modify-all-frames-parameters (alist)
+  "Modify all current and future frames parameters according to ALIST.
+This changes `default-frame-alist' and possibly `initial-frame-alist'.
+See help of `modify-frame-parameters' for more information."
+  (let (element)			;; temp
+    (dolist (frame (frame-list))
+      (modify-frame-parameters frame alist))
+    (dolist (pair alist)		;; conses to add/replace
+      ;; initial-frame-alist needs setting only when
+      ;; frame-notice-user-settings is true
+      (and frame-notice-user-settings
+	   (setq element (assoc (car pair) initial-frame-alist))
+	   (setq initial-frame-alist (delq element initial-frame-alist)))
+      (and (setq element (assoc (car pair) default-frame-alist))
+	   (setq default-frame-alist (delq element default-frame-alist)))))
+  (and frame-notice-user-settings
+       (setq initial-frame-alist (append initial-frame-alist alist)))
+  (setq default-frame-alist (append default-frame-alist alist)))
+
 (defun get-other-frame ()
   "Return some frame other than the current frame.
 Create one if necessary.  Note that the minibuffer frame, if separate,
@@ -638,7 +657,6 @@ the user during startup."
   (setq frame-initial-geometry-arguments
 	(nreverse frame-initial-geometry-arguments))
   (cdr param-list))
-
 
 (defcustom focus-follows-mouse t
   "*Non-nil if window system changes focus when you move the mouse.
