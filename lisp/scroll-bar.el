@@ -218,7 +218,7 @@ EVENT should be a scroll bar click or drag event."
       (goto-char (+ (point-min)
 		    (scroll-bar-scale portion-whole
 				      (- (point-max) (point-min)))))
-      (beginning-of-line)
+      (vertical-motion 0 window)
       (set-window-start window (point)))))
 
 (defun scroll-bar-drag (event)
