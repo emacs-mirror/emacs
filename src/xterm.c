@@ -769,33 +769,44 @@ x_after_update_window_line (desired_row)
      struct glyph_row *desired_row;
 {
   struct window *w = updated_window;
+  struct frame *f;
+  int width;
   
   xassert (w);
   
   if (!desired_row->mode_line_p && !w->pseudo_window_p)
     {
-      struct frame *f;
-      int width;
-      
       BLOCK_INPUT;
       x_draw_row_bitmaps (w, desired_row);
-
-      /* When a window has disappeared, make sure that no rest of
-	 full-width rows stays visible in the internal border.  */
-      if (windows_or_buffers_changed
-	  && (f = XFRAME (w->frame),
-	      width = FRAME_INTERNAL_BORDER_WIDTH (f),
-	      width != 0))
-	{
-	  int height = desired_row->visible_height;
-	  int x = (window_box_right (w, -1)
-		   + FRAME_X_RIGHT_FLAGS_AREA_WIDTH (f));
-	  int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
-
-	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			x, y, width, height, False);
-	}
+      UNBLOCK_INPUT;
+    }
       
+  /* When a window has disappeared, make sure that no rest of
+     full-width rows stays visible in the internal border.  Could
+     check here if updated_window is the leftmost/rightmost window,
+     but I guess it's not worth doing since vertically split windows
+     are almost never used, internal border is rarely set, and the
+     overhead is very small.  */
+  if (windows_or_buffers_changed
+      && desired_row->full_width_p
+      && (f = XFRAME (w->frame),
+	  width = FRAME_INTERNAL_BORDER_WIDTH (f),
+	  width != 0))
+    {
+      int height = desired_row->visible_height;
+      int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
+
+      /* Internal border is drawn below the tool bar.  */
+      if (WINDOWP (f->tool_bar_window)
+	  && w == XWINDOW (f->tool_bar_window))
+	y -= width;
+      
+      BLOCK_INPUT;
+      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		    0, y, width, height, False);
+      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		    f->output_data.x->pixel_width - width,
+		    y, width, height, False);
       UNBLOCK_INPUT;
     }
 }
