@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.42) $
+ * $HopeName: MMsrc!arena.c(trunk.43) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.42) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.43) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -1479,6 +1479,7 @@ static void RootsStepClosureInit(RootsStepClosure rsc,
   /* we are initing it, so we can't check rsc */
   AVERT(Arena, arena);
   AVERT(Trace, trace);
+  AVER(FUNCHECK(rootFix));
   AVER(FUNCHECK(f));
   /* p and s are arbitrary client-provided closure data. */
 
@@ -1501,7 +1502,7 @@ static void RootsStepClosureInit(RootsStepClosure rsc,
   AVERT(RootsStepClosure, rsc);
 }
 
-/* Fiish a RootsStepClosure, including the parent ScanState */ 
+/* Finish a RootsStepClosure, including the parent ScanState */ 
 static void RootsStepClosureFinish(RootsStepClosure rsc)
 {
   ScanState ss;
@@ -1509,13 +1510,14 @@ static void RootsStepClosureFinish(RootsStepClosure rsc)
   AVERT(RootsStepClosure, rsc);
 
   ss = RootsStepClosureScanState(rsc);
+  rsc->sig = SigInvalid;
   ScanStateFinish(ss);
 }
 
 /* Initialize a minimal trace for root walking */
 static Res RootsWalkTraceStart(Trace trace)
 {
-  Ring ring, node;
+  Ring ring, node, next;
   Arena arena;
 
   AVERT(Trace, trace);
@@ -1527,12 +1529,9 @@ static Res RootsWalkTraceStart(Trace trace)
 
   /* Make the roots grey so that they are scanned */
   ring = ArenaRootRing(arena);
-  node = RingNext(ring);
-  while(node != ring) {
-    Ring next = RingNext(node);
+  RING_FOR(node, ring, next) {
     Root root = RING_ELT(Root, arenaRing, node);
     RootGrey(root, trace);
-    node = next;
   }
 
   return ResOK;
@@ -1557,7 +1556,7 @@ static void RootsWalkTraceFinish(Trace trace)
 /* RootsWalkFix -- the fix method used during root walking */
 /* This doesn't cause further scanning of transitive references, */
 /* it just calls the client closure */
-static Res RootsWalkFix(ScanState ss, Ref *refIO)
+static Res RootsWalkFix(ScanState ss, Ref *refptr)
 {
   RootsStepClosure rsc;
   Root root;
@@ -1566,17 +1565,16 @@ static Res RootsWalkFix(ScanState ss, Ref *refIO)
   Arena arena;
   
   AVERT(ScanState, ss);
-  AVER(refIO != NULL);
+  AVER(refptr != NULL);
 
   rsc = ScanStateRootsStepClosure(ss);
   AVERT(RootsStepClosure, rsc);
 
   root = rsc->root;
-  AVER(root != NULL);
   AVERT(Root, root);
 
   arena = ss->arena;
-  ref = *refIO;
+  ref = *refptr;
 
   /* Check that the reference is to a valid segment */
   /* SegOfAddr is inlined, see design.mps.trace.fix.segofaddr */
@@ -1586,8 +1584,8 @@ static Res RootsWalkFix(ScanState ss, Ref *refIO)
     /* shouldn't be passed to the client */
     if ((SegPool(seg)->class->attr & AttrGC) != 0) {
       /* Call the client closure - .assume.rootaddr */
-      rsc->f((mps_addr_t*)refIO, 
-             (mps_root_t)rsc->root, 
+      rsc->f((mps_addr_t*)refptr, 
+             (mps_root_t)root, 
              rsc->p, rsc->s);
     }
   } else {
@@ -1597,7 +1595,7 @@ static Res RootsWalkFix(ScanState ss, Ref *refIO)
   }
 
   /* See design.mps.trace.fix.fixed.all */
-  ss->fixedSummary = RefSetAdd(ss->arena, ss->fixedSummary, *refIO);
+  ss->fixedSummary = RefSetAdd(ss->arena, ss->fixedSummary, *refptr);
 
   return ResOK;
 }
@@ -1639,13 +1637,12 @@ static Res ArenaRootsWalk(Arena arena,
 
   for(rank = RankAMBIG; rank < RankMAX; ++rank) {
     Ring ring = ArenaRootRing(arena);
-    Ring node = RingNext(ring);
+    Ring node, next;
     ss->rank = rank;
 
     AVERT(ScanState, ss);
 
-    while(node != ring) {
-      Ring next = RingNext(node);
+    RING_FOR(node, ring, next) {
       Root root = RING_ELT(Root, arenaRing, node);
 
       if(RootRank(root) == ss->rank) {
@@ -1658,8 +1655,6 @@ static Res ArenaRootsWalk(Arena arena,
           return res;
         }
       }
-
-      node = next;
     }
   }
 
