@@ -342,6 +342,7 @@ Pierresteguy, Frederic (changed) src/xterm.c
 Pierresteguy, Frederic (changed) src/xterm.h
 Pierresteguy, Frederic (wrote) src/widget.c
 Plaunt, Christian (wrote) lisp/soundex.el
+Ponce, David (wrote) lisp/recentf.el
 Potortì, Francesco A. (changed) lib-src/etags.c
 Potortì, Francesco A. (changed) lisp/man.el
 Potortì, Francesco A. (changed) lisp/rlogin.el
