@@ -2201,6 +2201,7 @@ start_display (it, w, pos)
 
   row = w->desired_matrix->rows + first_vpos;
   init_iterator (it, w, CHARPOS (pos), BYTEPOS (pos), row, DEFAULT_FACE_ID);
+  it->first_vpos = first_vpos;
 
   if (!it->truncate_lines_p)
     {
@@ -13092,8 +13093,9 @@ try_window_id (w)
   else
     {
       /* There are no reusable lines at the start of the window.
-	 Start displaying in the first line.  */
+	 Start displaying in the first text line.  */
       start_display (&it, w, start);
+      it.vpos = it.first_vpos;
       start_pos = it.current.pos;
     }
 
