@@ -1455,7 +1455,7 @@ If FILE is nil, try to load a default file.  The default file names are
           emacs -q -l edt-mapper.el
      
      The file edt-mapper.el includes these same directions on how to
-     use it!  Perhaps it's laying around here someplace. \n     ")
+     use it!  Perhaps it's lying around here someplace. \n     ")
 	 (let ((file "edt-mapper.el")
 	       (found nil)
 	       (path nil)
