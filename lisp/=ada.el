@@ -191,6 +191,8 @@ This does a lot more highlighting.")
 
 (defvar ada-indent 4 "*Value is the number of columns to indent in Ada-Mode.")
 
+(defvar ada-comment-end-column)
+
 ;;;###autoload
 (defun ada-mode ()
 "This is a mode intended to support program development in Ada.
@@ -228,8 +230,8 @@ Variable `ada-indent' controls the number of spaces for indent/undent."
   (setq mode-name "Ada")
   (make-local-variable 'comment-column)
   (setq comment-column 41)
-  (make-local-variable 'end-comment-column)
-  (setq end-comment-column 72)
+  (make-local-variable 'ada-comment-end-column)
+  (setq ada-comment-end-column 72)
   (set-syntax-table ada-mode-syntax-table)
   (make-local-variable 'paragraph-start)
   (setq paragraph-start (concat "^$\\|" page-delimiter))
@@ -684,7 +686,7 @@ Invoke right after `ada-function-spec' or `ada-procedure-spec'."
 start a new line."
   (interactive)
   (end-of-line)
-  (if (> (current-column) end-comment-column) (newline))
+  (if (> (current-column) ada-comment-end-column) (newline))
   (if (< (current-column) comment-column) (indent-to comment-column))
   (insert " -- "))
 
