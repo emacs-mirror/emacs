@@ -1,6 +1,6 @@
 ;;; vc.el --- drive a version-control system from within Emacs
 
-;; Copyright (C) 1992, 93, 94, 95, 96 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 93, 94, 95, 96, 97 Free Software Foundation, Inc.
 
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
@@ -96,81 +96,149 @@ If FORM3 is `RCS', use FORM2 for CVS as well as RCS.
 
 ;; General customization
 
-(defvar vc-suppress-confirm nil
-  "*If non-nil, treat user as expert; suppress yes-no prompts on some things.")
-(defvar vc-initial-comment nil
-  "*If non-nil, prompt for initial comment when a file is registered.")
-(defvar vc-command-messages nil
-  "*If non-nil, display run messages from back-end commands.")
-(defvar vc-register-switches nil
-  "*A string or list of strings specifying extra switches passed 
-to the register program by \\[vc-register].")
-(defvar vc-checkin-switches nil
-  "*A string or list of strings specifying extra switches passed 
-to the checkin program by \\[vc-checkin].")
-(defvar vc-checkout-switches nil
-  "*A string or list of strings specifying extra switches passed 
-to the checkout program by \\[vc-checkout].")
-(defvar vc-directory-exclusion-list '("SCCS" "RCS" "CVS")
-  "*A list of directory names ignored by functions that recursively 
-walk file trees.")
+(defgroup vc nil
+  "Version-control system in Emacs."
+  :group 'tools)
+
+(defcustom vc-suppress-confirm nil
+  "*If non-nil, treat user as expert; suppress yes-no prompts on some things."
+  :type 'boolean
+  :group 'vc)
+
+(defcustom vc-initial-comment nil
+  "*If non-nil, prompt for initial comment when a file is registered."
+  :type 'boolean
+  :group 'vc)
+
+(defcustom vc-command-messages nil
+  "*If non-nil, display run messages from back-end commands."
+  :type 'boolean
+  :group 'vc)
+
+(defcustom vc-checkin-switches nil
+  "*A string or list of strings specifying extra switches for checkin.
+These are passed to the checkin program by \\[vc-checkin]."
+  :type '(choice (const :tag "None" nil)
+		 (string :tag "Argument String")
+		 (repeat :tag "Argument List"
+			 :value ("")
+			 string))
+  :group 'vc)
+
+(defcustom vc-checkout-switches nil
+  "*A string or list of strings specifying extra switches for checkout.
+These are passed to the checkout program by \\[vc-checkout]."
+  :type '(choice (const :tag "None" nil)
+		 (string :tag "Argument String")
+		 (repeat :tag "Argument List"
+			 :value ("")
+			 string))
+  :group 'vc)
+
+(defcustom vc-register-switches nil
+  "*A string or list of strings; extra switches for registering a file.
+These are passed to the checkin program by \\[vc-register]."
+  :type '(choice (const :tag "None" nil)
+		 (string :tag "Argument String")
+		 (repeat :tag "Argument List"
+			 :value ("")
+			 string))
+  :group 'vc)
+
+(defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS")
+  "*List of directory names to be ignored while recursively walking file trees."
+  :type '(repeat string)
+  :group 'vc)
 
 (defconst vc-maximum-comment-ring-size 32
   "Maximum number of saved comments in the comment ring.")
 
 ;;; This is duplicated in diff.el.
+;;; ...and customized.
 (defvar diff-switches "-c"
   "*A string or list of strings specifying switches to be be passed to diff.")
 
 ;;;###autoload
-(defvar vc-before-checkin-hook nil
-  "*Normal hook (list of functions) run before a file gets checked in.  
-See `run-hooks'.")
+(defcustom vc-checkin-hook nil
+  "*Normal hook (List of functions) run after a checkin is done.
+See `run-hooks'."
+  :type 'hook
+  :group 'vc)
 
 ;;;###autoload
-(defvar vc-checkin-hook nil
-  "*Normal hook (List of functions) run after a checkin is done.
-See `run-hooks'.")
+(defcustom vc-before-checkin-hook nil
+  "*Normal hook (list of functions) run before a file gets checked in.  
+See `run-hooks'."
+  :type 'hook
+  :group 'vc)
 
 ;; Header-insertion hair
 
-(defvar vc-header-alist
+(defcustom vc-header-alist
   '((SCCS "\%W\%") (RCS "\$Id\$") (CVS "\$Id\$"))
   "*Header keywords to be inserted by `vc-insert-headers'.
 Must be a list of two-element lists, the first element of each must
 be `RCS', `CVS', or `SCCS'.  The second element is the string to
-be inserted for this particular backend.")
-(defvar vc-static-header-alist
+be inserted for this particular backend."
+  :type '(repeat (list :format "%v"
+		       (choice :tag "System"
+			       (const SCCS)
+			       (const RCS)
+			       (const CVS))
+		       (string :tag "Header")))
+  :group 'vc)
+
+(defcustom vc-static-header-alist
   '(("\\.c$" .
      "\n#ifndef lint\nstatic char vcid[] = \"\%s\";\n#endif /* lint */\n"))
   "*Associate static header string templates with file types.  A \%s in the
 template is replaced with the first string associated with the file's
-version-control type in `vc-header-alist'.")
+version-control type in `vc-header-alist'."
+  :type '(repeat (cons :format "%v"
+		       (regexp :tag "File Type")
+		       (string :tag "Header String")))
+  :group 'vc)
 
-(defvar vc-comment-alist
+(defcustom vc-comment-alist
   '((nroff-mode ".\\\"" ""))
   "*Special comment delimiters to be used in generating vc headers only.
 Add an entry in this list if you need to override the normal comment-start
 and comment-end variables.  This will only be necessary if the mode language
-is sensitive to blank lines.")
+is sensitive to blank lines."
+  :type '(repeat (list :format "%v"
+		       (symbol :tag "Mode")
+		       (string :tag "Comment Start")
+		       (string :tag "Comment End")))
+  :group 'vc)
 
 ;; Default is to be extra careful for super-user.
-(defvar vc-checkout-carefully (= (user-uid) 0)
+(defcustom vc-checkout-carefully (= (user-uid) 0)
   "*Non-nil means be extra-careful in checkout.
 Verify that the file really is not locked
-and that its contents match what the master file says.")
+and that its contents match what the master file says."
+  :type 'boolean
+  :group 'vc)
 
-(defvar vc-rcs-release nil
+(defcustom vc-rcs-release nil
   "*The release number of your RCS installation, as a string.
-If nil, VC itself computes this value when it is first needed.")
+If nil, VC itself computes this value when it is first needed."
+  :type '(choice (const :tag "Auto" nil)
+		 string)
+  :group 'vc)
 
-(defvar vc-sccs-release nil
+(defcustom vc-sccs-release nil
   "*The release number of your SCCS installation, as a string.
-If nil, VC itself computes this value when it is first needed.")
+If nil, VC itself computes this value when it is first needed."
+  :type '(choice (const :tag "Auto" nil)
+		 string)
+  :group 'vc)
 
-(defvar vc-cvs-release nil
+(defcustom vc-cvs-release nil
   "*The release number of your CVS installation, as a string.
-If nil, VC itself computes this value when it is first needed.")
+If nil, VC itself computes this value when it is first needed."
+  :type '(choice (const :tag "Auto" nil)
+		 string)
+  :group 'vc)
 
 ;; Variables the user doesn't need to know about.
 (defvar vc-log-entry-mode nil)
