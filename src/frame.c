@@ -791,7 +791,7 @@ WARNING:  If you use this under X, you should do `unfocus-frame' afterwards.")
 }
 
 DEFUN ("make-frame-visible", Fmake_frame_visible, Smake_frame_visible,
-       0, 1, 0,
+       0, 1, "",
   "Make the frame FRAME visible (assuming it is an X-window).\n\
 Also raises the frame so that nothing obscures it.\n\
 If omitted, FRAME defaults to the currently selected frame.")
