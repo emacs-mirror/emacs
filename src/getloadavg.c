@@ -142,6 +142,8 @@
 
 
 /* VAX C can't handle multi-line #ifs, or lines longer than 256 chars.  */
+#ifndef LOAD_AVE_TYPE
+
 #ifdef MORE_BSD
 #define LOAD_AVE_TYPE long
 #endif
@@ -178,14 +180,15 @@
 #define LOAD_AVE_TYPE long
 #endif
 
-#ifdef ardent && titan
+#if defined (ardent) && defined (titan)
 #define LOAD_AVE_TYPE long
 #endif
 
-#ifdef tex4300
+#ifdef tek4300
 #define LOAD_AVE_TYPE long
 #endif
 
+#endif /* No LOAD_AVE_TYPE.  */
 
 #ifndef	FSCALE
 
