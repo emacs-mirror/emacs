@@ -135,28 +135,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define CLASH_DETECTION
 
-/* configure fails to find these two.  */
-
-#define HAVE_RANDOM
-#define HAVE_XSCREENNUMBEROFSCREEN
-
-/* pearce@ll.mit.edu says this is needed.  */
-
-#define BROKEN_FIONREAD
-
-/* No shared X library.  */
-
-#undef LIB_X11_LIB
-#define LIB_X11_LIB -lX11
-
-/* We have no 'pt' library as usg5-3.h expects.  */
-#undef LIBX11_SYSTEM
-#define LIBX11_SYSTEM -lnls -lnsl_s
-
-#undef USG_SHARED_LIBRARIES
-
 /* Machine specific stuff */
-
 #define HAVE_PTYS
 #define SYSV_PTYS
 #define HAVE_SELECT
@@ -197,6 +176,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* X library is in 'nonstandard' location. */
 /* This should be taken care of by configure -pot@cnuce.cnr.it
 # define LD_SWITCH_MACHINE -L/usr/lib/X11/ */
+# define HAVE_RANDOM
+# define BROKEN_FIONREAD	/* pearce@ll.mit.edu says this is needed. */
+# define HAVE_XSCREENNUMBEROFSCREEN
+# undef LIB_X11_LIB		/* no shared libraries */
+# define LIB_X11_LIB -lX11
+# undef USG_SHARED_LIBRARIES    /* once again, no shared libs */
+# undef LIBX11_SYSTEM		/* no -lpt as usg5-3.h expects */
+# define LIBX11_SYSTEM -lnls -lnsl_s
 #endif /* HAVE_X_WINDOWS */
 
 #ifdef __GNUC__
