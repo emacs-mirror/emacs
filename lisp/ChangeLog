@@ -1,3 +1,8 @@
+2003-09-24  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-cvs.el (vc-cvs-parse-entry): Restore the code to compare time
+	stamps numerically, rather than textually.
+
 2003-09-24  Kenichi Handa  <handa@m17n.org>
 
 	* language/devan-util.el (devanagari-post-read-conversion): Add
