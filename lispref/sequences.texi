@@ -322,7 +322,7 @@ first element is at index zero.
 @end group
 @group
 (aref "abcdefg" 1)
-     @result{} 98           ; @r{@samp{b} is @sc{ascii} code 98.}
+     @result{} 98           ; @r{@samp{b} is @acronym{ASCII} code 98.}
 @end group
 @end example
 

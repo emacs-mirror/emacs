@@ -423,7 +423,7 @@ correspondingly more complicated.  Here are excerpts from
 @group
       ;; @r{Set syntax of chars up to 0 to class of chars that are}
       ;;   @r{part of symbol names but not words.}
-      ;;   @r{(The number 0 is @code{48} in the @sc{ascii} character set.)}
+      ;;   @r{(The number 0 is @code{48} in the @acronym{ASCII} character set.)}
       (while (< i ?0)
         (modify-syntax-entry i "_   " emacs-lisp-mode-syntax-table)
         (setq i (1+ i)))

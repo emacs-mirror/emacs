@@ -787,7 +787,7 @@ comes back" twice.
 Note that char classes are not currently supported in
 @var{character-set}; they will be treated as literals.  Thus you
 cannot use @code{"[:alpha:]"} instead of @code{"a-zA-Z"} to include
-non-ASCII letters.  A way to skip forward over all letters is:
+non-@acronym{ASCII} letters.  A way to skip forward over all letters is:
 
 @example
 (re-search-forward "\\=[[:alpha:]]*" nil t)

@@ -37,7 +37,7 @@ containing Lisp code.
 @menu
 * How Programs Do Loading::     The @code{load} function and others.
 * Library Search::              Finding a library to load.
-* Loading Non-ASCII::           Non-@sc{ascii} characters in Emacs Lisp files.
+* Loading Non-ASCII::           Non-@acronym{ASCII} characters in Emacs Lisp files.
 * Autoload::                    Setting up a function to autoload.
 * Repeated Loading::            Precautions about loading a file twice.
 * Named Features::              Loading a library if it isn't already loaded.
@@ -293,9 +293,9 @@ try adding to the specified file name.  The default value is
 @end defvar
 
 @node Loading Non-ASCII
-@section Loading Non-@sc{ascii} Characters
+@section Loading Non-@acronym{ASCII} Characters
 
-  When Emacs Lisp programs contain string constants with non-@sc{ascii}
+  When Emacs Lisp programs contain string constants with non-@acronym{ASCII}
 characters, these can be represented within Emacs either as unibyte
 strings or as multibyte strings (@pxref{Text Representations}).  Which
 representation is used depends on how the file is read into Emacs.  If
@@ -309,7 +309,7 @@ unibyte text, and its string constants will be unibyte strings.
   To make the results more predictable, Emacs always performs decoding
 into the multibyte representation when loading Lisp files, even if it
 was started with the @samp{--unibyte} option.  This means that string
-constants with non-@sc{ascii} characters translate into multibyte
+constants with non-@acronym{ASCII} characters translate into multibyte
 strings.  The only exception is when a particular file specifies no
 decoding.
 
@@ -321,7 +321,7 @@ notice whether the user prefers unibyte or multibyte text, by checking
 @code{default-enable-multibyte-characters}, and convert representations
 appropriately.
 
-  In most Emacs Lisp programs, the fact that non-@sc{ascii} strings are
+  In most Emacs Lisp programs, the fact that non-@acronym{ASCII} strings are
 multibyte strings should not be noticeable, since inserting them in
 unibyte buffers converts them to unibyte automatically.  However, if
 this does make a difference, you can force a particular Lisp file to be
@@ -329,7 +329,7 @@ interpreted as unibyte by writing @samp{-*-unibyte: t;-*-} in a
 comment on the file's first line.  With that designator, the file will
 unconditionally be interpreted as unibyte, even in an ordinary
 multibyte Emacs session.  This can matter when making keybindings to
-non-@sc{ascii} characters written as @code{?v@var{literal}}.
+non-@acronym{ASCII} characters written as @code{?v@var{literal}}.
 
 @node Autoload
 @section Autoload

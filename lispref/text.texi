@@ -3520,7 +3520,7 @@ translation table.
 
   A register is a sort of variable used in Emacs editing that can hold a
 variety of different kinds of values.  Each register is named by a
-single character.  All @sc{ascii} characters and their meta variants
+single character.  All @acronym{ASCII} characters and their meta variants
 (but with the exception of @kbd{C-g}) can be used to name registers.
 Thus, there are 255 possible registers.  A register is designated in
 Emacs Lisp by the character that is its name.
@@ -3688,7 +3688,7 @@ all markers unrelocated.
 @cindex base 64 encoding
 
   Base 64 code is used in email to encode a sequence of 8-bit bytes as
-a longer sequence of @sc{ascii} graphic characters.  It is defined in
+a longer sequence of @acronym{ASCII} graphic characters.  It is defined in
 Internet RFC@footnote{
 An RFC, an acronym for @dfn{Request for Comments}, is a numbered
 Internet informational document describing a standard.  RFCs are

@@ -62,7 +62,7 @@ Like @code{custom-manual} except that the link appears
 in the customization buffer with the Info node name.
 
 @item (url-link @var{url})
-Link to a web page; @var{url} is a string which specifies the @sc{url}.
+Link to a web page; @var{url} is a string which specifies the @acronym{URL}.
 The link appears in the customization buffer as @var{url}.
 
 @item (emacs-commentary-link @var{library})

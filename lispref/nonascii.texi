@@ -4,11 +4,11 @@
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/characters
 @node Non-ASCII Characters, Searching and Matching, Text, Top
-@chapter Non-@sc{ascii} Characters
+@chapter Non-@acronym{ASCII} Characters
 @cindex multibyte characters
-@cindex non-@sc{ascii} characters
+@cindex non-@acronym{ASCII} characters
 
-  This chapter covers the special issues relating to non-@sc{ascii}
+  This chapter covers the special issues relating to non-@acronym{ASCII}
 characters and how they are stored in strings and buffers.
 
 @menu
@@ -44,8 +44,8 @@ attention to the difference.
 @cindex unibyte text
   In unibyte representation, each character occupies one byte and
 therefore the possible character codes range from 0 to 255.  Codes 0
-through 127 are @sc{ascii} characters; the codes from 128 through 255
-are used for one non-@sc{ascii} character set (you can choose which
+through 127 are @acronym{ASCII} characters; the codes from 128 through 255
+are used for one non-@acronym{ASCII} character set (you can choose which
 character set by setting the variable @code{nonascii-insert-offset}).
 
 @cindex leading code
@@ -134,14 +134,14 @@ alternative, to convert the buffer contents to multibyte, is not
 acceptable because the buffer's representation is a choice made by the
 user that cannot be overridden automatically.
 
-  Converting unibyte text to multibyte text leaves @sc{ascii} characters
+  Converting unibyte text to multibyte text leaves @acronym{ASCII} characters
 unchanged, and likewise character codes 128 through 159.  It converts
-the non-@sc{ascii} codes 160 through 255 by adding the value
+the non-@acronym{ASCII} codes 160 through 255 by adding the value
 @code{nonascii-insert-offset} to each character code.  By setting this
 variable, you specify which character set the unibyte characters
 correspond to (@pxref{Character Sets}).  For example, if
 @code{nonascii-insert-offset} is 2048, which is @code{(- (make-char
-'latin-iso8859-1) 128)}, then the unibyte non-@sc{ascii} characters
+'latin-iso8859-1) 128)}, then the unibyte non-@acronym{ASCII} characters
 correspond to Latin 1.  If it is 2688, which is @code{(- (make-char
 'greek-iso8859-7) 128)}, then they correspond to Greek letters.
 
@@ -153,10 +153,10 @@ text to multibyte and back to unibyte reproduces the original unibyte
 text.
 
 @defvar nonascii-insert-offset
-This variable specifies the amount to add to a non-@sc{ascii} character
+This variable specifies the amount to add to a non-@acronym{ASCII} character
 when converting unibyte text to multibyte.  It also applies when
 @code{self-insert-command} inserts a character in the unibyte
-non-@sc{ascii} range, 128 through 255.  However, the functions
+non-@acronym{ASCII} range, 128 through 255.  However, the functions
 @code{insert} and @code{insert-char} do not perform this conversion.
 
 The right value to use to select character set @var{cs} is @code{(-
@@ -263,7 +263,7 @@ codes for multibyte representation range from 0 to 524287, but not all
 values in that range are valid.  The values 128 through 255 are not
 entirely proper in multibyte text, but they can occur if you do explicit
 encoding and decoding (@pxref{Explicit Encoding}).  Some other character
-codes cannot occur at all in multibyte text.  Only the @sc{ascii} codes
+codes cannot occur at all in multibyte text.  Only the @acronym{ASCII} codes
 0 through 127 are completely legitimate in both representations.
 
 @defun char-valid-p charcode &optional genericp
@@ -301,8 +301,8 @@ into several character sets.  For example, one set of Chinese
 characters, generally known as Big 5, is divided into two Emacs
 character sets, @code{chinese-big5-1} and @code{chinese-big5-2}.
 
-  @sc{ascii} characters are in character set @code{ascii}.  The
-non-@sc{ascii} characters 128 through 159 are in character set
+  @acronym{ASCII} characters are in character set @code{ascii}.  The
+non-@acronym{ASCII} characters 128 through 159 are in character set
 @code{eight-bit-control}, and codes 160 through 255 are in character set
 @code{eight-bit-graphic}.
 
@@ -336,8 +336,8 @@ special purposes within Emacs.
 @cindex dimension (of character set)
   In multibyte representation, each character occupies one or more
 bytes.  Each character set has an @dfn{introduction sequence}, which is
-normally one or two bytes long.  (Exception: the @sc{ascii} character
-set and the @sc{eight-bit-graphic} character set have a zero-length
+normally one or two bytes long.  (Exception: the @code{ascii} character
+set and the @code{eight-bit-graphic} character set have a zero-length
 introduction sequence.)  The introduction sequence is the beginning of
 the byte sequence for any character in the character set.  The rest of
 the character's bytes distinguish it from the other characters in the
@@ -426,8 +426,8 @@ For example:
      @result{} (latin-iso8859-1 0)
 @end example
 
-The character sets @sc{ascii}, @sc{eight-bit-control}, and
-@sc{eight-bit-graphic} don't have corresponding generic characters.  If
+The character sets @code{ascii}, @code{eight-bit-control}, and
+@code{eight-bit-graphic} don't have corresponding generic characters.  If
 @var{charset} is one of them and you don't supply @var{code1},
 @code{make-char} returns the character code corresponding to the
 smallest code in @var{charset}.
@@ -744,7 +744,7 @@ decreasing priority.  But if @var{highest} is non-@code{nil}, then the
 return value is just one coding system, the one that is highest in
 priority.
 
-If the region contains only @sc{ascii} characters, the value
+If the region contains only @acronym{ASCII} characters, the value
 is @code{undecided} or @code{(undecided)}.
 @end defun
 
@@ -846,12 +846,12 @@ reading and writing particular files.  Each element has the form
 expression that matches certain file names.  The element applies to file
 names that match @var{pattern}.
 
-The @sc{cdr} of the element, @var{coding}, should be either a coding
+The @acronym{CDR} of the element, @var{coding}, should be either a coding
 system, a cons cell containing two coding systems, or a function name (a
 symbol with a function definition).  If @var{coding} is a coding system,
 that coding system is used for both reading the file and writing it.  If
-@var{coding} is a cons cell containing two coding systems, its @sc{car}
-specifies the coding system for decoding, and its @sc{cdr} specifies the
+@var{coding} is a cons cell containing two coding systems, its @acronym{CAR}
+specifies the coding system for decoding, and its @acronym{cdr} specifies the
 coding system for encoding.
 
 If @var{coding} is a function name, the function must return a coding
@@ -975,7 +975,7 @@ of the right way to use the variable:
 
 @example
 ;; @r{Read the file with no character code conversion.}
-;; @r{Assume @sc{crlf} represents end-of-line.}
+;; @r{Assume @acronym{crlf} represents end-of-line.}
 (let ((coding-system-for-write 'emacs-mule-dos))
   (insert-file-contents filename))
 @end example
@@ -1175,9 +1175,9 @@ from the file contents, in the usual Emacs fashion.
 @section Input Methods
 @cindex input methods
 
-  @dfn{Input methods} provide convenient ways of entering non-@sc{ascii}
+  @dfn{Input methods} provide convenient ways of entering non-@acronym{ASCII}
 characters from the keyboard.  Unlike coding systems, which translate
-non-@sc{ascii} characters to and from encodings meant to be read by
+non-@acronym{ASCII} characters to and from encodings meant to be read by
 programs, input methods provide human-friendly commands.  (@xref{Input
 Methods,,, emacs, The GNU Emacs Manual}, for information on how users
 use input methods to enter text.)  How to define input methods is not

@@ -340,7 +340,7 @@ You can use @samp{e} more than once in a single command's interactive
 specification.  If the key sequence that invoked the command has
 @var{n} events that are lists, the @var{n}th @samp{e} provides the
 @var{n}th such event.  Events that are not lists, such as function keys
-and @sc{ascii} characters, do not count where @samp{e} is concerned.
+and @acronym{ASCII} characters, do not count where @samp{e} is concerned.
 
 @item f
 A file name of an existing file (@pxref{File Names}).  The default
@@ -797,7 +797,7 @@ last-command-event
 @end example
 
 @noindent
-The value is 5 because that is the @sc{ascii} code for @kbd{C-e}.
+The value is 5 because that is the @acronym{ASCII} code for @kbd{C-e}.
 
 The alias @code{last-command-char} exists for compatibility with
 Emacs version 18.
@@ -916,14 +916,14 @@ The
 @ifnottex
 2**26
 @end ifnottex
-bit in the character code indicates a non-@sc{ascii}
+bit in the character code indicates a non-@acronym{ASCII}
 control character.
 
 @sc{ascii} control characters such as @kbd{C-a} have special basic
 codes of their own, so Emacs needs no special bit to indicate them.
 Thus, the code for @kbd{C-a} is just 1.
 
-But if you type a control combination not in @sc{ascii}, such as
+But if you type a control combination not in @acronym{ASCII}, such as
 @kbd{%} with the control key, the numeric value you get is the code
 for @kbd{%} plus
 @tex
@@ -932,7 +932,7 @@ for @kbd{%} plus
 @ifnottex
 2**26
 @end ifnottex
-(assuming the terminal supports non-@sc{ascii}
+(assuming the terminal supports non-@acronym{ASCII}
 control characters).
 
 @item shift
@@ -943,13 +943,13 @@ The
 @ifnottex
 2**25
 @end ifnottex
-bit in the character code indicates an @sc{ascii} control
+bit in the character code indicates an @acronym{ASCII} control
 character typed with the shift key held down.
 
 For letters, the basic code itself indicates upper versus lower case;
 for digits and punctuation, the shift key selects an entirely different
 character with a different basic code.  In order to keep within the
-@sc{ascii} character set whenever possible, Emacs avoids using the
+@acronym{ASCII} character set whenever possible, Emacs avoids using the
 @tex
 @math{2^{25}}
 @end tex
@@ -958,7 +958,7 @@ character with a different basic code.  In order to keep within the
 @end ifnottex
 bit for those characters.
 
-However, @sc{ascii} provides no way to distinguish @kbd{C-A} from
+However, @acronym{ASCII} provides no way to distinguish @kbd{C-A} from
 @kbd{C-a}, so Emacs uses the
 @tex
 @math{2^{25}}
@@ -1032,10 +1032,10 @@ function keys:
 
 @table @asis
 @item @code{backspace}, @code{tab}, @code{newline}, @code{return}, @code{delete}
-These keys correspond to common @sc{ascii} control characters that have
+These keys correspond to common @acronym{ASCII} control characters that have
 special keys on most keyboards.
 
-In @sc{ascii}, @kbd{C-i} and @key{TAB} are the same character.  If the
+In @acronym{ASCII}, @kbd{C-i} and @key{TAB} are the same character.  If the
 terminal can distinguish between them, Emacs conveys the distinction to
 Lisp programs by representing the former as the integer 9, and the
 latter as the symbol @code{tab}.
@@ -1047,7 +1047,7 @@ character @kbd{C-i}) also applies to @code{tab}.  Likewise for the other
 symbols in this group.  The function @code{read-char} likewise converts
 these events into characters.
 
-In @sc{ascii}, @key{BS} is really @kbd{C-h}.  But @code{backspace}
+In @acronym{ASCII}, @key{BS} is really @kbd{C-h}.  But @code{backspace}
 converts into the character code 127 (@key{DEL}), not into code 8
 (@key{BS}).  This is what most users prefer.
 
@@ -1096,7 +1096,7 @@ arguments to the key-binding lookup and modification functions.
 
 Emacs supports four kinds of mouse events: click events, drag events,
 button-down events, and motion events.  All mouse events are represented
-as lists.  The @sc{car} of the list is the event type; this says which
+as lists.  The @acronym{CAR} of the list is the event type; this says which
 mouse button was involved, and which modifier keys were used with it.
 The event type can also distinguish double or triple button presses
 (@pxref{Repeat Events}).  The rest of the list elements give position
@@ -1521,7 +1521,7 @@ into another window.  That produces a pair of events like these:
 key binding purposes.  For a keyboard event, the event type equals the
 event value; thus, the event type for a character is the character, and
 the event type for a function key symbol is the symbol itself.  For
-events that are lists, the event type is the symbol in the @sc{car} of
+events that are lists, the event type is the symbol in the @acronym{CAR} of
 the list.  Thus, the event type is always a symbol or a character.
 
   Two events of the same type are equivalent where key bindings are
@@ -1810,7 +1810,7 @@ bit, resulting in a value between 128 and 255.  Only a unibyte string
 can include these codes.
 
 @item
-Non-@sc{ascii} characters above 256 can be included in a multibyte string.
+Non-@acronym{ASCII} characters above 256 can be included in a multibyte string.
 
 @item
 Other keyboard character events cannot fit in a string.  This includes
@@ -1979,7 +1979,7 @@ Echo Area}.
 
 If @var{inherit-input-method} is non-@code{nil}, then the current input
 method (if any) is employed to make it possible to enter a
-non-@sc{ascii} character.  Otherwise, input method handling is disabled
+non-@acronym{ASCII} character.  Otherwise, input method handling is disabled
 for reading this event.
 
 If @code{cursor-in-echo-area} is non-@code{nil}, then @code{read-event}
@@ -2009,7 +2009,7 @@ user generates an event which is not a character (i.e. a mouse click or
 function key event), @code{read-char} signals an error.  The arguments
 work as in @code{read-event}.
 
-In the first example, the user types the character @kbd{1} (@sc{ascii}
+In the first example, the user types the character @kbd{1} (@acronym{ASCII}
 code 49).  The second example shows a keyboard macro definition that
 calls @code{read-char} from the minibuffer using @code{eval-expression}.
 @code{read-char} reads the keyboard macro's very next character, which
@@ -2189,7 +2189,7 @@ This variable records the last terminal input event read, whether
 as part of a command or explicitly by a Lisp program.
 
 In the example below, the Lisp program reads the character @kbd{1},
-@sc{ascii} code 49.  It becomes the value of @code{last-input-event},
+@acronym{ASCII} code 49.  It becomes the value of @code{last-input-event},
 while @kbd{C-e} (we assume @kbd{C-x C-e} command is used to evaluate
 this expression) remains the value of @code{last-command-event}.
 
@@ -2513,7 +2513,7 @@ This function returns the numeric meaning of a valid raw prefix argument
 value, @var{arg}.  The argument may be a symbol, a number, or a list.
 If it is @code{nil}, the value 1 is returned; if it is @code{-}, the
 value @minus{}1 is returned; if it is a number, that number is returned;
-if it is a list, the @sc{car} of that list (which should be a number) is
+if it is a list, the @acronym{CAR} of that list (which should be a number) is
 returned.
 @end defun
 

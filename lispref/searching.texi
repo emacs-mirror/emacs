@@ -293,9 +293,9 @@ matches @samp{cr}, @samp{car}, @samp{cdr}, @samp{caddaar}, etc.
 
 You can also include character ranges in a character alternative, by
 writing the starting and ending characters with a @samp{-} between them.
-Thus, @samp{[a-z]} matches any lower-case @sc{ascii} letter.  Ranges may be
+Thus, @samp{[a-z]} matches any lower-case @acronym{ASCII} letter.  Ranges may be
 intermixed freely with individual characters, as in @samp{[a-z$%.]},
-which matches any lower case @sc{ascii} letter or @samp{$}, @samp{%} or
+which matches any lower case @acronym{ASCII} letter or @samp{$}, @samp{%} or
 period.
 
 Note that the usual regexp special characters are not special inside a
@@ -326,14 +326,14 @@ is @samp{@var{c}..?\377}, the other is @samp{@var{c1}..@var{c2}}, where
 @var{c1} is the first character of the charset to which @var{c2}
 belongs.
 
-You cannot always match all non-@sc{ascii} characters with the regular
+You cannot always match all non-@acronym{ASCII} characters with the regular
 expression @code{"[\200-\377]"}.  This works when searching a unibyte
 buffer or string (@pxref{Text Representations}), but not in a multibyte
-buffer or string, because many non-@sc{ascii} characters have codes
+buffer or string, because many non-@acronym{ASCII} characters have codes
 above octal 0377.  However, the regular expression @code{"[^\000-\177]"}
-does match all non-@sc{ascii} characters (see below regarding @samp{^}),
+does match all non-@acronym{ASCII} characters (see below regarding @samp{^}),
 in both multibyte and unibyte representations, because only the
-@sc{ascii} characters are excluded.
+@acronym{ASCII} characters are excluded.
 
 Starting in Emacs 21, a character alternative can also specify named
 character classes (@pxref{Char Classes}).  This is a POSIX feature whose
@@ -415,7 +415,7 @@ in Emacs 21, and what they mean:
 
 @table @samp
 @item [:ascii:]
-This matches any @sc{ascii} (unibyte) character.
+This matches any @acronym{ASCII} (unibyte) character.
 @item [:alnum:]
 This matches any letter or digit.  (At present, for multibyte
 characters, it matches anything that has word syntax.)
@@ -425,20 +425,20 @@ matches anything that has word syntax.)
 @item [:blank:]
 This matches space and tab only.
 @item [:cntrl:]
-This matches any @sc{ascii} control character.
+This matches any @acronym{ASCII} control character.
 @item [:digit:]
 This matches @samp{0} through @samp{9}.  Thus, @samp{[-+[:digit:]]}
 matches any digit, as well as @samp{+} and @samp{-}.
 @item [:graph:]
-This matches graphic characters---everything except @sc{ascii} control
+This matches graphic characters---everything except @acronym{ASCII} control
 characters, space, and the delete character.
 @item [:lower:]
 This matches any lower-case letter, as determined by
 the current case table (@pxref{Case Tables}).
 @item [:nonascii:]
-This matches any non-@sc{ascii} (multibyte) character.
+This matches any non-@acronym{ASCII} (multibyte) character.
 @item [:print:]
-This matches printing characters---everything except @sc{ascii} control
+This matches printing characters---everything except @acronym{ASCII} control
 characters and the delete character.
 @item [:punct:]
 This matches any punctuation character.  (At present, for multibyte

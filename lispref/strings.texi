@@ -44,7 +44,7 @@ used.  Thus, strings really contain integers.
   The length of a string (like any array) is fixed, and cannot be
 altered once the string exists.  Strings in Lisp are @emph{not}
 terminated by a distinguished character code.  (By contrast, strings in
-C are terminated by a character with @sc{ascii} code 0.)
+C are terminated by a character with @acronym{ASCII} code 0.)
 
   Since strings are arrays, and therefore sequences as well, you can
 operate on them with the general array and sequence functions.
@@ -52,10 +52,10 @@ operate on them with the general array and sequence functions.
 change individual characters in a string using the functions @code{aref}
 and @code{aset} (@pxref{Array Functions}).
 
-  There are two text representations for non-@sc{ascii} characters in
+  There are two text representations for non-@acronym{ASCII} characters in
 Emacs strings (and in buffers): unibyte and multibyte (@pxref{Text
-Representations}).  An @sc{ascii} character always occupies one byte in a
-string; in fact, when a string is all @sc{ascii}, there is no real
+Representations}).  An @acronym{ASCII} character always occupies one byte in a
+string; in fact, when a string is all @acronym{ASCII}, there is no real
 difference between the unibyte and multibyte representations.
 For most Lisp programming, you don't need to be concerned with these two
 representations.
@@ -66,8 +66,8 @@ characters (which are large integers) rather than character
 codes in the range 128 to 255.
 
   Strings cannot hold characters that have the hyper, super or alt
-modifiers; they can hold @sc{ascii} control characters, but no other
-control characters.  They do not distinguish case in @sc{ascii} control
+modifiers; they can hold @acronym{ASCII} control characters, but no other
+control characters.  They do not distinguish case in @acronym{ASCII} control
 characters.  If you want to store such characters in a sequence, such as
 a key sequence, you must use a vector instead of a string.
 @xref{Character Type}, for more information about the representation of meta
@@ -417,7 +417,7 @@ The function @code{string=} ignores the text properties of the two
 strings.  When @code{equal} (@pxref{Equality Predicates}) compares two
 strings, it uses @code{string=}.
 
-If the strings contain non-@sc{ascii} characters, and one is unibyte
+If the strings contain non-@acronym{ASCII} characters, and one is unibyte
 while the other is multibyte, then they cannot be equal.  @xref{Text
 Representations}.
 @end defun
@@ -439,11 +439,11 @@ function returns @code{t}.  If the lesser character is the one from
 
 Pairs of characters are compared according to their character codes.
 Keep in mind that lower case letters have higher numeric values in the
-@sc{ascii} character set than their upper case counterparts; digits and
+@acronym{ASCII} character set than their upper case counterparts; digits and
 many punctuation characters have a lower numeric value than upper case
-letters.  An @sc{ascii} character is less than any non-@sc{ascii}
-character; a unibyte non-@sc{ascii} character is always less than any
-multibyte non-@sc{ascii} character (@pxref{Text Representations}).
+letters.  An @acronym{ASCII} character is less than any non-@acronym{ASCII}
+character; a unibyte non-@acronym{ASCII} character is always less than any
+multibyte non-@acronym{ASCII} character (@pxref{Text Representations}).
 
 @example
 @group
@@ -551,7 +551,7 @@ This function returns a new string containing one character,
 @cindex string to character
   This function returns the first character in @var{string}.  If the
 string is empty, the function returns 0.  The value is also 0 when the
-first character of @var{string} is the null character, @sc{ascii} code
+first character of @var{string} is the null character, @acronym{ASCII} code
 0.
 
 @example
@@ -846,7 +846,7 @@ not truncated.  In the third case, the padding is on the right.
   The character case functions change the case of single characters or
 of the contents of strings.  The functions normally convert only
 alphabetic characters (the letters @samp{A} through @samp{Z} and
-@samp{a} through @samp{z}, as well as non-@sc{ascii} letters); other
+@samp{a} through @samp{z}, as well as non-@acronym{ASCII} letters); other
 characters are not altered.  You can specify a different case
 conversion mapping by specifying a case table (@pxref{Case Tables}).
 
@@ -854,7 +854,7 @@ conversion mapping by specifying a case table (@pxref{Case Tables}).
 arguments.
 
   The examples below use the characters @samp{X} and @samp{x} which have
-@sc{ascii} codes 88 and 120 respectively.
+@acronym{ASCII} codes 88 and 120 respectively.
 
 @defun downcase string-or-char
 This function converts a character or a string to lower case.
@@ -1001,7 +1001,7 @@ of them, or @samp{A} for both of them).
 
   The extra table @var{equivalences} is a map that cyclicly permutes
 each equivalence class (of characters with the same canonical
-equivalent).  (For ordinary @sc{ascii}, this would map @samp{a} into
+equivalent).  (For ordinary @acronym{ASCII}, this would map @samp{a} into
 @samp{A} and @samp{A} into @samp{a}, and likewise for each set of
 equivalent characters.)
 
@@ -1038,7 +1038,7 @@ This sets the current buffer's case table to @var{table}.
 @end defun
 
   The following three functions are convenient subroutines for packages
-that define non-@sc{ascii} character sets.  They modify the specified
+that define non-@acronym{ASCII} character sets.  They modify the specified
 case table @var{case-table}; they also modify the standard syntax table.
 @xref{Syntax Tables}.  Normally you would use these functions to change
 the standard case table.

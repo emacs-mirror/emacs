@@ -2414,7 +2414,7 @@ times in the specification string.
   For the remaining character sets, those that you don't specify
 explicitly, Emacs chooses a font based on @var{fontpattern}: it replaces
 @samp{fontset-@var{alias}} with a value that names one character set.
-For the @sc{ascii} character set, @samp{fontset-@var{alias}} is replaced
+For the @acronym{ASCII} character set, @samp{fontset-@var{alias}} is replaced
 with @samp{ISO8859-1}.
 
   In addition, when several consecutive fields are wildcards, Emacs
@@ -2430,7 +2430,7 @@ better to use the smaller font in its own size, which Emacs does.
 @end example
 
 @noindent
-the font specification for @sc{ascii} characters would be this:
+the font specification for @acronym{ASCII} characters would be this:
 
 @example
 -*-fixed-medium-r-normal-*-24-*-ISO8859-1
@@ -3476,19 +3476,19 @@ Character code 10 is a newline.
 All other codes in the range 0 through 31, and code 127, display in one
 of two ways according to the value of @code{ctl-arrow}.  If it is
 non-@code{nil}, these codes map to sequences of two glyphs, where the
-first glyph is the @sc{ascii} code for @samp{^}.  (A display table can
+first glyph is the @acronym{ASCII} code for @samp{^}.  (A display table can
 specify a glyph to use instead of @samp{^}.)  Otherwise, these codes map
 just like the codes in the range 128 to 255.
 
 On MS-DOS terminals, Emacs arranges by default for the character code
 127 to be mapped to the glyph code 127, which normally displays as an
-empty polygon.  This glyph is used to display non-@sc{ascii} characters
+empty polygon.  This glyph is used to display non-@acronym{ASCII} characters
 that the MS-DOS terminal doesn't support.  @xref{MS-DOS and MULE,,,
 emacs, The GNU Emacs Manual}.
 
 @item
 Character codes 128 through 255 map to sequences of four glyphs, where
-the first glyph is the @sc{ascii} code for @samp{\}, and the others are
+the first glyph is the @acronym{ASCII} code for @samp{\}, and the others are
 digit characters representing the character code in octal.  (A display
 table can specify a glyph to use instead of @samp{\}.)
 
@@ -3551,7 +3551,7 @@ independent of the user-settable tab stops used by the command
 @cindex display table
 You can use the @dfn{display table} feature to control how all possible
 character codes display on the screen.  This is useful for displaying
-European languages that have letters not in the @sc{ascii} character
+European languages that have letters not in the @acronym{ASCII} character
 set.
 
 The display table maps each character code into a sequence of

@@ -265,7 +265,7 @@ If @var{display} is non-@code{nil}, then @code{call-process} redisplays
 the buffer as output is inserted.  (However, if the coding system chosen
 for decoding output is @code{undecided}, meaning deduce the encoding
 from the actual data, then redisplay sometimes cannot continue once
-non-@sc{ascii} characters are encountered.  There are fundamental
+non-@acronym{ASCII} characters are encountered.  There are fundamental
 reasons why it is hard to fix this; see @ref{Output from Processes}.)
 
 Otherwise the function @code{call-process} does no redisplay, and the
@@ -468,17 +468,17 @@ Arguments}.
 
 @defvar process-connection-type
 @cindex pipes
-@cindex @sc{pty}s
+@cindex @acronym{PTY}s
 This variable controls the type of device used to communicate with
-asynchronous subprocesses.  If it is non-@code{nil}, then @sc{pty}s are
+asynchronous subprocesses.  If it is non-@code{nil}, then @acronym{PTY}s are
 used, when available.  Otherwise, pipes are used.
 
-@sc{pty}s are usually preferable for processes visible to the user, as
+@acronym{PTY}s are usually preferable for processes visible to the user, as
 in Shell mode, because they allow job control (@kbd{C-c}, @kbd{C-z},
 etc.) to work between the process and its children, whereas pipes do
 not.  For subprocesses used for internal purposes by programs, it is
 often better to use a pipe, because they are more efficient.  In
-addition, the total number of @sc{pty}s is limited on many systems and
+addition, the total number of @acronym{PTY}s is limited on many systems and
 it is good not to waste them.
 
 The value of @code{process-connection-type} takes effect when
@@ -494,7 +494,7 @@ with one subprocess by binding the variable around the call to
 @end smallexample
 
 To determine whether a given subprocess actually got a pipe or a
-@sc{pty}, use the function @code{process-tty-name} (@pxref{Process
+@acronym{PTY}, use the function @code{process-tty-name} (@pxref{Process
 Information}).
 @end defvar
 
@@ -597,10 +597,10 @@ were given to the program.
 @end defun
 
 @defun process-id process
-This function returns the @sc{pid} of @var{process}.  This is an
+This function returns the @acronym{PID} of @var{process}.  This is an
 integer that distinguishes the process @var{process} from all other
 processes running on the same computer at the current time.  The
-@sc{pid} of a process is chosen by the operating system kernel when the
+@acronym{PID} of a process is chosen by the operating system kernel when the
 process is started and remains constant as long as the process exists.
 @end defun
 
@@ -724,9 +724,9 @@ specify the process to send input to, and the input data to send.  The
 data appears on the ``standard input'' of the subprocess.
 
   Some operating systems have limited space for buffered input in a
-@sc{pty}.  On these systems, Emacs sends an @sc{eof} periodically amidst
+@acronym{PTY}.  On these systems, Emacs sends an @acronym{EOF} periodically amidst
 the other characters, to force them through.  For most programs,
-these @sc{eof}s do no harm.
+these @acronym{EOF}s do no harm.
 
   Subprocess input is normally encoded using a coding system before the
 subprocess receives it, much like text written into a file.  You can use
@@ -782,10 +782,10 @@ is unimportant which number is larger.)
 
 @defun process-send-eof &optional process-name
   This function makes @var{process-name} see an end-of-file in its
-input.  The @sc{eof} comes after any text already sent to it.
+input.  The @acronym{EOF} comes after any text already sent to it.
 
   If @var{process-name} is not supplied, or if it is @code{nil}, then
-this function sends the @sc{eof} to the current buffer's process.  An
+this function sends the @acronym{EOF} to the current buffer's process.  An
 error is signaled if the current buffer has no process.
 
   The function returns @var{process-name}.
@@ -898,7 +898,7 @@ stopped previously.
 This function sends a signal to process @var{process}.  The argument
 @var{signal} specifies which signal to send; it should be an integer.
 
-You can specify the target process by its process @sc{id}; that allows
+You can specify the target process by its process @acronym{ID}; that allows
 you to send signals to processes that are not children of Emacs.
 @end defun
 
@@ -1480,7 +1480,7 @@ connections to other processes on the same machine or other machines.
 A network connection is handled by Lisp much like a subprocess, and is
 represented by a process object.  However, the process you are
 communicating with is not a child of the Emacs process, so it has no
-process @sc{id}, and you can't kill it or send it signals.  All you
+process @acronym{ID}, and you can't kill it or send it signals.  All you
 can do is send and receive data.  @code{delete-process} closes the
 connection, but does not kill the program at the other end; that
 program must decide what to do about closure of the connection.

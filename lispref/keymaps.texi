@@ -231,9 +231,9 @@ satisfies @code{keymapp}.
 @defun make-keymap &optional prompt
 This function creates and returns a new full keymap.  That keymap
 contains a char-table (@pxref{Char-Tables}) with 384 slots: the first
-128 slots are for defining all the @sc{ascii} characters, the next 128
+128 slots are for defining all the @acronym{ASCII} characters, the next 128
 slots are for 8-bit European characters, and each one of the final 128
-slots is for one character set of non-@sc{ascii} characters supported by
+slots is for one character set of non-@acronym{ASCII} characters supported by
 Emacs.  The new keymap initially binds all these characters to
 @code{nil}, and does not bind any other kind of event.
 
@@ -593,7 +593,7 @@ other.
 This function returns the current buffer's local keymap, or @code{nil}
 if it has none.  In the following example, the keymap for the
 @samp{*scratch*} buffer (using Lisp Interaction mode) is a sparse keymap
-in which the entry for @key{ESC}, @sc{ascii} code 27, is another sparse
+in which the entry for @key{ESC}, @acronym{ASCII} code 27, is another sparse
 keymap.
 
 @example
@@ -999,7 +999,7 @@ This variable is the meta-prefix character code.  It is used when
 translating a meta character to a two-character sequence so it can be
 looked up in a keymap.  For useful results, the value should be a prefix
 event (@pxref{Prefix Keys}).  The default value is 27, which is the
-@sc{ascii} code for @key{ESC}.
+@acronym{ASCII} code for @key{ESC}.
 
 As long as the value of @code{meta-prefix-char} remains 27, key lookup
 translates @kbd{M-b} into @kbd{@key{ESC} b}, which is normally defined
@@ -1361,8 +1361,8 @@ redefines @kbd{C-x C-\} to move down a line.
 redefines the first (leftmost) mouse button, typed with the Meta key, to
 set point where you click.
 
-@cindex non-@sc{ascii} text in keybindings
-  Be careful when using non-@sc{ascii} text characters in Lisp
+@cindex non-@acronym{ASCII} text in keybindings
+  Be careful when using non-@acronym{ASCII} text characters in Lisp
 specifications of keys to bind.  If these are read as multibyte text, as
 they usually will be in a Lisp file (@pxref{Loading Non-ASCII}), you
 must type the keys as multibyte too.  For instance, if you use this:
@@ -1576,7 +1576,7 @@ If @var{firstonly} is @code{non-ascii}, then the value is a single
 string representing the first key sequence found, rather than a list of
 all possible key sequences.  If @var{firstonly} is @code{t}, then the
 value is the first key sequence, except that key sequences consisting
-entirely of @sc{ascii} characters (or meta variants of @sc{ascii}
+entirely of @acronym{ASCII} characters (or meta variants of @acronym{ASCII}
 characters) are preferred to all other key sequences.
 
 If @var{noindirect} is non-@code{nil}, @code{where-is-internal} doesn't
@@ -1609,13 +1609,13 @@ listing includes only keys that start with @var{prefix}.
 The listing describes meta characters as @key{ESC} followed by the
 corresponding non-meta character.
 
-When several characters with consecutive @sc{ascii} codes have the
+When several characters with consecutive @acronym{ASCII} codes have the
 same definition, they are shown together, as
 @samp{@var{firstchar}..@var{lastchar}}.  In this instance, you need to
-know the @sc{ascii} codes to understand which characters this means.
+know the @acronym{ASCII} codes to understand which characters this means.
 For example, in the default global map, the characters @samp{@key{SPC}
-..@: ~} are described by a single line.  @key{SPC} is @sc{ascii} 32,
-@kbd{~} is @sc{ascii} 126, and the characters between them include all
+..@: ~} are described by a single line.  @key{SPC} is @acronym{ASCII} 32,
+@kbd{~} is @acronym{ASCII} 126, and the characters between them include all
 the normal printing characters, (e.g., letters, digits, punctuation,
 etc.@:); all these characters are bound to @code{self-insert-command}.
 @end deffn
@@ -1695,7 +1695,7 @@ looks like this:
 The @sc{car}, @var{item-string}, is the string to be displayed in the
 menu.  It should be short---preferably one to three words.  It should
 describe the action of the command it corresponds to.  Note that it is
-not generally possible to display non-ASCII text in menus.  It will
+not generally possible to display non-@acronym{ASCII} text in menus.  It will
 work for keyboard menus and will work to a large extent when Emacs is
 built with Gtk+ support.@footnote{In this case, the text is first
 encoded using the @code{utf-8} coding system and then rendered by the

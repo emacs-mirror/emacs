@@ -163,12 +163,12 @@ example, @samp{1500.0}, @samp{15e2}, @samp{15.0e2}, @samp{1.5e3}, and
 value is 1500.  They are all equivalent.  You can also use a minus sign
 to write negative floating point numbers, as in @samp{-1.0}.
 
-@cindex IEEE floating point
+@cindex @acronym{IEEE} floating point
 @cindex positive infinity
 @cindex negative infinity
 @cindex infinity
 @cindex NaN
-   Most modern computers support the IEEE floating point standard, which
+   Most modern computers support the @acronym{IEEE} floating point standard, which
 provides for positive infinity and negative infinity as floating point
 values.  It also provides for a class of values called NaN or
 ``not-a-number''; numerical functions return such values in cases where
@@ -189,7 +189,7 @@ these special floating point values:
 @end table
 
   In addition, the value @code{-0.0} is distinguishable from ordinary
-zero in IEEE floating point (although @code{equal} and @code{=} consider
+zero in @acronym{IEEE} floating point (although @code{equal} and @code{=} consider
 them equal values).
 
   You can use @code{logb} to extract the binary exponent of a floating
@@ -565,7 +565,7 @@ machines round in the standard fashion.
 @cindex @code{arith-error} in division
 If you divide an integer by 0, an @code{arith-error} error is signaled.
 (@xref{Errors}.)  Floating point division by zero returns either
-infinity or a NaN if your machine supports IEEE floating point;
+infinity or a NaN if your machine supports @acronym{IEEE} floating point;
 otherwise, it signals an @code{arith-error} error.
 
 @example
@@ -1166,7 +1166,7 @@ repeatability is helpful for debugging.
 
 If you want random numbers that don't always come out the same, execute
 @code{(random t)}.  This chooses a new seed based on the current time of
-day and on Emacs's process @sc{id} number.
+day and on Emacs's process @acronym{ID} number.
 
 @defun random &optional limit
 This function returns a pseudo-random integer.  Repeated calls return a
@@ -1176,7 +1176,7 @@ If @var{limit} is a positive integer, the value is chosen to be
 nonnegative and less than @var{limit}.
 
 If @var{limit} is @code{t}, it means to choose a new seed based on the
-current time of day and on Emacs's process @sc{id} number.
+current time of day and on Emacs's process @acronym{ID} number.
 @c "Emacs'" is incorrect usage!
 
 On some machines, any integer representable in Lisp may be the result
