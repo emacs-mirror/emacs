@@ -212,6 +212,14 @@
   :code-offset #x110000
   :unify-map "gb2312-1980")
 
+(define-charset 'chinese-gbk
+  "GBK Chinese simpliefied."
+  :short-name "GBK"
+  :long-name "GBK"
+  :code-space [#x40 #xFE #x81 #xFE]
+  :code-offset #x150000
+  :unify-map "gbk")
+
 (define-charset 'chinese-cns11643-1
   "CNS11643 Plane 1 Chinese traditional: ISO-IR-171"
   :short-name "CNS11643-1"
@@ -292,7 +300,7 @@
   :iso-final-char ?0
   :emacs-mule-id 152
   :code-space [#x21 #x7E #x21 #x7E]
-  :code-offset #x134000
+  :code-offset #x135000
   :unify-map "big5-1")
 
 (define-charset 'chinese-big5-2
@@ -302,7 +310,7 @@
   :iso-final-char ?1
   :emacs-mule-id  153
   :code-space [#x21 #x7E #x21 #x7E]
-  :code-offset #x138000
+  :code-offset #x137800
   :unify-map "big5-2")
 
 (define-charset 'japanese-jisx0208
@@ -587,6 +595,7 @@
   :map "mac-roman")
 
 (unify-charset 'chinese-gb2312)
+(unify-charset 'chinese-gbk)
 (unify-charset 'chinese-cns11643-1)
 (unify-charset 'chinese-cns11643-2)
 (unify-charset 'big5)
