@@ -1,3 +1,9 @@
+2002-03-23  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/mailabbrev.el (mail-abbrev-make-syntax-table): New subroutine
+	broken out of sendmail-pre-abbrev-expand-hook.
+	(sendmail-pre-abbrev-expand-hook): Use it.
+
 2002-03-22  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* Makefile.in (finder-inf.el): Remove.
