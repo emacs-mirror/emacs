@@ -1,3 +1,7 @@
+2002-07-22  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-next-action-on-file): Preserve find-file-literally.
+
 2002-07-22  Carsten Dominik  <dominik@astro.uva.nl>
 
 	* textmodes/reftex-vars.el (reftex-index-verify-function): New
