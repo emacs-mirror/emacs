@@ -1773,7 +1773,10 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	update_status (wait_proc);
       if (wait_proc != 0
 	  && ! EQ (wait_proc->status, Qrun))
-	break;
+	{
+	  clear_waiting_for_input ();
+	  break;
+	}
 
       /* Wait till there is something to do */
 
