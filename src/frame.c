@@ -1279,6 +1279,8 @@ The functions are run with one arg, the frame to be deleted.  */)
 
   if (f->namebuf)
     xfree (f->namebuf);
+  if (f->decode_mode_spec_buffer)
+    xfree (f->decode_mode_spec_buffer);
   if (FRAME_INSERT_COST (f))
     xfree (FRAME_INSERT_COST (f));
   if (FRAME_DELETEN_COST (f))

@@ -4212,9 +4212,6 @@ If DISPLAY is nil, that stands for the selected frame's display.  */)
   for (i = 0; i < dpyinfo->n_fonts; i++)
     if (dpyinfo->font_table[i].name)
       {
-	if (dpyinfo->font_table[i].name != dpyinfo->font_table[i].full_name)
-	  xfree (dpyinfo->font_table[i].full_name);
-	xfree (dpyinfo->font_table[i].name);
 	XFreeFont (dpyinfo->display, dpyinfo->font_table[i].font);
       }
 

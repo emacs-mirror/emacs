@@ -1,5 +1,13 @@
 2003-10-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* frame.c (Fdelete_frame): Free decode_mode_spec_buffer.
+
+	* xterm.c (x_delete_display): Free font names and font_encoder
+	in dpyinfo->font_table.
+
+	* xfns.c (Fx_close_connection): Only call XFreeFont here.  xfree
+	of font names moved to x_delete_display.
+
 	* xterm.h (struct x_display_info): New member, wm_type.
 	(struct x_output): New members, expected_top/left and
 	check_expected_move.

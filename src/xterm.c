@@ -10649,6 +10649,8 @@ void
 x_delete_display (dpyinfo)
      struct x_display_info *dpyinfo;
 {
+  int i;
+
   delete_keyboard_wait_descriptor (dpyinfo->connection);
 
   /* Discard this display from x_display_name_list and x_display_list.
@@ -10699,6 +10701,18 @@ x_delete_display (dpyinfo)
   if (dpyinfo->xim)
     xim_close_dpy (dpyinfo);
 #endif
+
+  /* Free the font names in the font table.  */
+  for (i = 0; i < dpyinfo->n_fonts; i++)
+    if (dpyinfo->font_table[i].name)
+      {
+	if (dpyinfo->font_table[i].name != dpyinfo->font_table[i].full_name)
+	  xfree (dpyinfo->font_table[i].full_name);
+	xfree (dpyinfo->font_table[i].name);
+      }
+
+  if (dpyinfo->font_table->font_encoder)
+    xfree (dpyinfo->font_table->font_encoder);
 
   xfree (dpyinfo->font_table);
   xfree (dpyinfo->x_id_name);
