@@ -31,7 +31,8 @@ so that you can use many of the features described in this chapter.
 
 @cindex MS Windows
   Emacs compiled for MS Windows mostly supports the same features as
-under X.
+under X.  However, as of version 21.1, images, tool bars, and tooltips
+are not yet available on MS Windows.
 
 Features which rely on text in multiple faces (such as Font Lock mode)
 will also work on non-windowed terminals that can display more than one
@@ -760,9 +761,10 @@ menu bar.
 You can turn display of tool bars on or off with @kbd{M-x tool-bar-mode}
 analogously to @code{menu-bar-mode}.  @xref{Menu Bars}.  This will only
 work in an Emacs with appropriate image support for the available icons
-on a graphic display.  By default, monochrome (PBM or XBM format) icons
-are used.  XPM format icons, which normally look better, will normally
-be used if Emacs was built with XPM support.
+on a graphic display.  (In particular, the MS-Windows version doesn't
+support tool bars as of version 21.1.)  By default, monochrome (PBM or
+XBM format) icons are used.  XPM format icons, which normally look
+better, will normally be used if Emacs was built with XPM support.
 
 There is a global tool bar with useful items and some modes define their
 own tool bars to replace it.@footnote{We could provide more if suitable
@@ -1298,7 +1300,7 @@ line containing the whitespace.
 
 @cindex balloon help
 @findex tooltip-mode
-Tooltips are small X windows displaying a help string at the current
+Tooltips are small windows displaying a help string at the current
 mouse position, typically over text---including the mode line---which
 can be activated with the mouse or other keys.  (This facility is
 sometimes known as `balloon help'.)  Tooltips may be available for menu
@@ -1308,6 +1310,9 @@ To use tooltips, customize the user option @code{tooltip-mode}.  The
 customization group @code{tooltip} controls various aspects of their
 display.  If Tooltip mode is not activated, the help text is displayed
 in the echo area instead.
+
+As of version 21.1, tooltips are not supported in the MS-Windows port
+of Emacs.
 
 @node Mouse Avoidance
 @section Mouse Avoidance
