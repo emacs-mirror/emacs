@@ -107,6 +107,11 @@ static struct sensemode {
 #include <unistd.h>
 #endif /* AIX */
 
+#ifdef IRIX4
+/* Get _getpty prototype */
+#include <unistd.h>
+#endif
+
 #ifdef SYSV_PTYS
 #include <sys/types.h>
 #include <sys/tty.h>
