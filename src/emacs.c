@@ -553,7 +553,14 @@ main (argc, argv, envp)
   /* Extend the stack space available.  */
   if (!getrlimit (RLIMIT_STACK, &rlim))
     {
-      rlim.rlim_cur = rlim.rlim_max;
+      long newlim;
+      /* Approximate the amount regex.c needs, plus some more.  */
+      newlim = 800000 * sizeof (char *);
+      if (newlim > rlim.rlim_max)
+	newlim = rlim.rlim_max;
+      if (rlim.rlim_cur < newlim)
+	rlim.rlim_cur = newlim;
+
       setrlimit (RLIMIT_STACK, &rlim);
     }
 #endif
