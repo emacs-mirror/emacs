@@ -11,14 +11,13 @@
 	(jpeg_memory_src): Defined new JPEG image source to read from a
 	memory buffer.
 	(jpeg_load): Pay attention to the :data keyword if specified.
-	Instantiates a jpeg_memory_src instead of jpeg_stdio_src if
-	found.
+	Instantiates a jpeg_memory_src instead of jpeg_stdio_src if found.
 	(png_format): Added the :data keyword
 	(png_image_p): PNG is valid with :file _or_ :data
 	(png_read_from_memory): New PNG read function to read from a
 	memory buffer.
-	(png_load): Pay attention to the :data keyword if specified.  Uses
-	png_set_read_fn() instead of png_init_io() if specified.
+	(png_load): Pay attention to the :data keyword if specified.
+	Use png_set_read_fn() instead of png_init_io() if specified.
 	(tiff_format): Added the :data keyword for TIFF images.
 	(tiff_image_p): TIFF is valid with :file _or_ :data
 	(tiff_read_from_memory): Defined new TIFF I/O functions to read
@@ -11191,8 +11190,8 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 
 1999-07-20  Dave Love  <fx@gnu.org>
 
-	* buffer.c (syms_of_buffer): Make
-	default-enable-multibyte-characters a user variable.
+	* buffer.c (syms_of_buffer): Make default-enable-multibyte-characters
+	a user variable.
 
 1999-07-14  Richard Stallman  <rms@gnu.org>
 
@@ -13980,8 +13979,8 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* keyboard.c (input-method-previous-message): Doc fix.
 
-	* coding.c (file-coding-system-alist,
-	select-safe-coding-system-function): Doc fix.
+	* coding.c (file-coding-system-alist)
+	(select-safe-coding-system-function): Doc fix.
 
 1998-08-23  Kenichi HANDA  <handa@etl.go.jp>
 

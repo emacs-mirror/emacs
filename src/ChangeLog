@@ -29,7 +29,7 @@
 
 	* xdisp.c (try_window_id): Fix case of all changes before
 	the window start.
-	
+
 	* xdisp.c (try_window_id): Add some xasserts.
 
 2001-05-09  Gerd Moellmann  <gerd@gnu.org>
@@ -58,8 +58,8 @@
 
 2001-05-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* xterm.c (XTread_socket) <Expose> [!USE_TOOLKIT_SCROLL_BARS]: Fix
-	the change from 2001-04-30.
+	* xterm.c (XTread_socket) <Expose> [!USE_TOOLKIT_SCROLL_BARS]:
+	Fix the change from 2001-04-30.
 
 2001-05-03  Gerd Moellmann  <gerd@gnu.org>
 
@@ -67,7 +67,7 @@
 	(Fx_file_dialog): Use it as XmNunmapCallback to capture the case
 	where a dialog is closed via the window manager.
 
-	* xdisp.c (try_window_id): Cases of changes all in front of 
+	* xdisp.c (try_window_id): Cases of changes all in front of
 	the window start or all below the window end mostly rewritten.
 	(redisplay_window): Move the tests if try_window_id is
 	applicable to try_window_id.
@@ -76,10 +76,10 @@
 2001-05-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (expose_window): Return int.  If W is the window
-	currently being updated, mark the frame garbaged.  Fix
-	computation of rows intersecting the exposed rectangle.
+	currently being updated, mark the frame garbaged.
+	Fix computation of rows intersecting the exposed rectangle.
 	(expose_window_tree): Stop when expose_window returns 0.
-	
+
 	* xterm.c (x_draw_stretch_glyph_string): Don't draw background
 	again if it has already been drawn.
 
@@ -112,9 +112,8 @@
 	* term.c (toggle_highlight): New function.
 	(turn_on_face): Change handling of reverse video.
 
-	* process.c (wait_reading_process_input): Call
-	record_asynch_buffer_change only if a timer really changed
-	buffers.
+	* process.c (wait_reading_process_input):
+	Call record_asynch_buffer_change only if a timer really changed buffers.
 
 	* buffer.c (mouse_face_overlay_overlaps): Fix the computation
 	of the number of overlays to check.
@@ -151,8 +150,8 @@
 	(x_face_list_fonts): Special handling for realizing_basic_faces_p
 	removed.
 	(realize_basic_faces): Specbind Qscalable_fonts_allowed to t.
-	(syms_of_xfaces): Initialize Qscalable_fonts_allowed.  Change
-	default for scalable-fonts-allowed to t.
+	(syms_of_xfaces): Initialize Qscalable_fonts_allowed.  Change default
+	for scalable-fonts-allowed to t.
 
 	* fileio.c (Finsert_file_contents): If the file size returned from
 	stat is zero, set END to READ_BUF_SIZE.  This makes sure we can
