@@ -6698,9 +6698,14 @@ echo_area_display (update_frame_p)
 	    
 	  if (window_height_changed_p)
 	    {
-	      /* Must update other windows.  */
+	      /* Must update other windows.  Likewise as in other
+		 cases, don't let this update be interrupted by
+		 pending input.  */
+	      int count = BINDING_STACK_SIZE ();
+	      specbind (Qredisplay_dont_pause, Qt);
 	      windows_or_buffers_changed = 1;
 	      redisplay_internal (0);
+	      unbind_to (count, Qnil);
 	    }
 	  else if (FRAME_WINDOW_P (f) && n == 0)
 	    {
