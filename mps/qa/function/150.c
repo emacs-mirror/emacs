@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!150.c(trunk.4) $
+ id = $HopeName: MMQA_test_function!150.c(trunk.5) $
  summary = finalization and collection stats
  language = c
  link = testlib.o rankfmt.o
@@ -128,6 +128,9 @@ static void messagepoll(mycell **ref, int faction) {
 }
 
 
+#define clear(type, var) (*((volatile type*)&(var)) = NULL)
+
+
 static void test(void) {
  mps_pool_t poolamc, poolawl, poollo;
  mps_thr_t thread;
@@ -136,8 +139,7 @@ static void test(void) {
  mps_fmt_t format;
  mps_ap_t apamc, apawl, aplo;
 
- mycell * volatile a, * volatile b, * volatile c, * volatile d;
- mycell *z;
+ mycell *a, *b, *c, *d, *z;
 
  long int j;
 
@@ -200,11 +202,11 @@ static void test(void) {
 
  /* throw them all away and collect everything */
 
- a = NULL;
- b = NULL;
- c = NULL;
- d = NULL;
- exfmt_root = NULL;
+ clear(mycell*, a);
+ clear(mycell*, b);
+ clear(mycell*, c);
+ clear(mycell*, d);
+ clear(mycell*, exfmt_root);
 
  for (j=0; j<5; j++) {
   mps_arena_collect(arena);
