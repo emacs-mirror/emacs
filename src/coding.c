@@ -1,5 +1,5 @@
 /* Coding system handler (conversion, detection, and etc).
-   Copyright (C) 1995, 1997, 1998, 2002 Electrotechnical Laboratory, JAPAN.
+   Copyright (C) 1995,97,1998,2002,2003  Electrotechnical Laboratory, JAPAN.
    Licensed to the Free Software Foundation.
    Copyright (C) 2001,2002,2003  Free Software Foundation, Inc.
 
@@ -6433,7 +6433,7 @@ find_safe_codings (p, pend, safe_codings, work_table, single_byte_char_found)
      Lisp_Object safe_codings, work_table;
      int *single_byte_char_found;
 {
-  int c, len, i;
+  int c, len;
   Lisp_Object val, ch;
   Lisp_Object prev, tail;
 
