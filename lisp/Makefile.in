@@ -56,6 +56,26 @@ DONTCOMPILE = \
 	$(lisp)/play/bruce.el \
 	$(lisp)/subdirs.el \
 	$(lisp)/term/internal.el \
+	$(lisp)/term/AT386.el  \
+	$(lisp)/term/apollo.el \
+	$(lisp)/term/bobcat.el \
+	$(lisp)/term/iris-ansi.el \
+	$(lisp)/term/keyswap.el \
+	$(lisp)/term/linux.el \
+	$(lisp)/term/lk201.el \
+	$(lisp)/term/news.el \
+	$(lisp)/term/vt102.el \
+	$(lisp)/term/vt125.el \
+	$(lisp)/term/vt200.el \
+	$(lisp)/term/vt201.el \
+	$(lisp)/term/vt220.el \
+	$(lisp)/term/vt240.el \
+	$(lisp)/term/vt300.el \
+	$(lisp)/term/vt320.el \
+	$(lisp)/term/vt400.el \
+	$(lisp)/term/vt420.el \
+	$(lisp)/term/wyse50.el \
+	$(lisp)/term/xterm.el \
 	$(lisp)/version.el
 
 # Files to compile before others during a bootstrap.  This is done
