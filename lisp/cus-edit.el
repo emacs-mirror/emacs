@@ -2984,11 +2984,19 @@ you need to explicitly load that file for the settings to take effect."
   :type '(choice (const :tag "Your Emacs init file" nil) file)
   :group 'customize)
 
+(defun custom-file ()
+  "Return the file name for saving customizations."
+  (setq custom-file
+	(or custom-file
+	    user-init-file
+	    (read-file-name "File for customizations: "
+			    "~/" nil nil ".emacs"))))
+
 (defun custom-save-delete (symbol)
   "Delete the call to SYMBOL from `custom-file'.
 Leave point at the location of the call, or after the last expression."
   (let ((default-major-mode))
-    (set-buffer (find-file-noselect (or custom-file user-init-file))))
+    (set-buffer (find-file-noselect (custom-file))))
   (goto-char (point-min))
   (catch 'found
     (while t
@@ -3096,7 +3104,7 @@ Leave point at the location of the call, or after the last expression."
     (custom-save-faces)
     (save-excursion
       (let ((default-major-mode nil))
-	(set-buffer (find-file-noselect (or custom-file user-init-file))))
+	(set-buffer (find-file-noselect (custom-file))))
       (save-buffer))))
 
 ;;; The Customize Menu.
