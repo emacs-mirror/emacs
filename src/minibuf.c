@@ -161,7 +161,35 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
 
   val = current_buffer->directory;
   Fset_buffer (get_minibuffer (minibuf_level));
-  current_buffer->directory = val;
+
+  /* The current buffer's default directory is usually the right thing
+     for our minibuffer here.  However, if you're typing a command at
+     a minibuffer-only frame when minibuf_level is zero, then buf IS
+     the current_buffer, so reset_buffer leaves buf's default
+     directory unchanged.  This is a bummer when you've just started
+     up Emacs and buf's default directory is Qnil.  Here's a hack; can
+     you think of something better to do?  Find another buffer with a
+     better directory, and use that one instead.  */
+  if (XTYPE (val) == Lisp_String)
+    current_buffer->directory = val;
+  else
+    {
+      Lisp_Object buf_list;
+
+      for (buf_list = Vbuffer_alist;
+	   CONSP (buf_list);
+	   buf_list = XCONS (buf_list)->cdr)
+	{
+	  Lisp_Object other_buf = XCONS (XCONS (buf_list)->car)->cdr;
+
+	  if (XTYPE (XBUFFER (other_buf)->directory) == Lisp_String)
+	    {
+	      current_buffer->directory = XBUFFER (other_buf)->directory;
+	      break;
+	    }
+	}
+    }
+
 #ifdef MULTI_FRAME
   Fredirect_frame_focus (Fselected_frame (), mini_frame);
 #endif
@@ -265,6 +293,7 @@ get_minibuffer (depth)
     }
   else
     reset_buffer (XBUFFER (buf));
+
   return buf;
 }
 
@@ -901,7 +930,7 @@ temp_echo_area_glyphs (m)
   if (!NILP (Vquit_flag))
     {
       Vquit_flag = Qnil;
-      XFASTINT (unread_command_char) = Ctl ('g');
+      XFASTINT (unread_command_event) = Ctl ('g');
     }
   Vinhibit_quit = oinhibit;
 }
