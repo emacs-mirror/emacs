@@ -591,7 +591,8 @@ file_name_as_directory (out, in)
   /* For Unix syntax, Append a slash if necessary */
   if (!IS_DIRECTORY_SEP (out[size]))
     {
-      out[size + 1] = DIRECTORY_SEP;
+      /* Cannot use DIRECTORY_SEP, which could have any value */
+      out[size + 1] = '/';
       out[size + 2] = '\0';
     }
 #ifdef DOS_NT
