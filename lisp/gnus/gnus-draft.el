@@ -3,6 +3,7 @@
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
+;; Maintainer: bugs@gnus.org
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -112,12 +113,16 @@
 (defun gnus-draft-send-message (&optional n)
   "Send the current draft."
   (interactive "P")
-  (let ((articles (gnus-summary-work-articles n))
-	article)
+  (let* ((articles (gnus-summary-work-articles n))
+	 (total (length articles))
+	 article)
     (while (setq article (pop articles))
       (gnus-summary-remove-process-mark article)
       (unless (memq article gnus-newsgroup-unsendable)
-	(gnus-draft-send article gnus-newsgroup-name t)
+	(let ((message-sending-message 
+	       (format "Sending message %d of %d..." 
+		       (- total (length articles)) total)))
+	  (gnus-draft-send article gnus-newsgroup-name t))
 	(gnus-summary-mark-article article gnus-canceled-mark)))))
 
 (defun gnus-draft-send (article &optional group interactive)
@@ -143,6 +148,8 @@
 	(setq type (ignore-errors (read (current-buffer)))
 	      method (ignore-errors (read (current-buffer))))
 	(message-remove-header gnus-agent-meta-information-header)))
+    ;; Let Agent restore any GCC lines and have message.el perform them.
+    (gnus-agent-restore-gcc)
     ;; Then we send it.  If we have no meta-information, we just send
     ;; it and let Message figure out how.
     (when (and (or (null method)
@@ -170,15 +177,19 @@
   (interactive)
   (gnus-activate-group "nndraft:queue")
   (save-excursion
-    (let ((articles (nndraft-articles))
-	  (unsendable (gnus-uncompress-range
-		       (cdr (assq 'unsend
-				  (gnus-info-marks
-				   (gnus-get-info "nndraft:queue"))))))
-	  article)
+    (let* ((articles (nndraft-articles))
+	   (unsendable (gnus-uncompress-range
+			(cdr (assq 'unsend
+				   (gnus-info-marks
+				    (gnus-get-info "nndraft:queue"))))))
+	   (total (length articles))
+	   article)
       (while (setq article (pop articles))
 	(unless (memq article unsendable)
-	  (gnus-draft-send article))))))
+	  (let ((message-sending-message 
+		 (format "Sending message %d of %d..." 
+			 (- total (length articles)) total)))
+	    (gnus-draft-send article)))))))
 
 ;;; Utility functions
 
