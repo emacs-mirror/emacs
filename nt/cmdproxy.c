@@ -543,7 +543,7 @@ main (int argc, char ** argv)
 #else
   /* Probably a mistake for there to be extra args; not fatal.  */
   if (argc > 0)
-    warn ("warning: extra args ignored after %s\n", argv[-1]);
+    warn ("warning: extra args ignored after '%s'\n", argv[-1]);
 #endif
 
   pass_through_args[num_pass_through_args] = NULL;
@@ -578,7 +578,7 @@ main (int argc, char ** argv)
 	}
     }
 
-pass_to_shell:
+ pass_to_shell:
   if (need_shell)
     {
       char * p;
@@ -620,22 +620,32 @@ pass_to_shell:
 	  for (argv = pass_through_args; *argv != NULL; ++argv)
 	    p += wsprintf (p, " %s", *argv);
 
-	  /* Always set environment size to something reasonable.  */
-	  wsprintf(p, " /e:%d /c %s", envsize, cmdline);
+	  if (GetVersion () & 0x80000000)
+	    /* Set environment size to something reasonable on Windows 95.  */
+	    wsprintf(p, " /e:%d /c %s", envsize, cmdline);
+	  else
+	    wsprintf(p, " /c %s", cmdline);
 	  cmdline = buf;
 	}
       else
 	{
-	  /* Provide dir arg expected by command.com when first started
-	     interactively (the "command search path").  cmd.exe does
-	     not require it, but accepts it silently - presumably other
-	     DOS compatible shells do the same.  To avoid potential
-	     problems with spaces in command dir (which cannot be quoted
-	     - command.com doesn't like it), we always use the 8.3 form.  */
-	  GetShortPathName (progname, path, sizeof (path));
-	  p = strrchr (path, '\\');
-	  /* Trailing slash is acceptable, so always leave it.  */
-	  *(++p) = '\0';
+	  if (GetVersion () & 0x80000000)
+	    {
+	      /* Provide dir arg expected by command.com when first
+		 started interactively (the "command search path").
+		 cmd.exe does not require it, but accepts it silently -
+		 presumably other DOS compatible shells do the same.  To
+		 avoid potential problems with spaces in command dir
+		 (which cannot be quoted - command.com doesn't like it),
+		 we always use the 8.3 form.  */
+	      GetShortPathName (progname, path, sizeof (path));
+	      p = strrchr (path, '\\');
+	      /* Trailing slash is acceptable, so always leave it.  */
+	      *(++p) = '\0';
+	    }
+	  else
+	    /* Dir arg not needed on NT.  */
+	    path[0] = '\0';
 
 	  cmdline = p = alloca (strlen (progname) + extra_arg_space +
 				strlen (path) + 13);
@@ -648,9 +658,9 @@ pass_to_shell:
 	  for (argv = pass_through_args; *argv != NULL; ++argv)
 	    p += wsprintf (p, " %s", *argv);
 
-	  /* Always set environment size to something reasonable - again
-             cmd.exe ignores this silently.  */
-	  wsprintf (p, " /e:%d", envsize);
+	  if (GetVersion () & 0x80000000)
+	    /* Set environment size to something reasonable on Windows 95.  */
+	    wsprintf (p, " /e:%d", envsize);
 	}
     }
 
