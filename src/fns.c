@@ -3173,7 +3173,7 @@ ARGS are passed as extra arguments to the function.")
   return result;
 }
 
-/* base64 encode/decode functions.
+/* base64 encode/decode functions (RFC 2045).
    Based on code from GNU recode. */
 
 #define MIME_LINE_LENGTH 76
@@ -3296,7 +3296,7 @@ into shorter lines.")
       /* The encoding wasn't possible. */
       if (length > MAX_ALLOCA)
 	xfree (encoded);
-      error ("Base64 encoding failed");
+      error ("Multibyte character in data for base64 encoding");
     }
 
   /* Now we have encoded the region, so we insert the new contents
@@ -3357,7 +3357,7 @@ into shorter lines.")
       /* The encoding wasn't possible. */
       if (length > MAX_ALLOCA)
 	xfree (encoded);
-      error ("Base64 encoding failed");
+      error ("Multibyte character in data for base64 encoding");
     }
 
   encoded_string = make_unibyte_string (encoded, encoded_length);
@@ -3497,7 +3497,7 @@ If the region can't be decoded, signal an error and don't modify the buffer.")
       /* The decoding wasn't possible. */
       if (length > MAX_ALLOCA)
 	xfree (decoded);
-      error ("Base64 decoding failed");
+      error ("Invalid base64 data");
     }
 
   inserted_chars = decoded_length;
@@ -3555,7 +3555,7 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
   if (length > MAX_ALLOCA)
     xfree (decoded);
   if (!STRINGP (decoded_string))
-    error ("Base64 decoding failed");
+    error ("Invalid base64 data");
 
   return decoded_string;
 }
