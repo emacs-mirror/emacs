@@ -4465,6 +4465,17 @@ returns nil, because real GC can't be done.  */)
     }
   mark_kboards ();
 
+#if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
+  mark_stack ();
+#endif
+
+#ifdef USE_GTK
+  {
+    extern void xg_mark_data ();
+    xg_mark_data ();
+  }
+#endif
+
   /* Look thru every buffer's undo list
      for elements that update markers that were not marked,
      and delete them.  */
@@ -4507,17 +4518,6 @@ returns nil, because real GC can't be done.  */)
 	nextb = nextb->next;
       }
   }
-
-#if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
-  mark_stack ();
-#endif
-
-#ifdef USE_GTK
-  {
-    extern void xg_mark_data ();
-    xg_mark_data ();
-  }
-#endif
 
   gc_sweep ();
 
