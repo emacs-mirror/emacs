@@ -618,7 +618,12 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
      bother checking further intervals.  */
   if (EQ (limit, Qt))
     {
-      XSETFASTINT (pos, next->position - (STRINGP (object)));
+      if (NULL_INTERVAL_P (next))
+	XSETFASTINT (pos, (STRINGP (object)
+			   ? XSTRING (object)->size
+			   : BUF_ZV (XBUFFER (object))));
+      else
+	XSETFASTINT (pos, next->position - (STRINGP (object)));
       return pos;
     }
 
