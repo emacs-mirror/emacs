@@ -2524,8 +2524,13 @@ non-nil, it is called instead of rereading visited file contents."
 		     (or auto-save-p
 			 (unlock-buffer)))
 		   (widen)
-		   (insert-file-contents file-name (not auto-save-p)
-					 nil nil t)))
+		   (let ((coding-system-for-read
+			  ;; Auto-saved file shoule be read without
+			  ;; any code conversion.
+			  (if auto-save-p 'no-conversion
+			    coding-system-for-read)))
+		     (insert-file-contents file-name (not auto-save-p)
+					   nil nil t))))
 	       (goto-char (min opoint (point-max)))
 	       ;; Recompute the truename in case changes in symlinks
 	       ;; have changed the truename.
