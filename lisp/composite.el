@@ -61,7 +61,7 @@ composed, and NEW-REF-POINT is a reference point in the new glyph to
 be added.
 
 For instance, if GLOBAL-REF-POINT is `br' (bottom-right) and
-NEW-REF-POINT is `tl' (top-left), the overall glyph is updated as
+NEW-REF-POINT is `tc' (top-center), the overall glyph is updated as
 follows (the point `*' corresponds to both reference points):
 
     +-------+--+ <--- new ascent
