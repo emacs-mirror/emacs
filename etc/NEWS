@@ -95,16 +95,20 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 option `comint-prompt-read-only'.  This is not enabled by default,
 except in IELM buffers.  The read-only status of IELM prompts can be
 controlled with the new user option `ielm-prompt-read-only', which
-overrides `comint-prompt-read-only'.  The new commands
-`comint-kill-whole-line' and `comint-kill-region' support editing
-comint buffers with read-only prompts.  `comint-kill-whole-line' is
-like `kill-whole-line', but ignores both read-only and field
-properties.  Hence, it will always kill entire lines, including any
-prompts.  `comint-kill-region' is like `kill-region', except that it
-ignores read-only properties, if it is safe to do so.  This means that
-if any part of a prompt is deleted, then the entire prompt must be
-deleted and that all prompts must stay at the beginning of a line.  If
-this is not the case, then `comint-kill-region' behaves just like
+overrides `comint-prompt-read-only'.
+
+The new commands `comint-kill-whole-line' and `comint-kill-region'
+support editing comint buffers with read-only prompts.
+
+`comint-kill-whole-line' is like `kill-whole-line', but ignores both
+read-only and field properties.  Hence, it will always kill entire
+lines, including any prompts.
+
+`comint-kill-region' is like `kill-region', except that it ignores
+read-only properties, if it is safe to do so.  This means that if any
+part of a prompt is deleted, then the entire prompt must be deleted
+and that all prompts must stay at the beginning of a line.  If this is
+not the case, then `comint-kill-region' behaves just like
 `kill-region' if read-only are involved: it copies the text to the
 kill-ring, but does not delete it.
 
