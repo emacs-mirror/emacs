@@ -880,6 +880,8 @@ cached information about equivalent key sequences.")
       /* Search for a string appearing directly as an element of the keymap.
 	 That string is the title of the menu.  */
       prompt = map_prompt (keymap);
+      if (NILP (title) && !NILP (prompt))
+	title = prompt;
 
       /* Make that be the pane title of the first pane.  */
       if (!NILP (prompt) && menu_items_n_panes >= 0)
