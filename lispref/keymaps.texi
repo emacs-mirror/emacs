@@ -566,7 +566,7 @@ the order specified by @code{minor-mode-map-alist}; if they do not
 supply a binding for the key, Emacs searches the local map; if that too
 has no binding, Emacs then searches the global map.  However, if
 @code{overriding-local-map} is non-@code{nil}, Emacs searches that map
-first, before the global map.
+first, before the minor mode maps.
 
 @cindex major mode keymap
   Since every buffer that uses the same major mode normally uses the
