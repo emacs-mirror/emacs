@@ -1,31 +1,25 @@
 ;;; double.el - Support for keyboard remapping with double clicking.
 
-;; Copyright (C) 1994 Per Abrahamsen.
+;; Copyright (C) 1994 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@iesd.auc.dk>
-;; Version: $Id: double.el,v 5.2 1994/02/03 17:18:49 amanda Exp $
 ;; Keywords: i18n
-;; Bogus-Bureaucratic-Cruft: How 'bout ESR and the LCD people agreed
-;; 	on a common format?
 
-;; LCD Archive Entry:
-;; double|Per Abrahamsen|abraham@iesd.auc.dk|
-;; Support keyboard remapping with double clicking|
-;; $Date: 1994/02/03 17:18:49 $|$Revision: 5.2 $|~/modes/double.el.Z|
-;;
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
-;; 
-;; This program is distributed in the hope that it will be useful,
+
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, write to the Free Software
-;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ;;; Commentary:
 
