@@ -1,3 +1,9 @@
+2001-10-08  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (lisp, shortlisp): Replace bindings.el with
+	bindings.elc, since otherwise doc strings in bindings.el get wrong
+	offsets in etc/DOC.
+
 2001-10-08  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* xmenu.c (keymap_panes, Fx_popup_menu): Use Fkeymap_prompt.
