@@ -1,3 +1,7 @@
+2004-05-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_draw_hollow_cursor): Sync with xterm.c
+
 2004-04-30  Kim F. Storm  <storm@cua.dk>
 
 	* buffer.c (syms_of_buffer) <line-spacing>: Allow float value.
