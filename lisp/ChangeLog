@@ -1,5 +1,7 @@
 2000-01-09  Gerd Moellmann  <gerd@gnu.org>
 
+	* progmodes/cperl-mode.el: Replace ^F with ^L.
+
 	* sendmail.el (toplevel): Provide `sendmail' when compiling
 	before `require'ing rmail and mailalias to prevent infinite 
 	recursion.
