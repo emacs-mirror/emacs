@@ -644,9 +644,10 @@ do_symval_forwarding (valcontents)
 	return *(Lisp_Object *)(offset + (char *)current_buffer);
 
       case Lisp_Misc_Display_Objfwd:
+	if (!current_perdisplay)
+	  abort ();
 	offset = XDISPLAY_OBJFWD (valcontents)->offset;
-	return *(Lisp_Object *)(offset
-				+ (char *)get_perdisplay (selected_frame));
+	return *(Lisp_Object *)(offset + (char *)current_perdisplay);
       }
   return valcontents;
 }
@@ -694,7 +695,9 @@ store_symval_forwarding (sym, valcontents, newval)
 	  break;
 
 	case Lisp_Misc_Display_Objfwd:
-	  (*(Lisp_Object *)((char *)get_perdisplay (selected_frame)
+	  if (!current_perdisplay)
+	    abort ();
+	  (*(Lisp_Object *)((char *)current_perdisplay
 			    + XDISPLAY_OBJFWD (valcontents)->offset))
 	    = newval;
 	  break;
@@ -798,8 +801,10 @@ find_symbol_value (sym)
 				  + (char *)current_buffer);
 
 	case Lisp_Misc_Display_Objfwd:
+	  if (!current_perdisplay)
+	    abort ();
 	  return *(Lisp_Object *)(XDISPLAY_OBJFWD (valcontents)->offset
-				  + (char *)get_perdisplay (selected_frame));
+				  + (char *)current_perdisplay);
 	}
     }
 
