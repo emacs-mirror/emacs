@@ -654,7 +654,7 @@ make_gap (nbytes_added)
 int
 copy_text (from_addr, to_addr, nbytes,
 	   from_multibyte, to_multibyte)
-     unsigned char *from_addr;
+     const unsigned char *from_addr;
      unsigned char *to_addr;
      int nbytes;
      int from_multibyte, to_multibyte;
@@ -723,7 +723,7 @@ copy_text (from_addr, to_addr, nbytes,
 
 int
 count_size_as_multibyte (ptr, nbytes)
-     unsigned char *ptr;
+     const unsigned char *ptr;
      int nbytes;
 {
   int i;
@@ -755,7 +755,7 @@ count_size_as_multibyte (ptr, nbytes)
 
 void
 insert (string, nbytes)
-     register unsigned char *string;
+     register const unsigned char *string;
      register int nbytes;
 {
   if (nbytes > 0)
@@ -771,7 +771,7 @@ insert (string, nbytes)
 
 void
 insert_and_inherit (string, nbytes)
-     register unsigned char *string;
+     register const unsigned char *string;
      register int nbytes;
 {
   if (nbytes > 0)
@@ -807,7 +807,7 @@ insert_char (c)
 
 void
 insert_string (s)
-     char *s;
+     const char *s;
 {
   insert (s, strlen (s));
 }
@@ -819,7 +819,7 @@ insert_string (s)
 
 void
 insert_before_markers (string, nbytes)
-     unsigned char *string;
+     const unsigned char *string;
      register int nbytes;
 {
   if (nbytes > 0)
@@ -836,7 +836,7 @@ insert_before_markers (string, nbytes)
 
 void
 insert_before_markers_and_inherit (string, nbytes)
-     unsigned char *string;
+     const unsigned char *string;
      register int nbytes;
 {
   if (nbytes > 0)
@@ -853,7 +853,7 @@ insert_before_markers_and_inherit (string, nbytes)
 
 void
 insert_1 (string, nbytes, inherit, prepare, before_markers)
-     register unsigned char *string;
+     register const unsigned char *string;
      register int nbytes;
      int inherit, prepare, before_markers;
 {
@@ -871,12 +871,12 @@ insert_1 (string, nbytes, inherit, prepare, before_markers)
 
 int
 count_combining_before (string, length, pos, pos_byte)
-     unsigned char *string;
+     const unsigned char *string;
      int length;
      int pos, pos_byte;
 {
   int len, combining_bytes;
-  unsigned char *p;
+  const unsigned char *p;
 
   if (NILP (current_buffer->enable_multibyte_characters))
     return 0;
@@ -918,7 +918,7 @@ count_combining_before (string, length, pos, pos_byte)
 
 int
 count_combining_after (string, length, pos, pos_byte)
-     unsigned char *string;
+     const unsigned char *string;
      int length;
      int pos, pos_byte;
 {
@@ -984,7 +984,7 @@ count_combining_after (string, length, pos, pos_byte)
 
 void
 insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
-     register unsigned char *string;
+     register const unsigned char *string;
      register int nchars, nbytes;
      int inherit, prepare, before_markers;
 {
