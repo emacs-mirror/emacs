@@ -515,9 +515,6 @@
 	Added :options to cover the possible values.
 	(nongregorian-diary-marking-hook): Ditto.
 
-	* cal-bahai.el, cal-menu.el, calendar.el, diary-lib.el,
-	* holidays.el: Added support for the Baha'i calendar system.
-
 2001-03-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* pcvs-util.el (cvs-bury-buffer): Bodiless `if' statements cause
