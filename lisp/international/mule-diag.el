@@ -1271,14 +1271,8 @@ see the function `describe-fontset' for the format of the list."
   (if (not input-method-alist)
       (progn
 	(princ "
-No input method is available, perhaps because you have not yet
-installed LEIM (Libraries of Emacs Input Methods).
-
-LEIM is available from the same ftp directory as Emacs.  For instance,
-if there exists an archive file `emacs-M.N.tar.gz', there should also
-be a file `leim-M.N.tar.gz'.  When you extract this file, LEIM files
-are put under the subdirectory `emacs-M.N/leim'.  When you install
-Emacs again, you should be able to use various input methods."))
+No input method is available, perhaps because you have not
+installed LEIM (Libraries of Emacs Input Methods)."))
     (princ "LANGUAGE\n  NAME (`TITLE' in mode line)\n")
     (princ "    SHORT-DESCRIPTION\n------------------------------\n")
     (setq input-method-alist
