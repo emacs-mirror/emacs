@@ -129,6 +129,7 @@ xlwMenuTranslations [] =
 
 /* FIXME: Should ESC close one level of menu structure or the complete menu?  */
 
+/* FIXME: Should F10 enter to menu?  Which one?  File?  */
 
 #define offset(field) XtOffset(XlwMenuWidget, field)
 static XtResource
@@ -2005,6 +2006,23 @@ Nothing (w, ev, params, num_params)
 }
 
 widget_value *
+find_first_selectable (mw, item)
+     XlwMenuWidget mw;
+     widget_value *item;
+{
+  widget_value *current = item;
+  enum menu_separator separator;
+
+  while (lw_separator_p (current->name, &separator, 0) || !current->enabled)
+    if (current->next)
+      current=current->next;
+    else
+	return NULL;
+
+  return current;
+}
+
+widget_value *
 find_next_selectable (mw, item)
      XlwMenuWidget mw;
      widget_value *item;
@@ -2021,8 +2039,14 @@ find_next_selectable (mw, item)
       current = mw->menu.old_stack [mw->menu.old_depth - 2]->contents;
 
       while (lw_separator_p (current->name, &separator, 0) || !current->enabled)
-	if (current->next)
-	  current=current->next;
+	{
+	  if (current->next)
+	    current=current->next;
+
+	  if (current == item)
+	    break;
+	}
+
     }
 
   return current;
@@ -2037,7 +2061,11 @@ find_prev_selectable (mw, item)
   widget_value *prev = item;
 
   while ((current=find_next_selectable (mw, current)) != item)
+    {
+      if (prev == current)
+	break;
       prev=current;
+    }
 
   return prev;
 }
@@ -2055,8 +2083,8 @@ Down (w, ev, params, num_params)
   /* Inside top-level menu-bar?  */
   if (mw->menu.old_depth == 2)
     /* When <down> in the menu-bar is pressed, display the corresponding
-       sub-menu and select the first menu item there.  */
-    set_new_state (mw, selected_item->contents, mw->menu.old_depth);
+       sub-menu and select the first selectable menu item there.  */
+    set_new_state (mw, find_first_selectable (mw, selected_item->contents), mw->menu.old_depth);
   else
     /* Highlight next possible (enabled and not separator) menu item.  */
     set_new_state (mw, find_next_selectable (mw, selected_item), mw->menu.old_depth - 1);
@@ -2078,9 +2106,10 @@ Up (w, ev, params, num_params)
   if (mw->menu.old_depth == 2)
     {
       /* FIXME: this is tricky.  <up> in the menu-bar should select the
-	 last selectable item in the list.  So we select the first one and
-	 find the previous selectable item.  Is there a better way?  */
-      set_new_state (mw, selected_item->contents, mw->menu.old_depth);
+	 last selectable item in the list.  So we select the first
+	 selectable one and find the previous selectable item.  Is there
+	 a better way?  */
+      set_new_state (mw, find_first_selectable (mw, selected_item->contents), mw->menu.old_depth);
       remap_menubar (mw);
       selected_item = mw->menu.old_stack [mw->menu.old_depth - 1];
       set_new_state (mw, find_prev_selectable (mw, selected_item), mw->menu.old_depth - 1);
@@ -2134,7 +2163,13 @@ Right (w, ev, params, num_params)
        first item (probably File).  */
     set_new_state (mw, find_next_selectable (mw, selected_item), mw->menu.old_depth - 1);
   else if (selected_item->contents)     /* Is this menu item expandable?  */
-    set_new_state (mw, selected_item->contents, mw->menu.old_depth);
+    {
+      set_new_state (mw, selected_item->contents, mw->menu.old_depth);
+      remap_menubar (mw);
+      selected_item = mw->menu.old_stack [mw->menu.old_depth - 1];
+      if (!selected_item->enabled && find_first_selectable (mw, selected_item))
+	set_new_state (mw, find_first_selectable (mw, selected_item), mw->menu.old_depth - 1);
+    }
   else
     {
       pop_new_stack_if_no_contents (mw);
