@@ -1,3 +1,10 @@
+2003-01-20  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gud.el (gud-display-line): If the current file is newer than its
+	buffer, offer to reread the file.
+	(gud-keep-buffer): New buffer local variable. Ensures offer to
+	reread file is made just once.
+
 2003-01-20  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/regexp-opt.el (regexp-opt-group): Undo last change.
