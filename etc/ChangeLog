@@ -1,3 +1,12 @@
+2001-04-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* TUTORIAL.sk, sk-survival.tex
+	* sk-refcard.ps, sk-refcard.tex, sk-dired-ref.ps
+	* sk-dired-ref.tex: New files.
+	
+	* cs-survival.tex, cs-dired-ref.ps, cs-dired-ref.tex: New files.
+	From Pavel@Janik.cz (Pavel Jan,Bm(Bk).
+
 2001-04-10  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-prin1.ps: Footer implementation.  Doc fix.

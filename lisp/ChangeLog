@@ -1,3 +1,8 @@
+2001-04-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* comint.el (comint-cr-magic): New function.
+	(toplevel): Add it to comint-preoutput-filter-functions.
+
 2001-04-18  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (EMACSLOADPATH): Define.
