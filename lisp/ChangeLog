@@ -1,3 +1,24 @@
+2000-06-29  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* paths.el (prune-directory-list): New function.
+	(Info-default-directory-list): Rewritten to more methodically
+	enumerate a big list of possible info directories (based on the
+	list used by the standalone info reader).
+	* info.el (info-initialize): Use prune-directory-list to remove
+	non-existant directories from Info-directory-list.
+
+2000-06-27  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* paths.el (Info-default-directory-list): Try a list of possible
+	info-directories instead of a single one.  Add the possible
+	info directory "/usr/share/info".
+
+	* woman.el (woman-man.conf-path): Explicitly include the debian
+	man-db config file "/etc/manpath.config".
+	(woman-parse-man.conf): Also handle MANDATORY_MANPATH entries, as
+	are present in `manpath.config'.
+	(woman-manpath): Include "/usr/share/man".
+
 2000-07-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* frame.el (blink-cursor-mode): Don't hide cursor initially.
