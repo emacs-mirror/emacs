@@ -321,8 +321,7 @@ Thus, this does not include the shell's current directory.")
   :group 'shell)
 
 (defvar shell-font-lock-keywords
-  '((eval . (cons shell-prompt-pattern 'font-lock-warning-face))
-    ("[ \t]\\([+-][^ \t\n]+\\)" 1 font-lock-comment-face)
+  '(("[ \t]\\([+-][^ \t\n]+\\)" 1 font-lock-comment-face)
     ("^[^ \t\n]+:.*" . font-lock-string-face)
     ("^\\[[1-9][0-9]*\\]" . font-lock-string-face))
   "Additional expressions to highlight in Shell mode.")
