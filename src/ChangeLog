@@ -1,3 +1,10 @@
+2000-02-20  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* data.c (Fmake_variable_buffer_local): Doc fix.
+	Init found_for_buffer to 0.
+	(Fmake_variable_frame_local): If the variable has already
+	been buffer-local, set the check_frame field.
+
 2000-02-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (IT_write_glyphs): Allocate a larger screen_buf as data

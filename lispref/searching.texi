@@ -477,6 +477,25 @@ Full backtracking capability exists to handle multiple uses of
 @samp{\|}, if you use the POSIX regular expression functions
 (@pxref{POSIX Regexps}).
 
+@item \@{@var{m}\@}
+is a postfix operator that repeats the previous pattern exactly @var{m}
+times.  Thus, @samp{x\@{5\@}} matches the string @samp{xxxxx}
+and nothing else.  @samp{c[ad]\@{3\@}r} matches string such as
+@samp{caaar}, @samp{cdddr}, @samp{cadar}, and so on.
+
+@item \@{@var{m},@var{n}\@}
+is more general postfix operator that specifies repetition with a
+minimum of @var{m} repeats and a maximum of @var{n} repeats.  If @var{m}
+is omitted, the minimum is 0; if @var{n} is omitted, there is no
+maximum.
+
+For example, @samp{c[ad]\@{1,2\@}r} matches the strings @samp{car},
+@samp{cdr}, @samp{caar}, @samp{cadr}, @samp{cdar}, and @samp{cddr}, and
+nothing else.@*
+@samp{\@{0,1\@}} or @samp{\@{,1\@}} is equivalent to @samp{?}.	@*
+@samp{\@{0,\@}} or @samp{\@{,\@}} is equivalent to @samp{*}.	@*
+@samp{\@{1,\@}} is equivalent to @samp{+}.
+
 @item \( @dots{} \)
 @cindex @samp{(} in regexp
 @cindex @samp{)} in regexp
@@ -496,14 +515,26 @@ To enclose a complicated expression for the postfix operators @samp{*},
 number (zero or more) of @samp{na} strings.
 
 @item
-To record a matched substring for future reference.
+To record a matched substring for future reference with
+@samp{\@var{digit}} (see below).
 @end enumerate
 
 This last application is not a consequence of the idea of a
-parenthetical grouping; it is a separate feature that happens to be
-assigned as a second meaning to the same @samp{\( @dots{} \)} construct
-because there is no conflict in practice between the two meanings.
-Here is an explanation of this feature:
+parenthetical grouping; it is a separate feature that was assigned as a
+second meaning to the same @samp{\( @dots{} \)} construct because, in
+pratice, there was usually no conflict between the two meanings.  But
+occasionally there is a conflict, and that led to the introduction of
+shy groups.
+
+@item \(?: @dots{} \)
+is the @dfn{shy group} construct.  A shy group serves the first two
+purposes of an ordinary group (controlling the nesting of other
+operators), but it does not get a number, so you cannot refer back to
+its value with @samp{\@var{digit}}.
+
+Shy groups are particulary useful for mechanically-constructed regular
+expressions because they can be added automatically without altering the
+numbering of any ordinary, non-shy groups.
 
 @item \@var{digit}
 matches the same text that matched the @var{digit}th occurrence of a
