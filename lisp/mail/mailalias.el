@@ -101,10 +101,12 @@ removed from alias expansions."
 	(set-marker end1 nil)))
     (set-marker end nil)))
 
-;; Called by mail-setup, or similar functions, only if ~/.mailrc exists.
+;; Called by mail-setup, or similar functions, only if the file specified
+;; by mail-personal-alias-file (usually `~/.mailrc') exists.
 (defun build-mail-aliases (&optional file)
-  "Read mail aliases from `~/.mailrc' and set `mail-aliases'."
-  (setq file (expand-file-name (or file (or (getenv "MAILRC") "~/.mailrc"))))
+  "Read mail aliases from personal aliases file and set `mail-aliases'.
+By default, this is the file specified by `mail-personal-alias-file'."
+  (setq file (expand-file-name (or file mail-personal-alias-file)))
   (let ((buffer nil)
 	(obuf (current-buffer)))
     (unwind-protect
@@ -170,7 +172,7 @@ An address can contain spaces if it is quoted with double-quotes."
   (if (eq mail-aliases t)
       (progn
 	(setq mail-aliases nil)
-	(if (file-exists-p (or (getenv "MAILRC") "~/.mailrc"))
+	(if (file-exists-p mail-personal-alias-file)
 	    (build-mail-aliases))))
   ;; strip garbage from front and end
   (if (string-match "\\`[ \t\n,]+" definition)
