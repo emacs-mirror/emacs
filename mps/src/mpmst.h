@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.95) $
+ * $HopeName: MMsrc!mpmst.h(trunk.96) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .design: This header file crosses module boundaries.  The relevant
@@ -668,6 +668,9 @@ typedef struct GlobalsStruct {
 
   /* version field (impl.c.version) */
   const char *mpsVersionString; /* MPSVersion() */
+
+  /* buffer fields (impl.c.buffer) */
+  Bool bufferLogging;           /* design.mps.buffer.logging.control */
 } GlobalsStruct;
 
 
@@ -682,10 +685,11 @@ typedef struct ArenaStruct {
   GlobalsStruct globals; /* must be first, see design.mps.arena.globals */
   Serial serial;
 
-  /* arena allocation fields (impl.c.arena) */
   ArenaClass class;             /* arena class structure */
+
   Bool poolReady;               /* design.mps.arena.pool.ready */
   MVStruct controlPoolStruct;   /* design.mps.arena.pool */
+
   ReservoirStruct reservoirStruct; /* design.mps.reservoir */
 
   double fillMutatorSize;       /* total bytes filled, mutator buffers */
@@ -710,8 +714,6 @@ typedef struct ArenaStruct {
   RingStruct chunkRing;         /* all the chunks */
   Serial chunkSerial;           /* next chunk number */
   ChunkCacheEntryStruct chunkCache; /* just one entry */
-
-  Bool bufferLogging;           /* design.mps.buffer.logging.control */
 
   /* locus fields (impl.c.locus) */
   GenDescStruct topGen;         /* generation descriptor for dynamic gen */
