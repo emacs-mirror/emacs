@@ -1,11 +1,17 @@
+2001-05-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/sh-script.el (sh-prev-line): Look for sh-heredoc-face
+	rather than font-lock-string-face.
+	(sh-get-indent-info): Treat heredocs like strings.
+
 2001-05-02  Gerd Moellmann  <gerd@gnu.org>
 
-	* textmodes/texinfmt.el (texinfo-format-parse-args): Don't
-	consume a newline following `}'.
+	* textmodes/texinfmt.el (texinfo-format-parse-args): Don't consume
+	a newline following `}'.
 	(texinfo-format-email): New function.
 	(toplevel): Use texinfo-format-email for @email.
-	(texinfo-format-kbd-regexp, texinfo-format-kbd-end-regexp): Add
-	`display'.
+	(texinfo-format-kbd-regexp, texinfo-format-kbd-end-regexp):
+	Add `display'.
 	(texinfo-sort-region): Goto point-min before sorting.
 	(texinfo-set): Remove leading white space from value.
 	From yagi@is.titech.ac.jp.
