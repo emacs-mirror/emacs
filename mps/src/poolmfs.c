@@ -1,35 +1,34 @@
-/*  ==== MANUAL FIXED SMALL UNIT POOL ====
+/* impl.c.poolmfs: MANUAL FIXED SMALL UNIT POOL
  *
- *  $HopeName: MMsrc!poolmfs.c(trunk.7) $
+ * $HopeName: MMsrc!poolmfs.c(trunk.8) $
+ * Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
- *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
+ * This is the implementation of the MFS pool class.  PoolMFS operates
+ * in a very simple manner: each segment is divided into units.  Free
+ * units are kept on a linked list using a header stored in the unit
+ * itself.  The linked list it not ordered, so allocation and
+ * deallocation simply pop and push from the head of the list.  This is
+ * fast, but successive allocations might have poor locality if
+ * previous successive frees did.
  *
- *  This is the implementation of the MFS pool class.  PoolMFS operates
- *  in a very simple manner: each segment is divided into units.  Free
- *  units are kept on a linked list using a header stored in the unit
- *  itself.  The linked list it not ordered, so allocation and
- *  deallocation simply pop and push from the head of the list.  This is
- *  fast, but successive allocations might have poor locality if
- *  previous successive frees did.
+ * **** RESTRICTION: This pool cannot allocate from the arena control
+ * pool, nor can it allocate sub-pools, as it is used in the arena
+ * bootstrap sequence.  See the arena manager implementation for
+ * details.
  *
- *  **** RESTRICTION: This pool cannot allocate from the arena control
- *  pool, nor can it allocate sub-pools, as it is used in the arena
- *  bootstrap sequence.  See the arena manager implementation for
- *  details.
- *
- *  Notes
- *   1. The simple freelist policy might lead to poor locality of allocation
- *      if the list gets fragmented.  richard 1994-11-03
- *   2. free should check that the pointer it is asked to free is in a
- *      segment owned by the pool.  This required more support from the
- *      arena manager than is currently available.  richard 1994-11-03
- *   3. A describe method is needed.  richard 1994-11-03
- *   4. By not using the rounded extent of a segment some space may be
- *      wasted at the end in alloc.  richard 1994-11-03
- *   5. isValid should check that free list points into the pool.
- *      richard 1994-11-03
- *   6. This pool doesn't support fast cache allocation, which is a shame.
- *      richard 1994-11-03
+ * Notes
+ *  1. The simple freelist policy might lead to poor locality of
+ *     allocation if the list gets fragmented.  richard 1994-11-03
+ *  2. free should check that the pointer it is asked to free is in a
+ *     segment owned by the pool.  This required more support from the
+ *     arena manager than is currently available.  richard 1994-11-03
+ *  3. A describe method is needed.  richard 1994-11-03
+ *  4. By not using the rounded extent of a segment some space may be
+ *     wasted at the end in alloc.  richard 1994-11-03
+ *  5. isValid should check that free list points into the pool.
+ *     richard 1994-11-03
+ *  6. This pool doesn't support fast cache allocation, which is a
+ *     shame. richard 1994-11-03
  */
 
 #include "std.h"
@@ -44,7 +43,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-SRCID("$HopeName$");
+SRCID("$HopeName: MMsrc!poolmfs.c(trunk.8) $");
 
 
 /*  == Round up ==
@@ -73,7 +72,9 @@ PoolClass PoolClassMFS(void)
                 create, destroy,
                 alloc, free_,
                 NULL, NULL,             /* bufferCreate, bufferDestroy */
-                NULL, NULL, NULL,       /* comdemn, mark, scan */
+                NULL, NULL,		/* bufferFill, bufferTrip */
+                NULL, NULL,		/* bufferExpose, bufferCover */
+                NULL, NULL,             /* mark, scan */
                 NULL, NULL,             /* fix, relcaim */
                 NULL, NULL,             /* access, poll */
                 describe);
