@@ -605,7 +605,7 @@ compose_chars_in_text (start, end, string)
   /* Set to nonzero if we don't have to compose ASCII characters.  */
   int skip_ascii;
   int i, len, stop, c;
-  unsigned char *ptr, *pend;
+  const unsigned char *ptr, *pend;
 
   if (! CHAR_TABLE_P (Vcomposition_function_table))
     return;
