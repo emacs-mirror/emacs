@@ -1,6 +1,6 @@
 /* impl.h.poolams: AUTOMATIC MARK & SWEEP POOL CLASS INTERFACE
  *
- * $HopeName: MMsrc!poolams.h(trunk.14) $
+ * $HopeName: MMsrc!poolams.h(trunk.15) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .purpose: Internal interface to AMS functionality.
@@ -88,7 +88,7 @@ typedef struct AMSSegStruct {
 #define SegAMSSeg(seg)             ((AMSSeg)(seg))
 #define AMSSegSeg(amsseg)          ((Seg)(amsseg))
 
-#define PoolPoolAMS(pool) PARENT(AMSStruct, poolStruct, (pool))
+#define PoolPoolAMS(pool) PARENT(AMSStruct, poolStruct, pool)
 #define AMSPool(ams)      (&(ams)->poolStruct)
 
 
@@ -103,72 +103,70 @@ typedef struct AMSSegStruct {
 #define AMSSegShift(seg) (SegAMSSeg(seg)->ams->grainShift)
 
 #define AMS_ADDR_INDEX(seg, addr) \
-  ((Index)(AddrOffset(SegBase(seg), (addr)) \
-           >> AMSSegShift(seg)))
+  ((Index)(AddrOffset(SegBase(seg), addr) >> AMSSegShift(seg)))
 #define AMS_INDEX_ADDR(seg, index) \
-  AddrAdd(SegBase(seg), \
-          (Size)(index) << AMSSegShift(seg))
+  AddrAdd(SegBase(seg), (Size)(index) << AMSSegShift(seg))
 
 
 /* colour ops */
 
 #define AMSIsWhite(seg, index) \
-  (!BTGet(SegAMSSeg(seg)->nonwhiteTable, (index)))
+  (!BTGet(SegAMSSeg(seg)->nonwhiteTable, index))
 
 #define AMSIsGrey(seg, index) \
-  (!BTGet(SegAMSSeg(seg)->nongreyTable, (index)))
+  (!BTGet(SegAMSSeg(seg)->nongreyTable, index))
 
 #define AMSIsBlack(seg, index) \
-  (!AMSIsGrey((seg), (index)) && !AMSIsWhite((seg), (index)))
+  (!AMSIsGrey(seg, index) && !AMSIsWhite(seg, index))
 
 #define AMSIsInvalidColor(seg, index) \
-  (AMSIsGrey((seg), (index)) && AMSIsWhite((seg), (index)))
+  (AMSIsGrey(seg, index) && AMSIsWhite(seg, index))
 
 #define AMSGreyBlacken(seg, index) \
   BEGIN \
-    BTSet(SegAMSSeg(seg)->nongreyTable, (index)); \
+    BTSet(SegAMSSeg(seg)->nongreyTable, index); \
   END
 
 #define AMSWhiteGreyen(seg, index) \
   BEGIN \
-    BTSet(SegAMSSeg(seg)->nonwhiteTable, (index)); \
-    BTRes(SegAMSSeg(seg)->nongreyTable, (index)); \
+    BTSet(SegAMSSeg(seg)->nonwhiteTable, index); \
+    BTRes(SegAMSSeg(seg)->nongreyTable, index); \
   END
 
 #define AMSWhiteBlacken(seg, index) \
   BEGIN \
-    BTSet(SegAMSSeg(seg)->nonwhiteTable, (index)); \
+    BTSet(SegAMSSeg(seg)->nonwhiteTable, index); \
   END
 
 #define AMSRangeWhiteBlacken(seg, base, limit) \
   BEGIN \
-    BTSetRange(SegAMSSeg(seg)->nonwhiteTable, (base), (limit)); \
+    BTSetRange(SegAMSSeg(seg)->nonwhiteTable, base, limit); \
   END
 
 #define AMSRangeWhiten(seg, base, limit) \
   BEGIN \
-    BTResRange(SegAMSSeg(seg)->nonwhiteTable, (base), (limit)); \
-    BTSetRange(SegAMSSeg(seg)->nongreyTable, (base), (limit)); \
+    BTResRange(SegAMSSeg(seg)->nonwhiteTable, base, limit); \
+    BTSetRange(SegAMSSeg(seg)->nongreyTable, base, limit); \
   END
 
 #define AMSRangeBlacken(seg, base, limit) \
   BEGIN \
-    BTSetRange(SegAMSSeg(seg)->nonwhiteTable, (base), (limit)); \
-    BTSetRange(SegAMSSeg(seg)->nongreyTable, (base), (limit)); \
+    BTSetRange(SegAMSSeg(seg)->nonwhiteTable, base, limit); \
+    BTSetRange(SegAMSSeg(seg)->nongreyTable, base, limit); \
   END
 
 #define AMSFindGrey(pos, dummy, seg, base, limit) \
-  BTFindShortResRange((pos), (dummy), SegAMSSeg(seg)->nongreyTable, \
-                      (base), (limit), 1) \
+  BTFindShortResRange(pos, dummy, SegAMSSeg(seg)->nongreyTable, \
+                      base, limit, 1) \
 
 #define AMSFindWhite(pos, dummy, seg, base, limit) \
-  BTFindShortResRange((pos), (dummy), SegAMSSeg(seg)->nonwhiteTable, \
-                      (base), (limit), 1) \
+  BTFindShortResRange(pos, dummy, SegAMSSeg(seg)->nonwhiteTable, \
+                      base, limit, 1) \
 
 
 #define AMS_ALLOCED(seg, index) \
   (SegAMSSeg(seg)->allocTableInUse \
-   ? BTGet(SegAMSSeg(seg)->allocTable, (index)) \
+   ? BTGet(SegAMSSeg(seg)->allocTable, index) \
    : (SegAMSSeg(seg)->firstFree > (index)))
 
 
@@ -196,14 +194,14 @@ extern void AMSReclaim(Pool pool, Trace trace, Seg seg);
 
 typedef SegClass AMSSegClass;
 typedef SegClassStruct AMSSegClassStruct;
-extern AMSSegClass EnsureAMSSegClass(void);
+extern AMSSegClass AMSSegClassGet(void);
 extern Bool AMSSegCheck(AMSSeg seg);
 
 
 typedef PoolClass AMSPoolClass;
 typedef PoolClassStruct AMSPoolClassStruct;
 
-extern AMSPoolClass EnsureAMSPoolClass(void);
+extern AMSPoolClass AMSPoolClassGet(void);
 
 
 #endif /* poolams_h */
