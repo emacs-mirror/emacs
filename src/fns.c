@@ -920,17 +920,17 @@ merge (org_l1, org_l2, pred)
 
 
 DEFUN ("plist-get", Fplist_get, Splist_get, 2, 2, 0,
-       "Extract a value from a property list.\n\
+  "Extract a value from a property list.\n\
 PLIST is a property list, which is a list of the form\n\
 \(PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value\n\
 corresponding to the given PROP, or nil if PROP is not\n\
 one of the properties on the list.")
-  (val, prop)
-     Lisp_Object val;
+  (plist, prop)
+     Lisp_Object plist;
      register Lisp_Object prop;
 {
   register Lisp_Object tail;
-  for (tail = val; !NILP (tail); tail = Fcdr (Fcdr (tail)))
+  for (tail = plist; !NILP (tail); tail = Fcdr (Fcdr (tail)))
     {
       register Lisp_Object tem;
       tem = Fcar (tail);
