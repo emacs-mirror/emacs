@@ -1,3 +1,41 @@
+2000-11-21  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/ada-mode.el (ada-mode): `set '' -> `setq'.
+
+	* find-lisp.el (find-lisp-find-files-internal):
+	Use dolist, when and file-name-as-directory.
+
+	* emacs-lisp/edebug.el (edebug-form-spec prop): use dolist.
+	(define-derived-mode, define-minor-mode): Add specs.
+
+	* window.el: General comment and spacing fixes.
+	(save-selected-window): Use backquotes.
+	(window-safely-shrinkable-p): New function.
+	(shrink-window-if-larger-than-buffer): Use it.
+
+	* subr.el (make-local-hook): Docstring fix.
+
+	* shell.el (shell-mode): Use define-derived-mode.
+
+	* newcomment.el (comment-indent): Insert comment before calling
+	comment-indent-function.  Don't insert in column 0.
+	(comment-dwim): Indent before inserting comment.
+
+	* isearch.el (isearch-mode-map): Fix docstring.  Init in defvar.
+	(minibuffer-local-isearch-map): Init in defvar.  Use inheritance.
+	(isearch-clean-overlays, isearch-range-invisible, isearch-unread):
+	Use mapc rather than map.
+
+	* files.el (find-buffer-visiting): Compare all attributes before
+	declaring two files identical (rather than just their inode-no).
+	(auto-mode-alist): Use \' rather than $.
+
+	* which-func.el: Update maintainer line.
+
+	* pcvs.el (uniquify-buffer-file-name): Remove advice.
+	* uniquify.el (uniquify-list-buffers-directory-modes): New var.
+	(uniquify-buffer-file-name): Use it.
+
 2000-11-22  Miles Bader  <miles@gnu.org>
 
 	* cus-start.el: Add entry for `minibuffer-prompt-properties'.
