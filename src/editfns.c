@@ -2775,7 +2775,7 @@ It returns the number of characters changed.  */)
 
   pos = XINT (start);
   pos_byte = CHAR_TO_BYTE (pos);
-  end_pos = XINT (end); 
+  end_pos = XINT (end);
   modify_region (current_buffer, pos, XINT (end));
 
   cnt = 0;
@@ -3268,7 +3268,7 @@ usage: (format STRING &rest OBJECTS)  */)
   /* discarded[I] is 1 if byte I of the format
      string was not copied into the output.
      It is 2 if byte I was not the first byte of its character.  */
-  char *discarded;
+  char *discarded = 0;
 
   /* Each element records, for one argument,
      the start and end bytepos in the output string,
@@ -3319,11 +3319,13 @@ usage: (format STRING &rest OBJECTS)  */)
   {
     int nbytes = (nargs+1) * sizeof *info;
     int i;
-    info = (struct info *) alloca (nbytes);
+    if (!info)
+      info = (struct info *) alloca (nbytes);
     bzero (info, nbytes);
     for (i = 0; i <= nargs; i++)
       info[i].start = -1;
-    discarded = (char *) alloca (SBYTES (args[0]));
+    if (!discarded)
+      SAFE_ALLOCA (discarded, char *, SBYTES (args[0]));
     bzero (discarded, SBYTES (args[0]));
   }
 
@@ -3684,7 +3686,7 @@ usage: (format STRING &rest OBJECTS)  */)
   val = make_specified_string (buf, nchars, p - buf, multibyte);
 
   /* If we allocated BUF with malloc, free it too.  */
-  SAFE_FREE (total);
+  SAFE_FREE ();
 
   /* If the format string has text properties, or any of the string
      arguments has text properties, set up text properties of the
@@ -4056,7 +4058,7 @@ Transposing beyond buffer boundaries is an error.  */)
           bcopy (start2_addr, temp, len2_byte);
           bcopy (start1_addr, start1_addr + len2_byte, len1_byte);
           bcopy (temp, start1_addr, len2_byte);
-	  SAFE_FREE (len2_byte);
+	  SAFE_FREE ();
         }
       else
 	/* First region not smaller than second.  */
@@ -4069,7 +4071,7 @@ Transposing beyond buffer boundaries is an error.  */)
           bcopy (start1_addr, temp, len1_byte);
           bcopy (start2_addr, start1_addr, len2_byte);
           bcopy (temp, start1_addr + len2_byte, len1_byte);
-	  SAFE_FREE (len1_byte);
+	  SAFE_FREE ();
         }
       graft_intervals_into_buffer (tmp_interval1, start1 + len2,
                                    len1, current_buffer, 0);
@@ -4105,7 +4107,7 @@ Transposing beyond buffer boundaries is an error.  */)
           bcopy (start1_addr, temp, len1_byte);
           bcopy (start2_addr, start1_addr, len2_byte);
           bcopy (temp, start2_addr, len1_byte);
-	  SAFE_FREE (len1_byte);
+	  SAFE_FREE ();
 
           graft_intervals_into_buffer (tmp_interval1, start2,
                                        len1, current_buffer, 0);
@@ -4134,7 +4136,7 @@ Transposing beyond buffer boundaries is an error.  */)
           bcopy (start1_addr, start1_addr + len_mid + len2_byte, len1_byte);
           safe_bcopy (start1_addr + len1_byte, start1_addr + len2_byte, len_mid);
           bcopy (temp, start1_addr, len2_byte);
-	  SAFE_FREE (len2_byte);
+	  SAFE_FREE ();
 
           graft_intervals_into_buffer (tmp_interval1, end2 - len1,
                                        len1, current_buffer, 0);
@@ -4165,7 +4167,7 @@ Transposing beyond buffer boundaries is an error.  */)
           bcopy (start2_addr, start1_addr, len2_byte);
           bcopy (start1_addr + len1_byte, start1_addr + len2_byte, len_mid);
           bcopy (temp, start1_addr + len2_byte + len_mid, len1_byte);
-	  SAFE_FREE (len1_byte);
+	  SAFE_FREE ();
 
           graft_intervals_into_buffer (tmp_interval1, end2 - len1,
                                        len1, current_buffer, 0);
