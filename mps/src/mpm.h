@@ -657,6 +657,7 @@ extern void ArenaClamp(Arena arena);
 extern void ArenaRelease(Arena arena);
 extern void ArenaPark(Arena arena);
 extern Res ArenaCollect(Arena arena);
+extern Bool ArenaHasAddr(Arena arena, Addr addr);
 
 extern Res ControlAlloc(void **baseReturn, Arena arena, size_t size, 
                         Bool withReservoirPermit);
