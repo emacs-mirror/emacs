@@ -1344,20 +1344,14 @@ and generates the overview, one line per target name."
 ;;; ------------------------------------------------------------
 
 (defun makefile-warn-suspicious-lines ()
-  (let ((dont-save nil))
-    (if (eq major-mode 'makefile-mode)
-	(let ((suspicious
-	       (save-excursion
-		 (goto-char (point-min))
-		 (re-search-forward
-		  "\\(^[\t]+$\\)\\|\\(^[ ]+[\t]\\)" (point-max) t))))
-	  (if suspicious
-	      (let ((line-nr (count-lines (point-min) suspicious)))
-		(setq dont-save
-		      (not (y-or-n-p
-			    (format "Suspicious line %d. Save anyway "
-				    line-nr))))))))
-    dont-save))
+  ;; Returning non-nil cancels the save operation
+  (if (eq major-mode 'makefile-mode)
+      (save-excursion
+	(goto-char (point-min))
+	(if (re-search-forward "^\\(\t+$\\| +\t\\)" nil t)
+	    (not (y-or-n-p
+		  (format "Suspicious line %d. Save anyway "
+			  (count-lines (point-min) (point)))))))))
 	  
 
 
