@@ -3740,9 +3740,11 @@ the return value is nil.  Otherwise the value is t.")
       if (XFASTINT (data->frame_menu_bar_lines)
 	  != previous_frame_menu_bar_lines)
 	x_set_menu_bar_lines (f, data->frame_menu_bar_lines, make_number (0));
+#ifdef HAVE_WINDOW_SYSTEM
       if (XFASTINT (data->frame_toolbar_lines)
 	  != previous_frame_toolbar_lines)
 	x_set_toolbar_lines (f, data->frame_toolbar_lines, make_number (0));
+#endif
 #endif
 
       if (! NILP (XWINDOW (selected_window)->buffer))
@@ -3905,9 +3907,11 @@ the return value is nil.  Otherwise the value is t.")
       if (previous_frame_menu_bar_lines != FRAME_MENU_BAR_LINES (f))
 	x_set_menu_bar_lines (f, make_number (previous_frame_menu_bar_lines),
 			      make_number (0));
+#ifdef HAVE_WINDOW_SYSTEM
       if (previous_frame_toolbar_lines != FRAME_TOOLBAR_LINES (f))
 	x_set_toolbar_lines (f, make_number (previous_frame_toolbar_lines),
 			     make_number (0));
+#endif
 #endif
 
       /* Now, free glyph matrices in windows that were not reused.  */
