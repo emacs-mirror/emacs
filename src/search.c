@@ -2746,6 +2746,9 @@ LIST should have been created by calling `match-data' previously.")
 				       length * sizeof (regoff_t));
 	  }
 
+	for (i = search_regs.num_regs; i < length; i++)
+	  search_regs.start[i] = -1;
+
 	search_regs.num_regs = length;
       }
   }
@@ -2760,6 +2763,8 @@ LIST should have been created by calling `match-data' previously.")
 	}
       else
 	{
+	  int from;
+
 	  if (MARKERP (marker))
 	    {
 	      if (XMARKER (marker)->buffer == 0)
@@ -2769,7 +2774,7 @@ LIST should have been created by calling `match-data' previously.")
 	    }
 
 	  CHECK_NUMBER_COERCE_MARKER (marker, 0);
-	  search_regs.start[i] = XINT (marker);
+	  from = XINT (marker);
 	  list = Fcdr (list);
 
 	  marker = Fcar (list);
@@ -2777,6 +2782,7 @@ LIST should have been created by calling `match-data' previously.")
 	    XSETFASTINT (marker, 0);
 
 	  CHECK_NUMBER_COERCE_MARKER (marker, 0);
+	  search_regs.start[i] = from;
 	  search_regs.end[i] = XINT (marker);
 	}
       list = Fcdr (list);
