@@ -2,7 +2,7 @@
 @c Copyright (C) 1997, 1999, 2000, 2001 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 
-@node Antinews, Mac OS, Command Arguments, Top
+@node Antinews, Mac OS, X Resources, Top
 @appendix Emacs 20 Antinews
 
   For those users who live backwards in time, here is information about
