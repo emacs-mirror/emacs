@@ -2,6 +2,27 @@
 
 	* indent.el (indent-for-tab-command): Doc fix.
 
+2000-09-14  Alex Schroeder  <alex@gnu.org>
+
+	* ansi-color.el (ansi-colors): Doc change.
+	(ansi-color-get-face): Simplified regexp.
+	(ansi-color-faces-vector): Added more faces, doc change.
+	(ansi-color-names-vector): Doc change.
+	(ansi-color-regexp): Simplified regexp.
+	(ansi-color-parameter-regexp): New regexp.
+	(ansi-color-filter-apply): Doc change.
+	(ansi-color-filter-region): Doc change.
+	(ansi-color-apply): Use ansi-color-regexp and ansi-color-get-face,
+	deal with zero length parameters.
+	(ansi-color-apply-on-region): Doc change.
+	(ansi-color-map): Doc change.
+	(ansi-color-map-update): Removed debugging message.
+	(ansi-color-get-face-1): Added condition-case to trap
+	args-out-of-range errors.
+	(ansi-color-get-face): Doc change.
+	(ansi-color-make-face): Removed.
+	(ansi-color-for-shell-mode): New option.
+	
 2000-09-13  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/quail.el (quail-start-translation): Translate KEY
