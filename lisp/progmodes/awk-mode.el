@@ -144,6 +144,8 @@ with no args, if that value is non-nil."
   (setq comment-start-skip "#+ *")
   (make-local-variable 'comment-indent-function)
   (setq comment-indent-function 'c-comment-indent)
+  (make-local-variable 'parse-sexp-ignore-comments)
+  (setq parse-sexp-ignore-comments t)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(awk-font-lock-keywords nil nil ((?_ . "w"))))
   (run-hooks 'awk-mode-hook))
