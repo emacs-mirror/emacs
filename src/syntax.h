@@ -64,7 +64,7 @@ enum syntaxcode
 #define SYNTAX(c)						\
  (RAW_SYNTAX (current_buffer->syntax_table, c) == Sinherit	\
   ? RAW_SYNTAX (Vstandard_syntax_table, c)			\
-  : RAW_SYNTAX (c))
+  : RAW_SYNTAX (current_buffer->syntax_table, c))
 #endif
 
 /* The next 8 bits of the number is a character,
@@ -88,7 +88,7 @@ enum syntaxcode
 #define SYNTAX_MATCH(c)						\
  (RAW_SYNTAX (current_buffer->syntax_table, c) == Sinherit	\
   ? RAW_SYNTAX_MATCH (Vstandard_syntax_table, c)			\
-  : RAW_SYNTAX_MATCH (c))
+  : RAW_SYNTAX_MATCH (current_buffer->syntax_table, c))
 #endif
 
 /* Then there are six single-bit flags that have the following meanings:
