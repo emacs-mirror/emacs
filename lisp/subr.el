@@ -658,6 +658,7 @@ Please convert your programs to use the variable `baud-rate' directly."
 (defalias 'search-backward-regexp (symbol-function 're-search-backward))
 (defalias 'int-to-string 'number-to-string)
 (defalias 'store-match-data 'set-match-data)
+;; These are the XEmacs names:
 (defalias 'point-at-eol 'line-end-position)
 (defalias 'point-at-bol 'line-beginning-position)
 
@@ -1509,13 +1510,33 @@ to `minor-mode-map-alist'.
 Optional AFTER specifies that TOGGLE should be added after AFTER
 in `minor-mode-alist'.
 
-Optional TOGGLE-FUN is there for compatiblity with other Emacsen.
-It is currently not used.
+Optional TOGGLE-FUN is an interactive function to toggle the mode.  If
+supplied, it is used to make mouse clicks on the mode-line string turn
+off the mode.
+
+If TOGGLE-FUN is supplied and TOGGLE has a non-nil `:included'
+property, an entry for the mode is included in the mode-line minor
+mode menu.  If TOGGLE has a `:menu-tag', that is used for the menu
+item's label instead of NAME.
 
 In most cases, `define-minor-mode' should be used instead."
   (when name
     (let ((existing (assq toggle minor-mode-alist))
 	  (name (if (symbolp name) (symbol-value name) name)))
+      (when (functionp toggle-fun)
+	(setq name
+	      (apply 'propertize name
+		     'local-map (make-mode-line-mouse2-map toggle-fun)
+		     (unless (get-text-property 0 'help-echo name)
+		       (list 'help-echo
+			     (format "mouse-2: turn off %S" toggle)))))
+	(when (get toggle :included)
+	  (define-key mode-line-mode-menu
+	    (vector toggle)
+	    (list 'menu-item
+		  (or (get toggle :menu-tag) name)
+		  toggle-fun
+		  :button (cons :toggle toggle)))))
       (cond ((null existing)
 	     (let ((tail minor-mode-alist) found)
 	       (while (and tail (not found))
