@@ -317,7 +317,7 @@ usage: (or CONDITIONS ...)  */)
 }
 
 DEFUN ("and", Fand, Sand, 0, UNEVALLED, 0,
-  doc: /* Eval args until one of them yields nil, then return nil.
+       doc: /* Eval args until one of them yields nil, then return nil.
 The remaining args are not evalled at all.
 If no arg yields nil, return the last arg's value.
 usage: (and CONDITIONS ...)  */)
@@ -348,7 +348,7 @@ usage: (and CONDITIONS ...)  */)
 }
 
 DEFUN ("if", Fif, Sif, 2, UNEVALLED, 0,
-  doc: /* If COND yields non-nil, do THEN, else do ELSE...
+       doc: /* If COND yields non-nil, do THEN, else do ELSE...
 Returns the value of THEN or the value of the last of the ELSE's.
 THEN must be one expression, but ELSE... can be zero or more expressions.
 If COND yields nil, and there are no ELSE's, the value is nil.
