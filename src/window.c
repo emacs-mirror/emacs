@@ -2853,6 +2853,9 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
 
       /* This may call adjust_window_margins three times, so
 	 temporarily disable window margins.  */
+      Lisp_Object save_left = w->left_margin_cols;
+      Lisp_Object save_right = w->right_margin_cols;
+
       w->left_margin_cols = w->right_margin_cols = Qnil;
 
       Fset_window_fringes (window,
@@ -2862,6 +2865,9 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
       Fset_window_scroll_bars (window,
 			       b->scroll_bar_width,
 			       b->vertical_scroll_bar_type, Qnil);
+
+      w->left_margin_cols = save_left;
+      w->right_margin_cols = save_right;
 
       Fset_window_margins (window,
 			   b->left_margin_cols, b->right_margin_cols);
