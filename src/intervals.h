@@ -209,14 +209,14 @@ Boston, MA 02111-1307, USA.  */
 #define TEXT_PROP_MEANS_INVISIBLE_WITH_ELLIPSIS(prop)		\
   (EQ (current_buffer->invisibility_spec, Qt)			\
    ? 0								\
-   : invisible_ellipsis_p (prop, current_buffer->invisibility_spec))
+   : 1 == invisible_p (prop, current_buffer->invisibility_spec))
 
 /* As above but for "completely" invisible (no ellipsis).  */
 
 #define TEXT_PROP_MEANS_INVISIBLE_NOELLIPSIS(prop)		\
   (EQ (current_buffer->invisibility_spec, Qt)			\
    ? !NILP (prop)						\
-   : invisible_noellipsis_p (prop, current_buffer->invisibility_spec))
+   : 2 == invisible_p (prop, current_buffer->invisibility_spec))
 
 /* Declared in alloc.c */
 
@@ -264,9 +264,7 @@ extern INTERVAL validate_interval_range P_ ((Lisp_Object, Lisp_Object *,
 					     Lisp_Object *, int));
 
 /* Defined in xdisp.c */
-extern int invisible_ellipsis_p P_ ((Lisp_Object, Lisp_Object));
 extern int invisible_p P_ ((Lisp_Object, Lisp_Object));
-extern int invisible_noellipsis_p P_ ((Lisp_Object, Lisp_Object));
 
 /* Declared in textprop.c */
 
