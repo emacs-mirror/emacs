@@ -6,6 +6,11 @@
 	* startup.el (normal-top-level): Don't operate on the initial
 	frame if we failed to create one.
 
+2001-07-10  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-indent-exp): Keep the indentation of the block
+	itself, i.e. only indent the contents in it.
+
 2001-07-10  Markus Rost  <rost@math.ohio-state.edu>
 
 	* mail/rmail.el (rmail-show-message): Show beginning of message in
