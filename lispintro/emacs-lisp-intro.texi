@@ -21,8 +21,8 @@
 
 @comment %**end of header
 
-@set edition-number 2.10
-@set update-date 2003 July 15
+@set edition-number 2.11
+@set update-date 2003 Nov 16
 
 @ignore
  ## Summary of shell commands to create various output formats:
@@ -3519,7 +3519,7 @@ this.
 
 Alternatively, if the special letter-codes are not right for your
 application, you can pass your own arguments to @code{interactive} as
-a list.  @xref{interactive, , Using @code{Interactive}, elisp, The
+a list.  @xref{Using Interactive, , Using @code{Interactive}, elisp, The
 GNU Emacs Lisp Reference Manual}, for more information about this advanced
 technique.
 
@@ -8097,8 +8097,7 @@ either by setting it manually or by using @code{customize}.
 
 For me, the major use of the @code{edit-options} command is to suggest
 variables that I might want to set in my @file{.emacs} file.  I urge
-you to look through the list.  (@xref{Edit Options, , Editing Variable
-Values, emacs, The GNU Emacs Manual}.)
+you to look through the list.
 
 @node copy-region-as-kill, cons & search-fwd Review, defvar, Cutting & Storing Text
 @comment  node-name,  next,  previous,  up
@@ -9142,7 +9141,7 @@ address-boxes, the first of which holds the address of @code{violet},
 and the second of which holds the address of @code{buttercup}.
 
 A pair of address-boxes is called a @dfn{cons cell} or @dfn{dotted
-pair}.  @xref{List Type, , List Type , elisp, The GNU Emacs Lisp
+pair}.  @xref{Cons Cell Type, , Cons Cell and List Types, elisp, The GNU Emacs Lisp
 Reference Manual}, and @ref{Dotted Pair Notation, , Dotted Pair
 Notation, elisp, The GNU Emacs Lisp Reference Manual}, for more
 information about cons cells and dotted pairs.
