@@ -462,12 +462,13 @@ store_function_docstring (fun, offset)
 
 DEFUN ("Snarf-documentation", Fsnarf_documentation, Ssnarf_documentation,
        1, 1, 0,
-       doc: /* Used during Emacs initialization, before dumping runnable Emacs,
-to find pointers to doc strings stored in `etc/DOC...' and
-record them in function definitions.
-One arg, FILENAME, a string which does not include a directory.
-The file is found in `../etc' now; found in the `data-directory'
-when doc strings are referred to later in the dumped Emacs.  */)
+       doc: /* Used during Emacs initialization to scan the `etc/DOC...' file.
+This searches the `etc/DOC...' file for doc strings and
+records them in function and variable definitions.
+The function takes one argument, FILENAME, a string;
+it specifies the file name (without a directory) of the DOC file.
+That file is found in `../etc' now; later, when the dumped Emacs is run,
+the same file name is found in the `data-directory'.  */)
      (filename)
      Lisp_Object filename;
 {
