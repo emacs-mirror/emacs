@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate June 23, 1999
+@set lastupdate June 24, 1999
 @c %**end of header
 
 @setchapternewpage off
@@ -255,7 +255,7 @@ A @code{grap} preprocessor program for @code{troff}.
 @item
 Less urgent: make a replacement for the ``writer's workbench'' program
 @code{style}, or something to do the same kind of job.  Compatibility
-with Unix is not especially important for this programs.
+with Unix is not especially important for this program.
 @end itemize
 
 @node Kernel Projects, Extensions, Unix-Related Projects, Top
@@ -472,7 +472,9 @@ using the same protocol that Kermit uses.
 An imitation of Page Maker or Ventura Publisher.
 
 @item
-An imitation of @code{dbase2} or @code{dbase3} (How dbased!)
+An imitation of @code{dbase2} or @code{dbase3}.  (How dbased!)
+@uref{http://www.startech.keller.tx.us/xbase/xbase.html} may contain
+some useful stuff to start with.
 
 @item
 A general ledger program, including support for accounts payable, 
