@@ -141,8 +141,48 @@
 #endif
 
 
-/* VAX C can't handle multi-line #ifs.  */
-#if (defined(MORE_BSD) || defined(sun) || defined(decstation) || defined(_SEQUENT_) || defined(sgi) || defined(SVR4) || defined(sony_news) || defined(sequent) || defined (OSF_ALPHA) || (defined (ardent) && defined (titan)) || defined (tek4300))
+/* VAX C can't handle multi-line #ifs, or lines longer than 256 chars.  */
+#ifdef MORE_BSD
+#define LOAD_AVE_TYPE long
+#endif
+
+#ifdef sun
+#define LOAD_AVE_TYPE long
+#endif
+
+#ifdef decstation
+#define LOAD_AVE_TYPE long
+#endif
+
+#ifdef _SEQUENT_
+#define LOAD_AVE_TYPE long
+#endif
+
+#ifdef sgi
+#define LOAD_AVE_TYPE long
+#endif
+
+#ifdef SVR4
+#define LOAD_AVE_TYPE long
+#endif
+
+#ifdef sony_news
+#define LOAD_AVE_TYPE long
+#endif
+
+#ifdef sequent
+#define LOAD_AVE_TYPE long
+#endif
+
+#ifdef OSF_ALPHA
+#define LOAD_AVE_TYPE long
+#endif
+
+#ifdef ardent && titan
+#define LOAD_AVE_TYPE long
+#endif
+
+#ifdef tex4300
 #define LOAD_AVE_TYPE long
 #endif
 
@@ -177,10 +217,58 @@
 #define	LDAV_CVT(n) (((double) (n)) / FSCALE)
 #endif
 
-/* VAX C can't handle multi-line #ifs.  */
-#if !defined(NLIST_STRUCT) && (defined(MORE_BSD) || defined(sun) || defined(decstation) || defined(hpux) || defined(_SEQUENT_) || defined(sequent) || defined(sgi) || defined(SVR4) || defined(sony_news) || defined (OSF_ALPHA) || (defined (ardent) && defined (titan)) || defined (tek4300) || defined (butterfly))
+/* VAX C can't handle multi-line #ifs, or lines longer that 256 characters.  */
+#ifndef NLIST_STRUCT
+
+#ifdef MORE_BSD
 #define NLIST_STRUCT
 #endif
+
+#ifdef sun
+#define NLIST_STRUCT
+#endif
+
+#ifdef decstation
+#define NLIST_STRUCT
+#endif
+
+#ifdef hpux
+#define NLIST_STRUCT
+#endif
+
+#if defined (_SEQUENT_) || defined (sequent)
+#define NLIST_STRUCT
+#endif
+
+#ifdef sgi
+#define NLIST_STRUCT
+#endif
+
+#ifdef SVR4
+#define NLIST_STRUCT
+#endif
+
+#ifdef sony_news
+#define NLIST_STRUCT
+#endif
+
+#ifdef OSF_ALPHA
+#define NLIST_STRUCT
+#endif
+
+#if defined (ardent) && defined (titan)
+#define NLIST_STRUCT
+#endif
+
+#ifdef tex4300
+#define NLIST_STRUCT
+#endif
+
+#ifdef butterfly
+#define NLIST_STRUCT
+#endif
+
+#endif /* defined (NLIST_STRUCT) */
 
 
 #if defined(sgi) || (defined(mips) && !defined(BSD))
