@@ -1576,7 +1576,7 @@ find_entries (file, inf)
 }
 
 /* Record a tag. */
-void
+static void
 pfnote (name, is_func, linestart, linelen, lno, cno)
      char *name;		/* tag name, or NULL if unnamed */
      bool is_func;		/* tag is a function */
@@ -1646,7 +1646,7 @@ pfnote (name, is_func, linestart, linelen, lno, cno)
  * `nonam'.
  */
 #define traditional_tag_style TRUE
-void
+static void
 new_pfnote (name, namelen, is_func, linestart, linelen, lno, cno)
      char *name;		/* tag name, or NULL if unnamed */
      int namelen;		/* tag length */
@@ -2606,7 +2606,7 @@ make_C_tag (isfun)
 }
 
 
-void
+static void
 C_entries (c_ext, inf)
      int c_ext;			/* extension of C */
      FILE *inf;			/* input file */
@@ -4429,7 +4429,7 @@ prolog_skip_comment (plb, inf)
  * Return the size of the name of the predicate, or 0 if no header
  * was found.
  */
-int
+static int
 prolog_pred (s, last)
      char *s;
      char *last;		/* Name of last clause. */
@@ -4586,7 +4586,7 @@ Erlang_functions (inf)
  * Return the size of the name of the function, or 0 if no function
  * was found.
  */
-int
+static int
 erlang_func (s, last)
      char *s;
      char *last;		/* Name of last clause. */
