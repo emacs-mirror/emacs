@@ -104,7 +104,10 @@ echo area, using `display-local-help'.
 ** Help mode now only makes hyperlinks for faces when the face name is
 preceded or followed by the word `face'.  It no longer makes
 hyperlinks for variables without variable documentation, unless
-preceded by one of the words `variable' or `option'.
+preceded by one of the words `variable' or `option'.  It now makes
+hyperlinks to Info anchors (or nodes) if the anchor (or node) name is
+enclosed in single quotes and preceded by `info anchor' or `Info
+anchor' (in addition to earlier `info node' and `Info node').
 
 ** The max size of buffers and integers has been doubled.
 On 32bit machines, it is now 256M (i.e. 268435455).

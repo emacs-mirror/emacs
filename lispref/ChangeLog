@@ -1,5 +1,8 @@
 2003-12-30  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* tips.texi (Documentation Tips): Update item on hyperlinks in
+	documentation strings.
+
 	* errors.texi (Standard Errors): Various small corrections and
 	additions.
 
