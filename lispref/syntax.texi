@@ -259,11 +259,11 @@ designator for this syntax code is @samp{@@}.
 @end deffn
 
 @deffn {Syntax class} @w{generic comment delimiter}
-A @dfn{generic comment delimiter} character starts or ends a special
-kind of comment.  @emph{Any} generic comment delimiter matches
-@emph{any} generic comment delimiter, but they cannot match a comment
-starter or comment ender; generic comment delimiters can only match each
-other.
+A @dfn{generic comment delimiter} (designated by @samp{!}) starts
+or ends a special kind of comment.  @emph{Any} generic comment delimiter
+matches @emph{any} generic comment delimiter, but they cannot match
+a comment starter or comment ender; generic comment delimiters can only
+match each other.
 
 This syntax class is primarily meant for use with the
 @code{syntax-table} text property (@pxref{Syntax Properties}).  You can
@@ -273,10 +273,10 @@ identifying them as generic comment delimiters.
 @end deffn
 
 @deffn {Syntax class} @w{generic string delimiter}
-A @dfn{generic string delimiter} character starts or ends a string.
-This class differs from the string quote class in that @emph{any}
-generic string delimiter can match any other generic string delimiter;
-but they do not match ordinary string quote characters.
+A @dfn{generic string delimiter} (designated by @samp{|}) starts or ends
+a string.  This class differs from the string quote class in that @emph{any}
+generic string delimiter can match any other generic string delimiter; but
+they do not match ordinary string quote characters.
 
 This syntax class is primarily meant for use with the
 @code{syntax-table} text property (@pxref{Syntax Properties}).  You can
@@ -539,7 +539,7 @@ occurrence of the character.
 
 @item @code{(@var{syntax-code} . @var{matching-char})}
 A cons cell of this format specifies the syntax for this
-occurrence of the character.
+occurrence of the character.  (@pxref{Syntax Table Internals})
 
 @item @code{nil}
 If the property is @code{nil}, the character's syntax is determined from
@@ -788,7 +788,8 @@ function.)
   Lisp programs don't usually work with the elements directly; the
 Lisp-level syntax table functions usually work with syntax descriptors
 (@pxref{Syntax Descriptors}).  Nonetheless, here we document the
-internal format.
+internal format.  This format is used mostly when manipulating
+syntax properties.
 
   Each element of a syntax table is a cons cell of the form
 @code{(@var{syntax-code} . @var{matching-char})}.  The @sc{car},
@@ -880,6 +881,10 @@ corresponds to each syntax flag.
 @tab
 @samp{3} @ @  @code{(lsh 1 18)}
 @end multitable
+
+@defun string-to-syntax @var{desc}
+This function returns the internal form @code{(@var{syntax-code} .
+@var{matching-char})} corresponding to the syntax descriptor @var{desc}.
 
 @node Categories
 @section Categories
