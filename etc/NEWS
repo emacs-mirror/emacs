@@ -1,4 +1,4 @@
-GNU Emacs NEWS -- history of user-visible changes.  2000-09-27
+GNU Emacs NEWS -- history of user-visible changes.  2000-10-12
 Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 See the end for copying conditions.
 
@@ -28,6 +28,13 @@ Unix-98-style support for large files if that is available.
 ** You can build a 64-bit Emacs for SPARC/Solaris systems which
 support 64-bit executables and also on Irix 6.5.  This increases the
 maximum buffer size.  See etc/MACHINES for instructions.
+
+** Note that the MS-Windows port does not yet implement various of the
+new display features described below.
+
+** There is some code for Macintosh support, but this is from the
+Emacs 20 port.  It needs updating before this version of Emacs will
+work on Macintosh.
 
 
 * Changes in Emacs 21.1
@@ -597,10 +604,10 @@ customized.
 ** Tool bar support.
 
 Emacs supports a tool bar at the top of a frame under X.  For details
-how to define a tool bar, see the page describing Lisp-level changes.
-Tool-bar global minor mode controls whether or not it is displayed.
-To make the tool bar more useful, we need contributions of extra icons
-for specific modes (with copyright assignments).
+of how to define a tool bar, see the page describing Lisp-level
+changes.  Tool-bar global minor mode controls whether or not it is
+displayed.  To make the tool bar more useful, we need contributions of
+extra icons for specific modes (with copyright assignments).
 
 +++
 ** Mouse-sensitive mode line.
