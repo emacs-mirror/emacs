@@ -276,14 +276,19 @@ that file, but does not copy any new mail into the file."
     ;; Unix format messages added at the end,
     ;; convert file as necessary.
     (if (or convert
-	    (progn (goto-char (point-max))
-		   (search-backward "\^_")
-		   (forward-char 1)
-		   (looking-at "\n*From ")))
+	    (save-excursion
+	      (goto-char (point-max))
+	      (search-backward "\^_")
+	      (forward-char 1)
+	      (looking-at "\n*From ")))
 	(let ((buffer-read-only nil))
 	  (message "Converting to Babyl format...")
-;;; If file needs conversion, convert it all.
+	  ;; If file needs conversion, convert it all,
+	  ;; except for the BABYL header.
+	  ;; (rmail-convert-to-babyl-format would delete the header.)
 ;;;	  (narrow-to-region (point) (point-max))
+	  (goto-char (point-min))
+	  (search-forward "\n\^_" nil t)
 	  (rmail-convert-to-babyl-format)
 	  (message "Converting to Babyl format...done")))))
 
