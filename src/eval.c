@@ -1398,7 +1398,16 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
 	}
 
       if (wants_debugger (Vstack_trace_on_error, conditions))
-	internal_with_output_to_temp_buffer ("*Backtrace*", Fbacktrace, Qnil);
+	{
+#ifdef __STDC__
+	  internal_with_output_to_temp_buffer ("*Backtrace*",
+					       (Lisp_Object (*) (Lisp_Object)) Fbacktrace,
+					       Qnil);
+#else
+	  internal_with_output_to_temp_buffer ("*Backtrace*",
+					       Fbacktrace, Qnil);
+#endif
+	}
       if ((EQ (sig_symbol, Qquit)
 	   ? debug_on_quit
 	   : wants_debugger (Vdebug_on_error, conditions))
