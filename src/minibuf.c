@@ -548,7 +548,7 @@ read_minibuf_unwind (data)
    for make-docfile to see.  We cannot put this in the real DEFUN
    due to limits in the Unix cpp.
 
-DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 5, 0,
+DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 6, 0,
   "Read a string from the minibuffer, prompting with string PROMPT.\n\
 If optional second arg INITIAL-CONTENTS is non-nil, it is a string\n\
   to be inserted into the minibuffer before reading input.\n\
@@ -579,6 +579,8 @@ DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 
 {
   int pos = 0;
   Lisp_Object histvar, histpos, position, val;
+  struct gcpro gcpro1;
+
   position = Qnil;
 
   CHECK_STRING (prompt, 0);
@@ -622,11 +624,13 @@ DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 
   if (NILP (histpos))
     XSETFASTINT (histpos, 0);
 
+  GCPRO1 (default_value);
   val = read_minibuf (keymap, initial_contents, prompt,
 		      make_number (pos), !NILP (read),
 		      histvar, histpos, default_value);
   if (STRINGP (val) && XSTRING (val)->size == 0 && ! NILP (default_value))
     val = default_value;
+  UNGCPRO;
   return val;
 }
 
