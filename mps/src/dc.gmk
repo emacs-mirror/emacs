@@ -1,0 +1,26 @@
+# impl.gmk.dc: GNUMAKEFILE FRAGMENT FOR DIGITAL C COMPILER (DEC UNIX/OSF)
+#
+# $HopeName$
+# Copyright(C) 1997 Harlequin Group, all rights reserved
+#
+# See design.buildsys.unix
+#
+# This file is included by platform makefiles that use the Digital C
+# compiler.
+#
+# Options are derived from man cc on schiele
+#
+# There is a potentially useful option -check
+# Unfortunately it produces warnings about non casting printf to void
+# and bogus warnings about non-void functions not having a return statement
+# as the last statement.  We would need to cleam our code in order to use
+# the option.
+
+CC = cc
+CFLAGSCOMPILER = -std1 -w2 -warnprotos -portable -readonly_strings
+CFLAGSDEBUG = -g2
+CFLAGSOPTIMIZE = -O2
+
+# -M for a dependency file
+
+include comm.gmk
