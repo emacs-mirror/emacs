@@ -2,10 +2,10 @@
 
 	* pcvs-util.el (cvs-prefix-define): Typo cons->concat.
 
-2001-10-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-03  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* emulation/tpu-edt.el: Make messages match original TPU/edt
-	editor. From riepel@Stanford.EDU (Rob Riepel).
+	editor.  From riepel@Stanford.EDU (Rob Riepel).
 
 2001-10-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
