@@ -48,10 +48,10 @@
   (if (and window-system (not executing-kbd-macro) (sit-for 0))
       (let (pos dir mismatch (oldpos (point))
 		(face show-paren-face))
-	(cond ((eq (char-syntax (following-char)) ?\()
-	       (setq dir 1))
-	      ((eq (char-syntax (preceding-char)) ?\))
-	       (setq dir -1)))
+	(cond ((eq (char-syntax (preceding-char)) ?\))
+	       (setq dir -1))
+	      ((eq (char-syntax (following-char)) ?\()
+	       (setq dir 1)))
 	(if dir
 	    (save-excursion
 	      (save-restriction
