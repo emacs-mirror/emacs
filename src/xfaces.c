@@ -481,6 +481,9 @@ init_frame_faces (f)
   ensure_face_ready (f, 0);
   ensure_face_ready (f, 1);
 
+  FRAME_N_COMPUTED_FACES (f) = 0;
+  FRAME_SIZE_COMPUTED_FACES (f) = 0;
+
   new_computed_face (f, FRAME_PARAM_FACES (f)[0]);
   new_computed_face (f, FRAME_PARAM_FACES (f)[1]);
   recompute_basic_faces (f);
@@ -569,11 +572,10 @@ new_computed_face (f, new_face)
       int new_size = i + 32;
 
       FRAME_COMPUTED_FACES (f)
-	= (struct face **)
-	  (FRAME_SIZE_COMPUTED_FACES (f) == 0
-	   ? xmalloc (new_size * sizeof (struct face *))
-	   : xrealloc (FRAME_COMPUTED_FACES (f),
-		       new_size * sizeof (struct face *)));
+	= (struct face **) (FRAME_SIZE_COMPUTED_FACES (f) == 0
+			    ? xmalloc (new_size * sizeof (struct face *))
+			    : xrealloc (FRAME_COMPUTED_FACES (f),
+					new_size * sizeof (struct face *)));
       FRAME_SIZE_COMPUTED_FACES (f) = new_size;
     }
 
@@ -887,15 +889,16 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr, limit)
 
 /* Return the face ID to use to display a special glyph which selects
    FACE_CODE as the face ID, assuming that ordinarily the face would
-   be BASIC_FACE.  F is the frame.  */
+   be CURRENT_FACE.  F is the frame.  */
+
 int
-compute_glyph_face (f, face_code)
+compute_glyph_face (f, face_code, current_face)
      struct frame *f;
-     int face_code;
+     int face_code, current_face;
 {
   struct face face;
 
-  compute_base_face (f, &face);
+  face = *FRAME_COMPUTED_FACES (f)[current_face];
 
   if (face_code >= 0 && face_code < FRAME_N_PARAM_FACES (f)
       && FRAME_PARAM_FACES (f) [face_code] != 0)
@@ -908,6 +911,7 @@ compute_glyph_face (f, face_code)
 /* Recompute the GC's for the default and modeline faces.
    We call this after changing frame parameters on which those GC's
    depend.  */
+
 void
 recompute_basic_faces (f)
      FRAME_PTR f;
