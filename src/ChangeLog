@@ -1,3 +1,7 @@
+2004-02-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xselect.c: Include stdio,h.
+
 2004-02-05  Kenichi Handa  <handa@m17n.org>
 
 	* buffer.c (Fset_buffer_multibyte): Fix docstring.

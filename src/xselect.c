@@ -23,6 +23,7 @@ Boston, MA 02111-1307, USA.  */
 /* Rewritten by jwz */
 
 #include <config.h>
+#include <stdio.h>      /* termhooks.h needs this */
 #include "lisp.h"
 #include "xterm.h"	/* for all of the X includes */
 #include "dispextern.h"	/* frame.h seems to want this */
