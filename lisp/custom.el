@@ -238,7 +238,9 @@ FRAME, the REQ property of the frame must match one of the ITEM.  The
 following REQ are defined:
 
 `type' (the value of `window-system')
-  Should be one of `x' or `tty'.
+  Under X, in addition to the values `window-system' can take,
+  `motif', `lucid' and `x-toolkit' are allowed, and match when
+  the Motif toolkit, Lucid toolkit, or any X toolkit is in use.
 
 `class' (the frame's color support)
   Should be one of `color', `grayscale', or `mono'.
