@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!122.c(trunk.2) $
+ id = $HopeName: MMQA_test_function!122.c(trunk.3) $
  summary = test of mps_arena_roots_walk
  language = c
  link = testlib.o rankfmt.o
@@ -16,6 +16,7 @@ END_HEADER
 #include "mpscawl.h"
 #include "mpsavm.h"
 #include "rankfmt.h"
+
 
 #define MAGICSIZE (342)
 
@@ -34,6 +35,7 @@ mps_fmt_t format;
 mps_ap_t apamc, aplo, apawl;
 
 mps_root_t root, root1, root2;
+
 
 static void root_step(mps_addr_t* ref, mps_root_t r,
                     void *V, size_t S) {
@@ -57,13 +59,16 @@ static void root_step(mps_addr_t* ref, mps_root_t r,
  }
 }
 
+
 static void walkroots (mycell *a) {
  mps_arena_park(arena);
  mps_arena_roots_walk(arena, root_step, (mps_addr_t) a, MAGICSIZE);
  mps_arena_release(arena);
 }
 
+
 mycell *a[4], *b[4];
+
 
 static void test(void) {
 /* a is a table of exact roots
@@ -80,11 +85,12 @@ static void test(void) {
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
  cdie(
-  mps_root_create_table_masked(&root1, arena, MPS_RANK_EXACT, 0, &a[0], 4, 0x4),
+  mps_root_create_table_masked(&root1, arena, MPS_RANK_EXACT, 0,
+                               (mps_addr_t*)&a[0], 4, 0x4),
   "create a root table");
 
  cdie(
-  mps_root_create_table(&root2, arena, MPS_RANK_AMBIG, 0, &b[0], 4),
+  mps_root_create_table(&root2, arena, MPS_RANK_AMBIG, 0, (mps_addr_t*)&b[0], 4),
   "create b root table");
 
  cdie(
@@ -121,7 +127,7 @@ static void test(void) {
  die(allocrdumb(&a[0], aplo, 64, MPS_RANK_EXACT), "alloc");
  die(allocrdumb(&a[1], apamc, 64, MPS_RANK_EXACT), "alloc");
  die(allocrdumb(&a[3], apawl, 64, MPS_RANK_EXACT), "alloc");
- a[2] = (mycell *) (((char *)(a[3]))+4);
+ a[2] = (mycell *)((int)a[3] | 4);
 
  die(allocrdumb(&b[0], aplo, 64, MPS_RANK_EXACT), "alloc");
  die(allocrdumb(&b[1], apamc, 64, MPS_RANK_EXACT), "alloc");
@@ -168,6 +174,7 @@ static void test(void) {
  mps_arena_destroy(arena);
  comment("Destroyed space.");
 }
+
 
 int main(void)
 {
