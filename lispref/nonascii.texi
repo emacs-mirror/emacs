@@ -1209,10 +1209,11 @@ how Emacs interacts with these features.
 
 @defvar locale-coding-system
 @tindex locale-coding-system
+@cindex keyboard input decoding on X
 This variable specifies the coding system to use for decoding system
-error messages, for encoding the format argument to
-@code{format-time-string}, and for decoding the return value of
-@code{format-time-string}.
+error messages and---on X Window system only---keyboard input, for
+encoding the format argument to @code{format-time-string}, and for
+decoding the return value of @code{format-time-string}.
 @end defvar
 
 @defvar system-messages-locale
