@@ -1,5 +1,14 @@
 2004-11-20  Richard M. Stallman  <rms@gnu.org>
 
+	* intro.texi (Printing Notation): Avoid confusion of `print'
+	when explaining @print.
+
+	* macros.texi (Argument Evaluation): Fix 1st `for' expansion example.
+
+	* display.texi (Display Table Format): Minor fix.
+
+	* streams.texi (Output Functions): Fix print example.
+
 	* Makefile.in (elisp): New target.
 	(dist): Depend on $(infodir)/elisp, not elisp.
 	Copy the info files from $(infodir).
