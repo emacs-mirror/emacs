@@ -39,16 +39,20 @@ and the argument DATA-TYPE (default `STRING') says how to convert the data."
   "Make an X Windows selection of type TYPE and value DATA.
 The argument TYPE (default `PRIMARY') says which selection, 
 and DATA specifies the contents.  DATA may be a string,
-a symbol, an integer (or a cons of two integers or list of two integers),
-or a cons of two markers pointing to the same buffer.
-In the last case, the selection is considered to be the text 
-between the markers.
-The data may also be a vector of valid non-vector selection values."
+a symbol, an integer (or a cons of two integers or list of two integers).
+
+The selection may also be a cons of two markers pointing to the same buffer,
+or an overlay.  In these cases, the selection is considered to be the text 
+between the markers *at whatever time the selection is examined*.
+Thus, editing done in the buffer after you specify the selection
+can alter the effective value of the selection.
+
+The data may also be a vector of valid non-vector selection values.
+
+Interactively, the text of the region is used as the selection value."
   (interactive (if (not current-prefix-arg)
-		   (list (read-string "Store text for pasting: "))
-		 (list (cons ;; these need not be ordered.
-			(copy-marker (point-marker))
-			(copy-marker (mark-marker))))))
+		   (list 'PRIMARY (read-string "Set text for pasting: "))
+		 (list 'PRIMARY (substring (region-beginning) (region-end)))))
   ;; This is for temporary compatibility with pre-release Emacs 19.
   (if (stringp type)
       (setq type (intern type)))
