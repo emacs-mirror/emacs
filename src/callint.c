@@ -644,7 +644,7 @@ Its numeric meaning is what you would get from `(interactive \"p\")'.")
     XSETFASTINT (val, 1);
   else if (EQ (raw, Qminus))
     XSETINT (val, -1);
-  else if (CONSP (raw))
+  else if (CONSP (raw) && INTEGERP (XCONS (raw)->car))
     XSETINT (val, XINT (XCONS (raw)->car));
   else if (INTEGERP (raw))
     val = raw;
