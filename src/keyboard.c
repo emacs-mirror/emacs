@@ -1700,6 +1700,13 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       c = XCONS (Vunread_command_events)->car;
       Vunread_command_events = XCONS (Vunread_command_events)->cdr;
 
+      /* Undo what read_char_x_menu_prompt did when it unread
+	 additional keys returned by Fx_popup_menu.  */
+      if (CONSP (c)
+	  && (SYMBOLP (XCONS (c)->car) || INTEGERP (XCONS (c)->car))
+	  && NILP (XCONS (c)->cdr))
+	c = XCONS (c)->car;
+
       if (this_command_key_count == 0)
 	goto reread_first;
       else
