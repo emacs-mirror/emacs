@@ -2178,7 +2178,7 @@ from adjoining text, if those properties are sticky.  */)
   if (XINT (byte) >= 128
       && ! NILP (current_buffer->enable_multibyte_characters))
     XSETFASTINT (byte, BYTE8_TO_CHAR (XINT (byte)));
-  Finsert_char (byte, count, inherit);
+  return Finsert_char (byte, count, inherit);
 }
 
 
