@@ -1769,6 +1769,8 @@ If FILE is nil, try to load a default file.  The default file names are
   ;; GOLD bindings for a few Control keys.
   (edt-bind-gold-key  "\C-g" 'keyboard-quit t); Just in case.
   (edt-bind-gold-key  "\C-h" 'help-for-help t)
+  (edt-bind-gold-key  [f1] 'help-for-help t)
+  (edt-bind-gold-key  [help] 'help-for-help t)
   (edt-bind-gold-key  "\C-\\" 'split-window-vertically t)
 
   ;; GOLD bindings for regular keys.
