@@ -1,3 +1,9 @@
+2003-07-05  Kim F. Storm  <storm@cua.dk>
+
+	* info.el: Disable paragraph refilling.
+	(Info-refill-paragraphs): New defcustom.
+	(Info-fontify-node): Use it.
+
 2003-07-04  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* font-core.el (font-lock-defaults-alist): Remove obsolete entries.
