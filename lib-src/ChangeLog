@@ -1,3 +1,7 @@
+2002-11-04  Dave Love  <fx@gnu.org>
+
+	* Makefile.in (YACC): Deleted.
+
 2002-10-19  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (${archlibdir}): Always create $(gamedir).
