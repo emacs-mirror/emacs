@@ -519,7 +519,7 @@ in the current news group."
       (insert "."))
     ;; Insert `.' at end of buffer (end of text mark).
     (goto-char (point-max))
-    (insert ".\n")
+    (insert ".\r\n")
     ))
 
 
