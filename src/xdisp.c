@@ -2439,7 +2439,7 @@ handle_single_display_prop (it, prop, object, position)
 	{
 	  struct face *face = FACE_FROM_ID (it->f, it->face_id);
 	  it->voffset = - (XFLOATINT (value)
-			   * (face->font->ascent + face->font->descent));
+			   * (FONT_HEIGHT (face->font)));
 	}
 #endif /* HAVE_WINDOW_SYSTEM */
     }
@@ -5988,14 +5988,14 @@ echo_area_display (update_frame_p)
   if (!FRAME_VISIBLE_P (f) || !f->glyphs_initialized_p)
     return 0;
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   /* When Emacs starts, selected_frame may be a visible terminal
      frame, even if we run under a window system.  If we let this
      through, a message would be displayed on the terminal.  */
   if (EQ (selected_frame, Vterminal_frame) 
       && !NILP (Vwindow_system))
     return 0;
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 
   /* Redraw garbaged frames.  */
   if (frame_garbaged)
