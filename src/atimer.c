@@ -100,8 +100,8 @@ start_atimer (type, time, fn, client_data)
 #ifndef HAVE_SETITIMER
   if (EMACS_USECS (time) != 0)
     {
-      EMACS_USECS (time) = 0;
-      ++EMACS_SECS (time);
+      EMACS_SET_USECS (time, 0);
+      EMACS_SET_SECS (time, EMACS_SECS (time) + 1);
     }
 #endif /* not HAVE_SETITIMER */
 
