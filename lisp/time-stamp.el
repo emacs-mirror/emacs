@@ -2,8 +2,8 @@
 
 ;; Copyright 1989, 1993, 1994, 1995 Free Software Foundation, Inc.
 
-;; Maintainer's Time-stamp: <1996-08-13 14:03:17 gildea>
-;; Maintainer: Stephen Gildea <gildea@lcs.mit.edu>
+;; Maintainer's Time-stamp: <1997-04-28 11:51:22 gildea>
+;; Maintainer: Stephen Gildea <gildea@alum.mit.edu>
 ;; Keywords: tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -35,13 +35,6 @@
 ;; See the documentation for the functions `time-stamp'
 ;; and `time-stamp-toggle-active' for details.
 
-;;; Change Log:
-
-;; Originally based on the 19 Dec 88 version of
-;;   date.el by John Sturdy <mcvax!harlqn.co.uk!jcgs@uunet.uu.net>
-;; Version 2, January 1995: replaced functions with %-escapes
-;; $Id: time-stamp.el,v 1.24 1996/12/18 02:45:09 rms Exp rms $
-
 ;;; Code:
 
 (defgroup time-stamp nil
@@ -68,20 +61,17 @@ a time stamp template that would otherwise have been updated."
 If `error', the format is not used.  If `ask', the user is queried about
 using the time-stamp-format.  If `warn', a warning is displayed.
 If nil, no notification is given."
-  :type '(choice (const :tag "No modification" nil)
+  :type '(choice (const :tag "No notification" nil)
                  (const :tag "Don't use the format" error)
                  (const ask) (const warn))
   :group 'time-stamp)
 
-(defcustom time-stamp-format "%02y/%02m/%02d %02H:%02M:%02S %u"
+(defcustom time-stamp-format "%Y-%02m-%02d %02H:%02M:%02S %u"
   "*Format of the string inserted by \\[time-stamp].
 The value may be a string or a list.  Lists are supported only for
 backward compatibility; see variable `time-stamp-old-format-warn'.
 
 A string is used with `format-time-string'.
-For example, to get the format used by the `date' command,
-use \"%3a %3b %2d %H:%M:%S %Z %y\".
-
 In addition to the features of `format-time-string',
 you can use the following %-constructs:
 
@@ -89,9 +79,14 @@ you can use the following %-constructs:
 %F  full file name
 %h  mail host name
 %s  system name
-%u  user's login name"
+%u  user's login name
+
+For example, to get the format used by the `date' command,
+use \"%3a %3b %2d %02H:%02M:%02S %Z %Y\"."
   :type 'string
   :group 'time-stamp)
+
+
 
 ;;; Do not change time-stamp-line-limit, time-stamp-start, or
 ;;; time-stamp-end in your .emacs or you will be incompatible
@@ -146,7 +141,7 @@ look like one of the following:
       Time-stamp: \" \"
 The time stamp is written between the brackets or quotes:
       Time-stamp: <1996-07-18 10:20:51 gildea>
-Only updates the time stamp if the variable `time-stamp-active' is non-nil.
+The time stamp is updated only if the variable `time-stamp-active' is non-nil.
 The format of the time stamp is set by the variable `time-stamp-format'.
 The variables `time-stamp-line-limit', `time-stamp-start',
 and `time-stamp-end' control finding the template."
@@ -154,28 +149,33 @@ and `time-stamp-end' control finding the template."
   (let ((case-fold-search nil)
 	(start nil)
 	(end nil)
-	search-limit)
-	(save-excursion
-	  (save-restriction
-	    (widen)
-	    (cond ((> time-stamp-line-limit 0)
-		   (goto-char (setq start (point-min)))
-		   (forward-line time-stamp-line-limit)
-		   (setq search-limit (point)))
-		  (t
-		   (goto-char (setq search-limit (point-max)))
-		   (forward-line time-stamp-line-limit)
-		   (setq start (point))))
+	search-limit
+	(line-limit time-stamp-line-limit))
+    (cond ((not (integerp line-limit))
+	   (setq line-limit 8)
+	   (message "time-stamp-line-limit is not a number")
+	   (sit-for 1)))
+    (save-excursion
+      (save-restriction
+	(widen)
+	(cond ((> line-limit 0)
+	       (goto-char (setq start (point-min)))
+	       (forward-line line-limit)
+	       (setq search-limit (point)))
+	      (t
+	       (goto-char (setq search-limit (point-max)))
+	       (forward-line line-limit)
+	       (setq start (point))))
+	(goto-char start)
+	(while (and (< (point) search-limit)
+		    (not end)
+		    (re-search-forward time-stamp-start search-limit 'move))
+	  (setq start (point))
+	  (end-of-line)
+	  (let ((line-end (point)))
 	    (goto-char start)
-	    (while (and (< (point) search-limit)
-			(not end)
-			(re-search-forward time-stamp-start search-limit 'move))
-	      (setq start (point))
-	      (end-of-line)
-	      (let ((line-end (point)))
-		(goto-char start)
-		(if (re-search-forward time-stamp-end line-end 'move)
-		    (setq end (match-beginning 0)))))))
+	    (if (re-search-forward time-stamp-end line-end 'move)
+		(setq end (match-beginning 0)))))))
 	(if end
 	    (progn
 	      ;; do all warnings outside save-excursion
@@ -226,8 +226,7 @@ With arg, turn time stamping on if and only if arg is positive."
 These are replaced with the file name (nondirectory part),
 full file name, host name for mail, system name, and user name.
 Do not alter other %-combinations, and do detect %%."
-  (let ((result "") (pos 0) (case-fold-search nil)
-	(file (or buffer-file-name "(no file)")))
+  (let ((result "") (pos 0) (case-fold-search nil))
     (while (string-match "%[%uhfFs]" format pos)
       (setq result (concat result (substring format pos (match-beginning 0))))
       (let ((char (aref format (1+ (match-beginning 0)))))
@@ -236,9 +235,13 @@ Do not alter other %-combinations, and do detect %%."
 	      ((= char ?u)
 	       (setq result (concat result (user-login-name))))
 	      ((= char ?f)
-	       (setq result (concat result (file-name-nondirectory file))))
-	      ((= char ?f)
-	       (setq result (concat result file)))
+	       (setq result (concat result
+				    (if buffer-file-name
+					(file-name-nondirectory buffer-file-name)
+				      time-stamp-no-file))))
+	      ((= char ?F)
+	       (setq result (concat result
+				    (or buffer-file-name time-stamp-no-file))))
 	      ((= char ?s)
 	       (setq result (concat result (system-name))))
 	      ((= char ?h)
@@ -249,8 +252,7 @@ Do not alter other %-combinations, and do detect %%."
 (defun time-stamp-string ()
   "Generate the new string to be inserted by \\[time-stamp]."
   (if (stringp time-stamp-format)
-      (format-time-string (time-stamp-string-preprocess time-stamp-format)
-			  (current-time))
+      (format-time-string (time-stamp-string-preprocess time-stamp-format))
     ;; handle version 1 compatibility
     (cond ((or (eq time-stamp-old-format-warn 'error)
 	       (and (eq time-stamp-old-format-warn 'ask)
