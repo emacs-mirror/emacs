@@ -24,8 +24,6 @@
 
 ;;; Commentary:
 
-;; $Id: re-builder.el,v 1.1 2000/03/09 20:20:32 gerd Exp $
-
 ;; When I have to come up with regular expressions that are more
 ;; complex than simple string matchers, especially if they contain sub
 ;; expressions, I find myself spending quite some time in the
@@ -101,27 +99,6 @@
 ;;    digit keys are assigned to perform an update that will flash the
 ;;    corresponding subexp only.
 
-
-;;; History:
-;;
-;; Changes from Version 1.2:
-;;   - Fixed a bug preventing normal startup after killing the (previous)
-;;     target-buffer
-;;   - Fixed XEmacs support
-;;
-;; Changes from Version 1.2:
-;;   - Fixed a bug preventing normal startup after killing the (previous)
-;;     target-buffer
-;;   - Fixed XEmacs support
-;;
-;; Changes from Version 1.1:
-;;   - The editing is now done through two major-modes rather than
-;;     having one minor-mode that behaves exactly like a major-mode
-;;   - Automatic updates for valid re's simplify the user interface
-;;   - Easy interface for changing the input syntax and case
-;;     sensitivity of the target buffer
-;;   - As nobody reported the bugs that were fixed you probably don't
-;;     want to know about them...
 
 ;;; Code:
 
