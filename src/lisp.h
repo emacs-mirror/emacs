@@ -573,7 +573,7 @@ struct interval
      The first four are duplicates for things which can be on the list,
      for purposes of speed.  */
 
-  unsigned int write_protect : 1;    /* Non-zero means can't modify.  */
+  unsigned int write_protect : 1;   /* Non-zero means can't modify.  */
   unsigned int visible : 1;	    /* Zero means don't display.  */
   unsigned int front_sticky : 1;    /* Non-zero means text inserted just
 				       before this interval goes into it.  */
