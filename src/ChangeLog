@@ -1,3 +1,7 @@
+2001-02-09  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* charset.c (Fstring): A typo.
+
 2001-02-09  Kenichi Handa  <handa@etl.go.jp>
 
 	* charset.c (Fstring): If all arguments are less than 256, return

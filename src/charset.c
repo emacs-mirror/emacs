@@ -1634,7 +1634,7 @@ DEFUN ("string", Fstring, Sstring, 1, MANY, 0,
       if (multibyte)
 	p += CHAR_STRING (c, p);
       else
-	*p++ += c;
+	*p++ = c;
     }
 
   return make_string_from_bytes (buf, n, p - buf);
