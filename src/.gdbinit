@@ -200,13 +200,22 @@ end
 
 define xcons
 print (struct Lisp_Cons *) (($ & $valmask) | gdb_data_seg_bits)
-output *$
+output/x *$
 echo \n
 end
 document xcons
 Print the contents of $, assuming it is an Emacs Lisp cons.
 end
 
+define nextcons
+p $.cdr
+xcons
+end
+document nextcons
+Print the contents of the next cell in a list.
+This assumes that the last thing you printed was a cons cell contents
+(type struct Lisp_Cons) or a pointer to one.
+end
 define xcar
 print ((($ >> gdb_valbits) & 0xf) == Lisp_Cons ? ((struct Lisp_Cons *) (($ & $valmask) | gdb_data_seg_bits))->car : 0)
 end
