@@ -2721,6 +2721,7 @@ syms_of_keymap ()
   Fset (intern ("global-map"), global_map);
 
   current_global_map = global_map;
+  staticpro (&global_map);
   staticpro (&current_global_map);
 
   meta_map = Fmake_keymap (Qnil);
