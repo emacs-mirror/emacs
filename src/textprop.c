@@ -676,24 +676,29 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
 }
 
 
-/* Value is the position in OBJECT after POS where the value of
-   property PROP changes.  OBJECT must be a string or buffer.  If
-   OBJECT is nil, use the current buffer.  LIMIT if not nil limits the
-   search.  */
-
-Lisp_Object
-next_single_char_property_change (pos, prop, object, limit)
-     Lisp_Object prop, pos, object, limit;
+DEFUN ("next-single-char-property-change", Fnext_single_char_property_change,
+       Snext_single_char_property_change, 2, 4, 0,
+  "Return the position of next text property or overlay change for a specific property.\n\
+Scans characters forward from POSITION till it finds\n\
+a change in the PROP property, then returns the position of the change.\n\
+The optional third argument OBJECT is the string or buffer to scan.\n\
+The property values are compared with `eq'.\n\
+Return nil if the property is constant all the way to the end of OBJECT.\n\
+If the value is non-nil, it is a position greater than POSITION, never equal.\n\n\
+If the optional fourth argument LIMIT is non-nil, don't search\n\
+past position LIMIT; return LIMIT if nothing is found before LIMIT.")
+  (position, prop, object, limit)
+     Lisp_Object prop, position, object, limit;
 {
   if (STRINGP (object))
     {
-      pos = Fnext_single_property_change (pos, prop, object, limit);
-      if (NILP (pos))
+      position = Fnext_single_property_change (position, prop, object, limit);
+      if (NILP (position))
 	{
 	  if (NILP (limit))
-	    pos = make_number (XSTRING (object)->size);
+	    position = make_number (XSTRING (object)->size);
 	  else
-	    pos = limit;
+	    position = limit;
 	}
     }
   else
@@ -701,7 +706,7 @@ next_single_char_property_change (pos, prop, object, limit)
       Lisp_Object initial_value, value;
       int count = specpdl_ptr - specpdl;
 
-      if (!NILP (object))
+      if (! NILP (object))
 	CHECK_BUFFER (object, 0);
       
       if (BUFFERP (object) && current_buffer != XBUFFER (object))
@@ -710,12 +715,22 @@ next_single_char_property_change (pos, prop, object, limit)
 	  Fset_buffer (object);
 	}
 
-      initial_value = Fget_char_property (pos, prop, object);
+      initial_value = Fget_char_property (position, prop, object);
       
-      while (XFASTINT (pos) < XFASTINT (limit))
+      if (NILP (limit))
+	XSETFASTINT (limit, BUF_ZV (current_buffer));
+      else
+	CHECK_NUMBER_COERCE_MARKER (limit, 0);
+
+      for (;;)
 	{
-	  pos = Fnext_char_property_change (pos, limit);
-	  value = Fget_char_property (pos, prop, object);
+	  position = Fnext_char_property_change (position, limit);
+	  if (XFASTINT (position) >= XFASTINT (limit)) {
+	    position = limit;
+	    break;
+	  }
+
+	  value = Fget_char_property (position, prop, object);
 	  if (!EQ (value, initial_value))
 	    break;
 	}
@@ -723,10 +738,74 @@ next_single_char_property_change (pos, prop, object, limit)
       unbind_to (count, Qnil);
     }
 
-  return pos;
+  return position;
 }
 
+DEFUN ("previous-single-char-property-change",
+       Fprevious_single_char_property_change,
+       Sprevious_single_char_property_change, 2, 4, 0,
+  "Return the position of previous text property or overlay change for a specific property.\n\
+Scans characters backward from POSITION till it finds\n\
+a change in the PROP property, then returns the position of the change.\n\
+The optional third argument OBJECT is the string or buffer to scan.\n\
+The property values are compared with `eq'.\n\
+Return nil if the property is constant all the way to the start of OBJECT.\n\
+If the value is non-nil, it is a position less than POSITION, never equal.\n\n\
+If the optional fourth argument LIMIT is non-nil, don't search\n\
+back past position LIMIT; return LIMIT if nothing is found before LIMIT.")
+  (position, prop, object, limit)
+     Lisp_Object prop, position, object, limit;
+{
+  if (STRINGP (object))
+    {
+      position = Fprevious_single_property_change (position, prop, object, limit);
+      if (NILP (position))
+	{
+	  if (NILP (limit))
+	    position = make_number (XSTRING (object)->size);
+	  else
+	    position = limit;
+	}
+    }
+  else
+    {
+      Lisp_Object initial_value, value;
+      int count = specpdl_ptr - specpdl;
 
+      if (! NILP (object))
+	CHECK_BUFFER (object, 0);
+      
+      if (BUFFERP (object) && current_buffer != XBUFFER (object))
+	{
+	  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+	  Fset_buffer (object);
+	}
+      
+      if (NILP (limit))
+	XSETFASTINT (limit, BUF_BEGV (current_buffer));
+      else
+	CHECK_NUMBER_COERCE_MARKER (limit, 0);
+
+      initial_value = Fget_char_property (position, prop, object);
+      
+      for (;;)
+	{
+	  position = Fprevious_char_property_change (position, limit);
+	  if (XFASTINT (position) <= XFASTINT (limit)) {
+	    position = limit;
+	    break;
+	  }
+
+	  value = Fget_char_property (position - 1, prop, object);
+	  if (!EQ (value, initial_value))
+	    break;
+	}
+
+      unbind_to (count, Qnil);
+    }
+
+  return position;
+}
 
 DEFUN ("next-property-change", Fnext_property_change,
        Snext_property_change, 1, 3, 0,
@@ -1892,6 +1971,8 @@ rear-nonsticky properties of the character overrides NONSTICKINESS.");
   defsubr (&Sget_char_property);
   defsubr (&Snext_char_property_change);
   defsubr (&Sprevious_char_property_change);
+  defsubr (&Snext_single_char_property_change);
+  defsubr (&Sprevious_single_char_property_change);
   defsubr (&Snext_property_change);
   defsubr (&Snext_single_property_change);
   defsubr (&Sprevious_property_change);
