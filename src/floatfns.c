@@ -669,18 +669,65 @@ DEFUN ("ceiling", Fceiling, Sceiling, 1, 1, 0,
   return arg;
 }
 
-DEFUN ("floor", Ffloor, Sfloor, 1, 1, 0,
-  "Return the largest integer no greater than ARG.  (Round towards -inf.)")
-  (arg)
-     register Lisp_Object arg;
+#endif /* LISP_FLOAT_TYPE */
+
+
+DEFUN ("floor", Ffloor, Sfloor, 1, 2, 0,
+  "Return the largest integer no greater than ARG.  (Round towards -inf.)\n\
+With optional DIVISOR, return the largest integer no greater than ARG/DIVISOR.")
+  (arg, divisor)
+     register Lisp_Object arg, divisor;
 {
   CHECK_NUMBER_OR_FLOAT (arg, 0);
 
+  if (! NILP (divisor))
+    {
+      int i1, i2;
+
+      CHECK_NUMBER_OR_FLOAT (divisor, 1);
+
+#ifdef LISP_FLOAT_TYPE
+      if (XTYPE (arg) == Lisp_Float || XTYPE (divisor) == Lisp_Float)
+	{
+	  double f1, f2;
+
+	  f1 = XTYPE (arg) == Lisp_Float ? XFLOAT (arg)->data : XINT (arg);
+	  f2 = (XTYPE (divisor) == Lisp_Float
+		? XFLOAT (divisor)->data : XINT (divisor));
+	  if (f2 == 0)
+	    Fsignal (Qarith_error, Qnil);
+
+	  IN_FLOAT2 (XSET (arg, Lisp_Int, floor (f1 / f2)),
+		     "floor", arg, divisor);
+	  return arg;
+	}
+#endif
+
+      i1 = XINT (arg);
+      i2 = XINT (divisor);
+
+      if (i2 == 0)
+	Fsignal (Qarith_error, Qnil);
+
+      /* With C's /, the result is implementation-defined if either operand
+	 is negative, so use only nonnegative operands.  */
+      i1 = (i2 < 0
+	    ? (i1 <= 0  ?  -i1 / -i2  :  -1 - ((i1 - 1) / -i2))
+	    : (i1 < 0  ?  -1 - ((-1 - i1) / i2)  :  i1 / i2));
+
+      XSET (arg, Lisp_Int, i1);
+      return arg;
+    }
+
+#ifdef LISP_FLOAT_TYPE
   if (XTYPE (arg) == Lisp_Float)
     IN_FLOAT (XSET (arg, Lisp_Int, floor (XFLOAT (arg)->data)), "floor", arg);
+#endif
 
   return arg;
 }
+
+#ifdef LISP_FLOAT_TYPE
 
 DEFUN ("round", Fround, Sround, 1, 1, 0,
   "Return the nearest integer to ARG.")
@@ -827,8 +874,16 @@ init_floatfns ()
   in_float = 0;
 }
 
+#else /* not LISP_FLOAT_TYPE */
+
+init_floatfns ()
+{}
+
+#endif /* not LISP_FLOAT_TYPE */
+
 syms_of_floatfns ()
 {
+#ifdef LISP_FLOAT_TYPE
   defsubr (&Sacos);
   defsubr (&Sasin);
   defsubr (&Satan);
@@ -867,17 +922,8 @@ syms_of_floatfns ()
   defsubr (&Sfloat);
   defsubr (&Slogb);
   defsubr (&Sceiling);
-  defsubr (&Sfloor);
   defsubr (&Sround);
   defsubr (&Struncate);
+#endif /* LISP_FLOAT_TYPE */
+  defsubr (&Sfloor);
 }
-
-#else /* not LISP_FLOAT_TYPE */
-
-init_floatfns ()
-{}
-
-syms_of_floatfns ()
-{}
-
-#endif /* not LISP_FLOAT_TYPE */
