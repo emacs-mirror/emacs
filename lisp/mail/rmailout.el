@@ -61,12 +61,16 @@ starting with the current one.  Deleted messages are skipped and don't count."
 	     ;; If not suggestions, use same file as last time.
 	     (or answer rmail-last-rmail-file))))
      (list (setq rmail-last-rmail-file
-		 (read-file-name
-			    (concat "Output message to Rmail file: (default "
-				    (file-name-nondirectory default-file)
-				    ") ")
-			    (file-name-directory default-file)
-			    default-file))
+		 (expand-file-name
+		  (or
+		   (read-file-name
+		    (concat "Output message to Rmail file: (default "
+			    (file-name-nondirectory default-file)
+			    ") ")
+		    (file-name-directory default-file)
+		    default-file)
+		   default-file)
+		  (file-name-directory default-file)))
 	   (prefix-numeric-value current-prefix-arg))))
   (or count (setq count 1))
   (setq file-name
@@ -92,11 +96,14 @@ starting with the current one.  Deleted messages are skipped and don't count."
       (let (redelete)
 	(unwind-protect
 	    (progn
+	      ;; Temporarily turn off Deleted attribute.
+	      ;; Do this outside the save-restriction, since it would
+	      ;; shift the place in the buffer where the visible text starts.
+	      (if (rmail-message-deleted-p rmail-current-message)
+		  (progn (setq redelete t)
+			 (rmail-set-attribute "deleted" nil)))
 	      (save-restriction
 		(widen)
-		(if (rmail-message-deleted-p rmail-current-message)
-		    (progn (setq redelete t)
-			   (rmail-set-attribute "deleted" nil)))
 		;; Decide whether to append to a file or to an Emacs buffer.
 		(save-excursion
 		  (let ((buf (get-file-buffer file-name))
@@ -124,6 +131,9 @@ starting with the current one.  Deleted messages are skipped and don't count."
 			      (search-backward "\n\^_")
 			      (narrow-to-region (point) (point-max))
 			      (rmail-count-new-messages t)
+			      (if (rmail-summary-exists)
+				  (rmail-select-summary
+				    (rmail-update-summary)))
 			      (rmail-show-message msg))
 		;; Output file not in rmail mode => just insert at the end.
 		(narrow-to-region (point-min) (1+ (buffer-size)))
