@@ -1,3 +1,7 @@
+2005-02-02  Kim F. Storm  <storm@cua.dk>
+
+	* undo.c (Fprimitive_undo): Fix dummy apply undo entry.
+
 2005-02-02  Kenichi Handa  <handa@m17n.org>
 
 	* casefiddle.c (casify_object): Enable changing characters of
