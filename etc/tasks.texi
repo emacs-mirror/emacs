@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 18 July 1997
+@set lastupdate 25 July 1997
 @c %**end of header
 
 @setchapternewpage off
@@ -87,7 +87,7 @@ high priority projects.
 
 @itemize @bullet
 @item
-If you are good at writing documentation, please do.
+If you are good at writing documentation, please do that.
 
 @item
 If you are very good at C programming and interested in kernels, you can
@@ -124,8 +124,17 @@ Help develop Windows NT emulation for GNU systems---for example, WINE.
 Implement the Kermit data transfer protocol.  (See below.)
 
 @item
-Develop a free compatible replacement for Qt, a graphics toolkit
-library.
+Develop a free compatible replacement for Qt, a GUI toolkit library.  Qt
+is not free software, because users are prohibited from distributing
+modified versions.  Thus, Qt cannot be included in a free operating
+system (adding it would make the system as a whole non-free).
+
+But some developers are writing free applications that use Qt and cannot
+run without it.  These programs, although free software, are useless for
+free operating systems because there is no way to make them run.
+
+This is leading to a serious problem, and a free replacement for Qt is
+the only solution.  Hence the high degree of urgency of this project.
 
 @item
 Develop a substitute, which runs on GNU systems, for some very popular
@@ -437,9 +446,11 @@ A program to play sound distributed in ``Real Audio'' format.
 @item
 A program to generate ``Real Audio'' format from audio input.
 
+@ignore  @c Software patents have made this domain off limits to free software.
 @item
 An MPEG III audio encoder/decoder (but it is necessary to check, first,
 whether patents make this impossible).
+@end ignore
 
 @item
 Speech-generation programs (there is a program from Brown U that you
@@ -544,7 +555,7 @@ simulation games.
 Improve GnuGo, which is not yet very sophisticated.
 
 @item
-Imitations of popular video games:
+Write imitations of some popular video game:
 
 @itemize -
 @item
@@ -566,11 +577,6 @@ Watchmaker}).
 @item
 A program to display effects of moving at relativistic speeds.
 @end itemize
-
-@item
-Intriguing screen-saver programs to make interesting pictures.
-Other such programs that are simply entertaining to watch.
-For example, an aquarium.
 @end itemize
 
 We do not need @code{rogue}, as we have @code{hack}.
