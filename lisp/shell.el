@@ -791,12 +791,16 @@ command again."
     (let ((pt (point))) ; wait for 1 line
       ;; This extra newline prevents the user's pending input from spoofing us.
       (insert "\n") (backward-char 1)
-      (while (not (looking-at ".+\n"))
+      (while (not (looking-at
+		   (concat "\\(" ; skip literal echo in case of stty echo
+			   (regexp-quote shell-dirstack-query)
+			   "\n\\)?" ; skip if present
+			   "\\(" ".+\n" "\\)")) ) ; what to actually look for
 	(accept-process-output proc)
 	(goto-char pt)))
     (goto-char pmark) (delete-char 1) ; remove the extra newline
     ;; That's the dirlist. grab it & parse it.
-    (let* ((dl (buffer-substring (match-beginning 0) (1- (match-end 0))))
+    (let* ((dl (buffer-substring (match-beginning 2) (1- (match-end 2))))
 	   (dl-len (length dl))
 	   (ds '())			; new dir stack
 	   (i 0))
