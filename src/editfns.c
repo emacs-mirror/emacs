@@ -2834,7 +2834,8 @@ save_restriction_restore (data)
       struct Lisp_Marker *end = XMARKER (XCDR (data));
       struct buffer *buf = beg->buffer; /* END should have the same buffer. */
 
-      if (beg->charpos != BUF_BEGV(buf) || end->charpos != BUF_ZV(buf))
+      if (buf /* Verify marker still points to a buffer.  */
+	  && (beg->charpos != BUF_BEGV (buf) || end->charpos != BUF_ZV (buf)))
 	/* The restriction has changed from the saved one, so restore
 	   the saved restriction.  */
 	{
@@ -2847,7 +2848,7 @@ save_restriction_restore (data)
 	    /* The point is outside the new visible range, move it inside. */
 	    SET_BUF_PT_BOTH (buf,
 			     clip_to_bounds (beg->charpos, pt, end->charpos),
-			     clip_to_bounds (beg->bytepos, BUF_PT_BYTE(buf),
+			     clip_to_bounds (beg->bytepos, BUF_PT_BYTE (buf),
 					     end->bytepos));
 	  
 	  buf->clip_changed = 1; /* Remember that the narrowing changed. */
@@ -2858,11 +2859,12 @@ save_restriction_restore (data)
     {
       struct buffer *buf = XBUFFER (data);
 
-      if (BUF_BEGV(buf) != BUF_BEG(buf) || BUF_ZV(buf) != BUF_Z(buf))
+      if (buf /* Verify marker still points to a buffer.  */
+	  && (BUF_BEGV (buf) != BUF_BEG (buf) || BUF_ZV (buf) != BUF_Z (buf)))
 	/* The buffer has been narrowed, get rid of the narrowing.  */
 	{
-	  SET_BUF_BEGV_BOTH (buf, BUF_BEG(buf), BUF_BEG_BYTE(buf));
-	  SET_BUF_ZV_BOTH (buf, BUF_Z(buf), BUF_Z_BYTE(buf));
+	  SET_BUF_BEGV_BOTH (buf, BUF_BEG (buf), BUF_BEG_BYTE (buf));
+	  SET_BUF_ZV_BOTH (buf, BUF_Z (buf), BUF_Z_BYTE (buf));
 
 	  buf->clip_changed = 1; /* Remember that the narrowing changed. */
 	}
