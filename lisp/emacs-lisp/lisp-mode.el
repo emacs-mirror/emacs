@@ -362,13 +362,12 @@ With argument, insert value in current buffer after the defun."
     ;; Now arrange for eval-region to "read" the (possibly) altered form.
     ;; eval-region handles recording which file defines a function or variable.
     (save-excursion
-      (let ((load-read-function
-	     #'(lambda (ignore)
-		 ;; Skipping to the end of the specified region
-		 ;; will make eval-region return.
-		 (goto-char end)
-		 form)))
-	(eval-region beg end standard-output)))))
+      (eval-region beg end standard-output
+		   #'(lambda (ignore)
+		       ;; Skipping to the end of the specified region
+		       ;; will make eval-region return.
+		       (goto-char end)
+		       form)))))
 
 (defun lisp-comment-indent ()
   (if (looking-at "\\s<\\s<\\s<")
