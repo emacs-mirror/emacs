@@ -121,7 +121,7 @@ NOTE-END
    mallocs work with "alpha-dec-osf2.0", but I daren't break anything
    right now.  Feel free to play if you want.  */
 
-#define SYSTEM_MALLOC
+/* #define SYSTEM_MALLOC */
 
 /* Define NO_REMAP if memory segmentation makes it not work well
    to change the boundary between the text section and data section
@@ -233,12 +233,17 @@ NOTE-END
 
 /* We need to prototype these for the lib-src programs even if we don't
    use the system malloc for the Emacs proper.  */
+#ifdef _MALLOC_INTERNAL
 /* These declarations are designed to match the ones in gmalloc.c.  */
 #if defined (__STDC__) && __STDC__
 extern void *malloc (), *realloc ();
 #else
 extern char *malloc (), *realloc ();
 #endif
+#else /* not _MALLOC_INTERNAL */
+extern void *malloc (), *realloc ();
+#endif /* not _MALLOC_INTERNAL */
+
 
 extern long *xmalloc (), *xrealloc ();
 
