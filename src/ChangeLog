@@ -1,3 +1,18 @@
+2002-06-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keyboard.c (read_key_sequence):
+	Remove prev_(fkey|keytran}_(map|start|end) since we don't want to pass
+	things through those maps after downcasing events.
+	Enforce that keytran_end <= fkey_start, i.e. that key-translation-map
+	applies after function-key-map.
+	Make sure that keytran can be done in the middle in the sequence.
+	Be careful not to throw away events past the one we downcase.
+
+	* lread.c (read_integer): Remove unused var `tem'.
+	(read1): Fix int/Lisp_Object mixup.
+
+	* xfaces.c (tty_lookup_color): Type bool/Lisp_Object mismatch fixed.
+
 2002-06-11  Richard M. Stallman  <rms@gnu.org>
 
 	* keyboard.c (readable_events): Ignore any number of
@@ -16,12 +31,12 @@
 2002-06-08  Colin Walters  <walters@verbum.org>
 
 	* textprop.c (Vchar_property_alias_alist): New variable.
-	(syms_of_textprop) <Vchar_property_alias_alist>: DEFVAR_LISP. 
+	(syms_of_textprop) <Vchar_property_alias_alist>: DEFVAR_LISP.
 
 	* intervals.c (lookup_char_property): New function for looking up
 	overlay and text properties, created from textget.
 	(textget): Use it.
-	
+
 	* intervals.h (lookup_char_property): Declare.
 	(Vchar_property_alias_alist): Declare.
 
@@ -34,8 +49,8 @@
 
 2002-06-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* xselect.c (lisp_data_to_selection_data): Fix last change: set
-	size_ret.
+	* xselect.c (lisp_data_to_selection_data): Fix last change:
+	set size_ret.
 
 2002-06-07  Andreas Schwab  <schwab@suse.de>
 
@@ -53,8 +68,8 @@
 
 2002-06-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* fileio.c (choose_write_coding_system): Call
-	select-safe-coding-system properly.
+	* fileio.c (choose_write_coding_system):
+	Call select-safe-coding-system properly.
 
 2002-06-03  Richard M. Stallman  <rms@gnu.org>
 
@@ -67,8 +82,7 @@
 
 2002-06-03  Ken Raeburn  <raeburn@gnu.org>
 
-	* buffer.c (fix_overlays_before): Fix list-walking bug in 05-19
-	change.
+	* buffer.c (fix_overlays_before): Fix list-walking bug in 05-19 change.
 
 2002-06-02  Thien-Thi Nguyen  <ttn@gnu.org>
 
@@ -79,13 +93,13 @@
 
 	* xdisp.c (redisplay_internal, redisplay_window, decode_mode_spec):
 	Cast `current_column' return value to int.
-	(back_to_previous_visible_line_start,
-	reseat_at_next_visible_line_start, next_element_from_buffer):
+	(back_to_previous_visible_line_start)
+	(reseat_at_next_visible_line_start, next_element_from_buffer):
 	Cast `indented_beyond_p' 3rd arg to float.
 
 	* indent.c (last_known_column): Now a float.
-	(current_column_1, position_indentation, current_column,
-	string_display_width): Return float.
+	(current_column_1, position_indentation, current_column)
+	(string_display_width): Return float.
 	(Fcurrent_column): Cast `current_column' return value to int.
 	(Fcurrent_indentation): Cast `position_indentation' retval to int.
 	(indented_beyond_p): Third arg now a float.
@@ -145,8 +159,7 @@
 	Vread_with_symbol_positions.
 	(readevalloop, Fread, Fread_from_string): Use it.
 	(read1): Use readchar_count to add symbol positions to
-	Vread_symbol_positions_list if Vread_with_symbol_positions is
-	non-nil.
+	Vread_symbol_positions_list if Vread_with_symbol_positions is non-nil.
 	(syms_of_lread): DEFVAR_LISP and initialize them.
 
 	* lread.c (read0, read1, read_list, read_vector, read_multibyte)
