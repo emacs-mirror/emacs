@@ -11,9 +11,9 @@
 ;; LCD Archive Entry:
 ;; eldoc|Noah Friedman|friedman@prep.ai.mit.edu|
 ;; show function arglist or variable docstring in echo area|
-;; $Date: 1995/11/21 15:21:34 $|$Revision: 1.4 $|~/misc/eldoc.el.gz|
+;; $Date: 1995/11/25 03:45:25 $|$Revision: 1.5 $|~/misc/eldoc.el.gz|
 
-;; $Id: eldoc.el,v 1.4 1995/11/21 15:21:34 friedman Exp friedman $
+;; $Id: eldoc.el,v 1.5 1995/11/25 03:45:25 friedman Exp friedman $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -147,8 +147,10 @@ It is probably best to manipulate this data structure with the commands
               'post-command-hook)
             'eldoc-mode-print-current-symbol-info)
 
-  (setq eldoc-mode
-        (>= (prefix-numeric-value prefix) 0))
+  (setq eldoc-mode (if prefix
+                       (>= (prefix-numeric-value prefix) 0)
+                     (not eldoc-mode)))
+
   (and (interactive-p)
        (if eldoc-mode
            (message "eldoc-mode is enabled")
