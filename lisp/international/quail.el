@@ -204,7 +204,7 @@ packages (byte-compiled Emacs Lisp files) to somewhere in your
 `load-path'.
 
 LEIM is available from the same ftp directory as Emacs."))
-	  (error ""))
+	  (error "Can't use the Quail package `%s'" package-name))
       (setq libraries (cdr libraries))))
   (quail-select-package package-name)
   (setq current-input-method-title (quail-title))
@@ -469,6 +469,17 @@ The command \\[describe-input-method] describes the current Quail package."
 	(run-hooks 'quail-mode-exit-hook)
 	(run-hooks 'input-method-inactivate-hook))
     ;; Let's turn on Quail mode.
+    ;; At first, be sure that quail-mode is at the first element of
+    ;; minor-mode-map-alist.
+    (or (eq (car minor-mode-map-alist) 'quail-mode)
+	(let ((l minor-mode-map-alist))
+	  (while (cdr l)
+	    (if (eq (car (cdr l)) 'quail-mode)
+		(progn
+		  (setcdr l (cdr (cdr l)))
+		  (setq l nil))
+	      (setq l (cdr l))))
+	  (setq minor-mode-map-alist (cons 'quail-mode minor-mode-map-alist))))
     (if (null quail-current-package)
 	;; Quail package is not yet selected.  Select one now.
 	(let (name)
@@ -1378,7 +1389,7 @@ All possible translations of the current key and whole possible longer keys
 	    (setq l (cdr l)))))))
 
 ;; List all possible translations of KEY in Quail map MAP with
-;; indentation INDENT."
+;; indentation INDENT.
 (defun quail-completion-list-translations (map key indent)
   (let ((translations
 	 (quail-get-translation map key (length key))))
