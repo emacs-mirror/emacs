@@ -1025,7 +1025,7 @@ The current buffer should be the desired compilation output buffer."
 								lines))
 					 (forward-line lines))
 				       (if column
-					   (move-to-column column))
+					   (move-to-column (1- column)))
 				       (setq last-line this)
 				       (setcdr (car errors) (point-marker))))
 				(setq errors (cdr errors)))))))))
