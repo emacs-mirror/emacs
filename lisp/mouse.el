@@ -274,15 +274,16 @@ Use \\[mouse-secondary-save-then-kill] to set the other end
 and complete the secondary selection."
   (interactive "e")
   (let ((posn (event-start click)))
-    (select-window (posn-window posn))
-    ;; Cancel any preexisting secondary selection.
-    (if mouse-secondary-overlay
-	(delete-overlay mouse-secondary-overlay))
-    (if (numberp (posn-point posn))
-	(progn
-	  (or mouse-secondary-start
-	      (setq mouse-secondary-start (make-marker)))
-	  (move-marker mouse-secondary-start (posn-point posn))))))
+    (save-excursion
+      (set-buffer (window-buffer (posn-window posn)))
+      ;; Cancel any preexisting secondary selection.
+      (if mouse-secondary-overlay
+	  (delete-overlay mouse-secondary-overlay))
+      (if (numberp (posn-point posn))
+	  (progn
+	    (or mouse-secondary-start
+		(setq mouse-secondary-start (make-marker)))
+	    (move-marker mouse-secondary-start (posn-point posn)))))))
 
 (defun mouse-set-secondary (click)
   "Set the secondary selection to the text that the mouse is dragged over.
@@ -291,23 +292,28 @@ This must be bound to a mouse drag event."
   (let ((posn (event-start click))
 	beg
 	(end (event-end click)))
-    (select-window (posn-window posn))
-    (if (numberp (posn-point posn))
-	(setq beg (posn-point posn)))
-    (if mouse-secondary-overlay
-	(move-overlay mouse-secondary-overlay beg (posn-point end))
-      (setq mouse-secondary-overlay (make-overlay beg (posn-point end))))
-    (overlay-put mouse-secondary-overlay 'face 'secondary-selection)))
+    (save-excursion
+      (set-buffer (window-buffer (posn-window posn)))
+      (if (numberp (posn-point posn))
+	  (setq beg (posn-point posn)))
+      (if mouse-secondary-overlay
+	  (move-overlay mouse-secondary-overlay beg (posn-point end))
+	(setq mouse-secondary-overlay (make-overlay beg (posn-point end))))
+      (overlay-put mouse-secondary-overlay 'face 'secondary-selection))))
 
 (defun mouse-drag-secondary (click)
   "Set the secondary selection to the text that the mouse is dragged over.
 This must be bound to a button-down mouse event."
   (interactive "e")
   (let ((posn (event-start click)))
-    (select-window (posn-window posn))
-    ;; Set point temporarily, so user sees where it is.
-    (if (numberp (posn-point posn))
-	(goto-char (posn-point posn)))))
+    (save-window-excursion
+      (select-window (posn-window posn))
+      ;; Set point temporarily, so user sees where it is.
+      (save-excursion
+	(if (numberp (posn-point posn))
+	    (goto-char (posn-point posn)))
+	(setq unread-command-events
+	      (cons (read-event) unread-command-events))))))
 
 (defun mouse-kill-secondary ()
   "Kill the text in the secondary selection."
@@ -346,14 +352,15 @@ which prepares for a second click to delete the text."
 		    (cons (cons (car kill-ring) start)
 			  buffer-undo-list))))
       ;; Otherwise, save this region.
-      (select-window (posn-window (event-start click)))
-      (kill-ring-save start click-posn)
-      (if mouse-secondary-overlay
-	  (move-overlay mouse-secondary-overlay start click-posn)
-	(setq mouse-secondary-overlay (make-overlay start click-posn)))
-      (overlay-put mouse-secondary-overlay 'face 'secondary-selection)
-      (setq mouse-save-then-kill-posn
-	    (list (car kill-ring) start click-posn)))))
+      (save-excursion
+	(set-buffer (window-buffer (posn-window (event-start click))))
+	(kill-ring-save start click-posn)
+	(if mouse-secondary-overlay
+	    (move-overlay mouse-secondary-overlay start click-posn)
+	  (setq mouse-secondary-overlay (make-overlay start click-posn)))
+	(overlay-put mouse-secondary-overlay 'face 'secondary-selection)
+	(setq mouse-save-then-kill-posn
+	      (list (car kill-ring) start click-posn))))))
 
 (defun mouse-buffer-menu (event)
   "Pop up a menu of buffers for selection with the mouse.
