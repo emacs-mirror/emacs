@@ -827,11 +827,11 @@ Calls the value of `sh-set-shell-hook' if set."
 	  sh-shell (intern (file-name-nondirectory sh-shell-path))
 	  sh-shell-is-csh (memq sh-shell '(csh tcsh))
 	  font-lock-defaults
-	  (list (intern-soft (format "sh-%s-font-lock-keywords" sh-shell))) 
-	  font-lock-keywords (if (and font-lock-keywords
-				      (boundp font-lock-keywords))
-				 (symbol-value font-lock-keywords)
-			       sh-font-lock-keywords)
+	  (let ((keywords (intern-soft (format "sh-%s-font-lock-keywords"
+					       sh-shell))))
+	    (list (if (and keywords (boundp keywords))
+		      keywords
+		    'sh-font-lock-keywords)))
 	  comment-start-skip (if sh-shell-is-csh
 				 "\\(^\\|[^$]\\|\\$[^{]\\)#+[\t ]*"
 			       "\\(^\\|[^$]\\|\\$[^{]\\)\\B#+[\t ]*")
