@@ -2198,7 +2198,7 @@ order until succeed.")
 			  (error nil))
 		   utf8-coding last-coding-system-used)
 	     (if utf8
-		 ;; If it is a locale selection, or it contains only
+		 ;; If it is a local selection, or it contains only
 		 ;; ASCII characers, choose it.
 		 (if (or (not (get-text-property 0 'foreign-selection utf8))
 			 (= (length utf8) (string-bytes utf8)))

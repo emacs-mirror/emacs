@@ -1,3 +1,7 @@
+2004-01-29  Kenichi Handa  <handa@m17n.org>
+
+	* term/x-win.el (x-selection-value): Optimize for ASCII only case.
+
 2004-01-28  Peter 'Luna' Runestig  <peter@runestig.com>
 
 	* dos-w32.el: Added support for the `default-printer-name' function.
