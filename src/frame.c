@@ -1112,9 +1112,11 @@ but if the second optional argument FORCE is non-nil, you may do so.")
   if (NILP (force) && !other_visible_frames (XFRAME (frame)))
     error ("Attempt to make invisible the sole visible or iconified frame");
 
+#if 0 /* This isn't logically necessary, and it can do GC.  */
   /* Don't let the frame remain selected.  */
   if (XFRAME (frame) == selected_frame)
     Fhandle_switch_frame (next_frame (frame, Qt), Qnil);
+#endif
 
   /* Don't allow minibuf_window to remain on a deleted frame.  */
   if (EQ (XFRAME (frame)->minibuffer_window, minibuf_window))
@@ -1148,9 +1150,11 @@ If omitted, FRAME defaults to the currently selected frame.")
   
   CHECK_LIVE_FRAME (frame, 0);
 
+#if 0 /* This isn't logically necessary, and it can do GC.  */
   /* Don't let the frame remain selected.  */
   if (XFRAME (frame) == selected_frame)
     Fhandle_switch_frame (next_frame (frame, Qt), Qnil);
+#endif
 
   /* Don't allow minibuf_window to remain on a deleted frame.  */
   if (EQ (XFRAME (frame)->minibuffer_window, minibuf_window))
