@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version: 4.11
+;; Version: 4.14
 ;;
 
 ;; This file is part of GNU Emacs.
@@ -56,7 +56,7 @@ to the functions `reftex-view-cr-cite' and `reftex-view-cr-ref'."
     (setq reftex-call-back-to-this-buffer (current-buffer))
 
     (cond
-     ((string-match "\\`\\\\cite\\|cite\\*?\\'" macro)
+     ((string-match "\\`\\\\cite\\|cite\\*?\\'\\|bibentry" macro)
       ;; A citation macro: search for bibitems or BibTeX entries
       (setq dw (reftex-view-cr-cite arg key auto-how)))
      ((string-match "\\`\\\\ref\\|ref\\(range\\)?\\*?\\'" macro)
@@ -75,7 +75,7 @@ to the functions `reftex-view-cr-cite' and `reftex-view-cr-ref'."
       (reftex-access-scan-info arg)
       (setq dw (reftex-view-regexp-match
 		(format reftex-find-citation-regexp-format (regexp-quote key))
-		3 nil nil)))
+		4 nil nil)))
      ((member macro reftex-macros-with-index)
       (reftex-access-scan-info arg)
       (setq dw (reftex-view-regexp-match
@@ -238,7 +238,7 @@ With argument, actually select the window showing the cross reference."
        ;; FIXME: Can fail with backslash in comment
        (save-excursion  
 	 (search-backward "\\" nil t)
-	 (looking-at "\\\\[a-zA-Z]*\\(cite\\|ref\\)"))
+	 (looking-at "\\\\[a-zA-Z]*\\(cite\\|ref\\|bibentry\\)"))
 
        (condition-case nil
 	   (let ((current-prefix-arg nil))
@@ -357,7 +357,7 @@ Calling this function several times find successive citation locations."
   (interactive "P")
   (when arg 
     ;; Break connection to reference buffer
-    (remprop 'reftex-bibtex-view-cite-locations :ref-buffer))
+    (put 'reftex-bibtex-view-cite-locations :ref-buffer nil))
   (let ((ref-buffer (get 'reftex-bibtex-view-cite-locations :ref-buffer)))
     ;; Establish connection to reference buffer
     (unless ref-buffer
@@ -382,7 +382,7 @@ Calling this function several times find successive citation locations."
 	  (reftex-view-regexp-match
 	   (format reftex-find-citation-regexp-format
 		   (regexp-quote (match-string 1)))
-	   3 arg ref-buffer))
+	   4 arg ref-buffer))
       (error "Cannot find citation key in BibTeX entry"))))
 
 (defun reftex-view-regexp-match (re &optional highlight-group new ref-buffer)
@@ -418,7 +418,7 @@ Calling this function several times find successive citation locations."
 			    (match-end highlight-group))
 	  (add-hook 'pre-command-hook 'reftex-highlight-shall-die)
 	  (setq pop-window (selected-window)))
-      (remprop 'reftex-view-regexp-match :props)
+      (put 'reftex-view-regexp-match :props nil)
       (or cont (set-window-configuration window-conf)))
     (select-window current-window)
     (if match

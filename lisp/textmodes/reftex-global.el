@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version: 4.11
+;; Version: 4.14
 ;;
 
 ;; This file is part of GNU Emacs.
@@ -218,6 +218,8 @@ one with the `xr' package."
     (unless changed-sequence
       (error "Simple labels are already in correct sequence"))
 
+    (reftex-ensure-write-access (reftex-all-document-files))
+
     ;; Save all document buffers before this operation
     (reftex-save-all-document-buffers)
 
@@ -311,5 +313,26 @@ labels."
 	  (set-buffer buffer)
 	  (save-buffer))))))
 
+(defun reftex-ensure-write-access (files)
+  "Make sure we have write access to all files in FILES.
+Also checks if buffers visiting the files are in read-only mode."
+  (let (file buf)
+    (while (setq file (pop files))
+      (unless (file-exists-p file)
+	(ding)
+	(or (y-or-n-p (format "No such file %s. Continue? " file))
+	    (error "Abort")))
+      (unless (file-writable-p file)
+	(ding)
+	(or (y-or-n-p (format "No write access to %s. Continue? " file))
+	    (error "Abort")))
+      (when (and (setq buf (reftex-get-buffer-visiting file))
+		 (save-excursion
+		   (set-buffer buf)
+		   buffer-read-only))
+	(ding)
+	(or (y-or-n-p (format "Buffer %s is read-only. Continue? "
+			      (buffer-name buf)))
+	    (error "Abort"))))))
 
 ;;; reftex-global.el ends here

@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version: 4.11
+;; Version: 4.14
 ;;
 
 ;; This file is part of GNU Emacs.
@@ -330,9 +330,9 @@ of master file."
     (save-excursion
       (goto-char (point-min))
       (if (re-search-forward
-	   "\\(\\`\\|[\n\r]\\)[ \t]*\\\\bibliography{[ \t]*\\([^}]+\\)" nil t)
+	   "\\(\\`\\|[\n\r]\\)[ \t]*\\\\\\(no\\)?bibliography{[ \t]*\\([^}]+\\)" nil t)
 	  (setq files 
-		(split-string (reftex-match-string 2)
+		(split-string (reftex-match-string 3)
 			      "[ \t\n\r]*,[ \t\n\r]*")))))
   (when files
     (setq files 

@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version:    4.11
+;; Version:    4.14
 ;; Keywords:   tex
 
 ;; This file is part of GNU Emacs.
@@ -300,7 +300,7 @@
 ;;; Define the formal stuff for a minor mode named RefTeX.
 ;;;
 
-(defconst reftex-version "RefTeX version 4.11"
+(defconst reftex-version "RefTeX version 4.14"
   "Version string for RefTeX.")
 
 (defvar reftex-mode nil
@@ -689,7 +689,7 @@ the label information is recompiled on next use."
 (defvar reftex-everything-regexp-no-index nil)
 (defvar reftex-index-re nil)
 (defvar reftex-find-citation-regexp-format
-  "\\\\[a-zA-Z]*cite[*a-zA-Z]*\\*?\\(\\[[^]]*\\]\\|{[^}]*}\\)*{\\([^}]*,\\)?\\(%s\\)[},]")
+  "\\\\\\([a-zA-Z]*cite[*a-zA-Z]*\\*?\\|bibentry\\)\\(\\[[^]]*\\]\\|{[^}]*}\\)*{\\([^}]*,\\)?\\(%s\\)[},]")
 (defvar reftex-find-reference-format
   "\\\\\\(ref[a-zA-Z]*\\|[a-zA-Z]*ref\\(range\\)?\\)\\*?\\(\\[[^]]*\\]\\|{[^}]*}\\)*{\\(%s\\)}")
 (defvar reftex-macros-with-labels nil)
@@ -1097,7 +1097,7 @@ This enforces rescanning the buffer on next use."
 	    (concat wbol "\\\\\\("
 		    (mapconcat (lambda (x) (regexp-quote (car x)))
 			       reftex-section-levels-all "\\|")
-		    "\\)\\*?\\(\\[[^]]*\\]\\)?{?"))
+		    "\\)\\*?\\(\\[[^]]*\\]\\)?[[{ \t\r\n]"))
 	   (appendix-re (concat wbol "\\(\\\\appendix\\)"))
 	   (macro-re
 	    (if macros-with-labels
@@ -1609,6 +1609,8 @@ When DIE is non-nil, throw an error if file not found."
 ;;;
 ;;; BibTeX citations.
 
+(autoload 'reftex-citep "reftex-cite")
+(autoload 'reftex-citet "reftex-cite")
 (autoload 'reftex-make-cite-echo-string "reftex-cite")
 (autoload 'reftex-get-bibfile-list "reftex-cite")
 (autoload 'reftex-pop-to-bibtex-entry "reftex-cite")
