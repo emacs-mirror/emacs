@@ -1368,7 +1368,7 @@ redisplay_window (window, just_this_one)
   int opoint = PT;
   int tem;
   int update_mode_line;
-  struct Lisp_Vector *dp = window_display_table (w);
+  struct Lisp_Char_Table *dp = window_display_table (w);
 
   if (FRAME_HEIGHT (f) == 0) abort (); /* Some bug zeros some core */
 
@@ -1475,7 +1475,7 @@ redisplay_window (window, just_this_one)
      changed, so why should we worry about doing any better?  */
   if (current_buffer->width_run_cache)
     {
-      struct Lisp_Vector *disptab = buffer_display_table ();
+      struct Lisp_Char_Table *disptab = buffer_display_table ();
 
       if (! disptab_matches_widthtab (disptab,
                                       XVECTOR (current_buffer->width_table)))
@@ -2471,7 +2471,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 		   ? XINT (current_buffer->selective_display)
 		   : !NILP (current_buffer->selective_display) ? -1 : 0);
   register struct frame_glyphs *desired_glyphs = FRAME_DESIRED_GLYPHS (f);
-  register struct Lisp_Vector *dp = window_display_table (w);
+  register struct Lisp_Char_Table *dp = window_display_table (w);
 
   Lisp_Object default_invis_vector[3];
   /* Number of characters of ellipsis to display after an invisible line
@@ -3979,12 +3979,11 @@ display_string (w, vpos, string, length, hpos, truncate,
 
   /* Use the standard display table, not the window's display table.
      We don't want the mode line in rot13.  */
-  register struct Lisp_Vector *dp = 0;
+  register struct Lisp_Char_Table *dp = 0;
   int i;
 
-  if (VECTORP (Vstandard_display_table)
-      && XVECTOR (Vstandard_display_table)->size == DISP_TABLE_SIZE)
-    dp = XVECTOR (Vstandard_display_table);
+  if (DISP_TABLE_P (Vstandard_display_table))
+    dp = XCHAR_TABLE (Vstandard_display_table);
 
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 
@@ -4290,7 +4289,7 @@ all the functions in the list are called, with the frame as argument.");
   Vwindow_size_change_functions = Qnil;
 
   DEFVAR_LISP ("window-scroll-functions", &Vwindow_scroll_functions,
-    "Functions to call when a window is redisplayed with scrolling.\n\
+    "List of Functions to call before redisplaying a window with scrolling.\n\
 Each function is called with two arguments, the window\n\
 and its new display-start position.");
   Vwindow_scroll_functions = Qnil;
