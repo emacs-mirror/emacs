@@ -13,8 +13,8 @@ The Info Directory
   Type "?" for a list of Info commands, or "h" to visit an Info tutorial.
   Type "m" to choose a menu item--for instance, 
     "mEmacs<Return>" visits the Emacs manual.
-  In Emacs Info, you can click mouse button 2 on a menu item or cross reference
-  to follow it to its target.
+  In Emacs Info, you can click mouse button 2 on a menu item
+  or cross reference to follow it to its target.
 
 * Menu: Each line that starts with a * is a topic you can select with "m".
   Every third topic has a red *.
