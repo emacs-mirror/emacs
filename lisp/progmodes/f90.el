@@ -3,7 +3,7 @@
 ;; Copyright (C) 1995, 1996, 1997, 2000 Free Software Foundation, Inc.
 
 ;; Author: Torbj\"orn Einarsson <Torbjorn.Einarsson@era.ericsson.se>
-;; Maintainer: Dave Love <fx@gnu.org>
+;; Maintainer: Glenn Morris <gmorris@ast.cam.ac.uk>
 ;; Keywords: fortran, f90, languages
 
 ;; This file is part of GNU Emacs.
@@ -89,7 +89,6 @@
 ;;                        f90-smart-end 'blink
 ;;                        f90-auto-keyword-case nil
 ;;                        f90-leave-line-no  nil
-;;                        f90-startup-message t
 ;;                        indent-tabs-mode nil
 ;;                        f90-font-lock-keywords f90-font-lock-keywords-2
 ;;                  )
@@ -230,11 +229,6 @@ whether to blink the matching beginning."
   :type 'boolean
   :group 'f90)
 
-(defcustom f90-startup-message t
-  "*Non-nil displays a startup message when F90 mode is first called."
-  :type 'boolean
-  :group 'f90)
-
 (defconst f90-keywords-re
   ;;("allocate" "allocatable" "assign" "assignment" "backspace" "block"
   ;;"call" "case" "character" "close" "common" "complex" "contains"
@@ -364,15 +358,15 @@ whether to blink the matching beginning."
 
 (defvar f90-font-lock-keywords-1
   (list
+   ;; Special highlighting of "module procedure foo-list"
+   '("\\<\\(module[ \t]*procedure\\)\\>" (1 font-lock-keyword-face))
    '("\\<\\(end[ \t]*\\(program\\|module\\|function\\|subroutine\\|type\\)\\)\\>[ \t]*\\(\\sw+\\)?"
      (1 font-lock-keyword-face) (3 font-lock-function-name-face nil t))
-   '("\\<\\(program\\|call\\|module\\|subroutine\\|function\\|use\\)\\>[ \t]*\\(\\sw+\\)?"
+   '("\\<\\(program\\|type\\|call\\|module\\|subroutine\\|function\\|use\\)\\>[ \t]*\\(\\sw+\\)?"
      (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
-   ;; Special highlighting of "module procedure foo-list"
-   '("\\<\\(module[ \t]*procedure\\)\\>" (1 font-lock-keyword-face t))
    ;; Highlight definition of new type
-   '("\\<\\(type\\)[ \t]*\\(.*::[ \t]*\\|[ \t]+\\)\\(\\sw+\\)"
-     (1 font-lock-keyword-face) (3 font-lock-function-name-face))
+;;;   '("\\<\\(type\\)[ \t]*\\(.*::[ \t]*\\|[ \t]+\\)\\(\\sw+\\)"
+;;;     (1 font-lock-keyword-face) (3 font-lock-function-name-face))
    "\\<\\(\\(end[ \t]*\\)?\\(interface\\|block[ \t]*data\\)\\|contains\\)\\>")
   "This does fairly subdued highlighting of comments and function calls.")
 
@@ -381,7 +375,7 @@ whether to blink the matching beginning."
       (list
        ;; Variable declarations (avoid the real function call)
        '("^[ \t0-9]*\\(real\\|integer\\|c\\(haracter\\|omplex\\)\\|logical\\|type[ \t]*(\\sw+)\\)\\(.*::\\|[ \t]*(.*)\\)?\\([^!\n]*\\)"
-	 (1 font-lock-type-face) (4 font-lock-variable-name-face))
+	 (1 font-lock-type-face t) (4 font-lock-variable-name-face))
        ;; do, if, select, where, and forall constructs
        '("\\<\\(end[ \t]*\\(do\\|if\\|select\\|forall\\|where\\)\\)\\>\\([ \t]+\\(\\sw+\\)\\)?"
 	 (1 font-lock-keyword-face) (3 font-lock-constant-face nil t))
@@ -406,7 +400,7 @@ whether to blink the matching beginning."
    (list
     f90-keywords-level-3-re
     f90-operators-re
-    (list f90-procedures-re '(1 font-lock-keyword-face t))
+    (list f90-procedures-re '(1 font-lock-keyword-face keep))
    "\\<real\\>"			; Avoid overwriting real defs.
    ))
   "Highlights all F90 keywords and intrinsic procedures.")
@@ -830,8 +824,6 @@ Variables controlling indentation style and extra features:
     The possibilities are 'downcase-word, 'upcase-word, 'capitalize-word.
  f90-leave-line-no
     Do not left-justify line numbers. (default nil)
- f90-startup-message
-    Set to nil to inhibit message first time F90 mode is used. (default t)
  f90-keywords-re
     List of keywords used for highlighting/upcase-keywords etc.
 
@@ -885,10 +877,7 @@ with no args, if that value is non-nil."
   (setq imenu-generic-expression f90-imenu-generic-expression)
   (set (make-local-variable 'add-log-current-defun-function)
        #'f90-current-defun)
-  (run-hooks 'f90-mode-hook)
-;;   (if f90-startup-message
-;;       (message "Emacs F90 mode; please report bugs to %s" bug-f90-mode))
-  (setq f90-startup-message nil))
+  (run-hooks 'f90-mode-hook))
 
 ;; inline-functions
 (defsubst f90-get-beg-of-line ()
@@ -913,6 +902,8 @@ with no args, if that value is non-nil."
 
 (defsubst f90-line-continued ()
   (save-excursion
+    (beginning-of-line)
+    (while (and (looking-at "[ \t]*\\(!\\|$\\)") (zerop (forward-line -1))))
     (let ((bol (f90-get-beg-of-line)))
       (end-of-line)
       (while (f90-in-comment)
@@ -1033,7 +1024,7 @@ Name is non-nil only for type."
 	 (looking-at "\\(module\\)[ \t]+\\(\\sw+\\)\\>"))
     (list (f90-match-piece 1) (f90-match-piece 2)))
    ((and (not (looking-at "end[ \t]*\\(function\\|subroutine\\)"))
-	 (looking-at "[^!\"\&\n]*\\(function\\|subroutine\\)[ \t]+\\(\\sw+\\)"))
+	 (looking-at "[^!'\"\&\n]*\\(function\\|subroutine\\)[ \t]+\\(\\sw+\\)"))
     (list (f90-match-piece 1) (f90-match-piece 2)))))
 
 (defsubst f90-looking-at-program-block-end ()
@@ -1331,8 +1322,7 @@ If run in the middle of a line, the line is not broken."
     (if abbrev-mode (expand-abbrev))
     (beginning-of-line)			; Reindent where likely to be needed.
     (f90-indent-line-no)
-    (if (or (looking-at "\\(end\\|else\\|!\\)"))
-	(f90-indent-line 'no-update))
+    (f90-indent-line 'no-update)
     (end-of-line)
     (delete-horizontal-space)		;Destroy trailing whitespace
     (setq string (f90-in-string))
@@ -1384,9 +1374,11 @@ If run in the middle of a line, the line is not broken."
     (if struct (setq block-list (cons struct block-list)))
     (while (and (f90-line-continued) (zerop (forward-line 1))
 		(< (point) end-region-mark))
-      (if (not (zerop (- (current-indentation) 
-			 (+ ind-curr f90-continuation-indent))))
-	  (f90-indent-to (+ ind-curr f90-continuation-indent) 'no-line-no)))
+      (if (looking-at "[ \t]*!")
+          (f90-indent-to (f90-comment-indent))
+        (if (not (zerop (- (current-indentation) 
+                           (+ ind-curr f90-continuation-indent))))
+            (f90-indent-to (+ ind-curr f90-continuation-indent) 'no-line-no))))
     ;; process all following lines
     (while (and  (zerop (forward-line 1)) (< (point) end-region-mark))
       (beginning-of-line)
@@ -1434,9 +1426,12 @@ If run in the middle of a line, the line is not broken."
 	  (f90-indent-to ind-curr))
       (while (and (f90-line-continued) (zerop (forward-line 1))
 		  (< (point) end-region-mark))
-	(if (not (zerop (- (current-indentation) 
-			   (+ ind-curr f90-continuation-indent))))
-	    (f90-indent-to (+ ind-curr f90-continuation-indent) 'no-line-no))))
+        (if (looking-at "[ \t]*!")
+            (f90-indent-to (f90-comment-indent))
+          (if (not (zerop (- (current-indentation) 
+                             (+ ind-curr f90-continuation-indent))))
+              (f90-indent-to
+               (+ ind-curr f90-continuation-indent) 'no-line-no)))))
     ;; restore point etc
     (setq f90-cache-position nil)
     (goto-char save-point)
