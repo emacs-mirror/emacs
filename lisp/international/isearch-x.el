@@ -77,7 +77,10 @@
 
 (defun isearch-with-input-method ()
   (interactive)
-  (let ((events (funcall input-method-function nil)))
+  (let ((key (car unread-command-events))
+	events)
+    (setq unread-command-events (cdr unread-command-events)
+	  events (funcall input-method-function key))
     ;; EVENTS is a list of events the input method has generated.  It
     ;; contains a character event and/or the special event
     ;; `compose-last-chars'.  We extract only character events and
