@@ -162,6 +162,7 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate (concat paragraph-separate "\\|^\\("
 				   outline-regexp "\\)"))
+  (add-hooks 'change-major-mode-hook 'show-all)
   (run-hooks 'text-mode-hook 'outline-mode-hook))
 
 (defvar outline-minor-mode-prefix "\C-c"
@@ -195,6 +196,9 @@ See the command `outline-mode' for more information on this mode."
 	(setq selective-display t)
 	(run-hooks 'outline-minor-mode-hook))
     (setq selective-display nil))
+  ;; When turning off outline mode, get rid of any ^M's.
+  (or outline-minor-mode
+      (outline-flag-region (point-min) (point-max) ?\n))
   (set-buffer-modified-p (buffer-modified-p)))
 
 (defvar outline-level 'outline-level
