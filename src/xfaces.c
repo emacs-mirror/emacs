@@ -2952,8 +2952,9 @@ lface_fully_specified_p (attrs)
   int i;
 
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
-    if (UNSPECIFIEDP (attrs[i]) && i != LFACE_FONT_INDEX)
-      break;
+    if (i != LFACE_FONT_INDEX && i != LFACE_INHERIT_INDEX)
+      if (UNSPECIFIEDP (attrs[i])) 
+        break;
 
   return i == LFACE_VECTOR_SIZE;
 }
@@ -3161,6 +3162,7 @@ merge_face_vectors (f, from, to, cycle_check)
   to[LFACE_INHERIT_INDEX] = Qnil;
 }
 
+
 /* Checks the `cycle check' variable CHECK to see if it indicates that
    EL is part of a cycle; CHECK must be either Qnil or a value returned
    by an earlier use of CYCLE_CHECK.  SUSPICIOUS is the number of
@@ -3173,6 +3175,7 @@ merge_face_vectors (f, from, to, cycle_check)
 
    CHECK is evaluated multiple times, EL and SUSPICIOUS 0 or 1 times, so
    the caller should make sure that's ok.  */
+
 #define CYCLE_CHECK(check, el, suspicious)				      \
   (NILP (check)								      \
    ? make_number (0)							      \
@@ -3886,7 +3889,7 @@ frame.")
       if (NILP (tail))
 	LFACE_INHERIT (lface) = value;
       else
-	signal_error ("Invalid font inheritance", value);
+	signal_error ("Invalid face inheritance", value);
     }
   else if (EQ (attr, QCbold))
     {
