@@ -430,9 +430,12 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  /* Disregard menu bar bindings; it is positively annoying to
 	     mention them when there's no menu bar, and it isn't terribly
 	     useful even when there is a menu bar.  */
-	  firstkey = Faref (tem, make_number (0));
-	  if (EQ (firstkey, Qmenu_bar))
-	    tem = Qnil;
+	  if (!NILP (tem))
+	    {
+	      firstkey = Faref (tem, make_number (0));
+	      if (EQ (firstkey, Qmenu_bar))
+		tem = Qnil;
+	    }
 
 	  if (NILP (tem))	/* but not on any keys */
 	    {
