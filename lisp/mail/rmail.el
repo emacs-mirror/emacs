@@ -430,6 +430,12 @@ Note:    it means the file has no messages in it.\n\^_")))
   (cons "Mail" (make-sparse-keymap "Mail")))
 
 (define-key rmail-mode-map [menu-bar mail continue]
+  '("Get New Mail" . rmail-get-new-mail))
+
+(define-key rmail-mode-map [menu-bar mail lambda]
+  "----")
+
+(define-key rmail-mode-map [menu-bar mail continue]
   '("Continue" . rmail-continue))
 
 (define-key rmail-mode-map [menu-bar mail forward]
