@@ -455,8 +455,12 @@ types, e.g. a crossreference document of organization types.")
 ;;; Amendment:  I couldn't get a regexp with both "[]"'s and hyphen to
 ;;; work.  It looks like you need them both to be the first entries in a
 ;;; regexp pattern. [alarson:19930315.0900CST]
+;;;
+;;; New amendment[MB]: I have corrected the following regexp according to 
+;;; emacs19 rules.  I also added ']' to the list of characters allowed in 
+;;; a field name.
 
-(defconst bibtex-field-name "[A-Za-z][---A-Za-z0-9.:;?!`'()/*@_+=]*"
+(defconst bibtex-field-name "[A-Za-z][]A-Za-z0-9.:;?!`'()/*@_+=-]*"
   "Regexp defining the name part of a bibtex field.")
 
 ;; bibtex-field-text must be able to handle
@@ -469,7 +473,7 @@ types, e.g. a crossreference document of organization types.")
 ;; i have added a few of these, but not all! -- MON
 
 (defconst bibtex-field-const
-  "[0-9A-Za-z][---A-Za-z0-9:_+]*"
+  "[0-9A-Za-z][A-Za-z0-9:_+-]*"
   "Format of a bibtex field constant.")
 
 (defconst bibtex-field-string
@@ -491,7 +495,7 @@ an empty string, or a constant followed by one or more # / constant pairs.
 Also matches simple {...} patterns.")
 
 ;(defconst bibtex-field-text
-;  "\"[^\"]*[^\\\\]\"\\|\"\"\\|[0-9A-Za-z][---A-Za-z0-9:_+]*"
+;  "\"[^\"]*[^\\\\]\"\\|\"\"\\|[0-9A-Za-z][A-Za-z0-9:_+-]*"
 ;  "Regexp defining the text part of a bibtex field: either a string, or an empty string, or a constant.")
 
 (defconst bibtex-field
@@ -521,9 +525,16 @@ Also matches simple {...} patterns.")
 bibtex-reference-head")
 
 (defconst bibtex-reference
-  (concat bibtex-reference-head
-	  "\\([ \t\n]*" bibtex-field "\\)*"
-	  "[ \t\n]*[})]")
+  (concat
+   ;; This is the unparenthesized equivalent of bibtex-reference-head:
+   "^[ \t]*"
+   bibtex-reference-type
+   "[ \t]*[({]\\("
+   bibtex-field-name
+   "\\)"
+   ;; End of unparenthesized equivalent of bibtex-reference-head
+   "\\([ \t\n]*" bibtex-field "\\)*"
+   "[ \t\n]*[})]")
   "Regexp defining the format of a bibtex reference entry")
 (defconst bibtex-type-in-reference bibtex-type-in-head
   "The regexp subexpression number of the type part in bibtex-reference")
