@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!118.c(trunk.4) $
  summary = Collect with a fully initialised (but not committed) buffer
  language = c
  link = testlib.o
@@ -17,6 +17,7 @@ END_HEADER
 #define objSIZE           8192
 
 static mps_ap_t ap;
+
 
 static mps_res_t simple_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 {
@@ -51,6 +52,7 @@ static void simple_copy(mps_addr_t obj, mps_addr_t to) {
  error("copy method not implemented in this test");
 }
 
+
 struct mps_fmt_A_s simple_fmt_A = {
   4,
   &simple_scan,
@@ -77,6 +79,7 @@ static mps_addr_t make(void)
 
   return p;
 }
+
 
 static void test(void)
 {
@@ -112,7 +115,7 @@ static void test(void)
   }
 
   /* now simulate rest of commit */
-  busy_ap->limit != 0 || mps_ap_trip(busy_ap, busy_init, objSIZE);
+  (void)(busy_ap->limit != 0 || mps_ap_trip(busy_ap, busy_init, objSIZE));
 
   mps_ap_destroy(busy_ap);
   mps_ap_destroy(ap);
