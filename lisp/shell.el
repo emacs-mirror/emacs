@@ -315,7 +315,8 @@ Thus, this does not include the shell's current directory.")
        (define-key shell-mode-map "\M-?"
 	 'comint-dynamic-list-filename-completions)
        (define-key shell-mode-map [menu-bar completion]
-	 (copy-keymap (lookup-key comint-mode-map [menu-bar completion])))
+	 (cons "Complete" 
+	       (copy-keymap (lookup-key comint-mode-map [menu-bar completion]))))
        (define-key-after (lookup-key shell-mode-map [menu-bar completion])
 	 [complete-env-variable] '("Complete Env. Variable Name" .
 				   shell-dynamic-complete-environment-variable)
