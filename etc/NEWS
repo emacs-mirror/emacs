@@ -59,6 +59,12 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
+---
+** SES mode (ses-mode) is a new major mode for creating and editing
+spreadsheet files.  Besides the usual Emacs features (intuitive command
+letters, undo, cell formulas in Lisp, plaintext files, etc.) it also offers
+viral immunity and import/export of tab-separated values.
+
 ** Init file changes
 
 You can now put the init files .emacs and .emacs_SHELL under
@@ -1084,6 +1090,29 @@ with Custom.
 
 
 * Lisp Changes in Emacs 21.4
+
++++
+** New Lisp library testcover.el works with edebug to help you determine
+whether you've tested all your Lisp code.  Function testcover-start
+instruments all functions in a given file.  Then test your code.  Function
+testcover-mark-all adds overlay "splotches" to the Lisp file's buffer to
+show where coverage is lacking.  Command testcover-next-mark (bind it to
+a key!) will move point forward to the next spot that has a splotch.
+
+*** Normally, a red splotch indicates the form was never completely evaluated;
+a brown splotch means it always evaluated to the same value.  The red
+splotches are skipped for forms that can't possibly complete their evaluation,
+such as `error'.  The brown splotches are skipped for forms that are expected
+to always evaluate to the same value, such as (setq x 14).
+
+*** For difficult cases, you can add do-nothing macros to your code to help
+out the test coverage tool.  The macro 1value suppresses a brown splotch for
+its argument.  The macro noreturn suppresses a red splotch.
+
+---
+** New function unsafep returns nil if the given Lisp form can't possibly
+do anything dangerous; otherwise it returns a reason why the form might be
+unsafe (calls dangerous function, alters global variable, etc).
 
 ** When you are printing using print-continuous-numbering,
 if no objects have had to be recorded in print-number-table,
