@@ -1,3 +1,32 @@
+2000-09-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* s/freebsd.h, s/irix-5.0.h, s/sol2.h, s/template.h
+	(USE_MMAP_FOR_BUFFERS): Define instead of REL_ALLOC_MMAP.
+
+	* Makefile.in (mallocobj) [SYSTEM_MALLOC]: Don't add ralloc.o.
+
+	* emacs.c: Change conditional compilation on REL_ALLOC_MMAP to
+	USE_MMAP_FOR_BUFFERS.
+
+	* insdel.c (make_gap): Use enlarge_buffer_text.
+
+	* buffer.c: Move allocation with mmap here, from ralloc.c.  Change
+	conditional compilation on REL_ALLOC_MMAP to USE_MMAP_FOR_BUFFERS.
+	(mmap_alloc, mmap_free, mmap_realloc) [REL_ALLOC_MMAP]: Renamed
+	from former r_alloc_* functions in ralloc.c.
+	(mmap_page_size, mmap_initialized_p) [REL_ALLOC_MMAP]: New
+	variables.
+	(MEM_ALIGN) [REL_ALLOC_MMAP]: New macro.
+	(mmap_init) [REL_ALLOC_MMAP]: New function.
+	(alloc_buffer_text, enlarge_buffer_text, free_buffer_text): New
+	functions replacing macros BUFFER_ALLOC, BUFFER_REALLOC, and
+	BUFFER_FREE.
+
+	* buffer.h (BUFFER_ALLOC, BUFFER_REALLOC, BUFFER_FREE): Removed.
+	(enlarge_buffer_text): Add prototype.
+
+	* ralloc.c: Remove everything having to do with the use of mmap.
+
 2000-09-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* sound.c (Fplay_sound): Doc fix.

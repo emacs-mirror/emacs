@@ -2324,10 +2324,10 @@ configure___ system_malloc=yes
 configure___ system_malloc=no
 #endif
 
-#ifdef REL_ALLOC_MMAP
-configure___ rel_alloc_mmap=yes
+#ifdef USE_MMAP_FOR_BUFFERS
+configure___ use_mmap_for_buffers=yes
 #else
-configure___ rel_alloc_mmap=no
+configure___ use_mmap_for_buffers=no
 #endif
 
 #ifndef C_DEBUG_SWITCH
@@ -3504,7 +3504,7 @@ else
 int main() {
 
 /* Ultrix mips cc rejects this.  */
-typedef int charset[2]; const charset x = {0,0};
+typedef int charset[2]; const charset x;
 /* SunOS 4.1.1 cc rejects this.  */
 char const *const *ccp;
 char **p;
@@ -4152,7 +4152,7 @@ if test x"${REL_ALLOC}" = x; then
   REL_ALLOC=${GNU_MALLOC}
 fi
 
-
+in 
 for ac_hdr in stdlib.h unistd.h sys/stat.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
@@ -4413,8 +4413,8 @@ EOF
 
 fi
 
-if test $rel_alloc_mmap = yes; then
-  REL_ALLOC=yes
+if test $use_mmap_for_buffers = yes; then
+  REL_ALLOC=no
 fi
 
 LIBS="$libsrc_libs $LIBS"
@@ -5652,7 +5652,7 @@ else
 #include "confdefs.h"
 #include <alloca.h>
 int main() {
-void *p = alloca(2 * sizeof(int));
+char *p = alloca(2 * sizeof(int));
 ; return 0; }
 EOF
 if { (eval echo configure:5659: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
@@ -8859,7 +8859,7 @@ Configured for \`${canonical}'.
   What compiler should emacs be built with?               ${CC} ${CFLAGS}
   Should Emacs use the GNU version of malloc?             ${GNU_MALLOC}${GNU_MALLOC_reason}
   Should Emacs use a relocating allocator for buffers?    ${REL_ALLOC}
-  Should Emacs use mmap for the relocating allocator?     $rel_alloc_mmap
+  Should Emacs use mmap(2) for buffer allocation?         $use_mmap_for_buffers
   What window system should Emacs use?                    ${window_system}
   What toolkit should Emacs use?                          ${USE_X_TOOLKIT}"
 
