@@ -1,7 +1,7 @@
 ;;; mh-utils.el --- mh-e code needed for both sending and reading
-;; Time-stamp: <94/04/11 20:56:35 gildea>
+;; Time-stamp: <95/02/10 14:20:14 gildea>
 
-;; Copyright 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995 Free Software Foundation, Inc.
 
 ;; This file is part of mh-e.
 
@@ -23,6 +23,10 @@
 
 ;; Internal support for mh-e package.
 
+;;; Change Log:
+
+;; $Id: mh-utils.el,v 1.8 95/03/02 04:54:00 gildea Exp $
+
 ;;; Code:
 
 ;;; Set for local environment:
@@ -38,6 +42,11 @@
   "Directory containing the MH library.
 This directory contains, among other things,
 the mhl program and the components file.")
+
+;;;###autoload
+(put 'mh-progs 'risky-local-variable t)
+;;;###autoload
+(put 'mh-lib 'risky-local-variable t)
 
 ;;; User preferences:
 
@@ -60,7 +69,7 @@ Only used if `mh-clean-message-header' is non-nil.  Setting this variable
 overrides `mh-invisible-headers'.")
 
 (defvar mh-invisible-headers
-  "^Received: \\|^Message-Id: \\|^Remailed-\\|^Via: \\|^Mail-from: \\|^Return-Path: \\|^In-Reply-To: \\|^Resent-"
+  "^Received: \\|^Message-Id: \\|^Remailed-\\|^Via: \\|^Mail-from: \\|^Return-Path: \\|^Delivery-Date: \\|^In-Reply-To: \\|^Resent-"
   "Regexp matching lines in a message header that are not to be shown.
 If `mh-visible-headers' is non-nil, it is used instead to specify what
 to keep.")
@@ -87,57 +96,84 @@ with the default format file, to format messages when printing them.
 The format used should specify a non-zero value for overflowoffset so
 the message continues to conform to RFC 822 and mh-e can parse the headers.")
 
-(defvar mh-msg-folder-hook nil
-  "Select a default folder for refiling or Fcc.
-Called by `\\[mh-refile-msg]' and `\\[mh-to-fcc]' to get a default
-when prompting the user for a folder.  Called from within a save-excursion,
-with point at the start of the message.  Should return the folder to offer
-as the refile or Fcc folder, as a string with a leading `+' sign.")
+(defvar mh-default-folder-for-message-function nil
+  "Function to select a default folder for refiling or Fcc.
+If set to a function, that function is called with no arguments by
+`\\[mh-refile-msg]' and `\\[mh-to-fcc]' to get a default when
+prompting the user for a folder.  The function is called from within a
+save-excursion, with point at the start of the message.  It should
+return the folder to offer as the refile or Fcc folder, as a string
+with a leading `+' sign.  It can also return an empty string to use no
+default, or NIL to calculate the default the usual way.
+NOTE: This variable is not an ordinary hook;
+It may not be a list of functions.")
 
+(defvar mh-find-path-hook nil
+  "Invoked by mh-find-path while reading the user's MH profile.")
+
+(defvar mh-folder-list-change-hook nil
+  "Invoked whenever the cached folder list `mh-folder-list' is changed.")
+
+(defvar mh-show-buffer-mode-line-buffer-id "{show-%s} %d"
+  "Format string to produce `mode-line-buffer-identification' for show buffers.
+First argument is folder name.  Second is message number.")
 
 (defvar mh-cmd-note 4
   "Offset to insert notation.")
 
-(defvar mh-folder-list nil
-  "List of folder names for completion.")
+(defvar mh-note-seq "%"
+  "String whose first character is used to notate messages in a sequence.")
 
-(defvar mh-user-path nil
-  "User's mail folder directory.")
+;;; Internal bookkeeping variables:
 
-(defvar mh-draft-folder nil
-  "Name of folder containing draft messages.
-NIL means do not use draft folder.")
+;; The value of `mh-folder-list-change-hook' is called whenever
+;; mh-folder-list variable is set.
+(defvar mh-folder-list nil)		;List of folder names for completion.
 
-(defvar mh-previous-window-config nil
-  "Window configuration before mh-e command.")
+;; Cached value of the `Path:' component in the user's MH profile.
+(defvar mh-user-path nil)		;User's mail folder directory.
 
-(defvar mh-current-folder nil
-  "Name of current folder, a string.")
+;; An mh-draft-folder of NIL means do not use a draft folder.
+;; Cached value of the `Draft-Folder:' component in the user's MH profile.
+(defvar mh-draft-folder nil)		;Name of folder containing draft messages.
 
-(defvar mh-folder-filename nil
-  "Full path of directory for this folder.")
+;; Cached value of the `Unseen-Sequence:' component in the user's MH profile.
+(defvar mh-unseen-seq nil)		;Name of the Unseen sequence.
 
-(defvar mh-show-buffer nil
-  "Buffer that displays mesage for this folder.")
+;; Cached value of the `Previous-Sequence:' component in the user's MH profile.
+(defvar mh-previous-seq nil)		;Name of the Previous sequence.
 
-(defvar mh-unseen-seq nil
-  "Name of the Unseen sequence.")
+;; Cached value of the `Inbox:' component in the user's MH profile,
+;; or "+inbox" if no such component.
+(defvar mh-inbox nil)			;Name of the Inbox folder.
 
-(defvar mh-previous-seq nil
-  "Name of the Previous sequence.")
+(defconst mh-temp-buffer " *mh-temp*")	;Name of mh-e scratch buffer.
 
-(defvar mh-seen-list nil
-  "List of displayed messages.")
+(defvar mh-previous-window-config nil)	;Window configuration before mh-e command.
 
-(defvar mh-seq-list nil
-  "Alist of (seq . msgs) numbers.")
+;;; Internal variables local to a folder.
 
-(defvar mh-showing nil
-  "If non-nil, show the message in a separate window.")
+(defvar mh-current-folder nil)		;Name of current folder, a string.
 
-(defvar mh-showing-with-headers nil
-  "If non-nil, show buffer contains message with all headers.
-If nil, show buffer contains message processed normally.")
+(defvar mh-show-buffer nil)		;Buffer that displays message for this folder.
+
+(defvar mh-folder-filename nil)		;Full path of directory for this folder.
+
+(defvar mh-showing nil)			;If non-nil, show the message in a separate window.
+
+;;; This holds a documentation string used by describe-mode.
+(defun mh-showing ()
+  "When moving to a new message in the Folder window,
+also show it in a separate Show window."
+  nil)
+
+(defvar mh-seq-list nil)		;The sequences of this folder.  An alist of (seq . msgs).
+
+(defvar mh-seen-list nil)		;List of displayed messages to be removed from the Unseen sequence.
+
+;; If non-nil, show buffer contains message with all headers.
+;; If nil, show buffer contains message processed normally.
+(defvar mh-showing-with-headers nil)	;Showing message with headers or normally.
 
 
 ;;; mh-e macros
@@ -163,7 +199,7 @@ If nil, show buffer contains message processed normally.")
 (put 'with-mh-folder-updating 'lisp-indent-hook 1)
 
 (defmacro mh-in-show-buffer (show-buffer &rest body)
-  ;; Format is (mh-in-show-buffer (show-buffer) &body BODY).
+  ;; Format is (mh-in-show-buffer (SHOW-BUFFER) &body BODY).
   ;; Display buffer SHOW-BUFFER in other window and execute BODY in it.
   ;; Stronger than save-excursion, weaker than save-window-excursion.
   (setq show-buffer (car show-buffer))	; CL style
@@ -176,6 +212,8 @@ If nil, show buffer contains message processed normally.")
 	 (select-window mh-in-show-buffer-saved-window)))))
 
 (put 'mh-in-show-buffer 'lisp-indent-hook 1)
+
+(defmacro mh-make-seq (name msgs) (list 'cons name msgs))
 
 (defmacro mh-seq-name (pair) (list 'car pair))
 
@@ -198,7 +236,7 @@ The value of mh-show-mode-hook is called when a new message is displayed."
   ;; If in showing mode, then display the message pointed to by the cursor.
   (if mh-showing (mh-show msg)))
 
-(defun mh-show (&optional msg)
+(defun mh-show (&optional message)
   "Show MESSAGE (default: message at cursor).
 Force a two-window display with the folder window on top (size
 mh-summary-height) and the show buffer below it.
@@ -212,7 +250,7 @@ Type \"\\[mh-header-display]\" to see the message with all its headers."
   (and mh-showing-with-headers
        (or mhl-formfile mh-clean-message-header)
        (mh-invalidate-show-buffer))
-  (mh-show-msg msg))
+  (mh-show-msg message))
 
 
 (defun mh-show-msg (msg)
@@ -254,11 +292,12 @@ Type \"\\[mh-header-display]\" to see the message with all its headers."
 	(error "Message %d does not exist" msg-num))
     (set-buffer show-buffer)
     (cond ((not (equal msg-filename buffer-file-name))
-	   ;; Buffer does not yet contain message.
-	   (clear-visited-file-modtime)
-	   (unlock-buffer)
-	   (setq buffer-file-name nil)	; no locking during setup
+	   (mh-unvisit-file)
 	   (erase-buffer)
+	   ;; Changing contents, so this hook needs to be reinitialized.
+	   ;; pgp.el uses this.
+	   (if (boundp 'write-contents-hooks) ;Emacs 19
+	       (setq write-contents-hooks nil))
 	   (if formfile
 	       (mh-exec-lib-cmd-output "mhl" "-nobell" "-noclear"
 				       (if (stringp formfile)
@@ -273,10 +312,15 @@ Type \"\\[mh-header-display]\" to see the message with all its headers."
 		  (goto-char (point-min)))
 		 (t
 		  (mh-start-of-uncleaned-message)))
-	   (set-buffer-modified-p nil)
+	   ;; the parts of visiting we want to do (no locking)
 	   (or (eq buffer-undo-list t)	;don't save undo info for prev msgs
 	       (setq buffer-undo-list nil))
+	   (set-buffer-modified-p nil)
+	   (set-buffer-auto-saved)
+	   ;; the parts of set-visited-file-name we want to do (no locking)
 	   (setq buffer-file-name msg-filename)
+	   (setq buffer-backed-up nil)
+	   (auto-save-mode 1)
 	   (set-mark nil)
 	   (mh-show-mode)
 	   (setq mode-line-buffer-identification
@@ -289,7 +333,7 @@ Type \"\\[mh-header-display]\" to see the message with all its headers."
   ;; position uninteresting headers off the top of the window
   (let ((case-fold-search t))
     (re-search-forward
-     "^To:\\|^From:\\|^Subject:\\|^Date:" nil t)
+     "^To:\\|^Cc:\\|^From:\\|^Subject:\\|^Date:" nil t)
     (beginning-of-line)
     (mh-recenter 0)))
 
@@ -299,9 +343,21 @@ Type \"\\[mh-header-display]\" to see the message with all its headers."
   (if (get-buffer mh-show-buffer)
       (save-excursion
 	(set-buffer mh-show-buffer)
-	(setq buffer-file-name nil))))
+	(mh-unvisit-file))))
 
 
+(defun mh-unvisit-file ()
+  ;; Separate current buffer from the message file it was visiting.
+  (or (not (buffer-modified-p))
+      (null buffer-file-name)		;we've been here before
+      (yes-or-no-p (format "Message %s modified; flush changes? "
+			   (file-name-nondirectory buffer-file-name)))
+      (error "Flushing changes not confirmed"))
+  (clear-visited-file-modtime)
+  (unlock-buffer)
+  (setq buffer-file-name nil))
+
+  
 (defun mh-get-msg-num (error-if-no-message)
   ;; Return the message number of the displayed message.  If the argument
   ;; ERROR-IF-NO-MESSAGE is non-nil, then complain if the cursor is not
@@ -368,22 +424,6 @@ Type \"\\[mh-header-display]\" to see the message with all its headers."
   (delete-region (point) (save-excursion (forward-line lines) (point))))
 
 
-(defun mh-get-field (field)
-  ;; Find and return the value of field FIELD in the current buffer.
-  ;; Returns the empty string if the field is not in the message.
-  (let ((case-fold-search t))
-    (goto-char (point-min))
-    (cond ((not (re-search-forward (format "^%s" field) nil t)) "")
-	  ((looking-at "[\t ]*$") "")
-	  (t
-	   (re-search-forward "[\t ]*\\([^\t \n].*\\)$" nil t)
-	   (let ((start (match-beginning 1)))
-	     (forward-line 1)
-	     (while (looking-at "[ \t]")
-	       (forward-line 1))
-	     (buffer-substring start (1- (point))))))))
-
-
 (defun mh-notate (msg notation offset)
   ;; Marks MESSAGE with the character NOTATION at position OFFSET.
   ;; Null MESSAGE means the message that the cursor points to.
@@ -399,10 +439,11 @@ Type \"\\[mh-header-display]\" to see the message with all its headers."
 
 (defun mh-goto-msg (number &optional no-error-if-no-message dont-show)
   "Position the cursor at message NUMBER.
-Non-nil second argument means do not signal an error if message does not exist.
-Non-nil third argument means not to show the message.
-Return non-nil if cursor is at message."
-  (interactive "NJump to message: ")
+Optional non-nil second argument means return nil instead of
+signaling an error if message does not exist.
+Non-nil third argument means not to show the message."
+  (interactive "NGo to message: ")
+  (setq number (prefix-numeric-value number)) ;Emacs 19
   (let ((cur-msg (mh-get-msg-num nil))
 	(starting-place (point))
 	(msg-pattern (mh-msg-search-pat number)))
@@ -430,45 +471,63 @@ Return non-nil if cursor is at message."
   (format mh-msg-search-regexp n))
 
 
+(defun mh-get-profile-field (field)
+  ;; Find and return the value of FIELD in the current buffer.
+  ;; Returns NIL if the field is not in the buffer.
+  (let ((case-fold-search t))
+    (goto-char (point-min))
+    (cond ((not (re-search-forward (format "^%s" field) nil t)) nil)
+	  ((looking-at "[\t ]*$") nil)
+	  (t
+	   (re-search-forward "[\t ]*\\([^\t \n].*\\)$" nil t)
+	   (let ((start (match-beginning 1)))
+	     (end-of-line)
+	     (buffer-substring start (point)))))))
+
+
 (defun mh-find-path ()
   ;; Set mh-progs and mh-lib.
   ;; (This step is necessary if MH was installed after this Emacs was dumped.)
-  ;; Set mh-user-path, mh-draft-folder,
-  ;; mh-unseen-seq, and mh-previous-seq from profile file.
+  ;; From profile file, set mh-user-path, mh-draft-folder,
+  ;; mh-unseen-seq, mh-previous-seq, mh-inbox.
   (mh-find-progs)
   (save-excursion
     ;; Be sure profile is fully expanded before switching buffers
     (let ((profile (expand-file-name (or (getenv "MH") "~/.mh_profile"))))
-      (set-buffer (get-buffer-create " *mh-temp*"))
+      (set-buffer (get-buffer-create mh-temp-buffer))
       (setq buffer-offer-save nil)	;for people who set default to t
       (erase-buffer)
       (condition-case err
 	  (insert-file-contents profile)
 	(file-error
 	 (mh-install profile err)))
-      (setq mh-draft-folder (mh-get-field "Draft-Folder:"))
-      (cond ((equal mh-draft-folder "")
-	     (setq mh-draft-folder nil))
-	    ((not (mh-folder-name-p mh-draft-folder))
-	     (setq mh-draft-folder (format "+%s" mh-draft-folder))))
-      (setq mh-user-path (mh-get-field "Path:"))
-      (if (equal mh-user-path "")
+      (setq mh-user-path (mh-get-profile-field "Path:"))
+      (if (not mh-user-path)
 	  (setq mh-user-path "Mail"))
       (setq mh-user-path
 	    (file-name-as-directory
 	     (expand-file-name mh-user-path (expand-file-name "~"))))
-      (if (and mh-draft-folder
-	       (not (file-exists-p (mh-expand-file-name mh-draft-folder))))
-	  (error "Draft folder \"%s\" not found.  Create it and try again."
-		 (mh-expand-file-name mh-draft-folder)))
-      (setq mh-unseen-seq (mh-get-field "Unseen-Sequence:"))
-      (if (equal mh-unseen-seq "")
-	  (setq mh-unseen-seq 'unseen)	;old MH default?
-	(setq mh-unseen-seq (intern mh-unseen-seq)))
-      (setq mh-previous-seq (mh-get-field "Previous-Sequence:"))
-      (if (equal mh-previous-seq "")
-	  (setq mh-previous-seq nil)
-	(setq mh-previous-seq (intern mh-previous-seq))))))
+      (setq mh-draft-folder (mh-get-profile-field "Draft-Folder:"))
+      (if mh-draft-folder
+	  (progn
+	    (if (not (mh-folder-name-p mh-draft-folder))
+		(setq mh-draft-folder (format "+%s" mh-draft-folder)))
+	    (if (not (file-exists-p (mh-expand-file-name mh-draft-folder)))
+		(error "Draft folder \"%s\" not found.  Create it and try again."
+		       (mh-expand-file-name mh-draft-folder)))))
+      (setq mh-inbox (mh-get-profile-field "Inbox:"))
+      (cond ((not mh-inbox)
+	     (setq mh-inbox "+inbox"))
+	    ((not (mh-folder-name-p mh-inbox))
+	     (setq mh-inbox (format "+%s" mh-inbox))))
+      (setq mh-unseen-seq (mh-get-profile-field "Unseen-Sequence:"))
+      (if mh-unseen-seq
+	  (setq mh-unseen-seq (intern mh-unseen-seq))
+	(setq mh-unseen-seq 'unseen))	;old MH default?
+      (setq mh-previous-seq (mh-get-profile-field "Previous-Sequence:"))
+      (if mh-previous-seq
+	  (setq mh-previous-seq (intern mh-previous-seq)))
+      (run-hooks 'mh-find-path-hook))))
 
 (defun mh-find-progs ()
   (or (file-exists-p (expand-file-name "inc" mh-progs))
@@ -478,20 +537,25 @@ Return non-nil if cursor is at message."
 				  "/usr/local/mh/"
 				  "/usr/bin/mh/" ;Ultrix 4.2
 				  "/usr/new/mh/" ;Ultrix <4.2
-				  "/usr/contrib/mh/bin" ;BSDI
+				  "/usr/contrib/mh/bin/" ;BSDI
+				  "/usr/local/bin/"
 				  )
 				"inc")
+		mh-progs
 		"/usr/local/bin/")))
   (or (file-exists-p (expand-file-name "mhl" mh-lib))
       (setq mh-lib
 	    (or (mh-path-search '("/usr/local/lib/mh/"
+				  "/usr/local/mh/lib/"
+				  "/usr/local/bin/mh/"
 				  "/usr/lib/mh/" ;Ultrix 4.2
 				  "/usr/new/lib/mh/" ;Ultrix <4.2
-				  "/usr/contrib/mh/lib" ;BSDI
+				  "/usr/contrib/mh/lib/" ;BSDI
 				  )
 				"mhl")
 		(mh-path-search exec-path "mhl") ;unlikely
-		"/usr/local/bin/mh/"))))
+		mh-lib
+		"/usr/local/lib/mh/"))))
 
 (defun mh-path-search (path file)
   ;; Search PATH, a list of directory names, for FILE.
@@ -510,6 +574,8 @@ Return non-nil if cursor is at message."
 	     profile (car (cdr (cdr error-val)))))
   ;; The "install-mh" command will output a short note which
   ;; mh-exec-cmd will display to the user.
+  ;; The MH 5 version of install-mh might try prompt the user
+  ;; for information, which would fail here.
   (mh-exec-cmd (expand-file-name "install-mh" mh-lib) "-auto")
   ;; now try again to read the profile file
   (erase-buffer)
@@ -521,16 +587,14 @@ Return non-nil if cursor is at message."
 
 
 (defun mh-set-folder-modified-p (flag)
-  "Mark current folder as modified or unmodified according to FLAG."
+  ;; Mark current folder as modified or unmodified according to FLAG.
   (set-buffer-modified-p flag))
 
 
 (defun mh-find-seq (name) (assoc name mh-seq-list))
 
-(defun mh-make-seq (name msgs) (cons name msgs))
-
 (defun mh-seq-to-msgs (seq)
-  "Return a list of the messages in SEQUENCE."
+  ;; Return a list of the messages in SEQUENCE.
   (mh-seq-msgs (mh-find-seq seq)))
 
 
@@ -541,10 +605,10 @@ Return non-nil if cursor is at message."
     (if (and msgs (atom msgs)) (setq msgs (list msgs)))
     (if (null entry)
 	(setq mh-seq-list (cons (mh-make-seq seq msgs) mh-seq-list))
-	(if msgs (setcdr entry (append msgs (cdr entry)))))
+	(if msgs (setcdr entry (append msgs (mh-seq-msgs entry)))))
     (cond ((not internal-flag)
 	   (mh-add-to-sequence seq msgs)
-	   (mh-notate-seq seq ?% (1+ mh-cmd-note))))))
+	   (mh-notate-seq seq mh-note-seq (1+ mh-cmd-note))))))
 
 (autoload 'mh-add-to-sequence "mh-seq")
 (autoload 'mh-notate-seq "mh-seq")
@@ -592,42 +656,42 @@ Return non-nil if cursor is at message."
 	     (message "Creating %s" folder-name)
 	     (call-process "mkdir" nil nil nil (mh-expand-file-name folder-name))
 	     (message "Creating %s...done" folder-name)
-	     (setq mh-folder-list (cons (list read-name) mh-folder-list)))
+	     (setq mh-folder-list (cons (list read-name) mh-folder-list))
+	     (run-hooks 'mh-folder-list-change-hook))
 	    (new-file-p
 	     (error "Folder %s is not created" folder-name))
 	    ((and (null (assoc read-name mh-folder-list))
 		  (null (assoc (concat read-name "/") mh-folder-list)))
-	     (setq mh-folder-list (cons (list read-name) mh-folder-list)))))
+	     (setq mh-folder-list (cons (list read-name) mh-folder-list))
+	     (run-hooks 'mh-folder-list-change-hook))))
     folder-name))
 
 
-(defvar mh-make-folder-list-process nil
-  "The background process collecting the folder list.")
+(defvar mh-make-folder-list-process nil) ;The background process collecting the folder list.
 
-(defvar mh-folder-list-temp nil
-  "mh-folder-list as it is being built.")
+(defvar mh-folder-list-temp nil)	;mh-folder-list as it is being built.
 
-(defvar mh-folder-list-partial-line ""
-  "Start of last incomplete line from folder process.")
+(defvar mh-folder-list-partial-line "")	;Start of last incomplete line from folder process.
 
 (defun mh-set-folder-list ()
-  "Sets mh-folder-list correctly.
-A useful function for the command line or for when you need to sync by hand.
-Format is in a form suitable for completing read."
+  ;; Sets mh-folder-list correctly.
+  ;; A useful function for the command line or for when you need to
+  ;; sync by hand.  Format is in a form suitable for completing read.
   (message "Collecting folder names...")
   (if (not mh-make-folder-list-process)
       (mh-make-folder-list-background))
   (while (eq (process-status mh-make-folder-list-process) 'run)
     (accept-process-output mh-make-folder-list-process))
   (setq mh-folder-list mh-folder-list-temp)
+  (run-hooks 'mh-folder-list-change-hook)
   (setq mh-folder-list-temp nil)
   (delete-process mh-make-folder-list-process)
   (setq mh-make-folder-list-process nil)
   (message "Collecting folder names...done"))
 
 (defun mh-make-folder-list-background ()
-  "Start a background process to compute a list of the user's folders.
-Call mh-set-folder-list to wait for the result."
+  ;; Start a background process to compute a list of the user's folders.
+  ;; Call mh-set-folder-list to wait for the result.
   (cond
    ((not mh-make-folder-list-process)
     (mh-find-progs)
@@ -688,16 +752,18 @@ Call mh-set-folder-list to wait for the result."
 
 (defun mh-exec-cmd (command &rest args)
   ;; Execute mh-command COMMAND with ARGS.
+  ;; The side effects are what is desired.
   ;; Any output is assumed to be an error and is shown to the user.
+  ;; The output is not read or parsed by mh-e.
   (save-excursion
-    (set-buffer (get-buffer-create " *mh-temp*"))
+    (set-buffer (get-buffer-create mh-temp-buffer))
     (erase-buffer)
     (apply 'call-process
 	   (expand-file-name command mh-progs) nil t nil
 	   (mh-list-to-string args))
     (if (> (buffer-size) 0)
 	(save-window-excursion
-	  (switch-to-buffer-other-window " *mh-temp*")
+	  (switch-to-buffer-other-window mh-temp-buffer)
 	  (sit-for 5)))))
 
 
@@ -706,7 +772,7 @@ Call mh-set-folder-list to wait for the result."
   ;; ENV is nil or a string of space-separated "var=value" elements.
   ;; Signals an error if process does not complete successfully.
   (save-excursion
-    (set-buffer (get-buffer-create " *mh-temp*"))
+    (set-buffer (get-buffer-create mh-temp-buffer))
     (erase-buffer)
     (let ((status
 	   (if env
@@ -724,10 +790,10 @@ Call mh-set-folder-list to wait for the result."
 
 
 (defun mh-exec-cmd-daemon (command &rest args)
-  ;; Execute MH command COMMAND with ARGS.  Any output from command is
-  ;; displayed in an asynchronous pop-up window.
+  ;; Execute MH command COMMAND with ARGS in the background.
+  ;; Any output from command is displayed in an asynchronous pop-up window.
   (save-excursion
-    (set-buffer (get-buffer-create " *mh-temp*"))
+    (set-buffer (get-buffer-create mh-temp-buffer))
     (erase-buffer))
   (let* ((process-connection-type nil)
 	 (process (apply 'start-process
@@ -738,9 +804,9 @@ Call mh-set-folder-list to wait for the result."
 
 (defun mh-process-daemon (process output)
   ;; Process daemon that puts output into a temporary buffer.
-  (set-buffer (get-buffer-create " *mh-temp*"))
+  (set-buffer (get-buffer-create mh-temp-buffer))
   (insert-before-markers output)
-  (display-buffer " *mh-temp*"))
+  (display-buffer mh-temp-buffer))
 
 
 (defun mh-exec-cmd-quiet (raise-error command &rest args)
@@ -750,7 +816,7 @@ Call mh-set-folder-list to wait for the result."
   ;; Returns value of call-process, which is 0 for success,
   ;; unless RAISE-ERROR is non-nil, in which case an error is signaled
   ;; if call-process returns non-0.
-  (set-buffer (get-buffer-create " *mh-temp*"))
+  (set-buffer (get-buffer-create mh-temp-buffer))
   (erase-buffer)
   (let ((value
 	 (apply 'call-process
@@ -765,6 +831,7 @@ Call mh-set-folder-list to wait for the result."
 (defun mh-exec-cmd-output (command display &rest args)
   ;; Execute MH command COMMAND with DISPLAY flag and ARGS.
   ;; Put the output into buffer after point.  Set mark after inserted text.
+  ;; Output is expected to be shown to user, not parsed by mh-e.
   (push-mark (point) t)
   (apply 'call-process
 	 (expand-file-name command mh-progs) nil t display
@@ -782,7 +849,7 @@ Call mh-set-folder-list to wait for the result."
   ;; Raise error if COMMAND returned non-0 STATUS, otherwise return STATUS.
   ;; STATUS is return value from call-process.
   ;; Program output is in current buffer.
-  ;; If output is too long ot include in error message, display the bufffer.
+  ;; If output is too long to include in error message, display the buffer.
   (cond ((eql status 0)			;success
 	 status)
 	((stringp status)		;kill string
@@ -806,8 +873,8 @@ Call mh-set-folder-list to wait for the result."
 
 
 (defun mh-expand-file-name (filename &optional default)
-  "Just like `expand-file-name', but also handles MH folder names.
-Assumes that any filename that starts with '+' is a folder name."
+  ;; Just like `expand-file-name', but also handles MH folder names.
+  ;; Assumes that any filename that starts with '+' is a folder name.
    (if (mh-folder-name-p filename)
        (expand-file-name (substring filename 1) mh-user-path)
      (expand-file-name filename default)))
