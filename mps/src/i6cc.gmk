@@ -1,7 +1,7 @@
 # impl.gmk.ic: GNUMAKEFILE FRAGMENT FOR IRIX 6 CC (N32 or N64 ABI)
 #
-# $HopeName: MMsrc!i6cc.gmk(trunk.3) $
-# Copyright (C) 1996, 1997, 1998 Harlequin Group, all rights reserved
+# $HopeName$
+# Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
 #
 # This file is included by platform makefiles that use the IRIX 6 CC
 # compiler.  It defines the compiler specific variables that the
@@ -11,6 +11,10 @@
 CC = cc
 
 
+# suppress error(1174): function "foo" was declared but never referenced
+#   because it happens with vfork in <unistd.h> included from vmi5.c
+# suppress error(1196): function declared implicitly
+#   because it happens with __vfork in <unistd.h> included from vmi5.c
 # suppress remark(1209): 'controlling expression is constant'
 #   because it occurs in 'while(0)' and statically determined checks
 # suppress remark(1552): 'variable "foo" was set but never used'
@@ -18,7 +22,7 @@ CC = cc
 # can't use -pedantic because Irix header files have #ident
 
 CFLAGSCOMPILER = -ansi -fullwarn -w2 -diag_error 1000-9999 \
-                 -diag_suppress 1209,1552
+                 -diag_suppress 1174,1196,1209,1552
 CFLAGSDEBUG = -g
 CFLAGSOPT = -O -g3
 CFLAGSOPTNODEBUG = -O
