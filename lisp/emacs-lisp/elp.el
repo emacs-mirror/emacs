@@ -93,7 +93,6 @@
 ;;   elp-set-master
 ;;   elp-unset-master
 ;;   elp-results
-;;   elp-submit-bug-report
 
 ;; Note that there are plenty of factors that could make the times
 ;; reported unreliable, including the accuracy and granularity of your
@@ -189,9 +188,6 @@ In other words, a new unique buffer is create every time you run
 ;; end of user configuration variables
 
 
-(defconst elp-version "3.2"
-  "ELP version number.")
-
 (defvar elp-results-buffer "*ELP Profiling Results*"
   "Buffer name for outputting profiling results.")
 
