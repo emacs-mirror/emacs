@@ -2504,9 +2504,9 @@ If N is negative, go backwards instead."
 	(setq subject (substring subject (match-end 0))))
     (if (string-match "[ \t]+\\'" subject)
 	(setq subject (substring subject 0 (match-beginning 0))))
-    (setq search-regexp (concat "^Subject: *\\(Re: *\\)?"
+    (setq search-regexp (concat "^Subject: *\\(Re:[ \t]*\\)?"
 				(regexp-quote subject)
-				"\n"))
+				"[ \t]*\n"))
     (save-excursion
       (save-restriction
 	(widen)
