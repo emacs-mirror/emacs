@@ -1,5 +1,11 @@
 2000-09-19  Dave Love  <fx@gnu.org>
 
+	* toolbar/tool-bar.el: Renamed from toolbar.el.  Change `toolbar'
+	to `tool-bar' generally in symbols.  Make some items invisible in
+	`special' major modes.
+	(tool-bar-add-item-from-menu): Renamed from
+	toolbar-like-menu-item.  Add arg PROPS.
+
 	* startup.el (fancy-splash-screen) <defgroup>: Fix syntax.  Add
 	:version here.
 	(fancy-splash-delay, fancy-splash-image): Remove :version here.
