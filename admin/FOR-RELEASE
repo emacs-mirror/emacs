@@ -22,3 +22,12 @@ Tasks needed before the next release.
 
 ** Make GTK toolbar look OK on monochrome displays.
 
+
+IMPORTANT BUG FIXES:
+
+** Investigate face cache related crash.
+
+   Indications: Face cache seems to have been cleared, but
+   redisplay uses an invalidated face_id with FACE_FROM_ID
+   which then returns a NULL pointer.  Said to happen with
+   isearch faces.
