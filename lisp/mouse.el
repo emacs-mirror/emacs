@@ -1175,9 +1175,10 @@ and selects that window."
 ;; Delete the longest partial match for STRING
 ;; that can be found before POINT.
 (defun mouse-delete-max-match (string)
-  (let ((len (min (length string)
-		  (- (point-max) (point-min)))))
-    (goto-char (max (point-min) (- (point) (length string))))
+  (let ((opoint (point))
+	(len (min (length string)
+		  (- (point) (point-min)))))
+    (goto-char (- (point) (length string)))
     (while (and (> len 0)
 		(let ((tail (buffer-substring (point)
 					      (+ (point) len))))
