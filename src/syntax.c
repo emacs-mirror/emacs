@@ -1413,7 +1413,7 @@ skip_chars (forwardp, string, lim)
     XSETFASTINT (lim, BEGV);
 
   multibyte = (!NILP (current_buffer->enable_multibyte_characters)
-	       && (lim - PT != CHAR_TO_BYTE (lim) - PT_BYTE));
+	       && (XINT (lim) - PT != CHAR_TO_BYTE (XINT (lim)) - PT_BYTE));
   string_multibyte = STRING_BYTES (XSTRING (string)) > XSTRING (string)->size;
 
   bzero (fastmap, sizeof fastmap);
@@ -1732,10 +1732,10 @@ skip_syntaxes (forwardp, string, lim)
     XSETFASTINT (lim, BEGV);
 
   if (forwardp ? (PT >= XFASTINT (lim)) : (PT <= XFASTINT (lim)))
-    return 0;
+    return Qnil;
 
   multibyte = (!NILP (current_buffer->enable_multibyte_characters)
-	       && (lim - PT != CHAR_TO_BYTE (lim) - PT_BYTE));
+	       && (XINT (lim) - PT != CHAR_TO_BYTE (XINT (lim)) - PT_BYTE));
 
   bzero (fastmap, sizeof fastmap);
 
