@@ -160,7 +160,8 @@ char pot_etags_version[] = "@(#) pot revision number is 13.44";
 #define strneq(s,t,n)	((DEBUG && (s) == NULL && (t) == NULL	\
 			  && (abort (), 1)) || !strncmp (s, t, n))
 
-#define lowcase(c)	tolower ((char)c)
+#define lowcase(c)	tolower ((unsigned char)(c))
+#define UPCASE(c)	toupper ((unsigned char)(c))
 
 #define CHARS 256		/* 2^sizeof(char) */
 #define CHAR(x)		((unsigned int)x & (CHARS - 1))
@@ -169,6 +170,11 @@ char pot_etags_version[] = "@(#) pot revision number is 13.44";
 #define	begtoken(c)	(_btk[CHAR(c)]) /* c can start token */
 #define	intoken(c)	(_itk[CHAR(c)]) /* c can be in token */
 #define	endtoken(c)	(_etk[CHAR(c)]) /* c ends tokens */
+
+#define ISALNUM(c)	isalnum ((unsigned char) (c))
+#define ISALPHA(c)	isalpha ((unsigned char) (c))
+#define ISDIGIT(c)	isdigit ((unsigned char) (c))
+#define ISLOWER(c)	islower ((unsigned char) (c))
 
 
 /*
@@ -3403,14 +3409,14 @@ takeprec ()
       dbp += 3;
       return;
     }
-  if (!isdigit (*dbp))
+  if (!ISDIGIT (*dbp))
     {
       --dbp;			/* force failure */
       return;
     }
   do
     dbp++;
-  while (isdigit (*dbp));
+  while (ISDIGIT (*dbp));
 }
 
 static void
@@ -3431,7 +3437,7 @@ getit (inf)
       dbp += 6;
       dbp = skip_spaces (dbp);
     }
-  if (!isalpha (*dbp) && *dbp != '_' && *dbp != '$')
+  if (!ISALPHA (*dbp) && *dbp != '_' && *dbp != '$')
     return;
   for (cp = dbp + 1; *cp != '\0' && intoken (*cp); cp++)
     continue;
@@ -3572,7 +3578,7 @@ adagetit (inf, name_qualifier)
 	  dbp = skip_spaces (dbp);
 	  for (cp = dbp;
 	       (*cp != '\0'
-		&& (isalpha (*cp) || isdigit (*cp) || *cp == '_' || *cp == '.'));
+		&& (ISALPHA (*cp) || ISDIGIT (*cp) || *cp == '_' || *cp == '.'));
 	       cp++)
 	    continue;
 	  if (cp == dbp)
@@ -3696,11 +3702,11 @@ Asm_labels (inf)
     {
       /* If first char is alphabetic or one of [_.$], test for colon
 	 following identifier. */
-      if (isalpha (*cp) || *cp == '_' || *cp == '.' || *cp == '$')
+      if (ISALPHA (*cp) || *cp == '_' || *cp == '.' || *cp == '$')
  	{
  	  /* Read past label. */
 	  cp++;
- 	  while (isalnum (*cp) || *cp == '_' || *cp == '.' || *cp == '$')
+ 	  while (ISALNUM (*cp) || *cp == '_' || *cp == '.' || *cp == '$')
  	    cp++;
  	  if (*cp == ':' || iswhite (*cp))
  	    {
@@ -3760,7 +3766,7 @@ Perl_functions (inf)
  	  if (*cp == '$' || *cp == '@' || *cp == '%')
  	    {
  	      char* varstart = ++cp;
- 	      while (isalnum (*cp) || *cp == '_')
+ 	      while (ISALNUM (*cp) || *cp == '_')
  		cp++;
  	      varname = savenstr (varstart, cp-varstart);
  	    }
@@ -3837,10 +3843,10 @@ Cobol_paragraphs (inf)
       bp += 8;
 
       /* If eoln, compiler option or comment ignore whole line. */
-      if (bp[-1] != ' ' || !isalnum (bp[0]))
+      if (bp[-1] != ' ' || !ISALNUM (bp[0]))
         continue;
 
-      for (ep = bp; isalnum (*ep) || *ep == '-'; ep++)
+      for (ep = bp; ISALNUM (*ep) || *ep == '-'; ep++)
 	continue;
       if (*ep++ == '.')
 	pfnote (savenstr (bp, ep-bp), TRUE,
@@ -4529,11 +4535,11 @@ prolog_atom (s, pos)
 
   origpos = pos;
 
-  if (islower(s[pos]) || (s[pos] == '_'))
+  if (ISLOWER(s[pos]) || (s[pos] == '_'))
     {
       /* The atom is unquoted. */
       pos++;
-      while (isalnum(s[pos]) || (s[pos] == '_'))
+      while (ISALNUM(s[pos]) || (s[pos] == '_'))
 	{
 	  pos++;
 	}
@@ -4710,11 +4716,11 @@ erlang_atom (s, pos)
 
   origpos = pos;
 
-  if (isalpha (s[pos]) || s[pos] == '_')
+  if (ISALPHA (s[pos]) || s[pos] == '_')
     {
       /* The atom is unquoted. */
       pos++;
-      while (isalnum (s[pos]) || s[pos] == '_')
+      while (ISALNUM (s[pos]) || s[pos] == '_')
 	pos++;
       return pos - origpos;
     }
@@ -4939,7 +4945,7 @@ substitute (in, out, regs)
   for (t = etags_strchr (out, '\\');
        t != NULL;
        t = etags_strchr (t + 2, '\\'))
-    if (isdigit (t[1]))
+    if (ISDIGIT (t[1]))
       {
 	dig = t[1] - '0';
 	diglen = regs->end[dig] - regs->start[dig];
@@ -4952,7 +4958,7 @@ substitute (in, out, regs)
   result = xnew (size + 1, char);
 
   for (t = result; *out != '\0'; out++)
-    if (*out == '\\' && isdigit (*++out))
+    if (*out == '\\' && ISDIGIT (*++out))
       {
 	/* Using "dig2" satisfies my debugger.  Bleah. */
 	dig = *out - '0';
@@ -5472,7 +5478,7 @@ filename_is_absolute (fn)
 {
   return (fn[0] == '/'
 #ifdef DOS_NT
-	  || (isalpha(fn[0]) && fn[1] == ':' && fn[2] == '/')
+	  || (ISALPHA(fn[0]) && fn[1] == ':' && fn[2] == '/')
 #endif
 	  );
 }
@@ -5484,8 +5490,8 @@ canonicalize_filename (fn)
 {
 #ifdef DOS_NT
   /* Canonicalize drive letter case.  */
-  if (fn[0] && fn[1] == ':' && islower (fn[0]))
-    fn[0] = toupper (fn[0]);
+  if (fn[0] && fn[1] == ':' && ISLOWER (fn[0]))
+    fn[0] = upcase (fn[0]);
   /* Convert backslashes to slashes.  */
   for (; *fn != '\0'; fn++)
     if (*fn == '\\')
