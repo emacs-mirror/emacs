@@ -219,6 +219,13 @@ compile_pattern (pattern, regp, translate, posix, multibyte)
   for (cpp = &searchbuf_head; ; cpp = &cp->next)
     {
       cp = *cpp;
+      /* Entries are initialized to nil, and may be set to nil by
+	 compile_pattern_1 if the pattern isn't valid.  Don't apply
+	 XSTRING in those cases.  However, compile_pattern_1 is only
+	 applied to the cache entry we pick here to reuse.  So nil
+	 should never appear before a non-nil entry.  */
+      if (cp->regexp == Qnil)
+	goto compile_it;
       if (XSTRING (cp->regexp)->size == XSTRING (pattern)->size
 	  && !NILP (Fstring_equal (cp->regexp, pattern))
 	  && EQ (cp->buf.translate, (! NILP (translate) ? translate : make_number (0)))
@@ -226,9 +233,12 @@ compile_pattern (pattern, regp, translate, posix, multibyte)
 	  && cp->buf.multibyte == multibyte)
 	break;
 
-      /* If we're at the end of the cache, compile into the last cell.  */
+      /* If we're at the end of the cache, compile into the nil cell
+	 we found, or the last (least recently used) cell with a
+	 string value.  */
       if (cp->next == 0)
 	{
+	compile_it:
 	  compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte);
 	  break;
 	}

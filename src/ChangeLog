@@ -1,3 +1,9 @@
+2000-02-03  Ken Raeburn  <raeburn@raeburn.org>
+
+	* search.c (compile_pattern): If a cache entry has a nil regexp,
+	fill in that entry instead of clobbering a previously cached
+	string regexp.
+
 2000-02-02  Ken Raeburn  <raeburn@raeburn.org>
 
 	* puresize.h (BASE_PURESIZE): Increase to 610000.
