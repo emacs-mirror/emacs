@@ -1,5 +1,9 @@
 2001-04-10  Gerd Moellmann  <gerd@gnu.org>
 
+	* textmodes/paragraphs.el (forward-sentence): Put the sentence-end
+	regexp in parentheses when building the regexp for searching
+	backwards.
+
 	* simple.el (completion-list-mode-finish): New function.
 	(toplevel): Add completion-list-mode-finish to
 	temp-buffer-show-hook.
