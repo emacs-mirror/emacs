@@ -505,6 +505,16 @@ The return value is number of composed characters."
 	  (compose-region from to))
 	(- to from))))
 
+;;;###autoload
+(defun lao-compose-region (from to)
+  (interactive "r")
+  (save-restriction
+    (narrow-to-region from to)
+    (goto-char (point-min))
+    (with-category-table lao-category-table
+      (while (re-search-forward lao-composition-pattern nil t)
+	(compose-region (match-beginning 0) (point))))))
+
 ;;
 (provide 'lao-util)
 
