@@ -128,7 +128,7 @@ in the Emacs distribution.  Type @kbd{C-h F} to read the FAQ; type
 @kbd{C-h P} to read the @file{PROBLEMS} file.
 
 @menu
-* DEL Does Not Delete::  What to do if @key{DEL} doesn't delete.
+* DEL Does Not Delete::   What to do if @key{DEL} doesn't delete.
 * Stuck Recursive::       `[...]' in mode line around the parentheses.
 * Screen Garbled::        Garbage on the screen.
 * Text Garbled::          Garbage in the text.
