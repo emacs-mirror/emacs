@@ -1142,7 +1142,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
       int multibyte = !NILP (current_buffer->enable_multibyte_characters);
       unsigned char *base_pat = XSTRING (string)->data;
       int charset_base = -1;
-      int simple = 1;
+      int boyer_moore_ok = 1;
 
       /* MULTIBYTE says whether the text to be searched is multibyte.
 	 We must convert PATTERN to match that, or we will not really
@@ -1204,6 +1204,12 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 		}
 
 	      c = STRING_CHAR_AND_LENGTH (base_pat, len_byte, in_charlen);
+
+	      /* If we are searching for something strange,
+		 an invalid multibyte code, don't use boyer-moore.  */
+	      if (! ASCII_BYTE_P (c))
+		boyer_moore_ok = 0;
+
 	      /* Translate the character, if requested.  */
 	      TRANSLATE (translated, trt, c);
 	      /* If translation changed the byte-length, go back
@@ -1229,8 +1235,8 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 		  else if (charset_base != charset_base_code)
 		    /* If two different rows appear, needing translation,
 		       then we cannot use boyer_moore search.  */
-		    simple = 0;
-		    /* ??? Handa: this must do simple = 0
+		    boyer_moore_ok = 0;
+		    /* ??? Handa: this must do boyer_moore_ok = 0
 		       if c is a composite character.  */
 		}
 
@@ -1243,9 +1249,11 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 	}
       else
 	{
+	  /* Unibyte buffer.  */
+	  charset_base = 0;
 	  while (--len >= 0)
 	    {
-	      int c, translated, inverse;
+	      int c, translated;
 
 	      /* If we got here and the RE flag is set, it's because we're
 		 dealing with a regexp known to be trivial, so the backslash
@@ -1257,22 +1265,6 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 		}
 	      c = *base_pat++;
 	      TRANSLATE (translated, trt, c);
-	      TRANSLATE (inverse, inverse_trt, c);
-
-	      /* Did this char actually get translated?
-		 Would any other char get translated into it?  */
-	      if (translated != c || inverse != c)
-		{
-		  /* Keep track of which character set row
-		     contains the characters that need translation.  */
-		  int charset_base_code = c & ~0xff;
-		  if (charset_base == -1)
-		    charset_base = charset_base_code;
-		  else if (charset_base != charset_base_code)
-		    /* If two different rows appear, needing translation,
-		       then we cannot use boyer_moore search.  */
-		    simple = 0;
-		}
 	      *pat++ = translated;
 	    }
 	}
@@ -1281,7 +1273,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
       len = raw_pattern_size;
       pat = base_pat = patbuf;
 
-      if (simple)
+      if (boyer_moore_ok)
 	return boyer_moore (n, pat, len, len_byte, trt, inverse_trt,
 			    pos, pos_byte, lim, lim_byte,
 			    charset_base);
