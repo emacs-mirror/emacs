@@ -168,6 +168,34 @@ With this form of menu, the return value is VALUE from the chosen item.")
        but I don't want to make one now.  */
     CHECK_WINDOW (window, 0);
 
+#ifdef HAVE_X11
+  {
+    Window child;
+    int win_x = 0, win_y = 0;
+
+    /* Find the position of the outside upper-left corner of
+       the inner window, with respect to the outer window.  */
+    if (f->display.x->parent_desc != ROOT_WINDOW)
+      {
+	BLOCK_INPUT;
+	XTranslateCoordinates (x_current_display,
+
+			       /* From-window, to-window.  */
+			       f->display.x->window_desc,
+			       f->display.x->parent_desc,
+
+			       /* From-position, to-position.  */
+			       0, 0, &win_x, &win_y,
+
+			       /* Child of window.  */
+			       &child);
+	UNBLOCK_INPUT;
+	XMenu_xpos += win_x;
+	XMenu_ypos += win_y;
+      }
+  }
+#endif
+
   XMenu_xpos += FONT_WIDTH (f->display.x->font) * XINT (x);
   XMenu_ypos += FONT_HEIGHT (f->display.x->font) * XINT (y);
 
