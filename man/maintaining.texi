@@ -826,7 +826,7 @@ details.
   You can also use the collection of tag names to complete a symbol
 name in the buffer.  @xref{Symbol Completion}.
 
-@node Emerge, C Modes, Imenu, Programs
+@node Emerge
 @section Merging Files with Emerge
 @cindex Emerge
 @cindex merging files
