@@ -285,7 +285,7 @@ make_minibuffer_frame ()
   register Lisp_Object mini_window;
   register Lisp_Object frame;
 
-  XSET (frame, Lisp_Frame, f);
+  XSETFRAME (frame, f);
 
   f->auto_raise = 0;
   f->auto_lower = 0;
@@ -323,13 +323,13 @@ make_terminal_frame ()
   Vframe_list = Qnil;
   f = make_frame (1);
 
-  XSET (frame, Lisp_Frame, f);
+  XSETFRAME (frame, f);
   Vframe_list = Fcons (frame, Vframe_list);
 
   f->name = build_string ("terminal");
   FRAME_SET_VISIBLE (f, 1);
   f->display.nothing = 1;   /* Nonzero means frame isn't deleted.  */
-  XSET (Vterminal_frame, Lisp_Frame, f);
+  XSETFRAME (Vterminal_frame, f);
   return f;
 }
 
@@ -452,7 +452,7 @@ DEFUN ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
   ()
 {
   Lisp_Object tem;
-  XSET (tem, Lisp_Frame, selected_frame);
+  XSETFRAME (tem, selected_frame);
   return tem;
 }
 
@@ -499,7 +499,7 @@ If omitted, FRAME defaults to the currently selected frame.")
      Lisp_Object frame;
 {
   if (NILP (frame))
-    XSET (frame, Lisp_Frame, selected_frame);
+    XSETFRAME (frame, selected_frame);
   else
     CHECK_LIVE_FRAME (frame, 0);
 
@@ -514,7 +514,7 @@ If omitted, FRAME defaults to the currently selected frame.")
      Lisp_Object frame;
 {
   if (NILP (frame))
-    XSET (frame, Lisp_Frame, selected_frame);
+    XSETFRAME (frame, selected_frame);
   else
     CHECK_LIVE_FRAME (frame, 0);
 
@@ -530,7 +530,7 @@ If FRAME is the selected frame, this makes WINDOW the selected window.")
      Lisp_Object frame, window;
 {
   if (NILP (frame))
-    XSET (frame, Lisp_Frame, selected_frame);
+    XSETFRAME (frame, selected_frame);
   else
     CHECK_LIVE_FRAME (frame, 0);
 
@@ -725,7 +725,7 @@ Otherwise, include all frames.")
   Lisp_Object tail;
 
   if (NILP (frame))
-    XSET (frame, Lisp_Frame, selected_frame);
+    XSETFRAME (frame, selected_frame);
   else
     CHECK_LIVE_FRAME (frame, 0);
 
@@ -748,7 +748,7 @@ Otherwise, include all frames.")
   Lisp_Object tail;
 
   if (NILP (frame))
-    XSET (frame, Lisp_Frame, selected_frame);
+    XSETFRAME (frame, selected_frame);
   else
     CHECK_LIVE_FRAME (frame, 0);
 
@@ -814,7 +814,7 @@ but if the second optional argument FORCE is non-nil, you may do so.")
   if (EQ (frame, Qnil))
     {
       f = selected_frame;
-      XSET (frame, Lisp_Frame, f);
+      XSETFRAME (frame, f);
     }
   else
     {
@@ -1005,7 +1005,7 @@ and nil for X and Y.")
       XSETINT (x, col);
       XSETINT (y, row);
     }
-  XSET (lispy_dummy, Lisp_Frame, f);
+  XSETFRAME (lispy_dummy, f);
   return Fcons (lispy_dummy, Fcons (x, y));
 }
 
@@ -1035,7 +1035,7 @@ and nil for X and Y.")
 			    &lispy_dummy, &party_dummy,
 			    &x, &y,
 			    &long_dummy);
-  XSET (lispy_dummy, Lisp_Frame, f);
+  XSETFRAME (lispy_dummy, f);
   return Fcons (lispy_dummy, Fcons (x, y));
 }
 
@@ -1090,7 +1090,7 @@ If omitted, FRAME defaults to the currently selected frame.")
      Lisp_Object frame;
 {
   if (NILP (frame))
-    XSET (frame, Lisp_Frame, selected_frame);
+    XSETFRAME (frame, selected_frame);
 
   CHECK_LIVE_FRAME (frame, 0);
 
@@ -1119,7 +1119,7 @@ but if the second optional argument FORCE is non-nil, you may do so.")
      Lisp_Object frame, force;
 {
   if (NILP (frame))
-    XSET (frame, Lisp_Frame, selected_frame);
+    XSETFRAME (frame, selected_frame);
 
   CHECK_LIVE_FRAME (frame, 0);
 
@@ -1160,7 +1160,7 @@ If omitted, FRAME defaults to the currently selected frame.")
      Lisp_Object frame;
 {
   if (NILP (frame))
-    XSET (frame, Lisp_Frame, selected_frame);
+    XSETFRAME (frame, selected_frame);
   
   CHECK_LIVE_FRAME (frame, 0);
 
