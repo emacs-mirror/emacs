@@ -1773,6 +1773,7 @@ static struct table_entry weight_table[] =
   {"black",		XLFD_WEIGHT_ULTRA_BOLD,		&Qultra_bold},
   {"bold",		XLFD_WEIGHT_BOLD,		&Qbold},
   {"book",		XLFD_WEIGHT_SEMI_LIGHT,		&Qsemi_light},
+  {"demi",		XLFD_WEIGHT_SEMI_BOLD,		&Qsemi_bold},
   {"demibold",		XLFD_WEIGHT_SEMI_BOLD,		&Qsemi_bold},
   {"extralight",	XLFD_WEIGHT_EXTRA_LIGHT,	&Qextra_light},
   {"extrabold",		XLFD_WEIGHT_EXTRA_BOLD,		&Qextra_bold},
