@@ -1,3 +1,10 @@
+2003-01-07  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* mail/undigest.el (unforward-rmail-message): Skip all newlines
+	after the initial separator.
+	(unforward-rmail-message): Forwarded-From: and Forwarded-Date:
+	instead of Forwarded-from: and Forwarded-date:.
+
 2003-01-07  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* dired.el (dired-garbage-files-regexp): Add `.aux$'.  These are
@@ -25,7 +32,7 @@
 
 	* dired.el (dired-recursive-deletes): Fix custom type.
 
-	* dabbrev.el (dabbrev--substitute-expansion): 
+	* dabbrev.el (dabbrev--substitute-expansion):
 	Convert all whitespace to single spaces,
 	except when it's carried over from the existing text.
 
