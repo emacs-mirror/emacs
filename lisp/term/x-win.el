@@ -591,8 +591,8 @@ as returned by (x-server-vendor)."
 	   (65397 . kp-backtab)))
 	((or (string-equal vendor "X11/NeWS - Sun Microsystems Inc.")
 	     (string-equal vendor "X Consortium"))
-	 '((392976 . f35)
-	   (392977 . f36)
+	 '((392976 . f36)
+	   (392977 . f37)
 	   (393056 . req)
 	   ;; These are for Sun under X11R6
 	   (393072 . props)
