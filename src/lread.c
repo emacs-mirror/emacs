@@ -2369,6 +2369,10 @@ read1 (readcharfun, pch, first_in_list)
 	    else
 	      {
 		p += CHAR_STRING (c, (unsigned char *) p);
+		if (CHAR_BYTE8_P (c))
+		  force_singlebyte = 1;
+		else if (! ASCII_CHAR_P (c))
+		  force_multibyte = 1;
 	      }
 	    nchars++;
 	  }
