@@ -477,79 +477,86 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
       nil
 
     ;; Verify that tags-file-name names a valid tags table.
-    (if (tags-verify-table tags-file-name)
+    ;; Bind another variable with the value of tags-file-name
+    ;; before we switch buffers, in case tags-file-name is buffer-local.
+    (let ((curbuf (current-buffer))
+	  (local-tags-file-name tags-file-name))
+      (if (tags-verify-table local-tags-file-name)
 
-	;; We have a valid tags table.
-	(progn
-	  ;; Bury the tags table buffer so it
-	  ;; doesn't get in the user's way.
-	  (bury-buffer (current-buffer))
+	  ;; We have a valid tags table.
+	  (progn
+	    ;; Bury the tags table buffer so it
+	    ;; doesn't get in the user's way.
+	    (bury-buffer (current-buffer))
 
-	  ;; If this was a new table selection (CONT is nil), make
-	  ;; sure tags-table-list includes the chosen table, and
-	  ;; update the list pointer variables.
-	  (or cont
-	      ;; Look in the list for the table we chose.
-	      (let ((found (tags-table-list-member tags-file-name
-						   tags-table-computed-list)))
-		(if found
-		    ;; There it is.  Just switch to it.
-		    (setq tags-table-list-pointer found
-			  tags-table-list-started-at found)
+	    ;; If this was a new table selection (CONT is nil), make
+	    ;; sure tags-table-list includes the chosen table, and
+	    ;; update the list pointer variables.
+	    (or cont
+		;; Look in the list for the table we chose.
+		(let ((found (tags-table-list-member
+			      local-tags-file-name
+			      tags-table-computed-list)))
+		  (if found
+		      ;; There it is.  Just switch to it.
+		      (setq tags-table-list-pointer found
+			    tags-table-list-started-at found)
 
-		  ;; The table is not in the current set.
-		  ;; Try to find it in another previously used set.
-		  (let ((sets tags-table-set-list))
-		    (while (and sets
-				(not (tags-table-list-member tags-file-name
-							     (car sets))))
-		      (setq sets (cdr sets)))
-		    (if sets
-			;; Found in some other set.  Switch to that set.
-			(progn
-			  (or (memq tags-table-list tags-table-set-list)
-			      ;; Save the current list.
+		    ;; The table is not in the current set.
+		    ;; Try to find it in another previously used set.
+		    (let ((sets tags-table-set-list))
+		      (while (and sets
+				  (not (tags-table-list-member
+					local-tags-file-name
+					(car sets))))
+			(setq sets (cdr sets)))
+		      (if sets
+			  ;; Found in some other set.  Switch to that set.
+			  (progn
+			    (or (memq tags-table-list tags-table-set-list)
+				;; Save the current list.
+				(setq tags-table-set-list
+				      (cons tags-table-list
+					    tags-table-set-list)))
+			    (setq tags-table-list (car sets)))
+
+			;; Not found in any existing set.
+			(if (and tags-table-list
+				 (or (eq t tags-add-tables)
+				     (and tags-add-tables
+					  (y-or-n-p
+					   (concat "Keep current list of "
+						   "tags tables also? ")))))
+			    ;; Add it to the current list.
+			    (setq tags-table-list (cons local-tags-file-name
+							tags-table-list))
+
+			  ;; Make a fresh list, and store the old one.
+			  (message "Starting a new list of tags tables")
+			  (or (null tags-table-list)
+			      (memq tags-table-list tags-table-set-list)
 			      (setq tags-table-set-list
 				    (cons tags-table-list
 					  tags-table-set-list)))
-			  (setq tags-table-list (car sets)))
+			  (setq tags-table-list (list local-tags-file-name))))
 
-		      ;; Not found in any existing set.
-		      (if (and tags-table-list
-			       (or (eq t tags-add-tables)
-				   (and tags-add-tables
-					(y-or-n-p
-					 (concat "Keep current list of "
-						 "tags tables also? ")))))
-			  ;; Add it to the current list.
-			  (setq tags-table-list (cons tags-file-name
-						      tags-table-list))
+		      ;; Recompute tags-table-computed-list.
+		      (tags-table-check-computed-list)
+		      ;; Set the tags table list state variables to start
+		      ;; over from tags-table-computed-list.
+		      (setq tags-table-list-started-at tags-table-computed-list
+			    tags-table-list-pointer
+			    tags-table-computed-list)))))
 
-			;; Make a fresh list, and store the old one.
-			(message "Starting a new list of tags tables")
-			(or (null tags-table-list)
-			    (memq tags-table-list tags-table-set-list)
-			    (setq tags-table-set-list
-				  (cons tags-table-list
-					tags-table-set-list)))
-			(setq tags-table-list (list tags-file-name))))
+	    ;; Return of t says the tags table is valid.
+	    t)
 
-		    ;; Recompute tags-table-computed-list.
-		    (tags-table-check-computed-list)
-		    ;; Set the tags table list state variables to start
-		    ;; over from tags-table-computed-list.
-		    (setq tags-table-list-started-at tags-table-computed-list
-			  tags-table-list-pointer tags-table-computed-list)))))
-
-	  ;; Return of t says the tags table is valid.
-	  t)
-
-      ;; The buffer was not valid.  Don't use it again.
-      (let ((file tags-file-name))
+	;; The buffer was not valid.  Don't use it again.
+	(set-buffer curbuf)
 	(kill-local-variable 'tags-file-name)
-	(if (eq file tags-file-name)
+	(if (eq local-tags-file-name tags-file-name)
 	    (setq tags-file-name nil))
-	(error "File %s is not a valid tags table" file)))))
+	(error "File %s is not a valid tags table" local-tags-file-name)))))
 
 (defun file-of-tag ()
   "Return the file name of the file whose tags point is within.
