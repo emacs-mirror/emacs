@@ -4269,9 +4269,12 @@ If VISIT is neither t nor nil nor a string,\n\
   that means do not print the \"Wrote file\" message.\n\
 The optional sixth arg LOCKNAME, if non-nil, specifies the name to\n\
   use for locking and unlocking, overriding FILENAME and VISIT.\n\
-The optional seventh arg CONFIRM, if non-nil, says ask for confirmation\n\
-  before overwriting an existing file and if equal to `excl', specifies\n\
-  that an error should be raised if the file already exists.\n\
+The optional seventh arg MUSTBENEW, if non-nil, insists on a check\n\
+  for an existing file with the same name.  If MUSTBENEW is `excl',\n\
+  that means to get an error if the file already exists; never overwrite.\n\
+  If MUSTBENEW is neither nil nor `excl', that means ask for\n\
+  confirmation before overwriting, but do go ahead and overwrite the file\n\
+  if the user confirms.\n\
 Kludgy feature: if START is a string, then that string is written\n\
 to the file, instead of any buffer contents, and END is ignored.\n\
 \n\
@@ -4280,8 +4283,8 @@ This does code conversion according to the value of\n\
 `file-coding-system-alist', and sets the variable\n\
 `last-coding-system-used' to the coding system actually used.")
 
-  (start, end, filename, append, visit, lockname, confirm)
-     Lisp_Object start, end, filename, append, visit, lockname, confirm;
+  (start, end, filename, append, visit, lockname, mustbenew)
+     Lisp_Object start, end, filename, append, visit, lockname, mustbenew;
 {
   register int desc;
   int failure;
