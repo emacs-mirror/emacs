@@ -28,7 +28,7 @@
 ;;; Code:
 
 ;; Make sure the help-xref button type is defined.
-(require 'help-funs)
+(require 'help-fns)
 
 ;;; General utility function
 
