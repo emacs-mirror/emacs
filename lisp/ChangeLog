@@ -1,3 +1,20 @@
+2000-05-24  Dave Love  <fx@gnu.org>
+
+	* info.el (Info-find-node-2): Restructure [following "Vadim
+	S. Solomin" <sovs@uic.nnov.ru>].
+
+	* icomplete.el: Fix header for Finder.
+
+2000-05-24  Eric M. Ludlam  <zappo@ultranet.com>
+
+	* rmailout.el (rmail-output-to-rmail-file): Added optional param
+	STAY.
+
+	* rmail.el (rmail-automatic-folder-directives): New user variable.
+	(rmail-show-message): Add call to `rmail-auto-file' during
+	display.
+	(rmail-auto-file): New function.
+
 2000-05-24  Michael Kifer  <kifer@cs.sunysb.edu>
 	
 	* ediff-diff.el (ediff-forward-word): take syntactic word class into
