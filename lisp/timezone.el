@@ -131,7 +131,8 @@ Understands the following styles:
  (5) 22-AUG-1993 10:59:12.82
  (6) Thu, 11 Apr 16:17:12 91 [MET]
  (7) Mon, 6  Jul 16:47:20 T 1992 [MET]
- (8) 1996-06-24 21:13:12 [GMT]"
+ (8) 1996-06-24 21:13:12 [GMT]
+ (9) 1996-06-24 21:13-ZONE"
  ;; Get rid of any text properties.
   (and (stringp date)
        (or (text-properties-at 0 date)
@@ -181,6 +182,10 @@ Understands the following styles:
 	  ((string-match
 	    "\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9]+:[0-9]+\\)[ \t]*\\([-+a-zA-Z0-9]+\\)" date)
 	   ;; Styles: (8) with timezone.
+	   (setq year 1 month 2 day 3 time 4 zone 5))
+	  ((string-match
+	    "\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9]+\\)[ \t]*\\([-+a-zA-Z0-9:]+\\)" date)
+	   ;; Styles: (8) with timezone with a colon in it.
 	   (setq year 1 month 2 day 3 time 4 zone 5))
 	  ((string-match
 	    "\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9]+:[0-9]+\\)" date)
