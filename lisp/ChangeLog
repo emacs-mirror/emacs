@@ -1,5 +1,8 @@
 1999-11-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* isearch.el (isearch-complete-edit, isearch-ring-advance-edit):
+	Use erase-field instead of erase-buffer.
+
 	* frame.el (blink-cursor-mode, blink-cursor-end): Use
 	internal-show-cursor with new interface.
 	(blink-cursor-timer-function): New.

@@ -1,3 +1,10 @@
+1999-11-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispnew.c (Finternal_show_cursor): Change it to set the
+	cursor on/off, not toggle its state.
+	(Finternal_show_cursor_p): New.
+	(syms_of_display): Defsubr Sinternal_show_cursor_p.
+
 1999-11-03  Dave Love  <fx@gnu.org>
 
 	* charset.c (split_non_ascii_string): Define return value.
