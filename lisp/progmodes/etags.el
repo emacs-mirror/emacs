@@ -1280,16 +1280,19 @@ if the file was newly read in, the value is the filename."
 	 (get-buffer " *next-file*")
 	 (kill-buffer " *next-file*"))
     (error "All files processed."))
-  (let ((new (not (get-file-buffer (car next-file-list)))))
+  (let* ((next (car next-file-list))
+	 (new (not (get-file-buffer next))))
+    ;; Advance the list before trying to find the file.
+    ;; If we get an error finding the file, don't get stuck on it.
+    (setq next-file-list (cdr next-file-list))
     (if (not (and new novisit))
-	(set-buffer (find-file-noselect (car next-file-list) novisit))
+	(set-buffer (find-file-noselect next novisit))
       ;; Like find-file, but avoids random warning messages.
       (set-buffer (get-buffer-create " *next-file*"))
       (kill-all-local-variables)
       (erase-buffer)
-      (setq new (car next-file-list))
+      (setq new next)
       (insert-file-contents new nil))
-    (setq next-file-list (cdr next-file-list))
     new))
 
 (defvar tags-loop-operate nil
