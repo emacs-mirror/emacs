@@ -64,6 +64,7 @@
 
 ;;; Top level buffer and region formatting functions
 
+;;;###autoload
 (defun texinfo-format-buffer (&optional notagify)
   "Process the current buffer as texinfo code, into an Info file.
 The Info file output is generated in a buffer visiting the Info file
@@ -92,6 +93,7 @@ Info-split to do these manually."
 (defvar texinfo-region-buffer-name "*Info Region*"
   "*Name of the temporary buffer used by \\[texinfo-format-region].")
 
+;;;###autoload
 (defun texinfo-format-region (region-beginning region-end)
   "Convert the current region of the Texinfo file to Info format.
 This lets you see what that part of the file will look like in Info.
@@ -2979,7 +2981,7 @@ For example, invoke
             (progn
               (if buffer-file-name (kill-buffer (current-buffer)))
               (find-file file)
-              (buffer-flush-undo (current-buffer))
+              (buffer-disable-undo (current-buffer))
               (set-buffer-modified-p nil)
               (texinfo-mode)
               (message "texinfo formatting %s..." file)
