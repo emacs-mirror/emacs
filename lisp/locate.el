@@ -118,26 +118,44 @@
   (require 'dired))
 
 ;; Variables
-(defvar locate-command "locate"
-  "*The executable program used to search a database of files.")
+
+(defgroup locate nil
+  "Interface to the locate command."
+  :prefix "locate-"
+  :group 'external)
+
+(defcustom locate-command "locate"
+  "*The executable program used to search a database of files."
+  :type 'string
+  :group 'locate)
 
 (defvar locate-history-list nil
   "The history list used by the \\[locate] command.")
 
-(defvar locate-make-command-line 'locate-default-make-command-line
-  "*Function used to create the locate command line.")
+(defcustom locate-make-command-line 'locate-default-make-command-line
+  "*Function used to create the locate command line."
+  :type 'function
+  :group 'locate)
 
-(defvar locate-buffer-name "*Locate*"
-  "*Name of the buffer to show results from the \\[locate] command.")
+(defcustom locate-buffer-name "*Locate*"
+  "*Name of the buffer to show results from the \\[locate] command."
+  :type 'string
+  :group 'locate)
 
-(defvar locate-fcodes-file nil
-  "*Database of filenames.")
+(defcustom locate-fcodes-file nil
+  "*Database of filenames."
+  :type 'file
+  :group 'locate)
 
-(defvar locate-mouse-face 'highlight
-  "*Face used to highlight locate entries.")
+(defcustom locate-mouse-face 'highlight
+  "*Face used to highlight locate entries."
+  :type 'face
+  :group 'locate)
 
-(defvar locate-header-face 'region
-  "*Face used to highlight the locate header.")
+(defcustom locate-header-face 'region
+  "*Face used to highlight the locate header."
+  :type 'face
+  :group 'locate)
 
 (defvar locate-current-filter nil)
 
