@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.7 $
+;; Version: $Revision: 1.8 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1994/05/03 01:23:42 $|$Revision: 1.7 $|~/modes/tcl.el.Z|
+;; $Date: 1994/05/22 03:38:07 $|$Revision: 1.8 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+; Revision 1.8  1994/05/22  03:38:07  tromey
+; Fixed menu support.
+;
 ; Revision 1.7  1994/05/03  01:23:42  tromey
 ; *** empty log message ***
 ;
@@ -767,6 +770,8 @@ Commands:
 
   (make-local-variable 'font-lock-keywords)
   (setq font-lock-keywords tcl-font-lock-keywords)
+
+  ;; The following only really makes sense under GNU Emacs 19.
   (setq imenu-create-index-function 'tcl-imenu-create-index-function)
   (make-local-variable 'parse-sexp-ignore-comments)
 
@@ -1203,7 +1208,13 @@ Returns nil if line starts inside a string, t if in a comment."
 ;; Interfaces to other packages.
 ;;
 
-(autoload 'imenu-progress-message "imenu" "" nil 'macro)
+;; When compiling under GNU Emacs, load imenu during compilation.  If
+;; you have 19.22 or earlier, comment this out, or get imenu.
+(eval-when-compile
+  (if (and tcl-using-emacs
+	   (not tcl-using-lemacs-19))
+      (require 'imenu))
+  ())
 
 (defun tcl-imenu-create-index-function ()
   "Generate alist of indices for imenu."
