@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_test_function!99.c(trunk.1) $
+/* $HopeName: MMQA_test_function!123.c(trunk.1) $
 TEST_HEADER
  summary = regression test for AWl bug (request.dylan.160094
  language = c
@@ -21,7 +21,7 @@ static void test(void)
  mps_arena_t space;
  mps_pool_t poolamc, poolawl;
  mps_thr_t thread;
- mps_root_t root;
+ mps_root_t root, rootb;
 
  mps_fmt_t format;
  mps_ap_t apamc, apawl;
@@ -35,7 +35,7 @@ static void test(void)
  cdie(mps_root_create_table(&root, space, MPS_RANK_AMBIG, 0, &b, 1),
   "creat root");
 
- cdie(mps_root_create_table(&root, space, MPS_RANK_AMBIG, 0, &exfmt_root, 1),
+ cdie(mps_root_create_table(&rootb, space, MPS_RANK_AMBIG, 0, &exfmt_root, 1),
   "create root b");
 
  cdie(
@@ -92,6 +92,7 @@ static void test(void)
  comment("Destroyed format.");
 
  mps_root_destroy(root);
+ mps_root_destroy(rootb);
  comment("Destroyed roots.");
 
  mps_thread_dereg(thread);
