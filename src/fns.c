@@ -3140,7 +3140,7 @@ If the region can't be decoded, return nil and don't modify the buffer.")
     old_pos += inserted_chars - (XFASTINT (end) - XFASTINT (beg));
   else if (old_pos > XFASTINT (beg))
     old_pos = XFASTINT (beg);
-  SET_PT (old_pos);
+  SET_PT (old_pos > ZV ? ZV : old_pos);
 
   return make_number (inserted_chars);
 }
