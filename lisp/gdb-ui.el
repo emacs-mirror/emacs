@@ -137,10 +137,9 @@ The following interactive lisp functions help control operation :
   (if gdb-first-time (gdb-clear-inferior-io))
 
 ; find source file and compilation directory here
-  (gdb-instance-enqueue-idle-input (list "server list\n"
-					 '(lambda () nil)))
+  (gdb-instance-enqueue-idle-input (list "server list\n" 'ignore))
   (gdb-instance-enqueue-idle-input (list "server info source\n"
-					 '(lambda () (gdb-source-info)))))
+					 'gdb-source-info)))
 
 (defun gud-break (arg)
   "Set breakpoint at current line or address."
@@ -177,12 +176,10 @@ The following interactive lisp functions help control operation :
   (goto-char (point-min))
     (if (re-search-forward "\*" nil t)
 	(gdb-instance-enqueue-idle-input
-	 (list (concat "server display* " expr "\n")
-	       '(lambda () nil)))
+	 (list (concat "server display* " expr "\n") 'ignore))
 ;else
       (gdb-instance-enqueue-idle-input
-       (list (concat "server display " expr "\n")
-	     '(lambda () nil)))))
+       (list (concat "server display " expr "\n") 'ignore))))
 
 
 ;; The completion process filter is installed temporarily to slurp the
@@ -677,12 +674,9 @@ This filter may simply queue output for a later time."
   ;; Extract the frame position from the marker.
   (setq gud-last-frame
 	(cons
-	 (substring args (match-beginning 1) (match-end 1))
-	 (string-to-int (substring args
-				   (match-beginning 2)
-				   (match-end 2)))))
-  (setq gdb-current-address (substring args (match-beginning 3)
-				       (match-end 3)))
+	 (match-string 1 args)
+	 (string-to-int (match-string 2 args))))
+  (setq gdb-current-address (match-string 3 args))
   (setq gdb-main-or-pc gdb-current-address)
 ;update with new frame for machine code if necessary
   (gdb-invalidate-assembler))
@@ -866,8 +860,7 @@ output from the current command if that happens to be appropriate."
   (search-forward ": ")
   (looking-at "\\(.*?\\) =")
   (let ((char "")
-	(gdb-temp-value (buffer-substring (match-beginning 1)
-					  (match-end 1))))
+	(gdb-temp-value (match-string 1)))
 ;move * to front of expression if necessary
     (if (looking-at ".*\\*")
 	(progn
@@ -916,8 +909,7 @@ output from the current command if that happens to be appropriate."
 	  (gdb-array-format)))
     (if (looking-at "field-begin \\(.\\)")
 	(progn
-	  (setq gdb-annotation-arg (buffer-substring (match-beginning 1)
-						     (match-end 1)))
+	  (setq gdb-annotation-arg (match-string 1))
 	  (gdb-field-format-begin))))
   (save-excursion
   (set-buffer gdb-expression-buffer-name)
@@ -940,8 +932,7 @@ output from the current command if that happens to be appropriate."
   ; delete display so they don't accumulate and delete buffer
   (let ((number gdb-display-number))
     (gdb-instance-enqueue-idle-input
-     (list (concat "server delete display " number "\n")
-	   '(lambda () nil)))
+     (list (concat "server delete display " number "\n") 'ignore))
     (switch-to-buffer (concat "*display " gdb-dive-display-number "*"))
     (kill-buffer (get-buffer (concat "*display " number "*")))))
 
@@ -997,8 +988,7 @@ output from the current command if that happens to be appropriate."
 ; keep making recursive calls...
 	  (if (looking-at "field-begin \\(.\\)")
 	      (progn
-		(setq gdb-annotation-arg (buffer-substring (match-beginning 1)
-							   (match-end 1)))
+		(setq gdb-annotation-arg (match-string 1))
 		(gdb-field-format-begin)))
 ; until field-end.
 	  (if (looking-at "field-end") (gdb-field-format-end))))
@@ -1032,9 +1022,7 @@ output from the current command if that happens to be appropriate."
       (beginning-of-line)
       (if (looking-at "\*") (setq gdb-display-char "*"))
       (re-search-forward "\\(\\S-+\\) = " end t)
-      (setq gdb-last-field (buffer-substring-no-properties
-			    (match-beginning 1)
-			    (match-end 1)))
+      (setq gdb-last-field (match-string-no-properties 1))
       (goto-char (match-beginning 1))
       (let ((last-column (current-column)))
 	(while (re-search-backward "\\s-\\(\\S-+\\) = {" nil t)
@@ -1043,19 +1031,18 @@ output from the current command if that happens to be appropriate."
 		   (> (count-lines 1 (point)) 1))
 	      (progn
 		(setq gdb-part-expression
-		      (concat "." (buffer-substring-no-properties
-				   (match-beginning 1)
-				   (match-end 1)) gdb-part-expression))
+		      (concat "." (match-string-no-properties 1)
+			      gdb-part-expression))
 		(setq last-column (current-column))))))
-; * not needed for components of a pointer to a structure in gdb
+      ;; * not needed for components of a pointer to a structure in gdb
       (if (string-equal "*" (substring gdb-full-expression 0 1))
 	  (setq gdb-full-expression (substring gdb-full-expression 1 nil)))
       (setq gdb-full-expression
 	    (concat gdb-full-expression gdb-part-expression "." gdb-last-field))
-      (gdb-instance-enqueue-idle-input (list
-					(concat "server display" gdb-display-char
-						" " gdb-full-expression "\n")
-			      '(lambda () nil))))))
+      (gdb-instance-enqueue-idle-input
+       (list (concat "server display" gdb-display-char
+		     " " gdb-full-expression "\n")
+	     'ignore)))))
 
 (defun gdb-insert-field ()
   (let ((start (progn (point)))
@@ -1155,9 +1142,7 @@ output from the current command if that happens to be appropriate."
 	    (aset gdb-array-size num (aref indices num)))
 	  (setq num (+ num 1)))
 	(if flag
-	    (let ((gdb-display-value (substring (car gdb-value-list)
-						(match-beginning 1)
-						(match-end 1))))
+	    (let ((gdb-display-value (match-string 1 (car gdb-value-list))))
 	      (setq gdb-display-string (concat gdb-display-string " "
 					       gdb-display-value))
 	      (insert
@@ -1226,9 +1211,7 @@ buffer."
 
       ;; Process all the complete markers in this chunk.
       (while (string-match "\n\032\032\\(.*\\)\n" burst)
-	(let ((annotation (substring burst
-				     (match-beginning 1)
-				     (match-end 1))))
+	(let ((annotation (match-string 1 burst)))
 
 	  ;; Stuff prior to the match is just ordinary output.
 	  ;; It is either concatenated to OUTPUT or directed
@@ -1243,12 +1226,8 @@ buffer."
 
 	  ;; Parse the tag from the annotation, and maybe its arguments.
 	  (string-match "\\(\\S-*\\) ?\\(.*\\)" annotation)
-	  (let* ((annotation-type (substring annotation
-					     (match-beginning 1)
-					     (match-end 1)))
-		 (annotation-arguments (substring annotation
-						  (match-beginning 2)
-						  (match-end 2)))
+	  (let* ((annotation-type (match-string 1 annotation))
+		 (annotation-arguments (match-string 2 annotation))
 		 (annotation-rule (assoc annotation-type
 					 gdb-annotation-rules)))
 	    ;; Call the handler for this annotation.
@@ -1377,16 +1356,15 @@ buffer."
 		(insert-buffer (gdb-get-create-instance-buffer
 				'gdb-partial-output-buffer))
 		(goto-char p)))))
-; put customisation here
+     ;; put customisation here
      (,custom-defun)))
 
-(defmacro def-gdb-auto-updated-buffer
-  (buffer-key trigger-name gdb-command output-handler-name custom-defun)
+(defmacro def-gdb-auto-updated-buffer (buffer-key trigger-name gdb-command
+				       output-handler-name custom-defun)
    `(progn
      (def-gdb-auto-update-trigger ,trigger-name
        ;; The demand predicate:
-       (lambda ()
-	 (gdb-get-instance-buffer ',buffer-key))
+       (lambda () (gdb-get-instance-buffer ',buffer-key))
        ,gdb-command
        ,output-handler-name)
      (def-gdb-auto-update-handler ,output-handler-name
@@ -1456,28 +1434,24 @@ buffer."
 		(beginning-of-line)
 		(re-search-forward "in\\s-+\\S-+\\s-+at\\s-+")
 		(looking-at "\\(\\S-*\\):\\([0-9]+\\)")
-		(let ((line (buffer-substring (match-beginning 2)
-					      (match-end 2)))
-		      (file (buffer-substring (match-beginning 1)
-					      (match-end 1))))
+		(let ((line (match-string 2))
+		      (file (match-string 1)))
 		  (save-excursion
 		    (set-buffer
-		     (if (file-exists-p file)
-			 (find-file-noselect file)
-		     ;else
-		       (find-file-noselect (concat gdb-cdir "/" file))))
-		    (with-current-buffer (current-buffer)
-		      (progn
-			(set (make-local-variable 'gud-minor-mode) 'gdba)
-			(set (make-local-variable 'tool-bar-map)
-			     gud-tool-bar-map)
-			(setq left-margin-width 2)
-			(if (get-buffer-window (current-buffer))
-			    (set-window-margins (get-buffer-window
-						 (current-buffer))
-						left-margin-width
-						right-margin-width))))
-			      ; only want one breakpoint icon at each location
+		     (find-file-noselect (if (file-exists-p file)
+					     file
+					   (expand-file-name file gdb-cdir))))
+		    (save-current-buffer
+		      (set (make-local-variable 'gud-minor-mode) 'gdba)
+		      (set (make-local-variable 'tool-bar-map)
+			   gud-tool-bar-map)
+		      (setq left-margin-width 2)
+		      (if (get-buffer-window (current-buffer))
+			  (set-window-margins (get-buffer-window
+					       (current-buffer))
+					      left-margin-width
+					      right-margin-width)))
+		    ;; only want one breakpoint icon at each location
 		    (save-excursion
 		      (goto-line (string-to-number line))
 		      (let ((start (progn (beginning-of-line) (- (point) 1)))
@@ -1557,10 +1531,9 @@ buffer."
 	 (if (eq ?y (char-after (match-beginning 2)))
 	     "server disable "
 	   "server enable ")
-	 (buffer-substring (match-beginning 0)
-			   (match-end 1))
+	 (match-string 1)
 	 "\n")
-	'(lambda () nil))))))
+	'ignore)))))
 
 (defun gdb-delete-bp-this-line ()
 "Delete the breakpoint on this line."
@@ -1572,10 +1545,9 @@ buffer."
        (list
 	(concat
 	 "server delete "
-	 (buffer-substring (match-beginning 0)
-			   (match-end 1))
+	 (match-string 1)
 	 "\n")
-	'(lambda () nil)))))
+	'ignore))))
 
 (defvar gdb-source-window nil)
 
@@ -1586,15 +1558,13 @@ buffer."
     (beginning-of-line 1)
     (re-search-forward "in\\s-+\\S-+\\s-+at\\s-+")
     (looking-at "\\(\\S-*\\):\\([0-9]+\\)"))
-  (let ((line (buffer-substring (match-beginning 2)
-				  (match-end 2)))
-	(file (buffer-substring (match-beginning 1)
-				(match-end 1))))
-    (if (file-exists-p file)
-	(set-window-buffer gdb-source-window (find-file-noselect file))
-      ;else
-      (setq file (concat gdb-cdir "/" file))
-      (set-window-buffer gdb-source-window (find-file-noselect file)))
+  (let ((line (match-string 2))
+	(file (match-string 1)))
+    (set-window-buffer gdb-source-window
+		       (find-file-noselect
+			(if (file-exists-p file)
+			    file
+			  (expand-file-name file gdb-cdir))))
     (goto-line (string-to-number line))))
 
 ;;
@@ -1620,7 +1590,7 @@ buffer."
     (let ((buffer-read-only nil))
       (goto-char (point-min))
       (looking-at "\\S-*\\s-*\\(\\S-*\\)")
-      (setq gdb-current-frame (buffer-substring (match-beginning 1) (match-end 1)))
+      (setq gdb-current-frame (match-string 1))
       (while (< (point) (point-max))
 	(put-text-property (progn (beginning-of-line) (point))
 			   (progn (end-of-line) (point))
@@ -1664,11 +1634,7 @@ buffer."
 (defun gdb-get-frame-number ()
   (save-excursion
     (let* ((pos (re-search-backward "^#\\([0-9]*\\)" nil t))
-	   (n (or (and pos
-		       (string-to-int
-			(buffer-substring (match-beginning 1)
-					  (match-end 1))))
-		  0)))
+	   (n (or (and pos (string-to-int (match-string 1))) 0)))
       n)))
 
 (defun gdb-frames-select-by-mouse (e)
@@ -1684,11 +1650,9 @@ buffer."
     (save-excursion
       (set-buffer (gdb-get-instance-buffer 'gdba))
   (gdb-instance-enqueue-idle-input
-   (list
-    (concat (gud-format-command "server frame %p" selection)
-		 "\n")
-    '(lambda () nil)))
-      (gud-display-frame))))
+   (list (gud-format-command "server frame %p\n" selection)
+	 'ignore))
+  (gud-display-frame))))
 
 
 ;;
@@ -1751,9 +1715,9 @@ buffer."
 
 ;Abbreviate for arrays and structures. These can be expanded using gud-display
 (defun gdb-info-locals-handler nil
-  (set-gdb-instance-pending-triggers (delq (quote gdb-invalidate-locals)
+  (set-gdb-instance-pending-triggers (delq 'gdb-invalidate-locals
 					   (gdb-instance-pending-triggers)))
-  (let ((buf (gdb-get-instance-buffer (quote gdb-partial-output-buffer))))
+  (let ((buf (gdb-get-instance-buffer 'gdb-partial-output-buffer)))
     (save-excursion
       (set-buffer buf)
       (goto-char (point-min))
@@ -1762,16 +1726,16 @@ buffer."
       (replace-regexp "{[-0-9, {}\]*\n" "(array);\n")))
       (goto-char (point-min))
       (replace-regexp "{.*=.*\n" "(structure);\n")
-  (let ((buf (gdb-get-instance-buffer (quote gdb-locals-buffer))))
+  (let ((buf (gdb-get-instance-buffer 'gdb-locals-buffer)))
     (and buf (save-excursion
 	       (set-buffer buf)
 	       (let ((p (point))
 		     (buffer-read-only nil))
 		 (delete-region (point-min) (point-max))
 		 (insert-buffer (gdb-get-create-instance-buffer
-				 (quote gdb-partial-output-buffer)))
+				 'gdb-partial-output-buffer))
 		 (goto-char p)))))
-  (run-hooks (quote gdb-info-locals-hook)))
+  (run-hooks 'gdb-info-locals-hook))
 
 (defun gdb-info-locals-custom ()
   nil)
@@ -1884,10 +1848,9 @@ buffer."
 	 (if (eq ?y (char-after (match-beginning 2)))
 	     "server disable display "
 	   "server enable display ")
-	 (buffer-substring (match-beginning 0)
-			   (match-end 1))
+	 (match-string 1)
 	 "\n")
-	'(lambda () nil))))))
+	'ignore)))))
 
 (defun gdb-delete-disp-this-line ()
 "Delete the displayed expression on this line."
@@ -1898,11 +1861,10 @@ buffer."
     (beginning-of-line 1)
     (if (not (looking-at "\\([0-9]+\\):   \\([ny]\\)"))
 	(error "No expression on this line")
-      (let ((number (buffer-substring (match-beginning 0)
-				      (match-end 1))))
+      (let ((number (match-string 1)))
 	(gdb-instance-enqueue-idle-input
 	 (list (concat "server delete display " number "\n")
-	       '(lambda () nil)))
+	       'ignore))
 	(if (not (display-graphic-p))
 	    (kill-buffer (get-buffer (concat "*display " number "*")))
 	  ;else
@@ -2179,23 +2141,22 @@ Just the partial-output buffer is left."
   (delete-other-windows))
 
 (defun gdb-source-info ()
-"Finds the source file where the program starts and displays it with related
+  "Find the source file where the program starts and displays it with related
 buffers."
   (goto-char (point-min))
-  (re-search-forward "directory is ")
-  (looking-at "\\(\\S-*\\)")
-  (setq gdb-cdir (buffer-substring (match-beginning 1) (match-end 1)))
-  (re-search-forward "Located in ")
-  (looking-at "\\(\\S-*\\)")
-  (setq gdb-main-file (buffer-substring (match-beginning 1) (match-end 1)))
+  (search-forward "directory is ")
+  (looking-at "\\S-*")
+  (setq gdb-cdir (match-string 0))
+  (search-forward "Located in ")
+  (looking-at "\\S-*")
+  (setq gdb-main-file (match-string 0))
   ;; Make sure we are not in the minibuffer window when we try to delete
   ;; all other windows.
-  (if (eq (selected-window) (minibuffer-window))
+  (if (window-minibuffer-p (selected-window))
       (other-window 1))
   (delete-other-windows)
   (if gdb-many-windows
       (gdb-setup-windows)
-;else
     (gdb-display-breakpoints-buffer)
     (gdb-display-display-buffer)
     (gdb-display-stack-buffer)
@@ -2307,7 +2268,7 @@ BUFFER nil or omitted means use the current buffer."
   (interactive)
   (gdb-instance-enqueue-idle-input
    (list (concat "server delete display " gdb-display-number "\n")
-	 '(lambda () nil)))
+	 'ignore))
   (kill-buffer nil)
   (delete-frame))
 
@@ -2350,8 +2311,7 @@ BUFFER nil or omitted means use the current buffer."
 	      (looking-at
 	       "\\([0-9]*\\)\\s-*\\S-*\\s-*\\S-*\\s-*\\(.\\)\\s-*0x0\\(\\S-*\\)")
 	      ; info break gives '0x0' (8 digit) while dump gives '0x' (7 digit)
-	      (setq address (concat "0x" (buffer-substring (match-beginning 3)
-							   (match-end 3))))
+	      (setq address (concat "0x" (match-string 3)))
 	      (setq flag (char-after (match-beginning 2)))
 	      (save-excursion
 		(set-buffer buffer)
@@ -2427,30 +2387,29 @@ BUFFER nil or omitted means use the current buffer."
 ; modified because if gdb-main-or-pc has changed value a new command
 ; must be enqueued to update the buffer with the new output
 (defun gdb-invalidate-assembler (&optional ignored)
-  (if (and ((lambda ()
-	      (gdb-get-instance-buffer (quote gdb-assembler-buffer))))
-	   (or (not (member (quote gdb-invalidate-assembler)
-			(gdb-instance-pending-triggers)))
-	   (not (string-equal gdb-main-or-pc gdb-prev-main-or-pc))))
+  (if (and (gdb-get-instance-buffer 'gdb-assembler-buffer)
+	   (or (not (member 'gdb-invalidate-assembler
+			    (gdb-instance-pending-triggers)))
+	       (not (string-equal gdb-main-or-pc gdb-prev-main-or-pc))))
       (progn
 
-        ; take previous disassemble command off the queue
+	;; take previous disassemble command off the queue
 	(save-excursion
 	  (set-buffer (gdb-get-instance-buffer 'gdba))
-	   (let ((queue gdb-idle-input-queue) (item))
-	     (while queue
-	       (setq item (car queue))
-	       (if (equal (cdr item) '(gdb-assembler-handler))
-		   (delete item gdb-idle-input-queue))
-		 (setq queue (cdr queue)))))
+	  (let ((queue gdb-idle-input-queue) (item))
+	    (while queue
+	      (setq item (car queue))
+	      (if (equal (cdr item) '(gdb-assembler-handler))
+		  (delete item gdb-idle-input-queue))
+	      (setq queue (cdr queue)))))
 
 	(gdb-instance-enqueue-idle-input
 	 (list (concat "server disassemble " gdb-main-or-pc "\n")
-			     (quote gdb-assembler-handler)))
-	     (set-gdb-instance-pending-triggers
-	      (cons (quote gdb-invalidate-assembler)
-			     (gdb-instance-pending-triggers)))
-	     (setq gdb-prev-main-or-pc gdb-main-or-pc))))
+	       'gdb-assembler-handler))
+	(set-gdb-instance-pending-triggers
+	 (cons 'gdb-invalidate-assembler
+	       (gdb-instance-pending-triggers)))
+	(setq gdb-prev-main-or-pc gdb-main-or-pc))))
 
 (defun gdb-delete-line ()
   "Delete the current line."
