@@ -1,3 +1,19 @@
+2002-08-29  Kim F. Storm  <storm@cua.dk>
+
+	* kmacro.el: Changed default bindings from F7/F8 to F3/F4.
+	Changed default binding of C-x e to kmacro-end-or-call-macro.
+	(kmacro-call-repeat-key, kmacro-call-repeat-with-arg): New custom
+	variables. 
+	(kmacro-get-prefix-arg): New function.
+	(kmacro-repeat-on-last-key): Renamed from kmacro-repeat-loop and improved.
+	Callers changed.
+	(kmacro-call-macro): Repeat macro by repeating last key or
+	key defined in kmacro-call-repeat-key.  New third arg non-nil
+	means to end current macro.
+	(kmacro-end-or-call-macro): Call kmacro-call-macro appropriately
+	to get repeat last key functionality.
+	(kmacro-start-macro-or-insert-counter): Improve doc string.
+
 2002-08-28  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
         * files.el (find-buffer-visiting): Compare file attributes
