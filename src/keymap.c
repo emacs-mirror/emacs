@@ -2126,7 +2126,7 @@ describe_map (map, keys, elt_describer, partial, shadow, seen)
 	     using an inherited keymap.  So skip anything we've already
 	     encountered.  */
 	  tem = Fassq (tail, *seen);
-	  if (CONSP (tem) && Fequal (XCONS (tem)->car, keys))
+	  if (CONSP (tem) && !NILP (Fequal (XCONS (tem)->car, keys)))
 	    break;
 	  *seen = Fcons (Fcons (tail, keys), *seen);
 	}
