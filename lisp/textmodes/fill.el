@@ -41,7 +41,8 @@ A value of nil means that any change in indentation starts a new paragraph.")
   "*Non-nil means put two spaces after a colon when filling.")
 
 (defvar fill-paragraph-function nil
-  "Mode-specific function to fill a paragraph.")
+  "Mode-specific function to fill a paragraph, or nil if there is none.
+If the function returns nil, then `fill-paragraph' does its normal work.")
 
 (defun set-fill-prefix ()
   "Set the fill prefix to the current line up to point.
