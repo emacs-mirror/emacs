@@ -1,3 +1,8 @@
+2000-05-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* callproc.c, emacs.c, sysdep.c (setpgrp): Don't define if USG and
+	BSD_PGRPS are not defined.
+
 2000-05-24  Kenichi Handa  <handa@etl.go.jp>
 
 	* charset.c (update_charset_table): Accept nil in LONG_NAME and

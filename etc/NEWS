@@ -1802,6 +1802,17 @@ of live and free strings.
 strings that have been consed so far.
 
 
+* Lisp-level Display features added after release 2.6 of the Emacs
+Lisp Manual
+
+** Image specifications may contain the property `:ascent center'.
+
+When this property is specified, the image is vertically centered
+around a centerline which would be the vertical center of text drawn
+at the position of the image, in the manner specified by the text
+properties and overlays that apply to the image.
+
+
 * New Lisp-level Display features in Emacs 21.1
 
 Note that +++ before an item means the Lisp manual has been updated.
@@ -2334,10 +2345,10 @@ to use for its ascent.
 If not specified, ASCENT defaults to the value 50 which means that the
 image will be centered with the base line of the row it appears in.
 
-If ASCENT is `center' the image is vertically centered with text drawn
-in the same face as the image.  The point the image is aligned with is
-the middle of the height of the face's font.  That point is usually
-different from the font's base line.
+If ASCENT is `center' the image is vertically centered around a 
+centerline which is the vertical center of text drawn at the position
+of the image, in the manner specified by the text properties and
+overlays that apply to the image.
 
 `:margin MARGIN'
 

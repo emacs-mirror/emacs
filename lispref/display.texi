@@ -2387,10 +2387,20 @@ types:
 
 @table @code
 @item :ascent @var{ascent}
-The @code{:ascent} property specifies the percentage of the image's
-height to use for its ascent---that is, the part above the baseline.  The
-value, @var{ascent}, must be a number in the range 0 to 100.  If this
-property is omitted, it defaults to 50.
+The @code{:ascent} property specifies the amount of the image's
+height to use for its ascent---that is, the part above the baseline.
+The value, @var{ascent}, must be a number in the range 0 to 100, or
+the symbol @code{center}.
+
+If @var{ascent} is a number, that percentage of the image's height is
+used for its ascent.
+
+If @var{ascent} is @code{center}, the image is vertically centered
+around a centerline which would be the vertical centerline of text drawn
+at the position of the image, in the manner specified by the text
+properties and overlays that apply to the image.
+
+If this property is omitted, it defaults to 50.
 
 @item :margin @var{margin}
 The @code{:margin} property specifies how many pixels to add as an extra
