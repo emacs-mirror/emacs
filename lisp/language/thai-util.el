@@ -199,7 +199,7 @@ The text matches the regular expression PATTERN.
 Optional 4th argument STRING, if non-nil, is a string containing text
 to compose.
 
-The return value is number of composed characters."a
+The return value is number of composed characters."
   (if (< (1+ from) to)
       (prog1 (- to from)
 	(if string
