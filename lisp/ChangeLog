@@ -1,3 +1,11 @@
+2003-04-04  John Paul Wallington  <jpw@gnu.org>
+
+	* ibuffer.el (ibuffer-insert-filter-group): `help-echo' text
+	property dynamically respects `tooltip-mode'.
+	(define-ibuffer-column name): Likewise.
+
+	* ibuf-ext.el (ibuffer-format-filter-group-data): Don't append "\n".
+
 2003-04-04  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/etags.el (find-file-of-tag-noselect, find-file-of-tag):
@@ -179,6 +187,7 @@
 	* reveal.el (reveal-post-command): Better error handling.
 
 2003-03-31  Nick Roberts  <nick@nick.uklinux.net>
+
 	* gdb-ui.el (gdb-inferior-io-mode): Remove Unix pathname for cat
 	so that it can run on NT also.
 
