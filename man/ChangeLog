@@ -1,3 +1,8 @@
+2001-11-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* mule.texi (Fontsets): Remove the description of variable
+	`highlight-wrong-size-font'.
+
 2001-11-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (INFO_TARGETS): Add ../info/calc.
