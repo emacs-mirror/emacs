@@ -1,3 +1,8 @@
+2002-05-20  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* international/mule.el (auto-coding-alist): Use no-conversion
+	for auto-save files.
+
 2002-05-20  Miles Bader  <miles@gnu.org>
 
 	* files.el (find-file-read-args): Don't trash existing value of

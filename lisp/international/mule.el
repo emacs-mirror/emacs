@@ -1461,7 +1461,8 @@ text, and convert it in the temporary buffer.  Otherwise, convert in-place."
 
 (defcustom auto-coding-alist
   '(("\\.\\(arc\\|zip\\|lzh\\|zoo\\|jar\\|tar\\|tgz\\)\\'" . no-conversion)
-    ("\\.\\(gz\\|Z\\|bz\\|bz2\\|gpg\\)\\'" . no-conversion))
+    ("\\.\\(gz\\|Z\\|bz\\|bz2\\|gpg\\)\\'" . no-conversion)
+    ("/#[^/]+#\\'" . no-conversion))
   "Alist of filename patterns vs corresponding coding systems.
 Each element looks like (REGEXP . CODING-SYSTEM).
 A file whose name matches REGEXP is decoded by CODING-SYSTEM on reading.
