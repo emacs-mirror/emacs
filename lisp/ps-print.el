@@ -1805,7 +1805,10 @@ EndDSCPage\n"))
 
 (defun ps-generate (buffer from to genfunc)
   (let ((from (min to from))
-	(to (max to from)))
+	(to (max to from))
+	;; This avoids trouble if chars with read-only properties
+	;; are copied into ps-spool-buffer.
+	(inhibit-read-only t))
     (save-restriction
       (narrow-to-region from to)
       (if ps-razzle-dazzle
