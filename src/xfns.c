@@ -295,19 +295,21 @@ static struct x_display_info *
 check_x_display_info (frame)
      Lisp_Object frame;
 {
+  struct x_display_info *dpyinfo = NULL;
+  
   if (NILP (frame))
     {
       struct frame *sf = XFRAME (selected_frame);
       
       if (FRAME_X_P (sf) && FRAME_LIVE_P (sf))
-	return FRAME_X_DISPLAY_INFO (sf);
+	dpyinfo = FRAME_X_DISPLAY_INFO (sf);
       else if (x_display_list != 0)
-	return x_display_list;
+	dpyinfo = x_display_list;
       else
 	error ("X windows are not in use or not initialized");
     }
   else if (STRINGP (frame))
-    return x_display_info_for_name (frame);
+    dpyinfo = x_display_info_for_name (frame);
   else
     {
       FRAME_PTR f;
@@ -316,8 +318,10 @@ check_x_display_info (frame)
       f = XFRAME (frame);
       if (! FRAME_X_P (f))
 	error ("Non-X frame used");
-      return FRAME_X_DISPLAY_INFO (f);
+      dpyinfo = FRAME_X_DISPLAY_INFO (f);
     }
+
+  return dpyinfo;
 }
 
 
@@ -1288,8 +1292,8 @@ x_decode_color (f, color_name, mono_color)
   if (x_defined_color (f, XSTRING (color_name)->data, &cdef, 1))
     return cdef.pixel;
 
-  Fsignal (Qerror, Fcons (build_string ("undefined color"),
-			  Fcons (color_name, Qnil)));
+  return Fsignal (Qerror, Fcons (build_string ("Undefined color"),
+				 Fcons (color_name, Qnil)));
 }
 
 
@@ -3264,7 +3268,7 @@ create_frame_xic (f)
 	  else
 	    {
 	      int len = strlen (ascii_font) + 1;
-	      char *p1;
+	      char *p1 = NULL;
 
 	      for (i = 0, p = ascii_font; i < 8; p++)
 		{
@@ -4581,21 +4585,28 @@ If omitted or nil, that stands for the selected frame's display.")
      Lisp_Object display;
 {
   struct x_display_info *dpyinfo = check_x_display_info (display);
+  Lisp_Object result;
 
   switch (DoesBackingStore (dpyinfo->screen))
     {
     case Always:
-      return intern ("always");
+      result = intern ("always");
+      break;
 
     case WhenMapped:
-      return intern ("when-mapped");
+      result = intern ("when-mapped");
+      break;
 
     case NotUseful:
-      return intern ("not-useful");
+      result = intern ("not-useful");
+      break;
 
     default:
       error ("Strange value for BackingStore parameter of screen");
+      result = Qnil;
     }
+
+  return result;
 }
 
 DEFUN ("x-display-visual-class", Fx_display_visual_class,
@@ -4610,18 +4621,34 @@ If omitted or nil, that stands for the selected frame's display.")
      Lisp_Object display;
 {
   struct x_display_info *dpyinfo = check_x_display_info (display);
+  Lisp_Object result;
 
   switch (dpyinfo->visual->class)
     {
-    case StaticGray:  return (intern ("static-gray"));
-    case GrayScale:   return (intern ("gray-scale"));
-    case StaticColor: return (intern ("static-color"));
-    case PseudoColor: return (intern ("pseudo-color"));
-    case TrueColor:   return (intern ("true-color"));
-    case DirectColor: return (intern ("direct-color"));
+    case StaticGray:
+      result = intern ("static-gray");
+      break;
+    case GrayScale:
+      result = intern ("gray-scale");
+      break;
+    case StaticColor:
+      result = intern ("static-color");
+      break;
+    case PseudoColor:
+      result = intern ("pseudo-color");
+      break;
+    case TrueColor:
+      result = intern ("true-color");
+      break;
+    case DirectColor:
+      result = intern ("direct-color");
+      break;
     default:
       error ("Display has an unknown visual class");
+      result = Qnil;
     }
+  
+  return result;
 }
 
 DEFUN ("x-display-save-under", Fx_display_save_under,
@@ -7159,12 +7186,10 @@ x_laplace (f, img)
 
       for (x = 0; x < img->width - 2; ++x)
 	{
-	  int r = in[rowa][x].red + mv2 - in[rowb][x + 2].red;
-	  int g = in[rowa][x].green + mv2 - in[rowb][x + 2].green;
-	  int b = in[rowa][x].blue + mv2 - in[rowb][x + 2].blue;
-	  
-	  out[x + 1] = lookup_rgb_color (f, r & 0xffff, g & 0xffff,
-					 b & 0xffff);
+	  int r = 0xffff & (in[rowa][x].red + mv2 - in[rowb][x + 2].red);
+	  int g = 0xffff & (in[rowa][x].green + mv2 - in[rowb][x + 2].green);
+	  int b = 0xffff & (in[rowa][x].blue + mv2 - in[rowb][x + 2].blue);
+	  out[x + 1] = lookup_rgb_color (f, r, g, b);
 	}
 
       x_laplace_write_row (f, out, img->width, oimg, out_y++);
@@ -7208,7 +7233,7 @@ x_build_heuristic_mask (f, img, how)
   Display *dpy = FRAME_X_DISPLAY (f);
   XImage *ximg, *mask_img;
   int x, y, rc, look_at_corners_p;
-  unsigned long bg;
+  unsigned long bg = 0;
 
   BLOCK_INPUT;
   
@@ -7381,7 +7406,7 @@ static int
 pbm_scan_number (s, end)
      unsigned char **s, *end;
 {
-  int c, val = -1;
+  int c = 0, val = -1;
 
   while (*s < end)
     {
@@ -7758,10 +7783,10 @@ png_load (f, img)
   struct gcpro gcpro1;
   png_struct *png_ptr = NULL;
   png_info *info_ptr = NULL, *end_info = NULL;
-  FILE *fp = NULL;
+  FILE *volatile fp = NULL;
   png_byte sig[8];
-  png_byte *pixels = NULL;
-  png_byte **rows = NULL;
+  png_byte * volatile pixels = NULL;
+  png_byte ** volatile rows = NULL;
   png_uint_32 width, height;
   int bit_depth, color_type, interlace_type;
   png_byte channels;
@@ -8299,7 +8324,7 @@ jpeg_load (f, img)
   struct my_jpeg_error_mgr mgr;
   Lisp_Object file, specified_file;
   Lisp_Object specified_data;
-  FILE *fp = NULL;
+  FILE * volatile fp = NULL;
   JSAMPARRAY buffer;
   int row_stride, x, y;
   XImage *ximg = NULL;
@@ -8351,7 +8376,7 @@ jpeg_load (f, img)
 	  
       /* Close the input file and destroy the JPEG object.  */
       if (fp)
-	fclose (fp);
+	fclose ((FILE *) fp);
       jpeg_destroy_decompress (&cinfo);
 
       BLOCK_INPUT;
@@ -8372,7 +8397,7 @@ jpeg_load (f, img)
   jpeg_create_decompress (&cinfo);
 
   if (NILP (specified_data))
-    jpeg_stdio_src (&cinfo, fp);
+    jpeg_stdio_src (&cinfo, (FILE *) fp);
   else
     jpeg_memory_src (&cinfo, XSTRING (specified_data)->data,
 		     STRING_BYTES (XSTRING (specified_data)));
@@ -8448,7 +8473,7 @@ jpeg_load (f, img)
   jpeg_finish_decompress (&cinfo);
   jpeg_destroy_decompress (&cinfo);
   if (fp)
-    fclose (fp);
+    fclose ((FILE *) fp);
   
   /* Put the image into the pixmap.  */
   x_put_x_image (f, ximg, img->pixmap, width, height);
