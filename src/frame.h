@@ -402,6 +402,9 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_WINDOW_WIDTH_ARG(f, width) \
      ((width) + FRAME_SCROLL_BAR_WIDTH (f))
 #define FRAME_WINDOW_WIDTH(f) ((f)->window_width)
+/* Maximum + 1 legitimate value for FRAME_CURSOR_X.  */
+#define FRAME_CURSOR_X_LIMIT(f) \
+     (FRAME_WIDTH (f) + FRAME_LEFT_SCROLL_BAR_WIDTH (f))
 #define SET_FRAME_WIDTH(f,val) ((f)->width = (val), (f)->window_width = FRAME_WINDOW_WIDTH_ARG (f, (f)->width))
 #define FRAME_SCROLL_BARS(f) ((f)->scroll_bars)
 #define FRAME_CONDEMNED_SCROLL_BARS(f) ((f)->condemned_scroll_bars)
