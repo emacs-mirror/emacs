@@ -1453,7 +1453,11 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       goto reread_first;
     }
 
-  if (commandflag >= 0 && !input_pending && !detect_input_pending ())
+  /* Don't bother updating menu bars while doing mouse tracking.
+     We get events very rapidly then, and the menu bar won't be changing.
+     We do update the menu bar once on entry to Ftrack_mouse.  */
+  if (!do_mouse_tracking &&
+      commandflag >= 0 && !input_pending && !detect_input_pending ())
     prepare_menu_bars ();
 
   /* Save outer setjmp data, in case called recursively.  */
@@ -1795,6 +1799,9 @@ Normally, mouse motion is ignored.")
 
   XSET (val, Lisp_Int, do_mouse_tracking);
   record_unwind_protect (tracking_off, val);
+
+  if (!input_pending && !detect_input_pending ())
+    prepare_menu_bars ();
 
   do_mouse_tracking = 1;
   
