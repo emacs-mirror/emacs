@@ -165,6 +165,7 @@ Autokilling is done by `clean-buffer-list'."
                      clean-buffer-list-delay-special)
       (* clean-buffer-list-delay-general 24 60 60)))
 
+;;;###autoload
 (defun clean-buffer-list ()
   "Kill old buffers that have not been displayed recently.
 The relevant variables are `clean-buffer-list-delay-general',
