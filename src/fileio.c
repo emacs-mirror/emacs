@@ -484,10 +484,14 @@ file_name_as_directory (out, in)
 {
   int size = strlen (in) - 1;
 
-  if (size < 0)
-    error ("Empty file name");
-
   strcpy (out, in);
+
+  if (size < 0)
+    {
+      out[0] = '/';
+      out[1] = 0;
+      return out;
+    }
 
 #ifdef VMS
   /* Is it already a directory string? */
