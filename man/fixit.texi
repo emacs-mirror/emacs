@@ -319,14 +319,18 @@ more quickly.  If you want to get rid of the Ispell process, use
 process uses no time except when you do spelling correction.
 
 @vindex ispell-dictionary
-  Ispell uses two dictionaries: the standard dictionary and your private
-dictionary.  The variable @code{ispell-dictionary} specifies the file
-name of the standard dictionary to use.  A value of @code{nil} says to
-use the default dictionary.  The command @kbd{M-x
-ispell-change-dictionary} sets this variable and then restarts the
-Ispell subprocess, so that it will use a different dictionary.
+  Ispell uses two dictionaries together for spell checking: the
+standard dictionary and your private dictionary.  The variable
+@code{ispell-dictionary} specifies the file name to use for the
+standard dictionary; a value of @code{nil} selects the default
+dictionary.  The command @kbd{M-x ispell-change-dictionary} sets this
+variable and then restarts the Ispell subprocess, so that it will use
+a different standard dictionary.
 
 @vindex ispell-complete-word-dict
-  The dictionary used by @code{ispell-complete-word} can be
-customized separately by setting the value of the variable
-@code{ispell-complete-word-dict}.
+  Ispell uses a separate dictionary for word completion.  The variable
+@code{ispell-complete-word-dict} specifies the file name of this
+dictionary.  The completion dictionary must be different because it
+cannot use employ root and affix information.  For some languages
+there is a spell checking dictionary but no word completion
+dictionary.
