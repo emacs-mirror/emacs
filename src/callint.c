@@ -66,10 +66,11 @@ c -- Character.\n\
 C -- Command name: symbol with interactive function definition.\n\
 d -- Value of point as number.  Does not do I/O.\n\
 D -- Directory name.\n\
+e -- Mouse click that invoked this command (value of `last-nonmenu-event').\n\
 f -- Existing file name.\n\
 F -- Possibly nonexistent file name.\n\
 k -- Key sequence (string).\n\
-K -- Mouse click that invoked this command - last-command-char.\n\
+K -- Mouse click that invoked this command (value of `last-nonmenu-event').\n\
 m -- Value of mark as number.  Does not do I/O.\n\
 n -- Number read using minibuffer.\n\
 N -- Prefix arg converted to number, or if none, do like code `n'.\n\
@@ -390,7 +391,8 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  break;
 
 	case 'K':		/* Mouse click.  */
-	  args[i] = last_command_char;
+	case 'e':		/* New, better name.  */
+	  args[i] = last_nonmenu_event;
 	  if (NILP (Fmouse_click_p (args[i])))
 	    error ("%s must be bound to a mouse click.",
 		   (XTYPE (function) == Lisp_Symbol
