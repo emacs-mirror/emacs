@@ -493,7 +493,8 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 	isearch-adjusted nil
 	isearch-yank-flag nil
 	isearch-invalid-regexp nil
-	isearch-slow-terminal-mode (and (<= baud-rate search-slow-speed)
+	;; Use (baud-rate) for now, for sake of other versions.
+	isearch-slow-terminal-mode (and (<= (baud-rate) search-slow-speed)
 					(> (window-height)
 					   (* 4 search-slow-window-lines)))
 	isearch-other-end nil
@@ -1150,7 +1151,7 @@ If not in regexp mode, activate word search."
 	 (if minibuffer-history-sexp-flag
 	     (prin1-to-string elt)
 	   elt)))
-      (goto-char (point-min)))))
+      (goto-char (point-min))))))
 
 (defun isearch-ring-retreat-edit (n)
   "Inserts the previous element of the search history into the minibuffer."
