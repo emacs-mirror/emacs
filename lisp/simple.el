@@ -68,13 +68,8 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long."
     (if flag (backward-char 1))
     ;; Mark the newline(s) `hard'.
     (if use-hard-newlines
-	(let* ((from (- (point) (if arg (prefix-numeric-value arg) 1)))
-	       (sticky (get-text-property from 'rear-nonsticky)))
-	  (put-text-property from (point) 'hard 't)
-	  ;; If rear-nonsticky is not "t", add 'hard to rear-nonsticky list
-	  (if (and (listp sticky) (not (memq 'hard sticky)))
-	      (put-text-property from (point) 'rear-nonsticky
-				 (cons 'hard sticky)))))
+	(set-hard-newline-properties 
+	 (- (point) (if arg (prefix-numeric-value arg) 1)) (point)))
     ;; If the newline leaves the previous line blank,
     ;; and we have a left margin, delete that from the blank line.
     (or flag
@@ -91,6 +86,14 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long."
     (or was-page-start
 	(move-to-left-margin nil t)))
   nil)
+
+(defun set-hard-newline-properties (from to)
+  (let ((sticky (get-text-property from 'rear-nonsticky)))
+    (put-text-property from to 'hard 't)
+    ;; If rear-nonsticky is not "t", add 'hard to rear-nonsticky list
+    (if (and (listp sticky) (not (memq 'hard sticky)))
+	(put-text-property from (point) 'rear-nonsticky
+			   (cons 'hard sticky)))))
 
 (defun open-line (arg)
   "Insert a newline and leave point before it.
