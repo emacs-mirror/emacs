@@ -338,7 +338,7 @@ install-arch-indep: mkdir
 	       done) ; \
 	 done
 	-rm -f ${lispdir}/subdirs.el
-	./update-subdirs ${lispdir}
+	$(srcdir)/update-subdirs ${lispdir}
 	if [ `(cd ./etc; /bin/pwd)` != `(cd ${docdir}; /bin/pwd)` ]; \
 	then \
 	   echo "Copying etc/DOC-* ..." ; \
@@ -524,7 +524,7 @@ check:
 	@echo "We don't have any tests for GNU Emacs yet."
 
 dist:
-	./update-subdirs ${srcdir}/lisp
+	$(srcdir)/update-subdirs ${srcdir}/lisp
 	cd ${srcdir}; make-dist
 
 .PHONY: info dvi dist check
