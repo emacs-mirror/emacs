@@ -1,12 +1,16 @@
-;;; The optimization passes of the emacs-lisp byte compiler.
+;;; byte-opt.el --- the optimization passes of the emacs-lisp byte compiler.
+
 ;;; Copyright (c) 1991 Free Software Foundation, Inc.
-;; By Jamie Zawinski <jwz@lucid.com> and Hallvard Furuseth <hbf@ulrik.uio.no>.
+
+;; Author: Jamie Zawinski <jwz@lucid.com>
+;;	Hallvard Furuseth <hbf@ulrik.uio.no>
+;; Keywords: internal
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -17,6 +21,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Commentary:
 
 ;;; ========================================================================
 ;;; "No matter how hard you try, you can't make a racehorse out of a pig.
@@ -69,13 +75,14 @@
 ;;; but beware of traps like
 ;;;   (cons (list x y) (list x y))
 ;;;
-;;; Tail-recursion elimination is not really possible in elisp.  Tail-recursion
-;;; elimination is almost always impossible when all variables have dynamic
-;;; scope, but given that the "return" byteop requires the binding stack to be
-;;; empty (rather than emptying it itself), there can be no truly tail-
-;;; recursive elisp functions that take any arguments or make any bindings.
+;;; Tail-recursion elimination is not really possible in Emacs Lisp.
+;;; Tail-recursion elimination is almost always impossible when all variables
+;;; have dynamic scope, but given that the "return" byteop requires the
+;;; binding stack to be empty (rather than emptying it itself), there can be
+;;; no truly tail-recursive Emacs Lisp functions that take any arguments or
+;;; make any bindings.
 ;;;
-;;; Here is an example of an elisp function which could safely be
+;;; Here is an example of an Emacs Lisp function which could safely be
 ;;; byte-compiled tail-recursively:
 ;;;
 ;;;  (defun tail-map (fn list)
@@ -105,7 +112,7 @@
 ;;; overflow.  I don't believe there is any way around this without lexical
 ;;; scope.
 ;;;
-;;; Wouldn't it be nice if elisp had lexical scope.
+;;; Wouldn't it be nice if Emacs Lisp had lexical scope.
 ;;;
 ;;; Idea: the form (lexical-scope) in a file means that the file may be 
 ;;; compiled lexically.  This proclamation is file-local.  Then, within 
@@ -128,6 +135,7 @@
 ;;; the board, in the interpreter and compiler, and just FIX all of 
 ;;; the code that relies on dynamic scope of non-defvarred variables.
 
+;;; Code:
 
 (defun byte-compile-log-lap-1 (format &rest args)
   (if (aref byte-code-vector 0)
@@ -1029,7 +1037,7 @@
 	 (+ (aref bytes ptr)
 	    (progn (setq ptr (1+ ptr))
 		   (lsh (aref bytes ptr) 8))))
-	((and (>= op byte-rel-goto)
+	((and (>= op byte-listN)
 	      (<= op byte-insertN))
 	 (setq ptr (1+ ptr))		;offset in next byte
 	 (aref bytes ptr))))
@@ -1060,13 +1068,7 @@
 	    optr ptr
 	    offset (disassemble-offset)) ; this does dynamic-scope magic
       (setq op (aref byte-code-vector op))
-      (cond ((or (memq op byte-goto-ops)
-		 (cond ((memq op byte-rel-goto-ops)
-			(setq op (aref byte-code-vector
-				       (- (symbol-value op)
-					  (- byte-rel-goto byte-goto))))
-			(setq offset (+ ptr (- offset 127)))
-			t)))
+      (cond ((memq op byte-goto-ops)
 	     ;; it's a pc
 	     (setq offset
 		   (cdr (or (assq offset tags)
@@ -1176,16 +1178,17 @@
 ;;; the BOOL variables are, and not perform this optimization on them.
 ;;;
 (defconst byte-boolean-vars
-  '(abbrevs-changed abbrev-all-caps inverse-video visible-bell
-    check-protected-fields no-redraw-on-reenter cursor-in-echo-area
-    noninteractive stack-trace-on-error debug-on-error debug-on-quit
-    debug-on-next-call insert-default-directory vms-stmlf-recfm
-    indent-tabs-mode meta-flag load-in-progress defining-kbd-macro
-    completion-auto-help completion-ignore-case enable-recursive-minibuffers
-    print-escape-newlines delete-exited-processes parse-sexp-ignore-comments
-    words-include-escapes pop-up-windows auto-new-screen
-    reset-terminal-on-clear truncate-partial-width-windows
-    mode-line-inverse-video)
+  '(abbrev-all-caps abbrevs-changed byte-metering-on
+    check-protected-fields completion-auto-help completion-ignore-case
+    cursor-in-echo-area debug-on-next-call debug-on-quit
+    defining-kbd-macro delete-exited-processes
+    enable-recursive-minibuffers indent-tabs-mode
+    insert-default-directory inverse-video load-in-progress
+    menu-prompting mode-line-inverse-video no-redraw-on-reenter
+    noninteractive parse-sexp-ignore-comments pop-up-frames
+    pop-up-windows print-escape-newlines print-escape-newlines
+    truncate-partial-width-windows visible-bell vms-stmlf-recfm
+    words-include-escapes x-save-under)
   "DEFVAR_BOOL variables.  Giving these any non-nil value sets them to t.
 If this does not enumerate all DEFVAR_BOOL variables, the byte-optimizer
 may generate incorrect code.")
@@ -1721,3 +1724,5 @@ may generate incorrect code.")
 		 byte-optimize-form-code-walker
 		 byte-optimize-lapcode))))
  nil)
+
+;;; byte-opt.el ends here

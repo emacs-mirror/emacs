@@ -157,7 +157,7 @@ find_file_handler (filename)
      Lisp_Object filename;
 {
   Lisp_Object chain;
-  for (chain = Vfile_handler_alist; XTYPE (chain) == Lisp_Cons;
+  for (chain = Vfile_name_handler_alist; XTYPE (chain) == Lisp_Cons;
        chain = XCONS (chain)->cdr)
     {
       Lisp_Object elt;
@@ -1705,7 +1705,7 @@ This happens for interactive use with M-x.")
      call the corresponding file handler.  */
   handler = find_file_handler (filename);
   if (!NILP (handler))
-    return call3 (handler, Qmake_symbolic_link, filename, newname);
+    return call3 (handler, Qmake_symbolic_link, filename, linkname);
 
   if (NILP (ok_if_already_exists)
       || XTYPE (ok_if_already_exists) == Lisp_Int)
@@ -2336,6 +2336,7 @@ to the file, instead of any buffer contents, and END is ignored.")
 #ifdef VMS
   unsigned char *fname = 0;	/* If non-0, original filename (must rename) */
 #endif /* VMS */
+  Lisp_Object handler;
 
   /* Special kludge to simplify auto-saving */
   if (NILP (start))
@@ -2352,6 +2353,7 @@ to the file, instead of any buffer contents, and END is ignored.")
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
   handler = find_file_handler (filename);
+
   if (!NILP (handler))
     {
       Lisp_Object args[7];
@@ -2641,9 +2643,9 @@ This means that the file has not been changed since it was visited or saved.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = find_file_handler (filename);
+  handler = find_file_handler (b->filename);
   if (!NILP (handler))
-    return call2 (handler, Qverify_visited_file_modtime, filename);
+    return call2 (handler, Qverify_visited_file_modtime, b->filename);
 
   if (stat (XSTRING (b->filename)->data, &st) < 0)
     {
@@ -2682,6 +2684,7 @@ or if the file itself has been changed for some known benign reason.")
 {
   register Lisp_Object filename;
   struct stat st;
+  Lisp_Object handler;
 
   filename = Fexpand_file_name (current_buffer->filename, Qnil);
 

@@ -543,15 +543,7 @@ otherwise pop it")
 (byte-defop 167  0 byte-numberp)
 (byte-defop 168  0 byte-integerp)
 
-;; unused: 169
-
-;; New to v19.  These store their arg in the next byte.
-(byte-defop 170  0 byte-rel-goto)
-(byte-defop 171 -1 byte-rel-goto-if-nil)
-(byte-defop 172 -1 byte-rel-goto-if-not-nil)
-(byte-defop 173 -1 byte-rel-goto-if-nil-else-pop)
-(byte-defop 174 -1 byte-rel-goto-if-not-nil-else-pop)
-
+;; unused: 169-174
 (byte-defop 175 nil byte-listN)
 (byte-defop 176 nil byte-concatN)
 (byte-defop 177 nil byte-insertN)
@@ -569,12 +561,6 @@ otherwise pop it")
   "List of byte-codes whose offset is a pc.")
 
 (defconst byte-goto-always-pop-ops '(byte-goto-if-nil byte-goto-if-not-nil))
-
-(defconst byte-rel-goto-ops '(byte-rel-goto
-			      byte-rel-goto-if-nil byte-rel-goto-if-not-nil
-			      byte-rel-goto-if-nil-else-pop
-			      byte-rel-goto-if-not-nil-else-pop)
-  "List of byte-codes for relative jumps.")
 
 (byte-extrude-byte-code-vectors)
 
@@ -663,40 +649,11 @@ otherwise pop it")
       (setq lap (cdr lap)))
     ;;(if (not (= pc (length bytes)))
     ;;    (error "Compiler error: pc mismatch - %s %s" pc (length bytes)))
-    (cond ((byte-compile-version-cond byte-compile-compatibility)
-	   ;; Make relative jumps
-	   (setq patchlist (nreverse patchlist))
-	   (while (progn
-		    (setq off 0)	; PC change because of deleted bytes
-		    (setq rest patchlist)
-		    (while rest
-		      (setq tmp (car rest))
-		      (and (consp (car tmp)) ; Jump
-			   (prog1 (null (nth 1 tmp)) ; Absolute jump
-			     (setq tmp (car tmp)))
-			   (progn
-			     (setq rel (- (car (cdr tmp)) (car tmp)))
-			     (and (<= -129 rel) (< rel 128)))
-			   (progn
-			     ;; Convert to relative jump.
-			     (setcdr (car rest) (cdr (cdr (car rest))))
-			     (setcar (cdr (car rest))
-				     (+ (car (cdr (car rest)))
-					(- byte-rel-goto byte-goto)))
-			     (setq off (1- off))))
-		      (setcar tmp (+ (car tmp) off)) ; Adjust PC
-		      (setq rest (cdr rest)))
-		    ;; If optimizing, repeat until no change.
-		    (and byte-optimize
-			 (not (zerop off)))))))
     ;; Patch PC into jumps
     (let (bytes)
       (while patchlist
 	(setq bytes (car patchlist))
 	(cond ((atom (car bytes)))	; Tag
-	      ((nth 1 bytes)		; Relative jump
-	       (setcar bytes (+ (- (car (cdr (car bytes))) (car (car bytes)))
-				128)))
 	      (t			; Absolute jump
 	       (setq pc (car (cdr (car bytes))))	; Pick PC from tag
 	       (setcar (cdr bytes) (logand pc 255))
