@@ -1,5 +1,37 @@
 2000-11-10  Dave Love  <fx@gnu.org>
 
+	* gnus-agent.el (gnus-agent-confirmation-function): Add :version.
+	(gnus-agent-lib-file, gnus-agent-load-alist)
+	(gnus-agent-save-alist, gnus-agent-article-name): Use
+	expand-file-name.
+
+	* gnus-group.el (gnus-group-name-charset-method-alist): Add
+	:version.
+	(nnkiboze-score-file): Defvar when compiling.
+
+	* gnus-start.el (gnus-read-newsrc-file): Add :version.
+
+	* gnus-art.el (gnus-article-banner-alist) 
+	(gnus-emphasize-whitespace-regexp, gnus-ignored-mime-types) 
+	(gnus-article-date-lapsed-new-header) 
+	(gnus-article-mime-match-handle-function, gnus-mime-action-alist) 
+	(gnus-treat-strip-list-identifiers, gnus-treat-date-iso8601) 
+	(gnus-treat-strip-headers-in-body) 
+	(gnus-treat-capitalize-sentences, gnus-treat-play-sounds) 
+	(gnus-treat-translate): Add :version.
+	(gnus-article-mime-part-function): Fix defcustom.
+
+	* nnmail.el (nnmail-expiry-target) 
+	(nnmail-scan-directory-mail-source-once, nnmail-extra-headers) 
+	(nnmail-split-header-length-limit): Add :version.
+
+	* gnus-sum.el (gnus-auto-expirable-marks) 
+	(gnus-inhibit-user-auto-expire, gnus-list-identifiers) 
+	(gnus-extra-headers, gnus-ignored-from-addresses) 
+	(gnus-newsgroup-ignored-charsets) 
+	(gnus-group-highlight-words-alist) 
+	(gnus-summary-show-article-charset-alist): Add :version.
+
 	* catchup.pbm, describe-group.pbm, exit-gnus.pbm, get-news.pbm:
 	gnntg.pbm, kill-group.pbm, subscribe.pbm, unsubscribe.pbm: New
 	files, converted from the XPMs.
@@ -15,6 +47,10 @@
 	* message.el (message-mode) <adaptive-fill-regexp>:
 	<adaptive-fill-first-line-regexp>: Use [:alnum:] in regexp range.
 	(message-newline-and-reformat): Likewise.
+	(message-forward-as-mime, message-forward-ignored-headers) 
+	(message-buffer-naming-style, message-default-charset) 
+	(message-dont-reply-to-names, message-send-mail-partially-limit):
+	Add :version.
 
 	* mm-util.el: Doc fixes.
 	(mm-mime-charset): Don't use the raw result of
