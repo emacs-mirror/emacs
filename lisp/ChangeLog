@@ -1,3 +1,24 @@
+2005-01-31  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/ispell.el (ispell-local-dictionary-overridden): New var.
+	(ispell-local-dictionary): Doc fix.
+	(ispell-dictionary-alist): Don't include ispell-local-dictionary-alist.
+	Don't reinitialize at run time.  Don't defcustom.
+	All uses changed to append ispell-local-dictionary-alist,
+	or check it first.
+	(ispell-current-dictionary): New variable for dictionary in use.
+	(ispell-dictionary): Now used only for global default.
+	(ispell-start-process): Set ispell-current-dictionary,
+	not ispell-dictionary.
+	(ispell-change-dictionary): Use this only for setting
+	user preferences.
+	(ispell-internal-change-dictionary): New function
+	to change the current dictionary in use.
+	(ispell-region, ispell-process-line, ispell-buffer-local-dict): 
+	Use ispell-current-dictionary.  
+	Handle ispell-local-dictionary-overridden.
+	(ispell-buffer-local-dict): Call ispell-internal-change-dictionary.
+
 2005-01-31  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-aent.el (math-read-token): Add support for LaTeX.
