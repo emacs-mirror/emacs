@@ -8,9 +8,9 @@
 ;; LCD Archive Entry:
 ;; edebug|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |A source level debugger for Emacs Lisp.
-;; |$Date: 1994/04/04 21:52:06 $|3.5|~/modes/edebug.el|
+;; |$Date: 1994/04/05 01:21:06 $|3.5|~/modes/edebug.el|
 
-;; Version 3.5 ($Revision: 1.18 $ from Emacs 19)
+;; Version 3.5 ($Revision: 1.19 $ from Emacs 19)
 
 ;; This file is part of GNU Emacs.
 
@@ -108,7 +108,7 @@
 
 (defconst edebug-version
   (let ((raw-version "3.5"))
-    (substring raw-version (string-match "[0-9.]*" raw-version 11)
+    (substring raw-version (string-match "[0-9.]*" raw-version)
 	       (match-end 0))))
      
 (require 'backquote)
