@@ -1389,11 +1389,24 @@ first two variables yourself, they take their initial values from
 is @code{nil}, @code{printer-name} is used.
 
 @vindex ps-print-header
-@vindex ps-print-color-p
   The variable @code{ps-print-header} controls whether these commands
 add header lines to each page---set it to @code{nil} to turn headers
-off.  You can turn off color processing by setting
-@code{ps-print-color-p} to @code{nil}.
+off.
+
+@cindex color emulation on black-and-white printers
+@vindex ps-print-color-p
+  If your printer doesn't support colors, you should turn off color
+processing by setting @code{ps-print-color-p} to @code{nil}.  By
+default, if the display supports colors, Emacs produces hardcopy output
+with color information; on black-and-white printers, colors are emulated
+with shades of gray.  This might produce illegible output, even if your
+screen colors only use shades of gray.
+
+@vindex ps-use-face-background
+  By default, PostScript printing ignored the background of the faces,
+unless the variable @code{ps-use-face-background} is set to a
+non-@code{nil} value.  This is to avoid unwanted interference with the
+zebra stripes and background image/text.
 
 @vindex ps-paper-type
 @vindex ps-page-dimensions-database
