@@ -549,6 +549,65 @@ adjust_point (nchars, nbytes)
     abort ();
 }
 
+/* Adjust markers for a replacement of a text at FROM (FROM_BYTE) of
+   length OLD_CHARS (OLD_BYTES) to a new text of length NEW_CHARS
+   (NEW_BYTES).
+
+   See the comment of adjust_markers_for_insert for the args
+   COMBINED_BEFORE_BYTES and COMBINED_AFTER_BYTES.  */
+
+static void
+adjust_markers_for_replace (from, from_byte, old_chars, old_bytes,
+			    new_chars, new_bytes,
+			    combined_before_bytes, combined_after_bytes)
+     int from, from_byte, old_chars, old_bytes, new_chars, new_bytes;
+     int combined_before_bytes, combined_after_bytes;
+{
+  Lisp_Object marker = BUF_MARKERS (current_buffer);
+  int prev_to_byte = from_byte + old_bytes;
+  int diff_chars = new_chars - old_chars;
+  int diff_bytes = new_bytes - old_bytes;
+
+  while (!NILP (marker))
+    {
+      register struct Lisp_Marker *m = XMARKER (marker);
+
+      if (m->bytepos >= prev_to_byte)
+	{
+	  if (m->bytepos < prev_to_byte + combined_after_bytes)
+	    {
+	      /* Put it after the combining bytes.  */
+	      m->bytepos = from_byte + new_bytes;
+	      m->charpos = from + new_chars;
+	    }
+	  else
+	    {
+	      m->charpos += diff_chars;
+	      m->bytepos += diff_bytes;
+	    }
+	  if (m->charpos == from + new_chars)
+	    record_marker_adjustment (marker, - old_chars);
+	}
+      else if (m->bytepos > from_byte)
+	{
+	  record_marker_adjustment (marker, from - m->charpos);
+	  m->charpos = from;
+	  m->bytepos = from_byte;
+	}
+      else if (m->bytepos == from_byte)
+	{
+	  if (combined_before_bytes)
+	    {
+	      DEC_BOTH (m->charpos, m->bytepos);
+	      INC_BOTH (m->charpos, m->bytepos);
+	    }
+	}
+
+      marker = m->chain;
+    }
+}
+
+
 /* Make the gap NBYTES_ADDED bytes longer.  */
 
 void
@@ -1428,20 +1487,24 @@ adjust_before_replace (from, from_byte, to, to_byte)
   adjust_overlays_for_delete (from, to - from);
 }
 
-/* This function should be called after altering the text between FROM
-   and TO to a new text of LEN chars (LEN_BYTE bytes), but before
-   making the text into buffer contents.
-   The new text exists just after GPT_ADDR.  */
+/* Record undo information and adjust markers and position keepers for
+   a replacement of a text PREV_TEXT at FROM to a new text of LEN
+   chars (LEN_BYTE bytes) which resides in the gap just after
+   GPT_ADDR.
+
+   PREV_TEXT nil means the new text was just inserted.  */
 
 void
-adjust_after_replace (from, from_byte, to, to_byte, len, len_byte, replace)
-     int from, from_byte, to, to_byte, len, len_byte, replace;
+adjust_after_replace (from, from_byte, prev_text, len, len_byte)
+     int from, from_byte, len, len_byte;
+     Lisp_Object prev_text;
 {
   int combined_before_bytes
     = count_combining_before (GPT_ADDR, len_byte, from, from_byte);
   int combined_after_bytes
     = count_combining_after (GPT_ADDR, len_byte, from, from_byte);
   Lisp_Object deletion;
+  int nchars_del = 0, nbytes_del = 0;
 
   if (combined_after_bytes)
     {
@@ -1475,27 +1538,34 @@ adjust_after_replace (from, from_byte, to, to_byte, len, len_byte, replace)
     move_gap_both (GPT + combined_after_bytes,
 		   GPT_BYTE + combined_after_bytes);
 
+  if (STRINGP (prev_text))
+    {
+      nchars_del = XSTRING (prev_text)->size;
+      nbytes_del = STRING_BYTES (XSTRING (prev_text));
+    }
+  adjust_markers_for_replace (from, from_byte, nchars_del, nbytes_del,
+			      len, len_byte,
+			      combined_before_bytes, combined_after_bytes);
+  if (STRINGP (prev_text))
+    record_delete (from, prev_text);
   record_insert (from - !!combined_before_bytes,
 		 len - combined_before_bytes + !!combined_before_bytes);
-  adjust_overlays_for_insert (from, len);
-  adjust_markers_for_insert (from, from_byte,
-			     from + len, from_byte + len_byte,
-			     combined_before_bytes, combined_after_bytes, 0);
+
+  if (len > nchars_del)
+    adjust_overlays_for_insert (from, len - nchars_del);
+  else if (len < nchars_del)
+    adjust_overlays_for_delete (from, nchars_del - len);
 #ifdef USE_TEXT_PROPERTIES
   if (BUF_INTERVALS (current_buffer) != 0)
-    /* REPLACE zero means that we have not yet adjusted the interval
-       tree for the text between FROM and TO, thus, we must treat the
-       new text as a newly inserted text, not as a replacement of
-       something.  */
-    offset_intervals (current_buffer, from, len - (replace ? to - from : 0));
+    offset_intervals (current_buffer, from, len - nchars_del);
 #endif
 
   {
     int pos = PT, pos_byte = PT_BYTE;
 
     if (from < PT)
-      adjust_point (len - (to - from) + combined_after_bytes,
-		    len_byte - (to_byte - from_byte) + combined_after_bytes);
+      adjust_point (len - nchars_del + combined_after_bytes,
+		    len_byte - nbytes_del + combined_after_bytes);
     else if (from == PT && combined_before_bytes)
       adjust_point (0, combined_before_bytes);
 
@@ -1511,6 +1581,26 @@ adjust_after_replace (from, from_byte, to, to_byte, len, len_byte, replace)
   if (len == 0)
     evaporate_overlays (from);
   MODIFF++;
+}
+
+/* Record undo information, adjust markers and position keepers for an
+   insertion of a text from FROM (FROM_BYTE) to TO (TO_BYTE).  The
+   text already exists in the current buffer but character length (TO
+   - FROM) may be incorrect, the correct length is NEWLEN.  */
+
+void
+adjust_after_insert (from, from_byte, to, to_byte, newlen)
+     int from, from_byte, to, to_byte, newlen;
+{
+  int len = to - from, len_byte = to_byte - from_byte;
+
+  if (GPT != to)
+    move_gap_both (to, to_byte);
+  GAP_SIZE += len_byte;
+  GPT -= len; GPT_BYTE -= len_byte;
+  ZV -= len; ZV_BYTE -= len_byte;
+  Z -= len; Z_BYTE -= len_byte;
+  adjust_after_replace (from, from_byte, Qnil, newlen, len_byte);
 }
 
 /* Replace the text from character positions FROM to TO with NEW,
