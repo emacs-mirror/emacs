@@ -834,7 +834,11 @@ unrelocate_symbols (new, a_out, a_name, new_name)
 	{
 	  int orig_int;
 
+#ifdef AIX4_1
+	  lseek (a_out, orig_data_scnptr + (ldrel->l_vaddr - d_start), 0);
+#else
 	  lseek (a_out, orig_data_scnptr + ldrel->l_vaddr, 0);
+#endif
 
 	  if (read (a_out, (void *) &orig_int, sizeof (orig_int)) != sizeof (orig_int))
 	    {
@@ -843,18 +847,32 @@ unrelocate_symbols (new, a_out, a_name, new_name)
 
 	  switch (ldrel->l_symndx) {
 	  case SYMNDX_TEXT:
+#ifdef AIX4_1
+	    p = (int *) (ldrel->l_vaddr);
+	    orig_int = * p;
+#else
 	    p = (int *) (d_start + ldrel->l_vaddr);
 	    orig_int = * p - (t_start - f_ohdr.text_start);
+#endif
 	    break;
 
 	  case SYMNDX_DATA:
 	  case SYMNDX_BSS:
+#ifdef AIX4_1
+	    p = (int *) (ldrel->l_vaddr);
+	    orig_int = * p;
+#else
 	    p = (int *) (d_start + ldrel->l_vaddr);
 	    orig_int = * p - (d_start - f_ohdr.data_start);
+#endif
 	    break;
 	  }
 
+#ifdef AIX4_1
+	  lseek (new, data_scnptr + (ldrel->l_vaddr - d_start), 0);
+#else
 	  lseek (new, data_scnptr + ldrel->l_vaddr, 0);
+#endif
 	  if (write (new, (void *) &orig_int, sizeof (orig_int)) != sizeof (orig_int))
 	    {
 	      PERROR (new_name);
