@@ -841,22 +841,23 @@ extern Lisp_Object Vtransient_mark_mode;
 
 #ifdef REL_ALLOC
 
-extern char *r_alloc P_ ((char **, unsigned long));
-extern void r_alloc_free P_ ((char **ptr));
-extern char *r_re_alloc P_ ((char **, unsigned long));
+extern POINTER_TYPE *r_alloc P_ ((POINTER_TYPE **, size_t));
+extern POINTER_TYPE *r_re_alloc P_ ((POINTER_TYPE **, size_t));
+extern void r_alloc_free P_ ((POINTER_TYPE **ptr));
 
-#define BUFFER_ALLOC(data,size) \
-     ((unsigned char *) r_alloc ((char **)&data, (size)))
-#define BUFFER_REALLOC(data,size) \
-     ((unsigned char *) r_re_alloc ((char **) &data, (size)))
-#define BUFFER_FREE(data) (r_alloc_free ((char **) &data))
-#define R_ALLOC_DECLARE(var,data) (r_alloc_declare (&var, (data)))
-#else
+#define BUFFER_ALLOC(data, size) \
+     ((unsigned char *) r_alloc ((POINTER_TYPE **) &data, (size)))
+#define BUFFER_REALLOC(data, size) \
+     ((unsigned char *) r_re_alloc ((POINTER_TYPE **) &data, (size)))
+#define BUFFER_FREE(data) (r_alloc_free ((POINTER_TYPE **) &data))
+
+#else /* not REL_ALLOC */
+
 #define BUFFER_ALLOC(data,size) (data = (unsigned char *) malloc ((size)))
 #define BUFFER_REALLOC(data,size) ((unsigned char *) realloc ((data), (size)))
 #define BUFFER_FREE(data) (free ((data)))
-#define R_ALLOC_DECLARE(var,data)
-#endif
+
+#endif /* not REL_ALLOC */
 
 /***********************************************************************
 			Buffer-local Variables
