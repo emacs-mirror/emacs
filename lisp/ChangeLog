@@ -1,3 +1,7 @@
+2001-11-21  Richard M. Stallman  <rms@gnu.org>
+
+	* international/encoded-kb.el: Don't alter minor-map-alist.
+
 2001-11-20  Kai Grossjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* files.el (auto-save-file-name-transforms): Put remote files in
@@ -36,6 +40,12 @@
 	* help-mode.el (help-mode): Undo 2001-10-07 change.
 
 	* replace.el (occur-mode): Undo 2001-5-20 change.
+
+2001-11-20  Richard M. Stallman  <rms@gnu.org>
+
+	* ruler-mode.el: Add pagination.
+	(ruler-mode-toggle-show-tab-stops): No need to
+	test `ruler-mode' variable.
 
 2001-11-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
