@@ -46,6 +46,10 @@ Each Indian language environment sets this value
 to one of `indian-script-table' (which see).
 The default value is `devanagari'.")
 
+(defvar indian-composable-pattern
+  (make-char-table nil)
+  "Char table of regexps for composable Indian character sequence.")
+
 (provide 'indian)
 
 ;;; indian.el ends here
