@@ -1268,6 +1268,8 @@ This function also adds a hook to the minibuffer."
     (define-key map "\C-s" 'ido-next-match)
     (define-key map "\C-t" 'ido-toggle-regexp)
     (define-key map "\C-z" 'ido-undo-merge-work-directory)
+    (define-key map [(control ? )] 'ido-restrict-to-matches)
+    (define-key map [(control ?@)] 'ido-restrict-to-matches)
     (define-key map [right] 'ido-next-match)
     (define-key map [left] 'ido-prev-match)
     (define-key map "?" 'ido-completion-help)
@@ -2360,6 +2362,16 @@ for first matching file."
 	(setq i (1- i)))
       (if (> i 0)
 	  (setq ido-cur-list (ido-chop ido-cur-list (nth i ido-matches)))))))
+
+(defun ido-restrict-to-matches () 
+  "Set current item list to the currently matched items."
+  (interactive)
+  (when ido-matches
+    (setq ido-cur-list ido-matches
+	  ido-text-init ""
+	  ido-rescan nil
+	  ido-exit 'keep)
+    (exit-minibuffer)))
 
 (defun ido-chop (items elem)
   "Remove all elements before ELEM and put them at the end of ITEMS."
