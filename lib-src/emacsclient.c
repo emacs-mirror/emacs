@@ -23,9 +23,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef read
 #undef write
 #undef open
-#ifdef close
 #undef close
-#endif
+#undef signal
 
 
 #if !defined(HAVE_SOCKETS) && !defined(HAVE_SYSVIPC)
@@ -120,7 +119,8 @@ main (argc, argv)
   strcat (server.sun_path, "/.emacs_server");
 #endif
 
-  if (connect (s, &server, strlen (server.sun_path) + 2) < 0)
+  if (connect (s, (struct sockaddr *) &server, strlen (server.sun_path) + 2)
+      < 0)
     {
       fprintf (stderr, "%s: ", argv[0]);
       perror ("connect");
