@@ -1153,7 +1153,12 @@ See also the functions `match-beginning', `match-end' and `replace-match'.")
 DEFUN ("replace-match", Freplace_match, Sreplace_match, 1, 3, 0,
   "Replace text matched by last search with NEWTEXT.\n\
 If second arg FIXEDCASE is non-nil, do not alter case of replacement text.\n\
-Otherwise convert to all caps or cap initials, like replaced text.\n\
+Otherwise maybe capitalize the whole text, or maybe just word initials,\n\
+based on the replaced text.\n\
+If the replaced text has only capital letters\n\
+and has at least one multiletter word, convert NEWTEXT to all caps.\n\
+If the replaced text has at least one word starting with a capital letter,\n\
+then capitalize each word in NEWTEXT.\n\n\
 If third arg LITERAL is non-nil, insert NEWTEXT literally.\n\
 Otherwise treat `\\' as special:\n\
   `\\&' in NEWTEXT means substitute original matched text.\n\
