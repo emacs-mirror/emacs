@@ -25,27 +25,35 @@
 
   For reference, here is a list of which builds of GNU make are known
   to work or not, and whether they work in the presence and/or absence
-  of sh.exe, the Cygwin port of Bash.
+  of sh.exe, the Cygwin port of Bash. Note that any version of make
+  that is compiled with Cygwin will only work with Cygwin tools, due to
+  the use of cygwin style paths. This means Cygwin make is unsuitable
+  for building parts of Emacs that need to invoke Emacs itself (leim and
+  "make bootstrap", for example). Also see the Trouble-shooting section
+  below if you decide to go ahead and use Cygwin make.
  
                                          sh exists     no sh
 
-    cygwin b20.1 make (3.75):            okay[1]       fails[2]
+    cygwin b20.1 make (3.75):            fails[1, 5]   fails[2, 5]
     MSVC compiled gmake 3.77:            okay          okay
     MSVC compiled gmake 3.78.1:          okay          okay
     MSVC compiled gmake 3.79.1:          okay          okay
     mingw32/gcc-2.92.2 make (3.77):      okay          okay[4]
-    cygwin compiled gmake 3.77:          okay[1]       fails[2]
-    cygwin compiled make 3.78.1:         okay          fails[2]
-    cygwin compiled make 3.79.1:         couldn't build make[3]
+    cygwin compiled gmake 3.77:          fails[1, 5]   fails[2, 5]
+    cygwin compiled make 3.78.1:         fails[5]      fails[2, 5]
+    cygwin compiled make 3.79.1:         fails[3, 5]   fails[2?, 5]
+    mingw32 compiled make 3.79.1:        okay          okay 
 
   Notes:
 
     [1] doesn't cope with makefiles with DOS line endings, so must mount
         emacs source with text!=binary.
     [2] fails when needs to invoke shell commands; okay invoking gcc etc.
-    [3] requires LC_MESSAGES support to build; maybe 2.95.x update to
-        cygwin provides this?
+    [3] requires LC_MESSAGES support to build; cannot build with early
+        versions of cygwin.
     [4] may fail on Windows 9X and Windows ME; if so, install Bash.
+    [5] fails when building leim due to the use of cygwin style paths.
+        May work if building emacs without leim.
 
 * Configuring
 
