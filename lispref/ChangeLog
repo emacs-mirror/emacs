@@ -1,3 +1,11 @@
+2001-10-02  Miles Bader  <miles@gnu.org>
+
+	* text.texi (Property Search): Correct descriptions of
+	`next-char-property-change' and `previous-char-property-change'.
+	Add entries for `next-single-char-property-change' and
+	`previous-single-char-property-change'.
+	Make operand names a bit more consistent.
+
 2001-09-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* frames.texi (Finding All Frames): Document that next-frame and
