@@ -2079,8 +2079,9 @@ saved point or mark.
 @end defun
 
   Primitives to look inside of window configurations would make sense,
-but none are implemented.  It is not clear they are useful enough to be
-worth implementing.
+but none are implemented.  It is not clear they are useful enough to
+be worth implementing.  See the file @file{winner.el} for some more
+operations on windows configurations.
 
 @node Window Hooks
 @section Hooks for Window Scrolling and Changes
