@@ -130,6 +130,15 @@
 		  (documentation . "Support for Chinese Big5 character set."))
  '("Chinese"))
 
+(define-coding-system 'chinese-big5-hkscs
+  "BIG5-HKSCS 8-bit encoding for Chinese, Hong Kong supplement (MIME:Big5-HKSCS)"
+  :coding-type 'charset
+  :mnemonic ?B 
+  :charset-list '(ascii big5-hkscs)
+  :mime-charset 'big5-hkscs)
+(define-coding-system-alias 'big5-hkscs 'chinese-big5-hkscs)
+(define-coding-system-alias 'cn-big5-hkscs 'chinese-big5-hkscs)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Chinese CNS11643 (traditional)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
