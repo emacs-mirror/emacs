@@ -552,13 +552,6 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
   register Lisp_Object val;
   register struct Lisp_Marker *p;
 
-  /* Detact the bug that seems to have caused this to be called from
-     a signal handler.  */
-  SIGMASKTYPE mask;
-  mask = sigblock (SIGEMPTYMASK);
-  if (mask != 0)
-    abort ();
-
   if (marker_free_list)
     {
       XSET (val, Lisp_Marker, marker_free_list);
