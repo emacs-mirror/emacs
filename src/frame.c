@@ -94,6 +94,7 @@ extern Lisp_Object Vminibuffer_list;
 extern Lisp_Object get_minibuffer ();
 extern Lisp_Object Fhandle_switch_frame ();
 extern Lisp_Object Fredirect_frame_focus ();
+extern Lisp_Object x_get_focus_frame ();
 
 DEFUN ("framep", Fframep, Sframep, 1, 1, 0,
   "Return non-nil if OBJECT is a frame.\n\
