@@ -1,3 +1,21 @@
+2002-02-22  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	Support for ICCCM  Extended Segments in X selections:
+
+	* xselect.c <Qcompound_text_with_extensions>: New variable.
+	(syms_of_xselect): Intern and staticpro it.
+	(selection_data_to_lisp_data): Run post-read-conversion on decoded
+	selection text.
+	(lisp_data_to_selection_data): If next-selection-coding-system is
+	compound-text-with-extensions, set the type of selection to be
+	compound-text.
+
+	* xterm.h (x_encode_text): Update prototype.
+
+	* xfns.c (x_encode_text): Accept additional arg SELECTIONP; all
+	callers changed.  If SELECTIONP is non-zero, run the
+	pre-write-conversion function before encoding the selection text.
+
 2002-02-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* xfns.c (gif_load): Use correct width and height for GIF images.

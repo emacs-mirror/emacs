@@ -1,3 +1,16 @@
+2002-02-22  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	Support for ICCCM  Extended Segments in X selections:
+
+	* international/mule-conf.el (ctext-no-compositions) 
+	(compound-text-with-extensions): New coding systems.
+	(x-ctext-with-extensions, ctext-with-extensions): Aliases for
+	compound-text-with-extensions.
+	(non-standard-icccm-encodings-alist) 
+	(non-standard-designations-alist): New variables.
+	(ctext-post-read-conversion, ctext-pre-write-conversion): New
+	functions.
+
 2002-02-18  Andreas Schwab  <schwab@suse.de>
 
 	* replace.el (query-replace-regexp-eval): Doc fix.
