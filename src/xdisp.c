@@ -1839,13 +1839,37 @@ redisplay_window (window, just_this_one, preserve_echo_area)
     {
       int this_scroll_margin = scroll_margin;
 
-      pos = *compute_motion (startp, 0, (hscroll ? 1 - hscroll : 0), 0,
-			     PT, height,
-			     /* BUG FIX: See the comment of
-                                Fpos_visible_in_window_p (window.c).  */
-			     - (1 << (BITS_PER_SHORT - 1)),
-			     width, hscroll,
-			     pos_tab_offset (w, startp), w);
+      /* Find where PT is located now on the frame.  */
+      if (PT == w->last_point)
+	{
+	  pos.hpos = (w->last_point_x
+		      + (hscroll ? 1 - hscroll : 0)
+		      - WINDOW_LEFT_MARGIN (w));
+	  pos.vpos = w->last_point_y;
+	  pos.bufpos = PT;
+	}
+      else if (PT > w->last_point)
+	{
+	  pos = *compute_motion (w->last_point, w->last_point_y,
+				 w->last_point_x + (hscroll ? 1 - hscroll : 0),
+				 0,
+				 PT, height,
+				 /* BUG FIX: See the comment of
+				    Fpos_visible_in_window_p (window.c).  */
+				 - (1 << (BITS_PER_SHORT - 1)),
+				 width, hscroll,
+				 pos_tab_offset (w, startp), w);
+	}
+      else
+	{
+	  pos = *compute_motion (startp, 0, (hscroll ? 1 - hscroll : 0), 0,
+				 PT, height,
+				 /* BUG FIX: See the comment of
+				    Fpos_visible_in_window_p (window.c).  */
+				 - (1 << (BITS_PER_SHORT - 1)),
+				 width, hscroll,
+				 pos_tab_offset (w, startp), w);
+	}
 
       /* Don't use a scroll margin that is negative or too large.  */
       if (this_scroll_margin < 0)
