@@ -1,5 +1,12 @@
 2001-05-04  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* progmodes/cperl-mode.el (cperl-font-lock-keywords)
+	(cperl-font-lock-keywords-1, cperl-font-lock-keywords-2):
+	Renamed from perl-font-lock-keywords to avoid clashes.
+	(cperl-mode, cperl-load-font-lock-keywords, cperl-init-faces)
+	(cperl-load-font-lock-keywords-1, cperl-load-font-lock-keywords-2):
+	Updated correspondingly.
+
 	* diff-mode.el (diff-nonexistent-face, diff-font-lock-keywords):
 	Typo `nonexistant' -> `nonexistent'.
 
