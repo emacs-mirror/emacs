@@ -9,11 +9,11 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<99/12/11 20:14:41 vinicius>
-;; Version:	5.0.2
+;; Time-stamp:	<99/12/18 13:21:51 vinicius>
+;; Version:	5.0.3
 
-(defconst ps-print-version "5.0.2"
-  "ps-print.el, v 5.0.2 <99/12/11 vinicius>
+(defconst ps-print-version "5.0.3"
+  "ps-print.el, v 5.0.3 <99/12/18 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs,
@@ -976,7 +976,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Faces are always treated as opaque.
 ;;
-;; Epoch and Emacs 18 not supported.  At all.
+;; Epoch and Emacs 19 not supported.  At all.
 ;;
 ;; Fixed-pitch fonts work better for line folding, but are not required.
 ;;
@@ -1591,7 +1591,6 @@ See also `ps-print-header'."
   "*Number of lines to display in page header, when generating PostScript."
   :type 'integer
   :group 'ps-print-header)
-(make-variable-buffer-local 'ps-header-lines)
 
 (defcustom ps-show-n-of-n t
   "*Non-nil means show page numbers as N/M, meaning page N of M.
@@ -1600,8 +1599,9 @@ NOTE: page numbers are displayed as part of headers,
   :type 'boolean
   :group 'ps-print-header)
 
-(defcustom ps-spool-config (if (memq system-type '(ms-dos windows-nt))
-			       'setpagedevice
+(defcustom ps-spool-config (if (memq system-type
+				     '(win32 w32 mswindows ms-dos windows-nt))
+			       nil
 			     'lpr-switches)
   "*Specify who is responsable for setting duplex and page size switches.
 
@@ -1913,7 +1913,6 @@ In either case, function or variable, the string value has PostScript
 string delimiters added to it."
   :type '(repeat (choice string symbol))
   :group 'ps-print-header)
-(make-variable-buffer-local 'ps-left-header)
 
 (defcustom ps-right-header
   (list "/pagenumberstring load" 'time-stamp-mon-dd-yyyy 'time-stamp-hh:mm:ss)
@@ -1924,7 +1923,6 @@ See the variable `ps-left-header' for a description of the format of
 this variable."
   :type '(repeat (choice string symbol))
   :group 'ps-print-header)
-(make-variable-buffer-local 'ps-right-header)
 
 (defcustom ps-razzle-dazzle t
   "*Non-nil means report progress while formatting buffer."
@@ -1967,6 +1965,12 @@ variable."
 It's like the very first character of buffer (or region) is ^L (\\014)."
   :type 'boolean
   :group 'ps-print-header)
+
+(defcustom ps-postscript-code-directory data-directory
+  "*Directory where it's located the PostScript prologue file used by ps-print.
+By default, this directory is the same as in the variable `data-directory'."
+  :type 'directory
+  :group 'ps-print)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2252,758 +2256,32 @@ The table depends on the current ps-print setup."
 
 (require 'time-stamp)
 
-(defconst ps-print-prologue-1
-  "
-% ISOLatin1Encoding stolen from ps_init.ps in GhostScript 2.6.1.4:
-/ISOLatin1Encoding where { pop } {
-% -- The ISO Latin-1 encoding vector isn't known, so define it.
-% -- The first half is the same as the standard encoding,
-% -- except for minus instead of hyphen at code 055.
-/ISOLatin1Encoding
-StandardEncoding 0 45 getinterval aload pop
-    /minus
-StandardEncoding 46 82 getinterval aload pop
-%*** NOTE: the following are missing in the Adobe documentation,
-%*** but appear in the displayed table:
-%*** macron at 0225, dieresis at 0230, cedilla at 0233, space at 0240.
-% 0200 (128)
-    /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
-    /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
-    /dotlessi /grave /acute /circumflex /tilde /macron /breve /dotaccent
-    /dieresis /.notdef /ring /cedilla /.notdef /hungarumlaut /ogonek /caron
-% 0240 (160)
-    /space /exclamdown /cent /sterling
-	/currency /yen /brokenbar /section
-    /dieresis /copyright /ordfeminine /guillemotleft
-	/logicalnot /hyphen /registered /macron
-    /degree /plusminus /twosuperior /threesuperior
-	/acute /mu /paragraph /periodcentered
-    /cedilla /onesuperior /ordmasculine /guillemotright
-	/onequarter /onehalf /threequarters /questiondown
-% 0300 (192)
-    /Agrave /Aacute /Acircumflex /Atilde
-	/Adieresis /Aring /AE /Ccedilla
-    /Egrave /Eacute /Ecircumflex /Edieresis
-	/Igrave /Iacute /Icircumflex /Idieresis
-    /Eth /Ntilde /Ograve /Oacute
-	/Ocircumflex /Otilde /Odieresis /multiply
-    /Oslash /Ugrave /Uacute /Ucircumflex
-	/Udieresis /Yacute /Thorn /germandbls
-% 0340 (224)
-    /agrave /aacute /acircumflex /atilde
-	/adieresis /aring /ae /ccedilla
-    /egrave /eacute /ecircumflex /edieresis
-	/igrave /iacute /icircumflex /idieresis
-    /eth /ntilde /ograve /oacute
-	/ocircumflex /otilde /odieresis /divide
-    /oslash /ugrave /uacute /ucircumflex
-	/udieresis /yacute /thorn /ydieresis
-256 packedarray def
-} ifelse
 
-/reencodeFontISO { %def
-  dup
-  length 12 add dict	% Make a new font (a new dict the same size
-			% as the old one) with room for our new symbols.
-
-  begin			% Make the new font the current dictionary.
-
-
-    { 1 index /FID ne
-      { def } { pop pop } ifelse
-    } forall		% Copy each of the symbols from the old dictionary
-			% to the new one except for the font ID.
-
-    currentdict /FontType get 0 ne {
-      /Encoding ISOLatin1Encoding def	% Override the encoding with
-					% the ISOLatin1 encoding.
-    } if
-
-    % Use the font's bounding box to determine the ascent, descent,
-    % and overall height; don't forget that these values have to be
-    % transformed using the font's matrix.
-
-%          ^    (x2 y2)
-%          |       |
-%          |       v
-%          |  +----+ - -
-%          |  |    |   ^
-%          |  |    |   | Ascent (usually > 0)
-%          |  |    |   |
-% (0 0) -> +--+----+-------->
-%             |    |   |
-%             |    |   v Descent (usually < 0)
-% (x1 y1) --> +----+ - -
-
-    currentdict /FontType get 0 ne {
-      /FontBBox load aload pop			% -- x1 y1 x2 y2
-      FontMatrix transform /Ascent  exch def pop
-      FontMatrix transform /Descent exch def pop
-    } {
-      /PrimaryFont FDepVector 0 get def
-      PrimaryFont /FontBBox get aload pop
-      PrimaryFont /FontMatrix get transform /Ascent exch def pop
-      PrimaryFont /FontMatrix get transform /Descent exch def pop
-    } ifelse
-
-    /FontHeight Ascent Descent sub def	% use `sub' because descent < 0
-
-    % Define these in case they're not in the FontInfo
-    % (also, here they're easier to get to).
-    /UnderlinePosition  Descent 0.70 mul def
-    /OverlinePosition   Descent UnderlinePosition sub Ascent add def
-    /StrikeoutPosition  Ascent 0.30 mul def
-    /LineThickness      FontHeight 0.05 mul def
-    /Xshadow            FontHeight  0.08 mul def
-    /Yshadow            FontHeight -0.09 mul def
-    /SpaceBackground    Descent neg UnderlinePosition add def
-    /XBox               Descent neg def
-    /YBox               LineThickness 0.7 mul def
-
-    currentdict		% Leave the new font on the stack
-    end			% Stop using the font as the current dictionary.
-    definefont		% Put the font into the font dictionary
-    pop			% Discard the returned font.
-} bind def
-
-/DefFont {				% Font definition
-  findfont exch scalefont reencodeFontISO
-} def
-
-/F {					% Font selection
-  findfont
-  dup /Ascent            get /Ascent            exch def
-  dup /Descent           get /Descent           exch def
-  dup /FontHeight        get /FontHeight        exch def
-  dup /UnderlinePosition get /UnderlinePosition exch def
-  dup /OverlinePosition  get /OverlinePosition  exch def
-  dup /StrikeoutPosition get /StrikeoutPosition exch def
-  dup /LineThickness     get /LineThickness     exch def
-  dup /Xshadow           get /Xshadow           exch def
-  dup /Yshadow           get /Yshadow           exch def
-  dup /SpaceBackground   get /SpaceBackground   exch def
-  dup /XBox              get /XBox              exch def
-  dup /YBox              get /YBox              exch def
-  setfont
-} def
-
-/FG /setrgbcolor load def
-
-/bg false def
-/BG {
-  dup /bg exch def
-  {mark 4 1 roll ]}
-  {[ 1.0 1.0 1.0 ]}
-  ifelse
-  /bgcolor exch def
-} def
-
-%  B    width    C
-%   +-----------+
-%               | Ascent  (usually > 0)
-% A +           +
-%               | Descent (usually < 0)
-%   +-----------+
-%  E    width    D
-
-/dobackground {				% width --
-  currentpoint				% -- width x y
-  gsave
-    newpath
-    moveto				% A (x y)
-    0 Ascent rmoveto			% B
-    dup 0 rlineto			% C
-    0 Descent Ascent sub rlineto	% D
-    neg 0 rlineto			% E
-    closepath
-    bgcolor aload pop setrgbcolor
-    fill
-  grestore
-} def
-
-/eolbg {				% dobackground until right margin
-  PrintWidth				% -- x-eol
-  currentpoint pop			% -- cur-x
-  sub					% -- width until eol
-  dobackground
-} def
-
-/PLN {PrintLineNumber {doLineNumber}if} def
-
-/SL {					% Soft Linefeed
-  bg { eolbg } if
-  0  currentpoint exch pop LineHeight sub  moveto
-} def
-
-/HL {SL PLN} def			% Hard Linefeed
-
-% Some debug
-/dcp { currentpoint exch 40 string cvs print (, ) print = } def
-/dp { print 2 copy  exch 40 string cvs print (, ) print = } def
-
-/W {
-  ( ) stringwidth	% Get the width of a space in the current font.
-  pop			% Discard the Y component.
-  mul			% Multiply the width of a space
-			% by the number of spaces to plot
-  bg { dup dobackground } if
-  0 rmoveto
-} def
-
-/Effect 0 def
-/EF {/Effect exch def} def
-
-% stack:  string  |-  --
-% effect: 1  - underline  2   - strikeout  4  - overline
-%         8  - shadow     16  - box        32 - outline
-/S {
-  /xx currentpoint dup Descent add /yy exch def
-  Ascent add /YY exch def def
-  dup stringwidth pop xx add /XX exch def
-  Effect 8 and 0 ne {
-    /yy yy Yshadow add def
-    /XX XX Xshadow add def
-  } if
-  bg {
-    true
-    Effect 16 and 0 ne
-      {SpaceBackground doBox}
-      {xx yy XX YY doRect}
-    ifelse
-  } if							% background
-  Effect 16 and 0 ne {false 0 doBox}if			% box
-  Effect 8  and 0 ne {dup doShadow}if			% shadow
-  Effect 32 and 0 ne
-    {true doOutline}					% outline
-    {show}						% normal text
-  ifelse
-  Effect 1  and 0 ne {UnderlinePosition Hline}if	% underline
-  Effect 2  and 0 ne {StrikeoutPosition Hline}if	% strikeout
-  Effect 4  and 0 ne {OverlinePosition  Hline}if	% overline
-} bind def
-
-% stack:  position  |-  --
-/Hline {
-  currentpoint exch pop add dup
-  gsave
-  newpath
-  xx exch moveto
-  XX exch lineto
-  closepath
-  LineThickness setlinewidth stroke
-  grestore
-} bind def
-
-% stack:  fill-or-not delta  |-  --
-/doBox {
-  /dd exch def
-  xx XBox sub dd sub yy YBox sub dd sub
-  XX XBox add dd add YY YBox add dd add
-  doRect
-} bind def
-
-% stack:  fill-or-not lower-x lower-y upper-x upper-y  |-  --
-/doRect {
-  /rYY exch def
-  /rXX exch def
-  /ryy exch def
-  /rxx exch def
-  gsave
-  newpath
-  rXX rYY moveto
-  rxx rYY lineto
-  rxx ryy lineto
-  rXX ryy lineto
-  closepath
-  % top of stack: fill-or-not
-    {FillBgColor}
-    {LineThickness setlinewidth stroke}
-  ifelse
-  grestore
-} bind def
-
-% stack:  string  |-  --
-/doShadow {
-  gsave
-  Xshadow Yshadow rmoveto
-  false doOutline
-  grestore
-} bind def
-
-/st 1 string def
-
-% stack:  string fill-or-not  |-  --
-/doOutline {
-  /-fillp- exch def
-  /-ox- currentpoint /-oy- exch def def
-  gsave
-  LineThickness setlinewidth
-  {
-    st 0 3 -1 roll put
-    st dup true charpath
-    -fillp- {gsave FillBgColor grestore}if
-    stroke stringwidth
-    -oy- add /-oy- exch def
-    -ox- add /-ox- exch def
-    -ox- -oy- moveto
-  } forall
-  grestore
-  -ox- -oy- moveto
-} bind def
-
-% stack:  --
-/FillBgColor {bgcolor aload pop setrgbcolor fill} bind def
-
-/L0 6 /Times-Italic DefFont
-
-% stack:  --
-/doLineNumber {
-  /LineNumber where
-  {
-    pop
-    currentfont
-    gsave
-    0.0 0.0 0.0 setrgbcolor
-    /L0 findfont setfont
-    LineNumber Lines ge
-      {(end      )}
-      {LineNumber 6 string cvs (      ) strcat}
-    ifelse
-    dup stringwidth pop neg 0 rmoveto
-    show
-    grestore
-    setfont
-    /LineNumber LineNumber 1 add def
-  } if
-} def
-
-% stack: --
-/printZebra {
-  gsave
-  ZebraGray setgray
-  /double-zebra ZebraHeight ZebraHeight add def
-  /yiter double-zebra LineHeight mul neg def
-  /xiter PrintWidth InterColumn add def
-  NumberOfColumns {LinesPerColumn doColumnZebra xiter 0 rmoveto}repeat
-  grestore
-} def
-
-% stack:  lines-per-column |- --
-/doColumnZebra {
-  gsave
-  dup double-zebra idiv {ZebraHeight doZebra 0 yiter rmoveto}repeat
-  double-zebra mod
-  dup 0 le {pop}{dup ZebraHeight gt {pop ZebraHeight}if doZebra}ifelse
-  grestore
-} def
-
-% stack:  zebra-height (in lines) |- --
-/doZebra {
-  /zh exch 0.05 sub LineHeight mul def
-  gsave
-  0 LineHeight 0.65 mul rmoveto
-  PrintWidth 0 rlineto
-  0 zh neg rlineto
-  PrintWidth neg 0 rlineto
-  0 zh rlineto
-  fill
-  grestore
-} def
-
-% tx ty rotation xscale yscale xpos ypos BeginBackImage
-/BeginBackImage {
-  /-save-image- save def
-  /showpage {}def
-  translate
-  scale
-  rotate
-  translate
-} def
-
-/EndBackImage {
-  -save-image- restore
-} def
-
-% string fontsize fontname rotation gray xpos ypos ShowBackText
-/ShowBackText {
-  gsave
-  translate
-  setgray
-  rotate
-  findfont exch dup /-offset- exch -0.25 mul def scalefont setfont
-  0 -offset- moveto
-  /-saveLineThickness- LineThickness def
-  /LineThickness 1 def
-  false doOutline
-  /LineThickness -saveLineThickness- def
-  grestore
-} def
-
-/BeginDoc {
-  % ---- Remember space width of the normal text font `f0'.
-  /SpaceWidth /f0 findfont setfont ( ) stringwidth pop def
-  % ---- save the state of the document (useful for ghostscript!)
-  /docState save def
-  % ---- [andrewi] set PageSize based on chosen dimensions
-  UseSetpagedevice {
-    0
-    {<< /PageSize [PageWidth LandscapePageHeight] >> setpagedevice}
-    CheckConfig
-  }{
-    LandscapeMode {
-      % ---- translate to bottom-right corner of Portrait page
-      LandscapePageHeight 0 translate
-      90 rotate
-    }if
-  }ifelse
-  % ---- [jack] Kludge: my ghostscript window is 21x27.7 instead of 21x29.7
-  /JackGhostscript where {pop 1 27.7 29.7 div scale}if
-  % ---- N-Up printing
-  N-Up 1 gt {
-    % ---- landscape
-    N-Up-Landscape {
-      PageWidth 0 translate
-      90 rotate
-    }if
-    N-Up-Margin dup translate
-    % ---- scale
-    LandscapeMode{
-      /HH PageWidth def
-      /WW LandscapePageHeight def
-    }{
-      /HH LandscapePageHeight def
-      /WW PageWidth def
-    }ifelse
-    WW N-Up-Margin sub N-Up-Margin sub
-    N-Up-Landscape
-     {N-Up-Lines div HH}{N-Up-Columns N-Up-Missing add div WW}ifelse
-    div dup scale
-    0 N-Up-Repeat 1 sub LandscapePageHeight mul translate
-    % ---- go to start position in page matrix
-    N-Up-XStart N-Up-Missing 0.5 mul
-    LandscapeMode{
-      LandscapePageHeight mul N-Up-YStart add
-    }{
-      PageWidth mul add N-Up-YStart
-    }ifelse
-    translate
-  }if
-  /ColumnWidth PrintWidth InterColumn add def
-  % ---- translate to lower left corner of TEXT
-  LeftMargin BottomMargin translate
-  % ---- define where  printing will start
-  /f0 F					% this installs Ascent
-  /PrintStartY PrintHeight Ascent sub def
-  /ColumnIndex 1 def
-  /N-Up-Counter N-Up-End 1 sub def
-  SkipFirstPage{save showpage restore}if
-}def
-
-/EndDoc {
-  % ---- restore the state of the document (useful for ghostscript!)
-  docState restore
-}def
-
-/BeginDSCPage {
-  % ---- when 1st column, save the state of the page
-  ColumnIndex 1 eq {
-    /pageState save def
-  }if
-  % ---- save the state of the column
-  /columnState save def
-}def
-
-/PrintHeaderWidth PrintOnlyOneHeader{PrintPageWidth}{PrintWidth}ifelse def
-
-/BeginPage {
-  % ---- when 1st column, print all background effects
-  ColumnIndex 1 eq {
-    0 PrintStartY moveto		% move to where printing will start
-    Zebra {printZebra}if
-    printGlobalBackground
-    printLocalBackground
-  }if
-  PrintHeader {
-    PrintOnlyOneHeader{ColumnIndex 1 eq}{true}ifelse {
-      PrintHeaderFrame {HeaderFrame}if
-      HeaderText
-    }if
-  }if
-  0 PrintStartY moveto			% move to where printing will start
-  PLN
-}def
-
-/EndPage {
-  bg {eolbg}if
-}def
-
-/EndDSCPage {
-  ColumnIndex NumberOfColumns eq {
-    % ---- restore the state of the page
-    pageState restore
-    /ColumnIndex 1 def
-    % ---- N-up printing
-    N-Up 1 gt {
-      N-Up-Counter 0 gt {
-	% ---- Next page on same row
-	/N-Up-Counter N-Up-Counter 1 sub def
-	N-Up-XColumn N-Up-YColumn
-      }{
-	% ---- Next page on next line
-	/N-Up-Counter N-Up-End 1 sub def
-	N-Up-XLine N-Up-YLine
-      }ifelse
-      translate
-    }if
-  }{ % else
-    % ---- restore the state of the current column
-    columnState restore
-    % ---- and translate to the next column
-    ColumnWidth 0 translate
-    /ColumnIndex ColumnIndex 1 add def
-  }ifelse
-}def
-
-% stack: number-of-pages-per-sheet |- --
-/BeginSheet {
-  /sheetState save def
-  /pages-per-sheet exch def
-  % ---- N-up printing
-  N-Up 1 gt N-Up-Border and pages-per-sheet 0 gt and {
-    % ---- page border
-    gsave
-    0 setgray
-    LeftMargin neg BottomMargin neg moveto
-    N-Up-Repeat
-    {N-Up-End
-     {gsave
-      PageWidth 0 rlineto
-      0 LandscapePageHeight rlineto
-      PageWidth neg 0 rlineto
-      closepath stroke
-      grestore
-      /pages-per-sheet pages-per-sheet 1 sub def
-      pages-per-sheet 0 le{exit}if
-      N-Up-XColumn N-Up-YColumn rmoveto
-     }repeat
-     pages-per-sheet 0 le{exit}if
-     N-Up-XLine N-Up-XColumn sub N-Up-YLine rmoveto
-    }repeat
-    grestore
-  }if
-}def
-
-/EndSheet {
-  showpage
-  sheetState restore
-}def
-
-/SetHeaderLines {			% nb-lines --
-  /HeaderLines exch def
-  % ---- bottom up
-  HeaderPad
-  HeaderLines 1 sub HeaderLineHeight mul add
-  HeaderTitleLineHeight add
-  HeaderPad add
-  /HeaderHeight exch def
-} def
-
-% |---------|
-% |  tm     |
-% |---------|
-% |  header |
-% |-+-------| <-- (x y)
-% |  ho     |
-% |---------|
-% |  text   |
-% |-+-------| <-- (0 0)
-% |  bm     |
-% |---------|
-
-/HeaderFrameStart {			% -- x y
-  0  PrintHeight HeaderOffset add
-} def
-
-/HeaderFramePath {
-  PrintHeaderWidth	0			rlineto
-  0			HeaderHeight		rlineto
-  PrintHeaderWidth neg	0			rlineto
-  0			HeaderHeight neg	rlineto
-} def
-
-/HeaderFrame {
-  gsave
-    0.4 setlinewidth
-    % ---- fill a black rectangle (the shadow of the next one)
-    HeaderFrameStart moveto
-    1 -1 rmoveto
-    HeaderFramePath
-    0 setgray fill
-    % ---- do the next rectangle ...
-    HeaderFrameStart moveto
-    HeaderFramePath
-    gsave 0.9 setgray fill grestore	% filled with grey
-    gsave 0 setgray stroke grestore	% drawn  with black
-  grestore
-} def
-
-/HeaderStart {
-  HeaderFrameStart
-  exch HeaderPad add exch	% horizontal pad
-  % ---- bottom up
-  HeaderPad add			% vertical   pad
-  HeaderDescent sub
-  HeaderLineHeight HeaderLines 1 sub mul add
-} def
-
-/strcat {
-  dup length 3 -1 roll dup length dup 4 -1 roll add string dup
-  0 5 -1 roll putinterval
-  dup 4 2 roll exch putinterval
-} def
-
-/pagenumberstring {
-  PageNumber 32 string cvs
-  ShowNofN {
-    (/) strcat
-    PageCount 32 string cvs strcat
-  } if
-} def
-
-/HeaderText {
-  HeaderStart moveto
-
-  HeaderLinesRight HeaderLinesLeft	% -- rightLines leftLines
-
-  % ---- hack: `PN 1 and'  ==  `PN 2 modulo'
-
-  % ---- if even page number and duplex, then exchange left and right
-  PageNumber 1 and 0 eq DuplexValue and { exch } if
-
-  { % ---- process the left lines
-    aload pop
-    exch F
-    gsave
-      dup xcheck { exec } if
-      show
-    grestore
-    0 HeaderLineHeight neg rmoveto
-  } forall
-
-  HeaderStart moveto
-
-  { % ---- process the right lines
-    aload pop
-    exch F
-    gsave
-      dup xcheck { exec } if
-      dup stringwidth pop
-      PrintHeaderWidth exch sub HeaderPad 2 mul sub 0 rmoveto
-      show
-    grestore
-    0 HeaderLineHeight neg rmoveto
-  } forall
-} def
-
-/ReportFontInfo {
-  2 copy
-  /t0 3 1 roll DefFont
-  /t0 F
-  /lh FontHeight def
-  /sw ( ) stringwidth pop def
-  /aw (01234567890abcdefghijklmnopqrstuvwxyz) dup length exch
-  stringwidth pop exch div def
-  /t1 12 /Helvetica-Oblique DefFont
-  /t1 F
-  gsave
-    (languagelevel = ) show
-    gs_languagelevel 32 string cvs show
-  grestore
-  0 FontHeight neg rmoveto
-  gsave
-    (For ) show
-    128 string cvs show
-    ( ) show
-    32 string cvs show
-    ( point, the line height is ) show
-    lh 32 string cvs show
-    (, the space width is ) show
-    sw 32 string cvs show
-    (,) show
-  grestore
-  0 FontHeight neg rmoveto
-  gsave
-    (and a crude estimate of average character width is ) show
-    aw 32 string cvs show
-    (.) show
-  grestore
-  0 FontHeight neg rmoveto
-} def
-
-/cm { % cm to point
-  72 mul 2.54 div
-} def
-
-/ReportAllFontInfo {
-  FontDirectory
-  { % key = font name  value = font dictionary
-    pop 10 exch ReportFontInfo
-  } forall
-} def
-
-% 3 cm 20 cm moveto  10 /Courier ReportFontInfo  showpage
-% 3 cm 20 cm moveto  ReportAllFontInfo           showpage
-
-/ErrorMessages
- [(This PostScript printer is not configured with this document page size.)
-  (Duplex printing is not supported on this PostScript printer.)]def
-
-% stack: error-index proc |- --
-/CheckConfig {
-  stopped {
-   1 cm LandscapePageHeight 0.5 mul moveto
-   /Courier findfont 10 scalefont setfont
-   gsave
-    (ps-print error:) show
-   grestore
-   0 -10 rmoveto
-   ErrorMessages exch get show
-   showpage
-   $error /newerror false put
-   stop
-  }if
-} bind def
-
-")
-
-(defconst ps-print-prologue-2
-  "
-% ---- These lines must be kept together because...
-
-/h0 F
-/HeaderTitleLineHeight FontHeight def
-
-/h1 F
-/HeaderLineHeight FontHeight def
-/HeaderDescent    Descent def
-
-% ---- ...because `F' has a side-effect on `FontHeight' and `Descent'
-
-")
-
-(defconst ps-print-duplex-feature
-  "
-% --- duplex feature verification
-1
-UseSetpagedevice {
-  {<< /Duplex DuplexValue /Tumble TumbleValue >> setpagedevice}
-}{
-  {statusdict begin
-    DuplexValue setduplexmode TumbleValue settumble
-   end}
-}ifelse
-CheckConfig
-")
+(defun ps-prologue-file (filenumber)
+  (save-excursion
+    (let ((buffer
+	   (or (find-file-noselect
+		(format "%sps-prin%d.ps"
+			ps-postscript-code-directory filenumber)
+		'no-warn 'rawfile)
+	       (error "ps-print PostScript prologue %d file was not found."
+		      filenumber))))
+      (set-buffer buffer)
+      (prog1
+	  (buffer-string)
+	(kill-buffer buffer)))))
+
+
+(defvar ps-mark-code-directory nil)
+
+(defvar ps-print-prologue-1 ""
+  "ps-print PostScript prologue begin.")
+
+(defvar ps-print-prologue-2 ""
+  "ps-print PostScript prologue end.")
+
+(defvar ps-print-duplex-feature ""
+  "ps-print PostScript duplex feature.")
 
 ;; Start Editing Here:
 
@@ -3789,41 +3067,40 @@ page-height == bm + print-height + tm - ho - hh
   (mapcar
    #'(lambda (image)
        (let ((image-file (expand-file-name (nth 0 image))))
-	 (if (file-readable-p image-file)
-	     (progn
-	       (setq ps-background-image-count (1+ ps-background-image-count))
-	       (ps-output
-		(format "/ShowBackImage-%d {\n--back-- "
-			ps-background-image-count)
-		(ps-float-format (nth 5 image) 0.0) ; rotation
-		(ps-float-format (nth 3 image) 1.0) ; x scale
-		(ps-float-format (nth 4 image) 1.0) ; y scale
-		(ps-float-format (nth 1 image) ; x position
-				 "PrintPageWidth 2 div")
-		(ps-float-format (nth 2 image) ; y position
-				 "PrintHeight 2 div BottomMargin add")
-		"\nBeginBackImage\n")
-	       (ps-insert-file image-file)
-	       ;; coordinate adjustment to centralize image
-	       ;; around x and y position
-	       (let ((box (ps-get-boundingbox)))
-		 (save-excursion
-		   (set-buffer ps-spool-buffer)
-		   (save-excursion
-		     (if (re-search-backward "^--back--" nil t)
-			 (replace-match
-			  (format "%s %s"
-				  (ps-float-format
-				   (- (+ (/ (- (aref box 2) (aref box 0)) 2.0)
-					 (aref box 0))))
-				  (ps-float-format
-				   (- (+ (/ (- (aref box 3) (aref box 1)) 2.0)
-					 (aref box 1)))))
-			  t)))))
-	       (ps-output "\nEndBackImage} def\n")
-	       (ps-background-pages (nthcdr 6 image) ; page list
-				    (format "ShowBackImage-%d\n"
-					    ps-background-image-count))))))
+	 (when (file-readable-p image-file)
+	   (setq ps-background-image-count (1+ ps-background-image-count))
+	   (ps-output
+	    (format "/ShowBackImage-%d {\n--back-- "
+		    ps-background-image-count)
+	    (ps-float-format (nth 5 image) 0.0) ; rotation
+	    (ps-float-format (nth 3 image) 1.0) ; x scale
+	    (ps-float-format (nth 4 image) 1.0) ; y scale
+	    (ps-float-format (nth 1 image) ; x position
+			     "PrintPageWidth 2 div")
+	    (ps-float-format (nth 2 image) ; y position
+			     "PrintHeight 2 div BottomMargin add")
+	    "\nBeginBackImage\n")
+	   (ps-insert-file image-file)
+	   ;; coordinate adjustment to centralize image
+	   ;; around x and y position
+	   (let ((box (ps-get-boundingbox)))
+	     (save-excursion
+	       (set-buffer ps-spool-buffer)
+	       (save-excursion
+		 (if (re-search-backward "^--back--" nil t)
+		     (replace-match
+		      (format "%s %s"
+			      (ps-float-format
+			       (- (+ (/ (- (aref box 2) (aref box 0)) 2.0)
+				     (aref box 0))))
+			      (ps-float-format
+			       (- (+ (/ (- (aref box 3) (aref box 1)) 2.0)
+				     (aref box 1)))))
+		      t)))))
+	   (ps-output "\nEndBackImage} def\n")
+	   (ps-background-pages (nthcdr 6 image) ; page list
+				(format "ShowBackImage-%d\n"
+					ps-background-image-count)))))
    ps-print-background-image))
 
 
@@ -4336,7 +3613,8 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	   (ps-output comments)))
 
     (ps-output "%%EndComments\n\n%%BeginPrologue\n\n"
-	       "/gs_languagelevel /languagelevel where {pop languagelevel}{1}ifelse def\n\n")
+	       "/gs_languagelevel /languagelevel where "
+	       "{pop languagelevel}{1}ifelse def\n\n")
 
     (ps-output-boolean "SkipFirstPage      " ps-banner-page-when-duplexing)
     (ps-output-boolean "LandscapeMode      "
@@ -4412,9 +3690,9 @@ XSTART YSTART are the relative position for the first page in a sheet.")
     (setq ps-background-all-pages (nreverse ps-background-all-pages)
 	  ps-background-pages (nreverse ps-background-pages))
 
-    (ps-output ps-print-prologue-1)
+    (ps-output "\n" ps-print-prologue-1)
 
-    (ps-output "/printGlobalBackground {\n")
+    (ps-output "\n/printGlobalBackground {\n")
     (ps-output-list ps-background-all-pages)
     (ps-output "} def\n/printLocalBackground {\n} def\n")
 
@@ -4426,7 +3704,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 		       ps-header-font-size-internal
 		       (ps-font 'ps-font-for-header 'normal)))
 
-    (ps-output ps-print-prologue-2)
+    (ps-output "\n" ps-print-prologue-2 "\n")
 
     ;; Text fonts
     (let ((font (ps-font-alist 'ps-font-for-text))
@@ -4449,8 +3727,9 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 		 (ps-boolean-capitalized ps-spool-duplex)
 		 " *Tumble "
 		 (ps-boolean-capitalized tumble)
+		 "\n\n"
 		 ps-print-duplex-feature
-		 "%%EndFeature\n")))
+		 "\n%%EndFeature\n")))
   (ps-output "\n/Lines 0 def\n/PageCount 0 def\n\nBeginDoc\n%%EndSetup\n"))
 
 
@@ -4496,6 +3775,11 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 
 
 (defun ps-begin-job ()
+  (or (equal ps-mark-code-directory ps-postscript-code-directory)
+      (setq ps-print-prologue-1     (ps-prologue-file 1)
+	    ps-print-prologue-2     (ps-prologue-file 2)
+	    ps-print-duplex-feature (ps-prologue-file 3)
+	    ps-mark-code-directory  ps-postscript-code-directory))
   (save-excursion
     (set-buffer ps-spool-buffer)
     (goto-char (point-max))
