@@ -161,7 +161,8 @@ add `--with-hesiod'.  These options enable Emacs to use POP; whether
 Emacs uses POP is controlled by individual users--see the Rmail
 chapter of the Emacs manual.
 
-For get Emacs with image support, use one or more of these options:
+To get Emacs with image support, configure with one or more of these
+options:
 
   --with-xpm        for XPM image support
   --with-jpeg       for JPEG image support

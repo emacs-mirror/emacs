@@ -3304,7 +3304,7 @@ properties supported are
 FG must be a string specifying the image foreground color.  Default
 is the frame's foreground.
 
-`:background FG'
+`:background BG'
 
 BG must be a string specifying the image foreground color.  Default is
 the frame's background color.
