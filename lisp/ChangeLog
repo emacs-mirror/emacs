@@ -1,3 +1,26 @@
+2002-08-15  Richard M. Stallman  <rms@gnu.org>
+
+	* calendar/appt.el (appt-delete): Use substring-no-properties.
+	(appt-make-list): Don't use prin1-to-string; use the string unchanged.
+
+2002-08-15  Jan Nieuwenhuizen  <janneke@gnu.org>  (tiny change)
+
+	* server.el (server-process-filter): Simplify code.
+	(server-goto-line-column): New function.
+	(server-visit-files): Use server-goto-line-column.
+	Offer to revert only if file has changed.
+	
+2002-08-15  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (recover-this-file): New function.
+	(after-find-file): Recommend recover-this-file.
+
+	* font-core.el (font-lock-mode): Add font-lock-unfontify-buffer
+	to change-major-mode-hook when font lock is enabled.
+
+	* simple.el (toggle-truncate-lines): Force redisplay.
+	Display status message.
+
 2002-08-15  Carsten Dominik  <dominik@sand.science.uva.nl>
 
 	* textmodes/reftex.el (reftex-mode): Moved the creation of special
@@ -62,6 +85,29 @@
 	* newcomment.el (comment-region): Force `lines' when `block' is set.
 
 2002-08-12  Richard M. Stallman  <rms@gnu.org>
+
+	* menu-bar.el (menu-bar-next-tag-other-window, menu-bar-next-tag) 
+	(menu-bar-right-scroll-bar, menu-bar-left-scroll-bar) 
+	(menu-bar-no-scroll-bar, menu-bar-toggle-auto-compression) 
+	(menu-bar-toggle-cua-mode, menu-bar-read-mail) 
+	(menu-bar-help-extra-packages, help-with-tutorial-spec-language) 
+	(menu-bar-text-mode-auto-fill): New commands, used
+	in menu bar menus instead of lambda expressions.
+
+	(menu-bar-showhide-fringe-menu-customize-left) 
+	(menu-bar-showhide-fringe-menu-customize-right) 
+	(menu-bar-showhide-fringe-menu-customize-disable)
+	(menu-bar-showhide-fringe-menu-customize-reset): Doc fixes.
+
+	(menu-bar-options-menu): Use toggle-truncate-lines.
+	(showhide-date-time): Call customize-mark-as-set.
+
+	* emacs-lisp/find-func.el (find-function-search-for-symbol):
+	Obey `definition-name' properties.
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-global-mode):
+	Put `definition-name' properties on the functions whose
+	names are constructed.
 
 	* textmodes/page-ext.el (pages-target-buffer): Add defvar.
 	Renamed from target-buffer.
@@ -10313,7 +10359,7 @@
 
 2001-11-15  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* server.el (server-process-filter): Run pore/post-comment-hook
+	* server.el (server-process-filter): Run pre/post-comment-hook
 	before/after visiting the file.
 
 	* info-look.el (makefile-mode): Add info for automake.
