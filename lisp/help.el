@@ -140,8 +140,6 @@ Commands:
   (view-mode)
   (make-local-variable 'view-no-disable-on-exit)
   (setq view-no-disable-on-exit t)
-  ;; `help-make-xrefs' would be run here if not invoked from
-  ;; `help-mode-maybe'.
   (run-hooks 'help-mode-hook))
 
 (defun help-mode-setup ()
@@ -1458,7 +1456,7 @@ more than `temp-buffer-max-height' nor less than `window-min-height'.
 This applies to `help', `apropos' and `completion' buffers, and some others."
   nil nil nil :global t :group 'help
   (if temp-buffer-resize-mode
-      ;; `help-mode-maybe' may add a `back' button and thus increase the
+      ;; `help-make-xrefs' may add a `back' button and thus increase the
       ;; text size, so `resize-temp-buffer-window' must be run *after* it.
       (add-hook 'temp-buffer-show-hook 'resize-temp-buffer-window 'append)
     (remove-hook 'temp-buffer-show-hook 'resize-temp-buffer-window)))
