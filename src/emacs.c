@@ -940,6 +940,7 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
       init_minibuf_once ();	/* Create list of minibuffers */
 			      /* Must precede init_window_once */
       init_window_once ();	/* Init the window system */
+      init_fileio_once ();	/* Must precede any path manipulation.  */
     }
 
   init_alloc ();
