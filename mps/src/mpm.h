@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.88) $
+ * $HopeName: MMsrc!mpm.h(trunk.89) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
@@ -389,6 +389,9 @@ extern TraceSet (TraceSetDel)(TraceSet ts, TraceId id);
 extern TraceSet (TraceSetUnion)(TraceSet ts1, TraceSet ts2);
 extern Bool (TraceSetIsMember)(TraceSet ts, TraceId id);
 
+extern void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
+                          Rank rank, RefSet white);
+extern void ScanStateFinish(ScanState ss);
 extern Bool ScanStateCheck(ScanState ss);
 extern void ScanStateSetSummary(ScanState ss, RefSet summary);
 extern RefSet ScanStateSummary(ScanState ss);
