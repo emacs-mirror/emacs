@@ -25,7 +25,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-utils.el,v 1.3 1995/04/09 22:29:08 kwzh Exp kwzh $
+;; $Id: mh-utils.el,v 1.4 1995/04/10 00:19:38 kwzh Exp kwzh $
 
 ;;; Code:
 
@@ -619,9 +619,7 @@ Non-nil third argument means not to show the message."
 (defun mh-set-mode-name (mode-name-string)
   ;; Set the mode-name and ensure that the mode line is updated.
   (setq mode-name mode-name-string)
-  ;; Force redisplay of all buffers' mode lines to be considered.
-  (save-excursion (set-buffer (other-buffer)))
-  (set-buffer-modified-p (buffer-modified-p)))
+  (force-mode-line-update t))
 
 
 (defun mh-prompt-for-folder (prompt default can-create)
