@@ -883,7 +883,7 @@ substitution will be made in COMMAND.  COMMAND can be any expression that
 evaluates to a command string."
   (save-excursion
     (let* ((cmd (eval command))
-	   (proc (get-process "tex-shell"))
+	   (proc (or (get-process "tex-shell") (error "No TeX subprocess")))
 	   (buf (process-buffer proc))
            (star (string-match "\\*" cmd))
 	   (string
