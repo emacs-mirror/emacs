@@ -223,7 +223,7 @@ fontset_ref (fontset, c)
   if (SINGLE_BYTE_CHAR_P (c))
     return FONTSET_ASCII (fontset);
 
-  SPLIT_NON_ASCII_CHAR (c, charset, c1, c2);
+  SPLIT_CHAR (c, charset, c1, c2);
   elt = XCHAR_TABLE (fontset)->contents[charset + 128];
   if (!SUB_CHAR_TABLE_P (elt))
     return elt;
@@ -261,7 +261,7 @@ fontset_ref_via_base (fontset, c)
     return Qnil;
 
   *c = XINT (XCAR (elt));
-  SPLIT_NON_ASCII_CHAR (*c, charset, c1, c2);
+  SPLIT_CHAR (*c, charset, c1, c2);
   elt = XCHAR_TABLE (fontset)->contents[charset + 128];
   if (c1 < 32)
     return (SUB_CHAR_TABLE_P (elt) ? XCHAR_TABLE (elt)->defalt : elt);
@@ -296,7 +296,7 @@ fontset_set (fontset, c, newelt)
       return;
     }
 
-  SPLIT_NON_ASCII_CHAR (c, charset, code[0], code[1]);
+  SPLIT_CHAR (c, charset, code[0], code[1]);
   code[2] = 0;			/* anchor */
   elt = &XCHAR_TABLE (fontset)->contents[charset + 128];
   for (i = 0; code[i] > 0; i++)
