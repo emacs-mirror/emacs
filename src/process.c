@@ -1275,7 +1275,7 @@ create_process (process, new_argv, current_dir)
 #endif /* USG */
 #endif /* not HAVE_SETSID */
 #ifdef NTTYDISC
-	if (pty_flag)
+	if (pty_flag && xforkin >= 0)
 	  {
 	    /* Use new line discipline.  */
 	    int ldisc = NTTYDISC;
