@@ -1,7 +1,7 @@
 ;;; gud.el --- Grand Unified Debugger mode for gdb, sdb, or dbx under Emacs
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
-;; Version: 1.2
+;; Version: 1.3
 ;; Keywords: unix, tools
 
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
@@ -30,49 +30,19 @@
 ;; The overloading code was then rewritten by Barry Warsaw <bwarsaw@cen.com>,
 ;; who also hacked the mode to use comint.el.
 
-;; This code will not work under Emacs 18.  It relies on Emacs 19's
-;; minor-mode-keymap support and the find-tag-noselect entry point of etags.
-
 ;;; Code:
 
 (require 'comint)
 (require 'etags)
 
 ;; ======================================================================
-;; minor-mode machinery for C buffers visited by GUD
+;; GUD commands must be visible in C buffers visited by GUD
 
 (defvar gud-key-prefix "\C-x\C-a"
-  "Prefix of all GUD minor-mode commands valid in C buffers.")
+  "Prefix of all GUD commands valid in C buffers.")
 
-(defvar gud-minor-mode nil)
-(or (assq 'gud-minor-mode minor-mode-alist)
-    (setq minor-mode-alist
-	  (cons '(gud-minor-mode " GUD") minor-mode-alist)))
-
-(defvar gud-mode-map nil)
-(if gud-mode-map
-    nil
-    (setq gud-mode-map (make-sparse-keymap))
-    (define-key gud-mode-map gud-key-prefix (make-sparse-keymap))
-    (define-key gud-mode-map (concat gud-key-prefix "\C-l") 'gud-refresh)
-    )
-
-(or (assq 'gud-minor-mode minor-mode-map-alist)
-    (setq minor-mode-map-alist
-	  (cons
-	   (cons 'gud-minor-mode gud-mode-map)
-	   minor-mode-map-alist)))
-
-(defun gud-minor-mode (&optional enable)
-  "GUD minor mode is enabled in C buffers visited due to a GUD stop at
-breakpoint.  All GUD-specific commands defined in GUD major mode will work,
-but they get their current file and current line number from the context of
-this buffer."
-  (interactive "P")
-  (setq gud-minor-mode
-	(if (null enable) (not gud-minor-mode)
-	  (> (prefix-numeric-value enable) 0)))
-)
+(global-set-key (concat gud-key-prefix "\C-l") 'gud-refresh)
+(global-set-key "\C-x " 'gud-break)	;; backward compatibility hack
 
 ;; ======================================================================
 ;; the overloading mechanism
@@ -104,9 +74,8 @@ This association list has elements of the form
 ;; A macro call like (gud-def FUNC NAME KEY DOC) expands to a form
 ;; which defines FUNC to send the command NAME to the debugger, gives
 ;; it the docstring DOC, and binds that function to KEY in the GUD
-;; major mode.  The function is also bound in the GUD minor-mode
-;; keymap.  If a numeric prefix argument is given to FUNC, it gets
-;; sent after NAME.
+;; major mode.  The function is also bound in the global keymap with the
+;; GUD prefix.
 
 (defmacro gud-def (func cmd key &optional doc)
   "Define FUNC to be a command sending STR and bound to KEY, with
@@ -119,22 +88,27 @@ are interpreted specially if present.  These are:
   %a	text of the hexadecimal address surrounding point
   %p	prefix argument to the command (if any) as a number
 
-  The `current' source file is the file of the current buffer (if we're in a
-C file with gud-minor-mode active) or the source file current at the last
-break or step (if we're in the GUD buffer).
-  The `current' line is that of the current buffer (if we're in a source
-file with gud-minor-mode active) or the source line number at the last
-break or step (if we're in the GUD buffer)."
+  The `current' source file is the file of the current buffer (if
+we're in a C file) or the source file current at the last break or
+step (if we're in the GUD buffer).
+  The `current' line is that of the current buffer (if we're in a
+source file) or the source line number at the last break or step (if
+we're in the GUD buffer)."
   (list 'progn
 	(list 'defun func '(arg)
 	      (or doc "")
 	      '(interactive "p")
 	      (list 'gud-call cmd 'arg))
 	(if key
-	    (list 'define-key
-		  'gud-mode-map
-		  (concat gud-key-prefix key)
-		  (list 'quote func)))))
+	    (progn
+	      (list 'define-key
+		    '(current-local-map)
+		    (concat "\C-c" key)
+		    (list 'quote func))
+	      (list 'global-set-key
+		    (concat gud-key-prefix key)
+		    (list 'quote func))
+	      ))))
 
 ;; Where gud-display-frame should put the debugging arrow.  This is
 ;; set by the marker-filter, which scans the debugger's output for
@@ -202,6 +176,8 @@ and source-file directory for your debugger."
 			    (gud-find-file        . gud-gdb-find-file)
 			    ))
 
+  (gud-common-init args)
+
   (gud-def gud-break  "break %f:%l"  "b" "Set breakpoint at current line.")
   (gud-def gud-tbreak "tbreak %f:%l" "t" "Set breakpoint at current line.")
   (gud-def gud-remove "clear %l"     "d" "Remove breakpoint at current line")
@@ -213,8 +189,6 @@ and source-file directory for your debugger."
   (gud-def gud-up     "up %p"        "<" "Up N stack frames (numeric arg).")
   (gud-def gud-down   "down %p"      ">" "Down N stack frames (numeric arg).")
   (gud-def gud-print  "print %e"     "p" "Evaluate C expression at point.")
-
-  (gud-common-init args)
 
   (setq comint-prompt-regexp "^(.*gdb[+]?) *")
   (run-hooks 'gdb-mode-hook)
@@ -267,9 +241,7 @@ and source-file directory for your debugger."
   "Run sdb on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
-
   (interactive "sRun sdb (like this): sdb ")
-
   (if (and gud-sdb-needs-tags
 	   (not (and (boundp 'tags-file-name) (file-exists-p tags-file-name))))
       (error "The sdb support requires a valid tags table to work."))
@@ -277,6 +249,8 @@ and source-file directory for your debugger."
 			    (gud-marker-filter    . gud-sdb-marker-filter)
 			    (gud-find-file        . gud-sdb-find-file)
 			    ))
+
+  (gud-common-init args)
 
   (gud-def gud-break  "%l b" "b"   "Set breakpoint at current line.")
   (gud-def gud-tbreak "%l c" "t"   "Set temporary breakpoint at current line.")
@@ -286,8 +260,6 @@ and source-file directory for your debugger."
   (gud-def gud-next   "S %p" "n"   "Step one line (skip functions).")
   (gud-def gud-cont   "c"    "r"   "Continue with display.")
   (gud-def gud-print  "%e/"  "p"   "Evaluate C expression at point.")
-
-  (gud-common-init args)
 
   (setq comint-prompt-regexp  "\\(^\\|\n\\)\\*")
   (run-hooks 'sdb-mode-hook)
@@ -323,6 +295,8 @@ and source-file directory for your debugger."
 			    (gud-find-file        . gud-dbx-find-file)
 			    ))
 
+  (gud-common-init args)
+
   (gud-def gud-break  "stop at \"%f\":%l"
 	   			  "b" "Set breakpoint at current line.")
   (gud-def gud-remove "clear %l"  "d" "Remove breakpoint at current line")
@@ -334,9 +308,7 @@ and source-file directory for your debugger."
   (gud-def gud-down   "down %p"	  ">" "Down (numeric arg) stack frames.")
   (gud-def gud-print  "print %e"  "p" "Evaluate C expression at point.")
 
-  (gud-common-init args)
   (setq comint-prompt-regexp  "^[^)]*dbx) *")
-
   (run-hooks 'dbx-mode-hook)
   )
 
@@ -398,8 +370,6 @@ After startup, the following commands are available in both the GUD
 interaction buffer and any source buffer GUD visits due to a breakpoint stop
 or step operation:
 
-\\{gud-mode-map}
-
 \\[gud-break] sets a breakpoint at the current file and line.  In the
 GUD buffer, the current file and line are those of the last breakpoint or
 step.  In a source buffer, they are the buffer's file and current line.
@@ -447,10 +417,6 @@ comint mode, which see."
   (setq mode-name "Debugger")
   (setq mode-line-process '(": %s"))
   (use-local-map (copy-keymap comint-mode-map))
-  (define-key (current-local-map)
-    gud-key-prefix (lookup-key gud-mode-map gud-key-prefix))
-  (define-key (current-local-map)
-    "\C-c" (lookup-key gud-mode-map gud-key-prefix))
   (make-local-variable 'gud-last-frame)
   (setq gud-last-frame nil)
   (make-local-variable 'comint-prompt-regexp)
@@ -535,11 +501,9 @@ comint mode, which see."
 	 ;; buffer killed
 	 ;; Stop displaying an arrow in a source file.
 	 (setq overlay-arrow-position nil)
-	 (setq gud-minor-mode nil)
 	 (set-process-buffer proc nil))
 	((memq (process-status proc) '(signal exit))
 	 ;; Stop displaying an arrow in a source file.
-	 (setq gud-minor-mode nil)
 	 (setq overlay-arrow-position nil)
 	 ;; Fix the mode line.
 	 (setq mode-line-process
@@ -588,10 +552,12 @@ Obeying it means displaying in another window the specified file and line."
   (let* ((buffer (gud-find-file true-file))
 	 (window (display-buffer buffer))
 	 (pos))
+    (if (equal buffer (current-buffer))
+	nil
+      (setq buffer-read-only nil))
     (save-excursion
       (set-buffer buffer)
-      (make-local-variable 'gud-minor-mode)
-      (setq gud-minor-mode t)
+      (setq buffer-read-only t)
       (save-restriction
 	(widen)
 	(goto-line line)
@@ -607,16 +573,16 @@ Obeying it means displaying in another window the specified file and line."
 
 ;;; The gud-call function must do the right thing whether its invoking
 ;;; keystroke is from the GUD buffer itself (via major-mode binding)
-;;; or a C buffer in GUD minor mode.  In the former case, we want to
-;;; supply data from gud-last-frame.  Here's how we do it:
+;;; or a C buffer.  In the former case, we want to supply data from
+;;; gud-last-frame.  Here's how we do it:
 
 (defun gud-format-command (str arg)
-  (let ((minor (not (eq (current-buffer) gud-comint-buffer))))
+  (let ((insource (not (eq (current-buffer) gud-comint-buffer))))
     (if (string-match "\\(.*\\)%f\\(.*\\)" str)
 	(progn
 	  (setq str (concat
 		     (substring str (match-beginning 1) (match-end 1))
-		     (if minor
+		     (if insource
 			 (buffer-file-name)
 		       (car gud-last-frame))
 		     (substring str (match-beginning 2) (match-end 2))))))
@@ -624,7 +590,7 @@ Obeying it means displaying in another window the specified file and line."
 	(progn
 	  (setq str (concat
 		     (substring str (match-beginning 1) (match-end 1))
-		     (if minor
+		     (if insource
 			 (save-excursion
 			   (beginning-of-line)
 			   (save-restriction (widen) 
@@ -850,5 +816,18 @@ Link exprs of the form:
      (t nil))
     )
   )
+
+;;; There appears to be a bug in the byte compiler somewhere near macro
+;;; handling that (a) generates a spurious message about gud-key-prefix
+;;; when the global-set-key clause in gud-def is compiled, (b) generates
+;;; incorrect bytecode for gud-def.  The symptom of this incorrectness
+;;; is that loading gud.elc brings in a compiled gud-def that doesn't
+;;; properly perform both global (C-x C-a) and local (C-c) bindings.
+;;; The workaround is to always load from source.  Consequently, we try
+;;; to disable byte-compilation here.
+;;;
+;;; Local Variables:
+;;; no-byte-compile: t
+;;; End:
 
 ;;; gud.el ends here
