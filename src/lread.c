@@ -2251,7 +2251,8 @@ read1 (readcharfun, pch, first_in_list)
     case '?':
       {
 	int discard;
-	int nextc;
+	int next_char;
+	int ok;
 
 	c = READCHAR;
 	if (c < 0)
@@ -2262,13 +2263,25 @@ read1 (readcharfun, pch, first_in_list)
 	else if (BASE_LEADING_CODE_P (c))
 	  c = read_multibyte (c, readcharfun);
 
-	nextc = READCHAR;
-	UNREAD (nextc);
-	if (nextc > 040
-	    && !(nextc == '?' 
-		 || nextc == '\"' || nextc == '\'' || nextc == ';'
-		 || nextc == '(' || nextc == ')'
-		 || nextc == '[' || nextc == ']' || nextc == '#'))
+	next_char = READCHAR;
+	if (next_char == '.')
+	  {
+	    /* Only a dotted-pair dot is valid after a char constant.  */
+	    int next_next_char = READCHAR;
+	    UNREAD (next_next_char);
+
+	    ok = (next_next_char <= 040
+		  || index ("\"'`;([#?", next_next_char)
+		  || (new_backquote_flag && next_next_char == ','));
+	  }
+	else
+	  {
+	    ok = (next_char <= 040
+		  || index ("\"'`;()[]#", next_char)
+		  || (new_backquote_flag && next_char == ','));
+	  }
+	UNREAD (next_char);
+	if (!ok)
 	  Fsignal (Qinvalid_read_syntax, Fcons (make_string ("?", 1), Qnil));
 
 	return make_number (c);
@@ -2423,7 +2436,8 @@ read1 (readcharfun, pch, first_in_list)
 	UNREAD (next_char);
 
 	if (next_char <= 040
-	    || index ("\"'`,(", next_char))
+	    || index ("\"'`;([#?", next_char)
+	    || (new_backquote_flag && next_char == ','))
 	  {
 	    *pch = c;
 	    return Qnil;
@@ -2444,9 +2458,8 @@ read1 (readcharfun, pch, first_in_list)
 	  char *end = read_buffer + read_buffer_size;
 
 	  while (c > 040
-		 && !(c == '\"' || c == '\'' || c == ';'
-		      || c == '(' || c == ')'
-		      || c == '[' || c == ']' || c == '#'))
+		 && !index ("\"'`;()[]#", c)
+		 && !(new_backquote_flag && c == ','))
 	    {
 	      if (end - p < MAX_MULTIBYTE_LENGTH)
 		{
