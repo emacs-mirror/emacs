@@ -111,16 +111,16 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
   (insert "\
 ;;; These are for handling :version.  We need to have a minimum of
 ;;; information so `customize-changed-options' could do its job.  
-;;; For both groups and variables we have to set `custom-version'.
-;;; For variables we also set the `standard-value' and for groups
-;;; `group-documentation' (which is shown in the customize buffer), so
-;;; we don't have to load the file containing the group.
+
+;;; For groups we set `custom-version', `group-documentation' and
+;;; `custom-tag' (which are shown in the customize buffer), so we
+;;; don't have to load the file containing the group.
 
 ;;; `custom-versions-load-alist' is an alist that has as car a version
-;;; number and as elts the files that have variables that contain that
-;;; version. These files should be loaded before showing the
-;;; customization buffer that `customize-changed-options' generates.
-
+;;; number and as elts the files that have variables or faces that
+;;; contain that version. These files should be loaded before showing
+;;; the customization buffer that `customize-changed-options'
+;;; generates.
 
 ;;; This macro is used so we don't modify the information about
 ;;; variables and groups if it's already set. (We don't know when
