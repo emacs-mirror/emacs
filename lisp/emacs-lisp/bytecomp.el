@@ -1598,7 +1598,7 @@ With argument, insert value in current buffer after the form."
     (if (memq 'redefine byte-compile-warnings)
 	(byte-compile-arglist-warn form macrop))
     (if byte-compile-verbose
-	(message "Compiling %s (%s)..." (or filename "") (nth 1 form)))
+	(message "Compiling %s... (%s)" (or filename "") (nth 1 form)))
     (cond (that-one
 	   (if (and (memq 'redefine byte-compile-warnings)
 		    ;; don't warn when compiling the stubs in byte-run...
@@ -3032,7 +3032,7 @@ invoked interactively."
   (with-output-to-temp-buffer "*Call-Tree*"
     (set-buffer "*Call-Tree*")
     (erase-buffer)
-    (message "Generating call tree (sorting on %s)..."
+    (message "Generating call tree... (sorting on %s)"
 	     byte-compile-call-tree-sort)
     (insert "Call tree for "
 	    (cond ((null byte-compile-current-file) (or filename "???"))
