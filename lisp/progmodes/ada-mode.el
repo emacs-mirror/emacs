@@ -1,5 +1,5 @@
 ;;; ada-mode.el - An Emacs major-mode for editing Ada source.
-;;; Copyright (C) 1994 Free Software Foundation, Inc.
+;;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 
 ;;; Authors: Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;;          Rolf Ebert      <ebert@inf.enst.fr>
@@ -108,11 +108,11 @@
 ;;; LCD Archive Entry:
 ;;; ada-mode|Rolf Ebert|<ebert@inf.enst.fr>
 ;;; |Major-mode for Ada
-;;; |$Date: 1995/03/02 11:07:44 $|$Revision: 1.3 $|
+;;; |$Date: 1995/04/04 03:00:59 $|$Revision: 1.4 $|
 
 
-(defconst ada-mode-version (substring "$Revision: 1.3 $" 11 -2)
-  "$Id: ada-mode.el,v 1.3 1995/03/02 11:07:44 simon Exp kwzh $
+(defconst ada-mode-version (substring "$Revision: 1.4 $" 11 -2)
+  "$Id: ada-mode.el,v 1.4 1995/04/04 03:00:59 kwzh Exp kwzh $
 
 Report bugs to: Rolf Ebert <ebert@inf.enst.fr>")
 

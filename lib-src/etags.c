@@ -1,5 +1,6 @@
 /* Tags file maker to go with GNU Emacs
-   Copyright (C) 1984,87,88,89,93,94 Free Software Foundation, Inc. and Ken Arnold
+   Copyright (C) 1984, 87, 88, 89, 93, 94, 95
+   Free Software Foundation, Inc. and Ken Arnold
 This file is not considered part of GNU Emacs.
 
 This program is free software; you can redistribute it and/or modify
