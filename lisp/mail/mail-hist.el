@@ -117,7 +117,7 @@ the message."
         (and
          name-start
          name-end
-         (downcase (buffer-substring name-start name-end)))))))
+         (downcase (buffer-substring-no-properties name-start name-end)))))))
 
 (defsubst mail-hist-forward-header (count)
   "Move forward COUNT headers (backward if COUNT is negative).
