@@ -7,6 +7,7 @@ require "dirs";
 require "compile";
 require "logging";
 require "headread";
+require "runtest";
 
 1;
 
