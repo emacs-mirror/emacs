@@ -1,6 +1,6 @@
 ;;; gomoku.el --- Gomoku game between you and Emacs
 
-;; Copyright (C) 1988, 1994, 1996, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 1996, 2001, 2003 Free Software Foundation, Inc.
 
 ;; Author: Philippe Schnoebelen <phs@lsv.ens-cachan.fr>
 ;; Maintainer: FSF
@@ -147,18 +147,12 @@ One useful value to include is `turn-on-font-lock' to highlight the pieces."
   (define-key gomoku-mode-map [mouse-2] 'gomoku-mouse-play)
   (define-key gomoku-mode-map [drag-mouse-2] 'gomoku-mouse-play)
 
-  (substitute-key-definition 'previous-line 'gomoku-move-up
-			     gomoku-mode-map (current-global-map))
-  (substitute-key-definition 'next-line 'gomoku-move-down
-			     gomoku-mode-map (current-global-map))
-  (substitute-key-definition 'beginning-of-line 'gomoku-beginning-of-line
-			     gomoku-mode-map (current-global-map))
-  (substitute-key-definition 'end-of-line 'gomoku-end-of-line
-			     gomoku-mode-map (current-global-map))
-  (substitute-key-definition 'undo 'gomoku-human-takes-back
-			     gomoku-mode-map (current-global-map))
-  (substitute-key-definition 'advertised-undo 'gomoku-human-takes-back
-			     gomoku-mode-map (current-global-map)))
+  (define-key gomoku-mode-map [remap previous-line] 'gomoku-move-up)
+  (define-key gomoku-mode-map [remap next-line] 'gomoku-move-down)
+  (define-key gomoku-mode-map [remap beginning-of-line] 'gomoku-beginning-of-line)
+  (define-key gomoku-mode-map [remap end-of-line] 'gomoku-end-of-line)
+  (define-key gomoku-mode-map [remap undo] 'gomoku-human-takes-back)
+  (define-key gomoku-mode-map [remap advertised-undo] 'gomoku-human-takes-back))
 
 (defvar gomoku-emacs-won ()
   "For making font-lock use the winner's face for the line.")
