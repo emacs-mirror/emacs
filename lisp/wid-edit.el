@@ -1635,7 +1635,7 @@ If END is omitted, it defaults to the length of LIST."
   :action 'widget-field-action
   :validate 'widget-field-validate
   :valid-regexp ""
-  :error "No match"
+  :error "Field's value doesn't match allowed form"
   :value-create 'widget-field-value-create
   :value-delete 'widget-field-value-delete
   :value-get 'widget-field-value-get
@@ -2998,26 +2998,27 @@ It will read a directory name from the minibuffer when invoked."
   (with-temp-buffer
     (insert (widget-apply widget :value-get))
     (goto-char (point-min))
-    (condition-case data
-	(progn
-	  ;; Avoid a confusing end-of-file error.
-	  (skip-syntax-forward "\\s-")
-	  (if (eobp)
-	      (error "Empty sexp -- use `nil'?"))
-	  (if (eobp)
+    (let (err)
+      (condition-case data
+	  (progn
+	    ;; Avoid a confusing end-of-file error.
+	    (skip-syntax-forward "\\s-")
+	    (if (eobp)
+		(setq err "Empty sexp -- use `nil'?")
 	      (unless (widget-apply widget :match (read (current-buffer)))
-		(widget-put widget :error (widget-get widget :type-error))
-		widget)
-	    (widget-put widget
-			:error (format "Junk at end of expression: %s"
-				       (buffer-substring (point)
-							 (point-max))))
-	    widget))
-      (end-of-file			; Avoid confusing error message.
-       (widget-put widget :error "Unbalanced sexp")
-       widget)
-      (error (widget-put widget :error (error-message-string data))
-	     widget))))
+		(setq err (widget-get widget :type-error))))
+	    (if (and (not (eobp))
+		     (not err))
+		(setq err (format "Junk at end of expression: %s"
+				  (buffer-substring (point)
+						    (point-max))))))
+	(end-of-file			; Avoid confusing error message.
+	 (setq err "Unbalanced sexp"))
+	(error (setq err (error-message-string data))))
+      (if (not err)
+	  nil
+	(widget-put widget :error err)
+	widget))))
 
 (defvar widget-sexp-prompt-value-history nil
   "History of input to `widget-sexp-prompt-value'.")
