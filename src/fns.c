@@ -3550,8 +3550,9 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
   else
     decoded = (char *) xmalloc (length);
 
+  /* The decoded result should be unibyte. */
   decoded_length = base64_decode_1 (XSTRING (string)->data, decoded, length,
-				    STRING_MULTIBYTE (string), NULL);
+				    0, NULL);
   if (decoded_length > length)
     abort ();
   else if (decoded_length >= 0)
