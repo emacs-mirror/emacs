@@ -5185,7 +5185,7 @@ make_lispy_event (event)
 	}
       }
 
-#if USE_TOOLKIT_SCROLL_BARS
+#ifdef USE_TOOLKIT_SCROLL_BARS
 
       /* We don't have down and up events if using toolkit scroll bars,
 	 so make this always a click event.  Store in the `part' of
@@ -5221,6 +5221,7 @@ make_lispy_event (event)
 
 	/* Always treat scroll bar events as clicks. */
 	event->modifiers |= click_modifier;
+	event->modifiers &= ~up_modifier;
 
 	/* Get the symbol we should use for the mouse click.  */
 	head = modify_event_symbol (event->code,
