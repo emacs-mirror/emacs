@@ -170,7 +170,7 @@ invoked.")
   nil
   "The entry in `file-name-handler-alist' used by the jka-compr I/O functions.")
 
-;;; Functions for accessing the return value of jka-get-compression-info
+;;; Functions for accessing the return value of jka-compr-get-compression-info
 (defun jka-compr-info-regexp               (info)  (aref info 0))
 (defun jka-compr-info-compress-message     (info)  (aref info 1))
 (defun jka-compr-info-compress-program     (info)  (aref info 2))
