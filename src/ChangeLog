@@ -1,3 +1,8 @@
+2000-08-04  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (decode_coding_iso2022): More strict check for handling
+	single shifting.
+
 2000-08-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* s/ia64.h: New file.
