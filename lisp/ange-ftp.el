@@ -857,7 +857,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.11 $")
+(defconst ange-ftp-version "$Revision: 1.12 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -3612,6 +3612,11 @@ system TYPE.")
 				       (format "Getting %s" fn1))
 	  tmp1))))
 
+;; Calculate default-unhandled-directory for a given ange-ftp buffer.
+(defun ange-ftp-unhandled-file-name-directory (filename)
+  (file-name-directory ange-ftp-tmp-name-template))
+
+
 ;; Need the following functions for making filenames of compressed
 ;; files, because some OS's (unlike UNIX) do not allow a filename to
 ;; have two extensions.
@@ -3763,6 +3768,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 (put 'file-name-completion 'ange-ftp 'ange-ftp-file-name-completion)
 (put 'insert-directory 'ange-ftp 'ange-ftp-insert-directory)
 (put 'file-local-copy 'ange-ftp 'ange-ftp-file-local-copy)
+(put 'unhandled-file-name-directory 'ange-ftp
+     'ange-ftp-unhandled-file-name-directory)
 (put 'file-name-sans-versions 'ange-ftp 'ange-ftp-file-name-sans-versions)
 (put 'dired-uncache 'ange-ftp 'ange-ftp-dired-uncache)
 (put 'dired-compress-file 'ange-ftp 'ange-ftp-dired-compress-file)
