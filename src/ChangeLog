@@ -1,3 +1,11 @@
+2004-08-14  John Paul Wallington  <jpw@gnu.org>
+
+	* buffer.c (Frestore_buffer_modified_p): Doc fix.
+
+	* fileio.c (Fread_file_name): Doc fix.
+
+	* minibuf.c (syms_of_minibuf) <completion-ignore-case>: Doc fix.
+
 2004-08-09  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* keymap.c (Fmake_keymap, Fmap_keymap, Fwhere_is_internal): Doc fixes.

@@ -29,6 +29,9 @@
 
 2004-08-14  John Paul Wallington  <jpw@gnu.org>
 
+	* cus-start.el (read-file-name-completion-ignore-case): Add.
+	(blink-cursor-alist): Change version to "21.4".
+
 	* emacs-lisp/bytecomp.el (forward-word): Allow 0 args.
 
 2004-08-11  Daniel Pfeiffer  <occitan@esperanto.org>
