@@ -266,7 +266,11 @@ Applies to the frame whose line point is on in the backtrace."
   (beginning-of-line))
 
 (defun debugger-eval-expression (exp)
-  (interactive "xEval: ")
+  "Eval an expression, in an environment like that outside the debugger."
+  (interactive
+   (list (read-from-minibuffer "Eval: "
+			       nil read-expression-map t
+			       'read-expression-history)))
   (save-excursion
     (if (null (buffer-name debugger-old-buffer))
 	;; old buffer deleted
