@@ -6,7 +6,7 @@
 #### be distributed.  This means that if you add a file with an odd name,
 #### you should make sure that this script will include it.
 
-# Copyright (C) 1995, 1997 Free Software Foundation, Inc.
+# Copyright (C) 1995, 1997, 1998 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -37,6 +37,7 @@ progname="$0"
 umask 0
 
 update=yes
+check=yes
 clean_up=no
 make_tar=no
 newer=""
@@ -55,6 +56,10 @@ while [ $# -gt 0 ]; do
     ## This option tells make-dist not to recompile or do analogous things.
     "--no-update" )
       update=no
+    ;;
+    ## This option says don't check for bad file names, etc.
+    "--no-check" )
+      check=no
     ;;
     ## This option tells make-dist to make the distribution normally, then
     ## remove all files older than the given timestamp file.  This is useful
@@ -143,50 +148,54 @@ them, and try again." >&2
   exit 1
 fi
 
-### Check for .elc files with no corresponding .el file.
-ls -1 lisp/[a-z]*.el lisp/[a-z]*/[a-z]*.el \
-      leim/[a-z]*.el leim/[a-z]*/[a-z]*.el | sed 's/\.el$/.elc/' > /tmp/el
-ls -1 lisp/[a-z]*.elc lisp/[a-z]*/[a-z]*.elc \
-      leim/[a-z]*.elc leim/[a-z]*/[a-z]*.elc > /tmp/elc
-bogosities="`comm -13 /tmp/el /tmp/elc`"
-if [ "${bogosities}" != "" ]; then
-  echo "The following .elc files have no corresponding .el files:"
-  echo "${bogosities}"
-fi
-rm -f /tmp/el /tmp/elc
-
-### Check for .el files with no corresponding .elc file.
-((cd lisp; ls -1 [a-z]*.el [a-z]*/[a-z]*.el)
- (cd leim; ls -1 [a-z]*.el [a-z]*/[a-z]*.el)) > /tmp/el
-((cd lisp; ls -1 [a-z]*.elc [a-z]*/[a-z]*.elc)
- (cd leim; ls -1 [a-z]*.elc [a-z]*/[a-z]*.elc)) | sed 's/\.elc$/.el/' > /tmp/elc
-losers="`comm -23 /tmp/el /tmp/elc`"
-bogosities=
-for file in $losers; do
-  file1=`echo $file | sed -e "s|.*/||"`
-  if ! grep -q "dontcompilefiles:.* $file1\($\| \)" lisp/Makefile; then
-    case $file in
-      site-init.el | site-load.el | site-start.el | default.el)
-        ;;
-      term/*)
-        ;;
-      *)
-        bogosities="$file $bogosities"
-	;;
-    esac
+### Find where to run Emacs.
+if [ $check = yes ];
+then
+  ### Check for .elc files with no corresponding .el file.
+  ls -1 lisp/[a-z]*.el lisp/[a-z]*/[a-z]*.el \
+	leim/[a-z]*.el leim/[a-z]*/[a-z]*.el | sed 's/\.el$/.elc/' > /tmp/el
+  ls -1 lisp/[a-z]*.elc lisp/[a-z]*/[a-z]*.elc \
+	leim/[a-z]*.elc leim/[a-z]*/[a-z]*.elc > /tmp/elc
+  bogosities="`comm -13 /tmp/el /tmp/elc`"
+  if [ "${bogosities}" != "" ]; then
+    echo "The following .elc files have no corresponding .el files:"
+    echo "${bogosities}"
   fi
-done
-if [ x"${bogosities}" != x"" ]; then
-  echo "The following .el files have no corresponding .elc files:"
-  echo "${bogosities}"
-fi
-rm -f /tmp/el /tmp/elc
+  rm -f /tmp/el /tmp/elc
 
-### Check for .el files that would overflow the 14-char limit if compiled.
-long=`find lisp leim -name '[a-zA-Z0-9]??????????*.el' -print`
-if [ "$long" != "" ]; then
-  echo "The following .el file names are too long:"
-  echo "$long"
+  ### Check for .el files with no corresponding .elc file.
+  ((cd lisp; ls -1 [a-z]*.el [a-z]*/[a-z]*.el)
+   (cd leim; ls -1 [a-z]*.el [a-z]*/[a-z]*.el)) > /tmp/el
+  ((cd lisp; ls -1 [a-z]*.elc [a-z]*/[a-z]*.elc)
+   (cd leim; ls -1 [a-z]*.elc [a-z]*/[a-z]*.elc)) | sed 's/\.elc$/.el/' > /tmp/elc
+  losers="`comm -23 /tmp/el /tmp/elc`"
+  bogosities=
+  for file in $losers; do
+    file1=`echo $file | sed -e "s|.*/||"`
+    if ! grep -q "dontcompilefiles:.* $file1\($\| \)" lisp/Makefile; then
+      case $file in
+	site-init.el | site-load.el | site-start.el | default.el)
+	  ;;
+	term/*)
+	  ;;
+	*)
+	  bogosities="$file $bogosities"
+	  ;;
+      esac
+    fi
+  done
+  if [ x"${bogosities}" != x"" ]; then
+    echo "The following .el files have no corresponding .elc files:"
+    echo "${bogosities}"
+  fi
+  rm -f /tmp/el /tmp/elc
+
+  ### Check for .el files that would overflow the 14-char limit if compiled.
+  long=`find lisp leim -name '[a-zA-Z0-9]??????????*.el' -print`
+  if [ "$long" != "" ]; then
+    echo "The following .el file names are too long:"
+    echo "$long"
+  fi
 fi
 
 ### Make sure configure is newer than configure.in.
@@ -261,7 +270,7 @@ for subdir in lisp site-lisp leim real-leim real-leim/CXTERM-DIC \
 	      real-leim/SKK-DIC real-leim/skk real-leim/quail \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet \
-	      etc etc/e lock cpp info man msdos vms; do
+	      etc etc/e lock info man msdos vms; do
   mkdir ${tempdir}/${subdir}
 done
 
@@ -472,10 +481,6 @@ echo "Making links to \`etc/e'"
  ln `ls -d * | grep -v 'RCS'` ../../${tempdir}/etc/e
  cd ../../${tempdir}/etc/e
  rm -f *~ \#*\# *,v =* core)
-
-echo "Making links to \`cpp'"
-(cd cpp
- ln cccp.c cexp.y Makefile README ../${tempdir}/cpp)
 
 echo "Making links to \`info'"
 # Don't distribute backups or autosaves.
