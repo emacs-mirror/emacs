@@ -150,7 +150,7 @@ The new commands `comint-kill-whole-line' and `comint-kill-region'
 support editing comint buffers with read-only prompts.
 
 `comint-kill-whole-line' is like `kill-whole-line', but ignores both
-read-only and field properties.  Hence, it will always kill entire
+read-only and field properties.  Hence, it always kill entire
 lines, including any prompts.
 
 `comint-kill-region' is like `kill-region', except that it ignores
@@ -164,7 +164,7 @@ kill-ring, but does not delete it.
 ** You can now use next-error (C-x `) and previous-error to advance to
 the next/previous matching line found by M-x occur.
 
-** Telnet will now prompt you for a port number with C-u M-x telnet.
+** Telnet now prompts you for a port number with C-u M-x telnet.
 
 +++
 ** New command line option -Q.
@@ -183,9 +183,9 @@ supplied.  This behavior is analogous to `write-file'.
 ** You can now use Auto Revert mode to `tail' a file.
 If point is at the end of a file buffer before reverting, Auto Revert
 mode keeps it at the end after reverting.  Similarly if point is
-displayed at the end of a file buffer in any window, it will stay at
+displayed at the end of a file buffer in any window, it stays at
 the end of the buffer in that window.  This allows to tail a file:
-just put point at the end of the buffer and it will stay there.  This
+just put point at the end of the buffer and it stays there.  This
 rule applies to file buffers.  For non-file buffers, the behavior may
 be mode dependent.
 
@@ -193,7 +193,7 @@ be mode dependent.
 other potential problems when deciding which non-file buffers to
 revert.  This matters especially if Global Auto Revert mode is enabled
 and `global-auto-revert-non-file-buffers' is non-nil.  Auto Revert
-mode will only revert a non-file buffer if the buffer has a non-nil
+mode only reverts a non-file buffer if the buffer has a non-nil
 `revert-buffer-function' and a non-nil `buffer-stale-function', which
 decides whether the buffer should be reverted.  Currently, this means
 that auto reverting works for Dired buffers (although this may not
@@ -231,7 +231,7 @@ The new file etc/compilation.txt gives examples of each type of message.
 ** M-x grep has been adapted to new compile
 
 Hits are fontified in green, and hits in binary files in orange.  Grep buffers
-can be saved and will again be loaded with the new `grep-mode'.
+can be saved and automatically revisited with the new Grep mode.
 
 ** M-x diff uses diff-mode instead of compilation-mode.
 
@@ -433,7 +433,7 @@ with special modes such as Tar mode.
 
 ** Enhancements to apropos commands:
 
-*** The apropos commands will now accept a list of words to match.
+*** The apropos commands now accept a list of words to match.
 When more than one word is specified, at least two of those words must
 be present for an item to match.  Regular expression matching is still
 available.
@@ -612,7 +612,7 @@ XIM by default, the X resource useXIM can be used to turn it on.
 `file|dir1' and `file|dir2' to `file|dir1/subdir' and `file|dir2/subdir'.
 
 ** If the user visits a file larger than `large-file-warning-threshold',
-Emacs will prompt her for confirmation.
+Emacs prompts her for confirmation.
 
 ** A UTF-7 coding system is available in the library `utf-7'.
 
@@ -689,8 +689,8 @@ directory is used for auto-save files of mail buffers.  It defaults to
 +++
 ** When you are root, and you visit a file whose modes specify
 read-only, the Emacs buffer is now read-only too.  Type C-x C-q if you
-want to make the buffer writable.  (As root, you will in fact be able
-to alter the file.)
+want to make the buffer writable.  (As root, you can in fact alter the
+file.)
 
 ** The new command `revert-buffer-with-coding-system' (C-x RET r)
 revisits the current file using a coding system that you specify.
@@ -712,7 +712,7 @@ in the menu dropped down when you click "Buffers" from the menu bar.
 
 `buffers-menu-show-directories' controls whether the menu displays
 leading directories as part of the file name visited by the buffer.
-If its value is `unless-uniquify', the default, directories will be
+If its value is `unless-uniquify', the default, directories are
 shown unless uniquify-buffer-name-style' is non-nil.  The value of nil
 and t turn the display of directories off and on, respectively.
 
@@ -791,7 +791,7 @@ sets plus some other 8-bit sets, but can be extended.  For instance,
 translation works amongst the Emacs ...-iso8859-... charsets and the
 mule-unicode-... ones.
 
-By default this translation will happen automatically on encoding.
+By default this translation happens automatically on encoding.
 Self-inserting characters are translated to make the input conformant
 with the encoding of the buffer in which it's being used, where
 possible.
@@ -869,7 +869,7 @@ the window edge point is allowed to get before automatic hscrolling
 will horizontally scroll the window.  The default value is 5.
 
 The variable `hscroll-step' determines how many columns automatic
-hscrolling will scroll the window when point gets too close to the
+hscrolling scrolls the window when point gets too close to the
 window edge.  If its value is zero, the default, Emacs scrolls the
 window so as to center point.  If its value is an integer, it says how
 many columns to scroll.  If the value is a floating-point number, it
@@ -1117,8 +1117,8 @@ remove `turn-on-font-lock' from `Info-mode-hook'.
 
 +++
 ** M-x grep now tries to avoid appending `/dev/null' to the command line
-by using GNU grep `-H' option instead.  M-x grep will automatically
-detect whether this is possible or not the first time it is invoked.
+by using GNU grep `-H' option instead.  M-x grep automatically
+detects whether this is possible or not the first time it is invoked.
 When `-H' is used, the grep command line supplied by the user is passed
 unchanged to the system to execute, which allows more complicated
 command lines to be used than was possible before.
@@ -1182,7 +1182,7 @@ counter to the specified source line (the one where point is).
 
 *** The STARTTLS elisp wrapper (starttls.el) can now use GNUTLS
 instead of the OpenSSL based "starttls" tool.  For backwards
-compatibility, it will prefer "starttls", but you can toggle
+compatibility, it prefers "starttls", but you can toggle
 `starttls-use-gnutls' to switch to GNUTLS (or simply remove the
 "starttls" tool).
 
@@ -1217,10 +1217,10 @@ refontification takes place.
 +++
 ** Marking commands extend the region when invoked multiple times.  If
 you hit M-C-SPC (mark-sexp), M-@ (mark-word), M-h (mark-paragraph), or
-C-M-h (mark-defun) repeatedly, the marked region will now be extended
-each time, so you can mark the next two sexps with M-C-SPC M-C-SPC,
-for example.  This feature also works for mark-end-of-sentence, if you
-bind that to a key.
+C-M-h (mark-defun) repeatedly, the marked region extends each time, so
+you can mark the next two sexps with M-C-SPC M-C-SPC, for example.
+This feature also works for mark-end-of-sentence, if you bind that to
+a key.
 
 +++
 ** Some commands do something special in Transient Mark mode when the
@@ -1242,7 +1242,7 @@ C-g.
 
 +++
 ** A prefix argument is no longer required to repeat a jump to a
-previous mark, i.e. C-u C-SPC C-SPC C-SPC ... will cycle through the
+previous mark, i.e. C-u C-SPC C-SPC C-SPC ... cycles through the
 mark ring.  Use C-u C-u C-SPC to set the mark immediately after a jump.
 
 +++
@@ -1449,7 +1449,7 @@ writes tags pointing to the source file.
 *** New option --parse-stdin=FILE.
 This option is mostly useful when calling etags from programs.  It can
 be used (only once) in place of a file name on the command line.  Etags
-will read from standard input and mark the produced tags as belonging to
+reads from standard input and mark the produced tags as belonging to
 the file FILE.
 
 +++
@@ -1757,8 +1757,8 @@ fill-single-word-nobreak-p and fill-french-nobreak-p.
 
 +++
 ** New user option `add-log-always-start-new-record'.
-When this option is enabled, M-x add-change-log-entry will always
-start a new record regardless of when the last record is.
+When this option is enabled, M-x add-change-log-entry always
+starts a new record regardless of when the last record is.
 
 +++
 ** SGML mode has indentation and supports XML syntax.
@@ -1910,13 +1910,13 @@ pass them to Windows to be handled with system-wide functions.
 
 ---
 ** Emacs takes note of colors defined in Control Panel on MS-Windows.
-The Control Panel defines some default colors for applications in
-much the same way as wildcard X Resources do on X.  Emacs now
-adds these colors to the colormap prefixed by System (eg SystemMenu
-for the default Menu background, SystemMenuText for the foreground),
-and uses some of them to initialize some of the default faces.
-`list-colors-display' will show the list of System color names if you
-wish to use them in other faces.
+The Control Panel defines some default colors for applications in much
+the same way as wildcard X Resources do on X.  Emacs now adds these
+colors to the colormap prefixed by System (eg SystemMenu for the
+default Menu background, SystemMenuText for the foreground), and uses
+some of them to initialize some of the default faces.
+`list-colors-display' shows the list of System color names, in case
+you wish to use them in other faces.
 
 +++
 ** Under X11, it is possible to swap Alt and Meta (and Super and Hyper).
@@ -2084,7 +2084,7 @@ this behaviour via the variable kmacro-call-repeat-key and
 kmacro-call-repeat-with-arg.
 
 Keyboard macros can now be debugged and edited interactively.
-C-x C-k SPC will step through the last keyboard macro one key sequence
+C-x C-k SPC steps through the last keyboard macro one key sequence
 at a time, prompting for the actions to take.
 
 ---
@@ -3577,9 +3577,9 @@ it in that buffer.
 properties from surrounding text.
 
 +++
-** `(match-data t)' will append the buffer as a final element of the
-match data if the last match was on a buffer.  `set-match-data' will
-accept this for restoring the match state.
+** The list returned by `(match-data t)' now has the buffer as a final
+element, if the last match was on a buffer.  `set-match-data'
+accepts such a list for restoring the match state.
 
 +++
 ** New function `buffer-local-value'.
