@@ -1561,6 +1561,7 @@ window_loop (type, obj, mini, frames)
 {
   Lisp_Object window, windows, best_window, frame_arg;
   struct frame *f;
+  struct gcpro gcpro1;
   
   /* If we're only looping through windows on a particular frame,
      frame points to that frame.  If we're looping through windows
