@@ -198,7 +198,7 @@ and selects that window."
 			       (setq head (cons
 					   (cons
 					    (format
-					     "%14s   %s"
+					     "%-14s   %s"
 					     (buffer-name elt)
 					     (or (buffer-file-name elt) ""))
 					    elt)
