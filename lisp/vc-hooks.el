@@ -953,7 +953,7 @@ control system name."
 	     (make-local-variable 'backup-inhibited)
 	     (setq backup-inhibited t))))
      ((let* ((link (file-symlink-p buffer-file-name))
-	     (link-type (and link (vc-backend link))))
+	     (link-type (and link (vc-backend (file-chase-links link)))))
 	(if link-type
             (cond ((eq vc-follow-symlinks nil)
                    (message
