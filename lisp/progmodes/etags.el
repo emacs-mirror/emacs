@@ -18,7 +18,13 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-(provide 'tags)
+(provide 'etags)
+
+;;;###autoload
+(defvar tags-file-name nil "\
+*File name of tag table.
+To switch to a new tag table, setting this variable is sufficient.
+Use the `etags' program to make a tag table file.")
 
 (defvar tag-table-files nil
   "List of file names covered by current tag table.
@@ -27,6 +33,7 @@ nil means it has not been computed yet; do (tag-table-files) to compute it.")
 (defvar last-tag nil
   "Tag found by the last find-tag.")
 
+;;;###autoload
 (defun visit-tags-table (file)
   "Tell tags commands to use tag table file FILE.
 FILE should be the name of a file created with the `etags' program.
@@ -78,6 +85,7 @@ File name returned is relative to tag table file's directory."
      (buffer-substring (point)
 		       (progn (beginning-of-line) (point))))))
 
+;;;###autoload
 (defun tag-table-files ()
   "Return a list of files in the current tag table.
 File names returned are absolute."
@@ -128,6 +136,7 @@ File names returned are absolute."
 	      default
 	    spec))))
 
+;;;###autoload
 (defun find-tag (tagname &optional next other-window)
   "Find tag (in current tag table) whose name contains TAGNAME.
  Selects the buffer that the tag is contained in
@@ -186,6 +195,10 @@ See documentation of variable tags-file-name."
   ;; Return t in case used as the tags-loop-form.
   t)
 
+;;;###autoload
+(define-key esc-map "." 'find-tag)
+
+;;;###autoload
 (defun find-tag-other-window (tagname &optional next)
   "Find tag (in current tag table) whose name contains TAGNAME.
  Selects the buffer that the tag is contained in in another window
@@ -201,10 +214,13 @@ See documentation of variable tags-file-name."
 		   '(nil t)
 		   (find-tag-tag "Find tag other window: ")))
   (find-tag tagname next t))
+;;;###autoload
+(define-key ctl-x-4-map "." 'find-tag-other-window)
 
 (defvar next-file-list nil
   "List of files for next-file to process.")
 
+;;;###autoload
 (defun next-file (&optional initialize)
   "Select next file among files in current tag table.
 Non-nil argument (prefix arg, if interactive)
@@ -221,6 +237,7 @@ initializes to the beginning of the list of files in the tag table."
   "Form for tags-loop-continue to eval to process one file.
 If it returns nil, it is through with one file; move on to next.")
 
+;;;###autoload
 (defun tags-loop-continue (&optional first-time)
   "Continue last \\[tags-search] or \\[tags-query-replace] command.
 Used noninteractively with non-nil argument
@@ -233,7 +250,10 @@ to begin such a command.  See variable tags-loop-form."
     (next-file)
     (message "Scanning file %s..." buffer-file-name)
     (goto-char (point-min))))
+;;;###autoload
+(define-key esc-map "," 'tags-loop-continue)
 
+;;;###autoload
 (defun tags-search (regexp)
   "Search through all files listed in tag table for match for REGEXP.
 Stops when a match is found.
@@ -248,6 +268,7 @@ See documentation of variable tags-file-name."
 	  (list 're-search-forward regexp nil t))
     (tags-loop-continue t)))
 
+;;;###autoload
 (defun tags-query-replace (from to &optional delimited)
   "Query-replace-regexp FROM with TO through all files listed in tag table.
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
@@ -263,6 +284,7 @@ See documentation of variable tags-file-name."
 			       (not (null delimited))))))
   (tags-loop-continue t))
 
+;;;###autoload
 (defun list-tags (string)
   "Display list of tags in file FILE.
 FILE should not contain a directory spec
@@ -284,6 +306,7 @@ unless it has one in the tag table."
        (terpri)
        (forward-line 1)))))
 
+;;;###autoload
 (defun tags-apropos (string)
   "Display list of all tags in tag table REGEXP matches."
   (interactive "sTag apropos (regexp): ")
