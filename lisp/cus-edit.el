@@ -1528,10 +1528,12 @@ Insert PREFIX first if non-nil."
       (widget-put widget :buttons buttons))))
 
 (defun custom-add-parent-links (widget)
-  "Add `Parent groups: ...' to WIDGET."
+  "Add `Parent groups: ...' to WIDGET.
+The value if non-nil if there are parents."
   (let ((name (widget-value widget))
 	(type (widget-type widget))
 	(buttons (widget-get widget :buttons))
+	(start (point))
 	found)
     (insert "Parent groups:")
     (mapatoms (lambda (symbol)
@@ -1546,9 +1548,10 @@ Insert PREFIX first if non-nil."
 			    buttons)
 		      (setq found t))))))
     (widget-put widget :buttons buttons)
-    (unless found
-      (insert " (none)"))
-    (insert "\n")))
+    (if found
+	(insert "\n")
+      (delete-region start (point)))
+    found))
 
 ;;; The `custom-variable' Widget.
 
@@ -2506,6 +2509,12 @@ and so forth.  The remaining group tags are shown with
 	   (widget-default-format-handler widget ?h))
 	  ;; Nested style.
 	  (t				;Visible.
+	   ;; Add parent groups references above the group.
+	   (if t    ;;; This should test that the buffer
+		    ;;; was made to display a group.
+	       (when (eq level 1)
+		 (if (custom-add-parent-links widget)
+		     (insert "\n"))))
 	   ;; Create level indicator.
 	   (insert-char ?\  (* custom-buffer-indent (1- level)))
 	   (insert "/- ")
@@ -2541,10 +2550,12 @@ and so forth.  The remaining group tags are shown with
 	   (widget-put widget :buttons buttons)
 	   ;; Insert documentation.
 	   (widget-default-format-handler widget ?h)
-	   ;; Parents and See also.
-	   (when (eq level 1)
-	     (insert-char ?\  custom-buffer-indent)
-	     (custom-add-parent-links widget))
+	   ;; Parent groups.
+	   (if nil  ;;; This should test that the buffer
+		    ;;; was not made to display a group.
+	       (when (eq level 1)
+		 (insert-char ?\  custom-buffer-indent)
+		 (custom-add-parent-links widget)))
 	   (custom-add-see-also widget 
 				(make-string (* custom-buffer-indent level)
 					     ?\ ))
