@@ -1,3 +1,7 @@
+2004-04-03  Andreas Schwab  <schwab@suse.de>
+
+	* diff-mode.el (diff-mode): Fix missing quote.
+
 2004-04-03  Juri Linkov  <juri@jurta.org>
 
 	* descr-text.el (describe-property-list): Add `font-lock-face'.
