@@ -5070,7 +5070,10 @@ detect_coding (coding)
 		  detected |= detected_mask[category];
 		  if ((*(this->detector)) (coding, &mask)
 		      && (mask & (1 << category)))
-		    break;
+		    {
+		      mask = 1 << category;
+		      break;
+		    }
 		}
 	    }
 	  if (! mask)
