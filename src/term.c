@@ -1146,7 +1146,7 @@ insert_glyphs (start, len)
      register int len;
 {
   char *buf;
-  struct glyph *glyph;
+  struct glyph *glyph = NULL;
   struct frame *f, *sf;
 
   if (len <= 0)

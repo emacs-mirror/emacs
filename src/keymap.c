@@ -269,8 +269,7 @@ get_keymap_1 (object, error, autoload)
  end:
   if (error)
     wrong_type_argument (Qkeymapp, object);
-  else
-    return Qnil;
+  return Qnil;
 }
 
 
@@ -1775,10 +1774,10 @@ spaces are put between sequence elements, etc.")
   (keys)
      Lisp_Object keys;
 {
-  int len;
+  int len = 0;
   int i, i_byte;
   Lisp_Object sep;
-  Lisp_Object *args;
+  Lisp_Object *args = NULL;
 
   if (STRINGP (keys))
     {
@@ -2021,6 +2020,7 @@ around function keys and event symbols.")
     return Fcopy_sequence (key);
   else
     error ("KEY must be an integer, cons, symbol, or string");
+  return Qnil;
 }
 
 char *
@@ -2846,6 +2846,8 @@ describe_map (map, keys, elt_describer, partial, shadow, seen, nomenu)
   int first = 1;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
+  suppress = Qnil;
+
   if (!NILP (keys) && XFASTINT (Flength (keys)) > 0)
     {
       /* Call Fkey_description first, to avoid GC bug for the other string.  */
@@ -3026,6 +3028,8 @@ describe_vector (vector, elt_prefix, elt_describer,
   int complete_char;
   int character;
   int starting_i;
+
+  suppress = Qnil;
 
   if (indices == 0)
     indices = (int *) alloca (3 * sizeof (int));

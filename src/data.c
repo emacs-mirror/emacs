@@ -1751,6 +1751,8 @@ or a byte-code object.  IDX starts at 0.")
     {
       Lisp_Object val;
 
+      val = Qnil;
+
       if (idxval < 0)
 	args_out_of_range (array, idx);
       if (idxval < CHAR_TABLE_ORDINARY_SLOTS)
@@ -1821,7 +1823,7 @@ or a byte-code object.  IDX starts at 0.")
     }
   else
     {
-      int size;
+      int size = 0;
       if (VECTORP (array))
 	size = XVECTOR (array)->size;
       else if (COMPILEDP (array))
@@ -2010,7 +2012,7 @@ arithcompare (num1, num2, comparison)
      Lisp_Object num1, num2;
      enum comparison comparison;
 {
-  double f1, f2;
+  double f1 = 0, f2 = 0;
   int floatp = 0;
 
   CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (num1, 0);

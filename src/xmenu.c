@@ -691,11 +691,11 @@ cached information about equivalent key sequences.")
      Lisp_Object position, menu;
 {
   Lisp_Object keymap, tem;
-  int xpos, ypos;
+  int xpos = 0, ypos = 0;
   Lisp_Object title;
   char *error_name;
   Lisp_Object selection;
-  FRAME_PTR f;
+  struct frame *f = NULL;
   Lisp_Object x, y, window;
   int keymaps = 0;
   int for_click = 0;
@@ -899,7 +899,7 @@ on the left of the dialog box and all following items on the right.\n\
   (position, contents)
      Lisp_Object position, contents;
 {
-  FRAME_PTR f;
+  struct frame * f = NULL;
   Lisp_Object window;
 
   check_x ();
@@ -1247,6 +1247,7 @@ menubar_selection_callback (widget, id, client_data)
 
   if (!f)
     return;
+  entry = Qnil;
   subprefix_stack = (Lisp_Object *) alloca (f->menu_bar_items_used * sizeof (Lisp_Object));
   vector = f->menu_bar_vector;
   prefix = Qnil;
@@ -2233,7 +2234,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
     {
       Lisp_Object prefix, entry;
 
-      prefix = Qnil;
+      prefix = entry = Qnil;
       i = 0;
       while (i < menu_items_used)
 	{

@@ -1347,6 +1347,7 @@ replace_range (from, to, new, prepare, inherit, markers)
   CHECK_MARKERS ();
 
   GCPRO1 (new);
+  deletion = Qnil;
 
   if (prepare)
     {

@@ -281,6 +281,7 @@ read_minibuf_noninteractive (map, initial, prompt, backup_n, expflag,
   fprintf (stdout, "%s", XSTRING (prompt)->data);
   fflush (stdout);
 
+  val = Qnil;
   size = 100;
   len = 0;
   line = (char *) xmalloc (size * sizeof *line);
@@ -1046,11 +1047,11 @@ is used to further constrain the set of candidates.")
 {
   Lisp_Object bestmatch, tail, elt, eltstring;
   /* Size in bytes of BESTMATCH.  */
-  int bestmatchsize;
+  int bestmatchsize = 0;
   /* These are in bytes, too.  */
   int compare, matchsize;
   int list = CONSP (alist) || NILP (alist);
-  int index, obsize;
+  int index = 0, obsize = 0;
   int matchcount = 0;
   Lisp_Object bucket, zero, end, tem;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
@@ -1059,7 +1060,7 @@ is used to further constrain the set of candidates.")
   if (!list && !VECTORP (alist))
     return call3 (alist, string, predicate, Qnil);
 
-  bestmatch = Qnil;
+  bestmatch = bucket = Qnil;
 
   /* If ALIST is not a list, set TAIL just for gc pro.  */
   tail = alist;
@@ -1299,7 +1300,7 @@ are ignored unless STRING itself starts with a space.")
   Lisp_Object tail, elt, eltstring;
   Lisp_Object allmatches;
   int list = CONSP (alist) || NILP (alist);
-  int index, obsize;
+  int index = 0, obsize = 0;
   Lisp_Object bucket, tem;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
@@ -1308,7 +1309,7 @@ are ignored unless STRING itself starts with a space.")
     {
       return call3 (alist, string, predicate, Qt);
     }
-  allmatches = Qnil;
+  allmatches = bucket = Qnil;
 
   /* If ALIST is not a list, set TAIL just for gc pro.  */
   tail = alist;
@@ -1809,7 +1810,7 @@ a repetition of this command will exit.")
       return Qnil;
     }
  exit:
-  Fthrow (Qexit, Qnil);
+  return Fthrow (Qexit, Qnil);
   /* NOTREACHED */
 }
 
@@ -2028,6 +2029,8 @@ It can find the completion buffer in `standard-output'.")
 	  int length;
 	  Lisp_Object startpos, endpos;
 
+	  startpos = Qnil;
+
 	  elt = Fcar (tail);
 	  /* Compute the length of this element.  */
 	  if (CONSP (elt))
@@ -2202,14 +2205,14 @@ DEFUN ("self-insert-and-exit", Fself_insert_and_exit, Sself_insert_and_exit, 0, 
   else
     bitch_at_user ();
 
-  Fthrow (Qexit, Qnil);
+  return Fthrow (Qexit, Qnil);
 }
 
 DEFUN ("exit-minibuffer", Fexit_minibuffer, Sexit_minibuffer, 0, 0, "",
   "Terminate this minibuffer argument.")
   ()
 {
-  Fthrow (Qexit, Qnil);
+  return Fthrow (Qexit, Qnil);
 }
 
 DEFUN ("minibuffer-depth", Fminibuffer_depth, Sminibuffer_depth, 0, 0, 0,

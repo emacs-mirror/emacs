@@ -604,7 +604,7 @@ argmatch (argv, argc, sstr, lstr, minlen, valptr, skipptr)
      char **valptr;
      int *skipptr;
 {
-  char *p;
+  char *p = NULL;
   int arglen;
   char *arg;
 
@@ -1506,6 +1506,7 @@ main (argc, argv, envp)
   /* Enter editor command loop.  This never returns.  */
   Frecursive_edit ();
   /* NOTREACHED */
+  return 0;
 }
 
 /* Sort the args so we can find the most important ones

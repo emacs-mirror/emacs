@@ -835,8 +835,8 @@ The return value is the current column.")
   register int multibyte = !NILP (current_buffer->enable_multibyte_characters);
 
   Lisp_Object val;
-  int prev_col;
-  int c;
+  int prev_col = 0;
+  int c = 0;
   int next_boundary;
 
   int pos_byte, end_byte, next_boundary_byte;
@@ -1053,7 +1053,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 
   register int pos;
   int pos_byte;
-  register int c;
+  register int c = 0;
   register int tab_width = XFASTINT (current_buffer->tab_width);
   register int ctl_arrow = !NILP (current_buffer->ctl_arrow);
   register struct Lisp_Char_Table *dp = window_display_table (win);

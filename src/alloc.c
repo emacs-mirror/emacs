@@ -2934,6 +2934,9 @@ mark_maybe_object (obj)
 		}
 	    }
 	  break;
+
+	case Lisp_Int:
+	  break;
 	}
 
       if (mark_p)
@@ -3138,7 +3141,7 @@ static void
 mark_stack ()
 {
   jmp_buf j;
-  int stack_grows_down_p = (char *) &j > (char *) stack_base;
+  volatile int stack_grows_down_p = (char *) &j > (char *) stack_base;
   void *end;
 
   /* This trick flushes the register windows so that all the state of
@@ -3362,8 +3365,8 @@ Does not copy symbols.  Copies strings without text properties.")
     }
   else if (MARKERP (obj))
     error ("Attempt to copy a marker to pure storage");
-  else
-    return obj;
+
+  return obj;
 }
 
 

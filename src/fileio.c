@@ -1973,7 +1973,7 @@ duplicates what `expand-file-name' does.")
   unsigned char *nm;
 
   register unsigned char *s, *p, *o, *x, *endp;
-  unsigned char *target;
+  unsigned char *target = NULL;
   int total = 0;
   int substituted = 0;
   unsigned char *xnm;
@@ -2180,6 +2180,7 @@ duplicates what `expand-file-name' does.")
 
   /* NOTREACHED */
 #endif /* not VMS */
+  return Qnil;
 }
 
 /* A slightly faster and more convenient way to get
@@ -3421,7 +3422,7 @@ actually used.")
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   Lisp_Object handler, val, insval, orig_filename;
   Lisp_Object p;
-  int total;
+  int total = 0;
   int not_regular = 0;
   unsigned char read_buf[READ_BUF_SIZE];
   struct coding_system coding;
@@ -4397,7 +4398,7 @@ This does code conversion according to the value of\n\
 {
   register int desc;
   int failure;
-  int save_errno;
+  int save_errno = 0;
   unsigned char *fn;
   struct stat st;
   int tem;

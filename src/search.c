@@ -1527,7 +1527,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 {
   int direction = ((n > 0) ? 1 : -1);
   register int dirlen;
-  int infinity, limit, k, stride_for_teases;
+  int infinity, limit, k, stride_for_teases = 0;
   register int *BM_tab;
   int *BM_tab_base;
   register unsigned char *cursor, *p_limit;  
@@ -1536,8 +1536,8 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
   int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
 
   unsigned char simple_translate[0400];
-  int translate_prev_byte;
-  int translate_anteprev_byte;
+  int translate_prev_byte = 0;
+  int translate_anteprev_byte = 0;
 
 #ifdef C_ALLOCA
   int BM_tab_space[0400];
@@ -2337,7 +2337,7 @@ since only regular expressions have distinguished subexpressions.")
 	  for (pos_byte = 0, pos = 0; pos_byte < length;)
 	    {
 	      int substart = -1;
-	      int subend;
+	      int subend = 0;
 	      int delbackslash = 0;
 
 	      FETCH_STRING_CHAR_ADVANCE (c, newtext, pos, pos_byte);
@@ -2632,6 +2632,8 @@ to hold all the values, and if INTEGERS is non-nil, no consing is done.")
 
   if (NILP (last_thing_searched))
     return Qnil;
+
+  prev = Qnil;
 
   data = (Lisp_Object *) alloca ((2 * search_regs.num_regs)
 				 * sizeof (Lisp_Object));

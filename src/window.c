@@ -1770,6 +1770,9 @@ window_loop (type, obj, mini, frames)
 		&& NILP (XBUFFER (w->buffer)->name))
 	      abort ();
 	    break;
+
+	  case WINDOW_LOOP_UNUSED:
+	    break;
 	  }
     }
 
@@ -3476,6 +3479,8 @@ shrink_window_lowest_first (w, height)
       Lisp_Object last_child;
       int delta = old_height - height;
       int last_top;
+
+      last_child = Qnil;
       
       /* Find the last child.  We are taking space from lowest windows
 	 first, so we iterate over children from the last child

@@ -180,7 +180,7 @@ magic_file_p (string, string_len, class, escaped_suffix, suffix)
   while (p < string + string_len)
     {
       /* The chunk we're about to stick on the end of result.  */
-      char *next;
+      char *next = NULL;
       int next_len;
 
       if (*p == '%')

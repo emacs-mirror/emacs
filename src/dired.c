@@ -131,7 +131,7 @@ directory_files_internal (directory, full, match, nosort, attrs)
   Lisp_Object list, name, dirfilename;
   Lisp_Object encoded_directory;
   Lisp_Object handler;
-  struct re_pattern_buffer *bufp;
+  struct re_pattern_buffer *bufp = NULL;
   int needsep = 0;
   struct gcpro gcpro1, gcpro2;
 
@@ -389,7 +389,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 {
   DIR *d;
   DIRENTRY *dp;
-  int bestmatchsize, skip;
+  int bestmatchsize = 0, skip;
   register int compare, matchsize;
   unsigned char *p1, *p2;
   int matchcount = 0;
@@ -401,6 +401,8 @@ file_name_completion (file, dirname, all_flag, ver_flag)
   int passcount;
   int count = specpdl_ptr - specpdl;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
+
+  elt = Qnil;
 
 #ifdef VMS
   extern DIRENTRY * readdirver ();

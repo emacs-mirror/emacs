@@ -213,6 +213,7 @@ DEFUN ("cancel-kbd-macro-events", Fcancel_kbd_macro_events,
   ()
 {
   current_kboard->kbd_macro_ptr = current_kboard->kbd_macro_end;
+  return Qnil;
 }
 
 DEFUN ("store-kbd-macro-event", Fstore_kbd_macro_event,
