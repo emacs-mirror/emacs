@@ -1,5 +1,7 @@
 2000-12-14  Kenichi Handa  <handa@etl.go.jp>
 
+	* fns.c (Fmd5): Docstring improved.
+
 	* lisp.h (detect_coding_system): Prototype adjusted.
 
 	* coding.c (ONE_MORE_BYTE_CHECK_MULTIBYTE): New macro.
