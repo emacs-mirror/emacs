@@ -1,6 +1,6 @@
 # impl.gmk.sus8gc: BUILD FOR SUNOS/SPARC v8/GCC PLATFORM
 #
-# $HopeName: MMsrc!sus8gc.gmk(trunk.27) $
+# $HopeName: MMsrc!sus8gc.gmk(trunk.28) $
 # Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved.
 #
 # This is the GNU makefile for platform.sus8gc.
@@ -14,6 +14,7 @@ MPM = assert.c ring.c mpsliban.c mpm.c bt.c \
       mpsioan.c event.c action.c seg.c
 MPMS = sssus8.s
 AMC = amc.c
+AMS = poolams.c
 AWL = poolawl.c
 LO = lo.c
 MRG = poolmrg.c
