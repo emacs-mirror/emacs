@@ -49,15 +49,10 @@
 (global-set-key (concat gud-key-prefix "\C-l") 'gud-refresh)
 (define-key ctl-x-map " " 'gud-break)	;; backward compatibility hack
 
-(defvar gud-massage-args nil)
-(put 'gud-massage-args 'permanent-local t)
 (defvar gud-marker-filter nil)
 (put 'gud-marker-filter 'permanent-local t)
 (defvar gud-find-file nil)
 (put 'gud-find-file 'permanent-local t)
-
-(defun gud-massage-args (&rest args)
-  (apply gud-massage-args args))
 
 (defun gud-marker-filter (&rest args)
   (apply gud-marker-filter args))
@@ -1159,8 +1154,6 @@ comint mode, which see."
 	   (if file-word (funcall massage-args file args) args)))
   ;; Since comint clobbered the mode, we don't set it until now.
   (gud-mode)
-  (make-local-variable 'gud-massage-args)
-  (setq gud-massage-args massage-args)
   (make-local-variable 'gud-marker-filter)
   (setq gud-marker-filter marker-filter)
   (make-local-variable 'gud-find-file)
