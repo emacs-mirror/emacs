@@ -597,7 +597,7 @@ supply if the command inquires which events were used to invoke it.  */)
 	  if (next_event >= key_count)
 	    error ("%s must be bound to an event with parameters",
 		   (SYMBOLP (function)
-		    ? (char *) XSYMBOL (function)->name->data
+		    ? (char *) XSTRING (SYMBOL_NAME (function))->data
 		    : "command"));
 	  args[i] = XVECTOR (keys)->contents[next_event++];
 	  varies[i] = -1;
