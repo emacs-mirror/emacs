@@ -218,12 +218,12 @@
 ;; Append Unicode fonts.
 ;; This may find fonts with more variants (bold, italic) but which don't cover
 ;; many characters.
-(set-fontset-font "fontset-default" '(#x00A0 . #xFFFF)
+(set-fontset-font "fontset-default" '(0 . #xFFFF)
 		  '(nil . "iso10646-1") nil 'append)
 ;; These may find fonts that cover many characters but with fewer variants.
-(set-fontset-font "fontset-default" '(#x00A0 . #xFFFF)
+(set-fontset-font "fontset-default" '(0 . #xFFFF)
 		  '("gnu-unifont" . "iso10646-1") nil 'append)
-(set-fontset-font "fontset-default" '(#x00A0 . #xFFFF)
+(set-fontset-font "fontset-default" '(0 . #xFFFF)
 		  '("mutt-clearlyu" . "iso10646-1") nil 'append)
 
 ;; These are the registered registries/encodings from
@@ -408,80 +408,22 @@
 	))
 
 (defun x-decompose-font-name (pattern)
-  "Decompose PATTERN into XLFD fields and return vector of the fields.
+  "Decompose PATTERN into XLFD fields and return a vector of the fields.
 The length of the vector is 12.
+The FOUNDRY and FAMILY fields are concatinated and stored in the first
+element of the vector.
+The REGISTRY and ENCODING fields are concatinated and stored in the last
+element of the vector.
 
-If PATTERN doesn't conform to XLFD, try to get a full XLFD name from
-X server and use the information of the full name to decompose
-PATTERN.  If no full XLFD name is gotten, return nil."
-  (let (xlfd-fields fontname)
-    (if (string-match xlfd-tight-regexp pattern)
-	(progn
-	  (setq xlfd-fields (make-vector 12 nil))
-	  (dotimes (i 12)
-	    (aset xlfd-fields i (match-string (1+ i) pattern)))
-	  (dotimes (i 12)
-	    (if (string-match "^[*-]+$" (aref xlfd-fields i))
-		(aset xlfd-fields i nil)))
-	  xlfd-fields)
-      (setq fontname (condition-case nil
-			 (x-resolve-font-name pattern)
-		       (error)))
-      (if (and fontname
-	       (string-match xlfd-tight-regexp fontname))
-	  ;; We get a full XLFD name.
-	  (let ((len (length pattern))
-		(i 0)
-		l)
-	    ;; Setup xlfd-fields by the full XLFD name.  Each element
-	    ;; should be a cons of matched index and matched string.
-	    (setq xlfd-fields (make-vector 12 nil))
-	    (dotimes (i 12)
-	      (aset xlfd-fields i
-		    (cons (match-beginning (1+ i))
-			  (match-string (1+ i) fontname))))
-
-	    ;; Replace wild cards in PATTERN by regexp codes.
-	    (setq i 0)
-	    (while (< i len)
-	      (let ((ch (aref pattern i)))
-		(if (= ch ??)
-		    (setq pattern (concat (substring pattern 0 i)
-					  "\\(.\\)"
-					  (substring pattern (1+ i)))
-			  len (+ len 4)
-			  i (+ i 4))
-		  (if (= ch ?*)
-		      (setq pattern (concat (substring pattern 0 i)
-					    "\\(.*\\)"
-					    (substring pattern (1+ i)))
-			    len (+ len 5)
-			    i (+ i 5))
-		    (setq i (1+ i))))))
-
-	    ;; Set each element of xlfd-fields to proper strings.
-	    (if (string-match pattern fontname)
-		;; The regular expression PATTERN matches the full XLFD
-		;; name.  Set elements that correspond to a wild card
-		;; in PATTERN to nil, set the other elements to the
-		;; exact strings in PATTERN.
-		(let ((l (cdr (cdr (match-data)))))
-		  (setq i 0)
-		  (while (< i 12)
-		    (if (or (null l) (< (car (aref xlfd-fields i)) (car l)))
-			(progn
-			  (aset xlfd-fields i (cdr (aref xlfd-fields i)))
-			  (setq i (1+ i)))
-		      (if (< (car (aref xlfd-fields i)) (car (cdr l)))
-			  (progn
-			    (aset xlfd-fields i nil)
-			    (setq i (1+ i)))
-			(setq l (cdr (cdr l)))))))
-	      ;; Set each element of xlfd-fields to the exact string
-	      ;; in the corresponding fields in full XLFD name.
-	      (dotimes (i 12)
-		(aset xlfd-fields i (cdr (aref xlfd-fields i)))))
-	    xlfd-fields)))))
+Return nil if PATTERN doesn't conform to XLFD."
+  (if (string-match xlfd-tight-regexp pattern)
+      (let ((xlfd-fields (make-vector 12 nil)))
+	(dotimes (i 12)
+	  (aset xlfd-fields i (match-string (1+ i) pattern)))
+	(dotimes (i 12)
+	  (if (string-match "^[*-]+$" (aref xlfd-fields i))
+	      (aset xlfd-fields i nil)))
+	xlfd-fields)))
 
 (defun x-compose-font-name (fields &optional reduce)
   "Compose X fontname from FIELDS.
@@ -512,43 +454,20 @@ Value is name of that font."
 
 
 (defun x-complement-fontset-spec (xlfd-fields fontlist)
-  "Complement FONTLIST for charsets based on XLFD-FIELDS and return it.
+  "Complement elements of FONTLIST based on XLFD-FIELDS.
 XLFD-FIELDS is a vector of XLFD (X Logical Font Description) fields.
-FONTLIST is an alist of charsets vs the corresponding font names.
+FONTLIST is an alist of script names vs the corresponding font names.
 
-The fonts are complemented as below.
+The font names are complemented as below.
 
-At first, if FONTLIST doesn't specify a font for ASCII charset,
-generate a font name for the charset from XLFD-FIELDS, and add that
-information to FONTLIST.
-
-Then, replace font names with the corresponding XLFD field vectors
-while substituting default field names for wild cards if they match
-`xlfd-style-regexp'.  The default field names are decided by
-XLFD-FIELDS."
-  (let* ((default-spec (vector (aref xlfd-fields xlfd-regexp-family-subnum)
-			       (aref xlfd-fields xlfd-regexp-weight-subnum)
-			       (aref xlfd-fields xlfd-regexp-slant-subnum)
-			       (aref xlfd-fields xlfd-regexp-swidth-subnum)
-			       (aref xlfd-fields xlfd-regexp-adstyle-subnum)
-			       (aref xlfd-fields xlfd-regexp-registry-subnum)))
-	 (slot (assq 'ascii fontlist))
-	 (ascii-font (cadr slot))
-	 xlfd-ascii)
-    (if ascii-font
-	(progn
-	  (setq ascii-font (x-resolve-font-name ascii-font))
-	  (setcar (cdr slot) ascii-font)
-	  (setq xlfd-ascii (x-decompose-font-name ascii-font))
-	  (dotimes (i 11)
-	    (or (aref xlfd-fields i)
-		(aset xlfd-fields i (aref xlfd-ascii i)))))
-      ;; If font for ASCII is not specified, add it.
-      (setq xlfd-ascii (copy-sequence xlfd-fields))
-      (aset xlfd-ascii xlfd-regexp-registry-subnum "iso8859-1")
-      (setq ascii-font (x-must-resolve-font-name xlfd-ascii))
-      (setq fontlist (cons (list 'ascii ascii-font) fontlist)))
-
+If a font name matches `xlfd-style-regexp', each field of wild card is
+replaced by the corresponding fields in XLFD-FIELDS."
+  (let ((default-spec (vector (aref xlfd-fields xlfd-regexp-family-subnum)
+			      (aref xlfd-fields xlfd-regexp-weight-subnum)
+			      (aref xlfd-fields xlfd-regexp-slant-subnum)
+			      (aref xlfd-fields xlfd-regexp-swidth-subnum)
+			      (aref xlfd-fields xlfd-regexp-adstyle-subnum)
+			      (aref xlfd-fields xlfd-regexp-registry-subnum))))
     (dolist (elt fontlist)
       (let ((name (cadr elt))
 	    font-spec)
@@ -678,61 +597,44 @@ FONTSET-SPEC is a string of the format:
 	FONTSET-NAME,SCRIPT-NAME0:FONT-NAME0,SCRIPT-NAME1:FONT-NAME1, ...
 Any number of SPACE, TAB, and NEWLINE can be put before and after commas.
 
-Optional 2nd argument is ignored.  It exists just for backward
-compatibility.
+When a frame uses the fontset as the `font' parameter, the frame's
+default font name is derived from FONTSET-NAME by substituting
+\"iso8859-1\" for the tail part \"fontset-XXX\".  But, if SCRIPT-NAMEn
+is \"ascii\", use the corresponding FONT-NAMEn as the default font
+name.
 
-If this function attempts to create already existing fontset, error is
-signaled unless the optional 3rd argument NOERROR is non-nil.
+Optional 2nd and 3rd arguments are ignored.  They exist just for
+backward compatibility.
 
 It returns a name of the created fontset.
 
 For backward compatibility, SCRIPT-NAME may be a charset name, in
 which case, the corresponding script is decided by the variable
 `charset-script-alist' (which see)."
-  (if (not (string-match "^[^,]+" fontset-spec))
+  (or (string-match "^[^,]+" fontset-spec)
       (error "Invalid fontset spec: %s" fontset-spec))
   (let ((idx (match-end 0))
 	(name (match-string 0 fontset-spec))
-	xlfd-fields script fontlist ascii-font)
-    (if (query-fontset name)
-	(or noerror
-	    (error "Fontset \"%s\" already exists" name))
-      (setq xlfd-fields (x-decompose-font-name name))
-      (or xlfd-fields
-	  (error "Fontset \"%s\" not conforming to XLFD" name))
+	xlfd-fields script fontlist)
+    (setq xlfd-fields (x-decompose-font-name name))
+    (or xlfd-fields
+	(error "Fontset name \"%s\" not conforming to XLFD" name))
 
-      ;; At first, extract pairs of charset and fontname from FONTSET-SPEC.
-      (while (string-match "[, \t\n]*\\([^:]+\\):\\([^,]+\\)" fontset-spec idx)
-	(setq idx (match-end 0))
-	(setq script (intern (match-string 1 fontset-spec)))
-	(if (or (memq script (char-table-extra-slot char-script-table 0))
-		(setq script (cdr (assq script charset-script-alist))))
-	    (setq fontlist (cons (list script (match-string 2 fontset-spec))
-				 fontlist))))
-      (setq ascii-font (cadr (assq 'ascii fontlist)))
+    ;; At first, extract pairs of charset and fontname from FONTSET-SPEC.
+    (while (string-match "[, \t\n]*\\([^:]+\\):\\([^,]+\\)" fontset-spec idx)
+      (setq idx (match-end 0))
+      (setq script (intern (match-string 1 fontset-spec)))
+      (if (or (eq script 'ascii)
+	      (memq script (char-table-extra-slot char-script-table 0))
+	      (setq script (cdr (assq script charset-script-alist))))
+	  (setq fontlist (cons (list script (match-string 2 fontset-spec))
+			       fontlist))))
 
-      ;; Complement FONTLIST.
-      (setq fontlist (x-complement-fontset-spec xlfd-fields fontlist))
-      (setq name (x-compose-font-name xlfd-fields))
-      (new-fontset name fontlist)
+    ;; Complement FONTLIST.
+    (setq fontlist (x-complement-fontset-spec xlfd-fields fontlist))
 
-      ;; Define the short name alias.
-      (if (and (string-match "fontset-.*$" name)
-	       (not (assoc name fontset-alias-alist)))
-	  (let ((alias (match-string 0 name)))
-	    (or (rassoc alias fontset-alias-alist)
-		(setq fontset-alias-alist
-		      (cons (cons name alias) fontset-alias-alist)))))
-
-      ;; Define the ASCII font name alias.
-      (or ascii-font
-	  (setq ascii-font (cdr (assq 'ascii fontlist))))
-      (or (rassoc ascii-font fontset-alias-alist)
-	  (setq fontset-alias-alist
-		(cons (cons name ascii-font)
-		      fontset-alias-alist))))
-
-    name))
+    ;; Create a fontset.
+    (new-fontset name fontlist)))
 
 (defun create-fontset-from-ascii-font (font &optional resolved-font
 					    fontset-name)
