@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.2 $
+;; Version: $Revision: 1.3 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; 6-Apr-94|$Revision: 1.2 $|
+;; $Date$|$Revision: 1.3 $|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
