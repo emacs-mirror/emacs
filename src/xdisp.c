@@ -2062,14 +2062,17 @@ display_text_line (w, start, vpos, hpos, taboffset)
       unsigned char *p = XSTRING (Voverlay_arrow_string)->data;
       int i;
       int len = XSTRING (Voverlay_arrow_string)->size;
+      int arrow_end;
 
       if (len > width)
 	len = width;
       for (i = 0; i < len; i++)
 	startp[i] = p[i];
-      if (desired_glyphs->used[vpos] <
-	  (len + startp - desired_glyphs->glyphs[vpos]))
-	desired_glyphs->used[vpos] = len + startp - desired_glyphs->glyphs[vpos];
+
+      /* Bug in SunOS 4.1.1 compiler requires this intermediate variable.  */
+      arrow_end = (startp - desired_glyphs->glyphs[vpos]) + len;
+      if (desired_glyphs->used[vpos] < arrow_end)
+	desired_glyphs->used[vpos] = arrow_end;
 
       overlay_arrow_seen = 1;
     }
