@@ -11498,8 +11498,10 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
     {
       if (w == XWINDOW (echo_area_window))
 	new_cursor_type = FRAME_DESIRED_CURSOR (f);
-      else
+      else if (cursor_in_non_selected_windows)
 	new_cursor_type = HOLLOW_BOX_CURSOR;
+      else
+	new_cursor_type = NO_CURSOR;
     }
   else
     {
