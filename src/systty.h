@@ -17,6 +17,9 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+#ifdef HAVE_TERMIOS
+#define HAVE_TCATTR
+#endif
 
 /* Include the proper files.  */
 #ifdef HAVE_TERMIO
@@ -247,7 +250,6 @@ static struct sensemode {
    advantage to using tabs over spaces.  */
 
 
-
 /* For each tty parameter structure that Emacs might want to save and restore,
    - include an element for it in this structure,
    - define a pair of numbered macros to get and set it and return 
@@ -261,7 +263,7 @@ struct emacs_tty {
 
 /* There is always one of the following elements, so there is no need
    for dummy get and set definitions.  */
-#ifdef HAVE_TERMIOS
+#ifdef HAVE_TCATTR
   struct termios main;
 #else
 #ifdef HAVE_TERMIO
@@ -274,10 +276,17 @@ struct emacs_tty {
 #endif
 #endif
 #endif
-
-#ifdef HAVE_TERMIOS
-#define HAVE_TCATTR
+#ifdef TIOCGLTC
+  struct ltchars ltchars;
 #endif
+#ifdef TIOCGETC
+  struct tchars tchars;
+  int lmode;
+#endif
+};
+
+/* Define EMACS_GET_TTY and EMACS_SET_TTY,
+   the macros for reading and setting parts of `struct emacs_tty'.  */
 
 #ifdef HAVE_TCATTR
 
@@ -315,7 +324,6 @@ struct emacs_tty {
 #endif
 
 #ifdef TIOCGLTC
-  struct ltchars ltchars;
 #define EMACS_GET_TTY_2(fd, p)				\
   (ioctl ((fd), TIOCGLTC, &(p)->ltchars) != -1)
 #define EMACS_SET_TTY_2(fd, p, waitp)			\
@@ -326,8 +334,6 @@ struct emacs_tty {
 #endif /* TIOCGLTC */
 
 #ifdef TIOCGETC
-  struct tchars tchars;
-  int lmode;
 #define EMACS_GET_TTY_3(fd, p)				\
   (ioctl ((fd), TIOCGETC, &(p)->tchars) != -1		\
    && ioctl ((fd), TIOCLGET, &(p)->lmode) != -1)
@@ -338,8 +344,6 @@ struct emacs_tty {
 #define EMACS_GET_TTY_3(fd, p) 1
 #define EMACS_SET_TTY_3(fd, p, waitp) 1
 #endif /* TIOCGLTC */
-
-};
 
 /* Define these to be a concatenation of all the EMACS_{GET,SET}_TTY_n
    macros.  */
@@ -352,7 +356,8 @@ struct emacs_tty {
   (EMACS_SET_TTY_1 (fd, tc, waitp)	\
    && EMACS_SET_TTY_2 (fd, tc, waitp)	\
    && EMACS_SET_TTY_3 (fd, tc, waitp))
-
+
+/* Define EMACS_TTY_TABS_OK.  */
 
 #ifdef HAVE_TERMIOS
 
