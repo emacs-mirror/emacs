@@ -242,6 +242,9 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
   :type 'boolean
   :group 'f90)
 
+(defconst f90-xemacs-flag (string-match "XEmacs\\|Lucid" emacs-version)
+  "Non-nil means f90-mode thinks it is running under XEmacs.")
+
 (defconst f90-keywords-re
   (regexp-opt '("allocatable" "allocate" "assign" "assignment" "backspace"
 		"block" "call" "case" "character" "close" "common" "complex"
@@ -441,7 +444,7 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
 
  
 ;; menus
-(if (string-match "XEmacs" emacs-version)
+(if f90-xemacs-flag
     (defvar f90-xemacs-menu
       '("F90"
 	["Indent Subprogram"       f90-indent-subprogram t]
@@ -672,11 +675,8 @@ program\\|select\\|subroutine\\|type\\|where\\|forall\\)\\>")
 
 ;; When compiling under GNU Emacs, load imenu during compilation.  If
 ;; you have 19.22 or earlier, comment this out, or get imenu.
-(and (fboundp 'eval-when-compile)
-     (eval-when-compile
-       (if (not (string-match "XEmacs" emacs-version))
-	   (require 'imenu))
-       ()))
+(or f90-xemacs-flag (eval-when-compile (require 'imenu)))
+
 
 ;; abbrevs have generally two letters, except standard types `c, `i, `r, `t
 (defvar f90-mode-abbrev-table nil)
@@ -829,15 +829,13 @@ with no args, if that value is non-nil."
   (setq normal-auto-fill-function 'f90-do-auto-fill)
   (setq indent-tabs-mode nil)
   ;; Setting up things for font-lock
-  (if (string-match "XEmacs" emacs-version)
-      (progn
-	(put 'f90-mode 'font-lock-keywords-case-fold-search t)
-	(if (and (featurep 'menubar)
-		 current-menubar
-		 (not (assoc "F90" current-menubar)))
-	    (progn
-	      (set-buffer-menubar (copy-sequence current-menubar))
-	      (add-submenu nil f90-xemacs-menu)))))
+  (when f90-xemacs-flag
+    (put 'f90-mode 'font-lock-keywords-case-fold-search t)
+    (when (and (featurep 'menubar)
+             current-menubar
+             (not (assoc "F90" current-menubar)))
+          (set-buffer-menubar (copy-sequence current-menubar))
+          (add-submenu nil f90-xemacs-menu)))
   ;; XEmacs: (Don't need a special case, since both emacsen work alike -sb)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults 
@@ -1227,10 +1225,10 @@ Marks are pushed and highlight (grey shadow) is turned on."
     (goto-char pos)
     (setq program (f90-beginning-of-subprogram))
     ;; The keywords in the preceding lists assume case-insensitivity.
-    (if (string-match "XEmacs" emacs-version)
+    (if f90-xemacs-flag
 	(zmacs-activate-region)
-      (setq mark-active t)
-      (setq deactivate-mark nil))
+      (setq mark-active t
+            deactivate-mark nil))
     program))
 
 (defun f90-comment-region (beg-region end-region)
@@ -1399,7 +1397,7 @@ If run in the middle of a line, the line is not broken."
     (goto-char save-point)
     (set-marker end-region-mark nil)
     (set-marker save-point nil)
-    (if (string-match "XEmacs" emacs-version)
+    (if f90-xemacs-flag
 	(zmacs-deactivate-region)
       (deactivate-mark))))
 
@@ -1512,7 +1510,7 @@ is non-nil, call `f90-update-line' after inserting the continuation marker."
 			(zerop (forward-line 1))))
       (setq f90-cache-position (point)))
     (setq f90-cache-position nil)
-    (if (string-match "XEmacs" emacs-version)
+    (if f90-xemacs-flag
 	(zmacs-deactivate-region)
       (deactivate-mark))))
 
@@ -1615,15 +1613,14 @@ Any other key combination is executed normally."
   (interactive)
   (let (e c)
     (insert last-command-char)
-    (if (string-match "XEmacs" emacs-version)
-	(progn
-	  (setq e (next-command-event))
-	  (setq c (event-to-character e)))
-      (setq c (read-event)))
+    (if (not f90-xemacs-flag)
+        (setq c (read-event))
+      (setq e (next-command-event)
+            c (event-to-character e)))
     ;; insert char if not equal to `?'
     (if (or (eq c ??) (eq c help-char))
 	(f90-abbrev-help)
-      (if (string-match "XEmacs" emacs-version)
+      (if f90-xemacs-flag
 	  (setq unread-command-event e)
 	(setq unread-command-events (list c))))))
 
