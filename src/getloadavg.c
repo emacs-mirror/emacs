@@ -732,6 +732,16 @@ getloadavg (loadavg, nelem)
        : (load_ave.tl_avenrun.l[0] / (double) load_ave.tl_lscale));
 #endif	/* OSF_MIPS */
 
+#if !defined (LDAV_DONE) && defined(MSDOS)
+#define LDAV_DONE
+
+  /* A faithful emulation is going to have to be saved for a rainy day.  */
+  for ( ; elem < nelem; elem++) 
+    {
+      loadavg[elem] = 0.0;
+    }
+#endif  /* MSDOS */
+
 #if !defined (LDAV_DONE) && defined (OSF_ALPHA)
 #define LDAV_DONE
 
