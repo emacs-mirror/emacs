@@ -35,6 +35,11 @@ Emacs with Leim.
 
 * Changes in Emacs 21.3
 
+** Limited support for charset unification has been added.
+By default, Emacs now knows how to translate latin-N chars between their
+charset and some other latin-N charset or unicode.  You can force a
+more complete unification by calling (unify-8859-on-decoding-mode 1).
+
 ** The scrollbar under Motif has a smoother drag-scrolling.
 On the other hand, the size of the thumb does not represent the actual
 amount of text shown any more (only a crude approximation of it).
