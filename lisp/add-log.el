@@ -49,7 +49,7 @@ This defaults to the value of `user-mail-address'.")
 (defvar change-log-font-lock-keywords
   '(("^[SMTWF].+" . font-lock-function-name-face)	; Date line.
     ("^\t\\* \\([^ :\n]+\\)" 1 font-lock-comment-face)	; File name.
-    ("\(\\([^)\n]+\\)\)" 1 font-lock-keyword-face))	; Function name.
+    ("(\\([^)\n]+\\)):" 1 font-lock-keyword-face))	; Function name.
   "Additional expressions to highlight in Change Log mode.")
 
 (defvar change-log-mode-map nil
