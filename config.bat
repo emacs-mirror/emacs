@@ -16,8 +16,9 @@ rem   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 rem   GNU General Public License for more details.
 
 rem   You should have received a copy of the GNU General Public License
-rem   along with GNU Emacs; see the file COPYING.  If not, write to
-rem   the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+rem   along with GNU Emacs; see the file COPYING.  If not, write to the
+rem   Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+rem   Boston, MA 02111-1307, USA.
 rem   ----------------------------------------------------------------------
 rem   YOU'LL NEED THE FOLLOWING UTILITIES TO MAKE EMACS:
 rem
