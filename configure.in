@@ -997,7 +997,8 @@ AC_TRY_COMPILE([#ifdef TIME_WITH_SYS_TIME
   [AC_MSG_RESULT(yes)
    HAVE_TIMEVAL=yes
    AC_DEFINE(HAVE_TIMEVAL)],
-  AC_MSG_RESULT(no))
+  [AC_MSG_RESULT(no)
+   HAVE_TIMEVAL=no])
 
 dnl checks for structure members
 AC_STRUCT_TM
