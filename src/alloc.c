@@ -2006,6 +2006,9 @@ mark_object (argptr)
 	mark_object (&ptr->plist);
 	XSETTYPE (*(Lisp_Object *) &ptr->name, Lisp_String);
 	mark_object (&ptr->name);
+	/* Note that we do not mark the obarray of the symbol.
+	   It is safe not to do so because nothing accesses that
+	   slot except to check whether it is nil.  */
 	ptr = ptr->next;
 	if (ptr)
 	  {
