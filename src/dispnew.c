@@ -797,14 +797,16 @@ adjust_glyph_matrix (w, matrix, x, y, dim)
 	      && matrix->window_top_y == XFASTINT (w->top)
 	      && matrix->window_width == window_width)
 	    {
-	      i = 0;
-	      while (matrix->rows[i].enabled_p
-		     && (MATRIX_ROW_BOTTOM_Y (matrix->rows + i)
-			 < matrix->window_height))
-		++i;
+	      /* Find the last row in the window.  */
+	      for (i = 0; i < matrix->nrows && matrix->rows[i].enabled_p; ++i)
+		if (MATRIX_ROW_BOTTOM_Y (matrix->rows + i) >= window_height)
+		  {
+		    ++i;
+		    break;
+		  }
 
 	      /* Window end is invalid, if inside of the rows that
-		 are invalidated.  */
+		 are invalidated below.  */
 	      if (INTEGERP (w->window_end_vpos)
 		  && XFASTINT (w->window_end_vpos) >= i)
 		w->window_end_valid = Qnil;
