@@ -117,8 +117,8 @@ for `jka-compr-compression-info-list')."
   :type 'string
   :group 'jka-compr)
 
-(defvar jka-compr-use-shell t)
-
+(defvar jka-compr-use-shell 
+  (not (memq system-type '(ms-dos windows-nt))))
 
 ;;; I have this defined so that .Z files are assumed to be in unix
 ;;; compress format; and .gz files, in gzip format, and .bz2 files in bzip fmt.
@@ -348,7 +348,10 @@ to keep: LEN chars starting BEG chars from the beginning."
 
 (defcustom jka-compr-temp-name-template
   (expand-file-name "jka-com"
-		    (or (getenv "TMPDIR") "/tmp/"))
+		    (if (memq system-type '(ms-dos windows-nt))
+			(concat (or (getenv "TEMP") (getenv "TMP") "c:/temp") 
+				"/")
+		      (or (getenv "TMPDIR") "/tmp/")))
   "Prefix added to all temp files created by jka-compr.
 There should be no more than seven characters after the final `/'."
   :type 'string
