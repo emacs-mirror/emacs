@@ -2254,8 +2254,8 @@ duplicates what `expand-file-name' does.  */)
 	       convert what we substitute into multibyte.  */
 	    while (*o)
 	      {
-		int c = unibyte_char_to_multibyte (*o);
-		o++;
+		int c = *o++;
+		c = unibyte_char_to_multibyte (c);
 		x += CHAR_STRING (c, x);
 	      }
 	  }
