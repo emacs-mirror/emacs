@@ -159,7 +159,7 @@ Values other than these four will be interpreted as `signal'.")
 (defvar hs-special-modes-alist 
   '((c-mode "{" "}" nil nil hs-c-like-adjust-block-beginning)
     (c++-mode "{" "}" "/[*/]" nil hs-c-like-adjust-block-beginning)
-    (java-mode   "\\(\\(\\([ \t]*\\(\\(public\\|private\\|protected\\|abstract\\|static\\|\\final\\)[ \t\n]+\\)+\\(synchronized[ \t\n]*\\)?[a-zA-Z0-9_:]+[ \t\n]*\\(\\[[ \t\n]*\\][ \t\n]*\\)?\\([a-zA-Z0-9_:]+[ \t\n]*\\)([^)]*)\\([ \n\t]+throws[ \t\n][^{]+\\)?\\)\\|\\([ \t]*static[^{]*\\)\\)[ \t\n]*{\\)"  "}"  "/[*/]" java-hs-forward-sexp hs-c-like-adjust-block-beginning))
+    (java-mode   "\\(\\(\\([ \t]*\\(\\(abstract\\|final\\|p\\(r\\(ivate\\|otected\\)\\|ublic\\)\\|static\\)[ \t\n]+\\)+\\(synchronized[ \t\n]*\\)?[a-zA-Z0-9_:]+[ \t\n]*\\(\\[[ \t\n]*\\][ \t\n]*\\)?\\([a-zA-Z0-9_:]+[ \t\n]*\\)([^)]*)\\([ \n\t]+throws[ \t\n][^{]+\\)?\\)\\|\\([ \t]*static[^{]*\\)\\)[ \t\n]*{\\)" java-hs-forward-sexp hs-c-like-adjust-block-beginning))
 ; I tested the java regexp using the following:
 ;(defvar hsj-public)
 ;(defvar hsj-syncronised)
@@ -169,7 +169,12 @@ Values other than these four will be interpreted as `signal'.")
 ;(defvar hsj-throws)
 ;(defvar hsj-static)
 
-;(setq hsj-public "[ \t]*\\(\\(public\\|private\\|protected\\|abstract\\|static\\|\\final\\)[ \t\n]+\\)+")
+;(setq hsj-public 
+;      (concat "[ \t]*\\("
+;	      (regexp-opt '("public" "private" "protected" "abstract" 
+;			    "static" "final") 1)
+;	      "[ \t\n]+\\)+"))
+
 ;(setq hsj-syncronised "\\(synchronized[ \t\n]*\\)?")
 ;(setq hsj-type "[a-zA-Z0-9_:]+[ \t\n]*\\(\\[[ \t\n]*\\][ \t\n]*\\)?")
 ;(setq hsj-fname "\\([a-zA-Z0-9_:]+[ \t\n]*\\)")
@@ -553,7 +558,11 @@ Return point, or nil if top-level."
 
 (defmacro hs-life-goes-on (&rest body)
   "Executes optional BODY iff variable `hs-minor-mode' is non-nil."
-  (list 'if 'hs-minor-mode (cons 'progn body)))
+  (` (let ((inhibit-point-motion-hooks t))
+       (when hs-minor-mode 
+	   (,@ body)))))
+
+(put 'hs-life-goes-on 'edebug-form-spec '(&rest form))
 
 (defun hs-already-hidden-p ()
   "Return non-nil if point is in an already-hidden block, otherwise nil."
