@@ -581,45 +581,43 @@ int
 detect_coding_iso2022 (src, src_end)
      unsigned char *src, *src_end;
 {
-  unsigned char graphic_register[4];
-  unsigned char c, esc_cntl;
+  unsigned char c, g1 = 0;
   int mask = (CODING_CATEGORY_MASK_ISO_7
 	      | CODING_CATEGORY_MASK_ISO_8_1
 	      | CODING_CATEGORY_MASK_ISO_8_2);
-  /* We may look ahead maximum 3 bytes.  */
-  unsigned char *adjusted_src_end = src_end - 3;
+  /* We may look ahead at most 4 bytes.  */
+  unsigned char *adjusted_src_end = src_end - 4;
   int i;
 
-  for (i = 0; i < 4; i++)
-    graphic_register[i] = CHARSET_ASCII;
-
-  while (src < adjusted_src_end)
+  while (src < src_end)
     {
       c = *src++;
       switch (c)
 	{
 	case ISO_CODE_ESC:
-	  if (src >= adjusted_src_end)
+	  if (src >= src_end)
 	    break;
 	  c = *src++;
-	  if (c == '$')
+	  if (src + 2 >= src_end
+	      && ((c >= '(' && c <= '/')
+		  || c == '$' && ((*src >= '(' && *src <= '/')
+				  || (*src >= '@' && *src <= 'B'))))
 	    {
-	      /* Designation of 2-byte character set.  */
-	      if (src >= adjusted_src_end)
-		break;
-	      c = *src++;
+	      /* Valid designation sequence.  */
+	      if (c == ')' || (c == '$' && *src == ')'))
+		g1 = 1;
+	      src++;
+	      break;
 	    }
-	  if ((c >= ')' && c <= '+') || (c >= '-' && c <= '/'))
-	    /* Designation to graphic register 1, 2, or 3.  */
-	    mask &= ~CODING_CATEGORY_MASK_ISO_7;
 	  else if (c == 'N' || c == 'O' || c == 'n' || c == 'o')
 	    return CODING_CATEGORY_MASK_ISO_ELSE;
 	  break;
 
-	case ISO_CODE_SI:
 	case ISO_CODE_SO:
-	  return CODING_CATEGORY_MASK_ISO_ELSE;
-
+	  if (g1)
+	    return CODING_CATEGORY_MASK_ISO_ELSE;
+	  break;
+	  
 	case ISO_CODE_CSI:
 	case ISO_CODE_SS2:
 	case ISO_CODE_SS3:
@@ -636,9 +634,9 @@ detect_coding_iso2022 (src, src_end)
 	      int count = 1;
 
 	      mask &= ~CODING_CATEGORY_MASK_ISO_7;
-	      while (src < adjusted_src_end && *src >= 0xA0)
+	      while (src < src_end && *src >= 0xA0)
 		count++, src++;
-	      if (count & 1 && src < adjusted_src_end)
+	      if (count & 1 && src < src_end)
 		mask &= ~CODING_CATEGORY_MASK_ISO_8_2;
 	    }
 	  break;
@@ -794,6 +792,8 @@ decode_coding_iso2022 (coding, source, destination,
 	  break;
 
 	case ISO_shift_out:
+	  if (CODING_SPEC_ISO_DESIGNATION (coding, 1) < 0)
+	    goto label_invalid_escape_sequence;
 	  CODING_SPEC_ISO_INVOCATION (coding, 0) = 1;
 	  charset0 = CODING_SPEC_ISO_PLANE_CHARSET (coding, 0);
 	  break;
@@ -830,14 +830,10 @@ decode_coding_iso2022 (coding, source, destination,
 	    case '&':		/* revision of following character set */
 	      ONE_MORE_BYTE (c1);
 	      if (!(c1 >= '@' && c1 <= '~'))
-		{
-		  goto label_invalid_escape_sequence;
-		}
+		goto label_invalid_escape_sequence;
 	      ONE_MORE_BYTE (c1);
 	      if (c1 != ISO_CODE_ESC)
-		{
-		  goto label_invalid_escape_sequence;
-		}
+		goto label_invalid_escape_sequence;
 	      ONE_MORE_BYTE (c1);
 	      goto label_escape_sequence;
 
@@ -859,26 +855,34 @@ decode_coding_iso2022 (coding, source, destination,
 		  DECODE_DESIGNATION (c1 - 0x2C, 2, 96, c2);
 		}
 	      else
-		{
-		  goto label_invalid_escape_sequence;
-		}
+		goto label_invalid_escape_sequence;
 	      break;
 
 	    case 'n':		/* invocation of locking-shift-2 */
+	      if (CODING_SPEC_ISO_DESIGNATION (coding, 2) < 0)
+		goto label_invalid_escape_sequence;
 	      CODING_SPEC_ISO_INVOCATION (coding, 0) = 2;
+	      charset0 = CODING_SPEC_ISO_PLANE_CHARSET (coding, 0);
 	      break;
 
 	    case 'o':		/* invocation of locking-shift-3 */
+	      if (CODING_SPEC_ISO_DESIGNATION (coding, 3) < 0)
+		goto label_invalid_escape_sequence;
 	      CODING_SPEC_ISO_INVOCATION (coding, 0) = 3;
+	      charset0 = CODING_SPEC_ISO_PLANE_CHARSET (coding, 0);
 	      break;
 
 	    case 'N':		/* invocation of single-shift-2 */
+	      if (CODING_SPEC_ISO_DESIGNATION (coding, 2) < 0)
+		goto label_invalid_escape_sequence;
 	      ONE_MORE_BYTE (c1);
 	      charset = CODING_SPEC_ISO_DESIGNATION (coding, 2);
 	      DECODE_ISO_CHARACTER (charset, c1);
 	      break;
 
 	    case 'O':		/* invocation of single-shift-3 */
+	      if (CODING_SPEC_ISO_DESIGNATION (coding, 3) < 0)
+		goto label_invalid_escape_sequence;
 	      ONE_MORE_BYTE (c1);
 	      charset = CODING_SPEC_ISO_DESIGNATION (coding, 3);
 	      DECODE_ISO_CHARACTER (charset, c1);
@@ -1246,23 +1250,62 @@ encode_invocation_designation (charset, coding, dst)
 
 /* Produce codes for designation and invocation to reset the graphic
    planes and registers to initial state.  */
-#define ENCODE_RESET_PLANE_AND_REGISTER(eol)				      \
-  do {									      \
-    int reg;								      \
-    if (CODING_SPEC_ISO_INVOCATION (coding, 0) != 0)			      \
-      ENCODE_SHIFT_IN;							      \
-    for (reg = 0; reg < 4; reg++)					      \
-      {									      \
-	if (CODING_SPEC_ISO_INITIAL_DESIGNATION (coding, reg) < 0)	      \
-	  {								      \
-	    if (eol) CODING_SPEC_ISO_DESIGNATION (coding, reg) = -1;	      \
-	  }								      \
-	else if (CODING_SPEC_ISO_DESIGNATION (coding, reg)		      \
-		 != CODING_SPEC_ISO_INITIAL_DESIGNATION (coding, reg))	      \
-	  ENCODE_DESIGNATION						      \
-	    (CODING_SPEC_ISO_INITIAL_DESIGNATION (coding, reg), reg, coding); \
-      }									      \
+#define ENCODE_RESET_PLANE_AND_REGISTER					    \
+  do {									    \
+    int reg;								    \
+    if (CODING_SPEC_ISO_INVOCATION (coding, 0) != 0)			    \
+      ENCODE_SHIFT_IN;							    \
+    for (reg = 0; reg < 4; reg++)					    \
+      if (CODING_SPEC_ISO_INITIAL_DESIGNATION (coding, reg) >= 0	    \
+	  && (CODING_SPEC_ISO_DESIGNATION (coding, reg)			    \
+	      != CODING_SPEC_ISO_INITIAL_DESIGNATION (coding, reg)))	    \
+	ENCODE_DESIGNATION						    \
+	  (CODING_SPEC_ISO_INITIAL_DESIGNATION (coding, reg), reg, coding); \
   } while (0)
+
+int
+encode_designation_at_bol (coding, src, src_end, dstp)
+     struct coding_system *coding;
+     unsigned char *src, *src_end, **dstp;
+{
+  int charset, reg, r[4];
+  unsigned char *dst = *dstp, c;
+  for (reg = 0; reg < 4; reg++) r[reg] = -1;
+  while (src < src_end && (c = *src++) != '\n')
+    {
+      switch (emacs_code_class[c])
+	{
+	case EMACS_ascii_code:
+	  charset = CHARSET_ASCII;
+	  break;
+	case EMACS_leading_code_2:
+	  if (++src >= src_end) continue;
+	  charset = c;
+	  break;
+	case EMACS_leading_code_3:
+	  if ((src += 2) >= src_end) continue;
+	  charset =  (c < LEADING_CODE_PRIVATE_11 ? c : *(src - 2));
+	  break;
+	case EMACS_leading_code_4:
+	  if ((src += 3) >= src_end) continue;
+	  charset = *(src - 3);
+	  break;
+	default:
+	  continue;
+	}
+      reg = CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset);
+      if (r[reg] < 0
+	  && CODING_SPEC_ISO_DESIGNATION (coding, reg) != charset)
+	r[reg] = charset;
+    }
+  if (c != '\n' && !coding->last_block)
+    return -1;
+  for (reg = 0; reg < 4; reg++)
+    if (r[reg] >= 0)
+      ENCODE_DESIGNATION (r[reg], reg, coding);
+  *dstp = dst;
+  return 0;
+}
 
 /* See the above "GENERAL NOTES on `encode_coding_XXX ()' functions".  */
 
@@ -1278,10 +1321,10 @@ encode_coding_iso2022 (coding, source, destination,
   unsigned char *src_end = source + src_bytes;
   unsigned char *dst = destination;
   unsigned char *dst_end = destination + dst_bytes;
-  /* Since the maximum bytes produced by each loop is 6, we subtract 5
+  /* Since the maximum bytes produced by each loop is 20, we subtract 19
      from DST_END to assure overflow checking is necessary only at the
      head of loop.  */
-  unsigned char *adjusted_dst_end = dst_end - 5;
+  unsigned char *adjusted_dst_end = dst_end - 19;
 
   while (src < src_end && dst < adjusted_dst_end)
     {
@@ -1291,9 +1334,22 @@ encode_coding_iso2022 (coding, source, destination,
 	 TWO_MORE_BYTES, and THREE_MORE_BYTES).  In that case, SRC is
 	 reset to SRC_BASE before exiting.  */
       unsigned char *src_base = src;
-      unsigned char c1 = *src++, c2, c3, c4;
+      unsigned char c1, c2, c3, c4;
       int charset;
 
+      if (coding->flags & CODING_FLAG_ISO_DESIGNATE_AT_BOL
+	  && CODING_SPEC_ISO_BOL (coding))
+	{
+	  /* We have to produce destination sequences now.  */
+	  if (encode_designation_at_bol (coding, src, src_end, &dst) < 0)
+	    /* We can't find end of line in the current block.  Let's
+	     repeat encoding starting from the current position
+	     pointed by SRC.  */
+	    break;
+	  CODING_SPEC_ISO_BOL (coding) = 0;
+	}
+
+      c1 = *src++;
       /* If we are seeing a component of a composite character, we are
 	 seeing a leading-code specially encoded for composition, or a
 	 composition rule if composing with rule.  We must set C1
@@ -1339,7 +1395,7 @@ encode_coding_iso2022 (coding, source, destination,
 
 	case EMACS_control_code:
 	  if (coding->flags & CODING_FLAG_ISO_RESET_AT_CNTL)
-	    ENCODE_RESET_PLANE_AND_REGISTER (0);
+	    ENCODE_RESET_PLANE_AND_REGISTER;
 	  *dst++ = c1;
 	  break;
 
@@ -1347,7 +1403,7 @@ encode_coding_iso2022 (coding, source, destination,
 	  if (!coding->selective)
 	    {
 	      if (coding->flags & CODING_FLAG_ISO_RESET_AT_CNTL)
-		ENCODE_RESET_PLANE_AND_REGISTER (0);
+		ENCODE_RESET_PLANE_AND_REGISTER;
 	      *dst++ = c1;
 	      break;
 	    }
@@ -1355,7 +1411,11 @@ encode_coding_iso2022 (coding, source, destination,
 
 	case EMACS_linefeed_code:
 	  if (coding->flags & CODING_FLAG_ISO_RESET_AT_EOL)
-	    ENCODE_RESET_PLANE_AND_REGISTER (1);
+	    ENCODE_RESET_PLANE_AND_REGISTER;
+	  if (coding->flags & CODING_FLAG_ISO_INIT_AT_BOL)
+	    bcopy (coding->spec.iso2022.initial_designation,
+		   coding->spec.iso2022.current_designation,
+		   sizeof coding->spec.iso2022.initial_designation);
 	  if (coding->eol_type == CODING_EOL_LF
 	      || coding->eol_type == CODING_EOL_AUTOMATIC)
 	    *dst++ = ISO_CODE_LF;
@@ -1363,6 +1423,7 @@ encode_coding_iso2022 (coding, source, destination,
 	    *dst++ = ISO_CODE_CR, *dst++ = ISO_CODE_LF;
 	  else
 	    *dst++ = ISO_CODE_CR;
+	  CODING_SPEC_ISO_BOL (coding) = 1;
 	  break;
 
 	case EMACS_leading_code_2:
@@ -1418,7 +1479,7 @@ encode_coding_iso2022 (coding, source, destination,
      the text although they are not valid characters.  */
   if (coding->last_block)
     {
-      ENCODE_RESET_PLANE_AND_REGISTER (1);
+      ENCODE_RESET_PLANE_AND_REGISTER;
       bcopy(src, dst, src_end - src);
       dst += (src_end - src);
       src = src_end;
@@ -1985,11 +2046,10 @@ encode_eol (coding, source, destination, src_bytes, dst_bytes, consumed)
    return 0.  */
 
 int
-setup_coding_system (coding_system_symbol, coding)
-     Lisp_Object coding_system_symbol;
+setup_coding_system (coding_system, coding)
+     Lisp_Object coding_system;
      struct coding_system *coding;
 {
-  Lisp_Object coding_system_vector = Qnil;
   Lisp_Object type, eol_type;
 
   /* At first, set several fields default values.  */
@@ -1999,44 +2059,28 @@ setup_coding_system (coding_system_symbol, coding)
   coding->composing = 0;
   coding->direction = 0;
   coding->carryover_size = 0;
-  coding->symbol = Qnil;
   coding->post_read_conversion = coding->pre_write_conversion = Qnil;
 
-  /* Get value of property `coding-system'.  If it is a Lisp symbol
-     pointing another coding system, fetch its property until we get a
-     vector.  */
-  while (!NILP (coding_system_symbol))
-    {
-      coding->symbol = coding_system_symbol;
-      if (NILP (coding->post_read_conversion))
-	coding->post_read_conversion = Fget (coding_system_symbol,
-					     Qpost_read_conversion);
-      if (NILP (coding->pre_write_conversion))
-	coding->pre_write_conversion = Fget (coding_system_symbol,
-					     Qpre_write_conversion);
-
-      coding_system_vector = Fget (coding_system_symbol, Qcoding_system);
-      if (VECTORP (coding_system_vector))
-	break;
-      coding_system_symbol = coding_system_vector;
-    }
-  Vlast_coding_system_used = coding->symbol;
-
-  if (!VECTORP (coding_system_vector)
-      || XVECTOR (coding_system_vector)->size != 5)
-    goto label_invalid_coding_system;
-
-  /* Get value of property `eol-type' by searching from the root
-     coding-system.  */
-  coding_system_symbol = coding->symbol;
+  Vlast_coding_system_used = coding->symbol = coding_system;
   eol_type = Qnil;
-  while (SYMBOLP (coding_system_symbol) && !NILP (coding_system_symbol))
+  /* Get value of property `coding-system' until we get a vector.
+     While doing that, also get values of properties
+     `post-read-conversion', `pre-write-conversion', and `eol-type'.  */
+  while (!NILP (coding_system) && SYMBOLP (coding_system))
     {
-      eol_type = Fget (coding_system_symbol, Qeol_type);
-      if (!NILP (eol_type))
-	break;
-      coding_system_symbol = Fget (coding_system_symbol, Qcoding_system);
+      if (NILP (coding->post_read_conversion))
+	coding->post_read_conversion = Fget (coding_system,
+					     Qpost_read_conversion);
+      if (NILP (coding->pre_write_conversion))	
+	coding->pre_write_conversion = Fget (coding_system,
+					     Qpre_write_conversion);
+      if (NILP (eol_type))
+	eol_type = Fget (coding_system, Qeol_type);
+      coding_system = Fget (coding_system, Qcoding_system);
     }
+  if (!VECTORP (coding_system)
+      || XVECTOR (coding_system)->size != 5)
+    goto label_invalid_coding_system;
 
   if (VECTORP (eol_type))
     coding->eol_type = CODING_EOL_AUTOMATIC;
@@ -2047,7 +2091,7 @@ setup_coding_system (coding_system_symbol, coding)
   else
     coding->eol_type = CODING_EOL_LF;
 
-  type = XVECTOR (coding_system_vector)->contents[0];
+  type = XVECTOR (coding_system)->contents[0];
   switch (XFASTINT (type))
     {
     case 0:
@@ -2061,7 +2105,7 @@ setup_coding_system (coding_system_symbol, coding)
     case 2:
       coding->type = coding_type_iso2022;
       {
-	Lisp_Object val = XVECTOR (coding_system_vector)->contents[4];
+	Lisp_Object val = XVECTOR (coding_system)->contents[4];
 	Lisp_Object *flags;
 	int i, charset, default_reg_bits = 0;
 
@@ -2078,7 +2122,9 @@ setup_coding_system (coding_system_symbol, coding)
 	     | (NILP (flags[9]) ? 0 : CODING_FLAG_ISO_SINGLE_SHIFT)
 	     | (NILP (flags[10]) ? 0 : CODING_FLAG_ISO_USE_ROMAN)
 	     | (NILP (flags[11]) ? 0 : CODING_FLAG_ISO_USE_OLDJIS)
-	     | (NILP (flags[12]) ? 0 : CODING_FLAG_ISO_NO_DIRECTION));
+	     | (NILP (flags[12]) ? 0 : CODING_FLAG_ISO_NO_DIRECTION)
+	     | (NILP (flags[13]) ? 0 : CODING_FLAG_ISO_INIT_AT_BOL)
+	     | (NILP (flags[14]) ? 0 : CODING_FLAG_ISO_DESIGNATE_AT_BOL));
 
 	/* Invoke graphic register 0 to plane 0.  */
 	CODING_SPEC_ISO_INVOCATION (coding, 0) = 0;
@@ -2087,6 +2133,8 @@ setup_coding_system (coding_system_symbol, coding)
 	  = (coding->flags & CODING_FLAG_ISO_SEVEN_BITS ? -1 : 1);
 	/* Not single shifting at first.  */
 	CODING_SPEC_ISO_SINGLE_SHIFTING(coding) = 0;
+	/* Beginning of buffer should also be regarded as bol. */
+	CODING_SPEC_ISO_BOL(coding) = 1;
 
 	/* Checks FLAGS[REG] (REG = 0, 1, 2 3) and decide designations.
 	   FLAGS[REG] can be one of below:
@@ -2103,7 +2151,8 @@ setup_coding_system (coding_system_symbol, coding)
 	for (i = 0; i < 4; i++)
 	  {
 	    if (INTEGERP (flags[i])
-		&& (charset = XINT (flags[i]), CHARSET_VALID_P (charset)))
+		&& (charset = XINT (flags[i]), CHARSET_VALID_P (charset))
+		|| (charset = get_charset_id (flags[i])) >= 0)
 	      {
 		CODING_SPEC_ISO_INITIAL_DESIGNATION (coding, i) = charset;
 		CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset) = i;
@@ -2119,7 +2168,8 @@ setup_coding_system (coding_system_symbol, coding)
 
 		if (INTEGERP (XCONS (tail)->car)
 		    && (charset = XINT (XCONS (tail)->car),
-			CHARSET_VALID_P (charset)))
+			CHARSET_VALID_P (charset))
+		    || (charset = get_charset_id (XCONS (tail)->car)) >= 0)
 		  {
 		    CODING_SPEC_ISO_INITIAL_DESIGNATION (coding, i) = charset;
 		    CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset) =i;
@@ -2131,7 +2181,8 @@ setup_coding_system (coding_system_symbol, coding)
 		  {
 		    if (INTEGERP (XCONS (tail)->car)
 			&& (charset = XINT (XCONS (tail)->car),
-			    CHARSET_VALID_P (charset)))
+			    CHARSET_VALID_P (charset))
+			|| (charset = get_charset_id (XCONS (tail)->car)) >= 0)
 		      CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
 			= i;
 		    else if (EQ (XCONS (tail)->car, Qt))
@@ -2190,7 +2241,7 @@ setup_coding_system (coding_system_symbol, coding)
     case 3:
       coding->type = coding_type_big5;
       coding->flags
-	= (NILP (XVECTOR (coding_system_vector)->contents[4])
+	= (NILP (XVECTOR (coding_system)->contents[4])
 	   ? CODING_FLAG_BIG5_HKU
 	   : CODING_FLAG_BIG5_ETEN);
       break;
@@ -2198,7 +2249,7 @@ setup_coding_system (coding_system_symbol, coding)
     case 4:
       coding->type = coding_type_ccl;
       {
-	Lisp_Object val = XVECTOR (coding_system_vector)->contents[4];
+	Lisp_Object val = XVECTOR (coding_system)->contents[4];
 	if (CONSP  (val)
 	    && VECTORP (XCONS (val)->car)
 	    && VECTORP (XCONS (val)->cdr))
@@ -2223,6 +2274,8 @@ setup_coding_system (coding_system_symbol, coding)
 
  label_invalid_coding_system:
   coding->type = coding_type_no_conversion;
+  coding->symbol = coding->pre_write_conversion = coding->post_read_conversion
+    = Qnil;
   return -1;
 }
 
@@ -2236,52 +2289,52 @@ setup_coding_system (coding_system_symbol, coding)
 
    	The category for a coding system which has the same code range
 	as Emacs' internal format.  Assigned the coding-system (Lisp
-	symbol) `coding-system-internal' by default.
+	symbol) `internal' by default.
 
    o coding-category-sjis
 
 	The category for a coding system which has the same code range
 	as SJIS.  Assigned the coding-system (Lisp
-	symbol) `coding-system-sjis' by default.
+	symbol) `shift-jis' by default.
 
    o coding-category-iso-7
 
    	The category for a coding system which has the same code range
 	as ISO2022 of 7-bit environment.  Assigned the coding-system
-	(Lisp symbol) `coding-system-junet' by default.
+	(Lisp symbol) `iso-2022-7' by default.
 
    o coding-category-iso-8-1
 
    	The category for a coding system which has the same code range
 	as ISO2022 of 8-bit environment and graphic plane 1 used only
 	for DIMENSION1 charset.  Assigned the coding-system (Lisp
-	symbol) `coding-system-ctext' by default.
+	symbol) `iso-8859-1' by default.
 
    o coding-category-iso-8-2
 
    	The category for a coding system which has the same code range
 	as ISO2022 of 8-bit environment and graphic plane 1 used only
 	for DIMENSION2 charset.  Assigned the coding-system (Lisp
-	symbol) `coding-system-euc-japan' by default.
+	symbol) `euc-japan' by default.
 
    o coding-category-iso-else
 
    	The category for a coding system which has the same code range
 	as ISO2022 but not belongs to any of the above three
 	categories.  Assigned the coding-system (Lisp symbol)
-	`coding-system-iso-2022-ss2-7' by default.
+	`iso-2022-ss2-7' by default.
 
    o coding-category-big5
 
    	The category for a coding system which has the same code range
 	as BIG5.  Assigned the coding-system (Lisp symbol)
-	`coding-system-big5' by default.
+	`cn-big5' by default.
 
    o coding-category-binary
 
    	The category for a coding system not categorized in any of the
 	above.  Assigned the coding-system (Lisp symbol)
-	`coding-system-noconv' by default.
+	`no-conversion' by default.
 
    Each of them is a Lisp symbol and the value is an actual
    `coding-system's (this is also a Lisp symbol) assigned by a user.
@@ -2549,7 +2602,7 @@ encode_coding (coding, source, destination, src_bytes, dst_bytes, consumed)
 	    {
 	      unsigned char *p = destination, *pend = destination + produced;
 	      while (p < pend)
-		if (*p++ = '\015') p[-1] = '\n';
+		if (*p++ == '\015') p[-1] = '\n';
 	    }
 	}
       *consumed = produced;
@@ -2687,23 +2740,26 @@ See document of make-coding-system for coding-system object.")
 
 DEFUN ("read-non-nil-coding-system",
        Fread_non_nil_coding_system, Sread_non_nil_coding_system, 1, 1, 0,
-  "Read a coding-system from the minibuffer, prompting with string PROMPT.")
+  "Read a coding system from the minibuffer, prompting with string PROMPT.")
   (prompt)
      Lisp_Object prompt;
 {
-  return Fintern (Fcompleting_read (prompt, Vobarray, Qcoding_system_vector,
-				    Qt, Qnil, Qnil),
-		  Qnil);
+  Lisp_Object val;
+  do {
+    val = Fcompleting_read (prompt, Vobarray, Qcoding_system_vector,
+			    Qt, Qnil, Qnil);
+  } while (XSTRING (val)->size == 0);
+  return (Fintern (val, Qnil));
 }
 
 DEFUN ("read-coding-system", Fread_coding_system, Sread_coding_system, 1, 1, 0,
-  "Read a coding-system or nil from the minibuffer, prompting with string PROMPT.")
+  "Read a coding system or nil from the minibuffer, prompting with string PROMPT.")
   (prompt)
      Lisp_Object prompt;
 {
-  return Fintern (Fcompleting_read (prompt, Vobarray, Qcoding_system_p,
-				    Qt, Qnil, Qnil),
-		  Qnil);
+  Lisp_Object val = Fcompleting_read (prompt, Vobarray, Qcoding_system_p,
+				      Qt, Qnil, Qnil);
+  return (XSTRING (val)->size == 0 ? Qnil : Fintern (val, Qnil));
 }
 
 DEFUN ("check-coding-system", Fcheck_coding_system, Scheck_coding_system,
@@ -2726,7 +2782,7 @@ DEFUN ("detect-coding-region", Fdetect_coding_region, Sdetect_coding_region,
        2, 2, 0,
   "Detect coding-system of the text in the region between START and END.\n\
 Return a list of possible coding-systems ordered by priority.\n\
-If only ASCII characters are found, it returns `coding-system-automatic'\n\
+If only ASCII characters are found, it returns `automatic-conversion'\n\
  or its subsidiary coding-system according to a detected end-of-line format.")
   (b, e)
      Lisp_Object b, e;
@@ -2744,7 +2800,7 @@ If only ASCII characters are found, it returns `coding-system-automatic'\n\
 
   if (coding_mask == CODING_CATEGORY_MASK_ANY)
     {
-      val = intern ("coding-system-automatic");
+      val = intern ("automatic-conversion");
       if (eol_type != CODING_EOL_AUTOMATIC)
 	{
 	  Lisp_Object val2 = Fget (val, Qeol_type);
@@ -2823,9 +2879,24 @@ shrink_conversion_area (begp, endp, coding, encodep)
 	case coding_type_ccl:
 	  /* We can't skip any data.  */
 	  return;
+	case coding_type_iso2022:
+	  if (coding->flags & CODING_FLAG_ISO_DESIGNATE_AT_BOL)
+	    {
+	      unsigned char *bol = beg_addr; 
+	      while (beg_addr < end_addr && *beg_addr < 0x80)
+		{
+		  beg_addr++;
+		  if (*(beg_addr - 1) == '\n')
+		    bol = beg_addr;
+		}
+	      beg_addr = bol;
+	      goto label_skip_tail;
+	    }
+	  /* fall down ... */
 	default:
 	  /* We can skip all ASCII characters at the head and tail.  */
 	  while (beg_addr < end_addr && *beg_addr < 0x80) beg_addr++;
+	label_skip_tail:
 	  while (beg_addr < end_addr && *(end_addr - 1) < 0x80) end_addr--;
 	  break;
 	}
@@ -2974,8 +3045,8 @@ code_convert_region (b, e, coding, encodep)
 }
 
 Lisp_Object
-code_convert_string (str, coding, encodep)
-     Lisp_Object str;
+code_convert_string (str, coding, encodep, nocopy)
+     Lisp_Object str, nocopy;
      struct coding_system *coding;
      int encodep;
 {
@@ -3014,7 +3085,7 @@ code_convert_string (str, coding, encodep)
 
   if (begp == endp)
     /* We need no conversion.  */
-    return str;
+    return (NILP (nocopy) ? Fcopy_sequence (str) : str);
 
   head_skip = begp - XSTRING (str)->data;
   tail_skip = XSTRING (str)->size - head_skip - (endp - begp);
@@ -3044,8 +3115,10 @@ code_convert_string (str, coding, encodep)
 }
 
 DEFUN ("decode-coding-region", Fdecode_coding_region, Sdecode_coding_region,
-       3, 3, 0,
-  "Decode the text between START and END which is encoded in CODING-SYSTEM.\n\
+       3, 3, "r\nzCoding system: ",
+  "Decode current region by specified coding system.\n\
+When called from a program, takes three arguments:\n\
+START, END, and CODING-SYSTEM.  START END are buffer positions.\n\
 Return length of decoded text.")
   (b, e, coding_system)
      Lisp_Object b, e, coding_system;
@@ -3056,6 +3129,8 @@ Return length of decoded text.")
   CHECK_NUMBER_COERCE_MARKER (e, 1);
   CHECK_SYMBOL (coding_system, 2);
 
+  if (NILP (coding_system))
+    return make_number (XFASTINT (e) - XFASTINT (b));
   if (setup_coding_system (Fcheck_coding_system (coding_system), &coding) < 0)
     error ("Invalid coding-system: %s", XSYMBOL (coding_system)->name->data);
 
@@ -3063,8 +3138,10 @@ Return length of decoded text.")
 }
 
 DEFUN ("encode-coding-region", Fencode_coding_region, Sencode_coding_region,
-       3, 3, 0,
-  "Encode the text between START and END to CODING-SYSTEM.\n\
+       3, 3, "r\nzCoding system: ",
+  "Encode current region by specified coding system.\n\
+When called from a program, takes three arguments:\n\
+START, END, and CODING-SYSTEM.  START END are buffer positions.\n\
 Return length of encoded text.")
   (b, e, coding_system)
      Lisp_Object b, e, coding_system;
@@ -3075,6 +3152,8 @@ Return length of encoded text.")
   CHECK_NUMBER_COERCE_MARKER (e, 1);
   CHECK_SYMBOL (coding_system, 2);
 
+  if (NILP (coding_system))
+    return make_number (XFASTINT (e) - XFASTINT (b));
   if (setup_coding_system (Fcheck_coding_system (coding_system), &coding) < 0)
     error ("Invalid coding-system: %s", XSYMBOL (coding_system)->name->data);
 
@@ -3082,41 +3161,49 @@ Return length of encoded text.")
 }
 
 DEFUN ("decode-coding-string", Fdecode_coding_string, Sdecode_coding_string,
-       2, 2, 0,
-  "Decode STRING which is encoded in CODING-SYSTEM, and return the result.")
-  (string, coding_system)
-     Lisp_Object string, coding_system;
+       2, 3, 0,
+  "Decode STRING which is encoded in CODING-SYSTEM, and return the result.\n\
+Optional arg NOCOPY non-nil means return STRING itself if there's no need\n\
+of decoding.")
+  (string, coding_system, nocopy)
+     Lisp_Object string, coding_system, nocopy;
 {
   struct coding_system coding;
 
   CHECK_STRING (string, 0);
   CHECK_SYMBOL (coding_system, 1);
 
+  if (NILP (coding_system))
+    return (NILP (nocopy) ? Fcopy_sequence (string) : string);
   if (setup_coding_system (Fcheck_coding_system (coding_system), &coding) < 0)
     error ("Invalid coding-system: %s", XSYMBOL (coding_system)->name->data);
 
-  return code_convert_string (string, &coding, 0);
+  return code_convert_string (string, &coding, 0, nocopy);
 }
 
 DEFUN ("encode-coding-string", Fencode_coding_string, Sencode_coding_string,
-       2, 2, 0,
-  "Encode STRING to CODING-SYSTEM, and return the result.")
-  (string, coding_system)
-     Lisp_Object string, coding_system;
+       2, 3, 0,
+  "Encode STRING to CODING-SYSTEM, and return the result.\n\
+Optional arg NOCOPY non-nil means return STRING itself if there's no need\n\
+of encoding.")
+  (string, coding_system, nocopy)
+     Lisp_Object string, coding_system, nocopy;
 {
   struct coding_system coding;
 
   CHECK_STRING (string, 0);
   CHECK_SYMBOL (coding_system, 1);
 
+  if (NILP (coding_system))
+    return (NILP (nocopy) ? Fcopy_sequence (string) : string);
   if (setup_coding_system (Fcheck_coding_system (coding_system), &coding) < 0)
     error ("Invalid coding-system: %s", XSYMBOL (coding_system)->name->data);
 
-  return code_convert_string (string, &coding, 1);
+  return code_convert_string (string, &coding, 1, nocopy);
 }
 
 DEFUN ("decode-sjis-char", Fdecode_sjis_char, Sdecode_sjis_char, 1, 1, 0,
-  "Decode a JISX0208 character of SJIS coding-system-sjis.\n\
+  "Decode a JISX0208 character of shift-jis encoding.\n\
 CODE is the character code in SJIS.\n\
 Return the corresponding character.")
   (code)
@@ -3255,7 +3342,7 @@ For each OPERATION, TARGET is selected from the arguments as below:\n\
 \n\
 The return value is a cons of coding systems for decoding and encoding\n\
 registered in nested alist `coding-system-alist' (which see) at a slot\n\
-corresponding to OPERATION and TARGET.
+corresponding to OPERATION and TARGET.\n\
 If a function symbol is at the slot, return a result of the function call.\n\
 The function is called with one argument, a list of all the arguments.")
   (nargs, args)
@@ -3346,6 +3433,39 @@ init_coding_once ()
   iso_code_class[ISO_CODE_SS3] = ISO_single_shift_3;
   iso_code_class[ISO_CODE_CSI] = ISO_control_sequence_introducer;
 
+  conversion_buffer_size = MINIMUM_CONVERSION_BUFFER_SIZE;
+  conversion_buffer = (char *) xmalloc (MINIMUM_CONVERSION_BUFFER_SIZE);
+
+  setup_coding_system (Qnil, &keyboard_coding);
+  setup_coding_system (Qnil, &terminal_coding);
+}
+
+#ifdef emacs
+
+syms_of_coding ()
+{
+  Qtarget_idx = intern ("target-idx");
+  staticpro (&Qtarget_idx);
+
+  Fput (Qinsert_file_contents, Qtarget_idx, make_number (0));
+  Fput (Qwrite_region, Qtarget_idx, make_number (2));
+
+  Qcall_process = intern ("call-process");
+  staticpro (&Qcall_process);
+  Fput (Qcall_process, Qtarget_idx, make_number (0));
+
+  Qcall_process_region = intern ("call-process-region");
+  staticpro (&Qcall_process_region);
+  Fput (Qcall_process_region, Qtarget_idx, make_number (2));
+
+  Qstart_process = intern ("start-process");
+  staticpro (&Qstart_process);
+  Fput (Qstart_process, Qtarget_idx, make_number (2));
+
+  Qopen_network_stream = intern ("open-network-stream");
+  staticpro (&Qopen_network_stream);
+  Fput (Qopen_network_stream, Qtarget_idx, make_number (3));
+
   Qcoding_system = intern ("coding-system");
   staticpro (&Qcoding_system);
 
@@ -3388,39 +3508,6 @@ init_coding_once ()
 	      make_number (i));
       }
   }
-
-  conversion_buffer_size = MINIMUM_CONVERSION_BUFFER_SIZE;
-  conversion_buffer = (char *) xmalloc (MINIMUM_CONVERSION_BUFFER_SIZE);
-
-  setup_coding_system (Qnil, &keyboard_coding);
-  setup_coding_system (Qnil, &terminal_coding);
-}
-
-#ifdef emacs
-
-syms_of_coding ()
-{
-  Qtarget_idx = intern ("target-idx");
-  staticpro (&Qtarget_idx);
-
-  Fput (Qinsert_file_contents, Qtarget_idx, make_number (0));
-  Fput (Qwrite_region, Qtarget_idx, make_number (2));
-
-  Qcall_process = intern ("call-process");
-  staticpro (&Qcall_process);
-  Fput (Qcall_process, Qtarget_idx, make_number (0));
-
-  Qcall_process_region = intern ("call-process-region");
-  staticpro (&Qcall_process_region);
-  Fput (Qcall_process_region, Qtarget_idx, make_number (2));
-
-  Qstart_process = intern ("start-process");
-  staticpro (&Qstart_process);
-  Fput (Qstart_process, Qtarget_idx, make_number (2));
-
-  Qopen_network_stream = intern ("open-network-stream");
-  staticpro (&Qopen_network_stream);
-  Fput (Qopen_network_stream, Qtarget_idx, make_number (3));
 
   defsubr (&Scoding_system_vector);
   defsubr (&Scoding_system_p);
@@ -3472,7 +3559,7 @@ If not, an appropriate element in `coding-system-alist' (which see) is used.");
   DEFVAR_LISP ("coding-system-alist", &Vcoding_system_alist,
     "Nested alist to decide a coding system for a specific I/O operation.\n\
 The format is ((OPERATION . ((REGEXP . CODING-SYSTEMS) ...)) ...).\n\
-
+\n\
 OPERATION is one of the following Emacs I/O primitives:\n\
   For file I/O, insert-file-contents and write-region.\n\
   For process I/O, call-process, call-process-region, and start-process.\n\
