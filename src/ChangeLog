@@ -1,6 +1,13 @@
 2002-05-14  Kenichi Handa  <handa@etl.go.jp>
 
+	* coding.c (Fdecode_sjis_char): Fix typo (0x7F->0xFF).  Fix the
+	handling of charset list.
+	(encode_coding_iso_2022): Setup coding->safe_charsets in advance.
+
+	* coding.h (JIS_TO_SJIS): Fix typo (j1->s1, j2->s2).
+
 	* charset.c (Fmake_char): Make it more backward compatible.
+	(Fmap_charset_chars): Fix docstring.
 
 2002-05-13  Dave Love  <fx@gnu.org>
 
