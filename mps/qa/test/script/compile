@@ -129,8 +129,9 @@ sub compile_and_link {
  local($srcfile, $exefile, $linkfiles, $objfile) = @_;
 
  &compiler_settings;
+ unless ($linkfiles) {$linkfiles =""};
  $linkfiles = " ".$linkfiles;
- $linkfiles =~ s/ +/ $obj_dir\//g;
+ $linkfiles =~ s/ +(\S)/ $obj_dir\/$1/g;
  $linkfiles = $linkfiles." ";
  $linkfiles =~ s/\.o /$obj_suffix /g;
  $objfile = "$obj_dir/tmp_obj$obj_suffix";
