@@ -546,26 +546,13 @@ must be t or nil in that case.  A value of `unspecified' is not allowed.
 VALUE is the name of a face from which to inherit attributes, or a list
 of face names.  Attributes from inherited faces are merged into the face
 like an underlying face would be, with higher priority than underlying faces."
-  (setq args (purecopy args))
-  (cond ((null frame)
-	 ;; Change face on all frames.
-	 (dolist (frame (frame-list))
-	   (let ((list args))
-	     (while list
-	       (internal-set-lisp-face-attribute face (car list)
-						 (cadr list) frame)
-	       (setq list (cdr (cdr list))))))
-	 ;; Record that as a default for new frames.
-	 (while args
-	   (internal-set-lisp-face-attribute face (car args)
-					     (cadr args) t)
-	   (setq args (cdr (cdr args)))))
-	(t
-	 (while args
-	   (internal-set-lisp-face-attribute face (car args)
-					     (purecopy (cadr args))
-					     frame)
-	   (setq args (cdr (cdr args)))))))
+  (let ((where (if (null frame) 0 frame)))
+    (setq args (purecopy args))
+    (while args
+      (internal-set-lisp-face-attribute face (car args)
+					(purecopy (cadr args))
+					where)
+      (setq args (cdr (cdr args))))))
 
 
 (defun make-face-bold (face &optional frame noerror)
