@@ -1,3 +1,7 @@
+2001-11-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* progmodes/cpp.el (cpp-choose-face): Fix typo.
+
 2001-11-12  Sam Steingold  <sds@gnu.org>
 
 	* emacs-lisp/cl-indent.el (toplevel): Indent properly
