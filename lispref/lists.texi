@@ -1670,14 +1670,19 @@ the associations of one copy without affecting the other:
 @defun assq-delete-all key alist
 @tindex assq-delete-all
 This function deletes from @var{alist} all the elements whose @sc{car}
-is @code{eq} to @var{key}.  It returns @var{alist}, modified
-in this way.  Note that it modifies the original list structure
-of @var{alist}.
+is @code{eq} to @var{key}, much as if you used @code{delq} to delete
+such each element one by one.  It returns the shortened alist, and
+often modifies the original list structure of @var{alist}.  For
+correct results, use the return value of @code{assq-delete-all} rather
+than looking at the saved value of @var{alist}.
 
 @example
-(assq-delete-all 'foo
-                 '((foo 1) (bar 2) (foo 3) (lose 4)))
+(setq alist '((foo 1) (bar 2) (foo 3) (lose 4)))
+     @result{} ((foo 1) (bar 2) (foo 3) (lose 4))
+(assq-delete-all 'foo alist)
      @result{} ((bar 2) (lose 4))
+alist
+     @result{} ((foo 1) (bar 2) (lose 4))
 @end example
 @end defun
 
