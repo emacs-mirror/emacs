@@ -1,3 +1,8 @@
+2003-05-28  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gud.el (gud-gdb-goto-stackframe, gud-gdb-get-stackframe): Add
+	server prefix to the gdb commands used by the speedbar.
+	
 2003-05-28  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 
 	* simple.el (kill-region): If nothing was killed, and the
