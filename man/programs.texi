@@ -45,13 +45,11 @@ on.
 structure of a function (@pxref{Selective Display}).  This feature
 causes only the lines that are indented less than a specified amount to
 appear on the screen.  Programming modes often support Outline minor
-mode (@pxref{Outline Mode}).  The Foldout package (@pxref{Foldout}) can
-provide convenient folding-editor features on top of the minor mode.
-The Hideshow package (@pxref{Hideshow}) can also be used to display
-bocks of code selectively.
+mode (@pxref{Outline Mode}).  The Foldout package provides
+folding-editor features (@pxref{Foldout}).
 
   The `automatic typing' features may be useful when writing programs.
-@xref{Top, Autotyping, autotype, Features for Automatic Typing}.
+@xref{,Autotyping,, autotype, Autotyping}.
 
 @menu
 * Program Modes::       Major modes for editing programs.
@@ -66,6 +64,7 @@ bocks of code selectively.
 * Symbol Completion::   Completion on symbol names of your program or language.
 * Which Function::      Which Function mode shows which function you are in.
 * Hideshow::            Displaying blocks selectively.
+* Glasses::             Making identifiersLikeThis more readable.
 * Documentation::       Getting documentation of functions you plan to call.
 * Change Log::	        Maintaining a change history for your program.
 * Authors::             Maintaining an @file{AUTHORS} file.
@@ -98,22 +97,26 @@ bocks of code selectively.
 @cindex VHDL mode
 @cindex M4 mode
 @cindex Shell-script mode
+@cindex Delphi mode
+@cindex PostScript mode
   Emacs also has major modes for the programming languages Lisp, Scheme
 (a variant of Lisp) and the Scheme-based DSSSL expression language, Ada,
-Awk, C, C++, Fortran (free and fixed format), Icon, IDLWAVE,
+Awk, C, C++, Delphi (Object Pascal), Fortran (free and fixed format),
+Icon, IDLWAVE,
 Java, Metafont (@TeX{}'s companion for font creation), Modula2,
-Objective-C, Octave, Pascal, Perl, Pike, Prolog, Simula, VHDL, CORBA
-IDL, and Tcl.  There is also a major mode for makefiles, called Makefile
+Objective-C, Octave, Pascal, Perl, Pike, PostScript, Prolog, Simula,
+VHDL, CORBA IDL, and Tcl.
+There is also a major mode for makefiles, called Makefile
 mode.  An alternative mode for Perl is called CPerl mode.  Modes
 are available for scripts for the common Unix shells, VMS DCL and
 MS-DOS/MS-Windows `BAT' files.  In a similar fashion to programming
 languages, modes are provided for editing various sorts of configuration
 files.
 
-Separate manuals are available for th modes for Ada (@pxref{Top, , Ada Mode,
-ada-mode, Ada Mode}), C/C++/Objective C/Java/Corba IDL (@pxref{Top, , CC Mode,
-ccmode, CC Mode}) and the IDLWAVE modes (@pxref{Top, , IDLWAVE,
-idlwave, IDLWAVE User Manual}).
+Separate manuals are available for the modes for Ada (@pxref{Top, , Ada
+Mode, ada-mode, Ada Mode}), C/C++/Objective C/Java/Corba IDL
+(@pxref{Top, , CC Mode, ccmode, CC Mode}) and the IDLWAVE modes
+(@pxref{Top, , IDLWAVE, idlwave, IDLWAVE User Manual}).
 
   Ideally, a major mode should be implemented for each programming
 language that you might want to edit with Emacs; but often the mode for
@@ -1530,7 +1533,24 @@ Specifies what kind of hidden blocks to open in Isearch mode.
 Initializes Hideshow variables for different modes.
 @end table
 
-@node Documentation, Change Log, Hideshow, Programs
+@node Glasses
+@section Glasses minor mode
+@cindex Glasses mode
+@cindex identifiers, unreadable
+@cindex StudlyCaps
+@findex glasses-mode
+
+Glasses minor mode makes @samp{unreadableIdentifiersLikeThis} readable
+by displaying underscores between all the pairs of lower and upper
+English letters or by emboldening the capitals.  The text is not
+altered, only the display, so that you can use this mode on code written
+with such a convention for separating words in identifiers without
+modifying the code.  It can be customized under the group
+@samp{glasses}.  You can use it by adding @code{glasses-mode} to the
+mode hook of appropriate programming modes.
+
+
+@node Documentation
 @section Documentation Commands
 
   As you edit Lisp code to be run in Emacs, the commands @kbd{C-h f}
@@ -1686,7 +1706,10 @@ useful to read manual pages.
 @findex add-change-log-entry-other-window
   The Emacs command @kbd{C-x 4 a} adds a new entry to the change log
 file for the file you are editing
-(@code{add-change-log-entry-other-window}).
+(@code{add-change-log-entry-other-window}).  If that file is actually a
+backup file, it makes an entry appropriate for the file's parent.  This
+is useful for making log entries by comparing a version with deleted
+functions.
 
   A change log file contains a chronological record of when and why you
 have changed a program, consisting of a sequence of entries describing
@@ -1723,7 +1746,10 @@ with whitespace and a star.  Here are two entries, both dated in May
 @end smallexample
 
 @noindent
-(Previous Emacs versions used a different format for the date.)
+(Previous Emacs versions used a different format for the date.  You can
+convert old-style entries to the current format with
+@findex change-log-redate
+@kbd{M-x change-log-redate}.)
 
   One entry can describe several changes; each change should have its
 own item.  Normally there should be a blank line between items.  When
@@ -1798,6 +1824,13 @@ depends on the programming language of the described file.  They
 normally include all functions and subroutines, and may also include
 global variables, data types, and anything else convenient.  Each name
 recorded is called a @dfn{tag}.
+
+@cindex C++ class browser, tags
+@cindex tags, C++
+@cindex class browser, C++
+@cindex Ebrowse
+The Ebrowse is a separate facility tailored for C++, with tags and a
+class browser.  @xref{,,, ebrowse, Ebrowse User's Manual}.
 
 @menu
 * Tag Syntax::		Tag syntax for various types of code and text files.
@@ -2403,7 +2436,7 @@ names in the current tags tables.  @xref{Symbol Completion}.
 @cindex buffer content indexes
 @cindex tags
 
-The Imenu package provides mode-specific indexes of the contents of
+The Imenu facility provides mode-specific indexes of the contents of
 single buffers and provides selection from a menu.  Selecting a menu
 item takes you to the indexed point in the buffer, in a similar way to
 the Tags facility.  Indexing is typically by names of program routines
@@ -2451,7 +2484,7 @@ It's not unusual for programmers to get their signals crossed and modify
 the same program in two different directions.  To recover from this
 confusion, you need to merge the two versions.  Emerge makes this
 easier.  See also @ref{Comparing Files}, for commands to compare
-in a more manual fashion, and @ref{Emerge,,, ediff, The Ediff Manual}.
+in a more manual fashion, and @ref{,Ediff,, ediff, The Ediff Manual}.
 
 @menu
 * Overview of Emerge::	How to start Emerge.  Basic concepts.
@@ -3138,6 +3171,37 @@ click on @samp{[A]pply these settings} (or go to that buffer and type
 Display the syntactic information about the current source line
 (@code{c-show-syntactic-information}).  This is the information that
 directs how the line is indented.
+
+@item M-x cwarn-mode
+@itemx M-x global-cwarn-mode
+@findex cwarn-mode
+@findex global-cwarn-mode
+@cindex CWarn mode
+@cindex suspicious constructions in C, C++
+CWarn minor mode highlights suspicious C and C++ constructions:
+
+@itemize @bullet{}
+@item
+Assignments inside expressions, including variations like @samp{+=};
+@item
+Semicolon following immediately after @samp{if}, @samp{for}, and @samp{while}
+(except after a @samp{do @dots{} while} statement);
+@item
+C++ functions with reference parameters.
+@end itemize
+
+@noindent
+You can activate the mode either by customizing @code{global-cwarn-mode}
+or by adding @code{cwarn-mode} to @code{c-mode-common-hook}.  It
+requires Font Lock mode to be active.
+
+@item M-x hide-ifdef-mode
+@findex hide-ifdef-mode
+@cindex Hide-ifdef mode
+Hide-ifdef minor mode hides selected code within @samp{#if} and
+@samp{#ifdef} preprocessor blocks.  You can activate it by adding
+@code{hide-ifdef-mode} to @code{c-mode-common-hook}.  See the mode's
+help for more information.
 @end table
 
 @node Comments in C
@@ -3175,6 +3239,7 @@ starting delimiter of a block comment on a line by itself.  The default
 value is @code{t}, which puts the comment-start delimiter @samp{/*} at
 the beginning of the first line of the comment text.
 @end table
+
 
 @node Fortran
 @section Fortran Mode
