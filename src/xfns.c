@@ -729,7 +729,6 @@ static Lisp_Object unwind_create_frame P_ ((Lisp_Object));
 static Lisp_Object unwind_create_tip_frame P_ ((Lisp_Object));
 static void x_change_window_heights P_ ((Lisp_Object, int));
 static void x_disable_image P_ ((struct frame *, struct image *));
-static void x_create_im P_ ((struct frame *));
 void x_set_foreground_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
 static void x_set_line_spacing P_ ((struct frame *, Lisp_Object, Lisp_Object));
 static void x_set_wait_for_wm P_ ((struct frame *, Lisp_Object, Lisp_Object));
