@@ -42,7 +42,7 @@
 ;; Alternativnyj coding systems encode both 8859-5 and Unicode.
 ;; ucs-tables.el provides unification for cyrillic-iso-8bit.
 
-;; Customizing `utf-8-fragment-on-decoding' allows decoding characters
+;; Customizing `utf-fragment-on-decoding' allows decoding characters
 ;; from KOI and Alternativnyj into 8859-5 where that's possible.
 ;; cyrillic-iso8859-5 characters take half as much space in the buffer
 ;; as the mule-unicode-0100-24ff equivalents, though that's probably
@@ -130,7 +130,7 @@
       (if (r1 < 128)
 	  (write-repeat r1)
 	((translate-character cyrillic-koi8-r-nonascii-translation-table r0 r1)
-	 (translate-character utf-8-translation-table-for-decode r0 r1)
+	 (translate-character ucs-translation-table-for-decode r0 r1)
 	 (write-multibyte-character r0 r1)
 	 (repeat))))))
   "CCL program to decode KOI8-R.")
@@ -145,7 +145,7 @@
 
 (defun cyrillic-unify-encoding (table)
   "Set up equivalent characters in the encoding TABLE.
-This works wheher or not the table is is Unicode-based or
+This works whether or not the table is Unicode-based or
 8859-5-based.  (Only appropriate for Cyrillic.)"
   (let ((table (get table 'translation-table)))
     (dotimes (i 96)
@@ -175,7 +175,8 @@ This works wheher or not the table is is Unicode-based or
  '(ccl-decode-koi8 . ccl-encode-koi8)
  `((safe-chars . cyrillic-koi8-r-encode-table)
    (mime-charset . koi8-r)
-   (valid-codes (0 . 255))))
+   (valid-codes (0 . 255))
+   (dependency unify-8859-on-encoding-mode unify-8859-on-decoding-mode)))
 
 (define-coding-system-alias 'koi8-r 'cyrillic-koi8)
 (define-coding-system-alias 'koi8 'cyrillic-koi8)
@@ -266,7 +267,7 @@ This works wheher or not the table is is Unicode-based or
       (if (r1 < 128)
 	  (write-repeat r1)
 	((translate-character cyrillic-koi8-u-nonascii-translation-table r0 r1)
-	 (translate-character utf-8-translation-table-for-decode r0 r1)
+	 (translate-character ucs-translation-table-for-decode r0 r1)
 	 (write-multibyte-character r0 r1)
 	 (repeat))))))
   "CCL program to decode KOI8-U.")
@@ -287,7 +288,8 @@ This works wheher or not the table is is Unicode-based or
  '(ccl-decode-koi8-u . ccl-encode-koi8-u)
  `((safe-chars . cyrillic-koi8-u-encode-table)
    (mime-charset . koi8-u)
-   (valid-codes (0 . 255))))
+   (valid-codes (0 . 255))
+   (dependency unify-8859-on-encoding-mode unify-8859-on-decoding-mode)))
 
 (define-ccl-program ccl-encode-koi8-u-font
   `(0
@@ -298,14 +300,14 @@ This works wheher or not the table is is Unicode-based or
 
 (set-language-info-alist
  "Ukrainian" `((coding-system koi8-u)
-	      (coding-priority koi8-u)
+	       (coding-priority koi8-u)
 	       (nonascii-translation
 		. ,(get 'cyrillic-koi8-u-nonascii-translation-table
 			'translation-table))
 	       (input-method . "ukrainian-computer")
-	      (features code-pages)
-	      (documentation
-	       . "Support for Ukrainian with KOI8-U character set."))
+	       (features code-pages)
+	       (documentation
+		. "Support for Ukrainian with KOI8-U character set."))
  '("Cyrillic"))
 
 ;;; ALTERNATIVNYJ stuff
@@ -360,7 +362,7 @@ This works wheher or not the table is is Unicode-based or
 	  (write-repeat r1)
 	((translate-character cyrillic-alternativnyj-nonascii-translation-table
 			      r0 r1)
-	 (translate-character utf-8-translation-table-for-decode r0 r1)
+	 (translate-character ucs-translation-table-for-decode r0 r1)
 	 (write-multibyte-character r0 r1)
 	 (repeat))))))
   "CCL program to decode Alternativnyj.")
@@ -383,7 +385,8 @@ This works wheher or not the table is is Unicode-based or
  '(ccl-decode-alternativnyj . ccl-encode-alternativnyj)
  `((safe-chars . cyrillic-alternativnyj-encode-table)
    (valid-codes (0 . 255))
-   (mime-charset . cp866)))
+   (mime-charset . cp866)
+   (dependency unify-8859-on-encoding-mode unify-8859-on-decoding-mode)))
 
 (define-coding-system-alias 'alternativnyj 'cyrillic-alternativnyj)
 (define-coding-system-alias 'cp866 'cyrillic-alternativnyj)
