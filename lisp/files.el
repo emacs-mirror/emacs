@@ -1283,14 +1283,15 @@ that are visiting the various files."
 	   (progn
 	     (make-local-variable 'backup-inhibited)
 	     (setq backup-inhibited t)))
-      (if rawfile
-	  (progn
-	    (set-buffer-multibyte nil)
-	    (setq buffer-file-coding-system 'no-conversion)
-	    (make-local-variable 'find-file-literally)
-	    (setq find-file-literally t))
-	(after-find-file error (not nowarn)))
-      (current-buffer))))
+      (let ((buffer (current-buffer)))
+	(if rawfile
+	    (progn
+	      (set-buffer-multibyte nil)
+	      (setq buffer-file-coding-system 'no-conversion)
+	      (make-local-variable 'find-file-literally)
+	      (setq find-file-literally t))
+	  (after-find-file error (not nowarn)))
+	buffer))))
 
 (defun insert-file-contents-literally (filename &optional visit beg end replace)
   "Like `insert-file-contents', but only reads in the file literally.
@@ -1472,6 +1473,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.p\\'" . pascal-mode)
      ("\\.pas\\'" . pascal-mode)
      ("\\.ad[abs]\\'" . ada-mode)
+     ("\\.ad[bs].dg\\'" . ada-mode)
      ("\\.\\([pP]\\([Llm]\\|erl\\)\\|al\\)\\'" . perl-mode)
      ("\\.s?html?\\'" . html-mode)
      ("\\.cc\\'" . c++-mode)
