@@ -57,7 +57,7 @@ s/bootstrap-doc/b-doc/
 /^	els=/c\
 	${libsrc}make-docfile -o ${etc}DOC -d ${srcdir} ${SOME_MACHINE_LISP:.elc=.el} ${shortlisp:.elc=.el} ${SOME_MACHINE_OBJECTS} ${obj}
 /^	mv -f emacs/a\
-	stubify emacs\
-	stubedit emacs.exe minstack=1024k\
-	mv -f emacs.exe b-emacs.exe\
-	rm -f temacs.exe
+	stubify b-emacs\
+	stubedit b-emacs.exe minstack=1024k\
+	rm -f emacs.exe temacs.exe
+/^	rm -f/s/\\#/#/
