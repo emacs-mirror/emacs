@@ -829,7 +829,7 @@ to make one entry in the kill ring."
 	     (eq last-command 'kill-region)
 	     (eq beg end)))
     ;; Don't let the undo list be truncated before we can even access it.
-    (let ((undo-high-threshold (+ (- (max beg end) (min beg end)) 100)))
+    (let ((undo-strong-limit (+ (- (max beg end) (min beg end)) 100)))
       (delete-region beg end)
       ;; Take the same string recorded for undo
       ;; and put it in the kill-ring.

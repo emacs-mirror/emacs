@@ -821,7 +821,6 @@ read1 (readcharfun)
 
     case ')':
     case ']':
-    case '.':
       {
 	register Lisp_Object val;
 	XSET (val, Lisp_Internal, c);
@@ -906,6 +905,27 @@ read1 (readcharfun)
 	  return make_string (read_buffer, p - read_buffer);
       }
 
+    case '.':
+      {
+#ifdef LISP_FLOAT_TYPE
+	/* If a period is followed by a number, then we should read it
+	   as a floating point number.  Otherwise, it denotes a dotted
+	   pair.  */
+	int next_char = READCHAR;
+	UNREAD (next_char);
+
+	if (! isdigit (next_char))
+#endif
+	  {
+	    register Lisp_Object val;
+	    XSET (val, Lisp_Internal, c);
+	    return val;
+	  }
+
+	/* Otherwise, we fall through!  Note that the atom-reading loop
+	   below will now loop at least once, assuring that we will not
+	   try to UNREAD two characters in a row.  */
+      }
     default:
       if (c <= 040) goto retry;
       {
@@ -917,7 +937,9 @@ read1 (readcharfun)
 	  while (c > 040 && 
 		 !(c == '\"' || c == '\'' || c == ';' || c == '?'
 		   || c == '(' || c == ')'
-#ifndef LISP_FLOAT_TYPE		/* we need to see <number><dot><number> */
+#ifndef LISP_FLOAT_TYPE
+		   /* If we have floating-point support, then we need
+		      to allow <digits><dot><digits>.  */
 		   || c =='.'
 #endif /* not LISP_FLOAT_TYPE */
 		   || c == '[' || c == ']' || c == '#'
