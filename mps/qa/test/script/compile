@@ -30,18 +30,21 @@ sub compiler_settings {
   $cc_exe = "/Fe";
   $obj_suffix = ".obj";
   $try_command = "";
- } elsif ($PLATFORM =~ "^(sun|sol)") {
-  if ($PLATFORM =~ "^sol") {
+ } elsif ($PLATFORM =~ "^(su|so)") {
+  if ($PLATFORM =~ "^so") {
    $cc_link = "$obj_dir/platform.o -lm";
   } else {
    $cc_link = "$obj_dir/platform.o";
   }
-  $cc_link_opts = "";
+  $cc_link_opts = "-z muldefs";
   $cc_command = "gcc";
   $cc_opts = "-ansi -pedantic -Wall -Wstrict-prototypes ".
    "-Winline -Waggregate-return -Wnested-externs -Wcast-qual ".
    "-Wshadow -Wmissing-prototypes -Wredundant-decls -Wcast-align ".
    "-O -g -ggdb3 -DMMQA_VERS_$INTERFACE_VERSION";
+  if ($PLATFORM = "sos8gp") {
+   $cc_opts = "-pg ".$cc_opts;
+  }
   $cc_include = "-I$testlib_dir -I$MPS_INCLUDE_DIR";
   $cc_conly = "-c";
   $cc_obj = "-o ";
@@ -61,7 +64,7 @@ sub log_settings {
   $stdout_red = ">";
   $err_red = "2>";
   $stdout_dup = "| $script_dir/ntx86bin/tee.exe";
- } elsif ($PLATFORM =~ "^(sun|sol)") {
+ } elsif ($PLATFORM =~ "^(su|so)") {
   $catcommand = "cat";
   $comwrap = "sh -c \"ulimit -c 0; ";
   $comwrapend = "\"";
@@ -75,7 +78,7 @@ sub log_settings {
 
 sub mysystem {
  local ($command) = @_;
- $command =~ s/(\S)\//$1\\/g;
+ # $command =~ s/(\S)\//$1\\/g;
  &debug("SYSTEM >>$command<<");
  system($command);
 }
@@ -136,7 +139,7 @@ sub compile_and_link {
  $linkfiles =~ s/\.o /$obj_suffix /g;
  $objfile = "$obj_dir/tmp_obj$obj_suffix";
 
- $command = "$cc_command $cc_opts $cc_obj$objfile $cc_exe$exefile ".
+ $command = "$cc_command $cc_opts $cc_exe$exefile ".
  "$srcfile $linkfiles $MPS_LINK_OBJ $cc_link $cc_include $cc_link_opts";
  
  if (&mysystem($command)) {
