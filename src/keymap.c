@@ -464,7 +464,7 @@ is not copied.")
 
 	  for (i = 0; i < XVECTOR (elt)->size; i++)
 	    if (XTYPE (XVECTOR (elt)->contents[i]) != Lisp_Symbol
-		&& Fkeymapp (XVECTOR (elt)->contents[i]))
+		&& ! NILP (Fkeymapp (XVECTOR (elt)->contents[i])))
 	      XVECTOR (elt)->contents[i] =
 		Fcopy_keymap (XVECTOR (elt)->contents[i]);
 	}
