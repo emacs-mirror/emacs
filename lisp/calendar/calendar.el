@@ -1,4 +1,5 @@
-;; Calendar functions.
+;;; calendar.el --- Calendar functions.
+
 ;; Copyright (C) 1988, 1989, 1990, 1991 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -737,6 +738,7 @@ sum EXPRESSION."
   "Extract the year part of DATE which has the form (month day year)."
   (` (car (cdr (cdr (, date))))))
 
+;;;###autoload
 (defun calendar (&optional arg)
   "Display a three-month calendar in another window.
 The three months appear side by side, with the current month in the middle
@@ -2567,3 +2569,4 @@ cursor."
 
 (provide 'calendar)
 
+;;; calendar.el ends here

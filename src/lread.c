@@ -500,9 +500,11 @@ readevalloop (readcharfun, stream, evalfun, printflag)
 
 #ifndef standalone
 
-DEFUN ("eval-buffer", Feval_buffer, Seval_buffer, 0, 2, "bBuffer: ",
-  "Execute BUFFER as Lisp code.  If BUFFER is nil, use the current buffer.\n\
-Programs can pass argument PRINTFLAG which controls printing of output:\n\
+DEFUN ("eval-buffer", Feval_buffer, Seval_buffer, 0, 1, "",
+  "Execute the current buffer as Lisp code.\n\
+Programs can pass two arguments, BUFFER and PRINTFLAG.\n\
+BUFFER is the buffer to evaluate (nil means use current buffer).\n\
+PRINTFLAG controls printing of output:\n\
 nil means discard it; anything else is stream for print.\n\
 \n\
 If there is no error, point does not move.  If there is an error,\n\

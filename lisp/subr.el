@@ -165,6 +165,7 @@ Accept any number of arguments, but ignore them."
 (fset 'send-region 'process-send-region)
 (fset 'show-buffer 'set-window-buffer)
 (fset 'buffer-flush-undo 'buffer-disable-undo)
+(fset 'eval-current-buffer 'eval-buffer)
 
 ; alternate names
 (fset 'string= 'string-equal)
