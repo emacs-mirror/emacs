@@ -153,7 +153,7 @@ this:
 
 @example
 (add-hook 'after-init-hook
-          '(lambda () (setq debug-on-error t)))
+          (lambda () (setq debug-on-error t)))
 @end example
 
 @node Infinite Loops

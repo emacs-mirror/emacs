@@ -809,7 +809,7 @@ anonymous function.  Such a list is valid wherever a function name is.
 
 @smallexample
 @group
-(setq silly (append '(lambda (x)) (list (list '+ (* 3 4) 'x))))
+(setq silly (append (lambda (x)) (list (list '+ (* 3 4) 'x))))
 @result{} (lambda (x) (+ 12 x))
 @end group
 @end smallexample
@@ -856,7 +856,7 @@ passing it a function to double a number:
 @example
 @group
 (defun double-property (symbol prop)
-  (change-property symbol prop '(lambda (x) (* 2 x))))
+  (change-property symbol prop (lambda (x) (* 2 x))))
 @end group
 @end example
 
