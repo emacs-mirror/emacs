@@ -5,13 +5,14 @@
 
 2004-06-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* toolbar/alias.pbm toolbar/close.pbm toolbar/copy.pbm toolbar/cut.pbm
-	* toolbar/help.pbm toolbar/home.pbm toolbar/index.pbm
-	* toolbar/jump_to.pbm toolbar/left_arrow.pbm toolbar/new.pbm
-	* toolbar/open.pbm toolbar/paste.pbm toolbar/preferences.pbm
-	* toolbar/print.pbm toolbar/right_arrow.pbm toolbar/save.pbm
-	* toolbar/saveas.pbm toolbar/search.pbm toolbar/spell.pbm
-	* toolbar/undo.pbm toolbar/up_arrow.pbm: New conversions from xpm files.
+	* toolbar/alias.pbm, toolbar/close.pbm, toolbar/copy.pbm,
+	* toolbar/cut.pbm, toolbar/help.pbm, toolbar/home.pbm,
+	* toolbar/index.pbm, toolbar/jump_to.pbm, toolbar/left_arrow.pbm,
+	* toolbar/new.pbm, toolbar/open.pbm, toolbar/paste.pbm,
+	* toolbar/preferences.pbm, toolbar/print.pbm,
+	* toolbar/right_arrow.pbm, toolbar/save.pbm, toolbar/saveas.pbm,
+	* toolbar/search.pbm, toolbar/spell.pbm, toolbar/undo.pbm,
+	* toolbar/up_arrow.pbm: New conversions from xpm files.
 
 	* toolbar/README: New file.
 
@@ -73,11 +74,11 @@
 2004-06-05  Lars Hansen  <larsh@math.ku.dk>
 
 	* dired-x.el (dired-omit-mode): Rename from
-	dired-omit-files-p. Use define-minor-mode to define it.
+	dired-omit-files-p.  Use define-minor-mode to define it.
 	(dired-omit-files-p): Add as alias for dired-omit-mode.
-	(dired-omit-toggle): Delete. Replaced by dired-omit-mode and
+	(dired-omit-toggle): Delete.  Replaced by dired-omit-mode and
 	dired-mark-omitted.
-	(dired-mark-omitted): Add. Bind to M-O.
+	(dired-mark-omitted): Add.  Bind to M-O.
 
 2004-06-05  Kenichi Handa  <handa@m17n.org>
 
