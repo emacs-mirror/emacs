@@ -745,9 +745,9 @@ live buffer.
 @defun other-buffer &optional buffer visible-ok frame
 This function returns the first buffer in the buffer list other than
 @var{buffer}.  Usually this is the buffer selected most recently (in
-frame @var{frame} or else the currently selected frame), aside from
-@var{buffer}.  Buffers whose names start with a space are not considered
-at all.
+frame @var{frame} or else the currently selected frame, @pxref{Input
+Focus}), aside from @var{buffer}.  Buffers whose names start with a
+space are not considered at all.
 
 If @var{buffer} is not supplied (or if it is not a buffer), then
 @code{other-buffer} returns the first buffer in the selected frame's
