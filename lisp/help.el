@@ -101,6 +101,14 @@
 (defun describe-key-briefly (key)
   "Print the name of the function KEY invokes.  KEY is a string."
   (interactive "kDescribe key briefly: ")
+  ;; If this key seq ends with a down event, discard the
+  ;; following click or drag event.  Otherwise that would
+  ;; erase the message.
+  (let ((type (aref key (1- (length key)))))
+    (if (listp type) (setq type (car type)))
+    (and (symbolp type)
+	 (memq 'down (event-modifiers type))
+	 (setq foo (read-event))))
   (let ((defn (key-binding key)))
     (if (or (null defn) (integerp defn))
         (message "%s is undefined" (key-description key))
@@ -127,6 +135,14 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
 (defun describe-key (key)
   "Display documentation of the function invoked by KEY.  KEY is a string."
   (interactive "kDescribe key: ")
+  ;; If this key seq ends with a down event, discard the
+  ;; following click or drag event.  Otherwise that would
+  ;; erase the message.
+  (let ((type (aref key (1- (length key)))))
+    (if (listp type) (setq type (car type)))
+    (and (symbolp type)
+	 (memq 'down (event-modifiers type))
+	 (read-event)))
   (let ((defn (key-binding key)))
     (if (or (null defn) (integerp defn))
         (message "%s is undefined" (key-description key))
