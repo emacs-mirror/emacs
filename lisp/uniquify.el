@@ -111,7 +111,7 @@ would have the following buffer names in the various styles:
 		(const :tag "standard Emacs behavior (nil)" nil))
   :require 'uniquify)
 
-(defcustom uniquify-after-kill-buffer-p nil
+(defcustom uniquify-after-kill-buffer-p t
   "If non-nil, rerationalize buffer names after a buffer has been killed."
   :type 'boolean)
 
@@ -122,7 +122,7 @@ other buffer names are changed."
   :type 'boolean)
 
 ;; The default value matches certain Gnus buffers.
-(defcustom uniquify-ignore-buffers-re "^\\*\\(un\\)?sent "
+(defcustom uniquify-ignore-buffers-re nil
   "*Regular expression matching buffer names that should not be uniquified.
 For instance, set this to \"^draft-[0-9]+$\" to avoid having uniquify rename
 draft buffers even if `uniquify-after-kill-buffer-p' is non-nil and the
@@ -213,7 +213,7 @@ this rationaliztion."
 	    (setf (uniquify-item-dirname (car items))
 		  (uniquify-buffer-file-name
 		   (uniquify-item-buffer (car items))))
-	    ;; This shouldn't happen, but maybe there' no dirname any more.
+	    ;; This shouldn't happen, but maybe there's no dirname any more.
 	    (unless (uniquify-item-dirname (car items))
 	      (with-current-buffer (uniquify-item-buffer (car items))
 		(setq uniquify-managed nil))
