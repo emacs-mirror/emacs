@@ -100,13 +100,16 @@ a definition; actually, the \"definition\" in such a key binding looks like\n\
 \(STRING . REAL-DEFINITION).  To give the menu a title, put a string into\n\
 the keymap as a top-level element.\n\n\
 You can also use a list of keymaps as MENU.\n\
-  Then each keymap makes a separate pane.\n\n\
+  Then each keymap makes a separate pane.\n\
+When MENU is a keymap or a list of keymaps, the return value\n\
+is a list of events.\n\n\
 Alternatively, you can specify a menu of multiple panes\n\
   with a list of the form (TITLE PANE1 PANE2...),\n\
 where each pane is a list of form (TITLE ITEM1 ITEM2...).\n\
 Each ITEM is normally a cons cell (STRING . VALUE);\n\
 but a string can appear as an item--that makes a nonselectable line\n\
-in the menu.")
+in the menu.\n\
+With this form of menu, the return value is VALUE from the chosen item.")
   (position, menu)
      Lisp_Object position, menu;
 {
@@ -117,6 +120,7 @@ in the menu.")
   char ***names;
   int **enables;
   Lisp_Object **obj_list;
+  Lisp_Object *prefixes;
   int *items;
   char *title;
   char *error_name;
@@ -213,7 +217,7 @@ in the menu.")
 
       /* Extract the detailed info to make one pane.  */
       number_of_panes = keymap_panes (&obj_list, &menus, &names, &enables,
-				      &items, maps, nmaps);
+				      &items, &prefixes, maps, nmaps);
       /* The menu title seems to be ignored,
 	 so put it in the pane title.  */
       if (menus[0] == 0)
@@ -225,6 +229,7 @@ in the menu.")
       ltitle = Fcar (menu);
       CHECK_STRING (ltitle, 1);
       title = (char *) XSTRING (ltitle)->data;
+      prefixes = 0;
       number_of_panes = list_of_panes (&obj_list, &menus, &names, &enables,
 				       &items, Fcdr (menu));
     }
@@ -261,8 +266,8 @@ in the menu.")
       abort ();
 
     selection = xmenu_show (root, XMenu_xpos, XMenu_ypos, names, enables,
-			    menus, items, number_of_panes, obj_list, title,
-			    &error_name);
+			    menus, prefixes, items, number_of_panes, obj_list,
+			    title, &error_name);
   }
   UNBLOCK_INPUT;
   /* fprintf (stderr, "selection = %x\n", selection);  */
@@ -298,12 +303,13 @@ struct indices {
 
 Lisp_Object
 xmenu_show (parent, startx, starty, line_list, enable_list, pane_list,
-	    line_cnt, pane_cnt, item_list, title, error)
+	    prefixes, line_cnt, pane_cnt, item_list, title, error)
      Window parent;		
      int startx, starty;	/* upper left corner position BROKEN */
      char **line_list[];   	/* list of strings for items */
      int *enable_list[];   	/* list of strings for items */
      char *pane_list[];		/* list of pane titles */
+     Lisp_Object *prefixes;	/* Prefix key for each pane */
      char *title;
      int pane_cnt;		/* total number of panes */
      Lisp_Object *item_list[];	/* All items */
@@ -405,6 +411,12 @@ xmenu_show (parent, startx, starty, line_list, enable_list, pane_list,
       fprintf (stderr, "pane= %d line = %d\n", panes, selidx);
 #endif
       entry = item_list[panes][selidx];
+      if (prefixes != 0)
+	{
+	  entry = Fcons (entry, Qnil);
+	  if (!NILP (prefixes[panes]))
+	    entry = Fcons (prefixes[panes], entry);
+	}
       break;
     case XM_FAILURE:
       /* free (datap_save); */
@@ -435,12 +447,13 @@ syms_of_xmenu ()
    KEYMAPS is a vector of keymaps.  NMAPS gives the length of KEYMAPS.  */
 
 int
-keymap_panes (vector, panes, names, enables, items, keymaps, nmaps)
+keymap_panes (vector, panes, names, enables, items, prefixes, keymaps, nmaps)
      Lisp_Object ***vector;	/* RETURN all menu objects */
      char ***panes;		/* RETURN pane names */
      char ****names;		/* RETURN all line names */
      int ***enables;		/* RETURN enable-flags of lines */
      int **items;		/* RETURN number of items per pane */
+     Lisp_Object **prefixes;	/* RETURN vector of prefix keys, per pane */
      Lisp_Object *keymaps;
      int nmaps;
 {
@@ -459,13 +472,14 @@ keymap_panes (vector, panes, names, enables, items, keymaps, nmaps)
   *items = (int *) xmalloc (npanes_allocated * sizeof (int));
   *names = (char ***) xmalloc (npanes_allocated * sizeof (char **));
   *enables = (int **) xmalloc (npanes_allocated * sizeof (int *));
+  *prefixes = (Lisp_Object *) xmalloc (npanes_allocated * sizeof (Lisp_Object));
 
   /* Loop over the given keymaps, making a pane for each map.
      But don't make a pane that is empty--ignore that map instead.
      P is the number of panes we have made so far.  */
   for (mapno = 0; mapno < nmaps; mapno++)
     single_keymap_panes (keymaps[mapno], panes, vector, names, enables, items,
-			 &p, &npanes_allocated, "");
+			 prefixes, &p, &npanes_allocated, "");
 
   /* Return the number of panes.  */
   return p;
@@ -476,7 +490,7 @@ keymap_panes (vector, panes, names, enables, items, keymaps, nmaps)
    The other arguments are passed along
    or point to local variables of the previous function.  */
 
-single_keymap_panes (keymap, panes, vector, names, enables, items,
+single_keymap_panes (keymap, panes, vector, names, enables, items, prefixes,
 		     p_ptr, npanes_allocated_ptr, pane_name)
      Lisp_Object keymap;
      Lisp_Object ***vector;	/* RETURN all menu objects */
@@ -484,6 +498,7 @@ single_keymap_panes (keymap, panes, vector, names, enables, items,
      char ****names;		/* RETURN all line names */
      int ***enables;		/* RETURN enable flags of lines */
      int **items;		/* RETURN number of items per pane */
+     Lisp_Object **prefixes;	/* RETURN vector of prefix keys, per pane */
      int *p_ptr;
      int *npanes_allocated_ptr;
      char *pane_name;
@@ -508,6 +523,10 @@ single_keymap_panes (keymap, panes, vector, names, enables, items,
       *items
 	= (int *) xrealloc (*items,
 			    *npanes_allocated_ptr * sizeof (int));
+      *prefixes
+	= (Lisp_Object *) xrealloc (*prefixes,
+				    (*npanes_allocated_ptr
+				     * sizeof (Lisp_Object)));
       *names
 	= (char ***) xrealloc (*names,
 			       *npanes_allocated_ptr * sizeof (char **));
@@ -518,6 +537,10 @@ single_keymap_panes (keymap, panes, vector, names, enables, items,
 
   /* When a menu comes from keymaps, don't give names to the panes.  */
   (*panes)[*p_ptr] = pane_name;
+
+  /* Normally put nil as pane's prefix key.
+     Caller will override this if appropriate.  */
+  (*prefixes)[*p_ptr] = Qnil;
 
   /* Get the length of the list level of the keymap.  */
   i = XFASTINT (Flength (keymap));
@@ -563,7 +586,7 @@ single_keymap_panes (keymap, panes, vector, names, enables, items,
 		    }
 		  tem = Fkeymapp (def);
 		  if (XSTRING (item2)->data[0] == '@' && !NILP (tem))
-		    pending_maps = Fcons (Fcons (def, item2),
+		    pending_maps = Fcons (Fcons (def, Fcons (item2, XCONS (item)->car)),
 					  pending_maps);
 		  else
 		    {
@@ -609,7 +632,7 @@ single_keymap_panes (keymap, panes, vector, names, enables, items,
 
 		      tem = Fkeymapp (def);
 		      if (XSTRING (item2)->data[0] == '@' && !NILP (tem))
-			pending_maps = Fcons (Fcons (def, item2),
+			pending_maps = Fcons (Fcons (def, Fcons (item2, character)),
 					      pending_maps);
 		      else
 			{
@@ -642,12 +665,15 @@ single_keymap_panes (keymap, panes, vector, names, enables, items,
   /* Process now any submenus which want to be panes at this level.  */
   while (!NILP (pending_maps))
     {
-      Lisp_Object elt;
+      Lisp_Object elt, eltcdr;
+      int panenum = *p_ptr;
       elt = Fcar (pending_maps);
+      eltcdr = XCONS (elt)->cdr;
       single_keymap_panes (Fcar (elt), panes, vector, names, enables, items,
-			   p_ptr, npanes_allocated_ptr,
+			   prefixes, p_ptr, npanes_allocated_ptr,
 			   /* Add 1 to discard the @.  */
-			   (char *) XSTRING (XCONS (elt)->cdr)->data + 1);
+			   (char *) XSTRING (XCONS (eltcdr)->car)->data + 1);
+      (*prefixes)[panenum] = XCONS (eltcdr)->cdr;
       pending_maps = Fcdr (pending_maps);
     }
 }
