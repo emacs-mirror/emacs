@@ -1039,7 +1039,7 @@ void staticpro();
       ret_ungc_val = (expr);		\
       UNGCPRO;				\
       return ret_ungc_val;		\
-    }					\
+    }
 
 /* Defined in data.c */
 extern Lisp_Object Qnil, Qt, Qquote, Qlambda, Qsubr, Qunbound;
