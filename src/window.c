@@ -62,21 +62,20 @@ static void window_scroll_line_based P_ ((Lisp_Object, int, int, int));
 static int window_min_size_1 P_ ((struct window *, int));
 static int window_min_size P_ ((struct window *, int, int, int *));
 static void size_window P_ ((Lisp_Object, int, int, int));
-static int foreach_window_1 P_ ((struct window *, int (*fn) (), int, int,
-				 int, int, int, int, int, int, int));
-static int freeze_window_start P_ ((struct window *, int));
+static int freeze_window_start P_ ((struct window *, void *));
 static int window_fixed_size_p P_ ((struct window *, int, int));
 static void enlarge_window P_ ((Lisp_Object, int, int));
 static Lisp_Object window_list P_ ((void));
-static int add_window_to_list P_ ((struct window *, Lisp_Object *));
+static int add_window_to_list P_ ((struct window *, void *));
 static int candidate_window_p P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 				   Lisp_Object));
 static Lisp_Object next_window P_ ((Lisp_Object, Lisp_Object,
 				    Lisp_Object, int));
 static void decode_next_window_args P_ ((Lisp_Object *, Lisp_Object *,
 					 Lisp_Object *));
-
-
+static int foreach_window_1 P_ ((struct window *,
+				 int (* fn) (struct window *, void *),
+				 void *));
 
 /* This is the window in which the terminal's cursor should
    be left when nothing is being done with it.  This must
@@ -605,24 +604,33 @@ If they are on the border between WINDOW and its right sibling,\n\
 
 
 /* Callback for foreach_window, used in window_from_coordinates.
-   Check if window W contains coordinates *X/*Y.  If it does, return W
-   in *WINDOW, as Lisp_Object, and return in *PART the part of the
-   window under coordinates *X/*Y.  Return zero from this function to
-   stop iterating over windows.  */
+   Check if window W contains coordinates specified by USER_DATA which
+   is actually a pointer to a struct check_window_data CW.
+
+   Check if window W contains coordinates *CW->x and *CW->y.  If it
+   does, return W in *CW->window, as Lisp_Object, and return in
+   *CW->part the part of the window under coordinates *X/*Y.  Return
+   zero from this function to stop iterating over windows.  */
+
+struct check_window_data
+{
+  Lisp_Object *window;
+  int *x, *y, *part;
+};
 
 static int
-check_window_containing (w, window, x, y, part)
+check_window_containing (w, user_data)
      struct window *w;
-     Lisp_Object *window;
-     int *x, *y, *part;
+     void *user_data;
 {
+  struct check_window_data *cw = (struct check_window_data *) user_data;
   int found;
 
-  found = coordinates_in_window (w, x, y);
+  found = coordinates_in_window (w, cw->x, cw->y);
   if (found)
     {
-      *part = found - 1;
-      XSETWINDOW (*window, w);
+      *cw->part = found - 1;
+      XSETWINDOW (*cw->window, w);
     }
   
   return !found;
@@ -653,9 +661,11 @@ window_from_coordinates (f, x, y, part, tool_bar_p)
      int tool_bar_p;
 {
   Lisp_Object window;
+  struct check_window_data cw;
 
   window = Qnil;
-  foreach_window (f, check_window_containing, &window, &x, &y, part);
+  cw.window = &window, cw.x = &x, cw.y = &y; cw.part = part;
+  foreach_window (f, check_window_containing, &cw);
   
   /* If not found above, see if it's in the tool bar window, if a tool
      bar exists.  */
@@ -1181,14 +1191,16 @@ delete_window (window)
 			     Window List
  ***********************************************************************/
 
-/* Add window W to *LIST.  This is a callback function for
-   foreach_window, used in function window_list.  */
+/* Add window W to *USER_DATA.  USER_DATA is actually a Lisp_Object
+   pointer.  This is a callback function for foreach_window, used in
+   function window_list.  */
 
 static int
-add_window_to_list (w, list)
+add_window_to_list (w, user_data)
      struct window *w;
-     Lisp_Object *list;
+     void *user_data;
 {
+  Lisp_Object *list = (Lisp_Object *) user_data;
   Lisp_Object window;
   XSETWINDOW (window, w);
   *list = Fcons (window, *list);
@@ -5079,41 +5091,38 @@ non-negative multiple of the canonical character height of WINDOW.")
 
 /* Call FN for all leaf windows on frame F.  FN is called with the
    first argument being a pointer to the leaf window, and with
-   additional arguments A1..A9.  Stops when FN returns 0.  */
+   additional argument USER_DATA.  Stops when FN returns 0.  */
 
 void
-foreach_window (f, fn, a1, a2, a3, a4, a5, a6, a7, a8, a9)
+foreach_window (f, fn, user_data)
      struct frame *f;
-     int (* fn) ();
-     int a1, a2, a3, a4, a5, a6, a7, a8, a9;
+     int (* fn) P_ ((struct window *, void *));
+     void *user_data;
 {
-  foreach_window_1 (XWINDOW (FRAME_ROOT_WINDOW (f)),
-		    fn, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  foreach_window_1 (XWINDOW (FRAME_ROOT_WINDOW (f)), fn, user_data);
 }
 
 
 /* Helper function for foreach_window.  Call FN for all leaf windows
    reachable from W.  FN is called with the first argument being a
-   pointer to the leaf window, and with additional arguments A1..A9.
+   pointer to the leaf window, and with additional argument USER_DATA.
    Stop when FN returns 0.  Value is 0 if stopped by FN.  */
 
 static int
-foreach_window_1 (w, fn, a1, a2, a3, a4, a5, a6, a7, a8, a9)
+foreach_window_1 (w, fn, user_data)
      struct window *w;
-     int (* fn) ();
-     int a1, a2, a3, a4, a5, a6, a7, a8, a9;
+     int (* fn) P_ ((struct window *, void *));
+     void *user_data;
 {
   int cont;
   
   for (cont = 1; w && cont;)
     {
       if (!NILP (w->hchild))
- 	cont = foreach_window_1 (XWINDOW (w->hchild),
-				 fn, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+ 	cont = foreach_window_1 (XWINDOW (w->hchild), fn, user_data);
       else if (!NILP (w->vchild))
- 	cont = foreach_window_1 (XWINDOW (w->vchild),
-				 fn, a1, a2, a3, a4, a5, a6, a7, a8, a9);
-      else if (fn (w, a1, a2, a3, a4, a5, a6, a7, a8, a9) == 0)
+ 	cont = foreach_window_1 (XWINDOW (w->vchild), fn, user_data);
+      else if (fn (w, user_data))
 	cont = 0;
       
       w = NILP (w->next) ? 0 : XWINDOW (w->next);
@@ -5124,22 +5133,22 @@ foreach_window_1 (w, fn, a1, a2, a3, a4, a5, a6, a7, a8, a9)
 
 
 /* Freeze or unfreeze the window start of W if unless it is a
-   mini-window or the selected window.  FREEZE_P non-zero means freeze
+   mini-window or the selected window.  FREEZE_P non-null means freeze
    the window start.  */
 
 static int
 freeze_window_start (w, freeze_p)
      struct window *w;
-     int freeze_p;
+     void *freeze_p;
 {
   if (w == XWINDOW (selected_window)
       || MINI_WINDOW_P (w)
       || (MINI_WINDOW_P (XWINDOW (selected_window))
 	  && ! NILP (Vminibuf_scroll_window)
 	  && w == XWINDOW (Vminibuf_scroll_window)))
-    freeze_p = 0;
+    freeze_p = NULL;
   
-  w->frozen_window_start_p = freeze_p;
+  w->frozen_window_start_p = freeze_p != NULL;
   return 1;
 }
 
@@ -5153,7 +5162,7 @@ freeze_window_starts (f, freeze_p)
      struct frame *f;
      int freeze_p;
 {
-  foreach_window (f, freeze_window_start, freeze_p);
+  foreach_window (f, freeze_window_start, (void *) freeze_p);
 }
 
 
