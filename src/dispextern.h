@@ -1117,7 +1117,7 @@ extern struct glyph_row scratch_glyph_row;
       && FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME ((W))))		\
       && BUFFERP ((W)->buffer)						\
       && !NILP (XBUFFER ((W)->buffer)->mode_line_format)		\
-      && (W)->height > 1)
+      && XFASTINT ((W)->height) > 1)
 
 /* Value is non-zero if window W wants a header line.  */
 
@@ -1127,7 +1127,7 @@ extern struct glyph_row scratch_glyph_row;
       && FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME ((W))))		\
       && BUFFERP ((W)->buffer)						\
       && !NILP (XBUFFER ((W)->buffer)->header_line_format)		\
-      && (W)->height > 1 + !NILP (XBUFFER ((W)->buffer)->mode_line_format))
+      && XFASTINT ((W)->height) > 1 + !NILP (XBUFFER ((W)->buffer)->mode_line_format))
 
      
 /***********************************************************************

@@ -1,3 +1,9 @@
+2002-01-20  Ken Raeburn  <raeburn@gnu.org>
+
+	* dispextern.h (WINDOW_WANTS_MODELINE_P): Use XFASTINT on window
+	height before comparison.
+	(WINDOW_WANTS_HEADER_LINE_P): Likewise.
+
 2002-01-20  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_system_caret_width): Remove.
