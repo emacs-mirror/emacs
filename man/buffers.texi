@@ -400,6 +400,13 @@ is the analogue, for buffers, of a symbolic link between files.
 @item M-x make-indirect-buffer @var{base-buffer} @key{RET} @var{indirect-name} @key{RET}
 Create an indirect buffer named @var{indirect-name} whose base buffer
 is @var{base-buffer}.
+@findex clone-indirect-buffer
+@item M-x clone-indirect-buffer @key{RET}
+Create an indirect buffer that is a twin copy of the current buffer.
+@kindex C-x 4 c
+@findex clone-indirect-buffer-other-window
+Create an indirect buffer that is a twin copy of the current buffer, and
+select it in another window (@code{clone-indirect-buffer-other-window}).
 @end table
 
   The text of the indirect buffer is always identical to the text of its
@@ -416,6 +423,20 @@ buffer, but killing an indirect buffer has no effect on its base buffer.
 
   One way to use indirect buffers is to display multiple views of an
 outline.  @xref{Outline Views}.
+
+  The command @kbd{M-x make-indirect-buffer} creates an indirect buffer
+whose name is @var{indirect-name} and whose text is identical to that of
+the buffer @var{base-buffer}.  It prompts for both @var{base-buffer} and
+@var{indirect-name}.
+
+  The command @kbd{M-x clone-indirect-buffer} creates an indirect buffer
+whose base buffer is the current buffer, and also selects the
+newly-created indirect buffer.  With a numeric argument, it prompts for
+the name of the indirect buffer; otherwise it defaults to the name of
+the current buffer, modifying it by adding a @samp{<@var{n}>} prefix if
+required.  @kbd{C-x 4 c} (@code{clone-indirect-buffer-other-window})
+works like @kbd{M-x clone-indirect-buffer}, but it selects the cloned
+buffer in another window.
 
 @node Buffer Convenience
 @section Convenience Features and Customization of Buffer Handling
