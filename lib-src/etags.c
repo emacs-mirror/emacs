@@ -50,7 +50,8 @@ extern char *strcpy (), *strncpy ();
 extern int strcmp ();
 
 #ifdef hpux
-#define notdef
+#define NEED_INDEX 1
+#define NEED_RINDEX 1
 #endif
 
 /* Define the symbol ETAGS to make the program "etags",
@@ -2905,7 +2906,7 @@ savenstr (cp, len)
   return dp;
 }
 
-#ifdef notdef
+#ifdef NEED_RINDEX
 /*
  * Return the ptr in sp at which the character c last
  * appears; NULL if not found
@@ -2927,7 +2928,10 @@ rindex (sp, c)
   } while (*sp++);
   return (r);
 }
+#endif /* not NEED_RINDEX */
 
+
+#ifdef NEED_INDEX
 /*
  * Return the ptr in sp at which the character c first
  * appears; NULL if not found
@@ -2947,7 +2951,7 @@ index (sp, c)
   return (NULL);
 }
 
-#endif /* notdef */
+#endif /* not NEED_INDEX */
 
 /* Print error message and exit.  */
 
