@@ -11,7 +11,7 @@
 	* emacs-lisp/find-gc.el (source-files): Remove mocklisp.c.
 
 	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker): Remove
-	mocklisp-case.
+	mocklisp case.
 
 	* help-fns.el (describe-function-1): Remove mocklisp function
 	case.

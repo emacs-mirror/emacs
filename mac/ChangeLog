@@ -1,3 +1,7 @@
+2001-12-22  Pavel Janík  <Pavel@Janik.cz>
+
+	* cw5-mcp.xml, cw6-mcp.xml, makefile.MPW: Remove mocklisp files.
+
 2001-12-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* src/macfns.c (x_report_frame_params): Make the scroll-bar-width
