@@ -45,6 +45,8 @@ extern int pending_menu_activation;
 extern int interrupt_input;
 extern int command_loop_level;
 
+extern int minibuffer_auto_raise;
+
 extern Lisp_Object Qface;
 
 extern Lisp_Object Voverriding_local_map;
@@ -439,6 +441,9 @@ message2_nolog (m, len)
 	{
 	  echo_area_glyphs = m;
 	  echo_area_glyphs_length = len;
+
+	  if (minibuffer_auto_raise)
+	    Fraise_frame  (WINDOW_FRAME (XWINDOW (mini_window)));
 	}
       else
 	echo_area_glyphs = previous_echo_glyphs = 0;
