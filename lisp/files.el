@@ -468,7 +468,8 @@ The buffer is not selected, just returned to the caller."
 		  (while (and (not found) list)
 		    (save-excursion
 		      (set-buffer (car list))
-		      (if (string= buffer-file-truename truename)
+		      (if (and buffer-file-name
+			       (string= buffer-file-truename truename))
 			(setq found (car list))))
 		    (setq list (cdr list)))
 		  found)))
