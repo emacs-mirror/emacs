@@ -298,7 +298,8 @@ internal_self_insert (c1, noautofill)
   Lisp_Object overwrite;
 
   overwrite = current_buffer->overwrite_mode;
-  if (!NILP (Vbefore_change_function) || !NILP (Vafter_change_function))
+  if (!NILP (Vbefore_change_function) || !NILP (Vafter_change_function)
+      || !NILP (Vbefore_change_functions) || !NILP (Vafter_change_functions))
     hairy = 1;
 
   if (!NILP (overwrite)
