@@ -1,3 +1,7 @@
+2003-05-24  Andreas Schwab  <schwab@suse.de>
+
+	* files.el (insert-directory): Preserve CR in a file name.
+
 2003-05-24  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 
 	* net/tramp.el: Version 2.0.34 released.

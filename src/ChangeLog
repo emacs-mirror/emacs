@@ -1,3 +1,7 @@
+2003-05-24  Andreas Schwab  <schwab@suse.de>
+
+	* coding.c (find_safe_codings): Fix last change.
+
 2003-05-24  Istvan Marko  <mi@imarko.dhs.org>  (tiny change)
 
 	* xfns.c (x_window): Fix typo from 2003-05-21 change.
