@@ -3153,6 +3153,19 @@ To be called first in body of `dired-sort-other', etc."
 
 ;;;;  Drag and drop support
 
+(defcustom dired-recursive-copies nil
+  "*Decide whether recursive copies are allowed.
+nil means no recursive copies.
+`always' means copy recursively without asking.
+`top' means ask for each directory at top level.
+Anything else means ask for each directory."
+  :type '(choice :tag "Copy directories"
+		 (const :tag "No recursive copies" nil)
+		 (const :tag "Ask for each directory" t)
+		 (const :tag "Ask for each top directory only" top)
+		 (const :tag "Copy directories without asking" always))
+  :group 'dired)
+
 (defun dired-dnd-test-function (window action types)
   "The test function for drag and drop into dired buffers.
 WINDOW is where the mouse is when this function is called.  It may be a frame
