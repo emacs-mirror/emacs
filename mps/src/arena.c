@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.10) $
+ * $HopeName: MMsrc!arena.c(trunk.11) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: Any MPS developer
@@ -40,7 +40,7 @@
 /* finalization */
 #include "poolmrg.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.10) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.11) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -478,8 +478,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode)
         TraceAccess(arena, seg, mode);
       ArenaLeave(arena);
       return TRUE;
-    }
-    if(RootOfAddr(&root, arena, addr)) {
+    } else if(RootOfAddr(&root, arena, addr)) {
       LockReleaseMPM(&arenaRingLock);
       mode &= RootPM(root);
       if(mode != AccessSetEMPTY)
