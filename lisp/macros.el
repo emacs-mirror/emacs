@@ -128,7 +128,7 @@ Your options are: \\<query-replace-map>
       (let ((loop t)
 	    (msg (substitute-command-keys
 		  "Proceed with macro?\\<query-replace-map>\
- (\\[act], \\[skip], \\[exit], \\[recenter], \\[edit]")))
+ (\\[act], \\[skip], \\[exit], \\[recenter], \\[edit]) ")))
 	(while loop
 	  (let ((key (let ((executing-macro nil)
 			   (defining-kbd-macro nil))
