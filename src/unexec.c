@@ -245,6 +245,8 @@ long lnnoptr;			/* Pointer to line-number info within file */
 static long text_scnptr;
 static long data_scnptr;
 
+static long coff_offset;
+
 #else /* not COFF */
 
 #ifdef HPUX
@@ -476,9 +478,32 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
     }
 
 #ifdef COFF
+  coff_offset = 0L;		/* stays zero, except in DJGPP */
+
   /* Salvage as much info from the existing file as possible */
   if (a_out >= 0)
     {
+#ifdef MSDOS
+#if __DJGPP__ > 1
+      /* Support the coff-go32-exe format with a prepended stub, since
+	 this is what GCC 2.8.0 and later generates by default in DJGPP.  */
+      unsigned short mz_header[3];
+
+      if (read (a_out, &mz_header, sizeof (mz_header)) != sizeof (mz_header))
+	{
+	  PERROR (a_name);
+	}
+      if (mz_header[0] == 0x5a4d || mz_header[0] == 0x4d5a) /* "MZ" or "ZM" */
+	{
+	  coff_offset = (long)mz_header[2] * 512L;
+	  if (mz_header[1])
+	    coff_offset += (long)mz_header[1] - 512L;
+	  lseek (a_out, coff_offset, 0);
+	}
+      else
+	lseek (a_out, 0L, 0);
+#endif /* __DJGPP__ > 1 */
+#endif /* MSDOS */
       if (read (a_out, &f_hdr, sizeof (f_hdr)) != sizeof (f_hdr))
 	{
 	  PERROR (a_name);
@@ -493,7 +518,7 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
 	  block_copy_start += sizeof (f_ohdr);
 	}
       /* Loop through section headers, copying them in */
-      lseek (a_out, sizeof (f_hdr) + f_hdr.f_opthdr, 0);
+      lseek (a_out, coff_offset + sizeof (f_hdr) + f_hdr.f_opthdr, 0);
       for (scns = f_hdr.f_nscns; scns > 0; scns--) {
 	if (read (a_out, &scntemp, sizeof (scntemp)) != sizeof (scntemp))
 	  {
@@ -1113,10 +1138,12 @@ copy_sym (new, a_out, a_name, new_name)
 
 #ifdef COFF
   if (lnnoptr)			/* if there is line number info */
-    lseek (a_out, lnnoptr, 0);	/* start copying from there */
+    lseek (a_out, coff_offset + lnnoptr, 0);	/* start copying from there */
   else
-#endif /* COFF */
-    lseek (a_out, SYMS_START, 0);	/* Position a.out to symtab. */
+    lseek (a_out, coff_offset + SYMS_START, 0);	/* Position a.out to symtab. */
+#else  /* not COFF */
+  lseek (a_out, SYMS_START, 0);	/* Position a.out to symtab. */
+#endif /* not COFF */
 
   while ((n = read (a_out, page, sizeof page)) > 0)
     {
