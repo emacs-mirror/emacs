@@ -1,3 +1,10 @@
+2002-11-02  Kim F. Storm  <storm@cua.dk>
+
+	* info.el (Info-hide-note-references): nil value now does no
+	reformatting at all.  New choice 'tag reformats tag but shows
+	the section reference.
+	(Info-fontify-node): Use it.
+
 2002-11-01  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/sgml-mode.el (sgml-skip-tag-backward)
