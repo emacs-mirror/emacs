@@ -1,5 +1,10 @@
 2001-02-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (redisplay_internal): Do the
+	mark_window_display_accurate after all windows have been
+	redisplayed because this call resets flags in buffers which are
+	needed for proper redisplay.
+
 	* keyboard.c, minibuf.c, lread.c, fns.c, eval.c: Use
 	display_hourglass_p, start_hourglass, cancel_hourglass instead of
 	the old names.
