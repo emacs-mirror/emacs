@@ -145,8 +145,7 @@ This is used to optimize refilling.")
 		  (if use-hard-newlines
 		      (fill-region beg end arg)
 		    (fill-region-as-paragraph beg end arg))))
-	  (move-overlay refill-ignorable-overlay beg (point)))))
-    (skip-line-prefix fill-pfx)))
+	  (move-overlay refill-ignorable-overlay beg (point)))))))
 
 (defun refill-fill-paragraph (arg)
   "Like `fill-paragraph' but don't delete whitespace at paragraph end."
