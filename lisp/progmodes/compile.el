@@ -787,10 +787,9 @@ Returns the compilation buffer created."
 		   error-regexp-alist name-function
 		   enter-regexp-alist leave-regexp-alist
 		   file-regexp-alist nomessage-regexp-alist))
-        (make-local-variable 'lazy-lock-defer-on-scrolling)
         ;; This proves a good idea if the buffer's going to scroll
         ;; with lazy-lock on.
-        (setq lazy-lock-defer-on-scrolling t)
+        (set (make-local-variable 'lazy-lock-defer-on-scrolling) t)
 	(setq default-directory thisdir
 	      compilation-directory-stack (list default-directory))
 	(set-window-start outwin (point-min))
