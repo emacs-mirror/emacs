@@ -137,6 +137,7 @@
 ;;; Revision 2.37  1995/6/13 12:05:28	stevens
 ;;; Removed autoload from ispell-dictionary-alist. *choices* mode-line shows
 ;;; misspelled word.  Block skip for pgp & forwarded messages added.
+;;; RMS: the autoload changes had problems and I removed them.
 ;;;
 ;;; Revision 2.36  1995/2/6 17:39:38	stevens
 ;;; Properly adjust screen with different ispell-choices-win-default-height
@@ -416,6 +417,7 @@ Otherwise use the minibuffer.")
   "*Formatting function for displaying word being spell checked.
 The function must take one string argument and return a string.")
 
+;;;###autoload
 (defvar ispell-personal-dictionary nil
   "*File name of your personal spelling dictionary, or nil.
 If nil, the default personal dictionary, \"~/.ispell_DICTNAME\" is used,
@@ -442,10 +444,12 @@ For example, '(\"-W\" \"3\") to cause it to accept all 1-3 character
 words as correct.  See also `ispell-dictionary-alist', which may be used
 for language-specific arguments.")
 
-;;; ispell-dictionary-alist is set up from two subvariables above
-;;; to avoid having very long lines in loaddefs.el.
-(defvar ispell-dictionary-alist
+;;; The preparation of the menu bar menu must be autoloaded
+;;; because otherwise this file gets autoloaded every time Emacs starts
+;;; so that it can set up the menus and determine keyboard equivalents.
 
+;;;###autoload
+(defvar ispell-dictionary-alist-1	; sk  9-Aug-1991 18:28
   '((nil				; default (english.aff)
      "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil)
     ("english"				; make english explicitly selectable
@@ -465,8 +469,11 @@ for language-specific arguments.")
     ("nederlands8"				; dutch8.aff
      "[A-Za-z\300-\305\307\310-\317\322-\326\331-\334\340-\345\347\350-\357\361\362-\366\371-\374]"
      "[^A-Za-z\300-\305\307\310-\317\322-\326\331-\334\340-\345\347\350-\357\361\362-\366\371-\374]"
-     "[']" t ("-C") nil)
-    ("svenska"				;7 bit swedish mode
+     "[']" t ("-C") nil)))
+
+;;;###autoload
+(defvar ispell-dictionary-alist-2
+  '(("svenska"				;7 bit swedish mode
      "[A-Za-z}{|\\133\\135\\\\]" "[^A-Za-z}{|\\133\\135\\\\]"
      "[']" nil ("-C") nil)
     ("svenska8"				;8 bit swedish mode
@@ -485,8 +492,14 @@ for language-specific arguments.")
     ("dansk"				; dansk.aff
      "[A-Z\306\330\305a-z\346\370\345]" "[^A-Z\306\330\305a-z\346\370\345]"
      "" nil ("-C") nil)
-    )
+    ))
 
+
+;;; ispell-dictionary-alist is set up from two subvariables above
+;;; to avoid having very long lines in loaddefs.el.
+;;;###autoload
+(defvar ispell-dictionary-alist
+  (append ispell-dictionary-alist-1 ispell-dictionary-alist-2)
   "An alist of dictionaries and their associated parameters.
 
 Each element of this list is also a list:
@@ -528,22 +541,26 @@ Note that the CASECHARS and OTHERCHARS slots of the alist should
 contain the same character set as casechars and otherchars in the
 language.aff file \(e.g., english.aff\).")
 
-
+;;;###autoload
 (defvar ispell-menu-map nil "Key map for ispell menu")
 
+;;;###autoload
 (defvar ispell-menu-lucid nil "Spelling menu for Lucid Emacs.")
 
 ;;; Break out lucid menu and split into several calls to avoid having
 ;;; long lines in loaddefs.el.  Detect need off following constant.
 
+;;;###autoload
 (defconst ispell-menu-map-needed	; make sure this is not Lucid Emacs
   (and (not ispell-menu-map)
-       (string-lessp "19" emacs-version)
-       ;; make sure this isn't Lucid Emacs
+;;; This is commented out because it fails in Emacs.
+;;; due to the fact that menu-bar is loaded much later than loaddefs.
+;;;       ;; make sure this isn't Lucid Emacs
+;;;       (featurep 'menu-bar)
        (not (string-match "Lucid" emacs-version))))
 
-
-;;; setup dictionary
+;;; Set up dictionary
+;;;###autoload
 (if ispell-menu-map-needed
     (let ((dicts (reverse (cons (cons "default" nil) ispell-dictionary-alist)))
 	  name)
@@ -559,6 +576,7 @@ language.aff file \(e.g., english.aff\).")
 			  (list 'ispell-change-dictionary name))))))))
 
 ;;; define commands in menu in opposite order you want them to appear.
+;;;###autoload
 (if ispell-menu-map-needed
     (progn
       (define-key ispell-menu-map [ispell-change-dictionary]
@@ -572,6 +590,7 @@ language.aff file \(e.g., english.aff\).")
       (define-key ispell-menu-map [ispell-complete-word-interior-frag]
 	'("Complete Word Frag" . ispell-complete-word-interior-frag))))
 
+;;;###autoload
 (if ispell-menu-map-needed
     (progn
       (define-key ispell-menu-map [ispell-continue]
@@ -583,6 +602,7 @@ language.aff file \(e.g., english.aff\).")
       (define-key ispell-menu-map [ispell-buffer]
 	'("Check Buffer" . ispell-buffer))))
 
+;;;###autoload
 (if ispell-menu-map-needed
     (progn
       (define-key ispell-menu-map [ispell-message]
