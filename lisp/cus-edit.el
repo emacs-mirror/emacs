@@ -1985,20 +1985,22 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 
 ;; When this was underlined blue, users confused it with a
 ;; Mosaic-style hyperlink...
-(defface custom-variable-tag-face `((((class color)
-				      (background dark))
-				     (:foreground "light blue"
-				      :bold t
-				      :family "helv"
-				      :height ,(floor (face-attribute
-						       'default :height) 0.9)))
-				    (((class color)
-				      (background light))
-				     (:foreground "blue" :family "helv"
-				      :bold t
-				      :height ,(floor (face-attribute
-						       'default :height) 0.9)))
-				    (t (:bold t)))
+(defface custom-variable-tag-face
+  `((((class color)
+      (background dark))
+     (:foreground "light blue" :bold t :family "helv"
+		  :height ,(let ((height (face-attribute 'default :height)))
+			     (if (numberp height)
+				 (floor height 0.9)
+			       height))))
+    (((class color)
+      (background light))
+     (:foreground "blue" :family "helv" :bold t
+		  :height ,(let ((height (face-attribute 'default :height)))
+			     (if (numberp height)
+				 (floor height 0.9)
+			       height))))
+    (t (:bold t)))
   "Face used for unpushable variable tags."
   :group 'custom-faces)
 
@@ -2520,9 +2522,12 @@ Match frames with dark backgrounds.")
 
 ;;; The `custom-face' Widget.
 
-(defface custom-face-tag-face `((t (:bold t :family "helv"
-				    :height ,(floor (face-attribute
-						     'default :height) 0.9))))
+(defface custom-face-tag-face
+  `((t (:bold t :family "helv"
+	      :height ,(let ((height (face-attribute 'default :height)))
+			     (if (numberp height)
+				 (floor height 0.9)
+			       height)))))
   "Face used for face tags."
   :group 'custom-faces)
 
@@ -2976,31 +2981,42 @@ and so forth.  The remaining group tags are shown with
   :type '(repeat face)
   :group 'custom-faces)
 
-(defface custom-group-tag-face-1 `((((class color)
-				     (background dark))
-				    (:foreground "pink" :family "helv"
-				     :height ,(floor (face-attribute
-						      'default :height) 0.9)
-				     :bold t))
-				   (((class color)
-				     (background light))
-				    (:foreground "red" :bold t
-				     :height ,(floor (face-attribute
-						      'default :height) 0.9)))
-				   (t (:bold t)))
-  "Face used for group tags.")
+(defface custom-group-tag-face-1
+  `((((class color)
+      (background dark))
+     (:foreground "pink" :family "helv"
+		  :height ,(let ((height (face-attribute 'default :height)))
+			     (if (numberp height)
+				 (floor height 0.9)
+			       height))
+		  :bold t))
+    (((class color)
+      (background light))
+     (:foreground "red" :bold t
+		  :height ,(let ((height (face-attribute 'default :height)))
+			     (if (numberp height)
+				 (floor height 0.9)
+			       height))))
+    (t (:bold t)))
+  "Face used for group tags."
+  :group 'custom-faces)
 
-(defface custom-group-tag-face `((((class color)
-				   (background dark))
-				  (:foreground "light blue" :bold t
-				   :height ,(floor (face-attribute
-						   'default :height) 0.9)))
-				 (((class color)
-				   (background light))
-				  (:foreground "blue" :bold t
-				   :height ,(floor (face-attribute
-						    'default :height) 0.9)))
-				 (t (:bold t)))
+(defface custom-group-tag-face
+  `((((class color)
+      (background dark))
+     (:foreground "light blue" :bold t
+		  :height ,(let ((height (face-attribute 'default :height)))
+			     (if (numberp height)
+				 (floor height 0.9)
+			       height))))
+    (((class color)
+      (background light))
+     (:foreground "blue" :bold t
+		  :height ,(let ((height (face-attribute 'default :height)))
+			     (if (numberp height)
+				 (floor height 0.9)
+			       height))))
+    (t (:bold t)))
   "Face used for low level group tags."
   :group 'custom-faces)
 
