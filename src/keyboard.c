@@ -7347,7 +7347,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 		  char_matches = (XINT (upcased_event) == XSTRING (s)->data[0]
 				  || XINT (downcased_event) == XSTRING (s)->data[0]);
 		  if (! char_matches)
-		    desc = Fsingle_key_description (event);
+		    desc = Fsingle_key_description (event, Qnil);
 
 		  tem
 		    = XVECTOR (item_properties)->contents[ITEM_PROPERTY_KEYEQ];
