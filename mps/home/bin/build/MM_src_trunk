@@ -2,11 +2,12 @@
 #
 # Build and test MM (the MM_src compound) at tip of the trunk
 # 
-# $HopeName: HOMEmm!bin:build:MM_src_trunk(trunk.27) $
+# $HopeName: HOMEmm!bin:build:MM_src_trunk(trunk.28) $
 
 
 script="`basename $0`"
 platform=$1
+varieties="ti ci hi wi ce he"
 
 msg () {
   echo "$script $platform: $*" 1>&2
@@ -33,7 +34,7 @@ hope co -compound MMsrc -branch . -recursive \
 
 ## Build a library
 build_lib () {
-  for variety in ci hi ti wi he ce
+  for variety in $varieties
   do
     date
     gnumake -rf ${platform}.gmk VARIETY=$variety $1 ||
@@ -43,7 +44,7 @@ build_lib () {
 
 ## Build and run a test
 do_tests () {
-  for variety in ci hi ti wi he ce
+  for variety in $varieties
   do
     gnumake -rf ${platform}.gmk VARIETY=$variety $1 ||
       die "$1 failed for variety $variety of trunk"
@@ -53,6 +54,10 @@ do_tests () {
 
 
 cd src
+
+### Turn telemetry on
+export MPS_TELEMETRY_CONTROL
+MPS_TELEMETRY_CONTROL=-1
 
 ### SW builds have different compilation options, so they ought to be
 ### done separately.  Do them first.
