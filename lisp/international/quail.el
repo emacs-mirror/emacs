@@ -1066,25 +1066,29 @@ The returned value is a Quail map specific to KEY."
 	    (if (= len 1)
 		(setq control-flag t
 		      quail-current-str quail-current-key)
-	      (while (> len control-flag)
-		(setq len (1- len))
-		(setq unread-command-events
-		      (cons (aref quail-current-key len)
-			    unread-command-events)))
+	      (if input-method-exit-on-first-char
+		  (setq len control-flag)
+		(while (> len control-flag)
+		  (setq len (1- len))
+		  (setq unread-command-events
+			(cons (aref quail-current-key len)
+			      unread-command-events))))
 	      (if quail-current-str
 		  (if input-method-exit-on-first-char
 		      (setq control-flag t))
 		(setq quail-current-str
 		      (substring quail-current-key 0 len)))))
 	(if quail-current-str
-	    (if input-method-exit-on-first-char
+	    (if (and input-method-exit-on-first-char
+		     (quail-simple))
 		(setq control-flag t))
-	  (setq quail-current-str quail-current-key))))
-    (if (not input-method-use-echo-area)
-	(progn
-	  (quail-delete-region)
-	  (insert quail-current-str))))
-  (quail-update-guidance)
+	  (setq quail-current-str quail-current-key)))))
+  (or input-method-use-echo-area
+      (progn
+	(quail-delete-region)
+	(insert quail-current-str)))
+  (let (quail-current-str)
+    (quail-update-guidance))
   (or (stringp quail-current-str)
       (setq quail-current-str (char-to-string quail-current-str)))
   (if control-flag
@@ -1516,7 +1520,7 @@ or in a newly created frame (if the selected frame has no other windows)."
   (if (quail-require-guidance-buf)
       (let ((guidance (quail-guidance)))
 	(cond ((or (eq guidance t)
-		   (listp guidance))
+		   (consp guidance))
 	       ;; Show the current possible translations.
 	       (quail-show-translations))
 	      ((null guidance)
