@@ -49,6 +49,7 @@ specifically to editing.
 
 @node Caveats
 @section Caveats
+@cindex bugs in this manual
 
   This manual has gone through numerous drafts.  It is nearly complete
 but not flawless.  There are a few topics that are not covered, either
