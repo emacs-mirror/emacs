@@ -116,6 +116,7 @@
 	(setq name (concat (downcase (substring name 0 (match-beginning 0)))
 			   "-"
 			   (substring name (match-end 0)))))
+      (delete-file (concat (expand-file-name "../etc/DOC-") name))
       (copy-file (expand-file-name "../etc/DOC")
 		 (concat (expand-file-name "../etc/DOC-") name)
 		 t)

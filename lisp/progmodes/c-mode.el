@@ -240,12 +240,17 @@ If point is inside a comment, the current paragraph of the comment
 is filled, preserving the comment indentation or line-starting decorations."
   (interactive "P")
   (let ((first-line
+	 ;; Check for obvious entry to comment.
 	 (save-excursion
 	   (beginning-of-line)
 	   (skip-chars-forward " \t")
 	   (looking-at comment-start-skip))))
     (if (or first-line
-	    (eq (calculate-c-indent) t))
+	    ;; t if we enter a comment between start of function and this line.
+	    (eq (calculate-c-indent) t)
+	    ;; See if we enter a comment between beg-of-line and here.
+	    (nth 4 (parse-partial-sexp (save-excursion (beginning-of-line) (point))
+				       (point) 0)))
 	;; Inside a comment: fill one comment paragraph.
 	(let ((fill-prefix
 	       ;; The prefix for each line of this paragraph
@@ -272,8 +277,12 @@ is filled, preserving the comment indentation or line-starting decorations."
 	       (concat paragraph-separate
 		       "\\|^[ \t]*/\\*[ \t]*$\\|^[ \t]*\\*/[ \t]*$\\|^[^ \t/*]")))
 	  (save-restriction
+  (recursive-edit)
 	    ;; Don't fill the comment together with the code following it.
-	    (narrow-to-region (point-min)
+	    (narrow-to-region (save-excursion
+				(search-backward "/*")
+				(beginning-of-line)
+				(point))
 			      (save-excursion
 				(search-forward "*/" nil 'move)
 				(forward-line 1)
@@ -515,26 +524,41 @@ Returns nil if line starts inside a string, t if in a comment."
 		      (save-excursion
 			(re-search-backward "^[^ \^L\t\n#]" nil 'move)
 			(let (comment lim)
-			  (if (and (looking-at "\\sw\\|\\s_")
-				   (looking-at "[^\"\n=]*(")
-				   (progn
-				     (goto-char (1- (match-end 0)))
-				     (setq lim (point))
-				     (forward-sexp 1)
-				     (skip-chars-forward " \t\f")
-				     (and (< (point) indent-point)
-					  (not (memq (following-char)
-						     '(?\, ?\;)))))
-				   ;; Make sure the "function decl" we found
-				   ;; is not inside a comment.
-				   (progn
-				     (beginning-of-line)
-				     (while (and (not comment)
-						 (search-forward "/*" lim t))
-				       (setq comment
-					     (not (search-forward "*/" lim t))))
-				     (not comment)))
-			      c-argdecl-indent 0)))))
+			  ;; Recognize the DEFUN macro in Emacs.
+			  (if (save-excursion
+				;; Move down to the (putative) argnames line.
+				(while (not (looking-at " *("))
+				  (forward-line 1))
+				;; Go back to the DEFUN, if it is one.
+				(condition-case nil
+				    (backward-sexp 1)
+				  (error))
+				(beginning-of-line)
+				(setq tem (point))
+				(looking-at "DEFUN\\b"))
+			      c-argdecl-indent
+			    (if (and (looking-at "\\sw\\|\\s_")
+				     (looking-at "[^\"\n=]*(")
+				     (progn
+				       (goto-char (1- (match-end 0)))
+				       (setq lim (point))
+				       (condition-case nil
+					   (forward-sexp 1)
+					 (error))
+				       (skip-chars-forward " \t\f")
+				       (and (< (point) indent-point)
+					    (not (memq (following-char)
+						       '(?\, ?\;)))))
+				     ;; Make sure the "function decl" we found
+				     ;; is not inside a comment.
+				     (progn
+				       (beginning-of-line)
+				       (while (and (not comment)
+						   (search-forward "/*" lim t))
+					 (setq comment
+					       (not (search-forward "*/" lim t))))
+				       (not comment)))
+				c-argdecl-indent 0))))))
 		 basic-indent)))
 
 ;; 		 ;; Now add a little if this is a continuation line.
