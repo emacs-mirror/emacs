@@ -2,10 +2,6 @@
 @c %**start of header
 @setfilename ../info/reftex
 @settitle RefTeX User Manual
-@dircategory Emacs
-@direntry
-* RefTeX: (reftex).	Emacs support for LaTeX cross-references and citations.
-@end direntry
 @synindex ky cp
 @syncodeindex vr cp
 @syncodeindex fn cp
@@ -21,6 +17,41 @@
 @set MAINTAINERCONTACT @uref{mailto:dominik@@science.uva.nl,contact the maintainer}
 @set XEMACSFTP @uref{ftp://ftp.xemacs.org/pub/xemacs/packages/,XEmacs ftp site}.
 @c %**end of header
+
+@copying
+This file documents @b{Ref@TeX{}}, a package to do labels, references,
+citations and indices for LaTeX documents with Emacs.
+
+This is edition @value{EDITION} of the @b{Ref@TeX{}} User Manual for
+@b{Ref@TeX{}} @value{VERSION}
+
+Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU
+Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License'' in the Emacs manual.
+
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
+
+This document is part of a collection distributed under the GNU Free
+Documentation License.  If you want to distribute this document
+separately from the collection, you can do so by adding a copy of the
+license to the document, as described in section 6 of the license.
+@end quotation
+@end copying
+
+@dircategory Emacs
+@direntry
+* RefTeX: (reftex).	Emacs support for LaTeX cross-references and citations.
+@end direntry
+
 @finalout
 
 @c Macro definitions
@@ -35,33 +66,6 @@
 @end ifnotinfo
 @end macro
 
-@ifinfo
-This file documents @b{Ref@TeX{}}, a package to do labels, references,
-citations and indices for LaTeX documents with Emacs.
-
-This is edition @value{EDITION} of the @b{Ref@TeX{}} User Manual for
-@b{Ref@TeX{}} @value{VERSION}
-
-Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
-
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
-@end ifinfo
-
 @titlepage
 @title Ref@TeX{} User Manual
 @subtitle Support for LaTeX labels, references, citations and index entries with GNU Emacs
@@ -69,32 +73,9 @@ license to the document, as described in section 6 of the license.
 
 @author by Carsten Dominik
 @page
-Copyright @copyright{} 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
-
-@sp 2
-This is edition @value{EDITION} of the @cite{Ref@TeX{} User Manual} for
-@b{Ref@TeX{}} version @value{VERSION}, @value{DATE}.
-
-@sp 2
-
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
+@vskip 0pt plus 1filll
+@insertcopying
 @end titlepage
-@page
 
 @ifnottex
 @node Top,,,(dir)
@@ -143,7 +124,7 @@ Introduction
 
 * Installation::                     How to install and activate RefTeX.
 * RefTeX in a Nutshell::             A brief summary and quick guide.
- 
+
 Labels and References
 
 * Creating Labels::
@@ -313,7 +294,7 @@ additional labeled environments you have defined yourself (variable
 
 @itemize @bullet
 @item
-@b{Creating Labels}@* 
+@b{Creating Labels}@*
 Type @kbd{C-c (} (@code{reftex-label}) to insert a label at point.
 @b{Ref@TeX{}} will either
 @itemize @minus
@@ -321,7 +302,7 @@ Type @kbd{C-c (} (@code{reftex-label}) to insert a label at point.
 derive a label from context (default for section labels)
 @item
 prompt for a label string (default for figures and tables) or
-@item 
+@item
 insert a simple label made of a prefix and a number (all other
 environments)
 @end itemize
@@ -441,7 +422,7 @@ can do in each of the different special buffers, press @kbd{?}.  Read
 the manual if you get stuck, of if you are curious what else might be
 available.  The first part of the manual explains in
 a tutorial way how to use and customize @b{Ref@TeX{}}.  The second
-part is a command and variable reference.  
+part is a command and variable reference.
 @end enumerate
 
 @node Table of Contents, Labels and References, Introduction, Top
@@ -567,7 +548,7 @@ Kill the @file{*toc*} buffer, return to the position where
 
 @item C-c >
 Switch to the @file{*Index*} buffer of this document.  With prefix
-@samp{2}, restrict the index to the section at point in the @file{*toc*} 
+@samp{2}, restrict the index to the section at point in the @file{*toc*}
 buffer.
 
 @tablesubheading{Controlling what gets displayed}
@@ -603,7 +584,7 @@ Toggle the display of index entries in the @file{*toc*} buffer.  The
 default for this flag can be set with the variable
 @code{reftex-toc-include-index-entries}.  When called with a prefix
 argument, @b{Ref@TeX{}} will prompt for a specific index and include
-only entries in the selected index in the @file{*toc*} buffer.  The mode 
+only entries in the selected index in the @file{*toc*} buffer.  The mode
 line @samp{I<>} indicator shows which index is used.
 
 @item c
@@ -621,7 +602,7 @@ document.
 @item r
 @vindex reftex-enable-partial-scans
 Reparse the LaTeX document and rebuild the @file{*toc*} buffer.  When
-@code{reftex-enable-partial-scans} is non-nil, rescan only the file this
+@code{reftex-enable-partial-scans} is non-@code{nil}, rescan only the file this
 location is defined in, not the entire document.
 
 @item C-u r
@@ -873,7 +854,7 @@ Goto next section heading.
 Goto previous section heading.
 
 @item N z
-Jump to section N, using the prefix arg.  For example @kbd{3 z} jumps to 
+Jump to section N, using the prefix arg.  For example @kbd{3 z} jumps to
 section 3.
 
 @tablesubheading{Displaying Context}
@@ -967,7 +948,7 @@ buffer.
 
 @tablesubheading{Controlling what gets displayed}
 @vindex reftex-label-menu-flags
-The defaults for the following flags can be configured with the variable 
+The defaults for the following flags can be configured with the variable
 @code{reftex-label-menu-flags} (@pxref{Options (Referencing Labels)}).
 
 @item c
@@ -980,7 +961,7 @@ selection buffer.
 
 @item t
 Toggle the display of the table of contents in the selection buffer.
-With prefix @var{arg}, change the maximum level of toc entries displayed 
+With prefix @var{arg}, change the maximum level of toc entries displayed
 to @var{arg}.  Chapters are level 1, section are level 2.
 
 @item #
@@ -1394,7 +1375,7 @@ Again, here the configuration in the customization buffer:
 @example
 [INS] [DEL] Package or Detailed   : [Value Menu] Detailed:
             Environment or \macro : [Value Menu] String: \myfig[]@{@}@{@}@{*@}@{@}
-            Type specification    : [Value Menu] Char  : f 
+            Type specification    : [Value Menu] Char  : f
             Label prefix string   : [Value Menu] Default
             Label reference format: [Value Menu] Default
             Context method        : [Value Menu] Macro arg nr: 3
@@ -1491,7 +1472,7 @@ Here is the setup:
 
 (defun detect-be-ee (bound)
   ;; Search backward for the macros or an empty line
-  (if (re-search-backward 
+  (if (re-search-backward
        "\\(^[ \t]*\n\\|\\\\ee\\>\\)\\|\\(\\\\be\\>\\)" bound t)
       (if (match-beginning 2)
           (match-beginning 2)  ; Return start of environment
@@ -1530,14 +1511,14 @@ for @b{Ref@TeX{}}.
 (defun detect-linguex (bound)
   (let ((cnt 0))
     (catch 'exit
-      (while 
+      (while
           ;; Search backward for all possible delimiters
           (re-search-backward
            (concat "\\(^[ \t]*\n\\)\\|\\(\\\\z\\.\\)\\|"
                    "\\(\\ex[ig]?\\.\\)\\|\\(\\\\a\\.\\)")
            nil t)
         ;; Check which delimiter was matched.
-        (cond 
+        (cond
          ((match-beginning 1)
           ;; empty line terminates all - return nil
           (throw 'exit nil))
@@ -1873,7 +1854,7 @@ will prompt for values of these optional arguments if you call the
 @code{reftex-citation} command with a @kbd{C-u} prefix.
 Following the most generic of these packages, @code{natbib}, the builtin
 citation packages always accept the @kbd{t} key for a @emph{textual}
-citation (like: @code{Jones et al. (1997) have shown...})  as well as 
+citation (like: @code{Jones et al. (1997) have shown...})  as well as
 the @kbd{p} key for a parenthetical citation (like: @code{As shown
 earlier (Jones et al, 1997)}).
 
@@ -2132,13 +2113,13 @@ repeat @var{word} outside the macro.
 
 Phrases for indexing can be collected while writing the document.  The
 command @kbd{C-c \} (@code{reftex-index-phrase-selection-or-word})
-copies the current selection (if active) or the word near point into the 
+copies the current selection (if active) or the word near point into the
 phrases buffer.  It then selects this buffer, so that the phrase line
 can be edited.  To return to the LaTeX document, press @kbd{C-c C-c}
 (@code{reftex-index-phrases-save-and-return}).
 
 You can also prepare the list of index phrases in a different way and
-copy it into the phrases file.  For example you might want to start from 
+copy it into the phrases file.  For example you might want to start from
 a word list of the document and remove all words which should not be
 indexed.
 
@@ -2147,7 +2128,7 @@ The phrase lines in the phrase buffer must have a specific format.
 format.  A phrase line looks like this:
 
 @example
-[@var{key}] <TABs> @var{phrase} [<TABs> @var{arg}[&&@var{arg}]... [ || @var{arg}]...] 
+[@var{key}] <TABs> @var{phrase} [<TABs> @var{arg}[&&@var{arg}]... [ || @var{arg}]...]
 @end example
 
 @code{<TABs>} stands for white space containing at least one @key{TAB}.
@@ -2241,7 +2222,7 @@ may not last long enough to do everything in one go.
 @b{Ref@TeX{}} will start at the first phrase line and search the phrase
 globally in the whole document.  At each match it will stop, compute the
 replacement string and offer you the following choices@footnote{Windows
-users: Restrict yourself to the described keys during indexing.  Pressing 
+users: Restrict yourself to the described keys during indexing.  Pressing
 @key{Help} at the indexing prompt can apparently hang Emacs.}:
 
 @table @kbd
@@ -2355,7 +2336,7 @@ Prefix argument.
 @tablesubheading{Moving around}
 @item ! A..Z
 Pressing any capital letter will jump to the corresponding section in
-the @file{*Index*} buffer.  The exclamation mark is special and jumps to 
+the @file{*Index*} buffer.  The exclamation mark is special and jumps to
 the first entries alphabetically sorted below @samp{A}.  These are
 usually non-alphanumeric characters.
 @item n
@@ -2365,7 +2346,7 @@ Go to previous entry.
 
 @tablesubheading{Access to document locations}
 @item @key{SPC}
-Show the place in the document where this index entry is defined. 
+Show the place in the document where this index entry is defined.
 
 @item @key{TAB}
 Go to the definition of the current index entry in another
@@ -2416,19 +2397,19 @@ prefix, kill the entire @var{visual} part.
 
 @item (
 Toggle the beginning of page range property @samp{|(} of the
-entry. 
+entry.
 
 @item )
-Toggle the end of page range property @samp{|)} of the entry. 
+Toggle the end of page range property @samp{|)} of the entry.
 
 @item _
 Make the current entry a subentry.  This command will prompt for the
 superordinate entry and insert it.
 
 @item ^
-Remove the highest superordinate entry.  If the current entry is a 
+Remove the highest superordinate entry.  If the current entry is a
 subitem (@samp{aaa!bbb!ccc}), this function moves it up the hierarchy
-(@samp{bbb!ccc}). 
+(@samp{bbb!ccc}).
 
 @tablesubheading{Exiting}
 @item q
@@ -2472,7 +2453,7 @@ will move to the correct position.
 @item r
 @vindex reftex-enable-partial-scans
 Reparse the LaTeX document and rebuild the @file{*Index*} buffer.  When
-@code{reftex-enable-partial-scans} is non-nil, rescan only the file this
+@code{reftex-enable-partial-scans} is non-@code{nil}, rescan only the file this
 location is defined in, not the entire document.
 
 @item C-u r
@@ -2481,7 +2462,7 @@ buffer.
 
 @item s
 Switch to a different index (for documents with multiple
-indices). 
+indices).
 @end table
 
 
@@ -2544,7 +2525,7 @@ quick identification of these macros when @b{Ref@TeX{}} inserts new
 index entries with @code{reftex-index}.  These codes need to be
 unique. @code{?i}, @code{?I}, and @code{?g} are reserved for the
 @code{\index}, @code{\index*}, and @code{\glossary} macros,
-respectively. 
+respectively.
 
 The following string is empty unless your macro adds a superordinate
 entry to the index key - this is the case for the @code{\astobj} macro.
@@ -2567,14 +2548,14 @@ Repeat:
             Macro with args: \ix@{*@}
             Index Tag      : [Value Menu] String: idx
             Access Key     : x
-            Key Prefix     : 
+            Key Prefix     :
             Exclusion hook : nil
             Repeat Outside : [Toggle]  off (nil)
 [INS] [DEL] List:
             Macro with args: \nindex@{*@}
             Index Tag      : [Value Menu] String: name
             Access Key     : n
-            Key Prefix     : 
+            Key Prefix     :
             Exclusion hook : nil
             Repeat Outside : [Toggle]  off (nil)
 [INS] [DEL] List:
@@ -2675,7 +2656,7 @@ and @code{\glossary} macros, all macros configured in
 While the display of cross referencing information for the above
 mentioned macros is hard--coded, you can configure additional relations
 in the variable @code{reftex-view-crossref-extra}.
-    
+
 @iftex
 @chapter All the Rest
 @end iftex
@@ -2865,7 +2846,7 @@ see @ref{Adding Magic Words}.
 
 @vindex reftex-multiref-punctuation
 @vindex reftex-cite-punctuation
-@item 
+@item
 @b{Ref@TeX{}} inserts ``punctuation'' for multiple references and
 for the author list in citations.  Some of this may be language
 dependent.  See the variables @code{reftex-multiref-punctuation} and
@@ -2919,7 +2900,7 @@ variables and configure @b{Ref@TeX{}} to use them instead:
 Specify the full search path directly in @b{Ref@TeX{}}'s variables.
 
 @lisp
-(setq reftex-texpath-environment-variables 
+(setq reftex-texpath-environment-variables
       '("./inp:/home/cd/tex//:/usr/local/tex//"))
 (setq reftex-bibpath-environment-variables
       '("/home/cd/tex/lit/"))
@@ -2937,7 +2918,7 @@ command depends upon the version of that program.
 (setq reftex-use-external-file-finders t)
 (setq reftex-external-file-finders
       '(("tex" . "kpsewhich -format=.tex %f")
-        ("bib" . "kpsewhich -format=.bib %f")))      
+        ("bib" . "kpsewhich -format=.bib %f")))
 @end lisp
 @end itemize
 
@@ -2952,9 +2933,9 @@ the new extension must also be known to AUCTeX via the variable
 @code{TeX-file-extension}.  For example:
 
 @lisp
-(setq reftex-file-extensions 
+(setq reftex-file-extensions
       '(("nw" "tex" ".tex" ".ltx") ("bib" ".bib")))
-(setq TeX-file-extensions 
+(setq TeX-file-extensions
       '( "nw" "tex" "sty" "cls" "ltx" "texi" "texinfo"))
 @end lisp
 
@@ -3112,7 +3093,7 @@ with the @kbd{g} key.  To get this behavior, use instead
 @end lisp
 
 @node AUCTeX, Multifile Documents, Faces, Top
-@section @w{AUC @TeX{}}
+@section AUC@TeX{}
 @cindex @code{AUCTeX}, Emacs package
 @cindex Emacs packages, @code{AUCTeX}
 
@@ -3283,7 +3264,7 @@ file @file{natbib.el} for the Natbib citation style does switch
          (reftex-set-cite-format 'natbib))))
 @end lisp
 
-@findex reftex-add-index-macros 
+@findex reftex-add-index-macros
 The hook may contain a call to @code{reftex-add-index-macros} to
 define additional @code{\index}-like macros.  The argument must have
 the same format as @code{reftex-index-macros}.  It may be a symbol, to
@@ -3417,7 +3398,7 @@ literally for speed reasons.  Then both short context and section
 headings may look different from what you usually see on your screen.
 In rare cases @code{reftex-toc} may have problems to jump to an affected
 section heading.  There are three possible ways to deal with
-this: 
+this:
 @itemize @minus
 @item
 @vindex reftex-keep-temporary-buffers
@@ -3467,7 +3448,7 @@ The first line is just a normal configuration for a macro.  For the
 argument (which really is a second argument to the macro @code{\begin})
 as a label of type @code{?p}.  Argument count for this macro starts only
 after the @samp{@{step+@}}, also when specifying how to get
-context. 
+context.
 
 @item
 @b{Idle timers in XEmacs}@*
@@ -3589,7 +3570,7 @@ When called with a @kbd{C-u} prefixe, prompt for optional arguments in
 cite macros.  When called with a numeric prefix, make that many citations.
 When called with point inside the braces of a @code{\cite} command, it
 will add another key, ignoring the value of
-@code{reftex-cite-format}. @* 
+@code{reftex-cite-format}. @*
 The regular expression uses an expanded syntax: @samp{&&} is interpreted
 as @code{and}.  Thus, @samp{aaaa&&bbb} matches entries which contain
 both @samp{aaaa} and @samp{bbb}.  While entering the regexp, completion
@@ -4343,7 +4324,7 @@ called.
 
 @deffn {Normal Hook} reftex-select-label-mode-hook
 Normal hook which is run when a selection buffer enters
-@code{reftex-select-label-mode}. 
+@code{reftex-select-label-mode}.
 @end deffn
 
 @deffn Keymap reftex-select-label-map
@@ -4496,14 +4477,14 @@ normal names separator, like @samp{, } in Jones, Brown and Miller
 @item
 final names separator, like @samp{ and }  in Jones, Brown and Miller
 @item
-The @samp{et al.} string, like @samp{ @{\it et al.@}} in 
+The @samp{et al.} string, like @samp{ @{\it et al.@}} in
 Jones @{\it et al.@}
 @end enumerate
 @end defopt
 
 @deffn {Normal Hook} reftex-select-bib-mode-hook
 Normal hook which is run when a selection buffer enters
-@code{reftex-select-bib-mode}. 
+@code{reftex-select-bib-mode}.
 @end deffn
 
 @deffn Keymap reftex-select-bib-map
@@ -4527,7 +4508,7 @@ document.
 
 @defopt reftex-index-special-chars
 List of special characters in index entries, given as strings.  These
-correspond to the @code{MakeIndex} keywords 
+correspond to the @code{MakeIndex} keywords
 @code{(@var{level} @var{encap} @var{actual} @var{quote} @var{escape})}.
 @end defopt
 
@@ -4557,7 +4538,7 @@ index entry.  If you have a macro
 should be @samp{Molecules!}.
 
 @var{exclude} can be a function.  If this function exists and returns a
-non-nil value, the index entry at point is ignored.  This was
+non-@code{nil} value, the index entry at point is ignored.  This was
 implemented to support the (deprecated) @samp{^} and @samp{_} shortcuts
 in the LaTeX2e @code{index} package.
 
@@ -4742,7 +4723,7 @@ This is used when `reftex-view-crossref' is called with point in an
 argument of a macro.  Note that crossref viewing for citations,
 references (both ways) and index entries is hard-coded.  This variable
 is only to configure additional structures for which crossreference
-viewing can be useful.  Each entry has the structure 
+viewing can be useful.  Each entry has the structure
 @example
 (@var{macro-re} @var{search-re} @var{highlight}).
 @end example
@@ -4765,7 +4746,7 @@ display.  This feature can be turned on and off from the menu
 @end defopt
 
 @defopt reftex-idle-time
-Time (secs) Emacs has to be idle before automatic crossref display 
+Time (secs) Emacs has to be idle before automatic crossref display
 or toc recentering is done.
 @end defopt
 
@@ -4835,7 +4816,7 @@ be expanded recursively.  See also @code{reftex-use-external-file-finders}.
 
 @defopt reftex-file-extensions
 Association list with file extensions for different file types.
-This is a list of items, each item is like: 
+This is a list of items, each item is like:
 @code{(@var{type} . (@var{def-ext} @var{other-ext} ...))}
 @example
 @var{type}:       @r{File type like @code{"bib"} or @code{"tex"}.}
@@ -5262,7 +5243,7 @@ Better support for chapterbib.
 
 @noindent @b{Version 4.17}
 @itemize @bullet
-@item 
+@item
 The toc window can be split off horizontally.  See new options
 @code{reftex-toc-split-windows-horizontally},
 @code{reftex-toc-split-windows-horizontally-fraction}.
@@ -5323,9 +5304,9 @@ New options @code{reftex-parse-file-extension} and
 @item
 New option @code{reftex-toc-max-level} to limit the depth of the toc.
 New key binding @kbd{t} in the @file{*toc*} buffer to change this
-setting. 
+setting.
 @item
-RefTeX maintains an @file{Index Phrases} file in which phrases can be 
+RefTeX maintains an @file{Index Phrases} file in which phrases can be
 collected.  When the document is ready, RefTeX can search all
 these phrases and assist indexing all matches.
 @item
@@ -5340,7 +5321,7 @@ default stuff which has been moved to a constant.
 @item
 Environments like theorems can be placed into the TOC by putting
 entries for @samp{"begin@{theorem@}"} in
-@code{reftex-setion-levels}. 
+@code{reftex-setion-levels}.
 @end itemize
 
 @noindent @b{Version 4.06}
@@ -5385,7 +5366,7 @@ function to do non-standard parsing.
 @noindent @b{Version 4.00}
 @itemize @bullet
 @item
-RefTeX has been split into several smaller files which are autoloaded on 
+RefTeX has been split into several smaller files which are autoloaded on
 demand.
 @item
 Index support, along with many new options.
@@ -5430,9 +5411,9 @@ and @kbd{c}.  New options @code{reftex-toc-include-labels},
 @itemize @bullet
 @item
 New options @code{reftex-texpath-environment-variables},
-@code{reftex-use-external-file-finders}, 
-@code{reftex-external-file-finders}, 
-@code{reftex-search-unrecursed-path-first}. 
+@code{reftex-use-external-file-finders},
+@code{reftex-external-file-finders},
+@code{reftex-search-unrecursed-path-first}.
 @item
 @emph{kpathsearch} support.  See new options and
 @code{reftex-bibpath-environment-variables}.
@@ -5475,7 +5456,7 @@ are now legal in labels.
 @item
 Multiple selection buffers are now hidden buffers (they start with a
 SPACE).
-@item 
+@item
 Fixed bug with file search when TEXINPUTS environment variable is empty.
 @end itemize
 
@@ -5559,7 +5540,7 @@ Fixed Bug with parsing "single file" from master file buffer.
 @item
 Parse files @file{MASTER.rel} made compatible between Emacs and XEmacs.
 @item
-@code{kill-emacs-hook} and @code{kill-buffer-hook} now write the parse 
+@code{kill-emacs-hook} and @code{kill-buffer-hook} now write the parse
 file.
 @item
 The cursor inside a @code{\ref} or @code{\cite} macro can now trigger

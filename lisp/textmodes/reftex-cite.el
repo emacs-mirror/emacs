@@ -597,7 +597,7 @@ to `reftex-cite-format' and inserted into the buffer.
 
 If NO-INSERT is non-nil, nothing is inserted, only the selected key returned.
 
-FORAT-KEY can be used to pre-select a citation format.
+FORMAT-KEY can be used to pre-select a citation format.
 
 When called with a `C-u' prefix, prompt for optional arguments in
 cite macros.  When called with a numeric prefix, make that many
@@ -660,7 +660,7 @@ While entering the regexp, completion on knows citation keys is possible.
 
       ;; We shall insert this into the buffer...
       (message "Formatting...")
-      
+
       (while (setq entry (pop insert-entries))
         ;; Format the citation and insert it
         (setq string (if reftex-format-cite-function
