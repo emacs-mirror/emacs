@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.45 2002/10/08 20:25:21 monnier Exp $
+;; $Id: vc-cvs.el,v 1.46 2002/10/09 15:59:39 rost Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -882,9 +882,12 @@ is non-nil."
     (vc-file-setprop file 'vc-cvs-sticky-tag
 		     (vc-cvs-parse-sticky-tag (match-string 5) (match-string 6)))
     ;; compare checkout time and modification time
-    (let ((mtime (nth 5 (file-attributes file)))
-	  (system-time-locale "C"))
-      (cond ((equal (format-time-string "%c" mtime 'utc) (match-string 2))
+    (let ((mtime (nth 5 (file-attributes file))))
+      (require 'parse-time)
+      (cond ((equal mtime
+                    (apply 'encode-time
+                           (parse-time-string 
+                            (concat (match-string 2) " +0000"))))
 	     (vc-file-setprop file 'vc-checkout-time mtime)
 	     (if set-state (vc-file-setprop file 'vc-state 'up-to-date)))
 	    (t
