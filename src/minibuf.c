@@ -98,6 +98,10 @@ int minibuffer_auto_raise;
 static Lisp_Object last_exact_completion;
 
 Lisp_Object Quser_variable_p;
+
+/* Non-nil means it is the window for C-M-v to scroll
+   when the minibuffer is selected.  */
+extern Lisp_Object Vminibuf_scroll_window;
 
 /* Actual minibuffer invocation. */
 
@@ -307,12 +311,9 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
       val = Fcar (expr_and_pos);
     }
 
-  unbind_to (count, Qnil);	/* The appropriate frame will get selected
-				   in set-window-configuration.  */
-
   UNGCPRO;
-
-  return val;
+  return unbind_to (count, val); /* The appropriate frame will get selected
+				    in set-window-configuration.  */
 }
 
 /* Return a buffer to be used as the minibuffer at depth `depth'.
@@ -1117,10 +1118,42 @@ assoc_for_completion (key, list)
 
 DEFUN ("minibuffer-complete", Fminibuffer_complete, Sminibuffer_complete, 0, 0, "",
   "Complete the minibuffer contents as far as possible.\n\
-Return nil if there is no valid completion, else t.")
+Return nil if there is no valid completion, else t.\n\
+If no characters can be completed, display a list of possible completions.\n\
+If you repeat this command after it displayed such a list,\n\
+scroll the window of possible completions.")
   ()
 {
-  register int i = do_completion ();
+  register int i;
+  Lisp_Object window, tem;
+
+  /* If the previous command was not this, then mark the completion
+     buffer obsolete.  */
+  if (! EQ (last_command, this_command))
+    Vminibuf_scroll_window = Qnil;
+
+  window = Vminibuf_scroll_window;
+  /* If there's a fresh completion window with a live buffer,
+     and this command is repeated, scroll that window.  */
+  if (! NILP (window) && ! NILP (XWINDOW (window)->buffer)
+      && !NILP (XBUFFER (XWINDOW (window)->buffer)->name))
+    {
+      struct buffer *obuf = current_buffer;
+
+      Fset_buffer (XWINDOW (window)->buffer);
+      tem = Fpos_visible_in_window_p (make_number (ZV), window);
+      if (! NILP (tem))
+	/* If end is in view, scroll up to the beginning.  */
+	Fset_window_start (window, BEGV);
+      else
+	/* Else scroll down one screen.  */
+	Fscroll_other_window (Qnil);
+
+      set_buffer_internal (obuf);
+      return Qnil;
+    }
+
+  i = do_completion ();
   switch (i)
     {
     case 0:
