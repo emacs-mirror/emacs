@@ -121,20 +121,20 @@
 ;; character set, it is divided into two: lower case letters and upper
 ;; case letters.
 (define-charset nil 'vietnamese-viscii-lower
-  [1 96 1 0 ?1 1 "VISCII" "VISCII lower-case" "VISCII1.1 lower-case"])
+  [1 96 1 0 ?1 1 "VISCII lower" "VISCII lower-case" "VISCII1.1 lower-case"])
 (define-charset nil 'vietnamese-viscii-upper
-  [1 96 1 0 ?2 1 "VISCII" "VISCII upper-case" "VISCII1.1 upper-case"])
+  [1 96 1 0 ?2 1 "VISCII upper" "VISCII upper-case" "VISCII1.1 upper-case"])
 
 ;; For Arabic, we need three different types of character sets.
 ;; Digits are of direction left-to-right and of width 1-column.
 ;; Others are of direction right-to-left and of width 1-column or
 ;; 2-column.
 (define-charset nil 'arabic-digit
-  [1 94 1 0 ?2 0 "Arabic" "Arabic digit" "Arabic digit"])
+  [1 94 1 0 ?2 0 "Arabic digit" "Arabic digit" "Arabic digit"])
 (define-charset nil 'arabic-1-column
-  [1 94 1 1 ?3 0 "Arabic" "Arabic 1-column" "Arabic 1-column"])
+  [1 94 1 1 ?3 0 "Arabic 1-col" "Arabic 1-column" "Arabic 1-column"])
 (define-charset nil 'arabic-2-column
-  [1 94 2 1 ?4 0 "Arabic" "Arabic 2-column" "Arabic 2-column"])
+  [1 94 2 1 ?4 0 "Arabic 2-col" "Arabic 2-column" "Arabic 2-column"])
 
 ;; Ethiopic characters (Amahric and Tigrigna).
 (define-charset nil 'ethiopic
@@ -173,17 +173,23 @@
      "Generic Indian charset for data exchange with IS 13194"])
 ;; Actual Glyph for 2-column width.
 (define-charset nil 'indian-2-column
-  [2 94 2 0 ?5 0 "Indian" "Indian 2 Column"
+  [2 94 2 0 ?5 0 "Indian 2-col" "Indian 2 Column"
      "Indian charset for 2-column width glyphs"])
 ;; Actual Glyph for 1-column width.
 (define-charset nil 'indian-1-column
-  [2 94 1 0 ?6 0 "Indian" "Indian 1 Column"
+  [2 94 1 0 ?6 0 "Indian 1-col" "Indian 1 Column"
      "Indian charset for 2-column width glypps"])
 
 ;; Lao script.
 ;; ISO10646's 0x0E80..0x0EDF are mapped to 0x20..0x7F.
 (define-charset nil 'lao
   [1 94 1 0 ?1 0 "Lao" "Lao" "Lao characters (ISO10646 0E80..0EDF)"])
+
+;; Tibetan script.
+(define-charset nil 'tibetan
+  [2 94 2 0 ?7 0 "Tibetan 2-col" "Tibetan 2 column" "Tibetan characters"])
+(define-charset nil 'tibetan-1-column
+  [2 94 1 0 ?8 0 "Tibetan 1-col" "Tibetan 1 column" "Tibetan 1 column glyph"])
 
 
 ;; This is a table of alternate charsets.
