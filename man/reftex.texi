@@ -3520,13 +3520,15 @@ this manual.
 
 Thanks to the people on the Net who have used @b{Ref@TeX{}} and helped
 developing it with their reports.  In particular thanks to @i{Fran
-Burstall, Alastair Burt, Lars Clausen, Soren Dayton, Stephen Eglen, Karl
-Eichwalder, Erik Frisk, Peter Galbraith, Kai Grossjohann, Frank Harrell,
-Peter Heslin, Stephan Heuel, Alan Ho, Lute Kamstra, Dieter Kraft, David
-Kastrup, Adrian Lanz, Rory Molinari, Stefan Monnier, Laurent Mugnier,
-Sudeep Kumar Palat, Daniel Polani, Alan Shutko, Robin Socha, Richard
-Stanton, Allan Strand, Jan Vroonhof, Christoph Wedler, Alan Williams,
-Roland Winkler, Hans-Christoph Wirth, Eli Zaretskii}.
+Burstall, Alastair Burt, Lars Clausen, Soren Dayton, Stephen Eglen,
+Karl Eichwalder, Erik Frisk, Peter Galbraith, Kai Grossjohann, Frank
+Harrell, Peter Heslin, Stephan Heuel, Alan Ho, Lute Kamstra, Dieter
+Kraft, David Kastrup, Adrian Lanz, Juri Linkov, Rory Molinari, Stefan
+Monnier, Laurent Mugnier, Dan Nicolaescu, Sudeep Kumar Palat, Daniel
+Polani, Alan Shutko, Robin Socha, Richard Stanton, Allan Strand, Jan
+Vroonhof, Christoph Wedler, Alan Williams, Roland Winkler,
+Hans-Christoph Wirth, Eli Zaretskii}.
+
 
 The @code{view-crossref} feature was inspired by @i{Peter Galbraith's}
 @file{bib-cite.el}.
@@ -3666,6 +3668,12 @@ No active TAGS table is required.
 Run a query-replace-regexp of @var{from} with @var{to} over the entire
 document.  With prefix arg, replace only word-delimited matches.  No
 active TAGS table is required.
+@end deffn
+
+@deffn Command reftex-isearch-minor-mode
+Toggle a minor mode which enables incremental search to work globally
+on the entire multifile document.  Files will be searched in th
+sequence they appear in the document.
 @end deffn
 
 @deffn Command reftex-goto-label
