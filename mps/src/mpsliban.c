@@ -1,6 +1,6 @@
 /* impl.c.mpsliban: HARLEQUIN MEMORY POOL SYSTEM LIBRARY INTERFACE (ANSI)
  *
- * $HopeName: MMsrc!mpsliban.c(trunk.10) $
+ * $HopeName: MMsrc!mpsliban.c(trunk.11) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: The purpose of this code is
@@ -9,7 +9,7 @@
  *   2. to provide an example of how to implement the MPS Library
  *      Interface.
  *
- * .readership: For MPS client application developers, MPS developers.
+ * .readership: For MPS client application developers and MPS developers.
  * .sources: design.mps.lib
  *
  *
@@ -22,10 +22,16 @@
  */
 
 #include "mpslib.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include "mpstd.h"              /* .sunos.warn */
+
+#include "mpstd.h"
+
+#ifdef MPS_OS_SU
+#include "ossu.h"
+#endif
+#ifdef MPS_OS_XC
+#include "osxc.h"
+#endif
+
 #ifdef MPS_OS_IA
 struct itimerspec; /* stop complaints from time.h */
 #endif
@@ -37,9 +43,13 @@ extern int fputs (const char *s, FILE *stream);
 extern clock_t clock(void);
 extern long strtol(const char *, char **, int);
 /* @@@@ This doesn't do quite the right thing, but will get by. */
-#define strtoul(a,b,c) (unsigned long)strtol((a), (b), (c))
+#define strtoul(a,b,c) (unsigned long)strtol(a, b, c)
 extern void *memset(void *, int, size_t);
 #endif
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 
 int mps_lib_get_EOF(void)
