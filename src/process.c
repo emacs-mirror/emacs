@@ -4080,6 +4080,10 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 Otherwise, do pending quit if requested.  */
       if (XINT (read_kbd) >= 0)
 	QUIT;
+#ifdef SYNC_INPUT
+      else if (interrupt_input_pending)
+	handle_async_input ();
+#endif
 
       /* Exit now if the cell we're waiting for became non-nil.  */
       if (! NILP (wait_for_cell) && ! NILP (XCAR (wait_for_cell)))
