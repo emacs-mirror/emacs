@@ -476,7 +476,7 @@ void add_member_defn P_ ((struct sym *, char *, char *,
 void add_member_decl P_ ((struct sym *, char *, char *, int,
 			  unsigned, int, int, int, int));
 void dump_roots P_ ((FILE *));
-void *ymalloc P_ ((int));
+void *xmalloc P_ ((int));
 void add_global_defn P_ ((char *, char *, int, unsigned, int, int, int));
 void add_global_decl P_ ((char *, char *, int, unsigned, int, int, int));
 void add_define P_ ((char *, char *, int));
@@ -542,7 +542,7 @@ yyerror (format, a1, a2, a3, a4, a5)
    and xrealloc.  */
 
 void *
-ymalloc (nbytes)
+xmalloc (nbytes)
      int nbytes;
 {
   void *p = malloc (nbytes);
@@ -558,7 +558,7 @@ ymalloc (nbytes)
 /* Like realloc but print an error and exit if out of memory.  */
 
 void *
-yrealloc (p, sz)
+xrealloc (p, sz)
      void *p;
      int sz;
 {
@@ -580,7 +580,7 @@ xstrdup (s)
      char *s;
 {
   if (s)
-    s = strcpy (ymalloc (strlen (s) + 1), s);
+    s = strcpy (xmalloc (strlen (s) + 1), s);
   return s;
 }
 
@@ -633,7 +633,7 @@ add_sym (name, nested_in_class)
 	  puts (name);
 	}
 
-      sym = (struct sym *) ymalloc (sizeof *sym + strlen (name));
+      sym = (struct sym *) xmalloc (sizeof *sym + strlen (name));
       bzero (sym, sizeof *sym);
       strcpy (sym->name, name);
       sym->namesp = scope;
@@ -662,8 +662,8 @@ add_link (super, sub)
   /* Avoid duplicates.  */
   if (p == NULL || p->sym != sub)
     {
-      lnk = (struct link *) ymalloc (sizeof *lnk);
-      lnk2 = (struct link *) ymalloc (sizeof *lnk2);
+      lnk = (struct link *) xmalloc (sizeof *lnk);
+      lnk2 = (struct link *) xmalloc (sizeof *lnk2);
   
       lnk->sym = sub;
       lnk->next = p;
@@ -959,7 +959,7 @@ add_member (cls, name, var, sc, hash)
      int sc;
      unsigned hash;
 {
-  struct member *m = (struct member *) ymalloc (sizeof *m + strlen (name));
+  struct member *m = (struct member *) xmalloc (sizeof *m + strlen (name));
   struct member **list;
   struct member *p;
   struct member *prev;
@@ -1071,7 +1071,7 @@ struct sym *
 make_namespace (name)
      char *name;
 {
-  struct sym *s = (struct sym *) ymalloc (sizeof *s + strlen (name));
+  struct sym *s = (struct sym *) xmalloc (sizeof *s + strlen (name));
   bzero (s, sizeof *s);
   strcpy (s->name, name);
   s->next = all_namespaces;
@@ -1126,7 +1126,7 @@ register_namespace_alias (new_name, old_name)
     if (streq (new_name, p->name))
       return;
 
-  al = (struct alias *) ymalloc (sizeof *al + strlen (new_name));
+  al = (struct alias *) xmalloc (sizeof *al + strlen (new_name));
   strcpy (al->name, new_name);
   al->next = p->namesp_aliases;
   p->namesp_aliases = al;
@@ -1144,7 +1144,7 @@ enter_namespace (name)
   if (namespace_sp == namespace_stack_size)
     {
       int size = max (10, 2 * namespace_stack_size);
-      namespace_stack = (struct sym **) yrealloc (namespace_stack, size);
+      namespace_stack = (struct sym **) xrealloc (namespace_stack, size);
       namespace_stack_size = size;
     }
   
@@ -1204,7 +1204,7 @@ ensure_scope_buffer_room (len)
   if (scope_buffer_len + len >= scope_buffer_size)
     {
       int new_size = max (2 * scope_buffer_size, scope_buffer_len + len);
-      scope_buffer = (char *) yrealloc (new_size);
+      scope_buffer = (char *) xrealloc (new_size);
       scope_buffer_size = new_size;
     }
 }
@@ -1256,7 +1256,7 @@ sym_scope (p)
   if (!scope_buffer)
     {
       scope_buffer_size = 1024;
-      scope_buffer = (char *) ymalloc (scope_buffer_size);
+      scope_buffer = (char *) xmalloc (scope_buffer_size);
     }
   
   *scope_buffer = '\0';
@@ -1676,7 +1676,7 @@ yylex ()
 		if (p == yytext_end - 1)
 		  {
 		    int size = yytext_end - yytext;
-		    yytext = (char *) yrealloc (yytext, 2 * size);
+		    yytext = (char *) xrealloc (yytext, 2 * size);
 		    yytext_end = yytext + 2 * size;
 		    p = yytext + size - 1;
 		  }
@@ -1954,7 +1954,7 @@ matching_regexp ()
 
   if (buffer == NULL)
     {
-      buffer = (char *) ymalloc (max_regexp);
+      buffer = (char *) xmalloc (max_regexp);
       end_buf = &buffer[max_regexp] - 1;
     }
 
@@ -2119,7 +2119,7 @@ re_init_scanner ()
   if (yytext == NULL)
     {
       int size = 256;
-      yytext = (char *) ymalloc (size * sizeof *yytext);
+      yytext = (char *) xmalloc (size * sizeof *yytext);
       yytext_end = yytext + size;
     }
 }
@@ -2135,7 +2135,7 @@ insert_keyword (name, tk)
 {
   char *s;
   unsigned h = 0;
-  struct kw *k = (struct kw *) ymalloc (sizeof *k);
+  struct kw *k = (struct kw *) xmalloc (sizeof *k);
 
   for (s = name; *s; ++s)
     h = (h << 1) ^ *s;
@@ -2158,7 +2158,7 @@ init_scanner ()
 
   /* Allocate the input buffer */
   inbuffer_size = READ_CHUNK_SIZE + 1;
-  inbuffer = in = (char *) ymalloc (inbuffer_size);
+  inbuffer = in = (char *) xmalloc (inbuffer_size);
   yyline = 1;
 
   /* Set up character class vectors.  */
@@ -2817,7 +2817,7 @@ operator_name (sc)
       if (len > id_size)
 	{
 	  int new_size = max (len, 2 * id_size);
-	  id = (char *) yrealloc (id, new_size);
+	  id = (char *) xrealloc (id, new_size);
 	  id_size = new_size;
 	}
       strcpy (id, s);
@@ -2843,7 +2843,7 @@ operator_name (sc)
       if (len > id_size)
 	{
 	  int new_size = max (len, 2 * id_size);
-	  id = (char *) yrealloc (id, new_size);
+	  id = (char *) xrealloc (id, new_size);
 	  id_size = new_size;
 	}
       strcpy (id, "operator");
@@ -2859,7 +2859,7 @@ operator_name (sc)
 	  if (len > id_size)
 	    {
 	      int new_size = max (len, 2 * id_size);
-	      id = (char *) yrealloc (id, new_size);
+	      id = (char *) xrealloc (id, new_size);
 	      id_size = new_size;
 	    }
 
@@ -2897,7 +2897,7 @@ parse_qualified_ident_or_type (last_id)
       int len = strlen (yytext) + 1;
       if (len > id_size)
 	{
-	  id = (char *) yrealloc (id, len);
+	  id = (char *) xrealloc (id, len);
 	  id_size = len;
 	}
       strcpy (id, yytext);
@@ -2937,7 +2937,7 @@ parse_qualified_param_ident_or_type (last_id)
       int len = strlen (yytext) + 1;
       if (len > id_size)
 	{
-	  id = (char *) yrealloc (id, len);
+	  id = (char *) xrealloc (id, len);
 	  id_size = len;
 	}
       strcpy (id, yytext);
@@ -3383,8 +3383,8 @@ add_search_path (path_list)
       while (*path_list && *path_list != PATH_LIST_SEPARATOR)
         ++path_list;
       
-      p = (struct search_path *) ymalloc (sizeof *p);
-      p->path = (char *) ymalloc (path_list - start + 1);
+      p = (struct search_path *) xmalloc (sizeof *p);
+      p->path = (char *) xmalloc (path_list - start + 1);
       memcpy (p->path, start, path_list - start);
       p->path[path_list - start] = '\0';
       p->next = NULL;
@@ -3426,7 +3426,7 @@ open_file (file)
       if (len + 1 >= buffer_size)
 	{
 	  buffer_size = max (len + 1, 2 * buffer_size);
-	  buffer = (char *) yrealloc (buffer, buffer_size);
+	  buffer = (char *) xrealloc (buffer, buffer_size);
 	}
 	
       strcpy (buffer, path->path);
@@ -3521,7 +3521,7 @@ process_file (file)
 	  if (nread + READ_CHUNK_SIZE >= inbuffer_size)
 	    {
 	      inbuffer_size = nread + READ_CHUNK_SIZE + 1;
-	      inbuffer = (char *) yrealloc (inbuffer, inbuffer_size);
+	      inbuffer = (char *) xrealloc (inbuffer, inbuffer_size);
 	    }
 	  
 	  nbytes = fread (inbuffer + nread, 1, READ_CHUNK_SIZE, fp);
@@ -3561,7 +3561,7 @@ read_line (fp)
       if (i >= buffer_size)
 	{
 	  buffer_size = max (100, buffer_size * 2);
-	  buffer = (char *) yrealloc (buffer, buffer_size);
+	  buffer = (char *) xrealloc (buffer, buffer_size);
 	}
 
       buffer[i++] = c;
@@ -3573,7 +3573,7 @@ read_line (fp)
   if (i == buffer_size)
     {
       buffer_size = max (100, buffer_size * 2);
-      buffer = (char *) yrealloc (buffer, buffer_size);
+      buffer = (char *) xrealloc (buffer, buffer_size);
     }
 
   buffer[i] = '\0';
@@ -3621,7 +3621,7 @@ main (argc, argv)
 	  if (n_input_files == input_filenames_size)
 	    {
 	      input_filenames_size = max (10, 2 * input_filenames_size);
-	      input_filenames = (char **) yrealloc (input_filenames,
+	      input_filenames = (char **) xrealloc (input_filenames,
 						    input_filenames_size);
 	    }
           input_filenames[n_input_files++] = xstrdup (optarg);
