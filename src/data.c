@@ -715,6 +715,9 @@ determined by DEFINITION.  */)
      (symbol, definition, docstring)
      register Lisp_Object symbol, definition, docstring;
 {
+  if (CONSP (XSYMBOL (symbol)->function)
+      && EQ (XCAR (XSYMBOL (symbol)->function), Qautoload))
+    LOADHIST_ATTACH (Fcons (Qt, symbol));
   definition = Ffset (symbol, definition);
   LOADHIST_ATTACH (symbol);
   if (!NILP (docstring))
