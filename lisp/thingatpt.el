@@ -156,12 +156,12 @@ a symbol as a valid THING."
 (put 'filename 'beginning-op
      '(lambda () (skip-chars-backward thing-at-point-file-name-chars)))
 
-(defvar thing-at-point-url-chars "~/A-Za-z0-9---_$%."
+(defvar thing-at-point-url-chars "~/A-Za-z0-9---_$%&=.,"
   "Characters allowable in a URL.")
 
 (put 'url 'end-op    
      '(lambda () (skip-chars-forward thing-at-point-url-chars)
-	(skip-chars-backward ".")))
+	(skip-chars-backward ".,")))
 (put 'url 'beginning-op
      '(lambda ()
 	(skip-chars-backward thing-at-point-url-chars)
