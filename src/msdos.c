@@ -342,6 +342,8 @@ static clock_t startup_time;
 
 static int term_setup_done;
 
+static unsigned short outside_cursor;
+
 /* Similar to the_only_frame.  */
 struct x_output the_only_x_display;
 
@@ -355,6 +357,8 @@ static unsigned short screen_virtual_segment = 0;
 static unsigned short screen_virtual_offset = 0;
 /* A flag to control how to display unibyte 8-bit characters.  */
 extern int unibyte_display_via_language_environment;
+
+Lisp_Object Qbar;
 
 #if __DJGPP__ > 1
 /* Update the screen from a part of relocated DOS/V screen buffer which
@@ -485,6 +489,19 @@ maybe_enable_blinking (void)
     }
 }
 
+/* Return non-zero if the system has a VGA adapter.  */
+static int
+vga_installed (void)
+{
+  union REGS regs;
+
+  regs.x.ax = 0x1a00;
+  int86 (0x10, &regs, &regs);
+  if (regs.h.al == 0x1a && regs.h.bl > 5 && regs.h.bl < 13)
+    return 1;
+  return 0;
+}
+
 /* Set the screen dimensions so that it can show no less than
    ROWS x COLS frame.  */
 
@@ -502,13 +519,8 @@ dos_set_window_size (rows, cols)
   if (*rows == current_rows && *cols == current_cols)
     return;
 
-  /* Do we have a VGA?  */
-  regs.x.ax = 0x1a00;
-  int86 (0x10, &regs, &regs);
-  if (regs.h.al == 0x1a && regs.h.bl > 5 && regs.h.bl < 13)
-    have_vga = 1;
-
   mouse_off ();
+  have_vga = vga_installed ();
 
   /* If the user specified a special video mode for these dimensions,
      use that mode.  */
@@ -654,6 +666,130 @@ mouse_off_maybe ()
     return;
   
   mouse_off ();
+}
+
+#define DEFAULT_CURSOR_START (-1)
+#define DEFAULT_CURSOR_WIDTH (-1)
+#define BOX_CURSOR_WIDTH     (-32)
+
+/* Set cursor to begin at scan line START_LINE in the character cell
+   and extend for WIDTH scan lines.  Scan lines are counted from top
+   of the character cell, starting from zero.  */
+static void
+msdos_set_cursor_shape (struct frame *f, int start_line, int width)
+{
+#if __DJGPP__ > 1
+  unsigned desired_cursor;
+  __dpmi_regs regs;
+  int max_line, top_line, bot_line;
+
+  /* Avoid the costly BIOS call if F isn't the currently selected
+     frame.  Allow for NULL as unconditionally meaning the selected
+     frame.  */
+  if (f && f != SELECTED_FRAME())
+    return;
+
+  /* The character cell size in scan lines is stored at 40:85 in the
+     BIOS data area.  */
+  max_line = _farpeekw (_dos_ds, 0x485) - 1;
+  switch (max_line)
+    {
+      default:	/* this relies on CGA cursor emulation being ON! */
+      case 7:
+	bot_line = 7;
+	break;
+      case 9:
+	bot_line = 9;
+	break;
+      case 13:
+	bot_line = 12;
+	break;
+      case 15:
+	bot_line = 14;
+	break;
+    }
+
+  if (width < 0)
+    {
+      if (width == BOX_CURSOR_WIDTH)
+	{
+	  top_line = 0;
+	  bot_line = max_line;
+	}
+      else if (start_line != DEFAULT_CURSOR_START)
+	{
+	  top_line = start_line;
+	  bot_line = top_line - width - 1;
+	}
+      else if (width != DEFAULT_CURSOR_WIDTH)
+	{
+	  top_line = 0;
+	  bot_line = -1 - width;
+	}
+      else
+	top_line = bot_line + 1;
+    }
+  else if (width == 0)
+    {
+      /* [31, 0] seems to DTRT for all screen sizes.  */
+      top_line = 31;
+      bot_line = 0;
+    }
+  else	/* WIDTH is positive */
+    {
+      if (start_line != DEFAULT_CURSOR_START)
+	bot_line = start_line;
+      top_line = bot_line - (width - 1);
+    }
+
+  /* If the current cursor shape is already what they want, we are
+     history here.  */
+  desired_cursor = ((top_line & 0x1f) << 8) | (bot_line & 0x1f);
+  if (desired_cursor == _farpeekw (_dos_ds, 0x460))
+    return;
+
+  regs.h.ah = 1;
+  regs.x.cx = desired_cursor;
+  __dpmi_int (0x10, &regs);
+#endif /* __DJGPP__ > 1 */
+}
+
+static void
+IT_set_cursor_type (struct frame *f, Lisp_Object cursor_type)
+{
+  if (EQ (cursor_type, Qbar))
+    {
+      /* Just BAR means the normal EGA/VGA cursor.  */
+      msdos_set_cursor_shape (f, DEFAULT_CURSOR_START, DEFAULT_CURSOR_WIDTH);
+    }
+  else if (CONSP (cursor_type) && EQ (XCAR (cursor_type), Qbar))
+    {
+      Lisp_Object bar_parms = XCDR (cursor_type);
+      int width;
+
+      if (INTEGERP (bar_parms))
+	{
+	  /* Feature: negative WIDTH means cursor at the top
+	     of the character cell, zero means invisible cursor.  */
+	  width = XINT (bar_parms);
+	  msdos_set_cursor_shape (f, width >= 0 ? DEFAULT_CURSOR_START : 0,
+				  width);
+	}
+      else if (CONSP (bar_parms)
+	       && INTEGERP (XCAR (bar_parms))
+	       && INTEGERP (XCDR (bar_parms)))
+	{
+	  int start_line = XINT (XCDR (bar_parms));
+
+	  width = XINT (XCAR (bar_parms));
+	  msdos_set_cursor_shape (f, start_line, width);
+	}
+    }
+  else
+    /* Treat anything unknown as "box cursor".  This includes nil, so
+       that a frame which doesn't specify a cursor type gets a box,
+       which is the default in Emacs.  */
+    msdos_set_cursor_shape (f, 0, BOX_CURSOR_WIDTH);
 }
 
 static void
@@ -1756,6 +1892,8 @@ IT_update_end (struct frame *f)
   FRAME_X_DISPLAY_INFO (f)->mouse_face_defer = 0;
 }
 
+Lisp_Object Qcursor_type;
+
 static void
 IT_frame_up_to_date (struct frame *f)
 {
@@ -1772,6 +1910,9 @@ IT_frame_up_to_date (struct frame *f)
       dpyinfo->mouse_face_deferred_gc = 0;
       UNBLOCK_INPUT;
     }
+
+  /* Set the cursor type to whatever they wanted.  */
+  IT_set_cursor_type (f, Fcdr (Fassq (Qcursor_type, f->param_alist)));
 
   IT_cmgoto (f);  /* position cursor when update is done */
 }
@@ -1847,6 +1988,7 @@ x_set_menu_bar_lines (f, value, oldval)
 
 Lisp_Object Qbackground_color;
 Lisp_Object Qforeground_color;
+Lisp_Object Qreverse;
 extern Lisp_Object Qtitle;
 
 /* IT_set_terminal_modes is called when emacs is started,
@@ -2040,9 +2182,8 @@ IT_set_frame_parameters (f, alist)
     = (Lisp_Object *) alloca (length * sizeof (Lisp_Object));
   Lisp_Object *values
     = (Lisp_Object *) alloca (length * sizeof (Lisp_Object));
-  Lisp_Object qreverse = intern ("reverse");
   /* Do we have to reverse the foreground and background colors?  */
-  int reverse = EQ (Fcdr (Fassq (qreverse, f->param_alist)), Qt);
+  int reverse = EQ (Fcdr (Fassq (Qreverse, f->param_alist)), Qt);
   int was_reverse = reverse;
   int redraw = 0, fg_set = 0, bg_set = 0;
   unsigned long orig_fg;
@@ -2079,7 +2220,7 @@ IT_set_frame_parameters (f, alist)
       Lisp_Object prop = parms[i];
       Lisp_Object val  = values[i];
 
-      if (EQ (prop, qreverse))
+      if (EQ (prop, Qreverse))
 	reverse = EQ (val, Qt);
     }
 	
@@ -2137,6 +2278,14 @@ IT_set_frame_parameters (f, alist)
 	  x_set_title (f, val);
 	  if (termscript)
 	    fprintf (termscript, "<TITLE: %s>\n", XSTRING (val)->data);
+	}
+      else if (EQ (prop, Qcursor_type))
+	{
+	  IT_set_cursor_type (f, val);
+	  if (termscript)
+	    fprintf (termscript, "<CTYPE: %s>\n",
+		     EQ (val, Qbar) || CONSP (val) && EQ (XCAR (val), Qbar)
+		     ? "bar" : "box");
 	}
       store_frame_param (f, prop, val);
     }
@@ -4267,6 +4416,13 @@ dos_ttraw ()
 	      mouse_position_hook = &mouse_get_pos;
 	      mouse_init ();
 	    }
+
+#ifndef HAVE_X_WINDOWS
+#if __DJGPP__ >= 2
+	  /* Save the cursor shape used outside Emacs.  */
+	  outside_cursor = _farpeekw (_dos_ds, 0x460);
+#endif
+#endif
 	}
 
       first_time = 0;
@@ -4311,6 +4467,16 @@ dos_ttcooked ()
   mouse_off ();
 
 #if __DJGPP__ >= 2
+
+#ifndef HAVE_X_WINDOWS
+  /* Restore the cursor shape we found on startup.  */
+  if (outside_cursor)
+    {
+      inregs.h.ah = 1;
+      inregs.x.cx = outside_cursor;
+      int86 (0x10, &inregs, &outregs);
+    }
+#endif
 
   return (setmode (fileno (stdin), stdin_stat) != -1);
 
@@ -4904,6 +5070,12 @@ wide as that tab on the display.  (No effect on MS-DOS.)");
   staticpro (&Qbackground_color);
   Qforeground_color = intern ("foreground-color");
   staticpro (&Qforeground_color);
+  Qbar = intern ("bar");
+  staticpro (&Qbar);
+  Qcursor_type = intern ("cursor-type");
+  staticpro (&Qcursor_type);
+  Qreverse = intern ("reverse");
+  staticpro (&Qreverse);
 
   DEFVAR_LISP ("dos-unsupported-char-glyph", &Vdos_unsupported_char_glyph,
    "*Glyph to display instead of chars not supported by current codepage.\n\
