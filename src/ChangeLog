@@ -1,3 +1,12 @@
+2004-07-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* window.c (Fpos_visible_in_window_p, Fset_window_hscroll)
+	(Fwindow_inside_pixel_edges, Fwindow_end, Fset_window_point)
+	(Fset_window_start, Fscroll_up, Fscroll_down)
+	(Fother_window_for_scrolling, Fscroll_other_window)
+	(Fsave_window_excursion, Fset_window_vscroll)
+	(syms_of_window) <window-size-fixed>: Doc fixes.
+
 2004-07-19  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>  (tiny change)
 
 	* w32fns.c (Fx_file_dialog): Use ENCODE_FILE instead of
@@ -15,9 +24,9 @@
 2004-07-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c (sys_select): Redo sys_select to use alarm-based
-	polling instead of 1 sec timeouts (like solaris).  
+	polling instead of 1 sec timeouts (like solaris).
 
-	* macterm.c (x_make_frame_visible): Comment in polling on 
+	* macterm.c (x_make_frame_visible): Comment in polling on
 	frame creation.
 
 	* keyboard.c: Undef SIGIO on Carbon
