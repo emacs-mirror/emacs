@@ -1,3 +1,7 @@
+2000-03-28  Ken Raeburn  <raeburn@gnu.org>
+
+	* configure.in: Line up "--help" output a little better.
+
 2000-03-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (bootstrap-lisp-1, bootstrap-list, bootstrap-src):

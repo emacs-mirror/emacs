@@ -47,7 +47,7 @@ AC_ARG_WITH(kerberos,
 [  --with-kerberos         support Kerberos-authenticated POP],
 [AC_DEFINE(KERBEROS)])
 AC_ARG_WITH(kerberos5,
-[  --with-kerberos5         support Kerberos version 5 authenticated POP],
+[  --with-kerberos5        support Kerberos version 5 authenticated POP],
 [if test "${with_kerberos5+set}" = set; then
   if test "${with_kerberos+set}" != set; then
     with_kerberos=yes
@@ -93,7 +93,8 @@ AC_ARG_WITH(gif,
 AC_ARG_WITH(png,
 [  --with-png              use -lpng for displaying PNG images])
 AC_ARG_WITH(toolkit-scroll-bars,
-[  --without-toolkit-scroll-bars  don't use Motif or Xaw3d scroll bars])
+[  --without-toolkit-scroll-bars
+                          don't use Motif or Xaw3d scroll bars])
 
 #### Make srcdir absolute, if it isn't already.  It's important to
 #### avoid running the path through pwd unnecessary, since pwd can
