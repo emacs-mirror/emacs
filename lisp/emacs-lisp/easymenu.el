@@ -42,6 +42,8 @@ menus, turn this variable off, otherwise it is probably better to keep it on."
   :version "20.3")
 
 ;;;###autoload
+(put 'easy-menu-define 'lisp-indent-function 'defun)
+;;;###autoload
 (defmacro easy-menu-define (symbol maps doc menu)
   "Define a menu bar submenu in maps MAPS, according to MENU.
 The menu keymap is stored in symbol SYMBOL, both as its value
@@ -538,6 +540,13 @@ If item is an old format item, a new format item is returned."
     (setq submap (cdr submap)))
   submap)
 
+;; This should really be in keymap.c
+(defun easy-menu-current-active-maps ()
+  (let ((maps (list (current-local-map) global-map)))
+    (dolist (minor minor-mode-map-alist)
+      (if (symbol-value (car minor)) (push (cdr minor) maps)))
+    (delq nil maps)))
+
 (defun easy-menu-get-map (map path &optional to-modify)
   "Return a sparse keymap in which to add or remove an item.
 MAP and PATH are as defined in `easy-menu-add-item'.
@@ -545,33 +554,37 @@ MAP and PATH are as defined in `easy-menu-add-item'.
 TO-MODIFY, if non-nil, is the name of the item the caller
 wants to modify in the map that we return.
 In some cases we use that to select between the local and global maps."
-  (if (null map)
-      (let ((local (and (current-local-map)
-			(lookup-key (current-local-map)
-				    (vconcat '(menu-bar) (mapcar 'intern path)))))
-	    (global (lookup-key global-map
-				(vconcat '(menu-bar) (mapcar 'intern path)))))
-	(cond ((and to-modify local (not (integerp local))
-		    (easy-menu-get-map-look-for-name to-modify local))
-	       (setq map local))
-	      ((and to-modify global (not (integerp global))
-		    (easy-menu-get-map-look-for-name to-modify global))
-	       (setq map global))
-	      ((and local local (not (integerp local)))
-	       (setq map local))
-	      ((and global (not (integerp global)))
-	       (setq map global))
-	      (t
-	       (setq map (make-sparse-keymap))
-	       (define-key (current-local-map)
-		 (vconcat '(menu-bar) (mapcar 'intern path)) map))))
-    (if (and (symbolp map) (not (keymapp map)))
-	(setq map (symbol-value map)))
-    (if path (setq map (lookup-key map (vconcat (mapcar 'intern path))))))
-  (while (and (symbolp map) (keymapp map))
-    (setq map (symbol-function map)))
-  (unless map
-    (error "Menu specified in easy-menu is not defined"))
+  (setq map
+	(catch 'found
+	  (let* ((key (vconcat (unless map '(menu-bar)) (mapcar 'intern path)))
+		 (maps (mapcar (lambda (map)
+				 (setq map (lookup-key map key))
+				 (while (and (symbolp map) (keymapp map))
+				   (setq map (symbol-function map)))
+				 map)
+			       (if map
+				   (list (if (and (symbolp map)
+						  (not (keymapp map)))
+					     (symbol-value map) map))
+				 (easy-menu-current-active-maps)))))
+	    ;; Prefer a map that already contains the to-be-modified entry.
+	    (when to-modify
+	      (dolist (map maps)
+		(when (and map (not (integerp map))
+			   (easy-menu-get-map-look-for-name to-modify map))
+		  (throw 'found map))))
+	    ;; Use the first valid map.
+	    (dolist (map maps)
+	      (when (and map (not (integerp map)))
+		(throw 'found map)))
+	    ;; Otherwise, make one up.
+	    ;; Hardcoding current-local-map is lame, but it's difficult
+	    ;; to know what the caller intended for us to do ;-(
+	    (let* ((name (if path (format "%s" (car (reverse path)))))
+		   (newmap (make-sparse-keymap name)))
+	      (define-key (or map (current-local-map)) key
+		(if name (cons name newmap) newmap))
+	      newmap))))
   (or (keymapp map) (error "Malformed menu in easy-menu: (%s)" map))
   map)
 
