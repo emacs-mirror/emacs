@@ -1765,12 +1765,14 @@ one topic and contains references to other nodes which discuss related
 topics.  Info has commands to follow the references and show you other nodes.
 
 \\[Info-help]	Invoke the Info tutorial.
+\\[Info-exit]	Quit Info: reselect previously selected buffer.
 
 Selecting other nodes:
 \\[Info-mouse-follow-nearest-node]
 	Follow a node reference you click on.
 	  This works with menu items, cross references, and
 	  the \"next\", \"previous\" and \"up\", depending on where you click.
+\\[Info-follow-nearest-node]	Follow a node reference near point, like \\[Info-mouse-follow-nearest-node].
 \\[Info-next]	Move to the \"next\" node of this node.
 \\[Info-prev]	Move to the \"previous\" node of this node.
 \\[Info-up]	Move \"up\" from this node.
@@ -1781,6 +1783,10 @@ Selecting other nodes:
 \\[Info-last]	Move to the last node you were at.
 \\[Info-index]	Look up a topic in this file's Index and move to that node.
 \\[Info-index-next]	(comma) Move to the next match from a previous `i' command.
+\\[Info-top-node]	Go to the Top node of this file.
+\\[Info-final-node]	Go to the final node in this file.
+\\[Info-backward-node]	Go backward one node, considering all nodes as forming one sequence.
+\\[Info-forward-node]	Go forward one node, considering all nodes as forming one sequence.
 
 Moving within a node:
 \\[Info-scroll-up]	Normally, scroll forward a full screen.
