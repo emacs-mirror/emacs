@@ -219,6 +219,7 @@ This is what the `do' commands look for and what the `mark' commands store.")
 
 (defvar dired-file-version-alist)
 
+;;;###autoload
 (defvar dired-directory nil
   "The directory name or wildcard spec that this Dired directory lists.
 Local to each dired buffer.  May be a list, in which case the car is the
