@@ -1,3 +1,8 @@
+2002-11-17  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* message.el (message-set-auto-save-file-name): Use
+	make-directory, to avoid the dependence on gnus-util.
+
 2002-11-11   Markus Rost  <rost@math.ohio-state.edu>
 
 	* gnus-sum.el (gnus-summary-goto-unread): Doc fix - escape open
