@@ -1,3 +1,8 @@
+2003-07-14  Nick Roberts  <nick@nick.uklinux.net>
+
+	* NEWS: Merge in the changes for versions 21.2 and 21.3 as
+	documented on the EMACS_21_1_RC branch.
+
 2003-03-03  Chao-Hong Liu  <chliu@gnu.org>
 
 	* TUTORIAL.cn: Updated.
