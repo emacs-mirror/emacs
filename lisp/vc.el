@@ -1572,6 +1572,15 @@ levels in the snapshot."
 	(if (looking-at "[\b\t\n\v\f\r ]+")
 	    (delete-char (- (match-end 0) (match-beginning 0))))
 	(shrink-window-if-larger-than-buffer)
+	;; move point to the log entry for the current version
+	(if (not (eq (vc-backend file) 'SCCS))
+	    (let ((pos (re-search-forward
+			;; also match some context, for safety
+			(concat "----\nrevision " (vc-workfile-version file)
+				"\\(\tlocked by:.*\n\\|\n\\)date: ") nil t)))
+	      (if pos (progn (goto-char pos)
+			     (beginning-of-line)
+			     (forward-line -1)))))
 	)
     (vc-registration-error buffer-file-name)
     )
