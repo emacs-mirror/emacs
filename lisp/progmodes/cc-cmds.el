@@ -196,7 +196,8 @@ the brace is inserted inside a literal."
 	    blink-paren-function
 	    (insertion-point (point))
 	    delete-temp-newline
-	    (preserve-p (eq ?\  (char-syntax (char-before))))
+	    (preserve-p (and (not (bobp))
+			     (eq ?\  (char-syntax (char-before)))))
 	    ;; shut this up too
 	    (c-echo-syntactic-information-p nil)
 	    (syntax (progn
