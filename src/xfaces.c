@@ -6320,8 +6320,8 @@ try_alternative_families (f, family, registry, fonts)
 	    }
 	}
 
-      /* Try scalable fonts before giving up.  */
-      if (nfonts == 0 && NILP (Vscalable_fonts_allowed))
+      /* Try all scalable fonts before giving up.  */
+      if (nfonts == 0 && ! EQ (Vscalable_fonts_allowed, Qt))
 	{
 	  int count = SPECPDL_INDEX ();
 	  specbind (Qscalable_fonts_allowed, Qt);
