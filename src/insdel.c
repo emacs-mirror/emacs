@@ -464,6 +464,19 @@ insert_before_markers (string, length)
     }
 }
 
+insert_before_markers_and_inherit (string, length)
+     unsigned char *string;
+     register int length;
+{
+  if (length > 0)
+    {
+      register int opoint = PT;
+      insert_1 (string, length, 1);
+      adjust_markers (opoint - 1, opoint, length);
+      signal_after_change (PT-length, 0, length);
+    }
+}
+
 /* Insert part of a Lisp string, relocating markers after.  */
 
 insert_from_string_before_markers (string, pos, length, inherit)
