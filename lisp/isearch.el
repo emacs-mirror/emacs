@@ -4,7 +4,7 @@
 ;; LCD Archive Entry:
 ;; isearch-mode|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |A minor mode replacement for isearch.el.
-;; |$Date: 1993/03/06 06:15:05 $|$Revision: 1.20 $|~/modes/isearch-mode.el
+;; |$Date: 1993/03/07 04:22:00 $|$Revision: 1.21 $|~/modes/isearch-mode.el
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -88,8 +88,11 @@
 ;;;====================================================================
 ;;; Change History
 
-;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch-mode.el,v 1.20 1993/03/06 06:15:05 rms Exp rms $
+;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch-mode.el,v 1.21 1993/03/07 04:22:00 rms Exp rms $
 ;;; $Log: isearch-mode.el,v $
+; Revision 1.21  1993/03/07  04:22:00  rms
+; (isearch-unread): Find last list element by hand.
+;
 ; Revision 1.20  1993/03/06  06:15:05  rms
 ; (isearch-unread): Handle multiple args.
 ; For Emacs 19, use listify-key-sequence.
@@ -558,8 +561,10 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 	isearch-old-local-map (current-local-map)
 	search-ring-yank-pointer nil
 	regexp-search-ring-yank-pointer nil)
-  (if isearch-pre-command-hook-exists
-      (add-hook 'pre-command-hook 'isearch-pre-command-hook))
+;; This was for Lucid Emacs.  But now that we have pre-command-hook,
+;; it causes trouble.
+;;  (if isearch-pre-command-hook-exists
+;;      (add-hook 'pre-command-hook 'isearch-pre-command-hook))
   (setq	isearch-mode " Isearch")  ;; forward? regexp?
   (set-buffer-modified-p (buffer-modified-p)) ; update modeline
 
