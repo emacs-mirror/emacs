@@ -1,3 +1,12 @@
+2000-10-26  Dave Love  <fx@gnu.org>
+
+	* cus-edit.el (custom-mode): Add `special' mode-class property.
+
+	* wid-browse.el (widget-browse-mode): Likewise.
+
+	* wid-edit.el (widget-specify-field): Revert to using local-map
+	property, not keymap.
+
 2000-10-26  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* wid-edit.el (widget-field-end): When checking for a `boundary'
