@@ -29,25 +29,7 @@
   "Setup multilingual environment (MULE) for Chinese GB2312 users."
   (interactive)
   (setup-english-environment)
-
-  (set-default-coding-systems 'chinese-iso-8bit)
-  (setq coding-category-iso-8-2 'chinese-iso-8bit)
-  (setq coding-category-iso-7-else 'chinese-iso-7bit)
-  (setq coding-category-big5 'chinese-big5)
-
-  (set-coding-priority
-   '(coding-category-iso-7
-     coding-category-iso-7-else
-     coding-category-iso-8-2
-     coding-category-big5
-     coding-category-iso-8-1
-     coding-category-emacs-mule
-     coding-category-iso-8-else))
-
-  (setq-default buffer-file-coding-system 'chinese-iso-8bit)
-  (setq default-terminal-coding-system 'chinese-iso-8bit)
-  (setq default-keyboard-coding-system 'chinese-iso-8bit)
-
+  (set-language-environment-coding-systems "Chinese-GB")
   (setq default-input-method  "chinese-py-punct"))
 
 ;;;###autoload
@@ -55,24 +37,7 @@
   "Setup multilingual environment (MULE) for Chinese Big5 users."
   (interactive)
   (setup-english-environment)
-
-  (set-default-coding-systems 'chinese-big5)
-  (setq coding-category-iso-8-2 'chinese-big5)
-  (setq coding-category-iso-7-else 'chinese-iso-7bit)
-  (setq coding-category-big5 'chinese-big5)
-
-  (set-coding-priority
-   '(coding-category-iso-7
-     coding-category-iso-7-else
-     coding-category-big5
-     coding-category-iso-8-2
-     coding-category-emacs-mule
-     coding-category-iso-8-else))
-
-  (setq-default buffer-file-coding-system 'chinese-big5)
-  (setq default-terminal-coding-system 'chinese-big5)
-  (setq default-keyboard-coding-system 'chinese-big5)
-
+  (set-language-environment-coding-systems "Chinese-BIG5")
   (setq default-input-method "chinese-py-punct-b5"))
 
 ;;;###autoload
@@ -80,23 +45,7 @@
   "Setup multilingual environment (MULE) for Chinese CNS11643 family users."
   (interactive)
   (setup-english-environment)
-
-  (setq coding-category-iso-7-else 'chinese-iso-7bit)
-  (setq coding-category-big5 'chinese-big5)
-  (setq coding-category-iso-8-2 'chinese-big5)
-  (set-default-coding-systems 'chinese-iso-7bit)
-
-  (set-coding-priority
-   '(coding-category-iso-7
-     coding-category-iso-7-else
-     coding-category-iso-8-2
-     coding-category-big5
-     coding-category-iso-7-else))
-
-  (setq-default buffer-file-coding-system 'chinese-iso-7bit)
-  (setq default-terminal-coding-system 'chinese-iso-7bit)
-  (setq default-keyboard-coding-system 'chinese-iso-7bit)
-
+  (set-language-environment-coding-systems "Chinese-CNS")
   (setq default-input-method "chinese-quick-cns"))
 
 ;; Hz/ZW encoding stuffs
@@ -122,10 +71,22 @@
 ;; Regexp of ZW sequence to start GB2312.
 (defvar zw-start-gb "^zW")
 ;; Regexp for start of GB2312 in an encoding mixture of HZ and ZW.
-(defvar hz/zw-start-gb (concat hz-gb-designnation "\\|" zw-start-gb))
+(defvar hz/zw-start-gb
+  (concat hz-gb-designnation "\\|" zw-start-gb "\\|[^\0-\177]"))
 
 (defvar decode-hz-line-continuation nil
   "Flag to tell if we should care line continuation convention of Hz.")
+
+(defconst hz-set-msb-table
+  (let ((str (make-string 127 0))
+	(i 0))
+    (while (< i 33)
+      (aset str i i)
+      (setq i (1+ i)))
+    (while (< i 127)
+      (aset str i (+ i 128))
+      (setq i (1+ i)))
+    str))
 
 ;;;###autoload
 (defun decode-hz-region (beg end)
@@ -134,49 +95,46 @@ Return the length of resulting text."
   (interactive "r")
   (save-excursion
     (save-restriction
-      (narrow-to-region beg end)
+      (let (pos ch)
+	(narrow-to-region beg end)
 
-      ;; We, at first, convert HZ/ZW to `iso-2022-7bit',
-      ;; then decode it.
+	;; We, at first, convert HZ/ZW to `euc-china',
+	;; then decode it.
 
-      ;; "~\n" -> "\n"
-      (goto-char (point-min))
-      (while (search-forward "~" nil t)
-	(if (= (following-char) ?\n) (delete-char -1))
-	(if (not (eobp)) (forward-char 1)))
+	;; "~\n" -> "\n", "~~" -> "~"
+	(goto-char (point-min))
+	(while (search-forward "~" nil t)
+	  (setq ch (following-char))
+	  (if (or (= ch ?\n) (= ch ?~)) (delete-char -1)))
 
-      ;; "^zW...\n" -> Chinese GB2312
-      ;; "~{...~}"  -> Chinese GB2312
-      (goto-char (point-min))
-      (let ((chinese-found nil))
+	;; "^zW...\n" -> Chinese GB2312
+	;; "~{...~}"  -> Chinese GB2312
+	(goto-char (point-min))
+	(setq beg nil)
 	(while (re-search-forward hz/zw-start-gb nil t)
-	  (if (= (char-after (match-beginning 0)) ?z)
-	      ;; ZW -> iso-2022-7bit
-	      (progn
-		(delete-char -2)
-		(insert iso2022-gb-designation)
-		(end-of-line)
-		(insert iso2022-ascii-designation))
-	    ;; HZ -> iso-2022-7bit
-	    (delete-char -2)
-	    (insert iso2022-gb-designation)
-	    (let ((pos (save-excursion (end-of-line) (point))))
-	      (if (search-forward hz-ascii-designnation pos t)
-		  (replace-match iso2022-ascii-designation)
-		(if (not decode-hz-line-continuation)
-		    (insert iso2022-ascii-designation)))))
-	  (setq chinese-found t))
-	(if (or chinese-found
-		(let ((enable-multibyte-characters nil))
-		  ;; Here we check if the text contains EUC (China) codes.
-		  ;; If any, we had better decode them also.
-		  (goto-char (point-min))
-		  (re-search-forward "[\240-\377]" nil t))) 
-	    (decode-coding-region (point-min) (point-max) 'euc-china)))
-
-      ;; "~~" -> "~"
-      (goto-char (point-min))
-      (while (search-forward "~~" nil t) (delete-char -1))
+	  (setq pos (match-beginning 0)
+		ch (char-after pos))
+	  ;; Record the first position to start conversion.
+	  (or beg (setq beg pos))
+	  (end-of-line)
+	  (setq end (point))
+	  (if (>= ch 128)		; 8bit GB2312
+	      nil
+	    (goto-char pos)
+	    (delete-char 2)
+	    (setq end (- end 2))
+	    (if (= ch ?z)			; ZW -> euc-china
+		(progn
+		  (translate-region (point) end hz-set-msb-table)
+		  (goto-char end))
+	      (if (search-forward hz-ascii-designnation
+				  (if decode-hz-line-continuation nil end)
+				  t)
+		  (delete-char -2))
+	      (setq end (point))
+	      (translate-region pos (point) hz-set-msb-table))))
+	(if beg
+	    (decode-coding-region beg end 'euc-china)))
       (- (point-max) (point-min)))))
 
 ;;;###autoload

@@ -36,10 +36,7 @@
 (defun setup-tibetan-environment ()
   (interactive)
   (setup-english-environment)
-  (setq coding-category-iso-8-2 'tibetan)
-
-  (setq-default buffer-file-coding-system 'iso-2022-7bit)
-
+  (set-language-environment-coding-systems "Tibetan")
   (setq default-input-method  "tibetan-wylie"))
 
 ;;; This function makes a transcription string for

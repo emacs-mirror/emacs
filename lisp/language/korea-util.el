@@ -65,14 +65,7 @@
   "Setup multilingual environment (MULE) for Korean."
   (interactive)
   (setup-english-environment)
-  (setq coding-category-iso-8-2 'korean-iso-8bit)
-
-  (set-coding-priority
-   '(coding-category-iso-7
-     coding-category-iso-8-2
-     coding-category-iso-8-1))
-
-  (set-default-coding-systems 'korean-iso-8bit)
+  (set-language-environment-coding-systems "Korean")
 
   (setq default-input-method "korean-hangul")
 

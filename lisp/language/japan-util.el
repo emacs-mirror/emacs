@@ -29,24 +29,9 @@
   "Setup multilingual environment (MULE) for Japanese."
   (interactive)
   (setup-english-environment)
-
-  (setq coding-category-iso-8-2 'japanese-iso-8bit)
-  (setq coding-category-iso-8-else 'japanese-iso-8bit)
-
-  (set-coding-priority
-   '(coding-category-iso-7
-     coding-category-iso-8-2
-     coding-category-sjis
-     coding-category-iso-8-1
-     coding-category-iso-7-else
-     coding-category-iso-8-else
-     coding-category-emacs-mule))
-
-  (set-default-coding-systems
-   (if (eq system-type 'ms-dos)
-       'japanese-shift-jis
-     'iso-2022-jp))
-
+  (set-language-environment-coding-systems "Japanese")
+  (if (eq system-type 'ms-dos)
+      (prefer-coding-system 'japanese-shift-jis))
   (setq default-input-method "japanese"))
 
 (defconst japanese-kana-table
