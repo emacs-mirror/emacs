@@ -57,7 +57,13 @@
 
 /* The character used as a separator in path lists (like $PATH).  */
 
+#if defined(__MSDOS__) || defined(WINDOWSNT)
+#define PATH_LIST_SEPARATOR ';'
+#define FILENAME_EQ(X,Y)    (strcasecmp(X,Y) == 0)
+#else
 #define PATH_LIST_SEPARATOR ':'
+#define FILENAME_EQ(X,Y)    (streq(X,Y))
+#endif
 
 /* The default output file name.  */
 
@@ -749,7 +755,7 @@ add_member_decl (cls, name, regexp, pos, hash, var, sc, vis, flags)
     m = add_member (cls, name, var, sc, hash);
 
   /* Have we seen a new filename?  If so record that.  */
-  if (!cls->filename || !streq (cls->filename, filename))
+  if (!cls->filename || !FILENAME_EQ (cls->filename, filename))
     m->filename = filename;
 
   m->regexp = regexp;
@@ -820,7 +826,7 @@ add_member_defn (cls, name, regexp, pos, hash, var, sc, flags)
   if (!cls->sfilename)
     cls->sfilename = filename;
 
-  if (!streq (cls->sfilename, filename))
+  if (!FILENAME_EQ (cls->sfilename, filename))
     m->def_filename = filename;
 
   m->def_regexp = regexp;
@@ -919,7 +925,7 @@ add_global_decl (name, regexp, pos, hash, var, sc, flags)
   if (!found)
     {
       if (!global_symbols->filename
-	  || !streq (global_symbols->filename, filename))
+	  || !FILENAME_EQ (global_symbols->filename, filename))
 	m->filename = filename;
 
       m->regexp = regexp;
@@ -3376,12 +3382,13 @@ open_file (file)
   static char *buffer;
   static int buffer_size;
   struct search_path *path;
+  int flen = strlen (file) + 1;	/* +1 for the slash */
   
   filename = xstrdup (file);
 
   for (path = search_path; path && fp == NULL; path = path->next)
     {
-      int len = strlen (path->path);
+      int len = strlen (path->path) + flen;
 
       if (len + 1 >= buffer_size)
 	{
@@ -3485,10 +3492,12 @@ process_file (file)
 	    }
 	  
 	  nbytes = fread (inbuffer + nread, 1, READ_CHUNK_SIZE, fp);
-	  nread += nbytes;
-	  if (nbytes < READ_CHUNK_SIZE)
+	  if (nbytes <= 0)
 	    break;
+	  nread += nbytes;
 	}
+      if (nread < 0)
+	nread = 0;
       inbuffer[nread] = '\0';
 
       /* Reinitialize scanner and parser for the new input file.  */
