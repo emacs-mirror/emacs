@@ -1,3 +1,11 @@
+2003-04-30  Dave Love  <fx@gnu.org>
+
+	* mule-conf.el (utf-16-be)
+	(utf-16-be-with-signature): Comment-out :endian.
+
+	* mule-diag.el (describe-character-set): Fix
+	printing dimensions.  Use `,AW(B', not `x'.
+
 2003-04-12  Kenichi Handa  <handa@etlken2>
 
 	* international/fontset.el: Register CDAC fonts in
