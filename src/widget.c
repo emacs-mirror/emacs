@@ -871,9 +871,16 @@ EmacsFrameSetCharSize (widget, columns, rows)
   EmacsFrame ew = (EmacsFrame) widget;
   Dimension pixel_width, pixel_height, granted_width, granted_height;
   XtGeometryResult result;
+  struct frame *f = ew->emacs_frame.frame;
+
   if (columns < 3) columns = 3;  /* no way buddy */
   if (rows < 3) rows = 3;
 
+  check_frame_size (f, &rows, &columns);
+  f->display.x->vertical_scroll_bar_extra
+    = (FRAME_HAS_VERTICAL_SCROLL_BARS (f)
+       ? VERTICAL_SCROLL_BAR_PIXEL_WIDTH (f)
+       : 0);
   char_to_pixel_size (ew, columns, rows, &pixel_width, &pixel_height);
   result = XtMakeResizeRequest ((Widget)ew,
 				pixel_width, pixel_height,
@@ -887,4 +894,10 @@ EmacsFrameSetCharSize (widget, columns, rows)
       XtVaSetValues (XtParent ((Widget) ew), XtNwidth, pixel_width, 0);
       XtVaSetValues ((Widget) ew, XtNwidth, pixel_width, 0);
     }
+
+  /* We've set {FRAME,PIXEL}_{WIDTH,HEIGHT} to the values we hope to
+     receive in the ConfigureNotify event; if we get what we asked
+     for, then the event won't cause the screen to become garbaged, so
+     we have to make sure to do it here.  */
+  SET_FRAME_GARBAGED (f);
 }
