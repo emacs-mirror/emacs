@@ -525,7 +525,7 @@ The time should be in either 24 hour format or am/pm format."
 			  (calendar-date-equal 
 			   (calendar-current-date) (car (car entry-list))))
 		(let ((time-string (substring (prin1-to-string 
-					       (cadr (car entry-list))) 2 -1)))
+					       (cadr (car entry-list))) 1 -1)))
 
 		  (while (string-match
 			  "[0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?.*" 
