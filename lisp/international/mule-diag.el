@@ -61,6 +61,67 @@
   'help-function #'list-charset-chars
   'help-echo "mouse-2, RET: show table of characters for this character set")
 
+(defvar non-iso-charset-alist
+  `((mac-roman
+     (ascii latin-iso8859-1 mule-unicode-2500-33ff
+	    mule-unicode-0100-24ff mule-unicode-e000-ffff)
+     mac-roman-decoder
+     ((0 255)))
+    (viscii
+     (ascii vietnamese-viscii-lower vietnamese-viscii-upper)
+     viet-viscii-nonascii-translation-table
+     ((0 255)))
+    (koi8-r
+     (ascii cyrillic-iso8859-5)
+     cyrillic-koi8-r-nonascii-translation-table
+     ((32 255)))
+    (alternativnyj
+     (ascii cyrillic-iso8859-5)
+     cyrillic-alternativnyj-nonascii-translation-table
+     ((32 255)))
+    (koi8-u
+     (ascii cyrillic-iso8859-5 mule-unicode-0100-24ff)
+     cyrillic-koi8-u-nonascii-translation-table
+     ((32 255)))
+    (big5
+     (ascii chinese-big5-1 chinese-big5-2)
+     decode-big5-char
+     ((32 127)
+      ((?\xA1 ?\xFE) . (?\x40 ?\x7E ?\xA1 ?\xFE))))
+    (sjis
+     (ascii katakana-jisx0201 japanese-jisx0208)
+     decode-sjis-char
+     ((32 127 ?\xA1 ?\xDF)
+      ((?\x81 ?\x9F ?\xE0 ?\xEF) . (?\x40 ?\x7E ?\x80 ?\xFC)))))
+  "Alist of charset names vs the corresponding information.
+This is mis-named for historical reasons.  The charsets are actually
+non-built-in ones.  They correspond to Emacs coding systems, not Emacs
+charsets, i.e. what Emacs can read (or write) by mapping to (or
+from) Emacs internal charsets that typically correspond to a limited
+set of ISO charsets.
+
+Each element has the following format:
+  (CHARSET CHARSET-LIST TRANSLATION-METHOD [ CODE-RANGE ])
+
+CHARSET is the name (symbol) of the charset.
+
+CHARSET-LIST is a list of Emacs charsets into which characters of
+CHARSET are mapped.
+
+TRANSLATION-METHOD is a translation table (symbol) to translate a
+character code of CHARSET to the corresponding Emacs character
+code.  It can also be a function to call with one argument, a
+character code in CHARSET.
+
+CODE-RANGE specifies the valid code ranges of CHARSET.
+It is a list of RANGEs, where each RANGE is of the form:
+  (FROM1 TO1 FROM2 TO2 ...)
+or
+  ((FROM1-1 TO1-1 FROM1-2 TO1-2 ...) . (FROM2-1 TO2-1 FROM2-2 TO2-2 ...))
+In the first form, valid codes are between FROM1 and TO1, or FROM2 and
+TO2, or...
+The second form is used for 2-byte codes.  The car part is the ranges
+of the first byte, and the cdr part is the ranges of the second byte.")
 
 ;;;###autoload
 (defun list-character-sets (arg)
@@ -273,69 +334,6 @@ but still shows the full information."
 		     (charset-iso-final-char charset)
 		     (charset-iso-graphic-plane charset)
 		     (charset-description charset))))))
-
-(defvar non-iso-charset-alist
-  `((mac-roman
-     (ascii latin-iso8859-1 mule-unicode-2500-33ff
-	    mule-unicode-0100-24ff mule-unicode-e000-ffff)
-     mac-roman-decoder
-     ((0 255)))
-    (viscii
-     (ascii vietnamese-viscii-lower vietnamese-viscii-upper)
-     viet-viscii-nonascii-translation-table
-     ((0 255)))
-    (koi8-r
-     (ascii cyrillic-iso8859-5)
-     cyrillic-koi8-r-nonascii-translation-table
-     ((32 255)))
-    (alternativnyj
-     (ascii cyrillic-iso8859-5)
-     cyrillic-alternativnyj-nonascii-translation-table
-     ((32 255)))
-    (koi8-u
-     (ascii cyrillic-iso8859-5 mule-unicode-0100-24ff)
-     cyrillic-koi8-u-nonascii-translation-table
-     ((32 255)))
-    (big5
-     (ascii chinese-big5-1 chinese-big5-2)
-     decode-big5-char
-     ((32 127)
-      ((?\xA1 ?\xFE) . (?\x40 ?\x7E ?\xA1 ?\xFE))))
-    (sjis
-     (ascii katakana-jisx0201 japanese-jisx0208)
-     decode-sjis-char
-     ((32 127 ?\xA1 ?\xDF)
-      ((?\x81 ?\x9F ?\xE0 ?\xEF) . (?\x40 ?\x7E ?\x80 ?\xFC)))))
-  "Alist of charset names vs the corresponding information.
-This is mis-named for historical reasons.  The charsets are actually
-non-built-in ones.  They correspond to Emacs coding systems, not Emacs
-charsets, i.e. what Emacs can read (or write) by mapping to (or
-from) Emacs internal charsets that typically correspond to a limited
-set of ISO charsets.
-
-Each element has the following format:
-  (CHARSET CHARSET-LIST TRANSLATION-METHOD [ CODE-RANGE ])
-
-CHARSET is the name (symbol) of the charset.
-
-CHARSET-LIST is a list of Emacs charsets into which characters of
-CHARSET are mapped.
-
-TRANSLATION-METHOD is a translation table (symbol) to translate a
-character code of CHARSET to the corresponding Emacs character
-code.  It can also be a function to call with one argument, a
-character code in CHARSET.
-
-CODE-RANGE specifies the valid code ranges of CHARSET.
-It is a list of RANGEs, where each RANGE is of the form:
-  (FROM1 TO1 FROM2 TO2 ...)
-or
-  ((FROM1-1 TO1-1 FROM1-2 TO1-2 ...) . (FROM2-1 TO2-1 FROM2-2 TO2-2 ...))
-In the first form, valid codes are between FROM1 and TO1, or FROM2 and
-TO2, or...
-The second form is used for 2-byte codes.  The car part is the ranges
-of the first byte, and the cdr part is the ranges of the second byte.")
-
 
 (defun decode-codepage-char (codepage code)
   "Decode a character that has code CODE in CODEPAGE.
@@ -1305,5 +1303,7 @@ system which uses fontsets)."
 	    (print-fontset (car fontsets) t)
 	    (setq fontsets (cdr fontsets)))))
       (print-help-return-message))))
+
+(provide 'mule-diag)
 
 ;;; mule-diag.el ends here
