@@ -1,5 +1,8 @@
 2001-07-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs-lisp/lisp-mode.el (eval-last-sexp-1): Look for a `...'
+	before assigning text properties.  Make properties rear-nonsticky.
+	
 	* emacs-lisp/lisp-mode.el (last-sexp-print): New function.
 	(eval-last-sexp-1): Give printed text a `keymap' property and bind
 	<mouse-2> and <RET> in that map to a function printing the
