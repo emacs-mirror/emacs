@@ -266,7 +266,7 @@ The value is never nil.")
   BUFFER_ALLOC (BUF_BEG_ADDR (b), BUF_GAP_SIZE (b));
   UNBLOCK_INPUT;
   if (! BUF_BEG_ADDR (b))
-    memory_full ();
+    buffer_memory_full ();
 
   BUF_PT (b) = 1;
   BUF_GPT (b) = 1;
