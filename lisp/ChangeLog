@@ -1,3 +1,7 @@
+2002-02-26  Juanma Barranquero  <lektu@terra.es>
+
+	* faces.el (list-faces-display): Fix typo.
+
 2002-02-25  Richard M. Stallman  <rms@gnu.org>
 
 	* frame.el (focus-follows-mouse): Doc fix.
