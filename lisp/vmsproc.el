@@ -25,7 +25,7 @@
 ;;; Code:
 
 (defvar display-subprocess-window nil
-  "If non-nil, the suprocess window is displayed whenever input is received.")
+  "If non-nil, the subprocess window is displayed whenever input is received.")
 
 (defvar command-prefix-string "$ "
   "String to insert to distinguish commands entered by user.")
