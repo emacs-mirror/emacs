@@ -325,6 +325,9 @@ dosv_refresh_virtual_screen (int offset, int count)
 {
   __dpmi_regs regs;
 
+  if (offset < 0 || count < 0)	/* paranoia; illegal values crash DOS/V */
+    return;
+
   regs.h.ah = 0xff;	/* update relocated screen */
   regs.x.es = screen_virtual_segment;
   regs.x.di = screen_virtual_offset + offset;
@@ -340,8 +343,8 @@ dos_direct_output (y, x, buf, len)
      char *buf;
      int len;
 {
-  int t = (int) ScreenPrimary + 2 * (x + y * screen_size_X);
-  int t0 = t;
+  int t0 = 2 * (x + y * screen_size_X);
+  int t = t0 + (int) ScreenPrimary;
   int l0 = len;
 
 #if (__DJGPP__ < 2)
@@ -741,8 +744,6 @@ IT_display_cursor (int on)
       ScreenSetCursor (-1, -1);
       cursor_cleared = 1;
     }
-  if (screen_virtual_segment)
-    dosv_refresh_virtual_screen (2 * (current_pos_X + screen_size_X * current_pos_Y), 1);
 }
 
 /* Emacs calls cursor-movement functions a lot when it updates the
@@ -975,9 +976,6 @@ IT_reset_terminal_modes (void)
     cursor_pos_Y = startup_pos_Y;
 
   ScreenSetCursor (cursor_pos_Y, cursor_pos_X);
-  if (screen_virtual_segment)
-    dosv_refresh_virtual_screen (2*(cursor_pos_X+cursor_pos_Y*screen_size_X),
-				 1);
   xfree (startup_screen_buffer);
 
   term_setup_done = 0;
