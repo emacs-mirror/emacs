@@ -854,7 +854,26 @@ is the default binding of variable. */)
 	result = Fdefault_value (symbol);
     }
   else
-    result = XCDR (result);
+    {
+      Lisp_Object valcontents;
+      Lisp_Object current_alist_element;
+
+      /* What binding is loaded right now?  */
+      valcontents = SYMBOL_VALUE (symbol);
+      current_alist_element
+	= XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr);
+
+      /* The value of the currently loaded binding is not
+	 stored in it, but rather in the realvalue slot.
+	 Store that value into the binding it belongs to
+	 in case that is the one we are about to use.  */
+
+      Fsetcdr (current_alist_element,
+	       do_symval_forwarding (XBUFFER_LOCAL_VALUE (valcontents)->realvalue));
+
+      /* Now get the (perhaps updated) value out of the binding.  */
+      result = XCDR (result);
+    }
 
   if (EQ (result, Qunbound))
     return Fsignal (Qvoid_variable, Fcons (symbol, Qnil));
