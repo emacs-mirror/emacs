@@ -1,3 +1,9 @@
+2001-11-04  Miles Bader  <miles@gnu.org>
+
+	* startup.el (fancy-splash-head): Reapply Gerd's hack to make the
+	shadow of the splash image grey on a dark background instead of
+	black.
+
 2001-11-03  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* term/xterm.el (function-key-map):
