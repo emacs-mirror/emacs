@@ -1,3 +1,7 @@
+2002-11-19  Dave Love  <fx@gnu.org>
+
+	* s/usg5-4.h, sco4.h (bcopy, bzero, bcmp): Don't define.
+
 2002-11-18  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (x_build_heuristic_mask): Filter palette info from color.
