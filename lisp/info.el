@@ -281,8 +281,9 @@ be last in the list.")
   "Insert the contents of an info file in the current buffer.
 Do the right thing if the file has been compressed or zipped."
   (let* ((tail Info-suffix-list)
-	 (lfn (or (not (fboundp 'msdos-long-file-names))
-		  (msdos-long-file-names)))
+	 (lfn (if (fboundp 'msdos-long-file-names)
+		  (msdos-long-file-names)
+		t))
 	 (check-short (and (fboundp 'msdos-long-file-names)
 			   lfn))
 	 fullname decoder done)
@@ -496,8 +497,9 @@ it says do not attempt further (recursive) error recovery."
                     (expand-file-name (downcase filename) (car dirs)))
               ;; Try several variants of specified name.
               (let ((suffix-list Info-suffix-list)
-		    (lfn (or (not (fboundp 'msdos-long-file-names))
-			     (msdos-long-file-names))))
+		    (lfn (if (fboundp 'msdos-long-file-names)
+			     (msdos-long-file-names)
+			   t)))
                 (while (and suffix-list (not found))
                   (cond ((info-file-exists-p
                           (info-insert-file-contents-1
