@@ -1,9 +1,7 @@
 2002-09-09  Markus Rost  <rost@math.ohio-state.edu>
 
 	* simple.el (transient-mark-mode, line-number-mode,
-	column-number-mode): Undo the recent change in revision 1.566.
-	The use of define-minor-mode in simple.el creates bootstrap
-	problems.
+	column-number-mode): Undo previous change.
 
 2002-09-10  Miles Bader  <miles@gnu.org>
 
@@ -19,6 +17,13 @@
 
 	* simple.el (keyboard-quit): Set defining-kbd-macro to nil to
 	cancel defining keyboard macro when applicablex.
+
+2002-09-09  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* simple.el (what-line): Don't hard-code 1.
+	(transient-mark-mode, line-number-mode, column-number-mode):  Use
+	define-minor-mode.
+	(do-auto-fill): Only ignore prefix if it's really empty.
 
 2002-09-09  Markus Rost  <rost@math.ohio-state.edu>
 
