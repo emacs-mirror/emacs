@@ -1,4 +1,4 @@
-;;; ogonek.el --- basic editing commands for Emacs
+;;; ogonek.el --- change the encoding of Polish diacritics
 
 ;; Copyright (C) 1997 Free Software Foundation, Inc.
 
