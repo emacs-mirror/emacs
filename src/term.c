@@ -1325,9 +1325,9 @@ term_get_fkeys_1 ()
 	if (i <= 19)
 	  fcap[1] = '1' + i - 11;
 	else if (i <= 45)
-	  fcap[1] = 'A' + i - 11;
+	  fcap[1] = 'A' + i - 20;
 	else
-	  fcap[1] = 'a' + i - 11;
+	  fcap[1] = 'a' + i - 46;
 
 	{
 	  char *sequence = tgetstr (fcap, address);
