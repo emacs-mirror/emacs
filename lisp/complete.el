@@ -98,22 +98,6 @@
   :group 'minibuffer
   :group 'convenience)
 
-;;;###autoload
-(defcustom partial-completion-mode nil
-  "Toggle Partial Completion mode.
-When Partial Completion mode is enabled, TAB (or M-TAB if `PC-meta-flag' is
-nil) is enhanced so that if some string is divided into words and each word is
-delimited by a character in `PC-word-delimiters', partial words are completed
-as much as possible and `*' characters are treated likewise in file names.
-This variable should be set only with \\[customize], which is equivalent
-to using the function `partial-completion-mode'."
-  :set (lambda (symbol value)
-	 (partial-completion-mode (or value 0)))
-  :initialize 'custom-initialize-default
-  :type 'boolean
-  :group 'partial-completion
-  :require 'complete)
-
 (defcustom PC-first-char 'find-file
   "*Control how the first character of a string is to be interpreted.
 If nil, the first character of a string is not taken literally if it is a word
@@ -164,54 +148,6 @@ If nil, means use the colon-separated path in the variable $INCPATH instead."
 
 (defvar PC-old-read-file-name-internal nil)
 
-;;;###autoload
-(defun partial-completion-mode (&optional arg)
-  "Toggle Partial Completion mode.
-With prefix ARG, turn Partial Completion mode on if ARG is positive.
-
-When Partial Completion mode is enabled, TAB (or M-TAB if `PC-meta-flag' is
-nil) is enhanced so that if some string is divided into words and each word is
-delimited by a character in `PC-word-delimiters', partial words are completed
-as much as possible.
-
-For example, M-x p-c-m expands to M-x partial-completion-mode since no other
-command begins with that sequence of characters, and
-\\[find-file] f_b.c TAB might complete to foo_bar.c if that file existed and no
-other file in that directory begin with that sequence of characters.
-
-Unless `PC-disable-includes' is non-nil, the \"<...>\" sequence is interpreted
-specially in \\[find-file].  For example,
-\\[find-file] <sys/time.h> RET finds the file /usr/include/sys/time.h.
-See also the variable `PC-include-file-path'."
-  (interactive "P")
-  (let ((on-p (if arg
-		  (> (prefix-numeric-value arg) 0)
-		(not partial-completion-mode))))
-    ;; Deal with key bindings...
-    (PC-bindings on-p)
-    ;; Deal with include file feature...
-    (cond ((not on-p)
-	   (remove-hook 'find-file-not-found-hooks 'PC-look-for-include-file))
-	  ((not PC-disable-includes)
-	   (add-hook 'find-file-not-found-hooks 'PC-look-for-include-file)))
-    ;; ... with some underhand redefining.
-    (cond ((and (not on-p) (functionp PC-old-read-file-name-internal))
-	   (fset 'read-file-name-internal PC-old-read-file-name-internal))
-	  ((and (not PC-disable-includes) (not PC-old-read-file-name-internal))
-	   (setq PC-old-read-file-name-internal
-		 (symbol-function 'read-file-name-internal))
-	   (fset 'read-file-name-internal
-		 'PC-read-include-file-name-internal)))
-    (when (and on-p (null PC-env-vars-alist))
-      (setq PC-env-vars-alist
-	    (mapcar (lambda (string)
-		      (let ((d (string-match "=" string)))
-			(cons (concat "$" (substring string 0 d))
-			      (and d (substring string (1+ d))))))
-		    process-environment)))
-    ;; Finally set the mode variable.
-    (setq partial-completion-mode on-p)))
-
 (defun PC-bindings (bind)
   (let ((completion-map minibuffer-local-completion-map)
 	(must-match-map minibuffer-local-must-match-map))
@@ -254,16 +190,50 @@ See also the variable `PC-include-file-path'."
 
 	   (define-key global-map "\e\t"	'PC-lisp-complete-symbol)))))
 
-;; Because the `partial-completion-mode' option is defined before the
-;; `partial-completion-mode' command and its callee, we give the former a
-;; default `:initialize' keyword value.  Otherwise, the `:set' keyword value
-;; would be called to initialise the variable value, and that would call the
-;; as-yet undefined `partial-completion-mode' function.
-;; Since the default `:initialize' keyword value (obviously) does not turn on
-;; Partial Completion Mode, we do that here, once the `partial-completion-mode'
-;; function and its callee are defined.
-(when partial-completion-mode
-  (partial-completion-mode t))
+;;;###autoload
+(define-minor-mode partial-completion-mode
+  "Toggle Partial Completion mode.
+With prefix ARG, turn Partial Completion mode on if ARG is positive.
+
+When Partial Completion mode is enabled, TAB (or M-TAB if `PC-meta-flag' is
+nil) is enhanced so that if some string is divided into words and each word is
+delimited by a character in `PC-word-delimiters', partial words are completed
+as much as possible and `*' characters are treated likewise in file names.
+
+For example, M-x p-c-m expands to M-x partial-completion-mode since no other
+command begins with that sequence of characters, and
+\\[find-file] f_b.c TAB might complete to foo_bar.c if that file existed and no
+other file in that directory begin with that sequence of characters.
+
+Unless `PC-disable-includes' is non-nil, the \"<...>\" sequence is interpreted
+specially in \\[find-file].  For example,
+\\[find-file] <sys/time.h> RET finds the file /usr/include/sys/time.h.
+See also the variable `PC-include-file-path'."
+  nil nil nil :global t :group 'partial-completion
+  ;; Deal with key bindings...
+  (PC-bindings partial-completion-mode)
+  ;; Deal with include file feature...
+  (cond ((not partial-completion-mode)
+	 (remove-hook 'find-file-not-found-hooks 'PC-look-for-include-file))
+	((not PC-disable-includes)
+	 (add-hook 'find-file-not-found-hooks 'PC-look-for-include-file)))
+  ;; ... with some underhand redefining.
+  (cond ((and (not partial-completion-mode)
+	      (functionp PC-old-read-file-name-internal))
+	 (fset 'read-file-name-internal PC-old-read-file-name-internal))
+	((and (not PC-disable-includes) (not PC-old-read-file-name-internal))
+	 (setq PC-old-read-file-name-internal
+	       (symbol-function 'read-file-name-internal))
+	 (fset 'read-file-name-internal
+	       'PC-read-include-file-name-internal)))
+    (when (and partial-completion-mode (null PC-env-vars-alist))
+      (setq PC-env-vars-alist
+	    (mapcar (lambda (string)
+		      (let ((d (string-match "=" string)))
+			(cons (concat "$" (substring string 0 d))
+			      (and d (substring string (1+ d))))))
+		    process-environment))))
+
 
 (defun PC-complete ()
   "Like minibuffer-complete, but allows \"b--di\"-style abbreviations.
@@ -670,7 +640,9 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 		       (PC-is-complete-p (field-string) table pred))
 
 		;; If totally ambiguous, display a list of completions
-		(if (or completion-auto-help
+		(if (or (eq completion-auto-help t)
+			(and completion-auto-help
+			     (eq last-command this-command))
 			(eq mode 'help))
 		    (with-output-to-temp-buffer "*Completions*"
 		      (display-completion-list (sort helpposs 'string-lessp))
@@ -914,8 +886,8 @@ or properties are considered."
 If optional third argument FULL is non-nil, returned pathnames should be 
 absolute rather than relative to some directory on the SEARCH-PATH."
   (setq search-path
-	(mapcar '(lambda (dir)
-		   (if dir (file-name-as-directory dir) default-directory))
+	(mapcar (lambda (dir)
+		  (if dir (file-name-as-directory dir) default-directory))
 		search-path))
   (if (file-name-absolute-p file)
       ;; It's an absolute file name, so don't need search-path
@@ -929,7 +901,7 @@ absolute rather than relative to some directory on the SEARCH-PATH."
       ;; Append subdirectory part to each element of search-path
       (if subdir
 	  (setq search-path
-		(mapcar '(lambda (dir) (concat dir subdir))
+		(mapcar (lambda (dir) (concat dir subdir))
 			search-path)
 		file ))
       ;; Make list of completions in each directory on search-path
@@ -940,14 +912,14 @@ absolute rather than relative to some directory on the SEARCH-PATH."
 	      (progn
 		(setq file-lists
 		      (cons 
-		       (mapcar '(lambda (file) (concat subdir file))
+		       (mapcar (lambda (file) (concat subdir file))
 			       (file-name-all-completions ndfile 
 							  (car search-path)))
 		       file-lists))))
 	  (setq search-path (cdr search-path))))
       ;; Compress out duplicates while building complete list (slloooow!)
       (let ((sorted (sort (apply 'nconc file-lists)
-			  '(lambda (x y) (not (string-lessp x y)))))
+			  (lambda (x y) (not (string-lessp x y)))))
 	    compressed)
 	(while sorted
 	  (if (equal (car sorted) (car compressed)) nil
