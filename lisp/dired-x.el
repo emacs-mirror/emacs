@@ -716,7 +716,7 @@ single subdirs using \\[dired-do-redisplay]."
 
 (defun dired-virtual-guess-dir ()
   "Guess and return appropriate working directory of this buffer.
-Th ebuffer is assumed to be in Dired or ls -lR format.  The guess is
+The buffer is assumed to be in Dired or ls -lR format.  The guess is
 based upon buffer contents.  If nothing could be guessed, returns
 nil."
 
