@@ -3943,7 +3943,7 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 	(car arguments)
       (let ((value (apply operation arguments)))
 	(cond ((memq operation '(file-name-completion))
-	       (and value (concat "/:" value)))
+	       (and value (if (eq value t) t (concat "/:" value))))
 	      ((memq operation '(file-name-all-completions))
 	       (mapcar (lambda (name) (concat "/:" name)) value))
 	      (t value))))))
