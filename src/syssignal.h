@@ -52,7 +52,9 @@ extern sigset_t sys_sigmask ();
 #define sigpause(SIG)    sys_sigpause (SIG)
 #define sigblock(SIG)    sys_sigblock (SIG)
 #define sigunblock(SIG)  sys_sigunblock (SIG)
+#ifndef sigsetmask
 #define sigsetmask(SIG)  sys_sigsetmask (SIG)
+#endif
 #define sighold(SIG)     ONLY_USED_IN_BSD_4_1
 #define sigrelse(SIG)    ONLY_USED_IN_BSD_4_1
 #undef signal
