@@ -738,7 +738,7 @@ do_symval_forwarding (valcontents)
 
       case Lisp_Misc_Buffer_Objfwd:
 	offset = XBUFFER_OBJFWD (valcontents)->offset;
-	return BUFFER_LOCAL_VALUE (current_buffer, offset);
+	return PER_BUFFER_VALUE (current_buffer, offset);
 
       case Lisp_Misc_Kboard_Objfwd:
 	offset = XKBOARD_OBJFWD (valcontents)->offset;
@@ -783,7 +783,7 @@ store_symval_forwarding (symbol, valcontents, newval)
 	    int offset = XBUFFER_OBJFWD (valcontents)->offset;
 	    Lisp_Object type;
 
-	    type = BUFFER_LOCAL_TYPE (offset);
+	    type = PER_BUFFER_TYPE (offset);
 	    if (XINT (type) == -1)
 	      error ("Variable %s is read-only", XSYMBOL (symbol)->name->data);
 
@@ -791,7 +791,7 @@ store_symval_forwarding (symbol, valcontents, newval)
 		&& XTYPE (newval) != XINT (type))
 	      buffer_slot_type_mismatch (offset);
 
-	    BUFFER_LOCAL_VALUE (current_buffer, offset) = newval;
+	    PER_BUFFER_VALUE (current_buffer, offset) = newval;
 	  }
 	  break;
 
@@ -902,7 +902,7 @@ find_symbol_value (symbol)
 	  return *XOBJFWD (valcontents)->objvar;
 
 	case Lisp_Misc_Buffer_Objfwd:
-	  return BUFFER_LOCAL_VALUE (current_buffer,
+	  return PER_BUFFER_VALUE (current_buffer,
 				     XBUFFER_OBJFWD (valcontents)->offset);
 
 	case Lisp_Misc_Kboard_Objfwd:
@@ -991,11 +991,11 @@ set_internal (symbol, newval, buf, bindflag)
   if (BUFFER_OBJFWDP (valcontents))
     {
       int offset = XBUFFER_OBJFWD (valcontents)->offset;
-      int idx = BUFFER_LOCAL_IDX (offset);
+      int idx = PER_BUFFER_IDX (offset);
       if (idx > 0
 	  && !bindflag
 	  && !let_shadows_buffer_binding_p (symbol))
-	SET_BUFFER_HAS_LOCAL_VALUE_P (buf, idx, 1);
+	SET_PER_BUFFER_VALUE_P (buf, idx, 1);
     }
 
   else if (BUFFER_LOCAL_VALUEP (valcontents)
@@ -1108,8 +1108,8 @@ default_value (symbol)
   if (BUFFER_OBJFWDP (valcontents))
     {
       int offset = XBUFFER_OBJFWD (valcontents)->offset;
-      if (BUFFER_LOCAL_IDX (offset) != 0)
-	return BUFFER_LOCAL_DEFAULT_VALUE (offset);
+      if (PER_BUFFER_IDX (offset) != 0)
+	return PER_BUFFER_DEFAULT (offset);
     }
 
   /* Handle user-created local variables.  */
@@ -1180,9 +1180,9 @@ for this variable.")
   if (BUFFER_OBJFWDP (valcontents))
     {
       int offset = XBUFFER_OBJFWD (valcontents)->offset;
-      int idx = BUFFER_LOCAL_IDX (offset);
+      int idx = PER_BUFFER_IDX (offset);
 
-      BUFFER_LOCAL_DEFAULT_VALUE (offset) = value;
+      PER_BUFFER_DEFAULT (offset) = value;
 
       /* If this variable is not always local in all buffers,
 	 set it in the buffers that don't nominally have a local value.  */
@@ -1191,8 +1191,8 @@ for this variable.")
 	  struct buffer *b;
 	  
 	  for (b = all_buffers; b; b = b->next)
-	    if (!BUFFER_HAS_LOCAL_VALUE_P (b, idx))
-	      BUFFER_LOCAL_VALUE (b, offset) = value;
+	    if (!PER_BUFFER_VALUE_P (b, idx))
+	      PER_BUFFER_VALUE (b, offset) = value;
 	}
       return value;
     }
@@ -1410,13 +1410,13 @@ From now on the default value will apply in this buffer.")
   if (BUFFER_OBJFWDP (valcontents))
     {
       int offset = XBUFFER_OBJFWD (valcontents)->offset;
-      int idx = BUFFER_LOCAL_IDX (offset);
+      int idx = PER_BUFFER_IDX (offset);
 
       if (idx > 0)
 	{
-	  SET_BUFFER_HAS_LOCAL_VALUE_P (current_buffer, idx, 0);
-	  BUFFER_LOCAL_VALUE (current_buffer, offset)
-	    = BUFFER_LOCAL_DEFAULT_VALUE (offset);
+	  SET_PER_BUFFER_VALUE_P (current_buffer, idx, 0);
+	  PER_BUFFER_VALUE (current_buffer, offset)
+	    = PER_BUFFER_DEFAULT (offset);
 	}
       return variable;
     }
@@ -1532,8 +1532,8 @@ BUFFER defaults to the current buffer.")
   if (BUFFER_OBJFWDP (valcontents))
     {
       int offset = XBUFFER_OBJFWD (valcontents)->offset;
-      int idx = BUFFER_LOCAL_IDX (offset);
-      if (idx == -1 || BUFFER_HAS_LOCAL_VALUE_P (buf, idx))
+      int idx = PER_BUFFER_IDX (offset);
+      if (idx == -1 || PER_BUFFER_VALUE_P (buf, idx))
 	return Qt;
     }
   return Qnil;

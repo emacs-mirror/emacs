@@ -725,8 +725,8 @@ One argument, a syntax table.")
   check_syntax_table (table);
   current_buffer->syntax_table = table;
   /* Indicate that this buffer now has a specified syntax table.  */
-  idx = BUFFER_LOCAL_VAR_IDX (syntax_table);
-  SET_BUFFER_HAS_LOCAL_VALUE_P (current_buffer, idx, 1);
+  idx = PER_BUFFER_VAR_IDX (syntax_table);
+  SET_PER_BUFFER_VALUE_P (current_buffer, idx, 1);
   return table;
 }
 
