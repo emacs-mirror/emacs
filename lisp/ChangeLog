@@ -1,3 +1,24 @@
+2004-08-16  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/which-func.el (which-func-update-1): Doc fix.
+
+	* progmodes/sh-script.el (sh-set-shell): Use sh-mode-abbrev-table.
+	(sh-mode-abbrev-table): New variable.
+
+	* progmodes/compile.el (compilation-mode): Doc fix.
+
+	* emacs-lisp/lisp-mode.el (eval-last-sexp):
+	Don't cons a new symbol each time.
+	(eval-last-sexp-fake-value): New variable.
+
+	* emacs-lisp/copyright.el (copyright-years-regexp): New variable.
+	(copyright-update-year): Detect continuation of list of years.
+
+	* term.el (term-default-fg-color, term-default-bg-color)
+	(ansi-term-color-vector): Use `unspecified', not nil, as default.
+
+	* imenu.el: Several doc fixes: don't say variables are buffer-local.
+
 2004-08-16  Davis Herring <herring@lanl.gov>
 
 	* isearch.el (isearch-string, isearch-message-string, isearch-point)

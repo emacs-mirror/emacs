@@ -1,3 +1,14 @@
+2004-08-16  Richard M. Stallman  <rms@gnu.org>
+
+	* killing.texi (Yanking, Killing): Minor cleanups.
+
+	* mark.texi (Momentary Mark): Minor cleanups.
+
+2004-08-15  Kenichi Handa  <handa@etl.go.jp>
+
+	* custom.texi (Non-ASCII Rebinding):
+	C-q always inserts the right code to pass to global-set-key.
+
 2004-08-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (../info/tramp, tramp.dvi): Depend on trampver.texi.
