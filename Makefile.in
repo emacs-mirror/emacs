@@ -547,10 +547,9 @@ relock:
 	(cd src; $(MAKE) $(MFLAGS) relock)
 
 TAGS tags:	lib-src src
-	export EMACSDIR; EMACSDIR=`pwd`/src; \
-	export EMACS;  EMACS=`pwd`/src/emacs; \
-	cd ${srcdir}/src; \
-	$(MAKE) tags -f $$EMACSDIR/Makefile
+	# The src subdir knows how to do the right thing
+	# even when the build directory and source dir are different.
+	cd src; $(MAKE) tags
 
 check:
 	@echo "We don't have any tests for GNU Emacs yet."
