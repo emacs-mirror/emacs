@@ -1,6 +1,13 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* On Windows 95/98/ME, subprocesses do not terminate properly.
+
+This is a limitation of the Operating System, and can cause problems
+when shutting down Windows. Ensure that all subprocesses are exited
+cleanly before exiting Emacs. For more details, see the FAQ at
+ftp://ftp.gnu.org/gnu/windows/emacs/doc/index.html
+
 * Mail sent through Microsoft Exchange in some encodings appears to be
 mangled and is not seen correctly in Rmail or Gnus.  We don't know
 exactly what happens, but it isn't an Emacs problem in cases we've
