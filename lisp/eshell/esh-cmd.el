@@ -1246,9 +1246,8 @@ be finished later after the completion of an asynchronous subprocess."
 	(setq program (eshell-search-path name))
 	(let* ((esym (eshell-find-alias-function name))
 	       (sym (or esym (intern-soft name))))
-	  (if (and sym (fboundp sym)
-		   (or esym eshell-prefer-lisp-functions
-		       (not program)))
+	  (if (and (or esym (and sym (fboundp sym)))
+		   (or eshell-prefer-lisp-functions (not direct)))
 	      (let ((desc (let ((inhibit-redisplay t))
 			    (save-window-excursion
 			      (prog1
