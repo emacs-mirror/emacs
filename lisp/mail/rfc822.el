@@ -1,5 +1,5 @@
 ;; Hairy rfc822 parser for mail and news and suchlike
-;; Copyright (C) 1986, 1987 Free Software Foundation, Inc.
+;; Copyright (C) 1986-1990 Free Software Foundation, Inc.
 ;; Author Richard Mlynarik.
 
 ;; This file is part of GNU Emacs.
@@ -239,9 +239,11 @@
 	       ;; an addr-spec, since many broken mailers output
 	       ;; "Hern K. Herklemeyer III
 	       ;;   <yank@megadeath.dod.gods-own-country>"
-	       (or (= n 0)
-		   (= (preceding-char) ?\ )
-		   (insert ?\ ))
+               (cond ((= n 0))
+                     ((> n 1)
+                      (rfc822-bad-address "Missing route-spec"))
+                     ((= (preceding-char) ?\ ))
+                     (t (insert ?\ )))
 	       (rfc822-snarf-words)
 	       (setq n (1+ n)))
 	      ((= n 0)
@@ -284,7 +286,7 @@
 		    (catch 'address ; this is for rfc822-bad-address
 		      (cond ((rfc822-looking-at ?\,)
 			     nil)
-			    ((looking-at "[][\000-\037\177-\377@;:\\.>]")
+			    ((looking-at "[][\000-\037\177-\377@;:\\.>)]")
 			     (forward-char)
 			     (rfc822-bad-address
 			       (format "Strange character \\%c found"
