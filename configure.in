@@ -1433,7 +1433,7 @@ AC_CHECK_LIB(Xbsd, main, LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -lXbsd")
 
 AC_CHECK_LIB(pthreads, cma_open)
 
-AC_MSG_CHECKING(for XFree86)
+AC_MSG_CHECKING(for XFree86 in /usr/X386)
 if test -d /usr/X386/include; then
   HAVE_XFREE386=yes
   : ${C_SWITCH_X_SITE="-I/usr/X386/include"}
