@@ -1,3 +1,40 @@
+2000-03-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* buffer.h (struct buffer): Remove member local_var_flags,
+	add local_flags.
+	(MAX_BUFFER_LOCAL_VARS): New macro.
+	(BUFFER_LOCAL_VAR_OFFSET, BUFFER_LOCAL_VAR_IDX)
+	(BUFFER_HAS_LOCAL_VALUE_P, SET_BUFFER_HAS_LOCAL_VALUE_P)
+	(BUFFER_LOCAL_IDX, BUFFER_LOCAL_DEFAULT_VALUE, BUFFER_LOCAL_VALUE)
+	(BUFFER_LOCAL_SYMBOL, BUFFER_LOCAL_TYPE): New macros.
+
+	* print.c (print_object): Use new macros for per-buffer
+	variables.
+
+	* category.c (Fset_category_table): Use new macros for per-buffer
+	variables.
+
+	* buffer.c (buffer_permanent_local_flags): Make a char array.
+	(max_buffer_local_idx): New variable.
+	(reset_buffer_local_variables, Fbuffer_local_variables): Rewritten
+	for new handling of per-buffer variables.
+	(buffer_slot_type_mismatch): Use new macros for per-buffer vars.
+	(init_buffer_once): Initialize per-buffer vars differently.
+	Set max_buffer_local_idx.
+
+	* syntax.c (Fset_syntax_table): Use new macros for per-buffer
+	variables.
+
+	* lread.c (defvar_per_buffer): Use new macros for per-buffer
+	variables.
+
+	* data.c (do_symval_forwarding, store_symval_forwarding)
+	(find_symbol_value, set_internal, default_value, Fset_default)
+	(Fkill_local_variable, Flocal_variable_p): Use new macros for
+	per-buffer variables.
+
+	* Makefile.in (bootstrap-emacs): Use `mv -f' instead of `mv'.
+
 2000-03-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_term_init): Unblock input around call1 of

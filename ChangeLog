@@ -1,3 +1,10 @@
+2000-03-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (bootstrap-lisp-1, bootstrap-list, bootstrap-src):
+	New targets.
+	(bootstrap): Rewritten in terms of the new targets above.  Make
+	info files, too.
+	
 2000-03-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* config.guess, config.sub: Use the versions of the files from
