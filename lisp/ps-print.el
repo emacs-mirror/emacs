@@ -2804,7 +2804,7 @@ which long lines wrap around."
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp>
 
 (eval-and-compile
-  (if (not (string< mule-version "4.0"))
+  (if (fboundp 'set-buffer-multibyte)
       (progn
 	(defalias 'ps-mule-next-point '1+)
 	(defalias 'ps-mule-chars-in-string 'length)
@@ -4812,7 +4812,6 @@ If FACE is not a valid face name, it is used default face."
        )
 					; xemacs
 					; lucid
-					; epoch
       (t				; epoch
        (defun ps-face-bold-p (face)
 	 (ps-xemacs-face-kind-p face 'WEIGHT_NAME "bold\\|demibold" ps-bold-faces))
