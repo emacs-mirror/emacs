@@ -2022,7 +2022,7 @@ Both characters must have the same length of multi-byte form.")
 	  if (maybe_byte_combining
 	      && (CHAR_HEAD_P (*tostr)
 		  ? ! CHAR_HEAD_P (FETCH_BYTE (pos_byte + 1))
-		  : (pos_byte > BEGV_BYTE
+		  : (pos_byte > BEG_BYTE
 		     && ! ASCII_BYTE_P (FETCH_BYTE (pos_byte - 1)))))
 	    {
 	      Lisp_Object tem, string;
@@ -2121,7 +2121,7 @@ It returns the number of characters changed.")
 	      if (!ASCII_BYTE_P (nc)
 		  && (CHAR_HEAD_P (nc)
 		      ? ! CHAR_HEAD_P (FETCH_BYTE (pos_byte + 1))
-		      : (pos_byte > BEGV_BYTE
+		      : (pos_byte > BEG_BYTE
 			 && ! ASCII_BYTE_P (FETCH_BYTE (pos_byte - 1)))))
 		{
 		  Lisp_Object string;
