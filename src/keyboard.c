@@ -2095,17 +2095,21 @@ make_lispy_event (event)
 	if (event->modifiers & ctrl_modifier)
 	  {
 	    if (c >= 0100 && c < 0140)
-	      c &= ~040;
+	      {
+		int oc = c;
+		c &= ~0140;
+		/* Set the shift modifier for a control char
+		   made from a shifted letter.  But only for letters!  */
+		if (oc >= 'A' && oc <= 'Z')
+		  c |= shift_modifier;
+	      }
+	    else if (c >= 'a' && c <= 'z')
+	      c &= ~0140;
 	    /* Include the bits for control and shift
 	       only if the basic ASCII code can't indicate them.  */
-	    c |= ctrl_modifier;
+	    else
+	      c |= ctrl_modifier;
 	  }
-	/* Set the shift modifier for a control char
-	   made from a shifted letter.  But only for letters!  */
-	if (XFASTINT (event->code) >= 'A' - 0100
-	    && XFASTINT (event->code) <= 'Z' - 0100
-	    && (event->modifiers & shift_modifier))
-	  c |= shift_modifier;
 	c |= (event->modifiers
 	      & (meta_modifier | alt_modifier
 		 | hyper_modifier | super_modifier));
@@ -3389,7 +3393,9 @@ follow_key (key, nmaps, current, defs, next)
      lower-case letter, return the bindings for the lower-case letter.  */
   if (first_binding == nmaps
       && XTYPE (key) == Lisp_Int
-      && (UPPERCASEP (XINT (key) & 0x3ffff)
+      && ((((XINT (key) & 0x3ffff)
+	    < XSTRING (current_buffer->downcase_table)->size)
+	   && UPPERCASEP (XINT (key) & 0x3ffff))
 	  || (XINT (key) & shift_modifier)))
     {
       if (XINT (key) & shift_modifier)
