@@ -1696,6 +1696,13 @@ configuration files.
 * Lisp Changes in Emacs 21.4
 
 +++
+** `split-string' now includes null substrings in the returned list if
+the optional argument SEPARATORS is non-nil and there are matches for
+SEPARATORS at the beginning or end of the string.  If SEPARATORS is
+nil, or if the new optional third argument OMIT-NULLS is non-nil, all
+empty matches are omitted from the returned list.
+
++++
 ** `makehash' is now obsolete.  Use `make-hash-table' instead.
 
 +++
