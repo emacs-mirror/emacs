@@ -63,6 +63,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Define if we have the X11R6 or newer version of Xlib.  */
 #undef HAVE_X11R6
 
+/* Define if we have the X11R5 or newer version of Xlib.  */
+#undef HAVE_X11R5
+
 /* Define if netdb.h declares h_errno.  */
 #undef HAVE_H_ERRNO
 
