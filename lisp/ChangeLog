@@ -1,3 +1,8 @@
+2004-02-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Adapt
+	outline-regexp to the new conventions for commenting out code.
+
 2004-02-11  John Paul Wallington  <jpw@gnu.org>
 
 	* mail/smtpmail.el (smtpmail-try-auth-methods): Fix typo.
