@@ -726,8 +726,14 @@ and two version designators specifying which versions to compare."
 	;; visited.  This plays hell with numerous assumptions in
 	;; the diff.el and compile.el machinery.
 	(pop-to-buffer "*vc*")
-	(vc-shrink-to-fit)
-	(goto-char (point-min))
+	(pop-to-buffer "*vc*")
+	(if (= 0 (buffer-size))
+	    (progn
+	      (setq unchanged t)
+	      (message "No changes to %s since latest version." file))
+	  (vc-shrink-to-fit)
+	  (goto-char (point-min)))
+
 	)
       (not unchanged)
       )
