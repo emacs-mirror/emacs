@@ -2320,6 +2320,11 @@ Use %% to put a single % into the output.")
   /* Nonzero if the output should be a multibyte string,
      which is true if any of the inputs is one.  */
   int multibyte = 0;
+  /* When we make a multibyte string, we must pay attention to the
+     byte combining problem, i.e., a byte may be combined with a
+     multibyte charcter of the previous string.  This flag tells if we
+     must consider such a situation or not.  */
+  int maybe_combine_byte;
   unsigned char *this_format;
   int longest_format;
   Lisp_Object val;
@@ -2476,6 +2481,7 @@ Use %% to put a single % into the output.")
 
   /* Scan the format and store result in BUF.  */
   format = XSTRING (args[0])->data;
+  maybe_combine_byte = 0;
   while (format != end)
     {
       if (*format == '%')
@@ -2519,6 +2525,12 @@ Use %% to put a single % into the output.")
 		    nchars++;
 		  }
 
+	      if (p > buf
+		  && multibyte
+		  && *((unsigned char *) p - 1) >= 0x80
+		  && STRING_MULTIBYTE (args[n])
+		  && XSTRING (args[n])->data[0] >= 0xA0)
+		maybe_combine_byte = 1;
 	      nbytes = copy_text (XSTRING (args[n])->data, p,
 				  STRING_BYTES (XSTRING (args[n])),
 				  STRING_MULTIBYTE (args[n]), multibyte);
@@ -2545,6 +2557,11 @@ Use %% to put a single % into the output.")
 	      else
 		sprintf (p, this_format, XFLOAT (args[n])->data);
 
+	      if (p > buf
+		  && multibyte
+		  && *((unsigned char *) p - 1) >= 0x80
+		  && *((unsigned char *) p) >= 0xA0)
+		maybe_combine_byte = 1;
 	      this_nchars = strlen (p);
 	      p += this_nchars;
 	      nchars += this_nchars;
@@ -2553,6 +2570,11 @@ Use %% to put a single % into the output.")
       else if (STRING_MULTIBYTE (args[0]))
 	{
 	  /* Copy a whole multibyte character.  */
+	  if (p > buf
+	      && multibyte
+	      && *((unsigned char *) p - 1) >= 0x80
+	      && *format >= 0xA0)
+	    maybe_combine_byte = 1;
 	  *p++ = *format++;
 	  while (! CHAR_HEAD_P (*format)) *p++ = *format++;
 	  nchars++;
@@ -2570,6 +2592,8 @@ Use %% to put a single % into the output.")
 	*p++ = *format++, nchars++;
     }
 
+  if (maybe_combine_byte)
+    nchars = multibyte_chars_in_text (buf, p - buf);
   val = make_specified_string (buf, nchars, p - buf, multibyte);
 
   /* If we allocated BUF with malloc, free it too.  */
