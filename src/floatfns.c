@@ -25,7 +25,7 @@ Boston, MA 02111-1307, USA.  */
 
    Define HAVE_INVERSE_HYPERBOLIC if you have acosh, asinh, and atanh.
    Define HAVE_CBRT if you have cbrt.
-   Define HAVE_RINT if you have rint.
+   Define HAVE_RINT if you have a working rint.
    If you don't define these, then the appropriate routines will be simulated.
 
    Define HAVE_MATHERR if on a system supporting the SysV matherr callback.
@@ -826,9 +826,13 @@ round2 (i1, i2)
   return q + (abs_r + (q & 1) <= abs_r1 ? 0 : (i2 ^ r) < 0 ? -1 : 1);
 }
 
-#ifndef HAVE_RINT
+/* The code uses emacs_rint, so that it works to undefine HAVE_RINT
+   if `rint' exists but does not work right.  */
+#ifdef HAVE_RINT
+#define emacs_rint rint
+#else
 static double
-rint (d)
+emacs_rint (d)
      double d;
 {
   return floor (d + 0.5);
@@ -866,7 +870,7 @@ With optional DIVISOR, return the nearest integer to ARG/DIVISOR.")
   (arg, divisor)
      Lisp_Object arg, divisor;
 {
-  return rounding_driver (arg, divisor, rint, round2, "round");
+  return rounding_driver (arg, divisor, emacs_rint, round2, "round");
 }
 
 DEFUN ("truncate", Ftruncate, Struncate, 1, 2, 0,
@@ -931,12 +935,12 @@ DEFUN ("fround", Ffround, Sfround, 1, 1, 0,
      register Lisp_Object arg;
 {
   double d = extract_float (arg);
-  IN_FLOAT (d = rint (d), "fround", arg);
+  IN_FLOAT (d = emacs_rint (d), "fround", arg);
   return make_float (d);
 }
 
 DEFUN ("ftruncate", Fftruncate, Sftruncate, 1, 1, 0,
-       "Truncate a floating point number to an integral float value.\n\
+  "Truncate a floating point number to an integral float value.\n\
 Rounds the value toward zero.")
   (arg)
      register Lisp_Object arg;
