@@ -1109,7 +1109,7 @@ where,
   CHARSET-OR-RANGE is a charset or a cons of two characters specifying
     the range of characters.
   FONT-SPEC is a fontname pattern string or a vector
-    [ FAMILY WEIGHT SLANT ADSTYLE REGISTRY ].
+    [ FAMILY WEIGHT SLANT WIDTH ADSTYLE REGISTRY ].
     See the documentation of `new-fontset' for the meanings those elements.
   OPENEDs are names of fonts actually opened.
 If the ASCII font is not yet opened, SIZE and HEIGHT are 0.
@@ -1172,7 +1172,10 @@ If FRAME is omitted, it defaults to the currently selected frame.  */)
        CONSP (tail); tail = XCDR (tail))
     {
       elt = XCAR (tail);
-      elt = Fcons (XCAR (elt), Fcons (XCDR (elt), Qnil));
+      elt = Fcons ((INTEGERP (XCAR (elt))
+		    ? CHARSET_NAME (CHARSET_FROM_ID (XCAR (elt)))
+		    : XCAR (elt)),
+		   Fcons (XCDR (elt), Qnil));
       XSETCDR (XCAR (val), Fcons (elt, Qnil));
       XSETCAR (val, XCDR (XCAR (val)));
     }
@@ -1291,13 +1294,8 @@ syms_of_fontset ()
 
   DEFVAR_LISP ("font-encoding-alist", &Vfont_encoding_alist,
 	       doc: /* Alist of fontname patterns vs corresponding encoding info.
-Each element looks like (REGEXP . ENCODING-INFO),
- where ENCODING-INFO is an alist of CHARSET vs ENCODING.
-ENCODING is one of the following integer values:
-	0: code points 0x20..0x7F or 0x2020..0x7F7F are used,
-	1: code points 0xA0..0xFF or 0xA0A0..0xFFFF are used,
-	2: code points 0x20A0..0x7FFF are used,
-	3: code points 0xA020..0xFF7F are used.  */);
+Each element looks like (REGEXP . CHARSET), where CHARSET is an
+Emacs charset symbol.  */);
   Vfont_encoding_alist = Qnil;
 
   DEFVAR_LISP ("use-default-ascent", &Vuse_default_ascent,
