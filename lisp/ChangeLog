@@ -1,3 +1,9 @@
+2001-01-09  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule.el (make-coding-system): If the coding system
+	accepts extra latin codes, register such codes as safe for the
+	coding system.
+
 2001-01-08  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* emacs-lisp/bytecomp.el (byte-compile-log-1): In non-batch case,
