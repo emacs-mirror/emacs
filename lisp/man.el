@@ -592,7 +592,7 @@ SECTION SUBJECT when prompted for a manual entry."
 	    ;; But don't prevent decoding of the outside.
 	    (coding-system-for-write 'raw-text-unix)
 	    ;; We must decode the output by a coding system that the
-	    ;; systen locale suggests in multibyte mode.
+	    ;; system's locale suggests in multibyte mode.
 	    (coding-system-for-read
 	     (if default-enable-multibyte-characters
 		 locale-coding-system 'raw-text-unix))
