@@ -684,6 +684,19 @@ of times.
 enter a tab, and @kbd{C-j} to enter a newline.  You would also type
 single backslashes as themselves, instead of doubling them for Lisp syntax.
 
+@findex re-builder
+@cindex authoring regular expressions
+  For easier authoring of regular expressions, you can use the @kbd{M-x
+re-builder} command.  It provides a convenient interface for creating
+regular expressions, by giving immediate visual feedback.  The buffer
+from which @code{re-builder} was invoked becomes the target for the
+regexp editor, which pops in a separate window.  Text that matches the
+regular expression you typed so far is color marked in the target
+buffer.  Each parenthesized sub-expression of the regexp is shown in a
+distinct face, which makes it easier to verify even very complex
+regexps.  (On displays that don't support colors, Emacs blinks the
+cursor around the matched text, like it does for matching parens.)
+
 @node Search Case, Replace, Regexps, Search
 @section Searching and Case
 
