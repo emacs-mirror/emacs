@@ -1,3 +1,13 @@
+2000-04-08  Ken Raeburn  <raeburn@gnu.org>
+
+	* coding.h (code_convert_string): Declare.
+	* coding.c (code_convert_string_norecord): Pass an int, not a lisp
+	object, as the fourth argument to code_convert_string.
+
+	* fontset.c (make_fontset_for_ascii_face): Use XINT on return
+	value.
+	(Fset_fontset_font): Use EQ to compare lisp objects.
+
 2000-04-05  Ken Raeburn  <raeburn@gnu.org>
 
 	* intervals.h (SET_INTERVAL_PARENT): Use INT_LISPLIKE to test for
