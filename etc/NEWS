@@ -2061,9 +2061,10 @@ a composition at a specified position in a buffer or a string.
 *** The function `decompose-composite-char' is now labeled as
 obsolete.
 
-** The new character set `mule-unicode-0100-24ff' is introduced for
-Unicode characters of the range U+0100..U+24FF.  Currently, this
-character set is not used.
+** The new character set `mule-unicode-0100-24ff',
+`mule-unicode-2500-33ff', and `mule-unicode-e000-ffff' are introduced
+for Unicode characters of the range U+0100..U+24FF, U+2500..U+33FF,
+U+E000..U+FFFF respectively.
 
 ** The new character sets `japanese-jisx0213-1' and
 `japanese-jisx0213-2' are introduced for the new Japanese standard JIS
