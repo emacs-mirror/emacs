@@ -106,8 +106,7 @@ non_ascii_char_to_string (c, workbuf, str)
      int c;
      unsigned char *workbuf, **str;
 {
-  int charset;
-  unsigned char c1, c2;
+  int charset, c1, c2;
 
   if (COMPOSITE_CHAR_P (c))
     {
@@ -132,7 +131,7 @@ non_ascii_char_to_string (c, workbuf, str)
   if (*workbuf = CHARSET_LEADING_CODE_EXT (charset))
     workbuf++;
   *workbuf++ = c1 | 0x80;
-  if (c2)
+  if (c2 >= 0)
     *workbuf++ = c2 | 0x80;
 
   return (workbuf - *str);
@@ -244,9 +243,9 @@ update_charset_table (charset_id, dimension, chars, width, direction,
   int bytes;
   unsigned char leading_code_base, leading_code_ext;
 
-  if (NILP (Faref (Vcharset_table, charset_id)))
-    Faset (Vcharset_table, charset_id,
-	   Fmake_vector (make_number (CHARSET_MAX_IDX), Qnil));
+  if (NILP (CHARSET_TABLE_ENTRY (charset)))
+    CHARSET_TABLE_ENTRY (charset)
+      = Fmake_vector (make_number (CHARSET_MAX_IDX), Qnil);
 
   /* Get byte length of multibyte form, base leading-code, and
      extended leading-code of the charset.  See the comment under the
@@ -460,7 +459,7 @@ DESCRIPTION (string) is the description string of the charset.")
 
   update_charset_table (charset_id, vec[0], vec[1], vec[2], vec[3],
 			vec[4], vec[5], vec[6], vec[7], vec[8]);
-  Fput (charset_symbol, Qcharset, Faref (Vcharset_table, charset_id));
+  Fput (charset_symbol, Qcharset, CHARSET_TABLE_ENTRY (XINT (charset_id)));
   CHARSET_SYMBOL (XINT (charset_id)) = charset_symbol;
   Vcharset_list = Fcons (charset_symbol, Vcharset_list);
   return Qnil;
@@ -600,12 +599,11 @@ DEFUN ("split-char", Fsplit_char, Ssplit_char, 1, 1, 0,
      Lisp_Object ch;
 {
   Lisp_Object val;
-  int charset;
-  unsigned char c1, c2;
+  int charset, c1, c2;
 
   CHECK_NUMBER (ch, 0);
   SPLIT_CHAR (XFASTINT (ch), charset, c1, c2);
-  return ((charset == CHARSET_COMPOSITION || CHARSET_DIMENSION (charset) == 2)
+  return (c2 >= 0
 	  ? Fcons (CHARSET_SYMBOL (charset),
 		   Fcons (make_number (c1), Fcons (make_number (c2), Qnil)))
 	  : Fcons (CHARSET_SYMBOL (charset), Fcons (make_number (c1), Qnil)));
