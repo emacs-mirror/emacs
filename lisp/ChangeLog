@@ -1,3 +1,7 @@
+2003-11-07  Andreas Schwab  <schwab@suse.de>
+
+	* xml.el (xml-parse-dtd): Fix misplaced paren.
+
 2003-11-07  Kenichi Handa  <handa@m17n.org>
 
 	* language/european.el (windows-1252): Fix table (0x8F and 0x9E).
