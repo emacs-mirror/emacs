@@ -99,6 +99,7 @@
 #define LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_1 -L/usr/local/lib
 
 #define HAVE_WAIT_HEADER
+#define HAVE_GETLOADAVG 1
 #if 0
 #define HAVE_GETPAGESIZE  /* configure now puts this in config.h */
 #endif

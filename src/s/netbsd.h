@@ -12,6 +12,7 @@
 
 #undef KERNEL_FILE
 #undef LDAV_SYMBOL
+#define HAVE_GETLOADAVG 1
 
 #define HAVE_UNION_WAIT
 
