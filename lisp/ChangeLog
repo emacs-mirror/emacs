@@ -1,3 +1,11 @@
+1999-11-13  Peter Breton  <pbreton@ne.mediaone.net>
+
+	* net-utils.el (run-network-program, net-utils-run-program):
+	Use the new backquote syntax.
+	(smbclient-program, smbclient-program-options, smbclient-prompt-regexp,
+	smbclient-font-lock-keywords): New variables
+	(smbclient, smbclient-list-shares): New functions
+	
 1999-11-12  Sam Steingold  <sds@ksp.com>
 
 	* emulation/viper-init.el (viper-deflocalvar, viper-loop,
