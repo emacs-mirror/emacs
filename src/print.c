@@ -1026,6 +1026,12 @@ print (obj, printcharfun, escapeflag)
 	  sprintf (buf, "%d", XBOOL_VECTOR (obj)->size);
 	  strout (buf, -1, printcharfun);
 	  PRINTCHAR ('\"');
+
+	  /* Don't print more characters than the specified maximum.  */
+	  if (INTEGERP (Vprint_length)
+	      && XINT (Vprint_length) < size_in_chars)
+	    size_in_chars = XINT (Vprint_length);
+
 	  for (i = 0; i < size_in_chars; i++)
 	    {
 	      QUIT;
@@ -1124,6 +1130,12 @@ print (obj, printcharfun, escapeflag)
 	  {
 	    register int i;
 	    register Lisp_Object tem;
+
+	    /* Don't print more elements than the specified maximum.  */
+	    if (INTEGERP (Vprint_length)
+		&& XINT (Vprint_length) < size)
+	      size = XINT (Vprint_length);
+
 	    for (i = 0; i < size; i++)
 	      {
 		if (i) PRINTCHAR (' ');
