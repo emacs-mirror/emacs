@@ -260,6 +260,29 @@ Use \\[edit-tab-stops] to edit them interactively."
 		(delete-region (point) opoint)))
 	  (move-to-column (car tabs) t)))))
 
+(defun move-to-tab-stop ()
+  "Move point to next defined tab-stop column.
+The variable `tab-stop-list' is a list of columns at which there are tab stops.
+Use \\[edit-tab-stops] to edit them interactively."
+  (interactive)
+  (let ((tabs tab-stop-list))
+    (while (and tabs (>= (current-column) (car tabs)))
+      (setq tabs (cdr tabs)))
+    (if tabs
+	(let ((before (point)))
+	  (move-to-column (car tabs) t)
+	  (save-excursion
+	    (goto-char before)
+	    ;; If we just added a tab, or moved over one,
+	    ;; delete any superfluous spaces before the old point.
+	    (if (and (eq (preceding-char) ?\ )
+		     (eq (following-char) ?\t))
+		(let ((tabend (* (/ (current-column) tab-width) tab-width)))
+		  (while (and (> (current-column) tabend)
+			      (eq (preceding-char) ?\ ))
+		    (forward-char -1))
+		  (delete-region (point) before))))))))
+
 (define-key global-map "\t" 'indent-for-tab-command)
 (define-key esc-map "\034" 'indent-region)
 (define-key ctl-x-map "\t" 'indent-rigidly)
