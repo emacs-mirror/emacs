@@ -31,6 +31,7 @@ Boston, MA 02111-1307, USA.  */
 #define SIGEMPTYMASK (empty_mask)
 #define SIGFULLMASK (full_mask)
 extern sigset_t empty_mask, full_mask;
+extern void init_signals P_ ((void));
 
 /* POSIX pretty much destroys any possibility of writing sigmask as a
    macro in standard C.  We always define our own version because the
@@ -67,10 +68,10 @@ extern sigset_t sys_sigmask ();
    appears to be assumed in the source, for example data.c:arith_error.  */
 typedef RETSIGTYPE (*signal_handler_t) (/*int*/);
 
-signal_handler_t sys_signal (/*int signal_number, signal_handler_t action*/);
-sigset_t sys_sigblock   (/*sigset_t new_mask*/);
-sigset_t sys_sigunblock (/*sigset_t new_mask*/);
-sigset_t sys_sigsetmask (/*sigset_t new_mask*/);
+signal_handler_t sys_signal P_ ((int signal_number, signal_handler_t action));
+sigset_t sys_sigblock   P_ ((sigset_t new_mask));
+sigset_t sys_sigunblock P_ ((sigset_t new_mask));
+sigset_t sys_sigsetmask P_ ((sigset_t new_mask));
 
 #define sys_sigdel(MASK,SIG) sigdelset (&MASK,SIG)
 
