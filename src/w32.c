@@ -3729,7 +3729,7 @@ sys_write (int fd, const void * buffer, unsigned int count)
 
       if (nchars == SOCKET_ERROR)
         {
-	  DebPrint(("sys_read.send failed with error %d on socket %ld\n",
+	  DebPrint(("sys_write.send failed with error %d on socket %ld\n",
 		    pfn_WSAGetLastError (), SOCK_HANDLE (fd)));
 	  set_errno ();
 	}
