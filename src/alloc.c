@@ -1257,8 +1257,8 @@ Both LENGTH and INIT must be numbers.")
     }
   else
     {
-      unsigned char work[4], *str;
-      int len = CHAR_STRING (c, work, str);
+      unsigned char str[4];
+      int len = CHAR_STRING (c, str);
 
       nbytes = len * XINT (length);
       val = make_uninit_multibyte_string (XINT (length), nbytes);
