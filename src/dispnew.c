@@ -5842,7 +5842,7 @@ mode_line_string (w, part, x, y, charpos, object, dx, dy, width, height)
          it's the one we were looking for.  */
       glyph = row->glyphs[TEXT_AREA];
       end = glyph + row->used[TEXT_AREA];
-      for (x0 = *x; glyph < end && x0 > glyph->pixel_width; ++glyph)
+      for (x0 = *x; glyph < end && x0 >= glyph->pixel_width; ++glyph)
 	x0 -= glyph->pixel_width;
       *x = glyph - row->glyphs[TEXT_AREA];
       if (glyph < end)
@@ -5934,7 +5934,7 @@ marginal_area_string (w, part, x, y, charpos, object, dx, dy, width, height)
 
       glyph = row->glyphs[area];
       end = glyph + row->used[area];
-      for (x0 = *x - x0; glyph < end && x0 > glyph->pixel_width; ++glyph)
+      for (x0 = *x - x0; glyph < end && x0 >= glyph->pixel_width; ++glyph)
 	x0 -= glyph->pixel_width;
       *x = glyph - row->glyphs[area];
       if (glyph < end)
