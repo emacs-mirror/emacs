@@ -234,9 +234,10 @@ the column number of the end of what `outline-regexp matches'."
   "Skip forward to just before the next heading line."
   (if (re-search-forward (concat "[\n\^M]\\(" outline-regexp "\\)")
 			 nil 'move)
-      (goto-char (match-beginning 0)))
-  (if (memq (preceding-char) '(?\n ?\^M))
-      (forward-char -1)))
+      (progn
+	(goto-char (match-beginning 0))
+	(if (memq (preceding-char) '(?\n ?\^M))
+	    (forward-char -1)))))
 
 (defun outline-next-heading ()
   "Move to the next (possibly invisible) heading line."
@@ -246,17 +247,17 @@ the column number of the end of what `outline-regexp matches'."
       (goto-char (1+ (match-beginning 0)))))
 
 (defun outline-back-to-heading ()
-  "Move to previous (possibly invisible) heading line,
-or to the beginning of this line if it is a heading line."
+  "Move to previous heading line, or beg of this line if it's a heading.
+Only visible heading lines are considered."
   (beginning-of-line)
   (or (outline-on-heading-p)
       (re-search-backward (concat "^\\(" outline-regexp "\\)") nil 'move)))
 
 (defun outline-on-heading-p ()
-  "Return T if point is on a header line."
+  "Return T if point is on a (visible) heading line."
   (save-excursion
     (beginning-of-line)
-    (and (eq (preceding-char) ?\n)
+    (and (bobp)
 	 (looking-at outline-regexp))))
 
 (defun outline-end-of-heading ()
@@ -423,33 +424,33 @@ Default is enough to cause the following heading to appear."
   (setq level
 	(if level (prefix-numeric-value level)
 	  (save-excursion
-	    (beginning-of-line)
+	    (outline-back-to-heading)
 	    (let ((start-level (funcall outline-level)))
 	      (outline-next-heading)
 	      (if (eobp)
 		  1
 		(max 1 (- (funcall outline-level) start-level)))))))
   (save-excursion
-   (save-restriction
-    (beginning-of-line)
-    (setq level (+ level (funcall outline-level)))
-    (narrow-to-region (point)
-		      (progn (outline-end-of-subtree)
-			     (if (eobp) (point-max) (1+ (point)))))
-    (goto-char (point-min))
-    (while (and (not (eobp))
-		(progn
-		 (outline-next-heading)
-		 (not (eobp))))
-      (if (<= (funcall outline-level) level)
-	  (save-excursion
-	    (outline-flag-region (save-excursion
-				   (forward-char -1)
-				   (if (memq (preceding-char) '(?\n ?\^M))
-				       (forward-char -1))
-				   (point))
-				 (progn (outline-end-of-heading) (point))
-				 ?\n)))))))
+    (save-restriction
+      (outline-back-to-heading)
+      (setq level (+ level (funcall outline-level)))
+      (narrow-to-region (point)
+			(progn (outline-end-of-subtree)
+			       (if (eobp) (point-max) (1+ (point)))))
+      (goto-char (point-min))
+      (while (and (not (eobp))
+		  (progn
+		    (outline-next-heading)
+		    (not (eobp))))
+	(if (<= (funcall outline-level) level)
+	    (save-excursion
+	      (outline-flag-region (save-excursion
+				     (forward-char -1)
+				     (if (memq (preceding-char) '(?\n ?\^M))
+					 (forward-char -1))
+				     (point))
+				   (progn (outline-end-of-heading) (point))
+				   ?\n)))))))
 
 (defun outline-up-heading (arg)
   "Move to the heading line of which the present line is a subheading.
