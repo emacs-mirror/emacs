@@ -108,6 +108,9 @@ struct kboard
     /* Alist of system-specific X windows key symbols.  */
     Lisp_Object Vsystem_key_alist;
 
+    /* Minibufferless frames on this display use this frame's minibuffer.  */
+    Lisp_Object Vdefault_minibuffer_frame;
+
     /* Number of displays using this KBOARD.  Normally 1, but can be
        larger when you have multiple screens on a single X display.  */
     int reference_count;
