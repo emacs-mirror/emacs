@@ -1,3 +1,12 @@
+2003-11-17  Kenichi Handa  <handa@m17n.org>
+
+	* international/latin1-disp.el (latin1-display-ucs-per-lynx): Fix
+	docstring.
+
+2003-11-17  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+
+	* international/latin1-disp.el (latin1-display): Fix docstring.
+
 2003-11-16  John Wiegley  <johnw@newartisans.com>
 
 	* eshell/em-ls.el (eshell-ls-file): There are times with
