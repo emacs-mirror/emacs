@@ -537,12 +537,16 @@ non-Quail commands."
   "Toggle Quail minor mode.
 With arg, turn Quail mode on if and only if arg is positive.
 
-You should not turn on and off Quail mode manually, instead use
-the commands `toggle-input-method' or `set-input-method' (which
-see).  They automatically turn on or off this mode.
-
-Try \\[describe-bindings] in Quail mode to see the available key bindings.
-The command \\[describe-input-method] describes the current Quail package."
+In Quail mode, all printable characters are bound to
+`quail-start-translation'.  This function checks if the current input
+method will translate the last input key.  If not, the key is handled
+out of Quail mode, i.e, in another activated minor mode or in the
+current major mode.
+\\{quail-mode-map}
+Unlike the other minor modes, this is not an interactive function.
+Use the commands \\[toggle-input-method] (`toggle-input-method') or
+\\[set-input-method] (`set-input-method') which automatically turn on
+Quail mode with an appropriate Quail package, or turn it off."
   (setq quail-mode
 	(if (null arg) (null quail-mode)
 	  (> (prefix-numeric-value arg) 0)))
@@ -988,7 +992,7 @@ The returned value is a Quail map specific to KEY."
 (defun quail-start-translation (arg)
   "Start translating the typed character in Quail mode."
   (interactive "*p")
-  (setq prefix-arg arg)
+  (setq prefix-arg current-prefix-arg)
   (setq quail-prefix-arg arg)
   (setq unread-command-events
 	(cons last-command-event unread-command-events))
