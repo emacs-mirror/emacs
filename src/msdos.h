@@ -18,8 +18,8 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#ifndef MSDOS_H_
-#define MSDOS_H_
+#ifndef EMACS_MSDOS_H
+#define EMACS_MSDOS_H
 
 #include <dpmi.h>
 
@@ -166,4 +166,4 @@ void XMenuDestroy (Display *, XMenu *);
 
 #endif /* not HAVE_X_WINDOWS */
 
-#endif /* not MSDOS_H_ */
+#endif /* not EMACS_MSDOS_H */
