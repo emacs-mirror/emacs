@@ -439,6 +439,10 @@ will be used, such as in a debug on exit from a frame."
   "Request entry to debugger when this frame exits.
 Applies to the frame whose line point is on in the backtrace."
   (interactive)
+  (save-excursion
+    (beginning-of-line)
+    (if (looking-at " *;;;\\|[a-z]")
+	(error "This line is not a function call")))
   (beginning-of-line)
   (let ((level (debugger-frame-number)))
     (backtrace-debug (+ level debugger-frame-offset) t))
@@ -452,6 +456,10 @@ Applies to the frame whose line point is on in the backtrace."
   "Do not enter debugger when this frame exits.
 Applies to the frame whose line point is on in the backtrace."
   (interactive)
+  (save-excursion
+    (beginning-of-line)
+    (if (looking-at " *;;;\\|[a-z]")
+	(error "This line is not a function call")))
   (beginning-of-line)
   (let ((level (debugger-frame-number)))
     (backtrace-debug (+ level debugger-frame-offset) nil))
