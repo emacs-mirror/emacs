@@ -1629,11 +1629,10 @@ or by invoking @code{server-start} from @file{.emacs}:
 (if (@var{some conditions are met}) (server-start))
 @end lisp
 
-When this is done, Emacs starts a subprocess running a program called
-@samp{emacsserver}.  @samp{emacsserver} creates a Unix domain socket.
+When this is done, Emacs creates a Unix domain socket.
 The socket is either named @file{.emacs_server}, in the user's home directory,
 or @file{esrv-@var{userid}-@var{systemname}}, in the @file{/tmp}
-directory, depending on how @samp{emacsserver} was compiled.
+directory, depending on your system.  See @var{server-socket-name}.
 
 To get your news reader, mail reader, etc., to invoke
 @samp{emacsclient}, try setting the environment variable @code{EDITOR}
