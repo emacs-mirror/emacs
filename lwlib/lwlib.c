@@ -75,10 +75,12 @@ char *lwlib_toolkit_type = "motif";
 char *lwlib_toolkit_type = "lucid";
 #endif
 
+#ifndef P_
 #if defined __STDC__ || defined PROTOTYPES
 #define P_(x)	x
 #else
 #define P_(x)	()
+#endif
 #endif
 
 static widget_value *merge_widget_value P_ ((widget_value *,
