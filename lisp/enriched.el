@@ -310,10 +310,11 @@ the region, and the START and END of each region."
     ;; Return new end.
     (point-max)))
 
-(defun enriched-make-annotation (name positive)
-  "Format an annotation called NAME.
-If POSITIVE is non-nil, this is the opening annotation, if nil, this is the
-matching close."
+(defun enriched-make-annotation (internal-ann positive)
+  "Format an annotation INTERNAL-ANN.
+INTERNAL-ANN may be a string, for a flag, or a list of the form (PARAM VALUE).
+If POSITIVE is non-nil, this is the opening annotation;
+if nil, the matching close."
   (cond ((stringp name)
 	 (format enriched-annotation-format (if positive "" "/") name))
 	;; Otherwise it is an annotation with parameters, represented as a list
