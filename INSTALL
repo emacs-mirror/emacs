@@ -42,6 +42,11 @@ it.  You might find a font in the intlfonts distribution.  If some
 characters don't look right, or appear improperly aligned, a font
 from the intlfonts distribution might look better.
 
+The fonts in the intlfonts distribution are also used by the ps-print
+package for printing international characters.  The file
+lisp/ps-mule.el defines the .bdf font files required for printing
+each character set.
+
 The intlfonts distribution contains its own installation instructions,
 in the intlfonts/README file.
 
@@ -583,6 +588,22 @@ To unpack Emacs with djtar, type this command:
 (This assumes that the Emacs distribution is called `emacs.tgz' on
 your system.)
 
+If you need to type international characters, you will need to unpack
+the Leim distribution (see the description near the beginning of this
+file).  You unpack it from the same directory where you unpacked
+Emacs.  To unpack Leim with djtar, assuming the Leim distribution is
+called `leim.tgz', type this command:
+
+    djtar -x leim.tgz
+
+If you want to print international characters, install the intlfonts
+distribution.  For this, create a directory called, `fonts', under the
+Emacs top-level directory (usually called `emacs-XX.YY') created by
+unpacking emacs.tgz, chdir into the directory emacs-XX.YY/fonts, and
+type this:
+
+    djtar -x intlfonts.tgz
+
 When unpacking is done, a directory called `emacs-XX.YY' will be
 created, where XX.YY is the Emacs version.  To build and install
 Emacs, chdir to that directory and type these commands:
@@ -596,10 +617,12 @@ sibling directory called bin.  For example, if you build in directory
 /emacs, installing moves the executables from /emacs/src and
 /emacs/lib-src to the directory /emacs/bin, so you can then delete the
 subdirectories /emacs/src and /emacs/lib-src if you wish.  The only
-subdirectories you need to keep are bin, lisp, etc and info.  The bin
-subdirectory should be added to your PATH.  The msdos subdirectory
-includes a PIF and an icon file for Emacs which you might find useful
-if you run Emacs under MS Windows.
+subdirectories you need to keep are bin, lisp, etc and info.  (If you
+installed Leim, keep the leim subdirectory, and if you installed
+intlfonts, keep the fonts directory and all its sibdirectories as well.)
+The bin subdirectory should be added to your PATH.  The msdos
+subdirectory includes a PIF and an icon file for Emacs which you might
+find useful if you run Emacs under MS Windows.
 
 Emacs on MSDOS finds the lisp, etc and info directories by looking in
 ../lisp, ../etc and ../info, starting from the directory where the
