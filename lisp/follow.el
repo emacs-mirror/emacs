@@ -318,7 +318,8 @@ After that, changing the prefix key requires manipulating keymaps."
   :type 'string
   :group 'follow)
 
-(defcustom follow-intercept-processes t
+(defcustom follow-intercept-processes
+  (fboundp 'start-process)
   "*When non-nil, Follow Mode will monitor process output."
   :type 'boolean
   :group 'follow)
