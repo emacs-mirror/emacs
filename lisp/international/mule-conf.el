@@ -438,6 +438,67 @@
   :code-space [0 255]
   :map "ibm866")
 
+(define-charset 'koi8-u
+  "KOI8-U"
+  :short-name "KOI8-U"
+  :long-name "KOI8-U"
+  :ascii-compatible-p t
+  :code-space [0 255]
+  :map "koi8-u")
+
+(define-charset 'koi8-t
+  "KOI8-T"
+  :short-name "KOI8-T"
+  :long-name "KOI8-T"
+  :ascii-compatible-p t
+  :code-space [0 255]
+  :map "koi8-t")
+
+(define-charset 'georgian-ps
+  "GEORGIAN-PS"
+  :short-name "GEORGIAN-PS"
+  :long-name "GEORGIAN-PS"
+  :ascii-compatible-p t
+  :code-space [0 255]
+  :map "georgian-ps")
+
+(define-charset 'windows-1250
+  "WINDOWS-1250"
+  :short-name "WINDOWS-1250"
+  :long-name "WINDOWS-1250"
+  :ascii-compatible-p t
+  :code-space [0 255]
+  :map "windows-1250")
+(define-charset-alias 'cp1250 'windows-1250)
+
+(define-charset 'windows-1251
+  "WINDOWS-1251"
+  :short-name "WINDOWS-1251"
+  :long-name "WINDOWS-1251"
+  :ascii-compatible-p t
+  :code-space [0 255]
+  :map "windows-1251")
+(define-charset-alias 'cp1251 'windows-1251)
+
+(define-charset 'windows-1252
+  "WINDOWS-1252"
+  :short-name "WINDOWS-1252"
+  :long-name "WINDOWS-1252"
+  :ascii-compatible-p t
+  :code-space [0 255]
+  :map "windows-1252")
+(define-charset-alias 'cp1252 'windows-1252)
+
+(define-charset 'cp1125
+  "CP1125"
+  :short-name "CP1125"
+  :long-name "CP1125"
+  :code-space [0 255]
+  :map "cp1125")
+(define-charset-alias 'ruscii 'cp1125)
+;; Original name for cp1125, says Serhii Hlodin <hlodin@lutsk.bank.gov.ua>
+(define-charset-alias 'cp866u 'cp1125)
+
 ;; For Arabic, we need three different types of character sets.
 ;; Digits are of direction left-to-right and of width 1-column.
 ;; Others are of direction right-to-left and of width 1-column or
@@ -593,6 +654,23 @@
   :ascii-compatible-p t
   :code-space [0 255]
   :map "mac-roman")
+
+;; Fixme: modern EBCDIC variants, e.g. IBM00924?
+(define-charset 'ebcdic-us
+  "US version of EBCDIC"
+  :short-name "EBCDIC-US"
+  :long-name "EBCDIC-US"
+  :code-space [0 255]
+  :mime-charset 'ebcdic-us
+  :map "ebcdic-us")
+
+(define-charset 'ebcdic-uk
+  "UK version of EBCDIC"
+  :short-name "EBCDIC-UK"
+  :long-name "EBCDIC-UK"
+  :code-space [0 255]
+  :mime-charset 'ebcdic-uk
+  :map "ebcdic-uk")
 
 (unify-charset 'chinese-gb2312)
 (unify-charset 'chinese-gbk)
