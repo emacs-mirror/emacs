@@ -1,3 +1,8 @@
+2001-03-30  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* time-stamp.el (time-stamp-format): Doc fix.  From Paul Eggert
+	<eggert@twinsun.com>.
+
 2001-03-30  Dave Love  <fx@gnu.org>
 
 	* progmodes/fortran.el (fortran-comment-region): Fix typo.
