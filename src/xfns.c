@@ -1484,8 +1484,6 @@ x_window (f)
   XSetWindowAttributes attributes;
   unsigned long attribute_mask;
   XClassHint class_hints;
-  char *shortname;
-  char *p;
 
   attributes.background_pixel = f->display.x->background_pixel;
   attributes.border_pixel = f->display.x->border_pixel;
@@ -1511,15 +1509,7 @@ x_window (f)
 		     screen_visual, /* set in Fx_open_connection */
 		     attribute_mask, &attributes);
 
-  /* X resource names should not have periods in them.
-     So copy the frame name, discarding from the first period onward.  */
-  shortname = (char *) alloca (XSTRING (f->name)->size + 1);
-  bcopy (XSTRING (f->name)->data, shortname, XSTRING (f->name)->size + 1);
-  for (p = shortname; *p; p++)
-    if (*p == '.')
-      *p = 0;
-
-  class_hints.res_name = shortname;
+  class_hints.res_name = (char *) XSTRING (Vxrdb_name)->data;
   class_hints.res_class = EMACS_CLASS;
   XSetClassHint (x_current_display, FRAME_X_WINDOW (f), &class_hints);
 
