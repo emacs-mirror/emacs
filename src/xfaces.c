@@ -311,6 +311,12 @@ Lisp_Object Vface_alternative_font_family_alist;
 Lisp_Object Vscalable_fonts_allowed;
 #endif
 
+/* Maximum number of fonts to consider in font_list.  If not an
+   integer > 0, DEFAULT_FONT_LIST_LIMIT is used instead.  */
+
+Lisp_Object Vfont_list_limit;
+#define DEFAULT_FONT_LIST_LIMIT 100
+
 /* The symbols `foreground-color' and `background-color' which can be
    used as part of a `face' property.  This is for compatibility with
    Emacs 20.2.  */
@@ -2155,7 +2161,10 @@ sorted_font_list (f, pattern, cmpfn, fonts)
   int nfonts;
   
   /* Get the list of fonts matching pattern.  100 should suffice.  */
-  nfonts = 100;
+  nfonts = DEFAULT_FONT_LIST_LIMIT;
+  if (INTEGERP (Vfont_list_limit) && XINT (Vfont_list_limit) > 0)
+    nfonts = XFASTINT (Vfont_list_limit);
+  
   *fonts = (struct font_name *) xmalloc (nfonts * sizeof **fonts);
 #if SCALABLE_FONTS
   nfonts = x_face_list_fonts (f, pattern, *fonts, nfonts, 1, 1);
@@ -2285,11 +2294,13 @@ Otherwise, FAMILY must be a string, possibly containing wildcards\n\
 `?' and `*'.\n\
 If FRAME is omitted or nil, use the selected frame.\n\
 Each element of the result is a vector [FAMILY WIDTH POINT-SIZE WEIGHT\n\
-SLANT FIXED-P].\n\
+SLANT FIXED-P FULL REGISTRY-AND-ENCODING].\n\
 FAMILY is the font family name.  POINT-SIZE is the size of the\n\
 font in 1/10 pt.  WIDTH, WEIGHT, and SLANT are symbols describing the\n\
 width, weight and slant of the font.  These symbols are the same as for\n\
 face attributes.  FIXED-P is non-nil if the font is fixed-pitch.\n\
+FULL is the full name of the font, and REGISTRY-AND-ENCODING is a string\n\
+giving the registry and encoding of the font.\n\
 The result list is sorted according to the current setting of\n\
 the face font sort order.")
   (family, frame)
@@ -2315,7 +2326,8 @@ the face font sort order.")
   nfonts = font_list (f, NULL, family_pattern, NULL, &fonts);
   for (i = nfonts - 1; i >= 0; --i)
     {
-      Lisp_Object v = Fmake_vector (make_number (6), Qnil);
+      Lisp_Object v = Fmake_vector (make_number (8), Qnil);
+      char *tem;
 
 #define ASET(VECTOR, IDX, VAL) (XVECTOR (VECTOR)->contents[IDX] = (VAL))
       
@@ -2325,6 +2337,13 @@ the face font sort order.")
       ASET (v, 3, xlfd_symbolic_weight (fonts + i));
       ASET (v, 4, xlfd_symbolic_slant (fonts + i));
       ASET (v, 5, xlfd_fixed_p (fonts + i) ? Qt : Qnil);
+      tem = build_font_name (fonts + i);
+      ASET (v, 6, build_string (tem));
+      sprintf (tem, "%s-%s", fonts[i].fields[XLFD_REGISTRY],
+	       fonts[i].fields[XLFD_ENCODING]);
+      ASET (v, 7, build_string (tem));
+      xfree (tem);
+      
       result = Fcons (v, result);
       
 #undef ASET
@@ -2352,8 +2371,25 @@ are fixed-pitch.")
   struct font_name *fonts;
   Lisp_Object result;
   struct gcpro gcpro1;
+  int count = specpdl_ptr - specpdl;
+  int limit;
+
+  /* Let's consider all fonts.  Increase the limit for matching
+     fonts until we have them all.  */
+  for (limit = 500;;)
+    {
+      specbind (intern ("font-list-limit"), make_number (limit));
+      nfonts = font_list (f, NULL, "*", NULL, &fonts);
+      
+      if (nfonts == limit)
+	{
+	  free_font_names (fonts, nfonts);
+	  limit *= 2;
+	}
+      else
+	break;
+    }
   
-  nfonts = font_list (f, NULL, "*", NULL, &fonts);
   result = Qnil;
   GCPRO1 (result);
   for (i = nfonts - 1; i >= 0; --i)
@@ -2364,7 +2400,7 @@ are fixed-pitch.")
   remove_duplicates (result);
   free_font_names (fonts, nfonts);
   UNGCPRO;
-  return result;
+  return unbind_to (count, result);
 }
 
 
@@ -6246,6 +6282,12 @@ syms_of_xfaces ()
   defsubr (&Sshow_face_resources);
 #endif /* GLYPH_DEBUG */
   defsubr (&Sclear_face_cache);
+
+  DEFVAR_LISP ("font-list-limit", &Vfont_list_limit,
+    "*Limit for font matching.\n\
+If an integer > 0, font matching functions won't load more than\n\
+that number of fonts when searching for a matching font.");
+  Vfont_list_limit = make_number (DEFAULT_FONT_LIST_LIMIT);
 
   DEFVAR_LISP ("face-new-frame-defaults", &Vface_new_frame_defaults,
     "List of global face definitions (for internal use only.)");
