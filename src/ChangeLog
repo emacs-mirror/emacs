@@ -1,5 +1,8 @@
 2000-01-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* s/freebsd.h (C_SWITCH_SYSTEM): Add -I /usr/local/include and
+	-L /usr/local/lib.
+
 	* xfns.c (x_create_im): New function to set IM and IC of a frame.
 	Check that input style is supported before trying to create an
 	IC for it.
