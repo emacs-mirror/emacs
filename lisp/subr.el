@@ -974,7 +974,7 @@ Use a MESSAGE of \"\" to temporarily clear the echo area."
 	   (progn
 	     (when ,temp-message
 	       (setq ,current-message (current-message))
-	       (message ,temp-message))
+	       (message "%s" ,temp-message))
 	     ,@body)
 	 (and ,temp-message ,current-message
 	      (message "%s" ,current-message))))))
