@@ -146,8 +146,13 @@ when you hit the end of the current node."
   :group 'info)
 
 (defcustom Info-hide-note-references t
-  "*If non-nil, hide the section reference in *note and * menu items."
-  :type 'boolean
+  "*If non-nil, hide the tag and section reference in *note and * menu items.
+Also replaces the \"*note\" text with \"see\".
+If value is a number, the reference section is still shown."
+  :version "21.4"
+  :type '(choice (const :tag "Replace tag and hide reference" t)
+		 (const :tag "Replace only tag" tag)
+		 (const :tag "No reformatting" nil))
   :group 'info)
 
 (defcustom Info-mode-hook '(turn-on-font-lock)
@@ -2725,7 +2730,7 @@ the variable `Info-file-list-for-emacs'."
 	(while (re-search-forward "\\(\\*Note[ \n\t]+\\)\\([^:]*\\)\\(:[^.,:]*[,:]?\\)" nil t)
 	  (unless (= (char-after (1- (match-beginning 0))) ?\") ; hack
 	    (let ((next (point))
-		  (hide-tag font-lock-mode)
+		  (hide-tag Info-hide-note-references)
 		  other-tag)
 	      (when hide-tag
 		;; *Note is often used where *note should have been
@@ -2749,7 +2754,7 @@ the variable `Info-file-list-for-emacs'."
 				   '(font-lock-face info-xref
 						    mouse-face highlight
 						    help-echo "mouse-2: go to this node"))
-	      (if Info-hide-note-references
+	      (if (eq Info-hide-note-references t)
 		  (add-text-properties (match-beginning 3) (match-end 3)
 				       '(invisible t intangible t))))))
 
@@ -2769,7 +2774,7 @@ the variable `Info-file-list-for-emacs'."
 				     '(font-lock-face info-xref
 				       mouse-face highlight
 				       help-echo "mouse-2: go to this node"))
-		(if Info-hide-note-references
+		(if (eq Info-hide-note-references t)
 		    (add-text-properties (match-beginning 2) (match-end 2)
 					 (list 'display 
 					       (make-string (max 2 (- 22 (- (match-end 1) (match-beginning 1)))) ? )
