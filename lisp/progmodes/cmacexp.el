@@ -3,7 +3,7 @@
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; Author: Francesco Potorti` <pot@cnuce.cnr.it>
-;; Version: $Id: cmacexp.el,v 1.10 1994/02/25 06:27:24 rms Exp rms $
+;; Version: $Id: cmacexp.el,v 1.11 1994/04/20 06:12:03 rms Exp rms $
 ;; Adapted-By: ESR
 ;; Keywords: c
 
@@ -109,14 +109,14 @@
 
 (provide 'cmacexp)
 
-(defvar c-macro-shrink-window-p nil
+(defvar c-macro-shrink-window-flag nil
   "*Non-nil means shrink the *Macroexpansion* window to fit its contents.")
 
-(defvar c-macro-prompt-p nil
-  "*Non-nil makes c-macro-expand prompt for preprocessor arguments.")
+(defvar c-macro-prompt-flag nil
+  "*Non-nil makes `c-macro-expand' prompt for preprocessor arguments.")
 
-(defvar c-macro-preprocessor "/lib/cpp -C" "\
-The preprocessor used by the cmacexp package.
+(defvar c-macro-preprocessor "/lib/cpp -C"
+  "The preprocessor used by the cmacexp package.
 
 If you change this, be sure to preserve the -C (don't strip comments)
 option, or to set an equivalent one.")
@@ -126,15 +126,17 @@ option, or to set an equivalent one.")
 
 (defconst c-macro-buffer-name "*Macroexpansion*")
 
-(defun c-macro-expand (start end subst) "\
-Expand all C macros occurring in the region using c-macro-preprocessor.
-Normally display output in temp buffer.
-Prefix arg means replace the region with it.
-Prompt for a string of arguments to the preprocessor
-\(e.g. -DDEBUG -I ./include) if the user option c-macro-prompt-p is non-nil.
+(defun c-macro-expand (start end subst)
+  "Expand C macros in the region, using the C preprocessor.
+Normally display output in temp buffer, but
+prefix arg means replace the region with it.
+
+`c-macro-preprocessor' specifies the preprocessor to use.
+Prompt for arguments to the preprocessor \(e.g. `-DDEBUG -I ./include')
+if the user option `c-macro-prompt-flag' is non-nil.
 
 Noninteractive args are START, END, SUBST.
-For use inside programs see also c-macro-expansion."
+For use inside Lisp programs, see also `c-macro-expansion'."
 
   (interactive "r\nP")
   (let ((inbuf (current-buffer))
@@ -144,7 +146,7 @@ For use inside programs see also c-macro-expansion."
 	(expansion "")
 	(mymsg ""))
     ;; Build the command string.
-    (if c-macro-prompt-p
+    (if c-macro-prompt-flag
 	(setq c-macro-cppflags
 	      (read-string "Preprocessor arguments: "
 			   c-macro-cppflags)))
@@ -200,10 +202,9 @@ For use inside programs see also c-macro-expansion."
 ;; chosen for display exists already but contains something else, the
 ;; window is not re-sized.  If the window already contains the current
 ;; buffer, it is never shrunk, but possibly expanded.  Finally, if the
-;; variable c-macro-shrink-window-p is nil the window size is *never*
+;; variable c-macro-shrink-window-flag is nil the window size is *never*
 ;; changed.
 (defun c-macro-display-buffer ()
-
   (goto-char (point-min))
   (c-mode)
   (let ((oldwinheight (window-height))
@@ -214,7 +215,7 @@ For use inside programs see also c-macro-expansion."
 	(progn
 	  (display-buffer (current-buffer) t)
 	  (setq popped (/= oldwinheight (window-height)))))
-    (if (and c-macro-shrink-window-p	;user wants fancy shrinking :\)
+    (if (and c-macro-shrink-window-flag	;user wants fancy shrinking :\)
 	     (or alreadythere popped))
 	;; Enlarge up to half screen, or shrink properly.
 	(let ((oldwin (selected-window))
@@ -234,8 +235,8 @@ For use inside programs see also c-macro-expansion."
 	    (select-window oldwin))))))
 
 
-(defun c-macro-expansion (start end cppcommand) "\
-Run a preprocessor on region and return the output as a string.
+(defun c-macro-expansion (start end cppcommand)
+  "Run a preprocessor on region and return the output as a string.
 Expand the region between START and END in the current buffer using
 the shell command CPPCOMMAND (e.g. \"/lib/cpp -C -DDEBUG\").
 Be sure to use a -C (don't strip comments) or equivalent option."
@@ -285,8 +286,8 @@ Be sure to use a -C (don't strip comments) or equivalent option."
 	  ;(switch-to-buffer outbuf) (debug)	;debugging instructions
 	  (while (re-search-backward "\n#\\(endif\\|else\\)\\>" start 'move)
 	    (if (equal (nthcdr 3 (parse-partial-sexp start (point) start-state))
-		       '(nil nil nil 0)) ;neither in string nor in
-					 ;comment nor after quote
+		       '(nil nil nil 0 nil)) ;neither in string nor in
+					;comment nor after quote
 		(progn
 		  (goto-char (match-end 0))
 ;;;		  (setq linenum (count-lines 1 (point)))
@@ -312,13 +313,15 @@ Be sure to use a -C (don't strip comments) or equivalent option."
 		 (let* ((startstat (parse-partial-sexp 1 start))
 			(startinstring (nth 3 startstat))
 			(startincomment (nth 4 startstat))
-			(startafterquote (nth 5 startstat)))
+			(startafterquote (nth 5 startstat))
+			(startinbcomment (nth 6 startstat)))
 		   (concat (if startafterquote " ")
 			   (cond (startinstring (char-to-string startinstring))
 				 (startincomment "*/"))
 			   (format "\n???!!!???!!!!")
 			   (cond (startinstring (char-to-string startinstring))
-				 (startincomment "/*"))
+				 (startincomment "/*")
+				 (startinbcomment "//"))
 			   (if startafterquote "\\")))
 		 linelist))
 	  (insert (car linelist))
