@@ -236,7 +236,7 @@ act as a paragraph-separator."
 	      ;; of a paragraph when text follows it.
 	      (if (not (eq 0 (string-match paragraph-start
 					   (concat result "a"))))
-		  result))))))))
+		  result)))))))
 
 (defun fill-region-as-paragraph (from to &optional justify
 				      nosqueeze squeeze-after)
