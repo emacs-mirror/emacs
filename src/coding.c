@@ -6229,13 +6229,16 @@ highest priority.")
 
   if (from < GPT && to >= GPT)
     move_gap_both (to, to_byte);
+  /* If we an anchor byte `\0' follows the region, we include it in
+     the detecting source.  Then code detectors can handle the tailing
+     byte sequence more accurately.
+
+     Fix me: This is not an perfect solution.  It is better that we
+     add one more argument, say LAST_BLOCK, to all detect_coding_XXX.
+  */
   if (to == Z || (to == GPT && GAP_SIZE > 0))
     include_anchor_byte = 1;
   return detect_coding_system (BYTE_POS_ADDR (from_byte),
-			       /* "+ include_anchor_byteq" is to
-				  include the anchor byte `\0'.  With
-				  this, code detectors can check if
-				  tailing bytes are valid.  */
 			       to_byte - from_byte + include_anchor_byte,
 			       !NILP (highest),
 			       !NILP (current_buffer
@@ -6261,8 +6264,8 @@ highest priority.")
   return detect_coding_system (XSTRING (string)->data,
 			       /* "+ 1" is to include the anchor byte
 				  `\0'.  With this, code detectors can
-				  check if tailing bytes are
-				  valid.  */
+				  handle the tailing bytes more
+				  accurately.  */
 			       STRING_BYTES (XSTRING (string)) + 1,
 			       !NILP (highest),
 			       STRING_MULTIBYTE (string));
