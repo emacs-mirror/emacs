@@ -1846,6 +1846,8 @@ subprocesses inherit.
 
 ** Grep has been decoupled from compilation mode setup.
 
+*** There's a new separate package grep.el.
+
 *** Grep commands now have their own submenu and customization group.
 
 *** The new variables `grep-window-height', `grep-auto-highlight', and
@@ -2221,6 +2223,10 @@ arg is non-nil.
 ** The new primitive `set-file-times' sets a file's access and
 modification times.  Magic file name handlers can handle this
 operation.
+
+** file-remote-p now returns an identifier for the remote system,
+if the file is indeed remote.  (Before, the return value was t in
+this case.)
 
 ** The display space :width and :align-to text properties are now
 supported on text terminals.

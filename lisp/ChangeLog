@@ -1,3 +1,44 @@
+2004-07-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/grep.el (grep-compute-defaults, grep-command)
+	(grep-program, find-program, grep-find-use-xargs, grep-history)
+	(grep-find-history, grep-tag-default, grep-find-command)
+	(grep-regexp-alist, grep-process-setup, grep-compute-defaults):
+	Add autoload cookies, for unbundled packages that load `compile'
+	and expect all grep-related symbols to become defined.
+
+2004-07-03  KOSEKI Yoshinori  <kose@meadowy.org>
+
+	* iimage.el (turn-on-iimage-mode, iimage-mode): Add autoload
+	cookies.
+	(iimage-mode-image-search-path): New user option to search the
+	image file.
+	(iimage-locate-file): New funcion.  Emacs21.3 or earlier does not
+	have locate-file.
+	(iimage-mode-buffer): Use it.
+
+2004-07-03  Nick Roberts  <nickrob@gnu.org>
+
+	* progmodes/gdb-ui.el (gdb-goto-breakpoint): String match more
+	carefully.
+	(gdb-delete-breakpoint, gdb-toggle-breakpoint): Handle gdbmi.
+
+2004-07-03  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (query-replace-read-args): Swallow space after 'foo,
+	not after (quote foo).  Match space only immediately after symbol,
+	not anywhere in the whole string.
+
+2004-07-02  Richard M. Stallman  <rms@gnu.org>
+
+	* replace.el (query-replace-read-args): Swallow space after
+	symbols, not after closeparens.  But avoid error if string ends there.
+
+	* progmodes/python.el (python-beginning-of-statement):
+	Exit the loop if backward-up-list gets error.
+
+	* textmodes/enriched.el (enriched-encode): Bind inhibit-read-only.
+
 2004-07-02  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-rcs.el (vc-rcs-checkout-model): Look at the version headers
@@ -44,6 +85,11 @@
 	everything except )]" which in most cases means after a symbol.
 
 	* emacs-lisp/pp.el (pp-buffer): Add autoload.
+
+2004-06-28  Richard M. Stallman  <rms@gnu.org>
+
+	* font-lock.el (font-lock-fontify-syntactic-keywords-region):
+	More changes to go with previous change in font-lock.el.
 
 2004-06-26  David Kastrup  <dak@gnu.org>
 

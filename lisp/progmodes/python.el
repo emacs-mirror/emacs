@@ -710,16 +710,17 @@ Accounts for continuation lines, multi-line strings, and multi-line bracketed
 expressions."
   (beginning-of-line)
   (python-beginning-of-string)
-  (while (python-continuation-line-p)
-    (beginning-of-line)
-    (if (python-backslash-continuation-line-p)
-	(while (python-backslash-continuation-line-p)
-	  (forward-line -1))
-      (python-beginning-of-string)
-      ;; Skip forward out of nested brackets.
-      (condition-case ()		; beware invalid syntax
-	  (progn (backward-up-list (syntax-ppss-depth (syntax-ppss))) t)
-	(error (end-of-line)))))
+  (catch 'foo
+    (while (python-continuation-line-p)
+      (beginning-of-line)
+      (if (python-backslash-continuation-line-p)
+	  (while (python-backslash-continuation-line-p)
+	    (forward-line -1))
+	(python-beginning-of-string)
+	;; Skip forward out of nested brackets.
+	(condition-case ()		; beware invalid syntax
+	    (progn (backward-up-list (syntax-ppss-depth (syntax-ppss))) t)
+	  (error (throw 'foo nil))))))
   (back-to-indentation))
 
 (defun python-end-of-statement ()

@@ -1,3 +1,8 @@
+2004-07-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (dos_rawgetc): Use make_number to produce Lisp objects
+	for event.x and event.y.
+
 2004-07-01  Kenichi Handa  <handa@m17n.org>
 
 	* w32select.c (Fw32_set_clipboard_data): Update `nbytes' correctly
