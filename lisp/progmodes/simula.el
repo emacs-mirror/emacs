@@ -192,7 +192,7 @@ for SIMULA mode to function correctly.")
     (list (concat "\\<\\(array\\|boolean\\|character\\|integer\\|"
 		  "long\\|name\\|real\\|short\\|text\\|value\\)\\>"
 		  "\\([ \t]+\\sw+\\>\\)*")
-	  '(font-lock-match-c++-style-declaration-item-and-skip-to-next
+	  '(font-lock-match-c-style-declaration-item-and-skip-to-next
 	    ;; Start with point after all type specifiers.
 	    (goto-char (or (match-beginning 2) (match-end 1)))
 	    ;; Finish with point after first type specifier.
@@ -203,7 +203,7 @@ for SIMULA mode to function correctly.")
     ;; Object references and their declarations.
     '("\\<\\(ref\\)\\>[ \t]*\\((\\(\\sw+\\))\\)?"
       (3 font-lock-function-name-face nil t)
-      (font-lock-match-c++-style-declaration-item-and-skip-to-next nil nil
+      (font-lock-match-c-style-declaration-item-and-skip-to-next nil nil
        (1 font-lock-variable-name-face)))
     ))
   "Gaudy level highlighting for Simula mode.")
