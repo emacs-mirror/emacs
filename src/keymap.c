@@ -1592,10 +1592,10 @@ If KEYMAP is nil, search all the currently active keymaps.\n\
 \n\
 If optional 3rd arg FIRSTONLY is non-nil, return the first key sequence found,\n\
 rather than a list of all possible key sequences.\n\
-If FIRSTONLY is t, avoid key sequences which use non-ASCII\n\
-keys and therefore may not be usable on ASCII terminals.  If FIRSTONLY\n\
-is the symbol `non-ascii', return the first binding found, no matter\n\
-what its components.\n\
+If FIRSTONLY is the symbol `non-ascii', return the first binding found,\n\
+no matter what it is.\n\
+If FIRSTONLY has another non-nil value, prefer sequences of ASCII characters,
+and entirely reject menu bindings.\n\
 \n\
 If optional 4th arg NOINDIRECT is non-nil, don't follow indirections\n\
 to other keymaps or slots.  This makes it possible to search for an\n\
@@ -1608,6 +1608,8 @@ indirect definition itself.")
   Lisp_Object found, sequence;
   int keymap_specified = !NILP (keymap);
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
+  /* 1 means ignore all menu bindings entirely.  */
+  int nomenus = !NILP (firstonly) && !EQ (firstonly, Qnon_ascii);
 
   if (! keymap_specified)
     {
@@ -1716,7 +1718,28 @@ indirect definition itself.")
 
 	  /* Search through indirections unless that's not wanted.  */
 	  if (NILP (noindirect))
-	    binding = get_keyelt (binding, 0);
+	    {
+	      if (nomenus)
+		{
+		  while (1)
+		    {
+		      Lisp_Object map, tem;
+		      /* If the contents are (KEYMAP . ELEMENT), go indirect.  */
+		      map = get_keymap_1 (Fcar_safe (definition), 0, 0);
+		      tem = Fkeymapp (map);
+		      if (!NILP (tem))
+			definition = access_keymap (map, Fcdr (definition), 0, 0);
+		      else
+			break;
+		    }
+		  /* If the contents are (STRING ...), reject.  */
+		  if (CONSP (definition)
+		      && STRINGP (XCONS (definition)->car))
+		    continue;
+		}
+	      else
+		binding = get_keyelt (binding, 0);
+	    }
 
 	  /* End this iteration if this element does not match
 	     the target.  */
