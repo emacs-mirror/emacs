@@ -6,7 +6,7 @@
 ;; Maintainer: Ivar Rummelhoff <ivarr@ifi.uio.no>
 ;; Created: 27 Feb 1997
 ;; Time-stamp: <1998-08-21 19:51:02 ivarr>
-;; Keywords: windows
+;; Keywords: convenience frames
 
 ;; This file is part of GNU Emacs.
 
@@ -42,8 +42,9 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl))
 
+(eval-when-compile
   (cond
    ((eq (aref (emacs-version) 0) ?X)
     (defmacro winner-active-region ()
@@ -67,7 +68,8 @@
   (defmacro defcustom (symbol &optional initvalue docs &rest rest)
     (list 'defvar symbol initvalue docs)))
 
-;;;###autoload
+
+;;;###autoload
 (defcustom winner-mode nil
   "Toggle winner-mode.
 Setting this variable directly does not take effect;
@@ -326,7 +328,8 @@ use either \\[customize] or the function `winner-mode'."
       (split-window)
       winner-var)))
 
-;;;###autoload
+
+;;;###autoload
 (defun winner-mode (&optional arg)
   "Toggle Winner mode.
 With arg, turn Winner mode on if and only if arg is positive."
