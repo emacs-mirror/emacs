@@ -222,9 +222,9 @@ case "${canonical}" in
   ## NetBSD ports
   *-*-netbsd* )
     opsys=netbsd
-    if test -f /usr/lib/crti.o; then
+    if test -f /usr/lib/crti.o; then]
       AC_DEFINE(HAVE_CRTIN)
-    fi
+[   fi
 
     case "${canonical}" in
       alpha*-*-netbsd*)	machine=alpha ;;
