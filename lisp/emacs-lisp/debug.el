@@ -189,7 +189,8 @@ first will be printed into the backtrace buffer."
 		    (backtrace-debug 3 t))
 		(debugger-reenable)
 		(message "")
-		(let ((standard-output nil)
+		(let ((inhibit-trace t)
+		      (standard-output nil)
 		      (buffer-read-only t))
 		  (message "")
 		  ;; Make sure we unbind buffer-read-only in the right buffer.
