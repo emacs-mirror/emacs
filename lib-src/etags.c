@@ -1,5 +1,5 @@
 /* Tags file maker to go with GNU Emacs
-   Copyright (C) 1984, 1987, 1988, 1989 Free Software Foundation, Inc. and Ken Arnold
+   Copyright (C) 1984, 1987, 1988, 1989, 1992 Free Software Foundation, Inc. and Ken Arnold
 
 This file is part of GNU Emacs.
 
@@ -30,6 +30,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#include "getopt.h"
 
 #ifdef	__GNUC__
 #define	alloca	__builtin_alloca
@@ -410,6 +412,12 @@ DEFINEST definedef;
 #define LEVEL_OK_FOR_FUNCDEF()					\
 	(level==0 || c_ext && level==1 && structdef==sinbody)
 
+/*
+ * next_token_is_func
+ *	set this to TRUE, and the next token considered is called a function.
+ */
+logical next_token_is_func;
+
 /* C extensions.  Currently all listed extensions are C++ dialects, so
  * `c_ext' is used as an abbreviation for `c_ext&C_PLPL'.  If a non-C++
  * dialect is added, this must change.
@@ -436,7 +444,6 @@ char *curfile,			/* current input file name		*/
  *intk = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz$0123456789",	/* valid in-token chars			*/
  *notgd = ",;";			/* non-valid after-function chars	*/
 
-int file_num;			/* current file number			*/
 int append_to_tagfile;		/* -a: append to tags */
 int emacs_tags_format;		/* emacs style output (no -e option any more) */
 /* The following three default to 1 for etags, but to 0 for ctags.  */
@@ -457,6 +464,27 @@ int noindentypedefs;		/* -S: ignore indentation in C */
 
 /* Name this program was invoked with.  */
 char *progname;
+
+struct option longopts[] = {
+  { "append",			no_argument,	   NULL, 'a' },
+  { "backward-search",		no_argument,	   NULL, 'B' }, 
+  { "c++",			no_argument,	   NULL, 'C' },
+  { "cxref",			no_argument,	   NULL, 'x' },
+  { "defines",			no_argument,	   NULL, 'd' },
+  { "forward-search",		no_argument,	   NULL, 'F' }, 
+  { "help",			no_argument,	   NULL, 'H' },
+  { "ignore-indentation",	no_argument,	   NULL, 'S' },
+  { "include",			required_argument, NULL, 'i' },
+  { "no-defines",		no_argument,	   NULL, 'D' },
+  { "no-warn",			no_argument,	   NULL, 'w' },
+  { "output",			required_argument, NULL, 'o' },
+  { "typedefs",			no_argument,	   NULL, 't' },
+  { "typedefs-and-c++",		no_argument,	   NULL, 'T' },
+  { "update",			no_argument,	   NULL, 'u' }, 
+  { "version",			no_argument,	   NULL, 'V' },
+  { "vgrind",			no_argument,	   NULL, 'v' }, 
+  { 0 }
+};
 
 FILE *inf,			/* ioptr for current input file		*/
  *outf;				/* ioptr for tags file			*/
@@ -481,13 +509,118 @@ struct linebuffer filename_lb;	/* used to read in filenames */
 
 
 void
+print_version ()
+{
+#ifdef CTAGS
+  printf ("CTAGS ");
+#ifdef ETAGS
+  printf ("and ");
+#endif
+#endif
+#ifdef ETAGS
+  printf ("ETAGS ");
+#endif
+  printf ("for Emacs version 19.0.\n");
+
+  exit (0);
+}
+
+void
+print_help ()
+{
+  printf ("These are the options accepted by %s.  You may use unambiguous\n\
+abbreviations for the long option names.\n\n", progname);
+
+  fputs ("\
+-a, --append\n\
+        Append tag entries to existing tags file.\n\
+-C, --c++\n\
+        Treat files with `.c' and `.h' extensions as C++ code, not C\n\
+        code.  Files with `.C', `.H', `.cxx', `.hxx', or `.cc'\n\
+        extensions are always assumed to be C++ code.\n\
+-d, --defines\n\
+        Create tag entries for #defines, too.", stdout);
+
+#ifdef ETAGS
+  fputs ("  This is the default\n\
+        behavior.", stdout);
+#endif
+
+  fputs ("\n\
+-D, --no-defines\n\
+        Don't create tag entries for #defines.", stdout);
+
+#ifdef CTAGS
+  fputs ("  This is the default\n\
+        behavior.", stdout);
+#endif
+
+  puts ("\n\
+-o FILE, --output=FILE\n\
+        Write the tags to FILE.\n\
+-S, --ignore-indentation\n\
+        Don't rely on indentation quite as much as normal.  Currently,\n\
+        this means not to assume that a closing brace in the first\n\
+        column is the final brace of a function or structure\n\
+        definition.\n\
+-t, --typedefs\n\
+        Generate tag entries for typedefs.  This is the default\n\
+        behavior.\n\
+-T, --typedefs-and-c++\n\
+        Generate tag entries for typedefs, struct/enum/union tags, and\n\
+        C++ member functions.");
+
+#ifdef ETAGS
+  puts ("-i FILE, --include=FILE\n\
+        Include a note in tag file indicating that, when searching for\n\
+        a tag, one should also consult the tags file FILE after\n\
+        checking the current file.");
+#endif
+
+#ifdef CTAGS
+  puts ("-B, --backward-search\n\
+        Write the search commands for the tag entries using '?', the\n\
+        backward-search command.\n\
+-F, --forward-search\n\
+        Write the search commands for the tag entries using '/', the\n\
+        forward-search command.\n\
+-u, --update\n\
+        Update the tag entries for the given files, leaving tag\n\
+        entries for other files in place.  Currently, this is\n\
+        implemented by deleting the existing entries for the given\n\
+        files and then rewriting the new entries at the end of the\n\
+        tags file.  It is often faster to simply rebuild the entire\n\
+        tag file than to use this.\n\
+-v, --vgrind\n\
+        Generates an index of items intended for human consumption,\n\
+        similar to the output of vgrind.  The index is sorted, and\n\
+        gives the page number of each item.\n\
+-x, --cxref\n\
+        Like --vgrind, but in the style of cxref, rather than vgrind.\n\
+        The output uses line numbers instead of page numbers, but\n\
+        beyond that the differences are cosmetic; try both to see\n\
+        which you like.\n\
+-w, --no-warn\n\
+        Suppress warning messages about entries defined in multiple\n\
+        files.");
+#endif
+
+  puts ("-V, --version\n\
+        Print the version of the program.\n\
+-H, --help\n\
+        Print this help message.");
+
+  exit (0);
+}
+
+
+void
 main (argc, argv)
      int argc;
      char *argv[];
 {
   char cmd[100];
   int i;
-  int outfflag = 0;
   unsigned int nincluded_files = 0;
   char **included_files = (char **) alloca (argc * sizeof (char *));
   char *this_file;
@@ -513,116 +646,109 @@ main (argc, argv)
   if (emacs_tags_format)
     typedefs = typedefs_and_cplusplus = constantypedefs = 1;
 
-  for (; argc > 1 && argv[1][0] == '-' && argv[1][1] != '\0'; argc--, argv++)
+  for (;;)
     {
-      for (i = 1; argv[1][i]; i++)
+      int opt;
+      opt = getopt_long (argc, argv, "aCdDo:StTi:BFuvxwVH", longopts, 0);
+
+      if (opt == EOF)
+	break;
+
+      switch (opt)
 	{
-	  switch (argv[1][i])
+	case '\0':
+	  /* If getopt returns '\0', then it has already processed a
+	     long-named option.  We should do nothing.  */
+	  break;
+
+	  /* Common options. */
+	case 'a':
+	  append_to_tagfile++;
+	  break;
+	case 'C':
+	  cplusplus = 1;
+	  break;
+	case 'd':
+	  constantypedefs = 1;
+	  break;
+	case 'D':
+	  constantypedefs = 0;
+	  break;
+	case 'o':
+	  if (outfile)
 	    {
-	      /* Common options. */
-	    case 'a':
-	      append_to_tagfile++;
-	      break;
-	    case 'C':
-	      cplusplus = 1;
-	      break;
-	    case 'd':
-	      constantypedefs = 1;
-	      break;
-	    case 'D':
-	      constantypedefs = 0;
-	      break;
-	    case 'o':
-	      if (outfflag)
-		{
-		  fprintf (stderr,
-			   "%s: -o flag may only be given once\n", progname);
-		  goto usage;
-		}
-	      outfflag++, argc--;
-	      argv++;
-	      if (argc <= 1 || argv[1][0] == '\0')
-		{
-		  fprintf (stderr,
-			   "%s: -o flag must be followed by a filename\n",
-			   progname);
-		  goto usage;
-		}
-	      outfile = argv[1];
-	      goto next_arg;
-	    case 'S':
-	      noindentypedefs++;
-	      break;
-	    case 't':
-	      typedefs++;
-	      break;
-	    case 'T':
-	      typedefs++;
-	      typedefs_and_cplusplus++;
-	      break;
-
-	      /* Etags options */
-	    case 'i':
-	      if (!emacs_tags_format)
-		goto usage;
-	      --argc;
-	      ++argv;
-	      if (argc <= 1 || argv[1][0] == '\0')
-		{
-		  fprintf (stderr,
-			   "%s: -i flag must be followed by a filename\n",
-			   progname);
-		  goto usage;
-		}
-	      included_files[nincluded_files++] = argv[1];
-	      goto next_arg;
-
-	      /* Ctags options. */
-	    case 'B':
-	      searchar = '?';
-	      if (emacs_tags_format)
-		goto usage;
-	      break;
-	    case 'F':
-	      searchar = '/';
-	      if (emacs_tags_format)
-		goto usage;
-	      break;
-	    case 'u':
-	      update++;
-	      if (emacs_tags_format)
-		goto usage;
-	      break;
-	    case 'v':
-	      vgrind_style++;
-	      /*FALLTHRU*/
-	    case 'x':
-	      cxref_style++;
-	      if (emacs_tags_format)
-		goto usage;
-	      break;
-	    case 'w':
-	      no_warnings++;
-	      if (emacs_tags_format)
-		goto usage;
-	      break;
-
-	    default:
+	      fprintf (stderr,
+		       "%s: -o flag may only be given once\n", progname);
 	      goto usage;
 	    }
+	  outfile = optarg;
+	  break;
+	case 'S':
+	  noindentypedefs++;
+	  break;
+	case 't':
+	  typedefs++;
+	  break;
+	case 'T':
+	  typedefs++;
+	  typedefs_and_cplusplus++;
+	  break;
+	case 'V':
+	  print_version ();
+	  break;
+	case 'H':
+	  print_help ();
+	  break;
+
+	  /* Etags options */
+	case 'i':
+	  if (!emacs_tags_format)
+	    goto usage;
+	  included_files[nincluded_files++] = optarg;
+	  break;
+
+	  /* Ctags options. */
+	case 'B':
+	  searchar = '?';
+	  if (emacs_tags_format)
+	    goto usage;
+	  break;
+	case 'F':
+	  searchar = '/';
+	  if (emacs_tags_format)
+	    goto usage;
+	  break;
+	case 'u':
+	  update++;
+	  if (emacs_tags_format)
+	    goto usage;
+	  break;
+	case 'v':
+	  vgrind_style++;
+	  /*FALLTHRU*/
+	case 'x':
+	  cxref_style++;
+	  if (emacs_tags_format)
+	    goto usage;
+	  break;
+	case 'w':
+	  no_warnings++;
+	  if (emacs_tags_format)
+	    goto usage;
+	  break;
+
+	default:
+	  goto usage;
 	}
-    next_arg:;
     }
 
-  if (argc <= 1)
+  if (optind == argc)
     {
+      fprintf (stderr, "%s: No input files specified.\n", progname);
+
     usage:
-      fprintf (stderr, "Usage:\n");
-#ifndef CTAGS
-      fprintf (stderr, "\tetags [-aDiS] [-o tagsfile] file ...\n");
-#else
-      fprintf (stderr, "\tctags [-aBdeFTStuwvx] [-o tagsfile] file ...\n");
-#endif
+      fprintf (stderr, "%s: Try '%s --help' for a complete list of options.\n",
+	       progname, progname);
       exit (BAD);
     }
 
@@ -652,10 +778,10 @@ main (argc, argv)
 	}
     }
 
-  file_num = 1;
 #ifdef VMS
-  for (argc--, argv++;
-       (this_file = gfnames (&argc, &argv, &got_err)) != NULL; file_num++)
+  argc -= optind;
+  argv += optind;
+  while (gfnames (&argc, &argv, &got_err) != NULL)
     {
       if (got_err)
 	{
@@ -670,9 +796,9 @@ main (argc, argv)
     }				/* solely to balance out the ifdef'd parens above */
 #endif
 #else
-  for (; file_num < argc; file_num++)
+  for (; optind < argc; optind++)
     {
-      this_file = argv[file_num];
+      this_file = argv[optind];
       if (1)
 	{
 #endif
@@ -706,9 +832,11 @@ main (argc, argv)
       put_entries (head);
       exit (GOOD);
     }
-  if (update)			/* update cannot be set under VMS */
+  if (update)
     {
-      for (i = 1; i < argc; i++)
+      /* update cannot be set under VMS, so we may assume that argc
+	 and argv have not been munged.  */
+      for (i = optind; i < argc; i++)
 	{
 	  sprintf (cmd,
 		   "mv %s OTAGS;fgrep -v '\t%s\t' OTAGS >%s;rm OTAGS",
@@ -905,7 +1033,9 @@ find_entries (file)
       goto close_and_return;
     }
   /* if not a .c or .h or .y file, try fortran */
-  else if (cp && ((cp[1] != 'c' && cp[1] != 'h' && cp[1] != 'y')
+  else if (cp && ((cp[1] != 'c'
+		   && cp[1] != 'h'
+		   && cp[1] != 'y')
 		  || (cp[1] != 0 && cp[2] != 0)))
     {
       if (PF_funcs (inf) != 0)
@@ -1308,6 +1438,8 @@ C_entries (c_ext)
   definedef = dnone;
   gotone = midtoken = inquote = inchar = incomm = FALSE;
   level = 0;
+  tydef = none;
+  next_token_is_func = 0;
 
   C_create_stabs ();
 
@@ -1316,6 +1448,9 @@ C_entries (c_ext)
       c = *lp++;
       if (c == '\\')
 	{
+	  /* If we're at the end of the line, the next character is a
+	     '\0'; don't skip it, because it's the thing that tells us
+	     to read the next line.  */
 	  if (*lp == 0)
 	    continue;
 	  lp++;
@@ -1331,10 +1466,6 @@ C_entries (c_ext)
 	}
       else if (inquote)
 	{
-	  /*
-	  * Too dumb to know about \" not being magic, but
-	  * they usually occur in pairs anyway.
-	  */
 	  if (c == '"')
 	    inquote = FALSE;
 	  continue;
@@ -1569,11 +1700,6 @@ consider_token (c, lpp, tokp, is_func, c_ext, level)
      int level;			/* IN */
 {
   reg char *lp = *lpp;
-  /*
-   * next_token_is_func
-   *	set this to TRUE, and the next token considered is called a function.
-   */
-  static logical next_token_is_func;
   logical firsttok;		/* TRUE if have seen first token in ()'s */
   Stab_entry *tokse = stab_find (get_C_stab (c_ext), tokp->p, tokp->len);
   enum sym_type toktype = stab_type (tokse);
@@ -1758,10 +1884,18 @@ consider_token (c, lpp, tokp, is_func, c_ext, level)
       goto goodone;
     }
   /* Detect GNUmacs's function-defining macros. */
-  if (definedef == dnone && strneq (tokp->p, "DEF", 3))
+  if (definedef == dnone)
     {
-      next_token_is_func = TRUE;
-      goto badone;
+      if (strneq (tokp->p, "DEF", 3))
+	{
+	  next_token_is_func = TRUE;
+	  goto badone;
+	}
+      else if (strneq (tokp->p, "EXFUN", 5))
+	{
+	  next_token_is_func = FALSE;
+	  goto badone;
+	}
     }
   if (next_token_is_func)
     {

@@ -1094,20 +1094,24 @@ Use %% to put a single % into the output.")
 	/* Would get MPV otherwise, since Lisp_Int's `point' to low memory.  */
 	else if (XTYPE (args[n]) == Lisp_Int && *format != 's')
 	  {
+#ifdef LISP_FLOAT_TYPE
 	    /* The following loop issumes the Lisp type indicates
 	       the proper way to pass the argument.
 	       So make sure we have a flonum if the argument should
 	       be a double.  */
 	    if (*format == 'e' || *format == 'f' || *format == 'g')
 	      args[n] = Ffloat (args[n]);
+#endif
 	    total += 10;
 	  }
+#ifdef LISP_FLOAT_TYPE
 	else if (XTYPE (args[n]) == Lisp_Float && *format != 's')
 	  {
 	    if (! (*format == 'e' || *format == 'f' || *format == 'g'))
 	      args[n] = Ftruncate (args[n]);
 	    total += 20;
 	  }
+#endif
 	else
 	  {
 	    /* Anything but a string, convert to a string using princ.  */
@@ -1131,6 +1135,7 @@ Use %% to put a single % into the output.")
 	  /* We checked above that the corresponding format effector
 	     isn't %s, which would cause MPV.  */
 	  strings[n] = (unsigned char *) XINT (args[n]);
+#ifdef LISP_FLOAT_TYPE
 	else if (XTYPE (args[n]) == Lisp_Float)
 	  {
 	    union { double d; int half[2]; } u;
@@ -1139,6 +1144,7 @@ Use %% to put a single % into the output.")
 	    strings[n++] = (unsigned char *) u.half[0];
 	    strings[n] = (unsigned char *) u.half[1];
 	  }
+#endif
 	else
 	  strings[n] = XSTRING (args[n])->data;
       }

@@ -403,7 +403,7 @@ status_message (status)
 }
 
 #ifdef HAVE_PTYS
-static pty_process;
+static int pty_process;
 
 /* Open an available pty, returning a file descriptor.
    Return -1 on failure.
@@ -1803,6 +1803,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (read_kbd && detect_input_pending ())
 	break;
 
+#ifdef SIGIO
       /* If we think we have keyboard input waiting, but didn't get SIGIO
 	 go read it.  This can happen with X on BSD after logging out.
 	 In that case, there really is no input and no SIGIO,
@@ -1813,6 +1814,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       */
       if (read_kbd && interrupt_input && (FD_ISSET (fileno (stdin), &Available)))
 	kill (0, SIGIO);
+#endif
 
 #ifdef vipc
       /* Check for connection from other process */
@@ -2106,12 +2108,14 @@ send_process (proc, buf, len)
     while (len > 0)
       {
 	int this = len;
+	SIGTYPE (*old_sigpipe)();
+
 	/* Don't send more than 500 bytes at a time.  */
 	if (this > 500)
 	  this = 500;
-	signal (SIGPIPE, send_process_trap);
+	old_sigpipe = signal (SIGPIPE, send_process_trap);
 	rv = write (XFASTINT (XPROCESS (proc)->outfd), buf, this);
-	signal (SIGPIPE, SIG_DFL);
+	signal (SIGPIPE, old_sigpipe);
 	if (rv < 0)
 	  {
 	    if (0

@@ -99,10 +99,12 @@ Called with region narrowed to unformatted header.")
 (defvar rmail-last-file nil)
 (defvar rmail-last-rmail-file nil)
 
+;;; Regexp matching the delimiter of messages in UNIX mail format
+;;; (UNIX From lines), minus the initial ^.  Note that if you change
+;;; this expression, you must change the code in rmail-nuke-pinhead-header
+;;; that knows the exact ordering of the \\( \\) subexpressions.
 (defvar rmail-unix-mail-delimiter
-  "From \\([^ \n]*\\(\\|\".*\"[^ \n]*\\)\\)  ?\\([^ \n]*\\) \\([^ ]*\\) *\\([0-9]*\\) \\([0-9:]*\\)\\( ?[A-Z]?[A-Z][A-Z]T\\( DST\\)?\\| ?[-+]?[0-9][0-9][0-9][0-9]\\|\\) [0-9][0-9]\\([0-9]*\\) *\\(remote from [^\n]*\\)?\n"
-   "Regexp matching the delimiter of messages in UNIX mail format (UNIX From lines), minus the
-initial ^.  ")
+  "From \\([^ \n]*\\(\\|\".*\"[^ \n]*\\)\\)  ?\\([^ \n]*\\) \\([^ ]*\\) *\\([0-9]*\\) \\([0-9:]*\\)\\( ?[A-Z]?[A-Z][A-Z]T\\( DST\\)?\\| ?[-+]?[0-9][0-9][0-9][0-9]\\|\\) [0-9][0-9]\\([0-9]*\\) *\\(remote from [^\n]*\\)?\n" nil)
 
 ;;;; *** Rmail Mode ***
 

@@ -23,6 +23,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "syntax.h"
 #include "buffer.h"
 #include "commands.h"
+
 #include <sys/types.h>
 #include "regex.h"
 
@@ -39,9 +40,14 @@ char search_fastmap[0400];
 
 Lisp_Object last_regexp;
 
-/* Every call to re_match, etc., must pass &search_regs as the regs argument
- unless you can show it is unnecessary (i.e., if re_match is certainly going
- to be called again before region-around-match can be called).  */
+/* Every call to re_match, etc., must pass &search_regs as the regs
+   argument unless you can show it is unnecessary (i.e., if re_match
+   is certainly going to be called again before region-around-match
+   can be called).
+
+   Since the registers are now dynamically allocated, we need to make
+   sure not to refer to the Nth register before checking that it has
+   been allocated.  */
 
 static struct re_registers search_regs;
 
@@ -147,7 +153,7 @@ DEFUN ("looking-at", Flooking_at, Slooking_at, 1, 1, 0,
     matcher_overflow ();
 
   val = (0 <= i ? Qt : Qnil);
-  for (i = 0; i < RE_NREGS; i++)
+  for (i = 0; i < search_regs.num_regs; i++)
     if (search_regs.start[i] >= 0)
       {
 	search_regs.start[i] += BEGV;
@@ -489,7 +495,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 				/* generality of an RE search is */
 				/* really needed. */
       /* first item is "exact match" */
-      && *(searchbuf.buffer) == RE_EXACTN_VALUE
+      && *(searchbuf.buffer) == (char) RE_EXACTN_VALUE
       && searchbuf.buffer[1] + 2 == searchbuf.used) /*first is ONLY item */
     {
       RE = 0;			/* can do straight (non RE) search */
@@ -542,7 +548,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 	  if (val >= 0)
 	    {
 	      j = BEGV;
-	      for (i = 0; i < RE_NREGS; i++)
+	      for (i = 0; i < search_regs.num_regs; i++)
 		if (search_regs.start[i] >= 0)
 		  {
 		    search_regs.start[i] += j;
@@ -569,7 +575,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 	  if (val >= 0)
 	    {
 	      j = BEGV;
-	      for (i = 0; i < RE_NREGS; i++)
+	      for (i = 0; i < search_regs.num_regs; i++)
 		if (search_regs.start[i] >= 0)
 		  {
 		    search_regs.start[i] += j;
@@ -996,6 +1002,10 @@ Leaves point at end of replacement text.")
 
   case_action = nochange;	/* We tried an initialization */
 				/* but some C compilers blew it */
+
+  if (search_regs.num_regs <= 0)
+    error ("replace-match called before any match found");
+
   if (search_regs.start[0] < BEGV
       || search_regs.start[0] > search_regs.end[0]
       || search_regs.end[0] > ZV)
@@ -1068,7 +1078,7 @@ Leaves point at end of replacement text.")
 		Finsert_buffer_substring (Fcurrent_buffer (),
 					  make_number (search_regs.start[0]),
 					  make_number (search_regs.end[0]));
-	      else if (c >= '1' && c <= RE_NREGS + '0')
+	      else if (c >= '1' && c <= search_regs.num_regs + '0')
 		{
 		  if (search_regs.start[c - '0'] >= 1)
 		    Finsert_buffer_substring (Fcurrent_buffer (),
@@ -1103,9 +1113,10 @@ match_limit (num, beginningp)
 
   CHECK_NUMBER (num, 0);
   n = XINT (num);
-  if (n < 0 || n >= RE_NREGS)
-    args_out_of_range (num, make_number (RE_NREGS));
-  if (search_regs.start[n] < 0)
+  if (n < 0 || n >= search_regs.num_regs)
+    args_out_of_range (num, make_number (search_regs.num_regs));
+  if (search_regs.num_regs <= 0
+      || search_regs.start[n] < 0)
     return Qnil;
   return (make_number ((beginningp) ? search_regs.start[n]
 		                    : search_regs.end[n]));
@@ -1141,11 +1152,14 @@ if the last match was on a buffer; integers or nil if a string was matched.\n\
 Use `store-match-data' to reinstate the data in this list.")
   ()
 {
-  Lisp_Object data[2 * RE_NREGS];
+  Lisp_Object *data;
   int i, len;
 
+  data = (Lisp_Object *) alloca ((2 * search_regs.num_regs)
+				 * sizeof (Lisp_Object));
+
   len = -1;
-  for (i = 0; i < RE_NREGS; i++)
+  for (i = 0; i < search_regs.num_regs; i++)
     {
       int start = search_regs.start[i];
       if (start >= 0)
@@ -1184,7 +1198,30 @@ LIST should have been created by calling `match-data' previously.")
   if (!CONSP (list) && !NILP (list))
     list = wrong_type_argument (Qconsp, list, 0);
 
-  for (i = 0; i < RE_NREGS; i++)
+  /* Allocate registers if they don't already exist.  */
+  {
+    int length = Flength (list) / 2;
+
+    if (length > search_regs.num_regs)
+      {
+	if (search_regs.start)
+	  search_regs.start =
+	    (regoff_t *) realloc (search_regs.start,
+				  length * sizeof (regoff_t));
+	else
+	  search_regs.start = (regoff_t *) malloc (length * sizeof (regoff_t));
+	if (search_regs.end)
+	  search_regs.end =
+	    (regoff_t *) realloc (search_regs.end,
+				  length * sizeof (regoff_t));
+	else
+	  search_regs.end = (regoff_t *) malloc (length * sizeof (regoff_t));
+
+	search_regs.num_regs = length;
+      }
+  }
+
+  for (i = 0; i < search_regs.num_regs; i++)
     {
       marker = Fcar (list);
       if (NILP (marker))

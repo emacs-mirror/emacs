@@ -18,21 +18,37 @@ bindir=${prefix}/bin
 # A directory under which we will install many of Emacs's files.  The
 # default values for many of the variables below are expressed in
 # terms of this one, so you may not need to change them.
-emacsdir=${prefix}/lib/emacs-19.0
+emacsdir=${prefix}/emacs-19.0
 
 # Where to install and expect the architecture-independent data files
-# (like the tutorial and the zippy database).
+# (like the tutorial and the Zippy database).
 datadir=${emacsdir}/etc
 
-# Where to install the elisp files distributed with Emacs.
+# Where to install the elisp files distributed with Emacs.  Strictly
+# speaking, all the elisp files should go under datadir (above), since
+# both elisp source and compiled elisp are completely portable, but
+# it's traditional to give the lisp files their own subdirectory.
 lispdir=${emacsdir}/lisp
 
-# Where Emacs will search to find its elisp files.  This should be a
-# colon-separated list of directories.	Strictly speaking, all the
-# elisp files should go under datadir (above), since both elisp source
-# and compiled elisp are completely portable, but it's traditional to
-# give the lisp files their own subdirectory.
-lisppath=${emacsdir}/local-lisp:${lispdir}
+# Directories Emacs should search for elisp files specific to this
+# site (i.e. customizations), before consulting ${lispdir}.  This
+# should be a colon-separated list of directories.
+locallisppath=${emacsdir}/local-lisp
+
+# Where Emacs will search to find its elisp files.  Before changing
+# this, check to see if your purpose wouldn't better be served by
+# changing locallisppath.  This should be a colon-separated list of
+# directories.
+lisppath=${locallisppath}:${lispdir}
+
+# Where Emacs will search for its elisp files before dumping.  This is
+# only used during the process of compiling Emacs, to help Emacs find
+# its lisp files before they've been installed in their final
+# location.  It's usually identical to lisppath, except that the entry
+# for the directory containing the installed lisp files has been
+# replaced with ../lisp.  This should be a colon-separated list of
+# directories.
+dumplisppath=../lisp
 
 # Where to install and expect the files that Emacs modifies as it
 # runs.	 These files are all architecture-independent.	Right now,
@@ -57,46 +73,17 @@ mandir=/usr/man/man1
 # system, it is inappropriate to imply that it is part of Emacs.
 infodir=${prefix}/info
 
-scum
+removenullpaths="sed -e 's/^://' -e 's/:"'$'"//' -e 's/::/:/'"
 
-
-# Where to install all of Emacs's data files - the lisp code,
-# documentation tree, and the architecture-dependent and -independent
-# libaries.  The default definitions for the variables below are
-# expressed in terms of this one, so you may not need to change them.
-# set LIBROOT=/usr/local/lib/emacs-19.0
-emacsdir=/u/src/emacs/19.0
-
-# Emacs will search this path to find its elisp files.  This should be
-# a colon-separated list of directories.  Strictly speaking, all the
-# elisp files should go under DATADIR (below), since both elisp source
-# and compiled elisp are completely portable, but it's traditional to
-# give the lisp files their own subdirectory.
-LISPPATH=/u/src/emacs/19.0/local-lisp:/u/src/emacs/19.0/lisp
-
-# Emacs will look here for its architecture-independent files (like
-# the tutorial and the zippy database).
-DATADIR=/u/src/emacs/19.0/etc
-
-# Emacs will look here for its architecture-dependent files, like
-# executables for its utilities.
-LIBDIR=/u/src/emacs/19.0/arch-lib
-
-# The locking directory, where the Emacs locking code keeps track of
-# which files are currently being edited.
-# set LOCKDIR=${LIBROOT}/lock
-LOCKDIR=/u/src/emacs/19.0/lock
-
-# This is where build-install should place the binaries people will
-# want to run directly (like etags and Emacs itself).
-BINDIR=/usr/local/bin
-
-/bin/sed < src/paths.h.in > src/paths.h			\
--e 's;\(#.*PATH_LOADSEARCH\).*$;\1 "${lisppath}";'		\
--e 's;\(#.*PATH_EXEC\).*$;\1 "${libdir}";'			\
--e 's;\(#.*PATH_DATA\).*$;\1 "${datadir}";'			\
--e 's;\(#.*PATH_LOCK\).*$;\1 "${lockdir}/";'			\
--e 's;\(#.*PATH_SUPERLOCK\).*$;\1 "${lockdir}/!!!SuperLock!!!";'
+lisppath=`echo ${lisppath} | ${removenullpaths}` ;		\
+dumplisppath=`echo ${dumplisppath} | ${removenullpaths}` ;	\
+/bin/sed < src/paths.h.in > src/paths.h				\
+-e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "'$${lisppath}'";'		\
+-e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "'$${dumplisppath}'";'	\
+-e 's;\(#.*PATH_EXEC\).*$$;\1 "${libdir}";'			\
+-e 's;\(#.*PATH_DATA\).*$$;\1 "${datadir}";'			\
+-e 's;\(#.*PATH_LOCK\).*$$;\1 "${lockdir}/";'			\
+-e 's;\(#.*PATH_SUPERLOCK\).*$$;\1 "${lockdir}/!!!SuperLock!!!";'
 
 (cd lib-src; make) || exit 1
 (cd src; make) || exit 1

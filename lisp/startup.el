@@ -1,11 +1,11 @@
 ;; Process Emacs shell arguments
-;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -116,7 +116,9 @@ directory name of the directory where the `.emacs' file was looked for.")
     (setq command-line-processed t)
     ;; In presence of symlinks, switch to cleaner form of default directory.
     (if (and (not (eq system-type 'vax-vms))
-	     (getenv "PWD"))
+	     (getenv "PWD")
+	     (equal (nthcdr 10 (file-attributes default-directory))
+		    (nthcdr 10 (file-attributes (getenv "PWD")))))
 	(setq default-directory (file-name-as-directory (getenv "PWD"))))
     (let ((tail directory-abbrev-alist))
       (while tail

@@ -27,6 +27,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "lisp.h"		/* Needed for VALBITS.  */
 #undef NULL
 #include "mem_limits.h"
+#include "getpagesize.h"
 
 #define NIL ((POINTER) 0)
 

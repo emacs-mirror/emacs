@@ -1,11 +1,11 @@
 /* Lisp object printing and output streams.
-   Copyright (C) 1985, 1986, 1988 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1988, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -566,12 +566,12 @@ Output stream is STREAM, or value of `standard-output' (which see).")
    for the convenience of the debugger.  */
 Lisp_Object Qexternal_debugging_output;
 
-DEFUN ("external-debugging-output",
-       Fexternal_debugging_output, Sexternal_debugging_output,
-       1, 1, 0, "Write CHARACTER to stderr.\n\
+DEFUN ("external-debugging-output", Fexternal_debugging_output, Sexternal_debugging_output, 1, 1, 0,
+  "Write CHARACTER to stderr.\n\
 You can call print while debugging emacs, and pass it this function\n\
 to make it write to the debugging output.\n")
-    (Lisp_Object character)
+  (character)
+     Lisp_Object character;
 {
   CHECK_NUMBER (character, 0);
   putc (XINT (character), stderr);

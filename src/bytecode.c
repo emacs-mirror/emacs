@@ -1,11 +1,11 @@
 /* Execution of byte code produced by bytecomp.el.
-   Copyright (C) 1985, 1986, 1987, 1988 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -1077,8 +1077,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Bnumberp:
-	  TOP = (XTYPE (TOP) == Lisp_Int || XTYPE (TOP) == Lisp_Float
-		 ? Qt : Qnil);
+	  TOP = (NUMBERP (TOP) ? Qt : Qnil);
 	  break;
 
 	case Bintegerp:

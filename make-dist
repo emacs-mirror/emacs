@@ -14,12 +14,17 @@ set -e
 # Print out each line we read, for debugging's sake.
 # set -v
 
-cleanup=yes
+clean_up=yes
+make_tar=yes
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    "--no-cleanup" )
-      cleanup=no
+    "--no-clean_up" )
+      clean_up=no
+    ;;
+    "--no-tar" )
+      make_tar=no
+      clean_up=no
     ;;
     * )
       echo "${progname}: Unrecognized argument: $1" >&2
@@ -65,9 +70,10 @@ mkdir ${tempdir}
 
 # We copy in the top-level files before creating the subdirectories in
 # hopes that this will make the top-level files appear first in the
-# tar file.
+# tar file; this means that people can start reading the INSTALL and
+# README while the rest of the tar file is still unpacking.  Whoopee.
 echo "Copying top-level files." 
-ln INSTALL PROBLEMS README ${tempdir}
+ln GETTING.GNU.SOFTWARE INSTALL PROBLEMS README ${tempdir}
 ln ChangeLog Makefile.in build-install.in configure make-dist ${tempdir}
 
 echo "Creating subdirectories."
@@ -174,10 +180,12 @@ for subdir in lisp src lib-src info shortnames; do
   ln -s ../etc/COPYING ${tempdir}/${subdir}
 done
 
-echo "Creating tar file."
-(cd ${tempparent}; tar cvf - ${emacsname}) | compress > ${emacsname}.tar.Z
+if [ "${make_tar}" = yes ]; then
+  echo "Creating tar file."
+  (cd ${tempparent}; tar cvf - ${emacsname}) | compress > ${emacsname}.tar.Z
+fi
 
-if [ "${cleanup}" = yes ]; then
+if [ "${clean_up}" = yes ]; then
   echo "Cleaning up the staging directory."
   rm -rf ${tempparent}
 fi

@@ -1,11 +1,11 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -506,14 +506,18 @@ typedef unsigned char UCHAR;
 
 /* Data type checking */
 
-#ifdef NULL
-#undef NULL
-#endif
 #define NILP(x)  (XFASTINT (x) == XFASTINT (Qnil))
+
+#ifdef LISP_FLOAT_TYPE
+#define NUMBERP(x) (XTYPE (x) == Lisp_Int || XTYPE (x) == Lisp_Float)
+#else
+#define NUMBERP(x) (XTYPE (x) == Lisp_Int)
+#endif
 
 /* #define LISTP(x) (XTYPE ((x)) == Lisp_Cons)*/
 #define CONSP(x) (XTYPE ((x)) == Lisp_Cons)
 #define EQ(x, y) (XFASTINT (x) == XFASTINT (y))
+
 
 #define CHECK_LIST(x, i) \
   { if ((XTYPE ((x)) != Lisp_Cons) && !NILP (x)) x = wrong_type_argument (Qlistp, (x)); }

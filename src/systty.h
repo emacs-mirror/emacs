@@ -33,6 +33,44 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif /* not HAVE_TERMIOS */
 #endif /* not HAVE_TERMIO */
 
+#ifdef AIX
+/* Get files for keyboard remapping */
+#define HFNKEYS 2
+#include <sys/hft.h>
+#include <sys/devinfo.h>
+#endif
+
+/* Get rid of LLITOUT in 4.1, since it is said to stimulate kernel bugs.  */
+#ifdef BSD4_1
+#undef LLITOUT
+#define LLITOUT 0
+#endif /* 4.1 */
+
+#ifdef NEED_BSDTTY
+#include <sys/bsdtty.h>
+#endif 
+
+#if defined (HPUX) && defined (HAVE_PTYS)
+#include <sys/ptyio.h>
+#endif
+  
+#ifdef AIX
+#include <sys/pty.h>
+#include <unistd.h>
+#endif /* AIX */
+
+#ifdef SYSV_PTYS
+#include <sys/tty.h>
+#include <sys/pty.h>
+#endif
+
+/* saka@pfu.fujitsu.co.JP writes:
+   FASYNC defined in this file. But, FASYNC don't working.
+   so no problem, because unrequest_sigio only need. */
+#if defined (pfa)
+#include <sys/file.h>
+#endif
+
 
 /* Special cases - inhibiting the use of certain features.  */
 
@@ -184,6 +222,13 @@ struct emacs_tty {
   (tcsetattr ((fd), (waitp) ? TCSAFLUSH : TCSADRAIN, &(p)->main) != -1)
 
 #else
+#ifdef HAVE_TERMIO
+
+#define EMACS_GET_TTY_1(fd, p) (ioctl ((fd), TCGETA, &(p)->main) != -1)
+#define EMACS_SET_TTY_1(fd, p, waitp)			\
+  (ioctl ((fd), (waitp) ? TCSETAW : TCSETAF, &(p)->main) != -1)
+
+#else
 #ifdef VMS
 
 /* These definitions will really only work in sysdep.c, because of their
@@ -201,6 +246,7 @@ struct emacs_tty {
 #define EMACS_SET_TTY_1(fd, p, waitp)			\
   (ioctl ((fd), (waitp) ? TIOCSETP : TIOCSETN, &(p)->main) != -1)
 
+#endif
 #endif
 #endif
 

@@ -1,11 +1,11 @@
 /* Functions for the X window system.
-   Copyright (C) 1989 Free Software Foundation.
+   Copyright (C) 1989, 1992 Free Software Foundation.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -3950,7 +3950,8 @@ also be depressed for NEWSTRING to appear.")
      register Lisp_Object newstring;
 {
   char *rawstring;
-  register KeySym keysym, modifier_list[16];
+  register KeySym keysym;
+  KeySym modifier_list[16];
 
   CHECK_STRING (x_keysym, 1);
   CHECK_STRING (newstring, 3);

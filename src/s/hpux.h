@@ -228,6 +228,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define HAVE_GETTIMEOFDAY
 #define HAVE_VFORK
 #define HAVE_PERROR  /* Delete this line for version 6.  */
+#define HAVE_RENAME
 
 /* The following maps shared exec file to demand loaded exec.
    Don't do this as demand loaded exec is broken in hpux.  */
@@ -253,8 +254,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* This is how to get the device name of the tty end of a pty.  */
 #define PTY_TTY_NAME_SPRINTF \
-            sprintf (ptyname, "/dev/pty/tty%c%x", c, i);
+            sprintf (pty_name, "/dev/pty/tty%c%x", c, i);
 
 /* This is how to get the device name of the control end of a pty.  */
 #define PTY_NAME_SPRINTF \
-	sprintf (ptyname, "/dev/ptym/pty%c%x", c, i);
+	sprintf (pty_name, "/dev/ptym/pty%c%x", c, i);

@@ -19,8 +19,6 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
-(provide 'compile)
-
 ;;;###autoload
 (defvar compilation-mode-hook nil
   "*List of hook functions run by compilation-mode (see `run-hooks').")
@@ -437,18 +435,30 @@ other kinds of prefix arguments are ignored."
 ;; If compilation-last-buffer is set to a live buffer, use that.
 ;; Otherwise, look for a compilation buffer and signal an error
 ;; if there are none.
-(defun compilation-find-buffer ()
-  (if (compilation-buffer-p (current-buffer))
+(defun compilation-find-buffer (&optional other-buffer)
+  (if (and (not other-buffer)
+	   (compilation-buffer-p (current-buffer)))
       ;; The current buffer is a compilation buffer.
       (current-buffer)
-    (if (and compilation-last-buffer (buffer-name compilation-last-buffer))
+    (if (and compilation-last-buffer (buffer-name compilation-last-buffer)
+	     (or (not other-buffer) (not (eq compilation-last-buffer
+					     (current-buffer)))))
 	compilation-last-buffer
       (let ((buffers (buffer-list)))
-	(while (and buffers (not (compilation-buffer-p (car buffers))))
+	(while (and buffers (or (not (compilation-buffer-p (car buffers)))
+				(and other-buffer
+				     (eq (car buffers) (current-buffer)))))
 	  (setq buffers (cdr buffers)))
 	(if buffers
 	    (car buffers)
-	  (error "No compilation started!"))))))
+	  (or (and other-buffer
+		   (compilation-buffer-p (current-buffer))
+		   ;; The current buffer is a compilation buffer.
+		   (progn
+		     (if other-buffer
+			 (message "This is the only compilation buffer."))
+		     (current-buffer)))
+	      (error "No compilation started!")))))))
 
 ;;;###autoload
 (defun next-error (&optional argp)
@@ -792,3 +802,5 @@ See variable `compilation-parse-errors-function' for the interface it uses."
   (setq compilation-error-list (nreverse compilation-error-list)))
 
 (define-key ctl-x-map "`" 'next-error)
+
+(provide 'compile)

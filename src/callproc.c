@@ -200,7 +200,7 @@ If you quit, the process is killed with SIGKILL.")
     env = environ;
 
 #if 0  /* Some systems don't have sigblock.  */
-    mask = sigblock (sigmask (SIGCHLD));
+    EMACS_SIGBLOCK (sigmask (SIGCHLD), mask);
 #endif
 
     /* Record that we're about to create a synchronous process.  */
@@ -511,6 +511,7 @@ This function consults the variable ``process-environment'' for its value.")
    callable from C.  */
 char *
 egetenv (var)
+     char *var;
 {
   char *value;
   int valuelen;

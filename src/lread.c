@@ -1448,14 +1448,15 @@ init_lread ()
      uses ../lisp, instead of the path of the installed elisp
      libraries.  However, if it appears that Vload_path was changed
      from the default before dumping, don't override that value.  */
-  {
-    Lisp_Object normal_path;
+  if (initialized)
+    {
+      Lisp_Object dump_path;
 
-    normal_path = decode_env_path ("", normal);
-
-    if (
-  if (initialized
-      || EQ (Vload_path, initial_path))
+      dump_path = decode_env_path ("", PATH_DUMPLOADSEARCH);
+      if (! NILP (Fequal (dump_path, Vload_path)))
+	Vload_path = decode_env_path ("", normal);
+    }
+  else
     Vload_path = decode_env_path ("", normal);
 #endif
 
@@ -1486,11 +1487,6 @@ init_lread ()
     Vload_path = decode_env_path ("EMACSLOADPATH", normal);
 
   Vvalues = Qnil;
-
-  if (initialized)
-    initial_path = Qnil;
-  else
-    initial_path = Vload_path;
 
   load_in_progress = 0;
 }

@@ -1319,7 +1319,7 @@ element pair in RLIST."
 TYPE is number of words preceding KEY to start looking for subject.
 MEM is t if results are to be put on Doctor's memory stack.
 Return in the global variables SUBJ, VERB and OBJECT."
-  (let ((foo (doctor-subjsearch sent key type) sent))
+  (let ((foo (doctor-subjsearch sent key type)))
     (or foo
 	(setq foo sent
 	      mem nil))

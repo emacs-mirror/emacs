@@ -1,11 +1,11 @@
 /* Primitive operations on floating point for GNU Emacs Lisp interpreter.
-   Copyright (C) 1988 Free Software Foundation, Inc.
+   Copyright (C) 1988, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -42,7 +42,7 @@ extern int errno;
 #define sinh(x) ((exp(x)-exp(-x))*0.5)
 #endif /* VMS */
 
-static float_error ();
+static SIGTYPE float_error ();
 
 /* Nonzero while executing in floating point.
    This tells float_error what to do.  */
@@ -60,8 +60,8 @@ static Lisp_Object float_error_arg;
    Handle errors which may result in signals or may set errno.  */
 
 #define IN_FLOAT(D, NUM) \
-(in_float = 1, errno = 0, float_error_arg = NUM, (D),		\
- (errno == ERANGE || errno == EDOM ? float_error () : 0),	\
+(in_float = 1, errno = 0, float_error_arg = NUM, (D),			\
+ (errno == ERANGE || errno == EDOM ? float_error () : (SIGTYPE) 0),	\
  in_float = 0)
 
 /* Extract a Lisp number as a `double', or signal an error.  */
@@ -498,7 +498,7 @@ Rounds the value toward zero.")
   return num;
 }
 
-static
+static SIGTYPE
 float_error (signo)
      int signo;
 {

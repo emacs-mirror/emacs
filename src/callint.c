@@ -408,12 +408,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	case 'n':		/* Read number from minibuffer.  */
 	  do
 	    args[i] = Fread_minibuffer (build_string (prompt), Qnil);
-#ifdef LISP_FLOAT_TYPE
-	  while (XTYPE (args[i]) != Lisp_Int
-		 && XTYPE (args[i]) != Lisp_Float);
-#else
-	  while (XTYPE (args[i]) != Lisp_Int);
-#endif
+	  while (! NUMBERP (args[i]));
 	  visargs[i] = last_minibuf_string;
 	  break;
 

@@ -105,7 +105,7 @@ void
 getevent()
 
 {
-  extern char *memcpy(), *fgets();
+  extern char *fgets();
   struct event *ep;
   char buf[256];
 
@@ -127,7 +127,7 @@ getevent()
         free((char *)events[slot]), events[slot] = 0;
 
       else {
-        (void)memcpy((char *)events[slot],(char *)ep,sizeof(struct event));
+        memcpy((char *)events[slot],(char *)ep,sizeof(struct event));
         if (slot == mevent) mevent++;
       } /* schedule */
     } /* malloc */

@@ -1,11 +1,11 @@
 /* terminal control module for terminals described by TERMCAP
-   Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -465,6 +465,7 @@ change_line_highlight (new_highlight, vpos, first_unused_hpos)
 /* Move to absolute position, specified origin 0 */
 
 cursor_to (row, col)
+     int row, col;
 {
   if (! SCREEN_IS_TERMCAP ((updating_screen
 			    ? updating_screen
@@ -488,6 +489,7 @@ cursor_to (row, col)
 /* Similar but don't take any account of the wasted characters.  */
 
 raw_cursor_to (row, col)
+     int row, col;
 {
   if (! SCREEN_IS_TERMCAP ((updating_screen ? updating_screen : selected_screen)))
     {
@@ -1393,6 +1395,7 @@ It may be necessary to do `unsetenv TERMCAP' as well.\n",
 
 /* VARARGS 1 */
 fatal (str, arg1, arg2)
+     char *str, *arg1, *arg2;
 {
   fprintf (stderr, "emacs: ");
   fprintf (stderr, str, arg1, arg2);

@@ -1,11 +1,11 @@
 /* File IO for GNU Emacs.
-   Copyright (C) 1985, 1986, 1987, 1988 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -411,7 +411,7 @@ directory_file_name (src, dst)
   /* Process as Unix format: just remove any final slash.
      But leave "/" unchanged; do not change it to "".  */
   strcpy (dst, src);
-  if (dst[slen - 1] == '/' && slen > 1)
+  if (slen > 1 && dst[slen - 1] == '/')
     dst[slen - 1] = 0;
   return 1;
 }
@@ -2478,7 +2478,7 @@ Auto-saving writes the buffer into a file\n\
 so that your editing is not lost if the system crashes.\n\
 This file is not the file you visited; that changes only when you save.\n\n\
 Non-nil first argument means do not print any message if successful.\n\
-Non-nil second argumet means save only current buffer.")
+Non-nil second argument means save only current buffer.")
   (nomsg)
      Lisp_Object nomsg;
 {

@@ -110,19 +110,6 @@ extern char *sys_errlist[];
 #endif /* not 4.1 */
 #endif /* BSD */
 
-#ifdef AIX
-/* Get files for keyboard remapping */
-#define HFNKEYS 2
-#include <sys/hft.h>
-#include <sys/devinfo.h>
-#endif
-
-/* Get rid of LLITOUT in 4.1, since it is said to stimulate kernel bugs.  */
-#ifdef BSD4_1
-#undef LLITOUT
-#define LLITOUT 0
-#endif /* 4.1 */
-
 #ifdef BROKEN_TIOCGWINSZ
 #undef TIOCGWINSZ
 #endif
@@ -143,31 +130,6 @@ extern char *sys_errlist[];
 #endif
 #endif /* TIOCGWINSZ */
 #endif /* USG */
-
-#ifdef NEED_BSDTTY
-#include <sys/bsdtty.h>
-#endif 
-
-#if defined (HPUX) && defined (HAVE_PTYS)
-#include <sys/ptyio.h>
-#endif
-  
-#ifdef AIX
-#include <sys/pty.h>
-#include <unistd.h>
-#endif /* AIX */
-
-#ifdef SYSV_PTYS
-#include <sys/tty.h>
-#include <sys/pty.h>
-#endif
-
-/* saka@pfu.fujitsu.co.JP writes:
-   FASYNC defined in this file. But, FASYNC don't working.
-   so no problem, because unrequest_sigio only need. */
-#if defined (pfa)
-#include <sys/file.h>
-#endif
 
 extern int quit_char;
 
@@ -2348,6 +2310,8 @@ getwd (pathname)
  *	that files be of same type (regular->regular, dir->dir, etc).
  */
 
+#ifndef HAVE_RENAME
+
 rename (from, to)
      char *from;
      char *to;
@@ -2362,9 +2326,11 @@ rename (from, to)
   return (-1);
 }
 
+#endif
+
 /* Set priority value to PRIO.  */
 
-void
+int
 setpriority (which, who, prio)
      int which, who, prio;
 {

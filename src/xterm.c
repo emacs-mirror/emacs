@@ -1,11 +1,11 @@
 /* X Communication module for terminals which understand the X protocol.
-   Copyright (C) 1989 Free Software Foundation, Inc.
+   Copyright (C) 1989, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -258,8 +258,8 @@ static void dumpqueue ();
 #endif
 
 void dumpborder ();
-static XTcursor_to ();
-static XTclear_end_of_line ();
+static int XTcursor_to ();
+static int XTclear_end_of_line ();
 
 /* These hooks are called by update_screen at the beginning and end
    of a screen update.  We record in `updating_screen' the identity
@@ -361,7 +361,7 @@ XTreset_terminal_modes ()
    where display update commands will take effect.
    This does not affect the place where the cursor-box is displayed.  */
 
-static
+static int
 XTcursor_to (row, col)
      register int row, col;
 {
@@ -582,7 +582,7 @@ XTwrite_glyphs (start, len)
    to column FIRST_UNUSED (exclusive).  The idea is that everything
    from FIRST_UNUSED onward is already erased.  */
   
-static
+static int
 XTclear_end_of_line (first_unused)
      register int first_unused;
 {
@@ -2775,6 +2775,19 @@ x_text_icon (s, icon_name)
   return 0;
 }
 
+/* Handling X errors.  */
+
+/* A handler for SIGPIPE, when it occurs on the X server's connection.
+   This basically does an orderly shutdown of Emacs.  */
+static SIGTYPE
+x_death_handler ()
+{
+  if (_Xdebug)
+    abort ();
+  else
+    Fkill_emacs (make_number (70));
+}
+
 static char *x_proto_requests[] =
 {
   "CreateWindow",
@@ -2961,13 +2974,8 @@ x_error_handler (disp, event)
     }
   UNBLOCK_INPUT;
 
-  if (_Xdebug)
-    abort ();
-  else
-    Fkill_emacs (make_number (70));
+  x_death_handler ();
 }
-
-/* Initialize communication with the X window server.  */
 
 #if 0
 static unsigned int x_wire_count;
@@ -3740,7 +3748,7 @@ x_term_init (display_name)
   signal (SIGWINCH, SIG_DFL);
 #endif /* SIGWINCH */
 
-  signal (SIGPIPE, x_error_handler);
+  signal (SIGPIPE, x_death_handler);
 }
 
 void
