@@ -794,7 +794,7 @@ main (argc, argv, envp)
     run_time_remap (argv[0]);
 #endif
 
-#ifdef MAC_OSX
+#ifdef HAVE_CARBON
   if (!initialized)
     unexec_init_emacs_zone ();
 #endif

@@ -1,7 +1,11 @@
 2002-08-25  Andrew Choi  <akochoi@shaw.ca>
 
-	* s/darwin.h (HAVE_WORKING_VFORK): #undef it.  Define vfork to
-	fork.
+	* emacs.c (main): Call init_mac_osx_environment if HAVE_CARBON is
+	defined instead of MAC_OSX.
+
+	* s/darwin.h (select): Define select to sys_select only if
+	HAVE_CARBON is defined.
+	(HAVE_WORKING_VFORK): #undef it.  Define vfork to fork.
 
 	* macterm.c (XTread_socket): Remove code to call
 	SendEventToEventTarget for keys with command modifiers when
