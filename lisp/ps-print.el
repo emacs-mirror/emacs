@@ -1616,8 +1616,7 @@ in that file instead of sending it to the printer.
 
 Noninteractively, the argument FILENAME is treated as follows: if it
 is nil, send the image to the printer.  If FILENAME is a string, save
-the PostScript image in a file with that name.  If FILENAME is a
-number, prompt the user for the name of the file to save in."
+the PostScript image in a file with that name."
   (interactive (list (ps-print-preprint current-prefix-arg)))
   (ps-print-without-faces (point-min) (point-max) filename))
 
@@ -1698,14 +1697,13 @@ Use the command `ps-despool' to send the spooled images to the printer."
 (defun ps-despool (&optional filename)
   "Send the spooled PostScript to the printer.
 
-When called with a numeric prefix argument (C-u), prompt the user for
-the name of a file to save the spooled PostScript in, instead of sending
-it to the printer.
+Interactively, when you use a prefix argument (C-u), the command
+prompts the user for a file name, and saves the spooled PostScript
+image in that file instead of sending it to the printer.
 
 More specifically, the FILENAME argument is treated as follows: if it
 is nil, send the image to the printer.  If FILENAME is a string, save
-the PostScript image in a file with that name.  If FILENAME is a
-number, prompt the user for the name of the file to save in."
+the PostScript image in a file with that name."
   (interactive (list (ps-print-preprint current-prefix-arg)))
   (ps-do-despool filename))
 
