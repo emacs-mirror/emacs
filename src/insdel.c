@@ -1031,6 +1031,10 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
   if (GPT_BYTE < GPT)
     abort ();
 
+  /* The insert may have been in the unchanged region, so check again. */
+  if (Z - GPT < END_UNCHANGED)
+    END_UNCHANGED = Z - GPT;
+
   adjust_overlays_for_insert (PT, nchars);
   adjust_markers_for_insert (PT, PT_BYTE,
 			     PT + nchars, PT_BYTE + nbytes,
@@ -1153,6 +1157,10 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
 
   if (GPT_BYTE < GPT)
     abort ();
+
+  /* The insert may have been in the unchanged region, so check again. */
+  if (Z - GPT < END_UNCHANGED)
+    END_UNCHANGED = Z - GPT;
 
   adjust_overlays_for_insert (PT, nchars);
   adjust_markers_for_insert (PT, PT_BYTE, PT + nchars,
@@ -1300,6 +1308,10 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
 
   if (GPT_BYTE < GPT)
     abort ();
+
+  /* The insert may have been in the unchanged region, so check again. */
+  if (Z - GPT < END_UNCHANGED)
+    END_UNCHANGED = Z - GPT;
 
   adjust_overlays_for_insert (PT, nchars);
   adjust_markers_for_insert (PT, PT_BYTE, PT + nchars,
