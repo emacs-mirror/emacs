@@ -305,6 +305,16 @@ specifies a number of lines.  If nil, don't resize.
 
 Default is 0.25.
 
+** Changes to Change Log mode
+
+Change Log mode now adds a file's version number to change log entries
+if user-option `change-log-version-info-enabled' is non-nil.
+
+The search for a file's version number is performed based on regular
+expressions from `change-log-version-number-regexp-list' which can be
+cutomized.  Version numbers are only found in the first 10 percent of
+a file.
+
 ** Changes in Font Lock
 
 *** The new function `font-lock-remove-keywords' can be used to remove
