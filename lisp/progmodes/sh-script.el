@@ -1,6 +1,6 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs
 
-;; Copyright (C) 1993, 1994, 1995, 1996 by Free Software Foundation, Inc.
+;; Copyright (C) 1993, 94, 95, 96, 1997 by Free Software Foundation, Inc.
 
 ;; Author: Daniel.Pfeiffer@Informatik.START.dbp.de, fax (+49 69) 7588-2389
 ;; Version: 2.0e
@@ -53,7 +53,18 @@
 (defvar sh-set-shell-hook nil
   "*Hook run by `sh-set-shell'.")
 
-(defvar sh-ancestor-alist
+(defgroup sh nil
+  "Shell programming utilities"
+  :group 'unix
+  :group 'languages)
+
+(defgroup sh-script nil
+  "Shell script mode"
+  :group 'sh
+  :prefix "sh-")
+
+
+(defcustom sh-ancestor-alist
   '((ash . sh)
     (bash . jsh)
     (dtksh . ksh)
@@ -92,10 +103,12 @@ sh		Bourne Shell
       zsh	Z Shell
   oash		SCO OA (curses) Shell
   posix		IEEE 1003.2 Shell Standard
-  wsh		? Shell")
+  wsh		? Shell"
+  :type '(repeat (cons symbol symbol))
+  :group 'sh-script)
 
 
-(defvar sh-alias-alist
+(defcustom sh-alias-alist
   (nconc (if (eq system-type 'gnu/linux)
 	     '((csh . tcsh)
 	       (ksh . pdksh)))
@@ -104,10 +117,12 @@ sh		Bourne Shell
 	   (sh5 . sh)))
   "*Alist for transforming shell names to what they really are.
 Use this where the name of the executable doesn't correspond to the type of
-shell it really is.")
+shell it really is."
+  :type '(repeat (cons symbol symbol))
+  :group 'sh-script)
 
 
-(defvar sh-shell-file
+(defcustom sh-shell-file
   (or
    ;; On MSDOS and Windows, collapse $SHELL to lower-case and remove
    ;; the executable extension, so comparisons with the list of
@@ -116,10 +131,12 @@ shell it really is.")
 	(file-name-sans-extension (downcase (getenv "SHELL"))))
    (getenv "SHELL")
    "/bin/sh")
-  "*The executable file name for the shell being programmed.")
+  "*The executable file name for the shell being programmed."
+  :type 'string
+  :group 'sh-script)
 
 
-(defvar sh-shell-arg
+(defcustom sh-shell-arg
   ;; bash does not need any options when run in a shell script,
   '((bash)
     (csh . "-f")
@@ -133,7 +150,14 @@ shell it really is.")
     (wksh)
     ;; -f means don't run .zshrc.
     (zsh . "-f"))
-  "*Single argument string for the magic number.  See `sh-feature'.")
+  "*Single argument string for the magic number.  See `sh-feature'."
+  :type '(repeat (cons (symbol :tag "Shell")
+		       (choice (const :tag "No Arguments" nil)
+			       (string :tag "Arguments")
+			       (cons :format "Evaluate: %v"
+				     (const :format "" eval)
+				     sexp))))
+  :group 'sh-script)
 
 (defvar sh-shell-variables nil
   "Alist of shell variable names that should be included in completion.
@@ -274,23 +298,31 @@ the car and cdr are the same symbol.")
 
 
 
-(defvar sh-dynamic-complete-functions
+(defcustom sh-dynamic-complete-functions
   '(shell-dynamic-complete-environment-variable
     shell-dynamic-complete-command
     comint-dynamic-complete-filename)
-  "*Functions for doing TAB dynamic completion.")
+  "*Functions for doing TAB dynamic completion."
+  :type '(repeat function)
+  :group 'sh-script)
 
 
-(defvar sh-require-final-newline
+(defcustom sh-require-final-newline
   '((csh . t)
     (pdksh . t)
     (rc eval . require-final-newline)
     (sh eval . require-final-newline))
   "*Value of `require-final-newline' in Shell-Script mode buffers.
-See `sh-feature'.")
+See `sh-feature'."
+  :type '(repeat (cons (symbol :tag "Shell")
+		       (choice (const :tag "require" t)
+			       (cons :format "Evaluate: %v"
+				     (const :format "" eval)
+				     sexp))))
+  :group 'sh-script)
 
 
-(defvar sh-assignment-regexp
+(defcustom sh-assignment-prefix
   '((csh . "\\<\\([a-zA-Z0-9_]+\\)\\(\\[.+\\]\\)?[ \t]*[-+*/%^]?=")
     ;; actually spaces are only supported in let/(( ... ))
     (ksh88 . "\\<\\([a-zA-Z0-9_]+\\)\\(\\[.+\\]\\)?[ \t]*\\([-+*/%&|~^]\\|<<\\|>>\\)?=")
@@ -298,15 +330,25 @@ See `sh-feature'.")
     (sh . "\\<\\([a-zA-Z0-9_]+\\)="))
   "*Regexp for the variable name and what may follow in an assignment.
 First grouping matches the variable name.  This is upto and including the `='
-sign.  See `sh-feature'.")
+sign.  See `sh-feature'."
+  :type '(repeat (cons (symbol :tag "Shell")
+		       (choice regexp
+			       (cons :format "Evaluate: %v"
+				     (const :format "" eval)
+				     sexp))))
+  :group 'sh-script)
 
 
-(defvar sh-indentation 4
-  "The width for further indentation in Shell-Script mode.")
+(defcustom sh-indentation 4
+  "The width for further indentation in Shell-Script mode."
+  :type 'integer
+  :group 'sh-script)
 
 
-(defvar sh-remember-variable-min 3
-  "*Don't remember variables less than this length for completing reads.")
+(defcustom sh-remember-variable-min 3
+  "*Don't remember variables less than this length for completing reads."
+  :type 'integer
+  :group 'sh-script)
 
 
 (defvar sh-header-marker nil
@@ -314,16 +356,20 @@ sign.  See `sh-feature'.")
 That command is also used for setting this variable.")
 
 
-(defvar sh-beginning-of-command
+(defcustom sh-beginning-of-command
   "\\([;({`|&]\\|\\`\\|[^\\]\n\\)[ \t]*\\([/~a-zA-Z0-9:]\\)"
   "*Regexp to determine the beginning of a shell command.
-The actual command starts at the beginning of the second \\(grouping\\).")
+The actual command starts at the beginning of the second \\(grouping\\)."
+  :type 'regexp
+  :group 'sh-script)
 
 
-(defvar sh-end-of-command
+(defcustom sh-end-of-command
   "\\([/~a-zA-Z0-9:]\\)[ \t]*\\([;#)}`|&]\\|$\\)"
   "*Regexp to determine the end of a shell command.
-The actual command ends at the end of the first \\(grouping\\).")
+The actual command ends at the end of the first \\(grouping\\)."
+  :type 'regexp
+  :group 'sh-script)
 
 
 
@@ -336,7 +382,9 @@ The actual command ends at the end of the first \\(grouping\\).")
   "Initial input in Bourne if, while and until skeletons.  See `sh-feature'.")
 
 
-(defvar sh-builtins
+;; customized this out of sheer bravado.  not for the faint of heart.
+;; but it *did* have an asterisk in the docstring!
+(defcustom sh-builtins
   '((bash eval sh-append posix
 	  "alias" "bg" "bind" "builtin" "declare" "dirs" "enable" "fc" "fg"
 	  "help" "history" "jobs" "kill" "let" "local" "popd" "pushd" "source"
@@ -399,11 +447,17 @@ The actual command ends at the end of the first \\(grouping\\).")
 	 "which"))
   "*List of all shell builtins for completing read and fontification.
 Note that on some systems not all builtins are available or some are
-implemented as aliases.  See `sh-feature'.")
+implemented as aliases.  See `sh-feature'."
+  :type '(repeat (cons (symbol :tag "Shell")
+		       (choice (repeat string)
+			       (cons :format "Evaluate: %v"
+				     (const :format "" eval)
+				     sexp))))
+  :group 'sh-script)
 
 
 
-(defvar sh-leading-keywords
+(defcustom sh-leading-keywords
   '((csh "else")
 
     (es "true" "unwind-protect" "whatis")
@@ -414,10 +468,16 @@ implemented as aliases.  See `sh-feature'.")
   "*List of keywords that may be immediately followed by a builtin or keyword.
 Given some confusion between keywords and builtins depending on shell and
 system, the distinction here has been based on whether they influence the
-flow of control or syntax.  See `sh-feature'.")
+flow of control or syntax.  See `sh-feature'."
+  :type '(repeat (cons (symbol :tag "Shell")
+		       (choice (repeat string)
+			       (cons :format "Evaluate: %v"
+				     (const :format "" eval)
+				     sexp))))
+  :group 'sh-script)
 
 
-(defvar sh-other-keywords
+(defcustom sh-other-keywords
   '((bash eval sh-append bourne
 	  "bye" "logout")
 
@@ -447,7 +507,13 @@ flow of control or syntax.  See `sh-feature'.")
     (zsh eval sh-append bash
 	 "select"))
   "*List of keywords not in `sh-leading-keywords'.
-See `sh-feature'.")
+See `sh-feature'."
+  :type '(repeat (cons (symbol :tag "Shell")
+		       (choice (repeat string)
+			       (cons :format "Evaluate: %v"
+				     (const :format "" eval)
+				     sexp))))
+  :group 'sh-script)
 
 
 

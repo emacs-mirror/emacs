@@ -378,6 +378,12 @@
 
 (require 'ring)
 (require 'ehelp)
+
+(defgroup term nil
+  "General command interpreter in a window"
+  :group 'processes
+  :group 'unix)
+
 
 ;;; Buffer Local Variables:
 ;;;============================================================================
@@ -448,8 +454,10 @@
 (defvar term-pager-old-local-map nil) ;; Saves old keymap while paging.
 (defvar term-pager-old-filter) ;; Saved process-filter while paging.
 
-(defvar explicit-shell-file-name nil
-  "*If non-nil, is file name to use for explicitly requested inferior shell.")
+(defcustom explicit-shell-file-name nil
+  "*If non-nil, is file name to use for explicitly requested inferior shell."
+  :type '(choice (const nil) file)
+  :group 'term)
 
 (defvar term-prompt-regexp "^"
   "Regexp to recognise prompts in the inferior process.
@@ -476,7 +484,7 @@ For shells, a good value is (?\\| ?& ?< ?> ?\\( ?\\) ?;).
 
 This is a good thing to set in mode hooks.")
 
-(defvar term-input-autoexpand nil
+(defcustom term-input-autoexpand nil
   "*If non-nil, expand input command history references on completion.
 This mirrors the optional behavior of tcsh (its autoexpand and histlit).
 
@@ -485,21 +493,27 @@ If the value is `history', then the expansion is only when inserting
 into the buffer's input ring.  See also `term-magic-space' and
 `term-dynamic-complete'.
 
-This variable is buffer-local.")
+This variable is buffer-local."
+  :type '(choice (const nil) (const t) (const input) (const history))
+  :group 'term)
 
-(defvar term-input-ignoredups nil
+(defcustom term-input-ignoredups nil
   "*If non-nil, don't add input matching the last on the input ring.
 This mirrors the optional behavior of bash.
 
-This variable is buffer-local.")
+This variable is buffer-local."
+  :type 'boolean
+  :group 'term)
 
-(defvar term-input-ring-file-name nil
+(defcustom term-input-ring-file-name nil
   "*If non-nil, name of the file to read/write input history.
 See also `term-read-input-ring' and `term-write-input-ring'.
 
-This variable is buffer-local, and is a good thing to set in mode hooks.")
+This variable is buffer-local, and is a good thing to set in mode hooks."
+  :type 'boolean
+  :group 'term)
 
-(defvar term-scroll-to-bottom-on-output nil
+(defcustom term-scroll-to-bottom-on-output nil
   "*Controls whether interpreter output causes window to scroll.
 If nil, then do not scroll.  If t or `all', scroll all windows showing buffer.
 If `this', scroll only the selected window.
@@ -508,14 +522,18 @@ If `others', scroll only those that are not the selected window.
 The default is nil.
 
 See variable `term-scroll-show-maximum-output'.
-This variable is buffer-local.")
+This variable is buffer-local."
+  :type 'boolean
+  :group 'term)
 
-(defvar term-scroll-show-maximum-output nil
+(defcustom term-scroll-show-maximum-output nil
   "*Controls how interpreter output causes window to scroll.
 If non-nil, then show the maximum output when the window is scrolled.
 
 See variable `term-scroll-to-bottom-on-output'.
-This variable is buffer-local.")
+This variable is buffer-local."
+  :type 'boolean
+  :group 'term)
 
 ;; Where gud-display-frame should put the debugging arrow.  This is
 ;; set by the marker-filter, which scans the debugger's output for
@@ -557,20 +575,26 @@ massage the input string, this is your hook.  This is called from
 the user command term-send-input.  term-simple-send just sends
 the string plus a newline.")
 
-(defvar term-eol-on-send t
+(defcustom term-eol-on-send t
   "*Non-nil means go to the end of the line before sending input.
-See `term-send-input'.")
+See `term-send-input'."
+  :type 'boolean
+  :group 'term)
 
-(defvar term-mode-hook '()
+(defcustom term-mode-hook '()
   "Called upon entry into term-mode
-This is run before the process is cranked up.")
+This is run before the process is cranked up."
+  :type 'hook
+  :group 'term)
 
-(defvar term-exec-hook '()
+(defcustom term-exec-hook '()
   "Called each time a process is exec'd by term-exec.
 This is called after the process is cranked up.  It is useful for things that
 must be done each time a process is executed in a term-mode buffer (e.g.,
 \(process-kill-without-query)).  In contrast, the term-mode-hook is only
-executed once when the buffer is created.")
+executed once when the buffer is created."
+  :type 'hook
+  :group 'term)
 
 (defvar term-mode-map nil)
 (defvar term-raw-map nil

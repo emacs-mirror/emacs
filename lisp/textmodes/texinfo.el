@@ -1,7 +1,7 @@
 ;;; texinfo.el --- major mode for editing Texinfo files
 
-;; Copyright (C) 1985, 1988, 1989, 1990, 1991, 1992, 1993 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985, 1988, 1989, 1990, 1991, 1992, 1993, 1997
+;;    Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell          
 ;; Maintainer: FSF
@@ -22,6 +22,10 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+(defgroup texinfo nil
+  "Texinfo Mode"
+  :group 'docs)
 
 
 ;;; Autoloads:
@@ -662,20 +666,28 @@ to jump to the corresponding spot in the Texinfo source file."
 
 ;;; The  tex  and  print  function definitions:
 
-(defvar texinfo-texi2dvi-command "texi2dvi"
-  "*Command used by `texinfo-tex-buffer' to run TeX and texindex on a buffer.")
+(defcustom texinfo-texi2dvi-command "texi2dvi"
+  "*Command used by `texinfo-tex-buffer' to run TeX and texindex on a buffer."
+  :type 'string
+  :group 'texinfo)
 
-(defvar texinfo-tex-command "tex"
-  "*Command used by `texinfo-tex-region' to run TeX on a region.")
+(defcustom texinfo-tex-command "tex"
+  "*Command used by `texinfo-tex-region' to run TeX on a region."
+  :type 'string
+  :group 'texinfo)
 
-(defvar texinfo-texindex-command "texindex"
-  "*Command used by `texinfo-texindex' to sort unsorted index files.")
+(defcustom texinfo-texindex-command "texindex"
+  "*Command used by `texinfo-texindex' to sort unsorted index files."
+  :type 'string
+  :group 'texinfo)
 
-(defvar texinfo-delete-from-print-queue-command "lprm"
+(defcustom texinfo-delete-from-print-queue-command "lprm"
   "*Command string used to delete a job from the line printer queue.
 Command is used by \\[texinfo-delete-from-print-queue] based on
 number provided by a previous \\[tex-show-print-queue]
-command.")
+command."
+  :type 'string
+  :group 'texinfo)
 
 (defvar texinfo-tex-trailer "@bye"
   "String appended after a region sent to TeX by `texinfo-tex-region'.")
