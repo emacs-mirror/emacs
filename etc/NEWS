@@ -98,6 +98,11 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** calculator.el now has radix grouping mode.  In this mode a
+separator character is used between every few digits, making it
+easier to indicate byte boundries etc.  See the documentation of
+the `calculator-radix-grouping-mode' custom variable.
+
 ** You can now follow links by clicking Mouse-1 on the link.
 
 Traditionally, Emacs uses a Mouse-1 click to set point and a Mouse-2
@@ -2395,6 +2400,10 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
++++
+** The function symbol-file tells you which file defined
+a certain function or variable.
+
 ** Lisp code can now test if a given buffer position is inside a
 clickable link with the new function `mouse-on-link-p'.  This is the
 function used by the new `mouse-1-click-follows-link' functionality.
@@ -3103,6 +3112,10 @@ be inserted is translated through it.
 ** `load-history' can now have elements of the form (t . FUNNAME),
 which means FUNNAME was previously defined as an autoload (before the
 current file redefined it).
+
++++
+** `load-history' now records (defun . FUNNAME) when a function is
+defined.  For a variable, it records just the variable name.
 
 +++
 ** New Lisp library testcover.el works with edebug to help you determine

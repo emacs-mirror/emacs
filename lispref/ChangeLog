@@ -1,5 +1,11 @@
 2004-12-27  Richard M. Stallman  <rms@gnu.org>
 
+	* modes.texi (Emulating Mode Line): Document format's BUFFER arg.
+
+	* display.texi (Line Height): Further clarify.
+
+	* elisp.texi (Top): Update Loading submenu.
+
 	* loading.texi (Where Defined): New node.
 	(Unloading): load-history moved to Where Defined.
 

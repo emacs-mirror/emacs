@@ -1,3 +1,81 @@
+2004-12-27  Richard M. Stallman  <rms@gnu.org>
+
+	* bookmark.el (bookmark-jump): Nice error if BOOKMARK is nil.
+
+	* battery.el (battery-mode-line-format): Remove initial spaces.
+
+	* uniquify.el (uniquify-rationalize-file-buffer-names):
+	Delete interactive spec.
+
+	* type-break.el (type-break-mode): Set buffer-save-without-query.
+	Remove code that tried to set save-some-buffers-always.
+	(type-break-file-keystroke-count): Bind deactivate-mark.
+
+	* mouse.el (mouse-drag-region): Bind mouse-autoselect-window.
+
+	* simple.el (next-error-buffer-p): New arg AVOID-CURRENT.
+	Test that the buffer is live, and maybe reject current buffer too.
+	Clarify.
+	(next-error-find-buffer): Rewrite for clarity.
+
+	* loadup.el: Don't use buffer-disable-undo; do it directly.
+
+	* help-fns.el (describe-function-1): Call symbol-file with `defun'.
+	(describe-variable): Call symbol-file with `defvar'.
+
+	* subr.el (messages-buffer-max-lines): Alias for message-log-max.
+	(symbol-file): Rewritten to handle new load-history format.
+	Now takes an arg TYPE to specify looking for a particular
+	type of definition only.
+
+	* emacs-lisp/debug.el (debugger-make-xrefs): 
+	Call symbol-file with `defun'.
+
+	* emacs-lisp/find-func.el (find-function-noselect): 
+	Call symbol-file with `defun'.
+	(find-variable-noselect): Call symbol-file with `defvar'.
+
+	* eshell/esh-cmd.el (eshell-find-alias-function): 
+	Call symbol-file with `defun'.
+
+	* eshell/esh-test.el (eshell-test-goto-func):
+	Call symbol-file with `defun'.
+
+	* mail/rmail.el (rmail-resend):
+	Let MAIL-ALIAS-FILE arg override mail-personal-alias-file.
+
+	* net/goto-addr.el (goto-address-mail-regexp): Allow = in username.
+
+	* progmodes/compile.el (compilation-find-buffer): Rename arg.
+
+	* textmodes/texinfmt.el (texinfo-format-buffer-1):
+	Call buffer-disable-undo.
+
+	* simple.el (undo-list-saved): New variable (buffer-local).
+	(undo): Set and test it.
+
+	* international/mule.el (decode-coding-inserted-region): 
+	Set buffer-undo-list in a correct and optimal way.
+
+	* progmodes/cperl-mode.el (cperl-find-bad-style): Use with-no-warnings.
+	(cperl-font-lock-unfontify-region-function): No need to save and
+	restore info, since font-lock.el does it for us.
+	
+	* ansi-color.el (save-buffer-state): Definition deleted.
+	(ansi-color-unfontify-region): Don't use save-buffer-state.
+
+2004-12-27  Dave Love  <fx@gnu.org>
+
+	* wid-edit.el (function): Use restricted-sexp as parent.
+
+2004-12-27  Kevin Ryde  <user42@zip.com.au>
+
+        * simple.el (next-matching-history-element): Use same
+	`interactive' form as previous-matching-history-element.
+
+        * ffap.el (ffap-string-at-point-mode-alist): Add "*" to url chars,
+        it can appear unencoded and has been seen from yahoo.
+
 2004-12-27  Simon Josefsson  <jas@extundo.com>
 
 	* mail/smtpmail.el (smtpmail-try-auth-methods): Send AUTH CRAM-MD5
@@ -80,16 +158,28 @@
 	(calculator-radix-grouping-digits)
 	(calculator-radix-grouping-separator):
 	New defcustoms for the new radix grouping mode functionality.
-	(calculator-mode-hook): Now used in electric mode too.
+	(calculator-mode-hook): Now used in electric mode too,
+	(calculator): Call it.
 	(calculator-mode-map): Some new keys.
 	(calculator-message): New function.  Some new calls.
-	(calculator-string-to-number): New function,
+	(calculator-op, calculator-set-register): Use it.
+	(calculator-string-to-number): New function, mostly moved and
+	updated code from calculator-curnum-value.
 	(calculator-curnum-value): Use it.
-	(calculator-rotate-displayer, calculator-rotate-displayer-back)
-	(calculator-displayer-prev, calculator-displayer-next):
-	Change digit group size when in radix mode.
-	(calculator-number-to-string): Renamed from calculator-num-to-string.
-	Now deals with digit grouping in radix mode.
+	(calculator-paste): Use it, and update grabbing the
+	current-kill.
+	(calculator-rotate-displayer)
+	(calculator-rotate-displayer-back): Toggle digit grouping when
+	in radix mode, use calculator-message.
+	(calculator-displayer-prev, calculator-displayer-next): Change
+	digit group size when in radix mode.
+	(calculator-number-to-string): Renamed from
+	calculator-num-to-string.  Now deals with digit grouping in
+	radix mode.
+	(calculator-update-display, calculator-put-value): Use the new
+	name.
+	(calculator-fact): Return a floating point number.
+	(calculator-mode): Doc fix.
 
 2004-12-20  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
