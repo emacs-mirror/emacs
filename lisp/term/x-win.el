@@ -531,6 +531,9 @@ This returns ARGS with the arguments that have been processed removed."
 	(65280 . remove)
 	;; These are for Sun.
  	(392963 . mute-acute)
+	(392960 . mute-grave)
+	(392964 . mute-diaeresis)
+	(392961 . mute-asciicircum)
 	(392976 . f35)
     	(392977 . f36)
 	(393056 . req)
