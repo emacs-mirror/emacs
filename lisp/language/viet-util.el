@@ -40,7 +40,8 @@
   "Setup multilingual environment (MULE) for Vietnamese VISCII users."
   (interactive)
   (setup-8-bit-environment "Vietnamese" nil 'vietnamese-viscii
-			   "vietnamese-viqr"))
+			   "vietnamese-viqr")
+  (setq coding-category-raw-text 'vietnamese-viscii))
 
 ;; VIQR is a menmonic encoding specification for Vietnamese.
 ;; It represents diacritical marks by ASCII characters as follows:
