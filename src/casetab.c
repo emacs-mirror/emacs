@@ -214,6 +214,7 @@ init_casetab_once ()
 
   down = Fmake_char_table (Qcase_table, Qnil);
   Vascii_downcase_table = down;
+  XCHAR_TABLE (down)->purpose = Qcase_table;
 
   for (i = 0; i < 256; i++)
     XCHAR_TABLE (down)->contents[i] = (i >= 'A' && i <= 'Z') ? i + 040 : i;
