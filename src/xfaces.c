@@ -374,8 +374,8 @@ unload_color (f, pixel)
   Colormap cmap;
   Display *dpy = FRAME_X_DISPLAY (f);
   if (pixel == FACE_DEFAULT
-      || pixel == BLACK_PIX_DEFAULT
-      || pixel == WHITE_PIX_DEFAULT)
+      || pixel == BLACK_PIX_DEFAULT (f)
+      || pixel == WHITE_PIX_DEFAULT (f))
     return;
   cmap = DefaultColormapOfScreen (DefaultScreenOfDisplay (dpy));
   BLOCK_INPUT;
