@@ -369,10 +369,15 @@ get_clipboard_data (Format, Data, Size, Raw)
   __dpmi_regs regs;
   unsigned long xbuf_addr;
   unsigned char *dp = Data;
-  /* The last 32-byte aligned block of data.  See commentary below.  */
-  unsigned char *last_block = dp + ((Size & 0x1f)
-				    ? (Size & 0x20)
-				    : Size - 0x20);
+  /* Copying text from the DOS box on Windows 95 evidently doubles the
+     size of text as reported by the clipboard.  So we must begin
+     looking for the zeroes as if the actual size were half of what's
+     reported.  Jeez, what a mess!  */
+  unsigned half_size = Size > 32 ? Size / 2 : Size;
+  /* Where we should begin looking for zeroes.  See commentary below.  */
+  unsigned char *last_block = dp + ((half_size & 0x1f)
+				    ? (half_size & 0x20)
+				    : half_size - 0x20);
 
   if (Format != CF_OEMTEXT)
     return 0;
@@ -419,7 +424,8 @@ get_clipboard_data (Format, Data, Size, Raw)
 	      dp--;
 	      *dp++ = '\n';
 	      xbuf_addr++;
-	      last_block--;	/* adjust the beginning of the last 32 bytes */
+	      if (last_block > dp)
+		last_block--;	/* adjust the beginning of the last 32 bytes */
 	      if (*lcdp == '\n')
 		lcdp++;
 	    }
