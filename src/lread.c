@@ -23,6 +23,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/file.h>
+#include <ctype.h>
 #undef NULL
 #include "config.h"
 #include "lisp.h"
@@ -999,7 +1000,6 @@ read1 (readcharfun)
 
 #ifdef LISP_FLOAT_TYPE
 
-#include <ctype.h>
 #define LEAD_INT 1
 #define DOT_CHAR 2
 #define TRAIL_INT 4
