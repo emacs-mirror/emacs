@@ -188,25 +188,29 @@ forms.dvi: forms.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/forms.texi
 
 # gnus/message/emacs-mime/sieve/pgg are part of Gnus:
-../info/gnus: gnus.texi
+../info/gnus: gnus.texi gnus-faq.texi
 	cd $(srcdir); $(MAKEINFO) gnus.texi
-gnus.dvi: gnus.texi
+gnus.dvi: gnus.texi gnus-faq.texi
 	sed -e '/@iflatex/,/@end iflatex/d' ${srcdir}/gnus.texi > gnustmp.texi
 	$(ENVADD) $(TEXI2DVI) gnustmp.texi
 	cp gnustmp.dvi $*.dvi
 	rm gnustmp.*
+
 ../info/message: message.texi
 	cd $(srcdir); $(MAKEINFO) message.texi
 message.dvi: message.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/message.texi
+
 ../info/sieve: sieve.texi
 	cd $(srcdir); $(MAKEINFO) sieve.texi
 sieve.dvi: sieve.texi
+
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/sieve.texi
 ../info/emacs-mime: emacs-mime.texi
 	cd $(srcdir); $(MAKEINFO) emacs-mime.texi
 emacs-mime.dvi: emacs-mime.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-mime.texi
+
 ../info/pgg: pgg.texi
 	cd $(srcdir); $(MAKEINFO) pgg.texi
 pgg.dvi: pgg.texi
