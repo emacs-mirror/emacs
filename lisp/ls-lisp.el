@@ -1,4 +1,4 @@
-;;;; dired-lisp.el - emulate ls completely in Emacs Lisp. $Revision: 1.2 $
+;;;; dired-lisp.el - emulate ls completely in Emacs Lisp. $Revision: 1.3 $
 ;;;; Copyright (C) 1991 Sebastian Kremer <sk@thp.uni-koeln.de>
 
 ;;;; READ THE WARNING BELOW BEFORE USING THIS PROGRAM!
@@ -24,16 +24,22 @@
 
 ;;;; WARNING:
 
-;;;; Sometimes I get an internal Emacs error:
+;;;; With earlier version of this program I sometimes got an internal
+;;;; Emacs error:
 
 ;;;;   Signalling: (wrong-type-argument natnump #<EMACS BUG: ILLEGAL
 ;;;;   DATATYPE (#o37777777727) Save your buffers immediately and please
 ;;;;   report this bug>)
 
-;;;;  Sometimes emacs just crashes with a fatal error.
+;;;; The datatype differs (I also got #o67 once).
+
+;;;; Sometimes emacs just crashed with a fatal error.
+
+;;;; After I've avoided using directory-files and file-attributes
+;;;; together inside a mapcar, the bug didn't surface any longer.
 
 ;;;  RESTRICTIONS:
-;;;; Always sorts by name (ls switches are completely ignored for now)
+;;;; ls switches are mostly ignored
 ;;;; Cannot display date of file, displays a fake date "Jan 00 00:00" instead
 ;;;; Only numeric uid/gid
 ;;;; Loading ange-ftp breaks it
@@ -41,70 +47,139 @@
 ;;;; It is surprisingly fast, though!
 
 ;;;; TODO:
-;;;; Recognize at least some ls switches: l R g F i
+;;;; Recognize at some more ls switches: R F
 
-(require 'dired)			; we will redefine this function:
+(require 'dired)			; we will redefine dired-ls:
+(or (fboundp 'dired-lisp-unix-ls)
+    (fset 'dired-lisp-unix-ls (symbol-function 'dired-ls)))
 
-(defun dired-ls (file &optional switches wildcard full-directory-p)
-  "dired-lisp.el's version of dired-ls."
-;  "Insert ls output of FILE, optionally formatted with SWITCHES.
-;Optional third arg WILDCARD means treat FILE as shell wildcard.
-;Optional fourth arg FULL-DIRECTORY-P means file is a directory and
-;switches do not contain `d'.
-;
-;SWITCHES default to dired-listing-switches."
+(fset 'dired-ls 'dired-lisp-ls)
+
+(defun dired-lisp-ls (file &optional switches wildcard full-directory-p)
+  "dired-lisp.el's version of dired-ls.
+Known switches: A a S r i s
+Others are ignored.
+
+  Insert ls output of FILE, optionally formatted with SWITCHES.
+Optional third arg WILDCARD means treat non-directory part of FILE
+as emacs regexp (_not_ a shell wildcard).
+
+Optional fourth arg FULL-DIRECTORY-P means file is a directory and
+switches do not contain `d'.
+
+SWITCHES default to dired-listing-switches."
   (or switches (setq switches dired-listing-switches))
+  (or (consp switches)			; convert to list of chars
+      (setq switches (mapcar 'identity switches))) 
   (if wildcard
-      (error "Cannot handle wildcards in lisp emulation of `ls'."))
-  (if full-directory-p
+      (setq wildcard (file-name-nondirectory file) ; actually emacs regexp
+	    ;; perhaps convert it from shell to emacs syntax?
+	    file (file-name-directory file)))
+  (if (or wildcard
+	  full-directory-p)
       (let* ((dir (file-name-as-directory file))
-	     (start (length dir))
-	     (sum 0))
-	(insert "total \007\n")		; fill in afterwards
-	(insert
-	 (mapconcat 
-	  (function (lambda (short)
-		      (let* ((fil (concat dir short))
-			     (attr (file-attributes fil))
-			     (size (nth 7 attr)))
-			;;(debug)
-			(setq sum (+ sum size))
-			(dired-lisp-format
-			 ;;(file-name-nondirectory fil)
-			 ;;(dired-make-relative fil dir)
-			 ;;(substring fil start)
-			 short
-			 attr
-			 switches))))
-	  (directory-files dir)
-	  ""))
+	     (default-directory dir);; so that file-attributes works
+	     (sum 0)
+	     elt
+	     (file-list (directory-files dir nil wildcard))
+	     file-alist 
+	     ;; do all bindings here for speed
+	     fil attr)
+	(cond ((memq ?A switches)
+	       (setq file-list
+		     (dired-lisp-delete-matching "^\\.\\.?$" file-list)))
+	      ((not (memq ?a switches))
+	       ;; if neither -A  nor -a, flush . files
+	       (setq file-list
+		     (dired-lisp-delete-matching "^\\." file-list))))
+	(setq file-alist
+	      (mapcar
+	       (function
+		(lambda (x)
+		  ;; file-attributes("~bogus") bombs
+		  (cons x (file-attributes (expand-file-name x)))))
+	       ;; inserting the call to directory-files right here
+	       ;; seems to stimulate an Emacs bug
+	       ;; ILLEGAL DATATYPE (#o37777777727) or #o67
+	       file-list))
+	(insert "total \007\n")		; filled in afterwards
+	(setq file-alist
+	      (dired-lisp-handle-switches file-alist switches))
+	(while file-alist
+	  (setq elt (car file-alist)
+		short (car elt)
+		attr  (cdr elt)
+		file-alist (cdr file-alist)
+		fil (concat dir short)
+		sum (+ sum (nth 7 attr)))
+	  (insert (dired-lisp-format short attr switches)))
 	(save-excursion
 	  (search-backward "total \007")
 	  (goto-char (match-end 0))
 	  (delete-char -1)
-	  (insert (format "%d" sum)))
+	  (insert (format "%d" (1+ (/ sum 1024)))))
 	)
     ;; if not full-directory-p, FILE *must not* end in /, as
     ;; file-attributes will not recognize a symlink to a directory
     ;; must make it a relative filename as ls does:
     (setq file (file-name-nondirectory file))
-    (insert (dired-lisp-format file (file-attributes file) switches)))
-  )
+    (insert (dired-lisp-format file (file-attributes file) switches))))
+
+(defun dired-lisp-delete-matching (regexp list)
+  ;; Delete all elements matching REGEXP from LIST, return new list.
+  ;; Should perhaps use setcdr for efficiency
+  (let (result)
+    (while list
+      (or (string-match regexp (car list))
+	  (setq result (cons (car list) result)))
+      (setq list (cdr list)))
+    result))
+
+(defun dired-lisp-handle-switches (file-alist switches)
+  ;; FILE-ALIST's elements are (FILE . FILE-ATTRIBUTES).
+  ;; Return new alist sorted according to switches.
+  (setq file-alist
+	(sort file-alist
+	      (cond ((memq ?S switches)
+		     (function
+		      (lambda (x y)
+			;; 7th file attribute is file size
+			;; Make largest file come first
+			(< (nth 7 (cdr y)) 
+			   (nth 7 (cdr x))))))
+		    (t			; sorted alphabetically
+		     (function
+		      (lambda (x y)
+			(string-lessp (car x) (car y))))))))
+  (if (memq ?r switches)		; reverse sort order
+      (setq file-alist (nreverse file-alist)))
+  file-alist)
 
 (defun dired-lisp-format (file-name file-attr &optional switches)
   (let ((file-type (nth 0 file-attr)))
-    (concat (nth 8 file-attr)		; permission bits
+    (concat (if (memq ?i switches)	; inode number
+		(concat (dired-lisp-pad (nth 10 file-attr) -6)
+			" "))
+	    (if (memq ?s switches)	; size in K
+		(concat (dired-lisp-pad (1+ (/ (nth 7 file-attr) 1024))
+					-4)
+			" "))
+	    (nth 8 file-attr)		; permission bits
 	    " "
 	    (dired-lisp-pad (nth 1 file-attr) -3) ; no. of links
 	    ;; numeric uid/gid are more confusing than helpful
-	    ;; Emacs should be able to make strings of them
+	    ;; Emacs should be able to make strings of them.
+	    ;; user-login-name and user-full-name could take an
+	    ;; optional arg.
 	    " " (dired-lisp-pad (nth 2 file-attr) -6)		; uid
 	    " " (dired-lisp-pad (nth 3 file-attr) -6)		; gid
 	    " "
 	    (dired-lisp-pad (nth 7 file-attr) -8) ; size in bytes
+	    " "
 	    ;; file-attributes's time is in a braindead format
 	    ;; Emacs should have a ctime function
-	    " " "Jan 00 00:00 "		; fake time
+	    ;; Or current-time-string could take an optional arg.
+	    "Jan 00 00:00 "		; fake time
 	    file-name
 	    (if (stringp file-type)	; is a symbolic link
 		(concat " -> " file-type)
@@ -119,14 +194,14 @@ Non-nil third arg optional PAD-CHAR defaults to a space."
   (or pad-char (setq pad-char ?\040))
   (if (integerp arg)
       (setq arg (int-to-string arg)))
-  (let (l pad reverse)
+  (let (pad reverse)
     (if (< width 0)
 	(setq reverse t
 	      width (- width)))
-    (setq l (length arg)
-	  pad (- width l))
-    (if (> pad 0)
+    (setq pad (- width (length arg)))
+    (if (> pad 0)			; ARG needs padding
 	(if reverse
 	    (concat (make-string pad pad-char) arg)
 	  (concat arg (make-string pad pad-char)))
+      ;; else unpadded (perhaps longer than WIDTH)
       arg)))
