@@ -48,6 +48,14 @@ Typical examples might be `upcase' or `capitalize'.")
 
 
 
+(defvar skeleton-end-hook
+  (lambda ()
+    (or (eolp) (newline-and-indent)))
+  "Hook called at end of skeleton but before going to point of interest.
+By default this moves out anything following to next line.
+The variables `v1' and `v2' are still set when calling this.")
+
+
 ;;;###autoload
 (defvar skeleton-filter 'identity
   "Function for transforming a skeleton-proxy's aliases' variable value.")
@@ -123,10 +131,10 @@ ignored."
 				 expand-abbrev))
 	    (setq buffer-undo-list (primitive-undo 1 buffer-undo-list)))
       (skeleton-insert function
-		       nil
 		       (if (setq skeleton-abbrev-cleanup
 				 (or (eq this-command 'self-insert-command)
-				     (eq this-command 'skeleton-pair-insert-maybe)))
+				     (eq this-command
+					 'skeleton-pair-insert-maybe)))
 			   ()
 			 ;; Pretend  C-x a e  passed its prefix arg to us
 			 (if (or arg current-prefix-arg)
@@ -151,9 +159,8 @@ ignored."
 
 
 ;;;###autoload
-(defun skeleton-insert (skeleton &optional no-newline skeleton-regions str)
+(defun skeleton-insert (skeleton &optional skeleton-regions str)
   "Insert the complex statement skeleton SKELETON describes very concisely.
-If optional NO-NEWLINE is nil the skeleton will end on a line of its own.
 
 With optional third REGIONS wrap first interesting point (`_') in skeleton
 around next REGIONS words, if REGIONS is positive.  If REGIONS is negative,
@@ -225,11 +232,6 @@ When done with skeleton, but before going back to `_'-point call
        (setq skeleton-regions (cdr skeleton-regions)))
   (let ((beg (point))
 	skeleton-modified skeleton-point resume: help input v1 v2)
-    (or no-newline
-	(eolp)
-	(goto-char (prog1 (point)
-		     (indent-to (prog1 (current-indentation)
-				  (newline))))))
     (unwind-protect
 	(eval `(let ,skeleton-further-elements
 		 (skeleton-internal-list skeleton str)))
@@ -242,8 +244,6 @@ When done with skeleton, but before going back to `_'-point call
       (if skeleton-point
 	  (goto-char skeleton-point)))))
 
-
-
 (defun skeleton-read (str &optional initial-input recursive)
   "Function for reading a string from the minibuffer within skeletons.
 PROMPT may contain a `%s' which will be replaced by `skeleton-subprompt'.
@@ -253,15 +253,8 @@ i.e. we are handling the iterator of a subskeleton, returns empty string if
 user didn't modify input.
 While reading, the value of `minibuffer-help-form' is variable `help' if that
 is non-`nil' or a default string."
-  (setq skeleton-newline nil)
-  (or (symbol-value 'no-newline)	; cheat on compiler warning
-      (eolp)
-      (goto-char (prog1 (point)
-		   (if recursive (setq skeleton-newline 2))
-		   (indent-to (prog1
-				  (current-indentation)
-				(newline))))))
-  (let ((minibuffer-help-form (or (symbol-value 'help) (if recursive "\
+  (let ((minibuffer-help-form (or (if (boundp 'help) (symbol-value 'help))
+				  (if recursive "\
 As long as you provide input you will insert another subskeleton.
 
 If you enter the empty string, the loop inserting subskeletons is
@@ -272,12 +265,20 @@ entered.  No more of the skeleton will be inserted, except maybe for a
 syntactically necessary termination."
 					 "\
 You are inserting a skeleton.  Standard text gets inserted into the buffer
-automatically, and you are prompted to fill in the variable parts."))))
-    (setq str (if (stringp str)
-		  (read-string (format str skeleton-subprompt)
-			       (setq initial-input (or initial-input
-						       (symbol-value 'input))))
-		(eval str))))
+automatically, and you are prompted to fill in the variable parts.")))
+	(eolp (eolp)))
+    ;; since Emacs doesn't show main window's cursor, do something noticeable
+    (or eolp
+	(open-line 1))
+    (unwind-protect
+	(setq str (if (stringp str)
+		      (read-string (format str skeleton-subprompt)
+				   (setq initial-input
+					 (or initial-input
+					     (symbol-value 'input))))
+		    (eval str)))
+      (or eolp
+	  (delete-char 1))))
   (if (and recursive
 	   (or (null str)
 	       (string= str "")
@@ -305,7 +306,7 @@ automatically, and you are prompted to fill in the variable parts."))))
 		   skeleton (memq 'resume: skeleton))
 	   ;; remove the subskeleton as far as it has been shown
 	   ;; the subskeleton shouldn't have deleted outside current line
-	   (end-of-line skeleton-newline)
+	   (end-of-line)
 	   (delete-region start (point))
 	   (insert line)
 	   (move-to-column column)
@@ -351,7 +352,10 @@ automatically, and you are prompted to fill in the variable parts."))))
 	 (if skeleton-regions
 	     (progn
 	       (goto-char (car skeleton-regions))
-	       (setq skeleton-regions (cdr skeleton-regions)))
+	       (setq skeleton-regions (cdr skeleton-regions))
+	       (and (<= (current-column) (current-indentation))
+		    (eq (nth 1 skeleton) '\n)
+		    (end-of-line 0)))
 	   (or skeleton-point
 	       (setq skeleton-point (point)))))
 	((eq element '&)
@@ -451,8 +455,9 @@ symmetrical ones, and the same character twice for the others."
 	()
       ;; (preceding-char) is stripped of any Meta-stuff in last-command-char
       (if (setq arg (assq (preceding-char) skeleton-pair-alist))
-	  ;; typed char is inserted, and car means no interactor
-	  (skeleton-insert arg t)
+	  ;; typed char is inserted (car is no real interactor)
+	  (let (skeleton-end-hook)
+	    (skeleton-insert arg))
 	(save-excursion
 	  (insert (or (cdr (assq (preceding-char)
 				 '((?( . ?))
