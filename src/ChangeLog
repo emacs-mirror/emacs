@@ -1,5 +1,8 @@
 2001-10-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* coding.c (syms_of_coding): Document that locale-coding-system is
+	used for decoding input on X.
+
 	* window.c (Fscroll_left, Fscroll_right): Doc fix.
 
 2001-10-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
