@@ -264,8 +264,8 @@ If ELEMENT is a string or a character it gets inserted (see also
 	_	interesting point, interregion here
 	>	indent line (or interregion if > _) according to major mode
 	@	add position to `skeleton-positions'
-	&	do next ELEMENT if previous moved point
-	|	do next ELEMENT if previous didn't move point
+	&	do next ELEMENT iff previous moved point
+	|	do next ELEMENT iff previous didn't move point
 	-num	delete num preceding characters (see `skeleton-untabify')
 	resume:	skipped, continue here if quit is signaled
 	nil	skipped
@@ -383,9 +383,9 @@ automatically, and you are prompted to fill in the variable parts.")))
 	 opoint)
     (or str
 	(setq str `(setq str (skeleton-read ',(car skeleton) nil ,recursive))))
-    (when (and (eq (car skeleton) '\n)
-	       (save-excursion (beginning-of-line) (looking-at "[ \t]*$")))
-      (setq skeleton (cons '> (cdr skeleton))))
+    (when (and (eq (cadr skeleton) '\n)
+	       (<= (current-column) (current-indentation)))
+      (setq skeleton (cons nil (cons '> (cddr skeleton)))))
     (while (setq skeleton-modified (eq opoint (point))
 		 opoint (point)
 		 skeleton (cdr skeleton))
@@ -509,7 +509,7 @@ will attempt to insert pairs of matching characters.")
   "*If this is nil, paired insertion is inhibited before or inside a word.")
 
 
-(defvar skeleton-pair-filter (lambda ())
+(defvar skeleton-pair-filter (lambda () nil)
   "Attempt paired insertion if this function returns nil, before inserting.
 This allows for context-sensitive checking whether pairing is appropriate.")
 
@@ -530,6 +530,8 @@ With no ARG, if `skeleton-pair' is non-nil, pairing can occur.  If the region
 is visible the pair is wrapped around it depending on `skeleton-autowrap'.
 Else, if `skeleton-pair-on-word' is non-nil or we are not before or inside a
 word, and if `skeleton-pair-filter' returns nil, pairing is performed.
+Pairing is also prohibited if we are right after a quoting character
+such as backslash.
 
 If a match is found in `skeleton-pair-alist', that is inserted, else
 the defaults are used.  These are (), [], {}, <> and `' for the
@@ -541,6 +543,7 @@ symmetrical ones, and the same character twice for the others."
 	(skeleton-end-hook))
     (if (or arg
 	    (not skeleton-pair)
+	    (memq (char-syntax (preceding-char)) '(?\\ ?/))
 	    (and (not mark)
 		 (or overwrite-mode
 		     (if (not skeleton-pair-on-word) (looking-at "\\w"))
