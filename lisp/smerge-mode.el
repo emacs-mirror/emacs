@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: merge diff3 cvs conflict
-;; Revision: $Id: smerge-mode.el,v 1.11 2001/01/25 15:36:32 monnier Exp $
+;; Revision: $Id: smerge-mode.el,v 1.12 2001/03/07 00:16:29 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -466,6 +466,7 @@ The point is moved to the end of the conflict."
 \\{smerge-mode-map}"
   nil " SMerge" nil
   (when font-lock-mode
+    (set (make-local-variable 'font-lock-multiline) t)
     (save-excursion
       (if smerge-mode
 	  (font-lock-add-keywords nil smerge-font-lock-keywords 'append)
