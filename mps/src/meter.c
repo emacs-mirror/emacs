@@ -1,7 +1,7 @@
 /* impl.c.meter: METERS
  *
- * $HopeName: MMsrc!meter.c(trunk.5) $
- * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!meter.c(trunk.6) $
+ * Copyright (C) 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * TRANSGRESSIONS
  *
@@ -12,7 +12,6 @@
 
 #include "meter.h"
 #include "mpm.h"
-#include <math.h>
 
 
 void MeterInit(Meter meter, char *name, void *owner)
@@ -43,7 +42,8 @@ void MeterAccumulate(Meter meter, Size amount)
   /* .limitation.variance: This computation accumulates a running
    * mean^2, minimizing overflow, but sacrificing numerical stablity
    * for small variances.  For more accuracy, the data set should be
-   * emitted using a telemetry stream and analyzed off line.
+   * emitted using a telemetry stream and analyzed off-line.
+    .stddev: stddev = sqrt(meanSquared - mean^2).
    */
   meter->count = count;
   meter->total = total + amount;
@@ -57,34 +57,37 @@ void MeterAccumulate(Meter meter, Size amount)
 }
 
 
+/* MeterWrite -- describe method for meters
+ *
+ * When meters aren't being used, this doesn't output anything, but it
+ * still has to be called so that it can return ResOK, and the callers
+ * don't have to know about STATISTIC.
+ */
+
 Res MeterWrite(Meter meter, mps_lib_FILE *stream)
 {
-  Res res;
+  Res res = ResOK;
 
-  res = WriteF(stream,
-               "meter $S {", meter->name,
-               "count: $U", meter->count,
-               NULL);
+  STATISTIC(res = WriteF(stream,
+                         "meter $S {", meter->name,
+                         "count: $U", meter->count,
+                         NULL));
   if (res != ResOK)
     return res;
   if (meter->count > 0) {
     double mean = meter->total / (double)meter->count;
-    /* .stddev: stddev = sqrt(meanSquared - mean^2), but see
-     * .limitation.variance above
-     */
-    double stddev = sqrt(fabs(meter->meanSquared - (mean * mean)));
     
-    res = WriteF(stream,
-                 ", total: $D", meter->total,
-                 ", max: $U", meter->max,
-                 ", min: $U", meter->min,
-                 ", mean: $D", mean,
-                 ", stddev: $D", stddev,
-                 NULL);
+    STATISTIC(res = WriteF(stream,
+                           ", total: $D", meter->total,
+                           ", max: $U", meter->max,
+                           ", min: $U", meter->min,
+                           ", mean: $D", mean,
+                           ", mean^2: $D", meter->meanSquared,
+                           NULL));
     if (res != ResOK)
       return res;
   }
-  res = WriteF(stream, "}\n", NULL);
+  STATISTIC(res = WriteF(stream, "}\n", NULL));
 
   return res;
 }
@@ -92,7 +95,7 @@ Res MeterWrite(Meter meter, mps_lib_FILE *stream)
 
 void MeterEmit(Meter meter)
 {
-  EVENT_PDDUUU(MeterValues, meter, meter->total, meter->meanSquared,
+  EVENT_PDDWWW(MeterValues, meter, meter->total, meter->meanSquared,
                meter->count, meter->max, meter->min);
   UNUSED(meter); /* @@@@ hack */
 }
