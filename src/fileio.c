@@ -2124,6 +2124,13 @@ This is what happens in interactive use with M-x.")
     RETURN_UNGCPRO (call4 (handler, Qadd_name_to_file, filename,
 			   newname, ok_if_already_exists));
 
+  /* If the new name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = Ffind_file_name_handler (newname, Qadd_name_to_file);
+  if (!NILP (handler))
+    RETURN_UNGCPRO (call4 (handler, Qadd_name_to_file, filename,
+			   newname, ok_if_already_exists));
+
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (newname, "make it a new name",
@@ -2180,6 +2187,13 @@ This happens for interactive use with M-x.")
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (filename, Qmake_symbolic_link);
+  if (!NILP (handler))
+    RETURN_UNGCPRO (call4 (handler, Qmake_symbolic_link, filename,
+			   linkname, ok_if_already_exists));
+
+  /* If the new link name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = Ffind_file_name_handler (linkname, Qmake_symbolic_link);
   if (!NILP (handler))
     RETURN_UNGCPRO (call4 (handler, Qmake_symbolic_link, filename,
 			   linkname, ok_if_already_exists));
