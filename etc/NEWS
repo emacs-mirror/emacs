@@ -92,7 +92,7 @@ been changed generally in the XFree86 fonts.
 
 +++
 ** The -f option, used from the command line to call a function,
-now reads arguments for the function interactively if it i
+now reads arguments for the function interactively if it is
 an interactively callable function.
 
 
