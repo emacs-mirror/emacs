@@ -250,7 +250,7 @@ extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
 #define GENERIC_COMPOSITION_CHAR (GLYPH_MASK_CHAR)
 
 /* 1 if C is an ASCII character, else 0.  */
-#define SINGLE_BYTE_CHAR_P(c) ((c) < 0x100)
+#define SINGLE_BYTE_CHAR_P(c) ((c) >= 0 && (c) < 0x100)
 /* 1 if C is an composite character, else 0.  */
 #define COMPOSITE_CHAR_P(c) ((c) >= MIN_CHAR_COMPOSITION)
 
