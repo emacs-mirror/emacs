@@ -139,7 +139,8 @@ ARG columns.  No arg means split equally."
 (defun shrink-window-if-larger-than-buffer (&optional window)
   "Shrink the WINDOW to be as small as possible to display its contents.
 Do nothing if the buffer contains more lines than the present window height,
-or if some of the window's contents are scrolled out of view."
+or if some of the window's contents are scrolled out of view,
+or if the window is the only window of its frame."
   (interactive)
   (save-excursion
     (set-buffer (window-buffer window))
@@ -147,16 +148,24 @@ or if some of the window's contents are scrolled out of view."
 	  (buffer-file-name buffer-file-name)
 	  (p (point))
 	  (n 0)
+	  (ignore-final-newline
+	   ;; If buffer ends with a newline, ignore it when counting height
+	   ;; unless point is after it.
+	   (and (not (eobp))
+		(eq ?\n (char-after (1- (point-max))))))
 	  (window-min-height 0)
 	  (buffer-read-only nil)
 	  (modified (buffer-modified-p))
 	  (buffer (current-buffer)))
-      (if (pos-visible-in-window-p (point-min))
+      (if (and (< 1 (count-windows))
+	       (pos-visible-in-window-p (point-min)))
 	  (unwind-protect
 	      (progn
 		(select-window (or window w))
 		(goto-char (point-min))
-		(while (pos-visible-in-window-p (point-max))
+		(while (pos-visible-in-window-p
+			(- (point-max)
+			   (if ignore-final-newline 1 0)))
 		  ;; defeat file locking... don't try this at home, kids!
 		  (setq buffer-file-name nil)
 		  (insert ?\n) (setq n (1+ n)))
