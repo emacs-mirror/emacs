@@ -2923,10 +2923,11 @@ Optional EVENT is the location for the menu."
 				   init-file-user
 				   emacs-user-extension-dir
 				   "options.el")
-			 "~/.emacs")
+			 (convert-standard-filename"~/.emacs"))
   "File used for storing customization information.
-If you change this from the default \"~/.emacs\" you need to
-explicitly load that file for the settings to take effect."
+If you change this from the default \"~/.emacs\" (or \"~/_emacs\"
+on MS-DOS) you need to explicitly load that file for the settings
+to take effect."
   :type 'file
   :group 'customize)
 
