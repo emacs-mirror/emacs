@@ -410,9 +410,17 @@ and then modifies one entry in it."
 
 
 (defmacro lambda (&rest cdr)
-  "Macro which allows one to write (lambda ...) for anonymous functions.
-This is instead of having to write (function (lambda ...)) or
-'(lambda ...), the latter of which won't get byte-compiled."
+  "Return a lambda expression.
+A call of the form (lambda ARGS DOCSTRING INTERACTIVE BODY) is
+self-quoting; the result of evaluating the lambda expression is the
+expression itself.  The lambda expression may then be treated as a
+function, i. e. stored as the function value of a symbol, passed to
+funcall or mapcar, etcetera.
+ARGS should take the same form as an argument list for a `defun'.
+DOCSTRING should be a string, as described for `defun'.  It may be omitted.
+INTERACTIVE should be a call to the function `interactive', which see.
+It may also be omitted.
+BODY should be a list of lisp expressions."
   ;; Note that this definition should not use backquotes; subr.el should not
   ;; depend on backquote.el.
   (list 'function (cons 'lambda cdr)))
