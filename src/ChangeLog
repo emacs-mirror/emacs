@@ -1,5 +1,7 @@
 2002-02-15  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
+	* alloc.c (NSTATICS): Bump to 1026.
+
 	* xterm.c (Vx_alt_keysym, Vx_hyper_keysym, Vx_meta_keysym)
 	(Vx_super_keysym): New variables.
 	(syms_of_xterm): DEFVAR_LISP them.
