@@ -1,3 +1,33 @@
+2002-10-01  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-diag.el (describe-coding-system): Describe
+	`dependency' property.
+
+	* international/utf-8.el: Synchronized with the code in 21.4
+	and deleted codes for not yet supported features;
+	utf-fragment-on-decoding and utf-translate-cjk.
+
+	* international/utf-16.el: Synchronized with the code in 21.4 and
+	deleted codes for not yet supported features;
+	utf-fragment-on-decoding and utf-translate-cjk.
+
+	* international/ucs-tables.el: Synchronized with the code in 21.4
+	and deleted codes for not yet supported features;
+	utf-fragment-on-decoding, utf-translate-cjk, and
+	minibuffer-selected-window.
+
+	* international/mule.el (encode-char): Pay attention to
+	utf-translation-table-for-encode.
+
+	* loadup.el: Preload international/utf-16.  Don't call
+	ucs-unify-8859.
+
+	* international/fontset.el (ucs-mule-to-mule-unicode): Define this
+	translation table name here.
+	(ucs-mule-cjk-to-unicode): New translation table name.
+	(font-ccl-encoder-alist): Change the font registry pattern to
+	"ISO10646.*-*".
+
 2002-09-30  Kenichi Handa  <handa@m17n.org>
 
 	* language/devan-util.el: Delete the superfluous `!'.

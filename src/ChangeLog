@@ -1,4 +1,6 @@
-2002-09-30  Kenichi Handa  <handa@m17n.org>
+2002-10-01  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (lisp, shortlisp): Add utf-16.elc
 
 	* xterm.c (x_encode_char): For DIM=1 charset, set ccl->reg[2] to
 	-1 before calling ccl_driver.
