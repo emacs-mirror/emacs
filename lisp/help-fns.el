@@ -300,13 +300,15 @@ Return (USAGE . DOC) or nil if there's no usage info."
     (let* ((arglist (help-function-arglist def))
 	   (doc (documentation function))
 	   usage)
-      (princ (cond
-	      ((listp arglist) (help-make-usage function arglist))
-	      ((stringp arglist) arglist)
-	      ((and doc (subrp def) (setq usage (help-split-fundoc doc def)))
-	       (setq doc (cdr usage)) (car usage))
-	      (t "[Missing arglist.  Please make a bug report.]")))
-      (terpri)
+      ;; If definition is a keymap, skip arglist note.
+      (unless (keymapp def)
+	(princ (cond
+		((listp arglist) (help-make-usage function arglist))
+		((stringp arglist) arglist)
+		((and doc (subrp def) (setq usage (help-split-fundoc doc def)))
+		 (setq doc (cdr usage)) (car usage))
+		(t "[Missing arglist.  Please make a bug report.]")))
+	(terpri))
       (let ((obsolete (and
 		       ;; function might be a lambda construct.
 		       (symbolp function)
