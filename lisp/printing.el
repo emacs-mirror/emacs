@@ -1,6 +1,6 @@
 ;;; printing.el --- printing utilities
 
-;; Copyright (C) 2000, 2001, 2002
+;; Copyright (C) 2000, 2001, 2002, 2003
 ;; Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
@@ -2344,15 +2344,6 @@ See `pr-ps-printer-alist'.")
        ,@body
        (kill-buffer temp))))
 
-(eval-and-compile
-(defun pr-get-symbol (name)
-  ;; Recent versions of easy-menu downcase names before interning them.
-  (and (fboundp 'easy-menu-name-match)
-       (setq name (downcase name)))
-  (or (intern-soft name)
-      (make-symbol name)))
-)
-
 
 (defsubst pr-visible-p (key)
   (memq key pr-visible-entry-list))
@@ -2371,6 +2362,13 @@ See `pr-ps-printer-alist'.")
 
 
 (eval-and-compile
+  (defun pr-get-symbol (name)
+    ;; Recent versions of easy-menu downcase names before interning them.
+    (and (fboundp 'easy-menu-name-match)
+	 (setq name (downcase name)))
+    (or (intern-soft name)
+	(make-symbol name)))
+
   (cond
    ((eq ps-print-emacs-type 'emacs)	; GNU Emacs
     (defsubst pr-region-active-p ()
