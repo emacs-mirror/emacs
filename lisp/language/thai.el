@@ -32,7 +32,8 @@
  'thai-tis620 2 ?T
  "8-bit encoding for ASCII (MSB=0) and Thai TIS620 (MSB=1)"
  '((ascii t) (thai-tis620 t) nil nil
-   nil ascii-eol))
+   nil ascii-eol)
+ '(ascii thai-tis620))
 (coding-system-put 'thai-tis620 'post-read-conversion
 		   'thai-post-read-conversion)
 (coding-system-put 'thai-tis620 'pre-write-conversion

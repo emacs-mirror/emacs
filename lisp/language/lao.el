@@ -28,7 +28,8 @@
  'lao 2 ?L
  "8-bit encoding for ASCII (MSB=0) and LAO (MSB=1)"
  '((ascii t) (lao t) nil nil
-   nil ascii-eol))
+   nil ascii-eol)
+ '(ascii lao))
 
 (set-language-info-alist
  "Lao" '((setup-function . setup-lao-environment)
