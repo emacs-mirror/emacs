@@ -82,7 +82,7 @@ goto end
 
 rem   Create "paths.h"
 rm -f paths.h
-sed -e "s!/lib/emacs!!" -e "s!/usr/local!c:/emacs!" -e "s!/data!/etc!" <%PATHSH% >paths.h
+sed -f ../msdos/sed4.inp <%PATHSH% >paths.h
 
 rem   Create "config.h"
 rm -f config.h config.tmp
