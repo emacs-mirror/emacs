@@ -1,3 +1,8 @@
+2001-04-03  Eric M. Ludlam  <eric@siege-engine.com>
+
+	* speedbar.el (speedbar-insert-image-button-maybe): Check for
+	`xemacs' feature instead of for the function `set-extent-property'.
+
 2001-04-03  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* mail/mh-utils.el (mh-folder-hist): New var.
