@@ -169,19 +169,13 @@ These supersede the values given in `default-frame-alist'."
 	    (progn
 	      (setq frame-initial-frame-alist
 		    (append initial-frame-alist default-frame-alist))
-	      ;; Record these with their default values
-	      ;; if they don't have any values explicitly.
-	      (or (assq 'vertical-scroll-bars frame-initial-frame-alist)
-		  (setq frame-initial-frame-alist
-			(cons '(vertical-scroll-bars . t)
-			      frame-initial-frame-alist)))
 	      (or (assq 'horizontal-scroll-bars frame-initial-frame-alist)
 		  (setq frame-initial-frame-alist
 			(cons '(horizontal-scroll-bars . t)
 			      frame-initial-frame-alist)))
 	      (setq default-minibuffer-frame
 		    (setq frame-initial-frame
-			  (make-frame initial-frame-alist)))
+			  (make-frame frame-initial-frame-alist)))
 	      ;; Delete any specifications for window geometry parameters
 	      ;; so that we won't reapply them in frame-notice-user-settings.
 	      ;; It would be wrong to reapply them then,
