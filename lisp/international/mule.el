@@ -308,8 +308,7 @@ See also the documentation of `make-char'."
 Return nil if such a character is not supported.
 Currently the only supported coded character set is `ucs' (ISO/IEC
 10646: Universal Multi-Octet Coded Character Set), and the result is
-translated through the char table `utf-8-translation-table-for-decode'
-if the variable `utf-8-fragment-on-decoding' is non-nil.
+translated through the char table `utf-8-translation-table-for-decode'.
 
 Optional argument RESTRICTION specifies a way to map the pair of CCS
 and CODE-POINT to a character.   Currently not supported and just ignored."
@@ -332,9 +331,7 @@ and CODE-POINT to a character.   Currently not supported and just ignored."
 	       (setq code-point (- code-point #xe000))
 	       (make-char 'mule-unicode-e000-ffff
 			  (+ (/ code-point 96) 32) (+ (% code-point 96) 32))))))
-      (if (and c
-	       utf-8-fragment-on-decoding
-	       (aref utf-8-translation-table-for-decode c))
+      (if (and c (aref utf-8-translation-table-for-decode c))
 	  (aref utf-8-translation-table-for-decode c)
 	c)))))
 
