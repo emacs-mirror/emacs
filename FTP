@@ -179,8 +179,7 @@ United Kingdom - SunSITE.doc.ic.ac.uk/gnu (Internet address 193.63.255.4)
 
 Emacs is in the directory /gnu/emacs on ftp.gnu.org.  The emacs
 distribution itself has a filename in the form emacs-M.N.tar.gz, where
-M and N stand for the version numbers; the Emacs Lisp Reference Manual
-is in a separate file, named elisp-manual-NN.tar.gz.
+M and N stand for the version numbers.
 
 * Scheme and How to FTP It
 
