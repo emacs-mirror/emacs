@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.253 1999/09/06 03:46:33 rms Exp rms $
+;; $Id: vc.el,v 1.254 1999/09/06 22:15:10 rms Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2595,25 +2595,20 @@ THRESHOLD, nil otherwise"
 			(failed t))
 		    (unwind-protect
 			(progn
-			  (apply 'vc-do-command
-				 nil 0 "/bin/sh" file 'MASTER "-c"
-				 ;; Some shells make the "" dummy argument into $0
-				 ;; while others use the shell's name as $0 and
-				 ;; use the "" as $1.  The if-statement
-				 ;; converts the latter case to the former.
-				 (format "if [ x\"$1\" = x ]; then shift; fi; \
-			       umask %o; exec >\"$1\" || exit; \
-			       shift; umask %o; exec get \"$@\""
-				       (logand 511 (lognot vc-modes))
-				       (logand 511 (lognot (default-file-modes))))
-				 ""		; dummy argument for shell's $0
-				 filename 
-				 (if writable "-e")
-				 "-p" 
-				 (and rev
-				      (concat "-r" (vc-lookup-triple file rev)))
-				 switches)
-			  (setq failed nil))
+                          (with-temp-file filename
+                            (apply 'vc-do-command
+                                   (current-buffer) 0 "get" file 'MASTER
+                                   "-s" ;; suppress diagnostic output
+                                   (if writable "-e")
+                                   "-p" 
+                                   (and rev
+                                        (concat "-r" 
+                                                (vc-lookup-triple file rev)))
+                                   switches))
+                          (set-file-modes filename
+                                          (logior (file-modes (vc-name file))
+                                                  (if writable 128 0)))
+                          (setq failed nil))
 		      (and failed (file-exists-p filename) 
 			   (delete-file filename))))
 		(apply 'vc-do-command nil 0 "get" file 'MASTER   ;; SCCS
@@ -2629,21 +2624,17 @@ THRESHOLD, nil otherwise"
 		      (failed t))
 		  (unwind-protect
 		      (progn
-			(apply 'vc-do-command
-			       nil 0 "/bin/sh" file 'MASTER "-c"
-			       ;; See the SCCS case, above, regarding the
-			       ;; if-statement.
-			       (format "if [ x\"$1\" = x ]; then shift; fi; \
-			       umask %o; exec >\"$1\" || exit; \
-			       shift; umask %o; exec co \"$@\""
-				       (logand 511 (lognot vc-modes))
-				       (logand 511 (lognot (default-file-modes))))
-			       ""		; dummy argument for shell's $0
-			       filename
-			       (if writable "-l")
-			       (concat "-p" rev)
-			       switches)
-			(setq failed nil))
+                        (with-temp-file filename
+                          (apply 'vc-do-command
+                                 (current-buffer) 0 "co" file 'MASTER
+                                 "-q" ;; suppress diagnostic output
+                                 (if writable "-l")
+                                 (concat "-p" rev)
+                                 switches))
+                        (set-file-modes filename 
+                                        (logior (file-modes (vc-name file))
+                                                (if writable 128 0)))
+                        (setq failed nil))
 		    (and failed (file-exists-p filename) (delete-file filename))))
 	      (let (new-version)
 		;; if we should go to the head of the trunk, 
@@ -2684,14 +2675,14 @@ THRESHOLD, nil otherwise"
 		(let ((failed t))
 		  (unwind-protect
 		      (progn
-			(apply 'vc-do-command
-			       nil 0 "/bin/sh" file 'WORKFILE "-c"
-			       "exec >\"$1\" || exit; shift; exec cvs update \"$@\""
-			       ""		; dummy argument for shell's $0
-			       workfile
-			       (concat "-r" rev)
-			       "-p"
-			       switches)
+                        (with-temp-file filename
+                          (apply 'vc-do-command
+                                 (current-buffer) 0 "cvs" file 'WORKFILE 
+                                 "-Q" ;; suppress diagnostic output
+                                 "update"
+                                 (concat "-r" rev)
+                                 "-p"
+                                 switches))
 			(setq failed nil))
 		    (and failed (file-exists-p filename) (delete-file filename))))
 	      ;; default for verbose checkout: clear the sticky tag
