@@ -89,6 +89,25 @@
 
 (define-key help-map "q" 'help-quit)
 
+(defvar help-font-lock-keywords
+  (let ((name-char "[-+a-zA-Z0-9_*]") (sym-char "[-+a-zA-Z0-9_:*]"))
+    (list
+     ;;
+     ;; The symbol itself.
+     (list (concat "\\`\\(" name-char "+\\)\\(:\\)?")
+	   '(1 (if (match-beginning 2)
+		   font-lock-function-name-face
+		 font-lock-variable-name-face)
+	       nil t))
+     ;;
+     ;; Words inside `' which tend to be symbol names.
+     (list (concat "`\\(" sym-char sym-char "+\\)'")
+	   1 'font-lock-reference-face t)
+     ;;
+     ;; CLisp `:' keywords as references.
+     (list (concat "\\<:" sym-char "+\\>") 0 font-lock-reference-face t)))
+  "Default expressions to highlight in Help mode.")
+
 (defun help-mode ()
   "Major mode for viewing help text.
 Entry to this mode runs the normal hook `help-mode-hook'.
@@ -99,6 +118,8 @@ Commands:
   (use-local-map help-mode-map)
   (setq mode-name "Help")
   (setq major-mode 'help-mode)
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults '(help-font-lock-keywords))
   (run-hooks 'help-mode-hook))
 
 (defun help-quit ()
