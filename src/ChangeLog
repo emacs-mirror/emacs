@@ -1,5 +1,8 @@
 2002-07-25  Kenichi Handa  <handa@etl.go.jp>
 
+	* coding.c (Ffind_coding_systems_region_internal): Detect an
+	ASCII only string correctly.
+
 	* lread.c (Fload): Don't load with Qload_force_doc_strings t if
 	version is 0.
 
