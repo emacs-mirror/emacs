@@ -67,7 +67,7 @@
 
 /* The default output file name.  */
 
-#define DEFAULT_OUTFILE "EBROWSE"
+#define DEFAULT_OUTFILE "BROWSE"
 
 /* A version string written to the output file.  Change this whenever
    the structure of the output file changes.  */
