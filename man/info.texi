@@ -1,4 +1,7 @@
-\input texinfo    @c -*-texinfo-*-
+\input texinfo.tex    @c -*-texinfo-*-
+@c We must \input texinfo.tex instead of texinfo, otherwise make
+@c distcheck in the Texinfo distribution fails, because the texinfo Info
+@c file is made first, and texi2dvi must include . first in the path.
 @comment %**start of header
 @setfilename info.info
 @settitle Info
