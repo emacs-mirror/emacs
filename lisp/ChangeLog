@@ -1,3 +1,11 @@
+2002-09-16  Richard M. Stallman  <rms@gnu.org>
+
+	* cus-edit.el (custom-variable-backup-value): New function.
+	(custom-variable-reset-backup): New function.
+	(custom-variable-menu): Add item for custom-variable-reset-backup.
+	(custom-variable-set, custom-variable-reset-saved) 
+	(custom-variable-reset-standard): Call custom-variable-backup-value.
+
 2002-09-16  Juanma Barranquero  <lektu@terra.es>
 
 	* dired-aux.el (dired-add-entry): Add missing argument to `dired-mark'.
@@ -25,6 +33,13 @@
 	(menu-bar-search-menu): Reorganized.
 	(menu-bar-edit-menu): Added "Replace" submenu.
 
+2002-09-15  Richard M. Stallman  <rms@gnu.org>
+
+	* scroll-bar.el (scroll-bar-mode): Specify :initialize.
+
+	* menu-bar.el (menu-bar-make-mm-toggle): Don't put a quote befor FNAME
+	when it's not being evaluated.
+
 2002-09-15  Markus Rost  <rost@math.ohio-state.edu>
 
 	* dired.el (dired-move-to-filename): Fix previous change.
@@ -38,6 +53,66 @@
 
 2002-09-14  Richard M. Stallman  <rms@gnu.org>
 
+	* time.el (display-time-mode): Set display-time-load-average here.
+	(display-time-load-average): Initialize to nil.
+	(display-time-default-load-average): Add "None" alternative.
+	(display-time-update): Handle "None" alternative for load-average.
+
+	* dired-aux.el (dired-bunch-files): Put the arg FILES
+	back as it was after temporary destrucive mods.
+	(dired-add-entry): Use dired-insert-directory to handle indentation.
+	Explicitly restore the line's marker character.
+	Preserve the old file name's text properties.
+	(dired-add-entry-do-indentation): Function deleted.
+	(dired-relist-file): Doc fix.
+	(dired-rename-file): Change argument names.
+	(foo-rename-file): New function.
+	(dired-do-hardlink): Use dired-hardlink.
+	(dired-hardlink): New function.
+	(dired-insert-subdir-doinsert): Use dired-insert-directory;
+	that handles indentation, text props and header line.
+	dired-readin-insert gets no args.
+	Use `last' instead of `reverse'.
+
+	* dired.el (dired-use-ls-dired): New variable.
+	(dired-directory): Document the rules better.
+
+	* dired.el (dired-insert-headerline): Function deleted.
+	(dired-revert): Pass no args to dired-readin.
+	(dired-move-to-filename): First try using dired-filename property.
+	(dired-move-to-end-of-filename): Likewise.
+	(dired-why): Try to show the start of this page of warnings.
+	(dired-log): Insert the buffer name at start of page, not end.
+	(dired-log-summary): If just one failure, explain it in echo area.
+
+	* dired.el (dired-internal-noselect):
+	Always set dired-directory, when buffer is not new.
+	Pass dir-or-list, not dirname, to dired-mode.
+	Call dired-readin with no args.
+	Don't call dired-after-readin-hook here.
+	(dired-find-buffer-nocreate): Expand dirname.
+	Expand the dir from dired-directory to compare with dirname.
+
+	(dired-readin): Take no args.  Get the directory from dired-directory.
+	Run dired-before-reading hook inside save-excursion.
+	Run dired-after-readin-hook here.
+	Don't make undo entries at all.
+	Call dired-readin-insert with no args.
+	Don't change indentation here.
+	Don't insert headerline here.
+
+	(dired-readin-insert): Take no args.
+	Get dir and file-list from dired-directory.
+	Call dired-insert-directory the new way.
+	Don't insert "wildcard" info here.
+
+	(dired-insert-directory): New arg FILE-LIST.
+	First arg now DIR, always just the directory.
+	This function fully handles setting up the buffer text:
+	update indentation, insert headerline and "wildcard" info.
+	Pass --dired arg if appropriate; put info in dired-filename props.
+	Don't expand file names here.
+	
 	* warnings.el (display-warning): In batch mode,
 	exclude the final newline from the arg to `message'.
 

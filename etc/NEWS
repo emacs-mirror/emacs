@@ -451,6 +451,11 @@ sense for the attribute.  When an attribute is de-selected by unchecking
 its check-box, then the (now ignored, but still present temporarily in
 case you re-select the attribute) value is hidden.
 
+** When you set or reset a variable's value in a Customize buffer,
+the previous value becomes the "backup value" of the variable.
+You can go back to that backup value by selecting "Use Backup Value"
+under the "[State]" button.
+
 +++
 ** In GUD mode, when talking to GDB, C-x C-a C-j "jumps" the program
 counter to the specified source line (the one where point is).
