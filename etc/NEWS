@@ -1797,6 +1797,10 @@ to view diffs or log entries directly from vc-annotate-mode:
 
 * New modes and packages in Emacs 21.4
 
+** The library tree-widget.el provides a new widget to display a set
+of hierarchical data as an outline.  For example, the tree-widget is
+well suited to display a hierarchy of directories and files.
+
 ** The wdired.el package allows you to use normal editing commands on dired
 buffers to change filenames, permissions, etc...
 
