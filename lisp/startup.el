@@ -954,8 +954,8 @@ using the mouse.\n\n"
 	   :face (variable-pitch :weight bold)
 	   "Useful Files menu items:\n"
 	   :face variable-pitch "\
-Exit Emacs		(or type Control-x followed by Control-c)
-Recover Session		recover files you were editing before a crash
+Exit Emacs\t(or type Control-x followed by Control-c)
+Recover Session\trecover files you were editing before a crash
 
 
 "
@@ -966,14 +966,14 @@ using the mouse.\n\n"
 	   :face (variable-pitch :weight bold)
 	   "Important Help menu items:\n"
 	   :face variable-pitch "\
-Emacs Tutorial		Learn-by-doing tutorial for using Emacs efficiently.
-Emacs FAQ		Frequently asked questions and answers
-\(Non)Warranty		GNU Emacs comes with "
+Emacs Tutorial\tLearn-by-doing tutorial for using Emacs efficiently.
+Emacs FAQ\tFrequently asked questions and answers
+\(Non)Warranty\tGNU Emacs comes with "
 	   :face (variable-pitch :slant oblique)
 	   "ABSOLUTELY NO WARRANTY\n"
 	   :face variable-pitch
 	   "\
-Copying Conditions	Conditions for redistributing and changing Emacs\n"))
+Copying Conditions\tConditions for redistributing and changing Emacs\n"))
   "A list of texts to show in the middle part of splash screens.
 Each element in the list should be a list of strings or pairs
 `:face FACE', like `fancy-splash-insert' accepts them.")
@@ -1103,6 +1103,7 @@ where FACE is a valid face specification, as it can be used with
   "Display fancy splash screens when Emacs starts."
   (setq fancy-splash-help-echo (startup-echo-area-message))
   (switch-to-buffer "GNU Emacs")
+  (setq tab-width 20)
   (let ((old-busy-cursor display-busy-cursor)
 	(splash-buffer (current-buffer))
 	timer)
