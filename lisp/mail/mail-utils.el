@@ -78,7 +78,6 @@ Return a modified address list."
        (if (string-match "[ \t]*(\\([^)\\]\\|\\\\.\\|\\\\\n\\)*(" address)
 	   ;; Strip nested comments.
 	   (save-excursion
-	     (debug)
 	     (set-buffer (get-buffer-create " *temp*"))
 	     (erase-buffer)
 	     (insert address)
