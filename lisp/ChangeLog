@@ -1,5 +1,13 @@
 2000-07-25  Sam Steingold  <sds@gnu.org>
 
+	* net/ange-ftp.el: Get modtime over the net.
+	(ange-ftp-file-modtime): New function.
+	(ange-ftp-write-region, ange-ftp-insert-file-contents,
+	ange-ftp-file-attributes, ange-ftp-verify-visited-file-modtime):
+	Use it.
+	(ange-ftp-dot-to-slash): New function.
+	(ange-ftp-fix-name-for-vms): Use it.
+
 	* midnight.el (midnight-buffer-display-time): Use
 	`with-current-buffer'.
 
