@@ -338,6 +338,7 @@ read_c_string_or_comment (infile, printflag, comment, saw_usage)
      FILE *infile;
      int printflag;
      int *saw_usage;
+     int comment;
 {
   register int c;
   struct rcsoc_state state;
