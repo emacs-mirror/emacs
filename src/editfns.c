@@ -328,6 +328,149 @@ If you set the marker not to point anywhere, the buffer will have no mark.  */)
 }
 
 
+/* Find all the overlays in the current buffer that touch position POS.
+   Return the number found, and store them in a vector in VEC
+   of length LEN.  */
+
+static int
+overlays_around (pos, vec, len)
+     int pos;
+     Lisp_Object *vec;
+     int len;
+{
+  Lisp_Object tail, overlay, start, end;
+  int startpos, endpos;
+  int idx = 0;
+
+  for (tail = current_buffer->overlays_before;
+       GC_CONSP (tail);
+       tail = XCDR (tail))
+    {
+      overlay = XCAR (tail);
+
+      end = OVERLAY_END (overlay);
+      endpos = OVERLAY_POSITION (end);
+      if (endpos < pos)
+	  break;
+      start = OVERLAY_START (overlay);
+      startpos = OVERLAY_POSITION (start);
+      if (startpos <= pos)
+	{
+	  if (idx < len)
+	    vec[idx] = overlay;
+	  /* Keep counting overlays even if we can't return them all.  */
+	  idx++;
+	}
+    }
+
+  for (tail = current_buffer->overlays_after;
+       GC_CONSP (tail);
+       tail = XCDR (tail))
+    {
+      overlay = XCAR (tail);
+
+      start = OVERLAY_START (overlay);
+      startpos = OVERLAY_POSITION (start);
+      if (pos < startpos)
+	break;
+      end = OVERLAY_END (overlay);
+      endpos = OVERLAY_POSITION (end);
+      if (pos <= endpos)
+	{
+	  if (idx < len)
+	    vec[idx] = overlay;
+	  idx++;
+	}
+    }
+
+  return idx;
+}
+
+/* Return the value of property PROP, in OBJECT at POSITION.
+   It's the value of PROP that a char inserted at POSITION would get.
+   OBJECT is optional and defaults to the current buffer.
+   If OBJECT is a buffer, then overlay properties are considered as well as
+   text properties.
+   If OBJECT is a window, then that window's buffer is used, but
+   window-specific overlays are considered only if they are associated
+   with OBJECT. */
+static Lisp_Object
+get_pos_property (position, prop, object)
+     Lisp_Object position, object;
+     register Lisp_Object prop;
+{
+  struct window *w = 0;
+
+  CHECK_NUMBER_COERCE_MARKER (position);
+
+  if (NILP (object))
+    XSETBUFFER (object, current_buffer);
+
+  if (WINDOWP (object))
+    {
+      w = XWINDOW (object);
+      object = w->buffer;
+    }
+  if (BUFFERP (object))
+    {
+      int posn = XINT (position);
+      int noverlays;
+      Lisp_Object *overlay_vec, tem;
+      struct buffer *obuf = current_buffer;
+
+      set_buffer_temp (XBUFFER (object));
+
+      /* First try with room for 40 overlays.  */
+      noverlays = 40;
+      overlay_vec = (Lisp_Object *) alloca (noverlays * sizeof (Lisp_Object));
+      noverlays = overlays_around (posn, overlay_vec, noverlays);
+
+      /* If there are more than 40,
+	 make enough space for all, and try again.  */
+      if (noverlays > 40)
+	{
+	  overlay_vec = (Lisp_Object *) alloca (noverlays * sizeof (Lisp_Object));
+	  noverlays = overlays_around (posn, overlay_vec, noverlays);
+	}
+      noverlays = sort_overlays (overlay_vec, noverlays, NULL);
+
+      set_buffer_temp (obuf);
+
+      /* Now check the overlays in order of decreasing priority.  */
+      while (--noverlays >= 0)
+	{
+	  Lisp_Object ol = overlay_vec[noverlays];
+	  tem = Foverlay_get (ol, prop);
+	  if (!NILP (tem))
+	    {
+	      /* Check the overlay is indeed active at point.  */
+	      Lisp_Object start = OVERLAY_START (ol), finish = OVERLAY_END (ol);
+	      if ((OVERLAY_POSITION (start) == posn
+		   && XMARKER (start)->insertion_type == 1)
+		  || (OVERLAY_POSITION (finish) == posn
+		      && XMARKER (finish)->insertion_type == 0))
+		; /* The overlay will not cover a char inserted at point.  */
+	      else
+		{
+		  return tem;
+		}
+	    }
+	}
+      
+    }
+
+  { /* Now check the text-properties.  */
+    int stickiness = text_property_stickiness (Qfield, position);
+    if (stickiness > 0)
+      return Fget_text_property (position, Qfield, Qnil);
+    else if (stickiness < 0 && XINT (position) > BEGV)
+      return Fget_text_property (make_number (XINT (position) - 1),
+				 Qfield, Qnil);
+    else
+      return Qnil;
+  }
+}
+
 /* Find the field surrounding POS in *BEG and *END.  If POS is nil,
    the value of point is used instead.  If BEG or END null,
    means don't store the beginning or end of the field.
@@ -357,9 +500,6 @@ find_field (pos, merge_at_boundary, beg_limit, beg, end_limit, end)
 {
   /* Fields right before and after the point.  */
   Lisp_Object before_field, after_field;
-  /* If the fields came from overlays, the associated overlays.
-     Qnil means they came from text-properties.  */
-  Lisp_Object before_overlay = Qnil, after_overlay = Qnil;
   /* 1 if POS counts as the start of a field.  */
   int at_field_start = 0;
   /* 1 if POS counts as the end of a field.  */
@@ -371,12 +511,11 @@ find_field (pos, merge_at_boundary, beg_limit, beg, end_limit, end)
     CHECK_NUMBER_COERCE_MARKER (pos);
 
   after_field
-    = get_char_property_and_overlay (pos, Qfield, Qnil, &after_overlay);
+    = get_char_property_and_overlay (pos, Qfield, Qnil, NULL);
   before_field
     = (XFASTINT (pos) > BEGV
        ? get_char_property_and_overlay (make_number (XINT (pos) - 1),
-					Qfield, Qnil,
-					&before_overlay)
+					Qfield, Qnil, NULL)
        : Qnil);
 
   /* See if we need to handle the case where MERGE_AT_BOUNDARY is nil
@@ -385,62 +524,13 @@ find_field (pos, merge_at_boundary, beg_limit, beg, end_limit, end)
      MERGE_AT_BOUNDARY is non-nil (see function comment) is actually the
      more natural one; then we avoid treating the beginning of a field
      specially.  */
-  if (NILP (merge_at_boundary) && !EQ (after_field, before_field))
-    /* We are at a boundary, see which direction is inclusive.  We
-       decide by seeing which field the `field' property sticks to.  */
+  if (NILP (merge_at_boundary))
     {
-      /* -1 means insertions go into before_field, 1 means they go
-	 into after_field, 0 means neither.  */
-      int stickiness;
-      /* Whether the before/after_field come from overlays.  */
-      int bop = !NILP (before_overlay);
-      int aop = !NILP (after_overlay);
-
-      if (bop && XMARKER (OVERLAY_END (before_overlay))->insertion_type == 1)
-	/* before_field is from an overlay, which expands upon
-	   end-insertions.  Note that it's possible for after_overlay to
-	   also eat insertions here, but then they will overlap, and
-	   there's not much we can do.  */
-	stickiness = -1;
-      else if (aop
-	       && XMARKER (OVERLAY_START (after_overlay))->insertion_type == 0)
-	/* after_field is from an overlay, which expand to contain
-	   start-insertions.  */
-	stickiness = 1;
-      else if (bop && aop)
-	/* Both fields come from overlays, but neither will contain any
-	   insertion here.  */
-	stickiness = 0;
-      else if (bop)
-	/* before_field is an overlay that won't eat any insertion, but
-	   after_field is from a text-property.  Assume that the
-	   text-property continues underneath the overlay, and so will
-	   be inherited by any insertion, regardless of any stickiness
-	   settings.  */
-	stickiness = 1;
-      else if (aop)
-	/* Similarly, when after_field is the overlay.  */
-	stickiness = -1;
-      else
-	/* Both fields come from text-properties.  Look for explicit
-	   stickiness properties.  */
-	stickiness = text_property_stickiness (Qfield, pos);
-
-      if (stickiness > 0)
-	at_field_start = 1;
-      else if (stickiness < 0)
+      Lisp_Object field = get_pos_property (pos, Qfield, Qnil);
+      if (!EQ (field, after_field))
 	at_field_end = 1;
-      else
-	/* STICKINESS == 0 means that any inserted text will get a
-	   `field' char-property of nil, so check to see if that
-	   matches either of the adjacent characters (this being a
-	   kind of "stickiness by default").  */
-	{
-	  if (NILP (before_field))
-	    at_field_end = 1; /* Sticks to the left.  */
-	  else if (NILP (after_field))
-	    at_field_start = 1; /* Sticks to the right.  */
-	}
+      if (!EQ (field, before_field))
+	at_field_start = 1;
     }
 
   /* Note about special `boundary' fields:
@@ -474,14 +564,15 @@ find_field (pos, merge_at_boundary, beg_limit, beg, end_limit, end)
       else
 	/* Find the previous field boundary.  */
 	{
+	  Lisp_Object p = pos;
 	  if (!NILP (merge_at_boundary) && EQ (before_field, Qboundary))
 	    /* Skip a `boundary' field.  */
-	    pos = Fprevious_single_char_property_change (pos, Qfield, Qnil,
-							 beg_limit);
-
-	  pos = Fprevious_single_char_property_change (pos, Qfield, Qnil,
+	    p = Fprevious_single_char_property_change (p, Qfield, Qnil,
 						       beg_limit);
-	  *beg = NILP (pos) ? BEGV : XFASTINT (pos);
+
+	  p = Fprevious_single_char_property_change (p, Qfield, Qnil,
+						     beg_limit);
+	  *beg = NILP (p) ? BEGV : XFASTINT (p);
 	}
     }
 
@@ -2930,7 +3021,7 @@ usage: (message STRING &rest ARGS)  */)
   else
     {
       register Lisp_Object val;
-      val = Fformat (nargs, args);
+      val = nargs < 2 && STRINGP (args[0]) ? args[0] : Fformat (nargs, args);
       message3 (val, SBYTES (val), STRING_MULTIBYTE (val));
       return val;
     }
