@@ -444,14 +444,18 @@ C-w print information on absence of warranty for GNU Emacs."
 		(and (symbolp obj) (fboundp obj) obj))))
 	(error nil))
       (condition-case ()
-	  (save-excursion
-	    (or (not (zerop (skip-syntax-backward "_w")))
-		(eq (char-syntax (following-char)) ?w)
-		(eq (char-syntax (following-char)) ?_)
-		(forward-sexp -1))
-	    (skip-chars-forward "'")
-	    (let ((obj (read (current-buffer))))
-	      (and (symbolp obj) (fboundp obj) obj)))
+	  (let ((stab (syntax-table)))
+	    (unwind-protect
+		(save-excursion
+		  (set-syntax-table emacs-lisp-mode-syntax-table)
+		  (or (not (zerop (skip-syntax-backward "_w")))
+		      (eq (char-syntax (following-char)) ?w)
+		      (eq (char-syntax (following-char)) ?_)
+		      (forward-sexp -1))
+		  (skip-chars-forward "'")
+		  (let ((obj (read (current-buffer))))
+		    (and (symbolp obj) (fboundp obj) obj)))
+	      (set-syntax-table stab)))
 	(error nil))))
 
 (defun describe-function-find-file (function)
@@ -542,14 +546,18 @@ C-w print information on absence of warranty for GNU Emacs."
 
 (defun variable-at-point ()
   (condition-case ()
-      (save-excursion
-	(or (not (zerop (skip-syntax-backward "_w")))
-	    (eq (char-syntax (following-char)) ?w)
-	    (eq (char-syntax (following-char)) ?_)
-	    (forward-sexp -1))
-	(skip-chars-forward "'")
-	(let ((obj (read (current-buffer))))
-	  (and (symbolp obj) (boundp obj) obj)))
+      (let ((stab (syntax-table)))
+	(unwind-protect
+	    (save-excursion
+	      (set-syntax-table emacs-lisp-mode-syntax-table)
+	      (or (not (zerop (skip-syntax-backward "_w")))
+		  (eq (char-syntax (following-char)) ?w)
+		  (eq (char-syntax (following-char)) ?_)
+		  (forward-sexp -1))
+	      (skip-chars-forward "'")
+	      (let ((obj (read (current-buffer))))
+		(and (symbolp obj) (boundp obj) obj)))
+	  (set-syntax-table stab)))
     (error nil)))
 
 (defun describe-variable (variable)
