@@ -165,6 +165,10 @@ contains font support for most, if not all, of the charsets that Emacs
 supports.  The font files should be usable separately with older X
 releases.
 
+BDF fonts etl-unicode.tar.gz used by ps-print and ps-mule to print
+Unicode characters are available from <URL:ftp://ftp.x.org/contrib/fonts/>
+and <URL:ftp://ftp.xfree86.org/pub/X.Org/contrib/fonts/>.
+
 
 DETAILED BUILDING AND INSTALLATION:
 
