@@ -1895,11 +1895,18 @@ is specified, returning t if it is specified."
 (put 'ignored-local-variables 'risky-local-variable t)
 (put 'eval 'risky-local-variable t)
 (put 'file-name-handler-alist 'risky-local-variable t)
+(put 'minor-mode-alist 'risky-local-variable t)
 (put 'minor-mode-map-alist 'risky-local-variable t)
+(put 'minor-mode-overriding-map-alist 'risky-local-variable t)
+(put 'overriding-local-map 'risky-local-variable t)
+(put 'overriding-terminal-local-map 'risky-local-variable t)
+(put 'auto-mode-alist 'risky-local-variable t)
 (put 'after-load-alist 'risky-local-variable t)
 (put 'buffer-file-name 'risky-local-variable t)
+(put 'buffer-undo-list 'risky-local-variable t)
 (put 'buffer-auto-save-file-name 'risky-local-variable t)
 (put 'buffer-file-truename 'risky-local-variable t)
+(put 'default-text-properties 'risky-local-variable t)
 (put 'exec-path 'risky-local-variable t)
 (put 'load-path 'risky-local-variable t)
 (put 'exec-directory 'risky-local-variable t)
@@ -1910,6 +1917,20 @@ is specified, returning t if it is specified."
 (put 'outline-level 'risky-local-variable t)
 (put 'rmail-output-file-alist 'risky-local-variable t)
 (put 'font-lock-defaults 'risky-local-variable t)
+(put 'special-display-buffer-names 'risky-local-variable t)
+(put 'frame-title-format 'risky-local-variable t)
+(put 'global-mode-string 'risky-local-variable t)
+(put 'header-line-format 'risky-local-variable t)
+(put 'icon-title-format 'risky-local-variable t)
+(put 'input-method-alist 'risky-local-variable t)
+(put 'vc-mode 'risky-local-variable t)
+(put 'imenu-generic-expression 'risky-local-variable t)
+(put 'imenu-index-alist 'risky-local-variable t)
+(put 'standard-input 'risky-local-variable t)
+(put 'standard-output 'risky-local-variable t)
+(put 'unread-command-events 'risky-local-variable t)
+(put 'max-lisp-eval-depth 'risky-local-variable t)
+(put 'max-specpdl-size 'risky-local-variable t)
 
 ;; This one is safe because the user gets to check it before it is used.
 (put 'compile-command 'safe-local-variable t)
@@ -1919,7 +1940,8 @@ is specified, returning t if it is specified."
 
 (defun hack-one-local-variable (var val)
   "\"Set\" one variable in a local variables spec.
-A few variable names are treated specially."
+A few patterns are specified so that any name which matches one
+is considered risky."
   (cond ((eq var 'mode)
 	 (funcall (intern (concat (downcase (symbol-name val))
 				  "-mode"))))
@@ -1932,7 +1954,7 @@ A few variable names are treated specially."
 	;; Likewise for setting hook variables.
 	((or (get var 'risky-local-variable)
 	     (and
-	      (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|-command$\\|-predicate$\\|font-lock-keywords$\\|font-lock-keywords-[0-9]+$\\|font-lock-syntactic-keywords$"
+	      (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|-command$\\|-predicate$\\|font-lock-keywords$\\|font-lock-keywords-[0-9]+$\\|font-lock-syntactic-keywords$\\|-frame-alist$\\|-mode-alist$\\|-map$\\|-map-alist$\\|^mode-line"
 			    (symbol-name var))
 	      (not (get var 'safe-local-variable))))
 	 ;; Permit evalling a put of a harmless property.
