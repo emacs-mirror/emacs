@@ -240,7 +240,7 @@ FILE			visit FILE using find-file\n\
 --load, -l FILE		load FILE of Emacs Lisp code using the load function\n\
 --visit FILE		visit FILE\n\
 \n\
-X window system options:\n\
+Display options:\n\
 \n\
 --background-color, -bg COLOR	window background color\n\
 --border-color, -bd COLOR	main border color\n\
