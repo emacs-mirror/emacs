@@ -37,9 +37,6 @@ invalid pointer from string_free_list.
 
 ** Fix up url-ldap.el.
 
-** url/*.el has lots of `(declare (special ...))' which
-are meaningless.  What's that trying to do?
-
 * BUGS
 
 ** Ange-ftp should ignore irrelevant IPv6 errors:
