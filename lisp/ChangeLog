@@ -1,3 +1,7 @@
+2005-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* autoinsert.el: find-file-hooks -> find-file-hook.
+
 2005-03-24  Lute Kamstra  <lute@gnu.org>
 
 	* generic.el (generic-font-lock-defaults): Make it obsolete.
@@ -20,6 +24,11 @@
 	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression):
 	Recognize define-generic-mode.
 
+2005-03-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* icomplete.el (icomplete-simple-completing-p): Don't turn on icomplete
+	if there's no completion table.
+
 2005-03-23  Miles Bader  <miles@gnu.org>
 
 	* progmodes/gdb-ui.el (breakpoint-enabled, breakpoint-disabled):
@@ -27,8 +36,7 @@
 
 2005-03-23  Lute Kamstra  <lute@gnu.org>
 
-	* generic-x.el: Code cleanup: make arguments constant whenever
-	possible.
+	* generic-x.el: Code cleanup: make args constant whenever possible.
 	(installshield-statement-keyword-list)
 	(installshield-system-functions-list)
 	(installshield-system-variables-list, installshield-types-list)
@@ -36,8 +44,8 @@
 
 	* generic.el (generic-make-keywords-list): Add autoload cookie.
 
-	* calendar/time-date.el: Add comment on time value formats.  Don't
-	require parse-time.
+	* calendar/time-date.el: Add comment on time value formats.
+	Don't require parse-time.
 	(with-decoded-time-value): New macro.
 	(encode-time-value): New function.
 	(time-to-seconds, time-less-p, time-subtract, time-add): Use them.
@@ -56,8 +64,8 @@
 	(recentf-include-p): More robust.
 	(recentf-keep-p): New function.
 	(recentf-remove-if-non-kept): Rename from
-	`recentf-remove-if-non-readable'. Use `recentf-keep-p'. All
-	callers updated.
+	`recentf-remove-if-non-readable'. Use `recentf-keep-p'.
+	All callers updated.
 	(recentf-menu-items-for-commands): Fix help string.
 	(recentf-track-closed-file): Update. Doc fix.
 	(recentf-cleanup): Update. Count removed files. Doc fix.
