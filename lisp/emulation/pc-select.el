@@ -728,9 +728,22 @@ but before calling pc-selection-mode):
   (or pc-select-selection-keys-only
       (progn
 	;; We are behaving like normal-erase-is-backspace-mode, so
-	;; say so explicitly.
-	(setq-default normal-erase-is-backspace t)
-	(normal-erase-is-backspace-mode 1)
+	;; say so explicitly.  But don't do that on a Unix tty, since
+	;; some of them have keyboards that by default already behave
+	;; as if normal-erase-is-backspace mode is on, and turning it
+	;; a second time screws them up.
+	(if (or (eq window-system 'x)
+		(memq system-name '(ms-dos windows-nt)))
+	    (progn
+	      (setq-default normal-erase-is-backspace t)
+	      (normal-erase-is-backspace-mode 1))
+	  ;; This is for tty.  We don't turn on normal-erase-is-backspace,
+	  ;; but bind keys as pc-selection-mode did before
+	  ;; normal-erase-is-backspace was invented, to keep us back
+	  ;; compatible.
+	  (global-set-key [delete] 'delete-char)  ; KDelete       Del
+	  (define-key function-key-map  [M-delete] [?\M-d])
+	  (global-set-key [C-backspace] 'backward-kill-word))
 	(define-key global-map [S-insert]  'yank)
 	(define-key global-map [C-insert]  'copy-region-as-kill)
 	(define-key global-map [S-delete]  'kill-region)
