@@ -324,7 +324,7 @@ generic-x to enable the specified modes."
      (generic-make-keywords-list
       '("for"
 	"if")
-      'font-lock-keyword-face "^[@ \t]*")
+      font-lock-keyword-face "^[@ \t]*")
      ;; These keywords can be anywhere on a line
      ;; In `generic-bat-mode-setup-function' we make the keywords
      ;; case-insensitive
@@ -334,7 +334,7 @@ generic-x to enable the specified modes."
 	"errorlevel"
 	"goto"
 	"not")
-      'font-lock-keyword-face)
+      font-lock-keyword-face)
      ;; These are built-in commands.  Only frequently-used ones are listed.
      (generic-make-keywords-list
       '("CALL"	    "call"	 "Call"
@@ -352,7 +352,7 @@ generic-x to enable the specified modes."
 	"SET"	    "set"	 "Set"
 	"START"	    "start"	 "Start"
 	"SHIFT"	    "shift"	 "Shift")
-      'font-lock-builtin-face "[ \t|\n]")
+      font-lock-builtin-face "[ \t|\n]")
      '("^[ \t]*\\(:\\sw+\\)"         1 font-lock-function-name-face t)
      '("\\(%\\sw+%\\)"               1 font-lock-variable-name-face t)
      '("\\(%[0-9]\\)"                1 font-lock-variable-name-face t)
@@ -410,11 +410,11 @@ generic-x to enable the specified modes."
 ;; Make underscores count as words
 (unless bat-generic-mode-syntax-table
   (setq bat-generic-mode-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?_ "w"  bat-generic-mode-syntax-table))
+  (modify-syntax-entry ?_ "w" bat-generic-mode-syntax-table))
 
-;; bat-generic-mode doesn't use the comment functionality of generic-mode
-;; because it has a three-letter comment-string, so we do it
-;; here manually instead
+;; bat-generic-mode doesn't use the comment functionality of
+;; define-generic-mode because it has a three-letter comment-string,
+;; so we do it here manually instead
 (defun generic-bat-mode-setup-function ()
   (make-local-variable 'parse-sexp-ignore-comments)
   (make-local-variable 'comment-start)
@@ -427,7 +427,7 @@ generic-x to enable the specified modes."
 	comment-start-skip "[Rr][Ee][Mm] *")
   (set-syntax-table bat-generic-mode-syntax-table)
   ;; Make keywords case-insensitive
-  (setq font-lock-defaults '(generic-font-lock-defaults nil t))
+  (setq font-lock-defaults '(generic-font-lock-keywords nil t))
   (use-local-map bat-generic-mode-keymap)))
 
 ;;; Mailagent
@@ -441,13 +441,12 @@ generic-x to enable the specified modes."
   '(("^\\(\\sw+\\)\\s-*="         1 font-lock-variable-name-face)
     ("\\s-/\\([^/]+\\)/[i, \t\n]" 1 font-lock-constant-face))
   '("\\.rules\\'")
-  '(mailagent-rules-setup-function)
-  "Mode for Mailagent rules files.")
-
-(defun mailagent-rules-setup-function ()
-  (make-local-variable 'imenu-generic-expression)
-  (setq imenu-generic-expression
-	'((nil "\\s-/\\([^/]+\\)/[i, \t\n]" 1)))))
+  (list
+   (function
+    (lambda ()
+      (setq imenu-generic-expression
+	    '((nil "\\s-/\\([^/]+\\)/[i, \t\n]" 1))))))
+  "Mode for Mailagent rules files."))
 
 ;; Solaris/Sys V prototype files
 (when (memq 'prototype-generic-mode generic-extras-enable-list)
@@ -752,13 +751,13 @@ generic-x to enable the specified modes."
 	"FILETYPE"
 	"FILEVERSION"
 	"PRODUCTVERSION")
-      'font-lock-type-face)
+      font-lock-type-face)
      (generic-make-keywords-list
       '("BEGIN"
 	"BLOCK"
 	"END"
 	"VALUE")
-      'font-lock-function-name-face)
+      font-lock-function-name-face)
      '("^#[ \t]*include[ \t]+\\(<[^>\"\n]+>\\)" 1 font-lock-string-face)
      '("^#[ \t]*define[ \t]+\\(\\sw+\\)("       1 font-lock-function-name-face)
      '("^#[ \t]*\\(elif\\|if\\)\\>"
@@ -1375,19 +1374,19 @@ generic-x to enable the specified modes."
      ;; system variables
      (generic-make-keywords-list
       installshield-system-variables-list
-      'font-lock-variable-name-face "[^_]" "[^_]")
+      font-lock-variable-name-face "[^_]" "[^_]")
      ;; system functions
      (generic-make-keywords-list
       installshield-system-functions-list
-      'font-lock-function-name-face "[^_]" "[^_]")
+      font-lock-function-name-face "[^_]" "[^_]")
      ;; type keywords
      (generic-make-keywords-list
       installshield-types-list
-      'font-lock-type-face "[^_]" "[^_]")
+      font-lock-type-face "[^_]" "[^_]")
      ;; function argument constants
      (generic-make-keywords-list
       installshield-funarg-constants-list
-      'font-lock-variable-name-face "[^_]" "[^_]"))) ; is this face the best choice?
+      font-lock-variable-name-face "[^_]" "[^_]"))) ; is this face the best choice?
   '("\\.[rR][uU][lL]$")
   '(generic-rul-mode-setup-function)
   "Generic mode for InstallShield RUL files.")
@@ -1429,9 +1428,11 @@ generic-x to enable the specified modes."
     "source"
     "unset")
   '(("^\\s-*\\(alias\\|group\\)\\s-+\\([-A-Za-z0-9_]+\\)\\s-+\\([^\n\r#]*\\)\\(#.*\\)?$"
-     (2 font-lock-constant-face) (3 font-lock-variable-name-face))
+     (2 font-lock-constant-face)
+     (3 font-lock-variable-name-face))
     ("^\\s-*\\(unset\\|set\\|ignore\\)\\s-+\\([-A-Za-z0-9_]+\\)=?\\([^\n\r#]*\\)\\(#.*\\)?$"
-     (2 font-lock-constant-face) (3 font-lock-variable-name-face))
+     (2 font-lock-constant-face)
+     (3 font-lock-variable-name-face))
     ("^\\s-*\\(source\\)\\s-+\\([^\n\r#]*\\)\\(#.*\\)?$"
      (2 font-lock-variable-name-face)))
   '("\\.mailrc\\'")
@@ -1569,32 +1570,34 @@ generic-x to enable the specified modes."
 	    '((nil "^\\([/-A-Za-z0-9_]+\\)\\s-+" 1))))))))
 
 ;; From Jacques Duthen <jacques.duthen@sncf.fr>
-(defvar show-tabs-generic-mode-font-lock-defaults-1
-  '(;; trailing spaces must come before...
-    ("[ \t]+$" . show-tabs-space-face)
-    ;; ...embedded tabs
-    ("[^\n\t]\\(\t+\\)" (1 show-tabs-tab-face))))
+(eval-when-compile
 
-(defvar show-tabs-generic-mode-font-lock-defaults-2
+(defconst show-tabs-generic-mode-font-lock-defaults-1
   '(;; trailing spaces must come before...
-    ("[ \t]+$" . show-tabs-space-face)
+    ("[ \t]+$" . 'show-tabs-space-face)
+    ;; ...embedded tabs
+    ("[^\n\t]\\(\t+\\)" (1 'show-tabs-tab-face))))
+
+(defconst show-tabs-generic-mode-font-lock-defaults-2
+  '(;; trailing spaces must come before...
+    ("[ \t]+$" . 'show-tabs-space-face)
     ;; ...tabs
-    ("\t+" . show-tabs-tab-face)))
+    ("\t+" . 'show-tabs-tab-face))))
 
 (defface show-tabs-tab-face
-  '((((class grayscale) (background light)) (:foreground "LightGray" :weight bold))
-    (((class grayscale) (background dark))  (:foreground "DimGray"   :weight bold))
-    (((class color)     (background light)) (:foreground "red"))
-    (((class color)     (background dark))  (:foreground "red"))
+  '((((class grayscale) (background light)) (:background "DimGray"   :weight bold))
+    (((class grayscale) (background dark))  (:background "LightGray" :weight bold))
+    (((class color)     (background light)) (:background "red"))
+    (((class color)     (background dark))  (:background "red"))
     (t (:weight bold)))
   "Font Lock mode face used to highlight TABs."
   :group 'show-tabs)
 
 (defface show-tabs-space-face
-  '((((class grayscale) (background light)) (:foreground "LightGray" :weight bold))
-    (((class grayscale) (background dark))  (:foreground "DimGray"   :weight bold))
-    (((class color)     (background light)) (:foreground "yellow"))
-    (((class color)     (background dark))  (:foreground "yellow"))
+  '((((class grayscale) (background light)) (:background "DimGray"   :weight bold))
+    (((class grayscale) (background dark))  (:background "LightGray" :weight bold))
+    (((class color)     (background light)) (:background "yellow"))
+    (((class color)     (background dark))  (:background "yellow"))
     (t (:weight bold)))
   "Font Lock mode face used to highlight spaces."
   :group 'show-tabs)
@@ -1602,7 +1605,7 @@ generic-x to enable the specified modes."
 (define-generic-mode show-tabs-generic-mode
   nil ;; no comment char
   nil ;; no keywords
-  show-tabs-generic-mode-font-lock-defaults-1
+  (eval-when-compile show-tabs-generic-mode-font-lock-defaults-1)
   nil ;; no auto-mode-alist
   ;; '(show-tabs-generic-mode-hook-fun)
   nil
@@ -1701,7 +1704,7 @@ generic-x to enable the specified modes."
    ;; Make keywords case-insensitive
    (function
     (lambda()
-      (setq font-lock-defaults '(generic-font-lock-defaults nil t)))))
+      (setq font-lock-defaults '(generic-font-lock-keywords nil t)))))
   "Generic mode for SPICE circuit netlist files.")
 
 (define-generic-mode ibis-generic-mode
@@ -1745,7 +1748,7 @@ generic-x to enable the specified modes."
    ;; Make keywords case-insensitive
    (function
     (lambda()
-      (setq font-lock-defaults '(generic-font-lock-defaults nil t)))))
+      (setq font-lock-defaults '(generic-font-lock-keywords nil t)))))
   "Generic mode for ASTAP circuit netlist files.")
 
 (define-generic-mode etc-modules-conf-generic-mode
