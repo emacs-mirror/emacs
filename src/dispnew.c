@@ -1886,6 +1886,10 @@ the current state.\n")
   FOR_EACH_FRAME (tail, frame)
     if (!EQ (*vecp++, frame))
       goto changed;
+  /* Check that the buffer info matches.
+     No need to test for the end of the vector
+     because the last element of the vector is lambda
+     and that will always cause a mismatch.  */
   for (tail = Vbuffer_alist; CONSP (tail); tail = XCONS (tail)->cdr)
     {
       buf = XCONS (XCONS (tail)->car)->cdr;
@@ -1896,8 +1900,11 @@ the current state.\n")
       if (!EQ (*vecp++, Fbuffer_modified_p (buf)))
 	goto changed;
     }
-  return Qnil;
+  /* Detect deletion of a buffer at the end of the list.  */
+  if (*vecp == Qlambda)
+    return Qnil;
  changed:
+  /* Start with 1 so there is room for at least on lambda at the end.  */
   n = 1;
   FOR_EACH_FRAME (tail, frame)
     n++;
