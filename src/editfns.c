@@ -693,7 +693,7 @@ ZONE is an integer indicating the number of seconds east of Greenwich.\n\
   XSETFASTINT (list_args[2], decoded_time->tm_hour);
   XSETFASTINT (list_args[3], decoded_time->tm_mday);
   XSETFASTINT (list_args[4], decoded_time->tm_mon + 1);
-  XSETFASTINT (list_args[5], decoded_time->tm_year + 1900);
+  XSETINT (list_args[5], decoded_time->tm_year + 1900);
   XSETFASTINT (list_args[6], decoded_time->tm_wday);
   list_args[7] = (decoded_time->tm_isdst)? Qt : Qnil;
 
@@ -828,14 +828,17 @@ difftm (a, b)
 {
   int ay = a->tm_year + (TM_YEAR_ORIGIN - 1);
   int by = b->tm_year + (TM_YEAR_ORIGIN - 1);
+  /* Divide years by 100, rounding towards minus infinity.  */
+  int ac = ay / 100 - (ay % 100 < 0);
+  int bc = by / 100 - (by % 100 < 0);
   /* Some compilers can't handle this as a single return statement.  */
   long days = (
 	      /* difference in day of year */
 	      a->tm_yday - b->tm_yday
 	      /* + intervening leap days */
 	      +  ((ay >> 2) - (by >> 2))
-	      -  (ay/100 - by/100)
-	      +  ((ay/100 >> 2) - (by/100 >> 2))
+	      -  (ac - bc)
+	      +  ((ac >> 2) - (bc >> 2))
 	      /* + difference in years * 365 */
 	      +  (long)(ay-by) * 365
 	      );
