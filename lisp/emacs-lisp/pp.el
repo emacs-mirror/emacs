@@ -87,6 +87,7 @@ that `read' can handle, whenever this is possible."
 	  (buffer-string))
       (kill-buffer (current-buffer)))))
 
+;;;###autoload
 (defun pp (object &optional stream)
   "Output the pretty-printed representation of OBJECT, any Lisp object.
 Quoting characters are printed when needed to make output that `read'
@@ -94,6 +95,7 @@ can handle, whenever this is possible.
 Output stream is STREAM, or value of `standard-output' (which see)."
   (princ (pp-to-string object) (or stream standard-output)))
 
+;;;###autoload
 (defun pp-eval-expression (expression)
   "Evaluate EXPRESSION and pretty-print value into a new display buffer.
 If the pretty-printed value fits on one line, the message line is used
@@ -129,6 +131,7 @@ value."
       (set-buffer "*Pp Eval Output*")
       (emacs-lisp-mode))))
 
+;;;###autoload
 (defun pp-eval-last-sexp (arg)
   "Run `pp-eval-expression' on sexp before point (which see).
 With argument, pretty-print output into current buffer.
