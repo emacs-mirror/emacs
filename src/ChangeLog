@@ -9,6 +9,14 @@
 	Initialize these arrays to nonzero, so that they're not
 	put into BSS by that optimization.
 
+2003-07-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* alloc.c (BLOCK_PADDING): Rename from ABLOCKS_PADDING.  Update users.
+	(lisp_align_malloc): Use posix_memalign is available.
+	(ABLOCKS_BASE): Use HAVE_POSIX_MEMALIGN as an optimization.
+	(STRING_BLOCK_SIZE): Rename from STRINGS_IN_STRING_BLOCK
+	for consistency.  Update users.
+
 2003-07-13  Richard M. Stallman  <rms@gnu.org>
 
 	* s/netbsd.h (START_FILES_1, END_FILES_1): Always define them.
@@ -41,12 +49,12 @@
 	* s/netbsd.h (START_FILES, LIB_STANDARD): Use START_FILES_1,
 	END_FILES_1.
 	(START_FILES_1, END_FILES_1): New macros (conditional).
-	(LD_SWITCH_SYSTEM_TEMACS): Defined.
+	(LD_SWITCH_SYSTEM_TEMACS): Define.
 
 	* s/openbsd.h: Don't include bsd4-3.h.
-	(TERMINFO): Defined.
-	(LIBS_TERMCAP): Defined.
-	(LD_SWITCH_SYSTEM): Defined (two definitions).
+	(TERMINFO): Define.
+	(LIBS_TERMCAP): Define.
+	(LD_SWITCH_SYSTEM): Define (two definitions).
 
 	* xfns.c: Include libpng/png.h instead of png.h.
 
