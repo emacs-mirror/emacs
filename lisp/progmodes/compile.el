@@ -955,7 +955,10 @@ The current buffer should be the desired compilation output buffer."
   "Jump to an error locus returned by `compilation-next-error-locus'.
 Takes one argument, a cons (ERROR . SOURCE) of two markers.
 Selects a window with point at SOURCE, with another window displaying ERROR."
-  (switch-to-buffer (marker-buffer (cdr next-error)))
+  (if (and (window-dedicated-p (selected-window))
+	   (eq (selected-window) (frame-root-window)))
+      (switch-to-buffer-other-frame (marker-buffer (cdr next-error)))
+    (switch-to-buffer (marker-buffer (cdr next-error))))
   (goto-char (cdr next-error))
   ;; If narrowing got in the way of
   ;; going to the right place, widen.
