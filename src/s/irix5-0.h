@@ -2,6 +2,9 @@
 
 #define IRIX5
 
+/* We want BSD style signals. */
+#define _BSD_SIGNALS
+
 #define SETPGRP_RELEASES_CTTY
 
 #ifdef LIBS_SYSTEM
