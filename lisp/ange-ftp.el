@@ -1001,7 +1001,8 @@ SIZE, if supplied, should be a prime number."
   "Hash table holding associations between HOST, USER pairs.")
 
 (defvar ange-ftp-passwd-hashtable (ange-ftp-make-hashtable)
-  "Mapping between a HOST, USER pair and a PASSWORD for them.")
+  "Mapping between a HOST, USER pair and a PASSWORD for them.
+All HOST values should be in lower case.")
 
 (defvar ange-ftp-account-hashtable (ange-ftp-make-hashtable)
   "Mapping between a HOST, USER pair and a ACCOUNT password for them.")
@@ -1139,7 +1140,7 @@ Optional DEFAULT is password to start with."
     (or pass default "")))
 
 (defmacro ange-ftp-generate-passwd-key (host user)
-  (` (concat (, host) "/" (, user))))
+  (` (concat (downcase (, host)) "/" (, user))))
 
 (defmacro ange-ftp-lookup-passwd (host user)
   (` (ange-ftp-get-hash-entry (ange-ftp-generate-passwd-key (, host) (, user))
