@@ -1125,7 +1125,7 @@ where FACE is a valid face specification, as it can be used with
 			 (emacs-version)
 			 "\n"
 			 :face '(variable-pitch :height 0.5)
-			 "Copyright (C) 2000 Free Software Foundation, Inc.")))
+			 "Copyright (C) 2001 Free Software Foundation, Inc.")))
 
 
 (defun fancy-splash-screens-1 (buffer)
@@ -1314,7 +1314,7 @@ Ordering Manuals	How to order manuals from the FSF.
 ")
 			       (insert "\n\n" (emacs-version)
 				       "
-Copyright (C) 2000 Free Software Foundation, Inc.")))
+Copyright (C) 2001 Free Software Foundation, Inc.")))
 			 
 			 ;; If keys have their default meanings,
 			 ;; use precomputed string to save lots of time.
@@ -1377,7 +1377,7 @@ If you have no Meta key, you may instead type ESC followed by the character.)")
 
 			 (insert "\n\n" (emacs-version)
 				 "
-Copyright (C) 2000 Free Software Foundation, Inc.")
+Copyright (C) 2001 Free Software Foundation, Inc.")
 			 (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
 				  (eq (key-binding "\C-h\C-d") 'describe-distribution)
 				  (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
