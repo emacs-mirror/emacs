@@ -5,8 +5,8 @@
 ;; Author:     Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:   wp, ebnf, PostScript
-;; Time-stamp: <99/11/20 18:04:11 vinicius>
-;; Version:    1.4
+;; Time-stamp: <2000/12/19 15:25:16 vinicius>
+;; Version:    1.5
 
 ;; This file is part of GNU Emacs.
 
@@ -489,7 +489,9 @@ See documentation for variable `ebnf-iso-lex'."
        ))))
 
 
-(defconst ebnf-iso-comment-chars "^*(\000-\010\016-\037\177-\237")
+;; replace the range "\177-\237" (see `ebnf-range-regexp').
+(defconst ebnf-iso-comment-chars
+  (ebnf-range-regexp "^*(\000-\010\016-\037" ?\177 ?\237))
 
 
 (defun ebnf-iso-skip-comment ()
