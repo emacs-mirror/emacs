@@ -865,9 +865,9 @@ move to start of new line, clear to end of line."
 ;; (A version of the following comment which might be distractingly offensive
 ;; to some readers has been moved to term-nasty.el.)
 ;; unix lacks ITS-style tty control...
-(defun te-process-output (preemptable)
+(defun te-process-output (preemptible)
   ;;>> There seems no good reason to ever disallow preemption
-  (setq preemptable t)
+  (setq preemptible t)
   (catch 'te-process-output
     (let ((buffer-read-only nil)
 	  (string nil) ostring start char (matchpos nil))
@@ -955,9 +955,9 @@ move to start of new line, clear to end of line."
 				 (?\C-i . te-output-tab))))
 		    'te-losing-unix)))
 	  (te-redisplay-if-necessary 1))
-	(and preemptable
+	(and preemptible
 	     (input-pending-p)
-	     ;; preemptable output!  Oh my!!
+	     ;; preemptible output!  Oh my!!
 	     (throw 'te-process-output t)))))
   ;; We must update window-point in every window displaying our buffer
   (let* ((s (selected-window))
