@@ -157,8 +157,9 @@
        {						    		\
 	 re_char *dtemp = (p) == (str2) ? (end1) : (p);		    	\
 	 re_char *dlimit = ((p) > (str2) && (p) <= (end2)) ? (str2) : (str1); \
-	 while (dtemp-- > dlimit && !CHAR_HEAD_P (*dtemp));		\
-	 c = STRING_CHAR (dtemp, (p) - dtemp);				\
+	 re_char *d0 = dtemp;						\
+	 PREV_CHAR_BOUNDARY (d0, dlimit);				\
+	 c = STRING_CHAR (d0, dtemp - d0);				\
        }						    		\
      else						    		\
        (c = ((p) == (str2) ? (end1) : (p))[-1]);			\
@@ -235,6 +236,7 @@ enum syntaxcode { Swhitespace = 0, Sword = 1 };
 # define SINGLE_BYTE_CHAR_P(c) (1)
 # define SAME_CHARSET_P(c1, c2) (1)
 # define MULTIBYTE_FORM_LENGTH(p, s) (1)
+# define PREV_CHAR_BOUNDARY(p, limit) ((p)--)
 # define STRING_CHAR(p, s) (*(p))
 # define RE_STRING_CHAR STRING_CHAR
 # define CHAR_STRING(c, s) (*(s) = (c), 1)
@@ -4064,6 +4066,10 @@ re_search (bufp, string, size, startpos, range, regs)
 }
 WEAK_ALIAS (__re_search, re_search)
 
+/* Head address of virtual concatenation of string.  */
+#define HEAD_ADDR_VSTRING(P)		\
+  (((P) >= size1 ? string2 : string1))
+
 /* End address of virtual concatenation of string.  */
 #define STOP_ADDR_VSTRING(P)				\
   (((P) >= size1 ? string2 + size2 : string1 + size1))
@@ -4299,26 +4305,17 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
 	  /* Update STARTPOS to the previous character boundary.  */
 	  if (multibyte)
 	    {
-	      re_char *p = POS_ADDR_VSTRING (startpos);
-	      int len = 0;
+	      re_char *p = POS_ADDR_VSTRING (startpos) + 1;
+	      re_char *p0 = p;
+	      re_char *phead = HEAD_ADDR_VSTRING (startpos);
 
 	      /* Find the head of multibyte form.  */
-	      while (!CHAR_HEAD_P (*p))
-		p--, len++;
+	      PREV_CHAR_BOUNDARY (p, phead);
+	      range += p0 - 1 - p;
+	      if (range > 0)
+		break;
 
-	      /* Adjust it. */
-#if 0				/* XXX */
-	      if (MULTIBYTE_FORM_LENGTH (p, len + 1) != (len + 1))
-		;
-	      else
-#endif
-		{
-		  range += len;
-		  if (range > 0)
-		    break;
-
-		  startpos -= len;
-		}
+	      startpos -= p0 - 1 - p;
 	    }
 	}
     }
