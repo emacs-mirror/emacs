@@ -908,7 +908,6 @@ $(BLD)\strftime.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h
-	$(CC) $(CFLAGS) -Dstrftime=emacs_strftime -Fo$@ strftime.c
 
 $(BLD)\sunfns.obj : \
 	$(SRC)\sunfns.c \
