@@ -43,6 +43,11 @@
 		 string)
   :group 'change-log)
 
+(defcustom change-log-mode-hook nil
+  "Normal hook run by `change-log-mode'."
+  :type 'hook
+  :group 'change-log)
+
 (defcustom add-log-current-defun-function nil
   "\
 *If non-nil, function to guess name of current function from surrounding text.
