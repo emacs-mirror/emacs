@@ -136,7 +136,8 @@ See `vc-do-command' for more information."
 	(goto-char (point-max))
 	(set-buffer-modified-p nil)
 	(forward-line -1)
-	(if (or (not (integerp status)) (and okstatus (< okstatus status)))
+	(if (or (not (integerp status))
+		(and (integerp okstatus) (< okstatus status)))
 	    (progn
 	      (pop-to-buffer buffer)
 	      (goto-char (point-min))
@@ -174,14 +175,16 @@ Since TRAMP doesn't do async commands yet, this function doesn't, either."
              (path (when file (tramp-file-name-path v))))
       (setq squeezed (delq nil (copy-sequence flags)))
       (when file
-	(setq squeezed (append squeezed (list path))))
+	(setq squeezed (append squeezed (list (file-relative-name
+					       file default-directory)))))
       (let ((w32-quote-process-args t))
         (when (eq okstatus 'async)
           (message "Tramp doesn't do async commands, running synchronously."))
         (setq status (tramp-handle-shell-command
                       (mapconcat 'tramp-shell-quote-argument
                                  (cons command squeezed) " ") t))
-        (when (or (not (integerp status)) (and okstatus (< okstatus status)))
+        (when (or (not (integerp status))
+		  (and (integerp okstatus) (< okstatus status)))
           (pop-to-buffer (current-buffer))
           (goto-char (point-min))
           (shrink-window-if-larger-than-buffer)
@@ -281,6 +284,9 @@ Since TRAMP doesn't do async commands yet, this function doesn't, either."
 	    (setq exec-status (read (current-buffer)))
 	    (message "Command %s returned status %d." command exec-status)))
       
+	;; Maybe okstatus can be `async' here.  But then, maybe the
+	;; async thing is new in Emacs 21, but this function is only
+	;; used in Emacs 20.
 	(cond ((> exec-status okstatus)
 	       (switch-to-buffer (get-file-buffer file))
 	       (shrink-window-if-larger-than-buffer

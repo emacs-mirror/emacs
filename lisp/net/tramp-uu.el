@@ -36,7 +36,7 @@
     (mapcar (lambda (c)
 	      (prog1
 		  (cons c i)
-		(incf i)))
+		(setq i (1+ i))))
 	    tramp-uu-b64-alphabet))
   "Alist of mapping from base64 character to its byte.")
 
@@ -65,7 +65,7 @@
 	    ;; "=" means padding.  Insert "`" instead.
 	    (insert "`")
 	  (insert (tramp-uu-byte-to-uu-char (tramp-uu-b64-char-to-byte c))))
-	(incf i)
+	(setq i (1+ i))
 	;; Every 60 characters, add "M" at beginning of line (as
 	;; length byte) and insert a newline.
 	(when (zerop (% i 60))

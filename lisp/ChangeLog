@@ -1,3 +1,11 @@
+2002-12-26  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+
+	* net/tramp*.el: Sync with upstream version 2.0.28.  Bugfixes.
+	* net/tramp-ftp.el: Glue code with Ange-FTP, broken out of
+	tramp.el.  From Michael Albinus.
+	* net/tramp-smb.el: New file for using smbclient to access
+	Windows shares with Tramp.  From Michael Albinus.
+
 2002-12-26  Andreas Schwab  <schwab@suse.de>
 
 	* international/mule-cmds.el (select-safe-coding-system): Fix

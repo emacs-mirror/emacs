@@ -1,6 +1,6 @@
 ;;; tramp.el --- Transparent Remote Access, Multiple Protocol -*- coding: iso-8859-1; -*-
 
-;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Kai.Grossjohann@CS.Uni-Dortmund.DE 
 ;; Keywords: comm, processes
@@ -72,7 +72,7 @@
 ;; In the Tramp CVS repository, the version numer is auto-frobbed from
 ;; the Makefile, so you should edit the top-level Makefile to change
 ;; the version number.
-(defconst tramp-version "2.0.25"
+(defconst tramp-version "2.0.28"
   "This version of tramp.")
 
 (defconst tramp-bug-report-address "tramp-devel@mail.freesoftware.fsf.org"
@@ -98,6 +98,22 @@
 ;; ;; It does not work to load EFS after loading TRAMP.  
 ;; (when (fboundp 'efs-file-handler-function)
 ;;   (require 'efs))
+
+;; Load foreign methods.  Because they do require Tramp internally, this
+;; must be done with the `eval-after-load' trick.
+
+;; tramp-ftp supports Ange-FTP only.  Not suited for XEmacs therefore.
+(unless (featurep 'xemacs)
+  (eval-after-load "tramp"
+    '(require 'tramp-ftp)))
+
+;; tramp-smb uses "smbclient" from Samba.
+;; Not available under Cygwin and Windows, because they don't offer
+;; "smbclient".  And even not necessary there, because Emacs supports
+;; UNC file names like "//host/share/path".
+(unless (memq system-type '(cygwin windows-nt))
+  (eval-after-load "tramp"
+    '(require 'tramp-smb)))
 
 (eval-when-compile
   (require 'cl)
@@ -618,20 +634,12 @@ various functions for details."
 (defcustom tramp-default-method "ssh"
   "*Default method to use for transferring files.
 See `tramp-methods' for possibilities.
-Also see `tramp-default-method-alist'.
-
-Emacs uses a unified filename syntax for Tramp and Ange-FTP.
-For backward compatibility, the default value of this variable
-is \"ftp\" on Emacs.  But XEmacs uses a separate filename syntax
-for Tramp and EFS, so there the default method is \"sm\"."
+Also see `tramp-default-method-alist'."
   :group 'tramp
   :type 'string)
 
 (defcustom tramp-default-method-alist
-  (when tramp-unified-filenames
-    '(("\\`ftp\\." "" "ftp")
-      ("" "\\`\\(anonymous\\|ftp\\)\\'" "ftp")
-      ("\\`localhost\\'" "\\`root\\'" "su")))
+  '(("\\`localhost\\'" "\\`root\\'" "su"))
   "*Default method to use for specific user/host pairs.
 This is an alist of items (HOST USER METHOD).  The first matching item
 specifies the method to use for a file name which does not specify a
@@ -647,11 +655,6 @@ See `tramp-methods' for a list of possibilities for METHOD."
   :type '(repeat (list (regexp :tag "Host regexp")
 		       (regexp :tag "User regexp")
 		       (string :tag "Method"))))
-
-(defcustom tramp-ftp-method "ftp"
-  "*When this method name is used, forward all calls to Ange-FTP."
-  :group 'tramp
-  :type 'string)
 
 ;; Default values for non-Unices seeked
 (defconst tramp-completion-function-alist-rsh
@@ -687,13 +690,6 @@ See `tramp-methods' for a list of possibilities for METHOD."
   "Default list of (FUNCTION FILE) pairs to be examined for su methods."
 )
 
-;; Default values for non-Unices seeked
-(defconst tramp-completion-function-alist-ftp
-  (unless (memq system-type '(windows-nt))
-    '((tramp-parse-netrc "~/.netrc")))
-  "Default list of (FUNCTION FILE) pairs to be examined for ftp methods."
-)
-
 (defcustom tramp-completion-function-alist
   (list (cons "rcp"      tramp-completion-function-alist-rsh)
 	(cons "scp"      tramp-completion-function-alist-ssh)
@@ -718,7 +714,6 @@ See `tramp-methods' for a list of possibilities for METHOD."
  	(cons "plink"    tramp-completion-function-alist-ssh)
  	(cons "pscp"     tramp-completion-function-alist-ssh)
  	(cons "fcp"      tramp-completion-function-alist-ssh)
- 	(cons "ftp"      tramp-completion-function-alist-ftp)
      )
   "*Alist of methods for remote files.
 This is a list of entries of the form (NAME PAIR1 PAIR2 ...).
@@ -730,7 +725,7 @@ names from FILE for completion.  The following predefined FUNCTIONs exists:
  * `tramp-parse-shosts' for \"ssh_known_hosts\" like files,
  * `tramp-parse-hosts'  for \"/etc/hosts\" like files, and
  * `tramp-parse-passwd' for \"/etc/passwd\" like files.
- * `tramp-parse-netrc ' for \".netrc\" like files.
+ * `tramp-parse-netrc'  for \".netrc\" like files.
 
 FUNCTION can also see a customer defined function.  For more details see
 the info pages."
@@ -870,7 +865,7 @@ Some shells send such garbage upon connection setup."
   :group 'tramp
   :type 'boolean)
 
-(defcustom tramp-sh-extra-args '(("/bash\\'" . "--norc"))
+(defcustom tramp-sh-extra-args '(("/bash\\'" . "-norc -noprofile"))
   "*Alist specifying extra arguments to pass to the remote shell.
 Entries are (REGEXP . ARGS) where REGEXP is a regular expression
 matching the shell file name and ARGS is a string specifying the
@@ -1254,7 +1249,30 @@ machine groks Perl.  If it is used, it's used as an emulation for
 the visited file modtime.")
 (make-variable-buffer-local 'tramp-buffer-file-attributes)
 
-(defvar tramp-end-of-output "/////"
+(defvar tramp-md5-function
+  (cond ((fboundp 'md5) 'md5)
+	((and (require 'md5) (fboundp 'md5-encode)) 'md5-encode)
+	(t (error "Coulnd't find an `md5' function")))
+  "Function to call for running the MD5 algorithm.")
+
+(defvar tramp-end-of-output
+  (concat "///"
+	  (funcall tramp-md5-function
+		   (concat
+		    (prin1-to-string process-environment)
+		    (current-time-string)
+;; 		    (prin1-to-string
+;; 		     (if (fboundp 'directory-files-and-attributes)
+;; 			 (funcall 'directory-files-and-attributes
+;; 				  (or (getenv "HOME")
+;; 				      (tramp-temporary-file-directory)))
+;; 		       (mapcar
+;; 			(lambda (x)
+;; 			  (cons x (file-attributes x)))
+;; 			(directory-files (or (getenv "HOME")
+;; 					     (tramp-temporary-file-directory))
+;; 					 t))))
+		    )))
   "String used to recognize end of output.")
 
 (defvar tramp-connection-function nil
@@ -1622,6 +1640,12 @@ Used for file names matching `tramp-file-name-regexp'. Operations not
 mentioned here will be handled by `tramp-file-name-handler-alist' or the
 normal Emacs functions.")
 
+;; Handlers for foreign methods, like FTP or SMB, shall be plugged here.
+(defvar tramp-foreign-file-name-handler-alist nil
+  "Alist of elements (FUNCTION . HANDLER) for foreign methods handled specially.
+If (FUNCTION FILENAME) returns non-nil, then all I/O on that file is done by
+calling HANDLER.")
+
 ;;; Internal functions which must come first.
 
 (defsubst tramp-message (level fmt-string &rest args)
@@ -1711,7 +1735,9 @@ Example:
        (tramp-parse-shosts \"~/.ssh/known_hosts\")))"
 
   (let ((v (cdr (assoc method tramp-completion-function-alist))))
-    (when v (setcdr v function-list))))
+    (if v (setcdr v function-list)
+      (add-to-list 'tramp-completion-function-alist
+		   (cons method function-list)))))
 
 (defun tramp-get-completion-function (method)
   "Returns list of completion functions for METHOD.
@@ -1732,9 +1758,6 @@ it is expanded first, before the path component is taken.  Note that
 this can give surprising results if the user/host for the source and
 target of the symlink differ."
   (with-parsed-tramp-file-name linkname l
-    (when (tramp-ange-ftp-file-name-p l-multi-method l-method l-user l-host)
-      (tramp-invoke-ange-ftp 'make-symbolic-link
-			     filename linkname ok-if-already-exists))
     (let ((ln (tramp-get-remote-ln l-multi-method l-method l-user l-host))
 	  (cwd (file-name-directory l-path)))
       (unless ln
@@ -1778,9 +1801,6 @@ target of the symlink differ."
   (unless (file-name-absolute-p file)
     (error "Tramp cannot `load' files without absolute path name"))
   (with-parsed-tramp-file-name file nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'load
-			     file noerror nomessage nosuffix must-suffix))
     (unless nosuffix
       (cond ((file-exists-p (concat file ".elc"))
 	     (setq file (concat file ".elc")))
@@ -1813,8 +1833,6 @@ target of the symlink differ."
   "Like `file-name-directory' but aware of TRAMP files."
   ;; everything except the last filename thing is the directory
   (with-parsed-tramp-file-name file nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'file-name-directory file))
     ;; For the following condition, two possibilities should be tried:
     ;; (1) (string= path "")
     ;; (2) (or (string= path "") (string= path "/"))
@@ -1839,18 +1857,11 @@ target of the symlink differ."
 (defun tramp-handle-file-name-nondirectory (file)
   "Like `file-name-nondirectory' but aware of TRAMP files."
   (with-parsed-tramp-file-name file nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'file-name-nondirectory file))
     (file-name-nondirectory path)))
 
 (defun tramp-handle-file-truename (filename &optional counter prev-dirs)
   "Like `file-truename' for tramp files."
   (with-parsed-tramp-file-name filename nil
-    ;; Ange-FTP does not support truename processing, but for
-    ;; convenience we pretend it did and forward the call to Ange-FTP
-    ;; anyway.  Ange-FTP then just invokes `identity'.
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'file-truename filename))
     (let* ((steps        (tramp-split-string path "/"))
 	   (pathdir (let ((directory-sep-char ?/))
 		      (file-name-as-directory path)))
@@ -1926,8 +1937,6 @@ target of the symlink differ."
 (defun tramp-handle-file-exists-p (filename)
   "Like `file-exists-p' for tramp files."
   (with-parsed-tramp-file-name filename nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'file-exists-p filename))
     (save-excursion
       (zerop (tramp-send-command-and-check
 	      multi-method method user host
@@ -1944,8 +1953,6 @@ Optional argument NONNUMERIC means return user and group name
 rather than as numbers."
   (let (result)
     (with-parsed-tramp-file-name filename nil
-      (when (tramp-ange-ftp-file-name-p multi-method method user host)
-	(tramp-invoke-ange-ftp 'file-attributes filename))
       (when (tramp-handle-file-exists-p filename)
 	;; file exists, find out stuff
 	(save-excursion
@@ -2074,15 +2081,6 @@ is initially created and is kept cached by the remote shell."
   (let ((f (buffer-file-name))
 	(coding-system-used nil))
     (with-parsed-tramp-file-name f nil
-      ;; This operation is not handled by Ange-FTP!  Compare this
-      ;; behavior with `file-truename' which Ange-FTP does not really
-      ;; handle, either, but at least it pretends to.  I wonder if
-      ;; Ange-FTP should also pretend to grok
-      ;; `set-visited-file-modtime', for consistency?
-      (when (tramp-ange-ftp-file-name-p multi-method method user host)
-	(throw 'tramp-forward-to-ange-ftp
-	       (tramp-run-real-handler 'set-visited-file-modtime
-				       (list time-list))))
       (let* ((attr (file-attributes f))
 	     (modtime (nth 5 attr)))
 	;; We use '(0 0) as a don't-know value.  See also
@@ -2114,12 +2112,6 @@ is initially created and is kept cached by the remote shell."
   (with-current-buffer buf
     (let ((f (buffer-file-name)))
       (with-parsed-tramp-file-name f nil
-	(when (tramp-ange-ftp-file-name-p multi-method method user host)
-	  ;; This one requires a hack since the file name is not passed
-	  ;; on the arg list.
-	  (let ((buffer-file-name (tramp-make-ange-ftp-file-name
-				   user host path)))
-	    (tramp-invoke-ange-ftp 'verify-visited-file-modtime buf)))
 	(let* ((attr (file-attributes f))
 	       (modtime (nth 5 attr)))
 	  (cond ((and attr (not (equal modtime '(0 0))))
@@ -2153,8 +2145,6 @@ if the remote host can't provide the modtime."
 (defun tramp-handle-set-file-modes (filename mode)
   "Like `set-file-modes' for tramp files."
   (with-parsed-tramp-file-name filename nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'set-file-modes mode filename))
     (save-excursion
       (unless (zerop (tramp-send-command-and-check
 		      multi-method method user host
@@ -2172,22 +2162,16 @@ if the remote host can't provide the modtime."
 (defun tramp-handle-file-executable-p (filename)
   "Like `file-executable-p' for tramp files."
   (with-parsed-tramp-file-name filename nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'file-executable-p filename))
     (zerop (tramp-run-test "-x" filename))))
 
 (defun tramp-handle-file-readable-p (filename)
   "Like `file-readable-p' for tramp files."
   (with-parsed-tramp-file-name filename nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'file-readable-p filename))
     (zerop (tramp-run-test "-r" filename))))
 
 (defun tramp-handle-file-accessible-directory-p (filename)
   "Like `file-accessible-directory-p' for tramp files."
   (with-parsed-tramp-file-name filename nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'file-accessible-directory-p filename))
     (and (zerop (tramp-run-test "-d" filename))
 	 (zerop (tramp-run-test "-r" filename))
 	 (zerop (tramp-run-test "-x" filename)))))
@@ -2213,7 +2197,7 @@ if the remote host can't provide the modtime."
 		 (fa2 (file-attributes file2)))
 	     (if (and (not (equal (nth 5 fa1) '(0 0)))
 		      (not (equal (nth 5 fa2) '(0 0))))
-		 (> 0 (car (subtract-time (nth 5 fa1) (nth 5 fa2))))
+		 (> 0 (car (tramp-time-diff (nth 5 fa1) (nth 5 fa2))))
 	       ;; If one of them is the dont-know value, then we can
 	       ;; still try to run a shell command on the remote host.
 	       ;; However, this only works if both files are Tramp
@@ -2228,12 +2212,6 @@ if the remote host can't provide the modtime."
 		   file1 file2)))
 	       (with-parsed-tramp-file-name file1 v1
 		 (with-parsed-tramp-file-name file2 v2
-		   (when (and (tramp-ange-ftp-file-name-p
-			       v1-multi-method v1-method v1-user v1-host)
-			      (tramp-ange-ftp-file-name-p
-			       v2-multi-method v2-method v2-user v2-host))
-		     (tramp-invoke-ange-ftp 'file-newer-than-file-p
-					    file1 file2))
 		   (unless (and (equal v1-multi-method v2-multi-method)
 				(equal v1-method v2-method)
 				(equal v1-user v2-user)
@@ -2257,11 +2235,9 @@ if the remote host can't provide the modtime."
 (defun tramp-handle-file-modes (filename)
   "Like `file-modes' for tramp files."
   (with-parsed-tramp-file-name filename nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'file-modes filename))
     (when (file-exists-p filename)
       (tramp-mode-string-to-int
-       (nth 8 (tramp-handle-file-attributes filename))))))
+       (nth 8 (file-attributes filename))))))
 
 (defun tramp-handle-file-directory-p (filename)
   "Like `file-directory-p' for tramp files."
@@ -2274,8 +2250,6 @@ if the remote host can't provide the modtime."
   ;;
   ;; Alternatives: `cd %s', `test -d %s'
   (with-parsed-tramp-file-name filename nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'file-directory-p filename))
     (save-excursion
       (zerop
        (tramp-send-command-and-check
@@ -2287,24 +2261,18 @@ if the remote host can't provide the modtime."
 (defun tramp-handle-file-regular-p (filename)
   "Like `file-regular-p' for tramp files."
   (with-parsed-tramp-file-name filename nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'file-regular-p filename))
     (and (tramp-handle-file-exists-p filename)
 	 (eq ?- (aref (nth 8 (tramp-handle-file-attributes filename)) 0)))))
 
 (defun tramp-handle-file-symlink-p (filename)
   "Like `file-symlink-p' for tramp files."
   (with-parsed-tramp-file-name filename nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'file-symlink-p filename))
     (let ((x (car (tramp-handle-file-attributes filename))))
       (when (stringp x) x))))
 
 (defun tramp-handle-file-writable-p (filename)
   "Like `file-writable-p' for tramp files."
   (with-parsed-tramp-file-name filename nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'file-writable-p filename))
     (if (tramp-handle-file-exists-p filename)
 	;; Existing files must be writable.
 	(zerop (tramp-run-test "-w" filename))
@@ -2317,8 +2285,6 @@ if the remote host can't provide the modtime."
 (defun tramp-handle-file-ownership-preserved-p (filename)
   "Like `file-ownership-preserved-p' for tramp files."
   (with-parsed-tramp-file-name filename nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'file-ownership-preserved-p filename))
     (or (not (tramp-handle-file-exists-p filename))
 	;; Existing files must be writable.
 	(zerop (tramp-run-test "-O" filename)))))
@@ -2337,8 +2303,6 @@ if the remote host can't provide the modtime."
 (defun tramp-handle-directory-file-name (directory)
   "Like `directory-file-name' for tramp files."
   (with-parsed-tramp-file-name directory nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'directory-file-name directory))
     (let ((directory-length-1 (1- (length directory))))
       (save-match-data
 	(if (and (eq (aref directory directory-length-1) ?/)
@@ -2353,9 +2317,6 @@ if the remote host can't provide the modtime."
 				     &optional full match nosort files-only)
   "Like `directory-files' for tramp files."
   (with-parsed-tramp-file-name directory nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'directory-files
-			     directory full match nosort files-only))
     (let (result x)
       (save-excursion
 	(tramp-barf-unless-okay
@@ -2410,9 +2371,6 @@ if the remote host can't provide the modtime."
 (defun tramp-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for tramp files."
   (with-parsed-tramp-file-name directory nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'file-name-all-completions
-			     filename directory))
     (unless (save-match-data (string-match "/" filename))
       (let* ((nowild tramp-completion-without-shell-p)
 	     result)
@@ -2463,13 +2421,10 @@ if the remote host can't provide the modtime."
      "tramp-handle-file-name-completion invoked on non-tramp directory `%s'"
      directory))
   (with-parsed-tramp-file-name directory nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'file-name-completion
-			     filename directory))
     (try-completion
      filename
      (mapcar (lambda (x) (cons x nil))
-	     (tramp-handle-file-name-all-completions filename directory)))))
+	     (file-name-all-completions filename directory)))))
 
 ;; cp, mv and ln
 
@@ -2487,16 +2442,6 @@ if the remote host can't provide the modtime."
 		     (equal v1-host v2-host))
 	  (error "add-name-to-file: %s"
 		 "only implemented for same method, same user, same host"))
-	(when (and (tramp-ange-ftp-file-name-p v1-multi-method v1-method v1-user v1-host)
-		   (tramp-ange-ftp-file-name-p v2-multi-method v2-method v2-user v2-host))
-	  (tramp-invoke-ange-ftp 'add-name-to-file
-				 filename newname ok-if-already-exists))
-	(when (tramp-ange-ftp-file-name-p v1-multi-method v1-method v1-user v1-host)
-	  (tramp-invoke-ange-ftp 'add-name-to-file
-				 filename newname ok-if-already-exists))
-	(when (tramp-ange-ftp-file-name-p v2-multi-method v2-method v2-user v2-host)
-	  (tramp-invoke-ange-ftp 'add-name-to-file
-				 filename newname ok-if-already-exists))
 	(when (and (not ok-if-already-exists)
 		   (file-exists-p newname)
 		   (not (numberp ok-if-already-exists))
@@ -2571,14 +2516,6 @@ and `rename'.  FILENAME and NEWNAME must be absolute file names."
       ;; Both are Tramp files.
       (with-parsed-tramp-file-name filename v1
 	(with-parsed-tramp-file-name newname v2
-	  ;; Possibly invoke Ange-FTP.
-	  (when (and (tramp-ange-ftp-file-name-p v1-multi-method v1-method v1-user v1-host)
-		     (tramp-ange-ftp-file-name-p v2-multi-method v2-method v2-user v2-host))
-	    (if (eq op 'copy)
-		(tramp-invoke-ange-ftp
-		 'copy-file filename newname ok-if-already-exists keep-date)
-	      (tramp-invoke-ange-ftp
-	       'rename-file filename newname ok-if-already-exists)))
 	  ;; Check if we can use a shortcut.
 	  (if (and (equal v1-multi-method v2-multi-method)
 		   (equal v1-method v2-method)
@@ -2663,8 +2600,6 @@ If KEEP-DATE is non-nil, preserve the time stamp when copying."
   "Like `make-directory' for tramp files."
   (setq dir (expand-file-name dir))
   (with-parsed-tramp-file-name dir nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'make-directory dir parents))
     (save-excursion
       (tramp-barf-unless-okay
        multi-method method user host
@@ -2679,8 +2614,6 @@ If KEEP-DATE is non-nil, preserve the time stamp when copying."
   "Like `delete-directory' for tramp files."
   (setq directory (expand-file-name directory))
   (with-parsed-tramp-file-name directory nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'delete-directory directory))
     (save-excursion
       (tramp-send-command
        multi-method method user host
@@ -2692,8 +2625,6 @@ If KEEP-DATE is non-nil, preserve the time stamp when copying."
   "Like `delete-file' for tramp files."
   (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'delete-file filename))
     (save-excursion
       (unless (zerop (tramp-send-command-and-check
 		      multi-method method user host
@@ -2709,9 +2640,6 @@ If KEEP-DATE is non-nil, preserve the time stamp when copying."
   "Recursively delete the directory given.
 This is like `dired-recursive-delete-directory' for tramp files."
   (with-parsed-tramp-file-name filename nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'dired-recursive-delete-directory
-			     filename))
     ;; run a shell command 'rm -r <path>'
     ;; Code shamelessly stolen for the dired implementation and, um, hacked :)
     (or (tramp-handle-file-exists-p filename)
@@ -2732,11 +2660,6 @@ This is like `dired-recursive-delete-directory' for tramp files."
 (defun tramp-handle-dired-call-process (program discard &rest arguments)
   "Like `dired-call-process' for tramp files."
   (with-parsed-tramp-file-name default-directory nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (let ((default-directory
-	      (tramp-make-ange-ftp-file-name user host path)))
-	(tramp-invoke-ange-ftp 'dired-call-process
-			       program discard arguments)))
     (save-excursion
       (tramp-barf-unless-okay
        multi-method method user host
@@ -2779,9 +2702,6 @@ This is like `dired-recursive-delete-directory' for tramp files."
     (setq switches (replace-match "" nil t switches)))
   (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'insert-directory
-			     filename switches wildcard full-directory-p))
     (tramp-message-for-buffer
      multi-method method user host 10
      "Inserting directory `ls %s %s', wildcard %s, fulldir %s"
@@ -2857,9 +2777,6 @@ This is like `dired-recursive-delete-directory' for tramp files."
 (defun tramp-handle-unhandled-file-name-directory (filename)
   "Like `unhandled-file-name-directory' for tramp files."
   (with-parsed-tramp-file-name filename nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'unhandled-file-name-directory
-			     filename))
     (expand-file-name "~/")))
 
 ;; Canonicalization of file names.
@@ -2893,8 +2810,6 @@ Doesn't do anything if the NAME does not start with a drive letter."
                               (list name nil))
     ;; Dissect NAME.
     (with-parsed-tramp-file-name name nil
-      (when (tramp-ange-ftp-file-name-p multi-method method user host)
-	(tramp-invoke-ange-ftp 'expand-file-name name nil))
       (unless (file-name-absolute-p path)
 	(setq path (concat "~/" path)))
       (save-excursion
@@ -2935,11 +2850,6 @@ This will break if COMMAND prints a newline, followed by the value of
 `tramp-end-of-output', followed by another newline."
   (if (tramp-tramp-file-p default-directory)
       (with-parsed-tramp-file-name default-directory nil
-	(when (tramp-ange-ftp-file-name-p multi-method method user host)
-	  (let ((default-directory (tramp-make-ange-ftp-file-name
-				    user host path)))
-	    (tramp-invoke-ange-ftp 'shell-command
-				   command output-buffer error-buffer)))
 	(let (status)
 	  (when (string-match "&[ \t]*\\'" command)
 	    (error "Tramp doesn't grok asynchronous shell commands, yet"))
@@ -2979,7 +2889,7 @@ This will break if COMMAND prints a newline, followed by the value of
 	    (skip-chars-forward "^ ")
 	    (setq status (read (current-buffer))))
 	  (unless (zerop (buffer-size))
-	    (pop-to-buffer output-buffer))
+	    (display-buffer output-buffer))
 	  status))
     ;; The following is only executed if something strange was
     ;; happening.  Emit a helpful message and do it anyway.
@@ -2998,8 +2908,6 @@ This will break if COMMAND prints a newline, followed by the value of
 (defun tramp-handle-file-local-copy (filename)
   "Like `file-local-copy' for tramp files."
   (with-parsed-tramp-file-name filename nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'file-local-copy filename))
     (let ((output-buf (get-buffer-create "*tramp output*"))
 	  (tramp-buf (tramp-get-buffer multi-method method user host))
 	  (rcp-program (tramp-get-rcp-program
@@ -3114,10 +3022,7 @@ This will break if COMMAND prints a newline, followed by the value of
   (barf-if-buffer-read-only)
   (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'insert-file-contents
-			     filename visit beg end replace))
-    (if (not (tramp-handle-file-exists-p filename))
+    (if (not (file-exists-p filename))
 	(progn
 	  (when visit
 	    (setq buffer-file-name filename)
@@ -3125,8 +3030,8 @@ This will break if COMMAND prints a newline, followed by the value of
 	    (set-buffer-modified-p nil))
 	  (signal 'file-error
 		  (format "File `%s' not found on remote host" filename))
-	  (list (tramp-handle-expand-file-name filename) 0))
-      (let ((local-copy (tramp-handle-file-local-copy filename))
+	  (list (expand-file-name filename) 0))
+      (let ((local-copy (file-local-copy filename))
 	    (coding-system-used nil)
 	    (result nil))
 	(when visit
@@ -3136,9 +3041,7 @@ This will break if COMMAND prints a newline, followed by the value of
 	(tramp-message-for-buffer
 	 multi-method method user host
 	 9 "Inserting local temp file `%s'..." local-copy)
-	(setq result
-	      (tramp-run-real-handler 'insert-file-contents
-				      (list local-copy nil beg end replace)))
+	(setq result (insert-file-contents local-copy nil beg end replace))
 	;; Now `last-coding-system-used' has right value.  Remember it.
 	(when (boundp 'last-coding-system-used)
 	  (setq coding-system-used last-coding-system-used))
@@ -3174,9 +3077,6 @@ This will break if COMMAND prints a newline, followed by the value of
                               filename))
       (error "File not overwritten")))
   (with-parsed-tramp-file-name filename nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'write-region
-			     start end filename append visit))
     (let ((curbuf (current-buffer))
 	  (rcp-program (tramp-get-rcp-program
 			multi-method (tramp-find-method multi-method method user host)
@@ -3380,15 +3280,15 @@ This will break if COMMAND prints a newline, followed by the value of
   "Invoke normal file name handler for OPERATION.
 First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION."
-  (let* ((op (if (eq operation 'ange-ftp-hook-function)
-		 (car args)
-	       operation))
-	 (inhibit-file-name-handlers
-	  (list 'tramp-file-name-handler
-		'tramp-completion-file-name-handler
-		(and (eq inhibit-file-name-operation op)
-		     inhibit-file-name-handlers)))
-	 (inhibit-file-name-operation op))
+  (let* ((inhibit-file-name-handlers
+	  `(tramp-file-name-handler
+	    tramp-completion-file-name-handler
+	    cygwin-mount-name-hook-function
+	    cygwin-mount-map-drive-hook-function
+	    .
+	    ,(and (eq inhibit-file-name-operation operation)
+		  inhibit-file-name-handlers)))
+	 (inhibit-file-name-operation operation))
     (apply operation args)))
 
 ;; This function is used from `tramp-completion-file-name-handler' functions
@@ -3399,26 +3299,106 @@ pass to the OPERATION."
   "Invoke `tramp-file-name-handler' for OPERATION.
 First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION."
-  (let* ((op (if (eq operation 'ange-ftp-hook-function)
-		 (car args)
-	       operation))
-	 (inhibit-file-name-handlers
-	  (list 'tramp-completion-file-name-handler
-		(and (eq inhibit-file-name-operation op)
-		     inhibit-file-name-handlers)))
-	 (inhibit-file-name-operation op))
+  (let* ((inhibit-file-name-handlers
+	  `(tramp-completion-file-name-handler
+	    cygwin-mount-name-hook-function
+	    cygwin-mount-map-drive-hook-function
+	    .
+	    ,(and (eq inhibit-file-name-operation operation)
+		  inhibit-file-name-handlers)))
+	 (inhibit-file-name-operation operation))
     (apply operation args)))
+
+;; We handle here all file primitives.  Most of them have the file
+;; name as first parameter; nevertheless we check for them explicitly
+;; in order to be be signalled if a new primitive appears.  This
+;; scenario is needed because there isn't a way to decide by
+;; syntactical means whether a foreign method must be called.  It would
+;; ease the live if `file-name-handler-alist' would support a decision
+;; function as well but regexp only.
+(defun tramp-file-name-for-operation (operation &rest args)
+  "Return file name related to OPERATION file primitive.
+ARGS are the arguments OPERATION has been called with."
+  (cond
+   ; FILE resp DIRECTORY
+   ((member operation
+	    (list 'access-file 'byte-compiler-base-file-name 'delete-directory
+		  'delete-file 'diff-latest-backup-file 'directory-file-name
+		  'directory-files 'directory-files-and-attributes
+		  'dired-compress-file 'dired-uncache
+		  'file-accessible-directory-p 'file-attributes
+		  'file-directory-p 'file-executable-p 'file-exists-p
+		  'file-local-copy 'file-modes 'file-name-as-directory
+		  'file-name-directory 'file-name-nondirectory
+		  'file-name-sans-versions 'file-ownership-preserved-p
+		  'file-readable-p 'file-regular-p 'file-symlink-p
+		  'file-truename 'file-writable-p 'find-backup-file-name
+		  'find-file-noselect 'get-file-buffer 'insert-directory
+		  'insert-file-contents 'load 'make-directory
+		  'make-directory-internal 'set-file-modes
+		  'substitute-in-file-name 'unhandled-file-name-directory
+		  'vc-registered
+		  ; XEmacs only
+		  'abbreviate-file-name 'create-file-buffer
+		  'dired-file-modtime 'dired-make-compressed-filename
+		  'dired-recursive-delete-directory 'dired-set-file-modtime
+		  'dired-shell-unhandle-file-name 'dired-uucode-file
+		  'insert-file-contents-literally 'recover-file
+		  'vm-imap-check-mail 'vm-pop-check-mail 'vm-spool-check-mail))
+    (expand-file-name (nth 0 args)))
+   ; FILE DIRECTORY resp FILE1 FILE2
+   ((member operation
+	    (list 'add-name-to-file 'copy-file 'expand-file-name
+		  'file-name-all-completions 'file-name-completion
+		  'file-newer-than-file-p 'make-symbolic-link 'rename-file
+		  ; XEmacs only
+		  'dired-make-relative-symlink
+		  'vm-imap-move-mail 'vm-pop-move-mail 'vm-spool-move-mail))
+    (save-match-data
+      (cond
+       ((string-match tramp-file-name-regexp (nth 0 args)) (nth 0 args))
+       ((string-match tramp-file-name-regexp (nth 1 args)) (nth 1 args))
+       (t (buffer-file-name (current-buffer))))))
+   ; START END FILE
+   ((eq operation 'write-region)
+    (nth 2 args))
+   ; BUF
+   ((member operation
+	    (list 'set-visited-file-modtime 'verify-visited-file-modtime
+	          ; XEmacs only
+		  'backup-buffer))
+    (buffer-file-name
+     (if (bufferp (nth 0 args)) (nth 0 args) (current-buffer))))
+   ; COMMAND
+   ((member operation
+	    (list 'dired-call-process 'shell-command
+	          ; XEmacs only
+		  'dired-print-file 'dired-shell-call-process))
+    default-directory)
+   ; unknown file primitive
+   (t (error "unknown file I/O primitive: %s" operation))))
+
+(defun tramp-find-foreign-file-name-handler (filename)
+  "Return foreign file name handler if exists."
+  (let (elt res)
+    (dolist (elt tramp-foreign-file-name-handler-alist res)
+      (when (funcall (car elt) filename)
+	(setq res (cdr elt))))
+    res))
 
 ;; Main function.
 ;;;###autoload
 (defun tramp-file-name-handler (operation &rest args)
   "Invoke tramp file name handler.
 Falls back to normal file name handler if no tramp file name handler exists."
-  (let ((fn (assoc operation tramp-file-name-handler-alist)))
-    (if fn
-	(catch 'tramp-forward-to-ange-ftp
-	  (save-match-data (apply (cdr fn) args)))
-      (tramp-run-real-handler operation args))))
+  (save-match-data
+    (let* ((fn (assoc operation tramp-file-name-handler-alist))
+	   (filename (apply 'tramp-file-name-for-operation operation args))
+	   (foreign (tramp-find-foreign-file-name-handler filename)))
+      (cond
+       (foreign (apply foreign operation args))
+       (fn (apply (cdr fn) args))
+       (t (tramp-run-real-handler operation args))))))
 
 (put 'tramp-file-name-handler 'file-remote-p t)	;for file-remote-p
 
@@ -3432,8 +3412,7 @@ Falls back to normal file name handler if no tramp file name handler exists."
 ;; 		 operation args (with-output-to-string (backtrace)))
   (let ((fn (assoc operation tramp-completion-file-name-handler-alist)))
     (if fn
-	(catch 'tramp-forward-to-ange-ftp
-	  (save-match-data (apply (cdr fn) args)))
+	(save-match-data (apply (cdr fn) args))
       (tramp-completion-run-real-handler operation args))))
 
 ;; Register in file name handler alist
@@ -3443,32 +3422,6 @@ Falls back to normal file name handler if no tramp file name handler exists."
 (add-to-list 'file-name-handler-alist
 	     (cons tramp-completion-file-name-regexp
 		   'tramp-completion-file-name-handler))
-
-;; To handle EFS, the following functions need to be dealt with:
-;;
-;; * dired-before-readin-hook contains efs-dired-before-readin
-;; * file-name-handler-alist contains efs-file-handler-function
-;;   and efs-root-handler-function and efs-sifn-handler-function
-;; * find-file-hooks contains efs-set-buffer-mode
-;;
-;; But it won't happen for EFS since the XEmacs maintainers
-;; don't want to use a unified filename syntax.
-(defun tramp-disable-ange-ftp ()
-  "Turn Ange-FTP off.
-This is useful for unified remoting.  See
-`tramp-file-name-structure-unified' and
-`tramp-file-name-structure-separate' for details.  Requests suitable
-for Ange-FTP will be forwarded to Ange-FTP.  Also see the variables
-`tramp-ftp-method', `tramp-default-method', and
-`tramp-default-method-alist'.
-
-This function is not needed in Emacsen which include Tramp, but is
-present for backward compatibility."
-  (let ((a1 (rassq 'ange-ftp-hook-function file-name-handler-alist))
-	(a2 (rassq 'ange-ftp-completion-hook-function file-name-handler-alist)))
-    (setq file-name-handler-alist
-	  (delete a1 (delete a2 file-name-handler-alist)))))
-(tramp-disable-ange-ftp)
 
 (defun tramp-repair-jka-compr ()
   "If jka-compr is already loaded, move it to the front of
@@ -3480,40 +3433,6 @@ necessary anymore."
 	    (cons jka (delete jka file-name-handler-alist))))))
 (tramp-repair-jka-compr)
 
-(defun tramp-flatten-list (arg)
-  "Expands all lists inside ARG to a sequential list.
-Return (nil) if arg is nil."
-  (let ((car (car arg))
-	(cdr (cdr arg)))
-    (cond
-     ((eq arg nil) '(nil))
-     ((listp car)
-      (if (null cdr)
-	  (tramp-flatten-list car)
-	(append (tramp-flatten-list car) (tramp-flatten-list cdr))))
-     ((null cdr) (list car))
-     (t (cons car (tramp-flatten-list cdr))))))
-
-(defun tramp-invoke-ange-ftp (operation &rest args)
-  "Invoke the Ange-FTP handler function and throw."
-  (or (boundp 'ange-ftp-name-format)
-      (and (require 'ange-ftp)
-	   (tramp-disable-ange-ftp)))
-  (let ((ange-ftp-name-format
-	 (list (nth 0 tramp-file-name-structure)
-	       (nth 3 tramp-file-name-structure)
-	       (nth 2 tramp-file-name-structure)
-	       (nth 4 tramp-file-name-structure))))
-    (throw 'tramp-forward-to-ange-ftp
-	   (tramp-run-real-handler 'ange-ftp-hook-function
-				   (cons operation args)))))
-
-(defun tramp-ange-ftp-file-name-p (multi-method method user host)
-  "Check if it's a filename that should be forwarded to Ange-FTP."
-  (and tramp-unified-filenames
-       (null multi-method)
-       (string= (tramp-find-method multi-method method user host) tramp-ftp-method)))
-
 
 ;;; Interactions with other packages:
 
@@ -3523,8 +3442,6 @@ Return (nil) if arg is nil."
 (defun tramp-handle-expand-many-files (name)
   "Like `PC-expand-many-files' for tramp files."
   (with-parsed-tramp-file-name name nil
-    (when (tramp-ange-ftp-file-name-p multi-method method user host)
-      (tramp-invoke-ange-ftp 'expand-many-files name))
     (save-match-data
       (if (or (string-match "\\*" name)
 	      (string-match "\\?" name)
@@ -3604,8 +3521,7 @@ Return (nil) if arg is nil."
      (concat tramp-prefix-regexp
       "\\(" tramp-method-regexp  "\\)" tramp-postfix-single-method-regexp "$")
      file)
-    (member (match-string 1 file)
-	    (cons tramp-ftp-method (mapcar 'car tramp-methods))))
+    (member (match-string 1 file) (mapcar 'car tramp-methods)))
    ((or (equal last-input-event 'tab)
 	(and (not (event-modifiers last-input-event))
 	     (integerp last-input-event)
@@ -3672,17 +3588,17 @@ Return (nil) if arg is nil."
 	    ;; Method dependent user / host combinations
 	    (progn
 	      (mapcar
-	       '(lambda (x)
-		  (setq all-user-hosts
-			(append all-user-hosts
-				(funcall (nth 0 x) (nth 1 x)))))
+	       (lambda (x)
+		 (setq all-user-hosts
+		       (append all-user-hosts
+			       (funcall (nth 0 x) (nth 1 x)))))
 	       (tramp-get-completion-function m))
 
 	      (setq result (append result 
 	        (mapcar
-		 '(lambda (x)
-		    (tramp-get-completion-user-host
-		     method user host (nth 0 x) (nth 1 x)))
+		 (lambda (x)
+		   (tramp-get-completion-user-host
+		    method user host (nth 0 x) (nth 1 x)))
 		 (delq nil all-user-hosts)))))
 
 	    ;; Possible methods
@@ -3734,47 +3650,46 @@ Return (nil) if arg is nil."
 They are collected by `tramp-completion-dissect-file-name1'."
 
   (let* ((result)
-	 (x-nil "\\|\\(\\)"))
+	 (x-nil "\\|\\(\\)")
+	 ;; "/method" "/[method"
+	 (tramp-completion-file-name-structure1
+	  (list (concat tramp-prefix-regexp "\\(" tramp-method-regexp x-nil "\\)$")
+		1 nil nil nil))
+	 ;; "/user" "/[user"
+	 (tramp-completion-file-name-structure2
+	  (list (concat tramp-prefix-regexp "\\(" tramp-user-regexp x-nil   "\\)$")
+		nil 1 nil nil))
+	 ;; "/host" "/[host"
+	 (tramp-completion-file-name-structure3
+	  (list (concat tramp-prefix-regexp "\\(" tramp-host-regexp x-nil   "\\)$")
+		nil nil 1 nil))
+	 ;; "/user@host" "/[user@host"
+	 (tramp-completion-file-name-structure4
+	  (list (concat tramp-prefix-regexp
+			"\\(" tramp-user-regexp "\\)"   tramp-postfix-user-regexp
+			"\\(" tramp-host-regexp x-nil   "\\)$")
+		nil 1 2 nil))
+	 ;; "/method:user" "/[method/user"
+	 (tramp-completion-file-name-structure5
+	  (list (concat tramp-prefix-regexp
+			"\\(" tramp-method-regexp "\\)" tramp-postfix-single-method-regexp
+			"\\(" tramp-user-regexp x-nil   "\\)$")
+		1 2 nil nil))
+	 ;; "/method:host" "/[method/host"
+	 (tramp-completion-file-name-structure6
+	  (list (concat tramp-prefix-regexp
+			"\\(" tramp-method-regexp "\\)" tramp-postfix-single-method-regexp
+			"\\(" tramp-host-regexp x-nil   "\\)$")
+		1 nil 2 nil))
+	 ;; "/method:user@host" "/[method/user@host"
+	 (tramp-completion-file-name-structure7
+	  (list (concat tramp-prefix-regexp
+			"\\(" tramp-method-regexp "\\)" tramp-postfix-single-method-regexp
+			"\\(" tramp-user-regexp "\\)"   tramp-postfix-user-regexp
+			"\\(" tramp-host-regexp x-nil   "\\)$")
+		1 2 3 nil)))
 
-    ;; "/method" "/[method"
-    (defconst tramp-completion-file-name-structure1
-      (list (concat tramp-prefix-regexp "\\(" tramp-method-regexp x-nil "\\)$")
-	    1 9 9 9))
-    ;; "/user" "/[user"
-    (defconst tramp-completion-file-name-structure2
-      (list (concat tramp-prefix-regexp "\\(" tramp-user-regexp x-nil   "\\)$")
-	    9 1 9 9))
-    ;; "/host" "/[host"
-    (defconst tramp-completion-file-name-structure3
-      (list (concat tramp-prefix-regexp "\\(" tramp-host-regexp x-nil   "\\)$")
-	    9 9 1 9))
-    ;; "/user@host" "/[user@host"
-    (defconst tramp-completion-file-name-structure4
-      (list (concat tramp-prefix-regexp
-		    "\\(" tramp-user-regexp "\\)"   tramp-postfix-user-regexp
-		    "\\(" tramp-host-regexp x-nil   "\\)$")
-	    9 1 2 9))
-    ;; "/method:user" "/[method/user"
-    (defconst tramp-completion-file-name-structure5
-      (list (concat tramp-prefix-regexp
-		    "\\(" tramp-method-regexp "\\)" tramp-postfix-single-method-regexp
-		    "\\(" tramp-user-regexp x-nil   "\\)$")
-	    1 2 9 9))
-    ;; "/method:host" "/[method/host"
-    (defconst tramp-completion-file-name-structure6
-      (list (concat tramp-prefix-regexp
-		    "\\(" tramp-method-regexp "\\)" tramp-postfix-single-method-regexp
-		    "\\(" tramp-host-regexp x-nil   "\\)$")
-	    1 9 2 9))
-    ;; "/method:user@host" "/[method/user@host"
-    (defconst tramp-completion-file-name-structure7
-      (list (concat tramp-prefix-regexp
-		    "\\(" tramp-method-regexp "\\)" tramp-postfix-single-method-regexp
-		    "\\(" tramp-user-regexp "\\)"   tramp-postfix-user-regexp
-		    "\\(" tramp-host-regexp x-nil   "\\)$")
-	    1 2 3 9))
-  
-    (mapcar '(lambda (regexp)
+    (mapcar (lambda (regexp)
       (add-to-list 'result
 	(tramp-completion-dissect-file-name1 regexp name)))
       (list
@@ -3797,7 +3712,8 @@ remote host and remote path name."
   (let (method)
     (save-match-data
       (when (string-match (nth 0 structure) name)
-	(setq method (match-string (nth 1 structure) name))
+	(setq method (and (nth 1 structure)
+			  (match-string (nth 1 structure) name)))
 	(if (and method (member method tramp-multi-methods))
 	    ;; Not handled (yet).
 	    (make-tramp-file-name
@@ -3806,9 +3722,12 @@ remote host and remote path name."
 	     :user nil
 	     :host nil
 	     :path nil)
-	  (let ((user   (match-string (nth 2 structure) name))
-		(host   (match-string (nth 3 structure) name))
-		(path   (match-string (nth 4 structure) name)))
+	  (let ((user   (and (nth 2 structure)
+			     (match-string (nth 2 structure) name)))
+		(host   (and (nth 3 structure)
+			     (match-string (nth 3 structure) name)))
+		(path   (and (nth 4 structure)
+			     (match-string (nth 4 structure) name))))
 	    (make-tramp-file-name
 	     :multi-method nil
 	     :method method
@@ -3818,21 +3737,15 @@ remote host and remote path name."
 
 ;; This function returns all possible method completions, adding the
 ;; trailing method delimeter.
-;; In case of Emacs, `tramp-ftp-method' is handled as well because it doesn't
-;; belong to `tramp-methods'.
 (defun tramp-get-completion-methods (partial-method)
   "Returns all method completions for PARTIAL-METHOD."
-  (let ((all-methods (delete "multi" (mapcar 'car tramp-methods))))
-
-    (mapcar
-     '(lambda (method)
-	(and method
-	 (string-match (concat "^" (regexp-quote partial-method)) method)
-	 ;; we must remove leading "/".
-	 (substring (tramp-make-tramp-file-name nil method nil nil nil) 1)))
-
-     (add-to-list 'all-methods
-		  (when tramp-unified-filenames tramp-ftp-method)))))
+  (mapcar
+   (lambda (method)
+     (and method
+	  (string-match (concat "^" (regexp-quote partial-method)) method)
+	  ;; we must remove leading "/".
+	  (substring (tramp-make-tramp-file-name nil method nil nil nil) 1)))
+   (delete "multi" (mapcar 'car tramp-methods))))
 
 ;; Compares partial user and host names with possible completions.
 (defun tramp-get-completion-user-host (method partial-user partial-host user host)
@@ -4401,8 +4314,8 @@ See also `tramp-action-yesno'."
     (pop-to-buffer (tramp-get-buffer multi-method method user host))
     (unless (y-or-n-p (match-string 0))
       (kill-process p)
-      (erase-buffer)
       (throw 'tramp-action 'permission-denied))
+    (erase-buffer)
     (process-send-string p (concat "y" tramp-rsh-end-of-line))))
 
 (defun tramp-action-terminal (p multi-method method user host)
@@ -4692,8 +4605,8 @@ prompt than you do, so it is not at all unlikely that the variable
 			(tramp-find-method multi-method method user host)
 			user host)
                        (mapcar
-                        '(lambda (x)
-                           (format-spec x `((?u . ,(or user "root")))))
+                        (lambda (x)
+			  (format-spec x `((?u . ,(or user "root")))))
                         (tramp-get-su-args
 			 multi-method
 			 (tramp-find-method multi-method method user host)
@@ -5808,16 +5721,22 @@ Not actually used.  Use `(format \"%o\" i)' instead?"
   "Return an `tramp-file-name' structure.
 The structure consists of remote method, remote user, remote host and
 remote path name."
-  (let (method)
-    (save-match-data
-      (unless (string-match (nth 0 tramp-file-name-structure) name)
-        (error "Not a tramp file name: %s" name))
-      (setq method (match-string (nth 1 tramp-file-name-structure) name))
+  (save-match-data
+    (let* ((match (string-match (nth 0 tramp-file-name-structure) name))
+	   (method
+	    ; single-hop
+	    (if match (match-string (nth 1 tramp-file-name-structure) name)
+	      ; maybe multi-hop
+	      (string-match
+	       (format (nth 0 tramp-multi-file-name-structure)
+		       (nth 0 tramp-multi-file-name-hop-structure)) name)
+	      (match-string (nth 1 tramp-multi-file-name-structure) name))))
       (if (and method (member method tramp-multi-methods))
           ;; If it's a multi method, the file name structure contains
           ;; arrays of method, user and host.
           (tramp-dissect-multi-file-name name)
         ;; Normal method.  First, find out default method.
+	(unless match (error "Not a tramp file name: %s" name))
 	(let ((user (match-string (nth 2 tramp-file-name-structure) name))
 	      (host (match-string (nth 3 tramp-file-name-structure) name))
 	      (path (match-string (nth 4 tramp-file-name-structure) name)))
@@ -5922,12 +5841,6 @@ If both MULTI-METHOD and METHOD are nil, do a lookup in
   (if user
       (format "%s@%s:%s" user host path)
     (format "%s:%s" host path)))
-
-(defun tramp-make-ange-ftp-file-name (user host path)
-  "Given user, host, and path, return an Ange-FTP filename."
-  (if user
-      (format "/%s@%s:%s" user host path)
-    (format "/%s:%s" host path)))
 
 (defun tramp-method-out-of-band-p (multi-method method user host)
   "Return t if this is an out-of-band method, nil otherwise.
@@ -6412,6 +6325,14 @@ report.
 
 ;;; TODO:
 
+;; * Allow putting passwords in the filename.
+;;   This should be implemented via a general mechanism to add
+;;   parameters in filenames.  There is currently a kludge for
+;;   putting the port number into the filename for ssh and ftp
+;;   files.  This could be subsumed by the new mechanism as well.
+;;   Another approach is to read a netrc file like ~/.authinfo
+;;   from Gnus.
+;; * Handle nonlocal exits such as C-g.
 ;; * Autodetect if remote `ls' groks the "--dired" switch.
 ;; * Add fallback for inline encodings.  This should be used
 ;;   if the remote end doesn't support mimencode or a similar program.
@@ -6517,10 +6438,6 @@ report.
 ;;    connect to host "blabla" already if that host is unique. No idea
 ;;    how to suppress. Maybe not an essential problem.
 ;; ** Try to avoid usage of `last-input-event' in `tramp-completion-mode'.
-;; ** Handle quoted file names, starting with "/:". Problem is that
-;;    `file-name-non-special' calls later on `file-name-all-completions'
-;;    without ":". Hmm. Worth a bug report?
-;; ** Acknowledge port numbers.
 ;; ** Extend `tramp-get-completion-su' for NIS and shadow passwords.
 ;; ** Unify `tramp-parse-{rhosts,shosts,hosts,passwd,netrc}'.
 ;;    Code is nearly identical.
