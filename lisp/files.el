@@ -608,7 +608,9 @@ The buffer is not selected, just returned to the caller."
 		 (not (member logical find-file-not-true-dirname-list)))
 	       (setq buffer-file-name buffer-file-truename))
 	  (if find-file-visit-truename
-	      (setq buffer-file-name (setq filename buffer-file-truename)))
+	      (setq buffer-file-name
+		    (setq filename
+			  (expand-file-name buffer-file-truename))))
 	  ;; Set buffer's default directory to that of the file.
 	  (setq default-directory (file-name-directory filename))
 	  ;; Turn off backup files for certain file names.  Since
