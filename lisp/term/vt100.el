@@ -3,24 +3,22 @@
 ;; Author: FSF
 ;; Keywords: terminals
 
-;; Copyright (C) 1989 Free Software Foundation, Inc.
-
-;; This file is part of GNU Emacs.
-
-;; GNU Emacs is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY.  No author or distributor
-;; accepts responsibility to anyone for the consequences of using it
-;; or for whether it serves any particular purpose or works at all,
-;; unless he says so in writing.  Refer to the GNU Emacs General Public
-;; License for full details.
-
-;; Everyone is granted permission to copy, modify and redistribute
-;; GNU Emacs, but only under the conditions described in the
-;; GNU Emacs General Public License.   A copy of this license is
-;; supposed to have been given to you along with GNU Emacs so you
-;; can know your rights and responsibilities.  It should be in a
-;; file named COPYING.  Among other things, the copyright notice
-;; and this notice must be preserved on all copies.
+;; Copyright (C) 1989, 1993 Free Software Foundation, Inc.
+;;; This file is part of GNU Emacs.
+;;;
+;;; GNU Emacs is free software; you can redistribute it and/or modify
+;;; it under the terms of the GNU General Public License as published by
+;;; the Free Software Foundation; either version 2, or (at your option)
+;;; any later version.
+;;;
+;;; GNU Emacs is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;; GNU General Public License for more details.
+;;;
+;;; You should have received a copy of the GNU General Public License
+;;; along with GNU Emacs; see the file COPYING.  If not, write to
+;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ;;; Commentary:
 
@@ -35,55 +33,8 @@
 
 ;;; Code:
 
-;; CSI sequences - those that start with "\e[".
-;; Termcap or terminfo should set these up automatically
-;; (if (boundp 'vt100-CSI-prefix)
-;;     nil
-;;   (define-prefix-command 'vt100-CSI-prefix)
-;;   (define-key function-key-map "\e[" 'vt100-CSI-prefix)
-;; 
-;;   (define-key vt100-CSI-prefix "A" [up])
-;;   (define-key vt100-CSI-prefix "B" [down])
-;;   (define-key vt100-CSI-prefix "C" [right])
-;;   (define-key vt100-CSI-prefix "D" [left])
-;;   )
-
-;; SS3 sequences - those that start with "\eO".
-(if (boundp 'vt100-SS3-prefix)
-    nil
-  ;; The terminal initialization should already have set up some keys
-  (setq vt100-SS3-prefix (lookup-key function-key-map "\eO"))
-  (if (not (keymapp vt100-SS3-prefix))
-      (error "What?  Your VT100 termcap/terminfo has no keycaps in it."))
-
-  ;; These will typically be set up automatically by termcap or terminfo
-  ;;   (define-key vt100-SS3-prefix "A" [up]) ; up-arrow
-  ;;   (define-key vt100-SS3-prefix "B" [down]) ; down-arrow
-  ;;   (define-key vt100-SS3-prefix "C" [right]) ; right-arrow
-  ;;   (define-key vt100-SS3-prefix "D" [left]) ; left-arrow
-  ;;   (define-key vt100-SS3-prefix "P" [kp-f1]) ; PF1  
-  ;;   (define-key vt100-SS3-prefix "Q" [kp-f2]) ; PF2  
-  ;;   (define-key vt100-SS3-prefix "R" [kp-f3]) ; PF3  
-  ;;   (define-key vt100-SS3-prefix "S" [kp-f4]) ; PF4  
-
-  ;; Terminfo might set these
-  (define-key vt100-SS3-prefix "M" [kp-enter]) ; Enter
-  (define-key vt100-SS3-prefix "p" [kp-0]) ; 0
-  (define-key vt100-SS3-prefix "q" [kp-1]) ; 1
-  (define-key vt100-SS3-prefix "r" [kp-2]) ; 2
-  (define-key vt100-SS3-prefix "s" [kp-3]) ; 3
-  (define-key vt100-SS3-prefix "t" [kp-4]) ; 4
-  (define-key vt100-SS3-prefix "u" [kp-5]) ; 5
-  (define-key vt100-SS3-prefix "v" [kp-6]) ; 6
-  (define-key vt100-SS3-prefix "w" [kp-7]) ; 7
-  (define-key vt100-SS3-prefix "x" [kp-8]) ; 8
-  (define-key vt100-SS3-prefix "y" [kp-9]) ; 9
-
-  ;; Neither termcap nor terminfo will set these
-  (define-key vt100-SS3-prefix "l" [kp-separator]) ; ,
-  (define-key vt100-SS3-prefix "m" [kp-subtract]) ; -
-  (define-key vt100-SS3-prefix "n" [kp-period])	; .
-  )
+;; Set up function-key-map entries that termcap and terminfo don't know.
+(load "term/lk201" nil t)
 
 ;;; Controlling the screen width.
 (defconst vt100-wide-mode (= (frame-width) 132)
