@@ -1207,7 +1207,9 @@ The list should be sorted most significant first."
   ;; Create compact status report for WIDGET.
   (let* ((parent (widget-get widget :parent))
 	 (state (widget-get parent :custom-state))
-	 (entry (assq state custom-magic-alist))
+	 (entry (assq state (if (eq (car parent) 'custom-group)
+				custom-group-magic-alist
+			      custom-magic-alist)))
 	 (magic (nth 1 entry))
 	 (face (nth 2 entry))
 	 (text (nth 3 entry))
