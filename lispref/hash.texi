@@ -13,9 +13,11 @@ from an alist in these ways:
 
 @itemize @bullet
 @item
-Lookup in a hash table is extremely fast---in fact, the time required
-is essentially @emph{independent} of how many elements are stored
-in the table.
+Lookup in a hash table is extremely fast for large tables---in fact, the
+time required is essentially @emph{independent} of how many elements are
+stored in the table.  For smaller tables (a few tens of elements)
+alists may still be faster because hash tables have a more-or-less
+constant overhead.
 
 @item
 The correspondences in a hash table are in no particular order.
