@@ -681,11 +681,6 @@ popup_selection_callback (widget, id, client_data)
      LWLIB_ID id;
      XtPointer client_data;
 {
-#if 0
-  last_popup_selection_callback_id = id;
-  menubar_selection_callback (widget, id, client_data);
-  /* lw_destroy_all_widgets() will be called from popup_down_callback() */
-#endif
   VOID_TO_LISP (menu_item_selection, client_data);
 }
 
@@ -695,18 +690,9 @@ popup_down_callback (widget, id, client_data)
      LWLIB_ID id;
      XtPointer client_data;
 {
-#if 0
-  if (popup_menu_up_p == 0) abort ();
-  popup_menu_up_p--;
-  /* if this isn't called immediately after the selection callback, then
-     there wasn't a menu selection. */
-  if (id != last_popup_selection_callback_id)
-    menubar_selection_callback (widget, id, (XtPointer) -1);
-#endif
   BLOCK_INPUT;
   lw_destroy_all_widgets (id);
   UNBLOCK_INPUT;
-/*  ungcpro_popup_callbacks (make_number (id)); */
 }
 
 /* This recursively calls free_widget_value() on the tree of widgets.
