@@ -24,8 +24,6 @@ AC_ARG_WITH(x10,
 [  --with-x10              Support the X Window System version 10])
 AC_ARG_WITH(x,
 [  --with-x                Support the X Window System version 11])
-AC_ARG_WITH(x11,
-[  --with-x11              Support the X Window System version 11])
 AC_ARG_WITH(x-toolkit,
 [  --with-x-toolkit=KIT    Use an X toolkit (KIT = lucid or athena)],
 [	  case "${withval}" in
@@ -841,7 +839,7 @@ dnl other checks for UNIX variants
 case "${with_x10}" in
   yes ) window_system=x10 ;;
   no ) window_system=none ;;
-  *) test -n "$with_x11" && with_x="$with_x11"
+  *) 
     AC_FIND_X
     if test "$no_x" = yes; then
       window_system=none
@@ -1217,17 +1215,8 @@ test "${exec_prefix}" != NONE &&
   exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`
 changequote([, ])dnl
 
-save_no_create="$no_create"
-no_create=yes
-
-AC_OUTPUT(Makefile lib-src/Makefile.in oldXMenu/Makefile lwlib/Makefile src/Makefile.in)
-
-cat >> ${CONFIG_STATUS} <<EOF
-CPP="$CPP" CPPFLAGS="$CPPFLAGS"
-EOF
-
-cat >> ${CONFIG_STATUS} <<\EOF
-
+AC_OUTPUT(Makefile lib-src/Makefile.in oldXMenu/Makefile \
+	lwlib/Makefile src/Makefile.in, [
 ### Make the necessary directories, if they don't exist.
 for dir in ./src ./lib-src ./cpp ./oldXMenu ./lwlib ./etc ; do
   if test ! -d ${dir}; then
@@ -1282,6 +1271,4 @@ echo creating src/Makefile
   chmod 444 Makefile.new
   mv -f Makefile.new Makefile
 )
-EOF
-
-test "$save_no_create" = yes || ${CONFIG_SHELL-/bin/sh} ${CONFIG_STATUS}
+], [CPP="$CPP" CPPFLAGS="$CPPFLAGS"])
