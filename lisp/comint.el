@@ -674,26 +674,53 @@ in your hook, comint-mode-hook."
 ;;; Just enter m-x send-invisible and type in your line.
 
 (defun comint-read-noecho (prompt &optional stars)
-  "Prompt the user with argument PROMPT. 
-Read a single line of text without echoing, and return it. Note that
-the keystrokes comprising the text can still be recovered (temporarily)
-with \\[view-lossage]. This may be a security bug for some applications.
-Optional argument STARS causes input to be echoed with '*' characters
-on the prompt line."
-  (let ((echo-keystrokes 0)
-	(cursor-in-echo-area t)
-	(answ "")
-	tem)
-    (if (not (stringp prompt)) (setq prompt ""))
-    (message prompt)
-    (while (not(or  (= (setq tem (read-char)) ?\^m)
-		    (= tem ?\n)))
-      (setq answ (concat answ (char-to-string tem)))
-      (if stars (setq prompt (concat prompt "*")))
-      (message prompt))
-    (message "")
-    answ))
+  "Read a single line of text from user without echoing, and return it. 
+Prompt with argument PROMPT, a string.  Optional argument STARS causes
+input to be echoed with '*' characters on the prompt line.  Input ends with
+RET, LFD, or ESC.  DEL or C-h rubs out.  C-u kills line.  C-g aborts (if
+inhibit-quit is set because e.g. this function was called from a process
+filter and C-g is pressed, this function will return `nil', rather than a
+string).
 
+Note that the keystrokes comprising the text can still be recovered
+(temporarily) with \\[view-lossage].  This may be a security bug for some
+applications."
+  (let ((ans "")
+	(c 0)
+	(echo-keystrokes 0)
+	(cursor-in-echo-area t)
+        (done nil))
+    (while (not done)
+      (if stars
+          (message "%s%s" prompt (make-string (length ans) ?*))
+        (message prompt))
+      (setq c (read-char))
+      (cond ((= c ?\C-g)
+             ;; This function may get called from a process filter, where
+             ;; inhibit-quit is set.  In later versions of emacs read-char
+             ;; may clear quit-flag itself and return C-g.  That would make
+             ;; it impossible to quit this loop in a simple way, so
+             ;; re-enable it here (for backward-compatibility the check for
+             ;; quit-flag below would still be necessary, so this is seems
+             ;; like the simplest way to do things).
+             (setq quit-flag t
+                   done t))
+            ((or (= c ?\r) (= c ?\n) (= c ?\e))
+             (setq done t))
+            ((= c ?\C-u)
+             (setq ans ""))
+            ((and (/= c ?\b) (/= c ?\177))
+             (setq ans (concat ans (char-to-string c))))
+            ((> (length ans) 0)
+             (setq ans (substring ans 0 -1)))))
+    (if quit-flag
+        ;; Emulate a true quit, except that we have to return a value.
+        (prog1
+            (setq quit-flag nil)
+          (message "Quit")
+          (beep t))
+      (message "")
+      ans)))
 
 (defun send-invisible (str)
   "Read a string without echoing.
