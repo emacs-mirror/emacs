@@ -58,6 +58,7 @@ external DOS codepage codes."
 			  (logand dos-unsupported-char-glyph 255)
 			127)
 		    ??))
+	   (safe-chars (make-char-table 'safe-chars))
 	   (ccl-decoder
 	    (ccl-compile
 	     ;; The 4 here supplies the buf_magnification parameter
@@ -84,6 +85,16 @@ external DOS codepage codes."
 				 (write r1)))))
 		       (write-repeat r1))))))
 
+      ;; Set elements of safe multibyte characters for this codepage
+      ;; to t in the char-table safe-chars.
+      (let ((tbl (get decoder 'translation-table))
+	    (i 128)
+	    ch)
+	(while (< i 256)
+	  (setq ch (aref tbl i))
+	  (if ch (aset safe-chars ch t))
+	  (setq i (1+ i))))
+
       ;; Make coding system CODING.
       (make-coding-system
        coding 4 mnemonic
@@ -91,6 +102,7 @@ external DOS codepage codes."
 	       " characters using IBM codepage " coding-name)
        (cons ccl-decoder ccl-encoder)
        `((safe-charsets ascii eight-bit-control eight-bit-graphic ,iso-name)
+	 (safe-chars . ,safe-chars)
 	 (valid-codes (0 . 255)))))))
 
 (defun cp-decoding-vector-for-codepage (table charset offset)
