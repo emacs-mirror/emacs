@@ -785,11 +785,13 @@ as soon as one hook function returns a non-@code{nil} value, the rest
 are not called at all.  The documentation of each abnormal hook variable
 explains in detail what is peculiar about it.
 
-  The recommended way to add a hook function to a hook (either normal or
-abnormal) is by calling @code{add-hook}.  You can use any valid Lisp
-function as the hook function, provided it can handle the proper number
-of arguments (zero arguments, in the case of a normal hook).  Of course,
-not every Lisp function is @emph{useful} in any particular hook.
+  You can set a hook variable with @code{setq} like any other Lisp
+variable, but the recommended way to add a hook function to a hook
+(either normal or abnormal) is by calling @code{add-hook}.  You can
+specify any valid Lisp function as the hook function, provided it can
+handle the proper number of arguments (zero arguments, in the case of
+a normal hook).  Of course, not every Lisp function is @emph{useful}
+in any particular hook.
 
   For example, here's how to set up a hook to turn on Auto Fill mode
 when entering Text mode and other modes based on Text mode:
@@ -829,6 +831,11 @@ lambda expression.
 they are executed does not matter.  Any dependence on the order is
 ``asking for trouble.''  However, the order is predictable: the most
 recently added hook functions are executed first.
+
+  If you play with adding various different versions of a hook
+function by calling @code{add-hook} over and over, remember that all
+the versions you added will remain in the hook variable together.
+To clear them out, you can do @code{(setq @var{hook-variable} nil)}.
 
 @node Locals
 @subsection Local Variables
@@ -998,8 +1005,22 @@ local variables list in a comment, so it won't confuse other programs
 that the file is intended as input for.  The example above is for a
 language where comment lines start with @samp{;;; } and end with
 @samp{***}; the local values for @code{comment-start} and
-@code{comment-end} customize the rest of Emacs for this unusual syntax.
-Don't use a prefix (or a suffix) if you don't need one.
+@code{comment-end} customize the rest of Emacs for this unusual
+syntax.  Don't use a prefix (or a suffix) if you don't need one.
+
+  If you write a multi-line string value, you should put the prefix
+and suffix on each line, even lines that start or end within the
+string.  They will be stripped off for processing the list.  If you
+want to split a long string across multiple lines of the file, you can
+use backslash-newline, which is ignored in Lisp string constants.
+Here's an example of doing this:
+
+@example
+# Local Variables:
+# compile-command: "cc foo.c -Dfoo=bar -Dhack=whatever \
+#   -Dmumble=blaah"
+# End:
+@end example
 
   Two ``variable names'' have special meanings in a local variables
 list: a value for the variable @code{mode} really sets the major mode,
@@ -1635,15 +1656,14 @@ The Emacs Lisp Reference Manual}.}:
 Type @kbd{C-q} followed by the key you want to bind, to insert @var{char}.
 
 Since this puts a non-@acronym{ASCII} character in the @file{.emacs},
-you should specify for that file a coding system that supports
-that character.  @xref{Init Syntax}.
+you should specify a coding system for that file that supports the
+character in question.  @xref{Init Syntax}.
 
-@strong{Warning:} if you change the keyboard encoding, such that the code that
-@kbd{C-q} inserts becomes different, you'll need to edit the
-Lisp expression accordingly.
-
-@strong{Warning:} @kbd{C-q} will insert the wrong code if you visit
-the file @file{.emacs} in a unibyte buffer, so don't do that.
+@strong{Warning:} if you change the keyboard encoding, or change
+between multibyte and unibyte mode, or anything that would alter which
+code @kbd{C-q} would insert for that character, you'll need to edit
+the Lisp expression accordingly, to use the character code generated
+by @kbd{C-q} in the new mode.
 
 @node Mouse Buttons
 @subsection Rebinding Mouse Buttons

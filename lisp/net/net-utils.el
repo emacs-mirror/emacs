@@ -567,7 +567,7 @@ If your system's ping continues until interrupted, you can try setting
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Full list is available at:
-;; ftp://ftp.isi.edu/in-notes/iana/assignments/port-numbers
+;; http://www.iana.org/assignments/port-numbers
 (defvar network-connection-service-alist
   (list
     (cons 'echo          7)

@@ -224,6 +224,7 @@ From header will be expired to the group \"nnfolder:Work\";
 articles containing the sting \"IMPORTANT\" in the Subject header will
 be expired to the group \"nnfolder:IMPORTANT.YYYY.MMM\"; and
 everything else will be expired to \"nnfolder:Archive-YYYY\"."
+  :version "21.4"
   :group 'nnmail-expire
   :type '(repeat (list (choice :tag "Match against"
 			       (string :tag "Header")
@@ -558,11 +559,13 @@ parameter.  It should return nil, `warn' or `delete'."
 
 (defcustom nnmail-mail-splitting-charset nil
   "Default charset to be used when splitting incoming mail."
+  :version "21.4"
   :group 'nnmail
   :type 'symbol)
 
 (defcustom nnmail-mail-splitting-decodes nil
   "Whether the nnmail splitting functionality should MIME decode headers."
+  :version "21.4"
   :group 'nnmail
   :type 'boolean)
 

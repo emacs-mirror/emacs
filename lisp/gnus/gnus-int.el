@@ -46,6 +46,7 @@ If the server is covered by Gnus agent, the possible values are
 `denied', set the server denied; `offline', set the server offline;
 nil, ask user.  If the server is not covered by Gnus agent, set the
 server denied."
+  :version "21.4"
   :group 'gnus-start
   :type '(choice (const :tag "Ask" nil)
 		 (const :tag "Deny server" denied)

@@ -186,8 +186,11 @@ Lisp_Object Vmemory_full;
 
 #ifndef HAVE_SHM
 
-/* Force it into data space!  Initialize it to a nonzero value;
-   otherwise some compilers put it into BSS.  */
+/* Initialize it to a nonzero value to force it into data space
+   (rather than bss space).  That way unexec will remap it into text
+   space (pure), on some systems.  We have not implemented the
+   remapping on more recent systems because this is less important
+   nowadays than in the days of small memories and timesharing.  */
 
 EMACS_INT pure[PURESIZE / sizeof (EMACS_INT)] = {1,};
 #define PUREBEG (char *) pure

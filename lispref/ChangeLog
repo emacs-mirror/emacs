@@ -1,3 +1,8 @@
+2004-09-20  Richard M. Stallman  <rms@gnu.org>
+
+	* commands.texi (Key Sequence Input):
+	Clarify downcasing in read-key-sequence.
+
 2004-09-08  Juri Linkov  <juri@jurta.org>
 
 	* minibuf.texi (Minibuffer History): Add `history-delete-duplicates'.

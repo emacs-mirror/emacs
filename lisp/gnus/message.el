@@ -135,6 +135,7 @@ mailbox format."
 
 (defcustom message-fcc-externalize-attachments nil
   "If non-nil, attachments are included as external parts in Fcc copies."
+  :version "21.4"
   :type 'boolean
   :group 'message-sending)
 
@@ -174,7 +175,7 @@ Otherwise, most addresses look like `angles', but they look like
 
 (defcustom message-insert-canlock t
   "Whether to insert a Cancel-Lock header in news postings."
-  :version "21.3"
+  :version "21.4"
   :group 'message-headers
   :type 'boolean)
 
@@ -203,6 +204,7 @@ Checks include `subject-cmsg', `multiple-headers', `sendsys',
   "*Headers to be generated or prompted for when sending a message.
 Also see `message-required-news-headers' and
 `message-required-mail-headers'."
+  :version "21.4"
   :group 'message-news
   :group 'message-headers
   :link '(custom-manual "(message)Message Headers")
@@ -210,6 +212,7 @@ Also see `message-required-news-headers' and
 
 (defcustom message-draft-headers '(References From)
   "*Headers to be generated when saving a draft message."
+  :version "21.4"
   :group 'message-news
   :group 'message-headers
   :link '(custom-manual "(message)Message Headers")
@@ -287,6 +290,7 @@ the user what do do.  In this case, the subject is matched against
 `message-subject-trailing-was-query' is t, always strip the trailing
 old subject.  In this case, `message-subject-trailing-was-regexp' is
 used."
+  :version "21.4"
   :type '(choice (const :tag "never" nil)
 		 (const :tag "always strip" t)
                  (const ask))
@@ -303,6 +307,7 @@ the variable is t instead of `ask', use
 `message-subject-trailing-was-regexp' instead.
 
 It is okay to create some false positives here, as the user is asked."
+  :version "21.4"
   :group 'message-various
   :link '(custom-manual "(message)Message Headers")
   :type 'regexp)
@@ -315,6 +320,7 @@ If `message-subject-trailing-was-query' is set to t, the subject is
 matched against `message-subject-trailing-was-regexp' in
 `message-strip-subject-trailing-was'.  You should use a regexp creating very
 few false positives here."
+  :version "21.4"
   :group 'message-various
   :link '(custom-manual "(message)Message Headers")
   :type 'regexp)
@@ -327,6 +333,7 @@ few false positives here."
 (defcustom message-mark-insert-begin
   "--8<---------------cut here---------------start------------->8---\n"
   "How to mark the beginning of some inserted text."
+  :version "21.4"
   :type 'string
   :link '(custom-manual "(message)Insertion Variables")
   :group 'message-various)
@@ -335,6 +342,7 @@ few false positives here."
 (defcustom message-mark-insert-end
   "--8<---------------cut here---------------end--------------->8---\n"
   "How to mark the end of some inserted text."
+  :version "21.4"
   :type 'string
   :link '(custom-manual "(message)Insertion Variables")
   :group 'message-various)
@@ -344,6 +352,7 @@ few false positives here."
   "X-No-Archive: Yes\n"
   "Header to insert when you don't want your article to be archived.
 Archives \(such as groups.google.com\) respect this header."
+  :version "21.4"
   :type 'string
   :link '(custom-manual "(message)Header Commands")
   :group 'message-various)
@@ -353,6 +362,7 @@ Archives \(such as groups.google.com\) respect this header."
   "X-No-Archive: Yes - save http://groups.google.com/"
   "Note to insert why you wouldn't want this posting archived.
 If nil, don't insert any text in the body."
+  :version "21.4"
   :type '(radio (string :format "%t: %v\n" :size 0)
 		(const nil))
   :link '(custom-manual "(message)Header Commands")
@@ -372,6 +382,7 @@ If nil, don't insert any text in the body."
 If nil, `message-cross-post-followup-to' will only do a followup.  Note that
 you can explicitly override this setting by calling
 `message-cross-post-followup-to' with a prefix."
+  :version "21.4"
   :type 'boolean
   :group 'message-various)
 
@@ -379,6 +390,7 @@ you can explicitly override this setting by calling
 (defcustom message-cross-post-note
   "Crosspost & Followup-To: "
   "Note to insert before signature to notify of cross-post and follow-up."
+  :version "21.4"
   :type 'string
   :group 'message-various)
 
@@ -386,6 +398,7 @@ you can explicitly override this setting by calling
 (defcustom message-followup-to-note
   "Followup-To: "
   "Note to insert before signature to notify of follow-up only."
+  :version "21.4"
   :type 'string
   :group 'message-various)
 
@@ -396,6 +409,7 @@ you can explicitly override this setting by calling
 The function will be called with four arguments.  The function should not only
 insert a note, but also ensure old notes are deleted.  See the documentation
 for `message-cross-post-insert-note'."
+  :version "21.4"
   :type 'function
   :group 'message-various)
 
@@ -638,6 +652,7 @@ always query the user whether to use the value.  If it is the symbol
 If nil, always ignore the header.  If it is the symbol `ask', always
 query the user whether to use the value.  If it is the symbol `use',
 always use the value."
+  :version "21.4"
   :group 'message-interface
   :link '(custom-manual "(message)Mailing Lists")
   :type '(choice (const :tag "ignore" nil)
@@ -651,6 +666,7 @@ If non-nil, this variable contains a list of functions which return
 regular expressions to match lists.  These functions can be used in
 conjunction with `message-subscribed-regexps' and
 `message-subscribed-addresses'."
+  :version "21.4"
   :group 'message-interface
   :link '(custom-manual "(message)Mailing Lists")
   :type '(repeat sexp))
@@ -659,6 +675,7 @@ conjunction with `message-subscribed-regexps' and
   "*A file containing addresses the user is subscribed to.
 If nil, do not look at any files to determine list subscriptions.  If
 non-nil, each line of this file should be a mailing list address."
+  :version "21.4"
   :group 'message-interface
   :link '(custom-manual "(message)Mailing Lists")
   :type '(radio (file :format "%t: %v\n" :size 0)
@@ -669,6 +686,7 @@ non-nil, each line of this file should be a mailing list address."
 If nil, do not use any predefined list subscriptions.  This list of
 addresses can be used in conjunction with
 `message-subscribed-address-functions' and `message-subscribed-regexps'."
+  :version "21.4"
   :group 'message-interface
   :link '(custom-manual "(message)Mailing Lists")
   :type '(repeat string))
@@ -678,6 +696,7 @@ addresses can be used in conjunction with
 If nil, do not use any predefined list subscriptions.  This list of
 regular expressions can be used in conjunction with
 `message-subscribed-address-functions' and `message-subscribed-addresses'."
+  :version "21.4"
   :group 'message-interface
   :link '(custom-manual "(message)Mailing Lists")
   :type '(repeat regexp))
@@ -687,6 +706,7 @@ regular expressions can be used in conjunction with
 If it is the symbol `always', the posting is allowed.  If it is the
 symbol `never', the posting is not allowed.  If it is the symbol
 `ask', you are prompted."
+  :version "21.4"
   :group 'message-interface
   :link '(custom-manual "(message)Message Headers")
   :type '(choice (const always)
@@ -843,6 +863,7 @@ See also `message-yank-cited-prefix'."
   "*Prefix inserted on cited or empty lines of yanked messages.
 Fix `message-cite-prefix-regexp' if it is set to an abnormal value.
 See also `message-yank-prefix'."
+  :version "21.4"
   :type 'string
   :link '(custom-manual "(message)Insertion Variables")
   :group 'message-insertion)
@@ -899,6 +920,7 @@ If nil, don't insert a signature."
 ;;;###autoload
 (defcustom message-signature-insert-empty-line t
   "*If non-nil, insert an empty line before the signature separator."
+  :version "21.4"
   :type 'boolean
   :link '(custom-manual "(message)Insertion Variables")
   :group 'message-insertion)
@@ -1079,6 +1101,7 @@ candidates:
   "Regexp of headers to be hidden when composing new messages.
 This can also be a list of regexps to match headers.  Or a list
 starting with `not' and followed by regexps."
+  :version "21.4"
   :group 'message
   :link '(custom-manual "(message)Message Headers")
   :type '(repeat regexp))
@@ -1354,6 +1377,7 @@ subaddresses.  So if the first address appears in the recipient list
 for a message, the subaddresses will be removed (if present) before
 the mail is sent.  All addresses in this structure should be
 downcased."
+  :version "21.4"
   :group 'message-headers
   :type '(repeat (repeat string)))
 
@@ -1361,6 +1385,7 @@ downcased."
   "Like `mail-user-agent'.
 Except if it is nil, use Gnus native MUA; if it is t, use
 `mail-user-agent'."
+  :version "21.4"
   :type '(radio (const :tag "Gnus native"
 		       :format "%t\n"
 		       nil)
@@ -1384,7 +1409,7 @@ If this variable is non-nil, pose the question \"Reply to all
 recipients?\" before a wide reply to multiple recipients.  If the user
 answers yes, reply to all recipients as usual.  If the user answers
 no, only reply back to the author."
-  :version "21.3"
+  :version "21.4"
   :group 'message-headers
   :link '(custom-manual "(message)Wide Reply")
   :type 'boolean)
@@ -1402,6 +1427,7 @@ no, only reply back to the author."
 				 (executable-find idna-program)
 				 'ask)
   "Whether to encode non-ASCII in domain names into ASCII according to IDNA."
+  :version "21.4"
   :group 'message-headers
   :link '(custom-manual "(message)IDNA")
   :type '(choice (const :tag "Ask" ask)
@@ -1527,6 +1553,7 @@ no, only reply back to the author."
 	  "\\)")
   "Regular expression that matches a valid FQDN."
   ;; see also: gnus-button-valid-fqdn-regexp
+  :version "21.4"
   :group 'message-headers
   :type 'regexp)
 
@@ -2336,6 +2363,7 @@ these properties from the message composition buffer.  However, some
 packages requires these properties to be present in order to work.
 If you use one of these packages, turn this option off, and hope the
 message composition doesn't break too bad."
+  :version "21.4"
   :group 'message-various
   :link '(custom-manual "(message)Various Message Variables")
   :type 'boolean)
@@ -2680,6 +2708,7 @@ prefix FORCE is given."
 E.g., if this list contains a member list with elements `Cc' and `To',
 then `message-carefully-insert-headers' will not insert a `To' header
 when the message is already `Cc'ed to the recipient."
+  :version "21.4"
   :group 'message-headers
   :link '(custom-manual "(message)Message Headers")
   :type '(repeat sexp))
@@ -5226,6 +5255,7 @@ than 988 characters long, and if they are not, trim them until they are."
 (defcustom message-beginning-of-line t
   "Whether \\<message-mode-map>\\[message-beginning-of-line]\
  goes to beginning of header values."
+  :version "21.4"
   :group 'message-buffers
   :link '(custom-manual "(message)Movement")
   :type 'boolean)
@@ -6544,6 +6574,7 @@ which specify the range to operate on."
 (defcustom message-tab-body-function nil
   "*Function to execute when `message-tab' (TAB) is executed in the body.
 If nil, the function bound in `text-mode-map' or `global-map' is executed."
+  :version "21.4"
   :group 'message
   :link '(custom-manual "(message)Various Commands")
   :type 'function)

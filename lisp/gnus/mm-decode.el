@@ -115,6 +115,7 @@ The defined renderer types are:
 `lynx' : use lynx;
 `html2text' : use html2text;
 nil    : use external viewer."
+  :version "21.4"
   :type '(choice (const w3)
 		 (const w3m)
 		 (const w3m-standalone)
@@ -123,7 +124,6 @@ nil    : use external viewer."
 		 (const html2text)
 		 (const nil)
 		 (function))
-  :version "21.3"
   :group 'mime-display)
 
 (defvar mm-inline-text-html-renderer nil
@@ -134,6 +134,7 @@ It is suggested to customize `mm-text-html-renderer' instead.")
   "If non-nil, Gnus will allow retrieving images in HTML contents with
 the <img> tags.  It has no effect on Emacs/w3.  See also the
 documentation for the `mm-w3m-safe-url-regexp' variable."
+  :version "21.4"
   :type 'boolean
   :group 'mime-display)
 
@@ -280,6 +281,7 @@ type inline."
     "application/pdf" "application/x-dvi")
   "List of media types for which the external viewer will not be killed
 when selecting a different article."
+  :version "21.4"
   :type '(repeat string)
   :group 'mime-display)
 
@@ -381,6 +383,7 @@ If not set, `default-directory' will be used."
 
 (defcustom mm-external-terminal-program "xterm"
   "The program to start an external terminal."
+  :version "21.4"
   :type 'string
   :group 'mime-display)
 
@@ -413,6 +416,7 @@ If not set, `default-directory' will be used."
   "Option of verifying signed parts.
 `never', not verify; `always', always verify;
 `known', only verify known protocols.  Otherwise, ask user."
+  :version "21.4"
   :type '(choice (item always)
 		 (item never)
 		 (item :tag "only known protocols" known)
@@ -619,11 +623,14 @@ Postpone undisplaying of viewers for types in
   "Copy the contents of the current buffer to a fresh buffer."
   (save-excursion
     (let ((obuf (current-buffer))
+	  (multibyte enable-multibyte-characters)
 	  beg)
       (goto-char (point-min))
       (search-forward-regexp "^\n" nil t)
       (setq beg (point))
       (set-buffer (generate-new-buffer " *mm*"))
+      ;; Preserve the data's unibyteness (for url-insert-file-contents).
+      (set-buffer-multibyte multibyte)
       (insert-buffer-substring obuf beg)
       (current-buffer))))
 
@@ -1482,5 +1489,5 @@ If RECURSIVE, search recursively."
 
 (provide 'mm-decode)
 
-;;; arch-tag: 4f35d360-56b8-4030-9388-3ed82d359b9b
+;; arch-tag: 4f35d360-56b8-4030-9388-3ed82d359b9b
 ;;; mm-decode.el ends here

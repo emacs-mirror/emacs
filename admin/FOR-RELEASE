@@ -44,156 +44,112 @@ isearch faces.
 
 ** Check the Emacs manual.
 
-Write you name/initials in the DONE column when you have
-proof-read the corresponding manual section.
+Each manual section should be proof-read by at least two people.
+After each file name, on the same line or the following line, come the
+names of the people who have checked it.
 
-DONE	SECTION
----------------------------------------------
-	man/abbrevs.texi
-	man/ack.texi
-	man/ada-mode.texi
-	man/anti.texi
-	man/autotype.texi
-	man/back.texi
-	man/basic.texi
-	man/buffers.texi
-	man/building.texi
-	man/calc.texi
-	man/calendar.texi
-	man/cc-mode.texi
-	man/cl.texi
-	man/cmdargs.texi
-	man/commands.texi
-	man/custom.texi
-	man/dired.texi
-	man/dired-x.texi
-	man/display.texi
-	man/doclicense.texi
-	man/ebrowse.texi
-	man/ediff.texi
-	man/emacs-mime.texi
-	man/emacs.texi
-	man/emacs-xtra.texi
-	man/entering.texi
-	man/eshell.texi
-	man/eudc.texi
-	man/faq.texi
-	man/files.texi
-	man/fixit.texi
-	man/flymake.texi
-	man/forms.texi
-	man/frames.texi
-	man/glossary.texi
-	man/gnus-faq.texi
-	man/gnus.texi
-	man/gnu.texi
-	man/help.texi
-	man/idlwave.texi
-	man/indent.texi
-	man/info.texi
-	man/killing.texi
-	man/kmacro.texi
-	man/macos.texi
-	man/maintaining.texi
-	man/major.texi
-	man/mark.texi
-	man/message.texi
-	man/mh-e.texi
-	man/mini.texi
-	man/misc.texi
-	man/msdog.texi
-	man/mule.texi
-	man/m-x.texi
-	man/pcl-cvs.texi
-	man/pgg.texi
-	man/picture.texi
-	man/programs.texi
-	man/reftex.texi
-	man/regs.texi
-	man/rmail.texi
-	man/screen.texi
-	man/sc.texi
-	man/search.texi
-	man/sending.texi
-	man/ses.texi
-	man/sieve.texi
-	man/smtpmail.texi
-	man/speedbar.texi
-	man/texinfo.tex
-	man/text.texi
-	man/tramp.texi
-	man/trampver.texi
-	man/trouble.texi
-	man/viper.texi
-	man/vip.texi
-	man/widget.texi
-	man/windows.texi
-	man/woman.texi
-	man/xresources.texi
+
+SECTION             READERS
+-----------------------------
+man/abbrevs.texi
+man/anti.texi
+man/basic.texi      "Luc Teirlinck"
+man/buffers.texi    "Luc Teirlinck"
+man/building.texi   "Ted Zlatanov" <tzz@lifelogs.com>
+man/calendar.texi
+man/cmdargs.texi
+man/commands.texi   "Luc Teirlinck"
+man/custom.texi
+man/dired.texi
+man/display.texi    "Luc Teirlinck"
+man/emacs.texi      "Luc Teirlinck"
+man/entering.texi   "Luc Teirlinck"
+man/files.texi      "Luc Teirlinck"
+man/fixit.texi      "Luc Teirlinck"
+man/frames.texi     "Luc Teirlinck"
+man/glossary.texi
+man/help.texi       "Luc Teirlinck"
+man/indent.texi     "Luc Teirlinck"
+man/killing.texi    "Luc Teirlinck"
+man/kmacro.texi     "Luc Teirlinck"
+man/macos.texi
+man/maintaining.texi
+man/major.texi      "Luc Teirlinck"
+man/mark.texi       "Luc Teirlinck"
+man/mini.texi       "Luc Teirlinck"
+man/misc.texi
+man/msdog.texi
+man/mule.texi       "Luc Teirlinck"
+man/m-x.texi        "Luc Teirlinck"
+man/picture.texi
+man/programs.texi
+man/regs.texi       "Luc Teirlinck"
+man/rmail.texi
+man/screen.texi     "Luc Teirlinck"
+man/search.texi     "Luc Teirlinck"
+man/sending.texi
+man/text.texi
+man/trouble.texi
+man/windows.texi    "Luc Teirlinck"
+man/xresources.texi
 
 ** Check the Emacs Lisp manual.
 
-Write you name/initials in the DONE column when you have
-proof-read the corresponding manual section.
+Each manual section should be proof-read by at least two people.
+After each file name, on the same line or the following line, come the
+names of the people who have checked it.
 
-DONE	SECTION
----------------------------------------------
-	lispref/abbrevs.texi
-	lispref/advice.texi
-	lispref/anti.texi
-	lispref/back.texi
-	lispref/backups.texi
-	lispref/buffers.texi
-	lispref/calendar.texi
-	lispref/commands.texi
-	lispref/compile.texi
-	lispref/control.texi
-	lispref/customize.texi
-	lispref/debugging.texi
-	lispref/display.texi
-	lispref/doclicense.texi
-	lispref/edebug.texi
-	lispref/elisp-covers.texi
-	lispref/elisp.texi
-	lispref/errors.texi
-	lispref/eval.texi
-	lispref/files.texi
-	lispref/frames.texi
-	lispref/front-cover-1.texi
-	lispref/functions.texi
-	lispref/gpl.texi
-	lispref/hash.texi
-	lispref/help.texi
-	lispref/hooks.texi
-	lispref/index.texi
-	lispref/internals.texi
-	lispref/intro.texi
-	lispref/keymaps.texi
-	lispref/lay-flat.texi
-	lispref/lists.texi
-	lispref/loading.texi
-	lispref/locals.texi
-	lispref/macros.texi
-	lispref/maps.texi
-	lispref/markers.texi
-	lispref/minibuf.texi
-	lispref/modes.texi
-	lispref/nonascii.texi
-	lispref/numbers.texi
-	lispref/objects.texi
-	lispref/os.texi
-	lispref/positions.texi
-	lispref/processes.texi
-	lispref/searching.texi
-	lispref/sequences.texi
-	lispref/streams.texi
-	lispref/strings.texi
-	lispref/symbols.texi
-	lispref/syntax.texi
-	lispref/text.texi
-	lispref/tips.texi
-	lispref/variables.texi
-	lispref/windows.texi
+SECTION                  READERS
+----------------------------------
+lispref/abbrevs.texi     "Luc Teirlinck"
+lispref/advice.texi
+lispref/anti.texi
+lispref/backups.texi     "Luc Teirlinck"
+lispref/buffers.texi     "Luc Teirlinck"
+lispref/calendar.texi
+lispref/commands.texi    "Luc Teirlinck"
+lispref/compile.texi     "Luc Teirlinck"
+lispref/control.texi     "Luc Teirlinck"
+lispref/customize.texi
+lispref/debugging.texi
+lispref/display.texi
+lispref/edebug.texi
+lispref/elisp.texi       "Luc Teirlinck"
+lispref/errors.texi      "Luc Teirlinck"
+lispref/eval.texi        "Luc Teirlinck"
+lispref/files.texi       "Luc Teirlinck"
+lispref/frames.texi      "Luc Teirlinck"
+lispref/functions.texi	 "Luc Teirlinck"
+lispref/hash.texi	 "Luc Teirlinck"
+lispref/help.texi	 "Luc Teirlinck"
+lispref/hooks.texi
+lispref/internals.texi	 "Luc Teirlinck"
+lispref/intro.texi	 "Luc Teirlinck"
+lispref/keymaps.texi	 "Luc Teirlinck"
+lispref/lists.texi	 "Luc Teirlinck"
+lispref/loading.texi     "Luc Teirlinck"
+lispref/locals.texi
+lispref/macros.texi      "Luc Teirlinck"
+lispref/maps.texi
+lispref/markers.texi     "Luc Teirlinck"
+lispref/minibuf.texi     "Luc Teirlinck"
+lispref/modes.texi
+lispref/nonascii.texi    "Luc Teirlinck"
+lispref/numbers.texi	 "Luc Teirlinck"
+lispref/objects.texi	 "Luc Teirlinck"
+lispref/os.texi		 "Luc Teirlinck"
+lispref/positions.texi	 "Luc Teirlinck"
+lispref/processes.texi
+lispref/searching.texi	 "Luc Teirlinck"
+lispref/sequences.texi	 "Luc Teirlinck"
+lispref/streams.texi	 "Luc Teirlinck"
+lispref/strings.texi	 "Luc Teirlinck"
+lispref/symbols.texi	 "Luc Teirlinck"
+lispref/syntax.texi	 "Luc Teirlinck"
+lispref/text.texi
+lispref/tips.texi	 "Luc Teirlinck"
+lispref/variables.texi	 "Luc Teirlinck"
+lispref/windows.texi     "Luc Teirlinck"
 
 
 Local variables:

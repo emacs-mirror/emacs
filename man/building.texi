@@ -128,6 +128,21 @@ echo first message
 wait $pid                     # @r{Wait for subprocess}
 @end example
 
+  If the background process does not output to the compilation buffer,
+so you only need to prevent it from being killed when the main
+compilation process terminates, this is sufficient:
+
+@example
+nohup @var{command}; sleep 1
+@end example
+
+@vindex compilation-environment
+  You can control the environment passed to the compilation command
+with the variable @code{compilation-environment}.  Its value is a list
+of environment variable settings; each element should be a string of
+the form @code{"@var{envvarname}=@var{value}"}.  These environment
+variable settings override the usual ones.
+
 @node Grep Searching
 @section Searching with Grep under Emacs
 

@@ -150,8 +150,8 @@ by the user on the command line."
 
 (defcustom eshell-explicit-command-char ?*
   "*If this char occurs before a command name, call it externally.
-That is, although vi may be an alias, *vi will always call the
-external version.  UNIX users may prefer this variable to be \."
+That is, although `vi' may be an alias, `\vi' will always call the
+external version."
   :type 'character
   :group 'eshell-ext)
 

@@ -235,7 +235,10 @@ See Info node `(gnus)Mail Source Specifiers'."
 (defcustom mail-source-ignore-errors nil
   "*Ignore errors when querying mail sources.
 If nil, the user will be prompted when an error occurs.  If non-nil,
-the error will be ignored.")
+the error will be ignored."
+  :version "21.4"
+  :group 'mail-source
+  :type 'boolean)
 
 (defcustom mail-source-primary-source nil
   "*Primary source for incoming mail.
@@ -281,6 +284,7 @@ files older than number of days."
   "*If non-nil, ask for for confirmation before deleting old incoming files.
 This variable only applies when `mail-source-delete-incoming' is a positive
 number."
+  :version "21.4"
   :group 'mail-source
   :type 'boolean)
 
@@ -301,6 +305,7 @@ number."
 
 (defcustom mail-source-movemail-program nil
   "If non-nil, name of program for fetching new mail."
+  :version "21.4"
   :group 'mail-source
   :type '(choice (const nil) string))
 

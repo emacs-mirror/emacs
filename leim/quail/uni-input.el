@@ -40,14 +40,16 @@
 
 (require 'quail)
 
+(defun ucs-input-insert-char (char)
+  (insert char)
+  (move-overlay quail-overlay (overlay-start quail-overlay) (point)))
+
 (defun ucs-input-method (key)
   (if (or buffer-read-only
 	  (and (/= key ?U) (/= key ?u)))
       (list key)
     (quail-setup-overlays nil)
-    (let ((current-prefix-arg)
-	  (last-command-char key))
-      (call-interactively 'self-insert-command))
+    (ucs-input-insert-char key)
     (let ((modified-p (buffer-modified-p))
 	  (buffer-undo-list t)
 	  (input-method-function nil)
@@ -68,9 +70,7 @@
 					  ?b ?c ?d ?e ?f ?A ?B ?C ?D ?E ?F)))
 		      (progn
 			(push key events)
-			(let ((last-command-char key)
-			      (current-prefix-arg))
-			  (call-interactively 'self-insert-command)))
+			(ucs-input-insert-char key))
 		    (let ((last-command-char key)
 			  (current-prefix-arg))
 		      (condition-case nil
@@ -98,7 +98,7 @@ While this input method is active, the variable
 	  (< (prefix-numeric-value arg) 0))
       (unwind-protect
 	  (progn
-	    (quail-hide-guidance-buf)
+	    (quail-hide-guidance)
 	    (quail-delete-overlays)
 	    (setq describe-current-input-method-function nil))
 	(kill-local-variable 'input-method-function))
@@ -124,8 +124,9 @@ Input method: ucs (mode line indicator:U)
 
 Input as Unicode: U<hex> or u<hex>, where <hex> is a four-digit hex number.")))
 
-(register-input-method "ucs" "UTF-8" 'ucs-input-activate "U+"
-		       "Unicode input as hex in the form Uxxxx.")
+;; The file ../leim-ext.el contains the following call.
+;; (register-input-method "ucs" "UTF-8" 'ucs-input-activate "U+"
+;; 		       "Unicode input as hex in the form Uxxxx.")
 
 (provide 'uni-input)
 
