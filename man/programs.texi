@@ -233,8 +233,9 @@ the same as @kbd{C-M-a} with a positive argument.
 @findex c-mark-function
   To operate on the current defun, use @kbd{C-M-h} (@code{mark-defun})
 which puts point at the beginning and mark at the end of the current
-or next defun.  this is the easiest way to get ready to kill the defun
-in order move it to a different place in the file.
+defun.  This is the easiest way to get ready to kill the defun in
+order to move it to a different place in the file.  If you use the
+command while point is between defuns, it uses the following defun.
 
   In C mode, @kbd{C-M-h} runs the function @code{c-mark-function},
 which is almost the same as @code{mark-defun}; the difference is that
@@ -251,24 +252,25 @@ any or all of these key bindings for that purpose.
 @cindex buffer content indexes
 @cindex tags
 
-  The Imenu facility offers a way to find the definitions in a file by
-name.  It is also useful in text formatter major modes, where it
-treats each chapter, section, etc., as a definition.  (@pxref{Tags},
-for a more powerful feature that handles multiple files together.)
+  The Imenu facility offers a way to find the the major definitions in
+a file by name.  It is also useful in text formatter major modes,
+where it treats each chapter, section, etc., as a definition.
+(@pxref{Tags}, for a more powerful feature that handles multiple files
+together.)
 
 @findex imenu
-@findex imenu-add-menu-bar-index
-  If you type @kbd{M-x imenu}, it reads the name of a definition in
-the current buffer, then goes to that definition.  You can use
-completion to specify the name, and a complete list of possible names
-is always displayed.
+  If you type @kbd{M-x imenu}, it reads the name of a definition using
+the minibuffer, then goes to that definition.  You can use completion
+to specify the name, and a complete list of possible names is always
+displayed.
 
+@findex imenu-add-menubar-index
   Alternatively, you can bind the command @code{imenu} to a mouse
 click.  Then it displays mouse menus for you to select the definition
 you want.  You can also add the buffer's index to the menu bar by
-calling @code{imenu-add-menu-bar-index}.  If you want to have this
+calling @code{imenu-add-menubar-index}.  If you want to have this
 menu bar item available for all buffers in a certain major mode, you
-can do this by adding @code{imenu-add-menu-bar-index} to its mode
+can do this by adding @code{imenu-add-menubar-index} to its mode
 hook.  But then you will have to wait for the buffer to be searched
 for definitions, each time you visit a file which uses that mode.
 
@@ -283,8 +285,9 @@ in the text.
 @vindex imenu-sort-function
   You can customize the way the menus are sorted by setting the
 variable @code{imenu-sort-function}.  By default names are ordered as
-they occur in the buffer; alphabetic sorting is provided as an
-alternative.
+they occur in the buffer; if you want alphabetic sorting, use the
+symbol @code{imenu--sort-by-name} as the value.  You can also
+define your own comparison function by writing Lisp code.
 
   Imenu provides the information to guide Which Function mode
 @ifnottex
