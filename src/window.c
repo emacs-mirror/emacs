@@ -2314,6 +2314,7 @@ size_window (window, size, width_p, nodelete_p)
   int old_size, min_size;
 
   check_min_window_sizes ();
+  size = max (0, size);
   
   /* If the window has been "too small" at one point,
      don't delete it for being "too small" in the future.
@@ -2350,22 +2351,22 @@ size_window (window, size, width_p, nodelete_p)
     }
 
   /* Set redisplay hints.  */
-  XSETFASTINT (w->last_modified, 0);
-  XSETFASTINT (w->last_overlay_modified, 0);
+  w->last_modified = make_number (0);
+  w->last_overlay_modified = make_number (0);
   windows_or_buffers_changed++;
-  FRAME_WINDOW_SIZES_CHANGED (XFRAME (WINDOW_FRAME (w))) = 1;
+  FRAME_WINDOW_SIZES_CHANGED (XFRAME (w->frame)) = 1;
 
   if (width_p)
     {
       sideward = &w->vchild;
       forward = &w->hchild;
-      XSETFASTINT (w->width, size);
+      w->width = make_number (size);
     }
   else
     {
       sideward = &w->hchild;
       forward = &w->vchild;
-      XSETFASTINT (w->height, size);
+      w->height = make_number (size);
     }
 
   if (!NILP (*sideward))
