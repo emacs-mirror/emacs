@@ -1,7 +1,7 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.64) $
- * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
+ * $HopeName: MMsrc!pool.c(trunk.65) $
+ * Copyright (C) 1997, 1999 Harlequin Group plc.  All rights reserved.
  *
  * READERSHIP
  *
@@ -21,10 +21,10 @@
  * accessors, and other miscellaneous functions).
  * .purpose.dispatch: Dispatch functions that implement the generic
  * function dispatch mechanism for Pool Classes (PoolAlloc, PoolFix,
- * etc).
+ * etc.).
  * .purpose.core: A selection of default, trivial, or useful methods
  * that Pool Classes can use as the implementations for some of their
- * methods. (such as PoolTrivWhiten, PoolNoFix, PoolCollectAct, etc).
+ * methods (such as PoolTrivWhiten, PoolNoFix, PoolCollectAct, etc.).
  *
  * SOURCES
  *
@@ -37,7 +37,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.64) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.65) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -75,6 +75,7 @@ Bool PoolClassCheck(PoolClass class)
   CHECKS(PoolClass, class);
   return TRUE;
 }
+
 
 Bool PoolCheck(Pool pool)
 {
@@ -132,10 +133,15 @@ Res PoolInitV(Pool pool, Arena arena,
 
   pool->class = class;
   /* label the pool class with its name */
-  /* @@@@ need a field in the class to stop doing this repeatedly */
-  classId = EventInternString(class->name);
-  /* @@@@ this breaks design.mps.type.addr.use */
-  EventLabelAddr((Addr)class, classId);
+  if(!class->labelled) {
+    /* We could still get multiple labelling if multiple instances of */
+    /* the pool class get created simultaneously, but it's not worth */
+    /* putting another lock in the code. */
+    class->labelled = TRUE;
+    classId = EventInternString(class->name);
+    /* @@@@ this breaks design.mps.type.addr.use */
+    EventLabelAddr((Addr)class, classId);
+  }
 
   pool->arena = arena;
   /* .ring.init: See .ring.finish */
