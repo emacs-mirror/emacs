@@ -2160,7 +2160,7 @@ term_init (terminal_type)
   char *area;
   char **address = &area;
   char *buffer = NULL;
-  const int buffer_size = 4096;
+  int buffer_size = 4096;
   register char *p;
   int status;
   struct frame *sf = XFRAME (selected_frame);
