@@ -183,8 +183,11 @@ fire repeatedly that many seconds apart."
 	nil)
     (error "Invalid or uninitialized timer")))
 
-(defun timer-activate-when-idle (timer)
-  "Arrange to activate TIMER whenever Emacs is next idle."
+(defun timer-activate-when-idle (timer &optional dont-wait)
+  "Arrange to activate TIMER whenever Emacs is next idle.
+If optional argument DONT-WAIT is non-nil, then enable the
+timer to activate immediately, or at the right time, if Emacs
+is already idle."
   (if (and (timerp timer)
 	   (integerp (aref timer 1))
 	   (integerp (aref timer 2))
@@ -206,7 +209,7 @@ fire repeatedly that many seconds apart."
 	(if last
 	    (setcdr last (cons timer timers))
 	  (setq timer-idle-list (cons timer timers)))
-	(aset timer 0 t)
+	(aset timer 0 (not dont-wait))
 	(aset timer 7 t)
 	nil)
     (error "Invalid or uninitialized timer")))
@@ -384,7 +387,7 @@ This function returns a timer object which you can use in `cancel-timer'."
   (let ((timer (timer-create)))
     (timer-set-function timer function args)
     (timer-set-idle-time timer secs repeat)
-    (timer-activate-when-idle timer)
+    (timer-activate-when-idle timer t)
     timer))
 
 (defun with-timeout-handler (tag)
