@@ -710,7 +710,7 @@ The names for the emacs widgets, and their classes, are:
 @tab @code{GtkVHbox}
 @item @code{emacs}
 @tab @code{GtkFixed}
-@item @code{verticalScrollbar}
+@item @code{verticalScrollBar}
 @tab @code{GtkVScrollbar}
 @item @code{emacs-toolbar}
 @tab @code{GtkToolbar}
@@ -725,7 +725,7 @@ Thus, for Emacs you can write the two examples above as:
 
 @smallexample
 widget "Emacs.pane.menubar" style "my_style"
-widget "Emacs.pane.emacs.verticalScrollbar" style "my_style"
+widget "Emacs.pane.emacs.verticalScrollBar" style "my_style"
 @end smallexample
 
   GTK absolute names are quite strange when it comes to menus
