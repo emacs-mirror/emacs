@@ -1362,7 +1362,7 @@ Creates a buffer if necessary."
   (interactive)
   (let ((file-name (file-name-sans-versions (dired-get-filename) t))
 	;; bind it so that the command works on directories too,
-	;; independent of of the user's setting
+	;; independent of the user's setting
 	(find-file-run-dired t))
     (if (file-exists-p file-name)
 	(find-file file-name)

@@ -88,7 +88,7 @@ Boston, MA 02111-1307, USA.  */
 
    Direct operations.
 
-   You will find a lot of of redisplay optimizations when you start
+   You will find a lot of redisplay optimizations when you start
    looking at the innards of redisplay.  The overall goal of all these
    optimizations is to make redisplay fast because it is done
    frequently.

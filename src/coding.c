@@ -2685,7 +2685,7 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 
 /* Macros to decode or encode a character of Big5 in BIG5.  B1 and B2
    are the 1st and 2nd position-codes of Big5 in BIG5 coding system.
-   C1 and C2 are the 1st and 2nd position-codes of of Emacs' internal
+   C1 and C2 are the 1st and 2nd position-codes of Emacs' internal
    format.  CHARSET is `charset_big5_1' or `charset_big5_2'.  */
 
 /* Number of Big5 characters which have the same code in 1st byte.  */
