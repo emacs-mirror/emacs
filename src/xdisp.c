@@ -12809,7 +12809,8 @@ display_line (it)
 	      row->glyphs[TEXT_AREA]->charpos = -1;
 	      row->displays_text_p = 0;
 
-	      if (!NILP (XBUFFER (it->w->buffer)->indicate_empty_lines))
+	      if (!NILP (XBUFFER (it->w->buffer)->indicate_empty_lines)
+		  && !MINI_WINDOW_P (it->w))
 		row->indicate_empty_line_p = 1;
 	    }
 	  

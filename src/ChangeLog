@@ -1,3 +1,8 @@
+2001-10-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (display_line): Don't indicate empty lines in
+	mini-windows.
+
 2001-10-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* editfns.c (Fchar_to_string): Make the doc string consistent with
