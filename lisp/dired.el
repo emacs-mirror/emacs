@@ -991,8 +991,7 @@ Keybindings:
        (expand-file-name dired-directory))
   (set (make-local-variable 'dired-actual-switches)
        (or switches dired-listing-switches))
-  (make-local-variable 'font-lock-keywords)
-  (setq font-lock-keywords dired-font-lock-keywords)
+  (set (make-local-variable 'font-lock-defaults) '(dired-font-lock-keywords t))
   (dired-sort-other dired-actual-switches t)
   (run-hooks 'dired-mode-hook))
 
