@@ -1,3 +1,14 @@
+2003-12-29  Takaaki Ota <Takaaki.Ota@am.sony.com>
+
+	* subr.el (insert-for-yank): Call insert-for-yank-1 repetitively
+	for each yank-handler segment.
+	(insert-for-yank-1): New function, with the body of the previous
+	insert-for-yank.
+
+	* textmodes/table.el (table-yank-handler): New defcustom.
+	(table--put-cell-indicator-property): Put yank-handler property
+	that indicates the yank handler for the table cell.
+
 2003-12-29  Jesper Harder <harder@ifa.au.dk>  (tiny change)
 
 	* generic-x.el (etc-modules-conf-generic-mode): A more complete
