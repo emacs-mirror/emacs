@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate December  9, 1998
+@set lastupdate December 25, 1998
 @c %**end of header
 
 @setchapternewpage off
@@ -178,10 +178,6 @@ A reference manual for the GNU Hurd features in GNU libc.
 
 @item
 A manual for writing Hurd servers.
-
-@item
-A C reference manual.  (RMS made a try at one, which you could start
-with).
 
 @item
 Reference manuals for C++, Objective C, Pascal, Fortran 77, and Java.
