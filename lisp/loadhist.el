@@ -32,7 +32,9 @@
 ;;; Code:
 
 (defun feature-symbols (feature)
-  "Return the file and list of symbols associated with a given FEATURE."
+  "Return the file and list of definitions associated with FEATURE.
+The value is actually the element of `load-history'
+for the file that did (provide FEATURE)."
    (catch 'foundit
      (mapc (lambda (x)
 	     (if (member (cons 'provide feature) (cdr x))
@@ -98,15 +100,15 @@ return the feature \(symbol\)."
 
 (defvar loadhist-hook-functions
   '(after-change-functions
-after-insert-file-functions auto-fill-function
-before-change-functions blink-paren-function
-buffer-access-fontify-functions command-line-functions
-comment-indent-function kill-buffer-query-functions
-kill-emacs-query-functions lisp-indent-function
-mouse-position-function
-redisplay-end-trigger-functions temp-buffer-show-function
-window-scroll-functions window-size-change-functions
-write-region-annotate-functions)
+    after-insert-file-functions auto-fill-function
+    before-change-functions blink-paren-function
+    buffer-access-fontify-functions command-line-functions
+    comment-indent-function kill-buffer-query-functions
+    kill-emacs-query-functions lisp-indent-function
+    mouse-position-function
+    redisplay-end-trigger-functions temp-buffer-show-function
+    window-scroll-functions window-size-change-functions
+    write-region-annotate-functions)
   "A list of special hooks from Info node `(elisp)Standard Hooks'.
 
 These are symbols with hook-type values whose names don't end in
@@ -164,10 +166,10 @@ is nil, raise an error."
              ((consp x)
               ;; Remove any feature names that this file provided.
               (if (eq (car x) 'provide)
-                  (setq features (delq (cdr x) features))))
+                  (setq features (delq (cdr x) features)))
+              (if (eq (car x) 'defvar)
+		  (makunbound (cdr x))))
 	     (t
-	      (when (boundp x)
-		(makunbound x))
 	      (when (fboundp x)
 		(if (fboundp 'ad-unadvise)
 		    (ad-unadvise x))
