@@ -78,19 +78,24 @@ xlw_create_menubar (instance)
 {
   Widget widget;
 
-  widget_value *tem = malloc_widget_value (); 
+  /* Don't use malloc_widget_value, because the freeing will be done by free.
+     (Also it wastes time calling memset).  */
+  widget_value *tem = (widget_value *) malloc (sizeof (widget_value));
 
   /* _XtCreate is freeing the object we passed,
      so make a copy that we free later.  */
   bcopy (instance->info->val, tem, sizeof (widget_value));
 
-  widget =
-    XtVaCreateWidget (instance->info->name, xlwMenuWidgetClass,
-		      instance->parent,
-		      XtNmenu, tem,
-		      0);
+  widget
+    = XtVaCreateWidget (instance->info->name, xlwMenuWidgetClass,
+			instance->parent,
+			XtNmenu, tem,
+			0);
 
+#if 0 /* XtVaCreateWidget frees this, at least in the X11R4
+	 version that is running on mole.gnu.ai.mit.edu.  */
   free_widget_value (tem);
+#endif
 
   XtAddCallback (widget, XtNopen, pre_hook, (XtPointer)instance);
   XtAddCallback (widget, XtNselect, pick_hook, (XtPointer)instance);
@@ -101,26 +106,30 @@ static Widget
 xlw_create_popup_menu (instance)
      widget_instance* instance;
 {
-  Widget popup_shell =
-    XtCreatePopupShell (instance->info->name, overrideShellWidgetClass,
-			instance->parent, NULL, 0);
+  Widget popup_shell
+    = XtCreatePopupShell (instance->info->name, overrideShellWidgetClass,
+			  instance->parent, NULL, 0);
   
   Widget widget;
 
-  widget_value *tem = malloc_widget_value ();
+  /* Don't use malloc_widget_value, because the freeing will be done by free.
+     (Also it wastes time calling memset).  */
+  widget_value *tem = (widget_value *) malloc (sizeof (widget_value));
 
   /* _XtCreate is freeing the object we passed,
      so make a copy that we free later.  */
   bcopy (instance->info->val, tem, sizeof (widget_value));
 
-  widget = 
-    XtVaCreateManagedWidget ("popup", xlwMenuWidgetClass,
-			     popup_shell,
-			     XtNmenu, tem,
-			     XtNhorizontal, False,
-			     0);
+  widget
+    = XtVaCreateManagedWidget ("popup", xlwMenuWidgetClass,
+			       popup_shell,
+			       XtNmenu, tem,
+			       XtNhorizontal, False,
+			       0);
 
+#if 0
   free_widget_value (tem);
+#endif
 
   XtAddCallback (widget, XtNselect, pick_hook, (XtPointer)instance);
 
@@ -140,12 +149,12 @@ lw_lucid_widget_p (widget)
      Widget widget;
 {
   WidgetClass the_class = XtClass (widget);
+
   if (the_class == xlwMenuWidgetClass)
     return True;
   if (the_class == overrideShellWidgetClass)
-    return
-      XtClass (((CompositeWidget)widget)->composite.children [0])
-	== xlwMenuWidgetClass;
+    return (XtClass (((CompositeWidget)widget)->composite.children [0])
+	    == xlwMenuWidgetClass);
   return False;
 }
 
