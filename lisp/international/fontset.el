@@ -116,6 +116,8 @@
    (thai (nil . "TIS620*")
 	 (nil . "ISO8859-11"))
 
+   (devanagari (nil . "iso10646.indian-1"))
+
    (lao  (nil . "MuleLao-1"))
 
    ;; both for script and charset.
@@ -183,6 +185,7 @@
    (arabic-2-column ("*" . "MuleArabic-2"))
    (indian-1-column ("*" . "muleindian-2"))
    (devanagari-glyph ("altsys-dv_ttsurekh" . "devanagari-cdac"))
+   (malayalam-glyph ("altsys-ml_ttkarthika" . "malayalam-cdac"))
    (ipa (nil . "MuleIPA-1"))
    ))
 
@@ -213,6 +216,10 @@
 ;; These fonts require vertical centering.
 (setq vertical-centering-font-regexp
       "gb2312\\|jisx0208\\|jisx0212\\|ksc5601\\|cns11643\\|big5")
+
+;; We must adjust the size of these fonts.
+(setq face-resizing-fonts '(("-cdac$" . 1.3)))
+
 
 (defvar x-font-name-charset-alist nil
   "This variable has no meaning now.  Just kept for backward compatibility.")
