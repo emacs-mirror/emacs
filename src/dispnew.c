@@ -994,13 +994,12 @@ shift_glyph_matrix (w, matrix, start, end, dy)
       struct glyph_row *row = &matrix->rows[start];
       
       row->y += dy;
+      row->visible_height = row->height;
       
       if (row->y < min_y)
-	row->visible_height = row->height - (min_y - row->y);
-      else if (row->y + row->height > max_y)
-	row->visible_height = row->height - (row->y + row->height - max_y);
-      else
-	row->visible_height = row->height;
+	row->visible_height -= min_y - row->y;
+      if (row->y + row->height > max_y)
+	row->visible_height -= row->y + row->height - max_y;
     }
 }
 
@@ -1154,13 +1153,12 @@ blank_row (w, row, y)
   row->y = y;
   row->ascent = row->phys_ascent = 0;
   row->height = row->phys_height = CANON_Y_UNIT (XFRAME (w->frame));
-  
+  row->visible_height = row->height;
+      
   if (row->y < min_y)
-    row->visible_height = row->height - (min_y - row->y);
-  else if (row->y + row->height > max_y)
-    row->visible_height = row->height - (row->y + row->height - max_y);
-  else
-    row->visible_height = row->height;
+    row->visible_height -= min_y - row->y;
+  if (row->y + row->height > max_y)
+    row->visible_height -= row->y + row->height - max_y;
 
   row->enabled_p = 1;
 }
