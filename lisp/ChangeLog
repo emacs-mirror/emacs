@@ -1,3 +1,15 @@
+2002-12-16  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* buff-menu.el (Buffer-menu, Buffer-menu-use-header-line)
+	(Buffer-menu-buffer-face, Buffer-menu-buffer+size-width)
+	(Buffer-menu-mode-width): New customization.
+	(Buffer-menu-sort-column): New var.
+	(Buffer-menu-no-header): New function for not changing header line and
+	recognizing swapped M&R columns, used by modifying commands in Buffer
+	Menu.
+	(Buffer-menu-buffer+size): New function for variable width buffer name.
+	(list-buffers-noselect): Rewritten for nicer menu.
+
 2002-12-16  Markus Rost  <rost@math.ohio-state.edu>
 
 	* filesets.el (filesets-build-menu-now): Don't clear messages.
@@ -18,7 +30,7 @@
 
 2002-12-15  David Kastrup  <David.Kastrup@t-online.de>
 
-	* emacs-lisp/autoload.el (autoload-ensure-default-file): insert
+	* emacs-lisp/autoload.el (autoload-ensure-default-file): Insert
 	missing space in file end comment.
 
 2002-12-15  Simon Josefsson  <jas@extundo.com>
