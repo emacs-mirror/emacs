@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName$
+ * $HopeName: MMsrc!mpm.h(trunk.81) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  */
 
@@ -462,7 +462,8 @@ extern void ArenaDestroy(Arena arena);
 extern void ArenaInit(Arena arena, ArenaClass class);
 extern void ArenaFinish(Arena arena);
 extern Res ArenaDescribe(Arena arena, mps_lib_FILE *stream);
-extern Bool ArenaAccess(Addr addr, AccessSet mode);
+extern Bool ArenaAccess(Addr addr, AccessSet mode,
+			MutatorFaultContext context);
 
 extern void (ArenaEnter)(Arena arena);
 extern void (ArenaLeave)(Arena arena);
