@@ -2324,8 +2324,6 @@ and put SIZE columns in the first of the pair.")
   register struct window *o, *p;
   FRAME_PTR fo;
   register int size_int;
-  int internal_width;
-  int separator_width = 1;
 
   if (NILP (window))
     window = selected_window;
@@ -2334,16 +2332,14 @@ and put SIZE columns in the first of the pair.")
 
   o = XWINDOW (window);
   fo = XFRAME (WINDOW_FRAME (o));
-  if (FRAME_HAS_VERTICAL_SCROLL_BARS (fo))
-    separator_width = FRAME_SCROLL_BAR_COLS (fo);
-  internal_width = window_internal_width (o);
+  width = XFASTINT (o->width);
 
   if (NILP (size))
     {
       if (!NILP (horflag))
 	/* Calculate the size of the left-hand window, by dividing
 	   the usable space in columns by two. */
-	size_int = (internal_width - separator_width) >> 1;
+	size_int = XFASTINT (o->width) >> 1;
       else
 	size_int = XFASTINT (o->height) >> 1;
     }
@@ -2379,9 +2375,10 @@ and put SIZE columns in the first of the pair.")
     {
       if (size_int < window_min_width)
 	error ("Window width %d too small (after splitting)", size_int);
-      if (internal_width - size_int - separator_width < window_min_width)
+
+      if (size_int + window_min_width > XFASTINT (o->width))
 	error ("Window width %d too small (after splitting)",
-	       internal_width - size_int - separator_width);
+	       XFASTINT (o->width) - size_int);
       if (NILP (o->parent)
 	  || NILP (XWINDOW (o->parent)->hchild))
 	{
@@ -2417,8 +2414,7 @@ and put SIZE columns in the first of the pair.")
     {
       p->height = o->height;
       p->top = o->top;
-      size_int += separator_width;
-      XSETFASTINT (p->width, internal_width - size_int);
+      XSETFASTINT (p->width, XFASTINT (o->width) - size_int);
       XSETFASTINT (o->width, size_int);
       XSETFASTINT (p->left, XFASTINT (o->left) + size_int);
     }
