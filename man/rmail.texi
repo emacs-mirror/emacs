@@ -1076,7 +1076,7 @@ editing that you have done, by typing @kbd{C-c C-]}.
 runs the hook @code{rmail-edit-mode-hook} (@pxref{Hooks}).  It adds the
 attribute @samp{edited} to the message.  It also displays the full
 headers of the message, so that you can edit the headers as well as the
-body of the message, and your changes in the the headers will be
+body of the message, and your changes in the headers will be
 permanent.
 
 @node Rmail Digest
