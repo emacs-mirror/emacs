@@ -62,13 +62,7 @@ item was added to the menu bar that makes it easy accessible
 ** Support for Cygwin was added.
 
 ---
-** Support for AIX 5.1 was added.
-
----
 ** Support for FreeBSD/Alpha has been added.
-
----
-** Support for BSD/OS 5.0 was added.
 
 ---
 ** Support for GNU/Linux systems on S390 machines was added.
@@ -463,19 +457,6 @@ automatically.  The game uses faces for better visual feedback.
 now shown as a hollow box or a thin bar.  However, you can control how
 it blinks off by setting the variable `blink-cursor-alist'.
 
-
-+++
-** Emacs now supports compound-text Extended Segments in X selections.
-
-Some versions of X, notably XFree86, use Extended Segments to encode
-in X selections characters that belong to character sets which are not
-part of the list of approved standard encodings defined by the
-compound text spec.  An example of such non-standard encodings is
-BIG5.  The new coding system `compound-text-with-extensions' supports
-these extensions, and is now used by default for encoding and decoding
-X selections.  If you don't want this support, set
-`selection-coding-system' to `compound-text'.
-
 ** The new variable `x-select-request-type' controls how Emacs
 requests X selection.  The default value is nil, which means that
 Emacs requests X selection with types COMPOUND_TEXT and UTF8_STRING,
@@ -577,18 +558,7 @@ in a directory or in a file.  See the documentation of the user option
 `display-time-mail-directory'.
 
 +++
-** The new option `Info-scroll-prefer-subnodes' causes Info to behave
-like the stand-alone Info reader (from the GNU Texinfo package) as far
-as motion between nodes and their subnodes is concerned.  If it is t
-Emacs behaves as before when you type SPC in a menu: it visits the
-subnode pointed to by the first menu entry.  If this option is nil,
-SPC scrolls to the end of the current node, and only then goes to the
-first menu item, like the stand-alone reader does.
-
-This option was already introduced in Emacs 21.1, but wasn't
-advertised in the NEWS.
-
-The default is now nil.  (Prior to Emacs 21.4, it was t.)
+** The default value for `Info-scroll-prefer-subnodes' is now nil.
 
 ---
 ** LDAP support now defaults to ldapsearch from OpenLDAP version 2.
@@ -893,14 +863,6 @@ appears in.
 
 ** The variable `cursor-in-non-selected-windows' can now be set to any
 of the recognized cursor types.
-
-+++
-** The default values of `tooltip-delay' and `tooltip-hide-delay'
-were changed.
-
----
-** On terminals whose erase-char is ^H (Backspace), Emacs
-now uses normal-erase-is-backspace-mode.
 
 ---
 ** The variable `auto-save-file-name-transforms' now has a third element that
@@ -1356,11 +1318,6 @@ This option can be disabled, to avoid the normal behavior of isearch
 which puts calls to `isearch-resume' in the command history.
 
 ---
-** When the *scratch* buffer is recreated, its mode is set from
-initial-major-mode, which normally is lisp-interaction-mode,
-instead of using default-major-mode.
-
----
 ** Lisp mode now uses font-lock-doc-face for the docstrings.
 
 ---
@@ -1467,17 +1424,6 @@ Meta and Alt:
 * New modes and packages in 21.4
 
 ** GDB-Script-mode is used for files like .gdbinit.
-** GDB-UI is now part of the Emacs distribution.
-
-This mode acts as an enhanced graphical user interface to GDB. You can
-interact with GDB through the GUD buffer in the usual way, but there are also
-further buffers which control the execution and describe the state of your
-program.  It separates the input/output of your program from that of GDB and
-displays expressions and their current values in their own buffers.  It also
-uses features of Emacs 21 such as the display margin for breakpoints, and the
-tool bar.
-
-Use M-x gdba to start GDB-UI.
 
 ---
 ** Ido mode is now part of the Emacs distribution.
@@ -1674,8 +1620,7 @@ to use standout mode, however they will not be able to display
 mode-lines in inverse-video.
 
 ---
-** The obsolete C mode (c-mode.el) has been removed to avoid problems
-with Custom.  cplus-md.el, which required it, has also been removed.
+** cplus-md.el has been removed to avoid problems with Custom.  
 
 ** New package benchmark.el contains simple support for convenient
 timing measurements of code (including the garbage collection component).
@@ -2394,11 +2339,6 @@ A file local variables list cannot specify a string with text
 properties--any specified text properties are discarded.
 
 +++
-*** The meanings of scroll-up-aggressively and scroll-down-aggressively
-have been interchanged, so that the former now controls scrolling up,
-and the latter now controls scrolling down.
-
-+++
 ** New function window-body-height.
 
 This is like window-height but does not count the mode line
@@ -2630,10 +2570,6 @@ It does not copy abbrevs from the parent mode's abbrev table.
 to test/provide subfeatures.  Also `provide' now checks `after-load-alist'
 and runs any code associated with the provided feature.
 
----
-** The variable `compilation-parse-errors-filename-function' can
-be used to transform filenames found in compilation output.
-
 +++
 ** Functions `file-name-sans-extension' and `file-name-extension' now
 ignore the leading dots in file names, so that file names such as
@@ -2711,6 +2647,16 @@ using the text properties (esp. the face) of the prompt string.
 
 ** New packages:
 
+*** The new package gdb-ui.el provides an enhanced graphical interface to
+GDB. You can interact with GDB through the GUD buffer in the usual way, but
+there are also further buffers which control the execution and describe the
+state of your program.  It separates the input/output of your program from
+that of GDB and displays expressions and their current values in their own
+buffers.  It also uses features of Emacs 21 such as the display margin for
+breakpoints, and the toolbar.
+
+Use M-x gdba to start GDB-UI.
+
 *** The new package syntax.el provides an efficient way to find the
 current syntactic context (as returned by parse-partial-sexp).
 
@@ -2726,6 +2672,96 @@ in emacs buffers.  `buttons' are much lighter-weight than the `widgets'
 implemented by widget.el, and can be used by lisp code that doesn't
 require the full power of widgets.  Emacs uses buttons for such things
 as help and apropos buffers.
+
+
+* Installation changes in Emacs 21.3
+
+** Support for GNU/Linux on little-endian MIPS and on IBM S390 has
+been added.
+
+
+* Changes in Emacs 21.3
+
+** The obsolete C mode (c-mode.el) has been removed to avoid problems
+with Custom.
+
+** UTF-16 coding systems are available, encoding the same characters
+as mule-utf-8.  Coding system `utf-16-le-dos' is useful as the value
+of `selection-coding-system' in MS Windows, allowing you to paste
+multilingual text from the clipboard.  Set it interactively with
+C-x RET x or in .emacs with `(set-selection-coding-system 'utf-16-le-dos)'.
+
+** There is a new language environment for UTF-8 (set up automatically
+in UTF-8 locales).
+
+** Translation tables are available between equivalent characters in
+different Emacs charsets -- for instance `e with acute' coming from the
+Latin-1 and Latin-2 charsets.  User options `unify-8859-on-encoding-mode'
+and `unify-8859-on-decoding-mode' respectively turn on translation
+between ISO 8859 character sets (`unification') on encoding
+(e.g. writing a file) and decoding (e.g. reading a file).  Note that
+`unify-8859-on-encoding-mode' is useful and safe, but
+`unify-8859-on-decoding-mode' can cause text to change when you read
+it and write it out again without edits, so it is not generally advisable.
+By default `unify-8859-on-encoding-mode' is turned on.
+
+** In Emacs running on the X window system, the default value of
+`selection-coding-system' is now `compound-text-with-extensions'.
+
+If you want the old behavior, set selection-coding-system to
+compound-text, which may be significantly more efficient.  Using
+compound-text-with-extensions seems to be necessary only for decoding
+text from applications under XFree86 4.2, whose behaviour is actually
+contrary to the compound text specification.
+
+
+* Installation changes in Emacs 21.2
+
+** Support for BSD/OS 5.0 has been added.
+
+** Support for AIX 5.1 was added.
+
+
+* Changes in Emacs 21.2
+
+** Emacs now supports compound-text extended segments in X selections.
+
+X applications can use `extended segments' to encode characters in
+compound text that belong to character sets which are not part of the
+list of approved standard encodings for X, e.g. Big5.  To paste
+selections with such characters into Emacs, use the new coding system
+compound-text-with-extensions as the value of selection-coding-system.
+
+** The default values of `tooltip-delay' and `tooltip-hide-delay'
+were changed.
+
+** On terminals whose erase-char is ^H (Backspace), Emacs
+now uses normal-erase-is-backspace-mode.
+
+** When the *scratch* buffer is recreated, its mode is set from
+initial-major-mode, which normally is lisp-interaction-mode,
+instead of using default-major-mode.
+
+** The new option `Info-scroll-prefer-subnodes' causes Info to behave
+like the stand-alone Info reader (from the GNU Texinfo package) as far
+as motion between nodes and their subnodes is concerned.  If it is t
+(the default), Emacs behaves as before when you type SPC in a menu: it
+visits the subnode pointed to by the first menu entry.  If this option
+is nil, SPC scrolls to the end of the current node, and only then goes
+to the first menu item, like the stand-alone reader does.
+
+This change was already in Emacs 21.1, but wasn't advertised in the
+NEWS.
+
+
+* Lisp Changes in Emacs 21.2
+
+** The meanings of scroll-up-aggressively and scroll-down-aggressively
+have been interchanged, so that the former now controls scrolling up,
+and the latter now controls scrolling down.
+
+** The variable `compilation-parse-errors-filename-function' can
+be used to transform filenames found in compilation output.
 
 
 * Installation Changes in Emacs 21.1
