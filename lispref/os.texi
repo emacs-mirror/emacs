@@ -907,6 +907,18 @@ convert calendrical information to a time value.  You can get time
 values from the functions @code{current-time} (@pxref{Time of Day}) and
 @code{file-attributes} (@pxref{File Attributes}).
 
+Many operating systems are limited to time values that contain 32 bits
+of information; these systems typically handle only the times from
+1901-12-13 20:45:52 UTC through 2038-01-19 03:14:07 UTC.  However, some
+operating systems have larger time values, and can represent times far
+in the past or future.
+
+Time conversion functions always use the Gregorian calendar, even for
+dates before the Gregorian calendar was introduced.  Year numbers count
+the number of years since the year 1 B.C., and do not skip zero as
+traditional Gregorian years do; for example, the year number -37
+represents the Gregorian year 38 B.C@.
+
 @defun format-time-string format-string time
 This function converts @var{time} to a string according to
 @var{format-string}.  The argument @var{format-string} may contain
