@@ -123,6 +123,14 @@ record_change (beg, length)
 record_first_change ()
 {
   Lisp_Object high, low;
+
+  if (EQ (current_buffer->undo_list, Qt))
+    return;
+
+  if (current_buffer != XBUFFER (last_undo_buffer))
+    Fundo_boundary ();
+  XSET (last_undo_buffer, Lisp_Buffer, current_buffer);
+
   XFASTINT (high) = (current_buffer->modtime >> 16) & 0xffff;
   XFASTINT (low) = current_buffer->modtime & 0xffff;
   current_buffer->undo_list = Fcons (Fcons (Qt, Fcons (high, low)), current_buffer->undo_list);
@@ -139,7 +147,7 @@ record_property_change (beg, length, prop, value, buffer)
   struct buffer *obuf = current_buffer;
   int boundary = 0;
 
-  if (EQ (current_buffer->undo_list, Qt))
+  if (EQ (XBUFFER (buffer)->undo_list, Qt))
     return;
 
   if (!EQ (buffer, last_undo_buffer))
