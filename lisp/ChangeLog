@@ -1,3 +1,10 @@
+2000-10-30  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* comint.el (comint-replace-by-expanded-history): Don't use
+	comint-get-old-input (we're not looking at *old* input).
+	(comint-get-old-input-default): If using fields, signal an error
+	when the point is not in an input field.
+
 2000-10-30  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-conf.el: New charsets mule-unicode-2500-33ff
@@ -4798,7 +4805,7 @@
 2000-08-28  Peter Breton  <pbreton@ne.mediaone.net>
 
 	* locate.el (locate): Cleaned up locate command's interactive prompting
-	Thanks to François_Pinard <pinard@iro.umontreal.ca> for suggestions.
+	Thanks to Fran,Ag(Bois_Pinard <pinard@iro.umontreal.ca> for suggestions.
 
 	* filecache.el (file-cache-case-fold-search): New variable
 	(file-cache-assoc-function): New variable
@@ -8729,7 +8736,7 @@
 
 2000-05-07  Dave Love  <fx@gnu.org>
 
-	* time.el: Small doc fixes from Pavel Janík ml.
+	* time.el: Small doc fixes from Pavel Jan,Am(Bk ml.
 
 2000-05-05  Dave Love  <fx@gnu.org>
 
