@@ -1,0 +1,5 @@
+This subdirectory contains the lwlib library which provides a uniform
+interface to a few different X toolkits.  The library was written by Lucid.
+This version has changes in the makefile to fit in with Emacs's configure
+script, and some source files have been renamed to fit in 14 characters.
+
