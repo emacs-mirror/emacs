@@ -1952,32 +1952,38 @@ With argument, do this that many times."
   (interactive "p")
   (kill-word (- arg)))
 
-(defun current-word ()
-  "Return the word point is on as a string, if it's between two
-word-constituent characters. If not, but it immediately follows one,
-move back first.  Otherwise, if point precedes a word constituent,
-move forward first.  Otherwise, move backwards until a word constituent
-is found and get that word; if you reach a newline first, move forward
-instead."
+(defun current-word (&optional strict)
+  "Return the word point is on (or a nearby word) as a string.
+If optional arg STRICT is non-nil, return nil unless point is within
+or adjacent to a word."
   (save-excursion
     (let ((oldpoint (point)) (start (point)) (end (point)))
       (skip-syntax-backward "w_") (setq start (point))
       (goto-char oldpoint)
       (skip-syntax-forward "w_") (setq end (point))
       (if (and (eq start oldpoint) (eq end oldpoint))
-	  (progn
-	    (skip-syntax-backward "^w_"
-				  (save-excursion (beginning-of-line) (point)))
-	    (if (eq (preceding-char) ?\n)
-		(progn
-		  (skip-syntax-forward "^w_")
-		  (setq start (point))
-		  (skip-syntax-forward "w_")
-		  (setq end (point)))
-	      (setq end (point))
-	      (skip-syntax-backward "w_")
-	      (setq start (point)))))
-      (buffer-substring start end))))
+	  ;; Point is neither within nor adjacent to a word.
+	  (and (not strict)
+	       (progn
+		 ;; Look for preceding word in same line.
+		 (skip-syntax-backward "^w_"
+				       (save-excursion (beginning-of-line)
+						       (point)))
+		 (if (bolp)
+		     ;; No preceding word in same line.
+		     ;; Look for following word in same line.
+		     (progn
+		       (skip-syntax-forward "^w_"
+					    (save-excursion (end-of-line)
+							    (point)))
+		       (setq start (point))
+		       (skip-syntax-forward "w_")
+		       (setq end (point)))
+		   (setq end (point))
+		   (skip-syntax-backward "w_")
+		   (setq start (point)))
+		 (buffer-substring start end)))
+	(buffer-substring start end)))))
 
 (defconst fill-prefix nil
   "*String for filling to insert at front of new line, or nil for none.
