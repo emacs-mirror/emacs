@@ -809,6 +809,7 @@ If BUFFER is omitted or nil, some interesting buffer is returned.")
   (buffer, visible_ok)
      register Lisp_Object buffer, visible_ok;
 {
+  Lisp_Object Fset_buffer_major_mode ();
   register Lisp_Object tail, buf, notsogood, tem;
   notsogood = Qnil;
 
@@ -842,7 +843,9 @@ If BUFFER is omitted or nil, some interesting buffer is returned.")
     }
   if (!NILP (notsogood))
     return notsogood;
-  return Fget_buffer_create (build_string ("*scratch*"));
+  buf = Fget_buffer_create (build_string ("*scratch*"));
+  Fset_buffer_major_mode (buf);
+  return buf;
 }
 
 DEFUN ("buffer-disable-undo", Fbuffer_disable_undo, Sbuffer_disable_undo,
