@@ -2454,6 +2454,7 @@ build_frame_matrix_from_leaf_window (frame_matrix, w)
     {
       struct glyph_row *frame_row = frame_matrix->rows + frame_y;
       struct glyph_row *window_row = window_matrix->rows + window_y;
+      int current_row_p = window_matrix == w->current_matrix;
 
       /* Fill up the frame row with spaces up to the left margin of the
 	 window row.  */
@@ -2461,19 +2462,32 @@ build_frame_matrix_from_leaf_window (frame_matrix, w)
 
       /* Fill up areas in the window matrix row with spaces.  */
       fill_up_glyph_row_with_spaces (window_row);
-      
-      if (window_matrix == w->current_matrix)
+
+      /* If only part of W's desired matrix has been built, and
+         window_row wasn't displayed, use the corresponding current
+         row instead.  */
+      if (window_matrix == w->desired_matrix
+	  && !window_row->enabled_p)
 	{
-	  /* We have to copy W's current matrix.  Copy window
-	     row to frame row.  */
+	  window_row = w->current_matrix->rows + window_y;
+	  current_row_p = 1;
+	}
+      
+      if (current_row_p)
+	{
+	  /* Copy window row to frame row.  */
 	  bcopy (window_row->glyphs[0],
 		 frame_row->glyphs[TEXT_AREA] + window_matrix->matrix_x,
 		 window_matrix->matrix_w * sizeof (struct glyph));
 	}
       else
 	{
-	  /* Copy W's desired matrix.  */
-
+	  xassert (window_row->enabled_p);
+	  
+	  /* Only when a desired row has been displayed, we want
+	     the corresponding frame row to be updated.  */
+	  frame_row->enabled_p = 1;
+	  
           /* Maybe insert a vertical border between horizontally adjacent
 	     windows.  */
           if (right_border_glyph)
@@ -2523,8 +2537,7 @@ build_frame_matrix_from_leaf_window (frame_matrix, w)
       frame_row->used[TEXT_AREA] 
 	= window_matrix->matrix_x + window_matrix->matrix_w;
 
-      /* Or in flags.  */
-      frame_row->enabled_p |= window_row->enabled_p;
+      /* Or in other flags.  */
       frame_row->inverse_p |= window_row->inverse_p;
 
       /* Next row.  */
@@ -3443,11 +3456,13 @@ direct_output_forward_char (n)
 
   row = MATRIX_ROW (w->current_matrix, w->cursor.vpos);
 
+  /* Give up if PT is outside of the last known cursor row.  */
   if (PT <= MATRIX_ROW_START_BYTEPOS (row)
       || PT >= MATRIX_ROW_END_BYTEPOS (row))
     return 0;
 
   set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
+  
   w->last_cursor = w->cursor;
   XSETFASTINT (w->last_point, PT);
 
