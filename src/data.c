@@ -137,15 +137,6 @@ args_out_of_range_3 (a1, a2, a3)
     Fsignal (Qargs_out_of_range, Fcons (a1, Fcons (a2, Fcons (a3, Qnil))));
 }
 
-Lisp_Object
-make_number (num)
-     int num;
-{
-  register Lisp_Object val;
-  XSETINT (val, num);
-  return val;
-}
-
 /* On some machines, XINT needs a temporary location.
    Here it is, in case it is needed.  */
 
