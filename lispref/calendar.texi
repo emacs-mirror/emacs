@@ -763,6 +763,44 @@ Renew medication (5th time)
 @noindent
 in the fancy diary display on September 8, 1990.
 
+  There is an early reminder diary sexp that includes its entry in the
+diary not only on the date of occurrence, but also on earlier dates.
+For example, if you want a reminder a week before your anniversary, you
+can use
+
+@findex diary-remind
+@smallexample
+%%(diary-remind '(diary-anniversary 12 22 1968) 7) Ruth & Ed's anniversary
+@end smallexample
+
+@noindent
+and your diary will show 
+@smallexample
+Ruth & Ed's anniversary
+@end smallexample
+@noindent
+both on December 15 and on December 22.
+
+@findex diary-date
+  The function @code{diary-date} applies to dates described by a month,
+day, year combination, each of which can be an integer, a list of
+integers, or @code{t}. The value @code{t} means all values.  For
+example,
+
+@smallexample
+%%(diary-date '(10 11 12) 22 t) Rake leaves
+@end smallexample
+
+@noindent
+causes your diary to show
+
+@smallexample
+Rake leaves
+@end smallexample
+
+@noindent
+on October 22, November 22, and December 22 of any year.
+
   The generality of sexp diary entries lets you specify any diary entry
 that you can describe algorithmically.  A sexp diary entry contains an
 expression that computes whether the entry applies to any given date.
