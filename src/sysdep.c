@@ -147,7 +147,7 @@ extern int errno;
 #undef TIOCSWINSZ
 #endif
 
-#ifdef USG
+#if defined(USG) || defined(DGUX)
 #include <sys/utsname.h>
 #include <string.h>
 #ifndef MEMORY_IN_STRING_H
@@ -162,7 +162,7 @@ extern int errno;
 #include <sys/ptem.h>
 #endif
 #endif /* TIOCGWINSZ or ISC4_0 */
-#endif /* USG */
+#endif /* USG or DGUX */
 
 extern int quit_char;
 
