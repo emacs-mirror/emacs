@@ -68,6 +68,17 @@ extern void malloc_warning ();
 extern void set_time_zone_rule ();
 extern char *index ();
 
+/* Make these values available in GDB, which doesn't see macros.  */
+
+EMACS_INT gdb_valbits = VALBITS;
+EMACS_INT gdb_gctypebits = GCTYPEBITS;
+EMACS_INT gdb_emacs_intbits = sizeof (EMACS_INT) * BITS_PER_CHAR;
+#ifdef DATA_SEG_BITS
+EMACS_INT gdb_data_seg_bits = DATA_SEG_BITS;
+#else
+EMACS_INT  gdb_data_seg_bits = 0;
+#endif
+
 /* Command line args from shell, as list of strings */
 Lisp_Object Vcommand_line_args;
 
