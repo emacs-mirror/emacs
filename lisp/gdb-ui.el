@@ -41,10 +41,10 @@
 ;; developing the mode itself, then see the Annotations section in the GDB
 ;; info manual.
 ;;
-;;  Known Bugs: 
-;;  Does not auto-display arrays of structures or structures containing arrays. 
-;;  On MS Windows, Gdb 5.1.1 from MinGW 2.0 does not flush the output from the
-;;  inferior.
+;; Known Bugs: 
+;; Does not auto-display arrays of structures or structures containing arrays. 
+;; On MS Windows, Gdb 5.1.1 from MinGW 2.0 does not flush the output from the
+;; inferior.
 
 ;;; Code:
 
@@ -60,9 +60,10 @@
   :type 'integer
   :group 'gud)
 
-(defvar gdb-current-address nil "Initialisation for Assembler buffer.")
+(defvar gdb-current-address "main" "Initialisation for Assembler buffer.")
 (defvar gdb-previous-address nil)
 (defvar gdb-previous-frame nil)
+(defvar gdb-current-frame "main")
 (defvar gdb-display-in-progress nil)
 (defvar gdb-dive nil)
 (defvar gdb-view-source t "Non-nil means that source code can be viewed")
@@ -162,6 +163,7 @@ The following interactive lisp functions help control operation :
   (setq gdb-current-address "main")
   (setq gdb-previous-address nil)
   (setq gdb-previous-frame nil)
+  (setq gdb-current-frame "main")
   (setq gdb-display-in-progress nil)
   (setq gdb-dive nil)
   (setq gdb-view-source t)
@@ -176,7 +178,7 @@ The following interactive lisp functions help control operation :
       (gdb-enqueue-input (list "set new-console off\n" 'ignore)))
   (gdb-enqueue-input (list "set height 0\n" 'ignore))
   ;; find source file and compilation directory here
-  (gdb-enqueue-input (list "server list\n" 'ignore))          ; C program
+  (gdb-enqueue-input (list "server list main\n" 'ignore))     ; C program
   (gdb-enqueue-input (list "server list MAIN__\n" 'ignore))   ; Fortran program
   (gdb-enqueue-input (list "server info source\n"
 			   'gdb-source-info))
@@ -201,9 +203,9 @@ The following interactive lisp functions help control operation :
     (goto-char (- (point-max) 1))
     (if (equal (char-before) (string-to-char "\*"))
 	(gdb-enqueue-input
-	 (list (concat "server display* " expr "\n") 'ignore))
+	 (list (concat "display* " expr "\n") 'ignore))
       (gdb-enqueue-input
-       (list (concat "server display " expr "\n") 'ignore)))))
+       (list (concat "display " expr "\n") 'ignore)))))
 
 ; this would messy because these bindings don't work with M-x gdb
 ; (define-key global-map "\C-x\C-a\C-a" 'gud-display)
@@ -744,7 +746,6 @@ output from the current command if that happens to be appropriate."
   (set-buffer (gdb-get-buffer 'gdb-partial-output-buffer))
   (setq gdb-dive nil))
 
-(defvar gdb-current-frame nil)
 (defvar gdb-nesting-level)
 (defvar gdb-expression)
 (defvar gdb-point)
@@ -2049,26 +2050,26 @@ the source buffer."
   (gdb-display-buffer
    (gdb-get-create-buffer 'gdba)))
 
+(defvar gdb-main-file nil "Source file from which program execution begins.")
+
 (defun gdb-view-source()
-(interactive)
-(if gdb-view-source
-  (if gud-last-last-frame
-      (set-window-buffer gdb-source-window
-			 (gud-find-file (car gud-last-last-frame)))
-    (set-window-buffer gdb-source-window (gud-find-file gdb-main-file))))
-(setq gdb-selected-view 'source))
+  (interactive)
+  (if gdb-view-source
+      (if gud-last-last-frame
+	  (set-window-buffer gdb-source-window
+			     (gud-find-file (car gud-last-last-frame)))
+	(set-window-buffer gdb-source-window (gud-find-file gdb-main-file))))
+  (setq gdb-selected-view 'source))
 
 (defun gdb-view-assembler()
-(interactive)
-(set-window-buffer gdb-source-window
-		   (gdb-get-create-buffer 'gdb-assembler-buffer))
-(setq gdb-selected-view 'assembler))
+  (interactive)
+  (set-window-buffer gdb-source-window
+		     (gdb-get-create-buffer 'gdb-assembler-buffer))
+  (setq gdb-selected-view 'assembler))
 
 ;(defun gdb-view-both()
 ;(interactive)
 ;(setq gdb-selected-view 'both))
-
-(defvar gdb-main-file nil "Source file from which program execution begins.")
 
 ;; layout for all the windows
 (defun gdb-setup-windows ()
@@ -2135,6 +2136,7 @@ This arrangement depends on the value of `gdb-many-windows'."
 	     (gud-find-file (car gud-last-last-frame))
 	   (gud-find-file gdb-main-file)))
       (switch-to-buffer (gdb-get-create-buffer 'gdb-assembler-buffer)))
+    (setq gdb-source-window (get-buffer-window (current-buffer)))
     (other-window 1)))
 
 (defun gdb-reset ()
@@ -2164,29 +2166,30 @@ This arrangement depends on the value of `gdb-many-windows'."
   "Find the source file where the program starts and displays it with related
 buffers."
   (goto-char (point-min))
-  (when (search-forward "directory is " nil t)
-    (if (looking-at "\\S-*:\\(\\S-*\\)")
-	(setq gdb-cdir (match-string 1))
-      (looking-at "\\S-*")
-      (setq gdb-cdir (match-string 0)))
-    (search-forward "Located in ")
-    (looking-at "\\S-*")
-    (setq gdb-main-file (match-string 0))
-    ;; Make sure we are not in the minibuffer window when we try to delete
-    ;; all other windows.
-    (if (window-minibuffer-p (selected-window))
-	(other-window 1))
+  (if (search-forward "directory is " nil t)
+      (progn
+	(if (looking-at "\\S-*:\\(\\S-*\\)")
+	    (setq gdb-cdir (match-string 1))
+	  (looking-at "\\S-*")
+	  (setq gdb-cdir (match-string 0)))
+	(search-forward "Located in ")
+	(looking-at "\\S-*")
+	(setq gdb-main-file (match-string 0)))
+    (setq gdb-view-source nil))
+  (delete-other-windows)
+  (if gdb-many-windows
+      (gdb-setup-windows)
+    (gdb-display-breakpoints-buffer)
+    (gdb-display-display-buffer)
     (delete-other-windows)
-    (if gdb-many-windows
-	(gdb-setup-windows)
-      (gdb-display-breakpoints-buffer)
-      (gdb-display-display-buffer)
-      (delete-other-windows)
-      (split-window)
-      (other-window 1)
-      (switch-to-buffer (gud-find-file gdb-main-file))
-      (setq gdb-source-window (get-buffer-window (current-buffer)))
-      (other-window 1))))
+    (split-window)
+    (other-window 1)
+    (if gdb-view-source
+	(switch-to-buffer (gud-find-file gdb-main-file))
+      (switch-to-buffer (gdb-get-create-buffer 'gdb-assembler-buffer))
+      (gdb-invalidate-assembler))
+    (setq gdb-source-window (get-buffer-window (current-buffer)))
+    (other-window 1)))
 
 ;;from put-image
 (defun gdb-put-string (putstring pos)
@@ -2294,14 +2297,16 @@ BUFFER nil or omitted means use the current buffer."
 
 (defun gdb-assembler-custom ()
   (let ((buffer (gdb-get-buffer 'gdb-assembler-buffer))
-	(address) (flag))
+	(gdb-arrow-position 1) (address) (flag))
     (with-current-buffer buffer
       (if (not (equal gdb-current-address "main"))
 	  (progn
 	    (gdb-remove-arrow)
 	    (goto-char (point-min))
 	    (if (re-search-forward gdb-current-address nil t)
-		(gdb-put-arrow "=>" (point)))))
+		(progn
+		  (setq gdb-arrow-position (point))
+		  (gdb-put-arrow "=>" (point))))))
       ;; remove all breakpoint-icons in assembler buffer before updating.
       (if (eq window-system 'x)
 	  (remove-images (point-min) (point-max))
@@ -2339,7 +2344,9 @@ BUFFER nil or omitted means use the current buffer."
 			  (gdb-remove-strings start end)
 			  (if (eq ?y flag)
 			      (gdb-put-string "B" (+ start 1))
-			    (gdb-put-string "b" (+ start 1)))))))))))))
+			    (gdb-put-string "b" (+ start 1)))))))))))
+    (if (not (equal gdb-current-address "main"))
+	(set-window-point (get-buffer-window buffer) gdb-arrow-position))))
 
 (defvar gdb-assembler-mode-map
   (let ((map (make-sparse-keymap)))
