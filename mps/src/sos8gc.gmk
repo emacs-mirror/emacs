@@ -1,14 +1,13 @@
 #
 #     BUILD FOR SOLARIS/SPARC/GCC PLATFORM
 #
-#  $HopeName: MMsrc!sospgc.gmk(trunk.9) $
+#  $HopeName: MMsrc!sospgc.gmk(trunk.10) $
 #  Copyright (C) 1995,1997 Harlequin Group, all rights reserved
 #
 #  This is the GNU makefile for platform.sospgc.
 #
 
 PFM = sospgc
-PFMDEFS = -D_POSIX_SOURCE -D__EXTENSIONS__
 
 MPM = assert.c ring.c mpsliban.c mpm.c bt.c \
       arenavm.c vmso.c space.c pool.c poolmfs.c \
