@@ -89,7 +89,6 @@
 ;;                        f90-smart-end 'blink
 ;;                        f90-auto-keyword-case nil
 ;;                        f90-leave-line-no  nil
-;;                        f90-startup-message t
 ;;                        indent-tabs-mode nil
 ;;                        f90-font-lock-keywords f90-font-lock-keywords-2
 ;;                  )
@@ -227,11 +226,6 @@ whether to blink the matching beginning."
 
 (defcustom f90-leave-line-no nil
   "*If nil, left-justify linenumbers."
-  :type 'boolean
-  :group 'f90)
-
-(defcustom f90-startup-message t
-  "*Non-nil displays a startup message when F90 mode is first called."
   :type 'boolean
   :group 'f90)
 
@@ -793,8 +787,6 @@ Variables controlling indentation style and extra features:
     The possibilities are 'downcase-word, 'upcase-word, 'capitalize-word.
  f90-leave-line-no
     Do not left-justify line numbers. (default nil)
- f90-startup-message
-    Set to nil to inhibit message first time F90 mode is used. (default t)
  f90-keywords-re
     List of keywords used for highlighting/upcase-keywords etc.
 
@@ -848,8 +840,7 @@ with no args, if that value is non-nil."
   (setq imenu-generic-expression f90-imenu-generic-expression)
   (set (make-local-variable 'add-log-current-defun-function)
        #'f90-current-defun)
-  (run-hooks 'f90-mode-hook)
-  (setq f90-startup-message nil))
+  (run-hooks 'f90-mode-hook))
 
 ;; inline-functions
 (defsubst f90-in-string ()
