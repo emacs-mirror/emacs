@@ -51,6 +51,10 @@ Boston, MA 02111-1307, USA.  */
 #define MAX_4_BYTE_CHAR 0x1FFFFF
 #define MAX_5_BYTE_CHAR 0x3FFF7F
 
+/* Leading code range of Latin-1 chars.  */
+#define LEADING_CODE_LATIN_1_MIN 0xC2
+#define LEADING_CODE_LATIN_1_MAX 0xC3
+
 /* Nonzero iff C is a character that corresponds to a raw 8-bit
    byte.  */
 #define CHAR_BYTE8_P(c) ((c) > MAX_5_BYTE_CHAR)
@@ -68,21 +72,24 @@ Boston, MA 02111-1307, USA.  */
    that corresponds to a raw 8-bit byte.  */
 #define CHAR_BYTE8_HEAD_P(byte) ((byte) == 0xC0 || (byte) == 0xC1)
 
+/* Mapping table from unibyte chars to multibyte chars.  */
+extern int unibyte_to_multibyte_table[256];
+
+/* Convert the unibyte character C to the corresponding multibyte
+   character.  If C can't be converted, return C.  */
+#define unibyte_char_to_multibyte(c)	\
+  ((c) < 256 ? unibyte_to_multibyte_table[(c)] : (c))
+
 /* If C is not ASCII, make it unibyte. */
+#define MAKE_CHAR_UNIBYTE(c)	\
+  do {				\
+    if (! ASCII_CHAR_P (c))	\
+      c = CHAR_TO_BYTE8 (c);	\
+  } while (0)
 
-#define MAKE_CHAR_UNIBYTE(c)			\
-  if (! ASCII_CHAR_P (c))			\
-    c = multibyte_char_to_unibyte (c, Qnil);	\
-  else
 
-
-/* If C is not ASCII, make it multibyte. */
-
-#define MAKE_CHAR_MULTIBYTE(c)		\
-  if (! ASCII_CHAR_P (c))		\
-    c = unibyte_char_to_multibyte (c);	\
-  else
-
+/* If C is not ASCII, make it multibyte.  It assumes C < 256.  */
+#define MAKE_CHAR_MULTIBYTE(c) ((c) = unibyte_to_multibyte_table[(c)])
 
 /* This is the maximum byte length of multibyte form.  */
 #define MAX_MULTIBYTE_LENGTH 5
@@ -125,6 +132,17 @@ Boston, MA 02111-1307, USA.  */
     : (c) <= MAX_4_BYTE_CHAR ? 4	\
     : (c) <= MAX_5_BYTE_CHAR ? 5	\
     : 2)
+
+
+/* Return the leading code of multibyte form of C.  */
+#define CHAR_LEADING_CODE(c)				\
+  ((c) <= MAX_1_BYTE_CHAR ? c				\
+   : (c) <= MAX_2_BYTE_CHAR ? (0xC0 | ((c) >> 6))	\
+   : (c) <= MAX_3_BYTE_CHAR ? (0xE0 | ((c) >> 12))	\
+   : (c) <= MAX_4_BYTE_CHAR ? (0xF0 | ((c) >> 18))	\
+   : (c) <= MAX_5_BYTE_CHAR ? 0xF8			\
+   : (0xC0 | (((c) >> 6) & 0x01)))
+
 
 /* Store multibyte form of the character C in P.  The caller should
    allocate at least MAX_MULTIBYTE_LENGTH bytes area at P in advance.
@@ -335,6 +353,28 @@ Boston, MA 02111-1307, USA.  */
       else								\
 	OUTPUT = XSTRING (STRING)->data[BYTEIDX++];			\
     }									\
+  else
+
+/* Like FETCH_STRING_CHAR_ADVANCE */
+
+#define FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE(OUTPUT, STRING, CHARIDX, BYTEIDX) \
+  if (1)								      \
+    {									      \
+      CHARIDX++;							      \
+      if (STRING_MULTIBYTE (STRING))					      \
+	{								      \
+	  unsigned char *ptr = &XSTRING (STRING)->data[BYTEIDX];	      \
+	  int len;							      \
+									      \
+	  OUTPUT = STRING_CHAR_AND_LENGTH (ptr, 0, len);		      \
+	  BYTEIDX += len;						      \
+	}								      \
+      else								      \
+	{								      \
+	  OUTPUT = XSTRING (STRING)->data[BYTEIDX++];			      \
+	  MAKE_CHAR_MULTIBYTE (OUTPUT);					      \
+	}								      \
+    }									      \
   else
 
 
