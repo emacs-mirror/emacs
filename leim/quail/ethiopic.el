@@ -35,7 +35,7 @@
 
 (quail-define-package
  "ethiopic" "Ethiopic"
- '("$(3$O#U!.(B "
+ '("$(3$Q#U!.(B "
    (ethio-prefer-ascii-space "_" "$(3$h(B")
    (ethio-prefer-ascii-punctuation "." "$(3$i(B"))
  t "  QUAIL PACKAGE FOR ETHIOPIC (TIGRIGNA AND AMHARIC)
