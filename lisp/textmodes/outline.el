@@ -338,7 +338,7 @@ at the end of the buffer."
   "Move to previous heading line, or beg of this line if it's a heading.
 Only visible heading lines are considered, unless INVISIBLE-OK is non-nil."
   (beginning-of-line)
-  (or (outline-on-heading-p t)
+  (or (outline-on-heading-p invisible-ok)
       (let (found)
 	(save-excursion
 	  (while (not found)
