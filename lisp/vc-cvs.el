@@ -152,12 +152,6 @@ See also variable `vc-cvs-sticky-date-format-string'."
 ;;; Internal variables
 ;;;
 
-(defvar vc-cvs-local-month-numbers
-  '(("Jan" . 1) ("Feb" .  2) ("Mar" .  3) ("Apr" .  4)
-    ("May" . 5) ("Jun" .  6) ("Jul" .  7) ("Aug" .  8)
-    ("Sep" . 9) ("Oct" . 10) ("Nov" . 11) ("Dec" . 12))
-  "Local association list of month numbers.")
-
 
 ;;;
 ;;; State-querying functions
@@ -605,29 +599,36 @@ encoded as fractional days."
 (defun vc-cvs-annotate-time ()
   "Return the time of the next annotation (as fraction of days)
 systime, or nil if there is none."
-  (let ((time-stamp
-	 "^\\S-+\\s-+\\S-+\\s-+\\([0-9]+\\)-\\(\\sw+\\)-\\([0-9]+\\)): "))
-    (if (looking-at time-stamp)
-      (progn
-	(let* ((day (string-to-number (match-string 1)))
-		 (month (cdr (assoc (match-string 2)
-				    vc-cvs-local-month-numbers)))
-	       (year-tmp (string-to-number (match-string 3)))
-	       ;; Years 0..68 are 2000..2068.
-	       ;; Years 69..99 are 1969..1999.
-	       (year (+ (cond ((> 69 year-tmp) 2000)
-			      ((> 100 year-tmp) 1900)
-			      (t 0))
-			year-tmp)))
-	  (goto-char (match-end 0)) ; Position at end makes for nicer overlay result
-	    (vc-annotate-convert-time (encode-time 0 0 0 day month year))))
-    ;; If we did not look directly at an annotation, there might be
-    ;; some further down.  This is the case if we are positioned at
-    ;; the very top of the buffer, for instance.
-      (if (re-search-forward time-stamp nil t)
-	(progn
-	  (beginning-of-line nil)
-	    (vc-cvs-annotate-time))))))
+  (let* ((bol (point))
+         (cache (get-text-property bol 'vc-cvs-annotate-time))
+         buffer-read-only)
+    (cond
+     (cache)
+     ((looking-at
+       "^\\S-+\\s-+\\S-+\\s-+\\([0-9]+\\)-\\(\\sw+\\)-\\([0-9]+\\)): ")
+      (let ((day (string-to-number (match-string 1)))
+            (month (cdr (assq (intern (match-string 2))
+                              '((Jan .  1) (Feb .  2) (Mar .  3)
+                                (Apr .  4) (May .  5) (Jun .  6)
+                                (Jul .  7) (Aug .  8) (Sep .  9)
+                                (Oct . 10) (Nov . 11) (Dec . 12)))))
+            (year (let ((tmp (string-to-number (match-string 3))))
+                    ;; Years 0..68 are 2000..2068.
+                    ;; Years 69..99 are 1969..1999.
+                    (+ (cond ((> 69 tmp) 2000)
+                             ((> 100 tmp) 1900)
+                             (t 0))
+                       tmp))))
+        (put-text-property
+         bol (1+ bol) 'vc-cvs-annotate-time
+         (setq cache (cons
+                      ;; Position at end makes for nicer overlay result.
+                      (match-end 0)
+                      (vc-annotate-convert-time
+                       (encode-time 0 0 0 day month year))))))))
+    (when cache
+      (goto-char (car cache))           ; fontify from here to eol
+      (cdr cache))))                    ; days (float)
 
 (defun vc-cvs-annotate-extract-revision-at-line ()
   (save-excursion
