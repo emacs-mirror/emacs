@@ -31,6 +31,8 @@ Boston, MA 02111-1307, USA.  */
 
 #define _GNU_SOURCE
 
+#include <config.h>
+
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
@@ -42,7 +44,6 @@ Boston, MA 02111-1307, USA.  */
 #include <fcntl.h>
 #include <stdarg.h>
 #include <sys/stat.h>
-#include <config.h>
 
 #define MAX_ATTEMPTS 5
 #define MAX_SCORES 200
