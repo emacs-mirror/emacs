@@ -79,16 +79,29 @@
 
 (defun make-mms-derivative-load-edits-file (name)
   (make-mms-derivative-data 'edits-filename name)
-  (let ((i 0) tmp res)
-    (while (progn
-             (setq tmp
-                   (shell-command-to-string
-                    (format "grep '^;;;%s;;' %s | sed 's/^;;;[0-9][0-9]*;;//g'"
-                            i name)))
-             (not (string= "" tmp)))
-      (setq res (cons (cons i tmp) res)
-            i (1+ i)))
-    (make-mms-derivative-data 'raw-data res))
+  (let (raw-data
+	(cur (current-buffer))
+	(wbuf (get-buffer-create "*make-mms-derivative-load-edits-file work")))
+    (set-buffer wbuf)
+    (insert-file-contents name)
+    (keep-lines "^;;;[0-9]+;;")
+    (goto-char (point-max))
+    (while (re-search-backward "^;;;\\([0-9]+\\);;\\(.*\\)$" (point-min) t)
+      (let* ((i (string-to-number (match-string 1)))
+	     (line (match-string 2))
+	     (look (assq i raw-data)))
+	(if look
+	    (setcdr look (cons line (cdr look)))
+	  (setq raw-data (cons (list i line) raw-data)))))
+    (kill-buffer wbuf)
+    (set-buffer cur)
+    (mapcar '(lambda (ent)
+	       (setcdr ent (mapconcat '(lambda (line)
+					 (concat line "\n"))
+				      (cdr ent)
+				      "")))
+	    raw-data)
+    (make-mms-derivative-data 'raw-data raw-data))
   (load name))
 
 (defun make-mms-derivative-insert-raw-data (n)
