@@ -459,6 +459,9 @@ selected.")
 (defvar iswitchb-bufs-in-frame nil
   "List of the buffers visible in the current frame.")
 
+(defvar iswitchb-minibuf-depth nil
+  "Value we expect to be returned by `minibuffer-depth' in the minibuffer.")
+
 ;;; FUNCTIONS
 
 ;;; ISWITCHB KEYMAP
@@ -571,6 +574,9 @@ If REQUIRE-MATCH is non-nil, an existing-buffer must be selected."
     (let
 	((minibuffer-local-completion-map iswitchb-mode-map)
 	 (iswitchb-prepost-hooks t)
+	 ;; Record the minibuffer depth that we expect to find once
+	 ;; the minibuffer is set up and iswitchb-entryfn-p is called.
+	 (iswitchb-minibuf-depth (1+ (minibuffer-depth)))
 	 (iswitchb-require-match require-match))
       ;; prompt the user for the buffer name
       (setq iswitchb-final-text (completing-read
@@ -1292,14 +1298,7 @@ Copied from `icomplete-tidy'."
 
 (defun iswitchb-entryfn-p ()
   "Return non-nil if we are using `iswitchb-buffer'."
-  ;; Testing if `iswitchb-prepost-hooks' is bound does not work when
-  ;; we're invoking a recursive mini-buffer from an Iswitchb buffer.
-  ;; In this case, `iswitchb-prepost-hooks' is bound in the second
-  ;; mini-buffer, although it's not an Iswitchb buffer.
-  (memq this-command
-	'(iswitchb-buffer iswitchb-buffer-other-frame
-			  iswitchb-display-buffer
-			  iswitchb-buffer-other-window)))
+  (eq iswitchb-minibuf-depth (minibuffer-depth)))
 
 (defun iswitchb-summaries-to-end ()
   "Move the summaries to the end of the list.
