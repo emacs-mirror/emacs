@@ -58,6 +58,41 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define EXPLICIT_SIGN_EXTEND
 
+/* The standard definitions of these macros would work ok,
+   but these are faster because the constants are short. */
+   
+
+#define XUINT(a) (((unsigned)(a) << BITS_PER_INT-VALBITS) >> BITS_PER_INT-VALBITS)
+
+#define XSET(var, type, ptr) \
+   ((var) = ((int)(type) << VALBITS) + (((unsigned) (ptr) << BITS_PER_INT-VALBITS) >> BITS_PER_INT-VALBITS))
+
+#define XMARKBIT(a) ((a) < 0)
+#define XSETMARKBIT(a,b) ((a) = ((b) ? (a)|MARKBIT : (a) & ~MARKBIT))
+
+#if 0  /* Loses when sign bit of type field is set.  */
+#define XUNMARK(a) ((a) = (((a) << BITS_PER_INT-GCTYPEBITS-VALBITS) >> BITS_PER_INT-GCTYPEBITS-VALBITS))
+#endif
+
+/* Define the BSTRING functions in terms of the sysV functions. */
+/* On HPUX 8.05, including types.h can include strings.h
+   which declares these as functions.  Hence the #ifndef.  */
+
+#ifndef HAVE_BCOPY
+#define bcopy(a,b,s)	memcpy (b,a,s)
+#define bzero(a,s)	memset (a,0,s)
+#define bcmp		memcmp
+#endif
+
+#ifdef __hpux
+/* Now define a symbol for the cpu type, if your compiler
+   does not define it automatically:
+   Ones defined so far include vax, m68000, ns16000, pyramid,
+   orion, tahoe, APOLLO and many others */
+#ifndef hp9000s800
+#     define hp9000s800
+#endif
+
 /* Data type of load average, as read out of kmem.  */
 
 #define LOAD_AVE_TYPE double
@@ -116,26 +151,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define LIBS_MACHINE
 #define LIBS_DEBUG
 
-/* Define NEED_BSDTTY if you have such. */
-
+/* Include the file bsdtty.h, since this machine has job control.  */
 #define NEED_BSDTTY
 
-/* The standard definitions of these macros would work ok,
-   but these are faster because the constants are short. */
-   
-
-#define XUINT(a) (((unsigned)(a) << BITS_PER_INT-VALBITS) >> BITS_PER_INT-VALBITS)
-
-#define XSET(var, type, ptr) \
-   ((var) = ((int)(type) << VALBITS) + (((unsigned) (ptr) << BITS_PER_INT-VALBITS) >> BITS_PER_INT-VALBITS))
-
-#define XMARKBIT(a) ((a) < 0)
-#define XSETMARKBIT(a,b) ((a) = ((b) ? (a)|MARKBIT : (a) & ~MARKBIT))
-
-#if 0  /* Loses when sign bit of type field is set.  */
-#define XUNMARK(a) ((a) = (((a) << BITS_PER_INT-GCTYPEBITS-VALBITS) >> BITS_PER_INT-GCTYPEBITS-VALBITS))
-#endif
-
 /* The symbol in the kernel where the load average is found
    is named _avenrun.  At this time there are two major flavors
    of hp-ux (there is the s800 and s300 (s200) flavors).  The
@@ -156,20 +174,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef S_IFLNK
 #endif
 
-/* Define the BSTRING functions in terms of the sysV functions. */
-/* On HPUX 8.05, including types.h can include strings.h
-   which declares these as functions.  Hence the #ifndef.  */
-
-#ifndef HAVE_BCOPY
-#define bcopy(a,b,s)	memcpy (b,a,s)
-#define bzero(a,s)	memset (a,0,s)
-#define bcmp		memcmp
-#endif
-
 /* On USG systems these have different names. */
 
 #define index strchr
 #define rindex strrchr
 
-/* Include the file bsdtty.h, since this machine has job control.  */
-#define NEED_BSDTTY
+#endif /* __hpux */
