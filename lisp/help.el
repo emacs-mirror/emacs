@@ -707,8 +707,7 @@ is used instead of `load-path'."
   (interactive (list (read-string "Locate library: ")
 		     nil nil
 		     t))
-  (let (result
-	(jka-compr-inhibit t))
+  (let (result)
     (catch 'answer
       (mapcar
        (lambda (dir)
@@ -722,19 +721,22 @@ is used instead of `load-path'."
 		     (throw 'answer try)))))
 	  (if nosuffix
 	      '("")
-	    (let ((basic '(".elc" ".el" ""))
-		  (compressed '(".Z" ".gz" "")))
-	      ;; If autocompression mode is on,
-	      ;; consider all combinations of library suffixes
-	      ;; and compression suffixes.
-	      (if (rassq 'jka-compr-handler file-name-handler-alist)
-		  (apply 'nconc
-			 (mapcar (lambda (compelt)
-				   (mapcar (lambda (baselt)
-					     (concat baselt compelt))
-					   basic))
-				 compressed))
-		basic)))))
+	    '(".elc" ".el" "")
+;;; load doesn't handle this yet.
+;;;	    (let ((basic '(".elc" ".el" ""))
+;;;		  (compressed '(".Z" ".gz" "")))
+;;;	      ;; If autocompression mode is on,
+;;;	      ;; consider all combinations of library suffixes
+;;;	      ;; and compression suffixes.
+;;;	      (if (rassq 'jka-compr-handler file-name-handler-alist)
+;;;		  (apply 'nconc
+;;;			 (mapcar (lambda (compelt)
+;;;				   (mapcar (lambda (baselt)
+;;;					     (concat baselt compelt))
+;;;					   basic))
+;;;				 compressed))
+;;;		basic))
+	    )))
        (or path load-path)))
     (and interactive-call
 	 (if result
