@@ -540,9 +540,11 @@ MSDOS_OBJ = dosfns.o msdos.o w16select.o
 #endif
 
 #ifdef HAVE_CARBON
+mac = $(dot)$(dot)/mac/
 XMENU_OBJ =
 MAC_OBJ = mac.o macterm.o macfns.o macmenu.o fontset.o
-emacsapp = ../mac/Emacs.app/
+emacsapp = $(PWD)/$(mac)Emacs.app/
+emacsappsrc = ${srcdir}/../mac/Emacs.app/
 #else
 XMENU_OBJ = xmenu.o
 #endif
@@ -1208,20 +1210,34 @@ macterm.o: blockinput.h atimer.h systime.h syssignal.h macterm.h macgui.h \
   termchar.h gnu.h disptab.h buffer.h window.h keyboard.h $(INTERVAL_SRC) \
   process.h coding.h $(config_h)
 
-macosx-app: ${emacsapp}Contents/MacOS/Emacs \
+${emacsapp}Contents/Resources/English.lproj:
+	mkdir -p $@
+
+ifneq (${emacsapp},${emacsappsrc})
+${emacsapp}Contents/Info.plist: ${emacsappsrc}Contents/Info.plist
+	cp $< $@
+${emacsapp}Contents/PkgInfo: ${emacsappsrc}Contents/PkgInfo
+	cp $< $@
+${emacsapp}Contents/Resources/Emacs.icns: ${emacsappsrc}Contents/Resources/Emacs.icns
+	mkdir -p ${emacsapp}Contents/Resources
+	cp $< $@
+${emacsapp}Contents/Resources/English.lproj/InfoPlist.strings: ${emacsappsrc}Contents/Resources/English.lproj/InfoPlist.strings
+	cp $< $@
+endif
+
+macosx-bundle: ${emacsapp}Contents/Resources/English.lproj \
+	${emacsapp}Contents/Info.plist ${emacsapp}Contents/PkgInfo\
+	${emacsapp}Contents/Resources/Emacs.icns \
+	${emacsapp}Contents/Resources/English.lproj/InfoPlist.strings
+macosx-app: macosx-bundle ${emacsapp}Contents/MacOS/Emacs \
   ${emacsapp}Contents/Resources/Emacs.rsrc
-
 ${emacsapp}Contents/MacOS/Emacs: emacs
-	if [ -d ${emacsapp}Contents/MacOS/ ]; then true; else \
-	  mkdir ${emacsapp}Contents/MacOS/; \
-	fi
+	mkdir -p ${emacsapp}Contents/MacOS/;
 	cd ${emacsapp}Contents/MacOS/; cp ../../../../src/emacs Emacs
-
 ${emacsapp}Contents/Resources/Emacs.rsrc: ../mac/src/Emacs.r
-	/Developer/Tools/Rez -useDF -o \
-	${emacsapp}Contents/Resources/Emacs.rsrc \
-	/System/Library/Frameworks/Carbon.framework/Headers/Carbon.r \
-	../mac/src/Emacs.r
+	/Developer/Tools/Rez -useDF \
+	-o ${emacsapp}Contents/Resources/Emacs.rsrc \
+	/System/Library/Frameworks/Carbon.framework/Headers/Carbon.r $<
 #endif
 
 ${libsrc}emacstool: ${libsrc}emacstool.c
