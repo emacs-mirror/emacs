@@ -145,10 +145,9 @@ The buffer is left in Command History mode."
   :group 'chistory)
 
 (defvar command-history-map nil)
-(if command-history-map
-    nil
-  (setq command-history-map
-	(nconc (make-sparse-keymap) shared-lisp-mode-map))
+(unless command-history-map
+  (setq command-history-map (make-sparse-keymap))
+  (set-keymap-parent command-history-map lisp-mode-shared-map)
   (suppress-keymap command-history-map)
   (define-key command-history-map "x" 'command-history-repeat)
   (define-key command-history-map "\n" 'next-line)

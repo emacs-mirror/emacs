@@ -33,7 +33,7 @@
 ;; and Zwei (the Lisp Machine emacs).
 
 ;; Since this mode is built on top of the general command-interpreter-in-
-;; a-buffer mode (comint mode), it shares a common base functionality, 
+;; a-buffer mode (comint mode), it shares a common base functionality,
 ;; and a common set of bindings, with all modes derived from comint mode.
 ;; This makes these modes easier to use.
 
@@ -55,7 +55,7 @@
 ;; would be reflected in the transcript with suitable comments, e.g.
 ;; ";;; redefining fact". Several ways to do this. Which is right?
 ;;
-;; When sending text from a source file to a subprocess, the process-mark can 
+;; When sending text from a source file to a subprocess, the process-mark can
 ;; move off the window, so you can lose sight of the process interactions.
 ;; Maybe I should ensure the process mark is in the window when I send
 ;; text to the process? Switch selectable?
@@ -70,24 +70,22 @@
 (defvar inferior-lisp-filter-regexp "\\`\\s *\\(:\\(\\w\\|\\s_\\)\\)?\\s *\\'"
   "*What not to save on inferior Lisp's input history.
 Input matching this regexp is not saved on the input history in Inferior Lisp
-mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword 
+mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
 \(as in :a, :c, etc.)")
 
 (defvar inferior-lisp-mode-map nil)
-(cond ((not inferior-lisp-mode-map)
-       (setq inferior-lisp-mode-map
-	     (copy-keymap comint-mode-map))
-       (setq inferior-lisp-mode-map
-	     (nconc inferior-lisp-mode-map shared-lisp-mode-map))
-       (define-key inferior-lisp-mode-map "\C-x\C-e" 'lisp-eval-last-sexp)
-       (define-key inferior-lisp-mode-map "\C-c\C-l" 'lisp-load-file)
-       (define-key inferior-lisp-mode-map "\C-c\C-k" 'lisp-compile-file)
-       (define-key inferior-lisp-mode-map "\C-c\C-a" 'lisp-show-arglist)
-       (define-key inferior-lisp-mode-map "\C-c\C-d" 'lisp-describe-sym)
-       (define-key inferior-lisp-mode-map "\C-c\C-f"
-	 'lisp-show-function-documentation)
-       (define-key inferior-lisp-mode-map "\C-c\C-v"
-	 'lisp-show-variable-documentation)))
+(unless inferior-lisp-mode-map
+  (setq inferior-lisp-mode-map (copy-keymap comint-mode-map))
+  (set-keymap-parent inferior-lisp-mode-map lisp-mode-shared-map)
+  (define-key inferior-lisp-mode-map "\C-x\C-e" 'lisp-eval-last-sexp)
+  (define-key inferior-lisp-mode-map "\C-c\C-l" 'lisp-load-file)
+  (define-key inferior-lisp-mode-map "\C-c\C-k" 'lisp-compile-file)
+  (define-key inferior-lisp-mode-map "\C-c\C-a" 'lisp-show-arglist)
+  (define-key inferior-lisp-mode-map "\C-c\C-d" 'lisp-describe-sym)
+  (define-key inferior-lisp-mode-map "\C-c\C-f"
+    'lisp-show-function-documentation)
+  (define-key inferior-lisp-mode-map "\C-c\C-v"
+    'lisp-show-variable-documentation))
 
 ;;; These commands augment Lisp mode, so you can process Lisp code in
 ;;; the source files.
@@ -126,7 +124,7 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
   (define-key lisp-mode-map "\C-cd" 'lisp-describe-sym)
   (define-key lisp-mode-map "\C-cf" 'lisp-show-function-documentation)
   (define-key lisp-mode-map "\C-cv" 'lisp-show-variable-documentation)
-  
+
   (define-key inferior-lisp-mode-map "\C-cl" 'lisp-load-file)
   (define-key inferior-lisp-mode-map "\C-ck" 'lisp-compile-file)
   (define-key inferior-lisp-mode-map "\C-ca" 'lisp-show-arglist)
@@ -154,7 +152,7 @@ but it works only in Common Lisp.")
 (defvar inferior-lisp-prompt "^[^> \n]*>+:? *"
   "Regexp to recognise prompts in the Inferior Lisp mode.
 Defaults to \"^[^> \\n]*>+:? *\", which works pretty good for Lucid, kcl,
-and franz.  This variable is used to initialize `comint-prompt-regexp' in the 
+and franz.  This variable is used to initialize `comint-prompt-regexp' in the
 Inferior Lisp buffer.
 
 This variable is only used if the variable
@@ -187,10 +185,10 @@ have three inferior Lisps running:
     foo                 inferior-lisp
     bar                 inferior-lisp<2>
     *inferior-lisp*     inferior-lisp<3>
-If you do a \\[lisp-eval-defun] command on some Lisp source code, 
+If you do a \\[lisp-eval-defun] command on some Lisp source code,
 what process do you send it to?
 
-- If you're in a process buffer (foo, bar, or *inferior-lisp*), 
+- If you're in a process buffer (foo, bar, or *inferior-lisp*),
   you send it to that process.
 - If you're in some other buffer (e.g., a source file), you
   send it to the process attached to buffer `inferior-lisp-buffer'.
@@ -208,8 +206,8 @@ buffer with \\[set-variable].")
 
 (put 'inferior-lisp-mode 'mode-class 'special)
 
-(defun inferior-lisp-mode () 
-  "Major mode for interacting with an inferior Lisp process.  
+(defun inferior-lisp-mode ()
+  "Major mode for interacting with an inferior Lisp process.
 Runs a Lisp interpreter as a subprocess of Emacs, with Lisp I/O through an
 Emacs buffer.  Variable `inferior-lisp-program' controls which Lisp interpreter
 is run.  Variables `inferior-lisp-prompt', `inferior-lisp-filter-regexp' and
@@ -225,7 +223,7 @@ Customisation: Entry to this mode runs the hooks on `comint-mode-hook' and
 `inferior-lisp-mode-hook' (in that order).
 
 You can send text to the inferior Lisp process from other buffers containing
-Lisp source.  
+Lisp source.
     switch-to-lisp switches the current buffer to the Lisp process buffer.
     lisp-eval-defun sends the current defun to the Lisp process.
     lisp-compile-defun compiles the current defun.
@@ -237,7 +235,7 @@ Lisp source.
     the text.
 
 Commands:
-Return after the end of the process' output sends the text from the 
+Return after the end of the process' output sends the text from the
     end of process to point.
 Return before the end of the process' output copies the sexp ending at point
     to the end of the process' output, and sends it.
@@ -321,7 +319,7 @@ Prefix argument means switch to the Lisp buffer afterwards."
   (interactive "P")
   (lisp-eval-region (save-excursion (backward-sexp) (point)) (point) and-go))
 
-;;; Common Lisp COMPILE sux. 
+;;; Common Lisp COMPILE sux.
 (defun lisp-compile-region (start end &optional and-go)
   "Compile the current region in the inferior Lisp process.
 Prefix argument means switch to the Lisp buffer afterwards."
@@ -404,7 +402,7 @@ With argument, positions cursor at end of buffer."
 ;;; 				(buffer-substring body-start (point))))
 ;;; 	 (process-send-string "inferior-lisp" ")\n"))
 ;;; 	(t (lisp-eval-region start end)))))
-;;; 
+;;;
 ;;; (defun lisp-compile-region (start end)
 ;;;   "Each s-expression in the current region is compiled (if a DEFUN)
 ;;; or evaluated (if not) in the inferior lisp."
@@ -420,7 +418,7 @@ With argument, positions cursor at end of buffer."
 ;;; 	(setq s (point))
 ;;; 	(end-of-defun))
 ;;;       (if (< s end) (lisp-compile-sexp s end)))))
-;;; 
+;;;
 ;;; End of HS-style code
 
 
@@ -588,7 +586,7 @@ This is a good place to put keybindings.")
 ;;;   this is now the official inferior lisp package.  Use the global
 ;;;   ChangeLog from now on.
 ;;; 5/24/90 Olin
-;;; - Split cmulisp and cmushell modes into separate files. 
+;;; - Split cmulisp and cmushell modes into separate files.
 ;;;   Not only is this a good idea, it's apparently the way it'll be rel 19.
 ;;; - Upgraded process sends to use comint-send-string instead of
 ;;;   process-send-string.
@@ -612,7 +610,7 @@ This is a good place to put keybindings.")
 ;;; supposed to be reserved for the user to bind. This affected
 ;;; mainly the compile/eval-defun/region[-and-go] commands.
 ;;; This was painful, but necessary to adhere to the gnumacs standard.
-;;; For some backwards compatibility, see the 
+;;; For some backwards compatibility, see the
 ;;;     cmulisp-install-letter-bindings
 ;;; function.
 ;;;

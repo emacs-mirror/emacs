@@ -174,13 +174,12 @@
 
 (defvar scheme-mode-map nil
   "Keymap for Scheme mode.
-All commands in `shared-lisp-mode-map' are inherited by this map.")
+All commands in `lisp-mode-shared-map' are inherited by this map.")
 
-(if scheme-mode-map
-    ()
+(unless scheme-mode-map
   (let ((map (make-sparse-keymap "Scheme")))
-    (setq scheme-mode-map
-	  (nconc (make-sparse-keymap) shared-lisp-mode-map))
+    (setq scheme-mode-map (make-sparse-keymap))
+    (set-keymap-parent scheme-mode-map shared-lisp-mode-map)
     (define-key scheme-mode-map [menu-bar] (make-sparse-keymap))
     (define-key scheme-mode-map [menu-bar scheme]
       (cons "Scheme" map))

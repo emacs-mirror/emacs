@@ -42,12 +42,12 @@
 ;;    (setq ielm-mode-hook
 ;; 	    '(lambda nil
 ;; 		 (define-key ielm-map "\t"
-;; 		    '(lambda nil (interactive) (or (ielm-tab) 
+;; 		    '(lambda nil (interactive) (or (ielm-tab)
 ;;                                                 (lisp-complete-symbol))))))
 
 ;; To start: M-x ielm.  Type C-h m in the *ielm* buffer for more info.
 
-;; The latest version is available by WWW from 
+;; The latest version is available by WWW from
 ;;      http://mathssun5.lancs.ac.uk:2080/~maa036/elisp/dir.html
 ;; or by anonymous FTP from
 ;;      /anonymous@wingra.stat.wisc.edu:pub/src/emacs-lisp/ielm.el.gz
@@ -102,14 +102,14 @@ such as `edebug-defun' to work with such inputs."
 
 (defvar *** nil
   "Third-most-recent value evaluated in IELM.")
-  
+
 ;;; System variables
 
 (defvar ielm-working-buffer nil
   "Buffer in which IELM sexps will be evaluated.
 This variable is buffer-local.")
 
-(defvar ielm-header 
+(defvar ielm-header
   "*** Welcome to IELM ***  Type (describe-mode) for help.\n"
   "Message to display when IELM is started.")
 
@@ -127,9 +127,9 @@ This variable is buffer-local.")
   (define-key ielm-map "\C-j" 'ielm-send-input)
   (define-key ielm-map "\e\C-x" 'eval-defun)         ; for consistency with
   (define-key ielm-map "\e\t" 'lisp-complete-symbol) ; lisp-interaction-mode
-  ;; These bindings are from shared-lisp-mode-map -- can you inherit
+  ;; These bindings are from `lisp-mode-shared-map' -- can you inherit
   ;; from more than one keymap??
-  (define-key ielm-map "\e\C-q" 'indent-sexp)      
+  (define-key ielm-map "\e\C-q" 'indent-sexp)
   (define-key ielm-map "\177" 'backward-delete-char-untabify)
   ;; Some convenience bindings for setting the working buffer
   (define-key ielm-map "\C-c\C-b" 'ielm-change-working-buffer)
@@ -137,13 +137,13 @@ This variable is buffer-local.")
   (define-key ielm-map "\C-c\C-v" 'ielm-print-working-buffer))
 
 (defvar ielm-font-lock-keywords
-  (list 
+  (list
    (cons (concat "^" (regexp-quote ielm-prompt)) 'font-lock-keyword-face)
    '("\\(^\\*\\*\\*[^*]+\\*\\*\\*\\)\\(.*$\\)"
      (1 font-lock-comment-face)
      (2 font-lock-constant-face)))
   "Additional expressions to highlight in ielm buffers.")
-	
+
 ;;; Completion stuff
 
 (defun ielm-tab nil
@@ -154,7 +154,7 @@ This variable is buffer-local.")
       (progn
 	(ielm-indent-line)
 	t)))
-  
+
 (defun ielm-complete-symbol nil
   "Complete the lisp symbol before point."
   ;; A wrapper for lisp-complete symbol that returns non-nil if
@@ -164,9 +164,9 @@ This variable is buffer-local.")
 	 (ctick (and cbuffer (buffer-modified-tick cbuffer))))
     (lisp-complete-symbol)
      ;; completion has occurred if:
-    (or 
+    (or
      ;; the buffer has been modified
-     (not (= btick (buffer-modified-tick))) 
+     (not (= btick (buffer-modified-tick)))
      ;; a completions buffer has been modified or created
      (if cbuffer
 	 (not (= ctick (buffer-modified-tick cbuffer)))
@@ -176,7 +176,7 @@ This variable is buffer-local.")
   "Dynamically complete filename before point, if in a string."
   (if (nth 3 (parse-partial-sexp comint-last-input-start (point)))
       (comint-dynamic-complete-filename)))
-     
+
 (defun ielm-indent-line nil
   "Indent the current line as Lisp code if it is not a prompt line."
   (when (save-excursion (comint-bol) (bolp))
@@ -214,8 +214,8 @@ Complete sexps are evaluated; for incomplete sexps inserts a newline
 and indents.  If however `ielm-dynamic-return' is nil, this always
 simply inserts a newline."
   (interactive)
-  (if ielm-dynamic-return 
-      (let ((state       
+  (if ielm-dynamic-return
+      (let ((state
 	     (save-excursion
 	       (end-of-line)
 	       (parse-partial-sexp (ielm-pm)
@@ -235,7 +235,7 @@ simply inserts a newline."
 (defvar ielm-input)
 
 (defun ielm-input-sender (proc input)
-  ;; Just sets the variable ielm-input, which is in the scope of 
+  ;; Just sets the variable ielm-input, which is in the scope of
   ;; `ielm-send-input's call.
   (setq ielm-input input))
 
@@ -392,7 +392,7 @@ Uses the interface provided by `comint-mode' (which see).
   Inputs longer than one line are moved to the line following the
   prompt (but see variable `ielm-dynamic-multiline-inputs').
 
-* \\[comint-dynamic-complete] completes Lisp symbols (or filenames, within strings), 
+* \\[comint-dynamic-complete] completes Lisp symbols (or filenames, within strings),
   or indents the line if there is nothing to complete.
 
 During evaluations, the values of the variables `*', `**', and `***'
@@ -425,7 +425,7 @@ Customised bindings may be defined in `ielm-map', which currently contains:
   (setq paragraph-start comint-prompt-regexp)
   (setq comint-input-sender 'ielm-input-sender)
   (setq comint-process-echoes nil)
-  (setq comint-dynamic-complete-functions 
+  (setq comint-dynamic-complete-functions
 	'(ielm-tab comint-replace-by-expanded-history ielm-complete-filename ielm-complete-symbol))
   (setq comint-get-old-input 'ielm-get-old-input)
   (make-local-variable 'comint-completion-addsuffix)
@@ -454,9 +454,9 @@ Customised bindings may be defined in `ielm-map', which currently contains:
 
   ;; font-lock support
   (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults 
+  (setq font-lock-defaults
 	'(ielm-font-lock-keywords nil nil ((?: . "w") (?- . "w") (?* . "w"))))
-  
+
   ;; A dummy process to keep comint happy. It will never get any input
   (if (comint-check-proc (current-buffer)) nil
     (start-process "ielm" (current-buffer) "cat")

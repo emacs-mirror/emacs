@@ -39,7 +39,7 @@
 (defconst ledit-read-file
   (expand-file-name (concat (user-login-name) ".l2") temporary-file-directory)
   "File name for data sent to Ledit by Lisp.")
-(defconst ledit-compile-file 
+(defconst ledit-compile-file
   (expand-file-name (concat (user-login-name) ".l4") temporary-file-directory)
   "File name for data sent to Lisp compiler by Ledit.")
 (defconst ledit-buffer "*LEDIT*"
@@ -120,9 +120,9 @@
 
 (defun ledit-setup ()
   "Set up key bindings for the Lisp/Emacs interface."
-  (if (not ledit-mode-map)
-      (progn (setq ledit-mode-map (nconc (make-sparse-keymap) 
-					 shared-lisp-mode-map))))
+  (unless ledit-mode-map
+    (setq ledit-mode-map (make-sparse-keymap))
+    (set-keymap-parent ledit-mode-map lisp-mode-shared-map))
   (define-key ledit-mode-map "\e\^d" 'ledit-save-defun)
   (define-key ledit-mode-map "\e\^r" 'ledit-save-region)
   (define-key ledit-mode-map "\^xz" 'ledit-go-to-lisp)
