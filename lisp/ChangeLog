@@ -1,3 +1,8 @@
+2002-06-27  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* progmodes/perl-mode.el (perl-mode-abbrev-table): New variable.
+	Set it up as an abbrev-table for Perl mode.
+
 2002-06-24  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* dired.el (dired-find-file): Bind find-file-run-dired around the
