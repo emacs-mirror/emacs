@@ -1237,6 +1237,6 @@ bootstrap-emacs: bootstrap-temacs
 	./temacs --batch --load loadup bootstrap
 #endif /* ! defined (HAVE_SHM) */
 #endif /* ! defined (CANNOT_DUMP) */
-	mv emacs bootstrap-emacs
+	mv -f emacs bootstrap-emacs
 	rm -f temacs
 
