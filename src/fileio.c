@@ -6063,7 +6063,7 @@ provides a file dialog box.  */)
 		   SBYTES (decoded_homedir))
       && IS_DIRECTORY_SEP (SREF (dir, SBYTES (decoded_homedir))))
     {
-      dir = Fsubstring (dir, make_number (SCHARS (decoded_homedir) + 1), Qnil);
+      dir = Fsubstring (dir, make_number (SCHARS (decoded_homedir)), Qnil);
       dir = concat2 (build_string ("~"), dir);
     }
   /* Likewise for default_filename.  */
@@ -6075,7 +6075,7 @@ provides a file dialog box.  */)
     {
       default_filename
 	= Fsubstring (default_filename,
-		      make_number (SCHARS (decoded_homedir) + 1), Qnil);
+		      make_number (SCHARS (decoded_homedir)), Qnil);
       default_filename = concat2 (build_string ("~"), default_filename);
     }
   if (!NILP (default_filename))
