@@ -1444,9 +1444,9 @@ Use double backslash as a separator unless optional SEPARATOR is given."
                (while p
                  (and (car (car p))
                       (calendar-date-equal date (car (car p)))
-                      (setq result (append result (cdr (car p)))))
+                      (setq result (cons (car (cdr (car p))) result)))
                  (setq p (cdr p)))
-               result)
+               (reverse result))
              (if separator separator "\\\\")))
 
 (defun cal-tex-previous-month (date)
