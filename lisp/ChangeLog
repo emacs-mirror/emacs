@@ -1,5 +1,7 @@
 2001-10-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* mail/mh-utils.el (mh-recenter): Call recenter with arg `(4)'.
+
 	* progmodes/compile.el (compilation-parse-errors-filename-function):
 	New variable.
 	(compilation-parse-errors): Use it.

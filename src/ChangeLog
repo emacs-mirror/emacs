@@ -1,3 +1,8 @@
+2001-10-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (move_it_vertically_backward): Compute line height
+	differently.  Add heuristic to try to be more compatible to 20.x.
+
 2001-10-25  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* lisp.h (make_fixnum_or_float): Coerce double to int explicitly.
