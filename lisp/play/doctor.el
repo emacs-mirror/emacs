@@ -1376,8 +1376,9 @@ Hack on previous word, setting global variable OWNER to correct result."
 	     (not *print-space*))
 	 (insert word))
 	(t (insert ?\  word)))
-  (if (> (current-column) fill-column)
-      (apply auto-fill-function nil))
+  (and auto-fill-function
+       (> (current-column) fill-column)
+       (apply auto-fill-function nil))
   (setq *print-upcase* (string-match "[.?!]$" word)
 	*print-space* t))
 
