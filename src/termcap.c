@@ -284,6 +284,52 @@ tgetst1 (ptr, area)
 	}
       *r++ = c;
     }
+
+  /* Sometimes entries have "%pN" which means use parameter N in the
+     next %-substitution.  If all such N are continuous in the range
+     [1,9] we can remove each "%pN" because they are redundant, thus
+     reducing bandwidth requirements.  True, Emacs is well beyond the
+     days of 150baud teletypes, but some of its users aren't much so.
+
+     This pass could probably be integrated into the one above but
+     abbreviation expansion makes that effort a little more hairy than
+     its worth; this is cleaner.  */
+  {
+    register int last_p_param = 0;
+    int remove_p_params = 1;
+    struct { char *beg; int len; } cut[11];
+
+    for (cut[0].beg = p = ret; p < r - 3; p++)
+      {
+	if (!remove_p_params)
+	  break;
+	if (*p == '%' && *(p + 1) == 'p')
+	  {
+	    if (*(p + 2) - '0' == 1 + last_p_param)
+	      {
+		cut[last_p_param].len = p - cut[last_p_param].beg;
+		last_p_param++;
+		p += 3;
+		cut[last_p_param].beg = p;
+	      }
+	    else				/* not continuous: bail */
+	      remove_p_params = 0;
+	    if (last_p_param > 10)		/* too many: bail */
+	      remove_p_params = 0;
+	  }
+      }
+    if (remove_p_params && last_p_param)
+      {
+	register int i;
+	char *wp;
+
+	cut[last_p_param].len = r - cut[last_p_param].beg;
+	for (i = 0, wp = ret; i <= last_p_param; wp += cut[i++].len)
+	  bcopy (cut[i].beg, wp, cut[i].len);
+	r = wp;
+      }
+  }
+
   *r = '\0';
   /* Update *AREA.  */
   if (area)
