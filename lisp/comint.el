@@ -580,7 +580,11 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 		    (format "COLUMNS=%d" (frame-width)))
 	    (list "EMACS=t" "TERM=emacs"
 		  (format "TERMCAP=emacs:co#%d:tc=unknown" (frame-width))))
-	  process-environment)))
+	  process-environment))
+	(default-directory
+	  (if (file-directory-p default-directory)
+	      default-directory
+	    "/")))
     (apply 'start-process name buffer command switches)))
 
 ;;; Input history processing in a buffer
