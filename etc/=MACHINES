@@ -271,6 +271,10 @@ DECstation (-machine=pmax; -opsystem=bsd4-3 or -opsystem=osf1)
   Note that this is a MIPS machine.
   -opsystem=bsd4-3 is said to work ok with Ultrix 4.1.
 
+  For Ultrix versions 4.1 or earlier, you may need to define
+  SYSTEM_MALLOC in src/m/pmax.h, because XvmsAlloc.o in libX11.a seems
+  to insist on defining malloc itself.
+
   For Ultrix versions prior to 4.0, you may need to delete
   the definition of START_FILES from src/m/pmax.h.
 
