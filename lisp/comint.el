@@ -1353,12 +1353,10 @@ Ignore duplicates if `comint-input-ignoredups' is non-nil."
 (defun comint-send-input ()
   "Send input to process.
 After the process output mark, sends all text from the process mark to
-point as input to the process.  Before the process output mark, calls value
-of variable `comint-get-old-input' to retrieve old input, copies it to the
-process mark, and sends it.  If variable `comint-process-echoes' is nil,
-a terminal newline is also inserted into the buffer and sent to the process
-\(if it is non-nil, all text from the process mark to point is deleted,
-since it is assumed the remote process will re-echo it).
+point as input to the process.  Before the process output mark, calls
+value of variable `comint-get-old-input' to retrieve old input, copies
+it to the process mark, and sends it.  A terminal newline is also
+inserted into the buffer and sent to the process.
 
 Any history reference may be expanded depending on the value of the variable
 `comint-input-autoexpand'.  The list of function names contained in the value
@@ -1368,6 +1366,10 @@ The input is entered into the input history ring, if the value of variable
 
 If variable `comint-eol-on-send' is non-nil, then point is moved to the
 end of line before sending the input.
+
+After the input has been sent, if `comint-process-echoes' is non-nil,
+then comint-send-input waits to see if the process outputs a string
+matching the input, and if so, deletes that part of the output.
 
 The values of `comint-get-old-input', `comint-input-filter-functions', and
 `comint-input-filter' are chosen according to the command interpreter running
