@@ -1258,15 +1258,20 @@ basic Devanagari character string."
 (defun devanagari-compose-from-is13194-region (from to)
   "Compose IS 13194 characters in the region to Devanagari characters."
   (interactive "r")
-  (save-restriction
-    (narrow-to-region from to)
-    (indian-to-devanagari-region (point-min) (point-max))
-    (devanagari-compose-region (point-min) (point-max))))
+  (save-excursion
+    (save-restriction
+      (narrow-to-region from to)
+      (indian-to-devanagari-region (point-min) (point-max))
+      (devanagari-compose-region (point-min) (point-max))
+      (- (point-max) (point-min)))))
 
 ;;;###autoload
 (defun in-is13194-devanagari-post-read-conversion (len)
-  (let ((pos (point)))
-    (devanagari-compose-from-is13194-region pos (+ pos len))))
+  (let ((pos (point))
+	(buffer-modified-p (buffer-modified-p)))
+    (prog1
+	(devanagari-compose-from-is13194-region pos (+ pos len))
+      (set-buffer-modified-p buffer-modified-p))))
 
 ;;;###autoload
 (defun devanagari-decompose-to-is13194-region (from to)
