@@ -3133,6 +3133,10 @@ w32_msg_pump (deferred_msg * msg_buf)
 	      if (!PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0))
 		abort ();
 	      break;
+	    case WM_EMACS_SETLOCALE:
+	      SetThreadLocale (msg.wParam);
+	      /* Reply is not expected.  */
+	      break;
 	    default:
 	      /* No need to be so draconian!  */
 	      /* abort (); */
@@ -3770,6 +3774,9 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 
     case WM_EMACS_SHOWWINDOW:
       return ShowWindow ((HWND) wParam, (WPARAM) lParam);
+
+    case WM_EMACS_SETFOREGROUND:
+      return SetForegroundWindow ((HWND) wParam);
 
     case WM_EMACS_SETWINDOWPOS:
       {
