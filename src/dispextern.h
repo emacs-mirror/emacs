@@ -26,13 +26,55 @@ extern int frame_garbaged;
 extern int display_completed;
 
 #ifdef HAVE_X_WINDOWS
-struct run
-{
-  int begin_run;
-  int len;
-  int face_code;		/* Also handles underlining. */
-};
-#endif
+#include <X11/Xlib.h>
+
+struct face
+  {
+    /* If this is non-zero, it is a GC we can use without modification
+       to represent this face. */
+    GC gc;
+  
+    /* Pixel value for foreground color. */
+    int foreground;
+  
+    /* Pixel value for background color. */
+    int background;
+  
+    /* Font used for this face */
+    XFontStruct font;
+  
+    /* Background stipple or bitmap used for this face. */
+    Pixmap stipple;
+  
+    /* Whether or not to underline text in this face. */
+    char underline;
+  };
+
+typedef struct face *FACE;
+
+#define NORMAL_FACE ((FACE *) 0)
+
+#define FACE_HAS_GC(f) ((f)->gc)
+#define FACE_GC(f) ((f)->gc)
+#define FACE_FOREGROUND(f) ((f)->foreground)
+#define FACE_BACKGROUND(f) ((f)->background)
+#define FACE_FONT(f) ((f)->font)
+#define FACE_STIPPLE(f) ((f)->stipple)
+#define FACE_UNDERLINE_P(f) ((f)->underline)
+
+#else  /* Not X */
+
+typedef int FACE;
+
+#define NORMAL_FACE 0x0
+#define HIGHLIGHT_FACE 0x1
+#define UNDERLINE_FACE 0x2
+#define HIGHLIGHT_UNDERLINE_FACE 0x3
+
+#define FACE_HIGHLIGHT(f) ((f) & 0x1)
+#define FACE_UNDERLINE(f) ((f) & 0x2)
+#endif /* Not X */
+
 
 /* This structure is used for the actual display of text on a frame.
 
@@ -69,27 +111,23 @@ struct frame_glyphs
     /* highlight[n] != 0 iff line n is highlighted.  */
     char *highlight;
 
-
     /* Buffer offset of this line's first char. */
     int   *bufp;
 
 #ifdef HAVE_X_WINDOWS
-    int *nruns;			/* N runs of differently displayed text. */
-    struct run **face_list;
-    short *top_left_x;		/* Pixel position of top left corner */
+    /* Pixel position of top left corner of line. */
+    short *top_left_x;
     short *top_left_y;
-    short *pix_width;		/* Pixel width of line. */
-    short *pix_height;		/* Pixel height of line. */
+
+    /* Pixel width of line. */
+    short *pix_width;
+
+    /* Pixel height of line. */
+    short *pix_height;
+
+    /* Largest font ascent on this line. */
+    short *max_ascent;
 #endif	/* HAVE_X_WINDOWS */
   };
-
-#if 0
-#define LINE_HEIGHT(s,n) (current_glyphs->pix_height[n])
-#define LINE_WIDTH(s,n) (current_glyphs->pix_width[n])
-#endif
-
-#define LINE_HEIGHT(s,n) (FONT_HEIGHT((s)->display.x->font))
-#define LINE_WIDTH(s,n) (FONT_HEIGHT((s)->display.x->font) \
-			 * FRAME_CURRENT_GLYPHS(s)->enable[(n)])
 
 extern void get_display_line ();
