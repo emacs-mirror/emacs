@@ -518,11 +518,15 @@ down (this *won't* always work)."
   :version "20.3"
   :group 'browse-url)
 
-(defvar browse-url-lynx-input-attempts 10
-  "*How many times to try to move down from a series of lynx input fields.")
+(defcustom browse-url-lynx-input-attempts 10
+  "*How many times to try to move down from a series of lynx input fields."
+  :type 'integer
+  :group 'browse-url)
 
 (defcustom browse-url-lynx-input-delay 0.2
-  "*How many seconds to wait for lynx between moves down from an input field.")
+  "*How many seconds to wait for lynx between moves down from an input field."
+  :type 'number
+  :group 'browse-url)
 
 (defcustom browse-url-kde-program "kfmclient"
   "*The name by which to invoke the KDE web browser."
