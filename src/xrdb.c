@@ -24,6 +24,8 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #endif
 
+#include <paths.h>
+
 #include <stdio.h>
 
 #if 1 /* I'd really appreciate it if this code could go away...  -JimB */
