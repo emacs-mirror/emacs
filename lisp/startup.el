@@ -914,7 +914,8 @@ where FACE is a valid face specification, as it can be used with
 (defun fancy-splash-head ()
   "Insert the head part of the splash screen into the current buffer."
   (let* ((img (create-image (or fancy-splash-image
-				(if (display-color-p)
+				(if (and (display-color-p)
+					 (image-type-available-p 'xpm))
 				    "splash.xpm" "splash.pbm"))))
 	 (image-width (and img (car (image-size img))))
 	 (window-width (window-width (selected-window))))
