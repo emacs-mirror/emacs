@@ -42,7 +42,7 @@
 ;; This program transmits the file names to Emacs through
 ;; the server subprocess, and Emacs visits them and lets you edit them.
 
-;; Note that any number of clients may dispatch files to emacs to be edited.
+;; Note that any number of clients may dispatch files to Emacs to be edited.
 
 ;; When you finish editing a Server buffer, again call server-edit
 ;; to mark that buffer as done for the client and switch to the next
@@ -252,7 +252,9 @@ If NOFRAME is non-nil, let the frames live.  (To be used from
       (server-log "Deleted" proc))))
 
 (defun server-log (string &optional client)
-  "If a *server* buffer exists, write STRING to it for logging purposes."
+  "If a *server* buffer exists, write STRING to it for logging purposes.
+If CLIENT is non-nil, add a description of it to the logged
+message."
   (if (get-buffer "*server*")
       (with-current-buffer "*server*"
 	(goto-char (point-max))
@@ -290,27 +292,9 @@ If NOFRAME is non-nil, let the frames live.  (To be used from
   "Notify the emacsclient process to suspend itself when its tty device is suspended."
   (dolist (proc (server-clients-with 'display display))
     (server-log (format "server-handle-suspend-tty, display %s" display) proc)
-    (process-send-string proc "-suspend \n")))
-
-(defun server-select-display (display)
-  ;; If the current frame is on `display' we're all set.
-  (unless (equal (frame-parameter (selected-frame) 'display) display)
-    ;; Otherwise, look for an existing frame there and select it.
-    (dolist (frame (frame-list))
-      (when (equal (frame-parameter frame 'display) display)
-	(select-frame frame)))
-    ;; If there's no frame on that display yet, create a dummy one
-    ;; and select it.
-    (unless (equal (frame-parameter (selected-frame) 'display) display)
-      (select-frame
-       (make-frame-on-display display)))))
-	;; This frame is only there in place of an actual "current display"
-	;; setting, so we want it to be as unobtrusive as possible.  That's
-	;; what the invisibility is for.  The minibuffer setting is so that
-	;; we don't end up displaying a buffer in it (which noone would
-	;; notice).
-        ;; XXX I have found this behaviour to be surprising and annoying. -- Lorentey
-	;; '((visibility . nil) (minibuffer . only)))))))
+    (condition-case err
+	(process-send-string proc "-suspend \n")
+      (file-error (condition-case nil (server-delete-client proc) (error nil))))))
 
 (defun server-unquote-arg (arg)
   "Remove &-quotation from ARG."
@@ -356,11 +340,12 @@ Creates the directory if necessary and makes sure:
 (defun server-start (&optional leave-dead)
   "Allow this Emacs process to be a server for client processes.
 This starts a server communications subprocess through which
-client \"editors\" can send your editing commands to this Emacs job.
-To use the server, set up the program `emacsclient' in the
+client \"editors\" can send your editing commands to this Emacs
+job.  To use the server, set up the program `emacsclient' in the
 Emacs distribution as your standard \"editor\".
 
-Prefix arg means just kill any existing server communications subprocess."
+Prefix arg LEAVE-DEAD means just kill any existing server
+communications subprocess."
   (interactive "P")
   (when (or
 	 (not server-clients)
@@ -631,6 +616,9 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	     (delete-process proc)))))
 
 (defun server-goto-line-column (file-line-col)
+  "Move point to the position indicated in FILE-LINE-COL.
+FILE-LINE-COL should be a three-element list as described in
+`server-visit-files'."
   (goto-line (nth 1 file-line-col))
   (let ((column-number (nth 2 file-line-col)))
     (if (> column-number 0)
@@ -639,6 +627,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 (defun server-visit-files (files client &optional nowait)
   "Find FILES and return a list of buffers created.
 FILES is an alist whose elements are (FILENAME LINENUMBER COLUMNNUMBER).
+CLIENT is the client that requested this operation.
 NOWAIT non-nil means this client is not waiting for the results,
 so don't mark these buffers specially, just visit them normally."
   ;; Bind last-nonmenu-event to force use of keyboard, not mouse, for queries.
@@ -794,6 +783,8 @@ specifically for the clients and did not exist before their request for it."
   "Non-nil while `server-kill-buffer' or `server-buffer-done' is running.")
 
 (defun server-kill-buffer ()
+  "Remove the current buffer from its clients' buffer list.
+Designed to be added to `kill-buffer-hook'."
   ;; Prevent infinite recursion if user has made server-done-hook
   ;; call kill-buffer.
   (or server-kill-buffer-running
@@ -825,11 +816,12 @@ starts server process and that is all.  Invoked by \\[server-edit]."
 
 (defun server-switch-buffer (&optional next-buffer killed-one)
   "Switch to another buffer, preferably one that has a client.
-Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
-  ;; KILLED-ONE is t in a recursive call
-  ;; if we have already killed one temp-file server buffer.
-  ;; This means we should avoid the final "switch to some other buffer"
-  ;; since we've already effectively done that.
+Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it.
+
+KILLED-ONE is t in a recursive call if we have already killed one
+temp-file server buffer.  This means we should avoid the final
+\"switch to some other buffer\" since we've already effectively
+done that."
   (if (null next-buffer)
       (progn
 	(let ((rest server-clients))
@@ -919,6 +911,7 @@ If FRAME is nil or missing, then the selected frame is used."
 	(cdr (assoc variable env))))))
 
 (defun server-unload-hook ()
+  "Unload the server library."
   (server-start t)
   (remove-hook 'suspend-tty-functions 'server-handle-suspend-tty)
   (remove-hook 'delete-frame-functions 'server-handle-delete-frame)
