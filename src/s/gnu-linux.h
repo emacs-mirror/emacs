@@ -224,6 +224,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define C_SWITCH_SYSTEM -D_BSD_SOURCE
 #endif
 
+/* Paul Abrahams <abrahams@equinox.shaysnet.com> says this is needed.  */
+#define LIB_MOTIF -lXm -lXpm
+
 #define HAVE_SYSVIPC
 
 #ifdef __ELF__
