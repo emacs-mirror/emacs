@@ -8768,7 +8768,12 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 		     : last_height);
       dy = it.current_y + line_height - y0;
 #else
-      dy = it.current_y - y0;
+      /* With a scroll_margin of 0, scroll_margin_pos is at the window
+	 end, which is one line below the window.  The iterator's
+	 current_y will be same as y0 in that case, but we have to
+	 scroll a line to make PT visible.  That's the reason why 1 is
+	 added below.  */
+      dy = 1 + it.current_y - y0;
 #endif
       
       if (dy > scroll_max)
