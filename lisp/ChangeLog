@@ -1,3 +1,15 @@
+2002-07-17  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule.el (define-coding-system-alias): Don't
+	append ALIAS in the property `alias-coding-systems' if ALIAS's
+	eol-type is not auto-detection.
+
+	* international/mule-diag.el (print-coding-system-briefly): Fix
+	the handling of an alias of which eol-type is not auto-detction.
+
+	* international/mule-conf.el (us-ascii): Define it as an alias of
+	iso-safe.
+
 2002-07-17  Juanma Barranquero  <lektu@terra.es>
 
 	* help-fns.el (describe-function-1): Put empty line before "Not
