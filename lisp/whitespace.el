@@ -42,7 +42,7 @@
 (add-hook 'find-file-hooks 'whitespace-buffer)
 (add-hook 'kill-buffer-hook 'whitespace-buffer)
 
-(defvar whitespace-version "2.6" "Version of the whitespace library.")
+(defvar whitespace-version "2.8" "Version of the whitespace library.")
 ;; Find out what type of Emacs we are running in.
 (defvar whitespace-running-emacs (if (string-match "XEmacs\\|Lucid"
 						   emacs-version) nil t)
@@ -70,17 +70,18 @@ visited by the buffers.")
 (make-variable-buffer-local 'whitespace-mode-line)
 (put 'whitespace-mode-line 'permanent-local nil)
 
-;; For users of Emacs 19.x, defgroup and defcustom are not defined.
-
+;; For flavors of Emacs which don't define `defgroup' and `defcustom'.
 (eval-when-compile
-  (if (< (string-to-int emacs-version) 20)
-      (progn
-	(defmacro defgroup (sym memb doc &rest args)
-	  "Null macro for defgroup in all versions of Emacs < 20.x"
-	  t)
-	(defmacro defcustom (sym val doc &rest args)
-	  "Macro to alias defcustom to defvar in all versions of Emacs < 20.x"
-	  `(defvar ,sym ,val ,doc)))))
+  (if (not (fboundp 'defgroup))
+      (defmacro defgroup (sym memb doc &rest args)
+	"Null macro for defgroup in all versions of Emacs that don't define
+defgroup"
+	t))
+  (if (not (fboundp 'defcustom))
+      (defmacro defcustom (sym val doc &rest args)
+	"Macro to alias defcustom to defvar in all versions of Emacs that
+don't define defcustom"
+	`(defvar ,sym ,val ,doc))))
 
 (defgroup whitespace nil
   "Check for and fix five different types of whitespaces in source code."
