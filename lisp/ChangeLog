@@ -1,3 +1,8 @@
+2001-03-26  Miles Bader  <miles@gnu.org>
+
+	* international/latin1-disp.el (latin1-char-displayable-p): Add
+	leading "-" for X font pattern.
+
 2001-03-26  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-diag.el (describe-coding-system): For
