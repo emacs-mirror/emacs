@@ -1,3 +1,14 @@
+2001-01-30  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* lpr.el: Compatibility with XEmacs and doc fixes.
+	(lpr-windows-system, lpr-lp-system): New vars.
+	(lpr-printer-switch): New defcustom.
+	(printer-name, lpr-command): Customization fix.
+	(print-region-1): Code fix.
+	(print-region-new-buffer, printify-region): Indentation fix.
+	(lpr-eval-switch, lpr-flatten-list, lpr-flatten-list-1): New
+	functions.
+
 2001-01-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* msb.el (toplevel): Fix the eval-after-load.
