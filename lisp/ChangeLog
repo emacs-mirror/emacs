@@ -1,5 +1,10 @@
 2000-12-15  Miles Bader  <miles@gnu.org>
 
+	* paths.el (Info-default-directory-list): Don't delete
+	configure-info-directory from the list of standard info
+	directories when appending it to the end -- their order is
+	important.
+
 	* faces.el (read-face-attribute): If there's no entry for the
 	user's input in VALID, just use it as-is (this will often result
 	in an error, but it may be OK for e.g. colors using hexadecimal
