@@ -1502,14 +1502,10 @@ then the value includes only maps for prefixes that start with PREFIX.")
 	      for (i = 0, i_byte = 0; i < XSTRING (prefix)->size;)
 		{
 		  int i_before = i;
-		  if (STRING_MULTIBYTE (prefix))
-		    FETCH_STRING_CHAR_ADVANCE (c, prefix, i, i_byte);
-		  else
-		    {
-		      c = XSTRING (prefix)->data[i++];
-		      if (c & 0200)
-			c ^= 0200 | meta_modifier;
-		    }
+
+		  FETCH_STRING_CHAR_ADVANCE (c, prefix, i, i_byte);
+		  if (SINGLE_BYTE_CHAR_P (c) && (c & 0200))
+		    c ^= 0200 | meta_modifier;
 		  XVECTOR (copy)->contents[i_before] = make_number (c);
 		}
 	      prefix = copy;
@@ -1738,15 +1734,9 @@ spaces are put between sequence elements, etc.")
 	  int c;
 	  int i_before = i;
 
-	  if (STRING_MULTIBYTE (keys))
-	    FETCH_STRING_CHAR_ADVANCE (c, keys, i, i_byte);
-	  else
-	    {
-	      c = XSTRING (keys)->data[i++];
-	      if (c & 0200)
-		c ^= 0200 | meta_modifier;
-	    }
-
+	  FETCH_STRING_CHAR_ADVANCE (c, keys, i, i_byte);
+	  if (SINGLE_BYTE_CHAR_P (c) && (c & 0200))
+	    c ^= 0200 | meta_modifier;
 	  XSETFASTINT (XVECTOR (vector)->contents[i_before], c);
 	}
       keys = vector;
@@ -1931,7 +1921,7 @@ Control characters turn into C-whatever, etc.")
       if (SINGLE_BYTE_CHAR_P (without_bits))
 	charset = 0;
       else
-	SPLIT_NON_ASCII_CHAR (without_bits, charset, c1, c2);
+	SPLIT_CHAR (without_bits, charset, c1, c2);
 
       if (charset
 	  && CHARSET_DEFINED_P (charset)
@@ -3034,8 +3024,7 @@ describe_vector (vector, elt_prefix, elt_describer,
 	    }
 	  else if (complete_char)
 	    {
-	      character
-		= MAKE_NON_ASCII_CHAR (indices[0], indices[1], indices[2]);
+	      character	= MAKE_CHAR (indices[0], indices[1], indices[2]);
 	    }
 	  else
 	    character = 0;
@@ -3178,8 +3167,7 @@ describe_vector (vector, elt_prefix, elt_describer,
 	      else if (complete_char)
 		{
 		  indices[char_table_depth] = i;
-		  character
-		    = MAKE_NON_ASCII_CHAR (indices[0], indices[1], indices[2]);
+		  character = MAKE_CHAR (indices[0], indices[1], indices[2]);
 		  insert_char (character);
 		}
 	      else
