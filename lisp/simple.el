@@ -2987,11 +2987,15 @@ Setting this variable automatically makes it local to the current buffer.")
 			  ;; Break the line after/before \c|.
 			  (forward-char 1))))
 		    (if enable-multibyte-characters
-			(let ((charset (charset-after (1- (point)))))
-			  (if (eq charset 'ascii)
-			      (setq charset (charset-after (point))))
-			  (if (not (eq charset 'ascii))
-			      (fill-find-break-point charset after-prefix))))
+			;; If we are going to break the line after or
+			;; before a non-ascii character, we may have
+			;; to run a special function for the charset
+			;; of the character to find the correct break
+			;; point.
+			(if (not (and (eq (charset-after (1- (point))) 'ascii)
+				      (eq (charset-after (point)) 'ascii)))
+			    (fill-find-break-point after-prefix)))
+
 		    ;; Let fill-point be set to the place where we end up.
 		    ;; But move back before any whitespace here.
 		    (skip-chars-backward " \t")
