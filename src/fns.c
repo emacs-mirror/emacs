@@ -40,6 +40,8 @@ Boston, MA 02111-1307, USA.  */
 #define NULL (void *)0
 #endif
 
+#define DEFAULT_NONASCII_INSERT_OFFSET 0x800
+
 /* Nonzero enables use of dialog boxes for questions
    asked by mouse commands.  */
 int use_dialog_box;
@@ -205,9 +207,8 @@ Symbols are also allowed; their print names are used instead.")
   (s1, s2)
      register Lisp_Object s1, s2;
 {
-  register int i;
-  register unsigned char *p1, *p2;
   register int end;
+  register int i1, i1_byte, i2, i2_byte;
 
   if (SYMBOLP (s1))
     XSETSTRING (s1, XSYMBOL (s1)->name);
@@ -216,18 +217,32 @@ Symbols are also allowed; their print names are used instead.")
   CHECK_STRING (s1, 0);
   CHECK_STRING (s2, 1);
 
-  p1 = XSTRING (s1)->data;
-  p2 = XSTRING (s2)->data;
-  end = XSTRING (s1)->size_byte;
-  if (end > XSTRING (s2)->size_byte)
-    end = XSTRING (s2)->size_byte;
+  i1 = i1_byte = i2 = i2_byte = 0;
 
-  for (i = 0; i < end; i++)
+  end = XSTRING (s1)->size;
+  if (end > XSTRING (s2)->size)
+    end = XSTRING (s2)->size;
+
+  while (i1 < end)
     {
-      if (p1[i] != p2[i])
-	return p1[i] < p2[i] ? Qt : Qnil;
+      /* When we find a mismatch, we must compare the
+	 characters, not just the bytes.  */
+      int c1, c2;
+
+      if (STRING_MULTIBYTE (s1))
+	FETCH_STRING_CHAR_ADVANCE (c1, s1, i1, i1_byte);
+      else
+	c1 = XSTRING (s1)->data[i1++];
+
+      if (STRING_MULTIBYTE (s2))
+	FETCH_STRING_CHAR_ADVANCE (c2, s2, i2, i2_byte);
+      else
+	c2 = XSTRING (s2)->data[i2++];
+
+      if (c1 != c2)
+	return c1 < c2 ? Qt : Qnil;
     }
-  return i < XSTRING (s2)->size_byte ? Qt : Qnil;
+  return i1 < XSTRING (s2)->size ? Qt : Qnil;
 }
 
 static Lisp_Object concat ();
@@ -428,8 +443,8 @@ concat (nargs, args, target_type, last_special)
       len = XFASTINT (Flength (this));
       if (target_type == Lisp_String)
 	{
-	  /* We must pay attention to a multibyte character which
-	     takes more than one byte in string.  */
+	  /* We must count the number of bytes needed in the string
+	     as well as the number of characters.  */
 	  int i;
 	  Lisp_Object ch;
 	  int this_len_byte;
@@ -459,17 +474,21 @@ concat (nargs, args, target_type, last_special)
 	  else if (STRINGP (this))
 	    {
 	      result_len_byte += XSTRING (this)->size_byte;
-	      if (STRING_MULTIBYTE (this))
-		some_multibyte = 1;
+		{
+		  some_multibyte = 1;
+		  result_len_byte += XSTRING (this)->size_byte;
+		}
+	      else
+		result_len_byte += count_size_as_multibyte (XSTRING (this)->data,
+							    XSTRING (this)->size);
 	    }
 	}
 
       result_len += len;
     }
 
-  /* In `append', if all but last arg are nil, return last arg.  */
-  if (target_type == Lisp_Cons && EQ (val, Qnil))
-    return last_tail;
+  if (! some_multibyte)
+    result_len_byte = result_len;
 
   /* Create the output object.  */
   if (target_type == Lisp_Cons)
@@ -479,6 +498,9 @@ concat (nargs, args, target_type, last_special)
   else
     val = make_uninit_multibyte_string (result_len, result_len_byte);
 
+  /* In `append', if all but last arg are nil, return last arg.  */
+  if (target_type == Lisp_Cons && EQ (val, Qnil))
+    return last_tail;
 
   /* Copy the contents of the args into the result.  */
   if (CONSP (val))
@@ -514,6 +536,14 @@ concat (nargs, args, target_type, last_special)
 	  toindex_byte += thislen_byte;
 	  toindex += thisleni;
 	}
+      /* Copy a single-byte string to a multibyte string.  */
+      else if (STRINGP (this) && STRINGP (val))
+	{
+	  toindex_byte += copy_text (XSTRING (this)->data,
+				     XSTRING (val)->data + toindex_byte,
+				     XSTRING (this)->size, 0, 1);
+	  toindex += thisleni;
+	}
       else
 	/* Copy element by element.  */
 	while (1)
@@ -546,7 +576,11 @@ concat (nargs, args, target_type, last_special)
 			    && XINT (elt) < 0400)
 			  {
 			    c = XINT (elt);
-			    copy_text (&c, &c, 1, 0, 1);
+			    if (nonascii_insert_offset > 0)
+			      c += nonascii_insert_offset;
+			    else
+			      c += DEFAULT_NONASCII_INSERT_OFFSET;
+
 			    XSETINT (elt, c);
 			  }
 		      }
@@ -608,6 +642,10 @@ concat (nargs, args, target_type, last_special)
   return val;
 }
 
+static Lisp_Object string_char_byte_cache_string;
+static int string_char_byte_cache_charpos;
+static int string_char_byte_cache_bytepos;
+
 /* Return the character index corresponding to CHAR_INDEX in STRING.  */
 
 int
@@ -615,20 +653,65 @@ string_char_to_byte (string, char_index)
      Lisp_Object string;
      int char_index;
 {
-  int i = 0, i_byte = 0;
+  int i, i_byte;
+  int best_below, best_below_byte;
+  int best_above, best_above_byte;
 
   if (! STRING_MULTIBYTE (string))
     return char_index;
 
-  while (i < char_index)
+  best_below = best_below_byte = 0;
+  best_above = XSTRING (string)->size;
+  best_above_byte = XSTRING (string)->size_byte;
+
+  if (EQ (string, string_char_byte_cache_string))
     {
-      int c;
-      FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
+      if (string_char_byte_cache_charpos < char_index)
+	{
+	  best_below = string_char_byte_cache_charpos;
+	  best_below_byte = string_char_byte_cache_bytepos;
+	}
+      else
+	{
+	  best_above = string_char_byte_cache_charpos;
+	  best_above_byte = string_char_byte_cache_bytepos;
+	}
     }
+
+  if (char_index - best_below < best_above - char_index)
+    {
+      while (best_below < char_index)
+	{
+	  int c;
+	  FETCH_STRING_CHAR_ADVANCE (c, string, best_below, best_below_byte);
+	}
+      i = best_below;
+      i_byte = best_below_byte;
+    }
+  else
+    {
+      while (best_above > char_index)
+	{
+	  int best_above_byte_saved = --best_above_byte;
+
+	  while (best_above_byte > 0
+		 && !CHAR_HEAD_P (XSTRING (string)->data[best_above_byte]))
+	    best_above_byte--;
+	  if (XSTRING (string)->data[best_above_byte] < 0x80)
+	    best_above_byte = best_above_byte_saved;
+	  best_above--;
+	}
+      i = best_above;
+      i_byte = best_above_byte;
+    }
+
+  string_char_byte_cache_bytepos = i_byte;
+  string_char_byte_cache_charpos = i;
+  string_char_byte_cache_string = string;
 
   return i_byte;
 }
-
+
 /* Return the character index corresponding to BYTE_INDEX in STRING.  */
 
 int
@@ -636,20 +719,65 @@ string_byte_to_char (string, byte_index)
      Lisp_Object string;
      int byte_index;
 {
-  int i = 0, i_byte = 0;
+  int i, i_byte;
+  int best_below, best_below_byte;
+  int best_above, best_above_byte;
 
   if (! STRING_MULTIBYTE (string))
     return byte_index;
 
-  while (i_byte < byte_index)
+  best_below = best_below_byte = 0;
+  best_above = XSTRING (string)->size;
+  best_above_byte = XSTRING (string)->size_byte;
+
+  if (EQ (string, string_char_byte_cache_string))
     {
-      int c;
-      FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
+      if (string_char_byte_cache_bytepos < byte_index)
+	{
+	  best_below = string_char_byte_cache_charpos;
+	  best_below_byte = string_char_byte_cache_bytepos;
+	}
+      else
+	{
+	  best_above = string_char_byte_cache_charpos;
+	  best_above_byte = string_char_byte_cache_bytepos;
+	}
     }
+
+  if (byte_index - best_below_byte < best_above_byte - byte_index)
+    {
+      while (best_below_byte < byte_index)
+	{
+	  int c;
+	  FETCH_STRING_CHAR_ADVANCE (c, string, best_below, best_below_byte);
+	}
+      i = best_below;
+      i_byte = best_below_byte;
+    }
+  else
+    {
+      while (best_above_byte > byte_index)
+	{
+	  int best_above_byte_saved = --best_above_byte;
+
+	  while (best_above_byte > 0
+		 && !CHAR_HEAD_P (XSTRING (string)->data[best_above_byte]))
+	    best_above_byte--;
+	  if (XSTRING (string)->data[best_above_byte] < 0x80)
+	    best_above_byte = best_above_byte_saved;
+	  best_above--;
+	}
+      i = best_above;
+      i_byte = best_above_byte;
+    }
+
+  string_char_byte_cache_bytepos = i_byte;
+  string_char_byte_cache_charpos = i;
+  string_char_byte_cache_string = string;
 
   return i;
 }
-
+
 /* Convert STRING to a multibyte string.
    Single-byte characters 0200 through 0377 are converted
    by adding nonascii_insert_offset to each.  */
@@ -690,6 +818,24 @@ string_make_unibyte (string)
 	     1, 0);
 
   return make_unibyte_string (buf, XSTRING (string)->size);
+}
+
+DEFUN ("string-make-multibyte", Fstring_make_multibyte, Sstring_make_multibyte,
+       1, 1, 0,
+  "Return the multibyte equivalent of STRING.")
+  (string)
+     Lisp_Object string;
+{
+  return string_make_multibyte (string);
+}
+
+DEFUN ("string-make-unibyte", Fstring_make_unibyte, Sstring_make_unibyte,
+       1, 1, 0,
+  "Return the unibyte equivalent of STRING.")
+  (string)
+     Lisp_Object string;
+{
+  return string_make_unibyte (string);
 }
 
 DEFUN ("copy-alist", Fcopy_alist, Scopy_alist, 1, 1, 0,
@@ -2313,6 +2459,9 @@ syms_of_fns ()
   Qwidget_type = intern ("widget-type");
   staticpro (&Qwidget_type);
 
+  staticpro (&string_char_byte_cache_string);
+  string_char_byte_cache_string = Qnil;
+
   Fset (Qyes_or_no_p_history, Qnil);
 
   DEFVAR_LISP ("features", &Vfeatures,
@@ -2336,6 +2485,8 @@ invoked by mouse clicks and mouse menu items.");
   defsubr (&Sconcat);
   defsubr (&Svconcat);
   defsubr (&Scopy_sequence);
+  defsubr (&Sstring_make_multibyte);
+  defsubr (&Sstring_make_unibyte);
   defsubr (&Scopy_alist);
   defsubr (&Ssubstring);
   defsubr (&Snthcdr);
