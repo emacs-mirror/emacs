@@ -341,8 +341,9 @@ add_properties (plist, i, object)
       for (tail2 = i->plist; ! NILP (tail2); tail2 = Fcdr (Fcdr (tail2)))
 	if (EQ (sym1, Fcar (tail2)))
 	  {
-	    register Lisp_Object this_cdr = Fcdr (tail2);
+	    register Lisp_Object this_cdr;
 
+	    this_cdr = Fcdr (tail2);
 	    /* Found the property.  Now check its value. */
 	    found = 1;
 
@@ -396,10 +397,10 @@ remove_properties (plist, i, object)
      INTERVAL i;
      Lisp_Object object;
 {
-  register Lisp_Object tail1, tail2, sym;
-  register Lisp_Object current_plist = i->plist;
+  register Lisp_Object tail1, tail2, sym, current_plist;
   register int changed = 0;
 
+  current_plist = i->plist;
   /* Go through each element of plist. */
   for (tail1 = plist; ! NILP (tail1); tail1 = Fcdr (Fcdr (tail1)))
     {
@@ -426,7 +427,8 @@ remove_properties (plist, i, object)
       tail2 = current_plist;
       while (! NILP (tail2))
 	{
-	  register Lisp_Object this = Fcdr (Fcdr (tail2));
+	  register Lisp_Object this;
+	  this = Fcdr (Fcdr (tail2));
 	  if (EQ (sym, Fcar (this)))
 	    {
 	      if (XTYPE (object) == Lisp_Buffer)
