@@ -447,7 +447,7 @@ copy_overlays (b, list)
   for (; list; list = list->next)
     {
       Lisp_Object overlay, start, end, old_overlay;
-      int charpos;
+      EMACS_INT charpos;
 
       XSETMISC (old_overlay, list);
       charpos = marker_position (OVERLAY_START (old_overlay));
@@ -1629,6 +1629,11 @@ the window-buffer correspondences.  */)
      Lisp_Object buffer, norecord;
 {
   char *err;
+
+  if (EQ (buffer, Fwindow_buffer (selected_window)))
+    /* Basically a NOP.  Avoid signalling an error if the selected window
+       is dedicated, or a minibuffer, ...  */
+    return Fset_buffer (buffer);
 
   err = no_switch_window (selected_window);
   if (err) error (err);
@@ -4097,6 +4102,14 @@ report_overlay_modification (start, end, after, arg1, arg2, arg3)
 
   overlay = Qnil;
   tail = NULL;
+
+  /* We used to run the functions as soon as we found them and only register
+     them in last_overlay_modification_hooks for the purpose of the `after'
+     case.  But running elisp code as we traverse the list of overlays is
+     painful because the list can be modified by the elisp code so we had to
+     copy at several places.  We now simply do a read-only traversal that
+     only collects the functions to run and we run them afterwards.  It's
+     simpler, especially since all the code was already there.  -stef  */
 
   if (!after)
     {
