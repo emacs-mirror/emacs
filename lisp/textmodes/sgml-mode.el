@@ -339,7 +339,7 @@ Otherwise, it is set to be buffer-local when the file has
             (eval-when-compile
              (mapconcat 'identity
                         '("<!DOCTYPE" "\\(\\w+\\)" "\\(\\w+\\)"
-                          "\"\\([^\"]+\\)+\"" "\"\\([^\"]+\\)+\"")
+                          "\"\\([^\"]+\\)\"" "\"\\([^\"]+\\)\"")
                         "\\s-+"))
             nil t)
            (let ((name (match-string 1))
