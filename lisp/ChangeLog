@@ -1,3 +1,10 @@
+2001-07-25  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* emacs-lisp/lisp-mode.el (eval-print-last-sexp, eval-defun):
+	Mention the effect of eval-expression-print-length and
+	eval-expression-print-level in the doc strings.  Suggested by
+	Kevin Gallagher <kevingal@onramp.net>.
+
 2001-07-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/find-func.el (find-function-regexp): Add
