@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY ARENA CLASS
  *
- * $HopeName: MMsrc!arenavm.c(trunk.71) $
+ * $HopeName: MMsrc!arenavm.c(trunk.72) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  *
@@ -26,7 +26,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.71) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.72) $");
 
 
 /* @@@@ Arbitrary calculation for the maximum number of distinct */
@@ -424,7 +424,9 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
 
   arena = VMArena2Arena(vmArena);
   /* impl.c.arena.init.caller */
-  ArenaInit(arena, lock, class);
+  res = ArenaInit(arena, lock, class);
+  if (res != ResOK)
+    goto failArenaInit;
   arena->committed = VMMapped(arenaVM);
 
   vmArena->vm = arenaVM;
@@ -465,6 +467,8 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
   return ResOK;
 
 failChunkCreate:
+  ArenaFinish(arena);
+failArenaInit:
   VMUnmap(arenaVM, VMBase(arenaVM), VMLimit(arenaVM));
 failVMMap:
   VMDestroy(arenaVM);
