@@ -975,8 +975,8 @@ invoked from a session group.  This behavior is implemented in the function
 necessary.
 
 The variable @code{ediff-autostore-merges} is buffer-local, so it can be
-set in a per-buffer manner.  Therefore, use @code{setq-default} to globally
-change this variable.
+set on a per-buffer basis.  Therefore, use @code{setq-default} to change
+this variable globally.
 
 @cindex Multi-file patches
 A multi-file patch is a concatenated output of several runs of the Unix
@@ -1979,6 +1979,12 @@ necessary.
 The variable @code{ediff-autostore-merges} is buffer-local, so it can be
 set in a per-buffer manner.  Therefore, use @code{setq-default} to globally
 change this variable.
+
+@vindex ediff-merge-filename-prefix
+When merge buffers are saved automatically as directed by
+@code{ediff-autostore-merges}, Ediff attaches a prefix to each file, as
+specified by the variable @code{ediff-merge-filename-prefix}. The default
+is @code{merge_}, but this can be changed by the user.
 
 @node Support for Version Control, Customizing the Mode Line, Merging and diff3, Customization
 @section Support for Version Control

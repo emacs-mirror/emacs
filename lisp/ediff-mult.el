@@ -1587,7 +1587,7 @@ all marked sessions must be active."
 					 merge-autostore-dir)
 					(concat
 					 merge-autostore-dir
-					 "merge_"
+					 ediff-merge-filename-prefix
 					 (file-name-nondirectory file1))
 				      ))
 			     ;; make ediff-startup pass
@@ -1618,7 +1618,7 @@ all marked sessions must be active."
 					   merge-autostore-dir)
 					  (concat
 					   merge-autostore-dir
-					   "merge_"
+					   ediff-merge-filename-prefix
 					   (file-name-nondirectory file1))) )
 			       ;; make ediff-startup pass
 			       ;; ediff-control-buffer back to the meta
@@ -1647,7 +1647,7 @@ all marked sessions must be active."
 					   merge-autostore-dir)
 					  (concat
 					   merge-autostore-dir
-					   "merge_"
+					   ediff-merge-filename-prefix
 					   (file-name-nondirectory file1))) )
 			       ;; make ediff-startup pass
 			       ;; ediff-control-buffer back to the meta
@@ -1673,7 +1673,7 @@ all marked sessions must be active."
 					   merge-autostore-dir)
 					  (concat
 					   merge-autostore-dir
-					   "merge_"
+					   ediff-merge-filename-prefix
 					   (file-name-nondirectory file1))) )
 			       (setq ediff-meta-buffer , (current-buffer)
 				     ediff-meta-session-number

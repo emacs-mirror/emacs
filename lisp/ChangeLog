@@ -1,4 +1,18 @@
 2000-05-24  Michael Kifer  <kifer@cs.sunysb.edu>
+	
+	* ediff-diff.el (ediff-forward-word): take syntactic word class into
+	account.
+	(ediff-test-utility,ediff-diff-mandatory-option,
+	ediff-reset-diff-options): utilities for proper initialization of
+	ediff-diff-options and ediff-diff3-options on Windows.
+	
+	* ediff-init.el (ediff-merge-filename-prefix): new customizable
+	variable.
+	
+	* ediff-mult.el (ediff-filegroup-action): use
+	ediff-merge-filename-prefix.
+
+2000-05-24  Michael Kifer  <kifer@cs.sunysb.edu>
 
 	* viper-ex.el (ex-write): set selective display to nil.
 	

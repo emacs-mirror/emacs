@@ -2031,7 +2031,8 @@ If you wish to change a Viper binding, you can use the
 @code{define-key} command, to modify @code{viper-vi-global-user-map},
 @code{viper-insert-global-user-map}, and @code{viper-emacs-global-user-map}, as
 explained below.  Each of these key maps affects the corresponding Viper state.
-The keymap @code{viper-vi-global-user-map} also affects Viper's Replace state.
+The keymap @code{viper-insert-global-user-map} also affects Viper's Replace
+state. 
 
 @noindent
 If you want to
@@ -4442,6 +4443,7 @@ kanze@@gabi-soft.fr (James Kanze),
 kin@@isi.com (Kin Cho),
 kwzh@@gnu.org (Karl Heuer),
 lindstro@@biostat.wisc.edu (Mary Lindstrom),
+minakaji@@osaka.email.ne.jp (Mikio Nakajima),
 Mark.Bordas@@East.Sun.COM (Mark Bordas),
 meyering@@comco.com (Jim Meyering),
 mrb@@Eng.Sun.COM (Martin Buchholz),

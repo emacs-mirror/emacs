@@ -1206,6 +1206,11 @@ as `ediff-merge-directory' or `ediff-merge-directory-revisions'."
 
 ;; file where the result of the merge is to be saved.  used internally
 (ediff-defvar-local ediff-merge-store-file nil "")
+
+(defcustom ediff-merge-filename-prefix "merge_"
+  "*Prefix to be attached to saved merge buffers."
+  :type 'string
+  :group 'ediff-merge)
   
 (defcustom ediff-no-emacs-help-in-control-buffer nil
   "*Non-nil means C-h should not invoke Emacs help in control buffer.

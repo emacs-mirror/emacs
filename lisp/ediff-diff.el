@@ -45,6 +45,42 @@
   :group 'ediff)
 
 
+;; The following functions needed for setting diff/diff3 options
+;; test if diff supports the --binary option
+(defsubst ediff-test-utility (diff-util option &optional files)
+  (zerop (apply 'call-process
+		(append (list diff-util nil nil nil option) files))))
+
+(defun ediff-diff-mandatory-option (diff-util)
+  (let ((file (if (boundp 'null-device) null-device "/dev/null")))
+    (cond  ((not (memq system-type '(ms-dos windows-nt windows-95)))
+	    "")
+	   ((and (string= diff-util ediff-diff-program)
+		 (ediff-test-utility
+		  ediff-diff-program "--binary" (list file file)))
+	    "--binary")
+	   ((and (string= diff-util ediff-diff3-program)
+		 (ediff-test-utility
+		  ediff-diff3-program "--binary" (list file file file)))
+	    "--binary")
+	   (t ""))))
+
+;; make sure that mandatory options are added even if the user changes
+;; ediff-diff-options or ediff-diff3-options in the customization widget
+(defun ediff-reset-diff-options (symb val)
+  (let* ((diff-program 
+	  (if (eq symb 'ediff-diff-options) 
+	      ediff-diff-program
+	    ediff-diff3-program))
+	 (mandatory-option (ediff-diff-mandatory-option diff-program))
+	 (spacer (if (string-equal mandatory-option "") "" " ")))
+    (set symb 
+	 (if (string-match mandatory-option val)
+	     val
+	   (concat mandatory-option spacer val)))
+    ))
+
+
 (defcustom ediff-shell
   (cond ((eq system-type 'emx) "cmd") ; OS/2
 	((memq system-type '(ms-dos windows-nt windows-95))
@@ -76,11 +112,12 @@ ignore changes whose lines all match RE."
   "*Program to use for generating the differential of the two files."
   :type 'string
   :group 'ediff-diff)
-(defcustom ediff-diff-options ""  
+(defcustom ediff-diff-options ""
   "*Options to pass to `ediff-diff-program'. 
 If diff\(1\) is used as `ediff-diff-program', then the most useful options are
 `-w', to ignore space, and `-i', to ignore case of letters.
 At present, the option `-c' is not allowed."
+  :set 'ediff-reset-diff-options
   :type 'string
   :group 'ediff-diff)
 
@@ -105,6 +142,7 @@ Must produce output compatible with Unix's diff3 program."
   :group 'ediff-diff)
 (defcustom ediff-diff3-options ""  
   "*Options to pass to `ediff-diff3-program'."
+  :set 'ediff-reset-diff-options
   :type 'string
   :group 'ediff-diff)
 (defcustom ediff-diff3-ok-lines-regexp
@@ -1173,8 +1211,7 @@ Used for splitting difference regions into individual words.")
   "*Characters constituting white space.
 These characters are ignored when differing regions are split into words.")
 
-;;(defvar ediff-word-1 "a-zA-Z---_`'.?!:"
-(defvar ediff-word-1 "a-zA-Z---_"
+(defvar ediff-word-1 "\\(a-zA-Z---_\\|\w\\)"
   "*Characters that constitute words of type 1.
 More precisely, [ediff-word-1] is a regexp that matches type 1 words.
 See `ediff-forward-word' for more details.")  
@@ -1201,9 +1238,11 @@ See `ediff-forward-word' for more details.")
   "Move point one word forward.
 There are four types of words, each of which consists entirely of
 characters in `ediff-word-1', `ediff-word-2', `ediff-word-3', or
-`ediff-word-4'.  Words are recognized by passing these in turn as the
-argument to `skip-chars-forward'."
-  (or (> (skip-chars-forward ediff-word-1) 0)
+`ediff-word-4'.  Words are recognized by passing these one after another as
+arguments to `skip-chars-forward'."
+  (or (> (+ (skip-chars-forward ediff-word-1)
+	    (skip-syntax-forward "w"))
+	 0)
       (> (skip-chars-forward ediff-word-2) 0)
       (> (skip-chars-forward ediff-word-3) 0)
       (> (skip-chars-forward ediff-word-4) 0)
