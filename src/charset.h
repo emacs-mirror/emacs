@@ -509,7 +509,7 @@ extern struct charset *emacs_mule_charset[256];
 extern Lisp_Object Qcharsetp;
 
 extern Lisp_Object Qascii, Qunicode;
-extern int charset_ascii, charset_8_bit_control, charset_8_bit_graphic;
+extern int charset_ascii, charset_eight_bit;
 extern int charset_iso_8859_1;
 extern int charset_primary;
 extern int charset_jisx0201_roman;
