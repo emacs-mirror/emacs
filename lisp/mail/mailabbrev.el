@@ -548,7 +548,7 @@ With arg N, put point N/10 of the way from the true end.
 
 Don't use this command in Lisp programs!
 \(goto-char (point-max)) is faster and avoids clobbering the mark."
-  (interactive "p")
+  (interactive "P")
   (if (looking-at "[ \t]*\n") (expand-abbrev))
   (setq this-command 'end-of-buffer)
   (end-of-buffer arg))
