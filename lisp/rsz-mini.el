@@ -1,13 +1,13 @@
 ;;; rsz-mini.el --- dynamically resize minibuffer to display entire contents
 
-;;; Copyright (C) 1990, 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1993, 1994, 1995 Free Software Foundation, Inc.
 
-;;; Author: Noah Friedman <friedman@prep.ai.mit.edu>
-;;;         Roland McGrath <roland@prep.ai.mit.edu>
-;;; Maintainer: friedman@prep.ai.mit.edu
-;;; Keywords: minibuffer, window, frame, display
-;;; Status: Known to work in FSF GNU Emacs 19.26 and later.
-;;; $Id: rsz-mini.el,v 1.6 1994/07/12 19:51:30 rms Exp friedman $
+;; Author: Noah Friedman <friedman@prep.ai.mit.edu>
+;;         Roland McGrath <roland@prep.ai.mit.edu>
+;; Maintainer: friedman@prep.ai.mit.edu
+;; Keywords: minibuffer, window, frame, display
+;; Status: Known to work in FSF GNU Emacs 19.26 and later.
+;; $Id: rsz-mini.el,v 1.7 1994/07/13 17:19:23 friedman Exp friedman $
 
 ;; This file is part of GNU Emacs.
 
@@ -27,36 +27,36 @@
 
 ;;; Commentary:
 
-;;; This package allows the entire contents (or as much as possible) of the
-;;; minibuffer to be visible at once when typing.  As the end of a line is
-;;; reached, the minibuffer will resize itself.  When the user is done
-;;; typing, the minibuffer will return to its original size.
+;; This package allows the entire contents (or as much as possible) of the
+;; minibuffer to be visible at once when typing.  As the end of a line is
+;; reached, the minibuffer will resize itself.  When the user is done
+;; typing, the minibuffer will return to its original size.
 
-;;; In window systems where it is possible to have a frame in which the
-;;; minibuffer is the only window, the frame itself can be resized.  In FSF
-;;; GNU Emacs 19.22 and earlier, the frame may not be properly returned to
-;;; its original size after it ceases to be active because
-;;; `minibuffer-exit-hook' didn't exist until version 19.23.
-;;;
-;;; Prior to Emacs 19.26, minibuffer-exit-hook wasn't called after exiting
-;;; from the minibuffer by hitting the quit char.  That meant that the
-;;; frame size restoration function wasn't being called in that case.  In
-;;; 19.26 or later, minibuffer-exit-hook should be called anyway.
+;; In window systems where it is possible to have a frame in which the
+;; minibuffer is the only window, the frame itself can be resized.  In FSF
+;; GNU Emacs 19.22 and earlier, the frame may not be properly returned to
+;; its original size after it ceases to be active because
+;; `minibuffer-exit-hook' didn't exist until version 19.23.
+;;
+;; Prior to Emacs 19.26, minibuffer-exit-hook wasn't called after exiting
+;; from the minibuffer by hitting the quit char.  That meant that the
+;; frame size restoration function wasn't being called in that case.  In
+;; 19.26 or later, minibuffer-exit-hook should be called anyway.
 
-;;; Note that the minibuffer and echo area are not the same!  They simply
-;;; happen to occupy roughly the same place on the frame.  Messages put in
-;;; the echo area will not cause any resizing by this package.
+;; Note that the minibuffer and echo area are not the same!  They simply
+;; happen to occupy roughly the same place on the frame.  Messages put in
+;; the echo area will not cause any resizing by this package.
 
-;;; This package is considered a minor mode but it doesn't put anything in
-;;; minor-mode-alist because this mode is specific to the minibuffer, which
-;;; has no mode line.
+;; This package is considered a minor mode but it doesn't put anything in
+;; minor-mode-alist because this mode is specific to the minibuffer, which
+;; has no mode line.
 
-;;; To use this package, put the following in your .emacs:
-;;;
-;;;     (autoload 'resize-minibuffer-mode "rsz-mini" nil t)
-;;;
-;;; Invoking the command `resize-minibuffer-mode' will then enable this mode.
-;;; Simply loading this file will also enable it.
+;; To use this package, put the following in your .emacs:
+;;
+;;     (autoload 'resize-minibuffer-mode "rsz-mini" nil t)
+;;
+;; Invoking the command `resize-minibuffer-mode' will then enable this mode.
+;; Simply loading this file will also enable it.
 
 ;;; Code:
 
@@ -193,17 +193,17 @@ respectively."
 
 
 ;; Resize the minibuffer window to contain the minibuffer's contents.
-;; The minibuffer window must be current.
 (defun resize-minibuffer-window ()
-  (let ((height (window-height))
-        (lines (1+ (resize-minibuffer-count-window-lines))))
-    (and (numberp resize-minibuffer-window-max-height)
-         (> resize-minibuffer-window-max-height 0)
-         (setq lines (min lines resize-minibuffer-window-max-height)))
-    (or (if resize-minibuffer-window-exactly
-            (= lines height)
-          (<= lines height))
-        (enlarge-window (- lines height)))))
+  (and (eq (selected-window) (minibuffer-window))
+       (let ((height (window-height))
+             (lines (1+ (resize-minibuffer-count-window-lines))))
+         (and (numberp resize-minibuffer-window-max-height)
+              (> resize-minibuffer-window-max-height 0)
+              (setq lines (min lines resize-minibuffer-window-max-height)))
+         (or (if resize-minibuffer-window-exactly
+                 (= lines height)
+               (<= lines height))
+             (enlarge-window (- lines height))))))
 
 ;; This resizes the minibuffer back to one line as soon as it is exited
 ;; (e.g. when the user hits RET).  This way, subsequent messages put in the
@@ -221,6 +221,7 @@ respectively."
 ;; anyway; this is just a kludge because of the timing for that update).
 (defun resize-minibuffer-window-restore ()
   (cond
+   ((not (eq (minibuffer-window) (selected-window))))
    ((> (window-height) 1)
     (enlarge-window (- 1 (window-height)))
     (sit-for 0))))
