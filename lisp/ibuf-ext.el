@@ -702,7 +702,7 @@ Ordering is lexicographic."
 (define-ibuffer-sorter mode-name
   "Sort the buffers by their mode name.
 Ordering is lexicographic."
-  (:description "mode name")
+  (:description "major mode name")
   (string-lessp (downcase
 		  (with-current-buffer
 		      (car a)
@@ -1014,10 +1014,7 @@ You can then feed the file name(s) to other commands with C-y.
   (ibuffer-mark-on-buffer
    #'(lambda (buf)
        (with-current-buffer buf
-	 (or
-	  (eq major-mode 'apropos-mode)
-	  (eq major-mode 'help-mode)
-	  (eq major-mode 'info-mode))))))
+	 (memq major-mode ibuffer-help-buffer-modes)))))
 
 ;;;###autoload
 (defun ibuffer-mark-old-buffers ()
