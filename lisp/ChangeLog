@@ -1,3 +1,14 @@
+2005-03-23  Lute Kamstra  <lute@gnu.org>
+
+	* calendar/time-date.el: Add comment on time value formats.  Don't
+	require parse-time.
+	(with-decoded-time-value): New macro.
+	(encode-time-value): New function.
+	(time-to-seconds, time-less-p, time-subtract, time-add): Use them.
+	(days-to-time): Return a valid time value when arg is huge.
+	(time-since): Use time-subtract.
+	(time-to-number-of-days): Use time-to-seconds.
+
 2005-03-23  David Ponce  <david@dponce.com>
 
 	* recentf.el: (recentf-keep): New option.
