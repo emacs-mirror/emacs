@@ -222,7 +222,7 @@ and `time-stamp-end' control finding the template."
 			  (widen)
 			  (delete-region start end)
 			  (goto-char start)
-			  (insert new-time-stamp)
+			  (insert-and-inherit new-time-stamp)
 			  (setq end (point))
 			  ;; remove any tabs used to format time stamp
 			  (goto-char start)
