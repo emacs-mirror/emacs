@@ -1,9 +1,7 @@
 # impl.gmk.sus8gc: BUILD FOR SUNOS/SPARC V8/GCC PLATFORM
 #
-# $HopeName: MMsrc!sus8gc.gmk(trunk.41) $
+# $HopeName: MMsrc!sus8gc.gmk(trunk.42) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
-#
-# This is the GNU makefile for platform.sus8gc.
 
 PFM = sus8gc
 
@@ -14,3 +12,5 @@ MPMS = sssus8.s
 LIBS = -lm
 
 include gc.gmk
+
+include comm.gmk
