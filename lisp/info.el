@@ -47,7 +47,18 @@ The Lisp code is executed when the node is selected.")
 This value is used as the default for `Info-directory-list'.  It is set
 in paths.el.")
 
-(defvar Info-directory-list nil
+(defvar Info-directory-list
+  (let ((path (getenv "INFOPATH")))
+    (if path
+	(let ((list nil)
+	      idx)
+	  (while (> (length path) 0)
+	    (setq idx (or (string-match ":" path) (length path))
+		  list (cons (substring path 0 idx) list)
+		  path (substring path (min (1+ idx)
+					    (length path)))))
+	  (nreverse list))
+      Info-default-directory-list))
   "List of directories to search for Info documentation files.
 nil means not yet initialized.  In this case, Info uses the environment
 variable INFOPATH to initialize it, or `Info-default-directory-list'
@@ -112,19 +123,6 @@ In interactive use, a prefix argument directs this command
 to read a file name from the minibuffer."
   (interactive (if current-prefix-arg
 		   (list (read-file-name "Info file name: " nil nil t))))
-  (or Info-directory-list
-      (setq Info-directory-list
-	    (let ((path (getenv "INFOPATH")))
-	      (if path
-		  (let ((list nil)
-			idx)
-		    (while (> (length path) 0)
-		      (setq idx (or (string-match ":" path) (length path))
-			    list (cons (substring path 0 idx) list)
-			    path (substring path (min (1+ idx)
-						      (length path)))))
-		    (nreverse list))
-		Info-default-directory-list))))
   (if file
       (Info-goto-node (concat "(" file ")"))
     (if (get-buffer "*info*")
