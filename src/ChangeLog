@@ -1,3 +1,7 @@
+1999-11-03  Dave Love  <fx@gnu.org>
+
+	* charset.c (split_non_ascii_string): Define return value.
+
 1999-11-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* minibuf.c (string_to_object): New.
