@@ -739,7 +739,8 @@ If the click is in the echo area, display the `*Messages*' buffer."
     (setq start-point (point))
     (let ((range (mouse-start-end start-point start-point click-count)))
       (move-overlay mouse-drag-overlay (car range) (nth 1 range)
-		    (window-buffer start-window)))
+		    (window-buffer start-window))
+      (overlay-put mouse-drag-overlay 'window (selected-window)))
     (deactivate-mark)
     ;; end-of-range is used only in the single-click case.
     ;; It is the place where the drag has reached so far
