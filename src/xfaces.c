@@ -3626,7 +3626,10 @@ merge_face_ref (f, face_ref, to, err_msgs, named_merge_points)
 	      Lisp_Object value = XCAR (XCDR (face_ref));
 	      int err = 0;
 
-	      if (EQ (keyword, QCfamily))
+	      /* Specifying `unspecified' is a no-op.  */
+	      if (EQ (value, Qunspecified))
+		;
+	      else if (EQ (keyword, QCfamily))
 		{
 		  if (STRINGP (value))
 		    to[LFACE_FAMILY_INDEX] = value;
