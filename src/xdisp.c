@@ -1002,8 +1002,15 @@ pos_visible_p (w, charpos, fully, exact_mode_line_heights_p)
 			     ? it.max_ascent + it.max_descent
 			     : last_height);
 	    }
-	  else 
-	    line_height = FONT_HEIGHT (FRAME_FONT (XFRAME (w->frame)));
+	  else
+	    {
+	      /* Use the default character height.  */
+	      it.what = IT_CHARACTER;
+	      it.c = ' ';
+	      it.len = 1;
+	      PRODUCE_GLYPHS (&it);
+	      line_height = it.ascent + it.descent;
+	    }
 	}
       line_bottom_y = line_top_y + line_height;
 
