@@ -1,3 +1,10 @@
+2000-09-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* lread.c (Vrecursive_load_depth_limit): New variable.
+	(Fload): Check recursive loads whose recursion depth exceeds
+	Vrecursive_load_depth_limit.
+	(syms_of_lread): DERFAR_LISP recursive-load-depth-limit.
+
 2000-09-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* fileio.c (Fread_file_name): Doc fix.
