@@ -257,7 +257,7 @@ See the command `outline-mode' for more information on this mode."
   ;; When turning off outline mode, get rid of any outline hiding.
   (or outline-minor-mode
       (show-all))
-  (set-buffer-modified-p (buffer-modified-p)))
+  (force-mode-line-update))
 
 (defvar outline-level 'outline-level
   "Function of no args to compute a header's nesting level in an outline.
