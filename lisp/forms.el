@@ -2,7 +2,8 @@
 ;;; Copyright (C) 1991, 1993 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans <jv@mh.nl>
-;; Version: 1.2.13
+;; Version: 1.2.14
+;; Keywords: non-text
 
 ;; This file is part of GNU Emacs.
 
@@ -223,7 +224,7 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version "1.2.13"
+(defconst forms-version "1.2.14"
   "Version of forms-mode implementation.")
 
 (defvar forms-mode-hooks nil
@@ -307,10 +308,10 @@ The replacement commands performs forms-first/last-record.")
 (defvar forms-fields nil
   "List with fields of the current forms.  First field has number 1.")
 
-(defvar forms-new-record-filter
+(defvar forms-new-record-filter nil
   "The name of a function that is called when a new record is created.")
 
-(defvar forms-modified-record-filter
+(defvar forms-modified-record-filter nil
   "The name of a function that is called when a record has been modified.")
 
 ;;; forms-mode
