@@ -276,7 +276,8 @@ Note2: A buffer menu appears only if it has at least one buffer in it.
 Note3: If you have a CONDITION that can't be evaluated you will get an
 error every time you do \\[msb]."
   :type `(choice (const :tag "long" :value ,msb--very-many-menus)
-		 (const :tag "short" :value ,msb--few-menus))
+		 (const :tag "short" :value ,msb--few-menus)
+		 (sexp :tag "user"))
   :set 'msb-custom-set
   :group 'msb)
 
