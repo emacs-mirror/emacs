@@ -1862,7 +1862,7 @@ x_window (f, window_prompting, minibuffer_only)
     XtSetValues (shell_widget, al, ac);
   }
 
-  x_calc_absolute_position (f, window_prompting);
+  x_calc_absolute_position (f);
 
   XtManageChild (pane_widget);
   XtRealizeWidget (shell_widget);
@@ -2257,6 +2257,8 @@ be shared by the new frame.")
       else
 	f->display.x->win_gravity = NorthWestGravity;
     }
+
+  f->display.x->size_hint_flags = window_prompting;
 
 #ifdef USE_X_TOOLKIT
   x_window (f, window_prompting, minibuffer_only);
