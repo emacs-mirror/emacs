@@ -1,5 +1,5 @@
 /* GNU Emacs site configuration template file.  -*- C -*-
-   Copyright (C) 1988, 1993, 1994, 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1988, 1993, 1994, 1999, 2000, 2001 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -182,6 +182,9 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_UALARM
 #undef HAVE_SYS_WAIT_H
 #undef HAVE_STRINGS_H
+#undef HAVE_PWD_H
+#undef HAVE_SYS_IOCTL_H
+#undef HAVE_ULIMIT_H
 
 #undef HAVE_LIBDNET
 #undef HAVE_LIBPTHREADS
@@ -453,7 +456,7 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 /* Avoid link-time collision with system mktime if we will use our own.  */
-#if ! HAVE_MKTIME || BROKEN_MKTIME
+#if ! HAVE_MKTIME || (defined (BROKEN_MKTIME) && BROKEN_MKTIME)
 #define mktime emacs_mktime
 #endif
 
@@ -469,18 +472,6 @@ Boston, MA 02111-1307, USA.  */
    valid code using `volatile' can become incorrect without.  Disable
    with care. */
 #undef volatile
-
-/* Some of the files of Emacs which are intended for use with other
-   programs assume that if you have a config.h file, you must declare
-   the type of getenv.
-
-   This declaration shouldn't appear when alloca.s or Makefile.in
-   includes config.h.  */
-#ifndef NOT_C_CODE
-extern char *getenv ();
-#endif
-
-#endif /* EMACS_CONFIG_H */
 
 /* These default definitions are good for almost all machines.
    The exceptions override them in m/MACHINE.h.  */
@@ -518,8 +509,18 @@ extern char *getenv ();
 #  define __P(args) args
 # else
 #  define __P(args) ()
-# endif  /* GCC.  */
+# endif  /* PROTOTYPES  */
 #endif /* __P */
+
+/* Some of the files of Emacs which are intended for use with other
+   programs assume that if you have a config.h file, you must declare
+   the type of getenv.
+
+   This declaration shouldn't appear when alloca.s or Makefile.in
+   includes config.h.  */
+#ifndef NOT_C_CODE
+/* extern char *getenv __P ((const char *)); */
+#endif
 
 
 /* Don't include "string.h" or <stdlib.h> in non-C code.  */
@@ -555,3 +556,5 @@ extern char *getenv ();
 #else
 #define NO_RETURN	/* nothing */
 #endif
+
+#endif /* EMACS_CONFIG_H */
