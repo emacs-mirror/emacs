@@ -900,7 +900,7 @@ with the font."
       (if (fboundp 'new-fontset)
       (append w32-fixed-font-alist (list (generate-fontset-menu)))))))
   (if fonts
-      (let (font fontset)
+      (let (font fontset xlfd resolved-font)
 	(while fonts
 	  (condition-case nil
 	      (progn
@@ -908,7 +908,17 @@ with the font."
                 (if (fontset-name-p font)
                     (setq fontset font)
                   (condition-case nil
-                      (setq fontset (create-fontset-from-ascii-font font))
+                      (setq resolved-font (x-resolve-font-name font)
+                            xlfd (x-decompose-font-name resolved-font)
+                            fontset
+                              (create-fontset-from-ascii-font
+                               font resolved-font
+                               (format "%s_%s_%s_%s"
+                                       (aref xlfd xlfd-regexp-family-subnum)
+                                       (aref xlfd xlfd-regexp-registry-subnum)
+                                       (aref xlfd xlfd-regexp-encoding-subnum)
+                                       (aref xlfd
+                                             xlfd-regexp-pixelsize-subnum))))
                     (error nil)))
                 (if fontset
                     (set-default-font fontset)
