@@ -3053,7 +3053,7 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.")
       handle_signal ("SIGUSR2", SIGUSR2);
 #endif
       else
-	error ("Undefined signal name %s", XSTRING (sigcode)->data);
+	error ("Undefined signal name %s", name);
     }
 
 #undef handle_signal
