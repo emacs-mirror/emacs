@@ -370,6 +370,12 @@ Boston, MA 02111-1307, USA.  */
 #define utimbuf	  _utimbuf
 #define index     strchr
 #define rindex    strrchr
+#define strdup    _strdup
+#define strupr    _strupr
+#define strnicmp  _strnicmp
+#define stricmp   _stricmp
+#define tzset     _tzset
+#define tzname    _tzname
 
 #ifdef HAVE_NTGUI
 #define abort	w32_abort
@@ -398,6 +404,10 @@ Boston, MA 02111-1307, USA.  */
 #define SIGALRM 14              /* Alarm */
 #define SIGCHLD 18              /* Death of child */
 
+#ifndef NSIG
+#define NSIG 23
+#endif
+
 /* For integration with MSDOS support.  */
 #define getdisk()               (_getdrive () - 1)
 #ifdef emacs
@@ -406,15 +416,24 @@ Boston, MA 02111-1307, USA.  */
 #define getdefdir(_drv, _buf)   _getdcwd (_drv, _buf, MAXPATHLEN)
 #endif
 
+extern char *get_emacs_configuration (void);
+extern char *get_emacs_configuration_options (void);
 #define EMACS_CONFIGURATION 	get_emacs_configuration ()
-#define EMACS_CONFIG_OPTIONS	"NT"	/* Not very meaningful yet.  */
+#define EMACS_CONFIG_OPTIONS	get_emacs_configuration_options ()
 
 /* Define this so that winsock.h definitions don't get included with
    windows.h.  For this to have proper effect, config.h must always be
    included before windows.h.  */
 #define _WINSOCKAPI_    1
+#define _WINSOCK_H
 
 /* Defines size_t and alloca ().  */
+#ifdef USE_CRT_DLL
+#define malloc e_malloc
+#define free   e_free
+#define realloc e_realloc
+#define calloc e_calloc
+#endif
 #include <malloc.h>
 
 #include <sys/stat.h>
@@ -431,6 +450,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* For proper declaration of environ.  */
 #include <stdlib.h>
+#ifndef sys_nerr
+#define sys_nerr _sys_nerr
+#endif
 #include <string.h>
 
 /* Emacs takes care of ensuring that these are defined.  */
