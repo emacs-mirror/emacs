@@ -10407,6 +10407,9 @@ redisplay_preserve_echo_area (from_where)
     }
   else
     redisplay_internal (1);
+
+  if (rif->flush_display_optional)
+    rif->flush_display_optional (NULL);
 }
 
 
@@ -18696,8 +18699,10 @@ calc_line_height_property (it, prop, font, boff, total)
 
   if (STRINGP (it->object))
     position = make_number (IT_STRING_CHARPOS (*it));
-  else
+  else if (BUFFERP (it->object))
     position = make_number (IT_CHARPOS (*it));
+  else
+    return Qnil;
 
   val = Fget_char_property (position, prop, it->object);
 
