@@ -1,5 +1,11 @@
 2000-10-12  Kenichi Handa  <handa@etl.go.jp>
 
+	* regex.c (regex_compile): Change the way of handling a range from
+	unibyte char to multibyte char.
+
+	* syntax.c (skip_chars): Change the way of handling a range from
+	unibyte char to multibyte char.
+
 	* process.c (read_process_output): Cancel previous change.
 
 2000-10-11  Eli Zaretskii  <eliz@is.elta.co.il>
