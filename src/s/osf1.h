@@ -10,6 +10,8 @@
 #define C_SWITCH_SYSTEM	-D_BSD
 #define LIBS_SYSTEM	-lbsd
 
+#define GETPGRP_NO_ARG
+
 #define read sys_read
 #define write sys_write
 #define open sys_open
