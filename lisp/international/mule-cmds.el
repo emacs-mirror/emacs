@@ -1502,8 +1502,7 @@ to using the function `set-language-environment'."
 				(list 'const (car lang)))
 			      language-info-alist))
   :initialize 'custom-initialize-default
-  :group 'mule
-  :type 'string)
+  :group 'mule)
 
 (defun reset-language-environment ()
   "Reset multilingual environment of Emacs to the default status.
