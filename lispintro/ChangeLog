@@ -1,3 +1,8 @@
+2001-11-25  Robert J. Chassell  <bob@rattlesnake.com>
+
+	* emacs-lisp-intro.texi: Move @contents to the beginning of the
+	file.  Set the size to @smallbook. 
+
 2001-11-24  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in: New file.
