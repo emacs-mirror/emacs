@@ -290,7 +290,17 @@ scan_keyword_or_put_char (ch, state)
 	    ch = getc (state->in_file);
 	  while (ch == ' ' || ch == '\n');
 
-	  /* Put back the non-whitespace character.  */
+	  /* Output the open-paren we just read.  */
+	  put_char (ch, state);
+
+	  /* Skip the function name and replace it with `fn'.  */
+	  do
+	    ch = getc (state->in_file);
+	  while (ch != ' ' && ch != ')');
+	  put_char ('f', state);
+	  put_char ('n', state);
+	  
+	  /* Put back the last character.  */
 	  ungetc (ch, state->in_file);
 	}
     }
@@ -425,7 +435,7 @@ write_c_args (out, func, buf, minargs, maxargs)
   int just_spaced = 0;
   int need_space = 1;
 
-  fprintf (out, "(%s", func);
+  fprintf (out, "(fn");
 
   if (*buf == '(')
     ++buf;
