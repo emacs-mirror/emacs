@@ -134,9 +134,9 @@ BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit."
              (if (and minheight (< (window-height) minheight))
                  (enlarge-window (- minheight (window-height))))
              (electric-help-mode)
+	     (setq buffer-read-only nil)
 	     (or noerase
-		 (let ((inhibit-read-only t))
-		   (erase-buffer))))
+		 (erase-buffer)))
            (let ((standard-output buffer))
              (if (not (funcall thunk))
                  (progn
@@ -146,6 +146,7 @@ BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit."
                    (if one (shrink-window-if-larger-than-buffer (selected-window))))))
            (set-buffer buffer)
            (run-hooks 'electric-help-mode-hook)
+	   (setq buffer-read-only t)
            (if (eq (car-safe (electric-help-command-loop))
                    'retain)
                (setq config (current-window-configuration))
