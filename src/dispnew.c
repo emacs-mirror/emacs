@@ -3022,8 +3022,7 @@ mirrored_line_dance (matrix, unchanged_at_top, nlines, copy_from,
 
 
 /* Synchronize glyph pointers in the current matrix of window W with
-   the current frame matrix.  W must be full-width, and be on a tty
-   frame.  */
+   the current frame matrix.  */
 
 static void
 sync_window_with_frame_matrix_rows (w)
@@ -3031,27 +3030,31 @@ sync_window_with_frame_matrix_rows (w)
 {
   struct frame *f = XFRAME (w->frame);
   struct glyph_row *window_row, *window_row_end, *frame_row;
+  int area, left, right, x, width;
 
-  /* Preconditions: W must be a leaf window and full-width.  Its frame
-     must have a frame matrix.  */
+  /* Preconditions: W must be a leaf window on a tty frame.  */
   xassert (NILP (w->hchild) && NILP (w->vchild));
-  xassert (WINDOW_FULL_WIDTH_P (w));
   xassert (!FRAME_WINDOW_P (f));
 
-  /* If W is a full-width window, glyph pointers in W's current matrix
-     have, by definition, to be the same as glyph pointers in the
-     corresponding frame matrix.  */
+  left = margin_glyphs_to_reserve (w, 1, w->left_margin_width);
+  right = margin_glyphs_to_reserve (w, 1, w->right_margin_width);
+  x = w->current_matrix->matrix_x;
+  width = w->current_matrix->matrix_w;
+
   window_row = w->current_matrix->rows;
   window_row_end = window_row + w->current_matrix->nrows;
   frame_row = f->current_matrix->rows + XFASTINT (w->top);
-  while (window_row < window_row_end)
+  
+  for (; window_row < window_row_end; ++window_row, ++frame_row)
     {
-      int area;
-      
-      for (area = LEFT_MARGIN_AREA; area <= LAST_AREA; ++area)
-	window_row->glyphs[area] = frame_row->glyphs[area];
-
-      ++window_row, ++frame_row;
+      window_row->glyphs[LEFT_MARGIN_AREA]
+	= frame_row->glyphs[0] + x;
+      window_row->glyphs[TEXT_AREA]
+	= window_row->glyphs[LEFT_MARGIN_AREA] + left;
+      window_row->glyphs[LAST_AREA]
+	= window_row->glyphs[LEFT_MARGIN_AREA] + width;
+      window_row->glyphs[RIGHT_MARGIN_AREA]
+	= window_row->glyphs[LAST_AREA] - right;
     }
 }
 
