@@ -2278,16 +2278,18 @@ read1 (readcharfun, pch, first_in_list)
 	    UNREAD (next_next_char);
 
 	    ok = (next_next_char <= 040
-		  || index ("\"';([#?", next_next_char)
-		  || (!first_in_list && next_next_char == '`')
-		  || (new_backquote_flag && next_next_char == ','));
+		  || (next_next_char < 0200
+		      && (index ("\"';([#?", next_next_char)
+			  || (!first_in_list && next_next_char == '`')
+			  || (new_backquote_flag && next_next_char == ','))));
 	  }
 	else
 	  {
 	    ok = (next_char <= 040
-		  || index ("\"';()[]#?", next_char)
-		  || (!first_in_list && next_char == '`')
-		  || (new_backquote_flag && next_char == ','));
+		  || (next_char < 0200
+		      && (index ("\"';()[]#?", next_char)
+			  || (!first_in_list && next_char == '`')
+			  || (new_backquote_flag && next_char == ','))));
 	  }
 	UNREAD (next_char);
 	if (!ok)
@@ -2445,9 +2447,10 @@ read1 (readcharfun, pch, first_in_list)
 	UNREAD (next_char);
 
 	if (next_char <= 040
-	    || index ("\"';([#?", next_char)
-	    || (!first_in_list && next_char == '`')
-	    || (new_backquote_flag && next_char == ','))
+	    || (next_char < 0200
+		&& index ("\"';([#?", next_char)
+		|| (!first_in_list && next_char == '`')
+		|| (new_backquote_flag && next_char == ',')))
 	  {
 	    *pch = c;
 	    return Qnil;
@@ -2468,9 +2471,10 @@ read1 (readcharfun, pch, first_in_list)
 	  char *end = read_buffer + read_buffer_size;
 
 	  while (c > 040
-		 && !index ("\"';()[]#", c)
-		 && !(!first_in_list && c == '`')
-		 && !(new_backquote_flag && c == ','))
+		 && (c >= 0200
+		     || (!index ("\"';()[]#", c)
+			 && !(!first_in_list && c == '`')
+			 && !(new_backquote_flag && c == ','))))
 	    {
 	      if (end - p < MAX_MULTIBYTE_LENGTH)
 		{
