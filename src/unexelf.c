@@ -426,7 +426,7 @@ Filesz      Memsz       Flags       Align
 #ifndef emacs
 #define fatal(a, b, c) fprintf (stderr, a, b, c), exit (1)
 #else
-#include "config.h"
+#include <config.h>
 extern void fatal (char *, ...);
 #endif
 
