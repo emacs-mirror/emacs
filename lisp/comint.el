@@ -1840,8 +1840,17 @@ This function could be in the list `comint-output-filter-functions'."
 
 ;; Low-level process communication
 
-(defalias 'comint-send-string 'process-send-string)
-(defalias 'comint-send-region 'process-send-region)
+(defun comint-send-string (process string)
+  "Like `process-send-string', but also does extra bookkeeping for comint mode."
+  (with-current-buffer (process-buffer process)
+    (comint-snapshot-last-prompt))
+  (process-send-string process string))
+
+(defun comint-send-region (process start end)
+  "Like `process-send-region', but also does extra bookkeeping for comint mode."
+  (with-current-buffer (process-buffer process)
+    (comint-snapshot-last-prompt))
+  (process-send-region process start end))
 
 ;; Random input hackage
 
