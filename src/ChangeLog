@@ -1,3 +1,20 @@
+2002-09-10  Richard M. Stallman  <rms@gnu.org>
+
+	* fileio.c (Fdo_auto_save): Catch error making directory.
+	Only call push_message if we need to.
+	At the same time, make an unwind-protect to pop it.
+	Rename local message_p to old_message_p.
+	(do_auto_save_make_dir, do_auto_save_eh): New functions.
+	(do_auto_save_unwind): Don't call pop_message.
+
+	* lisp.h (pop_message_unwind): Renamed from push_message_unwind.
+
+	* keyboard.c (Fexecute_extended_command): Use pop_message_unwind.
+
+	* alloc.c (Fgarbage_collect): Use pop_message_unwind.
+
+	* xdisp.c (pop_message_unwind): Renamed from push_message_unwind.
+
 2002-09-10  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* regex.c (DISCARD_FAILURE_REG_OR_COUNT): Delete.

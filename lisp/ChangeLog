@@ -1,3 +1,8 @@
+2002-09-10  Richard M. Stallman  <rms@gnu.org>
+
+	* pcvs-info.el (cvs-check-fileinfo): Don't use boolp.
+	(boolp): Function deleted.
+
 2002-09-11  Kim F. Storm  <storm@cua.dk>
 
 	* kmacro.el (kmacro-call-macro): Rephrase repeat prompt.
