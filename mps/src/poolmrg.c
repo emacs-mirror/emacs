@@ -1,7 +1,7 @@
 /* impl.c.poolmrg: MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.36) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!poolmrg.c(trunk.37) $
+ * Copyright (C) 2000.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
  *
@@ -34,7 +34,7 @@
 #include "mpm.h"
 #include "poolmrg.h"
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.36) $");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.37) $");
 
 
 /* Types */
@@ -299,6 +299,7 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size,
 DEFINE_SEG_CLASS(MRGLinkSegClass, class)
 {
   INHERIT_CLASS(class, SegClass);
+  SegClassMixInNoSplitMerge(class);  /* no support for this */
   class->name = "MRGLSEG";
   class->size = sizeof(MRGLinkSegStruct);
   class->init = MRGLinkSegInit;
@@ -310,6 +311,7 @@ DEFINE_SEG_CLASS(MRGLinkSegClass, class)
 DEFINE_SEG_CLASS(MRGRefSegClass, class)
 {
   INHERIT_CLASS(class, GCSegClass);
+  SegClassMixInNoSplitMerge(class);  /* no support for this */
   class->name = "MRGRSEG";
   class->size = sizeof(MRGRefSegStruct);
   class->init = MRGRefSegInit;
