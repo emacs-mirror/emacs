@@ -734,15 +734,15 @@ static int stack_idx_of_map_multiple;
       CCL_SUSPEND (CCL_STAT_SUSPEND_BY_DST);		\
   } while (0)
 
-/* Read one byte from the current input buffer into Rth register.  */
-#define CCL_READ_CHAR(r)				\
+/* Read one byte from the current input buffer into REGth register.  */
+#define CCL_READ_CHAR(REG)				\
   do {							\
     if (!src)						\
       CCL_INVALID_CMD;					\
     else if (src < src_end)				\
       {							\
-	r = *src++;					\
-	if (r == '\n'					\
+	REG = *src++;					\
+	if (REG == '\n'					\
 	    && ccl->eol_type != CODING_EOL_LF)		\
 	  {						\
 	    /* We are encoding.  */			\
@@ -753,16 +753,16 @@ static int stack_idx_of_map_multiple;
 		else					\
 		  {					\
 		    ccl->cr_consumed = 1;		\
-		    r = '\r';				\
+		    REG = '\r';				\
 		    src--;				\
 		  }					\
 	      }						\
 	    else					\
-	      r = '\r';					\
+	      REG = '\r';				\
 	  }						\
-	if (r == LEADING_CODE_8_BIT_CONTROL		\
+	if (REG == LEADING_CODE_8_BIT_CONTROL		\
 	    && ccl->multibyte)				\
-	  r = *src++ - 0x20;				\
+	  REG = *src++ - 0x20;				\
       }							\
     else if (ccl->last_block)				\
       {							\
