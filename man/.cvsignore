@@ -12,3 +12,6 @@
 *.vrs
 *.vr
 *.dvi
+*.ps
+*.tp
+*.tps
