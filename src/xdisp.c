@@ -10659,6 +10659,7 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
   int string_before_pos;
   int x = row->x;
   int cursor_x = x;
+  int cursor_from_overlay_pos = 0;
   int pt_old = PT - delta;
 
   /* Skip over glyphs not having an object at the start of the row.
@@ -10684,6 +10685,12 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	  string_start = NULL;
 	  x += glyph->pixel_width;
 	  ++glyph;
+	  if (cursor_from_overlay_pos
+	      && last_pos > cursor_from_overlay_pos)
+	    {
+	      cursor_from_overlay_pos = 0;
+	      cursor = 0;
+	    }
 	}
       else
 	{
@@ -10693,10 +10700,16 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	  /* Skip all glyphs from string.  */
 	  do
 	    {
+	      int pos;
 	      if ((cursor == NULL || glyph > cursor)
 		  && !NILP (Fget_char_property (make_number ((glyph)->charpos),
-						Qcursor, (glyph)->object)))
+						Qcursor, (glyph)->object))
+		  && (pos = string_buffer_position (w, glyph->object,
+						    string_before_pos),
+		      (pos == 0	  /* From overlay */
+		       || pos == pt_old)))
 		{
+		  cursor_from_overlay_pos = pos == 0 ? last_pos : 0;
 		  cursor = glyph;
 		  cursor_x = x;
 		}
