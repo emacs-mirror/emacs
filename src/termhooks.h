@@ -190,7 +190,7 @@ extern int (*read_socket_hook) ();
 extern int (*frame_up_to_date_hook) ();
 
 /* Expedient hack: only provide the below definitions to files that
-   are prepared to handle lispy things.  XINT is defined iff lisp.h
+   are prepared to handle lispy things.  CONSP is defined iff lisp.h
    has been included before this file.  */
 #ifdef CONSP
 
@@ -246,6 +246,7 @@ enum event_kind
   selection_request_event,	/* Another X client wants a selection from us.
 				   See `struct selection_event'.  */
   selection_clear_event,	/* Another X client cleared our selection.  */
+  buffer_switch_event,		/* A process filter has switched buffers.  */
   delete_window_event		/* An X client said "delete this window".  */
 };
 
