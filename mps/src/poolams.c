@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.50) $
+ * $HopeName: MMsrc!poolams.c(trunk.51) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  * 
  * .design: See design.mps.poolams.
@@ -18,7 +18,7 @@
 #include "mpm.h"
 #include <stdarg.h>
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.50) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.51) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -29,11 +29,11 @@ SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.50) $");
 
 Bool AMSSegCheck(AMSSeg amsseg)
 {
-  Seg seg = AMSSegSeg(amsseg);
+  Seg seg = AMSSeg2Seg(amsseg);
   CHECKS(AMSSeg, amsseg);
   CHECKL(GCSegCheck(&amsseg->gcSegStruct));
   CHECKU(AMS, amsseg->ams);
-  CHECKL(AMSPool(amsseg->ams) == SegPool(seg));
+  CHECKL(AMS2Pool(amsseg->ams) == SegPool(seg));
   CHECKL(RingCheck(&amsseg->segRing));
 
   CHECKL(amsseg->grains == AMSGrains(amsseg->ams, SegSize(seg)));
@@ -53,9 +53,9 @@ Bool AMSSegCheck(AMSSeg amsseg)
 }
 
 
-/* AMSCreateTables -- create the tables for an AMS seg */
+/* amsCreateTables -- create the tables for an AMS seg */
 
-static Res AMSCreateTables(BT *allocReturn, 
+static Res amsCreateTables(BT *allocReturn, 
                            BT *nongreyReturn, BT *nonwhiteReturn,
                            Arena arena, Count length)
 {
@@ -92,9 +92,9 @@ failAlloc:
 }
 
 
-/* AMSDestroyTables -- destroy the tables for an AMS seg */
+/* amsDestroyTables -- destroy the tables for an AMS seg */
 
-static void AMSDestroyTables(BT allocTable, 
+static void amsDestroyTables(BT allocTable, 
                              BT nongreyTable, BT nonwhiteTable,
                              Arena arena, Count length)
 {
@@ -122,9 +122,9 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size,
   AMS ams;
 
   AVERT(Seg, seg);
-  amsseg = SegAMSSeg(seg);
+  amsseg = Seg2AMSSeg(seg);
   AVERT(Pool, pool);
-  ams = PoolPoolAMS(pool);
+  ams = Pool2AMS(pool);
   AVERT(AMS, ams);
   arena = PoolArena(pool);
   /* no useful checks for base and size */
@@ -142,7 +142,7 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size,
   amsseg->marksChanged = FALSE; /* design.mps.poolams.marked.unused */
   amsseg->ambiguousFixes = FALSE;
 
-  res = AMSCreateTables(&amsseg->allocTable, 
+  res = amsCreateTables(&amsseg->allocTable, 
                         &amsseg->nongreyTable, &amsseg->nonwhiteTable,
                         arena, amsseg->grains);
   if (res != ResOK)
@@ -181,15 +181,15 @@ static void AMSSegFinish(Seg seg)
   Arena arena;
 
   AVERT(Seg, seg);
-  amsseg = SegAMSSeg(seg);
+  amsseg = Seg2AMSSeg(seg);
   AVERT(AMSSeg, amsseg);
   ams = amsseg->ams;
   AVERT(AMS, ams);
-  arena = PoolArena(AMSPool(ams));
+  arena = PoolArena(AMS2Pool(ams));
   AVER(SegBuffer(seg) == NULL);
 
   /* keep the destructions in step with AMSSegInit failure cases */
-  AMSDestroyTables(amsseg->allocTable, amsseg->nongreyTable, 
+  amsDestroyTables(amsseg->allocTable, amsseg->nongreyTable, 
                    amsseg->nonwhiteTable, arena, amsseg->grains);
 
   RingRemove(&amsseg->segRing);
@@ -240,13 +240,13 @@ static Res AMSSegMerge(Seg seg, Seg segHi,
 
   AVERT(Seg, seg);
   AVERT(Seg, segHi);
-  amsseg = SegAMSSeg(seg);
-  amssegHi = SegAMSSeg(segHi);
+  amsseg = Seg2AMSSeg(seg);
+  amssegHi = Seg2AMSSeg(segHi);
   AVERT(AMSSeg, amsseg);
   AVERT(AMSSeg, amssegHi);
   /* other parameters are checked by next-method */
   arena = PoolArena(SegPool(seg));
-  ams = PoolPoolAMS(SegPool(seg));
+  ams = Pool2AMS(SegPool(seg));
 
   loGrains = amsseg->grains;
   hiGrains = amssegHi->grains;
@@ -259,7 +259,7 @@ static Res AMSSegMerge(Seg seg, Seg segHi,
   AVER(!amssegHi->marksChanged);
 
   /* .alloc-early  */
-  res = AMSCreateTables(&allocTable, &nongreyTable, &nonwhiteTable,
+  res = amsCreateTables(&allocTable, &nongreyTable, &nonwhiteTable,
                         arena, allGrains);
   if (res != ResOK)
     goto failCreateTables;
@@ -300,7 +300,7 @@ static Res AMSSegMerge(Seg seg, Seg segHi,
   return ResOK;
 
 failSuper:
-  AMSDestroyTables(allocTable, nongreyTable, nonwhiteTable, 
+  amsDestroyTables(allocTable, nongreyTable, nonwhiteTable, 
                    arena, allGrains);
 failCreateTables:
   AVERT(AMSSeg, amsseg);
@@ -324,12 +324,12 @@ static Res AMSSegSplit(Seg seg, Seg segHi,
 
   AVERT(Seg, seg);
   AVER(segHi != NULL);  /* can't check fully, it's not initialized */
-  amsseg = SegAMSSeg(seg);
-  amssegHi = SegAMSSeg(segHi);
+  amsseg = Seg2AMSSeg(seg);
+  amssegHi = Seg2AMSSeg(segHi);
   AVERT(AMSSeg, amsseg);
   /* other parameters are checked by next-method */
   arena = PoolArena(SegPool(seg));
-  ams = PoolPoolAMS(SegPool(seg));
+  ams = Pool2AMS(SegPool(seg));
 
   loGrains = AMSGrains(ams, AddrOffset(base, mid)); 
   hiGrains = AMSGrains(ams, AddrOffset(mid, limit)); 
@@ -346,11 +346,11 @@ static Res AMSSegSplit(Seg seg, Seg segHi,
   }
 
   /* .alloc-early */
-  res = AMSCreateTables(&allocTableLo, &nongreyTableLo, &nonwhiteTableLo,
+  res = amsCreateTables(&allocTableLo, &nongreyTableLo, &nonwhiteTableLo,
                         arena, loGrains);
   if (res != ResOK)
     goto failCreateTablesLo;
-  res = AMSCreateTables(&allocTableHi, &nongreyTableHi, &nonwhiteTableHi,
+  res = amsCreateTables(&allocTableHi, &nongreyTableHi, &nonwhiteTableHi,
                         arena, hiGrains);
   if (res != ResOK)
     goto failCreateTablesHi;
@@ -358,8 +358,7 @@ static Res AMSSegSplit(Seg seg, Seg segHi,
 
   /* Split the superclass fields via next-method call */
   super = SEG_SUPERCLASS(AMSSegClass);
-  res = super->split(seg, segHi, base, mid, limit, 
-                     withReservoirPermit, args);
+  res = super->split(seg, segHi, base, mid, limit, withReservoirPermit, args);
   if (res != ResOK)
     goto failSuper;
 
@@ -404,10 +403,10 @@ static Res AMSSegSplit(Seg seg, Seg segHi,
   return ResOK;
 
 failSuper:
-  AMSDestroyTables(allocTableHi, nongreyTableHi, nonwhiteTableHi, 
+  amsDestroyTables(allocTableHi, nongreyTableHi, nonwhiteTableHi, 
                    arena, hiGrains);
 failCreateTablesHi:
-  AMSDestroyTables(allocTableLo, nongreyTableLo, nonwhiteTableLo, 
+  amsDestroyTables(allocTableLo, nongreyTableLo, nonwhiteTableLo, 
                    arena, loGrains);
 failCreateTablesLo:
   AVERT(AMSSeg, amsseg);
@@ -436,7 +435,7 @@ static Res AMSSegDescribe(Seg seg, mps_lib_FILE *stream)
 
   if (!CHECKT(Seg, seg)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
-  amsseg = SegAMSSeg(seg);
+  amsseg = Seg2AMSSeg(seg);
   if (!CHECKT(AMSSeg, amsseg)) return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
@@ -580,7 +579,7 @@ static Res AMSSegCreate(Seg *segReturn, Pool pool, Size size,
   AVERT(SegPref, segPref);
   AVER(BoolCheck(withReservoirPermit));
 
-  ams = PoolPoolAMS(pool);
+  ams = Pool2AMS(pool);
   AVERT(AMS,ams);
   arena = PoolArena(pool);
 
@@ -609,7 +608,7 @@ static Res AMSSegCreate(Seg *segReturn, Pool pool, Size size,
     SegSetRankAndSummary(seg, rankSet, RefSetEMPTY);
   }
 
-  AVERT(AMSSeg, SegAMSSeg(seg));
+  AVERT(AMSSeg, Seg2AMSSeg(seg));
 
   *segReturn = seg;
   return ResOK;
@@ -626,10 +625,10 @@ static void AMSSegsDestroy(AMS ams)
 {
   Ring ring, node, next;     /* for iterating over the segments */
 
-  ring = PoolSegRing(AMSPool(ams));
+  ring = PoolSegRing(AMS2Pool(ams));
   RING_FOR(node, ring, next) {
     Seg seg = SegOfPoolRing(node);
-    AVER(SegAMSSeg(seg)->ams == ams);
+    AVER(Seg2AMSSeg(seg)->ams == ams);
     SegFree(seg);
   }
 }
@@ -653,7 +652,7 @@ static Res AMSInit(Pool pool, va_list args)
 
   format = va_arg(args, Format);
   chain = va_arg(args, Chain);
-  res = AMSInitInternal(PoolPoolAMS(pool), format, chain);
+  res = AMSInitInternal(Pool2AMS(pool), format, chain);
   if (res == ResOK) {
     EVENT_PPP(PoolInitAMS, pool, PoolArena(pool), format);
   }
@@ -672,7 +671,7 @@ Res AMSInitInternal(AMS ams, Format format, Chain chain)
   AVERT(Format, format);
   AVERT(Chain, chain);
 
-  pool = AMSPool(ams);
+  pool = AMS2Pool(ams);
   AVERT(Pool, pool);
   pool->format = format;
   pool->alignment = pool->format->alignment;
@@ -692,7 +691,7 @@ Res AMSInitInternal(AMS ams, Format format, Chain chain)
   ams->segSize = AMSSegSizePolicy;
   ams->allocRing = AMSPoolRing;
   ams->segsDestroy = AMSSegsDestroy;
-  ams->segClass = EnsureAMSSegClass;
+  ams->segClass = AMSSegClassGet;
 
   ams->size = 0;
 
@@ -712,7 +711,7 @@ void AMSFinish(Pool pool)
   AMS ams;
 
   AVERT(Pool, pool);
-  ams = PoolPoolAMS(pool);
+  ams = Pool2AMS(pool);
   AVERT(AMS, ams);
 
   (ams->segsDestroy)(ams);
@@ -723,13 +722,13 @@ void AMSFinish(Pool pool)
 }
 
 
-/* AMSSegAlloc -- try to allocate an area in the given segment
+/* amsSegAlloc -- try to allocate an area in the given segment
  * 
  * Tries to find an area of at least the given size.  If successful,
  * makes that area black, if necessary, and returns its base and limit
  * grain indices.
  */
-static Bool AMSSegAlloc(Index *baseReturn, Index *limitReturn,
+static Bool amsSegAlloc(Index *baseReturn, Index *limitReturn,
                         Seg seg, Size size)
 {
   AMS ams;
@@ -741,13 +740,13 @@ static Bool AMSSegAlloc(Index *baseReturn, Index *limitReturn,
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
   /* seg has already been checked, in AMSBufferFill. */
-  amsseg = SegAMSSeg(seg);
+  amsseg = Seg2AMSSeg(seg);
 
   ams = amsseg->ams;
   AVERT(AMS, ams);
 
   AVER(size > 0);
-  AVER(SizeIsAligned(size, PoolAlignment(AMSPool(ams))));
+  AVER(SizeIsAligned(size, PoolAlignment(AMS2Pool(ams))));
 
   grains = AMSGrains(ams, size);
   AVER(grains > 0);
@@ -790,14 +789,14 @@ Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
   Ring node, ring, nextNode;    /* for iterating over the segments */
   Index base, limit;
   RankSet rankSet;
-  Bool b;                       /* the return value of AMSSegAlloc */
+  Bool b;                       /* the return value of amsSegAlloc */
   SegPrefStruct segPrefStruct;
   Size allocatedSize;
 
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
   AVERT(Pool, pool);
-  ams = PoolPoolAMS(pool);
+  ams = Pool2AMS(pool);
   AVERT(AMS, ams);
   AVERT(Buffer, buffer);
   AVER(size > 0);
@@ -815,10 +814,10 @@ Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
     AMSSeg amsseg = RING_ELT(AMSSeg, segRing, node);
     AVERT_CRITICAL(AMSSeg, amsseg);
     if (amsseg->free >= AMSGrains(ams, size)) {
-      seg = AMSSegSeg(amsseg);
+      seg = AMSSeg2Seg(amsseg);
 
       if (SegRankSet(seg) == rankSet && SegBuffer(seg) == NULL) {
-        b = AMSSegAlloc(&base, &limit, seg, size);
+        b = amsSegAlloc(&base, &limit, seg, size);
         if (b)
           goto found;
       }
@@ -832,7 +831,7 @@ Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
                      withReservoirPermit);
   if (res != ResOK)
     return res;
-  b = AMSSegAlloc(&base, &limit, seg, size);
+  b = amsSegAlloc(&base, &limit, seg, size);
 
 found:
   AVER(b);
@@ -852,8 +851,7 @@ found:
  * Frees the unused part of the buffer.  The colour of the area doesn't
  * need to be changed.  See design.mps.poolams.empty.
  */
-void AMSBufferEmpty(Pool pool, Buffer buffer, 
-                    Addr init, Addr limit)
+void AMSBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
 {
   AMS ams;
   Index initIndex, limitIndex;
@@ -862,7 +860,7 @@ void AMSBufferEmpty(Pool pool, Buffer buffer,
   Size size;
 
   AVERT(Pool, pool);
-  ams = PoolPoolAMS(pool);
+  ams = Pool2AMS(pool);
   AVERT(AMS, ams);
   AVERT(Buffer,buffer);
   AVER(BufferIsReady(buffer));
@@ -872,7 +870,7 @@ void AMSBufferEmpty(Pool pool, Buffer buffer,
   AVER(AddrIsAligned(init, PoolAlignment(pool)));
   AVER(AddrIsAligned(limit, PoolAlignment(pool)));
 
-  amsseg = SegAMSSeg(seg);
+  amsseg = Seg2AMSSeg(seg);
   AVERT(AMSSeg, amsseg);
 
   if (init == limit)
@@ -908,15 +906,15 @@ void AMSBufferEmpty(Pool pool, Buffer buffer,
 }
 
 
-/* AMSRangeCondemn -- Condemn a part of an AMS segment
+/* amsRangeCondemn -- Condemn a part of an AMS segment
  * 
  * I.e., alloc -> white, free -> black.
  * Allow calling it with base = limit, to simplify the callers.
  */
-static void AMSRangeCondemn(Seg seg, Index base, Index limit)
+static void amsRangeCondemn(Seg seg, Index base, Index limit)
 {
   if (base != limit) {
-    AMSSeg amsseg = SegAMSSeg(seg);
+    AMSSeg amsseg = Seg2AMSSeg(seg);
 
     AVER(base < limit);
     AVER(limit <= amsseg->grains);
@@ -947,13 +945,13 @@ Res AMSWhiten(Pool pool, Trace trace, Seg seg)
   Count uncondemned;
 
   AVERT(Pool, pool);
-  ams = PoolPoolAMS(pool);
+  ams = Pool2AMS(pool);
   AVERT(AMS, ams);
 
   AVERT(Trace, trace);
   AVER(SegCheck(seg));
 
-  amsseg = SegAMSSeg(seg);
+  amsseg = Seg2AMSSeg(seg);
   AVERT(AMSSeg, amsseg);
 
   /* design.mps.poolams.colour.single */
@@ -967,20 +965,20 @@ Res AMSWhiten(Pool pool, Trace trace, Seg seg)
     scanLimitIndex = AMS_ADDR_INDEX(seg, BufferScanLimit(buffer));
     limitIndex = AMS_ADDR_INDEX(seg, BufferLimit(buffer));
 
-    AMSRangeCondemn(seg, 0, scanLimitIndex);
+    amsRangeCondemn(seg, 0, scanLimitIndex);
     if (scanLimitIndex < limitIndex)
       AMSRangeBlacken(seg, scanLimitIndex, limitIndex);
-    AMSRangeCondemn(seg, limitIndex, amsseg->grains);
+    amsRangeCondemn(seg, limitIndex, amsseg->grains);
     /* We didn't condemn the buffer, subtract it from the count. */
     uncondemned = limitIndex - scanLimitIndex;
   } else { /* condemn whole seg */
-    AMSRangeCondemn(seg, 0, amsseg->grains);
+    amsRangeCondemn(seg, 0, amsseg->grains);
     uncondemned = (Count)0;
   }
 
-  trace->condemned += SegSize(seg) - AMSGrains2Size(ams, uncondemned);
+  trace->condemned += SegSize(seg) - AMSGrainsSize(ams, uncondemned);
   /* The unused part of the buffer is new allocation by definition. */
-  ams->pgen.newSize -= AMSGrains2Size(ams, amsseg->newAlloc - uncondemned);
+  ams->pgen.newSize -= AMSGrainsSize(ams, amsseg->newAlloc - uncondemned);
   amsseg->newAlloc = uncondemned;
   amsseg->marksChanged = FALSE; /* design.mps.poolams.marked.condemn */
   amsseg->ambiguousFixes = FALSE;
@@ -1013,13 +1011,13 @@ static Res AMSIterate(Seg seg, AMSObjectFunction f, void *closure)
   AVERT(AMSObjectFunction, f);
   /* Can't check closure */
 
-  amsseg = SegAMSSeg(seg);
+  amsseg = Seg2AMSSeg(seg);
   AVERT(AMSSeg, amsseg);
   ams = amsseg->ams;
   AVERT(AMS, ams);
-  format = AMSPool(ams)->format;
+  format = AMS2Pool(ams)->format;
   AVERT(Format, format);
-  alignment = PoolAlignment(AMSPool(ams));
+  alignment = PoolAlignment(AMS2Pool(ams));
 
   p = SegBase(seg);
   limit = SegLimit(seg);
@@ -1055,27 +1053,26 @@ static Res AMSIterate(Seg seg, AMSObjectFunction f, void *closure)
 }
 
 
-/* AMSScanObject -- scan a single object
+/* amsScanObject -- scan a single object
  * 
  * This is the object function passed to AMSIterate by AMSScan.
  */
 
-struct AMSScanClosureStruct {
+struct amsScanClosureStruct {
   ScanState ss;
   Bool scanAllObjects;
 };
 
-typedef struct AMSScanClosureStruct *AMSScanClosure;
+typedef struct amsScanClosureStruct *amsScanClosure;
 
-static Res AMSScanObject(Seg seg,
-			 Index i, Addr p, Addr next, void *clos)
+static Res amsScanObject(Seg seg, Index i, Addr p, Addr next, void *clos)
 {
-  AMSScanClosure closure;
+  amsScanClosure closure;
   AMSSeg amsseg;
   Format format;
   Res res;
 
-  amsseg = SegAMSSeg(seg);
+  amsseg = Seg2AMSSeg(seg);
   /* seg & amsseg have already been checked, in AMSIterate. */
   AVER(i < amsseg->grains);
   AVER(p != 0);
@@ -1085,7 +1082,7 @@ static Res AMSScanObject(Seg seg,
   AVERT(ScanState, closure->ss);
   AVER(BoolCheck(closure->scanAllObjects));
 
-  format = AMSPool(amsseg->ams)->format;
+  format = AMS2Pool(amsseg->ams)->format;
   AVERT(Format, format);
 
   /* @@@@ This isn't quite right for multiple traces. */
@@ -1117,18 +1114,18 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   AMS ams;
   Arena arena;
   AMSSeg amsseg;
-  struct AMSScanClosureStruct closureStruct;
+  struct amsScanClosureStruct closureStruct;
   Format format;
   Align alignment;
 
   AVER(totalReturn != NULL);
   AVERT(ScanState, ss);
   AVERT(Pool, pool);
-  ams = PoolPoolAMS(pool);
+  ams = Pool2AMS(pool);
   AVERT(AMS, ams);
   arena = PoolArena(pool);
   AVER(SegCheck(seg));
-  amsseg = SegAMSSeg(seg);
+  amsseg = Seg2AMSSeg(seg);
   AVERT(AMSSeg, amsseg);
 
   /* Check that we're not in the grey mutator phase (see */
@@ -1141,7 +1138,7 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   /* @@@@ This isn't quite right for multiple traces. */
   if (closureStruct.scanAllObjects) {
     /* The whole seg (except the buffer) is grey for some trace. */
-    res = (ams->iterate)(seg, AMSScanObject, &closureStruct);
+    res = (ams->iterate)(seg, amsScanObject, &closureStruct);
     if (res != ResOK) {
       *totalReturn = FALSE;
       return res;
@@ -1152,12 +1149,12 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
     AVER(amsseg->colourTablesInUse);
     format = pool->format;
     AVERT(Format, format);
-    alignment = PoolAlignment(AMSPool(ams));
+    alignment = PoolAlignment(AMS2Pool(ams));
     do { /* design.mps.poolams.scan.iter */
       amsseg->marksChanged = FALSE; /* design.mps.poolams.marked.scan */
       /* design.mps.poolams.ambiguous.middle */
       if (amsseg->ambiguousFixes) {
-        res = (ams->iterate)(seg, AMSScanObject, &closureStruct);
+        res = (ams->iterate)(seg, amsScanObject, &closureStruct);
         if (res != ResOK) {
           /* design.mps.poolams.marked.scan.fail */
           amsseg->marksChanged = TRUE;
@@ -1205,12 +1202,12 @@ Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   Ref ref;
 
   AVERT_CRITICAL(Pool, pool);
-  AVER_CRITICAL(CHECKT(AMS, PoolPoolAMS(pool)));
+  AVER_CRITICAL(CHECKT(AMS, Pool2AMS(pool)));
   AVERT_CRITICAL(ScanState, ss);
   AVERT_CRITICAL(Seg, seg);
   AVER_CRITICAL(refIO != NULL);
 
-  amsseg = SegAMSSeg(seg);
+  amsseg = Seg2AMSSeg(seg);
   AVERT_CRITICAL(AMSSeg, amsseg);
   /* It's a white seg, so it must have colour tables. */
   AVER_CRITICAL(amsseg->colourTablesInUse);
@@ -1281,14 +1278,14 @@ void AMSBlacken(Pool pool, TraceSet traceSet, Seg seg)
   AMS ams;
 
   AVERT(Pool, pool);
-  ams = PoolPoolAMS(pool);
+  ams = Pool2AMS(pool);
   AVERT(AMS, ams);
   AVERT(TraceSet, traceSet);
   AVERT(Seg, seg);
 
   /* If it's white for any trace, remove the greyness from tables. */
   if (TraceSetInter(traceSet, SegWhite(seg)) != TraceSetEMPTY) {
-    AMSSeg amsseg = SegAMSSeg(seg);
+    AMSSeg amsseg = Seg2AMSSeg(seg);
     AVERT(AMSSeg, amsseg);
     AVER(amsseg->marksChanged); /* there must be something grey */
     amsseg->marksChanged = FALSE;
@@ -1311,17 +1308,17 @@ void AMSReclaim(Pool pool, Trace trace, Seg seg)
   Addr p, next;
 
   AVERT(Pool, pool);
-  ams = PoolPoolAMS(pool);
+  ams = Pool2AMS(pool);
   AVERT(AMS, ams);
   AVERT(Seg, seg);
 
-  amsseg = SegAMSSeg(seg);
+  amsseg = Seg2AMSSeg(seg);
   /* It's a white seg, so it must have colour tables. */
   AVER(amsseg->colourTablesInUse);
   AVER(!amsseg->marksChanged); /* there must be nothing grey */
   format = pool->format;
   AVERT(Format, format);
-  alignment = PoolAlignment(AMSPool(ams));
+  alignment = PoolAlignment(AMS2Pool(ams));
 
   /* Start using allocTable */
   if (!amsseg->allocTableInUse) {
@@ -1372,7 +1369,7 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream)
   Res res;
 
   if (!CHECKT(Pool, pool)) return ResFAIL;
-  ams = PoolPoolAMS(pool);
+  ams = Pool2AMS(pool);
   if (!CHECKT(AMS, ams)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
@@ -1396,7 +1393,7 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream)
 
   RING_FOR(node, &ams->segRing, nextNode) {
     AMSSeg amsseg = RING_ELT(AMSSeg, segRing, node);
-    res = SegDescribe(AMSSegSeg(amsseg), stream);
+    res = SegDescribe(AMSSeg2Seg(amsseg), stream);
     if (res != ResOK) return res;
   }
   return ResOK;
@@ -1435,13 +1432,13 @@ DEFINE_CLASS(AMSPoolClass, this)
 Bool AMSCheck(AMS ams)
 {
   CHECKS(AMS, ams);
-  CHECKD(Pool, AMSPool(ams));
-  CHECKL(IsSubclassPoly(AMSPool(ams)->class, EnsureAMSPoolClass()));
-  CHECKL(PoolAlignment(AMSPool(ams)) == ((Size)1 << ams->grainShift));
-  CHECKL(PoolAlignment(AMSPool(ams)) == AMSPool(ams)->format->alignment);
+  CHECKD(Pool, AMS2Pool(ams));
+  CHECKL(IsSubclassPoly(AMS2Pool(ams)->class, AMSPoolClassGet()));
+  CHECKL(PoolAlignment(AMS2Pool(ams)) == ((Size)1 << ams->grainShift));
+  CHECKL(PoolAlignment(AMS2Pool(ams)) == AMS2Pool(ams)->format->alignment);
   CHECKD(Chain, ams->chain);
   CHECKD(PoolGen, &ams->pgen);
-  CHECKL(SizeIsAligned(ams->size, ArenaAlign(PoolArena(AMSPool(ams)))));
+  CHECKL(SizeIsAligned(ams->size, ArenaAlign(PoolArena(AMS2Pool(ams)))));
   CHECKL(ams->iterate != NULL);
   CHECKL(RingCheck(&ams->segRing));
   CHECKL(ams->allocRing != NULL);
@@ -1456,5 +1453,5 @@ Bool AMSCheck(AMS ams)
 
 mps_class_t mps_class_ams(void)
 {
-  return (mps_class_t)EnsureAMSPoolClass();
+  return (mps_class_t)AMSPoolClassGet();
 }
