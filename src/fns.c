@@ -1114,6 +1114,9 @@ Also accepts Space to mean yes, or Delete to mean no.")
       if (ans == 7 || ans == '\035')
 	Vquit_flag = Qt;
       QUIT;
+
+      /* If we don't clear this, then the next call to read_char will
+	 return quit_char again, and we'll enter an infinite loop.  */
       Vquit_flag = Qnil;
       if (ans >= 0)
 	ans = DOWNCASE (ans);
