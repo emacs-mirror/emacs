@@ -144,7 +144,7 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
 This format string should use `%s' to substitute a file name
 and should result in a Lisp expression that will command the inferior Lisp
 to load that file.  The default works acceptably on most Lisps.
-The string \"(progn (load \\\"%s\\\" :verbose nil :print t) (values))\\\n\"
+The string \"(progn (load \\\"%s\\\" :verbose nil :print t) (values))\\n\"
 produces cosmetically superior output for this application,
 but it works only in Common Lisp.")
 
@@ -156,8 +156,8 @@ and franz.  This variable is used to initialize `comint-prompt-regexp' in the
 Inferior Lisp buffer.
 
 More precise choices:
-Lucid Common Lisp: \"^\\(>\\|\\(->\\)+\\) *\"
-franz: \"^\\(->\\|<[0-9]*>:\\) *\"
+Lucid Common Lisp: \"^\\\\(>\\\\|\\\\(->\\\\)+\\\\) *\"
+franz: \"^\\\\(->\\\\|<[0-9]*>:\\\\) *\"
 kcl: \"^>+ *\"
 
 This is a fine thing to set in your .emacs file.")
