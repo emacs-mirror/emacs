@@ -1,3 +1,8 @@
+2003-03-08  Juanma Barranquero  <lektu@terra.es>
+
+	* emulation/cua-base.el (cua--standard-movement-commands):
+	Fix docstring.
+
 2003-03-07  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* man.el (Man-getpage-in-background): Only change
@@ -16,7 +21,7 @@
 2003-03-07  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* progmodes/dcl-mode.el (dcl-font-lock-keywords): New var.
-	(dcl-font-lock-defaults): Newvar.
+	(dcl-font-lock-defaults): New var.
 	(dcl-mode): Make and init local var `font-lock-defaults'.
 
 2003-03-06  Kevin Rodgers  <kevin.rodgers@ihs.com>
