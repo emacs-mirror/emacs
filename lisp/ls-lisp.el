@@ -62,10 +62,12 @@ It does not support ordinary shell wildcards; instead, it allows
 regular expressions to match file names.
 
 The switches that work are: A a c i r S s t u"
-  (let (handler ((find-file-name-handler file)))
+  (let ((handler (find-file-name-handler file)))
     (if handler
 	(funcall handler 'insert-directory file switches
 		 wildcard full-directory-p)
+      ;; Convert SWITCHES to a list of characters.
+      (setq switches (append switches nil))
       (if wildcard
 	  (setq wildcard (file-name-nondirectory file) ; actually emacs regexp
 		;; perhaps convert it from shell to emacs syntax?
