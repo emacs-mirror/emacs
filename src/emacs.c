@@ -1348,7 +1348,8 @@ decode_env_path (evarname, defalt)
     {
       p = index (path, SEPCHAR);
       if (!p) p = path + strlen (path);
-      lpath = Fcons (p - path ? make_string (path, p - path) : Qnil,
+      lpath = Fcons (p - path ? make_string (path, p - path)
+		     : build_string ("."),
 		     lpath);
       if (*p)
 	path = p + 1;
