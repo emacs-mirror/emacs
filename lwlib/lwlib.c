@@ -201,7 +201,7 @@ free_widget_value_tree (wv)
 
   if (wv->toolkit_data && wv->free_toolkit_data)
     {
-      free (wv->toolkit_data);
+      XtFree (wv->toolkit_data);
       wv->toolkit_data = (void *) 0xDEADBEEF;
     }
 
@@ -553,7 +553,7 @@ merge_widget_value (val1, val2, level)
   if (change > NO_CHANGE && val1->toolkit_data)
     {
       if (val1->free_toolkit_data)
-	free (val1->toolkit_data);
+	XtFree (val1->toolkit_data);
       val1->toolkit_data = NULL;
     }
 
