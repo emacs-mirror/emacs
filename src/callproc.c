@@ -36,6 +36,10 @@ extern char *strerror ();
 
 #include <sys/types.h>
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #include <sys/file.h>
 #ifdef USG5
 #define INCLUDED_FCNTL
@@ -394,7 +398,6 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	      int size = encoding_buffer_size (&argument_coding,
 					       STRING_BYTES (XSTRING (args[i])));
 	      unsigned char *dummy1 = (unsigned char *) alloca (size);
-	      int dummy;
 
 	      /* The Irix 4.0 compiler barfs if we eliminate dummy.  */
 	      new_argv[i - 3] = dummy1;
