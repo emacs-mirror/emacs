@@ -1,5 +1,10 @@
 2002-01-16  Richard M. Stallman  <rms@gnu.org>
 
+	* mouse.el (mouse-drag-region-1): Renamed from mouse-drag-region,
+	more or less.
+	(mouse-drag-region): New function.  For a click in the echo area,
+	show *Messages*.
+
 	* ibuf-ext.el: Delete the autoloads for functions defined with
 	ibuffer-specific commands.
 

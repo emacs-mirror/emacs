@@ -1,6 +1,6 @@
 2002-01-16  Henrik Enberg  <henrik@enberg.org>
 
-	* lread.c (init_lread): Move the site-lisp dirs later in the path.
+	* lread.c (init_lread): Move the installed-lisp dirs later in the path.
 
 2002-01-16  Kim F. Storm  <storm@cua.dk>
 
