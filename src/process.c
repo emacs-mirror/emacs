@@ -3794,6 +3794,8 @@ The value takes effect when `start-process' is called.");
 
 extern int frame_garbaged;
 
+extern EMACS_TIME timer_check ();
+extern int timers_run;
 
 /* As described above, except assuming that there are no subprocesses:
 
@@ -3823,15 +3825,13 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
      Lisp_Object read_kbd;
      int do_display;
 {
-  EMACS_TIME end_time, timeout, *timeout_p;
+  EMACS_TIME end_time, timeout;
   SELECT_TYPE waitchannels;
+  int xerrno;
 
   /* What does time_limit really mean?  */
   if (time_limit || microsecs)
     {
-      /* It's not infinite.  */
-      timeout_p = &timeout;
-
       if (time_limit == -1)
 	/* In fact, it's zero.  */
 	EMACS_SET_SECS_USECS (timeout, 0, 0);
@@ -3844,7 +3844,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
     }
   else
     /* It's infinite.  */
-    timeout_p = 0;
+    EMACS_SET_SECS_USECS (timeout, 100000, 0);
 
   /* Turn off periodic alarms (in case they are in use)
      because the select emulator uses alarms.  */
@@ -3868,11 +3868,11 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
       /* Compute time from now till when time limit is up */
       /* Exit if already run out */
-      if (timeout_p)
+      if (time_limit > 0 || microsecs)
 	{
-	  EMACS_GET_TIME (*timeout_p);
-	  EMACS_SUB_TIME (*timeout_p, end_time, *timeout_p);
-	  if (EMACS_TIME_NEG_P (*timeout_p))
+	  EMACS_GET_TIME (timeout);
+	  EMACS_SUB_TIME (timeout, end_time, timeout);
+	  if (EMACS_TIME_NEG_P (timeout))
 	    break;
 	}
 
@@ -3880,20 +3880,20 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 run timer events directly.
 	 (Callers that will immediately read keyboard events
 	 call timer_delay on their own.)  */
-      if (read_kbd >= 0)
+      if (XINT (read_kbd) >= 0)
 	{
 	  EMACS_TIME timer_delay;
 	  int old_timers_run = timers_run;
 	  timer_delay = timer_check (1);
 	  if (timers_run != old_timers_run && do_display)
 	    redisplay_preserve_echo_area ();
-	  if (! EMACS_TIME_NEG_P (timer_delay) && timeout_p)
+	  if (! EMACS_TIME_NEG_P (timer_delay) && time_limit != -1)
 	    {
 	      EMACS_TIME difference;
-	      EMACS_SUB_TIME (difference, timer_delay, *timeout_p);
+	      EMACS_SUB_TIME (difference, timer_delay, timeout);
 	      if (EMACS_TIME_NEG_P (difference))
 		{
-		  *timeout_p = timer_delay;
+		  timeout = timer_delay;
 		  timeout_reduced_for_timers = 1;
 		}
 	    }
@@ -3909,25 +3909,13 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (frame_garbaged && do_display)
 	redisplay_preserve_echo_area ();
 
-      nfds = 1;
-      if (XINT (read_kbd) < 0 && detect_input_pending ())
-	{
-	  swallow_events (do_display);
-	  if (detect_input_pending ())
-	    nfds = 0;
-	}
-
-      if ((XINT (read_kbd) > 0) 
-	  && detect_input_pending_run_timers (do_display))
-	{
-	  swallow_events (do_display);
-	  if (detect_input_pending_run_timers (do_display))
-	    nfds = 0;
-	}
-
-      if (nfds)
+      if (XINT (read_kbd) && detect_input_pending ())
+	nfds = 0;
+      else
 	nfds = select (1, &waitchannels, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
-		       timeout_p);
+		       &timeout);
+
+      xerrno = errno;
 
       /* Make C-g and alarm signals set flags again */
       clear_waiting_for_input ();
@@ -3935,12 +3923,18 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       /*  If we woke up due to SIGWINCH, actually change size now.  */
       do_pending_window_change ();
 
+      if (time_limit && nfds == 0 && ! timeout_reduced_for_timers)
+	/* We waited the full specified time, so return now.  */
+	break;
+
       if (nfds == -1)
 	{
 	  /* If the system call was interrupted, then go around the
 	     loop again.  */
-	  if (errno == EINTR)
+	  if (xerrno == EINTR)
 	    FD_ZERO (&waitchannels);
+	  else
+	    error ("select error: %s", strerror (xerrno));
 	}
 #ifdef sun
       else if (nfds > 0 && (waitchannels & 1)  && interrupt_input)
@@ -3952,10 +3946,22 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	kill (getpid (), SIGIO);
 #endif
 
-      /* If we have timed out (nfds == 0) or found some input (nfds > 0),
-	 we should exit.  */
-      if (nfds >= 0 && ! timeout_reduced_for_timers)
-	break;
+      /* Check for keyboard input */
+
+      if (XINT (read_kbd) < 0 && detect_input_pending ())
+	{
+	  swallow_events (do_display);
+	  if (detect_input_pending ())
+	    break;
+	}
+
+      if (XINT (read_kbd) > 0
+	  && detect_input_pending_run_timers (do_display))
+	{
+	  swallow_events (do_display);
+	  if (detect_input_pending_run_timers (do_display))
+	    break;
+	}
     }
 
   start_polling ();
