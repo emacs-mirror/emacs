@@ -199,7 +199,7 @@ bookmark-file, which is `~/.emacs-bkmrks' by default.")
   "Number of modifications to bookmark list since it was last saved.")
 
 (defvar bookmark-file
-  (if (eq system-type 'ms-dos)
+  (if (or (eq system-type 'ms-dos) (eq system-type 'windows-nt))
       "~/emacs.bmk" ; Cannot have initial dot [Yuck!]
     "~/.emacs-bkmrks") 
   "*File in which to save bookmarks by default.")
