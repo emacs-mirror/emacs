@@ -1228,6 +1228,11 @@ This enforces rescanning the buffer on next use."
   ;; But, when RESCAN is -1, don't rescan even if docstruct is empty.
   ;; When FILE is non-nil, parse only from that file.
 
+  ;; Error out in a buffer without a file.
+  (if (and reftex-mode
+	   (not (buffer-file-name)))
+      (error "RefTeX works only in buffers visiting a file."))
+
   ;; Make sure we have the symbols tied
   (if (eq reftex-docstruct-symbol nil)
       ;; Symbols are not yet tied: Tie them.
