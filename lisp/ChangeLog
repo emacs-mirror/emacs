@@ -1,7 +1,12 @@
 2000-12-08  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* pcvs-defs.el (cvs-menu): Move.  Make submenu for diff commands.
+	(cvs-menu-map): Remove.
+	* pcvs.el (cvs-menu): Use `cvs-menu' rather than `cvs-menu-map'.
+	(cvs-mode-quit): Turn it back into a plain function.
+
 	* textmodes/texnfo-upd.el (texinfo-chapter-level-regexp)
-	(texinfo-filter): Removed (moved to texinfo.el).
+	(texinfo-filter): Remove (move to texinfo.el).
 
 	* textmodes/texinfo.el: Move the (require 'cl) to the front of the
 	file where it's more visible.
