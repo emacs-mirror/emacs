@@ -1,3 +1,7 @@
+2004-12-01  Andreas Schwab  <schwab@suse.de>
+
+	* lisp.h: Declare string_to_multibyte.
+
 2004-12-01  Kenichi Handa  <handa@m17n.org>
 
 	* w32console.c (w32con_write_glyphs): Decide coding here.
