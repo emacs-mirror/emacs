@@ -128,6 +128,38 @@ A byte-code function object is also allowed.")
   return val;
 }
 
+/* This does not check for quits.  That is safe
+   since it must terminate.  */
+
+DEFUN ("safe-length", Fsafe_length, Ssafe_length, 1, 1, 0,
+  "Return the length of a list, but avoid error or infinite loop.\n\
+This function never gets an error.  If LIST is not really a list,\n\
+it returns 0.  If LIST is circular, it returns a finite value\n\
+which is at least the number of distinct elements.")
+ (list)
+     Lisp_Object list;
+{
+  Lisp_Object tail, halftail, length;
+  int len = 0;
+
+  /* halftail is used to detect circular lists.  */
+  halftail = list;
+  for (tail = list; CONSP (tail); tail = XCONS (tail)->cdr)
+    {
+      if (EQ (tail, halftail) && len != 0)
+	{
+	  len /= 2;
+	  break;
+	}
+      len++;
+      if (len & 1 == 0)
+	halftail = XCONS (halftail)->cdr;
+    }
+
+  XSETINT (length, len);
+  return length;
+}
+
 DEFUN ("string-equal", Fstring_equal, Sstring_equal, 2, 2, 0,
   "T if two strings have identical contents.\n\
 Case is significant, but text properties are ignored.\n\
@@ -1512,6 +1544,7 @@ Used by `featurep' and `require', and altered by `provide'.");
   defsubr (&Sidentity);
   defsubr (&Srandom);
   defsubr (&Slength);
+  defsubr (&Ssafe_length);
   defsubr (&Sstring_equal);
   defsubr (&Sstring_lessp);
   defsubr (&Sappend);
