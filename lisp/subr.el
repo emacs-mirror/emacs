@@ -1023,6 +1023,8 @@ Optional DEFAULT is a default password to use instead of empty input."
       (message nil)
       (or pass default ""))))
 
+;;; Atomic change groups.
+
 (defmacro atomic-change-group (&rest body)
   "Perform BODY as an atomic change group.
 This means that if BODY exits abnormally,
@@ -1269,6 +1271,25 @@ for the sake of consistency."
 
 (defalias 'user-original-login-name 'user-login-name)
 
+(defvar yank-excluded-properties)
+
+(defun insert-for-yank (&rest strings)
+  "Insert STRINGS at point, stripping some text properties.
+Strip text properties from the inserted text
+according to `yank-excluded-properties'.
+Otherwise just like (insert STRINGS...)."
+  (let ((opoint (point)))
+
+    (apply 'insert strings)
+
+    (let ((inhibit-read-only t))
+      (if (eq yank-excluded-properties t)
+	  (set-text-properties opoint (point) nil)
+	(remove-list-of-text-properties opoint (point)
+					yank-excluded-properties)))))
+
+;; Synchronous shell commands.
+
 (defun start-process-shell-command (name buffer &rest args)
   "Start a program in a subprocess.  Return the process object for it.
 Args are NAME BUFFER COMMAND &rest COMMAND-ARGS.
@@ -1473,6 +1494,8 @@ Value is what BODY returns."
 	   (set-buffer ,old-buffer)
 	   (set-syntax-table ,old-table))))))
 
+;;; Matching and substitution
+
 (defvar save-match-data-internal)
 
 ;; We use save-match-data-internal as the local variable because
@@ -1875,7 +1898,7 @@ If TOGGLE has a `:menu-tag', that is used for the menu item's label."
 		(nconc found (list (cons toggle keymap)) rest))
 	    (setq minor-mode-map-alist (cons (cons toggle keymap)
 					     minor-mode-map-alist))))))))
-
+
 ;; Clones ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun text-clone-maintain (ol1 after beg end &optional len)
@@ -1970,7 +1993,7 @@ clone should be incorporated in the clone."
     ;;(overlay-put ol2 'face 'underline)
     (overlay-put ol2 'evaporate t)
     (overlay-put ol2 'text-clones dups)))
-
+
 (defun play-sound (sound)
   "SOUND is a list of the form `(sound KEYWORD VALUE...)'.
 The following keywords are recognized:
