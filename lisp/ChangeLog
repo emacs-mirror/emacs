@@ -1,7 +1,3 @@
-2004-04-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
-
-	* progmodes/grep.el (grep-mode): Add eval-when-compile.
-
 2004-04-20  Richard M. Stallman  <rms@gnu.org>
 
 	* window.el (split-window-save-restore-data): 

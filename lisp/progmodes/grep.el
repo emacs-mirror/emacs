@@ -429,14 +429,13 @@ temporarily highlight in visited source lines."
 		       'grep-mode nil highlight-regexp)))
 
 ;;;###autoload (autoload 'grep-mode "grep" nil t)
-(eval-when-compile
-  (define-compilation-mode grep-mode "Grep"
-    "Sets `grep-last-buffer' and `compilation-window-height'."
-    (setq grep-last-buffer (current-buffer))
-    (set (make-local-variable 'compilation-error-face)
-	 grep-hit-face)
-    (set (make-local-variable 'compilation-error-regexp-alist)
-	 grep-regexp-alist)))
+(define-compilation-mode grep-mode "Grep"
+  "Sets `grep-last-buffer' and `compilation-window-height'."
+  (setq grep-last-buffer (current-buffer))
+  (set (make-local-variable 'compilation-error-face)
+       grep-hit-face)
+  (set (make-local-variable 'compilation-error-regexp-alist)
+       grep-regexp-alist))
 
 ;; This is a copy of find-tag-default from etags.el.
 (defun grep-tag-default ()
