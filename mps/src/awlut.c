@@ -1,6 +1,6 @@
 /* impl.c.awlut: POOL CLASS AWL UNIT TEST
  *
- * $HopeName: MMsrc!awlut.c(trunk.3) $
+ * $HopeName: MMsrc!awlut.c(trunk.4) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -170,6 +170,8 @@ static void test(mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap)
       preserve[i] = 0;
     }
     set_table_slot(weaktable, i, string);
+    string = alloc_string("iamexact", leafap);
+    set_table_slot(exacttable, i, string);
   }
 
   for(j = 0; j < ITERATIONS; ++j) {
@@ -177,7 +179,6 @@ static void test(mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap)
       mps_word_t *string;
 
       string = alloc_string("spong", leafap);
-      set_table_slot(exacttable, i, string);
     }
   }
 
@@ -219,6 +220,7 @@ static void *setup(void *v, size_t s)
   mps_pool_t leafpool;
   mps_pool_t tablepool;
   mps_fmt_t dylanfmt;
+  mps_fmt_t dylanweakfmt;
   mps_ap_t leafap, exactap, weakap;
   mps_root_t stack;
   mps_thr_t thr;
@@ -232,9 +234,11 @@ static void *setup(void *v, size_t s)
       "Root Create\n");
   die(mps_fmt_create_A(&dylanfmt, space, dylan_fmt_A()),
       "Format Create\n");
+  die(mps_fmt_create_A(&dylanweakfmt, space, dylan_fmt_A_weak()),
+      "Format Create (weak)\n");
   die(mps_pool_create(&leafpool, space, mps_class_lo(), dylanfmt),
       "Leaf Pool Create\n");
-  die(mps_pool_create(&tablepool, space, mps_class_awl(), dylanfmt),
+  die(mps_pool_create(&tablepool, space, mps_class_awl(), dylanweakfmt),
       "Table Pool Create\n");
   die(mps_ap_create(&leafap, leafpool, MPS_RANK_EXACT),
       "Leaf AP Create\n");
@@ -250,6 +254,7 @@ static void *setup(void *v, size_t s)
   mps_ap_destroy(leafap);
   mps_pool_destroy(tablepool);
   mps_pool_destroy(leafpool);
+  mps_fmt_destroy(dylanweakfmt);
   mps_fmt_destroy(dylanfmt);
   mps_root_destroy(stack);
 
