@@ -1271,11 +1271,11 @@ group now hidden, invoke \"Show\", above, to show contents.")
 			       (invalid "x" custom-invalid-face "\
 the value displayed for this %c is invalid and cannot be set.")
 			       (modified "*" custom-modified-face "\
-you have edited the value, and can now set the %c." "\
-you have edited something in this group, and can now set it.")
+you have edited the value as text, but you have not set the %c." "\
+you have edited something in this group, but not set it.")
 			       (set "+" custom-set-face "\
-you have set this %c, but not saved it." "\
-something in this group has been set, but not yet saved.")
+you have set this %c, but not saved it for future sessions." "\
+something in this group has been set, but not saved.")
 			       (changed ":" custom-changed-face "\
 this %c has been changed outside the customize buffer." "\
 something in this group has been changed outside customize.")
