@@ -597,6 +597,17 @@ from Emacs 19.34 distribution:
   Specifying a different independent variable name will affect the
   resulting formula: @kbd{a F 1 k RET} produces @kbd{3 + 2 k}.
 
+* The `oc-unicode' package doesn't work with Emacs 21.
+
+It seems that `oc-unicode' introduces 5 2-dimensional charsets to
+cover the BMP (Basic Multilingual Plane) subset of Unicode.  However,
+Emacs 21 adds three mule-unicode-xxxx-yyyy charsets and one
+japanese-jisx0213-2 in the private charset area of the Mule character
+representation.  This leaves only one free slot left for additional
+dimension-2 charsets, which is not enough for `oc-unicode'.
+
+The solution is to modify `oc-unicode' to use the Emacs mule-unicode-*
+charsets.  We don't yet have a patch for that.
 
 * On systems with shared libraries you might encounter run-time errors
 from the dynamic linker telling you that it is unable to find some
