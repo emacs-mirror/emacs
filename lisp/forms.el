@@ -301,10 +301,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.41 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.42 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.41 2001/02/07 23:40:52 fx Exp $")
+  $Id: forms.el,v 2.42 2001/07/16 12:22:58 pj Exp $")
 
 (defcustom forms-mode-hooks nil
   "Hook run upon entering Forms mode."
@@ -1700,7 +1700,8 @@ As a side effect: sets `forms--the-record-list'."
 	   (if (zerop disp)
 	       nil
 	     (setq cur (+ cur disp (- (forward-line disp)))))
-	 (setq cur (+ cur disp (- (goto-line arg)))))
+	 (goto-char (point-min))
+	 (setq cur (+ cur disp (- (forward-line (1- arg))))))
 
        (forms--get-record)))
 
@@ -1810,7 +1811,8 @@ after the current record."
 
     (save-excursion
       (set-buffer forms--file-buffer)
-      (goto-line ln)
+      (goto-char (point-min))
+      (forward-line (1- ln))
       (open-line 1)
       (insert the-record)
       (beginning-of-line))
@@ -1833,7 +1835,8 @@ after the current record."
       (let ((ln forms--current-record))
 	(save-excursion
 	  (set-buffer forms--file-buffer)
-	  (goto-line ln)
+	  (goto-char (point-min))
+	  (forward-line (1- ln))
 	  ;; Use delete-region instead of kill-region, to avoid
 	  ;; adding junk to the kill-ring.
 	  (delete-region (progn (beginning-of-line) (point))
