@@ -1,3 +1,17 @@
+2001-03-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (Fmsdos_remember_default_colors): If default-frame-alist
+	specifies (reverse . t), reverse the initial screen colors.
+	(IT_set_frame_parameters): If the property is foreground-color,
+	but we are reversing the colors, set bg_set, not fg_set.  Likewise
+	for setting background-color and reversing: set fg_set.  Set
+	unspecified-fg and unspecified-bg correctly when (reverse . t) is
+	in effect.
+
+	* xfaces.c (Finternal_set_lisp_face_attribute)
+	[!HAVE_WINDOW_SYSTEM]: Record the new attribute in the frame's
+	parameters alist.
+
 2001-03-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* fileio.c (Fexpand_file_name): Collapse sequences of slashes
