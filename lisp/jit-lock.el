@@ -268,18 +268,10 @@ is active."
 		   ;; functions seem to expects this, if I believe
 		   ;; lazy-lock.
 		   (goto-char start)
-		   (unless (bolp)
-		     (beginning-of-line)
-		     (setq start (point)))
+		   (setq start (line-beginning-position))
 		   
 		   ;; Fontify the chunk, and mark it as fontified.
-		   (unwind-protect
-		       (font-lock-fontify-region start end nil))
-		   
-		   ;; Even if we got an error above, mark the region as
-		   ;; fontified.  If we get an error now, we're
-		   ;; probably getting the same error the next time we
-		   ;; try, so it's moot to try again.
+		   (font-lock-fontify-region start end nil)
 		   (add-text-properties start next '(fontified t))
 		   
 		   ;; Find the start of the next chunk, if any.
