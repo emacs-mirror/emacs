@@ -1,3 +1,7 @@
+2001-10-18  Miles Bader  <miles@gnu.org>
+
+	* simple.el (what-line): Avoid problems with field properties.
+
 2001-10-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* wid-edit.el (widget-field-face, widget-single-line-field-face):
