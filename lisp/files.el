@@ -260,12 +260,15 @@ and ignores this variable.")
   "Value of the CDPATH environment variable, as a list.
 Not actually set up until the first time you you use it.")
 
+(defvar path-separator ":"
+  "Character used to separate concatenated paths.")
+
 (defun parse-colon-path (cd-path)
   "Explode a colon-separated list of paths into a string list."
   (and cd-path
        (let (cd-prefix cd-list (cd-start 0) cd-colon)
-	 (setq cd-path (concat cd-path ":"))
-	 (while (setq cd-colon (string-match ":" cd-path cd-start))
+	 (setq cd-path (concat cd-path path-separator))
+	 (while (setq cd-colon (string-match path-separator cd-path cd-start))
 	   (setq cd-list
 		 (nconc cd-list
 			(list (if (= cd-start cd-colon)
@@ -1480,7 +1483,11 @@ we do not remove backup version numbers, only true file version numbers."
   (let ((handler (find-file-name-handler file 'file-ownership-preserved-p)))
     (if handler
 	(funcall handler 'file-ownership-preserved-p file)
-      (= (nth 2 (file-attributes file)) (user-uid)))))
+      (let ((attributes (file-attribtues file)))
+	;; Return t if the file doesn't exist, since it's true that no
+	;; information would be lost by an (attempted) delete and create.
+	(or (null attributes)
+	    (= (nth 2 attributes) (user-uid)))))))
 
 (defun file-name-sans-extension (filename)
   "Return FILENAME sans final \"extension\".
