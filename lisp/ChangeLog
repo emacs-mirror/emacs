@@ -1,5 +1,7 @@
 2000-11-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* macros.el (insert-kbd-macro): Print semi-colons as `?\;'.
+
 	* dired.el (dired-between-files): Add `^. find' as an alternative
 	to the regular expression, for find-dired.
 

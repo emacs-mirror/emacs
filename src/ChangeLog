@@ -1,5 +1,9 @@
 2000-11-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (Fset_window_configuration): Don't try to preserve
+	point in the current buffer, if that buffer is displayed in more
+	than one window.
+
 	* xfaces.c (lookup_named_face): If default face isn't realized,
 	try to realize it.  Return -1 if not successful.
 	(Fx_list_fonts): Handle case that face cannot be determined.
