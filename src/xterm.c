@@ -530,7 +530,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
     {
       /* Get the face-code of the next GLYPH.  */
       int cf, len;
-      int g = *gp;
+      GLYPH g = *gp;
 
       GLYPH_FOLLOW_ALIASES (tbase, tlen, g);
       cf = FAST_GLYPH_FACE (g);
