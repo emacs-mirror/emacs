@@ -77,11 +77,6 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
 	     (full-copy-sparse-keymap comint-mode-map))
        (setq inferior-lisp-mode-map
 	     (nconc inferior-lisp-mode-map shared-lisp-mode-map))
-       ;; Make separate prefix definitions so that we don't clobber the ones
-       ;; inherited from other keymaps.  
-       (define-key inferior-lisp-mode-map "\C-x" (make-sparse-keymap))
-       (define-key inferior-lisp-mode-map "\C-c" (make-sparse-keymap))
-       (define-key inferior-lisp-mode-map "\e" (make-sparse-keymap))
        (define-key inferior-lisp-mode-map "\C-x\C-e" 'lisp-eval-last-sexp)
        (define-key inferior-lisp-mode-map "\C-c\C-l" 'lisp-load-file)
        (define-key inferior-lisp-mode-map "\C-c\C-k" 'lisp-compile-file)
@@ -166,6 +161,41 @@ franz: \"^\\(->\\|<[0-9]*>:\\) *\"
 kcl: \"^>+ *\"
 
 This is a fine thing to set in your .emacs file.")
+
+(defvar inferior-lisp-buffer nil "*The current inferior-lisp process buffer.
+
+MULTIPLE PROCESS SUPPORT
+===========================================================================
+To run multiple Lisp processes, you start the first up
+with \\[inferior-lisp].  It will be in a buffer named `*inferior-lisp*'.
+Rename this buffer with \\[rename-buffer].  You may now start up a new
+process with another \\[inferior-lisp].  It will be in a new buffer,
+named `*inferior-lisp*'.  You can switch between the different process
+buffers with \\[switch-to-buffer].
+
+Commands that send text from source buffers to Lisp processes --
+like `lisp-eval-defun' or `lisp-show-arglist' -- have to choose a process
+to send to, when you have more than one Lisp process around.  This
+is determined by the global variable `inferior-lisp-buffer'.  Suppose you
+have three inferior Lisps running:
+    Buffer              Process
+    foo                 inferior-lisp
+    bar                 inferior-lisp<2>
+    *inferior-lisp*     inferior-lisp<3>
+If you do a \\[lisp-eval-defun] command on some Lisp source code, 
+what process do you send it to?
+
+- If you're in a process buffer (foo, bar, or *inferior-lisp*), 
+  you send it to that process.
+- If you're in some other buffer (e.g., a source file), you
+  send it to the process attached to buffer `inferior-lisp-buffer'.
+This process selection is performed by function `inferior-lisp-proc'.
+
+Whenever \\[inferior-lisp] fires up a new process, it resets
+`inferior-lisp-buffer' to be the new process's buffer.  If you only run
+one process, this does the right thing.  If you run multiple
+processes, you can change `inferior-lisp-buffer' to another process
+buffer with \\[set-variable].")
 
 ;;;###autoload
 (defvar inferior-lisp-mode-hook '()
@@ -329,7 +359,7 @@ With argument, positions cursor at end of buffer."
   (interactive "P")
   (if (get-buffer inferior-lisp-buffer)
       (pop-to-buffer inferior-lisp-buffer)
-    (error "No current process buffer. See variable inferior-lisp-buffer."))
+    (error "No current inferior Lisp buffer"))
   (cond (eob-p
 	 (push-mark)
 	 (goto-char (point-max)))))
@@ -537,41 +567,6 @@ See variable `lisp-describe-sym-command'."
 		     (format lisp-describe-sym-command sym)))
 
 
-(defvar inferior-lisp-buffer nil "*The current inferior-lisp process buffer.
-
-MULTIPLE PROCESS SUPPORT
-===========================================================================
-To run multiple Lisp processes, you start the first up
-with \\[inferior-lisp].  It will be in a buffer named `*inferior-lisp*'.
-Rename this buffer with \\[rename-buffer].  You may now start up a new
-process with another \\[inferior-lisp].  It will be in a new buffer,
-named `*inferior-lisp*'.  You can switch between the different process
-buffers with \\[switch-to-buffer].
-
-Commands that send text from source buffers to Lisp processes --
-like `lisp-eval-defun' or `lisp-show-arglist' -- have to choose a process
-to send to, when you have more than one Lisp process around.  This
-is determined by the global variable `inferior-lisp-buffer'.  Suppose you
-have three inferior Lisps running:
-    Buffer              Process
-    foo                 inferior-lisp
-    bar                 inferior-lisp<2>
-    *inferior-lisp*     inferior-lisp<3>
-If you do a \\[lisp-eval-defun] command on some Lisp source code, 
-what process do you send it to?
-
-- If you're in a process buffer (foo, bar, or *inferior-lisp*), 
-  you send it to that process.
-- If you're in some other buffer (e.g., a source file), you
-  send it to the process attached to buffer `inferior-lisp-buffer'.
-This process selection is performed by function `inferior-lisp-proc'.
-
-Whenever \\[inferior-lisp] fires up a new process, it resets
-`inferior-lisp-buffer' to be the new process's buffer.  If you only run
-one process, this does the right thing.  If you run multiple
-processes, you can change `inferior-lisp-buffer' to another process
-buffer with \\[set-variable].")
-
 ;;  "Returns the current inferior Lisp process.
 ;; See variable `inferior-lisp-buffer'."
 (defun inferior-lisp-proc ()
