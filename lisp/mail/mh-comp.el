@@ -26,7 +26,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-comp.el,v 1.8 1996/01/14 07:34:30 erik Exp rms $
+;; $Id: mh-comp.el,v 1.9 1997/04/12 19:24:23 rms Exp rms $
 
 ;;; Code:
 
@@ -215,7 +215,7 @@ See documentation of `\\[mh-send]' for more details on composing mail."
 
 
 ;;;###autoload
-(defun mh-smail-batch ()
+(defun mh-smail-batch (&rest ignored)
   "Set up a mail composition draft with the MH mail system.
 This function is an entry point to mh-e, the Emacs front end
 to the MH mail system.  This function does not prompt the user
