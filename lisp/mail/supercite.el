@@ -5,7 +5,7 @@
 ;; Created:       February 1993
 ;; Version:       3.1
 ;; Last Modified: 1993/09/22 18:58:46
-;; Keywords: citation attribution mail news article reply followup
+;; Keywords: mail, news
 
 ;; supercite.el revision: 3.54
 

@@ -5,7 +5,7 @@
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
 ;; Version: 3.1
-;; Keywords: edt emulations
+;; Keywords: emulations
 
 ;; This file is part of GNU Emacs.
 
@@ -30,7 +30,7 @@
 ;;;  Revision and Version Information
 ;;;
 (defconst tpu-version "3.1" "TPU-edt version number.")
-(defconst tpu-revision "$Revision: 6.11 $" "Revision number of TPU-edt.")
+(defconst tpu-revision "$Revision: 1.4 $" "Revision number of TPU-edt.")
 
 
 ;;;

@@ -4,7 +4,7 @@
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
-;; Keywords: tpu-edt
+;; Keywords: emulations
 
 ;; This file is part of GNU Emacs.
 
@@ -104,7 +104,7 @@
 
 ;;;  Revision Information
 
-(defconst tpu-extras-revision "$Revision: 3.5 $"
+(defconst tpu-extras-revision "$Revision: 1.4 $"
   "Revision number of the TPU-edt extras.")
 
 

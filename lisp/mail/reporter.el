@@ -5,7 +5,7 @@
 ;; Created:         19-Apr-1993
 ;; Version:         1.23
 ;; Last Modified:   1993/09/02 20:28:36
-;; Keywords: bug reports lisp
+;; Keywords: tools, mail, lisp, extensions
 
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 

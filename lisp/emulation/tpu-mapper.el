@@ -4,7 +4,7 @@
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
-;; Keywords: tpu-edt
+;; Keywords: emulations
 
 ;; This file is part of GNU Emacs.
 
@@ -69,7 +69,7 @@
 ;;;
 ;;;  Revision Information
 ;;;
-(defconst tpu-mapper-revision "$Revision: 1.5 $"
+(defconst tpu-mapper-revision "$Revision: 1.4 $"
     "Revision number of TPU-edt x-windows emacs key mapper.")
 
 

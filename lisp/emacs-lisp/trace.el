@@ -5,7 +5,7 @@
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
 ;; Created: 15 Dec 1992
 ;; Version: trace.el,v 2.0 1993/05/18 00:41:16 hans Exp
-;; Keywords: tracing, debugging
+;; Keywords: tools, lisp
 
 ;; This file is part of GNU Emacs.
 

@@ -4,7 +4,7 @@
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
-;; Keywords: vt100
+;; Keywords: terminals
 
 ;; This file is part of GNU Emacs.
 
@@ -52,7 +52,7 @@
 
 ;;;  Revision Information
 
-(defconst vt-revision "$Revision: 2.4 $"
+(defconst vt-revision "$Revision: 1.3 $"
   "Revision number of vt-control.")
 
 

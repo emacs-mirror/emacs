@@ -1,7 +1,7 @@
 ;;; menu-bar.el --- define a default menu bar.
 
 ;; Author: RMS
-;; Keywords: internals
+;; Keywords: internal
 
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 

@@ -3,7 +3,8 @@
 ;; Copyright (C) 1989 Free Software Foundation, Inc.
 
 ;; Author: Keith Gabryelski <ag@wheaties.ai.mit.edu>
-;; Keywords: non-text
+;; Maintainer: FSF
+;; Keywords: data
 
 ;; This file is part of GNU Emacs.
 

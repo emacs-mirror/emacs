@@ -4,7 +4,7 @@
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
-;; Keywords: tpu-edt
+;; Keywords: emulations
 
 ;; This file is part of GNU Emacs.
 
@@ -22,7 +22,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-(defconst tpu-doc-revision "$Revision: 1.3 $"
+(defconst tpu-doc-revision "$Revision: 1.4 $"
   "TPU-edt documentation revision number.")
 
 

@@ -3,9 +3,9 @@
 ;; Copyright (C) 1991,1992,1993 Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mikew@gopher.dosli.govt.nz>
-;; Keywords: extensions
+;; Keywords: extensions, matching, mouse
 ;; Created: Thu Mar 28 13:48:23 1991
-;; Version: $Revision: 1.16 $
+;; Version: $Revision: 1.1 $
 
 ;; This file is part of GNU Emacs.
 
@@ -50,10 +50,10 @@
 
 ;;=== Version =============================================================
 
-(defconst thing@pt-version (substring "$Revision: 1.16 $" 11 -2)
+(defconst thing@pt-version (substring "$Revision: 1.1 $" 11 -2)
   "The revision number of thing@pt (as string).  The complete RCS id is:
 
-  $Id: thing@pt.el,v 1.16 1993/09/30 23:54:56 mike Exp $")
+  $Id: thingatpt.el,v 1.1 1993/11/08 14:27:42 rms Exp rms $")
 
 ;;=== Basic movement ======================================================
 
