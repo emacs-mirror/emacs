@@ -2,6 +2,15 @@
 
 	* international/mule.el (decode-char): Cancel the previous change.
 
+2002-09-04  Mats Lidell  <matsl@contactor.se>  (tiny change)
+
+	* language/european.el ("Swedish"): New set-language-info-alist call.
+
+2002-09-04  Richard M. Stallman  <rms@gnu.org>
+
+	* help-fns.el (help-with-tutorial): Properly set up
+	completion-reference-buffer in the *Completion* buffer.
+
 2002-09-04  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* startup.el (use-fancy-splash-screens-p): If `fancy-splash-frame'

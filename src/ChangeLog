@@ -1,3 +1,19 @@
+2002-09-04  Richard M. Stallman  <rms@gnu.org>
+
+	* s/sol2-5.h (UNEXEC): Use unexsol.o.
+
+	* window.c (displayed_window_lines): Correct for one-off bug
+	in HEIGHT on non-window displays.
+
+	* regex.c (set_image_of_range_1): New function.
+	(set_image_of_range): Use set_image_of_range_1 for Latin-1.
+	Return a value to indicate running out of memory.
+	(SET_RANGE_TABLE_WORK_AREA): Check value from set_image_of_range.
+	(extend_range_table_work_area): New subroutine.
+	(EXTEND_RANGE_TABLE): Replaces EXTEND_RANGE_TABLE_WORK_AREA.
+	Different calling conventions, and used from set_image_of_range{,_1}.
+	(IMMEDIATE_QUIT_CHECK): Definitions moved.
+
 2002-09-04  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in: All dependencies updated.
@@ -4974,7 +4990,7 @@
 	* keyboard.c (echo-area-clear-hook): Undo Oct 29 change.
 
 	* indent.c (current_column_1, Fmove_to_column): Separate the code
-	for display-table glyphs from the code buffer text, to fix
+	for display-table glyphs from the code for buffer text, to fix
 	bugs in the former.
 
 2001-11-04  Michael Welsh Duggan  <md5i@cs.cmu.edu>
