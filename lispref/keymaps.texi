@@ -219,10 +219,13 @@ otherwise.  More precisely, this function tests for a list whose
 
 @c ??? This should come after make-sparse-keymap
 @defun make-keymap &optional prompt
-This function creates and returns a new full keymap (i.e., one
-containing a vector of length 128 for defining all the @sc{ascii}
-characters).  The new keymap initially binds all @sc{ascii} characters
-to @code{nil}, and does not bind any other kind of event.
+This function creates and returns a new full keymap.  That keymap
+contains a char-table (@pxref{Char-Tables}) with 384 slots: the first
+128 slots are for defining all the @sc{ascii} characters, the next 128
+slots are for 8-bit European characters, and each one of the final 128
+slots is for one character set of non-@sc{ascii} characters supported by
+Emacs.  The new keymap initially binds all these characters to
+@code{nil}, and does not bind any other kind of event.
 
 @example
 @group
@@ -238,8 +241,9 @@ the keymap.  The prompt string should be provided for menu keymaps
 
 @defun make-sparse-keymap &optional prompt
 This function creates and returns a new sparse keymap with no entries.
-The new keymap does not bind any events.  The argument @var{prompt}
-specifies a prompt string, as in @code{make-keymap}.
+The new keymap does not contain a char-table, unlike @code{make-keymap},
+and does not bind any events.  The argument @var{prompt} specifies a
+prompt string, as in @code{make-keymap}.
 
 @example
 @group
