@@ -1,3 +1,8 @@
+2003-03-24  John Paul Wallington  <jpw@gnu.org>
+
+	* xdisp.c (redisplay_window): If mini window's buffer is not
+	empty, then redisplay it like other windows.
+
 2003-03-23  Kim F. Storm  <storm@cua.dk>
 
 	* w32term.c (w32_draw_window_cursor): Fix last change.
