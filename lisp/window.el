@@ -22,18 +22,21 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+
+;;; Commentary:
+
+;; Window tree functions.
+
 ;;; Code:
 
-;;;; Window tree functions.
-
 (defun one-window-p (&optional nomini all-frames)
-  "Returns non-nil if the selected window is the only window (in its frame).
+  "Return non-nil if the selected window is the only window (in its frame).
 Optional arg NOMINI non-nil means don't count the minibuffer
 even if it is active.
 
 The optional arg ALL-FRAMES t means count windows on all frames.
 If it is `visible', count windows on all visible frames.
-ALL-FRAMES nil or omitted means count only the selected frame, 
+ALL-FRAMES nil or omitted means count only the selected frame,
 plus the minibuffer it uses (which may be on another frame).
 If ALL-FRAMES is neither nil nor t, count only the selected frame."
   (let ((base-window (selected-window)))
@@ -110,7 +113,7 @@ ALL-FRAMES = t means include windows on all frames including invisible frames.
 If ALL-FRAMES is a frame, it means include windows on that frame.
 Anything else means restrict to the selected frame."
   (catch 'found
-    (walk-windows #'(lambda (window) 
+    (walk-windows #'(lambda (window)
 		      (when (funcall predicate window)
 			(throw 'found window)))
 		  minibuf all-frames)
@@ -122,14 +125,13 @@ Anything else means restrict to the selected frame."
 
 (defmacro save-selected-window (&rest body)
   "Execute BODY, then select the window that was selected before BODY."
-  (list 'let
-	'((save-selected-window-window (selected-window)))
-	(list 'unwind-protect
-	      (cons 'progn body)
-	      (list 'select-window 'save-selected-window-window)))) 
+  `(let ((save-selected-window-window (selected-window)))
+     (unwind-protect
+	 (progn ,@body)
+       (select-window save-selected-window-window))))
 
 (defun count-windows (&optional minibuf)
-   "Returns the number of visible windows.
+   "Return the number of visible windows.
 This counts the windows in the selected frame and (if the minibuffer is
 to be counted) its minibuffer frame (if that's not the same frame).
 The optional arg MINIBUF non-nil means count the minibuffer
@@ -140,8 +142,18 @@ even if it is inactive."
 		   minibuf)
      count))
 
+(defun window-safely-shrinkable-p (&optional window)
+  "Non-nil if the WINDOW can be shrunk without shrinking other windows."
+  (save-selected-window
+    (when window (select-window window))
+    (or (and (not (eq window (frame-first-window)))
+	     (= (car (window-edges))
+		(car (window-edges (previous-window)))))
+	(= (car (window-edges))
+	   (car (window-edges (next-window)))))))
+
 (defun balance-windows ()
-  "Makes all visible windows the same height (approximately)."
+  "Make all visible windows the same height (approximately)."
   (interactive)
   (let ((count -1) levels newsizes size
 	;; Don't count the lines that are above the uppermost windows.
@@ -401,15 +413,15 @@ due to line breaking, display table, etc.
 Optional arguments BEG and END default to `point-min' and `point-max'
 respectively.
 
-If region ends with a newline, ignore it unless optinal third argument
+If region ends with a newline, ignore it unless optional third argument
 COUNT-FINAL-NEWLINE is non-nil.
 
 The optional fourth argument WINDOW specifies the window used for obtaining
-parameters such as width, horizontal scrolling, and so on. The default is
+parameters such as width, horizontal scrolling, and so on.  The default is
 to use the selected window's parameters.
 
 Like `vertical-motion', `count-screen-lines' always uses the current buffer,
-regardless of which buffer is displayed in WINDOW. This makes possible to use
+regardless of which buffer is displayed in WINDOW.  This makes possible to use
 `count-screen-lines' in any buffer, whether or not it is currently displayed
 in some window."
   (unless beg
@@ -511,8 +523,9 @@ header-line."
 Do not shrink to less than `window-min-height' lines.
 Do nothing if the buffer contains more lines than the present window height,
 or if some of the window's contents are scrolled out of view,
-or if the window is not the full width of the frame,
-or if the window is the only window of its frame."
+or if shrinking this window would also shrink another window.
+or if the window is the only window of its frame.
+Return non-nil if the window was shrunk."
   (interactive)
   (when (null window)
     (setq window (selected-window)))
@@ -520,7 +533,7 @@ or if the window is the only window of its frame."
 	 (mini (frame-parameter frame 'minibuffer))
 	 (edges (window-edges window)))
     (if (and (not (eq window (frame-root-window frame)))
-	     (= (window-width) (frame-width))
+	     (window-safely-shrinkable-p)
 	     (pos-visible-in-window-p (point-min) window)
 	     (not (eq mini 'only))
 	     (or (not mini)
@@ -592,4 +605,4 @@ and the buffer that is killed or buried is the one in that window."
 (define-key ctl-x-map "+" 'balance-windows)
 (define-key ctl-x-4-map "0" 'kill-buffer-and-window)
 
-;;; windows.el ends here
+;;; window.el ends here
