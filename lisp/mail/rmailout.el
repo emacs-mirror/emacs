@@ -178,9 +178,9 @@ starting with the current one.  Deleted messages are skipped and don't count."
 	  (if redelete (rmail-set-attribute "deleted" t))))
       (setq count (1- count))
       (if rmail-delete-after-output
-	  (rmail-delete-forward)
+	  (unless (rmail-delete-forward) (setq count 0))
 	(if (> count 0)
-	    (rmail-next-undeleted-message 1))))))
+	    (unless (rmail-next-undeleted-message 1) (setq count 0)))))))
 
 ;;;###autoload
 (defcustom rmail-fields-not-to-output nil
