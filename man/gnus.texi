@@ -272,7 +272,7 @@
 
 \thispagestyle{empty}
 
-Copyright \copyright{} 1995,96,97,98,99,2000 Free Software Foundation, Inc.
+Copyright \copyright{} 1995,96,97,98,99,2000,2001 Free Software Foundation, Inc.
 
 
 Permission is granted to copy, distribute and/or modify this document
@@ -300,7 +300,7 @@ license to the document, as described in section 6 of the license.
 
 This file documents Gnus, the GNU Emacs newsreader.
 
-Copyright (C) 1995,96,97,98,99,2000 Free Software Foundation, Inc.
+Copyright (C) 1995,96,97,98,99,2000,2001 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
@@ -329,7 +329,7 @@ license to the document, as described in section 6 of the license.
 @page
 
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1995,96,97,98,99,2000 Free Software Foundation, Inc.
+Copyright @copyright{} 1995,96,97,98,99,2000,2001 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
