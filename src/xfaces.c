@@ -1375,7 +1375,7 @@ tty_lookup_color (f, color, tty_color, std_color)
 	     a standard color, we just give up and use TTY_COLOR.  */
 	  if ((!STRINGP (XCAR (color_desc))
 	       || NILP (Fstring_equal (color, XCAR (color_desc))))
-	      && Ffboundp (Qtty_color_standard_values))
+	      && !NILP (Ffboundp (Qtty_color_standard_values)))
 	    {
 	      /* Look up STD_COLOR separately.  */
 	      rgb = call1 (Qtty_color_standard_values, color);
