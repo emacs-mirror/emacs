@@ -95,8 +95,14 @@ Turning on Paragraph-Indent minor mode runs the normal hook
       
 (defalias 'indented-text-mode 'text-mode)
 
-;; No-op, defined because some user customizations use it.
-(defun text-mode-hook-identify () nil)
+;; This can be made a no-op once all modes that use text-mode-hook
+;; are "derived" from text-mode.
+(defun text-mode-hook-identify ()
+  "Mark that this mode has run `text-mode-hook'.
+This is how `toggle-text-mode-auto-fill' knows which buffers to operate on."
+  (set (make-local-variable 'text-mode-variant) t))
+
+(add-hook 'text-mode-hook 'text-mode-hook-identify)
 
 (defun toggle-text-mode-auto-fill ()
   "Toggle whether to use Auto Fill in Text mode and related modes.
