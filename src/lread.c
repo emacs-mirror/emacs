@@ -637,6 +637,14 @@ record_load_unwind (old)
   return Vloads_in_progress = old;
 }
 
+/* This handler function is used via internal_condition_case_1.  */
+
+static Lisp_Object
+load_error_handler (data)
+     Lisp_Object data;
+{
+  return Qnil;
+}
 
 DEFUN ("load", Fload, Sload, 1, 5, 0,
        doc: /* Execute a file of Lisp code named FILE.
@@ -692,7 +700,16 @@ Return t if file exists.  */)
      everywhere, it accidentally stayed here.  Since then, enough people
      supposedly have things like (load "$PROJECT/foo.el") in their .emacs
      that it seemed risky to remove.  */
-  file = Fsubstitute_in_file_name (file);
+  if (! NILP (noerror))
+    {
+      file = internal_condition_case_1 (Fsubstitute_in_file_name, file,
+					Qt, load_error_handler);
+      if (NILP (file))
+	return Qnil;
+    }
+  else
+    file = Fsubstitute_in_file_name (file);
+    
 
   /* Avoid weird lossage with null string as arg,
      since it would try to load a directory as a Lisp file */
@@ -731,9 +748,8 @@ Return t if file exists.  */)
   if (fd == -1)
     {
       if (NILP (noerror))
-	while (1)
-	  Fsignal (Qfile_error, Fcons (build_string ("Cannot open load file"),
-				       Fcons (file, Qnil)));
+	Fsignal (Qfile_error, Fcons (build_string ("Cannot open load file"),
+				     Fcons (file, Qnil)));
       else
 	return Qnil;
     }
