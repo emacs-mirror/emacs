@@ -320,12 +320,44 @@ This section describes some important consequences that can lead to
 trouble, and rules to follow to avoid trouble.
 
 @menu
+* Wrong Time::             Do the work in the expansion, not in the macro.
 * Argument Evaluation::    The expansion should evaluate each macro arg once.
 * Surprising Local Vars::  Local variable bindings in the expansion
                               require special care.
 * Eval During Expansion::  Don't evaluate them; put them in the expansion.
 * Repeated Expansion::     Avoid depending on how many times expansion is done.
 @end menu
+
+@node Wrong Time
+@subsection Wrong Time
+
+  The most common problem in writing macros is doing too some of the
+real work prematurely---while expanding the macro, rather than in the
+expansion itself.  For instance, one real package had this nmacro
+definition:
+
+@example
+(defmacro my-set-buffer-multibyte (arg)
+  (if (fboundp 'set-buffer-multibyte)
+      (set-buffer-multibyte arg)))
+@end example
+
+With this erroneous macro definition, the program worked fine when
+interpreted but failed when compiled.  This macro definition called
+@code{set-buffer-multibyte} during compilation, which was wrong, and
+then did nothing when the compiled package was run.  The definition
+that the programmer really wanted was this:
+
+@example
+(defmacro my-set-buffer-multibyte (arg)
+  (if (fboundp 'set-buffer-multibyte)
+      `(set-buffer-multibyte ,arg)))
+@end example
+
+@noindent
+This macro expands, if appropriate, into a call to
+@code{set-buffer-multibyte} that will be executed when the compiled
+program is actually run.
 
 @node Argument Evaluation
 @subsection Evaluating Macro Arguments Repeatedly
