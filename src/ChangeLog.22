@@ -1,3 +1,11 @@
+2003-10-02  Kenichi Handa  <handa@m17n.org>
+
+	* term.c (encode_terminal_code): Don't handle glyph-table.  Check
+	if a character is encodable by the terminal coding system.  If
+	not, produces proper number of `?'s.  Update
+	terminal_encode_buffer and terminal_encode_buf_size if necessary.
+	(produce_glyphs): Check by CHAR_BYTE8_P, not SINGLE_BYTE_CHAR_P.
+
 2003-10-01  Kenichi Handa  <handa@m17n.org>
 
 	* term.c (terminal_encode_buffer, terminal_encode_buf_size): New
