@@ -37,12 +37,12 @@
 
 	* macgui.h [!MAC_OSX && HAVE_CARBON]: Include Carbon.h.
 
-	* macmenu.h [TARGET_API_MAC_CARBON]: Don't include headers that
+	* macmenu.c [TARGET_API_MAC_CARBON]: Don't include headers that
 	are included via Carbon.h.
 
 	* macterm.c [TARGET_API_MAC_CARBON && !MAC_OSX]: Define
 	USE_CARBON_EVENTS to 1.
-	[__MRC__ && TARGET_API_MAC_CARBON]: Don't declare `qd'.
+	(qd) [__MRC__ && TARGET_API_MAC_CARBON]: Don't declare.
 	(x_free_frame_resources): Call remove_window_handler for
 	non-tooltip windows.
 	[TARGET_API_MAC_CARBON]: Don't include headers that are included
@@ -858,7 +858,7 @@
 	[TARGET_API_MAC_CARBON] (mac_do_track_drag): Likewise.
 	Reject only when there are no filename items.  Set background color
 	before (un)highlighting the window below the dragged items.
-	(XTread_socket) [!USE_CARBON_EVENTS]: Don't call do_window_update.
+	(XTread_socket) [USE_CARBON_EVENTS]: Don't call do_window_update.
 
 2005-01-05  Romain Francoise  <romain@orebokech.com>
 
