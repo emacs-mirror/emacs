@@ -554,6 +554,8 @@ x_set_background_color (f, arg, oldval)
 		      f->display.x->background_pixel);
       XSetForeground (x_current_display, f->display.x->reverse_gc,
 		      f->display.x->background_pixel);
+      XSetForeground (x_current_display, f->display.x->cursor_gc,
+		      f->display.x->background_pixel);
       XSetWindowBackground (x_current_display, FRAME_X_WINDOW (f),
 			    f->display.x->background_pixel);
 
