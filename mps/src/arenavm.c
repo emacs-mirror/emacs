@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.44) $
+ * $HopeName: MMsrc!arenavm.c(trunk.45) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -29,22 +29,22 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.44) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.45) $");
 
 
 typedef struct VMArenaStruct *VMArena;
 typedef struct PageStruct *Page;
 
-
-/* VMArenaStruct -- VM Arena Structure */
-
-#define VMArenaSig      ((Sig)0x519A6EB3) /* SIGnature AREna VM */
-#define VMArenaChunkSig ((Sig)0x519A6B3C) /* SIGnature Arena VM Chunk */
 /* @@@@ Arbitrary calculation for the maximum number of distinct */
 /* object sets for generations. */
 /* .gencount.const: Must be a constant suitable for use as an */
 /* array size. */
 #define VMArenaGenCount ((Count)(MPS_WORD_WIDTH/2))
+
+
+/* VMArenaStruct -- VM Arena Structure */
+
+#define VMArenaChunkSig ((Sig)0x519A6B3C) /* SIGnature ARena VM Chunk */
 
 typedef struct VMArenaChunkStruct {
   Sig sig;			/* design.mps.sig */
@@ -65,15 +65,30 @@ typedef struct VMArenaChunkStruct {
 } VMArenaChunkStruct;
 
 typedef struct VMArenaChunkStruct *VMArenaChunk;
-  
+
+/* SIGnature Arena VM Chunk Cache */
+#define VMArenaChunkCacheEntrySig       ((Sig)0x519AF3CC) 
+typedef struct VMArenaChunkCacheEntryStruct {
+  Sig sig;
+  VMArenaChunk chunk;
+  Addr base;
+  Addr limit;
+  Page pageTableBase;
+  Page pageTableLimit;
+} VMArenaChunkCacheEntryStruct;
+
+typedef struct VMArenaChunkCacheEntryStruct *VMArenaChunkCacheEntry;
 
 /* VMArenaStruct
  * See design.mps.arena.coop-vm.struct.vmarena for description of fields.
  */
+
+#define VMArenaSig      ((Sig)0x519A6EB3) /* SIGnature AREna VM */
 typedef struct VMArenaStruct {  /* VM arena structure */
   ArenaStruct arenaStruct;
   VMArenaChunk primary;
   RingStruct chunkRing;
+  VMArenaChunkCacheEntryStruct chunkCache; /* just one entry */
   RefSet blacklist;             /* zones to use last */
   RefSet genRefSet[VMArenaGenCount]; /* .gencount.const */
   RefSet freeSet;               /* unassigned zones */
@@ -203,6 +218,19 @@ static Bool VMArenaChunkCheck(VMArenaChunk chunk)
   return TRUE;
 }
 
+static Bool VMArenaChunkCacheEntryCheck(VMArenaChunkCacheEntry entry)
+{
+  CHECKS(VMArenaChunkCacheEntry, entry);
+  CHECKD(VMArenaChunk, entry->chunk);
+  CHECKL(entry->base == entry->chunk->base);
+  CHECKL(entry->limit == entry->chunk->limit);
+  CHECKL(entry->pageTableBase == &entry->chunk->pageTable[0]);
+  CHECKL(entry->pageTableLimit ==
+    &entry->chunk->pageTable[entry->chunk->pages]);
+
+  return TRUE;
+}
+
 
 /* VMArenaCheck -- check the consistency of an arena structure */
 
@@ -214,6 +242,7 @@ static Bool VMArenaCheck(VMArena vmArena)
   CHECKS(VMArena, vmArena);
   CHECKD(Arena, VMArenaArena(vmArena)); /* .arena.check-free */
   CHECKD(VMArenaChunk, vmArena->primary);
+  CHECKD(VMArenaChunkCacheEntry, &vmArena->chunkCache);
   CHECKL(RingCheck(&vmArena->chunkRing));
   CHECKL(RefSetCheck(vmArena->blacklist));
 
@@ -227,6 +256,41 @@ static Bool VMArenaCheck(VMArena vmArena)
   CHECKL(vmArena->extendBy > 0);
 
   return TRUE;
+}
+
+/* Chunk Cache
+ *
+ * Functions for manipulating the chunk cache in the VM arena.
+ */
+
+static void VMArenaChunkCacheEntryInit(VMArenaChunkCacheEntry entry)
+{
+  static VMArenaChunkCacheEntryStruct initEntryStruct =
+    {VMArenaChunkCacheEntrySig, 0};
+
+  *entry = initEntryStruct;
+
+  return;
+}
+
+static void VMArenaChunkEncache(VMArena vmArena, VMArenaChunk chunk)
+{
+  /* static function called internally, hence no checking */
+
+  /* check chunk already in cache first */
+  if(vmArena->chunkCache.chunk == chunk) {
+    return;
+  }
+
+  vmArena->chunkCache.chunk = chunk;
+  vmArena->chunkCache.base = chunk->base;
+  vmArena->chunkCache.limit = chunk->limit;
+  vmArena->chunkCache.pageTableBase = &chunk->pageTable[0];
+  vmArena->chunkCache.pageTableLimit = &chunk->pageTable[chunk->pages];
+
+  AVERT(VMArenaChunkCacheEntry, &vmArena->chunkCache);
+
+  return;
 }
 
 
@@ -594,6 +658,10 @@ static Res VMArenaInit(Arena *arenaReturn, va_list args)
   vmArena->freeSet = RefSetUNIV; /* includes blacklist */
   /* design.mps.arena.coop-vm.struct.vmarena.extendby.init */
   vmArena->extendBy = userSize;
+
+  /* initialize and load cache */
+  VMArenaChunkCacheEntryInit(&vmArena->chunkCache);
+  VMArenaChunkEncache(vmArena, vmArena->primary);
 
   /* Sign and check the arena. */
   vmArena->sig = VMArenaSig;
@@ -1250,6 +1318,12 @@ static VMArenaChunk VMArenaChunkOfSeg(VMArena vmArena, Seg seg)
   AVERT_CRITICAL(VMArena, vmArena);
   AVERT_CRITICAL(Seg, seg);
 
+  /* check cache first */
+  if(vmArena->chunkCache.pageTableBase <= (Page)seg &&
+     (Page)seg < vmArena->chunkCache.pageTableLimit) {
+    return vmArena->chunkCache.chunk;
+  }
+
   RING_FOR(node, &vmArena->chunkRing, next) {
     VMArenaChunk chunk = RING_ELT(VMArenaChunk, arenaRing, node);
     Page page = PageOfSeg(seg);
@@ -1257,6 +1331,7 @@ static VMArenaChunk VMArenaChunkOfSeg(VMArena vmArena, Seg seg)
     if(&chunk->pageTable[0] <= page &&
        page < &chunk->pageTable[chunk->pages]) {
       /* Gotcha! */
+      VMArenaChunkEncache(vmArena, chunk);
       return chunk;
     }
   }
@@ -1408,11 +1483,19 @@ static Bool VMArenaChunkOfAddr(VMArenaChunk *chunkReturn,
 
 {
   Ring node, next;
-  /* No checks because critical */
+  /* No checks because critical and internal */
+
+  /* check cache first */
+  if(vmArena->chunkCache.base <= addr &&
+     addr < vmArena->chunkCache.limit) {
+    *chunkReturn = vmArena->chunkCache.chunk;
+    return TRUE;
+  }
   RING_FOR(node, &vmArena->chunkRing, next) {
     VMArenaChunk chunk = RING_ELT(VMArenaChunk, arenaRing, node);
     if(chunk->base <= addr && addr < chunk->limit) {
       /* Gotcha! */
+      VMArenaChunkEncache(vmArena, chunk);
       *chunkReturn = chunk;
       return TRUE;
     }
