@@ -1341,7 +1341,9 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bcurrent_column:
 	  {
 	    Lisp_Object v1;
+	    BEFORE_POTENTIAL_GC ();
 	    XSETFASTINT (v1, current_column ());
+	    AFTER_POTENTIAL_GC ();
 	    PUSH (v1);
 	    break;
 	  }
