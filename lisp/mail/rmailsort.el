@@ -3,7 +3,7 @@
 ;; Copyright (C) 1990, 1993 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Header: /home/fsf/rms/e19/lisp/RCS/rmailsort.el,v 1.15 1993/06/22 05:55:41 rms Exp rms $
+;; Version: $Header: /gd/gnu/emacs/19.0/lisp/RCS/rmailsort.el,v 1.16 1993/11/24 08:08:56 rms Exp kwzh $
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -106,8 +106,8 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
   (rmail-sort-messages reverse
 		       (function
 			(lambda (msg)
-			  (count-lines (rmail-msgbeg msgnum)
-				       (rmail-msgend msgnum))))))
+			  (count-lines (rmail-msgbeg msg)
+				       (rmail-msgend msg))))))
 
 ;; Basic functions
 
