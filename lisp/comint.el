@@ -211,9 +211,20 @@ See also `comint-highlight-face'."
   :type 'boolean
   :group 'comint)
 
-(defcustom comint-highlight-face 'bold
-  "*Face to use to highlight input when `comint-highlight-input' is non-nil."
-  :type 'face
+(defface comint-highlight-input-face '((t (:bold t)))
+  "Face to use to highlight input when `comint-highlight-input' is non-nil."
+  :group 'comint)
+
+(defcustom comint-highlight-prompt t
+  "*If non-nil, highlight program prompts.
+See also `comint-highlight-face'."
+  :type 'boolean
+  :group 'comint)
+
+(defface comint-highlight-prompt-face
+  '((((background dark)) (:foreground "cyan"))
+    (t (:foreground "dark blue")))
+  "Face to use to highlight prompt when `comint-highlight-prompt' is non-nil."
   :group 'comint)
 
 (defcustom comint-input-ignoredups nil
@@ -480,6 +491,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-last-output-start)
   (setq comint-last-output-start (make-marker))
   (make-local-variable 'comint-last-output-overlay)
+  (make-local-variable 'comint-last-prompt-overlay)
   (make-local-variable 'comint-prompt-regexp)        ; Don't set; default
   (make-local-variable 'comint-input-ring-size)      ; ...to global val.
   (make-local-variable 'comint-input-ring)
@@ -1411,7 +1423,7 @@ Similarly for Soar, Scheme, etc."
 		  (overlay-put over 'field 'input)
 		  (overlay-put over 'front-sticky t))
 		(when comint-highlight-input
-		  (overlay-put over 'face comint-highlight-face)
+		  (overlay-put over 'face 'comint-highlight-input-face)
 		  (overlay-put over 'mouse-face 'highlight)
 		  (overlay-put over 'evaporate t))))
 	    (unless comint-use-prompt-regexp-instead-of-fields
@@ -1419,6 +1431,8 @@ Similarly for Soar, Scheme, etc."
 	      (let ((over (make-overlay end (1+ end))))
 		(overlay-put over 'field 'boundary)
 		(overlay-put over 'evaporate t))))
+
+	  (comint-snapshot-last-prompt)
 
 	  (setq comint-save-input-ring-index comint-input-ring-index)
 	  (setq comint-input-ring-index nil)
@@ -1452,6 +1466,17 @@ This variable is permanent-local.")
 ;; It is kept around so that we can extend it instead of creating
 ;; multiple contiguous overlays for multiple contiguous output chunks.
 (defvar comint-last-output-overlay nil)
+
+;; When non-nil, this is an overlay over the last recognized prompt in
+;; the buffer; it is used when highlighting the prompt.
+(defvar comint-last-prompt-overlay nil)
+
+;; `snapshot' any current comint-last-prompt-overlay, freezing it in place.
+;; Any further output will then create a new comint-last-prompt-overlay.
+(defun comint-snapshot-last-prompt ()
+  (when comint-last-prompt-overlay
+    (overlay-put comint-last-prompt-overlay 'evaporate t)
+    (setq comint-last-prompt-overlay nil)))
 
 ;; The purpose of using this filter for comint processes
 ;; is to keep comint-last-input-end from moving forward
@@ -1499,6 +1524,26 @@ This variable is permanent-local.")
 		  (overlay-put over 'inhibit-line-move-field-capture t)
 		  (overlay-put over 'evaporate t)
 		  (setq comint-last-output-overlay over))))
+
+	    (when comint-highlight-prompt
+	      ;; Highlight the prompt, where we define `prompt' to mean
+	      ;; the most recent output that doesn't end with a newline.
+	      (unless (and (bolp) (null comint-last-prompt-overlay))
+		;; Need to create or move the prompt overlay (in the
+		;; case where's no prompt ((bolp) == t), we still do
+		;; this if there's already an existing overlay.
+		(let ((prompt-start (save-excursion (forward-line 0) (point))))
+		  (if comint-last-prompt-overlay
+		      ;; Just move an existing overlay
+		      (move-overlay comint-last-prompt-overlay
+				    prompt-start (point))
+		    ;; Need to create the overlay
+		    (setq comint-last-prompt-overlay
+			  (make-overlay prompt-start (point)))
+		    (overlay-put comint-last-prompt-overlay
+				 'rear-nonsticky t)
+		    (overlay-put comint-last-prompt-overlay
+				 'face 'comint-highlight-prompt-face)))))
 
 	    ;; Don't insert initial prompt outside the top of the window.
 	    (if (= (window-start (selected-window)) (point))
@@ -1763,6 +1808,7 @@ Security bug: your string can still be temporarily recovered with
     (cond ((not proc)
 	   (error "Current buffer has no process"))
 	  ((stringp str)
+	   (comint-snapshot-last-prompt)
 	   (funcall comint-input-sender proc str))
 	  (t
 	   (let ((str (comint-read-noecho "Non-echoed text: " t)))
@@ -1877,12 +1923,13 @@ Sends an EOF only if point is at the end of the buffer and there is no input."
   (interactive "p")
   (let ((proc (get-buffer-process (current-buffer))))
     (if (and (eobp) proc (= (point) (marker-position (process-mark proc))))
-	(process-send-eof)
+	(comint-send-eof)
       (delete-char arg))))
 
 (defun comint-send-eof ()
   "Send an EOF to the current buffer's process."
   (interactive)
+  (comint-snapshot-last-prompt)
   (process-send-eof))
 
 
