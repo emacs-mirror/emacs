@@ -186,7 +186,7 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
   if (nhdr.fhdr.f_opthdr != sizeof (nhdr.aout))
     {
       fprintf (stderr, "unexec: input a.out header is %d bytes, not %d.\n",
-	       nhdr.fhdr.f_opthdr, sizeof (nhdr.aout));
+	       nhdr.fhdr.f_opthdr, (int)sizeof (nhdr.aout));
       exit (1);
     }
   if (nhdr.aout.magic != ZMAGIC)
