@@ -202,7 +202,8 @@ no aliases, which is represented by this being a table with no entries.)")
 		  (end-of-line)
 		  (build-mail-abbrevs
 		   (substitute-in-file-name
-		    (buffer-substring (match-beginning 1) (match-end 1)))))
+		    (buffer-substring (match-beginning 1) (match-end 1)))
+		   t))
 	      (re-search-forward "[ \t]+\\([^ \t\n]+\\)")
 	      (let* ((name (buffer-substring
 			    (match-beginning 1) (match-end 1)))
