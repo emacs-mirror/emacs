@@ -1,3 +1,9 @@
+2004-05-30  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (find-file): Doc fix.
+
+	* font-lock.el (lisp-font-lock-keywords-2): Add multiple-value-bind.
+
 2004-05-30  Nick Roberts  <nickrob@gnu.org>
 
 	* progmodes/gdb-ui.el (gdb-current-frame, gud-watch)
