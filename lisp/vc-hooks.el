@@ -142,11 +142,11 @@ The value is set in the current buffer, which should be the buffer
 visiting FILE."
   (interactive (list buffer-file-name nil))
   (let ((vc-type (vc-backend-deduce file)))
-    (if vc-type
-        (setq vc-mode
-              (concat " " (or label (symbol-name vc-type))
-		      (if (and vc-rcs-status (eq vc-type 'RCS))
-                          (vc-rcs-status file)))))
+    (setq vc-mode
+	  (and vc-type
+	       (concat " " (or label (symbol-name vc-type))
+		       (if (and vc-rcs-status (eq vc-type 'RCS))
+			   (vc-rcs-status file)))))
     ;; force update of mode line
     (set-buffer-modified-p (buffer-modified-p))
     vc-type))
