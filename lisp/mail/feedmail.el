@@ -1770,7 +1770,7 @@ you can set feedmail-queue-reminder-alist to nil."
 
 (defun feedmail-queue-send-edit-prompt-help (d-string)
   (let ((fqm-help (get-buffer feedmail-p-h-b-n)))
-    (if (and fqm-help (get-buffer-window fqm-help))
+    (if (and fqm-help (get-buffer-window fqm-help 'visible))
 	(feedmail-queue-send-edit-prompt-help-later fqm-help d-string)
       (feedmail-queue-send-edit-prompt-help-first d-string))))
 
