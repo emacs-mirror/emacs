@@ -1906,6 +1906,7 @@ mark_kboards ()
       mark_object (&kb->kbd_queue);
       mark_object (&kb->Vlast_kbd_macro);
       mark_object (&kb->Vsystem_key_alist);
+      mark_object (&kb->system_key_syms);
     }
 }
 
