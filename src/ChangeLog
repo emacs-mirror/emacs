@@ -1,3 +1,7 @@
+2004-03-02  Richard M. Stallman  <rms@gnu.org>
+
+	* indent.c (compute_motion): Save vpos in prev_vpos, like hpos etc.
+
 2004-03-02  Kenichi Handa  <handa@m17n.org>
 
 	* doc.c (Fsubstitute_command_keys): Fix counding bytes.
