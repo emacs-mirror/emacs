@@ -73,8 +73,8 @@ update the magic number."
   "*If non-nil, ask user before changing an existing magic number.
 When this is `function', only ask when called non-interactively."
   :type '(choice (const :tag "Don't Ask" nil)
-		 (const :tag "Ask" t)
-		 (const :tag "Ask when non-interactive" function))
+		 (const :tag "Ask when non-interactive" function)
+		 (other :tag "Ask" t))
   :group 'executable)
 
 
