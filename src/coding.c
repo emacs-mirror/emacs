@@ -525,33 +525,37 @@ detect_coding_emacs_mule (src, src_end)
 /*** 3. ISO2022 handlers ***/
 
 /* The following note describes the coding system ISO2022 briefly.
-   Since the intention of this note is to help in understanding of
-   the programs in this file, some parts are NOT ACCURATE or OVERLY
-   SIMPLIFIED.  For the thorough understanding, please refer to the
+   Since the intention of this note is to help understand the
+   functions in this file, some parts are NOT ACCURATE or OVERLY
+   SIMPLIFIED.  For thorough understanding, please refer to the
    original document of ISO2022.
 
    ISO2022 provides many mechanisms to encode several character sets
-   in 7-bit and 8-bit environment.  If one chooses 7-bite environment,
-   all text is encoded by codes of less than 128.  This may make the
-   encoded text a little bit longer, but the text gets more stability
-   to pass through several gateways (some of them strip off the MSB).
-
-   There are two kinds of character set: control character set and
+   in 7-bit and 8-bit environments.  For 7-bite environments, all text
+   is encoded using bytes less than 128.  This may make the encoded
+   text a little bit longer, but the text passes more easily through
+   several gateways, some of which strip off MSB (Most Signigant Bit).
+ 
+   There are two kinds of character sets: control character set and
    graphic character set.  The former contains control characters such
    as `newline' and `escape' to provide control functions (control
-   functions are provided also by escape sequences).  The latter
-   contains graphic characters such as ' A' and '-'.  Emacs recognizes
+   functions are also provided by escape sequences).  The latter
+   contains graphic characters such as 'A' and '-'.  Emacs recognizes
    two control character sets and many graphic character sets.
 
    Graphic character sets are classified into one of the following
-   four classes, DIMENSION1_CHARS94, DIMENSION1_CHARS96,
-   DIMENSION2_CHARS94, DIMENSION2_CHARS96 according to the number of
-   bytes (DIMENSION) and the number of characters in one dimension
-   (CHARS) of the set.  In addition, each character set is assigned an
-   identification tag (called "final character" and denoted as <F>
-   here after) which is unique in each class.  <F> of each character
-   set is decided by ECMA(*) when it is registered in ISO.  Code range
-   of <F> is 0x30..0x7F (0x30..0x3F are for private use only).
+   four classes, according to the number of bytes (DIMENSION) and
+   number of characters in one dimension (CHARS) of the set:
+   - DIMENSION1_CHARS94
+   - DIMENSION1_CHARS96
+   - DIMENSION2_CHARS94
+   - DIMENSION2_CHARS96
+
+   In addition, each character set is assigned an identification tag,
+   unique for each set, called "final character" (denoted as <F>
+   hereafter).  The <F> of each character set is decided by ECMA(*)
+   when it is registered in ISO.  The code range of <F> is 0x30..0x7F
+   (0x30..0x3F are for private use only).
 
    Note (*): ECMA = European Computer Manufacturers Association
 
@@ -561,55 +565,61 @@ detect_coding_emacs_mule (src, src_end)
 	o DIMENSION2_CHARS94 -- GB2312('A'), JISX0208('B'), ...
 	o DIMENSION2_CHARS96 -- none for the moment
 
-   A code area (1byte=8bits) is divided into 4 areas, C0, GL, C1, and GR.
+   A code area (1 byte=8 bits) is divided into 4 areas, C0, GL, C1, and GR.
 	C0 [0x00..0x1F] -- control character plane 0
 	GL [0x20..0x7F] -- graphic character plane 0
 	C1 [0x80..0x9F] -- control character plane 1
 	GR [0xA0..0xFF] -- graphic character plane 1
 
    A control character set is directly designated and invoked to C0 or
-   C1 by an escape sequence.  The most common case is that ISO646's
-   control character set is designated/invoked to C0 and ISO6429's
-   control character set is designated/invoked to C1, and usually
-   these designations/invocations are omitted in a coded text.  With
-   7-bit environment, only C0 can be used, and a control character for
-   C1 is encoded by an appropriate escape sequence to fit in the
-   environment.  All control characters for C1 are defined the
-   corresponding escape sequences.
+   C1 by an escape sequence.  The most common case is that:
+   - ISO646's  control character set is designated/invoked to C0, and
+   - ISO6429's control character set is designated/invoked to C1,
+   and usually these designations/invocations are omitted in encoded
+   text.  In a 7-bit environment, only C0 can be used, and a control
+   character for C1 is encoded by an appropriate escape sequence to
+   fit into the environment.  All control characters for C1 are
+   defined to have corresponding escape sequences.
 
    A graphic character set is at first designated to one of four
    graphic registers (G0 through G3), then these graphic registers are
    invoked to GL or GR.  These designations and invocations can be
    done independently.  The most common case is that G0 is invoked to
-   GL, G1 is invoked to GR, and ASCII is designated to G0, and usually
-   these invocations and designations are omitted in a coded text.
-   With 7-bit environment, only GL can be used.
+   GL, G1 is invoked to GR, and ASCII is designated to G0.  Usually
+   these invocations and designations are omitted in encoded text.
+   In a 7-bit environment, only GL can be used.
 
-   When a graphic character set of CHARS94 is invoked to GL, code 0x20
-   and 0x7F of GL area work as control characters SPACE and DEL
-   respectively, and code 0xA0 and 0xFF of GR area should not be used.
+   When a graphic character set of CHARS94 is invoked to GL, codes
+   0x20 and 0x7F of the GL area work as control characters SPACE and
+   DEL respectively, and codes 0xA0 and 0xFF of the GR area should not
+   be used.
 
    There are two ways of invocation: locking-shift and single-shift.
    With locking-shift, the invocation lasts until the next different
-   invocation, whereas with single-shift, the invocation works only
-   for the following character and doesn't affect locking-shift.
-   Invocations are done by the following control characters or escape
-   sequences.
+   invocation, whereas with single-shift, the invocation affects the
+   following character only and doesn't affect the locking-shift
+   state.  Invocations are done by the following control characters or
+   escape sequences:
 
    ----------------------------------------------------------------------
-   function		control char	escape sequence	description
+   abbrev  function	             cntrl escape seq	description
    ----------------------------------------------------------------------
-   SI  (shift-in)		0x0F	none		invoke G0 to GL
-   SO  (shift-out)		0x0E	none		invoke G1 to GL
-   LS2 (locking-shift-2)	none	ESC 'n'		invoke G2 into GL
-   LS3 (locking-shift-3)	none	ESC 'o'		invoke G3 into GL
-   SS2 (single-shift-2)		0x8E	ESC 'N'		invoke G2 into GL
-   SS3 (single-shift-3)		0x8F	ESC 'O'		invoke G3 into GL
+   SI/LS0  (shift-in)		     0x0F  none		invoke G0 into GL
+   SO/LS1  (shift-out)		     0x0E  none		invoke G1 into GL
+   LS2     (locking-shift-2)	     none  ESC 'n'	invoke G2 into GL
+   LS3     (locking-shift-3)	     none  ESC 'o'	invoke G3 into GL
+   LS1R    (locking-shift-1 right)   none  ESC '~'      invoke G1 into GR (*)
+   LS2R    (locking-shift-2 right)   none  ESC '}'      invoke G2 into GR (*)
+   LS3R    (locking-shift 3 right)   none  ESC '|'      invoke G3 into GR (*)
+   SS2     (single-shift-2)	     0x8E  ESC 'N'	invoke G2 for one char
+   SS3     (single-shift-3)	     0x8F  ESC 'O'	invoke G3 for one char
    ----------------------------------------------------------------------
-   The first four are for locking-shift.  Control characters for these
-   functions are defined by macros ISO_CODE_XXX in `coding.h'.
+   (*) These are not used by any known coding system.
 
-   Designations are done by the following escape sequences.
+   Control characters for these functions are defined by macros
+   ISO_CODE_XXX in `coding.h'.
+
+   Designations are done by the following escape sequences:
    ----------------------------------------------------------------------
    escape sequence	description
    ----------------------------------------------------------------------
@@ -632,40 +642,40 @@ detect_coding_emacs_mule (src, src_end)
    ----------------------------------------------------------------------
 
    In this list, "DIMENSION1_CHARS94<F>" means a graphic character set
-   of dimension 1, chars 94, and final character <F>, and etc.
+   of dimension 1, chars 94, and final character <F>, etc...
 
    Note (*): Although these designations are not allowed in ISO2022,
    Emacs accepts them on decoding, and produces them on encoding
-   CHARS96 character set in a coding system which is characterized as
+   CHARS96 character sets in a coding system which is characterized as
    7-bit environment, non-locking-shift, and non-single-shift.
 
    Note (**): If <F> is '@', 'A', or 'B', the intermediate character
-   '(' can be omitted.  We call this as "short-form" here after.
+   '(' can be omitted.  We refer to this as "short-form" hereafter.
 
    Now you may notice that there are a lot of ways for encoding the
-   same multilingual text in ISO2022.  Actually, there exists many
-   coding systems such as Compound Text (used in X's inter client
-   communication, ISO-2022-JP (used in Japanese Internet), ISO-2022-KR
-   (used in Korean Internet), EUC (Extended UNIX Code, used in Asian
+   same multilingual text in ISO2022.  Actually, there exist many
+   coding systems such as Compound Text (used in X11's inter client
+   communication, ISO-2022-JP (used in Japanese internet), ISO-2022-KR
+   (used in Korean internet), EUC (Extended UNIX Code, used in Asian
    localized platforms), and all of these are variants of ISO2022.
 
    In addition to the above, Emacs handles two more kinds of escape
    sequences: ISO6429's direction specification and Emacs' private
    sequence for specifying character composition.
 
-   ISO6429's direction specification takes the following format:
+   ISO6429's direction specification takes the following form:
 	o CSI ']'      -- end of the current direction
 	o CSI '0' ']'  -- end of the current direction
 	o CSI '1' ']'  -- start of left-to-right text
 	o CSI '2' ']'  -- start of right-to-left text
    The control character CSI (0x9B: control sequence introducer) is
-   abbreviated to the escape sequence ESC '[' in 7-bit environment.
-   
-   Character composition specification takes the following format:
+   abbreviated to the escape sequence ESC '[' in a 7-bit environment.
+
+   Character composition specification takes the following form:
 	o ESC '0' -- start character composition
 	o ESC '1' -- end character composition
-   Since these are not standard escape sequences of any ISO, the use
-   of them for these meaning is restricted to Emacs only.  */
+   Since these are not standard escape sequences of any ISO standard,
+   the use of them for these meaning is restricted to Emacs only.  */
 
 enum iso_code_class_type iso_code_class[256];
 
