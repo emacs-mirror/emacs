@@ -1,3 +1,14 @@
+2000-07-17  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/kkc.el (kkc-show-conversion-list-count): Customize
+	it.
+	(kkc-region): Update kkc-next-count and kkc-prev-count here.  Show
+	the conversion list at first if appropriate.
+	(kkc-next): Don't update kkc-next-count here.
+	(kkc-prev): Don't update kkc-prev-count here.
+	(kkc-show-conversion-list-update): Fix setting up of conversion
+	list message.
+
 2000-07-16  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* mouse.el (mouse-major-mode-menu-1): get the submenu with lookup-key.
