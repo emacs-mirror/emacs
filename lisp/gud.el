@@ -1545,7 +1545,15 @@ and source-file directory for your debugger."
 ;; List of Java source file directories.
 (defvar gud-jdb-directories (list ".")
   "*A list of directories that gud jdb should search for source code.
-The file names should be absolute, or relative to the current directory.")
+The file names should be absolute, or relative to the current
+directory.
+
+The set of .java files residing in the directories listed are
+syntactically analyzed to determine the classes they define and the
+packages in which these classes belong.  In this way gud jdb maps the
+package-qualified class names output by the jdb debugger to the source
+file from which the class originated.  This allows gud mode to keep
+the source code display in sync with the debugging session.")
 
 ;; List of the java source files for this debugging session.
 (defvar gud-jdb-source-files nil)
