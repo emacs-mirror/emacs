@@ -1,5 +1,5 @@
 /* Primitive operations on floating point for GNU Emacs Lisp interpreter.
-   Copyright (C) 1988, 1993, 1994, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1988, 1993, 1994, 1999, 2003  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -692,7 +692,7 @@ This is the same as the exponent of a float.  */)
   double f = extract_float (arg);
 
   if (f == 0.0)
-    value = -(VALMASK >> 1);
+    value = MOST_NEGATIVE_FIXNUM;
   else
     {
 #ifdef HAVE_LOGB
