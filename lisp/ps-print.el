@@ -10,12 +10,12 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<2000/11/29 17:35:39 vinicius>
-;; Version:	6.3.2
+;; Time-stamp:	<2000/12/26 23:19:24 Vinicius>
+;; Version:	6.3.3
 ;; X-URL:	http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.3.2"
-  "ps-print.el, v 6.3.2 <2000/11/29 vinicius>
+(defconst ps-print-version "6.3.3"
+  "ps-print.el, v 6.3.3 <2000/12/26 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -1664,7 +1664,7 @@ If it's nil, automatic feeding takes place."
   :type 'boolean
   :group 'ps-print-printer)
 
-(defcustom ps-end-with-control-d ps-windows-system
+(defcustom ps-end-with-control-d (and ps-windows-system t)
   "*Non-nil means insert C-d at end of PostScript file generated."
   :type 'boolean
   :group 'ps-print-printer)
@@ -1779,14 +1779,14 @@ Valid values are:
    `odd-page'	print only odd pages.
 
    `even-sheet'	print only even sheets.
-		That is, if `ps-n-up-printing' is 1, it behaves as `even'; but
-		for values greater than 1, it'll print only the even sheet of
-		paper.
+		That is, if `ps-n-up-printing' is 1, it behaves as `even-page';
+		but for values greater than 1, it'll print only the even sheet
+		of paper.
 
    `odd-sheet'	print only odd sheets.
-		That is, if `ps-n-up-printing' is 1, it behaves as `odd'; but
-		for values greater than 1, it'll print only the odd sheet of
-		paper.
+		That is, if `ps-n-up-printing' is 1, it behaves as `odd-page';
+		but for values greater than 1, it'll print only the odd sheet
+		of paper.
 
 Any other value is treated as nil.
 
@@ -2862,6 +2862,7 @@ The table depends on the current ps-print setup."
       ps-printer-name-option   %s
       ps-print-region-function %s
       ps-manual-feed           %S
+      ps-end-with-control-d    %S
 
       ps-paper-type          %s
       ps-warn-paper-type     %s
@@ -2877,8 +2878,9 @@ The table depends on the current ps-print setup."
       ps-line-number-step    %s
       ps-line-number-start   %S
 
-      ps-default-fg %s
-      ps-default-bg %s
+      ps-default-fg    %s
+      ps-default-bg    %s
+      ps-razzle-dazzle %S
 
       ps-use-face-background %s
 
@@ -2888,9 +2890,11 @@ The table depends on the current ps-print setup."
 
       ps-print-background-text %s
 
-      ps-error-handler-message %s
-      ps-user-defined-prologue %s
-      ps-print-prologue-header %s
+      ps-error-handler-message     %s
+      ps-user-defined-prologue     %s
+      ps-print-prologue-header     %s
+      ps-postscript-code-directory %S
+      ps-adobe-tag                 %S
 
       ps-left-margin                %s
       ps-right-margin               %s
@@ -2909,6 +2913,8 @@ The table depends on the current ps-print setup."
       ps-spool-duplex               %s
       ps-spool-tumble               %s
       ps-banner-page-when-duplexing %s
+      ps-left-header                %s
+      ps-right-header               %s
 
       ps-n-up-printing %s
       ps-n-up-margin   %s
@@ -2926,7 +2932,19 @@ The table depends on the current ps-print setup."
 
       ps-even-or-odd-pages   %s
       ps-selected-pages      %s
-      ps-last-selected-pages %s)
+      ps-last-selected-pages %s
+
+      ps-build-face-reference        %S
+      ps-always-build-face-reference %S
+
+      ps-auto-font-detect %S
+      ps-bold-faces       %s
+      ps-italic-faces     %s
+      ps-underlined-faces %s)
+
+;; The following customized variables have long lists and are seldom modified:
+;;    ps-page-dimensions-database
+;;    ps-font-info-database
 
 ;;; ps-print - end of settings
 "
@@ -2938,6 +2956,7 @@ The table depends on the current ps-print setup."
    (ps-print-quote ps-printer-name-option)
    (ps-print-quote ps-print-region-function)
    ps-manual-feed
+   ps-end-with-control-d
    (ps-print-quote ps-paper-type)
    ps-warn-paper-type
    ps-landscape-mode
@@ -2952,6 +2971,7 @@ The table depends on the current ps-print setup."
    ps-line-number-start
    (ps-print-quote ps-default-fg)
    (ps-print-quote ps-default-bg)
+   ps-razzle-dazzle
    (ps-print-quote ps-use-face-background)
    (ps-print-quote ps-print-control-characters)
    (ps-print-quote ps-print-background-image)
@@ -2959,6 +2979,8 @@ The table depends on the current ps-print setup."
    (ps-print-quote ps-error-handler-message)
    (ps-print-quote ps-user-defined-prologue)
    (ps-print-quote ps-print-prologue-header)
+   ps-postscript-code-directory
+   ps-adobe-tag
    ps-left-margin
    ps-right-margin
    ps-inter-column
@@ -2976,6 +2998,8 @@ The table depends on the current ps-print setup."
    ps-spool-duplex
    ps-spool-tumble
    ps-banner-page-when-duplexing
+   (ps-print-quote ps-left-header)
+   (ps-print-quote ps-right-header)
    ps-n-up-printing
    ps-n-up-margin
    ps-n-up-border-p
@@ -2990,7 +3014,13 @@ The table depends on the current ps-print setup."
    (ps-print-quote ps-line-number-font-size)
    (ps-print-quote ps-even-or-odd-pages)
    (ps-print-quote ps-selected-pages)
-   (ps-print-quote ps-last-selected-pages)))
+   (ps-print-quote ps-last-selected-pages)
+   ps-build-face-reference
+   ps-always-build-face-reference
+   ps-auto-font-detect
+   (ps-print-quote ps-bold-faces)
+   (ps-print-quote ps-italic-faces)
+   (ps-print-quote ps-underlined-faces)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -3141,8 +3171,9 @@ The table depends on the current ps-print setup."
 
 (defun ps-prologue-file (filenumber)
   (save-excursion
-    (let* ((filename (format "%sps-prin%d.ps"
-			     ps-postscript-code-directory filenumber))
+    (let* ((filename (convert-standard-filename
+		      (expand-file-name (format "ps-prin%d.ps" filenumber)
+					ps-postscript-code-directory)))
 	   (buffer
 	    (or (find-file-noselect filename 'no-warn 'rawfile)
 		(error "ps-print PostScript prologue `%s' file was not found."
@@ -3179,7 +3210,8 @@ The table depends on the current ps-print setup."
 (defvar ps-page-column 0)		; column counter
 (defvar ps-page-printed 0)		; total pages printed
 (defvar ps-page-n-up 0)			; n-up counter
-(defvar ps-showline-count 1)
+(defvar ps-lines-printed 0)		; total lines printed
+(defvar ps-showline-count 1)		; line number counter
 (defvar ps-first-page nil)
 (defvar ps-last-page nil)
 (defvar ps-print-page-p t)
@@ -4787,12 +4819,6 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 
 (defun ps-begin-job ()
   ;; prologue files
-  (let ((last-char (aref ps-postscript-code-directory
-			 (1- (length ps-postscript-code-directory)))))
-    (or (eq last-char ?/)
-	(and ps-windows-system (eq last-char ?\\))
-	(setq ps-postscript-code-directory
-	      (concat ps-postscript-code-directory "/"))))
   (or (equal ps-mark-code-directory ps-postscript-code-directory)
       (setq ps-print-prologue-0    (ps-prologue-file 0)
 	    ps-print-prologue-1    (ps-prologue-file 1)
@@ -4839,6 +4865,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	ps-page-sheet 0
 	ps-page-n-up 0
 	ps-page-column 0
+	ps-lines-printed 0
 	ps-print-page-p t
 	ps-showline-count (car ps-printing-region)
 	ps-font-size-internal        (ps-get-font-size 'ps-font-size)
@@ -4943,7 +4970,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
     (ps-generate-header "HeaderLinesRight"   ps-right-header)
     (ps-output (format "%d SetHeaderLines\n" ps-header-lines)))
 
-  (ps-output "BeginPage\n")
+  (ps-output (number-to-string ps-lines-printed) " BeginPage\n")
   (ps-set-font  ps-current-font)
   (ps-set-bg    ps-current-bg)
   (ps-set-color ps-current-color)
@@ -4952,8 +4979,15 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 (defun ps-end-page ()
   (ps-output "EndPage\nEndDSCPage\n"))
 
+(defun ps-skip-newline (limit)
+  (setq ps-showline-count (1+ ps-showline-count)
+	ps-lines-printed  (1+ ps-lines-printed))
+  (and (< (point) limit)
+       (forward-char 1)))
+
 (defun ps-next-line ()
-  (setq ps-showline-count (1+ ps-showline-count))
+  (setq ps-showline-count (1+ ps-showline-count)
+	ps-lines-printed  (1+ ps-lines-printed))
   (let ((lh (ps-line-height 'ps-font-for-text)))
     (if (< ps-height-remaining lh)
 	(ps-next-page)
@@ -4962,6 +4996,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
       (ps-output "HL\n"))))
 
 (defun ps-continue-line ()
+  (setq ps-lines-printed (1+ ps-lines-printed))
   (let ((lh (ps-line-height 'ps-font-for-text)))
     (if (< ps-height-remaining lh)
 	(ps-next-page)
@@ -5096,14 +5131,24 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 			   bg-color))))
 
 	     ((= match ?\n)		; newline
-	      (ps-next-line))
+	      (if (looking-at "\f[^\n]")
+		  ;; \n\ftext\n ==>> next page, but keep line counting!!
+		  (progn
+		    (ps-skip-newline to)
+		    (ps-next-page))
+		;; \n\f\n     ==>> it'll be handled by form feed
+		;; \ntext\n   ==>> next line
+		(ps-next-line)))
 
 	     ((= match ?\f)		; form feed
 	      ;; do not skip page if previous character is NEWLINE and
 	      ;; it is a beginning of page.
-	      (or (and (equal (char-after (1- match-point)) ?\n)
-		       (= ps-height-remaining ps-print-height))
-		  (ps-next-page)))
+	      (unless (and (equal (char-after (1- match-point)) ?\n)
+			   (= ps-height-remaining ps-print-height))
+		;; \f\n ==>> skip \n, but keep line counting!!
+		(and (equal (following-char) ?\n)
+		     (ps-skip-newline to))
+		(ps-next-page)))
 
 	     (composition		; a composite sequence
 	      (ps-plot 'ps-mule-plot-composition match-point (point) bg-color))
@@ -5354,13 +5399,12 @@ If FACE is not a valid face name, it is used default face."
 	  ;; Loop through the extents...
 	  (while a
 	    (setq record (car a)
-
 		  position (car record)
-		  record (cdr record)
 
+		  record (cdr record)
 		  type (car record)
-		  record (cdr record)
 
+		  record (cdr record)
 		  extent (car record))
 
 	    ;; Plot up to this record.
@@ -5532,7 +5576,8 @@ If FACE is not a valid face name, it is used default face."
 	 (let ((ps-n-up-printing 0))
 	   (ps-header-sheet)
 	   (ps-output "/PrintHeader false def\n/ColumnIndex 0 def\n"
-		      "/PrintLineNumber false def\nBeginPage\n")
+		      "/PrintLineNumber false def\n"
+		      (number-to-string ps-lines-printed) " BeginPage\n")
 	   (ps-end-page)))
     ;; Set end of PostScript file
     (and previous-print
