@@ -400,6 +400,10 @@ the car and cdr are the same symbol.")
     (modify-syntax-entry (pop list) (pop list) table))
   table)
 
+(defvar sh-mode-syntax-table nil
+  "The syntax table to use for Shell-Script mode.
+This is buffer-local in every such buffer.")
+
 (defvar sh-mode-default-syntax-table
   (sh-mode-syntax-table ()
 	?\# "<"
