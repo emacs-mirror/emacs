@@ -427,13 +427,18 @@ Executes BODY just like `progn'.")
   return unbind_to (count, val);
 }
 
-DEFUN ("buffer-size", Fbufsize, Sbufsize, 0, 0, 0,
-  "Return the number of characters in the current buffer.")
-  ()
+DEFUN ("buffer-size", Fbufsize, Sbufsize, 0, 1, 0,
+  "Return the number of characters in the current buffer.\n\
+If BUFFER, return the number of characters in that buffer instead.")
+  (buffer)
+     Lisp_Object buffer;
 {
-  Lisp_Object temp;
-  XSETFASTINT (temp, Z - BEG);
-  return temp;
+  if (NILP (buffer))
+    return make_number (Z - BEG);
+  else {
+    CHECK_BUFFER (buffer, 1);
+    return make_number (BUF_Z (XBUFFER (buffer)) - BUF_BEG (XBUFFER (buffer)));
+  }
 }
 
 DEFUN ("point-min", Fpoint_min, Spoint_min, 0, 0, 0,
