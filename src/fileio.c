@@ -3386,7 +3386,7 @@ This does code conversion according to the value of\n\
 	      if (inserted + require + 2 * (total - how_much) > bufsize)
 		{
 		  bufsize = inserted + require + 2 * (total - how_much);
-		  conversion_buffer = (unsigned char *) realloc (conversion_buffer, bufsize);
+		  conversion_buffer = (unsigned char *) xrealloc (conversion_buffer, bufsize);
 		}
 
 	      /* Convert this batch with results in CONVERSION_BUFFER.  */
