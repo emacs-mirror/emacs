@@ -1458,7 +1458,7 @@ for this variable.  */)
   return value;
 }
 
-DEFUN ("setq-default", Fsetq_default, Ssetq_default, 2, UNEVALLED, 0,
+DEFUN ("setq-default", Fsetq_default, Ssetq_default, 0, UNEVALLED, 0,
        doc: /* Set the default value of variable VAR to VALUE.
 VAR, the variable name, is literal (not evaluated);
 VALUE is an expression: it is evaluated and its value returned.
@@ -1470,7 +1470,7 @@ More generally, you can use multiple variables and values, as in
 This sets each VAR's default value to the corresponding VALUE.
 The VALUE for the Nth VAR can refer to the new default values
 of previous VARs.
-usage: (setq-default VAR VALUE [VAR VALUE...])  */)
+usage: (setq-default [VAR VALUE...])  */)
      (args)
      Lisp_Object args;
 {
