@@ -1,5 +1,6 @@
 # -sed6.inp------------------------------------------------------------------
-# Configuration script for man/Makefile and lispref/Makefile under DJGPP v2.x
+# Configuration script for man/Makefile, lispref/Makefile, and
+# lispintro/Makefile under DJGPP v2.x
 # ---------------------------------------------------------------------------
 #
 # Copyright (C) 1997, 2000, 2001
@@ -25,3 +26,4 @@ export MAKEINFO := $(MAKEINFO) -I$(srcdir)
 /^texinputdir/c\
 texinputdir =\
 export texinputdir := $(srcdir)";"$(TEXINPUTS)
+/^SHELL *=/s/^/# /
