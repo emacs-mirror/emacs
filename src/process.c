@@ -579,7 +579,10 @@ BUFFER may be a buffer or the name of one.")
   return Qnil;
 }
 
-/* This is how commands for the user decode process arguments */
+/* This is how commands for the user decode process arguments.  It
+   accepts a process, a process name, a buffer, a buffer name, or nil.
+   Buffers denote the first process in the buffer, and nil denotes the
+   current buffer.  */
 
 Lisp_Object
 get_process (name)
@@ -607,7 +610,8 @@ get_process (name)
 
 DEFUN ("delete-process", Fdelete_process, Sdelete_process, 1, 1, 0,
   "Delete PROCESS: kill it and forget about it immediately.\n\
-PROCESS may be a process or the name of one, or a buffer name.")
+PROCESS may be a process, a buffer, the name of a process or buffer, or\n\
+nil, indicating the current buffer's process.")
   (proc)
      register Lisp_Object proc;
 {
@@ -640,7 +644,9 @@ exit -- for a process that has exited.\n\
 signal -- for a process that has got a fatal signal.\n\
 open -- for a network stream connection that is open.\n\
 closed -- for a network stream connection that is closed.\n\
-nil -- if arg is a process name and no such process exists.")
+nil -- if arg is a process name and no such process exists.\n\
+PROCESS may be a process, a buffer, the name of a process or buffer, or\n\
+nil, indicating the current buffer's process.")
 /* command -- for a command channel opened to Emacs by another process.\n\
    external -- for an i/o channel opened to Emacs by another process.\n\  */
   (proc)
@@ -648,7 +654,7 @@ nil -- if arg is a process name and no such process exists.")
 {
   register struct Lisp_Process *p;
   register Lisp_Object status;
-  proc = Fget_process (proc);
+  proc = get_process (proc);
   if (NILP (proc))
     return proc;
   p = XPROCESS (proc);
@@ -2164,7 +2170,8 @@ send_process (proc, buf, len)
 DEFUN ("process-send-region", Fprocess_send_region, Sprocess_send_region,
   3, 3, 0,
   "Send current contents of region as input to PROCESS.\n\
-PROCESS may be a process name or an actual process.\n\
+PROCESS may be a process, a buffer, the name of a process or buffer, or\n\
+nil, indicating the current buffer's process.\n\
 Called from program, takes three arguments, PROCESS, START and END.\n\
 If the region is more than 500 characters long,\n\
 it is sent in several bunches.  This may happen even for shorter regions.\n\
@@ -2190,7 +2197,8 @@ Output from processes can arrive in between bunches.")
 DEFUN ("process-send-string", Fprocess_send_string, Sprocess_send_string,
   2, 2, 0,
   "Send PROCESS the contents of STRING as input.\n\
-PROCESS may be a process name or an actual process.\n\
+PROCESS may be a process, a buffer, the name of a process or buffer, or\n\
+nil, indicating the current buffer's process.\n\
 If STRING is more than 500 characters long,\n\
 it is sent in several bunches.  This may happen even for shorter strings.\n\
 Output from processes can arrive in between bunches.")
@@ -2373,6 +2381,7 @@ process_send_signal (process, signo, current_group, nomsg)
 
 DEFUN ("interrupt-process", Finterrupt_process, Sinterrupt_process, 0, 2, 0,
   "Interrupt process PROCESS.  May be process or name of one.\n\
+PROCESS may be a process, a buffer, or the name of a process or buffer.\n\
 Nil or no arg means current buffer's process.\n\
 Second arg CURRENT-GROUP non-nil means send signal to\n\
 the current process-group of the process's controlling terminal\n\
@@ -2449,7 +2458,8 @@ Both PID and CODE are integers.")
 DEFUN ("process-send-eof", Fprocess_send_eof, Sprocess_send_eof, 0, 1, 0,
   "Make PROCESS see end-of-file in its input.\n\
 Eof comes after any text already sent to it.\n\
-nil or no arg means current buffer's process.")
+PROCESS may be a process, a buffer, the name of a process or buffer, or\n\
+nil, indicating the current buffer's process.")
   (process)
      Lisp_Object process;
 {

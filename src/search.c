@@ -111,7 +111,8 @@ compile_pattern (pattern, bufp, regp, translate)
 
   /* Advise the searching functions about the space we have allocated
      for register data.  */
-  re_set_registers (bufp, regp, regp->num_regs, regp->start, regp->end);
+  if (regp)
+    re_set_registers (bufp, regp, regp->num_regs, regp->start, regp->end);
 
   return;
 }
