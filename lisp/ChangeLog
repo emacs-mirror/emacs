@@ -1,3 +1,10 @@
+2000-03-06  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-file-or-variation-thereof): New func, for
+	code abstracted out of `bookmark-jump-noselect'.  Now tries info
+	extensions as well as compression extensions.
+	(bookmark-jump-noselect): Use above new func.
+	
 2000-03-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* strokes.el: Change maintainer's mail address.

@@ -1,5 +1,9 @@
 2000-03-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* process.c (send_process): Remove local variable `procname' that
+	might become invalid when a GC happens.  Instead, access the
+	process name slot directly.
+
 	* xfns.c (x_set_menu_bar_lines_1): Adjust window's orig_top and
 	orig_height if set.
 
