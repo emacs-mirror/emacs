@@ -514,6 +514,8 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 		    (select-frame frame)
 		    (server-client-set client 'frame frame)
 		    (server-client-set client 'tty (frame-tty-name frame))
+		    ;; Set up display for the remote locale.
+		    (configure-display-for-locale)
 		    ;; Reply with our pid.
 		    (process-send-string proc (concat "-emacs-pid " (number-to-string (emacs-pid)) "\n"))
 		    (setq dontkill t)))
