@@ -1458,7 +1458,8 @@ in that case, this function acts as if `enable-local-variables' were t."
 ;;; The following should come after the ChangeLog pattern
 ;;; for the sake of ChangeLog.1, etc.
 ;;; and after the .scm.[0-9] and CVS' <file>.<rev> patterns too.
-     ("\\.[12345678]\\'" . nroff-mode)))
+     ("\\.[12345678]\\'" . nroff-mode)
+     ("\\.g\\'" . antlr-mode)))
   "Alist of filename patterns vs corresponding major mode functions.
 Each element looks like (REGEXP . FUNCTION) or (REGEXP FUNCTION NON-NIL).
 \(NON-NIL stands for anything that is not nil; the value does not matter.)
