@@ -1,5 +1,7 @@
 2001-05-22  Gerd Moellmann  <gerd@gnu.org>
 
+	* cus-edit.el (custom-comment-show): Remove debug code.
+
 	* language/japan-util.el (japanese-symbol-table): Fix handling of
 	Japanese long tone sign.  From Kenichi Handa <handa@etl.go.jp>.
 
