@@ -18,8 +18,8 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#ifndef _SYSTIME_H
-#define _SYSTIME_H
+#ifndef EMACS_SYSTIME_H
+#define EMACS_SYSTIME_H
 
 #ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
@@ -166,4 +166,4 @@ extern int set_file_times ();
 #define EMACS_TIME_LT(T1, T2) (EMACS_TIME_CMP (T1, T2) < 0)
 #define EMACS_TIME_LE(T1, T2) (EMACS_TIME_CMP (T1, T2) <= 0)
 
-#endif /* _SYSTIME_H */
+#endif /* EMACS_SYSTIME_H */
