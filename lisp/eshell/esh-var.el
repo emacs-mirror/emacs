@@ -272,7 +272,7 @@ This function is explicit for adding to `eshell-parse-argument-hook'."
 	  (eshell-parse-variable))))
 
 (defun eshell/define (var-alias definition)
-  "Define an VAR-ALIAS using DEFINITION."
+  "Define a VAR-ALIAS using DEFINITION."
   (if (not definition)
       (setq eshell-variable-aliases-list
 	    (delq (assoc var-alias eshell-variable-aliases-list)
