@@ -87,7 +87,7 @@ with the best level."
 This means that they will still be listed when there are no unread
 articles in the groups."
   :group 'gnus-group-listing
-  :type 'regexp)
+  :type '(choice regexp (const nil)))
 
 (defcustom gnus-list-groups-with-ticked-articles t
   "*If non-nil, list groups that have only ticked articles.
