@@ -198,12 +198,13 @@ explicitly requested.
 @opindex --no-init-file
 @cindex bypassing init and site-start file
 @cindex init file, not loading
+@cindex @file{default.el} file, not loading
 Do not load your Emacs init file @file{~/.emacs}, or @file{default.el}
 either.
 
 @item --no-site-file
 @opindex --no-site-file
-@cindex site-start file, not loading
+@cindex @file{site-start.el} file, not loading
 Do not load @file{site-start.el}.  The options @samp{-q}, @samp{-u}
 and @samp{-batch} have no effect on the loading of this file---this is
 the only option that blocks it.
