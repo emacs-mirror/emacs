@@ -5,7 +5,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/11/17 19:27:57 vinicius>
+;; Time-stamp: <2004/11/21 20:56:53 vinicius>
 ;; Keywords: wp, print, PostScript
 ;; Version: 6.8.3
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
@@ -4280,6 +4280,7 @@ Or choose the menu option Printing/Show Settings/printing."
      (list
       (concat "\n;;; printing.el version " pr-version "\n")
       ";; internal vars"
+      (ps-comment-string "emacs-version       " emacs-version)
       (ps-comment-string "pr-txt-command      " pr-txt-command)
       (ps-comment-string "pr-txt-switches     "
 			 (pr-switches-string pr-txt-switches "pr-txt-switches"))
@@ -4355,16 +4356,19 @@ Or choose the menu option Printing/Show Settings/lpr."
   (let (ps-prefix-quote)
     (mapconcat
      #'ps-print-quote
-     '("\n;;; lpr.el settings\n"
-       (25 . printer-name)
-       (25 . lpr-switches)
-       (25 . lpr-add-switches)
-       (25 . lpr-command)
-       (25 . lpr-headers-switches)
-       (25 . print-region-function)
-       (25 . lpr-page-header-program)
-       (25 . lpr-page-header-switches)
-       ")\n\n;;; lpr.el - end of settings\n")
+     (list
+      "\n;;; lpr.el settings\n"
+      (ps-comment-string "emacs-version" emacs-version)
+      nil
+      '(25 . printer-name)
+      '(25 . lpr-switches)
+      '(25 . lpr-add-switches)
+      '(25 . lpr-command)
+      '(25 . lpr-headers-switches)
+      '(25 . print-region-function)
+      '(25 . lpr-page-header-program)
+      '(25 . lpr-page-header-switches)
+      ")\n\n;;; lpr.el - end of settings\n")
      "\n")))
 
 
