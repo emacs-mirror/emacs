@@ -993,7 +993,7 @@ Returns t if successful."
 	(let ((stack (cons default-directory shell-dirstack))
 	      (index (cond ((looking-at "=-/?")
 			    (length shell-dirstack))
-			   ((looking-at "=\\([0-9]+\\)")
+			   ((looking-at "=\\([0-9]+\\)/?")
 			    (string-to-number
 			     (buffer-substring
 			      (match-beginning 1) (match-end 1)))))))
