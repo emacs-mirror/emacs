@@ -1,5 +1,5 @@
 /* Updating of data structures for redisplay.
-   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 97, 98, 1999, 2000, 2001, 2002
+   Copyright (C) 1985,86,87,88,93,94,95,97,98,1999,2000,01,02,2003
        Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -5732,7 +5732,6 @@ mode_line_string (w, x, y, part, charpos)
 {
   struct glyph_row *row;
   struct glyph *glyph, *end;
-  struct frame *f = XFRAME (w->frame);
   int x0;
   Lisp_Object string = Qnil;
 
