@@ -1,52 +1,20 @@
 /* File name wild card expansion for VMS.
    This file is part of the etags program.
-   Copyright (C) 1987 Free Software Foundation, Inc. 3 Feb 1987
+   Copyright (C) 1987 Free Software Foundation, Inc.
      
-This program is distributed in the hope that it will be useful,
-but without any warranty.  No author or distributor
-accepts responsibility to anyone for the consequences of using it
-or for whether it serves any particular purpose or works at all,
-unless he says so in writing.
-     
-   Permission is granted to anyone to distribute verbatim copies
-   of this program's source code as received, in any medium, provided that
-   the copyright notice, the nonwarraty notice above
-   and this permission notice are preserved,
-   and that the distributor grants the recipient all rights
-   for further redistribution as permitted by this notice,
-   and informs him of these rights.
-     
-   Permission is granted to distribute modified versions of this
-   program's source code, or of portions of it, under the above
-   conditions, plus the conditions that all changed files carry
-   prominent notices stating who last changed them and that the
-   derived material, including anything packaged together with it and
-   conceptually functioning as a modification of it rather than an
-   application of it, is in its entirety subject to a permission
-   notice identical to this one.
-     
-   Permission is granted to distribute this program (verbatim or
-   as modified) in compiled or executable form, provided verbatim
-   redistribution is permitted as stated above for source code, and
-    A.  it is accompanied by the corresponding machine-readable
-      source code, under the above conditions, or
-    B.  it is accompanied by a written offer, with no time limit,
-      to distribute the corresponding machine-readable source code,
-      under the above conditions, to any one, in return for reimbursement
-      of the cost of distribution.   Verbatim redistribution of the
-      written offer must be permitted.  Or,
-    C.  it is distributed by someone who received only the
-      compiled or executable form, and is accompanied by a copy of the
-      written offer of source code which he received along with it.
-     
-   Permission is granted to distribute this program (verbatim or as modified)
-   in executable form as part of a larger system provided that the source
-   code for this program, including any modifications used,
-   is also distributed or offered as stated in the preceding paragraph.
-     
-In other words, you are welcome to use, share and improve this program.
-You are forbidden to forbid anyone else to use, share and improve
-what you give them.   Help stamp out software-hoarding!  */
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include	<stdio.h>
 typedef	char	tbool;
@@ -63,7 +31,7 @@ typedef struct	{
 #define	YES	1
 #define	NULL	0
 
-/* v1.01 nmm 19-Aug-85 gfnames - return in successive calls the 
+/* gfnames - return in successive calls the 
  name of each file specified by all the remaining args in the command-line
  expanding wild cards and 
  stepping over arguments when they have been processed completely
@@ -101,7 +69,7 @@ gfnames(pac, pav, p_error)
 				
 }
 
-/* v1.05 nmm 26-Jun-86 fn_exp - expand specification of list of file names
+/* fn_exp - expand specification of list of file names
  returning in each successive call the next filename matching the input
  spec. The function expects that each in_spec passed
  to it will be processed to completion; in particular, up to and
