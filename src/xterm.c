@@ -25,6 +25,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    
 */
 
+#define NEW_SELECTIONS
+
 #include "config.h"
 
 #ifdef HAVE_X_WINDOWS
@@ -2441,6 +2443,9 @@ Atom Xatom_wm_delete_window;
 Atom Xatom_wm_configure_denied;	  /* When our config request is denied */
 Atom Xatom_wm_window_moved;	  /* When the WM moves us. */
 
+/* Window manager communication.  */
+Atom Xatom_wm_change_state;
+
 /* Record the last 100 characters stored
    to help debug the loss-of-chars-during-GC problem.  */
 int temp_index;
@@ -2562,18 +2567,65 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	  }
 	  break;
 
+#ifdef NEW_SELECTIONS
+	case SelectionNotify:
+	  x_handle_selection_notify (&event);
+	  break;
+#endif
+
 	case SelectionClear:	/* Someone has grabbed ownership. */
+#ifdef NEW_SELECTIONS
+	  {
+	    XSelectionClearEvent *eventp = (XSelectionClearEvent *) &event;
+
+	    if (numchars == 0)
+	      abort ();
+
+	    bufp->kind = selection_clear_event;
+	    SELECTION_EVENT_DISPLAY (bufp) = eventp->display;
+	    SELECTION_EVENT_SELECTION (bufp) = eventp->selection;
+	    SELECTION_EVENT_TIME (bufp) = eventp->time;
+	    bufp++;
+
+	    count += 1;
+	    numchars -= 1;
+	  }
+#else
 	  x_disown_selection (event.xselectionclear.window,
 			      event.xselectionclear.selection,
 			      event.xselectionclear.time);
+#endif
 	  break;
 
 	case SelectionRequest:	/* Someone wants our selection. */
+#ifdef NEW_SELECTIONS
+	  {
+	    XSelectionRequestEvent *eventp = (XSelectionRequestEvent *) &event;
+
+	    if (numchars == 0)
+	      abort ();
+
+	    bufp->kind = selection_request_event;
+	    SELECTION_EVENT_DISPLAY (bufp) = eventp->display;
+	    SELECTION_EVENT_REQUESTOR (bufp) = eventp->requestor;
+	    SELECTION_EVENT_SELECTION (bufp) = eventp->selection;
+	    SELECTION_EVENT_TARGET (bufp) = eventp->target;
+	    SELECTION_EVENT_PROPERTY (bufp) = eventp->property;
+	    SELECTION_EVENT_TIME (bufp) = eventp->time;
+	    bufp++;
+
+	    count += 1;
+	    numchars -= 1;
+	  }
+#else
 	  x_answer_selection_request (event);
+#endif
 	  break;
 
 	case PropertyNotify:
-
+#ifdef NEW_SELECTIONS
+	  x_handle_property_notify (&event);
+#else
 	  /* If we're being told about a root window property, then it's
 	     a cut buffer change.  */
 	  if (event.xproperty.window == ROOT_WINDOW)
@@ -2587,6 +2639,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		 about re-selecting. */
 	      x_send_incremental (event);
 	    }
+#endif
 	  break;
 
 	case Expose:
@@ -4155,9 +4208,6 @@ x_make_frame_invisible (f)
   UNBLOCK_INPUT;
 }
 
-/* Window manager communication.  Created in Fx_open_connection. */
-extern Atom Xatom_wm_change_state;
-
 /* Change window state from mapped to iconified. */
 
 x_iconify_frame (f)
@@ -4495,12 +4545,14 @@ x_term_init (display_name)
   x_find_modifier_meanings ();
 
   /* Get the scroll bar cursor.  */
-  x_vertical_scroll_bar_cursor =
-    XCreateFontCursor (x_current_display, XC_sb_v_double_arrow);
+  x_vertical_scroll_bar_cursor
+    = XCreateFontCursor (x_current_display, XC_sb_v_double_arrow);
 
+#if 0
   /* Watch for PropertyNotify events on the root window; we use them
      to figure out when to invalidate our cache of the cut buffers.  */
   x_watch_cut_buffer_cache ();
+#endif
 
   dup2 (ConnectionNumber (x_current_display), 0);
 
