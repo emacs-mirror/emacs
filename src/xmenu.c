@@ -793,6 +793,8 @@ event_is_in_menu_item (mw, event, name, string_w)
 }
 
 
+/* Return the menu bar key which corresponds to event EVENT in frame F.  */
+
 Lisp_Object
 map_event_to_object (event, f)
      struct input_event *event;
@@ -812,11 +814,22 @@ map_event_to_object (event, f)
       if (ws && event_is_in_menu_item (mw, event, val->name, &string_w))
 	{
 	  Lisp_Object items;
+	  int i;
+
 	  items = FRAME_MENU_BAR_ITEMS (f);
-	  for (; CONSP (items); items = XCONS (items)->cdr)
-	    if (!strcmp (val->name,
-			XSTRING (Fcar (Fcdr (Fcar (items))))->data))
-	      return items;
+
+	  for (i = 0; i < XVECTOR (items)->size; i += 3)
+	    {
+	      Lisp_Object pos, string, item;
+	      item = XVECTOR (items)->contents[i];
+	      string = XVECTOR (items)->contents[i + 1];
+	      pos = XVECTOR (items)->contents[i + 2];
+	      if (NILP (string))
+		break;
+
+	      if (!strcmp (val->name, XSTRING (string)->data))
+		return item;
+	    }
 	}
     }
   return Qnil;
@@ -920,8 +933,9 @@ set_frame_menubar (f)
 {
   Widget menubar_widget = f->display.x->menubar_widget;
   int id = (int) f;
-  Lisp_Object tail;
+  Lisp_Object tail, items;
   widget_value *wv, *save_wv, *first_wv, *prev_wv = 0;
+  int i;
 
   BLOCK_INPUT;
 
@@ -931,12 +945,15 @@ set_frame_menubar (f)
   wv->enabled = 1;
   save_wv = first_wv = wv;
 
+  items = FRAME_MENU_BAR_ITEMS (f);
 
-  for (tail = FRAME_MENU_BAR_ITEMS (f); CONSP (tail); tail = XCONS (tail)->cdr)
+  for (i = 0; i < XVECTOR (items)->size; i += 3)
     {
       Lisp_Object string;
 
-      string = Fcar (Fcdr (Fcar (tail)));
+      string = XVECTOR (items)->contents[i + 1];
+      if (NILP (string))
+	break;
 
       wv = malloc_widget_value ();
       if (prev_wv) 
