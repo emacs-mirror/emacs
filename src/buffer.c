@@ -2819,10 +2819,8 @@ buffer.")
 	  Lisp_Object o_beg;
 	  Lisp_Object o_end;
 
-	  o_beg = OVERLAY_START (overlay);
-	  o_end = OVERLAY_END   (overlay);
-	  o_beg = OVERLAY_POSITION (o_beg);
-	  o_end = OVERLAY_POSITION (o_end);
+	  o_beg = OVERLAY_POSITION (OVERLAY_START (overlay));
+	  o_end = OVERLAY_POSITION (OVERLAY_END (overlay));
 
 	  modify_overlay (ob, XINT (o_beg), XINT (o_end));
 	}
@@ -2837,10 +2835,8 @@ buffer.")
       Lisp_Object o_end;
       int change_beg, change_end;
 
-      o_beg = OVERLAY_START (overlay);
-      o_end = OVERLAY_END   (overlay);
-      o_beg = OVERLAY_POSITION (o_beg);
-      o_end = OVERLAY_POSITION (o_end);
+      o_beg = OVERLAY_POSITION (OVERLAY_START (overlay));
+      o_end = OVERLAY_POSITION (OVERLAY_END (overlay));
 
       if (XINT (o_beg) == XINT (beg))
 	modify_overlay (b, XINT (o_end), XINT (end));
