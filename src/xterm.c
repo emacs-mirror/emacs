@@ -1385,6 +1385,9 @@ unsigned int x_mouse_grabbed;
    (EVENT.state & x_shift_lock_mask) != 0.  */
 static int x_meta_mod_mask, x_shift_lock_mask;
 
+/* These are like x_meta_mod_mask, but for different modifiers.  */
+static int x_alt_mod_mask, x_super_mod_mask, x_hyper_mod_mask;
+
 /* Initialize mode_switch_bit and modifier_meaning.  */
 static void
 x_find_modifier_meanings ()
@@ -1393,10 +1396,12 @@ x_find_modifier_meanings ()
   KeySym *syms;
   int syms_per_code;
   XModifierKeymap *mods;
-  int alt_mod_mask = 0;
 
   x_meta_mod_mask = 0;
   x_shift_lock_mask = 0;
+  x_alt_mod_mask = 0;
+  x_super_mod_mask = 0;
+  x_hyper_mod_mask = 0;
   
   XDisplayKeycodes (x_current_display, &min_code, &max_code);
   syms = XGetKeyboardMapping (x_current_display,
@@ -1432,7 +1437,17 @@ x_find_modifier_meanings ()
 
 		  case XK_Alt_L:
 		  case XK_Alt_R:
-		    alt_mod_mask |= (1 << row);
+		    x_alt_mod_mask |= (1 << row);
+		    break;
+
+		  case XK_Hyper_L:
+		  case XK_Hyper_R:
+		    x_hyper_mod_mask |= (1 << row);
+		    break;
+
+		  case XK_Super_L:
+		  case XK_Super_R:
+		    x_super_mod_mask |= (1 << row);
 		    break;
 
 		  case XK_Shift_Lock:
@@ -1448,7 +1463,10 @@ x_find_modifier_meanings ()
 
   /* If we couldn't find any meta keys, accept any alt keys as meta keys.  */
   if (! x_meta_mod_mask)
-    x_meta_mod_mask = alt_mod_mask;
+    {
+      x_meta_mod_mask = x_alt_mod_mask;
+      x_alt_mod_mask = 0;
+    }
 
   XFree ((char *) syms);
   XFreeModifiermap (mods);
@@ -1464,7 +1482,10 @@ x_convert_modifiers (state)
 {
   return (  ((state & (ShiftMask | x_shift_lock_mask)) ? shift_modifier : 0)
 	  | ((state & ControlMask)		       ? ctrl_modifier  : 0)
-	  | ((state & x_meta_mod_mask)		       ? meta_modifier  : 0));
+	  | ((state & x_meta_mod_mask)		       ? meta_modifier  : 0)
+	  | ((state & x_alt_mod_mask)		       ? alt_modifier  : 0)
+	  | ((state & x_super_mod_mask)		       ? super_modifier  : 0)
+	  | ((state & x_hyper_mod_mask)		       ? hyper_modifier  : 0));
 }
 
 /* Prepare a mouse-event in *RESULT for placement in the input queue.
@@ -2721,13 +2742,15 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 	      if (numchars > 1)
 		{
-		  if (IsCursorKey (keysym)          /* 0xff50 <= x < 0xff60 */
+		  if ((keysym >= XK_BackSpace && keysym <= XK_Escape)
+		      || keysym == XK_Delete
+		      || IsCursorKey (keysym)       /* 0xff50 <= x < 0xff60 */
 		      || IsMiscFunctionKey (keysym) /* 0xff60 <= x < 0xff80 */
 		      || IsKeypadKey (keysym)       /* 0xff80 <= x < 0xffbe */
 		      || IsFunctionKey (keysym))    /* 0xffbe <= x < 0xffe1 */
 		    {
 		      bufp->kind = non_ascii_keystroke;
-		      XSET (bufp->code, Lisp_Int, (unsigned) keysym - 0xff50);
+		      XSET (bufp->code, Lisp_Int, (unsigned) keysym - 0xff00);
 		      XSET (bufp->frame_or_window, Lisp_Frame, f);
 		      bufp->modifiers = x_convert_modifiers (modifiers);
 		      bufp->timestamp = event.xkey.time;
