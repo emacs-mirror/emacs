@@ -1290,8 +1290,8 @@ and don't mark the buffer as really changed.")
 
 	      if (! NILP (noundo))
 		{
-		  if (MODIFF - 1 == current_buffer->save_modified)
-		    current_buffer->save_modified++;
+		  if (MODIFF - 1 == SAVE_MODIFF)
+		    SAVE_MODIFF++;
 		  if (MODIFF - 1 == current_buffer->auto_save_modified)
 		    current_buffer->auto_save_modified++;
 		}
@@ -1862,7 +1862,7 @@ transpose_markers (start1, end1, start2, end2)
   amt1 = (end2 - start2) + (start2 - end1);
   amt2 = (end1 - start1) + (start2 - end1);
 
-  for (marker = current_buffer->markers; !NILP (marker);
+  for (marker = BUF_MARKERS (current_buffer); !NILP (marker);
        marker = XMARKER (marker)->chain)
     {
       mpos = Fmarker_position (marker);
@@ -1898,7 +1898,7 @@ Transposing beyond buffer boundaries is an error.")
 
 #ifdef USE_TEXT_PROPERTIES
   INTERVAL cur_intv, tmp_interval1, tmp_interval_mid, tmp_interval2;
-  cur_intv = current_buffer->intervals;
+  cur_intv = BUF_INTERVALS (current_buffer);
 #endif /* USE_TEXT_PROPERTIES */
 
   validate_region (&startr1, &endr1);
