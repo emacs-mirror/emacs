@@ -108,6 +108,8 @@ to future sessions."
 The user's .emacs file is altered so that this will apply
 to future sessions."
   (interactive "CDisable command: ")
+  (if (not (commandp command))
+      (error "Invalid command name `%s'" command))
   (put command 'disabled t)
   (save-excursion
    (set-buffer (find-file-noselect 
