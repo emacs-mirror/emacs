@@ -2416,10 +2416,10 @@ package to describe."
 	     (assoc package quail-package-alist)
 	   quail-current-package)))
     ;; At first, make sure that the help buffer has window.
-    (help-setup-xref (list #'quail-help package) (interactive-p))
-    (with-output-to-temp-buffer (help-buffer)
-      (with-current-buffer standard-output
-	(setq quail-current-package package-def)))
+    (let ((temp-buffer-show-hook nil))
+      (with-output-to-temp-buffer (help-buffer)
+	(with-current-buffer standard-output
+	  (setq quail-current-package package-def))))
     ;; Then, insert text in the help buffer while paying attention to
     ;; the width of the frame in which the buffer displayed.
     (with-current-buffer (help-buffer)
