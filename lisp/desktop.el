@@ -198,7 +198,7 @@ Feature: Saving `kill-ring' implies saving `kill-ring-yank-pointer'."
     search-ring-yank-pointer
     regexp-search-ring
     regexp-search-ring-yank-pointer)
-  "List of global variables to clear by `desktop-clear'.
+  "List of global variables that `desktop-clear' will clear.
 An element may be variable name (a symbol) or a cons cell of the form
 \(VAR . FORM). Symbols are set to nil and for cons cells VAR is set
 to the value obtained by evaluateing FORM."
@@ -264,6 +264,27 @@ Possible values are:
    tilde    -- Relative to ~.
    local    -- Relative to directory of desktop file."
   :type '(choice (const absolute) (const tilde) (const local))
+  :group 'desktop
+  :version "21.4")
+
+(defcustom desktop-restore-eager t
+  "Number of buffers to restore immediately.
+Remaining buffers are restored lazily (when Emacs is idle).
+If value is t, all buffers are restored immediately."
+  :type '(choise (const t) integer)
+  :group 'desktop
+  :version "21.4")
+
+(defcustom desktop-lazy-verbose t
+  "Verbose reporting of lazily created buffers."
+  :type 'boolean
+  :group 'desktop
+  :version "21.4")
+
+(defcustom desktop-lazy-idle-delay 5
+  "Idle delay before starting to create buffers.
+See `desktop-restore-eager'."
+  :type 'integer
   :group 'desktop
   :version "21.4")
 
@@ -365,6 +386,7 @@ This kills all buffers except for internal ones and those matching
 `desktop-clear-preserve-buffers'.  Furthermore, it clears the
 variables listed in `desktop-globals-to-clear'."
   (interactive)
+  (desktop-lazy-abort)
   (dolist (var desktop-globals-to-clear)
     (if (symbolp var)
       (eval `(setq-default ,var nil))
@@ -625,6 +647,7 @@ See also `desktop-base-file-name'."
                         (setq locals (cdr locals)))
                       ll)))
               (buffer-list)))
+          (eager desktop-restore-eager)
           (buf (get-buffer-create "*desktop*")))
       (set-buffer buf)
       (erase-buffer)
@@ -645,14 +668,21 @@ See also `desktop-base-file-name'."
 
       (insert "\n;; Buffer section -- buffers listed in same order as in buffer list:\n")
       (mapc #'(lambda (l)
-		(if (apply 'desktop-save-buffer-p l)
-		    (progn
-		      (insert "(desktop-create-buffer " desktop-file-version)
-		      (mapc #'(lambda (e)
-				(insert "\n  " (desktop-value-to-string e)))
-			    l)
-		      (insert ")\n\n"))))
-	    info)
+                (when (apply 'desktop-save-buffer-p l)
+                  (insert "("
+                          (if (or (not (integerp eager))
+                                  (unless (zerop eager)
+                                    (setq eager (1- eager))
+                                    t))
+                              "desktop-create-buffer"
+                            "desktop-append-buffer-args")
+                          " "
+                          desktop-file-version)
+                  (mapc #'(lambda (e)
+                            (insert "\n  " (desktop-value-to-string e)))
+                        l)
+                  (insert ")\n\n")))
+            info)
       (setq default-directory dirname)
       (when (file-exists-p filename) (delete-file filename))
       (let ((coding-system-for-write 'emacs-mule))
@@ -669,6 +699,11 @@ This function also sets `desktop-dirname' to nil."
       (setq desktop-dirname nil)
       (when (file-exists-p filename)
         (delete-file filename)))))
+
+(defvar desktop-buffer-args-list nil
+  "List of args for `desktop-create-buffer'.")
+
+(defvar desktop-lazy-timer nil)
 
 ;; ----------------------------------------------------------------------------
 ;;;###autoload
@@ -706,6 +741,7 @@ It returns t if a desktop file was loaded, nil otherwise."
       (let ((desktop-first-buffer nil)
             (desktop-buffer-ok-count 0)
             (desktop-buffer-fail-count 0))
+        (setq desktop-lazy-timer nil)
         ;; Evaluate desktop buffer.
         (load (expand-file-name desktop-base-file-name desktop-dirname) t t t)
         ;; `desktop-create-buffer' puts buffers at end of the buffer list.
@@ -717,11 +753,15 @@ It returns t if a desktop file was loaded, nil otherwise."
         (run-hooks 'desktop-delay-hook)
         (setq desktop-delay-hook nil)
         (run-hooks 'desktop-after-read-hook)
-        (message "Desktop: %d buffer%s restored%s."
+        (message "Desktop: %d buffer%s restored%s%s."
                  desktop-buffer-ok-count
                  (if (= 1 desktop-buffer-ok-count) "" "s")
                  (if (< 0 desktop-buffer-fail-count)
                      (format ", %d failed to restore" desktop-buffer-fail-count)
+                   "")
+                 (if desktop-buffer-args-list
+                     (format ", %d to restore lazily"
+                             (length desktop-buffer-args-list))
                    ""))
         t)
       ;; No desktop file found.
@@ -916,6 +956,69 @@ directory DIRNAME."
 			       (cons 'case-fold-search cfs)
 			       (cons 'case-replace cr)
 			       (cons 'overwrite-mode (car mim)))))
+
+(defun desktop-append-buffer-args (&rest args)
+  "Append ARGS at end of `desktop-buffer-args-list'
+ARGS must be an argument list for `desktop-create-buffer'."
+  (setq desktop-buffer-args-list (nconc desktop-buffer-args-list (list args)))
+  (unless desktop-lazy-timer
+    (setq desktop-lazy-timer
+          (run-with-idle-timer desktop-lazy-idle-delay t 'desktop-idle-create-buffers))))
+
+(defun desktop-lazy-create-buffer ()
+  "Pop args from `desktop-buffer-args-list', create buffer and bury it."
+  (when desktop-buffer-args-list
+    (let* ((remaining (length desktop-buffer-args-list))
+           (args (pop desktop-buffer-args-list))
+           (buffer-name (nth 2 args))
+           (msg (format "Desktop lazily opening %s (%s remaining)..."
+                            buffer-name remaining)))
+      (when desktop-lazy-verbose
+        (message msg))
+      (let ((desktop-first-buffer nil)
+            (desktop-buffer-ok-count 0)
+            (desktop-buffer-fail-count 0))
+        (apply 'desktop-create-buffer args)
+        (run-hooks 'desktop-delay-hook)
+        (setq desktop-delay-hook nil)
+        (bury-buffer (get-buffer buffer-name))
+        (when desktop-lazy-verbose
+          (message "%s%s" msg (if (> desktop-buffer-ok-count 0) "done" "failed")))))))
+
+(defun desktop-idle-create-buffers ()
+  "Create buffers until the user does something, then stop.
+If there are no buffers left to create, kill the timer."
+  (let ((repeat 1))
+    (while (and repeat desktop-buffer-args-list)
+      (save-window-excursion
+        (desktop-lazy-create-buffer))
+      (setq repeat (sit-for 0.2))
+    (unless desktop-buffer-args-list
+      (cancel-timer desktop-lazy-timer)
+      (setq desktop-lazy-timer nil)
+      (message "Lazy desktop load complete")
+      (sit-for 3)
+      (message "")))))
+
+(defun desktop-lazy-complete ()
+  "Run the desktop load to completion."
+  (interactive)
+  (let ((desktop-lazy-verbose t))
+    (while desktop-buffer-args-list
+      (save-window-excursion
+        (desktop-lazy-create-buffer)))
+    (message "Lazy desktop load complete")))
+
+(defun desktop-lazy-abort ()
+  "Abort lazy loading of the desktop."
+  (interactive)
+  (when desktop-lazy-timer
+    (cancel-timer desktop-lazy-timer)
+    (setq desktop-lazy-timer nil))
+  (when desktop-buffer-args-list
+    (setq desktop-buffer-args-list nil)
+    (when (interactive-p)
+      (message "Lazy desktop load aborted"))))
 
 ;; ----------------------------------------------------------------------------
 ;; When `desktop-save-mode' is non-nil and "--no-desktop" is not specified on the
