@@ -68,6 +68,7 @@ The format is (FUNCTION ARGS...).")
 ;; Button types used by help
 
 (define-button-type 'help-xref
+  'follow-link t
   'action #'help-button-action)
 
 (defun help-button-action (button)
