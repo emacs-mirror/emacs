@@ -586,8 +586,21 @@ typedef unsigned char UCHAR;
 #define NUMBERP(x) (XTYPE (x) == Lisp_Int)
 #endif
 
-/* #define LISTP(x) (XTYPE ((x)) == Lisp_Cons)*/
+#define INTEGERP(x) (XTYPE ((x)) == Lisp_Int)
+#define SYMBOLP(x) (XTYPE ((x)) == Lisp_Symbol)
+#define MARKERP(x) (XTYPE ((x)) == Lisp_Marker)
+#define STRINGP(x) (XTYPE ((x)) == Lisp_String)
+#define VECTORP(x) (XTYPE ((x)) == Lisp_Vector)
 #define CONSP(x) (XTYPE ((x)) == Lisp_Cons)
+#define COMPILEDP(x) (XTYPE ((x)) == Lisp_Compiled)
+#define BUFFERP(x) (XTYPE ((x)) == Lisp_Buffer)
+#define SUBRP(x) (XTYPE ((x)) == Lisp_Subr)
+#define PROCESSP(x) (XTYPE ((x)) == Lisp_Process)
+#define FRAMEP(x) (XTYPE ((x)) == Lisp_Frame)
+#define WINDOWP(x) (XTYPE ((x)) == Lisp_Window)
+#define WINDOW_CONFIGURATIONP(x) (XTYPE ((x)) == Lisp_Window_Configuration)
+#define FLOATP(x) (XTYPE ((x)) == Lisp_Float)
+
 #define EQ(x, y) (XFASTINT (x) == XFASTINT (y))
 #define GC_EQ(x, y) (XGCTYPE (x) == XGCTYPE (y) && XPNTR (x) == XPNTR (y))
 
