@@ -322,8 +322,9 @@ scan_c_file (filename, mode)
   register int defvarperbufferflag;
   register int defvarflag;
   int minargs, maxargs;
+  int extension = filename[strlen (filename) - 1];
 
-  if (filename[strlen (filename) - 1] == 'o')
+  if (extension == 'o')
     filename[strlen (filename) - 1] = 'c';
 
   infile = fopen (filename, mode);
@@ -334,6 +335,9 @@ scan_c_file (filename, mode)
       perror (filename);
       return 0;
     }
+
+  /* Reset extension to be able to detect duplicate files. */
+  filename[strlen (filename) - 1] = extension;
 
   c = '\n';
   while (!feof (infile))
