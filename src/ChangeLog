@@ -1,5 +1,8 @@
 2000-12-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c [USE_X_TOOLKIT]: Close the display.
+	(xim_close_dpy): Handle case that the display has been closed.
+
 	* xterm.c (x_destroy_window): Reset the frame's X window after
 	destroying it.
 
