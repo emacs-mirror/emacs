@@ -449,7 +449,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 	      (setq regexp-search-ring (cons (cons search-string uppercase-flag)
 					    regexp-search-ring)
 		    regexp-search-ring-yank-pointer regexp-search-ring)
-	      (if (> (length regexp-search-ring) regexp-search-ring-max)
+	      (if (> (length regexp-search-ring) search-ring-max)
 		  (setcdr (nthcdr (1- search-ring-max) regexp-search-ring) nil)))
 	  (if (not (member search-string search-ring))
 	      (progn
