@@ -142,7 +142,7 @@
 ;; Tue Mar 23 21:23:18 1993  Joe Wells  (jbw at csd.bu.edu)
 ;; 
 ;; 	* Made mail-full-name-prefixes a user-customizable variable.
-;;        Allow passing the address as a buffer as well as as a string.
+;;        Allow passing the address as a buffer as well as a string.
 ;;        Allow [ and ] as name characters (Finnish character set).
 ;; 
 ;; Mon Mar 22 21:20:56 1993  Joe Wells  (jbw at bigbird.bu.edu)
