@@ -1,3 +1,15 @@
+2003-04-08  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	* net/tramp.el: Version 2.0.33 released.
+	Change coding cookie to `iso-2022-7bit' for XEmacs
+	compatibility.  (From Steve Youngs <youngs@xemacs.org>.)
+
+2003-04-08  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* net/tramp-ftp.el (tramp-ftp-file-name-handler):
+	Do not disable file name handlers for `file-exists-p' and
+	`file-directory-p'.
+
 2003-04-08  Kenichi Handa  <handa@etlken2>
 
 	* international/mule-conf.el: Register ?\225 in

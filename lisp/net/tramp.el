@@ -1,4 +1,4 @@
-;;; -*- mode: Emacs-Lisp; coding: iso-8859-1; -*-
+;;; -*- mode: Emacs-Lisp; coding: iso-2022-7bit; -*-
 ;;; tramp.el --- Transparent Remote Access, Multiple Protocol
 
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
@@ -2344,7 +2344,7 @@ if the remote host can't provide the modtime."
 
 ;; Other file name ops.
 
-;; ;; Matthias Köppe <mkoeppe@mail.math.uni-magdeburg.de>
+;; ;; Matthias K,Av(Bppe <mkoeppe@mail.math.uni-magdeburg.de>
 ;; (defun tramp-handle-directory-file-name (directory)
 ;;   "Like `directory-file-name' for tramp files."
 ;;   (if (and (eq (aref directory (- (length directory) 1)) ?/)
@@ -6529,7 +6529,7 @@ report.
 ;;   transfer method to use.  (Greg Stark)
 ;; * Remove unneeded parameters from methods.
 ;; * Invoke rsync once for copying a whole directory hierarchy.
-;;   (Francesco Potortì)
+;;   (Francesco Potort,Al(B)
 ;; * Should we set PATH ourselves or should we rely on the remote end
 ;;   to do it?
 ;; * Do the autoconf thing.
