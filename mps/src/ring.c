@@ -1,7 +1,7 @@
 /* impl.c.ring: RING IMPLEMENTATION
  *
- * $HopeName: MMsrc!ring.c(trunk.4) $
- * Copyright (C) 1995,1996 Harlequin Group, all rights reserved.
+ * $HopeName: MMsrc!ring.c(trunk.5) $
+ * Copyright (C) 1995,1996, 1997 Harlequin Group, all rights reserved.
  *
  * .readership: Any MPS developer.
  *
@@ -22,7 +22,7 @@
 #include "mpm.h"
 
 
-SRCID(ring, "$HopeName: MMsrc!ring.c(trunk.4) $");
+SRCID(ring, "$HopeName: MMsrc!ring.c(trunk.5) $");
 
 
 /* RingCheck, RingCheckSingle -- check the validity of a ring node
@@ -39,6 +39,7 @@ Bool RingCheck(Ring ring)
   CHECKL(ring->next->prev == ring);
   CHECKL(ring->prev != NULL);
   CHECKL(ring->prev->next == ring);
+  UNUSED(ring); /* impl.c.mpm.check.unused */
   return TRUE;
 }
 
@@ -47,6 +48,7 @@ Bool RingCheckSingle(Ring ring)
   CHECKL(RingCheck(ring));
   CHECKL(ring->next == ring);
   CHECKL(ring->prev == ring);
+  UNUSED(ring); /* impl.c.mpm.check.unused */
   return TRUE;
 }
 
