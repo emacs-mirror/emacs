@@ -1,3 +1,8 @@
+2000-09-21  Dave Love  <fx@gnu.org>
+
+	* msb.el (msb-mode-map): Use substitute-key-definition.
+	(msb-mode): Use msb-mode-map.
+
 2000-09-21  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-index-of, vc-transfer-file, vc-default-receive-file):
