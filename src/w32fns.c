@@ -143,9 +143,6 @@ Lisp_Object Vw32_bdf_filename_alist;
 
 Lisp_Object Vw32_system_coding_system;
 
-/* A flag to control how to display unibyte 8-bit character.  */
-int unibyte_display_via_language_environment;
-
 /* A flag to control whether fonts are matched strictly or not.  */
 int w32_strict_fontnames;
 
@@ -7515,15 +7512,6 @@ PIXEL_SIZE field of the name, font finding mechanism gets faster for\n\
 such a font.  This is especially effective for such large fonts as\n\
 Chinese, Japanese, and Korean.");
   Vx_pixel_size_width_font_regexp = Qnil;
-
-  DEFVAR_BOOL ("unibyte-display-via-language-environment",
-	       &unibyte_display_via_language_environment,
-   "*Non-nil means display unibyte text according to language environment.\n\
-Specifically this means that unibyte non-ASCII characters\n\
-are displayed by converting them to the equivalent multibyte characters\n\
-according to the current language environment.  As a result, they are\n\
-displayed according to the current fontset.");
-  unibyte_display_via_language_environment = 0;
 
   DEFVAR_LISP ("w32-bdf-filename-alist",
                &Vw32_bdf_filename_alist,
