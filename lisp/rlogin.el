@@ -23,7 +23,7 @@
 ;;; Commentary:
 
 ;; Support for remote logins using `rlogin'.
-;; $Id: rlogin.el,v 1.18 1994/06/16 08:09:34 friedman Exp pot $
+;; $Id: rlogin.el,v 1.19 1994/09/19 11:47:05 pot Exp rms $
 
 ;; If you wish for rlogin mode to prompt you in the minibuffer for
 ;; passwords when a password prompt appears, just enter m-x send-invisible
@@ -86,7 +86,14 @@ The variable `rlogin-program' contains the name of the actual program to
 run.  It can be a relative or absolute path. 
 
 The variable `rlogin-explicit-args' is a list of arguments to give to
-the rlogin when starting.  They are added after any arguments given in ARGS."
+the rlogin when starting.  They are added after any arguments given in ARGS.
+
+If `rlogin-initially-track-cwd' is non-nil (which is true by default),
+then the default directory in that buffer is set to a remote (FTP) file name
+to access your home directory on the remote machine.  Occasionally
+this causes an error, if you cannot access the home directory on that
+machine.  This error is harmless as long as you don't try to use
+that default directory."
   (interactive (list
 		(read-from-minibuffer "rlogin arguments (hostname first): ")
 		current-prefix-arg))
