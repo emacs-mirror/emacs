@@ -189,9 +189,6 @@ extern int num_nonmacro_input_events;
 /* Nonzero means polling for input is temporarily suppressed.  */
 extern int poll_suppress_count;
 
-/* Nonzero if polling_for_input is actually being used.  */
-extern int polling_for_input;
-
 /* Keymap mapping ASCII function key sequences onto their preferred forms.
    Initialized by the terminal-specific lisp files.  */
 extern Lisp_Object Vfunction_key_map;
