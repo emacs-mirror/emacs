@@ -1,3 +1,13 @@
+2004-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (subregexp-context-p): New function.
+
+	* isearch.el (isearch-quote-char): Use it.
+
+	* emacs-lisp/regexp-opt.el (regexp-opt-depth): Use it.
+	(regexp-opt-not-groupie*-re): Remove.
+	(regexp-opt): Properly handle inputs with duplicate entries.
+
 2004-12-06  Richard M. Stallman  <rms@gnu.org>
 
 	* info-look.el (info-lookup-maybe-add-help cfengine-mode): Regexp typo.
@@ -12,13 +22,13 @@
 
 2004-12-05  Sam Steingold  <sds@gnu.org>
 
-	* net/tramp.el (tramp-handle-file-accessible-directory-p): Fixed
-	`tramp-time-diff' comparison logic
+	* net/tramp.el (tramp-handle-file-accessible-directory-p):
+	Fix `tramp-time-diff' comparison logic
 
 2004-12-05  Paul Pogonyshev  <pogonyshev@gmx.net>
 
-	* progmodes/which-func.el (which-function): Use
-	`run-hook-with-args-until-success' instead of a custom loop.
+	* progmodes/which-func.el (which-function):
+	Use `run-hook-with-args-until-success' instead of a custom loop.
 	Fixes bug with local hooks.
 
 2004-12-05  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
