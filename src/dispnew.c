@@ -4781,31 +4781,31 @@ update_frame_line (frame, vpos)
   else
     reassert_line_highlight (desired_row->inverse_p, vpos);
 
+  /* Current row not enabled means it has unknown contents.  We must
+     write the whole desired line in that case.  */
   must_write_whole_line_p = !current_row->enabled_p;
   if (must_write_whole_line_p)
     {
-      /* A line that is not enabled is empty.  */
       obody = 0;
       olen = 0;
     }
   else
     {
-      /* A line not empty in the current matrix.  */
       obody = MATRIX_ROW_GLYPH_START (current_matrix, vpos);
       olen = current_row->used[TEXT_AREA];
       
       if (! current_row->inverse_p)
 	{
-	  /* Ignore trailing spaces.  */
+	  /* Ignore trailing spaces, if we can.  */
 	  if (!must_write_spaces)
 	    while (olen > 0 && CHAR_GLYPH_SPACE_P (obody[olen-1]))
 	      olen--;
 	}
       else
 	{
-	  /* For an inverse-video line, remember we gave it spaces all
-	     the way to the frame edge so that the reverse video
-	     extends all the way across.  */
+	  /* For an inverse-video line, make sure it's filled with
+	     spaces all the way to the frame edge so that the reverse
+	     video extends all the way across.  */
 	  while (olen < FRAME_WIDTH (frame) - 1)
 	    obody[olen++] = space_glyph;
 	}
@@ -4829,15 +4829,27 @@ update_frame_line (frame, vpos)
   /* If display line has unknown contents, write the whole line.  */
   if (must_write_whole_line_p)
     {
+      /* Ignore spaces at the end, if we can.  */
       if (!must_write_spaces)
 	while (nlen > 0 && CHAR_GLYPH_SPACE_P (nbody[nlen - 1]))
 	  --nlen;
 
-      cursor_to (vpos, 0);
+      /* Write the contents of the desired line.  */
       if (nlen)
-	write_glyphs (nbody, nlen);
+	{
+          cursor_to (vpos, 0);
+	  write_glyphs (nbody, nlen);
+	}
       
-      clear_end_of_line (FRAME_WINDOW_WIDTH (frame));
+      /* Don't call clear_end_of_line if we already wrote the whole
+	 line.  The cursor will not be at the right margin in that
+	 case but in the line below.  */
+      if (nlen < FRAME_WINDOW_WIDTH (frame))
+	{
+	  cursor_to (vpos, nlen);
+          clear_end_of_line (FRAME_WINDOW_WIDTH (frame));
+	}
+
       make_current (desired_matrix, current_matrix, vpos);
       return;
     }
