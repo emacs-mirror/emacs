@@ -234,6 +234,7 @@ following the containing message."
 	  (cond ((re-search-forward
 		  "^----.*\\([Ff]orwarded\\|[Oo]riginal\\).*[Mm]essage" nil t)
 		 (forward-line 1)
+		 (skip-chars-forward "\n")
 		 (setq beg (point))
 		 (setq end (if (re-search-forward "^----.*[^- \t\n]" nil t)
 			       (match-beginning 0) (point-max)))
@@ -269,8 +270,8 @@ following the containing message."
 	  (narrow-to-region (point) (point))
 	  (insert rmail-mail-separator)
 	  (narrow-to-region (point) (point))
-	  (insert "Forwarded-from: " forwarded-from "\n")
-	  (insert "Forwarded-date: " forwarded-date "\n")
+	  (insert "Forwarded-From: " forwarded-from "\n")
+	  (insert "Forwarded-Date: " forwarded-date "\n")
 	  (insert forward-msg)
 	  (save-restriction
 	    (goto-char (point-min))
