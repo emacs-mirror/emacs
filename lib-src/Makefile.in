@@ -79,7 +79,7 @@ INSTALL_DATA = ${INSTALL}
 # ============================= Targets ==============================
 
 # Things that a user might actually run, which should be installed in bindir.
-INSTALLABLES = etags ctags emacsclient b2m 
+INSTALLABLES = etags ctags emacsclient b2m rcs-checkin
 
 # Things that Emacs runs internally, or during the build process,
 # which should not be installed in bindir.
