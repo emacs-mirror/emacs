@@ -629,7 +629,7 @@ difftm (a, b)
   int ay = a->tm_year + (TM_YEAR_ORIGIN - 1);
   int by = b->tm_year + (TM_YEAR_ORIGIN - 1);
   /* Some compilers can't handle this as a single return statement.  */
-  int days = (
+  long days = (
 	      /* difference in day of year */
 	      a->tm_yday - b->tm_yday
 	      /* + intervening leap days */
