@@ -3138,6 +3138,7 @@ This is intended for use by asynchronous process output filters and sentinels.")
 /* Sending data to subprocess */
 
 jmp_buf send_process_frame;
+Lisp_Object process_sent_to;
 
 SIGTYPE
 send_process_trap ()
@@ -3164,9 +3165,9 @@ send_process_trap ()
 void
 send_process (proc, buf, len, object)
      volatile Lisp_Object proc;
-     unsigned char *buf;
-     int len;
-     Lisp_Object object;
+     unsigned char *volatile buf;
+     volatile int len;
+     volatile Lisp_Object object;
 {
   /* Use volatile to protect variables from being clobbered by longjmp.  */
   int rv;
@@ -3219,7 +3220,7 @@ send_process (proc, buf, len, object)
   if (CODING_REQUIRE_ENCODING (coding))
     {
       int require = encoding_buffer_size (coding, len);
-      int from_byte = -1, from, to;
+      int from_byte = -1, from = -1, to = -1;
       unsigned char *temp_buf = NULL;
 
       if (BUFFERP (object))
@@ -3247,7 +3248,7 @@ send_process (proc, buf, len, object)
 	       : XSTRING (object)->data + from_byte);
 
       object = XPROCESS (proc)->encoding_buf;
-      encode_coding (coding, buf, XSTRING (object)->data,
+      encode_coding (coding, (char *) buf, XSTRING (object)->data,
 		     len, STRING_BYTES (XSTRING (object)));
       len = coding->produced;
       buf = XSTRING (object)->data;
@@ -3261,7 +3262,7 @@ send_process (proc, buf, len, object)
     error ("Could not find this process: %x", p->pid);
   else if (write_to_vms_process (vs, buf, len))
     ;
-#else
+#else /* not VMS */
 
   if (pty_max_bytes == 0)
     {
@@ -3277,128 +3278,138 @@ send_process (proc, buf, len, object)
       pty_max_bytes--;
     }
 
+  /* 2000-09-21: Emacs 20.7, sparc-sun-solaris-2.6, GCC 2.95.2,
+     CFLAGS="-g -O": The value of the parameter `proc' is clobbered
+     when returning with longjmp despite being declared volatile.  */
   if (!setjmp (send_process_frame))
-    while (len > 0)
-      {
-	int this = len;
-	SIGTYPE (*old_sigpipe)();
+    {
+      process_sent_to = proc;
+      while (len > 0)
+	{
+	  int this = len;
+	  SIGTYPE (*old_sigpipe)();
 
-	/* Decide how much data we can send in one batch.
-	   Long lines need to be split into multiple batches.  */
-	if (!NILP (XPROCESS (proc)->pty_flag))
-	  {
-	    /* Starting this at zero is always correct when not the first iteration
-	       because the previous iteration ended by sending C-d.
-	       It may not be correct for the first iteration
-	       if a partial line was sent in a separate send_process call.
-	       If that proves worth handling, we need to save linepos
-	       in the process object.  */
-	    int linepos = 0;
-	    unsigned char *ptr = buf;
-	    unsigned char *end = buf + len;
+	  /* Decide how much data we can send in one batch.
+	     Long lines need to be split into multiple batches.  */
+	  if (!NILP (XPROCESS (proc)->pty_flag))
+	    {
+	      /* Starting this at zero is always correct when not the first iteration
+		 because the previous iteration ended by sending C-d.
+		 It may not be correct for the first iteration
+		 if a partial line was sent in a separate send_process call.
+		 If that proves worth handling, we need to save linepos
+		 in the process object.  */
+	      int linepos = 0;
+	      unsigned char *ptr = (unsigned char *) buf;
+	      unsigned char *end = (unsigned char *) buf + len;
 
-	    /* Scan through this text for a line that is too long.  */
-	    while (ptr != end && linepos < pty_max_bytes)
-	      {
-		if (*ptr == '\n')
-		  linepos = 0;
-		else
-		  linepos++;
-		ptr++;
-	      }
-	    /* If we found one, break the line there
-	       and put in a C-d to force the buffer through.  */
-	    this = ptr - buf;
-	  }
+	      /* Scan through this text for a line that is too long.  */
+	      while (ptr != end && linepos < pty_max_bytes)
+		{
+		  if (*ptr == '\n')
+		    linepos = 0;
+		  else
+		    linepos++;
+		  ptr++;
+		}
+	      /* If we found one, break the line there
+		 and put in a C-d to force the buffer through.  */
+	      this = ptr - buf;
+	    }
 
-	/* Send this batch, using one or more write calls.  */
-	while (this > 0)
-	  {
-	    old_sigpipe = (SIGTYPE (*) ()) signal (SIGPIPE, send_process_trap);
-	    rv = emacs_write (XINT (XPROCESS (proc)->outfd), buf, this);
-	    signal (SIGPIPE, old_sigpipe);
+	  /* Send this batch, using one or more write calls.  */
+	  while (this > 0)
+	    {
+	      old_sigpipe = (SIGTYPE (*) ()) signal (SIGPIPE, send_process_trap);
+	      rv = emacs_write (XINT (XPROCESS (proc)->outfd),
+				(char *) buf, this);
+	      signal (SIGPIPE, old_sigpipe);
 
-	    if (rv < 0)
-	      {
-		if (0
+	      if (rv < 0)
+		{
+		  if (0
 #ifdef EWOULDBLOCK
-		    || errno == EWOULDBLOCK
+		      || errno == EWOULDBLOCK
 #endif
 #ifdef EAGAIN
-		    || errno == EAGAIN
+		      || errno == EAGAIN
 #endif
-		    )
-		  /* Buffer is full.  Wait, accepting input; 
-		     that may allow the program
-		     to finish doing output and read more.  */
-		  {
-		    Lisp_Object zero;
-		    int offset;
+		      )
+		    /* Buffer is full.  Wait, accepting input; 
+		       that may allow the program
+		       to finish doing output and read more.  */
+		    {
+		      Lisp_Object zero;
+		      int offset = 0;
 
 #ifdef BROKEN_PTY_READ_AFTER_EAGAIN
-		    /* A gross hack to work around a bug in FreeBSD.
-		       In the following sequence, read(2) returns
-		       bogus data:
+		      /* A gross hack to work around a bug in FreeBSD.
+			 In the following sequence, read(2) returns
+			 bogus data:
 
-		       write(2)	 1022 bytes
-		       write(2)   954 bytes, get EAGAIN
-		       read(2)   1024 bytes in process_read_output
-		       read(2)     11 bytes in process_read_output
+			 write(2)	 1022 bytes
+			 write(2)   954 bytes, get EAGAIN
+			 read(2)   1024 bytes in process_read_output
+			 read(2)     11 bytes in process_read_output
 
-		       That is, read(2) returns more bytes than have
-		       ever been written successfully.  The 1033 bytes
-		       read are the 1022 bytes written successfully
-		       after processing (for example with CRs added if
-		       the terminal is set up that way which it is
-		       here).  The same bytes will be seen again in a
-		       later read(2), without the CRs.  */
+			 That is, read(2) returns more bytes than have
+			 ever been written successfully.  The 1033 bytes
+			 read are the 1022 bytes written successfully
+			 after processing (for example with CRs added if
+			 the terminal is set up that way which it is
+			 here).  The same bytes will be seen again in a
+			 later read(2), without the CRs.  */
 		    
-		    if (errno == EAGAIN)
-		      {
-			int flags = FWRITE;
-			ioctl (XINT (XPROCESS (proc)->outfd), TIOCFLUSH,
-			       &flags);
-		      }
+		      if (errno == EAGAIN)
+			{
+			  int flags = FWRITE;
+			  ioctl (XINT (XPROCESS (proc)->outfd), TIOCFLUSH,
+				 &flags);
+			}
 #endif /* BROKEN_PTY_READ_AFTER_EAGAIN */
 		    
-		    /* Running filters might relocate buffers or strings.
-		       Arrange to relocate BUF.  */
-		    if (BUFFERP (object))
-		      offset = BUF_PTR_BYTE_POS (XBUFFER (object), buf);
-		    else if (STRINGP (object))
-		      offset = buf - XSTRING (object)->data;
+		      /* Running filters might relocate buffers or strings.
+			 Arrange to relocate BUF.  */
+		      if (BUFFERP (object))
+			offset = BUF_PTR_BYTE_POS (XBUFFER (object), buf);
+		      else if (STRINGP (object))
+			offset = buf - XSTRING (object)->data;
 
-		    XSETFASTINT (zero, 0);
+		      XSETFASTINT (zero, 0);
 #ifdef EMACS_HAS_USECS
-		    wait_reading_process_input (0, 20000, zero, 0);
+		      wait_reading_process_input (0, 20000, zero, 0);
 #else
-		    wait_reading_process_input (1, 0, zero, 0);
+		      wait_reading_process_input (1, 0, zero, 0);
 #endif
 
-		    if (BUFFERP (object))
-		      buf = BUF_BYTE_ADDRESS (XBUFFER (object), offset);
-		    else if (STRINGP (object))
-		      buf = offset + XSTRING (object)->data;
+		      if (BUFFERP (object))
+			buf = BUF_BYTE_ADDRESS (XBUFFER (object), offset);
+		      else if (STRINGP (object))
+			buf = offset + XSTRING (object)->data;
 
-		    rv = 0;
-		  }
-		else
-		  /* This is a real error.  */
-		  report_file_error ("writing to process", Fcons (proc, Qnil));
-	      }
-	    buf += rv;
-	    len -= rv;
-	    this -= rv;
-	  }
+		      rv = 0;
+		    }
+		  else
+		    /* This is a real error.  */
+		    report_file_error ("writing to process", Fcons (proc, Qnil));
+		}
+	      buf += rv;
+	      len -= rv;
+	      this -= rv;
+	    }
 
-	/* If we sent just part of the string, put in an EOF
-	   to force it through, before we send the rest.  */
-	if (len > 0)
-	  Fprocess_send_eof (proc);
-      }
-#endif
+	  /* If we sent just part of the string, put in an EOF
+	     to force it through, before we send the rest.  */
+	  if (len > 0)
+	    Fprocess_send_eof (proc);
+	}
+    }
+#endif /* not VMS */
   else
     {
+#ifndef VMS
+      proc = process_sent_to;
+#endif
       XPROCESS (proc)->raw_status_low = Qnil;
       XPROCESS (proc)->raw_status_high = Qnil;
       XPROCESS (proc)->status = Fcons (Qexit, Fcons (make_number (256), Qnil));
