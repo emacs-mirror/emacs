@@ -799,7 +799,13 @@ command_loop_1 ()
 
       if (minibuf_level && echo_area_glyphs)
 	{
+	  /* Bind inhibit-quit to t so that C-g gets read in
+	     rather than quitting back to the minibuffer.  */
+	  int count = specpdl_ptr - specpdl;
+	  specbind (Qinhibit_quit, Qt);
 	  Fsit_for (make_number (2), Qnil, Qnil);
+	  unbind_to (count);
+
 	  echo_area_glyphs = 0;
 	  no_direct = 1;
 	  if (!NILP (Vquit_flag))
