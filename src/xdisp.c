@@ -12217,7 +12217,8 @@ redisplay_window (window, just_this_one_p)
     }
 
 #ifdef HAVE_WINDOW_SYSTEM
-  if (update_window_fringes (w, 0)
+  if (FRAME_WINDOW_P (f)
+      && update_window_fringes (w, 0)
       && !just_this_one_p
       && (used_current_matrix_p || overlay_arrow_seen)
       && !w->pseudo_window_p)
@@ -21633,9 +21634,6 @@ x_draw_vertical_border (w)
   /* We could do better, if we knew what type of scroll-bar the adjacent
      windows (on either side) have...  But we don't :-(
      However, I think this works ok.  ++KFS 2003-04-25 */
-
-  if (!FRAME_WINDOW_P (XFRAME (w->frame)))
-    return;
 
   /* Redraw borders between horizontally adjacent windows.  Don't
      do it for frames with vertical scroll bars because either the
