@@ -145,6 +145,16 @@ Understands the following styles:
 	(time nil)
 	(zone nil))			;This may be nil.
     (cond ((string-match
+	    "\\([0-9]+\\)[ \t]+\\([^ \t,]+\\)[ \t]+\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9:]+\\)[ \t]*\\([-+a-zA-Z0-9]+\\)" date)
+	   ;; Styles: (1) and (2) with timezone and buggy timezone
+	   ;; This is most common in mail and news,
+	   ;; so it is worth trying first.
+	   (setq year 3 month 2 day 1 time 4 zone 5))
+	  ((string-match
+	    "\\([0-9]+\\)[ \t]+\\([^ \t,]+\\)[ \t]+\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9:]+\\)[ \t]*\\'" date)
+	   ;; Styles: (1) and (2) without timezone
+	   (setq year 3 month 2 day 1 time 4 zone nil))
+	  ((string-match
 	    "\\([^ \t,]+\\),[ \t]+\\([0-9]+\\)[ \t]+\\([^ \t,]+\\)[ \t]+\\([0-9]+:[0-9:]+\\)[ \t]+\\(T[ \t]+\\|\\)\\([0-9]+\\)[ \t]*\\'" date)
 	   ;; Styles: (6) and (7) without timezone
 	   (setq year 6 month 3 day 2 time 4 zone nil))
@@ -152,14 +162,6 @@ Understands the following styles:
 	    "\\([^ \t,]+\\),[ \t]+\\([0-9]+\\)[ \t]+\\([^ \t,]+\\)[ \t]+\\([0-9]+:[0-9:]+\\)[ \t]+\\(T[ \t]+\\|\\)\\([0-9]+\\)[ \t]*\\([-+a-zA-Z0-9]+\\)" date)
 	   ;; Styles: (6) and (7) with timezone and buggy timezone
 	   (setq year 6 month 3 day 2 time 4 zone 7))
-	  ((string-match
-	    "\\([0-9]+\\)[ \t]+\\([^ \t,]+\\)[ \t]+\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9:]+\\)[ \t]*\\'" date)
-	   ;; Styles: (1) and (2) without timezone
-	   (setq year 3 month 2 day 1 time 4 zone nil))
-	  ((string-match
-	    "\\([0-9]+\\)[ \t]+\\([^ \t,]+\\)[ \t]+\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9:]+\\)[ \t]*\\([-+a-zA-Z0-9]+\\)" date)
-	   ;; Styles: (1) and (2) with timezone and buggy timezone
-	   (setq year 3 month 2 day 1 time 4 zone 5))
 	  ((string-match
 	    "\\([^ \t,]+\\)[ \t]+\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9:]+\\)[ \t]+\\([0-9]+\\)" date)
 	   ;; Styles: (3) without timezone
