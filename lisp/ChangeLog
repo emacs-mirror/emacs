@@ -2,6 +2,9 @@
 
 	* newcomment.el (comment-normalize-vars): Handle a nil comment-padding.
 
+	* progmodes/ada-mode.el (ada-fill-comment-prefix): GNAT wants 2 spaces.
+	From Emmanuel Briot <briot@act-europe.fr>.
+
 2001-11-12  Richard M. Stallman  <rms@gnu.org>
 
 	* calendar/todo-mode.el (todo-save): Add save-excursion
