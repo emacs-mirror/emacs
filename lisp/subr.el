@@ -407,11 +407,12 @@ If it is a list, the elements are called, in order, with no arguments."
   "Variable by which C primitives find the function `run-hooks'.
 Don't change it.")
 
-(defun add-hook (hook function)
-  "Add to the value of HOOK the function FUNCTION unless already present.
-HOOK should be a symbol, and FUNCTION may be any valid function.
-HOOK's value should be a list of functions, not a single function.
-If HOOK is void, it is first set to nil."
+(defun add-hook (hook function &optional append)
+  "Add to the value of HOOK the function FUNCTION unless already present (it
+becomes the first hook on the list unless optional APPEND is non-nil, in
+which case it becomes the last).  HOOK should be a symbol, and FUNCTION may be
+any valid function.  HOOK's value should be a list of functions, not a single
+function.  If HOOK is void, it is first set to nil."
   (or (boundp hook) (set hook nil))
   (or (if (consp function)
 	  ;; Clever way to tell whether a given lambda-expression
@@ -419,7 +420,10 @@ If HOOK is void, it is first set to nil."
 	  (let ((tail (assoc (cdr function) (symbol-value hook))))
 	    (equal function tail))
 	(memq function (symbol-value hook)))
-      (set hook (cons function (symbol-value hook)))))
+      (set hook 
+	   (if append
+	       (nconc (symbol-value hook) (list function))
+	     (cons function (symbol-value hook))))))
 
 (defun momentary-string-display (string pos &optional exit-char message) 
   "Momentarily display STRING in the buffer at POS.
