@@ -86,7 +86,7 @@ typedef struct
 {
   char *user;
   char *host;
-  int pid;
+  unsigned long pid;
 } lock_info_type;
 
 /* When we read the info back, we might need this much more.  */
@@ -136,7 +136,8 @@ lock_file_1 (lfname, force)
   char *host_name = XSTRING (Fsystem_name ())->data;
   char *lock_info_str = alloca (strlen (user_name) + strlen (host_name) + 21);
 
-  sprintf (lock_info_str, "%s@%s.%d", user_name, host_name, getpid ());
+  sprintf (lock_info_str, "%s@%s.%lu", user_name, host_name,
+           (unsigned long) getpid ());
 
   err = symlink (lock_info_str, lfname);
   if (errno == EEXIST && force)
