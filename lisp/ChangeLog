@@ -16,7 +16,7 @@
 2004-01-11  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/appt.el: Update copyright and commentary.
-	(appt-issue-message): Delete (see appt-activate).
+	(appt-issue-message): Make obsolete.
 	(appt-visible, appt-msg-window): Make obsolete, in favour of
 	appt-display-format.
 	(appt-display-mode-line, appt-display-duration)
