@@ -1565,7 +1565,8 @@ See function `ebnf-user-arrow' for valid values and how values are processed."
 
 Valid values are:
 
-   `ebnf'	ebnf2ps recognizes the syntax described above.
+   `ebnf'	ebnf2ps recognizes the syntax described in ebnf2ps
+		documentation.
 		The following variables *ONLY* have effect with this
 		setting:
 		`ebnf-terminal-regexp', `ebnf-case-fold-search',
