@@ -92,8 +92,6 @@
 					; Unix stuff
     ("\\.tp[ulpw]$" . t)
 					; Borland Pascal stuff
-    ("[:/]tags$" . t)
-					; Emacs TAGS file
     )
   "*Alist for distinguishing text files from binary files.
 Each element has the form (REGEXP . TYPE), where REGEXP is matched
