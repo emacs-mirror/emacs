@@ -1629,4 +1629,6 @@ KEYWORDS is a comma-separated list of labels."
 	       (funcall sortfun reverse))
       (select-window selwin))))
 
+(provide 'rmailsum)
+
 ;;; rmailsum.el ends here
