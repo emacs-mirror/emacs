@@ -1,3 +1,7 @@
+2004-01-27  Ognyan Kulev  <ogi@fmi.uni-sofia.bg>  (tiny change)
+
+	* quail/cyrillic.el ("bulgarian-bds"): Docstring fixed.
+
 2004-01-22  Ognyan Kulev  <ogi@fmi.uni-sofia.bg>  (tiny change)
 
 	* quail/cyrillic.el ("bulgarian-phonetic"): Docstring fixed.
