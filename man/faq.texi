@@ -1165,9 +1165,9 @@ modern GUI programs, and includes 3D widgets (used for the mode line and
 the scroll bars), a configurable and extensible toolbar, tooltips
 (a.k.a.@: balloon help), and other niceties.
 
-@cindex Colors on character terminals
+@cindex Colors on text-only terminals
 @cindex TTY colors
-In addition, Emacs 21 supports faces on character terminals.  This means
+In addition, Emacs 21 supports faces on text-only terminals.  This means
 that you can now have colors when you run Emacs on a GNU/Linux console
 and on @code{xterm} with @kbd{emacs -nw}.
 
@@ -1260,7 +1260,7 @@ interested in performing frequently requested, basic tasks.
 @cindex Console, colors
 
 As of Emacs 21.1, colors and faces are supported in non-windowed mode,
-i.e.@: on Unix and GNU/Linux character terminals and consoles, and when
+i.e.@: on Unix and GNU/Linux text-only terminals and consoles, and when
 invoked as @samp{emacs -nw} on X and MS-Windows.  (Colors and faces were
 supported in the MS-DOS port since Emacs 19.29.)  Emacs automatically
 detects color support at startup and uses it if available.  If you think
@@ -4809,7 +4809,7 @@ undesirable if you actually intend to use them.
 @cindex Eight-bit characters, displaying
 
 @inforef{Single-Byte Character Support, Single-byte Character Set
-Support, emacs}.  On a Unix, when Emacs runs on a character terminal
+Support, emacs}.  On a Unix, when Emacs runs on a text-only terminal
 display or is invoked with @samp{emacs -nw}, you typically need to use
 @code{set-terminal-coding-system} to tell Emacs what the terminal can
 display, even after setting the language environment; otherwise
