@@ -44,6 +44,7 @@
   '(name access-type expiration size permission format)
   "*A list of acceptable parameters in MML tag.
 These parameters are generated in Content-Type header if exists."
+  :version "21.4"
   :type '(repeat (symbol :tag "Parameter"))
   :group 'message)
 
@@ -51,12 +52,14 @@ These parameters are generated in Content-Type header if exists."
   '(filename creation-date modification-date read-date)
   "*A list of acceptable parameters in MML tag.
 These parameters are generated in Content-Disposition header if exists."
+  :version "21.4"
   :type '(repeat (symbol :tag "Parameter"))
   :group 'message)
 
 (defcustom mml-insert-mime-headers-always nil
   "If non-nil, always put Content-Type: text/plain at top of empty parts.
 It is necessary to work against a bug in certain clients."
+  :version "21.4"
   :type 'boolean
   :group 'message)
 

@@ -150,6 +150,7 @@ certificate."
 (defcustom smime-CA-file nil
   "*Files containing certificates for CAs you trust.
 File should contain certificates in PEM format."
+  :version "21.4"
   :type '(choice (const :tag "none" nil)
 		 file)
   :group 'smime)
@@ -177,6 +178,7 @@ and the files themself should be in PEM format."
 
 (defcustom smime-encrypt-cipher "-des3"
   "*Cipher algorithm used for encryption."
+  :version "21.4"
   :type '(choice (const :tag "Triple DES" "-des3")
 		 (const :tag "DES"  "-des")
 		 (const :tag "RC2 40 bits" "-rc2-40")
@@ -208,6 +210,7 @@ At least OpenSSL version 0.9.7 is required for this to work."
 (defcustom smime-dns-server nil
   "*DNS server to query certificates from.
 If nil, use system defaults."
+  :version "21.4"
   :type '(choice (const :tag "System defaults")
 		 string)
   :group 'smime)

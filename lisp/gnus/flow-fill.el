@@ -56,6 +56,7 @@
 (defcustom fill-flowed-display-column 'fill-column
   "Column beyond which format=flowed lines are wrapped, when displayed.
 This can be a Lisp expression or an integer."
+  :version "21.4"
   :group 'mime-display
   :type '(choice (const :tag "Standard `fill-column'" fill-column)
 		 (const :tag "Fit Window" (- (window-width) 5))
@@ -66,6 +67,7 @@ This can be a Lisp expression or an integer."
   "Column beyond which format=flowed lines are wrapped, in outgoing messages.
 This can be a Lisp expression or an integer.
 RFC 2646 suggests 66 characters for readability."
+  :version "21.4"
   :group 'mime-display
   :type '(choice (const :tag "Standard fill-column" fill-column)
 		 (const :tag "RFC 2646 default (66)" 66)

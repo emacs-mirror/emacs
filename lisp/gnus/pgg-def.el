@@ -50,6 +50,7 @@
 
 (defcustom pgg-query-keyserver nil
   "Whether PGG queries keyservers for missing keys when verifying messages."
+  :version "21.4"
   :group 'pgg
   :type 'boolean)
 
