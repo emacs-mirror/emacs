@@ -3898,6 +3898,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	/* Remember we did a SetCapture on the initial mouse down event,
 	   so for safety, we make sure the capture is cancelled now.  */
 	ReleaseCapture ();
+	button_state = 0;
 
 	/* Use menubar_active to indicate that WM_INITMENU is from
            TrackPopupMenu below, and should be ignored.  */
@@ -3921,7 +3922,6 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	      {
 		retval = 0;
 	      }
-	    button_state = 0;
 	  }
 	else
 	  {
