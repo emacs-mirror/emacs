@@ -775,8 +775,8 @@ be set in `.emacs' instead."
      (display-graphic-p)
      (let ((image (find-image
 		   `((:type xpm :file "gnus.xpm")
-		     (:type xpbm :file "gnus.pbm"
-			    ;; Account for the xbm's blackground.
+		     (:type pbm :file "gnus.pbm"
+			    ;; Account for the pbm's blackground.
 			    :background ,(face-foreground 'gnus-splash-face)
 			    :foreground ,(face-background 'default))
 		     (:type xbm :file "gnus.xbm"
