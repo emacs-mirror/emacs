@@ -13,8 +13,8 @@
 
 2005-02-24  Ulf Jasper  <ulf.jasper@web.de>
 
-	* calendar/icalendar.el (icalendar--decode-isodatetime): New
-	optional argument DAY-SHIFT.
+	* calendar/icalendar.el (icalendar--decode-isodatetime):
+	New optional argument DAY-SHIFT.
 	(icalendar-export-region): Fix coding-system-for-write.
 	(icalendar--convert-ical-to-diary): Shift end-day of all-day
 	events by one.
@@ -28,6 +28,13 @@
 	* international/iso-acc.el (iso-accents-compose): Fix crash
 	during redisplay.  Call force-window-update after read-event
 	and delete-region to signal that window is not accurate.
+
+2005-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (debug): Hide the buffer if it's not killed.
+	Remove unused and inexistent var `inhibit-trace'.
+	(debugger-mode): Use run-mode-hooks.
+	(debugger-list-functions): Add buttons; setup xref stack.
 
 2005-02-23  Richard M. Stallman  <rms@gnu.org>
 
@@ -161,8 +168,8 @@
 	* viper-util.el (viper-glob-unix-files): Fix shell status check.
 	(viper-file-remote-p): Make equivalent to file-remote-p.
 
-	* viper.el (viper-major-mode-modifier-list): Use
-	viper-gnus-modifier-map.
+	* viper.el (viper-major-mode-modifier-list):
+	Use viper-gnus-modifier-map.
 
 2005-02-19  David Kastrup  <dak@gnu.org>
 
@@ -172,7 +179,7 @@
 2005-02-19  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-math.el (calc-arctan, calc-tanh, calc-arctanh):
-	Removed extra definitions.
+	Remove extra definitions.
 	(calc-coth): New function.
 	(calcFunc-cot): Fix `let'.
 
@@ -189,8 +196,8 @@
 	query-replace-from-history-variable to handle the case of an empty
 	string entered to accept the suggested default.
 
-	* net/tramp.el (tramp-file-name-for-operation): Use
-	dired-call-process instead of dired-call-process-command.
+	* net/tramp.el (tramp-file-name-for-operation):
+	Use dired-call-process instead of dired-call-process-command.
 
 2005-02-19  Jay Belanger  <belanger@truman.edu>
 
@@ -211,22 +218,22 @@
 
 2005-02-19  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff.el (ediff-set-diff-overlays-in-one-buffer,
-	ediff-set-fine-overlays-in-one-buffer,ediff-goto-word) make sure
+	* ediff.el (ediff-set-diff-overlays-in-one-buffer)
+	(ediff-set-fine-overlays-in-one-buffer,ediff-goto-word): Make sure
 	we use the syntax table of the correct buffer.
-	(ediff-same-file-contents,ediff-same-contents): enhancements thanks to
+	(ediff-same-file-contents,ediff-same-contents): Enhancements thanks to
 	Felix Gatzemeier.
 
-	* ediff-init.el (ediff-hide-face): checks for definedness of functions.
-	(ediff-file-remote-p): make synonymous with file-remote-p.
+	* ediff-init.el (ediff-hide-face): Check for definedness of functions.
+	(ediff-file-remote-p): Make synonymous with file-remote-p.
 	In all deffaces ediff-*-face-*, use min-colors.
 
-	* ediff-mult.el (ediff-meta-mark-equal-files): make use of
-        ediff-recurse-to-subdirectories.
-	(ediff-mark-if-equal): check that the arguments are strings, use
+	* ediff-mult.el (ediff-meta-mark-equal-files): Make use of
+	ediff-recurse-to-subdirectories.
+	(ediff-mark-if-equal): Check that the arguments are strings, use
 	ediff-same-contents (after to Felix Gatzemeier).
 
-	* ediff.el (ediff-merge-on-startup): don't set buffer-modified-p to
+	* ediff.el (ediff-merge-on-startup): Don't set buffer-modified-p to
 	nil.
 
 2005-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -296,7 +303,7 @@
 2005-02-15  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-alg.el: Add simplification rules for calcFunc-sec,
-	calcFunc-csc, calcFunc-cot, calcFunc-sech, calcFunc-csch and
+	calcFunc-csc, calcFunc-cot, calcFunc-sech, calcFunc-csch, and
 	calcFunc-coth.
 	(math-simplify-sqrt): Add simplifications.
 
