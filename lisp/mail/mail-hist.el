@@ -105,7 +105,7 @@ Oldest elements are dumped first."
   "Get name of mail header point is currently in, without the colon.
 Returns nil if not in a header, implying that point is in the body of
 the message."
-  (if (< (point) (mail-text-start))
+  (if (> (point) (mail-text-start))
       nil ; then we are in the body of the message
     (save-excursion
       (let* ((body-start
@@ -172,7 +172,7 @@ colon, or just after the colon if it is not followed by whitespace."
     (mail-hist-beginning-of-header)
     (let ((start (point)))
       (or (mail-hist-forward-header 1)
-          (goto-char (mail-header-start)))
+          (goto-char (mail-text-start)))
       (beginning-of-line)
       (buffer-substring start (1- (point))))))
 
