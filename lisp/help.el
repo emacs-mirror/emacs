@@ -843,7 +843,7 @@ references look like cross-references in info mode."
 Must be previously-defined."
   :group 'help
   :version "20.3"
-  :type 'symbol)
+  :type 'face)
 
 (defvar help-back-label "[back]"
   "Label to use by `help-make-xrefs' for the go-back reference.")
