@@ -438,7 +438,7 @@ which will run faster and do exactly what you probably want."
 	    (replace-match next-replacement nocasify literal)
 	    (setq replace-count (1+ replace-count)))
 	(undo-boundary)
-	(let (done replaced)
+	(let (done replaced char)
 	  (while (not done)
 	    (let ((help-form
 		   '(concat "Query replacing "

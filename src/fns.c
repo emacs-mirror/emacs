@@ -1170,7 +1170,7 @@ and can edit it until it as been confirmed.")
   GCPRO1 (prompt);
   while (1)
     {
-      ans = Fdowncase (Fread_minibuffer (prompt, Qnil));
+      ans = Fdowncase (Fread_string (prompt, Qnil));
       if (XSTRING (ans)->size == 3 && !strcmp (XSTRING (ans)->data, "yes"))
 	{
 	  UNGCPRO;

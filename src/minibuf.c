@@ -94,9 +94,9 @@ Lisp_Object get_minibuffer ();
 Lisp_Object read_minibuf ();
 
 /* Read from the minibuffer using keymap MAP, initial contents INITIAL
-   (a string), putting point BACKUP_N chars from the end of INITIAL,
+   (a string), putting point minus BACKUP_N chars from the end of INITIAL,
    prompting with PROMPT (a string), using history list HISTVAR
-   with initial position HISTPOS.
+   with initial position HISTPOS.  (BACKUP_N should be <= 0.)
 
    Normally return the result as a string (the text that was read),
    but if EXPFLAG is non-nil, read it and return the object read.  */
@@ -106,7 +106,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
      Lisp_Object map;
      Lisp_Object initial;
      Lisp_Object prompt;
-     Lisp_Object backup_n;
+     int backup_n;
      int expflag;
      Lisp_Object histvar;
      Lisp_Object histpos;
@@ -378,7 +378,7 @@ Fifth arg HIST, if non-nil, specifies a history list\n\
     XFASTINT (histpos) = 0;
 
   return read_minibuf (keymap, initial_input, prompt,
-		       pos, !NILP (read), histvar, histpos);
+		       make_number (pos), !NILP (read), histvar, histpos);
 }
 
 DEFUN ("read-minibuffer", Fread_minibuffer, Sread_minibuffer, 1, 2, 0,
@@ -869,7 +869,7 @@ Completion ignores case if the ambient value of\n\
   val = read_minibuf (NILP (require_match)
 		      ? Vminibuffer_local_completion_map
 		      : Vminibuffer_local_must_match_map,
-		      init, prompt, pos, 0,
+		      init, prompt, make_number (pos), 0,
 		      histvar, histpos);
   return unbind_to (count, val);
 }

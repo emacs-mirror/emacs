@@ -2943,7 +2943,7 @@ DIR defaults to current buffer's directory default.")
   (prompt, dir, defalt, mustmatch, initial)
      Lisp_Object prompt, dir, defalt, mustmatch, initial;
 {
-  Lisp_Object val, insdef, tem;
+  Lisp_Object val, insdef, insdef1, tem;
   struct gcpro gcpro1, gcpro2;
   register char *homedir;
   int count;
@@ -2968,6 +2968,7 @@ DIR defaults to current buffer's directory default.")
   if (insert_default_directory)
     {
       insdef = dir;
+      insdef1 = dir;
       if (!NILP (initial))
 	{
 	  Lisp_Object args[2], pos;
@@ -2976,11 +2977,11 @@ DIR defaults to current buffer's directory default.")
 	  args[1] = initial;
 	  insdef = Fconcat (2, args);
 	  pos = make_number (XSTRING (dir)->size);
-	  insdef = Fcons (insdef, pos);
+	  insdef1 = Fcons (insdef, pos);
 	}
     }
   else
-    insdef = build_string ("");
+    insdef = Qnil, insdef1 = Qnil;
 
 #ifdef VMS
   count = specpdl_ptr - specpdl;
@@ -2989,8 +2990,7 @@ DIR defaults to current buffer's directory default.")
 
   GCPRO2 (insdef, defalt);
   val = Fcompleting_read (prompt, intern ("read-file-name-internal"),
-			  dir, mustmatch,
-			  insert_default_directory ? insdef : Qnil,
+			  dir, mustmatch, insdef1,
 			  Qfile_name_history);
 
 #ifdef VMS
