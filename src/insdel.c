@@ -706,9 +706,9 @@ prepare_to_modify_buffer (start, end)
     verify_interval_modification (current_buffer, start, end);
 
 #ifdef CLASH_DETECTION
-  if (!NILP (current_buffer->filename)
+  if (!NILP (current_buffer->file_truename)
       && SAVE_MODIFF >= MODIFF)
-    lock_file (current_buffer->filename);
+    lock_file (current_buffer->file_truename);
 #else
   /* At least warn if this file has changed on disk since it was visited.  */
   if (!NILP (current_buffer->filename)
