@@ -28,17 +28,17 @@
 
 ;;; Code:
 
-(defconst fill-individual-varying-indent nil
+(defvar fill-individual-varying-indent nil
   "*Controls criterion for a new paragraph in `fill-individual-paragraphs'.
 Non-nil means changing indent doesn't end a paragraph.
 That mode can handle paragraphs with extra indentation on the first line,
 but it requires separator lines between paragraphs.
 A value of nil means that any change in indentation starts a new paragraph.")
 
-(defconst sentence-end-double-space t
+(defvar sentence-end-double-space t
   "*Non-nil means a single space does not end a sentence.")
 
-(defconst colon-double-space nil
+(defvar colon-double-space nil
   "*Non-nil means put two spaces after a colon when filling.")
 
 (defvar fill-paragraph-function nil
@@ -59,10 +59,10 @@ reinserts the fill prefix in each resulting line."
       (message "fill-prefix: \"%s\"" fill-prefix)
     (message "fill-prefix cancelled")))
 
-(defconst adaptive-fill-mode t
+(defvar adaptive-fill-mode t
   "*Non-nil means determine a paragraph's fill prefix from its text.")
 
-(defconst adaptive-fill-regexp "[ \t]*\\([#;>*]+ +\\)?"
+(defvar adaptive-fill-regexp "[ \t]*\\([#;>*]+ +\\)?"
   "*Regexp to match text at start of line that constitutes indentation.
 If Adaptive Fill mode is enabled, whatever text matches this pattern
 on the second line of a paragraph is used as the standard indentation
@@ -472,7 +472,7 @@ space does not end a sentence, so don't break a line there."
 	    (goto-char end)))))))
 
 
-(defconst default-justification 'left
+(defvar default-justification 'left
   "*Method of justifying text not otherwise specified.
 Possible values are `left', `right', `full', `center', or `none'.
 The requested kind of justification is done whenever lines are filled.

@@ -105,7 +105,7 @@
 
 ;;; Some additional options and constants.
 
-(defconst search-exit-option t
+(defvar search-exit-option t
   "*Non-nil means random control characters terminate incremental search.")
 
 (defvar search-slow-window-lines 1
@@ -131,7 +131,7 @@ If this value is `not-yanks', yanked text is always downcased.")
 Actually, `isearch-edit-string' is called to let you enter the search
 string, and RET terminates editing and does a nonincremental search.")
 
-(defconst search-whitespace-regexp "\\s-+"
+(defvar search-whitespace-regexp "\\s-+"
   "*If non-nil, regular expression to match a sequence of whitespace chars.
 You might want to use something like \"[ \\t\\r\\n]+\" instead.")
 
@@ -151,9 +151,9 @@ You might want to use something like \"[ \\t\\r\\n]+\" instead.")
 (defvar regexp-search-ring nil
   "List of regular expression search string sequences.")
 
-(defconst search-ring-max 16
+(defvar search-ring-max 16
   "*Maximum length of search ring before oldest elements are thrown away.")
-(defconst regexp-search-ring-max 16
+(defvar regexp-search-ring-max 16
   "*Maximum length of regexp search ring before oldest elements are thrown away.")
 
 (defvar search-ring-yank-pointer nil
@@ -427,7 +427,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 ;; All the work is done by the isearch-mode commands.
 
 ;; Not used yet:
-;;(defconst isearch-commands '(isearch-forward isearch-backward
+;;(defvar isearch-commands '(isearch-forward isearch-backward
 ;;			     isearch-forward-regexp isearch-backward-regexp)
 ;;  "List of commands for which isearch-mode does not recursive-edit.")
 			     

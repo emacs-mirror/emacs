@@ -330,8 +330,8 @@ With argument, insert value in current buffer after the defun."
       (max (if (bolp) 0 (1+ (current-column)))
 	   comment-column))))
 
-(defconst lisp-indent-offset nil "")
-(defconst lisp-indent-function 'lisp-indent-function "")
+(defvar lisp-indent-offset nil "")
+(defvar lisp-indent-function 'lisp-indent-function "")
 
 (defun lisp-indent-line (&optional whole-exp)
   "Indent current line as Lisp code.
@@ -508,7 +508,7 @@ of the start of the containing expression."
 	      (method
 		(funcall method state indent-point)))))))
 
-(defconst lisp-body-indent 2
+(defvar lisp-body-indent 2
   "Number of columns to indent the second line of a `(def...)' form.")
 
 (defun lisp-indent-specform (count state indent-point normal-indent)

@@ -615,10 +615,10 @@ set its foreground and background to the default background and foreground."
 
 ;; Manipulating font names.
 
-(defconst x-font-regexp nil)
-(defconst x-font-regexp-head nil)
-(defconst x-font-regexp-weight nil)
-(defconst x-font-regexp-slant nil)
+(defvar x-font-regexp nil)
+(defvar x-font-regexp-head nil)
+(defvar x-font-regexp-weight nil)
+(defvar x-font-regexp-slant nil)
 
 (defconst x-font-regexp-weight-subnum 1)
 (defconst x-font-regexp-slant-subnum 2)

@@ -118,12 +118,12 @@
 
 (defvar command-line-processed nil "t once command line has been processed")
 
-(defconst inhibit-startup-message nil
+(defvar inhibit-startup-message nil
   "*Non-nil inhibits the initial startup message.
 This is for use in your personal init file, once you are familiar
 with the contents of the startup message.")
 
-(defconst inhibit-startup-echo-area-message nil
+(defvar inhibit-startup-echo-area-message nil
   "*Non-nil inhibits the initial startup echo area message.
 Inhibition takes effect only if your `.emacs' file contains
 a line of this form:
@@ -133,10 +133,10 @@ If your `.emacs' file is byte-compiled, use the following form instead:
 Thus, someone else using a copy of your `.emacs' file will see
 the startup message unless he personally acts to inhibit it.")
 
-(defconst inhibit-default-init nil
+(defvar inhibit-default-init nil
   "*Non-nil inhibits loading the `default' library.")
 
-(defconst command-switch-alist nil
+(defvar command-switch-alist nil
   "Alist of command-line switches.
 Elements look like (SWITCH-STRING . HANDLER-FUNCTION).
 HANDLER-FUNCTION receives switch name as sole arg;
@@ -243,14 +243,17 @@ fashion analogous to the environment value TERM.")
 Emacs runs this hook after processing the command line arguments and loading
 the user's init file.")
 
-(defconst initial-major-mode 'lisp-interaction-mode
+(defvar initial-major-mode 'lisp-interaction-mode
   "Major mode command symbol to use for the initial *scratch* buffer.")
 
 (defvar init-file-user nil
   "Identity of user whose `.emacs' file is or was read.
-The value is nil if no init file is being used; otherwise, it may be either
-the null string, meaning that the init file was taken from the user that
-originally logged in, or it may be a string containing a user's name.
+The value is nil if `-q' or `--no-init-file' was specified,
+meaning do not load any init file.
+
+Otherwise, the value may be the null string, meaning use the init file
+for the user that originally logged in, or it may be a
+string containing a user's name meaning use that person's init file.
 
 In either of the latter cases, `(concat \"~\" init-file-user \"/\")'
 evaluates to the name of the directory where the `.emacs' file was

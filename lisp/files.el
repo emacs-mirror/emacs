@@ -30,10 +30,10 @@
 
 ;;; Code:
 
-(defconst delete-auto-save-files t
+(defvar delete-auto-save-files t
   "*Non-nil means delete auto-save file when a buffer is saved or killed.")
 
-(defconst directory-abbrev-alist
+(defvar directory-abbrev-alist
   nil
   "*Alist of abbreviations for file directories.
 A list of elements of the form (FROM . TO), each meaning to replace
@@ -49,7 +49,7 @@ via absolute symbolic links.  Make TO the name of the link, and FROM
 the name it is linked to.")
 
 ;;; Turn off backup files on VMS since it has version numbers.
-(defconst make-backup-files (not (eq system-type 'vax-vms))
+(defvar make-backup-files (not (eq system-type 'vax-vms))
   "*Non-nil means make a backup of a file the first time it is saved.
 This can be done by renaming the file or by copying.
 
@@ -75,16 +75,16 @@ This variable is intended for use by making it local to a buffer.
 But it is local only if you make it local.")
 (put 'backup-inhibited 'permanent-local t)
 
-(defconst backup-by-copying nil
+(defvar backup-by-copying nil
  "*Non-nil means always use copying to create backup files.
 See documentation of variable `make-backup-files'.")
 
-(defconst backup-by-copying-when-linked nil
+(defvar backup-by-copying-when-linked nil
  "*Non-nil means use copying to create backups for files with multiple names.
 This causes the alternate names to refer to the latest version as edited.
 This variable is relevant only if `backup-by-copying' is nil.")
 
-(defconst backup-by-copying-when-mismatch nil
+(defvar backup-by-copying-when-mismatch nil
   "*Non-nil means create backups by copying if this preserves owner or group.
 Renaming may still be used (subject to control of other variables)
 when it would not result in changing the owner or group of the file;
@@ -99,24 +99,24 @@ This variable is relevant only if `backup-by-copying' is nil.")
   "Predicate that looks at a file name and decides whether to make backups.
 Called with an absolute file name as argument, it returns t to enable backup.")
 
-(defconst buffer-offer-save nil
+(defvar buffer-offer-save nil
   "*Non-nil in a buffer means offer to save the buffer on exit
 even if the buffer is not visiting a file.
 Automatically local in all buffers.")
 (make-variable-buffer-local 'buffer-offer-save)
 
-(defconst find-file-existing-other-name t
+(defvar find-file-existing-other-name t
   "*Non-nil means find a file under alternative names, in existing buffers.
 This means if any existing buffer is visiting the file you want
 under another name, you get the existing buffer instead of a new buffer.")
 
-(defconst find-file-visit-truename nil
+(defvar find-file-visit-truename nil
   "*Non-nil means visit a file under its truename.
 The truename of a file is found by chasing all links
 both at the file level and at the levels of the containing directories.")
 
-(defconst find-file-revert-without-query
-  '("/out$" "/traces/.*\.log$")
+(defvar find-file-revert-without-query
+  nil
   "*Specify which files should be reverted without query.
 The value is a list of regular expressions.
 If the file name matches one of these regular expressions,
@@ -134,7 +134,7 @@ If the buffer is visiting a new file, the value is nil.")
 (defvar buffer-file-numbers-unique (not (memq system-type '(windows-nt)))
   "Non-nil means that buffer-file-number uniquely identifies files.")
 
-(defconst file-precious-flag nil
+(defvar file-precious-flag nil
   "*Non-nil means protect against I/O errors while saving files.
 Some modes set this non-nil in particular buffers.
 
@@ -167,23 +167,23 @@ If nil, ask confirmation.  Any other value prevents any trimming.")
   "*Number of newest versions to keep when a new numbered backup is made.
 Includes the new backup.  Must be > 0")
 
-(defconst require-final-newline nil
+(defvar require-final-newline nil
   "*Value of t says silently ensure a file ends in a newline when it is saved.
 Non-nil but not t says ask user whether to add a newline when there isn't one.
 nil means don't add newlines.")
 
-(defconst auto-save-default t
+(defvar auto-save-default t
   "*Non-nil says by default do auto-saving of every file-visiting buffer.")
 
-(defconst auto-save-visited-file-name nil
+(defvar auto-save-visited-file-name nil
   "*Non-nil says auto-save a buffer in the file it is visiting, when practical.
 Normally auto-save files are written under other names.")
 
-(defconst save-abbrevs nil
+(defvar save-abbrevs nil
   "*Non-nil means save word abbrevs too when files are saved.
 Loading an abbrev file sets this to t.")
 
-(defconst find-file-run-dired t
+(defvar find-file-run-dired t
   "*Non-nil says run dired if `find-file' is given the name of a directory.")
 
 ;;;It is not useful to make this a local variable.
@@ -242,7 +242,7 @@ LOCAL argument.
 See also `write-file-hooks'.")
 (make-variable-buffer-local 'write-contents-hooks)
 
-(defconst enable-local-variables t
+(defvar enable-local-variables t
   "*Control use of local variables in files you visit.
 The value can be t, nil or something else.
 A value of t means file local variables specifications are obeyed;
@@ -251,7 +251,7 @@ nil means they are ignored; anything else means query.
 The command \\[normal-mode] always obeys file local variable
 specifications and ignores this variable.")
 
-(defconst enable-local-eval 'maybe
+(defvar enable-local-eval 'maybe
   "*Control processing of the \"variable\" `eval' in a file's local variables.
 The value can be t, nil or something else.
 A value of t means obey `eval' variables;
@@ -626,7 +626,7 @@ otherwise a string <2> or <3> or ... is appended to get an unused name."
 Choose the buffer's name using `generate-new-buffer-name'."
   (get-buffer-create (generate-new-buffer-name name)))
 
-(defconst automount-dir-prefix "^/tmp_mnt/"
+(defvar automount-dir-prefix "^/tmp_mnt/"
   "Regexp to match the automounter prefix in a directory name.")
 
 (defvar abbreviated-home-dir nil
@@ -1055,7 +1055,7 @@ If the element has the form (REGEXP FUNCTION NON-NIL), then after
 calling FUNCTION (if it's not nil), we delete the suffix that matched
 REGEXP and search the list again for another match.")
 
-(defconst interpreter-mode-alist
+(defvar interpreter-mode-alist
   '(("perl" . perl-mode)
     ("perl5" . perl-mode)
     ("wish" . tcl-mode)
@@ -1095,10 +1095,10 @@ The car of each element is compared with
 the name of the interpreter specified in the first line.
 If it matches, mode MODE is selected.")
 
-(defconst inhibit-first-line-modes-regexps '("\\.tar\\'" "\\.tgz\\'")
+(defvar inhibit-first-line-modes-regexps '("\\.tar\\'" "\\.tgz\\'")
   "List of regexps; if one matches a file name, don't look for `-*-'.")
 
-(defconst inhibit-first-line-modes-suffixes nil
+(defvar inhibit-first-line-modes-suffixes nil
   "List of regexps for what to ignore, for `inhibit-first-line-modes-regexps'.
 When checking `inhibit-first-line-modes-regexps', we first discard
 from the end of the file name anything that matches one of these regexps.")
@@ -1372,7 +1372,7 @@ in order to initialize other data structure based on them.")
 		(hack-one-local-variable var val)))))))
   (run-hooks 'hack-local-variables-hook))
 
-(defconst ignored-local-variables
+(defvar ignored-local-variables
   '(enable-local-eval)
   "Variables to be ignored in a file's local variable spec.")
 
@@ -2620,11 +2620,11 @@ by `sh' are supported."
     ;; not its part.  Make the regexp say so.
     (concat "\\`" result "\\'")))
 
-(defconst list-directory-brief-switches
+(defvar list-directory-brief-switches
   (if (eq system-type 'vax-vms) "" "-CF")
   "*Switches for list-directory to pass to `ls' for brief listing,")
 
-(defconst list-directory-verbose-switches
+(defvar list-directory-verbose-switches
   (if (eq system-type 'vax-vms)
       "/PROTECTION/SIZE/DATE/OWNER/WIDTH=(OWNER:10)"
     "-l")
