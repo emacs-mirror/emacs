@@ -771,12 +771,13 @@ one comment or several comments.
 @defun forward-comment count
 This function moves point forward across @var{count} complete comments
 (that is, including the starting delimiter and the terminating
-delimiter if any).  It moves backward if @var{count} is negative.  If
-it encounters anything other than a comment or whitespace, it stops,
-leaving point at the place where it stopped.  This includes (for
-instance) finding the end of a comment when moving forward and
-expecting the beginning of one.  The function also stops immediately
-after moving over the specified number of complete comments.
+delimiter if any), plus any whitespace encountered on the way.  It
+moves backward if @var{count} is negative.  If it encounters anything
+other than a comment or whitespace, it stops, leaving point at the
+place where it stopped.  This includes (for instance) finding the end
+of a comment when moving forward and expecting the beginning of one.
+The function also stops immediately after moving over the specified
+number of complete comments.
 
 This function cannot tell whether the ``comments'' it traverses are
 embedded within a string.  If they look like comments, it treats them
