@@ -611,11 +611,11 @@ Return t if file exists.")
   /* 1 means we are loading a compiled file.  */
   int compiled = 0;
   Lisp_Object handler;
+  int safe_p = 1;
   char *fmode = "r";
 #ifdef DOS_NT
   fmode = "rt";
 #endif /* DOS_NT */
-  int safe_p = 1;
 
   CHECK_STRING (file, 0);
 
