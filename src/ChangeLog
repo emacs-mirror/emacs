@@ -1,3 +1,7 @@
+2004-01-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* process.h: Add extern to synch_process_termsig.
+
 2004-01-27  Steven Tamm <steventamm@mac.com>
 
 	* macterm.c (make_mac_frame, make_mac_terminal_frame): Move
