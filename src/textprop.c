@@ -649,22 +649,10 @@ Return t if any property value actually changed, nil otherwise.")
 	  unchanged = i;
 	  i = split_interval_right (unchanged, s - unchanged->position + 1);
 	  copy_properties (unchanged, i);
-	  if (LENGTH (i) > len)
-	    {
-	      i = split_interval_left (i, len + 1);
-	      copy_properties (unchanged, i);
-	      add_properties (properties, i, object);
-	      return Qt;
-	    }
-
-	  add_properties (properties, i, object);
-	  modified = 1;
-	  len -= LENGTH (i);
-	  i = next_interval (i);
 	}
     }
 
-  /* We are at the beginning of an interval, with len to scan */
+  /* We are at the beginning of interval I, with LEN chars to scan.  */
   for (;;)
     {
       if (i == 0)
@@ -742,14 +730,16 @@ is the string or buffer containing the text.")
     {
       unchanged = i;
       i = split_interval_right (unchanged, s - unchanged->position + 1);
-      set_properties (props, i, object);
 
       if (LENGTH (i) > len)
 	{
-	  i = split_interval_right (i, len);
 	  copy_properties (unchanged, i);
+	  i = split_interval_left (i, len + 1);
+	  set_properties (props, i, object);
 	  return Qt;
 	}
+
+      set_properties (props, i, object);
 
       if (LENGTH (i) == len)
 	return Qt;
@@ -828,25 +818,13 @@ Return t if any property was actually removed, nil otherwise.")
 	    return Qnil;
 	  len -= got;
 	}
-      /* Remove the properties from this interval.  If it's short
-         enough, return, splitting it if it's too short. */
+      /* Split away the beginning of this interval; what we don't
+	 want to modify.  */
       else
 	{
 	  unchanged = i;
 	  i = split_interval_right (unchanged, s - unchanged->position + 1);
 	  copy_properties (unchanged, i);
-	  if (LENGTH (i) > len)
-	    {
-	      i = split_interval_left (i, len + 1);
-	      copy_properties (unchanged, i);
-	      remove_properties (props, i, object);
-	      return Qt;
-	    }
-
-	  remove_properties (props, i, object);
-	  modified = 1;
-	  len -= LENGTH (i);
-	  i = next_interval (i);
 	}
     }
 
@@ -868,7 +846,8 @@ Return t if any property was actually removed, nil otherwise.")
 	    }
 
 	  /* i has the properties, and goes past the change limit */
-	  unchanged = split_interval_right (i, len + 1);
+	  unchanged = i;
+	  i = split_interval_left (i, len + 1);
 	  copy_properties (unchanged, i);
 	  remove_properties (props, i, object);
 	  return Qt;
