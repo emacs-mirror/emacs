@@ -4,8 +4,8 @@
 
 ;; Author:	     Ken Stevens <k.stevens@ieee.org>
 ;; Maintainer:	     Ken Stevens <k.stevens@ieee.org>
-;; Stevens Mod Date: Wed Jul 11 18:43:57 PDT 2001
-;; Stevens Revision: 3.5
+;; Stevens Mod Date: Mon Jan  7 12:32:44 PST 2003
+;; Stevens Revision: 3.6
 ;; Status          : Release with 3.1.12+ and 3.2.0+ ispell.
 ;; Bug Reports     : ispell-el-bugs@itcorp.com
 ;; Web Site        : http://kdstevens.com/~stevens/ispell-page.html
@@ -129,6 +129,15 @@
 
 ;; Modifications made in latest versions:
 
+;; Revision 3.6 2003/01/07 12:32:44	kss
+;; Removed extra -d LIB in dictionary defs. (Pavel Janik)
+;; Filtered process calls with duplicate dictionary entries.
+;; Fixed bug where message-text-end is inside a mime skipped region.
+;; Minor fixes to get ispell menus right in XEmacs
+;; Fixed skip regexp so it doesn't match stuff like `/.\w'.
+;; Detecting dictionary change not working.  Fixed.  kss
+;; function `ispell-change-dictionary' now only completes valid dicts.
+
 ;; Revision 3.5 2001/7/11 18:43:57	kss
 ;; Added fix for aspell to work in XEmacs (check-ispell-version).
 ;; Added Portuguese dictionary definition.
@@ -199,11 +208,10 @@
 	"Empty replacement for defcustom when not supplied."
 	`(defvar ,symbol ,value ,doc))))
 
-(eval-when-compile
-  (if (fboundp 'defgroup)
-      (defgroup ispell nil
-	"User variables for emacs ispell interface."
-	:group 'applications)))
+(if (fboundp 'defgroup)
+    (defgroup ispell nil
+      "User variables for emacs ispell interface."
+      :group 'applications))
 
 (if (not (fboundp 'buffer-substring-no-properties))
     (defun buffer-substring-no-properties (start end)
@@ -304,6 +312,8 @@ Must be greater than 1."
 	((file-exists-p "/usr/dict/words") "/usr/dict/words")
 	((file-exists-p "/usr/lib/dict/words") "/usr/lib/dict/words")
 	((file-exists-p "/usr/share/dict/words") "/usr/share/dict/words")
+	((file-exists-p "/usr/share/lib/dict/words")
+	 "/usr/share/lib/dict/words")
 	((file-exists-p "/sys/dict") "/sys/dict")
 	(t "/usr/dict/words"))
   "*Alternate dictionary for spelling help."
@@ -481,7 +491,13 @@ This is a local variable.  To change the default value use `set-default'."
 ;;;###autoload
 (defcustom ispell-local-dictionary-alist nil
   "*Contains local or customized dictionary definitions.
-See `ispell-dictionary-alist'."
+
+These will override the values in `ispell-dictionary-alist'.
+
+Customization changes made to `ispell-dictionary-alist' will not operate
+over emacs sessions.  To make permanent changes to your dictionary
+definitions, you will need to make your changes in this variable, save,
+and then re-start emacs."
   :type '(repeat (list (choice :tag "Dictionary"
 			       (string :tag "Dictionary name")
 			       (const :tag "default" nil))
@@ -496,7 +512,7 @@ See `ispell-dictionary-alist'."
 			       (const "~nroff") (const "~list")
 			       (const "~latin1") (const "~latin3")
  			       (const :tag "default" nil))
-		       (choice :tag "Character set"
+		       (choice :tag "Coding system"
 			       (const iso-8859-1)
 			       (const iso-8859-2)
 			       (const koi8-r))))
@@ -516,13 +532,13 @@ See `ispell-dictionary-alist'."
    ("brasileiro"			; Brazilian mode
     "[A-Z\301\311\315\323\332\300\310\314\322\331\303\325\307\334\302\312\324a-z\341\351\355\363\372\340\350\354\362\371\343\365\347\374\342\352\364]"
     "[^A-Z\301\311\315\323\332\300\310\314\322\331\303\325\307\334\302\312\324a-z\341\351\355\363\372\340\350\354\362\371\343\365\347\374\342\352\364]"
-    "[']" nil ("-d" "brasileiro") nil iso-8859-1)
+    "[']" nil nil nil iso-8859-1)
    ("british"				; British version
-    "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B" "-d" "british") nil iso-8859-1)
+    "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1)
    ("castellano"			; Spanish mode
     "[A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]"
     "[^A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]"
-    "[-]" nil ("-B" "-d" "castellano") "~tex" iso-8859-1)
+    "[-]" nil ("-B") "~tex" iso-8859-1)
    ("castellano8"			; 8 bit Spanish mode
     "[A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]"
     "[^A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]"
@@ -536,7 +552,7 @@ See `ispell-dictionary-alist'."
  '(("czech"
     "[A-Za-z\301\311\314\315\323\332\331\335\256\251\310\330\317\253\322\341\351\354\355\363\372\371\375\276\271\350\370\357\273\362]"
     "[^A-Za-z\301\311\314\315\323\332\331\335\256\251\310\330\317\253\322\341\351\354\355\363\372\371\375\276\271\350\370\357\273\362]"
-    "" nil ("-B" "-d" "czech") nil iso-8859-2)
+    "" nil ("-B") nil iso-8859-2)
    ("dansk"				; Dansk.aff
     "[A-Z\306\330\305a-z\346\370\345]" "[^A-Z\306\330\305a-z\346\370\345]"
     "[']" nil ("-C") nil iso-8859-1)
@@ -580,7 +596,7 @@ See `ispell-dictionary-alist'."
    ("italiano"                         ; Italian.aff
     "[A-Z\300\301\310\311\314\315\322\323\331\332a-z\340\341\350\351\354\355\363\371\372]"
     "[^A-Z\300\301\310\311\314\315\322\323\331\332a-z\340\341\350\351\354\355\363\371\372]"
-    "[-]" nil ("-B" "-d" "italian") "~tex" iso-8859-1)
+    "[-]" nil ("-B") "~tex" iso-8859-1)
    ("nederlands"			; Nederlands.aff
     "[A-Za-z\300-\305\307\310-\317\322-\326\331-\334\340-\345\347\350-\357\361\362-\366\371-\374]"
     "[^A-Za-z\300-\305\307\310-\317\322-\326\331-\334\340-\345\347\350-\357\361\362-\366\371-\374]"
@@ -598,34 +614,34 @@ See `ispell-dictionary-alist'."
  '(("norsk"				; 8 bit Norwegian mode
     "[A-Za-z\305\306\307\310\311\322\324\330\345\346\347\350\351\362\364\370]"
     "[^A-Za-z\305\306\307\310\311\322\324\330\345\346\347\350\351\362\364\370]"
-    "[\"]" nil ("-d" "norsk") "~list" iso-8859-1)
+    "[\"]" nil nil "~list" iso-8859-1)
    ("norsk7-tex"			; 7 bit Norwegian TeX mode
     "[A-Za-z{}\\'^`]" "[^A-Za-z{}\\'^`]"
     "[\"]" nil ("-d" "norsk") "~plaintex" iso-8859-1)
    ("polish"				; Polish mode
     "[A-Za-z\241\243\246\254\257\261\263\266\274\277\306\312\321\323\346\352\361\363]"
     "[^A-Za-z\241\243\246\254\257\261\263\266\274\277\306\312\321\323\346\352\361\363]"
-    "" nil ( "-d" "polish") nil iso-8859-2)
+    "" nil nil nil iso-8859-2)
    ("portugues"				; Portuguese mode
     "[a-zA-Z\301\302\311\323\340\341\342\351\352\355\363\343\372]"
     "[^a-zA-Z\301\302\311\323\340\341\342\351\352\355\363\343\372]"
-    "[']" t ("-C" "-d" "portugues") "~latin1" iso-8859-1)))
+    "[']" t ("-C") "~latin1" iso-8859-1)))
 
 
 ;;; Sixth part of dictionary, shortened for loaddefs.el
 ;;;###autoload
 (setq
  ispell-dictionary-alist-6
- ;; include Russian iso character set too?
+ ;; include Russian iso coding system too?
  ;;   "[']" t ("-d" "russian") "~latin1" iso-8859-1
  '(("russian"				; Russian.aff (KOI8-R charset)
     "[\341\342\367\347\344\345\263\366\372\351\352\353\354\355\356\357\360\362\363\364\365\346\350\343\376\373\375\370\371\377\374\340\361\301\302\327\307\304\305\243\326\332\311\312\313\314\315\316\317\320\322\323\324\325\306\310\303\336\333\335\330\331\337\334\300\321]"
     "[^\341\342\367\347\344\345\263\366\372\351\352\353\354\355\356\357\360\362\363\364\365\346\350\343\376\373\375\370\371\377\374\340\361\301\302\327\307\304\305\243\326\332\311\312\313\314\315\316\317\320\322\323\324\325\306\310\303\336\333\335\330\331\337\334\300\321]"
-    "" nil ("-d" "russian") nil koi8-r)
+    "" nil nil nil koi8-r)
    ("slovak"				; Slovakian
     "[A-Za-z\301\304\311\315\323\332\324\300\305\245\335\256\251\310\317\253\322\341\344\351\355\363\372\364\340\345\265\375\276\271\350\357\273\362]"
     "[^A-Za-z\301\304\311\315\323\332\324\300\305\245\335\256\251\310\317\253\322\341\344\351\355\363\372\364\340\345\265\375\276\271\350\357\273\362]"
-    "" nil ("-B" "-d" "slovak") nil iso-8859-2)
+    "" nil ("-B") nil iso-8859-2)
    ("svenska"				; Swedish mode
     "[A-Za-z\345\344\366\351\340\374\350\346\370\347\305\304\326\311\300\334\310\306\330\307]"
     "[^A-Za-z\345\344\366\351\340\374\350\346\370\347\305\304\326\311\300\334\310\306\330\307]"
@@ -698,7 +714,7 @@ LANGUAGE.aff file \(e.g., english.aff\)."
 			       (const "~nroff") (const "~list")
 			       (const "~latin1") (const "~latin3")
  			       (const :tag "default" nil))
-		       (choice :tag "Character set"
+		       (choice :tag "Coding System"
 			       (const iso-8859-1)
 			       (const iso-8859-2)
 			       (const koi8-r))))
@@ -727,7 +743,7 @@ LANGUAGE.aff file \(e.g., english.aff\)."
 (defvar ispell-offset -1
   "Offset that maps protocol differences between ispell 3.1 versions.")
 
-(defconst ispell-version "ispell.el 3.5 - 07/11/01")
+(defconst ispell-version "ispell.el 3.6 - 01/07/2003")
 
 
 ;;;###autoload
@@ -847,36 +863,53 @@ and added as a submenu of the \"Edit\" menu.")
   "Non-nil means that the OS supports asynchronous processes.")
 
 ;;;###autoload
+(defun valid-dictionary-list ()
+  "Returns a list of valid dictionaries.
+The variable `ispell-library-path' defines the library location."
+  (let ((dicts ispell-dictionary-alist)
+	;; `ispell-library-path' intentionally not defined in autoload
+	(path (and (boundp 'ispell-library-path) ispell-library-path))
+	(dict-list (cons "default" nil))
+	name load-dict)
+    (while dicts
+      (setq name (car (car dicts))
+	    load-dict (car (cdr (member "-d" (nth 5 (car dicts)))))
+	    dicts (cdr dicts))
+	;; Include if the dictionary is in the library, or path not defined.
+	(if (and (stringp name)
+		 (or (not path)
+		     (file-exists-p (concat path "/" name ".hash"))
+		     (file-exists-p (concat path "/" name ".has"))
+		     (and load-dict
+			  (or (file-exists-p (concat path "/"
+						     load-dict ".hash"))
+			      (file-exists-p (concat path "/"
+						     load-dict ".has"))))))
+	    (setq dict-list (cons name dict-list))))
+    dict-list))
+
+
+
+;;;###autoload
 (if (and ispell-menu-map-needed
 	 (or (not (fboundp 'byte-compiling-files-p))
 	     (not (byte-compiling-files-p))))
-    (let ((dicts (reverse (cons (cons "default" nil) ispell-dictionary-alist)))
-	  ;; `ispell-library-path' intentionally not defined in autoload
-	  (path (and (boundp 'ispell-library-path) ispell-library-path))
-	  name load-dict)
+    (let ((dicts (valid-dictionary-list)))
       (setq ispell-menu-map (make-sparse-keymap "Spell"))
       ;; add the dictionaries to the bottom of the list.
       (while dicts
-	(setq name (car (car dicts))
-	      load-dict (car (cdr (member "-d" (nth 5 (car dicts)))))
-	      dicts (cdr dicts))
-	(cond ((not (stringp name))
-	       (define-key ispell-menu-map (vector 'default)
-		 (cons "Select Default Dict"
-		       (cons "Dictionary for which Ispell was configured"
-			     (list 'lambda () '(interactive)
-				   (list
-				     'ispell-change-dictionary "default"))))))
-	      ((or (not path)		; load all if library dir not defined
-		   (file-exists-p (concat path "/" name ".hash"))
-		   (file-exists-p (concat path "/" name ".has"))
-		   (and load-dict
-			(or (file-exists-p(concat path "/" load-dict ".hash"))
-			    (file-exists-p(concat path "/" load-dict ".has")))))
-	       (define-key ispell-menu-map (vector (intern name))
-		 (cons (concat "Select " (capitalize name) " Dict")
-		       (list 'lambda () '(interactive)
-			     (list 'ispell-change-dictionary name)))))))))
+	(if (string-equal "default" (car dicts))
+	    (define-key ispell-menu-map (vector 'default)
+	      (cons "Select Default Dict"
+		    (cons "Dictionary for which Ispell was configured"
+			  (list 'lambda () '(interactive)
+				(list
+				  'ispell-change-dictionary "default")))))
+	  (define-key ispell-menu-map (vector (intern (car dicts)))
+	    (cons (concat "Select " (capitalize (car dicts)) " Dict")
+		  (list 'lambda () '(interactive)
+			(list 'ispell-change-dictionary (car dicts))))))
+	(setq dicts (cdr dicts)))))
 
 
 ;;; define commands in menu in opposite order you want them to appear.
@@ -950,9 +983,9 @@ and added as a submenu of the \"Edit\" menu.")
 (if (and xemacsp
 	 (not version18p)
 	 (featurep 'menubar)
-	 (null ispell-menu-xemacs)
+	 ;;(null ispell-menu-xemacs)
 	 (not (and (boundp 'infodock-version) infodock-version)))
-    (let ((dicts (cons (cons "default" nil) ispell-dictionary-alist))
+    (let ((dicts (valid-dictionary-list))
 	  (current-menubar (or current-menubar default-menubar))
 	  (menu
 	   '(["Help"		(describe-function 'ispell-help) t]
@@ -969,29 +1002,15 @@ and added as a submenu of the \"Edit\" menu.")
 	     "-"
 	     ["Save Personal Dict"(ispell-pdict-save t t)	t]
 	     ["Change Dictionary" ispell-change-dictionary	t]
-	     ["Select Default"  (ispell-change-dictionary "default") t]))
-	  name load-dict)
+	     ["Select Default"  (ispell-change-dictionary "default") t])))
       (while dicts
-	(setq name (car (car dicts))
-	      load-dict (car (cdr (member "-d" (nth 5 (car dicts)))))
-	      dicts (cdr dicts))
-	;; Include if the dictionary is in the library, or path not defined.
-	(if (and (stringp name)
-		 (or (not ispell-library-path)
-		     (file-exists-p (concat ispell-library-path "/"
-					    name ".hash"))
-		     (file-exists-p (concat ispell-library-path "/"
-					    name ".has"))
-		     (and load-dict
-			  (or (file-exists-p (concat ispell-library-path "/"
-						     load-dict ".hash"))
-			      (file-exists-p (concat ispell-library-path "/"
-						     load-dict ".has"))))))
-	    (setq menu (append menu
-			       (list
-				 (vector (concat "Select " (capitalize name))
-					 (list 'ispell-change-dictionary name)
-					 t))))))
+	(setq menu (append menu
+			   (list
+			     (vector
+			      (concat "Select " (capitalize (car dicts)))
+			      (list 'ispell-change-dictionary (car dicts))
+			      t)))
+	      dicts (cdr dicts)))
       (setq ispell-menu-xemacs menu)
       (if current-menubar
 	  (progn
@@ -1136,7 +1155,9 @@ The last occurring definition in the buffer will be used.")
      . "^---* End of [Ff]orwarded [Mm]essage")
     ;; Matches e-mail addresses, file names, http addresses, etc.  The `-+'
     ;; pattern necessary for performance reasons when `-' part of word syntax.
-    ("\\(--+\\|\\(/\\|\\(\\(\\w\\|[-_]\\)+[.:@]\\)\\)\\(\\w\\|[-_]\\)*\\([.:/@]+\\(\\w\\|[-_~=?&]\\)+\\)+\\)")
+    ("\\(--+\\|\\(/\\w\\|\\(\\(\\w\\|[-_]\\)+[.:@]\\)\\)\\(\\w\\|[-_]\\)*\\([.:/@]+\\(\\w\\|[-_~=?&]\\)+\\)+\\)")
+    ;; above checks /.\w sequences
+    ;;("\\(--+\\|\\(/\\|\\(\\(\\w\\|[-_]\\)+[.:@]\\)\\)\\(\\w\\|[-_]\\)*\\([.:/@]+\\(\\w\\|[-_~=?&]\\)+\\)+\\)")
     ;; This is a pretty complex regexp.  It can be simplified to the following:
     ;; "\\(\\w\\|[-_]\\)*\\([.:/@]+\\(\\w\\|[-_]\\|~\\)+\\)+"
     ;; but some valid text will be skipped, e.g. "his/her".  This could be
@@ -1232,19 +1253,9 @@ You can set this variable in hooks in your init file -- eg:
 (defvar ispell-check-only nil
   "If non-nil, `ispell-word' does not try to correct the word.")
 
-(defconst ispell-graphic-p
-  (if (fboundp 'display-graphic-p)
-      (display-graphic-p)
-    xemacsp)
-  "True if running on a `graphics capable' display.
-These displays have thicker mode lines that can partially cover text.")
-
-(if (fboundp 'mode-line-window-height-fudge)
-    (defalias 'ispell-mode-line-window-height-fudge
-      'mode-line-window-height-fudge)
-  (defun ispell-mode-line-window-height-fudge ()
-    "Return 1 if running on a `graphics capable' display, otherwise 0."
-    (if ispell-graphic-p 1 0)))
+(defun ispell-mode-line-window-height-fudge ()
+  "Return 1 if using a wide mode-line that covers text, otherwise 0."
+  (if (and xemacsp window-system) 1 0))
 
 
 ;;; **********************************************************************
@@ -1910,8 +1921,8 @@ SPC:   Accept word this time.
 		     ;;This shouldn't be necessary: with-electric-help needs
 		     ;; an optional argument telling it about the smallest
 		     ;; acceptable window-height of the help buffer.
-		     (if (< (window-height) 15)
-			 (enlarge-window (- 15 (window-height))))
+		     ;(if (< (window-height) 15)
+		     ;	 (enlarge-window (- 15 (window-height))))
 		     (princ "Selections are:
 
 DIGIT: Replace the word with a digit offered in the *Choices* buffer.
@@ -2227,7 +2238,8 @@ Keeps argument list for future ispell invocations for no async support."
     (if ispell-local-dictionary
 	(setq ispell-dictionary ispell-local-dictionary))
     (setq args (ispell-get-ispell-args))
-    (if ispell-dictionary		; use specified dictionary
+    (if (and ispell-dictionary		; use specified dictionary
+	     (not (member "-d" args)))	; only define if not overriden
 	(setq args
 	      (append (list "-d" ispell-dictionary) args)))
     (if ispell-personal-dictionary	; use specified pers dict
@@ -2359,7 +2371,9 @@ With prefix argument, set the default dictionary."
   (interactive
    (list (completing-read
 	  "Use new dictionary (RET for current, SPC to complete): "
-	  (cons (cons "default" nil) ispell-dictionary-alist) nil t)
+	  (mapcar (function (lambda (dict) (setf dict (cons dict nil))))
+		  (valid-dictionary-list))
+	  nil t)
 	 current-prefix-arg))
   (if (equal dict "default") (setq dict nil))
   ;; This relies on completing-read's bug of returning "" for no match
@@ -2620,7 +2634,7 @@ Must call after `ispell-buffer-local-parsing' due to dependence on mode."
 (defun ispell-ignore-fcc (start end)
   "Deletes the Fcc: message header when large attachments are included.
 Return value `nil' if file with large attachments are saved.
-This can be used to avoid multiple quesitons for multiple large attachments.
+This can be used to avoid multiple questions for multiple large attachments.
 Returns point to starting location afterwards."
   (let ((result t))
     (if (and ispell-checking-message ispell-message-fcc-skip)
@@ -2766,7 +2780,7 @@ Returns the sum shift due to changes in word replacements."
 	    ;; `query-replace' makes multiple corrections on the starting line.
 	    (if (/= (+ word-len (point))
 		    (progn
-		      ;; NB: Search can fail with Mule character sets that don't
+		      ;; NB: Search can fail with Mule coding systems that don't
 		      ;;  display properly.  Ignore the error in this case?
 		      (search-forward (car poss) (+ word-len (point)) t)
 		      (point)))
@@ -3079,7 +3093,6 @@ Don't read buffer-local settings or word lists."
 ;;; 			Ispell Message
 ;;; **********************************************************************
 
-
 (defvar ispell-message-text-end
   (mapconcat (function identity)
 	     '(
@@ -3325,7 +3338,10 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 		  (goto-char (point-min))
 		  (re-search-forward "Content-[^ \t]*:" end-of-headers t)
 		  (forward-line -1)	; following fn starts one line above
-		  (ispell-mime-skip-part nil)))
+		  (ispell-mime-skip-part nil)
+		  ;; if message-text-end region, limit may be less than point.
+		  (if (> (point) limit)
+		      (set-marker limit (point)))))
 	    (goto-char (max end-of-headers (point)))
 	    (forward-line 1)
 	    (setq case-fold-search old-case-fold-search)
@@ -3447,8 +3463,7 @@ Both should not be used to define a buffer-local dictionary."
 	(ispell-kill-ispell t)
 	(setq ispell-personal-dictionary ispell-local-pdict)))
   ;; Reload if new dictionary defined.
-  (if (and ispell-local-dictionary
-	   (not (equal ispell-local-dictionary ispell-dictionary)))
+  (if (not (equal ispell-local-dictionary ispell-dictionary))
       (ispell-change-dictionary ispell-local-dictionary)))
 
 
