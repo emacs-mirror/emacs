@@ -12958,7 +12958,7 @@ otherwise it is an integer representing a ShowWindow flag:\n\
 			   XINT (show_flag) : SW_SHOWDEFAULT))
       > 32)
     return Qt;
-  error ("ShellExecute failed");
+  error ("ShellExecute failed: %s", w32_strerror (0));
 }
 
 /* Lookup virtual keycode from string representing the name of a
