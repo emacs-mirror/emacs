@@ -420,12 +420,20 @@ will take place when text is fontified stealthily."
   (when jit-lock-mode
     (save-excursion
       (with-buffer-prepared-for-jit-lock
+       ;; If we're in text that matches a multi-line font-lock pattern,
+       ;; make sure the whole text will be redisplayed.
+       (when (get-text-property start 'font-lock-multiline)
+	 (setq start (or (previous-single-property-change
+			  start 'font-lock-multiline)
+			 (point-min))))
+       
        ;; It's important that the `fontified' property be set from the
        ;; beginning of the line, else font-lock will properly change the
        ;; text's face, but the display will have been done already and will
        ;; be inconsistent with the buffer's content.
        (goto-char start)
        (setq start (line-beginning-position))
+       
        ;; Make sure we change at least one char (in case of deletions).
        (setq end (min (max end (1+ start)) (point-max)))
        ;; Request refontification.
