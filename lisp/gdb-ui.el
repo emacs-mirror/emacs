@@ -4,7 +4,7 @@
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
 
-;; Copyright (C) 2002  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003  Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -1187,13 +1187,11 @@ current line."
 			     '(mouse-face highlight
 			       help-echo "mouse-2, RET: Select frame"))
 	  (beginning-of-line)
-	  (if (or (looking-at "^#[0-9]*\\s-*\\S-* in \\(\\S-*\\)")
-		  (looking-at "^#[0-9]*\\s-*\\(\\S-*\\)"))
-	      (if (equal (match-string 1) gdb-current-frame)
-		  (put-text-property (point-at-bol) (point-at-eol)
-		   'face 
-		   `(:background ,(face-attribute 'default :foreground)
-		     :foreground ,(face-attribute 'default :background)))))
+	  (when (and (or (looking-at "^#[0-9]*\\s-*\\S-* in \\(\\S-*\\)")
+			 (looking-at "^#[0-9]*\\s-*\\(\\S-*\\)"))
+		     (equal (match-string 1) gdb-current-frame))
+	    (put-text-property (point-at-bol) (point-at-eol)
+			       'face '(:inverse-video t)))
 	  (forward-line 1))))))
 
 (defun gdb-stack-buffer-name ()

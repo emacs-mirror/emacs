@@ -1,3 +1,8 @@
+2003-10-08  Miles Bader  <miles@gnu.org>
+
+	* gdb-ui.el (gdb-info-frames-custom): Use proper :inverse-video
+	face instead of attempting to emulate it.
+
 2003-10-07  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-diag.el (list-coding-systems-1): List coding
