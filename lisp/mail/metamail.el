@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993, 1996  Masanobu UMEDA
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Header: metamail.el,v 1.10 96/04/18 11:27:08 umerin Exp $
+;; Version: $Id: /home/gd/gnu/emacs/19.0/lisp/RCS/metamail.el,v 1.5 1996/04/19 18:05:38 rms Exp eggert $
 ;; Keywords: mail, news, mime, multimedia
 
 ;; This file is part of GNU Emacs.
