@@ -1098,7 +1098,14 @@ where they were found."
       (setq tag-lines-already-matched (cons match-marker
 					    tag-lines-already-matched))
       ;; Expand the filename, using the tags table buffer's default-directory.
-      (setq file (expand-file-name (file-of-tag))
+      ;; We should be able to search for file-name backwards in file-of-tag:
+      ;; the beginning-of-line is ok except when positionned on a "file-name" tag.
+      (setq file (expand-file-name
+                  (if (or (eq (car order) 'tag-exact-file-name-match-p)
+                          (eq (car order) 'tag-partial-file-name-match-p))
+                      (save-excursion (next-line 1)
+                                      (file-of-tag))
+                    (file-of-tag)))
 	    tag-info (funcall snarf-tag-function))
 
       ;; Get the local value in the tags table buffer before switching buffers.
@@ -1136,6 +1143,7 @@ where they were found."
 				      tag-exact-match-p
 				      tag-symbol-match-p
 				      tag-word-match-p
+				      tag-partial-file-name-match-p
 				      tag-any-match-p))
 	       (find-tag-next-line-after-failure-p . nil)
 	       (list-tags-function . etags-list-tags)
@@ -1442,8 +1450,13 @@ where they were found."
 
 (defun tag-exact-file-name-match-p (tag)
   (and (looking-at ",")
-       (save-excursion (backward-char (length tag))
+       (save-excursion (backward-char (+ 2 (length tag)))
 		       (looking-at "\f\n"))))
+(defun tag-partial-file-name-match-p (tag)
+  (and (looking-at ".*,")
+       (save-excursion (beginning-of-line)
+                       (backward-char 2)
+  		       (looking-at "\f\n"))))
 
 ;; t if point is in a tag line with a tag containing TAG as a substring.
 (defun tag-any-match-p (tag)
