@@ -74,7 +74,8 @@ Calls value of `electric-buffer-menu-mode-hook' on entry if non-nil.
 			       (throw 'electric-buffer-menu-select nil)))
 		    (let ((start-point (point))
 			  (first (progn (goto-char (point-min))
-					(forward-line 2)
+					(unless Buffer-menu-use-header-line
+					  (forward-line 2))
 					(point)))
 			  (last (progn (goto-char (point-max))
 				       (forward-line -1)
@@ -112,7 +113,8 @@ Calls value of `electric-buffer-menu-mode-hook' on entry if non-nil.
 	 (signal (car condition) (cdr condition)))
 	((< (point) (car state))
 	 (goto-char (point-min))
-	 (forward-line 2))
+	 (unless Buffer-menu-use-header-line
+	   (forward-line 2)))
 	((> (point) (cdr state))
 	 (goto-char (point-max))
 	 (forward-line -1)
