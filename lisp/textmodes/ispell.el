@@ -747,8 +747,7 @@ Otherwise returns the library path if defined."
 				 ispell-version))
 	    (message result))
 	;; return library path.
-	(re-search-forward "LIBDIR = \\\"\\([^ \t\n]*\\)\\\"" nil t)
-	(if (match-beginning 0)
+	(if (re-search-forward "LIBDIR = \\\"\\([^ \t\n]*\\)\\\"" nil t)
 	    (setq result (buffer-substring (match-beginning 1) (match-end 1)))))
       (goto-char (point-min))
       (if (not (memq status '(0 nil)))
