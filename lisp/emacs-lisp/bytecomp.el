@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.139 $")
+(defconst byte-compile-version "$Revision: 2.140 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -130,7 +130,7 @@
 ;;		 (baz 0))
 ;;
 ;;  o	It is possible to open-code a function in the same file it is defined
-;;	in without having to load that file before compiling it.  the
+;;	in without having to load that file before compiling it.  The
 ;;	byte-compiler has been modified to remember function definitions in
 ;;	the compilation environment in the same way that it remembers macro
 ;;	definitions.
