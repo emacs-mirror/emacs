@@ -829,3 +829,68 @@ as follows.
  ("/A" ?,L,(B)
  ("/S" ?,L.(B)
  ("/D" ?,L/(B))
+
+;; This was provided by Valery Alexeev <valery@domovoy.math.uga.edu>.
+
+(quail-define-package
+ "cyrillic-translit" "Cyrillic" ",A6(Bt" nil
+ "Intuitively transliterated keybooard layout.
+Most convenient for entering Russian but all cyrillic characters are included.
+Should handle most cases. However:
+  for TSE use \"c\", never \"ts\"
+  SHCHA = Bulgarian SHT = \"shch\", \"sj\", \"\\sht\" or \"\\t\",
+  REVERSE ROUNDED E = \"e'\" or \"e`\"
+  KHA when after  \"c,s,z\" = \"x\" or \"kh\"
+  HARD SIGN = \"~\", CAPITAL HARD SIGN = \"~~\",
+  SOFT SIGN = \"'\", CAPITAL SOFT SIGN = \"''\".
+
+Also included are Ukranian YE = \"\\e\" and YI = \"yi\", 
+Belorussian SHORT U = \"u'\",
+Serbocroatian DJE = \"\\d\", CHJE= \"\\ch\", 
+Macedonian GJE = \"\\g\", DZE = \"\\s\", KJE = \"\\k\",
+cyrillic I DECIMAL = \"\\i\", JE = \"\\j\", LJE = \"\\l\", NJE = \"\\n\" and DZE =\"\\z\"."
+ nil t t t t)
+
+(quail-define-rules
+ ("a" ?,AP(B)("b" ?,AQ(B) ("v" ?,AR(B) ("w" ?,AR(B) ("g" ?,AS(B) ("d" ?,AT(B) 
+ ("e" ?,AU(B) ("je" ?,AU(B) ("je" ?,AU(B)
+ ("yo" ?,Aq(B) ("jo" ?,Aq(B)
+ ("zh" ?,AV(B) ("z" ?,AW(B) ("i" ?,AX(B) 
+ ("j" ?,AY(B) ("j'" ?,AY(B) ("j`" ?,AY(B) ("k" ?,AZ(B) ("l" ?,A[(B)
+ ("m" ?,A\(B) ("n" ?,A](B) ("o" ?,A^(B) ("p" ?,A_(B) ("r" ?,A`(B) ("s" ?,Aa(B) ("t" ?,Ab(B) ("u" ?,Ac(B)
+ ("f" ?,Ad(B) ("x" ?,Ae(B) ("h" ?,Ae(B) ("kh" ?,Ae(B)
+ ("c" ?,Af(B) ("ch" ?,Ag(B)
+ ("sh" ?,Ah(B) 
+; ("w" ?,Ai(B) ("q" ?,Ai(B) 
+ ("shch" ?,Ai(B) ("sj" ?,Ai(B) 
+ ("\\sht" ?,Ai(B) ("\\t" ?,Ai(B) 
+ ("~" ?,Aj(B) ("y" ?,Ak(B) ("'" ?,Al(B) ("`" ?,Al(B) 
+ ("e'" ?,Am(B) ("e`" ?,Am(B) ("@" ?,Am(B) 
+ ("yu" ?,An(B) ("ju" ?,An(B) 
+ ("ya" ?,Ao(B) ("ja" ?,Ao(B)
+
+ ("A" ?,A0(B) ("B" ?,A1(B) ("V" ?,A2(B) ("W" ?,A2(B) ("G" ?,A3(B) ("D" ?,A4(B) 
+ ("E" ?,A5(B) ("Je" ?,A5(B) ("JE" ?,A5(B)
+ ("Yo" ?,A!(B) ("YO" ?,A!(B) ("Jo" ?,A!(B) ("JO" ?,A!(B) 
+ ("Zh" ?,A6(B) ("ZH" ?,A6(B) ("Z" ?,A7(B) ("I" ?,A8(B) 
+ ("J" ?,A9(B) ("J'" ?,A9(B) ("J`" ?,A9(B) ("K" ?,A:(B) ("L" ?,A;(B)
+ ("M" ?,A<(B) ("N" ?,A=(B) ("O" ?,A>(B) ("P" ?,A?(B) ("R" ?,A@(B) ("S" ?,AA(B) ("T" ?,AB(B) ("U" ?,AC(B)
+ ("F" ?,AD(B) ("X" ?,AE(B) ("H" ?,AE(B) ("Kh" ?,AE(B) ("KH" ?,AE(B)
+ ("C" ?,AF(B) ("Ch" ?,AG(B) ("CH" ?,AG(B) 
+ ("Sh" ?,AH(B) ("SH" ?,AH(B) 
+; ("W" ?,AI(B) ("Q" ?,AI(B) 
+ ("Shch" ?,AI(B) ("SHCH" ?,AI(B) ("Sj" ?,AI(B) ("SJ" ?,AI(B) 
+ ("\\Sht" ?,AI(B) ("\\SHT" ?,AI(B) ("\\T" ?,AI(B) 
+ ("~~" ",AJ(B") ("Y" ?,AK(B) ("''" ",AL(B") ("E'" ?,AM(B) ("E`" ?,AM(B) 
+ ("Yu" ?,AN(B) ("YU" ?,AN(B) ("Ju" ?,AN(B) ("JU" ?,AN(B) 
+ ("Ya" ?,AO(B) ("YA" ?,AO(B) ("Ja" ?,AO(B) ("JA" ?,AO(B) 
+
+ ("\\e" ?,At(B) ("yi" ?,Aw(B) ("u'" ?,A~(B)
+ ("\\d" ?,Ar(B) ("\\ch" ?,A{(B)
+ ("\\g" ?,As(B) ("\\s" ?,Au(B) ("\\k" ?,A|(B)
+ ("\\i" ?,Av(B) ("\\j" ?,Ax(B) ("\\l" ?,Ay(B) ("\\n" ?,Az(B) ("\\z" ?,A(B)
+ ("\\E" ?,A$(B) ("YE" ?,A$(B) ("Yi" ?,A'(B) ("YI" ?,A'(B) ("U'" ?,A.(B) 
+ ("\\D" ?,A"(B) ("\\Ch" ?,A+(B) ("\\CH" ?,A+(B)
+ ("\\G" ?,A#(B) ("\\S" ?,A%(B) ("\\K" ?,A,(B) 
+ ("\\I" ?,A&(B) ("\\J" ?,A((B) ("\\L" ?,A)(B) ("\\N" ?,A*(B) ("\\Z" ?,A/(B)
+)
