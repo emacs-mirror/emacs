@@ -7,6 +7,17 @@
 
 2000-12-13  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (image_cache_refcount, dpyinfo_refcount) [GLYPH_DEBUG]: 
+	New variables.
+	(unwind_create_frame, unwind_create_tip_frame): New functions.
+	(Fx_create_frame, x_create_tip_frame): Handle errors signaled
+	while a frame is only partially constructed.
+
+	* xterm.h (x_free_frame_resources): Declare.
+
+	* xterm.c (x_free_frame_resources): New function.
+	(x_destroy_window): Use it.
+
 	* dispnew.c (update_window): If do_mouse_tracking is non-nil,
 	don't interrupt the update for pending input initially, i.e.
 	update at least some lines.
