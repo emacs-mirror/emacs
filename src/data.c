@@ -1703,7 +1703,7 @@ or a byte-code object.  IDX starts at 0.")
 	  int code[4], i;
 	  Lisp_Object sub_table;
 
-	  SPLIT_NON_ASCII_CHAR (idxval, code[0], code[1], code[2]);
+	  SPLIT_CHAR (idxval, code[0], code[1], code[2]);
 	  if (code[1] < 32) code[1] = -1;
 	  else if (code[2] < 32) code[2] = -1;
 
@@ -1811,7 +1811,7 @@ IDX starts at 0.")
 	  int code[4], i;
 	  Lisp_Object val;
 
-	  SPLIT_NON_ASCII_CHAR (idxval, code[0], code[1], code[2]);
+	  SPLIT_CHAR (idxval, code[0], code[1], code[2]);
 	  if (code[1] < 32) code[1] = -1;
 	  else if (code[2] < 32) code[2] = -1;
 
