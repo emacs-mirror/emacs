@@ -5,6 +5,11 @@
 
 2001-02-08  Dave Love  <fx@gnu.org>
 
+	* wid-edit.el (widget-plist-convert-widget): Replace binding of
+	widget-plist-value-type.
+	(widget-alist-convert-widget): Replace binding of
+	widget-alist-value-type.
+
 	* textmodes/paragraphs.el (sentence-end): Doc fix.
 
 	* eshell/em-rebind.el (eshell-cannot-leave-input-list): Remove
