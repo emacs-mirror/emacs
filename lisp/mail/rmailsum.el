@@ -356,7 +356,7 @@ are used to exclude yourself as correspondent.
 
 Usually you don't have to set this variable, except if you collect mails
 sent by you under different user names.
-Then it should be a regexp matching your mail adresses.
+Then it should be a regexp matching your mail addresses.
 
 Setting this variable has an effect only before reading a mail."
   :type '(choice (const :tag "None" nil) regexp)
