@@ -4215,8 +4215,9 @@ Garbage collection happens automatically if you cons more than
   mark_byte_stack ();
   for (bind = specpdl; bind != specpdl_ptr; bind++)
     {
-      mark_object (&bind->symbol);
-      mark_object (&bind->old_value);
+      /* These casts avoid a warning for discarding `volatile'.  */
+      mark_object ((Lisp_Object *) &bind->symbol);
+      mark_object ((Lisp_Object *) &bind->old_value);
     }
   for (catch = catchlist; catch; catch = catch->next)
     {
