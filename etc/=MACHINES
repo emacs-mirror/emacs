@@ -385,7 +385,8 @@ Iris 2500 and Iris 2500 Turbo (m68k-sgi-iris3.5 or m68k-sgi-iris3.6)
 Iris 4D (mips-sgi-irix3.3 or mips-sgi-irix4.0)
 
   18.58 is known to work on Silicon Graphics 4D series machines
-  with IRIX 3.3 or IRIX 4.0.
+  with IRIX 3.3 or IRIX 4.0.  Version 19 should support the
+  ANSI C compiler version 3.10.
 
   Most irix3.3 systems do not have an ANSI C compiler, but a few do.
   If you are using the ANSI C compiler, you may need to add
