@@ -123,6 +123,8 @@ Commands:
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(help-font-lock-keywords))
   (view-mode)
+  (make-local-variable 'view-no-disable-on-exit)
+  (setq view-no-disable-on-exit t)
   (run-hooks 'help-mode-hook))
 
 (defun help-quit ()
