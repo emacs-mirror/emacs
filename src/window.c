@@ -1346,8 +1346,7 @@ value is reasonable when this function is called.")
      Lisp_Object window;
 {
   struct window *w;
-  struct buffer *obuf = current_buffer;
-  int opoint;
+  int startpos;
   int top;
 
   if (NILP (window))
@@ -1356,21 +1355,34 @@ value is reasonable when this function is called.")
     CHECK_LIVE_WINDOW (window, 0);
 
   w = XWINDOW (window);
-  top = XFASTINT (w->top);
+  startpos = marker_position (w->start);
+  top = XFASTINT (w->top) - FRAME_MENU_BAR_LINES (XFRAME (WINDOW_FRAME (w)));
 
   window_loop (DELETE_OTHER_WINDOWS, window, 0, WINDOW_FRAME (w));
 
-  Fset_buffer (w->buffer);
-  opoint = PT;
-  SET_PT (marker_position (w->start));
-  /* Like Frecenter but avoid setting w->force_start.  */
-  Fvertical_motion (make_number (- (top - FRAME_MENU_BAR_LINES (XFRAME (WINDOW_FRAME (w))))),
-		    window);
-  Fset_marker (w->start, make_number (PT), w->buffer);
-  w->start_at_line_beg = Fbolp ();
+  /* Try to minimize scrolling, by setting the window start to the point
+     will cause the text at the old window start to be at the same place
+     on the frame.  But don't try to do this if the window start is
+     outside the visible portion (as might happen when the display is
+     not current, due to typeahead).  */
+  if (startpos >= BUF_BEGV (XBUFFER (w->buffer))
+      && startpos <= BUF_ZV (XBUFFER (w->buffer)))
+    {
+      struct position pos;
+      struct buffer *obuf = current_buffer;
 
-  SET_PT (opoint);
-  set_buffer_internal (obuf);
+      Fset_buffer (w->buffer);
+      /* This computation used to temporarily move point, but that can
+	 have unwanted side effects due to text properties.  */
+      pos = *vmotion (startpos, -top, window_internal_width (w) - 1,
+		      XINT (w->hscroll), window);
+      Fset_marker (w->start, make_number (pos.bufpos), w->buffer);
+      w->start_at_line_beg = ((pos.bufpos == BEGV
+			       || FETCH_CHAR (pos.bufpos - 1) == '\n') ? Qt
+			      : Qnil);
+
+      set_buffer_internal (obuf);
+    }
   return Qnil;
 }
 
