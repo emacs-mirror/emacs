@@ -93,7 +93,7 @@
 (provide 'ediff-mult)
 
 (defgroup ediff-mult nil
-  "Multi-file and multi-buffer processing in ediff"
+  "Multi-file and multi-buffer processing in Ediff"
   :prefix "ediff-"
   :group 'ediff)
 

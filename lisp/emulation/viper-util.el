@@ -1130,7 +1130,7 @@ Must be called in order for changes to `viper-syntax-preference' to take effect.
    'forward 
    (cond ((eq viper-syntax-preference 'strict-vi)
 	  "")
-	 (t viper-ALPHA-char-class ))
+	 (t viper-ALPHA-char-class))
    (cond ((eq viper-syntax-preference 'strict-vi)
 	  (concat viper-strict-ALPHA-chars addl-chars))
 	 (t addl-chars))))
@@ -1141,7 +1141,7 @@ Must be called in order for changes to `viper-syntax-preference' to take effect.
    'backward 
    (cond ((eq viper-syntax-preference 'strict-vi)
 	  "")
-	 (t viper-ALPHA-char-class ))
+	 (t viper-ALPHA-char-class))
    (cond ((eq viper-syntax-preference 'strict-vi)
 	  (concat viper-strict-ALPHA-chars addl-chars))
 	 (t addl-chars))))

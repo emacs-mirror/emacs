@@ -8,7 +8,7 @@
 
 ;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
-(defconst viper-version "2.96 of August 1, 1997"
+(defconst viper-version "2.96 of August 7, 1997"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.

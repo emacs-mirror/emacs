@@ -692,6 +692,15 @@ Related buffers can be cycled through via :R and :P commands."
 
 ;;; Face-saving tricks
 
+;;(defcustom viper-replace-overlay-pixmap "gray3"
+;;  "Pixmap to use for search face on non-color displays."
+;;  :type 'string
+;;  :group 'viper)
+;;(defcustom viper-search-face-pixmap "gray3"
+;;  "Pixmap to use for search face on non-color displays."
+;;  :type 'string
+;;  :group 'viper)
+
 (defun viper-hide-face (face)
   (if (and (viper-has-face-support-p) viper-emacs-p)
       (add-to-list 'facemenu-unlisted-faces face)))
