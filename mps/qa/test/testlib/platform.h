@@ -28,3 +28,17 @@ void *memmove(void *to, void *from, size_t bytes);
 
 #endif
 
+
+#ifdef MPS_OS_W3
+#ifdef MMQA_VERS_BQ
+
+/* in interface version BQ, we are required to include mpsw3.h on
+   windows platforms
+*/
+
+#include "mpsw3.h"
+
+#endif
+#endif
+
+
