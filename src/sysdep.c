@@ -1130,7 +1130,11 @@ emacs_set_tty (fd, settings, waitp)
 /* The initial tty mode bits */
 struct emacs_tty old_tty;
 
-int term_initted;		/* 1 if outer tty status has been recorded */
+/* 1 if we have been through init_sys_modes.  */
+int term_initted;
+
+/* 1 if outer tty status has been recorded.  */
+int old_tty_valid;
 
 #ifdef BSD4_1
 /* BSD 4.1 needs to keep track of the lmode bits in order to start
@@ -1219,6 +1223,8 @@ init_sys_modes ()
 #endif
     {
       EMACS_GET_TTY (input_fd, &old_tty);
+
+      old_tty_valid = 1;
 
       tty = old_tty;
 
@@ -1650,8 +1656,9 @@ reset_sys_modes ()
     reset_sigio ();
 #endif /* BSD4_1 */
 
-  while (EMACS_SET_TTY (input_fd, &old_tty, 0) < 0 && errno == EINTR)
-    ;
+  if (old_tty_valid)
+    while (EMACS_SET_TTY (input_fd, &old_tty, 0) < 0 && errno == EINTR)
+      ;
 
 #ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida */
   dos_ttcooked ();
