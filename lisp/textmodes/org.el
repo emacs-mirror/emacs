@@ -1563,7 +1563,7 @@ The following commands are available:
 (defvar org-cycle-global-status nil)
 (defvar org-cycle-subtree-status nil)
 (defun org-cycle (&optional arg)
-  "Visibility cycling for outline(-minor)-mode.
+  "Visibility cycling for org-mode.
 
 - When this function is called with a prefix argument, rotate the entire
   buffer through 3 states (global cycling)

@@ -2,6 +2,7 @@
 
 	* textmodes/org.el (org-show-following-heading): New option.
 	(org-show-hierarchy-above): Use `org-show-following-heading'.
+	(org-cycle): Documentation fix.
 
 	* textmodes/org.el (orgtbl-optimized): New option
 	(orgtbl-mode): New command, a minor mode.
