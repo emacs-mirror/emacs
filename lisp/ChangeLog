@@ -1,9 +1,19 @@
+2004-12-13  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (next-error-buffer-p, next-error-find-buffer):
+	Doc fix.
+
+	* mail/supercite.el (sc-cite-frame-alist): Doc fix.
+	(sc-cite-region, sc-uncite-region, sc-recite-region):
+	Fix previous change to handle not alist as a symbol, but
+	a citation frame as a symbol that represents a variable name.
+
 2004-12-13  Richard M. Stallman  <rms@gnu.org>
 
 	* filecache.el (file-cache-add-directory-using-find):
 	Only set up file-cache-find-command-posix-flag if we will use it.
 
-	* bindings.el (mode-line-buffer-identification-keymap): 
+	* bindings.el (mode-line-buffer-identification-keymap):
 	Don't cancel the mode-line's usual down-mouse-1 binding.
 
 	* cus-edit.el (custom-face-selected): Handle `default' specs.
