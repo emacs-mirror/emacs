@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.23) $
+ * $HopeName: MMsrc!mpsi.c(trunk.24) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.23) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.24) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -868,6 +868,21 @@ void mps_ld_add(mps_ld_t mps_ld, mps_space_t mps_space, mps_addr_t addr)
   LD ld = (LD)mps_ld;
 
   LDAdd(ld, space, (Addr)addr);
+}
+
+
+/* mps_ld_merge -- merge two location dependencies
+ *
+ * See design.mps.interface.c.lock-free.
+ */
+
+void mps_ld_merge(mps_ld_t mps_ld, mps_space_t mps_space, mps_ld_t mps_from)
+{
+  Space space = (Space)mps_space;
+  LD ld = (LD)mps_ld;
+  LD from = (LD)mps_from;
+
+  LDMerge(ld, space, from);
 }
 
 
