@@ -1283,6 +1283,7 @@ make, or the user didn't cancel the call."
 
 	(isearch-string isearch-string)
 	(isearch-regexp isearch-regexp)
+	(isearch-case-fold-search isearch-case-fold-search)
 	(message
 	 (if query-flag
 	     (substitute-command-keys
@@ -1315,9 +1316,11 @@ make, or the user didn't cancel the call."
 				    (if regexp-flag from-string
 				      (regexp-quote from-string))
 				    "\\b")))
-    (if (eq query-replace-highlight 'isearch)
-	(setq isearch-string search-string
-	      isearch-regexp regexp-flag))
+    (when query-replace-lazy-highlight
+      (setq isearch-string search-string
+	    isearch-regexp (or delimited-flag regexp-flag)
+	    isearch-case-fold-search case-fold-search
+	    isearch-lazy-highlight-last-string nil))
 
     (push-mark)
     (undo-boundary)
@@ -1535,13 +1538,15 @@ make, or the user didn't cancel the call."
 			       (append (listify-key-sequence key)
 				       unread-command-events))
 			 (setq done t)))
-		  (when (eq query-replace-highlight 'isearch)
-		    ;; Force isearch rehighlighting
-		    (if (not (memq def '(skip backup)))
-			(setq isearch-lazy-highlight-last-string nil))
-		    ;; Restore isearch data in case of isearching during edit
+		  (when query-replace-lazy-highlight
+		    ;; Restore isearch data for lazy highlighting
+		    ;; in case of isearching during recursive edit
 		    (setq isearch-string search-string
-			  isearch-regexp regexp-flag)))
+			  isearch-regexp (or delimited-flag regexp-flag)
+			  isearch-case-fold-search case-fold-search)
+		    ;; Force lazy rehighlighting only after replacements
+		    (if (not (memq def '(skip backup)))
+			(setq isearch-lazy-highlight-last-string nil))))
 		;; Record previous position for ^ when we move on.
 		;; Change markers to numbers in the match data
 		;; since lots of markers slow down editing.
@@ -1576,38 +1581,45 @@ make, or the user didn't cancel the call."
 		 (if (= replace-count 1) "" "s")))
     (and keep-going stack)))
 
-(defcustom query-replace-highlight
-  (if (and search-highlight isearch-lazy-highlight) 'isearch t)
-  "*Non-nil means to highlight words during query replacement.
-If `isearch', use isearch highlighting for query replacement."
-  :type '(choice (const :tag "Highlight" t)
-                 (const :tag "No highlighting" nil)
-                 (const :tag "Isearch highlighting" 'isearch))
+(defcustom query-replace-highlight t
+  "*Non-nil means to highlight matches during query replacement."
+  :type 'boolean
   :group 'matching)
+
+(defcustom query-replace-lazy-highlight t
+  "*Controls the lazy-highlighting during query replacements.
+When non-nil, all text in the buffer matching the current match
+is highlighted lazily using isearch lazy highlighting (see
+`isearch-lazy-highlight-initial-delay' and
+`isearch-lazy-highlight-interval')."
+  :type 'boolean
+  :group 'matching
+  :version "21.4")
+
+(defface query-replace
+  '((t (:inherit isearch)))
+  "Face for highlighting query replacement matches."
+  :group 'matching
+  :version "21.4")
 
 (defvar replace-overlay nil)
 
-(defun replace-dehighlight ()
-  (cond ((eq query-replace-highlight 'isearch)
-	 (isearch-dehighlight t)
-	 (isearch-lazy-highlight-cleanup isearch-lazy-highlight-cleanup)
-	 (setq isearch-lazy-highlight-last-string nil))
-	(query-replace-highlight
-	 (when replace-overlay
-	   (delete-overlay replace-overlay)
-	   (setq replace-overlay nil)))))
+(defun replace-highlight (beg end)
+  (if query-replace-highlight
+      (if replace-overlay
+	  (move-overlay replace-overlay beg end (current-buffer))
+	(setq replace-overlay (make-overlay beg end))
+	(overlay-put replace-overlay 'priority 1) ;higher than lazy overlays
+	(overlay-put replace-overlay 'face 'query-replace)))
+  (if query-replace-lazy-highlight
+      (isearch-lazy-highlight-new-loop)))
 
-(defun replace-highlight (start end)
-  (cond ((eq query-replace-highlight 'isearch)
-	 (isearch-highlight start end)
-	 (isearch-lazy-highlight-new-loop))
-	(query-replace-highlight
-	 (if replace-overlay
-	     (move-overlay replace-overlay start end (current-buffer))
-	   (setq replace-overlay (make-overlay start end))
-	   (overlay-put replace-overlay 'face
-			(if (facep 'query-replace)
-			    'query-replace 'region))))))
+(defun replace-dehighlight ()
+  (when replace-overlay
+    (delete-overlay replace-overlay))
+  (when query-replace-lazy-highlight
+    (isearch-lazy-highlight-cleanup isearch-lazy-highlight-cleanup)
+    (setq isearch-lazy-highlight-last-string nil)))
 
 ;; arch-tag: 16b4cd61-fd40-497b-b86f-b667c4cf88e4
 ;;; replace.el ends here
