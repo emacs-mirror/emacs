@@ -375,7 +375,6 @@ considered."
 		      (or (boundp sym) (fboundp sym)
 			  (symbol-plist sym)))
 		  ;; Looks like a funcall position.  Let's double check.
-		  (backward-char 1)	;skip paren
 		  (if (condition-case nil
 			  (progn (up-list -2) (forward-char 1)
 				 (eq (char-after) ?\())
