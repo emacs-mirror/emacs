@@ -146,6 +146,10 @@ function `string-to-number'."
   "Return non-nil if we are running under MS-DOS/Windows."
   (memq system-type '(ms-dos windows-nt)))
 
+(defsubst eshell-under-cygwin-p ()
+  "Return non-nil if we are running under Cygwin."
+  (eq system-type 'cygwin32))
+
 (defmacro eshell-condition-case (tag form &rest handlers)
   "Like `condition-case', but only if `eshell-pass-through-errors' is nil."
   (if eshell-handle-errors

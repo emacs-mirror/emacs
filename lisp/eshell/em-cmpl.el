@@ -142,7 +142,8 @@ to writing a completion function."
   :type (get 'pcomplete-dir-ignore 'custom-type)
   :group 'eshell-cmpl)
 
-(defcustom eshell-cmpl-ignore-case (eshell-under-windows-p)
+(defcustom eshell-cmpl-ignore-case (or (eshell-under-windows-p)
+				       (eshell-under-cygwin-p))
   (documentation-property 'pcomplete-ignore-case
 			  'variable-documentation)
   :type (get 'pcomplete-ignore-case 'custom-type)
