@@ -255,6 +255,14 @@ the decimal key on the keypad is mapped to DECIMAL instead of `.'"
     (while (< i 11)
       (define-key function-key-map (vector (aref kp i))
 	(if bind (vector (aref bind i))))
+      (if (= i 6)
+	  (cond ((eq (aref kp i) 'kp-space)
+		 (define-key function-key-map [kp-begin]
+		   (if bind (vector (aref bind i)))))
+		((eq (aref kp i) 'S-kp-space)
+		 (define-key function-key-map [S-kp-begin]
+		   (if bind (vector (aref bind i)))))))
+		 
       (setq i (1+ i)))))
 
 ;;; keypad.el ends here
