@@ -1401,7 +1401,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 			   calc-gnuplot-buffer
 			   calc-gnuplot-name
 			   args))
-	      (process-kill-without-query calc-gnuplot-process))
+	      (set-process-query-on-exit-flag calc-gnuplot-process nil))
 	  (file-error
 	   (error "Sorry, can't find \"%s\" on your system"
 		  calc-gnuplot-name)))
