@@ -153,6 +153,11 @@
 	      (append default-frame-alist
 		      '((user-size . t))
 		      (if height (list height))
+		      (if width (list width)))
+	      initial-frame-alist
+	      (append initial-frame-alist
+		      '((user-size . t))
+		      (if height (list height))
 		      (if width (list width)))))
     (if (or left top)
 	(setq initial-frame-alist
