@@ -1631,9 +1631,3 @@ that is non-@code{nil}, then the command can use the minibuffer to read
 arguments even if it is invoked from the minibuffer.  The minibuffer
 command @code{next-matching-history-element} (normally @kbd{M-s} in the
 minibuffer) uses this feature.
-
-@defun minibuffer-message string &optional timeout
-This function displays @var{string} temporarily at the end of the
-minibuffer text, for @var{timeout} seconds.  (The default is 2
-seconds.)
-@end defun

@@ -1,8 +1,3 @@
-2003-05-31  Juanma Barranquero  <lektu@terra.es>
-
-	* makefile.w32-in (lisp): Fix references to byte-run.el,
-	float-sup.el and map-ynp.el, which are now in emacs-lisp.
-
 2003-05-22  Dave Love  <fx@gnu.org>
 
 	* update-game-score.c (difftime) [!HAVE_DIFFTIME]: Define.

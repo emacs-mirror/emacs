@@ -84,7 +84,13 @@
 ;(defun w32-handle-scroll-bar-event (event) (interactive "e") (princ event))
 
 ;; Handle mouse-wheel events with mwheel.
-(mouse-wheel-mode 1)
+;; Normally only mouse-wheel-mode and mwheel-install are autoloaded,
+;; but binding mouse-wheel must be done directly, since those functions
+;; do not recognize mouse-wheel as a valid button.
+(autoload 'mwheel-scroll "mwheel")
+(global-set-key [mouse-wheel] 'mwheel-scroll)
+(global-set-key [C-mouse-wheel] 'mwheel-scroll)
+(global-set-key [S-mouse-wheel] 'mwheel-scroll)
 
 (defun w32-drag-n-drop-debug (event)
   "Print the drag-n-drop EVENT in a readable form."

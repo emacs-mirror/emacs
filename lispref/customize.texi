@@ -376,7 +376,7 @@ equivalent to @code{(string)}.
 @end menu
 
 All customization types are implemented as widgets; see @ref{Top, ,
-Introduction, widget, The Emacs Widget Library}, for details.
+Introduction, widget, The Emacs Widget Library} for details.
 
 @node Simple Types
 @subsection Simple Types

@@ -8,14 +8,12 @@
 @c This is *so* much nicer :)
 @footnotestyle end
 
-@c In the Tramp CVS, the version number is auto-frobbed from
-@c configure.ac, so you should edit that file and run
-@c "autoconf && ./configure" to change the version number.
-
-@c Additionally, flags are set with respect to the Emacs flavor; and
-@c depending whether Tramp is packaged into (X)Emacs, or standalone.
-
-@include trampver.texi
+@c In the Tramp CVS, the version number is auto-frobbed from the
+@c Makefile, so you should edit the top-level Makefile to change
+@c the version number.
+@macro trampver{}
+2.0.29
+@end macro
 
 @c Entries for @command{install-info} to use
 @dircategory Emacs
@@ -29,18 +27,47 @@
 @sc{tramp}
 @end macro
 
+@c Distinguish between GNU Emacs and XEmacs.  Derived from the
+@c Makefile variable $(EMACS-ID).  Valid values are `emacs' and `xemacs'.
+@set emacs
+
+@c Some flags which make the text independent on the (X)Emacs flavor.
+@c GNU Emacs values.
+@ifset emacs
+@set emacs-name               Emacs
+@set emacs-dir                emacs
+@set ftp-package-name         Ange-FTP
+@set tramp-prefix             /
+@set tramp-prefix-single-hop
+@set tramp-postfix            :
+@set tramp-postfix-single-hop :
+@set tramp-postfix-multi-hop  :
+@end ifset
+
+@c XEmacs counterparts.
+@ifset xemacs
+@set emacs-name               XEmacs
+@set emacs-dir                xemacs
+@set ftp-package-name         EFS
+@set tramp-prefix             /[
+@set tramp-prefix-single-hop  [
+@set tramp-postfix            ]
+@set tramp-postfix-single-hop /
+@set tramp-postfix-multi-hop  :
+@end ifset
+
 @c Macros for formatting a filename.
-@c trampfn is for a full filename, trampfnmhp means method, host, localname
+@c trampfn is for a full filename, trampfnmhp means method, host, path
 @c were given, and so on.
-@macro trampfn(method, user, host, localname)
-@value{tramp-prefix}@value{method}@value{user}@@@value{host}@value{tramp-postfix}@value{localname}
+@macro trampfn(method, user, host, path)
+@value{tramp-prefix}@value{method}@value{user}@@@value{host}@value{tramp-postfix}@value{path}
 @end macro
 
 @copying
 Copyright @copyright{} 1999, 2000, 2001, 2002, 2003 Free Software
 Foundation, Inc.
 
-@quotation     
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with no
@@ -95,12 +122,6 @@ programs, such as @command{ssh}/@command{scp}.
 You can find the latest version of this document on the web at
 @uref{http://www.freesoftware.fsf.org/tramp/}.
 
-@c Pointer to the other Emacs flavor is necessary only in case of
-@c standalone installation.  Text taken from trampinst.texi.
-@ifset tramp-inst
-@otherflavor{}
-@end ifset
-
 @ifhtml
 This manual is also available as a @uref{tramp_ja.html, Japanese
 translation}.
@@ -127,33 +148,21 @@ well as the usual Savannah archives.
 * Overview::                    What @tramp{} can and cannot do.
 
 For the end user:
-
 * Obtaining @tramp{}::             How to obtain @tramp{}.
 * History::                     History of @tramp{}.
-@ifset tramp-inst
 * Installation::                Installing @tramp{} with your @value{emacs-name}.
-@end ifset
 * Configuration::               Configuring @tramp{} for use.
 * Usage::                       An overview of the operation of @tramp{}.
 * Bug Reports::                 Reporting Bugs and Problems.
 * Frequently Asked Questions::  Questions and answers from the mailing list.
 
 For the developer:
-
 * Version Control::             The inner workings of remote version control.
-* Files directories and localnames::  How file names, directories and localnames are mangled and managed.
+* Files directories and paths::  How file names, directories and paths are mangled and managed.
 * Issues::                      Debatable Issues and What Was Decided.
 
 @detailmenu
  --- The Detailed Node Listing ---
-@c
-@ifset tramp-inst
-Installing @tramp{} with your @value{emacs-name}
-
-* Installation parameters::     Parameters in order to control installation.
-* Load paths::                  How to plug-in @tramp{} into your environment.
-
-@end ifset
 
 Configuring @tramp{} for use
 
@@ -167,7 +176,6 @@ Configuring @tramp{} for use
 * Remote Programs::             How @tramp{} finds and uses programs on the remote machine.
 * Remote shell setup::          Remote shell setup hints.
 * Windows setup hints::         Issues with Cygwin ssh.
-* Auto-save and Backup::        Auto-save and Backup.
 
 Using @tramp
 
@@ -189,9 +197,9 @@ Things related to Version Control that don't fit elsewhere
 * Remote File Ownership::       How VC determines who owns a workfile.
 * Back-end Versions::           How VC determines what release your RCS is.
 
-How file names, directories and localnames are mangled and managed
+How file names, directories and paths are mangled and managed.
 
-* Localname deconstruction::    Breaking a localname into its components.
+* Path deconstruction::         Breaking a path into its components.
 
 @end detailmenu
 @end menu
@@ -360,23 +368,23 @@ behind the scenes when you open a file with @tramp{}.
 @chapter Obtaining @tramp{}.
 @cindex obtaining Tramp
 
-@tramp{} is freely available on the Internet and the latest release
-may be downloaded from
-@uref{http://savannah.nongnu.org/download/tramp/}. This
-release includes the full documentation and code for @tramp{},
-suitable for installation.  But Emacs (21.4 or later) includes
-@tramp{} already, and there is a @tramp{} package for XEmacs, as well.
-So maybe it is easier to just use those.  But if you want the bleeding
+@tramp{} is freely available on the Internet and the latest release may be
+downloaded from
+@uref{ftp://ls6-ftp.cs.uni-dortmund.de/pub/src/emacs/tramp.tar.gz}. This
+release includes the full documentation and code for @tramp{}, suitable
+for installation.  But Emacs (21.4 or later) includes @tramp{}
+already, and there is a @tramp{} package for XEmacs, as well.  So
+maybe it is easier to just use those.  But if you want the bleeding
 edge, read on@dots{...}
 
-For the especially brave, @tramp{} is available from CVS.  The CVS
-version is the latest version of the code and may contain incomplete
-features or new issues. Use these versions at your own risk.
+For the especially brave, @tramp{} is available from CVS.  The CVS version
+is the latest version of the code and may contain incomplete features or
+new issues. Use these versions at your own risk.
 
 Instructions for obtaining the latest development version of @tramp{}
 from CVS can be found by going to the Savannah project page at the
-following URL and then clicking on the CVS link in the navigation bar
-at the top.
+following URL and then clicking on the CVS link in the navigation bar at
+the top.
 
 @noindent
 @uref{http://savannah.gnu.org/projects/tramp/}
@@ -396,23 +404,13 @@ CVS password: @strong{(just hit RET here)}
 @end example
 
 @noindent
-You should now have a directory @file{~/@value{emacs-dir}/tramp}
-containing the latest version of @tramp{}. You can fetch the latest
-updates from the repository by issuing the command:
+You should now have a directory @file{~/@value{emacs-dir}/tramp} containing the latest
+version of @tramp{}. You can fetch the latest updates from the repository
+by issuing the command:
 
 @example
 ] @strong{cd ~/@value{emacs-dir}/tramp}
 ] @strong{cvs update -d}
-@end example
-
-@noindent
-Once you've got updated files from the CVS repository, you need to run
-@command{autoconf} in order to get an up-to-date @file{configure}
-script:
-
-@example
-] @strong{cd ~/@value{emacs-dir}/tramp}
-] @strong{autoconf}
 @end example
 
 
@@ -433,10 +431,123 @@ The most recent addition of major features were the multi-hop methods
 added in April 2000 and the unification of @tramp{} and Ange-FTP
 filenames in July 2002.
 
-@c Installation chapter is necessary only in case of standalone
-@c installation.  Text taken from trampinst.texi.
-@ifset tramp-inst
-@installationchapter{}
+
+@node Installation
+@chapter Installing @tramp{} into @value{emacs-name}.
+@cindex installation
+
+If you use the version that comes with your @value{emacs-name}, the
+following information is not necessary.  Installing @tramp{} into your
+@value{emacs-name} is a relatively easy process, at least compared
+to rebuilding your machine from scratch. ;)
+
+Seriously though, the installation should be a fairly simple matter.
+
+The easiest way to proceed is as follows:
+
+@itemize @bullet
+@item
+Choose a directory, say @file{~/@value{emacs-dir}/}.  Change into that directory and
+unpack the tarball.  This will give you a directory
+@file{~/@value{emacs-dir}/tramp/} which contains subdirectories @file{lisp} for the
+Lisp code and @file{texi} for the documentation.
+
+@item
+Optionally byte-compile all files in the Lisp directory,
+@file{~/@value{emacs-dir}/tramp/lisp/}, by issuing a command like the following from
+the top level directory @file{~/@value{emacs-dir}/tramp/}:
+
+@example
+make EMACS=@value{emacs-dir} all
+@end example
+
+@item
+NOTE: If you run into problems running the example @command{make}
+command, don't despair.  You can still byte compile the @file{*.el}
+files by opening @value{emacs-name} in @command{dired} (@command{C-x
+d}) mode, at @file{~/@value{emacs-dir}/tramp/lisp}.  Mark the lisp files with
+@kbd{m}, then press @kbd{B} to byte compile your selections.
+
+Something similar can be done to create the info manual.  Just change
+to directory @file{~/@value{emacs-dir}/tramp/texi} and load the
+@file{tramp.texi} file in @value{emacs-name}.  Then press @kbd{M-x
+texinfo-format-buffer @key{RET}} to generate @file{tramp.info}.
+
+@item
+Tell @value{emacs-name} about the new Lisp directory and the
+@tramp{} package with the following lines in @file{~/.emacs}:
+
+@lisp
+(add-to-list 'load-path "~/@value{emacs-dir}/tramp/lisp/")
+(require 'tramp)
+@end lisp
+
+@item
+To be able to read the Info documentation, create a file
+@file{~/@value{emacs-dir}/tramp/texi/dir} using the
+@command{install-info} command, and add the directory to the search
+path for Info.
+
+NOTE:
+On systems using the @cite{gnu} version of @command{install-info}, the
+@command{install-info} syntax is very direct and simple.  One can
+change to directory @file{~/@value{emacs-dir}/tramp/texi} and type:
+
+@example
+install-info tramp.info dir
+@end example
+
+and a @file{dir} file will be created with the @tramp{}
+entry.  The info reader will know how to interpret it, but must
+be told where to find it (see below).  If you want anything fancier
+you'll need to look through @kbd{man install-info}.
+
+Debian gnu/linux doesn't default to @cite{gnu} @command{install-info}
+and uses its own version.  This version does not create a @file{dir}
+file for you from scratch.  You must provide a skeleton @file{dir}
+file it recognizes.  One can be found in a default installation of
+@value{emacs-name} at @file{/usr/info/dir}.  Copy the top of this file
+down to the first occurrence of @code{* Menu} including that line plus
+one more blank line, to your working directory
+@file{~/@value{emacs-dir}/tramp/texi}, or use the sample
+@file{~/@value{emacs-dir}/tramp/texi/dir_sample}.
+
+Once a @file{dir} file is in place, this command will make the entry:
+
+@example
+install-info --infodir=. tramp.info
+@end example
+
+If you want it in a specific category see @kbd{man install-info} for
+further details.
+
+If the environment variable @env{INFOPATH} is set, add the directory
+@file{~/@value{emacs-dir}/tramp/texi/} to it.  Else, add the directory to
+@ifset emacs
+@code{Info-default-directory-list}, as follows:
+
+@lisp
+(add-to-list 'Info-default-directory-list "~/@value{emacs-dir}/tramp/texi/")
+@end lisp
+@end ifset
+@ifset xemacs
+@code{Info-directory-list}, as follows:
+@lisp
+(add-to-list 'Info-directory-list "~/@value{emacs-dir}/tramp/texi/")
+@end lisp
+@end ifset
+
+@end itemize
+
+@ifset xemacs
+For @value{emacs-name}, the package @file{fsf-compat} must be installed.
+For details on package installation, see @ref{Packages, , ,xemacs}.
+@ifhtml
+(If the previous link doesn't work, try the @value{emacs-name}
+documentation at
+@uref{http://www.xemacs.org/Documentation/packageGuide.html,the
+@value{emacs-name} site}.)
+@end ifhtml
 @end ifset
 
 @node Configuration
@@ -472,7 +583,6 @@ can use to connect to remote machines and transfer files
 * Remote Programs::             How @tramp{} finds and uses programs on the remote machine.
 * Remote shell setup::          Remote shell setup hints.
 * Windows setup hints::         Issues with Cygwin ssh.
-* Auto-save and Backup::        Auto-save and Backup.
 @end menu
 
 
@@ -868,7 +978,7 @@ another UNIX host or, more interesting, a host running MS Windows.  So
 far, it is tested towards MS Windows NT, MS Windows 2000, and MS
 Windows XP.
 
-The first directory in the localname must be a share name on the remote
+The first directory in the path must be a share name on the remote
 host.  Remember, that the @code{$} character in which default shares
 usually end, must be written @code{$$} due to environment variable
 substitution in file names.  If no share name is given (i.e. remote
@@ -916,8 +1026,8 @@ of multi-hop filenames is slightly different than the format of normal
 
 @cindex method multi
 @cindex multi method
-A multi-hop file name specifies a method, a number of hops, and a
-localname (path name on the remote system).  The method name is always
+A multi-hop file name specifies a method, a number of hops, and a path
+name on the remote system.  The method name is always
 @option{multi}.
 
 Each hop consists of a @dfn{hop method} specification, a user name and
@@ -998,7 +1108,7 @@ the standard port.
 When you select an appropriate transfer method for your typical usage
 you should set the variable @var{tramp-default-method} to reflect that
 choice.  This variable controls which method will be used when a method
-is not specified in the @tramp{} file name.  For example:
+is not specified in the @tramp{} file path.  For example:
 
 @lisp
 (setq tramp-default-method "scp")
@@ -1092,7 +1202,7 @@ Example:
 
 @defun tramp-set-completion-function method function-list
 This function sets @var{function-list} as list of completion functions
-for @var{method}. 
+for @var{method}.
 
 Example:
 @example
@@ -1296,38 +1406,6 @@ the variables @code{tramp-actions-before-shell} and
 @end table
 
 
-@node Auto-save and Backup
-@section Auto-save and Backup configuration
-@cindex auto-save
-@cindex backup
-@vindex backup-directory-alist
-
-Explaining auto-save is still to do.
-
-Normally, Emacs writes backup files to the same directory as the
-original files, but this behavior can be changed via the variable
-@code{backup-directory-alist}.  In connection with @tramp{}, this can
-have unexpected side effects.  Suppose that you specify that all backups
-should go to the directory @file{~/.emacs.d/backups/}, and then you edit
-the file @file{/su:root@@localhost:/etc/secretfile}.  The effect is that
-the backup file will be owned by you and not by root, thus possibly
-enabling others to see it even if they were not intended to see it.
-
-When @code{backup-directory-alist} is nil (the default), such problems
-do not occur.
-
-If you wish to customize the variable, the workaround is to include
-special settings for Tramp files.  For example, the following statement
-effectively `turns off' the effect of @code{backup-directory-alist} for
-@tramp{} files:
-
-@lisp
-(require 'tramp)
-(add-to-list 'backup-directory-alist
-             (cons tramp-file-name-regexp nil))
-@end lisp
-
-
 @node Windows setup hints
 @section Issues with Cygwin ssh
 @cindex Cygwin, issues
@@ -1409,9 +1487,9 @@ key!
 @cindex filename syntax
 @cindex filename examples
 
-To access the file @var{localname} on the remote machine @var{machine} you
+To access the file @var{path} on the remote machine @var{machine} you
 would specify the filename
-@file{@value{tramp-prefix}@var{machine}@value{tramp-postfix}@var{localname}}.
+@file{@value{tramp-prefix}@var{machine}@value{tramp-postfix}@var{path}}.
 This will connect to @var{machine} and transfer the file using the
 default method.  @xref{Default Method}.
 
@@ -1639,7 +1717,7 @@ Where can I get the latest @tramp{}?
 @tramp{} is available under the URL below.
 
 @noindent
-@uref{http://savannah.nongnu.org/download/tramp/}
+@uref{ftp://ls6-ftp.cs.uni-dortmund.de/pub/src/emacs/tramp.tar.gz}
 
 @noindent
 There is also a Savannah project page.
@@ -1807,16 +1885,6 @@ if [ "$@{HISTSIZE-unset@}" != "unset" ] ; then
 fi
 @end example
 
-
-@item @tramp{} doesn't transfer strings with more than 500 characters
-correctly
-
-On some few systems, the implementation of @code{process-send-string}
-seems to be broken for longer strings.  This case, you should
-customize the variable @code{tramp-chunksize} to 500.  For a
-description how to determine whether this is necessary see the
-documentation of @code{tramp-chunksize}.
-
 @end itemize
 
 
@@ -1868,7 +1936,7 @@ operations on files accessed via @tramp{}.
 
 In the case of a remote file, the @code{shell-command} interface is
 used, with some wrapper code, to provide the same functionality on the
-remote machine as would be seen on the local machine. 
+remote machine as would be seen on the local machine.
 
 
 @node Changed workfiles
@@ -1966,28 +2034,27 @@ Eventually these values will be captured by @tramp{} on a system by
 system basis and the results cached to improve performance.
 
 
-@node Files directories and localnames
-@chapter How file names, directories and localnames are mangled and managed.
+@node Files directories and paths
+@chapter How file names, directories and paths are mangled and managed.
 
 @menu
-* Localname deconstruction::    Breaking a localname into its components.
+* Path deconstruction::         Breaking a path into its components.
 @end menu
 
 
-@node Localname deconstruction
-@section Breaking a localname into its components.
+@node Path deconstruction
+@section Breaking a path into its components.
 
-@tramp{} file names are somewhat different, obviously, to ordinary file
+@tramp{} filenames are somewhat different, obviously, to ordinary path
 names. As such, the lisp functions @code{file-name-directory} and
-@code{file-name-nondirectory} are overridden within the @tramp{}
-package.
+@code{file-name-nondirectory} are overridden within the @tramp{} package.
 
 Their replacements are reasonably simplistic in their approach. They
-dissect the filename, call the original handler on the localname and
-then rebuild the @tramp{} file name with the result.
+dissect the filename, call the original handler on the remote path and
+then rebuild the @tramp{} path with the result.
 
 This allows the platform specific hacks in the original handlers to take
-effect while preserving the @tramp{} file name information.
+effect while preserving the @tramp{} path information.
 
 
 @node Issues

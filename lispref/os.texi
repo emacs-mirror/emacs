@@ -216,7 +216,7 @@ way you can change it with real effect is to do so before dumping
 Emacs.
 @end defvar
 
-  @xref{Init Examples,, Init File Examples, emacs, The GNU Emacs Manual}, for
+  @xref{Init File Examples,,, emacs, The GNU Emacs Manual}, for
 examples of how to make various commonly desired customizations in your
 @file{.emacs} file.
 
@@ -400,7 +400,8 @@ arguments is in @code{command-line-args}.)
 
 The command-line arguments are parsed by the @code{command-line-1}
 function in the @file{startup.el} file.  See also @ref{Command
-Arguments, , Command Line Arguments, emacs, The GNU Emacs Manual}.
+Switches, , Command Line Switches and Arguments, emacs, The GNU Emacs
+Manual}.
 @end defvar
 
 @defvar command-line-args
@@ -1275,8 +1276,8 @@ This function returns @code{t} if @var{year} is a leap year.
 @section Timers for Delayed Execution
 @cindex timer
 
-  You can set up a @dfn{timer} to call a function at a specified
-future time or after a certain length of idleness.
+  You can set up a @dfn{timer} to call a function at a specified future time or
+after a certain length of idleness.
 
   Emacs cannot run timers at any arbitrary point in a Lisp program; it
 can run them only when Emacs could accept output from a subprocess:
@@ -1284,13 +1285,6 @@ namely, while waiting or inside certain primitive functions such as
 @code{sit-for} or @code{read-event} which @emph{can} wait.  Therefore, a
 timer's execution may be delayed if Emacs is busy.  However, the time of
 execution is very precise if Emacs is idle.
-
-  Emacs binds @code{inhibit-quit} to @code{t} before calling the timer
-function, because quitting out of many timer functions can leave
-things in an inconsistent state.  This is normally unproblematical
-because most timer functions don't do a lot of work.  Indeed, for a
-timer to calls a function that takes substantial time to run is likely
-to be annoying.
 
 @defun run-at-time time repeat function &rest args
 This function arranges to call @var{function} with arguments @var{args}

@@ -89,7 +89,7 @@ buffer is @samp{@@}:
 @defun char-before &optional position
 This function returns the character in the current buffer immediately
 before position @var{position}.  If @var{position} is out of range for
-this purpose, either at or before the beginning of the buffer, or beyond
+this purpose, either before the beginning of the buffer, or at or beyond
 the end, then the value is @code{nil}.  The default for
 @var{position} is point.
 @end defun

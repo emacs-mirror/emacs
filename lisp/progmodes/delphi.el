@@ -65,7 +65,7 @@
 (provide 'delphi)
 
 (defconst delphi-version
-  (let ((revision "$Revision: 3.9 $"))
+  (let ((revision "$Revision: 3.8 $"))
     (string-match ": \\([^ ]+\\)" revision)
     (match-string 1 revision))
   "Version of this delphi mode.")
@@ -742,7 +742,7 @@ routine.")
         (delphi-step-progress p "Fontifying" delphi-fontifying-progress-step))
       (delphi-progress-done)))))
 
-(defvar delphi-ignore-changes t
+(defconst delphi-ignore-changes t
   "Internal flag to control if the delphi-mode responds to buffer changes.
 Defaults to t in case the delphi-after-change function is called on a
 non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:

@@ -57,10 +57,10 @@
   `(("\C-c\C-c" . log-edit-done)
     ("\C-c\C-a" . log-edit-insert-changelog)
     ("\C-c\C-f" . log-edit-show-files)
-    ("\M-n"	. log-edit-next-comment)
-    ("\M-p"	. log-edit-previous-comment)
-    ("\M-r"	. log-edit-comment-search-backward)
-    ("\M-s"	. log-edit-comment-search-forward)
+    ("\M-n"	. vc-next-comment)
+    ("\M-p"	. vc-previous-comment)
+    ("\M-r"	. vc-comment-search-reverse)
+    ("\M-s"	. vc-comment-search-forward)
     ("\C-c?"	. log-edit-mode-help))
   "Keymap for the `log-edit-mode' (to edit version control log messages)."
   :group 'log-edit)
@@ -81,10 +81,10 @@
     ["List files" log-edit-show-files
      :help "Show the list of relevant files."]
     "--"
-    ["Previous comment"		log-edit-previous-comment]
-    ["Next comment"		log-edit-next-comment]
-    ["Search comment forward"	log-edit-comment-search-forward]
-    ["Search comment backward"	log-edit-comment-search-backward]))
+    ["Previous comment" vc-previous-comment]
+    ["Next comment" vc-next-comment]
+    ["Search comment forward" vc-comment-search-forward]
+    ["Search comment backward" vc-comment-search-reverse]))
 
 (defcustom log-edit-confirm 'changed
   "*If non-nil, `log-edit-done' will request confirmation.
@@ -170,19 +170,19 @@ when this variable is set to nil.")
 (defvar log-edit-listfun nil)
 (defvar log-edit-parent-buffer nil)
 
-;;; Originally taken from VC-Log mode
+;;; Taken from VC-Log mode
 
-(defconst log-edit-maximum-comment-ring-size 32
+(defconst vc-maximum-comment-ring-size 32
   "Maximum number of saved comments in the comment ring.")
-(defvar log-edit-comment-ring (make-ring log-edit-maximum-comment-ring-size))
-(defvar log-edit-comment-ring-index nil)
-(defvar log-edit-last-comment-match "")
+(defvar vc-comment-ring (make-ring vc-maximum-comment-ring-size))
+(defvar vc-comment-ring-index nil)
+(defvar vc-last-comment-match "")
 
-(defun log-edit-new-comment-index (stride len)
+(defun vc-new-comment-index (stride len)
   "Return the comment index STRIDE elements from the current one.
-LEN is the length of `log-edit-comment-ring'."
+LEN is the length of `vc-comment-ring'."
   (mod (cond
-	(log-edit-comment-ring-index (+ log-edit-comment-ring-index stride))
+	(vc-comment-ring-index (+ vc-comment-ring-index stride))
 	;; Initialize the index on the first use of this command
 	;; so that the first M-p gets index 0, and the first M-n gets
 	;; index -1.
@@ -190,64 +190,66 @@ LEN is the length of `log-edit-comment-ring'."
 	(t stride))
        len))
 
-(defun log-edit-previous-comment (arg)
+(defun vc-previous-comment (arg)
   "Cycle backwards through comment history.
 With a numeric prefix ARG, go back ARG comments."
   (interactive "*p")
-  (let ((len (ring-length log-edit-comment-ring)))
+  (let ((len (ring-length vc-comment-ring)))
     (if (<= len 0)
 	(progn (message "Empty comment ring") (ding))
       ;; Don't use `erase-buffer' because we don't want to `widen'.
       (delete-region (point-min) (point-max))
-      (setq log-edit-comment-ring-index (log-edit-new-comment-index arg len))
-      (message "Comment %d" (1+ log-edit-comment-ring-index))
-      (insert (ring-ref log-edit-comment-ring log-edit-comment-ring-index)))))
+      (setq vc-comment-ring-index (vc-new-comment-index arg len))
+      (message "Comment %d" (1+ vc-comment-ring-index))
+      (insert (ring-ref vc-comment-ring vc-comment-ring-index)))))
 
-(defun log-edit-next-comment (arg)
+(defun vc-next-comment (arg)
   "Cycle forwards through comment history.
 With a numeric prefix ARG, go forward ARG comments."
   (interactive "*p")
-  (log-edit-previous-comment (- arg)))
+  (vc-previous-comment (- arg)))
 
-(defun log-edit-comment-search-backward (str &optional stride)
+(defun vc-comment-search-reverse (str &optional stride)
   "Search backwards through comment history for substring match of STR.
 If the optional argument STRIDE is present, that is a step-width to use
 when going through the comment ring."
   ;; Why substring rather than regexp ?   -sm
   (interactive
-   (list (read-string "Comment substring: " nil nil log-edit-last-comment-match)))
+   (list (read-string "Comment substring: " nil nil vc-last-comment-match)))
   (unless stride (setq stride 1))
   (if (string= str "")
-      (setq str log-edit-last-comment-match)
-    (setq log-edit-last-comment-match str))
+      (setq str vc-last-comment-match)
+    (setq vc-last-comment-match str))
   (let* ((str (regexp-quote str))
-	 (len (ring-length log-edit-comment-ring))
-	 (n (log-edit-new-comment-index stride len)))
+	 (len (ring-length vc-comment-ring))
+	 (n (vc-new-comment-index stride len)))
     (while (progn (when (or (>= n len) (< n 0)) (error "Not found"))
-		  (not (string-match str (ring-ref log-edit-comment-ring n))))
+		  (not (string-match str (ring-ref vc-comment-ring n))))
       (setq n (+ n stride)))
-    (setq log-edit-comment-ring-index n)
-    (log-edit-previous-comment 0)))
+    (setq vc-comment-ring-index n)
+    (vc-previous-comment 0)))
 
-(defun log-edit-comment-search-forward (str)
+(defun vc-comment-search-forward (str)
   "Search forwards through comment history for a substring match of STR."
   (interactive
-   (list (read-string "Comment substring: " nil nil log-edit-last-comment-match)))
-  (log-edit-comment-search-backward str -1))
+   (list (read-string "Comment substring: " nil nil vc-last-comment-match)))
+  (vc-comment-search-reverse str -1))
 
-(defun log-edit-comment-to-change-log (&optional whoami file-name)
+
+
+(defun vc-comment-to-change-log (&optional whoami file-name)
   "Enter last VC comment into the change log for the current file.
 WHOAMI (interactive prefix) non-nil means prompt for user name
 and site.  FILE-NAME is the name of the change log; if nil, use
 `change-log-default-name'.
 
-This may be useful as a `log-edit-checkin-hook' to update change logs
+This may be useful as a `vc-checkin-hook' to update change logs
 automatically."
   (interactive (if current-prefix-arg
 		   (list current-prefix-arg
 			 (prompt-for-change-log-name))))
   (let (;; Extract the comment first so we get any error before doing anything.
-	(comment (ring-ref log-edit-comment-ring 0))
+	(comment (ring-ref vc-comment-ring 0))
 	;; Don't let add-change-log-entry insert a defun name.
 	(add-log-current-defun-function 'ignore)
 	end)
@@ -278,22 +280,6 @@ automatically."
     (delete-char (- (skip-syntax-backward " ")))
     (or (eobp) (looking-at "\n\n")
 	(insert "\n"))))
-
-;; Compatibility with old names.
-(defvaralias 'vc-comment-ring 'log-edit-comment-ring)
-(make-obsolete-variable 'vc-comment-ring 'log-edit-comment-ring "21.5")
-(defvaralias 'vc-comment-ring-index 'log-edit-comment-ring-index)
-(make-obsolete-variable 'vc-comment-ring-index 'log-edit-comment-ring-index "21.5")
-(defalias 'vc-previous-comment 'log-edit-previous-comment)
-(make-obsolete 'vc-previous-comment 'log-edit-previous-comment "21.5")
-(defalias 'vc-next-comment 'log-edit-next-comment)
-(make-obsolete 'vc-next-comment 'log-edit-next-comment "21.5")
-(defalias 'vc-comment-search-reverse 'log-edit-comment-search-backward)
-(make-obsolete 'vc-comment-search-reverse 'log-edit-comment-search-backward "21.5")
-(defalias 'vc-comment-search-forward 'log-edit-comment-search-forward)
-(make-obsolete 'vc-comment-search-forward 'log-edit-comment-search-forward "21.5")
-(defalias 'vc-comment-to-change-log 'log-edit-comment-to-change-log)
-(make-obsolete 'vc-comment-to-change-log 'log-edit-comment-to-change-log "21.5")
 
 ;;;
 ;;; Actual code
@@ -337,7 +323,7 @@ the package from which this is used might also provide additional
 commands (under C-x v for VC, for example).
 
 \\{log-edit-mode-map}"
-  (make-local-variable 'log-edit-comment-ring-index))
+  (make-local-variable 'vc-comment-ring-index))
 
 (defun log-edit-hide-buf (&optional buf where)
   (when (setq buf (get-buffer (or buf log-edit-files-buf)))
@@ -366,9 +352,9 @@ If you want to abort the commit, simply delete the buffer."
 	(goto-char (point-max))
 	(insert ?\n)))
   (let ((comment (buffer-string)))
-    (when (or (ring-empty-p log-edit-comment-ring)
-	      (not (equal comment (ring-ref log-edit-comment-ring 0))))
-      (ring-insert log-edit-comment-ring comment)))
+    (when (or (ring-empty-p vc-comment-ring)
+	      (not (equal comment (ring-ref vc-comment-ring 0))))
+      (ring-insert vc-comment-ring comment)))
   (let ((win (get-buffer-window log-edit-files-buf)))
     (if (and log-edit-confirm
 	     (not (and (eq log-edit-confirm 'changed)
@@ -467,12 +453,12 @@ To select default log text, we:
   "Insert this log message into the appropriate ChangeLog file."
   (interactive)
   ;; Yuck!
-  (unless (string= (buffer-string) (ring-ref log-edit-comment-ring 0))
-    (ring-insert log-edit-comment-ring (buffer-string)))
+  (unless (string= (buffer-string) (ring-ref vc-comment-ring 0))
+    (ring-insert vc-comment-ring (buffer-string)))
   (dolist (f (log-edit-files))
     (let ((buffer-file-name (expand-file-name f)))
       (save-excursion
-	(log-edit-comment-to-change-log)))))
+	(vc-comment-to-change-log)))))
 
 ;;;;
 ;;;; functions for getting commit message from ChangeLog a file...

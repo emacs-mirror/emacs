@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2003
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/modes
@@ -283,7 +283,7 @@ If this mode is appropriate only for specially-prepared text, then the
 major mode command symbol should have a property named @code{mode-class}
 with value @code{special}, put on as follows:
 
-@kindex mode-class @r{(property)}
+@cindex @code{mode-class} property
 @cindex @code{special}
 @example
 (put 'funny-mode 'mode-class 'special)
@@ -2178,9 +2178,8 @@ automatically.  This is useful in languages for which a single syntax
 table by itself is not sufficient.
 
 @defvar font-lock-syntactic-keywords
-This variable enables and controls syntactic Font Lock.  It is
-normally set via @code{font-lock-defaults}.  Its value should be a
-list of elements of this form:
+This variable enables and controls syntactic Font Lock.  Its value
+should be a list of elements of this form:
 
 @example
 (@var{matcher} @var{subexp} @var{syntax} @var{override} @var{laxmatch})
@@ -2194,42 +2193,11 @@ sort of element of @code{font-lock-keywords},
 @end example
 
 However, instead of specifying the value @var{facename} to use for the
-@code{face} property, it specifies the value @var{syntax} to use for
-the @code{syntax-table} property.  Here, @var{syntax} can be a string
-(as taken by @code{modify-syntax-entry}), a syntax table, a cons cell
-(as returned by @code{string-to-syntax}), or an expression whose value
-is one of those two types.  @var{override} cannot be @code{prepend} or
-@code{append}.
-
-For example, an element of the form:
-
-@example
-("\\$\\(#\\)" 1 ".")
-@end example
-
-highlights syntactically a hash character when following a dollar
-character, with a SYNTAX of @code{"."} (meaning punctuation syntax).
-Assuming that the buffer syntax table specifies hash characters to
-have comment start syntax, the element will only highlight hash
-characters that do not follow dollar characters as comments
-syntactically.
-
-An element of the form:
-
-@example
- ("\\('\\).\\('\\)"
-  (1 "\"")
-  (2 "\""))
-@end example
-
-highlights syntactically both single quotes which surround a single
-character, with a SYNTAX of @code{"\""} (meaning string quote syntax).
-Assuming that the buffer syntax table does not specify single quotes
-to have quote syntax, the element will only highlight single quotes of
-the form @samp{'@var{c}'} as strings syntactically.  Other forms, such
-as @samp{foo'bar} or @samp{'fubar'}, will not be highlighted as
-strings.
-
+@code{face} property, it specifies the value @var{syntax} to use for the
+@code{syntax-table} property.  Here, @var{syntax} can be a variable
+whose value is a syntax table, a syntax entry of the form
+@code{(@var{syntax-code} . @var{matching-char})}, or an expression whose
+value is one of those two types.
 @end defvar
 
 @node Hooks

@@ -859,10 +859,10 @@ as directories, symbolic links, and ordinary files.
 
 @defun file-symlink-p filename
 @cindex file symbolic links
-If the file @var{filename} is a symbolic link, the
-@code{file-symlink-p} function returns the link target as a string.
-(Determining the file name that the link points to from the target is
-nontrivial.)
+If the file @var{filename} is a symbolic link, the @code{file-symlink-p}
+function returns the file name to which it is linked.  This may be the
+name of a text file, a directory, or even another symbolic link, or it
+may be a nonexistent file name.
 
 If the file @var{filename} is not a symbolic link (or there is no such file),
 @code{file-symlink-p} returns @code{nil}.
@@ -2404,16 +2404,6 @@ example above shows how to do this, with the variables
 shown above; the details are crucial for proper behavior in the case of
 multiple handlers, and for operations that have two file names that may
 each have handlers.
-
-@kindex safe-magic (@r{property})
-Handlers that don't really do anything specal for actual access to the
-file---such as the ones that implement completion of host names for
-remote file names---should have a non-@code{nil} @code{safe-magic}
-property.  For instance, Emacs normally ``protects'' directory names
-it finds in @code{PATH} from becoming magic, if they look like magic
-file names, by prefixing them with @samp{/:}.  But if the handler that
-would be used for them has a non-@code{nil} @code{safe-magic}
-property, the @samp{/:} is not added.
 
 @defvar inhibit-file-name-handlers
 This variable holds a list of handlers whose use is presently inhibited

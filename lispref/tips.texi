@@ -508,14 +508,6 @@ you need to explain the details of how to use the function or
 variable.  Please use complete sentences for the rest of the text too.
 
 @item
-The first line should mention all the important arguments of the
-function, and should mention them in the order that they are written
-in a function call.  If the function has many arguments, then it is
-not feasible to mention them all in the first line; in that case, the
-first line should mention the first few arguments, including the most
-important arguments.
-
-@item
 For consistency, phrase the verb in the first sentence of a function's
 documentation string as an imperative--for instance, use ``Return the
 cons of A and B.'' in preference to ``Returns the cons of A and B@.''

@@ -1,12 +1,11 @@
 ;;; vc-hooks.el --- resident support for version-control
 
-;; Copyright (C) 1992,93,94,95,96,98,99,2000,2003
-;;           Free Software Foundation, Inc.
+;; Copyright (C) 1992,93,94,95,96,98,99,2000  Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.150 2003/05/08 17:45:08 monnier Exp $
+;; $Id: vc-hooks.el,v 1.149 2003/05/07 17:22:28 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -196,15 +195,14 @@ and else calls
     (apply 'vc-default-FUN BACKEND ARGS)
 
 It is usually called via the `vc-call' macro."
-  (let ((f (assoc function-name (get backend 'vc-functions))))
-    (if f (setq f (cdr f))
+  (let ((f (cdr (assoc function-name (get backend 'vc-functions)))))
+    (unless f
       (setq f (vc-find-backend-function backend function-name))
-      (push (cons function-name f) (get backend 'vc-functions)))
-    (cond
-     ((null f)
-      (error "Sorry, %s is not implemented for %s" function-name backend))
-     ((consp f)	(apply (car f) (cdr f) args))
-     (t		(apply f args)))))
+      (put backend 'vc-functions (cons (cons function-name f)
+				       (get backend 'vc-functions))))
+    (if (consp f)
+	(apply (car f) (cdr f) args)
+      (apply f args))))
 
 (defmacro vc-call (fun file &rest args)
   ;; BEWARE!! `file' is evaluated twice!!
@@ -651,39 +649,39 @@ current, and kill the buffer that visits the link."
     (vc-file-clearprops buffer-file-name)
     (cond
      ((vc-backend buffer-file-name)
-      ;; Compute the state and put it in the modeline.
       (vc-mode-line buffer-file-name)
-      (unless vc-make-backup-files
-	;; Use this variable, not make-backup-files,
-	;; because this is for things that depend on the file name.
-	(set (make-local-variable 'backup-inhibited) t)))
+      (cond ((not vc-make-backup-files)
+	     ;; Use this variable, not make-backup-files,
+	     ;; because this is for things that depend on the file name.
+	     (make-local-variable 'backup-inhibited)
+	     (setq backup-inhibited t))))
      ((let* ((link (file-symlink-p buffer-file-name))
 	     (link-type (and link (vc-backend (file-chase-links link)))))
-	(cond ((not link-type) nil)	;Nothing to do.
-	      ((eq vc-follow-symlinks nil)
-	       (message
+	(if link-type
+            (cond ((eq vc-follow-symlinks nil)
+                   (message
         "Warning: symbolic link to %s-controlled source file" link-type))
-	      ((or (not (eq vc-follow-symlinks 'ask))
-		   ;; If we already visited this file by following
-		   ;; the link, don't ask again if we try to visit
-		   ;; it again.  GUD does that, and repeated questions
-		   ;; are painful.
-		   (get-file-buffer
-		    (abbreviate-file-name
-		     (file-chase-links buffer-file-name))))
+                  ((or (not (eq vc-follow-symlinks 'ask))
+		       ;; If we already visited this file by following
+		       ;; the link, don't ask again if we try to visit
+		       ;; it again.  GUD does that, and repeated questions
+		       ;; are painful.
+		       (get-file-buffer
+			(abbreviate-file-name
+                         (file-chase-links buffer-file-name))))
 
-	       (vc-follow-link)
-	       (message "Followed link to %s" buffer-file-name)
-	       (vc-find-file-hook))
-	      (t
-	       (if (yes-or-no-p (format
+		   (vc-follow-link)
+		   (message "Followed link to %s" buffer-file-name)
+		   (vc-find-file-hook))
+                  (t
+                   (if (yes-or-no-p (format
         "Symbolic link to %s-controlled source file; follow link? " link-type))
-		   (progn (vc-follow-link)
-			  (message "Followed link to %s" buffer-file-name)
-			  (vc-find-file-hook))
-		 (message
+                       (progn (vc-follow-link)
+                              (message "Followed link to %s" buffer-file-name)
+                              (vc-find-file-hook))
+                     (message
         "Warning: editing through the link bypasses version control")
-		 ))))))))
+                     )))))))))
 
 (add-hook 'find-file-hook 'vc-find-file-hook)
 

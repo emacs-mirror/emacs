@@ -107,7 +107,8 @@ speed up Emacs with slow networking to the X server.
 ** `describe-char' can show data from the Unicode database file.  See
 user option `unicode-data'.
 
-** `undo-only' does an undo which does not redo any previous undo.
+** `undo-only' (bound to C-x U) does an undo which does not redo any
+previous undo.
 
 ** `uniquify-strip-common-suffix' tells uniquify to prefer
 `file|dir1' and `file|dir2' to `file|dir1/subdir' and `file|dir2/subdir'.
@@ -374,7 +375,6 @@ The variable `automatic-hscrolling' was renamed to
 `auto-hscroll-mode'.  The old name is still available as an alias.
 
 ** TeX:
-*** C-c C-c prompts for a command to run, and tries to offer a good default.
 +++
 *** The user option `tex-start-options-string' has been replaced
 by two new user options: `tex-start-options', which should hold
@@ -1045,7 +1045,6 @@ Meta and Alt:
 
 * New modes and packages in 21.4
 
-** GDB-Script-mode is used for files like .gdbinit.
 ** GDB-UI is now part of the Emacs distribution.
 
 This mode acts as an enhanced graphical user interface to GDB. You can
@@ -1223,7 +1222,7 @@ settings.
 
 ---
 ** The minor mode Reveal mode makes text visible on the fly as you
-move your cursor into hidden regions of the buffer.
+move your cursor into hidden region of the buffer.
 It should work with any package that uses overlays to hide parts
 of a buffer, such as outline-minor-mode, hs-minor-mode, hide-ifdef-mode, ...
 

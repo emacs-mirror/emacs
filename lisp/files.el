@@ -1173,11 +1173,8 @@ suppresses this warning."
   :type 'boolean)
 
 (defcustom large-file-warning-threshold 10000000
-  "Maximum size of file above which a confirmation is requested.
-When nil, never request confirmation."
-  :group 'files
-  :group 'find-file
-  :type '(choice integer (const :tag "Never request confirmation" nil)))
+  "Maximum size of file above which a confirmation is requested."
+  :type 'integer)
 
 (defun find-file-noselect (filename &optional nowarn rawfile wildcards)
   "Read file FILENAME into a buffer and return the buffer.
@@ -3620,8 +3617,8 @@ non-nil, it is called instead of rereading visited file contents."
 	   (let ((buffer-read-only nil)
 		 ;; Keep the current buffer-file-coding-system.
 		 (coding-system buffer-file-coding-system)
-		 ;; Auto-saved file shoule be read with special coding.
-		 (coding-system-for-read 'auto-save-coding))
+		 ;; Auto-saved file shoule be read without any code conversion.
+		 (coding-system-for-read 'emacs-mule-unix))
 	     (erase-buffer)
 	     (insert-file-contents file-name nil)
 	     (set-buffer-file-coding-system coding-system))

@@ -1,6 +1,6 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages
 ;;
-;; Copyright (C) 1996,97,1999,2000,01,02,2003  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -1189,8 +1189,7 @@ links: groups have links to subgroups."
 ;; If we pass BUFFER to `bury-buffer', the buffer isn't removed from
 ;; the window.
 (defun custom-bury-buffer (buffer)
-  (with-current-buffer buffer
-    (bury-buffer)))
+  (bury-buffer))
 
 (defcustom custom-buffer-done-function 'custom-bury-buffer
   "*Function called to remove a Custom buffer when the user is done with it.
@@ -1206,29 +1205,6 @@ Called with one argument, the buffer to remove."
   :type 'integer
   :group 'custom-buffer)
 
-(defun custom-get-fresh-buffer (name)
-  "Get a fresh new buffer with name NAME.
-If the buffer already exist, clean it up to be like new.
-Beware: it's not quite like new.  Good enough for custom, but maybe
-not for everybody."
-  ;; To be more complete, we should also kill all permanent-local variables,
-  ;; but it's not needed for custom.
-  (let ((buf (get-buffer name)))
-    (when (buffer-local-value 'buffer-file-name buf)
-      ;; This will check if the file is not saved.
-      (kill-buffer buf)
-      (setq buf nil))
-    (if (null buf)
-	(get-buffer-create name)
-      (with-current-buffer buf
-	(kill-all-local-variables)
-	(run-hooks 'kill-buffer-hook)
-	(erase-buffer)
-	(let ((ols (overlay-lists)))
-	  (dolist (ol (nconc (car ols) (cdr ols)))
-	    (delete-overlay ol)))
-	buf))))
-
 ;;;###autoload
 (defun custom-buffer-create (options &optional name description)
   "Create a buffer containing OPTIONS.
@@ -1236,7 +1212,9 @@ Optional NAME is the name of the buffer.
 OPTIONS should be an alist of the form ((SYMBOL WIDGET)...), where
 SYMBOL is a customization option, and WIDGET is a widget for editing
 that option."
-  (pop-to-buffer (custom-get-fresh-buffer (or name "*Customization*")))
+  (unless name (setq name "*Customization*"))
+  (kill-buffer (get-buffer-create name))
+  (pop-to-buffer (get-buffer-create name))
   (custom-buffer-create-internal options description))
 
 ;;;###autoload
@@ -1247,13 +1225,14 @@ OPTIONS should be an alist of the form ((SYMBOL WIDGET)...), where
 SYMBOL is a customization option, and WIDGET is a widget for editing
 that option."
   (unless name (setq name "*Customization*"))
+  (kill-buffer (get-buffer-create name))
   (let ((window (selected-window))
 	(pop-up-windows t)
 	(special-display-buffer-names nil)
 	(special-display-regexps nil)
 	(same-window-buffer-names nil)
 	(same-window-regexps nil))
-    (pop-to-buffer (custom-get-fresh-buffer name))
+    (pop-to-buffer (get-buffer-create name))
     (custom-buffer-create-internal options description)
     (select-window window)))
 
@@ -1413,7 +1392,8 @@ Un-customize all values in this buffer.  They get their standard settings."
   (unless group
     (setq group 'emacs))
   (let ((name "*Customize Browser*"))
-    (pop-to-buffer (custom-get-fresh-buffer name)))
+    (kill-buffer (get-buffer-create name))
+    (pop-to-buffer (get-buffer-create name)))
   (custom-mode)
   (widget-insert "\
 Square brackets show active fields; type RET or click mouse-1
@@ -2460,6 +2440,7 @@ The value that was current before this operation
 becomes the backup value, so you can get it again."
   (let* ((symbol (widget-value widget))
 	 (set (or (get symbol 'custom-set) 'set-default))
+	 (comment-widget (widget-get widget :comment-widget))
 	 (value (get symbol 'saved-value))
 	 (comment (get symbol 'saved-variable-comment)))
     (cond ((or value comment)
@@ -2483,7 +2464,8 @@ restoring it to the state of a variable that has never been customized.
 The value that was current before this operation
 becomes the backup value, so you can get it again."
   (let* ((symbol (widget-value widget))
-	 (set (or (get symbol 'custom-set) 'set-default)))
+	 (set (or (get symbol 'custom-set) 'set-default))
+	 (comment-widget (widget-get widget :comment-widget)))
     (if (get symbol 'standard-value)
 	(progn
 	  (custom-variable-backup-value widget)
@@ -2604,6 +2586,7 @@ Also change :reverse-video to :inverse-video."
   (unless (widget-get widget :inactive)
     (let ((tag (custom-face-edit-attribute-tag widget))
 	  (from (copy-marker (widget-get widget :from)))
+	  (to (widget-get widget :to))
 	  (value (widget-value widget))
 	  (inhibit-read-only t)
 	  (inhibit-modification-hooks t))
@@ -3744,7 +3727,8 @@ or (if there were none) at the end of the buffer."
 			    (and (not (boundp symbol))
 				 (not (eq (get symbol 'force-value)
 					  'rogue))))))
-	      (comment (get symbol 'saved-variable-comment)))
+	      (comment (get symbol 'saved-variable-comment))
+	      sep)
 	  ;; Check `requests'.
 	  (dolist (request requests)
 	    (when (and (symbolp request) (not (featurep request)))

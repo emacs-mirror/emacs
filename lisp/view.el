@@ -242,7 +242,6 @@ For list of all View commands, type H or h while viewing.
 
 This command runs the normal hook `view-mode-hook'."
   (interactive "fView file: ")
-  (unless (file-exists-p file) (error "%s does not exist" file))
   (let ((had-a-buf (get-file-buffer file)))
     (view-buffer (find-file-noselect file)
 		 (and (not had-a-buf) 'kill-buffer))))
@@ -259,7 +258,6 @@ For list of all View commands, type H or h while viewing.
 
 This command runs the normal hook `view-mode-hook'."
   (interactive "fIn other window view file: ")
-  (unless (file-exists-p file) (error "%s does not exist" file))
   (let ((had-a-buf (get-file-buffer file)))
     (view-buffer-other-window (find-file-noselect file) nil
 			      (and (not had-a-buf) 'kill-buffer))))
@@ -276,7 +274,6 @@ For list of all View commands, type H or h while viewing.
 
 This command runs the normal hook `view-mode-hook'."
   (interactive "fIn other frame view file: ")
-  (unless (file-exists-p file) (error "%s does not exist" file))
   (let ((had-a-buf (get-file-buffer file)))
     (view-buffer-other-frame (find-file-noselect file) nil
 			     (and (not had-a-buf) 'kill-buffer))))

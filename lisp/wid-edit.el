@@ -1,6 +1,6 @@
 ;;; wid-edit.el --- Functions for creating and using widgets -*-byte-compile-dynamic: t;-*-
 ;;
-;; Copyright (C) 1996,97,1999,2000,01,02,2003  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -414,10 +414,16 @@ new value.")
   "Execute FORM without inheriting any text properties."
   `(save-restriction
     (let ((inhibit-read-only t)
-	  (inhibit-modification-hooks t))
-      (narrow-to-region (point) (point))
-      (prog1 (progn ,@form)
-	(goto-char (point-max))))))
+	  (inhibit-modification-hooks t)
+	  result)
+      (insert "<>")
+      (narrow-to-region (- (point) 2) (point))
+      (goto-char (1+ (point-min)))
+      (setq result (progn ,@form))
+      (delete-region (point-min) (1+ (point-min)))
+      (delete-region (1- (point-max)) (point-max))
+      (goto-char (point-max))
+      result)))
 
 (defface widget-inactive-face '((((class grayscale color)
 				  (background dark))
@@ -559,6 +565,7 @@ The arguments MAPARG, and BUFFER default to nil and (current-buffer),
 respectively."
   (let ((cur (point-min))
 	(widget nil)
+	(parent nil)
 	(overlays (if buffer
 		      (with-current-buffer buffer (overlay-lists))
 		    (overlay-lists))))
@@ -994,7 +1001,8 @@ ARG may be negative to move backward."
   (or (bobp) (> arg 0) (backward-char))
   (let ((wrapped 0)
 	(number arg)
-	(old (widget-tabable-at)))
+	(old (widget-tabable-at))
+	new)
     ;; Forward.
     (while (> arg 0)
       (cond ((eobp)
@@ -2475,7 +2483,7 @@ Return an alist of (TYPE MATCH)."
 
 (defun widget-editable-list-format-handler (widget escape)
   ;; We recognize the insert button.
-    ;; (let ((widget-push-button-gui widget-editable-list-gui))
+;;;   (let ((widget-push-button-gui widget-editable-list-gui))
     (cond ((eq escape ?i)
 	   (and (widget-get widget :indent)
 		(insert-char ?\  (widget-get widget :indent)))
@@ -2484,7 +2492,7 @@ Return an alist of (TYPE MATCH)."
 		  (widget-get widget :append-button-args)))
 	  (t
 	   (widget-default-format-handler widget escape)))
-    ;; )
+;;;     )
   )
 
 (defun widget-editable-list-value-create (widget)
@@ -2585,7 +2593,7 @@ Return an alist of (TYPE MATCH)."
 (defun widget-editable-list-entry-create (widget value conv)
   ;; Create a new entry to the list.
   (let ((type (nth 0 (widget-get widget :args)))
-	;; (widget-push-button-gui widget-editable-list-gui)
+;;; 	(widget-push-button-gui widget-editable-list-gui)
 	child delete insert)
     (widget-specify-insert
      (save-excursion
@@ -2614,18 +2622,18 @@ Return an alist of (TYPE MATCH)."
 			       widget type (widget-default-get type)))))
 	       (t
 		(error "Unknown escape `%c'" escape)))))
-     (let ((buttons (widget-get widget :buttons)))
-       (if insert (push insert buttons))
-       (if delete (push delete buttons))
-       (widget-put widget :buttons buttons))
+     (widget-put widget
+		 :buttons (cons delete
+				(cons insert
+				      (widget-get widget :buttons))))
      (let ((entry-from (point-min-marker))
 	   (entry-to (point-max-marker)))
        (set-marker-insertion-type entry-from t)
        (set-marker-insertion-type entry-to nil)
        (widget-put child :entry-from entry-from)
        (widget-put child :entry-to entry-to)))
-    (if insert (widget-put insert :widget child))
-    (if delete (widget-put delete :widget child))
+    (widget-put insert :widget child)
+    (widget-put delete :widget child)
     child))
 
 ;;; The `group' Widget.
@@ -3242,7 +3250,7 @@ To use this type, you must define :match or :match-alternatives."
   :value-to-internal (lambda (widget value)
 		       (list (car value) (cdr value)))
   :value-to-external (lambda (widget value)
-		       (apply 'cons value)))
+		       (cons (nth 0 value) (nth 1 value))))
 
 (defun widget-cons-match (widget value)
   (and (consp value)
@@ -3465,6 +3473,12 @@ To use this type, you must define :match or :match-alternatives."
 	 (prompt (concat tag ": "))
 	 (value (widget-value widget))
 	 (start (widget-field-start widget))
+	 (pos (cond ((< (point) start)
+		     0)
+		    ((> (point) (+ start (length value)))
+		     (length value))
+		    (t
+		     (- (point) start))))
 	 (answer (facemenu-read-color prompt)))
     (unless (zerop (length answer))
       (widget-value-set widget answer)

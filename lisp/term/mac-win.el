@@ -1,6 +1,6 @@
 ;;; mac-win.el --- support for "Macintosh windows"
 
-;; Copyright (C) 1999, 2000, 2002, 2003  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2002 Free Software Foundation, Inc.
 
 ;; Author: Andrew Choi <akochoi@mac.com>
 
@@ -171,6 +171,13 @@ Switch to a buffer editing the last file dropped."
 (add-hook 'after-init-hook
 	  '(lambda ()
 	     (defvar mac-ready-for-drag-n-drop t)))
+
+(defun iconify-or-deiconify-frame ()
+  "Iconify the selected frame, or deiconify if it's currently an icon."
+  (interactive)
+  (if (eq (cdr (assq 'visibility (frame-parameters))) t)
+      (iconify-frame)
+    (make-frame-visible)))
 
 ; Define constant values to be set to mac-keyboard-text-encoding
 (defconst kTextEncodingMacRoman 0)

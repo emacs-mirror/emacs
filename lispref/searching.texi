@@ -483,9 +483,9 @@ but no other string.@refill
 surrounding @samp{\( @dots{} \)} grouping can limit the grouping power of
 @samp{\|}.@refill
 
-If you need full backtracking capability to handle multiple uses of
-@samp{\|}, use the POSIX regular expression functions (@pxref{POSIX
-Regexps}).
+Full backtracking capability exists to handle multiple uses of
+@samp{\|}, if you use the POSIX regular expression functions
+(@pxref{POSIX Regexps}).
 
 @item \@{@var{m}\@}
 is a postfix operator that repeats the previous pattern exactly @var{m}
@@ -958,10 +958,6 @@ matching.  They continue backtracking until they have tried all
 possibilities and found all matches, so they can report the longest
 match, as required by POSIX.  This is much slower, so use these
 functions only when you really need the longest match.
-
-  The POSIX search and match functions do not properly support the
-non-greedy repetition operators.  This is because POSIX backtracking
-conflicts with the semantics of non-greedy repetition.
 
 @defun posix-search-forward regexp &optional limit noerror repeat
 This is like @code{re-search-forward} except that it performs the full

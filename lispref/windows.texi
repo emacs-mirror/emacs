@@ -960,22 +960,11 @@ buffer specially.
 By default, special display means to give the buffer a dedicated frame.
 
 If an element is a list, instead of a string, then the @sc{car} of the
-list is the buffer name, and the rest of the list says how to create
-the frame.  There are two possibilities for the rest of the list (its
-@sc{cdr}).  It can be an alist, specifying frame parameters, or it can
-contain a function and arguments to give to it.  (The function's first
-argument is always the buffer to be displayed; the arguments from the
-list come after that.)
-
-For example:
-
-@example
-(("myfile" (minibuffer) (menu-bar-lines . 0)))
-@end example
-
-@noindent
-specifies to display a buffer named @samp{myfile} in a dedicated frame
-with specified @code{minibuffer} and @code{menu-bar-lines} parameters.
+list is the buffer name, and the rest of the list says how to create the
+frame.  There are two possibilities for the rest of the list.  It can be
+an alist, specifying frame parameters, or it can contain a function and
+arguments to give to it.  (The function's first argument is always the
+buffer to be displayed; the arguments from the list come after that.)
 @end defopt
 
 @defopt special-display-regexps
@@ -2103,7 +2092,8 @@ There are three actions that can change this: scrolling the window,
 switching buffers in the window, and changing the size of the window.
 The first two actions run @code{window-scroll-functions}; the last runs
 @code{window-size-change-functions}.  The paradigmatic use of these
-hooks is in the implementation of Lazy Lock mode; see @file{lazy-lock.el}.
+hooks is in the implementation of Lazy Lock mode; see @ref{Support
+Modes, Lazy Lock, Font Lock Support Modes, emacs, The GNU Emacs Manual}.
 
 @defvar window-scroll-functions
 This variable holds a list of functions that Emacs should call before

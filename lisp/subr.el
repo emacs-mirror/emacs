@@ -1820,19 +1820,6 @@ STRING should be given if the last search was by `string-match' on STRING."
 	(buffer-substring-no-properties (match-beginning num)
 					(match-end num)))))
 
-(defun looking-back (regexp)
-  "Return t if text before point matches regular expression REGEXP.
-This function modifies the match data that `match-beginning',
-`match-end' and `match-data' access; save and restore the match
-data if you want to preserve them."
-  (save-excursion
-    (let ((beg (point)))
-      (if (re-search-backward regexp nil t)
-	  (if (= (match-end 0) beg)
-	      t
-	    nil)
-	nil))))
-
 (defconst split-string-default-separators "[ \f\t\n\r\v]+"
   "The default value of separators for `split-string'.
 

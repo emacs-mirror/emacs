@@ -641,8 +641,8 @@ expressions (also called @dfn{sexps} in connection with moving across
 them in Emacs).  The syntax table controls how these functions interpret
 various characters; see @ref{Syntax Tables}.  @xref{Parsing
 Expressions}, for lower-level primitives for scanning sexps or parts of
-sexps.  For user-level commands, see @ref{Parentheses,, Commands for
-Editing with Parentheses, emacs, The GNU Emacs Manual}.
+sexps.  For user-level commands, see @ref{Lists Commands,,, emacs, The GNU
+Emacs Manual}.
 
 @deffn Command forward-list &optional arg
 This function moves forward across @var{arg} (default 1) balanced groups of

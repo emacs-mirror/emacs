@@ -1,6 +1,6 @@
-;;; man.el --- browse UNIX manual pages -*- coding: iso-8859-1 -*-
+;;; man.el --- browse UNIX manual pages
 
-;; Copyright (C) 1993, 1994, 1996, 1997, 2001, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1996, 1997, 2001 Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
 ;; Maintainer: FSF
@@ -241,7 +241,7 @@ the associated section number."
 (defvar Man-cooked-hook nil
   "Hook run after removing backspaces but before `Man-mode' processing.")
 
-(defvar Man-name-regexp "[-a-zA-Z0-9_­][-a-zA-Z0-9_.­]*"
+(defvar Man-name-regexp "[-a-zA-Z0-9_][-a-zA-Z0-9_.]*"
   "Regular expression describing the name of a manpage (without section).")
 
 (defvar Man-section-regexp "[0-9][a-zA-Z+]*\\|[LNln]"
@@ -999,7 +999,7 @@ The following key bindings are currently in effect in the buffer:
 			      ;; Update len, in case a reference spans
 			      ;; more than two lines (paranoia).
 			      len (1- (length word))))
-		    (if (memq (aref word len) '(?- ?­))
+		    (if (= (aref word len) ?-)
 			(setq hyphenated (substring word 0 len)))
 		    (if (string-match Man-reference-regexp word)
 			(aput 'Man-refpages-alist word))))

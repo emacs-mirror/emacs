@@ -268,7 +268,7 @@ emacs-mime.dvi: emacs-mime.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-mime.texi
 
 ../info/tramp: tramp.texi
-	cd $(srcdir); $(MAKEINFO) -D emacs tramp.texi
+	cd $(srcdir); $(MAKEINFO) tramp.texi
 tramp.dvi: tramp.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/tramp.texi
 

@@ -875,7 +875,6 @@ This function always sets `desktop-enable' to t."
     (let (
       (buffer-list (buffer-list))
       (hlist desktop-buffer-handlers)
-      (desktop-first-buffer)
       (result)
       (handler)
     )

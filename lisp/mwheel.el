@@ -58,10 +58,8 @@
                         'mouse-wheel-down-event)
 (defcustom mouse-wheel-down-event
   ;; In the latest versions of XEmacs, we could just use mouse-%s as well.
-  (if (eq system-type 'windows-nt)
-      'wheel-up
-    (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
-		    mouse-wheel-down-button)))
+  (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
+		  mouse-wheel-down-button))
   "Event used for scrolling down."
   :group 'mouse
   :type 'symbol
@@ -72,10 +70,8 @@
                         'mouse-wheel-up-event)
 (defcustom mouse-wheel-up-event
   ;; In the latest versions of XEmacs, we could just use mouse-%s as well.
-  (if (eq system-type 'windows-nt)
-      'wheel-down
-    (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
-		    mouse-wheel-up-button)))
+  (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
+		  mouse-wheel-up-button))
   "Event used for scrolling down."
   :group 'mouse
   :type 'symbol

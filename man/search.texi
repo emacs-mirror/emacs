@@ -385,11 +385,6 @@ Search}.
 @section Syntax of Regular Expressions
 @cindex syntax of regexps
 
-  This manual describes regular expression features that users
-typically want to use.  There are additional features that are
-mainly used in Lisp programs; see @ref{Regular Expressions,,,
-elisp, the same manual}.
-
   Regular expressions have a syntax in which a few characters are
 special constructs and the rest are @dfn{ordinary}.  An ordinary
 character is a simple regular expression which matches that same
@@ -418,14 +413,14 @@ and @samp{o} to get the regular expression @samp{fo}, which matches only
 the string @samp{fo}.  Still trivial.  To do something nontrivial, you
 need to use one of the special characters.  Here is a list of them.
 
-@table @asis
-@item @kbd{.}@: @r{(Period)}
+@table @kbd
+@item .@: @r{(Period)}
 is a special character that matches any single character except a newline.
 Using concatenation, we can make regular expressions like @samp{a.b}, which
 matches any three-character string that begins with @samp{a} and ends with
 @samp{b}.@refill
 
-@item @kbd{*}
+@item *
 is not a construct by itself; it is a postfix operator that means to
 match the preceding regular expression repetitively as many times as
 possible.  Thus, @samp{o*} matches any number of @samp{o}s (including no
@@ -446,18 +441,18 @@ tries to match all three @samp{a}s; but the rest of the pattern is
 The next alternative is for @samp{a*} to match only two @samp{a}s.
 With this choice, the rest of the regexp matches successfully.@refill
 
-@item @kbd{+}
+@item +
 is a postfix operator, similar to @samp{*} except that it must match
 the preceding expression at least once.  So, for example, @samp{ca+r}
 matches the strings @samp{car} and @samp{caaaar} but not the string
 @samp{cr}, whereas @samp{ca*r} matches all three strings.
 
-@item @kbd{?}
+@item ?
 is a postfix operator, similar to @samp{*} except that it can match the
 preceding expression either once or not at all.  For example,
 @samp{ca?r} matches @samp{car} or @samp{cr}; nothing else.
 
-@item @kbd{*?}, @kbd{+?}, @kbd{??}
+@item *?, +?, ??
 @cindex non-greedy regexp matching
 are non-greedy variants of the operators above.  The normal operators
 @samp{*}, @samp{+}, @samp{?} are @dfn{greedy} in that they match as
@@ -478,13 +473,13 @@ you search for @samp{a.*?$} against the text @samp{abbab} followed by
 a newline, it matches the whole string.  Since it @emph{can} match
 starting at the first @samp{a}, it does.
 
-@item @kbd{\@{@var{n}\@}}
+@item \@{@var{n}\@}
 is a postfix operator that specifies repetition @var{n} times---that
 is, the preceding regular expression must match exactly @var{n} times
 in a row.  For example, @samp{x\@{4\@}} matches the string @samp{xxxx}
 and nothing else.
 
-@item @kbd{\@{@var{n},@var{m}\@}}
+@item \@{@var{n},@var{m}\@}
 is a postfix operator that specifies repetition between @var{n} and
 @var{m} times---that is, the preceding regular expression must match
 at least @var{n} times, but no more than @var{m} times.  If @var{m} is
@@ -493,7 +488,7 @@ expression must match at least @var{n} times.@* @samp{\@{0,1\@}} is
 equivalent to @samp{?}. @* @samp{\@{0,\@}} is equivalent to
 @samp{*}. @* @samp{\@{1,\@}} is equivalent to @samp{+}.
 
-@item @kbd{[ @dots{} ]}
+@item [ @dots{} ]
 is a @dfn{character set}, which begins with @samp{[} and is terminated
 by @samp{]}.  In the simplest case, the characters between the two
 brackets are what this set can match.
@@ -528,7 +523,7 @@ ends of the range in upper case, or both in lower case, or both should
 be non-letters.  The behavior of a mixed-case range such as @samp{A-z}
 is somewhat ill-defined, and it may change in future Emacs versions.
 
-@item @kbd{[^ @dots{} ]}
+@item [^ @dots{} ]
 @samp{[^} begins a @dfn{complemented character set}, which matches any
 character except the ones specified.  Thus, @samp{[^a-z0-9A-Z]} matches
 all characters @emph{except} ASCII letters and digits.
@@ -541,17 +536,17 @@ A complemented character set can match a newline, unless newline is
 mentioned as one of the characters not to match.  This is in contrast to
 the handling of regexps in programs such as @code{grep}.
 
-@item @kbd{^}
+@item ^
 is a special character that matches the empty string, but only at the
 beginning of a line in the text being matched.  Otherwise it fails to
 match anything.  Thus, @samp{^foo} matches a @samp{foo} that occurs at
 the beginning of a line.
 
-@item @kbd{$}
+@item $
 is similar to @samp{^} but matches only at the end of a line.  Thus,
 @samp{x+$} matches a string of one @samp{x} or more at the end of a line.
 
-@item @kbd{\}
+@item \
 has two functions: it quotes the special characters (including
 @samp{\}), and it introduces additional special constructs.
 

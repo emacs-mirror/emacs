@@ -497,7 +497,7 @@ The name of an interpreter used to parse and execute programs run from
 inside Emacs.
 @item SMTPSERVER
 The name of the outgoing mail server.  Used by the SMTP library
-(@pxref{Top,,Sending mail via SMTP,smtpmail}).
+(@pxref{Sending mail via SMTP,,,smtpmail}).
 @cindex background mode, on @command{xterm}
 @item TERM
 The type of the terminal that Emacs is using.  This variable must be

@@ -319,7 +319,7 @@ variable @code{save-abbrevs} to @code{nil}.
 @findex define-abbrevs
   The commands @kbd{M-x insert-abbrevs} and @kbd{M-x define-abbrevs} are
 similar to the previous commands but work on text in an Emacs buffer.
-@kbd{M-x insert-abbrevs} inserts text into the current buffer after point,
+@kbd{M-x insert-abbrevs} inserts text into the current buffer before point,
 describing all current abbrev definitions; @kbd{M-x define-abbrevs} parses
 the entire current buffer and defines abbrevs accordingly.@refill
 
@@ -370,12 +370,10 @@ expressions.  If a buffer's name matches any of these regular
 expressions, dynamic abbrev expansion skips that buffer.
 
   A negative argument to @kbd{M-/}, as in @kbd{C-u - M-/}, says to
-search first for expansions after point, then other buffers, and
-consider expansions before point only as a last resort.
-
-  If you repeat the @kbd{M-/} to look for another expansion, do not
-specify an argument.  This tries all the expansions after point and
-then the expansions before point.
+search first for expansions after point, and second for expansions
+before point.  If you repeat the @kbd{M-/} to look for another
+expansion, do not specify an argument.  This tries all the expansions
+after point and then the expansions before point.
 
   After you have expanded a dynamic abbrev, you can copy additional
 words that follow the expansion in its original context.  Simply type

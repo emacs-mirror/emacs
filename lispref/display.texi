@@ -1706,7 +1706,7 @@ if it modifies an underlying or inherited value of @var{attribute}).
 If @var{value1} is a relative value for the face attribute
 @var{attribute}, returns it merged with the underlying value
 @var{value2}; otherwise, if @var{value1} is an absolute value for the
-face attribute @var{attribute}, returns @var{value1} unchanged.
+face a attribute @var{attribute}, returns @var{value1} unchanged.
 @end defun
 
 @defun set-face-foreground face color &optional frame
@@ -2568,7 +2568,7 @@ image properties along with @code{:data}.
 
 @item :margin @var{margin}
 The @code{:margin} property specifies how many pixels to add as an
-extra margin around the image.  The value, @var{margin}, must be a
+extra margin around the image.  The value, @var{margin}, must be a a
 non-negative number, or a pair @code{(@var{x} . @var{y})} of such
 numbers.  If it is a pair, @var{x} specifies how many pixels to add
 horizontally, and @var{y} specifies how many pixels to add vertically.

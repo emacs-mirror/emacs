@@ -532,9 +532,7 @@ see @ref{Format Justification}.
 @findex center-line
   The command @kbd{M-s} (@code{center-line}) centers the current line
 within the current fill column.  With an argument @var{n}, it centers
-@var{n} lines individually and moves past them.  This binding is
-made by Text mode and is available only in that and related modes
-(@pxref{Text Mode}).
+@var{n} lines individually and moves past them.
 
 @vindex fill-column
 @kindex C-x f

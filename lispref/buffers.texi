@@ -678,14 +678,13 @@ signal an error if the current buffer is read-only.
 @cindex buffer list
 
   The @dfn{buffer list} is a list of all live buffers.  Creating a
-buffer adds it to this list, and killing a buffer removes it.  The
-order of the buffers in the list is based primarily on how recently
-each buffer has been displayed in the selected window.  Buffers move
-to the front of the list when they are selected (selecting a window
-that already displays the buffer counts as selecting the buffer), and
-to the end when they are buried (see @code{bury-buffer}, below).
-Several functions, notably @code{other-buffer}, use this ordering.  A
-buffer list displayed for the user also follows this order.
+buffer adds it to this list, and killing a buffer excises it.  The order
+of the buffers in the list is based primarily on how recently each
+buffer has been displayed in the selected window.  Buffers move to the
+front of the list when they are selected and to the end when they are
+buried (see @code{bury-buffer}, below).  Several functions, notably
+@code{other-buffer}, use this ordering.  A buffer list displayed for the
+user also follows this order.
 
   In addition to the fundamental Emacs buffer list, each frame has its
 own version of the buffer list, in which the buffers that have been

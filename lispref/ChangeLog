@@ -1,34 +1,3 @@
-2003-05-28  Richard M. Stallman  <rms@gnu.org>
-
-	* strings.texi (Creating Strings): Clarify split-string.
-
-2003-05-22  Stephen J. Turnbull  <stephen@xemacs.org>
-
-	* strings.texi (Creating Strings): Update split-string specification
-	and examples.
-
-2003-05-19  Richard M. Stallman  <rms@gnu.org>
-
-	* elisp.texi: Correct invariant section names.
-
-2003-04-20  Richard M. Stallman  <rms@gnu.org>
-
-	* os.texi (Timers): Explain about timers and quitting.
-
-2003-04-19  Richard M. Stallman  <rms@gnu.org>
-
-	* internals.texi (Writing Emacs Primitives): Strings are
-	no longer special for GCPROs.  Mention GCPRO5, GCPRO6.
-	Explain GCPRO convention for varargs function args.
-
-2003-04-16  Richard M. Stallman  <rms@gnu.org>
-
-	* minibuf.texi (Minibuffer Misc): Document fn minibuffer-message.
-
-2003-04-08  Richard M. Stallman  <rms@gnu.org>
-
-	* files.texi (Kinds of Files): Correct return value of file-symlink-p.
-
 2003-02-13  Kim F. Storm  <storm@cua.dk>
 
 	* objects.texi (Character Type): New \s escape for space.

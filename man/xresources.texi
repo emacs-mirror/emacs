@@ -201,7 +201,6 @@ Width in pixels of the internal border.
 Additional space (@dfn{leading}) between lines, in pixels.
 
 @item @code{menuBar} (class @code{MenuBar})
-@cindex menu bar
 Give frames menu bars if @samp{on}; don't have menu bars if
 @samp{off}.  @xref{Lucid Resources}, and @ref{LessTif Resources}, for
 how to control the appearance of the menu bar if you have one.
@@ -250,20 +249,10 @@ useful for debugging X problems.
 Name to display in the title bar of the initial Emacs frame.
 
 @item @code{toolBar} (class @code{ToolBar})
-@cindex tool bar
 Number of lines to reserve for the tool bar.  A zero value suppresses
 the tool bar.  If the value is non-zero and
 @code{auto-resize-tool-bars} is non-@code{nil}, the tool bar's size
 will be changed automatically so that all tool bar items are visible.
-
-@item @code{useXIM} (class @code{UseXIM})
-@cindex XIM
-@cindex X input methods
-@cindex input methods, X
-Turn off use of X input methods (XIM) if @samp{false} or @samp{off}.
-This is only relevant if your Emacs is actually built with XIM
-support.  It is potentially useful to turn off XIM for efficiency,
-especially slow X client/server links.
 
 @item @code{verticalScrollBars} (class @code{ScrollBars})
 Give frames scroll bars if @samp{on}; don't have scroll bars if
