@@ -1527,27 +1527,27 @@ also count as blocks.
 @findex hs-show-region
 @findex hs-hide-level
 @findex hs-minor-mode
-@kindex C-c C-h
-@kindex C-c C-s
-@kindex C-c C-M-h
-@kindex C-c C-M-s
-@kindex C-c C-r
-@kindex C-c C-l
+@kindex C-c @ C-h
+@kindex C-c @ C-s
+@kindex C-c @ C-M-h
+@kindex C-c @ C-M-s
+@kindex C-c @ C-r
+@kindex C-c @ C-l
 @kindex S-Mouse-2
 @table @kbd
-@item C-c C-h
+@item C-c @ C-h
 Hide the current block (@code{hs-hide-block}).
-@item C-c C-s
+@item C-c @ C-s
 Show the current block (@code{hs-show-block}).
-@item C-c C-c
+@item C-c @ C-c
 Either hide or show the current block (@code{hs-toggle-hiding})
 @item S-Mouse-2
 Either hide or show the block you click on (@code{hs-mouse-toggle-hiding})
-@item C-c C-M-h
+@item C-c @ C-M-h
 Hide all top-level blocks (@code{hs-hide-all}).
-@item C-c C-M-s
+@item C-c @ C-M-s
 Show everything in the buffer (@code{hs-show-all}).
-@item C-c C-l
+@item C-c @ C-l
 Hide all blocks @var{n} levels below this block
 (@code{hs-hide-level}).
 @end table
