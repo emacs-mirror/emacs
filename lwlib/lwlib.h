@@ -48,6 +48,9 @@ typedef struct _widget_value
   Boolean	edited;
   /* true if has changed (maintained by lw library) */
   change_type	change;
+  /* true if this widget itself has changed,
+     but not counting the other widgets found in the `next' field.  */
+  change_type   this_one_change;
   /* Contents of the sub-widgets, also selected slot for checkbox */
   struct _widget_value*	contents;
   /* data passed to callback */
