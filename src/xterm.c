@@ -32,6 +32,7 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef HAVE_X_WINDOWS
 
+#define DOC_STRINGS_IN_COMMENTS
 #include "lisp.h"
 #include "blockinput.h"
 
@@ -14790,24 +14791,24 @@ syms_of_xterm ()
   staticpro (&previous_help_echo);
   help_echo_pos = -1;
 
-  DEFVAR_BOOL ("x-stretch-cursor", &x_stretch_cursor_p,
-    "*Non-nil means draw block cursor as wide as the glyph under it.\n\
-For example, if a block cursor is over a tab, it will be drawn as\n\
-wide as that tab on the display.");
+  DEFVAR_BOOL ("x-stretch-cursor", &x_stretch_cursor_p
+    /* *Non-nil means draw block cursor as wide as the glyph under it.
+For example, if a block cursor is over a tab, it will be drawn as
+wide as that tab on the display.  */);
   x_stretch_cursor_p = 0;
 
   DEFVAR_BOOL ("x-use-underline-position-properties",
-	       &x_use_underline_position_properties,
-     "*Non-nil means make use of UNDERLINE_POSITION font properties.\n\
-Nil means ignore them.  If you encounter fonts with bogus\n\
-UNDERLINE_POSITION font properties, for example 7x13 on XFree prior\n\
-to 4.1, set this to nil.");
+	       &x_use_underline_position_properties
+     /* *Non-nil means make use of UNDERLINE_POSITION font properties.
+Nil means ignore them.  If you encounter fonts with bogus
+UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
+to 4.1, set this to nil.  */);
   x_use_underline_position_properties = 1;
 
-  DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
-    "What X toolkit scroll bars Emacs uses.\n\
-A value of nil means Emacs doesn't use X toolkit scroll bars.\n\
-Otherwise, value is a symbol describing the X toolkit.");
+  DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars
+    /* What X toolkit scroll bars Emacs uses.
+A value of nil means Emacs doesn't use X toolkit scroll bars.
+Otherwise, value is a symbol describing the X toolkit.  */);
 #ifdef USE_TOOLKIT_SCROLL_BARS
 #ifdef USE_MOTIF
   Vx_toolkit_scroll_bars = intern ("motif");
