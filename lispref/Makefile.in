@@ -73,6 +73,7 @@ index.texi:
 # The info file is named `elisp'.
 
 elisp: $(srcs) index.texi makeinfo
+	rm -f elisp-*
 	./makeinfo elisp.texi
 
 install: elisp elisp.dvi
@@ -88,6 +89,9 @@ clean:
 	rm -f make.out core 
 	rm -f makeinfo.o makeinfo getopt.o getopt1.o
 	rm -f texindex.o texindex index.texi
+
+realclean: clean
+	rm -f elisp elisp-*
 
 dist:
 	-mkdir temp
