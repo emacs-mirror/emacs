@@ -2552,7 +2552,7 @@ describe_vector (vector, elt_prefix, elt_describer,
       /* Prepare for handling a nested char-table.  */
       if (NILP (elt_prefix))
 	{
-	  /* VECTOR is the top level of char-table.  */
+	  /* VECTOR is a top level char-table.  */
 	  this_level = 0;
 	  complete_char = 0;
 	  from = 0;
@@ -2560,11 +2560,11 @@ describe_vector (vector, elt_prefix, elt_describer,
 	}
       else
 	{
-	  /* VECTOR is the deeper level of char-table.  */
+	  /* VECTOR is a sub char-table.  */
 	  this_level = XVECTOR (elt_prefix)->size;
 	  if (this_level >= 3)
 	    /* A char-table is not that deep.  */
-	    wrong_type_argument (Qchar_table_p, vector);
+	    error ("Too deep char table");
 
 	  /* For multibyte characters, the top level index for
              charsets starts from 256.  */
@@ -2578,7 +2578,7 @@ describe_vector (vector, elt_prefix, elt_describer,
 
 	  /* Meaningful elements are from 32th to 127th.  */
 	  from = 32;
-	  to = 128;
+	  to = SUB_CHAR_TABLE_ORDINARY_SLOTS;
 	}
       chartable_kludge = Fmake_vector (make_number (this_level + 1), Qnil);
       if (this_level != 0)
@@ -2599,13 +2599,16 @@ describe_vector (vector, elt_prefix, elt_describer,
     {
       QUIT;
 
-      if (this_level == 0
-	  && i >= CHAR_TABLE_SINGLE_BYTE_SLOTS
-	  && !CHARSET_DEFINED_P (i - 128))
-	continue;
-
-      definition = get_keyelt (XVECTOR (vector)->contents[i], 0);
-      if (NILP (definition)) continue;      
+      if (CHAR_TABLE_P (vector))
+	{
+	  if (i >= CHAR_TABLE_SINGLE_BYTE_SLOTS
+	      && !CHARSET_DEFINED_P (i - 128))
+	    continue;
+	  definition = get_keyelt (XCHAR_TABLE (vector)->contents[i]);
+	  if (NILP (definition)) continue;      
+	}
+      else
+	definition = get_keyelt (XVECTOR (vector)->contents[i], 0);
 
       /* Don't mention suppressed commands.  */
       if (SYMBOLP (definition) && partial)
@@ -2648,7 +2651,7 @@ describe_vector (vector, elt_prefix, elt_describer,
 	  first = 0;
 	}
 
-      /* If VECTOR is a deeper char-table, show the depth by indentation.
+      /* If VECTOR is a sub char-table, show the depth by indentation.
 	 THIS_LEVEL can be greater than 0 only for char-table.  */
       if (this_level > 0)
 	insert ("    ", this_level * 2); /* THIS_LEVEL is 1 or 2.  */
@@ -2656,7 +2659,23 @@ describe_vector (vector, elt_prefix, elt_describer,
       /* Get a Lisp object for the character I.  */
       XSETFASTINT (dummy, i);
 
-      if (CHAR_TABLE_P (vector))
+      if (this_level == 0 && CHAR_TABLE_P (vector))
+	{
+	  if (i < CHAR_TABLE_SINGLE_BYTE_SLOTS)
+	    insert1 (Fsingle_key_description (dummy));
+	  else
+	    {
+	      /* Print the information for this character set.  */
+	      insert_string ("<");
+	      tem2 = CHARSET_TABLE_INFO (i - 128, CHARSET_SHORT_NAME_IDX);
+	      if (STRINGP (tem2))
+		insert_from_string (tem2, 0 , XSTRING (tem2)->size, 0);
+	      else
+		insert ("?", 1);
+	      insert (">", 1);
+	    }
+	}
+      else if (this_level > 0 && SUB_CHAR_TABLE_P (vector))
 	{
 	  if (complete_char)
 	    {
@@ -2665,15 +2684,14 @@ describe_vector (vector, elt_prefix, elt_describer,
 	      idx[this_level] = i;
 	      insert_char (MAKE_NON_ASCII_CHAR (idx[0], idx[1], idx[2]));
 	    }
-	  else if (this_level > 0)
+	  else
 	    {
-	      /* We need an octal representation.  */
+	      /* We need an octal representation for this block of
+                 characters.  */
 	      char work[5];
 	      sprintf (work, "\\%03o", i & 255);
 	      insert (work, 4);
 	    }
-	  else
-	    insert1 (Fsingle_key_description (dummy));
 	}
       else
 	{
@@ -2685,22 +2703,11 @@ describe_vector (vector, elt_prefix, elt_describer,
 	  insert1 (Fsingle_key_description (dummy));
 	}
 
-      /* If we find a char-table within a char-table,
+      /* If we find a sub char-table within a char-table,
 	 scan it recursively; it defines the details for
 	 a character set or a portion of a character set.  */
-      if (multibyte && CHAR_TABLE_P (vector) && CHAR_TABLE_P (definition))
+      if (multibyte && CHAR_TABLE_P (vector) && SUB_CHAR_TABLE_P (definition))
 	{
-	  if (this_level == 0
-	      && CHARSET_VALID_P (i - 128))
-	    {
-	      /* Before scanning the deeper table, print the
-		 information for this character set.  */
-	      insert_string ("\t\t<charset:");
-	      tem2 = CHARSET_TABLE_INFO (i - 128, CHARSET_SHORT_NAME_IDX);
-	      insert_from_string (tem2, 0 , XSTRING (tem2)->size, 0);
-	      insert (">", 1);
-	    }
-
 	  insert ("\n", 1);
 	  XVECTOR (chartable_kludge)->contents[this_level] = make_number (i);
 	  describe_vector (definition, chartable_kludge, elt_describer,
@@ -2708,12 +2715,33 @@ describe_vector (vector, elt_prefix, elt_describer,
 	  continue;
 	}
 
-      /* Find all consecutive characters that have the same definition.  */
-      while (i + 1 < to
-	     && (tem2 = get_keyelt (XVECTOR (vector)->contents[i+1], 0),
-		 !NILP (tem2))
-	     && !NILP (Fequal (tem2, definition)))
-	i++;
+      /* Find all consecutive characters that have the same
+         definition.  But, for elements of a top level char table, if
+         they are for charsets, we had better describe one by one even
+         if they have the same definition.  */
+      if (CHAR_TABLE_P (vector))
+	{
+	  if (this_level == 0)
+	    while (i + 1 < CHAR_TABLE_SINGLE_BYTE_SLOTS
+		   && (tem2
+		       = get_keyelt (XCHAR_TABLE (vector)->contents[i + 1], 0),
+		       !NILP (tem2))
+		   && !NILP (Fequal (tem2, definition)))
+	      i++;
+	  else
+	    while (i + 1 < to
+		   && (tem2 = get_keyelt (XCHAR_TABLE (vector)->contents[i + 1], 0),
+		       !NILP (tem2))
+		   && !NILP (Fequal (tem2, definition)))
+	      i++;
+	}
+      else
+	while (i + 1 < CHAR_TABLE_SINGLE_BYTE_SLOTS
+	       && (tem2 = get_keyelt (XVECTOR (vector)->contents[i + 1], 0),
+		   !NILP (tem2))
+	       && !NILP (Fequal (tem2, definition)))
+	  i++;
+      
 
       /* If we have a range of more than one character,
 	 print where the range reaches to.  */
@@ -2756,7 +2784,7 @@ describe_vector (vector, elt_prefix, elt_describer,
       (*elt_describer) (definition);
     }
 
-  /* For char-table, print `defalt' slot at last.  */
+  /* For (sub) char-table, print `defalt' slot at last.  */
   if (CHAR_TABLE_P (vector) && !NILP (XCHAR_TABLE (vector)->defalt))
     {
       insert ("    ", this_level * 2);
