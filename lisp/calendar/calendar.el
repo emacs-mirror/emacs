@@ -477,11 +477,22 @@ For example, -74.0 for New York City.")
 `calendar-longitude', calendar-latitude'.  Default value is just the latitude,
 longitude pair.")
 
+;;; Since this defvar is marked to go into loaddefs.el, it will be
+;;; evaluated when Emacs is dumped.  However, this variable's
+;;; appropriate value really depends on the conditions under which the
+;;; code is invoked; it would be inappropriate to initialize this when
+;;; Emacs is dumped.  So, we initialize it to nil now, and if it's
+;;; still nil when this file is actually loaded, we give it its real value.
 ;;;###autoload
-(defvar calendar-time-zone (car (current-time-zone))
+(defvar calendar-time-zone nil
   "*Number of minutes difference between local standard time at
 `calendar-location-name' and Universal (Greenwich) Time.  For example, -300
-for New York City, -480 for Los Angeles.")
+for New York City, -480 for Los Angeles.
+If this is nil, it will be set to the local time zone when the calendar
+package loads.")
+;;; If the user has given this a real value, don't wipe it out.
+(or calendar-time-zone
+    (setq calendar-time-zone (current-time-zone)))
 
 ;;;###autoload
 (defvar calendar-standard-time-zone-name (car (nthcdr 2 (current-time-zone)))
