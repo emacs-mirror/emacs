@@ -1212,6 +1212,9 @@ AC_PROG_INSTALL
 if test "x$RANLIB" = x; then
   AC_PROG_RANLIB
 fi
+AC_PATH_PROG(INSTALL_INFO, install-info)
+AC_PATH_PROG(INSTALL_INFO, install-info,, /usr/sbin)
+AC_PATH_PROG(INSTALL_INFO, install-info,:, /sbin)
 
 dnl Add our options to ac_link now, after it is set up.
 
