@@ -421,6 +421,42 @@ defined are always ``located'' at the end of the file, so these
 commands won't find the places they are really used.  To do that,
 you must search for the function names.
  
+  You can suppress the compiler warning for calling an undefined
+function @var{func} by conditionalizing the function call on a
+@code{fboundp} test, like this:
+
+@example
+(if (fboundp '@var{func}) ...(@var{func} ...)...)
+@end example
+
+@noindent
+The call to @var{func} must be in the @var{then-form} of the @code{if},
+and @var{func} must appear quoted in the call to @code{fboundp}.
+Likewise, you can suppress a compiler warning for an unbound variable
+@var{variable} by conditionalizing its use on a @code{boundp} test,
+like this:
+
+@example
+(if (boundp '@var{variable}) ...@var{variable}...)
+@end example
+
+@noindent
+The reference to @var{variable} must be in the @var{then-form} of the
+@code{if}, and @var{variable} must appear quoted in the call to
+@code{boundp}.
+
+  You can suppress any compiler warnings using the construct
+@code{with-no-warnings}:
+
+@defmac with-no-warnings body...
+In execution, this is equivalent to @code{(progn @var{body}...)},
+but the compiler does not issue warnings for anything that occurs
+inside @var{body}.
+
+We recommend that you use this construct around the smallest
+possible piece of code.
+@end defun
+
 @node Byte-Code Objects
 @section Byte-Code Function Objects
 @cindex compiled function
