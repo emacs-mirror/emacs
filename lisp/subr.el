@@ -740,6 +740,21 @@ The value returned is the value of the last form in BODY."
     (set-buffer ,buffer)
     . ,body))
 
+(defmacro with-output-to-string (&rest body)
+  "Execute BODY, return the text it sent to `standard-output', as a string."
+  `(let ((standard-output (get-buffer-create " *string-output*")))
+     (save-excursion
+       (set-buffer standard-output)
+       (buffer-disable-undo (current-buffer))
+       (let ((inhibit-read-only t))
+	 (erase-buffer))
+       (setq buffer-read-only nil))
+     (let ((standard-output standard-output))
+       ,@body)
+     (save-excursion
+       (set-buffer standard-output)
+       (buffer-string))))
+
 (defvar save-match-data-internal)
 
 ;; We use save-match-data-internal as the local variable because
