@@ -4025,6 +4025,8 @@ decode_coding_sjis (coding)
 	goto invalid_code;
       if (c < 0x80)
 	charset = charset_roman;
+      else if (c == 0x80)
+	goto invalid_code;
       else
 	{
 	  if (c >= 0xF0)
