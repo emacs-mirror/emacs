@@ -38,6 +38,7 @@
 
 (set-keymap-parent help-mode-map button-buffer-map)
 
+(define-key help-mode-map [mouse-2] 'help-follow-mouse)
 (define-key help-mode-map "\C-c\C-b" 'help-go-back)
 (define-key help-mode-map "\C-c\C-c" 'help-follow)
 ;; Documentation only, since we use minor-mode-overriding-map-alist.
@@ -46,16 +47,16 @@
 (defvar help-xref-stack nil
   "A stack of ways by which to return to help buffers after following xrefs.
 Used by `help-follow' and `help-xref-go-back'.
-An element looks like (POSITION FUNCTION ARGS...), where POSITION is
-`(POINT . BUFFER-NAME)'.
-To use the element, do (apply FUNCTION ARGS) then goto the point in
-the named buffer.")
+An element looks like (POSITION FUNCTION ARGS...).
+To use the element, do (apply FUNCTION ARGS) then goto the point.")
 (put 'help-xref-stack 'permanent-local t)
+(make-variable-buffer-local 'help-xref-stack)
 
 (defvar help-xref-stack-item nil
   "An item for `help-follow' in this buffer to push onto `help-xref-stack'.
 The format is (FUNCTION ARGS...).")
 (put 'help-xref-stack-item 'permanent-local t)
+(make-variable-buffer-local 'help-xref-stack-item)
 
 (setq-default help-xref-stack nil help-xref-stack-item nil)
 
@@ -208,13 +209,29 @@ when help commands related to multilingual environment (e.g.,
 ITEM is a (FUNCTION . ARGS) pair appropriate for recreating the help
 buffer after following a reference.  INTERACTIVE-P is non-nil if the
 calling command was invoked interactively.  In this case the stack of
-items for help buffer \"back\" buttons is cleared."
-  (if interactive-p
-      (setq help-xref-stack nil))
-  (setq help-xref-stack-item item))
+items for help buffer \"back\" buttons is cleared.
+
+This should be called very early, before the output buffer is cleared,
+because we want to record the \"previous\" position of point so we can
+restore it properly when going back."
+  (with-current-buffer (help-buffer)
+    (if interactive-p
+	;; Why do we want to prevent the user from going back ??  -stef
+	(setq help-xref-stack nil)
+      (when help-xref-stack-item
+	(push (cons (point) help-xref-stack-item) help-xref-stack)))
+    (setq help-xref-stack-item item)))
 
 (defvar help-xref-following nil
   "Non-nil when following a help cross-reference.")
+
+(defun help-buffer ()
+  (unless (equal help-xref-following (eq major-mode 'help-mode))
+    (debug))
+  (buffer-name				;for with-output-to-temp-buffer
+   (if help-xref-following
+       (current-buffer)
+     (get-buffer-create "*Help*"))))
 
 ;;;###autoload
 (defun help-make-xrefs (&optional buffer)
@@ -356,7 +373,7 @@ that."
 	(while (and (not (bobp)) (bolp))
 	  (delete-char -1))
         ;; Make a back-reference in this buffer if appropriate.
-        (when (and help-xref-following help-xref-stack)
+        (when help-xref-stack
 	  (insert "\n\n")
 	  (help-insert-xref-button help-back-label 'help-back
 				   (current-buffer))))
@@ -422,47 +439,82 @@ See `help-make-xrefs'."
 ;; Additional functions for (re-)creating types of help buffers.
 (defun help-xref-interned (symbol)
   "Follow a hyperlink which appeared to be an arbitrary interned SYMBOL.
-
-Both variable and function documentation are extracted into a single
+Both variable, function and face documentation are extracted into a single
 help buffer."
-  (let ((fdoc (when (fboundp symbol) (describe-function symbol)))
-	(facedoc (when (facep symbol) (describe-face symbol))))
-    (when (or (boundp symbol) (not fdoc))
-      (describe-variable symbol)
-      ;; We now have a help buffer on the variable.  Insert the function
-      ;; text before it.
+  (with-current-buffer (help-buffer)
+    ;; Push the previous item on the stack before clobbering the output buffer.
+    (help-setup-xref nil nil)
+    (let ((facedoc (when (facep symbol)
+		     ;; Don't record the current entry in the stack.
+		     (setq help-xref-stack-item nil)
+		     (describe-face symbol)))
+	  (fdoc (when (fboundp symbol)
+		  ;; Don't record the current entry in the stack.
+		  (setq help-xref-stack-item nil)
+		  (describe-function symbol)))
+	  (sdoc (when (boundp symbol)
+		  ;; Don't record the current entry in the stack.
+		  (setq help-xref-stack-item nil)
+		  (describe-variable symbol))))
+      (cond
+       (sdoc
+	;; We now have a help buffer on the variable.
+	;; Insert the function and face text before it.
       (when (or fdoc facedoc)
-	(with-current-buffer "*Help*"
 	  (goto-char (point-min))
 	  (let ((inhibit-read-only t))
 	    (when fdoc
-	      (insert fdoc "\n\n"))
+	      (insert fdoc "\n\n")
 	    (when facedoc
 	      (insert (make-string 30 ?-) "\n\n" (symbol-name symbol)
-		      " is also a " "face." "\n\n" facedoc "\n\n"))
+			" is also a " "face." "\n\n")))
+	    (when facedoc
+	      (insert facedoc "\n\n"))
 	    (insert (make-string 30 ?-) "\n\n" (symbol-name symbol)
 		    " is also a " "variable." "\n\n"))
-	  (help-setup-xref (list #'help-xref-interned symbol) nil))))))
+	  ;; Don't record the `describe-variable' item in the stack.
+	  (setq help-xref-stack-item nil)
+	  (help-setup-xref (list #'help-xref-interned symbol) nil)))
+       (fdoc
+	;; We now have a help buffer on the function.
+	;; Insert face text before it.
+	(when facedoc
+	  (goto-char (point-max))
+	  (let ((inhibit-read-only t))
+	    (insert "\n\n" (make-string 30 ?-) "\n\n" (symbol-name symbol)
+		    " is also a " "face." "\n\n" facedoc))
+	  ;; Don't record the `describe-function' item in the stack.
+	  (setq help-xref-stack-item nil)
+	  (help-setup-xref (list #'help-xref-interned symbol) nil)))))))
 
 
 ;;; Navigation/hyperlinking with xrefs
+
+(defun help-follow-mouse (click)
+  "Follow the cross-reference that you CLICK on."
+  (interactive "e")
+  (let* ((start (event-start click))
+	 (window (car start))
+	 (pos (car (cdr start))))
+    (with-current-buffer (window-buffer window)
+      (help-follow pos))))
 
 (defun help-xref-go-back (buffer)
   "From BUFFER, go back to previous help buffer text using `help-xref-stack'."
   (let (item position method args)
     (with-current-buffer buffer
       (when help-xref-stack
-	(setq help-xref-stack (cdr help-xref-stack)) ; due to help-follow
 	(setq item (pop help-xref-stack)
+	      ;; Clear the current item so that it won't get pushed
+	      ;; by the function we're about to call.  TODO: We could also
+	      ;; push it onto a "forward" stack and add a `forw' button.
+	      help-xref-stack-item nil
 	      position (car item)
 	      method (cadr item)
 	      args (cddr item))))
     (apply method args)
-    ;; We assume that the buffer we just recreated has the saved name,
-    ;; which might not always be true.
-    (when (get-buffer (cdr position))
-      (with-current-buffer (cdr position)
-	(goto-char (car position))))))
+    ;; FIXME: are we sure we're in the right buffer ?
+    (goto-char position)))
 
 (defun help-go-back ()
   "Invoke the [back] button (if any) in the Help mode buffer."
@@ -476,10 +528,6 @@ help buffer."
   "Call the help cross-reference function FUNCTION with args ARGS.
 Things are set up properly so that the resulting help-buffer has
 a proper [back] button."
-  (setq help-xref-stack (cons (cons (cons pos (buffer-name))
-				    help-xref-stack-item)
-			      help-xref-stack))
-  (setq help-xref-stack-item nil)
   ;; There is a reference at point.  Follow it.
   (let ((help-xref-following t))
     (apply function args)))
@@ -500,7 +548,7 @@ For the cross-reference format, see `help-make-xrefs'."
 	      (buffer-substring (point)
 				(progn (skip-syntax-forward "w_")
 				       (point)))))))
-      (when (or (boundp sym) (fboundp sym))
+      (when (or (boundp sym) (fboundp sym) (facep sym))
 	(help-do-xref pos #'help-xref-interned (list sym))))))
 
 
