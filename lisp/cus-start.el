@@ -52,12 +52,6 @@
 	     (tab-width editing-basics integer)
 	     (ctl-arrow display boolean)
 	     (truncate-lines display boolean)
-	     (selective-display display 
-				(choice (const :tag "off" nil)
-					(integer :tag "space"
-						 :format "%v"
-						 1)
-					(other :tag "on" t)))
 	     (selective-display-ellipses display boolean)
 	     (transient-mark-mode editing-basics boolean)
 	     ;; callint.c
@@ -186,8 +180,11 @@
 	     (split-height-threshold windows integer)
 	     (window-min-height windows integer)
 	     (window-min-width windows integer)
+	     (scroll-preserve-screen-position windows bool)
 	     ;; xdisp.c
 	     (scroll-step windows integer)
+	     (scroll-conservatively windows integer)
+	     (scroll-margin windows integer)
 	     (truncate-partial-width-windows display boolean)
 	     (mode-line-inverse-video modeline boolean)
 	     (line-number-display-limit display integer)
