@@ -5,7 +5,7 @@
 !  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
 !
 !  This scans the stack and the preserved integer registers.
-!  See design.mps.thread-manager
+!  See <design/thread-manager/>.
 !
 !  This file is identical to <code/sssus8.s>, except for the
 !  leading underscore convention on C names.  They should be

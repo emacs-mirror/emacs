@@ -21,7 +21,7 @@ void mps_pool_check_fenceposts(mps_pool_t mps_pool)
   Pool pool = (Pool)mps_pool;
   Arena arena;
   
-  /* CHECKT not AVERT, see design.mps.interface.c.check.space */
+  /* CHECKT not AVERT, see <design/interface-c/#check.space */
   AVER(CHECKT(Pool, pool));
   arena = PoolArena(pool);
 
@@ -41,7 +41,7 @@ void mps_pool_check_free_space(mps_pool_t mps_pool)
   Pool pool = (Pool)mps_pool;
   Arena arena;
   
-  /* CHECKT not AVERT, see design.mps.interface.c.check.space */
+  /* CHECKT not AVERT, see <design/interface-c/#check.space */
   AVER(CHECKT(Pool, pool));
   arena = PoolArena(pool);
 

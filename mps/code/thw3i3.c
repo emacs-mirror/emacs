@@ -4,7 +4,7 @@
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * Implements thread registration, suspension, and stack
- * scanning.  See design.mps.thread-manager
+ * scanning.  See <design/thread-manager/>.
  *
  * This supports the <code/th.h>
  *

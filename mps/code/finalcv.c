@@ -141,7 +141,7 @@ static void *test(void *arg, size_t s)
   /* <design/poolmrg/#test.promise.ut.churn> */
   while (mps_collections(arena) < collectionCOUNT) {
     churn(ap);
-    /* design.mps.poolmrg.test.promise.ut.drop */
+    /* <design/poolmrg/#test.promise.ut.drop> */
     for (i = 0; i < rootCOUNT; ++i) {
       if (root[i] != NULL && state[i] == rootSTATE) {
         if (rnd() % finalizationRATE == 0) {
