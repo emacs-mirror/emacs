@@ -27,5 +27,7 @@
 #endif
 #endif
 
+#if 0 /* Not necessary, since SYSTEM_MALLOC is defined in sunos4-0.h.  */
 /* Tell GNU malloc to compensate for a bug in localtime.  */
 #define SUNOS_LOCALTIME_BUG
+#endif
