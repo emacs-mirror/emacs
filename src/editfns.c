@@ -1686,13 +1686,13 @@ determines whether case is significant or ignored.")
   (buffer1, start1, end1, buffer2, start2, end2)
      Lisp_Object buffer1, start1, end1, buffer2, start2, end2;
 {
-  register int begp1, endp1, begp2, endp2, temp, len1, len2, length, i;
+  register int begp1, endp1, begp2, endp2, temp;
   register struct buffer *bp1, *bp2;
   register Lisp_Object *trt
     = (!NILP (current_buffer->case_fold_search)
        ? XCHAR_TABLE (current_buffer->case_canon_table)->contents : 0);
   int chars = 0;
-  int beg1_byte, beg2_byte;
+  int i1, i2, i1_byte, i2_byte;
 
   /* Find the first buffer and its substring.  */
 
@@ -1770,26 +1770,42 @@ determines whether case is significant or ignored.")
         && endp2 <= BUF_ZV (bp2)))
     args_out_of_range (start2, end2);
 
-  beg1_byte = buf_charpos_to_bytepos (bp1, begp1);
-  beg2_byte = buf_charpos_to_bytepos (bp2, begp2);
-  len1 = buf_charpos_to_bytepos (bp1, endp1) - begp1;
-  len2 = buf_charpos_to_bytepos (bp2, endp2) - begp2;
-  length = len1;
-  if (len2 < length)
-    length = len2;
+  i1 = begp1;
+  i2 = begp2;
+  i1_byte = buf_charpos_to_bytepos (bp1, i1);
+  i2_byte = buf_charpos_to_bytepos (bp2, i2);
 
-  for (i = 0; i < length; i++)
+  while (i1 < endp1 && i2 < endp2)
     {
-      unsigned char *p1 = BUF_BYTE_ADDRESS (bp1, beg1_byte + i);
-      int c1 = *p1;
-      int c2 = *BUF_BYTE_ADDRESS (bp2, beg2_byte + i);
+      /* When we find a mismatch, we must compare the
+	 characters, not just the bytes.  */
+      int c1, c2;
 
-      /* If a character begins here,
-	 count the previous character now.  */
-      if (i > 0
-	  && (NILP (current_buffer->enable_multibyte_characters)
-	      || CHAR_HEAD_P (*p1)))
-	chars++;
+      if (! NILP (bp1->enable_multibyte_characters))
+	{
+	  c1 = BUF_FETCH_MULTIBYTE_CHAR (bp1, i1_byte);
+	  BUF_INC_POS (bp1, i1_byte);
+	  i1++;
+	}
+      else
+	{
+	  c1 = BUF_FETCH_BYTE (bp1, i1);
+	  c1 = unibyte_char_to_multibyte (c1);
+	  i1++;
+	}
+
+      if (! NILP (bp2->enable_multibyte_characters))
+	{
+	  c2 = BUF_FETCH_MULTIBYTE_CHAR (bp2, i2_byte);
+	  BUF_INC_POS (bp2, i2_byte);
+	  i2++;
+	}
+      else
+	{
+	  c2 = BUF_FETCH_BYTE (bp2, i2);
+	  c2 = unibyte_char_to_multibyte (c2);
+	  i2++;
+	}
 
       if (trt)
 	{
@@ -1800,13 +1816,15 @@ determines whether case is significant or ignored.")
 	return make_number (- 1 - chars);
       if (c1 > c2)
 	return make_number (chars + 1);
+
+      chars++;
     }
 
   /* The strings match as far as they go.
      If one is shorter, that one is less.  */
-  if (length < len1)
+  if (chars < endp1 - begp1)
     return make_number (chars + 1);
-  else if (length < len2)
+  else if (chars < endp2 - begp2)
     return make_number (- chars - 1);
 
   /* Same length too => they are equal.  */
