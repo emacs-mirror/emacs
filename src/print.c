@@ -141,26 +141,30 @@ glyph_to_str_cpy (glyphs, str)
    Lisp_Object original;
 */ 
 
-#define PRINTPREPARE \
-   original = printcharfun; \
-   if (NILP (printcharfun)) printcharfun = Qt; \
-   if (XTYPE (printcharfun) == Lisp_Buffer) \
-     { if (XBUFFER (printcharfun) != current_buffer) Fset_buffer (printcharfun); \
-       printcharfun = Qnil;}\
-   if (XTYPE (printcharfun) == Lisp_Marker) \
-     { if (XMARKER (original)->buffer != current_buffer) \
-         set_buffer_internal (XMARKER (original)->buffer); \
-       old_point = point; \
-       SET_PT (marker_position (printcharfun)); \
-       start_point = point; \
+#define PRINTPREPARE						\
+   original = printcharfun;					\
+   if (NILP (printcharfun)) printcharfun = Qt;			\
+   if (XTYPE (printcharfun) == Lisp_Buffer)			\
+     { if (XBUFFER (printcharfun) != current_buffer)		\
+	 Fset_buffer (printcharfun);				\
+       printcharfun = Qnil;}					\
+   if (XTYPE (printcharfun) == Lisp_Marker)			\
+     { if (!(XMARKER (original)->buffer))			\
+         error ("Marker does not point anywhere");		\
+       if (XMARKER (original)->buffer != current_buffer)	\
+         set_buffer_internal (XMARKER (original)->buffer);	\
+       old_point = point;					\
+       SET_PT (marker_position (printcharfun));			\
+       start_point = point;					\
        printcharfun = Qnil;}
 
-#define PRINTFINISH \
-   if (XTYPE (original) == Lisp_Marker) \
-     Fset_marker (original, make_number (point), Qnil); \
-   if (old_point >= 0) \
-     SET_PT ((old_point >= start_point ? point - start_point : 0) + old_point); \
-   if (old != current_buffer) \
+#define PRINTFINISH					\
+   if (XTYPE (original) == Lisp_Marker)			\
+     Fset_marker (original, make_number (point), Qnil);	\
+   if (old_point >= 0)					\
+     SET_PT (old_point + (old_point >= start_point	\
+			  ? point - start_point : 0));	\
+   if (old != current_buffer)				\
      set_buffer_internal (old)
 
 #define PRINTCHAR(ch) printchar (ch, printcharfun)
