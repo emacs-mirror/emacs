@@ -436,7 +436,7 @@ static kvm_t *kd;
 
 /* Put the 1 minute, 5 minute and 15 minute load averages
    into the first NELEM elements of LOADAVG.
-   Return the number written (never more than 3),
+   Return the number written (never more than 3, but may be less than NELEM),
    or -1 if an error occurred.  */
 
 int
@@ -494,12 +494,8 @@ getloadavg (loadavg, nelem)
   struct processor_set_basic_info info;
   unsigned info_count;
 
-  if (nelem > 1)
-    {
-      /* We only know how to get the 1-minute average for this system.  */
-      errno = EINVAL;
-      return -1;
-    }
+  /* We only know how to get the 1-minute average for this system,
+     so even if the caller asks for more than 1, we only return 1.  */
 
   if (!getloadavg_initialized)
     {
