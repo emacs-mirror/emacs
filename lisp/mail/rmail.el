@@ -1453,29 +1453,6 @@ It returns t if it got any new messages."
       (setq files (cdr files)))
     delete-files))
 
-(defun rmail-read-passwd (prompt &optional default)
-  "Read a password, echoing `.' for each character typed.
-End with RET, LFD, or ESC.  DEL or C-h rubs out.  C-u kills line.
-Optional DEFAULT is password to start with."
-  (let ((pass (if default default ""))
-	(c 0)
-	(echo-keystrokes 0)
-	(cursor-in-echo-area t))
-    (while (progn (message "%s%s"
-			   prompt
-			   (make-string (length pass) ?.))
-		  (setq c (read-char))
-		  (and (/= c ?\r) (/= c ?\n) (/= c ?\e)))
-      (if (= c ?\C-u)
-	  (setq pass "")
-	(if (and (/= c ?\b) (/= c ?\177))
-	    (setq pass (concat pass (char-to-string c)))
-	  (if (> (length pass) 0)
-	      (setq pass (substring pass 0 -1))))))
-    (message "")
-    (message nil)
-    pass))
-
 ;; Decode the region specified by FROM and TO by CODING.
 ;; If CODING is nil or an invalid coding system, decode by `undecided'.
 (defun rmail-decode-region (from to coding)
@@ -3369,7 +3346,7 @@ TEXT and INDENT are not used."
 has been set, then prompt the user for one."
   (if (not rmail-encoded-pop-password)
       (progn (if (not rmail-pop-password)
-		 (setq rmail-pop-password (rmail-read-passwd "POP password: ")))
+		 (setq rmail-pop-password (read-passwd "POP password: ")))
 	     (rmail-set-pop-password rmail-pop-password)
 	     (setq rmail-pop-password nil)))
   (rmail-encode-string rmail-encoded-pop-password (emacs-pid)))
