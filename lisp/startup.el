@@ -355,8 +355,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     ;; This loop does a breadth-first tree walk on DIR's subtree,
     ;; putting each subdir into DIRS as its contents are examined.
     (while pending
-      (setq dirs (cons (car pending) dirs))
-      (setq pending (cdr pending))
+      (push (pop pending) dirs)
       (let* ((this-dir (car dirs))
 	     (contents (directory-files this-dir))
 	     (default-directory this-dir)
@@ -368,22 +367,20 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	(setq attrs (or canonicalized
 			(nthcdr 10 (file-attributes this-dir))))
 	(unless (member attrs normal-top-level-add-subdirs-inode-list)
-	  (setq normal-top-level-add-subdirs-inode-list
-		(cons attrs normal-top-level-add-subdirs-inode-list))
-	  (while contents
+	  (push attrs normal-top-level-add-subdirs-inode-list)
+	  (dolist (file contents)
 	    ;; The lower-case variants of RCS and CVS are for DOS/Windows.
-	    (unless (member (car contents) '("." ".." "RCS" "CVS" "rcs" "cvs"))
-	      (when (and (string-match "\\`[[:alnum:]]" (car contents))
+	    (unless (member file '("." ".." "RCS" "CVS" "rcs" "cvs"))
+	      (when (and (string-match "\\`[[:alnum:]]" file)
 			 ;; Avoid doing a `stat' when it isn't necessary
 			 ;; because that can cause trouble when an NFS server
 			 ;; is down.
-			 (not (string-match "\\.elc?\\'" (car contents)))
-			 (file-directory-p (car contents)))
-		(let ((expanded (expand-file-name (car contents))))
+			 (not (string-match "\\.elc?\\'" file))
+			 (file-directory-p file))
+		(let ((expanded (expand-file-name file)))
 		  (unless (file-exists-p (expand-file-name ".nosearch"
 							   expanded))
-		    (setq pending (nconc pending (list expanded)))))))
-	    (setq contents (cdr contents))))))
+		    (setq pending (nconc pending (list expanded)))))))))))
     (normal-top-level-add-to-load-path (cdr (nreverse dirs)))))
 
 ;; This function is called from a subdirs.el file.
@@ -426,7 +423,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (let ((tail load-path)
 	  new)
       (while tail
-	(setq new (cons (car tail) new))
+	(push (car tail) new)
 	(condition-case nil
 	    (let ((default-directory (car tail)))
 	      (load (expand-file-name "subdirs.el" (car tail)) t t t)))
@@ -717,7 +714,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (while (and (not done) args)
       (let ((longopts '(("--no-init-file") ("--no-site-file") ("--user")
 			("--debug-init") ("--iconic") ("--icon-type")))
-	    (argi (car args))
+	    (argi (pop args))
 	    (argval nil))
 	;; Handle --OPTION=VALUE format.
 	(if (and (string-match "\\`--" argi)
@@ -735,35 +732,25 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		      (setq argi (substring (car elt) 1)))
 		  (setq argval nil)))))
 	(cond
-	 ((or (string-equal argi "-q")
-	      (string-equal argi "-no-init-file"))
-	  (setq init-file-user nil
-		args (cdr args)))
-	 ((or (string-equal argi "-u")
-	      (string-equal argi "-user"))
+	 ((member argi '("-q" "-no-init-file"))
+	  (setq init-file-user nil))
+	 ((member argi '("-u" "-user"))
 	  (or argval
-	      (setq args (cdr args)
-		    argval (car args)))
+	      (setq argval (pop args)))
 	  (setq init-file-user argval
-		argval nil
-		args (cdr args)))
+		argval nil))
 	 ((string-equal argi "-no-site-file")
-	  (setq site-run-file nil
-		args (cdr args)))
+	  (setq site-run-file nil))
 	 ((string-equal argi "-debug-init")
-	  (setq init-file-debug t
-		args (cdr args)))
+	  (setq init-file-debug t))
 	 ((string-equal argi "-iconic")
-	  (setq initial-frame-alist
-		(cons '(visibility . icon) initial-frame-alist))
-	  (setq args (cdr args)))
+	  (push '(visibility . icon) initial-frame-alist))
 	 ((or (string-equal argi "-icon-type")
 	      (string-equal argi "-i")
 	      (string-equal argi "-itype"))
-	  (setq default-frame-alist
-		(cons '(icon-type . t) default-frame-alist))
-	  (setq args (cdr args)))
-	 (t (setq done t)))
+	  (push '(icon-type . t) default-frame-alist))
+	 ;; Push the popped arg back on the list of arguments.
+	 (t (push argi args) (setq done t)))
 	;; Was argval set but not used?
 	(and argval
 	     (error "Option `%s' doesn't allow an argument" argi))))
@@ -778,7 +765,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   ;; If frame was created with a menu bar, set menu-bar-mode on.
   (if (and (not noninteractive)
 	   (or (not (memq window-system '(x w32)))
-	       (> (cdr (assq 'menu-bar-lines (frame-parameters))) 0)))
+	       (> (frame-parameter nil 'menu-bar-lines) 0)))
       (menu-bar-mode t))
 
   ;; If frame was created with a tool bar, switch tool-bar-mode on.
@@ -873,7 +860,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	      (lambda ()
 		(if init-file-user
 		    (let ((user-init-file-1
-			   (cond 
+			   (cond
 			    ((eq system-type 'ms-dos)
 			     (concat "~" init-file-user "/_emacs"))
 			    ((eq system-type 'windows-nt)
@@ -882,7 +869,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 			       "~/_emacs"))
 			    ((eq system-type 'vax-vms) 
 			     "sys$login:.emacs")
-			    (t 
+			    (t
 			     (concat "~" init-file-user "/.emacs")))))
 		      ;; This tells `load' to store the file name found
 		      ;; into user-init-file.
@@ -893,7 +880,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		      ;; set user-init-file conclusively to nil;
 		      ;; don't let it be set from default.el.
 		      (if (eq user-init-file t)
-			  (setq user-init-file nil))
+			  (setq user-init-file user-init-file-1))
 		      
 		      ;; If we loaded a compiled file, set
 		      ;; `user-init-file' to the source version if that
@@ -1337,11 +1324,9 @@ where FACE is a valid face specification, as it can be used with
 	    (column 0))
 
 	;; Add the long X options to longopts.
-	(setq tem command-line-x-option-alist)
-	(while tem
-	  (if (string-match "^--" (car (car tem)))
-	      (setq longopts (cons (list (car (car tem))) longopts)))
-	  (setq tem (cdr tem)))
+	(dolist (tem command-line-x-option-alist)
+	  (if (string-match "^--" (car tem))
+	      (push (list (car tem)) longopts)))
 
 	;; Loop, processing options.
 	(while (and command-line-args-left)
@@ -1383,9 +1368,9 @@ where FACE is a valid face specification, as it can be used with
 			 (funcall (cdr tem) argi))
 		     (funcall (cdr tem) argi)))
 
-		  ((or (string-equal argi "-f")	;what the manual claims
-		       (string-equal argi "-funcall")
-		       (string-equal argi "-e")) ; what the source used to say
+		  ((member argi '("-f"	;what the manual claims
+				  "-funcall"
+				  "-e")) ; what the source used to say
 		   (if argval
 		       (setq tem (intern argval))
 		     (setq tem (intern (car command-line-args-left)))
@@ -1394,8 +1379,7 @@ where FACE is a valid face specification, as it can be used with
 		       (command-execute tem)
 		     (funcall tem)))
 
-		  ((or (string-equal argi "-eval")
-		       (string-equal argi "-execute"))
+		  ((member argi '("-eval" "-execute"))
 		   (if argval
 		       (setq tem argval)
 		     (setq tem (car command-line-args-left))
@@ -1403,8 +1387,7 @@ where FACE is a valid face specification, as it can be used with
 		   (eval (read tem)))
 		  ;; Set the default directory as specified in -L.
 
-		  ((or (string-equal argi "-L")
-		       (string-equal argi "-directory"))
+		  ((member argi '("-L" "-directory"))
 		   (if argval
 		       (setq tem argval)
 		     (setq tem (car command-line-args-left)
@@ -1415,8 +1398,7 @@ where FACE is a valid face specification, as it can be used with
 		   (setq load-path (append (nreverse extra-load-path)
 					   initial-load-path)))
 
-		  ((or (string-equal argi "-l")
-		       (string-equal argi "-load"))
+		  ((member argi '("-l" "-load"))
 		   (if argval
 		       (setq tem argval)
 		     (setq tem (car command-line-args-left)
@@ -1452,9 +1434,7 @@ where FACE is a valid face specification, as it can be used with
 		   (setq command-line-args-left
 			 (nthcdr (nth 1 tem) command-line-args-left)))
 
-		  ((or (string-equal argi "-find-file")
-		       (string-equal argi "-file")
-		       (string-equal argi "-visit"))
+		  ((member argi '("-find-file" "-file" "-visit"))
 		   ;; An explicit option to specify visiting a file.
 		   (if argval
 		       (setq tem argval)
