@@ -76,7 +76,10 @@ already started modifying in EMACS.
 You can <s>teal the file; The other user becomes the
   intruder if (s)he ever unmodifies the file and then changes it again.
 You can <p>roceed; you edit at your own (and the other user's) risk.
-You can <q>uit; don't modify this file.")))
+You can <q>uit; don't modify this file.")
+    (save-excursion
+      (set-buffer standard-output)
+      (help-mode))))
 
 (put
  'file-supersession 'error-conditions '(file-supersession file-error error))
@@ -129,6 +132,9 @@ you risk ruining the work of whoever rewrote the file.
 If you say `n', the change you started to make will be aborted.
 
 Usually, you should type `n' and then `M-x revert-buffer',
-to get the latest version of the file, then make the change again.")))
+to get the latest version of the file, then make the change again.")
+    (save-excursion
+      (set-buffer standard-output)
+      (help-mode))))
 
 ;;; userlock.el ends here
