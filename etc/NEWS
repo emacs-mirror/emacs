@@ -444,6 +444,10 @@ read mail from the menu etc.
 ** Hexl contains a new command `hexl-insert-hex-string' which inserts
 a string of hexadecimal numbers read from the mini-buffer.
 
+** Just loading the msb package doesn't switch on Msb mode anymore.
+If you have `(require 'msb)' in your .emacs, please replace it with
+`(msb-mode 1)'.
+
 ** Changes in Texinfo mode.
 
 *** A couple of new key bindings have been added for inserting Texinfo

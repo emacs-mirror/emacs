@@ -1,3 +1,7 @@
+2001-01-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* msb.el (toplevel): Fix the eval-after-load.
+
 2001-01-29  Dave Love  <fx@gnu.org>
 
 	* progmodes/tcl.el (outline, dabbrev, add-log): Require when
