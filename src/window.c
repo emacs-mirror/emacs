@@ -311,7 +311,7 @@ NCOL should be zero or positive.")
     args_out_of_range (ncol, Qnil);
   w = decode_window (window);
   if (XINT (w->hscroll) != XINT (ncol))
-    clip_changed = 1;		/* Prevent redisplay shortcuts */
+    XBUFFER (w->buffer)->clip_changed = 1; /* Prevent redisplay shortcuts */
   w->hscroll = ncol;
   return ncol;
 }
@@ -2111,7 +2111,7 @@ temp_output_buffer_show (buf)
   BEGV = BEG;
   ZV = Z;
   SET_PT (BEG);
-  clip_changed = 1;
+  XBUFFER (buf)->clip_changed = 1;
   set_buffer_internal (old);
 
   if (!EQ (Vtemp_buffer_show_function, Qnil))
