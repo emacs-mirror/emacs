@@ -513,6 +513,8 @@ prepare_to_modify_buffer (start, end)
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
   verify_interval_modification (current_buffer, start, end);
 
+  verify_overlay_modification (start, end);
+
 #ifdef CLASH_DETECTION
   if (!NILP (current_buffer->filename)
       && current_buffer->save_modified >= MODIFF)
