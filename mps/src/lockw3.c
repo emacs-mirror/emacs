@@ -1,10 +1,10 @@
-/*  impl.c.locknt
+/*  impl.c.lockw3
  *
  *                  RECURSIVE LOCKS IN WIN32
  *
- *  $HopeName: MMsrc!locknt.c(trunk.7) $
+ *  $HopeName: MMsrc!lockw3.c(trunk.8) $
  *
- *  Copyright (C) 1995 Harlequin Group, all rights reserved
+ *  Copyright (C) 1995, 1997 Harlequin Group, all rights reserved
  *
  *  These are implemented using critical sections.
  *  See the section titled "Synchronization functions" in the Groups
@@ -27,12 +27,13 @@
 #include "mpm.h"
 
 #ifndef MPS_OS_W3
-#error "locknt.c is specific to Win32 but MPS_OS_W3 not defined"
+#error "lockw3.c is specific to Win32 but MPS_OS_W3 not defined"
 #endif
 
-#include <windows.h>
+#include "mpswin.h"
 
-SRCID(locknt, "$HopeName: MMsrc!locknt.c(trunk.7) $");
+SRCID(lockw3, "$HopeName: MMsrc!lockw3.c(trunk.8) $");
+
 
 Bool LockCheck(Lock lock)
 {
