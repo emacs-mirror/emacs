@@ -62,8 +62,6 @@ Here are all local bindings.
 	      "  T<" 'reftex-toc-max-level-indicator ">"
 	      " -%-"))
   (setq truncate-lines t)
-  (make-local-hook 'post-command-hook)
-  (make-local-hook 'pre-command-hook)
   (make-local-variable 'reftex-last-follow-point)
   (add-hook 'post-command-hook 'reftex-toc-post-command-hook nil t)
   (add-hook 'pre-command-hook  'reftex-toc-pre-command-hook nil t)
