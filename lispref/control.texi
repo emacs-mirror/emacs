@@ -143,8 +143,9 @@ following @var{forms}, in textual order, returning the result of
 @cindex conditional evaluation
 
   Conditional control structures choose among alternatives.  Emacs Lisp
-has two conditional forms: @code{if}, which is much the same as in other
-languages, and @code{cond}, which is a generalized case statement.
+has four conditional forms: @code{if}, which is much the same as in
+other languages; @code{when} and @code{unless}, which are variants of
+@code{if}; and @code{cond}, which is a generalized case statement.
 
 @defspec if condition then-form else-forms@dots{}
 @code{if} chooses between the @var{then-form} and the @var{else-forms}
@@ -168,6 +169,38 @@ never evaluated---it is ignored.  Thus, in the example below,
   'very-false)
 @result{} very-false
 @end group
+@end example
+@end defspec
+
+@defspec when condition then-forms@dots{}
+This is a variant of @code{if} where there are no @var{else-forms},
+and possibly several @var{then-forms}.  In particular,
+
+@example
+(when @var{condition} @var{a} @var{b} @var{c})
+@end example
+
+@noindent
+is entirely equivalent to
+
+@example
+(if @var{condition} (progn @var{a} @var{b} @var{c}) nil)
+@end example
+@end defspec
+
+@defspec unless condition forms@dots{}
+This is a variant of @code{if} where there is no @var{then-form}:
+
+@example
+(unless @var{condition} @var{a} @var{b} @var{c})
+@end example
+
+@noindent
+is entirely equivalent to
+
+@example
+(if @var{condition} nil
+   @var{a} @var{b} @var{c})
 @end example
 @end defspec
 
