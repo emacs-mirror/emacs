@@ -1,3 +1,9 @@
+2000-09-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* add-log.el (change-log-font-lock-keywords): Match names
+	more exactly for the case that font-lock-constant-face is
+	underlined.
+
 2000-09-19  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-revert-buffer): Set vc-checkout-time correctly.
@@ -15,7 +21,7 @@
 	* gnus/nnultimate.el, gnus/nnwarchive.el, gnus/qp.el,
 	* gnus/rfc1843.el, gnus/rfc2045.el, gnus/rfc2047.el,
 	* gnus/rfc2104.el, gnus/rfc2231.el, gnus/time-date.el,
-	* gnus/utf7.el, gnsu/uudecode.el, gnus/webmail.el: New files.
+	* gnus/utf7.el, gnus/uudecode.el, gnus/webmail.el: New files.
 
 	* startup.el (fancy-splash-text): New variable.
 	(fancy-splash-delay, fancy-splash-image): New user-options.
