@@ -710,23 +710,7 @@ Unless optional argument INPLACE is non-nil, return a new string."
 		      (setq entry nil)))))))
       (or entry (funcall handler 'file-attributes file)))))
 
-(defun eshell-copy-tree (tree &optional vecp)
-  "Make a copy of TREE.
-If TREE is a cons cell, this recursively copies both its car and its cdr.
-Contrast to copy-sequence, which copies only along the cdrs.  With second
-argument VECP, this copies vectors as well as conses."
-  (if (consp tree)
-      (let ((p (setq tree (copy-sequence tree))))
-	(while (consp p)
-	  (if (or (consp (car p)) (and vecp (vectorp (car p))))
-	      (setcar p (eshell-copy-tree (car p) vecp)))
-	  (or (listp (cdr p)) (setcdr p (eshell-copy-tree (cdr p) vecp)))
-	  (cl-pop p)))
-    (if (and vecp (vectorp tree))
-	(let ((i (length (setq tree (copy-sequence tree)))))
-	  (while (>= (setq i (1- i)) 0)
-	    (aset tree i (eshell-copy-tree (aref tree i) vecp))))))
-  tree)
+(defalias 'eshell-copy-tree 'copy-tree)
 
 (defsubst eshell-processp (proc)
   "If the `processp' function does not exist, PROC is not a process."
