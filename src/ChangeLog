@@ -1,3 +1,7 @@
+2004-05-06  Romain Francoise  <romain@orebokech.com>  (tiny change)
+
+	* data.c (Fsetq_default): Fix docstring.
+
 2004-05-06  Jason Rumney  <jasonr@gnu.org>
 
 	* image.c (Display) [HAVE_NTGUI]: Redefine while loading xpm.h
