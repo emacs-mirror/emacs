@@ -1184,16 +1184,17 @@ the default binding untouched.  This means that the default value cannot
 be changed with @code{setq} in any buffer; the only way to change it is
 with @code{setq-default}.
 
-  @strong{Warning:} When a variable has buffer-local values in one or
-more buffers, binding the variable with @code{let} and changing to a
-different current buffer in which a different binding is in
-effect, and then exiting the @code{let}, the variable may not be
-restored to the value it had before the @code{let}.
-
-  To preserve your sanity, avoid using a variable in that way.  If you
-use @code{save-excursion} around each piece of code that changes to a
-different current buffer, you will not have this problem
-(@pxref{Excursions}).  Here is an example of what to avoid:
+  @strong{Warning:} When a variable has buffer-local or frame-local
+bindings in one or more buffers, @code{let} rebinds the binding that's
+currently in effect.  For instance, if the current buffer has a
+buffer-local value, @code{let} temporarily rebinds that.  If no
+buffer-local or frame-local bindings are in effect, @code{let} rebinds
+the default value.  If inside the @code{let} you then change to a
+different current buffer in which a different binding is in effect,
+you won't see the @code{let} binding any more.  And if you exit the
+@code{let} while still in the other buffer, you won't see the
+unbinding occur (though it will occur properly).  Here is an example
+to illustrate:
 
 @example
 @group
@@ -1208,24 +1209,12 @@ different current buffer, you will not have this problem
   ;; foo @result{} 'g     ; @r{the global value since foo is not local in @samp{b}}
   @var{body}@dots{})
 @group
-foo @result{} 'a        ; @r{we are still in buffer @samp{b}, but exiting the let}
-                 ; @r{restored the local value in buffer @samp{a}}
+foo @result{} 'g        ; @r{exiting restored the local value in buffer @samp{a},}
+                 ; @r{but we don't see that in buffer @samp{b}}
 @end group
 @group
-(set-buffer "a") ; @r{This can be seen here:}
-foo @result{} 'a        ; @r{we are back to the local value in buffer @samp{a}}
-@end group
-@end example
-
-@noindent
-But @code{save-excursion} as shown here avoids the problem:
-
-@example
-@group
-(let ((foo 'temp))
-  (save-excursion
-    (set-buffer "b")
-    @var{body}@dots{}))
+(set-buffer "a") ; @r{verify the local value was restored}
+foo @result{} 'a
 @end group
 @end example
 
