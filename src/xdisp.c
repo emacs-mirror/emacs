@@ -870,7 +870,7 @@ redisplay_internal (preserve_echo_area)
   int all_windows;
   register int tlbufpos, tlendpos;
   struct position pos;
-  int number_of_frames_redisplayed;
+  int number_of_visible_frames;
 
   if (noninteractive)
     return;
@@ -900,9 +900,13 @@ redisplay_internal (preserve_echo_area)
   {
     Lisp_Object tail, frame;
 
+    number_of_visible_frames = 0;
+
     FOR_EACH_FRAME (tail, frame)
       {
 	FRAME_SAMPLE_VISIBILITY (XFRAME (frame));
+
+	number_of_visible_frames++;
 
 	/* Clear out all the display lines in which we will generate the
 	   glyphs to display.  */
@@ -970,9 +974,6 @@ redisplay_internal (preserve_echo_area)
 	  && !EQ (w->region_showing,
 		  Fmarker_position (XBUFFER (w->buffer)->mark))))
     this_line_bufpos = -1;
-
-  /* This is in case we goto update, below.  */
-  number_of_frames_redisplayed = 1;
 
   tlbufpos = this_line_bufpos;
   tlendpos = this_line_endpos;
@@ -1148,7 +1149,6 @@ redisplay_internal (preserve_echo_area)
       /* Recompute # windows showing selected buffer.
 	 This will be incremented each time such a window is displayed.  */
       buffer_shared = 0;
-      number_of_frames_redisplayed = 0;
 
       FOR_EACH_FRAME (tail, frame)
 	{
@@ -1162,10 +1162,7 @@ redisplay_internal (preserve_echo_area)
 		(*condemn_scroll_bars_hook) (f);
 
 	      if (FRAME_VISIBLE_P (f))
-		{
-		  redisplay_windows (FRAME_ROOT_WINDOW (f), preserve_echo_area);
-		  number_of_frames_redisplayed++;
-		}
+		redisplay_windows (FRAME_ROOT_WINDOW (f), preserve_echo_area);
 
 	      /* Any scroll bars which redisplay_windows should have nuked
 		 should now go away.  */
@@ -1179,7 +1176,6 @@ redisplay_internal (preserve_echo_area)
       redisplay_window (selected_window, 1, preserve_echo_area);
       if (!WINDOW_FULL_WIDTH_P (w))
 	preserve_other_columns (w);
-      number_of_frames_redisplayed = 1;
     }
 
 update: 
@@ -1345,7 +1341,7 @@ update:
 	    new_count++;
 	}
 
-      if (new_count != number_of_frames_redisplayed)
+      if (new_count != number_of_visible_frames)
 	windows_or_buffers_changed++;
     }
 
@@ -3615,7 +3611,7 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 		  this_line_bufpos = start;
 		  this_line_buffer = current_buffer;
 		  this_line_vpos = cursor_vpos;
-		  this_line_start_hpos = hpos;
+		  this_line_start_hpos = hpos - WINDOW_LEFT_MARGIN (w);
 		  this_line_endpos = Z - lastpos;
 		}
 	      else
