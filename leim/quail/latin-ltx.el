@@ -28,8 +28,6 @@
 ;;; Code:
 
 (require 'quail)
-(if (eq system-type 'ms-dos)
-    (IT-setup-unicode-display))
 
 (quail-define-package
  "TeX" "UTF-8" "\\" t
