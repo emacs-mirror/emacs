@@ -135,12 +135,12 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'.")
   (display-time-update)
   ;; Do redisplay right now, if no input pending.
   (sit-for 0)
-  (let ((current (current-time))
-	(timer display-time-timer)
-	;; Compute the time when this timer will run again, next.
-	(next-time (timer-relative-time
-		    (list (aref timer 1) (aref timer 2) (aref timer 3))
-		    (* 5 (aref timer 4)) 0)))
+  (let* ((current (current-time))
+	 (timer display-time-timer)
+	 ;; Compute the time when this timer will run again, next.
+	 (next-time (timer-relative-time
+		     (list (aref timer 1) (aref timer 2) (aref timer 3))
+		     (* 5 (aref timer 4)) 0)))
     ;; If the activation time is far in the past,
     ;; skip executions until we reach a time in the future.
     ;; This avoids a long pause if Emacs has been suspended for hours.
