@@ -557,22 +557,7 @@
                (math-compose-expr (nth 2 a) -1)
                "}"))
 
-(defun math-latex-input-filter (str)   ; allow parsing of 123\,456\,789.
-  (while (string-match "[0-9]\\\\,[0-9]" str)
-    (setq str (concat (substring str 0 (1+ (match-beginning 0)))
-		      (substring str (1- (match-end 0))))))
-  (while (string-match "\\\\begin{\\(small\\|[bp]\\)?matrix}" str)
-    (setq str (concat (substring str 0 (match-beginning 0))
-                      "\\matrix{"
-		      (substring str (match-end 0)))))
-  (while (string-match "\\\\end{\\(small\\|[bp]\\)?matrix}" str)
-    (setq str (concat (substring str 0 (match-beginning 0))
-                      "}"
-		      (substring str (match-end 0)))))
-
-  str)
-
-(put 'latex 'math-input-filter 'math-latex-input-filter)
+(put 'latex 'math-input-filter 'math-tex-input-filter)
 
 (defun calc-eqn-language (n)
   (interactive "P")
