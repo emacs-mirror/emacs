@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.29) $
+ * $HopeName: MMsrc!poolawl.c(trunk.30) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.29) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.30) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -57,6 +57,11 @@ static Bool AWLGroupCheck(AWLGroup group);
 /* ActionAWL -- converts action to the enclosing AWL */
 
 #define ActionAWL(action)	PARENT(AWLStruct, actionStruct, action)
+
+
+/* Conversion between indexes and Addrs */
+#define awlIndexOfAddr(base, awl, p) \
+  (AddrOffset((base), (p)) >> (awl)->alignShift)
 
 
 static void AWLGroupDestroy(AWLGroup group)
@@ -318,7 +323,8 @@ found:
     j = AddrOffset(SegBase(group->seg), limit) >> awl->alignShift;
     AVER(i < j);
     BTSetRange(group->alloc, i, j);
-    /* Objects are allocated black */
+    /* Objects are allocated black. */
+    /* Shouldn't this depend on trace phase?  @@@@ */
     BTSetRange(group->mark, i, j);
     BTSetRange(group->scanned, i, j);
     group->free -= j - i;
@@ -696,7 +702,8 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
 	continue;
       }
     }
-    j = AddrOffset(base, awl->format->skip(p)) >>
+    j = AddrOffset(base,
+                   AddrAlignUp(awl->format->skip(p), pool->alignment)) >>
         awl->alignShift;
     AVER(j <= group->grains);
     if(BTGet(group->mark, i)) {
@@ -749,6 +756,59 @@ static double AWLBenefit(Pool pool, Action action)
             10*1024*1024.0;
 }
 
+static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
+	            void *p, unsigned long s)
+{
+  AWL awl;
+  AWLGroup group;
+  Addr object, base, limit;
+
+  AVERT(Pool, pool);
+  AVERT(Seg, seg);
+  AVER(FUNCHECK(f));
+  /* p and s are arbitrary closures and can't be checked */
+
+  awl = PoolPoolAWL(pool);
+  AVERT(AWL, awl);
+  group = (AWLGroup)SegP(seg);
+  AWLGroupCheck(group);
+
+  base = SegBase(seg);
+  object = base;
+  limit = SegLimit(seg);
+
+  while(object < limit) {
+    /* object is a slight misnomer because it might point to a */
+    /* free grain */
+    Addr next;
+    Index i;
+
+    if(SegBuffer(seg) != NULL) {
+      Buffer buffer = SegBuffer(seg);
+      if(object == BufferScanLimit(buffer) &&
+	 BufferScanLimit(buffer) != BufferLimit(buffer)) {
+        /* skip over buffered area */
+        object = BufferLimit(buffer);
+        continue;
+      }
+      /* since we skip over the buffered area we are always */
+      /* either before the buffer, or after it, never in it */
+      AVER(object < BufferGetInit(buffer) || BufferLimit(buffer) <= object);
+    }
+    i = awlIndexOfAddr(base, awl, object);
+    if(!BTGet(group->alloc, i)) {
+      /* This grain is free */
+      object = AddrAdd(object, pool->alignment);
+      continue;
+    }
+    next = AddrAlignUp((*awl->format->skip)(object), pool->alignment);
+    if(BTGet(group->mark, i) && BTGet(group->scanned, i)) {
+      (*f)(object, awl->format, pool, p, s);
+    }
+  }
+}
+
+
 
 struct PoolClassStruct PoolClassAWLStruct = {
   PoolClassSig,
@@ -773,7 +833,7 @@ struct PoolClassStruct PoolClassAWLStruct = {
   AWLReclaim,
   AWLBenefit,
   PoolCollectAct,
-  PoolNoWalk,
+  AWLWalk,
   PoolTrivDescribe,
   PoolClassSig
 };
