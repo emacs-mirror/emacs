@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.36) $
+ * $HopeName: MMsrc!trace.c(trunk.37) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.36) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.37) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -689,7 +689,7 @@ void TraceAccess(Arena arena, Seg seg, AccessSet mode)
   /* If it's a read access, then the segment must be grey for a trace */
   /* which is flipped. */
   AVER((mode & SegSM(seg) & AccessREAD) == 0 ||
-       TraceSetInter(SegGrey(seg), space->flippedTraces) !=
+       TraceSetInter(SegGrey(seg), arena->flippedTraces) !=
        TraceSetEMPTY);
 
   /* If it's a write acess, then the segment must have a summary that */
@@ -720,7 +720,7 @@ void TraceAccess(Arena arena, Seg seg, AccessSet mode)
   /* because the latter may set the summary and raise the write barrier. */
   
   if((mode & SegSM(seg) & AccessWRITE) != 0)      /* write barrier? */
-    TraceSetSummary(space, seg, RefSetUNIV);
+    TraceSetSummary(arena, seg, RefSetUNIV);
 
   /* The segment must now be accessible. */
   AVER((mode & SegSM(seg)) == AccessSetEMPTY);
