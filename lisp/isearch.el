@@ -968,12 +968,12 @@ If no previous match was done, just beep."
 
       (progn
 	(setq isearch-adjusted t)
-	(let ((cs (nth (if isearch-forward
-			   5		; isearch-other-end
-			 2)		; saved (point)
-		       (car (cdr isearch-cmds)))))
-	  ;; (car isearch-cmds) is after last search;
-	  ;; (car (cdr isearch-cmds)) is from before it.
+	;; Get the isearch-other-end from before the last search.
+	;; We want to start from there,
+	;; so that we don't retreat farther than that.
+	;; (car isearch-cmds) is after last search;
+	;; (car (cdr isearch-cmds)) is from before it.
+	(let ((cs (nth 5 (car (cdr isearch-cmds)))))
 	  (setq cs (or cs isearch-barrier))
 	  (goto-char
 	   (if isearch-forward
