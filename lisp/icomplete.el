@@ -1,4 +1,4 @@
-;;;_+ icomplete.el - minibuffer completion incremental feedback
+;;; icomplete.el --- minibuffer completion incremental feedback
 
 ;; Copyright (C) 1992, 1993, 1994, 1997, 1999 Free Software Foundation, Inc.
 
