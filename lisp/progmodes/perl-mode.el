@@ -172,6 +172,7 @@ already, create a new comment.")
 (defconst perl-nochange ";?#\\|\f\\|\\s(\\|\\(\\w\\|\\s_\\)+:"
   "*Lines starting with this regular expression will not be auto-indented.")
 
+;;;###autoload
 (defun perl-mode ()
   "Major mode for editing Perl code.
 Expression and list commands understand all Perl brackets.
