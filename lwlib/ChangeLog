@@ -1,3 +1,7 @@
+2005-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lwlib-Xm.h: Add missing copyright and license notice.
+
 2005-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xlwmenuP.h:
