@@ -1,5 +1,7 @@
 1999-11-04  Gerd Moellmann  <gerd@gnu.org>
 
+	* faces.el (secondary-selection): Change background to yellow.
+
 	* complete.el (PC-do-completion): Use minibuffer-prompt-end to
 	find the start of the text.  Use field-string to read the user
 	input.
