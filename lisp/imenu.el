@@ -485,7 +485,7 @@ See `imenu-choose-buffer-index' for more information."
 ;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Return the current/previous sexp and the location of the sexp (it's
+;; Return the current/previous sexp and the location of the sexp (its
 ;; beginning) without moving the point.
 (defun imenu-example--name-and-position ()
   (save-excursion
