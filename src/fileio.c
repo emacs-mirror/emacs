@@ -4854,7 +4854,7 @@ DIR defaults to current buffer's directory default.")
   GCPRO2 (insdef, default_filename);
   val = Fcompleting_read (prompt, intern ("read-file-name-internal"),
 			  dir, mustmatch, insdef1,
-			  Qfile_name_history);
+			  Qfile_name_history, default_filename);
 
 #ifdef VMS
   unbind_to (count, Qnil);
