@@ -1430,9 +1430,20 @@ update:
       beg_unchanged = BUF_GPT (b) - BUF_BEG (b);
       end_unchanged = BUF_Z (b) - BUF_GPT (b);
 
-      XSETFASTINT (w->last_point, BUF_PT (b));
-      XSETFASTINT (w->last_point_x, FRAME_CURSOR_X (selected_frame));
-      XSETFASTINT (w->last_point_y, FRAME_CURSOR_Y (selected_frame));
+      /* Record the last place cursor was displayed in this window.
+	 But not if cursor is in the echo area, because in that case
+	 FRAME_CURSOR_X and FRAME_CURSOR_Y are in the echo area.  */
+      if (!(cursor_in_echo_area && FRAME_HAS_MINIBUF_P (selected_frame)
+	    && EQ (FRAME_MINIBUF_WINDOW (selected_frame), minibuf_window)))
+	{
+	  XSETFASTINT (w->last_point, BUF_PT (b));
+	  XSETFASTINT (w->last_point_x, FRAME_CURSOR_X (selected_frame));
+	  XSETFASTINT (w->last_point_y, FRAME_CURSOR_Y (selected_frame));
+	}
+      else
+	/* Make last_point invalid, since we don't really know
+	   where the cursor would be if it were not in the echo area.  */
+	XSETINT (w->last_point, -1);
 
       if (all_windows)
 	mark_window_display_accurate (FRAME_ROOT_WINDOW (selected_frame), 1);
@@ -2214,6 +2225,8 @@ redisplay_window (window, just_this_one, preserve_echo_area)
       int this_scroll_margin = scroll_margin;
       int scroll_margin_pos, scroll_margin_bytepos;
       int scroll_max = scroll_step;
+      Lisp_Object ltemp;
+
       if (scroll_conservatively)
 	scroll_max = scroll_conservatively;
 
@@ -2224,7 +2237,9 @@ redisplay_window (window, just_this_one, preserve_echo_area)
       if (XINT (w->height) < 4 * this_scroll_margin)
 	this_scroll_margin = XINT (w->height) / 4;
 
-      scroll_margin_pos = Z - XFASTINT (w->window_end_pos);
+      ltemp = Fwindow_end (window, Qt);
+      scroll_margin_pos = XINT (ltemp);
+
       if (this_scroll_margin)
 	{
 	  pos = *vmotion (scroll_margin_pos, -this_scroll_margin, w);
@@ -4001,29 +4016,32 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
       cursor_hpos += WINDOW_LEFT_MARGIN (w);
       if (w == XWINDOW (FRAME_SELECTED_WINDOW (f)))
 	{
+	  this_line_bufpos = 0;
+
+	  /* If this frame's cursor will be in its echo area,
+	     don't record a cursor from the window text,
+	     and turn off the optimization for cursor-motion-only case.  */
 	  if (!(cursor_in_echo_area && FRAME_HAS_MINIBUF_P (f)
 		&& EQ (FRAME_MINIBUF_WINDOW (f), minibuf_window)))
 	    {
 	      FRAME_CURSOR_Y (f) = cursor_vpos;
 	      FRAME_CURSOR_X (f) = cursor_hpos;
-	    }
 
-	  if (w == XWINDOW (selected_window))
-	    {
-	      /* Line is not continued and did not start
-		 in middle of character */
-	      if ((hpos - WINDOW_LEFT_MARGIN (w)
-		   == (XINT (w->hscroll) ? 1 - XINT (w->hscroll) : 0))
-		  && val.vpos)
+	      if (w == XWINDOW (selected_window))
 		{
-		  this_line_bufpos = start;
-		  this_line_buffer = current_buffer;
-		  this_line_vpos = cursor_vpos;
-		  this_line_start_hpos = hpos - WINDOW_LEFT_MARGIN (w);
-		  this_line_endpos = Z - lastpos;
+		  /* Line is not continued and did not start
+		     in middle of character */
+		  if ((hpos - WINDOW_LEFT_MARGIN (w)
+		       == (XINT (w->hscroll) ? 1 - XINT (w->hscroll) : 0))
+		      && val.vpos)
+		    {
+		      this_line_bufpos = start;
+		      this_line_buffer = current_buffer;
+		      this_line_vpos = cursor_vpos;
+		      this_line_start_hpos = hpos - WINDOW_LEFT_MARGIN (w);
+		      this_line_endpos = Z - lastpos;
+		    }
 		}
-	      else
-		this_line_bufpos = 0;
 	    }
 	}
     }
