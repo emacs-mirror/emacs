@@ -563,9 +563,27 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  if (!NILP (prefix_arg))
 	    goto have_prefix_arg;
 	case 'n':		/* Read number from minibuffer.  */
-	  do
-	    args[i] = Fread_minibuffer (build_string (callint_message), Qnil);
-	  while (! NUMBERP (args[i]));
+	  {
+	    int first = 1;
+	    do
+	      {
+		Lisp_Object tem;
+		if (!  first)
+		  {
+		    message ("Please enter a number.");
+		    sit_for (1, 0, 0, 0);
+		  }
+		first = 0;
+
+		tem = Fread_from_minibuffer (build_string (callint_message),
+					     Qnil, Qnil, Qnil, Qnil);
+		if (! STRINGP (tem) || XSTRING (tem)->size == 0)
+		  args[i] = Qnil;
+		else
+		  args[i] = Fread (tem);
+	      }
+	    while (! NUMBERP (args[i]));
+	  }
 	  visargs[i] = last_minibuf_string;
 	  break;
 
