@@ -1,3 +1,7 @@
+2005-01-16  Andreas Schwab  <schwab@suse.de>
+
+	* macterm.c (mac_draw_string_common): Fix compilation on OSX 10.1.
+
 2005-01-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* fringe.c (Fdefine_fringe_bitmap, init_fringe): When assigning
