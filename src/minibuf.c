@@ -307,7 +307,7 @@ get_minibuffer (depth)
      int depth;
 {
   Lisp_Object tail, num, buf;
-  char name[14];
+  char name[24];
   extern Lisp_Object nconc2 ();
 
   XFASTINT (num) = depth;
