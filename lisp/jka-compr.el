@@ -523,9 +523,7 @@ There should be no more than seven characters after the final `/'."
 		   ;; don't do that conversion.
 		   (and (null enable-multibyte-characters)
 			(or (auto-coding-alist-lookup
-			     (save-match-data
-			       (string-match (jka-compr-info-regexp info) filename)
-			       (substring filename 0 (match-beginning 0))))
+			     (jka-compr-byte-compiler-base-file-name file))
 			    'raw-text))
 		   (let ((coding (find-operation-coding-system
 				  'insert-file-contents
