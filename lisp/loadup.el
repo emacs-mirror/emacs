@@ -212,30 +212,33 @@
 
 ;; Write the value of load-history into fns-VERSION.el,
 ;; then clear out load-history.
-(let ((buffer-undo-list t))
-  (princ "(setq load-history\n" (current-buffer))
-  (princ "      (nconc load-history\n" (current-buffer))
-  (princ "             '(" (current-buffer))
-  (let ((tem load-history))
-    (while tem
-      (prin1 (car tem) (current-buffer))
-      (terpri (current-buffer))
-      (if (cdr tem)
-	  (princ "               " (current-buffer)))
-      (setq tem (cdr tem))))
-  (princ ")))\n" (current-buffer))
-  (write-region (point-min) (point-max)
-		(expand-file-name
-		 (cond 
-		  ((eq system-type 'ms-dos)
-		   "../lib-src/fns.el")
-		  ((eq system-type 'windows-nt)
-		   (format "../../../lib-src/fns-%s.el" emacs-version))
-		  (t
-		   (format "../lib-src/fns-%s.el" emacs-version)))
-		 invocation-directory))
-  (erase-buffer))
-(setq load-history nil)
+(if (or (equal (nth 3 command-line-args) "dump")
+	(equal (nth 4 command-line-args) "dump"))
+    (let ((buffer-undo-list t))
+      (princ "(setq load-history\n" (current-buffer))
+      (princ "      (nconc load-history\n" (current-buffer))
+      (princ "             '(" (current-buffer))
+      (let ((tem load-history))
+	(while tem
+	  (prin1 (car tem) (current-buffer))
+	  (terpri (current-buffer))
+	  (if (cdr tem)
+	      (princ "               " (current-buffer)))
+	  (setq tem (cdr tem))))
+      (princ ")))\n" (current-buffer))
+      (write-region (point-min) (point-max)
+		    (expand-file-name
+		     (cond 
+		      ((eq system-type 'ms-dos)
+		       "../lib-src/fns.el")
+		      ((eq system-type 'windows-nt)
+		       (format "../../../lib-src/fns-%s.el" emacs-version))
+		      (t
+		       (format "../lib-src/fns-%s.el" emacs-version)))
+		     invocation-directory))
+      (erase-buffer)
+      (setq load-history nil))
+  (setq symbol-file-load-history-loaded t))
 (set-buffer-modified-p nil)
 
 (garbage-collect)
