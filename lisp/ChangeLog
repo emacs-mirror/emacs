@@ -1,3 +1,42 @@
+2000-05-10  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/regexp-opt.el (regexp-opt-depth): Fix regexp.
+
+	* subr.el (add-hook, remove-hook): Make hook buffer-local if needed..
+	(add-minor-mode): Don't make the variable buffer-local and add a
+	reference to define-minor-mode in the docstring.
+
+	* pcvs.el (cvs-cleanup-collection): Remove obsolete code for
+	HEADER/FOOTER and fix bug with trailing empty directory.
+	(cvs-append-to-ignore): Use vc-editable-p if available.
+	(cvs-dir-member-p): Remove obsolete code for HEADER/FOOTER.
+	(vc-do-command): Tweak advice to handle the new VC.
+
+	* log-view.el (log-view-goto-rev): New function for the new VC.
+	(log-view-minor-wrap): Use mark-active.
+
+	* log-edit.el (cvs-changelog-full-paragraphs): Mark obsolete.
+	(log-edit-changelog-full-paragraphs): New var.
+	(log-edit-insert-changelog): Remove a lonely leading `* file'.
+	(log-edit-narrow-changelog, log-edit-changelog-paragraph)
+	(log-edit-changelog-subparagraph, log-edit-changelog-entry)
+	(log-edit-changelog-ours-p, log-edit-changelog-entries)
+	(log-edit-changelog-insert-entries, log-edit-insert-changelog-entries):
+	Replace the `cvs' prefix with `log-edit'.
+
+	* iswitchb.el (iswitchb-completion-help): Unquote lambda.
+
+	* diff-mode.el (diff-font-lock-keywords): Recognize comments.
+	(diff-font-lock-defaults): Explicitly turn off multiline.
+	(diff-end-of-hunk): Handle comments and fix end-of-buffer bug.
+	(diff-ediff-patch): Fix call to ediff-patch-file.
+	(diff-end-of-file, diff-reverse-direction, diff-fixup-modifs):
+	Handle comments.
+
+	* frame.el (automatic-hscrolling): Typo.
+
+	* cvs-status.el (cvs-status-minor-wrap): Use mark-active.
+
 2000-05-09  Sam Steingold  <sds@goems.com>
 
 	* apropos.el (apropos-print): use `describe-face' instead of
