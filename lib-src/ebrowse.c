@@ -2867,7 +2867,7 @@ operator_name (sc)
           MATCH ();
 
 	  /* If this is a simple operator like `+', stop now.  */
-	  if (!isalpha (*s) && *s != '(' && *s != '[')
+	  if (!isalpha ((unsigned char) *s) && *s != '(' && *s != '[')
 	    break;
 
 	  ++tokens_matched;
