@@ -185,6 +185,12 @@
 (modify-syntax-entry ?& "." hide-ifdef-syntax-table)
 (modify-syntax-entry ?\| "." hide-ifdef-syntax-table)
 
+(defvar hide-ifdef-env nil
+  "An alist of defined symbols and their values.")
+
+(defvar hif-outside-read-only nil
+  "Internal variable.  Saves the value of `buffer-read-only' while hiding.")
+
 ;;;###autoload
 (defun hide-ifdef-mode (arg)
   "Toggle Hide-Ifdef mode.  This is a minor mode, albeit a large one.
@@ -304,9 +310,6 @@ that form should be displayed.")
 (defvar hif-undefined-symbol nil
   "...is by default considered to be false.")
 
-(defvar hide-ifdef-env nil
-  "An alist of defined symbols and their values.")
-
 
 (defun hif-set-var (var value)
   "Prepend (var value) pair to hide-ifdef-env."
@@ -344,6 +347,10 @@ that form should be displayed.")
 (defconst hif-ifx-else-endif-regexp
   (concat hif-ifx-regexp "\\|" hif-else-regexp "\\|" hif-endif-regexp))
 
+; Used to store the current token and the whole token list during parsing.
+; Only bound dynamically.
+(defvar hif-token)
+(defvar hif-token-list)
 
 (defun hif-infix-to-prefix (token-list)
   "Convert list of tokens in infix into prefix list"
@@ -424,25 +431,25 @@ that form should be displayed.")
 ;;; This parser is limited to the operators &&, ||, !, and "defined".
 ;;; Added ==, !=, +, and -.  Gary Oberbrunner, garyo@avs.com, 8/9/94
 
-(defun hif-parse-if-exp (token-list)
+(defun hif-parse-if-exp (hif-token-list)
   "Parse the TOKEN-LIST.  Return translated list in prefix form."
   (hif-nexttoken)
   (prog1
       (hif-expr)
-    (if token ; is there still a token?
-	(error "Error: unexpected token: %s" token))))
+    (if hif-token ; is there still a token?
+	(error "Error: unexpected token: %s" hif-token))))
 
 (defun hif-nexttoken ()
-  "Pop the next token from token-list into the let variable \"token\"."
-  (setq token (car token-list))
-  (setq token-list (cdr token-list))
-  token)
+  "Pop the next token from token-list into the let variable \"hif-token\"."
+  (setq hif-token (car hif-token-list))
+  (setq hif-token-list (cdr hif-token-list))
+  hif-token)
 
 (defun hif-expr ()
   "Parse an expression as found in #if.
        expr : term | expr '||' term."
   (let ((result (hif-term)))
-    (while (eq  token 'or)
+    (while (eq hif-token 'or)
       (hif-nexttoken)
       (setq result (list 'or result (hif-term))))
   result))
@@ -450,7 +457,7 @@ that form should be displayed.")
 (defun hif-term ()
   "Parse a term : eq-expr | term '&&' eq-expr."
   (let ((result (hif-eq-expr)))
-    (while (eq token 'and)
+    (while (eq hif-token 'and)
       (hif-nexttoken)
       (setq result (list 'and result (hif-eq-expr))))
     result))
@@ -459,9 +466,9 @@ that form should be displayed.")
   "Parse an eq-expr : math | eq-expr `=='|`!='|`<'|`>'|`>='|`<=' math."
   (let ((result (hif-math))
 	(eq-token nil))
-    (while (memq token '(equal hif-notequal hif-greater hif-less
-			       hif-greater-equal hif-less-equal))
-      (setq eq-token token)
+    (while (memq hif-token '(equal hif-notequal hif-greater hif-less
+			     hif-greater-equal hif-less-equal))
+      (setq eq-token hif-token)
       (hif-nexttoken)
       (setq result (list eq-token result (hif-math))))
     result))
@@ -471,8 +478,8 @@ that form should be displayed.")
        math : factor | math '+|-' factor."
   (let ((result (hif-factor))
 	(math-op nil))
-    (while (or (eq  token 'hif-plus) (eq token 'hif-minus))
-      (setq math-op token)
+    (while (or (eq hif-token 'hif-plus) (eq hif-token 'hif-minus))
+      (setq math-op hif-token)
       (hif-nexttoken)
       (setq result (list math-op result (hif-factor))))
   result))
@@ -480,35 +487,35 @@ that form should be displayed.")
 (defun hif-factor ()
   "Parse a factor: '!' factor | '(' expr ')' | 'defined(' id ')' | id."
   (cond
-    ((eq token 'not)
+    ((eq hif-token 'not)
      (hif-nexttoken)
      (list 'not (hif-factor)))
 
-    ((eq token 'lparen)
+    ((eq hif-token 'lparen)
      (hif-nexttoken)
      (let ((result (hif-expr)))
-       (if (not (eq token 'rparen))
-	   (error "Bad token in parenthesized expression: %s" token)
+       (if (not (eq hif-token 'rparen))
+	   (error "Bad token in parenthesized expression: %s" hif-token)
 	 (hif-nexttoken)
 	 result)))
 
-    ((eq token 'hif-defined)
+    ((eq hif-token 'hif-defined)
      (hif-nexttoken)
-     (if (not (eq token 'lparen))
+     (if (not (eq hif-token 'lparen))
 	 (error "Error: expected \"(\" after \"defined\""))
      (hif-nexttoken)
-     (let ((ident token))
-       (if (memq token '(or and not hif-defined lparen rparen))
-	   (error "Error: unexpected token: %s" token))
+     (let ((ident hif-token))
+       (if (memq hif-token '(or and not hif-defined lparen rparen))
+	   (error "Error: unexpected token: %s" hif-token))
        (hif-nexttoken)
-       (if (not (eq token 'rparen))
+       (if (not (eq hif-token 'rparen))
 	   (error "Error: expected \")\" after identifier"))
        (hif-nexttoken)
        (` (hif-defined (quote (, ident))))
        ))
 
     (t ; identifier
-      (let ((ident token))
+      (let ((ident hif-token))
 	(if (memq ident '(or and))
 	    (error "Error: missing identifier"))
 	(hif-nexttoken)
@@ -901,9 +908,6 @@ It does not do the work that's pointless to redo on a recursive entry."
   :type 'boolean
   :group 'hide-ifdef)
 
-(defvar hif-outside-read-only nil
-  "Internal variable.  Saves the value of `buffer-read-only' while hiding.")
-
 ;;;###autoload
 (defcustom hide-ifdef-lines nil
   "*Non-nil means hide the #ifX, #else, and #endif lines."
@@ -982,24 +986,23 @@ Turn off hiding by calling `show-ifdefs'."
 
 (defun hif-find-ifdef-block ()
   "Utility for hide and show `ifdef-block'.
-Set top and bottom of ifdef block."
+Return as (TOP . BOTTOM) the extent of ifdef block."
   (let (max-bottom)
-  (save-excursion
-    (beginning-of-line)
-    (if (not (or (hif-looking-at-else) (hif-looking-at-ifX)))
-	(up-ifdef))
-    (setq top (point))
-    (hif-ifdef-to-endif)
-    (setq max-bottom (1- (point))))
-  (save-excursion
-    (beginning-of-line)
-    (if (not (hif-looking-at-endif))
-	(hif-find-next-relevant))
-    (while (hif-looking-at-ifX)
-      (hif-ifdef-to-endif)
-      (hif-find-next-relevant))
-    (setq bottom (min max-bottom (1- (point))))))
-  )
+    (cons (save-excursion
+	    (beginning-of-line)
+	    (if (not (or (hif-looking-at-else) (hif-looking-at-ifX)))
+		(up-ifdef))
+	    (prog1 (point)
+	      (hif-ifdef-to-endif)
+	      (setq max-bottom (1- (point)))))
+	  (save-excursion
+	    (beginning-of-line)
+	    (if (not (hif-looking-at-endif))
+		(hif-find-next-relevant))
+	    (while (hif-looking-at-ifX)
+	      (hif-ifdef-to-endif)
+	      (hif-find-next-relevant))
+	    (min max-bottom (1- (point)))))))
 
 
 (defun hide-ifdef-block ()
@@ -1008,13 +1011,13 @@ Set top and bottom of ifdef block."
   (if (not hide-ifdef-mode)
       (hide-ifdef-mode 1))
   (setq selective-display t)
-  (let (top bottom (inhibit-read-only t))
-    (hif-find-ifdef-block) ; set top and bottom - dynamic scoping
-    (hide-ifdef-region top bottom)
+  (let ((top-bottom (hif-find-ifdef-block))
+	(inhibit-read-only t))
+    (hide-ifdef-region (car top-bottom) (cdr top-bottom))
     (if hide-ifdef-lines
 	(progn
-	  (hif-hide-line top)
-	  (hif-hide-line (1+ bottom))))
+	  (hif-hide-line (car top-bottom))
+	  (hif-hide-line (1+ (cdr top-bottom)))))
     (setq hide-ifdef-hiding t))
   (setq buffer-read-only (or hide-ifdef-read-only hif-outside-read-only)))
 
@@ -1028,9 +1031,8 @@ Set top and bottom of ifdef block."
 	  (beginning-of-line)
 	  (hif-show-ifdef-region (1- (point)) (progn (end-of-line) (point))))
 
-      (let (top bottom)
-	(hif-find-ifdef-block)
-	(hif-show-ifdef-region (1- top) bottom)))))
+      (let ((top-bottom (hif-find-ifdef-block)))
+	(hif-show-ifdef-region (1- (car top-bottom)) (cdr top-bottom))))))
 
 
 ;;;  definition alist support
