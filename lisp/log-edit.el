@@ -299,7 +299,7 @@ automatically."
 ;;; Actual code
 ;;;
 
-(defar log-edit-font-lock-keywords
+(defvar log-edit-font-lock-keywords
   '(("\\`\\(Summary:\\)\\(.*\\)"
      (1 font-lock-keyword-face)
      (2 font-lock-function-name-face))))
