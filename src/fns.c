@@ -1175,7 +1175,7 @@ multibyte character of charset `eight-bit-control' or `eight-bit-graphic'.  */)
 DEFUN ("string-to-multibyte", Fstring_to_multibyte, Sstring_to_multibyte,
        1, 1, 0,
        doc: /* Return a multibyte string with the same individual chars as STRING.
-If STRING is multibyte, the resutl is STRING itself.
+If STRING is multibyte, the result is STRING itself.
 Otherwise it is a newly created string, with no text properties.
 Characters 0200 through 0237 are converted to eight-bit-control
 characters of the same character code.  Characters 0240 through 0377
