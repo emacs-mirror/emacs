@@ -3839,13 +3839,13 @@ or (if there were none) at the end of the buffer."
 			  (t
 			   (princ ")"))))
 		   (t
-		    (princ ")")))))))
+		    (princ ")"))))))
        saved-list)
       (if (bolp)
 	  (princ " "))
       (princ ")")
       (unless (looking-at "\n")
-	(princ "\n"))))
+	(princ "\n")))))
 
 (defun custom-save-resets (property setter special)
   (let (started-writing ignored-special)
