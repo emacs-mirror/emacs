@@ -2,7 +2,7 @@
 #
 # Build and test MM at tip of main trunk (the MM_src compound)
 # 
-# $HopeName: HOMEmm!bin:build:MM_src_trunk(trunk.12) $
+# $HopeName: HOMEmm!bin:build:MM_src_trunk(trunk.13) $
 #
 
 script="`basename $0`"
@@ -46,5 +46,6 @@ do
   do
     ./sus8gc/$variety/$test ||
       die "Failed test $variety/$test of trunk"
+    rm mpsio.log
   done
 done
