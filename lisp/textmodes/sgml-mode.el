@@ -59,7 +59,7 @@
 ;; kludgy kind of tradeoff.
 (defvar sgml-specials '(?\")
   "List of characters that have a special meaning for SGML mode.
-This list is used when first loading the sgml-mode library.
+This list is used when first loading the `sgml-mode' library.
 The supported characters and potential disadvantages are:
 
   ?\\\"	Makes \" in text start a string.
@@ -75,7 +75,7 @@ with comments, so we normally turn it off.")
 
 (defvar sgml-quick-keys nil
   "Use <, >, &, SPC and `sgml-specials' keys \"electrically\" when non-nil.
-This takes effect when first loading the sgml-mode library.")
+This takes effect when first loading the `sgml-mode' library.")
 
 
 (defvar sgml-mode-map
