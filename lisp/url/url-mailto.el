@@ -63,7 +63,7 @@
 (defun url-mailto (url)
   "Handle the mailto: URL syntax."
   (if (url-user url)
-      ;; malformed mailto URL (mailto://wmperry@gnu.org instead of
+      ;; malformed mailto URL (mailto://wmperry@gnu.org) instead of
       ;; mailto:wmperry@gnu.org
       (url-set-filename url (concat (url-user url) "@" (url-filename url))))
   (setq url (url-filename url))
