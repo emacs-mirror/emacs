@@ -76,7 +76,7 @@ The alias definitions in `~/.mailrc' have this form:
     alias ALIAS MEANING")
 
 (defvar mail-alias-modtime nil
-  "The modification time of ~/.mailrc when it was last examined.")
+  "The modification time of `~/.mailrc' when it was last examined.")
 
 (defvar mail-yank-prefix nil
   "*Prefix insert on lines of yanked message being replied to.
