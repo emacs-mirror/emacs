@@ -1,3 +1,26 @@
+2000-10-08  Dave Love  <fx@gnu.org>
+
+	* info.el (Info-goto-node, Info-menu): Doc fix.
+	(Info-mode-menu): Bind beginning-of-buffer, Info-edit
+	(info-tool-bar-map): New variable.
+	(Info-mode): Use it.
+	(Info-edit-map): Define all in defvar.
+	(speedbar-attached-frame): Avoid compiler warning.
+
+	* toolbar/tool-bar.el (tool-bar-map): Define it empty.
+	(global-map): Bind [tool-bar] to a filtered map.
+	(tool-bar-add-item): Remove MAP arg.  Allow PBM icons.
+	(tool-bar-add-item-from-menu): Use tool-bar-map, not tb-map.
+	Allow PBM icons.
+	(tool-bar-setup): Adjust calls of tool-bar-add-item.
+
+	* toolbar/index.xpm, toolbar/jump_to.xpm, toolbar/attach.xpm:
+	* toolbar/up_arrow.xpm, toolbar/left_arrow.xpm, toolbar/home.xpm:
+	* toolbar/right_arrow.xpm: New files.  Renamed from tigert's
+	icons, except up_arrow, which is left-arrow rotated.
+
+	* imenu.el (imenu-add-to-menubar): Fix last change.
+
 2000-10-08  Peter Breton  <pbreton@ne.mediaone.net>
 
 	* generic-x.el (rul-generic-mode): Remove eval-when-compile
