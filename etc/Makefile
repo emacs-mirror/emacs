@@ -7,14 +7,13 @@ MANEXT=1
 all:
 
 mostlyclean:
-	-rm -f core
+	-rm -f core *.dvi *.log
 
 clean distclean maintainer-clean:
-	-rm -f DOC* core
+	-rm -f DOC* core *.dvi *.log
 
 SOURCES = [0-9A-QS-Z]* README *.[ch16] emacs.* etags.* ledit.l ms-* \
-	news.texi rc2log refcard.tex spook-lines termcap.* ulimit.hack \
-	vcdiff vipcard.tex xmouse.doc
+	spook-lines tasks.texi termcap.* ulimit.hack *.tex
 
 unlock:
 	chmod u+w $(SOURCES)
