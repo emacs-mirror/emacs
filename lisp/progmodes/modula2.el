@@ -32,6 +32,8 @@
 (defvar m2-link-name nil
   "Name of the executable.")
 
+(defvar m2-end-comment-column nil
+  "*Column for aligning the end of a comment, in Modula-2.")
 
 (if m2-mode-syntax-table
     ()
@@ -119,8 +121,8 @@ followed by the first character of the construct.
   (setq mode-name "Modula-2")
   (make-local-variable 'comment-column)
   (setq comment-column 41)
-  (make-local-variable 'end-comment-column)
-  (setq end-comment-column 75)
+  (make-local-variable 'm2-end-comment-column)
+  (setq m2-end-comment-column 75)
   (set-syntax-table m2-mode-syntax-table)
   (make-local-variable 'paragraph-start)
   (setq paragraph-start (concat "$\\|" page-delimiter))
@@ -486,22 +488,20 @@ FROM SysStreams IMPORT sysIn, sysOut, sysErr;
 (defun m2-end-comment ()
   (interactive)
   (if (not (bolp))
-      (indent-to end-comment-column))
+      (indent-to m2-end-comment-column))
   (insert "*)"))
 
 (defun m2-compile ()
   (interactive)
-  (setq modulename (buffer-name))
-  (compile (concat m2-compile-command " " modulename)))
+  (compile (concat m2-compile-command " " (buffer-name))))
 
 (defun m2-link ()
   (interactive)
-  (setq modulename (buffer-name))
   (if m2-link-name
       (compile (concat m2-link-command " " m2-link-name))
     (compile (concat m2-link-command " "
 		     (setq m2-link-name (read-string "Name of executable: "
-						     modulename))))))
+						     (buffer-name)))))))
 
 (defun m2-execute-monitor-command (command)
   (let* ((shell shell-file-name)
