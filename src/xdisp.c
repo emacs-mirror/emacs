@@ -1764,7 +1764,7 @@ init_from_display_pos (it, w, pos)
       && (XSETWINDOW (window, w),
 	  prop = Fget_char_property (make_number (charpos),
 				     Qinvisible, window),
-	  NILP (prop)))
+	  !TEXT_PROP_MEANS_INVISIBLE (prop)))
     {
       prop = Fget_char_property (make_number (charpos - 1), Qinvisible,
 				 window);
