@@ -81,6 +81,11 @@ static void stepper(mps_addr_t object, mps_fmt_t format,
 {
     mps_arena_t arena = p;
 
+    UNUSED(format);
+    UNUSED(pool);
+    UNUSED(pool);
+    UNUSED(s);
+
     if(!mps_arena_has_addr(arena, object)) {
       printf("Stepper got called with object at address %p,\n"
        "which is not managed by the arena!\n", (void *)object);
@@ -154,6 +159,9 @@ int main(int argc, char **argv)
     mps_arena_t arena;
     mps_thr_t thread;
     void *r;
+
+    UNUSED(argc);
+    UNUSED(argv);
 
     die(mps_arena_create(&arena, mps_arena_class_vm(),
 			 testArenaSIZE),
