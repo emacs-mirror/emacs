@@ -4486,15 +4486,20 @@ Return an updated `non-iso-charset-alist'."
   (let ((w (intern (format "windows-125%d" i)))
 	(c (intern (format "cp125%d" i))))
     (if (coding-system-p c)		; 1251 is in cyrillic.el
-	(define-coding-system-alias c w))
+	(define-coding-system-alias c w)
+      (if (coding-system-p w)
+	  (define-coding-system-alias w c)))
     ;; Compatibility with codepage.el, though cp... are not the
     ;; canonical names.
     (push (assoc w non-iso-charset-alist) non-iso-charset-alist)))
 
-;; Use Unicode font under Windows.  Jason Rumney fecit.
-(if (fboundp 'w32-add-charset-info)
-    (unless (boundp 'w32-unicode-charset-defined)
-      (w32-add-charset-info "iso10646-1" 'w32-charset-ansi t)))
+;; DOS/Windows codepages that correspond to coding systems already supported
+;; by Emacs. Only codepages used as system codepages are listed here,
+;; to assist in finding the appropriate coding-system for clipboard etc.
+(define-coding-system-alias 'cp932 'japanese-shift-jis)
+(define-coding-system-alias 'cp936 'chinese-iso-8bit)
+(define-coding-system-alias 'cp949 'korean-iso-8bit)
+(define-coding-system-alias 'cp950 'chinese-big5)
 
 (provide 'code-pages)
 
