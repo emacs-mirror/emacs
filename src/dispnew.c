@@ -1981,17 +1981,17 @@ init_display ()
   cursor_in_echo_area = 0;
   terminal_type = (char *) 0;
 
-  /* If the DISPLAY environment variable is set, try to use X, and
-     die with an error message if that doesn't work.  */
+  /* Now is the time to initialize this; it's used by init_sys_modes
+     during startup.  */
+  Vwindow_system = Qnil;
 
-  /* Check if we're using a window system here before trying to
-     initialize the terminal.  If we check the terminal first,
+  /* If the user wants to use a window system, we shouldn't bother
+     initializing the terminal.  This is especially important when the
+     terminal is so dumb that emacs gives up before and doesn't bother
+     using the window system.
 
-     If someone has indicated that they want
-     to use a window system, we shouldn't bother initializing the
-     terminal.  This is especially important when the terminal is so
-     dumb that emacs gives up before  and doesn't bother using the window
-     system.  */
+     If the DISPLAY environment variable is set, try to use X, and die
+     with an error message if that doesn't work.  */
 
 #ifdef HAVE_X_WINDOWS
   if (!inhibit_window_system && (display_arg || getenv ("DISPLAY")))
