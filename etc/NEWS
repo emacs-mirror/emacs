@@ -292,6 +292,10 @@ screen size.  (For now, this does not work with some window managers.)
 
 ** shell-mode now supports programmable completion using `pcomplete'.
 
+** Emacs now tries to set up buffer coding systems for XML files
+automatically.  This is accomplished using the general mechanism of a
+new variable called `auto-coding-functions', which you may add to.
+
 ** The new command `comint-input-previous-argument' in comint-derived
 modes (shell-mode etc) inserts arguments from previous command lines,
 like bash's `ESC .' binding.  It is bound by default to `C-c .', but
@@ -366,7 +370,9 @@ M-x font-lock-mode to toggle fontification.  The variable
 remove `turn-on-font-lock' from `Info-mode-hook'.
 
 ** The Emacs Lisp byte-compiler now displays the actual line and
-character position of errors.
+character position of errors, where possible.  Additionally, the form
+of its warning and error messages have been brought more in line with
+the output of other GNU tools.
 
 ** M-x grep now tries to avoid appending `/dev/null' to the command line
 by using GNU grep `-H' option instead.  M-x grep will automatically
@@ -601,6 +607,8 @@ i.e., there is always a closing tag.
 When not customized, it becomes buffer-local when it can be inferred
 from the file name or buffer contents.
 
+** `xml-mode' is now an alias for `smgl-mode', which has XML support.
+
 ** New user option `isearch-resume-enabled'.
 This option can be disabled, to avoid the normal behaviour of isearch
 which puts calls to `isearch-resume' in the command history.
@@ -609,10 +617,6 @@ which puts calls to `isearch-resume' in the command history.
 ** When the *scratch* buffer is recreated, its mode is set from
 initial-major-mode, which normally is lisp-interaction-mode,
 instead of using default-major-mode.
-
----
-** Byte compiler warning and error messages have been brought more
-in line with the output of other GNU tools.
 
 ---
 ** Lisp-mode now uses font-lock-doc-face for the docstrings.
@@ -1278,7 +1282,7 @@ accepts a float as UID parameter.
 ** New vars `exec-suffixes' and `load-suffixes' used when
 searching for an executable resp. an elisp file.
 
-** Variable aliases have been implemented
+** Variable aliases have been implemented:
 
 - Macro: defvaralias ALIAS-VAR BASE-VAR
 
