@@ -296,12 +296,10 @@ developers.
 
 * Known problems with the MS-Windows port of Emacs 21.1.
 
-Emacs 21.1 built for MS-Windows doesn't support images, the tool bar,
-and tooltips.  Support for these will be added in future versions.
+Emacs 21.1 built for MS-Windows doesn't support images and the tool bar.
+Support for these will be added in future versions.
 
-Help text that is displayed in a tooltip on other window systems, on
-Windows is printed in the echo area, since tooltips are not yet
-available.  Help text for pop-up menu items is not displayed at all.
+Help text for pop-up menu items is not displayed at all.
 
 There are problems with display if mouse-tracking is enabled and the
 mouse is moved off a frame, over another frame then back over the first
