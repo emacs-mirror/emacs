@@ -2135,9 +2135,8 @@ You may need to redefine `file-name-sans-versions' as well."
 (defvar backup-extract-version-start)
 
 ;; This is used in various files.
-;; The usage of bv-length is not very clean,
-;; but I can't see a good alternative,
-;; so as of now I am leaving it alone.
+;; The usage of backup-extract-version-start is not very clean,
+;; but I can't see a good alternative, so as of now I am leaving it alone.
 (defun backup-extract-version (fn)
   "Given the name of a numeric backup file, return the backup number.
 Uses the free variable `backup-extract-version-start', whose value should be
