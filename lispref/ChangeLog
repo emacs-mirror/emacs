@@ -1,3 +1,7 @@
+2001-10-06  Miles Bader  <miles@gnu.org>
+
+	* variables.texi (Variable Aliases): It's `@defmac', not `@defmacro'.
+
 2001-10-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* variables.texi (Variable Aliases): New node.
