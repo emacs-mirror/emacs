@@ -165,6 +165,7 @@ Lisp_Object Qfile_newer_than_file_p;
 Lisp_Object Qinsert_file_contents;
 Lisp_Object Qwrite_region;
 Lisp_Object Qverify_visited_file_modtime;
+Lisp_Object Qset_visited_file_modtime;
 
 DEFUN ("find-file-name-handler", Ffind_file_name_handler, Sfind_file_name_handler, 1, 1, 0,
   "Return FILENAME's handler function, if its syntax is handled specially.\n\
@@ -2908,7 +2909,7 @@ An argument specifies the modification time value to use\n\
 	 call the corresponding file handler.  */
       handler = Ffind_file_name_handler (filename);
       if (!NILP (handler))
-	return call3 (handler, Qfile_name_directory, filename, Qnil);
+	return call3 (handler, Qset_visited_file_modtime, filename, Qnil);
       else if (stat (XSTRING (filename)->data, &st) >= 0)
 	current_buffer->modtime = st.st_mtime;
     }
@@ -3336,6 +3337,7 @@ syms_of_fileio ()
   Qinsert_file_contents = intern ("insert-file-contents");
   Qwrite_region = intern ("write-region");
   Qverify_visited_file_modtime = intern ("verify-visited-file-modtime");
+  Qset_visited_file_modtime = intern ("set-visited-file-modtime");
 
   staticpro (&Qexpand_file_name);
   staticpro (&Qdirectory_file_name);
