@@ -3826,7 +3826,7 @@ forward_to_next_line_start (it, skipped_p)
        n += STRINGP (it->string) ? 0 : 1)
     {
       if (!get_next_display_element (it))
-	break;
+	return 0;
       newline_found_p = it->what == IT_CHARACTER && it->c == '\n';
       set_iterator_to_next (it, 0);
     }

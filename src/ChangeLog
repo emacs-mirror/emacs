@@ -1,3 +1,8 @@
+2002-08-09  Gerd Moellmann  <gerd.moellmann@t-online.de>
+
+	* xdisp.c (forward_to_next_line_start): Return 0 when reaching the
+	end of the buffer.
+
 2002-08-08  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (Ffind_operation_coding_system): For write-region, if
