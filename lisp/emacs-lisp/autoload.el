@@ -67,10 +67,10 @@ Returns nil if FORM is not a function or variable or macro definition."
     (if (memq car '(defun define-skeleton defmacro define-derived-mode 
 		     define-generic-mode easy-mmode-define-minor-mode
 		     define-minor-mode defun*))
-	(let ((macrop (eq car 'defmacro))
-	      (name (nth 1 form))
-	      (body (nthcdr (get car 'doc-string-elt) form))
-	      (doc (if (stringp (car body)) (pop body))))
+	(let* ((macrop (eq car 'defmacro))
+	       (name (nth 1 form))
+	       (body (nthcdr (get car 'doc-string-elt) form))
+	       (doc (if (stringp (car body)) (pop body))))
 	  ;; `define-generic-mode' quotes the name, so take care of that
 	  (list 'autoload (if (listp name) name (list 'quote name)) file doc
 		(or (and (memq car '(define-skeleton define-derived-mode
