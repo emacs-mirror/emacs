@@ -690,6 +690,11 @@ any other non-digit terminates the character code and is then used as input."))
 	(and prompt (message "%s-" prompt))
 	(setq char (read-event))
 	(if inhibit-quit (setq quit-flag nil)))
+      ;; Translate TAB key into control-I ASCII character, and so on.
+      (and char
+	   (let ((translated (lookup-key function-key-map (vector char))))
+	     (if translated
+		 (setq char (aref translated 0)))))
       (cond ((null char))
 	    ((not (integerp char))
 	     (setq unread-command-events (list char)
