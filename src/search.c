@@ -182,6 +182,23 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
   cp->regexp = Fcopy_sequence (pattern);
 }
 
+/* Shrink each compiled regexp buffer in the cache
+   to the size actually used right now.
+   This is called from garbage collection.  */
+
+void
+shrink_regexp_cache ()
+{
+  struct regexp_cache *cp, **cpp;
+
+  for (cp = searchbuf_head; cp != 0; cp = cp->next)
+    {
+      cp->buf.allocated = cp->buf.used;
+      cp->buf.buffer
+	= (unsigned char *) realloc (cp->buf.buffer, cp->buf.used);
+    }
+}
+
 /* Compile a regexp if necessary, but first check to see if there's one in
    the cache.
    PATTERN is the pattern to compile.
