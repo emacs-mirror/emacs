@@ -842,6 +842,12 @@ window_box_height (w)
 
   xassert (height >= 0);
   
+  /* Note: the code below that determines the mode-line/header-line
+     height is essentially the same as that contained in the macro
+     CURRENT_{MODE,HEADER}_LINE_HEIGHT, except that it checks whether
+     the appropriate glyph row has its `mode_line_p' flag set,
+     and if it doesn't, uses estimate_mode_line_height instead.  */
+
   if (WINDOW_WANTS_MODELINE_P (w))
     {
       struct glyph_row *ml_row
