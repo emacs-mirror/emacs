@@ -1,3 +1,14 @@
+2002-02-07  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-art.el (article-wash-html): Bind url-gateway-unplugged. 
+	* mm-view.el (mm-w3-prepare-buffer): Ditto.
+	(mm-inline-text): Ditto.
+	Suggested by  Dave Love <fx@gnu.org>.
+
+	* mml.el (mml-preview): Disable local map.
+
+	* mml.el (mml-preview): Bind `q'.
+	
 2002-02-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* binhex.el (binhex-decoder-switches): Doc fix.
