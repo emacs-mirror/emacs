@@ -191,7 +191,7 @@ The marking symbol is specified by the variable `diary-entry-marker'."
 (when window-system
   (add-to-list 'facemenu-unlisted-faces 'diary-face)
   (defface diary-face
-    '(((:class color) :foreground "red")
+    '(((:class color) (:foreground "red"))
       (t (:bold t)))
     "Face for highlighting diary entries."
     :group 'diary)
@@ -204,7 +204,7 @@ The marking symbol is specified by the variable `diary-entry-marker'."
 
   (add-to-list 'facemenu-unlisted-faces 'holiday-face)
   (defface holiday-face
-    '(((:class color) :background "pink")
+    '(((:class color) (:background "pink"))
       (t (:inverse-video t)))
     "Face for indicating dates that have holidays."
     :group 'diary))
