@@ -173,7 +173,7 @@ Lisp_Object Qcursor_type;
 Lisp_Object Qfont;
 Lisp_Object Qforeground_color;
 Lisp_Object Qgeometry;
-Lisp_Object Qicon;
+/* Lisp_Object Qicon; */
 Lisp_Object Qicon_left;
 Lisp_Object Qicon_top;
 Lisp_Object Qicon_type;
@@ -192,7 +192,7 @@ Lisp_Object Qx_frame_parameter;
 
 /* The below are defined in frame.c. */
 extern Lisp_Object Qheight, Qminibuffer, Qname, Qonly, Qwidth;
-extern Lisp_Object Qunsplittable, Qmenu_bar_lines, Qicon;
+extern Lisp_Object Qunsplittable, Qmenu_bar_lines;
 
 extern Lisp_Object Vwindow_system_version;
 
@@ -3598,8 +3598,6 @@ syms_of_xfns ()
   staticpro (&Qforeground_color);
   Qgeometry = intern ("geometry");
   staticpro (&Qgeometry);
-  Qicon = intern ("icon");
-  staticpro (&Qicon);
   Qicon_left = intern ("icon-left");
   staticpro (&Qicon_left);
   Qicon_top = intern ("icon-top");
