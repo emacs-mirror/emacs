@@ -75,7 +75,7 @@ xmakefile: ymakefile config.h
 	${CPP} ${CFLAGS} junk.c > junk.cpp \
 	-DC_SWITCH_SITE="`echo ${CFLAGS}' ' \
 			  | sed -e 's/-g /C_DEBUG_SWITCH /' \
-				-e 's/-O /C_OPTIMIZE_SWITCH /'`"
+				-e 's/-O[0-9]* /C_OPTIMIZE_SWITCH /'`"
 	< junk.cpp					\
 	sed	-e 's/^#.*//'				\
 		-e 's/^[ \f\t][ \f\t]*$$//'		\
