@@ -1,3 +1,7 @@
+2005-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Fmake_symbolic_link): Fix last change.
+
 2005-03-11  Richard M. Stallman  <rms@gnu.org>
 
 	* fileio.c (Frename_file, Fadd_name_to_file)
@@ -32,8 +36,7 @@
 	available font is found.
 
 	* fontset.c (set_default_ascii_font): New function.
-	(syms_of_fontset): Don't set FONTSET_ASCII (Vdefault_fontset)
-	here.
+	(syms_of_fontset): Don't set FONTSET_ASCII (Vdefault_fontset) here.
 
 	* fontset.h (set_default_ascii_font): Extern it.
 
@@ -94,13 +97,11 @@
 	* emacs.c (main): Change `#ifdef HAVE_CARBON' to `#if
 	defined (MAC_OSX) && defined (HAVE_CARBON)'.
 
-	* image.c [!MAC_OSX && TARGET_API_MAC_CARBON]: Include
-	QuickTime.h.
+	* image.c [!MAC_OSX && TARGET_API_MAC_CARBON]: Include QuickTime.h.
 
 	* mac.c [!MAC_OSX && HAVE_CARBON]: Include Carbon.h.
 	[!MAC_OSX] (select) [TARGET_API_MAC_CARBON]: Use ReceiveNextEvent.
-	(posix_pathname_to_fsspec, fsspec_to_posix_pathname): New
-	functions.
+	(posix_pathname_to_fsspec, fsspec_to_posix_pathname): New functions.
 	(mac_clear_font_name_table): Move extern to macterm.h.
 
 	* macfns.c (install_window_handler): Move extern to macterm.h.
@@ -108,16 +109,15 @@
 	valid.  Don't check !NILP (dir) because it is already checked with
 	CHECK_STRING.
 	(Fx_file_dialog) [!MAC_OSX]: Use FSSpec instead of FSRef for
-	specifying the default location and obtaining the selected
-	filename.
+	specifying the default location and obtaining the selected filename.
 
 	* macgui.h [!MAC_OSX && HAVE_CARBON]: Include Carbon.h.
 
 	* macmenu.c [TARGET_API_MAC_CARBON]: Don't include headers that
 	are included via Carbon.h.
 
-	* macterm.c [TARGET_API_MAC_CARBON && !MAC_OSX]: Define
-	USE_CARBON_EVENTS to 1.
+	* macterm.c [TARGET_API_MAC_CARBON && !MAC_OSX]:
+	Define USE_CARBON_EVENTS to 1.
 	(qd) [__MRC__ && TARGET_API_MAC_CARBON]: Don't declare.
 	(x_free_frame_resources): Call remove_window_handler for
 	non-tooltip windows.
@@ -130,12 +130,12 @@
 	(install_window_handler) [TARGET_API_MAC_CARBON]: Create UPPs for
 	drag-and-drop handler functions and register them.
 	(remove_window_handler): New function.
-	(do_ae_open_documents, mac_do_receive_drag) [!MAC_OSX]: Use
-	fsspec_to_posix_pathname.
+	(do_ae_open_documents, mac_do_receive_drag) [!MAC_OSX]:
+	Use fsspec_to_posix_pathname.
 	(main): Change #if !TARGET_API_MAC_CARBON to #ifdef MAC_OS8.
 	(XTread_socket) [!MAC_OSX]: Don't pass keyboard events to TSM.
-	[MAC_OS8] (make_mac_terminal_frame) [TARGET_API_MAC_CARBON]: Set
-	default cursors.
+	[MAC_OS8] (make_mac_terminal_frame) [TARGET_API_MAC_CARBON]:
+	Set default cursors.
 	(mac_initialize) [USE_CARBON_EVENTS && !MAC_OSX] : Don't call
 	init_service_handler or init_quit_char_handler.
 	(mac_initialize) [!MAC_OSX]: Don't call MakeMeTheFrontProcess.
