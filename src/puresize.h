@@ -40,7 +40,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* For machines like APOLLO where text and data can go anywhere
    in virtual memory.  */
 #define CHECK_IMPURE(obj) \
-  { extern int pure[]; \
+  { extern EMACS_INT pure[]; \
     if ((PNTR_COMPARISON_TYPE) XPNTR (obj) < (PNTR_COMPARISON_TYPE) ((char *) pure + PURESIZE) \
 	&& (PNTR_COMPARISON_TYPE) XPNTR (obj) >= (PNTR_COMPARISON_TYPE) pure) \
       pure_write_error (); }
@@ -50,14 +50,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* when PNTR_COMPARISON_TYPE is not the default (unsigned int) */
 #define CHECK_IMPURE(obj) \
-  { extern int my_edata; \
+  { extern EMACS_INT my_edata; \
     if ((PNTR_COMPARISON_TYPE) XPNTR (obj) < (PNTR_COMPARISON_TYPE) &my_edata) \
       pure_write_error (); }
 
 #else /* not VIRT_ADDRESS_VARIES, not PNTR_COMPARISON_TYPE */
 
 #define CHECK_IMPURE(obj) \
-  { extern int my_edata; \
+  { extern EMACS_INT my_edata; \
     if (XPNTR (obj) < (unsigned int) &my_edata) \
       pure_write_error (); }
 
