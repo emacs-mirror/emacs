@@ -2210,23 +2210,41 @@ even beep.)"
 
 (defun kill-whole-line (&optional arg)
   "Kill current line.
-With prefix arg, kill that many lines from point.
-If arg is negative, kill backwards.
+With prefix arg, kill that many lines starting from the current line.
+If arg is negative, kill backward.  Also kill the preceding newline.
+\(This is meant to make C-x z work well with negative arguments.\)
 If arg is zero, kill current line but exclude the trailing newline."
   (interactive "P")
   (setq arg (prefix-numeric-value arg))
+  (if (and (> arg 0) (eobp) (save-excursion (forward-visible-line 0) (eobp)))
+      (signal 'end-of-buffer nil))
+  (if (and (< arg 0) (bobp) (save-excursion (end-of-visible-line) (bobp)))
+      (signal 'beginning-of-buffer nil))
+  (unless (eq last-command 'kill-region)
+    (kill-new "")
+    (setq last-command 'kill-region))
   (cond ((zerop arg)
-	 (kill-region (point) (progn (forward-visible-line 0) (point)))
+	 ;; We need to kill in two steps, because the previous command
+	 ;; could have been a kill command, in which case the text
+	 ;; before point needs to be prepended to the current kill
+	 ;; ring entry and the text after point appended.  Also, we
+	 ;; need to use save-excursion to avoid copying the same text
+	 ;; twice to the kill ring in read-only buffers.
+	 (save-excursion
+	   (kill-region (point) (progn (forward-visible-line 0) (point))))
 	 (kill-region (point) (progn (end-of-visible-line) (point))))
 	((< arg 0)
-	 (kill-line 1)
-	 (kill-line (1+ arg))
-	 (unless (bobp) (forward-visible-line -1)))
+	 (save-excursion
+	   (kill-region (point) (progn (end-of-visible-line) (point))))
+	 (kill-region (point)
+		      (progn (forward-visible-line (1+ arg))
+			     (unless (bobp) (backward-char))
+			     (point))))
 	(t
-	 (kill-line 0)
-	 (if (eobp)
-	     (signal 'end-of-buffer nil)
-	   (kill-line arg)))))
+	 (save-excursion
+	   (kill-region (point) (progn (forward-visible-line 0) (point))))
+	 (kill-region (point)
+		      (progn (forward-visible-line arg) (point))))))
 
 (defun forward-visible-line (arg)
   "Move forward by ARG lines, ignoring currently invisible newlines only.
