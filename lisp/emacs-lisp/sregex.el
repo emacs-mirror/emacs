@@ -333,10 +333,7 @@ to allow for \"introduced groups\".  If the extra argument is omitted
 or nil, it defaults to the current value of (sregex-info)."
   (replace-match replacement fixedcase literal string
                  (and subexp
-                      (sregex-backref-num
-                       subexp
-                       (sregex--value-groups (or sregex
-                                                 sregex--current-sregex))))))
+                      (sregex-backref-num subexp sregex))))
 
 (defun sregex-match-string (count &optional in-string sregex)
   "Like `match-string', for a regexp made with `sregex'.
@@ -345,10 +342,7 @@ can be obtained with `sregex-info'.  The COUNT argument is adjusted to
 allow for \"introduced groups\".  If the extra argument is omitted or
 nil, it defaults to the current value of (sregex-info)."
   (match-string (and count
-                     (sregex-backref-num
-                      count
-                      (sregex--value-groups (or sregex
-                                                sregex--current-sregex))))
+                     (sregex-backref-num count sregex))
                 in-string))
 
 (defun sregex-match-string-no-properties (count &optional in-string sregex)
@@ -359,10 +353,7 @@ allow for \"introduced groups\".  If the extra argument is omitted or
 nil, it defaults to the current value of (sregex-info)."
   (match-string-no-properties
    (and count
-        (sregex-backref-num
-         count
-         (sregex--value-groups (or sregex
-                                   sregex--current-sregex))))
+        (sregex-backref-num count sregex))
    in-string))
 
 (defun sregex-match-beginning (count &optional sregex)
@@ -371,10 +362,7 @@ This takes one additional optional argument, the `sregex' info, which
 can be obtained with `sregex-info'.  The COUNT argument is adjusted to
 allow for \"introduced groups\".  If the extra argument is omitted or
 nil, it defaults to the current value of (sregex-info)."
-  (match-beginning (sregex-backref-num
-                    count
-                    (sregex--value-groups (or sregex
-                                              sregex--current-sregex)))))
+  (match-beginning (sregex-backref-num count sregex)))
 
 (defun sregex-match-end (count &optional sregex)
   "Like `match-end', for a regexp made with `sregex'.
@@ -382,10 +370,7 @@ This takes one additional optional argument, the `sregex' info, which
 can be obtained with `sregex-info'.  The COUNT argument is adjusted to
 allow for \"introduced groups\".  If the extra argument is omitted or
 nil, it defaults to the current value of (sregex-info)."
-  (match-end (sregex-backref-num
-              count
-              (sregex--value-groups (or sregex
-                                        sregex--current-sregex)))))
+  (match-end (sregex-backref-num count sregex)))
 
 (defun sregex-match-data (&optional sregex)
   "Like `match-data', for a regexp made with `sregex'.
