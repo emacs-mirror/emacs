@@ -10185,10 +10185,10 @@ try_window_reusing_current_matrix (w)
 			 MATRIX_ROW_VPOS (bottom_row, w->current_matrix),
 			 nrows_scrolled);
 	  
-	  /* Disable lines not reused.  */
+	  /* Disable lines that must be updated.  */
 	  for (i = 0; i < it.vpos; ++i)
 	    (start_row + i)->enabled_p = 0;
-	  
+
 	  /* Re-compute Y positions.  */
 	  min_y = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
 	  max_y = it.last_visible_y;
@@ -10213,6 +10213,11 @@ try_window_reusing_current_matrix (w)
 	      if (MATRIX_ROW_BOTTOM_Y (row) >= it.last_visible_y)
 		break;
 	    }
+	  
+	  /* Disable lines in the current matrix which are now
+	     below the window.  */
+	  for (; row < bottom_row; ++row)
+	    row->enabled_p = 0;
 	}
 
       /* Update window_end_pos etc.; last_reused_text_row is the last
