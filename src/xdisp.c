@@ -2180,6 +2180,8 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
       else
 	IT_BYTEPOS (*it) = bytepos;
 
+      it->start = it->current;
+
       /* Compute faces etc.  */
       reseat (it, it->current.pos, 1);
     }
@@ -2443,6 +2445,7 @@ init_to_row_start (it, w, row)
      struct glyph_row *row;
 {
   init_from_display_pos (it, w, &row->start);
+  it->start = row->start;
   it->continuation_lines_width = row->continuation_lines_width;
   CHECK_IT (it);
 }
@@ -11580,6 +11583,11 @@ redisplay_window (window, just_this_one_p)
 		  MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y);
       if (IT_CHARPOS (it) == PT)
 	w->force_start = Qt;
+      /* IT may overshoot PT if text at PT is invisible.  */
+      else if (IT_CHARPOS (it) > PT && CHARPOS (startp) <= PT)
+	w->force_start = Qt;
+
+
     }
 
   /* Handle case where place to start displaying has been specified,
@@ -14330,7 +14338,7 @@ display_line (it)
   prepare_desired_row (row);
 
   row->y = it->current_y;
-  row->start = it->current;
+  row->start = it->start;
   row->continuation_lines_width = it->continuation_lines_width;
   row->displays_text_p = 1;
   row->starts_in_middle_of_char_p = it->starts_in_middle_of_char_p;
@@ -14721,6 +14729,7 @@ display_line (it)
   it->current_y += row->height;
   ++it->vpos;
   ++it->glyph_row;
+  it->start = it->current;
   return row->displays_text_p;
 }
 
@@ -20284,9 +20293,9 @@ expose_area (w, row, r, area)
 	 AREA.  The first glyph of the text area can be partially visible.
 	 The first glyphs of other areas cannot.  */
       start_x = window_box_left_offset (w, area);
-      if (area == TEXT_AREA)
-	start_x += row->x;
       x = start_x;
+      if (area == TEXT_AREA)
+	x += row->x;
 
       /* Find the first glyph that must be redrawn.  */
       while (first < end
