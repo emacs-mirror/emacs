@@ -545,9 +545,7 @@ find_charset_in_str (str, len, charsets, table)
      int len, *charsets;
      Lisp_Object table;
 {
-  int num = 0;
-  int cmpcharp = 0;
-  unsigned char str_work[4], *str_tmp;
+  register int num = 0, c;
 
   if (! CHAR_TABLE_P (table))
     table = Qnil;
@@ -555,46 +553,52 @@ find_charset_in_str (str, len, charsets, table)
   while (len > 0)
     {
       int bytes, charset;
+      c = *str;
       
-      if (*str == LEADING_CODE_COMPOSITION)
+      if (c == LEADING_CODE_COMPOSITION)
 	{
-	  str++;
-	  len--;
-	  cmpcharp = 1;
-	}
-      else if (CHAR_HEAD_P (str))
-	cmpcharp = 0;
+	  int cmpchar_id = str_cmpchar_id (str, len);
+	  GLYPH *glyph;
 
-      if (cmpcharp)
-	{
-	  if (*str == 0xA0)
+	  if (cmpchar_id > 0)
 	    {
-	      str++;
-	      len--;
-	      str_work[0] = *str & 0x7F;
+	      struct cmpchar_info *cmpcharp = cmpchar_table[cmpchar_id];
+	      int i;
+
+	      for (i = 0; i < cmpcharp->glyph_len; i++)
+		{
+		  c = cmpcharp->glyph[i];
+		  if (!NILP (table))
+		    {
+		      if ((c = unify_char (table, c, 0, 0, 0)) < 0)
+			c = cmpcharp->glyph[i];
+		    }
+		  if ((charset = CHAR_CHARSET (c)) < 0)
+		    charset = CHARSET_ASCII;
+		  if (!charsets[charset])
+		    {
+		      charsets[charset] = 1;
+		      num += 1;
+		    }
+		}
+	      str += cmpcharp->len;
+	      len -= cmpcharp->len;
+	      continue;
 	    }
-	  else
-	    {
-	      bcopy (str, str_work, min (4, len));
-	      str_work[0] -= 0x20;
-	    }
-	  str_tmp = str_work;
+
+	  charset = CHARSET_ASCII;
+	  bytes = 1;
 	}
       else
-	str_tmp = str;
-	  
-      bytes = BYTES_BY_CHAR_HEAD (*str_tmp);
-
-      if (NILP (table))
-	charset = CHARSET_AT (str_tmp);
-      else
 	{
-	  int c;
-	  unsigned char c1, c2;
-
-	  SPLIT_STRING(str_tmp, bytes, charset, c1, c2);
-	  if ((c = unify_char (table, -1, charset, c1, c2)) >= 0)
-	    charset = CHAR_CHARSET (c);
+	  c = STRING_CHAR_AND_LENGTH (str, len, bytes);
+	  if (! NILP (table))
+	    {
+	      int c1 = unify_char (table, c, 0, 0, 0);
+	      if (c1 >= 0)
+		c = c1;
+	    }
+	  charset = CHAR_CHARSET (c);
 	}
 
       if (!charsets[charset])
