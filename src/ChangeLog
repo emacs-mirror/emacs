@@ -1,5 +1,14 @@
 2000-06-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (xim_initialize) [!USE_XIM]: Don't set up the 
+	display info for XIM.
+	(xim_open_dpy): Likewise.
+	(xim_close_dpy): Don't free the display info's XIM.
+
+	* xfns.c (x_window) [!USE_XIM]: Don't call create_frame_ic.
+
+	* config.in (USE_XIM): New define.
+
 	* keymap.c (get_keyelt): For menu-items containing a `:filter
 	FILTER', apply FILTER to the menu-item's definition to get the
 	real definition to use.

@@ -1,3 +1,7 @@
+2000-06-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in (--with-xim): New option.
+
 2000-06-23  Dave Love  <fx@gnu.org>
 
 	* configure.in [HAVE_TIMEVAL]: Move gettimeofday test here, test

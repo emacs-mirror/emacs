@@ -14,6 +14,9 @@ the --without-pop configure option, should that be necessary.
 ** There are new configure options associated with the support for
 images and toolkit scrollbars.  Use the --help option to list them.
 
+** There is a new option `without-xim' that instructs Emacs to not
+use X Input Methods (XIM), if they these are available.
+
 
 * Changes in Emacs 21.1
 
