@@ -59,6 +59,8 @@ Lisp_Object Vauto_fill_chars;
 
 Lisp_Object Qauto_fill_chars;
 
+/* Char-table of information about which character to unify to which
+   Unicode character.  */
 Lisp_Object Vchar_unify_table;
 
 /* A char-table.  An element is non-nil iff the corresponding
@@ -85,6 +87,9 @@ static Lisp_Object Qchar_script_table;
 int unibyte_to_multibyte_table[256];
 
 
+
+/* Store multibyte form of character C at P.  If C has modifier bits,
+   handle them appropriately.  */
 
 int
 char_string (c, p)
@@ -166,6 +171,13 @@ char_string (c, p)
   return bytes;
 }
 
+
+/* Return a character whose multibyte form is at P.  Set LEN is not
+   NULL, it must be a pointer to integer.  In that case, set *LEN to
+   the byte length of the multibyte form.  If ADVANCED is not NULL, is
+   must be a pointer to unsigned char.  In that case, set *ADVANCED to
+   the ending address (i.e. the starting address of the next
+   character) of the multibyte form.  */
 
 int
 string_char (p, advanced, len)
