@@ -65,23 +65,33 @@
 
 (defcustom mouse-wheel-scroll-amount '(5 ((shift) . 1) ((control) . nil))
   "Amount to scroll windows by when spinning the mouse wheel.
-This is actually a cons cell, where the first item is the amount to scroll
-on a normal wheel event, and the rest is an alist mapping the modifier key
-to the amount to scroll when the wheel is moved with the modifier key depressed.
+This is an alist mapping the modifier key to the amount to scroll when
+the wheel is moved with the modifier key depressed.
+Elements of the list have the form (MODIFIERS . AMOUNT) or just AMOUNT if
+MODIFIERS is nil.
 
-Each item should be the number of lines to scroll, or `nil' for near
-full screen.  It can also be a floating point number, specifying
-the fraction of the window to scroll.
-A near full screen is `next-screen-context-lines' less than a full screen."
+AMOUNT should be the number of lines to scroll, or `nil' for near full
+screen.  It can also be a floating point number, specifying the fraction of
+a full screen to scroll.  A near full screen is `next-screen-context-lines'
+less than a full screen."
   :group 'mouse
   :type '(cons
 	  (choice :tag "Normal"
 		  (const :tag "Full screen" :value nil)
 		  (integer :tag "Specific # of lines")
-		  (float :tag "Fraction of window"))
+		  (float :tag "Fraction of window")
+		  (cons
+		   (repeat (choice :tag "modifier"
+				   (const alt) (const control) (const hyper)
+				   (const meta) (const shift) (const super)))
+		   (choice :tag "scroll amount"
+			   (const :tag "Full screen" :value nil)
+			   (integer :tag "Specific # of lines")
+			   (float :tag "Fraction of window"))))
           (repeat
            (cons
-            (repeat (choice :tag "modifier" (const alt) (const control) (const hyper)
+            (repeat (choice :tag "modifier"
+			    (const alt) (const control) (const hyper)
                             (const meta) (const shift) (const super)))
             (choice :tag "scroll amount"
                     (const :tag "Full screen" :value nil)
@@ -91,13 +101,14 @@ A near full screen is `next-screen-context-lines' less than a full screen."
 (defcustom mouse-wheel-progessive-speed t
   "If non-nil, the faster the user moves the wheel, the faster the scrolling.
 Note that this has no effect when `mouse-wheel-scroll-amount' specifies
-a \"near full screen\" scroll."
+a \"near full screen\" scroll or when the mouse wheel sends key instead
+of button events."
   :group 'mouse
   :type 'boolean)
 
 (defcustom mouse-wheel-follow-mouse nil
   "Whether the mouse wheel should scroll the window that the mouse is over.
-This can be slightly disconcerting, but some people may prefer it."
+This can be slightly disconcerting, but some people prefer it."
   :group 'mouse
   :type 'boolean)
 
@@ -130,10 +141,11 @@ This should only be bound to mouse buttons 4 and 5."
                        (select-window (mwheel-event-window event)))))
          (mods
 	  (delq 'click (delq 'double (delq 'triple (event-modifiers event)))))
-         (amt
-	  (if mods
-	      (cdr (assoc mods (cdr mouse-wheel-scroll-amount)))
-	    (car mouse-wheel-scroll-amount))))
+         (amt (assoc mods mouse-wheel-scroll-amount)))
+    ;; Extract the actual amount or find the element that has no modifiers.
+    (if amt (setq amt (cdr amt))
+      (let ((list-elt mouse-wheel-scroll-amount))
+	(while (consp (setq amt (pop list-elt))))))
     (if (floatp amt) (setq amt (1+ (truncate (* amt (window-height))))))
     (when (and mouse-wheel-progessive-speed (numberp amt))
       ;; When the double-mouse-N comes in, a mouse-N has been executed already,
@@ -162,11 +174,10 @@ Returns non-nil if the new state is enabled."
          (dn (intern (format prefix mouse-wheel-down-button)))
          (up (intern (format prefix mouse-wheel-up-button)))
          (keys
-          (nconc (list (vector dn) (vector up))
-                 (mapcar (lambda (amt) `[(,@(car amt) ,up)])
-                         (cdr mouse-wheel-scroll-amount))
-                 (mapcar (lambda (amt) `[(,@(car amt) ,dn)])
-                         (cdr mouse-wheel-scroll-amount)))))
+          (nconc (mapcar (lambda (amt) `[(,@(if (consp amt) (car amt)) ,up)])
+			 mouse-wheel-scroll-amount)
+                 (mapcar (lambda (amt) `[(,@(if (consp amt) (car amt)) ,dn)])
+			 mouse-wheel-scroll-amount))))
     ;; This condition-case is here because Emacs 19 will throw an error
     ;; if you try to define a key that it does not know about.  I for one
     ;; prefer to just unconditionally do a mwheel-install in my .emacs, so
