@@ -444,9 +444,6 @@ del_range (from, to)
   record_delete (from, numdel);
   MODIFF++;
 
-  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
-  offset_intervals (current_buffer, point, - numdel);
-
   /* Relocate point as if it were a marker.  */
   if (from < point)
     {
@@ -455,6 +452,9 @@ del_range (from, to)
       else
 	SET_PT (point - numdel);
     }
+
+  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
+  offset_intervals (current_buffer, point, - numdel);
 
   /* Relocate all markers pointing into the new, larger gap
      to point at the end of the text before the gap.  */
