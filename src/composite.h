@@ -204,9 +204,9 @@ extern Lisp_Object Vauto_composition_function;
 extern Lisp_Object Qauto_composition_function;
 
 extern int get_composition_id P_ ((int, int, int, Lisp_Object, Lisp_Object));
-extern int find_composition P_ ((int, int, int *, int *, Lisp_Object *,
+extern int find_composition P_ ((int, int, EMACS_INT *, EMACS_INT *, Lisp_Object *,
 				 Lisp_Object));
-extern void update_compositions P_ ((int, int, int));
+extern void update_compositions P_ ((EMACS_INT, EMACS_INT, int));
 extern void make_composition_value_copy P_ ((Lisp_Object));
 extern void compose_region P_ ((int, int, Lisp_Object, Lisp_Object,
 				Lisp_Object));
