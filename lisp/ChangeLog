@@ -1,5 +1,12 @@
 2000-03-21  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* files.el (find-file-run-dired): Update docstring.
+	(find-directory-functions): New hook.
+	(find-file-noselect): Run find-directory-functions rather than
+	calling dired directly.
+
+	* menu-bar.el (pcl-cvs): Add an entry for PCL-CVS' global menu.
+
 	* pcvs.el: Add a minimal leading commentary.
 	(cvs-make-cvs-buffer): Change the header part by removing the startup
 	message and adding a `Module' entry.  Also replace the FOOTER and
