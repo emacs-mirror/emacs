@@ -764,19 +764,27 @@ Otherwise return nil and don't move point."
 (defun c-beginning-of-statement (count)
   "Go to the beginning of the innermost C statement.
 With prefix arg, go back N - 1 statements.  If already at the beginning of a
-statement then go to the beginning of the preceeding one."
+statement then go to the beginning of the preceeding one.
+If within a string or comment, move by sentences instead of statements."
   (interactive "p")
-  (while (> count 0)
-    (c-beginning-of-statement-1)
-    (setq count (1- count)))
-  (while (< count 0)
-    (c-end-of-statement-1)
-    (setq count (1+ count))))
+  (let ((here (point)) state)
+    (save-excursion
+      (beginning-of-defun)
+      (setq state (parse-partial-sexp (point) here nil nil)))
+    (if (or (nth 3 state) (nth 4 state))
+	(forward-sentence (- count))
+      (while (> count 0)
+	(c-beginning-of-statement-1)
+	(setq count (1- count)))
+      (while (< count 0)
+	(c-end-of-statement-1)
+	(setq count (1+ count))))))
 
 (defun c-end-of-statement (count)
   "Go to the end of the innermost C statement.
-With prefix arg, go forward N - 1 statements.  Moves forward to end of the
-next statement if already at end."
+With prefix arg, go forward N - 1 statements.
+Move forward to end of the next statement if already at end.
+If within a string or comment, move by sentences instead of statements."
   (interactive "p")
   (c-beginning-of-statement (- count)))
 
