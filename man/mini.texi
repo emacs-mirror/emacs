@@ -209,6 +209,10 @@ command names).  Thus, @samp{fo} does not complete to @samp{Foo}.
 Completion does ignore case distinctions for certain arguments in which
 case does not matter.
 
+  Completion acts only on the text before point.  If there is text in
+the minibuffer after point---i.e., if you move point backward after
+typing some text into the minibuffer---it remains unchanged.
+
 @menu
 * Example: Completion Example.    Examples of using completion.
 * Commands: Completion Commands.  A list of completion commands.
