@@ -1,5 +1,6 @@
 /* Execution of byte code produced by bytecomp.el.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 2000, 2001
+   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -396,6 +397,19 @@ unmark_byte_stack ()
 
 #endif /* not BYTE_CODE_SAFE */
 
+/* A version of the QUIT macro which makes sure that the stack top is
+   set before signaling `quit'.  */
+
+#define BYTE_CODE_QUIT					\
+  do {							\
+    if (!NILP (Vquit_flag) && NILP (Vinhibit_quit))	\
+      {							\
+	Vquit_flag = Qnil;				\
+        BEFORE_POTENTIAL_GC ();				\
+	Fsignal (Qquit, Qnil);				\
+      }							\
+  } while (0)
+
 
 DEFUN ("byte-code", Fbyte_code, Sbyte_code, 3, 3, 0,
   "Function used internally in byte-compiled code.\n\
@@ -529,7 +543,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  op = FETCH2;
 	  if (NILP (POP))
 	    {
-	      QUIT;
+	      BYTE_CODE_QUIT;
 	      CHECK_RANGE (op);
 	      stack.pc = stack.byte_string_start + op;
 	    }
@@ -735,7 +749,7 @@ If the third argument is incorrect, Emacs may crash.")
 
 	case Bgoto:
 	  MAYBE_GC ();
-	  QUIT;
+	  BYTE_CODE_QUIT;
 	  op = FETCH2;    /* pc = FETCH2 loses since FETCH2 contains pc++ */
 	  CHECK_RANGE (op);
 	  stack.pc = stack.byte_string_start + op;
@@ -746,7 +760,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  op = FETCH2;
 	  if (!NILP (POP))
 	    {
-	      QUIT;
+	      BYTE_CODE_QUIT;
 	      CHECK_RANGE (op);
 	      stack.pc = stack.byte_string_start + op;
 	    }
@@ -757,7 +771,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  op = FETCH2;
 	  if (NILP (TOP))
 	    {
-	      QUIT;
+	      BYTE_CODE_QUIT;
 	      CHECK_RANGE (op);
 	      stack.pc = stack.byte_string_start + op;
 	    }
@@ -769,7 +783,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  op = FETCH2;
 	  if (!NILP (TOP))
 	    {
-	      QUIT;
+	      BYTE_CODE_QUIT;
 	      CHECK_RANGE (op);
 	      stack.pc = stack.byte_string_start + op;
 	    }
@@ -778,7 +792,7 @@ If the third argument is incorrect, Emacs may crash.")
 
 	case BRgoto:
 	  MAYBE_GC ();
-	  QUIT;
+	  BYTE_CODE_QUIT;
 	  stack.pc += (int) *stack.pc - 127;
 	  break;
 
@@ -786,7 +800,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  MAYBE_GC ();
 	  if (NILP (POP))
 	    {
-	      QUIT;
+	      BYTE_CODE_QUIT;
 	      stack.pc += (int) *stack.pc - 128;
 	    }
 	  stack.pc++;
@@ -796,7 +810,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  MAYBE_GC ();
 	  if (!NILP (POP))
 	    {
-	      QUIT;
+	      BYTE_CODE_QUIT;
 	      stack.pc += (int) *stack.pc - 128;
 	    }
 	  stack.pc++;
@@ -807,7 +821,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  op = *stack.pc++;
 	  if (NILP (TOP))
 	    {
-	      QUIT;
+	      BYTE_CODE_QUIT;
 	      stack.pc += op - 128;
 	    }
 	  else DISCARD (1);
@@ -818,7 +832,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  op = *stack.pc++;
 	  if (!NILP (TOP))
 	    {
-	      QUIT;
+	      BYTE_CODE_QUIT;
 	      stack.pc += op - 128;
 	    }
 	  else DISCARD (1);
