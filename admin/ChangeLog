@@ -1,3 +1,10 @@
+2001-10-20  Miles Bader  <miles@gnu.org>
+
+	* quick-install-emacs: Exit if we can't find some variable.
+	(AVOID): Add .orig & .rej files.
+	(get_config_var): Be more liberal about format of config.status
+	sed commands.
+
 2001-10-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* admin.el: New file.
