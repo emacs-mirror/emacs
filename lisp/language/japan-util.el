@@ -232,7 +232,9 @@ of which charset is `japanese-jisx0201-kana'."
       (goto-char (point-min))
       (while (re-search-forward "\\cH\\|\\cK" nil t)
 	(let* ((kana (preceding-char))
-	       (composition (get-char-code-property kana 'kana-composition))
+	       (composition
+		(and (not hankaku)
+		     (get-char-code-property kana 'kana-composition)))
 	       next slot)
 	  (if (and composition (setq slot (assq (following-char) composition)))
 	      (japanese-replace-region (match-beginning 0) (1+ (point))
