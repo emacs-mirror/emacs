@@ -41,6 +41,10 @@ Lisp_Object Vfloat_output_format, Qfloat_output_format;
 /* Avoid actual stack overflow in print.  */
 int print_depth;
 
+/* Detect most circularities to print finite output.  */
+#define PRINT_CIRCLE 200
+Lisp_Object being_printed[PRINT_CIRCLE];
+
 /* Maximum length of list to print in full; noninteger means
    effectively infinity */
 
@@ -651,9 +655,27 @@ print (obj, printcharfun, escapeflag)
 
   QUIT;
 
+#if 1  /* I'm not sure this is really worth doing.  */
+  /* Detect circularities and truncate them.
+     No need to offer any alternative--this is better than an error.  */
+  if (XTYPE (obj) == Lisp_Cons || XTYPE (obj) == Lisp_Vector
+      || XTYPE (obj) == Lisp_Compiled)
+    {
+      int i;
+      for (i = 0; i < print_depth; i++)
+	if (EQ (obj, being_printed[i]))
+	  {
+	    sprintf (buf, "#%d", i);
+	    strout (buf, -1, printcharfun);
+	    return;
+	  }
+    }
+#endif
+
+  being_printed[print_depth] = obj;
   print_depth++;
 
-  if (print_depth > 200)
+  if (print_depth > PRINT_CIRCLE)
     error ("Apparently circular structure being printed");
 #ifdef MAX_PRINT_CHARS
   if (max_print && print_chars > max_print)
@@ -783,6 +805,9 @@ print (obj, printcharfun, escapeflag)
 
 	if (XTYPE (Vprint_length) == Lisp_Int)
 	  max = XINT (Vprint_length);
+	/* Could recognize circularities in cdrs here,
+	   but that would make printing of long lists quadratic.
+	   It's not worth doing.  */
 	while (CONSP (obj))
 	  {
 	    if (i++)
