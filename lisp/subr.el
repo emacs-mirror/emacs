@@ -964,13 +964,18 @@ See also `with-temp-buffer'."
 The original message is restored to the echo area after BODY has finished.
 The value returned is the value of the last form in BODY.
 MESSAGE is written to the message log buffer if `message-log-max' is non-nil."
-  (let ((current-message (make-symbol "current-message")))
-    `(let ((,current-message (current-message)))
+  (let ((current-message (make-symbol "current-message"))
+	(temp-message (make-symbol "with-temp-message")))
+    `(let ((,temp-message ,message)
+	   (,current-message))
        (unwind-protect
 	   (progn
-	     (message ,message)
+	     (when ,temp-message
+	       (setq ,current-message (current-message))
+	       (message ,temp-message))
 	     ,@body)
-	 (message ,current-message)))))
+	 (when ,temp-message
+	   (message ,current-message))))))
 
 (defmacro with-temp-buffer (&rest body)
   "Create a temporary buffer, and evaluate BODY there like `progn'.
