@@ -1,7 +1,7 @@
 #!/bin/sh
 # impl.sh.overnight: RUN A SCRIPT "OVERNIGHT"
 #
-# $HopeName$
+# $HopeName: HOMEmm!bin:overnight(trunk.3) $
 #
 # SYNOPSIS
 #
@@ -40,6 +40,11 @@ test -d $HOME/var/log || mkdir $HOME/var/log ||
   die "Couldn't create log directory"
 
 logfile="$HOME/var/log/`basename \"$1\"`"
+
+# truncate log
+mv "$logfile" "$logfile~" &&
+tail -1048576c < "$logfile~" > "$logfile" &&
+rm -f "$logfile~"
 
 (
   date "+$script %Y-%m-%d %H:%M:%S started \"$*\""
