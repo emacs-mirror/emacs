@@ -49,3 +49,4 @@
 #define WCOREDUMP(w) ((w) & 0200)
 #endif
 
+#define GETPGRP_NO_ARG 1
