@@ -141,7 +141,10 @@ forms.dvi: forms.texi
 ../info/gnus: gnus.texi
 	cd $(srcdir); $(MAKEINFO) gnus.texi
 gnus.dvi: gnus.texi
-	$(ENVADD) $(TEXI2DVI) ${srcdir}/gnus.texi
+	sed -e '/@iflatex/,/@end iflatex/d' ${srcdir}/gnus.texi > gnustmp.texi 
+	$(ENVADD) $(TEXI2DVI) gnustmp.texi
+	cp gnustmp.dvi $*.dvi
+	rm gnustmp.*
 
 ../info/message: message.texi
 	cd $(srcdir); $(MAKEINFO) message.texi
@@ -222,7 +225,7 @@ emacs-mime.dvi: emacs-mime.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-mime.texi
 
 mostlyclean:
-	rm -f *.log *.cp *.fn *.ky *.pg *.vr core
+	rm -f *.log *.cp *.fn *.ky *.pg *.vr core gnustmp.*
 
 clean: mostlyclean
 	rm -f *.dvi
