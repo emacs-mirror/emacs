@@ -923,7 +923,7 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
      register int nchars, nbytes;
      int inherit, prepare, before_markers;
 {
-  register Lisp_Object temp;
+  register Lisp_Object temp, deletion;
   int combined_before_bytes, combined_after_bytes;
 
   if (NILP (current_buffer->enable_multibyte_characters))
@@ -951,17 +951,23 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
 
   if (combined_after_bytes)
     {
+      deletion = make_buffer_string_both (PT, PT_BYTE,
+					  PT + combined_after_bytes,
+					  PT_BYTE + combined_after_bytes, 1);
+
       adjust_markers_for_record_delete (PT, PT_BYTE,
 					PT + combined_after_bytes,
 					PT_BYTE + combined_after_bytes);
-      record_delete (PT, combined_after_bytes);
+      record_delete (PT, deletion);
     }
 
   if (combined_before_bytes)
     {
+      deletion = make_buffer_string_both (PT - 1, CHAR_TO_BYTE (PT - 1),
+					  PT, PT_BYTE, 1);
       adjust_markers_for_record_delete (PT - 1, CHAR_TO_BYTE (PT - 1),
 					PT, PT_BYTE);
-      record_delete (PT - 1, 1);
+      record_delete (PT - 1, deletion);
     }
 
   record_insert (PT - !!combined_before_bytes,
@@ -1076,6 +1082,7 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
   int combined_before_bytes, combined_after_bytes;
   int adjusted_nchars;
   INTERVAL intervals;
+  Lisp_Object deletion;
 
   /* Make OUTGOING_NBYTES describe the text
      as it will be inserted in this buffer.  */
@@ -1131,17 +1138,23 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
 
   if (combined_after_bytes)
     {
+      deletion = make_buffer_string_both (PT, PT_BYTE,
+					  PT + combined_after_bytes,
+					  PT_BYTE + combined_after_bytes, 1);
+
       adjust_markers_for_record_delete (PT, PT_BYTE,
 					PT + combined_after_bytes,
 					PT_BYTE + combined_after_bytes);
-      record_delete (PT, combined_after_bytes);
+      record_delete (PT, deletion);
     }
 
   if (combined_before_bytes)
     {
+      deletion = make_buffer_string_both (PT - 1, CHAR_TO_BYTE (PT - 1),
+					  PT, PT_BYTE, 1);
       adjust_markers_for_record_delete (PT - 1, CHAR_TO_BYTE (PT - 1),
 					PT, PT_BYTE);
-      record_delete (PT - 1, 1);
+      record_delete (PT - 1, deletion);
     }
 
   record_insert (PT - !!combined_before_bytes,
@@ -1226,7 +1239,7 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
      int from, nchars;
      int inherit;
 {
-  register Lisp_Object temp;
+  register Lisp_Object temp, deletion;
   int chunk;
   int from_byte = buf_charpos_to_bytepos (buf, from);
   int to_byte = buf_charpos_to_bytepos (buf, from + nchars);
@@ -1296,17 +1309,23 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
 
   if (combined_after_bytes)
     {
+      deletion = make_buffer_string_both (PT, PT_BYTE,
+					  PT + combined_after_bytes,
+					  PT_BYTE + combined_after_bytes, 1);
+
       adjust_markers_for_record_delete (PT, PT_BYTE,
 					PT + combined_after_bytes,
 					PT_BYTE + combined_after_bytes);
-      record_delete (PT, combined_after_bytes);
+      record_delete (PT, deletion);
     }
 
   if (combined_before_bytes)
     {
+      deletion = make_buffer_string_both (PT - 1, CHAR_TO_BYTE (PT - 1),
+					  PT, PT_BYTE, 1);
       adjust_markers_for_record_delete (PT - 1, CHAR_TO_BYTE (PT - 1),
 					PT, PT_BYTE);
-      record_delete (PT - 1, 1);
+      record_delete (PT - 1, deletion);
     }
 
   record_insert (PT - !!combined_before_bytes,
@@ -1372,8 +1391,11 @@ void
 adjust_before_replace (from, from_byte, to, to_byte)
      int from, from_byte, to, to_byte;
 {
+  Lisp_Object deletion;
+  deletion = make_buffer_string_both (from, from_byte, to, to_byte, 1);
+
   adjust_markers_for_delete (from, from_byte, to, to_byte);
-  record_delete (from, to - from);
+  record_delete (from, deletion);
   adjust_overlays_for_delete (from, to - from);
 }
 
@@ -1389,20 +1411,27 @@ adjust_after_replace (from, from_byte, to, to_byte, len, len_byte, replace)
     = count_combining_before (GPT_ADDR, len_byte, from, from_byte);
   int combined_after_bytes
     = count_combining_after (GPT_ADDR, len_byte, from, from_byte);
+  Lisp_Object deletion;
 
   if (combined_after_bytes)
     {
+      deletion = make_buffer_string_both (from, from_byte,
+					  from + combined_after_bytes,
+					  from_byte + combined_after_bytes, 1);
+
       adjust_markers_for_record_delete (from, from_byte,
 					from + combined_after_bytes,
 					from_byte + combined_after_bytes);
-      record_delete (from, combined_after_bytes);
+      record_delete (from, deletion);
     }
 
   if (combined_before_bytes)
     {
+      deletion = make_buffer_string_both (from - 1, CHAR_TO_BYTE (from - 1),
+					  from, from_byte, 1);
       adjust_markers_for_record_delete (from - 1, CHAR_TO_BYTE (from - 1),
 					from, from_byte);
-      record_delete (from - 1, 1);
+      record_delete (from - 1, deletion);
     }
 
   /* Update various buffer positions for the new text.  */
@@ -1477,6 +1506,7 @@ replace_range (from, to, new, prepare, inherit)
   int adjusted_inschars;
   INTERVAL intervals;
   int outgoing_insbytes = insbytes;
+  Lisp_Object deletion;
 
   GCPRO1 (new);
 
@@ -1526,13 +1556,15 @@ replace_range (from, to, new, prepare, inherit)
   if (to < GPT)
     gap_left (to, to_byte, 0);
 
+  deletion = make_buffer_string_both (from, from_byte, to, to_byte, 1);
+
   /* Relocate all markers pointing into the new, larger gap
      to point at the end of the text before the gap.
      Do this before recording the deletion,
      so that undo handles this after reinserting the text.  */
   adjust_markers_for_delete (from, from_byte, to, to_byte);
 
-  record_delete (from, nchars_del);
+  record_delete (from, deletion);
 
   GAP_SIZE += nbytes_del;
   ZV -= nchars_del;
@@ -1584,17 +1616,23 @@ replace_range (from, to, new, prepare, inherit)
 
   if (combined_after_bytes)
     {
+      deletion = make_buffer_string_both (PT, PT_BYTE,
+					  PT + combined_after_bytes,
+					  PT_BYTE + combined_after_bytes, 1);
+
       adjust_markers_for_record_delete (PT, PT_BYTE,
 					PT + combined_after_bytes,
 					PT_BYTE + combined_after_bytes);
-      record_delete (PT, combined_after_bytes);
+      record_delete (PT, deletion);
     }
 
   if (combined_before_bytes)
     {
+      deletion = make_buffer_string_both (PT - 1, CHAR_TO_BYTE (PT - 1),
+					  PT, PT_BYTE, 1);
       adjust_markers_for_record_delete (PT - 1, CHAR_TO_BYTE (PT - 1),
 					PT, PT_BYTE);
-      record_delete (PT - 1, 1);
+      record_delete (PT - 1, deletion);
     }
 
   record_insert (PT - !!combined_before_bytes,
@@ -1783,6 +1821,8 @@ del_range_2 (from, from_byte, to, to_byte)
 {
   register int nbytes_del, nchars_del;
   int combined_after_bytes;
+  Lisp_Object deletion;
+  int from_byte_1;
 
   nchars_del = to - from;
   nbytes_del = to_byte - from_byte;
@@ -1796,6 +1836,19 @@ del_range_2 (from, from_byte, to, to_byte)
   combined_after_bytes
     = count_combining_before (BUF_BYTE_ADDRESS (current_buffer, to_byte),
 			      ZV_BYTE - to_byte, from, from_byte);
+  if (combined_after_bytes)
+    {
+      from_byte_1 = from_byte;
+      DEC_POS (from_byte_1);
+    }
+  else
+    from_byte_1 = from_byte;
+
+  deletion
+    = make_buffer_string_both (from - !!combined_after_bytes,
+			       from_byte_1,
+			       to + combined_after_bytes,
+			       to_byte + combined_after_bytes, 1);
 
   /* Relocate all markers pointing into the new, larger gap
      to point at the end of the text before the gap.
@@ -1804,9 +1857,6 @@ del_range_2 (from, from_byte, to, to_byte)
   adjust_markers_for_delete (from, from_byte, to, to_byte);
   if (combined_after_bytes)
     {
-      int from_byte_1 = from_byte;
-      DEC_POS (from_byte_1);
-
       /* Adjust markers for the phony deletion
 	 that we are about to call record_undo for.  */
 
@@ -1821,8 +1871,7 @@ del_range_2 (from, from_byte, to, to_byte)
       adjust_markers_for_record_delete (from - 1, from_byte_1,
 					from, from_byte);
     }
-  record_delete (from - !!combined_after_bytes,
-		 nchars_del + combined_after_bytes + !!combined_after_bytes);
+  record_delete (from - !!combined_after_bytes, deletion);
 
   if (combined_after_bytes)
     /* COMBINED_AFTER_BYTES nonzero means that the above record_delete
