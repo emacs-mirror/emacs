@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.7) $
+ * $HopeName: MMsrc!poolams.c(trunk.8) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  * 
  * NOTES
@@ -19,7 +19,7 @@
 #include "mpm.h"
 #include "mpscams.h"
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.7) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.8) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -686,6 +686,66 @@ static Res AMSIterate(AMS ams, AMSGroup group, Seg seg, Arena arena,
 }
 
 
+/* AMSBlackenObject -- blacken a single object (if it is grey).
+ * 
+ * This is the object function passed to AMSIterate by AMSBlacken.
+ * It just blackens the object if it is grey. It takes no closure.
+ */
+
+static Res AMSBlackenObject(AMSGroup group,
+			    Index i, Addr p, Addr next, int colour,
+			    void *clos)
+{
+  AVERT(AMSGroup, group);
+  AVER(i < group->grains);
+  AVER(p != 0);
+  AVER(p < next);
+  AVER(clos == NULL);
+  AVER(colour != AMS_ILLEGAL);
+  AVER(AMSColourIsValid(colour));
+
+  /* if the object is grey, make it black */
+  if (colour == AMS_GREY) 
+    BTSet(group->scanTable, i);
+
+  return ResOK;
+}
+
+/* AMSBlacken -- the pool class segment blackening method
+ *
+ * See design.mps.poolams.blacken
+ */
+
+static void AMSBlacken(Pool pool, TraceSet traceSet, Seg seg)
+{
+  Res res;
+  AMS ams;
+  Arena arena;
+  AMSGroup group;
+
+  AVERT(Pool, pool);
+  AVER(TraceSetCheck(traceSet));
+  AVER(SegCheck(seg));
+
+  /* only do anything if the bitmaps apply to one of these traces. */
+  /* see design.mps.poolams.invariant.object */
+  if (TraceSetInter(SegWhite(seg), traceSet) != TraceSetEMPTY) {
+    ams = PoolPoolAMS(pool);
+    AVERT(AMS, ams);
+    arena = PoolArena(pool);
+
+    group = AMSSegGroup(seg);
+    AVERT(AMSGroup, group);
+
+    ShieldExpose(arena, seg); /* so we can skip through it */
+    res = AMSIterate(ams, group, seg, arena, AMSBlackenObject, NULL);
+    AVER(res == ResOK); /* AMSBlackenObject always returns ResOK */
+    ShieldCover(arena, seg);
+
+    group->marked = FALSE; /* design.mps.poolams.blacken.marked */
+  }
+}
+
 /* The closure of the object scanning function */
 
 struct AMSScanClosureStruct {
@@ -773,6 +833,7 @@ static Res AMSScan(ScanState ss, Pool pool, Seg seg)
 		     &closureStruct);
     if (res != ResOK)
       return res;
+    group->marked = FALSE;
     
   } else { /* design.mps.poolams.scan.iter */
 
@@ -1150,6 +1211,7 @@ static PoolClassStruct PoolClassAMSStruct = {
   PoolTrivTraceBegin,        /* design.mps.poolams.triv-trace-begin */
   AMSCondemn,                /* condemn */
   PoolTrivGrey,              /* design.mps.poolams.triv-grey */
+  AMSBlacken,                /* blacken */
   AMSScan,                   /* scan */
   AMSFix,                    /* fix */
   AMSReclaim,                /* reclaim */

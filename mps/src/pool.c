@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.34) $
+ * $HopeName: MMsrc!pool.c(trunk.35) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the generic pool interface.  The
@@ -12,7 +12,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.34) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.35) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -280,6 +280,15 @@ void PoolGrey(Pool pool, Trace trace, Seg seg)
   AVER(pool->arena == trace->arena);
   AVER(SegPool(seg) == pool);
   (*pool->class->grey)(pool, trace, seg);
+}
+
+void PoolBlacken(Pool pool, TraceSet traceSet, Seg seg)
+{
+  AVERT(Pool, pool);
+  AVERT(TraceSet, traceSet);
+  AVERT(Seg, seg);
+  AVER(SegPool(seg) == pool);
+  (*pool->class->blacken)(pool, traceSet, seg);
 }
 
 Res PoolScan(ScanState ss, Pool pool, Seg seg)
@@ -650,6 +659,25 @@ void PoolTrivGrey(Pool pool, Trace trace, Seg seg)
   /* the white segments, since they might also contain grey objects. */
   if(!TraceSetIsMember(SegWhite(seg), trace->ti))
     SegSetGrey(seg, TraceSetSingle(trace->ti));
+}
+
+void PoolNoBlacken(Pool pool, TraceSet traceSet, Seg seg)
+{
+  AVERT(Pool, pool);
+  AVERT(TraceSet, traceSet);
+  AVERT(Seg, seg);
+  NOTREACHED;
+}
+
+void PoolTrivBlacken(Pool pool, TraceSet traceSet, Seg seg)
+{
+  AVERT(Pool, pool);
+  AVERT(TraceSet, traceSet);
+  AVERT(Seg, seg);
+
+  /* the trivial blacken method does nothing; for pool classes which do
+   * not keep additional colour information. */
+  NOOP;
 }
 
 Res PoolNoScan(ScanState ss, Pool pool, Seg seg)

@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.15) $
+ * $HopeName: MMsrc!poolawl.c(trunk.16) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.15) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.16) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -384,6 +384,23 @@ static void AWLGrey(Pool pool, Trace trace, Seg seg)
   }
 }
 
+static void AWLBlacken(Pool pool, TraceSet traceSet, Seg seg)
+{
+  AWL awl;
+  AWLGroup group;
+
+  AVERT(Pool, pool);
+  AVER(TraceSetCheck(traceSet));
+  AVER(SegCheck(seg));
+
+  awl = PoolPoolAWL(pool);
+  AVERT(AWL, awl);
+  group = (AWLGroup)SegP(seg);
+  AVERT(AWLGroup, group);
+  
+  BTSetRange(group->scanned, 0, group->grains);
+}
+
 
 /* Returns the linked object (or possibly there is none) */
 /* see design.mps.poolawl.fun.dependent-object, and */
@@ -676,6 +693,7 @@ struct PoolClassStruct PoolClassAWLStruct = {
   AWLTraceBegin,
   AWLCondemn,
   AWLGrey,
+  AWLBlacken,
   AWLScan,
   AWLFix,
   AWLReclaim,
