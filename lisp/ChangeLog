@@ -1,5 +1,8 @@
 2002-07-13  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
+	* net/ange-ftp.el: Do not hook into file-name-handler-alist, this
+	is done by Tramp.
+
 	* net/tramp.el (tramp-multi-file-name-structure-unified): Add
 	missing slash and move colon from start to end of each hop.
 	(tramp-multi-file-name-hop-structure-unified): Move colon from

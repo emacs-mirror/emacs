@@ -4343,33 +4343,36 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;;; These file names are remote file names.
 (put 'ange-ftp-hook-function 'file-remote-p t)
 
-;;; This regexp takes care of real ange-ftp file names (with a slash
-;;; and colon).
-;;; Don't allow the host name to end in a period--some systems use /.:
-;;;###autoload
-(or (assoc "^/[^/:]*[^/:.]:" file-name-handler-alist)
-    (setq file-name-handler-alist
-	  (cons '("^/[^/:]*[^/:.]:" . ange-ftp-hook-function)
-		file-name-handler-alist)))
+;; The following code is commented out because Tramp now deals with
+;; Ange-FTP filenames, too.
 
-;;; This regexp recognizes absolute filenames with only one component,
-;;; for the sake of hostname completion.
-;;;###autoload
-(or (assoc "^/[^/:]*\\'" file-name-handler-alist)
-    (setq file-name-handler-alist
-	  (cons '("^/[^/:]*\\'" . ange-ftp-completion-hook-function)
-		file-name-handler-alist)))
-
-;;; This regexp recognizes absolute filenames with only one component
-;;; on Windows, for the sake of hostname completion.
-;;; NB. Do not mark this as autoload, because it is very common to
-;;; do completions in the root directory of drives on Windows.
-(and (memq system-type '(ms-dos windows-nt))
-     (or (assoc "^[a-zA-Z]:/[^/:]*\\'" file-name-handler-alist)
-	 (setq file-name-handler-alist
-	       (cons '("^[a-zA-Z]:/[^/:]*\\'" .
-		       ange-ftp-completion-hook-function)
-		     file-name-handler-alist))))
+;;-;;; This regexp takes care of real ange-ftp file names (with a slash
+;;-;;; and colon).
+;;-;;; Don't allow the host name to end in a period--some systems use /.:
+;;-;;;###autoload
+;;-(or (assoc "^/[^/:]*[^/:.]:" file-name-handler-alist)
+;;-    (setq file-name-handler-alist
+;;-	  (cons '("^/[^/:]*[^/:.]:" . ange-ftp-hook-function)
+;;-		file-name-handler-alist)))
+;;-
+;;-;;; This regexp recognizes absolute filenames with only one component,
+;;-;;; for the sake of hostname completion.
+;;-;;;###autoload
+;;-(or (assoc "^/[^/:]*\\'" file-name-handler-alist)
+;;-    (setq file-name-handler-alist
+;;-	  (cons '("^/[^/:]*\\'" . ange-ftp-completion-hook-function)
+;;-		file-name-handler-alist)))
+;;-
+;;-;;; This regexp recognizes absolute filenames with only one component
+;;-;;; on Windows, for the sake of hostname completion.
+;;-;;; NB. Do not mark this as autoload, because it is very common to
+;;-;;; do completions in the root directory of drives on Windows.
+;;-(and (memq system-type '(ms-dos windows-nt))
+;;-     (or (assoc "^[a-zA-Z]:/[^/:]*\\'" file-name-handler-alist)
+;;-	 (setq file-name-handler-alist
+;;-	       (cons '("^[a-zA-Z]:/[^/:]*\\'" .
+;;-		       ange-ftp-completion-hook-function)
+;;-		     file-name-handler-alist))))
 
 ;;; The above two forms are sufficient to cause this file to be loaded
 ;;; if the user ever uses a file name with a colon in it.
