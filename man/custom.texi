@@ -102,8 +102,6 @@ combine it with any major mode.  @xref{Outline Mode}.
 
 @cindex Overwrite mode
 @cindex mode, Overwrite
-@findex overwrite-mode
-@findex binary-overwrite-mode
   Overwrite mode causes ordinary printing characters to replace existing
 text instead of shoving it to the right.  For example, if point is in
 front of the @samp{B} in @samp{FOOBAR}, then in Overwrite mode typing a
@@ -112,6 +110,14 @@ as usual.  In Overwrite mode, the command @kbd{C-q} inserts the next
 character whatever it may be, even if it is a digit---this gives you a
 way to insert a character instead of replacing an existing character.
 
+@findex overwrite-mode
+@kindex INSERT
+  The command @code{overwrite-mode} is an exception to the rule that
+commands which toggle minor modes are normally not bound to keys: it is
+bound to the @key{INSERT} function key.  This is because many other
+programs bind @key{INSERT} to similar functions.
+
+@findex binary-overwrite-mode
   Binary Overwrite mode is a variant of Overwrite mode for editing
 binary files; it treats newlines and tabs like other characters, so that
 they overwrite other characters and can be overwritten by them.
