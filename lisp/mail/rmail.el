@@ -375,6 +375,7 @@ Note:    it means the file has no messages in it.\n\^_")))
   (define-key rmail-mode-map "\C-c\C-s\C-r" 'rmail-sort-by-recipient)
   (define-key rmail-mode-map "\C-c\C-s\C-c" 'rmail-sort-by-correspondent)
   (define-key rmail-mode-map "\C-c\C-s\C-l" 'rmail-sort-by-lines)
+  (define-key rmail-mode-map "\C-c\C-s\C-k" 'rmail-sort-by-keywords)
   )
 
 (define-key rmail-mode-map [menu-bar] (make-sparse-keymap))
@@ -2167,6 +2168,11 @@ If prefix argument REVERSE is non-nil, sort them in reverse order." t)
 (autoload 'rmail-sort-by-lines "rmailsort"
   "Sort messages of current Rmail file by number of lines.
 If prefix argument REVERSE is non-nil, sort them in reverse order." t)
+
+(autoload 'rmail-sort-by-keywords "rmailsort"
+  "Sort messages of current Rmail file by labels.
+If prefix argument REVERSE is non-nil, sort them in reverse order.
+KEYWORDS is a comma-separated list of labels." t)
 
 ;;;; *** Rmail Summary Mode ***
 
