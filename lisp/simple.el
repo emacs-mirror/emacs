@@ -352,10 +352,25 @@ the minibuffer, then read and evaluate the result."
 
 ;; (defvar repeat-complex-command nil)
 
-(defvar repeat-complex-command-map (copy-keymap minibuffer-local-map))
-(define-key repeat-complex-command-map "\ep" 'previous-complex-command)
-(define-key repeat-complex-command-map "\en" 'next-complex-command)
-(defun repeat-complex-command (repeat-complex-command-arg)
+(defvar minibuffer-history nil)
+(defvar minibuffer-history-variable 'minibuffer-history)
+(defvar minibuffer-history-position nil)
+
+(define-key minibuffer-local-map "\en" 'next-history-element)
+(define-key minibuffer-local-ns-map "\en" 'next-history-element)
+(define-key minibuffer-local-ns-map "\en" 'next-history-element)
+(define-key minibuffer-local-completion-map "\en" 'next-history-element)
+(define-key minibuffer-local-completion-map "\en" 'next-history-element)
+(define-key minibuffer-local-must-match-map "\en" 'next-history-element)
+
+(define-key minibuffer-local-map "\ep" 'previous-history-element)
+(define-key minibuffer-local-ns-map "\ep" 'previous-history-element)
+(define-key minibuffer-local-ns-map "\ep" 'previous-history-element)
+(define-key minibuffer-local-completion-map "\ep" 'previous-history-element)
+(define-key minibuffer-local-completion-map "\ep" 'previous-history-element)
+(define-key minibuffer-local-must-match-map "\ep" 'previous-history-element)
+
+(defun repeat-complex-command (arg)
   "Edit and re-evaluate last complex command, or ARGth from last.
 A complex command is one which used the minibuffer.
 The command is placed in the minibuffer as a Lisp form for editing.
@@ -366,13 +381,14 @@ Whilst editing the command, the following commands are available:
 \\{repeat-complex-command-map}"
   (interactive "p")
   (let ((elt (nth (1- repeat-complex-command-arg) command-history))
+	(minibuffer-history-position arg)
 	(repeat-complex-command-flag t)
 	newcmd)
     (if elt
-	(progn
+	(let ((minibuffer-history-variable ' command-history))
 	  (setq newcmd (read-from-minibuffer "Redo: "
 					     (prin1-to-string elt)
-					     repeat-complex-command-map
+					     minibuffer-local-map
 					     t))
 	  ;; If command to be redone does not match front of history,
 	  ;; add it to the history.
@@ -381,22 +397,22 @@ Whilst editing the command, the following commands are available:
 	  (eval newcmd))
       (ding))))
 
-(defun next-complex-command (n)
-  "Inserts the next element of `command-history' into the minibuffer."
+(defun next-history-element (n)
+  "Insert the next element of the minibuffer history into the minibuffer."
   (interactive "p")
-  (let ((narg (min (max 1 (- repeat-complex-command-arg n))
-		   (length command-history))))
-    (if (= repeat-complex-command-arg narg)
-	(error (if (= repeat-complex-command-arg 1)
-		   "No following item in command history"
-		 "No preceding item in command history"))
+  (let ((narg (min (max 1 (- minibuffer-history-position n))
+		   (length (symbol-value minibuffer-history-variable)))))
+    (if (= minibuffer-history-position narg)
+	(error (if (= minibuffer-history-position 1)
+		   "No following item in minibuffer history"
+		 "No preceding item in minibuffer history"))
       (erase-buffer)
-      (setq repeat-complex-command-arg narg)
-      (insert (prin1-to-string (nth (1- repeat-complex-command-arg)
-				    command-history)))
+      (setq minibuffer-history-position narg)
+      (insert (prin1-to-string (nth (1- minibuffer-history-position)
+				    (symbol-value minibuffer-history-variable))))
       (goto-char (point-min)))))
 
-(defun previous-complex-command (n)
+(defun previous-history-element (n)
   "Inserts the previous element of `command-history' into the minibuffer."
   (interactive "p")
   (if repeat-complex-command-flag
@@ -794,6 +810,10 @@ yanking point; just return the Nth kill forward."
   (let ((interprogram-paste (and (= n 0)
 				 interprogram-paste-function
 				 (funcall interprogram-paste-function))))
+;;; RMS: Turn off the interprogram paste feature 
+;;; because currently it is wedged: it is always
+;;; giving a null string.
+    (setq interprogram-paste nil)
     (if interprogram-paste
 	(progn
 	  ;; Disable the interprogram cut function when we add the new
