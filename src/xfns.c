@@ -2320,9 +2320,7 @@ x_set_name (f, name, explicit)
 	int bytes, stringp;
 	Lisp_Object coding_system;
 
-	coding_system = Vlocale_coding_system;
-	if (NILP (coding_system))
-	  coding_system = Qcompound_text;
+	coding_system = Qcompound_text;
 	text.value = x_encode_text (name, coding_system, 0, &bytes, &stringp);
 	text.encoding = (stringp ? XA_STRING
 			 : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
@@ -2427,9 +2425,7 @@ x_set_title (f, name, old_name)
 	int bytes, stringp;
 	Lisp_Object coding_system;
 
-	coding_system = Vlocale_coding_system;
-	if (NILP (coding_system))
-	  coding_system = Qcompound_text;
+	coding_system = Qcompound_text;
 	text.value = x_encode_text (name, coding_system, 0, &bytes, &stringp);
 	text.encoding = (stringp ? XA_STRING
 			 : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
