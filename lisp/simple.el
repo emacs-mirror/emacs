@@ -2432,21 +2432,28 @@ Setting this variable automatically makes it local to the current buffer.")
 		    (setq give-up t)))
 	    ;; No place to break => stop trying.
 	    (setq give-up t))))
-      ;; justify last line
+      ;; Justify last line.
       (justify-current-line justify t t)
       t))) 
 
+(defvar normal-auto-fill-function 'do-auto-fill
+  "The function to use for `auto-fill-function' if Auto Fill mode is turned on.
+Some major modes set this.")
+
 (defun auto-fill-mode (&optional arg)
-  "Toggle auto-fill mode.
-With arg, turn Auto-Fill mode on if and only if arg is positive.
-In Auto-Fill mode, inserting a space at a column beyond `current-fill-column'
-automatically breaks the line at a previous space."
+  "Toggle Auto Fill mode.
+With arg, turn Auto Fill mode on if and only if arg is positive.
+In Auto Fill mode, inserting a space at a column beyond `current-fill-column'
+automatically breaks the line at a previous space.
+
+The value of `normal-auto-fill-function' specifies the function to use
+for `auto-fill-function' when turning Auto Fill mode on."
   (interactive "P")
   (prog1 (setq auto-fill-function
 	       (if (if (null arg)
 		       (not auto-fill-function)
 		       (> (prefix-numeric-value arg) 0))
-		   'do-auto-fill
+		   normal-auto-fill-function
 		   nil))
     (force-mode-line-update)))
 
