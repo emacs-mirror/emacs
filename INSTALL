@@ -514,11 +514,23 @@ To install on MSDOG, you need to have the GNU C compiler for MSDOG
 remarks in config.bat for more information about locations and
 versions.
 
+If you are compiling on an MSDOG-like system which has long file
+names, you may need to do `SET LFN=y' for some of the commands,
+especially the compilation commands.  It might be more convenient to
+unpack the Emacs distribution with djtar, which comes with djgpp;
+djtar truncates file names to 8.3 naming as it extracts files, even if
+the system allows long file names, and this ensures that build
+procedures designed for 8.3 file names still work.  Use as in `djtar x
+foo.tar' or `djtar x foo.tgz'.
+
 Some users report that running Emacs 19.29 requires dpmi memory
 management.  We do not know why this is so, since 19.28 did not need
-it.  If we find out what change introduced this requirement, we will
-try to eliminate it.  It is possible that this problem happens only
-when there is not enough physical memory on the machine.
+it.  If we find out what change introduced this requirement, we may
+try to eliminate it.  ("May" because perhaps djgpp version 2's
+improved dpmi handling means this is no longer a problem.)
+
+It is possible that this problem happens only when there is not enough
+physical memory on the machine.
 
 You can find out if you have a dpmi host by running go32 (part of
 djgpp) without arguments; it will tell you if it uses dpmi memory.
