@@ -1183,6 +1183,8 @@ and don't delete any header fields."
 	  (goto-char start)
 	  (let ((mail-indentation-spaces (if arg (prefix-numeric-value arg)
 					   mail-indentation-spaces))
+		;; Avoid error in Transient Mark mode
+		;; on account of mark's being inactive.
 		(mark-even-if-inactive t))
 	    (if mail-citation-hook
 		(run-hooks 'mail-citation-hook)
@@ -1227,7 +1229,10 @@ and don't delete any header fields."
   (and (consp mail-reply-action)
        (eq (car mail-reply-action) 'insert-buffer)
        (let ((buffer (nth 1 mail-reply-action))
-	     (start (point)))
+	     (start (point))
+	     ;; Avoid error in Transient Mark mode
+	     ;; on account of mark's being inactive.
+	     (mark-even-if-inactive t))
 	 ;; Insert the citation text.
 	 (insert (with-current-buffer buffer
 		   (buffer-substring (point) (mark))))
