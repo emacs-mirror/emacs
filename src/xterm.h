@@ -71,13 +71,10 @@ Boston, MA 02111-1307, USA.  */
 #endif
 #endif
 
-#ifdef XlibSpecificationRelease
-#if XlibSpecificationRelease >= 5
-#define HAVE_X11R5
+#ifdef HAVE_X11R5
 /* In case someone has X11R5 on AIX 3.1,
    make sure HAVE_X11R4 is defined as well as HAVE_X11R5.  */
 #define HAVE_X11R4
-#endif
 #endif
 
 #ifdef HAVE_X11R5
