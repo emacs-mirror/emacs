@@ -3631,10 +3631,11 @@ Value is TO.")
 DEFUN ("internal-set-lisp-face-attribute", Finternal_set_lisp_face_attribute,
        Sinternal_set_lisp_face_attribute, 3, 4, 0,
   "Set attribute ATTR of FACE to VALUE.\n\
-If optional argument FRAME is given, set the face attribute of face FACE\n\
-on that frame.  If FRAME is t, set the attribute of the default for face\n\
-FACE (for new frames).  If FRAME is omitted or nil, use the selected\n\
-frame.")
+FRAME being a frame means change the face on that frame.\n\
+FRAME nil means change change the face of the selected frame.\n\
+FRAME t means change the default for new frames.\n\
+FRAME 0 means change the face on all frames, and change the default\n\
+  for new frames.")
   (face, attr, value, frame)
      Lisp_Object face, attr, value, frame;
 {
@@ -3649,6 +3650,16 @@ frame.")
   CHECK_SYMBOL (attr, 1);
 
   face = resolve_face_name (face);
+
+  /* If FRAME is 0, change face on all frames, and change the
+     default for new frames.  */
+  if (INTEGERP (frame) && XINT (frame) == 0)
+    {
+      Lisp_Object tail;
+      FOR_EACH_FRAME (tail, frame)
+	Finternal_set_lisp_face_attribute (face, attr, value, frame);
+      return Finternal_set_lisp_face_attribute (face, attr, value, Qt);
+    }
 
   /* Set lface to the Lisp attribute vector of FACE.  */
   if (EQ (frame, Qt))
