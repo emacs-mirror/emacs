@@ -34,7 +34,7 @@ Boston, MA 02111-1307, USA.  */
    calling Lisp functions like `sit-for'.  The C function `redisplay'
    in xdisp.c is the only entry into the inner redisplay code.  (Or,
    let's say almost---see the description of direct update
-   operations, below.).
+   operations, below.)
 
    The following diagram shows how redisplay code is invoked.  As you
    can see, Lisp calls redisplay and vice versa.  Under window systems
@@ -260,7 +260,7 @@ int inhibit_eval_during_redisplay;
 /* Names of text properties relevant for redisplay.  */
 
 Lisp_Object Qdisplay, Qrelative_width, Qalign_to;
-extern Lisp_Object Qface, Qinvisible, Qimage, Qwidth;
+extern Lisp_Object Qface, Qinvisible, Qwidth;
 
 /* Symbols used in text property values.  */
 
@@ -385,7 +385,7 @@ int highlight_nonselected_windows;
 
 static int scroll_step;
 
-/* Non-0 means scroll just far enough to bring point back on the
+/* Nonzero means scroll just far enough to bring point back on the
    screen, when appropriate.  */
 
 static int scroll_conservatively;
@@ -443,12 +443,12 @@ Lisp_Object Vmessage_stack;
 
 int message_enable_multibyte;
 
-/* True if we should redraw the mode lines on the next redisplay.  */
+/* Nonzero if we should redraw the mode lines on the next redisplay.  */
 
 int update_mode_lines;
 
 /* Nonzero if window sizes or contents have changed since last
-   redisplay that finished */
+   redisplay that finished.  */
 
 int windows_or_buffers_changed;
 
@@ -461,7 +461,7 @@ int line_number_displayed;
 
 Lisp_Object Vline_number_display_limit;
 
-/* line width to consider when repostioning for line number display */
+/* Line width to consider when repositioning for line number display.  */
 
 static int line_number_display_limit_width;
 
@@ -869,7 +869,7 @@ window_box_width (w, area)
 
 
 /* Return the pixel height of the display area of window W, not
-   including mode lines of W, if any..  */
+   including mode lines of W, if any.  */
 
 INLINE int
 window_box_height (w)
@@ -2302,7 +2302,7 @@ handle_face_prop (it)
       
       /* Is this a start of a run of characters with box face?
 	 Caveat: this can be called for a freshly initialized
-	 iterator; face_id is -1 is this case.  We know that the new
+	 iterator; face_id is -1 in this case.  We know that the new
 	 face will not change until limit, i.e. if the new face has a
 	 box, all characters up to limit will have one.  But, as
 	 usual, we don't know whether limit is really the end.  */
@@ -2812,7 +2812,7 @@ display_prop_end (it, object, start_pos)
    If PROP is a `space' or `image' sub-property, set *POSITION to the
    end position of the `display' property.
 
-   Value is non-zero something was found which replaces the display
+   Value is non-zero if something was found which replaces the display
    of buffer or string text.  */
 
 static int
@@ -2829,7 +2829,7 @@ handle_single_display_prop (it, prop, object, position,
   Lisp_Object form;
 
   /* If PROP is a list of the form `(when FORM . VALUE)', FORM is
-     evaluated.  If the result is nil, VALUE is ignored. */
+     evaluated.  If the result is nil, VALUE is ignored.  */
   form = Qt;
   if (CONSP (prop) && EQ (XCAR (prop), Qwhen))
     {
@@ -2960,7 +2960,7 @@ handle_single_display_prop (it, prop, object, position,
   else if (!it->string_from_display_prop_p)
     {
       /* `((margin left-margin) VALUE)' or `((margin right-margin)
-	 VALUE) or `((margin nil) VALUE)' or VALUE. */
+	 VALUE) or `((margin nil) VALUE)' or VALUE.  */
       Lisp_Object location, value;
       struct text_pos start_pos;
       int valid_p;
@@ -6221,7 +6221,7 @@ ensure_echo_area_buffers ()
    that the current message becomes the last displayed one, make
    choose a suitable buffer for echo_area_buffer[0], and clear it.
 
-   Value is what FN returns. */
+   Value is what FN returns.  */
 
 static int
 with_echo_area_buffer (w, which, fn, a1, a2, a3, a4)
@@ -6572,7 +6572,7 @@ resize_mini_window_1 (a1, exactly, a3, a4)
 /* Resize mini-window W to fit the size of its contents.  EXACT:P
    means size the window exactly to the size needed.  Otherwise, it's
    only enlarged until W's buffer is empty.  Value is non-zero if
-   the window height has been changed. */
+   the window height has been changed.  */
 
 int
 resize_mini_window (w, exact_p)
@@ -6624,7 +6624,7 @@ resize_mini_window (w, exact_p)
       else
 	max_height = total_height / 4;
       
-      /* Correct that max. height if it's bogus. */
+      /* Correct that max. height if it's bogus.  */
       max_height = max (1, max_height);
       max_height = min (total_height, max_height);
       
@@ -9163,7 +9163,7 @@ mark_window_display_accurate (window, accurate_p)
     {
       /* Force a thorough redisplay the next time by setting
 	 last_arrow_position and last_arrow_string to t, which is
-	 unequal to any useful value of Voverlay_arrow_... */
+	 unequal to any useful value of Voverlay_arrow_...  */
       last_arrow_position = Qt;
       last_arrow_string = Qt;
     }
@@ -12939,7 +12939,7 @@ display_line (it)
       hpos_before = it->hpos;
       x_before = x;
 
-      if (/* Not a newline. */
+      if (/* Not a newline.  */
 	  nglyphs > 0
 	  /* Glyphs produced fit entirely in the line.  */
 	  && it->current_x < it->last_visible_x)
