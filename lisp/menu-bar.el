@@ -55,7 +55,7 @@
 (define-key menu-bar-file-menu [save-buffer] '("Save Buffer" . save-buffer))
 (define-key menu-bar-file-menu [dired] '("Open Directory..." . dired))
 (define-key menu-bar-file-menu [open-file] '("Open File..." . find-file))
-(define-key menu-bar-file-menu [new-frame] '("New Frame" . make-frame))
+(define-key menu-bar-file-menu [make-frame] '("Make New Frame" . make-frame))
 
 (define-key menu-bar-edit-menu [spell] '("Spell" . ispell-menu-map))
 (define-key menu-bar-edit-menu [fill] '("Fill" . fill-region))
