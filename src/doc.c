@@ -512,7 +512,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
     tem = make_string (buf, bufp - buf);
   else
     tem = str;
-  free (buf);
+  xfree (buf);
   RETURN_UNGCPRO (tem);
 }
 

@@ -1244,5 +1244,6 @@ extern void debugger ();
 
 extern char *malloc (), *realloc (), *getenv (), *ctime (), *getwd ();
 extern long *xmalloc (), *xrealloc ();
+extern void xfree ();
 
 extern char *egetenv ();

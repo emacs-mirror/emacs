@@ -23,6 +23,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "syntax.h"
 #include "buffer.h"
 #include "commands.h"
+#include "blockinput.h"
 
 #include <sys/types.h>
 #include "regex.h"
@@ -97,9 +98,11 @@ compile_pattern (pattern, bufp, regp, translate)
 
   last_regexp = Qnil;
   bufp->translate = translate;
+  BLOCK_INPUT;
   val = re_compile_pattern ((char *) XSTRING (pattern)->data,
 			    XSTRING (pattern)->size,
 			    bufp);
+  UNBLOCK_INPUT;
   if (val)
     {
       dummy = build_string (val);
@@ -111,8 +114,10 @@ compile_pattern (pattern, bufp, regp, translate)
 
   /* Advise the searching functions about the space we have allocated
      for register data.  */
+  BLOCK_INPUT;
   if (regp)
     re_set_registers (bufp, regp, regp->num_regs, regp->start, regp->end);
+  UNBLOCK_INPUT;
 
   return;
 }
@@ -167,9 +172,11 @@ data if you want to preserve them.")
       s2 = 0;
     }
   
+  BLOCK_INPUT;
   i = re_match_2 (&searchbuf, (char *) p1, s1, (char *) p2, s2,
 		  point - BEGV, &search_regs,
 		  ZV - BEGV);
+  UNBLOCK_INPUT;
   if (i == -2)
     matcher_overflow ();
 
@@ -217,9 +224,11 @@ matched by parenthesis constructs in the pattern.")
   compile_pattern (regexp, &searchbuf, &search_regs,
 		   !NILP (current_buffer->case_fold_search) ? DOWNCASE_TABLE : 0);
   immediate_quit = 1;
+  BLOCK_INPUT;
   val = re_search (&searchbuf, (char *) XSTRING (string)->data,
 		   XSTRING (string)->size, s, XSTRING (string)->size - s,
 		   &search_regs);
+  UNBLOCK_INPUT;
   immediate_quit = 0;
   last_thing_searched = Qt;
   if (val == -2)
@@ -240,9 +249,11 @@ fast_string_match (regexp, string)
 
   compile_pattern (regexp, &searchbuf, 0, 0);
   immediate_quit = 1;
+  BLOCK_INPUT;
   val = re_search (&searchbuf, (char *) XSTRING (string)->data,
 		   XSTRING (string)->size, 0, XSTRING (string)->size,
 		   0);
+  UNBLOCK_INPUT;
   immediate_quit = 0;
   return val;
 }
@@ -659,10 +670,12 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 	}
       while (n < 0)
 	{
+	  BLOCK_INPUT;
 	  int val = re_search_2 (&searchbuf, (char *) p1, s1, (char *) p2, s2,
 				 pos - BEGV, lim - pos, &search_regs,
 				 /* Don't allow match past current point */
 				 pos - BEGV);
+	  UNBLOCK_INPUT;
 	  if (val == -2)
 	    matcher_overflow ();
 	  if (val >= 0)
@@ -687,9 +700,11 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 	}
       while (n > 0)
 	{
+	  BLOCK_INPUT;
 	  int val = re_search_2 (&searchbuf, (char *) p1, s1, (char *) p2, s2,
 				 pos - BEGV, lim - pos, &search_regs,
 				 lim - BEGV);
+	  UNBLOCK_INPUT;
 	  if (val == -2)
 	    matcher_overflow ();
 	  if (val >= 0)
@@ -882,9 +897,11 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 			    (regoff_t *) xmalloc (2 * sizeof (regoff_t));
 			  ends =
 			    (regoff_t *) xmalloc (2 * sizeof (regoff_t));
+			  BLOCK_INPUT;
 			  re_set_registers (&searchbuf,
 					    &search_regs,
 					    2, starts, ends);
+			  UNBLOCK_INPUT;
 			}
 
 		      search_regs.start[0]
@@ -957,9 +974,11 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 			    (regoff_t *) xmalloc (2 * sizeof (regoff_t));
 			  ends =
 			    (regoff_t *) xmalloc (2 * sizeof (regoff_t));
+			  BLOCK_INPUT;
 			  re_set_registers (&searchbuf,
 					    &search_regs,
 					    2, starts, ends);
+			  UNBLOCK_INPUT;
 			}
 
 		      search_regs.start[0]
@@ -1390,8 +1409,10 @@ LIST should have been created by calling `match-data' previously.")
 				       length * sizeof (regoff_t));
 	  }
 
+	BLOCK_INPUT;
 	re_set_registers (&searchbuf, &search_regs, length,
 			  search_regs.start, search_regs.end);
+	UNBLOCK_INPUT;
       }
   }
 

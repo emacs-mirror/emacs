@@ -417,7 +417,7 @@ load_unwind (stream)  /* used as unwind-protect function in load */
      Lisp_Object stream;
 {
   fclose (*(FILE **) XSTRING (stream));
-  free (XPNTR (stream));
+  xfree (XPNTR (stream));
   if (--load_in_progress < 0) load_in_progress = 0;
   return Qnil;
 }

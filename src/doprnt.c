@@ -178,7 +178,7 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
 
   /* If we had to malloc something, free it.  */
   if (big_buffer)
-    free (big_buffer);
+    xfree (big_buffer);
 
   *bufptr = 0;		/* Make sure our string end with a '\0' */
   return bufptr - buffer;

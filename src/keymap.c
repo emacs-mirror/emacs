@@ -26,6 +26,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "buffer.h"
 #include "keyboard.h"
 #include "termhooks.h"
+#include "blockinput.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
@@ -707,13 +708,17 @@ current_minor_maps (modeptr, mapptr)
 
 	    if (cmm_maps)
 	      {
+		BLOCK_INPUT;
 		newmodes = (Lisp_Object *) realloc (cmm_modes, cmm_size *= 2);
 		newmaps  = (Lisp_Object *) realloc (cmm_maps,  cmm_size);
+		UNBLOCK_INPUT;
 	      }
 	    else
 	      {
+		BLOCK_INPUT;
 		newmodes = (Lisp_Object *) malloc (cmm_size = 30);
 		newmaps  = (Lisp_Object *) malloc (cmm_size);
+		UNBLOCK_INPUT;
 	      }
 
 	    if (newmaps && newmodes)

@@ -79,7 +79,7 @@ typedef int    (*FUNC)();     /* pointer to a function        */
 
 static int              hfqry();
 static int              hfskbd();
-       char            *malloc();
+       char            *xmalloc();
 
 extern int              errno;
 static jmp_buf          hftenv;
@@ -319,7 +319,7 @@ WR_REQ (fd, request, cmdlen, cmd, resplen)
   if (cmdlen)			/* if arg structure to pass    */
     {
       size = sizeof (struct hfctlreq) + cmdlen;
-      if ((p.c = malloc(size)) == NULL) /* malloc one area            */
+      if ((p.c = xmalloc(size)) == NULL) /* malloc one area            */
 	return (-1);
 
       memcpy (p.c, &req, sizeof (req)); /* copy CTL REQ struct         */
@@ -334,7 +334,7 @@ WR_REQ (fd, request, cmdlen, cmd, resplen)
   /* write request to terminal   */
   if (write(fd,p.c,size) == -1) return (-1);
   if (p.req != &req)		/* free if allocated           */
-    free (p.c);
+    xfree (p.c);
   return (0);
 
 }

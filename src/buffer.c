@@ -197,12 +197,12 @@ The value is never nil.")
   if (!NILP (buf))
     return buf;
 
-  b = (struct buffer *) malloc (sizeof (struct buffer));
-  if (!b)
-    memory_full ();
+  b = (struct buffer *) xmalloc (sizeof (struct buffer));
 
   BUF_GAP_SIZE (b) = 20;
+  BLOCK_INPUT;
   BUFFER_ALLOC (BUF_BEG_ADDR (b), BUF_GAP_SIZE (b));
+  UNBLOCK_INPUT;
   if (! BUF_BEG_ADDR (b))
     memory_full ();
 
@@ -750,7 +750,9 @@ with `delete-process'.")
   /* Perhaps we should explicitly free the interval tree here... */
 
   b->name = Qnil;
+  BLOCK_INPUT;
   BUFFER_FREE (BUF_BEG_ADDR (b));
+  UNBLOCK_INPUT;
   b->undo_list = Qnil;
 
   return Qt;
@@ -1513,7 +1515,7 @@ DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
   /* Make a list of them all.  */
   result = Flist (noverlays, overlay_vec);
 
-  free (overlay_vec);
+  xfree (overlay_vec);
   return result;
 }
 
@@ -1553,7 +1555,7 @@ DEFUN ("next-overlay-change", Fnext_overlay_change, Snext_overlay_change,
 	endpos = oendpos;
     }
 
-  free (overlay_vec);
+  xfree (overlay_vec);
   return make_number (endpos);
 }
 

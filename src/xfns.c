@@ -33,6 +33,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "buffer.h"
 #include "dispextern.h"
 #include "keyboard.h"
+#include "blockinput.h"
 
 #ifdef HAVE_X_WINDOWS
 extern void abort ();
@@ -2038,7 +2039,7 @@ be shared by the new frame.")
       BLOCK_INPUT;
       XGetWindowInfo (FRAME_X_WINDOW (f), &wininfo);
       XQueryTree (FRAME_X_WINDOW (f), &parent, &nchildren, &children);
-      free (children);
+      xfree (children);
       UNBLOCK_INPUT;
 
       height = PIXEL_TO_CHAR_HEIGHT (f, wininfo.height);
@@ -2287,7 +2288,7 @@ x_rubber_band (f, x, y, width, height, geo, str, hscroll, vscroll)
       *x -= wininfo.x;
       *y -= wininfo.y;
       XQueryTree (tempwindow, &tempwindow, &nchildren, &children);
-      free (children);
+      xfree (children);
     }
 
   UNBLOCK_INPUT;

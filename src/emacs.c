@@ -311,7 +311,14 @@ main (argc, argv, envp)
 
 #ifndef SYSTEM_MALLOC
   if (! initialized)
-    memory_warnings (0, malloc_warning);
+    {
+      /* Arrange to get warning messages as memory fills up.  */
+      memory_warnings (0, malloc_warning);
+
+      /* Arrange to disable interrupt input while malloc and friends are
+	 running.  */
+      uninterrupt_malloc ();
+    }
 #endif	/* not SYSTEM_MALLOC */
 
 #ifdef PRIO_PROCESS

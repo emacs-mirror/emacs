@@ -2046,16 +2046,16 @@ Otherwise returns NIL.")
       valsize = readlink (XSTRING (filename)->data, buf, bufsize);
       if (valsize < bufsize) break;
       /* Buffer was not long enough */
-      free (buf);
+      xfree (buf);
       bufsize *= 2;
     }
   if (valsize == -1)
     {
-      free (buf);
+      xfree (buf);
       return Qnil;
     }
   val = make_string (buf, valsize);
-  free (buf);
+  xfree (buf);
   return val;
 #else /* not S_IFLNK */
   return Qnil;

@@ -36,6 +36,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "dispextern.h"
 #include "keyboard.h"
 #include "intervals.h"
+#include "blockinput.h"
 #include <setjmp.h>
 #include <errno.h>
 
@@ -48,6 +49,16 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "systime.h"
 
 extern int errno;
+
+/* Variables for blockinput.h: */
+
+/* Non-zero if interrupt input is blocked right now.  */
+extern int interrupt_input_blocked;
+
+/* Nonzero means an input interrupt has arrived
+   during the current critical section.  */
+extern int interrupt_input_pending;
+
 
 #ifdef HAVE_X_WINDOWS
 extern Lisp_Object Vmouse_grabbed;
@@ -1158,12 +1169,9 @@ int polling_for_input;
 SIGTYPE
 input_poll_signal ()
 {
-#ifdef HAVE_X_WINDOWS
-  extern int x_input_blocked;
-  if (x_input_blocked == 0)
-#endif
-    if (!waiting_for_input)
-      read_avail_input (0);
+  if (interrupt_input_blocked == 0
+      && !waiting_for_input)
+    read_avail_input (0);
   signal (SIGALRM, input_poll_signal);
   alarm (polling_period);
 }

@@ -20,9 +20,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "config.h"
 #include "lisp.h"
-#ifdef HAVE_X_WINDOWS
-#include "xterm.h"
-#endif
+#include "blockinput.h"
 
 #ifndef standalone
 #include "commands.h"

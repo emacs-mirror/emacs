@@ -382,7 +382,7 @@ set_scroll_region (start, stop)
       buf = tparam (TS_set_window, 0, 0, start, 0, stop, FRAME_WIDTH (selected_frame));
     }
   OUTPUT (buf);
-  free (buf);
+  xfree (buf);
   losecursor ();
 }
 
@@ -787,7 +787,7 @@ insert_glyphs (start, len)
     {
       buf = tparam (TS_ins_multi_chars, 0, 0, len);
       OUTPUT1 (buf);
-      free (buf);
+      xfree (buf);
       if (start)
 	write_glyphs (start, len);
       return;
@@ -851,7 +851,7 @@ delete_glyphs (n)
     {
       buf = tparam (TS_del_multi_chars, 0, 0, n);
       OUTPUT1 (buf);
-      free (buf);
+      xfree (buf);
     }
   else
     for (i = 0; i < n; i++)
@@ -896,7 +896,7 @@ ins_del_lines (vpos, n)
       background_highlight ();
       buf = tparam (multi, 0, 0, i);
       OUTPUT (buf);
-      free (buf);
+      xfree (buf);
     }
   else if (single)
     {

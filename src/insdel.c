@@ -245,7 +245,10 @@ make_gap (increment)
   /* If we have to get more space, get enough to last a while.  */
   increment += 2000;
 
+  BLOCK_INPUT;
   result = BUFFER_REALLOC (BEG_ADDR, (Z - BEG + GAP_SIZE + increment));
+  UNBLOCK_INPUT;
+
   if (result == 0)
     memory_full ();
   BEG_ADDR = result;

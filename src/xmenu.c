@@ -35,6 +35,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "frame.h"
 #include "window.h"
 #include "keyboard.h"
+#include "blockinput.h"
 
 /* This may include sys/types.h, and that somehow loses
    if this is not done before the other system files.  */
@@ -276,15 +277,15 @@ in the menu.")
   /* now free up the strings */
   for (i = 0; i < number_of_panes; i++)
     {
-      free (names[i]);
-      free (enables[i]);
-      free (obj_list[i]);
+      xfree (names[i]);
+      xfree (enables[i]);
+      xfree (obj_list[i]);
     }
-  free (menus);
-  free (obj_list);
-  free (names);
-  free (enables);
-  free (items);
+  xfree (menus);
+  xfree (obj_list);
+  xfree (names);
+  xfree (enables);
+  xfree (items);
   /* free (title); */
   if (error_name) error (error_name);
   return XMenu_return;
@@ -633,9 +634,9 @@ single_keymap_panes (keymap, panes, vector, names, enables, items,
   /* If we just made an empty pane, get rid of it.  */
   if (i == 0)
     {
-      free ((*vector)[*p_ptr]);
-      free ((*names)[*p_ptr]);
-      free ((*enables)[*p_ptr]);
+      xfree ((*vector)[*p_ptr]);
+      xfree ((*names)[*p_ptr]);
+      xfree ((*enables)[*p_ptr]);
     }
   /* Otherwise, advance past it.  */
   else

@@ -32,6 +32,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifdef HAVE_X_WINDOWS
 
 #include "lisp.h"
+#include "blockinput.h"
 
 /* On 4.3 these lose if they come after xterm.h.  */
 #include <stdio.h>
@@ -132,19 +133,9 @@ static struct event_queue x_expose_queue;
 struct event_queue x_mouse_queue;
 #endif /* HAVE_X11 */
 
-/* Nonzero after BLOCK_INPUT; prevents input events from being
-   processed until later.  */
-
-int x_input_blocked;
-
 #if defined (SIGIO) && defined (FIONREAD)
 int BLOCK_INPUT_mask;
 #endif /* ! defined (SIGIO) && defined (FIONREAD) */
-
-/* Nonzero if input events came in while x_input_blocked was nonzero.
-   UNBLOCK_INPUT checks for this.  */
-
-int x_pending_input;
 
 /* The id of a bitmap used for icon windows.
    One such map is shared by all Emacs icon windows.
@@ -2482,13 +2473,13 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
   int prefix;
   Lisp_Object part;
 
-  if (x_input_blocked)
+  if (interrupt_input_blocked)
     {
-      x_pending_input = 1;
+      interrupt_input_pending = 1;
       return -1;
     }
 
-  x_pending_input = 0;
+  interrupt_input_pending = 0;
   BLOCK_INPUT;
 	
   if (numchars <= 0)
@@ -3765,7 +3756,7 @@ x_check_errors (format)
       char buf[256];
 
       sprintf (buf, format, *x_caught_error_message);
-      free (x_caught_error_message);
+      xfree (x_caught_error_message);
 
       x_uncatch_errors ();
       error (buf);
@@ -3775,7 +3766,7 @@ x_check_errors (format)
 void
 x_uncatch_errors ()
 {
-  free (x_caught_error_message);
+  xfree (x_caught_error_message);
   XHandleError (x_error_quitter);
 }
 
@@ -4285,7 +4276,7 @@ x_destroy_window (f)
   XDestroyWindow (XDISPLAY f->display.x->window_desc);
   XFlushQueue ();
 
-  free (f->display.x);
+  xfree (f->display.x);
   f->display.x = 0;
   if (f == x_focus_frame)
     x_focus_frame = 0;

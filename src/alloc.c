@@ -26,6 +26,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "buffer.h"
 #include "window.h"
 #include "frame.h"
+#include "blockinput.h"
 #endif
 
 #include "syssignal.h"
@@ -43,7 +44,7 @@ do								\
     XSET (val, Lisp_Cons, (char *) address + size);		\
     if ((char *) XCONS (val) != (char *) address + size)	\
       {								\
-	free (address);						\
+	xfree (address);					\
 	memory_full ();						\
       }								\
   } while (0)
@@ -149,7 +150,7 @@ memory_full ()
   error ("Memory exhausted");
 }
 
-/* like malloc and realloc but check for no memory left */
+/* like malloc routines but check for no memory and block interrupt input.  */
 
 long *
 xmalloc (size)
@@ -157,7 +158,9 @@ xmalloc (size)
 {
   register long *val;
 
+  BLOCK_INPUT;
   val = (long *) malloc (size);
+  UNBLOCK_INPUT;
 
   if (!val && size) memory_full ();
   return val;
@@ -170,16 +173,99 @@ xrealloc (block, size)
 {
   register long *val;
 
+  BLOCK_INPUT;
   /* We must call malloc explicitly when BLOCK is 0, since some
      reallocs don't do this.  */
   if (! block)
     val = (long *) malloc (size);
   else
     val = (long *) realloc (block, size);
+  UNBLOCK_INPUT;
 
   if (!val && size) memory_full ();
   return val;
 }
+
+void
+xfree (block)
+     long *block;
+{
+  BLOCK_INPUT;
+  free (block);
+  UNBLOCK_INPUT;
+}
+
+
+/* Arranging to disable input signals while we're in malloc.
+
+   This only works with GNU malloc.  To help out systems which can't
+   use GNU malloc, all the calls to malloc, realloc, and free
+   elsewhere in the code should be inside a BLOCK_INPUT/UNBLOCK_INPUT
+   pairs; unfortunately, we have no idea what C library functions
+   might call malloc, so we can't really protect them unless you're
+   using GNU malloc.  Fortunately, most of the major operating can use
+   GNU malloc.  */
+
+#ifndef SYSTEM_MALLOC
+static void (*__malloc_hook) (),  (*old_malloc_hook) ();
+static void (*__realloc_hook) (), (*old_realloc_hook) ();
+static void (*__free_hook) (),    (*old_free_hook) ();
+
+static void
+emacs_blocked_free (ptr)
+     void *ptr;
+{
+  BLOCK_INPUT;
+  __free_hook = old_free_hook;
+  free (ptr);
+  __free_hook = &emacs_blocked_free;
+  UNBLOCK_INPUT;
+}
+
+static void *
+emacs_blocked_malloc (size)
+     unsigned size;
+{
+  void *value;
+
+  BLOCK_INPUT;
+  __malloc_hook = old_malloc_hook;
+  value = malloc (size);
+  __malloc_hook = &emacs_blocked_malloc;
+  UNBLOCK_INPUT;
+
+  return value;
+}
+
+static void *
+emacs_blocked_realloc (ptr, size)
+     void *ptr;
+     unsigned size;
+{
+  void *value;
+
+  BLOCK_INPUT;
+  __realloc_hook = old_realloc_hook;
+  value = realloc (ptr, size);
+  __realloc_hook = &emacs_blocked_realloc;
+  UNBLOCK_INPUT;
+
+  return value;
+}
+
+void
+uninterrupt_malloc ()
+{
+  old_free_hook = __free_hook;
+  __free_hook = &emacs_blocked_free;
+
+  old_malloc_hook = __malloc_hook;
+  __malloc_hook = &emacs_blocked_malloc;
+
+  old_realloc_hook = __realloc_hook;
+  __realloc_hook = &emacs_blocked_realloc;
+}
+#endif
 
 /* Interval allocation.  */
 
@@ -226,10 +312,7 @@ make_interval ()
       if (interval_block_index == INTERVAL_BLOCK_SIZE)
 	{
 	  register struct interval_block *newi
-	    = (struct interval_block *) malloc (sizeof (struct interval_block));
-
-	  if (!newi)
-	    memory_full ();
+	    = (struct interval_block *) xmalloc (sizeof (struct interval_block));
 
 	  VALIDATE_LISP_STORAGE (newi, sizeof *newi);
 	  newi->next = interval_block;
@@ -352,8 +435,7 @@ make_float (float_value)
     {
       if (float_block_index == FLOAT_BLOCK_SIZE)
 	{
-	  register struct float_block *new = (struct float_block *) malloc (sizeof (struct float_block));
-	  if (!new) memory_full ();
+	  register struct float_block *new = (struct float_block *) xmalloc (sizeof (struct float_block));
 	  VALIDATE_LISP_STORAGE (new, sizeof *new);
 	  new->next = float_block;
 	  float_block = new;
@@ -427,8 +509,7 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
     {
       if (cons_block_index == CONS_BLOCK_SIZE)
 	{
-	  register struct cons_block *new = (struct cons_block *) malloc (sizeof (struct cons_block));
-	  if (!new) memory_full ();
+	  register struct cons_block *new = (struct cons_block *) xmalloc (sizeof (struct cons_block));
 	  VALIDATE_LISP_STORAGE (new, sizeof *new);
 	  new->next = cons_block;
 	  cons_block = new;
@@ -498,9 +579,7 @@ See also the function `vector'.")
     length = wrong_type_argument (Qnatnump, length);
   sizei = XINT (length);
 
-  p = (struct Lisp_Vector *) malloc (sizeof (struct Lisp_Vector) + (sizei - 1) * sizeof (Lisp_Object));
-  if (p == 0)
-    memory_full ();
+  p = (struct Lisp_Vector *) xmalloc (sizeof (struct Lisp_Vector) + (sizei - 1) * sizeof (Lisp_Object));
   VALIDATE_LISP_STORAGE (p, 0);
 
   XSET (vector, Lisp_Vector, p);
@@ -617,8 +696,7 @@ Its value and function definition are void, and its property list is nil.")
     {
       if (symbol_block_index == SYMBOL_BLOCK_SIZE)
 	{
-	  struct symbol_block *new = (struct symbol_block *) malloc (sizeof (struct symbol_block));
-	  if (!new) memory_full ();
+	  struct symbol_block *new = (struct symbol_block *) xmalloc (sizeof (struct symbol_block));
 	  VALIDATE_LISP_STORAGE (new, sizeof *new);
 	  new->next = symbol_block;
 	  symbol_block = new;
@@ -680,8 +758,7 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
     {
       if (marker_block_index == MARKER_BLOCK_SIZE)
 	{
-	  struct marker_block *new = (struct marker_block *) malloc (sizeof (struct marker_block));
-	  if (!new) memory_full ();
+	  struct marker_block *new = (struct marker_block *) xmalloc (sizeof (struct marker_block));
 	  VALIDATE_LISP_STORAGE (new, sizeof *new);
 	  new->next = marker_block;
 	  marker_block = new;
@@ -830,9 +907,8 @@ make_uninit_string (length)
     /* This string gets its own string block */
     {
       register struct string_block *new
-	= (struct string_block *) malloc (sizeof (struct string_block_head) + fullsize);
+	= (struct string_block *) xmalloc (sizeof (struct string_block_head) + fullsize);
       VALIDATE_LISP_STORAGE (new, 0);
-      if (!new) memory_full ();
       consing_since_gc += sizeof (struct string_block_head) + fullsize;
       new->pos = fullsize;
       new->next = large_string_blocks;
@@ -844,8 +920,7 @@ make_uninit_string (length)
     /* Make a new current string block and start it off with this string */
     {
       register struct string_block *new
-	= (struct string_block *) malloc (sizeof (struct string_block));
-      if (!new) memory_full ();
+	= (struct string_block *) xmalloc (sizeof (struct string_block));
       VALIDATE_LISP_STORAGE (new, sizeof *new);
       consing_since_gc += sizeof (struct string_block);
       current_string_block->next = new;
@@ -1149,9 +1224,9 @@ Garbage collection happens automatically if you cons more than\n\
       if (i < MAX_SAVE_STACK)
 	{
 	  if (stack_copy == 0)
-	    stack_copy = (char *) malloc (stack_copy_size = i);
+	    stack_copy = (char *) xmalloc (stack_copy_size = i);
 	  else if (stack_copy_size < i)
-	    stack_copy = (char *) realloc (stack_copy, (stack_copy_size = i));
+	    stack_copy = (char *) xrealloc (stack_copy, (stack_copy_size = i));
 	  if (stack_copy)
 	    {
 	      if ((int) (&stack_top_variable - stack_bottom) > 0)
@@ -1804,7 +1879,7 @@ gc_sweep ()
 	  else
 	    all_buffers = buffer->next;
 	  next = buffer->next;
-	  free (buffer);
+	  xfree (buffer);
 	  buffer = next;
 	}
       else
@@ -1845,7 +1920,7 @@ gc_sweep ()
 	  else
 	    all_vectors = vector->next;
 	  next = vector->next;
-	  free (vector);
+	  xfree (vector);
 	  vector = next;
 	}
       else
@@ -1868,7 +1943,7 @@ gc_sweep ()
 	  else
 	    large_string_blocks = sb->next;
 	  next = sb->next;
-	  free (sb);
+	  xfree (sb);
 	  sb = next;
 	}
       else
@@ -1983,7 +2058,7 @@ compact_strings ()
   while (from_sb)
     {
       to_sb = from_sb->next;
-      free (from_sb);
+      xfree (from_sb);
       from_sb = to_sb;
     }
 
@@ -1998,7 +2073,7 @@ compact_strings ()
 	{
 	  if (from_sb->next = to_sb->next)
 	    from_sb->next->prev = from_sb;
-	  free (to_sb);
+	  xfree (to_sb);
 	}
       else
 	from_sb = to_sb;

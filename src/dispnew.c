@@ -285,26 +285,26 @@ free_frame_glyphs (frame, glyphs)
      struct frame_glyphs *glyphs;
 {
   if (glyphs->total_contents)
-    free (glyphs->total_contents);
+    xfree (glyphs->total_contents);
 
-  free (glyphs->used);
-  free (glyphs->glyphs);
-  free (glyphs->highlight);
-  free (glyphs->enable);
-  free (glyphs->bufp);
+  xfree (glyphs->used);
+  xfree (glyphs->glyphs);
+  xfree (glyphs->highlight);
+  xfree (glyphs->enable);
+  xfree (glyphs->bufp);
 
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (frame))
     {
-      free (glyphs->top_left_x);
-      free (glyphs->top_left_y);
-      free (glyphs->pix_width);
-      free (glyphs->pix_height);
-      free (glyphs->max_ascent);
+      xfree (glyphs->top_left_x);
+      xfree (glyphs->top_left_y);
+      xfree (glyphs->pix_width);
+      xfree (glyphs->pix_height);
+      xfree (glyphs->max_ascent);
     }
 #endif
 
-  free (glyphs);
+  xfree (glyphs);
 }
 
 static void

@@ -23,6 +23,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "config.h"
 #include "lisp.h"
+#include "blockinput.h"
 #undef NULL
 
 #define min(x,y) ((x) > (y) ? (y) : (x))
@@ -487,7 +488,7 @@ sys_suspend ()
   else
     parent_id = getppid ();
 
-  free (fpid_string);		/* On VMS, this was malloc'd */
+  xfree (fpid_string);		/* On VMS, this was malloc'd */
 
   if (parent_id && parent_id != 0xffffffff)
     {
@@ -2357,6 +2358,7 @@ getwd (pathname)
   char *npath, *spath;
   extern char *getcwd ();
 
+  BLOCK_INPUT;			/* getcwd uses malloc */
   spath = npath = getcwd ((char *) 0, MAXPATHLEN);
   /* On Altos 3068, getcwd can return @hostname/dir, so discard
      up to first slash.  Should be harmless on other systems.  */
@@ -2364,6 +2366,7 @@ getwd (pathname)
     npath++;
   strcpy (pathname, npath);
   free (spath);			/* getcwd uses malloc */
+  UNBLOCK_INPUT;
   return pathname;
 }
 
@@ -2613,8 +2616,8 @@ closedir (dirp)
      register DIR *dirp;              /* stream from opendir */
 {
   sys_close (dirp->dd_fd);
-  free ((char *) dirp->dd_buf);       /* directory block defined in <dirent.h> */
-  free ((char *) dirp);
+  xfree ((char *) dirp->dd_buf);       /* directory block defined in <dirent.h> */
+  xfree ((char *) dirp);
 }
 #endif /* not AIX */
 #endif /* SYSV_SYSTEM_DIR */
@@ -2633,13 +2636,16 @@ opendir (filename)
   if (fd < 0)
     return 0;
 
+  BLOCK_INPUT;
   if (fstat (fd, &sbuf) < 0
       || (sbuf.st_mode & S_IFMT) != S_IFDIR
       || (dirp = (DIR *) malloc (sizeof (DIR))) == 0)
     {
       sys_close (fd);
+      UNBLOCK_INPUT;
       return 0;		/* bad luck today */
     }
+  UNBLOCK_INPUT;
 
   dirp->dd_fd = fd;
   dirp->dd_loc = dirp->dd_size = 0;	/* refill needed */
@@ -2652,7 +2658,7 @@ closedir (dirp)
      register DIR *dirp;		/* stream from opendir */
 {
   sys_close (dirp->dd_fd);
-  free ((char *) dirp);
+  xfree ((char *) dirp);
 }
 
 
@@ -3116,10 +3122,10 @@ getwd (pathname)
 
 #define MAXPATHLEN 1024
 
-  ptr = malloc (MAXPATHLEN);
+  ptr = xmalloc (MAXPATHLEN);
   getcwd (ptr, MAXPATHLEN);
   strcpy (pathname, ptr);
-  free (ptr);
+  xfree (ptr);
   
  return pathname;
 }
