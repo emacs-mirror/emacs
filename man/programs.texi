@@ -112,12 +112,13 @@ Mode, ada-mode, Ada Mode}), C/C++/Objective C/Java/Corba IDL
 @vindex emacs-lisp-mode-hook
 @vindex lisp-interaction-mode-hook
 @vindex scheme-mode-hook
-  Turning on a major mode runs a normal hook called the @dfn{mode hook},
-which is the value of a Lisp variable.  Each major mode has a mode hook,
-and the hook's name is always made from the mode command's name by
-adding @samp{-hook}.  For example, turning on C mode runs the hook
-@code{c-mode-hook}, while turning on Lisp mode runs the hook
-@code{lisp-mode-hook}.  @xref{Hooks}.
+  Turning on a major mode runs a normal hook called the @dfn{mode
+hook}, which is the value of a Lisp variable.  Each major mode has a
+mode hook, and the hook's name is always made from the mode command's
+name by adding @samp{-hook}.  For example, turning on C mode runs the
+hook @code{c-mode-hook}, while turning on Lisp mode runs the hook
+@code{lisp-mode-hook}.  The purpose of the mode hook is to give you a
+place to set up customizations for that major mode.  @xref{Hooks}.
 
 @node Defuns
 @section Top-Level Definitions, or Defuns
@@ -250,38 +251,40 @@ any or all of these key bindings for that purpose.
 @cindex buffer content indexes
 @cindex tags
 
-  The Imenu facility offers a way to find the definitions or sections
-in a file.
+  The Imenu facility offers a way to find the definitions in a file by
+name.  It is also useful in text formatter major modes, where it
+treats each chapter, section, etc., as a definition.  (@pxref{Tags},
+for a more powerful feature that handles multiple files together.)
 
 @findex imenu
 @findex imenu-add-menu-bar-index
-  If you type @kbd{M-x imenu}, it reads the name of a section or
-definition in the current buffer, then goes to that section or
-definition.  You can use completion to specify the name, and a
-complete list of possible names is always displayed.
+  If you type @kbd{M-x imenu}, it reads the name of a definition in
+the current buffer, then goes to that definition.  You can use
+completion to specify the name, and a complete list of possible names
+is always displayed.
 
-  Alternatively you can bind the command @code{imenu} to a mouse
-click.  Then it displays mouse menus for you to select the section or
-definition you want.  You can also add the buffer's index to the menu
-bar by calling @code{imenu-add-menu-bar-index}.  If you want to have
-this menu bar item available for all buffers in a certain major mode,
-you can do this by adding @code{imenu-add-menu-bar-index} to its mode
+  Alternatively, you can bind the command @code{imenu} to a mouse
+click.  Then it displays mouse menus for you to select the definition
+you want.  You can also add the buffer's index to the menu bar by
+calling @code{imenu-add-menu-bar-index}.  If you want to have this
+menu bar item available for all buffers in a certain major mode, you
+can do this by adding @code{imenu-add-menu-bar-index} to its mode
 hook.  But then you will have to wait for the buffer to be searched
-for sections and definitions, each time you visit a file which uses
-that mode.
+for definitions, each time you visit a file which uses that mode.
 
 @vindex imenu-auto-rescan
   When you change the contents of a buffer, if you add or delete
-definitions or sections, you can update the buffer's index to
-correspond to the new contents by invoking the @samp{*Rescan*} item in
-the menu.  Rescanning happens automatically if
-@code{imenu-auto-rescan} is non-@code{nil}.  There is no need to
-rescan because of small changes in the text.
+definitions, you can update the buffer's index to correspond to the
+new contents by invoking the @samp{*Rescan*} item in the menu.
+Rescanning happens automatically if @code{imenu-auto-rescan} is
+non-@code{nil}.  There is no need to rescan because of small changes
+in the text.
 
 @vindex imenu-sort-function
-  You can customize the way the menus are sorted via the variable
-@code{imenu-sort-function}.  By default names are ordered as they
-occur in the buffer; alphabetic sorting is provided as an alternative.
+  You can customize the way the menus are sorted by setting the
+variable @code{imenu-sort-function}.  By default names are ordered as
+they occur in the buffer; alphabetic sorting is provided as an
+alternative.
 
   Imenu provides the information to guide Which Function mode
 @ifnottex
@@ -326,22 +329,23 @@ inside a single parenthetical grouping.
 * Custom C Indent::	Controlling indentation style for C and related modes.
 @end menu
 
+@cindex pretty-printer
   Emacs also provides a Lisp pretty-printer in the library @code{pp}.
 This program reformats a Lisp object with indentation chosen to look nice.
 
 @node Basic Indent
 @subsection Basic Program Indentation Commands
 
-   Programming language major modes define the @key{TAB} key to indent
-according to the usual conventions of the language you are editing.
-@kbd{C-j} is normally defined to do @key{RET} followed by @key{TAB};
-thus, it too indents in a mode-specific fashion.
+  The basic indentation commands indent a single line according to the
+usual conventions of the language you are editing.
 
 @table @kbd
 @item @key{TAB}
 Adjust indentation of current line.
 @item C-j
 Equivalent to @key{RET} followed by @key{TAB} (@code{newline-and-indent}).
+@item @key{LINEFEED}
+This key is a way to enter @kbd{C-j}, on some keyboards.
 @end table
 
 @kindex TAB @r{(programming modes)}
@@ -459,24 +463,25 @@ such lines are always indented @code{lisp-indent-offset} more columns than
 the containing list.
 
 @vindex lisp-body-indent
-  The standard pattern is overridden for certain functions.  Functions
-whose names start with @code{def} always indent the second line by
-@code{lisp-body-indent} extra columns beyond the open-parenthesis
-starting the expression.
+  Certain functions override the standard pattern.  Functions whose
+names start with @code{def} treat the the second lines as the start of
+a @dfn{body}, by indenting the second line @code{lisp-body-indent}
+additional columns beyond the open-parenthesis that starts the
+expression.
 
-  The standard pattern can be overridden in various ways for individual
+  You can override the standard pattern in various ways for individual
 functions, according to the @code{lisp-indent-function} property of the
 function name.  There are four possibilities for this property:
 
 @table @asis
 @item @code{nil}
-This is the same as no property; the standard indentation pattern is used.
+This is the same as no property---use the standard indentation pattern.
 @item @code{defun}
-The pattern used for function names that start with @code{def} is used for
-this function also.
+Handle this function like a @samp{def} construct: treat the second
+line the start of a @dfn{body}.
 @item a number, @var{number}
 The first @var{number} arguments of the function are
-@dfn{distinguished} arguments; the rest are considered the @dfn{body}
+@dfn{distinguished} arguments; the rest are considered the body
 of the expression.  A line in the expression is indented according to
 whether the first argument on it is distinguished or not.  If the
 argument is part of the body, the line is indented @code{lisp-body-indent}
@@ -484,7 +489,7 @@ more columns than the open-parenthesis starting the containing
 expression.  If the argument is distinguished and is either the first
 or second argument, it is indented @emph{twice} that many extra columns.
 If the argument is distinguished and not the first or second argument,
-the standard pattern is followed for that line.
+the line uses the standard pattern.
 @item a symbol, @var{symbol}
 @var{symbol} should be a function name; that function is called to
 calculate the indentation of a line within this expression.  The
@@ -710,7 +715,11 @@ opposite direction.
 (@code{kill-sexp}) or @kbd{C-M-@key{DEL}} (@code{backward-kill-sexp}).
 @kbd{C-M-k} kills the characters that @kbd{C-M-f} would move over, and
 @kbd{C-M-@key{DEL}} kills the characters that @kbd{C-M-b} would move
-over.
+over.  On some machines, @kbd{C-M-@key{DEL}} typed on the console is a
+command to reboot; when that is so, you cannot use it as an Emacs
+command.  This conflict is rare, though: usually the @key{DEL} key for
+Emacs is really @key{BACKSPACE}, and the reboot command is
+@kbd{C-M-@key{DELETE}}, so there is no conflict.
 
 @cindex transposition of expressions
 @kindex C-M-t
@@ -787,7 +796,7 @@ parenthesis structure.  To move @emph{up} one (or @var{n}) levels, use
 @kbd{C-M-u} (@code{backward-up-list}).  @kbd{C-M-u} moves backward up
 past one unmatched opening delimiter.  A positive argument serves as a
 repeat count; a negative argument reverses the direction of motion, so
-that the command forward and up one or more levels.
+that the command moves forward and up one or more levels.
 
   To move @emph{down} in the parenthesis structure, use @kbd{C-M-d}
 (@code{down-list}).  In Lisp mode, where @samp{(} is the only opening
@@ -1145,13 +1154,15 @@ for ``w/o (without) man,'' since it doesn't use the @code{man}
 program.}.  Unlike @kbd{M-x man}, it does not run any external
 programs to format and display the man pages; instead it does the job
 in Emacs Lisp, so it works on systems such as MS-Windows, where the
-@code{man} program and the other programs it needs are not readily
-available.  @kbd{M-x woman} prompts for a name of a manual page, and
-provides completion based on the list of manual pages that are
-installed on your machine; the list of available manual pages is
-computed automatically the first time you invoke @code{woman}.  The
-word at point in the current buffer is used to suggest the default
-for the name the manual page.
+@code{man} program (and the other programs it uses) are not generally
+available.
+
+  @kbd{M-x woman} prompts for a name of a manual page, and provides
+completion based on the list of manual pages that are installed on
+your machine; the list of available manual pages is computed
+automatically the first time you invoke @code{woman}.  The word at
+point in the current buffer is used to suggest the default for the
+name the manual page.
 
   With a numeric argument, @kbd{M-x woman} recomputes the list of the
 manual pages used for completion.  This is useful if you add or delete
@@ -1280,10 +1291,26 @@ Hide all blocks @var{n} levels below this block
 @table @code
 @item hs-hide-comments-when-hiding-all
 Non-@code{nil} says that @kbd{hs-hide-all} should hide comments too.
+
 @item hs-isearch-open
 Specifies what kind of hidden blocks to open in Isearch mode.
+The value should be one of these four symbols.
+
+@table @code
+@item block
+Open only blocks.
+@item comment
+Open only comments.
+@item t
+Open both blocks and comments.
+@item nil
+Open neither blocks nor comments.
+@end table
+
 @item hs-special-modes-alist
-Specifies how to initialize Hideshow variables for different modes.
+A list of elements, each Specifying how to initialize Hideshow
+variables for one major mode.  See the variable's documentation string
+for more information.
 @end table
 
 @node Symbol Completion
@@ -1338,8 +1365,8 @@ based on the spell-checker's dictionary.  @xref{Spelling}.
 @findex glasses-mode
 
   Glasses minor mode makes @samp{unreadableIdentifiersLikeThis}
-readable by altering the display.  It can do this in two different
-ways: by displaying underscores between an lower-case letter and the
+readable by altering the display.  It knows two different ways to do
+this: by displaying underscores between a lower-case letter and the
 following capital letter, or by emboldening the capital letters.  It
 does not alter the buffer text, only the way they display, so you can
 use it even on read-only buffers.  You can use the command @kbd{M-x
