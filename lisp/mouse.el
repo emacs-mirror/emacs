@@ -47,43 +47,42 @@
   ;; Switch to the window clicked on, because otherwise
   ;; the mode's commands may not make sense.
   (interactive "@e")
-  (let ((newmap (make-sparse-keymap))
-	(unread-command-events (list event)))
-    ;; Make a keymap in which our last command leads to a menu
-    (define-key newmap (vector (car event))
-      (nconc (make-sparse-keymap (concat mode-name " Mode"))
-	     (cdr (mouse-major-mode-menu-1
-		   (and (current-local-map)
-			(lookup-key (current-local-map) [menu-bar]))))))
-    (mouse-major-mode-menu-compute-equiv-keys newmap)
-    ;; Make NEWMAP override the usual definition
-    ;; of the mouse button that got us here.
-    ;; Then read the user's menu choice.
-    (let* ((minor-mode-map-alist
-	    (cons (cons t newmap) minor-mode-map-alist))
-	   ;; read-key-sequence quits if the user aborts the menu.
-	   ;; If that happens, do nothing silently.
-	   (keyseq (condition-case nil
-		       (read-key-sequence "")
-		     (quit nil)))
-	   (command (if keyseq (lookup-key newmap keyseq))))
-      (if command
-	  (command-execute command)))))
+  (let (;; This is where mouse-major-mode-menu-prefix
+	;; returns the prefix we should use (after menu-bar).
+	;; It is either nil or (SOME-SYMBOL).
+	(mouse-major-mode-menu-prefix nil)
+	;; Make a keymap in which our last command leads to a menu
+	(newmap (make-sparse-keymap (concat mode-name " Mode")))
+	result)
+    ;; Make our menu inherit from the desired keymap
+    ;; which we want to display as the menu now.
+    (set-keymap-parent newmap
+		       (mouse-major-mode-menu-1
+			(and (current-local-map)
+			     (lookup-key (current-local-map) [menu-bar]))))
+    (setq result (x-popup-menu t (list newmap)))
+    (if result
+	(let ((command (key-binding
+			(apply 'vector (append '(menu-bar)
+					       mouse-major-mode-menu-prefix
+					       result)))))
+	  (if command
+	      (command-execute command))))))
 
 ;; Compute and cache the equivalent keys in MENU and all its submenus.
-(defun mouse-major-mode-menu-compute-equiv-keys (menu)
-  (and (eq (car menu) 'keymap)
-       (x-popup-menu nil menu))
-  (while menu
-    (and (consp (car menu))
-	 (consp (cdr (car menu)))
-	 (let ((tail (cdr (car menu))))
-	   (while (and (consp tail)
-		       (not (eq (car tail) 'keymap)))
-	     (setq tail (cdr tail)))
-	   (if (consp tail)
-	       (mouse-major-mode-menu-compute-equiv-keys tail))))
-    (setq menu (cdr menu))))
+;;;(defun mouse-major-mode-menu-compute-equiv-keys (menu)
+;;;  (and (eq (car menu) 'keymap)
+;;;       (x-popup-menu nil menu))
+;;;  (while menu
+;;;    (and (consp (car menu))
+;;;	 (consp (cdr (car menu)))
+;;;	 (let ((tail (cdr (car menu))))
+;;;	   (while (and (consp tail)
+;;;		       (not (eq (car tail) 'keymap)))
+;;;	     (setq tail (cdr tail)))
+;;;	   (if (consp tail)
+;;;	       (mouse-major-mode-menu-compute-equiv-keys tail))))
+;;;    (setq menu (cdr menu))))
 
 ;; Given a mode's menu bar keymap,
 ;; if it defines exactly one menu bar menu,
@@ -97,10 +96,29 @@
 	  (if (consp (car tail))
 	      (if submap
 		  (setq submap t)
-		(setq submap (cdr (car tail)))))
+		(setq submap (car tail))))
 	  (setq tail (cdr tail)))
-	(if (eq submap t) menubar
-	  (cdr submap)))))
+	(if (eq submap t)
+	    ;; We have more than one submap, so we want to
+	    ;; return a keymap just like menubar.
+	    ;; But first copy the top level structure of the menu,
+	    ;; enough so that adding equiv-keys to this copy
+	    ;; won't alter menubar itself.
+	    ;; This is a kludge, and next version
+	    ;; we'll change the menu bar code not to mind
+	    ;; if there are X equiv keys there.
+	    (let ((newmap (copy-sequence menubar)))
+	      (setq menubar newmap)
+	      (while newmap
+		(if (consp (car newmap))
+		    (setcar newmap (cons (car (car newmap))
+					 (cons (nth 1 (car newmap))
+					       (nthcdr 2 (car newmap))))))
+		(setq newmap (cdr newmap)))
+	      (setq mouse-major-mode-menu-prefix nil)
+	      menubar)
+	  (setq mouse-major-mode-menu-prefix (list (car submap)))
+	  (cdr (cdr submap))))))
 
 ;; Commands that operate on windows.
 
@@ -516,7 +534,7 @@ remains active.  Otherwise, it remains until the next input event."
     ;; end-of-range is used only in the single-click case.
     ;; It is the place where the drag has reached so far
     ;; (but not outside the window where the drag started).
-    (let (event end end-point (end-of-range (point)))
+    (let (event end end-point last-end-point (end-of-range (point)))
       (track-mouse
 	(while (progn
 		 (setq event (read-event))
@@ -526,6 +544,8 @@ remains active.  Otherwise, it remains until the next input event."
 	      nil
 	    (setq end (event-end event)
 		  end-point (posn-point end))
+	    (if end-point
+		(setq last-end-point end-point))
 
 	    (cond
 	     ;; Are we moving within the original window?
@@ -574,11 +594,11 @@ remains active.  Otherwise, it remains until the next input event."
 			(cons event unread-command-events)))
 	      (if (not (= (overlay-start mouse-drag-overlay)
 			  (overlay-end mouse-drag-overlay)))
-		  (let* ((stop-point (posn-point (event-end event)))
+		  (let* ((stop-point (or (posn-point (event-end event)) last-end-point))
 			 ;; The end that comes from where we ended the drag.
 			 ;; Point goes here.
 			 (region-termination
-			  (if (< stop-point start-point)
+			  (if (and stop-point (< stop-point start-point))
 			      (overlay-start mouse-drag-overlay)
 			    (overlay-end mouse-drag-overlay)))
 			 ;; The end that comes from where we started the drag.
