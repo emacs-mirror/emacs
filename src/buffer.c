@@ -927,14 +927,20 @@ DEFUN ("bury-buffer", Fbury_buffer, Sbury_buffer, 0, 1, "",
   "Put BUFFER at the end of the list of all buffers.\n\
 There it is the least likely candidate for `other-buffer' to return;\n\
 thus, the least likely buffer for \\[switch-to-buffer] to select by default.\n\
-BUFFER is also removed from the selected window if it was displayed there.\n\
-If BUFFER is omitted, the current buffer is buried.")
+If BUFFER is nil or omitted, bury the current buffer.\n\
+Also, if BUFFER is nil or omitted, remove the current buffer from the\n\
+selected window if it is displayed there.")
   (buf)
      register Lisp_Object buf;
 {
   /* Figure out what buffer we're going to bury.  */
   if (NILP (buf))
-    XSET (buf, Lisp_Buffer, current_buffer);
+    {
+      XSET (buf, Lisp_Buffer, current_buffer);
+
+      /* If we're burying the current buffer, unshow it.  */
+      Fswitch_to_buffer (Fother_buffer (buf), Qnil);
+    }
   else
     {
       Lisp_Object buf1;
@@ -945,11 +951,7 @@ If BUFFER is omitted, the current buffer is buried.")
       buf = buf1;
     }
 
-  /* Remove it from the screen.  */
-  if (EQ (buf, XWINDOW (selected_window)->buffer))
-    Fswitch_to_buffer (Fother_buffer (buf, Qnil), Qnil);
-
-  /* Move it to the end of the buffer list.  */
+  /* Move buf to the end of the buffer list.  */
   {
     register Lisp_Object aelt, link;
 
@@ -965,7 +967,7 @@ If BUFFER is omitted, the current buffer is buried.")
 
 DEFUN ("erase-buffer", Ferase_buffer, Serase_buffer, 0, 0, 0,
   "Delete the entire contents of the current buffer.\n\
-Any clipping restriction in effect (see `narrow-to-buffer') is removed,\n\
+Any clipping restriction in effect (see `narrow-to-region') is removed,\n\
 so the buffer is truly empty after this.")
   ()
 {
