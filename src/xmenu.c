@@ -174,6 +174,10 @@ enum menu_item_idx
 
 static Lisp_Object menu_items;
 
+/* If non-nil, means that the global vars defined here are already in use.
+   Used to detect cases where we try to re-enter this non-reentrant code.  */
+static Lisp_Object menu_items_inuse;
+
 /* Number of slots currently allocated in menu_items.  */
 static int menu_items_allocated;
 
@@ -241,6 +245,9 @@ init_menu_items ()
       menu_items = Fmake_vector (make_number (menu_items_allocated), Qnil);
     }
 
+  if (!NILP (menu_items_inuse))
+    error ("Trying to use a menu from within a menu-entry");
+  menu_items_inuse = Qt;
   menu_items_used = 0;
   menu_items_n_panes = 0;
   menu_items_submenu_depth = 0;
@@ -251,6 +258,12 @@ init_menu_items ()
 static void
 finish_menu_items ()
 {
+}
+
+static Lisp_Object
+unuse_menu_items (dummy)
+{
+  return menu_items_inuse = Qnil;
 }
 
 /* Call when finished using the data for the current menu
@@ -266,6 +279,7 @@ discard_menu_items ()
       menu_items = Qnil;
       menu_items_allocated = 0;
     }
+  xassert (NILP (menu_items_inuse));
 }
 
 /* Make the menu_items vector twice as large.  */
@@ -699,6 +713,7 @@ cached information about equivalent key sequences.  */)
   Lisp_Object x, y, window;
   int keymaps = 0;
   int for_click = 0;
+  int specpdl_count = SPECPDL_INDEX ();
   struct gcpro gcpro1;
 
 #ifdef HAVE_MENUS
@@ -777,12 +792,11 @@ cached information about equivalent key sequences.  */)
 
       xpos += XINT (x);
       ypos += XINT (y);
-
-      XSETFRAME (Vmenu_updating_frame, f);
     }
   Vmenu_updating_frame = Qnil;
 #endif /* HAVE_MENUS */
 
+  record_unwind_protect (unuse_menu_items, Qnil);
   title = Qnil;
   GCPRO1 (title);
 
@@ -852,6 +866,8 @@ cached information about equivalent key sequences.  */)
       keymaps = 0;
     }
   
+  unbind_to (specpdl_count, Qnil);
+
   if (NILP (position))
     {
       discard_menu_items ();
@@ -973,10 +989,12 @@ on the left of the dialog box and all following items on the right.
     Lisp_Object title;
     char *error_name;
     Lisp_Object selection;
+    int specpdl_count = SPECPDL_INDEX ();
 
     /* Decode the dialog items from what was specified.  */
     title = Fcar (contents);
     CHECK_STRING (title);
+    record_unwind_protect (unuse_menu_items, Qnil);
 
     list_of_panes (Fcons (contents, Qnil));
 
@@ -985,6 +1003,7 @@ on the left of the dialog box and all following items on the right.
     selection = xdialog_show (f, 0, title, &error_name);
     UNBLOCK_INPUT;
 
+    unbind_to (specpdl_count, Qnil);
     discard_menu_items ();
 
     if (error_name) error (error_name);
@@ -1126,7 +1145,7 @@ x_activate_menubar (f)
 
   set_frame_menubar (f, 0, 1);
   BLOCK_INPUT;
-  XtDispatchEvent ((XEvent *) f->output_data.x->saved_menu_event);
+  XtDispatchEvent (f->output_data.x->saved_menu_event);
   UNBLOCK_INPUT;
 #ifdef USE_MOTIF
   if (f->output_data.x->saved_menu_event->type == ButtonRelease)
@@ -1671,6 +1690,7 @@ set_frame_menubar (f, first_time, deep_p)
       specbind (Qdebug_on_next_call, Qnil);
 
       record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
+      record_unwind_protect (unuse_menu_items, Qnil);
       if (NILP (Voverriding_local_map_menu_flag))
 	{
 	  specbind (Qoverriding_terminal_local_map, Qnil);
@@ -1766,7 +1786,7 @@ set_frame_menubar (f, first_time, deep_p)
       if (i == menu_items_used && i == previous_menu_items_used && i != 0)
 	{
 	  free_menubar_widget_value_tree (first_wv);
-	  menu_items = Qnil;
+	  discard_menu_items ();
 
 	  return;
 	}
@@ -1786,7 +1806,7 @@ set_frame_menubar (f, first_time, deep_p)
 
       f->menu_bar_vector = menu_items;
       f->menu_bar_items_used = menu_items_used;
-      menu_items = Qnil;
+      discard_menu_items ();
     }
   else
     {
@@ -2895,6 +2915,7 @@ syms_of_xmenu ()
 {
   staticpro (&menu_items);
   menu_items = Qnil;
+  menu_items_inuse = Qnil;
 
   Qdebug_on_next_call = intern ("debug-on-next-call");
   staticpro (&Qdebug_on_next_call);
