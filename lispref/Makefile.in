@@ -1,10 +1,14 @@
-# Makefile for the   GNU Emacs Lisp Reference Manual.
+# Makefile for the GNU Emacs Lisp Reference Manual.
 #
-# 11 August 1990
+# 2 September 2001
 
-# Redefine `TEX' if `tex' does not invoke plain TeX. For example:
+# Standard configure variables.
+prefix = @prefix@
+infodir = @infodir@
+srcdir = @srcdir@
+
+# Redefine `TEX' if `tex' does not invoke plain TeX.  For example:
 # TEX=platex
-
 TEX=tex
 MAKE=make
 SHELL=/bin/sh
@@ -14,12 +18,11 @@ MAKEINFO=makeinfo
 # Where the TeX macros are kept:
 texmacrodir = /usr/local/lib/tex/macros
 
-# Standard configure variables.
-prefix = @prefix@
-infodir = @infodir@
+# The environment variable and its value to add $(srcdir) to the path
+# searched for TeX input files.
+texinputdir = TEXINPUTS=$(srcdir):
 
 # The name of the manual:
-
 VERSION=2.6
 manual = elisp-manual-20-$(VERSION)
 
@@ -28,58 +31,98 @@ manual = elisp-manual-20-$(VERSION)
 
 # List of all the texinfo files in the manual:
 
-srcs = elisp.texi back.texi \
-  abbrevs.texi advice.texi anti.texi backups.texi locals.texi buffers.texi \
-  calendar.texi commands.texi compile.texi control.texi customize.texi \
-  debugging.texi display.texi edebug.texi errors.texi eval.texi files.texi \
-  frames.texi functions.texi hash.texi help.texi hooks.texi \
-  internals.texi intro.texi keymaps.texi lists.texi \
-  loading.texi macros.texi maps.texi markers.texi \
-  minibuf.texi modes.texi nonascii.texi numbers.texi objects.texi \
-  os.texi positions.texi processes.texi searching.texi \
-  sequences.texi streams.texi strings.texi symbols.texi \
-  syntax.texi text.texi tips.texi variables.texi \
-  windows.texi \
-  index.unperm index.perm
+srcs = \
+  $(srcdir)/abbrevs.texi \
+  $(srcdir)/advice.texi \
+  $(srcdir)/anti.texi \
+  $(srcdir)/back.texi \
+  $(srcdir)/backups.texi \
+  $(srcdir)/buffers.texi \
+  $(srcdir)/calendar.texi \
+  $(srcdir)/commands.texi \
+  $(srcdir)/compile.texi \
+  $(srcdir)/control.texi \
+  $(srcdir)/customize.texi \
+  $(srcdir)/debugging.texi \
+  $(srcdir)/display.texi \
+  $(srcdir)/edebug.texi \
+  $(srcdir)/elisp.texi \
+  $(srcdir)/errors.texi \
+  $(srcdir)/eval.texi \
+  $(srcdir)/files.texi \
+  $(srcdir)/frames.texi \
+  $(srcdir)/functions.texi \
+  $(srcdir)/hash.texi \
+  $(srcdir)/help.texi \
+  $(srcdir)/hooks.texi \
+  $(srcdir)/internals.texi \
+  $(srcdir)/intro.texi \
+  $(srcdir)/keymaps.texi \
+  $(srcdir)/lists.texi \
+  $(srcdir)/loading.texi \
+  $(srcdir)/locals.texi \
+  $(srcdir)/macros.texi \
+  $(srcdir)/maps.texi \
+  $(srcdir)/markers.texi \
+  $(srcdir)/minibuf.texi \
+  $(srcdir)/modes.texi \
+  $(srcdir)/nonascii.texi \
+  $(srcdir)/numbers.texi \
+  $(srcdir)/objects.texi \
+  $(srcdir)/os.texi \
+  $(srcdir)/positions.texi \
+  $(srcdir)/processes.texi \
+  $(srcdir)/searching.texi \
+  $(srcdir)/sequences.texi \
+  $(srcdir)/streams.texi \
+  $(srcdir)/strings.texi \
+  $(srcdir)/symbols.texi \
+  $(srcdir)/syntax.texi \
+  $(srcdir)/text.texi \
+  $(srcdir)/tips.texi \
+  $(srcdir)/variables.texi \
+  $(srcdir)/windows.texi \
+  $(srcdir)/index.unperm \
+  $(srcdir)/index.perm
 
-.PHONY: elisp.dvi clean
+.PHONY: clean
 
 # The info file is named `elisp'.
 
 elisp: $(srcs) index.texi
 	rm -f elisp-*
-	$(MAKEINFO) elisp.texi
+	$(MAKEINFO) -I $(srcdir) $(srcdir)/elisp.texi
 
 elisp.dvi: $(srcs) index.texi
 	# Avoid losing old contents of aux file entirely.
 	-mv elisp.aux elisp.oaux
-	# First shot to define xrefs:
-	$(TEX) elisp.texi
+	# First shot to define xrefs.
+	$(texinputdir) $(TEX) $(srcdir)/elisp.texi
 	if [ a${permuted_index} != a ]; \
 	then \
-	  ./permute-index; \
+	  $(srcdir)/permute-index; \
 	  mv permuted.fns elisp.fns; \
 	  texindex elisp.tp; \
 	else \
 	  texindex elisp.??; \
 	fi
-	$(TEX) elisp.texi
+	$(texinputdir) $(TEX) $(srcdir)/elisp.texi
 
 index.texi:
 	if [ a${permuted_index} != a ]; \
 	then \
-	  ln -s index.perm index.texi || ln index.perm index.texi; \
+	  ln -s $(srcdir)/index.perm index.texi || ln $(srcdir)/index.perm index.texi; \
 	else \
-	  ln -s index.unperm index.texi || ln index.unperm index.texi; \
+	  ln -s $(srcdir)/index.unperm index.texi || ln $(srcdir)/index.unperm index.texi; \
 	fi
 
 install: elisp
-	./mkinstalldirs $(infodir)
+	$(srcdir)/mkinstalldirs $(infodir)
 	cp elisp elisp-* $(infodir)
 	${INSTALL_INFO} --info-dir=${infodir} ${infodir}/elisp
 
 installall: install
-	install -c texinfo.tex $(texmacrodir)
+	install -c $(srcdir)/../man/texinfo.tex $(texmacrodir)
 
 clean:
 	rm -f *.toc *.aux *.log *.cp *.cps *.fn *.fns *.tp *.tps \
@@ -88,17 +131,19 @@ clean:
 	rm -f index.texi
 
 maintainer-clean: clean
-	rm -f elisp elisp-*
+	rm -f elisp elisp-* elisp.dvi elisp.oaux
 
-dist:
+dist: elisp elisp.dvi
 	-rm -rf temp
 	-mkdir temp
 	-mkdir temp/$(manual)
-	-ln README configure.in configure Makefile.in permute-index $(srcs) \
- texinfo.tex elisp.dvi elisp.aux elisp.??s elisp elisp-[0-9] elisp-[0-9][0-9] \
+	-ln $(srcdir)/README $(srcdir)/configure.in $(srcdir)/configure \
+ $(srcdir)/Makefile.in $(srcdir)/permute-index $(srcs) \
+ $(srcdir)/../man/texinfo.tex \
+ elisp.dvi elisp.aux elisp.??s elisp elisp-[0-9] elisp-[0-9][0-9] \
  temp/$(manual)
 	-(cd temp/$(manual); rm -f mkinstalldirs)
-	cp mkinstalldirs temp/$(manual)
+	cp $(srcdir)/mkinstalldirs temp/$(manual)
 	(cd temp/$(manual); rm -f *~)
 	(cd temp; tar chf - $(manual)) | gzip > $(manual).tar.gz
 	-rm -rf temp
