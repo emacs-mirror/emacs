@@ -61,6 +61,7 @@
 
   (define-key texinfo-mode-map "\C-c\C-s"     'texinfo-show-structure)
 
+  (define-key texinfo-mode-map "\""           'tex-insert-quote)
   (define-key texinfo-mode-map "\e}"          'up-list)
   (define-key texinfo-mode-map "\e{"          'texinfo-insert-braces)
 
@@ -142,42 +143,42 @@ Use \\[up-list] to move forward out of the braces."
   (backward-char))
 
 (defun texinfo-mode ()
-  "Major mode for editing texinfo files.
+  "Major mode for editing Texinfo files.
 
   It has these extra commands:
 \\{texinfo-mode-map}
 
-  These are files that are used as input for tex to make printed manuals
-and also to be turned into Info files by \\[texinfo-format-buffer].
-These files must be written in a very restricted and modified version
-of tex input format.
+  These are files that are used as input for TeX to make printed manuals
+and also to be turned into Info files by \\[texinfo-format-buffer] or
+`makeinfo'.  These files must be written in a very restricted and
+modified version of TeX input format.
 
   Editing commands are like text-mode except that the syntax table is
-set up so expression commands skip texinfo bracket groups.  To see
-what the Info version of a region of the texinfo file will look like,
+set up so expression commands skip Texinfo bracket groups.  To see
+what the Info version of a region of the Texinfo file will look like,
 use \\[texinfo-format-region].  This command runs Info on the current region
-of the texinfo file and formats it properly.
+of the Texinfo file and formats it properly.
 
-  You can show the structure of a texinfo file with \\[texinfo-show-structure].
-This command shows the structure of a texinfo file by listing the
-lines with the @-sign commands for @node, @chapter, @section and the
-like.  These lines are displayed in another window called the *Occur*
-window.  In that window, you can position the cursor over one of the
-lines and use \\[occur-mode-goto-occurrence], to jump to the
-corresponding spot in the texinfo file.
+  You can show the structure of a Texinfo file with \\[texinfo-show-structure].
+This command shows the structure of a Texinfo file by listing the
+lines with the @-sign commands for @chapter, @section, and the like.
+These lines are displayed in another window called the *Occur* window.
+In that window, you can position the cursor over one of the lines and
+use \\[occur-mode-goto-occurrence], to jump to the corresponding spot
+in the Texinfo file.
 
-  In addition, texinfo mode provides commands that insert various
+  In addition, Texinfo mode provides commands that insert various
 frequently used @-sign commands into the buffer.  You can use these
 commands to save keystrokes.  And you can insert balanced braces with
 \\[texinfo-insert-braces] and later use the command \\[up-list] to
 move forward past the closing brace.
 
-Also, texinfo mode provides functions for automatically creating or
+Also, Texinfo mode provides functions for automatically creating or
 updating menus and node pointers.  These functions
 
   * insert the `Next', `Previous' and `Up' pointers of a node,
   * insert or update the menu for a section, and
-  * create a master menu for a texinfo source file.
+  * create a master menu for a Texinfo source file.
 
 Here are the functions:
 
@@ -198,15 +199,15 @@ Passed an argument (a prefix argument, if interactive), the
 `texinfo-update-node' and `texinfo-make-menu' functions do their jobs
 in the region.
 
-To use the updating commands, you must structure your texinfo file
+To use the updating commands, you must structure your Texinfo file
 hierarchically, such that each `@node' line, with the exception of the
-top node, is accompanied by some kind of section line, such as an
+Top node, is accompanied by some kind of section line, such as an
 `@chapter' or `@section' line.
 
 If the file has a `top' node, it must be called `top' or `Top' and
 be the first node in the file.
 
-Entering texinfo mode calls the value of text-mode-hook, and then the
+Entering Texinfo mode calls the value of text-mode-hook, and then the
 value of texinfo-mode-hook."
   (interactive)
   (text-mode)
@@ -237,34 +238,34 @@ value of texinfo-mode-hook."
   (run-hooks 'text-mode-hook 'texinfo-mode-hook))
 
 
-(defvar texinfo-heading-pattern
-  "^@\\(chapter\\|unnum\\|appendix\\|sect\\|sub\\|heading\\|major\\|node\\)"
-  "Regexp matching @node and chapter, section, and other headings.")
+;;; Texinfo file structure
 
 ; The following is defined in `texnfo-upd.el'
 ; (defvar texinfo-section-types-regexp
 ;   "^@\\(chapter \\|sect\\|sub\\|unnum\\|major\\|heading \\|appendix\\)"
 ;   "Regexp matching chapter, section, other headings (but not the top node).")
 
-(defun texinfo-show-structure (&optional sections-only) 
+(defun texinfo-show-structure (&optional nodes-too) 
   "Show the structure of a Texinfo file.
-With optional argument (prefix if interactive), list lines with @-sign
-commands for @chapter, @section and the like.  With no argument, list
-both the lines with @-sign commands for @chapter, @section and the
-like and list @node lines.
+List the lines in the file that begin with the @-sign commands for
+@chapter, @section, and the like.
+
+With optional argument (prefix if interactive), list both the lines
+with @-sign commands for @chapter, @section, and the like, and list
+@node lines.
 
 Lines with structuring commands beginning in them are displayed in
 another window called the *Occur* window.  In that window, you can
 position the cursor over one of the lines and use
-\\[occur-mode-goto-occurrence], to jump to the corresponding spot in
-the texinfo file."
+\\[occur-mode-goto-occurrence], 
+to jump to the corresponding spot in the Texinfo file."
 
   (interactive "P")
   (save-excursion 
     (goto-char (point-min))
-    (if sections-only
-        (occur texinfo-section-types-regexp)
-      (occur texinfo-heading-pattern)))
+    (if nodes-too
+        (occur (concat "\\(^@node\\)\\|" texinfo-section-types-regexp))
+      (occur texinfo-section-types-regexp)))
   (pop-to-buffer "*Occur*")
   (goto-char (point-min))
   (flush-lines "-----"))
