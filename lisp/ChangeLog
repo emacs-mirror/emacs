@@ -1,5 +1,11 @@
 2000-08-26  Miles Bader  <miles@gnu.org>
 
+	* faces.el (face-x-resources): Add entry for :inherit.
+	* cus-face.el (custom-face-attributes): Add support for :inherit
+	attribute.  Add support for relative face heights.
+	(custom-face-attributes-get): Treat `nil' as being a default value
+	for :inherit (as well as `unspecified').
+
 	* faces.el (set-face-attribute): Update doc string.
 	(face-attribute-name-alist): Add :inherit.
 	(face-valid-attribute-values): Handle :inherit.
