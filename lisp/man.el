@@ -445,9 +445,12 @@ Man-reuse-okay-p is non-nil."
 	(Man-notify-when-ready buffer)
       (message "Invoking man %s in background..." man-args)
       (setq buffer (generate-new-buffer bufname))
-      (set-process-sentinel
-       (start-process "man" buffer "sh" "-c"
-		      (format (Man-build-man-command) man-args))
+      (let ((process-environment process-environment))
+	;; Prevent any attempt to use display terminal fanciness.
+	(setenv "TERM" "dumb")
+	(set-process-sentinel
+	 (start-process "man" buffer "sh" "-c"
+			(format (Man-build-man-command) man-args)))
        'Man-bgproc-sentinel))
     ))
 
