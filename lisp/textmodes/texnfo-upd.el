@@ -261,8 +261,12 @@ for nodes within or part of the marked region.
 
 Whenever a menu exists, and is being updated, the descriptions that
 are associated with node names in the pre-existing menu are
-incorporated into the new menu.  Otherwise, the nodes' section titles
-are inserted as descriptions."
+incorporated into the new menu.
+
+Leaves trailing whitespace in a menu that lacks descriptions, so
+descriptions will format well.  In general, a menu should contain
+descriptions, because node names and section titles are often too
+short to explain a node well."
 
   (interactive
    (if prefix-arg
@@ -329,7 +333,12 @@ at the level specified by LEVEL.  Point is left at the end of menu."
 Update pre-existing master menu, if there is one.
 
 If called with a non-nil argument, this function first updates all the
-nodes in the buffer before updating the menus."
+nodes in the buffer before updating the menus.
+
+Indents the first line of descriptions, and leaves trailing whitespace
+in a menu that lacks descriptions, so descriptions will format well.
+In general, a menu should contain descriptions, because node names and
+section titles are often too short to explain a node well."
   (interactive "P")
   (let ((case-fold-search t)
 	master-menu-p)
@@ -651,8 +660,11 @@ node within the section."
 
 (defun texinfo-insert-menu (menu-list node-name)
   "Insert formatted menu at point.
-Indents the first line of the description, if any, to the value of
-texinfo-column-for-description.
+Indents the first line of descriptions, if any, to the value of
+texinfo-column-for-description.  Indenting leaves trailing whitespace
+in a menu that lacks descriptions, so descriptions will format well.
+In general, a menu should contain descriptions, because node names and
+section titles are often too short to explain a node well.
 
 MENU-LIST has form:
 
@@ -866,7 +878,12 @@ recommendation in the Texinfo Manual:
      specific information.
 
 Each of the menus in the detailed node listing is introduced by the
-title of the section containing the menu."
+title of the section containing the menu.
+
+Indents the first line of descriptions, and leaves trailing whitespace
+in a menu that lacks descriptions, so descriptions will format well.
+In general, a menu should contain descriptions, because node names and
+section titles are often too short to explain a node well."
 
   (interactive "P")
   (let ((case-fold-search t))
