@@ -95,7 +95,11 @@ struct backtrace
     char evalargs;
   };
 
+#ifdef MULTI_PERDISPLAY
+PERDISPLAY *current_perdisplay;
+#else
 PERDISPLAY the_only_perdisplay;
+#endif
 
 /* Non-nil disable property on a command means
    do not execute it; call disabled-command-hook's value instead.  */
@@ -456,16 +460,15 @@ static int cannot_suspend;
 echo_prompt (str)
      char *str;
 {
-  PERDISPLAY *perd = get_perdisplay (selected_frame);
   int len = strlen (str);
 
   if (len > ECHOBUFSIZE - 4)
     len = ECHOBUFSIZE - 4;
-  bcopy (str, perd->echobuf, len);
-  perd->echoptr = perd->echobuf + len;
-  *perd->echoptr = '\0';
+  bcopy (str, current_perdisplay->echobuf, len);
+  current_perdisplay->echoptr = current_perdisplay->echobuf + len;
+  *current_perdisplay->echoptr = '\0';
 
-  perd->echo_after_prompt = len;
+  current_perdisplay->echo_after_prompt = len;
 
   echo ();
 }
@@ -478,13 +481,12 @@ echo_char (c)
      Lisp_Object c;
 {
   extern char *push_key_description ();
-  PERDISPLAY *perd = get_perdisplay (selected_frame);
 
-  if (perd->immediate_echo)
+  if (current_perdisplay->immediate_echo)
     {
-      char *ptr = perd->echoptr;
+      char *ptr = current_perdisplay->echoptr;
       
-      if (ptr != perd->echobuf)
+      if (ptr != current_perdisplay->echobuf)
 	*ptr++ = ' ';
 
       /* If someone has passed us a composite event, use its head symbol.  */
@@ -492,7 +494,7 @@ echo_char (c)
 
       if (INTEGERP (c))
 	{
-	  if (ptr - perd->echobuf > ECHOBUFSIZE - 6)
+	  if (ptr - current_perdisplay->echobuf > ECHOBUFSIZE - 6)
 	    return;
 
 	  ptr = push_key_description (XINT (c), ptr);
@@ -500,20 +502,22 @@ echo_char (c)
       else if (SYMBOLP (c))
 	{
 	  struct Lisp_String *name = XSYMBOL (c)->name;
-	  if (((ptr - perd->echobuf) + name->size + 4) > ECHOBUFSIZE)
+	  if (((ptr - current_perdisplay->echobuf) + name->size + 4)
+	      > ECHOBUFSIZE)
 	    return;
 	  bcopy (name->data, ptr, name->size);
 	  ptr += name->size;
 	}
 
-      if (perd->echoptr == perd->echobuf && EQ (c, Vhelp_char))
+      if (current_perdisplay->echoptr == current_perdisplay->echobuf
+	  && EQ (c, Vhelp_char))
 	{
 	  strcpy (ptr, " (Type ? for further options)");
 	  ptr += strlen (ptr);
 	}
 
       *ptr = 0;
-      perd->echoptr = ptr;
+      current_perdisplay->echoptr = ptr;
 
       echo ();
     }
@@ -524,20 +528,21 @@ echo_char (c)
 
 echo_dash ()
 {
-  PERDISPLAY *perd = get_perdisplay (selected_frame);
-  if (!perd->immediate_echo && perd->echoptr == perd->echobuf)
+  if (!current_perdisplay->immediate_echo
+      && current_perdisplay->echoptr == current_perdisplay->echobuf)
     return;
   /* Do nothing if we just printed a prompt.  */
-  if (perd->echo_after_prompt == perd->echoptr - perd->echobuf)
+  if (current_perdisplay->echo_after_prompt
+      == current_perdisplay->echoptr - current_perdisplay->echobuf)
     return;
   /* Do nothing if not echoing at all.  */
-  if (perd->echoptr == 0)
+  if (current_perdisplay->echoptr == 0)
     return;
 
   /* Put a dash at the end of the buffer temporarily,
      but make it go away when the next character is added.  */
-  perd->echoptr[0] = '-';
-  perd->echoptr[1] = 0;
+  current_perdisplay->echoptr[0] = '-';
+  current_perdisplay->echoptr[1] = 0;
 
   echo ();
 }
@@ -547,11 +552,10 @@ echo_dash ()
 
 echo ()
 {
-  PERDISPLAY *perd = get_perdisplay (selected_frame);
-  if (!perd->immediate_echo)
+  if (!current_perdisplay->immediate_echo)
     {
       int i;
-      perd->immediate_echo = 1;
+      current_perdisplay->immediate_echo = 1;
 
       for (i = 0; i < this_command_key_count; i++)
 	{
@@ -565,7 +569,7 @@ echo ()
     }
 
   echoing = 1;
-  message2_nolog (perd->echobuf, strlen (perd->echobuf));
+  message1_nolog (current_perdisplay->echobuf);
   echoing = 0;
 
   if (waiting_for_input && !NILP (Vquit_flag))
@@ -576,10 +580,9 @@ echo ()
 
 cancel_echoing ()
 {
-  PERDISPLAY *perd = get_perdisplay (selected_frame);
-  perd->immediate_echo = 0;
-  perd->echoptr = perd->echobuf;
-  perd->echo_after_prompt = -1;
+  current_perdisplay->immediate_echo = 0;
+  current_perdisplay->echoptr = current_perdisplay->echobuf;
+  current_perdisplay->echo_after_prompt = -1;
 }
 
 /* Return the length of the current echo string.  */
@@ -587,8 +590,7 @@ cancel_echoing ()
 static int
 echo_length ()
 {
-  PERDISPLAY *perd = get_perdisplay (selected_frame);
-  return perd->echoptr - perd->echobuf;
+  return current_perdisplay->echoptr - current_perdisplay->echobuf;
 }
 
 /* Truncate the current echo message to its first LEN chars.
@@ -599,9 +601,8 @@ static void
 echo_truncate (len)
      int len;
 {
-  PERDISPLAY *perd = get_perdisplay (selected_frame);
-  perd->echobuf[len] = '\0';
-  perd->echoptr = perd->echobuf + len;
+  current_perdisplay->echobuf[len] = '\0';
+  current_perdisplay->echoptr = current_perdisplay->echobuf + len;
   truncate_echo_area (len);
 }
 
@@ -1449,7 +1450,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   int count;
   jmp_buf save_jump;
   int key_already_recorded = 0;
-  PERDISPLAY *perd = get_perdisplay (selected_frame);
   Lisp_Object also_record;
   also_record = Qnil;
 
@@ -1551,7 +1551,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
     }
 
   /* Message turns off echoing unless more keystrokes turn it on again. */
-  if (echo_area_glyphs && *echo_area_glyphs && echo_area_glyphs != perd->echobuf)
+  if (echo_area_glyphs && *echo_area_glyphs
+      && echo_area_glyphs != current_perdisplay->echobuf)
     cancel_echoing ();
   else
     /* If already echoing, continue.  */
@@ -1580,7 +1581,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   /* If in middle of key sequence and minibuffer not active,
      start echoing if enough time elapses.  */
-  if (minibuf_level == 0 && !perd->immediate_echo && this_command_key_count > 0
+  if (minibuf_level == 0 && !current_perdisplay->immediate_echo
+      && this_command_key_count > 0
       && ! noninteractive
       && echo_keystrokes > 0
       && (echo_area_glyphs == 0 || *echo_area_glyphs == 0))
@@ -1953,8 +1955,8 @@ static PERDISPLAY *
 find_active_event_queue ()
 {
   PERDISPLAY *perd;
-  perd = &the_only_perdisplay;
-  /* FOR_ALL_PERDISPLAYS (perd) */
+
+  for (perd = all_perdisplays; perd; perd = perd->next_perdisplay)
     {
       if (perd->kbd_fetch_ptr != perd->kbd_store_ptr)
 	return perd;
@@ -5651,7 +5653,6 @@ DEFUN ("discard-input", Fdiscard_input, Sdiscard_input, 0, 0, 0,
 Also cancel any kbd macro being defined.")
   ()
 {
-  PERDISPLAY *perd = &the_only_perdisplay;
   defining_kbd_macro = 0;
   update_mode_lines++;
 
@@ -5663,8 +5664,9 @@ Also cancel any kbd macro being defined.")
   /* Without the cast, GCC complains that this assignment loses the
      volatile qualifier of kbd_store_ptr.  Is there anything wrong
      with that?  */
-  perd->kbd_fetch_ptr = (struct input_event *) perd->kbd_store_ptr;
-  Ffillarray (perd->kbd_buffer_frame_or_window, Qnil);
+  current_perdisplay->kbd_fetch_ptr
+    = (struct input_event *) current_perdisplay->kbd_store_ptr;
+  Ffillarray (current_perdisplay->kbd_buffer_frame_or_window, Qnil);
   input_pending = 0;
 
   return Qnil;
@@ -5737,7 +5739,7 @@ stuff_buffered_input (stuffstring)
 #ifdef BSD
 #ifndef BSD4_1
   register unsigned char *p;
-  PERDISPLAY *perd = &the_only_perdisplay;  /* We really want the primary display's perd */
+  PERDISPLAY *perd;
 
   if (STRINGP (stuffstring))
     {
@@ -5750,6 +5752,14 @@ stuff_buffered_input (stuffstring)
       stuff_char ('\n');
     }
   /* Anything we have read ahead, put back for the shell to read.  */
+#ifndef MULTI_PERDISPLAY
+  perd = &the_only_perdisplay;
+#else
+  /* ?? What should this do when we have multiple keyboards??  */
+  perd = current_perdisplay;
+  if (!perd)
+    return;
+#endif
   while (perd->kbd_fetch_ptr != perd->kbd_store_ptr)
     {
       if (perd->kbd_fetch_ptr == perd->kbd_buffer + KBD_BUFFER_SIZE)
@@ -6020,6 +6030,36 @@ The elements of this list correspond to the arguments of\n\
 }
 
 
+/*
+ * Set up a perdisplay object with reasonable initial values.
+ */
+void
+init_perdisplay (perd)
+     PERDISPLAY *perd;
+{
+  perd->Vprefix_arg = Qnil;
+  perd->Vcurrent_prefix_arg = Qnil;
+  perd->kbd_buffer
+    = (struct input_event *)xmalloc (KBD_BUFFER_SIZE
+				     * sizeof (struct input_event));
+  perd->kbd_fetch_ptr = perd->kbd_buffer;
+  perd->kbd_store_ptr = perd->kbd_buffer;
+  perd->kbd_buffer_frame_or_window
+    = Fmake_vector (make_number (KBD_BUFFER_SIZE), Qnil);
+}
+
+/*
+ * Destroy the contents of a perdisplay object, but not the object itself.
+ * We use this just before deleteing it, or if we're going to initialize
+ * it a second time.
+ */
+void
+wipe_perdisplay (perd)
+     PERDISPLAY *perd;
+{
+  xfree (perd->kbd_buffer);
+}
+
 init_keyboard ()
 {
   /* This is correct before outermost invocation of the editor loop */
@@ -6030,11 +6070,6 @@ init_keyboard ()
   unread_command_char = -1;
   total_keys = 0;
   recent_keys_index = 0;
-  the_only_perdisplay.kbd_buffer
-    = (struct input_event *)xmalloc (KBD_BUFFER_SIZE
-				     * sizeof (struct input_event));
-  the_only_perdisplay.kbd_fetch_ptr = the_only_perdisplay.kbd_buffer;
-  the_only_perdisplay.kbd_store_ptr = the_only_perdisplay.kbd_buffer;
 #ifdef HAVE_MOUSE
   do_mouse_tracking = Qnil;
 #endif
@@ -6047,21 +6082,11 @@ init_keyboard ()
   Vlast_event_frame = internal_last_event_frame;
 #endif
 
-  /* If we're running a dumped Emacs, we need to clear out
-     kbd_buffer_frame_or_window, in case some events got into it
-     before we dumped.
-
-     If we're running an undumped Emacs, it hasn't been initialized by
-     syms_of_keyboard yet.  */
+#ifndef MULTI_PERDISPLAY
   if (initialized)
-    {
-      PERDISPLAY *perd;
-      perd = &the_only_perdisplay;
-      /* FOR_ALL_PERDISPLAYS (perd) */
-      {
-	Ffillarray (perd->kbd_buffer_frame_or_window, Qnil);
-      }
-    }
+    wipe_perdisplay (&the_only_perdisplay);
+  init_perdisplay (&the_only_perdisplay);
+#endif
 
   if (!noninteractive && !read_socket_hook && NILP (Vwindow_system))
     {
@@ -6231,10 +6256,6 @@ syms_of_keyboard ()
   Qextended_command_history = intern ("extended-command-history");
   Fset (Qextended_command_history, Qnil);
   staticpro (&Qextended_command_history);
-
-  the_only_perdisplay.kbd_buffer_frame_or_window
-    = Fmake_vector (make_number (KBD_BUFFER_SIZE), Qnil);
-  staticpro (&the_only_perdisplay.kbd_buffer_frame_or_window);
 
   accent_key_syms = Qnil;
   staticpro (&accent_key_syms);
@@ -6503,6 +6524,24 @@ The precise format isn't relevant here; we just check whether it is nil.");
 This function is called with no arguments after each command\n\
 whenever `deferred-action-list' is non-nil.");
   Vdeferred_action_function = Qnil;
+
+  DEFVAR_DISPLAY ("prefix-arg", Vprefix_arg,
+    "The value of the prefix argument for the next editing command.\n\
+It may be a number, or the symbol `-' for just a minus sign as arg,\n\
+or a list whose car is a number for just one or more C-U's\n\
+or nil if no argument has been specified.\n\
+\n\
+You cannot examine this variable to find the argument for this command\n\
+since it has been set to nil by the time you can look.\n\
+Instead, you should use the variable `current-prefix-arg', although\n\
+normally commands can get this prefix argument with (interactive \"P\").");
+
+  DEFVAR_DISPLAY ("current-prefix-arg", Vcurrent_prefix_arg,
+    "The value of the prefix argument for this editing command.\n\
+It may be a number, or the symbol `-' for just a minus sign as arg,\n\
+or a list whose car is a number for just one or more C-U's\n\
+or nil if no argument has been specified.\n\
+This is what `(interactive \"P\")' returns.");
 }
 
 keys_of_keyboard ()
