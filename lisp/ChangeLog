@@ -1,3 +1,13 @@
+2005-01-17  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/grep.el (grep-find): Copy from `grep' the condition
+	for calling grep-compute-defaults.
+
+	* play/decipher.el (decipher-mode): Don't call decipher-read-alphabet
+	if buffer is empty.
+
+	* emacs-lisp/lisp.el (backward-kill-sexp, kill-sexp): Doc fixes.
+
 2005-01-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* hilit-chg.el (highlight-changes-mode): Don't autoload.

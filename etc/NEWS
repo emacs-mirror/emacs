@@ -99,6 +99,9 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** M-SPC (just-one-space) when given a numeric argument N
+converts whitespace around point to N spaces.
+
 ** Control characters and escape glyphs are now shown in the new
 escape-glyph face.
 
