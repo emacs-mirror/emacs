@@ -822,8 +822,7 @@ See the command `imenu' for more information."
 						     (cdr (car (cdr menu))))
 						   t))
 	       (setq old (lookup-key (current-local-map) [menu-bar index]))
-	       (if (keymapp old)
-		   (setcdr (nthcdr 2 old) menu1)))))))
+	       (setcdr old (cdr menu1)))))))
 
 (defun imenu--menubar-select (item)
   "Use Imenu to select the function or variable named in this menu item."
