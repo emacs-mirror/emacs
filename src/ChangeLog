@@ -1,5 +1,9 @@
 2000-10-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_alloc_nearest_color): If allocation succeeds, and
+	we have a color cache, check that the cached color equals the
+	allocated color.  If not, clear the color cache.
+
 	* window.c (displayed_window_lines): Change buffers if necessary.
 	Fix computation of displayed lines.
 
