@@ -202,7 +202,7 @@ static void AMSSegFinish(Seg seg)
   /* finish the superclass fields last */
   super = SEG_SUPERCLASS(AMSSegClass);
   super->finish(seg);
-} 
+}
 
 
 /* AMSSegMerge & AMSSegSplit -- AMSSeg split & merge methods
@@ -1038,7 +1038,8 @@ static Res AMSIterate(Seg seg, AMSObjectFunction f, void *closure)
       if (!AMS_ALLOCED(seg, i)) { /* no object here */
         next = AddrAdd(p, alignment); /* @@@@ this could be improved */
       } else { /* there is an object here */
-        next = (*format->skip)(p);
+        next = (*format->skip)(AddrAdd(p, format->headerSize));
+        next = AddrSub(next, format->headerSize);
         AVER(AddrIsAligned(next, alignment));
 	res = (*f)(seg, i, p, next, closure);
 	if (res != ResOK)
@@ -1087,7 +1088,9 @@ static Res amsScanObject(Seg seg, Index i, Addr p, Addr next, void *clos)
 
   /* @@@@ This isn't quite right for multiple traces. */
   if (closure->scanAllObjects || AMSIsGrey(seg, i)) {
-    res = (*format->scan)(closure->ss, p, next);
+    res = (*format->scan)(closure->ss,
+                          AddrAdd(p, format->headerSize),
+                          AddrAdd(next, format->headerSize));
     if (res != ResOK)
       return res;
     closure->ss->scannedSize += AddrOffset(p, next);
@@ -1167,12 +1170,15 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
         while(j < amsseg->grains
               && AMSFindGrey(&i, &j, seg, j, amsseg->grains)) {
+            Addr clientP, clientNext;
           AVER(!AMSIsInvalidColor(seg, i));
           p = AMS_INDEX_ADDR(seg, i);
-          next = (*format->skip)(p);
+          clientP = AddrAdd(p, format->headerSize);
+          clientNext = (*format->skip)(clientP);
+          next = AddrSub(clientNext, format->headerSize);
           AVER(AddrIsAligned(next, alignment));
           j = AMS_ADDR_INDEX(seg, next);
-          res = (*format->scan)(ss, p, next);
+          res = (*format->scan)(ss, clientP, clientNext);
           if (res != ResOK) {
             /* design.mps.poolams.marked.scan.fail */
             amsseg->marksChanged = TRUE;
@@ -1199,13 +1205,18 @@ Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 {
   AMSSeg amsseg;
   Index i;                      /* the index of the fixed grain */
-  Ref ref;
+  Addr base;
+  Ref clientRef;
+  Format format;
 
   AVERT_CRITICAL(Pool, pool);
   AVER_CRITICAL(CHECKT(AMS, Pool2AMS(pool)));
   AVERT_CRITICAL(ScanState, ss);
   AVERT_CRITICAL(Seg, seg);
   AVER_CRITICAL(refIO != NULL);
+
+  format = pool->format;
+  AVERT(Format, format);
 
   amsseg = Seg2AMSSeg(seg);
   AVERT_CRITICAL(AMSSeg, amsseg);
@@ -1216,8 +1227,17 @@ Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   /* (see design.mps.poolams.not-req.grey), but there's no way of */
   /* doing that here (this can be called from RootScan, during flip). */
 
-  ref = *refIO;
-  i = AMS_ADDR_INDEX(seg, ref);
+  clientRef = *refIO;
+  base = AddrSub((Addr)clientRef, format->headerSize);
+  /* can get an ambiguous reference too close to the base of the
+   * segment, so when we subtract the header we are not in the
+   * segment any longer.  This isn't a real reference,
+   * so we can just skip it.  */
+  if (base < SegBase(seg)) {
+      return ResOK;
+  }
+
+  i = AMS_ADDR_INDEX(seg, base);
   AVER_CRITICAL(!AMSIsInvalidColor(seg, i));
 
   ss->wasMarked = TRUE;
@@ -1225,7 +1245,7 @@ Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   switch (ss->rank) {
   case RankAMBIG:
     /* not a real pointer if not aligned or not allocated */
-    if (!AddrIsAligned((Addr)ref, PoolAlignment(pool))
+    if (!AddrIsAligned(base, PoolAlignment(pool))
        || !AMS_ALLOCED(seg, i)) {
       break;
     }
@@ -1234,7 +1254,7 @@ Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   case RankEXACT:
   case RankFINAL:
   case RankWEAK:
-    AVER_CRITICAL(AddrIsAligned((Addr)ref, PoolAlignment(pool)));
+    AVER_CRITICAL(AddrIsAligned(base, PoolAlignment(pool)));
     AVER_CRITICAL(AMS_ALLOCED(seg, i));
     if (AMSIsWhite(seg, i)) {
       ss->wasMarked = FALSE;
@@ -1244,11 +1264,12 @@ Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
         ++ss->preservedInPlaceCount; /* Size updated on reclaim */
         if (SegRankSet(seg) == RankSetEMPTY && ss->rank != RankAMBIG) {
           /* design.mps.poolams.fix.to-black */
-          Addr next;
+          Addr clientNext, next;
 
           ShieldExpose(PoolArena(pool), seg);
-          next = (*pool->format->skip)(ref);
+          clientNext = (*pool->format->skip)(clientRef);
           ShieldCover(PoolArena(pool), seg);
+          next = AddrSub(clientNext, format->headerSize);
           /* Part of the object might be grey, because of ambiguous */
           /* fixes, but that's OK, because scan will ignore that. */
           AMSRangeWhiteBlacken(seg, i, AMS_ADDR_INDEX(seg, next));
@@ -1332,9 +1353,12 @@ void AMSReclaim(Pool pool, Trace trace, Seg seg)
   /* Loop over all white objects and free them */
   while(j < amsseg->grains
         && AMSFindWhite(&i, &j, seg, j, amsseg->grains)) {
+    Addr clientP, clientNext;
     AVER(!AMSIsInvalidColor(seg, i));
     p = AMS_INDEX_ADDR(seg, i);
-    next = (*format->skip)(p);
+    clientP = AddrAdd(p, format->headerSize);
+    clientNext = (*format->skip)(clientP);
+    next = AddrSub(clientNext, format->headerSize);
     AVER(AddrIsAligned(next, alignment));
     j = AMS_ADDR_INDEX(seg, next);
     BTResRange(amsseg->allocTable, i, j);
