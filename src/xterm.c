@@ -2049,16 +2049,30 @@ x_produce_glyphs (it)
 	  int font_descent = font->descent - boff;
 	  /* Bounding box of the overall glyphs.  */
 	  int leftmost, rightmost, lowest, highest;
-	  int i;
+	  int i, width, ascent, descent;
 
 	  cmp->font = (void *) font;
 
 	  /* Initialize the bounding box.  */
 	  pcm = x_per_char_metric (font, &char2b);
+	  if (pcm)
+	    {
+	      width = pcm->width;
+	      ascent = pcm->ascent;
+	      descent = pcm->descent;
+	    }
+	  else
+	    {
+	      width = FONT_WIDTH (font);
+	      ascent = font->ascent;
+	      descent = font->descent;
+	    }
+	  
+	  rightmost = width;
+	  lowest = - descent + boff;
+	  highest = ascent + boff;
 	  leftmost = 0;
-	  rightmost = pcm->width;
-	  lowest = - pcm->descent + boff;
-	  highest = pcm->ascent + boff;
+	  
 	  if (font_info
 	      && font_info->default_ascent
 	      && CHAR_TABLE_P (Vuse_default_ascent)
@@ -2099,26 +2113,37 @@ x_produce_glyphs (it)
 		}
 
 	      pcm = x_per_char_metric (font, &char2b);
+	      if (pcm)
+		{
+		  width = pcm->width;
+		  ascent = pcm->ascent;
+		  descent = pcm->descent;
+		}
+	      else
+		{
+		  width = FONT_WIDTH (font);
+		  ascent = font->ascent;
+		  descent = font->descent;
+		}
 
 	      if (cmp->method != COMPOSITION_WITH_RULE_ALTCHARS)
 		{
 		  /* Relative composition with or without
 		     alternate chars.  */
-		  left = (leftmost + rightmost - pcm->width) / 2;
-		  btm = - pcm->descent + boff;
+		  left = (leftmost + rightmost - width) / 2;
+		  btm = - descent + boff;
 		  if (font_info && font_info->relative_compose
 		      && (! CHAR_TABLE_P (Vignore_relative_composition)
 			  || NILP (Faref (Vignore_relative_composition,
 					  make_number (ch)))))
 		    {
 
-		      if (- pcm->descent
-			  >= font_info->relative_compose)
+		      if (- descent >= font_info->relative_compose)
 			/* One extra pixel between two glyphs.  */
 			btm = highest + 1;
-		      else if (pcm->ascent <= 0)
+		      else if (ascent <= 0)
 			/* One extra pixel between two glyphs.  */
-			btm = lowest - 1 - pcm->ascent - pcm->descent;
+			btm = lowest - 1 - ascent - descent;
 		    }
 		}
 	      else
@@ -2147,23 +2172,23 @@ x_produce_glyphs (it)
 
 		  left = (leftmost
 			  + grefx * (rightmost - leftmost) / 2
-			  - nrefx * pcm->width / 2);
+			  - nrefx * width / 2);
 		  btm = ((grefy == 0 ? highest
 			  : grefy == 1 ? 0
 			  : grefy == 2 ? lowest
 			  : (highest + lowest) / 2)
-			 - (nrefy == 0 ? pcm->ascent + pcm->descent
-			    : nrefy == 1 ? pcm->descent - boff
+			 - (nrefy == 0 ? ascent + descent
+			    : nrefy == 1 ? descent - boff
 			    : nrefy == 2 ? 0
-			    : (pcm->ascent + pcm->descent) / 2));
+			    : (ascent + descent) / 2));
 		}
 
 	      cmp->offsets[i * 2] = left;
-	      cmp->offsets[i * 2 + 1] = btm + pcm->descent;
+	      cmp->offsets[i * 2 + 1] = btm + descent;
 
 	      /* Update the bounding box of the overall glyphs. */
-	      right = left + pcm->width;
-	      top = btm + pcm->descent + pcm->ascent;
+	      right = left + width;
+	      top = btm + descent + ascent;
 	      if (left < leftmost)
 		leftmost = left;
 	      if (right > rightmost)
