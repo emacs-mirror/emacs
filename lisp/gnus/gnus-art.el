@@ -215,6 +215,7 @@ asynchronously.	 The compressed face will be piped to this command."
   :type '(choice string
 		 (function-item gnus-article-display-xface)
 		 function)
+  :version "21.1"
   :group 'gnus-article-washing)
 
 (defcustom gnus-article-x-face-too-ugly nil
@@ -929,6 +930,7 @@ See the manual for details."
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See the manual for details."
   :group 'gnus-article-treat
+  :version "21.1"
   :type gnus-article-treat-head-custom)
 (put 'gnus-treat-display-xface 'highlight t)
 
@@ -942,6 +944,7 @@ See the manual for details."
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See the manual for details."
   :group 'gnus-article-treat
+  :version "21.1"
   :type gnus-article-treat-custom)
 (put 'gnus-treat-display-smileys 'highlight t)
 
