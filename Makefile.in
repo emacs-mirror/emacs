@@ -257,7 +257,8 @@ ${SUBDIR}: ${SUBDIR_MAKEFILES} FRC
 	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}'
 
 blessmail: ${SUBDIR_MAKEFILES} src FRC
-	cd lib-src; $(MAKE) maybe-blessmail $(MFLAGS) MAKE='${MAKE}'
+	cd lib-src; $(MAKE) maybe-blessmail $(MFLAGS) \
+	  MAKE='${MAKE}' archlibdir='$(archlibdir)'
 
 Makefile: Makefile.in config.status
 	./config.status
