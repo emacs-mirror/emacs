@@ -207,7 +207,7 @@ extern int minibuf_level;
 static Lisp_Object Vinhibit_file_name_handlers;
 static Lisp_Object Vinhibit_file_name_operation;
 
-Lisp_Object Qfile_error, Qfile_already_exists;
+Lisp_Object Qfile_error, Qfile_already_exists, Qfile_date_error;
 
 Lisp_Object Qfile_name_history;
 
@@ -2129,7 +2129,9 @@ A prefix arg makes KEEP-TIME non-nil.")
 	  EMACS_SET_SECS_USECS (atime, st.st_atime, 0);
 	  EMACS_SET_SECS_USECS (mtime, st.st_mtime, 0);
 	  if (set_file_times (XSTRING (newname)->data, atime, mtime))
-	    report_file_error ("I/O error", Fcons (newname, Qnil));
+	    Fsignal (Qfile_date_error,
+		     Fcons (build_string ("File already exists"),
+			    Fcons (absname, Qnil)));
 	}
 #ifndef MSDOS
       chmod (XSTRING (newname)->data, st.st_mode & 07777);
@@ -4789,6 +4791,8 @@ syms_of_fileio ()
   staticpro (&Qfile_error);
   Qfile_already_exists = intern ("file-already-exists");
   staticpro (&Qfile_already_exists);
+  Qfile_date_error = intern ("file-date-error");
+  staticpro (&Qfile_date_error);
 
 #ifdef DOS_NT
   Qfind_buffer_file_type = intern ("find-buffer-file-type");
@@ -4820,6 +4824,12 @@ same format as a regular save would use.");
 	       Fcons (Qfile_error, Fcons (Qerror, Qnil))));
   Fput (Qfile_already_exists, Qerror_message,
 	build_string ("File already exists"));
+
+  Fput (Qfile_date_error, Qerror_conditions,
+	Fcons (Qfile_date_error,
+	       Fcons (Qfile_error, Fcons (Qerror, Qnil))));
+  Fput (Qfile_date_error, Qerror_message,
+	build_string ("Cannot set file date"));
 
   DEFVAR_BOOL ("insert-default-directory", &insert_default_directory,
     "*Non-nil means when reading a filename start with default dir in minibuffer.");
