@@ -1,3 +1,9 @@
+2004-07-03  Nick Roberts  <nickrob@gnu.org>
+
+	* progmodes/gdb-ui.el (gdb-goto-breakpoint): String match more
+	carefully.
+	(gdb-delete-breakpoint, gdb-toggle-breakpoint): Handle gdbmi.
+
 2004-07-03  Juri Linkov  <juri@jurta.org>
 
 	* replace.el (query-replace-read-args): Swallow space after 'foo,
