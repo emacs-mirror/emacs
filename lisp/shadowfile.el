@@ -168,11 +168,6 @@ created by shadow-define-regexp-group.")
 ;;; Syntactic sugar; General list and string manipulation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmacro shadow-when (condition &rest body)
-  ;; From cl.el
-  "(shadow-when CONDITION . BODY) => evaluate BODY if CONDITION is true."
-  (` (if (not (, condition))  ()  (,@ body))))
-  
 (defun shadow-union (a b)
   "Add members of list A to list B
 if they are not equal to items already in B."
@@ -584,7 +579,7 @@ site."
 			      (car s))))
 		 (find-file-noselect (car s)))))
 	 (to (shadow-expand-cluster-in-file-name (cdr s))))
-    (shadow-when buffer
+    (when buffer
       (set-buffer buffer)
       (save-restriction
 	(widen)
@@ -639,10 +634,10 @@ of files needing to be copied."
   (let ((shadows (shadow-shadows-of 
 		  (shadow-expand-file-name 
 		   (buffer-file-name (current-buffer))))))
-    (shadow-when shadows
+    (when shadows
       (setq shadow-files-to-copy
 	    (shadow-union shadows shadow-files-to-copy))
-      (shadow-when (not shadow-inhibit-message)
+      (when (not shadow-inhibit-message)
 	(message "%s" (substitute-command-keys
 		       "Use \\[shadow-copy-files] to update shadows."))
 	(sit-for 1))
@@ -670,23 +665,23 @@ Returns t unless files were locked; then returns nil."
 	(sit-for 3)
 	nil)
     (save-excursion
-      (shadow-when shadow-info-file
+      (when shadow-info-file
 	(set-buffer (setq shadow-info-buffer
 			  (find-file-noselect shadow-info-file)))
-	(shadow-when (and (not (buffer-modified-p))
-			  (file-newer-than-file-p (make-auto-save-file-name)
-						  shadow-info-file))
+	(when (and (not (buffer-modified-p))
+		   (file-newer-than-file-p (make-auto-save-file-name)
+					   shadow-info-file))
 	  (erase-buffer)
 	  (message "Data recovered from %s." 
 		   (car (insert-file-contents (make-auto-save-file-name))))
 	  (sit-for 1))
 	(eval-current-buffer))
-      (shadow-when shadow-todo-file
+      (when shadow-todo-file
 	(set-buffer (setq shadow-todo-buffer 
 			  (find-file-noselect shadow-todo-file)))
-	(shadow-when (and (not (buffer-modified-p))
-			  (file-newer-than-file-p (make-auto-save-file-name)
-						  shadow-todo-file))
+	(when (and (not (buffer-modified-p))
+		   (file-newer-than-file-p (make-auto-save-file-name)
+					   shadow-todo-file))
 	  (erase-buffer)
 	  (message "Data recovered from %s." 
 		   (car (insert-file-contents (make-auto-save-file-name))))
@@ -798,7 +793,7 @@ look for files that have been changed and need to be copied to other systems."
 ;; This is on hold until someone tells me about a working version of
 ;; map-ynp for Lucid Emacs.
 
-;(shadow-when (string-match "Lucid" emacs-version)
+;(when (string-match "Lucid" emacs-version)
 ;  (require 'symlink-fix)
 ;  (require 'ange-ftp)
 ;  (require 'map-ynp)
@@ -832,17 +827,13 @@ look for files that have been changed and need to be copied to other systems."
 	(message "Shadowfile information files not found - aborting")
 	(beep)
 	(sit-for 3))
-    (shadow-when (and (not shadow-inhibit-overload)
-		      (not (fboundp 'shadow-orig-save-buffers-kill-emacs)))
+    (when (and (not shadow-inhibit-overload)
+	       (not (fboundp 'shadow-orig-save-buffers-kill-emacs)))
       (fset 'shadow-orig-save-buffers-kill-emacs 
 	    (symbol-function 'save-buffers-kill-emacs))
       (fset 'save-buffers-kill-emacs
 	    (symbol-function 'shadow-save-buffers-kill-emacs)))
     (add-hook 'write-file-hooks 'shadow-add-to-todo)
     (define-key ctl-x-4-map "s" 'shadow-copy-files)))
-
-;;;Local Variables:
-;;;eval:(put 'shadow-when 'lisp-indent-hook 1)
-;;;End:
 
 ;;; shadowfile.el ends here
