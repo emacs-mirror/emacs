@@ -536,18 +536,20 @@ directory, like `default-directory'."
 		  :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)))
     (define-key-after map [menu-bar view filter or-filter]
       '(menu-item "OR top two filters" ibuffer-or-filter
-		  :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)
+		  :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers
+			       (cdr ibuffer-filtering-qualifiers))
 		  :help "Create a new filter which is the logical OR of the top two filters"))
     (define-key-after map [menu-bar view filter negate-filter]
       '(menu-item "Negate top filter" ibuffer-negate-filter
 		  :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)))
     (define-key-after map [menu-bar view filter decompose-filter]
       '(menu-item "Decompose top filter" ibuffer-decompose-filter
-		  :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)		  
+		  :enable (and (featurep 'ibuf-ext) (memq (car ibuffer-filtering-qualifiers) '(or saved not)))
 		  :help "Break down a complex filter like OR or NOT"))
     (define-key-after map [menu-bar view filter exchange-filters]
       '(menu-item "Swap top two filters" ibuffer-exchange-filters
-		  :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)))
+		  :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers
+			       (cdr ibuffer-filtering-qualifiers))))
     (define-key-after map [menu-bar view filter save-filters]
       '(menu-item "Save current filters permanently..." ibuffer-save-filters
 		  :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)		  
