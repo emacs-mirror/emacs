@@ -1076,6 +1076,10 @@ x_report_frame_params (f, alistptr)
        	   make_number (f->output_data.w32->border_width));
   store_in_alist (alistptr, Qinternal_border_width,
        	   make_number (f->output_data.w32->internal_border_width));
+  store_in_alist (alistptr, Qleft_fringe,
+       	   make_number (f->output_data.w32->left_fringe_width));
+  store_in_alist (alistptr, Qright_fringe,
+       	   make_number (f->output_data.w32->right_fringe_width));
   sprintf (buf, "%ld", (long) FRAME_W32_WINDOW (f));
   store_in_alist (alistptr, Qwindow_id,
        	   build_string (buf));
