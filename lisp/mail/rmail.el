@@ -414,6 +414,8 @@ Note:    it means the file has no messages in it.\n\^_")))
   (define-key rmail-mode-map "\C-c\C-s\C-c" 'rmail-sort-by-correspondent)
   (define-key rmail-mode-map "\C-c\C-s\C-l" 'rmail-sort-by-lines)
   (define-key rmail-mode-map "\C-c\C-s\C-k" 'rmail-sort-by-keywords)
+  (define-key rmail-mode-map "\C-c\C-n" 'rmail-next-same-subject)
+  (define-key rmail-mode-map "\C-c\C-p" 'rmail-previous-same-subject)
   )
 
 (define-key rmail-mode-map [menu-bar] (make-sparse-keymap))
@@ -1747,6 +1749,54 @@ Interactively, empty argument means use same regexp used last time."
 ;;    (if found
 ;;	(rmail-show-message found))
     found))
+
+(defun rmail-next-same-subject (n)
+  "Go to the next mail message having the same subject header.
+With prefix argument N, do this N times.
+If N is negative, go backwards instead."
+  (interactive "p")
+  (let* ((subject (mail-fetch-field "Subject"))
+	 (search-regexp (concat "^Subject: *\\(Re: *\\)?"
+				(regexp-quote subject)
+				"\n"))
+	 (forward (> n 0))
+	 (i rmail-current-message)
+	 found)
+    (if (string-match "Re:[ \t]*" subject)
+	(setq subject (substring subject (match-end 0))))
+    (save-excursion
+      (save-restriction
+	(widen)
+	(while (and (/= n 0)
+		    (if forward
+			(< i rmail-total-messages)
+		      (> i 1)))
+	  (let (done)
+	    (while (and (not done)
+			(if forward
+			    (< i rmail-total-messages)
+			  (> i 1)))
+	      (setq i (if forward (1+ i) (1- i)))
+	      (goto-char (rmail-msgbeg i))
+	      (search-forward "\n*** EOOH ***\n")
+	      (let ((beg (point)) end)
+		(search-forward "\n\n")
+		(setq end (point))
+		(goto-char beg)
+		(setq done (re-search-forward search-regexp end t))))
+	    (if done (setq found i)))
+	  (setq n (if forward (1- n) (1+ n))))))
+    (if found
+	(rmail-show-message found)
+      (error "No %s message with same subject"
+	     (if forward "following" "previous")))))
+
+(defun rmail-previous-same-subject (n)
+  "Go to the previous mail message having the same subject header.
+With prefix argument N, do this N times.
+If N is negative, go forwards instead."
+  (interactive "p")
+  (rmail-next-same-subject (- n)))
 
 ;;;; *** Rmail Message Deletion Commands ***
 
