@@ -1062,8 +1062,21 @@ The returned value is a Quail map specific to KEY."
 	      (setq unread-command-events
 		    (cons (aref quail-current-key len)
 			  unread-command-events)))
-	    (insert (or quail-current-str
-			(substring quail-current-key 0 len))))
+	    ;; Insert the translated sequence.
+	    ;; It is a string containing multibyte characters.
+	    ;; If enable-multibyte-characters, just insert it.
+	    (if enable-multibyte-characters
+		(insert (or quail-current-str
+			    (substring quail-current-key 0 len)))
+	      ;; Otherwise, in case the user is using a single-byte
+	      ;; extended-ASCII character set,
+	      ;; try inserting the translated character.
+	      (let ((char (sref (or quail-current-str
+				    (substring quail-current-key 0 len))
+				0)))
+		(if (= (length (split-char char)) 2)
+		    (insert-char (logand char 127))
+		  (error "Cannot insert three-byte character in single-byte mode")))))
 	(insert (or quail-current-str quail-current-key)))))
   (quail-update-guidance)
   (if control-flag
