@@ -1837,7 +1837,8 @@ completions listing is dependent on the value of `comint-completion-autolist'.
 Returns t if successful."
   (interactive)
   (if (comint-match-partial-filename)
-      (prog2 (message "Completing file name...")
+      (prog2 (or (eq (selected-window) (minibuffer-window))
+		 (message "Completing file name..."))
 	  (comint-dynamic-complete-as-filename))))
 
 
@@ -1851,13 +1852,14 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
 	 (pathdir (file-name-directory filename))
 	 (pathnondir (file-name-nondirectory filename))
 	 (directory (if pathdir (comint-directory pathdir) default-directory))
-	 (completion (file-name-completion pathnondir directory)))
+	 (completion (file-name-completion pathnondir directory))
+	 (mini-flag (eq (selected-window) (minibuffer-window))))
     (cond ((null completion)
            (message "No completions of %s" filename)
 	   (setq success nil))
           ((eq completion t)            ; Means already completed "file".
            (if comint-completion-addsuffix (insert " "))
-           (message "Sole completion"))
+           (or mini-flag (message "Sole completion")))
           ((string-equal completion "") ; Means completion on "directory/".
            (comint-dynamic-list-filename-completions))
           (t                            ; Completion string returned.
@@ -1868,19 +1870,19 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
                     ;; We inserted a unique completion.
                     (if comint-completion-addsuffix
                         (insert (if (file-directory-p file) "/" " ")))
-                    (message "Completed"))
+                    (or mini-flag (message "Completed")))
                    ((and comint-completion-recexact comint-completion-addsuffix
                          (string-equal pathnondir completion)
                          (file-exists-p file))
                     ;; It's not unique, but user wants shortest match.
                     (insert (if (file-directory-p file) "/" " "))
-                    (message "Completed shortest"))
+                    (or mini-flag (message "Completed shortest")))
                    ((or comint-completion-autolist
                         (string-equal pathnondir completion))
                     ;; It's not unique, list possible completions.
                     (comint-dynamic-list-filename-completions))
                    (t
-                    (message "Partially completed"))))))
+                    (or mini-flag (message "Partially completed")))))))
     success))
 
 
