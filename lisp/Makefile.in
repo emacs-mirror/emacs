@@ -188,11 +188,11 @@ update-authors:
 	$(emacs) -f batch-update-authors $(srcdir)/AUTHORS $(srcdir)
 
 TAGS: $(lisptagsfiles1) $(lisptagsfiles2)
-	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/loaddefs.*\.el,,"`; \
+	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/loaddefs[^ ]*,," -e "s,$(lisp)/ldefs-boot[^ ]*,,"`; \
 	${ETAGS} $$els
 
 TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
-	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/loaddefs.*\.el,,"`; \
+	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/loaddefs[^ ]*,," -e "s,$(lisp)/ldefs-boot[^ ]*,,"`; \
 	${ETAGS} -o TAGS-LISP $$els
 
 .SUFFIXES: .elc .el
