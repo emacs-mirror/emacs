@@ -1095,7 +1095,7 @@ x_set_icon_type (f, arg, oldval)
   if (result)
     {
       UNBLOCK_INPUT;
-      error ("No icon window available.");
+      error ("No icon window available");
     }
 
   /* If the window was unmapped (and its icon was mapped),
@@ -1108,6 +1108,18 @@ x_set_icon_type (f, arg, oldval)
 
   XFlushQueue ();
   UNBLOCK_INPUT;
+}
+
+/* Return 1 if frame F wants a bitmap icon.  */
+
+int
+x_icon_type (f)
+     FRAME_PTR f;
+{
+  Lisp_Object tem;
+
+  tem = assq_no_quit (Qicon_type, f->param_alist);
+  return (CONSP (tem) && ! NILP (XCONS (tem)->cdr));
 }
 
 extern Lisp_Object x_new_font ();
