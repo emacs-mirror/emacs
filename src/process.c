@@ -2900,7 +2900,7 @@ read_process_output (proc, channel)
 	 save the match data in a special nonrecursive fashion.  */
       running_asynch_code = 1;
 
-      text = make_multibyte_string (chars, nchars, nbytes);
+      text = make_string_from_bytes (chars, nchars, nbytes);
       internal_condition_case_1 (read_process_output_call,
 				 Fcons (outstream,
 					Fcons (proc, Fcons (text, Qnil))),
