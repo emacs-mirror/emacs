@@ -16213,6 +16213,14 @@ decode_mode_spec (w, c, field_width, precision, multibyte)
       return "T";
 #endif
 
+    case 'T':
+      /* %T is the frame name on a termcap frame, the empty string otherwise. */
+      if (! FRAME_TERMCAP_P (f))
+        return "";
+      if (!NILP (f->title))
+	return (char *) SDATA (f->title);
+      return (char *) SDATA (f->name);
+
     case 'z':
       /* coding-system (not including end-of-line format) */
     case 'Z':

@@ -6650,6 +6650,7 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
     f->output_method = d->type;
     f->display = d;
 
+    d->reference_count++;
     d->display_info.tty->top_frame = selected_frame;
     change_frame_size (XFRAME (selected_frame), FrameRows (d->display_info.tty), FrameCols (d->display_info.tty), 0, 0, 1);
 

@@ -630,6 +630,10 @@ make_terminal_frame (tty_name, tty_type)
 #endif
 
     /* Set the top frame to the newly created frame. */
+    if (FRAME_TTY (f)->top_frame
+        && FRAME_LIVE_P (XFRAME (FRAME_TTY (f)->top_frame)))
+      XFRAME (FRAME_TTY (f)->top_frame)->async_visible = 2; /* obscured */
+    
     FRAME_TTY (f)->top_frame = frame;
   }
   
@@ -695,19 +699,25 @@ Note that changing the size of one terminal frame automatically affects all.  */
     tty = Fassq (Qtty, parms);
     if (EQ (tty, Qnil))
       tty = Fassq (Qtty, XFRAME (selected_frame)->param_alist);
+    if (EQ (tty, Qnil) && FRAME_TERMCAP_P (XFRAME (selected_frame))
+        && FRAME_TTY (XFRAME (selected_frame))->name)
+      tty = build_string (FRAME_TTY (XFRAME (selected_frame))->name);
     if (EQ (tty, Qnil))
       tty = Fassq (Qtty, Vdefault_frame_alist);
-    if (! EQ (tty, Qnil))
+    if (! EQ (tty, Qnil) && ! STRINGP (tty))
       tty = XCDR (tty);
     if (EQ (tty, Qnil) || !STRINGP (tty))
       tty = Qnil;
 
     tty_type = Fassq (Qtty_type, parms);
     if (EQ (tty_type, Qnil))
-      tty_type = Fassq (Qtty_type, Vdefault_frame_alist);
-    if (EQ (tty_type, Qnil))
       tty_type = Fassq (Qtty, XFRAME (selected_frame)->param_alist);
-    if (! EQ (tty_type, Qnil))
+    if (EQ (tty_type, Qnil) && FRAME_TERMCAP_P (XFRAME (selected_frame))
+        && FRAME_TTY (XFRAME (selected_frame))->type)
+      tty_type = build_string (FRAME_TTY (XFRAME (selected_frame))->type);
+    if (EQ (tty_type, Qnil))
+      tty_type = Fassq (Qtty_type, Vdefault_frame_alist);
+    if (! EQ (tty_type, Qnil) && ! STRINGP (tty_type))
       tty_type = XCDR (tty_type);
     if (EQ (tty_type, Qnil) || !STRINGP (tty_type))
       tty_type = Qnil;

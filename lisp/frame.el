@@ -32,6 +32,8 @@
 The window system startup file should set this to its frame creation
 function, which should take an alist of parameters as its argument.")
 
+(make-variable-frame-local 'frame-creation-function)
+
 ;; The initial value given here used to ask for a minibuffer.
 ;; But that's not necessary, because the default is to have one.
 ;; By not specifying it here, we let an X resource specify it.
@@ -706,9 +708,9 @@ automatically."
     (select-frame frame)
     (raise-frame frame)
     ;; Ensure, if possible, that frame gets input focus.
-    (cond ((eq window-system 'x)
+    (cond ((eq (window-system frame) 'x)
 	   (x-focus-frame frame))
-	  ((eq window-system 'w32)
+	  ((eq (window-system frame) 'w32)
 	   (w32-focus-frame frame)))
     (cond (focus-follows-mouse
 	   (set-mouse-position (selected-frame) (1- (frame-width)) 0))))

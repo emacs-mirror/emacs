@@ -212,13 +212,18 @@ are done with it in the server.")
   (server-log (format "Status changed to %s" (process-status proc)) proc))
 
 (defun server-handle-delete-tty (tty)
+  "Delete the client connection when the emacsclient frame is deleted."
   (dolist (entry server-ttys)
     (let ((proc (nth 0 entry))
 	  (term (nth 1 entry)))
       (when (equal term tty)
 	(let ((client (assq proc server-clients)))
 	  (setq server-ttys (delq entry server-ttys))
-	  (delete-process (car client)))))))
+	  (delete-process (car client))
+	  (when (assq proc server-clients)
+	    ;; This seems to be necessary to handle
+	    ;; `emacsclient -t -e '(delete-frame)'' correctly.
+	    (setq server-clients (delq client server-clients))))))))
 
 (defun server-select-display (display)
   ;; If the current frame is on `display' we're all set.
@@ -336,6 +341,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 			      (or file-name-coding-system
 				  default-file-name-coding-system)))
 	  client nowait eval newframe
+	  registered	; t if the client is already added to server-clients.
 	  (files nil)
 	  (lineno 1)
 	  (columnno 0))
@@ -363,11 +369,13 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	      (condition-case err
 		  (let ((frame (make-frame-on-tty tty type)))
 		    (setq server-ttys (cons (list (car client) (frame-tty-name frame)) server-ttys))
-		    (sit-for 0)
 		    (process-send-string proc (concat "emacs-pid " (number-to-string (emacs-pid)) "\n"))
 		    (select-frame frame)
-		    (setq newframe t))
-		(error (ignore-errors (process-send-string proc (concat (nth 1 err) "\n")))
+		    ;; This makes sure that `emacsclient -t -e '(delete-frame)'' works right.
+		    (push client server-clients)
+		    (setq registered t
+			  newframe t))
+		(error (process-send-string proc (concat (nth 1 err) "\n"))
 		       (setq request "")))))
 	   ;; ARG is a line number option.
 	   ((string-match "\\`\\+[0-9]+\\'" arg)
@@ -386,12 +394,15 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	    (if eval
 		(condition-case err
 		    (let ((v (eval (car (read-from-string arg)))))
-		      (when (and (not newframe v))
+		      (when (and (not newframe) v)
 			(with-temp-buffer
 			  (let ((standard-output (current-buffer)))
 			    (pp v)
 			    (process-send-region proc (point-min) (point-max))))))
-		  (error (process-send-string proc (concat "*Error* " (error-message-string err)))))
+		  (error
+		   (ignore-errors
+		     (process-send-string
+		      proc (concat "*Error* " (error-message-string err))))))
 
 	      ;; ARG is a file name.
 	      ;; Collapse multiple slashes to single slashes.
@@ -410,7 +421,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	    (delete-process proc)
 	    (server-log "Close empty client" proc))
 	;; We visited some buffer for this client.
-	(or nowait (push client server-clients))
+	(or nowait registered (push client server-clients))
 	(unless (or isearch-mode (minibufferp))
 	  (if (and newframe (null (cdr client)))
 	      (message (substitute-command-keys
@@ -571,6 +582,11 @@ specifically for the clients and did not exist before their request for it."
 ;; using whatever is on disk in that file. -- rms.
 (defun server-kill-buffer-query-function ()
   (or (not server-buffer-clients)
+      (let ((res t))
+	(dolist (proc server-buffer-clients res)
+	  (setq proc (assq proc server-clients))
+	  (when (and proc (eq (process-status (car proc)) 'open))
+	    (setq res nil))))
       (yes-or-no-p (format "Buffer `%s' still has clients; kill it? "
 			   (buffer-name (current-buffer))))))
 

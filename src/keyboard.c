@@ -692,6 +692,7 @@ static Lisp_Object apply_modifiers P_ ((int, Lisp_Object));
 static void clear_event P_ ((struct input_event *));
 static void any_kboard_state P_ ((void));
 static SIGTYPE interrupt_signal P_ ((int signalnum));
+static void handle_interrupt P_ ((void));
 
 /* Nonzero means don't try to suspend even if the operating system seems
    to support it.  */
@@ -1202,10 +1203,7 @@ cmd_error_internal (data, context)
   if (!sf->glyphs_initialized_p
       /* This is the case of the frame dumped with Emacs, when we're
 	 running under a window system.  */
-      || (!NILP (Vwindow_system)
-	  && !inhibit_window_system
-	  && FRAME_TERMCAP_P (sf)
-          && !FRAME_TTY (sf)->type) /* XXX This is ugly. */
+      || FRAME_INITIAL_P (sf)
       || noninteractive)
     {
       stream = Qexternal_debugging_output;
@@ -3606,7 +3604,7 @@ kbd_buffer_store_event (event)
 	  }
 
 	  last_event_timestamp = event->timestamp;
-	  interrupt_signal (0 /* dummy */);
+	  handle_interrupt ();
 	  return;
 	}
 
@@ -10235,10 +10233,10 @@ set_waiting_for_input (time_to_clear)
 {
   input_available_clear_time = time_to_clear;
 
-  /* Tell interrupt_signal to throw back to read_char,  */
+  /* Tell handle_interrupt to throw back to read_char,  */
   waiting_for_input = 1;
 
-  /* If interrupt_signal was called before and buffered a C-g,
+  /* If handle_interrupt was called before and buffered a C-g,
      make it run again now, to avoid timing error. */
   if (!NILP (Vquit_flag))
     quit_throw_to_read_char ();
@@ -10247,7 +10245,7 @@ set_waiting_for_input (time_to_clear)
 void
 clear_waiting_for_input ()
 {
-  /* Tell interrupt_signal not to throw back to read_char,  */
+  /* Tell handle_interrupt not to throw back to read_char,  */
   waiting_for_input = 0;
   input_available_clear_time = 0;
 }
@@ -10263,16 +10261,16 @@ clear_waiting_for_input ()
 
    Otherwise it sets the Lisp variable quit-flag not-nil.  This causes
    eval to throw, when it gets a chance.  If quit-flag is already
-   non-nil, it stops the job right away.  */
+   non-nil, it stops the job right away.
+
+   XXX This comment needs to be updated.  */
 
 static SIGTYPE
 interrupt_signal (signalnum)	/* If we don't have an argument, */
      int signalnum;		/* some compilers complain in signal calls. */
 {
-  char c;
   /* Must preserve main program's value of errno.  */
   int old_errno = errno;
-  struct frame *sf = SELECTED_FRAME ();
 
 #if defined (USG) && !defined (POSIX_SIGNALS)
   /* USG systems forget handlers when they are used;
@@ -10297,6 +10295,20 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
       errno = old_errno;
       return;
     }
+
+  handle_interrupt ();
+
+  errno = old_errno;
+}
+
+/* C-g processing, signal independent code.
+
+   XXX Expand this comment.  */
+static void
+handle_interrupt ()
+{
+  char c; 
+  struct frame *sf = SELECTED_FRAME ();
 
   cancel_echoing ();
 
@@ -10418,8 +10430,6 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
 
   if (waiting_for_input && !echoing)
     quit_throw_to_read_char ();
-
-  errno = old_errno;
 }
 
 /* Handle a C-g by making read_char return C-g.  */

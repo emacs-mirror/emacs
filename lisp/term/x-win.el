@@ -2443,9 +2443,6 @@ order until succeed.")
 ;;; that this is only annoying.
 (setq split-window-keep-point t)
 
-;; Don't show the frame name; that's redundant with X.
-(setq-default mode-line-frame-identification "  ")
-
 ;; Motif direct handling of f10 wasn't working right,
 ;; So temporarily we've turned it off in lwlib-Xm.c
 ;; and turned the Emacs f10 back on.

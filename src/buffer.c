@@ -5364,7 +5364,7 @@ A string is printed verbatim in the mode line except for %-constructs:
   (%-constructs are allowed when the string is the entire mode-line-format
    or when it is found in a cons-cell or a list)
   %b -- print buffer name.      %f -- print visited file name.
-  %F -- print frame name.
+  %F -- print frame name.       %T -- print frame name if on tty.
   %* -- print %, * or hyphen.   %+ -- print *, % or hyphen.
 	%& is like %*, but ignore read-only-ness.
 	% means buffer is read-only and * means it is modified.

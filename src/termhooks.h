@@ -528,5 +528,8 @@ extern struct display *display_list;
 extern struct display *create_display P_ ((void));
 extern void delete_display P_ ((struct display *));
 
+/* The initial display device, created by initial_term_init. */
+extern struct display *initial_display;
+
 /* arch-tag: 33a00ecc-52b5-4186-a410-8801ac9f087d
    (do not change this comment) */

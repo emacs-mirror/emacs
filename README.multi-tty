@@ -104,7 +104,7 @@ For the NEWS file:
    specify a terminal device (`tty' parameter) and a terminal type
    (`tty-type' parameter) to `make-terminal-frame'. `tty' must be a
    terminal device created by the updated emacsclient, or there will
-   be problems with terminal input and window resizes.  
+   be problems with terminal input and window resizes.
 
    You can test for the presence of multiple terminal support by
    testing for the `multi-tty' feature.
@@ -138,7 +138,10 @@ THINGS TO DO
    should simply be removed and make-frame changed to do the right
    thing.
 
-** The command `emacsclient -t -e '(delete-frame)'' fails to exit.
+** Fix interactive use of temacs.  There are face-related SEGVs, most
+   likely because of changes in realize_default_face, realize_face.
+
+** Allow opening an X session after -nw.
 
 ** Find out the best way to support suspending Emacs with multiple
    ttys.  My guess: disable it on the controlling tty, but from other
@@ -146,17 +149,10 @@ THINGS TO DO
    extend emacsclient to handle suspend/resume.  A `kill -STOP' almost
    works right now.)
 
-** If there are no frames on its controlling terminal, Emacs should
-   exit if the uses presses C-c there.  (See the SIGTERM comment in
-   interrupt_signal on why this seems to be impossible to solve
-   generally.)
-
-** During an X session, Emacs seems to read from stdin.
+** Exiting Emacs while there are emacsclient frames don't restore the
+   ttys to their default states.
 
 ** Move baud_rate to struct display.
-
-** Do tty output through struct display, like graphical display
-   backends.
 
 ** Implement support for starting an interactive Emacs session without
    an initial frame.  (The user would connect to it and open frames
@@ -212,10 +208,6 @@ THINGS TO DO
    instead of nread > 0 after calling read_socket_hook in
    read_avail_input.
 
-** Define an output_initial value for output_method for the initial
-   frame that is dumped with Emacs.  Checking for this frame (e.g. in
-   cmd_error_internal) is ugly.
-
 ** emacsclient -t from an Emacs term buffer does not work, complains
    about face problems.  This can even lock up Emacs (if the recursive
    frame sets single_kboard).  Update: the face problems are caused by
@@ -227,7 +219,7 @@ DIARY OF CHANGES
 
 (ex-TODO items with explanations.)
 
--- Introduce a new struct for terminal devices.  
+-- Introduce a new struct for terminal devices.
 
    (Done, see struct tty_output.  The list of members is not yet
    complete.)
@@ -251,12 +243,12 @@ DIARY OF CHANGES
    (Update2: After enabling X, they don't.)
 
 -- other-frame should cycle through the frames on the `current'
-   terminal only.  
+   terminal only.
 
    (Done, by trivially modifiying next_frame and prev_frame.)
 
 -- Support different terminal sizes.
-   
+
    (Done, no problem.)
 
 -- Make sure terminal resizes are handled gracefully.  (Could be
@@ -267,12 +259,12 @@ DIARY OF CHANGES
 
 -- Extend emacsclient to automatically open a new tty when it connects
    to Emacs.
-   
+
    (Done.  It's an ugly hack, needs more work.)
 
 -- Redisplay must refresh the topmost frame on *all* terminals, not
    just the initial terminal.
-   
+
    (Done, but introduced an ugly redisplay problems.  Ugh.)
 
 -- Fix redisplay problems.
@@ -343,7 +335,7 @@ DIARY OF CHANGES
    (Done, we do the same as Emacs 21.2 for all terminals.)
 
 -- 'TERM=dumb src/emacs' does not restore the terminal state.
-   
+
    (Done.)
 
 -- C-g should work on secondary terminals.
@@ -499,5 +491,33 @@ DIARY OF CHANGES
    (Done.  There was a safeguard against writing to the initial
    terminal frame during bootstrap which prevented echo_area_display
    from working correctly on a tty frame during a combo session.)
+
+-- If there are no frames on its controlling terminal, Emacs should
+   exit if the uses presses C-c there.
+
+   (Done, as far as possible.  See the SIGTERM comment in
+   interrupt_signal on why this seems to be impossible to solve this
+   in general.)
+
+-- During an X session, Emacs seems to read from stdin.  Also, Emacs
+   fails to start without a controlling tty.
+
+   (Fixed by replacing the troublesome termcap display with a dummy
+   bootstrap display during bootstrap.
+
+-- Do tty output through struct display, like graphical display
+   backends.
+
+   (Done.)
+
+-- Define an output_initial value for output_method for the initial
+   frame that is dumped with Emacs.  Checking for this frame (e.g. in
+   cmd_error_internal) is ugly.
+
+   (Done, broking interactive temacs.)
+
+-- The command `emacsclient -t -e '(delete-frame)'' fails to exit.
+
+   (Fixed.)
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d
