@@ -36,6 +36,8 @@
 
 (defvar set-case-syntax-offset 0)
 
+(defvar set-case-syntax-set-multibyte nil)
+
 ;;;###autoload
 (defun describe-buffer-case-table ()
   "Describe the case table of the current buffer."
