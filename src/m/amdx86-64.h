@@ -98,8 +98,7 @@ Boston, MA 02111-1307, USA.  */
 #define PNTR_COMPARISON_TYPE unsigned long
 
 /* Define XPNTR to avoid or'ing with DATA_SEG_BITS */
-
-#define XPNTR(a) XUINT (a)
+#undef DATA_SEG_BITS
 
 #undef START_FILES
 #define START_FILES pre-crt0.o /usr/lib64/crt1.o /usr/lib64/crti.o
