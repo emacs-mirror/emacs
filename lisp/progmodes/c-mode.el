@@ -127,6 +127,11 @@ If you do not want a leading newline before braces then use:
 (defconst c-tab-always-indent t
   "*Non-nil means TAB in C mode should always reindent the current line,
 regardless of where in the line point is when the TAB command is used.")
+
+;;; Regular expression used internally to recognize labels in switch
+;;; statements.
+(defconst c-switch-label-regexp "case[ \t'/(]\\|default\\(\\S_\\|'\\)")
+
 
 (defun c-mode ()
   "Major mode for editing C code.
@@ -423,7 +428,7 @@ preserving the comment indentation or line-starting decorations."
 			;; So quickly rule out most other uses of colon
 			;; and do no indentation for them.
 			(and (eq last-command-char ?:)
-			     (not (looking-at "case[ \t'/(]\\|default\\>"))
+			     (not (looking-at c-switch-label-regexp))
 			     (save-excursion
 			       (skip-chars-forward "a-zA-Z0-9_$")
 			       (skip-chars-forward " \t")
@@ -515,7 +520,7 @@ Return the amount the indentation changed by."
 	  (t
 	   (skip-chars-forward " \t")
 	   (if (listp indent) (setq indent (car indent)))
-	   (cond ((or (looking-at "case[ \t'/(]\\|default\\>")
+	   (cond ((or (looking-at c-switch-label-regexp)
 		      (and (looking-at "[A-Za-z]")
 			   (save-excursion
 			     (forward-sexp 1)
@@ -1079,7 +1084,7 @@ ENDPOS is encountered."
 		(setcar indent-stack
 			(setq this-indent val))))
 	    ;; Adjust line indentation according to its contents
-	    (if (or (looking-at "case[ \t'/(]\\|default\\>")
+	    (if (or (looking-at c-switch-label-regexp)
 		    (and (looking-at "[A-Za-z]")
 			 (save-excursion
 			   (forward-sexp 1)
