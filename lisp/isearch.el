@@ -1243,10 +1243,25 @@ and the meta character is unread so that it applies to editing the string."
 	       (pop unread-command-events)
 	       (setq main-event (car unread-command-events)))
 
-	     ;; If we got a mouse click, maybe it was read with the buffer
+	     ;; If we got a mouse click event, that event contains the
+	     ;; window clicked on. maybe it was read with the buffer
 	     ;; it was clicked on.  If so, that buffer, not the current one,
 	     ;; is in isearch mode.  So end the search in that buffer.
-	     (if (and (listp main-event)
+
+	     ;; ??? I have no idea what this if checks for, but it's
+	     ;; obviously wrong for the case that a down-mouse event
+	     ;; on another window invokes this function.  The event
+	     ;; will contain the window clicked on and that window's
+	     ;; buffer is certainaly not always in Isearch mode.
+	     ;;
+	     ;; Leave the code in, but check for current buffer not
+	     ;; being in Isearch mode for now, until someone tells
+	     ;; what it's really supposed to do.
+	     ;;
+	     ;; --gerd 2001-08-10.
+
+	     (if (and (not isearch-mode)
+		      (listp main-event)
 		      (setq window (posn-window (event-start main-event)))
 		      (windowp window)
 		      (or (> (minibuffer-depth) 0)
