@@ -1,3 +1,8 @@
+2003-03-17  Kenichi Handa  <handa@etlken2>
+
+	* international/mule.el (ctext-post-read-conversion): Convert the
+	search pattern to multibyte by string-to-multibyte.
+
 2003-03-16  Deepak Goel  <deego@gnufans.org>
 
 	* calc/calc-forms.el (math-tzone-names): Introduce UTC as an alias
