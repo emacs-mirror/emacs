@@ -1238,7 +1238,7 @@ This function exists on systems that use HAVE_SHM.")
   (intoname)
      Lisp_Object intoname;
 {
-  extern int my_edata;
+  extern char my_edata[];
   Lisp_Object tem;
 
   CHECK_STRING (intoname, 0);
@@ -1273,7 +1273,7 @@ and announce itself normally when it is run.")
   (intoname, symname)
      Lisp_Object intoname, symname;
 {
-  extern int my_edata;
+  extern char my_edata[];
   Lisp_Object tem;
 
   CHECK_STRING (intoname, 0);
