@@ -176,11 +176,17 @@ X frame."
   (1- (length glyph-table)))
 
 ;;;###autoload
-(defun standard-display-european (arg)
+(defun standard-display-european (arg &optional auto)
   "Toggle display of European characters encoded with ISO 8859.
 When enabled, characters in the range of 160 to 255 display not
 as octal escapes, but as accented characters.
-With prefix argument, enable European character display iff arg is positive."
+With prefix argument, enable European character display iff arg is positive.
+
+Ordinarily, we turn off `enable-multibyte-characters' throughout
+Emacs, since someone who uses this function manually
+probably wants to edit European characters in single-byte mode.
+However, if the optional argument AUTO is non-nil, we don't
+alter `enable-multibyte-characters'."
   (interactive "P")
   (if (or (<= (prefix-numeric-value arg) 0)
 	  (and (null arg)
@@ -188,6 +194,10 @@ With prefix argument, enable European character display iff arg is positive."
 	       ;; Test 161, because 160 displays as a space.
 	       (equal (aref standard-display-table 161) [161])))
       (standard-display-default 160 255)
+    ;; If the user does this explicitly,
+    ;; turn off multibyte chars for more compatibility.
+    (or auto
+	(setq-default enable-multibyte-characters nil))
     (standard-display-8bit 160 255)
     ;; Make non-line-break space display as a plain space.
     ;; Most X fonts do the wrong thing for code 160.
