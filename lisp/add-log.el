@@ -67,10 +67,13 @@ This defaults to the value returned by the function `user-full-name'."
 
 ;;;###autoload
 (defcustom add-log-mailing-address nil
-  "*Electronic mail address of user, for inclusion in ChangeLog daily headers.
-This defaults to the value of `user-mail-address'."
+  "*Electronic mail addresses of user, for inclusion in ChangeLog headers.
+This defaults to the value of `user-mail-address'.  In addition to
+being a simple string, this value can also be a list.  All elements
+will be recognized as referring to the same user; when creating a new
+ChangeLog entry, one element will be chosen at random."
   :type '(choice (const :tag "Default" nil)
-		 string)
+		 (repeat string))
   :group 'change-log)
 
 (defcustom add-log-time-format 'add-log-iso8601-time-string
@@ -476,13 +479,22 @@ non-nil, otherwise in local time."
       (skip-chars-forward "\n"))
 
     ;; Advance into first entry if it is usable; else make new one.
-    (let ((new-entry (concat (funcall add-log-time-format)
-			     "  " add-log-full-name
-			     "  <" add-log-mailing-address ">")))
+    (let ((new-entries (mapcar (lambda (addr)
+				 (concat (funcall add-log-time-format)
+					 "  " add-log-full-name
+					 "  <" addr ">"))
+			       (if (consp add-log-mailing-address)
+				   add-log-mailing-address
+				 (list add-log-mailing-address)))))
       (if (and (not add-log-always-start-new-record)
-               (looking-at (regexp-quote new-entry)))
+               (let ((hit nil))
+		 (dolist (entry new-entries hit)
+		   (when (looking-at (regexp-quote entry))
+		     (setq hit t)))))
 	  (forward-line 1)
-	(insert new-entry "\n\n")
+	(insert (nth (random (length new-entries))
+		     new-entries)
+		"\n\n")
 	(forward-line -1)))
 
     ;; Determine where we should stop searching for a usable
