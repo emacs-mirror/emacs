@@ -4,9 +4,9 @@
    Our conjecture that they are needed for hpux version 8,
    which is what runs on the 700.  */
 
-#include "hpux.h"
-
 #define HPUX8
+
+#include "hpux.h"
 
 /* dob@inel.gov says HPUX 8.07 needs this.  He was using X11R5, I think.  */
 #define LIBX11_SYSTEM -lXext
@@ -69,6 +69,3 @@
 
 /* Enable a special hack in XTread_socket.  */
 #define X_IO_BUG
-
-/* Override hpux.h which undefs this flag.  */
-#define HAVE_SYS_WAIT_H
