@@ -369,6 +369,33 @@ This variable used in TAB format mode.")
 (defvar fortran-font-lock-keywords fortran-font-lock-keywords-1
   "Default expressions to highlight in Fortran mode.")
 
+(defvar fortran-imenu-generic-expression
+    (list
+     (list
+      nil
+      ;; Lines are: 1. leading whitespace; 2. function declaration
+      ;; with optional type, e.g. `real', `double precision', [which
+      ;; will be fooled by `end function' allowed by G77]; 3. untyped
+      ;; declarations; 4. the name to index.
+      "^\\s-+\\(\
+\\(\\sw\\|\\s-\\)*\\<function\\|\
+subroutine\\|entry\\|block\\s-*data\\|program\\)[ \t]+\
+\\(\\sw+\\)"
+      3))
+  "imenu generic expression for `imenu-ci-deafult-create-index-function'.")
+(setq fortran-imenu-generic-expression
+    (list
+     (list
+      nil
+      ;; Lines are: 1. leading whitespace; 2. function declaration
+      ;; with optional type, e.g. `real', `double precision', [which
+      ;; will be fooled by `end function' allowed by G77]; 3. untyped
+      ;; declarations; 4. the variable to index.
+      "^\\s-+\\(\
+\\(\\sw\\|\\s-\\)*\\<function\\|\
+subroutine\\|entry\\|block\\s-*data\\|program\\)[ \t]+\
+\\(\\sw+\\)"
+      3)))
 
 (defvar fortran-mode-map () 
   "Keymap used in Fortran mode.")
@@ -587,6 +614,8 @@ with no args, if that value is non-nil."
   (make-local-variable 'fortran-tab-mode-string)
   (setq fortran-tab-mode-string " TAB-format")
   (setq indent-tabs-mode (fortran-analyze-file-format))
+  (make-local-variable 'imenu-generic-expression)
+  (setq imenu-generic-expression fortran-imenu-generic-expression)
   (run-hooks 'fortran-mode-hook))
 
 (defun fortran-comment-hook ()
