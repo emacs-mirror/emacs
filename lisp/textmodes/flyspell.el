@@ -1,6 +1,6 @@
 ;;; flyspell.el --- On-the-fly spell checker
 
-;; Copyright (C) 1998, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Manuel Serrano <Manuel.Serrano@unice.fr>
 ;; Keywords: convenience
@@ -27,12 +27,12 @@
 ;; Flyspell is a minor Emacs mode performing on-the-fly spelling
 ;; checking.
 ;;
-;; To enable Flyspell minor mode, type Meta-x flyspell-mode.
+;; To enable Flyspell minor mode, type M-x flyspell-mode.
 ;; This applies only to the current buffer.
 ;;
 ;; To enable Flyspell in text representing computer programs, type
-;; Meta-x flyspell-prog-mode.
-;; In that mode only text inside comments are checked.
+;; M-x flyspell-prog-mode.
+;; In that mode only text inside comments is checked.
 ;;                                                                  
 ;; Note: consider setting the variable ispell-parser to `tex' to
 ;; avoid TeX command checking; use `(setq ispell-parser 'tex)'.
@@ -69,6 +69,7 @@ Non-nil means use highlight, nil means use minibuffer messages."
 (defcustom flyspell-sort-corrections nil
   "*Non-nil means, sort the corrections alphabetically before popping them."
   :group 'flyspell
+  :version "21.1"
   :type 'boolean)
 
 (defcustom flyspell-duplicate-distance -1
@@ -80,6 +81,7 @@ This variable specifies how far to search to find such a duplicate.
 -1 means no limit (search the whole buffer).
 0 means do not search for duplicate unrecognized spellings."
   :group 'flyspell
+  :version "21.1"
   :type 'number)
 
 (defcustom flyspell-delay 3
@@ -108,6 +110,7 @@ is highlighted."
   "The standard list of delayed commands for Flyspell.
 See `flyspell-delayed-commands'."
   :group 'flyspell
+  :version "21.1"
   :type '(repeat (symbol)))
 
 (defcustom flyspell-delayed-commands nil
@@ -125,6 +128,7 @@ whose length is specified by `flyspell-delay'."
   "The standard list of deplacement commands for Flyspell.
 See `flyspell-deplacement-commands'."
   :group 'flyspell
+  :version "21.1"
   :type '(repeat (symbol)))
 
 (defcustom flyspell-deplacement-commands nil
@@ -132,6 +136,7 @@ See `flyspell-deplacement-commands'."
 After these commands, Flyspell checking is performed only if the previous
 command was not the very same command."
   :group 'flyspell
+  :version "21.1"
   :type '(repeat (symbol)))
 
 (defcustom flyspell-issue-welcome-flag t
@@ -142,33 +147,36 @@ command was not the very same command."
 (defcustom flyspell-incorrect-hook nil
   "*List of functions to be called when incorrect words are encountered.
 Each function is given three arguments: the beginning and the end
-of the incorrect region. The third is either the symbol 'doublon' or the list
+of the incorrect region.  The third is either the symbol 'doublon' or the list
 of possible corrections returned as returned by 'ispell-parse-output'.
 
 If any of the functions return non-Nil, the word is not highligted as
 incorrect."
   :group 'flyspell
+  :version "21.1"
   :type 'hook)
 
 (defcustom flyspell-default-dictionary "american"
   "A string that is the name of the default dictionary.
-This is passed to the ispell-change-dictionary when flyspell is started.
-If the variables ispell-local-dictionary or ispell-dictionary are non nil
+This is passed to the `ispell-change-dictionary' when flyspell is started.
+If the variables `ispell-local-dictionary' or `ispell-dictionary' are non nil
 when flyspell is started, the value of that variables is used instead
-of flyspell-default-dictionary to select the default dictionary."
+of `flyspell-default-dictionary' to select the default dictionary."
   :group 'flyspell
+  :version "21.1"
   :type 'string)
 
 (defcustom flyspell-tex-command-regexp
   "\\(\\(begin\\|end\\)[ \t]*{\\|\\(cite[a-z*]*\\|label\\|ref\\|eqref\\|usepackage\\|documentclass\\)[ \t]*\\(\\[[^]]*\\]\\)?{[^{}]*\\)"
   "A string that is the regular expression that matches TeX commands."
   :group 'flyspell
+  :version "21.1"
   :type 'string)
 
 (defcustom flyspell-check-tex-math-command nil
-  "*Non nils means check even inside TeX math environement. TeX math
-environement are discovered byt eh TEXMATHP that is implemented inside
-the eponyme emacs package. That package may be found at:
+  "*Non nils means check even inside TeX math environement.
+TeX math environments are discovered by the TEXMATHP that implemented
+inside the texmathp.el Emacs package.  That package may be found at:
 http://strw.leidenuniv.nl/~dominik/Tools"
   :group 'flyspell
   :type 'boolean)
@@ -177,18 +185,21 @@ http://strw.leidenuniv.nl/~dominik/Tools"
   '("francais" "deutsch8" "norsk")
   "List of dictionary names that consider `-' as word delimiter."
   :group 'flyspell
+  :version "21.1"
   :type '(repeat (string)))
 
 (defcustom flyspell-abbrev-p
   t
   "*If true, add correction to abbreviation table."
   :group 'flyspell
+  :version "21.1"
   :type 'boolean)
 
 (defcustom flyspell-use-global-abbrev-table-p
   nil
   "*If true, prefer global abbrev table to local abbrev table."
   :group 'flyspell
+  :version "21.1"
   :type 'boolean)
   
 ;;;###autoload
@@ -199,11 +210,13 @@ Set this to nil if you don't want a modeline indicator."
   :type 'string)
 
 (defcustom flyspell-large-region 1000
-  "*The threshold that determines if an region is small. The flyspell-region
-is invoked, if the region is small, the word are checked one after the
-other using regular flyspell check means. If the region is large, a new
-ispell process is spawned to get speed."
+  "*The threshold that determines if a region is small.
+The `flyspell-region' function is invoked if the region is small, the
+word are checked one after the other using regular flyspell check
+means.  If the region is large, a new Ispell process is spawned to get
+speed."
   :group 'flyspell
+  :version "21.1"
   :type 'number)
 
 ;*---------------------------------------------------------------------*/
@@ -350,8 +363,7 @@ property of the major mode name.")
   (let ((map (make-sparse-keymap)))
     (cond
      ((eq flyspell-emacs 'xemacs)
-      (define-key map [(button2)]
-      #'flyspell-correct-word/mouse-keymap)
+      (define-key map [(button2)] #'flyspell-correct-word/mouse-keymap)
       (define-key map "\M-\t" #'flyspell-auto-correct-word))
      (flyspell-use-local-map
       (define-key map [(mouse-2)] #'flyspell-correct-word/mouse-keymap)
@@ -452,7 +464,7 @@ flyspell-buffer checks the whole buffer."
 ;*---------------------------------------------------------------------*/
 ;*    Autoloading                                                      */
 ;*---------------------------------------------------------------------*/
-;;;###autoload 
+;;;###autoload
 (if (fboundp 'add-minor-mode)
     (add-minor-mode 'flyspell-mode
 		    'flyspell-mode-line-string
@@ -466,9 +478,8 @@ flyspell-buffer checks the whole buffer."
 
   (or (assoc 'flyspell-mode minor-mode-map-alist)
       (setq minor-mode-map-alist
-	    (cons (cons 'flyspell-mode flyspell-mode-map)
-		  minor-mode-map-alist))))
-
+ 	    (cons (cons 'flyspell-mode flyspell-mode-map)
+ 		  minor-mode-map-alist))))
 
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-buffers ...                                             */
@@ -775,7 +786,7 @@ Mostly we check word delimiters."
       (insert (format "    %S : %S\n" msg obj)))))
 
 ;*---------------------------------------------------------------------*/
-;*    flyspell-debug-signal-pre-word-checked ...                       */ 
+;*    flyspell-debug-signal-pre-word-checked ...                       */
 ;*---------------------------------------------------------------------*/
 (defun flyspell-debug-signal-pre-word-checked ()
   (setq debug-on-error t)
@@ -790,7 +801,7 @@ Mostly we check word delimiters."
       (goto-char (point-max)))))
     
 ;*---------------------------------------------------------------------*/
-;*    flyspell-debug-signal-word-checked ...                           */ 
+;*    flyspell-debug-signal-word-checked ...                           */
 ;*---------------------------------------------------------------------*/
 (defun flyspell-debug-signal-word-checked ()
   (setq debug-on-error t)
@@ -851,7 +862,7 @@ Mostly we check word delimiters."
       (goto-char (point-max)))))
 
 ;*---------------------------------------------------------------------*/
-;*    flyspell-debug-signal-changed-checked ...                        */ 
+;*    flyspell-debug-signal-changed-checked ...                        */
 ;*---------------------------------------------------------------------*/
 (defun flyspell-debug-signal-changed-checked ()
   (setq debug-on-error t)
@@ -939,7 +950,7 @@ Mostly we check word delimiters."
       (setq following ispell-following-word))
   (save-excursion
     ;; use the correct dictionary
-    (flyspell-accept-buffer-local-defs)	
+    (flyspell-accept-buffer-local-defs)
     (let* ((cursor-location (point))
 	  (flyspell-word (flyspell-get-word following))
 	  start end poss word)
@@ -1051,7 +1062,7 @@ Mostly we check word delimiters."
 		       (flyspell-highlight-incorrect-region start end poss)
 		     (flyspell-notify-misspell start end word poss))))
 	    ;; return to original location
-	    (goto-char cursor-location) 
+	    (goto-char cursor-location)
 	    (if ispell-quit (setq ispell-quit nil)))))))))
 
 ;*---------------------------------------------------------------------*/
@@ -1246,7 +1257,7 @@ Word syntax described by `ispell-dictionary-alist' (which see)."
 ;*    flyspell-external-ispell-process ...                             */
 ;*---------------------------------------------------------------------*/
 (defvar flyspell-external-ispell-process '()
-  "The external Flyspell ispell process")
+  "The external Flyspell Ispell process.")
 
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-external-ispell-buffer ...                              */
@@ -1563,7 +1574,7 @@ misspelled words backwards."
 	(save-excursion
 	  (goto-char pos)
 	  (ispell-word))
-      (error "No word to correct before point."))))
+      (error "No word to correct before point"))))
 
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-display-next-corrections ...                            */
@@ -1928,7 +1939,7 @@ The word checked is the word at the mouse position."
 ;*    flyspell-xemacs-popup ...                                        */
 ;*---------------------------------------------------------------------*/
 (defun flyspell-xemacs-popup (event poss word cursor-location start end save)
-  "The xemacs popup menu."
+  "The XEmacs popup menu."
   (let* ((corrects   (if flyspell-sort-corrections
 			 (sort (car (cdr (cdr poss))) 'string<)
 		       (car (cdr (cdr poss)))))
@@ -2001,9 +2012,9 @@ The word checked is the word at the mouse position."
 ;*    Some example functions for real autocrrecting                   xb */
 ;*---------------------------------------------------------------------*/
 (defun flyspell-maybe-correct-transposition (beg end poss)
-  "Apply 'transpose-chars' to all points in the region BEG to END and
-return t if any those result in a possible replacement suggested by ispell
-in POSS. Otherwise the change is undone.
+  "Apply 'transpose-chars' to all points in the region BEG to END.
+Return t if any those result in a possible replacement suggested by Ispell
+in POSS.  Otherwise the change is undone.
 
 This function is meant to be added to 'flyspell-incorrect-hook'."
   (when (consp poss)
@@ -2026,12 +2037,12 @@ This function is meant to be added to 'flyspell-incorrect-hook'."
       nil)))
 
 (defun flyspell-maybe-correct-doubling (beg end poss)
-  "For each doubled charachter in the region BEG to END, remove one and
-return t if any those result in a possible replacement suggested by ispell
-in POSS. Otherwise the change is undone.
+  "For each doubled charachter in the region BEG to END, remove one.
+Return t if any those result in a possible replacement suggested by
+Ispell in POSS.  Otherwise the change is undone.
 
 This function is meant to be added to 'flyspell-incorrect-hook'."
-  (when (consp poss) 
+  (when (consp poss)
     (catch 'done
       (let ((str (buffer-substring beg end))
 	    (i 0) (len (- end beg)))
