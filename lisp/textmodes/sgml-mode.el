@@ -440,16 +440,13 @@ start tag, and the second `/' is the corresponding null end tag."
 			  (setq blinkpos (point))
 			(setq level (1- level)))
 		    (setq level (1+ level)))))))
-	  (if blinkpos
-	      (progn
-		(goto-char blinkpos)
-		(if (pos-visible-in-window-p)
-		    (sit-for 1)
-		  (message "Matches %s"
-			   (buffer-substring (progn
-					       (beginning-of-line)
-					       (point))
-					     (1+ blinkpos))))))))))
+	  (when blinkpos
+            (goto-char blinkpos)
+            (if (pos-visible-in-window-p)
+                (sit-for 1)
+              (message "Matches %s"
+                       (buffer-substring (line-beginning-position)
+                                         (1+ blinkpos)))))))))
 
 
 (defun sgml-name-char (&optional char)
@@ -827,22 +824,20 @@ If this can't be done, return t."
 
 (defun sgml-value (alist)
   "Interactively insert value taken from attributerule ALIST.
-See `sgml-tag-alist' for info about attributerules.."
+See `sgml-tag-alist' for info about attribute rules."
   (setq alist (cdr alist))
   (if (stringp (car alist))
       (insert "=\"" (car alist) ?\")
     (if (sgml-skip-close-p (car alist)) ; (eq (car alist) t)
-	(if (cdr alist)
-	    (progn
-	      (insert "=\"")
-	      (setq alist (skeleton-read '(completing-read
-					   "Value: " (cdr alist))))
-	      (if (string< "" alist)
-		  (insert alist ?\")
-		(delete-backward-char 2))))
+	(when (cdr alist)
+          (insert "=\"")
+          (setq alist (skeleton-read '(completing-read "Value: " (cdr alist))))
+          (if (string< "" alist)
+              (insert alist ?\")
+            (delete-backward-char 2)))
       (insert "=\"")
-      (if alist
-	  (insert (skeleton-read '(completing-read "Value: " alist))))
+      (when alist
+        (insert (skeleton-read '(completing-read "Value: " alist))))
       (insert ?\"))))
 
 (defun sgml-quote (start end &optional unquotep)
@@ -897,17 +892,16 @@ This takes effect when first loading the library.")
     (define-key map "\C-c\C-ch" 'html-href-anchor)
     (define-key map "\C-c\C-cn" 'html-name-anchor)
     (define-key map "\C-c\C-ci" 'html-image)
-    (if html-quick-keys
-	(progn
-	  (define-key map "\C-c-" 'html-horizontal-rule)
-	  (define-key map "\C-co" 'html-ordered-list)
-	  (define-key map "\C-cu" 'html-unordered-list)
-	  (define-key map "\C-cr" 'html-radio-buttons)
-	  (define-key map "\C-cc" 'html-checkboxes)
-	  (define-key map "\C-cl" 'html-list-item)
-	  (define-key map "\C-ch" 'html-href-anchor)
-	  (define-key map "\C-cn" 'html-name-anchor)
-	  (define-key map "\C-ci" 'html-image)))
+    (when html-quick-keys
+      (define-key map "\C-c-" 'html-horizontal-rule)
+      (define-key map "\C-co" 'html-ordered-list)
+      (define-key map "\C-cu" 'html-unordered-list)
+      (define-key map "\C-cr" 'html-radio-buttons)
+      (define-key map "\C-cc" 'html-checkboxes)
+      (define-key map "\C-cl" 'html-list-item)
+      (define-key map "\C-ch" 'html-href-anchor)
+      (define-key map "\C-cn" 'html-name-anchor)
+      (define-key map "\C-ci" 'html-image))
     (define-key map "\C-c\C-s" 'html-autoview-mode)
     (define-key map "\C-c\C-v" 'browse-url-of-buffer)
     (define-key map [menu-bar html] (cons "HTML" menu-map))
@@ -1298,7 +1292,7 @@ The third `match-string' will be the used in the menu.")
 				   (* 2 (1- (string-to-number (match-string 1))))
 				   ?\ )
 				  (match-string 3))
-			  (save-excursion (beginning-of-line) (point)))
+			  (line-beginning-position))
 		    toc-index))))
     (nreverse toc-index)))
 
