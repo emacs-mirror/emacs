@@ -28,7 +28,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif /* BSD4_2 */
 
 #ifndef BSD
-#define BSD
+#define BSD 1
 #endif /* BSD */
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
