@@ -488,7 +488,9 @@ these.  The selected window is always the most recently used window.
 
 The selected window can be the least recently used window if it is the
 only window.  A newly created window becomes the least recently used
-window until it is selected.  A minibuffer window is never a candidate.
+window until it is selected.  A minibuffer window is never a
+candidate.  Dedicated windows are never candidates, and if all
+existing windows are dedicated, the value is @code{nil}.
 
 The argument @var{frame} controls which windows are considered.
 
@@ -510,10 +512,12 @@ If it is a frame, consider windows on that frame.
 This function returns the window with the largest area (height times
 width).  If there are no side-by-side windows, then this is the window
 with the most lines.  A minibuffer window is never a candidate.
+Dedicated windows are never candidates, and if all existing windows
+are dedicated, the value is @code{nil}.
 
-If there are two windows of the same size, then the function returns
-the window that is first in the cyclic ordering of windows (see
-following section), starting from the selected window.
+If there are two candidate windows of the same size, this function
+prefers the one that comes first in the cyclic ordering of windows
+(see following section), starting from the selected window.
 
 The argument @var{frame} controls which set of windows to
 consider.  See @code{get-lru-window}, above.
