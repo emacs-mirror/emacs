@@ -471,7 +471,9 @@ Leaves the region surrounding the rectangle."
       (picture-substitute 'forward-char 'picture-forward-column)
       (picture-substitute 'backward-char 'picture-backward-column)
       (picture-substitute 'delete-char 'picture-clear-column)
+      ;; There are two possibilities for what is normally on DEL.
       (picture-substitute 'backward-delete-char-untabify 'picture-backward-clear-column)
+      (picture-substitute 'delete-backward-char 'picture-backward-clear-column)
       (picture-substitute 'kill-line 'picture-clear-line)
       (picture-substitute 'open-line 'picture-open-line)
       (picture-substitute 'newline 'picture-newline)
