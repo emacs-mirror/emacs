@@ -970,7 +970,7 @@ whose names match the pattern."
   "*Non-nil means suppress warning messages for symlinked files.
 When nil, Emacs prints a warning when visiting a file that is already
 visited, but with a different name.  Setting this option to t
-suppresses this warning "
+suppresses this warning."
   :group 'files
   :version "21.1"
   :type 'boolean)
@@ -1523,7 +1523,7 @@ If it matches, mode MODE is selected.")
 When checking `inhibit-first-line-modes-regexps', we first discard
 from the end of the file name anything that matches one of these regexps.")
 
-(defvar auto-mode-interpreter-regexp 
+(defvar auto-mode-interpreter-regexp
   "#![ \t]?\\([^ \t\n]*\
 /bin/env[ \t]\\)?\\([^ \t\n]+\\)"
   "Regular expression matching interpreters, for file mode determination.
@@ -3478,7 +3478,7 @@ PATTERN that already quotes some of the special characters."
 			(substring pattern (match-beginning 0)))
 		beg (1+ (match-end 0)))))
       pattern))))
-  
+
 
 (defvar insert-directory-program "ls"
   "Absolute or relative name of the `ls' program used by `insert-directory'.")
