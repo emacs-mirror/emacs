@@ -33,9 +33,6 @@ invalid pointer from string_free_list.
 
 * LOSSAGE
 
-** Fix ispell.el bug reported by Peter Dyballa <Peter_Dyballa@Web.DE>
-on 18 Feb to emacs-pretest-bug.
-
 ** Clean up flymake.el to follow Emacs Lisp conventions.
 
 ** Fix up url-ldap.el.
