@@ -2,7 +2,7 @@
  *
  *                 VIRTUAL MEMORY MAPPING FOR WIN32
  *
- *  $HopeName: MMsrc!vmnt.c(trunk.5) $
+ *  $HopeName: MMsrc!vmnt.c(trunk.6) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -54,7 +54,7 @@
 #include <stddef.h>
 #include <windows.h>
 
-SRCID("$HopeName");
+SRCID("$HopeName$");
 
 
 static SigStruct VMSigStruct;
@@ -63,6 +63,7 @@ static SigStruct VMSigStruct;
 typedef struct VMStruct
 {
   Sig sig;
+  Addr grain;		/* page size */
   Addr base, limit;     /* boundaries of reserved space */
 } VMStruct;
 
@@ -93,8 +94,8 @@ Bool VMIsValid(VM vm, ValidationType validParam)
   AVER(vm->base != 0);
   AVER(vm->limit != 0);
   AVER(vm->base < vm->limit);
-  AVER(IsAligned(VMGrain(), vm->base));
-  AVER(IsAligned(VMGrain(), vm->limit));
+  AVER(IsAligned(vm->grain, vm->base));
+  AVER(IsAligned(vm->grain, vm->limit));
   return(TRUE);
 }
 
@@ -110,7 +111,12 @@ Error VMCreate(VM *vmReturn, Addr size)
   AVER(vmReturn != NULL);
   AVER(sizeof(LPVOID) == sizeof(Addr));  /* .assume.lpvoid-addr */
 
+  /* See .assume.dword-addr */
+  AVER(sizeof(DWORD) == sizeof(Addr));
+
   grain = VMGrain();
+  AVER(IsPoT(grain));    /* see .assume.sysgrain */
+
   AVER(IsAligned(grain, size));
 
   /* Allocate some store for the descriptor.
@@ -128,6 +134,7 @@ Error VMCreate(VM *vmReturn, Addr size)
 
   AVER(IsAligned(grain, (Addr)base));
 
+  vm->grain = grain;
   vm->base = (Addr)base;
   vm->limit = (Addr)base + size;
   AVER(vm->base < vm->limit);  /* .assume.not-last */
@@ -149,7 +156,7 @@ void VMDestroy(VM vm)
 
   AVER(ISVALID(VM, vm));
 
-  grain = VMGrain();
+  grain = vm->grain;
 
   /* This appears to be pretty pointless, since the vm descriptor page
    * is about to vanish completely.  However, the VirtaulFree might
@@ -180,9 +187,7 @@ Addr VMLimit(VM vm)
 Error VMMap(VM vm, Addr base, Addr limit)
 {
   LPVOID b;
-#ifdef DEBUG
-  Addr grain = VMGrain();
-#endif
+  Addr grain = vm->grain;
 
   AVER(ISVALID(VM, vm));
   AVER(IsAligned(grain, base));
@@ -206,9 +211,7 @@ Error VMMap(VM vm, Addr base, Addr limit)
 
 void VMUnmap(VM vm, Addr base, Addr limit)
 {
-#ifdef DEBUG
-  Addr grain = VMGrain();
-#endif
+  Addr grain = vm->grain;
   BOOL b;
 
   AVER(ISVALID(VM, vm));
