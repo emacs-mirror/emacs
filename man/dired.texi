@@ -116,6 +116,7 @@ so that repeated @kbd{d} commands flag successive files.  A numeric
 argument serves as a repeat count.
 
 @vindex dired-recursive-deletes
+@cindex recursive deletion
   The variable @code{dired-recursive-deletes} controls whether the
 delete command will delete non-empty directories (including their
 contents).  The default is to delete only empty directories.
@@ -511,6 +512,7 @@ this command sets the modification time of the new file to be the same
 as that of the old file.
 
 @vindex dired-recursive-copies
+@cindex recursive copying
 The variable @code{dired-recursive-copies} controls whether
 directories are copied recursively.  The default is to not copy
 recursively, which means that directories cannot be copied.
