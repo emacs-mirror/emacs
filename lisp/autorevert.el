@@ -190,7 +190,7 @@ Use this option with care since it could lead to excessive reverts."
   :type 'hook)
 
 (defvar global-auto-revert-ignore-buffer nil
-  "*When non-nil, Gobal Auto-Revert Mode will not revert this buffer.
+  "*When non-nil, Global Auto-Revert Mode will not revert this buffer.
 
 This variable becomes buffer local when set in any faishon.")
 (make-variable-buffer-local 'global-auto-revert-ignore-buffer)
@@ -265,7 +265,7 @@ Use `auto-revert-mode' to revert a particular buffer."
 	  (> (prefix-numeric-value arg) 0)))
   (if (and auto-revert-verbose
 	   (interactive-p))
-      (message "Gobal Auto-Revert Mode is now %s."
+      (message "Global Auto-Revert Mode is now %s."
 	       (if global-auto-revert-mode "on" "off")))
   (auto-revert-set-timer)
   (when global-auto-revert-mode
