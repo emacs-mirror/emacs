@@ -5228,6 +5228,7 @@ x_to_w32_charset (lpcs)
   else if (stricmp (lpcs, "iso8859-6") == 0)     return ARABIC_CHARSET;
   else if (stricmp (lpcs, "iso8859-7") == 0)     return GREEK_CHARSET;
   else if (stricmp (lpcs, "iso8859-8") == 0)     return HEBREW_CHARSET;
+  else if (stricmp (lpcs, "iso8859-9") == 0)     return TURKISH_CHARSET;
   else if (stricmp (lpcs, "viscii") == 0)        return VIETNAMESE_CHARSET;
   else if (stricmp (lpcs, "vscii") == 0)         return VIETNAMESE_CHARSET;
   else if (stricmp (lpcs, "tis620") == 0)        return THAI_CHARSET;
@@ -5255,7 +5256,7 @@ w32_to_x_charset (fncharset)
     case ANSI_CHARSET:        return "iso8859-1";
     case DEFAULT_CHARSET:     return "ascii-*";
     case SYMBOL_CHARSET:      return "*-symbol";
-    case SHIFTJIS_CHARSET:    return "jisx0212-sjis";
+    case SHIFTJIS_CHARSET:    return "jisx0208-sjis";
     case HANGEUL_CHARSET:     return "ksc5601-*";
     case GB2312_CHARSET:      return "gb2312-*";
     case CHINESEBIG5_CHARSET: return "big5-*";
@@ -5265,16 +5266,18 @@ w32_to_x_charset (fncharset)
          character sets.  */
 #ifdef EASTEUROPE_CHARSET
     case EASTEUROPE_CHARSET: return "iso8859-2";
-    case TURKISH_CHARSET:    return "iso8859-3";
+    case TURKISH_CHARSET:    return "iso8859-9";
     case BALTIC_CHARSET:     return "iso8859-4";
-    case RUSSIAN_CHARSET:    return "iso8859-5";
+    case RUSSIAN_CHARSET:    return "koi8-r";
     case ARABIC_CHARSET:     return "iso8859-6";
     case GREEK_CHARSET:      return "iso8859-7";
     case HEBREW_CHARSET:     return "iso8859-8";
     case VIETNAMESE_CHARSET: return "viscii1.1-*";
     case THAI_CHARSET:       return "tis620-*";
     case MAC_CHARSET:        return "*-mac";
-    case JOHAB_CHARSET:      break; /* What is this? Latin-9? */
+      /* Johab is Korean, but Hangeul is the standard - what is this? */
+    case JOHAB_CHARSET:      return "*-johab";
+
 #endif
 
 #ifdef UNICODE_CHARSET
