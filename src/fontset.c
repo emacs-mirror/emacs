@@ -464,6 +464,10 @@ If REGEXPP is non-nil, PATTERN is a regular expression.")
   if (XSTRING (pattern)->size == 0)
     return Qnil;
 
+  tem = Frassoc (pattern, Vfontset_alias_alist);
+  if (!NILP (tem))
+    return Fcar (tem);
+
   if (NILP (regexpp))
     regexp = fontset_pattern_regexp (pattern);
   else
@@ -557,16 +561,15 @@ FONTLIST is an alist of charsets vs corresponding font names.")
      Lisp_Object name, fontlist;
 {
   Lisp_Object fullname, fontset_info;
-  Lisp_Object tail, tem;
+  Lisp_Object tail;
 
   (*check_window_system_func) ();
 
   CHECK_STRING (name, 0);
   CHECK_LIST (fontlist, 1);
 
-  tem = Frassoc (name, Vfontset_alias_alist);
   fullname = Fquery_fontset (name, Qnil);
-  if (!NILP (tem) || !NILP (fullname))
+  if (!NILP (fullname))
     error ("Fontset `%s' matches the existing fontset `%s'",
 	   XSTRING (name)->data, XSTRING (fullname)->data);
 
@@ -608,7 +611,6 @@ If FRAME is omitted or nil, all frames are affected.")
 {
   int charset;
   Lisp_Object fullname, fontlist;
-  Lisp_Object tem;
 
   (*check_window_system_func) ();
 
@@ -621,9 +623,8 @@ If FRAME is omitted or nil, all frames are affected.")
   if ((charset = get_charset_id (charset_symbol)) < 0)
     error ("Invalid charset: %s", XSYMBOL (charset_symbol)->name->data);
 
-  tem = Frassoc (name, Vfontset_alias_alist);
   fullname = Fquery_fontset (name, Qnil);
-  if (!NILP (tem) || !NILP (fullname))
+  if (!NILP (fullname))
     error ("Fontset `%s' does not exist", XSTRING (name)->data);
 
   /* If FRAME is not specified, we must, at first, update contents of
