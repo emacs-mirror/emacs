@@ -1,6 +1,6 @@
 ;;; flyspell.el --- On-the-fly spell checker
 
-;; Copyright (C) 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000 Free Software Foundation, Inc.
 
 ;; Author: Manuel Serrano <Manuel.Serrano@unice.fr>
 ;; Keywords: convenience
@@ -213,31 +213,31 @@ property of the major mode name.")
 (defvar flyspell-mode nil)
 (make-variable-buffer-local 'flyspell-mode)
 
+(defvar flyspell-mouse-map
+  (let ((map (make-sparse-keymap)))
+    (cond
+     ((eq flyspell-emacs 'xemacs)
+      (define-key map [(button2)]
+	#'flyspell-correct-word/mouse-keymap)
+      (define-key flyspell-mouse-map "\M-\t" #'flyspell-auto-correct-word))
+     (flyspell-use-local-map
+      (define-key map [(mouse-2)] #'flyspell-correct-word/mouse-keymap)
+      (define-key map "\M-\t" #'flyspell-auto-correct-word)))
+    map))
 (defvar flyspell-mode-map (make-sparse-keymap))
-(defvar flyspell-mouse-map (make-sparse-keymap))
 
 (or (assoc 'flyspell-mode minor-mode-alist)
     (setq minor-mode-alist
 	  (cons '(flyspell-mode " Fly") minor-mode-alist)))
 
 ;; mouse or local-map bindings
-(cond
- ((eq flyspell-emacs 'xemacs)
-  (define-key flyspell-mouse-map [(button2)]
-    (function flyspell-correct-word/mouse-keymap))
-  (define-key flyspell-mouse-map "\M-\t" 'flyspell-auto-correct-word))
- (flyspell-use-local-map
-  (define-key flyspell-mouse-map [(mouse-2)]
-    (function flyspell-correct-word/mouse-keymap))
-  (define-key flyspell-mouse-map "\M-\t" 'flyspell-auto-correct-word))
- (t
-  (or (assoc 'flyspell-mode minor-mode-map-alist)
-      (setq minor-mode-map-alist
-  	  (cons (cons 'flyspell-mode flyspell-mode-map)
-  		minor-mode-map-alist)))
-  (define-key flyspell-mode-map "\M-\t" 'flyspell-auto-correct-word)
-  (define-key flyspell-mode-map [(mouse-2)]
-    (function flyspell-correct-word/local-keymap))))
+(when (or (assoc 'flyspell-mode minor-mode-map-alist)
+	   (setq minor-mode-map-alist
+		 (cons (cons 'flyspell-mode flyspell-mode-map)
+		       minor-mode-map-alist)))
+   (define-key flyspell-mode-map "\M-\t" 'flyspell-auto-correct-word)
+   (define-key flyspell-mode-map [(mouse-2)]
+     (function flyspell-correct-word/local-keymap)))
 
 ;; the name of the overlay property that defines the keymap
 (defvar flyspell-overlay-keymap-property-name
@@ -311,6 +311,8 @@ flyspell-buffer checks the whole buffer."
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-mode-on ...                                             */
 ;*---------------------------------------------------------------------*/
+(eval-when-compile (defvar flyspell-local-mouse-map))
+
 (defun flyspell-mode-on ()
   "Turn Flyspell mode on.  Do not use this; use `flyspell-mode' instead."
   (setq ispell-highlight-face 'flyspell-incorrect-face)
@@ -356,11 +358,20 @@ flyspell-buffer checks the whole buffer."
   ;; (thanks to Jeff Miller and Roland Rosenfeld who sent me this
   ;; improvement).
   (add-hook 'kill-buffer-hook
-	    '(lambda ()
-	       (if (and flyspell-multi-language-p ispell-process)
-		   (ispell-kill-ispell t))))
+	    (lambda ()
+	      (if (and flyspell-multi-language-p ispell-process)
+		  (ispell-kill-ispell t))))
   (make-local-hook 'change-major-mode-hook)
   (add-hook 'change-major-mode-hook 'flyspell-mode-off)
+  ;; Use this so that we can still get major mode bindings at a
+  ;; misspelled word (unless they're overridden by
+  ;; `flyspell-mouse-map').
+  (set (make-local-variable 'flyspell-local-mouse-map)
+       (let ((map (copy-keymap flyspell-mouse-map)))
+	 (if (eq flyspell-emacs 'xemacs)
+	     (set-keymap-parents (list (current-local-map)))
+	   (set-keymap-parent map (current-local-map)))
+	 map))
   ;; we end with the flyspell hooks
   (run-hooks 'flyspell-mode-hook))
 
@@ -884,7 +895,7 @@ for the overlay."
     (if flyspell-use-local-map
 	(overlay-put flyspell-overlay
 		     flyspell-overlay-keymap-property-name
-		     flyspell-mouse-map))))
+		     flyspell-local-mouse-map))))
     
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-highlight-incorrect-region ...                          */
@@ -1125,7 +1136,7 @@ The word checked is the word at the mouse position."
 			(progn
 			  (delete-region start end)
 			  (insert word))))))
-	    ((string-match "XEmacs" (emacs-version))
+	    ((eq flyspell-emacs 'xemacs)
 	     (flyspell-xemacs-popup
 	      event poss word cursor-location start end)))
       (ispell-pdict-save t))
