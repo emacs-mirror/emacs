@@ -187,17 +187,23 @@ These supersede the values given in `default-frame-alist'.")
 				  default-frame-alist
 				  (frame-parameters frame-initial-frame)
 				  nil))
-		   ;; Get rid of `reverse', because that was handled
-		   ;; when we first made the frame.
-		   (new (make-frame
-			 ;; Use the geometry args that created the existing
-			 ;; frame, rather than the parms we get for it.q
-			 (append frame-initial-geometry-arguments
-				 (let (frame-initial-geometry-arguments)
-				   (frame-remove-geometry-params
-				    (cons '(reverse . nil)
-					  (delq (assq 'reverse parms)
-						parms))))))))
+		   new)
+	      ;; Get rid of `reverse', because that was handled
+	      ;; when we first made the frame.
+	      (setq parms (cons '(reverse) (delq (assq 'reverse parms) parms)))
+	      (if (assq 'height frame-initial-geometry-arguments)
+		  (setq parms (delq (assq 'height parms) parms)))
+	      (if (assq 'width frame-initial-geometry-arguments)
+		  (setq parms (delq (assq 'width parms) parms)))
+	      (if (assq 'left frame-initial-geometry-arguments)
+		  (setq parms (delq (assq 'left parms) parms)))
+	      (if (assq 'top frame-initial-geometry-arguments)
+		  (setq parms (delq (assq 'top parms) parms)))
+	      (setq new
+		    (make-frame
+		     ;; Use the geometry args that created the existing
+		     ;; frame, rather than the parms we get for it.
+		     (append frame-initial-geometry-arguments parms)))
 	      ;; The initial frame, which we are about to delete, may be
 	      ;; the only frame with a minibuffer.  If it is, create a
 	      ;; new one.
