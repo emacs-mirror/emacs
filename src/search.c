@@ -415,6 +415,7 @@ string_match_1 (regexp, string, start, posix)
 
 DEFUN ("string-match", Fstring_match, Sstring_match, 2, 3, 0,
   "Return index of start of first match for REGEXP in STRING, or nil.\n\
+Case is ignored if `case-fold-search' is non-nil in the current buffer.\n\
 If third arg START is non-nil, start search at that index in STRING.\n\
 For index of first char beyond the match, do (match-end 0).\n\
 `match-end' and `match-beginning' also give indices of substrings\n\
@@ -428,6 +429,7 @@ matched by parenthesis constructs in the pattern.")
 DEFUN ("posix-string-match", Fposix_string_match, Sposix_string_match, 2, 3, 0,
   "Return index of start of first match for REGEXP in STRING, or nil.\n\
 Find the longest match, in accord with Posix regular expression rules.\n\
+Case is ignored if `case-fold-search' is non-nil in the current buffer.\n\
 If third arg START is non-nil, start search at that index in STRING.\n\
 For index of first char beyond the match, do (match-end 0).\n\
 `match-end' and `match-beginning' also give indices of substrings\n\
