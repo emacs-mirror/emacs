@@ -1668,7 +1668,8 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 	  ;; This requires write access to the containing dir,
 	  ;; which is why we don't try it if we don't have that access.
 	  (let ((realname buffer-file-name)
-		tempname temp nogood i succeed)
+		tempname temp nogood i succeed
+		(old-modtime (visited-file-modtime)))
 	    (setq i 0)
 	    (setq nogood t)
 	    ;; Find the temporary name to write under.
@@ -1683,7 +1684,10 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 		       (setq succeed t))
 	      ;; If writing the temp file fails,
 	      ;; delete the temp file.
-	      (or succeed (delete-file tempname)))
+	      (or succeed 
+		  (progn
+		    (delete-file tempname)
+		    (set-visited-file-modtime old-modtime))))
 	    ;; Since we have created an entirely new file
 	    ;; and renamed it, make sure it gets the
 	    ;; right permission bits set.
