@@ -2359,7 +2359,7 @@ init_alloc_once ()
   gcprolist = 0;
   staticidx = 0;
   consing_since_gc = 0;
-  gc_cons_threshold = 100000;
+  gc_cons_threshold = 300000;
 #ifdef VIRT_ADDR_VARIES
   malloc_sbrk_unused = 1<<22;	/* A large number */
   malloc_sbrk_used = 100000;	/* as reasonable as any number */
