@@ -132,4 +132,40 @@ Leaves original message, deleted, before the undigestified messages."
 	     (delete-region (point-min) (point-max))
 	     (rmail-show-message rmail-current-message))))))
 
+(defun unforward-rmail-message ()
+  "Extract a forwarded message from the containing message.
+This puts the forwarded message into a separate rmail message
+following the containing message."
+  (interactive)
+  (narrow-to-region (rmail-msgbeg rmail-current-message)
+		    (rmail-msgend rmail-current-message))
+  (goto-char (point-min))
+  (let (beg end (buffer-read-only nil) msg-string who-forwarded-it)
+    (setq who-forwarded-it (mail-fetch-field "From"))
+    (if (re-search-forward "^-* Start of forwarded message -*$" nil t)
+	(setq beg (1+ (point)))
+      (error "No forwarded message"))
+    (if (re-search-forward "^-* End of forwarded message -*$" nil t)
+	(setq end (match-beginning 0))
+      (error "No terminator for forwarded message"))
+    (widen)
+    (setq msg-string (buffer-substring beg end))
+    (goto-char (rmail-msgend rmail-current-message))
+    (narrow-to-region (point) (point))
+    (insert "\^_\^L\n0, unseen,,\n*** EOOH ***\n")
+    (narrow-to-region (point) (point))
+    (insert "Forwarded-by: " who-forwarded-it "\n")
+    (insert msg-string)
+    (goto-char (point-min))
+    (while (not (eobp))
+      (if (looking-at "- ")
+	  (delete-region (point) (+ 2 (point))))
+      (forward-line 1))
+    (let ((n rmail-current-message))
+      (rmail-forget-messages)
+      (rmail-show-message n)
+      (if (rmail-summary-exists)
+	  (rmail-select-summary
+	   (rmail-update-summary))))))
+
 ;;; undigest.el ends here
