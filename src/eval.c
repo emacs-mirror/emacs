@@ -254,6 +254,8 @@ call_debugger (arg)
   redisplaying_p = 0;
   specbind (intern ("debugger-may-continue"),
 	    debug_while_redisplaying ? Qnil : Qt);
+  specbind (Qinhibit_redisplay, Qnil);
+  specbind (Qinhibit_eval_during_redisplay, Qt);
   
   val = apply1 (Vdebugger, arg);
 
