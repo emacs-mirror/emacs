@@ -1143,7 +1143,8 @@ Leave point after argument."
   (let (anchor-string 
         (here (- (point) 7))  ; save location of beginning of `@anchor'
         (arg (texinfo-parse-arg-discard)))
-    (delete-char 1)           ; since a space is left after -discard
+    (if (looking-at " ")      ; since a space may be left after -discard
+      (delete-char 1))
     (forward-paragraph) 
     (let ((end (point)))
       (if (save-excursion 
