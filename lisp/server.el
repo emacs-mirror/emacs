@@ -180,27 +180,29 @@ Prefix arg means just kill any existing server communications subprocess."
 	  (lineno 1))
       ;; Remove this line from STRING.
       (setq string (substring string (match-end 0)))	  
-      (if (string-match "^Client: " request)
-	  (setq request (substring request (match-end 0))))
-      (setq client (list (substring request 0 (string-match " " request))))
-      (setq request (substring request (match-end 0)))
-      (while (string-match "[^ ]+ " request)
-	(let ((arg
-	       (substring request (match-beginning 0) (1- (match-end 0)))))
-	  (setq request (substring request (match-end 0)))
-	  (if (string-match "\\`\\+[0-9]+\\'" arg)
-	      (setq lineno (read (substring arg 1)))
-	    (setq files
-		  (cons (list arg lineno)
-			files))
-	    (setq lineno 1))))
-      (server-visit-files files client)
-      ;; CLIENT is now a list (CLIENTNUM BUFFERS...)
-      (setq server-clients (cons client server-clients))
-      (server-switch-buffer (nth 1 client))
-      (run-hooks 'server-switch-hook)
-      (message (substitute-command-keys
-		"When done with a buffer, type \\[server-edit]."))))
+      (if (string-match "^Error: " request)
+	  (message (concat "Server error: " (substring request (match-end 0))))
+	(if (string-match "^Client: " request)
+	    (setq request (substring request (match-end 0))))
+	(setq client (list (substring request 0 (string-match " " request))))
+	(setq request (substring request (match-end 0)))
+	(while (string-match "[^ ]+ " request)
+	  (let ((arg
+		 (substring request (match-beginning 0) (1- (match-end 0)))))
+	    (setq request (substring request (match-end 0)))
+	    (if (string-match "\\`\\+[0-9]+\\'" arg)
+		(setq lineno (read (substring arg 1)))
+	      (setq files
+		    (cons (list arg lineno)
+			  files))
+	      (setq lineno 1))))
+	(server-visit-files files client)
+	;; CLIENT is now a list (CLIENTNUM BUFFERS...)
+	(setq server-clients (cons client server-clients))
+	(server-switch-buffer (nth 1 client))
+	(run-hooks 'server-switch-hook)
+	(message (substitute-command-keys
+		  "When done with a buffer, type \\[server-edit]")))))
   ;; Save for later any partial line that remains.
   (setq server-previous-string string))
 
