@@ -214,7 +214,7 @@ get_keymap_1 (object, error, autoload)
   /* Should we do an autoload?  Autoload forms for keymaps have
      Qkeymap as their fifth element.  */
   if (autoload
-      && XTYPE (object) == Lisp_Symbol
+      && SYMBOLP (object)
       && CONSP (tem)
       && EQ (XCONS (tem)->car, Qautoload))
     {
@@ -279,7 +279,7 @@ access_keymap (map, idx, t_ok, noinherit)
 
   /* If idx is a symbol, it might have modifiers, which need to
      be put in the canonical order.  */
-  if (XTYPE (idx) == Lisp_Symbol)
+  if (SYMBOLP (idx))
     idx = reorder_modifiers (idx);
   else if (INTEGERP (idx))
     /* Clobber the high bits that can be present on a machine
@@ -318,7 +318,7 @@ access_keymap (map, idx, t_ok, noinherit)
 	    break;
 
 	  case Lisp_Vector:
-	    if (XTYPE (idx) == Lisp_Int
+	    if (INTEGERP (idx)
 		&& XINT (idx) >= 0
 		&& XINT (idx) < XVECTOR (binding)->size)
 	      {
@@ -368,14 +368,14 @@ get_keyelt (object, autoload)
 	 use DEFN.
 	 Keymap alist elements like (CHAR MENUSTRING . DEFN)
 	 will be used by HierarKey menus.  */
-      else if (XTYPE (object) == Lisp_Cons
-	       && XTYPE (XCONS (object)->car) == Lisp_String)
+      else if (CONSP (object)
+	       && STRINGP (XCONS (object)->car))
 	{
 	  object = XCONS (object)->cdr;
 	  /* Also remove a menu help string, if any,
 	     following the menu item name.  */
 	  if (XTYPE (object) == Lisp_Cons
-	      && XTYPE (XCONS (object)->car) == Lisp_String)
+	      && STRINGP (XCONS (object)->car) == Lisp_String)
 	    object = XCONS (object)->cdr;
 	  /* Also remove the sublist that caches key equivalences, if any.  */
 	  if (CONSP (object)
@@ -1351,7 +1351,7 @@ spaces are put between sequence elements, etc.")
   Lisp_Object sep;
   Lisp_Object *args;
 
-  if (XTYPE (keys) == Lisp_String)
+  if (STRINGP (keys))
     {
       Lisp_Object vector;
       vector = Fmake_vector (Flength (keys), Qnil);
@@ -1366,6 +1366,8 @@ spaces are put between sequence elements, etc.")
 	}
       keys = vector;
     }
+  else if (VECTORP (keys))
+    keys = wrong_type_argument (Qarrayp, keys);
 
   /* In effect, this computes
      (mapconcat 'single-key-description keys " ")
