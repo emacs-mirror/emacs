@@ -40,9 +40,14 @@ messages and use the existing info files.
 
 After Emacs is installed, you can run it by typing `emacs -nw' from a
 terminal (make sure your path contains /usr/local/bin) or by
-double-clicking on mac/Emacs.app in the Finder.  At present,
-command-line options cannot be passed to Emacs running under the Aqua
-GUI.  This should soon be fixed.
+double-clicking on mac/Emacs.app in the Finder.  To start Emacs as a
+GUI application from the terminal, the pathname to the executable in
+the bundle, i.e.,
+
+  .../emacs/mac/Emacs.app/Contents/MacOS/Emacs
+
+must be typed to the shell to enable Emacs to locate its resources
+correctly.
 
 If you are building Emacs to run on Mac OS X and X Window, you need to
 create a directory containing statically-linked X libraries.
