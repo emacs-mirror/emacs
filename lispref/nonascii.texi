@@ -1185,7 +1185,7 @@ error messages, for encoding the format argument to
 @tindex system-messages-locale
 This variable specifies the locale to use for generating system error
 messages.  Changing the locale can cause messages to come out in a
-different language or in a different orthorgraphy.  If the variable is
+different language or in a different orthography.  If the variable is
 @code{nil}, the locale is specified by environment variables in the
 usual POSIX fashion.
 @end defvar
