@@ -1,7 +1,7 @@
 /* impl.c.ld: LOCATION DEPENDENCY IMPLEMENTATION
  *
- * $HopeName: MMsrc!ld.c(trunk.7) $
- * Copyright (C) 1996 Harlequin Group, all rights reserved.
+ * $HopeName: MMsrc!ld.c(trunk.8) $
+ * Copyright (C) 1996 Harlequin Limited.  All rights reserved.
  *
  * .def: A location dependency records the fact that the bit-patterns
  * of some references will be used directly (most likely for
@@ -32,7 +32,7 @@
  * is needed is to see whether its reference set intersects with the
  * movement since its epoch.
  *
- * .mod: ARENA_LD_LENGTH is used as a modulus to calculate the offset
+ * .mod: LDHistoryLENGTH is used as a modulus to calculate the offset
  * of an epoch in the history, so it's best if this is a power of two.
  * (impl.h.mpmconf)
  *
@@ -48,7 +48,7 @@
 
 #include "mpm.h"
 
-SRCID(ld, "$HopeName: MMsrc!ld.c(trunk.7) $");
+SRCID(ld, "$HopeName: MMsrc!ld.c(trunk.8) $");
 
 
 /* LDReset -- reset a dependency to empty
@@ -57,7 +57,6 @@ SRCID(ld, "$HopeName: MMsrc!ld.c(trunk.7) $");
  * because if the epoch advances after it is read the dependency
  * will simply include movement for more time than necessary.
  */
-
 void LDReset(LD ld, Arena arena)
 {
   Bool b;
@@ -67,14 +66,12 @@ void LDReset(LD ld, Arena arena)
   AVERT(Arena, arena);
 
   b = SegOfAddr(&seg, arena, (Addr)ld);
-  if(b) {
+  if (b)
     ShieldExpose(arena, seg);   /* .ld.access */
-  }
   ld->epoch = arena->epoch;
   ld->rs = RefSetEMPTY;
-  if(b) {
+  if (b)
     ShieldCover(arena, seg);
-  }
 }
 
 
@@ -89,14 +86,13 @@ void LDReset(LD ld, Arena arena)
  * Users should ensure that calls to LDAdd operating on the same LD are
  * serialized.
  *
- * .add.sync: Add must take place _before_ the location of the
- * reference is depended on.  If the reference changes between
- * adding and depending it will show up as moved because the
- * movement will have occured since the epoch recorded in the
- * dependency.  If the location were used first only the new
- * location of the reference would end up in the set.
+ * .add.sync: Add must take place _before_ the location of the reference
+ * is depended on.  If the reference changes between adding and
+ * depending it will show up as moved because the movement will have
+ * occured since the epoch recorded in the dependency.  If the location
+ * were used first only the new location of the reference would end up
+ * in the set.
  */
-
 void LDAdd(LD ld, Arena arena, Addr addr)
 {
   AVER(ld->epoch <= arena->epoch);
@@ -126,7 +122,6 @@ void LDAdd(LD ld, Arena arena, Addr addr)
  * .stale.old: Otherwise, if the dependency is older than the length
  * of the history, check it against all movement that has ever occured.
  */
-
 Bool LDIsStale(LD ld, Arena arena, Addr addr)
 {
   RefSet rs;
@@ -136,16 +131,16 @@ Bool LDIsStale(LD ld, Arena arena, Addr addr)
   AVER(ld->epoch <= arena->epoch);
   /* AVERT(Arena, arena) -- .stale.thread-safe */
 
-  if(arena->epoch == ld->epoch) /* .stale.current */
+  if (arena->epoch == ld->epoch) /* .stale.current */
     return FALSE;
 
   /* Load the history refset, _then_ check to see if it's recent.
    * This may in fact load an okay refset, which we decide to throw
    * away and use the pre-history instead. */
-  rs = arena->history[ld->epoch % ARENA_LD_LENGTH];
+  rs = arena->history[ld->epoch % LDHistoryLENGTH];
   /* .stale.recent */
   /* .stale.recent.conservative */
-  if(arena->epoch - ld->epoch > ARENA_LD_LENGTH) {
+  if (arena->epoch - ld->epoch > LDHistoryLENGTH) {
     rs = arena->prehistory;     /* .stale.old */
   }
 
@@ -163,7 +158,6 @@ Bool LDIsStale(LD ld, Arena arena, Addr addr)
  * because it updates the notion of the 'current' and 'oldest' history
  * entries.
  */
-
 void LDAge(Arena arena, RefSet rs)
 {
   Size i;
@@ -171,15 +165,15 @@ void LDAge(Arena arena, RefSet rs)
   AVERT(Arena, arena);
   AVER(rs != RefSetEMPTY);
 
-  /* Replace the entry for epoch - ARENA_LD_LENGTH by an empty */
+  /* Replace the entry for epoch - LDHistoryLENGTH by an empty */
   /* set which will become the set which has moved since the */
   /* current epoch. */
-  arena->history[arena->epoch % ARENA_LD_LENGTH] = RefSetEMPTY;
+  arena->history[arena->epoch % LDHistoryLENGTH] = RefSetEMPTY;
 
   /* Record the fact that the moved set has moved, by adding it */
   /* to all the sets in the history, including the set for the */
   /* current epoch. */
-  for(i = 0; i < ARENA_LD_LENGTH; ++i)
+  for(i = 0; i < LDHistoryLENGTH; ++i)
     arena->history[i] = RefSetUnion(arena->history[i], rs);
 
   /* This is the union of all movement since time zero. */
@@ -193,11 +187,10 @@ void LDAge(Arena arena, RefSet rs)
 
 /* LDMerge -- merge two location dependencies
  *
- * .merge.lock-free:  This function is thread safe with respect to the
- * (rest of the) mps.  It is unnecessary to claim locks before calling
+ * .merge.lock-free:  This function is thread-safe with respect to the
+ * (rest of the) MPS.  It is unnecessary to claim locks before calling
  * this function.
  */
-
 void LDMerge(LD ld, Arena arena, LD from)
 {
   /* AVERT(Arena, arena); -- .merge.lock-free */
@@ -209,7 +202,7 @@ void LDMerge(LD ld, Arena arena, LD from)
   /* If a reference has been added since epoch e1 then I've */
   /* certainly added since epoch e0 where e0 < e1.  Therefore */
   /* the epoch of the merged ld is the minimum. */
-  if(from->epoch < ld->epoch)
+  if (from->epoch < ld->epoch)
     ld->epoch = from->epoch;
 
   /* The set of references added is the union of the two. */

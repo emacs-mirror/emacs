@@ -1,6 +1,6 @@
 /* impl.c.global: ARENA-GLOBAL INTERFACES
  *
- * $HopeName: MMsrc!global.c(trunk.6) $
+ * $HopeName: MMsrc!global.c(trunk.7) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .sources: See design.mps.arena.  design.mps.thread-safety is relevant
@@ -28,7 +28,7 @@
 #include "mpm.h"
 
 
-SRCID(global, "$HopeName: MMsrc!global.c(trunk.6) $");
+SRCID(global, "$HopeName: MMsrc!global.c(trunk.7) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -102,7 +102,7 @@ Bool ArenaCheck(Arena arena)
   CHECKL(RingCheck(&arena->threadRing));
 
   CHECKL(BoolCheck(arena->insideShield));
-  CHECKL(arena->shCacheLimit <= SHIELD_CACHE_SIZE);
+  CHECKL(arena->shCacheLimit <= ShieldCacheSIZE);
   CHECKL(arena->shCacheI < arena->shCacheLimit);
   CHECKL(BoolCheck(arena->suspended));
 
@@ -139,9 +139,9 @@ Bool ArenaCheck(Arena arena)
   /* check that each history entry is a subset of the next oldest */
   rs = RefSetEMPTY;
   /* note this loop starts from 1; there is no history age 0 */
-  for (i=1; i <= ARENA_LD_LENGTH; ++ i) {
+  for (i=1; i <= LDHistoryLENGTH; ++ i) {
     /* check history age 'i'; 'j' is the history index. */
-    Index j = (arena->epoch + ARENA_LD_LENGTH - i) % ARENA_LD_LENGTH;
+    Index j = (arena->epoch + LDHistoryLENGTH - i) % LDHistoryLENGTH;
     CHECKL(RefSetSub(rs, arena->history[j]));
     rs = arena->history[j];
   }
@@ -199,7 +199,7 @@ void ArenaInit(Arena arena, Lock lock, ArenaClass class)
   arena->shCacheLimit = (Size)1;
   arena->shDepth = (Size)0;
   arena->suspended = FALSE;
-  for(i = 0; i < SHIELD_CACHE_SIZE; i++)
+  for(i = 0; i < ShieldCacheSIZE; i++)
     arena->shCache[i] = NULL;
   arena->pollThreshold = 0.0;
   arena->insidePoll = FALSE;
@@ -216,7 +216,7 @@ void ArenaInit(Arena arena, Lock lock, ArenaClass class)
 
   arena->epoch = (Epoch)0;              /* impl.c.ld */
   arena->prehistory = RefSetEMPTY;
-  for(i = 0; i < ARENA_LD_LENGTH; ++i)
+  for(i = 0; i < LDHistoryLENGTH; ++i)
     arena->history[i] = RefSetEMPTY;
 
   arena->sig = ArenaSig;
@@ -721,10 +721,10 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
   if (res != ResOK) return res;
 
   res = WriteF(stream,
-               "  lock $P\n",          (WriteFP)arena->lock,
+               "  lock $P\n", (WriteFP)arena->lock,
                "  pollThreshold $U KB\n",
                (WriteFU)(arena->pollThreshold / 1024),
-               "  insidePoll $S\n",    arena->insidePoll ? "YES" : "NO",
+               "  insidePoll $S\n", arena->insidePoll ? "YES" : "NO",
                "  poolSerial $U\n", (WriteFU)arena->poolSerial,
                "  rootSerial $U\n", (WriteFU)arena->rootSerial,
                "  formatSerial $U\n", (WriteFU)arena->formatSerial,
@@ -734,11 +734,11 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
                "  busyTraces    $B\n", (WriteFB)arena->busyTraces,
                "  flippedTraces $B\n", (WriteFB)arena->flippedTraces,
                /* @@@@ no TraceDescribe function */
-               "  epoch $U\n",         (WriteFU)arena->epoch,
+               "  epoch $U\n", (WriteFU)arena->epoch,
                NULL);
   if (res != ResOK) return res;
 
-  for(i=0; i < ARENA_LD_LENGTH; ++ i) {
+  for(i=0; i < LDHistoryLENGTH; ++ i) {
     res = WriteF(stream,
                  "    history[$U] = $B\n", i, arena->history[i],
                  NULL);
@@ -747,7 +747,7 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
   
   res = WriteF(stream,
                "    [note: indices are raw, not rotated]\n"
-               "    prehistory = $B\n",    (WriteFB)arena->prehistory,
+               "    prehistory = $B\n", (WriteFB)arena->prehistory,
                NULL);
   if (res != ResOK) return res;
 
