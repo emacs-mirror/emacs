@@ -41,6 +41,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 
 static void fatal_unexec ();
+static void mark_x ();
 
 #define READ(_fd, _buffer, _size, _error_message, _error_arg) \
 	errno = EEOF; \
@@ -277,7 +278,7 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
  * After succesfully building the new a.out, mark it executable
  */
 
-static
+static void
 mark_x (name)
      char *name;
 {
