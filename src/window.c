@@ -164,6 +164,7 @@ make_window ()
   XSETFASTINT (p->height, 0);
   XSETFASTINT (p->width, 0);
   XSETFASTINT (p->hscroll, 0);
+  XSETFASTINT (p->last_point, 0);
   XSETFASTINT (p->last_point_x, 0);
   XSETFASTINT (p->last_point_y, 0);
   p->start = Fmake_marker ();
