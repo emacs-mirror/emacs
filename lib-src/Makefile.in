@@ -164,9 +164,21 @@ blessmail: ../src/emacs
 	chmod +x blessmail
 #endif
 
+maybe-blessmail: BLESSMAIL
+#ifdef MOVEMAIL_NEEDS_BLESSING
+/* Don't charge ahead and do it!  Let the installer decide.
+	  ./blessmail ${archlibdir}/movemail  */
+	@if [ `wc -l <blessmail` != 2 ] ; then \
+	  dir=`sed -n -e 's/echo mail directory = \(.*\)/\1/p' blessmail`; \
+	  echo Assuming $$dir is really the mail spool directory, you should; \
+	  echo run  ./blessmail ${archlibdir}/movemail; \
+	  echo as root, to give  movemail  appropriate permissions.; \
+	fi
+#endif
+
 /* Install the internal utilities.  Until they are installed, we can
    just run them directly from lib-src.  */
-${archlibdir}: all BLESSMAIL
+${archlibdir}: all
 	@echo
 	@echo "Installing utilities run internally by Emacs."
 	./make-path ${archlibdir}
@@ -178,16 +190,6 @@ ${archlibdir}: all BLESSMAIL
 	    (cd ..; $(INSTALL_PROGRAM) ${srcdir}/$$file ${archlibdir}/$$file); \
 	  done ; \
 	fi
-#ifdef MOVEMAIL_NEEDS_BLESSING
-/* Don't charge ahead and do it!  Let the installer decide.
-	  ./blessmail ${archlibdir}/movemail  */
-	@if [ `wc -l <blessmail` != 2 ] ; then \
-	  dir=`sed -n -e 's/echo mail directory = \(.*\)/\1/p' blessmail`; \
-	  echo Assuming $$dir is really the mail spool directory, you should; \
-	  echo run  ./blessmail ${archlibdir}/movemail; \
-	  echo as root, to give  movemail  appropriate permissions.; \
-	fi
-#endif
 
 /* We don't need to install `wakeup' explicitly, because it will be
    copied when this whole directory is copied.  */
