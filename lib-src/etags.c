@@ -806,6 +806,7 @@ typedef struct	{
 
 #include	<rmsdef.h>
 #include	<descrip.h>
+#include	<lib$routines.h>
 #define		OUTSIZE	MAX_FILE_SPEC_LEN
 static short
 fn_exp (out, in)
