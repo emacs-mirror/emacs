@@ -557,6 +557,7 @@ Otherwise return nil.")
       unchanged = i;
       i = split_interval_right (unchanged, s - unchanged->position + 1);
       set_properties (properties, i);
+
       if (LENGTH (i) > len)
 	{
 	  i = split_interval_right (i, len);
@@ -572,7 +573,7 @@ Otherwise return nil.")
       i = next_interval (i);
     }
 
-  while (1)
+  while (len > 0)
     {
       if (LENGTH (i) >= len)
 	{
@@ -694,6 +695,7 @@ range START to END. Returns t if any change was made, nil otherwise.")
      Lisp_Object object, start, end;
 {
   register INTERVAL i, unchanged;
+  register prev_changed = NULL_INTERVAL;
   register int s, len, modified;
 
   i = validate_interval_range (object, &start, &end, soft);
@@ -702,46 +704,82 @@ range START to END. Returns t if any change was made, nil otherwise.")
 
   s = XINT (start);
   len = XINT (end) - s;
+
   if (i->position != s)
     {
-      int got = LENGTH (i) - (s - i->position);
+      register int got;
+      unchanged = i;
 
-      if (got > len)
+      /* If there are properties here, then this text will be modified. */
+      if (!NILP (i->plist))
 	{
-	  if (NILP (i->plist))
-	    return Qnil;
-
-	  unchanged = i;
 	  i = split_interval_right (unchanged, s - unchanged->position + 1);
-	  i = split_interval_right (i, len + 1);
-	  copy_properties (unchanged, i);
-	  return Qt;
-	}
-
-      if (! NILP (i->plist))
-	{
-	  i = split_interval_right (i, s - i->position + 1);
+	  i->plist = Qnil;
 	  modified++;
+
+	  if (LENGTH (i) > len)
+	    {
+	      i = split_interval_right (i, len + 1);
+	      copy_properties (unchanged, i);
+	      return Qt;
+	    }
+
+	  if (LENGTH (i) == len)
+	    return Qt;
+
+	  got = LENGTH (i);
 	}
+      /* If the text of i is without any properties, and contains
+         LEN or more characters, then we return witout changing anything.*/
+      else if (LENGTH (i) - (s - i->position) <= len)
+	return Qnil;
+      else
+	got = LENGTH (i) - (s - i->position);
 
       len -= got;
+      prev_changed = i;
       i = next_interval (i);
     }
 
-  /* We are starting at the beginning of an interval */
+  /* We are starting at the beginning of an interval, I. */
   while (len > 0)
     {
-      if (LENGTH (i) > len)
+      if (LENGTH (i) >= len)
 	{
-	  if (NILP (i->plist))
-	    return modified ? Qt : Qnil;
+	  /* If this last interval is exactly the right length,
+	     or is already without properties, then there's nothing
+	     to do except merge it if possible. */
+	  if (NILP (i->plist) || LENGTH (i) == len)
+	    {
+	      if (! NULL_INTERVAL_P (prev_changed))
+		merge_interval_left (i);
 
+	      return modified ? Qt : Qnil;
+	    }
+
+	  /* Here we know the last interval is longer than LEN and
+	     has properties. */
 	  i = split_interval_left (i, len + 1);
-	  return Qt;
+	  modified += erase_properties (i);
+	  if (! NULL_INTERVAL_P (prev_changed))
+	    merge_interval_left (i);
+
+	  return modified ? Qt : Qnil;
 	}
 
       len -= LENGTH (i);
-      modified += erase_properties (i);
+      if (NULL_INTERVAL_P (prev_changed))
+	{
+	  modified += erase_properties (i);
+	  prev_changed = i;
+	}
+      else
+	{
+	  if (! NULL_INTERVAL_P (i))
+	    modified++;
+	  prev_changed = i = merge_interval_left (i);
+	}
+
       i = next_interval (i);
     }
 
