@@ -348,7 +348,10 @@ Interactively it is the prefix arg.
 
 The lines are shown in a buffer named `*Occur*'.
 It serves as a menu to find any of the occurrences in this buffer.
-\\[describe-mode] in that buffer will explain how."
+\\[describe-mode] in that buffer will explain how.
+
+If REGEXP contains upper case characters (excluding those preceded by
+\\), the matching is case-sensitive."
   (interactive
    (list (let* ((default (car regexp-history))
 		(input
@@ -371,6 +374,8 @@ It serves as a menu to find any of the occurrences in this buffer.
 	(dir default-directory)
 	(linenum 1)
 	(prevpos (point-min))
+	(case-fold-search  (and case-fold-search
+				(isearch-no-upper-case-p regexp t)))
 	(final-context-start (make-marker)))
 ;;;	(save-excursion
 ;;;	  (beginning-of-line)
