@@ -41,7 +41,7 @@ Boston, MA 02111-1307, USA.  */
 struct regexp_cache
 {
   struct regexp_cache *next;
-  Lisp_Object regexp;
+  Lisp_Object regexp, whitespace_regexp;
   struct re_pattern_buffer buf;
   char fastmap[0400];
   /* Nonzero means regexp was compiled to do full POSIX backtracking.  */
@@ -109,7 +109,9 @@ matcher_overflow ()
    for this pattern.  0 means backtrack only enough to get a valid match.
    MULTIBYTE is nonzero if we want to handle multibyte characters in
    PATTERN.  0 means all multibyte characters are recognized just as
-   sequences of binary data.  */
+   sequences of binary data.
+
+   The behavior also depends on Vsearch_whitespace_regexp.  */
 
 static void
 compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
@@ -160,6 +162,7 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
   cp->buf.translate = (! NILP (translate) ? translate : make_number (0));
   cp->posix = posix;
   cp->buf.multibyte = multibyte;
+  cp->whitespace_regexp = Vsearch_whitespace_regexp;
   BLOCK_INPUT;
   old = re_set_syntax (RE_SYNTAX_EMACS
 		       | (posix ? 0 : RE_NO_POSIX_BACKTRACKING));
@@ -232,7 +235,8 @@ compile_pattern (pattern, regp, translate, posix, multibyte)
 	  && !NILP (Fstring_equal (cp->regexp, pattern))
 	  && EQ (cp->buf.translate, (! NILP (translate) ? translate : make_number (0)))
 	  && cp->posix == posix
-	  && cp->buf.multibyte == multibyte)
+	  && cp->buf.multibyte == multibyte
+	  && !NILP (Fequal (cp->whitespace_regexp, Vsearch_whitespace_regexp)))
 	break;
 
       /* If we're at the end of the cache, compile into the nil cell
@@ -2981,6 +2985,7 @@ syms_of_search ()
       searchbufs[i].buf.buffer = (unsigned char *) xmalloc (100);
       searchbufs[i].buf.fastmap = searchbufs[i].fastmap;
       searchbufs[i].regexp = Qnil;
+      searchbufs[i].whitespace_regexp = Qnil;
       staticpro (&searchbufs[i].regexp);
       searchbufs[i].next = (i == REGEXP_CACHE_SIZE-1 ? 0 : &searchbufs[i+1]);
     }
