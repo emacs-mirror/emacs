@@ -2434,12 +2434,22 @@ since only regular expressions have distinguished subexpressions.")
       int length = STRING_BYTES (XSTRING (newtext));
       unsigned char *substed;
       int substed_alloc_size, substed_len;
+      int buf_multibyte = !NILP (current_buffer->enable_multibyte_characters);
+      int str_multibyte = STRING_MULTIBYTE (newtext);
+      Lisp_Object rev_tbl;
+
+      rev_tbl= (!buf_multibyte && CHAR_TABLE_P (Vnonascii_translation_table)
+		? Fchar_table_extra_slot (Vnonascii_translation_table,
+					  make_number (0))
+		: Qnil);
 
       substed_alloc_size = length * 2 + 100;
       substed = (unsigned char *) xmalloc (substed_alloc_size + 1);
       substed_len = 0;
 
-      /* Go thru NEWTEXT, producing the actual text to insert in SUBSTED.  */
+      /* Go thru NEWTEXT, producing the actual text to insert in
+	 SUBSTED while adjusting multibyteness to that of the current
+	 buffer.  */
 
       for (pos_byte = 0, pos = 0; pos_byte < length;)
 	{
@@ -2448,7 +2458,19 @@ since only regular expressions have distinguished subexpressions.")
 	  int add_len;
 	  int idx = -1;
 
-	  FETCH_STRING_CHAR_ADVANCE (c, newtext, pos, pos_byte);
+	  if (str_multibyte)
+	    {
+	      FETCH_STRING_CHAR_ADVANCE (c, newtext, pos, pos_byte);
+	      if (!buf_multibyte)
+		c = multibyte_char_to_unibyte (c, rev_tbl);
+	    }
+	  else
+	    {
+	      /* Note that we don't have to increment POS.  */
+	      c = XSTRING (newtext)->data[pos_byte++];
+	      if (buf_multibyte)
+		c = unibyte_char_to_multibyte (c);
+	    }
 
 	  /* Either set ADD_STUFF and ADD_LEN to the text to put in SUBSTED,
 	     or set IDX to a match index, which means put that part
@@ -2456,7 +2478,19 @@ since only regular expressions have distinguished subexpressions.")
 
 	  if (c == '\\')
 	    {
-	      FETCH_STRING_CHAR_ADVANCE (c, newtext, pos, pos_byte);
+	      if (str_multibyte)
+		{
+		  FETCH_STRING_CHAR_ADVANCE (c, newtext, pos, pos_byte);
+		  if (!buf_multibyte && !SINGLE_BYTE_CHAR_P (c))
+		    c = multibyte_char_to_unibyte (c, rev_tbl);
+		}
+	      else
+		{
+		  c = XSTRING (newtext)->data[pos_byte++];
+		  if (buf_multibyte)
+		    c = unibyte_char_to_multibyte (c);
+		}
+
 	      if (c == '&')
 		idx = sub;
 	      else if (c >= '1' && c <= '9' && c <= search_regs.num_regs + '0')
@@ -2467,7 +2501,10 @@ since only regular expressions have distinguished subexpressions.")
 	      else if (c == '\\')
 		add_len = 1, add_stuff = "\\";
 	      else
-		error ("Invalid use of `\\' in replacement text");
+		{
+		  xfree (substed);
+		  error ("Invalid use of `\\' in replacement text");
+		}
 	    }
 	  else
 	    {
