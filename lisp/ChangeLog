@@ -1,3 +1,21 @@
+2000-11-10  Dave Love  <fx@gnu.org>
+
+	* ediff.el (ediff-regions-internal, ediff-documentation):
+	* ediff-vers.el (rcs-ediff-view-revision): Put temp buffer into
+	fundamental mode.
+
+	* ediff-util.el (ediff-status-info, ediff-debug-info): Put temp
+	buffer into fundamental mode.
+	(ediff-set-difference): Use copy-sequence if available.
+
+	* ediff-ptch.el (ediff-dispatch-file-patching-job): Check
+	ediff-patch-map non-nil.
+	(ediff-fixup-patch-map, ediff-fixup-patch-map)
+	(ediff-fixup-patch-map, ediff-patch-file-internal): Put temp
+	buffer into fundamental mode.
+
+	* ediff-merg.el (state-or-merge): Defvar when compiling.
+
 2000-11-10  Jason Rumney  <jasonr@gnu.org>
 
 	* w32-fns.el (w32-add-charset-info): New function.
