@@ -1,3 +1,12 @@
+2003-06-06  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (QCcategory): New variable.
+	(syms_of_coding): Defsym it.  Set all elements of
+	Vcoding_category_table and their symbol values.
+	(Fset_coding_system_priority): Doc fix.  Update symbol qvalues of
+	coding-category-XXX, and coding-category-list.
+	(Fdefine_coding_system_internal): Add category in the plist.
+
 2003-06-05  Kenichi Handa  <handa@m17n.org>
 
 	* callproc.c (Fcall_process): Handle carryover correctly.
