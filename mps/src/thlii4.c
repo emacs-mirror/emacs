@@ -21,14 +21,14 @@
  * i.e. stack pointer points to the last allocated location;
  * stack grows downwards.
  *
- * .stack.below-bottom: it's legal for the stack pointer to be at a 
- * higher address than the registered bottom of stack. This might 
- * happen if the stack of another thread doesn't contain any frames 
+ * .stack.below-bottom: it's legal for the stack pointer to be at a
+ * higher address than the registered bottom of stack. This might
+ * happen if the stack of another thread doesn't contain any frames
  * belonging to the client language. In this case, the stack should
  * not be scanned.
  *
  * .stack.align: assume roots on the stack are always word-aligned,
- * but don't assume that the stack pointer is necessarily 
+ * but don't assume that the stack pointer is necessarily
  * word-aligned at the time of reading the context of another thread.
  *
  * .sp: The stack pointer in the context is ESP.
@@ -58,7 +58,7 @@ typedef struct ThreadStruct {    /* PThreads thread structure */
   RingStruct arenaRing;          /* threads attached to arena */
   PThreadextStruct thrextStruct; /* PThreads extension */
   pthread_t id;                  /* Pthread object of thread */
-  struct sigcontext *scpSusp;    /* Context if thread is suspended */
+  MutatorFaultContextStruct mfc; /* Context if thread is suspended */
 } ThreadStruct;
 
 
@@ -92,9 +92,9 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
   AVER(threadReturn != NULL);
   AVERT(Arena, arena);
 
-  res = ControlAlloc(&p, arena, sizeof(ThreadStruct), 
+  res = ControlAlloc(&p, arena, sizeof(ThreadStruct),
                      /* withReservoirPermit */ FALSE);
-  if(res != ResOK) 
+  if(res != ResOK)
     return res;
   thread = (Thread)p;
 
@@ -106,7 +106,7 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
   thread->serial = arena->threadSerial;
   ++arena->threadSerial;
   thread->arena = arena;
-  thread->scpSusp = NULL;
+  thread->mfc.scp = NULL;
 
   PThreadextInit(&thread->thrextStruct, thread->id);
 
@@ -169,9 +169,9 @@ static void threadSuspend(Thread thread)
   /* assume the thread has been destroyed. */
   /* In which case we simply continue. */
   Res res;
-  res = PThreadextSuspend(&thread->thrextStruct, &thread->scpSusp);
+  res = PThreadextSuspend(&thread->thrextStruct, &thread->mfc);
   if(res != ResOK)
-    thread->scpSusp = NULL;
+    thread->mfc.scp = NULL;
 }
 
 
@@ -188,13 +188,13 @@ void ThreadRingSuspend(Ring threadRing)
 static void threadResume(Thread thread)
 {
   /* .error.resume */
-  /* If the previous suspend failed (thread->scpSusp == NULL), */
+  /* If the previous suspend failed (thread->mfc.scp == NULL), */
   /* or in the error case (PThreadextResume returning ResFAIL), */
   /* assume the thread has been destroyed. */
   /* In which case we simply continue. */
-  if(thread->scpSusp != NULL) {
+  if(thread->mfc.scp != NULL) {
     (void)PThreadextResume(&thread->thrextStruct);
-    thread->scpSusp = NULL;
+    thread->mfc.scp = NULL;
   }
 }
 
@@ -246,7 +246,7 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
     struct sigcontext *scp;
     Addr *stackBase, *stackLimit, stackPtr;
 
-    scp = thread->scpSusp;
+    scp = thread->mfc.scp;
     if(scp == NULL) {
       /* .error.suspend */
       /* We assume that the thread must have been destroyed. */
@@ -288,15 +288,15 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
 Res ThreadDescribe(Thread thread, mps_lib_FILE *stream)
 {
   Res res;
-  
+
   res = WriteF(stream,
                "Thread $P ($U) {\n", (WriteFP)thread, (WriteFU)thread->serial,
-               "  arena $P ($U)\n",  
+               "  arena $P ($U)\n",
                (WriteFP)thread->arena, (WriteFU)thread->arena->serial,
                "  id $U\n",          (WriteFU)thread->id,
                "} Thread $P ($U)\n", (WriteFP)thread, (WriteFU)thread->serial,
                NULL);
-  if(res != ResOK) 
+  if(res != ResOK)
     return res;
 
   return ResOK;

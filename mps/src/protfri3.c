@@ -1,45 +1,32 @@
-/*  impl.c.protlii3: PROTECTION FOR LINUX (INTEL 386)
+/*  impl.c.protfri3: PROTECTION FOR FREEBSD (INTEL 386)
  *
  *  $HopeName: MMsrc!protlii3.c(trunk.3) $
  *  Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * SOURCES
  *
- * .source.i486: Intel486 Microprocessor Family Programmer's 
+ * .source.i486: Intel486 Microprocessor Family Programmer's
  * Reference Manual
  *
- * .source.linux.kernel: Linux kernel source files.
+ * .source.man: sigaction(2): FreeBSD System Calls Manual.
  */
 
-#include "prmcli.h"
+#include "prmcfr.h"
 
-#ifndef MPS_OS_LI
-#error "protlii3.c is Linux-specific, but MPS_OS_LI is not set"
+#ifndef MPS_OS_FR
+#error "protfri3.c is FreeBSD-specific, but MPS_OS_FR is not set"
 #endif
 #if !defined(MPS_ARCH_I3) && !defined(MPS_ARCH_I4)
-#error "protlii3.c is Intel-specific, but MPS_ARCH_I3 or MPS_ARCH_I4 is not set"
+#error "protfri3.c is Intel-specific, but MPS_ARCH_I3 or MPS_ARCH_I4 is not set"
 #endif
 #ifndef PROTECTION
-#error "protlii3.c implements protection, but PROTECTION is not set"
+#error "protfri3.c implements protection, but PROTECTION is not set"
 #endif
 
-#include <limits.h>
-#include <stddef.h>
-#include <stdlib.h>
 #include <signal.h>
+#include <machine/trap.h>
 
-SRCID(protlii3, "$HopeName: MMsrc!protlii3.c(trunk.3) $");
-
-
-/* Useful stuff that doesn't appear to be in any header files. */
-
-/* Interrupt number 14 is Page Fault. */ 
-#define TRAPNO_PAGE_FAULT 14
-
-/* Bits in err field of sigcontext for interrupt 14 (page fault) */
-#define PAGE_FAULT_ERR_PAGEPROT   0x1
-#define PAGE_FAULT_ERR_WRITE      0x2
-#define PAGE_FAULT_ERR_USERMODE   0x4
+SRCID(protfri3, "$HopeName: MMsrc!protlii3.c(trunk.3) $");
 
 
 /* The previously-installed signal action, as returned by */
@@ -47,58 +34,53 @@ SRCID(protlii3, "$HopeName: MMsrc!protlii3.c(trunk.3) $");
 
 static struct sigaction sigNext;
 
-
-typedef void (*__real_lii3_sighandler_t)(int, struct sigcontext);
-
-
 /* sigHandle -- protection signal handler
  *
  *  This is the signal handler installed by ProtSetup to deal with
- *  protection faults.  It is installed on the SIGSEGV signal.
- *  It decodes the protection fault details from the signal context
- *  and passes them to ArenaAccess, which attempts to handle the
- *  fault and remove its cause.  If the fault is handled, then
- *  the handler returns and execution resumes.  If it isn't handled,
- *  then sigHandle does its best to pass the signal on to the
- *  previously installed signal handler (sigNext).
+ *  protection faults.  It is installed on the SIGBUS signal.  It
+ *  decodes the protection fault details from the signal context and
+ *  passes them to ArenaAccess, which attempts to handle the fault and
+ *  remove its cause.  If the fault is handled, then the handler
+ *  returns and execution resumes.  If it isn't handled, then
+ *  sigHandle does its best to pass the signal on to the previously
+ *  installed signal handler (sigNext).
  *
- *  .sigh.args: There is no officially documented way of getting the
- *  sigcontext, but on x86 Linux at least it is passed BY VALUE as a
- *  second argument to the signal handler.  The prototype doesn't
- *  include this arg.
- *  See .source.linux.kernel (linux/arch/i386/kernel/signal.c).
+ *  .sigh.args: The sigaction manual page .source.man documents three
+ *  different handler prototypes: ANSI C sa_handler, traditional BSD
+ *  sa_handler, and POSIX SA_SIGINFO sa_sigaction.  The ANSI C
+ *  prototype isn't powerful enough for us (can't get addresses), and
+ *  the manual page deprecates the BSD sa_handler in favour of the
+ *  POSIX SA_SIGINFO sa_sigaction.  In that prototype, the arguments
+ *  are: signal number, pointer to signal info structure, pointer to
+ *  signal context structure.
  *
- *  .sigh.context: We only know how to handle interrupt 14, where
- *  context.err gives the page fault error code and context.cr2 gives
- *  the fault address.  See .source.i486 (9.9.14) and
- *  .source.linux.kernel (linux/arch/i386/mm/fault.c).
+ *  .sigh.context: We only know how to handle signals with code
+ *  BUS_PAGE_FAULT, where info->si_addr gives the fault address.
  *
- *  .sigh.addr: We assume that the OS decodes the address to something
- *  sensible
+ *  .sigh.mode: The fault type (read/write) does not appear to be
+ *  available to the signal handler (see mail archive).
  */
- 
-static void sigHandle(int sig, struct sigcontext context)  /* .sigh.args */
-{
-  AVER(sig == SIGSEGV);
 
-  if(context.trapno == TRAPNO_PAGE_FAULT) {  /* .sigh.context */
+static void sigHandle(int sig, siginfo_t *info, void *context)  /* .sigh.args */
+{
+  ucontext_t *ucontext = (ucontext_t *)context;
+  AVER(sig == SIGBUS);
+
+  if(info->si_code == BUS_PAGE_FAULT) {  /* .sigh.context */
     AccessSet mode;
     Addr base, limit;
     MutatorFaultContextStruct mfContext;
 
-    mfContext.scp = &context;
+    mfContext.ucontext = ucontext;
 
-    mode = ((context.err & PAGE_FAULT_ERR_WRITE) != 0)  /* .sigh.context */
-             ? (AccessREAD | AccessWRITE)
-             : AccessREAD;
+    mode = AccessREAD | AccessWRITE; /* .sigh.mode */
 
     /* We assume that the access is for one word at the address. */
-    base = (Addr)context.cr2;   /* .sigh.addr */
+    base = (Addr)info->si_addr;   /* .sigh.context */
     limit = AddrAdd(base, (Size)sizeof(Addr));
 
     /* Offer each protection structure the opportunity to handle the */
     /* exception.  If it succeeds, then allow the mutator to continue. */
-
     if(ArenaAccess(base, mode, &mfContext))
       return;
   }
@@ -118,7 +100,13 @@ static void sigHandle(int sig, struct sigcontext context)  /* .sigh.args */
     NOTREACHED;
     break;
   default:
-    (*(__real_lii3_sighandler_t)sigNext.sa_handler)(sig, context);
+    if ((int)sigNext.sa_handler & SA_SIGINFO) {
+      (*sigNext.sa_sigaction)(sig, info, context);
+    } else {
+      /* @@@@ what if the previous handler is BSD-style? */
+        /* We don't have a struct sigcontext to pass to it. */
+      (*sigNext.sa_handler)(sig, info->si_code);
+    }
     break;
   }
 }
@@ -126,26 +114,25 @@ static void sigHandle(int sig, struct sigcontext context)  /* .sigh.args */
 
 /*  ProtSetup -- global protection setup
  *
- *  Under Linux, the global setup involves installing a signal handler
- *  on SIGSEGV to catch and handle page faults (see sigHandle).
- *  The previous handler is recorded so that it can be reached from
- *  sigHandle if it fails to handle the fault.
+ *  Under FreeBSD, the global setup involves installing a signal
+ *  handler on SIGBUS to catch and handle page faults (see
+ *  sigHandle).  The previous handler is recorded so that it can be
+ *  reached from sigHandle if it fails to handle the fault.
  *
  *  NOTE: There are problems with this approach:
  *    1. we can't honor the sa_flags for the previous handler,
  *    2. what if this thread is suspended just after calling signal(3)?
- *       The sigNext variable will never be initialized!
- */
+ *       The sigNext variable will never be initialized!  */
 
 void ProtSetup(void)
 {
   struct sigaction sa;
   int result;
 
-  sa.sa_handler = (__sighandler_t)sigHandle;  /* .sigh.args */
+  sa.sa_sigaction = sigHandle;
   sigemptyset(&sa.sa_mask);
-  sa.sa_flags = 0;
+  sa.sa_flags = SA_SIGINFO;
 
-  result = sigaction(SIGSEGV, &sa, &sigNext);
+  result = sigaction(SIGBUS, &sa, &sigNext);
   AVER(result == 0);
 }

@@ -1,4 +1,4 @@
-/*  impl.c.thlii3: Threads Manager for Intel x86 systems with LinuxThreads
+/*  impl.c.thfri3: Threads Manager for Intel x86 systems on FreeBSD
  *
  *  $HopeName: MMsrc!thlii4.c(trunk.2) $
  *  Copyright (C) 2000 Harlequin Limited.  All rights reserved.
@@ -21,14 +21,14 @@
  * i.e. stack pointer points to the last allocated location;
  * stack grows downwards.
  *
- * .stack.below-bottom: it's legal for the stack pointer to be at a 
- * higher address than the registered bottom of stack. This might 
- * happen if the stack of another thread doesn't contain any frames 
+ * .stack.below-bottom: it's legal for the stack pointer to be at a
+ * higher address than the registered bottom of stack. This might
+ * happen if the stack of another thread doesn't contain any frames
  * belonging to the client language. In this case, the stack should
  * not be scanned.
  *
  * .stack.align: assume roots on the stack are always word-aligned,
- * but don't assume that the stack pointer is necessarily 
+ * but don't assume that the stack pointer is necessarily
  * word-aligned at the time of reading the context of another thread.
  *
  * .sp: The stack pointer in the context is ESP.
@@ -36,17 +36,17 @@
  * assumed to be recorded in the context at pointer-aligned boundaries.
  */
 
-#include "prmcli.h"
+#include "prmcfr.h"
 #include "mpm.h"
 
-#if !defined(MPS_OS_LI) || !defined(MPS_ARCH_I4)
-#error "Compiling thlii4 when MPS_OS_LI or MPS_ARCH_I4 not defined."
+#if !defined(MPS_OS_FR) || !defined(MPS_ARCH_I4)
+#error "Compiling thfri4 when MPS_OS_FR or MPS_ARCH_I4 not defined."
 #endif
 
 #include <pthread.h>
 #include "pthrdext.h"
 
-SRCID(thlii4, "$HopeName: MMsrc!thlii4.c(trunk.2) $");
+SRCID(thfri4, "$HopeName: MMsrc!thlii4.c(trunk.2) $");
 
 
 /* ThreadStruct -- thread desriptor */
@@ -58,7 +58,7 @@ typedef struct ThreadStruct {    /* PThreads thread structure */
   RingStruct arenaRing;          /* threads attached to arena */
   PThreadextStruct thrextStruct; /* PThreads extension */
   pthread_t id;                  /* Pthread object of thread */
-  struct sigcontext *scpSusp;    /* Context if thread is suspended */
+  MutatorFaultContextStruct mfc; /* Context if thread is suspended */
 } ThreadStruct;
 
 
@@ -92,9 +92,9 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
   AVER(threadReturn != NULL);
   AVERT(Arena, arena);
 
-  res = ControlAlloc(&p, arena, sizeof(ThreadStruct), 
+  res = ControlAlloc(&p, arena, sizeof(ThreadStruct),
                      /* withReservoirPermit */ FALSE);
-  if(res != ResOK) 
+  if(res != ResOK)
     return res;
   thread = (Thread)p;
 
@@ -288,15 +288,15 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
 Res ThreadDescribe(Thread thread, mps_lib_FILE *stream)
 {
   Res res;
-  
+
   res = WriteF(stream,
                "Thread $P ($U) {\n", (WriteFP)thread, (WriteFU)thread->serial,
-               "  arena $P ($U)\n",  
+               "  arena $P ($U)\n",
                (WriteFP)thread->arena, (WriteFU)thread->arena->serial,
                "  id $U\n",          (WriteFU)thread->id,
                "} Thread $P ($U)\n", (WriteFP)thread, (WriteFU)thread->serial,
                NULL);
-  if(res != ResOK) 
+  if(res != ResOK)
     return res;
 
   return ResOK;
