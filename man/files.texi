@@ -103,6 +103,8 @@ first slash in the double slash; the result is @samp{/x1/rms/foo}.
 
 @cindex environment variables in file names
 @cindex expansion of environment variables
+@cindex @code{$} in file names
+@anchor{File Names with @samp{$}}
   @samp{$} in a file name is used to substitute environment variables.
 For example, if you have used the shell command @command{export
 FOO=rms/hacks} to set up an environment variable named @env{FOO}, then
@@ -3034,7 +3036,9 @@ refers to a file whose name is @file{~hack} in directory @file{/tmp}.
 
   Likewise, quoting with @samp{/:} is one way to enter in the minibuffer
 a file name that contains @samp{$}.  However, the @samp{/:} must be at
-the beginning of the minibuffer in order to quote @samp{$}.
+the beginning of the minibuffer in order to quote @samp{$}.  (For
+another way of quoting @samp{$} in file names see @ref{File Names with
+@samp{$}}.)
 
   You can also quote wildcard characters with @samp{/:}, for visiting.
 For example, @file{/:/tmp/foo*bar} visits the file @file{/tmp/foo*bar}.
