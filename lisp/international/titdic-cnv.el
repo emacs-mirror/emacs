@@ -281,7 +281,9 @@
 	(setq keyseq
 	      (concat (regexp-quote (buffer-substring pos (point))) "[ \t]+"))
 	(save-excursion
-	  (while (re-search-backward "[\\\"]" pos t)
+	  ;; Escape `"' and `\' which is not used for quoting the
+	  ;; following octal digits.
+	  (while (re-search-backward "\"\\|\\\\[^0-9]" pos t)
 	    (insert "\\")
 	    (forward-char -1)))
 	(insert "\"")
