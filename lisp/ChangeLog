@@ -1,9 +1,7 @@
 2003-03-22  Peter Breton  <pbreton@cs.umb.edu>
 
-	* filecache.el (file-cache-add-directory-recursively): New
-	function.
-	(file-cache-complete): New function.
-	(file-cache-display): New function.
+	* filecache.el (file-cache-add-directory-recursively)
+	(file-cache-complete, file-cache-display): New functions.
 
 	* generic-x.el (etc-modules-conf-generic-mode): New generic mode.
 	(rul-generic-mode): Bugfixes by Rolf.Sandau@marconi.com. 
@@ -21,8 +19,8 @@
 	
 2003-03-22  Kenichi Handa  <handa@etlken2>
 
-	* international/fontset.el (setup-default-fontset): Use
-	indian-font-char-range for specifying ranges of indian-glyph
+	* international/fontset.el (setup-default-fontset):
+	Use indian-font-char-range for specifying ranges of indian-glyph
 	chars.  Setup for AKRUTI fonts.
 
 	* language/indian.el (indian-font-foundry): New variable.
@@ -34,8 +32,8 @@
 
 2003-03-22  Kim F. Storm  <storm@cua.dk>
 
-	* progmodes/cperl-mode.el (cperl-electric-backspace): Add
-	delete-selection property.
+	* progmodes/cperl-mode.el (cperl-electric-backspace):
+	Add delete-selection property.
 
 	* simple.el (set-mark-command): Doc fixes.
 	Allow pop-global-mark to be repeated with C-x C-SPC C-SPC...
@@ -95,8 +93,8 @@
 	(make-coding-system): Don't call register-char-codings, call
 	define-coding-system-internal.
 
-	* international/mule-conf.el (no-conversion): Call
-	define-coding-system-internal on this coding system instead of
+	* international/mule-conf.el (no-conversion):
+	Call define-coding-system-internal on this coding system instead of
 	calling register-char-codings.
 
 	* international/mule-cmds.el (find-coding-systems-for-charsets):
