@@ -704,6 +704,10 @@ If argument is nil or an empty string, cancel for all functions."
 	;; Skip the interactive form.
 	(if (eq 'interactive (car-safe (car tail))) (setq tail (cdr tail)))
 	(unless (eq flag (equal (car tail) '(debug 'debug)))
+	  ;; If the function has no body, add nil as a body element.
+	  (when (null tail)
+	    (setq tail (list nil))
+	    (nconc defn tail))
 	  ;; Add/remove debug statement as needed.
 	  (if (not flag)
 	      (progn (setcar tail (cadr tail))
