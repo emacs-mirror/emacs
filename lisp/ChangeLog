@@ -468,7 +468,7 @@
 	* emacs-lisp/autoload.el (update-autoloads-from-directories):
 	Sort the list of files with no autoloads.
 
-2002-11-16  Alan Shutko  <Rats@acm.org>
+2002-11-16  Alan Shutko  <ats@acm.org>
 
 	* calendar/diary-lib.el (list-diary-entries): Pass a marker
 	indicating source of entry to add-to-diary-list.
