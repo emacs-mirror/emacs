@@ -183,7 +183,11 @@ extern void (*judge_scroll_bars_hook)( /* FRAME_PTR *FRAME */ );
 
 /* Input queue declarations and hooks.  */
 
+/* Called to read input events.  */
 extern int (*read_socket_hook) ();
+
+/* Called when a frame's display becomes entirely up to date.  */
+extern int (*frame_up_to_date_hook) ();
 
 /* Expedient hack: only provide the below definitions to files that
    are prepared to handle lispy things.  XINT is defined iff lisp.h
