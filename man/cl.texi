@@ -280,7 +280,7 @@ defun*        defsubst*     defmacro*     function*
 member*       assoc*        rassoc*       get*
 remove*       delete*       mapcar*       sort*
 floor*        ceiling*      truncate*     round*
-mod*          rem*          random*       last*
+mod*          rem*          random*
 @end example
 
 Internal function and variable names in the package are prefixed
@@ -3795,10 +3795,11 @@ that it passes in the list pointers themselves rather than the
 @end defun
 
 @defun mapc function seq &rest more-seqs
-This function is like @code{mapcar*}, except that the values
-returned by @var{function} are ignored and thrown away rather
-than being collected into a list.  The return value of @code{mapc}
-is @var{seq}, the first sequence.
+This function is like @code{mapcar*}, except that the values returned
+by @var{function} are ignored and thrown away rather than being
+collected into a list.  The return value of @code{mapc} is @var{seq},
+the first sequence.  This function is more general than the Emacs
+primitive @code{mapc}.
 @end defun
 
 @defun mapl function list &rest more-lists
@@ -4147,7 +4148,7 @@ a merged sequence which is (stably) sorted according to
 The functions described here operate on lists.
 
 @menu
-* List Functions::                `caddr', `first', `last*', `list*', etc.
+* List Functions::                `caddr', `first', `list*', etc.
 * Substitution of Expressions::   `subst', `sublis', etc.
 * Lists as Sets::                 `member*', `adjoin', `union', etc.
 * Association Lists::             `assoc*', `rassoc*', `acons', `pairlis'
@@ -4191,20 +4192,6 @@ This function returns the length of list @var{x}, exactly like
 list (where the cdr-chain forms a loop rather than terminating
 with @code{nil}), this function returns @code{nil}.  (The regular
 @code{length} function would get stuck if given a circular list.)
-@end defun
-
-@defun last* x &optional n
-This function returns the last cons, or the @var{n}th-to-last cons,
-of the list @var{x}.  If @var{n} is omitted it defaults to 1.
-The ``last cons'' means the first cons cell of the list whose
-@code{cdr} is not another cons cell.  (For normal lists, the
-@code{cdr} of the last cons will be @code{nil}.)  This function
-returns @code{nil} if @var{x} is @code{nil} or shorter than
-@var{n}.  Note that the last @emph{element} of the list is
-@code{(car (last @var{x}))}.
-
-The Emacs function @code{last} does the same thing
-except that it does not handle the optional argument @var{n}.
 @end defun
 
 @defun list* arg &rest others
