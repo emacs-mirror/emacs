@@ -52,8 +52,8 @@ check_memory_limits ()
   extern POINTER (*__morecore) ();
 
   register POINTER cp;
-  int five_percent;
-  int data_size;
+  unsigned long five_percent;
+  unsigned long data_size;
 
   if (lim_data == 0)
     get_lim_data ();
