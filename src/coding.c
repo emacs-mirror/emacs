@@ -4802,7 +4802,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 	  if (coding->type == coding_type_undecided)
 	    {
 	      /* It seems that the text contains only ASCII, but we
-		 should not left it undecided because the deeper
+		 should not leave it undecided because the deeper
 		 decoding routine (decode_coding) tries to detect the
 		 encodings again in vain.  */
 	      coding->type = coding_type_emacs_mule;
