@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2002 Free Software Foundation, Inc.
 
 ;; Keywords: mule, multilingual
 
@@ -265,24 +266,15 @@ or one is an alias of the other."
 	     (or (eq eol-type-1 eol-type-2)
 		 (and (vectorp eol-type-1) (vectorp eol-type-2)))))))
 
-;; Fixme: delete this?
 ;;;###autoload
 (defmacro detect-coding-with-priority (from to priority-list)
   "Detect a coding system of the text between FROM and TO with PRIORITY-LIST.
 PRIORITY-LIST is an alist of coding categories vs the corresponding
 coding systems ordered by priority."
-  `(unwind-protect
-       (let* ((prio-list ,priority-list)
-	      (coding-category-list coding-category-list)
-	      ,@(mapcar (function (lambda (x) (list x x)))
-			coding-category-list))
-	 (mapc (function (lambda (x) (set (car x) (cdr x))))
-	       prio-list)
-	 (set-coding-priority (mapcar #'car prio-list))
-	 (detect-coding-region ,from ,to))
-     ;; We must restore the internal database.
-     (set-coding-priority coding-category-list)
-     (update-coding-systems-internal)))
+  `(with-coding-priority ,(mapcar #'cdr priority-list)
+     (detect-coding-region ,from ,to)))
+(make-obsolete 'detect-coding-with-priority
+	       "Use with-coding-priority and detect-coding-region" "22.1")
 
 ;;;###autoload
 (defun detect-coding-with-language-environment (from to lang-env)
