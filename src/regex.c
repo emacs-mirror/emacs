@@ -53,6 +53,14 @@ char *malloc ();
 char *realloc ();
 #endif
 
+/* This is for other GNU distributions with internationalized messages.
+   The GNU C Library itself does not yet support such messages.  */
+#if HAVE_LIBINTL_H
+# include <libintl.h>
+#else
+# define gettext(msgid) (msgid)
+#endif
+
 
 /* We used to test for `BSTRING' here, but only GCC and Emacs define
    `BSTRING', as far as I know, and neither of them use this code.  */
@@ -860,10 +868,12 @@ re_set_syntax (syntax)
 }
 
 /* This table gives an error message for each of the error codes listed
-   in regex.h.  Obviously the order here has to be same as there.  */
+   in regex.h.  Obviously the order here has to be same as there.
+   POSIX doesn't require that we do anything for REG_NOERROR,
+   but why not be nice?  */
 
-static const char *re_error_msg[] =
-  { NULL,					/* REG_NOERROR */
+static const char *re_error_msgid[] =
+  { "Success",					/* REG_NOERROR */
     "No match",					/* REG_NOMATCH */
     "Invalid regular expression",		/* REG_BADPAT */
     "Invalid collation character",		/* REG_ECOLLATE */
@@ -4952,7 +4962,9 @@ re_compile_pattern (pattern, length, bufp)
   
   ret = regex_compile (pattern, length, re_syntax_options, bufp);
 
-  return re_error_msg[(int) ret];
+  if (!ret)
+    return NULL;
+  return gettext (re_error_msgid[(int) ret]);
 }     
 
 /* Entry points compatible with 4.2 BSD regex library.  We don't define
@@ -4972,7 +4984,7 @@ re_comp (s)
   if (!s)
     {
       if (!re_comp_buf.buffer)
-	return "No previous regular expression";
+	return gettext ("No previous regular expression");
       return 0;
     }
 
@@ -4980,12 +4992,12 @@ re_comp (s)
     {
       re_comp_buf.buffer = (unsigned char *) malloc (200);
       if (re_comp_buf.buffer == NULL)
-        return "Memory exhausted";
+        return gettext (re_error_msgid[(int) REG_ESPACE]);
       re_comp_buf.allocated = 200;
 
       re_comp_buf.fastmap = (char *) malloc (1 << BYTEWIDTH);
       if (re_comp_buf.fastmap == NULL)
-	return "Memory exhausted";
+	return gettext (re_error_msgid[(int) REG_ESPACE]);
     }
 
   /* Since `re_exec' always passes NULL for the `regs' argument, we
@@ -4996,8 +5008,11 @@ re_comp (s)
 
   ret = regex_compile (s, strlen (s), re_syntax_options, &re_comp_buf);
   
-  /* Yes, we're discarding `const' here.  */
-  return (char *) re_error_msg[(int) ret];
+  if (!ret)
+    return NULL;
+
+  /* Yes, we're discarding `const' here if !HAVE_LIBINTL.  */
+  return (char *) gettext (re_error_msgid[(int) ret]);
 }
 
 
@@ -5201,19 +5216,14 @@ regerror (errcode, preg, errbuf, errbuf_size)
   size_t msg_size;
 
   if (errcode < 0
-      || errcode >= (sizeof (re_error_msg) / sizeof (re_error_msg[0])))
+      || errcode >= (sizeof (re_error_msgid) / sizeof (re_error_msgid[0])))
     /* Only error codes returned by the rest of the code should be passed 
        to this routine.  If we are given anything else, or if other regex
        code generates an invalid error code, then the program has a bug.
        Dump core so we can fix it.  */
     abort ();
 
-  msg = re_error_msg[errcode];
-
-  /* POSIX doesn't require that we do anything in this case, but why
-     not be nice.  */
-  if (! msg)
-    msg = "Success";
+  msg = gettext (re_error_msgid[errcode]);
 
   msg_size = strlen (msg) + 1; /* Includes the null.  */
   
