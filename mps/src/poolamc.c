@@ -1482,7 +1482,6 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   RefSet summary;       /* summary of object being relocated */
   RefSet toSummary;     /* summary of object's destination */
   Seg toSeg;            /* segment to which object is being relocated */
-  Bool shieldUp;        /* whether we have exposed seg */
 
   /* design.mps.trace.fix.noaver */
   AVERT_CRITICAL(Pool, pool);
@@ -1526,13 +1525,9 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVER_CRITICAL(ref < SegLimit(seg));
   arena = pool->arena;
 
-  /* .access.read: Make sure seg isn't behind a read barrier. */
-  shieldUp = FALSE;
-  if (SegPM(seg) & AccessREAD) {
-    ShieldExpose(arena, seg);
-    shieldUp = TRUE;
-  }
+  ShieldExpose(arena, seg);
   newRef = (*format->isMoved)(ref);
+  ShieldCover(arena, seg);
 
   if(newRef == (Addr)0) {
     /* If object is nailed already then we mustn't copy it: */
@@ -1596,13 +1591,9 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     } while(!BUFFER_COMMIT(buffer, newRef, length));
     ss->copiedSize += length;
 
-    /* We know seg is readable, because we made sure in .access.read. */
-    /* Now make sure there's no write barrier. */
-    if (!shieldUp && (SegPM(seg) & AccessWRITE)) {
-      ShieldExpose(arena, seg);
-      shieldUp = TRUE;
-    }
+    ShieldExpose(arena, seg);
     (*format->move)(ref, newRef);
+    ShieldCover(arena, seg);
   } else {
     /* reference to broken heart (which should be snapped out -- */
     /* consider adding to (non-existant) snap-out cache here) */
@@ -1616,8 +1607,6 @@ updateReference:
   res = ResOK;
 
 returnRes:
-  if (shieldUp)
-    ShieldCover(arena, seg);
   return res;
 }
 
@@ -1644,7 +1633,6 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   RefSet summary;       /* summary of object being relocated */
   RefSet toSummary;     /* summary of object's destination */
   Seg toSeg;            /* segment to which object is being relocated */
-  Bool shieldUp;        /* whether we have exposed seg */
 
   /* design.mps.trace.fix.noaver */
   AVERT_CRITICAL(Pool, pool);
@@ -1688,13 +1676,9 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVER_CRITICAL(ref < SegLimit(seg)); /* see .ref-limit */
   arena = pool->arena;
 
-  /* .access.read.header: Make sure seg isn't behind a read barrier. */
-  shieldUp = FALSE;
-  if (SegPM(seg) & AccessREAD) {
-    ShieldExpose(arena, seg);
-    shieldUp = TRUE;
-  }
+  ShieldExpose(arena, seg);
   newRef = (*format->isMoved)(ref);
+  ShieldCover(arena, seg);
 
   if(newRef == (Addr)0) {
     /* If object is nailed already then we mustn't copy it: */
@@ -1761,13 +1745,9 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     } while(!BUFFER_COMMIT(buffer, newBase, length));
     ss->copiedSize += length;
 
-    /* We know seg is readable, because we made sure in .access.read.header. */
-    /* Now make sure there's no write barrier. */
-    if (!shieldUp && (SegPM(seg) & AccessWRITE)) {
-      ShieldExpose(arena, seg);
-      shieldUp = TRUE;
-    }
+    ShieldExpose(arena, seg);
     (*format->move)(ref, newRef);
+    ShieldCover(arena, seg);
   } else {
     /* reference to broken heart (which should be snapped out -- */
     /* consider adding to (non-existant) snap-out cache here) */
@@ -1781,8 +1761,6 @@ updateReference:
   res = ResOK;
 
 returnRes:
-  if (shieldUp)
-    ShieldCover(arena, seg);
   return res;
 }
 
@@ -2152,7 +2130,7 @@ DEFINE_POOL_CLASS(AMCZPoolClass, this)
   this->grey = PoolNoGrey;
   this->scan = PoolNoScan;
 }
- 
+
 
 /* mps_class_amc -- return the pool class descriptor to the client */
 
