@@ -1278,7 +1278,7 @@ The default is a name found in the buffer around point."
     (set-keymap-parent pascal-outline-map pascal-mode-map))
   (define-key pascal-outline-map "\e\C-a"   'pascal-outline-prev-defun)
   (define-key pascal-outline-map "\e\C-e"   'pascal-outline-next-defun)
-  (define-key pascal-outline-map "\C-cg"    'pascal-outline-goto-defun)
+  (define-key pascal-outline-map "\C-c\C-d" 'pascal-outline-goto-defun)
   (define-key pascal-outline-map "\C-c\C-s" 'pascal-show-all)
   (define-key pascal-outline-map "\C-c\C-h" 'pascal-hide-other-defuns))
 
