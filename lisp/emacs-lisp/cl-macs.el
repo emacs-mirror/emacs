@@ -1122,6 +1122,32 @@ Format is: (do* ((VAR INIT [STEP])...) (END-TEST [RESULT...]) BODY...)"
 						 (apply 'append sets)))))))
 	       (or (cdr endtest) '(nil)))))
 
+(defmacro dolist (spec &rest body)
+  "(dolist (VAR LIST [RESULT]) BODY...): loop over a list.
+Evaluate BODY with VAR bound to each `car' from LIST, in turn.
+Then evaluate RESULT to get return value, default nil."
+  (let ((temp (gensym "--dolist-temp--")))
+    (list 'block nil
+	  (list* 'let (list (list temp (nth 1 spec)) (car spec))
+		 (list* 'while temp (list 'setq (car spec) (list 'car temp))
+			(append body (list (list 'setq temp
+						 (list 'cdr temp)))))
+		 (if (cdr (cdr spec))
+		     (cons (list 'setq (car spec) nil) (cdr (cdr spec)))
+		   '(nil))))))
+
+(defmacro dotimes (spec &rest body)
+  "(dotimes (VAR COUNT [RESULT]) BODY...): loop a certain number of times.
+Evaluate BODY with VAR bound to successive integers from 0, inclusive,
+to COUNT, exclusive.  Then evaluate RESULT to get return value, default
+nil."
+  (let ((temp (gensym "--dotimes-temp--")))
+    (list 'block nil
+	  (list* 'let (list (list temp (nth 1 spec)) (list (car spec) 0))
+		 (list* 'while (list '< (car spec) temp)
+			(append body (list (list 'incf (car spec)))))
+		 (or (cdr (cdr spec)) '(nil))))))
+
 (defmacro do-symbols (spec &rest body)
   "(dosymbols (VAR [OBARRAY [RESULT]]) BODY...): loop over all symbols.
 Evaluate BODY with VAR bound to each interned symbol, or to each symbol
