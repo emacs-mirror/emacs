@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1994/01/21 04:19:19 $|$Revision: 1.64 $
+;; |$Date: 1994/04/07 20:28:23 $|$Revision: 1.65 $
 
 ;; This file is part of GNU Emacs.
 
@@ -301,6 +301,7 @@ Default value, nil, means edit the string instead.")
 
 ;; Some bindings you may want to put in your isearch-mode-hook.
 ;; Suggest some alternates...
+;; (define-key isearch-mode-map "\C-t" 'isearch-toggle-case-fold)
 ;; (define-key isearch-mode-map "\C-t" 'isearch-toggle-regexp)
 ;; (define-key isearch-mode-map "\C-^" 'isearch-edit-string)
 
@@ -339,7 +340,10 @@ Default value, nil, means edit the string instead.")
 (defvar isearch-wrapped nil)	; Searching restarted from the top (bottom).
 (defvar isearch-barrier 0)
 
-(defvar isearch-case-fold-search nil) ; case-fold-search while searching.
+; case-fold-search while searching.
+;   either nil, t, or 'yes.  'yes means the same as t except that mixed
+;   case in the search string is ignored.
+(defvar isearch-case-fold-search nil)
 
 (defvar isearch-adjusted nil)
 (defvar isearch-slow-terminal-mode nil)
@@ -875,6 +879,19 @@ Use `isearch-exit' to quit without signalling."
   (if isearch-regexp (setq isearch-word nil))
   (isearch-update))
 
+(defun isearch-toggle-case-fold ()
+  "Toggle case folding in searching on or off."
+  (interactive)
+  (setq isearch-case-fold-search
+	(if isearch-case-fold-search nil 'yes))
+  (message "%s%s [case %ssensitive]"
+	   (isearch-message-prefix)
+	   isearch-message
+	   (if isearch-case-fold-search "in" ""))
+  (setq isearch-adjusted t)
+  (sit-for 1)
+  (isearch-update))
+
 (defun isearch-delete-char ()
   "Discard last input item and move point back.  
 If no previous match was done, just beep."
@@ -1306,7 +1323,7 @@ If there is no completion possible, say so and continue searching."
 (defun isearch-search ()
   ;; Do the search with the current search string.
   (isearch-message nil t)
-  (if (and isearch-case-fold-search search-upper-case)
+  (if (and (eq isearch-case-fold-search t) search-upper-case)
       (setq isearch-case-fold-search
 	    (isearch-no-upper-case-p isearch-string isearch-regexp)))
   (condition-case lossage
