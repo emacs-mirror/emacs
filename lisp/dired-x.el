@@ -946,7 +946,7 @@ dired."
                   " " dired-guess-shell-znew-switches))
 
    ;; gzip'ed archives
-   (list "\\.tar\\.g?z$"
+   (list "\\.t\\(ar\\.\\)g?z$"
          '(if dired-guess-shell-gnutar
               (concat dired-guess-shell-gnutar " zxvf")
             (concat "gunzip -qc * | tar xvf -"))
@@ -987,6 +987,7 @@ dired."
    '("\\.out$" "xgraph")                ; for plotting purposes.
    '("\\.tex$" "latex" "tex")
    '("\\.texi\\(nfo\\)?$" "makeinfo" "texi2dvi")
+   '("\\.pdf$" "acroread")              ; edit PDF files
 
    ;; Some other popular archivers.
    '("\\.zoo$" "zoo x//")
