@@ -6950,6 +6950,28 @@ same_x_server (name1, name2)
 }
 #endif
 
+#if defined (HAVE_X_I18N) || (defined (USE_X_TOOLKIT) && defined (HAVE_X11XTR6))
+/* Recover from setlocale (LC_ALL, "").  */
+static void
+fixup_locale ()
+{
+  /* Currently we require strerror to use the "C" locale,
+     since we don't yet support decoding its string result.  */
+#ifdef LC_MESSAGES
+  setlocale (LC_MESSAGES, "C");
+#endif
+
+  /* The Emacs Lisp reader needs LC_NUMERIC to be "C",
+     so that numbers are read and printed properly for Emacs Lisp.  */
+  setlocale (LC_NUMERIC, "C");
+
+  /* Currently we require strftime to use the "C" locale,
+     since we don't yet support encoding its format argument,
+     or decoding its string result.  */
+  setlocale (LC_TIME, "C");
+}
+#endif
+
 struct x_display_info *
 x_term_init (display_name, xrm_option, resource_name)
      Lisp_Object display_name;
@@ -6973,8 +6995,7 @@ x_term_init (display_name, xrm_option, resource_name)
 
 #ifdef HAVE_X_I18N
   setlocale (LC_ALL, "");
-  /* In case we just overrode what init_lread did, redo it.  */
-  setlocale (LC_NUMERIC, "C");
+  fixup_locale ();
 #endif
 
 #ifdef USE_X_TOOLKIT
@@ -7005,7 +7026,7 @@ x_term_init (display_name, xrm_option, resource_name)
 
 #ifdef HAVE_X11XTR6
     /* I think this is to compensate for XtSetLanguageProc.  */
-    setlocale (LC_NUMERIC, "C");
+    fixup_locale ();
 #endif
   }
 
