@@ -11505,8 +11505,8 @@ It's called with one argument, the help string to display.  */);
 
 After a command is executed, if point is moved into a region that has
 special properties (e.g. composition, display), we adjust point to
-the boundary of the region.  But, several special commands sets this
-variable to non-nil, then we suppress the point adjustment.
+the boundary of the region.  But, when a command sets this variable to
+non-nil, we suppress the point adjustment.
 
 This variable is set to nil before reading a command, and is checked
 just after executing the command.  */);

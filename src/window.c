@@ -4709,7 +4709,7 @@ window_scroll_line_based (window, n, whole, noerror)
 
   posit = *compute_motion (startpos, 0, 0, 0,
 			   PT, ht, 0,
-			   window_box_text_cols (w), XINT (w->hscroll),
+			   -1, XINT (w->hscroll),
 			   0, w);
   original_vpos = posit.vpos;
 

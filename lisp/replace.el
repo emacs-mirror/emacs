@@ -94,7 +94,8 @@ wants to replace FROM with TO."
 	       query-replace-from-history-variable
 	       nil t))))
       (if (and (zerop (length from)) lastto lastfrom)
-	  (cons lastfrom lastto)
+	  (cons lastfrom
+		(query-replace-compile-replacement lastto regexp-flag))
 	;; Warn if user types \n or \t, but don't reject the input.
 	(and regexp-flag
 	     (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\(\\\\[nt]\\)" from)
@@ -107,15 +108,12 @@ wants to replace FROM with TO."
 	       (sit-for 2)))
 	from))))
 
-(defun query-replace-read-to (from string regexp-flag)
-  "Query and return the `from' argument of a query-replace operation."
-  (let ((to (save-excursion
-	      (read-from-minibuffer
-	       (format "%s %s with: " string (query-replace-descr from))
-	       nil nil nil
-	       query-replace-to-history-variable from t))))
-    (when (and regexp-flag
-	       (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\\\[,#]" to))
+(defun query-replace-compile-replacement (to regexp-flag)
+  "Maybe convert a regexp replacement TO to Lisp.
+Returns a list suitable for `perform-replace' if necessary,
+the original string if not."
+  (if (and regexp-flag
+	   (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\\\[,#]" to))
       (let (pos list char)
 	(while
 	    (progn
@@ -142,13 +140,24 @@ wants to replace FROM with TO."
 			      (cdr pos))))
 		       (setq to (substring to end)))))
 	      (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\\\[,#]" to)))
-	(setq to (nreverse (delete "" (cons to list)))))
-      (replace-match-string-symbols to)
-      (setq to (cons 'replace-eval-replacement
-		     (if (> (length to) 1)
-			 (cons 'concat to)
-		       (car to)))))
+	(setq to (nreverse (delete "" (cons to list))))
+	(replace-match-string-symbols to)
+	(cons 'replace-eval-replacement
+	      (if (cdr to)
+		  (cons 'concat to)
+		(car to))))
     to))
+
+
+(defun query-replace-read-to (from string regexp-flag)
+  "Query and return the `to' argument of a query-replace operation."
+  (query-replace-compile-replacement
+   (save-excursion
+     (read-from-minibuffer
+      (format "%s %s with: " string (query-replace-descr from))
+      nil nil nil
+      query-replace-to-history-variable from t))
+   regexp-flag))
 
 (defun query-replace-read-args (string regexp-flag &optional noerror)
   (unless noerror

@@ -104,7 +104,8 @@ SPC to try the command just this once, but leave it disabled.
 ;;;###autoload
 (defun enable-command (command)
   "Allow COMMAND to be executed without special confirmation from now on.
-The user's .emacs file is altered so that this will apply
+COMMAND must be a symbol.
+This command alters the user's .emacs file so that this will apply
 to future sessions."
   (interactive "CEnable command: ")
   (put command 'disabled nil)
@@ -141,7 +142,8 @@ to future sessions."
 ;;;###autoload
 (defun disable-command (command)
   "Require special confirmation to execute COMMAND from now on.
-The user's .emacs file is altered so that this will apply
+COMMAND must be a symbol.
+This command alters the user's .emacs file so that this will apply
 to future sessions."
   (interactive "CDisable command: ")
   (if (not (commandp command))

@@ -4195,7 +4195,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
              present (for reading) at stdin, even when none is.  This
              causes the call to SELECT below to return 1 and
              status_notify not to be called.  As a result output of
-             subprocesses are incorrectly discarded.  
+             subprocesses are incorrectly discarded.
 	  */
           FD_CLR (0, &Atemp);
 #endif
@@ -4762,16 +4762,16 @@ read_process_output (proc, channel)
   if (DATAGRAM_CHAN_P (channel))
     {
       int len = datagram_address[channel].len;
-      nbytes = recvfrom (channel, chars + carryover, readmax - carryover,
+      nbytes = recvfrom (channel, chars + carryover, readmax,
 			 0, datagram_address[channel].sa, &len);
     }
   else
 #endif
   if (proc_buffered_char[channel] < 0)
     {
-      nbytes = emacs_read (channel, chars + carryover, readmax - carryover);
+      nbytes = emacs_read (channel, chars + carryover, readmax);
 #ifdef ADAPTIVE_READ_BUFFERING
-      if (!NILP (p->adaptive_read_buffering))
+      if (nbytes > 0 && !NILP (p->adaptive_read_buffering))
 	{
 	  int delay = XINT (p->read_output_delay);
 	  if (nbytes < 256)
@@ -4783,7 +4783,7 @@ read_process_output (proc, channel)
 		  delay += READ_OUTPUT_DELAY_INCREMENT * 2;
 		}
 	    }
-	  else if (delay > 0 && (nbytes == readmax - carryover))
+	  else if (delay > 0 && (nbytes == readmax))
 	    {
 	      delay -= READ_OUTPUT_DELAY_INCREMENT;
 	      if (delay == 0)
@@ -4802,7 +4802,7 @@ read_process_output (proc, channel)
     {
       chars[carryover] = proc_buffered_char[channel];
       proc_buffered_char[channel] = -1;
-      nbytes = emacs_read (channel, chars + carryover + 1,  readmax - 1 - carryover);
+      nbytes = emacs_read (channel, chars + carryover + 1,  readmax - 1);
       if (nbytes < 0)
 	nbytes = 1;
       else

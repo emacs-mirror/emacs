@@ -1,3 +1,42 @@
+2004-08-03  Kim F. Storm  <storm@cua.dk>
+
+	* indent.c (compute_motion): Fix check for full width window
+	in non-window case.  Do not count left truncation glyph on
+	window systems.
+
+2004-08-02  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* data.c (Finteractive_form): Doc fix.
+
+2004-08-02  Kim F. Storm  <storm@cua.dk>
+
+	* indent.c (compute_motion): Use actual window width if WIDTH is -1,
+	properly accounting for continuation glyph on non-window systems.
+	(Fcompute_motion): Use actual window width if WIDTH is nil, and
+	actual window width/height if TOPOS is nil, properly accounting for
+	continuation glyphs on non-window systems, and optional header lines.
+	(vmotion): Let compute_motion calculate actual window width.
+
+	* window.c (window_scroll_line_based): Let compute_motion
+	calculate actual window width.
+
+2004-08-02  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (read_process_output): Use whole read buffer.
+	Don't trigger adaptive read buffering on errors.
+
+2004-07-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keymap.c (Fset_keymap_parent, Fdefine_prefix_command): Doc fixes.
+
+	* keyboard.c (syms_of_keyboard) <disable-point-adjustment>:  Doc fix.
+
+	* callint.c (Fcall_interactively): Doc fix.
+
+2004-07-30  Kim F. Storm  <storm@cua.dk>
+
+	* editfns.c (Fformat): Allocate extra (dummy) element in info.
+
 2004-07-28  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* eval.c (Fdefvar, Fdefconst): Doc fixes.

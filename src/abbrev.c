@@ -248,6 +248,8 @@ Returns the abbrev symbol, if expansion took place.  */)
 
   value = Qnil;
 
+  Frun_hooks (1, &Qpre_abbrev_expand_hook);
+
   wordstart = 0;
   if (!(BUFFERP (Vabbrev_start_location_buffer)
 	&& XBUFFER (Vabbrev_start_location_buffer) == current_buffer))
@@ -323,8 +325,6 @@ Returns the abbrev symbol, if expansion took place.  */)
 		    wordend - wordstart, p - buffer);
   if (INTEGERP (sym) || NILP (SYMBOL_VALUE (sym)))
     return value;
-
-  Frun_hooks (1, &Qpre_abbrev_expand_hook);
 
   if (INTERACTIVE && !EQ (minibuf_window, selected_window))
     {

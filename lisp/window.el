@@ -408,7 +408,7 @@ lines than are actually needed in the case where some error may be present."
                                   '(0 . 0)
                                   (- (point-max) (if ignore-final-newline 1 0))
                                   (cons 0 100000000)
-                                  (window-width window)
+                                  nil
                                   nil
                                   window))))))
 
