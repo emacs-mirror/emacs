@@ -1,3 +1,7 @@
+2002-10-17  Dave Love  <fx@gnu.org>
+
+	* charsets/cp866.map: Deleted (redundant).
+
 2002-10-11  Dave Love  <fx@gnu.org>
 
 	* charsets/ibm1047.map, charsets/alternativnj: New.
