@@ -928,13 +928,13 @@ the cursor, for example screen magnifiers and text to speech programs.
 See the Emacs 21.1 NEWS entry for tooltips for details.
 
 ---
-** Some images are now supported on MS Windows.
-PBM and XBM images are supported, PNG is supported if the libpng and
-zlib headers were available when Emacs was built, and libpng and zlib
-DLLs are available at run-time. Likewise, JPEG is supported if the
-jpeg headers were available when Emacs was built, and jpeg.dll is
-available at run-time.  Other formats which require external
-libraries may be similarly supported in future.
+** Images are now supported on MS Windows.
+PBM and XBM images are supported out of the box. Other image formats
+depend on external libraries.  All of these libraries have been ported
+to Windows, and can be found in both source and binary form at
+http://gnuwin32.sourceforge.net/.  Note that libpng also depends on
+zlib, and tiff depends on the version of jpeg that it was compiled
+against.
 
 ---
 ** Sound is now supported on MS Windows.
