@@ -1718,6 +1718,8 @@ scroll the window of possible completions.")
       break;
 
     case 3:
+      if (PT != ZV)
+	Fgoto_char (make_number (ZV));
       temp_echo_area_glyphs (" [Complete, but not unique]");
       break;
     }
