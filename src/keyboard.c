@@ -501,6 +501,9 @@ int flow_control;
 #ifdef HAVE_X_WINDOWS
 #define POLL_FOR_INPUT
 #endif
+
+/* Non-nil enables Column Number mode.  */
+Lisp_Object Vcolumn_number_mode;
 
 /* Global variable declarations.  */
 
@@ -1278,6 +1281,7 @@ command_loop_1 ()
 		      && !windows_or_buffers_changed
 		      && EQ (current_buffer->selective_display, Qnil)
 		      && !detect_input_pending ()
+		      && NILP (Vcolumn_number_mode)
 		      && NILP (Vexecuting_macro))
 		    no_redisplay = direct_output_forward_char (1);
 		  goto directly_done;
@@ -1301,6 +1305,7 @@ command_loop_1 ()
 		      && !windows_or_buffers_changed
 		      && EQ (current_buffer->selective_display, Qnil)
 		      && !detect_input_pending ()
+		      && NILP (Vcolumn_number_mode)
 		      && NILP (Vexecuting_macro))
 		    no_redisplay = direct_output_forward_char (-1);
 		  goto directly_done;
@@ -1330,6 +1335,7 @@ command_loop_1 ()
 			  || windows_or_buffers_changed
 			  || !EQ (current_buffer->selective_display, Qnil)
 			  || detect_input_pending ()
+			  || !NILP (Vcolumn_number_mode)
 			  || !NILP (Vexecuting_macro));
 		  value = internal_self_insert (c, 0);
 		  if (value)
@@ -7518,6 +7524,10 @@ whenever `deferred-action-list' is non-nil.");
 The value can be a length of time to show the message for.\n\
 If the value is non-nil and not a number, we wait 2 seconds.");
   Vsuggest_key_bindings = Qt;
+
+  DEFVAR_LISP ("column-number-mode", &Vcolumn_number_mode,
+    "Non-nil enables display of the current column number in the mode line.");
+  Vcolumn_number_mode = Qnil;
 }
 
 keys_of_keyboard ()
