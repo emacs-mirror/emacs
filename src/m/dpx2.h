@@ -240,6 +240,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Send signals to subprocesses by "typing" signal chars at them.  */
 #define SIGNALS_VIA_CHARACTERS
 
+/* This is to prevent memory clobbering on the DPX/2 200.  */
+#define LD_SWITCH_MACHINE -N -T32
+
  /* end of dpx2.h */
 
 
