@@ -8,7 +8,8 @@
 
   This chapter talks about various topics relevant to adapting the
 behavior of Emacs in minor ways.  See @cite{The Emacs Lisp Reference
-Manual} for how to make more far-reaching changes.
+Manual} for how to make more far-reaching changes.  @xref{X Resources},
+for information on using X resources to customize Emacs.
 
   Customization that you do within Emacs normally affects only the
 particular Emacs session that you do it in--it does not persist
