@@ -1329,9 +1329,9 @@ create_process (process, new_argv, current_dir)
 
   if (inchannel >= 0)
     {
-#ifndef USG 
-      /* On USG systems it does not work to open the pty's tty here
-	       and then close and reopen it in the child.  */
+#if ! defined (USG) || defined (USG_SUBTTY_WORKS)
+      /* On most USG systems it does not work to open the pty's tty here,
+	 then close it and reopen it in the child.  */
 #ifdef O_NOCTTY
       /* Don't let this terminal become our controlling terminal
 	 (in case we don't have one).  */
@@ -1343,7 +1343,7 @@ create_process (process, new_argv, current_dir)
 	report_file_error ("Opening pty", Qnil);
 #else
       forkin = forkout = -1;
-#endif /* not USG */
+#endif /* not USG, or USG_SUBTTY_WORKS */
       pty_flag = 1;
     }
   else
