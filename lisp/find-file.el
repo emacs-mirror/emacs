@@ -70,9 +70,9 @@
 ;;          ("\\.hh$"  ff-cc-hh-converter)
 ;;          ("\\.c$"   (".h"))
 ;;          ("\\.h$"   (".c" ".cc" ".C" ".CC" ".cxx" ".cpp"))))
-;; 
+;;
 ;; ff-cc-hh-converter is included at the end of this file as a reference.
-;; 
+;;
 ;; SEARCHING is carried out in a set of directories specified by the
 ;; ff-search-directories variable:
 ;;
@@ -500,12 +500,12 @@ If optional IN-OTHER-WINDOW is non-nil, find the file in another window."
                    (read-file-name
                     (format "Find or create %s in: " default-name)
                     default-directory default-name nil)))
-            
+
             (setq pathname
                   (if (file-directory-p name)
                       (concat (file-name-as-directory name) default-name)
                     (setq found name)))
-            
+
             (ff-find-file pathname in-other-window t)))
 
          (t                        ;; don't create the file, just whinge
@@ -619,7 +619,7 @@ If (optional) SUFFIX-LIST is nil, search for fname, otherwise search
 for fname with each of the given suffixes.  Get the file or the buffer
 corresponding to the name of the first file found, or nil."
   (let ((filename (ff-get-file-name search-dirs filename suffix-list)))
-            
+
     (cond
      ((not filename)
       nil)
@@ -627,7 +627,7 @@ corresponding to the name of the first file found, or nil."
      ((bufferp (get-file-buffer filename))
       (ff-switch-to-buffer (get-file-buffer filename) other-window)
       filename)
-               
+
      ((file-exists-p filename)
       (ff-find-file filename other-window nil)
       filename)
@@ -659,7 +659,7 @@ name of the first file found."
         (setq this-suffix (car suffixes))
       (setq this-suffix "")
       (setq suffixes (list "")))
-            
+
     ;; find whether the file is in a buffer first
     (while (and suffixes (not found))
       (setq filename (concat fname-stub this-suffix))
@@ -693,25 +693,25 @@ name of the first file found."
       ;; if dir does not contain '/*', look for the file
       (if (and dir (not (string-match "\\([^*]*\\)/\\\*\\(/.*\\)*" dir)))
           (progn
-            
+
             ;; suffixes is nil => fname-stub is the file we are looking for
             ;; otherwise fname-stub is a stub, and we append a suffix
             (if suffixes
                 (setq this-suffix (car suffixes))
               (setq this-suffix "")
               (setq suffixes (list "")))
-            
+
             (while (and suffixes (not found))
 
               (setq filename (concat fname-stub this-suffix))
               (setq file (concat dir "/" filename))
-              
+
               (if (not ff-quiet-mode)
                   (message "Finding %s..." file))
 
               (if (file-exists-p file)
                   (setq found file))
-              
+
               (setq suffixes (cdr suffixes))
               (setq this-suffix (car suffixes))))
 
@@ -935,7 +935,7 @@ and the name of the file passed in."
         ))
      (t
       nil))
-    
+
     return-list))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -1934,7 +1934,7 @@ nil)
 	      (setq gud-last-frame
 		    (cons file-found
 			  (string-to-int
-			   (let 
+			   (let
                                ((numstr (match-string 4 gud-marker-acc)))
                              (if (string-match "," numstr)
                                  (replace-match "" nil nil numstr)
@@ -2519,7 +2519,7 @@ Obeying it means displaying in another window the specified file and line."
 	    (if (not (or (verify-visited-file-modtime buffer) gud-keep-buffer))
 		(progn
 		  (if
-		      (yes-or-no-p 
+		      (yes-or-no-p
 		       (format "File %s changed on disk.  Reread from disk? "
 			       (buffer-name)))
 		      (revert-buffer t t)
@@ -2576,8 +2576,8 @@ Obeying it means displaying in another window the specified file and line."
 	 ((eq key ?a)
 	  (setq subst (gud-read-address)))
 	 ((eq key ?c)
-	  (setq subst 
-                (gud-find-class 
+	  (setq subst
+                (gud-find-class
                  (if insource
                       (buffer-file-name)
                     (car frame))
@@ -2830,12 +2830,12 @@ class of the file (using s to separate nested class ids)."
                   ;; While the c-syntactic information does not start
                   ;; with the 'topmost-intro symbol, there may be
                   ;; nested classes...
-                  (while (not (eq 'topmost-intro 
+                  (while (not (eq 'topmost-intro
                                   (car (car (c-guess-basic-syntax)))))
                     ;; Check if the current position c-syntactic
                     ;; analysis has 'inclass
                     (setq syntax (c-guess-basic-syntax))
-                    (while 
+                    (while
                         (and (not (eq 'inclass (car (car syntax))))
                              (cdr syntax))
                       (setq syntax (cdr syntax)))
@@ -2855,7 +2855,7 @@ class of the file (using s to separate nested class ids)."
                       (goto-char (cdr (car syntax)))
                       ))
                   (string-match (concat (car nclass) "$") class-found)
-                  (setq class-found 
+                  (setq class-found
                         (replace-match (mapconcat 'identity nclass "$")
                                        t t class-found)))))
           (if (not class-found)

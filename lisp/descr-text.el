@@ -35,12 +35,12 @@
       (delete-window)
     (bury-buffer)))
 
-(defvar describe-text-mode-map 
+(defvar describe-text-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map widget-keymap)
     map)
   "Keymap for `describe-text-mode'.")
-  
+
 (defcustom describe-text-mode-hook nil
   "List of hook functions ran by `describe-text-mode'."
   :type 'hook
@@ -67,7 +67,7 @@ if that value is non-nil."
   (widget-create 'link
 		 :notify `(lambda (&rest ignore)
 			    (widget-browse ',widget))
-		 (format "%S" (if (symbolp widget) 
+		 (format "%S" (if (symbolp widget)
 				  widget
 				(car widget))))
   (widget-insert " ")
@@ -197,7 +197,7 @@ otherwise."
       ;; Buttons
       (when (and button (not (widgetp wid-button)))
 	(newline)
-	(widget-insert "Here is a " (format "%S" button-type) 
+	(widget-insert "Here is a " (format "%S" button-type)
 		       " button labeled `" button-label "'.\n\n"))
       ;; Overlays
       (when overlays
@@ -207,7 +207,7 @@ otherwise."
 	  (widget-insert "There are " (format "%d" (length overlays))
 			 " overlays here:\n"))
 	(dolist (overlay overlays)
-	  (widget-insert " From " (format "%d" (overlay-start overlay)) 
+	  (widget-insert " From " (format "%d" (overlay-start overlay))
 			 " to " (format "%d" (overlay-end overlay)) "\n")
 	  (describe-property-list (overlay-properties overlay)))
 	(widget-insert "\n"))
@@ -336,7 +336,7 @@ as well as widgets, buttons, overlays, and text properties."
 		   (t (concat (substring composed 0 (- pos (car composition)))
 			      "' and `"
 			      (substring composed (- (1+ pos) (car composition))))))
-		    
+
 		  "' to form `" composed "'")
 	  (if (nth 3 composition)
 	      (insert ".\n")

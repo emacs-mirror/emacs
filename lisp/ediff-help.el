@@ -24,7 +24,7 @@
 ;;; Commentary:
 
 ;;; Code:
-	 
+
 (provide 'ediff-help)
 
 ;; Compiler pacifier start
@@ -47,9 +47,9 @@
   "The head of the full help message.")
 (defconst ediff-long-help-message-tail
   "=====================|===========================|=============================
-    R -show registry |     = -compare regions    |  M   -show session group    
-    D -diff output   |     E -browse Ediff manual|  G   -send bug report       
-    i -status info   |     ? -help off           |  z/q -suspend/quit          
+    R -show registry |     = -compare regions    |  M   -show session group
+    D -diff output   |     E -browse Ediff manual|  G   -send bug report
+    i -status info   |     ? -help off           |  z/q -suspend/quit
 -------------------------------------------------------------------------------
 For help on a specific command:  Click Button 2 over it; or
               			 Put the cursor over it and type RET."
@@ -59,69 +59,69 @@ For help on a specific command:  Click Button 2 over it; or
   "
 p,DEL -previous diff |     | -vert/horiz split   | xy -copy buf X's region to Y
 n,SPC -next diff     |     h -hilighting         | rx -restore buf X's old diff
-    j -jump to diff  |     @ -auto-refinement    |  * -refine current region   
-   gx -goto X's point|                           |  ! -update diff regions     
+    j -jump to diff  |     @ -auto-refinement    |  * -refine current region
+   gx -goto X's point|                           |  ! -update diff regions
   C-l -recenter      |    ## -ignore whitespace  |
-  v/V -scroll up/dn  | #f/#h -focus/hide regions | wx -save buf X              
-  </> -scroll lt/rt  |     X -read-only in buf X | wd -save diff output        
+  v/V -scroll up/dn  | #f/#h -focus/hide regions | wx -save buf X
+  </> -scroll lt/rt  |     X -read-only in buf X | wd -save diff output
     ~ -rotate buffers|     m -wide display       |
 "
   "Help message usually used for 3-way comparison.
 Normally, not a user option.  See `ediff-help-message' for details.")
-  
+
 (defconst ediff-long-help-message-compare2
   "
 p,DEL -previous diff |     | -vert/horiz split   |a/b -copy A/B's region to B/A
 n,SPC -next diff     |     h -hilighting         | rx -restore buf X's old diff
-    j -jump to diff  |     @ -auto-refinement    |  * -refine current region   
-   gx -goto X's point|                           |  ! -update diff regions     
+    j -jump to diff  |     @ -auto-refinement    |  * -refine current region
+   gx -goto X's point|                           |  ! -update diff regions
   C-l -recenter      |    ## -ignore whitespace  |
-  v/V -scroll up/dn  | #f/#h -focus/hide regions | wx -save buf X              
-  </> -scroll lt/rt  |     X -read-only in buf X | wd -save diff output        
-    ~ -swap variants |     m -wide display       |  
+  v/V -scroll up/dn  | #f/#h -focus/hide regions | wx -save buf X
+  </> -scroll lt/rt  |     X -read-only in buf X | wd -save diff output
+    ~ -swap variants |     m -wide display       |
 "
   "Help message usually used for 2-way comparison.
 Normally, not a user option.  See `ediff-help-message' for details.")
-  
+
 (defconst ediff-long-help-message-narrow2
   "
 p,DEL -previous diff |     | -vert/horiz split   |a/b -copy A/B's region to B/A
 n,SPC -next diff     |     h -hilighting         | rx -restore buf X's old diff
-    j -jump to diff  |     @ -auto-refinement    |  * -refine current region   
-   gx -goto X's point|     % -narrow/widen buffs |  ! -update diff regions     
+    j -jump to diff  |     @ -auto-refinement    |  * -refine current region
+   gx -goto X's point|     % -narrow/widen buffs |  ! -update diff regions
   C-l -recenter      |    ## -ignore whitespace  |
-  v/V -scroll up/dn  | #f/#h -focus/hide regions | wx -save buf X              
-  </> -scroll lt/rt  |     X -read-only in buf X | wd -save diff output        
-    ~ -swap variants |     m -wide display       |  
+  v/V -scroll up/dn  | #f/#h -focus/hide regions | wx -save buf X
+  </> -scroll lt/rt  |     X -read-only in buf X | wd -save diff output
+    ~ -swap variants |     m -wide display       |
 "
   "Help message when comparing windows or regions line-by-line.
 Normally, not a user option.  See `ediff-help-message' for details.")
-  
+
 (defconst ediff-long-help-message-word-mode
   "
 p,DEL -previous diff |     | -vert/horiz split   | xy -copy buf X's region to Y
 n,SPC -next diff     |     h -hilighting         | rx -restore buf X's old diff
-    j -jump to diff  |                           |                   
-   gx -goto X's point|     % -narrow/widen buffs |  ! -recompute diffs         
+    j -jump to diff  |                           |
+   gx -goto X's point|     % -narrow/widen buffs |  ! -recompute diffs
   C-l -recenter      |                           |
-  v/V -scroll up/dn  | #f/#h -focus/hide regions | wx -save buf X              
-  </> -scroll lt/rt  |     X -read-only in buf X | wd -save diff output        
-    ~ -swap variants |     m -wide display       |  
+  v/V -scroll up/dn  | #f/#h -focus/hide regions | wx -save buf X
+  </> -scroll lt/rt  |     X -read-only in buf X | wd -save diff output
+    ~ -swap variants |     m -wide display       |
 "
   "Help message when comparing windows or regions word-by-word.
 Normally, not a user option.  See `ediff-help-message' for details.")
-  
+
 (defconst ediff-long-help-message-merge
   "
 p,DEL -previous diff |     | -vert/horiz split   |  x -copy buf X's region to C
 n,SPC -next diff     |     h -hilighting         |  r -restore buf C's old diff
-    j -jump to diff  |     @ -auto-refinement    |  * -refine current region   
-   gx -goto X's point|    ## -ignore whitespace  |  ! -update diff regions     
-  C-l -recenter      | #f/#h -focus/hide regions |  + -combine diff regions    
-  v/V -scroll up/dn  |     X -read-only in buf X | wx -save buf X              
-  </> -scroll lt/rt  |     m -wide display       | wd -save diff output        
-    ~ -swap variants |     s -shrink window C    |  / -show ancestor buff      
-                     |  $$ -show clashes only    |  & -merge w/new default     
+    j -jump to diff  |     @ -auto-refinement    |  * -refine current region
+   gx -goto X's point|    ## -ignore whitespace  |  ! -update diff regions
+  C-l -recenter      | #f/#h -focus/hide regions |  + -combine diff regions
+  v/V -scroll up/dn  |     X -read-only in buf X | wx -save buf X
+  </> -scroll lt/rt  |     m -wide display       | wd -save diff output
+    ~ -swap variants |     s -shrink window C    |  / -show ancestor buff
+                     |  $$ -show clashes only    |  & -merge w/new default
                      |  $* -skip changed regions |
 "
   "Help message for merge sessions.
@@ -130,14 +130,14 @@ Normally, not a user option.  See `ediff-help-message' for details.")
 ;; The actual long help message.
 (ediff-defvar-local ediff-long-help-message ""
   "Normally, not a user option.  See `ediff-help-message' for details.")
-  
+
 (defconst ediff-brief-message-string
   " ? -quick help "
   "Contents of the brief help message.")
 ;; The actual brief help message
 (ediff-defvar-local ediff-brief-help-message ""
   "Normally, not a user option.  See `ediff-help-message' for details.")
-  
+
 (ediff-defvar-local ediff-brief-help-message-function nil
   "The brief help message that the user can customize.
 If the user sets this to a parameter-less function, Ediff will use it to
@@ -157,7 +157,7 @@ See `ediff-brief-help-message-function' for more.")
 Normally, the user shouldn't touch this.  However, if you want Ediff to
 start up with different help messages for different jobs, you can change
 the value of this variable and the variables `ediff-help-message-*' in
-`ediff-startup-hook'.") 
+`ediff-startup-hook'.")
 
 
 ;; the keymap that defines clicks over the quick help regions
@@ -199,12 +199,12 @@ the value of this variable and the variables `ediff-help-message-*' in
 			      (overlay-get elt 'ediff-help-info))
 			    (overlays-at pos))))
      )
-    
+
     (if (not (stringp cmd))
 	(error "Hmm...  I don't see an Ediff command around here..."))
-    
+
     (ediff-documentation "Quick Help Commands")
-    
+
     (let (case-fold-search)
       (cond ((string= cmd "?") (re-search-forward "^`\\?'"))
 	    ((string= cmd "G") (re-search-forward "^`G'"))
@@ -260,7 +260,7 @@ the value of this variable and the variables `ediff-help-message-*' in
 	(next-line 1))
     (end-of-line)
     (current-column)))
-    
+
 
 (defun ediff-indent-help-message ()
   (let* ((shift (/ (max 0 (- (window-width (selected-window))
@@ -273,7 +273,7 @@ the value of this variable and the variables `ediff-help-message-*' in
 	(insert str)
 	(beginning-of-line)
 	(forward-line 1)))))
-      
+
 
 ;; compose the help message as a string
 (defun ediff-set-help-message ()
@@ -282,7 +282,7 @@ the value of this variable and the variables `ediff-help-message-*' in
 		    (or (symbolp ediff-long-help-message-function)
 			(consp ediff-long-help-message-function)))
 	       (funcall ediff-long-help-message-function))
-	      (ediff-word-mode 
+	      (ediff-word-mode
 	       (concat ediff-long-help-message-head
 		       ediff-long-help-message-word-mode
 		       ediff-long-help-message-tail))
@@ -290,7 +290,7 @@ the value of this variable and the variables `ediff-help-message-*' in
 	       (concat ediff-long-help-message-head
 		       ediff-long-help-message-narrow2
 		       ediff-long-help-message-tail))
-	      (ediff-merge-job 
+	      (ediff-merge-job
 	       (concat ediff-long-help-message-head
 		       ediff-long-help-message-merge
 		       ediff-long-help-message-tail))
@@ -298,11 +298,11 @@ the value of this variable and the variables `ediff-help-message-*' in
 	       (concat ediff-long-help-message-head
 		       ediff-long-help-message-compare3
 		       ediff-long-help-message-tail))
-	      (t 
+	      (t
 	       (concat ediff-long-help-message-head
 		       ediff-long-help-message-compare2
 		       ediff-long-help-message-tail))))
-  (setq ediff-brief-help-message 
+  (setq ediff-brief-help-message
 	(cond ((and ediff-brief-help-message-function
 		    (or (symbolp ediff-brief-help-message-function)
 			(consp ediff-brief-help-message-function)))

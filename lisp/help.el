@@ -483,7 +483,7 @@ or `keymap' property, return the binding of KEY in the string's keymap."
 	(if (equal string otherstring)
 	    string
 	  (format "%s (translated from %s)" string otherstring))))))
-	  
+
 (defun describe-key-briefly (key &optional insert untranslated)
   "Print the name of the function KEY invokes.  KEY is a string.
 If INSERT (the prefix arg) is non-nil, insert the message in the buffer.

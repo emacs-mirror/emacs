@@ -113,7 +113,7 @@ If this contains a %s, that will be replaced by the matching rule."
     (("[Mm]akefile\\'" . "Makefile") . "makefile.inc")
 
     (html-mode . (lambda () (sgml-tag "html")))
-    
+
     (plain-tex-mode . "tex-insert.tex")
     (bibtex-mode . "tex-insert.tex")
     (latex-mode
@@ -130,7 +130,7 @@ If this contains a %s, that will be replaced by the matching rule."
      lambda ()
        (if (eq major-mode default-major-mode)
 	 (sh-mode)))
-    
+
     (ada-mode . ada-header)
 
     (("\\.[1-9]\\'" . "Man page skeleton")

@@ -417,7 +417,7 @@ If the prefix ARG is given, restrict the view to the current file instead."
 	      (number-to-string newstart2) ",1 @@\n")
       ;; Fix the original hunk-header.
       (diff-fixup-modifs start pos))))
-      
+
 
 ;;;;
 ;;;; jump to other buffers
@@ -519,9 +519,9 @@ Non-nil OLD means that we want the old file."
       (ediff-patch-file nil (current-buffer))
     (wrong-number-of-arguments (ediff-patch-file))))
 
-;;;; 
+;;;;
 ;;;; Conversion functions
-;;;; 
+;;;;
 
 ;;(defvar diff-inhibit-after-change nil
 ;;  "Non-nil means inhibit `diff-mode's after-change functions.")
@@ -791,9 +791,9 @@ else cover the whole bufer."
 		  (unless (string= new old) (replace-match new t t nil 2))))))
 	    (setq space 0 plus 0 minus 0 bang 0)))))))
 
-;;;; 
+;;;;
 ;;;; Hooks
-;;;; 
+;;;;
 
 (defun diff-write-contents-hooks ()
   "Fixup hunk headers if necessary."
@@ -847,9 +847,9 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
 	  (diff-fixup-modifs (point) (cdr diff-unhandled-changes)))))
     (setq diff-unhandled-changes nil)))
 
-;;;; 
+;;;;
 ;;;; The main function
-;;;; 
+;;;;
 
 ;;;###autoload
 (define-derived-mode diff-mode fundamental-mode "Diff"

@@ -95,7 +95,7 @@ follows (the point `*' corresponds to both reference points):
       (or (integerp nref)
 	  (setq nref (cdr (assq nref reference-point-alist))))
       (or (and (>= gref 0) (< gref 12) (>= nref 0) (< nref 12))
-	  (error "Invalid composition rule: %S" rule))	
+	  (error "Invalid composition rule: %S" rule))
       (+ (* gref 12) nref))))
 
 ;; Decode encoded composition rule RULE-CODE.  The value is a cons of
@@ -331,7 +331,7 @@ This function is the default value of `compose-chars-after-function'."
     (when tail
       (save-match-data
 	(save-excursion
-	  (while (and tail (not func))		  
+	  (while (and tail (not func))
 	    (setq pattern (car (car tail))
 		  func (cdr (car tail)))
 	    (goto-char pos)

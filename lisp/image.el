@@ -66,7 +66,7 @@ We accept the tag Exif because that is the same format."
 		(code (aref data i)))
 	    (when (and (>= code #xe0) (<= code #xef))
 	      ;; APP0 LEN1 LEN2 "JFIF\0"
-	      (throw 'jfif 
+	      (throw 'jfif
 		     (string-match "JFIF\\|Exif" (substring data i (+ i nbytes)))))
 	    (setq i (+ i 1 nbytes))))))))
 

@@ -34,7 +34,7 @@
 
 ;;; Code:
 
-(let ((all '(;; abbrev.c 
+(let ((all '(;; abbrev.c
 	     (abbrev-all-caps abbrev-mode boolean)
 	     (pre-abbrev-expand-hook abbrev-mode hook)
 	     ;; alloc.c
@@ -88,7 +88,7 @@
 			    (function :value ignore))))
 	     (selection-coding-system mule coding-system)
 	     ;; dired.c
-	     (completion-ignored-extensions dired 
+	     (completion-ignored-extensions dired
 					    (repeat (string :format "%v")))
 	     ;; dispnew.c
 	     (baud-rate display integer)
@@ -106,7 +106,7 @@
 						   :value (nil)
 						   (symbol :format "%v"))
 					   (const :tag "always" t)))
-	     (debug-on-error debug 
+	     (debug-on-error debug
 			     (choice (const :tag "off")
 				     (repeat :menu-tag "When"
 					     :value (nil)
@@ -155,7 +155,7 @@
 ;; version-specific directories when you upgrade.  We need
 ;; customization of the front of the list, maintaining the standard
 ;; value intact at the back.
-;;; 	     (load-path environment 
+;;; 	     (load-path environment
 ;;; 			(repeat (choice :tag "[Current dir?]"
 ;;; 					:format "%[Current dir?%] %v"
 ;;; 					(const :tag " current dir" nil)
@@ -205,8 +205,8 @@
 	     (display-buffer-function windows (choice (const nil) function))
 	     (pop-up-frames frames boolean)
 	     (pop-up-frame-function frames function)
-	     (special-display-buffer-names 
-	      frames 
+	     (special-display-buffer-names
+	      frames
 	      (repeat (choice :tag "Buffer"
 			      :value ""
 			      (string :format "%v")
@@ -219,7 +219,7 @@
 						  (symbol :tag "Parameter")
 						  (sexp :tag "Value")))))))
 	     (special-display-regexps
-	      frames 
+	      frames
 	      (repeat (choice :tag "Buffer"
 			      :value ""
 			      (regexp :format "%v")
@@ -283,7 +283,7 @@
 			(numberp sexp))
 		    sexp
 		  (list 'quote sexp)))))
-  (while all 
+  (while all
     (setq this (car all)
 	  all (cdr all)
 	  symbol (nth 0 this)
@@ -307,7 +307,7 @@
 	     (message "Note, built-in variable `%S' not bound" symbol))
       ;; Save the standard value, unless we already did.
       (or (get symbol 'standard-value)
-	  (put symbol 'standard-value 
+	  (put symbol 'standard-value
 	       (list (funcall quoter (default-value symbol)))))
       ;; If this is NOT while dumping Emacs,
       ;; set up the rest of the customization info.

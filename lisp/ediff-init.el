@@ -740,7 +740,7 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire."
   :group 'ediff)
 
 (defcustom ediff-coding-system-for-read 'raw-text
-  "*The coding system for read to use when running the diff program as a subprocess. 
+  "*The coding system for read to use when running the diff program as a subprocess.
 In most cases, the default will do. However, under certain circumstances in
 Windows NT/98/95 you might need to use something like 'raw-text-dos here.
 So, if the output that your diff program sends to Emacs contains extra ^M's,
@@ -811,7 +811,7 @@ to temp files when Ediff needs to find fine differences."
 ;; A var local to each control panel buffer.  Indicates highlighting style
 ;; in effect for this buffer: `face', `ascii',
 ;; `off' -- turned off \(on a dumb terminal only\).
-(ediff-defvar-local ediff-highlighting-style 
+(ediff-defvar-local ediff-highlighting-style
   (if (and (ediff-has-face-support-p) ediff-use-faces) 'face 'ascii)
   "")
 
@@ -1549,7 +1549,7 @@ This default should work without changes."
 	    (t nil))))
 
 (defsubst ediff-frame-char-height (frame)
-  (ediff-cond-compile-for-xemacs-or-emacs 
+  (ediff-cond-compile-for-xemacs-or-emacs
    (glyph-height ediff-H-glyph (frame-selected-window frame)) ; xemacs case
    (frame-char-height frame) ; emacs case
    )

@@ -33,9 +33,9 @@
 ;; been removed or renamed in order to work properly with dired of GNU
 ;; Emacs.  All suggestions or comments are most welcomed.
 
-;;  
+;;
 ;; Please, PLEASE, *PLEASE* see the info pages.
-;; 
+;;
 
 ;; BUGS: Type M-x dired-x-submit-report and a report will be generated.
 

@@ -109,7 +109,7 @@ as the final argument."
 		  (delete-process find))
 	      (error nil))
 	  (error "Cannot have two processes in `%s' at once" (buffer-name)))))
-      
+
     (widen)
     (kill-all-local-variables)
     (setq buffer-read-only nil)
@@ -134,7 +134,7 @@ as the final argument."
 	;; and later)
 	(dired-simple-subdir-alist)
       ;; else we have an ancient tree dired (or classic dired, where
-      ;; this does no harm) 
+      ;; this does no harm)
       (set (make-local-variable 'dired-subdir-alist)
 	   (list (cons default-directory (point-min-marker)))))
     (setq buffer-read-only nil)
@@ -142,7 +142,7 @@ as the final argument."
     ;; subdir-alist points there.
     (insert "  " dir ":\n")
     ;; Make second line a ``find'' line in analogy to the ``total'' or
-    ;; ``wildcard'' line. 
+    ;; ``wildcard'' line.
     (insert "  " args "\n")
     ;; Start the find process.
     (let ((proc (start-process-shell-command find-dired-find-program (current-buffer) args)))

@@ -751,7 +751,7 @@ DIRECTION = 0 means try both backward and forward.
 IGNORE-CASE non-nil means ignore case when searching.
 This sets `dabbrev--last-direction' to 1 or -1 according
 to the direction in which the occurrence was actually found.
-It sets `dabbrev--last-expansion-location' to the location 
+It sets `dabbrev--last-expansion-location' to the location
 of the start of the occurrence."
   (save-excursion
     ;; If we were scanning something other than the current buffer,
@@ -921,7 +921,7 @@ to record whether we upcased the expansion, downcased it, or did neither."
     ;; record if we upcased or downcased the first word,
     ;; in order to do likewise for subsequent words.
     (and record-case-pattern
-	 (setq dabbrev--last-case-pattern 
+	 (setq dabbrev--last-case-pattern
 	       (and use-case-replace
 		    (cond ((equal abbrev (upcase abbrev)) 'upcase)
 			  ((equal abbrev (downcase abbrev)) 'downcase)))))

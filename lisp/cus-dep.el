@@ -92,7 +92,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 		(when members
 		  ;; So x and no-x builds won't differ.
 		  (setq members
-			(sort (copy-sequence members) 
+			(sort (copy-sequence members)
 			      (lambda (x y) (string< (car x) (car y)))))
 		  (while members
 		    (setq item (car (car members))
@@ -102,7 +102,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 				(member where found))
 		      (if found
 			  (insert " ")
-			(insert "(put '" (symbol-name symbol) 
+			(insert "(put '" (symbol-name symbol)
 				" 'custom-loads '("))
 		      (prin1 where (current-buffer))
 		      (push where found)))
@@ -110,7 +110,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 		    (insert "))\n"))))))
   (insert "\
 ;;; These are for handling :version.  We need to have a minimum of
-;;; information so `customize-changed-options' could do its job.  
+;;; information so `customize-changed-options' could do its job.
 
 ;;; For groups we set `custom-version', `group-documentation' and
 ;;; `custom-tag' (which are shown in the customize buffer), so we
@@ -136,7 +136,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
     (mapatoms (lambda (symbol)
 		(let ((version (get symbol 'custom-version))
 		      where)
-		  (when version 
+		  (when version
 		    (setq where (get symbol 'custom-where))
 		    (when where
 		      (if (or (custom-variable-p symbol)
@@ -144,13 +144,13 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 			  ;; This means it's a variable or a face.
 			  (progn
 			    (if (assoc version version-alist)
-				(unless 
-				    (member where 
+				(unless
+				    (member where
 					    (cdr (assoc version version-alist)))
 				  (push where (cdr (assoc version version-alist))))
 			      (push (cons version (list where)) version-alist)))
 			;; This is a group
-			(insert "(custom-put-if-not '" (symbol-name symbol) 
+			(insert "(custom-put-if-not '" (symbol-name symbol)
 				" 'custom-version ")
 			(prin1 version (current-buffer))
 			(insert ")\n")
@@ -169,7 +169,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 	    (if version-alist "'" ""))
     (prin1 version-alist (current-buffer))
     (insert "\n \"For internal use by custom.\")\n"))
-    
+
   (insert "\
 
 \(provide '" (file-name-sans-extension

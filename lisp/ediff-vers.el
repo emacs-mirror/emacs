@@ -50,7 +50,7 @@
 	     (load "ediff-init.el" nil nil 'nosuffix))
 	 )))
 ;; end pacifier
-      
+
 ;; VC.el support
 
 (defun ediff-vc-latest-version (file)
@@ -72,7 +72,7 @@
   ;; If the current buffer is named `F', the version is named `F.~REV~'.
   ;; If `F.~REV~' already exists, it is used instead of being re-created.
   (let (file1 file2 rev1buf rev2buf)
-    (if (string= rev1 "") 
+    (if (string= rev1 "")
 	(setq rev1 (ediff-vc-latest-version (buffer-file-name))))
     (save-window-excursion
       (save-excursion
@@ -93,12 +93,12 @@
      rev1buf rev2buf
      startup-hooks
      'ediff-revision)))
-    
+
 ;; RCS.el support
 (defun rcs-ediff-view-revision (&optional rev)
 ;; View previous RCS revision of current file.
 ;; With prefix argument, prompts for a revision name.
-  (interactive (list (if current-prefix-arg 
+  (interactive (list (if current-prefix-arg
 			 (read-string "Revision: "))))
   (let* ((filename (buffer-file-name (current-buffer)))
 	 (switches (append '("-p")
@@ -116,10 +116,10 @@
 	  (apply 'call-process "co" nil t nil
 		 ;; -q: quiet (no diagnostics)
 		 (append switches rcs-default-co-switches
-			 (list "-q" filename))))) 
+			 (list "-q" filename)))))
       (message "")
-      buff)))    
-      
+      buff)))
+
 (defun ediff-rcs-get-output-buffer (file name)
   ;; Get a buffer for RCS output for FILE, make it writable and clean it up.
   ;; Optional NAME is name to use instead of `*RCS-output*'.
@@ -143,7 +143,7 @@
 			(current-buffer)
 		      (rcs-ediff-view-revision rev2))
 	    rev1buf (rcs-ediff-view-revision rev1)))
-	
+
     ;; rcs.el doesn't create temp version files, so we don't have to delete
     ;; anything in startup hooks to ediff-buffers
     (ediff-buffers rev1buf rev2buf startup-hooks 'ediff-revision)
@@ -177,7 +177,7 @@
 
 ;;; Merge with Version Control
 
-(defun ediff-vc-merge-internal (rev1 rev2 ancestor-rev 
+(defun ediff-vc-merge-internal (rev1 rev2 ancestor-rev
 				     &optional startup-hooks merge-buffer-file)
 ;; If ANCESTOR-REV non-nil, merge with ancestor
   (let (buf1 buf2 ancestor-buf)
@@ -195,9 +195,9 @@
 		(setq ancestor-rev (vc-workfile-version buffer-file-name)))
 	    (vc-version-other-window ancestor-rev)
 	    (setq ancestor-buf (current-buffer))))
-      (setq startup-hooks 
-	    (cons 
-	     `(lambda () 
+      (setq startup-hooks
+	    (cons
+	     `(lambda ()
 		(delete-file ,(buffer-file-name buf1))
 		(or ,(string= rev2 "")
 		    (delete-file ,(buffer-file-name buf2)))
@@ -278,11 +278,11 @@
 	 (default-directory
 	   (file-name-as-directory (cvs-fileinfo->dir fileinfo)))
 	 ancestor-file)
-    
+
     (or (memq type '(MERGED CONFLICT MODIFIED))
 	(error
 	 "Can only merge `Modified', `Merged' or `Conflict' files"))
-    
+
     (cond ((memq type '(MERGED CONFLICT))
 	   (setq ancestor-file
 		 (cvs-retrieve-revision-to-tmpfile

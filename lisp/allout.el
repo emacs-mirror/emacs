@@ -5,7 +5,7 @@
 ;; Author: Ken Manheimer <klm@python.org>
 ;; Maintainer: Ken Manheimer <klm@python.org>
 ;; Created: Dec 1991 - first release to usenet
-;; Version: $Id: allout.el,v 1.37 2002/12/16 00:42:23 rost Exp $||
+;; Version: $Id: allout.el,v 1.38 2002/12/16 01:00:51 rost Exp $||
 ;; Keywords: outlines mode wp languages
 
 ;; This file is part of GNU Emacs.
@@ -33,23 +33,23 @@
 ;; exposure.  It also provides for syntax-sensitive text like
 ;; programming languages.  (For an example, see the allout code
 ;; itself, which is organized in ;; an outline framework.)
-;; 
+;;
 ;; In addition to outline navigation and exposure, allout includes:
-;; 
+;;
 ;;  - topic-oriented repositioning, cut, and paste
 ;;  - integral outline exposure-layout
 ;;  - incremental search with dynamic exposure and reconcealment of hidden text
 ;;  - automatic topic-number maintenance
 ;;  - "Hot-spot" operation, for single-keystroke maneuvering and
 ;;    exposure control.  (See the `allout-mode' docstring.)
-;; 
+;;
 ;; and many other features.
-;; 
+;;
 ;; The outline menubar additions provide quick reference to many of
 ;; the features, and see the docstring of the function `allout-init'
 ;; for instructions on priming your emacs session for automatic
 ;; activation of `allout-mode'.
-;; 
+;;
 ;; See the docstring of the variables `allout-layout' and
 ;; `allout-auto-activation' for details on automatic activation of
 ;; allout `allout-mode' as a minor mode.  (It has changed since allout
@@ -89,7 +89,7 @@ With value `t', auto-mode-activation and auto-layout are enabled.
 With value `ask', auto-mode-activation is enabled, and endorsement for
 performing auto-layout is asked of the user each time.
 
-With value `activate', only auto-mode-activation is enabled, 
+With value `activate', only auto-mode-activation is enabled,
 auto-layout is not.
 
 With value `nil', neither auto-mode-activation nor auto-layout are
@@ -189,7 +189,7 @@ of this var to take effect."
 
 These bullets are used to distinguish topics from the run-of-the-mill
 ones.  They are not used in the standard topic headers created by
-the topic-opening, shifting, and rebulleting \(eg, on topic shift, 
+the topic-opening, shifting, and rebulleting \(eg, on topic shift,
 topic paste, blanket rebulleting) routines, but are offered among the
 choices for rebulleting.  They are not altered by the above automatic
 rebulleting, so they can be used to characterize topics, eg:
@@ -242,7 +242,7 @@ tripled, but an underscore is substituted for the space. [This
 presumes that the space is for appearance, not comment syntax.  You
 can use `allout-mode-leaders' to override this behavior, when
 incorrect.]"
-  :type '(choice (const t) (const nil) string 
+  :type '(choice (const t) (const nil) string
 		 (const allout-mode-leaders)
 		 (const comment-start))
   :group 'allout)
@@ -508,7 +508,7 @@ behavior."
 ;;;_  : Version
 ;;;_   = allout-version
 (defvar allout-version
-  (let ((rcs-rev "$Revision: 1.37 $"))
+  (let ((rcs-rev "$Revision: 1.38 $"))
     (condition-case err
 	(save-match-data
 	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
@@ -789,9 +789,9 @@ activation.  Being deprecated.")
 		      "----"
 		      ["Duplicate Exposed" allout-copy-exposed-to-buffer t]
 		      ["Duplicate Exposed, numbered"
-		       allout-flatten-exposed-to-buffer t] 
+		       allout-flatten-exposed-to-buffer t]
 		      ["Duplicate Exposed, indented"
-		       allout-indented-exposed-to-buffer t] 
+		       allout-indented-exposed-to-buffer t]
 		      "----"
 		      ["Set Header Lead" allout-reset-header-lead t]
 		      ["Set New Exposure" allout-expose-topic t])))
@@ -1006,7 +1006,7 @@ the following two lines in your emacs init file:
 			((message
 			  "Outline mode auto-activation and -layout enabled.")
 			 'full)))))))
-		   
+
 ;;;_  > allout-setup-menubar ()
 (defun allout-setup-menubar ()
   "Populate the current buffer's menubar with `allout-mode' stuff."
@@ -2459,12 +2459,12 @@ The function checks to ensure that the rebinding is done only once."
 
   (add-hook 'isearch-mode-end-hook 'allout-isearch-rectification)
   (if (fboundp 'allout-real-isearch-abort)
-      ;; 
+      ;;
       nil
                                         ; Ensure load of isearch-mode:
     (if (or (and (fboundp 'isearch-mode)
                  (fboundp 'isearch-abort))
-            (condition-case error 
+            (condition-case error
                 (load-library "isearch-mode")
               ('file-error (message
 			    "Skipping isearch-mode provisions - %s '%s'"
@@ -2475,7 +2475,7 @@ The function checks to ensure that the rebinding is done only once."
 			   (setq allout-isearch-dynamic-expose nil))))
         ;; Isearch-mode loaded, encapsulate specific entry points for
         ;; outline dynamic-exposure business:
-        (progn 
+        (progn
 	  ;; stash crucial isearch-mode funcs under known, private
 	  ;; names, then register wrapper functions under the old
 	  ;; names, in their stead:
@@ -4053,7 +4053,7 @@ and retains start position."
 
 Optional arg CONTEXT indicates interior levels to include."
   (let ((delim ".")
-	result 
+	result
 	numstr
 	(context-depth (or (and context 2) 1)))
     ;; Take care of the explicit context:
@@ -4096,7 +4096,7 @@ Optional arg CONTEXT indicates interior levels to include."
 (defun allout-stringify-flat-index-indented (flat-index)
   "Convert list representing section/subsection/... to document string."
   (let ((delim ".")
-	result 
+	result
 	numstr)
     ;; Take care of the explicit context:
     (setq numstr (int-to-string (car flat-index))
@@ -4534,7 +4534,7 @@ BULLET string, and a list of TEXT strings for the body."
 	 (curr-line)
 	 body-content bop)
 					; Do the head line:
-    (insert (concat "\\OneHeadLine{\\verb\1 " 
+    (insert (concat "\\OneHeadLine{\\verb\1 "
 		    (allout-latex-verb-quote bullet)
 		    "\1}{"
 		    depth

@@ -40,7 +40,7 @@ The optional FILL should be a character, used to fill to the column."
       (concat "\n" (make-string target fill))
     (make-string (- target (current-column)) fill)))
 ;;
-(defun arch-rj (target field &optional fill) 
+(defun arch-rj (target field &optional fill)
   "Produces a string to skip to column TARGET minus the width of field FIELD.
 Prepends newline if needed. The optional FILL should be a character,
 used to fill to the column."

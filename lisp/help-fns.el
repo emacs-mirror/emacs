@@ -91,7 +91,7 @@ With ARG, you are asked to choose which language."
 	      (newline n))
 	  ;; Some people get confused by the large gap.
 	  (newline (/ n 2))
-	  
+
 	  ;; Skip the [...] line (don't delete it).
 	  (forward-line 1)
 	  (newline (- n (/ n 2)))))

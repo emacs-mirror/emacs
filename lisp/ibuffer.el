@@ -364,12 +364,12 @@ directory, like `default-directory'."
     (define-key map (kbd "* e") 'ibuffer-mark-dissociated-buffers)
     (define-key map (kbd "* h") 'ibuffer-mark-help-buffers)
     (define-key map (kbd ".") 'ibuffer-mark-old-buffers)
-    
+
     (define-key map (kbd "d") 'ibuffer-mark-for-delete)
     (define-key map (kbd "C-d") 'ibuffer-mark-for-delete-backwards)
     (define-key map (kbd "k") 'ibuffer-mark-for-delete)
     (define-key map (kbd "x") 'ibuffer-do-kill-on-deletion-marks)
-  
+
     ;; immediate operations
     (define-key map (kbd "n") 'ibuffer-forward-line)
     (define-key map (kbd "<down>") 'ibuffer-forward-line)
@@ -425,7 +425,7 @@ directory, like `default-directory'."
     (define-key map (kbd "/ R") 'ibuffer-switch-to-saved-filter-groups)
     (define-key map (kbd "/ X") 'ibuffer-delete-saved-filter-groups)
     (define-key map (kbd "/ \\") 'ibuffer-clear-filter-groups)
-  
+
     (define-key map (kbd "q") 'ibuffer-quit)
     (define-key map (kbd "h") 'describe-mode)
     (define-key map (kbd "?") 'describe-mode)
@@ -433,7 +433,7 @@ directory, like `default-directory'."
     (define-key map (kbd "% n") 'ibuffer-mark-by-name-regexp)
     (define-key map (kbd "% m") 'ibuffer-mark-by-mode-regexp)
     (define-key map (kbd "% f") 'ibuffer-mark-by-file-name-regexp)
-  
+
     (define-key map (kbd "C-t") 'ibuffer-visit-tags-table)
 
     (define-key map (kbd "|") 'ibuffer-do-shell-command-pipe)
@@ -458,7 +458,7 @@ directory, like `default-directory'."
     (define-key map (kbd "V") 'ibuffer-do-revert)
     (define-key map (kbd "W") 'ibuffer-do-view-and-eval)
     (define-key map (kbd "X") 'ibuffer-do-shell-command-pipe)
-  
+
     (define-key map (kbd "k") 'ibuffer-do-kill-lines)
     (define-key map (kbd "w") 'ibuffer-copy-filename-as-kill)
 
@@ -683,10 +683,10 @@ directory, like `default-directory'."
 		  :help "Mark buffers which have not been viewed recently"))
     (define-key-after map [menu-bar mark unmark-all]
       '(menu-item "Unmark All" ibuffer-unmark-all))
-    
+
     (define-key-after map [menu-bar mark dashes]
       '("--"))
-      
+
     (define-key-after map [menu-bar mark mark-by-name-regexp]
       '(menu-item "Mark by buffer name (regexp)..." ibuffer-mark-by-name-regexp
 		  :help "Mark buffers whose name matches a regexp"))
@@ -744,7 +744,7 @@ directory, like `default-directory'."
     (define-key-after operate-map [do-view-and-eval]
       '(menu-item "Eval (viewing buffer)..." ibuffer-do-view-and-eval
 		  :help "Evaluate a Lisp form in each marked buffer while viewing it"))
-    
+
     (setq ibuffer-mode-map map
 	  ibuffer-mode-operate-map operate-map
 	  ibuffer-mode-groups-popup (copy-keymap groups-map))))
@@ -1094,7 +1094,7 @@ a new window in the current frame, splitting vertically."
 		     ;; Handle a failure
 		     (if (or (> (incf attempts) 4)
 			     (and (stringp (cadr err))
-				  ;; This definitely falls in the 
+				  ;; This definitely falls in the
 				  ;; ghetto hack category...
 				  (not (string-match "too small" (cadr err)))))
 			 (apply #'signal err)
@@ -1338,7 +1338,7 @@ If point is on a group name, this function operates on that group."
 		  (if uncompiledp
 		      ibuffer-filter-format-alist
 		    ibuffer-compiled-filter-formats))))))
-       
+
 (defun ibuffer-current-format (&optional uncompiledp)
   (or ibuffer-current-format
       (setq ibuffer-current-format 0))
@@ -1366,7 +1366,7 @@ If point is on a group name, this function operates on that group."
 		  elide nil))
 	  (list sym min max align elide)))
     form))
-  
+
 (defun ibuffer-compile-make-eliding-form (strvar elide from-end-p)
   (let ((ellipsis (propertize ibuffer-eliding-string 'font-lock-face 'bold)))
     (if (or elide ibuffer-elide-long-columns)
@@ -1566,7 +1566,7 @@ If point is on a group name, this function operates on that group."
     (ibuffer-awhen (and (consp form)
 			(get (car form) 'ibuffer-column-summarizer))
       (put (car form) 'ibuffer-column-summary nil))))
-  
+
 (defun ibuffer-check-formats ()
   (when (null ibuffer-formats)
     (error "No formats!"))
@@ -1614,7 +1614,7 @@ If point is on a group name, this function operates on that group."
 			      'ibuffer-name-column t
 			      'help-echo "mouse-1: mark this buffer\nmouse-2: select this buffer\nmouse-3: operate on this buffer"))
   (propertize (buffer-name) 'font-lock-face (ibuffer-buffer-name-face buffer mark)))
-  
+
 (define-ibuffer-column size (:inline t)
   (format "%s" (buffer-size)))
 
@@ -1698,7 +1698,7 @@ If point is on a group name, this function operates on that group."
 	     (ibuffer-current-format)))
 	  (when ibuffer-shrink-to-minimum-size
 	    (ibuffer-shrink-to-fit)))))))
-   
+
 (defun ibuffer-map-on-mark (mark func)
   (ibuffer-map-lines
    #'(lambda (buf mk)
@@ -1817,7 +1817,7 @@ the value of point at the beginning of the line for that buffer."
 	      (funcall pred buf))
 	(setq hit t)))
     hit))
-  
+
 (defun ibuffer-filter-buffers (ibuffer-buf last bmarklist all)
   (let ((ext-loaded (featurep 'ibuf-ext)))
     (delq nil
@@ -2300,7 +2300,7 @@ Filter group commands:
   '\\[ibuffer-save-filter-groups]' - Save the current groups with a name.
   '\\[ibuffer-switch-to-saved-filter-groups]' - Restore previously saved groups.
   '\\[ibuffer-delete-saved-filter-groups]' - Delete previously saved groups.
-    
+
 Sorting commands:
 
   '\\[ibuffer-toggle-sorting-mode]' - Rotate between the various sorting modes.

@@ -55,8 +55,8 @@
 			      &optional prompt inhibit-quit
 					loop-function loop-state)
 
-  (let (cmd 
-        (err nil) 
+  (let (cmd
+        (err nil)
         (prompt-string prompt))
     (while t
       (if (not (or (stringp prompt) (eq prompt nil) (eq prompt 'noprompt)))
@@ -123,7 +123,7 @@
   (ding)
   (throw return-tag nil))
 
-;; This function is like pop-to-buffer, sort of. 
+;; This function is like pop-to-buffer, sort of.
 ;; The algorithm is
 ;; If there is a window displaying buffer
 ;; 	Select it

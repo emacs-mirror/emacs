@@ -54,7 +54,7 @@ much like those of buffer-menu-mode.
 
 Calls value of `electric-buffer-menu-mode-hook' on entry if non-nil.
 
-\\{electric-buffer-menu-mode-map}" 
+\\{electric-buffer-menu-mode-map}"
   (interactive "P")
   (let (select buffer)
     (save-window-excursion
@@ -209,7 +209,7 @@ electric-buffer-menu-mode-hook if it is non-nil."
     (define-key map [escape escape escape] 'Electric-buffer-menu-quit)
     (define-key map [mouse-2] 'Electric-buffer-menu-mouse-select)
     (setq electric-buffer-menu-mode-map map)))
- 
+
 (defun Electric-buffer-menu-exit ()
   (interactive)
   (setq unread-command-events (listify-key-sequence (this-command-keys)))

@@ -55,10 +55,10 @@ If it is also not t, RET does not exit if it does non-null completion."
 `$FOO' where FOO is an environment variable name means to substitute
 the value of that variable.  The variable name should be terminated
 with a character not a letter, digit or underscore; otherwise, enclose
-the entire variable name in braces.  Use `$$' to insert a single 
+the entire variable name in braces.  Use `$$' to insert a single
 dollar sign."
   (let ((start 0))
-    (while (string-match 
+    (while (string-match
 	    (rx (or (and "$" (submatch (1+ (in "a-zA-Z0-9_"))))
 		    (and "${" (submatch (minimal-match (0+ anything))) "}")
 		    "$$"))
@@ -101,13 +101,13 @@ This function works by modifying `process-environment'."
        (when value
 	 (push value setenv-history))
        ;; Here finally we specify the args to give call setenv with.
-       (list var 
+       (list var
 	     (read-from-minibuffer (format "Set %s to value: " var)
 				   nil nil nil 'setenv-history
 				   value)
-	     nil 
+	     nil
 	     t))))
-  (if unset 
+  (if unset
       (setq value nil)
     (if substitute-env-vars
 	(setq value (substitute-env-vars value))))

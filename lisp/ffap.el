@@ -69,7 +69,7 @@
 ;; ffap uses `browse-url' (if found, else `w3-fetch') to fetch URL's.
 ;; For a hairier `ffap-url-fetcher', try ffap-url.el (same ftp site).
 ;; Also, you can add `ffap-menu-rescan' to various hooks to fontify
-;; the file and URL references within a buffer.  
+;; the file and URL references within a buffer.
 
 
 ;;; Change Log:

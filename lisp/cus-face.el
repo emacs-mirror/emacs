@@ -86,7 +86,7 @@
 	     (const :tag "ultracondensed" ultra-condensed)
 	     (const :tag "ultraexpanded" ultra-expanded)
 	     (const :tag "wide" extra-expanded)))
-    
+
     (:height
      (choice :tag "Height"
 	     :help-echo "Face's font height."
@@ -113,7 +113,7 @@
 	     (const :tag "semilight" semi-light)
 	     (const :tag "ultralight" ultra-light)
 	     (const :tag "ultrabold" ultra-bold)))
-    
+
     (:slant
      (choice :tag "Slant"
 	     :help-echo "Font slant."
@@ -121,28 +121,28 @@
 	     (const :tag "italic" italic)
 	     (const :tag "oblique" oblique)
 	     (const :tag "normal" normal)))
-    
+
     (:underline
      (choice :tag "Underline"
 	     :help-echo "Control text underlining."
 	     (const :tag "Off" nil)
 	     (const :tag "On" t)
 	     (color :tag "Colored")))
-    
+
     (:overline
      (choice :tag "Overline"
 	     :help-echo "Control text overlining."
 	     (const :tag "Off" nil)
 	     (const :tag "On" t)
 	     (color :tag "Colored")))
-    
+
     (:strike-through
      (choice :tag "Strike-through"
 	     :help-echo "Control text strike-through."
 	     (const :tag "Off" nil)
 	     (const :tag "On" t)
 	     (color :tag "Colored")))
-    
+
     (:box
      ;; Fixme: this can probably be done better.
      (choice :tag "Box around text"
@@ -190,21 +190,21 @@
 		     (nconc (and lwidth `(:line-width ,lwidth))
 			    (and color  `(:color ,color))
 			    (and style  `(:style ,style)))))))))
-    
+
     (:inverse-video
      (choice :tag "Inverse-video"
 	     :help-echo "Control whether text should be in inverse-video."
 	     (const :tag "Off" nil)
 	     (const :tag "On" t)))
-    
+
     (:foreground
      (color :tag "Foreground"
 	    :help-echo "Set foreground color."))
-    
+
     (:background
      (color :tag "Background"
 	    :help-echo "Set background color."))
-    
+
     (:stipple
      (choice :tag "Stipple"
 	     :help-echo "Background bit-mask"
@@ -230,7 +230,7 @@
        (if (and (consp cus-value) (null (cdr cus-value)))
 	   (car cus-value)
 	 cus-value))))
-       
+
   "Alist of face attributes.
 
 The elements are of the form (KEY TYPE PRE-FILTER POST-FILTER),

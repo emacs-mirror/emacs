@@ -272,7 +272,7 @@ this function onto `change-major-mode-hook'."
       (remove-hook 'after-change-functions 'font-lock-after-change-function t)
       (font-lock-unfontify-buffer)
       (font-lock-turn-off-thing-lock))))
-  
+
 (defun turn-on-font-lock ()
   "Turn on Font Lock mode (only if the terminal can display it)."
   (unless font-lock-mode

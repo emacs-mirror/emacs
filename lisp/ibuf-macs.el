@@ -125,7 +125,7 @@ change its definition, you should explicitly call
 
 ;;;###autoload
 (defmacro* define-ibuffer-sorter (name documentation
-				       (&key 
+				       (&key
 					description)
 				       &rest body)
   "Define a method of sorting named NAME.
@@ -152,7 +152,7 @@ value if and only if `a' is \"less than\" `b'."
 ;;;###autoload
 (defmacro* define-ibuffer-op (op args
 				 documentation
-				 (&key 
+				 (&key
 				  interactive
 				  mark
 				  modifier-p
@@ -253,7 +253,7 @@ macro for exactly what it does."
 
 ;;;###autoload
 (defmacro* define-ibuffer-filter (name documentation
-				       (&key 
+				       (&key
 					reader
 					description)
 				       &rest body)
@@ -267,7 +267,7 @@ not a particular buffer should be displayed or not.  The forms in BODY
 will be evaluated with BUF bound to the buffer object, and QUALIFIER
 bound to the current value of the filter."
   (let ((fn-name (intern (concat "ibuffer-filter-by-" (symbol-name name)))))
-    `(progn 
+    `(progn
        (defun ,fn-name (qualifier)
 	 ,(concat (or documentation "This filter is not documented."))
 	 (interactive (list ,reader))

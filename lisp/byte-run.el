@@ -144,19 +144,19 @@ The result of the body appears to the compiler as a quoted constant."
 ;;   "Set some compilation-parameters for this file.  This will affect only the
 ;; file in which it appears; this does nothing when evaluated, and when loaded
 ;; from a .el file.
-;; 
+;;
 ;; Each argument to this macro must be a list of a key and a value.
-;; 
+;;
 ;;   Keys:		  Values:		Corresponding variable:
-;; 
+;;
 ;;   verbose	  t, nil		byte-compile-verbose
 ;;   optimize	  t, nil, source, byte	byte-compile-optimize
 ;;   warnings	  list of warnings	byte-compile-warnings
 ;; 		      Legal elements: (callargs redefine free-vars unresolved)
 ;;   file-format	  emacs18, emacs19	byte-compile-compatibility
-;; 
+;;
 ;; For example, this might appear at the top of a source file:
-;; 
+;;
 ;;     (byte-compiler-options
 ;;       (optimize t)
 ;;       (warnings (- free-vars))		; Don't warn about free variables

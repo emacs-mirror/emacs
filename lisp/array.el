@@ -58,7 +58,7 @@
   (defvar array-respect-tabs))
 
 ;;; Internal information functions.
-  
+
 (defun array-cursor-in-array-range ()
   "Return t if the cursor is in a valid array cell.
 Its ok to be on a row number line."
@@ -385,7 +385,7 @@ Leave point at the beginning of the field."
 	(insert array-copy-string))
       (move-to-column array-buffer-column)
       (setq count (1- count)))))
-	
+
 (defun array-copy-to-column (a-column)
   "Copy current field horizontally into every cell up to and including A-COLUMN.
 Leave point at the beginning of the field."

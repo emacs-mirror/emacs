@@ -415,7 +415,7 @@ information will be used for the next call to
 start of the region and set the face with which to start.  Set
 `ansi-color-context-region' to nil if you don't want this."
   (let ((face (car ansi-color-context-region))
-	(start-marker (or (cadr ansi-color-context-region) 
+	(start-marker (or (cadr ansi-color-context-region)
 			  (copy-marker begin)))
 	(end-marker (copy-marker end))
 	escape-sequence)
@@ -481,7 +481,7 @@ start of the region and set the face with which to start.  Set
 
 (defun ansi-color-make-face (property color)
   "Return a face with PROPERTY set to COLOR.
-PROPERTY can be either symbol `foreground' or symbol `background'.  
+PROPERTY can be either symbol `foreground' or symbol `background'.
 
 For Emacs, we just return the cons cell \(PROPERTY . COLOR).
 For XEmacs, we create a temporary face and return it."

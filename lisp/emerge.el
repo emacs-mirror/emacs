@@ -64,11 +64,11 @@ Differs from `save-excursion' in that it doesn't save the point and mark."
            ,@forms)
       (set-buffer StartBuffer))))
 
-(defmacro emerge-defvar-local (var value doc) 
-  "Defines SYMBOL as an advertised variable.  
+(defmacro emerge-defvar-local (var value doc)
+  "Defines SYMBOL as an advertised variable.
 Performs a defvar, then executes `make-variable-buffer-local' on
 the variable.  Also sets the `preserved' property, so that
-`kill-all-local-variables' (called by major-mode setting commands) 
+`kill-all-local-variables' (called by major-mode setting commands)
 won't destroy Emerge control variables."
   `(progn
     (defvar ,var ,value ,doc)
@@ -127,7 +127,7 @@ When called interactively, displays the version."
 ;; to be provided (emerge-diff-options).  The order in which the file names
 ;; are given is fixed.
 ;; The file names are always expanded (see expand-file-name) before being
-;; passed to diff, thus they need not be invoked under a shell that 
+;; passed to diff, thus they need not be invoked under a shell that
 ;; understands `~'.
 ;; The code which processes the diff/diff3 output depends on all the
 ;; finicky details of their output, including the somewhat strange
@@ -578,7 +578,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
     (if output-file
 	(setq emerge-last-dir-output (file-name-directory output-file)))
     ;; Make sure the entire files are seen, and they reflect what is on disk
-    (emerge-eval-in-buffer 
+    (emerge-eval-in-buffer
      buffer-A
      (widen)
      (let ((temp (file-local-copy file-A)))
@@ -842,7 +842,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 	 ;; if the A and B files are the same, ignore the difference
 	 (if (not (string-equal agreement "2"))
 	     (setq list
-		   (cons 
+		   (cons
 		    (let (group-1 group-3 pos)
 		      (setq pos (point))
 		      (setq group-1 (emerge-get-diff3-group "1"))
@@ -1022,7 +1022,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
     (emerge-files-with-ancestor-internal
      file-a file-b file-anc nil
      (list `(lambda () (emerge-command-exit ,file-out))))))
-      
+
 (defun emerge-command-exit (file-out)
   (emerge-write-and-delete file-out)
   (kill-emacs (if emerge-prefix-argument 1 0)))
@@ -1270,7 +1270,7 @@ Otherwise, the A or B file present is copied to the output file."
        (emerge-files (not (not file-out)) file-A file-B file-out
                      nil
                      ;; When done, return to this buffer.
-                     (list 
+                     (list
                       `(lambda ()
                         (switch-to-buffer ,(current-buffer))
                         (message "Merge done.")))))
@@ -1294,7 +1294,7 @@ Otherwise, the A or B file present is copied to the output file."
 
 ;;;###autoload
 (defun emerge-merge-directories (a-dir b-dir ancestor-dir output-dir)
-  (interactive 
+  (interactive
    (list
     (read-file-name "A directory: " nil nil 'confirm)
     (read-file-name "B directory: " nil nil 'confirm)
@@ -1539,7 +1539,7 @@ These characteristics are restored by `emerge-restore-buffer-characteristics'."
     ;; fast access
     (setq emerge-difference-list (apply 'vector (nreverse marker-list)))))
 
-;; If we have an ancestor, select all B variants that we prefer 
+;; If we have an ancestor, select all B variants that we prefer
 (defun emerge-select-prefer-Bs ()
   (let ((n 0))
     (while (< n emerge-number-of-differences)
@@ -1663,7 +1663,7 @@ the height of the merge window.
 `C-u -' alone as argument scrolls half the height of the merge window."
   (interactive "P")
   (emerge-operate-on-windows
-   'scroll-up 
+   'scroll-up
    ;; calculate argument to scroll-up
    ;; if there is an explicit argument
    (if (and arg (not (equal arg '-)))
@@ -1906,7 +1906,7 @@ buffer after this will cause serious problems."
     (run-hooks 'emerge-quit-hook)))
 
 (defun emerge-select-A (&optional force)
-  "Select the A variant of this difference.  
+  "Select the A variant of this difference.
 Refuses to function if this difference has been edited, i.e., if it
 is neither the A nor the B variant.
 A prefix argument forces the variant to be selected
@@ -2579,15 +2579,15 @@ been edited."
 	 (if (= c ?%)
 	     (progn
 	       (setq i (1+ i))
-	       (setq c 
+	       (setq c
 		     (condition-case nil
 			 (aref template i)
 		       (error ?%)))
 	       (cond ((= c ?a)
 		      (insert-buffer-substring emerge-A-buffer A-begin A-end))
-		     ((= c ?b) 
+		     ((= c ?b)
 		      (insert-buffer-substring emerge-B-buffer B-begin B-end))
-		     ((= c ?%) 
+		     ((= c ?%)
 		      (insert ?%))
 		     (t
 		      (insert c))))
@@ -2848,7 +2848,7 @@ keymap.  Leaves merge in fast mode."
       (while (< x-begin x-end)
 	;; bite off and compare no more than 1000 characters at a time
 	(let* ((compare-length (min (- x-end x-begin) 1000))
-	       (x-string (emerge-eval-in-buffer 
+	       (x-string (emerge-eval-in-buffer
 			  buffer-x
 			  (buffer-substring x-begin
 					    (+ x-begin compare-length))))
@@ -2863,7 +2863,7 @@ keymap.  Leaves merge in fast mode."
       t)))
 
 ;; Construct a unique buffer name.
-;; The first one tried is prefixsuffix, then prefix<2>suffix, 
+;; The first one tried is prefixsuffix, then prefix<2>suffix,
 ;; prefix<3>suffix, etc.
 (defun emerge-unique-buffer-name (prefix suffix)
   (if (null (get-buffer (concat prefix suffix)))

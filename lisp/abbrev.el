@@ -229,7 +229,7 @@ Don't use this function in a Lisp program; use `define-abbrev' instead."
   (interactive "p")
   (add-abbrev
    (if only-global-abbrevs
-       global-abbrev-table 
+       global-abbrev-table
      (or local-abbrev-table
 	 (error "No per-mode abbrev table")))
    "Mode" arg))

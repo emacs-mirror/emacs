@@ -247,7 +247,7 @@ before finding a label."
   (concat "\\("
 	  (mapconcat 'identity words "\\|")
 	  "\\)" wild
-	  (if (cdr words) 
+	  (if (cdr words)
 	      (concat "\\("
 		      (mapconcat 'identity words "\\|")
 		      "\\)")
@@ -314,7 +314,7 @@ Value is a list of offsets of the words into the string."
 	(dolist (s (apropos-calc-scores doc apropos-all-words) score)
 	  (setq score (+ score 50 (/ (* (- l s) 50) l)))))
       0))
-	  
+
 (defun apropos-score-symbol (symbol &optional weight)
   "Return apropos score for SYMBOL."
   (setq symbol (symbol-name symbol))
@@ -413,7 +413,7 @@ satisfy the predicate VAR-PREDICATE."
 		     (if (functionp symbol)
 			 (if (setq doc (documentation symbol t))
 			     (progn
-			       (setq score (+ score (apropos-score-doc doc))) 
+			       (setq score (+ score (apropos-score-doc doc)))
 			       (substring doc 0 (string-match "\n" doc)))
 			   "(not documented)")))
 		   (and var-predicate
@@ -531,7 +531,7 @@ Returns list of symbols and values found."
 	(if (apropos-false-hit-str p)
 	    (setq p nil))
 	(if (or f v p)
-	    (setq apropos-accumulator (cons (list symbol 
+	    (setq apropos-accumulator (cons (list symbol
 						  (+ (apropos-score-str f)
 						     (apropos-score-str v)
 						     (apropos-score-str p))
@@ -580,7 +580,7 @@ Returns list of symbols and documentation found."
 				 (setcar (nthcdr 2 apropos-item) v)
 				 (setcar apropos-item (+ (car apropos-item) sv)))))
 		       (setq apropos-accumulator
-			     (cons (list symbol 
+			     (cons (list symbol
 					 (+ (apropos-score-symbol symbol 2) sf sv)
 					 f v)
 				   apropos-accumulator)))))))
@@ -665,7 +665,7 @@ Returns list of symbols and documentation found."
 	      (or (and (setq apropos-item (assq symbol apropos-accumulator))
 		       (setcar (cdr apropos-item)
 			       (+ (cadr apropos-item) (apropos-score-doc doc))))
-		  (setq apropos-item (list symbol 
+		  (setq apropos-item (list symbol
 					   (+ (apropos-score-symbol symbol 2)
 					      (apropos-score-doc doc))
 					   nil nil)
@@ -755,7 +755,7 @@ Will return nil instead."
 (defun apropos-print (do-keys spacing)
   "Output result of apropos searching into buffer `*Apropos*'.
 The value of `apropos-accumulator' is the list of items to output.
-Each element should have the format 
+Each element should have the format
  (SYMBOL SCORE FN-DOC VAR-DOC [PLIST-DOC WIDGET-DOC FACE-DOC GROUP-DOC]).
 The return value is the list that was in `apropos-accumulator', sorted
 alphabetically by symbol name; but this function also sets

@@ -757,7 +757,7 @@ when parsing the archive."
    (apply
     (function concat)
     (mapcar
-     (function 
+     (function
       (lambda (fil)
 	;; Using `concat' here copies the text also, so we can add
 	;; properties without problems.

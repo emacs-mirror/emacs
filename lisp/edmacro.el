@@ -32,7 +32,7 @@
 ;; in a special buffer.  It prompts you to type a key sequence,
 ;; which should be one of:
 ;;
-;;  * RET or `C-x e' (call-last-kbd-macro), to edit the most 
+;;  * RET or `C-x e' (call-last-kbd-macro), to edit the most
 ;;    recently defined keyboard macro.
 ;;
 ;;  * `M-x' followed by a command name, to edit a named command
@@ -105,7 +105,7 @@ With a prefix argument, format the macro in a more concise way."
       (cond (store-hook
 	     (setq mac keys)
 	     (setq cmd nil))
-	    ((or (memq cmd '(call-last-kbd-macro kmacro-call-macro 
+	    ((or (memq cmd '(call-last-kbd-macro kmacro-call-macro
 			     kmacro-end-or-call-macro kmacro-end-and-call-macro))
 		 (member keys '("\r" [return])))
 	     (or last-kbd-macro

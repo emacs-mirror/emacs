@@ -41,7 +41,7 @@
 ;; developing the mode itself, then see the Annotations section in the GDB
 ;; info manual.
 ;;
-;;  Known Bugs: Does not auto-display arrays of structures or structures 
+;;  Known Bugs: Does not auto-display arrays of structures or structures
 ;;  containing arrays.
 
 ;;; Code:
@@ -116,7 +116,7 @@ The following interactive lisp functions help control operation :
 
 `gdb-many-windows'    - Toggle the number of windows gdb uses.
 `gdb-restore-windows' - To restore the window layout.
-`gdb-quit'            - To delete (most) of the buffers used by GDB-UI and 
+`gdb-quit'            - To delete (most) of the buffers used by GDB-UI and
                         reset variables."
   ;;
   (interactive (list (gud-query-cmdline 'gdba)))
@@ -530,7 +530,7 @@ This filter may simply queue output for a later time."
     ("display-end" gdb-display-end)
 ; GDB commands info stack, info locals and frame generate an error-begin
 ; annotation at start when there is no stack but this is a quirk/bug in
-; annotations.  
+; annotations.
 ;    ("error-begin" gdb-error-begin)
     ("display-number-end" gdb-display-number-end)
     ("array-section-begin" gdb-array-section-begin)
@@ -582,7 +582,7 @@ output from a previous command if that happens to be in effect."
       (let ((handler
 	     (car (cdr (gdb-get-current-item)))))
 	(save-excursion
-	  (set-buffer (gdb-get-create-buffer 
+	  (set-buffer (gdb-get-create-buffer
 		       'gdb-partial-output-buffer))
 	  (funcall handler))))
      (t
@@ -590,7 +590,7 @@ output from a previous command if that happens to be in effect."
       (error "Output sink phase error 1")))))
 
 (defun gdb-prompt (ignored)
-  "An annotation handler for `prompt'. 
+  "An annotation handler for `prompt'.
 This sends the next command (if any) to gdb."
   (let ((sink (gdb-get-output-sink)))
     (cond
@@ -714,7 +714,7 @@ output from the current command if that happens to be appropriate."
 	      (if (string-equal (frame-parameter frame 'name)
 				gdb-expression-buffer-name)
 		  (throw 'frame-exists nil)))
-	    (make-frame `((height . ,gdb-window-height) 
+	    (make-frame `((height . ,gdb-window-height)
 			  (width . ,gdb-window-width)
 			  (tool-bar-lines . nil)
 			  (menu-bar-lines . nil)
@@ -1082,7 +1082,7 @@ output from the current command if that happens to be appropriate."
 	;; It is either concatenated to OUTPUT or directed
 	;; elsewhere.
 	(setq output
-	      (gdb-concat-output 
+	      (gdb-concat-output
 	       output
 	       (substring burst 0 (match-beginning 0))))
 
@@ -1262,7 +1262,7 @@ output from the current command if that happens to be appropriate."
   gdb-info-breakpoints-custom)
 
 (defvar gdb-cdir nil "Compilation directory.")
-(defvar breakpoint-enabled-icon) 
+(defvar breakpoint-enabled-icon)
 (defvar breakpoint-disabled-icon)
 
 ;;-put breakpoint icons in relevant margins (even those set in the GUD buffer)
@@ -1299,7 +1299,7 @@ output from the current command if that happens to be appropriate."
 					   'mouse-face 'highlight)
 			(save-excursion
 			  (set-buffer
-			   (find-file-noselect 
+			   (find-file-noselect
 			    (if (file-exists-p file) file
 			      (expand-file-name file gdb-cdir))))
 			  (save-current-buffer
@@ -1315,14 +1315,14 @@ output from the current command if that happens to be appropriate."
 			  ;; only want one breakpoint icon at each location
 			  (save-excursion
 			    (goto-line (string-to-number line))
-			    (let ((start (progn (beginning-of-line) 
+			    (let ((start (progn (beginning-of-line)
 						(- (point) 1)))
 				  (end (progn (end-of-line) (+ (point) 1))))
 			      (if (display-graphic-p)
 				  (progn
 				    (remove-images start end)
 				    (if (eq ?y flag)
-					(put-image breakpoint-enabled-icon 
+					(put-image breakpoint-enabled-icon
 						   (point)
 						   "breakpoint icon enabled"
 						   'left-margin)
@@ -1387,7 +1387,7 @@ output from the current command if that happens to be appropriate."
        (list
 	(concat
 	 (if (eq ?y (char-after (match-beginning 2)))
-	     "server disable " 
+	     "server disable "
 	   "server enable ")
 	 (match-string 1) "\n")
 	'ignore)))))
@@ -1564,7 +1564,7 @@ the source buffer."
   gdb-info-locals-handler
   gdb-info-locals-custom)
 
-;; Abbreviate for arrays and structures. 
+;; Abbreviate for arrays and structures.
 ;; These can be expanded using gud-display.
 (defun gdb-info-locals-handler nil
   (gdb-set-pending-triggers (delq 'gdb-invalidate-locals
@@ -1646,7 +1646,7 @@ the source buffer."
       (while (< (point) (- (point-max) 1))
 	(forward-line 1)
 	(if (looking-at "\\([0-9]+\\):   \\([ny]\\)")
-	    (setq display-list 
+	    (setq display-list
 		  (cons (string-to-int (match-string 1)) display-list)))
 	(end-of-line)))
     (if (not (display-graphic-p))
@@ -1654,10 +1654,10 @@ the source buffer."
 	  (dolist (buffer (buffer-list))
 	    (if (string-match "\\*display \\([0-9]+\\)\\*" (buffer-name buffer))
 		(progn
-		  (let ((number 
+		  (let ((number
 			 (match-string 1 (buffer-name buffer))))
 		    (if (not (memq (string-to-int number) display-list))
-			(kill-buffer 
+			(kill-buffer
 			 (get-buffer (concat "*display " number "*")))))))))
       (gdb-delete-frames display-list))))
 
@@ -2233,17 +2233,17 @@ BUFFER nil or omitted means use the current buffer."
 
 (defun gdb-get-current-frame ()
   (if (not (member 'gdb-get-current-frame (gdb-get-pending-triggers)))
-      (progn 
+      (progn
 	(gdb-enqueue-idle-input
 	 (list (concat "server frame\n") 'gdb-frame-handler))
-	(gdb-set-pending-triggers 
+	(gdb-set-pending-triggers
 	 (cons 'gdb-get-current-frame
 	       (gdb-get-pending-triggers))))))
 
 (defun gdb-frame-handler ()
-  (gdb-set-pending-triggers 
+  (gdb-set-pending-triggers
    (delq 'gdb-get-current-frame (gdb-get-pending-triggers)))
-  (save-excursion 
+  (save-excursion
     (set-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer))
     (goto-char (point-min))
     (if (looking-at "^#[0-9]*\\s-*0x\\S-* in \\(\\S-*\\)")

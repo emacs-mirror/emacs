@@ -258,7 +258,7 @@ For most purposes, consider using `format-decode-region' instead."
     (unwind-protect
 	(progn
 	  ;; Don't record undo information for the decoding.
-	  
+
 	  (if (null format)
 	      ;; Figure out which format it is in, remember list in `format'.
 	      (let ((try format-alist))
@@ -296,7 +296,7 @@ For most purposes, consider using `format-decode-region' instead."
 	    (setq format (reverse format)))
 	  (if visit-flag
 	      (setq buffer-file-format format)))
-      
+
       (set-buffer-modified-p mod))
 
       ;; Return new length of region
@@ -486,7 +486,7 @@ the value of `foo'."
       ;; Now (cdr p) is the cons to delete
       (setcdr p (cdr cons))
       list)))
-    
+
 (defun format-make-relatively-unique (a b)
   "Delete common elements of lists A and B, return as pair.
 Compares using `equal'."

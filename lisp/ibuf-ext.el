@@ -88,7 +88,7 @@ regardless of any active filters in this buffer."
 
 (defvar ibuffer-tmp-hide-regexps nil
   "A list of regexps which should match buffer names to not show.")
-  
+
 (defvar ibuffer-tmp-show-regexps nil
   "A list of regexps which should match buffer names to always show.")
 
@@ -112,7 +112,7 @@ Do not set this variable directly!  Use the function
 					 (mode . java-mode)
 					 (mode . idl-mode)
 					 (mode . lisp-mode)))))
-				  
+
   "An alist of filter qualifiers to switch between.
 
 This variable should look like ((\"STRING\" QUALIFIERS)
@@ -170,7 +170,7 @@ The QUALIFIER should be the same as QUALIFIER in
   :group 'ibuffer)
 
 (defcustom ibuffer-saved-filter-groups nil
-				  
+
   "An alist of filtering groups to switch between.
 
 This variable should look like ((\"STRING\" QUALIFIERS)
@@ -921,7 +921,7 @@ of replacing the current filters."
     (concat "Filter: " (mapconcat #'ibuffer-format-qualifier
 				  (cdr (assq filter ibuffer-filter-groups))
 				  " ") "\n")))
-  
+
 (defun ibuffer-format-qualifier (qualifier)
   (if (eq (car-safe qualifier) 'not)
       (concat " [NOT" (ibuffer-format-qualifier-1 (cdr qualifier)) "]")
@@ -939,7 +939,7 @@ of replacing the current filters."
        (unless qualifier
 	 (error "Ibuffer: bad qualifier %s" qualifier))
        (concat " [" (cadr type) ": " (format "%s]" (cdr qualifier)))))))
-  
+
 
 (defun ibuffer-list-buffer-modes ()
   "Create an alist of buffer modes currently in use.

@@ -114,7 +114,7 @@ such as `edebug-defun' to work with such inputs."
   "During IELM evaluation, most recent value evaluated in IELM.
 Normally identical to `*'.  However, if the working buffer is an IELM
 buffer, distinct from the process buffer, then `*' gives the value in
-the working buffer, `*1' the value in the process buffer.  
+the working buffer, `*1' the value in the process buffer.
 The intended value is only accessible during IELM evaluation.")
 
 (defvar *2 nil
@@ -505,7 +505,7 @@ Customised bindings may be defined in `ielm-map', which currently contains:
       (file-error (start-process "ielm" (current-buffer) "cat")))
     (process-kill-without-query (ielm-process))
     (goto-char (point-max))
-    
+
     ;; Lisp output can include raw characters that confuse comint's
     ;; carriage control code.
     (set (make-local-variable 'comint-inhibit-carriage-motion) t)

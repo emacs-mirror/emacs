@@ -318,7 +318,7 @@ exited and text is left visible."
      ;; catch a request to leave all folds
      ((zerop num-folds)
       (setq num-folds (length foldout-fold-list)))
- 
+
      ;; have we been told not to hide the fold?
      ((< num-folds 0)
       (setq hide-fold nil

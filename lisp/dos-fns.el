@@ -42,7 +42,7 @@ with a definition that really does change some file names."
     (let ((flen (length filename)))
       ;; If FILENAME has a trailing slash, remove it and recurse.
       (if (memq (aref filename (1- flen)) '(?/ ?\\))
-	  (concat (convert-standard-filename 
+	  (concat (convert-standard-filename
 		   (substring filename 0 (1- flen)))
 		  "/")
 	(let* (;; ange-ftp gets in the way for names like "/foo:bar".

@@ -130,10 +130,10 @@ A sample format:
   00000050: 6162 6c65 2041 5343 4949 2063 6861 7261  able ASCII chara
   00000060: 6374 6572 732e 2020 416e 7920 636f 6e74  cters.  Any cont
   00000070: 726f 6c20 6f72 206e 6f6e 2d41 5343 4949  rol or non-ASCII
-  00000080: 2063 6861 7261 6374 6572 730a 6172 6520   characters.are 
+  00000080: 2063 6861 7261 6374 6572 730a 6172 6520   characters.are
   00000090: 6469 7370 6c61 7965 6420 6173 2070 6572  displayed as per
   000000a0: 696f 6473 2069 6e20 7468 6520 7072 696e  iods in the prin
-  000000b0: 7461 626c 6520 6368 6172 6163 7465 7220  table character 
+  000000b0: 7461 626c 6520 6368 6172 6163 7465 7220  table character
   000000c0: 7265 6769 6f6e 2e0a                      region..
 
 Movement is as simple as movement in a normal emacs text buffer.  Most
@@ -827,7 +827,7 @@ When following is enabled, the ASCII character corresponding to the
 element under the point is highlighted.
 Customize the variable `hexl-follow-ascii' to disable this feature."
   (interactive "P")
-  (let ((on-p (if arg 
+  (let ((on-p (if arg
 		  (> (prefix-numeric-value arg) 0)
 	       (not hexl-ascii-overlay))))
 

@@ -72,7 +72,7 @@ With prefix arg NOCONFIRM, execute current line as-is without editing."
   (define-key electric-history-map "\e<" 'beginning-of-buffer)
   (define-key electric-history-map "\n" 'next-line)
   (define-key electric-history-map "\r" 'next-line)
-  (define-key electric-history-map "\177" 'previous-line)  
+  (define-key electric-history-map "\177" 'previous-line)
   (define-key electric-history-map "\C-n" 'next-line)
   (define-key electric-history-map "\C-p" 'previous-line)
   (define-key electric-history-map "\ev" 'scroll-down)

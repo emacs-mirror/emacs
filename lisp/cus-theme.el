@@ -53,7 +53,7 @@ This will help you share your customizations with other people.\n\n")
 		       user-login-name))
   (widget-insert "\n\nDocumentation:\n")
   (setq custom-theme-description
-	(widget-create 'text 
+	(widget-create 'text
 		       :value (format-time-string "Created %Y-%m-%d.")))
   (widget-insert "\nVariables:\n\n")
   (setq custom-theme-variables

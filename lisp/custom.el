@@ -191,27 +191,27 @@ The following keywords are meaningful:
         Include an external link after the documentation string for this
         item.  This is a sentence containing an active field which
         references some other documentation.
-   
+
         There are three alternatives you can use for LINK-DATA:
-   
+
         (custom-manual INFO-NODE)
              Link to an Info node; INFO-NODE is a string which specifies
              the node name, as in \"(emacs)Top\".  The link appears as
              `[manual]' in the customization buffer.
-   
+
         (info-link INFO-NODE)
              Like `custom-manual' except that the link appears in the
              customization buffer with the Info node name.
-   
+
         (url-link URL)
              Link to a web page; URL is a string which specifies the URL.
              The link appears in the customization buffer as URL.
-   
+
         You can specify the text to use in the customization buffer by
         adding `:tag NAME' after the first element of the LINK-DATA; for
         example, (info-link :tag \"foo\" \"(emacs)Top\") makes a link to the
         Emacs manual which appears in the buffer as `foo'.
-   
+
         An item can have more than one external link; however, most items
         have none at all.
 :initialize
@@ -772,7 +772,7 @@ in SYMBOL's list property `theme-value' \(using `custom-push-theme')."
 		      ((default-boundp symbol)
 		       ;; Something already set this, overwrite it.
 		       (funcall set symbol (eval value))))
-	      (error 
+	      (error
 	       (message "Error setting %s: %s" symbol data)))
 	      (setq args (cdr args))
 	      (and (or now (default-boundp symbol))
@@ -815,7 +815,7 @@ this sets the local binding in that buffer instead."
 (defun customize-mark-to-save (symbol)
   "Mark SYMBOL for later saving.
 
-If the default value of SYMBOL is different from the standard value, 
+If the default value of SYMBOL is different from the standard value,
 set the `saved-value' property to a list whose car evaluates to the
 default value.  Otherwise, set it to nil.
 
@@ -844,9 +844,9 @@ Return non-nil iff the `saved-value' property actually changed."
 (defun customize-mark-as-set (symbol)
   "Mark current value of SYMBOL as being set from customize.
 
-If the default value of SYMBOL is different from the saved value if any, 
+If the default value of SYMBOL is different from the saved value if any,
 or else if it is different from the standard value, set the
-`customized-value' property to a list whose car evaluates to the 
+`customized-value' property to a list whose car evaluates to the
 default value.  Otherwise, set it to nil.
 
 Return non-nil iff the `customized-value' property actually changed."
@@ -856,7 +856,7 @@ Return non-nil iff the `customized-value' property actually changed."
 	 (old (or (get symbol 'saved-value) (get symbol 'standard-value))))
     ;; Mark default value as set iff different from old value.
     (if (or (null old)
-	    (not (equal value (condition-case nil 
+	    (not (equal value (condition-case nil
 				  (eval (car old))
 				(error nil)))))
 	(put symbol 'customized-value (list (custom-quote value)))
