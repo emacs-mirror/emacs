@@ -1,3 +1,14 @@
+2000-04-24  Dave Love  <fx@gnu.org>
+
+	* cus-edit.el (Custom-set, Custom-save, Custom-reset-current)
+	(Custom-reset-saved, Custom-reset-standard)
+	(custom-group-value-create, custom-group-set, custom-group-save)
+	(custom-group-reset-current, custom-group-reset-saved)
+	(custom-group-reset-standard): Use mapc.
+	(custom-buffer-create-internal): Disable undo when creating items.
+	Use mapc.
+	(custom-face): Avoid redundant lambda.
+
 2000-04-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (auto-save-list-file-prefix): Set default to
