@@ -105,7 +105,7 @@ recompile-gmake:
 ### special emacs executable is built from Lisp sources, which is then
 ### used to compile Lisp files.  The last step is a "normal" make.
 
-bootstrap:	bootstrap-$(MAKETYPE) all
+bootstrap:	addsection bootstrap-$(MAKETYPE) all
 
 bootstrap-nmake:
 	cd ..\lisp
