@@ -1648,7 +1648,7 @@ otherwise skip white space between bullet and ensuing text."
 	  t
 	(while (looking-at "[0-9]") (forward-char 1))
 	(if (and (not (eolp)) (looking-at "\\s-")) (forward-char 1)))
-      (store-match-data match-data))
+      (set-match-data match-data))
     ;; Reestablish where we are:
     (outline-current-depth)))
 ;;;_   > outline-current-bullet-pos ()
