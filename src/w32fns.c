@@ -5816,6 +5816,10 @@ w32_load_system_font (f,fontname,size)
            ended up with. */
       return NULL;
 
+    /* Specify anti-aliasing to prevent Cleartype fonts being used,
+       since those fonts leave garbage behind.  */
+    lf.lfQuality = ANTIALIASED_QUALITY;
+
     font = (XFontStruct *) xmalloc (sizeof (XFontStruct));
     bzero (font, sizeof (*font));
 
@@ -13708,9 +13712,17 @@ Text larger than the specified size is clipped.  */)
 	  BLOCK_INPUT;
 	  compute_tip_xy (f, parms, dx, dy, PIXEL_WIDTH (f),
 			  PIXEL_HEIGHT (f), &root_x, &root_y);
+
+	  /* Put tooltip in topmost group and in position.  */
 	  SetWindowPos (FRAME_W32_WINDOW (f), HWND_TOPMOST,
 			root_x, root_y, 0, 0,
 			SWP_NOSIZE | SWP_NOACTIVATE);
+
+	  /* Ensure tooltip is on top of other topmost windows (eg menus).  */
+	  SetWindowPos (FRAME_W32_WINDOW (f), HWND_TOP,
+			0, 0, 0, 0,
+			SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+
 	  UNBLOCK_INPUT;
 	  goto start_timer;
 	}
@@ -13828,9 +13840,15 @@ Text larger than the specified size is clipped.  */)
     AdjustWindowRect (&rect, f->output_data.w32->dwStyle,
 		      FRAME_EXTERNAL_MENU_BAR (f));
 
+    /* Position and size tooltip, and put it in the topmost group.  */
     SetWindowPos (FRAME_W32_WINDOW (f), HWND_TOPMOST,
 		  root_x, root_y, rect.right - rect.left,
 		  rect.bottom - rect.top, SWP_NOACTIVATE);
+
+    /* Ensure tooltip is on top of other topmost windows (eg menus).  */
+    SetWindowPos (FRAME_W32_WINDOW (f), HWND_TOP,
+		  0, 0, 0, 0,
+		  SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 
     /* Let redisplay know that we have made the frame visible already.  */
     f->async_visible = 1;
