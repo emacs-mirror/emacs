@@ -1575,7 +1575,7 @@ The command is found by looking up in Emacs manual's Command Index."
 	      (put-text-property (match-beginning 1) (match-end 1)
 				 'mouse-face 'highlight))))
       (goto-char (point-min))
-      (while (re-search-forward "\\*Note[ \n\t]*\\([^:]*\\):" nil t)
+      (while (re-search-forward "\\*Note[ \n\t]+\\([^:]*\\):" nil t)
 	(if (= (char-after (1- (match-beginning 0))) ?\") ; hack
 	    nil
 	  (put-text-property (match-beginning 1) (match-end 1)
