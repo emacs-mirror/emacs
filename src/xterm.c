@@ -314,6 +314,10 @@ static Lisp_Object Qalt, Qhyper, Qmeta, Qsuper, Qmodifier_value;
 static Lisp_Object Qvendor_specific_keysyms;
 static Lisp_Object Qlatin_1;
 
+/* Used in x_flush.  */
+
+extern Lisp_Object Vinhibit_redisplay;
+
 extern XrmDatabase x_load_resources P_ ((Display *, char *, char *, char *));
 extern int x_bitmap_mask P_ ((FRAME_PTR, int));
 
