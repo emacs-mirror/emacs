@@ -1,5 +1,31 @@
 2000-05-02  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.h (struct face): Add forward declaration.
+	(struct image): Ditto.
+	(image_ascent): Add prototype.
+
+	* xterm.c (x_produce_image_glyph, x_draw_image_foreground)
+	(x_draw_image_relief, x_draw_image_foreground_1): Call function
+	image_ascent instead of using IMAGE_ASCENT.
+
+	* dispextern.h (DEFAULT_IMAGE_HEIGHT): New macro.
+	(IMAGE_ASCENT): Removed.
+
+	* xfns.c (Qcenter): New variable.
+	(enum image_value_type): Add IMAGE_ASCENT_VALUE.
+	(parse_image_spec): Handle IMAGE_ASCENT_VALUE.
+	(image_ascent): New function.
+	(lookup_image): Recognize `:ascent center'.
+	(xbm_format, xpm_format, pbm_format, png_format, jpeg_format)
+	(tiff_format, gif_format, gs_format): Use IMAGE_ASCENT_VALUE.
+	(xbm_load): Don't set image's ascent here.
+	(xbm_image_p, xpm_image_p, pbm_image_p, png_image_p)
+	(jpeg_image_p, tiff_image_p, gif_image_p, gs_image_p): Don't
+	check ascent values here.
+	(Fimagep, Flookup_image [GLYPH_DEBUG]: Removed.
+	(syms_of_xfns) [GLYPH_DEBUG]: Don't defsubr removed functions.
+	(syms_of_xfns): Initialize Qcenter.
+
 	* eval.c (Fsignal): If lisp_eval_depth or spepdl_size are near
 	to the limits, increase the limits.
 

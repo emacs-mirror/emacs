@@ -2273,8 +2273,17 @@ The following is a list of properties all image types share.
 
 `:ascent ASCENT'
 
-ASCENT must be a number in the range 0..100, and specifies the percentage
-of the image's height to use for its ascent.  Default is 50.
+ASCENT must be a number in the range 0..100, or the symbol `center'.
+If it is a number, it specifies the percentage of the image's height
+to use for its ascent.  
+
+If not specified, ASCENT defaults to the value 50 which means that the
+image will be centered with the base line of the row it appears in.
+
+If ASCENT is `center' the image is vertically centered with text drawn
+in the same face as the image.  The point the image is aligned with is
+the middle of the height of the face's font.  That point is usually
+different from the font's base line.
 
 `:margin MARGIN'
 

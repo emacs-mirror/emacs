@@ -1,5 +1,8 @@
 2000-05-02  Gerd Moellmann  <gerd@gnu.org>
 
+	* files.el (recover-session): Make directories as necessary
+	if they don't exist yet.
+
 	* calendar/cal-french.el 
 	(french-calendar-multibyte-special-days-array) 
 	(french-calendar-special-days-array): Change French text.
