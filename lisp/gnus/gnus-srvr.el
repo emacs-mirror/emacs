@@ -150,7 +150,7 @@ The following specs are understood:
 All normal editing commands are switched off.
 \\<gnus-server-mode-map>
 For more in-depth information on this mode, read the manual
-(`\\[gnus-info-find-node]').
+\(`\\[gnus-info-find-node]').
 
 The following commands are available:
 
