@@ -114,7 +114,10 @@
 					:included '(string= mode-name "Ada"))
 				  menu))
 
-      (define-key-after (lookup-key ada-mode-map [menu-bar Ada]) [Templates]
+      (define-key-after (or
+			 (lookup-key ada-mode-map [menu-bar Ada])
+			 (lookup-key ada-mode-map [menu-bar ada]))
+	[Templates]
 	(list 'menu-item
 	      "Templates"
 	      (easy-menu-create-menu "Templates" menu)
