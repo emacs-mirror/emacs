@@ -1,5 +1,7 @@
 2000-11-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* textmodes/artist.el (artist-mode): Fix autoload cookie.
+
 	* font-lock.el (java-keywords): Add MATCH-HIGHLIGHT part for
 	javadoc tags.
 	

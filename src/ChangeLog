@@ -1,5 +1,7 @@
 2000-11-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* s/gnu-linux.h: Don't use `#cpu'.
+
 	* buffer.c (MAP_FAILED): Define it as `((void *) -1)' if it's
 	not defined in mman.h.
 
