@@ -3477,6 +3477,10 @@ usage (error)
 /* Display version and copyright info.  The VERSION macro is set
    from the Makefile and contains the Emacs version.  */
 
+#ifndef VERSION
+# define VERSION "21"
+#endif
+
 void
 version ()
 {
