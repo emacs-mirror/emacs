@@ -1283,29 +1283,30 @@ extern char *x_get_string_resource ();
 extern XrmDatabase x_load_resources ();
 
 DEFUN ("x-get-resource", Fx_get_resource, Sx_get_resource, 1, 3, 0,
-  "Retrieve the value of ATTRIBUTE from the X defaults database.  This\n\
-searches using a key of the form \"INSTANCE.ATTRIBUTE\", with class\n\
-\"Emacs\", where INSTANCE is the name under which Emacs was invoked.\n\
+  "Retrieve the value of ATTRIBUTE from the X defaults database.\n\
+This uses `Emacs' as the class and `INSTANCE.ATTRIBUTE' as the key,\n\
+where INSTANCE is the name under which Emacs was invoked.\n\
 \n\
-Optional arguments COMPONENT and CLASS specify the component for which\n\
-we should look up ATTRIBUTE.  When specified, Emacs searches using a\n\
-key of the form INSTANCE.COMPONENT.ATTRIBUTE, with class \"Emacs.CLASS\".")
-  (attribute, name, class)
-     Lisp_Object attribute, name, class;
+The optional arguments COMPONENT and SUBCLASS add to the key and the\n\
+class, respectively.  You must specify both of them or neither.\n\
+If you specify them, the key is `INSTANCE.COMPONENT.ATTRIBUTE'\n\
+and the class is `Emacs.SUBCLASS'.")
+  (attribute, component, subclass)
+     Lisp_Object attribute, component, subclass;
 {
   register char *value;
   char *name_key;
   char *class_key;
 
   CHECK_STRING (attribute, 0);
-  if (!NILP (name))
-    CHECK_STRING (name, 1);
-  if (!NILP (class))
-    CHECK_STRING (class, 2);
-  if (NILP (name) != NILP (class))
-    error ("x-get-resource: must specify both NAME and CLASS or neither");
+  if (!NILP (component))
+    CHECK_STRING (component, 1);
+  if (!NILP (subclass))
+    CHECK_STRING (subclass, 2);
+  if (NILP (component) != NILP (subclass))
+    error ("x-get-resource: must specify both COMPONENT and SUBCLASS or neither");
 
-  if (NILP (name))
+  if (NILP (component))
     {
       name_key = (char *) alloca (XSTRING (invocation_name)->size + 1
 				  + XSTRING (attribute)->size + 1);
@@ -1318,7 +1319,7 @@ key of the form INSTANCE.COMPONENT.ATTRIBUTE, with class \"Emacs.CLASS\".")
   else
     {
       name_key = (char *) alloca (XSTRING (invocation_name)->size + 1
-				  + XSTRING (name)->size + 1
+				  + XSTRING (component)->size + 1
 				  + XSTRING (attribute)->size + 1);
 
       class_key = (char *) alloca (sizeof (EMACS_CLASS)
@@ -1326,11 +1327,11 @@ key of the form INSTANCE.COMPONENT.ATTRIBUTE, with class \"Emacs.CLASS\".")
 
       sprintf (name_key, "%s.%s.%s",
 	       XSTRING (invocation_name)->data,
-	       XSTRING (name)->data,
+	       XSTRING (component)->data,
 	       XSTRING (attribute)->data);
-      sprintf (class_key, "%s.%s",
-	       XSTRING (invocation_name)->data,
-	       XSTRING (class)->data);
+      /* This used to have invocation_name instead of EMACS_CLASS,
+	 but the doc string seems to say it should be EMACS_CLASS.  */
+      sprintf (class_key, "%s.%s", EMACS_CLASS, XSTRING (class)->data);
     }
 
   value = x_get_string_resource (xrdb, name_key, class_key);
