@@ -286,26 +286,13 @@ EVENT should be a scroll bar click."
 
 ;;; Tookit scroll bars.
 
-;; Due to its event handling, Emacs is currently not able to handle Xt
-;; timeouts which toolkit scroll bars use to implement auto-repeat.
-;; As a workaround, we start a timer whenever a scroll bar action
-;; occurs, and remove it again when are notified that the user no
-;; longer interacts with the scroll bar.  The timer function gives Xt
-;; the chance to call Xt timeout functions.
-
-(defvar scroll-bar-timer nil
-  "Timer running while scroll bar is active.")
-
 (defun scroll-bar-toolkit-scroll (event)
   (interactive "e")
   (let* ((end-position (event-end event))
 	 (window (nth 0 end-position))
 	 (part (nth 4 end-position))
 	 before-scroll)
-    (cond ((eq part 'end-scroll)
-	   (when scroll-bar-timer
-	     (cancel-timer scroll-bar-timer)
-	     (setq scroll-bar-timer nil)))
+    (cond ((eq part 'end-scroll))
 	  (t
 	   (with-current-buffer (window-buffer window)
 	     (setq before-scroll point-before-scroll))
@@ -335,9 +322,6 @@ EVENT should be a scroll bar click."
 		   ((eq part 'handle)
 		    (scroll-bar-drag-1 event))))
 	   (sit-for 0)
-	   (unless scroll-bar-timer
-	     (setq scroll-bar-timer
-	   	   (run-with-timer 0.1 0.1 'xt-process-timeouts)))
 	   (with-current-buffer (window-buffer window)
 	     (setq point-before-scroll before-scroll))))))
 
