@@ -1,3 +1,7 @@
+2002-12-29  Markus Rost  <rost@math.ohio-state.edu>
+
+	* cus-edit.el (customize-browse): Call `widget-setup'.
+
 2002-12-29  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in: Generate cus-load.el and finder-inf.el in the
