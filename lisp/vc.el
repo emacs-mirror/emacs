@@ -1110,7 +1110,7 @@ Normally this compares the current file and buffer with the most recent
 checked in version of that file.  This uses no arguments.
 With a prefix argument, it reads the file name to use
 and two version designators specifying which versions to compare."
-  (interactive "P")
+  (interactive (list current-prefix-arg t))
   (if vc-dired-mode
       (set-buffer (find-file-noselect (dired-get-filename))))
   (while vc-parent-buffer
