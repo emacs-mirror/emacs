@@ -1,3 +1,8 @@
+1999-12-28  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* startup.el (command-line-1): Make mode line mouse-sensitive for
+	the MS-DOS version as well.
+
 1999-12-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* bs.el: New file.
