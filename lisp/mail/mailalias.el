@@ -238,6 +238,9 @@ removed from alias expansions."
   "Read mail aliases from personal aliases file and set `mail-aliases'.
 By default, this is the file specified by `mail-personal-alias-file'."
   (setq file (expand-file-name (or file mail-personal-alias-file)))
+  ;; In case mail-aliases is t, make sure define-mail-alias
+  ;; does not recursively call build-mail-aliases.
+  (setq mail-aliases nil)
   (let ((buffer nil)
 	(obuf (current-buffer)))
     (unwind-protect
@@ -302,7 +305,9 @@ if it is quoted with double-quotes."
 
   (interactive "sDefine mail alias: \nsDefine %s as mail alias for: ")
   ;; Read the defaults first, if we have not done so.
-  (sendmail-sync-aliases)
+  ;; But not if we are doing that already right now.
+  (unless from-mailrc-file
+    (sendmail-sync-aliases))
   (if (eq mail-aliases t)
       (progn
 	(setq mail-aliases nil)
