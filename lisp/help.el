@@ -283,17 +283,14 @@ describes the minor mode."
   (interactive)
   (with-output-to-temp-buffer "*Help*"
     (let ((minor-modes minor-mode-alist)
-	  (first t)
-	  (locals (buffer-local-variables)))
+	  (first t))
       (while minor-modes
 	(let* ((minor-mode (car (car minor-modes)))
-	       (indicator (car (cdr (car minor-modes))))
-	       (local-binding (assq minor-mode locals)))
+	       (indicator (car (cdr (car minor-modes)))))
 	  ;; Document a minor mode if it is listed in minor-mode-alist,
 	  ;; bound locally in this buffer, non-nil, and has a function
 	  ;; definition.
-	  (if (and local-binding
-		   (cdr local-binding)
+	  (if (and (symbol-value minor-mode)
 		   (fboundp minor-mode))
 	      (let ((pretty-minor-mode minor-mode))
 		(if (string-match "-mode$" (symbol-name minor-mode))
