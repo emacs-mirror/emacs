@@ -1,5 +1,5 @@
 /* Lisp parsing and input streams.
-   Copyright (C) 1985, 86, 87, 88, 89, 93, 94, 95, 97, 98, 99, 2000, 2001
+   Copyright (C) 1985, 86, 87, 88, 89, 93, 94, 95, 97, 98, 99, 2000, 01, 2003
       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -940,6 +940,11 @@ Return t if file exists.  */)
       else /* The typical case; compiled file newer than source file.  */
 	message_with_string ("Loading %s...done", file, 1);
     }
+
+  if (!NILP (Fequal (build_string ("obsolete"),
+		     Ffile_name_nondirectory
+		     (Fdirectory_file_name (Ffile_name_directory (found))))))
+    message_with_string ("Package %s is obsolete", file, 1);
 
   return Qt;
 }
@@ -2363,7 +2368,7 @@ read1 (readcharfun, pch, first_in_list)
 	      c = 0;
 	    else if (c == (CHAR_CTL | '?'))
 	      c = 127;
-
+	    
 	    if (c & CHAR_SHIFT)
 	      {
 		/* Shift modifier is valid only with [A-Za-z].  */
