@@ -1,3 +1,21 @@
+2000-11-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nntp.el (nntp-open-telnet): Wait for the telnet prompt before
+	sending a command; allow the rtelnet prompt as well.
+
+2000-11-17  Simon Josefsson  <simon@josefsson.org>
+
+	* nntp.el (nntp-async-trigger): Fix authinfo in asynchronous
+	prefetch.
+
+2000-11-17  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* nntp.el (nntp-decode-text): Delete bogus status lines.
+	(nntp-open-connection): Kill process buffer when quit.
+	(nntp-connection-timeout): Add a note. SIGALRM is ignored in both
+	FSF Emacs 20 and XEmacs 21.
+	(nntp-retrieve-data): Don't ignore quit.
+
 2000-11-17  Dave Love  <fx@gnu.org>
 
 	* uudecode.el (uudecode-insert-char): Fix bogus feature test.
