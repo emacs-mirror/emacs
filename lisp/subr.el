@@ -226,6 +226,12 @@ The order of bindings in a keymap matters when it is used as a menu."
 	    (setq inserted t)))
       (setq tail (cdr tail)))))
 
+(defmacro kbd (keys)
+  "Convert KEYS to the internal Emacs key representation.
+KEYS should be a string constant in the format used for
+saving keyboard macros (see `insert-kbd-macro')."
+  (read-kbd-macro keys))
+
 (put 'keyboard-translate-table 'char-table-extra-slots 0)
 
 (defun keyboard-translate (from to)
