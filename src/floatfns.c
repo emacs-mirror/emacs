@@ -180,17 +180,19 @@ static char *float_error_fn_name;
 #define FLOAT_TO_INT(x, i, name, num)					\
   do									\
     {									\
-      if ((x) >= (1 << (VALBITS-1)) || (x) <= - (1 << (VALBITS-1)) - 1)	\
+      if ((x) >= (((EMACS_INT) 1) << (VALBITS-1)) ||			\
+	  (x) <= - (((EMACS_INT) 1) << (VALBITS-1)) - 1)		\
 	range_error (name, num);					\
-      XSET (i, Lisp_Int,  (int)(x));					\
+      XSET (i, Lisp_Int,  (EMACS_INT)(x));				\
     }									\
   while (0)
 #define FLOAT_TO_INT2(x, i, name, num1, num2)				\
   do									\
     {									\
-      if ((x) >= (1 << (VALBITS-1)) || (x) <= - (1 << (VALBITS-1)) - 1)	\
+      if ((x) >= (((EMACS_INT) 1) << (VALBITS-1)) ||			\
+	  (x) <= - (((EMACS_INT) 1) << (VALBITS-1)) - 1)		\
 	range_error2 (name, num1, num2);				\
-      XSET (i, Lisp_Int,  (int)(x));					\
+      XSET (i, Lisp_Int,  (EMACS_INT)(x));				\
     }									\
   while (0)
 
