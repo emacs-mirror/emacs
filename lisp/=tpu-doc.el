@@ -22,7 +22,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-(defconst tpu-doc-revision "$Revision: 1.4 $"
+(defconst tpu-doc-revision "$Revision: 1.5 $"
   "TPU-edt documentation revision number.")
 
 
@@ -298,7 +298,7 @@
 (load "tpu-recall" t)
 
 ;; Uncomment this line to set scroll margins 10% (top) and 15% (bottom).
-;(tpu-set-scroll-margins "10%" "15%")
+;(and (fboundp 'tpu-set-scroll-margins) (tpu-set-scroll-margins "10%" "15%"))
 
 ;; Load the vtxxx terminal control functions, but don't complain if
 ;; if the file is not found.
