@@ -1,3 +1,8 @@
+2000-12-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/ispell.el (check-ispell-version): Don't use match-beginning
+	to check if the match succeeded.
+
 2000-12-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (use-fancy-splash-screens-p): New function.
