@@ -696,6 +696,11 @@ syms_of_dired ()
   Qfile_name_all_completions = intern ("file-name-all-completions");
   Qfile_attributes = intern ("file-attributes");
 
+  staticpro (&Qdirectory_files);
+  staticpro (&Qfile_name_completion);
+  staticpro (&Qfile_name_all_completions);
+  staticpro (&Qfile_attributes);
+
   defsubr (&Sdirectory_files);
   defsubr (&Sfile_name_completion);
 #ifdef VMS
