@@ -1,3 +1,8 @@
+2002-05-18  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* tar-mode.el (tar-octal-time): Fix the last argument of logior.
+	Remove the call to insert.
+
 2002-05-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* emacs-lisp/easymenu.el (easy-menu-add): Doc fix.

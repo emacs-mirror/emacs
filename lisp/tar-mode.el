@@ -1079,11 +1079,12 @@ for this to be permanent."
 (defun tar-octal-time (timeval)
   ;; Format a timestamp as 11 octal digits.  Ghod, I hope this works...
   (let ((hibits (car timeval)) (lobits (car (cdr timeval))))
-    (insert (format "%05o%01o%05o"
-		    (lsh hibits -2)
-		    (logior (lsh (logand 3 hibits) 1) (> (logand lobits 32768) 0))
-		    (logand 32767 lobits)
-		    ))))
+    (format "%05o%01o%05o"
+	    (lsh hibits -2)
+	    (logior (lsh (logand 3 hibits) 1)
+		    (if (> (logand lobits 32768) 0) 1 0))
+	    (logand 32767 lobits)
+	    )))
 
 (defun tar-subfile-save-buffer ()
   "In tar subfile mode, save this buffer into its parent tar-file buffer.
