@@ -80,8 +80,11 @@ upper bound and returns @code{nil}.  (It would be more consistent now
 to return the new position of point in that case, but some programs
 may depend on a value of @code{nil}.)
 
-  If @var{repeat} is non-@code{nil}, then the search is repeated that
-many times.  Point is positioned at the end of the last match.
+If @var{repeat} is supplied (it must be a positive number), then the
+search is repeated that many times (each time starting at the end of the
+previous time's match).  If these successive searches succeed, the
+function succeeds, moving point and returning its new value.  Otherwise
+the search fails.
 @end deffn
 
 @deffn Command search-backward string &optional limit noerror repeat
@@ -165,13 +168,14 @@ regexps; the following section says how to search for them.
 @node Syntax of Regexps
 @subsection Syntax of Regular Expressions
 
-  Regular expressions have a syntax in which a few characters are special
-constructs and the rest are @dfn{ordinary}.  An ordinary character is a
-simple regular expression which matches that character and nothing else.
-The special characters are @samp{$}, @samp{^}, @samp{.}, @samp{*},
-@samp{+}, @samp{?}, @samp{[}, @samp{]} and @samp{\}; no new special
-characters will be defined in the future.  Any other character appearing
-in a regular expression is ordinary, unless a @samp{\} precedes it.
+  Regular expressions have a syntax in which a few characters are
+special constructs and the rest are @dfn{ordinary}.  An ordinary
+character is a simple regular expression that matches that character and
+nothing else.  The special characters are @samp{.}, @samp{*}, @samp{+},
+@samp{?}, @samp{[}, @samp{]}, @samp{^}, @samp{$}, and @samp{\}; no new
+special characters will be defined in the future.  Any other character
+appearing in a regular expression is ordinary, unless a @samp{\}
+precedes it.
 
 For example, @samp{f} is not a special character, so it is ordinary, and
 therefore @samp{f} is a regular expression that matches the string
@@ -180,7 +184,7 @@ therefore @samp{f} is a regular expression that matches the string
 only @samp{o}.@refill
 
 Any two regular expressions @var{a} and @var{b} can be concatenated.  The
-result is a regular expression which matches a string if @var{a} matches
+result is a regular expression that matches a string if @var{a} matches
 some amount of the beginning of that string and @var{b} matches the rest of
 the string.@refill
 
@@ -255,14 +259,14 @@ inside character sets: @samp{]}, @samp{-} and @samp{^}.@refill
 characters with a @samp{-} between them.  Thus, @samp{[a-z]} matches any
 lower case letter.  Ranges may be intermixed freely with individual
 characters, as in @samp{[a-z$%.]}, which matches any lower case letter
-or @samp{$}, @samp{%} or a period.@refill
+or @samp{$}, @samp{%}, or a period.@refill
 
 To include a @samp{]} in a character set, make it the first character.
 For example, @samp{[]a]} matches @samp{]} or @samp{a}.  To include a
-@samp{-}, write @samp{-} as the first character in the set, or put
+@samp{-}, write @samp{-} as the first character in the set, or put it
 immediately after a range.  (You can replace one individual character
 @var{c} with the range @samp{@var{c}-@var{c}} to make a place to put the
-@samp{-}).  There is no way to write a set containing just @samp{-} and
+@samp{-}.)  There is no way to write a set containing just @samp{-} and
 @samp{]}.
 
 To include @samp{^} in a set, put it anywhere but at the beginning of
@@ -284,21 +288,21 @@ newline is mentioned as one of the characters not to match.
 @item ^
 @cindex @samp{^} in regexp
 @cindex beginning of line in regexp
-is a special character that matches the empty string, but only at
-the beginning of a line in the text being matched.  Otherwise it fails
-to match anything.  Thus, @samp{^foo} matches a @samp{foo} which occurs
-at the beginning of a line.
+is a special character that matches the empty string, but only at the
+beginning of a line in the text being matched.  Otherwise it fails to
+match anything.  Thus, @samp{^foo} matches a @samp{foo} that occurs at
+the beginning of a line.
 
-When matching a string, @samp{^} matches at the beginning of the string
-or after a newline character @samp{\n}. 
+When matching a string instead of a buffer, @samp{^} matches at the
+beginning of the string or after a newline character @samp{\n}.
 
 @item $
 @cindex @samp{$} in regexp
 is similar to @samp{^} but matches only at the end of a line.  Thus,
 @samp{x+$} matches a string of one @samp{x} or more at the end of a line.
 
-When matching a string, @samp{$} matches at the end of the string
-or before a newline character @samp{\n}.
+When matching a string instead of a buffer, @samp{$} matches at the end
+of the string or before a newline character @samp{\n}.
 
 @item \
 @cindex @samp{\} in regexp
@@ -306,8 +310,8 @@ has two functions: it quotes the special characters (including
 @samp{\}), and it introduces additional special constructs.
 
 Because @samp{\} quotes special characters, @samp{\$} is a regular
-expression which matches only @samp{$}, and @samp{\[} is a regular
-expression which matches only @samp{[}, and so on.
+expression that matches only @samp{$}, and @samp{\[} is a regular
+expression that matches only @samp{[}, and so on.
 
 Note that @samp{\} also has special meaning in the read syntax of Lisp
 strings (@pxref{String Type}), and must be quoted with @samp{\}.  For
@@ -322,13 +326,12 @@ example, the regular expression that matches the @samp{\} character is
 are treated as ordinary ones if they are in contexts where their special
 meanings make no sense.  For example, @samp{*foo} treats @samp{*} as
 ordinary since there is no preceding expression on which the @samp{*}
-can act.  It is poor practice to depend on this behavior; better to
-quote the special character anyway, regardless of where it
-appears.@refill
+can act.  It is poor practice to depend on this behavior; quote the
+special character anyway, regardless of where it appears.@refill
 
 For the most part, @samp{\} followed by any character matches only
 that character.  However, there are several exceptions: characters
-which, when preceded by @samp{\}, are special constructs.  Such
+that, when preceded by @samp{\}, are special constructs.  Such
 characters are always ordinary when encountered on their own.  Here
 is a table of @samp{\} constructs:
 
@@ -371,13 +374,13 @@ To record a matched substring for future reference.
 @end enumerate
 
 This last application is not a consequence of the idea of a
-parenthetical grouping; it is a separate feature which happens to be
+parenthetical grouping; it is a separate feature that happens to be
 assigned as a second meaning to the same @samp{\( @dots{} \)} construct
 because there is no conflict in practice between the two meanings.
 Here is an explanation of this feature:
 
 @item \@var{digit}
-matches the same text which matched the @var{digit}th occurrence of a
+matches the same text that matched the @var{digit}th occurrence of a
 @samp{\( @dots{} \)} construct.
 
 In other words, after the end of a @samp{\( @dots{} \)} construct.  the
@@ -404,12 +407,12 @@ determines which characters these are.  @xref{Syntax Tables}.
 
 @item \W
 @cindex @samp{\W} in regexp
-matches any character that is not a word-constituent.
+matches any character that is not a word constituent.
 
 @item \s@var{code}
 @cindex @samp{\s} in regexp
 matches any character whose syntax is @var{code}.  Here @var{code} is a
-character which represents a syntax code: thus, @samp{w} for word
+character that represents a syntax code: thus, @samp{w} for word
 constituent, @samp{-} for whitespace, @samp{(} for open parenthesis,
 etc.  @xref{Syntax Tables}, for a list of syntax codes and the
 characters that stand for them.
@@ -419,7 +422,7 @@ characters that stand for them.
 matches any character whose syntax is not @var{code}.
 @end table
 
-  These regular expression constructs match the empty string---that is,
+  The following regular expression constructs match the empty string---that is,
 they don't use up any characters---but whether they match depends on the
 context.
 
@@ -463,7 +466,7 @@ matches the empty string, but only at the end of a word.
 @kindex invalid-regexp
   Not every string is a valid regular expression.  For example, a string
 with unbalanced square brackets is invalid (with a few exceptions, such
-as @samp{[]]}, and so is a string that ends with a single @samp{\}.  If
+as @samp{[]]}), and so is a string that ends with a single @samp{\}.  If
 an invalid regular expression is passed to any of the search functions,
 an @code{invalid-regexp} error is signaled.
 
@@ -481,13 +484,13 @@ string match when calling a function that wants a regular expression.
 
 One use of @code{regexp-quote} is to combine an exact string match with
 context described as a regular expression.  For example, this searches
-for the string which is the value of @code{string}, surrounded by
+for the string that is the value of @code{string}, surrounded by
 whitespace:
 
 @example
 @group
 (re-search-forward
- (concat "\\s " (regexp-quote string) "\\s "))
+ (concat "\\s-" (regexp-quote string) "\\s-"))
 @end group
 @end example
 @end defun

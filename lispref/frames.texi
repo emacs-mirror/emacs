@@ -9,7 +9,7 @@
 
   A @var{frame} is a rectangle on the screen that contains one or more
 Emacs windows.  A frame initially contains a single main window (plus
-perhaps a minibuffer window) which you can subdivide vertically or
+perhaps a minibuffer window), which you can subdivide vertically or
 horizontally into smaller windows.
 
 @cindex terminal frame
@@ -66,7 +66,7 @@ variable @code{default-frame-alist}; parameters not specified there
 either default from the standard X defaults file and X resources.
 
 The set of possible parameters depends in principle on what kind of
-window system Emacs uses to display its the frames.  @xref{X Frame
+window system Emacs uses to display its frames.  @xref{X Frame
 Parameters}, for documentation of individual parameters you can specify
 when creating an X window frame.
 @end defun
@@ -251,11 +251,11 @@ The type of icon to use for this frame when it is iconified.
 Non-@code{nil} specifies a bitmap icon, @code{nil} a text icon.
 
 @item foreground-color
-The color to use for the inside of a character.  This is a string; the X
+The color to use for the image of a character.  This is a string; the X
 server defines the meaningful color names.
 
 @item background-color
-The color to use for the background of text.
+The color to use for the background of characters.
 
 @item mouse-color
 The color for the mouse pointer.
@@ -303,7 +303,7 @@ it and see if it works.)
 @subsection Frame Size And Position
 
   You can read or change the size and position of a frame using the
-frame parameters @code{left}, @code{top}, @code{height} and
+frame parameters @code{left}, @code{top}, @code{height}, and
 @code{width}.  Whatever geometry parameters you don't specify are chosen
 by the window manager in its usual fashion.
 
@@ -311,7 +311,7 @@ by the window manager in its usual fashion.
 
 @defun set-frame-position frame left top
 This function sets the position of the top left corner of
-@var{frame}---to @var{left} and @var{top}.  These arguments are measured
+@var{frame} to @var{left} and @var{top}.  These arguments are measured
 in pixels, counting from the top left corner of the screen.
 @end defun
 
@@ -330,10 +330,10 @@ pixels.  If you don't supply @var{frame}, they use the selected frame.
 
 @defun frame-char-height &optional frame
 @defunx frame-char-width &optional frame
-These functions return the height and width, respectively, of a
-character in @var{frame}, measured in pixels.  The values depend on the
-choice of font.  If you don't supply @var{frame}, these functions use
-the selected frame.
+These functions return the height and width of a character in
+@var{frame}, measured in pixels.  The values depend on the choice of
+font.  If you don't supply @var{frame}, these functions use the selected
+frame.
 @end defun
 
 @defun set-frame-size frame cols rows
@@ -354,7 +354,7 @@ Size}.
 @defun x-parse-geometry geom
 @cindex geometry specification
 The function @code{x-parse-geometry} converts a standard X windows
-geometry string to an alist which you can use as part of the argument to
+geometry string to an alist that you can use as part of the argument to
 @code{make-frame}.
 
 The alist describes which parameters were specified in @var{geom}, and
@@ -454,7 +454,6 @@ one), and then it moves back to the top.
 
 @defun frame-top-window frame
 This returns the topmost, leftmost window of frame @var{frame}.
-This is a window
 @end defun
 
 At any time, exactly one window on any frame is @dfn{selected within the
@@ -463,7 +462,7 @@ frame also selects this window.  You can get the frame's current
 selected window with @code{frame-selected-window}.
 
 @defun frame-selected-window frame
-This function returns the window on @var{frame} which is selected within
+This function returns the window on @var{frame} that is selected within
 @var{frame}.
 @end defun
 
@@ -482,7 +481,7 @@ must use the minibuffer window of some other frame.  When you create the
 frame, you can specify explicitly the frame on which to find the
 minibuffer to use.  If you don't, then the minibuffer is found in the
 frame which is the value of the variable
-@code{default-minibuffer-frame}.  Its value should be a frame which does
+@code{default-minibuffer-frame}.  Its value should be a frame that does
 have a minibuffer.
 
 If you use a minibuffer-only frame, you might want that frame to raise
@@ -534,7 +533,7 @@ Don't call it for any other reason.
 
 @defun redirect-frame-focus frame focus-frame
 This function redirects focus from @var{frame} to @var{focus-frame}.
-This means that @var{focus-frame} will receive subsequent keystrokes and
+This means that @var{focus-frame} will receive subsequent keystrokes
 intended for @var{frame}.  After such an event, the value of
 @code{last-event-frame} will be @var{focus-frame}.  Also, switch-frame
 events specifying @var{frame} will instead select @var{focus-frame}.
@@ -547,7 +546,7 @@ One use of focus redirection is for frames that don't have minibuffers.
 These frames use minibuffers on other frames.  Activating a minibuffer
 on another frame redirects focus to that frame.  This puts the focus on
 the minibuffer's frame, where it belongs, even though the mouse remains
-in the frame which activated the minibuffer.
+in the frame that activated the minibuffer.
 
 Selecting a frame can also change focus redirections.  Selecting frame
 @code{bar}, when @code{foo} had been selected, changes any redirections
@@ -573,7 +572,7 @@ change it.
 A frame may be @dfn{visible}, @dfn{invisible}, or @dfn{iconified}.  If
 it is visible, you can see its contents.  If it is iconified, the
 frame's contents do not appear on the screen, but an icon does.  If the
-frame is invisible, it doesn't show in the screen, not even as an icon.
+frame is invisible, it doesn't show on the screen, not even as an icon.
 
 @deffn Command make-frame-visible &optional frame
 This function makes frame @var{frame} visible.  If you omit @var{frame},
@@ -646,7 +645,7 @@ for any frame using frame parameters.  @xref{X Frame Parameters}.
 all their properties, and the window configuration of each one.
 
 @defun current-frame-configuration
-This function returns a frame configuration list which describes
+This function returns a frame configuration list that describes
 the current arrangement of frames and their contents.
 @end defun
 
@@ -660,7 +659,7 @@ This function restores the state of frames described in
 @cindex mouse tracking
 @cindex tracking the mouse
 
-Sometimes it is useful to @dfn{track} the mouse, which means, to display
+Sometimes it is useful to @dfn{track} the mouse, which means to display
 something to indicate where the mouse is and move the indicator as the
 mouse moves.  For efficient mouse tracking, you need a way to wait until
 the mouse actually moves.
@@ -911,7 +910,7 @@ independently.  The usual values of @var{type} are @code{PRIMARY} and
 with X Window System conventions.  The default is @code{PRIMARY}.
 @end defun
 
-@defun x-get-selection type data-type
+@defun x-get-selection &optional type data-type
 This function accesses selections set up by Emacs or by other X
 clients.  It takes two optional arguments, @var{type} and
 @var{data-type}.  The default for @var{type}, the selection type, is
@@ -1004,14 +1003,14 @@ is much slower.
 @node Resources
 @section X Resources
 
-@defun x-get-resource attribute &optional name class
+@defun x-get-resource attribute &optional component subclass
 The function @code{x-get-resource} retrieves a resource value from the X
 Windows defaults database.
 
 Resources are indexed by a combination of a @dfn{key} and a @dfn{class}.
 This function searches using a key of the form
-@samp{@var{instance}.@var{attribute}}, using the name under which Emacs
-was invoked as @var{instance}, and using @samp{Emacs} as the class.
+@samp{@var{instance}.@var{attribute}} (where @var{instance} is the name
+under which Emacs was invoked), and using @samp{Emacs} as the class.
 
 The optional arguments @var{component} and @var{subclass} add to the key
 and the class, respectively.  You must specify both of them or neither.
