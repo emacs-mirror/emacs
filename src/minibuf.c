@@ -210,6 +210,112 @@ static Lisp_Object read_minibuf P_ ((Lisp_Object, Lisp_Object,
 				     int, Lisp_Object,
 				     Lisp_Object, Lisp_Object,
 				     int, int));
+static Lisp_Object read_minibuf_noninteractive P_ ((Lisp_Object, Lisp_Object,
+						    Lisp_Object, Lisp_Object,
+						    int, Lisp_Object,
+						    Lisp_Object, Lisp_Object,
+						    int, int));
+static Lisp_Object string_to_object P_ ((Lisp_Object, Lisp_Object));
+
+
+/* Read a Lisp object from VAL and return it.  If VAL is an empty
+   string, and DEFALT is a string, read from DEFALT instead of VAL.  */
+
+static Lisp_Object
+string_to_object (val, defalt)
+     Lisp_Object val, defalt;
+{
+  struct gcpro gcpro1, gcpro2;
+  Lisp_Object expr_and_pos;
+  int pos;
+      
+  GCPRO2 (val, defalt);
+      
+  if (STRINGP (val) && XSTRING (val)->size == 0
+      && STRINGP (defalt))
+    val = defalt;
+      
+  expr_and_pos = Fread_from_string (val, Qnil, Qnil);
+  pos = XINT (Fcdr (expr_and_pos));
+  if (pos != XSTRING (val)->size)
+    {
+      /* Ignore trailing whitespace; any other trailing junk
+	 is an error.  */
+      int i;
+      pos = string_char_to_byte (val, pos);
+      for (i = pos; i < STRING_BYTES (XSTRING (val)); i++)
+	{
+	  int c = XSTRING (val)->data[i];
+	  if (c != ' ' && c != '\t' && c != '\n')
+	    error ("Trailing garbage following expression");
+	}
+    }
+      
+  val = Fcar (expr_and_pos);
+  RETURN_UNGCPRO (val);
+}
+
+
+/* Like read_minibuf but reading from stdin.  This function is called
+   from read_minibuf to do the job if noninteractive.  */
+
+static Lisp_Object
+read_minibuf_noninteractive (map, initial, prompt, backup_n, expflag,
+			     histvar, histpos, defalt, allow_props,
+			     inherit_input_method)
+     Lisp_Object map;
+     Lisp_Object initial;
+     Lisp_Object prompt;
+     Lisp_Object backup_n;
+     int expflag;
+     Lisp_Object histvar;
+     Lisp_Object histpos;
+     Lisp_Object defalt;
+     int allow_props;
+     int inherit_input_method;
+{
+  int size, len;
+  char *line, *s;
+  struct gcpro gcpro1, gcpro2;
+  Lisp_Object val;
+
+  fprintf (stdout, "%s", XSTRING (prompt)->data);
+  fflush (stdout);
+
+  size = 100;
+  len = 0;
+  line = (char *) xmalloc (size * sizeof *line);
+  while ((s = fgets (line + len, size - len, stdin)) != NULL
+	 && (len = strlen (line),
+	     len == size - 1 && line[len - 1] != '\n'))
+    {
+      size *= 2;
+      line = (char *) xrealloc (line, size);
+    }
+
+  if (s)
+    {
+      len = strlen (line);
+      
+      if (len > 0 && line[len - 1] == '\n')
+	line[--len] = '\0';
+      
+      val = build_string (line);
+      xfree (line);
+    }
+  else
+    {
+      xfree (line);
+      error ("Error reading from stdin");
+    }
+  
+  /* If Lisp form desired instead of string, parse it. */
+  if (expflag)
+    val = string_to_object (val, defalt);
+  
+  return val;
+}
+
 
 /* Read from the minibuffer using keymap MAP, initial contents INITIAL
    (a string), putting point minus BACKUP_N bytes from the end of INITIAL,
@@ -278,6 +384,11 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 	Fthrow (Qexit,
 		build_string ("Command attempted to use minibuffer while in minibuffer"));
     }
+
+  if (noninteractive)
+    return read_minibuf_noninteractive (map, initial, prompt, backup_n,
+					expflag, histvar, histpos, defalt,
+					allow_props, inherit_input_method);
 
   /* Choose the minibuffer window and frame, and take action on them.  */
 
@@ -506,30 +617,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   /* If Lisp form desired instead of string, parse it. */
   if (expflag)
-    {
-      Lisp_Object expr_and_pos;
-      int pos;
-
-      if (STRINGP (val) && XSTRING (val)->size == 0
-	  && STRINGP (defalt))
-	val = defalt;
-
-      expr_and_pos = Fread_from_string (val, Qnil, Qnil);
-      pos = XINT (Fcdr (expr_and_pos));
-      if (pos != XSTRING (val)->size)
-	{
-	  /* Ignore trailing whitespace; any other trailing junk is an error.  */
-	  int i;
-	  pos = string_char_to_byte (val, pos);
-	  for (i = pos; i < STRING_BYTES (XSTRING (val)); i++)
-	    {
-	      int c = XSTRING (val)->data[i];
-	      if (c != ' ' && c != '\t' && c != '\n')
-		error ("Trailing garbage following expression");
-	    }
-	}
-      val = Fcar (expr_and_pos);
-    }
+    val = string_to_object (val, defalt);
 
   /* The appropriate frame will get selected
      in set-window-configuration.  */
