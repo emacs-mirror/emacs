@@ -1,3 +1,17 @@
+2003-05-07  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* uniquify.el (uniquify-item, uniquify-get-proposed-name)
+	(uniquify-rationalize-conflicting-sublist): Rename filename -> dirname.
+	(uniquify-rationalize): New fun.  Store the fix-list in uniquify-managed.
+	(uniquify-rationalize-file-buffer-names): Use it and make the args
+	non-optional (i.e. don't support "re-rationalize all" any more).
+	(uniquify-rerationalize-w/o-cb): New fun.
+	(uniquify-maybe-rerationalize-w/o-cb): Use it to rerationalize
+	immediately and only the relevant buffers.
+	Merged from uniquify-delay-rationalize-file-buffer-names and
+	uniquify-delayed-rationalize-file-buffer-names.
+	(kill-buffer-hook, rename-buffer): Use it.
+
 2003-05-06  Jesper Harder  <harder@ifa.au.dk>
 
 	* progmodes/compile.el (compile-internal): Don't quote nil and t in
@@ -53,6 +67,24 @@
 
 	* env.el (setenv): Likewise.
 
+2003-05-06  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* imenu.el (imenu--generic-function): Use font-lock-defaults
+	case setting if imenu-case-fold-search is not locally set.
+
+	* uniquify.el (uniquify-managed): New var.
+	(uniquify-rationalize-file-buffer-names, rename-buffer): Use it and set
+	it to prevent accidental renaming of unrelated buffers.
+	(uniquify-delay-rationalize-file-buffer-names): Use it to avoid
+	the cost of uniquify when killing unrelated buffers.
+
+	* newcomment.el (comment-set-column, comment-kill)
+	(comment-or-uncomment-region): Call comment-normalize-vars
+	since these functions are autoloaded.
+
+	* help-fns.el (help-add-fundoc-usage): Use t for "no arglist".
+	* emacs-lisp/advice.el (ad-make-advised-docstring): Adjust usage.
+
 2003-05-06  Lute Kamstra  <lute@occarina.pna.cwi.nl>
 
 	* hl-line.el: Removed an erroneous comment.
@@ -66,8 +98,8 @@
 
 2003-05-06  Kenichi Handa  <handa@etlken2>
 
-	* arc-mode.el (archive-set-buffer-as-visiting-file): Use
-	after-insert-file-set-coding, not
+	* arc-mode.el (archive-set-buffer-as-visiting-file):
+	Use after-insert-file-set-coding, not
 	after-insert-file-set-buffer-file-coding-system.
 
 2003-05-05  Stefan Monnier  <monnier@cs.yale.edu>
@@ -92,8 +124,13 @@
 
 2003-05-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
+<<<<<<< ChangeLog
+	* dired.el (dired-find-file): Bind find-file-run-dired around
+	the call to find-file.
+=======
         * dired.el (dired-find-file): Bind find-file-run-dired around
         the call to find-file.
+>>>>>>> 1.5094
 
 2003-05-04  Stefan Monnier  <monnier@cs.yale.edu>
 
