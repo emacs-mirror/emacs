@@ -479,6 +479,10 @@ M-x customize-group RET recentf RET.
 functionality with aliases for the mldrag functions.
 
 *** eval-reg.el has been obsoleted by changes to edebug.el.
+
+** Not new, but not mentioned before:
+M-w when Transient Mark mode is enabled disables the mark.
+
 
 * Lisp changes in Emacs 21.1 (see following page for display-related features)
 
