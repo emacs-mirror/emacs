@@ -1165,9 +1165,6 @@ w32_native_per_char_metric (font, char2b, font_type, pcm)
      enum w32_char_font_type font_type;
      XCharStruct * pcm;
 {
-  /* NTEMACS_TODO: Use GetGlyphOutline where possible (no Unicode
-     version on W9x) */
-
   HDC hdc = GetDC (NULL);
   HFONT old_font;
   BOOL retval = FALSE;
@@ -1205,6 +1202,11 @@ w32_native_per_char_metric (font, char2b, font_type, pcm)
 	 though - we can call GetTextExtentPoint32 to get rbearing and
 	 deduce width based on the font's per-string overhang.  lbearing
 	 is assumed to be zero.  */
+
+      /* TODO: Some Thai characters (and other composites if Windows
+         supports them) do have lbearing, and report their total width
+         as zero. Need some way of handling them when
+         GetCharABCWidthsW fails. */
       SIZE sz;
 
       if (font_type == UNICODE_FONT)
@@ -2191,7 +2193,283 @@ x_produce_glyphs (it)
     }
   else if (it->what == IT_COMPOSITION)
     {
-      /* NTEMACS_TODO: Composite glyphs.  */
+      /* Note: A composition is represented as one glyph in the
+	 glyph matrix.  There are no padding glyphs.  */
+      wchar_t char2b;
+      XFontStruct *font;
+      struct face *face = FACE_FROM_ID (it->f, it->face_id);
+      XCharStruct *pcm;
+      int font_not_found_p;
+      struct font_info *font_info;
+      int boff;			/* baseline offset */
+      struct composition *cmp = composition_table[it->cmp_id];
+
+      /* Maybe translate single-byte characters to multibyte.  */
+      it->char_to_display = it->c;
+      if (unibyte_display_via_language_environment
+	  && SINGLE_BYTE_CHAR_P (it->c)
+	  && (it->c >= 0240
+	      || (it->c >= 0200
+		  && !NILP (Vnonascii_translation_table))))
+	{
+	  it->char_to_display = unibyte_char_to_multibyte (it->c);
+	}
+
+      /* Get face and font to use.  Encode IT->char_to_display.  */
+      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display);
+      face = FACE_FROM_ID (it->f, it->face_id);
+      x_get_char_face_and_encoding (it->f, it->char_to_display,
+				    it->face_id, &char2b, it->multibyte_p);
+      font = face->font;
+
+      /* When no suitable font found, use the default font.  */
+      font_not_found_p = font == NULL;
+      if (font_not_found_p)
+	{
+	  font = FRAME_FONT (it->f);
+	  boff = it->f->output_data.w32->baseline_offset;
+	  font_info = NULL;
+	}
+      else
+	{
+	  font_info = FONT_INFO_FROM_ID (it->f, face->font_info_id);
+	  boff = font_info->baseline_offset;
+	  if (font_info->vertical_centering)
+	    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
+	}
+
+      /* There are no padding glyphs, so there is only one glyph to
+	 produce for the composition.  Important is that pixel_width,
+	 ascent and descent are the values of what is drawn by
+	 draw_glyphs (i.e. the values of the overall glyphs composed).  */
+      it->nglyphs = 1;
+
+      /* If we have not yet calculated pixel size data of glyphs of
+	 the composition for the current face font, calculate them
+	 now.  Theoretically, we have to check all fonts for the
+	 glyphs, but that requires much time and memory space.  So,
+	 here we check only the font of the first glyph.  This leads
+	 to incorrect display very rarely, and C-l (recenter) can
+	 correct the display anyway.  */
+      if (cmp->font != (void *) font)
+	{
+	  /* Ascent and descent of the font of the first character of
+	     this composition (adjusted by baseline offset).  Ascent
+	     and descent of overall glyphs should not be less than
+	     them respectively.  */
+	  int font_ascent = FONT_BASE (font) + boff;
+	  int font_descent = FONT_DESCENT (font) - boff;
+	  /* Bounding box of the overall glyphs.  */
+	  int leftmost, rightmost, lowest, highest;
+	  int i, width, ascent, descent;
+          enum w32_font_type font_type;
+
+	  cmp->font = (void *) font;
+
+          if (font->bdf && CHARSET_DIMENSION (CHAR_CHARSET (it->c)) == 1)
+            font_type = BDF_1D_FONT;
+          else if (font->bdf)
+            font_type = BDF_2D_FONT;
+          else
+            font_type = UNICODE_FONT;
+
+	  /* Initialize the bounding box.  */
+	  pcm = w32_per_char_metric (font, &char2b, font_type);
+	  if (pcm)
+	    {
+	      width = pcm->width;
+	      ascent = pcm->ascent;
+	      descent = pcm->descent;
+	    }
+	  else
+	    {
+	      width = FONT_WIDTH (font);
+	      ascent = FONT_BASE (font);
+	      descent = FONT_DESCENT (font);
+	    }
+	  
+	  rightmost = width;
+	  lowest = - descent + boff;
+	  highest = ascent + boff;
+	  leftmost = 0;
+	  
+	  if (font_info
+	      && font_info->default_ascent
+	      && CHAR_TABLE_P (Vuse_default_ascent)
+	      && !NILP (Faref (Vuse_default_ascent,
+			       make_number (it->char_to_display))))
+	    highest = font_info->default_ascent + boff;
+
+	  /* Draw the first glyph at the normal position.  It may be
+	     shifted to right later if some other glyphs are drawn at
+	     the left.  */
+	  cmp->offsets[0] = 0;
+	  cmp->offsets[1] = boff;
+
+	  /* Set cmp->offsets for the remaining glyphs.  */
+	  for (i = 1; i < cmp->glyph_len; i++)
+	    {
+	      int left, right, btm, top;
+	      int ch = COMPOSITION_GLYPH (cmp, i);
+	      int face_id = FACE_FOR_CHAR (it->f, face, ch);
+
+	      face = FACE_FROM_ID (it->f, face_id);
+	      x_get_char_face_and_encoding (it->f, ch, face->id, &char2b,
+					    it->multibyte_p);
+	      font = face->font;
+	      if (font == NULL)
+		{
+		  font = FRAME_FONT (it->f);
+		  boff = it->f->output_data.w32->baseline_offset;
+		  font_info = NULL;
+		}
+	      else
+		{
+		  font_info
+		    = FONT_INFO_FROM_ID (it->f, face->font_info_id);
+		  boff = font_info->baseline_offset;
+		  if (font_info->vertical_centering)
+		    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
+		}
+
+              if (font->bdf && CHARSET_DIMENSION (CHAR_CHARSET (ch)) == 1)
+                font_type = BDF_1D_FONT;
+              else if (font->bdf)
+                font_type = BDF_2D_FONT;
+              else
+                font_type = UNICODE_FONT;
+
+	      pcm = w32_per_char_metric (font, &char2b, font_type);
+	      if (pcm)
+		{
+		  width = pcm->width;
+		  ascent = pcm->ascent;
+		  descent = pcm->descent;
+		}
+	      else
+		{
+		  width = FONT_WIDTH (font);
+		  ascent = FONT_BASE (font);
+		  descent = FONT_DESCENT (font);
+		}
+
+	      if (cmp->method != COMPOSITION_WITH_RULE_ALTCHARS)
+		{
+		  /* Relative composition with or without
+		     alternate chars.  */
+		  left = (leftmost + rightmost - width) / 2;
+		  btm = - descent + boff;
+		  if (font_info && font_info->relative_compose
+		      && (! CHAR_TABLE_P (Vignore_relative_composition)
+			  || NILP (Faref (Vignore_relative_composition,
+					  make_number (ch)))))
+		    {
+
+		      if (- descent >= font_info->relative_compose)
+			/* One extra pixel between two glyphs.  */
+			btm = highest + 1;
+		      else if (ascent <= 0)
+			/* One extra pixel between two glyphs.  */
+			btm = lowest - 1 - ascent - descent;
+		    }
+		}
+	      else
+		{
+		  /* A composition rule is specified by an integer
+		     value that encodes global and new reference
+		     points (GREF and NREF).  GREF and NREF are
+		     specified by numbers as below:
+
+			0---1---2 -- ascent
+			|       |
+			|       |
+			|       |
+			9--10--11 -- center
+			|       |
+		     ---3---4---5--- baseline
+			|       |
+			6---7---8 -- descent
+		  */
+		  int rule = COMPOSITION_RULE (cmp, i);
+		  int gref, nref, grefx, grefy, nrefx, nrefy;
+
+		  COMPOSITION_DECODE_RULE (rule, gref, nref);
+		  grefx = gref % 3, nrefx = nref % 3;
+		  grefy = gref / 3, nrefy = nref / 3;
+
+		  left = (leftmost
+			  + grefx * (rightmost - leftmost) / 2
+			  - nrefx * width / 2);
+		  btm = ((grefy == 0 ? highest
+			  : grefy == 1 ? 0
+			  : grefy == 2 ? lowest
+			  : (highest + lowest) / 2)
+			 - (nrefy == 0 ? ascent + descent
+			    : nrefy == 1 ? descent - boff
+			    : nrefy == 2 ? 0
+			    : (ascent + descent) / 2));
+		}
+
+	      cmp->offsets[i * 2] = left;
+	      cmp->offsets[i * 2 + 1] = btm + descent;
+
+	      /* Update the bounding box of the overall glyphs. */
+	      right = left + width;
+	      top = btm + descent + ascent;
+	      if (left < leftmost)
+		leftmost = left;
+	      if (right > rightmost)
+		rightmost = right;
+	      if (top > highest)
+		highest = top;
+	      if (btm < lowest)
+		lowest = btm;
+	    }
+
+	  /* If there are glyphs whose x-offsets are negative,
+	     shift all glyphs to the right and make all x-offsets
+	     non-negative.  */
+	  if (leftmost < 0)
+	    {
+	      for (i = 0; i < cmp->glyph_len; i++)
+		cmp->offsets[i * 2] -= leftmost;
+	      rightmost -= leftmost;
+	    }
+
+	  cmp->pixel_width = rightmost;
+	  cmp->ascent = highest;
+	  cmp->descent = - lowest;
+	  if (cmp->ascent < font_ascent)
+	    cmp->ascent = font_ascent;
+	  if (cmp->descent < font_descent)
+	    cmp->descent = font_descent;
+	}
+
+      it->pixel_width = cmp->pixel_width;
+      it->ascent = it->phys_ascent = cmp->ascent;
+      it->descent = it->phys_descent = cmp->descent;
+
+      if (face->box != FACE_NO_BOX)
+	{
+	  int thick = face->box_line_width;
+	  it->ascent += thick;
+	  it->descent += thick;
+	  
+	  if (it->start_of_box_run_p)
+	    it->pixel_width += thick;
+	  if (it->end_of_box_run_p)
+	    it->pixel_width += thick;
+	}
+  
+      /* If face has an overline, add the height of the overline
+	 (1 pixel) and a 1 pixel margin to the character height.  */
+      if (face->overline_p)
+	it->ascent += 2;
+
+      take_vertical_position_into_account (it);
+  
+      if (it->glyph_row)
+	x_append_composite_glyph (it);
     }
   else if (it->what == IT_IMAGE)
     x_produce_image_glyph (it);
@@ -2775,7 +3053,7 @@ static INLINE void
 x_compute_glyph_string_overhangs (s)
      struct glyph_string *s;
 {
-  /* NTEMACS_TODO: Windows does not appear to have a method for
+  /* TODO: Windows does not appear to have a method for
      getting this info without getting the ABC widths for each
      individual character and working it out manually. */
 }
@@ -3018,7 +3296,7 @@ x_draw_glyph_string_background (s, force_p)
      shouldn't be drawn in the first place.  */
   if (!s->background_filled_p)
     {
-#if 0 /* NTEMACS_TODO: stipple */
+#if 0 /* TODO: stipple */
       if (s->stippled_p)
 	{
 	  /* Fill background with a stipple pattern.  */
@@ -3054,6 +3332,7 @@ x_draw_glyph_string_foreground (s)
      struct glyph_string *s;
 {
   int i, x;
+  HFONT old_font;
 
   /* If first glyph of S has a left box line, start drawing the text
      of S to the right of that box line.  */
@@ -3073,7 +3352,7 @@ x_draw_glyph_string_foreground (s)
   SetTextAlign (s->hdc, TA_BASELINE | TA_LEFT);
 
   if (s->font && s->font->hfont)
-    SelectObject (s->hdc, s->font->hfont);
+    old_font = SelectObject (s->hdc, s->font->hfont);
 
   /* Draw characters of S as rectangles if S's font could not be
      loaded. */
@@ -3104,6 +3383,8 @@ x_draw_glyph_string_foreground (s)
       /* Draw text with TextOut and friends. */
       W32_TEXTOUT (s, x, s->ybase - boff, s->char2b, s->nchars);
     }
+  if (s->font && s->font->hfont)
+    SelectObject (s->hdc, old_font);
 }
 
 /* Draw the foreground of composite glyph string S.  */
@@ -3113,6 +3394,7 @@ x_draw_composite_glyph_string_foreground (s)
      struct glyph_string *s;
 {
   int i, x;
+  HFONT old_font;
 
   /* If first glyph of S has a left box line, start drawing the text
      of S to the right of that box line.  */
@@ -3132,6 +3414,9 @@ x_draw_composite_glyph_string_foreground (s)
   SetBkMode (s->hdc, TRANSPARENT);
   SetTextAlign (s->hdc, TA_BASELINE | TA_LEFT);
 
+  if (s->font && s->font->hfont)
+    old_font = SelectObject (s->hdc, s->font->hfont);
+
   /* Draw a rectangle for the composition if the font for the very
      first character of the composition could not be loaded.  */
   if (s->font_not_found_p)
@@ -3143,10 +3428,12 @@ x_draw_composite_glyph_string_foreground (s)
   else
     {
       for (i = 0; i < s->nchars; i++, ++s->gidx)
-	W32_TEXTOUT (s, x + s->cmp->offsets[s->gidx * 2],
-                     s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
-                     s->char2b + i, 1);
+          W32_TEXTOUT (s, x + s->cmp->offsets[s->gidx * 2],
+                       s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
+                       s->char2b + i, 1);
     }
+  if (s->font && s->font->hfont)
+    SelectObject (s->hdc, old_font);
 }
 
 /* Allocate a color which is lighter or darker than *COLOR by FACTOR
@@ -3175,8 +3462,8 @@ w32_alloc_lighter_color (f, color, factor, delta)
                       max (0, min (0xff, delta + GetGValue (*color))),
                       max (0, min (0xff, delta + GetBValue (*color))));
 
-  /* NTEMACS_TODO: Map to palette and retry with delta if same? */
-  /* NTEMACS_TODO: Free colors (if using palette)? */
+  /* TODO: Map to palette and retry with delta if same? */
+  /* TODO: Free colors (if using palette)? */
 
   if (new == *color)
     return 0;
@@ -3209,7 +3496,7 @@ w32_setup_relief_color (f, relief, factor, delta, default_pixel)
   COLORREF background = di->relief_background;
   struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
 
-  /* NTEMACS_TODO: Free colors (if using palette)? */
+  /* TODO: Free colors (if using palette)? */
 
   /* Allocate new color.  */
   xgcv.foreground = default_pixel;
@@ -3222,7 +3509,7 @@ w32_setup_relief_color (f, relief, factor, delta, default_pixel)
   
   if (relief->gc == 0)
     {
-#if 0 /* NTEMACS_TODO: stipple */
+#if 0 /* TODO: stipple */
       xgcv.stipple = dpyinfo->gray;
       mask |= GCStipple;
 #endif
@@ -3462,7 +3749,7 @@ x_draw_image_foreground (s)
 
   if (s->img->pixmap)
     {
-#if 0 /* NTEMACS_TODO: image mask */
+#if 0 /* TODO: image mask */
       if (s->img->mask)
 	{
 	  /* We can't set both a clip mask and use XSetClipRectangles
@@ -3614,7 +3901,7 @@ w32_draw_image_foreground_1 (s, pixmap)
 
   if (s->img->pixmap)
     {
-#if 0 /* NTEMACS_TODO: image mask */
+#if 0 /* TODO: image mask */
       if (s->img->mask)
 	{
 	  /* We can't set both a clip mask and use XSetClipRectangles
@@ -3686,7 +3973,7 @@ x_draw_glyph_string_bg_rect (s, x, y, w, h)
      struct glyph_string *s;
      int x, y, w, h;
 {
-#if 0 /* NTEMACS_TODO: stipple */
+#if 0 /* TODO: stipple */
   if (s->stippled_p)
     {
       /* Fill background with a stipple pattern.  */
@@ -3732,7 +4019,7 @@ x_draw_image_glyph_string (s)
   s->stippled_p = s->face->stipple != 0;
   if (height > s->img->height
       || margin
-#if 0 /* NTEMACS_TODO: image mask */
+#if 0 /* TODO: image mask */
       || s->img->mask
 #endif
       || s->img->pixmap == 0
@@ -3744,7 +4031,7 @@ x_draw_image_glyph_string (s)
 	x = s->x;
       
       y = s->y + box_line_width;
-#if 0 /* NTEMACS_TODO: image mask */
+#if 0 /* TODO: image mask */
       if (s->img->mask)
 	{
 	  /* Create a pixmap as large as the glyph string Fill it with
@@ -3858,7 +4145,7 @@ x_draw_stretch_glyph_string (s)
 	  w32_get_glyph_string_clip_rect (s, &r);
 	  w32_set_clip_rectangle (hdc, &r);
 
-#if 0 /* NTEMACS_TODO: stipple */
+#if 0 /* TODO: stipple */
 	  if (s->face->stipple)
 	    {
 	      /* Fill background with a stipple pattern.  */
@@ -5946,7 +6233,7 @@ note_mode_line_highlight (w, x, mode_line_p)
 	}
     }
 
-#if 0 /* NTEMACS_TODO: mouse cursor */
+#if 0 /* TODO: mouse cursor */
   XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), cursor);
 #endif
 }
@@ -6017,7 +6304,7 @@ note_mouse_highlight (f, x, y)
       note_mode_line_highlight (w, x, portion == 1);
       return;
     }
-#if 0 /* NTEMACS_TODO: mouse cursor */
+#if 0 /* TODO: mouse cursor */
   else
     XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		   f->output_data.x->text_cursor);
@@ -6650,7 +6937,7 @@ show_mouse_face (dpyinfo, draw)
   output_cursor = saved_cursor;
 
  set_x_cursor:
-#if 0 /* NTEMACS_TODO: mouse cursor */
+#if 0 /* TODO: mouse cursor */
   /* Change the mouse cursor.  */
   if (draw == DRAW_NORMAL_TEXT)
     XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
@@ -7653,7 +7940,7 @@ w32_read_socket (sd, bufp, numchars, expected)
   if (numchars <= 0)
     abort ();                   /* Don't think this happens. */
 
-  /* NTEMACS_TODO: tooltips, tool-bars, ghostscript integration, mouse
+  /* TODO: tooltips, tool-bars, ghostscript integration, mouse
      cursors. */
   while (get_next_msg (&msg, FALSE))
     {
@@ -8108,7 +8395,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 	  break;
 
 	case WM_KILLFOCUS:
-          /* NTEMACS_TODO: some of this belongs in MOUSE_LEAVE */
+          /* TODO: some of this belongs in MOUSE_LEAVE */
 	  f = x_top_window_to_frame (dpyinfo, msg.msg.hwnd);
 
           if (f)
@@ -8998,7 +9285,7 @@ x_font_min_bounds (font, w, h)
      int *w, *h;
 {
   /*
-   * NTEMACS_TODO: Windows does not appear to offer min bound, only
+   * TODO: Windows does not appear to offer min bound, only
    * average and maximum width, and maximum height.
    */
   *h = FONT_HEIGHT (font);
@@ -9435,7 +9722,7 @@ x_make_frame_visible (f)
 	 input_signal_count < count && !FRAME_VISIBLE_P (f);)
       {
 	/* Force processing of queued events.  */
-        /* NTEMACS_TODO: x_sync equivalent?  */
+        /* TODO: x_sync equivalent?  */
 
 	/* Machines that do polling rather than SIGIO have been observed
 	   to go into a busy-wait here.  So we'll fake an alarm signal
@@ -9634,7 +9921,7 @@ w32_initialize_display_info (display_name)
   dpyinfo->mouse_face_face_id = DEFAULT_FACE_ID;
   dpyinfo->mouse_face_window = Qnil;
 
-  /* NTEMACS_TODO: dpyinfo->gray */
+  /* TODO: dpyinfo->gray */
 
 }
 
