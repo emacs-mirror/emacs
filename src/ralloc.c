@@ -143,6 +143,10 @@ typedef struct heap
   POINTER bloc_start;
   /* Start of unused space in this heap.  */
   POINTER free;
+  /* First bloc in this heap.  */
+  struct bp *first_bloc;
+  /* Last bloc in this heap.  */
+  struct bp *last_bloc;
 } *heap_ptr;
 
 #define NIL_HEAP ((heap_ptr) 0)
@@ -168,6 +172,8 @@ typedef struct bp
   POINTER data;
   SIZE size;
   POINTER new_data;		/* tmporarily used for relocation */
+  /* Heap this bloc is in.  */
+  struct heap *heap;
 } *bloc_ptr;
 
 #define NIL_BLOC ((bloc_ptr) 0)
@@ -267,6 +273,8 @@ obtain (address, size)
 	  new_heap->free = bloc_start;
 	  new_heap->next = NIL_HEAP;
 	  new_heap->prev = last_heap;
+	  new_heap->first_bloc = NIL_BLOC;
+	  new_heap->last_bloc = NIL_BLOC;
 	  last_heap->next = new_heap;
 	  last_heap = new_heap;
 
@@ -318,6 +326,11 @@ relinquish ()
 
       if ((char *)last_heap->end - (char *)last_heap->bloc_start <= excess)
 	{
+	  /* This heap should have no blocs in it.  */
+	  if (last_heap->first_bloc != NIL_BLOC
+	      || last_heap->last_bloc != NIL_BLOC)
+	    abort ();
+
 	  /* Return the last heap, with its header, to the system.  */
 	  excess = (char *)last_heap->end - (char *)last_heap->start;
 	  last_heap = last_heap->prev;
@@ -388,6 +401,12 @@ get_bloc (size)
   heap = find_heap (new_bloc->data);
   heap->free = break_value;
 
+  /* Maintain the correspondence between heaps and blocs.  */
+  new_bloc->heap = heap;
+  heap->last_bloc = new_bloc;
+  if (heap->first_bloc == NIL_BLOC)
+    heap->first_bloc = new_bloc;
+
   /* Put this bloc on the doubly-linked list of blocs.  */
   if (first_bloc)
     {
@@ -403,7 +422,7 @@ get_bloc (size)
 
   return new_bloc;
 }
-
+
 /* Calculate new locations of blocs in the list beginning with BLOC,
    relocating it to start at ADDRESS, in heap HEAP.  If enough space is
    not presently available in our reserve, call obtain for
@@ -464,42 +483,100 @@ relocate_blocs (bloc, heap, address)
   return 1;
 }
 
-/* Update the free pointers of all heaps starting with HEAP
-   based on the blocs starting with BLOC.  BLOC should be in
-   heap HEAP.  */
+/* Reorder the bloc BLOC to go before bloc BEFORE in the doubly linked list.
+   This is necessary if we put the memory of space of BLOC
+   before that of BEFORE.  */
 
-static
-update_heap_free_pointers (bloc, heap)
+static void
+reorder_bloc (bloc, before)
+     bloc_ptr bloc, before;
+{
+  bloc_ptr prev, next;
+
+  /* Splice BLOC out from where it is.  */
+  prev = bloc->prev;
+  next = bloc->next;
+
+  if (prev)
+    prev->next = next;
+  if (next)
+    next->prev = prev;
+
+  /* Splice it in before BEFORE.  */
+  prev = before->prev;
+
+  if (prev)
+    prev->next = bloc;
+  bloc->prev = prev;
+
+  before->prev = bloc;
+  bloc->next = before;
+}
+
+/* Update the records of which heaps contain which blocs, starting
+   with heap HEAP and bloc BLOC.  */
+
+static void
+update_heap_bloc_correspondence (bloc, heap)
      bloc_ptr bloc;
      heap_ptr heap;
 {
   register bloc_ptr b;
 
+  /* Initialize HEAP's status to reflect blocs before BLOC.  */
+  if (bloc != NIL_BLOC && bloc->prev != NIL_BLOC && bloc->prev->heap == heap)
+    {
+      /* The previous bloc is in HEAP.  */
+      heap->last_bloc = bloc->prev;
+      heap->free = bloc->prev->data + bloc->prev->size;
+    }
+  else
+    {
+      /* HEAP contains no blocs before BLOC.  */
+      heap->first_bloc = NIL_BLOC;
+      heap->last_bloc = NIL_BLOC;
+      heap->free = heap->bloc_start;
+    }
+
   /* Advance through blocs one by one.  */
   for (b = bloc; b != NIL_BLOC; b = b->next)
     {
-      /* Advance through heaps in sync with the blocs that are in them.  */
+      /* Advance through heaps, marking them empty,
+	 till we get to the one that B is in.  */
       while (heap)
 	{
 	  if (heap->bloc_start <= b->data && b->data <= heap->end)
 	    break;
 	  heap = heap->next;
+	  /* We know HEAP is not null now,
+	     because there has to be space for bloc B.  */
+	  heap->first_bloc = NIL_BLOC;
+	  heap->last_bloc = NIL_BLOC;
 	  heap->free = heap->bloc_start;
 	}
-      /* In each heap, record the end of the last bloc in it.  */
+
+      /* Update HEAP's status for bloc B.  */
       heap->free = b->data + b->size;
+      heap->last_bloc = b;
+      if (heap->first_bloc == NIL_BLOC)
+	heap->first_bloc = b;
+
+      /* Record that B is in HEAP.  */
+      b->heap = heap;
     }
 
   /* If there are any remaining heaps and no blocs left,
-     update the `free' slot assuming they contain no blocs.  */
+     mark those heaps as empty.  */
   heap = heap->next;
   while (heap)
     {
+      heap->first_bloc = NIL_BLOC;
+      heap->last_bloc = NIL_BLOC;
       heap->free = heap->bloc_start;
       heap = heap->next;
     }
 }
-
+
 /* Resize BLOC to SIZE bytes.  This relocates the blocs
    that come after BLOC in memory.  */
 
@@ -564,13 +641,13 @@ resize_bloc (bloc, size)
 	}
     }
 
-  update_heap_free_pointers (bloc, heap);
+  update_heap_bloc_correspondence (bloc, heap);
 
   break_value = (last_bloc ? last_bloc->data + last_bloc->size
 		 : first_heap->bloc_start);
   return 1;
 }
-
+
 /* Free BLOC from the chain of blocs, relocating any blocs above it.
    This may return space to the system.  */
 
@@ -578,6 +655,8 @@ static void
 free_bloc (bloc)
      bloc_ptr bloc;
 {
+  heap_ptr heap = bloc->heap;
+
   resize_bloc (bloc, 0);
 
   if (bloc == first_bloc && bloc == last_bloc)
@@ -598,6 +677,22 @@ free_bloc (bloc)
     {
       bloc->next->prev = bloc->prev;
       bloc->prev->next = bloc->next;
+    }
+
+  /* Update the records of which blocs are in HEAP.  */
+  if (heap->first_bloc == bloc)
+    {
+      if (bloc->next->heap == heap)
+	heap->first_bloc = bloc->next;
+      else
+	heap->first_bloc = heap->last_bloc = NIL_BLOC;
+    }
+  if (heap->last_bloc == bloc)
+    {
+      if (bloc->prev->heap == heap)
+	heap->last_bloc = bloc->prev;
+      else
+	heap->first_bloc = heap->last_bloc = NIL_BLOC;
     }
 
   relinquish ();
@@ -688,7 +783,7 @@ r_alloc_sbrk (size)
 
 	  h->bloc_start = new_bloc_start;
 
-	  update_heap_free_pointers (first_bloc, h);
+	  update_heap_bloc_correspondence (first_bloc, h);
 	}
 
       if (h != first_heap)
@@ -700,6 +795,8 @@ r_alloc_sbrk (size)
 	  first_heap->start = h->start;
 	  first_heap->end = h->end;
 	  first_heap->free = h->free;
+	  first_heap->first_bloc = h->first_bloc;
+	  first_heap->last_bloc = h->last_bloc;
 	  first_heap->bloc_start = h->bloc_start;
 
 	  if (first_heap->next)
@@ -721,7 +818,7 @@ r_alloc_sbrk (size)
 	{
 	  excess -= extra_bytes;
 	  first_heap->bloc_start
-	      = (POINTER) MEM_ROUNDUP ((char *)first_heap->bloc_start - excess);
+	    = (POINTER) MEM_ROUNDUP ((char *)first_heap->bloc_start - excess);
 
 	  relocate_blocs (first_bloc, first_heap, first_heap->bloc_start);
 
@@ -740,8 +837,9 @@ r_alloc_sbrk (size)
     }
 
   virtual_break_value = (POINTER) ((char *)address + size);
-  break_value = last_bloc ? last_bloc->data + last_bloc->size
-		    : first_heap->bloc_start;
+  break_value = (last_bloc
+		 ? last_bloc->data + last_bloc->size
+		 : first_heap->bloc_start);
   if (size < 0)
     relinquish ();
 
