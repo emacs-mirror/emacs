@@ -400,14 +400,15 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	case 'e':		/* The invoking event.  */
 	  /* Find the next parameterized event.  */
 	  while (next_event < this_command_key_count
-		 && ! EVENT_HAS_PARAMETERS (this_command_keys[next_event]))
+		 && ! (EVENT_HAS_PARAMETERS
+		       (XVECTOR (this_command_keys)->contents[next_event])))
 	    next_event++;
 	  if (next_event >= this_command_key_count)
 	    error ("%s must be bound to an event with parameters",
 		   (XTYPE (function) == Lisp_Symbol
 		    ? (char *) XSYMBOL (function)->name->data
 		    : "command"));
-	  args[i] = this_command_keys[next_event++];
+	  args[i] = XVECTOR (this_command_keys)->contents[next_event++];
 	  varies[i] = -1;
 	  break;
 
