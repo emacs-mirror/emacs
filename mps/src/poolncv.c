@@ -1,17 +1,13 @@
 /*  impl.c.poolncv: NULL POOL COVERAGE TEST
  *
- *  $HopeName: MMsrc!poolncv.c(trunk.7) $
- *  Copyright (C) 1995,1997 Harlequin Group, all rights reserved
+ *  $HopeName: MMsrc!poolncv.c(trunk.8) $
+ *  Copyright (C) 1997 Harlequin Limited.  All rights reserved.
  */
 
-#include <stdio.h>
 #include "mpm.h"
 #include "pooln.h"
-#include "mpsaan.h"
+#include "mpsavm.h"
 #include "testlib.h"
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
 
 
 static Bool testit(ArenaClass class, ...)
@@ -44,7 +40,7 @@ static Bool testit(ArenaClass class, ...)
 
 int main(void)
 {
-  if(testit((ArenaClass)mps_arena_class_an(), (Size)1000)) {
+  if(testit((ArenaClass)mps_arena_class_vm(), (Size)200000)) {
     fprintf(stderr, "Conclusion:  Defects found.\n");
   } else {
     fprintf(stderr, "Conclusion:  Failed to find any defects.\n");
