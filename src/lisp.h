@@ -3153,4 +3153,4 @@ extern Lisp_Object Vdirectory_sep_char;
    fixnum.  */
 
 #define make_fixnum_or_float(val) \
-   (FIXNUM_OVERFLOW_P (val) ? make_float (val) : make_number (val))
+   (FIXNUM_OVERFLOW_P (val) ? make_float (val) : make_number ((int)(val)))
