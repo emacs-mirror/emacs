@@ -1,20 +1,22 @@
+2001-07-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* info.el (Info-clone-buffer-hook): Really unconditionally copy marker.
+
 2001-07-02  Gerd Moellmann  <gerd@gnu.org>
 
-	* emacs-lisp/cl-macs.el (cl-do-arglist): Revert change of
-	2000-10-15.
+	* emacs-lisp/cl-macs.el (cl-do-arglist): Revert change of 2000-10-15.
 
 2001-07-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* allout.el: Fix the header line, so that finder.el recognizes it.
 	From Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
 
-	* emacs-lisp/lisp-mnt.el (lm-header-prefix): Doc fix.  From Pavel
-        Jan,Bm(Bk <Pavel@Janik.cz>.
+	* emacs-lisp/lisp-mnt.el (lm-header-prefix): Doc fix.
+	From Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
 
 2001-06-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* term/w32-win.el (x-colors): Add colors from the recent rgb.txt
-	file.
+	* term/w32-win.el (x-colors): Add colors from the recent rgb.txt file.
 
 	* ps-bdf.el (bdf-directory-list): Use the value relative to
 	installation-directory for MS-Windows as well.
@@ -36,7 +38,7 @@
 	(rmail-msg-restore-non-pruned-header): Likewise.
 	If point was in the old pruned header, put it at the top.
 	(rmail-msg-prune-header): If point was at the top, keep it there.
-	
+
 	* mail/rmail.el (rmail-narrow-to-non-pruned-header): New function.
 	(rmail-retry-failure): Use rmail-narrow-to-non-pruned-header.
 
