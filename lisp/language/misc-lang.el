@@ -26,4 +26,17 @@
 ;;; IPA (International Phonetic Alphabet)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun setup-ipa-environment ()
+  "Setup multilingual environment (MULE) for IPA."
+  (interactive)
+  (setup-english-environment))
+
+(set-language-info-alist
+ "IPA" '((setup-function . setup-ipa-environment)
+	 (charset . (ipa))
+	 (documentation . "\
+IPA is International Phonetic Alphabet for English, French, German
+and Italian.")))
+
 ;;; misc-lang.el ends here
+
