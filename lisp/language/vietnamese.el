@@ -205,14 +205,14 @@ Both tables are indexed by the position code of Vietnamese characters.")
  "8-bit encoding for Vietnamese VISCII 1.1 (MIME:VISCII)"
  (cons ccl-decode-viscii ccl-encode-viscii))
 
-(define-coding-system-alias 'vietnamese-viscii 'viscii)
+(define-coding-system-alias 'viscii 'vietnamese-viscii)
 
 (make-coding-system
  'vietnamese-vscii 4 ?v
  "8-bit encoding for Vietnamese VSCII-1"
  (cons ccl-decode-vscii ccl-encode-vscii))
 
-(define-coding-system-alias 'vietnamese-vscii 'vscii)
+(define-coding-system-alias 'vscii 'vietnamese-vscii)
 
 (make-coding-system
  'vietnamese-viqr 0 ?q
@@ -221,7 +221,7 @@ Both tables are indexed by the position code of Vietnamese characters.")
 (put 'vietnamese-viqr 'post-read-conversion 'viqr-post-read-conversion)
 (put 'vietnamese-viqr 'pre-write-conversion 'viqr-pre-write-conversion)
 
-(define-coding-system-alias 'vietnamese-viqr 'viqr)
+(define-coding-system-alias 'viqr 'vietnamese-viqr)
 
 (setq font-ccl-encoder-alist
       (cons (cons "viscii" ccl-encode-viscii-font) font-ccl-encoder-alist))

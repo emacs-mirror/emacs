@@ -36,8 +36,8 @@
 (put 'thai-tis620 'post-read-conversion 'thai-post-read-conversion)
 (put 'thai-tis620 'pre-write-conversion 'thai-pre-write-conversion)
 
-(define-coding-system-alias 'thai-tis620 'th-tis620)
-(define-coding-system-alias 'thai-tis620 'tis620)
+(define-coding-system-alias 'th-tis620 'thai-tis620)
+(define-coding-system-alias 'tis620 'thai-tis620)
 
 (set-language-info-alist
  "Thai" '((tutorial . "TUTORIAL.th")

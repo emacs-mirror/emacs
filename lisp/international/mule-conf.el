@@ -255,7 +255,7 @@
  '((ascii t) t nil nil
    nil ascii-eol ascii-cntl seven locking-shift))
 
-(define-coding-system-alias 'iso-2022-7bit-lock 'iso-2022-int-1)
+(define-coding-system-alias 'iso-2022-int-1 'iso-2022-7bit-lock)
 
 (make-coding-system
  'iso-2022-7bit-lock-ss2 2 ?i
@@ -268,7 +268,7 @@
    short ascii-eol ascii-cntl seven locking-shift single-shift nil nil nil
    init-bol))
 
-(define-coding-system-alias 'iso-2022-7bit-lock-ss2 'iso-2022-cjk)
+(define-coding-system-alias 'iso-2022-cjk 'iso-2022-7bit-lock-ss2)
 
 (make-coding-system
  'iso-2022-8bit-ss2 2 ?@
