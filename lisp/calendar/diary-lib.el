@@ -174,6 +174,17 @@ syntax of `*' changed to be a word constituent.")
 (modify-syntax-entry ?* "w" diary-syntax-table)
 (modify-syntax-entry ?: "w" diary-syntax-table)
 
+(defvar diary-modified)
+(defvar diary-entries-list)
+(defvar displayed-year)
+(defvar displayed-month)
+(defvar entry)
+(defvar date)
+(defvar number)
+(defvar date-string)
+(defvar d-file)
+(defvar original-date)
+
 (defun list-diary-entries (date number)
   "Create and display a buffer containing the relevant lines in diary-file.
 The arguments are DATE and NUMBER; the entries selected are those
@@ -210,8 +221,8 @@ These hooks have the following distinct roles:
 
   (if (< 0 number)
       (let* ((original-date date);; save for possible use in the hooks
-             (old-diary-syntax-table)
-             (diary-entries-list)
+             old-diary-syntax-table
+             diary-entries-list
              (date-string (calendar-date-string date))
              (d-file (substitute-in-file-name diary-file)))
         (message "Preparing diary...")
@@ -616,12 +627,11 @@ to run it every morning at 1am."
                                           (if ndays ndays diary-mail-days))
                       (set-buffer fancy-diary-buffer)
                       (buffer-substring (point-min) (point-max)))))
-    (mail)
-    (mail-to) (insert diary-mail-addr)
-    (mail-subject) (insert "Diary entries generated "
-                           (calendar-date-string (calendar-current-date)))
-    (mail-text) (insert text)
-    (mail-send-and-exit nil)))
+    (compose-mail diary-mail-addr
+                  (concat "Diary entries generated "
+                          (calendar-date-string (calendar-current-date))))
+    (insert text)
+    (funcall (get mail-user-agent 'sendfunc))))
 
 
 (defun diary-name-pattern (string-array &optional fullname)
@@ -835,7 +845,7 @@ is marked.  See the documentation for the function `list-sexp-diary-entries'."
           (if (setq mark (diary-sexp-entry sexp entry
                                 (calendar-gregorian-from-absolute date)))
               (mark-visible-calendar-date
-               (calendar-gregorian-from-absolute date) 
+               (calendar-gregorian-from-absolute date)
                (if (consp mark)
                    (car mark)))))))))
 
@@ -1003,7 +1013,7 @@ A number of built-in functions are available for this type of diary entry:
                   `european-calendar-style' is nil, and DAY, MONTH, YEAR if
                   `european-calendar-style' is t.  DAY, MONTH, and YEAR
                   can be lists of integers, the constant t, or an integer.
-                  The constant t means all values.  An optional parameter 
+                  The constant t means all values.  An optional parameter
                   MARK specifies a face or single-character string to use
                   when highlighting the day in the calendar.
 
@@ -1014,16 +1024,16 @@ A number of built-in functions are available for this type of diary entry:
                   the month.  MONTH can be a list of months, a single
                   month, or t to specify all months. Optional DAY means
                   Nth DAYNAME of MONTH on or after/before DAY.  DAY defaults
-                  to 1 if N>0 and the last day of the month if N<0.  An 
-                  optional parameter MARK specifies a face or single-character 
+                  to 1 if N>0 and the last day of the month if N<0.  An
+                  optional parameter MARK specifies a face or single-character
                   string to use when highlighting the day in the calendar.
 
       %%(diary-block M1 D1 Y1 M2 D2 Y2 &optional MARK) text
                   Entry will appear on dates between M1/D1/Y1 and M2/D2/Y2,
                   inclusive.  (If `european-calendar-style' is t, the
                   order of the parameters should be changed to D1, M1, Y1,
-                  D2, M2, Y2.)  An optional parameter MARK specifies a face 
-                  or single-character string to use when highlighting the 
+                  D2, M2, Y2.)  An optional parameter MARK specifies a face
+                  or single-character string to use when highlighting the
                   day in the calendar.
 
       %%(diary-anniversary MONTH DAY YEAR &optional MARK) text
@@ -1034,8 +1044,8 @@ A number of built-in functions are available for this type of diary entry:
                   of years since the MONTH DAY, YEAR and %s will be replaced
                   by the ordinal ending of that number (that is, `st', `nd',
                   `rd' or `th', as appropriate.  The anniversary of February
-                  29 is considered to be March 1 in a non-leap year.  An 
-                  optional parameter MARK specifies a face or single-character 
+                  29 is considered to be March 1 in a non-leap year.  An
+                  optional parameter MARK specifies a face or single-character
                   string to use when highlighting the day in the calendar.
 
       %%(diary-cyclic N MONTH DAY YEAR &optional MARK) text
@@ -1045,8 +1055,8 @@ A number of built-in functions are available for this type of diary entry:
                   can contain %d or %d%s; %d will be replaced by the number
                   of repetitions since the MONTH DAY, YEAR and %s will
                   be replaced by the ordinal ending of that number (that is,
-                  `st', `nd', `rd' or `th', as appropriate.  An optional 
-                  parameter MARK specifies a face or single-character string 
+                  `st', `nd', `rd' or `th', as appropriate.  An optional
+                  parameter MARK specifies a face or single-character string
                   to use when highlighting the day in the calendar.
 
       %%(diary-remind SEXP DAYS &optional MARKING) text
@@ -1172,7 +1182,7 @@ best if they are nonmarking."
         (let ((diary-entry (diary-sexp-entry sexp entry date)))
           (if diary-entry
               (subst-char-in-region line-start (point) ?\^M ?\n t))
-          (add-to-diary-list date 
+          (add-to-diary-list date
 			     (if (consp diary-entry)
 				 (cdr diary-entry)
 			       diary-entry)
@@ -1213,7 +1223,7 @@ and DAY, MONTH, YEAR if `european-calendar-style' is t.  DAY, MONTH, and YEAR
 can be lists of integers, the constant t, or an integer.  The constant t means
 all values.
 
-An optional parameter MARK specifies a face or single-character string to 
+An optional parameter MARK specifies a face or single-character string to
 use when highlighting the day in the calendar."
   (let* ((dd (if european-calendar-style
                 month
@@ -1243,7 +1253,7 @@ The order of the parameters is
 M1, D1, Y1, M2, D2, Y2 if `european-calendar-style' is nil, and
 D1, M1, Y1, D2, M2, Y2 if `european-calendar-style' is t.
 
-An optional parameter MARK specifies a face or single-character string to 
+An optional parameter MARK specifies a face or single-character string to
 use when highlighting the day in the calendar."
 
   (let ((date1 (calendar-absolute-from-gregorian
@@ -1265,7 +1275,7 @@ t, or an integer.  The constant t means all months.  If N is negative, count
 backward from the end of the month.
 
 An optional parameter DAY means the Nth DAYNAME on or after/before MONTH DAY.
-Optional MARK specifies a face or single-character string to use when 
+Optional MARK specifies a face or single-character string to use when
 highlighting the day in the calendar."
 ;; This is messy because the diary entry may apply, but the date on which it
 ;; is based can be in a different month/year.  For example, asking for the
@@ -1333,7 +1343,7 @@ Entry applies if date is the anniversary of MONTH, DAY, YEAR if
 `rd' or `th', as appropriate.  The anniversary of February 29 is considered
 to be March 1 in non-leap years.
 
-An optional parameter MARK specifies a face or single-character string to 
+An optional parameter MARK specifies a face or single-character string to
 use when highlighting the day in the calendar."
   (let* ((d (if european-calendar-style
                 month
@@ -1357,7 +1367,7 @@ repetitions since the MONTH DAY, YEAR and %s will be replaced by the
 ordinal ending of that number (that is, `st', `nd', `rd' or `th', as
 appropriate.
 
-An optional parameter MARK specifies a face or single-character string to 
+An optional parameter MARK specifies a face or single-character string to
 use when highlighting the day in the calendar."
   (let* ((d (if european-calendar-style
                 month

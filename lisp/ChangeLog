@@ -1,3 +1,11 @@
+2002-08-06  Sam Steingold  <sds@gnu.org>
+
+	* calendar/diary-lib.el (diary-mail-entries): Use `compose-mail'
+	and `mail-user-agent' instead of straight sendmail.
+	(diary-modified, diary-entries-list, displayed-year)
+	(displayed-month, entry, date, number, date-string, d-file)
+	(original-date): defvar without binding to avoid compiler warnings.
+
 2002-08-05  Alan Shutko  <ats@acm.org>
 
 	* ibuffer.el (ibuffer-mode-map): Added ibuffer-filter-by-used-mode.
@@ -106,7 +114,7 @@
 2002-08-03  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.7.
-	(tramp-perl-encode-with-module, tramp-perl-decode-with-module) 
+	(tramp-perl-encode-with-module, tramp-perl-decode-with-module)
 	(tramp-perl-encode, tramp-perl-decode): Escape `%' characters
 	because of `format' and say so in the docstring.
 
@@ -148,7 +156,7 @@
 	Change prompt for args.
 	(revert-buffer-with-coding-system): New command.
 
-	* international/mule-cmds.el (mule-keymap, set-coding-system-map): 
+	* international/mule-cmds.el (mule-keymap, set-coding-system-map):
 	Add bindings for revert-buffer-with-coding-system.
 	(set-coding-system-map): Clarify menu item info for
 	set-buffer-file-coding-system.
@@ -305,7 +313,7 @@
 
 	* emacs-lisp/bytecomp.el (byte-compile-find-cl-functions):
 	Don't call string-match on non-string.
-	(displaying-byte-compile-warnings): 
+	(displaying-byte-compile-warnings):
 
 	* textmodes/ispell.el (check-ispell-version): Bind default-directory
 	to avoid errors.  Kill the old temp buffer at the beginning.
