@@ -1224,7 +1224,7 @@ Returns new end position."
             (if (= len 1)
                 (setq subst (aref indian-2-column-to-ucs-chartable
 				  (char-after (match-beginning 0))))
-              (setq subst (assoc (match-string 0) alist)))
+              (setq subst (cdr (assoc (match-string 0) alist))))
             (replace-match (if subst subst "?"))))
         (indian-compose-region (point-min) (point-max))))))
 
