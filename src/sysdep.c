@@ -2260,43 +2260,6 @@ start_of_data ()
 #endif /* DATA_START */
 }
 #endif /* NEED_STARTS (not CANNOT_DUMP or not SYSTEM_MALLOC) */
-
-#ifndef CANNOT_DUMP
-/* Some systems that cannot dump also cannot implement these.  */
-
-/*
- *	Return the address of the end of the text segment prior to
- *	doing an unexec.  After unexec the return value is undefined.
- */
- 
-char *
-end_of_text ()
-{
-#ifdef TEXT_END
-  return ((char *) TEXT_END);
-#else
-  extern int etext;
-  return ((char *) &etext);
-#endif
-}
- 
-/*
- *	Return the address of the end of the data segment prior to
- *	doing an unexec.  After unexec the return value is undefined.
- */
-
-char *
-end_of_data ()
-{
-#ifdef DATA_END
-  return ((char *) DATA_END);
-#else
-  extern int edata;
-  return ((char *) &edata);
-#endif
-}
-
-#endif /* not CANNOT_DUMP */
 
 /* init_system_name sets up the string for the Lisp function
    system-name to return. */
