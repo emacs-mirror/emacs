@@ -33,6 +33,7 @@
 
 (defvar nroff-mode-abbrev-table nil
   "Abbrev table used while in nroff mode.")
+(define-abbrev-table 'nroff-mode-abbrev-table ())
 
 (defvar nroff-mode-map nil
      "Major mode keymap for nroff mode.")
