@@ -1474,6 +1474,7 @@ examine the brightness for you."
 ;; This applies only to faces with global color specifications
 ;; that are not simple constants.
 (defun frame-update-face-colors (frame)
+  (frame-set-background-mode frame)
   (let ((faces global-face-data))
     (while faces
       (condition-case nil
