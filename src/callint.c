@@ -1,5 +1,6 @@
 /* Call a Lisp function interactively.
-   Copyright (C) 1985, 86, 93, 94, 95, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 93, 94, 95, 1997, 2000
+   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -236,6 +237,8 @@ supply if the command inquires which events were used to invoke it.")
 
   if (SYMBOLP (function))
     enable = Fget (function, Qenable_recursive_minibuffers);
+  else
+    enable = Qnil;
 
   fun = indirect_function (function);
 
