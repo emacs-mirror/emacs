@@ -591,8 +591,14 @@ servers."
 (defun nntp-request-post (&optional server)
   "Post the current buffer."
   (nntp-possibly-change-server nil server)
+  (save-excursion
+    (set-buffer nntp-server-buffer)
+    (erase-buffer))
   (if (nntp-send-command "^[23].*\r?\n" "POST")
       (progn
+	(save-excursion
+	  (set-buffer nntp-server-buffer)
+	  (erase-buffer))
 	(nntp-encode-text)
 	(nntp-send-region-to-server (point-min) (point-max))
 	;; 1.2a NNTP's post command is buggy. "^M" (\r) is not
