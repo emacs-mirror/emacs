@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 2000 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Windows, Frames, Buffers, Top
 @chapter Multiple Windows
@@ -354,7 +354,8 @@ heights of all the windows in the selected frame.
 @section Window Handling Convenience Features and Customization
 
 @findex winner-mode
-@vindex winner-mode
+@cindex Winner mode
+@cindex mode, Winner
 @cindex undoing window configuration changes
 @cindex window configuration changes, undoing
 @kbd{M-x winner-mode} provides a global minor mode that records the
@@ -366,8 +367,9 @@ change your mind (while undoing), you can use @kbd{M-x winner-redo}
 @code{winner-mode}.
 
 @vindex scroll-all-mode
-@findex scroll-all-mode
 @cindex scrolling windows together
+@cindex Scroll-all mode
+@cindex mode, Scroll-all
 @kbd{M-x scroll-all-mode} provides commands to scroll all visible
 windows together as in CRiSP/Brief emulation (@pxref{Emulation}).  You
 can also turn it on by customizing @code{scroll-all-mode}.  The commands
@@ -377,15 +379,18 @@ probably want to bind these to appropriate keys.
 
 @cindex Windmove package
 @cindex directional window selection
-The Windmove package provides commands to move directionally between
-neighbouring windows in a frame.  @kbd{M-x windmove-right} selects the
-window immediately to the right of the currently-selected one and
-similarly for the `left', `up' and `down' counterparts.  @kbd{M-x
-windmove-default-keybindings} binds these commands to @kbd{S-right}
-etc.  (These bindings will only work if your terminal supports shifted
-arrow keys.)
+@findex windmove-right
+@findex windmove-default-keybindings
+There are commands to move directionally between neighbouring windows in
+a frame.  @kbd{M-x windmove-right} selects the window immediately to the
+right of the currently-selected one and similarly for the `left', `up'
+and `down' counterparts.  @kbd{M-x windmove-default-keybindings} binds
+these commands to @kbd{S-right} etc.  (These bindings will only work if
+your terminal supports shifted arrow keys.)
 
 @cindex Follow mode
+@cindex mode, Follow
+@findex follow-mode
 @cindex windows, synchronizing
 @cindex synchronizing windows
 Follow minor mode (@kbd{M-x follow-mode}) synchronizes several windows
