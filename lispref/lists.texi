@@ -1030,7 +1030,7 @@ long as you don't mind having duplicate elements).  Other useful
 functions for sets include @code{memq} and @code{delq}, and their
 @code{equal} versions, @code{member} and @code{delete}.
 
-@cindex CL note---lack @code{union}, @code{set}
+@cindex CL note---lack @code{union}, @code{intersection}
 @quotation
 @b{Common Lisp note:} Common Lisp has functions @code{union} (which
 avoids duplicate elements) and @code{intersection} for set operations,
@@ -1163,7 +1163,7 @@ it removes the element just as @code{delq} would.  For example:
 @example
 @group
 (delete '(2) '((2) (1) (2)))
-     @result{} '((1))
+     @result{} ((1))
 @end group
 @end example
 @end defun

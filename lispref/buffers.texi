@@ -252,7 +252,7 @@ foo
 @deffn Command rename-buffer newname &optional unique
 This function renames the current buffer to @var{newname}.  An error
 is signaled if @var{newname} is not a string, or if there is already a
-buffer with that name.  The function returns @code{nil}.
+buffer with that name.  The function returns @var{newname}.
 
 @c Emacs 19 feature
 Ordinarily, @code{rename-buffer} signals an error if @var{newname} is
@@ -456,14 +456,17 @@ function @code{force-mode-line-update} works by doing this:
 @end defun
 
 @deffn Command not-modified
-This command marks the current buffer as unmodified, and not needing
-to be saved.  Don't use this function in programs, since it prints a
-message in the echo area; use @code{set-buffer-modified-p} (above) instead.
+This command marks the current buffer as unmodified, and not needing to
+be saved.  With prefix arg, it marks the buffer as modified, so that it
+will be saved at the next suitable occasion.
+
+Don't use this function in programs, since it prints a message in the
+echo area; use @code{set-buffer-modified-p} (above) instead.
 @end deffn
 
 @c Emacs 19 feature
 @defun buffer-modified-tick &optional buffer
-This function returns @var{buffer}`s modification-count.  This is a
+This function returns @var{buffer}'s modification-count.  This is a
 counter that increments every time the buffer is modified.  If
 @var{buffer} is @code{nil} (or omitted), the current buffer is used.
 @end defun
@@ -795,9 +798,8 @@ this feature to test whether a buffer has been killed:
 
 @deffn Command kill-buffer buffer-or-name
 This function kills the buffer @var{buffer-or-name}, freeing all its
-memory for use as space for other buffers.  (Emacs version 18 and older
-was unable to return the memory to the operating system.)  It returns
-@code{nil}.
+memory for other uses or to be returned to the operating system.  It
+returns @code{nil}.
 
 Any processes that have this buffer as the @code{process-buffer} are
 sent the @code{SIGHUP} signal, which normally causes them to terminate.
