@@ -1,3 +1,7 @@
+2004-07-25  John Paul Wallington  <jpw@gnu.org>
+
+	* subr.el (butlast, event-modifiers, event-basic-type): Doc fixes.
+
 2004-07-24  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* term/tty-colors.el (tty-color-approximate): Doc fix.
