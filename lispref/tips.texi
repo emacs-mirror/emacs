@@ -46,7 +46,7 @@ variables, constants, and functions in your program with the chosen
 prefix.  This helps avoid name conflicts.
 
 This recommendation applies even to names for traditional Lisp
-primitives that are not primitives in Emacs Lisp---even to
+primitives that are not primitives in Emacs Lisp---such as
 @code{copy-list}.  Believe it or not, there is more than one plausible
 way to define @code{copy-list}.  Play it safe; append your name prefix
 to produce a name like @code{foo-copy-list} or @code{mylib-copy-list}
@@ -101,11 +101,7 @@ standard Emacs namespace.  If your package loads @code{cl} at run time,
 that could cause name clashes for users who don't use that package.
 
 However, there is no problem with using the @code{cl} package at compile
-time, for the sake of macros.  You do that like this:
-
-@example
-(eval-when-compile (require 'cl))
-@end example
+time, with @code{(eval-when-compile (require 'cl))}.
 
 @item
 When defining a major mode, please follow the major mode
@@ -134,14 +130,24 @@ follow the naming conventions for hooks.  @xref{Hooks}.
 @item
 @cindex reserved keys
 @cindex keys, reserved
-Please do not define @kbd{C-c @var{letter}} as a key in your major
-modes.  Sequences consisting of @kbd{C-c} and a letter (either upper
-or lower case) are reserved for users; they are the @strong{only}
-sequences reserved for users, so do not block them.
+Please do not define @kbd{C-c @var{letter}} as a key in Lisp programs.
+Sequences consisting of @kbd{C-c} and a letter (either upper or lower
+case) are reserved for users; they are the @strong{only} sequences
+reserved for users, so do not block them.
 
 Changing all the Emacs major modes to respect this convention was a
 lot of work; abandoning this convention would make that work go to
 waste, and inconvenience users.  Please comply with it.
+
+@item
+Function keys @key{F5} through @key{F9} without modifier keys are
+also reserved for users to define.
+
+@item
+Applications should not bind mouse events based on button 1 with the
+shift key held down.  These events include @kbd{S-mouse-1},
+@kbd{M-S-mouse-1}, @kbd{C-S-mouse-1}, and so on.  They are reserved for
+users.
 
 @item
 Sequences consisting of @kbd{C-c} followed by a control character or a
@@ -156,10 +162,6 @@ Sequences consisting of @kbd{C-c} followed by any other punctuation
 character are allocated for minor modes.  Using them in a major mode is
 not absolutely prohibited, but if you do that, the major mode binding
 may be shadowed from time to time by minor modes.
-
-@item
-Function keys @key{F5} through @key{F9} without modifier keys are
-reserved for users to define.
 
 @item
 Do not bind @kbd{C-h} following any prefix character (including
@@ -189,18 +191,15 @@ after @key{ESC}.  In these states, you should define @kbd{@key{ESC}
 @kbd{@key{ESC} @key{ESC}} instead.
 
 @item
-Applications should not bind mouse events based on button 1 with the
-shift key held down.  These events include @kbd{S-mouse-1},
-@kbd{M-S-mouse-1}, @kbd{C-S-mouse-1}, and so on.  They are reserved for
-users.
-
-@item
 @cindex mouse-2
 @cindex references, following
 Special major modes used for read-only text should usually redefine
 @kbd{mouse-2} and @key{RET} to trace some sort of reference in the text.
 Modes such as Dired, Info, Compilation, and Occur redefine it in this
 way.
+
+In addition, they should mark the text as a kind of ``link'' so that
+@kbd{mouse-1} will follow it also.  @xref{Links and Mouse-1}.
 
 @item
 When a package provides a modification of ordinary Emacs behavior, it is
@@ -382,8 +381,7 @@ not to warn about uses of the variable @code{foo} in this file.
 @item
 If you use many functions and variables from a certain file, you can
 add a @code{require} for that package to avoid compilation warnings
-for them.  It is better if the @code{require} acts only at compile
-time.  Here's how to do this:
+for them.  For instance,
 
 @example
 (eval-when-compile
@@ -434,7 +432,7 @@ Use a message like this one:
 
 If you have signed papers to assign the copyright to the Foundation,
 then use @samp{Free Software Foundation, Inc.} as @var{name}.
-Otherwise, use your name.
+Otherwise, use your name.  See also @xref{Library Headers}.
 @end itemize
 
 @node Compilation Tips
