@@ -530,14 +530,51 @@ The argument given to PREDICATE is the alist element or the symbol from the obar
 	      matchsize = scmp (XSTRING (bestmatch)->data,
 				XSTRING (eltstring)->data,
 				compare);
-	      bestmatchsize = (matchsize >= 0) ? matchsize : compare;
+	      if (matchsize < 0)
+		matchsize = compare;
+	      if (completion_ignore_case)
+		{
+		  /* If this is an exact match except for case,
+		     use it as the best match rather than one that is not an
+		     exact match.  This way, we get the case pattern
+		     of the actual match.  */
+		  if ((matchsize == XSTRING (eltstring)->size
+		       && matchsize < XSTRING (bestmatch)->size)
+		      ||
+		      /* If there is more than one exact match ignoring case,
+			 and one of them is exact including case,
+			 prefer that one.  */
+		      /* If there is no exact match ignoring case,
+			 prefer a match that does not change the case
+			 of the input.  */
+		      ((matchsize == XSTRING (eltstring)->size)
+		       ==
+		       (matchsize == XSTRING (bestmatch)->size)
+		       && !bcmp (XSTRING (eltstring)->data,
+				 XSTRING (string)->data, XSTRING (string)->size)
+		       && bcmp (XSTRING (bestmatch)->data,
+				XSTRING (string)->data, XSTRING (string)->size)))
+		    bestmatch = eltstring;
+		}
+	      bestmatchsize = matchsize;
 	    }
 	}
     }
 
   if (NULL (bestmatch))
     return Qnil;		/* No completions found */
-  if (matchcount == 1 && bestmatchsize == XSTRING (string)->size)
+  /* If we are ignoring case, and there is no exact match,
+     and no additional text was supplied,
+     don't change the case of what the user typed.  */
+  if (completion_ignore_case && bestmatchsize == XSTRING (string)->size
+      && XSTRING (bestmatch)->size > bestmatchsize)
+    return string;
+
+  /* Return t if the supplied string is an exact match (counting case);
+     it does not require any change to be made.  */
+  if (matchcount == 1 && bestmatchsize == XSTRING (string)->size
+      && !bcmp (XSTRING (bestmatch)->data, XSTRING (string)->data,
+		bestmatchsize))
     return Qt;
 
   XFASTINT (zero) = 0;		/* Else extract the part in which */
@@ -752,6 +789,7 @@ temp_echo_area_glyphs (m)
 }
 
 Lisp_Object Fminibuffer_completion_help ();
+Lisp_Object assoc_for_completion ();
 
 /* returns:
  * 0 no possible completion
@@ -794,7 +832,8 @@ do_completion ()
   /* It did find a match.  Do we match some possibility exactly now? */
   if (CONSP (Vminibuffer_completion_table)
       || NULL (Vminibuffer_completion_table))
-    tem = Fassoc (Fbuffer_string (), Vminibuffer_completion_table);
+    tem = assoc_for_completion (Fbuffer_string (),
+				Vminibuffer_completion_table);
   else if (XTYPE (Vminibuffer_completion_table) == Lisp_Vector)
     {
       /* the primitive used by Fintern_soft */
@@ -831,7 +870,7 @@ do_completion ()
     return 4;
   /* If the last exact completion and this one were the same,
      it means we've already given a "Complete but not unique"
-     message and the user's hit TAB again, so no we give him help.  */
+     message and the user's hit TAB again, so now we give him help.  */
   last_exact_completion = completion;
   if (!NULL (last))
     {
@@ -840,9 +879,36 @@ do_completion ()
 	Fminibuffer_completion_help ();
     }
   return 3;
-
 }
   
+/* Like assoc but assumes KEY is a string, and ignores case if appropriate.  */
+
+Lisp_Object
+assoc_for_completion (key, list)
+     register Lisp_Object key;
+     Lisp_Object list;
+{
+  register Lisp_Object tail;
+
+  if (completion_ignore_case)
+    key = Fupcase (key);
+
+  for (tail = list; !NULL (tail); tail = Fcdr (tail))
+    {
+      register Lisp_Object elt, tem, thiscar;
+      elt = Fcar (tail);
+      if (!CONSP (elt)) continue;
+      thiscar = Fcar (elt);
+      if (XTYPE (thiscar) != Lisp_String)
+	continue;
+      if (completion_ignore_case)
+	thiscar = Fupcase (thiscar);
+      tem = Fequal (thiscar, key);
+      if (!NULL (tem)) return elt;
+      QUIT;
+    }
+  return Qnil;
+}
 
 DEFUN ("minibuffer-complete", Fminibuffer_complete, Sminibuffer_complete, 0, 0, "",
   "Complete the minibuffer contents as far as possible.")

@@ -45,7 +45,7 @@ Lisp_Object Vuser_name;		/* user name from USER or LOGNAME.  */
 void
 init_editfns ()
 {
-  unsigned char *user_name;
+  char *user_name;
   register unsigned char *p, *q, *r;
   struct passwd *pw;	/* password entry for the current user */
   extern char *index ();
@@ -71,17 +71,23 @@ init_editfns ()
   pw = (struct passwd *) getpwuid (getuid ());
   Vuser_real_name = build_string (pw ? pw->pw_name : "unknown");
 
-  user_name = (unsigned char *) getenv ("USER");
+  /* Get the effective user name, by consulting environment variables,
+     or the effective uid if those are unset.  */
+  user_name = (char *) getenv ("USER");
   if (!user_name)
-    user_name = (unsigned char *) getenv ("LOGNAME");
-  if (user_name)
-    Vuser_name = build_string (user_name);
-  else
-    Vuser_name = Vuser_real_name;
+    user_name = (char *) getenv ("LOGNAME");
+  if (!user_name)
+    {
+      pw = (struct passwd *) getpwuid (geteuid ());
+      user_name = (char *) (pw ? pw->pw_name : "unknown");
+    }
+  Vuser_name = build_string (user_name);
 
+  /* If the user name claimed in the environment vars differs from
+     the real uid, use the claimed name to find the full name.  */
   tem = Fstring_equal (Vuser_name, Vuser_real_name);
-  if (!NULL (tem))
-    pw = (struct passwd *) getpwnam (user_name);
+  if (NULL (tem))
+    pw = (struct passwd *) getpwnam (XSTRING (Vuser_name)->data);
   
   p = (unsigned char *) (pw ? USER_FULL_NAME : "unknown");
   q = (unsigned char *) index (p, ',');
@@ -96,7 +102,7 @@ init_editfns ()
       r = (char *) alloca (strlen (p) + XSTRING (Vuser_name)->size + 1);
       bcopy (p, r, q - p);
       r[q - p] = 0;
-      strcat (r, XSTRING (user_name)->data);
+      strcat (r, XSTRING (Vuser_name)->data);
       r[q - p] = UPCASE (r[q - p]);
       strcat (r, q + 1);
       Vuser_full_name = build_string (r);
@@ -538,6 +544,12 @@ insert1 (arg)
   Finsert (1, &arg);
 }
 
+
+/* Callers passing one argument to Finsert need not gcpro the
+   argument "array", since the only element of the array will
+   not be used after calling insert or insert_from_string, so
+   we don't care if it gets trashed.  */
+
 DEFUN ("insert", Finsert, Sinsert, 0, MANY, 0,
   "Insert the arguments, either strings or characters, at point.\n\
 Point moves forward so that it ends up after the inserted text.\n\
@@ -549,10 +561,6 @@ Any other markers at the point of insertion remain before the text.")
   register int argnum;
   register Lisp_Object tem;
   char str[1];
-  struct gcpro gcpro1;
-
-  GCPRO1 (*args);
-  gcpro1.nvars = nargs;
 
   for (argnum = 0; argnum < nargs; argnum++)
     {
@@ -574,7 +582,6 @@ Any other markers at the point of insertion remain before the text.")
 	}
     }
 
-  UNGCPRO;
   return Qnil;
 }
 
@@ -589,10 +596,6 @@ Any other markers at the point of insertion also end up after the text.")
   register int argnum;
   register Lisp_Object tem;
   char str[1];
-  struct gcpro gcpro1;
-
-  GCPRO1 (*args);
-  gcpro1.nvars = nargs;
 
   for (argnum = 0; argnum < nargs; argnum++)
     {
@@ -614,7 +617,6 @@ Any other markers at the point of insertion also end up after the text.")
 	}
     }
 
-  UNGCPRO;
   return Qnil;
 }
 
@@ -858,6 +860,8 @@ This allows the buffer's full text to be seen and edited.")
   BEGV = BEG;
   SET_BUF_ZV (current_buffer, Z);
   clip_changed = 1;
+  /* Changing the buffer bounds invalidates any recorded current column.  */
+  invalidate_current_column ();
   return Qnil;
 }
 
@@ -895,6 +899,8 @@ or markers) bounding the text that should remain visible.")
   if (point > XFASTINT (e))
     SET_PT (XFASTINT (e));
   clip_changed = 1;
+  /* Changing the buffer bounds invalidates any recorded current column.  */
+  invalidate_current_column ();
   return Qnil;
 }
 
@@ -1007,7 +1013,8 @@ It may contain %-sequences meaning to substitute the next argument.\n\
 %d means print as number in decimal (%o octal, %x hex).\n\
 %c means print a number as a single character.\n\
 %S means print any object as an s-expression (using prin1).\n\
-The argument used for %d, %o, %x or %c must be a number.")
+  The argument used for %d, %o, %x or %c must be a number.\n\
+Use %% to put a single % into the output.")
   (nargs, args)
      int nargs;
      register Lisp_Object *args;
