@@ -1,6 +1,6 @@
 /* impl.c.poolmv2: MANUAL VARIABLE POOL, II
  *
- * $HopeName: MMsrc!poolmv2.c(trunk.6) $
+ * $HopeName: MMsrc!poolmv2.c(trunk.7) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: any MPS developer
@@ -15,9 +15,10 @@
 #include "poolmv2.h"
 #include "mpscmv2.h"
 #include "abq.h"
+#include "cbs.h"
 #include "meter.h"
 
-SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.6) $");
+SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.7) $");
 
 
 /* Signatures */
@@ -252,12 +253,12 @@ static Res MV2Init(Pool pool, va_list arg)
   if (abqDepth < 3)
     abqDepth = 3;
 
-  res = CBSInit(arena, MV2CBS(mv2), &MV2NoteNew, &MV2NoteDelete,
+  res = CBSInit(arena, MV2CBS(mv2), (void *)mv2, &MV2NoteNew, &MV2NoteDelete,
                 NULL, NULL, reuseSize, MPS_PF_ALIGN, TRUE, FALSE);
   if (res != ResOK)
     goto failCBS;
   
-  res = ABQInit(arena, MV2ABQ(mv2), abqDepth);
+  res = ABQInit(arena, MV2ABQ(mv2), (void *)mv2, abqDepth);
   if (res != ResOK)
     goto failABQ;
 
@@ -291,40 +292,41 @@ static Res MV2Init(Pool pool, va_list arg)
   mv2->unavailable = 0;
   
   /* meters*/
-  METER_INIT(mv2->segAllocs, "segment allocations");
-  METER_INIT(mv2->segFrees, "segment frees");
-  METER_INIT(mv2->bufferFills, "buffer fills");
-  METER_INIT(mv2->bufferEmpties, "buffer empties");
-  METER_INIT(mv2->poolFrees, "pool frees");
-  METER_INIT(mv2->poolSize, "pool size");
-  METER_INIT(mv2->poolAllocated, "pool allocated");
-  METER_INIT(mv2->poolAvailable, "pool available");
-  METER_INIT(mv2->poolUnavailable, "pool unavailable");
-  METER_INIT(mv2->poolUtilization, "pool utilization");
-  METER_INIT(mv2->finds, "ABQ finds");
-  METER_INIT(mv2->overflows, "ABQ overflows");
-  METER_INIT(mv2->underflows, "ABQ underflows");
-  METER_INIT(mv2->refills, "ABQ refills");
-  METER_INIT(mv2->refillPushes, "ABQ refill pushes");
-  METER_INIT(mv2->refillOverflows, "ABQ refill overflows");
-  METER_INIT(mv2->refillReturns, "ABQ refill returns");
-  METER_INIT(mv2->perfectFits, "perfect fits");
-  METER_INIT(mv2->firstFits, "first fits");
-  METER_INIT(mv2->secondFits, "second fits");
-  METER_INIT(mv2->failures, "failures");
-  METER_INIT(mv2->emergencyContingencies, "emergency contingencies");
+  METER_INIT(mv2->segAllocs, "segment allocations", (void *)mv2);
+  METER_INIT(mv2->segFrees, "segment frees", (void *)mv2);
+  METER_INIT(mv2->bufferFills, "buffer fills", (void *)mv2);
+  METER_INIT(mv2->bufferEmpties, "buffer empties", (void *)mv2);
+  METER_INIT(mv2->poolFrees, "pool frees", (void *)mv2);
+  METER_INIT(mv2->poolSize, "pool size", (void *)mv2);
+  METER_INIT(mv2->poolAllocated, "pool allocated", (void *)mv2);
+  METER_INIT(mv2->poolAvailable, "pool available", (void *)mv2);
+  METER_INIT(mv2->poolUnavailable, "pool unavailable", (void *)mv2);
+  METER_INIT(mv2->poolUtilization, "pool utilization", (void *)mv2);
+  METER_INIT(mv2->finds, "ABQ finds", (void *)mv2);
+  METER_INIT(mv2->overflows, "ABQ overflows", (void *)mv2);
+  METER_INIT(mv2->underflows, "ABQ underflows", (void *)mv2);
+  METER_INIT(mv2->refills, "ABQ refills", (void *)mv2);
+  METER_INIT(mv2->refillPushes, "ABQ refill pushes", (void *)mv2);
+  METER_INIT(mv2->refillOverflows, "ABQ refill overflows", (void *)mv2);
+  METER_INIT(mv2->refillReturns, "ABQ refill returns", (void *)mv2);
+  METER_INIT(mv2->perfectFits, "perfect fits", (void *)mv2);
+  METER_INIT(mv2->firstFits, "first fits", (void *)mv2);
+  METER_INIT(mv2->secondFits, "second fits", (void *)mv2);
+  METER_INIT(mv2->failures, "failures", (void *)mv2);
+  METER_INIT(mv2->emergencyContingencies, "emergency contingencies",
+             (void *)mv2);
   METER_INIT(mv2->fragLimitContingencies,
-             "fragmentation limit contingencies");
-  METER_INIT(mv2->contingencySearches, "contingency searches");
+             "fragmentation limit contingencies", (void *)mv2);
+  METER_INIT(mv2->contingencySearches, "contingency searches", (void *)mv2);
   METER_INIT(mv2->contingencyHardSearches,
-             "contingency hard searches");
-  METER_INIT(mv2->splinters, "splinters");
-  METER_INIT(mv2->splintersUsed, "splinters used");
-  METER_INIT(mv2->splintersDropped, "splinters dropped");
-  METER_INIT(mv2->sawdust, "sawdust");
-  METER_INIT(mv2->exceptions, "exceptions");
-  METER_INIT(mv2->exceptionSplinters, "exception splinters");
-  METER_INIT(mv2->exceptionReturns, "exception returns");
+             "contingency hard searches", (void *)mv2);
+  METER_INIT(mv2->splinters, "splinters", (void *)mv2);
+  METER_INIT(mv2->splintersUsed, "splinters used", (void *)mv2);
+  METER_INIT(mv2->splintersDropped, "splinters dropped", (void *)mv2);
+  METER_INIT(mv2->sawdust, "sawdust", (void *)mv2);
+  METER_INIT(mv2->exceptions, "exceptions", (void *)mv2);
+  METER_INIT(mv2->exceptionSplinters, "exception splinters", (void *)mv2);
+  METER_INIT(mv2->exceptionReturns, "exception returns", (void *)mv2);
 
   mv2->sig = MV2Sig;
 
@@ -706,8 +708,8 @@ static void MV2Free(Pool pool, Addr base, Size size)
 }
 
 
-/* MV2Describe -- describe an MV2 pool
- */
+/* MV2Describe -- describe an MV2 pool */
+
 static Res MV2Describe(Pool pool, mps_lib_FILE *stream)
 {
   Res res;
@@ -748,45 +750,105 @@ static Res MV2Describe(Pool pool, mps_lib_FILE *stream)
   if(res != ResOK)
     return res;
 
-  /* --- deal with non-Ok res's */
-  METER_WRITE(mv2->segAllocs, stream);
-  METER_WRITE(mv2->segFrees, stream);
-  METER_WRITE(mv2->bufferFills, stream);
-  METER_WRITE(mv2->bufferEmpties, stream);
-  METER_WRITE(mv2->poolFrees, stream);
-  METER_WRITE(mv2->poolSize, stream);
-  METER_WRITE(mv2->poolAllocated, stream);
-  METER_WRITE(mv2->poolAvailable, stream);
-  METER_WRITE(mv2->poolUnavailable, stream);
-  METER_WRITE(mv2->poolUtilization, stream);
-  METER_WRITE(mv2->finds, stream);
-  METER_WRITE(mv2->overflows, stream);
-  METER_WRITE(mv2->underflows, stream);
-  METER_WRITE(mv2->refills, stream);
-  METER_WRITE(mv2->refillPushes, stream);
-  METER_WRITE(mv2->refillOverflows, stream);
-  METER_WRITE(mv2->refillReturns, stream);
-  METER_WRITE(mv2->perfectFits, stream);
-  METER_WRITE(mv2->firstFits, stream);
-  METER_WRITE(mv2->secondFits, stream);
-  METER_WRITE(mv2->failures, stream);
-  METER_WRITE(mv2->emergencyContingencies, stream);
-  METER_WRITE(mv2->fragLimitContingencies, stream);
-  METER_WRITE(mv2->contingencySearches, stream);
-  METER_WRITE(mv2->contingencyHardSearches, stream);
-  METER_WRITE(mv2->splinters, stream);
-  METER_WRITE(mv2->splintersUsed, stream);
-  METER_WRITE(mv2->splintersDropped, stream);
-  METER_WRITE(mv2->sawdust, stream);
-  METER_WRITE(mv2->exceptions, stream);
-  METER_WRITE(mv2->exceptionSplinters, stream);
-  METER_WRITE(mv2->exceptionReturns, stream);
+  res = METER_WRITE(mv2->segAllocs, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->segFrees, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->bufferFills, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->bufferEmpties, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->poolFrees, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->poolSize, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->poolAllocated, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->poolAvailable, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->poolUnavailable, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->poolUtilization, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->finds, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->overflows, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->underflows, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->refills, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->refillPushes, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->refillOverflows, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->refillReturns, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->perfectFits, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->firstFits, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->secondFits, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->failures, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->emergencyContingencies, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->fragLimitContingencies, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->contingencySearches, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->contingencyHardSearches, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->splinters, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->splintersUsed, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->splintersDropped, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->sawdust, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->exceptions, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->exceptionSplinters, stream);
+  if (res != ResOK)
+    return res;
+  res = METER_WRITE(mv2->exceptionReturns, stream);
+  if (res != ResOK)
+    return res;
   
   res = WriteF(stream, "}\n", NULL);
-  if(res != ResOK)
-    return res;
-
-  return ResOK;               
+  return res;
 }
 
 
