@@ -1,5 +1,7 @@
 2000-09-22  Gerd Moellmann  <gerd@gnu.org>
 
+	* vc-rcs.el (toplevel): Require `vc' when compiling.
+
 	* startup.el (fancy-splash-head): Use splash.pbm instead of
 	splash.xbm.
 

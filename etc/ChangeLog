@@ -1,3 +1,8 @@
+2000-09-22  Gerd Moellmann  <gerd@gnu.org>
+
+	* splash.xbm: File removed.
+	* splash.pbm: New file.
+	
 2000-09-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* splash.xbm: New file.
