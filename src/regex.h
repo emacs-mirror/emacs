@@ -38,9 +38,12 @@
    add or remove a bit, only one other definition need change.  */
 typedef unsigned reg_syntax_t;
 
+/* If this bit is set, then even *?, +? and ?? match greedily. */
+#define RE_ALL_GREEDY (1)
+
 /* If this bit is not set, then \ inside a bracket expression is literal.
    If set, then such a \ quotes the following character.  */
-#define RE_BACKSLASH_ESCAPE_IN_LISTS (1)
+#define RE_BACKSLASH_ESCAPE_IN_LISTS (RE_ALL_GREEDY << 1)
 
 /* If this bit is not set, then + and ? are operators, and \+ and \? are
      literals. 
@@ -127,13 +130,13 @@ typedef unsigned reg_syntax_t;
      starting range point, the range is ignored.  */
 #define RE_NO_EMPTY_RANGES (RE_NO_BK_VBAR << 1)
 
-/* If this bit is set, then an unmatched ) is ordinary.
-   If not set, then an unmatched ) is invalid.  */
-#define RE_UNMATCHED_RIGHT_PAREN_ORD (RE_NO_EMPTY_RANGES << 1)
-
 /* If this bit is set, succeed as soon as we match the whole pattern,
    without further backtracking.  */
-#define RE_NO_POSIX_BACKTRACKING (RE_UNMATCHED_RIGHT_PAREN_ORD << 1)
+#define RE_NO_POSIX_BACKTRACKING (RE_NO_EMPTY_RANGES << 1)
+
+/* If this bit is set, then an unmatched ) is ordinary.
+   If not set, then an unmatched ) is invalid.  */
+#define RE_UNMATCHED_RIGHT_PAREN_ORD (RE_NO_POSIX_BACKTRACKING << 1)
 
 /* This global variable defines the particular regexp syntax to use (for
    some interfaces).  When a regexp is compiled, the syntax used is
@@ -158,7 +161,7 @@ extern Lisp_Object re_match_object;
   (RE_BACKSLASH_ESCAPE_IN_LISTS | RE_DOT_NOT_NULL			\
    | RE_NO_BK_PARENS            | RE_NO_BK_REFS				\
    | RE_NO_BK_VBAR               | RE_NO_EMPTY_RANGES			\
-   | RE_UNMATCHED_RIGHT_PAREN_ORD)
+   | RE_UNMATCHED_RIGHT_PAREN_ORD | RE_ALL_GREEDY)
 
 #define RE_SYNTAX_POSIX_AWK 						\
   (RE_SYNTAX_POSIX_EXTENDED | RE_BACKSLASH_ESCAPE_IN_LISTS)
@@ -166,13 +169,13 @@ extern Lisp_Object re_match_object;
 #define RE_SYNTAX_GREP							\
   (RE_BK_PLUS_QM              | RE_CHAR_CLASSES				\
    | RE_HAT_LISTS_NOT_NEWLINE | RE_INTERVALS				\
-   | RE_NEWLINE_ALT)
+   | RE_NEWLINE_ALT	      | RE_ALL_GREEDY)
 
 #define RE_SYNTAX_EGREP							\
   (RE_CHAR_CLASSES        | RE_CONTEXT_INDEP_ANCHORS			\
    | RE_CONTEXT_INDEP_OPS | RE_HAT_LISTS_NOT_NEWLINE			\
    | RE_NEWLINE_ALT       | RE_NO_BK_PARENS				\
-   | RE_NO_BK_VBAR)
+   | RE_NO_BK_VBAR	  | RE_ALL_GREEDY)
 
 #define RE_SYNTAX_POSIX_EGREP						\
   (RE_SYNTAX_EGREP | RE_INTERVALS | RE_NO_BK_BRACES)
@@ -185,7 +188,7 @@ extern Lisp_Object re_match_object;
 /* Syntax bits common to both basic and extended POSIX regex syntax.  */
 #define _RE_SYNTAX_POSIX_COMMON						\
   (RE_CHAR_CLASSES | RE_DOT_NEWLINE      | RE_DOT_NOT_NULL		\
-   | RE_INTERVALS  | RE_NO_EMPTY_RANGES)
+   | RE_INTERVALS  | RE_NO_EMPTY_RANGES	 | RE_ALL_GREEDY)
 
 #define RE_SYNTAX_POSIX_BASIC						\
   (_RE_SYNTAX_POSIX_COMMON | RE_BK_PLUS_QM)
