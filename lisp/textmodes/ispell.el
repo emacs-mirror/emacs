@@ -1929,8 +1929,9 @@ Optional second argument contains the dictionary to use; the default is
 	    (while (search-backward "*" nil t) (insert "."))
 	    (setq word (buffer-string))
 	    (erase-buffer))
-	  ;; Use apply since `lookup-dict' can be nil.
-	  (setq status (apply #'call-process prog nil t nil args word lookup-dict))
+	  (setq status (if lookup-dict
+			   (call-process prog nil t nil args word lookup-dict)
+			 (call-process prog nil t nil args word)))
 	  ;; grep returns status 1 and no output when word not found, which
 	  ;; is a perfectly normal thing.
 	  (if (stringp status)
