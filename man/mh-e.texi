@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: mh-e.texi,v 1.9 2001/02/23 12:31:08 gerd Exp $
+@c $Id: mh-e.texi,v 1.10 2001/05/18 11:26:06 eliz Exp $
 @c %**start of header
 @setfilename ../info/mh-e
 @settitle mh-e
@@ -3374,7 +3374,7 @@ date. It is most likely to be more up to date than the copy that comes
 with the MH distribution in @file{miscellany/mh-e}.
 
 @c intentionally wordy to avoid overfull hbox
-New mh-e releases are almost available for downloading at
+New mh-e releases are always available for downloading at
 @uref{https://sourceforge.net/project/showfiles.php?group_id=13357,
 SourceForge} before they appear in an Emacs release. You can read the
 release notes on that page to determine if the given release of mh-e
