@@ -8639,8 +8639,7 @@ xaw_scroll_callback (widget, client_data, call_data)
      XtPointer client_data, call_data;
 {
   struct scroll_bar *bar = (struct scroll_bar *) client_data;
-  /* Fixme: Check this.  */
-  long position = (long) call_data;
+  int position = *(int *) call_data;
   Dimension height;
   int part;
 
