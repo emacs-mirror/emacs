@@ -1,12 +1,12 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2002 Free Software Foundation, Inc.
+@c Copyright (C) 2002, 2004, 2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 
 @node Antinews, Mac OS, X Resources, Top
-@appendix Emacs 21.3 Antinews
+@appendix Emacs 21.4 Antinews
 
   For those users who live backwards in time, here is information about
-downgrading to Emacs version 21.3.  We hope you will enjoy the greater
+downgrading to Emacs version 21.4.  We hope you will enjoy the greater
 simplicity that results from the absence of many newer features.
 
 @itemize @bullet
@@ -144,7 +144,7 @@ one, @kbd{C-x e}.
 
 @item
 To keep up with decreasing computer memory capacity and disk space, many
-other functions and files have been eliminated in Emacs 21.3.
+other functions and files have been eliminated in Emacs 21.4.
 @end itemize
 
 @ignore
