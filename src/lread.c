@@ -25,6 +25,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <ctype.h>
+#include <errno.h>
 #include "lisp.h"
 
 #ifndef standalone
@@ -58,6 +59,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include <math.h>
 #endif /* LISP_FLOAT_TYPE */
+
+extern int errno;
 
 Lisp_Object Qread_char, Qget_file_char, Qstandard_input, Qcurrent_load_list;
 Lisp_Object Qvariable_documentation, Vvalues, Vstandard_input, Vafter_load_alist;
@@ -134,7 +137,18 @@ readchar (readcharfun)
       return c;
     }
   if (EQ (readcharfun, Qget_file_char))
-    return getc (instream);
+    {
+      c = getc (instream);
+#ifdef EINTR
+      /* Interrupted reads have been observed while reading over the network */
+      while (c == EOF && ferror (instream) && errno == EINTR)
+	{
+	  clearerr (instream);
+	  c = getc (instream);
+	}
+#endif
+      return c;
+    }
 
   if (XTYPE (readcharfun) == Lisp_String)
     {
