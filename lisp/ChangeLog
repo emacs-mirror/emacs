@@ -1,9 +1,7 @@
 2001-11-13  Per Starback  <starback@ling.uu.se>
 
 	* isearch.el (isearch-whitespace-chars): Doc fix.
-
-	* isearch.el (isearch-mode): Handle negative search-slow-window-lines
-	correctly.
+	(isearch-mode): Handle negative search-slow-window-lines correctly.
 
 2001-11-13  Stefan Monnier  <monnier@cs.yale.edu>
 
