@@ -1,12 +1,18 @@
-2002-11-19  Stefan Monnier  <monnier@cs.yale.edu>
-
-	* emacs-lisp/cl.el (multiple-value-call): Add docstring.
-
 2002-11-19   Markus Rost  <rost@math.ohio-state.edu>
+
+	* progmodes/vhdl-mode.el (defgroup vhdl-related): Declare the
+	members here rather than with custom-add-to-group.  This is the
+	intended way of using defgroup and also lets
+	custom-make-dependencies do its job.
+	(defgroup vhdl-highlight-faces): Ditto.
 
 	* emacs-lisp/shadow.el (defgroup lisp-shadow): New group name.
 	Previous group name shadow is used in shadowfile.el.
 	(shadows-compare-text-p): Use group lisp-shadow.
+
+2002-11-19  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/cl.el (multiple-value-call): Add docstring.
 
 2002-11-19  Masatake Yamato  <jet@gyve.org>  (tiny change)
 
