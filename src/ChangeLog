@@ -116,7 +116,7 @@
 
 	* w32select.c (syms_of_w32select): Likewise.
 
-2002-10-09  Jan D.  <jan.h.d@swipnet.se>
+2002-10-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (XTread_socket):  Pass ReparentNotify to Xt.
 	The shell widget interprets ConfigureNotify differently depending
