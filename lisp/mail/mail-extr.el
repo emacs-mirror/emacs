@@ -786,7 +786,7 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 			 (not (eobp))))
 	(let (char
 	      end-of-address
-	      <-pos >-pos @-pos :-pos comma-pos !-pos %-pos \;-pos
+	      <-pos >-pos @-pos colon-pos comma-pos !-pos %-pos \;-pos
 	      group-:-pos group-\;-pos route-addr-:-pos
 	      record-pos-symbol
 	      first-real-pos last-real-pos
@@ -881,7 +881,7 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 	     ((setq record-pos-symbol
 		    (cdr (assq char
 			       '((?< . <-pos) (?> . >-pos) (?@ . @-pos)
-				 (?: . :-pos) (?, . comma-pos) (?! . !-pos)
+				 (?: . colon-pos) (?, . comma-pos) (?! . !-pos)
 				 (?% . %-pos) (?\; . \;-pos)))))
 	      (set record-pos-symbol
 		   (cons (point) (symbol-value record-pos-symbol)))
@@ -921,7 +921,7 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 	  ;; Example: @foo.bar.dom,@xxx.yyy.zzz:mailbox@aaa.bbb.ccc
 	  ;; This commonly happens on the UUCP "From " line.  Ugh.
 	  (cond ((and (> (length @-pos) 1)
-		      (eq 1 (length :-pos))	;TODO: check if between last two @s
+		      (eq 1 (length colon-pos))	;TODO: check if between last two @s
 		      (not \;-pos)
 		      (not <-pos))
 		 (goto-char (point-min))
@@ -961,9 +961,9 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 	  ;; Check for : that indicates GROUP list and for : part of
 	  ;; ROUTE-ADDR spec.
 	  ;; Can't possibly be more than two :.  Nuke any extra.
-	  (while :-pos
-	    (setq temp (car :-pos)
-		  :-pos (cdr :-pos))
+	  (while colon-pos
+	    (setq temp (car colon-pos)
+		  colon-pos (cdr colon-pos))
 	    (cond ((and <-pos >-pos
 			(> temp <-pos)
 			(< temp >-pos))
