@@ -493,7 +493,7 @@ DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 
 If optional second arg INITIAL-CONTENTS is non-nil, it is a string\n\
   to be inserted into the minibuffer before reading input.\n\
   If INITIAL-CONTENTS is (STRING . POSITION), the initial input\n\
-  is STRING, but point is placed POSITION characters into the string.\n\
+  is STRING, but point is placed at position POSITION in the minibuffer.\n\
 Third arg KEYMAP is a keymap to use whilst reading;\n\
   if omitted or nil, the default is `minibuffer-local-map'.\n\
 If fourth arg READ is non-nil, then interpret the result as a lisp object\n\
@@ -531,7 +531,11 @@ DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 
 	{
 	  CHECK_NUMBER (position, 0);
 	  /* Convert to distance from end of input.  */
-	  pos = XINT (position) - 1 - XSTRING (initial_contents)->size;
+	  if (XINT (position) < 1)
+	    /* A number too small means the beginning of the string.  */
+	    pos =  - XSTRING (initial_contents)->size;
+	  else
+	    pos = XINT (position) - 1 - XSTRING (initial_contents)->size;
 	}
     }
 
