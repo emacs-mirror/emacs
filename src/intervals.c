@@ -1868,7 +1868,7 @@ move_if_not_intangible (position)
   if (! NILP (Vinhibit_point_motion_hooks))
     /* If intangible is inhibited, always move point to POSITION.  */
     ;
-  else if (PT < position)
+  else if (PT < position && pos < ZV)
     {
       /* We want to move forward, so check the text before POSITION.  */
 
@@ -1884,7 +1884,7 @@ move_if_not_intangible (position)
 		      intangible_propval))
 	  pos = Fprevious_char_property_change (pos, Qnil);
     }
-  else
+  else if (pos > BEGV)
     {
       /* We want to move backward, so check the text after POSITION.  */
 
