@@ -1,3 +1,7 @@
+2004-07-28  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/etags.el (etags-tags-apropos): Show building progress.
+
 2004-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* imenu.el (imenu-prev-index-position-function)
