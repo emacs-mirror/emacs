@@ -778,7 +778,7 @@ Return t if file exists.  */)
     Vloads_in_progress = Fcons (found, Vloads_in_progress);
   }
 
-  if (!bcmp (&(SREF (found, SBYTES (found) - 4)),
+  if (!bcmp (SDATA (found) + SBYTES (found) - 4,
 	     ".elc", 4))
     /* Load .elc files directly, but not when they are
        remote and have no handler!  */
@@ -807,9 +807,9 @@ Return t if file exists.  */)
 	  fmode = "rb";
 #endif /* DOS_NT */
 	  stat ((char *)SDATA (efound), &s1);
-	  SREF (efound, SBYTES (efound) - 1) = 0;
+	  SSET (efound, SBYTES (efound) - 1, 0);
 	  result = stat ((char *)SDATA (efound), &s2);
-	  SREF (efound, SBYTES (efound) - 1) = 'c';
+	  SSET (efound, SBYTES (efound) - 1, 'c');
 	  UNGCPRO;
 
 	  if (result >= 0 && (unsigned) s1.st_mtime < (unsigned) s2.st_mtime)
