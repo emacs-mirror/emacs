@@ -1130,27 +1130,36 @@ that."
 	      (if help-xref-mule-regexp
 		  (save-excursion
 		    (while (re-search-forward help-xref-mule-regexp nil t)
-		      (let* ((data (match-string 5))
+		      (let* ((data (match-string 7))
 			     (sym (intern-soft data)))
 			(cond
 			 ((match-string 3) ; coding system
 			  (and sym (coding-system-p sym)
 			       (help-xref-button
-				5 #'describe-coding-system sym
+				7 #'describe-coding-system sym
 				"mouse-2, RET: describe this coding system")))
 			 ((match-string 4) ; input method
 			  (and (assoc data input-method-alist)
 			       (help-xref-button
-				5 #'describe-input-method data
+				7 #'describe-input-method data
 				"mouse-2, RET: describe this input method")))
-			 ((and sym (coding-system-p sym))
-			  (help-xref-button
-			   5 #'describe-coding-system sym
-			   "mouse-2, RET: describe this coding system"))
+			 ((or (match-string 5) (match-string 6)) ; charset
+			  (and sym (charsetp sym)
+			       (help-xref-button
+				7 #'describe-character-set sym
+				"mouse-2, RET: describe this character set")))
 			 ((assoc data input-method-alist)
 			  (help-xref-button
-			   5 #'describe-input-method data
-			   "mouse-2, RET: describe this input method")))))))
+			   7 #'describe-input-method data
+			   "mouse-2, RET: describe this input method"))
+			 ((and sym (coding-system-p sym))
+			  (help-xref-button
+			   7 #'describe-coding-system sym
+			   "mouse-2, RET: describe this coding system"))
+			 ((and sym (charsetp sym))
+			  (help-xref-button
+			   7 #'describe-character-set sym
+			   "mouse-2, RET: describe this character set")))))))
               ;; Quoted symbols
               (save-excursion
                 (while (re-search-forward help-xref-symbol-regexp nil t)
@@ -1270,6 +1279,20 @@ If optional arg HELP-ECHO is supplied, it is used as a help string."
 	(put-text-property (match-beginning match-number)
 			   (match-end match-number)
 			   'face help-highlight-face))))
+
+(defun help-insert-xref-button (string function data &optional help-echo)
+  "Insert STRING and make a hyperlink fro cross-reference text on it.
+
+FUNCTION is a function to invoke when the button is activated, applied
+to DATA.  DATA may be a single value or a list.  See
+`help-make-xrefs'.
+If optional arg HELP-ECHO is supplied, it is used as a help string."
+  (let ((pos (point)))
+    (insert string)
+    (goto-char pos)
+    (search-forward string)
+    (help-xref-button 0 function data help-echo)))
+
 
 
 ;; Additional functions for (re-)creating types of help buffers.
