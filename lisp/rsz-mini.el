@@ -7,7 +7,7 @@
 ;; Maintainer: friedman@prep.ai.mit.edu
 ;; Keywords: minibuffer, window, frame, display
 
-;; $Id: rsz-mini.el,v 1.17 1997/06/23 08:21:26 friedman Exp rms $
+;; $Id: rsz-mini.el,v 1.18 1998/01/03 07:17:25 rms Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -118,9 +118,9 @@ resizing."
 
 ;;;###autoload
 (defun resize-minibuffer-mode (&optional prefix)
-  "Enable or disable resize-minibuffer mode.
-A negative prefix argument disables this mode.  A positive argument or
-argument of 0 enables it.
+  "Toggle resize-minibuffer mode.
+With argument, enable resize-minibuffer mode if and only if argument
+is positive.
 
 When this minor mode is enabled, the minibuffer is dynamically resized to
 contain the entire region of text put in it as you type.
@@ -142,13 +142,11 @@ The variable `resize-minibuffer-frame' controls whether this should be
 done.  The variables `resize-minibuffer-frame-max-height' and
 `resize-minibuffer-frame-exactly' are analogous to their window
 counterparts."
-  (interactive "p")
-  (or prefix (setq prefix 0))
-  (cond
-   ((>= prefix 0)
-    (setq resize-minibuffer-mode t))
-   (t
-    (setq resize-minibuffer-mode nil)))
+  (interactive "P")
+  (setq resize-minibuffer-mode
+	(if prefix
+	    (> (prefix-numeric-value prefix) 0)
+	  (not resize-minibuffer-mode)))
   (add-hook 'minibuffer-setup-hook 'resize-minibuffer-setup))
 
 (defun resize-minibuffer-setup ()
