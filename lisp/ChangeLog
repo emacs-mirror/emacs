@@ -1,3 +1,20 @@
+2003-08-24  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* files.el (file-newest-backup): Use `expand-file-name'.
+
+	* calendar/diary-lib.el (simple-diary-display, make-diary-entry):
+	Allow the diary to pop up a new frame, if needed.
+
+	* mail/sendmail.el (mail-specify-envelope-from): Doc change.	
+	* mail/smtpmail.el (smtpmail-mail-address): Doc change.
+	(smtpmail-send-it): Make treatment of envelope-from consistent with
+	sendmail.el.
+
+	* progmodes/sh-script.el (sh-builtins): Add some bash builtins.
+	(sh-leading-keywords): Add the bash `time' reserved word.
+	(sh-variables): Add some bash variables.
+	(sh-add-completer): Fix nil branch of case statement.
+
 2003-08-24  Masatake YAMATO  <jet@gyve.org>
 	
 	* progmodes/ld-script.el: New file.
