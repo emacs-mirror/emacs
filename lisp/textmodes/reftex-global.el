@@ -81,9 +81,9 @@ No active TAGS table is required."
     (tags-search regexp (list 'reftex-all-document-files))))
 
 (defun reftex-query-replace-document (&optional from to delimited)
-  "Run a query-replace-regexp of FROM with TO over the entire document.
+  "Do `query-replace-regexp' of FROM with TO over the entire document.
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
-If you exit (\\[keyboard-quit] or ESC), you can resume the query replace
+If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
 with the command \\[tags-loop-continue].
 No active TAGS table is required."
   (interactive)
@@ -157,9 +157,9 @@ No active TAGS table is required."
       (message "Document does not contain duplicate labels."))))
 
 (defun reftex-change-label (&optional from to)
-  "Query replace FROM with TO in all \\label and \\ref commands.
+  "Run `query-replace-regexp' of FROM with TO in all \\label and \\ref commands.
 Works on the entire multifile document.
-If you exit (\\[keyboard-quit] or ESC), you can resume the query replace
+If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
 with the command \\[tags-loop-continue].
 No active TAGS table is required."
   (interactive)
