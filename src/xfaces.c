@@ -2769,7 +2769,7 @@ lface_fully_specified_p (attrs)
    for split_font_name, see the comment there.  */
    
 static int
-set_lface_from_font_name (f, lface, font_name, force_p)
+set_lface_from_font_name (f, lface, font_name, force_p, may_fail_p)
      struct frame *f;
      Lisp_Object lface;
      char *font_name;
@@ -2809,6 +2809,7 @@ set_lface_from_font_name (f, lface, font_name, force_p)
 	    }
 	  UNBLOCK_INPUT;
 	}
+    }
 
   /* If FONT_NAME is completely bogus try to use something reasonable
      if this function must succeed.  Otherwise, give up.  */
