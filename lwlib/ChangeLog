@@ -1,3 +1,16 @@
+2005-04-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	Reenable support for I18N to Lucid menus.
+	
+	* xlwmenuP.h (_XlwMenu_part): Add fontSet resource.
+
+	* xlwmenu.c (string_width):
+	(MENU_FONT_HEIGHT, MENU_FONT_ASCENT): Ditto.
+	(display_menu_item, make_drawing_gcs, XlwMenuInitialize)
+	(XlwMenuSetValues):  Use font if fontSet is NULL, use only
+	font for !HAVE_X_I18N.
+	(xlwMenuResources): Add fontSet resource.
+
 2005-03-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xlwmenuP.h: Temporary #undef HAVE_X_I18N until FontSet for UTF-8
