@@ -664,7 +664,13 @@ the user during startup."
   "Select the ARG'th different visible frame on current display, and raise it.
 All frames are arranged in a cyclic order.
 This command selects the frame ARG steps away in that order.
-A negative ARG moves in the opposite order."
+A negative ARG moves in the opposite order.
+
+To make this command work properly, you must tell Emacs
+how the system (or the window manager) generally handles
+focus-switching between windows.  If moving the mouse onto a window
+selects it (gives it focus), set `focus-follows-mouse' to t.
+Otherwise, that variable should be nil."
   (interactive "p")
   (let ((frame (selected-frame)))
     (while (> arg 0)
