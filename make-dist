@@ -57,7 +57,7 @@ done
 if [ ! -d src -o ! -f src/lisp.h -o ! -d lisp -o ! -f lisp/version.el ]; then
   echo "${progname}: Can't find \`src/lisp.h' and \`lisp/version.el'." >&2
   echo "${progname} must be run in the top directory of the Emacs" >&2
-  echo "distribution tree.  Cd to that directory and try again." >&2
+  echo "distribution tree.  cd to that directory and try again." >&2
   exit 1
 fi
 
@@ -204,7 +204,7 @@ echo "Making links to \`src'."
  ln [a-zA-Z]*.s ../${tempdir}/src
  ln README Makefile.in ymakefile ChangeLog config.h.in paths.h.in \
     ../${tempdir}/src
- ln .gdbinit .dbxinit ../${tempdir}/src
+ ln .gdbinit .dbxinit gnu-hp300 ../${tempdir}/src
  ln *.opt vms-pp.trans ../${tempdir}/src
  cd ../${tempdir}/src
  rm -f config.h paths.h Makefile
