@@ -1736,6 +1736,17 @@ XlwMenuRedisplay (w, ev, region)
     display_menu (mw, i, False, NULL, NULL, NULL, NULL, NULL);
 }
 
+
+/* Part of a hack to make the menu redisplay when a tooltip frame
+   over a menu item is unmapped.  */
+
+void
+xlwmenu_redisplay (w)
+     Widget w;
+{
+  XlwMenuRedisplay (w, NULL, None);
+}
+
 static void
 XlwMenuDestroy (w)
      Widget w;
