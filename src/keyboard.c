@@ -1641,8 +1641,10 @@ command_loop_1 ()
 	  Fcommand_execute (Vthis_command, Qnil, Qnil, Qnil);
 
 #ifdef HAVE_X_WINDOWS
-	  if (display_hourglass_p)
-	    cancel_hourglass ();
+	  /* Do not check display_hourglass_p here, because
+	     Fcommand_execute could change it, but we should cancel
+	     hourglass cursor anyway.  */
+	  cancel_hourglass ();
 #endif
 	}
     directly_done: ;
