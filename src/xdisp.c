@@ -5490,7 +5490,8 @@ resize_mini_window (w, exact_p)
   xassert (MINI_WINDOW_P (w));
 
   /* Nil means don't try to resize.  */
-  if (NILP (Vmax_mini_window_height))
+  if (NILP (Vmax_mini_window_height)
+      || (FRAME_X_P (f) && f->output_data.x == NULL))
     return 0;
   
   if (!FRAME_MINIBUF_ONLY_P (f))
