@@ -271,18 +271,19 @@ void
 message_log_maybe_newline ()
 {
   if (message_log_need_newline)
-    message_dolog ("", 0, 1);
+    message_dolog ("", 0, 1, 0);
 }
 
 
 /* Add a string to the message log, optionally terminated with a newline.
    This function calls low-level routines in order to bypass text property
-   hooks, etc. which might not be safe to run.  */
+   hooks, etc. which might not be safe to run.
+   MULTIBYTE, if nonzero, means interpret the contents of M as multibyte.  */
 
 void
-message_dolog (m, len, nlflag)
+message_dolog (m, len, nlflag, multibyte)
      char *m;
-     int len, nlflag;
+     int len, nlflag, multibyte;
 {
   if (!NILP (Vmessage_log_max))
     {
@@ -313,7 +314,7 @@ message_dolog (m, len, nlflag)
 
       /* Insert the string--maybe converting multibyte to single byte
 	 or vice versa, so that all the text fits the buffer.  */
-      if (! NILP (oldbuf->enable_multibyte_characters)
+      if (multibyte
 	  && NILP (current_buffer->enable_multibyte_characters))
 	{
 	  int c, i = 0, nbytes;
@@ -330,7 +331,7 @@ message_dolog (m, len, nlflag)
 	      insert_char (c);
 	    }
 	}
-      else if (NILP (oldbuf->enable_multibyte_characters)
+      else if (! multibyte
 	       && ! NILP (current_buffer->enable_multibyte_characters))
 	{
 	  int c, i = 0;
@@ -470,16 +471,16 @@ message_log_check_duplicate (prev_bol, prev_bol_byte, this_bol, this_bol_byte)
    Do not pass text in a buffer that was alloca'd.  */
 
 void
-message2 (m, len)
+message2 (m, len, multibyte)
      char *m;
      int len;
+     int multibyte;
 {
   /* First flush out any partial line written with print.  */
   message_log_maybe_newline ();
   if (m)
-    message_dolog (m, len, 1);
-  message2_nolog (m, len,
-		  ! NILP (current_buffer->enable_multibyte_characters));
+    message_dolog (m, len, 1, multibyte);
+  message2_nolog (m, len, multibyte);
 }
 
 
@@ -541,10 +542,11 @@ message2_nolog (m, len, multibyte)
     }
 }
 
-/* Display a null-terminated echo area message M.  If M is 0, clear out any
-   existing message, and let the minibuffer text show through.
+/* Display in echo area the null-terminated ASCII-only string M.
+   If M is 0, clear out any existing message,
+   and let the minibuffer text show through.
 
-   The buffer M must continue to exist until after the echo area
+   The string M must continue to exist until after the echo area
    gets cleared or some other message gets displayed there.
 
    Do not pass text that is stored in a Lisp string.
@@ -554,15 +556,75 @@ void
 message1 (m)
      char *m;
 {
-  message2 (m, (m ? strlen (m) : 0));
+  message2 (m, (m ? strlen (m) : 0), 0);
 }
 
 void
 message1_nolog (m)
      char *m;
 {
-  message2_nolog (m, (m ? strlen (m) : 0),
-		  ! NILP (current_buffer->enable_multibyte_characters));
+  message2_nolog (m, (m ? strlen (m) : 0), 0);
+}
+
+/* Display a message M which contains a single %s
+   which gets replaced with STRING.  */
+
+void
+message_with_string (m, string, log)
+     char *m;
+     Lisp_Object string;
+     int log;
+{
+  if (noninteractive)
+    {
+      if (m)
+	{
+	  if (noninteractive_need_newline)
+	    putc ('\n', stderr);
+	  noninteractive_need_newline = 0;
+	  fprintf (stderr, m, XSTRING (string)->data);
+	  if (cursor_in_echo_area == 0)
+	    fprintf (stderr, "\n");
+	  fflush (stderr);
+	}
+    }
+  else if (INTERACTIVE)
+    {
+      /* The frame whose minibuffer we're going to display the message on.
+	 It may be larger than the selected frame, so we need
+	 to use its buffer, not the selected frame's buffer.  */
+      Lisp_Object mini_window;
+      FRAME_PTR f;
+
+      /* Get the frame containing the minibuffer
+	 that the selected frame is using.  */
+      mini_window = FRAME_MINIBUF_WINDOW (selected_frame);
+      f = XFRAME (WINDOW_FRAME (XWINDOW (mini_window)));
+
+      /* A null message buffer means that the frame hasn't really been
+	 initialized yet.  Error messages get reported properly by
+	 cmd_error, so this must be just an informative message; toss it.  */
+      if (FRAME_MESSAGE_BUF (f))
+	{
+	  int len;
+	  char *a[1];
+	  a[0] = (char *) XSTRING (string)->data;
+
+	  len = doprnt (FRAME_MESSAGE_BUF (f),
+			FRAME_MESSAGE_BUF_SIZE (f), m, (char *)0, 3, a);
+
+	  if (log)
+	    message2 (FRAME_MESSAGE_BUF (f), len,
+		      STRING_MULTIBYTE (string));
+	  else
+	    message2_nolog (FRAME_MESSAGE_BUF (f), len,
+			    STRING_MULTIBYTE (string));
+
+	  /* Print should start at the beginning of the message
+	     buffer next time.  */
+	  message_buf_print = 0;
+	}
+    }
 }
 
 /* Truncate what will be displayed in the echo area
@@ -640,7 +702,7 @@ message (m, a1, a2, a3)
 			    (char **) &a1);
 #endif /* NO_ARG_ARRAY */
 
-	      message2 (FRAME_MESSAGE_BUF (f), len);
+	      message2 (FRAME_MESSAGE_BUF (f), len, 0);
 	    }
 	  else
 	    message1 (0);
@@ -668,7 +730,8 @@ message_nolog (m, a1, a2, a3)
 void
 update_echo_area ()
 {
-  message2 (echo_area_glyphs, echo_area_glyphs_length);
+  message2 (echo_area_glyphs, echo_area_glyphs_length,
+	    ! NILP (current_buffer->enable_multibyte_characters));
 }
 
 static void
@@ -815,7 +878,7 @@ x_consider_frame_title (frame)
      already wasted too much time by walking through the list with
      display_mode_element, then we might need to optimize at a higher
      level than this.)  */
-  if (! STRINGP (f->name) || XSTRING (f->name)->size != len
+  if (! STRINGP (f->name) || XSTRING (f->name)->size_byte != len
       || bcmp (frame_title_buf, XSTRING (f->name)->data, len) != 0)
     x_implicitly_set_name (f, make_string (frame_title_buf, len), Qnil);
 }
@@ -3171,7 +3234,7 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
 
 	  minibuf_prompt_width
 	    = (display_string (w, vpos, XSTRING (minibuf_prompt)->data,
-			       XSTRING (minibuf_prompt)->size,
+			       XSTRING (minibuf_prompt)->size_byte,
 			       hpos + WINDOW_LEFT_MARGIN (w),
 			       /* Display a space if we truncate.  */
 			       ' ',
@@ -3181,7 +3244,7 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
 				  on the first line.  */
 			       (XFASTINT (w->width) > 10
 				? XFASTINT (w->width) - 4 : -1),
-			       -1)
+			       STRING_MULTIBYTE (minibuf_prompt))
 	       - hpos - WINDOW_LEFT_MARGIN (w));
 	  hpos += minibuf_prompt_width;
 	  taboffset -= minibuf_prompt_width - old_width;
@@ -3940,8 +4003,7 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
       && STRINGP (Voverlay_arrow_string)
       && ! overlay_arrow_seen)
     {
-      unsigned char *p = XSTRING (Voverlay_arrow_string)->data;
-      int i;
+      int i, i_byte;
       int len = XSTRING (Voverlay_arrow_string)->size;
       int arrow_end;
 
@@ -3951,11 +4013,16 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
       if (!NULL_INTERVAL_P (XSTRING (Voverlay_arrow_string)->intervals))
 	{
 	  /* If the arrow string has text props, obey them when displaying.  */
-	  for (i = 0; i < len; i++)
+	  for (i = 0, i_byte = 0; i < len; )
 	    {
-	      int c = p[i];
+	      int c;
 	      Lisp_Object face, ilisp;
 	      int newface;
+
+	      if (STRING_MULTIBYTE (Voverlay_arrow_string))
+		FETCH_STRING_CHAR_ADVANCE (c, Voverlay_arrow_string, i, i_byte);
+	      else
+		c = XSTRING (Voverlay_arrow_string)->data[i++];
 
 	      XSETFASTINT (ilisp, i);
 	      face = Fget_text_property (ilisp, Qface, Voverlay_arrow_string);
@@ -4023,8 +4090,9 @@ display_menu_bar (w)
       if (hpos < maxendcol)
 	hpos = display_string (w, vpos,
 			       XSTRING (string)->data,
-			       XSTRING (string)->size,
-			       hpos, 0, 0, hpos, maxendcol, -1);
+			       XSTRING (string)->size_byte,
+			       hpos, 0, 0, hpos, maxendcol,
+			       STRING_MULTIBYTE (string));
       /* Put a space between items.  */
       if (hpos < maxendcol)
 	{
@@ -4164,7 +4232,8 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 		  hpos = store_frame_title (last, hpos, min (lim, maxendcol));
 		else
 		  hpos = display_string (w, vpos, last, -1, hpos, 0, 1,
-					 hpos, min (lim, maxendcol), -1);
+					 hpos, min (lim, maxendcol),
+					 STRING_MULTIBYTE (elt));
 	      }
 	    else /* c == '%' */
 	      {
@@ -4228,8 +4297,9 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 					    minendcol, maxendcol);
 		else
 		  hpos = display_string (w, vpos, XSTRING (tem)->data,
-					 XSTRING (tem)->size,
-					 hpos, 0, 1, minendcol, maxendcol, -1);
+					 XSTRING (tem)->size_byte,
+					 hpos, 0, 1, minendcol, maxendcol,
+					 STRING_MULTIBYTE (tem));
 	      }
 	    /* Give up right away for nil or t.  */
 	    else if (!EQ (tem, elt))
@@ -4523,7 +4593,7 @@ decode_mode_spec (w, c, spec_width, maxwidth)
     case 'b': 
       obj = b->name;
 #if 0
-      if (maxwidth >= 3 && XSTRING (obj)->size > maxwidth)
+      if (maxwidth >= 3 && XSTRING (obj)->size_byte > maxwidth)
 	{
 	  bcopy (XSTRING (obj)->data, decode_mode_spec_buf, maxwidth - 1);
 	  decode_mode_spec_buf[maxwidth - 1] = '\\';
@@ -4557,10 +4627,10 @@ decode_mode_spec (w, c, spec_width, maxwidth)
 #if 0
       if (NILP (obj))
 	return "[none]";
-      else if (STRINGP (obj) && XSTRING (obj)->size > maxwidth)
+      else if (STRINGP (obj) && XSTRING (obj)->size_byte > maxwidth)
 	{
 	  bcopy ("...", decode_mode_spec_buf, 3);
-	  bcopy (XSTRING (obj)->data + XSTRING (obj)->size - maxwidth + 3,
+	  bcopy (XSTRING (obj)->data + XSTRING (obj)->size_byte - maxwidth + 3,
 		 decode_mode_spec_buf + 3, maxwidth - 3);
 	  return decode_mode_spec_buf;
 	}
