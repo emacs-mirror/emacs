@@ -1385,31 +1385,22 @@ line_hash_code (row)
   
   if (row->enabled_p)
     {
-      if (row->inverse_p)
-        {
-          /* Give all highlighted lines the same hash code
-	     so as to encourage scrolling to leave them in place.  */
-          hash = -1;
-        }
-      else
-        {
-          struct glyph *glyph = row->glyphs[TEXT_AREA];
-	  struct glyph *end = glyph + row->used[TEXT_AREA];
+      struct glyph *glyph = row->glyphs[TEXT_AREA];
+      struct glyph *end = glyph + row->used[TEXT_AREA];
 
-          while (glyph < end)
-            {
-	      int c = glyph->u.ch;
-	      int face_id = glyph->face_id;
-	      if (must_write_spaces)
-	        c -= SPACEGLYPH;
-	      hash = (((hash << 4) + (hash >> 24)) & 0x0fffffff) + c;
-	      hash = (((hash << 4) + (hash >> 24)) & 0x0fffffff) + face_id;
-	      ++glyph;
-	    }
+      while (glyph < end)
+	{
+	  int c = glyph->u.ch;
+	  int face_id = glyph->face_id;
+	  if (must_write_spaces)
+	    c -= SPACEGLYPH;
+	  hash = (((hash << 4) + (hash >> 24)) & 0x0fffffff) + c;
+	  hash = (((hash << 4) + (hash >> 24)) & 0x0fffffff) + face_id;
+	  ++glyph;
+	}
 
-          if (hash == 0)
-	    hash = 1;
-        }
+      if (hash == 0)
+	hash = 1;
     }
 
   return hash;
@@ -1518,7 +1509,6 @@ row_equal_p (w, a, b, mouse_face_p)
 	}
 
       if (a->truncated_on_left_p != b->truncated_on_left_p
-	  || a->inverse_p != b->inverse_p
 	  || a->fill_line_p != b->fill_line_p
 	  || a->truncated_on_right_p != b->truncated_on_right_p
 	  || a->overlay_arrow_p != b->overlay_arrow_p
@@ -2190,7 +2180,6 @@ fake_current_matrices (window)
 					- r->used[LEFT_MARGIN_AREA]
 					- r->used[RIGHT_MARGIN_AREA]);
 		  r->mode_line_p = 0;
-		  r->inverse_p = fr->inverse_p;
 		}
 	    }
 	}
@@ -2797,9 +2786,6 @@ build_frame_matrix_from_leaf_window (frame_matrix, w)
          can be done simply.  */
       frame_row->used[TEXT_AREA] 
 	= window_matrix->matrix_x + window_matrix->matrix_w;
-
-      /* Or in other flags.  */
-      frame_row->inverse_p |= window_row->inverse_p;
 
       /* Next row.  */
       ++window_y;
@@ -5399,16 +5385,6 @@ update_frame_line (f, vpos)
   if (colored_spaces_p)
     write_spaces_p = 1;
 
-  if (desired_row->inverse_p
-      != (current_row->enabled_p && current_row->inverse_p))
-    {
-      int n = current_row->enabled_p ? current_row->used[TEXT_AREA] : 0;
-      change_line_highlight (desired_row->inverse_p, vpos, vpos, n);
-      current_row->enabled_p = 0;
-    }
-  else
-    reassert_line_highlight (desired_row->inverse_p, vpos);
-
   /* Current row not enabled means it has unknown contents.  We must
      write the whole desired line in that case.  */
   must_write_whole_line_p = !current_row->enabled_p;
@@ -5422,26 +5398,14 @@ update_frame_line (f, vpos)
       obody = MATRIX_ROW_GLYPH_START (current_matrix, vpos);
       olen = current_row->used[TEXT_AREA];
       
-      if (!current_row->inverse_p)
-	{
-	  /* Ignore trailing spaces, if we can.  */
-	  if (!write_spaces_p)
-	    while (olen > 0 && CHAR_GLYPH_SPACE_P (obody[olen-1]))
-	      olen--;
-	}
-      else
-	{
-	  /* For an inverse-video line, make sure it's filled with
-	     spaces all the way to the frame edge so that the reverse
-	     video extends all the way across.  */
-	  while (olen < FRAME_WIDTH (f) - 1)
-	    obody[olen++] = space_glyph;
-	}
+      /* Ignore trailing spaces, if we can.  */
+      if (!write_spaces_p)
+	while (olen > 0 && CHAR_GLYPH_SPACE_P (obody[olen-1]))
+	  olen--;
     }
 
   current_row->enabled_p = 1;
   current_row->used[TEXT_AREA] = desired_row->used[TEXT_AREA];
-  current_row->inverse_p = desired_row->inverse_p;
 
   /* If desired line is empty, just clear the line.  */
   if (!desired_row->enabled_p)
@@ -5488,20 +5452,9 @@ update_frame_line (f, vpos)
 
   /* Pretend trailing spaces are not there at all,
      unless for one reason or another we must write all spaces.  */
-  if (!desired_row->inverse_p)
-    {
-      if (!write_spaces_p)
-	while (nlen > 0 && CHAR_GLYPH_SPACE_P (nbody[nlen - 1]))
-	  nlen--;
-    }
-  else
-    {
-      /* For an inverse-video line, give it extra trailing spaces all
-	 the way to the frame edge so that the reverse video extends
-	 all the way across.  */
-      while (nlen < FRAME_WIDTH (f) - 1)
-	nbody[nlen++] = space_glyph;
-    }
+  if (!write_spaces_p)
+    while (nlen > 0 && CHAR_GLYPH_SPACE_P (nbody[nlen - 1]))
+      nlen--;
 
   /* If there's no i/d char, quickly do the best we can without it.  */
   if (!char_ins_del_ok)
@@ -5550,7 +5503,7 @@ update_frame_line (f, vpos)
     {
       /* If current line is blank, skip over initial spaces, if
 	 possible, and write the rest.  */
-      if (write_spaces_p || desired_row->inverse_p)
+      if (write_spaces_p)
 	nsp = 0;
       else
 	nsp = count_blanks (nbody, nlen);
@@ -5568,9 +5521,7 @@ update_frame_line (f, vpos)
 
   /* Compute number of leading blanks in old and new contents.  */
   osp = count_blanks (obody, olen);
-  nsp = (desired_row->inverse_p || colored_spaces_p
-	 ? 0
-	 : count_blanks (nbody, nlen));
+  nsp = (colored_spaces_p ? 0 : count_blanks (nbody, nlen));
 
   /* Compute number of matching chars starting with first non-blank.  */
   begmatch = count_match (obody + osp, obody + olen,
