@@ -193,8 +193,8 @@ pixel_to_char_size (ew, pixel_width, pixel_height, char_width, char_height)
      int* char_height;
 {
   struct frame* f = ew->emacs_frame.frame;
-  *char_width = PIXEL_TO_CHAR_WIDTH (f, pixel_width);
-  *char_height = PIXEL_TO_CHAR_HEIGHT (f, pixel_height);
+  *char_width = PIXEL_TO_CHAR_WIDTH (f, (int) pixel_width);
+  *char_height = PIXEL_TO_CHAR_HEIGHT (f, (int) pixel_height);
 }
 
 static void
