@@ -263,6 +263,28 @@ With positive argument insert that many lines."
      (forward-line -1)
      (insert contents))))
 
+;; Like replace-match, but overwrites.
+(defun picture-replace-match (newtext fixedcase literal)
+  (let (ocolumn change pos)
+    (goto-char (setq pos (match-end 0)))
+    (setq ocolumn (current-column))
+    ;; Make the replacement and undo it, to see how it changes the length.
+    (let ((buffer-undo-list nil)
+	  list1)
+      (replace-match newtext fixedcase literal)
+      (setq change (- (current-column) ocolumn))
+      (setq list1 buffer-undo-list)
+      (while list1
+	(setq list1 (primitive-undo 1 list1))))
+    (goto-char pos)
+    (if (> change 0)
+	(delete-region (point)
+		       (progn
+			 (move-to-column-force (+ change (current-column)))
+			 (point))))
+    (replace-match newtext fixedcase literal)
+    (if (< change 0)
+	(insert-char ?\ (- change)))))
 
 ;; Picture Tabs
 
