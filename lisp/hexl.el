@@ -590,8 +590,8 @@ This discards the buffer's undo information."
        (or (y-or-n-p "Converting to hexl format discards undo info; ok? ")
 	   (error "Aborted")))
   (setq buffer-undo-list nil)
-  (let ((binary-process-output nil) ; for Ms-Dos
-	(binary-process-input buffer-file-type)
+  ;; Don't decode text in the ASCII part of `hexl' program output.
+  (let ((coding-system-for-read 'raw-text)
 	;; If the buffer was read with EOL conversions, be sure to use the
 	;; same conversions when passing the region to the `hexl' program.
 	(coding-system-for-write
@@ -614,9 +614,16 @@ This discards the buffer's undo information."
        (or (y-or-n-p "Converting from hexl format discards undo info; ok? ")
 	   (error "Aborted")))
   (setq buffer-undo-list nil)
-  (let ((binary-process-output buffer-file-type) ; for Ms-Dos
-	(binary-process-input nil)
-	(coding-system-for-read 'raw-text)
+  (let ((coding-system-for-write 'raw-text)
+	(coding-system-for-read
+	 (let ((eol-type (coding-system-eol-type buffer-file-coding-system)))
+	   (cond ((eq eol-type 1)
+		  'raw-text-dos)
+		 ((eq eol-type 2)
+		  'raw-text-mac)
+		 ((eq eol-type 0)
+		  'raw-text-unix)
+		 (t 'no-conversion))))
 	(buffer-undo-list t))
     (shell-command-on-region (point-min) (point-max) dehexlify-command t)))
 
