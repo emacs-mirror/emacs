@@ -838,7 +838,10 @@ definitions to shadow the loaded ones for use in file byte-compilation.")
 	      if (EQ (tem, Qt) || EQ (tem, Qmacro))
 		/* Yes, load it and try again.  */
 		{
+		  struct gcpro gcpro1;
+		  GCPRO1 (form);
 		  do_autoload (def, sym);
+		  UNGCPRO;
 		  continue;
 		}
 	      else
@@ -1552,14 +1555,20 @@ un_autoload (oldqueue)
   return Qnil;
 }
 
+/* Load an autoloaded function.
+   FUNNAME is the symbol which is the function's name.
+   FUNDEF is the autoload definition (a list).  */
+
 do_autoload (fundef, funname)
      Lisp_Object fundef, funname;
 {
   int count = specpdl_ptr - specpdl;
   Lisp_Object fun, val, queue, first, second;
+  struct gcpro gcpro1, gcpro2, gcpro3;
 
   fun = funname;
   CHECK_SYMBOL (funname, 0);
+  GCPRO3 (fun, funname, fundef);
 
   /* Value saved here is to be restored into Vautoload_queue */
   record_unwind_protect (un_autoload, Vautoload_queue);
@@ -1592,6 +1601,7 @@ do_autoload (fundef, funname)
   if (!NILP (Fequal (fun, fundef)))
     error ("Autoloading failed to define function %s",
 	   XSYMBOL (funname)->name->data);
+  UNGCPRO;
 }
 
 DEFUN ("eval", Feval, Seval, 1, 1, 0,
