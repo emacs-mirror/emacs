@@ -188,6 +188,9 @@ whether to blink the matching beginning.")
   "*Automatic case conversion of keywords.
   The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil")
 
+(defvar f90-auto-hilit19 t
+  "*Automatic highlight of line at every indent or newline (for hilit19).")
+
 (defvar f90-leave-line-no nil
   "*If nil, left-justify linenumbers.")
 
@@ -433,6 +436,90 @@ whether to blink the matching beginning.")
 (defvar f90-font-lock-keywords
       f90-font-lock-keywords-2
   "*Default expressions to highlight in F90 mode.")
+
+;; hilit19 customization and expressions
+(defvar f90-face-string 'named-param "*Face for strings.")
+(defvar f90-face-comment 'comment "*Face for comments.")
+(defvar f90-face-decl 'include "*Face for declarations.")
+(defvar f90-face-prog 'defun "*Face for program blocks.")
+(defvar f90-face-label 'Tomato-bold "*Face for labels.")
+(defvar f90-face-type 'defun "*Face for type blocks.")
+(defvar f90-face-interface 'defun "*Face for interface blocks.")
+(defvar f90-face-contains 'defun "*Face for contains statement.")
+(defvar f90-face-do 'SteelBlue-bold "*Face for do-structure.")
+(defvar f90-face-if 'define "*Face for if-structure.")
+(defvar f90-face-select 'define "*Face for select-case structure.")
+(defvar f90-face-stop 'defun "*Face for stop and return.")
+(defvar f90-face-exit 'SteelBlue-bold "*Face for exit and cycle.")
+(defvar f90-face-keyword 'struct "*Face for keywords.")
+(defvar f90-face-intrinsics 'struct "*Face for intrinsic procedures.")
+;; Highlighting for HPF (High-Peformance Fortran)
+(defvar f90-face-hpf-procedures 'struct "*Face for hpf procedures.")
+(defvar f90-face-hpf-directives 'struct "*Face for hpf directives.")
+(defvar f90-face-hpf-keywords   'struct "*Face for hpf keywords.")
+
+(defvar f90-hilit-patterns
+  (list
+   ;; Allow for strings delimited by ' and by " and for multirow strings.
+   ;; A multi-row string includes &\n& (+ possible whitespace and comments)
+   (list (concat
+	  "\\(\"[^\"\n]*\\(&[ \t]*\\(![^\n]*\\)?\n[ \t]*&[^\"\n]*\\)*\""
+	  "\\|'[^'\n]*\\(&[ \t]*\\(![^\n]*\\)?\n[ \t]*&[^'\n]*\\)*'\\)")
+	 nil f90-face-string)
+   (list "!" "$" f90-face-comment)
+   (list "\\(\\(real\\|integer\\|character\\|complex\\|logical\
+\\|type[ \t]*(\\sw+)\\).*\\)::" 1 f90-face-decl)
+   (list "implicit[ \t]*none" nil f90-face-decl)
+   (list "^[ \t]*\\(program\\|module\\)[ \t]+\\sw+" 1 f90-face-prog)
+   (list "^[ \t]*\\(program\\|module\\)[ \t]+\\(\\sw+\\)" 2 f90-face-label)
+   (list "\\(^.*\\(function\\|subroutine\\)\\)[ \t]+\\sw+" 1
+	 f90-face-prog)
+   (list "^.*\\(function\\|subroutine\\)[ \t]+\\(\\sw+\\)" 2
+	 f90-face-label)
+   (list "^[ \t]*end[ \t]*\\(program\\|module\\|function\
+\\|subroutine\\|type\\)" nil f90-face-prog)
+   (list (concat "^[ \t]*end[ \t]*\\(program\\|module\\|function\\|"
+		 "subroutine\\|type\\)[ \t]+\\(\\sw+\\)") 2 f90-face-label)
+   (list "^[ \t]*\\(type\\)[ \t]+\\sw+" 1 f90-face-type)
+   (list "^[ \t]*type[ \t]+\\(\\sw+\\)" 1 f90-face-label)
+   (list "^[ \t]*\\(type[ \t]*,[ \t]*\\(private\\|public\\)\\)[ \t]*::[ \t]*\\(\\sw+\\)" 1 f90-face-type)
+   (list "^[ \t]*\\(type[ \t]*,[ \t]*\\(private\\|public\\)\\)[ \t]*::[ \t]*\\(\\sw+\\)" 3 f90-face-label)
+   (list "^[ \t]*\\(end[ \t]*\\)?interface\\>" nil f90-face-interface)
+   (list "^[ \t]*contains\\>" nil f90-face-contains)
+   (list "^[ \t]*\\(\\sw+[ \t]*:[ \t]*\\)?\\(do\\([ \t]*while\\)?\\)\\>"
+	 2 f90-face-do)
+   (list "^[ \t]*\\(\\sw+\\)[ \t]*:[ \t]*\\(do\\([ \t]*while\\)?\\)\\>" 1
+	 f90-face-label)
+   (list "^[ \t]*\\(end[ \t]*do\\)\\>" 1 f90-face-do)
+   (list "^[ \t]*end[ \t]*do[ \t]+\\(\\sw+\\)" 1 f90-face-label)
+   (list "^[ \t]*\\(\\sw+[ \t]*:[ \t]*\\)?\\(if\\)\\>" 2 f90-face-if)
+   (list "^[ \t]*\\(\\sw+\\)[ \t]*:[ \t]*if\\>" 1 f90-face-label)
+   (list "^[ \t]*\\(end[ \t]*if\\)\\>" 1 f90-face-if)
+   (list "^[ \t]*end[ \t]*if[ \t]+\\(\\sw+\\)" 1 f90-face-label)
+   (list "^[ \t]*\\(\\sw+[ \t]*:[ \t]*\\)?\\(select[ \t]*case\\)\\>" 2
+	 f90-face-select)
+   (list "^[ \t]*\\(\\sw+\\)[ \t]*:[ \t]*\\(select[ \t]*case\\)\\>" 1
+	 f90-face-label)
+   (list "^[ \t]*end[ \t]*select\\>" nil f90-face-select)
+   (list "^[ \t]*end[ \t]*select\\>[ \t]+\\(\\sw+\\)" 1 f90-face-label)
+   (list "\\(where\\|forall\\)[ \t]*(" 1 f90-face-if)
+   (list "\\<\\(elsewhere\\|else\\|else[ \t]*if\\)\\>" nil f90-face-if)
+   (list "\\<end[ \t]*\\(where\\|forall\\)\\>" nil f90-face-if)
+   (list "\\<then\\>" nil f90-face-if)
+   (list "\\<\\(exit\\|cycle\\)\\>" nil f90-face-exit)
+   (list "\\<\\(exit\\|cycle\\)[ \t]*\\sw+\\>" nil f90-face-label)
+   (list "\\<\\(stop\\|return\\)\\>" nil f90-face-stop)
+   (list "^[ \t]*\\(case\\)[ \t]*\\((\\|default\\)" 1 f90-face-select)
+   (list (concat "\\<\\("(mapconcat 'identity f90-keywords "\\|")
+		 "\\)\\>") nil f90-face-keyword)
+ (list (concat "\\<\\("(mapconcat 'identity f90-intrinsic-procedures "\\|")
+	       "\\)\\>") nil f90-face-intrinsics)
+ (list (concat "\\<\\("(mapconcat 'identity f90-hpf-procedures "\\|")
+	       "\\)\\>") nil f90-face-hpf-procedures)
+ (list (concat "\\<\\("(mapconcat 'identity f90-hpf-directives "\\|")
+	       "\\)\\>") nil f90-face-hpf-directives)
+ (list (concat "\\<\\("(mapconcat 'identity f90-hpf-keywords "\\|")
+	       "\\)\\>") nil f90-face-hpf-keywords)))
 
 ;; syntax table
 (defvar f90-mode-syntax-table nil
@@ -739,6 +826,10 @@ with no args, if that value is non-nil."
   (make-local-variable 'abbrev-all-caps)
   (setq abbrev-all-caps t)
   (setq indent-tabs-mode nil)
+
+  (if (fboundp 'hilit-set-mode-patterns)
+      (hilit-set-mode-patterns
+       'f90-mode f90-hilit-patterns nil 'case-insensitive))
   ;; Setting up things for font-lock
   (if (string-match "Xemacs" emacs-version)
       (progn
@@ -969,7 +1060,9 @@ block[ \t]*data\\)\\>")
 	(progn (setq bol (f90-get-beg-of-line)
 		     eol (f90-get-end-of-line))
 	       (if f90-auto-keyword-case
-		   (f90-change-keywords f90-auto-keyword-case bol eol))))))
+		   (f90-change-keywords f90-auto-keyword-case bol eol)
+	       (if (and f90-auto-hilit19 (fboundp 'hilit-rehighlight-region))
+		   (hilit-rehighlight-region bol eol t)))))))
 
 (defun f90-get-correct-indent ()
   "Get correct indent for a line starting with line number.
@@ -1324,14 +1417,14 @@ If run in the middle of a line, the line is not broken."
       (setq program (f90-mark-subprogram))
       (if program
 	  (progn
-	    (message (concat "Indenting " (car program) " "
-			     (car (cdr program))"."))
+	    (message "Indenting %s %s."
+		     (car program) (car (cdr program)))
 	    (f90-indent-region (point) (mark))
-	    (message (concat "Indenting " (car program) " "
-			     (car (cdr program)) "...done.")))
+	    (message "Indenting %s %s...done."
+		     (car program) (car (cdr program))))
 	(message "Indenting the whole file.")
 	(f90-indent-region (point) (mark))
-	(message (concat "Indenting the whole file...done."))))))
+	(message "Indenting the whole file...done.")))))
 
 ;; autofill and break-line
 (defun f90-break-line (&optional no-update)
@@ -1418,6 +1511,7 @@ automatically breaks the line at a previous space."
   "Fill every line in region by forward parsing. Join lines if possible."
   (interactive "*r")
   (let ((end-region-mark (make-marker))
+	(f90-auto-hilit19 nil)
 	(f90-smart-end nil) (f90-auto-keyword-case nil) indent (go-on t)
 	(af-function auto-fill-function) (auto-fill-function nil))
     (set-marker end-region-mark end-region)
@@ -1506,11 +1600,11 @@ Leave point at the end of line."
 	      (f90-update-line)
 	      (if (eq f90-smart-end 'blink)
 		  (if (< (point) top-of-window)
-		      (message (concat 
-				"Matches " (what-line) ": "
-				(buffer-substring
-				 (progn (beginning-of-line) (point))
-				 (progn (end-of-line) (point)))))
+		      (message "Matches %d: %s"
+			       (what-line)
+			       (buffer-substring
+				(progn (beginning-of-line) (point))
+				(progn (end-of-line) (point))))
 		    (sit-for 1)))
 	      (setq beg-block (car matching-beg))
 	      (setq beg-name (car (cdr matching-beg)))
