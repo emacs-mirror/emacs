@@ -3316,13 +3316,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   FRAME_LINES (f) = 0;
   change_frame_size (f, height, width, 1, 0, 0);
 
-  /* Set up faces after all frame parameters are known.  This call
-     also merges in face attributes specified for new frames.  If we
-     don't do this, the `menu' face for instance won't have the right
-     colors, and the menu bar won't appear in the specified colors for
-     new frames.  */
-  call1 (Qface_set_after_frame_default, frame);
-
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   /* Create the menu bar.  */
   if (!minibuffer_only && FRAME_EXTERNAL_MENU_BAR (f))
