@@ -1,3 +1,13 @@
+2001-01-04  Dave Love  <fx@gnu.org>
+
+	* systime.h (set_file_times): Prototype.
+
+	* widget.h (EmacsFrameSetCharSize_): Prototype.
+
+	* sysdep.c (random, srandom): Declare explicitly.
+
+	* dispextern.h (move_it_vertically_backward): Declare.
+
 2001-01-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (x_create_tip_frame): Call face-set-after-frame-default,
