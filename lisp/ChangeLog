@@ -1,3 +1,10 @@
+2002-12-02  Richard M. Stallman  <rms@gnu.org>
+
+	* finder.el (finder-commentary): Use *Finder-package* buffer.
+
+	* server.el (server-buffer-done): Test of server-existing-buffer
+	was backwards.
+
 2002-11-27  Kenichi Handa  <handa@m17n.org>
 
 	* language/european.el (encode-mac-roman): Deal with unencodable
@@ -29,6 +36,7 @@
 	* progmodes/etags.el (find-tag-default): Copy text at point without
 	properties.
 
+>>>>>>> 1.2776.2.248
 2002-11-11  Fabrice Bauzac  <fabrice.bauzac@wanadoo.fr>  (tiny change)
 
 	* dired-aux.el (dired-show-file-type): Format filename with "%s" to

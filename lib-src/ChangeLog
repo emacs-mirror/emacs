@@ -1,3 +1,7 @@
+2002-12-02  Richard M. Stallman  <rms@gnu.org>
+
+	* emacsclient.c (main): Test HAVE_GETCWD, not BSD_SYSTEM.
+
 2002-06-05  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c (main): Avoid a buffer overrun with sprintf.
