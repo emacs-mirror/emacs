@@ -200,7 +200,7 @@ nil means read a single character."
   "Choose an item from a list.
 
 First argument TITLE is the name of the list.
-Second argument ITEMS is an list whose members are either
+Second argument ITEMS is a list whose members are either
  (NAME . VALUE), to indicate selectable items, or just strings to
  indicate unselectable items.
 Optional third argument EVENT is an input event.
@@ -299,7 +299,7 @@ minibuffer."
     (nreverse result)))
 
 ;;; Widget text specifications.
-;; 
+;;
 ;; These functions are for specifying text properties.
 
 (defvar widget-field-add-space t
@@ -331,7 +331,7 @@ new value.")
 	(rear-sticky
 	 (or (not widget-field-add-space) (widget-get widget :size))))
     (if (functionp help-echo)
-      (setq help-echo 'widget-mouse-help))    
+      (setq help-echo 'widget-mouse-help))
     (when (= (char-before to) ?\n)
       ;; When the last character in the field is a newline, we want to
       ;; give it a `field' char-property of `boundary', which helps the
@@ -1272,8 +1272,8 @@ Optional EVENT is the event that triggered the action."
   :indent nil
   :offset 0
   :format-handler 'widget-default-format-handler
-  :button-face-get 'widget-default-button-face-get 
-  :sample-face-get 'widget-default-sample-face-get 
+  :button-face-get 'widget-default-button-face-get
+  :sample-face-get 'widget-default-sample-face-get
   :delete 'widget-default-delete
   :value-set 'widget-default-value-set
   :value-inline 'widget-default-value-inline
@@ -1488,7 +1488,7 @@ If that does not exists, call the value of `widget-complete-field'."
   (or (widget-get widget :always-active)
       (and (not (widget-get widget :inactive))
 	   (let ((parent (widget-get widget :parent)))
-	     (or (null parent) 
+	     (or (null parent)
 		 (widget-apply parent :active))))))
 
 (defun widget-default-deactivate (widget)
@@ -1682,11 +1682,11 @@ If END is omitted, it defaults to the length of LIST."
   (find-file (locate-library (widget-value widget))))
 
 ;;; The `emacs-commentary-link' Widget.
-    
+
 (define-widget 'emacs-commentary-link 'link
   "A link to Commentary in an Emacs Lisp library file."
   :action 'widget-emacs-commentary-link-action)
-    
+
 (defun widget-emacs-commentary-link-action (widget &optional event)
   "Find the Commentary section of the Emacs file specified by WIDGET."
   (finder-commentary (widget-value widget)))
@@ -3005,7 +3005,7 @@ It will read a directory name from the minibuffer when invoked."
 
 (defvar widget-coding-system-prompt-value-history nil
   "History of input to `widget-coding-system-prompt-value'.")
-  
+
 (define-widget 'coding-system 'symbol
   "A MULE coding-system."
   :format "%{%t%}: %v"
@@ -3370,7 +3370,7 @@ To use this type, you must define :match or :match-alternatives."
 
 ;;; The `color' Widget.
 
-;; Fixme: match 
+;; Fixme: match
 (define-widget 'color 'editable-field
   "Choose a color name (with sample)."
   :format "%t: %v (%{sample%})\n"
