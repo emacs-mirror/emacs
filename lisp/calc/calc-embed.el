@@ -417,6 +417,8 @@ With any prefix argument, marks only the formula itself."
 	 (forward-char -1))
     (setq calc-embed-outer-top (point))
     (goto-char (match-end 0))
+    (if (looking-at "[ \t]*$")
+        (end-of-line))
     (if (eq (following-char) ?\n)
 	(forward-char 1))
     (or (bolp)
