@@ -740,12 +740,19 @@ to an optional list of FLAGS."
 		 (vc-resynch-buffer file t (not (buffer-modified-p buffer)))))
 	(error "%s needs update" (buffer-name))))
 
+     ;; For CVS files with implicit checkout: if unmodified, don't do anything
+     ((and (eq vc-type 'CVS)
+           (eq (vc-checkout-model file) 'implicit)
+           (not (vc-locking-user file))
+           (not verbose))
+      (message "%s is up to date" (buffer-name)))
+
      ;; If there is no lock on the file, assert one and get it.
-     ;; (With implicit checkout, make sure not to lose unsaved changes.)
-     ((progn (and (eq (vc-checkout-model file) 'implicit)
-                  (buffer-modified-p buffer)
-                  (vc-buffer-sync))
-             (not (setq owner (vc-locking-user file))))
+     ((not (setq owner (vc-locking-user file)))
+      ;; With implicit checkout, make sure not to lose unsaved changes.
+      (and (eq (vc-checkout-model file) 'implicit)
+           (buffer-modified-p buffer)
+           (vc-buffer-sync))
       (if (and vc-checkout-carefully
 	       (not (vc-workfile-unchanged-p file t)))
 	  (if (save-window-excursion
@@ -1246,30 +1253,33 @@ and two version designators specifying which versions to compare."
 	 "There is no version-control master associated with this buffer"))
     (let ((file buffer-file-name)
 	  unchanged)
-      (or (and file (vc-name file))
-	  (vc-registration-error file))
-      (vc-buffer-sync not-urgent)
-      (setq unchanged (vc-workfile-unchanged-p buffer-file-name))
-      (if unchanged
-	  (message "No changes to %s since latest version" file)
-	(vc-backend-diff file)
-	;; Ideally, we'd like at this point to parse the diff so that
-	;; the buffer effectively goes into compilation mode and we
-	;; can visit the old and new change locations via next-error.
-	;; Unfortunately, this is just too painful to do.  The basic
-	;; problem is that the `old' file doesn't exist to be
-	;; visited.  This plays hell with numerous assumptions in
-	;; the diff.el and compile.el machinery.
-	(set-buffer "*vc-diff*")
-	(setq default-directory (file-name-directory file))
-	(if (= 0 (buffer-size))
-	    (progn
-	      (setq unchanged t)
-	      (message "No changes to %s since latest version" file))
-          (pop-to-buffer "*vc-diff*")
-	  (goto-char (point-min))
-	  (shrink-window-if-larger-than-buffer)))
-      (not unchanged))))
+      (if (not (vc-locking-user file))
+          ;; if the file is not locked, ask for older version to compare with
+          (let ((old (read-string 
+                      "File is unchanged; version to compare with: ")))
+            (vc-version-diff file old ""))
+        (vc-buffer-sync not-urgent)
+        (setq unchanged (vc-workfile-unchanged-p buffer-file-name))
+        (if unchanged
+            (message "No changes to %s since latest version" file)
+          (vc-backend-diff file)
+          ;; Ideally, we'd like at this point to parse the diff so that
+          ;; the buffer effectively goes into compilation mode and we
+          ;; can visit the old and new change locations via next-error.
+          ;; Unfortunately, this is just too painful to do.  The basic
+          ;; problem is that the `old' file doesn't exist to be
+          ;; visited.  This plays hell with numerous assumptions in
+          ;; the diff.el and compile.el machinery.
+          (set-buffer "*vc-diff*")
+          (setq default-directory (file-name-directory file))
+          (if (= 0 (buffer-size))
+              (progn
+                (setq unchanged t)
+                (message "No changes to %s since latest version" file))
+            (pop-to-buffer "*vc-diff*")
+            (goto-char (point-min))
+            (shrink-window-if-larger-than-buffer)))
+        (not unchanged)))))
 
 (defun vc-version-diff (file rel1 rel2)
   "For FILE, report diffs between two stored versions REL1 and REL2 of it.
@@ -1369,9 +1379,13 @@ the variable `vc-header-alist'."
   ;; Clear all version headers in the current buffer, i.e. reset them 
   ;; to the nonexpanded form.  Only implemented for RCS, yet.
   ;; Don't lose point and mark during this.
-  (let ((context (vc-buffer-context)))
+  (let ((context (vc-buffer-context))
+        (case-fold-search nil))
     (goto-char (point-min))
-    (while (re-search-forward "\\$\\([A-Za-z]+\\): [^\\$]+\\$" nil t)
+    (while (re-search-forward 
+            (concat "\\$\\(Author\\|Date\\|Header\\|Id\\|Locker\\|Name\\|"
+                    "RCSfile\\|Revision\\|Source\\|State\\): [^\\$\\n]+\\$")
+            nil t)
       (replace-match "$\\1$"))
     (vc-restore-buffer-context context)))
 
@@ -1651,25 +1665,36 @@ version becomes part of the named configuration."
 
 ;;;###autoload
 (defun vc-retrieve-snapshot (name)
-  "Retrieve the snapshot called NAME.
-This function fails if any files are locked at or below the current directory
-Otherwise, all registered files are checked out (unlocked) at their version
-levels in the snapshot."
-  (interactive "sSnapshot name to retrieve: ")
-  (let ((result (vc-snapshot-precondition))
-	(update nil))
-    (if (stringp result)
-	(error "File %s is locked" result)
-      (if (eq result 'visited)
-	  (setq update (yes-or-no-p "Update the affected buffers? ")))
-      (vc-file-tree-walk
-       default-directory
-       (function (lambda (f) (and
-			      (vc-name f)
-			      (vc-error-occurred
-			       (vc-backend-checkout f nil name)
-			       (if update (vc-resynch-buffer f t t)))))))
-      )))
+  "Retrieve the snapshot called NAME, or latest versions if NAME is empty.
+When retrieving a snapshot, there must not be any locked files at or below
+the current directory.  If none are locked, all registered files are 
+checked out (unlocked) at their version levels in the snapshot NAME.
+If NAME is the empty string, all registered files that are not currently 
+locked are updated to the latest versions."
+  (interactive "sSnapshot name to retrieve (default latest versions): ")
+  (let ((update (yes-or-no-p "Update any affected buffers? ")))
+    (if (string= name "")
+        (progn 
+          (vc-file-tree-walk 
+           default-directory
+           (function (lambda (f) (and
+                                  (vc-registered f)
+                                  (not (vc-locking-user f))
+                                  (vc-error-occurred
+                                   (vc-backend-checkout f nil "")
+                                   (if update (vc-resynch-buffer f t t))))))))
+      (let ((result (vc-snapshot-precondition)))
+        (if (stringp result)
+            (error "File %s is locked" result)
+          (setq update (and (eq result 'visited) update))
+          (vc-file-tree-walk
+           default-directory
+           (function (lambda (f) (and
+                                  (vc-name f)
+                                  (vc-error-occurred
+                                   (vc-backend-checkout f nil name)
+                                   (if update (vc-resynch-buffer f t t)))))))
+          )))))
 
 ;; Miscellaneous other entry points
 
@@ -2651,16 +2676,43 @@ Return the first cons which CAR is not less than THRESHOLD, nil otherwise"
 	 (vc-file-clear-masterprops file)
 	 (vc-file-setprop file 'vc-workfile-version nil)
 	 (vc-file-setprop file 'vc-locking-user nil)
+         (vc-file-setprop file 'vc-checkout-time nil)
 	 (vc-do-command nil 0 "cvs" file 'WORKFILE "update")
-	 ;; CVS doesn't return an error code if conflicts are detected.
-	 ;; Since we want to warn the user about it (and possibly start
-	 ;; emerge later), scan the output and see if this occurred.
+         ;; Analyze the merge result reported by CVS, and set
+         ;; file properties accordingly.
 	 (set-buffer (get-buffer "*vc*"))
 	 (goto-char (point-min))
-	 (if (re-search-forward "^cvs update: conflicts found in .*" nil t)
-	     1  ;; error code for caller
-	   0  ;; no conflict detected
-	   )))
+         ;; get new workfile version
+         (if (re-search-forward (concat "^Merging differences between "
+                                        "[01234567890.]* and "
+                                        "\\([01234567890.]*\\) into")
+                                nil t)
+             (vc-file-setprop file 'vc-workfile-version (match-string 1)))
+         ;; get file status
+	 (if (re-search-forward 
+              (concat "^\\([CMU]\\) " 
+                      (regexp-quote (file-name-nondirectory file)))
+              nil t)
+             (cond 
+              ;; Merge successful, we are in sync with repository now
+              ((string= (match-string 1) "U")
+               (vc-file-setprop file 'vc-locking-user 'none)
+               (vc-file-setprop file 'vc-checkout-time 
+                                (nth 5 (file-attributes file)))
+               0) ;; indicate success to the caller
+              ;; Merge successful, but our own changes are still in the file
+              ((string= (match-string 1) "M")
+               (vc-file-setprop file 'vc-locking-user (vc-file-owner file))
+               (vc-file-setprop file 'vc-checkout-time 0)
+               0) ;; indicate success to the caller
+              ;; Conflicts detected!
+              ((string= (match-string 1) "C")
+               (vc-file-setprop file 'vc-locking-user (vc-file-owner file))
+               (vc-file-setprop file 'vc-checkout-time 0)
+               1) ;; signal the error to the caller
+              )
+           (pop-to-buffer "*vc*")
+           (error "Couldn't analyze cvs update result"))))
     (message "Merging changes into %s...done" file)))
 
 (defun vc-check-headers ()
