@@ -1,6 +1,6 @@
 ;;; ps-mule.el --- provide multi-byte character facility to ps-print
 
-;; Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;;	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
@@ -159,7 +159,10 @@
 	    (setq i (1+ i)))
 	  multibyte)))
   (or (fboundp 'string-make-multibyte)
-      (defalias 'string-make-multibyte 'copy-sequence)))
+      (defalias 'string-make-multibyte 'copy-sequence))
+  (or (fboundp 'encode-char)
+      (defun encode-char (ch ccs)
+	ch)))
 
 
 ;;;###autoload
@@ -417,16 +420,22 @@ Currently, data for Japanese and Korean PostScript printers are listed.")
      (normal bdf ("ind24-mule.bdf" "mule-indian-24.bdf") ps-mule-encode-7bit 2))
     (tibetan
      (normal bdf ("tib24p-mule.bdf" "tib24-mule.bdf" "mule-tibmdx-24.bdf")
-	     ps-mule-encode-7bit 2)))
+	     ps-mule-encode-7bit 2))
+    (mule-unicode-0100-24ff
+     (normal bdf "etl24-unicode.bdf" ps-mule-encode-ucs2 2))
+    (mule-unicode-2500-33ff
+     (normal bdf "etl24-unicode.bdf" ps-mule-encode-ucs2 2))
+    (mule-unicode-e000-ffff
+     (normal bdf "etl24-unicode.bdf" ps-mule-encode-ucs2 2)))
   "Sample setting of the `ps-mule-font-info-database' to use BDF fonts.
 BDF (Bitmap Distribution Format) is a format used for distributing X's font
 source file.
 
-Current default value list for BDF fonts is included in `intlfonts-1.2' which is
-a collection of X11 fonts for all characters supported by Emacs.
+Current default value list for BDF fonts is included in `intlfonts-1.2'
+which is a collection of X11 fonts for all characters supported by Emacs.
 
-Using this list as default value to `ps-mule-font-info-database', all characters
-including ASCII and Latin-1 are printed by BDF fonts.
+Using this list as default value to `ps-mule-font-info-database', all
+characters including ASCII and Latin-1 are printed by BDF fonts.
 
 See also `ps-mule-font-info-database-ps-bdf'.")
 
@@ -435,13 +444,13 @@ See also `ps-mule-font-info-database-ps-bdf'.")
 	(cdr (cdr ps-mule-font-info-database-bdf)))
   "Sample setting of the `ps-mule-font-info-database' to use BDF fonts.
 
-Current default value list for BDF fonts is included in `intlfonts-1.2' which is
-a collection of X11 fonts for all characters supported by Emacs.
+Current default value list for BDF fonts is included in `intlfonts-1.2'
+which is a collection of X11 fonts for all characters supported by Emacs.
 
-Using this list as default value to `ps-mule-font-info-database', all characters
-except ASCII and Latin-1 characters are printed by BDF fonts.  ASCII and Latin-1
-characters are printed by PostScript font specified by `ps-font-family' and
-`ps-header-font-family'.
+Using this list as default value to `ps-mule-font-info-database', all
+characters except ASCII and Latin-1 characters are printed with BDF fonts.
+ASCII and Latin-1 characters are printed with PostScript font specified
+by `ps-font-family' and `ps-header-font-family'.
 
 See also `ps-mule-font-info-database-bdf'.")
 
@@ -502,6 +511,23 @@ See also `ps-mule-font-info-database-bdf'.")
   ;; unbound mule-version
   (defun ps-mule-encode-ethiopic (string)
     string))
+
+;; Special encoding for mule-unicode-* characters.
+(defun ps-mule-encode-ucs2 (string)
+  (let* ((len (ps-mule-chars-in-string string))
+	 (str (make-string (* 2 len) 0))
+	 (i 0)
+	 (j 0)
+	 ch hi lo)
+    (while (< i len)
+      (setq ch (encode-char (ps-mule-string-char string i) 'ucs)
+	    hi (lsh ch -8)
+	    lo (logand ch 255))
+      (aset str j hi)
+      (aset str (1+ j) lo)
+      (setq i (1+ i)
+	    j (+ j 2)))
+    str))
 
 ;; A charset which we are now processing.
 (defvar ps-mule-current-charset nil)
