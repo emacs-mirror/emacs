@@ -27,16 +27,10 @@
 
 ;;; Usage:
 
-;;  See edt-user.doc
+;;  See edt-user.doc in the Emacs etc directory.
 
 ;; ====================================================================
 
-;;;
-;;;  Revision Information
-;;;
-(defconst edt-lk201-revision "$Revision: 1.2 $"
-    "Revision Number of EDT LK-201 Keyboard Support.")
-
 ;;;;
 ;;;; KEY TRANSLATIONS
 ;;;;
