@@ -5239,7 +5239,7 @@ get_next_display_element (it)
 	      if (it->c == 0xA0 || it->c == 0xAD)
 		{
 		  XSETINT (it->ctl_chars[0], escape_glyph);
-		  g = it->c == 0xAD ? '-' : ' ';
+		  g = it->c;
 		  XSETINT (it->ctl_chars[1], g);
 		  ctl_len = 2;
 		  goto display_control;
