@@ -331,30 +331,10 @@ make_terminal_frame ()
   return f;
 }
 
-DEFUN ("select-frame", Fselect_frame, Sselect_frame, 1, 2, "e",
-  "Select the frame FRAME.\n\
-Subsequent editing commands apply to its selected window.\n\
-The selection of FRAME lasts until the next time the user does\n\
-something to select a different frame, or until the next time this\n\
-function is called.")
-  (frame, no_enter)
-    Lisp_Object frame, no_enter;
-{
-  return Fhandle_switch_frame (frame, no_enter);
-}
-
-
-DEFUN ("handle-switch-frame", Fhandle_switch_frame, Shandle_switch_frame, 1, 2, "e",
-  "Handle a switch-frame event EVENT.\n\
-Switch-frame events are usually bound to this function.\n\
-A switch-frame event tells Emacs that the window manager has requested\n\
-that the user's events be directed to the frame mentioned in the event.\n\
-This function selects the selected window of the frame of EVENT.\n\
-\n\
-If EVENT is frame object, handle it as if it were a switch-frame event\n\
-to that frame.")
-  (frame, no_enter)
+static Lisp_Object
+do_switch_frame (frame, no_enter, track)
      Lisp_Object frame, no_enter;
+     int track;
 {
   /* If FRAME is a switch-frame event, extract the frame we should
      switch to.  */
@@ -373,6 +353,9 @@ to that frame.")
   if (selected_frame == XFRAME (frame))
     return frame;
 
+  /* This is too greedy; it causes inappropriate focus redirection
+     that's hard to get rid of.  */
+#if 0
   /* If a frame's focus has been redirected toward the currently
      selected frame, we should change the redirection to point to the
      newly selected frame.  This means that if the focus is redirected
@@ -380,23 +363,41 @@ to that frame.")
      can use `other-window' to switch between all the frames using
      that minibuffer frame, and the focus redirection will follow us
      around.  */
-  {
-    Lisp_Object tail;
+  if (track)
+    {
+      Lisp_Object tail;
 
-    for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
-      {
-	Lisp_Object focus;
+      for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
+	{
+	  Lisp_Object focus;
 
-	if (XTYPE (XCONS (tail)->car) != Lisp_Frame)
-	  abort ();
+	  if (XTYPE (XCONS (tail)->car) != Lisp_Frame)
+	    abort ();
 
-	focus = FRAME_FOCUS_FRAME (XFRAME (XCONS (tail)->car));
+	  focus = FRAME_FOCUS_FRAME (XFRAME (XCONS (tail)->car));
 
-	if (XTYPE (focus) == Lisp_Frame
-	    && XFRAME (focus) == selected_frame)
-	  Fredirect_frame_focus (XCONS (tail)->car, frame);
-      }
-  }
+	  if (XTYPE (focus) == Lisp_Frame
+	      && XFRAME (focus) == selected_frame)
+	    Fredirect_frame_focus (XCONS (tail)->car, frame);
+	}
+    }
+#else /* ! 0 */
+  /* Instead, apply it only to the frame we're pointing to.  */
+#ifdef HAVE_X_WINDOWS
+  if (track)
+    {
+      Lisp_Object focus, xfocus;
+
+      xfocus = x_get_focus_frame ();
+      if (FRAMEP (xfocus))
+	{
+	  focus = FRAME_FOCUS_FRAME (XFRAME (xfocus));
+	  if (FRAMEP (focus) && XFRAME (focus) == selected_frame)
+	    Fredirect_frame_focus (xfocus, frame);
+	}
+    }
+#endif /* HAVE_X_WINDOWS */
+#endif /* ! 0 */
 
   selected_frame = XFRAME (frame);
   if (! FRAME_MINIBUF_ONLY_P (selected_frame))
@@ -415,6 +416,35 @@ to that frame.")
 
   return frame;
 }
+
+DEFUN ("select-frame", Fselect_frame, Sselect_frame, 1, 2, "e",
+  "Select the frame FRAME.\n\
+Subsequent editing commands apply to its selected window.\n\
+The selection of FRAME lasts until the next time the user does\n\
+something to select a different frame, or until the next time this\n\
+function is called.")
+  (frame, no_enter)
+    Lisp_Object frame, no_enter;
+{
+  return do_switch_frame (frame, no_enter, 1);
+}
+
+
+DEFUN ("handle-switch-frame", Fhandle_switch_frame, Shandle_switch_frame, 1, 2, "e",
+  "Handle a switch-frame event EVENT.\n\
+Switch-frame events are usually bound to this function.\n\
+A switch-frame event tells Emacs that the window manager has requested\n\
+that the user's events be directed to the frame mentioned in the event.\n\
+This function selects the selected window of the frame of EVENT.\n\
+\n\
+If EVENT is frame object, handle it as if it were a switch-frame event\n\
+to that frame.")
+  (frame, no_enter)
+     Lisp_Object frame, no_enter;
+{
+  return do_switch_frame (frame, no_enter, 0);
+}
+
 
 DEFUN ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
   "Return the frame that is now selected.")
