@@ -1762,24 +1762,34 @@ get_local_map (position, buffer)
      register int position;
      register struct buffer *buffer;
 {
-  register INTERVAL interval;
-  Lisp_Object prop, tem;
-
-  if (NULL_INTERVAL_P (BUF_INTERVALS (buffer)))
-    return buffer->keymap;
+  Lisp_Object prop, tem, lispy_position, lispy_buffer;
+  int old_begv, old_zv;
 
   /* Perhaps we should just change `position' to the limit.  */
   if (position > BUF_Z (buffer) || position < BUF_BEG (buffer))
     abort ();
 
-  interval = find_interval (BUF_INTERVALS (buffer), position);
-  prop = textget (interval->plist, Qlocal_map);
-  if (NILP (prop))
-    return buffer->keymap;
+  /* Ignore narrowing, so that a local map continues to be valid even if
+     the visible region contains no characters and hence no properties.  */
+  old_begv = BUF_BEGV (buffer);
+  old_zv = BUF_ZV (buffer);
+  BUF_BEGV (buffer) = BUF_BEG (buffer);
+  BUF_ZV (buffer) = BUF_Z (buffer);
+
+  /* There are no properties at the end of the buffer, so in that case
+     check for a local map on the last character of the buffer instead.  */
+  if (position == BUF_Z (buffer) && BUF_Z (buffer) > BUF_BEG (buffer))
+    --position;
+  XSETFASTINT (lispy_position, position);
+  XSETBUFFER (lispy_buffer, buffer);
+  prop = Fget_char_property (lispy_position, Qlocal_map, lispy_buffer);
+
+  BUF_BEGV (buffer) = old_begv;
+  BUF_ZV (buffer) = old_zv;
 
   /* Use the local map only if it is valid.  */
-  tem = Fkeymapp (prop);
-  if (!NILP (tem))
+  if (!NILP (prop)
+      && (tem = Fkeymapp (prop), !NILP (tem)))
     return prop;
 
   return buffer->keymap;
