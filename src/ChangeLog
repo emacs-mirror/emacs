@@ -15,8 +15,8 @@
 
 2003-03-21  Kim F. Storm  <storm@cua.dk>
 
-	* xdisp.c (get_glyph_string_clip_rect): Use
-	FRAME_INTERNAL_BORDER_WIDTH.
+	* xdisp.c (get_glyph_string_clip_rect):
+	Use FRAME_INTERNAL_BORDER_WIDTH.
 
 	* dispextern.h (struct redisplay_interface): Add active_p
 	argument to draw_window_cursor member.  All uses changed.
@@ -193,7 +193,7 @@
 	(intersection): Remove this function.
 	(find_safe_codings): Don't use Vchar_coding_system_table, but try
 	all codings in SAFE_CODINGS.
-	(Ffind_coding_systems_region_internal): Adjusted for the change of
+	(Ffind_coding_systems_region_internal): Adjust for the change of
 	find_safe_codings.  Get generic coding systems from
 	Vcoding_system_safe_chars.
 	(Fdefine_coding_system_internal): New function.
@@ -231,6 +231,12 @@
 
 	* makefile.w32-in ($(BLD)/xdisp.$(O)): Add dependency on blockinput.h
 	and files included from it.
+
+2003-03-18  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keymap.c (accessible_keymaps_1): Break cycles but without preventing
+	multiple occurrences of the same keymap under different prefixes.
+	(Faccessible_keymaps): Remove code redundant since rev 1.82.
 
 2003-03-16  Jason Rumney  <jasonr@gnu.org>
 
@@ -323,9 +329,15 @@
 
 	* macterm.c: Remove consolidated defines and code.
 	(mac_per_char_metric): New function for RIF.
-	(mac_encode_char): Adapted to new RIF requirements.
+	(mac_encode_char): Adapt to new RIF requirements.
 	(mac_compute_glyph_string_overhangs): Adapt for RIF.
 	(x_redisplay_interface): Add new members.
+
+2003-03-15  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keymap.c (Vmenu_events): New var.
+	(syms_of_keymap): Initialize it.
+	(where_is_internal): Check more carefully what is a menu event.
 
 2003-03-14  Richard M. Stallman  <rms@gnu.org>
 
