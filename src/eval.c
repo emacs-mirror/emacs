@@ -484,8 +484,7 @@ and input is currently coming from the keyboard (not in keyboard macro).")
   /* If this isn't a byte-compiled function, there may be a frame at
      the top for Finteractive_p itself.  If so, skip it.  */
   fun = Findirect_function (*btp->function);
-  if (SUBRP (fun)
-      && (struct Lisp_Subr *) XPNTR (fun) == &Sinteractive_p)
+  if (SUBRP (fun) && XSUBR (fun) == &Sinteractive_p)
     btp = btp->next;
 
   /* If we're running an Emacs 18-style byte-compiled function, there
