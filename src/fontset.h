@@ -71,7 +71,7 @@ struct font_info
      whose default value is defined in lisp/fontset.el.  Since there's
      no charset whose id is 1, we use encoding[1] to store the
      encoding information decided by the font itself.  */
-  int encoding[MAX_CHARSET + 1];
+  unsigned char encoding[MAX_CHARSET + 1];
 
   /* The baseline position of a font is normally `ascent' value of the
      font.  However, there exists many fonts which don't set `ascent'
