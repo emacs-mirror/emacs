@@ -1,3 +1,15 @@
+2002-08-19  Miles Bader  <miles@gnu.org>
+
+	[original idea from Luc Teirlinck <teirllm@mail.auburn.edu>]
+	* comint.el (comint-inhibit-carriage-motion): New variable.
+	(comint-carriage-motion): Argument STRING removed.  New arguments
+	START and END; interpret characters between START and END rather
+	than using special comint state.
+	(comint-output-filter): Call `comint-carriage-motion'.
+	(comint-output-filter-functions): Don't add `comint-carriage-motion'.
+	* ielm.el (inferior-emacs-lisp-mode): Give
+	`comint-inhibit-carriage-motion' a local value of t.
+
 2002-08-18  Richard M. Stallman  <rms@gnu.org>
 
 	* table.el: New file.
