@@ -23,8 +23,6 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #include <stdio.h>
 #include "lisp.h"
-
-#ifndef standalone
 #include "buffer.h"
 #include "charset.h"
 #include "frame.h"
@@ -33,7 +31,6 @@ Boston, MA 02111-1307, USA.  */
 #include "dispextern.h"
 #include "termchar.h"
 #include "keyboard.h"
-#endif /* not standalone */
 
 #ifdef USE_TEXT_PROPERTIES
 #include "intervals.h"
@@ -171,58 +168,7 @@ static int max_print;
 #endif /* MAX_PRINT_CHARS */
 
 void print_interval ();
-
-#if 0
-/* Convert between chars and GLYPHs */
 
-int
-glyphlen (glyphs)
-     register GLYPH *glyphs;
-{
-  register int i = 0;
-
-  while (glyphs[i])
-    i++;
-  return i;
-}
-
-void
-str_to_glyph_cpy (str, glyphs)
-     char *str;
-     GLYPH *glyphs;
-{
-  register GLYPH *gp = glyphs;
-  register char *cp = str;
-
-  while (*cp)
-    *gp++ = *cp++;
-}
-
-void
-str_to_glyph_ncpy (str, glyphs, n)
-     char *str;
-     GLYPH *glyphs;
-     register int n;
-{
-  register GLYPH *gp = glyphs;
-  register char *cp = str;
-
-  while (n-- > 0)
-    *gp++ = *cp++;
-}
-
-void
-glyph_to_str_cpy (glyphs, str)
-     GLYPH *glyphs;
-     char *str;
-{
-  register GLYPH *gp = glyphs;
-  register char *cp = str;
-
-  while (*gp)
-    *str++ = *gp++ & 0377;
-}
-#endif
 
 /* Low level output routines for characters and strings */
 
@@ -231,66 +177,68 @@ glyph_to_str_cpy (glyphs, str)
    and must start with PRINTPREPARE, end with PRINTFINISH,
    and use PRINTDECLARE to declare common variables.
    Use PRINTCHAR to output one character,
-   or call strout to output a block of characters.
-*/ 
+   or call strout to output a block of characters. */ 
 
-#define PRINTDECLARE						\
-   struct buffer *old = current_buffer;				\
-   int old_point = -1, start_point;				\
-   int old_point_byte, start_point_byte;			\
-   int specpdl_count = specpdl_ptr - specpdl;			\
-   int free_print_buffer = 0;					\
+#define PRINTDECLARE							\
+   struct buffer *old = current_buffer;					\
+   int old_point = -1, start_point;					\
+   int old_point_byte, start_point_byte;				\
+   int specpdl_count = specpdl_ptr - specpdl;				\
+   int free_print_buffer = 0;						\
+   int multibyte = !NILP (current_buffer->enable_multibyte_characters);	\
    Lisp_Object original
 
-#define PRINTPREPARE						\
-   original = printcharfun;					\
-   if (NILP (printcharfun)) printcharfun = Qt;			\
-   if (BUFFERP (printcharfun))					\
-     {								\
-       if (XBUFFER (printcharfun) != current_buffer)		\
-	 Fset_buffer (printcharfun);				\
-       printcharfun = Qnil;					\
-     }								\
-   if (MARKERP (printcharfun))					\
-     {								\
-       if (!(XMARKER (original)->buffer))			\
-         error ("Marker does not point anywhere");		\
-       if (XMARKER (original)->buffer != current_buffer)	\
-         set_buffer_internal (XMARKER (original)->buffer);	\
-       old_point = PT;						\
-       old_point_byte = PT_BYTE;				\
-       SET_PT_BOTH (marker_position (printcharfun),		\
-		    marker_byte_position (printcharfun));	\
-       start_point = PT;					\
-       start_point_byte = PT_BYTE;				\
-       printcharfun = Qnil;					\
-     }								\
-   if (NILP (printcharfun))					\
-     {								\
-       Lisp_Object string;					\
-       if (NILP (current_buffer->enable_multibyte_characters)	\
-	   && ! print_escape_multibyte)				\
-         specbind (Qprint_escape_multibyte, Qt);		\
-       if (! NILP (current_buffer->enable_multibyte_characters)	\
-	   && ! print_escape_nonascii)				\
-         specbind (Qprint_escape_nonascii, Qt);			\
-       if (print_buffer != 0)					\
-	 {							\
-	   string = make_string_from_bytes (print_buffer,	\
-					    print_buffer_pos,	\
-					    print_buffer_pos_byte); \
-	   record_unwind_protect (print_unwind, string);	\
-	 }							\
-       else							\
-	 {							\
-           print_buffer_size = 1000;				\
-           print_buffer = (char *) xmalloc (print_buffer_size);	\
-	   free_print_buffer = 1;				\
-	 }							\
-       print_buffer_pos = 0;					\
-       print_buffer_pos_byte = 0;				\
-     }								\
-   if (!CONSP (Vprint_gensym))					\
+#define PRINTPREPARE							\
+   original = printcharfun;						\
+   if (NILP (printcharfun)) printcharfun = Qt;				\
+   if (BUFFERP (printcharfun))						\
+     {									\
+       if (XBUFFER (printcharfun) != current_buffer)			\
+	 Fset_buffer (printcharfun);					\
+       printcharfun = Qnil;						\
+     }									\
+   if (MARKERP (printcharfun))						\
+     {									\
+       if (!(XMARKER (original)->buffer))				\
+         error ("Marker does not point anywhere");			\
+       if (XMARKER (original)->buffer != current_buffer)		\
+         set_buffer_internal (XMARKER (original)->buffer);		\
+       old_point = PT;							\
+       old_point_byte = PT_BYTE;					\
+       SET_PT_BOTH (marker_position (printcharfun),			\
+		    marker_byte_position (printcharfun));		\
+       start_point = PT;						\
+       start_point_byte = PT_BYTE;					\
+       printcharfun = Qnil;						\
+     }									\
+   if (NILP (printcharfun))						\
+     {									\
+       Lisp_Object string;						\
+       if (NILP (current_buffer->enable_multibyte_characters)		\
+	   && ! print_escape_multibyte)					\
+         specbind (Qprint_escape_multibyte, Qt);			\
+       if (! NILP (current_buffer->enable_multibyte_characters)		\
+	   && ! print_escape_nonascii)					\
+         specbind (Qprint_escape_nonascii, Qt);				\
+       if (print_buffer != 0)						\
+	 {								\
+	   string = make_string_from_bytes (print_buffer,		\
+					    print_buffer_pos,		\
+					    print_buffer_pos_byte);	\
+	   record_unwind_protect (print_unwind, string);		\
+	 }								\
+       else								\
+	 {								\
+           print_buffer_size = 1000;					\
+           print_buffer = (char *) xmalloc (print_buffer_size);		\
+	   free_print_buffer = 1;					\
+	 }								\
+       print_buffer_pos = 0;						\
+       print_buffer_pos_byte = 0;					\
+     }									\
+   if (EQ (printcharfun, Qt))						\
+     setup_echo_area_for_printing (multibyte);				\
+   if (!CONSP (Vprint_gensym))						\
      Vprint_gensym_alist = Qnil
 
 #define PRINTFINISH							\
@@ -339,6 +287,7 @@ glyph_to_str_cpy (glyphs, str)
 
 /* This is used to restore the saved contents of print_buffer
    when there is a recursive call to print.  */
+
 static Lisp_Object
 print_unwind (saved_text)
      Lisp_Object saved_text;
@@ -346,133 +295,67 @@ print_unwind (saved_text)
   bcopy (XSTRING (saved_text)->data, print_buffer, XSTRING (saved_text)->size);
 }
 
-/* Index of first unused element of FRAME_MESSAGE_BUF (mini_frame). */
-static int printbufidx;
+
+/* Print character CH using method FUN.  FUN nil means print to
+   print_buffer.  FUN t means print to echo area or stdout if
+   non-interactive.  If FUN is neither nil nor t, call FUN with CH as
+   argument.  */
 
 static void
 printchar (ch, fun)
      unsigned int ch;
      Lisp_Object fun;
 {
-  Lisp_Object ch1;
-
 #ifdef MAX_PRINT_CHARS
   if (max_print)
     print_chars++;
 #endif /* MAX_PRINT_CHARS */
-#ifndef standalone
-  if (EQ (fun, Qnil))
-    {
-      int len;
-      unsigned char work[4], *str;
 
-      QUIT;
-      len = CHAR_STRING (ch, work, str);
-      if (print_buffer_pos_byte + len >= print_buffer_size)
-	print_buffer = (char *) xrealloc (print_buffer,
-					  print_buffer_size *= 2);
-      bcopy (str, print_buffer + print_buffer_pos_byte, len);
-      print_buffer_pos += 1;
-      print_buffer_pos_byte += len;
-      return;
-    }
-
-  if (EQ (fun, Qt))
+  if (!NILP (fun) && !EQ (fun, Qt))
+    call1 (fun, make_number (ch));
+  else
     {
-      FRAME_PTR mini_frame
-	= XFRAME (WINDOW_FRAME (XWINDOW (minibuf_window)));
       unsigned char work[4], *str;
       int len = CHAR_STRING (ch, work, str);
-
+    
       QUIT;
-
-      if (noninteractive)
+      
+      if (NILP (fun))
 	{
-	  while (len--)
-	    putchar (*str), str++;
+	  if (print_buffer_pos_byte + len >= print_buffer_size)
+	    print_buffer = (char *) xrealloc (print_buffer,
+					      print_buffer_size *= 2);
+	  bcopy (str, print_buffer + print_buffer_pos_byte, len);
+	  print_buffer_pos += 1;
+	  print_buffer_pos_byte += len;
+	}
+      else if (noninteractive)
+	{
+	  fwrite (str, 1, len, stdout);
 	  noninteractive_need_newline = 1;
-	  return;
 	}
-
-      if (echo_area_glyphs != FRAME_MESSAGE_BUF (mini_frame)
-	  || !message_buf_print)
+      else
 	{
-	  message_log_maybe_newline ();
-	  echo_area_glyphs = FRAME_MESSAGE_BUF (mini_frame);
-	  echo_area_message = Qnil;
-	  printbufidx = 0;
-	  echo_area_glyphs_length = 0;
-	  message_buf_print = 1;
+	  int multibyte_p
+	    = !NILP (current_buffer->enable_multibyte_characters);
+	  
+	  if (!message_buf_print)
+	    setup_echo_area_for_printing (multibyte_p);
 
-	  if (minibuffer_auto_raise)
-	    {
-	      Lisp_Object mini_window;
-
-	      /* Get the frame containing the minibuffer
-		 that the selected frame is using.  */
-	      mini_window = FRAME_MINIBUF_WINDOW (selected_frame);
-
-	      Fraise_frame  (WINDOW_FRAME (XWINDOW (mini_window)));
-	    }
+	  insert_char (ch);
+	  message_dolog (str, len, 0, multibyte_p);
 	}
-
-      if (len == 1
-	  && ! NILP (current_buffer->enable_multibyte_characters)
-	  && ! CHAR_HEAD_P (*str))
-	{
-	  /* Convert the unibyte character to multibyte.  */
-	  unsigned char c = *str;
-
-	  len = count_size_as_multibyte (&c, 1);
-	  copy_text (&c, work, 1, 0, 1);
-	  str = work;
-	}
-
-      message_dolog (str, len, 0, len > 1);
-
-      if (! NILP (current_buffer->enable_multibyte_characters)
-	  && ! message_enable_multibyte)
-	{
-	  /* Record that the message buffer is multibyte.  */
-	  message_enable_multibyte = 1;
-
-	  /* If we have already had some message text in the messsage
-             buffer, we convert it to multibyte.  */
-	  if (printbufidx > 0)
-	    {
-	      int size
-		= count_size_as_multibyte (FRAME_MESSAGE_BUF (mini_frame),
-					   printbufidx);
-	      unsigned char *tembuf = (unsigned char *) alloca (size + 1);
-	      copy_text (FRAME_MESSAGE_BUF (mini_frame), tembuf, printbufidx,
-			 0, 1);
-	      printbufidx = size;
-	      if (printbufidx > FRAME_MESSAGE_BUF_SIZE (mini_frame))
-		{
-		  printbufidx = FRAME_MESSAGE_BUF_SIZE (mini_frame);
-		  /* Rewind incomplete multi-byte form.  */
-		  while (printbufidx > 0 && tembuf[printbufidx] >= 0xA0)
-		    printbufidx--;
-		}
-	      bcopy (tembuf, FRAME_MESSAGE_BUF (mini_frame), printbufidx);
-	    }
-	}
-
-      if (printbufidx < FRAME_MESSAGE_BUF_SIZE (mini_frame) - len)
-	{
-	  bcopy (str, &FRAME_MESSAGE_BUF (mini_frame)[printbufidx], len);
-	  printbufidx += len;
-	}
-      FRAME_MESSAGE_BUF (mini_frame)[printbufidx] = 0;
-      echo_area_glyphs_length = printbufidx;
-
-      return;
     }
-#endif /* not standalone */
-
-  XSETFASTINT (ch1, ch);
-  call1 (fun, ch1);
 }
+
+
+/* Output SIZE characters, SIZE_BYTE bytes from string PTR using
+   method PRINTCHARFUN.  If SIZE < 0, use the string length of PTR for
+   both SIZE and SIZE_BYTE.  PRINTCHARFUN nil means output to
+   print_buffer.  PRINTCHARFUN t means output to the echo area or to
+   stdout if non-interactive.  If neither nil nor t, call Lisp
+   function PRINTCHARFUN for each character printed.  MULTIBYTE
+   non-zero means PTR contains multibyte characters.  */
 
 static void
 strout (ptr, size, size_byte, printcharfun, multibyte)
@@ -481,12 +364,10 @@ strout (ptr, size, size_byte, printcharfun, multibyte)
      Lisp_Object printcharfun;
      int multibyte;
 {
-  int i = 0;
-
   if (size < 0)
     size_byte = size = strlen (ptr);
 
-  if (EQ (printcharfun, Qnil))
+  if (NILP (printcharfun))
     {
       if (print_buffer_pos_byte + size_byte > print_buffer_size)
 	{
@@ -502,113 +383,73 @@ strout (ptr, size, size_byte, printcharfun, multibyte)
       if (max_print)
         print_chars += size;
 #endif /* MAX_PRINT_CHARS */
-      return;
     }
-  if (EQ (printcharfun, Qt))
+  else if (noninteractive)
     {
-      FRAME_PTR mini_frame
-	= XFRAME (WINDOW_FRAME (XWINDOW (minibuf_window)));
-
-      QUIT;
-
+      fwrite (ptr, 1, size_byte, stdout);
+      noninteractive_need_newline = 1;
+    }
+  else if (EQ (printcharfun, Qt))
+    {
+      /* Output to echo area.  We're trying to avoid a little overhead
+	 here, that's the reason we don't call printchar to do the
+	 job.  */
+      int i;
+      int multibyte_p
+	= !NILP (current_buffer->enable_multibyte_characters);
+      
+      if (!message_buf_print)
+	setup_echo_area_for_printing (multibyte_p);
+      
+      message_dolog (ptr, size_byte, 0, multibyte_p);
+      
+      if (size == size_byte)
+	{
+	  for (i = 0; i < size; ++i)
+	    insert_char (*ptr++);
+	}
+      else
+	{
+	  int len;
+	  for (i = 0; i < size_byte; i += len)
+	    {
+	      int ch = STRING_CHAR_AND_LENGTH (ptr + i, size_byte - i, len);
+	      insert_char (ch);
+	    }
+	}
+      
 #ifdef MAX_PRINT_CHARS
       if (max_print)
         print_chars += size;
 #endif /* MAX_PRINT_CHARS */
-
-      if (noninteractive)
-	{
-	  fwrite (ptr, 1, size_byte, stdout);
-	  noninteractive_need_newline = 1;
-	  return;
-	}
-
-      if (echo_area_glyphs != FRAME_MESSAGE_BUF (mini_frame)
-	  || !message_buf_print)
-	{
-	  message_log_maybe_newline ();
-	  echo_area_glyphs = FRAME_MESSAGE_BUF (mini_frame);
-	  echo_area_message = Qnil;
-	  printbufidx = 0;
-	  echo_area_glyphs_length = 0;
-	  message_buf_print = 1;
-
-	  if (minibuffer_auto_raise)
-	    {
-	      Lisp_Object mini_window;
-
-	      /* Get the frame containing the minibuffer
-		 that the selected frame is using.  */
-	      mini_window = FRAME_MINIBUF_WINDOW (selected_frame);
-
-	      Fraise_frame  (WINDOW_FRAME (XWINDOW (mini_window)));
-	    }
-	}
-
-      message_dolog (ptr, size_byte, 0, multibyte);
-
-      /* Convert message to multibyte if we are now adding multibyte text.  */
-      if (multibyte
-	  && ! message_enable_multibyte
-	  && printbufidx > 0)
-	{
-	  int size = count_size_as_multibyte (FRAME_MESSAGE_BUF (mini_frame),
-					      printbufidx);
-	  unsigned char *tembuf = (unsigned char *) alloca (size + 1);
-	  copy_text (FRAME_MESSAGE_BUF (mini_frame), tembuf, printbufidx,
-		     0, 1);
-	  printbufidx = size;
-	  if (printbufidx > FRAME_MESSAGE_BUF_SIZE (mini_frame))
-	    {
-	      printbufidx = FRAME_MESSAGE_BUF_SIZE (mini_frame);
-	      /* Rewind incomplete multi-byte form.  */
-	      while (printbufidx > 0 && tembuf[printbufidx] >= 0xA0)
-		printbufidx--;
-	    }
-
-	  bcopy (tembuf, FRAME_MESSAGE_BUF (mini_frame), printbufidx);
-	}
-
-      if (multibyte)
-	message_enable_multibyte = 1;
-
-      /* Compute how much of the new text will fit there.  */
-      if (size_byte > FRAME_MESSAGE_BUF_SIZE (mini_frame) - printbufidx - 1)
-	{
-	  size_byte = FRAME_MESSAGE_BUF_SIZE (mini_frame) - printbufidx - 1;
-	  /* Rewind incomplete multi-byte form.  */
-	  while (size_byte && (unsigned char) ptr[size_byte] >= 0xA0)
-	    size_byte--;
-	}
-
-      /* Put that part of the new text in.  */
-      bcopy (ptr, &FRAME_MESSAGE_BUF (mini_frame) [printbufidx], size_byte);
-      printbufidx += size_byte;
-      FRAME_MESSAGE_BUF (mini_frame) [printbufidx] = 0;
-      echo_area_glyphs_length = printbufidx;
-
-      return;
     }
-
-  i = 0;
-  if (size == size_byte)
-    while (i < size_byte)
-      {
-	int ch = ptr[i++];
-
-	PRINTCHAR (ch);
-      }
   else
-    while (i < size_byte)
-      {
-	/* Here, we must convert each multi-byte form to the
-	   corresponding character code before handing it to PRINTCHAR.  */
-	int len;
-	int ch = STRING_CHAR_AND_LENGTH (ptr + i, size_byte - i, len);
+    {
+      /* PRINTCHARFUN is a Lisp function.  */
+      int i = 0;
 
-	PRINTCHAR (ch);
-	i += len;
-      }
+      if (size == size_byte)
+	{
+	  while (i < size_byte)
+	    {
+	      int ch = ptr[i++];
+	      PRINTCHAR (ch);
+	    }
+	}
+      else
+	{
+	  while (i < size_byte)
+	    {
+	      /* Here, we must convert each multi-byte form to the
+		 corresponding character code before handing it to
+		 PRINTCHAR.  */
+	      int len;
+	      int ch = STRING_CHAR_AND_LENGTH (ptr + i, size_byte - i, len);
+	      PRINTCHAR (ch);
+	      i += len;
+	    }
+	}
+    }
 }
 
 /* Print the contents of a string STRING using PRINTCHARFUN.
@@ -725,8 +566,6 @@ write_string_1 (data, size, printcharfun)
 }
 
 
-#ifndef standalone
-
 void
 temp_output_buffer_setup (bufname)
     char *bufname;
@@ -822,7 +661,7 @@ buffer and calling the hook.  It gets one argument, the buffer to display.")
 
   return unbind_to (count, val);
 }
-#endif /* not standalone */
+
 
 static void print ();
 
@@ -1605,7 +1444,6 @@ print (obj, printcharfun, escapeflag)
 	  strout (XSUBR (obj)->symbol_name, -1, -1, printcharfun, 0);
 	  PRINTCHAR ('>');
 	}
-#ifndef standalone
       else if (WINDOWP (obj))
 	{
 	  strout ("#<window ", -1, -1, printcharfun, 0);
@@ -1665,7 +1503,6 @@ print (obj, printcharfun, escapeflag)
 	  strout (buf, -1, -1, printcharfun, 0);
 	  PRINTCHAR ('>');
 	}
-#endif /* not standalone */
       else
 	{
 	  int size = XVECTOR (obj)->size;
@@ -1709,7 +1546,6 @@ print (obj, printcharfun, escapeflag)
 	}
       break;
 
-#ifndef standalone
     case Lisp_Misc:
       switch (XMISCTYPE (obj))
 	{
@@ -1821,7 +1657,6 @@ print (obj, printcharfun, escapeflag)
 	  goto badtype;
 	}
       break;
-#endif /* standalone */
 
     default:
     badtype:
@@ -1979,7 +1814,5 @@ with #N= for the specified value of N.");
   Qprint_escape_nonascii = intern ("print-escape-nonascii");
   staticpro (&Qprint_escape_nonascii);
 
-#ifndef standalone
   defsubr (&Swith_output_to_temp_buffer);
-#endif /* not standalone */
 }
