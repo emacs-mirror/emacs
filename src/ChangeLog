@@ -1,5 +1,7 @@
 2000-12-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (Fx_hide_tip): Fix last change.
+	
 	* xfns.c (Fx_hide_tip): Avoid unnecessary work when there's
 	nothing to do.  Bind inhibit-quit.
 	(tip_frame): Make it a Lisp_Object.
