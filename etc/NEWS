@@ -2269,6 +2269,9 @@ appropriate for reading truly binary files.
 ** Code that uses `concat' with integer args now gets an error, as
 long promised.
 
+** The function base64-decode-string now always returns a unibyte
+string.
+
 ** Not a Lisp incompatibility as such but, with the introduction of
 extra private charsets, there is now only one slot free for a new
 dimension-2 private charset.  User code which tries to add more than
@@ -2694,7 +2697,10 @@ is currently displayed in some window.
 argument function's results.
 
 ** The functions base64-decode-region and base64-decode-string now
-signal an error instead of returning nil if decoding fails.
+signal an error instead of returning nil if decoding fails.  Also,
+base64-decode-string now always returns a unibyte string (in Emacs 20,
+it returned a multibyte string when the result was a valid multibyte
+sequence).
 
 ** The function sendmail-user-agent-compose now recognizes a `body'
 header in the list of headers passed to it.
