@@ -1354,7 +1354,7 @@ extern Lisp_Object Fforward_word ();
 extern Lisp_Object Qstring_lessp;
 extern Lisp_Object Vfeatures;
 extern Lisp_Object Fidentity (), Frandom ();
-extern Lisp_Object Flength ();
+extern Lisp_Object Flength (), Fsafe_length ();
 extern Lisp_Object Fappend (), Fconcat (), Fvconcat (), Fcopy_sequence ();
 extern Lisp_Object Fsubstring ();
 extern Lisp_Object Fnth (), Fnthcdr (), Fmemq (), Fassq (), Fassoc ();
