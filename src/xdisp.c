@@ -8958,12 +8958,12 @@ try_cursor_movement (window, startp, scroll_step)
       if (rc == 0)
 	{
 	  int scroll_p = 0;
+	  int last_y = window_text_bottom_y (w) - this_scroll_margin;
+	  
 	  
 	  if (PT > XFASTINT (w->last_point))
 	    {
 	      /* Point has moved forward.  */
-	      int last_y = window_text_bottom_y (w) - this_scroll_margin;
-	  
 	      while (MATRIX_ROW_END_CHARPOS (row) < PT
 		     && MATRIX_ROW_BOTTOM_Y (row) < last_y)
 		{
@@ -9024,9 +9024,9 @@ try_cursor_movement (window, startp, scroll_step)
 
 	      /* Due to newlines in overlay strings, we may have to
 		 skip forward over overlay strings.  */
-	      while (MATRIX_ROW_END_CHARPOS (row) == PT
-		     && MATRIX_ROW_ENDS_IN_OVERLAY_STRING_P (row)
-		     && !row->ends_at_zv_p)
+	      while (MATRIX_ROW_BOTTOM_Y (row) < last_y
+		     && MATRIX_ROW_END_CHARPOS (row) == PT
+		     && !cursor_row_p (w, row))
 		++row;
 	  
 	      /* If within the scroll margin, scroll.  */
