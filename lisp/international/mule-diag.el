@@ -189,7 +189,7 @@ but contains full information about each character sets."
 		((eq type 5)
 		 (princ " (text with random binary characters)"))
 		(t (princ ": invalid coding-system."))))
-	(princ "\nEOL type:\n  ")
+	(princ "\nEOL type: ")
 	(let ((eol-type (coding-system-eol-type coding-system)))
 	  (cond ((vectorp eol-type)
 		 (princ "Automatic selection from:\n\t")
@@ -213,6 +213,14 @@ but contains full information about each character sets."
 	  (princ "\n  ")
 	  (princ prewrite)
 	  (princ "\n")))
+      (let ((charsets (coding-system-get coding-system 'safe-charsets)))
+	(when charsets
+	  (princ "This coding system is mainly for the following charsets:\n")
+	  (princ " ")
+	  (while charsets
+	    (princ " ")
+	    (princ (car charsets))
+	    (setq charsets (cdr charsets)))))
       (save-excursion
 	(set-buffer standard-output)
 	(help-mode)))))
@@ -659,24 +667,39 @@ See the function `describe-fontset' for the format of the list."
   "Print information of all input methods."
   (interactive)
   (with-output-to-temp-buffer "*Help*"
-    (princ "LANGUAGE\n  NAME (`TITLE' in mode line)\n")
-    (princ "    SHORT-DESCRIPTION\n------------------------------\n")
-    (setq input-method-alist
-	  (sort input-method-alist
-		(function (lambda (x y) (string< (nth 1 x) (nth 1 y))))))
-    (let ((l input-method-alist)
-	  language elt)
-      (while l
-	(setq elt (car l) l (cdr l))
-	(when (not (equal language (nth 1 elt)))
-	  (setq language (nth 1 elt))
-	  (princ language)
-	  (terpri))
-	(princ (format "  %s (`%s' in mode line)\n    %s\n"
-		       (car elt) (nth 3 elt)
-		       (let ((title (nth 4 elt)))
-			 (string-match ".*" title)
-			 (match-string 0 title))))))))
+    (if (not input-method-alist)
+	(progn
+	  (princ "
+No input method is avairable, perhaps because you have not yet
+installed LEIM (Libraries of Emacs Input Method).
+
+LEIM is avairable from the same ftp directory as Emacs.  For instance,
+if there exists an archive file emacs-20.2.tar.gz, there should also
+be a file leim-20.2.tar.gz.  When you extract this file, LEIM files
+are put under the subdirectory emacs-20.2/leim.  When you install
+Emacs again, you should be able to use various input methods."))
+      (princ "LANGUAGE\n  NAME (`TITLE' in mode line)\n")
+      (princ "    SHORT-DESCRIPTION\n------------------------------\n")
+      (setq input-method-alist
+	    (sort input-method-alist
+		  (function (lambda (x y) (string< (nth 1 x) (nth 1 y))))))
+      (let ((l input-method-alist)
+	    language elt)
+	(while l
+	  (setq elt (car l) l (cdr l))
+	  (when (not (equal language (nth 1 elt)))
+	    (setq language (nth 1 elt))
+	    (princ language)
+	    (terpri))
+	  (princ (format "  %s (`%s' in mode line)\n    %s\n"
+			 (car elt)
+			 (let ((title (nth 3 elt)))
+			   (if (and (consp title) (stringp (car title)))
+			       (car title)
+			     title))
+			 (let ((description (nth 4 elt)))
+			   (string-match ".*" description)
+			   (match-string 0 description)))))))))
 
 ;;; DIAGNOSIS
 
