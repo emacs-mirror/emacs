@@ -1,3 +1,11 @@
+2004-06-19  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/compile.el (compilation-error-properties): Store one
+	more than end-col, if present, so that transient-mark-mode will
+	highlight last char too.
+	* progmodes/grep.el (grep-regexp-alist): Match columns and column
+	ranges, if present.
+
 2004-06-18  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in: Double percent signs in for loops.
