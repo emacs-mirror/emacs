@@ -1,3 +1,7 @@
+2001-01-10  Dave Love  <fx@gnu.org>
+
+	* sysdep.c (random): Revert the declaration.
+
 2001-01-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* lisp.h (STRING_BYTES) [GC_CHECK_STRING_BYTES]: Call
@@ -44,7 +48,7 @@
 
 	* xterm.c (XTread_socket) <LeaveNotify>: Set help_echo to nil.
 
-2001-01-07  Dave Love  <d.love@dl.ac.uk>
+2001-01-07  Dave Love  <fx@gnu.org>
 
 	* keyboard.c (Fread_key_sequence_vector):  Avoid newline in
 	arglist, for documentation's sake.
