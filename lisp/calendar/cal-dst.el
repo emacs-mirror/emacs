@@ -58,13 +58,13 @@ absolute date ABS-DATE is the equivalent moment to X."
   (let* ((h (car x))
 	 (xtail (cdr x))
          (l (+ utc-diff (if (numberp xtail) xtail (car xtail))))
-         (u (+ (* 512 (% h 675)) (floor (/ l 128)))))
+         (u (+ (* 512 (mod h 675)) (floor l 128))))
     ;; Overflow is a terrible thing!
     (cons (+ calendar-system-time-basis
 	     ;; floor((2^16 h +l) / (60*60*24))
-	     (* 512 (% h 675)) (floor (/ u 675)))
+	     (* 512 (mod h 675)) (floor u 675))
 	  ;; (2^16 h +l) % (60*60*24)
-	  (+ (* (% u 675) 128) (floor (% l 128))))))
+	  (+ (* (mod u 675) 128) (floor l 128)))))
 
 (defun calendar-time-from-absolute (abs-date s)
   "Time of absolute date ABS-DATE, S seconds after midnight.
@@ -74,13 +74,13 @@ Returns the pair (HIGH . LOW) where HIGH and LOW are the high and low
 ignoring leap seconds, that is the equivalent moment to S seconds after
 midnight UTC on absolute date ABS-DATE."
   (let* ((a (- abs-date calendar-system-time-basis))
-         (u (+ (* 163 (% a 512)) (floor (/ s 128)))))
+         (u (+ (* 163 (mod a 512)) (floor s 128))))
     ;; Overflow is a terrible thing!
     (cons
      ;; (60*60*24*a + s) / 2^16
-     (+ a (* 163 (floor (/ a 512))) (floor (/ u 512)))
+     (+ a (* 163 (floor a 512)) (floor u 512))
      ;; (60*60*24*a + s) % 2^16
-     (+ (* 128 (% u 512)) (% s 128)))))
+     (+ (* 128 (mod u 512)) (mod s 128)))))
 
 (defun calendar-next-time-zone-transition (time)
   "Return the time of the next time zone transition after TIME.
