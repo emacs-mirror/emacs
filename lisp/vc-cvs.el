@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.47 2002/10/10 08:44:58 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.48 2002/10/11 06:47:49 miles Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -120,7 +120,7 @@ dates and the word \"Sticky\" for sticky tag names and revisions.
           ((eq type 'symbolic-name) \"Sticky\")))
 
 Here's an example that will abbreviate to the first character only,
-any text before the first occurence of `-' for sticky symbolic tags.
+any text before the first occurrence of `-' for sticky symbolic tags.
 If the sticky tag is a revision number, the word \"Sticky\" is
 displayed.  Date and time is displayed for sticky dates.
 
