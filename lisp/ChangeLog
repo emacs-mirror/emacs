@@ -1,3 +1,8 @@
+2003-07-06  Kim F. Storm  <storm@cua.dk>
+
+	* info.el (Info-menu-entry-name-re): Add `:' to second [] part.
+	This should fix the infinite loop when extracting menu names.
+
 2003-07-05  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* files.el (auto-mode-alist, interpreter-mode-alist): Removed
