@@ -1236,7 +1236,11 @@ Leaves point at end of replacement text.")
 	case_action = nochange;
     }
 
-  SET_PT (search_regs.end[0]);
+  /* We insert the replacement text before the old text, and then
+     delete the original text.  This means that markers at the
+     beginning or end of the original will float to the corresponding
+     position in the replacement.  */
+  SET_PT (search_regs.start[0]);
   if (!NILP (literal))
     Finsert (1, &string);
   else
@@ -1246,20 +1250,24 @@ Leaves point at end of replacement text.")
 
       for (pos = 0; pos < XSTRING (string)->size; pos++)
 	{
+	  int offset = point - search_regs.start[0];
+
 	  c = XSTRING (string)->data[pos];
 	  if (c == '\\')
 	    {
 	      c = XSTRING (string)->data[++pos];
 	      if (c == '&')
-		Finsert_buffer_substring (Fcurrent_buffer (),
-					  make_number (search_regs.start[0]),
-					  make_number (search_regs.end[0]));
+		Finsert_buffer_substring
+		  (Fcurrent_buffer (),
+		   make_number (search_regs.start[0] + offset),
+		   make_number (search_regs.end[0] + offset));
 	      else if (c >= '1' && c <= search_regs.num_regs + '0')
 		{
 		  if (search_regs.start[c - '0'] >= 1)
-		    Finsert_buffer_substring (Fcurrent_buffer (),
-					      make_number (search_regs.start[c - '0']),
-					      make_number (search_regs.end[c - '0']));
+		    Finsert_buffer_substring
+		      (Fcurrent_buffer (),
+		       make_number (search_regs.start[c - '0'] + offset),
+		       make_number (search_regs.end[c - '0'] + offset));
 		}
 	      else
 		insert_char (c);
@@ -1270,8 +1278,8 @@ Leaves point at end of replacement text.")
       UNGCPRO;
     }
 
-  inslen = point - (search_regs.end[0]);
-  del_range (search_regs.start[0], search_regs.end[0]);
+  inslen = point - (search_regs.start[0]);
+  del_range (search_regs.start[0] + inslen, search_regs.end[0] + inslen);
 
   if (case_action == all_caps)
     Fupcase_region (make_number (point - inslen), make_number (point));
