@@ -1,3 +1,8 @@
+2000-11-27  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/characters.el: Specify cases and syntaxes for
+	mule-unicode-0100-24ff.
+
 2000-11-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* toolbar/tool-bar.el (tool-bar-add-item-from-menu): Handle case
