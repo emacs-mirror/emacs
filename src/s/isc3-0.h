@@ -31,6 +31,9 @@
 #undef BROKEN_TIOCGWINSZ
 #define NEED_SIOCTL
 
+/* select works okay on the X ptys, but not on the serial port.  */
+#define BROKEN_SELECT_NON_X
+
 /* We need either _XOPEN_SOURCE or _POSIX_SOURCE to import the posix
    signal symbols; might as well use _XOPEN_SOURCE.  Defining _SYSV3
    ensures that we don't lose the traditional symbols as a side effect
