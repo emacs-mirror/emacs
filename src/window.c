@@ -446,7 +446,7 @@ coordinates_in_window (w, x, y)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   int left_x, right_x, top_y, bottom_y;
-  int flags_area_width = FRAME_FLAGS_AREA_WIDTH (f);
+  int flags_area_width = FRAME_LEFT_FLAGS_AREA_WIDTH (f);
 
   if (w->pseudo_window_p)
     {
@@ -3387,7 +3387,7 @@ window_internal_width (w)
   /* On window-systems, areas to the left and right of the window
      are used to display bitmaps there.  */
   if (FRAME_WINDOW_P (f))
-    width -= 2 * FRAME_FLAGS_AREA_COLS (f);
+    width -= FRAME_FLAGS_AREA_COLS (f);
 
   return width;
 }
