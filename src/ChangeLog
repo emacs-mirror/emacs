@@ -1,5 +1,8 @@
 2001-03-02  Gerd Moellmann  <gerd@gnu.org>
 
+	* fileio.c (Fexpand_file_name): Collapse sequences of slashes
+	to a single slash in the middle of file names.
+
 	* editfns.c (Fcurrent_time_zone) [HAVE_TM_ZONE || HAVE_TZNAME]: 
 	Accept only alphanumeric time zone names.
 

@@ -1,3 +1,9 @@
+2001-03-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* ebrowse.c (parse_qualified_param_ident_or_type): Return a
+	freshly allocated object in *LAST_ID.
+	(read_line): Accept \r\n line endings.
+
 2001-02-24  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in: Fix copyright notice.
