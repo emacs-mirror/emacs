@@ -141,6 +141,12 @@ The ELisp reference manual in Info format is built as part of the
 Emacs build procedure and installed together with the Emacs User
 Manual.
 
+*** The Introduction to Programming in Emacs Lisp manual is now part of
+the distribution.
+
+This manual is now part of the standard distribution and is installed,
+together with the Emacs User Manual, into the Info directory.
+
 *** The ruler-mode.el library provides a minor mode for displaying an
 "active" ruler in the header line.  You can use the mouse to visually
 change the `fill-column', `window-margins' and `tab-stop-list'
