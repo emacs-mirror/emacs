@@ -1749,6 +1749,7 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 	{
 	  if (! NILP (Vwindow_scroll_functions))
 	    {
+	      Fset_marker (w->start, make_number (pos.bufpos), Qnil);
 	      run_hook_with_args_2 (Qwindow_scroll_functions, window,
 				    make_number (pos.bufpos));
 	      pos.bufpos = marker_position (w->start);
