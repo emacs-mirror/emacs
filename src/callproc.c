@@ -734,6 +734,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   give_up: ;
   }
 
+  Vlast_coding_system_used = process_coding.symbol;
+
   /* Wait for it to terminate, unless it already has.  */
   wait_for_termination (pid);
 
