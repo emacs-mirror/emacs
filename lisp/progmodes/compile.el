@@ -100,7 +100,7 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
 
 (defvar compilation-error-regexp-alist
   '(
-    ;; NOTE!  This first one is repeated in grep-regexp-alist, below.
+    ;; NOTE!  See also grep-regexp-alist, below.
 
     ;; 4.3BSD grep, cc, lint pass 1:
     ;; 	/usr/src/foo/foo.c(8): warning: w may be used before set
@@ -112,11 +112,14 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;;  Error ping.c 15: Unable to open include file 'sys/types.h'
     ;;  Warning ping.c 68: Call to function 'func' with no prototype
     ;;
+    ;; We refuse to match  file:number:number
+    ;; because we want to leave that for another case (see below, GNAT).
+    ;; 
     ;; We'll insist that the number be followed by a colon or closing
     ;; paren, because otherwise this matches just about anything
     ;; containing a number with spaces around it.
-    ("\n\\(Error\\|Warning\\)?[ \t]*\\([^:( \t\n]+\\)\
-\[:(]?[ \t]*\\([0-9]+\\)[:) \t]" 2 3)
+    ("\n\\(Error \\|Warning \\)?[ \t]*\\([^:( \t\n]+\\)\
+\[:(]?[ \t]*\\([0-9]+\\)\\([) \t]\\|:[^0-9\n]\\)" 2 3)
 
     ;; 4.3BSD lint pass 2
     ;; 	strcmp: variable # of args. llib-lc(359)  ::  /usr/src/foo/foo.c(8)
@@ -169,6 +172,9 @@ of[ \t]+\"?\\([^\":\n]+\\)\"?:" 3 2)
     ;; E, file.cc(35,52) Illegal operation on pointers
     ("\n[EW], \\([^(\n]*\\)(\\([0-9]+\\),[ \t]*\\([0-9]+\\)" 1 2 3)
 
+    ;; GNAT compiler v1.82
+    ;; foo.adb:2:1: Unit name does not match file name
+    ("\n\\([^ \n\t:]+\\):\\([0-9]+\\):\\([0-9]+\\)[: \t]" 1 2 3)
     )
   "Alist that specifies how to match errors in compiler output.
 Each element has the form (REGEXP FILE-IDX LINE-IDX [COLUMN-IDX]).
