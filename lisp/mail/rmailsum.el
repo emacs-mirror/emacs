@@ -586,6 +586,18 @@ Instead, all of the Rmail Mode commands are available, plus:
   (define-key rmail-summary-mode-map " "      'rmail-summary-scroll-msg-up)
   (define-key rmail-summary-mode-map "\177"   'rmail-summary-scroll-msg-down)
   (define-key rmail-summary-mode-map "?"      'describe-mode)
+  (define-key rmail-summary-mode-map "\C-c\C-s\C-d"
+    'rmail-summary-sort-by-date)
+  (define-key rmail-summary-mode-map "\C-c\C-s\C-s"
+    'rmail-summary-sort-by-subject)
+  (define-key rmail-summary-mode-map "\C-c\C-s\C-a"
+    'rmail-summary-sort-by-author)
+  (define-key rmail-summary-mode-map "\C-c\C-s\C-r"
+    'rmail-summary-sort-by-recipient)
+  (define-key rmail-summary-mode-map "\C-c\C-s\C-c"
+    'rmail-summary-sort-by-correspondent)
+  (define-key rmail-summary-mode-map "\C-c\C-s\C-l"
+    'rmail-summary-sort-by-lines)
   )
 
 ;;; Menu bar bindings.
@@ -1010,5 +1022,50 @@ buffer visiting that file."
   (save-excursion
     (set-buffer rmail-buffer)
     (call-interactively 'rmail-output)))
+
+;; Sorting messages in Rmail Summary buffer.
+
+(defun rmail-summary-sort-by-date (reverse)
+  "Sort messages of current Rmail summary by date.
+If prefix argument REVERSE is non-nil, sort them in reverse order."
+  (interactive "P")
+  (rmail-sort-from-summary (function rmail-sort-by-date) reverse))
+
+(defun rmail-summary-sort-by-subject (reverse)
+  "Sort messages of current Rmail summary by subject.
+If prefix argument REVERSE is non-nil, sort them in reverse order."
+  (interactive "P")
+  (rmail-sort-from-summary (function rmail-sort-by-subject) reverse))
+
+(defun rmail-summary-sort-by-author (reverse)
+  "Sort messages of current Rmail summary by author.
+If prefix argument REVERSE is non-nil, sort them in reverse order."
+  (interactive "P")
+  (rmail-sort-from-summary (function rmail-sort-by-author) reverse))
+
+(defun rmail-summary-sort-by-recipient (reverse)
+  "Sort messages of current Rmail summary by recipient.
+If prefix argument REVERSE is non-nil, sort them in reverse order."
+  (interactive "P")
+  (rmail-sort-from-summary (function rmail-sort-by-recipient) reverse))
+
+(defun rmail-summary-sort-by-correspondent (reverse)
+  "Sort messages of current Rmail summary by other correspondent.
+If prefix argument REVERSE is non-nil, sort them in reverse order."
+  (interactive "P")
+  (rmail-sort-from-summary (function rmail-sort-by-correspondent) reverse))
+
+(defun rmail-summary-sort-by-lines (reverse)
+  "Sort messages of current Rmail summary by lines of the message.
+If prefix argument REVERSE is non-nil, sort them in reverse order."
+  (interactive "P")
+  (rmail-sort-from-summary (function rmail-sort-by-lines) reverse))
+
+(defun rmail-sort-from-summary (sortfun reverse)
+  "Sort Rmail messages from Summary buffer and update it after sorting."
+  (require 'rmailsort)
+  (pop-to-buffer rmail-buffer)
+  (funcall sortfun reverse)
+  (rmail-summary))
 
 ;;; rmailsum.el ends here
