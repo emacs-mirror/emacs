@@ -894,6 +894,8 @@ DEFUN ("other-buffer", Fother_buffer, Sother_buffer, 0, 3, 0,
   "Return most recently selected buffer other than BUFFER.\n\
 Buffers not visible in windows are preferred to visible buffers,\n\
 unless optional second argument VISIBLE-OK is non-nil.\n\
+If the optional third argument FRAME is non-nil, use that frame's\n\
+buffer list instead of the selected frame's buffer list.\n\
 If no other buffer exists, the buffer `*scratch*' is returned.\n\
 If BUFFER is omitted or nil, some interesting buffer is returned.")
   (buffer, visible_ok, frame)
