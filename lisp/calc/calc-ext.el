@@ -1288,8 +1288,7 @@ calc-kill calc-kill-region calc-yank))))
 	      calc-mode-var-list))
     (calc-set-language nil nil t)
     (calc-mode)
-    (let ((executing-kbd-macro ""))  ; inhibit message
-      (calc-flush-caches))
+    (calc-flush-caches t)
     (run-hooks 'calc-reset-hook))
   (calc-wrapper
    (let ((win (get-buffer-window (current-buffer))))
@@ -1486,7 +1485,7 @@ calc-kill calc-kill-region calc-yank))))
 		(calc-refresh-evaltos))
 	    (and (eq calc-mode-save-mode 'save)
 		 (not (equal var '(calc-mode-save-mode)))
-		 (calc-save-modes t))))
+		 (calc-save-modes))))
       (if calc-embedded-info (calc-embedded-modes-change var))
       (symbol-value (car var)))))
 
