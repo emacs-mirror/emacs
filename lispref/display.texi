@@ -1405,7 +1405,10 @@ set width.  This should be one of the symbols @code{ultra-condensed},
 @code{extra-expanded}, or @code{ultra-expanded}.
    
 @item :height
-Font height, an integer in units of 1/10 point.
+Either the font height, an integer in units of 1/10 point, a floating
+point number specifying the amount by which to scale the height of any
+underlying face, or a function, which is called with the old height
+(from the underlying face), and should return the new height.
    
 @item :weight
 Font weight---a symbol from this series (from most dense to most faint):
@@ -1466,6 +1469,11 @@ The value is used like that of @code{:underline}.
 @item :strike-through
 Whether or not characters should be strike-through, and in what
 color.  The value is used like that of @code{:underline}.
+
+@item :inherit
+The name of a face from which to inherit attributes, or a list of face
+names.  Attributes from inherited faces are merged into the face like an
+underlying face would be, with higher priority than underlying faces.
 
 @item :box
 Whether or not a box should be drawn around characters, its color, the
