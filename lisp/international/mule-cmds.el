@@ -1082,6 +1082,7 @@ If INPUT-METHOD is nil, deactivate any current input method."
       (unwind-protect
 	  (run-hooks 'input-method-inactivate-hook)
 	(setq current-input-method nil
+	      input-method-function nil
 	      current-input-method-title nil)
 	(force-mode-line-update)))))
 
