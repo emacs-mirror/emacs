@@ -164,7 +164,8 @@ is a list of menu items, as above."
 			      selected
 			      ;; Simulate radio buttons with menu-enable.
 			      (put command 'menu-enable
-				   (list 'not selected)))))))	       
+				   (list 'not selected)))))	       
+		   (put command 'menu-enable keyword)))
 	       (if (keymapp callback)
 		   (setq name (concat name " ...")))
 	       (if (symbolp callback)
