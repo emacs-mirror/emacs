@@ -36,7 +36,9 @@
 ;; keeping `clean-buffer-list-kill-never-buffer-names' and
 ;; `clean-buffer-list-kill-never-regexps'.
 
-(eval-when-compile (require 'cl))
+(eval-when-compile
+ (require 'cl)
+ (require 'timer))
 
 (defgroup midnight nil
   "Run something every day at midnight."
@@ -93,7 +95,7 @@ displayed more than this many seconds ago."
   :type 'integer
   :group 'midnight)
 
-(defcustom clean-buffer-list-kill-regexps nil
+(defcustom clean-buffer-list-kill-regexps '("\\*vc\\.")
   "*List of regexps saying which buffers will be killed at midnight.
 If buffer name matches a regexp in the list and the buffer was not displayed
 in the last `clean-buffer-list-delay-special' seconds, it is killed by
@@ -145,23 +147,35 @@ two lists will NOT be killed if it also matches anything in this list."
   "A stopgap solution to the absence of `find' in ELisp."
   (if (fboundp 'find)
       (find el ls :test test :key (or key 'eql))
-      (loop for rr in ls when (funcall test el (if key (funcall key rr) rr))
-            return rr)))
+      (dolist (rr ls)
+        (when (funcall test el (if key (funcall key rr) rr))
+          (return rr)))))
+
+(defun assoc-default (el alist test default)
+  "Find object EL in a pseudo-alist ALIST.
+ALIST is a list of conses or objects.  EL is compared (using TEST) with
+CAR (or the object itself, if it is not a cons) of elements of ALIST.
+When TEST returns non-nil, CDR (or DEFAULT, if the object is not a cons)
+of the object is returned.
+This is a non-consing analogue of
+  (cdr (assoc el (mapcar (lambda (el) (if (consp el) el (cons el default)))
+                         alist)
+              :test test))
+The calling sequence is: (ASSOC-DEFAULT EL ALIST TEST DEFAULT)"
+  (dolist (rr alist)
+    (when (funcall test el (if (consp rr) (car rr) rr))
+      (return (if (consp rr) (cdr rr) default)))))
 
 (defun clean-buffer-list-delay (bn)
   "Return the delay, in seconds, before this buffer name is auto-killed.
 Uses `clean-buffer-list-kill-buffer-names', `clean-buffer-list-kill-regexps'
 `clean-buffer-list-delay-general' and `clean-buffer-list-delay-special'.
 Autokilling is done by `clean-buffer-list'."
-  (flet ((ff (ls ts)
-           (let ((zz (midnight-find
-                      bn ls ts (lambda (xx) (if (consp xx) (car xx) xx)))))
-             (cond ((consp zz) (cdr zz))
-                   ((null zz) nil)
-                   (clean-buffer-list-delay-special)))))
-    (or (ff clean-buffer-list-kill-buffer-names 'string=)
-        (ff clean-buffer-list-kill-regexps 'string-match)
-        (* clean-buffer-list-delay-general 24 60 60))))
+  (or (assoc-default bn clean-buffer-list-kill-buffer-names 'string=
+                     clean-buffer-list-delay-special)
+      (assoc-default bn clean-buffer-list-kill-regexps 'string-match
+                     clean-buffer-list-delay-special)
+      (* clean-buffer-list-delay-general 24 60 60)))
 
 (defun clean-buffer-list ()
   "Kill old buffers.
@@ -174,8 +188,7 @@ The relevant vartiables are `clean-buffer-list-delay-general',
     (dolist (buf (buffer-list))
       (message "[%s] processing `%s'..." ts buf)
       (setq bts (buffer-display-time buf) bn (buffer-name buf))
-      (unless (or ;; (string-match clean-buffer-list-kill-never bn)
-                  (midnight-find bn clean-buffer-list-kill-never-regexps
+      (unless (or (midnight-find bn clean-buffer-list-kill-never-regexps
                                  'string-match)
                   (midnight-find bn clean-buffer-list-kill-never-buffer-names
                                  'string-equal)
