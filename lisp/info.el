@@ -756,9 +756,9 @@ a case-insensitive match is tried."
 	(insert Info-dir-contents)
 	(goto-char (point-min)))
     (let ((dirs (if Info-additional-directory-list
-                              (append Info-directory-list
-                                      Info-additional-directory-list)
-                            Info-directory-list))
+		    (append Info-directory-list
+			    Info-additional-directory-list)
+		  Info-directory-list))
 	  ;; Bind this in case the user sets it to nil.
 	  (case-fold-search t)
 	  ;; This is set non-nil if we find a problem in some input files.
