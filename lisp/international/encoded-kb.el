@@ -87,8 +87,8 @@
     map)
   "Keymap for handling non-ASCII character set in Encoded-kbd mode.")
 
-;; One of the symbols `sjis', `iso2022-7', `iso2022-8', or `big5' to
-;; denote what kind of coding-system we are now handling in
+;; One of the symbols `sjis', `iso2022-7', `iso2022-8', `big5', or
+;; `utf-8' to denote what kind of coding-system we are now handling in
 ;; Encoded-kbd mode.
 (defvar encoded-kbd-coding nil)
 
@@ -257,6 +257,23 @@ The following key sequence may cause multilingual text insertion."
     (let ((last-command-char c))
       (self-insert-command arg))))
 
+(defun encoded-kbd-self-insert-utf-8 (arg)
+  (interactive "p")
+  (let (len ch)
+    (cond ((< last-command-char #xE0)
+	   (setq len 1 ch (logand last-command-char #x1F)))
+	  ((< last-command-char #xF0)
+	   (setq len 2 ch (logand last-command-char #x0F)))
+	  ((< last-command-char #xF8)
+	   (setq len 3 ch (logand last-command-char #x07)))
+	  (t
+	   (setq len 4 ch 0)))
+    (while (> len 0)
+      (setq ch (logior (lsh ch 6) (logand (read-char-exclusive) #x3F))
+	    len (1- len)))
+    (let ((last-command-char ch))
+      (self-insert-command arg))))
+
 (defun encoded-kbd-setup-keymap (coding)
   ;; At first, reset the keymap.
   (setcdr encoded-kbd-mode-map nil)
@@ -314,6 +331,13 @@ The following key sequence may cause multilingual text insertion."
 	      (define-key encoded-kbd-mode-map
 		(vector from) 'encoded-kbd-self-insert-ccl))
 	  (setq from (1+ from))))))
+
+   ((eq encoded-kbd-coding 'utf-8)
+    (let ((i #xC0))
+      (while (< i 256)
+	(define-key encoded-kbd-mode-map
+	  (vector i) 'encoded-kbd-self-insert-utf-8)
+	(setq i (1+ i)))))
 
    (t
     (error "Invalid value in encoded-kbd-coding: %s" encoded-kbd-coding))))
@@ -386,6 +410,12 @@ as a multilingual text encoded in a coding system set by
 		(nth 0 saved-input-mode) (nth 1 saved-input-mode)
 		'use-8th-bit (nth 3 saved-input-mode))
 	       (setq encoded-kbd-coding 'charset))
+
+	      ((eq (coding-system-type coding) 'utf-8)
+	       (set-input-mode
+		(nth 0 saved-input-mode) (nth 1 saved-input-mode)
+		'use-8th-bit (nth 3 saved-input-mode))
+	       (setq encoded-kbd-coding 'utf-8))
 
 	      (t
 	       (setq encoded-kbd-mode nil)
