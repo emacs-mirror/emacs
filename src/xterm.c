@@ -159,13 +159,12 @@ Display *x_current_display;
 /* The cursor to use for vertical scroll bars on x_current_display.  */
 static Cursor x_vertical_scroll_bar_cursor;
 
-/* Frame being updated by update_frame.  */
-/* This is set by XTupdate_begin and looked at by all the
+/* Frame being updated by update_frame.  This is declared in term.c.  */ 
+   This is set by update_begin and looked at by all the
    XT functions.  It is zero while not inside an update.
    In that case, the XT functions assume that `selected_frame'
    is the frame to apply to.  */
-
-static struct frame *updating_frame;
+extern struct frame *updating_frame;
 
 /* The frame (if any) which has the X window that has keyboard focus.
    Zero if none.  This is examined by Ffocus_frame in frame.c.  Note
@@ -292,7 +291,6 @@ XTupdate_begin (f)
   if (f == 0)
     abort ();
 
-  updating_frame = f;
   flexlines = f->height;
   highlight = 0;
 
@@ -325,7 +323,6 @@ XTupdate_end (f)
 
   x_display_cursor (f, 1);
 
-  updating_frame = 0;
   XFlushQueue ();
   UNBLOCK_INPUT;
 }
