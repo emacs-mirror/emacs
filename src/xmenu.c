@@ -490,7 +490,9 @@ single_keymap_panes (keymap, pane_name, prefix, notreal)
 		  else
 		    {
 		      Lisp_Object submap;
+		      GCPRO4 (keymap, pending_maps, descrip, item_string);
 		      submap = get_keymap_1 (def, 0, 1);
+		      UNGCPRO;
 #ifndef USE_X_TOOLKIT
 		      /* Indicate visually that this is a submenu.  */
 		      if (!NILP (submap))
@@ -555,7 +557,9 @@ single_keymap_panes (keymap, pane_name, prefix, notreal)
 		      else
 			{
 			  Lisp_Object submap;
+			  GCPRO4 (keymap, pending_maps, descrip, item_string);
 			  submap = get_keymap_1 (def, 0, 1);
+			  UNGCPRO;
 #ifndef USE_X_TOOLKIT
 			  if (!NILP (submap))
 			    item_string = concat2 (item_string,
