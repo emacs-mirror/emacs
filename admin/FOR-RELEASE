@@ -104,27 +104,6 @@ interrupting I can get a backtrace, here's an example:
 Update: Maybe only reveals itself when compiled with GTK+
 
 
-** scroll-preserve-screen-position doesn't work with a header-line-format
-
-From: jbyler+emacs-lists@anon41.eml.cc
-Date: Tue, 17 Aug 2004 17:10:14 -0400
-
-There seems to be an off-by-one error triggered by using a header line
-together with scroll-preserve-screen-position.  The symptom: instead of
-staying in the same position on the screen when scrolling, the cursor
-moves one screen line down each time the buffer is scrolled.  Put
-another way: repeatedly typing C-v M-v or using a mouse scroll wheel to
-scroll up and down causes the cursor to migrate slowly down the screen
-instead of staying put as it should.
-
-To reproduce:
-
-emacs -q --no-site-file
-(setq scroll-preserve-screen-position t)
-(setq header-line-format "")
-C-v M-v C-v M-v C-v M-v etc.
-
-
 ** Clicking on partially visible lines fails
 
 From: David Kastrup <dak@gnu.org>
