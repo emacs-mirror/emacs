@@ -188,14 +188,14 @@ not be enclosed in { } or ( ).")
 ;; that if you change this regexp you must fix the imenu index
 ;; function defined at the end of the file.
 (defconst makefile-dependency-regex
-  "^ *\\([^\n\t#:]+\\([ \t]+[^ \t\n#:]+\\)*\\)[ \t]*:\\([ \t]*$\\|\\([^=\n].*$\\)\\)"
+  "^ *\\([^ \n\t#:=]+\\([ \t]+[^ \t\n#:=]+\\)*\\)[ \t]*:\\([ \t]*$\\|\\([^=\n].*$\\)\\)"
   "Regex used to find dependency lines in a makefile.")
 
 ;; Note that the first subexpression is used by font lock.  Note that
 ;; if you change this regexp you must fix the imenu index function
 ;; defined at the end of the file.
 (defconst makefile-macroassign-regex
-  "^ *\\([^\n\t][^:#= \t\n]*\\)[ \t]*[*:+]?:?="
+  "^ *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*[*:+]?:?="
   "Regex used to find macro assignment lines in a makefile.")
 
 (defconst makefile-ignored-files-in-pickup-regex
