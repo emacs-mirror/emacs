@@ -649,6 +649,46 @@ prevent the library from using dithering.
 
 ** New modes and packages
 
+*** The new cua package provides CUA-like keybindings using C-x for
+cut (kill), C-c for copy, C-v for paste (yank), and C-z for undo.
+With cua, the region can be set and extended using shifted movement
+keys (like pc-selection-mode) and typed text replaces the active
+region (like delete-selection-mode).  Do not enable these modes with
+cua-mode.  Customize the variable `cua-mode' to enable cua.
+
+In addition, cua provides unified rectangle support with visible
+rectangle highlighting: Use S-return to start a rectangle, extend it
+using the movement commands (or mouse-3), and cut or copy it using C-x
+or C-c (using C-w and M-w also works).
+
+Use M-o and M-c to `open' or `close' the rectangle, use M-b or M-f, to
+fill it with blanks or another character, use M-u or M-l to upcase or
+downcase the rectangle, use M-i to increment the numbers in the
+rectangle, use M-n to fill the rectangle with a numeric sequence (such
+as 10 20 30...), use M-r to replace a regexp in the rectangle, and use
+M-' or M-/ to restrict command on the rectangle to a subset of the
+rows.  See the commentary in cua-base.el for more rectangle commands.
+
+Cua also provides unified support for registers:  Use a numeric
+prefix argument between 0 and 9, i.e. M-0 .. M-9, for C-x, C-c, and
+C-v to cut or copy into register 0-9, or paste from register 0-9.
+
+The last text deleted (not killed) is automatically stored in
+register 0.  This includes text deleted by typing text.
+
+Finally, cua provides a global mark which is set using S-C-space.
+When the global mark is active, any text which is cut or copied is
+automatically inserted at the global mark position.  See the
+commentary in cua-base.el for more global mark related commands.
+
+The features of cua also works with the standard emacs bindings for
+kill, copy, yank, and undo.  If you want to use cua mode, but don't
+want the C-x, C-c, C-v, and C-z bindings, you may customize the
+`cua-enable-cua-keys' variable.
+
+*** The new keypad setup package provides simplified configuration
+of the numeric keypad which is available on most keyboards.
+
 +++
 *** Calc is now part of the Emacs distribution.
 
