@@ -346,7 +346,7 @@ install-arch-indep: mkdir
 	done
 	-rm -f ${lispdir}/subdirs.el
 	$(srcdir)/update-subdirs ${lispdir}
-	chmod -R a+r ${COPYDESTS}
+	-chmod -R a+r ${COPYDESTS}
 	if [ `(cd ./etc; /bin/pwd)` != `(cd ${docdir}; /bin/pwd)` ]; \
 	then \
 	   echo "Copying etc/DOC-* to ${docdir} ..." ; \
