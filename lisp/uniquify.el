@@ -85,6 +85,7 @@
 ;;; Code:
 
 (provide 'uniquify)
+(eval-when-compile (require 'cl))
 
 ;;; User-visible variables
 
@@ -159,9 +160,6 @@ variable is ignored."
 
 ;;; Utilities
 
-(defmacro uniquify-push (item list)
-  `(setq ,list (cons ,item ,list)))
-
 ;; For directories, return the last component, not the empty string.
 (defun uniquify-file-name-nondirectory (file-name)
   (file-name-nondirectory (directory-file-name file-name)))
@@ -213,9 +211,9 @@ file name elements.  Arguments cause only a subset of buffers to be renamed."
 				   (equal rawname
 					  (uniquify-file-name-nondirectory newbuffile))))))
 	  (if deserving
-	      (uniquify-push (list rawname bfn buffer nil) fix-list)
-	    (uniquify-push (list (buffer-name buffer))
-			   uniquify-non-file-buffer-names)))
+	      (push (list rawname bfn buffer nil) fix-list)
+	    (push (list (buffer-name buffer))
+		  uniquify-non-file-buffer-names)))
 	(setq buffers (cdr buffers))))
     ;; selects buffers whose names may need changing, and others that
     ;; may conflict.
@@ -273,7 +271,7 @@ Works on dired buffers and ordinary file-visiting buffers, but no others."
 	      (uniquify-rationalize-conflicting-sublist
 	       conflicting-sublist old-name depth)
 	      (setq conflicting-sublist nil)))
-	(uniquify-push item conflicting-sublist)
+	(push item conflicting-sublist)
 	(setq old-name proposed-name))
       (setq fix-list (cdr fix-list)))
     (uniquify-rationalize-conflicting-sublist
