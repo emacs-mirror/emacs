@@ -1,5 +1,9 @@
 2001-08-10  Gerd Moellmann  <gerd@gnu.org>
 
+	* isearch.el (isearch-other-meta-char): Don't switch to the
+	buffer of a window clicked on, when the current buffer is
+	in Isearch mode.
+
 	* image.el (image-jpeg-p): Test for APPn markers in the range
 	#xe0..#xef.
 
