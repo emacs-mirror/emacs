@@ -581,14 +581,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 
 ;; Remove directory DIR from any directory cache.
 (defun dired-uncache (dir)
-  (let (handler (handlers file-name-handler-alist))
-    (save-match-data
-     (while (and (consp handlers) (null handler))
-       (if (and (consp (car handlers))
-		(stringp (car (car handlers)))
-		(string-match (car (car handlers)) dir))
-	   (setq handler (cdr (car handlers))))
-       (setq handlers (cdr handlers))))
+  (let ((handler (find-file-name-handler dir)))
     (if handler
 	(funcall handler 'dired-uncache dir))))
 

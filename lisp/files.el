@@ -251,14 +251,7 @@ This is an interface to the function `load'."
   "Copy the file FILE into a temporary file on this machine.
 Returns the name of the local copy, or nil, if FILE is directly
 accessible."
-  (let (handler (handlers file-name-handler-alist))
-    (save-match-data
-     (while (and (consp handlers) (null handler))
-       (if (and (consp (car handlers))
-		(stringp (car (car handlers)))
-		(string-match (car (car handlers)) file))
-	   (setq handler (cdr (car handlers))))
-       (setq handlers (cdr handlers))))
+  (let ((handler (find-file-name-handler file)))
     (if handler
 	(funcall handler 'file-local-copy file)
       nil)))
@@ -270,14 +263,7 @@ both at the level of the file and at the level of the directories
 containing it, until no links are left at any level."
   (if (string= filename "~")
       (setq filename (expand-file-name filename)))
-  (let (handler (handlers file-name-handler-alist))
-    (save-match-data
-     (while (and (consp handlers) (null handler))
-       (if (and (consp (car handlers))
-		(stringp (car (car handlers)))
-		(string-match (car (car handlers)) filename))
-	   (setq handler (cdr (car handlers))))
-       (setq handlers (cdr handlers))))
+  (let ((handler (find-file-name-handler filename)))
     ;; For file name that has a special handler, call handler.
     ;; This is so that ange-ftp can save time by doing a no-op.
     (if handler
@@ -299,6 +285,7 @@ containing it, until no links are left at any level."
 	    (file-truename (expand-file-name target dir))
 	  ;; No, we are done!
 	  filename)))))
+
 
 (defun switch-to-buffer-other-window (buffer)
   "Select buffer BUFFER in another window."
@@ -1037,14 +1024,7 @@ This is a separate procedure so your site-init or startup file can
 redefine it.
 If the optional argument KEEP-BACKUP-VERSION is non-nil,
 we do not remove backup version numbers, only true file version numbers."
-  (let (handler (handlers file-name-handler-alist))
-    (save-match-data
-     (while (and (consp handlers) (null handler))
-       (if (and (consp (car handlers))
-		(stringp (car (car handlers)))
-		(string-match (car (car handlers)) name))
-	   (setq handler (cdr (car handlers))))
-       (setq handlers (cdr handlers))))
+  (let ((handler (find-file-name-handler name)))
     (if handler
 	(funcall handler 'file-name-sans-versions name keep-backup-version)
       (substring name 0
@@ -1407,14 +1387,7 @@ or multiple mail buffers, etc."
 (defun make-directory (dir &optional parents)
   "Create the directory DIR and any nonexistent parent dirs."
   (interactive "FMake directory: \nP")
-  (let (handler (handlers file-name-handler-alist))
-    (save-match-data
-     (while (and (consp handlers) (null handler))
-       (if (and (consp (car handlers))
-		(stringp (car (car handlers)))
-		(string-match (car (car handlers)) file))
-	   (setq handler (cdr (car handlers))))
-       (setq handlers (cdr handlers))))
+  (let ((handler (find-file-name-handler dir)))
     (if handler
 	(funcall handler 'make-directory dir parents)
       (if (not parents)
@@ -1655,14 +1628,7 @@ switches do not contain `d', so that a full listing is expected.
 This works by running a directory listing program
 whose name is in the variable `ls-program'.
 If WILDCARD, it also runs the shell specified by `shell-file-name'."
-  (let (handler (handlers file-name-handler-alist))
-    (save-match-data
-     (while (and (consp handlers) (null handler))
-       (if (and (consp (car handlers))
-		(stringp (car (car handlers)))
-		(string-match (car (car handlers)) file))
-	   (setq handler (cdr (car handlers))))
-       (setq handlers (cdr handlers))))
+  (let ((handler (find-file-name-handler file)))
     (if handler
 	(funcall handler 'insert-directory file switches
 		 wildcard full-directory-p)

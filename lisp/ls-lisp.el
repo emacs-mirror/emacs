@@ -57,14 +57,7 @@ It does not support ordinary shell wildcards; instead, it allows
 regular expressions to match file names.
 
 The switches that work are: A a c i r S s t u"
-  (let (handler (handlers file-name-handler-alist))
-    (save-match-data
-     (while (and (consp handlers) (null handler))
-       (if (and (consp (car handlers))
-		(stringp (car (car handlers)))
-		(string-match (car (car handlers)) file))
-	   (setq handler (cdr (car handlers))))
-       (setq handlers (cdr handlers))))
+  (let (handler ((find-file-name-handler file)))
     (if handler
 	(funcall handler 'insert-directory file switches
 		 wildcard full-directory-p)

@@ -477,14 +477,7 @@ and use this command with a prefix argument (the value does not matter)."
   ;; Compress or uncompress FILE.
   ;; Return the name of the compressed or uncompressed file.
   ;; Rerurn nil if no change in files.
-  (let (handler (handlers file-name-handler-alist))
-    (save-match-data
-      (while (and (consp handlers) (null handler))
-	(if (and (consp (car handlers))
-		 (stringp (car (car handlers)))
-		 (string-match (car (car handlers)) file))
-	    (setq handler (cdr (car handlers))))
-	(setq handlers (cdr handlers))))
+  (let ((handler (find-file-name-handler file)))
     (cond (handler
 	   (funcall handler 'dired-compress-file file))
 	  ((file-symlink-p file)
