@@ -1,4 +1,5 @@
 ;;; viper-ex.el -- functions implementing the Ex commands for Viper
+;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
