@@ -6239,15 +6239,27 @@ echo_area_display (update_frame_p)
 
       if (update_frame_p)
 	{
-	  /* Not called from redisplay_internal.  If we changed
-	     window configuration, we must redisplay thoroughly.
-	     Otherwise, we can do with updating what we displayed
+	  /* Not called from redisplay_internal.  If we changed window
+	     configuration, we must redisplay thoroughly, of course.
+	     
+	     Likewise if input is pending, because the pending input
+	     can have interrupted a previous redisplay, or redisplay
+	     wasn't called because of the pending input (see
+	     keyboard.c).  In both cases, we would display the message
+	     fine, but the rest of the display would be garbage.
+
+	     Otherwise, we can do with updating just what we displayed
 	     above.  */
-	  if (window_height_changed_p)
+
+	  if (window_height_changed_p || detect_input_pending ())
 	    {
+	      int count = specpdl_ptr - specpdl;
+	      
+	      specbind (Qredisplay_dont_pause, Qt);
 	      ++windows_or_buffers_changed;
 	      ++update_mode_lines;
 	      redisplay_internal (0);
+	      unbind_to (count, Qnil);
 	    }
 	  else if (FRAME_WINDOW_P (f))
 	    {
