@@ -3619,6 +3619,8 @@ definition will always be cached for later usage."
 		      ;; Here we are if we have all disabled advices:
 		      (t (ad-deactivate function)))))))))
 
+(defalias 'ad-activate-on 'ad-activate)
+
 (defun ad-deactivate (function)
   "Deactivates the advice of an actively advised FUNCTION.
 If FUNCTION has a proper original definition, then the current
