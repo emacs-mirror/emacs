@@ -1186,17 +1186,24 @@ displayed.  This is to prevent scanning for the matching delimiter from
 wasting lots of time when there is no match.  The default is 12,000.
 
 @cindex Show Paren mode
+@cindex highlighting matching parentheses
 @findex show-paren-mode
-  When using X Windows, you can request a more powerful alternative kind
-of automatic parenthesis matching by enabling Show Paren mode.  This
-mode turns off the usual kind of matching parenthesis display and
-instead uses highlighting to show what matches.  Whenever point is after
-a close parenthesis, the close parenthesis and its matching open
-parenthesis are both highlighted; otherwise, if point is before an open
-parenthesis, the matching close parenthesis is highlighted.  (There is
-no need to highlight the open parenthesis after point because the cursor
-appears on top of that character.)  Use the command @kbd{M-x
-show-paren-mode} to enable or disable this mode.
+  You can also request a more powerful alternative kind of automatic
+parenthesis matching by enabling Show Paren mode.  This mode turns off
+the usual kind of matching parenthesis display and instead uses
+highlighting to show what matches.  Whenever point is after a close
+parenthesis, the close parenthesis and its matching open parenthesis are
+both highlighted; otherwise, if point is before an open parenthesis, the
+matching close parenthesis is highlighted.  (There is no need to
+highlight the open parenthesis after point because the cursor appears on
+top of that character.)  Use the command @kbd{M-x show-paren-mode} to
+enable or disable this mode.
+
+  By default, @code{show-paren-mode} uses colors to highlight the
+parentheses.  However, if your display doesn't support colors, you can
+customize the faces @code{show-paren-match-face} and
+@code{show-paren-mismatch-face} to use other attributes, such as bold or
+underline.  @xref{Face Customization}.
 
 @node Comments
 @section Manipulating Comments
