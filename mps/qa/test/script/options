@@ -16,10 +16,12 @@ if ($ENV{"OS"} eq "Windows_NT") {
  if ($platform_class eq "nt_") {
   $platform_class = "nt_dunno";
  }
+ $platform_phylum = "pc";
 } else {
  # it's unix by default
  $platform_class = `class`;
  chop($platform_class);
+ $platform_phylum = "unix";
 }
 
 %qa_options = (
