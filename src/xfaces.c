@@ -5796,7 +5796,7 @@ realize_face (cache, attrs, c, base_face, former_face_id)
   /* Insert the new face.  */
   cache_face (cache, face, lface_hash (attrs));
 #ifdef HAVE_WINDOW_SYSTEM
-  if (FRAME_X_P (cache->f) && face->font == NULL)
+  if (FRAME_WINDOW_P (cache->f) && face->font == NULL)
     load_face_font (cache->f, face, c);
 #endif  /* HAVE_WINDOW_SYSTEM */
   return face;
