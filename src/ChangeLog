@@ -1,3 +1,8 @@
+2003-06-05  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (add_system_logical_colors_to_map): New function.
+	(Fx_open_connection): Use it.
+
 2003-06-04  Jason Rumney  <jasonr@gnu.org>
 
 	* termhooks.h (enum event_kind): Remove MOUSE_WHEEL_EVENT.
