@@ -2197,9 +2197,12 @@ init_system_name ()
 }
 
 #ifndef VMS
-#ifndef HAVE_SELECT
+#if !defined (HAVE_SELECT) || defined (BROKEN_SELECT_NON_X)
 
-#ifdef HAVE_X_WINDOWS
+#include "sysselect.h"
+#undef select
+
+#if defined (HAVE_X_WINDOWS) && !defined (HAVE_SELECT)
 /* Cause explanatory error message at compile time,
    since the select emulation is not good enough for X.  */
 int *x = &x_windows_lose_if_no_select_system_call;
@@ -2237,13 +2240,15 @@ select_alarm ()
 #ifndef WINDOWSNT
 /* Only rfds are checked.  */
 int
-select (nfds, rfds, wfds, efds, timeout)
+sys_select (nfds, rfds, wfds, efds, timeout)
      int nfds;
-     int *rfds, *wfds, *efds, *timeout;
+     SELECT_TYPE *rfds, *wfds, *efds;
+     EMACS_TIME *timeout;
 {
-  int ravail = 0, orfds = 0, old_alarm;
-  int timeoutval = timeout ? *timeout : 100000;
-  int *local_timeout = &timeoutval;
+  int ravail = 0, old_alarm;
+  SELECT_TYPE orfds;
+  int timeoutval;
+  int *local_timeout;
   extern int proc_buffered_char[];
 #ifndef subprocesses
   int process_tick = 0, update_tick = 0;
@@ -2253,43 +2258,58 @@ select (nfds, rfds, wfds, efds, timeout)
   SIGTYPE (*old_trap) ();
   unsigned char buf;
 
+#if defined (HAVE_SELECT) && defined (HAVE_X_WINDOWS)
+  /* If we're using X, then the native select will work; we only need the
+     emulation for non-X usage.  */
+  if (!NILP (Vwindow_system))
+    return select (nfds, rfds, wfds, efds, timeout);
+#endif
+  timeoutval = timeout ? EMACS_SECS (*timeout) : 100000;
+  local_timeout = &timeoutval;
+  FD_ZERO (&orfds);
   if (rfds)
     {
       orfds = *rfds;
-      *rfds = 0;
+      FD_ZERO (rfds);
     }
   if (wfds)
-    *wfds = 0;
+    FD_ZERO (wfds);
   if (efds)
-    *efds = 0;
+    FD_ZERO (efds);
 
   /* If we are looking only for the terminal, with no timeout,
      just read it and wait -- that's more efficient.  */
-  if (orfds == 1 && *local_timeout == 100000 && process_tick == update_tick)
+  if (*local_timeout == 100000 && process_tick == update_tick
+      && FD_ISSET (0, &orfds))
     {
+      int fd;
+      for (fd = 1; fd < nfds; ++fd)
+	if (FD_ISSET (fd, &orfds))
+	  goto hardway;
       if (! detect_input_pending ())
 	read_input_waiting ();
-      *rfds = 1;
+      FD_SET (0, rfds);
       return 1;
     }
 
+ hardway:
   /* Once a second, till the timer expires, check all the flagged read
    * descriptors to see if any input is available.  If there is some then
    * set the corresponding bit in the return copy of rfds.
    */ 
   while (1)
     {
-      register int to_check, bit, fd;
+      register int to_check, fd;
 
       if (rfds)
 	{
-	  for (to_check = nfds, bit = 1, fd = 0; --to_check >= 0; bit <<= 1, fd++)
+	  for (to_check = nfds, fd = 0; --to_check >= 0; fd++)
 	    {
-	      if (orfds & bit)
+	      if (FD_ISSET (fd, &orfds))
 		{
 		  int avail = 0, status = 0;
 
-		  if (bit == 1)
+		  if (fd == 0)
 		    avail = detect_input_pending (); /* Special keyboard handler */
 		  else
 		    {
@@ -2314,7 +2334,7 @@ select (nfds, rfds, wfds, efds, timeout)
 		    }
 		  if (status >= 0 && avail > 0)
 		    {
-		      (*rfds) |= bit;
+		      FD_SET (fd, rfds);
 		      ravail++;
 		    }
 		}
@@ -2331,13 +2351,13 @@ select (nfds, rfds, wfds, efds, timeout)
 	     && process_tick == update_tick)
 	{
 #ifdef MSDOS
-	  sleep_or_kbd_hit (SELECT_PAUSE, (orfds & 1) != 0);
+	  sleep_or_kbd_hit (SELECT_PAUSE, FD_ISSET (0, &orfds) != 0);
 	  select_alarm ();
 #else /* not MSDOS */
 	  /* If we are interested in terminal input,
 	     wait by reading the terminal.
 	     That makes instant wakeup for terminal input at least.  */
-	  if (orfds & 1)
+	  if (FD_ISSET (0, &orfds))
 	    {
 	      read_input_waiting ();
 	      if (detect_input_pending ())
