@@ -8,6 +8,69 @@
 
 	* frame.el (blink-cursor-mode): Doc fix.
 
+2000-11-29  Christoph Wedler  <Christoph.Wedler@sap.com>
+
+	* antlr-mode.el: New commands to run ANTLR from within Emacs and
+	to create Makefile rules.
+	(antlr-tool-command): New user option.
+	(antlr-ask-about-save): New user option.
+	(antlr-makefile-specification): New user option.
+	(antlr-file-formats-alist): New variable.
+	(antlr-special-file-formats): New variable.
+	(antlr-unknown-file-formats): New user option.
+	(antlr-help-unknown-file-text): New variable.
+	(antlr-help-rules-intro): New variable.
+	(antlr-mode-map): Add [C-c C-r] for `antlr-run-tool'.
+	(antlr-mode-menu): Add entries.
+	(antlr-file-dependencies): New function.
+	(antlr-directory-dependencies): New function.
+	(antlr-superclasses-glibs): New function.
+	(antlr-run-tool): New command.
+	(antlr-makefile-insert-variable): New function.
+	(antlr-insert-makefile-rules): New function.
+	(antlr-show-makefile-rules): New command.
+
+	* antlr-mode.el: More Emacs/XEmacs stuff.
+	(antlr-no-action-keywords): New constant with value nil.
+	(antlr-font-lock-keywords-alist): Use it.  Old value would break
+	syntax highlighting in Emacs-21.0.
+	(antlr-default-directory): Emacs/XEmacs dependend function.
+	(antlr-read-shell-command): Ditto.
+	(antlr-with-displaying-help-buffer): Ditto.
+
+2000-11-29  Christoph Wedler  <Christoph.Wedler@sap.com>
+
+	* antlr-mode.el: imenu, parsing and highlighting changes.
+	(antlr-imenu-create-index-function): Don't create extra submenus
+	for definitions in different grammar classes.  It is not necessary
+	for the menu and would make command `imenu' awkward to use.
+	(antlr-skip-file-prelude): With ANTLR-2.7+, you can specify named
+	header actions and more than one.
+	(antlr-font-lock-tokendef-face): Changed color.
+	(antlr-font-lock-tokenref-face): Changed color.
+	(antlr-font-lock-additional-keywords): Also highlight lowercase.
+	(antlr-mode-syntax-table): New variable.
+	(antlr-mode): Populate and use it instead `java-mode-syntax-table'.
+	(antlr-with-syntax-table): Don't copy syntax table.
+
+2000-11-29  Christoph Wedler  <Christoph.Wedler@sap.com>
+
+	* antlr-mode.el: Minor changes: language setting.
+	(antlr-language-alist): The value for file option "language" can
+	be both an identifier and a string.
+	Reported by Rajesh Radhakrishnan <radhakrs@email.uc.edu>.
+	(antlr-language-limit-n-regexp): Change accordingly.
+
+2000-11-29  Christoph Wedler  <Christoph.Wedler@sap.com>
+
+	* antlr-mode.el: Minor changes: tabs, hiding.
+	(antlr-tab-offset-alist): Set `indent-tabs-mode' to nil instead t.
+	(antlr-action-visibility): Also allow value nil to also hide the
+	braces.  Renamed from `antlr-tiny-action-length'.
+	Suggested by Jay@aol.com.
+	(antlr-hide-actions): Change accordingly.  Hide line if completely
+	hidden action is on a line of its own.
+	
 2000-11-29  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* subr.el (combine-run-hooks): Only run-hooks if there's a hook to run.
