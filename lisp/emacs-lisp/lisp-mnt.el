@@ -113,7 +113,6 @@
 
 ;;; Code:
 
-(require 'picture)		; provides move-to-column-force
 (require 'emacsbug)
 
 ;;; Variables:
@@ -404,7 +403,7 @@ with tag `Commentary' and ends with tag `Change Log' or `History'."
 (defun lm-insert-at-column (col &rest strings)
   "Insert list of STRINGS, at column COL."
   (if (> (current-column) col) (insert "\n"))
-  (move-to-column-force col)
+  (move-to-column col t)
   (apply 'insert strings))
 
 (defun lm-verify (&optional file showok &optional verb)
