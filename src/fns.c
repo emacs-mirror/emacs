@@ -2801,6 +2801,7 @@ nl_langinfo(3), return nil.  */)
       Lisp_Object v = Fmake_vector (make_number (7), Qnil);
       int days[7] = {DAY_1, DAY_2, DAY_3, DAY_4, DAY_5, DAY_6, DAY_7};
       int i;
+      synchronize_system_time_locale ();
       for (i = 0; i < 7; i++)
 	{
 	  str = nl_langinfo (days[i]);
@@ -2818,6 +2819,7 @@ nl_langinfo(3), return nil.  */)
       int months[12] = {MON_1, MON_2, MON_3, MON_4, MON_5, MON_6, MON_7,
 			MON_8, MON_9, MON_10, MON_11, MON_12};
       int i;
+      synchronize_system_time_locale ();
       for (i = 0; i < 12; i++)
 	{
 	  str = nl_langinfo (months[i]);
