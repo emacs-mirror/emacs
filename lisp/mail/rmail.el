@@ -2495,22 +2495,26 @@ or forward if N is negative."
 	(if (not primary-only)
 	    (string-match recipients (or (mail-fetch-field "Cc") ""))))))
 
-(defun rmail-message-regexp-p (msg regexp)
-  "Return t, if for message number MSG, regexp REGEXP matches in the header."
-  (save-excursion
-    (goto-char (rmail-msgbeg msg))
-    (let (beg end)
-      (save-excursion
-	(forward-line 2)
-	(setq beg (point)))
-      (save-excursion 
-	(search-forward "\n*** EOOH ***\n" (point-max))
-	(when (= beg (match-beginning 0))
-	  (setq beg (point))
-	  (search-forward "\n\n" (point-max)))
-	(setq end (point)))
-      (goto-char beg)
-      (re-search-forward regexp end t))))
+(defun rmail-message-regexp-p (n regexp)
+  "Return t, if for message number N, regexp REGEXP matches in the header."
+  (let ((beg (rmail-msgbeg n))
+	(end (rmail-msgend n)))
+    (goto-char beg)
+    (forward-line 1)
+    (save-excursion
+      (save-restriction
+	(if (prog1 (= (following-char) ?0)
+	      (forward-line 2)
+	      ;; If there's a Summary-line in the (otherwise empty)
+	      ;; header, we didn't yet get past the EOOH line.
+	      (if (looking-at "^\\*\\*\\* EOOH \\*\\*\\*\n")
+		  (forward-line 1))
+	      (narrow-to-region (point) end))
+	    (rfc822-goto-eoh)
+	  (search-forward "\n*** EOOH ***\n" end t))
+	(narrow-to-region beg (point))
+	(goto-char (point-min))
+	(re-search-forward regexp end t)))))
 
 (defvar rmail-search-last-regexp nil)
 (defun rmail-search (regexp &optional n)
