@@ -968,7 +968,7 @@ sort_args (argc, argv)
      0 for an option that takes no arguments,
      1 for an option that takes one argument, etc.
      -1 for an ordinary non-option argument.  */
-  char *options = (char *) xmalloc (argc);
+  int *options = (int *) xmalloc (sizeof (int) * argc);
   int *priority = (int *) xmalloc (sizeof (int) * argc);
   int to = 1;
   int from;
@@ -1066,7 +1066,7 @@ sort_args (argc, argv)
 	argv[best + i + 1] = 0;
     }
 
-  bcopy (new, argv, sizeof (char *) * (argc + 1));
+  bcopy (new, argv, sizeof (char *) * argc);
 }
 
 DEFUN ("kill-emacs", Fkill_emacs, Skill_emacs, 0, 1, "P",
