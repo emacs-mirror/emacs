@@ -495,8 +495,6 @@ This sets the default input method to what you specify,
 and turn it on for the current buffer."
   (interactive
    (let* ((default (or (car input-method-history) default-input-method)))
-     (if (not enable-multibyte-characters)
-	 (error "Can't activate an input method while multibyte characters are disabled"))
      (list (read-input-method-name
 	    (if default "Select input method (default %s): " "Select input method: ")
 	    default t))))
@@ -575,12 +573,14 @@ or a string."
 (defcustom input-method-verbose-flag t
   "*If this flag is non-nil, input methods give extra guidance.
 
-The extra guidance is done by showing list of avairable keys in echo
+The extra guidance is done by showing list of available keys in echo
 area.
 
-If an input method is turned on in the minibuffer, the guidance is
-shown at the bottom short window (by splitting the existing one) only
-for such complex input methods as `chinese-py' and `japanese'."
+For complex input methods such as `chinese-py' and `japanese',
+when you use the input method in the minibuffer, the guidance is
+shown at the bottom short window (split from the existing window).
+For simple input methods, guidance is not shown
+when you are in the minibuffer."
   :type 'boolean
   :group 'mule)
 
