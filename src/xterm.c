@@ -79,6 +79,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "disptab.h"
 #include "buffer.h"
 #include "window.h"
+#include "keyboard.h"
 
 #ifdef USE_X_TOOLKIT
 extern XtAppContext Xt_app_con;
@@ -5677,12 +5678,13 @@ x_make_frame_visible (f)
 	   to let the handler know that there's something to be read.
 	   We used to raise a real alarm, but it seems that the handler
 	   isn't always enabled here.  This is probably a bug.  */
-#ifndef SIGIO
-	/* It could be confusing if a real alarm arrives while processing
-	   the fake one.  Turn it off and let the handler reset it.  */
-	alarm (0);
-	input_poll_signal ();
-#endif
+	if (polling_for_input)
+	  {
+	    /* It could be confusing if a real alarm arrives while processing
+	       the fake one.  Turn it off and let the handler reset it.  */
+	    alarm (0);
+	    input_poll_signal ();
+	  }
       }
     FRAME_SAMPLE_VISIBILITY (f);
   }
