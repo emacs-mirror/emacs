@@ -1,6 +1,6 @@
 /* impl.c.bt: BIT TABLES
  *
- * $HopeName: MMsrc!bt.c(trunk.6) $
+ * $HopeName: MMsrc!bt.c(trunk.7) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved
  *
  * READERSHIP
@@ -19,7 +19,7 @@
 
 #include "mpm.h"
 
-SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.6) $");
+SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.7) $");
 
 
 /* BTCheck -- check the validity of a bit table
@@ -37,12 +37,12 @@ static Bool BTCheck(BT bt)
 
 
 /* design.mps.bt.fun.size */
-Size BTSize(unsigned long n)
+Size (BTSize)(unsigned long n)
 {
   /* check that the expression used in rounding up doesn't overflow */
   AVER(n+MPS_WORD_WIDTH-1 > n);
 
-  return (n+MPS_WORD_WIDTH-1)/MPS_WORD_WIDTH*sizeof(Word);
+  return BTSize(n);
 }
   
 
