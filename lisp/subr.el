@@ -1168,7 +1168,7 @@ Optional DEFAULT is a default password to use instead of empty input."
   "Perform BODY as an atomic change group.
 This means that if BODY exits abnormally,
 all of its changes to the current buffer are undone.
-This works regadless of whether undo is enabled in the buffer.
+This works regardless of whether undo is enabled in the buffer.
 
 This mechanism is transparent to ordinary use of undo;
 if undo is enabled in the buffer and BODY succeeds, the
