@@ -1,3 +1,8 @@
+2001-11-07  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* cus-edit.el (custom-face-value-create): Don't ignore the
+	`customized-face' attribute when finding the current face spec.
+
 2001-11-07  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* subr.el (with-local-quit): New macro.

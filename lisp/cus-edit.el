@@ -2777,7 +2777,8 @@ SPEC must be a full face spec."
 	     (unless (widget-get widget :custom-form)
 		 (widget-put widget :custom-form custom-face-default-form))
 	     (let* ((symbol (widget-value widget))
-		    (spec (or (get symbol 'saved-face)
+		    (spec (or (get symbol 'customized-face)
+			      (get symbol 'saved-face)
 			      (get symbol 'face-defface-spec)
 			      ;; Attempt to construct it.
 			      (list (list t (custom-face-attributes-get
