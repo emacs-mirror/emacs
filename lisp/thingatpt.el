@@ -1,6 +1,6 @@
 ;;; thingatpt.el --- Get the `thing' at point
 
-;; Copyright (C) 1991,92,93,94,95,1996 Free Software Foundation, Inc.
+;; Copyright (C) 1991,92,93,94,95,96,1997 Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mikew@gopher.dosli.govt.nz>
 ;; Keywords: extensions, matching, mouse
@@ -72,54 +72,56 @@ a symbol as a valid THING.
 
 The value is a cons cell (START . END) giving the start and end positions
 of the textual entity that was found."
-  (let ((orig (point)))
-    (condition-case nil
-	(save-excursion
-	  ;; Try moving forward, then back.
-	  (let ((end (progn 
-		       (funcall 
-			(or (get thing 'end-op) 
-			    (function (lambda () (forward-thing thing 1)))))
-		       (point)))
-		(beg (progn 
-		       (funcall 
-			(or (get thing 'beginning-op) 
-			    (function (lambda () (forward-thing thing -1)))))
-		       (point))))
-	    (if (not (and beg (> beg orig)))
-		;; If that brings us all the way back to ORIG,
-		;; it worked.  But END may not be the real end.
-		;; So find the real end that corresponds to BEG.
-		(let ((real-end
-		       (progn 
+  (if (get thing 'bounds-of-thing-at-point)
+      (funcall (get thing 'bounds-of-thing-at-point))
+    (let ((orig (point)))
+      (condition-case nil
+	  (save-excursion
+	    ;; Try moving forward, then back.
+	    (let ((end (progn 
 			 (funcall 
 			  (or (get thing 'end-op) 
 			      (function (lambda () (forward-thing thing 1)))))
+			 (point)))
+		  (beg (progn 
+			 (funcall 
+			  (or (get thing 'beginning-op) 
+			      (function (lambda () (forward-thing thing -1)))))
 			 (point))))
-		  (if (and beg real-end (<= beg orig) (<= orig real-end))
-		      (cons beg real-end)))
-	      (goto-char orig)
-	      ;; Try a second time, moving backward first and then forward,
-	      ;; so that we can find a thing that ends at ORIG.
-	      (let ((beg (progn 
-			   (funcall 
-			    (or (get thing 'beginning-op) 
-				(function (lambda () (forward-thing thing -1)))))
-			   (point)))
-		    (end (progn 
+	      (if (not (and beg (> beg orig)))
+		  ;; If that brings us all the way back to ORIG,
+		  ;; it worked.  But END may not be the real end.
+		  ;; So find the real end that corresponds to BEG.
+		  (let ((real-end
+			 (progn 
 			   (funcall 
 			    (or (get thing 'end-op) 
 				(function (lambda () (forward-thing thing 1)))))
-			   (point)))
-		    (real-beg
-		     (progn 
-		       (funcall 
-			(or (get thing 'beginning-op) 
-			    (function (lambda () (forward-thing thing -1)))))
-		       (point))))
-		(if (and real-beg end (<= real-beg orig) (<= orig end))
-		    (cons real-beg end))))))
-      (error nil))))
+			   (point))))
+		    (if (and beg real-end (<= beg orig) (<= orig real-end))
+			(cons beg real-end)))
+		(goto-char orig)
+		;; Try a second time, moving backward first and then forward,
+		;; so that we can find a thing that ends at ORIG.
+		(let ((beg (progn 
+			     (funcall 
+			      (or (get thing 'beginning-op) 
+				  (function (lambda () (forward-thing thing -1)))))
+			     (point)))
+		      (end (progn 
+			     (funcall 
+			      (or (get thing 'end-op) 
+				  (function (lambda () (forward-thing thing 1)))))
+			     (point)))
+		      (real-beg
+		       (progn 
+			 (funcall 
+			  (or (get thing 'beginning-op) 
+			      (function (lambda () (forward-thing thing -1)))))
+			 (point))))
+		  (if (and real-beg end (<= real-beg orig) (<= orig end))
+		      (cons real-beg end))))))
+	(error nil)))))
 
 ;;;###autoload
 (defun thing-at-point (thing)
@@ -130,9 +132,11 @@ Possibilities include `symbol', `list', `sexp', `defun', `filename', `url',
 
 See the file `thingatpt.el' for documentation on how to define
 a symbol as a valid THING."
-  (let ((bounds (bounds-of-thing-at-point thing)))
-    (if bounds 
-	(buffer-substring (car bounds) (cdr bounds)))))
+  (if (get thing 'thing-at-point)
+      (funcall (get thing 'thing-at-point))
+    (let ((bounds (bounds-of-thing-at-point thing)))
+      (if bounds 
+	  (buffer-substring (car bounds) (cdr bounds))))))
 
 ;; Go to beginning/end
 
@@ -197,19 +201,114 @@ a symbol as a valid THING."
 (put 'filename 'beginning-op
      '(lambda () (skip-chars-backward thing-at-point-file-name-chars)))
 
-(defvar thing-at-point-url-chars "~/A-Za-z0-9---_@$%&=.,"
-  "Characters allowable in a URL.")
+(defvar thing-at-point-url-path-regexp
+  "[^]\t\n \"'()<>[^`{}]*[^]\t\n \"'()<>[^`{}.,;]+"
+  "A regular expression probably matching the host, path or e-mail part of a URL.")
 
-(put 'url 'end-op    
-     '(lambda () (skip-chars-forward (concat ":" thing-at-point-url-chars))
-	(skip-chars-backward ".,:")))
+(defvar thing-at-point-short-url-regexp
+  (concat "[-A-Za-z0-9.]+" thing-at-point-url-path-regexp)
+  "A regular expression probably matching a URL without an access scheme.
+Hostname matching is stricter in this case than for
+``thing-at-point-url-regexp''.")
+
+(defvar thing-at-point-url-regexp
+  (concat
+   "\\(https?://\\|ftp://\\|gopher://\\|telnet://\\|wais://\\|file:/\\|s?news:\\|mailto:\\)"
+   thing-at-point-url-path-regexp)
+  "A regular expression probably matching a complete URL.")
+
+(defvar thing-at-point-markedup-url-regexp
+  "<URL:[^>]+>"
+  "A regular expression matching a URL marked up per RFC1738.
+This may contain whitespace (including newlines) .")
+
+(put 'url 'bounds-of-thing-at-point 'thing-at-point-bounds-of-url-at-point)
+(defun thing-at-point-bounds-of-url-at-point ()
+  (let ((url "") short strip)
+    (if (or (setq strip (thing-at-point-looking-at
+			 thing-at-point-markedup-url-regexp))
+	    (thing-at-point-looking-at thing-at-point-url-regexp)
+	    ;; Access scheme omitted?
+	    (setq short (thing-at-point-looking-at
+			 thing-at-point-short-url-regexp)))
+	(let ((beginning (match-beginning 0))
+	      (end (match-end 0)))
+	  (cond (strip
+		 (setq beginning (+ beginning 5))
+		 (setq end (- end 1))))
+	  (cons beginning end)))))
+
+(put 'url 'thing-at-point 'thing-at-point-url-at-point)
+(defun thing-at-point-url-at-point ()
+  "Return the URL around or before point.
+Search backwards for the start of a URL ending at or after 
+point.  If no URL found, return nil.  The access scheme, `http://'
+will be prepended if absent."
+  (let ((url "") short strip)
+    (if (or (setq strip (thing-at-point-looking-at
+			 thing-at-point-markedup-url-regexp))
+	    (thing-at-point-looking-at thing-at-point-url-regexp)
+	    ;; Access scheme omitted?
+	    (setq short (thing-at-point-looking-at
+			 thing-at-point-short-url-regexp)))
+	(progn
+	  (setq url (buffer-substring-no-properties (match-beginning 0)
+						    (match-end 0)))
+	  (and strip (setq url (substring url 5 -1))) ; Drop "<URL:" & ">"
+	  ;; strip whitespace
+	  (while (string-match "\\s +\\|\n+" url)
+	    (setq url (replace-match "" t t url)))
+	  (and short (setq url (concat (if (string-match "@" url)
+					   "mailto:" "http://") url)))
+	  (if (string-equal "" url)
+	      nil
+	    url)))))
+
+;; The normal thingatpt mechanism doesn't work for complex regexps.
+;; This should work for almost any regexp wherever we are in the
+;; match.  To do a perfect job for any arbitrary regexp would mean
+;; testing every position before point.  Regexp searches won't find
+;; matches that straddle the start position so we search forwards once
+;; and then back repeatedly and then back up a char at a time.
+
+(defun thing-at-point-looking-at (regexp)
+  "Return non-nil if point is in or just after a match for REGEXP.
+Set the match data from the earliest such match ending at or after
+point."
+  (save-excursion
+    (let ((old-point (point)) match)
+      (and (looking-at regexp)
+	   (>= (match-end 0) old-point)
+	   (setq match (point)))
+      ;; Search back repeatedly from end of next match.
+      ;; This may fail if next match ends before this match does.
+      (re-search-forward regexp nil 'limit)
+      (while (and (re-search-backward regexp nil t)
+		  (or (> (match-beginning 0) old-point)
+		      (and (looking-at regexp)	; Extend match-end past search start
+			   (>= (match-end 0) old-point)
+			   (setq match (point))))))
+      (if (not match) nil
+	(goto-char match)
+	;; Back up a char at a time in case search skipped
+	;; intermediate match straddling search start pos.
+	(while (and (not (bobp))
+		    (progn (backward-char 1) (looking-at regexp))
+		    (>= (match-end 0) old-point)
+		    (setq match (point))))
+	(goto-char match)
+	(looking-at regexp)))))
+
+;; Can't do it sensibly?
+;(put 'url 'end-op    
+;     '(lambda () (skip-chars-forward (concat ":" thing-at-point-url-chars))
+;	(skip-chars-backward ".,:")))
 (put 'url 'beginning-op
      '(lambda ()
-	(skip-chars-backward thing-at-point-url-chars)
-	(or (= (preceding-char) ?:)
-	    (error "No URL here"))
-	(forward-char -1)
-	(skip-chars-backward "a-zA-Z")))
+	(let ((bounds (thing-at-point-bounds-of-url-at-point)))
+	  (if bounds
+	      (goto-char (car bounds))
+	    (error "No URL here")))))
 
 ;;  Whitespace 
 
