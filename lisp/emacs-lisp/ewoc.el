@@ -31,9 +31,9 @@
 ;; But now it's Emacs' Widget for Object Collections
 
 ;; As the name implies this derives from the `cookie' package (part
-;; of Elib).  The changes are mostly superficial:
+;; of Elib).  The changes are pervasive though mostly superficial:
 
-;; - uses CL (and its `defstruct'
+;; - uses CL (and its `defstruct')
 ;; - separate from Elib.
 ;; - uses its own version of a doubly-linked list which allows us
 ;;   to merge the elib-wrapper and the elib-node structures into ewoc-node
@@ -74,9 +74,9 @@
 ;; to the buffer contents.
 ;;
 ;; A `ewoc--node' is an object that contains one element.  There are
-;; functions in this package that given an ewoc--node extracts the data, or
-;; gives the next or previous ewoc--node.  (All ewoc--nodes are linked together
-;; in a doubly linked list.  The 'previous' ewoc--node is the one that appears
+;; functions in this package that given an ewoc--node extract the data, or
+;; give the next or previous ewoc--node.  (All ewoc--nodes are linked together
+;; in a doubly linked list.  The `previous' ewoc--node is the one that appears
 ;; before the other in the buffer.)  You should not do anything with
 ;; an ewoc--node except pass it to the functions in this package.
 ;;
@@ -95,6 +95,7 @@
 ;; 
 ;; (defun ewoc-create (pretty-printer &optional header footer)
 ;; (defalias 'ewoc-data 'ewoc--node-data)
+;; (defun ewoc-location (node)
 ;; (defun ewoc-enter-first (ewoc data)
 ;; (defun ewoc-enter-last (ewoc data)
 ;; (defun ewoc-enter-after (ewoc node data)
@@ -195,6 +196,10 @@ and (ewoc--node-nth dll -1) returns the last node."
       (setq node (ewoc--node-branch node branch))
       (setq n (1- n)))
     (unless (eq dll node) node)))
+
+(defun ewoc-location (node)
+  "Return the start location of NODE."
+  (ewoc--node-start-marker node))
 
 
 ;;; The ewoc data type
@@ -336,12 +341,14 @@ be inserted at the bottom of the ewoc."
 
 
 (defun ewoc-enter-after (ewoc node data)
-  "Enter a new element DATA after NODE in EWOC."
+  "Enter a new element DATA after NODE in EWOC.
+Returns the new NODE."
   (ewoc--set-buffer-bind-dll ewoc
     (ewoc-enter-before ewoc (ewoc--node-next dll node) data)))
 
 (defun ewoc-enter-before (ewoc node data)
-  "Enter a new element DATA before NODE in EWOC."
+  "Enter a new element DATA before NODE in EWOC.
+Returns the new NODE."
   (ewoc--set-buffer-bind-dll ewoc
     (ewoc--node-enter-before
      node
