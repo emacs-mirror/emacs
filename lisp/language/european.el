@@ -338,7 +338,7 @@ but select's the Dutch tutorial."))
 	   (unibyte-syntax . "latin-2")
 	   (unibyte-display . iso-8859-2)
 	   (tutorial . "TUTORIAL.pl")
-	   (sample-text . ",B1!fFjJ3#qQsS6&?/<,(B")
+	   (sample-text . "P,Bs(Bjd,B<(B, ki,Bq(B-,B?(Be t,Bj(B chmurno,B6f(B w g,B31(Bb flaszy")
 	   (documentation . t))
  '("European"))
 
