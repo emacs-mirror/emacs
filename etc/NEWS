@@ -2402,6 +2402,11 @@ height) of the specified image.
 The form `(+ EXPR ...)' adds up the value of the expressions.
 The form `(- EXPR ...)' negates or subtracts the value of the expressions.
 
+** Normally, the cursor is displayed at the end of any overlay and
+text property string that may be present at the current window
+position.  The cursor may now be placed on any character of such
+strings by giving that character a non-nil `cursor' text property.
+
 ** New macro with-local-quit temporarily sets inhibit-quit to nil for use
 around potentially blocking or long-running code in timers
 and post-command-hooks.

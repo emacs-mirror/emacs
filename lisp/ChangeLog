@@ -1,5 +1,10 @@
 2004-09-07  Kim F. Storm  <storm@cua.dk>
 
+	* emacs-lisp/authors.el (authors-aliases): Add more aliases.
+	(authors-fixed-entries): Fix typo.
+	(authors-canonical-author-name): Compact multiple spaces.
+	Ignore trivial names (e.g. only first name).
+
 	* term.el (term-window-width): Only use full window width on
 	window system if overflow-newline-into-fringe is enabled.
 	(term-mode): Don't disable overflow-newline-into-fringe.

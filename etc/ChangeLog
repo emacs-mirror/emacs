@@ -1,3 +1,8 @@
+2004-09-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* e/eterm.ti: Add `op' entry to enable colors in term.
+        * e/eterm: Regenerate.
+
 2004-09-04  Eric S. Raymond  <esr@thyrsus.com>
 
 	* PROBLEMS: More reorganization to exile old stuff to the

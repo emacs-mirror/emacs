@@ -1,3 +1,8 @@
+2004-09-07  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (set_cursor_from_row): Fix last change.  Only use 'cursor'
+	property from text property or overlay strings at point.
+
 2004-09-07  Stefan  <monnier@iro.umontreal.ca>
 
 	* xmenu.c (update_submenu_strings): YAILOM.
