@@ -442,6 +442,20 @@ void mps_space_destroy(mps_space_t mps_space)
 }
 #endif
 
+/* mps_arena_has_addr -- is this address managed by this arena? */
+
+mps_bool_t mps_arena_has_addr(mps_arena_t mps_arena, mps_addr_t p)
+{
+    Bool b;
+    Arena arena = (Arena)mps_arena;
+
+    ArenaEnter(arena);
+    AVERT(Arena, arena);
+    b = ArenaHasAddr(arena, (Addr)p);
+    ArenaLeave(arena);
+    return b;
+}
+
 
 /* mps_fmt_create_A -- create an object format of variant A
  *
