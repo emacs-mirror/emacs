@@ -454,8 +454,7 @@ taking longer to fontify, you could reduce the value of this variable."
   :group 'lazy-lock)
 
 (defcustom lazy-lock-stealth-load
-  (when (condition-case nil (load-average) (error))
-    200)
+  (if (condition-case nil (load-average) (error)) 200)
   "*Load in percentage above which stealth fontification is suspended.
 Stealth fontification pauses when the system short-term load average (as
 returned by the function `load-average' if supported) goes above this level,
@@ -484,8 +483,8 @@ See also `lazy-lock-stealth-load'."
   :group 'lazy-lock)
 
 (defcustom lazy-lock-stealth-verbose
-  (when (featurep 'lisp-float-type)
-    (and font-lock-verbose (not lazy-lock-defer-contextually)))
+  (if (featurep 'lisp-float-type)
+      (and (not lazy-lock-defer-contextually) (not (null font-lock-verbose))))
   "*If non-nil, means stealth fontification should show status messages."
   :type 'boolean
   :group 'lazy-lock)
