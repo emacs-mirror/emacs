@@ -1010,10 +1010,7 @@ N is the digit argument used to invoke this command."
 (defun Info-next-preorder ()
   "Go to the next node, popping up a level if there is none."
   (interactive)
-  (cond ((looking-at "\\*note[ \n]*\\([^:]*\\):")
-	 (Info-follow-reference
-	  (buffer-substring (match-beginning 1) (match-end 1))))
-	((Info-no-error (Info-next-menu-item))	)
+  (cond ((Info-no-error (Info-next-menu-item))	)
 	((Info-no-error (Info-up))		(forward-line 1))
 	(t 					(error "No more nodes"))))
 
@@ -1029,16 +1026,14 @@ N is the digit argument used to invoke this command."
   (interactive)
   (if (pos-visible-in-window-p (point-max))
       (Info-next-preorder)
-      (scroll-up))
-  )
+    (scroll-up)))
 
 (defun Info-scroll-down ()
   "Read the previous screen.  If start of buffer is visible, go to last entry."
   (interactive)
   (if (pos-visible-in-window-p (point-min))
       (Info-last-preorder)
-      (scroll-down))
-  )
+    (scroll-down)))
 
 (defun Info-next-reference ()
   "Move cursor to the next cross-reference or menu item in the node."
@@ -1228,19 +1223,35 @@ SIG optional fourth argument, controls action on no match
 	      (t
 	       (error "No %s around position %d" errorstring pos)))))))
 
-(defun Info-follow-nearest-node (click)
+(defun Info-mouse-follow-nearest-node (click)
   "\\<Info-mode-map>Follow a node reference near point.
 Like \\[Info-menu], \\[Info-follow-reference], \\[Info-next], \\[Info-prev] or \\[Info-up] command, depending on where you click.
-At end of the node's text, moves to the next node."
+At end of the node's text, moves to the next node, or up if none."
   (interactive "e")
   (let* ((start (event-start click))
 	 (window (car start))
 	 (pos (car (cdr start))))
     (select-window window)
     (goto-char pos))
+  (and (not (Info-try-follow-nearest-node))
+       (save-excursion (forward-line 1) (eobp))
+       (Info-next-preorder)))
+
+(defun Info-follow-nearest-node ()
+  "\\<Info-mode-map>Follow a node reference near point.
+Like \\[Info-menu], \\[Info-follow-reference], \\[Info-next], \\[Info-prev] or \\[Info-up] command, depending on where point is.
+If no reference to follow, moves to the next node, or up if none."
+  (interactive)
+  (or (Info-try-follow-nearest-node)
+      (Info-next-preorder)))
+
+;; Common subroutine.
+(defun Info-try-follow-nearest-node ()
+  "Follow a node reference near point.  Return non-nil if successful."
   (let (node)
     (cond
-     ((setq node (Info-get-token (point) "\\*note[ \n]" "\\*note[ \n]\\([^:]*\\):"))
+     ((setq node (Info-get-token (point) "\\*note[ \n]"
+				 "\\*note[ \n]\\([^:]*\\):"))
       (Info-follow-reference node))
      ((setq node (Info-get-token (point) "\\* " "\\* \\([^:]*\\)::"))
       (Info-goto-node node))
@@ -1253,10 +1264,8 @@ At end of the node's text, moves to the next node."
      ((setq node (Info-get-token (point) "File: " "File: \\([^,\n\t]*\\)"))
       (Info-goto-node "Top"))
      ((setq node (Info-get-token (point) "Prev: " "Prev: \\([^,\n\t]*\\)"))
-      (Info-goto-node node))
-     ((save-excursion (forward-line 1) (eobp))
-      (Info-next)))
-    ))
+      (Info-goto-node node)))
+    node))
 
 (defvar Info-mode-map nil
   "Keymap containing Info commands.")
@@ -1266,7 +1275,7 @@ At end of the node's text, moves to the next node."
   (suppress-keymap Info-mode-map)
   (define-key Info-mode-map "." 'beginning-of-buffer)
   (define-key Info-mode-map " " 'Info-scroll-up)
-  (define-key Info-mode-map "\C-m" 'Info-next-preorder)
+  (define-key Info-mode-map "\C-m" 'Info-follow-nearest-node)
   (define-key Info-mode-map "\t" 'Info-next-reference)
   (define-key Info-mode-map "\e\t" 'Info-prev-reference)
   (define-key Info-mode-map "1" 'Info-nth-menu-item)
@@ -1301,7 +1310,7 @@ At end of the node's text, moves to the next node."
   (define-key Info-mode-map "u" 'Info-up)
   (define-key Info-mode-map "," 'Info-index-next)
   (define-key Info-mode-map "\177" 'Info-scroll-down)
-  (define-key Info-mode-map [mouse-2] 'Info-follow-nearest-node)
+  (define-key Info-mode-map [mouse-2] 'Info-mouse-follow-nearest-node)
   )
 
 ;; Info mode is suitable only for specially formatted data.
