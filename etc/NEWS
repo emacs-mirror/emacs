@@ -101,6 +101,7 @@ irrespective of geometry or background setting on the Windows registry.
 
 ** New features in evaluation commands
 
++++
 *** The function `eval-defun' (C-M-x) called on defface reinitializes
 the face to the value specified in the defface expression.
 
@@ -445,14 +446,24 @@ restores the previous value of `buffer-invisibility-spec'.
 ** New command `kill-whole-line' kills an entire line at once.
 By default, it is bound to C-S-<backspace>.
 
+** New commands to operate on pairs of open and close characters:
+`insert-pair', `delete-pair', `raise-sexp'.
+
+** A prefix argument of C-M-q in Emacs Lisp mode pretty-printifies the
+list starting after point.
+
 ** Dired mode:
 
 *** New faces dired-header, dired-mark, dired-marked, dired-flagged,
 dired-ignored, dired-directory, dired-symlink, dired-warning
 introduced for Dired mode instead of font-lock faces.
 
-*** New Dired command `dired-compare-directories' to mark files with
-different file attributes in two dired buffers.
+*** New Dired command `dired-compare-directories' marks files
+with different file attributes in two dired buffers.
+
++++
+*** New Dired command `dired-do-touch' (bound to T) changes timestamps
+of marked files with the value entered in the minibuffer.
 
 +++
 *** In Dired's ! command (dired-do-shell-command), `*' and `?' now
@@ -468,7 +479,7 @@ types of files.  The variable `dired-view-command-alist' controls
 what external viewers to use and when.
 
 *** In Dired, the w command now copies the current line's file name
-into the kill ring.
+into the kill ring.  With a zero prefix arg, copies absolute file names.
 
 +++
 ** Dired-x:
@@ -479,14 +490,38 @@ marks omitted files. The variable dired-omit-files-p is obsoleted, use the
 mode toggling function instead.
 
 ** Info mode:
+
+*** A numeric prefix argument of `info' selects an Info buffer
+with the number appended to the *info* buffer name.
+
+*** New command `Info-history' (bound to L) displays a menu of visited nodes.
+
+*** New command `Info-toc' (bound to T) creates a node with table of contents
+from the tree structure of menus of the current Info file.
+
+*** New command `info-apropos' searches the indices of the known
+Info files on your system for a string, and builds a menu of the
+possible matches.
+
+*** New command `Info-copy-current-node-name' (bound to w) copies
+the current Info node name into the kill ring.  With a zero prefix
+arg, puts the node name inside the `info' function call.
+
+*** New command `Info-search-case-sensitively' (bound to S).
+
+*** New command `Info-search-next' (unbound) repeats the last search
+without prompting for a new search string.
+
+*** New face `info-xref-visited' distinguishes visited nodes from unvisited
+and a new option `Info-fontify-visited-nodes' to control this.
+
+*** http and ftp links in Info are now operational: they look like cross
+references and following them calls `browse-url'.
+
 +++
 *** Info now hides node names in menus and cross references by default.
 If you prefer the old behavior, you can set the new user option
 `Info-hide-note-references' to nil.
-
-*** The new command `info-apropos' searches the indices of the known
-Info files on your system for a string, and builds a menu of the
-possible matches.
 
 *** Images in Info pages are supported.
 Info pages show embedded images, in Emacs frames with image support.
