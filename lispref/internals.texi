@@ -1270,10 +1270,6 @@ the last redisplay.
 @item must_be_updated_p
 This is set to 1 during redisplay when this window must be updated.
 
-@item pseudo_window_p
-A non-zero value of this field means this is a window that is not
-part of the normal window tree.
- 
 @item hscroll
 This is the number of columns that the display in the window is scrolled
 horizontally to the left.  Normally, this is 0.
