@@ -1916,6 +1916,7 @@ read1 (readcharfun, pch, first_in_list)
 #ifdef LISP_FLOAT_TYPE
 	    if (isfloat_string (read_buffer))
 	      {
+		double zero = 0.0;
 		double value = atof (read_buffer);
 		if (read_buffer[0] == '-' && value == 0.0)
 		  value *= -1.0;
@@ -1924,11 +1925,11 @@ read1 (readcharfun, pch, first_in_list)
 		if (p[-1] == 'F' || p[-1] == 'N')
 		  {
 		    if (p[-1] == 'N')
-		      value = 0.0 / 0.0;
+		      value = zero / zero;
 		    else if (read_buffer[0] == '-')
-		      value = -1.0e999;
+		      value = - 1.0 / zero;
 		    else
-		      value = 1.0e999;
+		      value = 1.0 / zero;
 		  }
 		return make_float (value);
 	      }
