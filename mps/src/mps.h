@@ -1,7 +1,7 @@
-/* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM INTERFACE
+/* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.16) $
- * Copyright (C) 1996 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!mps.h(trunk.17) $
+ * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
  * .sources: design.mps.interface.c.
@@ -53,7 +53,7 @@ enum {
   MPS_RES_FAIL,                 /* unspecified failure */
   MPS_RES_RESOURCE,             /* unable to obtain resources */
   MPS_RES_MEMORY,               /* unable to obtain memory */
-  MPS_RES_LIMIT,                /* internal limitation reached */
+  MPS_RES_LIMIT,                /* limitation reached */
   MPS_RES_UNIMPL,               /* unimplemented facility */
   MPS_RES_IO                    /* system I/O error */
 };
@@ -73,8 +73,8 @@ enum {
 /* Root Modes */
 /* .rm: Keep in sync with impl.h.mpmtypes.rm */
 
-#define MPS_RM_CONST    ((mps_rm_t)1)
-#define MPS_RM_PROT     ((mps_rm_t)2)
+#define MPS_RM_CONST    (((mps_rm_t)1<<0))
+#define MPS_RM_PROT     (((mps_rm_t)1<<1))
 
 
 /* Allocation Point */
@@ -82,8 +82,8 @@ enum {
 
 typedef struct mps_ap_s {       /* allocation point descriptor */
   mps_addr_t init;              /* limit of initialized memory */
-  mps_addr_t alloc;             /* limit of reserved memory */
-  mps_addr_t limit;             /* limit of buffered memory */
+  mps_addr_t alloc;             /* limit of allocated memory */
+  mps_addr_t limit;             /* limit of available memory */
 } mps_ap_s;
 
 
@@ -97,28 +97,24 @@ typedef struct mps_ld_s {       /* location dependency descriptor */
 
 /* Format and Root Method Types */
 /* .fmt-methods: Keep in sync with impl.h.mpmtypes.fmt-methods */
+/* .root-methods: Keep in sync with impl.h.mpmtypes.root-methods */
 
-typedef mps_res_t  (*mps_root_scan_t)  (mps_ss_t mps_ss,
-                                        void *p, size_t s);
-typedef mps_res_t  (*mps_fmt_scan_t)   (mps_ss_t mps_ss,
-                                        mps_addr_t base,
-                                        mps_addr_t limit);
-typedef mps_res_t  (*mps_reg_scan_t)   (mps_ss_t mps_ss,
-                                        mps_thr_t mps_thr,
-                                        void *p,
-                                        size_t s);
-typedef mps_addr_t (*mps_fmt_skip_t)   (mps_addr_t object);
-typedef void       (*mps_fmt_copy_t)   (mps_addr_t old, mps_addr_t new);
-typedef void       (*mps_fmt_fwd_t)    (mps_addr_t old, mps_addr_t new);
-typedef mps_addr_t (*mps_fmt_isfwd_t)  (mps_addr_t object);
-typedef void       (*mps_fmt_pad_t)    (mps_addr_t base, size_t size);
+typedef mps_res_t (*mps_root_scan_t)(mps_ss_t, void *, size_t);
+typedef mps_res_t (*mps_fmt_scan_t)(mps_ss_t, mps_addr_t, mps_addr_t);
+typedef mps_res_t (*mps_reg_scan_t)(mps_ss_t, mps_thr_t,
+                                    void *, size_t);
+typedef mps_addr_t (*mps_fmt_skip_t)(mps_addr_t);
+typedef void (*mps_fmt_copy_t)(mps_addr_t, mps_addr_t);
+typedef void (*mps_fmt_fwd_t)(mps_addr_t, mps_addr_t);
+typedef mps_addr_t (*mps_fmt_isfwd_t)(mps_addr_t);
+typedef void (*mps_fmt_pad_t)(mps_addr_t, size_t);
 
 
 /* Scan State */
 /* .ss: See also impl.c.mpsi.check.ss and impl.h.mpmst.ss. */
 
 typedef struct mps_ss_s {
-  mps_res_t (*fix)(mps_ss_t mps_ss, mps_addr_t *ref_io);
+  mps_res_t (*fix)(mps_ss_t, mps_addr_t *);
   mps_word_t w0, w1, w2;
 } mps_ss_s;
 
@@ -142,78 +138,65 @@ typedef struct mps_fmt_A_s {
 #define MPS_BEGIN       do {
 #define MPS_END         } while(0)
 
-extern mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t mps_ap,
-                             size_t size);
-extern mps_bool_t mps_ap_trip(mps_ap_t mps_ap, mps_addr_t p,
-                              size_t size);
+extern mps_res_t mps_ap_fill(mps_addr_t *, mps_ap_t, size_t);
+extern mps_bool_t mps_ap_trip(mps_ap_t, mps_addr_t, size_t);
 
 #ifdef MPS_OS_W3
-extern LONG mps_SEH_filter(LPEXCEPTION_POINTERS info,
-                           void **hp_o, size_t *hs_o);
-extern void mps_SEH_handler(void *p, size_t s);
+extern LONG mps_SEH_filter(LPEXCEPTION_POINTERS, void **, size_t *);
+extern void mps_SEH_handler(void *, size_t);
 #endif /* MPS_OS_W3 */
 
 
 /* Assertion Handling */
 
-typedef void (*mps_assert_t)(const char *cond,
-                             const char *id,
-                             const char *file,
+typedef void (*mps_assert_t)(const char *, const char *, const char *,
                              unsigned line);
 
-extern mps_assert_t mps_assert_install(mps_assert_t handler);
+extern mps_assert_t mps_assert_install(mps_assert_t);
 extern mps_assert_t mps_assert_default(void);
 
 
 /* Spaces */
 
-extern mps_res_t mps_space_create_wmem(mps_space_t *mps_space_o,
-                                       mps_addr_t base, size_t size);
-extern mps_res_t mps_space_create(mps_space_t *mps_space_o);
-extern void mps_space_destroy(mps_space_t mps_space);
+extern mps_res_t mps_space_create_wmem(mps_space_t *, mps_addr_t,
+                                       size_t);
+extern mps_res_t mps_space_create(mps_space_t *);
+extern void mps_space_destroy(mps_space_t);
 
 
 /* Object Formats */
 
-extern mps_res_t mps_fmt_create_A(mps_fmt_t *mps_fmt_o,
-                                  mps_space_t mps_space,
-                                  mps_fmt_A_t mps_fmt_A);
-extern void mps_fmt_destroy(mps_fmt_t mps_fmt);
+extern mps_res_t mps_fmt_create_A(mps_fmt_t *, mps_space_t,
+                                  mps_fmt_A_t);
+extern void mps_fmt_destroy(mps_fmt_t);
 
 
 /* Pools */
 
-extern mps_res_t mps_pool_create(mps_pool_t *mps_pool_o,
-                                 mps_space_t mps_space,
-                                 mps_class_t class, ...);
-extern mps_res_t mps_pool_create_v(mps_pool_t *mps_pool_o,
-                                   mps_space_t mps_space,
-                                   mps_class_t class,
-                                   va_list args);
-extern void mps_pool_destroy (mps_pool_t mps_pool);
+extern mps_res_t mps_pool_create(mps_pool_t *, mps_space_t,
+                                 mps_class_t, ...);
+extern mps_res_t mps_pool_create_v(mps_pool_t *, mps_space_t,
+                                   mps_class_t, va_list);
+extern void mps_pool_destroy(mps_pool_t);
 
-extern mps_res_t mps_alloc(mps_addr_t *p_o,
-                           mps_pool_t mps_pool,
-                           size_t size, ...);
-extern mps_res_t mps_alloc_v(mps_addr_t *p_o,
-                             mps_pool_t mps_pool,
-                             size_t size,
-                             va_list args);
-extern void mps_free(mps_pool_t mps_pool, mps_addr_t p, size_t size);
+extern mps_res_t mps_alloc(mps_addr_t *, mps_pool_t, size_t, ...);
+extern mps_res_t mps_alloc_v(mps_addr_t *, mps_pool_t, size_t,
+                             va_list);
+extern void mps_free(mps_pool_t, mps_addr_t, size_t);
 
 
 /* Allocation Points */
 
-extern mps_res_t mps_ap_create(mps_ap_t *mps_ap_o, mps_pool_t mps_pool,
-                               mps_rank_t mps_rank, ...);
-extern mps_res_t mps_ap_create_v(mps_ap_t *mps_ap_o, mps_pool_t mps_pool,
-                                 mps_rank_t mps_rank, va_list args);
-extern void mps_ap_destroy(mps_ap_t mps_ap);
+extern mps_res_t mps_ap_create(mps_ap_t *, mps_pool_t, mps_rank_t, ...);
+extern mps_res_t mps_ap_create_v(mps_ap_t *, mps_pool_t, mps_rank_t,
+                                 va_list);
+extern void mps_ap_destroy(mps_ap_t);
 
-extern mps_res_t (mps_reserve)(mps_addr_t *p_o, mps_ap_t mps_ap,
-                               size_t size);
-extern mps_bool_t (mps_commit)(mps_ap_t mps_ap, mps_addr_t p,
-                               size_t size);
+extern mps_res_t (mps_reserve)(mps_addr_t *, mps_ap_t, size_t);
+extern mps_bool_t (mps_commit)(mps_ap_t, mps_addr_t, size_t);
+
+/* Reserve Macros */
+/* .reserve: Keep in sync with impl.c.buffer.reserve. */
 
 #define mps_reserve(_p_o, _mps_ap, _size) \
   ((char *)(_mps_ap)->alloc + (_size) > (char *)(_mps_ap)->alloc && \
@@ -223,10 +206,6 @@ extern mps_bool_t (mps_commit)(mps_ap_t mps_ap, mps_addr_t p,
       *(_p_o) = (_mps_ap)->init, \
       MPS_RES_OK) : \
      mps_ap_fill(_p_o, _mps_ap, _size))
-
-#define mps_commit(_mps_ap, _p, _size) \
-  ((_mps_ap)->init = (_mps_ap)->alloc, \
-   (_mps_ap)->limit != 0 || mps_ap_trip(_mps_ap, _p, _size))
 
 #define MPS_RESERVE_BLOCK(_res_v, _p_v, _mps_ap, _size) \
   MPS_BEGIN \
@@ -240,47 +219,40 @@ extern mps_bool_t (mps_commit)(mps_ap_t mps_ap, mps_addr_t p,
       (_res_v) = mps_ap_fill(&(_p_v), _mps_ap, _size); \
   MPS_END
 
+/* Commit Macros */
+/* .commit: Keep in sync with impl.c.buffer.commit. */
+
+#define mps_commit(_mps_ap, _p, _size) \
+  ((_mps_ap)->init = (_mps_ap)->alloc, \
+   (_mps_ap)->limit != 0 || mps_ap_trip(_mps_ap, _p, _size))
+
 
 /* Root Creation and Destruction */
 
-extern mps_res_t mps_root_create(mps_root_t *mps_root_o,
-                                 mps_space_t mps_space,
-                                 mps_rank_t mps_rank,
-                                 mps_rm_t mps_rm,
-                                 mps_root_scan_t mps_root_scan,
-                                 void *p, size_t s);
-extern mps_res_t mps_root_create_table(mps_root_t *mps_root_o,
-                                       mps_space_t mps_space,
-                                       mps_rank_t mps_rank,
-                                       mps_rm_t mps_rm,
-                                       mps_addr_t *base, size_t size);
-extern mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o,
-                                     mps_space_t mps_space,
-                                     mps_rank_t mps_rank,
-                                     mps_rm_t mps_rm,
-                                     mps_fmt_scan_t mps_fmt_scan,
-                                     mps_addr_t base,
-                                     mps_addr_t limit);
-extern mps_res_t mps_root_create_reg(mps_root_t *mps_root_o,
-                                     mps_space_t mps_space,
-                                     mps_rank_t mps_rank,
-                                     mps_rm_t mps_rm,
-                                     mps_thr_t mps_thr,
-                                     mps_reg_scan_t mps_reg_scan,
-                                     void *reg_scan_p,
-                                     size_t mps_size);
-extern void mps_root_destroy(mps_root_t root);
+extern mps_res_t mps_root_create(mps_root_t *, mps_space_t, mps_rank_t,
+                                 mps_rm_t, mps_root_scan_t,
+                                 void *, size_t);
+extern mps_res_t mps_root_create_table(mps_root_t *, mps_space_t,
+                                       mps_rank_t, mps_rm_t,
+                                       mps_addr_t *, size_t);
+extern mps_res_t mps_root_create_fmt(mps_root_t *, mps_space_t,
+                                     mps_rank_t, mps_rm_t,
+                                     mps_fmt_scan_t, mps_addr_t,
+                                     mps_addr_t);
+extern mps_res_t mps_root_create_reg(mps_root_t *, mps_space_t,
+                                     mps_rank_t, mps_rm_t, mps_thr_t,
+                                     mps_reg_scan_t, void *, size_t);
+extern void mps_root_destroy(mps_root_t);
 
-extern mps_res_t mps_stack_scan_ambig(mps_ss_t ss, mps_thr_t thr,
-                                      void *p, size_t s);
+extern mps_res_t mps_stack_scan_ambig(mps_ss_t, mps_thr_t,
+                                      void *, size_t);
 
 
 /* Protection Trampoline and Thread Registration */
 
-extern void (mps_tramp)(void **r_o,
-                        void *(*f)(void *p, size_t s),
-                        void *p,
-                        size_t s);
+extern void (mps_tramp)(void **,
+                        void *(*)(void *, size_t),
+                        void *, size_t);
 
 #ifdef MPS_OS_W3
 
@@ -312,27 +284,22 @@ extern void (mps_tramp)(void **r_o,
 
 #endif /* MPS_OS_W3 */
 
-extern mps_res_t mps_thread_reg(mps_thr_t *mps_thr_o,
-                                mps_space_t mps_space);
-extern void mps_thread_dereg(mps_thr_t mps_thr);
+extern mps_res_t mps_thread_reg(mps_thr_t *, mps_space_t);
+extern void mps_thread_dereg(mps_thr_t);
 
 
 /* Location Dependency */
 
-extern void mps_ld_reset(mps_ld_t mps_ld, mps_space_t space);
-extern void mps_ld_add(mps_ld_t mps_ld,
-                       mps_space_t mps_space,
-                       mps_addr_t addr);
-extern mps_bool_t mps_ld_isstale(mps_ld_t mps_ld,
-                                 mps_space_t mps_space,
-                                 mps_addr_t addr);
+extern void mps_ld_reset(mps_ld_t, mps_space_t);
+extern void mps_ld_add(mps_ld_t, mps_space_t, mps_addr_t);
+extern mps_bool_t mps_ld_isstale(mps_ld_t, mps_space_t, mps_addr_t);
 
-extern mps_word_t mps_collections(mps_space_t mps_space);
+extern mps_word_t mps_collections(mps_space_t);
 
 
 /* Scanner Support */
 
-extern mps_res_t mps_fix(mps_ss_t mps_ss, mps_addr_t *ref_io);
+extern mps_res_t mps_fix(mps_ss_t, mps_addr_t *);
 
 #define MPS_SCAN_BEGIN(ss) \
   MPS_BEGIN \

@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.18) $
+ * $HopeName: MMsrc!buffer.c(trunk.19) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  *
  * This is (part of) the implementation of allocation buffers.
@@ -29,7 +29,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.18) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.19) $");
 
 
 /* BufferCreate -- create an allocation buffer in a pool
@@ -284,6 +284,8 @@ Pool (BufferPool)(Buffer buffer)
 
 
 /* BufferReserve -- reserve memory from an allocation buffer
+ *
+ * .reserve: Keep in sync with impl.h.mps.reserve.
  */
 
 Res BufferReserve(Addr *pReturn, Buffer buffer, Size size)
@@ -339,6 +341,8 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size)
 
 
 /* BufferCommit -- commit memory previously reserved
+ *
+ * .commit: Keep in sync with impl.h.mps.commit.
  */
 
 Bool BufferCommit(Buffer buffer, Addr p, Size size)
