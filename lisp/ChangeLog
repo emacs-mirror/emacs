@@ -1,3 +1,8 @@
+2002-05-07  John Paul Wallington <jpw@shootybangbang.com>
+
+	* ibuffer.el (toplevel): Specialize `ibuffer-mode-groups-popup'
+	menu items.
+
 2002-05-07  Colin Walters  <walters@gnu.org>
 
 	* ibuf-ext.el (ibuffer-pop-filter-group): Doc fix.
