@@ -107,6 +107,11 @@ Lisp_Object Vframe_title_format;
 /* Like mode-line-format, but for the titlebar on an iconified frame.  */
 Lisp_Object Vicon_title_format;
 
+/* List of functions to call when a window's size changes.  These
+   functions get one arg, a frame on which one or more windows' sizes
+   have changed.  */
+static Lisp_Object Vwindow_size_change_functions;
+
 /* Values of those variables at last redisplay.  */
 static Lisp_Object last_arrow_position, last_arrow_string;
 
@@ -559,6 +564,7 @@ prepare_menu_bars ()
 {
   register struct window *w = XWINDOW (selected_window);
   int all_windows;
+  struct gcpro gcpro1, gcpro2;
 
   if (noninteractive)
     return;
@@ -606,7 +612,26 @@ prepare_menu_bars ()
       Lisp_Object tail, frame;
 
       FOR_EACH_FRAME (tail, frame)
-	update_menu_bar (XFRAME (frame));
+	{
+	  /* If a window on this frame changed size,
+	     report that to the user and clear the size-change flag.  */
+	  if (FRAME_WINDOW_SIZES_CHANGED (XFRAME (frame)))
+	    {
+	      Lisp_Object functions;
+	      functions = Vwindow_size_change_functions;
+	      GCPRO2 (tail, functions);
+	      while (CONSP (functions))
+		{
+		  call1 (XCONS (functions)->car, frame);
+		  functions = XCONS (functions)->cdr;
+		}
+	      UNGCPRO;
+	      FRAME_WINDOW_SIZES_CHANGED (XFRAME (frame)) = 0;
+	    }
+	  GCPRO1 (tail);
+	  update_menu_bar (XFRAME (frame));
+	  UNGCPRO;
+	}
     }
   else
     update_menu_bar (selected_frame);
@@ -3769,6 +3794,14 @@ and is used only on frames for which no explicit name has been set\n\
 If nil, disable message logging.  If t, log messages but don't truncate\n\
 the buffer when it becomes large.");
   XSETFASTINT (Vmessage_log_max, 50);
+
+  DEFVAR_LISP ("window-size-change-functions", &Vwindow_size_change_functions,
+    "Functions called before redisplay, if window sizes have changed.\n\
+The value should be a list of functions that take one argument.\n\
+Just before redisplay, for each frame, if any of its windows have changed\n\
+size since the last redisplay, or have been split or deleted,\n\
+all the functions in the list are called, with the frame as argument.");
+  Vwindow_size_change_functions = Qnil;
 }
 
 /* initialize the window system */
