@@ -1,3 +1,13 @@
+2004-11-09  Kim F. Storm  <storm@cua.dk>
+
+	* make-docfile.c (scan_c_file): Set defvarperbufferflag to
+	silence compiler.
+
+	* hexl.c (main): Init local var c to silence compiler.
+
+	* etags.c (main, consider_token, C_entries): Add misc switch
+	default targets to silence compiler.
+
 2004-11-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* makefile.w32-in (obj): Add all files (X and Mac) to doc so the
