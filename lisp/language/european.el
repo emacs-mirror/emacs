@@ -44,7 +44,7 @@
 (make-coding-system
  'compound-text 2 ?1
  "ISO 2022 based encoding used in inter client communication of X"
- '((ascii t) (latin-iso8859-1 t) nil nil
+ '((ascii t) (latin-iso8859-1 katakana-jisx0201 t) nil nil
    nil ascii-eol ascii-cntl nil nil nil nil nil nil nil nil nil t)
  '((safe-charsets . t)))
 
