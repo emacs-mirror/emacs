@@ -50,6 +50,8 @@ extern void free_frame_menubar ();
 extern struct scroll_bar *x_window_to_scroll_bar ();
 extern int quit_char;
 
+extern char *lispy_function_keys[];
+
 /* The colormap for converting color names to RGB values */
 Lisp_Object Vw32_color_map;
 
@@ -60,9 +62,34 @@ Lisp_Object Vw32_pass_alt_to_system;
    to alt_modifier.  */
 Lisp_Object Vw32_alt_is_meta;
 
-/* Non nil if left window, right window, and application key events
-   are passed on to Windows.  */
-Lisp_Object Vw32_pass_optional_keys_to_system;
+/* Non nil if left window key events are passed on to Windows (this only
+   affects whether "tapping" the key opens the Start menu).  */
+Lisp_Object Vw32_pass_lwindow_to_system;
+
+/* Non nil if right window key events are passed on to Windows (this
+   only affects whether "tapping" the key opens the Start menu).  */
+Lisp_Object Vw32_pass_rwindow_to_system;
+
+/* Modifier associated with the left "Windows" key, or nil to act as a
+   normal key.  */
+Lisp_Object Vw32_lwindow_modifier;
+
+/* Modifier associated with the right "Windows" key, or nil to act as a
+   normal key.  */
+Lisp_Object Vw32_rwindow_modifier;
+
+/* Modifier associated with the "Apps" key, or nil to act as a normal
+   key.  */
+Lisp_Object Vw32_apps_modifier;
+
+/* Value is nil if Num Lock acts as a function key.  */
+Lisp_Object Vw32_enable_num_lock;
+
+/* Value is nil if Caps Lock acts as a function key.  */
+Lisp_Object Vw32_enable_caps_lock;
+
+/* Modifier associated with Scroll Lock, or nil to act as a normal key.  */
+Lisp_Object Vw32_scroll_lock_modifier;
 
 /* Switch to control whether we inhibit requests for italicised fonts (which
    are synthesized, look ugly, and are trashed by cursor movement under NT). */
@@ -205,6 +232,7 @@ extern int last_mouse_scroll_bar_pos;
 
 /* From w32term.c. */
 extern Lisp_Object Vw32_num_mouse_buttons;
+extern Lisp_Object Vw32_recognize_altgr;
 
 
 /* Error if we are not connected to MS-Windows.  */
@@ -2959,17 +2987,6 @@ w32_createwindow (f)
     }
 }
 
-/* Convert between the modifier bits W32 uses and the modifier bits
-   Emacs uses.  */
-unsigned int
-w32_get_modifiers ()
-{
-  return (((GetKeyState (VK_SHIFT)&0x8000)   ? shift_modifier  : 0) |
-	  ((GetKeyState (VK_CONTROL)&0x8000) ? ctrl_modifier   : 0) |
-          ((GetKeyState (VK_MENU)&0x8000)    ? 
-	   ((NILP (Vw32_alt_is_meta)) ? alt_modifier : meta_modifier) : 0));
-}
-
 void 
 my_post_msg (wmsg, hwnd, msg, wParam, lParam)
      W32Msg * wmsg;
@@ -3116,7 +3133,7 @@ sync_modifiers ()
 static int
 modifier_set (int vkey)
 {
-  if (vkey == VK_CAPITAL)
+  if (vkey == VK_CAPITAL || vkey == VK_SCROLL)
     return (GetKeyState (vkey) & 0x1);
   if (!modifiers_recorded)
     return (GetKeyState (vkey) & 0x8000);
@@ -3131,10 +3148,66 @@ modifier_set (int vkey)
       return modifiers[EMACS_LMENU];
     case VK_RMENU:
       return modifiers[EMACS_RMENU];
-    default:
-      break;
     }
   return (GetKeyState (vkey) & 0x8000);
+}
+
+/* Convert between the modifier bits W32 uses and the modifier bits
+   Emacs uses.  */
+
+unsigned int
+w32_key_to_modifier (int key)
+{
+  Lisp_Object key_mapping;
+
+  switch (key)
+    {
+    case VK_LWIN:
+      key_mapping = Vw32_lwindow_modifier;
+      break;
+    case VK_RWIN:
+      key_mapping = Vw32_rwindow_modifier;
+      break;
+    case VK_APPS:
+      key_mapping = Vw32_apps_modifier;
+      break;
+    case VK_SCROLL:
+      key_mapping = Vw32_scroll_lock_modifier;
+      break;
+    default:
+      key_mapping = Qnil;
+    }
+
+  if (EQ (key_mapping, intern ("hyper")))
+    return hyper_modifier;
+  if (EQ (key_mapping, intern ("super")))
+    return super_modifier;
+  if (EQ (key_mapping, intern ("meta")))
+    return meta_modifier;
+  if (EQ (key_mapping, intern ("alt")))
+    return alt_modifier;
+  if (EQ (key_mapping, intern ("ctrl")))
+    return ctrl_modifier;
+  if (EQ (key_mapping, intern ("control"))) /* synonym for ctrl */
+    return ctrl_modifier;
+  if (EQ (key_mapping, intern ("shift")))
+    return shift_modifier;
+
+  /* Don't generate any modifier if not explicitly requested.  */
+  return 0;
+}
+
+unsigned int
+w32_get_modifiers ()
+{
+  return ((modifier_set (VK_SHIFT)   ? shift_modifier : 0) |
+	  (modifier_set (VK_CONTROL) ? ctrl_modifier  : 0) |
+	  (modifier_set (VK_LWIN)    ? w32_key_to_modifier (VK_LWIN) : 0) |
+	  (modifier_set (VK_RWIN)    ? w32_key_to_modifier (VK_RWIN) : 0) |
+	  (modifier_set (VK_APPS)    ? w32_key_to_modifier (VK_APPS) : 0) |
+	  (modifier_set (VK_SCROLL)  ? w32_key_to_modifier (VK_SCROLL) : 0) |
+          (modifier_set (VK_MENU)    ?
+	   ((NILP (Vw32_alt_is_meta)) ? alt_modifier : meta_modifier) : 0));
 }
 
 /* We map the VK_* modifiers into console modifier constants
@@ -3142,45 +3215,148 @@ modifier_set (int vkey)
    and window input.  */
 
 static int
-construct_modifiers (unsigned int wparam, unsigned int lparam)
+construct_console_modifiers ()
 {
   int mods;
-
-  if (wparam != VK_CONTROL && wparam != VK_MENU)
-    mods = GetLastError ();
 
   mods = 0;
   mods |= (modifier_set (VK_SHIFT)) ? SHIFT_PRESSED : 0;
   mods |= (modifier_set (VK_CAPITAL)) ? CAPSLOCK_ON : 0;
+  mods |= (modifier_set (VK_SCROLL)) ? SCROLLLOCK_ON : 0;
+  mods |= (modifier_set (VK_NUMLOCK)) ? NUMLOCK_ON : 0;
   mods |= (modifier_set (VK_LCONTROL)) ? LEFT_CTRL_PRESSED : 0;
   mods |= (modifier_set (VK_RCONTROL)) ? RIGHT_CTRL_PRESSED : 0;
   mods |= (modifier_set (VK_LMENU)) ? LEFT_ALT_PRESSED : 0;
   mods |= (modifier_set (VK_RMENU)) ? RIGHT_ALT_PRESSED : 0;
+  mods |= (modifier_set (VK_LWIN)) ? LEFT_WIN_PRESSED : 0;
+  mods |= (modifier_set (VK_RWIN)) ? RIGHT_WIN_PRESSED : 0;
+  mods |= (modifier_set (VK_APPS)) ? APPS_PRESSED : 0;
 
   return mods;
 }
 
-static unsigned int
-map_keypad_keys (unsigned int wparam, unsigned int lparam)
+static int
+w32_get_key_modifiers (unsigned int wparam, unsigned int lparam)
 {
-  unsigned int extended = (lparam & 0x1000000L);
+  int mods;
 
-  if (wparam < VK_CLEAR || wparam > VK_DELETE)
-    return wparam;
+  /* Convert to emacs modifiers.  */
+  mods = w32_kbd_mods_to_emacs (construct_console_modifiers (), wparam);
 
-  if (wparam == VK_RETURN)
+  return mods;
+}
+
+unsigned int
+map_keypad_keys (unsigned int virt_key, unsigned int extended)
+{
+  if (virt_key < VK_CLEAR || virt_key > VK_DELETE)
+    return virt_key;
+
+  if (virt_key == VK_RETURN)
     return (extended ? VK_NUMPAD_ENTER : VK_RETURN);
 
-  if (wparam >= VK_PRIOR && wparam <= VK_DOWN)
-    return (!extended ? (VK_NUMPAD_PRIOR + (wparam - VK_PRIOR)) : wparam);
+  if (virt_key >= VK_PRIOR && virt_key <= VK_DOWN)
+    return (!extended ? (VK_NUMPAD_PRIOR + (virt_key - VK_PRIOR)) : virt_key);
 
-  if (wparam == VK_INSERT || wparam == VK_DELETE)
-    return (!extended ? (VK_NUMPAD_INSERT + (wparam - VK_INSERT)) : wparam);
+  if (virt_key == VK_INSERT || virt_key == VK_DELETE)
+    return (!extended ? (VK_NUMPAD_INSERT + (virt_key - VK_INSERT)) : virt_key);
 
-  if (wparam == VK_CLEAR)
-    return (!extended ? VK_NUMPAD_CLEAR : wparam);
+  if (virt_key == VK_CLEAR)
+    return (!extended ? VK_NUMPAD_CLEAR : virt_key);
 
-  return wparam;
+  return virt_key;
+}
+
+/* List of special key combinations which w32 would normally capture,
+   but emacs should grab instead.  Not directly visible to lisp, to
+   simplify synchronization.  Each item is an integer encoding a virtual
+   key code and modifier combination to capture.  */
+Lisp_Object w32_grabbed_keys;
+
+#define HOTKEY(vk,mods)       make_number (((vk) & 255) | ((mods) << 8))
+#define HOTKEY_ID(k)          (XFASTINT (k) & 0xbfff)
+#define HOTKEY_VK_CODE(k)     (XFASTINT (k) & 255)
+#define HOTKEY_MODIFIERS(k)   (XFASTINT (k) >> 8)
+
+/* Register hot-keys for reserved key combinations when Emacs has
+   keyboard focus, since this is the only way Emacs can receive key
+   combinations like Alt-Tab which are used by the system.  */
+
+static void
+register_hot_keys (hwnd)
+     HWND hwnd;
+{
+  Lisp_Object keylist;
+
+  /* Use GC_CONSP, since we are called asynchronously.  */
+  for (keylist = w32_grabbed_keys; GC_CONSP (keylist); keylist = XCDR (keylist))
+    {
+      Lisp_Object key = XCAR (keylist);
+
+      /* Deleted entries get set to nil.  */
+      if (!INTEGERP (key))
+	continue;
+
+      RegisterHotKey (hwnd, HOTKEY_ID (key),
+		      HOTKEY_MODIFIERS (key), HOTKEY_VK_CODE (key));
+    }
+}
+
+static void
+unregister_hot_keys (hwnd)
+     HWND hwnd;
+{
+  Lisp_Object keylist;
+
+  /* Use GC_CONSP, since we are called asynchronously.  */
+  for (keylist = w32_grabbed_keys; GC_CONSP (keylist); keylist = XCDR (keylist))
+    {
+      Lisp_Object key = XCAR (keylist);
+
+      if (!INTEGERP (key))
+	continue;
+
+      UnregisterHotKey (hwnd, HOTKEY_ID (key));
+    }
+}
+
+static void
+post_character_message (hwnd, msg, wParam, lParam, modifiers)
+     HWND hwnd;
+     UINT msg;
+     WPARAM wParam;
+     LPARAM lParam;
+     DWORD  modifiers;
+
+{
+  W32Msg wmsg;
+
+  wmsg.dwModifiers = modifiers;
+
+  /* Detect quit_char and set quit-flag directly.  Note that we
+     still need to post a message to ensure the main thread will be
+     woken up if blocked in sys_select(), but we do NOT want to post
+     the quit_char message itself (because it will usually be as if
+     the user had typed quit_char twice).  Instead, we post a dummy
+     message that has no particular effect. */
+  {
+    int c = wParam;
+    if (isalpha (c) && wmsg.dwModifiers == ctrl_modifier)
+      c = make_ctrl_char (c) & 0377;
+    if (c == quit_char)
+      {
+	Vquit_flag = Qt;
+
+	/* The choice of message is somewhat arbitrary, as long as
+	   the main thread handler just ignores it. */
+	msg = WM_NULL;
+
+	/* Interrupt any blocking system calls.  */
+	signal_quit ();
+      }
+  }
+
+  my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
 }
 
 /* Main message dispatch loop. */
@@ -3189,6 +3365,8 @@ static void
 w32_msg_pump (deferred_msg * msg_buf)
 {
   MSG msg;
+  int result;
+  HWND focus_window;
 
   msh_mousewheel = RegisterWindowMessage (MSH_MOUSEWHEEL);
   
@@ -3207,9 +3385,31 @@ w32_msg_pump (deferred_msg * msg_buf)
 	      SetThreadLocale (msg.wParam);
 	      /* Reply is not expected.  */
 	      break;
+	    case WM_EMACS_SETKEYBOARDLAYOUT:
+	      result = (int) ActivateKeyboardLayout ((HKL) msg.wParam, 0);
+	      if (!PostThreadMessage (dwMainThreadId, WM_EMACS_DONE,
+				      result, 0))
+		abort ();
+	      break;
+	    case WM_EMACS_REGISTER_HOT_KEY:
+	      focus_window = GetFocus ();
+	      if (focus_window != NULL)
+		RegisterHotKey (focus_window,
+				HOTKEY_ID (msg.wParam),
+				HOTKEY_MODIFIERS (msg.wParam),
+				HOTKEY_VK_CODE (msg.wParam));
+	      /* Reply is not expected.  */
+	      break;
+	    case WM_EMACS_UNREGISTER_HOT_KEY:
+	      focus_window = GetFocus ();
+	      if (focus_window != NULL)
+		UnregisterHotKey (focus_window, HOTKEY_ID (msg.wParam));
+	      /* Mark item as erased.  */
+	      XCAR ((Lisp_Object) msg.lParam) = Qnil;
+	      if (!PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0))
+		abort ();
+	      break;
 	    default:
-	      /* No need to be so draconian!  */
-	      /* abort (); */
 	      DebPrint (("msg %x not expected by w32_msg_pump\n", msg.message));
 	    }
 	}
@@ -3326,8 +3526,6 @@ w32_msg_worker (dw)
 
 /* Main window procedure */
 
-extern char *lispy_function_keys[];
-
 LRESULT CALLBACK 
 w32_wnd_proc (hwnd, msg, wParam, lParam)
      HWND hwnd;
@@ -3392,6 +3590,43 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	return (0);
       }
 
+    case WM_INPUTLANGCHANGE:
+      /* Inform lisp thread of keyboard layout changes.  */
+      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+
+      /* Clear dead keys in the keyboard state; for simplicity only
+         preserve modifier key states.  */
+      {
+	int i;
+	BYTE keystate[256];
+
+	GetKeyboardState (keystate);
+	for (i = 0; i < 256; i++)
+	  if (1
+	      && i != VK_SHIFT
+	      && i != VK_LSHIFT
+	      && i != VK_RSHIFT
+	      && i != VK_CAPITAL
+	      && i != VK_NUMLOCK
+	      && i != VK_SCROLL
+	      && i != VK_CONTROL
+	      && i != VK_LCONTROL
+	      && i != VK_RCONTROL
+	      && i != VK_MENU
+	      && i != VK_LMENU
+	      && i != VK_RMENU
+	      && i != VK_LWIN
+	      && i != VK_RWIN)
+	    keystate[i] = 0;
+	SetKeyboardState (keystate);
+      }
+      goto dflt;
+
+    case WM_HOTKEY:
+      /* Synchronize hot keys with normal input.  */
+      PostMessage (hwnd, WM_KEYDOWN, HIWORD (lParam), 0);
+      return (0);
+
     case WM_KEYUP:
     case WM_SYSKEYUP:
       record_keyup (wParam, lParam);
@@ -3399,40 +3634,161 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 
     case WM_KEYDOWN:
     case WM_SYSKEYDOWN:
+      /* Ignore keystrokes we fake ourself; see below.  */
+      if (dpyinfo->faked_key == wParam)
+	{
+	  dpyinfo->faked_key = 0;
+	  return 0;
+	}
+
       /* Synchronize modifiers with current keystroke.  */
       sync_modifiers ();
-
       record_keydown (wParam, lParam);
-
-      wParam = map_keypad_keys (wParam, lParam);
+      wParam = map_keypad_keys (wParam, (lParam & 0x1000000L) != 0);
 
       windows_translate = 0;
-      switch (wParam) {
-      case VK_LWIN:
-      case VK_RWIN:
-      case VK_APPS:
-	/* More support for these keys will likely be necessary.  */
-	if (!NILP (Vw32_pass_optional_keys_to_system))
+
+      switch (wParam)
+	{
+	case VK_LWIN:
+	  if (NILP (Vw32_pass_lwindow_to_system))
+	    {
+	      /* Prevent system from acting on keyup (which opens the
+		 Start menu if no other key was pressed) by simulating a
+		 press of Space which we will ignore.  */
+	      if (GetAsyncKeyState (wParam) & 1)
+		{
+		  dpyinfo->faked_key = VK_SPACE;
+		  keybd_event (VK_SPACE,
+			       (BYTE) MapVirtualKey (VK_SPACE, 0), 0, 0);
+		}
+	    }
+	  if (!NILP (Vw32_lwindow_modifier))
+	    return 0;
+	  break;
+	case VK_RWIN:
+	  if (NILP (Vw32_pass_rwindow_to_system))
+	    {
+	      if (GetAsyncKeyState (wParam) & 1)
+		{
+		  dpyinfo->faked_key = VK_SPACE;
+		  keybd_event (VK_SPACE,
+			       (BYTE) MapVirtualKey (VK_SPACE, 0), 0, 0);
+		}
+	    }
+	  if (!NILP (Vw32_rwindow_modifier))
+	    return 0;
+	  break;
+	case VK_APPS:
+	  if (!NILP (Vw32_apps_modifier))
+	    return 0;
+	  break;
+	case VK_MENU:
+	  if (NILP (Vw32_pass_alt_to_system)) 
+	    return 0;
 	  windows_translate = 1;
-	break;
-      case VK_MENU:
-	if (NILP (Vw32_pass_alt_to_system)) 
+	  break;
+	case VK_CAPITAL: 
+	  /* Decide whether to treat as modifier or function key.  */
+	  if (NILP (Vw32_enable_caps_lock))
+	    goto disable_lock_key;
 	  return 0;
-	windows_translate = 1;
-	break;
-      case VK_CONTROL: 
-      case VK_CAPITAL: 
-      case VK_SHIFT:
-      case VK_NUMLOCK:
-      case VK_SCROLL: 
-	windows_translate = 1;
-	break;
-      default:
-	/* If not defined as a function key, change it to a WM_CHAR message. */
-	if (lispy_function_keys[wParam] == 0)
-	  msg = WM_CHAR;
-	break;
-      }
+	case VK_NUMLOCK:
+	  /* Decide whether to treat as modifier or function key.  */
+	  if (NILP (Vw32_enable_num_lock))
+	    goto disable_lock_key;
+	  return 0;
+	case VK_SCROLL:
+	  /* Decide whether to treat as modifier or function key.  */
+	  if (NILP (Vw32_scroll_lock_modifier))
+	    goto disable_lock_key;
+	  return 0;
+	disable_lock_key:
+	  /* Ensure the appropriate lock key state is off (and the
+             indicator light as well).  */
+	  if (GetAsyncKeyState (wParam) & 0x8000)
+	    {
+	      /* Fake another press of the relevant key.  Apparently,
+                 this really is the only way to turn off the indicator.  */
+	      dpyinfo->faked_key = wParam;
+	      keybd_event ((BYTE) wParam, (BYTE) MapVirtualKey (wParam, 0),
+			   KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+	      keybd_event ((BYTE) wParam, (BYTE) MapVirtualKey (wParam, 0),
+			   KEYEVENTF_EXTENDEDKEY | 0, 0);
+	      keybd_event ((BYTE) wParam, (BYTE) MapVirtualKey (wParam, 0),
+			   KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+	    }
+	  break;
+	case VK_CONTROL: 
+	case VK_SHIFT:
+	case VK_PROCESSKEY:  /* Generated by IME.  */
+	  windows_translate = 1;
+	  break;
+	default:
+	  /* If not defined as a function key, change it to a WM_CHAR message. */
+	  if (lispy_function_keys[wParam] == 0)
+	    {
+	      if (!NILP (Vw32_recognize_altgr)
+		  && modifier_set (VK_LCONTROL) && modifier_set (VK_RMENU))
+		{
+		  /* Always let TranslateMessage handle AltGr key chords;
+		     for some reason, ToAscii doesn't always process AltGr
+		     chords correctly.  */
+		  windows_translate = 1;
+		}
+	      else if (modifier_set (VK_CONTROL) || modifier_set (VK_MENU))
+		{
+		  /* Handle key chords including any modifiers other than shift
+		     directly, in order to preserve as much modifier information as
+		     possible.  */
+		  if ('A' <= wParam && wParam <= 'Z')
+		    {
+		      /* Don't translate modified alphabetic keystrokes,
+			 so the user doesn't need to constantly switch
+			 layout to type control or meta keystrokes when
+			 the normal layout translates alphabetic
+			 characters to non-ascii characters.  */
+		      if (!modifier_set (VK_SHIFT))
+			wParam += ('a' - 'A');
+		      msg = WM_CHAR;
+		    }
+		  else
+		    {
+		      /* Try to handle other keystrokes by determining the
+			 base character (ie. translating the base key plus
+			 shift modifier).  */
+		      int add;
+		      int isdead = 0;
+		      KEY_EVENT_RECORD key;
+		  
+		      key.bKeyDown = TRUE;
+		      key.wRepeatCount = 1;
+		      key.wVirtualKeyCode = wParam;
+		      key.wVirtualScanCode = (lParam & 0xFF0000) >> 16;
+		      key.uChar.AsciiChar = 0;
+		      key.dwControlKeyState = construct_console_modifiers ();
+
+		      add = w32_kbd_patch_key (&key);
+		      /* 0 means an unrecognised keycode, negative means
+			 dead key.  Ignore both.  */
+		      while (--add >= 0)
+			{
+			  /* Forward asciified character sequence.  */
+			  post_character_message
+			    (hwnd, WM_CHAR, key.uChar.AsciiChar, lParam,
+			     w32_get_key_modifiers (wParam, lParam));
+			  w32_kbd_patch_key (&key);
+			}
+		      return 0;
+		    }
+		}
+	      else
+		{
+		  /* Let TranslateMessage handle everything else.  */
+		  windows_translate = 1;
+		}
+	    }
+	}
 
       if (windows_translate)
 	{
@@ -3447,36 +3803,8 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       
     case WM_SYSCHAR:
     case WM_CHAR:
-      wmsg.dwModifiers = construct_modifiers (wParam, lParam);
-
-#if 1
-      /* Detect quit_char and set quit-flag directly.  Note that we
-	 still need to post a message to ensure the main thread will be
-	 woken up if blocked in sys_select(), but we do NOT want to post
-	 the quit_char message itself (because it will usually be as if
-	 the user had typed quit_char twice).  Instead, we post a dummy
-	 message that has no particular effect. */
-      {
-	int c = wParam;
-	if (isalpha (c) && (wmsg.dwModifiers == LEFT_CTRL_PRESSED 
-			    || wmsg.dwModifiers == RIGHT_CTRL_PRESSED))
-	  c = make_ctrl_char (c) & 0377;
-	if (c == quit_char)
-	  {
-	    Vquit_flag = Qt;
-
-	    /* The choice of message is somewhat arbitrary, as long as
-	       the main thread handler just ignores it. */
-	    msg = WM_NULL;
-
-	    /* Interrupt any blocking system calls.  */
-	    signal_quit ();
-	  }
-      }
-#endif
-
-      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
-
+      post_character_message (hwnd, msg, wParam, lParam,
+			      w32_get_key_modifiers (wParam, lParam));
       break;
 
       /* Simulate middle mouse button events when left and right buttons
@@ -3817,8 +4145,10 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       goto dflt;
 #endif
 
-    case WM_ACTIVATE:
     case WM_ACTIVATEAPP:
+      dpyinfo->faked_key = 0;
+      reset_modifiers ();
+    case WM_ACTIVATE:
     case WM_WINDOWPOSCHANGED:
     case WM_SHOWWINDOW:
       /* Inform lisp thread that a frame might have just been obscured
@@ -3827,11 +4157,14 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       goto dflt;
 
     case WM_SETFOCUS:
-      reset_modifiers ();
+      register_hot_keys (hwnd);
+      goto command;
     case WM_KILLFOCUS:
+      unregister_hot_keys (hwnd);
     case WM_MOVE:
     case WM_SIZE:
     case WM_COMMAND:
+    command:
       wmsg.dwModifiers = w32_get_modifiers ();
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
       goto dflt;
@@ -6086,6 +6419,187 @@ If optional parameter FRAME is not specified, use selected frame.")
   return Qnil;
 }
 
+/* Lookup virtual keycode from string representing the name of a
+   non-ascii keystroke into the corresponding virtual key, using
+   lispy_function_keys.  */
+static int
+lookup_vk_code (char *key)
+{
+  int i;
+
+  for (i = 0; i < 256; i++)
+    if (lispy_function_keys[i] != 0
+	&& strcmp (lispy_function_keys[i], key) == 0)
+      return i;
+
+  return -1;
+}
+
+/* Convert a one-element vector style key sequence to a hot key
+   definition.  */
+static int
+w32_parse_hot_key (key)
+     Lisp_Object key;
+{
+  /* Copied from Fdefine_key and store_in_keymap.  */
+  register Lisp_Object c;
+  int vk_code;
+  int lisp_modifiers;
+  int w32_modifiers;
+  struct gcpro gcpro1;
+
+  CHECK_VECTOR (key, 0);
+
+  if (XFASTINT (Flength (key)) != 1)
+    return Qnil;
+
+  GCPRO1 (key);
+
+  c = Faref (key, make_number (0));
+
+  if (CONSP (c) && lucid_event_type_list_p (c))
+    c = Fevent_convert_list (c);
+
+  UNGCPRO;
+
+  if (! INTEGERP (c) && ! SYMBOLP (c))
+    error ("Key definition is invalid");
+
+  /* Work out the base key and the modifiers.  */
+  if (SYMBOLP (c))
+    {
+      c = parse_modifiers (c);
+      lisp_modifiers = Fcar (Fcdr (c));
+      c = Fcar (c);
+      if (!SYMBOLP (c))
+	abort ();
+      vk_code = lookup_vk_code (XSYMBOL (c)->name->data);
+    }
+  else if (INTEGERP (c))
+    {
+      lisp_modifiers = XINT (c) & ~CHARACTERBITS;
+      /* Many ascii characters are their own virtual key code.  */
+      vk_code = XINT (c) & CHARACTERBITS;
+    }
+
+  if (vk_code < 0 || vk_code > 255)
+    return Qnil;
+
+  if ((lisp_modifiers & meta_modifier) != 0
+      && !NILP (Vw32_alt_is_meta))
+    lisp_modifiers |= alt_modifier;
+
+  /* Convert lisp modifiers to Windows hot-key form.  */
+  w32_modifiers  = (lisp_modifiers & hyper_modifier)    ? MOD_WIN : 0;
+  w32_modifiers |= (lisp_modifiers & alt_modifier)      ? MOD_ALT : 0;
+  w32_modifiers |= (lisp_modifiers & ctrl_modifier)     ? MOD_CONTROL : 0;
+  w32_modifiers |= (lisp_modifiers & shift_modifier)    ? MOD_SHIFT : 0;
+
+  return HOTKEY (vk_code, w32_modifiers);
+}
+
+DEFUN ("w32-register-hot-key", Fw32_register_hot_key, Sw32_register_hot_key, 1, 1, 0,
+   "Register KEY as a hot-key combination.\n\
+Certain key combinations like Alt-Tab are reserved for system use on\n\
+Windows, and therefore are normally intercepted by the system.  However,\n\
+most of these key combinations can be received by registering them as\n\
+hot-keys, overriding their special meaning.\n\
+\n\
+KEY must be a one element key definition in vector form that would be\n\
+acceptable to `define-key' (e.g. [A-tab] for Alt-Tab).  The meta\n\
+modifier is interpreted as Alt if `w32-alt-is-meta' is t, and hyper\n\
+is always interpreted as the Windows modifier keys.\n\
+\n\
+The return value is the hotkey-id if registered, otherwise nil.")
+  (key)
+     Lisp_Object key;
+{
+  key = w32_parse_hot_key (key);
+
+  if (NILP (Fmemq (key, w32_grabbed_keys)))
+    {
+      /* Reuse an empty slot if possible.  */
+      Lisp_Object item = Fmemq (Qnil, w32_grabbed_keys);
+
+      /* Safe to add new key to list, even if we have focus.  */
+      if (NILP (item))
+	w32_grabbed_keys = Fcons (key, w32_grabbed_keys);
+      else
+	XCAR (item) = key;
+
+      /* Notify input thread about new hot-key definition, so that it
+	 takes effect without needing to switch focus.  */
+      PostThreadMessage (dwWindowsThreadId, WM_EMACS_REGISTER_HOT_KEY,
+			 (WPARAM) key, 0);
+    }
+
+  return key;
+}
+
+DEFUN ("w32-unregister-hot-key", Fw32_unregister_hot_key, Sw32_unregister_hot_key, 1, 1, 0,
+   "Unregister HOTKEY as a hot-key combination.")
+  (key)
+     Lisp_Object key;
+{
+  Lisp_Object item;
+
+  if (!INTEGERP (key))
+    key = w32_parse_hot_key (key);
+
+  item = Fmemq (key, w32_grabbed_keys);
+
+  if (!NILP (item))
+    {
+      /* Notify input thread about hot-key definition being removed, so
+	 that it takes effect without needing focus switch.  */
+      if (PostThreadMessage (dwWindowsThreadId, WM_EMACS_UNREGISTER_HOT_KEY,
+			     (WPARAM) XINT (XCAR (item)), (LPARAM) item))
+	{
+	  MSG msg;
+	  GetMessage (&msg, NULL, WM_EMACS_DONE, WM_EMACS_DONE);
+	}
+      return Qt;
+    }
+  return Qnil;
+}
+
+DEFUN ("w32-registered-hot-keys", Fw32_registered_hot_keys, Sw32_registered_hot_keys, 0, 0, 0,
+   "Return list of registered hot-key IDs.")
+  ()
+{
+  return Fcopy_sequence (w32_grabbed_keys);
+}
+
+DEFUN ("w32-reconstruct-hot-key", Fw32_reconstruct_hot_key, Sw32_reconstruct_hot_key, 1, 1, 0,
+   "Convert hot-key ID to a lisp key combination.")
+  (hotkeyid)
+     Lisp_Object hotkeyid;
+{
+  int vk_code, w32_modifiers;
+  Lisp_Object key;
+
+  CHECK_NUMBER (hotkeyid, 0);
+
+  vk_code = HOTKEY_VK_CODE (hotkeyid);
+  w32_modifiers = HOTKEY_MODIFIERS (hotkeyid);
+
+  if (lispy_function_keys[vk_code])
+    key = intern (lispy_function_keys[vk_code]);
+  else
+    key = make_number (vk_code);
+
+  key = Fcons (key, Qnil);
+  if (w32_modifiers & MOD_SHIFT)
+    key = Fcons (intern ("shift"), key);
+  if (w32_modifiers & MOD_CONTROL)
+    key = Fcons (intern ("control"), key);
+  if (w32_modifiers & MOD_ALT)
+    key = Fcons (intern (NILP (Vw32_alt_is_meta) ? "alt" : "meta"), key);
+  if (w32_modifiers & MOD_WIN)
+    key = Fcons (intern ("hyper"), key);
+
+  return key;
+}
 
 syms_of_w32fns ()
 {
@@ -6171,8 +6685,11 @@ syms_of_w32fns ()
   Fput (Qundefined_color, Qerror_message,
 	build_string ("Undefined color"));
 
+  staticpro (&w32_grabbed_keys);
+  w32_grabbed_keys = Qnil;
+
   DEFVAR_LISP ("w32-color-map", &Vw32_color_map,
-	       "A array of color name mappings for windows.");
+	       "An array of color name mappings for windows.");
   Vw32_color_map = Qnil;
 
   DEFVAR_LISP ("w32-pass-alt-to-system", &Vw32_pass_alt_to_system,
@@ -6186,11 +6703,61 @@ open the System menu.  When nil, Emacs silently swallows alt key events.");
 When nil, Emacs will translate the alt key to the Alt modifier, and not Meta.");
   Vw32_alt_is_meta = Qt;
 
-  DEFVAR_LISP ("w32-pass-optional-keys-to-system", 
-	       &Vw32_pass_optional_keys_to_system,
-	       "Non-nil if the 'optional' keys (left window, right window,\n\
-and application keys) are passed on to Windows.");
-  Vw32_pass_optional_keys_to_system = Qnil;
+  DEFVAR_LISP ("w32-pass-lwindow-to-system", 
+	       &Vw32_pass_lwindow_to_system,
+	       "Non-nil if the left \"Windows\" key is passed on to Windows.\n\
+When non-nil, the Start menu is opened by tapping the key.");
+  Vw32_pass_lwindow_to_system = Qt;
+
+  DEFVAR_LISP ("w32-pass-rwindow-to-system", 
+	       &Vw32_pass_rwindow_to_system,
+	       "Non-nil if the right \"Windows\" key is passed on to Windows.\n\
+When non-nil, the Start menu is opened by tapping the key.");
+  Vw32_pass_rwindow_to_system = Qt;
+
+  DEFVAR_LISP ("w32-enable-num-lock", 
+	       &Vw32_enable_num_lock,
+	       "Non-nil if Num Lock should act normally.\n\
+Set to nil to see Num Lock as the key `kp-numlock'.");
+  Vw32_enable_num_lock = Qt;
+
+  DEFVAR_LISP ("w32-enable-caps-lock", 
+	       &Vw32_enable_caps_lock,
+	       "Non-nil if Caps Lock should act normally.\n\
+Set to nil to see Caps Lock as the key `capslock'.");
+  Vw32_enable_caps_lock = Qt;
+
+  DEFVAR_LISP ("w32-scroll-lock-modifier",
+	       &Vw32_scroll_lock_modifier,
+	       "Modifier to use for the Scroll Lock on state.\n\
+The value can be hyper, super, meta, alt, control or shift for the\n\
+respective modifier, or nil to see Scroll Lock as the key `scroll'.\n\
+Any other value will cause the key to be ignored.");
+  Vw32_scroll_lock_modifier = Qt;
+
+  DEFVAR_LISP ("w32-lwindow-modifier",
+	       &Vw32_lwindow_modifier,
+	       "Modifier to use for the left \"Windows\" key.\n\
+The value can be hyper, super, meta, alt, control or shift for the\n\
+respective modifier, or nil to appear as the key `lwindow'.\n\
+Any other value will cause the key to be ignored.");
+  Vw32_lwindow_modifier = Qnil;
+
+  DEFVAR_LISP ("w32-rwindow-modifier",
+	       &Vw32_rwindow_modifier,
+	       "Modifier to use for the right \"Windows\" key.\n\
+The value can be hyper, super, meta, alt, control or shift for the\n\
+respective modifier, or nil to appear as the key `rwindow'.\n\
+Any other value will cause the key to be ignored.");
+  Vw32_rwindow_modifier = Qnil;
+
+  DEFVAR_LISP ("w32-apps-modifier",
+	       &Vw32_apps_modifier,
+	       "Modifier to use for the \"Apps\" key.\n\
+The value can be hyper, super, meta, alt, control or shift for the\n\
+respective modifier, or nil to appear as the key `apps'.\n\
+Any other value will cause the key to be ignored.");
+  Vw32_apps_modifier = Qnil;
 
   DEFVAR_LISP ("w32-enable-italics", &Vw32_enable_italics,
 	       "Non-nil enables selection of artificially italicized fonts.");
@@ -6314,6 +6881,10 @@ displayed according to the current fontset.");
   defsubr (&Sw32_default_color_map);
   defsubr (&Sw32_load_color_file);
   defsubr (&Sw32_send_sys_command);
+  defsubr (&Sw32_register_hot_key);
+  defsubr (&Sw32_unregister_hot_key);
+  defsubr (&Sw32_registered_hot_keys);
+  defsubr (&Sw32_reconstruct_hot_key);
 
   /* Setting callback functions for fontset handler.  */
   get_font_info_func = w32_get_font_info;
@@ -6328,6 +6899,12 @@ displayed according to the current fontset.");
 #undef abort
 
 void 
+/* For convenience when debugging.  */
+int
+w32_last_error()
+{
+  return GetLastError ();
+}
 w32_abort()
 {
   int button;
