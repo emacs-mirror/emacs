@@ -66,11 +66,11 @@
 ;; For phonetic classifications.
 
 (define-category ?0 "consonant")
-(define-category ?1 "base vowel")
+(define-category ?1 "base (independent) vowel")
 (define-category ?2 "upper diacritical mark (including upper vowel)")
 (define-category ?3 "lower diacritical mark (including lower vowel)")
 (define-category ?4 "tone mark")
-(define-category ?5 "vowel")
+(define-category ?5 "symbol")
 (define-category ?6 "digit")
 (define-category ?7 "vowel-modifying diacritical mark")
 (define-category ?8 "vowel-signs")
@@ -192,7 +192,7 @@
 (let ((deflist	'(;; chars	syntax	category
 		  ("$(5!!!"!#(B"	"w"	?7) ; vowel-modifying diacritical mark
 					    ; chandrabindu, anuswar, visarga
-		  ("$(5!$(B-$(5!2(B"	"w"	?5) ; independent vowel
+		  ("$(5!$(B-$(5!2(B"	"w"	?1) ; independent vowel
 		  ("$(5!3(B-$(5!X(B"	"w"	?0) ; consonant
 		  ("$(5!Z(B-$(5!g(B"	"w"	?8) ; matra
 		  ("$(5!q(B-$(5!z(B"	"w"	?6) ; digit
@@ -357,7 +357,7 @@
 		  ("(1XY(B"		"w"	?3) ; vowel lower
 		  ("(1h(B-(1l(B"	"w"	?4) ; tone mark 
 		  ("(1\(B"		"w"	?9) ; semivowel lower
-		  ("(1p(B-(1y(B"	"w"	?0) ; digit and misc
+		  ("(1p(B-(1y(B"	"w"	?6) ; digit
 		  ("(1Of(B"		"_"	?0) ; symbol
 		  ))
       elm chars len syntax category to ch i)
@@ -391,8 +391,8 @@
 		  (",TQT(B-,TWgn(B"	"w"	?2) ; vowel upper
 		  (",TX(B-,TZ(B"	"w"	?3) ; vowel lower
 		  (",Th(B-,Tm(B"	"w"	?4) ; tone mark 
-		  (",TOfp(B-,Ty(B"	"w"	?0) ; digit and misc
-		  (",T_oz{(B"	"_"	?0) ; symbol
+		  (",Tp(B-,Ty(B"	"w"	?6) ; digit
+		  (",TOf_oz{(B"	"_"	?5) ; symbol
 		  ))
       elm chars len syntax category to ch i)
   (while deflist
