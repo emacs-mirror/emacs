@@ -645,6 +645,12 @@ Type C-h C-d for information on getting the latest version.")
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for full details.
 You may give out copies of Emacs; type \\[describe-copying] to see the conditions.
 Type \\[describe-distribution] for information on getting the latest version.")))
+
+		   (if (directory-files "~/" nil "\\`\\.saves-" t)
+		       (insert "\n\nIf an Emacs session crashed recently,\n"
+			       "type M-x recover-session RET to recover"
+			       " the files you were editing.))
+
 		   (set-buffer-modified-p nil)
 		   (sit-for 120))
 	       (save-excursion
