@@ -146,7 +146,8 @@ echo "Updating Info files."
 echo "Updating finder-inf.el."
 
 ### update finder-inf.el.
-(cd src; emacs -batch -l finder -f finder-compile-keywords)
+(cd lisp; ../src/emacs -batch -l finder -f finder-compile-keywords)
+(cd lisp; ../src/emacs -batch -f batch-byte-compile finder-inf.el)
 
 echo "Creating staging directory: \`${tempparent}'"
 
