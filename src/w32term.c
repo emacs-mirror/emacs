@@ -24,25 +24,21 @@ Boston, MA 02111-1307, USA.  */
 #include <stdio.h>
 #include <stdlib.h>
 #include "lisp.h"
-#include "charset.h"
 #include "blockinput.h"
-
-#include "w32heap.h"
 #include "w32term.h"
-#include "w32bdf.h"
-#include <shellapi.h>
 
 #include "systty.h"
 #include "systime.h"
-#include "atimer.h"
-#include "keymap.h"
 
 #include <ctype.h>
 #include <errno.h>
 #include <setjmp.h>
 #include <sys/stat.h>
 
-#include "keyboard.h"
+#include "charset.h"
+#include "character.h"
+#include "coding.h"
+#include "ccl.h"
 #include "frame.h"
 #include "dispextern.h"
 #include "fontset.h"
@@ -53,9 +49,15 @@ Boston, MA 02111-1307, USA.  */
 #include "disptab.h"
 #include "buffer.h"
 #include "window.h"
+#include "keyboard.h"
 #include "intervals.h"
-#include "composite.h"
-#include "coding.h"
+#include "process.h"
+#include "atimer.h"
+#include "keymap.h"
+
+#include "w32heap.h"
+#include "w32bdf.h"
+#include <shellapi.h>
 
 #define abs(x)	((x) < 0 ? -(x) : (x))
 
@@ -748,7 +750,8 @@ w32_reset_terminal_modes (void)
 
 static XCharStruct *w32_per_char_metric P_ ((XFontStruct *,
                                              wchar_t *, int));
-static int w32_encode_char P_ ((int, wchar_t *, struct font_info *, int *));
+static int w32_encode_char P_ ((int, wchar_t *, struct font_info *,
+				struct charset *, int *));
 
 
 /* Get metrics of character CHAR2B in FONT.  Value is always non-null.
@@ -895,7 +898,17 @@ w32_per_char_metric (font, char2b, font_type)
   BOOL retval;
 
   xassert (font && char2b);
-  xassert (font_type != UNKNOWN_FONT);
+
+  /* TODO: This function is currently called through the RIF, and in
+     some cases font_type is UNKNOWN_FONT. We currently allow the
+     cached metrics to be used, which seems to work, but in cases
+     where font_type is UNKNOWN_FONT, we probably haven't encoded
+     char2b appropriately. All callers need checking to see what they
+     are passing.  This is most likely to affect variable width fonts
+     outside the Latin-1 range, particularly in languages like Thai
+     that rely on rbearing and lbearing to provide composition. I
+     don't think that is working currently anyway, but we don't seem
+     to have anyone testing such languages on Windows.  */
 
   /* Handle the common cases quickly.  */
   if (!font->bdf && font->per_char == NULL)
@@ -903,6 +916,8 @@ w32_per_char_metric (font, char2b, font_type)
     return &font->max_bounds;
   else if (!font->bdf && *char2b < 128)
     return &font->per_char[*char2b];
+
+  xassert (font_type != UNKNOWN_FONT);
 
   pcm = &font->scratch;
 
@@ -990,13 +1005,13 @@ w32_use_unicode_for_codepage (codepage)
    the two-byte form of C.  Encoding is returned in *CHAR2B.  */
 
 static int /* enum w32_char_font_type */
-w32_encode_char (c, char2b, font_info, two_byte_p)
+w32_encode_char (c, char2b, font_info, charset, two_byte_p)
      int c;
      wchar_t *char2b;
      struct font_info *font_info;
+     struct charset *charset;
      int * two_byte_p;
 {
-  struct charset *charset = CHAR_CHARSET (c);
   int codepage;
   int unicode_p = 0;
   int internal_two_byte_p = 0;
@@ -1035,11 +1050,11 @@ w32_encode_char (c, char2b, font_info, two_byte_p)
       else
 	STORE_XCHAR2B (char2b, ccl->reg[1], ccl->reg[2]);
     }
-  else if (font_info->encoding[charset])
+  else if (font_info->encoding_type)
     {
       /* Fixed encoding scheme.  See fontset.h for the meaning of the
 	 encoding numbers.  */
-      int enc = font_info->encoding[charset];
+      unsigned char enc = font_info->encoding_type;
 
       if ((enc == 1 || enc == 2)
 	  && CHARSET_DIMENSION (charset) == 2)
@@ -1093,6 +1108,103 @@ w32_encode_char (c, char2b, font_info, two_byte_p)
     return ANSI_FONT;
 }
 
+
+/* Return a char-table whose elements are t if the font FONT_INFO
+   contains a glyph for the corresponding character, and nil if not.
+
+   Fixme: For the moment, this function works only for fonts whose
+   glyph encoding is the same as Unicode (e.g. ISO10646-1 fonts).  */
+
+Lisp_Object
+x_get_font_repertory (f, font_info)
+     FRAME_PTR f;
+     struct font_info *font_info;
+{
+#if 0 /* TODO: New function, convert to Windows. */
+  XFontStruct *font = (XFontStruct *) font_info->font;
+  Lisp_Object table;
+  int min_byte1, max_byte1, min_byte2, max_byte2;
+
+  table = Fmake_char_table (Qnil, Qnil);
+
+  min_byte1 = font->min_byte1;
+  max_byte1 = font->max_byte1;
+  min_byte2 = font->min_char_or_byte2;
+  max_byte2 = font->max_char_or_byte2;
+  if (min_byte1 == 0 && max_byte1 == 0)
+    {
+      if (! font->per_char || font->all_chars_exist == True)
+	char_table_set_range (table, min_byte2, max_byte2, Qt);
+      else
+	{
+	  XCharStruct *pcm = font->per_char;
+	  int from = -1;
+	  int i;
+
+	  for (i = min_byte2; i <= max_byte2; i++, pcm++)
+	    {
+	      if (pcm->width == 0 && pcm->rbearing == pcm->lbearing)
+		{
+		  if (from >= 0)
+		    {
+		      char_table_set_range (table, from, i - 1, Qt);
+		      from = -1;
+		    }
+		}
+	      else if (from < 0)
+		from = i;
+	    }
+	  if (from >= 0)
+	    char_table_set_range (table, from, i - 1, Qt);
+	}
+    }
+  else
+    {
+      if (! font->per_char || font->all_chars_exist == True)
+	{
+	  int i;
+
+	  for (i = min_byte1; i <= max_byte1; i++)
+	    char_table_set_range (table,
+				  (i << 8) | min_byte2, (i << 8) | max_byte2,
+				  Qt);
+	}
+      else
+	{
+	  XCharStruct *pcm = font->per_char;
+	  int i;
+
+	  for (i = min_byte1; i <= max_byte1; i++)
+	    {
+	      int from = -1;
+	      int j;
+
+	      for (j = min_byte2; j <= max_byte2; j++, pcm++)
+		{
+		  if (pcm->width == 0 && pcm->rbearing == pcm->lbearing)
+		    {
+		      if (from >= 0)
+			{
+			  char_table_set_range (table, (i << 8) | from,
+						(i << 8) | (j - 1), Qt);
+			  from = -1;
+			}
+		    }
+		  else if (from < 0)
+		    from = j;
+		}
+	      if (from >= 0)
+		char_table_set_range (table, (i << 8) | from,
+				      (i << 8) | (j - 1), Qt);
+	    }
+	}
+    }
+
+  return table;
+#else
+  return Fmake_char_table (Qnil, Qnil);
+#endif
+}
 
 
 /***********************************************************************
@@ -3050,7 +3162,6 @@ note_mouse_movement (frame, msg)
 static struct scroll_bar *x_window_to_scroll_bar ();
 static void x_scroll_bar_report_motion ();
 static void x_check_fullscreen P_ ((struct frame *));
-static void x_check_fullscreen_move P_ ((struct frame *));
 static int glyph_rect P_ ((struct frame *f, int, int, RECT *));
 
 
@@ -4462,7 +4573,6 @@ w32_read_socket (sd, bufp, numchars, expected)
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 	  if (f)
 	    {
-	      x_check_fullscreen_move(f);
 	      if (f->want_fullscreen & FULLSCREEN_WAIT)
 		f->want_fullscreen &= ~(FULLSCREEN_WAIT|FULLSCREEN_BOTH);
 	    }
@@ -4776,7 +4886,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 	  if (msg.msg.message == msh_mousewheel)
 	    {
 	      /* Forward MSH_MOUSEWHEEL as WM_MOUSEWHEEL.  */
-	      msg.msg.message == WM_MOUSEWHEEL;
+	      msg.msg.message = WM_MOUSEWHEEL;
 	      prepend_msg (&msg);
 	    }
 	  break;
@@ -5234,6 +5344,11 @@ x_new_font (f, fontname)
   if (!fontp)
     return Qnil;
 
+  if (FRAME_FONT (f) == (XFontStruct *) (fontp->font))
+    /* This font is already set in frame F.  There's nothing more to
+       do.  */
+    return build_string (fontp->full_name);
+
   FRAME_FONT (f) = (XFontStruct *) (fontp->font);
   FRAME_BASELINE_OFFSET (f) = fontp->baseline_offset;
   FRAME_FONTSET (f) = -1;
@@ -5266,37 +5381,49 @@ x_new_font (f, fontname)
   return build_string (fontp->full_name);
 }
 
-/* Give frame F the fontset named FONTSETNAME as its default font, and
-   return the full name of that fontset.  FONTSETNAME may be a wildcard
-   pattern; in that case, we choose some fontset that fits the pattern.
-   The return value shows which fontset we chose.  */
+/* Give frame F the fontset named FONTSETNAME as its default fontset,
+   and return the full name of that fontset.  FONTSETNAME may be a
+   wildcard pattern; in that case, we choose some fontset that fits
+   the pattern.  FONTSETNAME may be a font name for ASCII characters;
+   in that case, we create a fontset from that font name.
+
+   The return value shows which fontset we chose.
+   If FONTSETNAME specifies the default fontset, return Qt.
+   If an ASCII font in the specified fontset can't be loaded, return
+   Qnil.  */
 
 Lisp_Object
 x_new_fontset (f, fontsetname)
      struct frame *f;
-     char *fontsetname;
+     Lisp_Object fontsetname;
 {
-  int fontset = fs_query_fontset (build_string (fontsetname), 0);
+  int fontset = fs_query_fontset (fontsetname, 0);
   Lisp_Object result;
 
-  if (fontset < 0)
-    return Qnil;
-
-  if (FRAME_FONTSET (f) == fontset)
+  if (fontset > 0 && FRAME_FONTSET(f) == fontset)
     /* This fontset is already set in frame F.  There's nothing more
        to do.  */
     return fontset_name (fontset);
+  else if (fontset == 0)
+    /* The default fontset can't be the default font.   */
+    return Qt;
 
-  result = x_new_font (f, (SDATA (fontset_ascii (fontset))));
+  if (fontset > 0)
+    result = x_new_font (f, (SDATA (fontset_ascii (fontset))));
+  else
+    result = x_new_font (f, SDATA (fontsetname));
 
   if (!STRINGP (result))
     /* Can't load ASCII font.  */
     return Qnil;
 
+  if (fontset < 0)
+    fontset = new_fontset_from_font_name (result);
+
   /* Since x_new_font doesn't update any fontset information, do it now.  */
   FRAME_FONTSET(f) = fontset;
 
-  return build_string (fontsetname);
+  return fontset_name (fontset);
 }
 
 
@@ -5428,9 +5555,7 @@ x_check_fullscreen (f)
       x_fullscreen_adjust (f, &width, &height, &ign, &ign);
 
       /* We do not need to move the window, it shall be taken care of
-         when setting WM manager hints.
-         If the frame is visible already, the position is checked by
-         x_check_fullscreen_move. */
+         when setting WM manager hints.  */
       if (FRAME_COLS (f) != width || FRAME_LINES (f) != height)
         {
           change_frame_size (f, height, width, 0, 1, 0);
@@ -5442,36 +5567,6 @@ x_check_fullscreen (f)
         }
     }
 }
-
-/* If frame parameters are set after the frame is mapped, we need to move
-   the window.  This is done in xfns.c.
-   Some window managers moves the window to the right position, some
-   moves the outer window manager window to the specified position.
-   Here we check that we are in the right spot.  If not, make a second
-   move, assuming we are dealing with the second kind of window manager. */
-static void
-x_check_fullscreen_move (f)
-     struct frame *f;
-{
-  if (f->want_fullscreen & FULLSCREEN_MOVE_WAIT)
-  {
-    int expect_top = f->top_pos;
-    int expect_left = f->left_pos;
-
-    if (f->want_fullscreen & FULLSCREEN_HEIGHT)
-      expect_top = 0;
-    if (f->want_fullscreen & FULLSCREEN_WIDTH)
-      expect_left = 0;
-
-    if (expect_top != f->top_pos
-        || expect_left != f->left_pos)
-      x_set_offset (f, expect_left, expect_top, 1);
-
-    /* Just do this once */
-    f->want_fullscreen &= ~FULLSCREEN_MOVE_WAIT;
-  }
-}
-
 
 /* Call this to change the size of frame F's x-window.
    If CHANGE_GRAVITY is 1, we change to top-left-corner window gravity
