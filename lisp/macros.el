@@ -1,6 +1,6 @@
 ;;; macros.el --- non-primitive commands for keyboard macros.
 
-;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -52,42 +52,48 @@ bindings.
 To save a kbd macro, visit a file of Lisp code such as your `~/.emacs',
 use this command, and then save the file."
   (interactive "CInsert kbd macro (name): \nP")
-  (insert "(fset '")
-  (prin1 macroname (current-buffer))
-  (insert "\n   ")
-  (let ((beg (point)) end)
-    (prin1 (symbol-function macroname) (current-buffer))
-    (setq end (point-marker))
-    (goto-char beg)
-    (while (< (point) end)
-      (let ((char (following-char)))
-	(cond ((< char 32)
-	       (delete-region (point) (1+ (point)))
-	       (insert "\\C-" (+ 96 char)))
-	      ((< char 127)
-	       (forward-char 1))
-	      ((= char 127)
-	       (delete-region (point) (1+ (point)))
-	       (insert "\\C-?"))
-	      ((< char 160)
-	       (delete-region (point) (1+ (point)))
-	       (insert "\\M-C-" (- char 32)))
-	      ((< char 255)
-	       (delete-region (point) (1+ (point)))
-	       (insert "\\M-" (- char 128)))
-	      ((= char 255)
-	       (delete-region (point) (1+ (point)))
-	       (insert "\\M-C-?"))))))
-  (insert ")\n")
-  (if keys
-      (let ((keys (where-is-internal macroname nil)))
-	(while keys
-	  (insert "(global-set-key ")
-	  (prin1 (car keys) (current-buffer))
-	  (insert " '")
-	  (prin1 macroname (current-buffer))
-	  (insert ")\n")
-	  (setq keys (cdr keys))))))
+  (let (definition)
+    (if (string= (symbol-name macroname) "")
+	(progn
+	  (setq macroname 'last-kbd-macro definition last-kbd-macro)
+	  (insert "(setq "))
+      (setq definition (symbol-function macroname))
+      (insert "(fset '"))
+    (prin1 macroname (current-buffer))
+    (insert "\n   ")
+    (let ((beg (point)) end)
+      (prin1 definition (current-buffer))
+      (setq end (point-marker))
+      (goto-char beg)
+      (while (< (point) end)
+	(let ((char (following-char)))
+	  (cond ((< char 32)
+		 (delete-region (point) (1+ (point)))
+		 (insert "\\C-" (+ 96 char)))
+		((< char 127)
+		 (forward-char 1))
+		((= char 127)
+		 (delete-region (point) (1+ (point)))
+		 (insert "\\C-?"))
+		((< char 160)
+		 (delete-region (point) (1+ (point)))
+		 (insert "\\M-C-" (- char 32)))
+		((< char 255)
+		 (delete-region (point) (1+ (point)))
+		 (insert "\\M-" (- char 128)))
+		((= char 255)
+		 (delete-region (point) (1+ (point)))
+		 (insert "\\M-C-?"))))))
+    (insert ")\n")
+    (if keys
+	(let ((keys (where-is-internal macroname nil)))
+	  (while keys
+	    (insert "(global-set-key ")
+	    (prin1 (car keys) (current-buffer))
+	    (insert " '")
+	    (prin1 macroname (current-buffer))
+	    (insert ")\n")
+	    (setq keys (cdr keys)))))))
 
 ;;;###autoload
 (defun kbd-macro-query (flag)
