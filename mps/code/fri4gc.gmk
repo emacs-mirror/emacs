@@ -15,6 +15,9 @@ LIBS = -lm -pthread
 
 include gc.gmk
 
+CFLAGSDEBUG = -g -ggdb
+CFLAGSOPT = -O -g -ggdb
+
 CC = cc
 
 # Suppress some warnings (SuSE).
