@@ -74,14 +74,7 @@
 (defmacro life-void-string () (char-to-string (life-void-char)))
 (defmacro life-not-void-regexp () (concat "[^" (life-void-string) "\n]"))
 
-;; try to optimize the (goto-char (point-min)) & (goto-char (point-max))
-;; idioms.  This depends on goto-char's not griping if we undershoot
-;; or overshoot beginning or end of buffer.
-(defmacro goto-beginning-of-buffer () '(goto-char 1))
-(defmacro maxint () (lsh (lsh (lognot 0) 1) -1))
-(defmacro goto-end-of-buffer () '(goto-char (maxint)))
-
-(defmacro increment (variable) (list 'setq variable (list '1+ variable)))
+(defmacro life-increment (variable) (list 'setq variable (list '1+ variable)))
 
 
 ;; list of numbers that tell how many characters to move to get to
@@ -97,7 +90,8 @@
 ;; Sadly, mode-line-format won't display numbers.
 (defconst life-generation-string nil)
 
-(defun abs (n) (if (< n 0) (- n) n))
+(defvar life-initialized nil
+  "Non-nil if `life' has been run at least once.")
 
 ;;;###autoload
 (defun life (&optional sleeptime)
@@ -106,6 +100,9 @@ The starting pattern is randomly selected.  Prefix arg (optional first
 arg non-nil from a program) is the number of seconds to sleep between
 generations (this defaults to 1)."
   (interactive "p")
+  (or life-initialized
+      (random t))
+  (setq life-initialized t)
   (or sleeptime (setq sleeptime 1))
   (life-setup)
   (life-display-generation sleeptime)
@@ -119,8 +116,6 @@ generations (this defaults to 1)."
 
 (defalias 'life-mode 'life)
 (put 'life-mode 'mode-class 'special)
-
-(random t)
 
 (defun life-setup ()
   (let (n)
@@ -141,11 +136,11 @@ generations (this defaults to 1)."
     ;; stuff in the random pattern
     (life-insert-random-pattern)
     ;; make sure (life-life-char) is used throughout
-    (goto-beginning-of-buffer)
+    (goto-char (point-min))
     (while (re-search-forward (life-not-void-regexp) nil t)
       (replace-match (life-life-string) t t))
     ;; center the pattern horizontally
-    (goto-beginning-of-buffer)
+    (goto-char (point-min))
     (setq n (/ (- fill-column (save-excursion (end-of-line) (point))) 2))
     (while (not (eobp))
       (indent-to n)
@@ -154,12 +149,12 @@ generations (this defaults to 1)."
     (setq n (/ (- (1- (window-height))
 		  (count-lines (point-min) (point-max)))
 	       2))
-    (goto-beginning-of-buffer)
+    (goto-char (point-min))
     (newline n)
-    (goto-end-of-buffer)
+    (goto-char (point-max))
     (newline n)
     ;; pad lines out to fill-column
-    (goto-beginning-of-buffer)
+    (goto-char (point-min))
     (while (not (eobp))
       (end-of-line)
       (indent-to fill-column)
@@ -186,14 +181,14 @@ generations (this defaults to 1)."
   (insert ?\n))
 
 (defun life-increment-generation ()
-  (increment life-current-generation)
+  (life-increment life-current-generation)
   (setq life-generation-string (int-to-string life-current-generation)))
 
 (defun life-grim-reaper ()
   ;; Clear the match information.  Later we check to see if it
   ;; is still clear, if so then all the cells have died.
   (store-match-data nil)
-  (goto-beginning-of-buffer)
+  (goto-char (point-min))
   ;; For speed declare all local variable outside the loop.
   (let (point char pivot living-neighbors list)
     (while (search-forward (life-life-string) nil t)
@@ -211,7 +206,7 @@ generations (this defaults to 1)."
 	      ((< char 9)
 	       (subst-char-in-region point (1+ point) char 9 t))
 	      ((>= char (life-life-char))
-	       (increment living-neighbors)))
+	       (life-increment living-neighbors)))
 	(setq list (cdr list)))
       (if (memq living-neighbors '(2 3))
 	  ()
@@ -227,13 +222,13 @@ generations (this defaults to 1)."
 
 (defun life-expand-plane-if-needed ()
   (catch 'done
-    (goto-beginning-of-buffer)
+    (goto-char (point-min))
     (while (not (eobp))
       ;; check for life at beginning or end of line.  If found at
       ;; either end, expand at both ends,
       (cond ((or (eq (following-char) (life-life-char))
 		 (eq (progn (end-of-line) (preceding-char)) (life-life-char)))
-	     (goto-beginning-of-buffer)
+	     (goto-char (point-min))
 	     (while (not (eobp))
 	       (insert (life-void-char))
 	       (end-of-line)
@@ -244,23 +239,23 @@ generations (this defaults to 1)."
 	   (life-compute-neighbor-deltas)
 	   (throw 'done t)))
       (forward-line)))
-  (goto-beginning-of-buffer)
+  (goto-char (point-min))
   ;; check for life within the first two lines of the buffer.
   ;; If present insert two lifeless lines at the beginning..
   (cond ((search-forward (life-life-string)
 			 (+ (point) fill-column fill-column 2) t)
-	 (goto-beginning-of-buffer)
+	 (goto-char (point-min))
 	 (insert-char (life-void-char) fill-column)
 	 (insert ?\n)
 	 (insert-char (life-void-char) fill-column)
 	 (insert ?\n)
 	 (setq life-window-start (+ life-window-start fill-column 1))))
-  (goto-end-of-buffer)
+  (goto-char (point-max))
   ;; check for life within the last two lines of the buffer.
   ;; If present insert two lifeless lines at the end.
   (cond ((search-backward (life-life-string)
 			  (- (point) fill-column fill-column 2) t)
-	 (goto-end-of-buffer)
+	 (goto-char (point-max))
 	 (insert-char (life-void-char) fill-column)
 	 (insert ?\n)
 	 (insert-char (life-void-char) fill-column)
