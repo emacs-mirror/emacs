@@ -1915,40 +1915,71 @@ Finding/Getting Emacs and Related Packages
 
   Recent releases of GNU Emacs 19 should compile right out of the box on
   PCs with a 386 or better, running MS-DOS 3.0 or later. You will need the
-  following:
+  following to compile it:
    
-  Compiler: djgpp version 1,11 maint 4 or later.  You can get the latest
+  Compiler: djgpp version 1.12 maint 1 or later.  You can get the latest
             version by grabbing everything in the following directory
             (using anonymous ftp):
 
-            oak.oakland.edu:pub/msdos/djdpp  
+            ftp.coast.net:/SimTel/vendors/djgpp
 
-  Tar:  One DOS version of tar is available via anonymous ftp from
+	    There are a few directories under djgpp whose names begin with
+	    `v1'; get the contents of `v1' and `v1gnu'.
+	    Do *not* try to compile Emacs with DJGPP v2.0 (in the
+	    directories whose name begin with `v2') as GNU Emacs doesn't
+	    support that version yet.
 
-        ftp.urc.tue.nl:pub/unixtools/dos 
+  GUnZip and Tar:
 
-        However, not all DOS versions of tar work equally well, so you
-        might have to try others if this one gives you trouble.
+	    The easiest way is to use `djtar' which comes with DJGPP v2.0,
+	    because it can unzip .tar.gz archives on-the-fly (so you won't
+	    need twice the required disk space while untarring the
+	    archive).  You get `djtar' with the `v2/djdev200.zip' file from
+	    the above FTP server.
+
+	    Another (slower) version of Tar which unzips automatically is
+	    available by anonymous ftp on this site:
+
+	    ftp.kiae.su:msdos/arcers/tar320fp.zip
+
+	    Or you can unZip the archive with the DJGPP port of GZip (from
+	    the above directory at ftp.coast.net look for gzp124bn.zip),
+	    then unTar it with any of the Tar ports floating around.  A
+	    DOS version of GNU tar is available via anonymous ftp from
+
+	    ftp.unipg.it:/pub/msdos/aspi/gtar-exe.zip
+
+	    Note that DOS ports of GNU Tar usually cannot unzip compressed
+	    archives, and the above port is no exception.
+
+	    Another version of Tar for DOS can be found at
+
+	    ftp.urc.tue.nl:pub/unixtools/dos 
+
+	    However, be warned that not all DOS versions of tar work
+	    equally well, so you might have to try others if this one gives
+	    you trouble.
 
   Utilities: chmod, make, mv, sed, rm.  
 
-             All of these utilities are available via anonymous ftp from
-             the site
+            All of these utilities are available via anonymous ftp from
+            the site
 
-             ftp.iro.umontreal.ca:pub/Internet/gnuish
+            ftp.coast.net:/SimTel/vendors/gnu/gnuish/dos_only
 
-             You should grab the files futil4ax.zoo (contains chmod.exe,
-             mv.exe, and rm.exe), sed106ax.zoo (contains sed.exe), and
-             gzip07ax.zoo (contains gzip.exe).
+            You should grab the files fut312bx.zip (contains chmod.exe,
+            mv.exe, and rm.exe).
+
+	    A port of GNU Sed is available in the djgpp archives in the
+	    above directory on ftp.coast.net.  Look for a file named
+	    sed118bn.zip.
 
   The file etc/MSDOS contains some information on the differences between
   the Unix and MS-DOS versions of GNU Emacs.
 
   If you would prefer not to compile Emacs by yourself, you can get
-  binaries for Emacs 19.24 via anonymous ftp from the following two sites:
-
-      ftp.demon.co.uk:pub/ibmpc/editors/emacs19.24
-      ftp.imada.ou.dk:pub/mirrors/msdos/emacs-19.24
+  binaries for Emacs via anonymous ftp from many sites; use your Archie
+  client to search for them.
 
   You might also be interested in Demacs, which runs under MS-DOS (*not*
   Microsoft Windows; see question 84) on 386- and 486-based PCs.  Demacs is
@@ -1956,8 +1987,8 @@ Finding/Getting Emacs and Related Packages
   Emacs 18 or 19.
 
   Demacs was developed using an MS-DOS version of gcc called djgpp by
-  D. J. Delorie <dj@ctron.com> which can compile and run large programs
-  under MS-DOS, but not under MS Windows.  Demacs was derived from Nemacs
+  DJ Delorie <dj@delorie.com> which can compile and run large programs
+  under MS-DOS and under MS Windows.  Demacs was derived from Nemacs
   rather than straight from GNU Emacs.  You can get the most recent version
   of Demacs via anonymous ftp from ftp.sigmath.osaka-u.ac.jp in
   pub/Msdos/Demacs/*.
@@ -1968,7 +1999,11 @@ Finding/Getting Emacs and Related Packages
 
 84:  Where can I get Emacs for my PC running Microsoft Windows?
 
-  There are currently two ports of Emacs that runs under Microsoft Windows:
+  * If you compile GNU Emacs with the tools listed above, it will run under
+  Microsoft Windows in a DOS box.
+
+  There are currently two other ports of Emacs that runs under Microsoft
+  Windows:
 
   * Oemacs 
 
@@ -1979,7 +2014,7 @@ Finding/Getting Emacs and Related Packages
     that shell-mode does not work due to the limitation of MS-DOS.
     Anonymous ftp information:
 
-      /oak.oakland.edu:pub/msdos/oemacs/
+      ftp.coast.net:SimTel/vendors/gnu/oemacs/
 
   * The other uses a proprietary X Windows emulator and therefore
     the FSF does not think it deserves publicity.
