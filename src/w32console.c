@@ -55,18 +55,18 @@ extern int meta_key;
 
 static void move_cursor (int row, int col);
 static void clear_to_end (void);
-static void clear_frame (void);
-static void clear_end_of_line (int);
+void clear_frame (void);
+void clear_end_of_line (int);
 static void ins_del_lines (int vpos, int n);
-static void insert_glyphs (struct glyph *start, int len);
-static void write_glyphs (struct glyph *string, int len);
-static void delete_glyphs (int n);
+void insert_glyphs (struct glyph *start, int len);
+void write_glyphs (struct glyph *string, int len);
+void delete_glyphs (int n);
 void w32_sys_ring_bell (void);
-static void reset_terminal_modes (void);
-static void set_terminal_modes (void);
-static void set_terminal_window (int size);
-static void update_begin (struct frame * f);
-static void update_end (struct frame * f);
+void reset_terminal_modes (void);
+void set_terminal_modes (void);
+void set_terminal_window (int size);
+void update_begin (struct frame * f);
+void update_end (struct frame * f);
 static WORD w32_face_attributes (struct frame *f, int face_id);
 
 static COORD	cursor_coords;
@@ -103,7 +103,7 @@ ctrl_c_handler (unsigned long type)
 #define PICK_FRAME() (updating_frame ? updating_frame : SELECTED_FRAME ())
 
 /* Move the cursor to (row, col).  */
-void
+static void
 move_cursor (int row, int col)
 {
   cursor_coords.X = col;
@@ -116,7 +116,7 @@ move_cursor (int row, int col)
 }
 
 /* Clear from cursor to end of screen.  */
-void
+static void
 clear_to_end (void)
 {
   struct frame * f = PICK_FRAME ();
@@ -240,7 +240,7 @@ ins_del_lines (int vpos, int n)
 #define	LEFT	1
 #define	RIGHT	0
 
-void
+static void
 scroll_line (int dist, int direction)
 {
   /* The idea here is to implement a horizontal scroll in one line to
