@@ -244,7 +244,10 @@ extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
   ((MIN_CHARSET_PRIVATE_DIMENSION2 - 0xE0) << 14)
 #define MIN_CHAR_COMPOSITION \
   (0x1F << 14)
-#define MAX_CHAR_COMPOSITION GLYPH_MASK_CHAR
+#define MAX_CHAR_COMPOSITION (GLYPH_MASK_CHAR - 1)
+
+/* A generic character for composition characters.  */
+#define GENERIC_COMPOSITION_CHAR (GLYPH_MASK_CHAR)
 
 /* 1 if C is an ASCII character, else 0.  */
 #define SINGLE_BYTE_CHAR_P(c) ((c) < 0x100)
