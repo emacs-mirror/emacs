@@ -1,3 +1,8 @@
+2004-10-09  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (progress-reporter-update): Define before first usage.
+	(make-progress-reporter): Doc fix.
+
 2004-10-09  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* textmodes/paragraphs.el (sentence-end-double-space)
