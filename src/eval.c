@@ -85,6 +85,11 @@ struct catchtag
 
 struct catchtag *catchlist;
 
+#ifdef DEBUG_GCPRO
+/* Count levels of GCPRO to detect failure to UNGCPRO.  */
+int gcpro_level;
+#endif
+
 Lisp_Object Qautoload, Qmacro, Qexit, Qinteractive, Qcommandp, Qdefun;
 Lisp_Object Qinhibit_quit, Vinhibit_quit, Vquit_flag;
 Lisp_Object Qmocklisp_arguments, Vmocklisp_arguments, Qmocklisp;
@@ -185,6 +190,7 @@ init_eval ()
   Vquit_flag = Qnil;
   debug_on_next_call = 0;
   lisp_eval_depth = 0;
+  gcpro_level = 0;
   /* This is less than the initial value of num_nonmacro_input_events.  */
   when_entered_debugger = -1;
 }
@@ -967,6 +973,12 @@ unwind_to_catch (catch, value)
   while (! last_time);
 
   gcprolist = catch->gcpro;
+#ifdef DEBUG_GCPRO
+  if (gcprolist != 0)
+    gcpro_level = gcprolist->level + 1;
+  else
+    gcpro_level = 0;
+#endif
   backtrace_list = catch->backlist;
   lisp_eval_depth = catch->lisp_eval_depth;
   
