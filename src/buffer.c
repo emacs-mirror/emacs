@@ -4078,6 +4078,10 @@ buffer_slot_type_mismatch (offset)
 #endif
 #endif
 
+#ifndef MAP_FAILED
+#define MAP_FAILED ((void *) -1)
+#endif
+
 #include <stdio.h>
 #include <errno.h>
 
