@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.133 2001/09/22 20:09:40 monnier Exp $
+;; $Id: vc-hooks.el,v 1.134 2001/09/24 16:36:14 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -129,7 +129,7 @@ VC commands are globally reachable under the prefix `\\[vc-prefix-map]':
 \\{vc-prefix-map}")
 
 (defmacro vc-error-occurred (&rest body)
-  (list 'condition-case nil (cons 'progn (append body '(nil))) '(error t)))
+  `(condition-case nil (progn ,@body nil) (error t)))
 
 ;; We need a notion of per-file properties because the version
 ;; control state of a file is expensive to derive --- we compute
@@ -137,7 +137,7 @@ VC commands are globally reachable under the prefix `\\[vc-prefix-map]':
 ;; during any subsequent VC operations, and forget them when
 ;; the buffer is killed.
 
-(defvar vc-file-prop-obarray (make-vector 16 0)
+(defvar vc-file-prop-obarray (make-vector 17 0)
   "Obarray for per-file properties.")
 
 (defvar vc-touched-properties nil)
