@@ -5046,9 +5046,15 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
   /* Compute the left edge of the scroll bar.  */
 #ifdef USE_TOOLKIT_SCROLL_BARS
   if (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT (w))
-    sb_left = left + width - sb_width - (width - sb_width) / 2;
+    sb_left = (left +
+	       (WINDOW_RIGHTMOST_P (w)
+		? width - sb_width - (width - sb_width) / 2
+		: 0));
   else
-    sb_left = left + (width - sb_width) / 2;
+    sb_left = (left +
+	       (WINDOW_LEFTMOST_P (w)
+		? (width - sb_width) / 2
+		: width - sb_width));
 #else
   if (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT (w))
     sb_left = left + width - sb_width;
@@ -5101,19 +5107,20 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
                                  width);
 #else /* not USE_GTK */
 
-      /* Since toolkit scroll bars are smaller than the space reserved
-         for them on the frame, we have to clear "under" them.  */
-      if (width > 0 && height > 0)
-        x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-                          left, top, width, height, False);
       /* Move/size the scroll bar widget.  */
       if (mask)
+	{
+	  /* Since toolkit scroll bars are smaller than the space reserved
+	     for them on the frame, we have to clear "under" them.  */
+	  if (width > 0 && height > 0)
+	    x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+                          left, top, width, height, False);
           XtConfigureWidget (SCROLL_BAR_X_WIDGET (FRAME_X_DISPLAY (f), bar),
                              sb_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
                              top,
                              sb_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
                              max (height, 1), 0);
-
+	}
 #endif /* not USE_GTK */
 #else /* not USE_TOOLKIT_SCROLL_BARS */
 
