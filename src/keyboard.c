@@ -4495,6 +4495,13 @@ read_key_sequence (keybuf, bufsize, prompt)
      in the current keymaps, or nil where it is not a prefix.  */
   Lisp_Object *submaps;
 
+  /* The local map to start out with at start of key sequence.  */
+  Lisp_Object orig_local_map;
+
+  /* 1 if we have already considered switching to the local-map property
+     of the place where a mouse click occurred.  */
+  int localized_local_map = 0;
+
   /* The index in defs[] of the first keymap that has a binding for
      this key sequence.  In other words, the lowest i such that
      defs[i] is non-nil.  */
@@ -4592,6 +4599,8 @@ read_key_sequence (keybuf, bufsize, prompt)
 			   &junk);
 #endif /* GOBBLE_FIRST_EVENT */
 
+  orig_local_map = get_local_map (PT, current_buffer);
+
   /* We jump here when the key sequence has been thoroughly changed, and
      we need to rescan it starting from the beginning.  When we jump here,
      keybuf[0..mock_input] holds the sequence we should reread.  */
@@ -4631,7 +4640,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	  }
 	bcopy (maps, submaps, (nmaps - 2) * sizeof (submaps[0]));
 #ifdef USE_TEXT_PROPERTIES
-	submaps[nmaps-2] = get_local_map (PT, current_buffer);
+	submaps[nmaps-2] = orig_local_map;
 #else
 	submaps[nmaps-2] = current_buffer->keymap;
 #endif
@@ -4821,13 +4830,40 @@ read_key_sequence (keybuf, bufsize, prompt)
 		  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
 
 		  set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
+		  orig_local_map = get_local_map (PT, current_buffer);
 		  goto replay_sequence;
 		}
-	      else if (SYMBOLP (posn))
+	      /* For a mouse click, get the local text-property keymap
+		 of the place clicked on, rather than point.  */
+	      if (last_real_key_start == 0 && CONSP (XCONS (key)->cdr)
+		  && ! localized_local_map)
 		{
-		  /* Expand mode-line and scroll-bar events into two events:
-		     use posn as a fake prefix key.  */
+		  Lisp_Object map_here, start, pos;
 
+		  localized_local_map = 1;
+		  start = EVENT_START (key);
+		  if (CONSP (start) && CONSP (XCONS (start)->cdr))
+		    {
+		      pos = POSN_BUFFER_POSN (start);
+		      if (INTEGERP (pos))
+			{
+			  map_here = get_local_map (XINT (pos), current_buffer);
+			  if (!EQ (map_here, orig_local_map))
+			    {
+			      orig_local_map = map_here;
+			      keybuf[t] = key;
+			      mock_input = t + 1;
+
+			      goto replay_sequence;
+			    }
+			}
+		    }
+		}
+
+	      /* Expand mode-line and scroll-bar events into two events:
+		 use posn as a fake prefix key.  */
+	      if (SYMBOLP (posn))
+		{
 		  if (t + 1 >= bufsize)
 		    error ("key sequence too long");
 		  keybuf[t] = posn;
@@ -6315,11 +6351,11 @@ by position only.");
   inhibit_local_menu_bar_menus = 0;
 
   DEFVAR_INT ("num-input-keys", &num_input_keys,
-    "*Number of complete keys read from the keyboard so far.");
+    "Number of complete keys read from the keyboard so far.");
   num_input_keys = 0;
 
   DEFVAR_LISP ("last-event-frame", &Vlast_event_frame,
-    "*The frame in which the most recently read event occurred.\n\
+    "The frame in which the most recently read event occurred.\n\
 If the last event came from a keyboard macro, this is set to `macro'.");
   Vlast_event_frame = Qnil;
 
