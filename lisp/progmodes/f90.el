@@ -443,7 +443,7 @@ whether to blink the matching beginning."
   (modify-syntax-entry ?= "." f90-mode-syntax-table)
   (modify-syntax-entry ?* "." f90-mode-syntax-table)
   (modify-syntax-entry ?/ "." f90-mode-syntax-table)
-  (modify-syntax-entry ?\\ "/" f90-mode-syntax-table)) ; escape chars
+  (modify-syntax-entry ?\\ "\\" f90-mode-syntax-table)) ; escape chars
 
 ;; keys
 (defvar f90-mode-map ()
