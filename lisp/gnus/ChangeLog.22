@@ -1,3 +1,9 @@
+2004-09-27  Miles Bader  <miles@gnu.org>
+
+	* mml.el (mml-parse-1): Remove apparently vestigial use of
+	`mm-hack-charsets'.
+	* mm-bodies.el (mm-encode-body): Likewise.
+
 2003-11-17  Kenichi Handa  <handa@m17n.org>
 
 	* mm-util.el (mm-enable-multibyte): Call set-buffer-multibyte

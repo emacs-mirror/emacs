@@ -1,5 +1,5 @@
 ;;; mml.el --- A package for parsing and validating MML documents
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -213,8 +213,7 @@ one charsets.")
 			 (list
 			  (intern (downcase (cdr (assq 'charset tag))))))
 			(t
-			 (mm-find-mime-charset-region point (point)
-						      mm-hack-charsets))))
+			 (mm-find-mime-charset-region point (point)))))
 	(when (and (not raw) (memq nil charsets))
 	  (if (or (memq 'unknown-encoding mml-confirmation-set)
 		  (message-options-get 'unknown-encoding)
