@@ -82,6 +82,7 @@
 			    (coding-system :tag "Single coding system"
 					   :value undecided)
 			    (function :value ignore))))
+	     (selection-coding-system mule coding-system)
 	     ;; dired.c
 	     (completion-ignored-extensions dired 
 					    (repeat (string :format "%v")))
@@ -255,6 +256,8 @@
 						     :format "%v")
 					    (other :tag "Unlimited" t)))
 	     (unibyte-display-via-language-environment mule boolean)
+	     ;; xfaces.c
+	     (scalable-fonts-allowed display boolean)
 	     ;; xfns.c
 	     (x-bitmap-file-path installation
 				 (repeat (directory :format "%v")))
@@ -312,6 +315,10 @@
 	(put symbol 'custom-version version)))))
 
 (custom-add-to-group 'iswitchb 'read-buffer-function 'custom-variable)
+(put 'selection-coding-system 'custom-set
+     (lambda (symbol value)
+       (set-selection-coding-system value)
+       (set symbol value)))
 
 ;; Record cus-start as loaded
 ;; if we have set up all the info that we can set up.
