@@ -1,3 +1,10 @@
+2001-08-26  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* progmodes/antlr-mode.el: Add Keywords header.  From Pavel
+	Jan,Bm(Bk <Pavel@Janik.cz>.
+
+	* net/telnet.el: Ditto.
+
 2001-08-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* hl-line.el (hl-line-mode): Add args INIT-VALUE, LIGHTER, and
