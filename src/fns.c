@@ -2999,12 +2999,6 @@ base64_encode_1 (from, to, length, line_break)
       *e++ = base64_value_to_char[0x3f & c];
     }
 
-  /* Complete last partial line.  */
-
-  if (line_break)
-    if (counter > 0)
-      *e++ = '\n';
-
   return e - to;
 }
 
