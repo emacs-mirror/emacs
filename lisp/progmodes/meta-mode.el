@@ -41,16 +41,6 @@
 ;; package or as a separate Emacs Lisp package.
 
 ;; Installation:
-;;
-;; Install this file (meta-mode.el) in your personal or system-wide
-;; Emacs Lisp directory and add these lines to your startup files:
-;;
-;;  (autoload 'metafont-mode "meta-mode" "Metafont editing mode." t)
-;;  (autoload 'metapost-mode "meta-mode" "MetaPost editing mode." t)
-;;
-;;  (setq auto-mode-alist
-;;        (append '(("\\.mf\\'" . metafont-mode)
-;;                  ("\\.mp\\'" . metapost-mode)) auto-mode-alist))
 ;; 
 ;; An interface to running Metafont or MetaPost as a shell process
 ;; from within Emacs is currently under development as a separate
