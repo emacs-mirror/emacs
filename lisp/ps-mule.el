@@ -93,7 +93,7 @@
 (eval-and-compile (require 'ps-print))
 
 
-(require 'ps-print-def)			; Common definitions
+(require 'ps-vars)			; Common definitions
 
 
 ;;;; `ps-multibyte-buffer' definition should be placed in `ps-mule' but due to

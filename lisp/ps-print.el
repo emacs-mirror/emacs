@@ -1152,7 +1152,7 @@ Please send all bug fixes and enhancements to
   :group 'ps-print)
 
 
-(require 'ps-print-def)			; Common definitions
+(require 'ps-vars)			; Common definitions
 
 
 (defcustom ps-print-prologue-header nil
