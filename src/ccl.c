@@ -2111,11 +2111,15 @@ Return index number of the registered CCL program.")
     {
       CHECK_VECTOR (ccl_prog, 1);
       resolved = resolve_symbol_ccl_program (ccl_prog);
-      if (! NILP (resolved))
+      if (NILP (resolved))
+	error ("Error in CCL program");
+      if (VECTORP (resolved))
 	{
 	  ccl_prog = resolved;
 	  resolved = Qt;
 	}
+      else
+	resolved = Qnil;
     }
 
   for (idx = 0; idx < len; idx++)
