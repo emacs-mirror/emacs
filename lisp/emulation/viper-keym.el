@@ -83,8 +83,7 @@ as is allowed by the major mode in effect."
   :group 'viper) 
 
 (defcustom viper-want-ctl-h-help nil
-  "*If t then C-h is bound to help-command in insert mode, if nil then it is
-bound to delete-backward-char."
+  "*If non-nil, C-h gets bound to help-command; otherwise, C-h gets the usual Vi bindings."
   :type 'boolean
   :group 'viper)
 
@@ -241,6 +240,7 @@ viper-insert-basic-map. Not recommended, except for novice users.")
   (if viper-xemacs-p [(shift tab)] [S-tab]) 'viper-insert-tab)
 (define-key viper-insert-basic-map "\C-v" 'quoted-insert)
 (define-key viper-insert-basic-map "\C-?" 'viper-del-backward-char-in-insert)
+(define-key viper-insert-basic-map [backspace] 'viper-del-backward-char-in-insert)
 (define-key viper-insert-basic-map "\C-\\" 'viper-alternate-Meta-key)
 (define-key viper-insert-basic-map viper-toggle-key 'viper-escape-to-vi)
 (define-key viper-insert-basic-map "\C-c\M-p"
@@ -254,6 +254,7 @@ viper-insert-basic-map. Not recommended, except for novice users.")
 (define-key viper-replace-map "\C-j" 'viper-replace-state-carriage-return)
 (define-key viper-replace-map "\C-m" 'viper-replace-state-carriage-return)
 (define-key viper-replace-map "\C-?" 'viper-del-backward-char-in-replace)
+(define-key viper-replace-map [backspace] 'viper-del-backward-char-in-replace)
 
 
 
@@ -356,6 +357,7 @@ viper-insert-basic-map. Not recommended, except for novice users.")
 (define-key viper-vi-basic-map "f" 'viper-find-char-forward)
 (define-key viper-vi-basic-map "g" 'viper-nil)
 (define-key viper-vi-basic-map "h" 'viper-backward-char)
+(define-key viper-vi-basic-map [backspace] 'viper-backward-char)
 (define-key viper-vi-basic-map "i" 'viper-insert)
 (define-key viper-vi-basic-map "j" 'viper-next-line)
 (define-key viper-vi-basic-map "k" 'viper-previous-line)

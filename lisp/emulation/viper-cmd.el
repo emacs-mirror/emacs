@@ -347,31 +347,29 @@
 	       (not viper-want-emacs-keys-in-insert))
 		   
 	 (if viper-want-ctl-h-help
-	     (progn 
-	       (define-key viper-insert-basic-map [backspace] 'help-command)
-	       (define-key viper-replace-map [backspace] 'help-command)
-	       (define-key viper-insert-basic-map [(control h)] 'help-command)
-	       (define-key viper-replace-map [(control h)] 'help-command))
+	     (progn
+	       (define-key viper-insert-basic-map "\C-h" 'help-command)
+	       (define-key viper-replace-map "\C-h" 'help-command))
 	   (define-key viper-insert-basic-map 
-	     [backspace] 'viper-del-backward-char-in-insert)
+	     "\C-h" 'viper-del-backward-char-in-insert)
 	   (define-key viper-replace-map
-	     [backspace] 'viper-del-backward-char-in-replace)
-	   (define-key viper-insert-basic-map 
-	     [(control h)] 'viper-del-backward-char-in-insert)
-	   (define-key viper-replace-map
-	     [(control h)] 'viper-del-backward-char-in-replace)))
-		     
+	     "\C-h" 'viper-del-backward-char-in-replace))
+	 ;; In XEmacs, C-h overrides backspace, so we make sure it doesn't.
+	 (define-key viper-insert-basic-map
+	   [backspace] 'viper-del-backward-char-in-insert)
+	 (define-key viper-replace-map
+	   [backspace] 'viper-del-backward-char-in-replace)
+	 ) ; end insert/replace case
 	(t ; Vi state
 	 (setq viper-vi-diehard-minor-mode (not viper-want-emacs-keys-in-vi))
 	 (if viper-want-ctl-h-help
-	     (progn
-	       (define-key viper-vi-basic-map [backspace] 'help-command)
-	       (define-key viper-vi-basic-map [(control h)] 'help-command))
-	   (define-key viper-vi-basic-map [backspace] 'viper-backward-char)
-	   (define-key viper-vi-basic-map [(control h)] 'viper-backward-char)))
+	     (define-key viper-vi-basic-map "\C-h" 'help-command)
+	   (define-key viper-vi-basic-map "\C-h" 'viper-backward-char))
+	 ;; In XEmacs, C-h overrides backspace, so we make sure it doesn't.
+	 (define-key viper-vi-basic-map [backspace] 'viper-backward-char))
 	))
 	     
-    
+   
 ;; Normalizes minor-mode-map-alist by putting Viper keymaps first.
 ;; This ensures that Viper bindings are in effect, regardless of which minor
 ;; modes were turned on by the user or by other packages.
