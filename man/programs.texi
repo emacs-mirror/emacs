@@ -1439,9 +1439,9 @@ the syntax class of the preceding character.  Set
 this.
 
 @findex check-parens
-@cindex unbalanced parentheses
-You can use @kbd{M-x check-parens} to find any unbalanced parentheses in
-a buffer.
+@cindex unbalanced parentheses and quotes
+You can use @kbd{M-x check-parens} to find any unbalanced parentheses
+and unbalanced quotes in strings in a buffer.
 
 @node Symbol Completion
 @section Completion for Symbol Names
