@@ -31,6 +31,8 @@
 
 2004-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (with-selected-window): Only save/restore the selected window.
+
 	* progmodes/compile.el (compilation-error-regexp-alist):
 	Use expand-file-name and data-directory.
 
