@@ -136,7 +136,7 @@ number equals or exceeds the local fill-column - right-margin difference."
 (defun canonically-space-region (beg end)
   "Remove extra spaces between words in region.
 Leave one space between words, two at end of sentences or after colons
-(depending on values of `sentence-end-double-space' and `colon-double-space').
+\(depending on values of `sentence-end-double-space' and `colon-double-space').
 Remove indentation from each line."
   (interactive "r")
   (save-excursion
@@ -217,7 +217,14 @@ act as a paragraph-separator."
 				     first-line-prefix)
 		       ;; If the second line prefix is whitespace, use it.
 		       (string-match "\\`[ \t]+\\'" second-line-prefix))
-		   second-line-prefix))
+		   second-line-prefix
+		 ;; If the second line has the first line prefix,
+		 ;; plus whitespace, use the part that the first line shares.
+		 (if (string-match (concat "\\`"
+					     (regexp-quote first-line-prefix)
+					     "[ \t]*\\'")
+				   second-line-prefix)
+		     first-line-prefix)))
 	;; If we get a fill prefix from a one-line paragraph,
 	;; maybe change it to whitespace,
 	;; and check that it isn't a paragraph starter.
@@ -915,10 +922,19 @@ MAIL-FLAG for a mail message, i. e. don't fill header lines."
 (defun fill-individual-paragraphs (min max &optional justify mailp)
   "Fill paragraphs of uniform indentation within the region.
 This command divides the region into \"paragraphs\", 
-treating every change in indentation level as a paragraph boundary,
+treating every change in indentation level or prefix as a paragraph boundary,
 then fills each paragraph using its indentation level as the fill prefix.
 
-When calling from a program, pass range to fill as first two arguments.
+There is one special case where a change in indentation does not start
+a new paragraph.  This is for text of this form:
+
+   foo>    This line with extra indentation starts
+   foo> a paragraph that continues on more lines.
+
+These lines are filled together.
+
+When calling from a program, pass the range to fill
+as the first two arguments.
 
 Optional third and fourth arguments JUSTIFY and MAIL-FLAG:
 JUSTIFY to justify paragraphs (prefix arg),
@@ -957,10 +973,32 @@ MAIL-FLAG for a mail message, i. e. don't fill header lines."
 		   (if (not (and fill-prefix
 				 (looking-at fill-prefix-regexp)))
 		       (setq fill-prefix
-			     (or (let ((adaptive-fill-first-line-regexp ""))
-				   (fill-context-prefix
-				    (point)
-				    (save-excursion (forward-line 2) (point))))
+			     ;; Get the prefix from just the first line
+			     ;; ordinarily.
+			     ;; But if using two lines gives us a shorter
+			     ;; result, lacking some whitespace at the end,
+			     ;; use that.
+			     (or (let ((adaptive-fill-first-line-regexp "")
+				       just-one-line-prefix
+				       two-lines-prefix)
+				   (setq just-one-line-prefix
+					 (fill-context-prefix
+					  (point)
+					  (save-excursion (forward-line 1)
+							  (point))))
+				   (setq two-lines-prefix
+					 (fill-context-prefix
+					  (point)
+					  (save-excursion (forward-line 2)
+							  (point))))
+				   (if (and just-one-line-prefix
+					    two-lines-prefix
+					    (string-match (concat "\\`"
+								  (regexp-quote two-lines-prefix)
+								  "[ \t]*\\'")
+							  just-one-line-prefix))
+				       two-lines-prefix
+				     just-one-line-prefix))
 				 (buffer-substring 
 				  (point)
 				  (save-excursion (skip-chars-forward " \t")
@@ -987,7 +1025,8 @@ MAIL-FLAG for a mail message, i. e. don't fill header lines."
 			  (and (looking-at fill-prefix-regexp)
 			       (save-excursion
 				 (not (progn (forward-char (length fill-prefix))
-					     (or (looking-at paragraph-separate)
+					     (or (looking-at "[ \t]")
+						 (looking-at paragraph-separate)
 						 (looking-at paragraph-start))))))))))
 	  ;; Fill this paragraph, but don't add a newline at the end.
 	  (let ((had-newline (bolp)))
