@@ -31,6 +31,12 @@
 ;; A-umlaut as `C-x 8 " A' or `Alt-" A' (if you have an Alt key) or
 ;; `umlaut A' (if you have an umlaut/diaeresis key).
 
+;; C-x 8 is set up to autoload this package,
+;; but Alt keys and dead accent keys are only defined
+;; once you have loaded the package.  It is nontrivial
+;; to make all of the Alt keys autoload, and it is not clear
+;; that the dead accent keys SHOULD autoload this package.
+
 ;;; Code:
 
 ;;; Provide some binding for startup:
