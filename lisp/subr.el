@@ -919,14 +919,16 @@ The value is normally a string that was passed to `load':
 either an absolute file name, or a library name
 \(with no directory name and no `.el' or `.elc' at the end).
 It can also be nil, if the definition is not associated with any file."
-;;;  (load-symbol-file-load-history)
-  (let ((files load-history)
-	file functions)
-    (while files
-      (if (memq function (cdr (car files)))
-	  (setq file (car (car files)) files nil))
-      (setq files (cdr files)))
-    file))
+  (if (and (symbolp function) (fboundp function)
+	   (eq 'autoload (car-safe (symbol-function function))))
+      (nth 1 (symbol-function function))
+    (let ((files load-history)
+	  file functions)
+      (while files
+	(if (memq function (cdr (car files)))
+	    (setq file (car (car files)) files nil))
+	(setq files (cdr files)))
+      file)))
 
 
 ;;;; Specifying things to do after certain files are loaded.
@@ -952,7 +954,7 @@ evaluated whenever that feature is `provide'd."
 	      (featurep file)
 	    ;; Make sure `load-history' contains the files dumped with
 	    ;; Emacs for the case that FILE is one of them.
-	    ;;; (load-symbol-file-load-history)
+	    ;; (load-symbol-file-load-history)
 	    (assoc file load-history))
 	  (eval form))))
   form)
@@ -1861,6 +1863,14 @@ from `standard-syntax-table' otherwise."
   (let ((table (make-char-table 'syntax-table nil)))
     (set-char-table-parent table (or oldtable (standard-syntax-table)))
     table))
+
+(defun syntax-after (pos)
+  "Return the syntax of the char after POS."
+  (unless (or (< pos (point-min)) (>= pos (point-max)))
+    (let ((st (if parse-sexp-lookup-properties
+		  (get-char-property pos 'syntax-table))))
+      (if (consp st) st
+	(aref (or st (syntax-table)) (char-after pos))))))
 
 (defun add-to-invisibility-spec (arg)
   "Add elements to `buffer-invisibility-spec'.
