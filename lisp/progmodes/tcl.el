@@ -2,11 +2,11 @@
 
 ;; Copyright (C) 1994, 1998, 1999, 2000, 2001  Free Software Foundation, Inc.
 
-;; Maintainer: Tom Tromey <tromey@busco.lanl.gov>
+;; Maintainer: FSF
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.62 $
+;; Version: $Revision: 1.63 $
 
 ;; This file is part of GNU Emacs.
 
@@ -132,7 +132,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.62 $")
+(defconst tcl-version "$Revision: 1.63 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
