@@ -2391,7 +2391,8 @@ void set_frame_cursor_types P_ ((struct frame *, Lisp_Object));
 extern void syms_of_xdisp P_ ((void));
 extern void init_xdisp P_ ((void));
 extern Lisp_Object safe_eval P_ ((Lisp_Object));
-extern int pos_visible_p P_ ((struct window *, int, int *, int));
+extern int pos_visible_p P_ ((struct window *, int, int *,
+			      int *, int *, int));
 
 /* Defined in vm-limit.c.  */
 extern void memory_warnings P_ ((POINTER_TYPE *, void (*warnfun) ()));
