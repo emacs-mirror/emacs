@@ -1,3 +1,7 @@
+2005-01-13  Kim F. Storm  <storm@cua.dk>
+
+	* modes.texi (Emulating Mode Line): Update format-mode-line entry.
+
 2005-01-13  Francis Litterio  <franl@world.std.com>  (tiny change)
 
 	* keymaps.texi (Active Keymaps): Fix overriding-local-map description.

@@ -1,3 +1,8 @@
+2005-01-13  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (Fformat_mode_line): Fix last change.  Remove NO_PROPS arg
+	(specify 0 for FACE instead). Reorder arg list.  Doc fix.
+
 2005-01-12  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (Fformat_mode_line): New arg FACE specifies a default
