@@ -624,11 +624,18 @@ This is in addition to the primary selection.")
       (while (setq i (string-match "[.*]" x-resource-name))
 	(aset x-resource-name i ?-))))
 
-(x-open-connection (or x-display-name
-		       (setq x-display-name (getenv "DISPLAY")))
-		   x-command-line-resources
-		   ;; Exit Emacs with fatal error if this fails.
-		   t)
+;; For the benefit of older Emacses (19.27 and earlier) that are sharing
+;; the same lisp directory, don't pass the third argument unless we seem
+;; to have the multi-display support.
+(if (fboundp 'x-close-connection)
+    (x-open-connection (or x-display-name
+			   (setq x-display-name (getenv "DISPLAY")))
+		       x-command-line-resources
+		       ;; Exit Emacs with fatal error if this fails.
+		       t)
+  (x-open-connection (or x-display-name
+			 (setq x-display-name (getenv "DISPLAY")))
+		     x-command-line-resources))
 
 (setq frame-creation-function 'x-create-frame-with-faces)
 
