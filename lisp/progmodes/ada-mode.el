@@ -7,7 +7,7 @@
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.42 $
+;; Ada Core Technologies's version:   $Revision: 1.43 $
 ;; Keywords: languages ada
 
 ;; This file is part of GNU Emacs.
@@ -281,9 +281,9 @@ An example is:
   "*Non-nil means indent according to the innermost open parenthesis."
   :type 'boolean :group 'ada)
 
-(defcustom ada-fill-comment-prefix "-- "
+(defcustom ada-fill-comment-prefix "--  "
   "*Text inserted in the first columns when filling a comment paragraph.
-Note: if you modify this variable, you will have to restart the ada-mode to
+Note: if you modify this variable, you will have to restart the `ada-mode' to
 reread this variable."
   :type 'string :group 'ada)
 
