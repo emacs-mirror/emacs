@@ -1,6 +1,6 @@
 ;;; devan-util.el --- Support for Devanagari Script Composition
 
-;; Copyright (C) 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001 Free Software Foundation, Inc.
 
 ;; Author: KAWABATA, Taichi <kawabata@is.s.u-tokyo.ac.jp>
 
@@ -1282,3 +1282,7 @@ If there's no corresponding narrow character, return CHAR as is."
 (provide 'devan-util)
 
 ;;; devan-util.el end here
+
+;; Local Variables:
+;; coding: iso-2022-7bit
+;; End:
