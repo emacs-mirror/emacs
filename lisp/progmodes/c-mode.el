@@ -50,7 +50,7 @@
 (define-key c-mode-map "\C-c\C-p" 'c-backward-conditional)
 (define-key c-mode-map "\C-c\C-u" 'c-up-conditional)
 (define-key c-mode-map "\177" 'backward-delete-char-untabify)
-(define-key c-mode-map "\t" 'c-indent-command))
+(define-key c-mode-map "\t" 'c-indent-command)
 
 (define-key c-mode-map [menu-bar] (make-sparse-keymap))
 
