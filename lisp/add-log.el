@@ -1,7 +1,6 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
-;; Copyright (C) 1985, 86, 87, 88, 89, 90, 91, 1992, 1993
-;;	Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1988, 1993 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -104,13 +103,14 @@ Third arg OTHER-WINDOW non-nil means visit in other window."
       (find-file file-name))
     (undo-boundary)
     (goto-char (point-min))
-    (or (looking-at (concat (regexp-quote (substring (current-time-string)
+    (if (looking-at (concat (regexp-quote (substring (current-time-string)
 						     0 10))
 			    ".* " (regexp-quote full-name)
 			    "  (" (regexp-quote login-name) "@"))
-	(insert (current-time-string)
-		"  " full-name
-		"  (" login-name "@" site-name ")\n\n"))
+	(forward-line 1)
+      (insert (current-time-string)
+	      "  " full-name
+	      "  (" login-name "@" site-name ")\n\n"))
 
     ;; Search only within the first paragraph.
     (forward-paragraph 1)
