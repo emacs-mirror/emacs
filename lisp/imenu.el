@@ -117,7 +117,7 @@ names work as tokens.")
 Used for making mouse-menu titles and for flattening nested indexes
 with name concatenation.")
 
-(defvar imenu-submenu-name-format "%s..."
+(defvar imenu-submenu-name-format "%s"
   "*The format for making a submenu name.")
 
 ;;;###autoload
