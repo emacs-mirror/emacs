@@ -1,5 +1,5 @@
 #!/usr/local/perl -w
-# $HopeName$
+# $HopeName: MMQA_harness!script:optproc(trunk.8) $
 #
 # subroutines for processing options to qa commands
 # Each command can specify which options it requires,
@@ -150,9 +150,9 @@ sub displayalloptions {
 }
 
 format OPTLIST =
- @<<<<<<<<<<<<<<<<<<<<< @<<<<<<<<< ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+ @<<<<<<<<<<<<<<<<<<<<< @<<<<<<<<<<<<<< ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 $optname, $optcode, $optcur
-~~                                  ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+~~                                       ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 $optcur
 .
 
