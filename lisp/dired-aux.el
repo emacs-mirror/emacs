@@ -99,7 +99,7 @@ With prefix arg, prompt for argument SWITCHES which is options for `diff'."
     (setq failures
 	  (dired-bunch-files 10000
 			     (function dired-check-process)
-			     (append
+			     (append 
 			      (list operation program new-attribute)
 			      (if (string-match "gnu" system-configuration)
 				  '("--") nil))
@@ -198,7 +198,7 @@ Uses the shell command coming from variables `lpr-command' and
    nil op-symbol files
    (function read-string)
    (format prompt (dired-mark-prompt arg files)) initial))
-
+
 ;;; Cleaning a directory: flagging some backups for deletion.
 
 (defvar dired-file-version-alist)
@@ -290,7 +290,7 @@ with a prefix argument."
 	 (progn (beginning-of-line)
 		(delete-char 1)
 		(insert dired-del-marker)))))
-
+
 ;;; Shell commands
 
 (defun dired-read-shell-command (prompt arg files)
@@ -379,10 +379,12 @@ the list of file names explicitly with the FILE-LIST argument."
   ;; your cmd.
   (let ((stuff-it
 	 (cond ((string-match "\\*" command)
-		(lambda (x) (replace-regexp-in-string "\\*" x command)))
+		(function (lambda (x)
+			    (dired-replace-in-string "\\*" x command))))
 	       ((string-match "\\?" command)
-		(lambda (x) (replace-regexp-in-string "\\?" x command)))
-	       (t (lambda (x) (concat command " " x))))))
+		(function (lambda (x)
+			     (dired-replace-in-string "\\?" x command))))
+	       (t (function (lambda (x) (concat command " " x)))))))
     (if on-each
 	(mapconcat stuff-it (mapcar 'shell-quote-argument file-list) ";")
       (let ((fns (mapconcat 'shell-quote-argument
@@ -400,7 +402,7 @@ the list of file names explicitly with the FILE-LIST argument."
       (shell-command command)))
   ;; Return nil for sake of nconc in dired-bunch-files.
   nil)
-
+
 ;; In Emacs 19 this will return program's exit status.
 ;; This is a separate function so that ange-ftp can redefine it.
 (defun dired-call-process (program discard &rest arguments)
@@ -439,7 +441,7 @@ the list of file names explicitly with the FILE-LIST argument."
 	(kill-buffer err-buffer)
 	(message "%s...done" msg)
 	nil))))
-
+
 ;; Commands that delete or redisplay part of the dired buffer.
 
 (defun dired-kill-line (&optional arg)
@@ -498,7 +500,7 @@ and use this command with a prefix argument (the value does not matter)."
 	count))))
 
 ;;;###end dired-cmd.el
-
+
 ;;; 30K
 ;;;###begin dired-cp.el
 
@@ -555,7 +557,7 @@ Otherwise, the rule is a compression rule, and compression is done with gzip.")
 	    (setq suffix (car suffixes) suffixes nil))
 	(setq suffixes (cdr suffixes))))
     ;; If so, compute desired new name.
-    (if suffix
+    (if suffix	
 	(setq newname (concat (substring file 0 (match-beginning 0))
 			      (nth 1 suffix))))
     (cond (handler
@@ -589,7 +591,7 @@ Otherwise, the rule is a compression rule, and compression is done with gzip.")
 					    "compress" "-f" file))
 		  ;; Don't use NEWNAME with `compress'.
 		  (concat file ".Z"))))))))
-
+
 (defun dired-mark-confirm (op-symbol arg)
   ;; Request confirmation from the user that the operation described
   ;; by OP-SYMBOL is to be performed on the marked files.
@@ -674,7 +676,7 @@ Otherwise, the rule is a compression rule, and compression is done with gzip.")
 	       (apply 'message qprompt qs-args)
 	       (setq char (set qs-var (read-char))))
 	     (memq (cdr elt) '(t y yes)))))))
-
+
 ;;;###autoload
 (defun dired-do-compress (&optional arg)
   "Compress or uncompress marked (or next ARG) files."
@@ -747,7 +749,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 			  arg)
     (dired-move-to-filename)
     (message "Redisplaying...done")))
-
+
 (defun dired-update-file-line (file)
   ;; Delete the current line, and insert an entry for FILE.
   ;; If FILE is nil, then just delete the current line.
@@ -847,7 +849,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 	      ;; It inserts the file's absolute name, rather than
 	      ;; the relative one.  That may be hard to fix since it
 	      ;; is probably controlled by something in ftp.
-	      (goto-char opoint)
+	      (goto-char opoint)	
 	      (let ((inserted-name (dired-get-filename 'verbatim)))
 		(if (file-name-directory inserted-name)
 		    (progn
@@ -929,7 +931,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 			  (save-excursion (forward-line 1) (point))))
       (setq file (directory-file-name file))
       (dired-add-entry file (if (eq ?\040 marker) nil marker)))))
-
+
 ;;; Copy, move/rename, making hard and symbolic links
 
 (defcustom dired-recursive-copies nil
@@ -1026,7 +1028,7 @@ Special value `always' suppresses confirmation."
 	(if (and buffer-file-name
 		 (dired-in-this-tree buffer-file-name expanded-from-dir))
 	    (let ((modflag (buffer-modified-p))
-		  (to-file (replace-regexp-in-string
+		  (to-file (dired-replace-in-string
 			    (concat "^" (regexp-quote from-dir))
 			    to-dir
 			    buffer-file-name)))
@@ -1085,8 +1087,8 @@ Special value `always' suppresses confirmation."
       ;; Update buffer-local dired-subdir-alist
       (setcar elt
 	      (dired-normalize-subdir
-	       (replace-regexp-in-string regexp newtext (car elt)))))))
-
+	       (dired-replace-in-string regexp newtext (car elt)))))))
+
 ;; The basic function for half a dozen variations on cp/mv/ln/ln -s.
 (defun dired-create-files (file-creator operation fn-list name-constructor
 					&optional marker-char)
@@ -1181,7 +1183,7 @@ ESC or `q' to not overwrite any of the remaining files,
       (message "%s: %s file%s"
 	       operation success-count (dired-plural-s success-count)))))
   (dired-move-to-filename))
-
+
 (defun dired-do-create-files (op-symbol file-creator operation arg
 					&optional marker-char op1
 					how-to)
@@ -1302,7 +1304,7 @@ Optional arg HOW-TO is used to set the value of the into-dir variable
 				 (dired-current-directory)))))
 	  (or other-dir this-dir))
       this-dir)))
-
+
 ;;;###autoload
 (defun dired-create-directory (directory)
   "Create a directory called DIRECTORY."
@@ -1379,7 +1381,7 @@ When renaming multiple or marked files, you specify a directory."
   (dired-do-create-files 'move (function dired-rename-file)
 			 "Move" arg dired-keep-marker-rename "Rename"))
 ;;;###end dired-cp.el
-
+
 ;;; 5K
 ;;;###begin dired-re.el
 (defun dired-do-create-files-regexp
@@ -1542,7 +1544,7 @@ Type SPC or `y' to %s one file, DEL or `n' to skip to next,
   (dired-rename-non-directory (function downcase) "Rename downcase" arg))
 
 ;;;###end dired-re.el
-
+
 ;;; 13K
 ;;;###begin dired-ins.el
 
@@ -1695,7 +1697,7 @@ With optional arg REMEMBER-MARKS, return an alist of marked files."
     (message "Reading directory %s..." dirname)
     (let ((dired-actual-switches
 	   (or switches
-	       (replace-regexp-in-string "R" "" dired-actual-switches))))
+	       (dired-replace-in-string "R" "" dired-actual-switches))))
       (if (equal dirname (car (car (reverse dired-subdir-alist))))
 	  ;; top level directory may contain wildcards:
 	  (dired-readin-insert dired-directory)
@@ -1798,7 +1800,7 @@ is always equal to STRING."
 	(setq result
 	      (cons (substring str end) result)))
     (nreverse result)))
-
+
 ;;; moving by subdirectories
 
 ;;;###autoload
@@ -1841,7 +1843,7 @@ The next char is either \\n, or \\r if DIR is hidden."
 	 ;; at either \r or \n after this function succeeds.
 	 (progn (skip-chars-forward "^\r\n")
 		(point)))))
-
+
 ;;;###autoload
 (defun dired-mark-subdir-files ()
   "Mark all files except `.' and `..' in current subdirectory.
@@ -1903,7 +1905,7 @@ Lower levels are unaffected."
     (if pos
 	(goto-char pos)
       (error "At the bottom"))))
-
+
 ;;; hiding
 
 (defun dired-unhide-subdir ()
@@ -1970,7 +1972,7 @@ Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."
 
 ;;;###end dired-ins.el
 
-
+
 ;; Functions for searching in tags style among marked files.
 
 ;;;###autoload
@@ -1990,14 +1992,14 @@ with the command \\[tags-loop-continue]."
   (interactive
    "sQuery replace in marked files (regexp): \nsQuery replace %s by: \nP")
   (tags-query-replace from to delimited '(dired-get-marked-files)))
-
+
 ;;;###autoload
 (defun dired-show-file-type (file &optional deref-symlinks)
   "Print the type of FILE, according to the `file' command.
 If FILE is a symbolic link and the optional argument DEREF-SYMLINKS is
-true then the type of the file linked to by FILE is printed instead."
+true then the type of the file linked to by FILE is printed instead." 
   (interactive (list (dired-get-filename t) current-prefix-arg))
-  (with-temp-buffer
+  (with-temp-buffer 
     (if deref-symlinks
 	(call-process "file" nil t t "-L" file)
       (call-process "file" nil t t file))
