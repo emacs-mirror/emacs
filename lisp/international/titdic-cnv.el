@@ -337,7 +337,7 @@ the generated Quail package is saved."
       (with-temp-buffer
 	(let ((coding-system-for-read 'no-conversion))
 	  (insert-file-contents (expand-file-name filename)))
-	(setq enable-multibyte-characters t)
+	(set-buffer-multibyte t)
 	
 	;; Decode the buffer contents from the encoding specified by a
 	;; value of the key "ENCODE:".
