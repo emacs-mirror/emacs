@@ -3324,6 +3324,10 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
   unsigned char *p = bufp->buffer;
   register unsigned char *pend = p + bufp->used;
 
+  /* Mark the opcode just after a start_memory, so we can test for an
+     empty subpattern when we get to the stop_memory.  */
+  unsigned char *just_past_start_mem = 0;
+
   /* We use this to map every character in the string.  */
   char *translate = bufp->translate;
 
@@ -3804,6 +3808,7 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
 
           /* Move past the register number and inner group count.  */
           p += 2;
+	  just_past_start_mem = p;
           break;
 
 
@@ -3868,7 +3873,7 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
              information for this group that we had before trying this
              last match.  */
           if ((!MATCHED_SOMETHING (reg_info[*p])
-               || (re_opcode_t) p[-3] == start_memory)
+               || just_past_start_mem == p - 1)
 	      && (p + 2) < pend)              
             {
               boolean is_a_jump_n = false;
