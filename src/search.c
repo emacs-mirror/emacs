@@ -1983,8 +1983,12 @@ wordify (string)
     return build_string ("");
 
   adjust = - punct_count + 5 * (word_count - 1) + 4;
-  val = make_uninit_multibyte_string (len + adjust,
-				      STRING_BYTES (XSTRING (string)) + adjust);
+  if (STRING_MULTIBYTE (string))
+    val = make_uninit_multibyte_string (len + adjust,
+					STRING_BYTES (XSTRING (string))
+					+ adjust);
+  else
+    val = make_uninit_string (len + adjust);
 
   o = XSTRING (val)->data;
   *o++ = '\\';
@@ -1999,7 +2003,10 @@ wordify (string)
       if (STRING_MULTIBYTE (string))
 	FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
       else
-	c = XSTRING (string)->data[i++];
+	{
+	  c = XSTRING (string)->data[i++];
+	  i_byte++;
+	}
 
       if (SYNTAX (c) == Sword)
 	{
