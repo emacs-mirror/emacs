@@ -2032,7 +2032,7 @@ one of the properties on the list.  */)
 DEFUN ("lax-plist-put", Flax_plist_put, Slax_plist_put, 3, 3, 0,
        doc: /* Change value in PLIST of PROP to VAL, comparing with `equal'.
 PLIST is a property list, which is a list of the form
-\(PROP1 VALUE1 PROP2 VALUE2 ...).  PROP is a symbol and VAL is any object.
+\(PROP1 VALUE1 PROP2 VALUE2 ...).  PROP and VAL are any objects.
 If PROP is already a property on the list, its value is set to VAL,
 otherwise the new PROP VAL pair is added.  The new plist is returned;
 use `(setq x (lax-plist-put x prop val))' to be sure to use the new value.
