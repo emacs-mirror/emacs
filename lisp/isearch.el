@@ -847,8 +847,9 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
 		;; Word search does not apply (yet) to regexp searches,
 		;; no check is made here.
 		(message (isearch-message-prefix nil nil t))
-		(if (eq 'isearch-yank-word
-			(lookup-key isearch-mode-map (vector e)))
+		(if (memq (lookup-key isearch-mode-map (vector e))
+			  '(isearch-yank-word
+			    isearch-yank-word-or-char))
 		    (setq isearch-word t;; so message-prefix is right
 			  isearch-new-word t)
 		  (cancel-kbd-macro-events)
