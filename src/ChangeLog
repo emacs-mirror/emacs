@@ -1,3 +1,18 @@
+2000-01-11  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* lisp.h (set_internal): Enter the new arg.
+
+	* eval.c (specbind): Record buffer-local variables specially,
+	indicating which buffer's binding was saved.
+	(unbind_to): Restore buffer-local variables specially
+	in the proper buffer.
+
+	* data.c (set_internal): New arg BUF.
+	
+	* eval.c (specbind, unbind_to): Pass new arg to set_internal.
+	* data.c (Fset): Pass new arg to set_internal.
+	* bytecode.c (Fbyte_code): Pass new arg to set_internal.
+	
 2000-01-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* .gdbinit: Adapt to new strings.  Add xbacktrace, xreload,
