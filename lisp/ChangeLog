@@ -31,6 +31,31 @@
 
 2000-08-15  Dave Love  <fx@gnu.org>
 
+	* simple.el: Autoload widget-convert when compiling.
+	(mail-user-agent): Doc fix.
+
+	* help.el (function-called-at-point, variable-at-point): Use
+	with-syntax-table.
+	(help-manyarg-func-alist): Add insert-and-inherit.
+
+	* thingatpt.el (thing-at-point-url-regexp): Prepend `\<'.
+
+	* delsel.el (delsel-unload-hook): New function.
+
+	* find-file.el: Doc fixes.  Move provide to end.
+	(ff) <defgroup>: Add :link.
+	(ff-goto-click): Deleted.
+	(ff-mouse-find-other-file, ff-mouse-find-other-file-other-window):
+	Use mouse-set-point.
+
+	* textmodes/tildify.el: Doc fixes.
+	(tildify) <defgroup>: Add:version.
+
+	* progmodes/glasses.el (glasses) <defgroup>: Add :version.
+	(glasses-custom-set): Use set-default, not set.
+	(minor-mode-alist): Propertize the lighter.
+	(glasses-mode): Provide optional arg.
+
 	* progmodes/cwarn.el (cwarn) <defgroup>: Add :version, :link.
 	(global-cwarn-mode): Don't make it a user option.  Unquote lambda.
 	(cwarn-font-lock-feature-keywords-alist): Don't make it a user
