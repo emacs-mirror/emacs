@@ -1,6 +1,7 @@
 ;;; replace.el --- replace commands for Emacs.
 
-;; Copyright (C) 1985, 86, 87, 92, 94, 96, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 92, 94, 96, 1997, 2000
+;;  Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -862,9 +863,17 @@ which will run faster and probably do exactly what you want."
 			      (progn (goto-char (nth 1 match-again))
 				     match-again)
 			    (and (or match-again
-				     (progn
-				       (forward-char 1)
-				       (not (eobp))))
+				     ;; MATCH-AGAIN nil means in the
+				     ;; regexp case that there's no
+				     ;; match adjacent to the last
+				     ;; one.  So, we could move
+				     ;; forward, but we don't want to
+				     ;; because that moves point 1
+				     ;; position after the last
+				     ;; replacement when everything
+				     ;; has been done.
+				     regexp-flag
+				     (progn (forward-char 1) (not (eobp))))
 				 (funcall search-function search-string limit t)
 				 ;; For speed, use only integers and
 				 ;; reuse the list used last time.
