@@ -3755,7 +3755,7 @@ OTHER-HEADERS is an alist of header/value pairs."
      (nconc
       `((To . ,(or to "")) (Subject . ,(or subject "")))
       (when other-headers other-headers))
-     replybuffer)
+     replybuffer send-actions)
     ;; FIXME: Should return nil if failure.
     t))
 

@@ -1,3 +1,7 @@
+2001-12-01  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* message.el (message-mail): Add send-actions.
+
 2001-11-28  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus-sum.el (gnus-summary-limit-to-author): The number of arguments.
