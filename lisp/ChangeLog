@@ -1,3 +1,8 @@
+2003-11-30  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* cus-edit.el (custom-add-parent-links): Add documentation links
+	for parent, if the item has none of its own.
+
 2003-11-30  Richard M. Stallman  <rms@gnu.org>
 
 	* dired-aux.el (dired-do-query-replace-regexp):
