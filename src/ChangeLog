@@ -1,5 +1,8 @@
 2000-12-27  Gerd Moellmann  <gerd@gnu.org>
 
+	* .gdbinit: Comment out the line pointing to the Lesstif source
+	directory.
+
 	* window.c (Frecenter): Use displayed_window_lines instead
 	of window_internal_height.
 
