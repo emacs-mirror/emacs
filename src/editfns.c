@@ -920,7 +920,7 @@ DEFUN ("eolp", Feolp, Seolp, 0, 0, 0,
 
 DEFUN ("char-after", Fchar_after, Schar_after, 0, 1, 0,
   "Return character in current buffer at position POS.\n\
-POS is an integer or a buffer pointer.\n\
+POS is an integer or a marker.\n\
 If POS is out of range, the value is nil.")
   (pos)
      Lisp_Object pos;
@@ -953,7 +953,7 @@ If POS is out of range, the value is nil.")
 
 DEFUN ("char-before", Fchar_before, Schar_before, 0, 1, 0,
   "Return character in current buffer preceding position POS.\n\
-POS is an integer or a buffer pointer.\n\
+POS is an integer or a marker.\n\
 If POS is out of range, the value is nil.")
   (pos)
      Lisp_Object pos;
