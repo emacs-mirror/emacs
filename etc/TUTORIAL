@@ -355,6 +355,19 @@ started by C-f and M-f (well, <Delete> is not really a control
 character, but let's not worry about that).  C-k and M-k are like C-e
 and M-e, sort of, in that lines are opposite sentences.
 
+You can also kill any part of the buffer with one uniform method.
+Move to one end of that part, and type C-@ or C-SPC (either one).
+Move to the other end of that part, and type C-w.  That kills
+all the text between the two positions.
+
+>> Move the cursor to the Y at the start of the previous paragraph.
+>> Type C-SPC.  Emacs should display a message "Mark set"
+   at the bottom of the screen.
+>> Move the cursor to the n in "end", on the second line of the
+   paragraph.
+>> Type C-w.  This will kill the text starting from the Y,
+   and ending just before the n.
+
 When you delete more than one character at a time, Emacs saves the
 deleted text so that you can bring it back.  Bringing back killed text
 is called "yanking".  You can yank the killed text either at the same
