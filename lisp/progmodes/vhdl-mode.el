@@ -605,7 +605,7 @@ begin  -- process <label>
     <cursor>
   elsif <clock>'event and <clock> = '1' then  -- rising clock edge
     if <enable> = '1' then  -- synchronous load
-      
+
     end if;
   end if;
 end process <label>;"
@@ -7567,7 +7567,7 @@ If starting after end-comment-column, start a new line."
     (beginning-of-line)
     (setq beg (point))
     (if (looking-at comment-start)
-	(comment-region beg end -1)
+	(comment-region beg end -2)
       (comment-region beg end))))
 
 (defun vhdl-comment-uncomment-line (&optional arg)
