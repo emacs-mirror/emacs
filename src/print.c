@@ -45,6 +45,46 @@ extern Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
 
 #ifdef LISP_FLOAT_TYPE
 Lisp_Object Vfloat_output_format, Qfloat_output_format;
+
+/* Work around a problem that happens because math.h on hpux 7
+   defines two static variables--which, in Emacs, are not really static,
+   because `static' is defined as nothing.  The problem is that they are
+   defined both here and in lread.c.
+   These macros prevent the name conflict.  */
+#if defined (HPUX) && !defined (HPUX8)
+#define _MAXLDBL print_maxldbl
+#define _NMAXLDBL print_nmaxldbl
+#endif
+
+#include <math.h>
+
+#if STDC_HEADERS
+#include <float.h>
+#include <stdlib.h>
+#endif
+
+/* Default to values appropriate for IEEE floating point.  */
+#ifndef FLT_RADIX
+#define FLT_RADIX 2
+#endif
+#ifndef DBL_MANT_DIG
+#define DBL_MANT_DIG 53
+#endif
+#ifndef DBL_DIG
+#define DBL_DIG 15
+#endif
+
+/* Define DOUBLE_DIGITS_BOUND, an upper bound on the number of decimal digits
+   needed to express a float without losing information.
+   The general-case formula is valid for the usual case, IEEE floating point,
+   but many compilers can't optimize the formula to an integer constant,
+   so make a special case for it.  */
+#if FLT_RADIX == 2 && DBL_MANT_DIG == 53
+#define DOUBLE_DIGITS_BOUND 17 /* IEEE floating point */
+#else
+#define DOUBLE_DIGITS_BOUND ((int) ceil (log10 (pow (FLT_RADIX, DBL_MANT_DIG))))
+#endif
+
 #endif /* LISP_FLOAT_TYPE */
 
 /* Avoid actual stack overflow in print.  */
@@ -865,8 +905,21 @@ float_to_string (buf, data)
       || !STRINGP (Vfloat_output_format))
   lose:
     {
-      sprintf (buf, "%.17g", data);
-      width = -1;
+      /* Generate the fewest number of digits that represent the
+	 floating point value without losing information.
+	 The following method is simple but a bit slow.
+	 For ideas about speeding things up, please see:
+
+	 Guy L Steele Jr & Jon L White, How to print floating-point numbers
+	 accurately.  SIGPLAN notices 25, 6 (June 1990), 112-126.
+
+	 Robert G Burger & R Kent Dybvig, Printing floating point numbers
+	 quickly and accurately, SIGPLAN notices 31, 5 (May 1996), 108-116.  */
+
+      width = fabs (data) < DBL_MIN ? 1 : DBL_DIG;
+      do
+	sprintf (buf, "%.*g", width, data);
+      while (width++ < DOUBLE_DIGITS_BOUND && atof (buf) != data);
     }
   else			/* oink oink */
     {
@@ -1514,7 +1567,8 @@ Use `g' to choose the shorter of those two formats for the number at hand.\n\
 The precision in any of these cases is the number of digits following\n\
 the decimal point.  With `f', a precision of 0 means to omit the\n\
 decimal point.  0 is not allowed with `e' or `g'.\n\n\
-A value of nil means to use `%.17g'.");
+A value of nil means to use the shortest notation\n\
+that represents the number without losing information.");
   Vfloat_output_format = Qnil;
   Qfloat_output_format = intern ("float-output-format");
   staticpro (&Qfloat_output_format);
