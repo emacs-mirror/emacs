@@ -741,7 +741,7 @@ concat (nargs, args, target_type, last_special)
 		  }
 		else
 		  {
-		    XSETFASTINT (elt, SREF (this, thisindex++));
+		    XSETFASTINT (elt, SREF (this, thisindex)); thisindex++;
 		    if (some_multibyte
 			&& (XINT (elt) >= 0240
 			    || (XINT (elt) >= 0200

@@ -241,7 +241,8 @@ make_window ()
   register struct window *p;
 
   p = allocate_window ();
-  XSETFASTINT (p->sequence_number, ++sequence_number);
+  ++sequence_number;
+  XSETFASTINT (p->sequence_number, sequence_number);
   XSETFASTINT (p->left_col, 0);
   XSETFASTINT (p->top_line, 0);
   XSETFASTINT (p->total_lines, 0);
@@ -3149,7 +3150,8 @@ selects the buffer of the selected window before each command.  */)
   w = XWINDOW (window);
   w->frozen_window_start_p = 0;
 
-  XSETFASTINT (w->use_time, ++window_select_count);
+  ++window_select_count;
+  XSETFASTINT (w->use_time, window_select_count);
   if (EQ (window, selected_window))
     return window;
 
@@ -3640,7 +3642,8 @@ make_dummy_parent (window)
       = ((struct Lisp_Vector *)o)->contents[i];
   XSETWINDOW (new, p);
 
-  XSETFASTINT (p->sequence_number, ++sequence_number);
+  ++sequence_number;
+  XSETFASTINT (p->sequence_number, sequence_number);
 
   /* Put new into window structure in place of window */
   replace_window (window, new);
@@ -5882,7 +5885,7 @@ save_window_save (window, vector, i)
       p = SAVED_WINDOW_N (vector, i);
       w = XWINDOW (window);
 
-      XSETFASTINT (w->temslot, i++);
+      XSETFASTINT (w->temslot, i); i++;
       p->window = window;
       p->buffer = w->buffer;
       p->left_col = w->left_col;
