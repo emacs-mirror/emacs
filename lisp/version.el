@@ -76,10 +76,10 @@ to the system configuration; look at `system-configuration' instead."
           (message "%s" version-string)
         version-string))))
 
-;;; We hope that this alias is easier for people to find.
+;; We hope that this alias is easier for people to find.
 (defalias 'version 'emacs-version)
 
-;;; We put version info into the executable in the form that ident(1) uses.
+;; We put version info into the executable in the form that ident(1) uses.
 (or (memq system-type '(vax-vms windows-nt))
     (purecopy (concat "\n$Id: " (subst-char-in-string ?\n ? (emacs-version))
 		      " $\n")))
