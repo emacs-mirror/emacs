@@ -7,7 +7,7 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript, multibyte, mule
-;; Time-stamp:	<99/06/24 23:07:11 vinicius>
+;; Time-stamp:	<99/12/11 20:09:24 vinicius>
 
 ;; This file is part of GNU Emacs.
 
@@ -93,57 +93,52 @@
 (eval-and-compile (require 'ps-print))
 
 
-(require 'ps-vars)			; Common definitions
+;;;###autoload
+(defcustom ps-multibyte-buffer nil
+  "*Specifies the multi-byte buffer handling.
 
+Valid values are:
 
-;;;; `ps-multibyte-buffer' definition should be placed in `ps-mule' but due to
-;;;; compilation and customization gripes it was moved to `ps-print-def'.
-;;
-;;(defcustom ps-multibyte-buffer nil
-;;  "*Specifies the multi-byte buffer handling.
-;;
-;;Valid values are:
-;;
-;;  nil                     This is the value to use the default settings which
-;;			    is by default for printing buffer with only ASCII
-;;			    and Latin characters.   The default setting can be
-;;			    changed by setting the variable
-;;			    `ps-mule-font-info-database-default' differently.
-;;			    The initial value of this variable is
-;;			    `ps-mule-font-info-database-latin' (see
-;;			    documentation).
-;;
-;;  `non-latin-printer'     This is the value to use when you have a Japanese
-;;			    or Korean PostScript printer and want to print
-;;			    buffer with ASCII, Latin-1, Japanese (JISX0208 and
-;;			    JISX0201-Kana) and Korean characters.  At present,
-;;			    it was not tested the Korean characters printing.
-;;			    If you have a korean PostScript printer, please,
-;;			    test it.
-;;
-;;  `bdf-font'              This is the value to use when you want to print
-;;			    buffer with BDF fonts.  BDF fonts include both latin
-;;			    and non-latin fonts.  BDF (Bitmap Distribution
-;;			    Format) is a format used for distributing X's font
-;;			    source file.  BDF fonts are included in
-;;			    `intlfonts-1.1' which is a collection of X11 fonts
-;;			    for all characters supported by Emacs.  In order to
-;;			    use this value, be sure to have installed
-;;			    `intlfonts-1.1' and set the variable
-;;			    `bdf-directory-list' appropriately (see ps-bdf.el for
-;;			    documentation of this variable).
-;;
-;;  `bdf-font-except-latin' This is like `bdf-font' except that it is used
-;;			    PostScript default fonts to print ASCII and Latin-1
-;;			    characters.  This is convenient when you want or
-;;			    need to use both latin and non-latin characters on
-;;			    the same buffer.  See `ps-font-family',
-;;			    `ps-header-font-family' and `ps-font-info-database'.
-;;
-;;Any other value is treated as nil."
-;;  :type '(choice (const non-latin-printer) (const bdf-font)
-;;		   (const bdf-font-except-latin) (other :tag "nil" nil))
-;;  :group 'ps-print-font)
+  nil                     This is the value to use the default settings which
+			  is by default for printing buffer with only ASCII
+			  and Latin characters.   The default setting can be
+			  changed by setting the variable
+			  `ps-mule-font-info-database-default' differently.
+			  The initial value of this variable is
+			  `ps-mule-font-info-database-latin' (see
+			  documentation).
+
+  `non-latin-printer'     This is the value to use when you have a Japanese
+			  or Korean PostScript printer and want to print
+			  buffer with ASCII, Latin-1, Japanese (JISX0208 and
+			  JISX0201-Kana) and Korean characters.  At present,
+			  it was not tested the Korean characters printing.
+			  If you have a korean PostScript printer, please,
+			  test it.
+
+  `bdf-font'              This is the value to use when you want to print
+			  buffer with BDF fonts.  BDF fonts include both latin
+			  and non-latin fonts.  BDF (Bitmap Distribution
+			  Format) is a format used for distributing X's font
+			  source file.  BDF fonts are included in
+			  `intlfonts-1.1' which is a collection of X11 fonts
+			  for all characters supported by Emacs.  In order to
+			  use this value, be sure to have installed
+			  `intlfonts-1.1' and set the variable
+			  `bdf-directory-list' appropriately (see ps-bdf.el for
+			  documentation of this variable).
+
+  `bdf-font-except-latin' This is like `bdf-font' except that it is used
+			  PostScript default fonts to print ASCII and Latin-1
+			  characters.  This is convenient when you want or
+			  need to use both latin and non-latin characters on
+			  the same buffer.  See `ps-font-family',
+			  `ps-header-font-family' and `ps-font-info-database'.
+
+Any other value is treated as nil."
+  :type '(choice (const non-latin-printer) (const bdf-font)
+		 (const bdf-font-except-latin) (other :tag "nil" nil))
+  :group 'ps-print-font)
 
 
 ;; For Emacs 20.2 and the earlier version.
@@ -640,9 +635,9 @@ STRING should contain only ASCII characters."
       /RelativeCompose [ 0 0.1 ] def
     } {
       RelativeCompose false ne {
-        [ BaselineOffset RelativeCompose BaselineOffset add
-          [ FontMatrix { FontSize div } forall ] transform ]
-        /RelativeCompose exch def
+	[ BaselineOffset RelativeCompose BaselineOffset add
+	  [ FontMatrix { FontSize div } forall ] transform ]
+	/RelativeCompose exch def
       } if
     } ifelse
     currentdict
