@@ -1,7 +1,6 @@
-/* impl.c.lockutnt
- *                     LOCK COVERAGE TEST
+/* impl.c.lockutw3: LOCK COVERAGE TEST
  *
- * $HopeName: MMsrc!lockutnt.c(trunk.5) $
+ * $HopeName: MMsrc!lockutw3.c(trunk.6) $
  */
 
 #include "mpm.h"
@@ -11,18 +10,20 @@
 #error "Relies on Win32 threads"
 #endif
 
-#include <windows.h>
+#include "mpswin.h"
 
-SRCID(lockutnt, "$HopeName: MMsrc!lockutnt.c(trunk.5) $");
+SRCID(lockutw3, "$HopeName: MMsrc!lockutw3.c(trunk.6) $");
+
 
 static LockStruct lockStruct;
 unsigned long shared,tmp;
 
+
 void incR(unsigned long i)
 {
   LockClaimRecursive(&lockStruct);
-  if(i<100){
-    while(i--){
+  if(i<100) {
+    while(i--) {
       tmp=shared;
       shared=tmp+1;
     }
@@ -53,6 +54,7 @@ void inc(unsigned long i)
 #define COUNT 100000l
 DWORD WINAPI thread0(void *p)
 {
+  (void)p;
   inc(COUNT);
   return 0;
 }
