@@ -587,21 +587,24 @@ and TO is ignored."
 	    (with-output-to-temp-buffer "*Warning*"
 	      (save-excursion
 		(set-buffer standard-output)
-		(insert "The following default coding systems were tried,\n"
-			(if (consp coding-system)
-			    (format "and %s safely encodes the target text:\n"
-				    (car coding-system))
-			  "but none of them safely encode the target text:\n"))
+		(insert "The following default coding systems were tried:\n")
 		(let ((pos (point))
 		      (fill-prefix "  "))
 		  (mapcar (function (lambda (x) (princ "  ") (princ (car x))))
 			  default-coding-system)
 		  (insert "\n")
 		  (fill-region-as-paragraph pos (point)))
+		(insert
+		 (if (consp coding-system)
+		     (concat (format "%s safely encodes the target text,\n"
+				     (car coding-system))
+			     "but it is not recommended for encoding text in this context,\n"
+			     "e.g., for sending an email message.\n")
+		   "However, none of them safely encodes the target text.\n"))
 		(insert (if (consp coding-system)
-			    "Select it or "
-			  "Select ")
-			"one from the following safe coding systems:\n")
+			    "\nSelect the above, or "
+			  "\nSelect ")
+			"one of the following safe coding systems:\n")
 		(let ((pos (point))
 		      (fill-prefix "  "))
 		  (mapcar (function (lambda (x) (princ "  ") (princ x)))
