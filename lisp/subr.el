@@ -227,7 +227,8 @@ and then modifies one entry in it."
 	  (> to   (length keyboard-translate-table)))
       (progn
 	(let* ((i (length keyboard-translate-table))
-	       (table (make-string (- 256 i) 0)))
+	       (table (concat keyboard-translate-table
+			      (make-string (- 256 i) 0))))
 	  (while (< i 256)
 	    (aset table i i)
 	    (setq i (1+ i)))
