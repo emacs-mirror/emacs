@@ -133,6 +133,7 @@ a Unicode font with which to display them."
 	     (?\$,1rt(B "--")	;; EM DASH
 	     (?\$,1ub(B "TM")	;; TRADE MARK SIGN
 	     (?\$,1s:(B ">") ;; SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
+	     (?$,1s"(B  ",A7(B")
 	     )))
 	  (setq latin1-display t))
     (mapc #'latin1-display-reset latin1-display-sets)
