@@ -338,7 +338,7 @@ extern int pure_size;
 
 #ifdef EXPLICIT_SIGN_EXTEND
 /* Make sure we sign-extend; compilers have been known to fail to do so.  */
-#define XINT(a) (((a).i << 8) >> 8)
+#define XINT(a) (((a).i << (INTBITS-VALBITS)) >> (INTBITS-VALBITS))
 #else
 #define XINT(a) ((a).s.val)
 #endif /* EXPLICIT_SIGN_EXTEND */
