@@ -58,7 +58,10 @@ On other systems, the closest you can come is to use `-l'.")
   "Run `find' and go into dired-mode on a buffer of the output.
 The command run (after changing into DIR) is
 
-    find . \\( ARGS \\) -ls"
+    find . \\( ARGS \\) -ls
+
+except that the variable `find-ls-option' specifies what to use
+as the final argument."
   (interactive (list (read-file-name "Run find in directory: " nil "" t)
 		     (read-string "Run find (with args): " find-args
 				  '(find-args-history . 1))))
