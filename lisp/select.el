@@ -31,7 +31,7 @@
 (defalias 'x-selection 'x-get-selection)
 (defun x-get-selection (&optional type data-type)
   "Return the value of an X Windows selection.
-The argument TYPE (default `PRIMARY') says which selection, 
+The argument TYPE (default `PRIMARY') says which selection,
 and the argument DATA-TYPE (default `STRING') says
 how to convert the data.
 
@@ -46,12 +46,12 @@ in `selection-converter-alist', which see."
 
 (defun x-set-selection (type data)
   "Make an X Windows selection of type TYPE and value DATA.
-The argument TYPE (default `PRIMARY') says which selection, 
+The argument TYPE (default `PRIMARY') says which selection,
 and DATA specifies the contents.  DATA may be a string,
 a symbol, an integer (or a cons of two integers or list of two integers).
 
 The selection may also be a cons of two markers pointing to the same buffer,
-or an overlay.  In these cases, the selection is considered to be the text 
+or an overlay.  In these cases, the selection is considered to be the text
 between the markers *at whatever time the selection is examined*.
 Thus, editing done in the buffer after you specify the selection
 can alter the effective value of the selection.
@@ -118,11 +118,10 @@ Cut buffers are considered obsolete; you should use selections instead."
 (defun x-set-cut-buffer (string &optional push)
   "Store STRING into the X server's primary cut buffer.
 If PUSH is non-nil, also rotate the cut buffers:
-this means the previous value of the primary cut buffer moves the second
+this means the previous value of the primary cut buffer moves to the second
 cut buffer, and the second to the third, and so on (there are 8 buffers.)
 Cut buffers are considered obsolete; you should use selections instead."
-  ;; Check the data type of STRING.
-  (substring string 0 0)
+  (or (stringp string) (signal 'wrong-type-argument (list 'string string)))
   (if push
       (x-rotate-cut-buffers-internal 1))
   (x-store-cut-buffer-internal 'CUT_BUFFER0 string))
@@ -191,7 +190,7 @@ Cut buffers are considered obsolete; you should use selections instead."
 			       'STRING))
 		(setq type 'STRING
 		      str (encode-coding-string str 'iso-latin-1))))))
-	      
+
 	 ((eq type 'COMPOUND_TEXT)
 	  (setq str (encode-coding-string str coding)))
 
