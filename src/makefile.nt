@@ -1187,6 +1187,8 @@ $(BLD)\w32fns.obj: \
 	$(SRC)\frame.h \
 	$(SRC)\window.h \
 	$(SRC)\buffer.h \
+	$(SRC)\charset.h \
+	$(SRC)\coding.h \
 	$(SRC)\dispextern.h \
 	$(SRC)\keyboard.h \
 	$(SRC)\blockinput.h \
@@ -1205,7 +1207,9 @@ $(BLD)\w32menu.obj: \
 	$(SRC)\window.h \
 	$(SRC)\keyboard.h \
 	$(SRC)\blockinput.h \
-	$(SRC)\buffer.h
+	$(SRC)\buffer.h \
+	$(SRC)\charset.h \
+	$(SRC)\coding.h
 
 $(BLD)\w32term.obj: \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
