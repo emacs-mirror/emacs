@@ -1,5 +1,10 @@
 2000-05-23  Kenichi Handa  <handa@etl.go.jp>
 
+	* msdos.c (IT_write_glyphs): Set coding->src_multibyte to 1.
+
+	* term.c (encode_terminal_code): Set coding->src_multibyte
+	properly.
+
 	* coding.c (encode_eol): Fix a bug of DOS style EOL encoding.
 
 2000-05-22  Kenichi Handa  <handa@etl.go.jp>
@@ -49,7 +54,7 @@
 	* callproc.c (Fcall_process): Always encode an argument string if
 	it is multibyte.  Setup src_multibyte and dst_multibyte members of
 	process_coding properly.
-
+w
 	* category.c (Fmodify_category_entry): Use SPLIT_CHAR, not
 	SPLIT_NON_ASCII_CHAR.
 
