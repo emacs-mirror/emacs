@@ -236,7 +236,7 @@ This function returns a timer object which you can use in `cancel-timer'."
       (error "Invalid repetition interval"))
 
   (let ((timer (timer-create)))
-    (timer-set-time timer (current-time))
+    (timer-set-time timer (current-time) repeat)
     (timer-inc-time timer secs)
     (timer-set-function timer function args)
     (timer-activate timer)
