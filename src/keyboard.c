@@ -909,7 +909,6 @@ command_loop_1 ()
   no_redisplay = 0;
   this_command_key_count = 0;
   last_command = this_command;
-  last_point_position = PT;
 
   /* Make sure this hook runs after commands that get errors and
      throw to top level.  */
@@ -1035,6 +1034,7 @@ command_loop_1 ()
 
       prev_buffer = current_buffer;
       prev_modiff = MODIFF;
+      last_point_position = PT;
 
       /* Execute the command.  */
 
