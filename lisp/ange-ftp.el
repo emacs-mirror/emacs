@@ -857,7 +857,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.41 $")
+(defconst ange-ftp-version "$Revision: 1.42 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -1726,7 +1726,11 @@ been queued with no result.  CONT will still be called, however."
   "Attempt to resolve the given HOSTNAME using nslookup if possible."
   (interactive "sHost:  ")
   (if ange-ftp-nslookup-program
-      (let ((proc (start-process " *nslookup*" " *nslookup*"
+      (let ((default-directory
+	      (if (file-accessible-directory-p default-directory)
+		  default-directory
+		exec-directory))
+	    (proc (start-process " *nslookup*" " *nslookup*"
 				 ange-ftp-nslookup-program host))
 	    (res host))
 	(process-kill-without-query proc)
@@ -1751,6 +1755,10 @@ on the gateway machine to do the ftp instead."
 		       ange-ftp-gateway-ftp-program-name
 		     ange-ftp-ftp-program-name))
 	 (args (append (list ftp-prog) ange-ftp-ftp-program-args))
+	 (default-directory
+	   (if (file-accessible-directory-p default-directory)
+	       default-directory
+	     exec-directory))
 	 proc)
     (if use-gateway
 	(if ange-ftp-gateway-program-interactive
