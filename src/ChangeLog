@@ -1,3 +1,8 @@
+2003-10-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_term_init): For GTK part, increase x_initialized
+	to check for more than one display.  Use error instead of return 0.
+
 2003-10-31  Andrew Choi  <akochoi@shaw.ca>
 
 	* unexmacosx.c (unrelocate): New function (contributed by Nozomu
