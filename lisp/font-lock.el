@@ -287,7 +287,7 @@ decoration for buffers in C++ mode, and level 1 decoration otherwise."
 				      (symbol :tag "name"))
 			       (radio :tag "Decoration"
 				      (const :tag "default" nil)
-				      (const :tag "maximum" t) 
+				      (const :tag "maximum" t)
 				      (integer :tag "level" 1)))))
   :group 'font-lock)
 
@@ -454,7 +454,7 @@ and those for buffer-specialised fontification functions,
 	   nil nil ((?_ . "w")) beginning-of-defun
 	   (font-lock-mark-block-function . mark-defun)))
 	(c++-mode-defaults
-	 '((c++-font-lock-keywords c++-font-lock-keywords-1 
+	 '((c++-font-lock-keywords c++-font-lock-keywords-1
 	    c++-font-lock-keywords-2 c++-font-lock-keywords-3)
 	   nil nil ((?_ . "w")) beginning-of-defun
 	   (font-lock-mark-block-function . mark-defun)))
@@ -593,7 +593,7 @@ This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-inhibit-thing-lock nil
   "List of Font Lock mode related modes that should not be turned on.
-Currently, valid mode names as `fast-lock-mode', `jit-lock-mode' and
+Currently, valid mode names are `fast-lock-mode', `jit-lock-mode' and
 `lazy-lock-mode'.  This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-mode nil)		; Whether we are turned on/modeline.
@@ -862,7 +862,7 @@ use either \\[customize] or the function `global-font-lock-mode'."
 
 (defcustom font-lock-global-modes t
   "*Modes for which Font Lock mode is automagically turned on.
-Global Font Lock mode is controlled by the `global-font-lock-mode' command.
+Global Font Lock mode is controlled by the command `global-font-lock-mode'.
 If nil, means no modes have Font Lock mode automatically turned on.
 If t, all modes that support Font Lock mode have it automatically turned on.
 If a list, it should be a list of `major-mode' symbol names for which Font Lock
@@ -1036,7 +1036,7 @@ The value of this variable is used when Font Lock mode is turned on."
 
 ;;;###autoload
 (defun font-lock-fontify-buffer ()
-  "Fontify the current buffer the way `font-lock-mode' would."
+  "Fontify the current buffer the way the function `font-lock-mode' would."
   (interactive)
   (let ((font-lock-verbose (or font-lock-verbose (interactive-p))))
     (funcall font-lock-fontify-buffer-function)))
@@ -1116,7 +1116,7 @@ The value of this variable is used when Font Lock mode is turned on."
 ;; The following must be rethought, since keywords can override fontification.
 ;      ;; Now scan for keywords, but not if we are inside a comment now.
 ;      (or (and (not font-lock-keywords-only)
-;	       (let ((state (parse-partial-sexp beg end nil nil 
+;	       (let ((state (parse-partial-sexp beg end nil nil
 ;						font-lock-cache-state)))
 ;		 (or (nth 4 state) (nth 7 state))))
 ;	  (font-lock-fontify-keywords-region beg end))
@@ -1382,8 +1382,8 @@ START should be at the beginning of a line."
     (when (or (nth 3 state) (nth 4 state))
       (setq string (nth 3 state) beg (point))
       (setq state (parse-partial-sexp (point) end nil nil state 'syntax-table))
-      (put-text-property beg (point) 'face 
-			 (if string 
+      (put-text-property beg (point) 'face
+			 (if string
 			     font-lock-string-face
 			   font-lock-comment-face)))
     ;;
@@ -1395,8 +1395,8 @@ START should be at the beginning of a line."
 		  (or (nth 3 state) (nth 4 state))))
       (setq string (nth 3 state) beg (nth 8 state))
       (setq state (parse-partial-sexp (point) end nil nil state 'syntax-table))
-      (put-text-property beg (point) 'face 
-			 (if string 
+      (put-text-property beg (point) 'face
+			 (if string
 			     font-lock-string-face
 			   font-lock-comment-face)))))
 
@@ -1503,8 +1503,9 @@ START should be at the beginning of a line."
 ;; Various functions.
 
 (defun font-lock-compile-keywords (keywords)
-  ;; Compile KEYWORDS into the form (t KEYWORD ...) where KEYWORD is of the
-  ;; form (MATCHER HIGHLIGHT ...) as shown in `font-lock-keywords' doc string.
+  "Compile KEYWORDS into the form (t KEYWORD ...).
+Here KEYWORD is of the form (MATCHER HIGHLIGHT ...) as shown in the
+`font-lock-keywords' doc string."
   (if (eq (car-safe keywords) t)
       keywords
     (cons t (mapcar 'font-lock-compile-keyword keywords))))
@@ -1529,7 +1530,7 @@ START should be at the beginning of a line."
 	 keyword)))
 
 (defun font-lock-eval-keywords (keywords)
-  ;; Evalulate KEYWORDS if a function (funcall) or variable (eval) name.
+  "Evalulate KEYWORDS if a function (funcall) or variable (eval) name."
   (if (listp keywords)
       keywords
     (font-lock-eval-keywords (if (fboundp keywords)
@@ -1537,15 +1538,16 @@ START should be at the beginning of a line."
 			       (eval keywords)))))
 
 (defun font-lock-value-in-major-mode (alist)
-  ;; Return value in ALIST for `major-mode', or ALIST if it is not an alist.
-  ;; Structure is ((MAJOR-MODE . VALUE) ...) where MAJOR-MODE may be t.
+  "Return value in ALIST for `major-mode', or ALIST if it is not an alist.
+Structure is ((MAJOR-MODE . VALUE) ...) where MAJOR-MODE may be t."
   (if (consp alist)
       (cdr (or (assq major-mode alist) (assq t alist)))
     alist))
 
 (defun font-lock-choose-keywords (keywords level)
-  ;; Return LEVELth element of KEYWORDS.  A LEVEL of nil is equal to a
-  ;; LEVEL of 0, a LEVEL of t is equal to (1- (length KEYWORDS)).
+  "Return LEVELth element of KEYWORDS.
+A LEVEL of nil is equal to a LEVEL of 0, a LEVEL of t is equal to
+\(1- (length KEYWORDS))."
   (cond ((symbolp keywords)
 	 keywords)
 	((numberp level)
@@ -1616,7 +1618,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 	    (setq alist (cdr alist))))))))
 
 (defun font-lock-unset-defaults ()
-  "Unset fontification defaults.  See `font-lock-set-defaults'."
+  "Unset fontification defaults.  See function `font-lock-set-defaults'."
   (setq font-lock-set-defaults			nil
 	font-lock-keywords			nil
 	font-lock-keywords-only			nil
@@ -1666,7 +1668,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   "Face name to use for things that should stand out.")
 
 (defvar font-lock-reference-face	'font-lock-constant-face
-  "This variable is obsolete.  Use font-lock-constant-face.")
+  "This variable is obsolete.  Use `font-lock-constant-face'.")
 
 ;; Originally face attributes were specified via `font-lock-face-attributes'.
 ;; Users then changed the default face attributes by setting that variable.
@@ -2309,7 +2311,7 @@ See also `c-font-lock-extra-types'.")
 	(regexp-opt-depth c-type-specs))
        (c-type-names
 	`(mapconcat 'identity
-	  (cons 
+	  (cons
 	   (,@ (eval-when-compile
 		 (regexp-opt
 		  '("char" "short" "int" "long" "signed" "unsigned"
@@ -2508,7 +2510,7 @@ See also `c++-font-lock-extra-types'.")
 	(regexp-opt-depth c++-type-specs))
        (c++-type-names
 	`(mapconcat 'identity
-	  (cons 
+	  (cons
 	   (,@ (eval-when-compile
 		 (regexp-opt
 		  '("signed" "unsigned" "short" "long"
@@ -2849,7 +2851,7 @@ See also `java-font-lock-extra-types'.")
        ;; Classes immediately followed by an object name.
        (java-type-names
 	`(mapconcat 'identity
-	  (cons 
+	  (cons
 	   (,@ (eval-when-compile
 		 (regexp-opt '("boolean" "char" "byte" "short" "int" "long"
 			       "float" "double" "void"))))
