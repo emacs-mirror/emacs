@@ -1,3 +1,9 @@
+2000-10-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* term/pc-win.el (msdos-handle-reverse-video): Don't remove
+	reverse from the frame parameters, and don't invert foreground and
+	background colors.
+
 2000-10-16  Miles Bader  <miles@gnu.org>
 
 	* info.el (Info-set-mode-line): Use `%b' instead of hardwired

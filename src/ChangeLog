@@ -1,3 +1,26 @@
+2000-10-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* dispextern.h (unspecified_fg, unspecified_bg): Declare.
+
+	* dosfns.c (unspecified_fg, unspecified_bg): Remove extern
+	declaration.
+
+	* msdos.c (IT_set_face): Compare highlighted face with the default
+	face, and invert colors if these faces' colors are identical.
+	(Fmsdos_remember_default_colors): Don't swap foreground and
+	background colors in initial_colors[].
+	(IT_set_frame_parameters): Don't swap frame's foreground and
+	background pixels.  If ALIST includes "(reverse . t)", swap
+	foreground-color and background-color properties in frame's
+	param_alist.  If the original frame's param_alist doesn't specify
+	the colors, store unspecified-fg and unspecified-bg, reversed if
+	required.
+
+	* frame.c (Fframe_parameters): If a tty's frame's param_alist says
+	the colors are unspecified and reversed, reverse fore- and back-
+	ground in the returned value.
+	(Fframe_parameter): Ditto.
+
 2000-10-16  Gerd Moellmann  <gerd@gnu.org>
 	
 	* xdisp.c (find_last_unchanged_at_beg_row): Renamed from
