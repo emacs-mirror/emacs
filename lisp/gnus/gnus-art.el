@@ -369,8 +369,10 @@ The function is called from the article buffer."
   :type 'function)
 
 (defcustom gnus-show-traditional-method
-  (if (featurep 'mule)
-      'gnus-mule-decode-article
+  (if (and (featurep 'mule)
+	   (boundp 'enable-multibyte-characters))
+      (lambda ()
+	(if enable-multibyte-characters (gnus-mule-decode-article)))
     (lambda ()))
   "Function to decode ``localized RFC 822 messages''.
 The function is called from the article buffer."
