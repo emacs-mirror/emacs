@@ -4,6 +4,10 @@
 
 2005-04-03  Lute Kamstra  <lute@gnu.org>
 
+	* generic.el (define-generic-mode): Add argument to specify
+	keywords for defcustom.
+	(default-generic-mode): Specify :group.
+	
 	* desktop.el (desktop-no-desktop-file-hook)
 	(desktop-after-read-hook): Fix docstring.
 
@@ -2697,7 +2701,7 @@
 	* simple.el (eval-expression-print-format): Avoid warning
 	about edebug-active.
 
-2005-01-15  "James R. Van Zandt"  <jrvz@comcast.net>  (Tiny change)
+2005-01-15  James R. Van Zandt  <jrvz@comcast.net>  (Tiny change)
 
 	* progmodes/sh-script.el: Code copied from make-mode.el
 	with small changes,
