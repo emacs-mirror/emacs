@@ -923,7 +923,7 @@ Tsugumoto Enami, Hans Henrik Eriksen, Michael Ernst, Ata Etemadi,
 Frederick Farnback, Fred Fish, Karl Fogel, Gary Foster, Noah Friedman,
 Keith Gabryelski, Kevin Gallagher, Kevin Gallo, Howard Gayle, Stephen
 Gildea, David Gillespie, Bob Glickstein, Boris Goldowsky, Michelangelo
-Grigni, Michael Gschwind, Henry Guillaume, Doug Gwyn, Ken'ichi Handa ,
+Grigni, Michael Gschwind, Henry Guillaume, Doug Gwyn, Ken'ichi Handa,
 Chris Hanson, K. Shane Hartman, John Heidemann, Markus Heritsch, Karl
 Heuer, Manabu Higashida, Anders Holst, Kurt Hornik, Tom Houlder, Lars
 Ingebrigtsen, Andrew Innes, Michael K. Johnson, Kyle Jones, Tomoji
