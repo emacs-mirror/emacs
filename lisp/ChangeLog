@@ -1,3 +1,8 @@
+2002-07-13  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/timeclock.el (timeclock-in): Handle the case where no
+	log file exists (ie the very first call).
+
 2002-07-13  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/ange-ftp.el: Do not hook into file-name-handler-alist, this
