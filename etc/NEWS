@@ -365,17 +365,20 @@ now uses normal-erase-is-backspace-mode.
 
 *** In Prolog, etags creates tags for rules in addition to predicates.
 
-*** In Perl, packages are tags.  Subroutine tags are named from their
-package.  You can jump to sub tags as you did before, by the sub name, or
-additionally by looking for package::sub.
+*** In Perl, packages are tags.
+Subroutine tags are named from their package.  You can jump to sub tags
+as you did before, by the sub name, or additionally by looking for
+package::sub.
 
-*** New language PHP: tags are functions, classes and defines.  If
-the --members option is specified to etags, tags are vars also.
+*** New language PHP: tags are functions, classes and defines.
+If the --members option is specified to etags, tags are vars also.
 
-*** Honour #line directives.  This is useful when dealing with C code
-created from Yacc sources, or with any file created from Cweb source
-files.  When etags tags the generated file, it writes tags pointing to
-the source file.
+*** Honour #line directives.
+When Etags parses an input file that contains C preprocessor's #line
+directives, it creates tags using the file name and line number
+specified in those directives.  This is useful when dealing with code
+created from Cweb source files.  When Etags tags the generated file, it
+writes tags pointing to the source file.
 
 +++
 ** The command line option --no-windows has been changed to
