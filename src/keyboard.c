@@ -7796,7 +7796,7 @@ Errors running the hook are caught and ignored.");
   Vpost_command_idle_hook = Qnil;
 
   DEFVAR_INT ("post-command-idle-delay", &post_command_idle_delay,
-    "Delay time before running `post-command-idle-delay'.\n\
+    "Delay time before running `post-command-idle-hook'.\n\
 This is measured in microseconds.");
   post_command_idle_delay = 100000;
 
