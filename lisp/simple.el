@@ -1429,7 +1429,7 @@ incremental search, \\[beginning-of-buffer], and \\[end-of-buffer]."
     (goto-char position)
     (switch-to-buffer buffer)))
 (define-key ctl-x-map "\C-@" 'pop-global-mark)
-(define-key ctl-x-map [C-SPC] 'pop-global-mark)
+(define-key ctl-x-map [?\C-\ ] 'pop-global-mark)
 
 
 (defvar next-line-add-newlines t
