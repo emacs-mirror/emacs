@@ -575,6 +575,16 @@ attempt to construct a unique auto-save name (e.g. for remote files).
 
 ** VC Changes
 
+*** The key C-x C-q no longer checks files in or out, it only changes
+the read-only state of the buffer (toggle-read-only).  We made this
+change because we held a poll and found that many users were unhappy
+with the previous behavior.  If you do prefer this behavior, you
+can bind `vc-toggle-read-only' to C-x C-q in your .emacs:
+
+    (global-set-key "\C-x\C-q" 'vc-toggle-read-only)
+
+The function `vc-toggle-read-only' will continue to exist.
+
 +++
 *** There is a new user option `vc-cvs-global-switches' that allows
 you to specify switches that are passed to any CVS command invoked
