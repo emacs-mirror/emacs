@@ -26,6 +26,9 @@ struct position
     int vpos;
     int prevhpos;
     int contin;
+    /* Number of characters we have already handled
+       from the before and after strings at this position.  */
+    int ovstring_chars_done;
   };
 
 struct position *compute_motion ();
