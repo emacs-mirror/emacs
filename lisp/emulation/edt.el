@@ -4,7 +4,7 @@
 
 ;; Author: Kevin Gallagher <kgallagh@spd.dsccc.com>
 ;; Maintainer: Kevin Gallagher <kgallagh@spd.dsccc.com>
-;; Version: 3.0.2
+;; Version: 3.0.3
 ;; Keywords: emulations
 
 ;; This file is part of GNU Emacs.
@@ -80,7 +80,7 @@ configured and available for use.")
 
 (defvar edt-keep-current-page-delimiter nil
   "If set to true, when edt-emulation-on is first invoked,
-modification of the page-delimiter varible to "\f" is suppressed,
+modification of the page-delimiter varible to \"\\f\" is suppressed,
 thereby retaining current Emacs setting.") 
 
 (defvar edt-use-EDT-control-key-bindings nil
