@@ -5558,7 +5558,11 @@ x_destroy_window (f)
       if (FRAME_XIM (f))
 	{
 	  XDestroyIC (FRAME_XIC (f));
+#ifndef SOLARIS2 /* This code causes crashes on Solaris 2.3 and 2.5,
+		    due to an apparent bug in XCloseIM.
+		    The bug may be only in Openwin and not in X11R6.  */
 	  XCloseIM (FRAME_XIM (f));
+#endif
 	}
 #endif
       XDestroyWindow (FRAME_X_DISPLAY (f), f->output_data.x->window_desc);
