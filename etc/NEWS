@@ -499,6 +499,8 @@ specifies a number of lines.  If nil, don't resize.
 
 Default is 0.25.
 
+** The command `Info-search' now uses a search history.
+
 ** Changes to hideshow.el
 
 Hideshow is now at version 5.x.  It uses a new algorithms for block
@@ -707,6 +709,10 @@ copy directories recursively.
 *** In command `dired-do-shell-command' (usually bound to `!') a `?'
 in the shell command has a special meaning similar to `*', but with
 the difference that the command will be run on each file individually.
+
+*** The new command `dired-find-alternate-file' (usually bound to `a')
+replaces the Dired buffer with the buffer for an alternate file or
+directory.
 
 ** The variable mail-specify-envelope-from controls whether to
 use the -f option when sending mail.

@@ -1,3 +1,16 @@
+2000-07-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* dired.el (dired-find-alternate-file): New function.
+	(dired-mode-map): Bind `a' to dired-find-alternate-file.
+	(toplevel): Require dired-aux when compiling.
+	(dired-buffers): Move defvar within file to avoid compiler warning.
+
+	* info.el (Info-last-search): Variable removed.
+	(Info-search-history): New variable.
+	(Info-search): New Info-search-history.
+
+	* battery.el, info-look.el: Change author's mail address.
+
 2000-07-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* lpr.el (lpr-page-header-switches): Add `-h' switch.
