@@ -584,10 +584,10 @@ int automatic_hscrolling_p;
 
 /* How close to the margin can point get before the window is scrolled
    horizontally.  */
-int automatic_hscroll_margin;
+int hscroll_margin;
 
 /* How much to scroll horizontally when point is inside the above margin.  */
-Lisp_Object Vautomatic_hscroll_step;
+Lisp_Object Vhscroll_step;
 
 /* A list of symbols, one for each supported image type.  */
 
@@ -8024,22 +8024,22 @@ hscroll_window_tree (window)
      Lisp_Object window;
 {
   int hscrolled_p = 0;
-  int hscroll_relative_p = FLOATP (Vautomatic_hscroll_step);
+  int hscroll_relative_p = FLOATP (Vhscroll_step);
   int hscroll_step_abs = 0;
   double hscroll_step_rel = 0;
 
   if (hscroll_relative_p)
     {
-      hscroll_step_rel = XFLOAT_DATA (Vautomatic_hscroll_step);
+      hscroll_step_rel = XFLOAT_DATA (Vhscroll_step);
       if (hscroll_step_rel < 0)
 	{
 	  hscroll_relative_p = 0;
 	  hscroll_step_abs = 0;
 	}
     }
-  else if (INTEGERP (Vautomatic_hscroll_step))
+  else if (INTEGERP (Vhscroll_step))
     {
-      hscroll_step_abs = XINT (Vautomatic_hscroll_step);
+      hscroll_step_abs = XINT (Vhscroll_step);
       if (hscroll_step_abs < 0)
 	hscroll_step_abs = 0;
     }
@@ -8056,7 +8056,7 @@ hscroll_window_tree (window)
 	hscrolled_p |= hscroll_window_tree (w->vchild);
       else if (w->cursor.vpos >= 0)
 	{
-	  int hscroll_margin, text_area_x, text_area_y;
+	  int h_margin, text_area_x, text_area_y;
 	  int text_area_width, text_area_height;
 	  struct glyph_row *current_cursor_row
 	    = MATRIX_ROW (w->current_matrix, w->cursor.vpos);
@@ -8071,14 +8071,13 @@ hscroll_window_tree (window)
 		      &text_area_width, &text_area_height);
 
 	  /* Scroll when cursor is inside this scroll margin.  */
-	  hscroll_margin
-	    = automatic_hscroll_margin * CANON_X_UNIT (XFRAME (w->frame));
+	  h_margin = hscroll_margin * CANON_X_UNIT (XFRAME (w->frame));
 
 	  if ((XFASTINT (w->hscroll)
-	       && w->cursor.x <= hscroll_margin)
+	       && w->cursor.x <= h_margin)
 	      || (cursor_row->enabled_p
 		  && cursor_row->truncated_on_right_p
-		  && (w->cursor.x >= text_area_width - hscroll_margin)))
+		  && (w->cursor.x >= text_area_width - h_margin)))
 	    {
 	      struct it it;
 	      int hscroll;
@@ -8110,15 +8109,15 @@ hscroll_window_tree (window)
 	      if (!hscroll_relative_p && hscroll_step_abs == 0)
 		hscroll = max (0, it.current_x - text_area_width / 2)
 		    	  / CANON_X_UNIT (it.f);
-	      else if (w->cursor.x >= text_area_width - hscroll_margin)
+	      else if (w->cursor.x >= text_area_width - h_margin)
 		{
 		  if (hscroll_relative_p)
 		    wanted_x = text_area_width * (1 - hscroll_step_rel)
-		      	       - hscroll_margin;
+		      	       - h_margin;
 		  else
 		    wanted_x = text_area_width
 		      	       - hscroll_step_abs * CANON_X_UNIT (it.f)
-		      	       - hscroll_margin;
+		      	       - h_margin;
 		  hscroll
 		    = max (0, it.current_x - wanted_x) / CANON_X_UNIT (it.f);
 		}
@@ -8126,10 +8125,10 @@ hscroll_window_tree (window)
 		{
 		  if (hscroll_relative_p)
 		    wanted_x = text_area_width * hscroll_step_rel
-		      	       + hscroll_margin;
+		      	       + h_margin;
 		  else
 		    wanted_x = hscroll_step_abs * CANON_X_UNIT (it.f)
-		      	       + hscroll_margin;
+		      	       + h_margin;
 		  hscroll
 		    = max (0, it.current_x - wanted_x) / CANON_X_UNIT (it.f);
 		}
@@ -15060,16 +15059,16 @@ go back to their normal size.  */);
 nil means don't display a cursor there.  */);
   cursor_in_non_selected_windows = 1;
   
-  DEFVAR_BOOL ("automatic-hscrolling", &automatic_hscrolling_p,
+  DEFVAR_BOOL ("auto-hscroll-mode", &automatic_hscrolling_p,
     doc: /* *Non-nil means scroll the display automatically to make point visible.  */);
   automatic_hscrolling_p = 1;
 
-  DEFVAR_INT ("automatic-hscroll-margin", &automatic_hscroll_margin,
+  DEFVAR_INT ("hscroll-margin", &hscroll_margin,
     doc: /* *How many columns away from the window edge point is allowed to get
 before automatic hscrolling will horizontally scroll the window.  */);
-  automatic_hscroll_margin = 5;
+  hscroll_margin = 5;
 
-  DEFVAR_LISP ("automatic-hscroll-step", &Vautomatic_hscroll_step,
+  DEFVAR_LISP ("hscroll-step", &Vhscroll_step,
     doc: /* *How many columns to scroll the window when point gets too close to the edge.
 When point is less than `automatic-hscroll-margin' columns from the window
 edge, automatic hscrolling will scroll the window by the amount of columns
@@ -15085,7 +15084,7 @@ scroll more than the value given by the scroll step.
 
 Note that the lower bound for automatic hscrolling specified by `scroll-left'
 and `scroll-right' overrides this variable's effect.  */);
-  Vautomatic_hscroll_step = make_number (0);
+  Vhscroll_step = make_number (0);
   
   DEFVAR_LISP ("image-types", &Vimage_types,
     doc: /* List of supported image types.
