@@ -1,3 +1,20 @@
+2002-07-21  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (redisplay_window): Don't test BEG_UNCHANGED
+	and END_UNCHANGED when setting buffer_unchanged_p.
+	Use current_matrix_up_to_date_p to decide whether to use
+	try_cursor_movement.
+
+	* config.in (HAVE_SHARED_GAME_DIR): Undef deleted.
+
+	* epaths.in (PATH_GAME): New macro, edited by ../Makefile.in.
+
+	* callproc.c (init_callproc): Set up Vshared_game_score_directory.
+	Set to nil if dir does not exist.
+	(syms_of_callproc): Init unconditionally and simply.
+
+	* buffer.c (Fbuffer_list): Doc fix.
+
 2002-07-21  Ken Raeburn  <raeburn@gnu.org>
 
 	* sysdep.c (end_of_text, end_of_data): Unused functions deleted.

@@ -1,3 +1,11 @@
+2002-07-21  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (gamedir, localstatedir): New variables.
+	(epaths-force): Insert value of gamedir into PATH_GAME.
+
+	* configure.in (gamedir): Handle it like lispdir.
+	(--with-game-dir option): Deleted.
+
 2002-06-21  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* configure.in: Add support for mipseb-*-netbsd* machines.
