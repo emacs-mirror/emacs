@@ -1,3 +1,7 @@
+2004-09-04  Jari Aalto  <jari.aalto@poboxes.com>
+
+	* terminal.el (te-escape): Show `?' in prompt for help key.
+
 2004-09-04  Emilio C. Lopes <eclig@gmx.net>
 
 	* emacs-lisp/lisp.el (kill-backward-up-list): New function.
