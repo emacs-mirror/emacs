@@ -1700,91 +1700,6 @@ Type SPC or `y' to unflag one file, DEL or `n' to skip to next,
 	  (forward-line 1))))
     (message "%s" (format "Flags removed: %d %s" count flag) )))
 
-;;; Cleaning a directory: flagging some backups for deletion.
-
-(defun dired-clean-directory (keep)
-  "Flag numerical backups for deletion.
-Spares `dired-kept-versions' latest versions, and `kept-old-versions' oldest.
-Positive prefix arg KEEP overrides `dired-kept-versions';
-Negative prefix arg KEEP overrides `kept-old-versions' with KEEP made positive.
-
-To clear the flags on these files, you can use \\[dired-flag-backup-files]
-with a prefix argument."
-  (interactive "P")
-  (setq keep (if keep (prefix-numeric-value keep) dired-kept-versions))
-  (let ((early-retention (if (< keep 0) (- keep) kept-old-versions))
-	(late-retention (if (<= keep 0) dired-kept-versions keep))
-	(dired-file-version-alist ()))
-    (message "Cleaning numerical backups (keeping %d late, %d old)..."
-	     late-retention early-retention)
-    ;; Look at each file.
-    ;; If the file has numeric backup versions,
-    ;; put on dired-file-version-alist an element of the form
-    ;; (FILENAME . VERSION-NUMBER-LIST)
-    (dired-map-dired-file-lines (function dired-collect-file-versions))
-    ;; Sort each VERSION-NUMBER-LIST,
-    ;; and remove the versions not to be deleted.
-    (let ((fval dired-file-version-alist))
-      (while fval
-	(let* ((sorted-v-list (cons 'q (sort (cdr (car fval)) '<)))
-	       (v-count (length sorted-v-list)))
-	  (if (> v-count (+ early-retention late-retention))
-	      (rplacd (nthcdr early-retention sorted-v-list)
-		      (nthcdr (- v-count late-retention)
-			      sorted-v-list)))
-	  (rplacd (car fval)
-		  (cdr sorted-v-list)))
-	(setq fval (cdr fval))))
-    ;; Look at each file.  If it is a numeric backup file,
-    ;; find it in a VERSION-NUMBER-LIST and maybe flag it for deletion.
-    (dired-map-dired-file-lines (function dired-trample-file-versions))
-    (message "Cleaning numerical backups...done")))
-
-;;; Subroutines of dired-clean-directory.
-
-(defun dired-map-dired-file-lines (fun)
-  ;; Perform FUN with point at the end of each non-directory line.
-  ;; FUN takes one argument, the filename (complete pathname).
-  (save-excursion
-    (let (file buffer-read-only)
-      (goto-char (point-min))
-      (while (not (eobp))
-	(save-excursion
-	  (and (not (looking-at dired-re-dir))
-	       (not (eolp))
-	       (setq file (dired-get-filename nil t)) ; nil on non-file
-	       (progn (end-of-line)
-		      (funcall fun file))))
-	(forward-line 1)))))
-
-(defun dired-collect-file-versions (fn)
-  ;;  "If it looks like file FN has versions, return a list of the versions.
-  ;;That is a list of strings which are file names.
-  ;;The caller may want to flag some of these files for deletion."
-    (let* ((base-versions
-	    (concat (file-name-nondirectory fn) ".~"))
-	   (bv-length (length base-versions))
-	   (possibilities (file-name-all-completions
-			   base-versions
-			   (file-name-directory fn)))
-	   (versions (mapcar 'backup-extract-version possibilities)))
-      (if versions
-	  (setq dired-file-version-alist (cons (cons fn versions)
-					       dired-file-version-alist)))))
-
-(defun dired-trample-file-versions (fn)
-  (let* ((start-vn (string-match "\\.~[0-9]+~$" fn))
-	 base-version-list)
-    (and start-vn
-	 (setq base-version-list	; there was a base version to which
-	       (assoc (substring fn 0 start-vn)	; this looks like a
-		      dired-file-version-alist))	; subversion
-	 (not (memq (string-to-int (substring fn (+ 2 start-vn)))
-		    base-version-list))	; this one doesn't make the cut
-	 (progn (beginning-of-line)
-		(delete-char 1)
-		(insert dired-del-marker)))))
-
 ;; Logging failures operating on files, and showing the results.
 
 (defvar dired-log-buffer "*Dired log*")
@@ -1934,6 +1849,16 @@ The prompted-for file is the first file given to `diff'."
 Uses the latest backup, if there are several numerical backups.
 If this file is a backup, diff it with its original.
 The backup file is the first file given to `diff'."
+  t)
+
+(autoload 'dired-clean-directory "dired-aux"
+  "Flag numerical backups for deletion.
+Spares `dired-kept-versions' latest versions, and `kept-old-versions' oldest.
+Positive prefix arg KEEP overrides `dired-kept-versions';
+Negative prefix arg KEEP overrides `kept-old-versions' with KEEP made positive.
+
+To clear the flags on these files, you can use \\[dired-flag-backup-files]
+with a prefix argument."
   t)
 
 (autoload 'dired-do-chmod "dired-aux"

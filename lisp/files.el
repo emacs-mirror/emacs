@@ -836,6 +836,19 @@ This is a separate function so you can redefine it for customization.
 You may need to redefine `file-name-sans-versions' as well."
   (string-match "~$" file))
 
+;; This is used in various files.
+;; The usage of bv-length is not very clean,
+;; but I can't see a good alternative,
+;; so as of now I am leaving it alone.
+(defun backup-extract-version (fn)
+  "Given the name of a numeric backup file, return the backup number.
+Uses the free variable `bv-length', whose value should be
+the index in the name where the version number begins."
+  (if (and (string-match "[0-9]+~$" fn bv-length)
+	   (= (match-beginning 0) bv-length))
+      (string-to-int (substring fn bv-length -1))
+      0))
+
 ;; I believe there is no need to alter this behavior for VMS;
 ;; since backup files are not made on VMS, it should not get called.
 (defun find-backup-file-name (fn)
@@ -850,12 +863,7 @@ Value is a list whose car is the name for the backup file
 			   base-versions
 			   (file-name-directory fn)))
 	   (versions (sort (mapcar
-			    (function
-			     (lambda (fn)
-			       (if (and (string-match "[0-9]+~$" fn bv-length)
-					(= (match-beginning 0) bv-length))
-				   (string-to-int (substring fn bv-length -1))
-				 0)))
+			    (function backup-extract-version)
 			    possibilities)
 			   '<))
 	   (high-water-mark (apply 'max 0 versions))
