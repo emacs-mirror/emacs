@@ -8,10 +8,16 @@
 
 2002-03-29  Simon Marshall  <simon.marshall@misys.com>
 
-	* font-lock.el (save-buffer-state): Use make-symbol to bind
-	`modified'.
+	* font-lock.el (save-buffer-state): Use make-symbol to bind `modified'.
 
 2002-03-29  Richard M. Stallman  <rms@gnu.org>
+
+	* dired-aux.el (dired-do-query-replace-regexp, dired-do-search): 
+	Use FILTER arg in dired-get-marked-files to exclude directories.
+	(dired-nondirectory-p): New function.
+
+	* dired.el (dired-get-marked-files): New arg FILTER
+	allows selection of some files.
 
 	* progmodes/tcl.el (tcl-imenu-create-index-function): Doc fix.
 
