@@ -5526,7 +5526,12 @@ image_ascent (img, face)
   if (img->ascent == CENTERED_IMAGE_ASCENT)
     {
       if (face->font)
-	ascent = height / 2 - (face->font->descent - face->font->ascent) / 2;
+	/* This expression is arranged so that if the image can't be
+	   exactly centered, it will be moved slightly up.  This is
+	   because a typical font is `top-heavy' (due to the presence
+	   uppercase letters), so the image placement should err towards
+	   being top-heavy too.  It also just generally looks better.  */
+	ascent = (height + face->font->ascent - face->font->descent + 1) / 2;
       else
 	ascent = height / 2;
     }
