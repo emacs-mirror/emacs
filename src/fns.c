@@ -1055,6 +1055,40 @@ multibyte character of charset `eight-bit-control' or `eight-bit-graphic'.  */)
     }
   return string;
 }
+
+
+DEFUN ("string-to-multibyte", Fstring_to_multibyte, Sstring_to_multibyte,
+       1, 1, 0,
+       doc: /* Return a multibyte string with the same individual chars as STRING.
+If STRING is multibyte, the result is STRING itself.
+Otherwise it is a newly created string, with no text properties.
+
+If STRING is unibyte and contains an 8-bit byte, it is converted to
+the corresponding multibyte character of charset `eight-bit'.  */)
+     (string)
+     Lisp_Object string;
+{
+  CHECK_STRING (string);
+
+  if (! STRING_MULTIBYTE (string))
+    {
+      Lisp_Object new_string;
+      int nchars, nbytes;
+
+      nchars = XSTRING (string)->size;
+      nbytes = parse_str_to_multibyte (XSTRING (string)->data,
+				       STRING_BYTES (XSTRING (string)));
+      new_string = make_uninit_multibyte_string (nchars, nbytes);
+      bcopy (XSTRING (string)->data, XSTRING (new_string)->data,
+	     STRING_BYTES (XSTRING (string)));
+      if (nbytes != STRING_BYTES (XSTRING (string)))
+	str_to_multibyte (XSTRING (new_string)->data, nbytes,
+			  STRING_BYTES (XSTRING (string)));
+      string = new_string;
+      XSTRING (string)->intervals = NULL_INTERVAL;
+    }
+  return string;
+}
 
 DEFUN ("copy-alist", Fcopy_alist, Scopy_alist, 1, 1, 0,
        doc: /* Return a copy of ALIST.
@@ -4898,6 +4932,7 @@ invoked by mouse clicks and mouse menu items.  */);
   defsubr (&Sstring_make_unibyte);
   defsubr (&Sstring_as_multibyte);
   defsubr (&Sstring_as_unibyte);
+  defsubr (&Sstring_to_multibyte);
   defsubr (&Scopy_alist);
   defsubr (&Ssubstring);
   defsubr (&Snthcdr);
