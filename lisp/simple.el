@@ -824,7 +824,9 @@ An uppercase letter in REGEXP makes the search case-sensitive."
 	     (let ((print-level nil))
 	       (prin1-to-string elt))
 	   elt))
-	(goto-char (point-min)))))
+	(if (boundp 'minibuffer-prompt-in-buffer)
+	    (goto-char (minibuffer-prompt-width))
+	  (goto-char (point-min))))))
 
 (defun previous-history-element (n)
   "Inserts the previous element of the minibuffer history into the minibuffer."
