@@ -2,12 +2,12 @@
 
 ;;; Copyright (C) 1985,86,87,88,90,92,93,94,95 Free Software Foundation, Inc.
 
-(defconst mh-e-time-stamp "Time-stamp: <95/03/05 23:39:29 gildea>")
-(defconst mh-e-version "5.0"
+(defconst mh-e-time-stamp "Time-stamp: <95/04/11 15:43:42 gildea>")
+(defconst mh-e-version "5.0.1"
   "Version numbers of this version of mh-e.")
 
 ;; Maintainer: Stephen Gildea <gildea@lcs.mit.edu>
-;; Version: 5.0
+;; Version: 5.0.1
 ;; Keywords: mail
 ;; Bug-reports: include `M-x mh-version' output in any correspondence
 
@@ -63,7 +63,7 @@
 ;;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;;; Modified by Stephen Gildea 1988.  gildea@lcs.mit.edu
-(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.5 1995/04/09 22:28:32 kwzh Exp kwzh $")
+(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.6 1995/04/10 00:19:19 kwzh Exp kwzh $")
 
 ;;; Code:
 
