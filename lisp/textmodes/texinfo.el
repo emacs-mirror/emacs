@@ -34,7 +34,7 @@
     (defmacro defcustom (var value doc &rest ignore)
       `(defvar ,var ,value ,doc)))
 
-(eval-when-compile (require 'tex-mode))
+(eval-when-compile (require 'tex-mode) (require 'cl))
 
 (defgroup texinfo nil
   "Texinfo Mode"
@@ -256,7 +256,6 @@ chapter."
 ;;; Code:
 
 ;;; Don't you dare insert any `require' calls at top level in this file--rms.
-(eval-when-compile (require 'cl)) ;; for ignore-errors
 
 (defvar texinfo-section-list
   '(("top" 1)
@@ -451,6 +450,15 @@ chapter."
     ["Makeinfo buffer"	makeinfo-buffer		t]))
 
 
+(defun texinfo-filter (section list)
+  (let (res)
+    (dolist (x list) (if (eq section (cadr x)) (push (car x) res)))
+    res))
+
+(defvar texinfo-chapter-level-regexp
+  (regexp-opt (texinfo-filter 2 texinfo-section-list))
+  "Regular expression matching just the Texinfo chapter level headings.")
+
 ;;; Texinfo mode
 
 ;;;###autoload
@@ -518,14 +526,14 @@ Top node, is accompanied by some kind of section line, such as an
 If the file has a `top' node, it must be called `top' or `Top' and
 be the first node in the file.
 
+
 Entering Texinfo mode calls the value of `text-mode-hook', and then the
 value of `texinfo-mode-hook'."
-  (make-local-variable 'page-delimiter)
-  (setq page-delimiter
-        (concat
-         "^@node [ \t]*[Tt]op\\|^@\\("
-         "chapter\\|unnumbered \\|appendix \\|majorheading\\|chapheading"
-         "\\)"))
+  (set (make-local-variable 'page-delimiter)
+       (concat
+	"^@node [ \t]*[Tt]op\\|^@\\("
+	texinfo-chapter-level-regexp
+	"\\)\\>"))
   (make-local-variable 'require-final-newline)
   (setq require-final-newline t)
   (make-local-variable 'indent-tabs-mode)
@@ -571,13 +579,11 @@ value of `texinfo-mode-hook'."
   ;; Prevent filling certain lines, in addition to ones specified
   ;; by the user.
   (let ((prevent-filling "^@\\(def\\|multitable\\)"))
-    (make-local-variable 'auto-fill-inhibit-regexp)
-    (if (null auto-fill-inhibit-regexp)
-	(setq auto-fill-inhibit-regexp prevent-filling)
-      (setq auto-fill-inhibit-regexp
-	    (concat "\\(" auto-fill-inhibit-regexp "\\)\\|\\("
-		    prevent-filling "\\)")))))
-		  
+    (set (make-local-variable 'auto-fill-inhibit-regexp)
+	 (if (null auto-fill-inhibit-regexp)
+	     prevent-filling
+	   (concat "\\(" auto-fill-inhibit-regexp "\\)\\|\\("
+		   prevent-filling "\\)")))))
 
 
 ;;; Insert string commands
@@ -663,15 +669,15 @@ Puts point on a blank line between them."
 			    (save-excursion
 			      (backward-sexp 1)
 			      (looking-at macro))
-			  (error nil)))))
+			  (scan-error nil)))))
 	  t))
-    (error nil)))
+    (scan-error nil)))
 
 (defun texinfo-inside-env-p (env &optional bound)
   "Non-nil if inside an environment matching the regexp @ENV."
   (save-excursion
     (and (re-search-backward (concat "@\\(end\\s +\\)?" env) bound t)
-	 (looking-at (concat "@" env)))))
+	 (not (match-end 1)))))
 
 (defun texinfo-insert-quote (&optional arg)
   "Insert the appropriate quote mark for TeXinfo.
@@ -684,10 +690,7 @@ With prefix argument or inside @code or @example, inserts a plain \"."
     (if (or arg
 	    (texinfo-inside-env-p "example\\>" top)
 	    (texinfo-inside-env-p "lisp\\>" top)
-	    (texinfo-inside-macro-p "@code\\>" top)
-	    (texinfo-inside-macro-p "@samp\\>" top)
-	    (texinfo-inside-macro-p "@kbd\\>" top)
-	    (texinfo-inside-macro-p "@kbd\\>" top))
+	    (texinfo-inside-macro-p "@\\(code\\|samp\\|kbd\\)\\>" top))
 	(self-insert-command (prefix-numeric-value arg))
       (insert
        (cond ((= (preceding-char) ?\\) ?\")
@@ -706,14 +709,13 @@ With prefix argument or inside @code or @example, inserts a plain \"."
     (save-excursion
       (while (and (> depth 0)
                   (re-search-backward texinfo-environment-regexp nil t))
-	(if (looking-at "@end")
-	    (setq depth (1+ depth))
-	  (setq depth (1- depth))))
-      (looking-at texinfo-environment-regexp)
-      (if (zerop depth)
-          (setq string
-                (buffer-substring (match-beginning 1)
-                                  (match-end 1)))))
+	(setq depth (if (looking-at "@end") (1+ depth) (1- depth))))
+      (when (zerop depth)
+	;; This looking-at is unnecessary since if depth==0,
+	;; (looking-at "@end") has just failed, so the match data is still
+	;; the one from re-search-backward   -sm
+	;; (looking-at texinfo-environment-regexp)
+	(setq string (match-string 1))))
     (insert "@end ")
     (if string (insert string "\n"))))
 
