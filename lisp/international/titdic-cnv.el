@@ -667,16 +667,6 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; CCE; see the file COPYING.  If not, write to the Free Software Foundation, 
 ;; 675 Mass Ave, Cambridge, MA 02139, USA.")
 
-    ("chinese-b5-quick" "$(0X|(BB"
-     "cangjie-table.b5" big5 "quick-b5.el" 
-     quick-b5-converter
-     "\
-;; # Copyright 2001 Christian Wittern <wittern@iis.sinica.edu.tw>
-;; #
-;; # Permission to copy and distribute both modified and
-;; # unmodified versions is granted without royalty provided
-;; # this notice is preserved.")
-
     ("chinese-ctlau" "$AAuTA(B"
      "CTLau.html" cn-gb-2312 "CTLau.el"
      ctlau-gb-converter
@@ -1171,7 +1161,8 @@ to store generated Quail packages."
       (if (string= (car command-line-args-left) "-dir")
 	  (progn
 	    (setq command-line-args-left (cdr command-line-args-left))
-	    (setq dir (car command-line-args-left))))
+	    (setq dir (car command-line-args-left))
+	    (setq command-line-args-left (cdr command-line-args-left))))
       (setq filename (car command-line-args-left)
 	    command-line-args-left (cdr command-line-args-left))
       (if (file-directory-p filename)
