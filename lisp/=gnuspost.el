@@ -691,31 +691,42 @@ domain is undefined, the domain name is got from it."
       (error "Cannot understand current-time-string: %s." date))
     ))
 
+(defun gnus-current-time-zone (time)
+  "The local time zone in effect at TIME, or nil if not known."
+  (let ((z (and (fboundp 'current-time-zone) (current-time-zone now))))
+    (if (and z (car z)) z gnus-local-timezone)))
+
 (defun gnus-inews-date ()
   "Date string of today.
-If the variable gnus-local-timezone is non-nil, valid date will be
-generated in terms of RFC822.  Otherwise, buggy date in which time
-zone is ignored will be generated.  If you are using with Cnews, you
-must use valid date."
-  (cond (gnus-local-timezone
-	 ;; Gnus can generate valid date.
-	 (gnus-inews-valid-date))
-	(t
-	 ;; No timezone info.
-	 (gnus-inews-buggy-date))
-	))
+If `current-time-zone' works, or if `gnus-local-timezone' is set correctly,
+this yields a date that conforms to RFC 822.  Otherwise a buggy date will
+be generated; this might work with some older news servers."
+  (let* ((now (and (fboundp 'current-time) (current-time)))
+	 (zone (gnus-current-time-zone now)))
+    (if zone
+	(gnus-inews-valid-date now zone)
+      ;; No timezone info.
+      (gnus-inews-buggy-date now))))
 
-(defun gnus-inews-valid-date ()
-  "Date string of today represented in GMT.
-Local timezone is specified by the variable gnus-local-timezone."
+(defun gnus-inews-valid-date (&optional time zone)
+  "A date string that represents TIME and conforms to the Usenet standard.
+TIME is optional and defaults to the current time.
+Some older versions of Emacs always act as if TIME is nil.
+The optional argument ZONE specifies the local time zone (default GMT)."
   (timezone-make-date-arpa-standard
-   (current-time-string) gnus-local-timezone "GMT"))
+   (if (fboundp 'current-time)
+       (current-time-string time)
+     (current-time-string))
+   zone "GMT"))
 
-(defun gnus-inews-buggy-date ()
-  "Buggy date string of today.  Time zone is ignored, but fast."
-  ;; Insert buggy date (time zone is ignored), but I don't worry about
-  ;; it since inews will rewrite it.
-  (let ((date (current-time-string)))
+(defun gnus-inews-buggy-date (&optional time)
+  "A buggy date string that represents TIME; this ignores the time zone
+and does not conform to the Usenet standard, but it sometimes works anyway.
+TIME is optional and defaults to the current time.
+Some older versions of Emacs always act as if TIME is nil."
+  (let ((date (if (fboundp 'current-time)
+		  (current-time-string time)
+		(current-time-string))))
     (if (string-match "^[^ ]+ \\([^ ]+\\)[ ]+\\([0-9]+\\) \\([0-9:]+\\) [0-9][0-9]\\([0-9][0-9]\\)"
 		      date)
 	(concat (substring date (match-beginning 2) (match-end 2)) ;Day
