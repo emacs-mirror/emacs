@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.71) $
+ * $HopeName: MMsrc!arena.c(trunk.72) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .intro: This is the implementation of Arenas.
@@ -35,7 +35,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.71) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.72) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -596,6 +596,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
     /* protected root on a segment. */
     /* It is possible to overcome this restriction. */
     if(SegOfAddr(&seg, arena, addr)) {
+      mps_exception_info = NULL;
       arenaReleaseRingLock();
       /* An access in a different thread may have already caused
        * the protection to be cleared.  This avoids calling
@@ -610,6 +611,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
       ArenaLeave(arena);
       return TRUE;
     } else if(RootOfAddr(&root, arena, addr)) {
+      mps_exception_info = NULL;
       arenaReleaseRingLock();
       mode &= RootPM(root);
       if(mode != AccessSetEMPTY)
