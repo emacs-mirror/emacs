@@ -29,15 +29,23 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/types.h>
 #include "regex.h"
 
-/* We compile regexps into this buffer and then use it for searching. */
+#define REGEXP_CACHE_SIZE 5
 
-struct re_pattern_buffer searchbuf;
+/* If the regexp is non-nil, then the buffer contains the compiled form
+   of that regexp, suitable for searching.  */
+struct regexp_cache {
+  struct regexp_cache *next;
+  Lisp_Object regexp;
+  struct re_pattern_buffer buf;
+  char fastmap[0400];
+};
 
-char search_fastmap[0400];
+/* The instances of that struct.  */
+struct regexp_cache searchbufs[REGEXP_CACHE_SIZE];
 
-/* Last regexp we compiled */
+/* The head of the linked list; points to the most recently used buffer.  */
+struct regexp_cache *searchbuf_head;
 
-Lisp_Object last_regexp;
 
 /* Every call to re_match, etc., must pass &search_regs as the regs
    argument unless you can show it is unnecessary (i.e., if re_match
@@ -49,8 +57,8 @@ Lisp_Object last_regexp;
    been allocated by checking search_regs.num_regs.
 
    The regex code keeps track of whether it has allocated the search
-   buffer using bits in searchbuf.  This means that whenever you
-   compile a new pattern, it completely forgets whether it has
+   buffer using bits in the re_pattern_buffer.  This means that whenever
+   you compile a new pattern, it completely forgets whether it has
    allocated any registers, and will allocate new registers the next
    time you call a searching or matching function.  Therefore, we need
    to call re_set_registers after compiling a new pattern or after
@@ -83,42 +91,68 @@ matcher_overflow ()
 
 /* Compile a regexp and signal a Lisp error if anything goes wrong.  */
 
-compile_pattern (pattern, bufp, regp, translate)
+static void
+compile_pattern_1 (cp, pattern, translate, regp)
+     struct regexp_cache *cp;
      Lisp_Object pattern;
-     struct re_pattern_buffer *bufp;
-     struct re_registers *regp;
      char *translate;
+     struct re_registers *regp;
 {
   CONST char *val;
-  Lisp_Object dummy;
 
-  if (EQ (pattern, last_regexp)
-      && translate == bufp->translate)
-    return;
-
-  last_regexp = Qnil;
-  bufp->translate = translate;
+  cp->regexp = Qnil;
+  cp->buf.translate = translate;
   BLOCK_INPUT;
   val = (CONST char *) re_compile_pattern ((char *) XSTRING (pattern)->data,
-					   XSTRING (pattern)->size, bufp);
+					   XSTRING (pattern)->size, &cp->buf);
   UNBLOCK_INPUT;
   if (val)
-    {
-      dummy = build_string (val);
-      while (1)
-	Fsignal (Qinvalid_regexp, Fcons (dummy, Qnil));
-    }
+    Fsignal (Qinvalid_regexp, Fcons (build_string (val), Qnil));
 
-  last_regexp = pattern;
+  cp->regexp = Fcopy_sequence (pattern);
 
   /* Advise the searching functions about the space we have allocated
      for register data.  */
   BLOCK_INPUT;
   if (regp)
-    re_set_registers (bufp, regp, regp->num_regs, regp->start, regp->end);
+    re_set_registers (&cp->buf, regp, regp->num_regs, regp->start, regp->end);
   UNBLOCK_INPUT;
+}
 
-  return;
+/* Compile a regexp if necessary, but first check to see if there's one in
+   the cache.  */
+
+struct re_pattern_buffer *
+compile_pattern (pattern, regp, translate)
+     Lisp_Object pattern;
+     struct re_registers *regp;
+     char *translate;
+{
+  struct regexp_cache *cp, **cpp;
+
+  for (cpp = &searchbuf_head; ; cpp = &cp->next)
+    {
+      cp = *cpp;
+      if (!NILP (Fstring_equal (cp->regexp, pattern))
+	  && cp->buf.translate == translate)
+	break;
+
+      /* If we're at the end of the cache, compile into the last cell.  */
+      if (cp->next == 0)
+	{
+	  compile_pattern_1 (cp, pattern, translate, regp);
+	  break;
+	}
+    }
+
+  /* When we get here, cp (aka *cpp) contains the compiled pattern,
+     either because we found it in the cache or because we just compiled it.
+     Move it to the front of the queue to mark it as most recently used.  */
+  *cpp = cp->next;
+  cp->next = searchbuf_head;
+  searchbuf_head = cp;
+
+  return &cp->buf;
 }
 
 /* Error condition used for failing searches */
@@ -144,10 +178,12 @@ data if you want to preserve them.")
   unsigned char *p1, *p2;
   int s1, s2;
   register int i;
+  struct re_pattern_buffer *bufp;
 
   CHECK_STRING (string, 0);
-  compile_pattern (string, &searchbuf, &search_regs,
-		   !NILP (current_buffer->case_fold_search) ? DOWNCASE_TABLE : 0);
+  bufp = compile_pattern (string, &search_regs,
+			  (!NILP (current_buffer->case_fold_search)
+			   ? DOWNCASE_TABLE : 0));
 
   immediate_quit = 1;
   QUIT;			/* Do a pending quit right away, to avoid paradoxical behavior */
@@ -171,7 +207,7 @@ data if you want to preserve them.")
       s2 = 0;
     }
   
-  i = re_match_2 (&searchbuf, (char *) p1, s1, (char *) p2, s2,
+  i = re_match_2 (bufp, (char *) p1, s1, (char *) p2, s2,
 		  point - BEGV, &search_regs,
 		  ZV - BEGV);
   if (i == -2)
@@ -200,6 +236,7 @@ matched by parenthesis constructs in the pattern.")
 {
   int val;
   int s;
+  struct re_pattern_buffer *bufp;
 
   CHECK_STRING (regexp, 0);
   CHECK_STRING (string, 1);
@@ -218,10 +255,11 @@ matched by parenthesis constructs in the pattern.")
 	args_out_of_range (string, start);
     }
 
-  compile_pattern (regexp, &searchbuf, &search_regs,
-		   !NILP (current_buffer->case_fold_search) ? DOWNCASE_TABLE : 0);
+  bufp = compile_pattern (regexp, &search_regs,
+			  (!NILP (current_buffer->case_fold_search)
+			   ? DOWNCASE_TABLE : 0));
   immediate_quit = 1;
-  val = re_search (&searchbuf, (char *) XSTRING (string)->data,
+  val = re_search (bufp, (char *) XSTRING (string)->data,
 		   XSTRING (string)->size, s, XSTRING (string)->size - s,
 		   &search_regs);
   immediate_quit = 0;
@@ -241,10 +279,11 @@ fast_string_match (regexp, string)
      Lisp_Object regexp, string;
 {
   int val;
+  struct re_pattern_buffer *bufp;
 
-  compile_pattern (regexp, &searchbuf, 0, 0);
+  bufp = compile_pattern (regexp, 0, 0);
   immediate_quit = 1;
-  val = re_search (&searchbuf, (char *) XSTRING (string)->data,
+  val = re_search (bufp, (char *) XSTRING (string)->data,
 		   XSTRING (string)->size, 0, XSTRING (string)->size,
 		   0);
   immediate_quit = 0;
@@ -823,7 +862,9 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 
   if (RE && !trivial_regexp_p (string))
     {
-      compile_pattern (string, &searchbuf, &search_regs, (char *) trt);
+      struct re_pattern_buffer *bufp;
+
+      bufp = compile_pattern (string, &search_regs, (char *) trt);
 
       immediate_quit = 1;	/* Quit immediately if user types ^G,
 				   because letting this function finish
@@ -851,7 +892,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
       while (n < 0)
 	{
 	  int val;
-	  val = re_search_2 (&searchbuf, (char *) p1, s1, (char *) p2, s2,
+	  val = re_search_2 (bufp, (char *) p1, s1, (char *) p2, s2,
 			     pos - BEGV, lim - pos, &search_regs,
 			     /* Don't allow match past current point */
 			     pos - BEGV);
@@ -882,7 +923,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
       while (n > 0)
 	{
 	  int val;
-	  val = re_search_2 (&searchbuf, (char *) p1, s1, (char *) p2, s2,
+	  val = re_search_2 (bufp, (char *) p1, s1, (char *) p2, s2,
 			     pos - BEGV, lim - pos, &search_regs,
 			     lim - BEGV);
 	  if (val == -2)
@@ -1185,11 +1226,7 @@ set_search_regs (beg, len)
 
       starts = (regoff_t *) xmalloc (2 * sizeof (regoff_t));
       ends = (regoff_t *) xmalloc (2 * sizeof (regoff_t));
-      BLOCK_INPUT;
-      re_set_registers (&searchbuf,
-			&search_regs,
-			2, starts, ends);
-      UNBLOCK_INPUT;
+      search_regs.num_regs = 2;
     }
 
   search_regs.start[0] = beg;
@@ -1723,10 +1760,7 @@ LIST should have been created by calling `match-data' previously.")
 				       length * sizeof (regoff_t));
 	  }
 
-	BLOCK_INPUT;
-	re_set_registers (&searchbuf, &search_regs, length,
-			  search_regs.start, search_regs.end);
-	UNBLOCK_INPUT;
+	search_regs.num_regs = length;
       }
   }
 
@@ -1802,9 +1836,16 @@ syms_of_search ()
 {
   register int i;
 
-  searchbuf.allocated = 100;
-  searchbuf.buffer = (unsigned char *) malloc (searchbuf.allocated);
-  searchbuf.fastmap = search_fastmap;
+  for (i = 0; i < REGEXP_CACHE_SIZE; ++i)
+    {
+      searchbufs[i].buf.allocated = 100;
+      searchbufs[i].buf.buffer = (unsigned char *) malloc (100);
+      searchbufs[i].buf.fastmap = searchbufs[i].fastmap;
+      searchbufs[i].regexp = Qnil;
+      staticpro (&searchbufs[i].regexp);
+      searchbufs[i].next = (i == REGEXP_CACHE_SIZE-1 ? 0 : &searchbufs[i+1]);
+    }
+  searchbuf_head = &searchbufs[0];
 
   Qsearch_failed = intern ("search-failed");
   staticpro (&Qsearch_failed);
@@ -1820,9 +1861,6 @@ syms_of_search ()
 	Fcons (Qinvalid_regexp, Fcons (Qerror, Qnil)));
   Fput (Qinvalid_regexp, Qerror_message,
 	build_string ("Invalid regexp"));
-
-  last_regexp = Qnil;
-  staticpro (&last_regexp);
 
   last_thing_searched = Qnil;
   staticpro (&last_thing_searched);
