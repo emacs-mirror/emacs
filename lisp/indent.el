@@ -77,15 +77,13 @@ Called from a program, takes three arguments, START, END and ARG."
   "Indent current line to COLUMN.
 This function removes or adds spaces and tabs at beginning of line
 only if necessary.  It leaves point at end of indentation."
-  (beginning-of-line)
-  (let ((bol (point))
-	(cur-col (current-indentation)))
-    (cond ((> cur-col column) ; too far right (after tab?)
+  (back-to-indentation)
+  (let ((cur-col (current-column)))
+    (cond ((< cur-col column)
+	   (indent-to column))
+	  ((> cur-col column) ; too far right (after tab?)
 	   (delete-region (progn (move-to-column column t) (point))
-			  (progn (back-to-indentation) (point))))
-	  ((< cur-col column)
-	   (back-to-indentation)
-	   (indent-to column)))))
+			  (progn (back-to-indentation) (point)))))))
 
 (defun current-left-margin ()
   "Return the left margin to use for this line.
