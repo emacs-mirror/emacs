@@ -682,7 +682,7 @@ character.
 
 @itemize @bullet
 @item
-The character set name and the codes that identify the character
+The character set name, and the codes that identify the character
 within that character set; @acronym{ASCII} characters are identified
 as belonging to the @code{ascii} character set.
 
@@ -690,12 +690,12 @@ as belonging to the @code{ascii} character set.
 The character's syntax and categories.
 
 @item
-The cahracter's encodings both internally in the buffer and externally
-if you save the file.
+The character's encodings, both internally in the buffer, and externally
+if you were to save the file.
 
 @item
-What to type to input the character if an input method is activated
-and it supports the character.
+What to type to input the character in the current input method
+(if it supports the character).
 
 @item
 If you are running Emacs on a window system, the font name and glyph
@@ -706,7 +706,6 @@ code(s) sent to the terminal.
 The character's text properties (@pxref{Text Properties,,,
 elisp, the Emacs Lisp Reference Manual}), and any overlays containing it
 (@pxref{Overlays,,, elisp, the same manual}).
-
 @end itemize
 
   Here's an example showing the Latin-1 character A with grave accent,
