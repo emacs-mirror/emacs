@@ -2521,8 +2521,8 @@ apply_modifiers_uncached (modifiers, base, base_len)
 
 static char *modifier_names[] =
 {
-  "up", 0, 0, 0, 0, 0, 0, "down",
-  "drag", "click", 0, 0, 0, 0, 0, 0,
+  "up", "down", "drag", "click", 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, "alt", "super", "hyper", "shift", "control", "meta"
 };
 #define NUM_MOD_NAMES (sizeof (modifier_names) / sizeof (modifier_names[0]))
