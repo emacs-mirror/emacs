@@ -781,6 +781,7 @@ ring is empty L is left unchanged."
     ()
   (setq recentf-dialog-mode-map (make-sparse-keymap))
   (define-key recentf-dialog-mode-map "q" 'recentf-cancel-dialog)
+  (define-key recentf-dialog-mode-map [down-mouse-1] 'widget-button-click)
   (set-keymap-parent recentf-dialog-mode-map widget-keymap))
 
 (defun recentf-dialog-mode ()
