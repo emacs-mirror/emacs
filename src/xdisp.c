@@ -814,7 +814,8 @@ redisplay ()
 
 /* If PRESERVE_ECHO_AREA is nonzero, it means this redisplay
    is not in response to any user action; therefore, we should
-   preserve the echo area.  Perhaps in the future avoid recentering windows
+   preserve the echo area.  (Actually, our caller does that job.)
+   Perhaps in the future avoid recentering windows
    if it is not necessary; currently that causes some problems.  */
 
 static void
