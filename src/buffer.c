@@ -1293,8 +1293,8 @@ with SIGHUP.  */)
       && BUF_MODIFF (b) > BUF_SAVE_MODIFF (b))
     {
       GCPRO1 (buf);
-      tem = do_yes_or_no_p (format1 ("Buffer %s modified; kill anyway? ",
-				     SDATA (b->name)));
+      tem = do_yes_or_no_p (format2 ("Buffer %s modified; kill anyway? ",
+				     b->name, make_number (0)));
       UNGCPRO;
       if (NILP (tem))
 	return Qnil;
