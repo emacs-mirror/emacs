@@ -1,3 +1,8 @@
+2001-03-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* minibuf.c (read_minibuf): Clean up the binding stack if
+	called noninteractively.
+
 2001-03-05  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (syms_of_coding): Docstring modified.
