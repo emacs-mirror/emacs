@@ -4622,12 +4622,20 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
 	  eol_str = XSTRING (eoltype)->data;
 	  eol_str_len = XSTRING (eoltype)->size;
 	}
+      else if (INTEGERP (eoltype)
+	       && CHAR_VALID_P (XINT (eoltype), 0))
+	{
+	  int c = XINT (eoltype);
+	  unsigned char work[4];
+
+	  eol_str_len = CHAR_STRING (XINT (eoltype), work, eol_str);
+	}
       else
 	{
 	  eol_str = invalid_eol_type;
 	  eol_str_len = sizeof (invalid_eol_type) - 1;
 	}
-      strcpy (buf, eol_str);
+      bcopy (eol_str, buf, eol_str_len);
       buf += eol_str_len;
     }
 
