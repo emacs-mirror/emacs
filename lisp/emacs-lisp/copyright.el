@@ -28,6 +28,10 @@
 (defvar replace-copying-with nil
   "*If non-nil, replace copying notices with this file.")
 
+(defvar inhibit-update-copyright nil
+  "If nil, ask the user whether or not to update the copyright notice.
+If the user has said no, we set this to t locally.")
+
 ;;;###autoload
 (defun update-copyright (&optional replace ask-upd ask-year)
   "Update the copyright notice at the beginning of the buffer
@@ -46,17 +50,22 @@ than adding to it."
     (save-restriction
       (widen)
       (goto-char (point-min))
-      (if (search-forward current-year nil t)
+      ;; Handle abbreviated year lists like "1800, 01, 02, 03".
+      (if (re-search-forward (concat (substring current-year 0 2)
+				     "\\([0-9][0-9]\\(,\\s \\)+\\)*"
+				     (substring current-year 2))
+			     nil t)
 	  (or ask-upd
 	      (message "Copyright notice already includes %s." current-year))
 	(goto-char (point-min))
-	(if (and (or (not ask-upd)
+	(if (and (not inhibit-update-copyright)
+		 (or (not ask-upd)
 		     ;; If implicit, narrow it down to things that
 		     ;; look like GPL notices.
 		     (prog1
 			 (search-forward "is free software" nil t)
 		       (goto-char (point-min))))
-	     (re-search-forward
+		 (re-search-forward
 		  "[Cc]opyright[^0-9]*\\(\\([-, \t]*\\([0-9]+\\)\\)\\)+"
 		  nil t)
 		 (or (not ask-upd)
@@ -66,7 +75,11 @@ than adding to it."
 			 ;; Show the user the copyright.
 			 (goto-char (point-min))
 			 (sit-for 0)
-			 (y-or-n-p "Update copyright? ")))))
+			 (or (y-or-n-p "Update copyright? ")
+			     (progn
+			       (set (make-local-variable
+				     'inhibit-update-copyright) t)
+			       nil))))))
 	    (progn
 	      (setq replace
 		    (or replace
