@@ -348,6 +348,12 @@ in the buffer to search for an expansion.
 buffers, unless you have set @code{dabbrev-check-all-buffers} to
 @code{nil}.
 
+@vindex dabbrev-ignore-regexps
+  A more fine control on which buffers are scanned is possible by
+customizing the variable @code{dabbrev-ignore-regexps}, whch should
+contain a list of regular expressions.  Buffers matching a regular
+expression from that list are not searched.
+
   A negative argument to @kbd{M-/}, as in @kbd{C-u - M-/}, says to
 search first for expansions after point, and second for expansions
 before point.  If you repeat the @kbd{M-/} to look for another
