@@ -28,13 +28,13 @@
 (require 'nnoo)
 (require 'gnus-util)
 
+(eval-when-compile (require 'cl))
+
 (nnoo-declare nntp)
 
 (eval-and-compile
   (unless (fboundp 'open-network-stream)
     (require 'tcp)))
-
-(eval-when-compile (require 'cl))
 
 (defvoo nntp-address nil
   "Address of the physical nntp server.")
