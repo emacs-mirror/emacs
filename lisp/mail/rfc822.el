@@ -75,7 +75,7 @@
 		  (forward-char -1)
 		  (delete-char 2)
 		  t)
-		 ((memq ch '(?\ ?\t ?\n))
+		 ((memq ch '(?\  ?\t ?\n))
 		  (delete-region (point)
 				 (progn (skip-chars-forward " \t\n") (point)))
 		  t)
