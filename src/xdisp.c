@@ -7231,7 +7231,7 @@ x_consider_frame_title (frame)
 	 frame_title_ptr so that display_mode_element will output into it;
 	 then display the title.  */
       obuf = current_buffer;
-      Fset_buffer (XWINDOW (f->selected_window)->buffer);
+      set_buffer_internal_1 (XBUFFER (XWINDOW (f->selected_window)->buffer));
       fmt = FRAME_ICONIFIED_P (f) ? Vicon_title_format : Vframe_title_format;
       frame_title_ptr = frame_title_buf;
       init_iterator (&it, XWINDOW (f->selected_window), -1, -1,
@@ -7239,7 +7239,7 @@ x_consider_frame_title (frame)
       display_mode_element (&it, 0, -1, -1, fmt);
       len = frame_title_ptr - frame_title_buf;
       frame_title_ptr = NULL;
-      set_buffer_internal (obuf);
+      set_buffer_internal_1 (obuf);
 
       /* Set the title only if it's changed.  This avoids consing in
 	 the common case where it hasn't.  (If it turns out that we've
@@ -8186,7 +8186,7 @@ debug_method_add (w, fmt, a1, a2, a3, a4, a5, a6, a7, a8, a9)
    Every CLEAR_FACE_CACHE_COUNT full redisplays, the face cache is
    cleared.  */
 
-#define CLEAR_FACE_CACHE_COUNT	10000
+#define CLEAR_FACE_CACHE_COUNT	500
 static int clear_face_cache_count;
 
 /* Record the previous terminal frame we displayed.  */
@@ -8813,6 +8813,10 @@ redisplay_internal (preserve_echo_area)
 	  
 	  if (FRAME_WINDOW_P (f) || f == sf)
 	    {
+	      if (clear_face_cache_count % 50 == 0
+		  && FRAME_WINDOW_P (f))
+		clear_image_cache (f, 0);
+
 	      /* Mark all the scroll bars to be removed; we'll redeem
 		 the ones we want when we redisplay their windows.  */
 	      if (condemn_scroll_bars_hook)
