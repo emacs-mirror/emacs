@@ -8,6 +8,12 @@
 
 require "require";
 
+$index_dir = $qa_args[0];
+
+if ($index_dir) {
+ chdir($index_dir)
+}
+
 opendir(DIR, ".");
 
 @names = readdir(DIR);
