@@ -960,11 +960,6 @@ struct standard_args standard_args[] =
   { "-u", "--user", 30, 1 },
   { "-user", 0, 30, 1 },
   { "-debug-init", "--debug-init", 20, 0 },
-  { "-l", "--load", 10, 1 },
-  { "-load", 0, 10, 1 },
-  { "-f", "--funcall", 10, 1 },
-  { "-funcall", 0, 10, 1 },
-  { "-insert", "--insert", 10, 1 },
   { "-bg", "--background-color", 10, 1 },
   { "-background", 0, 10, 1 },
   { "-fg", "--foreground-color", 10, 1 },
@@ -983,12 +978,19 @@ struct standard_args standard_args[] =
   { "-itype", 0, 10, 1 },
   { "-name", "--name", 10, 1 },
   { "-xrm", "--xrm", 10, 1 },
-  { "-r", "--reverse-video", 0, 0 },
-  { "-rv", 0, 0, 0 },
-  { "-reverse", 0, 0, 0 },
-  { "-vb", "--vertical-scroll-bars", 0, 0 },
-  { "-iconic", "--iconic", 0, 0 },
-  { "-kill", "--kill", 0, 0 },
+  { "-r", "--reverse-video", 5, 0 },
+  { "-rv", 0, 5, 0 },
+  { "-reverse", 0, 5, 0 },
+  { "-vb", "--vertical-scroll-bars", 5, 0 },
+  { "-iconic", "--iconic", 5, 0 },
+  /* These have the same priority as ordinary file name args,
+     so they are not reordered with respect to those.  */
+  { "-l", "--load", 0, 1 },
+  { "-load", 0, 0, 1 },
+  { "-f", "--funcall", 0, 1 },
+  { "-funcall", 0, 0, 1 },
+  { "-insert", "--insert", 0, 1 },
+  { "-kill", "--kill", -10, 0 },
 };
 
 /* Reorder the elements of ARGV (assumed to have ARGC elements)
@@ -1018,7 +1020,7 @@ sort_args (argc, argv)
   for (from = 1; from < argc; from++)
     {
       options[from] = -1;
-      priority[from] = -1;
+      priority[from] = 0;
       if (argv[from][0] == '-')
 	{
 	  int match, thislen;
