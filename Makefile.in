@@ -220,7 +220,7 @@ paths-force: FRC
 
 src:	lib-src FRC
 
-lib-src: FRC src/config.h
+lib-src: FRC src/config.stamp
 
 .RECURSIVE: ${SUBDIR}
 
@@ -239,8 +239,9 @@ Makefile: Makefile.in config.status
 src/Makefile: src/Makefile.in config.status
 	./config.status
 
-src/config.h: src/config.in config.status
+src/config.stamp: src/config.in config.status
 	./config.status
+	touch src/config.stamp
 
 lib-src/Makefile: lib-src/Makefile.in config.status
 	./config.status
