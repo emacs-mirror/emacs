@@ -1656,7 +1656,7 @@ skip_chars (forwardp, syntaxp, string, lim)
 		      p = GAP_END_ADDR;
 		      stop = endp;
 		    }
-		  if (fastmap[*p])
+		  if (!fastmap[*p])
 		    break;
 		  p++, pos++;
 		}
@@ -1709,7 +1709,7 @@ skip_chars (forwardp, syntaxp, string, lim)
 		      p = GPT_ADDR;
 		      stop = endp;
 		    }
-		  if (fastmap[p[-1]])
+		  if (!fastmap[p[-1]])
 		    break;
 		  p--, pos--;
 		}
