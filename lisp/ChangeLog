@@ -1,3 +1,9 @@
+1999-12-28  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* textmodes/ispell.el (ispell-process-line):
+	Add local var line-offset to adjust for the change
+	in positions within the line, due to previous replacements.
+
 1999-12-27  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* lpr.el (lpr-buffer, print-buffer, lpr-region, print-region):
