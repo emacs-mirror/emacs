@@ -1,3 +1,8 @@
+2001-03-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* xmenu.c (xmenu_show) [LESSTIF_VERSION]: Take out the code
+	removing button grabs.
+
 2001-03-13  Kenichi Handa  <handa@etl.go.jp>
 
 	* fontset.c (syms_of_fontset): Describe highlight-wrong-size-font
