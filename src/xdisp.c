@@ -4585,6 +4585,37 @@ move_it_by_lines (it, dvpos, need_y_p)
  ***********************************************************************/
 
 
+/* Add a message with format string FORMAT and arguments ARG1 and ARG2
+   to *Messages*.  */
+
+void
+add_to_log (format, arg1, arg2)
+     char *format;
+     Lisp_Object arg1, arg2;
+{
+  Lisp_Object args[3];
+  Lisp_Object msg, fmt;
+  char *buffer;
+  int len;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+
+  fmt = msg = Qnil;
+  GCPRO4 (fmt, msg, arg1, arg2);
+  
+  args[0] = fmt = build_string (format);
+  args[1] = arg1;
+  args[2] = arg2;
+  msg = Fformat (make_number (3), args);
+
+  len = STRING_BYTES (XSTRING (msg)) + 1;
+  buffer = (char *) alloca (len);
+  strcpy (buffer, XSTRING (msg)->data);
+  
+  message_dolog (buffer, len, 1, 0);
+  UNGCPRO;
+}
+
+
 /* Output a newline in the *Messages* buffer if "needs" one.  */
 
 void
