@@ -65,6 +65,8 @@ struct ccl_program {
 				   system.  */
   int suppress_error;		/* If nonzero, don't insert error
 				   message in the output.  */
+  int eight_bit_control;	/* Set to nonzero if CCL_WRITE_CHAR
+				   writes eight-bit-control char.  */
 };
 
 /* This data type is used for the spec field of the structure
