@@ -41,7 +41,8 @@ AC_ARG_WITH(pop,
 [if test "$withval" = yes; then
    AC_DEFINE(MAIL_USE_POP)
 else :
-fi])
+fi],
+AC_DEFINE(MAIL_USE_POP))
 AC_ARG_WITH(hesiod,
 [  --with-hesiod           support Hesiod to get the POP server host],
 [AC_DEFINE(HESIOD)])
