@@ -684,6 +684,13 @@
 	value of current-prefix-arg.
 	(edebug-emacs-version-specific): Delete support for Epoch.
 
+1999-09-24  Howard Melman  <howard@silverstream.com>
+
+	* imenu.el (imenu-after-jump-hook): New variable.
+	(imenu): Run menu-after-jump-hook.
+	(imenu-name-lookup-function): New variable.
+	* imenu.el (imenu--in-alist): Use those variables.
+	
 1999-09-24  Carsten Dominik  <cd@gnu.org>
 
 	* textmodes/reftex-parse.el (reftex-parse-from-file): Scan for
