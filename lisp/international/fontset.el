@@ -76,7 +76,7 @@
 	   (indian-2-column . ("*" . "MuleIndian-2"))
 	   (indian-1-column . ("*" . "MuleIndian-1"))
 	   (lao . ("*" . "MuleLao-1"))
-	   (tibetan . ("*" . "MuleTibetan-0"))
+	   (tibetan . ("proportional" . "MuleTibetan-0"))
 	   (tibetan-1-column . ("*" . "MuleTibetan-1"))
 	   (latin-iso8859-14 . (nil . "ISO8859-14"))
 	   (latin-iso8859-15 . (nil . "ISO8859-15"))
