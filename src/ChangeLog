@@ -1,3 +1,8 @@
+2004-02-02  Eli Zaretskii  <eliz@elta.co.il>
+
+	* fileio.c (Fcopy_file): If NEWNAME is a directory, expand the
+	basename of FILE relative to it, not FILE itself.
+
 2004-02-02  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (coding_restore_composition): Check invalid

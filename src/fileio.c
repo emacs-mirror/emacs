@@ -2407,7 +2407,7 @@ Also set the file modes of the target file to match the source file.  */)
   CHECK_STRING (newname);
 
   if (!NILP (Ffile_directory_p (newname)))
-    newname = Fexpand_file_name (file, newname);
+    newname = Fexpand_file_name (Ffile_name_nondirectory (file), newname);
   else
     newname = Fexpand_file_name (newname, Qnil);
 

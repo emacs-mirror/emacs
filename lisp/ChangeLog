@@ -1,3 +1,7 @@
+2004-02-02  Benjamin Rutt  <brutt@bloomington.in.us>
+
+	* diff-mode.el (diff-mode-shared-map): Bind q to `quit-window'.
+
 2004-02-02  David Kastrup  <dak@gnu.org>
 
 	* replace.el (perform-replace): Allow 'literal argument in
