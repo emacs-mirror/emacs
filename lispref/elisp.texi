@@ -1,12 +1,11 @@
 \input texinfo  @c -*-texinfo-*-
 @c %**start of header
 @setfilename elisp
-@smallbook
 @settitle GNU Emacs Lisp Reference Manual
 @c %**end of header
 
 @ifinfo
-This version is the edition 2.4b of the GNU Emacs Lisp
+This version is the edition 2.4.2 of the GNU Emacs Lisp
 Reference Manual.  It corresponds to Emacs Version 19.34.
 @c Please REMEMBER to update edition number in *four* places in this file
 @c                 and also in *one* place in intro.texi
@@ -68,7 +67,7 @@ instead of in the original English.
 @subtitle for Unix Users
 @c The edition number appears in several places in this file
 @c and also in the file intro.texi.
-@subtitle Revision 2.4b, December 1996
+@subtitle Revision 2.4.2, December 1996
 
 @author by Bil Lewis, Dan LaLiberte, Richard Stallman
 @author and the GNU Manual Group
@@ -77,7 +76,7 @@ instead of in the original English.
 Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc. 
 
 @sp 2
-Edition 2.4b @*
+Edition 2.4.2 @*
 Revised for Emacs Version 19.34,@*
 July 1996.@*
 @sp 2
@@ -112,7 +111,7 @@ Cover art by Etienne Suvasa.
 @node Top, Copying, (dir), (dir)
 
 @ifinfo
-This Info file contains edition 2.4b of the GNU Emacs Lisp
+This Info file contains edition 2.4.2 of the GNU Emacs Lisp
 Reference Manual, corresponding to GNU Emacs version 19.34.
 @end ifinfo
 
