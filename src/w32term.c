@@ -4778,7 +4778,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 	  if (msg.msg.message == msh_mousewheel)
 	    {
 	      /* Forward MSH_MOUSEWHEEL as WM_MOUSEWHEEL.  */
-	      msg.msg.message == WM_MOUSEWHEEL;
+	      msg.msg.message = WM_MOUSEWHEEL;
 	      prepend_msg (&msg);
 	    }
 	  break;
