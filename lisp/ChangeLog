@@ -1,3 +1,9 @@
+2002-04-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* speedbar.el (speedbar-generic-item-info)
+	(speedbar-sort-tags): Doc fix.
+	(speedbar-add-supported-extension): Fix typo in interactive spec.
+
 2002-04-13  Colin Walters  <walters@verbum.org>
 
 	* ibuffer.el (ibuffer-forward-line): Just skip header if we're
