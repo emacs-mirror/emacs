@@ -1,3 +1,8 @@
+1999-11-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* speedbar.el (toplevel): Remove compatibility code for Emacs
+	versions without custom.el.
+
 1999-11-30  Dave Love  <fx@gnu.org>
 
 	* faces.el (set-face-documentation): Purecopy STRING.
