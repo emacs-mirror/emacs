@@ -1,3 +1,7 @@
+2004-10-05  Emilio C. Lopes  <eclig@gmx.net>
+
+	* calendar.texi (From Other Calendar): Add calendar-goto-iso-week.
+
 2004-09-28  Kim F. Storm  <storm@cua.dk>
 
 	* display.texi (Display Custom) <indicate-buffer-boundaries>:

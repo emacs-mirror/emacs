@@ -1,3 +1,17 @@
+2004-10-05  Emilio C. Lopes  <eclig@gmx.net>:
+
+	* calendar/calendar.el (calendar-goto-iso-week): Add autoload.
+	(calendar-mode-map): Add binding for `calendar-goto-iso-week'.
+	* calendar/cal-menu.el (calendar-mode-map): Ditto.
+
+2004-10-05  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/cal-iso.el (calendar-iso-read-args): New function,
+	for old interactive spec from calendar-goto-iso-date.
+	(calendar-goto-iso-date): Use it.
+	(calendar-goto-iso-week): New function.  Suggested by Emilio
+	C. Lopes <eclig@gmx.net>.
+
 2004-10-04  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* textmodes/enriched.el (enriched-mode-map): Give
