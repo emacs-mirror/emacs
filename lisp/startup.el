@@ -636,8 +636,6 @@ opening the first frame (e.g. open a connection to the server).")
      (setq initial-window-system nil)
      (kill-emacs)))
 
-  ;; Locale initialization.
-  (set-locale-translation-file-name)
   (set-locale-environment nil)
 
   ;; Convert the arguments to Emacs internal representation.
