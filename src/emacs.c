@@ -474,7 +474,7 @@ main (argc, argv, envp)
 #endif /* PRIO_PROCESS */
 
 #ifdef EXTRA_INITIALIZE
-  EXTRA_INITIALIZE ();
+  EXTRA_INITIALIZE;
 #endif
 
   inhibit_window_system = 0;
