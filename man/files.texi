@@ -596,7 +596,7 @@ becomes @code{nil}; if it is @samp{never} or @samp{simple}, then
 @node Backup Deletion
 @subsubsection Automatic Deletion of Backups
 
-  To prevent unlimited consumption of disk space, Emacs can delete numbered
+  To prevent excessive consumption of disk space, Emacs can delete numbered
 backup versions automatically.  Generally Emacs keeps the first few backups
 and the latest few backups, deleting any in between.  This happens every
 time a new backup is made.
