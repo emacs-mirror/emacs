@@ -1128,29 +1128,6 @@ only return the directory part of FILE."
 ;;;; Password support.
 ;;;; ------------------------------------------------------------
 
-(defun ange-ftp-read-passwd (prompt &optional default)
-  "Read a password, echoing `.' for each character typed.
-End with RET, LFD, or ESC.  DEL or C-h rubs out.  C-u kills line.
-Optional DEFAULT is password to start with."
-  (let ((pass nil)
-	(c 0)
-	(echo-keystrokes 0)
-	(cursor-in-echo-area t))
-    (while (progn (message "%s%s"
-			   prompt
-			   (make-string (length pass) ?.))
-		  (setq c (read-char))
-		  (and (/= c ?\r) (/= c ?\n) (/= c ?\e)))
-      (if (= c ?\C-u)
-	  (setq pass "")
-	(if (and (/= c ?\b) (/= c ?\177))
-	    (setq pass (concat pass (char-to-string c)))
-	  (if (> (length pass) 0)
-	      (setq pass (substring pass 0 -1))))))
-    (message "")
-    (ange-ftp-repaint-minibuffer)
-    (or pass default "")))
-
 (defmacro ange-ftp-generate-passwd-key (host user)
   (` (concat (downcase (, host)) "/" (, user))))
 
@@ -1162,7 +1139,7 @@ Optional DEFAULT is password to start with."
   "For a given HOST and USER, set or change the associated PASSWORD."
   (interactive (list (read-string "Host: ")
 		     (read-string "User: ")
-		     (ange-ftp-read-passwd "Password: ")))
+		     (read-passwd "Password: ")))
   (ange-ftp-put-hash-entry (ange-ftp-generate-passwd-key host user)
 			   passwd
 			   ange-ftp-passwd-hashtable))
@@ -1225,13 +1202,14 @@ Optional DEFAULT is password to start with."
 			    
 			    ;; found another machine with the same user.
 			    ;; Try that account.
-			    (ange-ftp-read-passwd
+			    (read-passwd
 			     (format "passwd for %s@%s (default same as %s@%s): "
 				     user host user other)
+			     nil
 			     (ange-ftp-lookup-passwd other user))
 			  
 			  ;; I give up.  Ask the user for the password.
-			  (ange-ftp-read-passwd
+			  (read-passwd
 			   (format "Password for %s@%s: " user host)))))
 	   (ange-ftp-set-passwd host user passwd)
 	   passwd))))
@@ -1249,7 +1227,7 @@ Optional DEFAULT is password to start with."
   "For a given HOST and USER, set or change the associated ACCOUNT password."
   (interactive (list (read-string "Host: ")
 		     (read-string "User: ")
-		     (ange-ftp-read-passwd "Account password: ")))
+		     (read-passwd "Account password: ")))
   (ange-ftp-put-hash-entry (ange-ftp-generate-passwd-key host user)
 			   account
 			   ange-ftp-account-hashtable))
