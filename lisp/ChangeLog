@@ -1,3 +1,8 @@
+2004-12-26  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-store.el (calc-read-var-name): Remove "var-" from
+	default input.
+
 2004-12-26  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* buff-menu.el (Buffer-menu-revert-function): Clear out undo info
