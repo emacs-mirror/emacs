@@ -1,6 +1,11 @@
+2001-03-13  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/hideshow.el: Update copyright.
+	(hs-minor-mode-map): Change bindings to use `C-c @' prefix.
+
 2001-03-13  Gerd Moellmann  <gerd@gnu.org>
 
-	* help.el (string-key-binding): Don't call event-start on 
+	* help.el (string-key-binding): Don't call event-start on
 	a non-list.
 
 2001-03-13  Eli Zaretskii  <eliz@is.elta.co.il>
