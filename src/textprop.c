@@ -1370,6 +1370,7 @@ percentage by which the left interval tree should not differ from the right.");
 
   defsubr (&Stext_properties_at);
   defsubr (&Sget_text_property);
+  defsubr (&Sget_char_property);
   defsubr (&Snext_property_change);
   defsubr (&Snext_single_property_change);
   defsubr (&Sprevious_property_change);
