@@ -1,3 +1,8 @@
+2002-02-17  stanislav shalunov  <shalunov@internet2.edu>
+
+	* mail/uce.el (uce-reply-to-uce): Fix incorrect behavior when
+	invoked from Rmail with full headers displayed.
+
 2002-02-17  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* emacs-lisp/lisp.el (mark-defun): Don't leave multiple marks
@@ -122,6 +127,7 @@
 	* eshell/esh-ext.el (eshell-script-interpreter): Allow whitespace
 	after the #! of a shell interpretor specification.
 
+>>>>>>> 1.3466
 2002-02-15  Richard M. Stallman  <rms@gnu.org>
 
 	* help.el (describe-key-briefly): Make output in INSERT case
