@@ -875,4 +875,9 @@ signal_after_change (pos, lendel, lenins)
 				 1,
 				 make_number (pos), make_number (pos + lenins),
 				 make_number (lendel));
+
+  /* After an insertion, call the text properties
+     insert-behind-hooks or insert-in-front-hooks.  */
+  if (lendel == 0)
+    report_interval_modification (pos, pos + lenins);
 }
