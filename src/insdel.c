@@ -782,8 +782,8 @@ prepare_to_modify_buffer (start, end)
    START_INT and END_INT are the bounds of the text to be changed.  */
 
 void
-signal_before_change (start, end)
-     int start_int, end_end;
+signal_before_change (start_int, end_int)
+     int start_int, end_int;
 {
   Lisp_Object start, end;
 
