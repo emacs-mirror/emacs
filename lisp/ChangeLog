@@ -1,8 +1,3 @@
-2003-02-04  Juanma Barranquero  <lektu@terra.es>
-
-	* international/characters.el: Restore missing space and put a
-	comment to protect it from being deleted as trailing whitespace.
-
 2003-02-04  Richard M. Stallman  <rms@gnu.org>
 
 	* term.el (term-raw-map): Set it up at load time.
@@ -40,6 +35,11 @@
 2003-02-04  Juanma Barranquero  <lektu@terra.es>
 
 	* image.el (image-type-regexps): Fix typo.
+
+	* international/characters.el: Restore missing space and put a
+	comment to protect it from being deleted as trailing whitespace.
+
+	* ruler-mode.el (ruler-mode-margins-char): Likewise.
 
 2003-02-04  Francesco Potort,Al(B  <pot@gnu.org>
 
