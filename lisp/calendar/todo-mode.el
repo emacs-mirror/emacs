@@ -2,9 +2,9 @@
 
 ;; Copyright (C) 1997, 2000 Free Software Foundation, Inc.
 
-;; Author: os10000@seidel-space.de
+;; Author: os10000@seidel-space.de [not clear that this works, July 2000]
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.40 2000/06/02 18:37:43 fx Exp $
+;; Version: $Id: todo-mode.el,v 1.41 2000/06/06 16:43:40 fx Exp $
 ;; Keywords: Categorised TODO list editor, todo-mode
 
 ;; This file is part of GNU Emacs.
@@ -117,7 +117,7 @@
 ;;
 ;;      Which version of todo-mode.el does this documentation refer to?
 ;;
-;;      $Id: todo-mode.el,v 1.40 2000/06/02 18:37:43 fx Exp $
+;;      $Id: todo-mode.el,v 1.41 2000/06/06 16:43:40 fx Exp $
 ;;
 ;;  Operation
 ;;
@@ -364,7 +364,7 @@ Automatically generated when `todo-save-top-priorities' is non-nil."
   :type 'integer
   :group 'todo)
 (defcustom todo-remove-separator t
-  "*Non-nil to remove category separators in\
+  "*Non-nil to remove category separators in \
 \\[todo-top-priorities] and \\[todo-print]."
   :type 'boolean
   :group 'todo)
@@ -528,8 +528,7 @@ Return nil if ITEM not found."
 (defun todo-save () "Save the TODO list."
   (interactive)
   (save-buffer)
-  (if todo-save-top-priorities-too (todo-save-top-priorities))
-  )
+  (if todo-save-top-priorities-too (todo-save-top-priorities)))
 (defalias 'todo-cmd-save 'todo-save)
 
 (defun todo-quit () "Done with TODO list for now."
@@ -547,7 +546,7 @@ Return nil if ITEM not found."
         (todo-edit-multiline)
       (let ((new (read-from-minibuffer "Edit: " item)))
         (todo-remove-item)
-        (insert new "\n")
+        (insert new ?\n)
         (todo-backward-item)
         (message "")))))
 (defalias 'todo-cmd-edit 'todo-edit-item)
@@ -572,14 +571,14 @@ Return nil if ITEM not found."
     (widen)
     (goto-char (point-min))
     (let ((posn (search-forward "-*- mode: todo; " 17 t)))
-      (if (not (null posn)) (goto-char posn))
-      (if (equal posn nil)
+      (if posn
           (progn
-            (insert "-*- mode: todo; \n")
-            (forward-char -1))
-        (kill-line)))
+	    (goto-char posn)
+	    (kill-line))
+	(insert "-*- mode: todo; \n")
+	(backward-char)))
     (insert (format "todo-categories: %S; -*-" todo-categories))
-    (forward-char 1)
+    (forward-char)
     (insert (format "%s%s%s\n%s\n%s %s\n"
                     todo-prefix todo-category-beg cat
                     todo-category-end
@@ -604,7 +603,7 @@ Return nil if ITEM not found."
       (while (> (- bottom top) todo-insert-threshold)
 	(let* ((current (/ (+ top bottom) 2))
 	       (answer (if (< current bottom)
-			   (todo-more-important-p current) nil)))
+			   (todo-more-important-p current))))
 	  (if answer
 	      (setq bottom current)
 	    (setq top (1+ current)))))
@@ -612,7 +611,7 @@ Return nil if ITEM not found."
       ;; goto-line doesn't have the desired behavior in a narrowed buffer
       (goto-char (point-min))
       (forward-line (1- top)))
-    (insert new-item "\n")
+    (insert new-item ?\n)
     (todo-backward-item)
     (progn ;;; horrible os10000 hack to make items appear when inserting into empty buffer
      (widen)
@@ -623,7 +622,7 @@ Return nil if ITEM not found."
     (message "")))
 
 ;;;###autoload
-(defun todo-insert-item (ARG)
+(defun todo-insert-item (arg)
   "Insert new TODO list entry.
 With a prefix argument solicit the category, otherwise use the current
 category."
@@ -639,12 +638,11 @@ category."
 	   (history (cons 'categories (1+ todo-category-number)))
 	   (current-category (nth todo-category-number todo-categories))
 	   (category
-	    (if ARG
+	    (if arg
 		current-category
 	      (completing-read
-	       (concat "Category ["
-		       current-category "]: ")
-	       (todo-category-alist) nil nil nil history))))
+	       (concat "Category [" current-category "]: ")
+	       (todo-category-alist) nil nil nil history current-category))))
       (todo-add-item-non-interactively new-item category))))
 
 (defalias 'todo-cmd-inst 'todo-insert-item)
@@ -680,10 +678,9 @@ category."
       (let* ((todo-entry (todo-item-string-start))
              (todo-answer (y-or-n-p (concat "Permanently remove '"
                                             todo-entry "'? "))))
-        (if todo-answer
-            (progn
-              (todo-remove-item)
-              (todo-backward-item)))
+        (when todo-answer
+	  (todo-remove-item)
+	  (todo-backward-item))
         (message ""))
     (error "No TODO list entry to delete")))
 (defalias 'todo-cmd-kill 'todo-delete-item)
@@ -695,7 +692,7 @@ category."
         (todo-remove-item)
         (todo-backward-item)
         (save-excursion
-          (insert item "\n"))
+          (insert item ?\n))
         (message ""))
     (error "No TODO list entry to raise")))
 (defalias 'todo-cmd-raise 'todo-raise-item)
@@ -708,7 +705,7 @@ category."
         (todo-remove-item)
         (todo-forward-item)
         (save-excursion
-          (insert item "\n"))
+          (insert item ?\n))
         (message ""))
     (error "No TODO list entry to lower")))
 (defalias 'todo-cmd-lowr 'todo-lower-item)
@@ -719,15 +716,14 @@ category."
   (or (> (count-lines (point-min) (point-max)) 0)
       (error "No TODO list entry to file away"))
   (let ((time-stamp-format todo-time-string-format))
-    (if (and comment (> (length comment) 0))
-	(progn
-	  (goto-char (todo-item-end))
-	  (insert
-	   (if (save-excursion (beginning-of-line)
-			       (looking-at (regexp-quote todo-prefix)))
-	       " "
-	     "\n\t")
-	   "(" comment ")")))
+    (when (and comment (> (length comment) 0))
+      (goto-char (todo-item-end))
+      (insert
+       (if (save-excursion (beginning-of-line)
+			   (looking-at (regexp-quote todo-prefix)))
+	   " "
+	 "\n\t")
+       "(" comment ")"))
     (goto-char (todo-item-end))
     (insert " [" (nth todo-category-number todo-categories) "]")
     (goto-char (todo-item-start))
@@ -776,10 +772,9 @@ between each category."
         (copy-to-buffer todo-print-buffer-name (point-min) (point-max))
         (set-buffer todo-print-buffer-name)
         (goto-char (point-min))
-        (if (re-search-forward (regexp-quote todo-header) nil t)
-            (progn
-              (beginning-of-line 1)
-              (kill-line)))             ;Remove mode line
+        (when (re-search-forward (regexp-quote todo-header) nil t)
+	  (beginning-of-line 1)
+	  (kill-line))			;Remove mode line
         (while (re-search-forward       ;Find category start
                 (regexp-quote (concat todo-prefix todo-category-beg))
                 nil t)
@@ -790,7 +785,7 @@ between each category."
           (narrow-to-region beg end)    ;In case we have too few entries.
           (goto-char (point-min))
           (if (= 0 nof-priorities)      ;Traverse entries.
-              (goto-char end)            ;All entries
+              (goto-char end)		;All entries
             (todo-forward-item nof-priorities))
           (setq beg (point))
           (delete-region beg end)
@@ -968,15 +963,15 @@ Number of entries for each category is given by
   (if (file-exists-p todo-file-do)
       (find-file todo-file-do)
     (todo-initial-setup))
-  (if (null todo-categories)
-      (if (null todo-cats)
-          (error "Error in %s: No categories in list `todo-categories'"
-                 todo-file-do)
-        (goto-char (point-min))
-        (and (search-forward "todo-cats:" nil t)
-             (replace-match "todo-categories:"))
-        (make-local-variable 'todo-categories)
-        (setq todo-categories todo-cats)))
+  (unless todo-categories
+    (if (null todo-cats)
+	(error "Error in %s: No categories in list `todo-categories'"
+	       todo-file-do)
+      (goto-char (point-min))
+      (and (search-forward "todo-cats:" nil t)
+	   (replace-match "todo-categories:"))
+      (make-local-variable 'todo-categories)
+      (setq todo-categories todo-cats)))
   (beginning-of-line)
   (todo-category-select))
 
