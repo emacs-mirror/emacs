@@ -1,6 +1,6 @@
 ;;; window.el --- GNU Emacs window commands aside from those written in C.
 
-;; Copyright (C) 1985, 1989, 1992, 1993, 1994, 2000
+;; Copyright (C) 1985, 1989, 1992, 1993, 1994, 2000, 2001
 ;;  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -472,8 +472,13 @@ Return non-nil if the window was shrunk."
 	     (pos-visible-in-window-p (point-min) window)
 	     (not (eq mini 'only))
 	     (or (not mini)
-		 (< (nth 3 edges) (nth 1 (window-edges mini)))
-		 (> (nth 1 edges) (frame-parameter frame 'menu-bar-lines))))
+		 (let ((mini-window (minibuffer-window frame)))
+		   (or (null mini-window)
+		       (not (eq frame (window-frame mini-window)))
+		       (< (nth 3 edges)
+			  (nth 1 (window-edges mini-window)))
+		       (> (nth 1 edges) 
+			  (frame-parameter frame 'menu-bar-lines))))))
 	(fit-window-to-buffer window (window-height window)))))
 
 (defun kill-buffer-and-window ()
