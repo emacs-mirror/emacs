@@ -361,7 +361,7 @@ If optional argument QUERY is non-nil, query for the help mode."
 		      (re-search-forward
 		       (concat prefix (regexp-quote item) suffix))
 		      (goto-char (match-beginning 0))
-		      (and window-system info-lookup-highlight-face
+		      (and (display-color-p) info-lookup-highlight-face
 			   ;; Search again for ITEM so that the first
 			   ;; occurence of ITEM will be highlighted.
 			   (re-search-forward (regexp-quote item))
