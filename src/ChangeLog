@@ -1,3 +1,8 @@
+2004-03-26  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (syms_of_xdisp): Include `void-variable' in list_of_error
+	to catch errors in calc_pixel_width_or_height during redisplay.
+
 2004-03-26  Masatake YAMATO  <jet@gyve.org>
 
 	* buffer.c (fix_start_end_in_overlays): Rename fix_overlays_in_range.
