@@ -1582,6 +1582,27 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 
   startp = marker_position (w->start);
 
+  /* If someone specified a new starting point but did not insist,
+     check whether it can be used.  */
+  if (!NILP (w->optional_new_start))
+    {
+      w->optional_new_start = Qnil;
+      /* Check whether this start pos is usable given where point is.  */
+
+      pos = *compute_motion (startp, 0,
+			     (((EQ (window, minibuf_window)
+				&& startp == BEG)
+			       ? minibuf_prompt_width : 0)
+			      + (hscroll ? 1 - hscroll : 0)),
+			     0,
+			     PT, height, 0,
+			     width, hscroll, pos_tab_offset (w, startp), w);
+      /* If PT does fit on the screen, we will use this start pos,
+	 so do so by setting force_start.  */
+      if (pos.bufpos == PT)
+	w->force_start = Qt;
+    }
+
   /* Handle case where place to start displaying has been specified,
      unless the specified location is outside the accessible range.  */
   if (!NILP (w->force_start))
