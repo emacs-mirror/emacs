@@ -181,7 +181,7 @@ ARGLIST can also be t or a string of the form \"(fun ARG1 ARG2 ...)\"."
   (unless (stringp doc) (setq doc "Not documented"))
   (if (or (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" doc) (eq arglist t))
       doc
-    (format "%s%s%s" doc
+    (format "%s%s%S" doc
 	    (if (string-match "\n?\n\\'" doc)
 		(if (< (- (match-end 0) (match-beginning 0)) 2) "\n" "")
 	      "\n\n")
@@ -218,27 +218,13 @@ ARGLIST can also be t or a string of the form \"(fun ARG1 ARG2 ...)\"."
 			(intern (upcase name))))))
 		arglist)))
 
-(defvar help-C-source-directory
-  (let ((dir (expand-file-name "src" source-directory)))
-    (when (and (file-directory-p dir) (file-readable-p dir))
-      dir))
-  "Directory where the C source files of Emacs can be found.
-If nil, do not try to find the source code of functions and variables
-defined in C.")
-
-(defun help-subr-name (subr)
-  (let ((name (prin1-to-string subr)))
-    (if (string-match "\\`#<subr \\(.*\\)>\\'" name)
-	(match-string 1 name)
-      (error "Unexpected subroutine print name: %s" name))))
-
 (defun help-C-file-name (subr-or-var kind)
   "Return the name of the C file where SUBR-OR-VAR is defined.
 KIND should be `var' for a variable or `subr' for a subroutine."
   (let ((docbuf (get-buffer-create " *DOC*"))
 	(name (if (eq 'var kind)
 		  (concat "V" (symbol-name subr-or-var))
-		(concat "F" (help-subr-name subr-or-var)))))
+		(concat "F" (subr-name subr-or-var)))))
     (with-current-buffer docbuf
       (goto-char (point-min))
       (if (eobp)
@@ -248,30 +234,10 @@ KIND should be `var' for a variable or `subr' for a subroutine."
       (re-search-backward "S\\(.*\\)")
       (let ((file (match-string 1)))
 	(if (string-match "\\.\\(o\\|obj\\)\\'" file)
-	    (replace-match ".c" t t file)
+	    (setq file (replace-match ".c" t t file)))
+	(if (string-match "\\.c\\'" file)
+	    (concat "src/" file)
 	  file)))))
-
-(defun help-find-C-source (fun-or-var file kind)
-  "Find the source location where SUBR-OR-VAR is defined in FILE.
-KIND should be `var' for a variable or `subr' for a subroutine."
-  (setq file (expand-file-name file help-C-source-directory))
-  (unless (file-readable-p file)
-    (error "The C source file %s is not available"
-	   (file-name-nondirectory file)))
-  (if (eq 'fun kind)
-      (setq fun-or-var (indirect-function fun-or-var)))
-  (with-current-buffer (find-file-noselect file)
-    (goto-char (point-min))
-    (unless (re-search-forward
-	     (if (eq 'fun kind)
-		 (concat "DEFUN[ \t\n]*([ \t\n]*\""
-			 (regexp-quote (help-subr-name fun-or-var))
-			 "\"")
-	       (concat "DEFVAR[A-Z_]*[ \t\n]*([ \t\n]*\""
-		       (regexp-quote (symbol-name fun-or-var))))
-	     nil t)
-      (error "Can't find source for %s" fun))
-    (cons (current-buffer) (match-beginning 0))))
 
 ;;;###autoload
 (defun describe-function-1 (function)
@@ -339,14 +305,16 @@ KIND should be `var' for a variable or `subr' for a subroutine."
 	    (when (re-search-backward
 		   "^;;; Generated autoloads from \\(.*\\)" nil t)
 	      (setq file-name (match-string 1)))))))
-    (when (and (null file-name) (subrp def) help-C-source-directory)
+    (when (and (null file-name) (subrp def))
       ;; Find the C source file name.
-      (setq file-name (concat "src/" (help-C-file-name def 'subr))))
+      (setq file-name (if (get-buffer " *DOC*")
+			  (help-C-file-name def 'subr)
+			'C-source)))
     (when file-name
       (princ " in `")
       ;; We used to add .el to the file name,
       ;; but that's completely wrong when the user used load-file.
-      (princ file-name)
+      (princ (if (eq file-name 'C-source) "C source code" file-name))
       (princ "'")
       ;; Make a hyperlink to the library.
       (with-current-buffer standard-output
@@ -374,7 +342,7 @@ KIND should be `var' for a variable or `subr' for a subroutine."
 	  ;; FIXME: This list can be very long (f.ex. for self-insert-command).
 	  ;; If there are many, remove them from KEYS.
 	  (if (< (length non-modified-keys) 10)
-	      (princ (mapconcat 'key-description keys ", "))	      
+	      (princ (mapconcat 'key-description keys ", "))
 	    (dolist (key non-modified-keys)
 	      (setq keys (delq key keys)))
 	    (if keys
@@ -579,13 +547,13 @@ it is displayed along with the global value."
 	      (when (and (null file-name)
 			 (integerp (get variable 'variable-documentation)))
 		;; It's a variable not defined in Elisp but in C.
-		(if help-C-source-directory
-		    (setq file-name
-			  (concat "src/" (help-C-file-name variable 'var)))
-		  (princ "\n\nDefined in core C code.")))
+		(setq file-name
+		      (if (get-buffer " *DOC*")
+			  (help-C-file-name variable 'var)
+			'C-source)))
 	      (when file-name
 		(princ "\n\nDefined in `")
-		(princ file-name)
+		(princ (if (eq file-name 'C-source) "C source code" file-name))
 		(princ "'.")
 		(with-current-buffer standard-output
 		  (save-excursion

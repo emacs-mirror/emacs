@@ -1113,21 +1113,25 @@ the generated Quail package is saved."
 	name title dicfile coding quailfile converter copyright
 	dicbuf)
     (while tail
-      (when (or (string-match (nth 2 (car tail)) filename)
-		;; MS-DOS filesystem truncates file names to 8+3
-		;; limits, so "cangjie-table.cns" becomes
-		;; "cangjie-.cns", and the above string-match fails.
-		;; Give DOS users a chance...
-		(and (fboundp 'msdos-long-file-names)
-		     (not (msdos-long-file-names))
-		     (string-match (dos-8+3-filename (nth 2 (car tail)))
-				   filename)))
-	(setq slot (car tail)
-	      name (car slot)
+      (setq slot (car tail)
+	    dicfile (nth 2 slot)
+	    quailfile (nth 4 slot))
+      (when (and (or (string-match dicfile filename)
+		     ;; MS-DOS filesystem truncates file names to 8+3
+		     ;; limits, so "cangjie-table.cns" becomes
+		     ;; "cangjie-.cns", and the above string-match
+		     ;; fails.  Give DOS users a chance...
+		     (and (fboundp 'msdos-long-file-names)
+			  (not (msdos-long-file-names))
+			  (string-match (dos-8+3-filename dicfile) filename)))
+		 (if (file-newer-than-file-p
+		      filename (expand-file-name quailfile dirname))
+		     t
+		   (message "%s is up to date" quailfile)
+		   nil))
+	(setq name (car slot)
 	      title (nth 1 slot)
-	      dicfile (nth 2 slot)
 	      coding (nth 3 slot)
-	      quailfile (nth 4 slot)
 	      converter (nth 5 slot)
 	      copyright (nth 6 slot))
 	(message "Converting %s to %s..." dicfile quailfile)

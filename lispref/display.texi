@@ -3433,7 +3433,7 @@ buttons in Emacs buffers, such as might be used for help hyper-links,
 etc.  Emacs uses buttons for the hyper-links in help text and the like.
 
 A button is essentially a set of properties attached (via text
-properties or overlays) to a region of text in an emacs buffer, which
+properties or overlays) to a region of text in an Emacs buffer, which
 are called its button properties.  @xref{Button Properties}.
 
 One of the these properties (@code{action}) is a function, which will
@@ -3441,7 +3441,7 @@ be called when the user invokes it using the keyboard or the mouse.
 The invoked function may then examine the button and use its other
 properties as desired.
 
-In some ways the emacs button package duplicates functionality offered
+In some ways the Emacs button package duplicates functionality offered
 by the widget package (@pxref{Top, , Introduction, widget, The Emacs
 Widget Library}), but the button package has the advantage that it is
 much faster, much smaller, and much simpler to use (for elisp
@@ -3454,7 +3454,7 @@ entries).
 @menu
 * Button Properties::      Button properties with special meanings.
 * Button Types::           Defining common properties for classes of buttons.
-* Making Buttons::         Adding buttons to emacs buffers.
+* Making Buttons::         Adding buttons to Emacs buffers.
 * Manipulating Buttons::   Getting and setting properties of buttons.
 * Button Buffer Commands:: Buffer-wide commands and bindings for buttons.
 * Manipulating Button Types:: 
@@ -3488,14 +3488,14 @@ present, mouse-clicks use @code{action} instead.
 
 @item face
 @kindex face @r{(button property)}
-This is an emacs face controlling how buttons of this type are
+This is an Emacs face controlling how buttons of this type are
 displayed; by default this is the @code{button} face.
 
 @item mouse-face
 @kindex mouse-face @r{(button property)}
 This is an additional face which controls appearance during
 mouse-overs (merged with the usual button face); by default this is
-the usual emacs @code{highlight} face.
+the usual Emacs @code{highlight} face.
 
 @item keymap
 @kindex keymap @r{(button property)}
@@ -3512,7 +3512,7 @@ usually specified using the @code{:type} keyword argument.
 
 @item help-echo
 @kindex help-index @r{(button property)}
-A string displayed by the emacs tool-tip help system; by default,
+A string displayed by the Emacs tool-tip help system; by default,
 @code{"mouse-2, RET: Push this button"}.
 
 @item button
@@ -3562,7 +3562,7 @@ doing so usually makes the resulting code clearer and more efficient.
   Buttons are associated with a region of text, using an overlay or
 text-properties to hold button-specific information, all of which are
 initialized from the button's type (which defaults to the built-in
-button type @code{button}).  Like all emacs text, the appearance of
+button type @code{button}).  Like all Emacs text, the appearance of
 the button is governed by the @code{face} property; by default (via
 the @code{face} property inherited from the @code{button} button-type)
 this is a simple underline, like a typical web-page link.
@@ -3594,7 +3594,7 @@ Make a button from @var{beg} to @var{end} in the current buffer.
 Insert a button with the label @var{label}.
 @end defun
 
-The following functions are similar, but use emacs text-properties
+The following functions are similar, but use Emacs text-properties
 (@pxref{Text Properties}) to hold the button properties, making the
 button actually part of the text instead of being a property of the
 buffer (using text-properties is usually faster than using overlays,
@@ -3683,7 +3683,7 @@ Return the button at position @var{pos} in the current buffer, or @code{nil}.
 @cindex button buffer commands
 
 These are commands and functions for locating and operating on
-buttons in an emacs buffer.
+buttons in an Emacs buffer.
 
 @code{push-button} is the command that a user uses to actually `push'
 a button, and is bound by default in the button itself to @key{RET}

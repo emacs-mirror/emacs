@@ -1,11 +1,12 @@
 ;;; sql.el --- specialized comint.el for SQL interpreters
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003  Free Software Foundation, Inc.
+;; Copyright (C) 1998,99,2000,01,02,03,04  Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Michael Mauger <mmaug@yahoo.com>
-;; Version: 1.8.0
+;; Version: 2.0.0
 ;; Keywords: comm languages processes
+;; URL: http://savannah.gnu.org/cgi-bin/viewcvs/emacs/emacs/lisp/progmodes/sql.el
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?SqlMode
 
 ;; This file is part of GNU Emacs.
@@ -101,7 +102,7 @@
 
 ;;     (const :tag "XyzDB" xyz)
 
-;; 2) Add an entry to the `sql-product-support' list.
+;; 2) Add an entry to the `sql-product-alist' list.
 
 ;;     (xyz
 ;;      :font-lock sql-mode-xyz-font-lock-keywords
@@ -136,7 +137,7 @@
 ;;    using ANSI keywords.  See sql-mode-oracle-font-lock-keywords for
 ;;    a more complex example.
 
-;;     (defvar sql-mode-xyz-font-lock-keywords sql-mode-ansi-font-lock-keywords
+;;     (defvar sql-mode-xyz-font-lock-keywords nil
 ;;       "XyzDB SQL keywords used by font-lock.")
 
 ;; 6) Add a product highlighting function.
@@ -192,6 +193,7 @@
 
 ;;; Thanks to all the people who helped me out:
 
+;; Alex Schroeder <alex@gnu.org>
 ;; Kai Blauberg <kai.blauberg@metla.fi>
 ;; <ibalaban@dalet.com>
 ;; Yair Friedman <yfriedma@JohnBryce.Co.Il>
@@ -199,6 +201,7 @@
 ;; nino <nino@inform.dk>
 ;; Berend de Boer <berend@pobox.com>
 ;; Michael Mauger <mmaug@yahoo.com>
+;; Adam Jenkins <adam@thejenkins.org>
 
 
 
@@ -209,6 +212,8 @@
 (eval-when-compile
   (require 'regexp-opt))
 (require 'custom)
+(eval-when-compile ;; needed in Emacs 19, 20
+  (setq max-specpdl-size 2000))
 
 ;;; Allow customization
 
@@ -264,7 +269,7 @@ highlighted properly when you open them."
 (defvar sql-interactive-product nil
   "Product under `sql-interactive-mode'.")
 
-(defvar sql-product-support
+(defvar sql-product-alist
   '((ansi
      :font-lock sql-mode-ansi-font-lock-keywords)
     (db2
@@ -319,9 +324,9 @@ highlighted properly when you open them."
      :syntax-alist ((?$ . "w") (?# . "w")))
     (postgres
      :font-lock sql-mode-postgres-font-lock-keywords
-     :sqli-login (database server)
+     :sqli-login (user database server)
      :sqli-connect sql-connect-postgres
-     :sqli-prompt-regexp "^.*> *"
+     :sqli-prompt-regexp "^.*[#>] *"
      :sqli-prompt-length 5)
     (solid
      :font-lock sql-mode-solid-font-lock-keywords
@@ -372,10 +377,12 @@ following:
                         database.  Do product specific
                         configuration of comint in this function.
 
- :sqli-prompt-regexp    a regular expression string that matches the
-                        prompt issued by the product interpreter.
+ :sqli-prompt-regexp    a regular expression string that matches
+                        the prompt issued by the product
+                        interpreter.  (Not needed in 21.3+)
 
- :sqli-prompt-length    the length of the prompt on the line.
+ :sqli-prompt-length    the length of the prompt on the line.(Not
+                        needed in 21.3+)
 
  :syntax-alist          an alist of syntax table entries to enable
                         special character treatment by font-lock and
@@ -412,14 +419,14 @@ buffer is shown using `display-buffer'."
 
 (defvar sql-imenu-generic-expression
   ;; Items are in reverse order because they are rendered in reverse.
-  '(("Rules/Defaults" "^\\s-*create\\s-+\\(rule\\|default\\)\\s-+\\(\\w+\\)" 2)
-    ("Sequences" "^\\s-*create\\s-+sequence\\s-+\\(\\w+\\)" 1)
-    ("Triggers" "^\\s-*\\(create\\s-+\\(or\\s-+replace\\s-+\\)?\\)?trigger\\s-+\\(\\w+\\)" 3)
-    ("Functions" "^\\s-*\\(create\\s-+\\(or\\s-+replace\\s-+\\)?\\)?function\\s-+\\(\\w+\\)" 3)
-    ("Procedures" "^\\s-*\\(create\\s-+\\(or\\s-+replace\\s-+\\)?\\)?proc\\(edure\\)?\\s-+\\(\\w+\\)" 4)
-    ("Packages" "^\\s-*create\\s-+\\(or\\s-+replace\\s-+\\)?package\\s-+\\(body\\s-+\\)?\\(\\w+\\)" 3)
-    ("Indexes" "^\\s-*create\\s-+index\\s-+\\(\\w+\\)" 1)
-    ("Tables/Views" "^\\s-*create\\s-+\\(\\(global\\s-+\\)?\\(temporary\\s-+\\)?table\\|view\\)\\s-+\\(\\w+\\)" 4))
+  '(("Rules/Defaults" "^\\s-*create\\s-+\\(\\w+\\s-+\\)*\\(rule\\|default\\)\\s-+\\(\\w+\\)" 3)
+    ("Sequences" "^\\s-*create\\s-+\\(\\w+\\s-+\\)*sequence\\s-+\\(\\w+\\)" 2)
+    ("Triggers" "^\\s-*create\\s-+\\(\\w+\\s-+\\)*trigger\\s-+\\(\\w+\\)" 2)
+    ("Functions" "^\\s-*\\(create\\s-+\\(\\w+\\s-+\\)*\\)?function\\s-+\\(\\w+\\)" 3)
+    ("Procedures" "^\\s-*\\(create\\s-+\\(\\w+\\s-+\\)*\\)?proc\\(edure\\)?\\s-+\\(\\w+\\)" 4)
+    ("Packages" "^\\s-*create\\s-+\\(\\w+\\s-+\\)*package\\s-+\\(body\\s-+\\)?\\(\\w+\\)" 3)
+    ("Indexes" "^\\s-*create\\s-+\\(\\w+\\s-+\\)*index\\s-+\\(\\w+\\)" 2)
+    ("Tables/Views" "^\\s-*create\\s-+\\(\\w+\\s-+\\)*\\(table\\|view\\)\\s-+\\(\\w+\\)" 3))
   "Define interesting points in the SQL buffer for `imenu'.
 
 This is used to set `imenu-generic-expression' when SQL mode is
@@ -686,6 +693,18 @@ Starts `sql-interactive-mode' after doing some setup."
 
 ;;; Variables which do not need customization
 
+(defvar sql-xemacs-p
+  (string-match "XEmacs\\|Lucid" emacs-version)
+  "Is this a non-GNU Emacs?")
+
+(defvar sql-emacs19-p
+  (string-match "GNU Emacs 19" emacs-version)
+  "Is this a GNU Emacs 19?")
+
+(defvar sql-emacs20-p
+  (string-match "20" emacs-version)
+  "Is this a GNU Emacs 20?")
+
 (defvar sql-user-history nil
   "History of usernames used.")
 
@@ -745,6 +764,7 @@ Based on `comint-mode-map'.")
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-c") 'sql-send-paragraph)
     (define-key map (kbd "C-c C-r") 'sql-send-region)
+    (define-key map (kbd "C-c C-s") 'sql-send-string)
     (define-key map (kbd "C-c C-b") 'sql-send-buffer)
     map)
   "Mode map used for `sql-mode'.")
@@ -764,6 +784,7 @@ Based on `comint-mode-map'.")
 				       (get-buffer-process sql-buffer))]
    ["Send Buffer" sql-send-buffer (and (buffer-live-p sql-buffer)
 				       (get-buffer-process sql-buffer))]
+   ["Send String" sql-send-string t]
    ["--" nil nil]
    ["Start SQLi session" sql-product-interactive (sql-product-feature :sqli-connect)]
    ["Show SQLi buffer" sql-show-sqli-buffer t]
@@ -792,7 +813,7 @@ Based on `comint-mode-map'.")
     ["Linter" sql-highlight-linter-keywords
      :style radio
      :selected (eq sql-product 'linter)]
-    ["Microsoft" sql-highlight-ms-keywords
+    ["MS SQLServer" sql-highlight-ms-keywords
      :style radio
      :selected (eq sql-product 'ms)]
     ["MySQL" sql-highlight-mysql-keywords
@@ -828,24 +849,24 @@ Based on `comint-mode-map'.")
 
 (defvar sql-mode-abbrev-table nil
   "Abbrev table used in `sql-mode' and `sql-interactive-mode'.")
-(if sql-mode-abbrev-table
-    ()
-  (let ((nargs (cdr (subr-arity (symbol-function 'define-abbrev))))
-	d-a)
+(unless sql-mode-abbrev-table
+  (define-abbrev-table 'sql-mode-abbrev-table nil)
+  (mapcar
     ;; In Emacs 21.3+, provide SYSTEM-FLAG to define-abbrev.
-    (setq d-a
-	  (if (>= nargs 6)
-	      '(lambda (name expansion) (define-abbrev sql-mode-abbrev-table name expansion nil 0 t))
-	    '(lambda (name expansion) (define-abbrev sql-mode-abbrev-table name expansion))))
-
-    (define-abbrev-table 'sql-mode-abbrev-table nil)
-    (funcall d-a "ins" "insert")
-    (funcall d-a "upd" "update")
-    (funcall d-a "del" "delete")
-    (funcall d-a "sel" "select")
-    (funcall d-a "proc" "procedure")
-    (funcall d-a "func" "function")
-    (funcall d-a "cr" "create")))
+   '(lambda (abbrev)
+      (let ((name (car abbrev))
+	    (expansion (cdr abbrev)))
+	(condition-case nil
+	    (define-abbrev sql-mode-abbrev-table name expansion nil 0 t)
+	  (error
+	   (define-abbrev sql-mode-abbrev-table name expansion)))))
+   '(("ins" "insert")
+    ("upd" "update")
+    ("del" "delete")
+    ("sel" "select")
+    ("proc" "procedure")
+    ("func" "function")
+    ("cr" "create"))))
 
 ;; Syntax Table
 
@@ -855,7 +876,7 @@ Based on `comint-mode-map'.")
     (modify-syntax-entry ?/ ". 14" table)
     (modify-syntax-entry ?* ". 23" table)
     ;; double-dash starts comment
-    (if (string-match "XEmacs\\|Lucid" emacs-version)
+    (if sql-xemacs-p
 	(modify-syntax-entry ?- ". 56" table)
       (modify-syntax-entry ?- ". 12b" table))
     ;; newline and formfeed end coments
@@ -871,55 +892,136 @@ Based on `comint-mode-map'.")
 ;; Font lock support
 
 (defvar sql-mode-font-lock-object-name
-  (list (concat "^\\s-*\\(create\\(\\s-+or\\s-+replace\\)?\\|drop\\|alter\\)?\\s-+"
-		"\\(\\(global\\s-+\\)?\\(temporary\\s-+\\)?table\\|view\\|package\\(\\s-+body\\)?\\|"
-		"proc\\(edure\\)?\\|function\\|trigger\\|sequence\\|rule\\|default\\)\\s-+\\(\\w+\\)")
-	8 'font-lock-function-name-face)
+  (list (concat "^\\s-*\\(create\\|drop\\|alter\\)\\s-+" ;; lead off with CREATE, DROP or ALTER
+		"\\(\\w+\\s-+\\)*"  ;; optional intervening keywords
+		"\\(table\\|view\\|package\\(\\s-+body\\)?\\|proc\\(edure\\)?"
+		"\\|function\\|trigger\\|sequence\\|rule\\|default\\)\\s-+"
+		"\\(\\w+\\)")
+	6 'font-lock-function-name-face)
 
-  "Pattern to match the names of top-level objects in a CREATE,
-DROP or ALTER statement.
+  "Pattern to match the names of top-level objects.
 
-The format of variable should be a valid `font-lock-keywords'
-entry.")
+The pattern matches the name in a CREATE, DROP or ALTER
+statement.  The format of variable should be a valid
+`font-lock-keywords' entry.")
+
+(defvar sql-builtin-face
+  (if sql-xemacs-p
+      ;; XEmacs doesn't have the builtin face
+      'font-lock-preprocessor-face
+    ;; GNU Emacs 19 doesn't either
+    (if sql-emacs19-p
+	'font-lock-keyword-face
+      ;; Emacs 2x
+      'font-lock-builtin-face))
+  "Builtin face for font-lock in SQL mode.")
+
+(defvar sql-doc-face
+  (if (or sql-xemacs-p
+	  sql-emacs19-p
+	  sql-emacs20-p)
+      'font-lock-string-face
+    'font-lock-doc-face)
+  "Documentation face for font-lock in SQL mode.")
+
+(defmacro sql-keywords-re (&rest keywords)
+  "Compile-time generation of regexp matching any one of KEYWORDS."
+  `(eval-when-compile
+     (concat "\\b"
+	     (regexp-opt ',keywords t)
+	     "\\b")))
 
 (defvar sql-mode-ansi-font-lock-keywords
-  (let ((ansi-keywords (eval-when-compile
-			 (concat "\\b"
-				 (regexp-opt '(
+  (let ((ansi-funcs (sql-keywords-re
+"abs" "avg" "bit_length" "cardinality" "cast" "char_length"
+"character_length" "coalesce" "convert" "count" "current_date"
+"current_path" "current_role" "current_time" "current_timestamp"
+"current_user" "extract" "localtime" "localtimestamp" "lower" "max"
+"min" "mod" "nullif" "octet_length" "overlay" "placing" "session_user"
+"substring" "sum" "system_user" "translate" "treat" "trim" "upper"
+"user"
+))
 
-"authorization" "avg" "begin" "close" "cobol" "commit"
-"continue" "count" "declare" "double" "end" "escape"
-"exec" "fetch" "foreign" "fortran" "found" "go" "goto" "indicator"
-"key" "language" "max" "min" "module" "numeric" "open" "pascal" "pli"
-"precision" "primary" "procedure" "references" "rollback"
-"schema" "section" "some" "sqlcode" "sqlerror" "sum" "work"
+	(ansi-non-reserved (sql-keywords-re
+"ada" "asensitive" "assignment" "asymmetric" "atomic" "between"
+"bitvar" "called" "catalog_name" "chain" "character_set_catalog"
+"character_set_name" "character_set_schema" "checked" "class_origin"
+"cobol" "collation_catalog" "collation_name" "collation_schema"
+"column_name" "command_function" "command_function_code" "committed"
+"condition_number" "connection_name" "constraint_catalog"
+"constraint_name" "constraint_schema" "contains" "cursor_name"
+"datetime_interval_code" "datetime_interval_precision" "defined"
+"definer" "dispatch" "dynamic_function" "dynamic_function_code"
+"existing" "exists" "final" "fortran" "generated" "granted"
+"hierarchy" "hold" "implementation" "infix" "insensitive" "instance"
+"instantiable" "invoker" "key_member" "key_type" "length" "m"
+"message_length" "message_octet_length" "message_text" "method" "more"
+"mumps" "name" "nullable" "number" "options" "overlaps" "overriding"
+"parameter_mode" "parameter_name" "parameter_ordinal_position"
+"parameter_specific_catalog" "parameter_specific_name"
+"parameter_specific_schema" "pascal" "pli" "position" "repeatable"
+"returned_length" "returned_octet_length" "returned_sqlstate"
+"routine_catalog" "routine_name" "routine_schema" "row_count" "scale"
+"schema_name" "security" "self" "sensitive" "serializable"
+"server_name" "similar" "simple" "source" "specific_name" "style"
+"subclass_origin" "sublist" "symmetric" "system" "table_name"
+"transaction_active" "transactions_committed"
+"transactions_rolled_back" "transform" "transforms" "trigger_catalog"
+"trigger_name" "trigger_schema" "type" "uncommitted" "unnamed"
+"user_defined_type_catalog" "user_defined_type_name"
+"user_defined_type_schema"
+))
 
-) t) "\\b")))
-	(ansi-reserved-words (eval-when-compile
-			       (concat "\\b"
-				       (regexp-opt '(
+	(ansi-reserved (sql-keywords-re
+"absolute" "action" "add" "admin" "after" "aggregate" "alias" "all"
+"allocate" "alter" "and" "any" "are" "as" "asc" "assertion" "at"
+"authorization" "before" "begin" "both" "breadth" "by" "call"
+"cascade" "cascaded" "case" "catalog" "check" "class" "close"
+"collate" "collation" "column" "commit" "completion" "connect"
+"connection" "constraint" "constraints" "constructor" "continue"
+"corresponding" "create" "cross" "cube" "current" "cursor" "cycle"
+"data" "day" "deallocate" "declare" "default" "deferrable" "deferred"
+"delete" "depth" "deref" "desc" "describe" "descriptor" "destroy"
+"destructor" "deterministic" "diagnostics" "dictionary" "disconnect"
+"distinct" "domain" "drop" "dynamic" "each" "else" "end" "equals"
+"escape" "every" "except" "exception" "exec" "execute" "external"
+"false" "fetch" "first" "for" "foreign" "found" "free" "from" "full"
+"function" "general" "get" "global" "go" "goto" "grant" "group"
+"grouping" "having" "host" "hour" "identity" "ignore" "immediate" "in"
+"indicator" "initialize" "initially" "inner" "inout" "input" "insert"
+"intersect" "into" "is" "isolation" "iterate" "join" "key" "language"
+"last" "lateral" "leading" "left" "less" "level" "like" "limit"
+"local" "locator" "map" "match" "minute" "modifies" "modify" "module"
+"month" "names" "natural" "new" "next" "no" "none" "not" "null" "of"
+"off" "old" "on" "only" "open" "operation" "option" "or" "order"
+"ordinality" "out" "outer" "output" "pad" "parameter" "parameters"
+"partial" "path" "postfix" "prefix" "preorder" "prepare" "preserve"
+"primary" "prior" "privileges" "procedure" "public" "read" "reads"
+"recursive" "references" "referencing" "relative" "restrict" "result"
+"return" "returns" "revoke" "right" "role" "rollback" "rollup"
+"routine" "rows" "savepoint" "schema" "scroll" "search" "second"
+"section" "select" "sequence" "session" "set" "sets" "size" "some"
+"space" "specific" "specifictype" "sql" "sqlexception" "sqlstate"
+"sqlwarning" "start" "state" "statement" "static" "structure" "table"
+"temporary" "terminate" "than" "then" "timezone_hour"
+"timezone_minute" "to" "trailing" "transaction" "translation"
+"trigger" "true" "under" "union" "unique" "unknown" "unnest" "update"
+"usage" "using" "value" "values" "variable" "view" "when" "whenever"
+"where" "with" "without" "work" "write" "year"
+))
 
-"all" "and" "any" "as" "asc" "between" "by" "check" "create"
-"current" "default" "delete" "desc" "distinct" "exists" "float" "for"
-"from" "grant" "group" "having" "in" "insert" "into" "is"
-"like" "not" "null" "of" "on" "option" "or" "order" "privileges"
-"public" "select" "set" "table" "to" "union" "unique"
-"update" "user" "values" "view" "where" "with"
+	(ansi-types (sql-keywords-re
+"array" "binary" "bit" "blob" "boolean" "char" "character" "clob"
+"date" "dec" "decimal" "double" "float" "int" "integer" "interval"
+"large" "national" "nchar" "nclob" "numeric" "object" "precision"
+"real" "ref" "row" "scope" "smallint" "time" "timestamp" "varchar"
+"varying" "zone"
+)))
 
-) t) "\\b")))
-	(ansi-types (eval-when-compile
-		      (concat "\\b"
-			      (regexp-opt '(
-
-;; ANSI Keywords that look like types
-"character" "cursor" "dec" "int" "real"
-;; ANSI Reserved Word that look like types
-"char" "integer" "smallint"
-
-) t) "\\b"))))
-    (list (cons ansi-keywords 'font-lock-keyword-face)
-		(cons ansi-reserved-words 'font-lock-keyword-face)
-	  (cons ansi-types 'font-lock-type-face)))
+    `((,ansi-non-reserved . font-lock-keyword-face)
+      (,ansi-reserved     . font-lock-keyword-face)
+      (,ansi-funcs        . ,sql-builtin-face)
+      (,ansi-types        . font-lock-type-face)))
 
   "ANSI SQL keywords used by font-lock.
 
@@ -930,66 +1032,156 @@ you define your own sql-mode-ansi-font-lock-keywords.  You may want to
 add functions and PL/SQL keywords.")
 
 (defvar sql-mode-oracle-font-lock-keywords
-  (let ((oracle-keywords (eval-when-compile
-			   (concat "\\b"
-				   (regexp-opt '(
-;; Oracle (+ANSI) SQL keywords
+  (let ((oracle-functions (sql-keywords-re
+"abs" "acos" "add_months" "ascii" "asciistr" "asin" "atan" "atan2"
+"avg" "bfilename" "bin_to_num" "bitand" "cast" "ceil" "chartorowid"
+"chr" "coalesce" "compose" "concat" "convert" "corr" "cos" "cosh"
+"count" "covar_pop" "covar_samp" "cume_dist" "current_date"
+"current_timestamp" "current_user" "dbtimezone" "decode" "decompose"
+"dense_rank" "depth" "deref" "dump" "empty_clob" "existsnode" "exp"
+"extract" "extractvalue" "first" "first_value" "floor" "following"
+"from_tz" "greatest" "group_id" "grouping_id" "hextoraw" "initcap"
+"instr" "lag" "last" "last_day" "last_value" "lead" "least" "length"
+"ln" "localtimestamp" "lower" "lpad" "ltrim" "make_ref" "max" "min"
+"mod" "months_between" "new_time" "next_day" "nls_charset_decl_len"
+"nls_charset_id" "nls_charset_name" "nls_initcap" "nls_lower"
+"nls_upper" "nlssort" "ntile" "nullif" "numtodsinterval"
+"numtoyminterval" "nvl" "nvl2" "over" "path" "percent_rank"
+"percentile_cont" "percentile_disc" "power" "preceding" "rank"
+"ratio_to_report" "rawtohex" "rawtonhex" "reftohex" "regr_"
+"regr_avgx" "regr_avgy" "regr_count" "regr_intercept" "regr_r2"
+"regr_slope" "regr_sxx" "regr_sxy" "regr_syy" "replace" "round"
+"row_number" "rowidtochar" "rowidtonchar" "rpad" "rtrim"
+"sessiontimezone" "sign" "sin" "sinh" "soundex" "sqrt" "stddev"
+"stddev_pop" "stddev_samp" "substr" "sum" "sys_connect_by_path"
+"sys_context" "sys_dburigen" "sys_extract_utc" "sys_guid" "sys_typeid"
+"sys_xmlagg" "sys_xmlgen" "sysdate" "systimestamp" "tan" "tanh"
+"to_char" "to_clob" "to_date" "to_dsinterval" "to_lob" "to_multi_byte"
+"to_nchar" "to_nclob" "to_number" "to_single_byte" "to_timestamp"
+"to_timestamp_tz" "to_yminterval" "translate" "treat" "trim" "trunc"
+"tz_offset" "uid" "unbounded" "unistr" "updatexml" "upper" "user"
+"userenv" "var_pop" "var_samp" "variance" "vsize" "width_bucket" "xml"
+"xmlagg" "xmlattribute" "xmlcolattval" "xmlconcat" "xmlelement"
+"xmlforest" "xmlsequence" "xmltransform"
+))
 
-; ANSI keywords
-"authorization" "avg" "begin" "close" "cobol" "commit"
-"continue" "count" "declare" "double" "end" "escape"
-"exec" "fetch" "foreign" "fortran" "found" "go" "goto" "indicator"
-"key" "language" "max" "min" "module" "numeric" "open" "pascal" "pli"
-"precision" "primary" "procedure" "references" "rollback"
-"schema" "section" "some" "sqlcode" "sqlerror" "sum" "work"
+	(oracle-keywords (sql-keywords-re
+"abort" "access" "accessed" "account" "activate" "add" "admin"
+"advise" "after" "agent" "aggregate" "all" "allocate" "allow" "alter"
+"always" "analyze" "ancillary" "and" "any" "apply" "archive"
+"archivelog" "array" "as" "asc" "associate" "at" "attribute"
+"attributes" "audit" "authenticated" "authid" "authorization" "auto"
+"autoallocate" "automatic" "availability" "backup" "before" "begin"
+"behalf" "between" "binding" "bitmap" "block" "blocksize" "body"
+"both" "buffer_pool" "build" "by"  "cache" "call" "cancel"
+"cascade" "case" "category" "certificate" "chained" "change" "check"
+"checkpoint" "child" "chunk" "class" "clear" "clone" "close" "cluster"
+"column" "column_value" "columns" "comment" "commit" "committed"
+"compatibility" "compile" "complete" "composite_limit" "compress"
+"compute" "connect" "connect_time" "consider" "consistent"
+"constraint" "constraints" "constructor" "contents" "context"
+"continue" "controlfile" "corruption" "cost" "cpu_per_call"
+"cpu_per_session" "create" "cross" "cube" "current" "currval" "cycle"
+"dangling" "data" "database" "datafile" "datafiles" "day" "ddl"
+"deallocate" "debug" "default" "deferrable" "deferred" "definer"
+"delay" "delete" "demand" "desc" "determines" "deterministic"
+"dictionary" "dimension" "directory" "disable" "disassociate"
+"disconnect" "distinct" "distinguished" "distributed" "dml" "drop"
+"each" "element" "else" "enable" "end" "equals_path" "escape"
+"estimate" "except" "exceptions" "exchange" "excluding" "exists"
+"expire" "explain" "extent" "external" "externally"
+"failed_login_attempts" "fast" "file" "final" "finish" "flush" "for"
+"force" "foreign" "freelist" "freelists" "freepools" "fresh" "from"
+"full" "function" "functions" "generated" "global" "global_name"
+"globally" "grant" "group" "grouping" "groups" "guard" "hash"
+"hashkeys" "having" "heap" "hierarchy" "id" "identified" "identifier"
+"idle_time" "immediate" "in" "including" "increment" "index" "indexed"
+"indexes" "indextype" "indextypes" "indicator" "initial" "initialized"
+"initially" "initrans" "inner" "insert" "instance" "instantiable"
+"instead" "intersect" "into" "invalidate" "is" "isolation" "java"
+"join"  "keep" "key" "kill" "language" "left" "less" "level"
+"levels" "library" "like" "like2" "like4" "likec" "limit" "link"
+"list" "lob" "local" "location" "locator" "lock" "log" "logfile"
+"logging" "logical" "logical_reads_per_call"
+"logical_reads_per_session"  "managed" "management" "manual" "map"
+"mapping" "master" "matched" "materialized" "maxdatafiles"
+"maxextents" "maximize" "maxinstances" "maxlogfiles" "maxloghistory"
+"maxlogmembers" "maxsize" "maxtrans" "maxvalue" "member" "memory"
+"merge" "migrate" "minextents" "minimize" "minimum" "minus" "minvalue"
+"mode" "modify" "monitoring" "month" "mount" "move" "movement" "name"
+"named" "natural" "nested" "never" "new" "next" "nextval" "no"
+"noarchivelog" "noaudit" "nocache" "nocompress" "nocopy" "nocycle"
+"nodelay" "noforce" "nologging" "nomapping" "nomaxvalue" "nominimize"
+"nominvalue" "nomonitoring" "none" "noorder" "noparallel" "norely"
+"noresetlogs" "noreverse" "normal" "norowdependencies" "nosort"
+"noswitch" "not" "nothing" "notimeout" "novalidate" "nowait" "null"
+"nulls" "object" "of" "off" "offline" "oidindex" "old" "on" "online"
+"only" "open" "operator" "optimal" "option" "or" "order"
+"organization" "out" "outer" "outline" "overflow" "overriding"
+"package" "packages" "parallel" "parallel_enable" "parameters"
+"parent" "partition" "partitions" "password" "password_grace_time"
+"password_life_time" "password_lock_time" "password_reuse_max"
+"password_reuse_time" "password_verify_function" "pctfree"
+"pctincrease" "pctthreshold" "pctused" "pctversion" "percent"
+"performance" "permanent" "pfile" "physical" "pipelined" "plan"
+"post_transaction" "pragma" "prebuilt" "preserve" "primary" "private"
+"private_sga" "privileges" "procedure" "profile" "protection" "public"
+"purge" "query" "quiesce" "quota" "range" "read" "reads" "rebuild"
+"records_per_block" "recover" "recovery" "recycle" "reduced" "ref"
+"references" "referencing" "refresh" "register" "reject" "relational"
+"rely" "rename" "reset" "resetlogs" "resize" "resolve" "resolver"
+"resource" "restrict" "restrict_references" "restricted" "result"
+"resumable" "resume" "retention" "return" "returning" "reuse"
+"reverse" "revoke" "rewrite" "right" "rnds" "rnps" "role" "roles"
+"rollback" "rollup" "row" "rowdependencies" "rownum" "rows" "sample"
+"savepoint" "scan" "schema" "scn" "scope" "segment" "select"
+"selectivity" "self" "sequence" "serializable" "session"
+"sessions_per_user" "set" "sets" "settings" "shared" "shared_pool"
+"shrink" "shutdown" "siblings" "sid" "single" "size" "skip" "some"
+"sort" "source" "space" "specification" "spfile" "split" "standby"
+"start" "statement_id" "static" "statistics" "stop" "storage" "store"
+"structure" "subpartition" "subpartitions" "substitutable"
+"successful" "supplemental" "suspend" "switch" "switchover" "synonym"
+"sys" "system" "table" "tables" "tablespace" "tempfile" "template"
+"temporary" "test" "than" "then" "thread" "through" "time_zone"
+"timeout" "to" "trace" "transaction" "trigger" "triggers" "truncate"
+"trust" "type" "types" "unarchived" "under" "under_path" "undo"
+"uniform" "union" "unique" "unlimited" "unlock" "unquiesce"
+"unrecoverable" "until" "unusable" "unused" "update" "upgrade" "usage"
+"use" "using" "validate" "validation" "value" "values" "variable"
+"varray" "version" "view" "wait" "when" "whenever" "where" "with"
+"without" "wnds" "wnps" "work" "write" "xmldata" "xmlschema" "xmltype"
+))
 
-; ANSI reserved words
-"all" "and" "any" "as" "asc" "between" "by" "check" "create"
-"current" "default" "delete" "desc" "distinct" "exists" "float" "for"
-"from" "grant" "group" "having" "in" "insert" "into" "is"
-"like" "not" "null" "of" "on" "option" "or" "order" "privileges"
-"public" "select" "set" "table" "to" "union" "unique"
-"update" "user" "values" "view" "where" "with"
+	(oracle-types (sql-keywords-re
+"bfile" "blob" "byte" "char" "character" "clob" "date" "dec" "decimal"
+"double" "float" "int" "integer" "interval" "long" "national" "nchar"
+"nclob" "number" "numeric" "nvarchar2" "precision" "raw" "real"
+"rowid" "second" "smallint" "time" "timestamp" "urowid" "varchar"
+"varchar2" "varying" "year" "zone"
+))
 
-"access" "add" "admin" "after" "allocate" "alter" "analyze" "archive"
-"archivelog" "audit" "authid" "backup" "become" "before" "block"
-"body" "cache" "cancel" "cascade" "change" "checkpoint" "cluster"
-"comment" "compile" "compress" "compute" "connect" "constraint"
-"constraints" "contents" "controlfile" "cross" "currval" "cycle"
-"database" "datafile" "dba" "deterministic" "disable" "dismount"
-"drop" "dump" "each" "else" "else" "elsif" "enable" "events" "except"
-"exceptions" "exclusive" "execute" "exit" "explain" "extent"
-"externally" "false" "file" "flush" "force" "freelist" "freelists"
-"full" "function" "global" "grant" "groups" "identified" "if"
-"immediate" "including" "increment" "index" "initial" "initrans"
-"inner" "instance" "intersect" "join" "layer" "left" "level" "link"
-"lists" "lock" "logfile" "long" "loop" "manage" "manual"
-"maxdatafiles" "maxextents" "maxinistances" "maxlogfiles"
-"maxloghistory" "maxlogmembers" "maxtrans" "maxvalue" "merge"
-"minextents" "minus" "minvalue" "mode" "modify" "mount" "natural"
-"new" "next" "nextval" "noarchivelog" "noaudit" "nocache" "nocompress"
-"nocycle" "nomaxvalue" "nominvalue" "none" "noorder" "noresetlogs"
-"normal" "nosort" "nowait" "off" "offline" "old" "online" "only"
-"optimal" "others" "out" "outer" "over" "own" "package" "parallel"
-"parallel_enable" "pctfree" "pctincrease" "pctused" "plan" "pragma"
-"preserve" "prior" "private" "profile" "quota" "raise" "raw" "read"
-"recover" "referencing" "rename" "replace" "resetlogs" "resource"
-"restrict_references" "restricted" "return" "returning" "reuse"
-"revoke" "right" "rnds" "rnps" "role" "roles" "row" "rowlabel"
-"rownum" "rows" "savepoint" "scn" "segment" "sequence" "session"
-"share" "shared" "size" "snapshot" "sort" "statement_id" "statistics"
-"stop" "storage" "subtype" "successful" "switch" "synonym" "sysdate"
-"system" "tables" "tablespace" "temporary" "then" "thread" "tracing"
-"transaction" "trigger" "triggers" "true" "truncate" "type" "uid"
-"under" "unlimited" "until" "use" "using" "validate" "when" "while"
-"wnds" "wnps" "write"
+	(plsql-functions (sql-keywords-re
+"%bulk_rowcount" "%found" "%isopen" "%notfound" "%rowcount" "%rowtype"
+"%type" "extend" "prior"
+))
 
-) t) "\\b")))
-	(oracle-warning-words (eval-when-compile
-				 (concat "\\b"
-					 (regexp-opt '(
-;; PLSQL defined exceptions
+	(plsql-keywords (sql-keywords-re
+"autonomous_transaction" "bulk" "char_base" "collect" "constant"
+"cursor" "declare" "do" "elsif" "exception_init" "execute" "exit"
+"extends" "false" "fetch" "forall" "goto" "hour" "if" "interface"
+"loop" "minute" "number_base" "ocirowid" "opaque" "others" "rowtype"
+"separate" "serially_reusable" "sql" "sqlcode" "sqlerrm" "subtype"
+"the" "timezone_abbr" "timezone_hour" "timezone_minute"
+"timezone_region" "true" "varrying" "while"
+))
 
+	(plsql-type (sql-keywords-re
+"binary_integer" "boolean" "naturaln" "pls_integer" "positive"
+"positiven" "record" "signtype" "string"
+))
+
+	(plsql-warning (sql-keywords-re
 "access_into_null" "case_not_found" "collection_is_null"
 "cursor_already_open" "dup_val_on_index" "invalid_cursor"
 "invalid_number" "login_denied" "no_data_found" "not_logged_on"
@@ -997,15 +1189,11 @@ add functions and PL/SQL keywords.")
 "subscript_beyond_count" "subscript_outside_limit" "sys_invalid_rowid"
 "timeout_on_resource" "too_many_rows" "value_error" "zero_divide"
 "exception" "notfound"
+))
 
-) t) "\\b")))
-
-	(oracle-sqlplus-commands
-	 (eval-when-compile
-	   (concat "^\\(\\("
-					 (regexp-opt '(
-;; SQL*Plus commands
-
+	(sqlplus-commands
+	 (eval-when-compile (concat "^\\(\\("
+				    (regexp-opt '(
 "@" "@@" "accept" "append" "archive" "attribute" "break"
 "btitle" "change" "clear" "column" "connect" "copy" "define"
 "del" "describe" "disconnect" "edit" "execute" "exit" "get" "help"
@@ -1040,73 +1228,16 @@ add functions and PL/SQL keywords.")
    "timi\\(ng\\)?\\|trim\\(out\\)?\\|trims\\(pool\\)?\\|"
    "und\\(erline\\)?\\|ver\\(ify\\)?\\|wra\\(p\\)?\\)\\)\\)"
    "\\b.*$"
-   )))
+   ))))
 
-	(oracle-types
-	 (eval-when-compile
-			(concat "\\b"
-				(regexp-opt '(
-;; Oracle Keywords that look like types
-;; Oracle Reserved Words that look like types
-
-"bfile" "binary_integer" "blob" "boolean" "byte" "char" "character"
-"clob" "date" "day" "dec" "decimal" "double" "float" "int" "integer"
-"interval" "local" "long" "month" "natural" "naturaln" "nchar" "nclob"
-"number" "numeric" "nvarchar2" "pls_integer" "positive" "positiven"
-"precision" "raw" "real" "rowid" "second" "signtype" "smallint"
-"string" "time" "timestamp" "urowid" "varchar" "varchar2" "year"
-"zone"
-
-) t) "\\b")))
-	(oracle-builtin-functions (eval-when-compile
-			(concat "\\b"
-				(regexp-opt '(
-;; Misc Oracle builtin functions
-
-"abs" "acos" "add_months" "ascii" "asciistr" "asin" "atan" "atan2"
-"avg" "bfilename" "bin_to_num" "bitand" "case" "cast" "ceil"
-"chartorowid" "chr" "coalesce" "compose" "concat" "convert" "corr"
-"cos" "cosh" "count" "covar_pop" "covar_samp" "cume_dist"
-"current_date" "current_timestamp" "current_user" "dbtimezone"
-"decode" "decompose" "dense_rank" "depth" "deref" "dump" "empty_blob"
-"empty_clob" "existsnode" "exp" "extract" "extractvalue" "first"
-"first_value" "floor" "from_tz" "greatest" "group_id" "grouping"
-"grouping_id" "hextoraw" "initcap" "instr" "lag" "last" "last_day"
-"last_value" "lead" "least" "length" "ln" "localtimestamp" "log"
-"lower" "lpad" "ltrim" "make_ref" "max" "min" "mod" "months_between"
-"nchr" "new_time" "next_day" "nls_charset_decl_len" "nls_charset_id"
-"nls_charset_name" "nls_initcap" "nls_lower" "nlssort" "nls_upper"
-"ntile" "nullif" "numtodsinterval" "numtoyminterval" "nvl" "nvl2"
-"path" "percent_rank" "percentile_cont" "percentile_disc" "power"
-"rank" "ratio_to_report" "rawtohex" "rawtonhex" "ref" "reftohex"
-"regr_slope" "regr_intercept" "regr_count" "regr_r2" "regr_avgx"
-"regr_avgy" "regr_sxx" "regr_syy" "regr_sxy" "round"
-"row_number" "rowidtochar" "rowidtonchar" "rpad" "rtrim"
-"sessiontimezone" "sign" "sin" "sinh" "soundex" "sqrt" "stddev"
-"stddev_pop" "stddev_samp" "substr" "sum" "sys_connect_by_path"
-"sys_context" "sys_dburigen" "sys_extract_utc" "sys_guid" "sys_typeid"
-"sys_xmlagg" "sys_xmlgen" "sysdate" "systimestamp" "tan" "tanh"
-"to_char" "to_clob" "to_date" "to_dsinterval" "to_lob" "to_multi_byte"
-"to_nchar" "to_nclob" "to_number" "to_single_byte" "to_timestamp"
-"to_timestamp_tz" "to_yminterval" "translate" "treat" "trim" "trunc"
-"tz_offset" "uid" "unistr" "updatexml" "upper" "user" "userenv"
-"value" "var_pop" "var_samp" "variance" "vsize" "width_bucket"
-"xmlagg" "xmlcolattval" "xmlconcat" "xmlelement" "xmlforest"
-"xmlsequence" "xmltransform"
-
-) t) "\\b"))))
-    (list (cons oracle-sqlplus-commands 'font-lock-doc-face)
-	  (cons oracle-keywords 'font-lock-keyword-face)
-			(cons oracle-warning-words 'font-lock-warning-face)
-			;; XEmacs doesn't have font-lock-builtin-face
-			(if (string-match "XEmacs\\|Lucid" emacs-version)
-			    (cons oracle-builtin-functions 'font-lock-preprocessor-face)
-			  ;; GNU Emacs 19 doesn't have it either
-			  (if (string-match "GNU Emacs 19" emacs-version)
-		(cons oracle-builtin-functions 'font-lock-keyword-face)
-			    ;; Emacs
-			    (cons oracle-builtin-functions 'font-lock-builtin-face)))
-	  (cons oracle-types 'font-lock-type-face)))
+    `((,sqlplus-commands . ,sql-doc-face)
+      (,oracle-functions . ,sql-builtin-face)
+      (,oracle-keywords  . font-lock-keyword-face)
+      (,oracle-types     . font-lock-type-face)
+      (,plsql-functions  . ,sql-builtin-face)
+      (,plsql-keywords   . font-lock-keyword-face)
+      (,plsql-type       . font-lock-type-face)
+      (,plsql-warning    . font-lock-warning-face)))
 
   "Oracle SQL keywords used by font-lock.
 
@@ -1117,42 +1248,84 @@ you define your own sql-mode-oracle-font-lock-keywords.  You may want
 to add functions and PL/SQL keywords.")
 
 (defvar sql-mode-postgres-font-lock-keywords
-  (let ((postgres-reserved-words (eval-when-compile
-				 (concat "\\b"
-					 (regexp-opt '(
-"language"
-) t) "\\b")))
-	(postgres-types (eval-when-compile
-			  (concat "\\b"
-				  (regexp-opt '(
+  (let ((pg-funcs (sql-keywords-re
+"abbrev" "abs" "acos" "age" "area" "ascii" "asin" "atab2" "atan"
+"atan2" "avg" "bit_length" "both" "broadcast" "btrim" "cbrt" "ceil"
+"center" "char_length" "chr" "coalesce" "col_description" "convert"
+"cos" "cot" "count" "current_database" "current_date" "current_schema"
+"current_schemas" "current_setting" "current_time" "current_timestamp"
+"current_user" "currval" "date_part" "date_trunc" "decode" "degrees"
+"diameter" "encode" "exp" "extract" "floor" "get_bit" "get_byte"
+"has_database_privilege" "has_function_privilege"
+"has_language_privilege" "has_schema_privilege" "has_table_privilege"
+"height" "host" "initcap" "isclosed" "isfinite" "isopen" "leading"
+"length" "ln" "localtime" "localtimestamp" "log" "lower" "lpad"
+"ltrim" "masklen" "max" "min" "mod" "netmask" "network" "nextval"
+"now" "npoints" "nullif" "obj_description" "octet_length" "overlay"
+"pclose" "pg_client_encoding" "pg_function_is_visible"
+"pg_get_constraintdef" "pg_get_indexdef" "pg_get_ruledef"
+"pg_get_userbyid" "pg_get_viewdef" "pg_opclass_is_visible"
+"pg_operator_is_visible" "pg_table_is_visible" "pg_type_is_visible"
+"pi" "popen" "position" "pow" "quote_ident" "quote_literal" "radians"
+"radius" "random" "repeat" "replace" "round" "rpad" "rtrim"
+"session_user" "set_bit" "set_byte" "set_config" "set_masklen"
+"setval" "sign" "sin" "split_part" "sqrt" "stddev" "strpos" "substr"
+"substring" "sum" "tan" "timeofday" "to_ascii" "to_char" "to_date"
+"to_hex" "to_number" "to_timestamp" "trailing" "translate" "trim"
+"trunc" "upper" "variance" "version" "width"
+))
 
-"bool" "box" "circle" "char" "char2" "char4" "char8" "char16" "date"
-"float4" "float8" "int2" "int4" "int8" "line" "lseg" "money" "path"
-"point" "polygon" "serial" "text" "time" "timespan" "timestamp" "varchar"
+	(pg-reserved (sql-keywords-re
+"abort" "access" "add" "after" "aggregate" "alignment" "all" "alter"
+"analyze" "and" "any" "as" "asc" "assignment" "authorization"
+"backward" "basetype" "before" "begin" "between" "binary" "by" "cache"
+"called" "cascade" "case" "cast" "characteristics" "check"
+"checkpoint" "class" "close" "cluster" "column" "comment" "commit"
+"committed" "commutator" "constraint" "constraints" "conversion"
+"copy" "create" "createdb" "createuser" "cursor" "cycle" "database"
+"deallocate" "declare" "default" "deferrable" "deferred" "definer"
+"delete" "delimiter" "desc" "distinct" "do" "domain" "drop" "each"
+"element" "else" "encoding" "encrypted" "end" "escape" "except"
+"exclusive" "execute" "exists" "explain" "extended" "external" "false"
+"fetch" "finalfunc" "for" "force" "foreign" "forward" "freeze" "from"
+"full" "function" "grant" "group" "gtcmp" "handler" "hashes" "having"
+"immediate" "immutable" "implicit" "in" "increment" "index" "inherits"
+"initcond" "initially" "input" "insensitive" "insert" "instead"
+"internallength" "intersect" "into" "invoker" "is" "isnull"
+"isolation" "join" "key" "language" "leftarg" "level" "like" "limit"
+"listen" "load" "local" "location" "lock" "ltcmp" "main" "match"
+"maxvalue" "merges" "minvalue" "mode" "move" "natural" "negator"
+"next" "nocreatedb" "nocreateuser" "none" "not" "nothing" "notify"
+"notnull" "null" "of" "offset" "oids" "on" "only" "operator" "or"
+"order" "output" "owner" "partial" "passedbyvalue" "password" "plain"
+"prepare" "primary" "prior" "privileges" "procedural" "procedure"
+"public" "read" "recheck" "references" "reindex" "relative" "rename"
+"reset" "restrict" "returns" "revoke" "rightarg" "rollback" "row"
+"rule" "schema" "scroll" "security" "select" "sequence" "serializable"
+"session" "set" "sfunc" "share" "show" "similar" "some" "sort1"
+"sort2" "stable" "start" "statement" "statistics" "storage" "strict"
+"stype" "sysid" "table" "temp" "template" "temporary" "then" "to"
+"transaction" "trigger" "true" "truncate" "trusted" "type"
+"unencrypted" "union" "unique" "unknown" "unlisten" "until" "update"
+"usage" "user" "using" "vacuum" "valid" "validator" "values"
+"variable" "verbose" "view" "volatile" "when" "where" "with" "without"
+"work"
+))
 
-) t)"\\b")))
-	(postgres-builtin-functions (eval-when-compile
-			(concat "\\b"
-				(regexp-opt '(
-;; Misc Postgres builtin functions
+	(pg-types (sql-keywords-re
+"anyarray" "bigint" "bigserial" "bit" "boolean" "box" "bytea" "char"
+"character" "cidr" "circle" "cstring" "date" "decimal" "double"
+"float4" "float8" "inet" "int2" "int4" "int8" "integer" "internal"
+"interval" "language_handler" "line" "lseg" "macaddr" "money"
+"numeric" "oid" "opaque" "path" "point" "polygon" "precision" "real"
+"record" "regclass" "regoper" "regoperator" "regproc" "regprocedure"
+"regtype" "serial" "serial4" "serial8" "smallint" "text" "time"
+"timestamp" "varchar" "varying" "void" "zone"
+)))
 
-"abstime" "age" "area" "box" "center" "date_part" "date_trunc"
-"datetime" "dexp" "diameter" "dpow" "float" "float4" "height"
-"initcap" "integer" "isclosed" "isfinite" "isoldpath" "isopen"
-"length" "lower" "lpad" "ltrim" "pclose" "point" "points" "popen"
-"position" "radius" "reltime" "revertpoly" "rpad" "rtrim" "substr"
-"substring" "text" "timespan" "translate" "trim" "upgradepath"
-"upgradepoly" "upper" "varchar" "width"
-
-) t) "\\b"))))
-	  (append sql-mode-ansi-font-lock-keywords
-		  (list (cons postgres-reserved-words 'font-lock-keyword-face)
-			;; XEmacs doesn't have 'font-lock-builtin-face
-			(if (string-match "XEmacs\\|Lucid" emacs-version)
-			    (cons postgres-builtin-functions 'font-lock-preprocessor-face)
-			  ;; Emacs
-			  (cons postgres-builtin-functions 'font-lock-builtin-face))
-		  (cons postgres-types 'font-lock-type-face))))
+  `((,pg-funcs    . ,sql-builtin-face)
+    (,pg-reserved . font-lock-keyword-face)
+    (,pg-types    . font-lock-type-face)))
 
   "Postgres SQL keywords used by font-lock.
 
@@ -1162,10 +1335,7 @@ function `regexp-opt'.  Therefore, take a look at the source before
 you define your own sql-mode-postgres-font-lock-keywords.")
 
 (defvar sql-mode-linter-font-lock-keywords
-  (let ((linter-keywords (eval-when-compile
-			   (concat "\\b"
-				   (regexp-opt '(
-
+  (let ((linter-keywords (sql-keywords-re
 "autocommit" "autoinc" "autorowid" "cancel" "cascade" "channel"
 "committed" "count" "countblob" "cross" "current" "data" "database"
 "datafile" "datafiles" "datesplit" "dba" "dbname" "default" "deferred"
@@ -1190,12 +1360,9 @@ you define your own sql-mode-postgres-font-lock-keywords.")
 "trigger_info_size" "true" "trunc" "uncommitted" "unicode" "unknown"
 "unlimited" "unlisted" "user" "utf8" "value" "varying" "volumes"
 "wait" "windows_code" "workspace" "write" "xml"
+))
 
-) t) "\\b")))
-	(linter-reserved-words (eval-when-compile
-				 (concat "\\b"
-					 (regexp-opt '(
-
+	(linter-reserved (sql-keywords-re
 "access" "action" "add" "address" "after" "all" "alter" "always" "and"
 "any" "append" "as" "asc" "ascic" "async" "at_begin" "at_end" "audit"
 "aud_obj_name_len" "backup" "base" "before" "between" "blobfile"
@@ -1213,22 +1380,16 @@ you define your own sql-mode-postgres-font-lock-keywords.")
 "start" "stop" "sync" "synchronize" "synonym" "sysdate" "table" "then"
 "to" "union" "unique" "unlock" "until" "update" "using" "values"
 "view" "when" "where" "with" "without"
+))
 
-) t) "\\b")))
-	(linter-types (eval-when-compile
-			(concat "\\b"
-				(regexp-opt '(
-
+	(linter-types (sql-keywords-re
 "bigint" "bitmap" "blob" "boolean" "char" "character" "date"
 "datetime" "dec" "decimal" "double" "float" "int" "integer" "nchar"
 "number" "numeric" "real" "smallint" "varbyte" "varchar" "byte"
 "cursor" "long"
+))
 
-) t) "\\b")))
-	(linter-builtin-functions (eval-when-compile
-			(concat "\\b"
-				(regexp-opt '(
-
+	(linter-functions (sql-keywords-re
 "abs" "acos" "asin" "atan" "atan2" "avg" "ceil" "cos" "cosh" "divtime"
 "exp" "floor" "getbits" "getblob" "getbyte" "getlong" "getraw"
 "getstr" "gettext" "getword" "hextoraw" "lenblob" "length" "log"
@@ -1239,20 +1400,12 @@ you define your own sql-mode-postgres-font-lock-keywords.")
 "to_gmtime" "to_localtime" "to_number" "trim" "upper" "decode"
 "substr" "substring" "chr" "dayname" "days" "greatest" "hex" "initcap"
 "instr" "least" "multime" "replace" "width"
+)))
 
-) t) "\\b"))))
-	  (append sql-mode-ansi-font-lock-keywords
-	    (list (cons linter-keywords 'font-lock-keywords-face)
-			(cons linter-reserved-words 'font-lock-keyword-face)
-			;; XEmacs doesn't have font-lock-builtin-face
-			(if (string-match "XEmacs\\|Lucid" emacs-version)
-			    (cons linter-builtin-functions 'font-lock-preprocessor-face)
-			  ;; GNU Emacs 19 doesn't have it either
-			  (if (string-match "GNU Emacs 19" emacs-version)
-			(cons linter-builtin-functions 'font-lock-keywords-face)
-			    ;; Emacs
-			    (cons linter-builtin-functions 'font-lock-builtin-face)))
-		  (cons linter-types 'font-lock-type-face))))
+    `((,linter-keywords  . font-lock-keyword-face)
+      (,linter-reserved  . font-lock-keyword-face)
+      (,linter-functions . ,sql-builtin-face)
+      (,linter-types     . font-lock-type-face)))
 
   "Linter SQL keywords used by font-lock.
 
@@ -1261,21 +1414,18 @@ regular expressions are created during compilation by calling the
 function `regexp-opt'.")
 
 (defvar sql-mode-ms-font-lock-keywords
-  (let ((ms-reserved-words (eval-when-compile
-			     (concat "\\b"
-				     (regexp-opt '(
-
+  (let ((ms-reserved (sql-keywords-re
 "absolute" "add" "all" "alter" "and" "any" "as" "asc" "authorization"
 "avg" "backup" "begin" "between" "break" "browse" "bulk" "by"
 "cascade" "case" "check" "checkpoint" "close" "clustered" "coalesce"
 "column" "commit" "committed" "compute" "confirm" "constraint"
 "contains" "containstable" "continue" "controlrow" "convert" "count"
 "create" "cross" "current" "current_date" "current_time"
-"current_timestamp" "current_user" "database" "deallocate"
-"declare" "default" "delete" "deny" "desc" "disk" "distinct"
-"distributed" "double" "drop" "dummy" "dump" "else" "end" "errlvl"
-"errorexit" "escape" "except" "exec" "execute" "exists" "exit" "fetch"
-"file" "fillfactor" "first" "floppy" "for" "foreign" "freetext"
+"current_timestamp" "current_user" "database" "deallocate" "declare"
+"default" "delete" "deny" "desc" "disk" "distinct" "distributed"
+"double" "drop" "dummy" "dump" "else" "end" "errlvl" "errorexit"
+"escape" "except" "exec" "execute" "exists" "exit" "fetch" "file"
+"fillfactor" "first" "floppy" "for" "foreign" "freetext"
 "freetexttable" "from" "full" "goto" "grant" "group" "having"
 "holdlock" "identity" "identity_insert" "identitycol" "if" "in"
 "index" "inner" "insert" "intersect" "into" "is" "isolation" "join"
@@ -1295,29 +1445,21 @@ function `regexp-opt'.")
 "textsize" "then" "to" "top" "tran" "transaction" "trigger" "truncate"
 "tsequal" "uncommitted" "union" "unique" "update" "updatetext"
 "updlock" "use" "user" "values" "view" "waitfor" "when" "where"
-"while" "with" "work" "writetext"
-"collate" "function" "openxml" "returns"
+"while" "with" "work" "writetext" "collate" "function" "openxml"
+"returns"
+))
 
-) t) "\\b")))
-	(ms-types (eval-when-compile
-		    (concat "\\b"
-			    (regexp-opt '(
-
+	(ms-types (sql-keywords-re
 "binary" "bit" "char" "character" "cursor" "datetime" "dec" "decimal"
 "double" "float" "image" "int" "integer" "money" "national" "nchar"
 "ntext" "numeric" "numeric" "nvarchar" "precision" "real"
 "smalldatetime" "smallint" "smallmoney" "text" "timestamp" "tinyint"
 "uniqueidentifier" "varbinary" "varchar" "varying"
-
-) t) "\\b")))
+))
 
 	(ms-vars "\\b@[a-zA-Z0-9_]*\\b")
 
-	(ms-builtin-functions (eval-when-compile
-				(concat "\\b"
-					(regexp-opt '(
-;; Misc MS builtin functions
-
+	(ms-functions (sql-keywords-re
 "@@connections" "@@cpu_busy" "@@cursor_rows" "@@datefirst" "@@dbts"
 "@@error" "@@fetch_status" "@@identity" "@@idle" "@@io_busy"
 "@@langid" "@@language" "@@lock_timeout" "@@max_connections"
@@ -1346,14 +1488,12 @@ function `regexp-opt'.")
 "suser_id" "suser_name" "suser_sid" "suser_sname" "system_user" "tan"
 "textptr" "textvalid" "typeproperty" "unicode" "upper" "user"
 "user_id" "user_name" "var" "varp" "year"
+))
 
-) t) "\\b")))
-
-	(ms-config-commands
+	(ms-commands
 	 (eval-when-compile
 	   (concat "^\\(\\(set\\s-+\\("
 		   (regexp-opt '(
-
 "datefirst" "dateformat" "deadlock_priority" "lock_timeout"
 "concat_null_yields_null" "cursor_close_on_commit"
 "disable_def_cnst_chk" "fips_flagger" "identity_insert" "language"
@@ -1364,19 +1504,14 @@ function `regexp-opt'.")
 "ansi_warnings" "forceplan" "showplan_all" "showplan_text"
 "statistics" "implicit_transactions" "remote_proc_transactions"
 "transaction" "xact_abort"
-
 ) t)
 		   "\\)\\)\\|go\\s-*\\|use\\s-+\\|setuser\\s-+\\|dbcc\\s-+\\).*$"))))
 
-    (list (cons ms-config-commands 'font-lock-doc-face)
-	  (cons ms-reserved-words 'font-lock-keyword-face)
-	  ;; XEmacs doesn't have 'font-lock-builtin-face
-	  (if (string-match "XEmacs\\|Lucid" emacs-version)
-	      (cons ms-builtin-functions 'font-lock-preprocessor-face)
-	    ;; Emacs
-	    (cons ms-builtin-functions 'font-lock-builtin-face))
-	  (cons ms-vars  'font-lock-variable-name-face)
-	  (cons ms-types 'font-lock-type-face)))
+    `((,ms-commands  . ,sql-doc-face)
+      (,ms-reserved  . font-lock-keyword-face)
+      (,ms-functions . ,sql-builtin-face)
+      (,ms-vars      . font-lock-variable-name-face)
+      (,ms-types     . font-lock-type-face)))
 
   "Microsoft SQLServer SQL keywords used by font-lock.
 
@@ -1385,7 +1520,7 @@ regular expressions are created during compilation by calling the
 function `regexp-opt'.  Therefore, take a look at the source before
 you define your own sql-mode-ms-font-lock-keywords.")
 
-(defvar sql-mode-sybase-font-lock-keywords sql-mode-ansi-font-lock-keywords
+(defvar sql-mode-sybase-font-lock-keywords nil
   "Sybase SQL keywords used by font-lock.
 
 This variable is used by `sql-mode' and `sql-interactive-mode'.  The
@@ -1393,7 +1528,7 @@ regular expressions are created during compilation by calling the
 function `regexp-opt'.  Therefore, take a look at the source before
 you define your own sql-mode-sybase-font-lock-keywords.")
 
-(defvar sql-mode-informix-font-lock-keywords sql-mode-ansi-font-lock-keywords
+(defvar sql-mode-informix-font-lock-keywords nil
   "Informix SQL keywords used by font-lock.
 
 This variable is used by `sql-mode' and `sql-interactive-mode'.  The
@@ -1401,7 +1536,7 @@ regular expressions are created during compilation by calling the
 function `regexp-opt'.  Therefore, take a look at the source before
 you define your own sql-mode-informix-font-lock-keywords.")
 
-(defvar sql-mode-interbase-font-lock-keywords sql-mode-ansi-font-lock-keywords
+(defvar sql-mode-interbase-font-lock-keywords nil
   "Interbase SQL keywords used by font-lock.
 
 This variable is used by `sql-mode' and `sql-interactive-mode'.  The
@@ -1409,7 +1544,7 @@ regular expressions are created during compilation by calling the
 function `regexp-opt'.  Therefore, take a look at the source before
 you define your own sql-mode-interbase-font-lock-keywords.")
 
-(defvar sql-mode-ingres-font-lock-keywords sql-mode-ansi-font-lock-keywords
+(defvar sql-mode-ingres-font-lock-keywords nil
   "Ingres SQL keywords used by font-lock.
 
 This variable is used by `sql-mode' and `sql-interactive-mode'.  The
@@ -1417,7 +1552,7 @@ regular expressions are created during compilation by calling the
 function `regexp-opt'.  Therefore, take a look at the source before
 you define your own sql-mode-interbase-font-lock-keywords.")
 
-(defvar sql-mode-solid-font-lock-keywords sql-mode-ansi-font-lock-keywords
+(defvar sql-mode-solid-font-lock-keywords nil
   "Solid SQL keywords used by font-lock.
 
 This variable is used by `sql-mode' and `sql-interactive-mode'.  The
@@ -1425,7 +1560,76 @@ regular expressions are created during compilation by calling the
 function `regexp-opt'.  Therefore, take a look at the source before
 you define your own sql-mode-solid-font-lock-keywords.")
 
-(defvar sql-mode-mysql-font-lock-keywords sql-mode-ansi-font-lock-keywords
+(defvar sql-mode-mysql-font-lock-keywords
+  (let ((mysql-funcs (sql-keywords-re
+"ascii" "avg" "bdmpolyfromtext" "bdmpolyfromwkb" "bdpolyfromtext"
+"bdpolyfromwkb" "benchmark" "bin" "bit_and" "bit_length" "bit_or"
+"bit_xor" "both" "cast" "char_length" "character_length" "coalesce"
+"concat" "concat_ws" "connection_id" "conv" "convert" "count"
+"curdate" "current_date" "current_time" "current_timestamp" "curtime"
+"elt" "encrypt" "export_set" "field" "find_in_set" "found_rows" "from"
+"geomcollfromtext" "geomcollfromwkb" "geometrycollectionfromtext"
+"geometrycollectionfromwkb" "geometryfromtext" "geometryfromwkb"
+"geomfromtext" "geomfromwkb" "get_lock" "group_concat" "hex" "ifnull"
+"instr" "interval" "isnull" "last_insert_id" "lcase" "leading"
+"length" "linefromtext" "linefromwkb" "linestringfromtext"
+"linestringfromwkb" "load_file" "locate" "lower" "lpad" "ltrim"
+"make_set" "master_pos_wait" "max" "mid" "min" "mlinefromtext"
+"mlinefromwkb" "mpointfromtext" "mpointfromwkb" "mpolyfromtext"
+"mpolyfromwkb" "multilinestringfromtext" "multilinestringfromwkb"
+"multipointfromtext" "multipointfromwkb" "multipolygonfromtext"
+"multipolygonfromwkb" "now" "nullif" "oct" "octet_length" "ord"
+"pointfromtext" "pointfromwkb" "polyfromtext" "polyfromwkb"
+"polygonfromtext" "polygonfromwkb" "position" "quote" "rand"
+"release_lock" "repeat" "replace" "reverse" "rpad" "rtrim" "soundex"
+"space" "std" "stddev" "substring" "substring_index" "sum" "sysdate"
+"trailing" "trim" "ucase" "unix_timestamp" "upper" "user" "variance"
+))
+
+	(mysql-keywords (sql-keywords-re
+"action" "add" "after" "against" "all" "alter" "and" "as" "asc"
+"auto_increment" "avg_row_length" "bdb" "between" "by" "cascade"
+"case" "change" "character" "check" "checksum" "close" "collate"
+"collation" "column" "columns" "comment" "committed" "concurrent"
+"constraint" "create" "cross" "data" "database" "default"
+"delay_key_write" "delayed" "delete" "desc" "directory" "disable"
+"distinct" "distinctrow" "do" "drop" "dumpfile" "duplicate" "else"
+"enable" "enclosed" "end" "escaped" "exists" "fields" "first" "for"
+"force" "foreign" "from" "full" "fulltext" "global" "group" "handler"
+"having" "heap" "high_priority" "if" "ignore" "in" "index" "infile"
+"inner" "insert" "insert_method" "into" "is" "isam" "isolation" "join"
+"key" "keys" "last" "left" "level" "like" "limit" "lines" "load"
+"local" "lock" "low_priority" "match" "max_rows" "merge" "min_rows"
+"mode" "modify" "mrg_myisam" "myisam" "natural" "next" "no" "not"
+"null" "offset" "oj" "on" "open" "optionally" "or" "order" "outer"
+"outfile" "pack_keys" "partial" "password" "prev" "primary"
+"procedure" "quick" "raid0" "raid_type" "read" "references" "rename"
+"repeatable" "restrict" "right" "rollback" "rollup" "row_format"
+"savepoint" "select" "separator" "serializable" "session" "set"
+"share" "show" "sql_big_result" "sql_buffer_result" "sql_cache"
+"sql_calc_found_rows" "sql_no_cache" "sql_small_result" "starting"
+"straight_join" "striped" "table" "tables" "temporary" "terminated"
+"then" "to" "transaction" "truncate" "type" "uncommitted" "union"
+"unique" "unlock" "update" "use" "using" "values" "when" "where"
+"with" "write" "xor"
+))
+
+	(mysql-types (sql-keywords-re
+"bigint" "binary" "bit" "blob" "bool" "boolean" "char" "curve" "date"
+"datetime" "dec" "decimal" "double" "enum" "fixed" "float" "geometry"
+"geometrycollection" "int" "integer" "line" "linearring" "linestring"
+"longblob" "longtext" "mediumblob" "mediumint" "mediumtext"
+"multicurve" "multilinestring" "multipoint" "multipolygon"
+"multisurface" "national" "numeric" "point" "polygon" "precision"
+"real" "smallint" "surface" "text" "time" "timestamp" "tinyblob"
+"tinyint" "tinytext" "unsigned" "varchar" "year" "year2" "year4"
+"zerofill"
+)))
+
+    `((,mysql-funcs    . ,sql-builtin-face)
+      (,mysql-keywords . font-lock-keyword-face)
+      (,mysql-types    . font-lock-type-face)))
+
   "MySQL SQL keywords used by font-lock.
 
 This variable is used by `sql-mode' and `sql-interactive-mode'.  The
@@ -1433,7 +1637,7 @@ regular expressions are created during compilation by calling the
 function `regexp-opt'.  Therefore, take a look at the source before
 you define your own sql-mode-mysql-font-lock-keywords.")
 
-(defvar sql-mode-sqlite-font-lock-keywords sql-mode-ansi-font-lock-keywords
+(defvar sql-mode-sqlite-font-lock-keywords nil
   "SQLite SQL keywords used by font-lock.
 
 This variable is used by `sql-mode' and `sql-interactive-mode'.  The
@@ -1441,7 +1645,7 @@ regular expressions are created during compilation by calling the
 function `regexp-opt'.  Therefore, take a look at the source before
 you define your own sql-mode-sqlite-font-lock-keywords.")
 
-(defvar sql-mode-db2-font-lock-keywords sql-mode-ansi-font-lock-keywords
+(defvar sql-mode-db2-font-lock-keywords nil
   "DB2 SQL keywords used by font-lock.
 
 This variable is used by `sql-mode' and `sql-interactive-mode'.  The
@@ -1463,16 +1667,16 @@ highlighting rules in sql-mode.")
 (defun sql-product-feature (feature &optional product)
   "Lookup `feature' needed to support the current SQL product.
 
-See \[sql-product-support] for a list of products and supported features."
-  (cadr
-   (memq feature
-	 (assoc (or product sql-product)
-		sql-product-support))))
+See \[sql-product-alist] for a list of products and supported features."
+  (plist-get
+   (cdr (assoc (or product sql-product)
+	       sql-product-alist))
+   feature))
 
 (defun sql-product-font-lock (keywords-only imenu)
   "Sets `font-lock-defaults' and `font-lock-keywords' based on
 the product-specific keywords and syntax-alists defined in
-`sql-product-support'."
+`sql-product-alist'."
   (let
       ;; Get the product-specific syntax-alist.
       ((syntax-alist
@@ -1484,6 +1688,7 @@ the product-specific keywords and syntax-alists defined in
     (setq sql-mode-font-lock-keywords
 	  (append
 	   (eval (sql-product-feature :font-lock))
+	   (eval (sql-product-feature :font-lock 'ansi))
 	   (list sql-mode-font-lock-object-name)))
 
     ;; Setup font-lock.  (What is the minimum we should have to do
@@ -1498,12 +1703,34 @@ the product-specific keywords and syntax-alists defined in
 	(setq imenu-syntax-alist syntax-alist))))
 
 ;;;###autoload
-(defun sql-add-product-keywords (product keywords)
-  "Append a `font-lock-keywords' entry to the existing entries defined
-  for the specified `product'."
+(defun sql-add-product-keywords (product keywords &optional append)
+  "Add highlighting KEYWORDS for SQL PRODUCT.
 
-  (let ((font-lock (sql-product-feature :font-lock product)))
-       (set font-lock (append (eval font-lock) (list keywords)))))
+PRODUCT should be a symbol, the name of a sql product, such as
+`oracle'.  KEYWORDS should be a list; see the variable
+`font-lock-keywords'.  By default they are added at the beginning
+of the current highlighting list.  If optional argument APPEND is
+`set', they are used to replace the current highlighting list.
+If APPEND is any other non-nil value, they are added at the end
+of the current highlighting list.
+
+For example:
+
+ (sql-add-product-keywords 'ms
+  '((\"\\\\b\\\\w+_t\\\\b\" . font-lock-type-face)))
+
+adds a fontification pattern to fontify identifiers ending in
+`_t' as data types."
+
+  (let ((font-lock (sql-product-feature :font-lock product))
+	old)
+    (setq old (eval font-lock))
+    (set font-lock
+	 (if (eq append 'set)
+	     keywords
+	   (if append
+	       (append old keywords)
+	     (append keywords old))))))
 
 
 
@@ -1518,7 +1745,8 @@ selected."
     (sql-product-font-lock nil t)
 
     ;; Force fontification, if its enabled.
-    (if font-lock-mode
+    (if (and (boundp 'font-lock-mode)
+	     font-lock-mode)
 	(font-lock-fontify-buffer))
 
     ;; Set the mode name to include the product.
@@ -1528,7 +1756,7 @@ selected."
   "Set `sql-product' to product and enable appropriate
 highlighting."
   (interactive "SEnter SQL product: ")
-  (when (not (assoc product sql-product-support))
+  (when (not (assoc product sql-product-alist))
     (error "SQL product %s is not supported; treated as ANSI" product)
     (setq product 'ansi))
 
@@ -1951,6 +2179,19 @@ Every newline in STRING will be preceded with a space and a backslash."
   "Send the buffer contents to the SQL process."
   (interactive)
   (sql-send-region (point-min) (point-max)))
+
+(defun sql-send-string (str)
+  "Send a string to the SQL process."
+  (interactive "sSQL Text: ")
+  (if (buffer-live-p sql-buffer)
+      (save-excursion
+        (comint-send-string sql-buffer str)
+        (comint-send-string sql-buffer "\n")
+        (message "Sent string to buffer %s." (buffer-name sql-buffer))
+        (if sql-pop-to-buffer-after-send-region
+            (pop-to-buffer sql-buffer)
+          (display-buffer sql-buffer)))
+    (message "No SQL process started.")))
 
 (defun sql-toggle-pop-to-buffer-after-send-region (&optional value)
   "Toggle `sql-pop-to-buffer-after-send-region'.
@@ -2611,6 +2852,8 @@ parameters and command options."
 	(setq params (append params (list sql-database))))
     (if (not (string= "" sql-server))
 	(setq params (append (list "-h" sql-server) params)))
+    (if (not (string= "" sql-user))
+	(setq params (append (list "-U" sql-user) params)))
     (set-buffer (apply 'make-comint "SQL" sql-postgres-program
 		       nil params))))
 

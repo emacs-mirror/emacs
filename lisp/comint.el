@@ -173,8 +173,25 @@ This is a good thing to set in mode hooks.")
 
 (defcustom comint-prompt-read-only nil
   "If non-nil, the comint prompt is read only.
+The read only region includes the newline before the prompt.
 This does not affect existing prompts.
-Certain derived modes may override this option."
+Certain derived modes may override this option.
+
+If you set this option to t, then the safe way to temporarily
+override the read-only-ness of comint prompts is to call
+`comint-kill-whole-line' or `comint-kill-region' with no
+narrowing in effect.  This way you will be certain that none of
+the remaining prompts will be accidentally messed up.  You may
+wish to put something like the following in your `.emacs' file:
+
+\(add-hook 'comint-mode-hook
+	  '(lambda ()
+	     (define-key comint-mode-map \"\C-w\" 'comint-kill-region)
+	     (define-key comint-mode-map [C-S-backspace]
+	       'comint-kill-whole-line)))
+
+If you sometimes use comint-mode on text-only terminals or with `emacs-nw',
+you might wish to use another binding for `comint-kill-whole-line'."
   :type 'boolean
   :group 'comint
   :version "21.4")
@@ -2309,6 +2326,83 @@ This command is like `M-.' in bash."
   ;; Add a terminating space if necessary.
   (unless (eolp)
     (just-one-space)))
+
+
+;; Support editing with `comint-prompt-read-only' set to t.
+
+(defun comint-update-fence ()
+  "Update read-only status of newline before point.
+The `fence' read-only property is used to indicate that a newline
+is read-only for no other reason than to \"fence off\" a
+following front-sticky read-only region.  This is used to
+implement comint read-only prompts.  If the text after a newline
+changes, the read-only status of that newline may need updating.
+That is what this function does.
+
+This function does nothing if point is not at the beginning of a
+line, or is at the beginning of the accessible portion of the buffer.
+Otherwise, if the character after point has a front-sticky
+read-only property, then the preceding newline is given a
+read-only property of `fence', unless it already is read-only.
+If the character after point does not have a front-sticky
+read-only property, any read-only property of `fence' on the
+preceding newline is removed."
+  (let* ((pt (point)) (lst (get-text-property pt 'front-sticky)))
+    (and (bolp)
+	 (not (bobp))
+	 (if (and (get-text-property pt 'read-only)
+		  (if (listp lst) (memq 'read-only lst) t))
+	     (unless (get-text-property (1- pt) 'read-only)
+	       (put-text-property (1- pt) pt 'read-only 'fence))
+	   (when (eq (get-text-property (1- pt) 'read-only) 'fence)
+	     (remove-list-of-text-properties (1- pt) pt '(read-only)))))))
+
+(defun comint-kill-whole-line (&optional arg)
+  "Kill current line, ignoring read-only and field properties.
+With prefix arg, kill that many lines starting from the current line.
+If arg is negative, kill backward.  Also kill the preceding newline,
+instead of the trailing one.  \(This is meant to make C-x z work well
+with negative arguments.)
+If arg is zero, kill current line but exclude the trailing newline.
+The read-only status of newlines is updated with `comint-update-fence',
+if necessary."
+  (interactive "p")
+  (let ((inhibit-read-only t) (inhibit-field-text-motion t))
+    (kill-whole-line arg)
+    (when (>= arg 0) (comint-update-fence))))
+
+(defun comint-kill-region (beg end &optional yank-handler)
+  "Like `kill-region', but ignores read-only properties, if safe.
+This command assumes that the buffer contains read-only
+\"prompts\" which are regions with front-sticky read-only
+properties at the beginning of a line, with the preceding newline
+being read-only to protect the prompt.  This is true of the
+comint prompts if `comint-prompt-read-only' is non-nil.  This
+command will not delete the region if this would create mutilated
+or out of place prompts.  That is, if any part of a prompt is
+deleted, the entire prompt must be deleted and all remaining
+prompts should stay at the beginning of a line.  If this is not
+the case, this command just calls `kill-region' with all
+read-only properties intact.  The read-only status of newlines is
+updated using `comint-update-fence', if necessary."
+  (interactive "r")
+  (save-excursion
+    (let* ((true-beg (min beg end))
+	   (true-end (max beg end))
+	   (beg-bolp (progn (goto-char true-beg) (bolp)))
+	   (beg-lst (get-text-property true-beg 'front-sticky))
+	   (beg-bad (and (get-text-property true-beg 'read-only)
+			 (if (listp beg-lst) (memq 'read-only beg-lst) t)))
+	   (end-bolp (progn (goto-char true-end) (bolp)))
+	   (end-lst (get-text-property true-end 'front-sticky))
+	   (end-bad (and (get-text-property true-end 'read-only)
+			 (if (listp end-lst) (memq 'read-only end-lst) t))))
+      (if (or (and (not beg-bolp) (or beg-bad end-bad))
+	      (and (not end-bolp) end-bad))
+	  (kill-region beg end yank-handler)
+	(let ((inhibit-read-only t))
+	  (kill-region beg end yank-handler)
+	  (comint-update-fence))))))
 
 
 ;; Support for source-file processing commands.

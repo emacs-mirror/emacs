@@ -2073,6 +2073,9 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
     {
       if (NATNUMP (current_buffer->extra_line_spacing))
 	it->extra_line_spacing = XFASTINT (current_buffer->extra_line_spacing);
+      else if (FLOATP (current_buffer->extra_line_spacing))
+	it->extra_line_spacing = (XFLOAT_DATA (current_buffer->extra_line_spacing)
+				  * FRAME_LINE_HEIGHT (it->f));
       else if (it->f->extra_line_spacing > 0)
 	it->extra_line_spacing = it->f->extra_line_spacing;
     }
@@ -2090,6 +2093,7 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
   it->slice.x = it->slice.y = it->slice.width = it->slice.height = Qnil;
   it->space_width = Qnil;
   it->font_height = Qnil;
+  it->override_ascent = -1;
 
   /* Are control characters displayed as `^C'?  */
   it->ctl_arrow_p = !NILP (current_buffer->ctl_arrow);
@@ -14202,7 +14206,7 @@ append_space_for_newline (it, default_face_p)
 
 	  PRODUCE_GLYPHS (it);
 
-	  it->use_default_face = 0;
+	  it->override_ascent = -1;
 	  it->constrain_row_ascent_descent_p = 0;
 	  it->current_x = saved_x;
 	  it->object = saved_object;
@@ -18510,6 +18514,97 @@ produce_stretch_glyph (it)
   take_vertical_position_into_account (it);
 }
 
+/* Calculate line-height and line-spacing properties.
+   An integer value specifies explicit pixel value.
+   A float value specifies relative value to current face height.
+   A cons (float . face-name) specifies relative value to
+   height of specified face font.
+
+   Returns height in pixels, or nil.  */
+
+static Lisp_Object
+calc_line_height_property (it, prop, font, boff)
+     struct it *it;
+     Lisp_Object prop;
+     XFontStruct *font;
+     int boff;
+{
+  Lisp_Object val;
+  Lisp_Object face_name = Qnil;
+  int ascent, descent, height, override;
+
+  val = Fget_char_property (make_number (IT_CHARPOS (*it)),
+			    prop, it->object);
+
+  if (NILP (val))
+    return val;
+
+  if (INTEGERP (val))
+    return val;
+
+  if (CONSP (val))
+    {
+      face_name = XCDR (val);
+      val = XCAR (val);
+    }
+  else if (SYMBOLP (val))
+    {
+      face_name = val;
+      val = Qnil;
+    }
+
+  override = EQ (prop, Qline_height);
+
+  if (NILP (face_name))
+    {
+      font = FRAME_FONT (it->f);
+      boff = FRAME_BASELINE_OFFSET (it->f);
+    }
+  else if (EQ (face_name, Qt))
+    {
+      override = 0;
+    }
+  else
+    {
+      int face_id;
+      struct face *face;
+      struct font_info *font_info;
+
+      face_id = lookup_named_face (it->f, face_name, ' ');
+      if (face_id < 0)
+	return make_number (-1);
+
+      face = FACE_FROM_ID (it->f, face_id);
+      font = face->font;
+      if (font == NULL)
+	return make_number (-1);
+
+      font_info = FONT_INFO_FROM_ID (it->f, face->font_info_id);
+      boff = font_info->baseline_offset;
+      if (font_info->vertical_centering)
+	boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
+    }
+
+  ascent = FONT_BASE (font) + boff;
+  descent = FONT_DESCENT (font) - boff;
+
+  if (override)
+    {
+      it->override_ascent = ascent;
+      it->override_descent = descent;
+      it->override_boff = boff;
+    }
+
+  height = ascent + descent;
+  if (FLOATP (val))
+    height = (int)(XFLOAT_DATA (val) * height);
+  else if (INTEGERP (val))
+    height *= XINT (val);
+
+  return make_number (height);
+}
+
+
 /* RIF:
    Produce glyphs/get display metrics for the display element IT is
    loaded with.  See the description of struct display_iterator in
@@ -18596,17 +18691,20 @@ x_produce_glyphs (it)
 
 	  it->nglyphs = 1;
 
-	  if (it->use_default_face)
-	    {
-	      font = FRAME_FONT (it->f);
-	      boff = FRAME_BASELINE_OFFSET (it->f);
-	    }
-
 	  pcm = rif->per_char_metric (font, &char2b,
 				      FONT_TYPE_FOR_UNIBYTE (font, it->char_to_display));
 
-	  it->ascent = FONT_BASE (font) + boff;
-	  it->descent = FONT_DESCENT (font) - boff;
+	  if (it->override_ascent >= 0)
+	    {
+	      it->ascent = it->override_ascent;
+	      it->descent = it->override_descent;
+	      boff = it->override_boff;
+	    }
+	  else
+	    {
+	      it->ascent = FONT_BASE (font) + boff;
+	      it->descent = FONT_DESCENT (font) - boff;
+	    }
 
 	  if (pcm)
 	    {
@@ -18709,26 +18807,27 @@ x_produce_glyphs (it)
 	     But if previous part of the line set a height, don't
 	     increase that height */
 
-	  Lisp_Object lsp, lh;
+	  Lisp_Object height, spacing;
 
+	  it->override_ascent = -1;
 	  it->pixel_width = 0;
 	  it->nglyphs = 0;
 
-	  lh = Fget_text_property (make_number (IT_CHARPOS (*it)),
-				   Qline_height, it->object);
+	  height = calc_line_height_property(it, Qline_height, font, boff);
 
-	  if (EQ (lh, Qt))
+	  if (it->override_ascent >= 0)
 	    {
-	      it->use_default_face = 1;
-	      font = FRAME_FONT (it->f);
-	      boff = FRAME_BASELINE_OFFSET (it->f);
-	      font_info = NULL;
+	      it->ascent = it->override_ascent;
+	      it->descent = it->override_descent;
+	      boff = it->override_boff;
+	    }
+	  else
+	    {
+	      it->ascent = FONT_BASE (font) + boff;
+	      it->descent = FONT_DESCENT (font) - boff;
 	    }
 
-	  it->ascent = FONT_BASE (font) + boff;
-	  it->descent = FONT_DESCENT (font) - boff;
-
-	  if (EQ (lh, make_number (0)))
+	  if (EQ (height, make_number(0)))
 	    {
 	      if (it->descent > it->max_descent)
 		{
@@ -18747,7 +18846,6 @@ x_produce_glyphs (it)
 	    }
 	  else
 	    {
-	      int explicit_height = -1;
 	      it->phys_ascent = it->ascent;
 	      it->phys_descent = it->descent;
 
@@ -18758,23 +18856,20 @@ x_produce_glyphs (it)
 		  it->ascent += face->box_line_width;
 		  it->descent += face->box_line_width;
 		}
-	      if (INTEGERP (lh))
-		explicit_height = XINT (lh);
-	      else if (FLOATP (lh))
-		explicit_height = (it->phys_ascent + it->phys_descent)
-		  * XFLOAT_DATA (lh);
-
-	      if (explicit_height > it->ascent + it->descent)
-		it->ascent = explicit_height - it->descent;
+	      if (!NILP (height)
+		  && XINT (height) > it->ascent + it->descent)
+		it->ascent = XINT (height) - it->descent;
 	    }
 
-	  lsp = Fget_text_property (make_number (IT_CHARPOS (*it)),
-				    Qline_spacing, it->object);
-	  if (INTEGERP (lsp))
-	    extra_line_spacing = XINT (lsp);
-	  else if (FLOATP (lsp))
-	    extra_line_spacing = (it->phys_ascent + it->phys_descent)
-	      * XFLOAT_DATA (lsp);
+	  spacing = calc_line_height_property(it, Qline_spacing, font, boff);
+	  if (!NILP (spacing))
+	    {
+	      int sp = XINT (spacing);
+	      if (sp < 0)
+		extra_line_spacing = (-sp) - (it->phys_ascent + it->phys_descent);
+	      else
+		extra_line_spacing = sp;
+	    }
 	}
       else if (it->char_to_display == '\t')
 	{
@@ -19151,7 +19246,8 @@ x_produce_glyphs (it)
   if (it->area == TEXT_AREA)
     it->current_x += it->pixel_width;
 
-  it->descent += extra_line_spacing;
+  if (extra_line_spacing > 0)
+    it->descent += extra_line_spacing;
 
   it->max_ascent = max (it->max_ascent, it->ascent);
   it->max_descent = max (it->max_descent, it->descent);
@@ -20815,9 +20911,9 @@ note_mouse_highlight (f, x, y)
       if (BUFFERP (object))
 	{
 	  /* Put all the overlays we want in a vector in overlay_vec.
-	     Store the length in len.  If there are more than 10, make
+	     Store the length in len.  If there are more than 40, make
 	     enough space for all, and try again.  */
-	  len = 10;
+	  len = 40;
 	  overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
 	  noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL, 0);
 	  if (noverlays > len)

@@ -175,6 +175,8 @@ open-parenthesis, and point ends up at the beginning of the line.
 If variable `beginning-of-defun-function' is non-nil, its value
 is called as a function to find the defun's beginning."
   (interactive "p")
+  (and (eq this-command 'beginning-of-defun)
+       (or (eq last-command 'beginning-of-defun) (push-mark)))
   (and (beginning-of-defun-raw arg)
        (progn (beginning-of-line) t)))
 
@@ -223,6 +225,8 @@ matches the open-parenthesis that starts a defun; see function
 If variable `end-of-defun-function' is non-nil, its value
 is called as a function to find the defun's end."
   (interactive "p")
+  (and (eq this-command 'end-of-defun)
+       (or (eq last-command 'end-of-defun) (push-mark)))
   (if (or (null arg) (= arg 0)) (setq arg 1))
   (if end-of-defun-function
       (if (> arg 0)
@@ -302,29 +306,48 @@ Optional ARG is ignored."
       (end-of-defun)
       (narrow-to-region beg (point)))))
 
+(defun insert-pair (arg &optional open close)
+  "Enclose following ARG sexps in a pair of OPEN and CLOSE characters.
+Leave point after the first character.
+A negative ARG encloses the preceding ARG sexps instead.
+No argument is equivalent to zero: just insert characters
+and leave point between.
+If `parens-require-spaces' is non-nil, this command also inserts a space
+before and after, depending on the surrounding characters.
+If region is active, insert enclosing characters at region boundaries."
+  (interactive "P")
+  (if arg (setq arg (prefix-numeric-value arg))
+    (setq arg 0))
+  (or open  (setq open  ?\())
+  (or close (setq close ?\)))
+  (if (and transient-mark-mode mark-active)
+      (progn
+        (save-excursion (goto-char (region-end))       (insert close))
+        (save-excursion (goto-char (region-beginning)) (insert open)))
+    (cond ((> arg 0) (skip-chars-forward " \t"))
+          ((< arg 0) (forward-sexp arg) (setq arg (- arg))))
+    (and parens-require-spaces
+         (not (bobp))
+         (memq (char-syntax (preceding-char)) (list ?w ?_ (char-syntax close)))
+         (insert " "))
+    (insert open)
+    (save-excursion
+      (or (eq arg 0) (forward-sexp arg))
+      (insert close)
+      (and parens-require-spaces
+           (not (eobp))
+           (memq (char-syntax (following-char)) (list ?w ?_ (char-syntax open)))
+           (insert " ")))))
+
 (defun insert-parentheses (arg)
   "Enclose following ARG sexps in parentheses.  Leave point after open-paren.
 A negative ARG encloses the preceding ARG sexps instead.
 No argument is equivalent to zero: just insert `()' and leave point between.
 If `parens-require-spaces' is non-nil, this command also inserts a space
-before and after, depending on the surrounding characters."
+before and after, depending on the surrounding characters.
+If region is active, insert enclosing characters at region boundaries."
   (interactive "P")
-  (if arg (setq arg (prefix-numeric-value arg))
-    (setq arg 0))
-  (cond ((> arg 0) (skip-chars-forward " \t"))
-	((< arg 0) (forward-sexp arg) (setq arg (- arg))))
-  (and parens-require-spaces
-       (not (bobp))
-       (memq (char-syntax (preceding-char)) '(?w ?_ ?\) ))
-       (insert " "))
-  (insert ?\()
-  (save-excursion
-    (or (eq arg 0) (forward-sexp arg))
-    (insert ?\))
-    (and parens-require-spaces
-	 (not (eobp))
-	 (memq (char-syntax (following-char)) '(?w ?_ ?\( ))
-	 (insert " "))))
+  (insert-pair arg ?\( ?\)))
 
 (defun move-past-close-and-reindent ()
   "Move past next `)', delete indentation before it, then indent after it."

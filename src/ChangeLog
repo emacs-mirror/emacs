@@ -67,6 +67,49 @@
 	(Fdocumentation, store_function_docstring): Handle interpreted
 	closures.
 
+2004-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (calc_line_height_property): YAILOM (yet another
+	int/Lisp_Object mixup).
+
+2004-05-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (top-level): Add "#pragma pack(0)" after <dir.h>, to
+	undo bad effect of pack(4) in some versions of system headers.
+
+2004-05-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_draw_hollow_cursor): Sync with xterm.c
+
+2004-04-30  Kim F. Storm  <storm@cua.dk>
+
+	* buffer.c (syms_of_buffer) <line-spacing>: Allow float value.
+	(syms_of_buffer) <cursor-type>: Doc fix.
+
+	* dispextern.h (struct it): Remove member use_default_face.
+	Add members override_ascent, override_descent, override_boff.
+
+	* xdisp.c (init_iterator): Handle line-spacing float value.
+	Initialize override_ascent member.
+	(append_space_for_newline): Reset override_ascent.
+	Remove use_default_face.
+	(calc_line_height_property): New function to calculate value of
+	line-height and line-spacing properties.  Look at overlays, too.
+	Set override_ascent, override_descent, override_boff members when
+	using another face than the current face.  Float values are now
+	relative to the frame default font, by default; accept a cons
+	of ratio and face name to specify value relative to a specific face.
+	(x_produce_glyphs): Use calc_line_height_property.
+	Use override_ascent etc. when set to handle different face heights.
+	A negative line-spacing property value is interpreted as a total
+	line height, rather than inter-line spacing.
+	(note_mouse_highlight): Allocate room for 40 overlays initially.
+
+2004-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* data.c (Fsubr_name): New fun.
+	(syms_of_data): Defsubr it.
+
 2004-04-29  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (null_glyph_slice): New var.

@@ -290,13 +290,15 @@ The technique of setting `sql-mode-font-lock-defaults' directly in
 your .emacs will no longer establish the default highlighting -- Use
 `sql-product' to accomplish this.
 
+ANSI keywords are always highlighted.
+
 *** The function `sql-add-product-keywords' can be used to add
 font-lock rules to the product specific rules.  For example, to have
 all identifiers ending in "_t" under MS SQLServer treated as a type,
 you would use the following line in your .emacs file:
 
   (sql-add-product-keywords 'ms
-             '("\\<\\w+_t\\>" . font-lock-type-face))
+             '(("\\<\\w+_t\\>" . font-lock-type-face)))
 
 *** Oracle support includes keyword highlighting for Oracle 9i.  Most
 SQL and PL/SQL keywords are implemented.  SQL*Plus commands are
@@ -312,6 +314,13 @@ terminated.
 If the username and password are not provided to `sql-ms', osql is
 called with the -E command line argument to use the operating system
 credentials to authenticate the user.
+
+*** Postgres support is enhanced.
+Keyword highlighting of Postgres 7.3 is implemented.  Prompting for
+the username and the pgsql `-U' option is added.
+
+*** MySQL support is enhanced.
+Keyword higlighting of MySql 4.0 is implemented.
 
 *** Imenu support has been enhanced to locate tables, views, indexes,
 packages, procedures, functions, triggers, sequences, rules, and
@@ -1141,6 +1150,13 @@ and `diary-header-line-format'.
 the new function `appt-activate'. The new variable
 `appt-display-format' controls how reminders are displayed, replacing
 appt-issue-message, appt-visible, and appt-msg-window.
+
+** The new functions `diary-from-outlook', `diary-from-outlook-gnus',
+and `diary-from-outlook-rmail' can be used to import diary entries
+from Outlook-format appointments in mail messages.  The variable
+`diary-outlook-formats' can be customized to recognize additional
+formats.
+
 
 ** VC Changes
 
@@ -2013,20 +2029,27 @@ specifies the minimum line height in pixels.  If necessary, the line
 height it increased by increasing the line's ascent.
 
 If the line-height property value is a float, the minimum line height
-is calculated by multiplying the height of the current face font by
-the given value.
+is calculated by multiplying the default frame line height by the
+given value.
 
-If the line-height property value is t, the minimum line height is
-the height of the default frame font.
+If the line-height property value is a cons (RATIO . FACE), the
+minimum line height is calculated as RATIO * height of named FACE.
+RATIO is int or float.  If FACE is t, it specifies the current face.
 
-If the line-spacing property value is an integer, the value is used as
-additional space to put after the display line; this overrides the
-default frame line-spacing and any buffer local value of the
-line-spacing variable.
+If the line-spacing property value is an positive integer, the value
+is used as additional pixels to insert after the display line; this
+overrides the default frame line-spacing and any buffer local value of
+the line-spacing variable.
 
-If the line-spacing property value is a float, the value is multiplied
-by the current height of the display row to determine the additional
-space to put after the display line.
+If the value is a negative integer, the absolute value is used as the
+total height of the line, i.e. a varying number of pixels are
+inserted after each line to make each line exactly that many pixels high.
+
+If the line-spacing property may be a float or cons, the line spacing
+is calculated as specified above for the line-height property.
+
+** The buffer local line-spacing variable may now have a float value,
+which is used as a height relative to the default frame line height.
 
 ** Enhancements to stretch display properties
 
@@ -3417,7 +3440,7 @@ using the text properties (esp. the face) of the prompt string.
 running under X.
 
 ** Arguments for remove-overlays are now optional, so that you can remove
-all overlays in the buffer by just calling (remove-overlay). 
+all overlays in the buffer by just calling (remove-overlay).
 
 ** New packages:
 

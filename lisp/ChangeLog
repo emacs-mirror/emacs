@@ -230,6 +230,211 @@
 	* subr.el (functionp): Function removed (now a subr).
 	* help-fns.el (describe-function-1): Handle interpreted closures.
 
+2004-05-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* ielm.el (ielm-prompt-read-only): Update docstring.
+
+	* comint.el (comint-prompt-read-only): Update docstring.
+	(comint-update-fence, comint-kill-whole-line)
+	(comint-kill-region): New functions.
+
+	* simple.el (kill-whole-line): Use "p" instead of "P" in
+	interactive form.
+
+2004-05-01  Juanma Barranquero  <lektu@terra.es>
+
+	* help-fns.el (help-add-fundoc-usage): Use %S instead of %s to
+	format arglist so default values in CL-style argument lists are
+	correctly shown.
+
+2004-05-01  Jason Rumney  <jasonr@gnu.org>
+
+	* term/w32-win.el (w32-drag-n-drop): Use x-dnd.el functions.
+
+2004-05-01  Kenichi Handa  <handa@m17n.org>
+
+	* international/titdic-cnv.el (miscdic-convert): Don't generate a
+	quail file if it is up to date.
+
+2004-04-30  Juri Linkov  <juri@jurta.org>
+
+	* cus-edit.el (custom-mode-map):
+	Add key binding `C-x C-s' to `Custom-save'.
+
+	* outline.el (outline-blank-line): New var.
+	(outline-next-preface, outline-show-heading)
+	(outline-end-of-subtree): Use it.
+
+	* dired-aux.el (dired-touch-initial): New fun.
+	(dired-do-chxxx): Call it for op-symbol `touch'.
+	(dired-diff): Use `dired-dwim-target-directory'
+	if current dired buffer has no buffer mark.
+
+	* bindings.el (propertized-buffer-identification):
+	Replace `(:weight bold)' by `Buffer-menu-buffer-face'.
+	Add C-M-arrow keys for consistency.
+
+	* files.el (confirm-kill-emacs):
+	Change group from top-level `emacs' to `convenience'.
+
+	* emacs-lisp/lisp.el (beginning-of-defun, end-of-defun):
+	Push mark on the first call of successive command calls.
+	(insert-pair): New fun created from `insert-parentheses' with
+	`open' and `close' arguments added.  Enclose active regions
+	in paired characters.  Compare adjacent characters syntax with
+	inserted characters syntax before inserting a space.
+	(insert-parentheses): Call `insert-pair' with ?\( ?\).
+
+	* delsel.el: Don't put `delete-selection' property
+	on `insert-parentheses' symbol to take advantage of
+	region handling in `insert-pair' function.
+	Suggested by Stephan Stahl <stahl@eos.franken.de>.
+
+2004-04-30  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el: Add support for changing cursor types;
+	based on patch from Michael Mauger.
+	(cua-normal-cursor-color, cua-read-only-cursor-color)
+	(cua-overwrite-cursor-color, cua-global-mark-cursor-color):
+	Customization cursor type and/or cursor color.
+	(cua--update-indications): Handle cursor type changes.
+	(cua-mode): Update cursor indications if enabled.
+
+	* menu-bar.el (menu-bar-options-menu): Change menu text for CUA.
+
+	* mouse.el (mouse-drag-copy-region): New defcustom.
+	(mouse-set-region, mouse-drag-region-1): Use it.
+
+	* simple.el (kill-ring-save): If region face background color is
+	unspecified (if no highlighting), show extent of fully visible
+	region even if transient-mark-mode is enabled.
+
+	* emulation/cua-base.el (cua--standard-movement-commands):
+	Add cua-scroll-up and cua-scroll-down.
+	(cua-scroll-up, cua-scroll-down): New commands.
+	(cua--init-keymaps): Remap scroll-up and scroll-down.
+
+	* emulation/cua-rect.el (cua--convert-rectangle-as):
+	New defmacro.
+	(cua-upcase-rectangle, cua-downcase-rectangle): Use it.
+	(cua-upcase-initials-rectangle, cua-capitalize-rectangle):
+	New commands (suggested by Jordan Breeding).
+
+2004-04-30  Juanma Barranquero  <lektu@terra.es>
+
+	* smerge-mode.el (smerge-diff-switches): Fix typo in docstring.
+
+2004-04-30  Mario Lang  <mlang@delysid.org>
+
+	* diff.el (diff-switches): Fix typo in docstring.
+
+2004-04-30  Alex Schroeder  <alex@gnu.org>
+
+	* xml.el (xml-debug-print-internal): Don't add newline and
+	indentation to text nodes and write empty elements as empty tags
+	instead of opening and closing tags.
+	(xml-debug-print): Take optional indent-string argument.
+	(xml-print): Alias for xml-debug-print.
+
+2004-04-30  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/fortran.el (fortran-fill): Use local var `bol' rather
+	than duplicate call to `line-beginning-position'.
+
+	* progmodes/f90.el (f90-get-present-comment-type): Return
+	whitespace, as well as comment chars, for consistent filling
+	of comment blocks.  Use `match-string-no-properties'.
+	(f90-break-line): Do not leave trailing whitespace when filling
+	comments.
+
+2004-04-30  Dave Love  <fx@gnu.org>
+
+	* calendar/diary-lib.el (diary-outlook-formats): New variable.
+	(diary-from-outlook-internal, diary-from-outlook)
+	(diary-from-outlook-gnus, diary-from-outlook-rmail): New
+	functions to import diary entries from Outlook-format
+	appointments in mail messages.
+
+2004-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-send-command): New fun.
+	(python-send-region, python-load-file): Use it.
+
+	* progmodes/compile.el (compilation-last-buffer): Add var alias.
+
+	* help-fns.el (help-C-file-name): Use new subr-name.
+	Prepend `src/' to the file name.
+	(help-C-source-directory, help-subr-name, help-find-C-source): Remove.
+	(describe-function-1, describe-variable): Only find a C source file
+	name if DOC is already loaded.
+
+	* help-mode.el (help-function-def, help-variable-def):
+	Use the new find-function-search-for-symbol functionality.
+	Allow FILE to be `C-source'.
+
+	* emacs-lisp/find-func.el (find-function-C-source-directory): New var.
+	(find-function-C-source): New fun.
+	(find-function-search-for-symbol): Use it.
+
+2004-03-29  Michael Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el (sql-product-alist): Rename variable
+	`sql-product-support'.  Add Postgres login parameters.
+	(sql-set-product, sql-product-feature): Update with renamed
+	variable.
+	(sql-connect-postgres): Add username prompt.
+	(sql-imenu-generic-expression, sql-mode-font-lock-object-name):
+	Make patterns less product specific.
+	(sql-xemacs-p, sql-emacs19-p): Add flags for emacs variants.
+	(sql-mode-abbrev-table): Modify initialization.
+	(sql-builtin-face): Add variable.
+	(sql-keywords-re): Add macro.
+	(sql-mode-ansi-font-lock-keywords): Update for ANSI-92.
+	(sql-mode-oracle-font-lock-keywords): Update for Oracle 9i.
+	(sql-mode-postgres-font-lock-keywords): Update for Postgres 7.3.
+	(sql-mode-mysql-font-lock-keywords): Update for MySql 4.0.
+	(sql-mode-linter-font-lock-keywords)
+	(sql-mode-ms-font-lock-keywords): Use `sql-keywords-re' macro.
+	(sql-mode-sybase-font-lock-keywords)
+	(sql-mode-informix-font-lock-keywords)
+	(sql-mode-interbase-font-lock-keywords)
+	(sql-mode-ingres-font-lock-keywords)
+	(sql-mode-solid-font-lock-keywords)
+	(sql-mode-sqlite-font-lock-keywords)
+	(sql-mode-db2-font-lock-keywords): Default to nil.
+	(sql-product-font-lock): Always highlight ANSI keywords.
+	(sql-add-product-keywords): Made similar to
+	`font-lock-add-keywords'.
+	(sql-send-string): Add function.
+
+2004-04-29  Dave Love <fx@gnu.org>
+
+	* progmodes/cfengine.el (cfengine-beginning-of-defun)
+	(cfengine-end-of-defun): Ensure progress through buffer.
+
+	* info-look.el (cfengine-mode): Accept a terminal ().
+
+2004-04-29  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-mode-map): Bind \C-w to isearch-yank-word
+	instead of isearch-yank-word-or-char.  Add new key bindings for
+	isearch-yank-char to \C-f, and isearch-del-char to \C-b.
+	(isearch-del-char): New fun.
+	(isearch-forward, isearch-edit-string): Update docstring.
+	(isearch-yank-char): Doc fix.
+	(isearch-other-meta-char): Restore point after scrolling.
+
+	* progmodes/compile.el (compilation-context-lines): Add nil option
+	to disable compilation output window scrolling.
+	(compilation-set-window): Use it.
+
+	* outline.el (outline-next-preface, outline-show-heading):
+	Don't leave unhidden blank line before heading.
+	(outline-end-of-subtree): Include last newline into subtree.
+	(hide-entry): Leave point at beginning of heading instead of end.
+	(outline-up-heading): Push mark for the first call of successive
+	command calls.
+
 2004-04-28  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* comint.el (comint-prompt-read-only): New variable.
@@ -254,10 +459,9 @@
 2004-04-28  Nick Roberts  <nickrob@gnu.org>
 
 	* progmodes/gdb-ui.el (gdb-frame-breakpoints-buffer)
-	(gdb-frame-stack-buffer, gdb-frame-threads-buffer)
+	(gdb-frame-assembler-buffer, gdb-frame-threads-buffer)
 	(gdb-frame-registers-buffer, gdb-frame-locals-buffer)
-	(gdb-frame-gdb-buffer, gdb-frame-assembler-buffer): Use
-	selected-window.
+	(gdb-frame-gdb-buffer, gdb-frame-stack-buffer): Use selected-window.
 
 	* progmodes/gud.el (gud-common-init): Throw an error if program is
 	already running under gdb.
@@ -5828,7 +6032,7 @@
 2003-08-12  Juri Linkov  <juri@jurta.org>  (tiny change)
 
 	* simple.el (backward-word, forward-to-indentation)
-	(backward-to-indentation):  Argument changed to optional.
+	(backward-to-indentation): Argument changed to optional.
 	(next-line, previous-line): Use `or' instead of `unless'.
 
 2003-08-12  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
@@ -6010,7 +6214,7 @@
 	behaviour of `calendar-day-name' and `calendar-month-name' functions.
 	(diary-name-pattern): Use abbrev arrays, rather than fixing
 	abbrevs at three chars.  Calling syntax change.
-	(mark-diary-entries):  Adapt for new behaviours of
+	(mark-diary-entries): Adapt for new behaviours of
 	`diary-name-pattern' and `calendar-make-alist' functions.
 	(fancy-diary-font-lock-keywords): Adapt for new behaviour of
 	`diary-name-pattern' function.
@@ -6461,7 +6665,7 @@
 
 2003-07-08  Markus Rost  <rost@math.ohio-state.edu>
 
-	* subr.el (dolist, dotimes):  Doc fix.
+	* subr.el (dolist, dotimes): Doc fix.
 
 2003-07-08  Kim F. Storm  <storm@cua.dk>
 

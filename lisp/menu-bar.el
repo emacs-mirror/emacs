@@ -893,7 +893,7 @@ PROPS are additional properties."
   '("--"))
 (define-key menu-bar-options-menu [cua-mode]
   (menu-bar-make-mm-toggle cua-mode
-			   "CUA-style cut and paste"
+			   "C-x/C-c/C-v cut and paste (CUA)"
 			   "Use C-z/C-x/C-c/C-v keys for undo/cut/copy/paste"))
 
 (define-key menu-bar-options-menu [case-fold-search]

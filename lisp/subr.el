@@ -1537,8 +1537,7 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 (defun remove-overlays (&optional beg end name val)
   "Clear BEG and END of overlays whose property NAME has value VAL.
 Overlays might be moved and or split.
-If BEG is nil, `(point-min)' is used. If END is nil, `(point-max)' 
-is used."
+BEG and END default to the beginning resp. end of buffer."
   (unless beg (setq beg (point-min)))
   (unless end (setq end (point-max)))
   (if (< end beg)

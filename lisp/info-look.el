@@ -887,11 +887,21 @@ Return nil if there is nothing appropriate in the buffer near point."
                       ((string-equal item "gawk, versions of, information about, printing")
                        "gawk"))))))
 
+;; This misses some things which occur as node names but not in the
+;; index.  Unfortunately it also picks up the wrong one of multiple
+;; entries for the same term in some cases.  --fx
 (info-lookup-maybe-add-help
  :mode 'cfengine-mode
- :regexp "[[:alnum:]_]+"
- :doc-spec '(("(cfengine-Reference)Variable Index" nil
-	      "^ - [^:]+:[ ]+\\(\\[[^=]*=[ ]+\\)?" nil)))
+ :regexp "[[:alnum:]_]+\\(:?()\\)?"
+ :doc-spec '(("(cfengine-Reference)Variable Index"
+	      (lambda (item)
+		;; Index entries may be like `IsPlain()'
+		(if (string-match "\\([[:alnum:]_]+\\)()" item)
+		    (match-string 1 item)
+		  item))
+	      ;; This gets functions in evaluated classes.  Other
+	      ;; possible patterns don't seem to work too well.
+	      "`" "(")))
 
 (provide 'info-look)
 

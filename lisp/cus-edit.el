@@ -4023,6 +4023,7 @@ The format is suitable for use with `easy-menu-define'."
   (suppress-keymap custom-mode-map)
   (define-key custom-mode-map " " 'scroll-up)
   (define-key custom-mode-map "\177" 'scroll-down)
+  (define-key custom-mode-map "\C-x\C-s" 'Custom-save)
   (define-key custom-mode-map "q" 'Custom-buffer-done)
   (define-key custom-mode-map "u" 'Custom-goto-parent)
   (define-key custom-mode-map "n" 'widget-forward)
