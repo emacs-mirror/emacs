@@ -237,18 +237,14 @@ act as a paragraph-separator."
 		;; just use it (this subsumes the 2 previous checks).
 		;; Used when first line is `/* ...' and second-line is
 		;; ` * ...'.
-		(save-excursion
-		  (goto-char firstline)
-		  (looking-at
-		   (apply 'concat
-			  (mapcar (lambda (c)
-				    (if (memq c '(?\t ?\ ))
-					;; The number of chars might not
-					;; match up if there's a mix of
-					;; tabs and spaces.
-					"\\([ \t]*\\|.\\)"
-				      (regexp-quote (string c))))
-				  second-line-prefix))))
+		(string-match
+		 (concat "\\`"
+			 (mapconcat
+			  (lambda (c) (regexp-quote (string c)))
+			  (replace-regexp-in-string "[ \t]+" "" first-line-prefix)
+			  "?")
+			 "?\\'")
+		 (replace-regexp-in-string "[ \t]+" "" second-line-prefix))
 		second-line-prefix
 
 	      ;; Use the longest common substring of both prefixes,
