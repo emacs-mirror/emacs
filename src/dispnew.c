@@ -4085,18 +4085,8 @@ update_window (w, force_p)
       
       /* Try reusing part of the display by copying.  */
       if (row < end && !desired_matrix->no_scrolling_p)
-	{
-	  int rc = scrolling_window (w, header_line_row != NULL);
-	  if (rc < 0)
-	    {
-	      /* All rows were found to be equal.  */
-	      paused_p = 0;
-	      goto set_cursor;
-	    }
-	  else if (rc > 0)
-	    force_p = 1;
-	  changed_p = 1;
-	}
+	if (scrolling_window (w, header_line_row != NULL) > 0)
+	  force_p = changed_p = 1;
 
       /* Update the top mode line after scrolling because a new top
 	 line would otherwise overwrite lines at the top of the window
@@ -4141,8 +4131,6 @@ update_window (w, force_p)
 
       /* Was display preempted?  */
       paused_p = row < end;
-      
-    set_cursor:
       
       /* Fix the appearance of overlapping(overlapped rows.  */
       if (!paused_p && !w->pseudo_window_p)
