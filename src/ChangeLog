@@ -1,3 +1,7 @@
+2000-10-12  Kenichi Handa  <handa@etl.go.jp>
+
+	* process.c (read_process_output): Cancel previous change.
+
 2000-10-11  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* search.c (Fsearch_backward, Fsearch_forward): Doc fix.

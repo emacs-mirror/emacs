@@ -1,3 +1,8 @@
+2000-10-12  Kenichi Handa  <handa@etl.go.jp>
+
+	* man.el (Man-getpage-in-background): Fix previous change.
+	Decode the process output only when we are in multibyte mode.
+
 2000-10-11  Dave Love  <fx@gnu.org>
 
 	* toolbar/cancel.xpm, toolbar/jump_to.xpm, toolbar/right_arrow.xpm:
