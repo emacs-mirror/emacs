@@ -2752,25 +2752,33 @@ it defaults to the value of `obarray'.")
 }
 
 DEFUN ("intern-soft", Fintern_soft, Sintern_soft, 1, 2, 0,
-  "Return the canonical symbol whose name is STRING, or nil if none exists.\n\
+  "Return the canonical symbol named NAME, or nil if none exists.\n\
+NAME may be a string or a symbol.  If it is a symbol, that exact
+symbol is searched for.
 A second optional argument specifies the obarray to use;\n\
 it defaults to the value of `obarray'.")
-  (string, obarray)
-     Lisp_Object string, obarray;
+  (name, obarray)
+     Lisp_Object name, obarray;
 {
   register Lisp_Object tem;
+  struct Lisp_String *string;
 
   if (NILP (obarray)) obarray = Vobarray;
   obarray = check_obarray (obarray);
 
-  CHECK_STRING (string, 0);
+  if (!SYMBOLP (name))
+    {
+      CHECK_STRING (name, 0);
+      string = XSTRING (name);
+    }
+  else
+    string = XSYMBOL (name)->name;
 
-  tem = oblookup (obarray, XSTRING (string)->data,
-		  XSTRING (string)->size,
-		  STRING_BYTES (XSTRING (string)));
-  if (!INTEGERP (tem))
+  tem = oblookup (obarray, string->data, string->size, STRING_BYTES (string));
+  if (INTEGERP (tem) || (SYMBOLP (name) && !EQ (name, tem)))
+    return Qnil;
+  else
     return tem;
-  return Qnil;
 }
 
 DEFUN ("unintern", Funintern, Sunintern, 1, 2, 0,
