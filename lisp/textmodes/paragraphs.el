@@ -142,8 +142,8 @@ to which the end of the previous line belongs, or the end of the buffer."
 		      (not (looking-at-hard paragraph-separate))
 		      (looking-at fill-prefix-regexp))
 	    (forward-line 1))
-	(while (and (not (eobp))
-		    (re-search-forward paragraph-start nil 1)
+	(while (and (re-search-forward paragraph-start nil 1)
+		    (not (eobp))
 		    use-hard-newlines
 		    (null (get-text-property (1- (match-beginning 0)) 'hard)))
 	  (forward-char 1))
