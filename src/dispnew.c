@@ -2208,15 +2208,15 @@ DEFUN ("send-string-to-terminal", Fsend_string_to_terminal,
   Ssend_string_to_terminal, 1, 1, 0,
   "Send STRING to the terminal without alteration.\n\
 Control characters in STRING will have terminal-dependent effects.")
-  (str)
-     Lisp_Object str;
+  (string)
+     Lisp_Object string;
 {
-  CHECK_STRING (str, 0);
-  fwrite (XSTRING (str)->data, 1, XSTRING (str)->size, stdout);
+  CHECK_STRING (string, 0);
+  fwrite (XSTRING (string)->data, 1, XSTRING (string)->size, stdout);
   fflush (stdout);
   if (termscript)
     {
-      fwrite (XSTRING (str)->data, 1, XSTRING (str)->size, termscript);
+      fwrite (XSTRING (string)->data, 1, XSTRING (string)->size, termscript);
       fflush (termscript);
     }
   return Qnil;
@@ -2411,7 +2411,7 @@ fraction of a second.  Optional second arg MILLISECONDS specifies an\n\
 additional wait period, in milliseconds; this may be useful if your\n\
 Emacs was built without floating point support.\n\
 \(Not all operating systems support waiting for a fraction of a second.)\n\
-Optional third arg non-nil means don't redisplay, just wait for input.\n\
+Optional third arg NODISP non-nil means don't redisplay, just wait for input.\n\
 Redisplay is preempted as always if input arrives, and does not happen\n\
 if input is available before it starts.\n\
 Value is t if waited the full time with no input arriving.")
