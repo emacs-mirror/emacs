@@ -227,7 +227,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 
 #ifndef subprocesses
   /* Without asynchronous processes we cannot have BUFFER == 0.  */
-  if (nargs >= 3 && INTEGERP (args[2]))
+  if (nargs >= 3 
+      && (INTEGERP (CONSP (args[2]) ? XCAR (args[2]) : args[2])
     error ("Operating system cannot handle asynchronous subprocesses");
 #endif /* subprocesses */
 
@@ -271,9 +272,10 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     /* If BUFFER is nil, we must read process output once and then
        discard it, so setup coding system but with nil.  If BUFFER is
        an integer, we can discard it without reading.  */
-    if (nargs < 3 || NILP (args[2]))
+    if (nargs < 3 || NILP (args[2])
+	|| (CONSP (args[2]) && NILP (XCAR (args[2]))))
       setup_coding_system (Qnil, &process_coding);
-    else if (!INTEGERP (args[2]))
+    else if (!INTEGERP (CONSP (args[2]) ? XCAR (args[2]) : args[2]))
       {
 	val = Qnil;
 	if (!NILP (Vcoding_system_for_read))
@@ -333,7 +335,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 
       if (!(EQ (buffer, Qnil)
 	    || EQ (buffer, Qt)
-	    || XFASTINT (buffer) == 0))
+	    || INTEGERP (buffer)))
 	{
 	  Lisp_Object spec_buffer;
 	  spec_buffer = buffer;
