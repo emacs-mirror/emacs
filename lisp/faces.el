@@ -1135,6 +1135,7 @@ Value is a list (FACE NEW-VALUE) where FACE is the face read
 ;; The name list-faces would be more consistent, but let's avoid a
 ;; conflict with Lucid, which uses that name differently.
 
+(defvar help-xref-stack)
 (defun list-faces-display ()
   "List all faces, using the same sample text in each.
 The sample text is a string that comes from the variable
