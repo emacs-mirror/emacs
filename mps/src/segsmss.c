@@ -1,7 +1,7 @@
 /* impl.c.segsmss: Segment splitting and merging stress test
  *
- * $HopeName: MMsrc!segsmss.c(trunk.4) $
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!segsmss.c(trunk.5) $
+ * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .design: Adapted from amsss.c (because AMS already supports 
  * a protocol for subclassing AMS segments). Defines a new pool 
@@ -14,6 +14,7 @@
 #include "poolams.h"
 #include "fmtdy.h"
 #include "testlib.h"
+#include "chain.h"
 #include "mpscams.h"
 #include "mpsavm.h"
 #include "mpstd.h"
@@ -41,6 +42,7 @@ extern PoolClass EnsureAMSTPoolClass(void);
 
 typedef struct AMSTStruct {
   AMSStruct amsStruct;      /* generic AMS structure */
+  Chain chain;              /* chain to use */
   Bool failSegs;            /* fail seg splits & merges when true */
   Count splits;             /* count of successful segment splits */
   Count merges;             /* count of successful segment merges */
@@ -333,18 +335,24 @@ static Res AMSTInit(Pool pool, va_list args)
 {
   AMST amst; AMS ams;
   Format format;
+  Chain chain;
   Res res;
+  static GenParamStruct genParam = { 1024, 0.2 };
 
   AVERT(Pool, pool);
 
   format = va_arg(args, Format);
-  res = AMSInitInternal(PoolPoolAMS(pool), format);
-  if(res != ResOK)
+  res = ChainCreate(&chain, pool->arena, 1, &genParam);
+  if (res != ResOK)
+    return res;
+  res = AMSInitInternal(PoolPoolAMS(pool), format, chain);
+  if (res != ResOK)
     return res;
   amst = PoolPoolAMST(pool);
   ams = PoolPoolAMS(pool);
   ams->segSize = AMSTSegSizePolicy;
   ams->segClass = EnsureAMSTSegClass;
+  amst->chain = chain;
   amst->failSegs = TRUE;
   amst->splits = 0;
   amst->merges = 0;
@@ -379,6 +387,7 @@ static void AMSTFinish(Pool pool)
 
   AMSFinish(pool);
   amst->sig = SigInvalid;
+  ChainDestroy(amst->chain);
 }
 
 
@@ -457,6 +466,7 @@ static void AMSUnallocateRange(Seg seg, Addr base, Addr limit)
     }
   }
   amsseg->free += limitIndex - baseIndex;
+  amsseg->newAlloc -= limitIndex - baseIndex;
 }
 
 
@@ -500,6 +510,7 @@ static void AMSAllocateRange(Seg seg, Addr base, Addr limit)
   }
   AVER(amsseg->free >= limitIndex - baseIndex);
   amsseg->free -= limitIndex - baseIndex;
+  amsseg->newAlloc += limitIndex - baseIndex;
 }
 
 
