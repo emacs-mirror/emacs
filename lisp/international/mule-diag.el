@@ -46,7 +46,7 @@
 (defun sort-charset-list ()
   (setq charset-list
 	(sort charset-list
-	      (function (lambda (x y) (< (charset-id x) (charset-id y)))))))
+	      (lambda (x y) (< (charset-id x) (charset-id y))))))
 
 ;;; CHARSET
 
@@ -175,20 +175,19 @@ but still shows the full information."
     ;; Determine a predicate for `sort' by SORT-KEY.
     (setq sort-func
 	  (cond ((eq sort-key 'id)
-		 (function (lambda (x y) (< (car x) (car y)))))
+		 (lambda (x y) (< (car x) (car y))))
 
 		((eq sort-key 'name)
-		 (function (lambda (x y) (string< (nth 1 x) (nth 1 y)))))
+		 (lambda (x y) (string< (nth 1 x) (nth 1 y))))
 
 		((eq sort-key 'iso-spec)
 		 ;; Sort by DIMENSION CHARS FINAL-CHAR
-		 (function
-		  (lambda (x y)
-		    (or (< (nth 3 x) (nth 3 y))
-			(and (= (nth 3 x) (nth 3 y))
-			     (or (< (nth 4 x) (nth 4 y))
-				 (and (= (nth 4 x) (nth 4 y))
-				      (< (nth 5 x) (nth 5 y)))))))))
+		 (lambda (x y)
+		   (or (< (nth 3 x) (nth 3 y))
+		       (and (= (nth 3 x) (nth 3 y))
+			    (or (< (nth 4 x) (nth 4 y))
+				(and (= (nth 4 x) (nth 4 y))
+				     (< (nth 5 x) (nth 5 y))))))))
 		(t
 		 (error "Invalid charset sort key: %s" sort-key))))
 
@@ -353,10 +352,9 @@ DEFAULT-VALUE, if non-nil, is the default value.
 INITIAL-INPUT, if non-nil, is a string inserted in the minibuffer initially.
 See the documentation of the function `completing-read' for the
 detailed meanings of these arguments."
-  (let* ((table (append (mapcar (function (lambda (x) (list (symbol-name x))))
+  (let* ((table (append (mapcar (lambda (x) (list (symbol-name x)))
 				charset-list)
-			(mapcar (function (lambda (x)
-					    (list (symbol-name (car x)))))
+			(mapcar (lambda (x) (list (symbol-name (car x))))
 				non-iso-charset-alist)))
 	 (charset (completing-read prompt table
 				   nil t initial-input 'charset-history
@@ -586,55 +584,54 @@ PC `codepages' and other coded character sets.  See `non-iso-charset-alist'."
     (with-output-to-temp-buffer (help-buffer)
       (print-coding-system-briefly coding-system 'doc-string)
       (princ "\n")
-      (let ((coding-spec (coding-system-spec coding-system)))
-	(princ "Type: ")
-	(let ((type (coding-system-type coding-system))
-	      (flags (coding-system-flags coding-system)))
-	  (princ type)
-	  (cond ((eq type nil)
-		 (princ " (do no conversion)"))
-		((eq type t)
-		 (princ " (do automatic conversion)"))
-		((eq type 0)
-		 (princ " (Emacs internal multibyte form)"))
-		((eq type 1)
-		 (princ " (Shift-JIS, MS-KANJI)"))
-		((eq type 2)
-		 (princ " (variant of ISO-2022)\n")
-		 (princ "Initial designations:\n")
-		 (print-designation flags)
-		 (princ "Other Form: \n  ")
-		 (princ (if (aref flags 4) "short-form" "long-form"))
-		 (if (aref flags 5) (princ ", ASCII@EOL"))
-		 (if (aref flags 6) (princ ", ASCII@CNTL"))
-		 (princ (if (aref flags 7) ", 7-bit" ", 8-bit"))
-		 (if (aref flags 8) (princ ", use-locking-shift"))
-		 (if (aref flags 9) (princ ", use-single-shift"))
-		 (if (aref flags 10) (princ ", use-roman"))
-		 (if (aref flags 11) (princ ", use-old-jis"))
-		 (if (aref flags 12) (princ ", no-ISO6429"))
-		 (if (aref flags 13) (princ ", init-bol"))
-		 (if (aref flags 14) (princ ", designation-bol"))
-		 (if (aref flags 15) (princ ", convert-unsafe"))
-		 (if (aref flags 16) (princ ", accept-latin-extra-code"))
-		 (princ "."))
-		((eq type 3)
-		 (princ " (Big5)"))
-		((eq type 4)
-		 (princ " (do conversion by CCL program)"))
-		((eq type 5)
-		 (princ " (text with random binary characters)"))
-		(t (princ ": invalid coding-system."))))
-	(princ "\nEOL type: ")
-	(let ((eol-type (coding-system-eol-type coding-system)))
-	  (cond ((vectorp eol-type)
-		 (princ "Automatic selection from:\n\t")
-		 (princ eol-type)
-		 (princ "\n"))
-		((or (null eol-type) (eq eol-type 0)) (princ "LF\n"))
-		((eq eol-type 1) (princ "CRLF\n"))
-		((eq eol-type 2) (princ "CR\n"))
-		(t (princ "invalid\n")))))
+      (princ "Type: ")
+      (let ((type (coding-system-type coding-system))
+	    (flags (coding-system-flags coding-system)))
+	(princ type)
+	(cond ((eq type nil)
+	       (princ " (do no conversion)"))
+	      ((eq type t)
+	       (princ " (do automatic conversion)"))
+	      ((eq type 0)
+	       (princ " (Emacs internal multibyte form)"))
+	      ((eq type 1)
+	       (princ " (Shift-JIS, MS-KANJI)"))
+	      ((eq type 2)
+	       (princ " (variant of ISO-2022)\n")
+	       (princ "Initial designations:\n")
+	       (print-designation flags)
+	       (princ "Other Form: \n  ")
+	       (princ (if (aref flags 4) "short-form" "long-form"))
+	       (if (aref flags 5) (princ ", ASCII@EOL"))
+	       (if (aref flags 6) (princ ", ASCII@CNTL"))
+	       (princ (if (aref flags 7) ", 7-bit" ", 8-bit"))
+	       (if (aref flags 8) (princ ", use-locking-shift"))
+	       (if (aref flags 9) (princ ", use-single-shift"))
+	       (if (aref flags 10) (princ ", use-roman"))
+	       (if (aref flags 11) (princ ", use-old-jis"))
+	       (if (aref flags 12) (princ ", no-ISO6429"))
+	       (if (aref flags 13) (princ ", init-bol"))
+	       (if (aref flags 14) (princ ", designation-bol"))
+	       (if (aref flags 15) (princ ", convert-unsafe"))
+	       (if (aref flags 16) (princ ", accept-latin-extra-code"))
+	       (princ "."))
+	      ((eq type 3)
+	       (princ " (Big5)"))
+	      ((eq type 4)
+	       (princ " (do conversion by CCL program)"))
+	      ((eq type 5)
+	       (princ " (text with random binary characters)"))
+	      (t (princ ": invalid coding-system."))))
+      (princ "\nEOL type: ")
+      (let ((eol-type (coding-system-eol-type coding-system)))
+	(cond ((vectorp eol-type)
+	       (princ "Automatic selection from:\n\t")
+	       (princ eol-type)
+	       (princ "\n"))
+	      ((or (null eol-type) (eq eol-type 0)) (princ "LF\n"))
+	      ((eq eol-type 1) (princ "CRLF\n"))
+	      ((eq eol-type 2) (princ "CR\n"))
+	      (t (princ "invalid\n"))))
       (let ((postread (coding-system-get coding-system 'post-read-conversion)))
 	(when postread
 	  (princ "After decoding text normally,")
@@ -800,13 +797,12 @@ Priority order for recognizing coding systems when reading files:\n")
 	(while categories
 	  (setq coding-system (symbol-value (car categories)))
 	  (mapcar
-	   (function
-	    (lambda (x)
-	      (if (and (not (eq x coding-system))
-		       (coding-system-get x 'no-initial-designation)
-		       (let ((flags (coding-system-flags x)))
-			 (not (or (aref flags 10) (aref flags 11)))))
-		  (setq codings (cons x codings)))))
+	   (lambda (x)
+	     (if (and (not (eq x coding-system))
+		      (coding-system-get x 'no-initial-designation)
+		      (let ((flags (coding-system-flags x)))
+			(not (or (aref flags 10) (aref flags 11)))))
+		 (setq codings (cons x codings))))
 	   (get (car categories) 'coding-systems))
 	  (if codings
 	      (let ((max-col (frame-width))
@@ -1115,9 +1111,9 @@ see the function `describe-fontset' for the format of the list."
 	;; This code is duplicated near the end of mule-diag.
 	(let ((fontsets
 	       (sort (fontset-list)
-		     (function (lambda (x y)
-				 (string< (fontset-plain-name x)
-					  (fontset-plain-name y)))))))
+		     (lambda (x y)
+		       (string< (fontset-plain-name x)
+				(fontset-plain-name y))))))
 	  (while fontsets
 	    (if arg
 		(print-fontset (car fontsets) nil)
@@ -1128,7 +1124,8 @@ see the function `describe-fontset' for the format of the list."
 (defun list-input-methods ()
   "Display information about all input methods."
   (interactive)
-  (with-output-to-temp-buffer "*Help*"
+  (help-setup-xref '(list-input-methods) (interactive-p))
+  (with-output-to-temp-buffer (help-buffer)
     (list-input-methods-1)
     (with-current-buffer standard-output
       (save-excursion
@@ -1137,8 +1134,7 @@ see the function `describe-fontset' for the format of the list."
 		"^  \\([^ ]+\\) (`.*' in mode line)$" nil t)
 	  (help-xref-button 1 #'help-input-method
 				(match-string 1)
-				"mouse-2: describe this method")))
-      (help-setup-xref '(list-input-methods) (interactive-p)))))
+				"mouse-2: describe this method"))))))
 
 (defun list-input-methods-1 ()
   (if (not input-method-alist)
@@ -1150,7 +1146,7 @@ installed LEIM (Libraries of Emacs Input Methods)."))
     (princ "    SHORT-DESCRIPTION\n------------------------------\n")
     (setq input-method-alist
 	  (sort input-method-alist
-		(function (lambda (x y) (string< (nth 1 x) (nth 1 y))))))
+		(lambda (x y) (string< (nth 1 x) (nth 1 y)))))
     (let ((l input-method-alist)
 	  language elt)
       (while l
