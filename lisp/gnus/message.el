@@ -4568,6 +4568,8 @@ Otherwise, generate and save a value for `canlock-password' first."
   "Make a valid data header.
 If NOW, use that time instead."
   (require 'parse-time)
+  (defvar parse-time-weekdays)
+  (defvar parse-time-months)
   (let* ((now (or now (current-time)))
 	 (zone (nth 8 (decode-time now)))
 	 (sign "+"))

@@ -37,6 +37,7 @@
 
 (require 'nndraft)
 (require 'gnus-draft)
+(autoload 'parse-time-string "parse-time" nil nil)
 
 ;;;###autoload
 (defgroup gnus-delay nil
