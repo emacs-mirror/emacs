@@ -359,12 +359,12 @@ The current window remains selected."
     (bury-buffer menu)))
 
 (defun Buffer-menu-toggle-read-only ()
-  "Toggle read-only status of buffer on this line."
+  "Toggle read-only status of buffer on this line, perhaps via version control."
   (interactive)
   (let (char)
     (save-excursion
       (set-buffer (Buffer-menu-buffer t))
-      (toggle-read-only)
+      (vc-toggle-read-only)
       (setq char (if buffer-read-only ?% ? )))
     (save-excursion
       (beginning-of-line)
