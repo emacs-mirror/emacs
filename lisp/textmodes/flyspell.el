@@ -452,7 +452,7 @@ See also `flyspell-duplicate-distance'."
 ;;;###autoload
 (defun flyspell-mode (&optional arg)
   "Minor mode performing on-the-fly spelling checking.
-Ispell is automatically spawned on background for each entered words.
+This spawns a single Ispell process and checks each word.
 The default flyspell behavior is to highlight incorrect words.
 With no argument, this command toggles Flyspell mode.
 With a prefix argument ARG, turn Flyspell minor mode on iff ARG is positive.
