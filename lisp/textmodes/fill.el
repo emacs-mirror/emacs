@@ -549,8 +549,7 @@ space does not end a sentence, so don't break a line there."
 			  (fill-find-break-point
 			   (+ linebeg
 			      (current-left-margin)
-			      (if fill-prefix (string-width fill-prefix)
-				0))))))
+			      (if fill-prefix (length fill-prefix) 0))))))
 
 		;; If the left margin and fill prefix by themselves
 		;; pass the fill-column, keep at least one word.
