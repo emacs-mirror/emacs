@@ -10111,7 +10111,6 @@ try_cursor_movement (window, startp, scroll_step)
 	      else
 		{
 		  set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
-		  try_window (window, startp);
 		  if (!make_cursor_line_fully_visible (w))
 		    rc = CURSOR_MOVEMENT_MUST_SCROLL;
 		  else
@@ -10194,7 +10193,8 @@ redisplay_window (window, just_this_one_p)
 	    /* We've already displayed the echo area glyphs in this window.  */
 	    goto finish_scroll_bars;
 	}
-      else if (w != XWINDOW (minibuf_window))
+      else if (w != XWINDOW (minibuf_window)
+	       || minibuf_level == 0)
 	{
 	  /* W is a mini-buffer window, but it's not the currently
 	     active one, so clear it.  */
