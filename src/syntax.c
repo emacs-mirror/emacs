@@ -2642,24 +2642,23 @@ Value is a list of nine elements describing final state of parsing:\n\
  2. character address of start of last complete sexp terminated.\n\
  3. non-nil if inside a string.\n\
     (it is the character that will terminate the string,\n\
-     or t if the string should be terminated by an explicit\n\
-     `syntax-table' property.)\n\
+     or t if the string should be terminated by a generic string delimiter.)\n\
  4. t if inside a comment.\n\
  5. t if following a quote character.\n\
  6. the minimum paren-depth encountered during this scan.\n\
- 7. t if in a comment of style `b'; `syntax-table' if given by an explicit\n\
-     `syntax-table' property.\n\
- 8. character address of start of last comment or string; nil if none.\n\
+ 7. t if in a comment of style b; `syntax-table' if the comment\n\
+    should be terminated by a generic comment delimiter.\n\
+ 8. character address of start of comment or string; nil if not in one.\n\
 If third arg TARGETDEPTH is non-nil, parsing stops if the depth\n\
 in parentheses becomes equal to TARGETDEPTH.\n\
 Fourth arg STOPBEFORE non-nil means stop when come to\n\
  any character that starts a sexp.\n\
-Fifth arg STATE is an eight-list like what this function returns.\n\
-It is used to initialize the state of the parse.  Its second and third
-elements are ignored.
-Sixth arg COMMENTSTOP non-nil means stop at the start of a comment.  If\n\
-it is `syntax-table', stop after the start of a comment or a string, or\n\
-after end of a comment or a string.")
+Fifth arg STATE is a nine-element list like what this function returns.\n\
+ It is used to initialize the state of the parse.  Elements number 1, 2, 6\n\
+ and 8 are ignored; you can leave off element 8 (the last) entirely.\n\
+Sixth arg COMMENTSTOP non-nil means stop at the start of a comment.\n\
+ If it is `syntax-table', stop after the start of a comment or a string,\n\
+ or after end of a comment or a string.")
   (from, to, targetdepth, stopbefore, state, commentstop)
 */
 
@@ -2695,12 +2694,15 @@ DEFUN ("parse-partial-sexp", Fparse_partial_sexp, Sparse_partial_sexp, 2, 6, 0,
 			 ? Qt : make_number (state.instring)) : Qnil,
 		 Fcons (state.incomment ? Qt : Qnil,
 		   Fcons (state.quoted ? Qt : Qnil,
-			  Fcons (make_number (state.mindepth),
-				 Fcons (state.comstyle 
-					? (state.comstyle == ST_COMMENT_STYLE
-					   ? Qsyntax_table : Qt) : Qnil,
-					Fcons (state.comstr_start != -1 ? make_number (state.comstr_start) : Qnil,
-					       Qnil)))))))));
+		     Fcons (make_number (state.mindepth),
+		       Fcons ((state.comstyle 
+			       ? (state.comstyle == ST_COMMENT_STYLE
+				  ? Qsyntax_table : Qt) :
+			       Qnil),
+			      Fcons ((state.incomment || state.instring
+				      ? make_number (state.comstr_start)
+				      : Qnil),
+				     Qnil)))))))));
 }
 
 init_syntax_once ()
