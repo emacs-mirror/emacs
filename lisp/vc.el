@@ -1487,6 +1487,7 @@ Return nil if there is no such person."
 	 (or (vc-backend-dispatch file "vcdiff" "rcsdiff")
 	     (vc-registration-error file))
 	 file
+	 "-q"
 	 (and oldvers (concat "-r" oldvers))
 	 (and newvers (concat "-r" newvers))
 	 (if (listp diff-switches)
