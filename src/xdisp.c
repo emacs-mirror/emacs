@@ -1023,6 +1023,7 @@ redisplay_internal (preserve_echo_area)
 	 then we can't just move the cursor.  */
       else if (! (!NILP (Vtransient_mark_mode)
 		  && !NILP (current_buffer->mark_active))
+	       && w == XWINDOW (current_buffer->last_selected_window)
 	       && NILP (w->region_showing)
 	       && !cursor_in_echo_area)
 	{
@@ -1279,6 +1280,7 @@ mark_window_display_accurate (window, flag)
 	  /* Record if we are showing a region, so can make sure to
 	     update it fully at next redisplay.  */
 	  w->region_showing = (!NILP (Vtransient_mark_mode)
+			       && w == XWINDOW (current_buffer->last_selected_window)
 			       && !NILP (XBUFFER (w->buffer)->mark_active)
 			       ? Fmarker_position (XBUFFER (w->buffer)->mark)
 			       : Qnil);
@@ -2557,7 +2559,8 @@ display_text_line (w, start, vpos, hpos, taboffset)
 
   /* 1 if we should highlight the region.  */
   int highlight_region
-    = !NILP (Vtransient_mark_mode) && !NILP (current_buffer->mark_active);
+    = (!NILP (Vtransient_mark_mode) && !NILP (current_buffer->mark_active)
+       && XWINDOW (current_buffer->last_selected_window) == w);
   int region_beg, region_end;
 
   int selective = (INTEGERP (current_buffer->selective_display)
