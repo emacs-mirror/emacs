@@ -352,7 +352,7 @@ menu or the Edit menu if there is no major mode menu.
 
 ** Variable `load-path' is no longer customizable throuh Customize.
 
-You can lo noger use `M-x customize-variable' to customize `load-path'
+You can no longer use `M-x customize-variable' to customize `load-path'
 because it now contains a version-dependent component.  You can still
 use `add-to-list' and `setq' to customize this variable in your
 `~/.emacs' init file or to modify it from any Lisp program in general.
