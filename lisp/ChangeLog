@@ -1,3 +1,280 @@
+2004-12-24  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/hideshow.el: Require `cl' when compiling.
+	Remove XEmacs and Emacs 19 compatibility.
+	Use `dolist' and `add-to-list' for load-time actions.
+	(hs-discard-overlays): Use `dolist'.
+	(hs-show-block): Likewise.
+
+2004-12-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* faces.el (mode-line, mode-line-inactive): Use min-colors.
+
+2004-12-23  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/hideshow.el (hs-inside-comment-p): Fix omission bug:
+	When extending backwards, move outside the current comment first.
+
+2004-12-22  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-start-translation): Fix prompt
+	string for the case if input-method-use-echo-area being non-nil.
+	(quail-start-conversion): Likewise.
+	(quail-show-guidance): Don't show guidance if
+	input-method-use-echo-area is non-nil.
+
+2004-12-21  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/ispell.el (ispell-help): Bind resize-mini-windows.
+
+2004-12-21  Markus Rost  <rost@ias.edu>
+
+	* calendar/diary-lib.el (mark-diary-entries): Set
+	mark-diary-entries-in-calendar only after checking for diary-file.
+
+2004-12-21  Richard M. Stallman  <rms@gnu.org>
+
+	* faces.el (escape-glyph): Use blue against light foreground.
+
+	* simple.el (undo-outer-limit-truncate): New function.
+	(undo-outer-limit-function): Use undo-outer-limit-truncate.
+
+2004-12-21  Eli Barzilay  <eli@barzilay.org>
+
+	* calculator.el: (calculator-radix-grouping-mode)
+	(calculator-radix-grouping-digits)
+	(calculator-radix-grouping-separator):
+	New defcustoms for the new radix grouping mode functionality.
+	(calculator-mode-hook): Now used in electric mode too.
+	(calculator-mode-map): Some new keys.
+	(calculator-message): New function.  Some new calls.
+	(calculator-string-to-number): New function,
+	(calculator-curnum-value): Use it.
+	(calculator-rotate-displayer, calculator-rotate-displayer-back)
+	(calculator-displayer-prev, calculator-displayer-next):
+	Change digit group size when in radix mode.
+	(calculator-number-to-string): Renamed from calculator-num-to-string.
+	Now deals with digit grouping in radix mode.
+
+2004-12-20  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/calendar.el (view-other-diary-entries): Add autoload.
+	* calendar/diary-lib.el (view-other-diary-entries): Use
+	current-prefix-arg in interactive spec.
+
+2004-12-19  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-aent.el (calcAlg-blank-matching-open):
+	Temporarily adjust the syntax of both delimiters of half-open
+	intervals.
+
+2004-12-19  Kim F. Storm  <storm@cua.dk>
+
+	* mouse.el (mouse-1-click-follows-link): Doc fix.
+
+2004-12-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (encoding-vector, mac-font-encoder-list)
+	(ccl-encode-mac-centraleurroman-font): Use centraleurroman
+	instead of centraleuropean as the name
+
+2004-12-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.46.
+
+	* net/tramp.el (tramp-maybe-send-perl-script): Change order of
+	parameters wrt Tramp convention.
+	(tramp-handle-file-attributes-with-perl)
+	(tramp-handle-directory-files-and-attributes): Apply it.
+	(tramp-do-copy-or-rename-file-out-of-band): Check for existence of
+	`copy-program'.  Reported by Zack Weinberg
+	<zack@codesourcery.com>.
+	(top): Set `edebug-form-spec' property directly rather than
+	calling `def-edebug-spec'.
+
+	* net/tramp-smb.el (tramp-smb-advice-PC-do-completion): Make the
+	advice less fragile.  Surround temporary redefinition of
+	`substitute-in-file-name' with `unwind-protect'.  Suggested by
+	Matt Hodges <MPHodges@member.fsf.org>.
+
+2004-12-17  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (occur-accumulate-lines, occur-engine):
+	Make forcing deferred font-lock fontification jit-specific.
+
+2004-12-17  Kim F. Storm  <storm@cua.dk>
+
+	* mouse.el (mouse-1-click-follows-link): New defcustom.
+	(mouse-on-link-p): New function.
+	(mouse-drag-region-1): Implement mouse-1-click-follows-link
+	functionality.  Map a mouse-1 click event into a mouse-2 (or
+	other) event when position is inside a link.
+
+	* tooltip.el (tooltip-show-help-function): Replace "mouse-2"
+	prefix in tooltip text with "mouse-1" when this is a link
+	recognized by mouse-1-click-follows-link functionality.
+
+	* help.el (describe-key): Report effective and original binding
+	for mouse-1 when clicked on a link.
+	(describe-mode): Add follow-link property to "minor-mode" button.
+
+	* help-fns.el (describe-variable): Add follow-link property to
+	"below" button.
+
+	* help-mode.el (help-xref): Add follow-link property.
+
+	* apropos.el (apropos-symbol, apropos-function, apropos-macro)
+	(apropos-command, apropos-variable, apropos-face, apropos-group)
+	(apropos-widget, apropos-plist): Add follow-link property.
+
+	* pcvs-defs.el (cvs-mode-map): Map follow-link to a function which
+	checks if position is in a filename, rather than some other
+	clickable item.  Function looks for cvs-filename-face at position.
+
+	* wid-edit.el (widget-specify-field, widget-specify-button):
+	Map a :follow-link keyword into a follow-link property.
+	(link): Add :follow-link keyword, map to RET binding.
+
+	* dired.el (dired-mode-map): Map follow-link to mouse-face.
+
+	* progmodes/compile.el (compilation-minor-mode-map)
+	(compilation-button-map, compilation-mode-map): Likewise.
+
+2004-12-17  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* play/zone.el (zone): Init `line-spacing' from orig buffer.
+	(zone-replace-char): Take `count' and `del-count'
+	instead of `direction'.  Update callers.  When `del-count' is
+	non-nil, delete that many characters, otherwise `count' characters
+	backwards.  Insert the newly-replaced string `count' times.
+	(zone-fret): Handle chars w/ width greater than one.
+	(zone-fall-through-ws): No longer take window width `ww'.
+	Update callers.  Add handling for `char-width' greater than one.
+	(zone-pgm-drip): Update var holding window-end position every cycle.
+
+2004-12-17  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-default-update-changelog): Use insert-file-contents,
+	rather than insert-file.
+
+2004-12-16  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-comb.el (var-RandSeed): Don't initially bind it.
+	(math-init-random-base, math-random-digit): Check to see if
+	var-RandSeed is bound.
+	(math-random-last): Declare it.
+	(math-random-digit): Don't make math-random-last local.
+
+2004-12-16  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* play/zone.el (zone): Fix omission bug: Use a self-disabling
+	one-shot thunk for uniform (error, quit, normal) recovery.
+	Reported by John Paul Wallington.
+	(zone-pgm-random-life): Fix bug:
+	Recognize empty initial field by lack of "@" chars.
+
+2004-12-16  Juri Linkov  <juri@jurta.org>
+
+	* help.el (function-called-at-point):
+	* help-fns.el (variable-at-point): As a last resort try striping
+	non-word prefixes and suffixes.
+
+	* descr-text.el (describe-property-list): Don't treat syntax-table
+	specially.  Use describe-text-sexp which inserts [show] button
+	for large objects and handles printing errors.  Sort properties
+	by names in alphabetical order instead of by value sizes.
+	Add `mouse-face' to list of properties for `describe-face' widget.
+	(describe-char): Mask out face-id from 19 bits of character.
+	Print face-id separately.
+
+	* replace.el (occur-accumulate-lines, occur-engine):
+	Fontify unfontified matching lines in the source buffer
+	before copying them.
+	(occur-engine): Don't put mouse-face on context lines.
+	(occur-next-error): Set point to line beginning/end
+	before searching for prev/next property to skip multiple
+	matches on a line (not supported by occur engine).
+	Remove redundant prefix-numeric-value.
+
+2004-12-15  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (match): New face.
+	(list-matching-lines-face): Change default from `bold' to `match'.
+
+	* progmodes/grep.el (grep-match-face): New defvar.
+	(grep-mode-font-lock-keywords): Use grep-match-face instead of
+	compilation-column-face to highlight grep matches.
+
+	* apropos.el (apropos-match-face): Change default from
+	`secondary-selection' to `match'.
+
+	* info-look.el (info-lookup-highlight-face): Change default from
+	`highlight' to `match'.
+
+2004-12-15  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/executable.el (executable-interpret): Eliminate
+	obsolete compile-internal, and switch to comint for interaction.
+
+2004-12-15  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/idlwave.el (idlwave-skip-multi-commands): Don't match
+	`&&' when skipping multiple statements on a line.
+
+2004-12-15  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* play/zone.el (zone): Set `truncate-lines'.
+	Also, init `tab-width' with value from original buffer.
+	(zone-shift-up): Rewrite for speed.
+	(zone-shift-down, zone-shift-left, zone-shift-right): Likewise.
+	(zone-pgm-jitter): Remove redundant entries from ops vector.
+	(zone-exploding-remove): Reduce iteration count.
+	(zone-cpos): Convert to defsubst.
+	(zone-replace-char): New defsubst.
+	(zone-park/sit-for): Likewise.
+	(zone-fret): Take window-start arg.
+	Update callers. Use `zone-park/sit-for'.
+	(zone-fill-out-screen): Rewrite.
+	(zone-fall-through-ws): Likewise. Update callers.
+	(zone-pgm-drip): Use `zone-replace-char'.
+	Move var inits before while-loop. Use `zone-park/sit-for'.
+	(zone-pgm-random-life): Handle empty initial field.
+	Use `zone-replace-char' and `zone-park/sit-for'.
+
+2004-12-15  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-update): Test isearch-lazy-highlight
+	before calling isearch-lazy-highlight-new-loop.
+	(isearch-lazy-highlight-new-loop):
+	Don't test isearch-lazy-highlight.
+
+	* replace.el (perform-replace): Add isearch-case-fold-search.
+	Use delimited-flag for isearch-regexp.
+	Reset isearch-lazy-highlight-last-string to force lazy
+	highlighting when called from isearch mode.
+	(query-replace-highlight): Revert defcustom type to boolean.
+	(query-replace-lazy-highlight): New defcustom.
+	(query-replace): New face.
+	(perform-replace, replace-highlight, replace-dehighlight):
+	Test query-replace-lazy-highlight instead of special value
+	`isearch' of query-replace-highlight.
+	(replace-dehighlight): Don't call isearch-dehighlight.
+	(replace-highlight): Don't call isearch-highlight.
+	Use face `query-replace' unconditionally.
+
+2004-12-14  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (inhibit-mark-movement): Remove defvar.
+	(beginning-of-buffer, end-of-buffer): Don't use it.
+
+	* emacs-lisp/lisp.el (beginning-of-defun, end-of-defun): Don't
+	use inhibit-mark-movement.
+
+	* emulation/cua-base.el (cua--preserve-mark-commands): Remove.
+	(cua--undo-push-mark): Remove.
+	(cua--pre-command-handler, cua--post-command-handler): Don't
+	fiddle with inhibit-mark-movement.
+
 2004-12-14  Juri Linkov  <juri@jurta.org>
 
 	* buff-menu.el (list-buffers-noselect): Collect internal info

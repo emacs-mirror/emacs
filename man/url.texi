@@ -27,7 +27,7 @@ Copyright (C) 1993, 1994, 1995, 1996  William M. Perry
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with the
-Invariant Sections being 
+Invariant Sections being
 ``GNU GENERAL PUBLIC LICENSE''.  A copy of the
 license is included in the section entitled ``GNU Free Documentation
 License.''
@@ -74,9 +74,9 @@ License.''
 * General Facilities::          URLs can be cached, accessed via a gateway
                                 and tracked in a history list.
 * Customization::               Variables you can alter.
-* Function Index::              
-* Variable Index::              
-* Concept Index::               
+* Function Index::
+* Variable Index::
+* Concept Index::
 @end menu
 
 @node Getting Started
@@ -115,7 +115,7 @@ The meaning of
 the @var{path} component depends on the service.
 
 @menu
-* Configuration::               
+* Configuration::
 * Parsed URLs::                 URLs are parsed into vector structures.
 @end menu
 
@@ -204,7 +204,7 @@ Recreates a URL string from the parsed @var{url}.
 @defun url-retrieve-synchronously url
 Retrieve @var{url} synchronously and return a buffer containing the
 data.  @var{url} is either a string or a parsed URL structure.  Return
-@var{nil} if there are no data associated with it (the case for dired,
+@code{nil} if there are no data associated with it (the case for dired,
 info, or mailto URLs that need no further processing).
 @end defun
 
@@ -214,7 +214,7 @@ Retrieve @var{url} asynchronously and call @var{callback} with args
 has been completely retrieved, with the current buffer containing the
 object and any MIME headers associated with it.  @var{url} is either a
 string or a parsed URL structure.  Returns the buffer @var{url} will
-load into, or @var{nil} if the process has already completed.
+load into, or @code{nil} if the process has already completed.
 @end defun
 
 @node Supported URL Types
@@ -222,7 +222,7 @@ load into, or @var{nil} if the process has already completed.
 
 @menu
 * http/https::                  Hypertext Transfer Protocol.
-* file/ftp::                    Local files and FTP archives. 
+* file/ftp::                    Local files and FTP archives.
 * info::                        Emacs `Info' pages.
 * mailto::                      Sending email.
 * news/nntp/snews::             Usenet news.
@@ -235,7 +235,7 @@ load into, or @var{nil} if the process has already completed.
 @c * netrek::
 @c * prospero::
 * cid::                         Content-ID.
-* about::                       
+* about::
 * ldap::                        Lightweight Directory Access Protocol
 * imap::                        IMAP mailboxes.
 * man::                         Unix man pages.
@@ -273,10 +273,10 @@ otherwise the user will be asked on each request.
 
 
 @menu
-* Cookies::                     
-* HTTP language/coding::        
-* HTTP URL Options::            
-* Dealing with HTTP documents::  
+* Cookies::
+* HTTP language/coding::
+* HTTP URL Options::
+* Dealing with HTTP documents::
 @end menu
 
 @node Cookies
@@ -330,7 +330,7 @@ preferred character set encodings, e.g.@: Latin-9 or Big5, and these
 can be weighted.  In Emacs 21 this list is generated automatically
 from the list of defined coding systems which have associated MIME
 types.  These are sorted by coding priority.  @xref{Recognize Coding,
-, Recognizing Coding Systems, emacs, GNU Emacs Manual}.
+, Recognizing Coding Systems, emacs, The GNU Emacs Manual}.
 @end defopt
 
 @defopt url-mime-language-string
@@ -384,9 +384,9 @@ Currently this is just the raw header contents.
 
 HTTP URLs are retrieved into a buffer containing the HTTP headers
 followed by the body.  Since the headers are quasi-MIME, they may be
-processed using the MIME library.  @inforef{Top, The MIME library,
-emacs-mime}.  The URL package provides a function to do this in
-general:
+processed using the MIME library.  @xref{Top,, Emacs MIME,
+emacs-mime, The Emacs MIME Manual}.  The URL package provides a
+function to do this in general:
 
 @defun url-decode-text-part handle &optional coding
 This function decodes charset-encoded text in the current buffer.  In
@@ -414,8 +414,8 @@ file://@var{user}:@var{password}@@@var{host}:@var{port}/@var{file}
 @end example
 
 These schemes are defined in RFC 1808.
-@samp{ftp:} and @samp{file:} are synonomous in this library.  They
-allow reading arbitary files from hosts.  Either @samp{ange-ftp}
+@samp{ftp:} and @samp{file:} are synonymous in this library.  They
+allow reading arbitrary files from hosts.  Either @samp{ange-ftp}
 (Emacs) or @samp{efs} (XEmacs) is used to retrieve them from remote
 hosts.  Local files are accessed directly.
 
@@ -451,13 +451,13 @@ Info URLs are not officially defined.  They invoke
 @cindex email
 A mailto URL will send an email message to the address in the
 URL, for example @samp{mailto:foo@@bar.com} would compose a
-message to @samp{foo@@bar.com}.  
+message to @samp{foo@@bar.com}.
 
 @defopt url-mail-command
 @vindex mail-user-agent
 The function called whenever url needs to send mail.  This should
 normally be left to default from @var{mail-user-agent}.  @xref{Mail
-Methods, , Mail-Composition Methods, emacs, GNU Emacs Manual}.
+Methods, , Mail-Composition Methods, emacs, The GNU Emacs Manual}.
 @end defopt
 
 An @samp{X-Url-From} header field containing the URL of the document
@@ -468,7 +468,7 @@ The form of a mailto URL is
 @example
 @samp{mailto:@var{mailbox}[?@var{header}=@var{contents}[&@var{header}=@var{contents}]]}
 @end example
-@noindent where an arbitary number of @var{header}s can be added.  If the
+@noindent where an arbitrary number of @var{header}s can be added.  If the
 @var{header} is @samp{body}, then @var{contents} is put in the body
 otherwise a @var{header} header field is created with @var{contents}
 as its contents.  Note that the URL library does not consider any
@@ -493,11 +493,11 @@ fields may be included in news URLs though they are properly only
 allowed for nntp an snews.
 
 @table @samp
-@item news:@var{newsgroup} 
+@item news:@var{newsgroup}
 Retrieves a list of messages in @var{newsgroup};
 @item news:@var{message-id}
 Retrieves the message with the given @var{message-id};
-@item news:* 
+@item news:*
 Retrieves a list of all available newsgroups;
 @item nntp://@var{host}:@var{port}/@var{newsgroup}
 @itemx nntp://@var{host}:@var{port}/@var{message-id}
@@ -510,7 +510,7 @@ Similar to the @samp{news} versions.
 @samp{snews} is the same as @samp{nntp} except that the default port
 is :563.
 @cindex SSL
-(It is tunnelled through SSL.)
+(It is tunneled through SSL.)
 
 An @samp{nntp} URL is the same as a news URL, except that the URL may
 specify an article by its number.
@@ -550,9 +550,9 @@ Well-known ports are used if the URL does not specify a port.
 @cindex IRC
 @cindex Internet Relay Chat
 @cindex ZEN IRC
-@c Fixme: reference (was http://www.w3.org/Addressing/draft-mirashi-url-irc-01.txt) 
+@c Fixme: reference (was http://www.w3.org/Addressing/draft-mirashi-url-irc-01.txt)
 @dfn{Internet Relay Chat} (IRC) is handled by handing off the @sc{irc}
-session to a function named in @code{url-irc-function}.  
+session to a function named in @code{url-irc-function}.
 
 @defopt url-irc-function
 A function to actually open an IRC connection.
@@ -582,7 +582,7 @@ including parameters.  It defaults to
 @samp{text/plain;charset=US-ASCII}.  The @samp{text/plain} can be
 omitted but the charset parameter supplied.  If @samp{;base64} is
 present, the @var{data} are base64-encoded.
-  
+
 @node nfs
 @section nfs
 @cindex NFS
@@ -658,11 +658,11 @@ the Lisp @code{man} function.
 @chapter Defining New URLs
 
 @menu
-* Naming conventions::          
-* Required functions::          
-* Optional functions::          
-* Asynchronous fetching::       
-* Supporting file-name-handlers::  
+* Naming conventions::
+* Required functions::
+* Optional functions::
+* Asynchronous fetching::
+* Supporting file-name-handlers::
 @end menu
 
 @node Naming conventions
@@ -684,10 +684,10 @@ the Lisp @code{man} function.
 @chapter General Facilities
 
 @menu
-* Disk Caching::                
-* Proxies::                     
-* Gateways in general::         
-* History::                     
+* Disk Caching::
+* Proxies::
+* Gateways in general::
+* History::
 @end menu
 
 @node Disk Caching
@@ -761,7 +761,7 @@ more likely to conflict with other files.
 @end smallexample
 @end defun
 
-@c Fixme: never actually used currently? 
+@c Fixme: never actually used currently?
 @c @defopt url-standalone-mode
 @c @cindex Relying on cache
 @c @cindex Cache only mode
@@ -783,7 +783,7 @@ more likely to conflict with other files.
 @node Proxies
 @section Proxies and Gatewaying
 
-@c fixme: check/document url-ns stuff 
+@c fixme: check/document url-ns stuff
 @cindex proxy servers
 @cindex proxies
 @cindex environment variables
@@ -815,7 +815,7 @@ NO_PROXY="*.aventail.com,home.com,.seanet.com"
 @noindent says to contact all machines in the @samp{aventail.com} and
 @samp{seanet.com} domains directly, as well as the machine named
 @samp{home.com}.  If @code{NO_PROXY} isn't defined, @code{no_PROXY}
-and @code{no_proxy} are also tried, in that order.  
+and @code{no_proxy} are also tried, in that order.
 
 Proxies may also be specified directly in Lisp.
 
@@ -940,7 +940,7 @@ This specifies the default server, it takes the form
 where @var{version} can be either 4 or 5.
 @end defopt
 @defvar socks-password
-If this is @code{nil} then you will be asked for the passward,
+If this is @code{nil} then you will be asked for the password,
 otherwise it will be used as the password for authenticating you to
 the @sc{socks} server.
 @end defvar
@@ -980,9 +980,9 @@ This the @samp{nslookup} program.  It is @code{"nslookup"} by default.
 @end defopt
 
 @menu
-* Suppressing network connexions::  
+* Suppressing network connexions::
 @end menu
-@c * Broken hostname resolution::  
+@c * Broken hostname resolution::
 
 @node Suppressing network connexions
 @subsection Suppressing Network Connexions
@@ -1010,7 +1010,7 @@ opened by the URL library.
 @c @cindex resolver, hostname
 @c Some C libraries do not include the hostname resolver routines in
 @c their static libraries.  If Emacs was linked statically, and was not
-@c linked with the resolver libraries, it wil not be able to get to any
+@c linked with the resolver libraries, it will not be able to get to any
 @c machines off the local network.  This is characterized by being able
 @c to reach someplace with a raw ip number, but not its hostname
 @c (@url{http://129.79.254.191/} works, but
@@ -1052,8 +1052,8 @@ The history `list' is actually a hash table,
 strings.  The times are in the format returned by @code{current-time}.
 
 @defun url-history-update-url url time
-This function updates the hsitory table with an entry for @var{url}
-accessed at the gievn @var{time}.
+This function updates the history table with an entry for @var{url}
+accessed at the given @var{time}.
 @end defun
 
 @defopt url-history-track
@@ -1144,7 +1144,7 @@ function taking a single argument (the prompt) and returning @code{t}
 only if an affirmative answer is given.
 @end defopt
 @defopt url-gateway-method
-@c fixme: describe gatewaying 
+@c fixme: describe gatewaying
 A symbol specifying the type of gateway support to use fro connexions
 from the local machine.  The supported methods are:
 

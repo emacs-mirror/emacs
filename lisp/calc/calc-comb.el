@@ -540,12 +540,12 @@
 ;;; Produce a random 10-bit integer, with (random) if no seed provided,
 ;;; or else with Numerical Recipes algorithm ran3 / Knuth 3.2.2-A.
 
-(defvar var-RandSeed nil)
+(defvar var-RandSeed)
 (defvar math-random-cache nil)
 (defvar math-gaussian-cache nil)
 
 (defun math-init-random-base ()
-  (if var-RandSeed
+  (if (and (boundp 'var-RandSeed) var-RandSeed)
       (if (eq (car-safe var-RandSeed) 'vec)
 	  nil
 	(if (Math-integerp var-RandSeed)
@@ -599,9 +599,10 @@
 ;;; Produce a random digit in the range 0..999.
 ;;; Avoid various pitfalls that may lurk in the built-in (random) function!
 ;;; Shuffling algorithm from Numerical Recipes, section 7.1.
+(defvar math-random-last)
 (defun math-random-digit ()
-  (let (i math-random-last)
-    (or (eq var-RandSeed math-last-RandSeed)
+  (let (i)
+    (or (and (boundp 'var-RandSeed) (eq var-RandSeed math-last-RandSeed))
 	(math-init-random-base))
     (or math-random-cache
 	(progn

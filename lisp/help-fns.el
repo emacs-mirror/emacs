@@ -478,8 +478,13 @@ Return 0 if there is no such symbol."
 		(and (symbolp obj) (boundp obj) obj))))
 	(error nil))
       (let* ((str (find-tag-default))
-	     (obj (if str (intern str))))
-	(and (symbolp obj) (boundp obj) obj))
+	     (sym (if str (intern-soft str))))
+	(if (and sym (boundp sym))
+	    sym
+	  (save-match-data
+	    (when (and str (string-match "\\`\\W*\\(.*?\\)\\W*\\'" str))
+	      (setq sym (intern-soft (match-string 1 str)))
+	      (and (boundp sym) sym)))))
       0))
 
 ;;;###autoload
@@ -564,6 +569,7 @@ it is displayed along with the global value."
 		  (insert " value is shown ")
 		  (insert-button "below"
 				 'action help-button-cache
+				 'follow-link t
 				 'help-echo "mouse-2, RET: show value")
 		  (insert ".\n\n")))
 	      ;; Add a note for variables that have been make-var-buffer-local.

@@ -4289,8 +4289,6 @@ xg_scroll_callback (widget, data)
   int part = -1, whole = 0, portion = 0;
   GtkAdjustment *adj = GTK_ADJUSTMENT (gtk_range_get_adjustment (widget));
 
-  if (xg_ignore_gtk_scrollbar) return;
-
   position = gtk_adjustment_get_value (adj);
 
   p = g_object_get_data (G_OBJECT (widget), XG_LAST_SB_DATA);
@@ -4303,6 +4301,8 @@ xg_scroll_callback (widget, data)
 
   previous = *p;
   *p = position;
+
+  if (xg_ignore_gtk_scrollbar) return;
 
   diff = (int) (position - previous);
 
@@ -4335,7 +4335,7 @@ xg_scroll_callback (widget, data)
     }
 
   if (part >= 0)
-    {
+    { 
       window_being_scrolled = bar->window;
       last_scroll_bar_part = part;
       x_send_scroll_bar_event (bar->window, part, portion, whole);

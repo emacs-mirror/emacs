@@ -1178,6 +1178,7 @@ unwind_to_catch (catch, value)
   set_poll_suppress_count (catch->poll_suppress_count);
   interrupt_input_blocked = catch->interrupt_input_blocked;
   handling_signal = 0;
+  immediate_quit = 0;
 
   do
     {

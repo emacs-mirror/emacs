@@ -5980,6 +5980,9 @@ window_change_signal (signalnum) /* If we don't have an argument, */
 #endif
   int old_errno = errno;
 
+  signal (SIGWINCH, window_change_signal);
+  SIGNAL_THREAD_CHECK (signalnum);
+
   get_frame_size (&width, &height);
 
   /* The frame size change obviously applies to a termcap-controlled
@@ -6002,7 +6005,6 @@ window_change_signal (signalnum) /* If we don't have an argument, */
       }
   }
 
-  signal (SIGWINCH, window_change_signal);
   errno = old_errno;
 }
 #endif /* SIGWINCH */

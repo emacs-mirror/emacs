@@ -645,10 +645,6 @@ If BACKWARD-ONLY is non-nil, only delete spaces before point."
        (skip-chars-forward " \t")
        (constrain-to-field nil orig-pos t)))))
 
-(defvar inhibit-mark-movement nil
-  "If non-nil, movement commands, such as \\[beginning-of-buffer], \
-do not set the mark.")
-
 (defun beginning-of-buffer (&optional arg)
   "Move point to the beginning of the buffer; leave mark at previous position.
 With \\[universal-argument] prefix, do not set mark at previous position.
@@ -660,8 +656,7 @@ of the accessible part of the buffer.
 Don't use this command in Lisp programs!
 \(goto-char (point-min)) is faster and avoids clobbering the mark."
   (interactive "P")
-  (or inhibit-mark-movement
-      (consp arg)
+  (or (consp arg)
       (and transient-mark-mode mark-active)
       (push-mark))
   (let ((size (- (point-max) (point-min))))
@@ -686,8 +681,7 @@ of the accessible part of the buffer.
 Don't use this command in Lisp programs!
 \(goto-char (point-max)) is faster and avoids clobbering the mark."
   (interactive "P")
-  (or inhibit-mark-movement
-      (consp arg)
+  (or (consp arg)
       (and transient-mark-mode mark-active)
       (push-mark))
   (let ((size (- (point-max) (point-min))))
@@ -1490,6 +1484,17 @@ is not *inside* the region START...END."
 	    (t
 	     '(0 . 0)))
     '(0 . 0)))
+
+;; When the first undo batch in an undo list is longer than undo-outer-limit,
+;; this function gets called to ask the user what to do.
+;; Garbage collection is inhibited around the call,
+;; so it had better not do a lot of consing.
+(setq undo-outer-limit-function 'undo-outer-limit-truncate)
+(defun undo-outer-limit-truncate (size)
+  (if (yes-or-no-p (format "Buffer %s undo info is %d bytes long; discard it? "
+			   (buffer-name) size))
+      (progn (setq buffer-undo-list nil) t)
+    nil))
 
 (defvar shell-command-history nil
   "History list for some commands that read shell commands.")

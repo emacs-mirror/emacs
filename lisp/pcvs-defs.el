@@ -380,6 +380,8 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ("+" .	cvs-mode-tree)
     ;; mouse bindings
     ([mouse-2] . cvs-mode-find-file)
+    ([follow-link] . (lambda (pos)
+		       (if (eq (get-char-property pos 'face) 'cvs-filename-face) t)))
     ([(down-mouse-3)] . cvs-menu)
     ;; dired-like bindings
     ("\C-o" .   cvs-mode-display-file)

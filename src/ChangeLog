@@ -1,3 +1,118 @@
+2004-12-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* keyboard.c (input_available_signal): Call SIGNAL_THREAD_CHECK
+	before touching input_available_clear_time, to avoid accessing it
+	from multiple threads.
+
+2004-12-23  Jason Rumney  <jasonr@gnu.org>
+
+	* image.c (__WIN32__) [HAVE_NTGUI]: Define for correct behaviour
+	of JPEG library.
+
+2004-12-22  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs.c (main): If batch mode, set Vundo_outer_limit to nil.
+
+	* lisp.h (Vundo_outer_limit): Fix decl.
+
+	* undo.c (Vundo_outer_limit): Replaces undo_outer_limit.
+	Uses changed.
+	(syms_of_undo): Initialize appropriately.
+	(truncate_undo_list): If it's nil, there's no limit.
+
+2004-12-22  Kenichi Handa  <handa@m17n.org>
+
+	* xselect.c (Fx_get_cut_buffer_internal): Return a unibyte string.
+
+2004-12-21  Richard M. Stallman  <rms@gnu.org>
+
+	* eval.c (unwind_to_catch): Clear immediate_quit.
+
+	* xdisp.c (get_next_display_element): Display codes 8a0 and 8ad
+	specially as `\ ' and `\-'.
+
+	* keyboard.c (kbd_buffer_store_event_hold):
+	In the code for while-no-input, handle immediate_quit.
+
+	* alloc.c (Fgarbage_collect): Update call to truncate_undo_list.
+	Call that at the very start.
+	(undo_limit, undo_strong_limit, undo_outer_limit): Moved to undo.c.
+	(syms_of_alloc): Don't define undo-limit,
+	undo-strong-limit and undo-outer-limit here.
+
+	* undo.c (truncate_undo_list): Return void.
+	Take just one argument, the buffer.
+	Make it current, and inhibit recursive GC.
+	Access and update the undo list directly; return void.
+	Refer to the undo...limit variables directly.
+	Test undo_outer_limit only after counting the whole current command.
+	When it's exceeded, call the function in undo-outer-limit-function.
+	(undo_limit, undo_strong_limit, undo_outer_limit): From alloc.c.
+	(Vundo_outer_limit_function): New variable.
+	(syms_of_undo): Define undo-limit, undo-strong-limit
+	and undo-outer-limit here, and undo-outer-limit-function.
+	Doc fixes.
+
+	* lisp.h (truncate_undo_list): Update decl.
+
+2004-12-21  Piet van Oostrum  <piet@cs.uu.nl>
+
+	* fileio.c (Fread_file_name): Delete duplicates in
+	file-name-history when history_delete_duplicates is true.
+
+2004-12-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (mac_do_list_fonts): Fix memory leak
+
+2004-12-20  Richard M. Stallman  <rms@gnu.org>
+
+	* regex.c (re_match_2_internal) <symend, wordend>:
+	Fix calls to UPDATE_SYNTAX_TABLE_FORWARD.
+
+2004-12-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (endif, x_font_name_to_mac_font_name): Use
+	maccentraleurroman instead of maccentraleuropean
+	(mac_c_string_match, mac_do_list_fonts): Speed up font search by
+	quickly finding a specific font without needing regexps.
+
+2004-12-15  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* syssignal.h: Declare main_thread.
+	(SIGNAL_THREAD_CHECK): New macro.
+
+	* keyboard.c (input_available_signal): Move thread checking code
+	to macro SIGNAL_THREAD_CHECK and call that macro.
+	(interrupt_signal): Call SIGNAL_THREAD_CHECK.
+
+	* alloc.c (uninterrupt_malloc): Move main_thread to emacs.c.
+
+	* emacs.c: Define main_thread.
+	(main): Initialize main_thread.
+	(handle_USR1_signal, handle_USR2_signal, fatal_error_signal)
+	(memory_warning_signal): Call SIGNAL_THREAD_CHECK.
+
+	* floatfns.c (float_error): Call SIGNAL_THREAD_CHECK.
+
+	* dispnew.c (window_change_signal): Call SIGNAL_THREAD_CHECK.
+
+	* sysdep.c (select_alarm): Call SIGNAL_THREAD_CHECK.
+
+	* process.c (send_process_trap, sigchld_handler): Call 
+	SIGNAL_THREAD_CHECK.
+
+	* data.c (arith_error): Call SIGNAL_THREAD_CHECK.
+
+	* atimer.c (alarm_signal_handler): Call SIGNAL_THREAD_CHECK.
+
+	* xterm.c (xg_scroll_callback): Update XG_LAST_SB_DATA before
+	returning when xg_ignore_gtk_scrollbar is true.
+
+2004-12-14  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (read_char): Save and restore echo_string when
+	handling input method.
+
 2004-12-13  Richard M. Stallman  <rms@gnu.org>
 
 	* eval.c (syms_of_eval) <quit-flag>: Doc fix.
@@ -143,6 +258,7 @@
 	* eval.c (Fcalled_interactively_p): Don't check INTERACTIVE.
 	(interactive_p): Skip Scalled_interactively_p frames
 	like Sinteractive_p frames.
+	(unwind_to_catch): Clear handling_signal.
 
 	* data.c (Fmake_variable_buffer_local): Doc fix.
 	(Fmake_local_variable): Doc fix.

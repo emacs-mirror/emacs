@@ -1,3 +1,7 @@
+2004-12-21  Richard M. Stallman  <rms@gnu.org>
+
+	* commands.texi (Event Input Misc): Add while-no-input.
+
 2004-12-11  Richard M. Stallman  <rms@gnu.org>
 
 	* display.texi (Line Height): Rewrite text for clarity.

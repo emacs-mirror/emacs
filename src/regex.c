@@ -6096,7 +6096,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		  PREFETCH_NOLIMIT ();
 		  c2 = RE_STRING_CHAR (d, dend - d);
 #ifdef emacs
-		  UPDATE_SYNTAX_TABLE_FORWARD (charpos);
+		  UPDATE_SYNTAX_TABLE_FORWARD (charpos + 1);
 #endif
 		  s2 = SYNTAX (c2);
 

@@ -6269,6 +6269,12 @@ jpeg_image_p (object)
 #undef HAVE_STDLIB_H
 #endif /* HAVE_STLIB_H */
 
+#if defined (HAVE_NTGUI) && !defined (__WIN32__)
+/* jpeglib.h will define boolean differently depending on __WIN32__,
+   so make sure it is defined.  */
+#define __WIN32__ 1
+#endif
+
 #include <jpeglib.h>
 #include <jerror.h>
 #include <setjmp.h>

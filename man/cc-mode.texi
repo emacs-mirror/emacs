@@ -1420,7 +1420,7 @@ then as the comment prefix.  It defaults to @samp{*
 @code{c-block-comment-prefix} typically gets overriden by the default
 style @code{gnu}, which sets it to blank.  You can see the line
 splitting effect described here by setting a different style,
-e.g. @code{k&r} @xref{Choosing a Style}}, which makes a comment
+e.g. @code{k&r} @xref{Choosing a Style}.}, which makes a comment
 
 @example
 /* Got O(n^2) here, which is a Bad Thing. */
@@ -1643,7 +1643,7 @@ trailing backslashes.
 @cindex font locking
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-@strong{Note:} The font locking in AWK mode is currently not integrated
+@strong{Please note:} The font locking in AWK mode is currently not integrated
 with the rest of @ccmode{}, so this section does not apply there.
 @xref{AWK Mode Font Locking}, instead.
 

@@ -591,6 +591,7 @@ simple manner.")
   "\M-e" gnus-group-edit-group-method
   "^" gnus-group-enter-server-mode
   gnus-mouse-2 gnus-mouse-pick-group
+  [follow-link] mouse-face
   "<" beginning-of-buffer
   ">" end-of-buffer
   "\C-c\C-b" gnus-bug

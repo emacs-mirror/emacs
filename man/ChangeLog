@@ -1,3 +1,40 @@
+2004-12-20  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Types Tutorial): Emphasized that you can't divide by
+	zero.
+
+2004-12-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cc-mode.texi (Text Filling and Line Breaking): Put period after
+	@xref.
+	(Font Locking): Avoid @strong{Note:}.
+
+2004-12-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.46.
+
+	* tramp.texi (bottom): Add arch-tag.  It was lost, somehow.
+
+2004-12-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* url.texi: Correct typos.
+	(Retrieving URLs): @var{nil}->@code{nil}.
+	(HTTP language/coding, mailto): Replace  "GNU Emacs Manual" with
+	the standard "The GNU Emacs Manual" in fifth argument of @xref's.
+	(Dealing with HTTP documents): @inforef->@xref.
+
+2004-12-15  Juri Linkov  <juri@jurta.org>
+
+	* mark.texi (Transient Mark, Mark Ring): M-< and other
+	movement commands don't set mark in Transient Mark mode
+	if mark is active.
+
+2004-12-15  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Consistently capitalized all mode names.
+	(Answers to Exercises): Mention that an answer can be a fraction
+	when in Fraction mode.
+
 2004-12-13  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi: Fix some TeX definitions.

@@ -1,6 +1,7 @@
 ;;; tooltip.el --- show tooltip windows
 
-;; Copyright (C) 1997, 1999, 2000, 2001, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2000, 2001, 2002, 2003, 2004
+;;        Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@acm.org>
 ;; Keywords: help c mouse tools
@@ -476,7 +477,25 @@ This function must return nil if it doesn't handle EVENT."
 (defun tooltip-show-help-function (msg)
   "Function installed as `show-help-function'.
 MSG is either a help string to display, or nil to cancel the display."
-  (let ((previous-help tooltip-help-message))
+  (let ((previous-help tooltip-help-message)
+	mp pos)
+    (if (and mouse-1-click-follows-link
+	     (stringp msg)
+	     (save-match-data
+	       (string-match "^mouse-2" msg))
+	     (setq mp (mouse-pixel-position))
+	     (consp (setq pos (cdr mp)))
+	     (setq pos (posn-at-x-y (car pos) (cdr pos) (car mp)))
+	     (windowp (posn-window pos)))
+	(with-current-buffer (window-buffer (posn-window pos))
+	  (if (mouse-on-link-p (posn-point pos))
+	      (setq msg (concat
+		    (cond
+		     ((eq mouse-1-click-follows-link 'double) "double-")
+		     ((and (integerp mouse-1-click-follows-link)
+			   (< mouse-1-click-follows-link 0)) "Long ")
+		     (t ""))
+		    "mouse-1" (substring msg 7))))))
     (setq tooltip-help-message msg)
     (cond ((null msg)
 	   ;; Cancel display.  This also cancels a delayed tip, if

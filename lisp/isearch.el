@@ -649,7 +649,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (setq ;; quit-flag nil  not for isearch-mode
    isearch-adjusted nil
    isearch-yank-flag nil)
-  (isearch-lazy-highlight-new-loop)
+  (if isearch-lazy-highlight (isearch-lazy-highlight-new-loop))
   ;; We must prevent the point moving to the end of composition when a
   ;; part of the composition has just been searched.
   (setq disable-point-adjustment t))
@@ -2329,8 +2329,7 @@ is nil.  This function is called when exiting an incremental search if
   "Cleanup any previous `isearch-lazy-highlight' loop and begin a new one.
 This happens when `isearch-update' is invoked (which can cause the
 search string to change or the window to scroll)."
-  (when (and isearch-lazy-highlight
-	     (null executing-kbd-macro)
+  (when (and (null executing-kbd-macro)
              (sit-for 0)         ;make sure (window-start) is credible
              (or (not (equal isearch-string
                              isearch-lazy-highlight-last-string))

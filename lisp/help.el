@@ -267,8 +267,13 @@ If that doesn't give a function, return nil."
 		      (and (symbolp obj) (fboundp obj) obj))))
 	      (error nil))))
       (let* ((str (find-tag-default))
-	     (obj (if str (intern str))))
-	(and (symbolp obj) (fboundp obj) obj))))
+	     (sym (if str (intern-soft str))))
+	(if (and sym (fboundp sym))
+	    sym
+	  (save-match-data
+	    (when (and str (string-match "\\`\\W*\\(.*?\\)\\W*\\'" str))
+	      (setq sym (intern-soft (match-string 1 str)))
+	      (and (fboundp sym) sym)))))))
 
 
 ;;; `User' help functions
@@ -609,17 +614,58 @@ the last key hit are used."
 	    (princ "\n   which is ")
 	    (describe-function-1 defn)
 	    (when up-event
-	      (let ((defn (or (string-key-binding up-event) (key-binding up-event))))
+	      (let ((ev (aref up-event 0))
+		    (descr (key-description up-event))
+		    (hdr "\n\n-------------- up event ---------------\n\n")
+		    defn
+		    mouse-1-tricky mouse-1-remapped)
+		(when (and (consp ev)
+			   (eq (car ev) 'mouse-1)
+			   (windowp window)
+			   mouse-1-click-follows-link
+			   (not (eq mouse-1-click-follows-link 'double))
+			   (with-current-buffer (window-buffer window)
+			     (mouse-on-link-p (posn-point (event-start ev)))))
+		  (setq mouse-1-tricky (integerp mouse-1-click-follows-link)
+			mouse-1-remapped (or (not mouse-1-tricky)
+					     (> mouse-1-click-follows-link 0)))
+		  (if mouse-1-remapped
+		      (setcar ev 'mouse-2)))
+		(setq defn (or (string-key-binding up-event) (key-binding up-event)))
 		(unless (or (null defn) (integerp defn) (equal defn 'undefined))
-		  (princ "\n\n-------------- up event ---------------\n\n")
-		  (princ (key-description up-event))
+		  (princ (if mouse-1-tricky
+			     "\n\n----------------- up-event (short click) ----------------\n\n"
+			   hdr))
+		  (setq hdr nil)
+		  (princ descr)
 		  (if (windowp window)
 		      (princ " at that spot"))
+		  (if mouse-1-remapped
+		      (princ " is remapped to <mouse-2>\n  which" ))
 		  (princ " runs the command ")
 		  (prin1 defn)
 		  (princ "\n   which is ")
-		  (describe-function-1 defn))))
-	    (print-help-return-message)))))))
+		  (describe-function-1 defn))
+		(when mouse-1-tricky
+		  (setcar ev
+			  (if (> mouse-1-click-follows-link 0) 'mouse-1 'mouse-2))
+		  (setq defn (or (string-key-binding up-event) (key-binding up-event)))
+		  (unless (or (null defn) (integerp defn) (equal defn 'undefined))
+		    (princ (or hdr
+			       "\n\n----------------- up-event (long click) ----------------\n\n"))
+		    (princ "Pressing ")
+		    (princ descr)
+		    (if (windowp window)
+			(princ " at that spot"))
+		    (princ (format " for longer than %d milli-seconds\n"
+				   (abs mouse-1-click-follows-link)))
+		    (if (not mouse-1-remapped)
+			(princ " remaps it to <mouse-2> which" ))
+		    (princ " runs the command ")
+		    (prin1 defn)
+		    (princ "\n   which is ")
+		    (describe-function-1 defn))))
+	    (print-help-return-message))))))))
 
 
 (defun describe-mode (&optional buffer)
@@ -692,6 +738,7 @@ whose documentation describes the minor mode."
 		(princ "  ")
 		(insert-button pretty-minor-mode
 			       'action (car help-button-cache)
+			       'follow-link t
 			       'help-echo "mouse-2, RET: show full information")
 		(princ (format " minor mode (%s):\n"
 			       (if indicator

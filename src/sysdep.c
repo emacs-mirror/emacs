@@ -2472,6 +2472,7 @@ select_alarm ()
 #else /* not BSD4_1 */
   signal (SIGALRM, SIG_IGN);
 #endif /* not BSD4_1 */
+  SIGNAL_THREAD_CHECK (SIGALRM);
   if (read_alarm_should_throw)
     longjmp (read_alarm_throw, 1);
 }

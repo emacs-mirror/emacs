@@ -47,7 +47,7 @@ Automatically becomes buffer local when set in any fashion.")
   "Non-nil means pop up the Info buffer in another window."
   :group 'info-lookup :type 'boolean)
 
-(defcustom info-lookup-highlight-face 'highlight
+(defcustom info-lookup-highlight-face 'match
   "Face for highlighting looked up help items.
 Setting this variable to nil disables highlighting."
   :group 'info-lookup :type 'face)

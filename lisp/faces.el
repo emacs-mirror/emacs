@@ -1784,7 +1784,7 @@ created."
 
 
 (defface mode-line
-  '((((type x w32 mac) (class color))
+  '((((class color) (min-colors 88))
      :box (:line-width -1 :style released-button)
      :background "grey75" :foreground "black")
     (t
@@ -1797,11 +1797,11 @@ created."
 (defface mode-line-inactive
   '((default
      :inherit mode-line)
-    (((type x w32 mac) (background light) (class color))
+    (((class color) (min-colors 88) (background light))
      :weight light
      :box (:line-width -1 :color "grey75" :style nil)
      :foreground "grey20" :background "grey90")
-    (((type x w32 mac) (background dark) (class color))
+    (((class color) (min-colors 88) (background dark) )
      :weight light
      :box (:line-width -1 :color "grey40" :style nil)
      :foreground "grey80" :background "grey30"))
@@ -2032,8 +2032,8 @@ Note: Other faces cannot inherit from the cursor face."
 
 (defface escape-glyph '((((background dark)) :foreground "cyan")
 			(((type pc)) :foreground "magenta")
-			(t :foreground "dark blue"))
-  "Face for displaying \\ and ^ in multichar glyphs."
+			(t :foreground "blue"))
+  "Face for characters displayed as ^-sequences or \-sequences."
   :group 'basic-faces)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

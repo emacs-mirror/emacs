@@ -3090,7 +3090,7 @@ extern void syms_of_macros P_ ((void));
 /* defined in undo.c */
 extern Lisp_Object Qinhibit_read_only;
 EXFUN (Fundo_boundary, 0);
-extern Lisp_Object truncate_undo_list P_ ((Lisp_Object, int, int, int));
+extern void truncate_undo_list P_ ((struct buffer *));
 extern void record_marker_adjustment P_ ((Lisp_Object, int));
 extern void record_insert P_ ((int, int));
 extern void record_delete P_ ((int, Lisp_Object));
@@ -3099,6 +3099,7 @@ extern void record_change P_ ((int, int));
 extern void record_property_change P_ ((int, int, Lisp_Object, Lisp_Object,
 					Lisp_Object));
 extern void syms_of_undo P_ ((void));
+extern Lisp_Object Vundo_outer_limit;
 
 /* defined in textprop.c */
 extern Lisp_Object Qfont, Qmouse_face;
