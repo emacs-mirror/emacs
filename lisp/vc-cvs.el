@@ -548,7 +548,9 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 	       (append (vc-switches nil 'diff) '("/dev/null")))
 	;; Even if it's empty, it's locally modified.
 	1)
-    (let* ((async (and (vc-stay-local-p file) (fboundp 'start-process)))
+    (let* ((async (and (not vc-disable-async-diff) 
+                       (vc-stay-local-p file)
+                       (fboundp 'start-process)))
 	   (status (apply 'vc-cvs-command (or buffer "*vc-diff*")
 			  (if async 'async 1)
 			  file "diff"
