@@ -271,6 +271,18 @@ position_indentation (pos)
 	}
     }
 }
+
+/* Test whether the line beginning at POS is indented beyond COLUMN.
+   Blank lines are treated as if they had the same indentation as the
+   preceding line.  */
+int
+indented_beyond_p (pos, column)
+     int pos, column;
+{
+  while (pos > BEGV && FETCH_CHAR (pos) == '\n')
+    pos = find_next_newline (pos - 1, -1);
+  return (position_indentation (pos) >= column);
+}
 
 DEFUN ("move-to-column", Fmove_to_column, Smove_to_column, 1, 2, 0,
   "Move point to column COLUMN in the current line.\n\
@@ -499,14 +511,14 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 	}
       else if (c == '\n')
 	{
-	  if (selective > 0 && position_indentation (pos + 1) >= selective)
+	  if (selective > 0 && indented_beyond_p (pos + 1, selective))
 	    {
 	      /* Skip any number of invisible lines all at once */
 	      do
 		{
 		  while (++pos < to && FETCH_CHAR (pos) != '\n');
 		}
-	      while (pos < to && position_indentation (pos + 1) >= selective);
+	      while (pos < to && indented_beyond_p (pos + 1, selective));
 	      pos--;		/* Reread the newline on the next pass.  */
 	      /* Allow for the " ..." that is displayed for them. */
 	      if (selective_rlen)
@@ -648,7 +660,7 @@ vmotion (from, vtarget, width, hscroll, window)
 	  prevline = find_next_newline (from, -1);
 	  while (prevline > BEGV
 		 && ((selective > 0
-		      && position_indentation (prevline) >= selective)
+		      && indented_beyond_p (prevline, selective))
 #ifdef USE_TEXT_PROPERTIES
 		     /* watch out for newlines with `invisible' property */
 		     || ! NILP (Fget_text_property (XFASTINT (prevline),
@@ -685,7 +697,7 @@ vmotion (from, vtarget, width, hscroll, window)
 	  prevline = find_next_newline (prevline - 1, -1);
 	  if (prevline == BEGV
 	      || ((selective <= 0
-		   || position_indentation (prevline) < selective)
+		   || ! indented_beyond_p (prevline, selective))
 #ifdef USE_TEXT_PROPERTIES
 		  /* watch out for newlines with `invisible' property */
 		  && NILP (Fget_text_property (XFASTINT (prevline),
