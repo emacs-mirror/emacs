@@ -362,8 +362,8 @@ and source-file directory for your debugger."
   "Major mode for interacting with an inferior debugger process.
 
    You start it up with one of the commands M-x gdb, M-x sdb, or
-M-x dbx.  Each entry point finishes by executing a hook; gdb-mode-hook,
-sdb-mode-hook or dbx-mode-hook respectively.
+M-x dbx.  Each entry point finishes by executing a hook; `gdb-mode-hook',
+`sdb-mode-hook' or `dbx-mode-hook' respectively.
 
 After startup, the following commands are available in both the GUD
 interaction buffer and any source buffer GUD visits due to a breakpoint stop
@@ -398,14 +398,14 @@ frame.  \\[gud-down] drops back down through one.
 If you are using gdb, \\[gdb-finish] runs execution to the return from
 the current function and stops.
 
-All the keystrokes above have synonyms (in the GUD buffer only) with
-a prefix of C-c (this is for backward compatibility with old gdb.el).
+All the keystrokes above are accessible in the GUD buffer
+with the prefix C-c, and in all buffers through the prefix C-x C-a.
 
 All pre-defined functions for which the concept make sense repeat
 themselves the appropriate number of times if you give a prefix
 argument.
 
-You may use the gud-def macro in the initialization hook to define other
+You may use the `gud-def' macro in the initialization hook to define other
 commands.
 
 Other commands for interacting with the debugger process are inherited from
@@ -666,14 +666,13 @@ Obeying it means displaying in another window the specified file and line."
   (interactive "P")
   (recenter arg)
   (gud-display-frame))
-
+
 ;;; Code for parsing expressions out of C code.  The single entry point is
 ;;; find-c-expr, which tries to return an lvalue expression from around point.
 ;;;
 ;;; The rest of this file is a hacked version of gdbsrc.el by
 ;;; Debby Ayers <ayers@asc.slb.com>,
 ;;; Rich Schaefer <schaefer@asc.slb.com> Schlumberger, Austin, Tx.
-;;; ??? We're waiting on papers from these people
 
 (defun find-c-expr ()
   "Returns the C expr that surrounds point."
@@ -686,50 +685,44 @@ Obeying it means displaying in another window the specified file and line."
       (while (expr-compound test-expr expr)
 	(setq expr (cons (car test-expr) (cdr expr)))
 	(goto-char (car expr))
-	(setq test-expr (expr-prev))
-	)
+	(setq test-expr (expr-prev)))
       (goto-char p)
       (setq test-expr (expr-next))
       (while (expr-compound expr test-expr)
 	(setq expr (cons (car expr) (cdr test-expr)))
 	(setq test-expr (expr-next))
 	)
-      (buffer-substring (car expr) (cdr expr))
-      )
-    )
-  )
+      (buffer-substring (car expr) (cdr expr)))))
 
 (defun expr-cur ()
   "Returns the expr that point is in; point is set to beginning of expr.
 The expr is represented as a cons cell, where the car specifies the point in
 the current buffer that marks the beginning of the expr and the cdr specifies 
-the character after the end of the expr"
+the character after the end of the expr."
   (let ((p (point)) (begin) (end))
-    (back-expr)
+    (expr-backward-sexp)
     (setq begin (point))
-    (forw-expr)
+    (expr-forward-sexp)
     (setq end (point))
     (if (>= p end) 
 	(progn
 	 (setq begin p)
 	 (goto-char p)
-	 (forw-expr)
+	 (expr-forward-sexp)
 	 (setq end (point))
 	 )
       )
     (goto-char begin)
-    (cons begin end)
-    )
-  )
+    (cons begin end)))
 
-(defun back-expr ()
-  "Version of backward-sexp that catches errors"
+(defun expr-backward-sexp ()
+  "Version of `backward-sexp' that catches errors."
   (condition-case nil
       (backward-sexp)
     (error t)))
 
-(defun forw-expr ()
-  "Version of forward-sexp that catches errors"
+(defun expr-forward-sexp ()
+  "Version of `forward-sexp' that catches errors."
   (condition-case nil
      (forward-sexp)
     (error t)))
@@ -740,9 +733,9 @@ The expr is represented as a cons cell, where the car specifies the point in
 the current buffer that marks the beginning of the expr and the cdr specifies 
 the character after the end of the expr"
   (let ((begin) (end))
-    (back-expr)
+    (expr-backward-sexp)
     (setq begin (point))
-    (forw-expr)
+    (expr-forward-sexp)
     (setq end (point))
     (goto-char begin)
     (cons begin end)))
@@ -751,16 +744,14 @@ the character after the end of the expr"
   "Returns the following expr, point is set to beginning of that expr.
 The expr is represented as a cons cell, where the car specifies the point in
 the current buffer that marks the beginning of the expr and the cdr specifies 
-the character after the end of the expr"
+the character after the end of the expr."
   (let ((begin) (end))
-    (forw-expr)
-    (forw-expr)
+    (expr-forward-sexp)
+    (expr-forward-sexp)
     (setq end (point))
-    (back-expr)
+    (expr-backward-sexp)
     (setq begin (point))
-    (cons begin end)
-    )
-  )
+    (cons begin end)))
 
 (defun expr-compound-sep (span-start span-end)
   "Returns '.' for '->' & '.', returns ' ' for white space,
@@ -780,15 +771,13 @@ returns '?' for other puctuation."
 	 (t (setq span-start span-end)
 	    (setq result ??)))))
       (setq span-start (+ span-start 1)))
-    result 
-    )
-  )
+    result))
 
 (defun expr-compound (first second)
-  "Returns non-nil if the concatenation of two exprs results in a single C 
-token. The two exprs are represented as a cons cells, where the car 
+  "Non-nil if concatenating FIRST and SECOND makes a single C token.
+The two exprs are represented as a cons cells, where the car 
 specifies the point in the current buffer that marks the beginning of the 
-expr and the cdr specifies the character after the end of the expr
+expr and the cdr specifies the character after the end of the expr.
 Link exprs of the form:
       Expr -> Expr
       Expr . Expr
@@ -814,21 +803,6 @@ Link exprs of the form:
 	  ((= span-end ?[ ) t )
 	  (t nil))
 	 )
-     (t nil))
-    )
-  )
-
-;;; There appears to be a bug in the byte compiler somewhere near macro
-;;; handling that (a) generates a spurious message about gud-key-prefix
-;;; when the global-set-key clause in gud-def is compiled, (b) generates
-;;; incorrect bytecode for gud-def.  The symptom of this incorrectness
-;;; is that loading gud.elc brings in a compiled gud-def that doesn't
-;;; properly perform both global (C-x C-a) and local (C-c) bindings.
-;;; The workaround is to always load from source.  Consequently, we try
-;;; to disable byte-compilation here.
-;;;
-;;; Local Variables:
-;;; no-byte-compile: t
-;;; End:
+     (t nil))))
 
 ;;; gud.el ends here
