@@ -1,5 +1,8 @@
 2001-01-04  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfaces.c (set_font_frame_param): Don't do anything for
+	non-graphical frames.
+
 	* window.c (Fdelete_other_windows): Set window's window_end_valid
 	to nil when changing the window's start.  Don't change the
 	window's start when its top position hasn't changed.  If we do,
