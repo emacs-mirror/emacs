@@ -1,6 +1,6 @@
 /* impl.c.amsss: POOL CLASS AMS STRESS TEST
  *
- * $HopeName: MMsrc!amsss.c(trunk.2) $
+ * $HopeName: MMsrc!amsss.c(trunk.3) $
  * Copyright (C) 1996, 1997 Harlequin Group, all rights reserved
  *
  * A direct copy of amcss.c, with trivial changes.  nickb 1997-08-14
@@ -58,6 +58,7 @@ static void *test(void *arg, size_t s)
   mps_word_t collections;
 
   space = (mps_space_t)arg;
+  (void)s; /* unused */
 
   die(mps_fmt_create_A(&format, space, dylan_fmt_A()), "fmt_create");
 
