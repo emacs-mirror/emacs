@@ -1,5 +1,9 @@
 1999-10-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* xmenu.c (set_frame_menubar): Don't call
+	x_set_menu_resources_from_menu_face here.
+	(update_frame_menubar): Call x_set_menu_resources_from_menu_face.
+
 	* xfns.c (gif_load): Fix handling of interlaced GIFs.
 
 1999-10-14  Dave Love  <fx@gnu.org>
