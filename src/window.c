@@ -119,18 +119,16 @@ DEFUN ("window-live-p", Fwindow_live_p, Swindow_live_p, 1, 1, 0,
 Lisp_Object
 make_window ()
 {
-  register Lisp_Object val;
+  Lisp_Object val;
   register struct window *p;
+  register struct Lisp_Vector *vec;
+  int i;
 
-  /* Add sizeof (Lisp_Object) here because sizeof (struct Lisp_Vector)
-     includes the first element.  */
-  val = Fmake_vector (
-    make_number ((sizeof (struct window) - sizeof (struct Lisp_Vector)
-		  + sizeof (Lisp_Object))
-		 / sizeof (Lisp_Object)),
-    Qnil);
-  XSETTYPE (val, Lisp_Window);
-  p = XWINDOW (val);
+  vec = allocate_vectorlike ((EMACS_INT) VECSIZE (struct window));
+  for (i = 0; i < VECSIZE (struct window); i++)
+    vec->contents[i] = Qnil;
+  vec->size = VECSIZE (struct window);
+  p = (struct window *)vec;
   XSETFASTINT (p->sequence_number, ++sequence_number);
   XSETFASTINT (p->left, 0);
   XSETFASTINT (p->top, 0);
@@ -145,6 +143,7 @@ make_window ()
   p->frame = Qnil;
   p->display_table = Qnil;
   p->dedicated = Qnil;
+  XSETWINDOW (val, p);
   return val;
 }
 
@@ -2042,16 +2041,19 @@ static
 make_dummy_parent (window)
      Lisp_Object window;
 {
-  register Lisp_Object old, new;
+  Lisp_Object new;
   register struct window *o, *p;
+  register struct Lisp_Vector *vec;
+  int i;
 
-  old = window;
-  XSETTYPE (old, Lisp_Vector);
-  new = Fcopy_sequence (old);
-  XSETTYPE (new, Lisp_Window);
+  o = XWINDOW (window);
+  vec = allocate_vectorlike ((EMACS_INT)VECSIZE (struct window));
+  for (i = 0; i < VECSIZE (struct window); ++i)
+    vec->contents[i] = ((struct Lisp_Vector *)o)->contents[i];
+  vec->size = VECSIZE (struct window);
+  p = (struct window *)vec;
+  XSETWINDOW (new, p);
 
-  o = XWINDOW (old);
-  p = XWINDOW (new);
   XSETFASTINT (p->sequence_number, ++sequence_number);
 
   /* Put new into window structure in place of window */
