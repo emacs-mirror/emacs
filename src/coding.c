@@ -712,7 +712,7 @@ detect_coding_emacs_mule (src, src_end, multibytep)
 #define DECODE_EMACS_MULE_COMPOSITION_CHAR(c, p)		\
   do {								\
     int bytes;							\
-    								\
+								\
     c = SAFE_ONE_MORE_BYTE ();					\
     if (c < 0)							\
       break;							\
@@ -743,7 +743,10 @@ detect_coding_emacs_mule (src, src_end, multibytep)
 	      break;						\
 	    *p++ = c;						\
 	  }							\
-	if (UNIBYTE_STR_AS_MULTIBYTE_P (p0, p - p0, bytes))	\
+	if (UNIBYTE_STR_AS_MULTIBYTE_P (p0, p - p0, bytes)	\
+	    || (coding->flags /* We are recovering a file.  */	\
+		&& p0[0] == LEADING_CODE_8_BIT_CONTROL		\
+		&& ! CHAR_HEAD_P (p0[1])))			\
 	  c = STRING_CHAR (p0, bytes);				\
 	else							\
 	  c = -1;						\
@@ -847,7 +850,10 @@ decode_composition_emacs_mule (coding, src, src_end,
 	  else
 	    {
 	      int bytes;
-	      if (UNIBYTE_STR_AS_MULTIBYTE_P (src, src_end - src, bytes))
+	      if (UNIBYTE_STR_AS_MULTIBYTE_P (src, src_end - src, bytes)
+		  || (coding->flags /* We are recovering a file.  */
+		      && src[0] == LEADING_CODE_8_BIT_CONTROL
+		      && ! CHAR_HEAD_P (src[1])))
 		c = STRING_CHAR (src, bytes);
 	      else
 		c = *src, bytes = 1;
@@ -1001,7 +1007,10 @@ decode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
 	  p = tmp;
 	  src++;
 	}
-      else if (UNIBYTE_STR_AS_MULTIBYTE_P (src, src_end - src, bytes))
+      else if (UNIBYTE_STR_AS_MULTIBYTE_P (src, src_end - src, bytes)
+	       || (coding->flags /* We are recovering a file.  */
+		   && src[0] == LEADING_CODE_8_BIT_CONTROL
+		   && ! CHAR_HEAD_P (src[1])))
 	{
 	  p = src;
 	  src += bytes;
@@ -1132,7 +1141,22 @@ encode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
 	    EMIT_ONE_BYTE ('\r');
 	}
       else if (SINGLE_BYTE_CHAR_P (c))
-	EMIT_ONE_BYTE (c);
+	{
+	  if (coding->flags && ! ASCII_BYTE_P (c))
+	    {
+	      /* As we are auto saving, retain the multibyte form for
+		 8-bit chars.  */
+	      unsigned char buf[MAX_MULTIBYTE_LENGTH];
+	      int bytes = CHAR_STRING (c, buf);
+
+	      if (bytes == 1)
+		EMIT_ONE_BYTE (buf[0]);
+	      else
+		EMIT_TWO_BYTES (buf[0], buf[1]);
+	    }
+	  else
+	    EMIT_ONE_BYTE (c);
+	}
       else
 	EMIT_BYTES (src_base, src);
       coding->consumed_char++;
