@@ -1,13 +1,18 @@
 /* impl.c.ssan: ANSI STACK SCANNER
  *
- * $HopeName: MMsrc!ssan.c(trunk.1) $
+ * $HopeName$
+ * Copyright (C) 1996 Harlequin Limited.  All rights reserved.
  *
  * This module provides zero functionality.  It exists to feed the
  * linker (prevent linker errors).
  */
 
-#include "mpm.h"
+#include "mpmtypes.h"
+#include "misc.h"
 #include "ss.h"
+
+
+SRCID(ssan, "$HopeName$");
 
 
 Res StackScan(ScanState ss, Addr *stackBot)
