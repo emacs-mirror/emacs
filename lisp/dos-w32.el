@@ -279,7 +279,7 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 	  (subst-char-in-string
 	   ?/ ?\\
 	   (make-temp-name
-	    (expand-file-name "EP" (getenv "TMPDIR")))))
+	    (expand-file-name "EP" temporary-file-directory))))
 	 ;; capture output for diagnosis
 	 (errbuf (list (get-buffer-create " *print-region-helper*") t)))
     ;; It seems that we must be careful about the directory name that
