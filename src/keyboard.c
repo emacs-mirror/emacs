@@ -3816,13 +3816,8 @@ read_key_sequence (keybuf, bufsize, prompt)
 		      if (t + 1 >= bufsize)
 			error ("key sequence too long");
 		      keybuf[t] = posn;
-		      mock_input = t + 1;
-
-		      /* Put the rest on unread_command_events - that
-			 way, if the symbol isn't bound to a prefix map,
-			 then we don't lose the actual mouse event.  */
-		      unread_command_events = 
-			Fcons (key, unread_command_events);
+		      keybuf[t+1] = key;
+		      mock_input = t + 2;
 
 		      /* If we switched buffers while reading the first event,
 			 replay in case we switched keymaps too.  */
@@ -4052,6 +4047,19 @@ read_key_sequence (keybuf, bufsize, prompt)
  done:
   unread_switch_frame = delayed_switch_frame;
   unbind_to (count, Qnil);
+
+  /* Occasionally we fabricate events, perhaps by expanding something
+     according to function-key-map, or by adding a prefix symbol to a
+     mouse click in the scroll bar or modeline.  In this cases, return
+     the entire generated key sequence, even if we hit an unbound
+     prefix or a definition before the end.  This means that you will
+     be able to push back the event properly, and also means that
+     read-key-sequence will always return a logical unit.
+
+     Better ideas?  */
+  if (mock_input > t)
+    t = mock_input;
+
   return t;
 }
 
