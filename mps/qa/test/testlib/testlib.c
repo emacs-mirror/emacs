@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.19) $
+/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.20) $
 some useful functions for testing the MPS */
 
 #include <stdio.h>
@@ -8,9 +8,12 @@ some useful functions for testing the MPS */
 #include <time.h>
 #include "testlib.h"
 
+#ifdef MMQA_HEADER_mpsacl
 #include "mpsacl.h"
+#endif
+#ifdef MMQA_HEADER_mpsavm
 #include "mpsavm.h"
-#include "mpsavm.h"
+#endif
 
 /* err_text
    mps_res_t -> textual description
@@ -27,7 +30,12 @@ const char *err_text(mps_res_t err) {
   case MPS_RES_LIMIT: return "LIMIT";
   case MPS_RES_UNIMPL: return "UNIMPL";
   case MPS_RES_IO: return "IO";
+#ifdef MMQA_SYMBOL_MPS_RES_COMMIT_LIMIT
   case MPS_RES_COMMIT_LIMIT: return "COMMIT_LIMIT";
+#endif
+#ifdef MMQA_SYMBOL_MPS_RES_PARAM
+  case MPS_RES_PARAM: return "PARAMETER";
+#endif
  }
  asserts(0, "Unknown result code");
  return "*** Unknown result code ***";
@@ -384,23 +392,35 @@ mps_res_t mmqa_arena_create(mps_arena_t *arena_p,
  mps_arena_class_t arena_class, size_t chunk_size, size_t limit_size) {
  mps_res_t res;
  mps_arena_t arena;
- if (arena_class == mps_arena_class_cl()) {
+ if ( 0
+#ifdef MMQA_DEFINED_mps_arena_class_cl
+    || arena_class == mps_arena_class_cl()
+#endif
+    ) {
   void *block;
   block = malloc(limit_size);
   if(block == NULL) {
    return MPS_RES_MEMORY;
   }
   res = mps_arena_create(&arena, arena_class, limit_size, block);
- } else if (  arena_class == mps_arena_class_vmnz()
-           || arena_class == mps_arena_class_vm() ) {
+ } else if ( 0
+#ifdef MMQA_DEFINED_mps_arena_class_vm
+     || arena_class == mps_arena_class_vm()
+#endif
+#ifdef MMQA_DEFINED_mps_arena_class_vmnz
+     || arena_class == mps_arena_class_vmnz()
+#endif
+     ) {
   res = mps_arena_create(&arena, arena_class, chunk_size);
   if (res != MPS_RES_OK) {
    return res;
   }
+#ifdef MMQA_DEFINED_mps_arena_commit_limit_set
   res = mps_arena_commit_limit_set(arena, limit_size);
   if (res != MPS_RES_OK) {
    mps_arena_destroy(arena);
   }
+#endif
  } else {
   error("Unknown arena class.");
   res = MPS_RES_OK;
