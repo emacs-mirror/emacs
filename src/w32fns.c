@@ -5357,7 +5357,7 @@ w32_to_x_weight (fnweight)
   if (fnweight >= FW_HEAVY)      return "heavy";
   if (fnweight >= FW_EXTRABOLD)  return "extrabold";
   if (fnweight >= FW_BOLD)       return "bold";
-  if (fnweight >= FW_SEMIBOLD)   return "semibold";
+  if (fnweight >= FW_SEMIBOLD)   return "demibold";
   if (fnweight >= FW_MEDIUM)     return "medium";
   if (fnweight >= FW_NORMAL)     return "normal";
   if (fnweight >= FW_LIGHT)      return "light";
