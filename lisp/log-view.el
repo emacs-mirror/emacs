@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: rcs sccs cvs log version-control
-;; Revision: $Id: log-view.el,v 1.8 2001/11/12 20:34:45 sds Exp $
+;; Revision: $Id: log-view.el,v 1.9 2001/11/12 23:01:17 sds Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -101,7 +101,6 @@
 ;;;###autoload
 (define-derived-mode log-view-mode fundamental-mode "Log-View"
   "Major mode for browsing CVS log output."
-  (set-buffer-modified-p nil)
   (setq buffer-read-only t)
   (set (make-local-variable 'font-lock-defaults) log-view-font-lock-defaults)
   (set (make-local-variable 'cvs-minor-wrap-function) 'log-view-minor-wrap))
@@ -194,40 +193,5 @@ Otherwise, get the diff between the revisions
     (vc-version-diff (log-view-current-file) to fr)))
 
 (provide 'log-view)
-
-;;; Change Log:
-;; $Log: log-view.el,v $
-;; Revision 1.8  2001/11/12 20:34:45  sds
-;; updated (C)
-;;
-;; Revision 1.7  2001/10/29 15:46:46  kai
-;; (log-view-mode-map): Bind `M-n' and `M-p', not `M n'
-;; and `M p'.
-;;
-;; Revision 1.6  2000/12/18 03:17:31  monnier
-;; Remove useless Version.
-;;
-;; Revision 1.5  2000/12/06 19:49:40  fx
-;; Fix copyright years.
-;;
-;; Revision 1.4  2000/05/21 02:12:34  monnier
-;; Fix file description.
-;; (log-view-mode-map): Unsatisfying fix for when cvs-mode-map is not
-;; available.
-;; (log-view-font-lock-keywords): Only use cvs-filename-face if present.
-;; (log-view-current-file): Only use cvs-pcl-cvs-dirchange-re if present.
-;;
-;; Revision 1.3  2000/05/10 22:22:21  monnier
-;; (log-view-goto-rev): New function for the new VC.
-;; (log-view-minor-wrap): Use mark-active.
-;;
-;; Revision 1.2  2000/03/22 01:10:09  monnier
-;; (log-view-(msg|file)-(prev|next)): Rename from
-;; log-view-*-(message|file) and use easy-mmode-define-navigation.
-;; (log-view-message-re): Match SCCS format as well.
-;; And match the revision line rather than the dashed separator line.
-;; (log-view-mode): Use the new define-derived-mode.
-;; (log-view-current-tag): Fill in with an actual implementation.
-;;
 
 ;;; log-view.el ends here
