@@ -303,6 +303,7 @@ and select's the Spanish tutorial."))
 	   (nonascii-translation . iso-latin-1)
 	   (unibyte-syntax . "latin-1")
 	   (unibyte-display . iso-latin-1)
+	   (input-method . "dutch")
 	   (sample-text . "Er is een aantal manieren waarop je dit kan doen")
 	   (documentation . "\
 This language environment is almost the same as Latin-1,
