@@ -1608,7 +1608,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
   wv->value = 0;
   wv->enabled = 1;
   wv->button_type = BUTTON_TYPE_NONE;
-  wv->Qnil;
+  wv->help = Qnil;
   first_wv = wv;
   first_pane = 1;
  
