@@ -982,8 +982,9 @@ make_event_array (nargs, args)
   /* Since the loop exited, we know that all the things in it are
      characters, so we can make a string.  */
   {
-    Lisp_Object result = Fmake_string (nargs, make_number (0));
+    Lisp_Object result;
     
+    result = Fmake_string (nargs, make_number (0));
     for (i = 0; i < nargs; i++)
       {
 	XSTRING (result)->data[i] = XINT (args[i]);
