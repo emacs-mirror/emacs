@@ -3778,11 +3778,15 @@ With prefix argument N, move N items (negative N means move backward)."
     (delete-char len)))
 
 (defvar choose-completion-string-functions nil
-  "List of functions which may override the standard `choose-completion-string'.
-Each function in the list is called in turn with arguments CHOICE BUFFER BASE-SIZE
-like choose-completion-string.  If a function in the list returns non-nil, that
-function is supposed to have inserted the completion in the minibuffer.
-If all functions in the list return nil, use the default completion selection.")
+  "Functions that may override the normal insertion of a completion choice.
+These functions are called in order with four arguments:
+CHOICE - the string to insert in the buffer,
+BUFFER - the buffer in which the choice should be inserted,
+MINI-P - non-nil iff BUFFER is a minibuffer,  and
+BASE-SIZE - the part of BUFFER which isn't part of completion.
+If a function in the list returns non-nil, that function is supposed
+to have inserted the CHOICE in the BUFFER, and possibly exited
+the minibuffer; no further functions will be called.")
 
 ;; Switch to BUFFER and insert the completion choice CHOICE.
 ;; BASE-SIZE, if non-nil, says how many characters of BUFFER's text
@@ -3792,11 +3796,6 @@ If all functions in the list return nil, use the default completion selection.")
 ;; unless it is reading a file name and CHOICE is a directory,
 ;; or completion-no-auto-exit is non-nil.
 (defun choose-completion-string (choice &optional buffer base-size)
-  (unless (run-hook-with-args-until-success 
-	   'choose-completion-string-functions choice buffer base-size)
-    (choose-completion-string1 choice buffer base-size)))
-
-(defun choose-completion-string1 (choice &optional buffer base-size)
   (let ((buffer (or buffer completion-reference-buffer))
 	(mini-p (string-match "\\` \\*Minibuf-[0-9]+\\*\\'" (buffer-name buffer))))
     ;; If BUFFER is a minibuffer, barf unless it's the currently
@@ -3806,33 +3805,35 @@ If all functions in the list return nil, use the default completion selection.")
 		 (not (equal buffer
 			     (window-buffer (active-minibuffer-window))))))
 	(error "Minibuffer is not active for completion")
-      ;; Insert the completion into the buffer where completion was requested.
-      (set-buffer buffer)
-      (if base-size
-	  (delete-region (+ base-size (if mini-p
-					  (minibuffer-prompt-end)
-					(point-min)))
-			 (point))
-	(choose-completion-delete-max-match choice))
-      (insert choice)
-      (remove-text-properties (- (point) (length choice)) (point)
-			      '(mouse-face nil))
-      ;; Update point in the window that BUFFER is showing in.
-      (let ((window (get-buffer-window buffer t)))
-	(set-window-point window (point)))
-      ;; If completing for the minibuffer, exit it with this choice.
-      (and (not completion-no-auto-exit)
-	   (equal buffer (window-buffer (minibuffer-window)))
-	   minibuffer-completion-table
-	   ;; If this is reading a file name, and the file name chosen
-	   ;; is a directory, don't exit the minibuffer.
-	   (if (and (eq minibuffer-completion-table 'read-file-name-internal)
-		    (file-directory-p (field-string (point-max))))
-	       (let ((mini (active-minibuffer-window)))
-		 (select-window mini)
-		 (when minibuffer-auto-raise
-		   (raise-frame (window-frame mini))))
-	     (exit-minibuffer))))))
+      (unless (run-hook-with-args-until-success 
+	       'choose-completion-string-functions choice buffer mini-p base-size)
+	;; Insert the completion into the buffer where completion was requested.
+	(set-buffer buffer)
+	(if base-size
+	    (delete-region (+ base-size (if mini-p
+					    (minibuffer-prompt-end)
+					  (point-min)))
+			   (point))
+	  (choose-completion-delete-max-match choice))
+	(insert choice)
+	(remove-text-properties (- (point) (length choice)) (point)
+				'(mouse-face nil))
+	;; Update point in the window that BUFFER is showing in.
+	(let ((window (get-buffer-window buffer t)))
+	  (set-window-point window (point)))
+	;; If completing for the minibuffer, exit it with this choice.
+	(and (not completion-no-auto-exit)
+	     (equal buffer (window-buffer (minibuffer-window)))
+	     minibuffer-completion-table
+	     ;; If this is reading a file name, and the file name chosen
+	     ;; is a directory, don't exit the minibuffer.
+	     (if (and (eq minibuffer-completion-table 'read-file-name-internal)
+		      (file-directory-p (field-string (point-max))))
+		 (let ((mini (active-minibuffer-window)))
+		   (select-window mini)
+		   (when minibuffer-auto-raise
+		     (raise-frame (window-frame mini))))
+	       (exit-minibuffer)))))))
 
 (defun completion-list-mode ()
   "Major mode for buffers showing lists of possible completions.
