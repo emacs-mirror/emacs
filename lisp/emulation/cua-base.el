@@ -259,7 +259,7 @@ a shifted movement key.  If the value is nil, these keys are never
 enabled."
   :type '(choice (const :tag "Disabled" nil) 
 		 (const :tag "Shift region only" shift)
-		 (other :tag "Enabled"))
+		 (other :tag "Enabled" t))
   :group 'cua)
 
 (defcustom cua-highlight-region-shift-only nil
@@ -301,7 +301,7 @@ interpreted as a register number."
   :type '(choice (const :tag "Disabled" nil) 
 		 (const :tag "Enabled, but C-u arg is not a register" not-ctrl-u)
 		 (const :tag "Enabled, but only for C-u arg" ctrl-u-only)
-		 (other :tag "Enabled"))
+		 (other :tag "Enabled" t))
   :group 'cua)
 
 (defcustom cua-delete-copy-to-register-0 t
