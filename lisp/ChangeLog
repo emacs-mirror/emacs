@@ -1,5 +1,8 @@
 2001-09-04  Gerd Moellmann  <gerd@gnu.org>
 
+	* bookmark.el (bookmark-write-file): Bind print-length and
+	print-level to nil.  From Tom Capey <tomc@edina.co.uk>.
+
 	* obsolete/uncompress.el: Moved there from lisp/.
 
 	* comint.el (comint-insert-clicked-input): Goto point-max before
