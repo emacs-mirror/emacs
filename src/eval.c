@@ -873,7 +873,7 @@ DEFUN ("macroexpand", Fmacroexpand, Smacroexpand, 1, 2, 0,
 If FORM is not a macro call, it is returned unchanged.\n\
 Otherwise, the macro is expanded and the expansion is considered\n\
 in place of FORM.  When a non-macro-call results, it is returned.\n\n\
-The second optional arg ENVIRONMENT species an environment of macro\n\
+The second optional arg ENVIRONMENT specifies an environment of macro\n\
 definitions to shadow the loaded ones for use in file byte-compilation.")
   (form, environment)
      Lisp_Object form;
