@@ -18,8 +18,10 @@
 	(image-toggle-display): Use called-interactively-p.
 	Let-bind `inhibit-read-only' to t.
 
-	* image-file.el (image-file-name-extensions): Remove .xbm and .xpm
-	associated with c-mode in `auto-mode-alist'.
+	* image-mode.el (image-minor-mode): Set `cursor-type' and
+	`truncate-lines' if the image is already displayed.  Add turning
+	image-minor-mode off to `change-major-mode-hook'.  Add message.
+	Call `image-toggle-display-text' after turning image-minor-mode off.
 
 2005-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
