@@ -3,7 +3,7 @@
 
 ;; Copyright (C) 1993,1995,1997,2000  Free Software Foundation, Inc.
 
-;; Maintainer: None
+;; Maintainer: Bill Wohler <wohler@newt.com>
 ;; Keywords: mail
 ;; Bug-reports: include `M-x mh-version' output in any correspondence
 
@@ -30,7 +30,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-comp.el,v 1.18 2000/06/05 07:15:34 monnier Exp $
+;; $Id: mh-comp.el,v 1.19 2000/08/16 20:39:14 monnier Exp $
 
 ;;; Code:
 
