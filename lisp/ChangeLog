@@ -2,6 +2,19 @@
 
 	* files.el (insert-directory): Preserve CR in a file name.
 
+2003-05-24  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* skeleton.el (skeleton-abbrev-cleanup, skeleton-proxy):
+	Remove obsolete code.
+
+	* term/w32-win.el (iconify-or-deiconify-frame):
+	* term/mac-win.el (iconify-or-deiconify-frame): Move to frame.el.
+
+	* term/x-win.el (iconify-or-deiconify-frame): Move to frame.el.
+	Turn on mouse-wheel support by default.
+
+	* frame.el (iconify-or-deiconify-frame): Move from term/x-win.el.
+
 2003-05-24  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 
 	* net/tramp.el: Version 2.0.34 released.
@@ -15,8 +28,8 @@
 	(tramp-unified-filenames): Move to an earlier spot in the file.
 	(top-level): If tramp-unified-filenames is set and we're running
 	on XEmacs, load tramp-efs.
-	(tramp-wait-for-shell-prompt, tramp-barf-if-no-shell-prompt): New
-	functions, used by tramp-send-command-internal.
+	(tramp-wait-for-shell-prompt, tramp-barf-if-no-shell-prompt):
+	New functions, used by tramp-send-command-internal.
 	(tramp-open-connection-setup-interactive-shell): Simplify using
 	`tramp-send-command-internal'.
 	(tramp-send-command-internal): New function.
@@ -26,8 +39,7 @@
 	tramp-telnet-program, tramp-su-program into tramp-login-program.
 	Likewise with tramp-login-args, tramp-copy-program,
 	tramp-copy-args, tramp-copy-keep-date-arg.  Users changed.  New
-	method plink1; like plink but pass "-1" to force protocol version
-	1.
+	method plink1; like plink but pass "-1" to force protocol version 1.
 	(tramp-default-method): Use plink as the default on machines where
 	the plink program is present.
 	(tramp-completion-file-name-handler): Add safe-magic property.
@@ -41,11 +53,27 @@
 
 	* net/tramp.el (tramp-handle-file-truename): `sym' shouldn't be
 	quoted.
-	(tramp-methods, tramp-multi-connection-function-alist): Use
-	argument "-p Password:" for "sudo" method, because password prompt
+	(tramp-methods, tramp-multi-connection-function-alist):
+	Use argument "-p Password:" for "sudo" method, because password prompt
 	might be changed by either passprompt option in /etc/sudoers, or
 	SUDO_PROMPT environment variable.  Suggested by Peter Oliver
 	<peter.oliver@aquila-networks.co.uk>.
+
+2003-05-23  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* mail/supercite.el: Use `push' and replace `regi-pos' by equivalents.
+	(sc-emacs-features): Remove.  Use better tests instead.
+	(sc-minor-mode): Use define-minor-mode.
+	(sc-mode-string, sc-set-mode-string): Remove.
+	Use a better modeline expression instead.
+	(sc-completing-read, sc-read-string, sc-submatch, sc-member)
+	(sc-string-text): Remove those compatibility functions.
+
+	* pcvs.el (cvs-temp-buffer): Kill running process in displayed buffers.
+	(cvs-make-cvs-buffer): Fix up format of the header.
+
+	* progmodes/perl-mode.el (perl-font-lock-syntactic-keywords):
+	Match more cases of /.../ patterns.
 
 2003-05-23  Nick Roberts  <nick@nick.uklinux.net>
 
@@ -59,7 +87,7 @@
 
 	* vc-cvs.el (vc-cvs-checkout): Don't leave the branch when
 	REV is t.  From Don Provan <dprovan@bivio.net>
-	
+
 2003-05-23  Richard M. Stallman  <rms@gnu.org>
 
 	* forms.el (forms--mode-commands1): Bind \t, not `tab'.
@@ -89,8 +117,7 @@
 	(lm-section-end): New function.
 	(lm-code-start): New function; rewrite of `lm-code-mark'.
 	(lm-code-mark): Make alias of `lm-code-start'.
-	(lm-commentary-start): New function; rewrite of
-	`lm-commentary-mark'.
+	(lm-commentary-start): New function; rewrite of `lm-commentary-mark'.
 	(lm-commentary-mark): Make alias of `lm-commentary-start'.
 	(lm-commentary-end): New function.
 	(lm-history-start): New function; rewrite of `lm-history-mark'.
@@ -98,10 +125,18 @@
 	(lm-commentary): Use `lm-commentary-end' to find the end of the
 	commentary section.
 
-	* emacs-lisp/checkdoc.el (checkdoc-file-comments-engine): Use
-	`lm-commentary-end' to find the end of the commentary section.
+	* emacs-lisp/checkdoc.el (checkdoc-file-comments-engine):
+	Use `lm-commentary-end' to find the end of the commentary section.
 
-2003-05-22  Ken Stevens <kstevens@ichips.intel.com>
+2003-05-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* skeleton.el (define-skeleton): Use the `no-self-insert' property.
+	(skeleton-proxy-new): Fix docstring.  Remove broken interactive spec.
+	Rely on use `no-self-insert' rather than `skeleton-abbrev-cleanup'.
+	(skeleton-internal-1): Add a `recursive' argument.
+	(skeleton-internal-list): Use it to propagate `recursive'.
+
+2003-05-22  Ken Stevens  <kstevens@ichips.intel.com>
 
 	* ispell.el: Sync to version 3.6.
 	Summary: MIME support added for e-mail processing that

@@ -9,11 +9,11 @@
 	2) Allow fringe and scroll bar parameters to be set per-buffer and
 	per-window (like display margins).  Such settings are now stored
 	in window configurations, preserved when frames are resized, and
-	copied when windows are split vertically or horisontally.
+	copied when windows are split vertically or horizontally.
 	Several bugs related to display margins have been fixed.
 
 	3) Consistently use FRAME_FONT and FRAME_FONTSET macros.
-	
+
 	4) Use FRAME_COLUMN_WIDTH (f) consistently throughout the code
 	rather than FRAME_WIDTH	(FRAME_FONT (f)).
 
@@ -179,7 +179,7 @@
 	that referred to FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT and
 	FRAME_SCROLL_BAR_WIDTH.
 	(WINDOW_SCROLL_BAR_COLS, WINDOW_SCROLL_BAR_AREA_WIDTH)
-	(WINDOW_SCROLL_BAR_AREA_X): New macros. 
+	(WINDOW_SCROLL_BAR_AREA_X): New macros.
 	(WINDOW_HEADER_LINE_HEIGHT): Renamed from
 	WINDOW_DISPLAY_HEADER_LINE_HEIGHT, moved from dispextern.h.
 	(WINDOW_BOX_HEIGHT_NO_MODE_LINE): Renamed from
@@ -196,9 +196,9 @@
 	(window_from_coordinates): Update prototype.
 	(Fset_window_buffer): Update EXFUN.
 	(set_window_buffer): Update prototype.
-	
+
 	* dispextern.h (struct glyph_matrix): Rename members window_left_x
-	to window_left_col, window_top_y to window_top_line. All uses
+	to window_left_col, window_top_y to window_top_line.  All uses
 	changed.
 	(FRAME_INTERNAL_BORDER_WIDTH_SAFE): Remove macro; can now safely
 	use FRAME_INTERNAL_BORDER_WIDTH macro instead as
@@ -212,11 +212,11 @@
 	(FRAME_TO_WINDOW_PIXEL_X, FRAME_TO_WINDOW_PIXEL_Y)
 	(WINDOW_DISPLAY_LEFT_AREA_PIXEL_WIDTH)
 	(WINDOW_DISPLAY_RIGHT_AREA_PIXEL_WIDTH, WINDOW_WANTS_MODELINE_P):
-	Move to window.h and renamed [see window.h changes]. 
+	Move to window.h and renamed [see window.h changes].
 	(WINDOW_AREA_TO_FRAME_PIXEL_X, WINDOW_AREA_PIXEL_WIDTH)
 	(WINDOW_DISPLAY_TEXT_AREA_PIXEL_WIDTH): Remove macros.
-	(WINDOW_WANTS_MODELINE_P, WINDOW_WANTS_HEADER_LINE_P): Use
-	WINDOW_TOTAL_LINES.
+	(WINDOW_WANTS_MODELINE_P, WINDOW_WANTS_HEADER_LINE_P):
+	Use WINDOW_TOTAL_LINES.
 	(frame_update_line_height): Remove prototype.
 
 	* buffer.h (struct buffer): Rename members measured in columns:
@@ -239,7 +239,7 @@
 	(mode_line_string): No need to adjust width for mode lines, as it
 	is already adjusted by the caller.
 	(marginal_area_string): Handle fringes inside/outside margins.
-	
+
 	* frame.c: Make (many) trivial substitutions for renamed and
 	new macros in dispextern.h, frame.h and window.h.
 	(make_frame): Initialize left_fringe_width, right_fringe_width,
@@ -250,7 +250,7 @@
 
 	* gtkutil.c: Make (many) trivial substitutions for renamed and
 	new macros in dispextern.h, frame.h and window.h.
-	
+
 	* indent.c: Make (few) trivial substitutions for renamed and
 	new macros in dispextern.h, frame.h and window.h.
 
@@ -286,9 +286,9 @@
 	right_fringe_width, fringes_outside_margins, scroll_bar_width,
 	and vertical_scroll_bar_type.
 	(coordinates_in_window): Adapted to new fringe/margin positions
-	and per-window fringes and scroll-bars.  
+	and per-window fringes and scroll-bars.
 	Fix bug related to incorrectly adjusting coordinates by
-	frame's internal_border_width (the effect normally negible since 
+	frame's internal_border_width (the effect normally negible since
 	the internal_border_width is typically 0 or 1 pixel, but very
 	noticeable for an internal_border_width of e.g. 25 pixels).
 	Upon successful return (other than ON_NOTHING), the coordinates
@@ -308,8 +308,8 @@
 	Fset_window_scroll_bars to setup per-window elements.
 	Add new arg KEEP_MARGINS_P.  Non-nil means to keep window's
 	existing display margin, fringe widths, and scroll bar settings
-	(e.g. after splitting a window or resizing the frame).  All
-	callers changed.
+	(e.g. after splitting a window or resizing the frame).
+	All callers changed.
 	(Fset_window_buffer): New arg KEEP_MARGINS.  All callers changed.
 	(Fsplit_window): Duplicate original window's display margin,
 	fringe, and scroll-bar settings; then call Fset_window_buffer with
@@ -320,8 +320,8 @@
 	narrow.  This fixes a bug which could cause emacs to trap if the
 	width of the split window was less than the width of the display
 	margins.
-	(window_box_text_cols): Renamed from window_internal_width.  All
-	uses changed.  Adapt to per-window fringes and scroll bars.
+	(window_box_text_cols): Renamed from window_internal_width.
+	All uses changed.  Adapt to per-window fringes and scroll bars.
 	Fix bug that caused vertical separator to be subtracted also on
 	window frames.  Fix another bug that did not reduce the returned
 	value by the columns used for display margins.
@@ -378,18 +378,18 @@
 	(window_box): Allow null args for unnecessary return values;
 	change/simplify relevant callers.
 	(x_y_to_hpos_vpos): Adapt to per-window fringes and scroll bars,
-	and new fringe vs. display margin position.  Use
-	window_box_left_offset and window_box_right_offset
+	and new fringe vs. display margin position.
+	Use window_box_left_offset and window_box_right_offset
 	(get_glyph_string_clip_rect): Adapt to per-window fringes and
-	scroll bars, and new fringe vs. display margin position.  Use
-	WINDOW_LEFT_EDGE_X and WINDOW_TOTAL_WIDTH.
+	scroll bars, and new fringe vs. display margin position.
+	Use WINDOW_LEFT_EDGE_X and WINDOW_TOTAL_WIDTH.
 	(draw_fringe_bitmap): Rework to handle per-window fringes and new
 	fringe vs. display margin position.
 	(hscroll_window_tree): Use window_box_width instead of window_box.
 	(redisplay_window):  Adapt to per-window scroll bars.
 	(draw_glyphs):  Rework to handle per-window fringes and scroll
-	bars, and new fringe vs. display margin position.  Use
-	WINDOW_LEFT_EDGE_X, WINDOW_TOTAL_WIDTH, and window_box_left.
+	bars, and new fringe vs. display margin position.
+	Use WINDOW_LEFT_EDGE_X, WINDOW_TOTAL_WIDTH, and window_box_left.
 	(x_clear_end_of_line):  Adapt to per-window fringes and scroll
 	bars, and new fringe vs. display margin position.  Fix bug which
 	increased total width of full_width rows by width of scroll bars
@@ -426,7 +426,7 @@
 	(CHAR_TO_PIXEL_HEIGHT, PIXEL_TO_CHAR_ROW, PIXEL_TO_CHAR_COL)
 	(PIXEL_TO_CHAR_WIDTH, PIXEL_TO_CHAR_HEIGHT): Moved to frame.h
 	and renamed [see frame.h changes].
-	
+
 	* xterm.c: Make (several) trivial substitutions for renamed and
 	new macros in dispextern.h, frame.h and window.h.
 	(x_draw_glyph_string_box): Adapt to per-window fringes and
@@ -460,7 +460,7 @@
 	(CHAR_TO_PIXEL_HEIGHT, PIXEL_TO_CHAR_ROW, PIXEL_TO_CHAR_COL)
 	(PIXEL_TO_CHAR_WIDTH, PIXEL_TO_CHAR_HEIGHT): Moved to frame.h
 	and renamed [see frame.h changes].
-	
+
 	* w32term.c: Make (several) trivial substitutions for renamed and
 	new macros in dispextern.h, frame.h and window.h.
 	(x_draw_glyph_string_box): Adapt to per-window fringes and
@@ -501,7 +501,7 @@
 	(CHAR_TO_PIXEL_HEIGHT, PIXEL_TO_CHAR_ROW, PIXEL_TO_CHAR_COL)
 	(PIXEL_TO_CHAR_WIDTH, PIXEL_TO_CHAR_HEIGHT): Moved to frame.h
 	and renamed [see frame.h changes].
-	
+
 	* macterm.c: Make (several) trivial substitutions for renamed and
 	new macros in dispextern.h, frame.h and window.h.
 	(x_draw_glyph_string_box): Adapt to per-window fringes and
@@ -519,7 +519,7 @@
 
 	* macfns.c: Make (several) trivial substitutions for renamed and
 	new macros in dispextern.h, frame.h and window.h.
-	(x_real_positions): Set f->x_pixels_diff and f->y_pixels_diff to 0. 
+	(x_real_positions): Set f->x_pixels_diff and f->y_pixels_diff to 0.
 
 	* macmenu.c: Make (few) trivial substitutions for renamed and
 	new macros in dispextern.h, frame.h and window.h.
@@ -533,9 +533,14 @@
 	* msdos.c: Make (several) trivial substitutions for renamed and
 	new macros in dispextern.h, frame.h and window.h.
 	(IT_note_mouse_highlight): Use updated window coordinates returned
-	by window_from_coordinates, rather than adjusting them locally. 
+	by window_from_coordinates, rather than adjusting them locally.
 	(internal_terminal_init): No need to initialize line_height here;
 	it now defaults to 1.
+
+2003-05-24  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keyboard.c (read_key_sequence): Adjust fkey and keytran when
+	dropping `down' events.
 
 2003-05-24  Andreas Schwab  <schwab@suse.de>
 
@@ -546,6 +551,10 @@
 	* xfns.c (x_window): Fix typo from 2003-05-21 change.
 
 2003-05-23  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xdisp.c (display_mode_element): Increase max depth.
+	Simplify the error handling code.  Use a different error string
+	for the case where we hit the depth limit.
 
 	* lisp.h (Vfundamental_mode_abbrev_table): Don't declare.
 
