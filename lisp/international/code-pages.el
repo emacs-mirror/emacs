@@ -1,6 +1,6 @@
 ;;; code-pages.el --- coding systems for assorted codepages  -*-coding: utf-8;-*-
 
-;; Copyright (C) 2001  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n
@@ -35,17 +35,16 @@
 ;; cp855, cp857, cp860, cp861, cp862, cp863, cp864, cp865, cp866,
 ;; cp869, cp874, cp1125, windows-1250, windows-1251, windows-1252,
 ;; windows-1253, windows-1254, windows-1255, windows-1256,
-;; windows-1257, windows-1258, next, koi8-r, koi8-u, iso-8859-6,
+;; windows-1257, windows-1258, next, koi8-u, iso-8859-6,
 ;; iso-8859-10, iso-8859-12, iso-8859-16, koi8-t, georgian-ps.  This
 ;; is meant to include all the single-byte ones relevant to GNU (used
 ;; in glibc-defined locales); we don't yet get all the multibyte ones
 ;; in base Emacs.
 
-;; Note that koi8-r and cp866 (alternativnyj) clash with the
-;; iso8859-5-based versions in cyrillic.el (which should be changed),
-;; and others can clash with definitions in codepage.el; we try to
-;; avoid damage from that.  A few CPs from codepage.el (770, 773, 774)
-;; aren't covered (in the absence of translation tables to Unicode).
+;; Note that various of these can clash with definitions in
+;; codepage.el; we try to avoid damage from that.  A few CPs from
+;; codepage.el (770, 773, 774) aren't covered (in the absence of
+;; translation tables to Unicode).
 
 ;; Compile this, to avoid loading `ccl' at runtime.
 
@@ -63,7 +62,18 @@ V comprises characters encodable by mule-utf-8."
       (aset encoding-vector i i))
     (dotimes (i 128)
       (aset encoding-vector (+ i 128) (aref v i)))
-    (make-translation-table-from-vector encoding-vector)))
+    ;; Add equivalent characters to the encoder so that we can unify
+    ;; on encoding.
+    (let* ((tab (make-translation-table-from-vector encoding-vector))
+	   ;; Translation table used for encoding:
+	   (encode-table (char-table-extra-slot tab 0)))
+      (map-char-table (lambda (c v)
+			(if v
+			    (let ((c1 (aref encode-table v)))
+			      (if c1	; we encode that unicode
+				  (aset encode-table c c1)))))
+		      ucs-mule-to-mule-unicode)
+      tab)))
 
 (defun cp-valid-codes (v)
   "Derive a valid-codes list for translation vector V.
@@ -94,7 +104,7 @@ CS is a base coding system or alias."
 	 (if (and v (not (eq v t)))
 	     (aset char-coding-system-table
 		   k
-		   (remq cs (aref char-coding-system-table v)))))
+		   (remq cs (aref char-coding-system-table k)))))
        chars))))
 
 ;; Fix things that have been, or might be done by codepage.el.
@@ -140,27 +150,6 @@ read/written by MS-DOS software, or for display on the MS-DOS terminal."
        cp (cp-charset-for-codepage cp) (cp-offset-for-codepage cp))))))
 )					; eval-after-load
 
-;; Somewhat amended from the version in mule-diag.el, needed below.
-(defvar non-iso-charset-alist
-  `((mac-roman
-     nil
-     mac-roman-decoder
-     ((0 255)))
-    (viscii
-     (ascii vietnamese-viscii-lower vietnamese-viscii-upper)
-     viet-viscii-nonascii-translation-table
-     ((0 255)))
-    (big5
-     (ascii chinese-big5-1 chinese-big5-2)
-     decode-big5-char
-     ((32 127)
-      ((?\xA1 ?\xFE) . (?\x40 ?\x7E ?\xA1 ?\xFE))))
-    (sjis
-     (ascii katakana-jisx0201 japanese-jisx0208)
-     decode-sjis-char
-     ((32 127 ?\xA1 ?\xDF)
-      ((?\x81 ?\x9F ?\xE0 ?\xEF) . (?\x40 ?\x7E ?\x80 ?\xFC))))))
-
 ;; Macro to allow ccl compilation at byte-compile time, avoiding
 ;; loading ccl.
 ;;;###autoload
@@ -183,6 +172,9 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 		     (r0 = ,(charset-id 'eight-bit-control))
 		   (r0 = ,(charset-id 'eight-bit-graphic))))
 	       (translate-character ,decoder r0 r1)
+	       ;; Allow fragmentation on decoding -- relevant for
+	       ;; Cyrillic, Greek and, possibly Arabic and Hebrew.
+	       (translate-character utf-8-translation-table-for-decode r0 r1)
 	       (write-multibyte-character r0 r1)
 	       (repeat))))))
 	 (ccl-encoder
@@ -204,7 +196,11 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 	(cons ,ccl-decoder ,ccl-encoder)
 	(list (cons 'safe-chars (get ',encoder 'translation-table))
 	      (cons 'valid-codes codes)
-	      (cons 'mime-charset ',name)))
+	      (cons 'mime-charset ',name)
+	      ;; For Quail translation.  Fixme: this should really be
+	      ;; a separate table that only translates the coding
+	      ;; system's safe-chars.
+	      (cons 'translation-table-for-input ,ucs-mule-to-mule-unicode)))
        (push (list ',name
 		   nil			; charset list
 		   ',decoder
@@ -2059,145 +2055,138 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\■
   ?\ ])
 
-;; ;; This should be the same as cyrillic-alternativnyj,
-;; ;; (<URL:http://czyborra.com/charsets/cyrillic.html>), but code point
-;; ;; 255 in the cyrillic.el alternativnyj table is `№', i.e. point 240
-;; ;; in 8859-5, not no-break space as below; `№' should be at point 252.
-;; (cp-make-coding-system
-;;  cp866
-;;  [?\А
-;;   ?\Б
-;;   ?\В
-;;   ?\Г
-;;   ?\Д
-;;   ?\Е
-;;   ?\Ж
-;;   ?\З
-;;   ?\И
-;;   ?\Й
-;;   ?\К
-;;   ?\Л
-;;   ?\М
-;;   ?\Н
-;;   ?\О
-;;   ?\П
-;;   ?\Р
-;;   ?\С
-;;   ?\Т
-;;   ?\У
-;;   ?\Ф
-;;   ?\Х
-;;   ?\Ц
-;;   ?\Ч
-;;   ?\Ш
-;;   ?\Щ
-;;   ?\Ъ
-;;   ?\Ы
-;;   ?\Ь
-;;   ?\Э
-;;   ?\Ю
-;;   ?\Я
-;;   ?\а
-;;   ?\б
-;;   ?\в
-;;   ?\г
-;;   ?\д
-;;   ?\е
-;;   ?\ж
-;;   ?\з
-;;   ?\и
-;;   ?\й
-;;   ?\к
-;;   ?\л
-;;   ?\м
-;;   ?\н
-;;   ?\о
-;;   ?\п
-;;   ?\░
-;;   ?\▒
-;;   ?\▓
-;;   ?\│
-;;   ?\┤
-;;   ?\╡
-;;   ?\╢
-;;   ?\╖
-;;   ?\╕
-;;   ?\╣
-;;   ?\║
-;;   ?\╗
-;;   ?\╝
-;;   ?\╜
-;;   ?\╛
-;;   ?\┐
-;;   ?\└
-;;   ?\┴
-;;   ?\┬
-;;   ?\├
-;;   ?\─
-;;   ?\┼
-;;   ?\╞
-;;   ?\╟
-;;   ?\╚
-;;   ?\╔
-;;   ?\╩
-;;   ?\╦
-;;   ?\╠
-;;   ?\═
-;;   ?\╬
-;;   ?\╧
-;;   ?\╨
-;;   ?\╤
-;;   ?\╥
-;;   ?\╙
-;;   ?\╘
-;;   ?\╒
-;;   ?\╓
-;;   ?\╫
-;;   ?\╪
-;;   ?\┘
-;;   ?\┌
-;;   ?\█
-;;   ?\▄
-;;   ?\▌
-;;   ?\▐
-;;   ?\▀
-;;   ?\р
-;;   ?\с
-;;   ?\т
-;;   ?\у
-;;   ?\ф
-;;   ?\х
-;;   ?\ц
-;;   ?\ч
-;;   ?\ш
-;;   ?\щ
-;;   ?\ъ
-;;   ?\ы
-;;   ?\ь
-;;   ?\э
-;;   ?\ю
-;;   ?\я
-;;   ?\Ё
-;;   ?\ё
-;;   ?\Є
-;;   ?\є
-;;   ?\Ї
-;;   ?\ї
-;;   ?\Ў
-;;   ?\ў
-;;   ?\°
-;;   ?\∙
-;;   ?\·
-;;   ?\√
-;;   ?\№
-;;   ?\¤
-;;   ?\■
-;;   ?\ ]
-;;  "CP866 (Cyrillic Alternativnyj) encoding using Unicode."
-;;  ?A)
-;; (define-coding-system-alias 'alternativnyj 'cp866)
-;; (cp-fix-safe-chars 'cyrillic-alternativnyj)
-;; (define-coding-system-alias 'cyrillic-alternativnyj 'cp866)
+(cp-make-coding-system
+ cp866
+ [?\А
+  ?\Б
+  ?\В
+  ?\Г
+  ?\Д
+  ?\Е
+  ?\Ж
+  ?\З
+  ?\И
+  ?\Й
+  ?\К
+  ?\Л
+  ?\М
+  ?\Н
+  ?\О
+  ?\П
+  ?\Р
+  ?\С
+  ?\Т
+  ?\У
+  ?\Ф
+  ?\Х
+  ?\Ц
+  ?\Ч
+  ?\Ш
+  ?\Щ
+  ?\Ъ
+  ?\Ы
+  ?\Ь
+  ?\Э
+  ?\Ю
+  ?\Я
+  ?\а
+  ?\б
+  ?\в
+  ?\г
+  ?\д
+  ?\е
+  ?\ж
+  ?\з
+  ?\и
+  ?\й
+  ?\к
+  ?\л
+  ?\м
+  ?\н
+  ?\о
+  ?\п
+  ?\░
+  ?\▒
+  ?\▓
+  ?\│
+  ?\┤
+  ?\╡
+  ?\╢
+  ?\╖
+  ?\╕
+  ?\╣
+  ?\║
+  ?\╗
+  ?\╝
+  ?\╜
+  ?\╛
+  ?\┐
+  ?\└
+  ?\┴
+  ?\┬
+  ?\├
+  ?\─
+  ?\┼
+  ?\╞
+  ?\╟
+  ?\╚
+  ?\╔
+  ?\╩
+  ?\╦
+  ?\╠
+  ?\═
+  ?\╬
+  ?\╧
+  ?\╨
+  ?\╤
+  ?\╥
+  ?\╙
+  ?\╘
+  ?\╒
+  ?\╓
+  ?\╫
+  ?\╪
+  ?\┘
+  ?\┌
+  ?\█
+  ?\▄
+  ?\▌
+  ?\▐
+  ?\▀
+  ?\р
+  ?\с
+  ?\т
+  ?\у
+  ?\ф
+  ?\х
+  ?\ц
+  ?\ч
+  ?\ш
+  ?\щ
+  ?\ъ
+  ?\ы
+  ?\ь
+  ?\э
+  ?\ю
+  ?\я
+  ?\Ё
+  ?\ё
+  ?\Є
+  ?\є
+  ?\Ї
+  ?\ї
+  ?\Ў
+  ?\ў
+  ?\°
+  ?\∙
+  ?\·
+  ?\√
+  ?\№
+  ?\¤
+  ?\■
+  ?\ ]
+ "CP866 (Cyrillic)."
+ ?A)
 
 (cp-make-coding-system
  cp869
@@ -3779,280 +3768,6 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
  "NeXTstep encoding." ?N)
 
 (cp-make-coding-system
- koi8-u
- [?\─
-  ?\│
-  ?\┌
-  ?\┐
-  ?\└
-  ?\┘
-  ?\├
-  ?\┤
-  ?\┬
-  ?\┴
-  ?\┼
-  ?\▀
-  ?\▄
-  ?\█
-  ?\▌
-  ?\▐
-  ?\░
-  ?\▒
-  ?\▓
-  ?\⌠
-  ?\■
-  ?\∙
-  ?\√
-  ?\≈
-  ?\≤
-  ?\≥
-  ?\ 
-  ?\⌡
-  ?\°
-  ?\²
-  ?\·
-  ?\÷
-  ?\═
-  ?\║
-  ?\╒
-  ?\ё
-  ?\є
-  ?\╔
-  ?\і
-  ?\ї
-  ?\╗
-  ?\╘
-  ?\╙
-  ?\╚
-  ?\╛
-  ?\ґ
-  ?\╝
-  ?\╞
-  ?\╟
-  ?\╠
-  ?\╡
-  ?\Ё
-  ?\Є
-  ?\╣
-  ?\І
-  ?\Ї
-  ?\╦
-  ?\╧
-  ?\╨
-  ?\╩
-  ?\╪
-  ?\Ґ
-  ?\╬
-  ?\©
-  ?\ю
-  ?\а
-  ?\б
-  ?\ц
-  ?\д
-  ?\е
-  ?\ф
-  ?\г
-  ?\х
-  ?\и
-  ?\й
-  ?\к
-  ?\л
-  ?\м
-  ?\н
-  ?\о
-  ?\п
-  ?\я
-  ?\р
-  ?\с
-  ?\т
-  ?\у
-  ?\ж
-  ?\в
-  ?\ь
-  ?\ы
-  ?\з
-  ?\ш
-  ?\э
-  ?\щ
-  ?\ч
-  ?\ъ
-  ?\Ю
-  ?\А
-  ?\Б
-  ?\Ц
-  ?\Д
-  ?\Е
-  ?\Ф
-  ?\Г
-  ?\Х
-  ?\И
-  ?\Й
-  ?\К
-  ?\Л
-  ?\М
-  ?\Н
-  ?\О
-  ?\П
-  ?\Я
-  ?\Р
-  ?\С
-  ?\Т
-  ?\У
-  ?\Ж
-  ?\В
-  ?\Ь
-  ?\Ы
-  ?\З
-  ?\Ш
-  ?\Э
-  ?\Щ
-  ?\Ч
-  ?\Ъ]
- "Cyrillic KOI8-U (Ukranian) encoding."
- ?U)
-
-;; ;; Unicode-based, not cyrillic-iso8859-5 based (and thus incomplete)
-;; ;; like the standard version.
-;; (cp-make-coding-system
-;;  ;; The base system uses cyrillic-koi8 as the canonical name, but
-;;  ;; that's not a MIME name.
-;;  koi8-r
-;;  [?\─
-;;   ?\│
-;;   ?\┌
-;;   ?\┐
-;;   ?\└
-;;   ?\┘
-;;   ?\├
-;;   ?\┤
-;;   ?\┬
-;;   ?\┴
-;;   ?\┼
-;;   ?\▀
-;;   ?\▄
-;;   ?\█
-;;   ?\▌
-;;   ?\▐
-;;   ?\░
-;;   ?\▒
-;;   ?\▓
-;;   ?\⌠
-;;   ?\■
-;;   ?\•
-;;   ?\√
-;;   ?\≈
-;;   ?\≤
-;;   ?\≥
-;;   ?\ 
-;;   ?\⌡
-;;   ?\°
-;;   ?\²
-;;   ?\·
-;;   ?\÷
-;;   ?\═
-;;   ?\║
-;;   ?\╒
-;;   ?\ё
-;;   ?\╓
-;;   ?\╔
-;;   ?\╕
-;;   ?\╖
-;;   ?\╗
-;;   ?\╘
-;;   ?\╙
-;;   ?\╚
-;;   ?\╛
-;;   ?\╜
-;;   ?\╝
-;;   ?\╞
-;;   ?\╟
-;;   ?\╠
-;;   ?\╡
-;;   ?\Ё
-;;   ?\╢
-;;   ?\╣
-;;   ?\╤
-;;   ?\╥
-;;   ?\╦
-;;   ?\╧
-;;   ?\╨
-;;   ?\╩
-;;   ?\╪
-;;   ?\╫
-;;   ?\╬
-;;   ?\©
-;;   ?\ю
-;;   ?\а
-;;   ?\б
-;;   ?\ц
-;;   ?\д
-;;   ?\е
-;;   ?\ф
-;;   ?\г
-;;   ?\х
-;;   ?\и
-;;   ?\й
-;;   ?\к
-;;   ?\л
-;;   ?\м
-;;   ?\н
-;;   ?\о
-;;   ?\п
-;;   ?\я
-;;   ?\р
-;;   ?\с
-;;   ?\т
-;;   ?\у
-;;   ?\ж
-;;   ?\в
-;;   ?\ь
-;;   ?\ы
-;;   ?\з
-;;   ?\ш
-;;   ?\э
-;;   ?\щ
-;;   ?\ч
-;;   ?\ъ
-;;   ?\Ю
-;;   ?\А
-;;   ?\Б
-;;   ?\Ц
-;;   ?\Д
-;;   ?\Е
-;;   ?\Ф
-;;   ?\Г
-;;   ?\Х
-;;   ?\И
-;;   ?\Й
-;;   ?\К
-;;   ?\Л
-;;   ?\М
-;;   ?\Н
-;;   ?\О
-;;   ?\П
-;;   ?\Я
-;;   ?\Р
-;;   ?\С
-;;   ?\Т
-;;   ?\У
-;;   ?\Ж
-;;   ?\В
-;;   ?\Ь
-;;   ?\Ы
-;;   ?\З
-;;   ?\Ш
-;;   ?\Э
-;;   ?\Щ
-;;   ?\Ч
-;;   ?\Ъ]
-;;  "Unicode-based KOI8 encoding for Cyrillic (MIME: KOI8-R)"
-;;  ?R)
-;; (cp-fix-safe-chars 'cyrillic-koi8)
-;; (define-coding-system-alias 'cyrillic-koi8 'koi8-r)
-;; (define-coding-system-alias 'koi8 'koi8-r)
-;; (define-coding-system-alias 'cp878 'koi8-r)
-
-(cp-make-coding-system
  koi8-t					; used by glibc for tg_TJ
  [?\қ
   ?\ғ
@@ -4187,7 +3902,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 
 ;;   Online final ISO draft:
 
-;;     http://www.egt.ie/standards/iso8859/fdis8859-16-en.pdf
+;;     http://www.evertype.com/standards/iso8859/fdis8859-16-en.pdf
 
 ;;   Equivalent National Standard:
 ;;     Romanian Standard SR 14111:1998, Romanian Standards Institution
@@ -4991,7 +4706,8 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\¤
   ?\￭
   ?\ ])
-;; Original ;name for cp1125, says Serhii Hlodin <hlodin@lutsk.bank.gov.ua>
+(define-coding-system-alias 'ruscii 'cp1125)
+;; Original name for cp1125, says Serhii Hlodin <hlodin@lutsk.bank.gov.ua>
 (define-coding-system-alias 'cp866u 'cp1125)
 
 (dotimes (i 8)
