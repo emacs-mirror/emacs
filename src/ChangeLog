@@ -1,3 +1,11 @@
+2001-11-20  Jason Rumney  <jasonr@gnu.org>
+
+	* coding.h (Vw32_system_coding_system) [WINDOWSNT]: Remove.
+	(ENCODE_SYSTEM, DECODE_SYSTEM) [WINDOWSNT]: Use Vlocale_coding_system.
+
+	* w32fns.c (Vw32_system_coding_system): Remove.
+	(w32_to_x_font, x_to_w32_font): Use Vlocale_coding_system.
+
 2001-11-19  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* fileio.c (Fwrite_region): Move choose_write_coding_system to
