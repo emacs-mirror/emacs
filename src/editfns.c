@@ -158,8 +158,8 @@ INDEX not pointing at character boundary is an error.")
   (str, idx)
      Lisp_Object str, idx;
 {
-  register int idxval, len;
-  register unsigned char *p;
+  register int idxval, len, i;
+  register unsigned char *p, *q;
   register Lisp_Object val;
 
   CHECK_STRING (str, 0);
@@ -167,9 +167,25 @@ INDEX not pointing at character boundary is an error.")
   idxval = XINT (idx);
   if (idxval < 0 || idxval >= (len = XVECTOR (str)->size))
     args_out_of_range (str, idx);
+
   p = XSTRING (str)->data + idxval;
-  if (!CHAR_HEAD_P (p))
-    error ("Not character boundary");
+  if (!NILP (current_buffer->enable_multibyte_characters)
+      && !CHAR_HEAD_P (p)
+      && idxval > 0)
+    {
+      /* We must check if P points to a tailing byte of a multibyte
+         form.  If so, we signal error.  */
+      i = idxval - 1;
+      q = p - 1;
+      while (i > 0 && *q >= 0xA0) i--, q--;
+
+      if (*q == LEADING_CODE_COMPOSITION)
+	i = multibyte_form_length (XSTRING (str)->data + i, len - i);
+      else
+	i = BYTES_BY_CHAR_HEAD (*q);
+      if (q + i > p)
+	error ("Not character boundary");
+    }
 
   len = XSTRING (str)->size - idxval;
   XSETFASTINT (val, STRING_CHAR (p, len));
