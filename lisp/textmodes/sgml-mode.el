@@ -308,10 +308,11 @@ varables of same name)."
 	;; A start or end tag by itself on a line separates a paragraph.
 	;; This is desirable because SGML discards a newline that appears
 	;; immediately after a start tag or immediately before an end tag.
-	paragraph-start "^[ \t\n]\\|\
-\\(</?\\([A-Za-z]\\([-.A-Za-z0-9= \t\n]\\|\"[^\"]*\"\\|'[^']*'\\)*\\)?>$\\)"
-	paragraph-separate "^[ \t\n]*$\\|\
-^</?\\([A-Za-z]\\([-.A-Za-z0-9= \t\n]\\|\"[^\"]*\"\\|'[^']*'\\)*\\)?>$"
+	paragraph-separate "[ \t]*$\\|\
+\[ \t]*</?\\([A-Za-z]\\([-.A-Za-z0-9= \t\n]\\|\"[^\"]*\"\\|'[^']*'\\)*\\)?>$"
+	paragraph-start "[ \t]*$\\|\
+\[ \t]*</?\\([A-Za-z]\\([-.A-Za-z0-9= \t\n]\\|\"[^\"]*\"\\|'[^']*'\\)*\\)?>$"
+	adaptive-fill-regexp "[ \t]*"
 	comment-start "<!-- "
 	comment-end " -->"
 	comment-indent-function 'sgml-comment-indent
