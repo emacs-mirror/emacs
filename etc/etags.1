@@ -22,7 +22,6 @@ etags, ctags \- generate tag file for Emacs, vi
 [\|\-\-ignore\-indentation\|] [\|\-\-language=\fIlanguage\fP\|]
 [\|\-\-members\|] [\|\-\-output=\fItagfile\fP\|]
 [\|\-\-regex=\fIregexp\fP\|] [\|\-\-no\-regex\|]
-[\|\-\-ignore\-case\-regex=\fIregexp\fP\|]
 [\|\-\-help\|] [\|\-\-version\|]
 \fIfile\fP .\|.\|.
 
@@ -36,7 +35,6 @@ etags, ctags \- generate tag file for Emacs, vi
 [\|\-\-globals\|] [\|\-\-ignore\-indentation\|]
 [\|\-\-language=\fIlanguage\fP\|] [\|\-\-members\|]
 [\|\-\-output=\fItagfile\fP\|] [\|\-\-regex=\fIregexp\fP\|]
-[\|\-\-ignore\-case\-regex=\fIregexp\fP\|]
 [\|\-\-typedefs\|] [\|\-\-typedefs\-and\-c++\|]
 [\|\-\-update\|] [\|\-\-no\-warn\|]
 [\|\-\-help\|] [\|\-\-version\|]
@@ -149,27 +147,32 @@ Explicit name of file for tag table; overrides default \fBTAGS\fP or
 \fBtags\fP.   (But ignored with \fB\-v\fP or \fB\-x\fP.)
 .TP
 \fB\-r\fP \fIregexp\fP, \fB\-\-regex=\fIregexp\fP
-.TP
-\fB\-\-ignore\-case\-regex=\fIregexp\fP
-Make tags based on regexp matching for each line of the files
-following this option, in addition to the tags made with the standard
-parsing based on language.  When using \fB\-\-regex\fP, case is
-significant, while it is not with \fB\-\-ignore\-case\-regex\fP. May
-be freely intermixed with filenames and the \fB\-R\fP option.  The
-regexps are cumulative, i.e. each option will add to the previous
-ones.  The regexps are of the form:
+
+Make tags based on regexp matching for the files following this option,
+in addition to the tags made with the standard parsing based on
+language. May be freely intermixed with filenames and the \fB\-R\fP
+option.  The regexps are cumulative, i.e. each such option will add to
+the previous ones.  The regexps are of the form:
 .br
-	\fB/\fP\fItagregexp\fP[\fB/\fP\fInameregexp\fP]\fB/\fP
+	\fB/\fP\fItagregexp/\fP[\fInameregexp\fP\fB/\fP]\fImodifiers\fP
 .br
 
-where \fItagregexp\fP is used to match the lines that must be tagged.
-It should not match useless characters.  If the match is
-such that more characters than needed are unavoidably matched by
-\fItagregexp\fP, it may be useful to add a \fInameregexp\fP, to
-narrow down the tag scope.  \fBctags\fP ignores regexps without a
-\fInameregexp\fP.  The syntax of regexps is the same as in emacs.
-The following character escape sequences are supported:
-\\a, \\b, \\d, \\e, \\f, \\n, \\r, \\t, \\v.
+where \fItagregexp\fP is used to match the tag.  It should not match
+useless characters.  If the match is such that more characters than
+needed are unavoidably matched by \fItagregexp\fP, it may be useful to
+add a \fInameregexp\fP, to narrow down the tag scope.  \fBctags\fP
+ignores regexps without a \fInameregexp\fP.  The syntax of regexps is
+the same as in emacs.  The following character escape sequences are
+supported: \\a, \\b, \\d, \\e, \\f, \\n, \\r, \\t, \\v, which
+respectively stand for the ASCII characters BEL, BS, DEL, ESC, FF, NL,
+CR, TAB, VT.
+.br
+The \fImodifiers\fP are a sequence of 0 or more characters among
+\fIi\fP, which means to ignore case when matching; \fIm\fP, which means
+that the \fItagregexp\fP will be matched against the whole file contents
+at once, rather than line by line, and the matching sequence can match
+multiple lines; and \fIs\fP, which implies \fIm\fP and means that the
+dot character in \fItagregexp\fP matches the newline char as well.
 
 .br
 Here are some examples.  All the regexps are quoted to protect them

@@ -1,3 +1,31 @@
+2002-06-12  Francesco Potorti`  <pot@gnu.org>
+
+	* etags.c: New multi-line regexp and new regexp syntax.
+	(arg_type): at_icregexp label removed (obsolete).
+	(pattern): New member multi_line for multi-line regexps.
+	(filebuf): A global buffer containing the whole file as a string
+	for multi-line regexp matching.
+	(need_filebuf): Global flag raised if multi-line regexps used.
+	(print_help): Document new regexp modifiers, remove references to
+	obsolete option --ignore-case-regexp.
+	(main): Do not set regexp syntax and translation table here.
+	(main): Treat -c option as a backward compatibility hack.
+	(main, find_entries): Init and free filebuf.
+	(find_entries): Call regex_tag_multiline after the regular parser.
+	(scan_separators): Check for untermintaed regexp and return NULL.
+	(analyse_regex, add_regex): Remove the ignore_case argument, which
+	is now a modifier to the regexp.  All callers changed.
+	(add_regex): Manage the regexp modifiers.
+	(regex_tag_multiline): New function.  Reads from filebuf.
+	(readline_internal): If necessary, copy the whole file into filebuf.
+	(readline): Skip multi-line regexps, leave them to regex_tag_multiline.
+
+2002-06-11  Francesco Potorti`  <pot@gnu.org>
+
+	* etags.c (add_regex): Better check for null regexps.
+	(readline): Check for regex matching null string.
+	(find_entries): Reorganisation.
+
 2002-06-07  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c (scan_separators): Support all character escape

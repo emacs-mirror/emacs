@@ -569,6 +569,23 @@ comparison.
 
 ** Etags changes.
 
+*** New syntax for regular expressions, multi-line regular expressions.
+The syntax --ignore-case-regexp=/REGEX/NAME/ is now undocumented and
+retained only for backward compatibility.  The new equivalent syntax is
+--regex=/REGEX/NAME/i.  More generally, it is --regex=/REGEX/NAME/MODS,
+where `/NAME' is optional, as usual, and MODS is a string of 0 or more
+characters among `i' (ignore case), `m' (multi-line) and `s'
+(single-line).  The `m' and `s' modifiers behave as in Perl regular
+expressions: `m' allows regexps to match more than one line, while `s'
+(which implies `m') means that `.' matches newlines.  The ability to
+span newlines allows writing of much more powerful regular expressions
+and rapid prototyping for tagging new languages.
+
+*** Regular expressions can use char escape sequences as in Gcc
+The escaped character sequence \a, \b, \d, \e, \f, \n, \r, \t, \v,
+respectively, stand for the ASCII characters BEL, BS, DEL, ESC, FF, NL,
+CR, TAB, VT,
+
 *** In Prolog, etags creates tags for rules in addition to predicates.
 
 *** In Perl, packages are tags.
@@ -595,9 +612,6 @@ This option is mostly useful when calling etags from programs.  It can
 be used (only once) in place of a file name on the command line.  Etags
 will read from standard input and mark the produced tags as belonging to
 the file FILE.
-
-*** Regular expressions can use char escape sequences as in Gcc
-These are the escapes \a, \b, \d, \e, \f, \n, \r, \t, \v.
 
 +++
 ** The command line option --no-windows has been changed to
