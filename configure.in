@@ -1171,7 +1171,7 @@ LISP_FLOAT_TYPE=yes
 #### Add the libraries to LIBS and check for some functions.
 
 CPPFLAGS="$c_switch_system $c_switch_machine $CPPFLAGS"
-LIBS="$libsrc_libs"
+LIBS="$libsrc_libs $LIBS"
 
 dnl If found, this defines HAVE_LIBDNET, which m/pmax.h checks,
 dnl and also adds -ldnet to LIBS, which Autoconf uses for checks.
