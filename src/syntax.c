@@ -2504,10 +2504,11 @@ scan_sexps_forward (stateptr, from, from_byte, end, targetdepth,
 #define INC_FROM				\
 do { prev_from = from;				\
      prev_from_byte = from_byte; 		\
-     UPDATE_SYNTAX_TABLE_FORWARD (prev_from);	\
      prev_from_syntax				\
        = SYNTAX_WITH_FLAGS (FETCH_CHAR (prev_from_byte)); \
      INC_BOTH (from, from_byte);		\
+     if (from < end)				\
+       UPDATE_SYNTAX_TABLE_FORWARD (from);	\
   } while (0)
 
   immediate_quit = 1;
@@ -2580,6 +2581,7 @@ do { prev_from = from;				\
 
   SETUP_SYNTAX_TABLE (prev_from, 1);
   prev_from_syntax = SYNTAX_WITH_FLAGS (FETCH_CHAR (prev_from_byte));
+  UPDATE_SYNTAX_TABLE_FORWARD (from);
 
   /* Enter the loop at a place appropriate for initial state.  */
 
@@ -2620,7 +2622,6 @@ do { prev_from = from;				\
      else if (from < end)
 	if (SYNTAX_FLAGS_COMSTART_FIRST (prev_from_syntax))
 	  if (c1 = FETCH_CHAR (from_byte),
-	      UPDATE_SYNTAX_TABLE_FORWARD (from_byte),
 	      SYNTAX_COMSTART_SECOND (c1))
 	    /* Duplicate code to avoid a complex if-expression
 	       which causes trouble for the SGI compiler.  */
