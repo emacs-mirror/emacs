@@ -453,7 +453,7 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
   (let* ((file-name (expand-file-name (or file-name-arg rmail-file-name)))
 	 (existed (get-file-buffer file-name))
 	 (coding-system-for-read 'no-conversion)
-	 run-mail-hook)
+	 run-mail-hook msg-shown)
     ;; Like find-file, but in the case where a buffer existed
     ;; and the file was reverted, recompute the message-data.
     (if (and existed (not (verify-visited-file-modtime existed)))
@@ -484,10 +484,11 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
       (if (null rmail-inbox-list)
 	  (progn
 	    (rmail-set-message-counters)
-	    (rmail-show-message))))
+	    (rmail-show-message)
+	    (setq msg-shown t))))
     (or (and (null file-name-arg)
 	     (rmail-get-new-mail))
-	(rmail-show-message (rmail-first-unseen-message)))
+	(or msg-shown (rmail-show-message (rmail-first-unseen-message))))
     (if rmail-display-summary (rmail-summary))
     (rmail-construct-io-menu)
     (if run-mail-hook
@@ -1086,9 +1087,10 @@ It returns t if it got any new messages."
   (or (eq buffer-undo-list t)
       (setq buffer-undo-list nil))
   (let ((all-files (if file-name (list file-name)
-		     rmail-inbox-list)))
+		     rmail-inbox-list))
+	found)
     (unwind-protect
-	(let (found)
+	(progn
 	  (while all-files
 	    (let ((opoint (point))
 		  (new-messages 0)
@@ -1186,7 +1188,7 @@ It returns t if it got any new messages."
 		(setq found t))))
 	  found)
       ;; Don't leave the buffer screwed up if we get a disk-full error.
-      (rmail-show-message))))
+      (or found (rmail-show-message)))))
 
 (defun rmail-insert-inbox-text (files renamep)
   ;; Detect a locked file now, so that we avoid moving mail
