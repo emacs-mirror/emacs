@@ -906,7 +906,7 @@ process_file (file)
 
 /*
  * This routine sets up the boolean psuedo-functions which work
- * by seting boolean flags dependent upon the corresponding character
+ * by setting boolean flags dependent upon the corresponding character
  * Every char which is NOT in that string is not a white char.  Therefore,
  * all of the array "_wht" is set to FALSE, and then the elements
  * subscripted by the chars in "white" are set to TRUE.  Thus "_wht"
@@ -1413,6 +1413,7 @@ C_create_stabs ()
 
 #define CNL_SAVE_DEFINEDEF						\
 {									\
+  quotednl = FALSE;							\
   prev_linepos = linepos;						\
   SET_FILEPOS (linepos, inf, charno);					\
   lineno++;								\
@@ -1431,10 +1432,10 @@ C_entries (c_ext)
      int c_ext;			/* extension of C? */
 {
   register int c;		/* latest char read; '\0' for end of line */
-  register int tokoff;		/* offset in line of beginning of latest token */
+  register int tokoff;		/* offset in line of start of latest token*/
   register int toklen;		/* length of latest token */
   register char *lp;		/* pointer one beyond the character `c' */
-  logical incomm, inquote, inchar, midtoken;
+  logical incomm, inquote, inchar, quotednl, midtoken;
   int level;			/* current curly brace level */
   char tokb[BUFSIZ];
 
@@ -1444,7 +1445,7 @@ C_entries (c_ext)
   *lp = 0;
 
   definedef = dnone;
-  gotone = midtoken = inquote = inchar = incomm = FALSE;
+  gotone = midtoken = inquote = inchar = incomm = quotednl = FALSE;
   level = 0;
   tydef = none;
   next_token_is_func = 0;
@@ -1460,7 +1461,10 @@ C_entries (c_ext)
 	     '\0'; don't skip it, because it's the thing that tells us
 	     to read the next line.  */
 	  if (*lp == 0)
-	    continue;
+	    {
+	      quotednl =TRUE;
+	      continue;
+	    }
 	  lp++;
 	  c = ' ';
 	}
@@ -1520,7 +1524,8 @@ C_entries (c_ext)
 	    if (structdef == stagseen)
 	      structdef = scolonseen;
 	    break;
-	    /* Not a struct definition when semicolon seen in non-sinbody context. */
+	    /* Not a struct definition when semicolon seen
+	       in non-sinbody context. */
 	  case ';':
 	    if (structdef != snone && structdef != sinbody)
 	      {
@@ -1627,7 +1632,7 @@ C_entries (c_ext)
 		      lp = lp_tmp;
 		      if (bingo)
 			{
-			  if (GET_CHARNO (tok.linestart) != GET_CHARNO (linepos)
+			  if (GET_CHARNO (tok.linestart) != GET_CHARNO(linepos)
 			      && !tok_at_end_of_line)
 			    {
 			      /*
@@ -1639,7 +1644,8 @@ C_entries (c_ext)
 				tok.p = lb1.buffer + (tok.p - tok_linebuf);
 			      tok_linebuf = lb1.buffer;
 			    }
-			  if (structdef == sinbody && definedef == dnone && is_func)
+			  if (structdef == sinbody
+			      && definedef == dnone && is_func)
 			    {	/* function defined in C++ class body */
 			      sprintf (tokb, "%s::%.*s",
 				       structtag[0] == '\0' ? "_anonymous_"
@@ -1669,10 +1675,10 @@ C_entries (c_ext)
 	      midtoken = TRUE;
 	    }
 	}
-      /* Detect end of line, after having handled the last token on the line.  */
+      /* Detect end of line, having handled the last token on the line.  */
       if (c == 0)
 	{
-	  if (incomm)
+	  if (incomm || inquote || quotednl)
 	    {
 	      CNL_SAVE_DEFINEDEF;
 	    }
@@ -1710,7 +1716,8 @@ C_entries (c_ext)
 logical
 consider_token (c, lpp, tokp, is_func, c_ext, level)
      reg char c;		/* IN: first char after the token */
-     char **lpp;		/* IN OUT: *lpp points to 2nd char after the token */
+     char **lpp;		/* IN OUT: *lpp points
+				   to 2nd char after the token */
      reg TOKEN *tokp;		/* IN */
      logical *is_func;		/* OUT */
      int c_ext;			/* IN */
@@ -1844,7 +1851,8 @@ consider_token (c, lpp, tokp, is_func, c_ext, level)
     {
     case st_C_struct:
     case st_C_enum:
-      if (tydef == begin || (typedefs_and_cplusplus && level == 0 && structdef == snone))
+      if (tydef == begin
+	  || (typedefs_and_cplusplus && level == 0 && structdef == snone))
 	{
 	  structdef = skeyseen;
 	  structkey = tokse;
@@ -1887,8 +1895,8 @@ consider_token (c, lpp, tokp, is_func, c_ext, level)
 	  structdef = snone;
 	  (void) strcpy (structtag, "<error 3>");
 	}
-      /* Now what?  And how does/should this stuff interact with tydef?? */
-      /* Also maybe reset lp to *lpp for benefit of the function finding code. */
+      /* Now what?  And how does/should this stuff interact with tydef??  */
+      /* Also maybe reset lp to *lpp for sake of function-finding code.  */
     }
   if (tydef == begin)
     {
