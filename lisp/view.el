@@ -187,9 +187,6 @@ Entry to this mode runs the normal hook `view-mode-hook'.
 ;  if you call it without passing a buffer as argument
 ;  and they are not easy to fix.
 ;  (interactive)
-  (make-local-variable 'view-old-mode-line-buffer-identification)
-  (setq view-old-mode-line-buffer-identification
-	mode-line-buffer-identification)
   (make-local-variable 'view-old-buffer-read-only)
   (setq view-old-buffer-read-only buffer-read-only)
   (make-local-variable 'view-old-local-map)
@@ -199,11 +196,6 @@ Entry to this mode runs the normal hook `view-mode-hook'.
 	(and (boundp 'Helper-return-blurb) Helper-return-blurb))
 
   (setq buffer-read-only t)
-  (setq mode-line-buffer-identification
-	(list
-	 (if (buffer-file-name)
-	     "Viewing %f"
-	   "Viewing %b")))
   (setq view-mode t)
   (setq Helper-return-blurb
 	(format "continue viewing %s"
@@ -237,8 +229,6 @@ Entry to this mode runs the normal hook `view-mode-hook'.
 If you viewed an existing buffer, that buffer returns to its previous mode.
 If you viewed a file that was not present in Emacs, its buffer is killed."
   (interactive)
-  (setq mode-line-buffer-identification
-	view-old-mode-line-buffer-identification)
   (use-local-map view-old-local-map)
   (setq buffer-read-only view-old-buffer-read-only)
 
