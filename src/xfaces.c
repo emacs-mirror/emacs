@@ -287,6 +287,10 @@ x_free_gc (f, gc)
 #define abs(X)		((X) < 0 ? -(X) : (X))
 #endif
 
+/* Number of pt per inch (from the TeXbook).  */
+
+#define PT_PER_INCH 72.27
+
 /* Non-zero if face attribute ATTR is unspecified.  */
 
 #define UNSPECIFIEDP(ATTR) EQ ((ATTR), Qunspecified)
@@ -2105,14 +2109,13 @@ xlfd_point_size (f, font)
      struct font_name *font;
 {
   double resy = FRAME_X_DISPLAY_INFO (f)->resy;
-  double font_resy = atoi (font->fields[XLFD_RESY]);
-  double font_pt = atoi (font->fields[XLFD_POINT_SIZE]);
+  double font_pixel = atoi (font->fields[XLFD_PIXEL_SIZE]);
   int real_pt;
 
-  if (font_resy == 0 || font_pt == 0)
+  if (font_pixel == 0)
     real_pt = 0;
   else
-    real_pt = (font_resy / resy) * font_pt + 0.5;
+    real_pt = PT_PER_INCH * 10.0 * font_pixel / resy + 0.5;
 
   return real_pt;
 }
@@ -2131,8 +2134,9 @@ pixel_point_size (f, pixel)
   double real_pt;
   int int_pt;
 
-  /* As one inch is 72 points, 72/RESY gives the point size of one dot.  */
-  real_pt = pixel * 72 / resy;
+  /* As one inch is PT_PER_INCH points, PT_PER_INCH/RESY gives the
+     point size of one dot.  */
+  real_pt = pixel * PT_PER_INCH / resy;
   int_pt = real_pt + 0.5;
 
   return int_pt;
@@ -5774,12 +5778,12 @@ build_scalable_font_name (f, font, specified_pt)
   if (font->numeric[XLFD_RESY] != 0)
     {
       pt = resy / font->numeric[XLFD_RESY] * specified_pt + 0.5;
-      pixel_value = font->numeric[XLFD_RESY] / 720.0 * pt;
+      pixel_value = font->numeric[XLFD_RESY] / (PT_PER_INCH * 10.0) * pt;
     }
   else
     {
       pt = specified_pt;
-      pixel_value = resy / 720.0 * pt;
+      pixel_value = resy / (PT_PER_INCH * 10.0) * pt;
     }
 
   /* Set point size of the font.  */
