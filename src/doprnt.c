@@ -301,7 +301,8 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 	    case 'c':
 	      if (cnt == nargs)
 		error ("not enough arguments for format string");
-	      tem = CHAR_STRING ((int) (EMACS_INT) args[cnt], charbuf, string);
+	      tem = CHAR_STRING ((int) (EMACS_INT) args[cnt], charbuf);
+	      string = charbuf;
 	      cnt++;
 	      string[tem] = 0;
 	      width = strwidth (string, tem);
