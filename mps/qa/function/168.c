@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!168.c(trunk.1) $
  summary = MVFF split allocate from SW log (af_six), with hysteresis control
  language = c
  link = testlib.o
@@ -60,7 +60,9 @@ static void test(void)
    size = event.alloc.size;
    pool = (size < SPLIT1) ? pool1 : (size < SPLIT2) ? pool2 : pool3;
    die(mps_alloc(&objs[id], pool, size), "alloc");
+/*
    comment("%d %ld %p", id, size, objs[id]);
+*/
    sizes[id] = size;
    c = objs[id];
    *c = 43;
