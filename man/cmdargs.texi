@@ -351,13 +351,14 @@ and here's how to do it in csh or tcsh:
 setenv ORGANIZATION "not very much"
 @end example
 
-  When Emacs is uses the X Window System, it inherits the use
+  When Emacs uses the X Window System, it inherits the use
 of a large number of environment variables from the X libraries.  See
 the X documentation for more information.
 
 @menu
 * General Variables::   Environment variables that all versions of Emacs use.
 * Misc Variables::      Certain system-specific variables.
+* MS-Windows Registry:: An alternative to the environment on MS-Windows.
 @end menu
 
 @node General Variables
@@ -408,7 +409,7 @@ The location of the user's files in the directory tree; used for
 expansion of file names starting with a tilde (@file{~}).  On MS-DOS, it
 defaults to the directory from which Emacs was started, with @samp{/bin}
 removed from the end if it was present.  On Windows, the default value
-of @code{HOME} is @file{C:/}, the root directory of drive @file{C:}.
+of @env{HOME} is @file{C:/}, the root directory of drive @file{C:}.
 @item HOSTNAME
 The name of the machine that Emacs is running on.
 @item INCPATH 
@@ -434,7 +435,12 @@ variables is not set, the category defaults to the value of the
 @env{LANG} is not set.  But if @env{LC_ALL} is specified, it overrides
 the settings of all the other locale environment variables.
 
-The value of the LC_CTYPE category is
+On MS-Windows, if @env{LANG} is not already set in the environment
+when Emacs starts, Emacs sets it based on the system-wide default
+language, which you can set in the @samp{Regional Settings} Control Panel
+on some versions of MS-Windows.
+
+The value of the @env{LC_CTYPE} category is
 matched against entries in @code{locale-language-names},
 @code{locale-charset-language-names}, and
 @code{locale-preferred-coding-systems}, to select a default language
@@ -469,13 +475,13 @@ Used by the Gnus package.
 @item SHELL
 The name of an interpreter used to parse and execute programs run from
 inside Emacs.
-@cindex background mode, on @code{xterm}
+@cindex background mode, on @command{xterm}
 @item TERM
 The type of the terminal that Emacs is using.  This variable must be
 set unless Emacs is run in batch mode.  On MS-DOS, it defaults to
 @samp{internal}, which specifies a built-in terminal emulation that
 handles the machine's own display.  If the value of @env{TERM} indicates
-that Emacs runs in non-windowed mode from @code{xterm} or a similar
+that Emacs runs in non-windowed mode from @command{xterm} or a similar
 terminal emulator, the background mode defaults to @samp{light}, and
 Emacs will choose colors that are appropriate for a light background.
 @item TERMCAP
@@ -486,10 +492,10 @@ terminal specified by the @env{TERM} variable.  This defaults to
 Used by the Emerge package as a prefix for temporary files.
 @item TZ
 This specifies the current time zone and possibly also daylight
-saving time information.  On MS-DOS, if @code{TZ} is not set in the
+saving time information.  On MS-DOS, if @env{TZ} is not set in the
 environment when Emacs starts, Emacs defines a default value as
 appropriate for the country code returned by DOS.  On MS-Windows, Emacs
-does not use @code{TZ} at all.
+does not use @env{TZ} at all.
 @item USER
 The user's login name.  See also @env{LOGNAME}.  On MS-DOS, this
 defaults to @samp{root}.
@@ -544,7 +550,63 @@ actually used.
 
 @item WINDOW_GFX
 Used when initializing the Sun windows system.
+
+@item PRELOAD_WINSOCK
+On MS-Windows, if you set this variable, Emacs will load and initialize
+the network library at startup, instead of waiting until the first
+time it is required.
+
+@item emacs_dir
+On MS-Windows, @env{emacs_dir} is a special environment variable, which
+indicates the full path of the directory in which Emacs is installed.
+If Emacs is installed in the standard directory structure, it
+calculates this value automatically.  It is not much use setting this
+variable yourself unless your installation is non-standard, since
+unlike other environment variables, it will be overridden by Emacs at
+startup.  When setting other environment variables, such as
+@env{EMACSLOADPATH}, you may find it useful to use @env{emacs_dir}
+rather than hard-coding an absolute path.  This allows multiple
+versions of Emacs to share the same environment variable settings, and
+it allows you to move the Emacs installation directory, without
+changing any environment or registry settings.
 @end table
+
+@node MS-Windows Registry
+@appendixsubsec The MS-Windows System Registry
+@pindex addpm, MS-Windows installation program
+@cindex registry, setting environment variables and resources on MS-Windows
+
+On MS-Windows, the installation program @command{addpm.exe} adds values
+for @env{emacs_dir}, @env{EMACSLOADPATH}, @env{EMACSDATA},
+@env{EMACSPATH}, @env{EMACSDOC}, @env{SHELL} and @env{TERM} to the
+@file{HKEY_LOCAL_MACHINE} section of the system registry, under
+@file{/Software/GNU/Emacs}.  It does this because there is no standard
+place to set environment variables across different versions of
+Windows.  Running @command{addpm.exe} is no longer strictly
+necessary in recent versions of Emacs, but if you are upgrading from
+an older version, running @command{addpm.exe} ensures that you do not have
+older registry entries from a previous installation, which may not be
+compatible with the latest version of Emacs.
+
+When Emacs starts, as well as checking the environment, it also checks
+the System Registry for those variables and for @env{HOME}, @env{LANG}
+and @env{PRELOAD_WINSOCK}.
+
+To determine the value of those variables, Emacs goes through the
+following procedure.  First, the environment is checked.  If the
+variable is not found there, Emacs looks for registry keys by that
+name under @file{/Software/GNU/Emacs}; first in the
+@file{HKEY_CURRENT_USER} section of the registry, and if not found
+there, in the @file{HKEY_LOCAL_MACHINE} section.  Finally, if Emacs
+still cannot determine the values, compiled-in defaults are used.
+
+In addition to the environment variables above, you can also add many
+of the settings which on X belong in the @file{.Xdefaults} file
+(@pxref{X Resources}) to the @file{/Software/GNU/Emacs} registry key.
+Settings you add to the @file{HKEY_LOCAL_MACHINE} section will affect
+all users of the machine.  Settings you add to the
+@file{HKEY_CURRENT_USER} section will only affect you, and will
+override machine wide settings.
 
 @node Display X
 @appendixsec Specifying the Display Name 
@@ -598,7 +660,7 @@ Xlib:  connection to "glasperle:0.0" refused by server
 @end smallexample
 
 @noindent
-You might be able to overcome this problem by using the @code{xhost}
+You might be able to overcome this problem by using the @command{xhost}
 command on the local system to give permission for access from your
 remote machine.
 
@@ -694,7 +756,7 @@ Normally you should use @samp{iso8859-1}.
   You will probably want to use a fixed-width default font---that is,
 a font in which all characters have the same width.  Any font with
 @samp{m} or @samp{c} in the @var{spacing} field of the long name is a
-fixed-width font.  Here's how to use the @code{xlsfonts} program to
+fixed-width font.  Here's how to use the @command{xlsfonts} program to
 list all the fixed-width fonts available on your system:
 
 @example
@@ -704,7 +766,7 @@ xlsfonts -fn '*-*-*-*-*-*-*-*-*-*-*-c*'
 @end example
 
 @noindent
-To see what a particular font looks like, use the @code{xfd} command.
+To see what a particular font looks like, use the @command{xfd} command.
 For example:
 
 @example
@@ -877,7 +939,7 @@ screen, and a minus sign there indicates the distance from the bottom.
 The values @var{xoffset} and @var{yoffset} may themselves be positive or
 negative, but that doesn't change their meaning, only their direction.
 
-  Emacs uses the same units as @code{xterm} does to interpret the geometry.
+  Emacs uses the same units as @command{xterm} does to interpret the geometry.
 The @var{width} and @var{height} are measured in characters, so a large font
 creates a larger frame than a small font.  (If you specify a proportional
 font, Emacs uses its maximum bounds width as the width unit.)  The
