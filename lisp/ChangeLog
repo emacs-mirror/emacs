@@ -1,3 +1,7 @@
+1999-10-19  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/eval-reg.el: Removed -- not now needed by edebug.
+
 1999-10-19  Sam Steingold  <sds@ksp.com>
 
 	* map-ynp.el (map-y-or-n-p): Remove extraneous `not' to
