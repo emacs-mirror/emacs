@@ -13,7 +13,7 @@ Emacs commands to move around in this buffer, and special Dired commands
 to operate on the files listed.
 
   The Dired-X package provides various extra features for Dired mode.
-@xref{,Dired-X,,dired-x, Dired Extra Version 2 User's Manual}.
+@xref{Dired-X,,,dired-x, Dired Extra Version 2 User's Manual}.
 
 @menu
 * Enter: Dired Enter.         How to invoke Dired.
@@ -121,16 +121,17 @@ contents).  The default is to delete only empty directories.
 @kindex DEL @r{(Dired)}
   The files are flagged for deletion rather than deleted immediately to
 reduce the danger of deleting a file accidentally.  Until you direct
-Dired to expunge the flagged files, you can remove deletion flags using
+Dired to delete the flagged files, you can remove deletion flags using
 the commands @kbd{u} and @key{DEL}.  @kbd{u} (@code{dired-unmark}) works
 just like @kbd{d}, but removes flags rather than making flags.
 @key{DEL} (@code{dired-unmark-backward}) moves upward, removing flags;
 it is like @kbd{u} with argument @minus{}1.
 
 @kindex x @r{(Dired)}
-@findex dired-expunge
+@findex dired-do-flagged-delete
 @cindex expunging (Dired)
-  To delete the flagged files, type @kbd{x} (@code{dired-expunge}).
+  To delete the flagged files, type @kbd{x} (@code{dired-do-flagged-delete}).
+(This is also known as @dfn{expunging}.)
 This command first displays a list of all the file names flagged for
 deletion, and requests confirmation with @kbd{yes}.  If you confirm,
 Dired deletes the flagged files, then deletes their lines from the text
@@ -180,8 +181,8 @@ keep.@refill
   @kbd{&} (@code{dired-flag-garbage-files}) flags files whose names
 match the regular expression specified by the variable
 @code{dired-garbage-files-regexp}.  By default, this matches certain
-files produced by @TeX{}, and the @samp{.orig} and @samp{.rej} files
-produced by @code{patch}.
+files produced by @TeX{}, @samp{.bak} files, and the @samp{.orig} and
+@samp{.rej} files produced by @code{patch}.
 
 @kindex # @r{(Dired)}
 @kindex ~ @r{(Dired)}
@@ -273,17 +274,17 @@ View the file described on the current line, using @kbd{M-x view-file}
 
 Viewing a file is like visiting it, but is slanted toward moving around
 in the file conveniently and does not allow changing the file.
-@xref{Misc File Ops,View File}.
+@xref{Misc File Ops,View File, Miscellaneous File Operations}.
 @end table
 
 @node Marks vs Flags
 @section Dired Marks vs. Flags
 
 @cindex marking many files (in Dired)
-  Instead of flagging a file with @samp{D}, you can @dfn{mark} the file
-with some other character (usually @samp{*}).  Most Dired commands to
-operate on files, aside from ``expunge'' (@kbd{x}), look for files
-marked with @samp{*}.
+  Instead of flagging a file with @samp{D}, you can @dfn{mark} the
+file with some other character (usually @samp{*}).  Most Dired
+commands to operate on files use the files marked with @samp{*}, the
+exception being @kbd{x} which deletes the flagged files.
 
   Here are some commands for marking with @samp{*}, or for unmarking or
 operating on marks.  (@xref{Dired Deletion}, for commands to flag and
@@ -346,9 +347,9 @@ Move point to previous line and remove any mark on that line
 
 @item * !
 @kindex * ! @r{(Dired)}
-@findex dired-unmark-all-files-no-query
+@findex dired-unmark-all-marks
 Remove all marks from all the files in this Dired buffer
-(@code{dired-unmark-all-files-no-query}).
+(@code{dired-unmark-all-marks}).
 
 @item * ? @var{markchar}
 @kindex * ? @r{(Dired)}
@@ -493,7 +494,7 @@ recursively, which means that directories cannot be copied.
 Delete the specified files (@code{dired-do-delete}).  Like the other
 commands in this section, this command operates on the @emph{marked}
 files, or the next @var{n} files.  By contrast, @kbd{x}
-(@code{dired-expunge}) deletes all @dfn{flagged} files.
+(@code{dired-do-flagged-delete}) deletes all @dfn{flagged} files.
 
 @findex dired-do-rename
 @kindex R @r{(Dired)}
@@ -594,12 +595,12 @@ the first match it finds; use @kbd{M-,} to resume the search and find
 the next match.  @xref{Tags Search}.
 
 @kindex Q @r{(Dired)}
-@findex dired-do-query-replace
+@findex dired-do-query-replace-regexp
 @cindex search and replace in multiple files (in Dired)
-@item Q @var{from} @key{RET} @var{to} @key{RET}
+@item Q @var{regexp} @key{RET} @var{to} @key{RET}
 Perform @code{query-replace-regexp} on each of the specified files,
-replacing matches for @var{from} (a regular expression) with the string
-@var{to} (@code{dired-do-query-replace}).
+replacing matches for @var{regexp} with the string
+@var{to} (@code{dired-do-query-replace-regexp}).
 
 This command is a variant of @code{tags-query-replace}.  If you exit the
 query replace loop, you can use @kbd{M-,} to resume the scan and replace
@@ -659,7 +660,7 @@ shell loop.  For example, this shell command is another way to
 uuencode each file:
 
 @example
-for file in *; do uuencode $file $file >$file.uu; done
+for file in *; do uuencode "$file" "$file" >"$file".uu; done
 @end example
 
 The working directory for the shell command is the top-level directory
@@ -817,7 +818,8 @@ line to delete the subdirectory.  @xref{Dired Updating}.
 @section Moving Over Subdirectories
 
   When a Dired buffer lists subdirectories, you can use the page motion
-commands @kbd{C-x [} and @kbd{C-x ]} to move by entire directories.
+commands @kbd{C-x [} and @kbd{C-x ]} to move by entire directories
+(@pxref{Pages}).
 
 @cindex header line (Dired)
 @cindex directory header lines
@@ -936,20 +938,22 @@ Hidden subdirectories are updated but remain hidden.
 @kindex l @r{(Dired)}
 @findex dired-do-redisplay
   To update only some of the files, type @kbd{l}
-(@code{dired-do-redisplay}).  This command applies to the next @var{n}
-files, or to the marked files if any, or to the current file.  Updating
-them means reading their current status from the file system and
-changing the buffer to reflect it properly.
+(@code{dired-do-redisplay}).  Like the Dired file-operating commands,
+this command operates on the next @var{n} files (or previous
+@minus{}@var{n} files), or on the marked files if any, or on the
+current file.  Updating the files means reading their current status,
+then updating their lines in the buffer to indicate that status.
 
   If you use @kbd{l} on a subdirectory header line, it updates the
 contents of the corresponding subdirectory.
 
 @kindex k @r{(Dired)}
 @findex dired-do-kill-lines
-  To delete the specified @emph{file lines}---not the files, just the
-lines---type @kbd{k} (@code{dired-do-kill-lines}).  With a numeric
-argument @var{n}, this command applies to the next @var{n} files;
-otherwise, it applies to the marked files.
+  To delete the specified @emph{file lines} from the buffer---not
+delete the files---type @kbd{k} (@code{dired-do-kill-lines}).  Like
+the file-operating commands, this command operates on the next @var{n}
+files, or on the marked files if any; but it does not operate on the
+current file as a last resort.
 
   If you kill the line for a file that is a directory, the directory's
 contents are also deleted from the buffer.  Typing @kbd{C-u k} on the
@@ -958,7 +962,7 @@ from the Dired buffer.
 
   The @kbd{g} command brings back any individual lines that you have
 killed in this way, but not subdirectories---you must use @kbd{i} to
-reinsert each subdirectory.
+reinsert a subdirectory.
 
 @cindex Dired sorting
 @cindex sorting Dired buffer
