@@ -1104,7 +1104,7 @@ DEFUN ("chars-in-region", Fchars_in_region, Schars_in_region, 2, 2, 0,
   from = min (XFASTINT (beg), XFASTINT (end));
   to = max (XFASTINT (beg), XFASTINT (end));
 
-  return to - from;
+  return make_number (to - from);
 }
 
 /* Return the number of characters in the NBYTES bytes at PTR.
