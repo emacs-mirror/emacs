@@ -22,7 +22,7 @@ existing support and the extra stuff at
 
 	These examples are all fixed by the change of 2002-10-14, but
 	there still exist questionalble SINGLE_BYTE_CHAR_P in the
-	code.
+	code (keymap.c and print.c).
 
  * Rationalize character syntax and its relationship to the Unicode
    database.  (Applies mainly to symbol an punctuation syntax.)
