@@ -1744,11 +1744,16 @@ A prefix argument means do not revert the buffer afterwards."
 ;;;###autoload
 (defun vc-update-change-log (&rest args)
   "Find change log file and add entries from recent RCS/CVS logs.
-The mark is left at the end of the text prepended to the change log.
-With prefix arg of C-u, only find log entries for the current buffer's file.
-With any numeric prefix arg, find log entries for all files currently visited.
-Otherwise, find log entries for all registered files in the default
+Normally, find log entries for all registered files in the default
 directory using `rcs2log', which finds CVS logs preferentially.
+The mark is left at the end of the text prepended to the change log.
+
+With prefix arg of C-u, only find log entries for the current buffer's file.
+
+With any numeric prefix arg, find log entries for all currently visited
+files that are under version control.  This puts all the entries in the
+log for the default directory, which may not be appropriate.
+
 From a program, any arguments are assumed to be filenames and are
 passed to the `rcs2log' script after massaging to be relative to the
 default directory."
