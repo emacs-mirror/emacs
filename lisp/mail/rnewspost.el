@@ -438,4 +438,6 @@ original message into it."
   (interactive)
   (mail-other-window nil nil nil nil nil (current-buffer)))
 
+(provide 'rnewspost)
+
 ;;; rnewspost.el ends here

@@ -262,4 +262,6 @@ Returns to Electric Buffer Menu when done."
       (message "Buffer %s does not exist!" bufnam)
       (sit-for 4))))
 
+(provide 'ebuff-menu)
+
 ;;; ebuff-menu.el ends here

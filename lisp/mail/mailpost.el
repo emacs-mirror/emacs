@@ -100,4 +100,6 @@ site-init."
       (if (bufferp errbuf)
 	  (switch-to-buffer errbuf)))))
 
+(provide 'mailpost)
+
 ;;; mailpost.el ends here

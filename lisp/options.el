@@ -29,6 +29,8 @@
 ;; mode specifically for editing option values.  Do `M-x describe-mode' in
 ;; that context for more details.
 
+;; The customization buffer feature is intended to make this obsolete.
+
 ;;; Code:
 
 ;;;###autoload
@@ -138,5 +140,7 @@ For convenience, the characters \\[backward-paragraph] and \\[forward-paragraph]
        (set var (funcall modfun var)))
      (kill-sexp 1)
      (prin1 (symbol-value var) (current-buffer)))))
+
+(provide 'options)
 
 ;;; options.el ends here

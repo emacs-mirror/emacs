@@ -267,4 +267,6 @@ turns it on iff arg is positive, otherwise off."
 	(cond ((null arg) (null nroff-electric-mode))
 	      (t (> (prefix-numeric-value arg) 0)))))
 
+(provide 'nroff-mode)
+
 ;;; nroff-mode.el ends here

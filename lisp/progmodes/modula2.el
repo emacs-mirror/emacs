@@ -544,4 +544,6 @@ FROM SysStreams IMPORT sysIn, sysOut, sysErr;
 	 (find-file-other-window
 	  (concat (substring (buffer-name) 0 -3)  ".mi")))))
 
+(provide 'modula2)
+
 ;;; modula2.el ends here

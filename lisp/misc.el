@@ -1,4 +1,4 @@
-;;; misc.el --- basic editing commands for Emacs
+;;; misc.el --- some nonstandard basic editing commands for Emacs
 
 ;; Copyright (C) 1989 Free Software Foundation, Inc.
 
@@ -54,5 +54,7 @@ The characters copied are inserted in the buffer before point."
 			    (min (save-excursion (end-of-line) (point))
 				 (+ n (point)))))))
     (insert string)))
+
+(provide 'misc)
 
 ;;; misc.el ends here

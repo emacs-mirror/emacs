@@ -253,4 +253,6 @@ or if CONDITION had no actions, after all other CONDITIONs."
 	(setq auto-insert-alist (cons (cons key action)
 				      auto-insert-alist))))))
 
+(provide 'autoinsert)
+
 ;;; autoinsert.el ends here

@@ -441,4 +441,6 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 	  (setq list (cons digit list))))
     (mapcar 'mpuz-correct-guess list)))
 
+(provide 'mpuz)
+
 ;;; mpuz.el ends here

@@ -152,4 +152,6 @@ do (setq lisp-mode-hook 'ledit-from-lisp-mode)"
   (setq major-mode 'ledit-mode)
   (run-hooks 'ledit-mode-hook))
 
+(provide 'ledit)
+
 ;;; ledit.el ends here

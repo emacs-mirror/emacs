@@ -142,4 +142,6 @@ available to the user.  This also creates the menu itself."
     (and litem (funcall litem event)))
   (pop-to-buffer x-menu-assoc-buffer))
 
+(provide 'x-menu)
+
 ;;; x-menu.el ends here

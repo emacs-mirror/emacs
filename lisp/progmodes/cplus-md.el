@@ -1058,4 +1058,6 @@ The fill lines remain a comment."
 ;; 	(beginning-of-line 1)))
 ;;     (goto-char restore)))
 
+(provide 'cplus-md)
+
 ;;; cplus-md.el ends here

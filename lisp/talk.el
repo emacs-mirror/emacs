@@ -98,4 +98,6 @@ Select the first of these windows, displaying the first of the buffers."
 	  (select-window (frame-first-window frame)))
       (select-frame old-frame))))
 
+(provide 'talk)
+
 ;;; talk.el ends here

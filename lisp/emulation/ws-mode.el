@@ -752,4 +752,6 @@ sWith: " )
 		    (ws-block-end-marker "Block begin marker not set")
 		    (t "Block markers not set")))))
 
+(provide 'ws-mode)
+
 ;;; ws-mode.el ends here

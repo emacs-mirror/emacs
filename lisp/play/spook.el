@@ -66,4 +66,6 @@
 ;; cleaned up, generalized, gratuitously broken by esr, and now resides in
 ;; cookie1.el.
 
+(provide 'spook)
+
 ;;; spook.el ends here

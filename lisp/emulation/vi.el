@@ -1483,4 +1483,6 @@ With ARG, inserts that many newlines."
 			(if flag (forward-char 1))))) arg)
     t))
 
+(provide 'vi)
+
 ;;; vi.el ends here

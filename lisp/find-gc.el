@@ -149,4 +149,6 @@
       (setq ptr (cdr ptr))))
 )
 
+(provide 'find-gc)
+
 ;;; find-gc.el ends here

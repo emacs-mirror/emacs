@@ -98,4 +98,6 @@ Default is 2."
 		 (funcall search-function overlap opoint t))))))
       (sit-for 0))))
 
+(provide 'dissociate)
+
 ;;; dissociate.el ends here

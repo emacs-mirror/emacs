@@ -241,4 +241,6 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'."
   (and (file-exists-p file)
        (< 0 (nth 7 (file-attributes (file-chase-links file))))))
 
+(provide 'time)
+
 ;;; time.el ends here

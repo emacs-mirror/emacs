@@ -147,4 +147,6 @@ The Command History listing is recomputed each time this mode is invoked."
       (progn (message "")
 	     (throw 'electric-history-quit nil))))
 
+(provide 'echistory)
+
 ;;; echistory.el ends here

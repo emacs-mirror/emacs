@@ -104,4 +104,6 @@
   (if vt-applications-keypad-p (vt-keypad-off (interactive-p))
     (vt-keypad-on (interactive-p))))
 
+(provide 'vt-control)
+
 ;;; vt-control.el ends here

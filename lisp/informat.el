@@ -427,4 +427,6 @@ For example, invoke \"emacs -batch -f batch-info-validate $info/ ~/*.info\""
 	    (error (message ">> Error: %s" (prin1-to-string err))))))
       (kill-emacs error))))
 
+(provide 'informat)
+
 ;;; informat.el ends here

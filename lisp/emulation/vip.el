@@ -3042,4 +3042,6 @@ vip-s-string"
 
 (if (file-exists-p vip-startup-file) (load vip-startup-file))
 
+(provide 'vip)
+
 ;;; vip.el ends here

@@ -60,4 +60,6 @@
   (interactive "*")
   (studlify-region (point-min) (point-max)))
 
+(provide 'studly)
+
 ;;; studly.el ends here

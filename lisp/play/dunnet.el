@@ -3361,4 +3361,7 @@ File not found")))
   (setq dun-batch-mode t)
   (dun-batch-loop))
 
+(provide 'dunnet)
+
+;; dunnet.el ends here
 

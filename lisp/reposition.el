@@ -190,9 +190,11 @@ first comment line visible (if point is in a comment)."
 	lines
       (- lines))))
 
-; (defmacro repos-debug-macro (case-no)
-;   (` (message
-;       (concat "Case " (, case-no) ": %s %s %s %s %s")
-;       ht line comment-height defun-height defun-depth)))
+;; (defmacro repos-debug-macro (case-no)
+;;   (` (message
+;;       (concat "Case " (, case-no) ": %s %s %s %s %s")
+;;       ht line comment-height defun-height defun-depth)))
+
+(provide 'reposition)
 
 ;;; reposition.el ends here

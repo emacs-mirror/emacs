@@ -147,4 +147,6 @@ command `kermit | tr -d '\\015''."
   (interactive)
   (set-process-filter (get-buffer-process (current-buffer)) nil))
 
+(provide 'kermit)
+
 ;;; kermit.el ends here

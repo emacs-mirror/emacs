@@ -88,3 +88,7 @@
 (global-set-key [edit] 'find-file) ;EDIT
 (global-set-key [S-shell] 'shell) ;SHELL
 (global-set-key [S-help] 'manual-entry) ;HELP
+
+(provide 'x-apollo)
+
+;;; x-apollo.el ends here

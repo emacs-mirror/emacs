@@ -41,4 +41,6 @@
 		       nil nil nil "-o" (expand-file-name filename))
   (message "ncgen in progress...done"))
 
+(provide 'cdl)
+
 ;;; cdl.el ends here.

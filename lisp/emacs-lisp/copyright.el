@@ -143,4 +143,6 @@ copyright, if any, are updated as well."
        (message "Copyright extends beyond `copyright-limit' and won't be updated automatically."))
   comment-end)
 
+(provide 'copyright)
+
 ;; copyright.el ends here

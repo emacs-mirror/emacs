@@ -151,4 +151,6 @@ for example, \"word\"."
 	 (replace-match " "))
        (message "%sincorrect" (buffer-substring 1 (point-max)))))))
 
+(provide 'spell)
+
 ;;; spell.el ends here

@@ -418,4 +418,6 @@ a reflection."
    ((equal item (car list)) (cdr list))
    (t (cons (car list) (bb-delete item (cdr list))))))
 
+(provide 'blackbox)
+
 ;;; blackbox.el ends here

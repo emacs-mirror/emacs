@@ -1590,4 +1590,6 @@ Pascal Outline mode provides some additional commands.
   (pascal-goto-defun)
   (pascal-hide-other-defuns))
 
+(provide 'pascal)
+
 ;;; pascal.el ends here

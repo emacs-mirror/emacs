@@ -60,4 +60,6 @@ which specify the range to operate on."
      (while (re-search-forward "_\b\\|\b_" end1 t)
        (delete-char -2)))))
 
+(provide 'underline)
+
 ;;; underline.el ends here

@@ -181,4 +181,6 @@ following the containing message."
 		   (rmail-update-summary))))))
       (set-buffer obuf))))
 
+(provide 'undigest)
+
 ;;; undigest.el ends here

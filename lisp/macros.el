@@ -303,4 +303,6 @@ and then select the region of un-tablified names and use
 
 ;;;###autoload (define-key ctl-x-map "q" 'kbd-macro-query)
 
+(provide 'macros)
+
 ;;; macros.el ends here

@@ -322,4 +322,6 @@ DEF is (symbol-function FUN)."
   (interactive)
   (process-send-string profile-timer-process "q\n"))
 
+(provide 'profile)
+
 ;;; profile.el ends here

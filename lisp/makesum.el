@@ -111,4 +111,6 @@ Previous contents of that buffer are killed first."
 	(setq lines (cdr lines))))
     (goto-char (- (point-max) from-end))))
 
+(provide 'makesum)
+
 ;;; makesum.el ends here

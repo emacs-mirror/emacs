@@ -322,4 +322,6 @@ preceding text is of the form @Command."
 	  (save-excursion
 	    (insert (aref scribe-close-parentheses paren-char)))))))
 
+(provide 'scribe)
+
 ;;; scribe.el ends here

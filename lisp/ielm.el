@@ -103,7 +103,7 @@ This variable is buffer-local.")
 (defvar ielm-header 
   (concat
    "*** Welcome to IELM version "
-   (substring "$Revision: 1.12 $" 11 -2)
+   (substring "$Revision: 1.13 $" 11 -2)
    " ***  Type (describe-mode) for help.\n"
    "IELM has ABSOLUTELY NO WARRANTY; type (describe-no-warranty) for details.\n")
   "Message to display when IELM is started.")
@@ -489,5 +489,7 @@ Switches to the buffer `*ielm*', or creates it if it does not exist."
       (set-buffer (get-buffer-create "*ielm*"))
       (inferior-emacs-lisp-mode)))
   (pop-to-buffer "*ielm*"))
+
+(provide 'ielm)
 
 ;;; ielm.el ends here

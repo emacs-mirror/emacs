@@ -49,4 +49,6 @@ C-Escape does list-buffers."
   (global-set-key [C-home] 'beginning-of-buffer)
   (global-set-key [C-end] 'end-of-buffer))
 
+(provide 'pc-mode)
+
 ;; pc-mode.el ends here

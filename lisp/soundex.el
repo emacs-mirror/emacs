@@ -71,4 +71,6 @@ and Searching\", Addison-Wesley (1973), pp. 391-392."
 ;("E460" "G200" "H416" "K530" "L300" "L222"
 ; "E460" "G200" "H416" "K530" "L300" "L222")
 
+(provide 'soundex)
+
 ;; soundex.el ends here

@@ -286,4 +286,6 @@ If COMPILE (prefix arg) is not nil, use compile mode rather than consult mode."
   (prolog-consult-region compile beg end)
   (switch-to-buffer "*prolog*"))
 
+(provide 'prolog)
+
 ;;; prolog.el ends here

@@ -227,4 +227,6 @@ the kill ring or the Clipboard."
     (push-mark)
     (insert clip)))
 
+(provide 'lselect)
+
 ;;; lselect.el ends here.

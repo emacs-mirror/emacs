@@ -285,4 +285,6 @@ an existing event object."
 GNU Emacs 19 does not currently generate process-output events."
   (eq (car-safe obj) 'process))
 
+(provide 'levents)
+
 ;;; levents.el ends here

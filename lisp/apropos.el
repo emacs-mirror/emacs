@@ -625,4 +625,6 @@ found."
     (princ ")")
     (print-help-return-message)))
 
+(provide 'apropos)
+
 ;;; apropos.el ends here

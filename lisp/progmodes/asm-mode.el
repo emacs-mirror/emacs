@@ -228,4 +228,6 @@ repeatedly until you are satisfied with the kind of comment."
    )
   (end-of-line))
 
+(provide 'asm-mode)
+
 ;;; asm-mode.el ends here

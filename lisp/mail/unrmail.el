@@ -63,4 +63,6 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
       (rmail-output to-file 1 t))
     (message "Writing messages to %s...done" to-file)))
 
+(provide 'unrmail)
+
 ;;; unrmail.el ends here

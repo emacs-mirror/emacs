@@ -114,4 +114,6 @@ If neither file exists, fails quietly."
 	(if (file-attributes "~/.signature")
 	    (insert-file-contents "~/.signature")))))
 
+(provide 'vms-pmail)
+
 ;;; vms-pmail.el ends here

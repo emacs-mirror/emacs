@@ -1614,4 +1614,6 @@ Hack on previous word, setting global variable OWNER to correct result."
   (insert "Mein fuehrer!!\n")
   (doctor-read-print))
 
+(provide 'doctor)
+
 ;;; doctor.el ends here
