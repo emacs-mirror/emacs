@@ -45,7 +45,7 @@ cursor in other frames is a hollow box.
   Commands to move point affect the value of point for the selected Emacs
 window only.  They do not change the value of point in any other Emacs
 window, even one showing the same buffer.  The same is true for commands
-such as @kbd{C-x b} to change the selected buffer in the selected window;
+such as @kbd{C-x b} to change the current buffer in the selected window;
 they do not affect other windows at all.  However, there are other commands
 such as @kbd{C-x 4 b} that select a different window and switch buffers in
 it.  Also, all commands that display information in a window, including

@@ -198,9 +198,9 @@ is modified, and @samp{%%} otherwise.
 this is the same as the name of a file you are editing.  @xref{Buffers}.
 
   The buffer displayed in the selected window (the window that the
-cursor is in) is also Emacs's selected buffer, the one that editing
+cursor is in) is also Emacs's current buffer, the one that editing
 takes place in.  When we speak of what some command does to ``the
-buffer,'' we are talking about the currently selected buffer.
+buffer,'' we are talking about the current buffer.
 
   @var{line} is @samp{L} followed by the current line number of point.
 This is present when Line Number mode is enabled (which it normally is).
