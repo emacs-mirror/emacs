@@ -58,6 +58,12 @@ SHELL=/bin/sh
 #define NOT_C_CODE
 #include "config.h"
 
+/* We won't really call alloca;
+   don't let the file name alloca.c get messed up.  */
+#ifdef alloca
+#undef alloca
+#endif
+
 /* Use HAVE_X11 as an alias for X11 in this file
    to avoid problems with X11 as a subdirectory name
    in -I and other such options which pass through this file. */
