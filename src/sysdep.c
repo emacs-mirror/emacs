@@ -251,6 +251,9 @@ discard_tty_input ()
 stuff_char (c)
      char c;
 {
+  if (read_socket_hook)
+    return;
+
 /* Should perhaps error if in batch mode */
 #ifdef TIOCSTI
   ioctl (input_fd, TIOCSTI, &c);
@@ -563,13 +566,6 @@ child_setup_tty (out)
 #endif /* not VMS */
 
 #endif /* subprocesses */
-
-/*ARGSUSED*/
-setpgrp_of_tty (pid)
-     int pid;
-{
-  EMACS_SET_TTY_PGRP (input_fd, &pid);
-}
 
 /* Record a signal code and the handler for it.  */
 struct save_signal
@@ -766,12 +762,14 @@ restore_signal_handlers (saved_handlers)
 
 int old_fcntl_flags;
 
-init_sigio ()
+init_sigio (fd)
+     int fd;
 {
 #ifdef FASYNC
-  old_fcntl_flags = fcntl (input_fd, F_GETFL, 0) & ~FASYNC;
+  old_fcntl_flags = fcntl (fd, F_GETFL, 0) & ~FASYNC;
+  fcntl (fd, F_SETFL, old_fcntl_flags | FASYNC);
 #endif
-  request_sigio ();
+  interrupts_deferred = 0;
 }
 
 reset_sigio ()
@@ -783,6 +781,9 @@ reset_sigio ()
 
 request_sigio ()
 {
+  if (read_socket_hook)
+    return;
+
 #ifdef SIGWINCH
   sigunblock (sigmask (SIGWINCH));
 #endif
@@ -793,6 +794,9 @@ request_sigio ()
 
 unrequest_sigio ()
 {
+  if (read_socket_hook)
+    return;
+
 #ifdef SIGWINCH
   sigblock (sigmask (SIGWINCH));
 #endif
@@ -806,6 +810,10 @@ unrequest_sigio ()
 request_sigio ()
 {
   int on = 1;
+
+  if (read_socket_hook)
+    return;
+
   ioctl (input_fd, FIOASYNC, &on);
   interrupts_deferred = 0;
 }
@@ -813,6 +821,9 @@ request_sigio ()
 unrequest_sigio ()
 {
   int off = 0;
+
+  if (read_socket_hook)
+    return;
 
   ioctl (input_fd, FIOASYNC, &off);
   interrupts_deferred = 1;
@@ -829,6 +840,9 @@ request_sigio ()
   int on = 1;
   sigset_t st;
 
+  if (read_socket_hook)
+    return;
+
   sigemptyset(&st);
   sigaddset(&st, SIGIO);
   ioctl (input_fd, FIOASYNC, &on);
@@ -840,6 +854,9 @@ unrequest_sigio ()
 {
   int off = 0;
 
+  if (read_socket_hook)
+    return;
+
   ioctl (input_fd, FIOASYNC, &off);
   interrupts_deferred = 1;
 }
@@ -848,11 +865,17 @@ unrequest_sigio ()
 
 request_sigio ()
 {
+  if (read_socket_hook)
+    return;
+
   croak ("request_sigio");
 }
  
 unrequest_sigio ()
 {
+  if (read_socket_hook)
+    return;
+
   croak ("unrequest_sigio");
 }
  
@@ -1145,14 +1168,14 @@ init_sys_modes ()
     narrow_foreground_group ();
 #endif
 
-  EMACS_GET_TTY (input_fd, &old_tty);
-
 #ifdef HAVE_X_WINDOWS
   /* Emacs' window system on MSDOG uses the `internal terminal' and therefore
      needs the initialization code below.  */
   if (!read_socket_hook && EQ (Vwindow_system, Qnil))
 #endif
     {
+      EMACS_GET_TTY (input_fd, &old_tty);
+
       tty = old_tty;
 
 #if defined (HAVE_TERMIO) || defined (HAVE_TERMIOS)
@@ -1353,7 +1376,7 @@ init_sys_modes ()
     {
       old_fcntl_owner = fcntl (input_fd, F_GETOWN, 0);
       fcntl (input_fd, F_SETOWN, getpid ());
-      init_sigio ();
+      init_sigio (input_fd);
     }
 #endif /* F_GETOWN */
 #endif /* F_SETOWN_BUG */
@@ -1361,7 +1384,7 @@ init_sys_modes ()
 
 #ifdef BSD4_1
   if (interrupt_input)
-    init_sigio ();
+    init_sigio (input_fd);
 #endif
 
 #ifdef VMS  /* VMS sometimes has this symbol but lacks setvbuf.  */
@@ -1849,7 +1872,8 @@ sys_sleep (timeval)
     SYS$WAITFR (timer_ef);	  /* Wait for timer expiry only */
 }
 
-init_sigio ()
+init_sigio (fd)
+     int fd;
 {
   request_sigio ();
 }
@@ -2380,12 +2404,13 @@ sys_open (path, oflag, mode)
     return open (path, oflag);
 }
 
-init_sigio ()
+init_sigio (fd)
+     int fd;
 {
   if (noninteractive)
     return;
   lmode = LINTRUP | lmode;
-  ioctl (0, TIOCLSET, &lmode);
+  ioctl (fd, TIOCLSET, &lmode);
 }
 
 reset_sigio ()
