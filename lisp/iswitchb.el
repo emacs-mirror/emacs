@@ -129,14 +129,12 @@
 ;; See the User Variables section below for easy ways to change the
 ;; functionality of the program.  These are accessible using the
 ;; custom package.
-;; To modify the keybindings, use the hook provided.  For example:
-;;(add-hook 'iswitchb-define-mode-map-hook
-;;	  'iswitchb-my-keys)
+;; To modify the keybindings, use something like:
 ;;
+;;(add-hook 'iswitchb-mode-hook 'iswitchb-my-keys)
 ;;(defun iswitchb-my-keys ()
 ;;  "Add my keybindings for iswitchb."
-;;  (define-key iswitchb-mode-map " " 'iswitchb-next-match)
-;;  )
+;;  (define-key iswitchb-mode-map " " 'iswitchb-next-match))
 ;;
 ;; Seeing all the matching buffers
 ;;
@@ -237,24 +235,6 @@
   :link '(url-link "http://www.anc.ed.ac.uk/~stephen/emacs/")
   :link '(emacs-library-link :tag "Lisp File" "iswitchb.el"))
 
-;;;###autoload
-(defcustom iswitchb-mode nil
-  "Toggle Iswitchb mode.
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `iswitchb-mode'."
-  :set (lambda (symbol value)
-	 (iswitchb-mode (or value 0)))
-  :initialize 'custom-initialize-default
-  :group 'iswitchb
-  :require 'iswitchb
-  :version "21.1"
-  :type 'boolean)
-
-(defcustom iswitchb-mode-hook nil
-  "Hook run at the end of function `iswitchb-mode'."
-  :group 'iswitchb
-  :type 'hook)
-
 (defcustom iswitchb-case case-fold-search
   "*Non-nil if searching of buffer names should ignore case.
 If this is non-nil but the user input has any upper case letters, matching
@@ -325,11 +305,6 @@ See also `iswitchb-prompt-newbuffer'."
   "*Non-nil means prompt user to confirm before creating new buffer.
 See also `iswitchb-newbuffer'."
   :type 'boolean
-  :group 'iswitchb)
-
-(defcustom iswitchb-define-mode-map-hook  nil
-  "Hook to define keys in `iswitchb-mode-map' for extra keybindings."
-  :type 'hook
   :group 'iswitchb)
 
 (defcustom iswitchb-use-fonts t
@@ -528,12 +503,8 @@ in a separate window.
   ;;\\[iswitchb-toggle-ignore] Toggle ignoring certain buffers (see \
   ;;`iswitchb-buffer-ignore')
   	
-  (let
-      (prompt buf)
-    
-    (setq prompt (format "iswitch "))
-
-    (setq buf (iswitchb-read-buffer prompt))
+  (let* ((prompt "iswitch ")
+	 (buf (iswitchb-read-buffer prompt)))
 
     ;;(message "chosen text %s" iswitchb-final-text)
     ;; Choose the buffer name: either the text typed in, or the head
@@ -596,6 +567,10 @@ If REQUIRE-MATCH is non-nil, an existing-buffer must be selected."
 				 nil	;require-match [handled elsewhere]
 				 nil	;initial-contents
 				 'iswitchb-history)))
+    (if (get-buffer iswitchb-final-text)
+	;; This happens for example if the buffer was chosen with the mouse.
+	(setq iswitchb-matches (list iswitchb-final-text)))
+
     ;; Handling the require-match must be done in a better way.
     (if (and require-match (not (iswitchb-existing-buffer-p)))
 	(error "Must specify valid buffer"))
@@ -915,19 +890,17 @@ Return the modified list with the last element prepended to it."
       (cons (car las) lis))))
 
 (defun iswitchb-completion-help ()
-  "Show possible completions in a *Buffer Completions* buffer."
+  "Show possible completions in a *Completions* buffer."
   ;; we could allow this buffer to be used to select match, but I think
   ;; choose-completion-string will need redefining, so it just inserts
   ;; choice with out any previous input.
   (interactive)
   (setq iswitchb-rescan nil)
-  (let ((completion-setup-hook nil)	;disable fancy highlight/selection.
-	(buf (current-buffer))
-	(temp-buf "*Buffer Completions*")
-	(win)
-	(again (eq last-command this-command)))
+  (let ((buf (current-buffer))
+	(temp-buf "*Completions*")
+	(win))
 
-    (if again
+    (if (eq last-command this-command)
 	;; scroll buffer
 	(progn
 	  (set-buffer temp-buf)
@@ -1266,21 +1239,11 @@ Modified from `icomplete-completions'."
 (defun iswitchb-minibuffer-setup ()
   "Set up minibuffer for `iswitchb-buffer'.
 Copied from `icomplete-minibuffer-setup-hook'."
-  (if (iswitchb-entryfn-p)
-      (progn
-
-	(make-local-variable 'iswitchb-use-mycompletion)
-	(setq iswitchb-use-mycompletion t)
-	(make-local-hook 'pre-command-hook)
-	(add-hook 'pre-command-hook
-		  'iswitchb-pre-command
-		  nil t)
-	(make-local-hook 'post-command-hook)
-	(add-hook 'post-command-hook
-		  'iswitchb-post-command
-		  nil t)
-	
-	(run-hooks 'iswitchb-minibuffer-setup-hook))))
+  (when (iswitchb-entryfn-p)
+    (set (make-local-variable 'iswitchb-use-mycompletion) t)
+    (add-hook 'pre-command-hook 'iswitchb-pre-command nil t)
+    (add-hook 'post-command-hook 'iswitchb-post-command nil t)
+    (run-hooks 'iswitchb-minibuffer-setup-hook)))
 
 (defun iswitchb-pre-command ()
   "Run before command in `iswitchb-buffer'."
@@ -1333,27 +1296,15 @@ See the variable `iswitchb-case' for details."
 	(isearch-no-upper-case-p iswitchb-text t))))
 
 ;;;###autoload
-(defun iswitchb-mode (&optional arg)
+(define-minor-mode iswitchb-mode
   "Toggle Iswitchb global minor mode.
 With arg, turn Iswitchb mode on if and only iff ARG is positive.
 This mode enables switching between buffers using substrings.  See
 `iswitchb' for details."
-  (interactive "P")
-  (setq iswitchb-mode
-	(if arg
-	    (> (prefix-numeric-value arg) 0)
-	  (not iswitchb-mode)))
+  nil nil iswitchb-global-map :global t :group 'iswitchb
   (if iswitchb-mode
       (add-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)
-    (remove-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup))
-  (run-hooks 'iswitchb-mode-hook)
-  (if (interactive-p)
-      (message "Iswitchb mode %sabled"
-	       (if iswitchb-mode "en" "dis"))))
-
-(unless (assq 'iswitchb-mode minor-mode-map-alist)
-  (push (cons 'iswitchb-mode iswitchb-global-map)
-	minor-mode-map-alist))
+    (remove-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)))
 
 (provide 'iswitchb)
 
