@@ -1055,20 +1055,14 @@ The sample text is a string that comes from the variable
 	  (save-excursion
 	    (save-match-data
 	      (search-backward face-name)
-	      (help-xref-button 0 (lambda (f)
-				    (if help-xref-stack
-					(pop help-xref-stack))
-				    (customize-face f))
-				face-name
-				"mouse-2: customize this face")))
+	      (help-xref-button 0 'help-customize-face face-name)))
 	  (let ((beg (point)))
 	    (insert list-faces-sample-text)
 	    ;; Hyperlink to a help buffer for the face.
 	    (save-excursion
 	      (save-match-data
 		(search-backward list-faces-sample-text)
-		(help-xref-button 0 #'describe-face face
-				  "mouse-2: describe this face")))
+		(help-xref-button 0 'help-face face)))
 	    (insert "\n")
 	    (put-text-property beg (1- (point)) 'face face)
 	    ;; If the sample text has multiple lines, line up all of them.
@@ -1115,7 +1109,8 @@ If FRAME is omitted or nil, use the selected frame."
 		  (:inherit . "Inherit")))
 	(max-width (apply #'max (mapcar #'(lambda (x) (length (cdr x)))
 					attrs))))
-    (with-output-to-temp-buffer "*Help*"
+    (require 'help-mode)
+    (with-output-to-temp-buffer (help-buffer)
       (save-excursion
 	(set-buffer standard-output)
 	(dolist (a attrs)
@@ -1129,16 +1124,14 @@ If FRAME is omitted or nil, use the selected frame."
 	  (terpri)
 	  (terpri)
 	  (princ (concat "You can " customize-label " this face."))
-	  (with-current-buffer "*Help*"
+	  (with-current-buffer standard-output
 	    (save-excursion
 	      (re-search-backward
 	       (concat "\\(" customize-label "\\)") nil t)
-	      (help-xref-button 1 #'customize-face face
-				"mouse-2, RET: customize face")))))
+	      (help-xref-button 1 'help-customize-face face)))))
       (print-help-return-message)
-      (with-current-buffer "*Help*"
-	(help-setup-xref (list #'describe-face face) (interactive-p))
-	(buffer-string)))))
+      (help-setup-xref (list #'describe-face face) (interactive-p)))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Face specifications (defface).
