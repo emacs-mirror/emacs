@@ -1,3 +1,19 @@
+2005-03-16  Juri Linkov  <juri@jurta.org>
+
+	* emacs-lisp/find-func.el (find-function-regexp):
+	Add defun-emitting macro `menu-bar-make-toggle'.
+
+	* isearch.el: Put `isearch-scroll' property to
+	`split-window-horizontally'.
+
+	* info.el: Update error messages for `debug-ignored-errors'.
+	(Info-isearch-search): Doc fix.
+	(Info-find-node): Move up code to go into info buffer before
+	recording the node to the history.
+	(Info-fontify-node): Fontify titles only if the next line
+	has two or more `*', `=', `-', `.'.
+	Display "go to this node" for empty (match-string 3).
+
 2005-03-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el: Add mouse pointer shape constants.
