@@ -1,6 +1,6 @@
 \input texinfo   @c -*-texinfo-*-
 @c
-@c $Id: speedbar.texi,v 1.6 2000/12/05 23:06:42 fx Exp $
+@c $Id: speedbar.texi,v 1.7 2001/02/17 17:02:12 rms Exp $
 @c
 
 @c This file is part of GNU Emacs
@@ -515,9 +515,9 @@ categories are included in that sub-group.  @xref{Tag Hierarchy Methods}.
 @section Hidden Files
 @cindex hidden files
 
-On Unix, a hidden file is a file whose name starts with a period.  They
-are hidden from a regular directory listing because the user is not
-generally interested in them.
+On GNU and Unix systems, a hidden file is a file whose name starts
+with a period.  They are hidden from a regular directory listing
+because the user is not generally interested in them.
 
 In speedbar, a hidden file is a file which isn't very interesting and
 might prove distracting to the user.  Any uninteresting files are

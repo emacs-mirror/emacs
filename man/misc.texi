@@ -1055,7 +1055,7 @@ displays the word @samp{page}.
 screenful of output since your last input, it pauses, displaying
 @samp{**MORE**} in the mode-line.  Type @key{SPC} to display the next
 screenful of output.  Type @kbd{?} to see your other options.  The
-interface is similar to the Unix @code{more} program.
+interface is similar to the @code{more} program.
 
 @node Remote Host
 @subsection Remote Host Shell

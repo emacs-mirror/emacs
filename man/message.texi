@@ -1235,7 +1235,7 @@ A function to be called if @var{predicate} returns non-@code{nil}.
 @vindex message-fcc-handler-function
 A function called to save outgoing articles.  This function will be
 called with the name of the file to store the article in.  The default
-function is @code{message-output} which saves in Unix mailbox format.
+function is @code{message-output} which saves in inbox format.
 
 @item message-courtesy-message
 @vindex message-courtesy-message

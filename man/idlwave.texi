@@ -1737,7 +1737,6 @@ Normal hook.  Executed when @file{idlwave.el} is loaded.
 @cindex Comint, Emacs package
 @cindex Windows
 @cindex MacOS
-@cindex Unix
 
 The IDLWAVE shell is an Emacs major mode which allows to run the IDL
 program as an inferior process of Emacs.  It can be used to work with
@@ -1746,8 +1745,8 @@ to debug these programs.  The IDLWAVE shell uses @file{comint}, an Emacs
 packages which handles the communication with the IDL program.
 Unfortunately IDL for Windows and MacOS does not allow the interaction
 with Emacs@footnote{Please inform the maintainer if you come up with a way
-to make the IDLWAVE shell work on these systems.} - so the IDLWAVE shell
-only works under Unix.
+to make the IDLWAVE shell work on these systems.}, so the IDLWAVE shell
+only works under GNU and Unix.
 
 @menu
 * Starting the Shell::          How to launch IDL as a subprocess
@@ -2433,7 +2432,6 @@ Controls under what circumstances routine info is updated automatically.
 @cindex IDL library routine info
 @cindex Windows
 @cindex MacOS
-@cindex Unix
 @cindex IDL variable @code{!DIR}
 @cindex @code{!DIR}, IDL variable
 
@@ -2446,7 +2444,7 @@ file will contain lisp code, its name should end in @file{.el}.  Under
 Windows and MacOS, you also need to specify the search path for IDL
 library files in the variable @code{idlwave-library-path}, and the
 location of the IDL directory (the value of the @code{!DIR} system
-variable) in the variable @code{idlwave-system-directory}.  Under UNIX,
+variable) in the variable @code{idlwave-system-directory}.  Under Unix and GNU,
 these values will be automatically inferred from an IDLWAVE
 shell.
 
@@ -2479,11 +2477,11 @@ File for routine information of the IDL library.
 @end defopt
 
 @defopt idlwave-library-path
-IDL library path for Windows and MacOS.  Not needed under Unix.
+IDL library path for Windows and MacOS.  Not needed under GNU and Unix.
 @end defopt
 
 @defopt idlwave-system-directory
-The IDL system directory for Windows and MacOS.  Not needed under UNIX.
+The IDL system directory for Windows and MacOS.  Not needed under GNU and Unix.
 @end defopt
 
 @defopt idlwave-special-lib-alist

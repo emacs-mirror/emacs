@@ -753,12 +753,12 @@ merge them with the values from @code{mailcap-mime-data}.  Components of
 appropriate for the system.  If @var{force} is non-@code{nil}, the files
 are re-parsed even if they have been parsed already.  If @var{path} is
 omitted, use the value of environment variable @code{MAILCAPS} if it is
-set; otherwise (on Unix) use the path defined in RFC 1524, plus
+set; otherwise (on GNU and Unix) use the path defined in RFC 1524, plus
 @file{/usr/local/etc/mailcap}.
 @end defun
 
 @defun mailcap-parse-mimetypes &optional path force
-Parse all the mimetypes specified in a Unix-style path string @var{path}
+Parse all the mimetypes specified in a path string @var{path}
 and merge them with the values from @code{mailcap-mime-extensions}.
 Components of @var{path} are separated by the @code{path-separator}
 character appropriate for the system.  If @var{path} is omitted, use the

@@ -27,7 +27,7 @@
 @comment %**end of header (This is for running Texinfo on a region.)
 
 @ifinfo
-This file documents Ediff, a comprehensive visual interface to Unix diff
+This file documents Ediff, a comprehensive visual interface to diff
 and patch utilities.
 
 Copyright 1995, 1996, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
@@ -1071,7 +1071,7 @@ set on a per-buffer basis.  Therefore, use @code{setq-default} to change
 this variable globally.
 
 @cindex Multi-file patches
-A multi-file patch is a concatenated output of several runs of the Unix
+A multi-file patch is a concatenated output of several runs of the
 @code{diff} command (some versions of @code{diff} let you create a
 multi-file patch in just one run).  Ediff facilitates creation of
 multi-file patches as follows.  If you are in a session group buffer
@@ -1821,8 +1821,8 @@ format yet.
 @vindex ediff-coding-system-for-read
 This variable specifies the coding system to use when reading the output
 that the programs @code{diff3} and @code{diff} send to Emacs. The default
-is @code{raw-text}, and this should work fine in Unix and in most
-cases under Windows NT/95/98/2000. There are @code{diff} programs
+is @code{raw-text}, and this should work fine on GNU, Unix, and in most
+cases under Windows NT/95/98/2000.  There are @code{diff} programs
 for which the default option doesn't work under Windows. In such cases,
 @code{raw-text-dos} might work. If not, you will have to experiment with
 other coding systems or use GNU diff.

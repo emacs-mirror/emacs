@@ -375,7 +375,7 @@ processes --- process, subshell, compilation, and job control support.
 terminals --- support for terminal types.
 tex --- support for the @TeX{} formatter.
 tools --- programming tools.
-unix --- front-ends/assistants for, or emulators of, Unix features.
+unix --- front-ends/assistants for, or emulators of, system features.
 vms --- support code for VMS.
 wp --- word processing.
 @end display

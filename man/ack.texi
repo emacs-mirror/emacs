@@ -97,8 +97,7 @@ buffers,
 @item
 @file{locate.el} which interfaces to the @code{locate} command,
 @item
-@file{find-lisp.el}, an emulation of the Unix @code{find} command in
-Emacs Lisp,
+@file{find-lisp.el}, an Emacs Lisp emulation of the @code{find} program,
 @item
 @file{net-utils.el}, and
 @item
@@ -1330,7 +1329,7 @@ Dale R.@: Worley wrote @file{emerge.el}, a package for interactively
 merging two versions of a file.
 
 @item
-Francis J.@: Wright wrote @code{WoMan}, a package for browsing Unix
+Francis J.@: Wright wrote @code{WoMan}, a package for browsing
 manual pages without the @code{man} command.
 
 @item

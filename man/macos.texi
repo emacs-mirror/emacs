@@ -19,7 +19,7 @@ unexec (@code{dump-emacs}), asynchronous subprocesses
 (@code{start-process}), and networking (@code{open-network-stream}).
 As a result, packages such as Gnus, GUD, and Comint do not work.
 
-  Since external Unix programs to handle commands such as
+  Since external programs to handle commands such as
 @code{print-buffer} and @code{diff} are not available on the Mac OS,
 they are not supported in the Mac OS version.
 
@@ -170,16 +170,16 @@ EMACS_UNIBYTE=1
 @end example
 
 So when Emacs requests a file name, doing file name completion on
-@file{/} will display all volumes on the system.  As in Unix, @file{..}
-can be used to go up a directory level.
+@file{/} will display all volumes on the system.  You can use @file{..}
+to go up a directory level.
 
   To access files and folders on the desktop, look in the folder
 @file{Desktop Folder} in your boot volume (this folder is usually
 invisible in the Mac @code{Finder}).
 
   Emacs creates the Mac folder @file{:Preferences:Emacs:} in the
-@file{System Folder} and uses it as the temporary directory.  The Unix
-emulation code maps the Unix directory @file{/tmp} to it.  Therefore it
+@file{System Folder} and uses it as the temporary directory.  Emacs
+maps the directory name @file{/tmp/} to that.  Therefore it
 is best to avoid naming a volume @file{tmp}.  If everything works
 correctly, the program should leave no files in it when it exits.  You
 should be able to set the environment variable @code{TMPDIR} to use
@@ -229,6 +229,6 @@ string.
 @findex mac-filename-to-unix
 @findex unix-filename-to-mac
   The function @code{mac-filename-to-unix} takes a Mac file name and
-returns the Unix equivalent.  The function @code{unix-filename-to-mac}
+returns the Posix equivalent.  The function @code{unix-filename-to-mac}
 performs the opposite conversion.  They are useful for constructing
 AppleScript commands to be passed to @code{do-applescript}.

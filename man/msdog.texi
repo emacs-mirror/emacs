@@ -416,7 +416,7 @@ EOL conversion is determined by @code{file-name-buffer-file-type-alist}.
   Printing commands, such as @code{lpr-buffer} (@pxref{Hardcopy}) and
 @code{ps-print-buffer} (@pxref{PostScript}) can work in MS-DOS and
 MS-Windows by sending the output to one of the printer ports, if a
-Unix-style @code{lpr} program is unavailable.  The same Emacs
+Posix-style @code{lpr} program is unavailable.  The same Emacs
 variables control printing on all systems (@pxref{Hardcopy}), but in
 some cases they have different default values on MS-DOS and
 MS-Windows.
@@ -572,10 +572,10 @@ only.
 @cindex international support @r{(MS-DOS)}
 
   Emacs on MS-DOS supports the same international character sets as it
-does on Unix and other platforms (@pxref{International}), including
+does on GNU, Unix and other platforms (@pxref{International}), including
 coding systems for converting between the different character sets.
-However, due to incompatibilities between MS-DOS/MS-Windows and Unix,
-there are several DOS-specific aspects of this support that users should
+However, due to incompatibilities between MS-DOS/MS-Windows and other systems,
+there are several DOS-specific aspects of this support that you should
 be aware of.  This section describes these aspects.
 
 @table @kbd
@@ -658,7 +658,7 @@ system and the default coding system for file I/O are set to the proper
 @code{cp@var{nnn}} coding system at startup, it is normal for the mode
 line on MS-DOS to begin with @samp{-DD\-}.  @xref{Mode Line}.
 Far-Eastern DOS terminals do not use the @code{cp@var{nnn}} coding
-systems, and thus their initial mode line looks like on Unix.
+systems, and thus their initial mode line looks like the Emacs default.
 
   Since the codepage number also indicates which script you are using,
 Emacs automatically runs @code{set-language-environment} to select the
@@ -741,11 +741,11 @@ finishes.
 
   Spell checking also works, by means of special support for synchronous
 invocation of the @code{ispell} program.  This is slower than the
-asynchronous invocation on Unix.
+asynchronous invocation on other platforms
 
   Instead of the Shell mode, which doesn't work on MS-DOS, you can use
 the @kbd{M-x eshell} command.  This invokes the Eshell package that
-implements a Unix-like shell entirely in Emacs Lisp.
+implements a Posix-like shell entirely in Emacs Lisp.
 
   By contrast, Emacs compiled as native Windows application
 @strong{does} support asynchronous subprocesses.  @xref{Windows
