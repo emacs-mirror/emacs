@@ -321,7 +321,7 @@ extern int w32_system_caret_x;
 extern int w32_system_caret_y;
 extern int w32_use_visible_system_caret;
 
-HWND w32_visible_system_caret_hwnd;
+static HWND w32_visible_system_caret_hwnd;
 
 
 /* Error if we are not connected to MS-Windows.  */
@@ -4879,9 +4879,9 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       /* Relinquish the system caret.  */
       if (w32_system_caret_hwnd)
 	{
-	  DestroyCaret ();
-	  w32_system_caret_hwnd = NULL;
 	  w32_visible_system_caret_hwnd = NULL;
+	  w32_system_caret_hwnd = NULL;
+	  DestroyCaret ();
 	}
     case WM_MOVE:
     case WM_SIZE:
@@ -14466,6 +14466,8 @@ syms_of_w32fns ()
      it dynamically.  Do it once, here, instead of every time it is used.  */
   track_mouse_event_fn = GetProcAddress (user32_lib, "TrackMouseEvent");
   track_mouse_window = NULL;
+
+  w32_visible_system_caret_hwnd = NULL;
 
   /* The section below is built by the lisp expression at the top of the file,
      just above where these variables are declared.  */
