@@ -364,9 +364,9 @@ sun_item_create (Pair)
   String = Fcar(Pair);
   CHECK_STRING(String, 0);
   Value = Fcdr(Pair);
-  if(XTYPE(Value) == Lisp_Symbol)
+  if (SYMBOLP (Value))
     Value = XSYMBOL(Value)->value;
-  if(XTYPE(Value) == Lisp_Vector) {
+  if (VECTORP (Value)) {
     submenu = sun_menu_create (Value);
     menu_item = menu_create_item
       (MENU_RELEASE, MENU_PULLRIGHT_ITEM, XSTRING(String)->data, submenu, 0);
