@@ -98,7 +98,7 @@ struct backtrace
 KBOARD *initial_kboard;
 KBOARD *current_kboard;
 KBOARD *all_kboards;
-int kboard_locked;
+int single_kboard;
 #else
 KBOARD the_only_kboard;
 #endif
@@ -397,7 +397,7 @@ static Lisp_Object do_mouse_tracking;
    call mouse_position_hook to get the promised position, so don't set
    it unless you're prepared to substantiate the claim!  */
 int mouse_moved;
-#endif /* HAVE_MOUSE.  */
+#endif /* HAVE_MOUSE */
 
 /* Symbols to head events.  */
 Lisp_Object Qmouse_movement;
@@ -753,10 +753,14 @@ recursive_edit_unwind (buffer)
   return Qnil;
 }
 
-#ifdef MULTI_KBOARD
 static void
-unlock_kboard ()
+any_kboard_state ()
 {
+#ifdef MULTI_KBOARD
+#if 0 /* Theory: if there's anything in Vunread_command_events,
+	 it will right away be read by read_key_sequence,
+	 and then if we do switch KBOARDS, it will go into the side
+	 queue then.  So we don't need to do anything special here -- rms.  */
   if (CONSP (Vunread_command_events))
     {
       current_kboard->kbd_queue
@@ -764,9 +768,59 @@ unlock_kboard ()
       current_kboard->kbd_queue_has_data = 1;
     }
   Vunread_command_events = Qnil;
-  kboard_locked = 0;
-}
 #endif
+  single_kboard = 0;
+#endif
+}
+
+/* Switch to the single-kboard state, making current_kboard
+   the only KBOARD from which further input is accepted.  */
+
+void
+single_kboard_state ()
+{
+#ifdef MULTI_KBOARD
+  single_kboard = 1;
+#endif
+}
+
+/* Maintain a stack of kboards, so other parts of Emacs
+   can switch temporarily to the kboard of a given frame
+   and then revert to the previous status.  */
+
+struct kboard_stack
+{
+  KBOARD *kboard;
+  struct kboard_stack *next;
+};
+
+static struct kboard_stack *kboard_stack;
+
+void
+push_frame_kboard (f)
+     FRAME_PTR f;
+{
+  struct kboard_stack *p
+    = (struct kboard_stack *) xmalloc (sizeof (struct kboard_stack));
+
+  p->next = kboard_stack;
+  p->kboard = current_kboard;
+  kboard_stack = p;
+
+  current_kboard = FRAME_KBOARD (f);
+}
+
+void
+pop_frame_kboard ()
+{
+  struct kboard_stack *p = kboard_stack;
+  current_kboard = p->kboard;
+  kboard_stack = p->next;
+  xfree (p);
+}
+
+/* Handle errors that are not handled at inner levels
+   by printing an error message and returning to the editor command loop.  */
 
 Lisp_Object
 cmd_error (data)
@@ -793,7 +847,7 @@ cmd_error (data)
 
   Vinhibit_quit = Qnil;
 #ifdef MULTI_KBOARD
-  unlock_kboard ();
+  any_kboard_state ();
 #endif
 
   return make_number (0);
@@ -993,7 +1047,7 @@ command_loop_1 ()
   int prev_modiff;
   struct buffer *prev_buffer;
 #ifdef MULTI_KBOARD
-  int was_locked = kboard_locked;
+  int was_locked = single_kboard;
 #endif
 
   Vdeactivate_mark = Qnil;
@@ -1338,7 +1392,7 @@ command_loop_1 ()
 
 #ifdef MULTI_KBOARD
       if (!was_locked)
-	unlock_kboard ();
+	any_kboard_state ();
 #endif
     }
 }
@@ -1661,8 +1715,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	if (kb != current_kboard)
 	  {
 	    Lisp_Object *tailp = &kb->kbd_queue;
-	    /* We shouldn't get here if we were locked onto one kboard!  */
-	    if (kboard_locked)
+	    /* We shouldn't get here if we were in single-kboard mode!  */
+	    if (single_kboard)
 	      abort ();
 	    while (CONSP (*tailp))
 	      tailp = &XCONS (*tailp)->cdr;
@@ -1803,11 +1857,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   if (NILP (c))
     {
-      /* Primary consideration goes to current_kboard's side queue.
-	 If that's empty, then we check the other side queues and throw
-	 if we find something there.  Finally, we read from the main queue,
-	 and if that gives us something we can't use yet, we put it on the
-	 appropriate side queue and try again.  */
+      /* Primary consideration goes to current_kboard's side queue.  */
+
       if (current_kboard->kbd_queue_has_data)
 	{
 	  if (!CONSP (current_kboard->kbd_queue))
@@ -1825,50 +1876,66 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  Vlast_event_frame = internal_last_event_frame;
 #endif
 	}
-      else
-	{
-	  KBOARD *kb;
+    }
+
 #ifdef MULTI_KBOARD
-	  if (!kboard_locked)
-	    {
-	      for (kb = all_kboards; kb; kb = kb->next_kboard)
-		if (kb->kbd_queue_has_data)
-		  {
-		    current_kboard = kb;
-		    longjmp (wrong_kboard_jmpbuf, 1);
-		  }
-	    }
+  /* If current_kboard's side queue is empty check the other kboards.
+     If one of them has data that we have not yet seen here,
+     switch to it and process the data waiting for it.
+
+     Note: if the events queued up for another kboard
+     have already been seen here, and therefore are not a complete command,
+     the kbd_queue_has_data field is 0, so we skip that kboard here.
+     That's to avoid an infinite loop switching between kboards here.  */
+  if (NILP (c) && !single_kboard)
+    {
+      KBOARD *kb;
+      for (kb = all_kboards; kb; kb = kb->next_kboard)
+	if (kb->kbd_queue_has_data)
+	  {
+	    current_kboard = kb;
+	    longjmp (wrong_kboard_jmpbuf, 1);
+	  }
+    }
 #endif
 
-	wrong_kboard:
-	  /* Actually read a character, waiting if necessary.  */
-	  while (c = kbd_buffer_get_event (&kb), NILP (c))
+  /* Finally, we read from the main queue,
+     and if that gives us something we can't use yet, we put it on the
+     appropriate side queue and try again.  */
+  if (NILP (c))
+    {
+      KBOARD *kb;
+
+    wrong_kboard:
+
+      /* Actually read a character, waiting if necessary.  */
+      while (c = kbd_buffer_get_event (&kb), NILP (c))
+	{
+	  if (commandflag >= 0
+	      && !input_pending && !detect_input_pending ())
 	    {
-	      if (commandflag >= 0
-		  && !input_pending && !detect_input_pending ())
-		{
-		  prepare_menu_bars ();
-		  redisplay ();
-		}
+	      prepare_menu_bars ();
+	      redisplay ();
 	    }
-#ifdef MULTI_KBOARD
-	  if (kb != current_kboard)
-	    {
-	      Lisp_Object *tailp = &kb->kbd_queue;
-	      while (CONSP (*tailp))
-		tailp = &XCONS (*tailp)->cdr;
-	      if (!NILP (*tailp))
-		abort ();
-	      *tailp = Fcons (c, Qnil);
-	      kb->kbd_queue_has_data = 1;
-	      if (kboard_locked)
-		goto wrong_kboard;
-	      current_kboard = kb;
-	      longjmp (wrong_kboard_jmpbuf, 1);
-	    }
-#endif
 	}
+#ifdef MULTI_KBOARD
+      if (kb != current_kboard)
+	{
+	  Lisp_Object *tailp = &kb->kbd_queue;
+	  while (CONSP (*tailp))
+	    tailp = &XCONS (*tailp)->cdr;
+	  if (!NILP (*tailp))
+	    abort ();
+	  *tailp = Fcons (c, Qnil);
+	  kb->kbd_queue_has_data = 1;
+	  if (single_kboard)
+	    goto wrong_kboard;
+	  current_kboard = kb;
+	  longjmp (wrong_kboard_jmpbuf, 1);
+	}
+#endif
     }
+
   /* Terminate Emacs in batch mode if at eof.  */
   if (noninteractive && INTEGERP (c) && XINT (c) < 0)
     Fkill_emacs (make_number (1));
@@ -2145,7 +2212,7 @@ readable_events ()
   if (FRAMEP (do_mouse_tracking) && mouse_moved)
     return 1;
 #endif
-  if (kboard_locked)
+  if (single_kboard)
     {
       if (current_kboard->kbd_queue_has_data)
 	return 1;
@@ -2212,7 +2279,7 @@ kbd_buffer_store_event (event)
 	  KBOARD *kb;
 	  struct input_event *sp;
 
-	  if (kboard_locked
+	  if (single_kboard
 	      && (kb = FRAME_KBOARD (XFRAME (event->frame_or_window)),
 		  kb != current_kboard))
 	    {
@@ -2392,10 +2459,12 @@ kbd_buffer_get_event (KBOARD **kbp)
       if (event->kind == selection_request_event)
 	{
 #ifdef HAVE_X11
-	  struct input_event copy = *event;
+	  struct input_event copy;
+
 	  /* Remove it from the buffer before processing it,
 	     since otherwise swallow_events will see it
 	     and process it again.  */
+	  copy = *event;
 	  kbd_fetch_ptr = event + 1;
 	  x_handle_selection_request (&copy);
 #else
