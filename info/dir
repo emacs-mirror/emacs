@@ -14,8 +14,8 @@ File: dir	Node: Top	This is the top of the INFO tree
 
 * Menu: The list of major topics begins on the next line.
 
-Editors
-* Info: (info).		Documentation browsing system.
+Emacs
+* Info: (info).		How to use the documentation browsing system.
 * Emacs: (emacs).	The extensible self-documenting text editor.
 * Emacs FAQ: (efaq).	Frequently Asked Questions about Emacs.
 
