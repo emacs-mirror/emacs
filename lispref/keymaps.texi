@@ -532,41 +532,46 @@ string for the keymap.  The prompt string should be given for menu keymaps
 @cindex global keymap
 @cindex local keymap
 
-  Emacs normally contains many keymaps; at any given time, just a few of
-them are @dfn{active} in that they participate in the interpretation
-of user input.  These are the global keymap, the current buffer's
-local keymap, and the keymaps of any enabled minor modes.
+  Emacs normally contains many keymaps; at any given time, just a few
+of them are @dfn{active} in that they participate in the
+interpretation of user input.  All the active keymaps are used
+together to determine what command to execute when a key is entered.
+Emacs searches these keymaps one by one, in a standard order, until it
+finds a binding in one of the keymaps.  (Searching a single keymap for a
+binding is called @dfn{key lookup}; see @ref{Key Lookup}.)
+
+  Normally the active keymaps are the @code{keymap} property keymap,
+the keymaps of any enabled minor modes, the current buffer's local
+keymap, and the global keymap, in that order.  Therefore, Emacs
+searches for each input key sequence in all these keymaps.
 
   The @dfn{global keymap} holds the bindings of keys that are defined
 regardless of the current buffer, such as @kbd{C-f}.  The variable
 @code{global-map} holds this keymap, which is always active.
 
-  Each buffer may have another keymap, its @dfn{local keymap}, which may
-contain new or overriding definitions for keys.  The current buffer's
-local keymap is always active except when @code{overriding-local-map}
-overrides it.  Text properties can specify an alternative local map for
-certain parts of the buffer; see @ref{Special Properties}.
+  Each buffer may have another keymap, its @dfn{local keymap}, which
+may contain new or overriding definitions for keys.  The current
+buffer's local keymap is always active except when
+@code{overriding-local-map} overrides it.  The @code{local-map} text
+or overlay property can specify an alternative local keymap for certain
+parts of the buffer; see @ref{Special Properties}.
 
   Each minor mode can have a keymap; if it does, the keymap is active
-when the minor mode is enabled.
+when the minor mode is enabled.  Modes for emulation can specify
+additional active keymaps through the variable
+@code{emulation-mode-map-alists}.
 
-  The variable @code{overriding-local-map}, if non-@code{nil}, specifies
-another local keymap that overrides the buffer's local map and all the
-minor mode keymaps.  Modes for emulation can specify additional
-active keymaps through the variable @code{emulation-mode-map-alists}.
+  The highest precedence normal keymap comes from the @code{keymap}
+text or overlay property.  If that is non-@code{nil}, it is the first
+keymap to be processed, in normal circumstances.
 
-  All the active keymaps are used together to determine what command to
-execute when a key is entered.  Emacs searches these maps one by one, in
-order of decreasing precedence, until it finds a binding in one of the
-maps.  The procedure for searching a single keymap is called @dfn{key
-lookup}; see @ref{Key Lookup}.
-
-  Normally, Emacs first searches for the key in the minor mode maps, in
-the order specified by @code{minor-mode-map-alist}; if they do not
-supply a binding for the key, Emacs searches the local map; if that too
-has no binding, Emacs then searches the global map.  However, if
-@code{overriding-local-map} is non-@code{nil}, Emacs searches that map
-first, before the global map.
+  However, there are also special circumstances, ways programs can
+substitute other keymaps for some of those.  The variable
+@code{overriding-local-map}, if non-@code{nil}, specifies a keymap
+that replaces all the usual active keymaps except the global keymap.
+Another way to do this is with @code{overriding-terminal-local-map};
+it operates on a per-terminal basis.  These variables are documented
+below.
 
 @cindex major mode keymap
   Since every buffer that uses the same major mode normally uses the
@@ -575,7 +580,7 @@ change to the local keymap of a buffer (using @code{local-set-key}, for
 example) is seen also in the other buffers that share that keymap.
 
   The local keymaps that are used for Lisp mode and some other major
-modes exist even if they have not yet been used.  These local maps are
+modes exist even if they have not yet been used.  These local keymaps are
 the values of variables such as @code{lisp-mode-map}.  For most major
 modes, which are less frequently used, the local keymap is constructed
 only when the mode is used for the first time in a session.
@@ -594,7 +599,7 @@ keyboard input to commands.  The global keymap is normally this keymap.
 The default global keymap is a full keymap that binds
 @code{self-insert-command} to all of the printing characters.
 
-It is normal practice to change the bindings in the global map, but you
+It is normal practice to change the bindings in the global keymap, but you
 should not assign this variable any value other than the keymap it starts
 out with.
 @end defvar
@@ -701,10 +706,9 @@ all buffers.
 
 @defvar overriding-local-map
 If non-@code{nil}, this variable holds a keymap to use instead of the
-buffer's local keymap, text property or overlay keymaps, and instead
-of all the minor mode keymaps.  This keymap, if any, overrides all
-other maps that would have been active, except for the current global
-map.
+buffer's local keymap, any text property or overlay keymaps, and any
+minor mode keymaps.  This keymap, if specified, overrides all other
+maps that would have been active, except for the current global map.
 @end defvar
 
 @defvar overriding-terminal-local-map

@@ -1,3 +1,12 @@
+2005-01-15  Frederik Fouvry  <fouvry@CoLi.Uni-SB.DE>
+
+	* TUTORIAL.nl: Correct translation and the Dutch text (typos).
+	More consistent use of terminology.
+
+2005-01-13  Cheng Gao  <chenggao@gmail.com>
+
+	* MORE.STUFF: Add entries of some well known and widely used packages.
+	
 2005-01-07  Lars Hansen  <larsh@math.ku.dk>
 
 	* NEWS: Describe desktop package lazy restore feature.

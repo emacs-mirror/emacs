@@ -106,6 +106,12 @@ escape-glyph face.
 character, unless the new user variable `show-nonbreak-escape' is set
 to nil.
 
+---
+** The type-break package now allows `type-break-file-name' to be nil
+and if so, doesn't store any data across sessions.  This is handy if
+you don't want the .type-break file in your home directory or are
+annoyed by the need for interaction when you kill Emacs.
+
 ** display-battery has been replaced by display-battery-mode.
 
 ** calculator.el now has radix grouping mode, which is available when
@@ -680,7 +686,7 @@ multiple files, and C-x d passes it to `dired'.
 ** Info mode:
 
 *** A numeric prefix argument of `info' selects an Info buffer
-with the number appended to the *info* buffer name.
+with the number appended to the *info* buffer name (e.g. "*info*<2>").
 
 *** Regexp isearch (C-M-s and C-M-r) can search through multiple nodes.
 Failed isearch wraps to the top/final node.
@@ -688,6 +694,10 @@ Failed isearch wraps to the top/final node.
 *** New search commands: `Info-search-case-sensitively' (bound to S),
 `Info-search-backward', and `Info-search-next' which repeats the last
 search without prompting for a new search string.
+
+*** New command `Info-history-forward' (bound to r and new toolbar icon)
+moves forward in history to the node you returned from after using
+`Info-history-back' (renamed from `Info-last').
 
 *** New command `Info-history' (bound to L) displays a menu of visited nodes.
 
@@ -2110,6 +2120,14 @@ displays a buffer menu.  This option turns the buffer menu off.
 
 ---
 ** Rmail now displays 5-digit message ids in its summary buffer.
+
++++
+** Support for `movemail' from GNU mailutils was added to Rmail.
+This version of `movemail' allows to read mail from a wide range of
+mailbox formats, including remote POP3 and IMAP4 mailboxes with or
+without TLS encryption.  If GNU mailutils is installed on the system
+and its version of `movemail' can be found in exec-path, it will be
+used instead of the native one.
 
 ---
 ** On MS Windows, the "system caret" now follows the cursor.

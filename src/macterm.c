@@ -101,6 +101,10 @@ Boston, MA 02111-1307, USA.  */
 
 Lisp_Object Vx_toolkit_scroll_bars;
 
+/* If Non-nil, the text will be rendered using Core Graphics text rendering which may anti-alias the text.  */
+Lisp_Object Vmac_use_core_graphics;
+
+
 /* Non-zero means that a HELP_EVENT has been generated since Emacs
    start.  */
 
@@ -725,6 +729,13 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
      int nchars, mode, bytes_per_char;
 {
   SetPortWindowPort (w);
+#ifdef MAC_OSX
+  UInt32 textFlags, savedFlags;
+  if (!NILP(Vmac_use_core_graphics)) {
+    textFlags = kQDUseCGTextRendering;
+    savedFlags = SwapQDTextFlags(textFlags);
+  }
+#endif
 
   mac_set_colors (gc);
 
@@ -735,6 +746,10 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
 
   MoveTo (x, y);
   DrawText (buf, 0, nchars * bytes_per_char);
+#ifdef MAC_OSX
+  if (!NILP(Vmac_use_core_graphics))
+    SwapQDTextFlags(savedFlags);
+#endif
 }
 
 
@@ -1088,6 +1103,62 @@ XSetForeground (display, gc, color)
      unsigned long color;
 {
   gc->foreground = color;
+}
+
+
+/* Mac replacement for XSetBackground.  */
+
+void
+XSetBackground (display, gc, color)
+     Display *display;
+     GC gc;
+     unsigned long color;
+{
+  gc->background = color;
+}
+
+
+/* Mac replacement for XSetWindowBackground.  */
+
+void
+XSetWindowBackground (display, w, color)
+     Display *display;
+     WindowPtr w;
+     unsigned long color;
+{
+#if !TARGET_API_MAC_CARBON
+  AuxWinHandle aw_handle;
+  CTabHandle ctab_handle;
+  ColorSpecPtr ct_table;
+  short ct_size;
+#endif
+  RGBColor bg_color;
+
+  bg_color.red = RED16_FROM_ULONG (color);
+  bg_color.green = GREEN16_FROM_ULONG (color);
+  bg_color.blue = BLUE16_FROM_ULONG (color);
+
+#if TARGET_API_MAC_CARBON
+  SetWindowContentColor (w, &bg_color);
+#else
+  if (GetAuxWin (w, &aw_handle))
+    {
+      ctab_handle = (*aw_handle)->awCTable;
+      HandToHand ((Handle *) &ctab_handle);
+      ct_table = (*ctab_handle)->ctTable;
+      ct_size = (*ctab_handle)->ctSize;
+      while (ct_size > -1)
+	{
+	  if (ct_table->value == 0)
+	    {
+	      ct_table->rgb = bg_color;
+	      CTabChanged (ctab_handle);
+	      SetWinColor (w, (WCTabHandle) ctab_handle);
+	    }
+	  ct_size--;
+	}
+    }
+#endif
 }
 
 
@@ -9845,7 +9916,16 @@ Toolbox for processing before Emacs sees it.  */);
    doc: /* If non-nil, the Mac \"Control\" key is passed on to the Mac
 Toolbox for processing before Emacs sees it.  */);
   Vmac_pass_control_to_system = Qt;
+
+  DEFVAR_LISP ("mac-pass-control-to-system", &Vmac_pass_control_to_system,
+   doc: /* If non-nil, the Mac \"Control\" key is passed on to the Mac
+Toolbox for processing before Emacs sees it.  */);
+  Vmac_pass_control_to_system = Qt;
 #endif
+
+  DEFVAR_LISP ("mac-allow-anti-aliasing", &Vmac_use_core_graphics,
+   doc: /* If non-nil, the text will be rendered using Core Graphics text rendering which may anti-alias the text.  */);
+  Vmac_use_core_graphics = Qnil;
 
   DEFVAR_INT ("mac-keyboard-text-encoding", &mac_keyboard_text_encoding,
     doc: /* One of the Text Encoding Base constant values defined in the

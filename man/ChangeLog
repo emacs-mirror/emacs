@@ -1,6 +1,32 @@
+2005-01-15  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* man/rmail.texi: Document support for GNU mailutils in rmail.el.
+
+2005-01-13  Richard M. Stallman  <rms@gnu.org>
+
+	* commands.texi (Commands): Clarification.
+
+2005-01-11  Richard M. Stallman  <rms@gnu.org>
+
+	* programs.texi (Multi-line Indent): Fix previous change.
+	(Fortran Autofill): Simplify description of fortran-auto-fill-mode.
+
+2005-01-11  Kim F. Storm  <storm@cua.dk>
+
+	* widget.texi (Basic Types): Add :follow-link keyword.
+
 2005-01-09  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (Basic Commands): Describe new behavior of calc-reset.
+
+2005-01-08  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Faces): isearch-lazy-highlight-face renamed to
+	lazy-highlight.
+
+	* search.texi (Query Replace): Mention faces query-replace
+	and lazy-highlight.
+	(Incremental Search): Update isearch highlighting info.
 
 2005-01-08  Jay Belanger  <belanger@truman.edu>
 
@@ -95,10 +121,6 @@
 	* basic.texi (Moving Point): C-e now runs move-end-of-line.
 	(Undo): Doc undo-outer-limit.
 
-2004-12-11  Richard M. Stallman  <rms@gnu.org>
-
-	* Makefile.in (MAKEINFO): Add --force.
-
 2004-12-20  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (Types Tutorial): Emphasize that you can't divide by
@@ -124,7 +146,6 @@
 	the standard "The GNU Emacs Manual" in fifth argument of @xref's.
 	(Dealing with HTTP documents): @inforef->@xref.
 
->>>>>>> 1.412
 2004-12-15  Juri Linkov  <juri@jurta.org>
 
 	* mark.texi (Transient Mark, Mark Ring): M-< and other
@@ -141,7 +162,6 @@
 
 	* calc.texi: Fix some TeX definitions.
 
->>>>>>> 1.407
 2004-12-12  Juri Linkov  <juri@jurta.org>
 
 	* misc.texi (FFAP): Add C-x C-r, C-x C-v, C-x C-d,
@@ -155,7 +175,6 @@
 	* mark.texi (Marking Objects): Marking commands also extend the
 	region when mark is active in Transient Mark mode.
 
->>>>>>> 1.403
 2004-12-09  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* reftex.texi (Imprint): Remove erroneous @value's.

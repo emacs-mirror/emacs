@@ -1,8 +1,8 @@
 ;;; reftex.el --- minor mode for doing \label, \ref, \cite, \index in LaTeX
-;; Copyright (c) 1997, 1998, 1999, 2000, 2003 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.21
+;; Version: 4.26
 ;; Keywords: tex
 
 ;; This file is part of GNU Emacs.
@@ -300,7 +300,7 @@
 ;;; Define the formal stuff for a minor mode named RefTeX.
 ;;;
 
-(defconst reftex-version "RefTeX version 4.21"
+(defconst reftex-version "RefTeX version 4.26"
   "Version string for RefTeX.")
 
 (defvar reftex-mode nil
@@ -669,6 +669,8 @@ the label information is recompiled on next use."
 
 ;; Alist relating magic words to a label type.
 (defvar reftex-words-to-typekey-alist nil)
+;; Alist relating label prefixes to a label type.
+(defvar reftex-prefix-to-typekey-alist nil)
 
 ;; The last list-of-labels entry used in a reference.
 (defvar reftex-last-used-reference (list nil nil nil nil))
@@ -750,6 +752,7 @@ the label information is recompiled on next use."
     reftex-typekey-to-format-alist
     reftex-typekey-to-prefix-alist
     reftex-words-to-typekey-alist
+    reftex-prefix-to-typekey-alist
     reftex-type-query-prompt
     reftex-type-query-help
 
@@ -904,6 +907,8 @@ This enforces rescanning the buffer on next use."
         macro verify repeat nindex tag key toc-level toc-levels)
 
     (setq reftex-words-to-typekey-alist nil
+          reftex-prefix-to-typekey-alist 
+          '(("sec:" . "s") ("cha:" . "s") ("chap:" . "s"))
           reftex-typekey-list nil
           reftex-typekey-to-format-alist nil
           reftex-typekey-to-prefix-alist nil
@@ -945,6 +950,10 @@ This enforces rescanning the buffer on next use."
         ;; Note a new typekey
         (if typekey
             (add-to-list 'reftex-typekey-list typekey))
+        (if (and typekey prefix
+                 (not (assoc prefix reftex-prefix-to-typekey-alist)))
+            (add-to-list 'reftex-prefix-to-typekey-alist
+                         (cons prefix typekey)))
         (if (and typekey prefix
                  (not (assoc typekey reftex-typekey-to-prefix-alist)))
             (add-to-list 'reftex-typekey-to-prefix-alist
@@ -1676,6 +1685,7 @@ When DIE is non-nil, throw an error if file not found."
  "Make a citation using BibTeX database files." t)
 (autoload 'reftex-default-bibliography "reftex-cite")
 (autoload 'reftex-bib-or-thebib "reftex-cite")
+(autoload 'reftex-create-bibtex-file "reftex-cite")
 
 ;;; =========================================================================
 ;;;
@@ -2439,6 +2449,7 @@ IGNORE-WORDS List of words which should be removed from the string."
     ["Restore from File"      (reftex-access-parse-file 'restore) t])
    ("Global Actions"
     ["Search Whole Document"  reftex-search-document t]
+    ["Search Again"           tags-loop-continue t]
     ["Replace in Document"    reftex-query-replace-document t]
     ["Grep on Document"       reftex-grep-document t]
     "--"
@@ -2446,6 +2457,8 @@ IGNORE-WORDS List of words which should be removed from the string."
     ["Find Duplicate Labels"  reftex-find-duplicate-labels t]
     ["Change Label and Refs"  reftex-change-label t]
     ["Renumber Simple Labels" reftex-renumber-simple-labels t]
+    "--"
+    ["Create BibTeX File"     reftex-create-bibtex-file t]
     "--"
     ["Create TAGS File"       reftex-create-tags-file t]
     "--"

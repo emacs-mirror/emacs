@@ -1,7 +1,281 @@
+2005-01-15  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/lisp-mnt.el (lm-with-file): Use Lisp mode in temp buffer.
+	In non-temp buffer, switch syntax table temporarily.
+
+	* emacs-lisp/lisp-mode.el (indent-pp-sexp): Doc fix.
+
+	* replace.el (occur-accumulate-lines, occur-engine): Avoid warnings.
+
+	* tar-mode.el (tar-extract): Bind buffer-undo-list to t.
+
+	* imenu.el (imenu--split-menu): Copy menulist before sorting.
+	(imenu--generic-function): Use START, not BEG, as pos of definition.
+
+	* simple.el (just-one-space): Argument specifies number of spaces.
+
+	* simple.el (eval-expression-print-format): Avoid warning
+	about edebug-active.
+
+2005-01-15  "James R. Van Zandt"  <jrvz@comcast.net>  (Tiny change)
+
+	* progmodes/sh-script.el: Code copied from make-mode.el
+	with small changes,
+	(sh-mode-map): Bind C-c C-\.
+	(sh-backslash-column, sh-backslash-align): New variables.
+	(sh-backslash-region, sh-append-backslash): New functions.
+	
+2005-01-15  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* mail/rmail.el: Updated to work with movemail from GNU Mailutils
+	(rmail-pop-password, rmail-pop-password-required): Moved to
+	rmail-obsolete group.
+	(rmail-set-pop-password): Renamed to rmail-set-remote-password.
+	All callers updated.
+	(rmail-get-pop-password): Renamed to rmail-get-remote-password.
+	Take an argument specifying whether it is POP or IMAP mailbox we
+	are using.  All callers updated.
+	(rmail-pop-password-error): Renamed to
+	rmail-remote-password-error.  Added mailutils-specific error
+	message.
+	(rmail-movemail-search-path)
+	(rmail-movemail-variant-in-use): New variables.
+	(rmail-remote-password, rmail-remote-password-required): New
+	customization variables.
+	(rmail-probe,rmail-autodetect, rmail-movemail-variant-p): New
+	functions.
+	(rmail-parse-url): New function.
+	(rmail-get-new-mail, rmail-insert-inbox-text): Updated for use
+	with GNU mailutils movemail.
+
+2005-01-15  Kevin Ryde  <user42@zip.com.au>
+
+	* info-look.el (c-mode/symbol): Add ^` to prefix, and change
+	suffix to space, $ or '$, to correctly position point when going
+	to @table style constants like DBL_MAX.
+
+2005-01-15  Jorgen Schaefer  <forcer@forcix.cx>  (tiny change)
+
+	* type-break.el (type-break-mode, type-break-file-time)
+	(type-break-file-keystroke-count, type-break-choose-file): Don't
+	store data in or load data from the file if type-break-file-name
+	is nil.
+	(type-break-file-name): Doc update as per the above.
+
+2005-01-15  Stephen Eglen  <S.J.Eglen@damtp.cam.ac.uk>  (tiny change)
+
+	* woman.el (woman-dired-define-key-maybe): If KEY is undefined,
+	lookup-key might return nil; handle that.
+
+2005-01-15  Alan Mackenzie  <acm@muc.de>
+
+	* ebrowse.el (ebrowse-class-in-tree): Return the tail of the tree
+	rather than the element found, thus enabling the tree to be
+	setcar'd.
+
+2005-01-14  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-show-following-heading): New option.
+	(org-show-hierarchy-above): Use `org-show-following-heading'.
+	(org-cycle): Documentation fix.
+
+	* textmodes/org.el (orgtbl-optimized): New option
+	(orgtbl-mode): New command, a minor mode.
+	(orgtbl-mode-map): New variable.
+	(turn-on-orgtbl, orgtbl-mode, orgtbl-make-binding)
+	(orgtbl-error, orgtbl-self-insert-command)
+	(orgtbl-delete-backward-char, orgtbl-delete-char): New functions.
+
+	* textmodes/org.el (org-mode): `org-table-may-need-update' is now
+	a local variable in each org-mode buffer.
+
+	* textmodes/org.el (org-set-regexps-and-options): Renamed from
+	`org-set-regexps'.  Added checking for STARTUP keyword.
+	(org-get-current-options): Added STARTUP options.
+	(org-table-insert-row): Mode mode intelligent about when
+	realignment is needed.
+	(org-self-insert-command, org-delete-backward-char,
+	org-delete-char): New commands.
+	(org-enable-table-editor): new default value `optimized'.
+	(org-table-blank-field): Support blanking regions if active.
+
+
+2005-01-14  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/reftex-cite.el (reftex-bib-sort-year): Catch the case
+	if the year is not given.
+
+	* textmodes/reftex-ref.el (reftex-replace-prefix-escapes): Added
+	new escapes %m and %M, fixed bug with %F by adding
+	save-match-data.
+	(reftex-reference): Removed ?. from list of spaces.
+	(reftex-label-info): Added automatic label prefix recognition
+
+	* textmodes/reftex-index.el (reftex-index-next-phrase): Added
+	slave parameter to call of `reftex-index-this-phrase'
+	(reftex-index-this-phrase): New optional argument
+	(reftex-index-region-phrases): Added slave parameter to call of
+	`reftex-index-this-phrase'
+	(reftex-display-index): New argument redo
+	(reftex-index-rescan): Added 'redo to arguments of
+	`reftex-display-index'
+	(reftex-index-Rescan, reftex-index-revert)
+	(reftex-index-switch-index-tag): Added 'redo to arguments of
+	`reftex-display-index'
+	(reftex-index-make-phrase-regexp): Fixed bug with case-sensitive
+	indexing.  Fixed bug with matching is there is a quote before or
+	after the word.
+
+	* textmodes/reftex-cite.el (reftex-all-used-citation-keys): Fix
+	bug when collecting citation keys in lines with comments.
+	(reftex-citation): Prefix argument no longer rescans the document,
+	but forces prompting for optional arguments of cite macros.
+	(reftex-do-citation): Prompting for optional arguments
+	implemented.
+
+	* textmodes/reftex-vars.el (reftex-cite-format-builtin): Added
+	optional arguments to most cite commands.
+	(reftex-cite-cleanup-optional-args): New option
+	(reftex-cite-prompt-optional-args): New option.
+	(reftex-trust-label-prefix): New option
+
+	* textmodes/reftex-toc.el (reftex-toc-find-section): Added
+	push-mark before changing the position in the buffer.
+
+	* textmodes/reftex.el (reftex-prefix-to-typekey-alist): New
+	variable
+	(reftex-compile-variables): Compute reftex-prefix-to-typekey-alist
+
+2005-01-14  Nick Roberts  <nickrob@snap.net.nz>
+
+	* xt-mouse.el (xterm-mouse-event): Compute window co-ordinates
+	more carefully.
+
+2005-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/sgml-mode.el (sgml-fill-nobreak): New fun.
+	(sgml-mode): Use it.
+	(sgml-get-context): Better keep track of implicitly closed tags.
+
+2005-01-13  Kenichi Handa  <handa@m17n.org>
+
+	* textmodes/ispell.el: These changes are to fix misalignment error
+	caused by equivalent characters of different Emacs charsets.
+	(ispell-unified-chars-table): New variable.
+	(ispell-get-decoded-string): New function.
+	(ispell-get-casechars, ispell-get-not-casechars)
+	(ispell-get-otherchars): Call ispell-get-decoded-string.
+
+2005-01-12  Johan Bockg,Ae(Brd  <bojohan@users.sourceforge.net>
+
+	* custom.el (custom-declare-variable): Just put symbol instead
+	of (defvar . symbol) in `current-load-list'.
+
+2005-01-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* emacs-lisp/elint.el: Fixed typo in Commentary section.
+
+2005-01-12  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-help.el (calc-describe-key): Use temporary info buffer
+	to create a Calc summary.
+
+2005-01-12  Kim F. Storm  <storm@cua.dk>
+
+	* mouse.el (mouse-on-link-p): Change functionality and doc
+	string to comply with latest description in lisp ref.
+
+2005-01-12  Nick Roberts  <nickrob@snap.net.nz>
+
+	* xt-mouse.el (xterm-mouse-translate, xterm-mouse-event):
+	Enable mouse clicks on mode-line, header-line and margin.
+	(event-type): Give mouse event symbols an 'event-kind property
+	with value 'mouse-click.
+
+2005-01-12  Juri Linkov  <juri@jurta.org>
+
+	* facemenu.el (list-colors-display): Add new arg buffer-name.
+	Use it.  Fix docstring.  Replace code for identifying duplicate
+	colors by the name with call to `list-colors-duplicates' which
+	identifies duplicate colors by the value unless the color
+	is one of special Windows colors.  Set truncate-lines to t.
+	Print sorted duplicate color names on each line.  Indent to 22
+	\(the longest color name in rgb.txt) instead of 20.  Optimize.
+	(list-colors-duplicates): New function.
+	(facemenu-color-name-equal): Delete function.
+
+	* facemenu.el (list-colors-print): New function created from code
+	in list-colors-display.  Print #RRGGBB at the window right edge.
+	(list-colors-display): When temp-buffer-show-function is not
+	defined, call list-colors-print from temp-buffer-show-hook
+	to get the right value of window-width in list-colors-print
+	after the buffer is displayed.
+
+	* simple.el (pop-mark): Move deactivate-mark out of conditional
+	part to deactivate the active mark regardless of the state of the
+	mark ring.
+
+	* desktop.el (desktop-save): Add `mode: emacs-lisp' to the local
+	variables line in desktop files.
+
+2005-01-12  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (search-highlight, isearch, isearch-lazy-highlight):
+	Bring together isearch highlight related options.
+	(lazy-highlight): Replace group `replace' by `matching'.
+	(lazy-highlight-cleanup, lazy-highlight-initial-delay)
+	(lazy-highlight-interval, lazy-highlight-max-at-a-time)
+	(lazy-highlight): Add aliases to old names isearch-lazy-highlight-...
+	and declare them obsolete.
+	(lazy-highlight-face): Rename from isearch-lazy-highlight-face.
+	(isearch-faces): Remove defgroup.
+	(isearch-overlay, isearch-highlight, isearch-dehighlight):
+	Move isearch highlighting code closer to lazy highlighting code.
+
+	* replace.el (query-replace-lazy-highlight): Add lazy-highlight group.
+	(query-replace-highlight, query-replace-lazy-highlight)
+	(query-replace): Move definitions to the beginning of the file.
+
+2005-01-11  Juri Linkov  <juri@jurta.org>
+
+	* toolbar/back_arrow.xpm, toolbar/back_arrow.pbm,
+	* toolbar/lc-back_arrow.xpm, toolbar/lc-fwd_arrow.xpm,
+	* toolbar/fwd_arrow.xpm, toolbar/fwd_arrow.pbm: New icons.
+
+	* info.el (Info-history-forward): New variable.
+	(Info-select-node): Reset Info-history-forward to nil.
+	(Info-last): Turn into defalias.
+	(Info-history-back): Rename from Info-last.
+	Add current node to Info-history-forward.
+	(Info-history-forward): New fun.
+	(Info-mode-map): Replace Info-last by Info-history-back.
+	Bind Info-history-forward to "r".
+	(Info-mode-menu): Replace Info-last by Info-history-back.
+	Fix menu item text.  Add menu item for Info-history-forward.
+	(info-tool-bar-map): Replace Info-last by Info-history-back.
+	Replace its icon "undo" by "back_arrow".  Add icon "fwd_arrow"
+	for Info-history-forward.
+	(Info-mode): Replace Info-last by Info-history-back in docstring.
+	Add local variable Info-history-forward.
+	(Info-goto-emacs-command-node): Replace Info-last by Info-history-back.
+
+2005-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse-drag-mode-line-1, mouse-drag-vertical-line)
+	(mouse-drag-region, mouse-drag-region-1, mouse-drag-secondary):
+	Ignore select-window events rather than fiddle with
+	mouse-autoselect-window.
+
+2005-01-11  Matthew Mundell  <matt@mundell.ukfsn.org>
+
+	* type-break.el (type-break-mode): Fix previous change.
+
 2005-01-10  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-ext.el (calc-reset): Don't adjust the window height if
-	the window takes up the whole height of the frame.
+	* calc/calc-ext.el (calc-reset): Reset when inside embedded
+	calculator; only reset when point is inside a calculator.
+	Don't adjust the window height if the window takes up the whole height
+	of the frame.
 
 2005-01-10  Thien-Thi Nguyen  <ttn@gnu.org>
 
@@ -23,8 +297,8 @@
 	(vc-disable-async-diff): New internal variable.
 	(vc-revert-buffer): Use them to disable asynchronous diff.
 
-	* vc-cvs.el, vc-arch.el, vc-svn.el, vc-mcvs.el (vc-cvs-diff,
-	vc-arch-diff, vc-svn-diff, vc-mcvs-diff): Don't diff
+	* vc-cvs.el, vc-arch.el, vc-svn.el, vc-mcvs.el (vc-cvs-diff)
+	(vc-arch-diff, vc-svn-diff, vc-mcvs-diff): Don't diff
 	asynchronously if vc-disable-async-diff is t.
 
 2005-01-09  Jay Belanger  <belanger@truman.edu>
@@ -110,7 +384,7 @@
 2005-01-06  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/find-func.el (find-face-definition):
-	Renamed from find-face.
+	Rename from find-face.
 
 2005-01-06  Kim F. Storm  <storm@cua.dk>
 
@@ -126,12 +400,12 @@
 
 2005-01-06  Juri Linkov  <juri@jurta.org>
 
-	* isearch.el (isearch-lazy-highlight-update): Rename
-	`isearch-lazy-highlight-interval' to `lazy-highlight-interval'.
+	* isearch.el (isearch-lazy-highlight-update):
+	Rename `isearch-lazy-highlight-interval' to `lazy-highlight-interval'.
 
 2005-01-06  Miles Bader  <miles@gnu.org>
 
-	* isearch.el (lazy-highlight): Renamed from `lazy-highlight-face'.
+	* isearch.el (lazy-highlight): Rename from `lazy-highlight-face'.
 	(isearch-lazy-highlight-face): Use new name.
 
 2005-01-05  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -3215,7 +3489,7 @@
 	* menu-bar.el (menu-bar-files-menu): Make "Open File..." call
 	find-file-existing.  Add "New File..." that calls find-file.
 
-	* diropen.pbm diropen.xpm: New files.
+	* diropen.pbm, diropen.xpm: New files.
 
 	* toolbar/tool-bar.el (tool-bar-setup): Tool bar item dired uses
 	icon diropen.  New tool bar item find-file-existing uses icon open.
@@ -4320,7 +4594,7 @@
 	(dired-move-to-end-of-filename): Make the " -> " search more specific.
 	(dired-buffers-for-dir): Remove unused var `pattern'.
 
-2004-09-28  Matthew Mundell  <matt@mundell.ukfsn.org>  (tiny change)
+2004-09-28  Matthew Mundell  <matt@mundell.ukfsn.org>
 
 	* calendar/diary-lib.el (list-diary-entries): Save diary buffer
 	from diary display excursion.  Store diary buffer's point for

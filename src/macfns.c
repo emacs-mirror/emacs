@@ -1385,6 +1385,7 @@ x_set_foreground_color (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
+  struct mac_output *mac = f->output_data.mac;
   unsigned long fg, old_fg;
 
   fg = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
@@ -1393,10 +1394,28 @@ x_set_foreground_color (f, arg, oldval)
 
   if (FRAME_MAC_WINDOW (f) != 0)
     {
+      Display *dpy = FRAME_MAC_DISPLAY (f);
+
+      BLOCK_INPUT;
+      XSetForeground (dpy, mac->normal_gc, fg);
+      XSetBackground (dpy, mac->reverse_gc, fg);
+
+      if (mac->cursor_pixel == old_fg)
+	{
+	  unload_color (f, mac->cursor_pixel);
+	  mac->cursor_pixel = fg;
+	  XSetBackground (dpy, mac->cursor_gc, mac->cursor_pixel);
+	}
+
+      UNBLOCK_INPUT;
+
       update_face_from_frame_parameter (f, Qforeground_color, arg);
+
       if (FRAME_VISIBLE_P (f))
         redraw_frame (f);
     }
+
+  unload_color (f, old_fg);
 }
 
 void
@@ -1404,11 +1423,24 @@ x_set_background_color (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  FRAME_BACKGROUND_PIXEL (f)
-    = x_decode_color (f, arg, WHITE_PIX_DEFAULT (f));
+  struct mac_output *mac = f->output_data.mac;
+  unsigned long bg;
+
+  bg = x_decode_color (f, arg, WHITE_PIX_DEFAULT (f));
+  unload_color (f, FRAME_BACKGROUND_PIXEL (f));
+  FRAME_BACKGROUND_PIXEL (f) = bg;
 
   if (FRAME_MAC_WINDOW (f) != 0)
     {
+      Display *dpy = FRAME_MAC_DISPLAY (f);
+
+      BLOCK_INPUT;
+      XSetBackground (dpy, mac->normal_gc, bg);
+      XSetForeground (dpy, mac->reverse_gc, bg);
+      XSetWindowBackground (dpy, FRAME_MAC_WINDOW (f), bg);
+      XSetForeground (dpy, mac->cursor_gc, bg);
+
+      UNBLOCK_INPUT;
       update_face_from_frame_parameter (f, Qbackground_color, arg);
 
       if (FRAME_VISIBLE_P (f))
@@ -2296,6 +2328,10 @@ mac_window (f)
 #endif
   /* so that update events can find this mac_output struct */
   f->output_data.mac->mFP = f;  /* point back to emacs frame */
+
+  if (FRAME_MAC_WINDOW (f))
+    XSetWindowBackground (FRAME_MAC_DISPLAY(f), FRAME_MAC_WINDOW (f),
+			  FRAME_BACKGROUND_PIXEL (f));
 
   validate_x_resource_name ();
 
@@ -3856,6 +3892,8 @@ x_create_tip_frame (dpyinfo, parms, text)
 #endif
       {
 	FRAME_MAC_WINDOW (f) = tip_window;
+	XSetWindowBackground (FRAME_MAC_DISPLAY(f), tip_window,
+			      FRAME_BACKGROUND_PIXEL (f));
 	SetWRefCon (tip_window, (long) f->output_data.mac);
 	/* so that update events can find this mac_output struct */
 	f->output_data.mac->mFP = f;
@@ -4318,9 +4356,12 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 
 	if (!NILP(default_filename))
 	  {
-	    saveName =
-	      cfstring_create_with_utf8_cstring (SDATA (ENCODE_UTF_8
-							(default_filename)));
+	    Lisp_Object utf8 = ENCODE_UTF_8 (default_filename);
+	    char *begPtr = SDATA(utf8);
+	    char *filePtr = begPtr + SBYTES(utf8);
+	    while (filePtr != begPtr && !IS_DIRECTORY_SEP(filePtr[-1]))
+	      filePtr--;
+	    saveName = cfstring_create_with_utf8_cstring (filePtr);
 	    options.saveFileName = saveName;
 	    options.optionFlags |= kNavSelectDefaultLocation;
 	  }

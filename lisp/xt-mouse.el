@@ -43,13 +43,16 @@
 
 ;; Support multi-click -- somehow.
 
-;; Clicking on the mode-line does not work, although it should.
-
 ;;; Code:
 
 (define-key function-key-map "\e[M" 'xterm-mouse-translate)
 
 (defvar xterm-mouse-last)
+
+;; Mouse events symbols must have an 'event-kind property with
+;; the value 'mouse-click.
+(dolist (event-type '(mouse-1 mouse-2 mouse-3))
+  (put event-type 'event-kind 'mouse-click))
 
 (defun xterm-mouse-translate (event)
   "Read a click and release event from XTerm."
@@ -78,7 +81,7 @@
 	       (click-where (nth 1 click-data)))
 	  (if (memq down-binding '(nil ignore))
 	      (if (and (symbolp click-where)
-		       (not (eq 'menu-bar click-where)))
+		       (consp click-where))
 		  (vector (list click-where click-data) click)
 		(vector click))
 	    (setq unread-command-events
@@ -92,10 +95,9 @@
 			 0
 		       (list (intern (format "drag-mouse-%d"
 					     (+ 1 xterm-mouse-last)))
-			     down-data click-data))
-		     )))
+			     down-data click-data)))))
 	    (if (and (symbolp down-where)
-		     (not (eq 'menu-bar down-where)))
+		     (consp down-where))
 		(vector (list down-where down-data) down)
 	      (vector down))))))))
 
@@ -124,30 +126,6 @@
   (let* ((type (- (xterm-mouse-event-read) #o40))
 	 (x (- (xterm-mouse-event-read) #o40 1))
 	 (y (- (xterm-mouse-event-read) #o40 1))
-	 (point (cons x y))
-	 (window (window-at x y))
-	 (where (if window
-		    (coordinates-in-window-p point window)
-		  'menu-bar))
-	 (pos (if (consp where)
-		  (progn
-		    (select-window window)
-		    (goto-char (window-start window))
-		    (move-to-window-line (-
-					  (cdr where)
-					  (if (or header-line-format
-						  default-header-line-format)
-					      1
-					    0)))
-		    (move-to-column (- (+ (car where) (current-column)
-				       (if (string-match "\\` \\*Minibuf"
-							 (buffer-name))
-					   (- (minibuffer-prompt-width))
-					 0)
-				       (max 0 (1- (window-hscroll))))
-				       left-margin-width))
-		    (point))
-		where))
 	 (mouse (intern
 		 ;; For buttons > 3, the release-event looks
 		 ;; differently (see xc/programs/xterm/button.c,
@@ -159,12 +137,18 @@
 			(format "mouse-%d" (+ 1 xterm-mouse-last)))
 		       (t
 			(setq xterm-mouse-last type)
-			(format "down-mouse-%d" (+ 1 type)))))))
+			(format "down-mouse-%d" (+ 1 type))))))
+	 (w (window-at x y))
+         (ltrb (window-edges w))
+         (left (nth 0 ltrb))
+         (top (nth 1 ltrb)))
+
     (setq xterm-mouse-x x
 	  xterm-mouse-y y)
-    (list mouse
-	  (list window pos point
-		(/ (nth 2 (current-time)) 1000)))))
+    (if w
+	(list mouse (posn-at-x-y (- x left) (- y top) w))
+      (list mouse
+	    (append (list nil 'menu-bar) (nthcdr 2 (posn-at-x-y x y w)))))))
 
 ;;;###autoload
 (define-minor-mode xterm-mouse-mode

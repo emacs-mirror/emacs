@@ -780,16 +780,16 @@ The class tree is found in the buffer-local variable `ebrowse--tree-obarray'."
 
 (defun ebrowse-class-in-tree (class tree)
   "Search for a class with name CLASS in TREE.
-Return the class found, if any.  This function is used during the load
-phase where classes appended to a file replace older class
-information."
+If CLASS is found, return the tail of TREE starting at CLASS.  This function
+is used during the load phase where classes appended to a file replace older
+class information."
   (let ((tclass (ebrowse-ts-class class))
 	found)
     (while (and tree (not found))
-      (let ((root (car tree)))
-	(when (string= (ebrowse-qualified-class-name (ebrowse-ts-class root))
+      (let ((root-ptr tree))
+	(when (string= (ebrowse-qualified-class-name (ebrowse-ts-class (car root-ptr)))
 		       (ebrowse-qualified-class-name tclass))
-	  (setq found root))
+	  (setq found root-ptr))
 	(setq tree (cdr tree))))
     found))
 
@@ -903,10 +903,10 @@ and TREE is a list of `ebrowse-ts' structures forming the class tree."
     (let ((gc-cons-threshold 2000000))
       (while (not (progn (skip-chars-forward " \t\n\r") (eobp)))
 	(let* ((root (read (current-buffer)))
-	       (old-root (ebrowse-class-in-tree root tree)))
+	       (old-root-ptr (ebrowse-class-in-tree root tree)))
 	  (ebrowse-show-progress "Reading data" (null tree))
-	  (if old-root
-	      (setf (car old-root) root)
+	  (if old-root-ptr
+	      (setcar old-root-ptr root)
 	    (push root tree)))))
     (garbage-collect)
     (list header tree)))

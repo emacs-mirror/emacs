@@ -1133,7 +1133,8 @@ ENDPOS is encountered."
       (set-marker endmark nil))))
 
 (defun indent-pp-sexp (&optional arg)
-  "Indent each line of the list or, with prefix ARG, pretty-printify the list."
+  "Indent each line of the list starting just after point, or prettyprint it.
+A prefix argument specifies pretty-printing."
   (interactive "P")
   (if arg
       (save-excursion

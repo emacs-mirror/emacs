@@ -47,6 +47,10 @@
   "Stack of info nodes user has visited.
 Each element of list is a list (FILENAME NODENAME BUFFERPOS).")
 
+(defvar Info-history-forward nil
+  "Stack of info nodes user has visited with `Info-history-back' command.
+Each element of list is a list (FILENAME NODENAME BUFFERPOS).")
+
 (defvar Info-history-list nil
   "List of all info nodes user has visited.
 Each element of list is a list (FILENAME NODENAME).")
@@ -1295,7 +1299,8 @@ any double quotes or backslashes must be escaped (\\\",\\\\)."
 	;; Add a new unique history item to full history list
 	(let ((new-history (list Info-current-file Info-current-node)))
 	  (setq Info-history-list
-		(cons new-history (delete new-history Info-history-list))))
+		(cons new-history (delete new-history Info-history-list)))
+	  (setq Info-history-forward nil))
 	(if (not (eq Info-fontify-maximum-menu-size nil))
             (Info-fontify-node))
 	(Info-display-images-node)
@@ -1731,18 +1736,38 @@ If SAME-FILE is non-nil, do not move to a different Info file."
       (goto-char p)
       (Info-restore-point Info-history))))
 
-(defun Info-last ()
-  "Go back to the last node visited."
+(defun Info-history-back ()
+  "Go back in the history to the last node visited."
   (interactive)
   (or Info-history
       (error "This is the first Info node you looked at"))
-  (let (filename nodename opoint)
+  (let ((history-forward
+	 (cons (list Info-current-file Info-current-node (point))
+	       Info-history-forward))
+	filename nodename opoint)
     (setq filename (car (car Info-history)))
     (setq nodename (car (cdr (car Info-history))))
     (setq opoint (car (cdr (cdr (car Info-history)))))
     (setq Info-history (cdr Info-history))
     (Info-find-node filename nodename)
     (setq Info-history (cdr Info-history))
+    (setq Info-history-forward history-forward)
+    (goto-char opoint)))
+
+(defalias 'Info-last 'Info-history-back)
+
+(defun Info-history-forward ()
+  "Go forward in the history of visited nodes."
+  (interactive)
+  (or Info-history-forward
+      (error "This is the last Info node you looked at"))
+  (let ((history-forward (cdr Info-history-forward))
+	filename nodename opoint)
+    (setq filename (car (car Info-history-forward)))
+    (setq nodename (car (cdr (car Info-history-forward))))
+    (setq opoint (car (cdr (cdr (car Info-history-forward)))))
+    (Info-find-node filename nodename)
+    (setq Info-history-forward history-forward)
     (goto-char opoint)))
 
 ;;;###autoload
@@ -2894,12 +2919,13 @@ if point is in a menu item description, follow that menu item."
   (define-key Info-mode-map "g" 'Info-goto-node)
   (define-key Info-mode-map "h" 'Info-help)
   (define-key Info-mode-map "i" 'Info-index)
-  (define-key Info-mode-map "l" 'Info-last)
+  (define-key Info-mode-map "l" 'Info-history-back)
   (define-key Info-mode-map "L" 'Info-history)
   (define-key Info-mode-map "m" 'Info-menu)
   (define-key Info-mode-map "n" 'Info-next)
   (define-key Info-mode-map "p" 'Info-prev)
   (define-key Info-mode-map "q" 'Info-exit)
+  (define-key Info-mode-map "r" 'Info-history-forward)
   (define-key Info-mode-map "s" 'Info-search)
   (define-key Info-mode-map "S" 'Info-search-case-sensitively)
   ;; For consistency with Rmail.
@@ -2952,8 +2978,10 @@ if point is in a menu item description, follow that menu item."
     :help "Search for another occurrence of regular expression"]
    ["Go to Node..." Info-goto-node
     :help "Go to a named node"]
-   ["Last" Info-last :active Info-history
-    :help "Go to the last node you were at"]
+   ["Back in history" Info-history-back :active Info-history
+    :help "Go back in history to the last node you were at"]
+   ["Forward in history" Info-history-forward :active Info-history-forward
+    :help "Go forward in history"]
    ["History" Info-history :active Info-history-list
     :help "Go to menu of visited nodes"]
    ["Table of Contents" Info-toc
@@ -2981,7 +3009,8 @@ if point is in a menu item description, follow that menu item."
 	(tool-bar-local-item-from-menu 'Info-prev "left_arrow" map Info-mode-map)
 	(tool-bar-local-item-from-menu 'Info-next "right_arrow" map Info-mode-map)
 	(tool-bar-local-item-from-menu 'Info-up "up_arrow" map Info-mode-map)
-	(tool-bar-local-item-from-menu 'Info-last "undo" map Info-mode-map)
+	(tool-bar-local-item-from-menu 'Info-history-back "back_arrow" map Info-mode-map)
+	(tool-bar-local-item-from-menu 'Info-history-forward "fwd_arrow" map Info-mode-map)
 	(tool-bar-local-item-from-menu 'Info-top-node "home" map Info-mode-map)
 	(tool-bar-local-item-from-menu 'Info-index "index" map Info-mode-map)
 	(tool-bar-local-item-from-menu 'Info-goto-node "jump_to" map Info-mode-map)
@@ -3101,7 +3130,8 @@ Selecting other nodes:
 	  Picking a menu item causes another node to be selected.
 \\[Info-directory]	Go to the Info directory node.
 \\[Info-follow-reference]	Follow a cross reference.  Reads name of reference.
-\\[Info-last]	Move to the last node you were at.
+\\[Info-history-back]	Move back in history to the last node you were at.
+\\[Info-history-forward]	Move forward in history to the node you returned from after using \\[Info-history-back].
 \\[Info-history]	Go to menu of visited nodes.
 \\[Info-toc]	Go to table of contents of the current Info file.
 \\[Info-top-node]	Go to the Top node of this file.
@@ -3158,6 +3188,7 @@ Advanced commands:
   (make-local-variable 'Info-tag-table-buffer)
   (setq Info-tag-table-buffer nil)
   (make-local-variable 'Info-history)
+  (make-local-variable 'Info-history-forward)
   (make-local-variable 'Info-index-alternatives)
   (setq header-line-format
 	(if Info-use-header-line
@@ -3369,7 +3400,7 @@ COMMAND must be a symbol or string."
 		(message "Found %d other entr%s.  Use %s to see %s."
 			 (1- num-matches)
 			 (if (> num-matches 2) "ies" "y")
-			 (substitute-command-keys "\\[Info-last]")
+			 (substitute-command-keys "\\[Info-history-back]")
 			 (if (> num-matches 2) "them" "it")))))
       (error "Couldn't find documentation for %s" command))))
 

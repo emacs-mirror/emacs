@@ -1,3 +1,45 @@
+2005-01-15  Steven Tamm  <steventamm@mac.com>
+
+	* macterm.c (Vmac_use_core_graphics): defined for
+	mac-allow-anti-aliasing
+	(syms_of_macterm): Added mac-allow-anti-aliasing
+	(mac_draw_string_common): Use core graphics text rendering if
+	mac-allow-anti-aliasing is enabled.
+
+	* macfns.c (Fx_file_dialog): Save As dialog includes only the
+	file name in the text box.
+
+2005-01-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (x_set_foreground_color, x_set_background_color): Sync
+	with xfns.c.
+	(mac_window, x_create_tip_frame): Use XSetWindowBackground.
+	* macterm.c (XSetBackground, XSetWindowBackground): New functions.
+	* macterm.h (XSetBackground, XSetWindowBackground): Add externs.
+
+2005-01-14  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (Fposn_at_x_y): Add optional arg WHOLE.
+
+2005-01-13  Richard M. Stallman  <rms@gnu.org>
+
+	* keymap.c (Fcurrent_active_maps): Ignore Voverriding_local_map
+	if Voverriding_terminal_local_map is non-nil.
+
+	* keyboard.c (syms_of_keyboard): Doc fix.
+
+2005-01-13  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (Fformat_mode_line): Fix last change.  Remove NO_PROPS arg
+	(specify 0 for FACE instead). Reorder arg list.  Doc fix.
+
+2005-01-12  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (Fformat_mode_line): New arg FACE specifies a default
+	face property for characters that don't specify one.
+
+	* fns.c (Frequire): Record in load-history unconditionally.
+
 2005-01-10  Kim F. Storm  <storm@cua.dk>
 
 	* dispextern.h (merge_faces): Rename from merge_into_realized_face.
@@ -63,6 +105,10 @@
 
 	* xdisp.c (set_iterator_to_next): Fix 2004-12-13 change.
 	Set stop_charpos to current charpos instead of 0.
+
+2005-01-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* xdisp.c (Fformat_mode_line): First arg now required.
 
 2005-01-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 

@@ -120,11 +120,6 @@ a tab, a carriage return (control-M), a newline, and `]+'."
   :type 'regexp
   :group 'isearch)
 
-(defcustom search-highlight t
-  "*Non-nil means incremental search highlights the current match."
-  :type 'boolean
-  :group 'isearch)
-
 (defcustom search-invisible 'open
   "If t incremental search can match hidden text.
 nil means don't match invisible text.
@@ -153,15 +148,6 @@ Ordinarily the text becomes invisible again at the end of the search."
 This allows you to resume earlier isearch sessions through the
 command history."
   :type 'boolean
-  :group 'isearch)
-
-(defcustom isearch-lazy-highlight t
-  "*Controls the lazy-highlighting during incremental search.
-When non-nil, all text in the buffer matching the current search
-string is highlighted lazily (see `lazy-highlight-initial-delay'
-and `lazy-highlight-interval')."
-  :type 'boolean
-  :group 'lazy-highlight
   :group 'isearch)
 
 (defvar isearch-mode-hook nil
@@ -208,13 +194,46 @@ Default value, nil, means edit the string instead."
   :type 'boolean
   :group 'isearch)
 
+;;; isearch highlight customization.
+
+(defcustom search-highlight t
+  "*Non-nil means incremental search highlights the current match."
+  :type 'boolean
+  :group 'isearch)
+
+(defface isearch
+  '((((class color) (min-colors 88) (background light))
+     ;; The background must not be too dark, for that means
+     ;; the character is hard to see when the cursor is there.
+     (:background "magenta2" :foreground "lightskyblue1"))
+    (((class color) (min-colors 88) (background dark))
+     (:background "palevioletred2" :foreground "brown4"))
+    (((class color) (min-colors 16))
+     (:background "magenta4" :foreground "cyan1"))
+    (((class color) (min-colors 8))
+     (:background "magenta4" :foreground "cyan1"))
+    (t (:inverse-video t)))
+  "Face for highlighting Isearch matches."
+  :group 'isearch)
+(defvar isearch 'isearch)
+
+(defcustom isearch-lazy-highlight t
+  "*Controls the lazy-highlighting during incremental search.
+When non-nil, all text in the buffer matching the current search
+string is highlighted lazily (see `lazy-highlight-initial-delay'
+and `lazy-highlight-interval')."
+  :type 'boolean
+  :group 'lazy-highlight
+  :group 'isearch)
+
 ;;; Lazy highlight customization.
+
 (defgroup lazy-highlight nil
   "Lazy highlighting feature for matching strings."
   :prefix "lazy-highlight-"
   :version "21.1"
   :group 'isearch
-  :group 'replace)
+  :group 'matching)
 
 (defcustom lazy-highlight-cleanup t
   "*Controls whether to remove extra highlighting after a search.
@@ -222,16 +241,22 @@ If this is nil, extra highlighting can be \"manually\" removed with
 \\[isearch-lazy-highlight-cleanup]."
   :type 'boolean
   :group 'lazy-highlight)
+(defvaralias 'isearch-lazy-highlight-cleanup 'lazy-highlight-cleanup)
+(make-obsolete-variable 'isearch-lazy-highlight-cleanup 'lazy-highlight-cleanup)
 
 (defcustom lazy-highlight-initial-delay 0.25
   "*Seconds to wait before beginning to lazily highlight all matches."
   :type 'number
   :group 'lazy-highlight)
+(defvaralias 'isearch-lazy-highlight-initial-delay 'lazy-highlight-initial-delay)
+(make-obsolete-variable 'isearch-lazy-highlight-initial-delay 'lazy-highlight-initial-delay)
 
 (defcustom lazy-highlight-interval 0 ; 0.0625
   "*Seconds between lazily highlighting successive matches."
   :type 'number
   :group 'lazy-highlight)
+(defvaralias 'isearch-lazy-highlight-interval 'lazy-highlight-interval)
+(make-obsolete-variable 'isearch-lazy-highlight-interval 'lazy-highlight-interval)
 
 (defcustom lazy-highlight-max-at-a-time 20
   "*Maximum matches to highlight at a time (for `lazy-highlight').
@@ -241,6 +266,8 @@ A value of nil means highlight all matches."
   :type '(choice (const :tag "All" nil)
 		 (integer :tag "Some"))
   :group 'lazy-highlight)
+(defvaralias 'isearch-lazy-highlight-max-at-a-time 'lazy-highlight-max-at-a-time)
+(make-obsolete-variable 'isearch-lazy-highlight-max-at-a-time 'lazy-highlight-max-at-a-time)
 
 (defface lazy-highlight
   '((((class color) (min-colors 88) (background light))
@@ -253,8 +280,11 @@ A value of nil means highlight all matches."
      (:background "turquoise3"))
     (t (:underline t)))
   "Face for lazy highlighting of matches other than the current one."
-  :group 'isearch-faces
   :group 'lazy-highlight)
+(put 'isearch-lazy-highlight-face 'face-alias 'lazy-highlight)
+(defvar lazy-highlight-face 'lazy-highlight)
+(defvaralias 'isearch-lazy-highlight-face 'lazy-highlight-face)
+(make-obsolete-variable 'isearch-lazy-highlight-face 'lazy-highlight-face)
 
 ;; Define isearch-mode keymap.
 
@@ -2203,30 +2233,7 @@ Can be changed via `isearch-search-fun-function' for special needs."
 	      (setq isearch-hidden t)))))))
 
 
-;; Highlighting
-
-(defvar isearch-overlay nil)
-
-(defun isearch-highlight (beg end)
-  (unless (null search-highlight)
-    (cond (isearch-overlay
-	   ;; Overlay already exists, just move it.
-	   (move-overlay isearch-overlay beg end (current-buffer)))
-
-	  (t
-	   ;; Overlay doesn't exist, create it.
-	   (setq isearch-overlay (make-overlay beg end))
-	   (overlay-put isearch-overlay 'face isearch)
-           (overlay-put isearch-overlay 'priority 1) ;higher than lazy overlays
-           ))))
-
-(defun isearch-dehighlight ()
-  (when isearch-overlay
-    (delete-overlay isearch-overlay)))
-
-
 ;; General utilities
-
 
 (defun isearch-no-upper-case-p (string regexp-flag)
   "Return t if there are no upper case chars in STRING.
@@ -2259,6 +2266,27 @@ since they have special meaning in a regexp."
 	(append char-or-events unread-command-events)))
 
 
+;; Highlighting
+
+(defvar isearch-overlay nil)
+
+(defun isearch-highlight (beg end)
+  (unless (null search-highlight)
+    (cond (isearch-overlay
+	   ;; Overlay already exists, just move it.
+	   (move-overlay isearch-overlay beg end (current-buffer)))
+
+	  (t
+	   ;; Overlay doesn't exist, create it.
+	   (setq isearch-overlay (make-overlay beg end))
+	   (overlay-put isearch-overlay 'face isearch)
+           (overlay-put isearch-overlay 'priority 1) ;higher than lazy overlays
+           ))))
+
+(defun isearch-dehighlight ()
+  (when isearch-overlay
+    (delete-overlay isearch-overlay)))
+
 ;; isearch-lazy-highlight feature
 ;; by Bob Glickstein <http://www.zanshin.com/~bobg/>
 
@@ -2283,29 +2311,6 @@ since they have special meaning in a regexp."
 ;;    `isearch-forward';
 ;;  - the variable `isearch-invalid-regexp' is expected to be true
 ;;    iff `isearch-string' is an invalid regexp.
-
-(defgroup isearch-faces nil
-  "Lazy highlighting feature for incremental search."
-  :version "21.1"
-  :group 'isearch)
-
-(defface isearch
-  '((((class color) (min-colors 88) (background light))
-     ;; The background must not be too dark, for that means
-     ;; the character is hard to see when the cursor is there.
-     (:background "magenta2" :foreground "lightskyblue1"))
-    (((class color) (min-colors 88) (background dark))
-     (:background "palevioletred2" :foreground "brown4"))
-    (((class color) (min-colors 16))
-     (:background "magenta4" :foreground "cyan1"))
-    (((class color) (min-colors 8))
-     (:background "magenta4" :foreground "cyan1"))
-    (t (:inverse-video t)))
-  "Face for highlighting Isearch matches."
-  :group 'isearch-faces)
-(defvar isearch 'isearch)
-
-(defvar isearch-lazy-highlight-face 'lazy-highlight)
 
 (defvar isearch-lazy-highlight-overlays nil)
 (defvar isearch-lazy-highlight-wrapped nil)
