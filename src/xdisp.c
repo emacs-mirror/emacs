@@ -8835,15 +8835,21 @@ redisplay_window (window, just_this_one_p)
 	  /* Point has moved forward.  */
 	  int last_y = window_text_bottom_y (w) - this_scroll_margin;
 	  
-	  while ((MATRIX_ROW_END_CHARPOS (row) < PT
-		  /* The end position of a row equals the start
-		     position of the next row.  If PT is there, we
-		     would rather display it in the next line, except
-		     when this line ends in ZV.  */
-		  || (MATRIX_ROW_END_CHARPOS (row) == PT
-		      && (MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row)
-			  || !row->ends_at_zv_p)))
+	  while (MATRIX_ROW_END_CHARPOS (row) < PT
 		 && MATRIX_ROW_BOTTOM_Y (row) < last_y)
+	    {
+	      xassert (row->enabled_p);
+	      ++row;
+	    }
+
+	  /* The end position of a row equals the start position of
+	     the next row.  If PT is there, we would rather display it
+	     in the next line.  Exceptions are when the row ends in
+	     the middle of a character, or ends in ZV.  */
+	  if (MATRIX_ROW_BOTTOM_Y (row) < last_y
+	      && MATRIX_ROW_END_CHARPOS (row) == PT
+	      && !MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row)
+	      && !row->ends_at_zv_p)
 	    {
 	      xassert (row->enabled_p);
 	      ++row;
@@ -10586,10 +10592,10 @@ dump_glyph_row (matrix, vpos, with_glyphs_p)
 
   row = MATRIX_ROW (matrix, vpos);
   
-  fprintf (stderr, "Row Start   End Used oEI><O\\CTZF    X   Y   W\n");
+  fprintf (stderr, "Row Start   End Used oEI><O\\CTZFes    X   Y   W\n");
   fprintf (stderr, "=============================================\n");
   
-  fprintf (stderr, "%3d %5d %5d %4d %1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d %4d %4d %4d\n",
+  fprintf (stderr, "%3d %5d %5d %4d %1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d %4d %4d %4d\n",
 	   row - matrix->rows,
 	   MATRIX_ROW_START_CHARPOS (row),
 	   MATRIX_ROW_END_CHARPOS (row),
@@ -10605,6 +10611,8 @@ dump_glyph_row (matrix, vpos, with_glyphs_p)
 	   row->displays_text_p,
 	   row->ends_at_zv_p,
 	   row->fill_line_p,
+	   row->ends_in_middle_of_char_p,
+	   row->starts_in_middle_of_char_p,
 	   row->x,
 	   row->y,
 	   row->pixel_width);
@@ -11203,6 +11211,8 @@ display_line (it)
   row->start = it->current;
   row->continuation_lines_width = it->continuation_lines_width;
   row->displays_text_p = 1;
+  row->starts_in_middle_of_char_p = it->starts_in_middle_of_char_p;
+  it->starts_in_middle_of_char_p = 0;
 
   /* Arrange the overlays nicely for our purposes.  Usually, we call
      display_line on only one line at a time, in which case this
@@ -11387,6 +11397,11 @@ display_line (it)
 		      
 		      it->current_x = x;
 		      it->continuation_lines_width += x;
+		      if (nglyphs > 1 && i > 0)
+			{
+			  row->ends_in_middle_of_char_p = 1;
+			  it->starts_in_middle_of_char_p = 1;
+			}
 		      
 		      /* Restore the height to what it was before the
 			 element not fitting on the line.  */
@@ -11538,15 +11553,15 @@ display_line (it)
   /* Remember the position at which this line ends.  */
   row->end = it->current;
 
-  /* Maybe set the cursor.  If you change this, it's probably a good
-     idea to also change the code in redisplay_window for cursor
-     movement in an unchanged window.  */
+  /* Maybe set the cursor.  We want to set the cursor on the first
+     glyph having position PT.  This means it doesn't matter if the
+     row is continued and ends in the middle of the character at PT.
+     If some glyphs of that character are in this row, this is the
+     right row to put the cursor on.  */
   if (it->w->cursor.vpos < 0
       && PT >= MATRIX_ROW_START_CHARPOS (row)
-      && MATRIX_ROW_END_CHARPOS (row) >= PT
-      && !(MATRIX_ROW_END_CHARPOS (row) == PT
-	   && (MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row)
-	       || !row->ends_at_zv_p)))
+      && PT <= MATRIX_ROW_END_CHARPOS (row)
+      && !(PT == ZV && !row->ends_at_zv_p))
     set_cursor_from_row (it->w, row, it->w->desired_matrix, 0, 0, 0, 0);
 
   /* Highlight trailing whitespace.  */
