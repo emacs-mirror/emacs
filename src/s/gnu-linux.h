@@ -156,7 +156,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif /* emacs */
 
 /* Ask GCC where to find libgcc.a.  */
-#define LIB_GCC `$(CC) $(C_SWITCH_X_MACHINE) -print-libgcc-file-name`
+#define LIB_GCC `$(CC) $(C_SWITCH_X_SITE) -print-libgcc-file-name`
 
 #ifndef __ELF__
 /* Linux has crt0.o in a non-standard place */
@@ -196,6 +196,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifndef __ELF__
 #define LIB_STANDARD -lc /* avoid -lPW */
 #else
+#undef LIB_GCC
 #define LIB_GCC
 #define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtn.o
 #endif
