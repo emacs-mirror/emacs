@@ -21,8 +21,8 @@
 
 @comment %**end of header
 
-@set edition-number 2.05
-@set update-date 2002 Jan 5
+@set edition-number 2.06
+@set update-date 2002 Jun  6
 
 @ignore
  ## Summary of shell commands to create various output formats:
@@ -6696,8 +6696,16 @@ After evaluating this list, you will see
 @end smallexample
 
 @noindent
-appear in the echo area.  @code{cons} puts a new element at the
-beginning of a list; it attaches or pushes elements onto the list.
+appear in the echo area.  @code{cons} causes the creation of a new
+list in which the element is followed by the elements of the original
+list.
+
+We often say that `@code{cons} puts a new element at the beginning of
+a list; it attaches or pushes elements onto the list', but this
+phrasing can be misleading, since @code{cons} does not change an
+existing list, but creates a new one.
+
+Like @code{car} and @code{cdr}, @code{cons} is non-destructive.
 
 @menu
 * Build a list::
@@ -7191,7 +7199,8 @@ look like this:
 
 @need 1200
 @noindent
-The function @code{cons} can be used to add a piece of text to the list,
+The function @code{cons} can be used to to create a new list from a
+piece of text (an `atom', to use the jargon) and an existing list,
 like this:
 
 @smallexample
@@ -7777,8 +7786,7 @@ expression which will in turn compute the value.  In this case, the
 macros, see @ref{Macros, , Macros, elisp, The GNU Emacs Lisp Reference
 Manual}.  The C programming language also provides macros.  These are
 different, but also useful.  We will briefly look at C macros in
-@ref{Digression into C, , @code{delete-and-extract-region}:
-Digressing into C}.
+@ref{Digression into C}.
 
 @need 1200
 If the string has content, then another conditional expression is
@@ -7827,7 +7835,7 @@ the kill ring as the latest item, and sets the
 
 @node Digression into C, defvar, kill-region, Cutting & Storing Text
 @comment  node-name,  next,  previous,  up
-@section @code{delete-and-extract-region}: Digressing into C
+@section Digression into C
 @findex delete-and-extract-region
 @cindex C, a digression into
 @cindex Digression into C
@@ -9798,7 +9806,7 @@ expression, @code{(print-elements-of-list animals)}, by typing
 @code{eval-last-sexp}.  This will cause the result of the evaluation
 to be printed in the @file{*scratch*} buffer instead of being printed
 in the echo area.  (Otherwise you will see something like this in your
-echo area: @code{^Jgiraffe^J^Jgazelle^J^Jlion^J^Jtiger^Jnil}, in which
+echo area: @code{^Jgazelle^J^Jgiraffe^J^Jlion^J^Jtiger^Jnil}, in which
 each @samp{^J} stands for a `newline'.)
 
 @need 1500
@@ -9827,9 +9835,9 @@ this:
 
 @smallexample
 @group
-giraffe
-
 gazelle
+
+giraffe
 
 lion
 
@@ -10539,9 +10547,9 @@ up the number of pebbles in a triangle.
 A recursive function contains code that tells the Lisp interpreter to
 call a program that runs exactly like itself, but with slightly
 different arguments.  The code runs exactly the same because it has
-the same name.  However, even though it has the same name, it is not
-the same thread of execution.  It is different.  In the jargon, it is
-a different `instance'.
+the same name.  However, even though the program has the same name, it
+is not the same entity.  It is different.  In the jargon, it is a
+different `instance'.
 
 Eventually, if the program is written correctly, the `slightly
 different arguments' will become sufficiently different from the first
@@ -10745,9 +10753,9 @@ When you evaluate @code{(print-elements-recursively animals)} in the
 
 @smallexample
 @group
-giraffe
-
 gazelle
+
+giraffe
 
 lion
 
@@ -11296,7 +11304,7 @@ the number 7 to the value returned by a second instance of
 argument of 6.  That is to say, the first calculation is:
 
 @smallexample
-(+ 7 (triangle-recursively 6)
+(+ 7 (triangle-recursively 6))
 @end smallexample
 
 @noindent
@@ -11318,14 +11326,14 @@ metaphor, it asks yet another robot to help it.
 Now the total is:
 
 @smallexample
-(+ 7 6 (triangle-recursively 5)
+(+ 7 6 (triangle-recursively 5))
 @end smallexample
 
 @need 800
 And what happens next?
 
 @smallexample
-(+ 7 6 5 (triangle-recursively 4)
+(+ 7 6 5 (triangle-recursively 4))
 @end smallexample
 
 Each time @code{triangle-recursively} is called, except for the last
