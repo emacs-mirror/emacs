@@ -585,11 +585,11 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 
   ;; Maybe make minibuffer frame visible and/or raise it.
   (let ((frame (window-frame (minibuffer-window))))
-    (if (not (memq (frame-live-p frame) '(nil t)))
-	(progn
-	  (make-frame-visible frame)
-	  (if minibuffer-auto-raise
-	      (raise-frame frame)))))
+    (unless (memq (frame-live-p frame) '(nil t))
+      (unless (frame-visible-p frame)
+	(make-frame-visible frame))
+      (if minibuffer-auto-raise
+	  (raise-frame frame))))
 
   (setq	isearch-mode " Isearch")  ;; forward? regexp?
   (force-mode-line-update)
@@ -1600,8 +1600,8 @@ If there is no completion possible, say so and continue searching."
 		       (concat " [" current-input-method-title "]: ")
 		     ": ")
 		   )))
-    (propertize (concat (upcase (substring m 0 1)) (substring m 1)) 'face 'minibuffer-prompt)))
-
+    (propertize (concat (upcase (substring m 0 1)) (substring m 1))
+		'face 'minibuffer-prompt)))
 
 (defun isearch-message-suffix (&optional c-q-hack ellipsis)
   (concat (if c-q-hack "^Q" "")
