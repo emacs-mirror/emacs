@@ -1,0 +1,89 @@
+#!/bin/sh
+#
+# Build the MMsrc compound at tip of branch MM_dylan_kinglet, and run QA tests
+# 
+# $HopeName$
+
+
+script="`basename $0`"
+platform=$1
+shift
+varieties=$*
+
+
+msg () {
+  echo "$script $platform: $*" 1>&2
+}
+
+die () {
+  msg "$@"
+  exit 1
+}
+
+
+test -d $HOME/Builds || mkdir $HOME/Builds ||
+  die "Unable to create Builds directory"
+
+cd $HOME/Builds &&
+rm -rf MMQA_dylan_kinglet &&
+mkdir MMQA_dylan_kinglet &&
+cd MMQA_dylan_kinglet ||
+  die "Unable to get to Builds/MMQA_dylan_kinglet directory"
+
+hope co -compound MMsrc -branch MM_dylan_kinglet -recursive \
+  -writable-files quit -missing-dir create -extra-files skip ||
+  die "Unable to check out MMsrc(MM_dylan_kinglet) from HOPE"
+
+build=`pwd`
+mmsrc=$build/src
+mmqa=$build/MMQA
+
+
+## Build a library
+build_lib () {
+  for variety in $varieties
+  do
+    date
+    gnumake -rf ${platform}.gmk VARIETY=$variety $1 ||
+      die "Unable to build library $1 of MM_dylan_kinglet"
+  done
+}
+
+## Build and run MMQA test suites
+mmqa_tests () {
+  MMQA_MPS_INCLUDE_DIR=$mmsrc  export MMQA_MPS_INCLUDE_DIR
+  MMQA_LOG_DIR=./log  export MMQA_LOG_DIR
+  for variety in $varieties
+  do
+    MMQA_MPS_LINK_OBJ="$mmsrc/$platform/$variety/mmdw.a \
+                       $mmsrc/$platform/$variety/mpsplan.a" \
+                       export MMQA_MPS_LINK_OBJ
+    MMQA_MAIL_SUBJECT="MMQA $1 for variety $variety of MM_dylan_kinglet:" \
+                       export MMQA_MAIL_SUBJECT
+    perl5 ./test/qa clib || die "Unable to compile MMQA library"
+    perl5 ./test/qa runset $1  || die "Failed to run MMQA testset"
+  done
+}
+
+
+cd $build &&
+mkdir MMQA &&
+cd $mmqa ||
+  die "Unable to get to MMQA directory"
+
+hope co -compound MMQA -branch trunk -recursive -missing-dir create ||
+  die "Unable to check out MMQA(trunk) from HOPE"
+
+
+cd $mmsrc
+build_lib mmdw.a
+build_lib mpsplan.a
+
+
+cd $mmqa &&
+mmqa_tests testsets/dailydw
+
+
+# If the tests succeeded, delete the junk
+cd $HOME/Builds &&
+rm -rf MMQA_dylan_kinglet 
