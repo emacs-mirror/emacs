@@ -148,6 +148,7 @@ Lisp_Object Qbytecode;
 #define Bbobp 0157
 #define Bcurrent_buffer 0160
 #define Bset_buffer 0161
+#define Bsave_current_buffer_1 0162 /* Replacing Bsave_current_buffer.  */
 #define Bread_char 0162 /* No longer generated as of v19 */
 #define Bset_mark 0163 /* this loser is no longer generated as of v18 */
 #define Binteractive_p 0164 /* Needed since interactive-p takes unevalled args */
@@ -576,6 +577,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Bsave_current_buffer:
+	case Bsave_current_buffer_1:
 	  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
 	  break;
 
@@ -956,11 +958,6 @@ If the third argument is incorrect, Emacs may crash.")
 
 	case Bset_buffer:
 	  TOP = Fset_buffer (TOP);
-	  break;
-
-	case Bread_char:
-	  PUSH (Fread_char ());
-	  QUIT;
 	  break;
 
 	case Binteractive_p:
