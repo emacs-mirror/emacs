@@ -1213,7 +1213,7 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
   if (!initialized)
     {
       char *file;
-      /* Handle -l loadup-and-dump, args passed by Makefile. */
+      /* Handle -l loadup, args passed by Makefile. */
       if (argmatch (argv, argc, "-l", "--load", 3, &file, &skip_args))
 	Vtop_level = Fcons (intern ("load"),
 			    Fcons (build_string (file), Qnil));
