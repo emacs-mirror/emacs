@@ -1,3 +1,8 @@
+2001-03-09  Kenichi Handa  <handa@etl.go.jp>
+
+	* composite.h: Change members types; glyph_len to unsigned, width to
+	unsigned short.
+
 2001-03-08  Andrew Innes  <andrewi@gnu.org>
 
 	* w32menu.c (add_menu_item): Fix problems with using ownerdraw for
