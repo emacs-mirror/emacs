@@ -6,6 +6,15 @@ Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
 For older news, see the file ONEWS
 
 
+* Changes in Emacs 21.2
+
+
+* Lisp Changes in Emacs 21.2
+
+** The variable `compilation-parse-errors-filename-function' can
+be used to transform filenames found in compilation output.
+
+
 * Installation Changes in Emacs 21.1
 
 See the INSTALL file for information on installing extra libraries and

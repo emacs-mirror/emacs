@@ -1,3 +1,9 @@
+2001-10-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (maybe_bootstrap): New target.
+	(all): Add to prerequisites to bootstrap if abbrev.elc doesn't
+	exist.
+
 2001-10-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in: Use $MAKE for `make' if set.
