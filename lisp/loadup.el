@@ -301,6 +301,9 @@
 ;;; At this point, we're ready to resume undo recording for scratch.
 (buffer-enable-undo "*scratch*")
 
+(if (null (garbage-collect))
+    (setq pure-space-overflow t))
+
 (if (or (member (nth 3 command-line-args) '("dump" "bootstrap"))
 	(member (nth 4 command-line-args) '("dump" "bootstrap")))
     (if (eq system-type 'vax-vms)
