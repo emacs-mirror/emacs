@@ -1,17 +1,22 @@
-/* protfr.c: PROTECTION FOR FreeBSD
+/* protxc.c: PROTECTION FOR Mac OS X
  *
  *  $Id$
  *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ *
+ *  This was mostly copied from protfr.c, in fact, there is nothing
+ *  substantially difference between the two files protfr.c and protxc.c
+ *  (just things like, #ifdef MPS_OS_XC).  Consider replacing with one
+ *  file.
  *
  */
 
 #include "mpm.h"
 
-#ifndef MPS_OS_FR
-#error "protfr.c is FreeBSD specific, but MPS_OS_FR is not set"
+#ifndef MPS_OS_XC
+#error "protxc.c is Mac OS X specific, but MPS_OS_XC is not set"
 #endif
 #ifndef PROTECTION
-#error "protfr.c implements protection, but PROTECTION is not set"
+#error "protxc.c implements protection, but PROTECTION is not set"
 #endif
 
 #include <limits.h>
@@ -20,7 +25,7 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 
-SRCID(protfr, "$Id$");
+SRCID(protxc, "$Id$");
 
 
 /* ProtSet -- set protection
@@ -44,7 +49,7 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
    * This might be a bug in MPS, so for now we go with the stricter
    * version that matches the Win32 implementation. */
   /* .flags.trouble.freebsd: the above comment was in the Linux version
-   * of this code; I haven't verified it for FreeBSD.  */
+   * of this code; I haven't verified it for FreeBSD.  Or Mac OS X */
   flags = 0;
   if((mode & AccessREAD) == 0)
     flags |= PROT_READ | PROT_EXEC;
@@ -64,7 +69,7 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
 
 /* ProtSync -- synchronize protection settings with hardware
  *
- * This does nothing under FreeBSD.
+ * This does nothing under OS X.
  */
 
 void ProtSync(Arena arena)
@@ -76,7 +81,7 @@ void ProtSync(Arena arena)
 
 /* ProtTramp -- protection trampoline
  *
- * The protection trampoline is trivial under FreeBSD, as there is
+ * The protection trampoline is trivial under OS X, as there is
  * nothing that needs to be done in the dynamic context of the mutator
  * in order to catch faults.  (Contrast this with Win32 Structured
  * Exception Handling.)
