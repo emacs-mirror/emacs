@@ -16,10 +16,10 @@
 	* lisp.h (GLYPH): Defined as `int', not `unsigned int'.  Now the
 	lowest 8 bits are single byte character code, the bits above are
 	face ID.
-	(GLYPH_MASK_FACE) (GLYPH_MASK_CHAR): Adjusted for the change
+	(GLYPH_MASK_FACE, GLYPH_MASK_CHAR): Adjusted for the change
 	above.
-	(FAST_MAKE_GLYPH) (FSST_GLYPH_FACE): Likewise.
-	(GLYPH_MASK_REV_DIR) (GLYPH_MASK_PADDING): Macros deleted.
+	(FAST_MAKE_GLYPH, FSST_GLYPH_FACE): Likewise.
+	(GLYPH_MASK_REV_DIR, GLYPH_MASK_PADDING): Macros deleted.
 
 	* charset.h (CHAR_BYTES): Use ((1 << CHARACTERBITS) - 1) instead
 	of GLYPH_MASK_CHAR.
@@ -36,7 +36,7 @@
 	(GLYPH_FROM_CHAR_GLYPH): Likewise.  Always return -1 for multibyte
 	characters.
 
-	* dispnew.c (line_hash_code) (direct_output_for_insert): Adjusted
+	* dispnew.c (line_hash_code, direct_output_for_insert): Adjusted
 	for the change of struct glyph.
 	(line_draw_cost): Adjusted for the change of
 	GLYPH_FROM_CHAR_GLYPH.
@@ -44,7 +44,7 @@
 
 	* term.c (encode_terminal_code): Adjusted for the change of struct
 	glyph and GLYPH_FROM_CHAR_GLYPH.
-	(write_glyphs) (insert_glyphs) (append_glyph): Adjusted for the
+	(write_glyphs, insert_glyphs, append_glyph): Adjusted for the
 	change of struct glyph.
 
 	* xdisp.c: All codes adjusted for the change of struct glyph.
