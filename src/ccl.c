@@ -1735,7 +1735,7 @@ If IC is nil, it is initialized to head of the CCL program.\n\
 \n\
 If optional 4th arg CONTINUE is non-nil, keep IC on read operation\n\
 when read buffer is exausted, else, IC is always set to the end of\n\
-CCL-PROGRAM on exit.
+CCL-PROGRAM on exit.\n\
 \n\
 It returns the contents of write buffer as a string,\n\
  and as side effect, STATUS is updated.\n\
