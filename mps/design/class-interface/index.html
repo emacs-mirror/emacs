@@ -1,3 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>Design of the pool class interface</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+</div>
+
+<pre>
                    DESIGN OF THE POOL CLASS INTERFACE
                        design.mps.class-interface
                            incomplete design
@@ -13,7 +44,7 @@ design.mps.pool.  pekka 1999-07-20]
 
 Document History
 
-.hist.1: Richard started it.  drj has added comments about how accurate this 
+<a id="hist.1" name="hist.1">.hist.1</a>: Richard started it.  drj has added comments about how accurate this 
 document is at 1997-08-19.
 
 
@@ -21,7 +52,7 @@ ARCHITECTURE:
 
 Methods
 
-.methods: These methods are provided by pool classes as part of the PoolClass 
+<a id="methods" name="methods">.methods</a>: These methods are provided by pool classes as part of the PoolClass 
 object (see impl.h.mpmst.class).  They form the interface which allows the MPM 
 to treat pools in a uniform manner.
 
@@ -32,7 +63,7 @@ If a class is not required to provide a certain method then they should set the
 appropriate PoolNo* method for that method.  It is not acceptable to use NULL. 
 [there are also some PoolTriv* methods -- drj 1997-08-19]
 
-.method.name: The name field should be a short, pithy, cryptic name for the 
+<a id="method.name" name="method.name">.method.name</a>: The name field should be a short, pithy, cryptic name for the 
 pool class. Examples are "AMC", "MV".
 
 The size field is the size of the pool instance structure.  For the Foo 
@@ -157,11 +188,11 @@ provide this method, and not doing
 so indicates they never protect any memory manged by the pool.  [access is no 
 longer present -- drj 1997-08-19]
 
-.method.act: Act is called when the MPM has decided to execute an action that 
+<a id="method.act" name="method.act">.method.act</a>: Act is called when the MPM has decided to execute an action that 
 the class declared.  The Class should arrange execution of the associated work 
 (usually by beginning an incremental trace).
 
-.method.walk: Walk is used by the heap walker.  Walk is only required to be 
+<a id="method.walk" name="method.walk">.method.walk</a>: Walk is used by the heap walker.  Walk is only required to be 
 implemented by classes which specify the AttrFMT attribute (formatted pools).  
 The Walk method should apply the passed in function (along with its closure 
 variables (which are also passed in) and the object format) to all _black_ 
@@ -179,20 +210,102 @@ method.
 
 Events
 
-.replay: To work with the allocation replayer (see 
+<a id="replay" name="replay">.replay</a>: To work with the allocation replayer (see 
 design.mps.telemetry.replayer), the pool has to emit an event for each call to 
 an external interface, containing all the parameters passed by the user.  If a 
 new event type is required to carry this information, the replayer 
 (impl.c.eventrep) must then be extended to recreate the call.  .replay.Init: In 
-particular, the Init method should emit a PoolInit<foo> event with all the pool 
+particular, the Init method should emit a PoolInit&lt;foo&gt; event with all the pool 
 parameters.
 
 
 
 TEXT:
 
-.alloc.size: The pool class implementation defines the meaning of the "size" 
+<a id="alloc.size" name="alloc.size">.alloc.size</a>: The pool class implementation defines the meaning of the "size" 
 parameter to the alloc and free methods.  It may not actually correspond to a 
-number of bytes of memory.  .alloc.size.align: In particular, the class may 
+number of bytes of memory.  <a id="alloc.size.align" name="alloc.size.align">.alloc.size.align</a>: In particular, the class may 
 allow an unaligned size to be passed.
 
+</pre>
+
+
+<h2><a id="section-A" name="section-A">A. References</a></h2>
+
+<!-- Template Entry
+
+<table>
+
+<tr valign="top">
+
+  <td>[<a id="ref-#REF#" name="ref-#REF#" href="#REF_URL#">#REF_NAME#</a>]</td>
+
+  <td>
+    "#REF_TITLE#";
+    #REF_AUTHOR#;
+    &lt;URL: <a href="#REF_URL#">#REF_URL#</a>&gt;;
+    #REF_DATE#.
+  </td>
+
+</tr>
+
+</table>
+
+-->
+
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<table>
+
+<tr valign="top">
+
+  <td>2002-06-07</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td>Converted from MMInfo database design document.</td>
+
+</tr>
+
+</table>
+
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 1995-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div align="center">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+</div>
+
+</body>
+
+</html>
