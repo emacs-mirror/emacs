@@ -1,3 +1,7 @@
+2002-12-08  Dave Love  <fx@gnu.org>
+
+	* configure.in: Add targets s390-*-linux-gnu, mipsel-*-linux-gnu*.
+
 2002-11-22  Juanma Barranquero  <lektu@terra.es>
 
 	* config.guess, config.sub: Updated from master source.

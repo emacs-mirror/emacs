@@ -1,3 +1,9 @@
+2002-12-08  Dave Love  <fx@gnu.org>
+
+	* m/ibms390.h: New file.
+
+	* m/mips.h (WORDS_BIG_ENDIAN): Don't define if little endian.
+
 2002-12-06  Francesco Potorti`  <pot@gnu.org>
 
 	* xfns.c (png_load): Avoid double gamma correction for PNG

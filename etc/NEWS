@@ -1,9 +1,15 @@
-GNU Emacs NEWS -- history of user-visible changes.  2002-07-09
+GNU Emacs NEWS -- history of user-visible changes.  2002-12-08
 Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
 For older news, see the file ONEWS
+
+
+* Installation changes in Emacs 21.3
+
+** Support for GNu?linux on little-endian MIPS and on IBM S390 has
+been added.
 
 
 * Changes in Emacs 21.3
@@ -35,7 +41,10 @@ By default `unify-8859-on-encoding-mode' is turned on.
 compound-text-with-extensions.
 
 If you want the old behavior, set selection-coding-system to
-compound-text.
+compound-text, which may be significantly more efficient.  Using
+compound-text-with-extensions seems to be necessary only for decoding
+text from applications under XFree86 4.2, whose behaviour is actually
+contrary to the compound text specification.
 
 
 * Installation changes in Emacs 21.2
