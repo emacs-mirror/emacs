@@ -45,12 +45,11 @@ asm_libgc_sources =
 endif
 
 libgc_la_SOURCES = allchblk.c alloc.c blacklst.c checksums.c dbg_mlc.c \
-dyn_load.c finalize.c gc_dlopen.c gcj_mlc.c headers.c aix_irix_threads.c \
+dyn_load.c finalize.c gc_dlopen.c gcj_mlc.c headers.c \
 malloc.c mallocx.c mark.c mark_rts.c misc.c new_hblk.c \
 obj_map.c os_dep.c pcr_interface.c ptr_chck.c real_malloc.c reclaim.c \
-solaris_pthreads.c solaris_threads.c specific.c stubborn.c typd_mlc.c \
-backgraph.c win32_threads.c \
-pthread_support.c pthread_stop_world.c darwin_stop_world.c \
+specific.c stubborn.c typd_mlc.c \
+backgraph.c \
 $(asm_libgc_sources)
 
 # Include THREADLIBS here to ensure that the correct versions of
