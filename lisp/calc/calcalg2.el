@@ -738,8 +738,12 @@
 			(setcar (cdr cur-record) 'cancelled)))
 	       (math-replace-integral-parts (car expr)))))))
 
+(defvar math-linear-subst-tried t
+  "Non-nil means that a linear substitution has been tried.")
+
 (defun math-do-integral (expr)
-  (let (t1 t2)
+  (let ((math-linear-subst-tried nil)
+        t1 t2)
     (or (cond ((not (math-expr-contains expr math-integ-var))
 	       (math-mul expr math-integ-var))
 	      ((equal expr math-integ-var)
@@ -977,7 +981,7 @@
 
     ;; Integration by substitution, for various likely sub-expressions.
     ;; (In first pass, we look only for sub-exprs that are linear in X.)
-    (or (if math-enable-subst
+    (or (if math-linear-subst-tried
 	    (math-integ-try-substitutions expr)
 	  (math-integ-try-linear-substitutions expr))
 
@@ -1189,6 +1193,7 @@
 
 ;;; Look for substitutions of the form u = a x + b.
 (defun math-integ-try-linear-substitutions (sub-expr)
+  (setq math-linear-subst-tried t)
   (and (not (Math-primp sub-expr))
        (or (and (not (memq (car sub-expr) '(+ - * / neg)))
 		(not (and (eq (car sub-expr) '^)
