@@ -77,25 +77,16 @@ xlw_create_menubar (instance)
      widget_instance* instance;
 {
   Widget widget;
+  Arg al[1];
+  int ac = 0;
 
-  /* Don't use malloc_widget_value, because the freeing will be done by free.
-     (Also it wastes time calling memset).  */
-  widget_value *tem = (widget_value *) malloc (sizeof (widget_value));
+  XtSetArg (al[ac], XtNmenu, instance->info->val); ac++;
 
-  /* _XtCreate is freeing the object we passed,
-     so make a copy that we free later.  */
-  bcopy (instance->info->val, tem, sizeof (widget_value));
-
+  /* This used to use XtVaCreateWidget, but an old Xt version
+     has a bug in XtVaCreateWidget that frees instance->info->name.  */
   widget
-    = XtVaCreateWidget (instance->info->name, xlwMenuWidgetClass,
-			instance->parent,
-			XtNmenu, tem,
-			0);
-
-#if 0 /* XtVaCreateWidget frees this, at least in the X11R4
-	 version that is running on mole.gnu.ai.mit.edu.  */
-  free_widget_value (tem);
-#endif
+    = XtCreateWidget (instance->info->name, xlwMenuWidgetClass,
+		      instance->parent, al, ac);
 
   XtAddCallback (widget, XtNopen, pre_hook, (XtPointer)instance);
   XtAddCallback (widget, XtNselect, pick_hook, (XtPointer)instance);
@@ -111,25 +102,17 @@ xlw_create_popup_menu (instance)
 			  instance->parent, NULL, 0);
   
   Widget widget;
+  Arg al[2];
+  int ac = 0;
 
-  /* Don't use malloc_widget_value, because the freeing will be done by free.
-     (Also it wastes time calling memset).  */
-  widget_value *tem = (widget_value *) malloc (sizeof (widget_value));
+  XtSetArg (al[ac], XtNmenu, instance->info->val); ac++;
+  XtSetArg (al[ac], XtNhorizontal, False); ac++;
 
-  /* _XtCreate is freeing the object we passed,
-     so make a copy that we free later.  */
-  bcopy (instance->info->val, tem, sizeof (widget_value));
-
+  /* This used to use XtVaManagedCreateWidget, but an old Xt version
+     has a bug in XtVaManagedCreateWidget that frees instance->info->name.  */
   widget
-    = XtVaCreateManagedWidget ("popup", xlwMenuWidgetClass,
-			       popup_shell,
-			       XtNmenu, tem,
-			       XtNhorizontal, False,
-			       0);
-
-#if 0
-  free_widget_value (tem);
-#endif
+    = XtCreateManagedWidget ("popup", xlwMenuWidgetClass,
+			     popup_shell, al, ac);
 
   XtAddCallback (widget, XtNselect, pick_hook, (XtPointer)instance);
 
@@ -166,12 +149,18 @@ xlw_update_one_widget (instance, widget, val, deep_p)
      Boolean deep_p;
 {
   XlwMenuWidget mw;
+  Arg al[1];
 
   if (XtIsShell (widget))
     mw = (XlwMenuWidget)((CompositeWidget)widget)->composite.children [0];
   else
     mw = (XlwMenuWidget)widget;
-  XtVaSetValues (widget, XtNmenu, val, 0);
+
+  /* This used to use XtVaSetValues, but some old Xt versions
+     that have a bug in XtVaCreateWidget might have it here too.  */
+  XtSetArg (al[0], XtNmenu, instance->info->val);
+
+  XtSetValues (widget, al, 1);
 }
 
 void
