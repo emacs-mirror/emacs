@@ -445,8 +445,9 @@ struct fringe_bitmap standard_bitmaps[MAX_STANDARD_FRINGE_BITMAPS] =
   { FRBITS (zv_bits),                 8, 3, ALIGN_BITMAP_TOP,    0 },
 };
 
-static struct fringe_bitmap *fringe_bitmaps[MAX_FRINGE_BITMAPS];
-static unsigned fringe_faces[MAX_FRINGE_BITMAPS];
+static struct fringe_bitmap **fringe_bitmaps;
+static unsigned *fringe_faces;
+static int max_fringe_bitmaps;
 
 static int max_used_fringe_bitmap = MAX_STANDARD_FRINGE_BITMAPS;
 
@@ -1192,8 +1193,6 @@ If BITMAP already exists, the existing definition is replaced.  */)
 
   CHECK_SYMBOL (bitmap);
 
-  n = lookup_fringe_bitmap (bitmap);
-
   if (!STRINGP (bits) && !VECTORP (bits))
     bits = wrong_type_argument (Qstringp, bits);
 
@@ -1245,19 +1244,38 @@ If BITMAP already exists, the existing definition is replaced.  */)
   else if (!NILP (align) && !EQ (align, Qcenter))
     error ("Bad align argument");
 
+  n = lookup_fringe_bitmap (bitmap);
   if (!n)
     {
-      if (max_used_fringe_bitmap < MAX_FRINGE_BITMAPS)
+      if (max_used_fringe_bitmap < max_fringe_bitmaps)
 	n = max_used_fringe_bitmap++;
       else
 	{
 	  for (n = MAX_STANDARD_FRINGE_BITMAPS;
-	       n < MAX_FRINGE_BITMAPS;
+	       n < max_fringe_bitmaps;
 	       n++)
 	    if (fringe_bitmaps[n] == NULL)
 	      break;
-	  if (n == MAX_FRINGE_BITMAPS)
-	    error ("Cannot define more fringe bitmaps");
+
+	  if (n == max_fringe_bitmaps)
+	    {
+	      if ((max_fringe_bitmaps + 20) > MAX_FRINGE_BITMAPS)
+		error ("No free fringe bitmap slots");
+
+	      i = max_fringe_bitmaps;
+	      max_fringe_bitmaps += 20;
+	      fringe_bitmaps
+		= ((struct fringe_bitmap **)
+		   xrealloc (fringe_bitmaps, max_fringe_bitmaps * sizeof (struct fringe_bitmap *)));
+	      fringe_faces
+		= (unsigned *) xrealloc (fringe_faces, max_fringe_bitmaps * sizeof (unsigned));
+
+	      for (; i < max_fringe_bitmaps; i++)
+		{
+		  fringe_bitmaps[i] = NULL;
+		  fringe_faces[i] = FRINGE_FACE_ID;
+		}
+	    }
 	}
 
       Vfringe_bitmaps = Fcons (bitmap, Vfringe_bitmaps);
@@ -1405,9 +1423,18 @@ init_fringe ()
 {
   int i;
 
-  bzero (fringe_bitmaps, sizeof fringe_bitmaps);
-  for (i = 0; i < MAX_FRINGE_BITMAPS; i++)
-    fringe_faces[i] = FRINGE_FACE_ID;
+  max_fringe_bitmaps = MAX_STANDARD_FRINGE_BITMAPS + 20;
+
+  fringe_bitmaps
+    = (struct fringe_bitmap **) xmalloc (max_fringe_bitmaps * sizeof (struct fringe_bitmap *));
+  fringe_faces
+    = (unsigned *) xmalloc (max_fringe_bitmaps * sizeof (unsigned));
+
+  for (i = 0; i < max_fringe_bitmaps; i++)
+    {
+      fringe_bitmaps[i] = NULL;
+      fringe_faces[i] = FRINGE_FACE_ID;
+    }
 }
 
 #ifdef HAVE_NTGUI
