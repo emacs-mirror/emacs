@@ -1,4 +1,4 @@
-;;; winnt.el --- Lisp routines for Windows NT.
+;;; w32-fns.el --- Lisp routines for Windows NT.
 
 ;; Copyright (C) 1994 Free Software Foundation, Inc.
 
@@ -85,4 +85,4 @@ See also `auto-save-file-name-p'."
 ;;; Set to a system sound if you want a fancy bell.
 (set-message-beep nil)
 
-;;; winnt.el ends here
+;;; w32-fns.el ends here
