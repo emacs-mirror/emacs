@@ -1,3 +1,8 @@
+2003-02-24  Juanma Barranquero  <lektu@terra.es>
+
+	* xdisp.c (Qwhen): Declare external; it's now defined in callint.c.
+	(syms_of_xdisp): Don't initialize Qwhen.
+
 2003-02-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* keyboard.c (cancel_hourglass_unwind): New function.
@@ -10,7 +15,7 @@
 	(Fcall_interactively): Call fix_command.
 	(Qif, Qwhen): New variables.
 	(syms_of_callint): Init and staticpro them.
-	
+
 	* regex.c (print_partial_compiled_pattern): Output to stderr.
 
 2003-02-23  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
