@@ -53,8 +53,11 @@
 
 (define-key c-mode-map [menu-bar] (make-sparse-keymap))
 
+;; "C-mode" is not strictly the right punctuation--it should be "C
+;; mode"--but that would look like two menu items.  "C-mode" is the
+;; best alternative I can think of.
 (define-key c-mode-map [menu-bar c]
-  (cons "C Mode" (make-sparse-keymap "C Mode")))
+  (cons "C-mode" (make-sparse-keymap "C-mode")))
 
 (define-key c-mode-map [menu-bar c comment-region]
   '("Comment Out Region" . comment-region))
