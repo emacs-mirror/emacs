@@ -295,8 +295,9 @@ struct coding_system
      additional conversion. */
   Lisp_Object pre_write_conversion;
 
-  /* Character unification table to look up, or nil.  */
-  Lisp_Object character_unification_table;
+  /* Character unification tables to look up, or nil.  */
+  Lisp_Object character_unification_table_for_decode;
+  Lisp_Object character_unification_table_for_encode;
 
   /* Carryover yielded by decoding/encoding incomplete source.  No
      coding-system yields more than 7-byte of carryover.  This does
