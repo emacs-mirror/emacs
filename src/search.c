@@ -972,8 +972,22 @@ trivial_regexp_p (regexp)
    POSIX is nonzero if we want full backtracking (POSIX style)
    for this pattern.  0 means backtrack only enough to get a valid match.  */
 
-#define TRANSLATE(trt, d) \
-   (! NILP (trt) ? XINT (Faref (trt, make_number (d))) : (d))
+#define TRANSLATE(out, trt, d)			\
+do						\
+  {						\
+    if (! NILP (trt))				\
+      {						\
+	Lisp_Object temp;			\
+	temp = Faref (trt, make_number (d));	\
+	if (INTEGERP (temp))			\
+	  out = XINT (temp);			\
+	else					\
+	  out = d;				\
+      }						\
+    else					\
+      out = d;					\
+  }						\
+while (0)
 
 static int
 search_buffer (string, pos, pos_byte, lim, lim_byte, n,
@@ -1165,7 +1179,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 	  while (--len >= 0)
 	    {
 	      unsigned char workbuf[4], *str;
-	      int c, translated;
+	      int c, translated, inverse;
 	      int in_charlen, charlen;
 
 	      /* If we got here and the RE flag is set, it's because we're
@@ -1180,7 +1194,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 
 	      c = STRING_CHAR_AND_LENGTH (base_pat, len_byte, in_charlen);
 	      /* Translate the character, if requested.  */
-	      translated = TRANSLATE (trt, c);
+	      TRANSLATE (translated, trt, c);
 	      /* If translation changed the byte-length, go back
 		 to the original character.  */
 	      charlen = CHAR_STRING (translated, workbuf, str);
@@ -1190,10 +1204,11 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 		  charlen = CHAR_STRING (c, workbuf, str);
 		}
 
+	      TRANSLATE (inverse, inverse_trt, c);
+
 	      /* Did this char actually get translated?
 		 Would any other char get translated into it?  */
-	      if (translated != c
-		  || TRANSLATE (inverse_trt, c) != c)
+	      if (translated != c || inverse != c)
 		{
 		  /* Keep track of which character set row
 		     contains the characters that need translation.  */
@@ -1206,7 +1221,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 		    simple = 0;
 		    /* ??? Handa: this must do simple = 0
 		       if c is a composite character.  */
-		}		    
+		}
 
 	      /* Store this character into the translated pattern.  */
 	      bcopy (str, pat, charlen);
@@ -1219,7 +1234,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 	{
 	  while (--len >= 0)
 	    {
-	      int c, translated;
+	      int c, translated, inverse;
 
 	      /* If we got here and the RE flag is set, it's because we're
 		 dealing with a regexp known to be trivial, so the backslash
@@ -1230,12 +1245,12 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 		  base_pat++;
 		}
 	      c = *base_pat++;
-	      translated = TRANSLATE (trt, c);
+	      TRANSLATE (translated, trt, c);
+	      TRANSLATE (inverse, inverse_trt, c);
 
 	      /* Did this char actually get translated?
 		 Would any other char get translated into it?  */
-	      if (translated != c
-		  || TRANSLATE (inverse_trt, c) != c)
+	      if (translated != c || inverse != c)
 		{
 		  /* Keep track of which character set row
 		     contains the characters that need translation.  */
@@ -1246,7 +1261,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 		    /* If two different rows appear, needing translation,
 		       then we cannot use boyer_moore search.  */
 		    simple = 0;
-		}		    
+		}
 	      *pat++ = translated;
 	    }
 	}
@@ -1257,7 +1272,8 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 
       if (simple)
 	return boyer_moore (n, pat, len, len_byte, trt, inverse_trt,
-			    pos, pos_byte, lim, lim_byte);
+			    pos, pos_byte, lim, lim_byte,
+			    charset_base);
       else
 	return simple_search (n, pat, len, len_byte, trt,
 			      pos, pos_byte, lim, lim_byte);
@@ -1316,7 +1332,7 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 						 buf_charlen);
 		this_pos_byte += buf_charlen;
 		this_pos++;
-		buf_ch = TRANSLATE (trt, buf_ch);
+		TRANSLATE (buf_ch, trt, buf_ch);
 
 		if (buf_ch != pat_ch)
 		  break;
@@ -1353,7 +1369,7 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 		int buf_ch = FETCH_BYTE (this_pos);
 		this_len--;
 		this_pos++;
-		buf_ch = TRANSLATE (trt, buf_ch);
+		TRANSLATE (buf_ch, trt, buf_ch);
 
 		if (buf_ch != pat_ch)
 		  break;
@@ -1401,7 +1417,7 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 						 buf_charlen);
 		this_pos_byte += buf_charlen;
 		this_pos++;
-		buf_ch = TRANSLATE (trt, buf_ch);
+		TRANSLATE (buf_ch, trt, buf_ch);
 
 		if (buf_ch != pat_ch)
 		  break;
@@ -1438,7 +1454,7 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 		int buf_ch = FETCH_BYTE (this_pos);
 		this_len--;
 		this_pos++;
-		buf_ch = TRANSLATE (trt, buf_ch);
+		TRANSLATE (buf_ch, trt, buf_ch);
 
 		if (buf_ch != pat_ch)
 		  break;
@@ -1458,7 +1474,11 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 
  stop:
   if (n == 0)
-    return pos;
+    {
+      set_search_regs (multibyte ? pos_byte : pos, len_byte);
+
+      return pos;
+    }
   else if (n > 0)
     return -n;
   else
@@ -1480,7 +1500,7 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 
 static int
 boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
-	     pos, pos_byte, lim, lim_byte)
+	     pos, pos_byte, lim, lim_byte, charset_base)
      int n;
      unsigned char *base_pat;
      int len, len_byte;
@@ -1488,6 +1508,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
      Lisp_Object inverse_trt;
      int pos, pos_byte;
      int lim, lim_byte;
+     int charset_base;
 {
   int direction = ((n > 0) ? 1 : -1);
   register int dirlen;
@@ -1572,6 +1593,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
       if (! NILP (trt))
 	{
 	  int ch;
+	  int untranslated;
 	  int this_translated = 1;
 
 	  if (multibyte
@@ -1580,17 +1602,22 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	      unsigned char *charstart = ptr;
 	      while (! CHAR_HEAD_P (*charstart))
 		charstart--;
-	      if (! CHAR_HEAD_P (*ptr))
+	      untranslated = STRING_CHAR (charstart, ptr - charstart + 1);
+	      TRANSLATE (ch, trt, untranslated);
+	      if (charset_base == (ch & ~0xff))
 		{
-		  translate_prev_byte = ptr[-1];
-		  if (! CHAR_HEAD_P (translate_prev_byte))
-		    translate_anteprev_byte = ptr[-2];
+		  if (! CHAR_HEAD_P (*ptr))
+		    {
+		      translate_prev_byte = ptr[-1];
+		      if (! CHAR_HEAD_P (translate_prev_byte))
+			translate_anteprev_byte = ptr[-2];
+		    }
 		}
-	      ch = STRING_CHAR (charstart, ptr - charstart + 1);
-	      ch = TRANSLATE (trt, ch);
+	      else
+		this_translated = 0;
 	    }
 	  else if (!multibyte)
-	    ch = TRANSLATE (trt, *ptr);
+	    TRANSLATE (ch, trt, *ptr);
 	  else
 	    {
 	      ch = *ptr;
@@ -1606,7 +1633,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	  if (this_translated)
 	    while (1)
 	      {
-		ch = TRANSLATE (inverse_trt, ch);
+		TRANSLATE (ch, inverse_trt, ch);
 		/* For all the characters that map into K,
 		   set up simple_translate to map them into K.  */
 		simple_translate[(unsigned char) ch] = k;
