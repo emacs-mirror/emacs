@@ -1,3 +1,8 @@
+2001-04-14  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info.el (Info-file-list-for-emacs): Add an entry for the "info"
+	manual.
+
 2001-04-13  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* pcvs-defs.el (cvs-mode-map): Bind C-o like in dired.
@@ -98,12 +103,12 @@
 	(ps-fonts, ps-font-number, ps-rgb-color, ps-end-page, ps-next-page)
 	(ps-skip-newline): Replace defun by defsubst.
 
-2001-04-05  Colin Walters <walters@cis.ohio-state.edu>
+2001-04-10  Colin Walters <walters@cis.ohio-state.edu>
 
 	* eshell/eshell.el (eshell-command): Needed a "%s" format
 	specifier, in case the buffer contains percent characters.
 
-2001-04-04  John Wiegley  <johnw@gnu.org>
+2001-04-10  John Wiegley  <johnw@gnu.org>
 
 	* calendar/timeclock.el (timeclock-generate-report): Added a
 	missing insert of the project name.

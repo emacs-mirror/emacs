@@ -1,3 +1,10 @@
+2001-04-14  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (../info/info): Use an explicit -o switch to
+	makeinfo.
+
+	* info.texi: Update for Emacs 21.  Add index entries.
+
 2001-04-09  John Wiegley  <johnw@gnu.org>
 
 	* eshell.texi: A few additions.
