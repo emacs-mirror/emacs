@@ -1549,9 +1549,9 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	stack-adjust
 	stack-depth
 	(initial-stack-depth
-	 (and lap
-	      (eq (car (car lap)) 'TAG)
-	      (cdr (cdr (car lap)))))
+	 (if (and lap (eq (car (car lap)) 'TAG))
+	     (cdr (cdr (car lap)))
+	   0))
 	(keep-going 'first-time)
 	(add-depth 0)
 	rest tmp tmp2 tmp3
@@ -2088,8 +2088,8 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	    ((and (eq (car lap0) 'byte-stack-set)
 		  (memq (car lap1) '(byte-discard byte-discardN))
 		  (progn
-		    ;; Following should be enough discards to expose the
-		    ;; value stored by the stack-set.
+		    ;; See if enough discard operations follow to expose or
+		    ;; destroy the value stored by the stack-set.
 		    (setq tmp (cdr rest))
 		    (setq tmp2 (- stack-depth 2 (cdr lap0)))
 		    (setq tmp3 0)
@@ -2099,11 +2099,19 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 			(setq tmp3 (+ tmp3 (cdr (car tmp)))))
 		      (setq tmp (cdr tmp)))
 		    (>= tmp3 tmp2)))
+	     ;; Do the optimization
 	     (setq lap (delq lap0 lap))
-	     (setcar lap1 (if (= tmp2 tmp3)
-			      'byte-discardN-preserve-tos
-			    'byte-discardN))
-	     (setcdr lap1 tmp3)
+	     (cond ((= tmp2 tmp3)
+		    ;; The value stored is the new TOS, so pop one more value
+		    ;; (to get rid of the old value) using the TOS-preserving
+		    ;; discard operator.
+		    (setcar lap1 'byte-discardN-preserve-tos)
+		    (setcdr lap1 (1+ tmp3)))
+		   (t
+		    ;; Otherwise, the value stored is lost, so just use a
+		    ;; normal discard.
+		    (setcar lap1 'byte-discardN)
+		    (setcdr lap1 tmp3)))
 	     (setcdr (cdr rest) tmp)
 	     (setq stack-adjust 0)
 	     (byte-compile-log-lap "  %s [discard/discardN]...\t-->\t%s"

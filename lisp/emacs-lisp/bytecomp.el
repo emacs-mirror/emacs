@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.144 $")
+(defconst byte-compile-version "$Revision: 2.98.2.13 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -3264,7 +3264,8 @@ discarding."
       ;; Preserve the top-of-stack value by writing it directly to the stack
       ;; location which will be at the top-of-stack after popping.
       (byte-compile-stack-set (1- (- byte-compile-depth num)))
-      ;; Now we actually discard one less value, since we want to keep the eventual TOS
+      ;; Now we actually discard one less value, since we want to keep
+      ;; the eventual TOS
       (setq num (1- num)))
     (while (> num 0)
       (byte-compile-out 'byte-discard)

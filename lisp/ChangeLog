@@ -1,3 +1,10 @@
+2004-04-09  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/byte-opt.el (byte-optimize-lapcode): Default
+	initial-stack-depth to 0.
+	(byte-optimize-lapcode): Discard the right number of values in
+	the stack-set+discard-->discard optimization.
+
 2004-04-02  Miles Bader  <miles@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (eval-last-sexp-1): Setup the lexical
