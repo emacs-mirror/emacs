@@ -402,7 +402,7 @@ widget."
     completion-list-mode
     diff-mode
     
-    perl-mode
+    perl-mode cperl-mode
     javascript-mode
     tcl-mode
     python-mode
