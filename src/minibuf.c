@@ -98,6 +98,8 @@ Lisp_Object Quser_variable_p;
 /* Non-nil means it is the window for C-M-v to scroll
    when the minibuffer is selected.  */
 extern Lisp_Object Vminibuf_scroll_window;
+
+extern Lisp_Object Voverriding_local_map;
 
 /* Actual minibuffer invocation. */
 
@@ -160,7 +162,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
 			   Fcons (Vcurrent_prefix_arg,
 				  Fcons (Vminibuffer_history_position,
 					 Fcons (Vminibuffer_history_variable,
-						minibuf_save_list))))));
+						Fcons (Voverriding_local_map,
+						       minibuf_save_list)))))));
   minibuf_prompt_width = 0;	/* xdisp.c puts in the right value.  */
   minibuf_prompt = Fcopy_sequence (prompt);
   Vminibuffer_history_position = histpos;
@@ -402,6 +405,8 @@ read_minibuf_unwind (data)
   Vminibuffer_history_position = Fcar (minibuf_save_list);
   minibuf_save_list = Fcdr (minibuf_save_list);
   Vminibuffer_history_variable = Fcar (minibuf_save_list);
+  minibuf_save_list = Fcdr (minibuf_save_list);
+  Voverriding_local_map = Fcar (minibuf_save_list);
   minibuf_save_list = Fcdr (minibuf_save_list);
 }
 
