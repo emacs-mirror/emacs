@@ -237,9 +237,11 @@ init_syntax_once ()
 #if HAVE_ALLOCA_H
 #include <alloca.h>
 #else /* not __GNUC__ or HAVE_ALLOCA_H */
+#if 0 /* It is a bad idea to declare alloca.  We always cast the result.  */
 #ifndef _AIX /* Already did AIX, up at the top.  */
 char *alloca ();
 #endif /* not _AIX */
+#endif
 #endif /* not HAVE_ALLOCA_H */ 
 #endif /* not __GNUC__ */
 
