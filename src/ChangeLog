@@ -1,5 +1,8 @@
 2001-09-17  Gerd Moellmann  <gerd@gnu.org>
 
+	* buffer.h (BUF_COMPUTE_UNCHANGED): Use BUF_MODIFF and
+	BUF_OVERLAY_MODIFF instead of MODIFF and OVERLAY_MODIFF.
+
 	* m/macppc.h (DATA_SEG_BITS) [__linux__]: Define for GCC
 	versions >= 2.95.
 

@@ -1,5 +1,8 @@
 2001-09-17  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
+	Check for '(' in column 0 of doc string.
+
 	* gs.el (gs-set-ghostview-window-prop): Use `elt' instead
 	of `nth' so that using a vector as bounding-box works.
 	From David.Kastrup@neuroinformatik.ruhr-uni-bochum.de.
