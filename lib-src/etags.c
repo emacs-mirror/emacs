@@ -4664,6 +4664,9 @@ etags_getcwd ()
     for (p = path; *p != '\0'; p++)
       if (*p == '\\')
 	*p = '/';
+    /* Canonicalize drive letter case.  */
+    if (islower (path[0]))
+      path[0] = toupper (path[0]);
   }
 #endif
 
@@ -4790,6 +4793,12 @@ absolute_filename (file, cwd)
 
       slashp = etags_strchr (slashp + 1, '/');
     }
+
+#ifdef DOS_NT
+  /* Canonicalize drive letter case.  */
+  if (res[0] && islower (res[0]))
+    res[0] = toupper (res[0]);
+#endif
   
   if (res[0] == '\0')
     return savestr ("/");
