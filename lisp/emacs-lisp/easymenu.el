@@ -26,40 +26,39 @@
 
 ;;; Code:
 
-;;;###autoload.
+;;;###autoload
 (defun easy-menu-define (symbol maps doc menu)
   "Define a menu bar submenu in maps MAPS, according to MENU.
 The arguments SYMBOL and DOC are ignored; they are present for
-compatibility only.
+compatibility only.  In other Emacs versions they may be used
+as a variable to hold the menu data, and a doc string for that variable.
 
 The first element of MENU must be a string.  It is the menu bar item name.
 The rest of the elements are menu items.
 
-A menu item is a vector of three elements:
+A menu item is usually a vector of three elements:  [NAME CALLBACK t]
 
- - the name of the menu item (a string);
- - the `callback' of that item;
- - t.
+NAME is a string--the menu item name.
 
-If the `callback' of a menu item is a symbol, then it must name a
-command.  It will be invoked with `call-interactively'.  If it is a
-list, then it is evaluated with `eval'.
+CALLBACK is a command to run when the item is chosen,
+or a list to evaluate when the item is chosen.
 
-If an element of a menu is a string, then that string appears in the
-menu as unselectable text.
+A menu item can be a string.  Then that string appears in the menu as
+unselectable text.  A string consisting solely of hyphens is displayed
+as a solid horizontal line.
 
-If an element of a menu is a string consisting solely of hyphens, then that
-item is displayed as a solid horizontal line.
-
-If an element of a menu is a list, it is treated as a submenu.
+A menu item can be a list.  It is treated as a submenu.
 The first element should be the submenu name.  That's used as the
 menu item in the top-level menu.  The cdr of the submenu list
 is a list of menu items, as above."
+  (or (keymapp maps) (setq maps (list maps)))
   (let ((keymap (easy-menu-keymap (car menu) (cdr menu))))
-    (mapcar (function (lambda (map) 
-	      (define-key map (vector 'menu-bar (intern (car menu)))
-		(cons (car menu) keymap))))
-	    (if (keymapp maps) (list maps) maps))))
+    (while maps
+      (define-key (car maps) (vector 'menu-bar (intern (car menu)))
+	(cons (car menu) keymap))
+      (setq maps (cdr maps)))))
+
+(defvar easy-menu-item-count 0)
 
 ;; Return a menu keymap corresponding to a Lucid-style menu list
 ;; MENU-ITEMS, and with name MENU-NAME.
@@ -76,14 +75,14 @@ is a list of menu items, as above."
 	       (setq command nil)
 	       (setq name (if (string-match "^-+$" item) "" item)))
 	      ((consp item)
-	       (setq command (make-lucid-menu-keymap (car item) (cdr item)))
+	       (setq command (easy-menu-keymap (car item) (cdr item)))
 	       (setq name (car item)))
 	      ((vectorp item)
 	       (setq command (make-symbol (format "menu-function-%d"
-						  add-menu-item-count)))
+						  easy-menu-item-count)))
 	       (setq enabler (make-symbol (format "menu-function-%d-enabler"
-						  add-menu-item-count)))
-	       (setq add-menu-item-count (1+ add-menu-item-count))
+						  easy-menu-item-count)))
+	       (setq easy-menu-item-count (1+ easy-menu-item-count))
 	       (put command 'menu-enable enabler)
 	       (set enabler (aref item 2))
 	       (setq name (aref item 0))	       
