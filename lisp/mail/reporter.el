@@ -1,10 +1,10 @@
 ;;; reporter.el --- customizable bug reporting of lisp programs
 
-;; Author: 1993 Barry A. Warsaw, Century Computing Inc. <bwarsaw@cen.com>
-;; Maintainer:      bwarsaw@cen.com
+;; Author: 1993 Barry A. Warsaw <bwarsaw@cnri.reston.va.us>
+;; Maintainer:      bwarsaw@cnri.reston.va.us
 ;; Created:         19-Apr-1993
-;; Version:         2.12
-;; Last Modified:   1994/07/06 14:55:39
+;; Version:         2.21
+;; Last Modified:   1994/11/29 16:13:50
 ;; Keywords: bug reports lisp
 
 ;; Copyright (C) 1993 1994 Barry A. Warsaw
@@ -35,9 +35,9 @@
 ;; set up a mail buffer with the appropriate bug report address,
 ;; including a lisp expression the maintainer of the package can eval
 ;; to completely reproduce the environment in which the bug was
-;; observed (e.g. by using eval-last-sexp). This package proved especially
-;; useful during my development of cc-mode.el, which is highly dependent
-;; on its configuration variables.
+;; observed (e.g. by using eval-last-sexp). This package proved
+;; especially useful during my development of cc-mode.el, which is
+;; highly dependent on its configuration variables.
 ;;
 ;; Do a "C-h f reporter-submit-bug-report" for more information.
 ;; Here's an example usage:
@@ -56,13 +56,6 @@
 ;;         ;; ...
 ;;         'mypkg-variable-last)))
 
-;; Major differences since version 1:
-;; ==================================
-;; * More robust in the face of void variables
-;; * New interface controlling variable reporter-prompt-for-summary-p
-;; * pretty-printing of lists!
-
-
 ;; Mailing List
 ;; ============
 ;; I've set up a mailing list to report bugs or suggest enhancements,
@@ -73,10 +66,14 @@
 ;; Administrivia: reporter-request@anthem.nlm.nih.gov
 ;; Submissions:   reporter@anthem.nlm.nih.gov
 
+;; Packages that currently use reporter are: cc-mode, supercite, elp,
+;; tcl, ediff, crypt, vm, edebug, archie, and efs.  If you know of
+;; others, please email me!
+
 ;; LCD Archive Entry:
-;; reporter|Barry A. Warsaw|bwarsaw@cen.com|
+;; reporter|Barry A. Warsaw|bwarsaw@cnri.reston.va.us|
 ;; Customizable bug reporting of lisp programs.|
-;; 1994/07/06 14:55:39|2.12|~/misc/reporter.el.Z|
+;; 1994/11/29 16:13:50|2.21|~/misc/reporter.el.Z|
 
 ;;; Code:
 
@@ -88,7 +85,9 @@
   "*Mail package to use to generate bug report buffer.
 This can either be a function symbol or a list of function symbols.
 If a list, it tries to use each specified mailer in order until an
-existing one is found.")
+existing one is found.
+
+MH-E users may want to use `mh-smail'.")
 
 (defvar reporter-prompt-for-summary-p nil
   "Interface variable controlling prompting for problem summary.
@@ -101,6 +100,18 @@ prompt, you should `let' bind this variable to t before calling
 `reporter-submit-bug-report'.  Note that this variable is not
 buffer-local so you should never just `setq' it.")
 
+(defvar reporter-dont-compact-list nil
+  "Interface variable controlling compating of list values.
+When non-nil, this must be a list of variable symbols.  When a
+variable containing a list value is formatted in the bug report mail
+buffer, it normally is compacted so that its value fits one the fewest
+number of lines.  If the variable's symbol appears in this list, its
+value is printed in a more verbose style, specifically, one elemental
+sexp per line.
+
+Note that this variable is not buffer-local so you should never just
+`setq' it.  If you want to changes its default value, you should `let'
+bind it.")
 
 ;; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ;; end of user defined variables
@@ -111,24 +122,74 @@ This is necessary to properly support the printing of buffer-local
 variables.  Current buffer will always be the mail buffer being
 composed.")
 
-(defconst reporter-version "2.12"
+(defconst reporter-version "2.21"
   "Reporter version number.")
 
 (defvar reporter-initial-text nil
   "The automatically created initial text of a bug report.")
 (make-variable-buffer-local 'reporter-initial-text)
 
+
+(defvar reporter-status-message nil)
+(defvar reporter-status-count nil)
+
+(defun reporter-update-status ()
+  ;; periodically output a status message
+  (if (zerop (% reporter-status-count 10))
+      (progn
+	(message reporter-status-message)
+	(setq reporter-status-message (concat reporter-status-message "."))))
+  (setq reporter-status-count (1+ reporter-status-count)))
 
 
+(defun reporter-beautify-list (maxwidth compact-p)
+  ;; pretty print a list
+  (reporter-update-status)
+  (let (linebreak indent-enclosing-p indent-p here)
+    (condition-case nil			;loop exit
+	(progn
+	  (down-list 1)
+	  (setq indent-enclosing-p t)
+	  (while t
+	    (setq here (point))
+	    (forward-sexp 1)
+	    (if (<= maxwidth (current-column))
+		(if linebreak
+		    (progn
+		      (goto-char linebreak)
+		      (newline-and-indent)
+		      (setq linebreak nil))
+		  (goto-char here)
+		  (setq indent-p (reporter-beautify-list maxwidth compact-p))
+		  (goto-char here)
+		  (forward-sexp 1)
+		  (if indent-p
+		      (newline-and-indent))
+		  t)
+	      (if compact-p
+		  (setq linebreak (point))
+		(newline-and-indent))
+	      ))
+	  t)
+      (error indent-enclosing-p))))
+
+(defun reporter-lisp-indent (indent-point state)
+  ;; a better lisp indentation style for bug reporting
+  (save-excursion
+    (goto-char (1+ (nth 1 state)))
+    (current-column)))
+
 (defun reporter-dump-variable (varsym mailbuf)
   ;; Pretty-print the value of the variable in symbol VARSYM.  MAILBUF
   ;; is the mail buffer being composed
+  (reporter-update-status)
   (condition-case nil
       (let ((val (save-excursion
 		   (set-buffer reporter-eval-buffer)
 		   (symbol-value varsym)))
 	    (sym (symbol-name varsym))
 	    (print-escape-newlines t)
+	    (maxwidth (1- (window-width)))
 	    (here (point)))
 	(insert "     " sym " "
 		(cond
@@ -137,36 +198,17 @@ composed.")
 		 ((symbolp val) "'")
 		 (t ""))
 		(prin1-to-string val))
+	(lisp-indent-line)
 	;; clean up lists, but only if the line as printed was long
 	;; enough to wrap
-	(if (and (listp val)
-		 (< (window-width) (current-column)))
+	(if (and val			;nil is a list, but short
+		 (listp val)
+		 (<= maxwidth (current-column)))
 	    (save-excursion
-	      (goto-char here)
-	      ;; skip past the symbol name
-	      (down-list 1)
-	      (condition-case nil	; actual loop exit
-		  (while t
-		    (forward-sexp 1)
-		    (insert "\n")
-		    ;; if the sexp is longer than a single line then
-		    ;; fill it to fill-column
-		    (if (< (window-width)
-			   (save-excursion
-			     (forward-char -1)
-			     (current-column)))
-			(let (stop)
-			  (unwind-protect
-			      (setq stop (point-marker))
-			      (forward-line -1)
-			      (fill-region (point) (progn (end-of-line)
-							  (point)))
-			      ;; consume extra newline left by fill-region
-			      (delete-char 1)
-			      (goto-char stop))
-			  (set-marker stop nil)))
-		    (lisp-indent-line))
-		(error nil))))
+	      (let ((compact-p (not (memq varsym reporter-dont-compact-list)))
+		    (lisp-indent-function 'reporter-lisp-indent))
+		(goto-char here)
+		(reporter-beautify-list maxwidth compact-p))))
 	(insert "\n"))
     (void-variable
      (save-excursion
@@ -230,9 +272,8 @@ composed.")
 		    (funcall printer varsym mailbuf)
 		    )))
 	       varlist)
-	      (insert ")\n")
-	      (beginning-of-defun)
-	      (indent-sexp))
+	      (lisp-indent-line)
+	      (insert ")\n"))
 	    (insert-buffer elbuf))
 	(error
 	 (insert "State could not be dumped due to the following error:\n\n"
@@ -279,6 +320,8 @@ composed.")
   (let ((reporter-eval-buffer (current-buffer))
 	final-resting-place
 	after-sep-pos
+	(reporter-status-message "Formatting bug report buffer...")
+	(reporter-status-count 0)
 	(problem (and reporter-prompt-for-summary-p
 		      (read-string "(Very) brief summary of problem: ")))
 	(mailbuf
@@ -313,7 +356,8 @@ composed.")
 	  (progn
 	    (mail-position-on-field "subject")
 	    (insert pkgname "; " problem)))
-      (re-search-forward mail-header-separator (point-max) 'move)
+      ;; move point to the body of the message
+      (mail-text)
       (forward-line 1)
       (setq after-sep-pos (point))
       (and salutation (insert "\n" salutation "\n\n"))
