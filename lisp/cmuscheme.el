@@ -68,7 +68,7 @@
 ;;; CHANGE LOG
 ;;; ===========================================================================
 ;;; 8/88 Olin
-;;; Created. 
+;;; Created.
 ;;;
 ;;; 2/15/89 Olin
 ;;; Removed -emacs flag from process invocation. It's only useful for
@@ -99,7 +99,7 @@
 
 (defgroup cmuscheme nil
   "Run a scheme process in a buffer."
-  :group 'lisp)
+  :group 'scheme)
 
 ;;; INFERIOR SCHEME MODE STUFF
 ;;;============================================================================
@@ -169,7 +169,7 @@ Customisation: Entry to this mode runs the hooks on comint-mode-hook and
 inferior-scheme-mode-hook (in that order).
 
 You can send text to the inferior Scheme process from other buffers containing
-Scheme source.  
+Scheme source.
     switch-to-scheme switches the current buffer to the Scheme process buffer.
     scheme-send-definition sends the current definition to the Scheme process.
     scheme-compile-definition compiles the current definition.
@@ -183,7 +183,7 @@ For information on running multiple processes in multiple buffers, see
 documentation for variable scheme-buffer.
 
 Commands:
-Return after the end of the process' output sends the text from the 
+Return after the end of the process' output sends the text from the
     end of process to point.
 Return before the end of the process' output copies the sexp ending at point
     to the end of the process' output, and sends it.
@@ -208,11 +208,11 @@ Defaults to a regexp ignoring all inputs of 0, 1, or 2 letters."
   :group 'cmuscheme)
 
 (defun scheme-input-filter (str)
-  "Don't save anything matching inferior-scheme-filter-regexp"
+  "Don't save anything matching `inferior-scheme-filter-regexp'."
   (not (string-match inferior-scheme-filter-regexp str)))
 
 (defun scheme-get-old-input ()
-  "Snarf the sexp ending at point"
+  "Snarf the sexp ending at point."
   (save-excursion
     (let ((end (point)))
       (backward-sexp)
@@ -231,29 +231,24 @@ Defaults to a regexp ignoring all inputs of 0, 1, or 2 letters."
 		 (scheme-args-to-list (substring string pos
 						 (length string)))))))))
 
-(defcustom cmuscheme-program-name "scheme"
-  "*Program invoked by the run-scheme command"
-  :type 'string
-  :group 'cmuscheme)
-
 ;;;###autoload
 (defun run-scheme (cmd)
   "Run an inferior Scheme process, input and output via buffer *scheme*.
 If there is a process already running in `*scheme*', switch to that buffer.
 With argument, allows you to edit the command line (default is value
-of `cmuscheme-program-name').  Runs the hooks `inferior-scheme-mode-hook'
+of `scheme-program-name').  Runs the hooks `inferior-scheme-mode-hook'
 \(after the `comint-mode-hook' is run).
 \(Type \\[describe-mode] in the process buffer for a list of commands.)"
 
   (interactive (list (if current-prefix-arg
-			 (read-string "Run Scheme: " cmuscheme-program-name)
-			 cmuscheme-program-name)))
+			 (read-string "Run Scheme: " scheme-program-name)
+			 scheme-program-name)))
   (if (not (comint-check-proc "*scheme*"))
       (let ((cmdlist (scheme-args-to-list cmd)))
 	(set-buffer (apply 'make-comint "scheme" (car cmdlist)
 			   nil (cdr cmdlist)))
 	(inferior-scheme-mode)))
-  (setq cmuscheme-program-name cmd)
+  (setq scheme-program-name cmd)
   (setq scheme-buffer "*scheme*")
   (pop-to-buffer "*scheme*"))
 ;;;###autoload (add-hook 'same-window-buffer-names "*scheme*")
@@ -303,11 +298,11 @@ of `cmuscheme-program-name').  Runs the hooks `inferior-scheme-mode-hook'
 
 (defun switch-to-scheme (eob-p)
   "Switch to the scheme process buffer.
-With argument, positions cursor at end of buffer."
+With argument, position cursor at end of buffer."
   (interactive "P")
   (if (get-buffer scheme-buffer)
       (pop-to-buffer scheme-buffer)
-      (error "No current process buffer. See variable scheme-buffer."))
+      (error "No current process buffer.  See variable `scheme-buffer'"))
   (cond (eob-p
 	 (push-mark)
 	 (goto-char (point-max)))))
@@ -320,21 +315,21 @@ Then switch to the process buffer."
   (switch-to-scheme t))
 
 (defun scheme-send-definition-and-go ()
-  "Send the current definition to the inferior Scheme. 
+  "Send the current definition to the inferior Scheme.
 Then switch to the process buffer."
   (interactive)
   (scheme-send-definition)
   (switch-to-scheme t))
 
 (defun scheme-compile-definition-and-go ()
-  "Compile the current definition in the inferior Scheme. 
+  "Compile the current definition in the inferior Scheme.
 Then switch to the process buffer."
   (interactive)
   (scheme-compile-definition)
   (switch-to-scheme t))
 
 (defun scheme-compile-region-and-go (start end)
-  "Compile the current region in the inferior Scheme. 
+  "Compile the current region in the inferior Scheme.
 Then switch to the process buffer."
   (interactive "r")
   (scheme-compile-region start end)
@@ -343,21 +338,21 @@ Then switch to the process buffer."
 (defcustom scheme-source-modes '(scheme-mode)
   "*Used to determine if a buffer contains Scheme source code.
 If it's loaded into a buffer that is in one of these major modes, it's
-considered a scheme source file by scheme-load-file and scheme-compile-file.
+considered a scheme source file by `scheme-load-file' and `scheme-compile-file'.
 Used by these commands to determine defaults."
   :type '(repeat function)
   :group 'cmuscheme)
 
 (defvar scheme-prev-l/c-dir/file nil
   "Caches the last (directory . file) pair.
-Caches the last pair used in the last scheme-load-file or
-scheme-compile-file command. Used for determining the default in the 
+Caches the last pair used in the last `scheme-load-file' or
+`scheme-compile-file' command. Used for determining the default in the
 next one.")
 
 (defun scheme-load-file (file-name)
-  "Load a Scheme file into the inferior Scheme process."
+  "Load a Scheme file FILE-NAME into the inferior Scheme process."
   (interactive (comint-get-source "Load Scheme file: " scheme-prev-l/c-dir/file
-				  scheme-source-modes t)) ; T because LOAD 
+				  scheme-source-modes t)) ; T because LOAD
                                                           ; needs an exact name
   (comint-check-source file-name) ; Check to see if buffer needs saved.
   (setq scheme-prev-l/c-dir/file (cons (file-name-directory    file-name)
@@ -367,7 +362,7 @@ next one.")
 					    "\"\)\n")))
 
 (defun scheme-compile-file (file-name)
-  "Compile a Scheme file in the inferior Scheme process."
+  "Compile a Scheme file FILE-NAME in the inferior Scheme process."
   (interactive (comint-get-source "Compile Scheme file: "
 				  scheme-prev-l/c-dir/file
 				  scheme-source-modes
@@ -386,16 +381,16 @@ next one.")
 MULTIPLE PROCESS SUPPORT
 ===========================================================================
 Cmuscheme.el supports, in a fairly simple fashion, running multiple Scheme
-processes. To run multiple Scheme processes, you start the first up with
-\\[run-scheme]. It will be in a buffer named *scheme*. Rename this buffer
-with \\[rename-buffer]. You may now start up a new process with another
-\\[run-scheme]. It will be in a new buffer, named *scheme*. You can
+processes.  To run multiple Scheme processes, you start the first up with
+\\[run-scheme].  It will be in a buffer named *scheme*.  Rename this buffer
+with \\[rename-buffer].  You may now start up a new process with another
+\\[run-scheme].  It will be in a new buffer, named *scheme*.  You can
 switch between the different process buffers with \\[switch-to-buffer].
 
 Commands that send text from source buffers to Scheme processes --
-like scheme-send-definition or scheme-compile-region -- have to choose a
-process to send to, when you have more than one Scheme process around. This
-is determined by the global variable scheme-buffer. Suppose you
+like `scheme-send-definition' or `scheme-compile-region' -- have to choose a
+process to send to, when you have more than one Scheme process around.  This
+is determined by the global variable `scheme-buffer'.  Suppose you
 have three inferior Schemes running:
     Buffer	Process
     foo		scheme
@@ -404,30 +399,30 @@ have three inferior Schemes running:
 If you do a \\[scheme-send-definition-and-go] command on some Scheme source
 code, what process do you send it to?
 
-- If you're in a process buffer (foo, bar, or *scheme*), 
+- If you're in a process buffer (foo, bar, or *scheme*),
   you send it to that process.
 - If you're in some other buffer (e.g., a source file), you
-  send it to the process attached to buffer scheme-buffer.
-This process selection is performed by function scheme-proc.
+  send it to the process attached to buffer `scheme-buffer'.
+This process selection is performed by function `scheme-proc'.
 
-Whenever \\[run-scheme] fires up a new process, it resets scheme-buffer
-to be the new process's buffer. If you only run one process, this will
-do the right thing. If you run multiple processes, you can change
-scheme-buffer to another process buffer with \\[set-variable].
+Whenever \\[run-scheme] fires up a new process, it resets `scheme-buffer'
+to be the new process's buffer.  If you only run one process, this will
+do the right thing.  If you run multiple processes, you can change
+`scheme-buffer' to another process buffer with \\[set-variable].
 
-More sophisticated approaches are, of course, possible. If you find yourself
+More sophisticated approaches are, of course, possible.  If you find yourself
 needing to switch back and forth between multiple processes frequently,
 you may wish to consider ilisp.el, a larger, more sophisticated package
-for running inferior Lisp and Scheme processes. The approach taken here is
-for a minimal, simple implementation. Feel free to extend it.")
+for running inferior Lisp and Scheme processes.  The approach taken here is
+for a minimal, simple implementation.  Feel free to extend it.")
 
 (defun scheme-proc ()
-  "Returns the current scheme process. See variable scheme-buffer."
+  "Return the current scheme process.  See variable `scheme-buffer'."
   (let ((proc (get-buffer-process (if (eq major-mode 'inferior-scheme-mode)
 				      (current-buffer)
 				      scheme-buffer))))
     (or proc
-	(error "No current process. See variable scheme-buffer"))))
+	(error "No current process.  See variable `scheme-buffer'"))))
 
 
 ;;; Do the user's customisation...
