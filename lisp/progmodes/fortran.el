@@ -4,7 +4,7 @@
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: bug-fortran-mode@erl.mit.edu
-;; Version 1.30.2 (June 1, 1993)
+;; Version 1.30.3 (November 16, 1993)
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -46,7 +46,7 @@
 
 ;;; Bugs to bug-fortran-mode@erl.mit.edu
 
-(defconst fortran-mode-version "version 1.30.2")
+(defconst fortran-mode-version "version 1.30.3")
 
 ;;; Code:
 
@@ -807,7 +807,7 @@ An abbrev before point is expanded if `abbrev-mode' is non-nil."
 		 (setq icol (+ icol fortran-if-indent)))
 		((looking-at "\\(otherwise\\|else[ \t]*where\\)\\b")
 		 (setq icol (+ icol fortran-if-indent)))
-		((looking-at "where.*(.*)[ \t]*\n")
+		((looking-at "where[ \t]*(.*)[ \t]*\n")
 		 (setq icol (+ icol fortran-if-indent)))
 		((looking-at "do\\b")
 		 (setq icol (+ icol fortran-do-indent)))
