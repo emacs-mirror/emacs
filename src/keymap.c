@@ -1863,9 +1863,6 @@ push_key_description (c, p)
     *p++ = c;
   else
     {
-      if (! NILP (current_buffer->enable_multibyte_characters))
-	c = unibyte_char_to_multibyte (c);
-
       if (NILP (current_buffer->enable_multibyte_characters)
 	  || SINGLE_BYTE_CHAR_P (c)
 	  || ! char_valid_p (c, 0))
