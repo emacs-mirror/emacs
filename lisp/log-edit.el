@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs commit log
 ;; Version: $Name:  $
-;; Revision: $Id: log-edit.el,v 1.1 2000/03/11 03:42:28 monnier Exp $
+;; Revision: $Id: log-edit.el,v 1.2 2000/03/26 21:19:58 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -98,7 +98,7 @@ If SETUP is 'force, this variable has no effect."
   :type '(hook :options (log-edit-insert-cvs-template
 			 log-edit-insert-changelog)))
 
-(defcustom log-edit-mode-hook (if (boundp vc-log-mode-hook) vc-log-mode-hook)
+(defcustom log-edit-mode-hook (if (boundp 'vc-log-mode-hook) vc-log-mode-hook)
   "*Hook run when entering `log-edit-mode'."
   :group 'log-edit
   :type 'hook)
