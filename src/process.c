@@ -98,6 +98,17 @@ Boston, MA 02111-1307, USA.  */
 #include <bsdtty.h>
 #endif
 
+/* Can we use SIOCGIFCONF and/or SIOCGIFADDR */
+#ifdef HAVE_SOCKETS
+#if defined(HAVE_SYS_IOCTL_H) && defined(HAVE_NET_IF_H)
+/* sys/ioctl.h may have been included already */
+#ifndef SIOCGIFADDR
+#include <sys/ioctl.h>
+#endif
+#include <net/if.h>
+#endif
+#endif
+
 #ifdef IRIS
 #include <sys/sysmacros.h>	/* for "minor" */
 #endif /* not IRIS */
@@ -3356,6 +3367,234 @@ usage: (make-network-process &rest ARGS)  */)
 }
 #endif	/* HAVE_SOCKETS */
 
+
+#ifdef HAVE_SOCKETS
+
+#ifdef SIOCGIFCONF
+DEFUN ("network-interface-list", Fnetwork_interface_list, Snetwork_interface_list, 0, 0, 0,
+       doc: /* Return an alist of all network interfaces and their network address.
+Each element is a cons, the car of which is a string containing the
+interface name, and the cdr is the network address in internal
+format; see the description of ADDRESS in 'make-network-process'.  */)
+     ()
+{
+  struct ifconf ifconf;
+  struct ifreq *ifreqs = NULL;
+  int ifaces = 0;
+  int buf_size, s;
+  Lisp_Object res;
+
+  s = socket (AF_INET, SOCK_STREAM, 0);
+  if (s < 0)
+    return Qnil;
+
+ again:
+  ifaces += 25;
+  buf_size = ifaces * sizeof(ifreqs[0]);
+  ifreqs = (struct ifreq *)xrealloc(ifreqs, buf_size);
+  if (!ifreqs)
+    {
+      close (s);
+      return Qnil;
+    }
+
+  ifconf.ifc_len = buf_size;
+  ifconf.ifc_req = ifreqs;
+  if (ioctl (s, SIOCGIFCONF, &ifconf))
+    {
+      close (s);
+      return Qnil;
+    }
+
+  if (ifconf.ifc_len == buf_size)
+    goto again;
+
+  close (s);
+  ifaces = ifconf.ifc_len / sizeof (ifreqs[0]);
+
+  res = Qnil;
+  while (--ifaces >= 0)
+    {
+      struct ifreq *ifq = &ifreqs[ifaces];
+      char namebuf[sizeof (ifq->ifr_name) + 1];
+      if (ifq->ifr_addr.sa_family != AF_INET)
+	continue;
+      bcopy (ifq->ifr_name, namebuf, sizeof (ifq->ifr_name));
+      namebuf[sizeof (ifq->ifr_name)] = 0;
+      res = Fcons (Fcons (build_string (namebuf),
+			  conv_sockaddr_to_lisp (&ifq->ifr_addr,
+						 sizeof (struct sockaddr))),
+		   res);
+    }
+
+  return res;
+}
+#endif
+
+#if defined(SIOCGIFADDR) || defined(SIOCGIFHWADDR) || defined(SIOCGIFFLAGS)
+
+struct ifflag_def {
+  int flag_bit;
+  char *flag_sym;
+};
+
+static struct ifflag_def ifflag_table[] = {
+#ifdef IFF_UP
+  { IFF_UP,		"up" },
+#endif
+#ifdef IFF_BROADCAST
+  { IFF_BROADCAST,	"broadcast" },
+#endif
+#ifdef IFF_DEBUG
+  { IFF_DEBUG,		"debug" },
+#endif
+#ifdef IFF_LOOPBACK
+  { IFF_LOOPBACK,	"loopback" },
+#endif
+#ifdef IFF_POINTOPOINT
+  { IFF_POINTOPOINT,	"pointopoint" },
+#endif
+#ifdef IFF_RUNNING
+  { IFF_RUNNING,	"running" },
+#endif
+#ifdef IFF_NOARP
+  { IFF_NOARP,		"noarp" },
+#endif
+#ifdef IFF_PROMISC
+  { IFF_PROMISC,	"promisc" },
+#endif
+#ifdef IFF_NOTRAILERS
+  { IFF_NOTRAILERS,	"notrailers" },
+#endif
+#ifdef IFF_ALLMULTI
+  { IFF_ALLMULTI,	"allmulti" },
+#endif
+#ifdef IFF_MASTER
+  { IFF_MASTER,		"master" },
+#endif
+#ifdef IFF_SLAVE
+  { IFF_SLAVE,		"slave" },
+#endif
+#ifdef IFF_MULTICAST
+  { IFF_MULTICAST,	"multicast" },
+#endif
+#ifdef IFF_PORTSEL
+  { IFF_PORTSEL,	"portsel" },
+#endif
+#ifdef IFF_AUTOMEDIA
+  { IFF_AUTOMEDIA,	"automedia" },
+#endif
+#ifdef IFF_DYNAMIC
+  { IFF_DYNAMIC,	"dynamic" },
+#endif
+  { 0, 0 }
+};
+
+DEFUN ("get-network-interface-info", Fget_network_interface_info, Sget_network_interface_info, 1, 1, 0,
+       doc: /* Return information about network interface named IFNAME.
+The return value is a list (ADDR BCAST NETMASK HWADDR FLAGS),
+where ADDR is the layer 3 address, BCAST is the layer 3 broadcast address,
+NETMASK is the layer 3 network mask, HWADDR is the layer 2 addres, and
+FLAGS is the current flags of the interface.  */)
+     (ifname)
+     Lisp_Object ifname;
+{
+  struct ifreq rq;
+  Lisp_Object res = Qnil;
+  Lisp_Object elt;
+  int s;
+  int any = 0;
+
+  CHECK_STRING (ifname);
+
+  bzero (rq.ifr_name, sizeof rq.ifr_name);
+  strncpy (rq.ifr_name, SDATA (ifname), sizeof (rq.ifr_name));
+
+  s = socket (AF_INET, SOCK_STREAM, 0);
+  if (s < 0)
+    return Qnil;
+
+  elt = Qnil;
+#ifdef SIOCGIFFLAGS
+  if (ioctl (s, SIOCGIFFLAGS, &rq) == 0)
+    {
+      int flags = rq.ifr_flags;
+      struct ifflag_def *fp;
+      int fnum;
+
+      any++;
+      for (fp = ifflag_table; flags != 0 && fp; fp++)
+	{
+	  if (flags & fp->flag_bit)
+	    {
+	      elt = Fcons (intern (fp->flag_sym), elt);
+	      flags -= fp->flag_bit;
+	    }
+	}
+      for (fnum = 0; flags && fnum < 32; fnum++)
+	{
+	  if (flags & (1 << fnum))
+	    {
+	      elt = Fcons (make_number (fnum), elt);
+	    }
+	}
+    }
+#endif
+  res = Fcons (elt, res);
+
+  elt = Qnil;
+#ifdef SIOCGIFHWADDR
+  if (ioctl (s, SIOCGIFHWADDR, &rq) == 0)
+    {
+      Lisp_Object hwaddr = Fmake_vector (6, Qnil);
+      register struct Lisp_Vector *p = XVECTOR (hwaddr);
+      int n;
+
+      any++;
+      for (n = 0; n < 6; n++)
+	p->contents[n] = make_number (((unsigned char *)&rq.ifr_hwaddr.sa_data[0])[n]);
+      elt = Fcons (XINT (rq.ifr_hwaddr.sa_family), hwaddr);
+    }
+#endif
+  res = Fcons (elt, res);
+
+  elt = Qnil;
+#ifdef SIOCGIFNETMASK
+  if (ioctl (s, SIOCGIFNETMASK, &rq) == 0)
+    {
+      any++;
+      elt = conv_sockaddr_to_lisp (&rq.ifr_netmask, sizeof (rq.ifr_netmask));
+    }
+#endif
+  res = Fcons (elt, res);
+
+  elt = Qnil;
+#ifdef SIOCGIFBRDADDR
+  if (ioctl (s, SIOCGIFBRDADDR, &rq) == 0)
+    {
+      any++;
+      elt = conv_sockaddr_to_lisp (&rq.ifr_broadaddr, sizeof (rq.ifr_broadaddr));
+    }
+#endif
+  res = Fcons (elt, res);
+
+  elt = Qnil;
+#ifdef SIOCGIFADDR
+  if (ioctl (s, SIOCGIFADDR, &rq) == 0)
+    {
+      any++;
+      elt = conv_sockaddr_to_lisp (&rq.ifr_addr, sizeof (rq.ifr_addr));
+    }
+#endif
+  res = Fcons (elt, res);
+
+  close (s);
+
+  return any ? res : Qnil;
+}
+#endif
+#endif	/* HAVE_SOCKETS */
+
 void
 deactivate_process (proc)
      Lisp_Object proc;
@@ -6467,6 +6706,12 @@ The value takes effect when `start-process' is called.  */);
   defsubr (&Sset_network_process_options);
   defsubr (&Smake_network_process);
   defsubr (&Sformat_network_address);
+#ifdef SIOCGIFCONF
+  defsubr (&Snetwork_interface_list);
+#endif
+#if defined(SIOCGIFADDR) || defined(SIOCGIFHWADDR) || defined(SIOCGIFFLAGS)
+  defsubr (&Sget_network_interface_info);
+#endif
 #endif /* HAVE_SOCKETS */
 #ifdef DATAGRAM_SOCKETS
   defsubr (&Sprocess_datagram_address);
