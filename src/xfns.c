@@ -1002,7 +1002,7 @@ x_set_internal_border_width (f, arg, oldval)
   if (FRAME_X_WINDOW (f) != 0)
     {
       BLOCK_INPUT;
-      x_set_window_size (f, f->width, f->height);
+      x_set_window_size (f, 0, f->width, f->height);
 #if 0
       x_set_resize_hint (f);
 #endif
@@ -1021,7 +1021,7 @@ x_set_visibility (f, value, oldval)
   XSET (frame, Lisp_Frame, f);
 
   if (NILP (value))
-    Fmake_frame_invisible (frame);
+    Fmake_frame_invisible (frame, Qt);
   else if (EQ (value, Qicon))
     Ficonify_frame (frame);
   else
@@ -1212,7 +1212,7 @@ x_set_vertical_scroll_bars (f, arg, oldval)
 	 However, if the window hasn't been created yet, we shouldn't
 	 call x_set_window_size.  */
       if (FRAME_X_WINDOW (f))
-	x_set_window_size (f, FRAME_WIDTH (f), FRAME_HEIGHT (f));
+	x_set_window_size (f, 0, FRAME_WIDTH (f), FRAME_HEIGHT (f));
     }
 }
 
@@ -2118,7 +2118,7 @@ be shared by the new frame.")
   tem0 = x_get_arg (parms, Qleft, 0, 0, number);
   tem1 = x_get_arg (parms, Qtop, 0, 0, number);
   BLOCK_INPUT;
-  x_wm_set_size_hint (f, window_prompting, XINT (tem0), XINT (tem1));
+  x_wm_set_size_hint (f, window_prompting, 1, XINT (tem0), XINT (tem1));
   UNBLOCK_INPUT;
 
   tem = x_get_arg (parms, Qunsplittable, 0, 0, boolean);

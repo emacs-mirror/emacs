@@ -755,31 +755,6 @@ EmacsFrameResize (widget)
   pixel_to_char_size (ew, ew->core.width, ew->core.height, &columns, &rows);
   change_frame_size (f, rows, columns, 1, 0);
   update_wm_hints (ew); 
-  {
-    Window win, child;
-    int win_x, win_y;
-
-    /* Find the position of the outside upper-left corner of
-       the window, in the root coordinate system.  Don't
-       refer to the parent window here; we may be processing
-       this event after the window manager has changed our
-       parent, but before we have reached the ReparentNotify.  */
-    XTranslateCoordinates (x_current_display,
-			   
-			   /* From-window, to-window.  */
-			   XtWindow(XtParent(ew)),
-			   ROOT_WINDOW,
-			   
-			   /* From-position, to-position.  */
-			   -f->display.x->widget->core.border_width,
-			   -f->display.x->widget->core.border_width,
-			   &win_x, &win_y,
-			   
-			   /* Child of win.  */
-			   &child);
-    f->display.x->widget->core.x = win_x;
-    f->display.x->widget->core.y = win_y;
-  }
   update_various_frame_slots (ew);
 }
 
