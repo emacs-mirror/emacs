@@ -723,6 +723,8 @@ for numeric input."
   (let ((message-log-max nil) done (first t) (code 0) char)
     (while (not done)
       (let ((inhibit-quit first)
+	    ;; Don't use input methods inside this function.
+	    (input-method-function nil)
 	    ;; Don't let C-h get the help message--only help function keys.
 	    (help-char nil)
 	    (help-form
