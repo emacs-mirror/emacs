@@ -100,7 +100,7 @@ mkdir ${tempdir}
 ### README while the rest of the tar file is still unpacking.  Whoopee.
 echo "Making links to top-level files." 
 ln GETTING.GNU.SOFTWARE INSTALL PROBLEMS README move-if-change ${tempdir}
-ln ChangeLog Makefile.in build-install.in configure ${tempdir}
+ln ChangeLog Makefile.in build-install.in configure configure.in ${tempdir}
 ln make-dist ${tempdir}
 ### Copy config.sub; it's a cross-filesystem symlink.
 cp config.sub ${tempdir}
