@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!6.c(trunk.4) $
+ id = $HopeName: MMQA_test_function!6.c(trunk.5) $
  summary = (regression test ) Keep resetting lds in managed memory while doing allocation. The idea is to force a collection so that the ld will be protected when you try to reset it.
  language = c
  link = testlib.o newfmt.o
@@ -9,6 +9,7 @@ END_HEADER
 
 #include "testlib.h"
 #include "mpscamc.h"
+#include "mpsavm.h"
 #include "newfmt.h"
 
 
@@ -42,29 +43,23 @@ static void test(void)
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(
-  mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
-   mps_stack_scan_ambig, stackpointer, 0),
-  "create root");
+ cdie(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+                          mps_stack_scan_ambig, stackpointer, 0),
+      "create root");
 
- cdie(
-  mps_fmt_create_A(&format, arena, &fmtA),
-  "create format");
+ cdie(mps_fmt_create_A(&format, arena, &fmtA), "create format");
  cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
  cdie(mmqa_pool_create_chain(&pool, arena, mps_class_amc(), format, chain),
       "create pool");
 
- cdie(
-  mps_ap_create(&ap, pool, MPS_RANK_EXACT),
-  "create ap");
+ cdie(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "create ap");
 
   a = allocone(ap, 100);
   b = a;
   c = a;
 
- for (j=1; j<100; j++)
- {
+ for (j = 1; j < 100; j++) {
   comment("%i of 100", j);
   p = allocdumb(ap, sizeof(mps_ld_s));
   ld = (mps_ld_t) getdata(p);
@@ -72,16 +67,15 @@ static void test(void)
   b = a;
   c = a;
 
-  for (i=1; i<100; i++)
-  {
-  mps_ld_reset(ld, arena);
+  for (i = 1; i < 100; i++) {
+    mps_ld_reset(ld, arena);
 
-  UC;
-   c = allocone(ap, 200);
-  UC;
-   setref(b, 0, c);
-  UC;
-   b = c;
+    UC;
+    c = allocone(ap, 200);
+    UC;
+    setref(b, 0, c);
+    UC;
+    b = c;
   }
  }
 
