@@ -1153,8 +1153,8 @@ unless NOMODES is non-nil."
 		  (t
 		   (setq buffer-read-only nil)
 		   (if (file-exists-p (file-name-directory (directory-file-name (file-name-directory buffer-file-name))))
-		       "Use M-x make-dir RET RET to create the directory"
-		     "Use C-u M-x make-dir RET RET to create directory and its parents")))))
+		       "Use M-x make-directory RET RET to create the directory"
+		     "Use C-u M-x make-directory RET RET to create directory and its parents")))))
       (if msg
 	  (progn
 	    (message msg)
