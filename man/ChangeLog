@@ -1,3 +1,11 @@
+2004-12-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* url.texi: Correct typos.
+	(Retrieving URLs, Retrieving URLs): @var{nil}->@code{nil}.
+	(HTTP language/coding, mailto): Replace  "GNU Emacs manual" with
+	the standard "The GNU Emacs manual" in fifth argument of @xref's.
+	(Dealing with HTTP documents): @inforef->@xref.
+
 2004-12-15  Juri Linkov  <juri@jurta.org>
 
 	* mark.texi (Transient Mark, Mark Ring): M-< and other
