@@ -25,7 +25,6 @@ for reading an argument.
 * Completion::                How to invoke and customize completion.
 * Yes-or-No Queries::         Asking a question with a simple answer.
 * Multiple Queries::	      Asking a series of similar questions.
-* Reading a Password::        Function for reading a password.
 * Minibuffer Misc::           Various customization hooks and variables.
 @end menu
 
