@@ -1,3 +1,9 @@
+2002-03-13  Francesco Potorti`  <pot@gnu.org>
+
+	* progmodes/etags.el (tag-exact-file-name-match-p)
+	(tag-file-name-match-p, tag-partial-file-name-match-p): Use a
+	simpler regexp.
+
 2002-03-12  Colin Walters  <walters@debian.org>
 
 	* ibuffer.el (ibuffer-redisplay-current): Don't move point when
