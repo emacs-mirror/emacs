@@ -267,11 +267,13 @@ memory_warning_signal (sig)
    so that GDB can return from a breakpoint here.
    MSDOS has its own definition on msdos.c  */
 
-#ifndef DOS_NT
+#if ! defined (DOS_NT) && ! defined (NO_ABORT)
 void
 abort ()
 {
   kill (getpid (), SIGABRT);
+  /* This shouldn't be executed, but it prevents a warning.  */
+  exit (1);
 }
 #endif
 
