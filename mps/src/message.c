@@ -283,7 +283,7 @@ static Bool MessageTypeEnabled(Arena arena, MessageType type)
 
   return BTGet(arena->enabledMessageTypes, type);
 }
-  
+ 
 
 void MessageTypeEnable(Arena arena, MessageType type)
 {
@@ -325,7 +325,7 @@ static void MessageDelete(Message message)
 
 /* type specific dispatch methods */
 
-void MessageFinalizationRef(Ref *refReturn, Arena arena, 
+void MessageFinalizationRef(Ref *refReturn, Arena arena,
                             Message message)
 {
   AVER(refReturn != NULL);
@@ -366,7 +366,7 @@ Size MessageGCNotCondemnedSize(Message message)
 
 /* type specific stub methods */
 
-void MessageNoFinalizationRef(Ref *refReturn, Arena arena, 
+void MessageNoFinalizationRef(Ref *refReturn, Arena arena,
                               Message message)
 {
   AVER(refReturn != NULL);

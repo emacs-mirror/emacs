@@ -25,7 +25,7 @@ SRCID(reserv, "$HopeName: !reserv.c(trunk.3) $");
  *
  * The reservoir maintains a linked list of tracts in arbitrary order.
  * (see .improve.contiguous)
- * 
+ *
  * Tracts are chained using the TractP field.
  */
 
@@ -48,10 +48,10 @@ static Res ResPoolInit(Pool pool, va_list arg)
 }
 
 
-/* ResPoolFinish -- Reservoir pool finish method 
+/* ResPoolFinish -- Reservoir pool finish method
  *
- * .reservoir.finish: This might be called from ArenaFinish, so the 
- * arena cannot be checked at this time. In order to avoid the 
+ * .reservoir.finish: This might be called from ArenaFinish, so the
+ * arena cannot be checked at this time. In order to avoid the
  * check, insist that the reservoir is empty, by AVERing that
  * the reserve list is NULL.
  */
@@ -145,9 +145,9 @@ static Bool ReservoirIsConsistent(Reservoir reservoir)
 }
 
 
-/* ReservoirEnsureFull  
- * 
- * Ensures that the reservoir is the right size, by topping it up 
+/* ReservoirEnsureFull 
+ *
+ * Ensures that the reservoir is the right size, by topping it up
  * with fresh memory from the arena if possible.
  */
 
@@ -165,7 +165,7 @@ Res ReservoirEnsureFull(Reservoir reservoir)
 
   /* optimize the common case of a full reservoir */
   if (reservoir->reservoirSize == limit)
-    return ResOK; 
+    return ResOK;
 
   pool = &reservoir->poolStruct;
   AVERT(Pool, pool);
@@ -230,7 +230,7 @@ Res ReservoirWithdraw(Addr *baseReturn, Tract *baseTractReturn,
 {
   Pool respool;
   Arena arena;
-  
+ 
   AVER(baseReturn != NULL);
   AVER(baseTractReturn != NULL);
   AVERT(Reservoir, reservoir);
@@ -247,7 +247,7 @@ Res ReservoirWithdraw(Addr *baseReturn, Tract *baseTractReturn,
   /* See .improve.contiguous &  change.dylan.jackdaw.160125 */
   if(size != ArenaAlign(arena))
     return ResMEMORY;
-  
+ 
   if (size <= reservoir->reservoirSize) {
     /* Return the first tract  */
     Tract tract = reservoir->reserve;
@@ -264,7 +264,7 @@ Res ReservoirWithdraw(Addr *baseReturn, Tract *baseTractReturn,
     return ResOK;
   }
 
-  AVER(ReservoirIsConsistent(reservoir));  
+  AVER(ReservoirIsConsistent(reservoir)); 
   return ResMEMORY; /* no suitable region in the reservoir */
 }
 
@@ -295,7 +295,7 @@ void ReservoirDeposit(Reservoir reservoir, Addr base, Size size)
       /* Reassign the tract to the reservoir pool */
       TractFinish(tract);
       TractInit(tract, respool, addr);
-      reservoir->reservoirSize += alignment; 
+      reservoir->reservoirSize += alignment;
       resTractSetNext(tract, reservoir->reserve);
       reservoir->reserve = tract;
     } else {
@@ -310,7 +310,7 @@ void ReservoirDeposit(Reservoir reservoir, Addr base, Size size)
 
 /* MutatorBufferCount
  *
- * Returns the number of mutator buffers for the arena. 
+ * Returns the number of mutator buffers for the arena.
  */
 
 static Count MutatorBufferCount(Arena arena)
@@ -319,7 +319,7 @@ static Count MutatorBufferCount(Arena arena)
   Count count = 0;
 
   AVERT(Arena, arena);
-  
+ 
   /* Iterate over all pools, and count the mutator buffers in each */
   RING_FOR(nodep, &arena->poolRing, nextp) {
     Pool pool = RING_ELT(Pool, arenaRing, nodep);
@@ -366,7 +366,7 @@ void ReservoirSetLimit(Reservoir reservoir, Size size)
     /* Shrink the reservoir */
     ReservoirShrink(reservoir, needed);
     reservoir->reservoirLimit = needed;
-    AVER(ReservoirIsConsistent(reservoir));  
+    AVER(ReservoirIsConsistent(reservoir)); 
   }
 }
 
@@ -376,7 +376,7 @@ void ReservoirSetLimit(Reservoir reservoir, Size size)
 Size ReservoirLimit(Reservoir reservoir)
 {
   AVERT(Reservoir, reservoir);
-  AVER(ReservoirIsConsistent(reservoir));  
+  AVER(ReservoirIsConsistent(reservoir)); 
   return reservoir->reservoirLimit;
 }
 
@@ -402,7 +402,7 @@ Res ReservoirInit(Reservoir reservoir, Arena arena)
   reservoir->reserve = NULL;
   reservoir->sig = ReservoirSig;
   /* initialize the reservoir pool, design.mps.reservoir */
-  res = PoolInit(&reservoir->poolStruct, 
+  res = PoolInit(&reservoir->poolStruct,
                  arena, EnsureReservoirPoolClass());
   if (res == ResOK) {
     AVERT(Reservoir, reservoir);

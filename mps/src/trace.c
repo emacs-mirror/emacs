@@ -36,11 +36,11 @@ typedef struct TraceMessageStruct  {
 #define MessageTraceMessage(message) \
   (PARENT(TraceMessageStruct, messageStruct, (message)))
 
-static Bool TraceMessageCheck(TraceMessage traceMessage) 
+static Bool TraceMessageCheck(TraceMessage traceMessage)
 {
   CHECKS(TraceMessage, traceMessage);
   CHECKD(Message, TraceMessageMessage(traceMessage));
-  CHECKL(MessageGetType(TraceMessageMessage(traceMessage)) == 
+  CHECKL(MessageGetType(TraceMessageMessage(traceMessage)) ==
          MessageTypeGC);
 
   /* We can't check anything about the statistics.  In particular, */
@@ -62,7 +62,7 @@ static void TraceMessageDelete(Message message)
   ControlFree(arena, (void *)traceMessage, sizeof(TraceMessageStruct));
 }
 
-static Size TraceMessageLiveSize(Message message) 
+static Size TraceMessageLiveSize(Message message)
 {
   TraceMessage traceMessage;
 
@@ -73,7 +73,7 @@ static Size TraceMessageLiveSize(Message message)
   return traceMessage->liveSize;
 }
 
-static Size TraceMessageCondemnedSize(Message message) 
+static Size TraceMessageCondemnedSize(Message message)
 {
   TraceMessage traceMessage;
 
@@ -84,7 +84,7 @@ static Size TraceMessageCondemnedSize(Message message)
   return traceMessage->condemnedSize;
 }
 
-static Size TraceMessageNotCondemnedSize(Message message) 
+static Size TraceMessageNotCondemnedSize(Message message)
 {
   TraceMessage traceMessage;
 
@@ -335,7 +335,7 @@ static void TraceSetUpdateCounts(TraceSet ts, Arena arena,
 static void TraceSetSignalEmergency(TraceSet ts, Arena arena)
 {
   TraceId ti;
-  
+ 
   AVER(TraceSetCheck(ts));
   AVERT(Arena, arena);
 
@@ -421,7 +421,7 @@ Res TraceAddWhite(Trace trace, Seg seg)
                                RefSetOfSeg(trace->arena, seg));
     /* if the pool is a moving GC, then condemned objects may move */
     if(pool->class->attr & AttrMOVINGGC) {
-      trace->mayMove = RefSetUnion(trace->mayMove, 
+      trace->mayMove = RefSetUnion(trace->mayMove,
                                    RefSetOfSeg(PoolArena(pool), seg));
     }
   }
@@ -440,7 +440,7 @@ Res TraceAddWhite(Trace trace, Seg seg)
  * been done because some pools still use TraceAddWhite for the
  * condemned set.
  *
- * @@@@ This function would be more efficient if there were a 
+ * @@@@ This function would be more efficient if there were a
  * cheaper way to select the segments in a particular zone set.
  */
 
@@ -719,7 +719,7 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
           if(TraceSetIsMember(SegGrey(seg), trace->ti))
             trace->foundation += size;
         }
-        
+       
         if((SegPool(seg)->class->attr & AttrGC) &&
            !TraceSetIsMember(SegWhite(seg), trace->ti))
           trace->notCondemned += size;
@@ -815,7 +815,7 @@ found:
   trace->state = TraceINIT;
   trace->emergency = FALSE;
   trace->condemned = (Size)0;   /* nothing condemned yet */
-  trace->notCondemned = (Size)0; 
+  trace->notCondemned = (Size)0;
   trace->foundation = (Size)0;  /* nothing grey yet */
   trace->rate = (Size)0;        /* no scanning to be done yet */
   STATISTIC(trace->greySegCount = (Count)0);
@@ -922,7 +922,7 @@ static void TracePostMessage(Trace trace)
   AVER(trace->state == TraceFINISHED);
 
   arena = trace->arena;
-  res = ControlAlloc(&p, arena, sizeof(TraceMessageStruct), 
+  res = ControlAlloc(&p, arena, sizeof(TraceMessageStruct),
                      /* withReservoirPermit */ FALSE);
   if(res == ResOK) {
     traceMessage = (TraceMessage)p;
@@ -1388,7 +1388,7 @@ Res TraceFix(ScanState ss, Ref *refIO)
           return res;
       }
 
-    } else { 
+    } else {
       /* Tract isn't white. Don't compute seg for non-statistical */
       /* variety. See design.mps.trace.fix.tractofaddr */
       STATISTIC_STAT
@@ -1441,7 +1441,7 @@ Res TraceFixEmergency(ScanState ss, Ref *refIO)
         PoolFixEmergency(pool, ss, seg, refIO);
       }
 
-    } else { 
+    } else {
       /* Tract isn't white. Don't compute seg for non-statistical */
       /* variety. See design.mps.trace.fix.tractofaddr */
       STATISTIC_STAT
@@ -1475,7 +1475,7 @@ Res TraceFixEmergency(ScanState ss, Ref *refIO)
  * code.
  */
 
-static Res TraceScanSingleRefRes(TraceSet ts, Rank rank, Arena arena, 
+static Res TraceScanSingleRefRes(TraceSet ts, Rank rank, Arena arena,
                                  Seg seg, Ref *refIO)
 {
   RefSet summary;
@@ -1519,7 +1519,7 @@ static Res TraceScanSingleRefRes(TraceSet ts, Rank rank, Arena arena,
  * fail.  It may put the traces into emergency mode in order to
  * achieve this. */
 
-void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena, 
+void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
                         Seg seg, Ref *refIO)
 {
   Res res;

@@ -51,7 +51,7 @@ typedef struct ABQStruct
   METER_DECL(pop);
   METER_DECL(peek);
   METER_DECL(delete);
-  
+ 
   Sig sig;
 } ABQStruct;
 

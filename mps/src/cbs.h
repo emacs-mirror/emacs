@@ -74,16 +74,16 @@ extern Res CBSInit(Arena arena, CBS cbs, void *owner,
                    Size minSize,
                    Align alignment,
                    Bool mayUseInline,
-                   Bool fastFind); 
+                   Bool fastFind);
 extern void CBSFinish(CBS cbs);
 
 extern Res CBSInsert(CBS cbs, Addr base, Addr limit);
 extern Res CBSInsertReturningRange(Addr *baseReturn, Addr *limitReturn,
                                    CBS cbs, Addr base, Addr limit);
 extern Res CBSDelete(CBS cbs, Addr base, Addr limit);
-extern void CBSIterate(CBS cbs, CBSIterateMethod iterate, 
+extern void CBSIterate(CBS cbs, CBSIterateMethod iterate,
                        void *closureP, unsigned long closureS);
-extern void CBSIterateLarge(CBS cbs, CBSIterateMethod iterate, 
+extern void CBSIterateLarge(CBS cbs, CBSIterateMethod iterate,
                             void *closureP, unsigned long closureS);
 extern void CBSSetMinSize(CBS cbs, Size minSize);
 

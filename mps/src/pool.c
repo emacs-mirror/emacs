@@ -100,7 +100,7 @@ Bool PoolCheck(Pool pool)
 
 /* PoolInit, PoolInitV -- initialize a pool
  *
- * Initialize the generic fields of the pool and calls class-specific init. 
+ * Initialize the generic fields of the pool and calls class-specific init.
  * See design.mps.pool.align
  */
 
@@ -180,7 +180,7 @@ failInit:
 
 /* PoolCreate, PoolCreateV: Allocate and initialise pool */
 
-Res PoolCreate(Pool *poolReturn, Arena arena, 
+Res PoolCreate(Pool *poolReturn, Arena arena,
                PoolClass class, ...)
 {
   Res res;
@@ -191,7 +191,7 @@ Res PoolCreate(Pool *poolReturn, Arena arena,
   return res;
 }
 
-Res PoolCreateV(Pool *poolReturn, Arena arena,  
+Res PoolCreateV(Pool *poolReturn, Arena arena, 
                 PoolClass class, va_list args)
 {
   Res res;
@@ -204,8 +204,8 @@ Res PoolCreateV(Pool *poolReturn, Arena arena,
 
   /* .space.alloc: Allocate the pool instance structure with the size */
   /* requested  in the pool class.  See .space.free */
-  res = ControlAlloc(&base, arena, class->size, 
-                     /* withReservoirPermit */ FALSE); 
+  res = ControlAlloc(&base, arena, class->size,
+                     /* withReservoirPermit */ FALSE);
   if(res != ResOK)
     goto failControlAlloc;
 
@@ -214,12 +214,12 @@ Res PoolCreateV(Pool *poolReturn, Arena arena,
   /* instance by using the offset information from the class. */
   pool = (Pool)PointerAdd(base, class->offset);
 
-  /* Initialize the pool. */  
+  /* Initialize the pool. */ 
   res = PoolInitV(pool, arena, class, args);
-  if(res != ResOK) 
+  if(res != ResOK)
     goto failPoolInit;
-  
-  *poolReturn = pool;  
+ 
+  *poolReturn = pool; 
   return ResOK;
 
 failPoolInit:
@@ -233,21 +233,21 @@ failControlAlloc:
 
 void PoolFinish(Pool pool)
 {
-  AVERT(Pool, pool);  
-  
+  AVERT(Pool, pool); 
+ 
   /* Do any class-specific finishing. */
   (*pool->class->finish)(pool);
 
   /* Detach the pool from the arena, and unsig it. */
   RingRemove(&pool->arenaRing);
   pool->sig = SigInvalid;
-  
+ 
   /* .ring.finish: Finish the generic fields.  See .ring.init */
   RingFinish(&pool->actionRing);
   RingFinish(&pool->segRing);
   RingFinish(&pool->bufferRing);
   RingFinish(&pool->arenaRing);
-  
+ 
   EVENT_P(PoolFinish, pool);
 }
 
@@ -259,8 +259,8 @@ void PoolDestroy(Pool pool)
   Arena arena;
   Addr base;
 
-  AVERT(Pool, pool);  
-  
+  AVERT(Pool, pool); 
+ 
   class = pool->class; /* } In case PoolFinish changes these */
   arena = pool->arena; /* } */
 
@@ -284,7 +284,7 @@ BufferClass PoolDefaultBufferClass(Pool pool)
 
 /* PoolAlloc -- allocate a block of memory from a pool */
 
-Res PoolAlloc(Addr *pReturn, Pool pool, Size size, 
+Res PoolAlloc(Addr *pReturn, Pool pool, Size size,
               Bool withReservoirPermit)
 {
   Res res;
@@ -324,7 +324,7 @@ void PoolFree(Pool pool, Addr old, Size size)
   /* The pool methods should check that old is in pool. */
   AVER(size > 0);
   (*pool->class->free)(pool, old, size);
-  
+ 
   EVENT_PAW(PoolFree, pool, old, size);
 }
 
@@ -351,7 +351,7 @@ Res PoolAccess(Pool pool, Seg seg, Addr addr,
 }
 
 Res PoolWhiten(Pool pool, Trace trace, Seg seg)
-{  
+{ 
   AVERT(Pool, pool);
   AVERT(Trace, trace);
   AVERT(Seg, seg);
@@ -492,12 +492,12 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream)
 
   AVERT(Pool, pool);
   AVER(stream != NULL);
-  
+ 
   res = WriteF(stream,
                "Pool $P ($U) {\n", (WriteFP)pool, (WriteFU)pool->serial,
-               "  class $P (\"$S\")\n", 
+               "  class $P (\"$S\")\n",
                (WriteFP)pool->class, pool->class->name,
-               "  arena $P ($U)\n", 
+               "  arena $P ($U)\n",
                (WriteFP)pool->arena, (WriteFU)pool->arena->serial,
                "  alignment $W\n", (WriteFW)pool->alignment,
                NULL);
@@ -621,7 +621,7 @@ double PoolMutatorAllocSize(Pool pool)
 }
 
 
-/* PoolNo*, PoolTriv* -- Trivial and non-methods for Pool Classes 
+/* PoolNo*, PoolTriv* -- Trivial and non-methods for Pool Classes
  * See design.mps.pool.no and design.mps.pool.triv
  */
 
@@ -706,14 +706,14 @@ Res PoolTrivBufferFill(Addr *baseReturn, Addr *limitReturn,
 
   res = PoolAlloc(&p, pool, size, withReservoirPermit);
   if(res != ResOK) return res;
-  
+ 
   *baseReturn = p;
   *limitReturn = AddrAdd(p, size);
   return ResOK;
 }
 
 
-void PoolNoBufferEmpty(Pool pool, Buffer buffer, 
+void PoolNoBufferEmpty(Pool pool, Buffer buffer,
                        Addr init, Addr limit)
 {
   AVERT(Pool, pool);
@@ -1010,7 +1010,7 @@ Res PoolCollectAct(Pool pool, Action action)
   res = PoolTraceBegin(pool, trace);
   if(res != ResOK)
     goto failBegin;
-  
+ 
   /* Identify the condemned set and turn it white. */
   ring = PoolSegRing(pool);
   RING_FOR(node, ring, nextNode) {

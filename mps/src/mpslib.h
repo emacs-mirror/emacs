@@ -16,7 +16,7 @@
 #define mpslib_h
 
 
-/* .free-standing: These three headers may be used in free-standing 
+/* .free-standing: These three headers may be used in free-standing
  * implementations.  See standard.ansic section 4 and design.mps.exec-env.
  */
 #include <stdarg.h>

@@ -30,7 +30,7 @@ $HopeName = '$HopeName: !eventgen.pl(trunk.13) $';
 
 open(C, "<eventdef.h") || die "Can't open $_";
 while(<C>) {
-  if(/RELATION\([^,]*,[^,]*,[^,]*,[^,]*, ([A-Z]+)\)/) { 
+  if(/RELATION\([^,]*,[^,]*,[^,]*,[^,]*, ([A-Z]+)\)/) {
     $Formats{$1} = 1 if(!defined($Formats{$1}));
   }
 }

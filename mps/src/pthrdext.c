@@ -316,7 +316,7 @@ unlock:
 
 
 /* PThreadextResume -- resume a suspended thread
- * 
+ *
  * See design.mps.pthreadext.impl.resume
  */
 

@@ -4,7 +4,7 @@
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .scope: This is the implementation of the root datatype.
- * .design: For design, see design.mps.root and 
+ * .design: For design, see design.mps.root and
  * design.mps.root-interface
  */
 
@@ -41,7 +41,7 @@ Bool RootModeCheck(RootMode mode)
   CHECKL((mode & RootModePROTECTABLE_INNER) == 0 ||
          (mode & RootModePROTECTABLE));
   UNUSED(mode);
-  
+ 
   return TRUE;
 }
 
@@ -54,7 +54,7 @@ Bool RootModeCheck(RootMode mode)
 Bool RootCheck(Root root)
 {
   CHECKS(Root, root);
-  CHECKU(Arena, root->arena); 
+  CHECKU(Arena, root->arena);
   CHECKL(root->serial < root->arena->rootSerial);
   CHECKL(RingCheck(&root->arenaRing));
   CHECKL(RankCheck(root->rank));
@@ -107,11 +107,11 @@ Bool RootCheck(Root root)
 }
 
 
-/* .create: create, RootCreateTable, RootCreateReg, RootCreateFmt, 
+/* .create: create, RootCreateTable, RootCreateReg, RootCreateFmt,
  *   RootCreateFun:
  * RootCreate* set up the appropriate union member, and call the generic
- * create function to do the actual creation 
- * 
+ * create function to do the actual creation
+ *
  * See design.mps.root.init for initial value
  */
 
@@ -128,7 +128,7 @@ static Res rootCreate(Root *rootReturn, Arena arena,
   AVERT(Rank, rank);
   AVERT(RootVar, type);
 
-  res = ControlAlloc(&p, arena, sizeof(RootStruct), 
+  res = ControlAlloc(&p, arena, sizeof(RootStruct),
                      /* withReservoirPermit */ FALSE);
   if(res != ResOK)
     return res;
@@ -223,7 +223,7 @@ Res RootCreateTable(Root *rootReturn, Arena arena,
   AVERT(Arena, arena);
   AVER(RankCheck(rank));
   AVER(base != 0);
-  AVER(base < limit);  
+  AVER(base < limit); 
 
   theUnion.table.base = base;
   theUnion.table.limit = limit;
@@ -344,7 +344,7 @@ void RootGrey(Root root, Trace trace)
 {
   AVERT(Root, root);
   AVERT(Trace, trace);
-  
+ 
   root->grey = TraceSetAdd(root->grey, trace->ti);
 }
 
@@ -504,7 +504,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
 
   res = WriteF(stream,
                "Root $P ($U) {\n", (WriteFP)root, (WriteFU)root->serial,
-               "  arena $P ($U)\n", (WriteFP)root->arena, 
+               "  arena $P ($U)\n", (WriteFP)root->arena,
                (WriteFU)root->arena->serial,
                "  rank $U\n", (WriteFU)root->rank,
                "  grey $B\n", (WriteFB)root->grey,
@@ -558,7 +558,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
                  NULL);
     if(res != ResOK) return res;
     break;
-           
+          
     default:
     NOTREACHED;
   }

@@ -69,7 +69,7 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
       int j = rnd()%(testSetSIZE-i);
       void *tp;
       size_t ts;
-      
+     
       tp = ps[j]; ts = ss[j];
       ps[j] = ps[i]; ss[j] = ss[i];
       ps[i] = tp; ss[i] = ts;
@@ -87,13 +87,13 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
       ss[i] = (*size)(i);
       res = mps_alloc((mps_addr_t *)&ps[i], pool, ss[i]);
       if (res != MPS_RES_OK) return res;
-      
+     
       if (i && i%4==0) putchar('\n');
       printf("%8lX %6lX ", (unsigned long)ps[i], (unsigned long)ss[i]);
     }
     putchar('\n');
   }
-    
+   
   mps_pool_destroy(pool);
 
   return MPS_RES_OK;

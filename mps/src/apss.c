@@ -80,7 +80,7 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
       int j = rand()%(testSetSIZE-i);
       void *tp;
       size_t ts;
-      
+     
       tp = ps[j]; ts = ss[j];
       ps[j] = ps[i]; ss[j] = ss[i];
       ps[i] = tp; ss[i] = ts;

@@ -6,8 +6,8 @@
  * .readership: MPS developers
  *
  * .coverage: Direct coverage of BTFind*ResRange*, BTRangesSame,
- * BTISResRange, BTIsSetRange, BTCopyRange, BTCopyOffsetRange. 
- * Reasonable coverage of BTCopyInvertRange, BTResRange, 
+ * BTISResRange, BTIsSetRange, BTCopyRange, BTCopyOffsetRange.
+ * Reasonable coverage of BTCopyInvertRange, BTResRange,
  * BTSetRange, BTRes, BTSet, BTCreate, BTDestroy.
  */
 
@@ -31,8 +31,8 @@ static void die_bool(Bool res, Bool expected, const char *s)
 
 /* bt*Symmetric -- Symmetric operations on bit tables
  *
- * The operations take 2 bit tables, btlo & bthi. 
- * They perform the equivalent BT* operation on btlo, and 
+ * The operations take 2 bit tables, btlo & bthi.
+ * They perform the equivalent BT* operation on btlo, and
  * a reflected operation on the bits of bthi from the opposite
  * direction.
  */
@@ -85,10 +85,10 @@ static void btTestSingleRange(BTFinderFn finder, BT bt,
    Index foundBase, foundLimit;
 
    found = finder(&foundBase, &foundLimit, bt, base, limit, length);
-   die_bool(found, expect, "FindResRange result"); 
+   die_bool(found, expect, "FindResRange result");
    if (expect) {
-     die_bool(foundBase == expectBase, TRUE, "FindResRange base"); 
-     die_bool(foundLimit == expectLimit, TRUE, "FindResRange limit"); 
+     die_bool(foundBase == expectBase, TRUE, "FindResRange base");
+     die_bool(foundLimit == expectLimit, TRUE, "FindResRange limit");
    }
 }
 
@@ -106,15 +106,15 @@ static void btTestResRange(BT btlo, BT bthi, Count btSize,
                            Index expectBase, Index expectLimit)
 {
   btTestSingleRange(BTFindShortResRange, btlo,
-                    base, limit, 
-                    length, expect, 
+                    base, limit,
+                    length, expect,
                     expectBase, expectLimit);
 
   btTestSingleRange(BTFindShortResRangeHigh, bthi,
-                    btReflectLimit(btSize, limit), 
-                    btReflectLimit(btSize, base), 
-                    length, expect, 
-                    btReflectLimit(btSize, expectLimit), 
+                    btReflectLimit(btSize, limit),
+                    btReflectLimit(btSize, base),
+                    length, expect,
+                    btReflectLimit(btSize, expectLimit),
                     btReflectLimit(btSize, expectBase));
 }
 
@@ -132,15 +132,15 @@ static void btTestLongResRange(BT btlo, BT bthi, Count btSize,
                                Index expectBase, Index expectLimit)
 {
   btTestSingleRange(BTFindLongResRange, btlo,
-                    base, limit, 
-                    length, expect, 
+                    base, limit,
+                    length, expect,
                     expectBase, expectLimit);
 
   btTestSingleRange(BTFindLongResRangeHigh, bthi,
-                    btReflectLimit(btSize, limit), 
-                    btReflectLimit(btSize, base), 
-                    length, expect, 
-                    btReflectLimit(btSize, expectLimit), 
+                    btReflectLimit(btSize, limit),
+                    btReflectLimit(btSize, base),
+                    length, expect,
+                    btReflectLimit(btSize, expectLimit),
                     btReflectLimit(btSize, expectBase));
 }
 
@@ -150,14 +150,14 @@ static void btTestLongResRange(BT btlo, BT bthi, Count btSize,
  * Test finding reset ranges in an all-reset table.
  */
 
-static void btAllResTest(BT btlo, BT bthi, Count btSize, 
+static void btAllResTest(BT btlo, BT bthi, Count btSize,
                          Index base, Index limit,
                          unsigned long length)
 {
   btResRangeSymmetric(btlo, bthi, btSize, 0, btSize);
-  btTestResRange(btlo, bthi, btSize, base, limit, length, 
+  btTestResRange(btlo, bthi, btSize, base, limit, length,
                  TRUE, base, base + length);
-  btTestLongResRange(btlo, bthi, btSize, base, limit, length, 
+  btTestLongResRange(btlo, bthi, btSize, base, limit, length,
                      TRUE, base, limit);
 }
 
@@ -169,15 +169,15 @@ static void btAllResTest(BT btlo, BT bthi, Count btSize,
  * by mistake.
  */
 
-static void btNoResTest(BT btlo, BT bthi, Count btSize, 
+static void btNoResTest(BT btlo, BT bthi, Count btSize,
                         Index base, Index limit,
                         unsigned long length)
 {
   btResRangeSymmetric(btlo, bthi, btSize, 0, btSize);
   btSetRangeSymmetric(btlo, bthi, btSize, base, limit);
-  btTestResRange(btlo, bthi, btSize, base, limit, length, 
+  btTestResRange(btlo, bthi, btSize, base, limit, length,
                  FALSE, 0, 0);
-  btTestLongResRange(btlo, bthi, btSize, base, limit, length, 
+  btTestLongResRange(btlo, bthi, btSize, base, limit, length,
                      FALSE, 0, 0);
 }
 
@@ -189,21 +189,21 @@ static void btNoResTest(BT btlo, BT bthi, Count btSize,
  * Expect to find the range if it's long enough,
  */
 
-static void btResAndFindTest(BT btlo, BT bthi, Count btSize, 
+static void btResAndFindTest(BT btlo, BT bthi, Count btSize,
                              Index base, Index limit,
                              Index resBase, Index resLimit,
                              unsigned long length)
 {
   btResRangeSymmetric(btlo, bthi, btSize, resBase, resLimit);
   if ((resLimit - resBase) < length) {
-    btTestResRange(btlo, bthi, btSize, base, limit, length, 
+    btTestResRange(btlo, bthi, btSize, base, limit, length,
                    FALSE, 0, 0);
-    btTestLongResRange(btlo, bthi, btSize, base, limit, length, 
+    btTestLongResRange(btlo, bthi, btSize, base, limit, length,
                        FALSE, 0, 0);
   } else {
-    btTestResRange(btlo, bthi, btSize, base, limit, length, 
+    btTestResRange(btlo, bthi, btSize, base, limit, length,
                    TRUE, resBase, resBase + length);
-    btTestLongResRange(btlo, bthi, btSize, base, limit, length, 
+    btTestLongResRange(btlo, bthi, btSize, base, limit, length,
                        TRUE, resBase, resLimit);
   }
 }
@@ -215,7 +215,7 @@ static void btResAndFindTest(BT btlo, BT bthi, Count btSize,
  * Test finding single ranges of various sizes
  */
 
-static void btSingleResTest(BT btlo, BT bthi, Count btSize, 
+static void btSingleResTest(BT btlo, BT bthi, Count btSize,
                             Index base, Index limit,
                             unsigned long length)
 {
@@ -229,13 +229,13 @@ static void btSingleResTest(BT btlo, BT bthi, Count btSize,
       for (resBase = base; resBase <= base +2; resBase++) {
         btResRangeSymmetric(btlo, bthi, btSize, 0, btSize);
         btSetRangeSymmetric(btlo, bthi, btSize, base, limit);
-        btResAndFindTest(btlo, bthi, btSize, base, limit, 
+        btResAndFindTest(btlo, bthi, btSize, base, limit,
                          resBase, resBase + resLen, length);
       }
       for (resLimit = limit; resLimit >= limit -2; resLimit--) {
         btResRangeSymmetric(btlo, bthi, btSize, 0, btSize);
         btSetRangeSymmetric(btlo, bthi, btSize, base, limit);
-        btResAndFindTest(btlo, bthi, btSize, base, limit, 
+        btResAndFindTest(btlo, bthi, btSize, base, limit,
                          resLimit - resLen, resLimit, length);
       }
     }
@@ -262,8 +262,8 @@ enum {
 typedef unsigned Arrangement;
 
 /* Choose a limit for reset range 1 */
-static Index btArrangeRes1(Arrangement arrange, 
-                           Index base, Index res2Base, 
+static Index btArrangeRes1(Arrangement arrange,
+                           Index base, Index res2Base,
                            unsigned long length)
 {
   switch (arrange) {
@@ -283,7 +283,7 @@ static Index btArrangeRes1(Arrangement arrange,
       return base + length;
     }
 
-  default: 
+  default:
     NOTREACHED;
     return 0; /* keep the compiler happy */
   }
@@ -300,7 +300,7 @@ enum {
 typedef unsigned Pattern;
 
 /* Choose a limit for reset range 1 */
-static void btResetFirstRange(BT btlo, BT bthi, Count btSize, 
+static void btResetFirstRange(BT btlo, BT bthi, Count btSize,
                               Index res1Limit,
                               unsigned long length,
                               Pattern pattern)
@@ -314,7 +314,7 @@ static void btResetFirstRange(BT btlo, BT bthi, Count btSize,
     }
 
   case PatternSETMID: {
-      /* Actually make 2 ranges here by setting a bit in the middle */ 
+      /* Actually make 2 ranges here by setting a bit in the middle */
       Index mid = res1Limit - length + (length / 2);
       btResRangeSymmetric(btlo, bthi, btSize, res1Limit-length, res1Limit);
       btSetSymmetric(btlo, bthi, btSize, mid);
@@ -323,18 +323,18 @@ static void btResetFirstRange(BT btlo, BT bthi, Count btSize,
 
   case PatternJUSTSMALL: {
       /* Range of (length - 1) */
-      btResRangeSymmetric(btlo, bthi, btSize, 
+      btResRangeSymmetric(btlo, bthi, btSize,
                           1 + res1Limit - length, res1Limit);
       return;
     }
 
-  default: 
+  default:
     NOTREACHED;
   }
 }
 
 
-static void btDoubleResTest(BT btlo, BT bthi, Count btSize, 
+static void btDoubleResTest(BT btlo, BT bthi, Count btSize,
                             Index base, Index limit,
                             unsigned long length)
 {
@@ -361,7 +361,7 @@ static void btDoubleResTest(BT btlo, BT bthi, Count btSize,
             btSetRangeSymmetric(btlo, bthi, btSize, base, limit);
             btResetFirstRange(btlo, bthi, btSize, res1Limit, length, pat);
             /* Set up range 2 and expect to find it when searching */
-            btResAndFindTest(btlo, bthi, btSize, base, limit, 
+            btResAndFindTest(btlo, bthi, btSize, base, limit,
                              res2Base, res2Limit, length);
           }
         }
@@ -371,12 +371,12 @@ static void btDoubleResTest(BT btlo, BT bthi, Count btSize,
 }
 
 
-/* btFindRangeTests -- Test BTFind*ResRange* 
+/* btFindRangeTests -- Test BTFind*ResRange*
  *
  * Run a variety of FindResRange tests with different table patterns.
  */
 
-static void btFindRangeTests(BT btlo, BT bthi, Count btSize, 
+static void btFindRangeTests(BT btlo, BT bthi, Count btSize,
                              Index base, Index limit,
                              unsigned long length)
 {
@@ -400,7 +400,7 @@ static void btFindRangeTests(BT btlo, BT bthi, Count btSize,
  * These tests also test BTCopyInvertRange
  */
 
-static void btIsRangeTests(BT bt1, BT bt2, Count btSize, 
+static void btIsRangeTests(BT bt1, BT bt2, Count btSize,
                            Index base, Index limit)
 {
   Index minBase, maxLimit, b, l;
@@ -423,7 +423,7 @@ static void btIsRangeTests(BT bt1, BT bt2, Count btSize,
       /* near each of the base and limit of the range in question */
       Bool outside; /* true if set bits are both outside test range */
 
-      outside = (b < base) && (l > limit); 
+      outside = (b < base) && (l > limit);
       BTResRange(bt1, 0, btSize);
       BTSet(bt1, b);
       BTSet(bt1, l - 1);
@@ -456,7 +456,7 @@ static void btIsRangeTests(BT bt1, BT bt2, Count btSize,
  *
  */
 
-static void btCopyTests(BT bt1, BT bt2, Count btSize, 
+static void btCopyTests(BT bt1, BT bt2, Count btSize,
                         Index base, Index limit)
 {
   Index minBase, maxLimit, b, l;
@@ -479,7 +479,7 @@ static void btCopyTests(BT bt1, BT bt2, Count btSize,
       /* near each of the base and limit of the range in question */
       Bool outside; /* true if set bits are both outside test range */
 
-      outside = (b < base) && (l > limit); 
+      outside = (b < base) && (l > limit);
       BTResRange(bt1, 0, btSize);
       BTSet(bt1, b);
       BTSet(bt1, l - 1);
@@ -489,9 +489,9 @@ static void btCopyTests(BT bt1, BT bt2, Count btSize,
       die_bool(BTIsResRange(bt2, 0, limit - base), outside, "BTIsResRange");
 
       /* check copying the region to the top of the other table */
-      BTCopyOffsetRange(bt1, bt2, 
+      BTCopyOffsetRange(bt1, bt2,
                         base, limit, btSize + base - limit, btSize);
-      die_bool(BTIsResRange(bt2, btSize + base - limit, btSize), outside, 
+      die_bool(BTIsResRange(bt2, btSize + base - limit, btSize), outside,
                "BTIsResRange");
 
       /* check copying the region to the same place in the other table */
@@ -512,7 +512,7 @@ static void btCopyTests(BT bt1, BT bt2, Count btSize,
 
 
 
-/* btTests --  Do all the tests 
+/* btTests --  Do all the tests
  */
 
 static void btTests(BT btlo, BT bthi, Count btSize)
@@ -552,17 +552,17 @@ int main(int argc, char *argv[])
   /* tests need 4 whole words plus a few extra bits */
   btSize = MPS_WORD_WIDTH * 4 + 10;
 
-  testlib_unused(argc); 
+  testlib_unused(argc);
   testlib_unused(argv);
 
   die((mps_res_t)mps_arena_create(&mpsArena, mps_arena_class_an()),
       "Failed to create arena");
   arena = (Arena)mpsArena; /* avoid pun */
 
-  die((mps_res_t)BTCreate(&btlo, arena, btSize), 
+  die((mps_res_t)BTCreate(&btlo, arena, btSize),
       "failed to create low bit table");
 
-  die((mps_res_t)BTCreate(&bthi, arena, btSize), 
+  die((mps_res_t)BTCreate(&bthi, arena, btSize),
       "failed to create high bit table");
 
   btTests(btlo, bthi, btSize);

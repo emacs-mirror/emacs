@@ -20,11 +20,11 @@ SRCID(tract, "$HopeName: !tract.c(trunk.2) $");
 Bool TractCheck(Tract tract)
 {
   CHECKU(Pool, TractPool(tract));
-  CHECKL(AddrIsAligned(TractBase(tract), 
+  CHECKL(AddrIsAligned(TractBase(tract),
                        ArenaAlign(PoolArena(TractPool(tract)))));
   if (TractHasSeg(tract)) {
     CHECKL(TraceSetCheck(TractWhite(tract)));
-    CHECKU(Seg, (Seg)TractP(tract)); 
+    CHECKU(Seg, (Seg)TractP(tract));
   } else {
     CHECKL(TractWhite(tract) == TraceSetEMPTY);
   }
@@ -63,8 +63,8 @@ void TractFinish(Tract tract)
 
 
 
-/* .tract.critical: These tract functions are low-level and used 
- * throughout. They are therefore on the critical path and their 
+/* .tract.critical: These tract functions are low-level and used
+ * throughout. They are therefore on the critical path and their
  * AVERs are so-marked.
  */
 
@@ -105,7 +105,7 @@ Bool TractOfAddr(Tract *tractReturn, Arena arena, Addr addr)
 
 
 /* TractOfBaseAddr -- return a tract given a base address
- * 
+ *
  * The address must have been allocated to some pool
  */
 
@@ -178,7 +178,7 @@ Tract TractNextContig(Arena arena, Tract tract)
   next = (*arena->class->tractNextContig)(arena, tract);
 
   AVER_CRITICAL(TractPool(next) == TractPool(tract));
-  AVER_CRITICAL(TractBase(next) == 
+  AVER_CRITICAL(TractBase(next) ==
                 AddrAdd(TractBase(tract), arena->alignment));
   return next;
 }

@@ -77,7 +77,7 @@ static void churn(mps_ap_t ap)
   int i;
   mps_addr_t p;
   mps_res_t e;
-  
+ 
   for(i = 0; i < churnFACTOR; ++i) {
     do {
       MPS_RESERVE_BLOCK(e, p, ap, 4096);

@@ -48,7 +48,7 @@ clean:
 	-deltree /Y $(PFM)
 
 # target target
-# %%VARIETY: Optionally, add a recursive make call for the new variety, 
+# %%VARIETY: Optionally, add a recursive make call for the new variety,
 #  if it should be built by default.
 # Only the varieties needed for development and internal customers are made.
 # Depends on there being no file called "target".
@@ -108,10 +108,10 @@ $(PFM)\$(VARIETY)\teletest.exe: $(PFM)\$(VARIETY)\teletest.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(ARENAANOBJ)
 
 $(PFM)\$(VARIETY)\lockcov.exe: $(PFM)\$(VARIETY)\lockcov.obj \
-	$(MPMOBJ) $(PLINTHOBJ) 
+	$(MPMOBJ) $(PLINTHOBJ)
 
 $(PFM)\$(VARIETY)\lockutw3.exe: $(PFM)\$(VARIETY)\lockutw3.obj \
-	$(MPMOBJ) $(PLINTHOBJ) 
+	$(MPMOBJ) $(PLINTHOBJ)
 
 $(PFM)\$(VARIETY)\thw3susp.exe: $(PFM)\$(VARIETY)\thw3susp.obj
 
@@ -142,7 +142,7 @@ $(PFM)\$(VARIETY)\dwstress.exe:  $(PFM)\$(VARIETY)\dwstress.obj \
 	$(DWOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ)
 
 $(PFM)\$(VARIETY)\protcv.exe:  $(PFM)\$(VARIETY)\protcv.obj \
-	$(MPMOBJ) $(PLINTHOBJ) 
+	$(MPMOBJ) $(PLINTHOBJ)
 
 $(PFM)\$(VARIETY)\poolncv.exe:  $(PFM)\$(VARIETY)\poolncv.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(ARENAANOBJ) $(POOLNOBJ)

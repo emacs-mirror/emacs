@@ -55,8 +55,8 @@ typedef struct RingStruct {     /* double-ended queue structure */
  * PoolClassXXX() returning a PoolClass pointing to a PoolClassStruct
  * of methods which implement the memory management policy.
  *
- * .class.end-sig: The class structure has a signature at the 
- * end.  This causes the compiler to complain if the class 
+ * .class.end-sig: The class structure has a signature at the
+ * end.  This causes the compiler to complain if the class
  * structure is extended without modifying static initializers.
  */
 
@@ -144,7 +144,7 @@ typedef struct PoolStruct {     /* generic structure */
  * design.mps.pool.outer-structure.sig
  */
 
-#define MFSSig          ((Sig)0x5193F599) /* SIGnature MFS */ 
+#define MFSSig          ((Sig)0x5193F599) /* SIGnature MFS */
 
 typedef struct MFSStruct {      /* MFS outer structure */
   PoolStruct poolStruct;        /* generic structure */
@@ -190,7 +190,7 @@ typedef struct MVStruct {       /* MV pool outer structure */
  *
  * .reservoir: See impl.c.reserv, design.mps.reservoir.
  *
- * The Reservoir structure is declared here because it is in-lined 
+ * The Reservoir structure is declared here because it is in-lined
  * in the arena for storing segments for the low-memory reservoir.
  * It is implemented as a pool - but doesn't follow the normal
  * pool naming conventions because it's not intended for general use
@@ -200,7 +200,7 @@ typedef struct MVStruct {       /* MV pool outer structure */
  * design.mps.pool.outer-structure.sig
  */
 
-#define ReservoirSig ((Sig)0x5196e599) /* SIGnature REServoir */ 
+#define ReservoirSig ((Sig)0x5196e599) /* SIGnature REServoir */
 
 typedef struct ReservoirStruct {   /* Reservoir structure */
   PoolStruct poolStruct;        /* generic pool structure */
@@ -211,7 +211,7 @@ typedef struct ReservoirStruct {   /* Reservoir structure */
 } ReservoirStruct;
 
 
-/* MessageClassStruct -- Message Class structure 
+/* MessageClassStruct -- Message Class structure
  *
  * see design.mps.message.class.struct (and design.mps.message.message,
  * and design.mps.message.class).
@@ -227,7 +227,7 @@ typedef struct MessageClassStruct {
   MessageDeleteMethod delete;   /* terminates a message */
 
   /* methods specific to MessageTypeFinalization */
-  MessageFinalizationRefMethod finalizationRef;        
+  MessageFinalizationRefMethod finalizationRef;       
 
   /* methods specific to MessageTypeGC */
   MessageGCLiveSizeMethod gcLiveSize;
@@ -257,7 +257,7 @@ typedef struct MessageStruct {
  *
  * .tract: Tracts represent the grains of memory allocation from
  * the arena.  See design.mps.arena.
- * 
+ *
  * .bool: The hasSeg field is a boolean, but can't be represented
  * as type Bool. See design.mps.arena.tract.field.hasSeg.
  */
@@ -275,8 +275,8 @@ typedef struct TractStruct { /* Tract structure */
  *
  * See design.mps.seg & design.mps.protocol
  *
- * .seg.class: The segment class structure is defined by each 
- * segment class implementation in order to provide a generic 
+ * .seg.class: The segment class structure is defined by each
+ * segment class implementation in order to provide a generic
  * interface to segments.
  */
 
@@ -308,7 +308,7 @@ typedef struct SegClassStruct {
  * activity for allocated memory.  See design.mps.seg.
  */
 
-#define SegSig      ((Sig)0x5195E999) /* SIGnature SEG  */ 
+#define SegSig      ((Sig)0x5195E999) /* SIGnature SEG  */
 
 typedef struct SegStruct {      /* segment structure */
   Sig sig;                      /* impl.h.misc.sig */
@@ -332,7 +332,7 @@ typedef struct SegStruct {      /* segment structure */
  * buffered allocation and GC.  See design.mps.seg.
  */
 
-#define GCSegSig      ((Sig)0x5199C5E9) /* SIGnature GC SEG  */ 
+#define GCSegSig      ((Sig)0x5199C5E9) /* SIGnature GC SEG  */
 
 typedef struct GCSegStruct {    /* GC segment structure */
   SegStruct segStruct;          /* superclass fields must come first */
@@ -346,15 +346,15 @@ typedef struct GCSegStruct {    /* GC segment structure */
 
 
 /* SegPrefStruct -- segment preference structure
- * 
- * .seg-pref: arena memory users (pool class code) need a way of 
+ *
+ * .seg-pref: arena memory users (pool class code) need a way of
  * expressing preferences about the segments they allocate.
- * 
+ *
  * .seg-pref.misleading: The name is historical and misleading. SegPref
  * objects need have nothing to do with segments. @@@@
  */
 
-#define SegPrefSig      ((Sig)0x5195E9B6) /* SIGnature SEG PRef */ 
+#define SegPrefSig      ((Sig)0x5195E9B6) /* SIGnature SEG PRef */
 
 typedef struct SegPrefStruct {  /* segment placement preferences */
   Sig sig;                      /* impl.h.misc.sig */
@@ -370,8 +370,8 @@ typedef struct SegPrefStruct {  /* segment placement preferences */
  *
  * See design.mps.buffer & design.mps.protocol
  *
- * .buffer.class: The buffer class structure is defined by each 
- * buffer class implementation in order to provide a generic 
+ * .buffer.class: The buffer class structure is defined by each
+ * buffer class implementation in order to provide a generic
  * interface to buffers.
  */
 
@@ -452,7 +452,7 @@ typedef struct BufferStruct {
  * attachment to segments.
  */
 
-#define SegBufSig ((Sig)0x51959B0F) /* SIGnature SeG BUFfer  */ 
+#define SegBufSig ((Sig)0x51959B0F) /* SIGnature SeG BUFfer  */
 
 typedef struct SegBufStruct {
   BufferStruct bufferStruct;    /* superclass fields must come first */
@@ -755,7 +755,7 @@ typedef struct ArenaStruct {
   /* thread fields (impl.c.thread) */
   RingStruct threadRing;        /* ring of attached threads */
   Serial threadSerial;          /* serial of next thread */
-  
+ 
   /* shield fields (impl.c.shield) */
   Bool insideShield;             /* TRUE if and only if inside shield */
   Seg shCache[SHIELD_CACHE_SIZE];/* Cache of unsynced segs */

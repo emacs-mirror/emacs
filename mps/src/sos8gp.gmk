@@ -12,6 +12,6 @@ MPMPF = mpsliban.c mpsioan.c lockan.c than.c vmso.c \
 MPMS = sssos8.s
 SWPF = than.c vmso.c protsw.c prmcan.c ssan.c
 # Need to pass the profile option to the linker as well.
-LIBS = -lm -pg 
+LIBS = -lm -pg
 
 include gp.gmk

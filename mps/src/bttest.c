@@ -77,7 +77,7 @@ static Bool checkDefaultRange(Index arg)
     return FALSE;
   }
   return TRUE; /* explicit valid range */
-}    
+}   
 
 
 static void quit(void)
@@ -362,7 +362,7 @@ static void showBT(void) {
 /* disable "conversion from int to char" */
 #pragma warning(default: 4244)
 #endif
-      
+     
 
 extern int main(int argc, char *argv[])
 {

@@ -76,10 +76,10 @@ typedef struct AMCNailBoardStruct {
 #define AMCNailBoardSig ((Sig)0x519A3C4B) /* SIGnature AMC NailBoard */
 
 
-/* AMCGSegStruct -- AMC segment structure 
+/* AMCGSegStruct -- AMC segment structure
  *
  * .segtype: AMC segs have a pointer to the type field of either
- * a nailboard or a generation. This initial value is passed 
+ * a nailboard or a generation. This initial value is passed
  * as an additional parameter when the segment is allocated.
  * See design.mps.poolamc.fix.nail.distinguish.
  */
@@ -104,7 +104,7 @@ static Bool AMCSegCheck(AMCSeg amcseg)
 {
   CHECKS(AMCSeg, amcseg);
   CHECKL(GCSegCheck(&amcseg->gcSegStruct));
-  CHECKL(*amcseg->segTypeP == AMCPTypeNailBoard || 
+  CHECKL(*amcseg->segTypeP == AMCPTypeNailBoard ||
          *amcseg->segTypeP == AMCPTypeGen);
   return TRUE;
 }
@@ -112,7 +112,7 @@ static Bool AMCSegCheck(AMCSeg amcseg)
 
 /* AMCSegInit -- initialise an AMC segment */
 
-static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size, 
+static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size,
                       Bool reservoirPermit, va_list args)
 {
   int *segtype = va_arg(args, int*);  /* .segtype */
@@ -283,7 +283,7 @@ static Bool AMCNailBoardCheck(AMCNailBoard board)
  * This subclass of SegBuf records a link to a generation.
  */
 
-#define AMCBufSig ((Sig)0x519A3CBF) /* SIGnature AMC BuFfer  */ 
+#define AMCBufSig ((Sig)0x519A3CBF) /* SIGnature AMC BuFfer  */
 
 typedef struct AMCBufStruct *AMCBuf;
 
@@ -426,7 +426,7 @@ static Res AMCGenCreate(AMCGen *genReturn, AMC amc, Serial genNum)
   pool = &amc->poolStruct;
   arena = pool->arena;
 
-  res = ControlAlloc(&p, arena, sizeof(AMCGenStruct), 
+  res = ControlAlloc(&p, arena, sizeof(AMCGenStruct),
                      /* withReservoirPermit */ FALSE);
   if(res != ResOK)
     goto failControlAlloc;
@@ -702,7 +702,7 @@ static Res AMCInitComm(Pool pool, RankSet rankSet, va_list arg)
     Size genArraySize;
 
     genArraySize = sizeof(AMCGen)*amc->gens;
-    res = ControlAlloc(&p, arena, genArraySize, 
+    res = ControlAlloc(&p, arena, genArraySize,
                        /* withReservoirPermit */ FALSE);
     if(res != ResOK) {
       return res;
@@ -886,7 +886,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
  * See design.mps.poolamc.flush.
  */
 
-static void AMCBufferEmpty(Pool pool, Buffer buffer, 
+static void AMCBufferEmpty(Pool pool, Buffer buffer,
                            Addr init, Addr limit)
 {
   AMC amc;
@@ -2152,7 +2152,7 @@ DEFINE_POOL_CLASS(AMCZPoolClass, this)
   this->grey = PoolNoGrey;
   this->scan = PoolNoScan;
 }
-  
+ 
 
 /* mps_class_amc -- return the pool class descriptor to the client */
 

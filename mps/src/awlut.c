@@ -280,7 +280,7 @@ static void *setup(void *v, size_t s)
       "Weak AP Create\n");
   die(mps_ap_create(&bogusap, tablepool, MPS_RANK_EXACT),
       "Bogus AP Create\n");
-    
+   
   test(leafap, exactap, weakap, bogusap);
 
   mps_ap_destroy(bogusap);
