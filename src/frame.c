@@ -1834,6 +1834,8 @@ keys_of_frame ()
 {
   initial_define_lispy_key (global_map, "switch-frame", "handle-switch-frame");
   initial_define_lispy_key (global_map, "delete-frame", "handle-delete-frame");
+  initial_define_lispy_key (global_map, "iconify-frame", "ignore");
+  initial_define_lispy_key (global_map, "make-frame-visible", "ignore");
 }
 
 #else /* not MULTI_FRAME */
