@@ -508,13 +508,13 @@ You can use the minibuffer history commands \\<minibuffer-local-map>\\[next-hist
 to get different commands to edit and resubmit."
   (interactive "p")
   (let ((elt (nth (1- arg) command-history))
-	(minibuffer-history-position arg)
-	(minibuffer-history-sexp-flag t)
 	newcmd)
     (if elt
 	(progn
 	  (setq newcmd
-		(let ((print-level nil))
+		(let ((print-level nil)
+		      (minibuffer-history-position arg)
+		      (minibuffer-history-sexp-flag t))
 		  (read-from-minibuffer
 		   "Redo: " (prin1-to-string elt) read-expression-map t
 		   (cons 'command-history arg))))
