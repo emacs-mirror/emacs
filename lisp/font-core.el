@@ -270,7 +270,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (make-local-variable 'font-lock-fontified)
     (make-local-variable 'font-lock-multiline)
     (let ((defaults (or font-lock-defaults
-			(assq major-mode font-lock-defaults-alist))))
+			(cdr (assq major-mode font-lock-defaults-alist)))))
       ;; Variable alist?
       (dolist (x (nthcdr 5 defaults))
 	(set (make-local-variable (car x)) (cdr x)))
