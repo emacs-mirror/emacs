@@ -1850,6 +1850,65 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
+** The display space :width and :align-to text properties are now
+supported on text terminals.
+
+** Enhancements to stretch display properties
+
+The display property stretch specification form `(space PROPS)', where
+PROPS is a property list now allows pixel based width and height
+specifications, as well as enhanced horisontal text alignment.
+
+The value of these properties can now be a (primitive) expression
+which is evaluated during redisplay.  The following expressions
+are supported:
+
+EXPR ::= NUM | (NUM) | UNIT | ELEM | POS | IMAGE | FORM
+NUM  ::= INTEGER | FLOAT | SYMBOL
+UNIT ::= in | mm | cm | width | height
+ELEM ::= left-fringe | right-fringe | left-margin | right-margin
+      |  scroll-bar | text
+POS  ::= left | center | right
+FORM ::= (NUM . EXPR) | (OP EXPR ...)
+OP   ::= + | -
+
+The form `NUM' specifies a fractional width or height of the default
+frame font size.  The form `(NUM)' specifies an absolute number of
+pixels.  If a symbol is specified, its buffer-local variable binding
+is used.  The `in', `mm', and `cm' units specifies the number of
+pixels per inch, milli-meter, and centi-meter, resp.  The `width' and
+`height' units correspond to the width and height of the current face
+font.  An image specification corresponds to the width or height of
+the image.
+
+The `left-fringe', `right-fringe', `left-margin', `right-margin',
+`scroll-bar', and `text' elements specify to the width of the
+corresponding area of the window.  
+
+The `left', `center', and `right' positions can be used with :align-to
+to specify a position relative to the left edge, center, or right edge
+of the text area.  One of the above window elements (except `text')
+can also be used with :align-to to specify that the position is
+relative to the left edge of the given area.  Once the base offset for
+a relative position has been set (by the first occurrence of one of
+these symbols), further occurences of these symbols are interpreted as
+the width of the area.
+
+For example, to align to the center of the left-margin, use
+    :align-to (+ left-margin (0.5 . left-margin))
+
+If no specific base offset is set for alignment, it is always relative
+to the left edge of the text area.  For example, :align-to 0 in a
+header-line aligns with the first text column in the text area.
+
+The value of the form `(NUM . EXPR)' is the value of NUM multiplied by
+the value of the expression EXPR.  For example, (2 . in) specifies a
+width of 2 inches, while (0.5 . IMAGE) specifies half the width (or
+height) of the specified image.
+
+The form `(+ EXPR ...)' adds up the value of the expressions.
+The form `(- EXPR ...)' negates or subtracts the value of the expressions.
+
 ** New macro with-local-quit temporarily sets inhibit-quit to nil for use
 around potentially blocking or long-running code in timers
 and post-command-hooks.
