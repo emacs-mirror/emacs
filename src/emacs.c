@@ -494,7 +494,7 @@ main (argc, argv, envp)
 
 #ifdef USG_SHARED_LIBRARIES
   if (bss_end)
-    brk (bss_end);
+    brk ((void *)bss_end);
 #endif
 
   clearerr (stdin);
