@@ -1,3 +1,8 @@
+2001-11-12  Richard M. Stallman  <rms@gnu.org>
+
+	* calendar/todo-mode.el (todo-save): Add save-excursion
+	and save-restriction.
+
 2001-11-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* menu-bar.el (menu-bar-edit-menu): Don't use x-selection-exists-p if
