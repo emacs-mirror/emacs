@@ -4,6 +4,7 @@
 
 ;; Authors: Rolf Ebert      <re@waporo.muc.de>
 ;;          Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
+;; Maintainer: Emmanual Briot <briot@gnat.com>
 ;; Keywords: languages oop ada
 ;; Rolf Ebert's version: 2.27
 
