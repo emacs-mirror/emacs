@@ -323,15 +323,57 @@ startup."
       (setq coding-system base))
     (set-default-coding-systems coding-system)))
 
-(defun find-coding-systems-region-subset-p (list1 list2)
-  "Return non-nil if all elements in LIST1 are included in LIST2.
-Comparison done with EQ."
-  (catch 'tag
-    (while list1
-      (or (memq (car list1) list2)
-	  (throw 'tag nil))
-      (setq list1 (cdr list1)))
-    t))
+(defvar sort-coding-systems-predicate nil
+  "If non-nil, a predicate function to sort coding systems.
+
+It is called with two coding systems, and should return t if the first
+one is \"less\" than the second.
+
+The function `sort-coding-systems' use it.")
+
+(defun sort-coding-systems (codings)
+  "Sort coding system list CODINGS by a priority of each coding system.
+
+If a coding system is most preferred, it has the highest priority.
+Otherwise, a coding system corresponds to some MIME charset has higher
+priorities.  Among them, a coding system included in `coding-system'
+key of the current language environment has higher priorities.  See
+also the documentation of `language-info-alist'.
+
+If the variable `sort-coding-systems-predicate' (which see) is
+non-nil, it is used to sort CODINGS in the different way than above."
+  (if sort-coding-systems-predicate
+      (sort codings sort-coding-systems-predicate)
+    (let* ((most-preferred (symbol-value (car coding-category-list)))
+	   (lang-preferred (get-language-info current-language-environment
+					      'coding-system))
+	   (func (function
+		  (lambda (x)
+		    (let ((base (coding-system-base x)))
+		      (+ (if (eq base most-preferred) 64 0)
+			 (let ((mime (coding-system-get base 'mime-charset)))
+			   (if mime
+			       (if (string-match "^x-" (symbol-name mime))
+				   16 32)
+			     0))
+			 (if (memq base lang-preferred) 8 0)
+			 (if (string-match "-with-esc$" (symbol-name base))
+			     0 4)
+			 (if (eq (coding-system-type base) 2)
+			     ;; For ISO based coding systems, prefer
+			     ;; one that doesn't use escape sequences.
+			     (let ((flags (coding-system-flags base)))
+			       (if (or (consp (aref flags 0))
+				       (consp (aref flags 1))
+				       (consp (aref flags 2))
+				       (consp (aref flags 3)))
+				   (if (or (aref flags 8) (aref flags 9))
+				       0
+				     1)
+				 2))
+			   1)))))))
+      (sort codings (function (lambda (x y)
+				(> (funcall func x) (funcall func y))))))))
 
 (defun find-coding-systems-region (from to)
   "Return a list of proper coding systems to encode a text between FROM and TO.
@@ -340,7 +382,13 @@ in the text.
 
 If the text contains no multibyte characters, return a list of a single
 element `undecided'."
-  (find-coding-systems-for-charsets (find-charset-region from to)))
+  (let ((codings (find-coding-systems-region-internal from to)))
+    (if (eq codings t)
+	;; The text contains only ASCII characters.  Any coding
+	;; systems are safe.
+	'(undecided)
+      ;; We need copy-sequence because sorting will alter the argument.
+      (sort-coding-systems (copy-sequence codings)))))
 
 (defun find-coding-systems-string (string)
   "Return a list of proper coding systems to encode STRING.
@@ -349,49 +397,35 @@ in STRING.
 
 If STRING contains no multibyte characters, return a list of a single
 element `undecided'."
-  (find-coding-systems-for-charsets (find-charset-string string)))
+  (find-coding-systems-region string nil))
 
 (defun find-coding-systems-for-charsets (charsets)
   "Return a list of proper coding systems to encode characters of CHARSETS.
 CHARSETS is a list of character sets."
-  (if (or (null charsets)
-	  (and (= (length charsets) 1)
-	       (eq 'ascii (car charsets))))
-      '(undecided)
-    (setq charsets (delq 'composition charsets))
-    (let ((l (coding-system-list 'base-only))
-	  (charset-preferred-codings
-	   (mapcar (function
-		    (lambda (x)
-		      (if (eq x 'unknown)
-			  'raw-text
-			(get-charset-property x 'preferred-coding-system))))
-		   charsets))
-	  (priorities (mapcar (function (lambda (x) (symbol-value x)))
-			      coding-category-list))
-	  codings coding safe)
-      (if (memq 'unknown charsets)
-	  ;; The region contains invalid multibyte characters.
-	  (setq l '(raw-text)))
-      (while l
-	(setq coding (car l) l (cdr l))
-	(if (and (setq safe (coding-system-get coding 'safe-charsets))
-		 (or (eq safe t)
-		     (find-coding-systems-region-subset-p charsets safe)))
-	    ;; We put the higher priority to coding systems included
-	    ;; in CHARSET-PREFERRED-CODINGS, and within them, put the
-	    ;; higher priority to coding systems which support smaller
-	    ;; number of charsets.
-	    (let ((priority
-		   (+ (if (coding-system-get coding 'mime-charset) 4096 0)
-		      (lsh (length (memq coding priorities)) 7)
-		      (if (memq coding charset-preferred-codings) 64 0)
-		      (if (> (coding-system-type coding) 0) 32 0)
-		      (if (consp safe) (- 32 (length safe)) 0))))
-	      (setq codings (cons (cons priority coding) codings)))))
-      (mapcar 'cdr
-	      (sort codings (function (lambda (x y) (> (car x) (car y))))))
-      )))
+  (cond ((or (null charsets)
+	     (and (= (length charsets) 1)
+		  (eq 'ascii (car charsets))))
+	 '(undecided))
+	((or (memq 'eight-bit-control charsets)
+	     (memq 'eight-bit-graphic charsets))
+	 '(raw-text emacs-mule))
+	(t
+	 (let ((codings t)
+	       charset l ll)
+	   (while (and codings charsets)
+	     (setq charset (car charsets) charsets (cdr charsets))
+	     (unless (eq charset 'ascii)
+	       (setq l (aref char-coding-system-table (make-char charset)))
+	       (if (eq codings t)
+		   (setq codings l)
+		 (let ((ll nil))
+		   (while codings
+		     (if (memq (car codings) l)
+			 (setq ll (cons (car codings) ll)))
+		     (setq codings (cdr codings)))
+		   (setq codings ll)))))
+	   (append codings
+		   (char-table-extra-slot char-coding-system-table 0))))))
 
 (defun find-multibyte-characters (from to &optional maxcount excludes)
   "Find multibyte characters in the region specified by FROM and TO.
@@ -453,61 +487,93 @@ to use in order to write a file.  If you set it to nil explicitly,
 then call `write-region', then afterward this variable will be non-nil
 only if the user was explicitly asked and specified a coding system.")
 
-(defun select-safe-coding-system (from to &optional default-coding-system)
+(defvar select-safe-coding-system-accept-default-p nil
+  "If non-nil, a function to control the behaviour of coding system selection.
+The meaning is the same as the argument ACCEPT-DEFAULT-P of the
+function `select-safe-coding-system' (which see).  This variable
+overrides that argument.")
+
+(defun select-safe-coding-system (from to &optional default-coding-system
+				       accept-default-p)
   "Ask a user to select a safe coding system from candidates.
 The candidates of coding systems which can safely encode a text
-between FROM and TO are shown in a popup window.
+between FROM and TO are shown in a popup window.  Among them, the most
+proper one is suggested as the default.
 
-Optional arg DEFAULT-CODING-SYSTEM specifies a coding system to be
-checked at first.  If omitted, buffer-file-coding-system of the
-current buffer is used.
+The list of `buffer-file-coding-system' of the current buffer and the
+most preferred coding system (if it corresponds to a MIME charset) is
+treated as the default coding system list.  Among them, the first one
+that safely encodes the text is silently selected and returned without
+any user interaction.  See also the command `prefer-coding-system'.
 
-If the text can be encoded safely by DEFAULT-CODING-SYSTEM, it is
-returned without any user interaction.  DEFAULT-CODING-SYSTEM may also
-be a list, from which the first coding system that can safely encode the
-text is chosen, if any can.
+Optional 3rd arg DEFAULT-CODING-SYSTEM specifies a coding system or a
+list of coding systems to be prepended to the default coding system
+list.
+
+Optional 4th arg ACCEPT-DEFAULT-P, if non-nil, is a function to
+determine the acceptability of the silently selected coding system.
+It is called with that coding system, and should return nil if it
+should not be silently selected and thus user interaction is required.
+
+The variable `select-safe-coding-system-accept-default-p', if
+non-nil, overrides ACCEPT-DEFAULT-P.
 
 Kludgy feature: if FROM is a string, the string is the target text,
 and TO is ignored."
-  (or default-coding-system
-      (setq default-coding-system buffer-file-coding-system))
-  (let* ((charsets (if (stringp from) (find-charset-string from)
-		     (find-charset-region from to)))
-	 (safe-coding-systems (find-coding-systems-for-charsets charsets))
-	 (coding-system t)		; t means not yet decided.
-	 eol-type)
-    (if (or (not enable-multibyte-characters)
-	    (eq (car safe-coding-systems) 'undecided))
-	;; As the text doesn't contain a multibyte character, we can
-	;; use any coding system.
-	(setq coding-system default-coding-system)
+  (if (and default-coding-system
+	   (not (listp default-coding-system)))
+      (setq default-coding-system (list default-coding-system)))
 
-      ;; Try the default.  If the default is nil or undecided, try the
-      ;; most preferred one or one of its subsidiaries that converts
-      ;; EOL as the same way as the default.
-      (if (or (not default-coding-system)
-	      (eq (coding-system-base default-coding-system) 'undecided))
-	  (progn
-	    (setq eol-type
-		  (and default-coding-system
-		       (coding-system-eol-type default-coding-system)))
+  ;; Change elements of the list to (coding . base-coding).
+  (setq default-coding-system
+	(mapcar (function (lambda (x) (cons x (coding-system-base x))))
+		default-coding-system))
+
+  ;; If buffer-file-coding-system is not nil nor undecided, append it
+  ;; to the defaults.
+  (if buffer-file-coding-system
+      (let ((base (coding-system-base buffer-file-coding-system)))
+	(or (eq base 'undecided)
+	    (assq buffer-file-coding-system default-coding-system)
+	    (rassq base default-coding-system)
 	    (setq default-coding-system
-		  (symbol-value (car coding-category-list)))
-	    (or (not eol-type)
-		(vectorp eol-type)
-		(setq default-coding-system
-		      (coding-system-change-eol-conversion
-		       default-coding-system eol-type)))))
-      (if (or (eq default-coding-system 'no-conversion)
-	    (and default-coding-system
-		 (memq (coding-system-base default-coding-system)
-		       safe-coding-systems)))
-	  (setq coding-system default-coding-system)))
+		  (append default-coding-system
+			  (list (cons buffer-file-coding-system base)))))))
 
-    (when (eq coding-system t)
+  ;; If the most preferred coding system has the property mime-charset,
+  ;; append it to the defaults.
+  (let* ((preferred (symbol-value (car coding-category-list)))
+	 (base (coding-system-base preferred)))
+    (and (coding-system-get preferred 'mime-charset)
+	 (not (assq preferred default-coding-system))
+	 (not (rassq base default-coding-system))
+	 (setq default-coding-system
+	       (append default-coding-system (list (cons preferred base))))))
+
+  (if select-safe-coding-system-accept-default-p
+      (setq accept-default-p select-safe-coding-system-accept-default-p))
+
+  (let ((codings (find-coding-systems-region from to))
+	(coding-system nil)
+	(l default-coding-system))
+    (if (eq (car codings) 'undecided)
+	;; Any coding system is ok.
+	(setq coding-system t)
+      ;; Try the defaults.
+      (while (and l (not coding-system))
+	(if (memq (cdr (car l)) codings)
+	    (setq coding-system (car (car l)))
+	  (setq l (cdr l))))
+      (if (and coding-system accept-default-p)
+	  (or (funcall accept-default-p coding-system)
+	      (setq coding-system (list coding-system)))))
+
+    ;; If all the defaults failed, ask a user.
+    (when (or (not coding-system) (consp coding-system))
       ;; At first, change each coding system to the corresponding
-      ;; mime-charset name if it is also a coding system.
-      (let ((l safe-coding-systems)
+      ;; mime-charset name if it is also a coding system.  Such a name
+      ;; is more friendly to users.
+      (let ((l codings)
 	    mime-charset)
 	(while l
 	  (setq mime-charset (coding-system-get (car l) 'mime-charset))
@@ -515,91 +581,56 @@ and TO is ignored."
 	      (setcar l mime-charset))
 	  (setq l (cdr l))))
 
-      (let ((non-safe-chars (find-multibyte-characters
-			     from to 3
-			     (and default-coding-system
-				  (coding-system-get default-coding-system
-						     'safe-charsets))))
-	    show-position overlays)
-	(save-excursion
-	  ;; Highlight characters that default-coding-system can't encode.
-	  (when (integerp from)
-	    (goto-char from)
-	    (let ((found nil))
-	      (while (and (not found)
-			  (re-search-forward "[^\000-\177]" to t))
-		(setq found (assq (char-charset (preceding-char))
-				  non-safe-chars))))
-	    (forward-line -1)
-	    (setq show-position (point))
-	    (save-excursion
-	      (while (and (< (length overlays) 256)
-			  (re-search-forward "[^\000-\177]" to t))
-		(let* ((char (preceding-char))
-		       (charset (char-charset char)))
-		  (when (assq charset non-safe-chars)
-		    (setq overlays (cons (make-overlay (1- (point)) (point))
-					 overlays))
-		    (overlay-put (car overlays) 'face 'highlight))))))
+      ;; Then ask users to select one form CODINGS.
+      (unwind-protect
+	  (save-window-excursion
+	    (with-output-to-temp-buffer "*Warning*"
+	      (save-excursion
+		(set-buffer standard-output)
+		(insert "The following default coding systems were tried,\n"
+			(if (consp coding-system)
+			    (format "and %s safely encodes the target text:\n"
+				    (car coding-system))
+			  "but none of them safely encode the target text:\n"))
+		(let ((pos (point))
+		      (fill-prefix "  "))
+		  (mapcar (function (lambda (x) (princ "  ") (princ (car x))))
+			  default-coding-system)
+		  (insert "\n")
+		  (fill-region-as-paragraph pos (point)))
+		(insert (if (consp coding-system)
+			    "Select it or "
+			  "Select ")
+			"one from the following safe coding systems:\n")
+		(let ((pos (point))
+		      (fill-prefix "  "))
+		  (mapcar (function (lambda (x) (princ "  ") (princ x)))
+			  codings)
+		  (insert "\n")
+		  (fill-region-as-paragraph pos (point)))))
 
-	  ;; At last, ask a user to select a proper coding system.  
-	  (unwind-protect
-	      (save-window-excursion
-		(when show-position
-		  ;; At first, be sure to show the current buffer.
-		  (set-window-buffer (selected-window) (current-buffer))
-		  (set-window-start (selected-window) show-position))
-		;; Then, show a helpful message.
-		(with-output-to-temp-buffer "*Warning*"
-		  (save-excursion
-		    (set-buffer standard-output)
-		    (insert "The target text contains the following non ASCII character(s):\n")
-		    (let ((len (length non-safe-chars))
-			  (shown 0))
-		      (while (and non-safe-chars (< shown 3))
-			(when (> (length (car non-safe-chars)) 2)
-			  (setq shown (1+ shown))
-			  (insert (format "%25s: " (car (car non-safe-chars))))
-			  (let ((l (nthcdr 2 (car non-safe-chars))))
-			    (while l
-			      (if (or (stringp (car l)) (char-valid-p (car l)))
-				  (insert (car l)))
-			      (setq l (cdr l))))
-			  (if (> (nth 1 (car non-safe-chars)) 3)
-			      (insert "..."))
-			  (insert "\n"))
-			(setq non-safe-chars (cdr non-safe-chars)))
-		      (if (< shown len)
-			  (insert (format "%27s\n" "..."))))
-		    (insert (format
-"These can't be encoded safely by the coding system %s.
+	    ;; Read a coding system.
+	    (if (consp coding-system)
+		(setq codings (cons (car coding-system) codings)))
+	    (let* ((safe-names (mapcar (lambda (x) (list (symbol-name x)))
+				       codings))
+		   (name (completing-read
+			  (format "Select coding system (default %s): "
+				  (car codings))
+			  safe-names nil t nil nil
+			  (car (car safe-names)))))
+	      (setq last-coding-system-specified (intern name)
+		    coding-system last-coding-system-specified)))
+	(kill-buffer "*Warning*")))
 
-Please select one from the following safe coding systems:\n"
-				    default-coding-system))
-		    (let ((pos (point))
-			  (fill-prefix "  "))
-		      (mapcar (function (lambda (x) (princ "  ") (princ x)))
-			      safe-coding-systems)
-		      (fill-region-as-paragraph pos (point)))))
+    (if (vectorp (coding-system-eol-type coding-system))
+	(let ((eol (coding-system-eol-type buffer-file-coding-system)))
+	  (if (numberp eol)
+	      (setq coding-system
+		    (coding-system-change-eol-conversion coding-system eol)))))
 
-		;; Read a coding system.
-		(let* ((safe-names (mapcar (lambda (x) (list (symbol-name x)))
-					   safe-coding-systems))
-		       (name (completing-read
-			      (format "Select coding system (default %s): "
-				      (car safe-coding-systems))
-			      safe-names nil t nil nil
-			      (car (car safe-names)))))
-		  (setq last-coding-system-specified (intern name)
-			coding-system last-coding-system-specified)
-		  (or (not eol-type)
-		      (vectorp eol-type)
-		      (setq coding-system (coding-system-change-eol-conversion
-					   coding-system eol-type)))))
-	    (kill-buffer "*Warning*")
-	    (while overlays
-	      (delete-overlay (car overlays))
-	      (setq overlays (cdr overlays)))))))
+    (if (eq coding-system t)
+	(setq coding-system buffer-file-coding-system))
     coding-system))
 
 (setq select-safe-coding-system-function 'select-safe-coding-system)
@@ -610,22 +641,23 @@ It at first tries the first coding system found in these variables
 in this order:
   (1) local value of `buffer-file-coding-system'
   (2) value of `sendmail-coding-system'
-  (3) value of `default-buffer-file-coding-system'
-  (4) value of `default-sendmail-coding-system'
+  (3) value of `default-sendmail-coding-system'
+  (4) value of `default-buffer-file-coding-system'
 If the found coding system can't encode the current buffer,
 or none of them are bound to a coding system,
 it asks the user to select a proper coding system."
   (let ((coding (or (and (local-variable-p 'buffer-file-coding-system)
-			 buffer-file-coding-system)
-		    sendmail-coding-system
-		    default-buffer-file-coding-system
-		    default-sendmail-coding-system)))
+			  buffer-file-coding-system)
+		     sendmail-coding-system
+		     default-sendmail-coding-system
+		     default-buffer-file-coding-system)))
     (if (eq coding 'no-conversion)
 	;; We should never use no-conversion for outgoing mails.
 	(setq coding nil))
     (if (fboundp select-safe-coding-system-function)
 	(funcall select-safe-coding-system-function
-		 (point-min) (point-max) coding)
+		 (point-min) (point-max) coding
+		 (function (lambda (x) (coding-system-get x 'mime-charset))))
       coding)))
 
 ;;; Language support stuff.
@@ -1257,6 +1289,8 @@ The default status is as follows:
   (update-coding-systems-internal)
 
   (set-default-coding-systems nil)
+  (setq default-sendmail-coding-system 'iso-latin-1)
+
   ;; Don't alter the terminal and keyboard coding systems here.
   ;; The terminal still supports the same coding system
   ;; that it supported a minute ago.
@@ -1323,9 +1357,6 @@ specifies the character set for the major languages of Western Europe."
       (setq nonascii-translation-table (symbol-value dos-table)))
      ((charsetp nonascii)
       (setq nonascii-insert-offset (- (make-char nonascii) 128)))))
-
-  (setq charset-origin-alist
-	(get-language-info language-name 'charset-origin-alist))
 
   ;; Unibyte setups if necessary.
   (unless default-enable-multibyte-characters
