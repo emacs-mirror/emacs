@@ -1,3 +1,422 @@
+2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* Release 5.27
+
+2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-engine.el (c-looking-at-inexpr-block): Replaced a call to
+	c-beginning-of-statement-1 that caused a bad case of recursion
+	which could consume a lot of CPU in large classes in languages
+	that have in-expression classes (i.e. Java and Pike).
+
+	* cc-engine.el (c-guess-basic-syntax): Check for in-expression
+	statements before top level constructs (i.e. case 6 is moved
+	before case 5 and is now case 4) to catch in-expression
+	classes in top level expressions correctly.
+
+2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-engine.el (c-guess-basic-syntax): Less naive handling of
+	objc-method-intro. Case 4 removed and case 5I added.
+
+	* cc-langs.el (c-append-paragraph-start): New variable used by
+	c-common-init to get paragraph-start correct.
+	* cc-langs.el (c-common-init): Use c-append-paragraph-start to
+	initialize paragraph-start to make it correct both with and
+	without the javadoc special case.
+
+	* cc-mode.el (java-mode): Use c-append-paragraph-start to
+	initialize paragraph-start for javadoc markup.
+
+	* cc-vars.el (c-style-variables-are-local-p): Incompatible
+	change by defaulting this to t.  It's motivated by the
+	confusing behavior that otherwise arise from the style system
+	when editing both java and non-java files at the same time
+	(see the comments about style setting in c-common-init).
+
+2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-indent-new-comment-line): Added a kludge
+	similar to the one in c-fill-paragraph to check the fill
+	prefix from the adaptive fill function for sanity.
+
+2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-defs.el (c-end-of-defun-1): Fixed forward scanning into
+	defun block.
+
+2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-mode.texi Documented the change of cpp-macro. 
+
+2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-align.el (c-lineup-multi-inher): Handle lines with
+	leading comma nicely. Extended to handle member initializers
+	too.
+
+	* cc-engine.el (c-beginning-of-inheritance-list,
+	c-guess-basic-syntax): Fixed recognition of inheritance lists
+	when the lines begins with a comma.
+
+	* cc-mode.texi Updated doc for c-lineup-multi-inher. 
+
+	* cc-vars.el (c-offsets-alist): Changed default for
+	member-init-cont to c-lineup-multi-inher since it now handles
+	member initializers and indents better for leading commas.
+
+2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-electric-brace): Fixed some bugs in the state
+	handling that caused class open lines to be recognized as
+	statement-conts in some cases.
+
+	* cc-cmds.el (c-indent-new-comment-line): Keep the fill prefix
+	guessed by the adaptive fill function unless point is on the
+	first line of a block comment.
+
+	* cc-engine.el (c-forward-syntactic-ws): Fixed an infloop bug
+	when the buffer ends with a macro continuation char.
+
+	* cc-engine.el (c-guess-basic-syntax): Added support for
+	function definitions as statements in Pike.  The first
+	statement in a lambda block is now labeled defun-block-intro
+	instead of statement-block-intro.
+
+	* cc-engine.el (c-narrow-out-enclosing-class): Whack the state
+	so that the class surrounding point is selected, not the one
+	innermost in the state.
+
+	* cc-engine.el (c-guess-basic-syntax): Fixed bug in
+	recognition of switch labels having hanging multiline
+	statements.
+
+	* cc-engine.el (c-beginning-of-member-init-list): Broke out
+	some code in c-guess-basic-syntax to a separate function.
+	* cc-engine.el (c-just-after-func-arglist-p): Fixed
+	recognition of member inits with multiple line arglists.
+	* cc-engine.el (c-guess-basic-syntax): New case 5B.3 to detect
+	member-init-cont when the commas are in funny places.
+
+2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-defs.el (c-auto-newline): Removed this macro since it's
+	not used anymore.
+
+	* cc-engine.el (c-looking-at-bos): New helper function.
+	* cc-engine.el (c-looking-at-inexpr-block): More tests to tell
+	inexpr and toplevel classes apart in Pike.
+
+	* cc-engine.el (c-guess-basic-syntax): Fixed bogus recognition
+	of case 9A.
+
+	* cc-langs.el, cc-mode.el (c-Pike-inexpr-class-key): New
+	constant, since "class" can introduce an in-expression class
+	in Pike nowadays.
+
+2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-align.el (c-gnu-impose-minimum): Don't impose minimum
+	indentation on cpp-macro lines.
+
+	* cc-engine.el (c-guess-basic-syntax): Made the cpp-macro
+	a syntax modifier like comment-intro, to make it possible to
+	get syntactic indentation for preprocessor directives.  It's
+	incompatible wrt to lineup functions on cpp-macro, but it has
+	no observable effect in the 99.9% common case where cpp-macro
+	is set to -1000.
+
+2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-engine.el (c-guess-basic-syntax): Fixed bug with missed
+	member-init-cont when the preceding arglist is several lines.
+
+2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-styles.el (c-style-alist): The basic offset for the BSD
+	style corrected to 8.
+
+2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-styles.el (c-style-alist): Adjusted the indentation of
+	brace list openers in the gnu style.
+
+2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-indent-command): Obey c-syntactic-indentation.
+
+	* cc-cmds.el (c-electric-brace, c-electric-slash,
+	c-electric-star, c-electric-semi&comma, c-electric-colon,
+	c-electric-lt-gt, c-electric-paren): Don't reindent old lines
+	when c-syntactic-indentation is nil.
+
+	* cc-engine.el (c-beginning-of-statement-1): Fixed bug where
+	we were left at comments preceding the first statement when
+	reaching the beginning of the buffer.
+
+	* cc-vars.el (c-syntactic-indentation): New variable to turn
+	off all syntactic indentation.
+
+2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-fill-paragraph): Keep one or two spaces
+	between the text and the block comment ender when it hangs,
+	depending on how many there are before the fill.
+
+2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-engine.el (c-beginning-of-closest-statement): New helper
+	function to go back to the closest preceding statement start,
+	which could be inside a conditional statement.
+	* cc-engine.el (c-guess-basic-syntax): Use
+	c-beginning-of-closest-statement in cases 10B.2, 17B and 17C.
+
+	* cc-engine.el (c-guess-basic-syntax): Better handling of
+	arglist-intro, arglist-cont-nonempty and arglist-close when
+	the arglist is nested inside parens.  Cases 7A, 7C and 7F
+	changed.
+
+	* cc-langs.el (c-Java-javadoc-paragraph-start): Brought
+	up-to-date with javadoc 1.2.
+
+2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-engine.el (c-beginning-of-statement-1): Fixed handling of
+	multiline Pike type decls.
+
+2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-indent-new-comment-line): Always break
+	multiline comments in multiline mode, regardless of
+	comment-multi-line.
+
+2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-engine.el (c-guess-basic-syntax): Fixed bug with
+	fully::qualified::names in C++ member init lists.  Preamble in
+	case 5D changed.
+
+2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-langs.el (c-common-init): Handling of obsolete variables
+	moved to c-initialize-cc-mode.  More compatible style override
+	when using global style variables.
+	* cc-mode.el (c-initialize-cc-mode): Handling of obsolete
+	variables moved here.
+
+	* cc-mode.texi Documented the special behavior of
+	c-special-indent-hook as a style variable.  Don't talk about
+	doing (c-make-styles-buffer-local t) in a mode hook, since
+	that's already too late to work right.
+	
+	* cc-styles.el (c-make-styles-buffer-local): Flag style
+	variable localness in c-style-variables-are-local-p to make
+	the compatibility measure in c-common-init work well.
+
+	* cc-styles.el (c-set-style-1): c-special-indent-hook can no
+	longer contain set-from-style.
+	* cc-styles.el (c-initialize-builtin-style): Don't check for
+	set-from-style on c-special-indent-hook.
+	* cc-styles.el (c-copy-tree): Obsolete.  The standard function
+	copy-alist is sufficient now.
+
+	* cc-styles.el (c-set-style, c-set-style-1,
+	c-get-style-variables): Fixes to variable initialization so
+	that duplicate entries in styles have the same effect
+	regardless of DONT-OVERRIDE.
+
+	* cc-styles.el (c-set-style-2): Fixed bug where the
+	initialization of inheriting styles failed when the
+	dont-override flag is set.
+
+	* cc-vars.el (c-special-indent-hook): Don't use set-from-style
+	on this.
+
+2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-defs.el (c-forward-comment): Removed the workaround
+	introduced in 5.38 since it had worse side-effects.  If a line
+	contains the string "//\"", it regarded the // as a comment
+	start since the \ temporarily doesn't have escape syntax.
+
+2000-07-17 Emmanuel Briot <briot@act-europe.fr>
+
+	* ada-mode.el Got rid of all byte-compiler warnings on Emacs Load
+	ada-xref.el before ada-prj.el, so that the Project menu is created
+	when ada-prj tries to add to it.
+	(ada-activate-keys-for-case): Suppress the characters that are not
+	part of the Ada syntax. Better compatibility with else-mode
+	(ada-adjust-case-interactive): When auto-casing is not active,
+	correctly insert newlines (used to insert only ^M).  Prevent the
+	syntax table from being changed in case of an error
+        (or '_' becomes part of a word and some commands are confused).
+	Do nothing if ada-auto-case is nil.
+	(ada-after-keyword-p): Ignore keywords that are also attributes
+	(ada-batch-reformat): Update usage comment
+	(ada-call-from-contextual-menu): New function
+	(ada-case-read-exceptions): Reinitialize the casing exception list
+	first to nil first, so that the casing exception file can be
+	shared.
+	(ada-check-defun-name): Handles "configure" keyword for gnatdist
+	files.
+	(ada-compile-goto-error): Fix regexp used to detect a file:line
+	anywhere in the error message
+	(ada-contextual-menu-last-point): New variable
+	(ada-create-keymap): If the variable delete-key-deletes-forward is
+	t on XEmacs, it means that DEL should delete one character
+	forward.
+	(ada-create-menu): Use :included instead of :visible for XEmacs.
+	New submenu "Options".
+	(ada-end-stmt-re): Correctly indent "select ... then abort"
+	statements.
+	(ada-fill-comment-paragraph): Correctly delete all leading '--'
+	even if they don't match ada-fill-comment-prefix Fix handling of
+	paragraphs on the first or last line of a file.
+	(ada-format-paramlist): Fix handling of default parameter values.
+	(ada-get-body-name): New function.
+	(ada-get-current-indent): Optimized by searchling directly for an
+	existing generic part or a statement outside of it.  Handle
+	ada-indent-align-comments when indenting comments Replaced some
+	regexps by testing directly the next character. This results in a
+	huge speedup on some files.  New indentation scheme for renames
+	statements.  Stop looking for the 'while' or 'for' associated with
+	a 'loop' at the first semicolon encountered.  A "return" can also
+	match an anonymous access subprogram declaration.
+	(ada-get-indent-noindent): Ignore strings and comments when
+	looking for the keywords "record" and "private".
+	(ada-goto-matching-decl-start): When matching "if", make sure we
+	are not in fact seeing "end if".  Ignore "when" statements except
+	when initial keyword was "begin".  Fix handling of nested
+	procedures.  Add a recursive call to this function to skip over
+	other 'end' statmts.  Fix indentation for "when .. => begin"
+	(ada-in-open-paren-p): Fix indentation for complex boolean
+	expressions, where 'and then', 'or else' and parenthesis
+	statements are mixed up.
+	(ada-in-paramlist-p): Skip comments while searching for the
+	beginning Fix handling of operator declarations.
+	(ada-indent-align-comments): New variable
+	(ada-indent-current): Change the syntax table only in the
+	protected section, so that we are sure it is restored correctly.
+	(ada-indent-on-previous-lines): Use ada-use-indent and
+	ada-with-indent Correctly indent "select ... then"
+	(ada-indent-region): Slight speedup.
+	(ada-indent-renames): New variable.
+	(ada-last-which-function-subprog, ada-last-which-function-line):
+	New variables
+	(ada-looking-at-semi-private): Correctly indent the 'private'
+	keyword when it is the first word in a package declaration.
+	(ada-loose-case-word): Stop searching if at the end of the buffer.
+	(ada-loose-case-word, ada-capitalize-word): Recase the whole word
+	even if point is not initially at the end of the word.
+	(ada-matching-decl-start-re): Add "when".
+	(ada-mode): Add support for abbrev-mode, outline-mode and
+	which-func-mode Override the old find-file.el entry in
+	ff-special-constructs since it is using the obsolete
+	ada-spec-suffix variable
+	(ada-no-auto-case): New function
+	(ada-scan-paramlist): When parsing the argument type, accept
+	spaces (as in "X 'Class", generated by Rational Rose).
+	(ada-other-file-name): No longer loads the other file.
+	(ada-popup-menu): Save and restore the current buffer and cursor
+	position before and after displaying the menu.
+	(ada-search-ignore-complex-boolean): New function.
+	(ada-uncomment-region): Emacs21 already knows how to delete
+	comments not starting in the first column.
+	(ada-use-indent): New variable
+	(ada-which-function): New function.
+	(ada-with-indent): New variable
+	(ada-xemacs): evaluate it at compile time too, so that ada-mode.el
+	can be batch-compiled from the command line.
+
+	* ada-xref.el: Got rid of all byte-compiler warnings on Emacs.
+	Add to the menu when the file is loaded, not in ada-mode-hook.
+	Add -toolbar to the default ddd command Switches moved from
+	ada-prj-default-comp-cmd and ada-prj-default-make-cmd to
+	ada-prj-default-comp-opt
+	(ada-add-ada-menu): Remove the map and name parameters Add the Ada
+	Reference Manual to the menu
+	(ada-check-current): rewritten as a call to ada-compile-current
+	(ada-compile): Removed.
+	(ada-compile-application, ada-compile-current, ada-check-current):
+	Set the compilation-search-path so that compile.el automatically
+	finds the sources in src_dir.  Automatic scrollong of the
+	compilation buffer.  C-uC-cC-c asks for confirmation before
+	compiling
+	(ada-compile-current): New parameter, prj-field
+	(ada-complete-identifier): Load the .ali file before doing
+	processing
+	(ada-find-ali-file-in-dir): prepend build_dir to obj_dir to
+	conform to gnatmake's behavior.
+	(ada-find-file-in-dir): New function
+	(ada-find-references): Set the environment variables for gnatfind
+	(ada-find-src-file-in-dir): New function.
+	(ada-first-non-nil): Removed
+	(ada-gdb-application): Add support for jdb, the java debugger.
+	(ada-get-ada-file-name): Load the original-file first if not done
+	yet.
+	(ada-get-all-references): Handles the new ali syntax (parent types
+	are found between <>).
+	(ada-initialize-runtime-library): New function
+	(ada-mode-hook): Always load a project file when a file is opened,
+	so that the casing exceptions are correctly read.
+	(ada-operator-re): Add all missing operators ("abs", "rem", "**").
+	(ada-parse-prj-file): Use find-file-noselect instead of find-file
+	to open the project file, since the latter does not work with
+	speedbar Get default values before loading the prj file, or the
+	default executable file name is wrong.  Use the absolute value of
+	src_dir to initialize ada-search-directories and
+	compilation-search-path,...  Add the standard runtime library to
+	the search path for find-file.
+	(ada-prj-default-debugger): Was missing an opening '{'
+	(ada-prj-default-bind-opt, ada-prj-default-link-opt): New
+	variables.
+	(ada-prj-default-gnatmake-opt): New variable
+	(ada-prj-find-prj-file): Handles non-file buffers For non-Ada
+	buffers, the project file is the default one Save the windows
+	configuration before displaying the menu.
+	(ada-prj-src-dir, ada-prj-obj-dir, ada-prj-comp-opt,...): Removed
+	(ada-read-identifier): Fix xrefs on operators (for "mod", "and",
+	...)  regexp-quote identifiers names to support operators +,
+	-,... in regexps.
+	(ada-remote): New function.
+	(ada-run-application): Erase the output buffer before starting the
+	run Support remote execution of the application.  Use
+	call-process, or the arguments are incorrectly parsed
+	(ada-set-default-project-file): Reread the content of the active
+	project file, not the one from the current buffer When a project
+	file is set as the default project, all directories are
+	automatically associated with it.
+	(ada-set-environment): New function
+	(ada-treat-cmd-string): New special variable ${current}
+	(ada-treat-cmd-string): Revised.  The substitution is now done for
+	any ${...} substring
+	(ada-xref-current): If no body was found, compiles the spec
+	instead.  Setup ADA_{SOURCE,OBJECTS}_PATH before running the
+	compiler to get rid of command line length limitations.
+	(ada-xref-get-project-field): New function
+	(ada-xref-project-files): New variable
+	(ada-xref-runtime-library-specs-path)
+	(ada-xref-runtime-library-ali-path): New variables
+	(ada-xref-set-default-prj-values): Default run command now does a
+	cd to the build directory.  New field: main_unit Provide a default
+	file name even if the current buffer has no prj file.
+
+	* ada-prj.el:
+	Rewritten to show a tabbed-dialog.
+	(ada-prj-add-ada-menu): Remove the map and name parameters.
+	(ada-prj-display-page, ada-prj-field, ada-prj-initialize-values):
+	New function
+	(ada-prj-load-directory, ada-prj-subdirs-of): New functions
+	(ada-prj-load-from-file): New function
+	(ada-prj-save): Always save fields that depend on the current buffer
+	(ada-prj-show-value): New function
+	
+	* ada-stmt.el (ada-stmt-add-to-ada-menu): Hide the menu if not in
+	Ada mode. This will allow us to display the Ada menu in any buffer
+	we want (for project items).
+	(ada-header-tmpl): Use ada-fill-comment-prefix to put the correct
+	number of spaces in the header.
+	
 2000-07-24  Dave Love  <fx@gnu.org>
 
 	* ediff-init.el (ediff-region-help-echo): Bind face-help.

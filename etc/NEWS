@@ -761,6 +761,20 @@ back depending on user feedback.  Therefore there's no forward
 compatibility guarantee wrt the new features introduced in this
 release.
 
+*** c-style-variables-are-local-p now defaults to t.
+This is an incompatible change that has been made to make the behavior
+of the style system wrt global variable settings less confusing for
+non-advanced users.  If you know what this variable does you might
+want to set it to nil in your .emacs, otherwise you probably don't
+have to bother.
+
+Defaulting c-style-variables-are-local-p to t avoids the confusing
+situation that occurs when a user sets some style variables globally
+and edit both a Java and a non-Java file in the same Emacs session.
+If the style variables aren't buffer local in this case, loading of
+the second file will cause the default style (either "gnu" or "java"
+by default) to override the global settings made by the user.
+
 *** New initialization procedure for the style system.
 When the initial style for a buffer is determined by CC Mode (from the
 variable c-default-style), the global values of style variables now

@@ -1,3 +1,18 @@
+2000-07-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* cc-mode.texi: @setfilename to ../info/ccmode.
+
+2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-mode.texi: Documented the change of cpp-macro. 
+
+	* cc-mode.texi: Updated doc for c-lineup-multi-inher. 
+
+	* cc-mode.texi: Documented the special behavior of
+	c-special-indent-hook as a style variable.  Don't talk about
+	doing (c-make-styles-buffer-local t) in a mode hook, since
+	that's already too late to work right.
+	
 2000-07-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mule.texi (Recognize Coding): Document the variable
