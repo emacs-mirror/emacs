@@ -216,7 +216,7 @@ extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
 #define MAX_CHAR (0x1F << 14)
 
 /* 1 if C is a single byte character, else 0.  */
-#define SINGLE_BYTE_CHAR_P(c) ((unsigned) (c) < 0x100)
+#define SINGLE_BYTE_CHAR_P(c) (((unsigned)(c) & 0xFF) == (c))
 
 /* 1 if BYTE is an ASCII character in itself, in multibyte mode.  */
 #define ASCII_BYTE_P(byte) ((byte) < 0x80)
@@ -535,7 +535,7 @@ extern int iso_charset_table[2][2][128];
 
 #define CHAR_STRING(c, str)						  \
   (SINGLE_BYTE_CHAR_P (c)						  \
-   ? ((ASCII_BYTE_P (c) || c >= 0xA0)					  \
+   ? ((ASCII_BYTE_P (c) || c >= 0xA0)			  \
       ? (*(str) = (unsigned char)(c), 1)				  \
       : (*(str) = LEADING_CODE_8_BIT_CONTROL, *((str)+ 1) = c + 0x20, 2)) \
    : char_to_string (c, (unsigned char *) str))
