@@ -1,3 +1,12 @@
+2000-01-05  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (INFO_TARGETS): Rename emacs-faq to efaq (for
+	compatibility with 8+3 filesystems).
+	(../info/efaq): Renamed from emacs-faq.
+
+	* faq.texi: Rename emacs-faq to efaq in @setfilename and in
+	@direntry.
+
 2000-01-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* mule.texi (International Intro): Add a link to to Fontsets.
