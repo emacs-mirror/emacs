@@ -676,7 +676,6 @@ and TO is ignored."
       (if safe
 	  (setq coding-system (car (last safe)))))
 
-    (setq x (list default-coding-system safe rejected unsafe))
     ;; If all the defaults failed, ask a user.
     (when (not coding-system)
       ;; At first, if some defaults are unsafe, record at most 11
