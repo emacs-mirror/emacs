@@ -350,13 +350,6 @@ XParseGeometry (string, x, y, width, height)
   return (mask);
 }
 
-/* We can use mouse menus when we wish.  */
-int
-have_menus_p (void)
-{
-  return 1;
-}
-
 /* x_sync is a no-op on W32.  */
 void
 x_sync (f)
