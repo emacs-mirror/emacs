@@ -1,3 +1,8 @@
+2003-08-26  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* widget.texi (User Interface): Explain the need of static text
+	around an editable field.
+
 2003-08-19  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* widget.texi (Basic Types): The argument to `:help-echo' can now
