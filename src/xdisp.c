@@ -312,7 +312,7 @@ echo_area_display ()
 
   if (frame_garbaged)
     {
-      Fredraw_display ();
+      redraw_garbaged_frames ();
       frame_garbaged = 0;
     }
 
@@ -394,7 +394,7 @@ redisplay ()
 
   if (frame_garbaged)
     {
-      Fredraw_display ();
+      redraw_garbaged_frames ();
       frame_garbaged = 0;
     }
 
