@@ -1227,7 +1227,7 @@ frequently editing existing scripts with different styles.")
 (put 'sh-mode 'mode-class 'special)
 
 ;;;###autoload
-(define-derived-mode sh-mode nil "Shell-script"
+(defun sh-mode ()
   "Major mode for editing shell scripts.
 This mode works for many shells, since they all have roughly the same syntax,
 as far as commands, arguments, variables, pipes, comments etc. are concerned.
@@ -1280,6 +1280,11 @@ indicate what shell it is use `sh-alias-alist' to translate.
 
 If your shell gives error messages with line numbers, you can use \\[executable-interpret]
 with your script for an edit-interpret-debug cycle."
+  (interactive)
+  (kill-all-local-variables)
+  (setq major-mode 'sh-mode
+	mode-name "Shell-script")
+  (use-local-map sh-mode-map)
   (make-local-variable 'skeleton-end-hook)
   (make-local-variable 'paragraph-start)
   (make-local-variable 'paragraph-separate)
