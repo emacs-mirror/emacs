@@ -83,13 +83,15 @@
 ;; The following definition is used for debugging scroll bar events.
 ;(defun w32-handle-scroll-bar-event (event) (interactive "e") (princ event))
 
+;; mwheel.el should probably be adapted to accept mouse-wheel events
+;; then this could go.
 (defun mouse-wheel-scroll-line (event)
   "Scroll the window in which EVENT occurred by `mouse-wheel-scroll-amount'."
   (interactive "e")
   (condition-case nil
       (if (< (car (cdr (cdr event))) 0)
-	  (scroll-up mouse-wheel-scroll-amount)
-	(scroll-down mouse-wheel-scroll-amount))
+	  (scroll-up (car mouse-wheel-scroll-amount))
+	(scroll-down (car mouse-wheel-scroll-amount)))
     (error nil)))
 
 ;; for scroll-in-place.el, this way the -scroll-line and -scroll-screen
