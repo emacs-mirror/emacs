@@ -1,3 +1,7 @@
+2001-03-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* COPYING: New file.
+
 2001-03-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* config.bat: Update the copyright.

@@ -1,3 +1,7 @@
+2001-03-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* play/dunnet.el (dun-mode): Set major-mode to `dun-mode'.
+
 2001-03-05  Alex Schroeder  <alex@gnu.org>
 
 	* sql.el (sql-sybase): Fix typo (was: query user about server two
