@@ -5,6 +5,8 @@
 
 1999-11-30  Dave Love  <fx@gnu.org>
 
+	* fortran.el (fortran-strip-sqeuence-nos): New command.
+
 	* autoinsert.el: Minor doc fixes.
 	(auto-insert): Return nil.
 
