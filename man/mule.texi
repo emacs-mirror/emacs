@@ -44,7 +44,7 @@ have been merged from the modified version of Emacs known as MULE (for
 * Fontsets::                Fontsets are collections of fonts
                               that cover the whole spectrum of characters.
 * Defining Fontsets::       Defining a new fontset.
-* Single-Byte European Support::
+* Single-Byte Character Support::
                             You can pick one European character set
                             to use without multibyte characters.
 @end menu
@@ -975,8 +975,8 @@ call this function explicitly to create a fontset.
 
   @xref{Font X}, for more information about font naming in X.
 
-@node Single-Byte European Support
-@section Single-byte European Character Support
+@node Single-Byte Character Support
+@section Single-byte Character Set Support
 
 @cindex European character sets
 @cindex accented characters
@@ -985,7 +985,8 @@ call this function explicitly to create a fontset.
 @vindex enable-multibyte-characters
   The ISO 8859 Latin-@var{n} character sets define character codes in
 the range 160 to 255 to handle the accented letters and punctuation
-needed by various European languages.  If you disable multibyte
+needed by various European languages (and some non-European ones).
+If you disable multibyte
 characters, Emacs can still handle @emph{one} of these character codes
 at a time.  To specify @emph{which} of these codes to use, invoke
 @kbd{M-x set-language-environment} and specify a suitable language
@@ -1024,6 +1025,7 @@ function @code{standard-display-8bit} in the @code{disp-table} library.
 characters:
 
 @itemize @bullet
+@cindex 8-bit input
 @item
 If your keyboard can generate character codes 128 and up, representing
 non-ASCII characters, execute the following expression to enable Emacs to
@@ -1034,6 +1036,14 @@ understand them:
                 (nth 1 (current-input-mode))
                 0)
 @end example
+
+It is not necessary to do this under a window system which can
+distinguish 8-bit characters and Meta keys.  If you do this on a normal
+terminal, you will probably need to use @kbd{ESC} to type Meta
+characters.@footnote{In some cases, such as the Linux console and
+@code{xterm}, you can arrange for Meta to be converted to @kbd{ESC} and
+still be able type 8-bit characters present directly on the keyboard or
+using @kbd{Compose} or @kbd{AltGr} keys.}  @xref{User Input}.
 
 @item
 You can use an input method for the selected language environment.
