@@ -110,13 +110,12 @@ Lisp_Object Qlast_nonmenu_event;
 /* Qexit is declared and initialized in eval.c.  */
 
 /* a process object is a network connection when its childp field is neither
-   Qt nor Qnil but is instead a string (name of foreign host we
-   are connected to + name of port we are connected to) */
+   Qt nor Qnil but is instead a cons cell (HOSTNAME PORTNUM).  */
 
 #ifdef HAVE_SOCKETS
 static Lisp_Object stream_process;
 
-#define NETCONN_P(p) (GC_STRINGP (XPROCESS (p)->childp))
+#define NETCONN_P(p) (GC_CONSP (XPROCESS (p)->childp))
 #else
 #define NETCONN_P(p) 0
 #endif /* HAVE_SOCKETS */
@@ -848,6 +847,17 @@ Value is t if a query was formerly required.")
   return Fnull (tem);
 }
 
+DEFUN ("process-contact", Fprocess_contact, Sprocess_contact,
+  1, 1, 0,
+  "Return the contact info of PROCESS; t for a real child.\n\
+For a net connection, the value is a cons cell of the form (HOST SERVICE).")
+  (process)
+     register Lisp_Object process;
+{
+  CHECK_PROCESS (process, 0);
+  return XPROCESS (process)->childp;
+}
+
 #if 0 /* Turned off because we don't currently record this info
 	 in the process.  Perhaps add it.  */
 DEFUN ("process-connection", Fprocess_connection, Sprocess_connection, 1, 1, 0,
@@ -958,7 +968,7 @@ Proc         Status   Buffer         Tty         Command\n\
       if (NETCONN_P (proc))
         {
 	  sprintf (tembuf, "(network stream connection to %s)\n",
-		   XSTRING (p->childp)->data);
+		   XSTRING (XCONS (p->childp)->car)->data);
 	  insert_string (tembuf);
         }
       else 
@@ -1791,7 +1801,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 #endif
 #endif
 
-  XPROCESS (proc)->childp = host;
+  XPROCESS (proc)->childp = Fcons (host, Fcons (service, Qnil));
   XPROCESS (proc)->command_channel_p = Qnil;
   XPROCESS (proc)->buffer = buffer;
   XPROCESS (proc)->sentinel = Qnil;
@@ -3793,9 +3803,10 @@ The value takes effect when `start-process' is called.");
   defsubr (&Sset_process_filter);
   defsubr (&Sprocess_filter);
   defsubr (&Sset_process_sentinel);
-  defsubr (&Sset_process_window_size);
   defsubr (&Sprocess_sentinel);
+  defsubr (&Sset_process_window_size);
   defsubr (&Sprocess_kill_without_query);
+  defsubr (&Sprocess_contact);
   defsubr (&Slist_processes);
   defsubr (&Sprocess_list);
   defsubr (&Sstart_process);
