@@ -1489,28 +1489,28 @@ BEG and END may be integers or markers.")
 
   if (NILP (buffer))
     XSET (buffer, Lisp_Buffer, current_buffer);
-  CHECK_BUFFER (buffer, 2);
+  else
+    CHECK_BUFFER (buffer, 2);
+  if (MARKERP (beg)
+      && ! EQ (Fmarker_buffer (beg), buffer))
+    error ("Marker points into wrong buffer");
+  if (MARKERP (end)
+      && ! EQ (Fmarker_buffer (end), buffer))
+    error ("Marker points into wrong buffer");
+
+  CHECK_NUMBER_COERCE_MARKER (beg, 1);
+  CHECK_NUMBER_COERCE_MARKER (end, 1);
+
+  if (XINT (beg) > XINT (end))
+    {
+      Lisp_Object temp = beg;
+      beg = end; end = temp;
+    }
 
   b = XBUFFER (buffer);
 
-  if (MARKERP (beg))
-    {
-      if (! EQ (Fmarker_buffer (beg), buffer))
-	error ("Marker points into wrong buffer");
-      else
-	beg = Fcopy_marker (beg);
-    }
-  else
-    beg = Fset_marker (Fmake_marker (), beg, buffer);
-  if (MARKERP (end))
-    {
-      if (! EQ (Fmarker_buffer (end), buffer))
-	error ("Marker points into wrong buffer");
-      else
-	end = Fcopy_marker (end);
-    }
-  else
-    end = Fset_marker (Fmake_marker (), end, buffer);
+  beg = Fset_marker (Fmake_marker (), beg, buffer);
+  end = Fset_marker (Fmake_marker (), end, buffer);
 
   overlay = Fcons (Fcons (beg, end), Qnil);
   XSETTYPE (overlay, Lisp_Overlay);
@@ -1547,6 +1547,14 @@ buffer.")
   if (NILP (buffer))
     XSET (buffer, Lisp_Buffer, current_buffer);
   CHECK_BUFFER (buffer, 3);
+
+  if (MARKERP (beg)
+      && ! EQ (Fmarker_buffer (beg), buffer))
+    error ("Marker points into wrong buffer");
+  if (MARKERP (end)
+      && ! EQ (Fmarker_buffer (end), buffer))
+    error ("Marker points into wrong buffer");
+
   CHECK_NUMBER_COERCE_MARKER (beg, 1);
   CHECK_NUMBER_COERCE_MARKER (end, 1);
 
