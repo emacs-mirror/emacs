@@ -428,6 +428,13 @@ The buffer is put in Shell mode, giving commands for sending input
 and controlling the subjobs of the shell.  See `shell-mode'.
 See also the variable `shell-prompt-pattern'.
 
+To specify a coding system for converting non-ASCII characters
+in the input and output to the shell, use \\[universal-coding-system-argument]
+before \\[shell].  You can also specify this with \\[set-buffer-process-coding-system]
+in the shell buffer, after you start the shell.
+The default comes from `process-coding-system-alist' and
+`default-process-coding-system'.
+
 The shell file name (sans directories) is used to make a symbol name
 such as `explicit-csh-args'.  If that symbol is a variable,
 its value is used as a list of arguments when invoking the shell.
