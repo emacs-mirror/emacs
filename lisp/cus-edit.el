@@ -4058,6 +4058,7 @@ if that value is non-nil."
   (use-local-map custom-mode-map)
   (easy-menu-add Custom-mode-menu)
   (make-local-variable 'custom-options)
+  (make-local-variable 'custom-local-buffer)
   (make-local-variable 'widget-documentation-face)
   (setq widget-documentation-face 'custom-documentation-face)
   (make-local-variable 'widget-button-face)
