@@ -357,7 +357,9 @@ read_scores (filename, scores, count)
       scorecount++;
       if (scorecount >= cursize)
 	{
-	  ret = (struct score_entry *) realloc (ret, cursize *= 2);
+	  cursize *= 2;
+	  ret = (struct score_entry *)
+	    realloc (ret, (sizeof (struct score_entry) * cursize));
 	  if (!ret)
 	    return -1;
 	}
