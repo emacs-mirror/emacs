@@ -110,6 +110,8 @@ word constituents."
   (setq lc (set-case-syntax-1 lc))
   (aset table uc lc)
   (aset table lc lc)
+  ;; Clear out the extra slots so that they will be
+  ;; recomputed from the main (downcase) table.
   (set-char-table-extra-slot table 0 nil)
   (set-char-table-extra-slot table 1 nil)
   (set-char-table-extra-slot table 2 nil)
@@ -124,6 +126,8 @@ It also modifies `standard-syntax-table'.
 SYNTAX should be \" \", \"w\", \".\" or \"_\"."
   (setq c (set-case-syntax-1 c))
   (aset table c c)
+  ;; Clear out the extra slots so that they will be
+  ;; recomputed from the main (downcase) table.
   (set-char-table-extra-slot table 0 nil)
   (set-char-table-extra-slot table 1 nil)
   (set-char-table-extra-slot table 2 nil)
