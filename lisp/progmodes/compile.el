@@ -869,8 +869,10 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 		;; because we want to find matches containing LIMIT-SEARCH
 		;; but which extend past it.
 		(re-search-forward regexp nil t))
+
       ;; Figure out which constituent regexp matched.
       (cond ((match-beginning enter-group)
+	     (funcall progress)
 	     ;; The match was the enter-directory regexp.
 	     (let ((dir
 		    (file-name-as-directory
@@ -883,6 +885,7 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 		    (setq default-directory dir))))
 	    
 	    ((match-beginning leave-group)
+	     (funcall progress)
 	     ;; The match was the leave-directory regexp.
 	     (let ((beg (match-beginning (+ leave-group 1)))
 		   (stack compilation-directory-stack))
@@ -936,14 +939,17 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 				   (cons filename linenum))
 			     compilation-error-list))))
 	     (setq nfound (1+ nfound))
-	     (message "Parsing error messages...%d (%d%% of buffer)"
-		      nfound
-		      (/ (* 100 (point)) (point-max)))
+	     (funcall progress)
 	     (and find-at-least (>= nfound find-at-least)
 		  ;; We have found as many new errors as the user wants.
 		  (setq found-desired t)))
 	    (t
 	     (error "compilation-parse-errors: impossible regexp match!")))
+
+      (message "Parsing error messages...%d (%d%% of buffer)"
+	       nfound
+	       (/ (* 100 (point)) (point-max)))
+
       (and limit-search (>= (point) limit-search)
 	   ;; The user wanted a specific error, and we're past it.
 	   (setq found-desired t)))
