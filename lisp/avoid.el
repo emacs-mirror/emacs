@@ -111,6 +111,9 @@ Only applies in mouse-avoidance-modes `animate' and `jump'."
 (defvar mouse-avoidance-n-pointer-shapes 0)
 (defvar mouse-avoidance-old-pointer-shape nil)
 
+;; This timer is used to run something when Emacs is idle.
+(defvar mouse-avoidance-timer nil)
+
 ;;; Functions:
 
 (defsubst mouse-avoidance-set-pointer-shape (shape)
@@ -335,9 +338,9 @@ definition of \"random distance\".)"
 		  nil t))))
   (if (eq mode 'cat-and-mouse)
       (setq mode 'animate))
-  (remove-hook 'post-command-idle-hook 'mouse-avoidance-banish-hook)
-  (remove-hook 'post-command-idle-hook 'mouse-avoidance-exile-hook)
-  (remove-hook 'post-command-idle-hook 'mouse-avoidance-fancy-hook)
+  (if mouse-avoidance-timer
+      (cancel-timer mouse-avoidance-timer))
+  (setq mouse-avoidance-timer nil)
 
   ;; Restore pointer shape if necessary
   (if (eq mouse-avoidance-mode 'proteus)
@@ -349,19 +352,22 @@ definition of \"random distance\".)"
 	((or (eq mode 'jump)
 	     (eq mode 'animate)
 	     (eq mode 'proteus))
-	 (add-hook 'post-command-idle-hook 'mouse-avoidance-fancy-hook)
+	 (setq mouse-avoidance-timer
+	       (run-with-idle-timer 0.1 t 'mouse-avoidance-fancy-hook))
 	 (setq mouse-avoidance-mode mode
 	       mouse-avoidance-state (cons 0 0)
 	       mouse-avoidance-old-pointer-shape x-pointer-shape))
 	((eq mode 'exile)
-	 (add-hook 'post-command-idle-hook 'mouse-avoidance-exile-hook)
+	 (setq mouse-avoidance-timer
+	       (run-with-idle-timer 0.1 t 'mouse-avoidance-exile-hook))
 	 (setq mouse-avoidance-mode mode
 	       mouse-avoidance-state nil))
 	((or (eq mode 'banish) 
 	     (eq mode t)
 	     (and (null mode) (null mouse-avoidance-mode))
 	     (and mode (> (prefix-numeric-value mode) 0)))
-	 (add-hook 'post-command-idle-hook 'mouse-avoidance-banish-hook)
+	 (setq mouse-avoidance-timer
+	       (run-with-idle-timer 0.1 t 'mouse-avoidance-banish-hook))
 	 (setq mouse-avoidance-mode 'banish))
 	(t (setq mouse-avoidance-mode nil)))
   (force-mode-line-update))
