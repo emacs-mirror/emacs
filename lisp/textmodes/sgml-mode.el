@@ -205,16 +205,21 @@ separated by a space."
 Any terminating `>' or `/' is not matched.")
 
 
-(defvar sgml-font-lock-keywords
+;; internal
+(defconst sgml-font-lock-keywords-1
   '(("<\\([!?][a-z0-9]+\\)" 1 font-lock-keyword-face)
     ("<\\(/?[a-z0-9]+\\)" 1 font-lock-function-name-face)
     ("[&%][-.A-Za-z0-9]+;?" . font-lock-variable-name-face)
-    ("<!--[^<>]*-->" . font-lock-comment-face))
+    ("<!--[^<>]*-->" . font-lock-comment-face)))
+
+(defconst sgml-font-lock-keywords-2 ())
+
+;; for font-lock, but must be defvar'ed after
+;; sgml-font-lock-keywords-1 and sgml-font-lock-keywords-2 above
+(defvar sgml-font-lock-keywords sgml-font-lock-keywords-1
   "*Rules for highlighting SGML code.  See also `sgml-tag-face-alist'.")
 
 ;; internal
-(defvar sgml-font-lock-keywords-1 ())
-
 (defvar sgml-face-tag-alist ()
   "Alist of face and tag name for facemenu.")
 
@@ -273,7 +278,7 @@ an optional alist of possible values."
 
 (defun sgml-mode-common (sgml-tag-face-alist sgml-display-text)
   "Common code for setting up `sgml-mode' and derived modes.
-SGML-TAG-FACE-ALIST is used for calculating `sgml-font-lock-keywords-1'.
+SGML-TAG-FACE-ALIST is used for calculating `sgml-font-lock-keywords-2'.
 SGML-DISPLAY-TEXT sets up alternate text for when tags are invisible (see
 varables of same name)."
   (kill-all-local-variables)
@@ -294,6 +299,7 @@ varables of same name)."
   (make-local-variable 'skeleton-end-hook)
   (make-local-variable 'font-lock-defaults)
   (make-local-variable 'sgml-font-lock-keywords-1)
+  (make-local-variable 'sgml-font-lock-keywords-2)
   (make-local-variable 'facemenu-add-face-function)
   (make-local-variable 'facemenu-end-add-face)
   ;;(make-local-variable 'facemenu-remove-face-function)
@@ -327,9 +333,12 @@ varables of same name)."
 				(not (or (eq v2 '\n)
 					 (eq (car-safe v2) '\n)))
 				(newline-and-indent)))
-	sgml-font-lock-keywords-1 (cdr (assq 1 sgml-tag-face-alist))
+	sgml-font-lock-keywords-2 (append
+				   sgml-font-lock-keywords-1
+				   (cdr (assq 1 sgml-tag-face-alist)))
 	font-lock-defaults '((sgml-font-lock-keywords
-			      sgml-font-lock-keywords-1)
+			      sgml-font-lock-keywords-1
+			      sgml-font-lock-keywords-2)
 			     nil
 			     t)
 	facemenu-add-face-function 'sgml-mode-facemenu-add-face-function)
