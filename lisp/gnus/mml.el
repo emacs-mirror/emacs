@@ -27,7 +27,7 @@
 (require 'mm-bodies)
 (require 'mm-encode)
 (require 'mm-decode)
-(eval-when-compile 'cl)
+(eval-when-compile (require 'cl))
 
 (eval-and-compile
   (autoload 'message-make-message-id "message")

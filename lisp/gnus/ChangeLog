@@ -1,3 +1,7 @@
+2000-11-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* mml.el: Fix a typo in the requiring of CL.
+
 2000-11-01 ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* rfc2231.el: Require cl when compiling.
