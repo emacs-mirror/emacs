@@ -792,7 +792,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	 (Info-following-node-name))
      (if (eq errorname t)
 	 nil
-       (error (concat "Node has no " (capitalize (or errorname name))))))))
+       (error "Node has no %s" (capitalize (or errorname name)))))))
 
 ;; Return the node name in the buffer following point.
 ;; ALLOWEDCHARS, if non-nil, goes within [...] to make a regexp
