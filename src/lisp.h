@@ -1886,6 +1886,7 @@ extern Lisp_Object do_symval_forwarding P_ ((Lisp_Object));
 extern Lisp_Object set_internal P_ ((Lisp_Object, Lisp_Object, struct buffer *, int));
 extern void syms_of_data P_ ((void));
 extern void init_data P_ ((void));
+extern void swap_in_global_binding P_ ((Lisp_Object));
 
 /* Defined in cmds.c */
 EXFUN (Fend_of_line, 1);
@@ -2844,7 +2845,6 @@ extern int getloadavg P_ ((double *, int));
 extern void syms_of_xfns P_ ((void));
 extern void init_xfns P_ ((void));
 EXFUN (Fxw_display_color_p, 1);
-/* Fixme: x_defined_color needs declaring, but needs FRAME_PTR and XColor. */
 #endif /* HAVE_X_WINDOWS */
 
 /* Defined in xselect.c */
