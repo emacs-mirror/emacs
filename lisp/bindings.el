@@ -574,6 +574,9 @@ language you are using."
 (define-key ctl-x-map "nw" 'widen)
 ;; (define-key ctl-x-map "n" 'narrow-to-region)
 ;; (define-key ctl-x-map "w" 'widen)
+(define-key ctl-x-map "(" 'start-kbd-macro)
+(define-key ctl-x-map ")" 'end-kbd-macro)
+(define-key ctl-x-map "e" 'call-last-kbd-macro)
 
 (define-key global-map "\C-j" 'newline-and-indent)
 (define-key global-map "\C-m" 'newline)
