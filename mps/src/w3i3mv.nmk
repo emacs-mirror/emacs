@@ -1,6 +1,6 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(trunk.26) $
+# $HopeName: MMsrc!nti3mv.nmk(trunk.27) $
 #
 # Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
 #
@@ -19,6 +19,7 @@ SW  = <assert> <ring> <mpsliban> <mpm> \
       <thnti3> <ssnti3> <mpsi> <mpsint> <ld>
 AMC = <amc>
 LO = <lo>
+MRG = <poolmrg>
 DW  = <dw> <fmtdy>
 TESTLIB = <testlib>
 
@@ -26,7 +27,7 @@ TESTLIB = <testlib>
 
 # ==== ALMOST GENERIC PRODUCT BUILD FOR NMAKE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(trunk.26) $
+# $HopeName: MMsrc!nti3mv.nmk(trunk.27) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -47,8 +48,9 @@ TESTLIB = <testlib>
 #            platform.  Each source is stripped of its .c extension
 #            and surrounded in angle brackets (<>)
 #   AMC      as above for the "amc" part
-#   LO      as above for the "lo" part
-#   DW      as above for the "amc" part
+#   LO       as above for the "lo" part
+#   MRG      as above for the "mrg" part
+#   DW       as above for the "amc" part
 #   TESTLIB  as above for the "testlib" part
 #   NOISY    if defined, causes command to be emitted
 #
@@ -83,6 +85,9 @@ TESTLIB = <testlib>
 !ENDIF
 !IFNDEF AMC
 !ERROR mv.nmk: AMC not defined
+!ENDIF
+!IFNDEF MRG
+!ERROR mv.nmk: MRG not defined
 !ENDIF
 !IFNDEF DW
 !ERROR mv.nmk: DW not defined
@@ -191,6 +196,8 @@ AMCOBJ0 = $(AMC:<=nti3mv\df\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
 LOOBJ0 = $(LO:<=nti3mv\df\)
 LOOBJ = $(LOOBJ0:>=.obj)
+MRGOBJ0 = $(MRG:<=nti3mv\df\)
+MRGOBJ = $(MRGOBJ0:>=.obj)
 DWOBJ0 = $(DW:<=nti3mv\df\)
 DWOBJ = $(DWOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\df\)
@@ -208,6 +215,8 @@ AMCOBJ0 = $(AMC:<=nti3mv\dp\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
 LOOBJ0 = $(LO:<=nti3mv\dp\)
 LOOBJ = $(LOOBJ0:>=.obj)
+MRGOBJ0 = $(MRG:<=nti3mv\dp\)
+MRGOBJ = $(MRGOBJ0:>=.obj)
 DWOBJ0 = $(DW:<=nti3mv\dp\)
 DWOBJ = $(DWOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\dp\)
@@ -225,6 +234,8 @@ AMCOBJ0 = $(AMC:<=nti3mv\ds\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
 LOOBJ0 = $(LO:<=nti3mv\ds\)
 LOOBJ = $(LOOBJ0:>=.obj)
+MRGOBJ0 = $(MRG:<=nti3mv\ds\)
+MRGOBJ = $(MRGOBJ0:>=.obj)
 DWOBJ0 = $(DW:<=nti3mv\ds\)
 DWOBJ = $(DWOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\ds\)
@@ -242,6 +253,8 @@ AMCOBJ0 = $(AMC:<=nti3mv\ro\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
 LOOBJ0 = $(LO:<=nti3mv\ro\)
 LOOBJ = $(LOOBJ0:>=.obj)
+MRGOBJ0 = $(MRG:<=nti3mv\ro\)
+MRGOBJ = $(MRGOBJ0:>=.obj)
 DWOBJ0 = $(DW:<=nti3mv\ro\)
 DWOBJ = $(DWOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\ro\)
@@ -257,6 +270,8 @@ AMCOBJ0 = $(AMC:<=nti3mv\cv\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
 LOOBJ0 = $(LO:<=nti3mv\cv\)
 LOOBJ = $(LOOBJ0:>=.obj)
+MRGOBJ0 = $(MRG:<=nti3mv\cv\)
+MRGOBJ = $(MRGOBJ0:>=.obj)
 DWOBJ0 = $(DW:<=nti3mv\cv\)
 DWOBJ = $(DWOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\cv\)
@@ -272,14 +287,14 @@ TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 all: mpmss.exe amcss.exe dwstress.exe lockutnt.exe lockcov.exe \
      mpsicv.exe poolncv.exe locv.exe qs.exe mpm.lib weakcv.exe \
-     mpmconft.exe
+     mpmconft.exe finalcv.exe
 
 # Convenience targets
 # %%TARGET: Add a pseudo-target for the new part
 
 dwstress.exe amcss.exe lockutnt.exe lockcov.exe \
      mpmss.exe protcv.exe mpsicv.exe poolncv.exe locv.exe qs.exe \
-     mpm.lib mmdw.lib mmsw.lib weakcv.exe mpmconft.exe:
+     mpm.lib mmdw.lib mmsw.lib weakcv.exe mpmconft.exe finalcv.exe:
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ target
 
 mpsicv.cov:
@@ -327,6 +342,9 @@ variety: $(PFM)\$(VARIETY)\$(TARGET)
 
 $(PFM)\$(VARIETY)\weakcv.exe: $(PFM)\$(VARIETY)\weakcv.obj \
 	$(MPMOBJ) $(AMCOBJ) $(DWOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\finalcv.exe: $(PFM)\$(VARIETY)\finalcv.obj \
+	$(MPMOBJ) $(AMCOBJ) $(DWOBJ) $(MRGOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\mpmconft.exe: $(PFM)\$(VARIETY)\mpmconft.obj \
 	$(MPMOBJ)
