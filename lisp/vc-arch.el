@@ -270,7 +270,7 @@ Return non-nil if FILE is unchanged."
 (defun vc-arch-workfile-version (file)
   (let* ((root (expand-file-name "{arch}" (vc-arch-root file)))
 	 (defbranch (vc-arch-default-version file)))
-    (when (and defbranch (string-match "\\`\\(.+@[^/\n]+\\)/\\(\\(\\(.*\\)\\(--.*\\)?\\)--.*\\)\\'" defbranch))
+    (when (and defbranch (string-match "\\`\\(.+@[^/\n]+\\)/\\(\\(\\(.*?\\)\\(?:--.*\\)?\\)--.*\\)\\'" defbranch))
       (let* ((archive (match-string 1 defbranch))
 	     (category (match-string 4 defbranch))
 	     (branch (match-string 3 defbranch))
