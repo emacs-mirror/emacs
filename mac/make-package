@@ -270,16 +270,23 @@ if test "$self_contained" = "yes"; then
     installprefix=$tempparentfull/$appsdir/$emapp/Contents/Resources
 fi
 
+
+make_options="prefix=${installprefix} $make_options"
+
+if test "$with_app" = "yes"; then
+    make_options="carbon_appdir=${tempparentfull}/Applications $make_options"
+fi
+
 ## Make bootstrap if .elc files are missing from distribution
 if [ ! -f ${srcdir}/lisp/abbrev.elc ]; then
    echo "Required .elc files missing; making bootstrap..."
-   if ! (cd ${builddir}; make bootstrap prefix=$installprefix $make_options); then
+   if ! (cd ${builddir}; make bootstrap $make_options); then
       echo "Make bootstrap failed...  Aborting make-package."
       exit 2
    fi
 fi
 
-if ! (cd ${builddir}; make install prefix=$installprefix $make_options); then
+if ! (cd ${builddir}; make install $make_options); then
    echo "Make failed... Aborting make-package."
    exit 1
 fi
@@ -294,10 +301,6 @@ if test "$with_app" == "yes"; then
   echo "Creating Emacs.app application"
   tempappdir=${tempparentfull}${appsdir}
   tempemapp=${tempappdir}/${emapp}/Contents/MacOS/Emacs
-  mkdir ${tempappdir}
-
-  ## Copy Emacs application
-  cp -r ${builddir}/mac/Emacs.app ${tempappdir}
   ## Delete any CVS files
   find ${tempappdir} -name "CVS" -type d -exec rm -rf {} \;
 
