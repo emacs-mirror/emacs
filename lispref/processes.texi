@@ -676,6 +676,7 @@ instead of a terminal (see @code{process-connection-type} in
 @ref{Asynchronous Processes}).
 @end defun
 
+@anchor{Coding systems for a subprocess}
 @defun process-coding-system process
 This function returns a cons cell describing the coding systems in use
 for decoding output from @var{process} and for encoding input to
