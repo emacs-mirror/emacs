@@ -1,3 +1,7 @@
+2002-04-08  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* puresize.h (BASE_PURESIZE): Increase to 900KB.
+
 2002-04-08  Juanma Barranquero  <lektu@terra.es>
 
 	* w32.c (sys_accept): Don't hide variable `s'.
