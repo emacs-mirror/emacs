@@ -75,35 +75,42 @@ to which the end of the previous line belongs, or the end of the buffer."
 	      (concat paragraph-separate "\\|^"
 		      fill-prefix-regexp "[ \t]*$")
 	    paragraph-separate)))
-    (while (< arg 0)
+    (while (and (< arg 0) (not (bobp)))
       (if (and (not (looking-at paragraph-separate))
 	       (re-search-backward "^\n" (max (1- (point)) (point-min)) t))
 	  nil
+	;; Move back over paragraph-separating lines.
 	(forward-char -1) (beginning-of-line)
 	(while (and (not (bobp)) (looking-at paragraph-separate))
 	  (forward-line -1))
-	(end-of-line)
-	;; Search back for line that starts or separates paragraphs.
-	(if (if fill-prefix-regexp
-		;; There is a fill prefix; it overrides paragraph-start.
-		(progn
-		 (while (progn (beginning-of-line)
-			       (and (not (bobp))
-				    (not (looking-at paragraph-separate))
-				    (looking-at fill-prefix-regexp)))
-		   (forward-line -1))
-		 (not (bobp)))
-	      (re-search-backward paragraph-start nil t))
-	    ;; Found one.
-	    (progn
-	      (while (and (not (eobp)) (looking-at paragraph-separate))
-		(forward-line 1))
-	      (if (eq (char-after (- (point) 2)) ?\n)
-		  (forward-line -1)))
-	  ;; No starter or separator line => use buffer beg.
-	  (goto-char (point-min))))
+	(if (bobp)
+	    nil
+	  ;; Go to end of the previous (non-separating) line.
+	  (end-of-line)
+	  ;; Search back for line that starts or separates paragraphs.
+	  (if (if fill-prefix-regexp
+		  ;; There is a fill prefix; it overrides paragraph-start.
+		  (progn
+		   (while (progn (beginning-of-line)
+				 (and (not (bobp))
+				      (not (looking-at paragraph-separate))
+				      (looking-at fill-prefix-regexp)))
+		     (forward-line -1))
+		   (not (bobp)))
+		(re-search-backward paragraph-start nil t))
+	      ;; Found one.
+	      (progn
+		;; Move forward over paragraph separators.
+		;; We know this cannot reach the place we started
+		;; because we know we moved back over a non-separator.
+		(while (and (not (eobp)) (looking-at paragraph-separate))
+		  (forward-line 1))
+		(if (eq (char-after (- (point) 2)) ?\n)
+		    (forward-line -1)))
+	    ;; No starter or separator line => use buffer beg.
+	    (goto-char (point-min)))))
       (setq arg (1+ arg)))
-    (while (> arg 0)
+    (while (and (> arg 0) (not (eobp)))
       (beginning-of-line)
       (while (prog1 (and (not (eobp))
 			 (looking-at paragraph-separate))
