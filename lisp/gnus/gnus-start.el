@@ -393,10 +393,13 @@ Can be used to turn version control on or off."
   :group 'gnus-newsrc
   :type 'boolean)
 
-(defvar gnus-startup-file-coding-system 'emacs-mule
+;;; Internal variables
+
+(defvar gnus-startup-file-coding-system 'binary
   "*Coding system for startup file.")
 
-;;; Internal variables
+(defvar gnus-ding-file-coding-system 'emacs-mule
+  "*Coding system for ding file.")
 
 (defvar gnus-newsrc-file-version nil)
 (defvar gnus-override-subscribe-method nil)
@@ -2021,7 +2024,7 @@ If FORCE is non-nil, the .newsrc file is read."
     (gnus-message 5 "Reading %s..." ding-file)
     (let (gnus-newsrc-assoc)
       (condition-case nil
-	  (let ((coding-system-for-read gnus-startup-file-coding-system))
+	  (let ((coding-system-for-read gnus-ding-file-coding-system))
 	    (load ding-file t t t))
 	(error
 	 (ding)
@@ -2383,7 +2386,7 @@ If FORCE is non-nil, the .newsrc file is read."
 	  (gnus-message 5 "Saving %s.eld..." gnus-current-startup-file)
 	  (gnus-gnus-to-quick-newsrc-format)
 	  (gnus-run-hooks 'gnus-save-quick-newsrc-hook)
-	  (let ((coding-system-for-write gnus-startup-file-coding-system))
+	  (let ((coding-system-for-write gnus-ding-file-coding-system))
 	    (save-buffer))
 	  (kill-buffer (current-buffer))
 	  (gnus-message
@@ -2509,7 +2512,7 @@ If FORCE is non-nil, the .newsrc file is read."
 	   (make-temp-name (concat gnus-current-startup-file "-slave-")))
 	  (modes (ignore-errors
 		   (file-modes (concat gnus-current-startup-file ".eld")))))
-      (let ((coding-system-for-write gnus-startup-file-coding-system))
+      (let ((coding-system-for-write gnus-ding-file-coding-system))
 	(gnus-write-buffer slave-name))
       (when modes
 	(set-file-modes slave-name modes)))))
