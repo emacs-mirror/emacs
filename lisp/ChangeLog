@@ -3,6 +3,21 @@
 	* international/mule-cmds.el (inactivate-input-method): Set
 	input-method-function to nil.
 
+2001-05-31  MORIOKA Tomohiko  <tomo@kanji.zinbun.kyoto-u.ac.jp>
+
+	* mail/rmailsum.el (rmail-message-subject-p): Don't call
+	`rmail-summary-line-decoder' if the message does not have Subject:
+	field.
+
+	* mail/rmail.el (rmail-revert): Modify to work in
+	rmail-view-buffer.
+
+	* mail/rmail.el (rmail-insert-mime-resent-message-function): New
+	variable.
+	(rmail-resend): Modify to work in `rmail-view-buffer'; call
+	`rmail-insert-mime-resent-message-function' if `rmail-enable-mime'
+	is non-nil.
+
 2001-05-29  Sam Steingold  <sds@gnu.org>
 
 	* faces.el (face-valid-attribute-values): Bind `valid' directly
