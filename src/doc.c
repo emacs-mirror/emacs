@@ -43,6 +43,8 @@ Boston, MA 02111-1307, USA.  */
 
 Lisp_Object Vdoc_file_name, Vhelp_manyarg_func_alist;
 
+Lisp_Object Qfunction_documentation;
+
 extern char *index ();
 
 extern Lisp_Object Voverriding_local_map;
@@ -309,12 +311,17 @@ string is passed through `substitute-command-keys'.")
   Lisp_Object funcar;
   Lisp_Object tem, doc;
 
+  if (SYMBOLP (function)
+      && (tem = Fget (function, Qfunction_documentation),
+	  !NILP (tem)))
+    return Fdocumentation_property (function, Qfunction_documentation, raw);
+  
   fun = Findirect_function (function);
-
   if (SUBRP (fun))
     {
-      if (XSUBR (fun)->doc == 0) return Qnil;
-      if ((EMACS_INT) XSUBR (fun)->doc >= 0)
+      if (XSUBR (fun)->doc == 0)
+	return Qnil;
+      else if ((EMACS_INT) XSUBR (fun)->doc >= 0)
 	doc = build_string (XSUBR (fun)->doc);
       else
 	doc = get_doc_string (make_number (- (EMACS_INT) XSUBR (fun)->doc),
@@ -787,6 +794,9 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 void
 syms_of_doc ()
 {
+  Qfunction_documentation = intern ("function-documentation");
+  staticpro (&Qfunction_documentation);
+  
   DEFVAR_LISP ("internal-doc-file-name", &Vdoc_file_name,
     "Name of file containing documentation strings of built-in symbols.");
   Vdoc_file_name = Qnil;
