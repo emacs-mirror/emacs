@@ -72,15 +72,21 @@ TIT-BIG5=\
 	quail/QJ-b5.el		\
 	quail/ZOZY.el
 
-TIT=${TIT-GB} ${TIT-BIG5}
+CHINESE-TIT=${TIT-GB} ${TIT-BIG5}
 
-CHINESE-GB=${TIT-GB} \
-	quail/py-punct.el
+NON-TIT-GB=quail/py-punct.el
 
-CHINESE-BIG5=${TIT-BIG5} \
-	quail/quick-b5.el quail/tsang-b5.el quail/pypunct-b5.el
+NON-TIT-BIG5=quail/quick-b5.el quail/tsang-b5.el quail/pypunct-b5.el
 
-CHINESE-CNS=quail/quick-cns.el quail/tsang-cns.el
+NON-TIT-CNS=quail/quick-cns.el quail/tsang-cns.el
+
+CHINESE-NON-TIT=${NON-TIT-GB} ${NON-TIT-BIG5} ${NON-TIT-CNS}
+
+CHINESE-GB=${TIT-GB} ${NON-TIT-GB}
+
+CHINESE-BIG5=${TIT-BIG5} ${NON-TIT-BIG5} 
+
+CHINESE-CNS=${NON-TIT-CNS} 
 
 JAPANESE=quail/japanese.el skk/skkdic.el
 
@@ -113,6 +119,9 @@ EASTASIA=${CHINESE} ${JAPANESE} ${KOREAN}
 ASIA=${EASTASIA} ${THAI} ${VIETNAMESE} ${LAO} ${INDIAN} ${TIBETAN}
 EUROPEAN=${LATIN} ${GREEK} ${RUSSIAN}
 WORLD=${ASIA} ${EUROPEAN} ${MISC}
+
+TIT=${CHINESE-TIT}
+NON-TIT=${CHINESE-NON-TIT} ${JAPANESE} ${KOREAN} ${EUROPEAN} ${MISC}
 
 all: ${EMACS} ${SUBDIRS} ${WORLD} leim-list.el
 
@@ -156,8 +165,12 @@ install: all
 	  rm -rf ${INSTALLDIR}/leim-list.el; \
 	  rm -rf ${INSTALLDIR}/quail ${INSTALLDIR}/skk ; \
 	  echo "Copying leim files to ${INSTALLDIR} ..." ; \
-	  tar -chf - leim-list.el ${SUBDIRS} \
-	       | (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
+	  cp leim-list.el ${INSTALLDIR} ; \
+	  tar -cf - ${TIT} \
+		| (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
+	  cd ${srcdir}; \
+	  tar -cf - ${NON-TIT} \
+		| (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
 	else true; fi
 
 clean mostlyclean:
