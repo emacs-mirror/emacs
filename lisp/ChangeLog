@@ -1,3 +1,8 @@
+2000-11-29  Miles Bader  <miles@gnu.org>
+
+	* subr.el (member-ignore-case): Return the tail of the list who's
+	car matches, like `member', not the matching element itself.
+
 2000-11-29  Kenichi Handa  <handa@etl.go.jp>
 
 	* xml.el (xml-parse-tag): Fix finding opening tag.  A tag name
