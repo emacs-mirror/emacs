@@ -1322,7 +1322,7 @@ in order to initialize other data structure based on them.")
 	      (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|-command$"
 			    (symbol-name var))
 	      (not (get var 'safe-local-variable))))
-	 ;; Permit evaling a put of a harmless property
+	 ;; Permit evalling a put of a harmless property.
 	 ;; if the args do nothing tricky.
 	 (if (or (and (eq var 'eval)
 		      (consp val)
@@ -2040,7 +2040,7 @@ or multiple mail buffers, etc."
   "Create the directory DIR and any nonexistent parent dirs.
 Interactively, the default choice of directory to create
 is the current default directory for file names.
-That is useful when you have visited a file in a nonexistint directory.
+That is useful when you have visited a file in a nonexistent directory.
 
 Noninteractively, the second (optional) argument PARENTS says whether
 to create parent directories if they don't exist."
