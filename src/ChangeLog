@@ -1,3 +1,8 @@
+2003-04-04  Kenichi Handa  <handa@etlken2>
+
+	* editfns.c (Fformat): Use a copy of FORMAT string so that we can
+	destructively change "%S" to "%s".
+
 2003-04-03  Miles Bader  <miles@gnu.org>
 
 	* xfaces.c (choose_face_font): Make sure *NEEDS_OVERSTRIKE is
