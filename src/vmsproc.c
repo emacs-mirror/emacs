@@ -26,11 +26,20 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
     23 is the timer event flag
     24-31 are reserved by VMS
 */
+#include <config.h>
 #include	<ssdef.h>
 #include	<iodef.h>
 #include	<dvidef.h>
 #include	<clidef.h>
 #include	"vmsproc.h"
+#include	"lisp.h"
+#include	"buffer.h"
+#include	<file.h>
+#include	"process.h"
+#include	"commands.h"
+#include	<errno.h>
+extern Lisp_Object call_process_cleanup ();
+
 
 #define		KEYBOARD_EVENT_FLAG		1
 #define		TIMER_EVENT_FLAG		23
@@ -241,7 +250,7 @@ write_to_vms_process (vs, buf, len)
 	  error ("Could not write to subprocess: %x", status);
 	  return (0);
 	}
-      len =- out;
+      len -= out;
     }
   return (1);
 }
@@ -719,7 +728,7 @@ create_process (process, new_argv)
   chan_process[inchannel] = process;
   XFASTINT (XPROCESS (process)->infd) = inchannel;
   XFASTINT (XPROCESS (process)->outfd) = outchannel;
-  XFASTINT (XPROCESS (process)->flags) = RUNNING;
+  XPROCESS (process)->status = Qrun
 
   /* Delay interrupts until we have a chance to store
      the new fork's pid in its process structure */
@@ -759,10 +768,7 @@ child_sig (vs)
   if (XSYMBOL (tail) == XSYMBOL (Qnil))
     return;
 
-  child_changed++;
-  XFASTINT (p->flags) = EXITED | CHANGED;
-  /* Truncate the exit status to 24 bits so that it fits in a FASTINT */
-  XFASTINT (p->reason) = (vs->exitStatus) & 0xffffff;
+  p->status = Fcons (Qexit, Fcons (make_number (vs->exitStatus), Qnil))
 }
 
 syms_of_vmsproc ()
