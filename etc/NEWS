@@ -502,10 +502,10 @@ buffers.
 
 +++
 ** Emacs can now support 'wheeled' mice (such as the MS IntelliMouse)
-under XFree86.  To enable this, simply put (mwheel-install) in your
-.emacs file.
+under XFree86.  To enable this, use the `mouse-wheel-mode' command, or
+customize the variable `mouse-wheel-mode'.
 
-The variables `mwheel-follow-mouse' and `mwheel-scroll-amount'
+The variables `mouse-wheel-follow-mouse' and `mouse-wheel-scroll-amount'
 determine where and by how much buffers are scrolled.
 
 ** Listing buffers with M-x list-buffers (C-x C-b) now shows
