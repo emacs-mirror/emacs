@@ -29,7 +29,6 @@
 
 	* fns.c (map_char_table): Add missing gcpros.
 
->>>>>>> 1.3925
 2004-10-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymap.c (get_keymap): An autoload form is not a keymap.
