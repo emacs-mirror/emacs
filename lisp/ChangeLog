@@ -1,3 +1,8 @@
+2002-11-03  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-dired-mode): Adapt dired-move-to-filename-regexp to 
+	its current version in dired.el.
+
 2002-10-28  Juanma Barranquero  <lektu@terra.es>  (tiny change)
 
 	* progmodes/compile.el (grep-find-use-xargs): Fix docstring.
