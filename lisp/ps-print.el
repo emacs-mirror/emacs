@@ -1654,7 +1654,7 @@ an explicit filename is given as the last argument."
   "*Specify a function to print the region on a PostScript printer.
 See definition of `call-process-region' for calling conventions.  The fourth and
 the sixth arguments are both nil."
-  :type 'function
+  :type '(choice (const nil) function)
   :group 'ps-print-printer)
 
 (defcustom ps-manual-feed nil
