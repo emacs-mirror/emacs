@@ -67,10 +67,19 @@ controlled by a separate variable, `mail-specify-envelope-from'."
 ;;;###autoload
 (defcustom mail-specify-envelope-from nil
   "*If non-nil, specify the envelope-from address when sending mail.
-The value used to specify it is whatever is found in `user-mail-address'.
+The value used to specify it is whatever is found in
+`mail-envelope-from', with `user-mail-address' as fallback.
 
 On most systems, specifying the envelope-from address
 is a privileged operation."
+  :version "21.1"
+  :type 'boolean
+  :group 'sendmail)
+
+(defcustom mail-envelope-from nil
+  "*If non-nil, designate the envelope-from address when sending mail.
+If this is nil while `mail-specify-envelope-from' is non-nil, the
+content of `user-mail-address' is used."
   :version "21.1"
   :type 'boolean
   :group 'sendmail)
@@ -801,8 +810,7 @@ external program defined by `sendmail-program'."
 	(mailbuf (current-buffer))
 	(program (if (boundp 'sendmail-program)
 		     sendmail-program
-		   "/usr/lib/sendmail"))
-	(originator user-mail-address))
+		   "/usr/lib/sendmail")))
     (unwind-protect
 	(save-excursion
 	  (set-buffer tembuf)
@@ -968,8 +976,9 @@ external program defined by `sendmail-program'."
 		      (append (list (point-min) (point-max)
 				    program
 				    nil errbuf nil "-oi")
-			      (and mail-specify-envelope-from 
-				   (list "-f" originator))
+			      (and mail-specify-envelope-from
+				   (list "-f" (or mail-envelope-from
+						  user-mail-address)))
 ;;; 			      ;; Don't say "from root" if running under su.
 ;;; 			      (and (equal (user-real-login-name) "root")
 ;;; 				   (list "-f" (user-login-name)))
