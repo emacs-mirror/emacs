@@ -1,3 +1,18 @@
+2003-10-01  Kenichi Handa  <handa@m17n.org>
+
+	* term.c (terminal_encode_buffer, terminal_encode_buf_size): New
+	variables.
+	(encode_terminal_code): Argument changed.  Encode multiple
+	characters at once.  Store the result of encoding in
+	terminal_encode_buffer.
+	(write_glyphs): Adjusted for the change of encode_terminal_code.
+	(insert_glyphs): Likewise.
+	(term_init): Initialize terminal_encode_buffer and
+	terminal_encode_buf_size.
+
+	* coding.c (consume_chars): If coding->src_object is nil, don't
+	check annotation.
+
 2003-09-30  Kenichi Handa  <handa@m17n.org>
 
 	* character.c (char_string): Use ASCII_CHAR_P instead of

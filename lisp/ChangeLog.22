@@ -1,3 +1,8 @@
+2003-10-01  Kenichi Handa  <handa@m17n.org>
+
+	* language/japanese.el (iso-2022-jp, iso-2022-jp-2)
+	(japanese-iso-8bit): Fix the order of charsets in :charset-list.
+
 2003-09-30  Kenichi Handa  <handa@m17n.org>
 
 	* composite.el (auto-composition-chunk-size): Variable deleted.
