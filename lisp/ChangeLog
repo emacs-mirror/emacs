@@ -1,3 +1,8 @@
+2002-05-22  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/fontset.el: Add setting for unicode font at the
+	end of the default fontset.
+
 2002-05-21  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-conf.el (vietnamese-viscii-lower,
