@@ -948,8 +948,15 @@ direct_output_forward_char (n)
   register SCREEN_PTR screen = selected_screen;
   register struct window *w = XWINDOW (selected_window);
 
-  /* Avoid losing if cursor is in invisible text off left margin */
-  if (XINT (w->hscroll) && SCREEN_CURSOR_X (screen) == XFASTINT (w->left))
+  /* Avoid losing if cursor is in invisible text off left margin
+     or about to go off either side of window.  */
+  if ((SCREEN_CURSOR_X (screen) == XFASTINT (w->left)
+       && (XINT (w->hscroll) || n < 0))
+      || (n > 0
+	  && (SCREEN_CURSOR_X (screen) + 1
+	      >= (XFASTINT (w->left) + XFASTINT (w->width)
+		  - (XFASTINT (w->width) < SCREEN_WIDTH (screen))
+		  - 1))))
     return 0;
 
   SCREEN_CURSOR_X (screen) += n;

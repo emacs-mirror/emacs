@@ -373,9 +373,9 @@ struct position val_compute_motion;
    compute_motion uses this to handle continuation lines and such.
    HSCROLL is the number of columns not being displayed at the left
    margin; this is usually taken from a window's hscroll member.
-   TAB_OFFSET is a mysterious value, perhaps the number of columns of
-   the first tab that aren't being displayed, perhaps because of a
-   continuation line or something.
+   TAB_OFFSET is the number of columns of the first tab that aren't
+   being displayed, perhaps because of a continuation line or
+   something.
 
    compute_motion returns a pointer to a struct position.  The bufpos
    member gives the buffer position at the end of the scan, and hpos
