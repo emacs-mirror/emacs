@@ -121,9 +121,8 @@ Valid symbols are `truncation', `wrap', `escape', `control',
 (defun standard-display-default (l h)
   "Display characters in the range L to H using the default notation."
   (while (<= l h)
-    (if (and (>= l ?\ ) (< l 127))
-	(aset standard-display-table l nil)
-      (aset standard-display-table l nil))
+    (if (and (>= l ?\ ) (char-valid-p l))
+	(aset standard-display-table l nil))
     (setq l (1+ l))))
 
 ;; This function does NOT take terminal-dependent escape sequences.
