@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!38.c(trunk.5) $
+ id = $HopeName: MMQA_test_function!38.c(trunk.6) $
  summary = test of location dependencies
  language = c
  link = testlib.o rankfmt.o
@@ -11,6 +11,7 @@ END_HEADER
 #include "mpscawl.h"
 #include "mpscmv.h"
 #include "mpscamc.h"
+#include "mpsavm.h"
 #include "rankfmt.h"
 
 
@@ -29,7 +30,7 @@ static void checklds(void) {
  for (i=0; i < MAXLDS; i++) {
   if (obj_table[i]->data.copycount != 0) {
    asserts(mps_ld_isstale(lds[i], arena, (mps_addr_t) obj_table[i]),
-    "%d isn't stale but should be", i);
+           "%d isn't stale but should be", i);
    if (ranint(4) == 0) {
     obj_table[i]->data.copycount = 0;
     mps_ld_reset(lds[i], arena);
