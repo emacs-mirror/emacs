@@ -1,11 +1,9 @@
-/* impl.h.testlib: TEST LIBRARY
+/* impl.h.testlib: TEST LIBRARY INTERFACE
  *
- * $HopeName: MMsrc!testlib.h(trunk.11) $
- * Copyright (C) 1995, 1998 Harlequin Group plc.  All rights reserved.
+ * $HopeName$
+ * Copyright (C) 1995, 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: A library of functions that may be of use to unit tests.
- *
- * .notes: There is no way to set the seed for rnd.  1995-03-14 drj
  */
 
 #ifndef testlib_h
@@ -109,6 +107,16 @@ extern void die_expect(mps_res_t res, mps_res_t expected, const char *s);
  */
 
 extern unsigned long rnd(void);
+
+
+/* randomize -- randomize the generator, or initialize to replay
+ *
+ * randomize(argc, argv) randomizes the rnd generator (using time(3))
+ * and prints out the randomization seed, or takes a seed (as a command-
+ * line argument) and initializes the generator to the same state.
+ */
+
+extern void randomize(int argc, char **argv);
 
 
 /* adjust_collection_freq -- multiply all collection frequencies by
