@@ -1,10 +1,8 @@
 ;;; decipher.el --- Cryptanalyze monoalphabetic substitution ciphers
 ;;
-;; Copyright (C) 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 ;;
 ;; Author: Christopher J. Madsen <ac608@yfn.ysu.edu>
-;; Created: 27 Nov 1994
-;; Version: 1.18 (1996/01/19 22:11:55)
 ;; Keywords: games
 ;;
 ;; This file is part of GNU Emacs.
@@ -22,13 +20,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-
-;;; Installation:
-;;
-;; Put decipher.el somewhere in your load-path.  Byte-compile it if you
-;; wish.  Then put the following in your .emacs file:
-;;     (autoload 'decipher      "decipher" nil t)
-;;     (autoload 'decipher-mode "decipher" nil t)
 
 ;;; Quick Start:
 ;;
@@ -88,7 +79,8 @@
 ;;; Variables:
 ;;;===================================================================
 
-(require 'cl)
+(eval-when-compile
+  (require 'cl))
 
 (defvar decipher-force-uppercase t
   "*Non-nil means to convert ciphertext to uppercase.
