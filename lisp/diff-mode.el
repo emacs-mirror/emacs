@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.11 2000/09/07 20:14:27 fx Exp $
+;; Revision: $Id: diff-mode.el,v 1.12 2000/09/11 13:49:38 miles Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -133,7 +133,8 @@ when editing big diffs)."
     ;; From compilation-minor-mode.
     ("\C-c\C-c" . diff-goto-source)
     ;; Misc operations.
-    ("\C-cda" . diff-apply-hunk))
+    ("\C-cda" . diff-apply-hunk)
+    ("\C-cdt" . diff-test-hunk))
   "Keymap for `diff-mode'.  See also `diff-mode-shared-map'.")
 
 (easy-menu-define diff-mode-menu diff-mode-map
@@ -883,7 +884,7 @@ Only works for unified diffs."
 (defun diff-hunk-text (hunk dest)
   "Returns the literal source text from HUNK, if DEST is nil, otherwise
 the destination text."
-  (with-current-buffer "foo"
+  (with-temp-buffer
     (erase-buffer)
     (insert hunk)
     (goto-char (point-min))
@@ -1068,11 +1069,10 @@ was non-nil."
 			    (- real-line patch-line)))))
 
 	  ;; Display BUF in a window, and maybe select it
-	  (cond ((eq popup 'select)
-		 (pop-to-buffer buf)
-		 (goto-char pos))
-		(t
-		 (set-window-point (display-buffer buf) pos))))
+	  (let ((win (display-buffer buf)))
+	    (set-window-point win pos)
+	    (when (eq popup 'select)
+	      (select-window win))))
 
 	;; Return an appropriate indicator of success
 	(if reversed 'reversed t)))))
