@@ -143,7 +143,7 @@ contains just the tag table and a directory of subfiles."
     (while subfiles
       (goto-char start)
       (insert (nth 1 (car subfiles))
-	      (format ": %d" (car (car subfiles)))
+	      (format ": %d" (1- (car (car subfiles))))
 	      "\n")
       (setq subfiles (cdr subfiles)))
     (goto-char start)
