@@ -1,3 +1,13 @@
+2002-04-18  Richard M. Stallman  <rms@gnu.org>
+
+	* textprop.c (remove_properties): New arg LIST allows scanning
+	either a list or a plist.
+	(interval_has_some_properties_list): New function, like
+	interval_has_some_properties using list instead of plist.
+	All callers changed.
+	(Fremove_list_of_text_properties): New function.
+	(syms_of_textprop): Defsubr it.
+
 2002-04-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* s/sol2.h (HAVE_LIBKSTAT): Define only if not already defined.
