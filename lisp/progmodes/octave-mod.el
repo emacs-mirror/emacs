@@ -40,6 +40,7 @@
 ;; `run-octave' for further information on usage and customization.
 
 ;;; Code:
+(require 'custom)
 
 (defgroup octave nil
   "Major mode for editing Octave source files."
@@ -308,8 +309,7 @@ parenthetical grouping.")
 (defcustom octave-auto-indent nil
   "*Non-nil means indent line after a semicolon or space in Octave mode."
   :type 'boolean
-  :group 'octave
-  :version "20.3")
+  :group 'octave)
 
 (defcustom octave-auto-newline nil
   "*Non-nil means automatically newline after a semicolon in Octave mode."
