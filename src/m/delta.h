@@ -161,10 +161,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define SYSV_PTYS
 #define HAVE_SELECT
 #define HAVE_SOCKETS		/***** only if NSE has been installed *****/
-#define HAVE_UNISTD_H
 #define HAVE_TIMEVAL
 #define SIGNALS_VIA_CHARACTERS
-#define memmove safe_bcopy
+#define BROKEN_CLOSEDIR		/* builtin closedir is interruptible */
+#define memmove safe_bcopy	/* for overlapping copies */
 #undef KERNEL_FILE
 #define KERNEL_FILE "/sysv68"
 #undef LDAV_SYMBOL
@@ -213,9 +213,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 # ifdef __STDC__
  /* Compiling with gnucc (not through ccd).  This means -traditional is
-    not set.  Let us set it, because I didn't manage yet to make it
-    compile without -traditional. -pot@cnuce.cnr.it. */
-#  define C_SWITCH_MACHINE -traditional -mfp0ret -m68881 -Dconst=
+    not set.  Let us set it, because (as of emacs 19.21) gmalloc.c
+    includes <stddef.h>, and we don't have that (as of SYSV68 R3V7).
+    Removing the -finline-functions option to gnucc causes an
+    executable emacs smaller by about 10%. */
+#  define C_SWITCH_MACHINE -mfp0ret -m68881 -traditional -Dconst= -fdelayed-branch -fstrength-reduce -finline-functions -fcaller-saves
 #  define LIB_GCC /lib/gnulib881
 # endif /* __STDC__ */
 
