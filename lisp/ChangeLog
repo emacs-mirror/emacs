@@ -1,3 +1,16 @@
+2002-03-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/xml-lite.el: Don't require `custom'.
+	(xml-lite-parse-tag-name): Properly treat non-ASCII chars.
+	(xml-lite-parse-tag-backward): Obey sgml-empty-tags.
+	(xml-lite-get-context): Drop nested tags not just for comments.
+	(xml-lite-indent-line): Be more careful about moving point.
+	(xml-lite-insert-end-tag, xml-lite-slash):
+	Use indent-according-to-mode instead of xml-lite-indent-line.
+	(xml-lite-mode): Make xml-lite-orig-indent-line-function buffer-local.
+	Set sgml-xml-mode.  Don't call force-mode-line-update.
+	(xml-lite-mode-map): Don't bind TAB.
+
 2002-03-27  Zoltan Kemenczy  <zoltan@ieee.org>
 
 	* gud.el (gud-jdb-sourcepath): New variable, saves jdb -sourcepath
