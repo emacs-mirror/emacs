@@ -1,3 +1,29 @@
+2004-09-26  Stefan  <monnier@iro.umontreal.ca>
+
+	* term.el (term-display-table): New variable.
+	(term-mode): Use it.
+	(term-exec-1): Set the coding system to binary.
+	(term-emulate-terminal): Decode the string before inserting it.
+	
+2004-09-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (term-ansi-at-eval-string, term-ansi-default-fg)
+	(term-ansi-default-bg, term-ansi-current-temp): Delete unused
+	vars.
+	(map): Bind S-prior, S-next and S-insert.
+	(term-mode): Set `indent-tabs-mode' to nil.
+	(term-paste): New function to be bound to S-insert.
+	(term-send-del, term-send-backspace): Change the strings sent.
+	(term-termcap-format): Synchronyze with etc/e/eterm.ti.
+	(term-handle-colors-array): Fix handling of underline and reverse.
+	(term-handle-ansi-escape): Do not handle smcup/rmcup. Add
+	comments. 
+	(term-erase-in-line): Fix comparison.
+        (term-emulate-terminal): Fix line wrap handling.
+	(term-start-output-log): Renamed from `term-set-output-log'.
+	(term-stop-output-log): Renamed from `term-stop-photo'.
+        (term-switch-to-alternate-sub-buffer): Comment out, unused. 
+	
 2004-09-25  Stefan  <monnier@iro.umontreal.ca>
 
 	* dired.el (dired-move-to-filename): Don't output a message if
