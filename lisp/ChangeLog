@@ -1,3 +1,8 @@
+2000-08-17  Miles Bader  <miles@gnu.org>
+
+	* progmodes/octave-inf.el: Add compatibility definition of
+	comint-line-beginning-position.
+
 2000-08-17  Kenichi Handa  <handa@etl.go.jp>
 
 	* startup.el (normal-top-level): Look in each dir in load-path for
@@ -102,7 +107,7 @@
 
 2000-08-16  Miles Bader  <miles@gnu.org>
 
-	* progmodes/sql.el: Add compatibility definition onf
+	* progmodes/sql.el: Add compatibility definition of
 	comint-line-beginning-position.
 
 2000-08-15  Gerd Moellmann  <gerd@gnu.org>
