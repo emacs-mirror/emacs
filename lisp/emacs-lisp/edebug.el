@@ -2762,6 +2762,7 @@ MSG is printed after `::::} '."
 (defvar edebug-outside-map)
 (defvar edebug-outside-standard-output)
 (defvar edebug-outside-standard-input)
+(defvar edebug-outside-current-prefix-arg)
 (defvar edebug-outside-last-command-char)
 (defvar edebug-outside-last-command)
 (defvar edebug-outside-this-command)
@@ -2831,6 +2832,7 @@ MSG is printed after `::::} '."
 	(edebug-outside-last-input-char last-input-char)
 
 	(edebug-outside-unread-command-char unread-command-char)
+	(edebug-outside-current-prefix-arg current-prefix-arg)
 
 	(edebug-outside-last-input-event last-input-event)
 	(edebug-outside-last-command-event last-command-event)
@@ -2852,6 +2854,7 @@ MSG is printed after `::::} '."
 
 	      ;; Assume no edebug command sets unread-command-char.
 	      (unread-command-char -1)
+	      (current-prefix-arg nil)
 
 	      ;; More for Emacs 19
 	      (last-input-event nil)
@@ -2921,6 +2924,7 @@ MSG is printed after `::::} '."
        unread-command-char edebug-outside-unread-command-char
        unread-command-event edebug-outside-unread-command-event
        unread-command-events edebug-outside-unread-command-events
+       current-prefix-arg edebug-outside-current-prefix-arg
        last-input-char edebug-outside-last-input-char
        last-input-event edebug-outside-last-input-event
        last-event-frame edebug-outside-last-event-frame
@@ -3565,6 +3569,7 @@ Return the result of the last expression."
 	     (unread-command-char edebug-outside-unread-command-char)
 	     (unread-command-event edebug-outside-unread-command-event)
 	     (unread-command-events edebug-outside-unread-command-events)
+	     (current-prefix-arg edebug-outside-current-prefix-arg)
 	     (last-input-char edebug-outside-last-input-char)
 	     (last-input-event edebug-outside-last-input-event)
 	     (last-event-frame edebug-outside-last-event-frame)
@@ -3606,6 +3611,7 @@ Return the result of the last expression."
 	    edebug-outside-unread-command-char unread-command-char
 	    edebug-outside-unread-command-event unread-command-event
 	    edebug-outside-unread-command-events unread-command-events
+	    edebug-outside-current-prefix-arg current-prefix-arg
 	    edebug-outside-last-input-char last-input-char
 	    edebug-outside-last-input-event last-input-event
 	    edebug-outside-last-event-frame last-event-frame
@@ -4421,9 +4427,6 @@ Print result in minibuffer."
   (cond 
    ((string-match "Lucid" emacs-version);; Lucid Emacs
     (edebug-lemacs-specific))
-
-   ((and (boundp 'epoch::version) epoch::version)
-    (require 'edebug-epoch))
 
    ((not (string-match "^18" emacs-version))
     (edebug-emacs-19-specific))))
