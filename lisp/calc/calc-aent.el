@@ -348,7 +348,7 @@
 
 (defun calcAlg-previous ()
   (interactive)
-  (if (calc-minibuffer-contains "\\`\\'")
+  (if (calc-minibuffer-contains "\\'")
       (if calc-previous-alg-entry
 	  (insert calc-previous-alg-entry)
 	(beep))
