@@ -1,3 +1,15 @@
+2003-09-19  Richard M. Stallman  <rms@gnu.org>
+
+	* atimer.h: Don't include lisp.h.
+	(P_): Define it here (as well as elsewhere).
+
+	* print.c (Fprin1_to_string): Move the PRINTPREPARE
+	later, so that PRINTFINISH won't unbind Qinhibit_modification_hooks.
+
+	* data.c (Fvariable_binding_locus): New function.
+	(syms_of_data): defsubr it.
+	(Flocal_variable_p): Delete duplicate call to indirect_variable.
+
 2003-09-18  Dave Love  <fx@gnu.org>
 
 	* process.c (Fnetwork_interface_info): Fix type error.

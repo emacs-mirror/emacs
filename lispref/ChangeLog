@@ -1,3 +1,29 @@
+2003-09-19  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Motion by Indent): Arg to
+	backward-to-indentation and forward-to-indentation is optional.
+
+	* strings.texi (Creating Strings): Add substring-no-properties.
+
+	* processes.texi
+	(Process Information): Add list-processes arg QUERY-ONLY.
+	Delete process-contact from here.
+	Add new status values for process-status.
+	Add process-get, process-put, process-plist, set-process-plist.
+	(Synchronous Processes): Add call-process-shell-command.
+	(Signals to Processes): signal-process allows process objects.
+	(Network): Complete rewrite.
+	(Network Servers, Datagrams, Low-Level Network): New nodes.
+
+	* positions.texi (Word Motion): forward-word, backward-word
+	arg is optional.  Reword.
+
+	* abbrevs.texi (Defining Abbrevs): Index no-self-insert.
+
+	* variables.texi (Creating Buffer-Local): 
+	Delete duplicate definition of buffer-local-value.
+	(File Local Variables): Explain about discarding text props.
+
 2003-09-11  Richard M. Stallman  <rms@gnu.org>
 
 	* minibuf.texi (Intro to Minibuffers): Explain that the minibuffer

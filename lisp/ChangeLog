@@ -1,3 +1,17 @@
+2003-09-19  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/edebug.el (edebug-var-status, edebug-restore-status): 
+	New functions.
+	(edebug-enter, edebug-outside-excursion): Use them.
+
+	* emacs-lisp/bytecomp.el (byte-compile-warning-prefix):
+	Fix the condition for whether to print "In WHERE".
+
+2003-09-19  Jari Aalto  <jari.aalto@poboxes.com>
+	
+	* finder.el (finder-mode-hook): New variable.
+	(finder-mode): Run hook finder-mode-hook
+
 2003-09-18  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/ebrowse.el: Fix broken magic autoload comments.
