@@ -72,7 +72,7 @@
 ;; In the Tramp CVS repository, the version numer is auto-frobbed from
 ;; the Makefile, so you should edit the top-level Makefile to change
 ;; the version number.
-(defconst tramp-version "2.0.7"
+(defconst tramp-version "2.0.8"
   "This version of tramp.")
 
 (defconst tramp-bug-report-address "tramp-devel@mail.freesoftware.fsf.org"
@@ -1268,11 +1268,11 @@ my %%trans = do {
       split //, q(ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/);
 };
 
-binmode(\*STDIN);
+binmode(\\*STDIN);
 
 # We read in chunks of 54 bytes, to generate output lines
 # of 72 chars (plus end of line)
-$/ = \54;
+$/ = \\54;
 
 while (my $data = <STDIN>) {
     my $pad = q();
@@ -1291,7 +1291,7 @@ while (my $data = <STDIN>) {
         map($trans{$_},
             (substr(unpack(q(B*), $data) . q(00000), 0, 432) =~ /....../g)),
               $pad,
-                qq(\n);
+                qq(\\n);
 }
 '"
   "Perl program to use for encoding a file.
@@ -1312,7 +1312,7 @@ my %%trans = do {
 
 my %%bytes = map {(unpack(q(B8), chr $_), chr $_)} 0 .. 255;
 
-binmode(\*STDOUT);
+binmode(\\*STDOUT);
 
 # We are going to accumulate into $pending to accept any line length
 # (we do not check they are <= 76 chars as the RFC says)
