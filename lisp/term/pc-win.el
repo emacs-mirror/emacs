@@ -170,8 +170,12 @@
 ;;; from x-cut-buffer-or-selection-value.
 (defvar x-last-selected-text nil)
 
-(defvar x-select-enable-clipboard t
-  "Non-nil means cutting and pasting uses the clipboard.")
+(defcustom x-select-enable-clipboard t
+  "Non-nil means cutting and pasting uses the clipboard.
+This is the default on this system, since MS-Windows does not
+support other types of selections."
+  :type 'boolean
+  :group 'killing)
 
 (defun x-select-text (text &optional push)
   (if x-select-enable-clipboard 
