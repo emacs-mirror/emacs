@@ -118,8 +118,12 @@ Getting Mail -> Mail Sources
 
 *** Gnus is now a MIME-capable reader.  This affects many parts of
 Gnus, and adds a slew of new commands.  See the manual for details.
-Separate MIME packages like RMIME, SEMI, mime-compose etc., will
-probably no longer work; remove them and use the native facilities.
+Separate MIME packages like RMIME, mime-compose etc., will probably no
+longer work; remove them and use the native facilities.
+
+FLIM/SEMI package still works with Emacs 21.  But, if you want to use
+the native facilities, you must remove mailcap.el[c] that was
+installed by FLIM/SEMI of version 1.13 or the earlier.
 
 *** Gnus has also been multilingualized.  This also affects too many
 parts of Gnus to summarize here, and adds many new variables.  There
