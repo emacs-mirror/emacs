@@ -750,9 +750,9 @@ This function returns a string or vector containing the key sequence
 that invoked the present command, plus any previous commands that
 generated the prefix argument for this command.  However, if the
 command has called @code{read-key-sequence}, it returns the last read
-key sequence.  @xref{Definition of read-key-sequence}.  The value is a
-string if all events in the sequence were characters that fit in a
-string.  @xref{Input Events}.
+key sequence.  @xref{Key Sequence Input}.  The value is a string if
+all events in the sequence were characters that fit in a string.
+@xref{Input Events}.
 
 @example
 @group
@@ -2019,7 +2019,6 @@ for example, @code{describe-key} uses it to read the key to describe.
 
 @defun read-key-sequence prompt
 @cindex key sequence
-@anchor{Definition of read-key-sequence}
 This function reads a key sequence and returns it as a string or
 vector.  It keeps reading events until it has accumulated a complete key
 sequence; that is, enough to specify a non-prefix command using the
@@ -2906,15 +2905,18 @@ Require special confirmation to execute @var{command} from now on, and
 alter the user's init file so that this will apply to future sessions.
 @end deffn
 
-@defvar disabled-command-hook
-When the user invokes a disabled command interactively, this normal hook
-is run instead of the disabled command.  The hook functions can use
-@code{this-command-keys} to determine what the user typed to run the
-command, and thus find the command itself.  @xref{Hooks}.
+@defvar disabled-command-function
+The value of this variable should be a function.  When the user
+invokes a disabled command interactively, this function is called
+instead of the disabled command.  It can use @code{this-command-keys}
+to determine what the user typed to run the command, and thus find the
+command itself.
 
-By default, @code{disabled-command-hook} contains a function that asks
-the user whether to proceed.  If the value is @code{nil}, then all
-commands work normally, even disabled ones.
+The value may also be @code{nil}.  Then all commands work normally,
+even disabled ones.
+
+By default, the value is a function that asks the user whether to
+proceed.
 @end defvar
 
 @node Command History
