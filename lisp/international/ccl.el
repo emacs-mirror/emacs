@@ -72,11 +72,20 @@
 ;;	(read REG ...)
 ;;	| (read-if (REG OPERATOR ARG) CCL_BLOCK CCL_BLOCK)
 ;;	| (read-branch REG CCL_BLOCK [CCL_BLOCK ...])
+;;      | (read-multibyte-character REG {charset} REG {code-point})
 ;; WRITE :=
 ;;	(write REG ...)
 ;;	| (write EXPRESSION)
 ;;	| (write integer) | (write string) | (write REG ARRAY)
 ;;	| string
+;;      | (write-multibyte-character REG(charset) REG(codepoint))
+;; UNIFY :=
+;;      (unify-char REG(table) REG(charset) REG(codepoint))
+;;      | (unify-char integer REG(charset) REG(codepoint))
+;;      | (unify-char SYMBOL REG(charset) REG(codepoint))
+;; TRANSLATE :=
+;;      (iterate-multiple-map REG REG TABLE-ID TABLE-ID...)
+;;      | (translate-multiple-map REG REG (TABLE-ID TABLE-ID ...)(TABLE-ID TABLE-ID ...)...)
 ;; CALL := (call ccl-program-name)
 ;; END := (end)
 ;;
@@ -93,7 +102,10 @@
 
 (defconst ccl-command-table
   [if branch loop break repeat write-repeat write-read-repeat
-      read read-if read-branch write call end]
+      read read-if read-branch write call end
+      read-multibyte-character write-multibyte-character
+      unify-character
+      iterate-multiple-map translate-multiple-map translate-single-map]
   "*Vector of CCL commands (symbols).")
 
 ;; Put a property to each symbol of CCL commands for the compiler.
@@ -135,8 +147,21 @@
    jump-cond-expr-register
    read-jump-cond-expr-const
    read-jump-cond-expr-register
+   ex-cmd
    ]
   "*Vector of CCL compiled codes (symbols).")
+
+(defconst ccl-extended-code-table
+  [read-multibyte-character
+   write-multibyte-character
+   unify-character
+   unify-character-const-tbl
+   nil nil nil nil nil nil nil nil nil nil nil nil ; 0x04-0x0f
+   iterate-multiple-map
+   translate-multiple-map
+   translate-single-map
+   ]
+  "Vector of CCL extended compiled codes (symbols).")
 
 ;; Put a property to each symbol of CCL codes for the disassembler.
 (let (code (i 0) (len (length ccl-code-table)))
@@ -144,6 +169,15 @@
     (setq code (aref ccl-code-table i))
     (put code 'ccl-code i)
     (put code 'ccl-dump-function (intern (format "ccl-dump-%s" code)))
+    (setq i (1+ i))))
+
+(let (code (i 0) (len (length ccl-extended-code-table)))
+  (while (< i len)
+    (setq code (aref ccl-extended-code-table i))
+    (if code
+	(progn
+	  (put code 'ccl-ex-code i)
+	  (put code 'ccl-dump-function (intern (format "ccl-dump-%s" code)))))
     (setq i (1+ i))))
 
 (defconst ccl-jump-code-list
@@ -254,6 +288,16 @@
 			(ash data 8)))))
     (aset ccl-program-vector ccl-current-ic code)
     (setq ccl-current-ic (1+ ccl-current-ic))))
+
+;; extended ccl command format
+;;	|- 14-bit -|- 3-bit --|- 3-bit --|- 3-bit --|- 5-bit -|
+;;	|- EX-OP --|-- REG3 --|-- REG2 --|-- REG ---|-- OP ---|
+(defun ccl-embed-extended-command (ex-op reg reg2 reg3)
+  (let ((data (logior (ash (get ex-op 'ccl-ex-code) 3)
+		      (if (symbolp reg3)
+			  (get reg3 'ccl-register-number)
+			0))))
+    (ccl-embed-code 'ex-cmd reg data reg2)))
 
 ;; Just advance `ccl-current-ic' by INC.
 (defun ccl-increment-ic (inc)
@@ -799,6 +843,106 @@
   (ccl-embed-code 'end 0 0)
   t)
 
+;; Compile read-multibyte-character
+(defun ccl-compile-read-multibyte-character (cmd)
+  (if (/= (length cmd) 3)
+      (error "CCL: Invalid number of arguments: %s" cmd))
+  (let ((RRR (nth 1 cmd))
+	(rrr (nth 2 cmd)))
+    (ccl-check-register rrr cmd)
+    (ccl-check-register RRR cmd)
+    (ccl-embed-extended-command 'read-multibyte-character rrr RRR 0)))
+
+;; Compile write-multibyte-character
+(defun ccl-compile-write-multibyte-character (cmd)
+  (if (/= (length cmd) 3)
+      (error "CCL: Invalid number of arguments: %s" cmd))
+  (let ((RRR (nth 1 cmd))
+	(rrr (nth 2 cmd)))
+    (ccl-check-register rrr cmd)
+    (ccl-check-register RRR cmd)
+    (ccl-embed-extended-command 'write-multibyte-character rrr RRR 0)))
+
+;; Compile unify-character
+(defun ccl-compile-unify-character (cmd)
+  (if (/= (length cmd) 4)
+      (error "CCL: Invalid number of arguments: %s" cmd))
+  (let ((Rrr(nth 1 cmd))
+	(RRR (nth 2 cmd))
+	(rrr (nth 3 cmd)))
+    (ccl-check-register rrr cmd)
+    (ccl-check-register RRR cmd)
+    (cond ((integerp Rrr)
+	   (ccl-embed-extended-command 'unify-character-const-tbl rrr RRR 0)
+	   (ccl-embed-data Rrr))
+	  ((symbolp Rrr)
+	   (ccl-embed-extended-command 'unify-character-const-tbl rrr RRR 0)
+	   (ccl-embed-data (get Rrr 'unification-table-id)))
+	  (t
+	   (ccl-check-register Rrr cmd)
+	   (ccl-embed-extended-command 'unify-character rrr RRR 0)))))
+
+(defun ccl-compile-iterate-multiple-map (cmd)
+  (ccl-compile-multiple-map-function 'iterate-multiple-map cmd))
+
+(defun ccl-compile-translate-multiple-map (cmd)
+  (if (< (length cmd) 4)
+      (error "CCL: Invalid number of arguments: %s" cmd))
+  (let ((itables (nthcdr 3 cmd))
+	itable arg)
+    (while (setq itable (car itables))
+      (setq arg (append arg '(-1)))
+      (if (not (consp itable))
+	  (error "CCL: Invalid argument: %s" itable))
+      (setq arg (append arg itable))
+      (setq itables (cdr itables)))
+    (setq arg (append (list (nth 0 cmd) (nth 1 cmd) (nth 2 cmd)) (cdr arg)))
+    (ccl-compile-multiple-map-function 'translate-multiple-map arg)))
+
+(defun ccl-compile-translate-single-map (cmd)
+  (if (/= (length cmd) 4)
+      (error "CCL: Invalid number of arguments: %s" cmd))
+  (let ((RRR (nth 1 cmd))
+	(rrr (nth 2 cmd))
+	(table (nth 3 cmd))
+	id)
+    (ccl-check-register rrr cmd)
+    (ccl-check-register RRR cmd)
+    (ccl-embed-extended-command 'translate-single-map rrr RRR 0)
+    (cond ((integerp table)
+	     (ccl-embed-data table))
+	    ((symbolp table)
+	     (setq id (get table 'ccl-translation-table-id))
+	     (if (numberp id)
+		 (ccl-embed-data (get id 'ccl-translation-table-id))
+	       (error "CCL: Invalid table: %s" table)))
+	    (t
+	     (error "CCL: Invalid type of arguments: %s" cmd)))))
+
+(defun ccl-compile-multiple-map-function (command cmd)
+  (if (< (length cmd) 4)
+      (error "CCL: Invalid number of arguments: %s" cmd))
+  (let ((RRR (nth 1 cmd))
+	(rrr (nth 2 cmd))
+	(args (nthcdr 3 cmd))
+	table id)
+    (ccl-check-register rrr cmd)
+    (ccl-check-register RRR cmd)
+    (ccl-embed-extended-command command rrr RRR 0)
+    (ccl-embed-data (length args))
+    (while args
+      (setq table (car args))
+      (cond ((integerp table)
+	     (ccl-embed-data table))
+	    ((symbolp table)
+	     (setq id (get table 'ccl-translation-table-id))
+	     (if (numberp id)
+		 (ccl-embed-data id)
+	       (error "CCL: Invalid table: %s" table)))
+	    (t
+	     (error "CCL: Invalid type of arguments: %s" cmd)))
+      (setq args (cdr args)))))
+
 ;;; CCL dump staffs
 
 ;; To avoid byte-compiler warning.
@@ -1065,6 +1209,55 @@
 	    (insert (format ":%s" (aref ccl-code-table code))))
 	(insert "\n"))
       (setq i (1+ i)))))
+
+(defun ccl-dump-ex-cmd (rrr cc)
+  (let* ((RRR (logand cc ?\x7))
+	 (Rrr (logand (ash cc -3) ?\x7))
+	 (ex-op (aref ccl-extended-code-table (logand (ash cc -6) ?\x3fff))))
+    (insert (format "<%s> " ex-op))
+    (funcall (get ex-op 'ccl-dump-function) rrr RRR Rrr)))
+
+(defun ccl-dump-read-multibyte-character (rrr RRR Rrr)
+  (insert (format "read-multibyte-character r%d r%d\n" RRR rrr)))
+
+(defun ccl-dump-write-multibyte-character (rrr RRR Rrr)
+  (insert (format "write-multibyte-character r%d r%d\n" RRR rrr)))
+
+(defun ccl-dump-unify-character (rrr RRR Rrr)
+  (insert (format "unify-character table(r%d) r%d r%d\n" Rrr RRR rrr)))
+
+(defun ccl-dump-unify-character-const-tbl (rrr RRR Rrr)
+  (let ((tbl (ccl-get-next-code)))
+    (insert (format "unify-character table(%d) r%d r%d\n" tbl RRR rrr))))
+
+(defun ccl-dump-iterate-multiple-map (rrr RRR Rrr)
+  (let ((notbl (ccl-get-next-code))
+	(i 0) id)
+    (insert (format "iterate-multiple-map r%d r%d\n" RRR rrr))
+    (insert (format "\tnumber of tables is %d .\n\t [" notbl))
+    (while (< i notbl)
+      (setq id (ccl-get-next-code))
+      (insert (format "%d " id))
+      (setq i (1+ i)))
+    (insert "]\n")))
+
+(defun ccl-dump-translate-multiple-map (rrr RRR Rrr)
+  (let ((notbl (ccl-get-next-code))
+	(i 0) id)
+    (insert (format "translate-multiple-map r%d r%d\n" RRR rrr))
+    (insert (format "\tnumber of tables and separators is %d\n\t [" notbl))
+    (while (< i notbl)
+      (setq id (ccl-get-next-code))
+      (if (= id -1)
+	  (insert "]\n\t [")
+	(insert (format "%d " id)))
+      (setq i (1+ i)))
+    (insert "]\n")))
+
+(defun ccl-dump-translate-single-map (rrr RRR Rrr)
+  (let ((id (ccl-get-next-code)))
+    (insert (format "translate-single-map r%d r%d table(%d)\n" RRR rrr id))))
+
 
 ;; CCL emulation staffs 
 
