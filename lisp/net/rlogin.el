@@ -6,7 +6,7 @@
 ;; Maintainer: Noah Friedman <friedman@splode.com>
 ;; Keywords: unix, comm
 
-;; $Id: rlogin.el,v 1.1 2000/03/20 12:52:39 gerd Exp $
+;; $Id: rlogin.el,v 1.2 2002/03/14 08:51:43 miles Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -229,18 +229,9 @@ variable."
 
 (put 'rlogin-mode 'mode-class 'special)
 
-(defun rlogin-mode ()
-  "Set major-mode for rlogin sessions.
-If `rlogin-mode-hook' is set, run it."
-  (interactive)
-  (kill-all-local-variables)
-  (shell-mode)
-  (setq major-mode 'rlogin-mode)
-  (setq mode-name "rlogin")
-  (use-local-map rlogin-mode-map)
+(define-derived-mode rlogin-mode shell-mode "Rlogin"
   (setq shell-dirtrackp rlogin-directory-tracking-mode)
-  (make-local-variable 'comint-file-name-prefix)
-  (run-hooks 'rlogin-mode-hook))
+  (make-local-variable 'comint-file-name-prefix))
 
 (defun rlogin-directory-tracking-mode (&optional prefix)
   "Do remote or local directory tracking, or disable entirely.
