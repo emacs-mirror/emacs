@@ -1,11 +1,7 @@
 /* impl.c.span: ANSI STACK PROBE
  *
- * $HopeName$
- * Copyright (C) 1997 Howard T. Duck.  All rights reserved.
- *
- * READERSHIP
- *
- * .readership: Any MPS developer.
+ * $HopeName: MMsrc!span.c(trunk.1) $
+ * Copyright (C) 1997 Harlequin Limited.  All rights reserved.
  *
  * PURPOSE
  *
@@ -13,15 +9,14 @@
  * non-functional implementation of the Stack Probe interface.
  * Stack Probe has a function implementation on platforms where the
  * MPS takes some special action to avoid stack overflow.
- *
- * DESIGN
- *
- * design.mps.sp (non-existant)
  */
 
 #include "mpm.h"
 
-SRCID(span, "$HopeName$");
+SRCID(span, "$HopeName: MMsrc!span.c(trunk.1) $");
+
+
+/* StackProbe -- probe above the stack to provoke early stack overflow */
 
 void StackProbe(Word depth)
 {
