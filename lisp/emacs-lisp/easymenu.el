@@ -140,15 +140,12 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
 		(= ?: (aref (symbol-name keyword) 0)))
       (if (eq keyword ':filter) (setq filter (cadr menu-items)))
       (setq menu-items (cddr menu-items)))
-    ;; Process items in reverse order,
-    ;; since the define-key loop reverses them again.
-    (setq menu-items (reverse menu-items))
     (while menu-items
       (setq have-buttons
 	    (easy-menu-do-add-item menu (car menu-items) have-buttons))
       (setq menu-items (cdr menu-items)))
     (when filter
-      (setq menu (easy-menu-make-symbol menu nil))
+      (setq menu (easy-menu-make-symbol menu))
       (put menu 'menu-enable
 	   `(easy-menu-filter (quote ,menu) (quote ,filter))))
     menu))
@@ -158,35 +155,30 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
 (defvar easy-menu-button-prefix
   '((radio ?* . "( ) ") (toggle ?X . "[ ] ")))
 
-(defun easy-menu-do-add-item (menu item have-buttons &optional prev top)
+(defun easy-menu-do-add-item (menu item have-buttons &optional before top)
   ;; Parse an item description and add the item to a keymap.  This is
   ;; the function that is used for item definition by the other easy-menu
   ;; functions.
-  ;; MENU is a sparse keymap.
+  ;; MENU is a sparse keymap i.e. a list starting with the symbol `keymap'.
   ;; ITEM defines an item as in `easy-menu-define'.
   ;; HAVE-BUTTONS is a string or nil.  If not nil, use as item prefix for
   ;; items that are not toggle or radio buttons to compensate for the
   ;; button prefix.
-  ;; PREV is nil or a tail in MENU.  If PREV is not nil put item after
-  ;; PREV in MENU, otherwise put it first in MENU.
-  ;; If TOP is true, this is an item in the menu bar itself so
+  ;; Optional argument BEFORE is nil or a symbol used as a key in MENU. If
+  ;; BEFORE is not nil put item before BEFORE in MENU, otherwise if item is
+  ;; already present in MENU, just change it, otherwise put it last in MENU.
+  ;; If optional TOP is true, this is an item in the menu bar itself so
   ;; don't use prefix.  In this case HAVE-BUTTONS will be nil.
-  (let (command name item-string is-button)
+  (let (command name item-string is-button done inserted)
     (cond
      ((stringp item)
-      (setq item
+      (setq item-string
 	    (if (string-match	; If an XEmacs separator
 		 "^\\(-+\\|\
 --:\\(\\(no\\|\\(sing\\|doub\\)le\\(Dashed\\)?\\)Line\\|\
 shadow\\(Double\\)?Etched\\(In\\|Out\\)\\(Dash\\)?\\)\\)$"
 		 item) ""		; use a single line separator.
-	      (concat have-buttons item)))
-      ;; Handle inactive strings specially,
-      ;; allow any number of identical ones.
-      (cond
-       (prev (setq menu prev))
-       ((and (consp (cdr menu)) (stringp (cadr menu))) (setq menu (cdr menu))))
-      (setcdr menu (cons (list nil item) (cdr menu))))
+	      (concat have-buttons item))))
      ((consp item)
       (setq name (setq item-string (car item)))
       (setq command (if (keymapp (setq item (cdr item))) item
@@ -207,12 +199,11 @@ shadow\\(Double\\)?Etched\\(In\\|Out\\)\\(Dash\\)?\\)\\)$"
 		(cond
 		 ((eq keyword ':keys) (setq keys arg))
 		 ((eq keyword ':active) (setq active arg))
-		 ((eq keyword ':suffix) (setq suffix arg))
+		 ((eq keyword ':suffix) (setq suffix (concat " " arg)))
 		 ((eq keyword ':style) (setq style arg))
 		 ((eq keyword ':selected) (setq selected arg))))
+	      (if keys (setq suffix (concat suffix "  (" keys ")")))
 	      (if suffix (setq item-string (concat item-string " " suffix)))
-	      (if keys
-		  (setq item-string (concat item-string "  (" keys ")")))
 	      (when (and selected
 			 (setq style (assq style easy-menu-button-prefix)))
 		;; Simulate checkboxes and radio buttons.
@@ -228,19 +219,45 @@ shadow\\(Double\\)?Etched\\(In\\|Out\\)\\(Dash\\)?\\)\\)$"
 		  (setq have-buttons "    ")
 		  ;; Add prefix to menu items defined so far.
 		  (easy-menu-change-prefix menu t)))))
-	(if active (put command 'menu-enable active)))))
+	(if active (put command 'menu-enable active))))
+     (t "Illegal menu item in easy menu."))
     (when name
       (and (not is-button) have-buttons
 	   (setq item-string (concat have-buttons item-string)))
-      (setq item (cons item-string command))
-      (setq name (vector (intern name)))
-      (if prev (define-key-after menu name item (vector (caar prev)))
-	(define-key menu name item)))
+      (setq name (intern name)))
+    (setq item (cons item-string command))
+    (if before (setq before (intern before)))
+    ;; The following loop is simlar to `define-key-after'. It
+    ;; inserts (name . item) in keymap menu.
+    ;; If name is not nil then delete any duplications.
+    ;; If before is not nil, insert before before. Otherwise
+    ;; if name is not nil and it is found in menu, insert there, else
+    ;; insert at end.
+    (while (not done)
+      (cond
+       ((or (setq done (or (null (cdr menu)) (keymapp (cdr menu))))
+	    (and before (eq (car-safe (cadr menu)) before)))
+	;; If name is nil, stop here, otherwise keep going past the
+	;; inserted element so we can delete any duplications that come
+	;; later.
+	(if (null name) (setq done t))
+	(unless inserted		; Don't insert more than once.
+	  (setcdr menu (cons (cons name item) (cdr menu)))
+	  (setq inserted t)
+	  (setq menu (cdr menu))))
+       ((and name (eq (car-safe (cadr menu)) name))
+	(if (and before			; Wanted elsewere and
+		 (not (setq done	; not the last in this keymap.
+			    (or (null (cddr menu)) (keymapp (cddr menu))))))
+	      (setcdr menu (cddr menu))
+	  (setcdr (cadr menu) item) ; Change item.
+	  (setq inserted t))))
+      (setq menu (cdr menu)))
     have-buttons))
 
 (defvar easy-menu-item-count 0)
 
-(defun easy-menu-make-symbol (callback call)
+(defun easy-menu-make-symbol (callback &optional call)
   ;; Return a unique symbol with CALLBACK as function value.
   ;; If CALL is false then this is a keymap, not a function.
   ;; Else if CALLBACK is a symbol, avoid the indirection when looking for
@@ -328,38 +345,22 @@ element should be the name of a submenu directly under MENU.  This
 submenu is then traversed recursively with the remaining elements of PATH.
 ITEM is either defined as in `easy-menu-define' or a menu defined earlier
 by `easy-menu-define' or `easy-menu-create-menu'."
-  (let ((top (not (or menu path)))
-	tmp prev next)
+  (let ((top (not (or menu path))))
     (setq menu (easy-menu-get-map menu path))
-    (or (lookup-key menu (vector (intern (elt item 0))))
-	(and menu (keymapp (cdr menu)))
-	(setq tmp (cdr menu)))
-    (while (and tmp (not (keymapp tmp))
-		(not (and (consp (car tmp)) (symbolp (caar tmp)))))
-      (setq tmp (cdr tmp)))
-    (and before (setq before (intern before)))
-    (if (or (null tmp) (keymapp tmp) (eq (setq prev (caar tmp)) before))
-	(setq prev nil)
-      (while (and tmp (not (keymapp tmp))
-		  (not (and (consp (car tmp))
-			    (eq (caar (setq next tmp)) before))))
-	(if next (setq prev next))
-	(setq next nil)
-	(setq tmp (cdr tmp))))
-    (when (or (keymapp item)
-	      (and (symbolp item) (keymapp (symbol-value item))))
-      ;; Item is a keymap, find the prompt string and use as item name.
-      (setq next (easy-menu-get-map item nil))
-      (if (not (keymapp item)) (setq item next))
-      (setq tmp nil)			; No item name yet.
-      (while (and (null tmp) (consp (setq next (cdr next)))
-		  (not (keymapp next)))
-	(if (stringp (car next)) (setq tmp (car next)) ; Got a name.
-	  (setq next (cdr next))))
-      (setq item (cons tmp item)))
+    (if (or (keymapp item)
+	    (and (symbolp item) (keymapp (symbol-value item))))
+	;; Item is a keymap, find the prompt string and use as item name.
+	(let ((tail (easy-menu-get-map item nil)) name)
+	  (if (not (keymapp item)) (setq item tail))
+	  (while (and (null name) (consp (setq tail (cdr tail)))
+		      (not (keymapp tail)))
+	    (if (stringp (car tail)) (setq name (car tail)) ; Got a name.
+	      (setq tail (cdr tail))))
+	  (setq item (cons name item))))
     (easy-menu-do-add-item menu item
-			   (and (not top) (easy-menu-have-button menu) "    ")
-			   prev top)))
+			   (and (not top) (easy-menu-have-button menu)
+				"    ")
+			   before top)))
 
 (defun easy-menu-item-present-p (menu path name)
   "In submenu of MENU with path PATH, return true iff item NAME is present.
