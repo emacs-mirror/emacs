@@ -126,7 +126,7 @@ Defaults to today's date if DATE is not given."
   (let ((f (calendar-coptic-date-string (calendar-cursor-to-date t))))
     (if (string-equal f "")
         (message "Date is pre-%s calendar" coptic-name)
-      (message f))))
+      (message "%s date: %s" coptic-name f))))
 
 (defun calendar-goto-coptic-date (date &optional noecho)
   "Move cursor to Coptic date DATE.
