@@ -1,8 +1,7 @@
 ;;; s-region.el --- set region using shift key.
-;;; Copyright (C) 1994 Free Software Foundation, Inc.
+;;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder (terra@diku.dk)
-;; Version: 1.00
 ;; Keywords: terminals
 ;; Favourite-brand-of-beer: None, I hate beer.
 
@@ -61,32 +60,48 @@
 	  (error "Key does not end in a symbol: %S" key)))
     (error "Non-vector key: %S" key)))
 
-(defun s-region-move (&rest arg)
-  "This is an overlay function to point-moving keys."
+(defun s-region-move-p1 (&rest arg)
+  "This is an overlay function to point-moving keys that are interactive \"p\""
   (interactive "p")
+  (apply (function s-region-move) arg))
+
+(defun s-region-move-p2 (&rest arg)
+  "This is an overlay function to point-moving keys that are interactive \"P\""
+  (interactive "P")
+  (apply (function s-region-move) arg))
+
+(defun s-region-move (&rest arg)
   (if (if mark-active (not (equal last-command 's-region-move)) t)
       (set-mark-command nil)
     (message "")) ; delete the "Mark set" message
+  (setq this-command 's-region-move)
   (apply (key-binding (s-region-unshift (this-command-keys))) arg)
   (move-overlay s-region-overlay (mark) (point) (current-buffer))
   (sit-for 1)
   (delete-overlay s-region-overlay))
 
 (defun s-region-bind (keylist &optional map)
-  "Bind keys in KEYLIST to `s-region-move'.
-Each key in KEYLIST is bound to `s-region-move'
-provided it is already bound to some command or other.
-Optional second argument MAP specifies keymap to
-add binding to, defaulting to global keymap."
-  (or map (setq map global-map))
-  (while keylist
-    (if (commandp (key-binding (car keylist)))
-	(define-key
-	  map
-	  (vector (intern (concat "S-" (symbol-name (aref (car keylist) 0)))))
-	  's-region-move))
-    (setq keylist (cdr keylist))))
+  "Bind shifted keys in KEYLIST to s-region-move-p1 or s-region-move-p2.
+Each key in KEYLIST is shifted and bound to one of the s-region-move
+functions provided it is already bound to some command or other.
+Optional third argument MAP specifies keymap to add binding to, defaulting
+to global keymap."
+  (let ((p2 (list 'scroll-up 'scroll-down
+		  'beginning-of-buffer 'end-of-buffer)))
+    (or map (setq map global-map))
+    (while keylist
+      (let* ((key (car keylist))
+	     (binding (key-binding key)))
+	(if (commandp binding)
+	    (define-key
+	      map
+	      (vector (intern (concat "S-" (symbol-name (aref key 0)))))
+	      (cond ((memq binding p2)
+		     's-region-move-p2)
+		    (t 's-region-move-p1)))))
+      (setq keylist (cdr keylist)))))
 
+;; Single keys (plus modifiers) only!
 (s-region-bind
  (list [right] [left] [up] [down]
        [C-left] [C-right] [C-up] [C-down]
