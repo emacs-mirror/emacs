@@ -1,6 +1,6 @@
 /* impl.h.testlib: TEST LIBRARY INTERFACE
  *
- * $HopeName: MMsrc!testlib.h(trunk.20) $
+ * $HopeName: MMsrc!testlib.h(trunk.21) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: A library of functions that may be of use to unit tests.
@@ -12,12 +12,16 @@
 #include "mps.h"
 #include "misc.h" /* for STR */
 
-#include <stdio.h>
-/* On SunOS, need ossu.h as well */
+/* Include system header hackery. */
 #include "mpstd.h"
 #ifdef MPS_OS_SU
 #include "ossu.h"
 #endif
+#ifdef MPS_OS_XC
+#include "osxc.h"
+#endif
+
+#include <stdio.h>
 
 
 /* Suppress Visual C warnings at warning level 4, */
