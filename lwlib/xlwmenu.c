@@ -245,7 +245,10 @@ resource_widget_value (XlwMenuWidget mw, widget_value* val)
       if (!resourced_name)
 	resourced_name = val->name;
       if (!val->value)
-	complete_name = (char *) strdup (resourced_name);
+	{
+	  complete_name = (char *) XtMalloc (strlen (resourced_name) + 1);
+	  strcpy (complete_name, resourced_name);
+	}
       else
 	{
 	  int complete_length =
