@@ -71,7 +71,7 @@ new mode line."
 	(old-point (point))
 	new-w bottom switch)
     (setq new-w (split-window nil (and arg (prefix-numeric-value arg))))
-    (if (not split-window-keep-point)
+    (or split-window-keep-point
 	(progn
 	  (save-excursion
 	    (set-buffer (window-buffer))
