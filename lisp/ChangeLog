@@ -1,4 +1,10 @@
-2000-09-12  Gerd Moellmann  <gerd@gnu.org>
+2000-09-12  Miles Bader  <miles@gnu.org>
+
+	* diff-mode.el (diff-hunk-text): Use `with-temp-buffer'.
+	(diff-mode-map): Bind `diff-test-hunk'.
+	(diff-apply-hunk): Use `select-window' instead of `pop-to-buffer'.
+
+2000-09-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* bytecomp.el (byte-compile-defvar): Undo last change
 	because it breaks '(make-variable-buffer-local (defvar ...)'
