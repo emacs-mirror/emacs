@@ -1090,6 +1090,8 @@ sort_args (argc, argv)
 	      {
 		options[from] = standard_args[i].nargs;
 		priority[from] = standard_args[i].priority;
+		if (from + standard_args[i].nargs >= argc)
+		  fatal ("Option `%s' requires an argument\n", argv[from]);
 		from += standard_args[i].nargs;
 		goto done;
 	      }
@@ -1126,6 +1128,8 @@ sort_args (argc, argv)
 		     this option uses just one argv element.  */
 		  if (equals != 0)
 		    options[from] = 0;
+		  if (from + options[from] >= argc)
+		    fatal ("Option `%s' requires an argument\n", argv[from]);
 		  from += options[from];
 		}
 	    }
