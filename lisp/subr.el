@@ -710,6 +710,11 @@ To make a hook variable buffer-local, always use
 	  (if (equal hook-value function)
 	      (setq hook-value nil)))
 	(set-default hook hook-value)))))
+
+(defun add-to-list (list-var element)
+  "Add to the value of LIST-VAR the element ELEMENT if it isn't there yet."
+  (or (member element (symbol-value list-var))
+      (set list-var (cons element (symbol-value list-var)))))
 
 ;;;; Specifying things to do after certain files are loaded.
 
