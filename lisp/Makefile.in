@@ -173,10 +173,12 @@ update-authors:
 	$(emacs) -f batch-update-authors $(srcdir)/AUTHORS $(srcdir)
 
 TAGS: $(lisptagsfiles1) $(lisptagsfiles2)
-	${ETAGS} $(lisptagsfiles1) $(lisptagsfiles2)
+	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s/loaddefs.el//"`; \
+	${ETAGS} $$els
 
 TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
-	${ETAGS} -o TAGS-LISP $(lisptagsfiles1) $(lisptagsfiles2)
+	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s/loaddefs.el//"`; \
+	${ETAGS} -o TAGS-LISP $$els
 
 .SUFFIXES: .elc .el
 
