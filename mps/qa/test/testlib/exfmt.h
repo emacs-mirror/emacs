@@ -1,4 +1,4 @@
-/* $HopeName$
+/* $HopeName: MMQA_harness!testlib:exfmt.h(trunk.3) $
 exfmt.h
    A format for the awl and amc pools, which will work without
    register roots. To use it, you must take precautions. You must
@@ -15,7 +15,7 @@ exfmt.h
 #ifndef exfmt_h
 #define exfmt_h
 
-#include "mps.h"
+#include "testlib.h"
 
 extern int formatcomments;
 extern int checkcomments;

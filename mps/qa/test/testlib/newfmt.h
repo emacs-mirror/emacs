@@ -1,4 +1,4 @@
-/* $HopeName$
+/* $HopeName: MMQA_harness!testlib:newfmt.h(trunk.2) $
 newfmt.h
    A nice format with graph checking and statistics
 */
@@ -6,7 +6,7 @@ newfmt.h
 #ifndef newfmt_h
 #define newfmt_h
 
-#include "mps.h"
+#include "testlib.h"
 
 extern int formatcomments;
 extern int checkcomments;

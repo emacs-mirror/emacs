@@ -1,4 +1,4 @@
-/* $HopeName$
+/* $HopeName: MMQA_harness!testlib:arg.h(trunk.2) $
 arg.h
    useful things for arg-err tests
 */
@@ -6,7 +6,7 @@ arg.h
 #ifndef arg_h
 #define arg_h
 
-#include "mps.h"
+#include "testlib.h"
 
 #define UNALIGNED ((mps_addr_t) (((char *) NULL) + 1))
 

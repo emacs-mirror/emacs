@@ -1,10 +1,8 @@
-/* $HopeName$
+/* $HopeName: MMQA_harness!testlib:lofmt.c(trunk.3) $
 lofmt.c
    A format for pool class LO
 */
 
-#include "mps.h"
-#include "testlib.h"
 #include "lofmt.h"
 #include <string.h>
 
