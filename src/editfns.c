@@ -3055,6 +3055,7 @@ The other arguments are substituted into it to make the result, a string.\n\
 It may contain %-sequences meaning to substitute the next argument.\n\
 %s means print a string argument.  Actually, prints any object, with `princ'.\n\
 %d means print as number in decimal (%o octal, %x hex).\n\
+%X is like %x, but uses upper case.\n\
 %e means print a number in exponential notation.\n\
 %f means print a number in decimal-point notation.\n\
 %g means print a number in exponential notation\n\
