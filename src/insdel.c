@@ -1330,8 +1330,8 @@ del_range_byte (from_byte, to_byte, prepare)
    and bytepos.  */
 
 void
-del_range_both (from, to, from_byte, to_byte, prepare)
-     int from, to, from_byte, to_byte, prepare;
+del_range_both (from, from_byte, to, to_byte, prepare)
+     int from, from_byte, to, to_byte, prepare;
 {
   /* Make args be valid */
   if (from_byte < BEGV_BYTE)
