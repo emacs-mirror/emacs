@@ -1899,7 +1899,7 @@ value passed."
         lc stderr-file)
     (unwind-protect
         (if fh (apply fh 'process-file program infile buffer display args)
-          (setq lc (file-local-copy infile))
+          (when infile (setq lc (file-local-copy infile)))
           (setq stderr-file (when (and (consp buffer) (stringp (cadr buffer)))
                               (make-temp-file "emacs"))))
       (prog1
