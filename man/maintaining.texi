@@ -477,11 +477,17 @@ Each @samp{--regex} option adds to the preceding ones, and applies only
 to the following files.  The syntax is:
 
 @smallexample
---regex=/@var{tagregexp}[/@var{nameregexp}]/
+--regex=[@var{@{language@}}]/@var{tagregexp}/[@var{nameregexp}/]@var{modifiers}
+@end smallexample
+
+  or else:
+
+@smallexample
+--regex=@@@var{regexfile}
 @end smallexample
 
 @noindent
-where @var{tagregexp} is used to match the lines to tag.  It is always
+where @var{tagregexp} is used to find the tags.  It is always
 anchored, that is, it behaves as if preceded by @samp{^}.  If you want
 to account for indentation, just match any initial number of blanks by
 beginning your regular expression with @samp{[ \t]*}.  In the regular
@@ -516,14 +522,35 @@ Emacs.
   You should not match more characters with @var{tagregexp} than that
 needed to recognize what you want to tag.  If the match is such that
 more characters than needed are unavoidably matched by @var{tagregexp}
-(as will usually be the case), you should add a @var{nameregexp}, to
+(as will sometimes be the case), you should add a @var{nameregexp}, to
 pick out just the tag.  This will enable Emacs to find tags more
 accurately and to do completion on tag names more reliably.  You can
 find some examples below.
 
-  The option @samp{--ignore-case-regex} (or @samp{-c}) works like
-@samp{--regex}, except that matching ignores case.  This is
-appropriate for certain programming languages.
+  A @samp{--regex} option can be restricted to match only files of a
+given language using the optional prefix @var{@{language@}}.  This is
+particularly useful when storing many predefined regular expressions
+for @code{etags} in a file.
+
+  The @var{modifiers} are a sequence of 0 or more characters that
+modify the way @code{etags} does the matching.  Without modifiers,
+each regexp is applied sequentially to each line of the input file, in
+a case-sensitive way.  The modifiers and their meanings are:
+
+@table @samp
+@item i
+ignore case when matching.
+@item m
+do not match line by line; rather, match the whole file, so that
+multi-line matches are possible.
+@item s
+implies @samp{m}, and causes dots in @var{tagregexp} to match newlines
+as well.
+@end table
+
+  A @var{regexfile} is the name of a file where regular expressions
+are stored, one per line.  Lines beginning with space or tab are
+ignored, and can be used for adding comments.
 
   The @samp{-R} option deletes all the regexps defined with
 @samp{--regex} options.  It applies to the file names following it, as
