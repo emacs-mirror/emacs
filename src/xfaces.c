@@ -4348,209 +4348,80 @@ DEFUN ("internal-set-lisp-face-attribute-from-resource",
 
 #ifdef USE_X_TOOLKIT
 
-#include "../lwlib/lwlib-utils.h"
-
-/* Structure used to pass X resources to functions called via
-   XtApplyToWidgets.  */
-
-struct x_resources
-{
-  Arg *av;
-  int ac;
-};
-
-
-#ifdef USE_MOTIF
-
-static void xm_apply_resources P_ ((Widget, XtPointer));
-static void xm_set_menu_resources_from_menu_face P_ ((struct frame *, Widget));
-
-
-/* Set widget W's X resources from P which points to an x_resources
-   structure.  If W is a cascade button, apply resources to W's
-   submenu.  */
-
-static void
-xm_apply_resources (w, p)
-     Widget w;
-     XtPointer p;
-{
-  Widget submenu = 0;
-  struct x_resources *res = (struct x_resources *) p;
-
-  XtSetValues (w, res->av, res->ac);
-  XtVaGetValues (w, XmNsubMenuId, &submenu, NULL);
-  if (submenu)
-    {
-      XtSetValues (submenu, res->av, res->ac);
-      XtApplyToWidgets (submenu, xm_apply_resources, p);
-    }
-}
-
-
-/* Set X resources of menu-widget WIDGET on frame F from face `menu'.
-   This is the LessTif/Motif version.
-
-   As of 2001-03-13, setting the XmNfontList resource with LessTif
-   leads to an infinite loop somewhere in LessTif.  */
-
-static void
-xm_set_menu_resources_from_menu_face (f, widget)
-     struct frame *f;
-     Widget widget;
-{
-  struct face *face;
-  Lisp_Object lface;
-  Arg av[3];
-  int ac = 0;
-  XmFontList fl = 0;
-
-  lface = lface_from_face_name (f, Qmenu, 1);
-  face = FACE_FROM_ID (f, MENU_FACE_ID);
-
-  if (!UNSPECIFIEDP (LFACE_FOREGROUND (lface)))
-    {
-      XtSetArg (av[ac], XmNforeground, face->foreground);
-      ++ac;
-    }
-
-  if (!UNSPECIFIEDP (LFACE_BACKGROUND (lface)))
-    {
-      XtSetArg (av[ac], XmNbackground, face->background);
-      ++ac;
-    }
-
-  /* If any font-related attribute of `menu' is set, set the font.  */
-  if (face->font
-      && (!UNSPECIFIEDP (LFACE_FAMILY (lface))
-	  || !UNSPECIFIEDP (LFACE_SWIDTH (lface))
-	  || !UNSPECIFIEDP (LFACE_AVGWIDTH (lface))
-	  || !UNSPECIFIEDP (LFACE_WEIGHT (lface))
-	  || !UNSPECIFIEDP (LFACE_SLANT (lface))
-	  || !UNSPECIFIEDP (LFACE_HEIGHT (lface))))
-    {
-      XmFontListEntry fe;
-      fe = XmFontListEntryCreate ("menu_font", XmFONT_IS_FONT, face->font);
-      fl = XmFontListAppendEntry (NULL, fe);
-      XtSetArg (av[ac], XmNfontList, fl);
-      ++ac;
-    }
-
-  xassert (ac <= sizeof av / sizeof *av);
-
-  if (ac)
-    {
-      struct x_resources res;
-
-      XtSetValues (widget, av, ac);
-      res.av = av, res.ac = ac;
-      XtApplyToWidgets (widget, xm_apply_resources, &res);
-      
-      if (fl)
-	XmFontListFree (fl);
-    }
-}
-
-#endif /* USE_MOTIF */
-
-#ifdef USE_LUCID
-
-static void xl_apply_resources P_ ((Widget, XtPointer));
-static void xl_set_menu_resources_from_menu_face P_ ((struct frame *, Widget));
-
-
-/* Set widget W's resources from P which points to an x_resources
-   structure.  */
-
-static void
-xl_apply_resources (widget, p)
-     Widget widget;
-     XtPointer p;
-{
-  struct x_resources *res = (struct x_resources *) p;
-  XtSetValues (widget, res->av, res->ac);
-}
-
-
-/* On frame F, set X resources of menu-widget WIDGET from face `menu'.
-   This is the Lucid version.  */
-
-static void
-xl_set_menu_resources_from_menu_face (f, widget)
-     struct frame *f;
-     Widget widget;
-{
-  struct face *face;
-  Lisp_Object lface;
-  Arg av[3];
-  int ac = 0;
-
-  lface = lface_from_face_name (f, Qmenu, 1);
-  face = FACE_FROM_ID (f, MENU_FACE_ID);
-
-  if (!UNSPECIFIEDP (LFACE_FOREGROUND (lface)))
-    {
-      XtSetArg (av[ac], XtNforeground, face->foreground);
-      ++ac;
-    }
-
-  if (!UNSPECIFIEDP (LFACE_BACKGROUND (lface)))
-    {
-      XtSetArg (av[ac], XtNbackground, face->background);
-      ++ac;
-    }
-
-  if (face->font
-      && (!UNSPECIFIEDP (LFACE_FAMILY (lface))
-	  || !UNSPECIFIEDP (LFACE_SWIDTH (lface))
-	  || !UNSPECIFIEDP (LFACE_AVGWIDTH (lface))
-	  || !UNSPECIFIEDP (LFACE_WEIGHT (lface))
-	  || !UNSPECIFIEDP (LFACE_SLANT (lface))
-	  || !UNSPECIFIEDP (LFACE_HEIGHT (lface))))
-    {
-      XtSetArg (av[ac], XtNfont, face->font);
-      ++ac;
-    }
-
-  if (ac)
-    {
-      struct x_resources res;
-
-      XtSetValues (widget, av, ac);
-
-      /* We must do children here in case we're handling a pop-up menu
-	 in which case WIDGET is a popup shell.  XtApplyToWidgets
-	 is a function from lwlib.  */
-      res.av = av, res.ac = ac;
-      XtApplyToWidgets (widget, xl_apply_resources, &res);
-    }
-}
-
-#endif /* USE_LUCID */
-
-
-/* On frame F, set X resources of menu-widget WIDGET from face `menu'.  */
-
 void
-x_set_menu_resources_from_menu_face (f, widget)
+x_set_menu_face_resources (f)
      struct frame *f;
-     Widget widget;
 {
-  /* Realized faces may have been removed on frame F, e.g. because of
-     face attribute changes.  Recompute them, if necessary, since we
-     will need the `menu' face.  */
-  if (f->face_cache->used == 0)
-    recompute_basic_faces (f);
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
-  BLOCK_INPUT;
-#ifdef USE_LUCID
-  xl_set_menu_resources_from_menu_face (f, widget);
-#endif
+  if (dpyinfo)
+    {
+      Display *dpy = FRAME_X_DISPLAY (f);
+      XrmDatabase rdb = XrmGetDatabase (dpy);
+      extern Lisp_Object Vx_resource_name;
+
+      if (rdb)
+	{
+	  char line[512];
+	  Lisp_Object lface = lface_from_face_name (f, Qmenu, 1);
+	  struct face *face = FACE_FROM_ID (f, MENU_FACE_ID);
+	  char *myname = XSTRING (Vx_resource_name)->data;
+	  int changes = 0;
+      
+	  if (STRINGP (LFACE_FOREGROUND (lface)))
+	    {
+	      sprintf (line, "%s.menu*foreground: %s",
+		       myname, XSTRING (LFACE_FOREGROUND (lface))->data);
+	      XrmPutLineResource (&rdb, line);
+	      sprintf (line, "%s.pane.menubar*foreground: %s",
+		       myname, XSTRING (LFACE_FOREGROUND (lface))->data);
+	      XrmPutLineResource (&rdb, line);
+	      ++changes;
+	    }
+
+	  if (STRINGP (LFACE_BACKGROUND (lface)))
+	    {
+	      sprintf (line, "%s*menu*background: %s",
+		       myname, XSTRING (LFACE_BACKGROUND (lface))->data);
+	      XrmPutLineResource (&rdb, line);
+	      sprintf (line, "%s.pane.menubar*background: %s",
+		       myname, XSTRING (LFACE_BACKGROUND (lface))->data);
+	      XrmPutLineResource (&rdb, line);
+	      ++changes;
+	    }
+	  
+	  if (face->font_name
+	      && (!UNSPECIFIEDP (LFACE_FAMILY (lface))
+		  || !UNSPECIFIEDP (LFACE_SWIDTH (lface))
+		  || !UNSPECIFIEDP (LFACE_AVGWIDTH (lface))
+		  || !UNSPECIFIEDP (LFACE_WEIGHT (lface))
+		  || !UNSPECIFIEDP (LFACE_SLANT (lface))
+		  || !UNSPECIFIEDP (LFACE_HEIGHT (lface))))
+	    {
 #ifdef USE_MOTIF
-  xm_set_menu_resources_from_menu_face (f, widget);
-#endif
-  UNBLOCK_INPUT;
+	      char *format1 = "%s.pane.menubar*fontList: %s";
+	      char *format2 = "%s*menu*fontList: %s";
+#else
+	      char *format1 = "%s.pane.menubar*font: %s";
+	      char *format2 = "%s*menu*font: %s";
+#endif	      
+	      sprintf (line, format1, myname, face->font_name);
+	      XrmPutLineResource (&rdb, line);
+	      sprintf (line, format2, myname, face->font_name);
+	      XrmPutLineResource (&rdb, line);
+	      ++changes;
+	    }
+
+	  if (changes && f->output_data.x->menubar_widget)
+	    {
+	      free_frame_menubar (f);
+	      set_frame_menubar (f, 1, 1);
+	      XWINDOW (FRAME_SELECTED_WINDOW (f))->update_mode_line = Qt;
+	    }
+	}
+    }
 }
+
 
 #endif /* USE_X_TOOLKIT */
 
@@ -6100,15 +5971,9 @@ realize_basic_faces (f)
       if (menu_face_change_count)
 	{
 	  menu_face_change_count = 0;
-	  
 #ifdef USE_X_TOOLKIT
-	  if (FRAME_X_P (f))
-	    {
-	      Widget menu = f->output_data.x->menubar_widget;
-	      if (menu)
-		x_set_menu_resources_from_menu_face (f, menu);
-	    }
-#endif /* USE_X_TOOLKIT */
+	  x_set_menu_face_resources (f);
+#endif
 	}
       
       success_p = 1;
