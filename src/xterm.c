@@ -497,7 +497,7 @@ dumpglyphs (f, left, top, gp, n, hl)
       int g = *gp;
 
       GLYPH_FOLLOW_ALIASES (tbase, tlen, g);
-      cf = GLYPH_FACE (g);
+      cf = FAST_GLYPH_FACE (g);
 
       /* Find the run of consecutive glyphs with the same face-code.
 	 Extract their character codes into BUF.  */
@@ -506,10 +506,10 @@ dumpglyphs (f, left, top, gp, n, hl)
 	{
 	  g = *gp;
 	  GLYPH_FOLLOW_ALIASES (tbase, tlen, g);
-	  if (GLYPH_FACE (g) != cf)
+	  if (FAST_GLYPH_FACE (g) != cf)
 	    break;
 
-	  *cp++ = GLYPH_CHAR (g);
+	  *cp++ = FAST_GLYPH_CHAR (g);
 	  --n;
 	  ++gp;
 	}
