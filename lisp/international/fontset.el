@@ -183,6 +183,7 @@
    (arabic-digit ("*" . "MuleArabic-0"))
    (arabic-1-column ("*" . "MuleArabic-1"))
    (arabic-2-column ("*" . "MuleArabic-2"))
+   (indian-is13194 (nil . "is13194-devanagari"))
    (indian-1-column ("*" . "muleindian-2"))
    (devanagari-glyph ("altsys-dv_ttsurekh" . "devanagari-cdac"))
    (malayalam-glyph ("altsys-ml_ttkarthika" . "malayalam-cdac"))
