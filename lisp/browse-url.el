@@ -368,32 +368,12 @@ enabled.  The port number should be set in `browse-url-CCI-port'.")
 (defun browse-url-url-at-point ()
   "Return the URL around or before point.
 Search backwards for the start of a URL ending at or after 
-point.  If no URL found, return the empty string.  The
-access scheme, `http://' will be prepended if absent."
-  (cond ((browse-url-looking-at browse-url-regexp)
-	 (buffer-substring (match-beginning 0) (match-end 0)))
-	;; Access scheme omitted?
-	((browse-url-looking-at browse-url-short-regexp)
-	 (concat "http://"
-		 (buffer-substring (match-beginning 0) (match-end 0))))
-	(t "")))			; No match
-
-(defun browse-url-looking-at (regexp)
-  "Return non-nil if point is in or just after a match for REGEXP.
-Set the match data from the earliest such match in the current line
-ending at or after point."
-  (save-excursion
-    (let ((old-point (point))
-	  (eol (progn (end-of-line) (point)))
-	  (hit nil))
-      (beginning-of-line)
-      (or (and (looking-at regexp)
-	       (>= (match-end 0) old-point))
-	  (progn
-	    (while (and (re-search-forward regexp eol t)
-			(<= (match-beginning 0) old-point)
-			(not (setq hit (>= (match-end 0) old-point)))))
-	    hit)))))
+point.  If no URL found, return the empty string.
+A file name is also acceptable, and `http://' will be prepended to it."
+  (or (thing-at-point 'url)
+      (let ((file (thing-at-point 'file)))
+	(if file (concat "http://" file)))
+      ""))
 
 ;; Having this as a separate function called by the browser-specific
 ;; functions allows them to be stand-alone commands, making it easier
