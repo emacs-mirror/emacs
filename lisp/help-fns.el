@@ -175,15 +175,19 @@ DEF is the function whose usage we're looking for in DOC."
 (defun help-add-fundoc-usage (doc arglist)
   "Add the usage info to the docstring DOC.
 If DOC already has a usage info, then just return DOC unchanged.
-The usage info is built from ARGLIST.  DOC can be nil."
+The usage info is built from ARGLIST.  DOC can be nil.
+ARGLIST can also be nil or a string of the form \"(fun ARG1 ARG2 ...)\"."
   (unless (stringp doc) (setq doc "Not documented"))
-  (if (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" doc)
+  (if (or (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" doc) (not arglist))
       doc
     (format "%s%s%s" doc
 	    (if (string-match "\n?\n\\'" doc)
 		(if (< (- (match-end 0) (match-beginning 0)) 2) "\n" "")
 	      "\n\n")
-	    (help-make-usage 'fn arglist))))
+	    (if (and (stringp arglist)
+		     (string-match "\\`([^ ]+\\(.*\\))\\'" arglist))
+		(concat "(fn" (match-string 1 arglist) ")")
+	      (help-make-usage 'fn arglist)))))
 
 (defun help-function-arglist (def)
   ;; Handle symbols aliased to other symbols.
