@@ -1683,7 +1683,12 @@ print_object (obj, printcharfun, escapeflag)
 
 	  PRINTCHAR ('#');
 	  PRINTCHAR ('&');
-	  sprintf (buf, "%d", XBOOL_VECTOR (obj)->size);
+	  if (sizeof (int) == sizeof (EMACS_INT))
+            sprintf (buf, "%d", XBOOL_VECTOR (obj)->size);
+	  else if (sizeof (long) == sizeof (EMACS_INT))
+            sprintf (buf, "%ld", XBOOL_VECTOR (obj)->size);
+	  else
+	    abort ();
 	  strout (buf, -1, -1, printcharfun, 0);
 	  PRINTCHAR ('\"');
 
