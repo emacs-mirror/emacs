@@ -1,8 +1,7 @@
-$HopeName: MMQA_harness!README(trunk.6) $
+$HopeName: MMQA_harness!README(trunk.7) $
 
-This is the trunk of the MMQA test harness. For
-a more reliable version, check out the MMQA_chinker
-release, i.e. MMQA_harness!(MMQA_chinker).
+This is the MMQA_say release of the MMQA test harness.
+(i.e. what you get by checking out MMQA_harness!(MMQA_say)).
 
 
 
