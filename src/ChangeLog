@@ -1,3 +1,8 @@
+2001-09-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* sysdep.c (wait_for_termination) [POSIX_SIGNALS]: Terminate
+	only if kill returns -1, and errno is ESRCH.
+
 2001-09-21  Markus Rost  <rost@math.ohio-state.edu>
 
 	* Makefile.in (shortlisp): Add ../lisp/env.elc.
