@@ -3969,7 +3969,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	 results for variable height lines.  */
       init_iterator (&it, w, PT, PT_BYTE, NULL, DEFAULT_FACE_ID);
       it.current_y = it.last_visible_y;
-      move_it_vertically (&it, -it.last_visible_y / 2);
+      move_it_vertically (&it, - window_box_height (w) / 2);
       
       /* The function move_iterator_vertically may move over more than
 	 the specified y-distance.  If it->w is small, e.g. a
@@ -4002,7 +4002,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
   start_display (&it, w, start);
   if (whole)
     {
-      int screen_full = (it.last_visible_y
+      int screen_full = (window_box_height (w)
 			 - next_screen_context_lines * CANON_Y_UNIT (it.f));
       int direction = n < 0 ? -1 : 1;
       int dy = direction * screen_full;
@@ -4583,7 +4583,7 @@ and redisplay normally--don't erase and redraw the frame.")
 	  
 	  SET_TEXT_POS (pt, PT, PT_BYTE);
 	  start_display (&it, w, pt);
-	  move_it_vertically (&it, - it.last_visible_y / 2);
+	  move_it_vertically (&it, - window_box_height (w) / 2);
 	  charpos = IT_CHARPOS (it);
 	  bytepos = IT_BYTEPOS (it);
 	}
