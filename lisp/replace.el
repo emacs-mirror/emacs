@@ -118,6 +118,49 @@ and `\\=\\N' (where N is a digit) stands for
   (perform-replace regexp to-string t t arg))
 (define-key esc-map [?\C-%] 'query-replace-regexp)
 
+(defun query-replace-regexp-eval (regexp to-expr &optional arg)
+  "Replace some things after point matching REGEXP with the result of TO-EXPR.
+As each match is found, the user must type a character saying
+what to do with it.  For directions, type \\[help-command] at that time.
+
+TO-EXPR is a Lisp expression evaluated to compute each replacement.  It may
+reference `replace-count' to get the number of replacements already made.
+If the result of TO-EXPR is not a string, it is converted to one using
+`prin1-to-string' with the NOESCAPE argument (which see).
+
+For convenience, when entering TO-EXPR interactively, you can use `\\&' or
+`\\0'to stand for whatever matched the whole of REGEXP, and `\\=\\N' (where
+N is a digit) stands for whatever what matched the Nth `\\(...\\)' in REGEXP.
+Use `\\#&' or `\\#N' if you want a number instead of a string.
+
+In Transient Mark mode, if the mark is active, operate on the contents
+of the region.  Otherwise, operate from point to the end of the buffer.
+
+If `query-replace-interactive' is non-nil, the last incremental search
+regexp is used as REGEXP--you don't have to specify it with the
+minibuffer.
+
+Preserves case in each replacement if `case-replace' and `case-fold-search'
+are non-nil and REGEXP has no uppercase letters.
+Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
+only matches surrounded by word boundaries."
+  (interactive
+   (let (from to)
+     (if query-replace-interactive
+         (setq from (car regexp-search-ring))
+       (setq from (read-from-minibuffer "Query replace regexp: "
+                                        nil nil nil
+                                        query-replace-from-history-variable
+                                        nil t)))
+     (setq to (list (read-from-minibuffer
+                     (format "Query replace regexp %s with eval: " from)
+                     nil nil t query-replace-to-history-variable from t)))
+     ;; We make TO a list because replace-match-string-symbols requires one,
+     ;; and the user might enter a single token.
+     (replace-match-string-symbols to)
+     (list from (car to) current-prefix-arg)))
+  (perform-replace regexp (cons 'replace-eval-replacement to-expr) t t arg))
+
 (defun map-query-replace-regexp (regexp to-strings &optional arg)
   "Replace some matches for REGEXP with various strings, in rotation.
 The second argument TO-STRINGS contains the replacement strings, separated
@@ -688,6 +731,54 @@ The valid answers include `act', `skip', `act-and-show',
 (define-key query-replace-map "\e" 'exit-prefix)
 (define-key query-replace-map [escape] 'exit-prefix)
 
+(defun replace-match-string-symbols (n)
+  ;; Process a list (and any sub-lists), expanding certain symbols:
+  ;; Symbol  Expands To
+  ;;   N     (match-string N)           (where N is a string of digits)
+  ;;   #N    (string-to-number (match-string N))
+  ;;   &     (match-string 0)
+  ;;   #&    (string-to-number (match-string 0))
+  ;;
+  ;; Note that these symbols must be preceeded by a backslash in order to
+  ;; type them.
+  (while n
+    (cond
+     ((consp (car n))
+      (replace-match-string-symbols (car n))) ;Process sub-list
+     ((symbolp (car n))
+      (let ((name (symbol-name (car n))))
+        (cond
+         ((string-match "^[0-9]+$" name)
+          (setcar n (list 'match-string (string-to-number name))))
+         ((string-match "^#[0-9]+$" name)
+          (setcar n (list 'string-to-number
+                          (list 'match-string
+                                (string-to-number (substring name 1))))))
+         ((string= "&" name)
+          (setcar n '(match-string 0)))
+         ((string= "#&" name)
+          (setcar n '(string-to-number (match-string 0))))))))
+    (setq n (cdr n))))
+
+(defun replace-eval-replacement (expression replace-count)
+  (let ((replacement (eval expression)))
+    (if (stringp replacement)
+        replacement
+      (prin1-to-string replacement t))))
+
+(defun replace-loop-through-replacements (data replace-count)
+  ;; DATA is a vector contaning the following values:
+  ;;   0 next-rotate-count
+  ;;   1 repeat-count
+  ;;   2 next-replacement
+  ;;   3 replacements
+  (if (= (aref data 0) replace-count)
+      (progn
+        (aset data 0 (+ replace-count (aref data 1)))
+        (let ((next (cdr (aref data 2))))
+          (aset data 2 (if (consp next) next (aref data 3))))))
+  (car (aref data 2)))
+
 (defun perform-replace (from-string replacements
 		        query-flag regexp-flag delimited-flag
 			&optional repeat-count map)
@@ -711,10 +802,8 @@ which will run faster and probably do exactly what you want."
 	(search-string from-string)
 	(real-match-data nil)		; the match data for the current match
 	(next-replacement nil)
-	(replacement-index 0)
 	(keep-going t)
 	(stack nil)
-	(next-rotate-count 0)
 	(replace-count 0)
 	(nonempty-match nil)
 
@@ -736,9 +825,22 @@ which will run faster and probably do exactly what you want."
 	  (setq limit (copy-marker (region-end)))
 	  (goto-char (region-beginning))
 	  (deactivate-mark)))
-    (if (stringp replacements)
-	(setq next-replacement replacements)
-      (or repeat-count (setq repeat-count 1)))
+
+    ;; REPLACEMENTS is either a string, a list of strings, or a cons cell
+    ;; containing a function and its first argument.  The function is
+    ;; called to generate each replacement like this:
+    ;;   (funcall (car replacements) (cdr replacements) replace-count)
+    ;; It must return a string.
+    (cond
+     ((stringp replacements)
+      (setq next-replacement replacements
+            replacements     nil))
+     ((stringp (car replacements)) ; If it isn't a string, it must be a cons
+      (or repeat-count (setq repeat-count 1))
+      (setq replacements (cons 'replace-loop-through-replacements
+                               (vector repeat-count repeat-count
+                                       replacements replacements)))))
+
     (if delimited-flag
 	(setq search-function 're-search-forward
 	      search-string (concat "\\b"
@@ -782,14 +884,12 @@ which will run faster and probably do exactly what you want."
 			 (and (looking-at search-string)
 			      (match-data)))))
 
-	  ;; If time for a change, advance to next replacement string.
-	  (if (and (listp replacements)
-		   (= next-rotate-count replace-count))
-	      (progn
-		(setq next-rotate-count
-		      (+ next-rotate-count repeat-count))
-		(setq next-replacement (nth replacement-index replacements))
-		(setq replacement-index (% (1+ replacement-index) (length replacements)))))
+	  ;; Calculate the replacement string, if necessary.
+	  (when replacements
+            (set-match-data real-match-data)
+            (setq next-replacement
+                  (funcall (car replacements) (cdr replacements)
+                           replace-count)))
 	  (if (not query-flag)
 	      (progn
 		(set-match-data real-match-data)
