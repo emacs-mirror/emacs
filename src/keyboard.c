@@ -1,5 +1,5 @@
 /* Keyboard and mouse input; editor command loop.
-   Copyright (C) 1985,86,87,88,89,93,94,95,96 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,87,88,89,93,94,95,96,97 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -314,6 +314,7 @@ Lisp_Object Qself_insert_command;
 Lisp_Object Qforward_char;
 Lisp_Object Qbackward_char;
 Lisp_Object Qundefined;
+Lisp_Object Qtimer_event_handler;
 
 /* read_key_sequence stores here the command definition of the
    key sequence that it reads.  */
@@ -440,7 +441,6 @@ Lisp_Object Qmake_frame_visible;
 /* Symbols to denote kinds of events.  */
 Lisp_Object Qfunction_key;
 Lisp_Object Qmouse_click;
-Lisp_Object Qtimer_event;
 /* Lisp_Object Qmouse_movement; - also an event header */
 
 /* Properties of event headers.  */
@@ -2069,7 +2069,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   /* Now that we have read an event, Emacs is not idle--
      unless the event was a timer event (not used now).  */
-  if (! (CONSP (c) && EQ (XCONS (c)->car, Qtimer_event)))
+  if (! CONSP (c))
     timer_stop_idle ();
 
   start_polling ();
@@ -2932,29 +2932,6 @@ swallow_events (do_display)
 	  abort ();
 #endif
 	}
-      /* Note that timer_event is currently never used.  */
-      else if (event->kind == timer_event)
-	{
-	  Lisp_Object tem, lisp_event;
-	  int was_locked = single_kboard;
-
-	  tem = get_keymap_1 (Vspecial_event_map, 0, 0);
-	  tem = get_keyelt (access_keymap (tem, Qtimer_event, 0, 0),
-			    1);
-	  lisp_event = Fcons (Qtimer_event,
-			      Fcons (Fcdr (event->frame_or_window), Qnil));
-	  kbd_fetch_ptr = event + 1;
-	  if (kbd_fetch_ptr == kbd_store_ptr)
-	    input_pending = 0;
-	  Fcommand_execute (tem, Qnil, Fvector (1, &lisp_event), Qt);
-	  timers_run++;
-	  if (do_display)
-	    redisplay_preserve_echo_area ();
-
-	  /* Resume allowing input from any kboard, if that was true before.  */
-	  if (!was_locked)
-	    any_kboard_state ();
-	}
       else
 	break;
     }
@@ -3025,8 +3002,6 @@ timer_check (do_it_now)
   EMACS_TIME nexttime;
   EMACS_TIME now, idleness_now;
   Lisp_Object timers, idle_timers, chosen_timer;
-  /* Nonzero if we generate some events.  */
-  int events_generated = 0;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
   EMACS_SET_SECS (nexttime, -1);
@@ -3163,64 +3138,27 @@ timer_check (do_it_now)
 	{
 	  if (NILP (vector[0]))
 	    {
+	      Lisp_Object tem;
+	      int was_locked = single_kboard;
+	      int count = specpdl_ptr - specpdl;
+
 	      /* Mark the timer as triggered to prevent problems if the lisp
 		 code fails to reschedule it right.  */
 	      vector[0] = Qt;
 
-	      /* Run the timer or queue a timer event.  */
-	      if (1)
-		{
-		  Lisp_Object tem, event;
-		  int was_locked = single_kboard;
-		  int count = specpdl_ptr - specpdl;
+	      specbind (Qinhibit_quit, Qt);
 
-		  specbind (Qinhibit_quit, Qt);
+	      call1 (Qtimer_event_handler, chosen_timer);
+	      timers_run++;
 
-		  tem = get_keymap_1 (Vspecial_event_map, 0, 0);
-		  tem = get_keyelt (access_keymap (tem, Qtimer_event, 0, 0),
-				    1);
-		  event = Fcons (Qtimer_event, Fcons (chosen_timer, Qnil));
-		  Fcommand_execute (tem, Qnil, Fvector (1, &event), Qt);
-		  timers_run++;
+	      unbind_to (count, Qnil);
 
-		  unbind_to (count, Qnil);
+	      /* Resume allowing input from any kboard, if that was true before.  */
+	      if (!was_locked)
+		any_kboard_state ();
 
-		  /* Resume allowing input from any kboard, if that was true before.  */
-		  if (!was_locked)
-		    any_kboard_state ();
-
-		  /* Since we have handled the event,
-		     we don't need to tell the caller to wake up and do it.  */
-		}
-#if 0
-	      else
-		{
-		  /* Generate a timer event so the caller will handle it.  */
-		  struct input_event event;
-
-		  event.kind = timer_event;
-		  event.modifiers = 0;
-		  event.x = event.y = Qnil;
-		  event.timestamp = triggertime;
-		  /* Store the timer in the frame slot.  */
-		  event.frame_or_window
-		    = Fcons (Fselected_frame (), chosen_timer);
-		  kbd_buffer_store_event (&event);
-
-		  last_timer_event = event;
-
-		  /* Tell caller to handle this event right away.  */
-		  events_generated = 1;
-		  EMACS_SET_SECS (nexttime, 0);
-		  EMACS_SET_USECS (nexttime, 0);
-
-		  /* Don't queue more than one event at once.
-		     When Emacs is ready for another, it will
-		     queue the next one.  */
-		  UNGCPRO;
-		  return nexttime;
-		}
-#endif /* 0 */
+	      /* Since we have handled the event,
+		 we don't need to tell the caller to wake up and do it.  */
 	    }
 	}
       else
@@ -3228,10 +3166,6 @@ timer_check (do_it_now)
 	   return the amount of time to wait before it is ripe.  */
 	{
 	  UNGCPRO;
-	  /* But if we generated an event,
-	     tell the caller to handle it now.  */
-	  if (events_generated)
-	    return nexttime;
 	  return difference;
 	}
     }
@@ -3797,10 +3731,6 @@ make_lispy_event (event)
 				    lispy_function_keys, &func_key_syms,
 				    (sizeof (lispy_function_keys)
 				     / sizeof (lispy_function_keys[0])));
-
-      /* Note that timer_event is currently never used.  */
-    case timer_event:
-      return Fcons (Qtimer_event, Fcons (Fcdr (event->frame_or_window), Qnil));
 
 #ifdef HAVE_MOUSE
       /* A mouse click.  Figure out where it is, decide whether it's
@@ -7945,6 +7875,9 @@ struct event_head head_table[] = {
 
 syms_of_keyboard ()
 {
+  Qtimer_event_handler = intern ("timer-event-handler");
+  staticpro (&Qtimer_event_handler);
+
   Qdisabled_command_hook = intern ("disabled-command-hook");
   staticpro (&Qdisabled_command_hook);
 
@@ -7982,8 +7915,6 @@ syms_of_keyboard ()
   staticpro (&Qfunction_key);
   Qmouse_click = intern ("mouse-click");
   staticpro (&Qmouse_click);
-  Qtimer_event = intern ("timer-event");
-  staticpro (&Qtimer_event);
 
   Qmenu_enable = intern ("menu-enable");
   staticpro (&Qmenu_enable);
