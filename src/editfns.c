@@ -77,7 +77,7 @@ void
 init_editfns ()
 {
   char *user_name;
-  register unsigned char *p, *q, *r;
+  register unsigned char *p;
   struct passwd *pw;	/* password entry for the current user */
   Lisp_Object tem;
 
@@ -214,7 +214,6 @@ except in the case that `enable-multibyte-characters' is nil.")
      register Lisp_Object position;
 {
   int pos;
-  unsigned char *p;
 
   if (MARKERP (position)
       && current_buffer == XMARKER (position)->buffer)
@@ -619,7 +618,6 @@ If POS is out of range, the value is nil.")
      Lisp_Object pos;
 {
   register int pos_byte;
-  register Lisp_Object val;
 
   if (NILP (pos))
     {
@@ -2350,11 +2348,15 @@ use `save-excursion' outermost:\n\
   return unbind_to (count, val);
 }
 
+#ifndef HAVE_MENUS
+
 /* Buffer for the most recent text displayed by Fmessage.  */
 static char *message_text;
 
 /* Allocated length of that buffer.  */
 static int message_length;
+
+#endif /* not HAVE_MENUS */
 
 DEFUN ("message", Fmessage, Smessage, 1, MANY, 0,
   "Print a one-line message at the bottom of the screen.\n\
@@ -2495,7 +2497,7 @@ Use %% to put a single % into the output.")
   register int total;		/* An estimate of the final length */
   char *buf, *p;
   register unsigned char *format, *end;
-  int length, nchars;
+  int nchars;
   /* Nonzero if the output should be a multibyte string,
      which is true if any of the inputs is one.  */
   int multibyte = 0;
