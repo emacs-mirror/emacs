@@ -885,7 +885,7 @@
 	(rrr (nth 3 cmd)))
     (ccl-check-register rrr cmd)
     (ccl-check-register RRR cmd)
-    (cond ((symbolp Rrr)
+    (cond ((and (symbolp Rrr) (not (get Rrr 'ccl-register-number)))
 	   (if (not (get Rrr 'translation-table))
 	       (error "CCL: Invalid translation table %s in %s" Rrr cmd))
 	   (ccl-embed-extended-command 'translate-character-const-tbl
