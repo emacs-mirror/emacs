@@ -1,5 +1,9 @@
 2001-07-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* find-file.el (ff-find-the-other-file): Use file-name-nondirectory
+	instead of string-match to find the basename of the file.  From
+	Pascal Obry <p.obry@wanadoo.fr>.
+
 	* net/browse-url.el (browse-url-default-windows-browser): Support
 	the MS-DOS port when it runs on Windows.
 	(browse-url-browser-function) [ms-dos]: Default to
