@@ -940,7 +940,7 @@ usage: (define-charset-internal ...)  */)
   return Qnil;
 }
 
-
+/* Fixme: Should this record the alias relationships for diagnostics?  */
 DEFUN ("define-charset-alias", Fdefine_charset_alias,
        Sdefine_charset_alias, 2, 2, 0,
        doc: /* Define ALIAS as an alias for charset CHARSET.  */)
@@ -951,6 +951,8 @@ DEFUN ("define-charset-alias", Fdefine_charset_alias,
 
   CHECK_CHARSET_GET_ATTR (charset, attr);
   Fputhash (alias, attr, Vcharset_hash_table);
+  /* Fixme: should the ordered list be updated too?  */
+  Vcharset_list = Fcons (alias, Vcharset_list);
   return Qnil;
 }
 
@@ -1813,7 +1815,7 @@ The default value is sub-directory "charsets" of `data-directory'.  */);
 					      Vdata_directory);
 
   DEFVAR_LISP ("charset-list", &Vcharset_list,
-	       doc: /* List of charsets ever defined.  */);
+	       doc: /* List of all charsets ever defined.  */);
   Vcharset_list = Qnil;
 
   /* Make the prerequisite charset `ascii' and `unicode'.  */
