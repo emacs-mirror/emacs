@@ -717,9 +717,21 @@ struct Lisp_Marker
   /* 1 means normal insertion at the marker's position
      leaves the marker after the inserted text.  */
   unsigned int insertion_type : 1;
+  /* This is the buffer that the marker points into,
+     or 0 if it points nowhere.  */
   struct buffer *buffer;
+
+  /* The remaining fields are meaningless in a marker that
+     does not point anywhere.  */
+
+  /* For markers that point somewhere,
+     this is used to chain of all the markers in a given buffer.  */
   Lisp_Object chain;
+  /* This is the byte position, translated by the gap:
+     if it is after the gap, the gap size is included.  */
   int bufpos;
+  /* This is the char position where the marker points.  */
+  int charpos;
 };
 
 /* Forwarding pointer to an int variable.
@@ -1666,10 +1678,11 @@ EXFUN (Ftruncate, 2);
 
 /* Defined in insdel.c */
 extern void move_gap P_ ((int));
+extern void move_gap_both P_ ((int, int));
 extern void make_gap P_ ((int));
 extern void insert P_ ((unsigned char *, int));
 extern void insert_and_inherit P_ ((unsigned char *, int));
-extern void insert_1 P_ ((unsigned char *, int, int, int));
+extern void insert_1 P_ ((unsigned char *, int, int, int, int));
 extern void insert_from_string P_ ((Lisp_Object, int, int, int));
 extern void insert_from_buffer P_ ((struct buffer *, int, int, int));
 extern void insert_char P_ ((int));
@@ -1679,6 +1692,9 @@ extern void insert_before_markers_and_inherit P_ ((unsigned char *, int));
 extern void insert_from_string_before_markers P_ ((Lisp_Object, int, int, int));
 extern void del_range P_ ((int, int));
 extern void del_range_1 P_ ((int, int, int));
+extern void del_range_byte P_ ((int, int, int));
+extern void del_range_both P_ ((int, int, int, int, int));
+extern void del_range_2 P_ ((int, int, int, int));
 extern void modify_region P_ ((struct buffer *, int, int));
 extern void prepare_to_modify_buffer P_ ((int, int, int *));
 extern void signal_before_change P_ ((int, int, int *));
@@ -1947,6 +1963,9 @@ EXFUN (Fset_marker, 3);
 extern int marker_position P_ ((Lisp_Object));
 extern void unchain_marker P_ ((Lisp_Object));
 extern Lisp_Object set_marker_restricted P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
+extern Lisp_Object set_marker_both P_ ((Lisp_Object, Lisp_Object, int, int));
+extern Lisp_Object set_marker_restricted_both P_ ((Lisp_Object, Lisp_Object,
+						   int, int));
 
 /* Defined in fileio.c */
 
@@ -1987,6 +2006,7 @@ EXFUN (Fmatch_end, 1);
 extern int fast_string_match P_ ((Lisp_Object, Lisp_Object));
 extern int fast_c_string_match_ignore_case P_ ((Lisp_Object, char *));
 extern int scan_buffer P_ ((int, int, int, int, int *, int));
+extern int scan_newline P_ ((int, int, int, int, int, int));
 extern int find_next_newline P_ ((int, int));
 extern int find_next_newline_no_quit P_ ((int, int));
 extern int find_before_next_newline P_ ((int, int, int));
@@ -2084,8 +2104,7 @@ EXFUN (Fcurrent_column, 0);
 EXFUN (Fmove_to_column, 2);
 extern int current_column P_ ((void));
 extern void invalidate_current_column P_ ((void));
-extern int pos_tab_offset P_ ((struct window *, int));
-extern int indented_beyond_p P_ ((int, int));
+extern int indented_beyond_p P_ ((int, int, int));
 
 /* defined in window.c */
 extern Lisp_Object Qwindowp, Qwindow_live_p;
@@ -2254,6 +2273,7 @@ extern void init_baud_rate P_ ((void));
 
 /* defined in filelock.c */
 EXFUN (Funlock_buffer, 0);
+EXFUN (Ffile_locked_p, 1);;
 extern void unlock_all_files P_ ((void));
 extern void lock_file P_ ((Lisp_Object));
 extern void unlock_file P_ ((Lisp_Object));
