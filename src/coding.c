@@ -4827,7 +4827,6 @@ encode_coding (coding, source, destination, src_bytes, dst_bytes)
       && coding->result == CODING_FINISH_INSUFFICIENT_SRC)
     {
       unsigned char *src = source + coding->consumed;
-      unsigned char *src_end = src + src_bytes;
       unsigned char *dst = destination + coding->produced;
 
       if (coding->type == coding_type_iso2022)
@@ -4838,7 +4837,7 @@ encode_coding (coding, source, destination, src_bytes, dst_bytes)
 	{
 	  int len = src_bytes - coding->consumed;
 
-	  BCOPY_SHORT (source + coding->consumed, dst, len);
+	  BCOPY_SHORT (src, dst, len);
 	  if (coding->src_multibyte)
 	    len = str_as_unibyte (dst, len);
 	  dst += len;
@@ -5394,7 +5393,6 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
          new buffer.  */
       struct buffer *prev = current_buffer;
       Lisp_Object new;
-      int count = specpdl_ptr - specpdl;
 
       record_unwind_protect (code_convert_region_unwind, Qnil);
       /* We should not call any more pre-write/post-read-conversion
@@ -5728,7 +5726,6 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
       && ! encodep && ! NILP (coding->post_read_conversion))
     {
       Lisp_Object val;
-      int count = specpdl_ptr - specpdl;
 
       if (from != PT)
 	TEMP_SET_PT_BOTH (from, from_byte);
