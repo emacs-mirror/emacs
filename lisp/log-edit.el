@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs commit log
-;; Revision: $Id: log-edit.el,v 1.17 2001/10/30 04:32:58 monnier Exp $
+;; Revision: $Id: log-edit.el,v 1.18 2003/02/04 11:34:12 lektu Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -91,8 +91,9 @@ If 'changed, only request confirmation if the list of files has
   :group 'log-edit
   :type 'boolean)
 
-(defvar cvs-commit-buffer-require-final-newline t
-  "Obsolete, use `log-edit-require-final-newline'.")
+(defvar cvs-commit-buffer-require-final-newline t)
+(make-obsolete-variable 'cvs-commit-buffer-require-final-newline
+                        'log-edit-require-final-newline)
 
 (defcustom log-edit-require-final-newline
   cvs-commit-buffer-require-final-newline
@@ -129,8 +130,9 @@ can be obtained from `log-edit-files'."
   :type '(hook :options (log-edit-set-common-indentation
 			 log-edit-add-to-changelog)))
 
-(defvar cvs-changelog-full-paragraphs t
-  "Obsolete, use `log-edit-changelog-full-paragraphs'.")
+(defvar cvs-changelog-full-paragraphs t)
+(make-obsolete-variable 'cvs-changelog-full-paragraphs
+                        'log-edit-changelog-full-paragraphs)
 
 (defvar log-edit-changelog-full-paragraphs cvs-changelog-full-paragraphs
   "*If non-nil, include full ChangeLog paragraphs in the log.
