@@ -191,9 +191,6 @@ init_syntax_once ()
 /* Get the interface, including the syntax bits.  */
 #include "regex.h"
 
-/* isalpha etc. are used for the character classes.  */
-#include <ctype.h>
-
 /* Jim Meyering writes:
 
    "... Some ctype macros are valid only for character codes that
@@ -210,6 +207,51 @@ init_syntax_once ()
 #else
 #define ISASCII(c) isascii(c)
 #endif
+
+/* isalpha etc. are used for the character classes.  */
+#include <ctype.h>
+
+/* In Emacs, these are only used for single-byte characters.  */
+#define ISDIGIT(c) (ISASCII (c) && isdigit (c))
+#define ISCNTRL(c) (ISASCII (c) && iscntrl (c))
+#define ISXDIGIT(c) (ISASCII (c) && isxdigit (c))
+
+#ifdef emacs
+
+/* This is only used for single-byte characters.  */
+#define ISBLANK(c) ((c) == ' ' || (c) == '\t')
+
+/* The rest must handle multibyte characters.  */
+
+#define ISGRAPH(c) (SINGLE_BYTE_CHAR_P (c)				\
+		    ? ISASCII (c) && isprint (c) && !isspace (c)	\
+		    : 1)
+
+#define ISPRINT(c) (SINGLE_BYTE_CHAR_P (c)		\
+		    ? ISASCII (c) && isalnum (c)	\
+		    : 1)
+
+#define ISALNUM(c) (SINGLE_BYTE_CHAR_P (c)		\
+		    ? ISASCII (c) && isalnum (c)	\
+		    : SYNTAX (c) == Sword)
+
+#define ISALPHA(c) (SINGLE_BYTE_CHAR_P (c)		\
+		    ? ISASCII (c) && isalpha (c)	\
+		    : SYNTAX (c) == Sword)
+
+#define ISLOWER(c) (LOWERCASEP (c))
+
+#define ISPUNCT(c) (SINGLE_BYTE_CHAR_P (c)		\
+		    ? ISASCII (c) && ispunct (c)	\
+		    : SYNTAX (c) != Sword)
+
+#define ISSPACE(c) (SYNTAX (c) == Swhitespace)
+
+#define ISUPPER(c) (UPPERCASEP (c))
+
+#define ISWORD(c) (SYNTAX (c) == Sword)
+
+#else /* not emacs */
 
 #ifdef isblank
 #define ISBLANK(c) (ISASCII (c) && isblank (c))
@@ -233,6 +275,10 @@ init_syntax_once ()
 #define ISUPPER(c) (ISASCII (c) && isupper (c))
 #define ISXDIGIT(c) (ISASCII (c) && isxdigit (c))
 
+#define ISWORD(c) ISALPHA(c)
+
+#endif /* not emacs */
+
 #ifndef NULL
 #define NULL (void *)0
 #endif
@@ -383,7 +429,15 @@ typedef enum
 	   for a bitmap saying which chars are in.  Bits in each byte
 	   are ordered low-bit-first.  A character is in the set if its
 	   bit is 1.  A character too large to have a bit in the map is
-	   automatically not in the set.  */
+	   automatically not in the set.
+
+	   If the length byte has the 0x80 bit set, then that stuff
+	   is followed by a range table:
+	       2 bytes of flags for character sets (low 8 bits, high 8 bits)
+	           See RANGE_TABLE_WORK_BITS below.
+	       2 bytes, the number of pairs that follow
+	       pairs, each 2 multibyte characters,
+	           each multibyte character represented as 3 bytes.  */
   charset,
 
 	/* Same parameters as charset, but match any character that is
@@ -617,8 +671,14 @@ extract_number_and_incr (destination, source)
 
 /* Return the address of range table of charset P.  But not the start
    of table itself, but the before where the number of ranges is
-   stored.  `2 +' means to skip re_opcode_t and size of bitmap.	 */
-#define CHARSET_RANGE_TABLE(p) (&(p)[2 + CHARSET_BITMAP_SIZE (p)])
+   stored.  `2 +' means to skip re_opcode_t and size of bitmap,
+   and the 2 bytes of flags at the start of the range table.  */
+#define CHARSET_RANGE_TABLE(p) (&(p)[4 + CHARSET_BITMAP_SIZE (p)])
+
+/* Extract the bit flags that start a range table.  */
+#define CHARSET_RANGE_TABLE_BITS(p)		\
+  ((p)[2 + CHARSET_BITMAP_SIZE (p)]		\
+   + (p)[3 + CHARSET_BITMAP_SIZE (p)] * 0x100)
 
 /* Test if C is listed in the bitmap of charset P.  */
 #define CHARSET_LOOKUP_BITMAP(p, c)				\
@@ -791,6 +851,9 @@ print_partial_compiled_pattern (start, end)
 	  {
 	    register int c, last = -100;
 	    register int in_range = 0;
+	    int length = *p & 0x7f;
+	    int has_range_table = *p & 0x80;
+	    int range_length = p[length + 2] + p[length + 3] * 0x100;
 
 	    printf ("/charset [%s",
 		    (re_opcode_t) *(p - 1) == charset_not ? "^" : "");
@@ -798,7 +861,7 @@ print_partial_compiled_pattern (start, end)
 	    assert (p + *p < pend);
 
 	    for (c = 0; c < 256; c++)
-	      if (c / 8 < *p
+	      if (c / 8 < length
 		  && (p[1 + (c/8)] & (1 << (c % 8))))
 		{
 		  /* Are we starting a range?  */
@@ -809,7 +872,7 @@ print_partial_compiled_pattern (start, end)
 		    }
 		  /* Have we broken a range?  */
 		  else if (last + 1 != c && in_range)
-	      {
+		    {
 		      putchar (last);
 		      in_range = 0;
 		    }
@@ -820,12 +883,20 @@ print_partial_compiled_pattern (start, end)
 		  last = c;
 	      }
 
+	    p += 1 + length;
+
 	    if (in_range)
 	      putchar (last);
 
 	    putchar (']');
 
-	    p += 1 + *p;
+	    if (has_range_table)
+	      printf ("has-range-table");
+
+	    /* ??? Should print the range table; for now,
+	       just skip it.  */
+	    if (has_range_table)
+	      p += 4 + 6 * range_length;
 	  }
 	  break;
 
@@ -1710,6 +1781,7 @@ struct range_table_work_area
   int *table;			/* actual work area.  */
   int allocated;		/* allocated size for work area in bytes.  */
   int used;			/* actually used size in words.	 */
+  int bits;			/* flag to record character classes */
 };
 
 /* Make sure that WORK_AREA can hold more N multibyte characters.  */
@@ -1729,6 +1801,21 @@ struct range_table_work_area
       }									  \
   } while (0)
 
+#define SET_RANGE_TABLE_WORK_AREA_BIT(work_area, bit)		\
+  (work_area).bits |= (bit)
+
+/* These bits represent the various character classes such as [:alnum:]
+   in a charset's range table.  */
+#define BIT_ALNUM 0x1
+#define BIT_ALPHA 0x2
+#define BIT_WORD  0x4
+#define BIT_GRAPH 0x20
+#define BIT_LOWER 0x40
+#define BIT_PRINT 0x80
+#define BIT_PUNCT 0x100
+#define BIT_SPACE 0x200
+#define BIT_UPPER 0x400
+
 /* Set a range (RANGE_START, RANGE_END) to WORK_AREA.  */
 #define SET_RANGE_TABLE_WORK_AREA(work_area, range_start, range_end)	\
   do {									\
@@ -1744,8 +1831,9 @@ struct range_table_work_area
       free ((work_area).table);			\
   } while (0)
 
-#define CLEAR_RANGE_TABLE_WORK_USED(work_area) ((work_area).used = 0)
+#define CLEAR_RANGE_TABLE_WORK_USED(work_area) ((work_area).used = 0, (work_area).bits = 0)
 #define RANGE_TABLE_WORK_USED(work_area) ((work_area).used)
+#define RANGE_TABLE_WORK_BITS(work_area) ((work_area).bits)
 #define RANGE_TABLE_WORK_ELT(work_area, i) ((work_area).table[i])
 
 
@@ -1780,7 +1868,8 @@ struct range_table_work_area
     || STREQ (string, "alnum") || STREQ (string, "xdigit")		\
     || STREQ (string, "space") || STREQ (string, "print")		\
     || STREQ (string, "punct") || STREQ (string, "graph")		\
-    || STREQ (string, "cntrl") || STREQ (string, "blank"))
+    || STREQ (string, "cntrl") || STREQ (string, "blank")		\
+    || STREQ (string, "word"))
 
 #ifndef MATCH_MAY_ALLOCATE
 
@@ -2281,6 +2370,7 @@ regex_compile (pattern, size, syntax, bufp)
 			boolean is_space = STREQ (str, "space");
 			boolean is_upper = STREQ (str, "upper");
 			boolean is_xdigit = STREQ (str, "xdigit");
+			boolean is_word = STREQ (str, "word");
 
 			if (!IS_CHAR_CLASS (str))
 			  FREE_STACK_RETURN (REG_ECTYPE);
@@ -2291,6 +2381,31 @@ regex_compile (pattern, size, syntax, bufp)
 
 			if (p == pend) FREE_STACK_RETURN (REG_EBRACK);
 
+			/* Most character classes in a multibyte match
+			   just set a flag.  Exceptions are is_blank,
+			   is_digit, is_cntrl, and is_xdigit, since
+			   they can only match ASCII characters.  We
+			   don't need to handle them for multibyte.  */
+
+			if (bufp->multibyte)
+			  {
+			    int bit = 0;
+
+			    if (is_alnum) bit = BIT_ALNUM;
+			    if (is_alpha) bit = BIT_ALPHA;
+			    if (is_graph) bit = BIT_GRAPH;
+			    if (is_lower) bit = BIT_LOWER;
+			    if (is_print) bit = BIT_PRINT;
+			    if (is_punct) bit = BIT_PUNCT;
+			    if (is_space) bit = BIT_SPACE;
+			    if (is_upper) bit = BIT_UPPER;
+			    if (is_word) bit = BIT_WORD;
+			    if (bit)
+			      SET_RANGE_TABLE_WORK_AREA_BIT (range_table_work,
+							     bit);
+			  }
+
+			/* Handle character classes for ASCII characters.  */
 			for (ch = 0; ch < 1 << BYTEWIDTH; ch++)
 			  {
 			    int translated = TRANSLATE (ch);
@@ -2310,6 +2425,8 @@ regex_compile (pattern, size, syntax, bufp)
 				|| (is_space  && ISSPACE (ch))
 				|| (is_upper  && ISUPPER (ch))
 				|| (is_xdigit && ISXDIGIT (ch)))
+			      SET_LIST_BIT (translated);
+			    if (   (is_word   && ISWORD (ch)))
 			      SET_LIST_BIT (translated);
 			  }
 
@@ -2395,18 +2512,25 @@ regex_compile (pattern, size, syntax, bufp)
 	      b[-1]--;
 	    b += b[-1];
 
-	    /* Build real range table from work area. */
-	    if (RANGE_TABLE_WORK_USED (range_table_work))
+	    /* Build real range table from work area.  */
+	    if (RANGE_TABLE_WORK_USED (range_table_work)
+		|| RANGE_TABLE_WORK_BITS (range_table_work))
 	      {
 		int i;
 		int used = RANGE_TABLE_WORK_USED (range_table_work);
 
 		/* Allocate space for COUNT + RANGE_TABLE.  Needs two
-		   bytes for COUNT and three bytes for each character.	*/
-		GET_BUFFER_SPACE (2 + used * 3);
+		   bytes for flags, two for COUNT, and three bytes for
+		   each character. */
+		GET_BUFFER_SPACE (4 + used * 3);
 
 		/* Indicate the existence of range table.  */
 		laststart[1] |= 0x80;
+
+		/* Store the character class flag bits into the range table.
+		   If not in emacs, these flag bits are always 0.  */
+		*b++ = RANGE_TABLE_WORK_BITS (range_table_work) & 0xff;
+		*b++ = RANGE_TABLE_WORK_BITS (range_table_work) >> 8;
 
 		STORE_NUMBER_AND_INCR (b, used / 2);
 		for (i = 0; i < used; i++)
@@ -3161,6 +3285,10 @@ group_in_compile_stack (compile_stack, regnum)
    characters can start a string that matches the pattern.  This fastmap
    is used by re_search to skip quickly over impossible starting points.
 
+   Character codes above (1 << BYTEWIDTH) are not represented in the
+   fastmap, but the leading codes are represented.  Thus, the fastmap
+   indicates which character sets could start a match.
+
    The caller must supply the address of a (1 << BYTEWIDTH)-byte data
    area as BUFP->fastmap.
 
@@ -3262,22 +3390,30 @@ re_compile_fastmap (bufp)
 
 #ifndef emacs
 	case charset:
-	  for (j = *p++ * BYTEWIDTH - 1; j >= 0; j--)
-	    if (p[j / BYTEWIDTH] & (1 << (j % BYTEWIDTH)))
-	      fastmap[j] = 1;
-	  break;
+	  {
+	    int length = (*p & 0x7f);;
+	    p++;
 
+	    for (j = length * BYTEWIDTH - 1; j >= 0; j--)
+	      if (p[j / BYTEWIDTH] & (1 << (j % BYTEWIDTH)))
+		fastmap[j] = 1;
+	  }
+	  break;
 
 	case charset_not:
 	  /* Chars beyond end of map must be allowed.  */
-	  for (j = *p * BYTEWIDTH; j < (1 << BYTEWIDTH); j++)
-	    fastmap[j] = 1;
+	  {
+	    int length = (*p & 0x7f);;
+	    p++;
 
-	  for (j = *p++ * BYTEWIDTH - 1; j >= 0; j--)
-	    if (!(p[j / BYTEWIDTH] & (1 << (j % BYTEWIDTH))))
+	    for (j = length * BYTEWIDTH; j < (1 << BYTEWIDTH); j++)
 	      fastmap[j] = 1;
-	  break;
 
+	    for (j = length * BYTEWIDTH - 1; j >= 0; j--)
+	      if (!(p[j / BYTEWIDTH] & (1 << (j % BYTEWIDTH))))
+		fastmap[j] = 1;
+	  }
+	  break;
 
 	case wordchar:
 	  for (j = 0; j < (1 << BYTEWIDTH); j++)
@@ -3297,6 +3433,12 @@ re_compile_fastmap (bufp)
 	       j >= 0; j--)
 	    if (p[j / BYTEWIDTH] & (1 << (j % BYTEWIDTH)))
 	      fastmap[j] = 1;
+
+	  /* If we can match a syntax class, we can match
+	     any character set.  */
+	  if (CHARSET_RANGE_TABLE_EXISTS_P (&p[-2])
+	      && CHARSET_RANGE_TABLE_BITS (&p[-2]) != 0)
+	    goto set_fastmap_for_multibyte_characters;
 
 	  if (CHARSET_RANGE_TABLE_EXISTS_P (&p[-2])
 	      && match_any_multibyte_characters == false)
@@ -4617,26 +4759,30 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	       range table.  */
 	    unsigned char *range_table;
 
-	    /* Nonzero if there is range table.	 */
+	    /* Nonzero if there is a range table.  */
 	    int range_table_exists;
 
-	    /* Number of ranges of range table.	 Not in bytes.	*/
-	    int count;
+	    /* Number of ranges of range table.  This is not included
+	       in the initial byte-length of the command.  */
+	    int count = 0;
 
 	    DEBUG_PRINT2 ("EXECUTING charset%s.\n", not ? "_not" : "");
 
 	    PREFETCH ();
 	    c = (unsigned char) *d;
 
-	    range_table = CHARSET_RANGE_TABLE (&p[-1]); /* Past the bitmap.  */
 	    range_table_exists = CHARSET_RANGE_TABLE_EXISTS_P (&p[-1]);
+
+#ifdef emacs
 	    if (range_table_exists)
-	      EXTRACT_NUMBER_AND_INCR (count, range_table);
-	    else
-	      count = 0;
+	      {
+		range_table = CHARSET_RANGE_TABLE (&p[-1]); /* Past the bitmap.  */
+		EXTRACT_NUMBER_AND_INCR (count, range_table);
+	      }
 
 	    if (multibyte && BASE_LEADING_CODE_P (c))
 	      c = STRING_CHAR_AND_LENGTH (d, dend - d, len);
+#endif /* emacs */
 
 	    if (SINGLE_BYTE_CHAR_P (c))
 	      {			/* Lookup bitmap.  */
@@ -4646,13 +4792,33 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		/* Cast to `unsigned' instead of `unsigned char' in
 		   case the bit list is a full 32 bytes long.  */
 		if (c < (unsigned) (CHARSET_BITMAP_SIZE (&p[-1]) * BYTEWIDTH)
-		&& p[1 + c / BYTEWIDTH] & (1 << (c % BYTEWIDTH)))
-	      not = !not;
+		    && p[1 + c / BYTEWIDTH] & (1 << (c % BYTEWIDTH)))
+		  not = !not;
 	      }
+#ifdef emacs
 	    else if (range_table_exists)
-	      CHARSET_LOOKUP_RANGE_TABLE_RAW (not, c, range_table, count);
+	      {
+		int class_bits = CHARSET_RANGE_TABLE_BITS (&p[-1]);
 
-	    p = CHARSET_RANGE_TABLE_END (range_table, count);
+		if (  (class_bits & BIT_ALNUM && ISALNUM (c))
+		    | (class_bits & BIT_ALPHA && ISALPHA (c))
+		    | (class_bits & BIT_GRAPH && ISGRAPH (c))
+		    | (class_bits & BIT_LOWER && ISLOWER (c))
+		    | (class_bits & BIT_PRINT && ISPRINT (c))
+		    | (class_bits & BIT_PUNCT && ISPUNCT (c))
+		    | (class_bits & BIT_SPACE && ISSPACE (c))
+		    | (class_bits & BIT_UPPER && ISUPPER (c))
+		    | (class_bits & BIT_WORD  && ISWORD (c)))
+		  not = !not;
+		else
+		  CHARSET_LOOKUP_RANGE_TABLE_RAW (not, c, range_table, count);
+	      }
+#endif /* emacs */
+
+	    if (range_table_exists)
+	      p = CHARSET_RANGE_TABLE_END (range_table, count);
+	    else
+	      p += CHARSET_BITMAP_SIZE (&p[-1]) + 1;
 
 	    if (!not) goto fail;
 
