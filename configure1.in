@@ -961,6 +961,17 @@ AC_RETSIGTYPE
 dnl checks for functions
 AC_ALLOCA
 AC_HAVE_FUNCS(gettimeofday gethostname dup2 rename closedir)
+ok_so_far=true
+AC_FUNC_CHECK(socket,, ok_so_far=)
+if test -n "$ok_so_far"; then
+  AC_HEADER_CHECK(netinet/in.h,, ok_so_far=)
+fi
+if test -n "$ok_so_far"; then
+  AC_HEADER_CHECK(arpa/inet.h,, ok_so_far=)
+fi
+if test -n "$ok_so_far"; then
+  AC_DEFINE(HAVE_INET_SOCKETS)
+fi
 
 dnl checks for structure members
 AC_STRUCT_TM
