@@ -681,7 +681,7 @@ prompt the user for the name of an NNTP server to use."
       (cond
        (gnus-xemacs
 	(gnus-xmas-splash))
-       ((and (eq window-system 'x)
+       ((and window-system
 	     (= (frame-height) (1+ (window-height))))
 	(gnus-x-splash))))
 
