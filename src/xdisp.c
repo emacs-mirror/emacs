@@ -2170,7 +2170,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
       else if (c == '\n')
 	{
 	  invis = 0;
-	  while (pos < end
+	  while (pos + 1 < end
 		 && selective > 0
 		 && indented_beyond_p (pos + 1, selective))
 	    {
