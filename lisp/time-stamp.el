@@ -3,7 +3,7 @@
 ;; Copyright 1989, 1993, 1994, 1995, 1997, 2000
 ;;;	Free Software Foundation, Inc.
 
-;; Maintainer's Time-stamp: <2000-06-07 13:05:45 gildea>
+;; Maintainer's Time-stamp: <2000-10-23 16:08:34 gildea>
 ;; Maintainer: Stephen Gildea <gildea@alum.mit.edu>
 ;; Keywords: tools
 
@@ -575,23 +575,23 @@ Optionally use FORMAT."
 	 ((eq cur-char ?h)		;mail host name
 	  (time-stamp-mail-host-name))
 	 ))
-	(if (string-equal field-width "")
-	    field-result
-	  (let ((padded-result
-		 (format (format "%%%s%c"
-				 field-width
-				 (if (numberp field-result) ?d ?s))
-			 (or field-result ""))))
-	    (let ((initial-length (length padded-result))
-		  (desired-length (string-to-int field-width)))
-	      (if (> initial-length desired-length)
-		  ;; truncate strings on right, years on left
-		  (if (stringp field-result)
-		      (substring padded-result 0 desired-length)
-		    (if (eq cur-char ?y)
-			(substring padded-result (- desired-length))
-		      padded-result))	;non-year numbers don't truncate
-		padded-result)))))
+	(let ((padded-result
+	       (format (format "%%%s%c"
+			       field-width
+			       (if (numberp field-result) ?d ?s))
+		       (or field-result ""))))
+	  (let* ((initial-length (length padded-result))
+		 (desired-length (if (string-equal field-width "")
+				     initial-length
+				   (string-to-int field-width))))
+	    (if (> initial-length desired-length)
+		;; truncate strings on right, years on left
+		(if (stringp field-result)
+		    (substring padded-result 0 desired-length)
+		  (if (eq cur-char ?y)
+		      (substring padded-result (- desired-length))
+		    padded-result))	;non-year numbers don't truncate
+	      padded-result))))
        (t
 	(char-to-string cur-char)))))
       (setq ind (1+ ind)))
