@@ -130,8 +130,20 @@ is a symbol, and @var{widget} is a widget type for editing that symbol.
 Useful widgets are @code{custom-variable} for a variable,
 @code{custom-face} for a face, and @code{custom-group} for a group.
 
+When a new group is introduced into Emacs, use this keyword in
+@code{defgroup}:
+
+@table @code
+@item :version @var{version}
+This option specifies that the group was first introduced in Emacs
+version @var{version}.  The value @var{version} must be a string.
+@end table
+
+Tag the group with a version like this when it is introduced, rather
+than the individual members (@pxref{Variable Definitions}).
+
 In addition to the common keywords (@pxref{Common Keywords}), you can
-use this keyword in @code{defgroup}:
+also use this keyword in @code{defgroup}:
 
 @table @code
 @item :prefix @var{prefix}
