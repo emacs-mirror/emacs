@@ -1926,7 +1926,8 @@ PROC is the process to the FTP-client."
 				(cdr result))))
     (setq result (ange-ftp-raw-send-cmd
 		  proc
-		  (if (ange-ftp-use-smart-gateway-p host)
+		  (if (and (ange-ftp-use-smart-gateway-p host)
+			   ange-ftp-gateway-host)
 		      (format "user \"%s\"@%s %s %s" user nshost pass account)
 		    (format "user \"%s\" %s %s" user pass account))
 		  (format "Logging in as user %s@%s" user host)))
