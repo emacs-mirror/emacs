@@ -377,7 +377,7 @@ do\\([ \t]*while\\)?\\|select[ \t]*case\\|where\\|forall\\)\\)\\>"
     '("\\<\\(case\\)[ \t]*\\(default\\|(\\)" . 1)
     '("\\<\\(do\\|go *to\\)\\>[ \t]*\\([0-9]+\\)"
       (1 font-lock-keyword-face) (2 font-lock-constant-face))
-    ;; line numbers (lines whose first character after number is letter)
+    ;; Line numbers (lines whose first character after number is letter).
     '("^[ \t]*\\([0-9]+\\)[ \t]*[a-z]+" (1 font-lock-constant-face t))))
   "Highlights declarations, do-loops and other constructs.")
 
@@ -918,44 +918,35 @@ For example, \"!\" or \"!!\"."
 
 (defsubst f90-equal-symbols (a b)
   "Compare strings A and B neglecting case and allowing for nil value."
-  (let ((a-local (if a (downcase a) nil))
-	(b-local (if b (downcase b) nil)))
-    (equal a-local b-local)))
+  (equal (if a (downcase a) nil)
+         (if b (downcase b) nil)))
 
 ;; XEmacs 19.11 & 19.12 return a single char when matching an empty regexp.
 ;; The next 2 functions are therefore longer than necessary.
 (defsubst f90-looking-at-do ()
   "Return (\"do\" NAME) if a do statement starts after point.
 NAME is nil if the statement has no label."
-  (if (looking-at "\\(\\(\\sw+\\)[ \t]*\:\\)?[ \t]*\\(do\\)\\>")
-      (let (label
-	    (struct (match-string 3)))
-	(if (looking-at "\\(\\sw+\\)[ \t]*\:")
-	    (setq label (match-string 1)))
-	(list struct label))))
+  (if (looking-at "\\(\\(\\sw+\\)[ \t]*:\\)?[ \t]*\\(do\\)\\>")
+      (list (match-string 3)
+            (if (looking-at "\\(\\sw+\\)[ \t]*:") (match-string 1)))))
 
 (defsubst f90-looking-at-select-case ()
   "Return (\"select\" NAME) if a select-case statement starts after point.
 NAME is nil if the statement has no label."
-  (if (looking-at "\\(\\(\\sw+\\)[ \t]*\:\\)?[ \t]*\
+  (if (looking-at "\\(\\(\\sw+\\)[ \t]*:\\)?[ \t]*\
 \\(select\\)[ \t]*case[ \t]*(")
-      (let (label
-	    (struct (match-string 3)))
-	(if (looking-at "\\(\\sw+\\)[ \t]*\:")
-	    (setq label (match-string 1)))
-	(list struct label))))
+      (list (match-string 3)
+            (if (looking-at "\\(\\sw+\\)[ \t]*:") (match-string 1)))))
 
 (defsubst f90-looking-at-if-then ()
   "Return (\"if\" NAME) if an if () then statement starts after point.
 NAME is nil if the statement has no label."
   (save-excursion
-    (when (looking-at "\\(\\(\\sw+\\)[ \t]*\:\\)?[ \t]*\\(if\\)\\>")
-      (let (label
-            (struct (match-string 3)))
-        (if (looking-at "\\(\\sw+\\)[ \t]*\:")
-            (setq label (match-string 1)))
-        (let ((pos (scan-lists (point) 1 0)))
-          (and pos (goto-char pos)))
+    (when (looking-at "\\(\\(\\sw+\\)[ \t]*:\\)?[ \t]*\\(if\\)\\>")
+      (let ((struct (match-string 3))
+            (label (if (looking-at "\\(\\sw+\\)[ \t]*:") (match-string 1)))
+            (pos (scan-lists (point) 1 0)))
+        (and pos (goto-char pos))
         (skip-chars-forward " \t")
         (if (or (looking-at "then\\>")
                 (when (f90-line-continued)
@@ -964,16 +955,18 @@ NAME is nil if the statement has no label."
                   (looking-at "then\\>")))
             (list struct label))))))
 
-(defsubst f90-looking-at-where-or-forall ()
+(defun f90-looking-at-where-or-forall ()
   "Return (KIND NAME) if a where or forall block starts after point.
 NAME is nil if the statement has no label."
-  (if (looking-at "\\(\\(\\sw+\\)[ \t]*\:\\)?[ \t]*\
-\\(where\\|forall\\)[ \t]*(.*)[ \t]*\\(!\\|$\\)")
-      (let (label
-	    (struct (match-string 3)))
-	(if (looking-at "\\(\\sw+\\)[ \t]*\:")
-	    (setq label (match-string 1)))
-	(list struct label))))
+  (save-excursion
+    (when (looking-at "\\(\\(\\sw+\\)[ \t]*:\\)?[ \t]*\
+\\(where\\|forall\\)\\>")
+      (let ((struct (match-string 3))
+            (label (if (looking-at "\\(\\sw+\\)[ \t]*:") (match-string 1)))
+            (pos (scan-lists (point) 1 0)))
+        (and pos (goto-char pos))
+        (skip-chars-forward " \t")
+        (if (looking-at "\\(!\\|$\\)") (list struct label))))))
 
 (defsubst f90-looking-at-type-like ()
   "Return (KIND NAME) if a type/interface/block-data block starts after point.
