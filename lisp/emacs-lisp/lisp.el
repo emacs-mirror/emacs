@@ -157,8 +157,9 @@ normal recipe (see `beginning-of-defun').  Major modes can define this
 if defining `defun-prompt-regexp' is not sufficient to handle the mode's
 needs.
 
-The function should go to the line on which the current defun starts,
-and return non-nil, or should return nil if it can't find the beginning.")
+The function (of no args) should go to the line on which the current
+defun starts, and return non-nil, or should return nil if it can't
+find the beginning.")
 
 (defun beginning-of-defun (&optional arg)
   "Move backward to the beginning of a defun.
