@@ -1,3 +1,7 @@
+2004-05-04  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* ses.el (ses-set-parameter): Fix typo.
+
 2004-05-04  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-read-internal): Fix call to read-file-name for edit.
