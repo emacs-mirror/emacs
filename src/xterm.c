@@ -5913,7 +5913,7 @@ x_term_init (display_name)
 				  emacs_options, XtNumber (emacs_options),
 				  &argc, argv,
 				  NULL, NULL, 0);
-  XtFree (argv);
+  XtFree ((char *)argv);
   x_current_display = XtDisplay (Xt_app_shell);
 
 #else /* not USE_X_TOOLKIT */
