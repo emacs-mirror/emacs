@@ -878,7 +878,7 @@ Returns the compilation buffer created."
 	  ;; Set the EMACS variable, but
 	  ;; don't override users' setting of $EMACS.
 	  (unless (getenv "EMACS") '("EMACS=t"))
-	  process-environment))
+	  (copy-sequence process-environment)))
 	(thisdir default-directory)
 	outwin outbuf)
     (with-current-buffer
