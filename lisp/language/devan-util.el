@@ -58,6 +58,12 @@
    "\\)")
   "Regexp matching a composable sequence of Devanagari characters.")
 
+(dolist (range '((#x0903 . #x0903)
+		 (#x0905 . #x0939)
+		 (#x0958 . #x0961)))
+  (set-char-table-range indian-composable-pattern range
+			devanagari-composable-pattern))
+
 ;;;###autoload
 (defun devanagari-compose-region (from to)
   (interactive "r")
@@ -98,21 +104,19 @@
 	dummy)
       (function (lambda (x y) (> (length x) (length y))))))))
 
-(defun devanagari-composition-function (from to pattern &optional string)
-  "Compose Devanagari characters in REGION, or STRING if specified.
-Assume that the REGION or STRING must fully match the composable
-PATTERN regexp."
-  (if string (devanagari-compose-syllable-string string)
-    (devanagari-compose-syllable-region from to))
-  (- to from))
 
-;; Register a function to compose Devanagari characters.
-(mapc
- (function (lambda (ucs)
-   (aset composition-function-table ucs
-	 (list (cons devanagari-composable-pattern
-		     'devanagari-composition-function)))))
- (nconc '(#x0903) (devanagari-range #x0905 #x0939) (devanagari-range #x0958 #x0961)))
+;;;###autoload
+(defun devanagari-composition-function (pos &optional string)
+  "Compose Devanagari characters after the position POS.
+If STRING is not nil, it is a string, and POS is an index to the string.
+In this case, compose characters after POS of the string."
+  (if string
+      ;; Not yet implemented.
+      nil
+    (goto-char pos)
+    (if (looking-at devanagari-composable-pattern)
+	(prog1 (match-end 0)
+	  (devanagari-compose-syllable-region pos (match-end 0))))))
 
 ;; Notes on conversion steps.
 
