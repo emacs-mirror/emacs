@@ -532,7 +532,7 @@ When there's no input method to turn on, turn on what read from minibuffer."
   (interactive
    (list (read-input-method-name
 	  "Describe input method (default, current choice): ")))
-  (if (symbolp input-method)
+  (if (and input-method (symbolp input-method))
       (setq input-method (symbol-name input-method)))
   (if (null input-method)
       (describe-current-input-method)
@@ -565,12 +565,9 @@ or a string."
 	(or input-method
 	    default-input-method
 	    (read-input-method-name "Input method: " nil t)))
-  (if (symbolp input-method)
+  (if (and input-method (symbolp input-method)
       (setq input-method (symbol-name input-method)))
-  (let ((current-input-method
-	 (or input-method
-	     default-input-method
-	     (read-input-method-name "Input method: " nil t))))
+  (let ((current-input-method input-method))
     (read-string prompt initial-input nil nil t)))
 
 ;; Variables to control behavior of input methods.  All input methods
@@ -667,7 +664,10 @@ and sometimes other things."
 
 (defun describe-language-environment (language-name)
   "Describe how Emacs supports language environment LANGUAGE-NAME."
-  (interactive (list (read-language-name 'documentation "Language: ")))
+  (interactive
+   (list (read-language-name
+	  'documentation
+	  "Describe language environment (default, current choise): ")))
   (if (null language-name)
       (setq language-name current-language-environment))
   (if (or (null language-name)
