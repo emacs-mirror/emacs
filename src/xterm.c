@@ -2813,6 +2813,12 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		 disabled; you don't want to spend time updating a
 		 display that won't ever be seen.  */
 	      f->async_visible = 0;
+	      /* The window manager never makes a window invisible
+		 ("withdrawn"); all it does is switch between visible
+		 and iconified.  Frames get into the invisible state
+		 only through x_make_frame_invisible.
+	      if (FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f))
+		f->async_iconified = 1;
 	    }
 	  break;
 
@@ -4280,7 +4286,11 @@ x_make_frame_invisible (f)
 {
   int mask;
 
-  if (! f->async_visible)
+  /* Don't keep the highlight on an invisible frame.  */
+  if (x_highlight_frame == f)
+    x_highlight_frame = 0;
+
+  if (! f->async_visible && ! f->async_iconified)
     return;
 
   BLOCK_INPUT;
@@ -4340,6 +4350,10 @@ x_iconify_frame (f)
      struct frame *f;
 {
   int mask;
+
+  /* Don't keep the highlight on an invisible frame.  */
+  if (x_highlight_frame == f)
+    x_highlight_frame = 0;
 
   if (f->async_iconified)
     return;
