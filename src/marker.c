@@ -131,7 +131,6 @@ buf_charpos_to_bytepos (b, charpos)
      int charpos;
 {
   Lisp_Object tail;
-  int gapend_byte = BUF_GPT_BYTE (b) + BUF_GAP_SIZE (b);
   int best_above, best_above_byte;
   int best_below, best_below_byte;
 
