@@ -845,6 +845,36 @@ A non-nil FLAG means mark the buffer modified.")
   return flag;
 }
 
+DEFUN ("restore-buffer-modified-p", Frestore_buffer_modified_p,
+       Srestore_buffer_modified_p, 1, 1, 0,
+   "Like `set-buffer-modified-p', with a differences concerning redisplay.\n\
+It is not ensured that mode lines will be updated to show the modified\n\
+state of the current buffer.  Use with care.")
+  (flag)
+     Lisp_Object flag;
+{
+#ifdef CLASH_DETECTION
+  Lisp_Object fn;
+  
+  /* If buffer becoming modified, lock the file.
+     If buffer becoming unmodified, unlock the file.  */
+
+  fn = current_buffer->file_truename;
+  /* Test buffer-file-name so that binding it to nil is effective.  */
+  if (!NILP (fn) && ! NILP (current_buffer->filename))
+    {
+      int already = SAVE_MODIFF < MODIFF;
+      if (!already && !NILP (flag))
+	lock_file (fn);
+      else if (already && NILP (flag))
+	unlock_file (fn);
+    }
+#endif /* CLASH_DETECTION */
+  
+  SAVE_MODIFF = NILP (flag) ? MODIFF : 0;
+  return flag;
+}
+
 DEFUN ("buffer-modified-tick", Fbuffer_modified_tick, Sbuffer_modified_tick,
   0, 1, 0,
   "Return BUFFER's tick counter, incremented for each change in text.\n\
@@ -4773,6 +4803,7 @@ Values are interpreted as follows:\n\
   defsubr (&Soverlay_lists);
   defsubr (&Soverlay_get);
   defsubr (&Soverlay_put);
+  defsubr (&Srestore_buffer_modified_p);
 }
 
 void
