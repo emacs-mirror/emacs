@@ -22,3 +22,8 @@
 #define INTERRUPTIBLE_IO
 
 #define SYSV_SYSTEM_DIR
+
+/* If your system uses COFF (Common Object File Format) then define the
+   preprocessor symbol "COFF". */
+
+#define COFF
