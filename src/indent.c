@@ -698,9 +698,9 @@ DEFUN ("compute-motion", Fcompute_motion, Scompute_motion, 7, 7, 0,
 			XWINDOW (window));
 
   XFASTINT (bufpos) = pos->bufpos;
-  XSET (hpos, Lisp_Int, pos->hpos);
-  XSET (vpos, Lisp_Int, pos->vpos);
-  XSET (prevhpos, Lisp_Int, pos->prevhpos);
+  XSETINT (hpos, pos->hpos);
+  XSETINT (vpos, pos->vpos);
+  XSETINT (prevhpos, pos->prevhpos);
 
   return Fcons (bufpos,
 		Fcons (hpos,
