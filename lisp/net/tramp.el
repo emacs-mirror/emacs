@@ -4107,7 +4107,7 @@ ARGS are the arguments OPERATION has been called with."
    ((member operation
 	    (list 'dired-call-process
                   ; Emacs only
-		  'shell
+		  'shell-command
                   ; Post Emacs 21.3 only
                   'process-file
 	          ; XEmacs only
