@@ -1,3 +1,7 @@
+2002-12-09  Andreas Schwab  <schwab@suse.de>
+
+	* international/ucs-tables.el: Fix last change.
+
 2002-12-09  Kenichi Handa  <handa@m17n.org>
 
 	* international/titdic-cnv.el (titdic-convert): Process the
