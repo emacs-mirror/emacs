@@ -957,6 +957,11 @@ dired."
             (concat "gunzip -qc * | tar xvf -"))
          ;; Optional decompression.
          '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q" "")))
+   ;; bzip2'ed archives
+   (list "\\.tar\\.bz2$"
+	 "bunzip2 -c * | tar xvf -"
+	 ;; Optional decompression.
+         "bunzip2")
 
    '("\\.shar.Z$" "zcat * | unshar")
    '("\\.shar.g?z$" "gunzip -qc * | unshar")
@@ -1003,6 +1008,7 @@ dired."
 
    ;; Compression.
    (list "\\.g?z$" '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
+   (list "\\.bz2$" "bunzip2")
    (list "\\.Z$" "uncompress"
          ;; Optional conversion to gzip format.
          '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
