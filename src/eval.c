@@ -792,7 +792,7 @@ in place of FORM.  When a non-macro-call results, it is returned.\n\n\
 The second optional arg ENVIRONMENT species an environment of macro\n\
 definitions to shadow the loaded ones for use in file byte-compilation.")
   (form, environment)
-     register Lisp_Object form;
+     Lisp_Object form;
      Lisp_Object environment;
 {
   /* With cleanups from Hallvard Furuseth.  */
