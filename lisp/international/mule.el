@@ -467,8 +467,7 @@ FLAGS specifies more precise information of each TYPE.
 	 0)))
 
 (defun define-coding-system-alias (alias coding-system)
-  "Define ALIAS as an alias for coding system
- CODING-SYSTEM."
+  "Define ALIAS as an alias for coding system CODING-SYSTEM."
   (check-coding-system coding-system)
   (let ((parent (coding-system-parent coding-system)))
     (if parent
@@ -491,12 +490,16 @@ FLAGS specifies more precise information of each TYPE.
 	    (setq i (1+ i)))))))
 
 (defun set-buffer-file-coding-system (coding-system &optional force)
-  "Set buffer-file-coding-system of the current buffer to CODING-SYSTEM.
-If eol-type of the current buffer-file-coding-system is an integer value N, and
- eol-type of CODING-SYSTEM is a vector, the Nth element of the vector is used
- instead of CODING-SYSTEM itself.
-Optional prefix argument FORCE non-nil means CODING-SYSTEM is set
- regardless of eol-type of the current buffer-file-coding-system."
+  "Set the file coding-system of the current buffer to CODING-SYSTEM.
+This means that when you save the buffer, it will be converted
+according to CODING-SYSTEM.  For a list of possible values of CODING-SYSTEM,
+use \\[list-coding-systems].
+
+If the buffer's previous file coding-system value specifies end-of-line
+conversion, and CODING-SYSTEM does not specify one, CODING-SYSTEM is
+merged with the already-specified end-of-line conversion.
+However, if the optional prefix argument FORCE is non-nil,
+them CODING-SYSTEM is used exactly as specified."
   (interactive "zBuffer-file-coding-system: \nP")
   (check-coding-system coding-system)
   (if (null force)
@@ -508,27 +511,64 @@ Optional prefix argument FORCE non-nil means CODING-SYSTEM is set
   (set-buffer-modified-p t)
   (force-mode-line-update))
 
+(defvar default-terminal-coding-system nil
+  "Default value for the terminal coding system.
+This is normally set according to the selected language environment.
+See also the command `set-terminal-coding-system'.")
+
 (defun set-terminal-coding-system (coding-system)
   "Set coding system of your terminal to CODING-SYSTEM.
-All outputs to terminal are encoded by the specified coding system."
-  (interactive "zCoding-system for terminal display: ")
+All text output to the terminal will be encoded
+with the specified coding system.
+For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems].
+The default is determined by the selected language environment
+or by the previous use of this command."
+  (interactive
+   (list (read-coding-system
+	  (format "Coding system for terminal display (default, %s): "
+		  (if (and (not (terminal-coding-system))
+			   default-terminal-coding-system)
+		      default-terminal-coding-system)))))
+  (if (and (not coding-system)
+	   (not (terminal-coding-system)))
+      (setq coding-system default-terminal-coding-system))
+  (if coding-system
+      (setq default-terminal-coding-system coding-system))      
   (set-terminal-coding-system-internal coding-system)
   (redraw-frame (selected-frame)))
 
+(defvar default-keyboard-coding-system nil
+  "Default value of the keyboard coding system.
+This is normally set according to the selected language environment.
+See also the command `set-keyboard-coding-system'.")
+
 (defun set-keyboard-coding-system (coding-system)
-  "Set coding system of codes sent from terminal keyboard to CODING-SYSTEM.
-In addition, this command toggles Encoded-kbd minor mode.
-If the specified coding system is nil, Encoded-bkd mode is turned off,
-else it is turned on so that user inputs are decoded by the
-specified coding system."
-  (interactive "zCoding-system for keyboard input: ")
+  "Set coding system for keyboard input to CODING-SYSTEM.
+In addition, this command enables Encoded-kbd minor mode.
+\(If CODING-SYSTEM is nil, Encoded-bkd mode is turned off.)
+For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems].
+The default is determined by the selected language environment
+or by the previous use of this command."
+  (interactive
+   (list (read-coding-system
+	  (format "Coding system for keyboard input (default, %s): "
+		  (if (and (not (keyboard-coding-system))
+			   default-keyboard-coding-system)
+		      default-keyboard-coding-system)))))
+  (if (and (not coding-system)
+	   (not (keyboard-coding-system)))
+      (setq coding-system default-keyboard-coding-system))
+  (if coding-system
+      (setq default-keyboard-coding-system coding-system))
   (set-keyboard-coding-system-internal coding-system)
   (encoded-kbd-mode (if coding-system 1 0)))
 
 (defun set-buffer-process-coding-system (decoding encoding)
-  "Set coding systems to the process associated with the current buffer.
+  "Set coding systems for the process associated with the current buffer.
 DECODING is the coding system to be used to decode input from the process,
-ENCODING is to be used to encode output to the process."
+ENCODING is the coding system to be used to encode output to the process.
+
+For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems]."
   (interactive
    "zCoding-system for process input: \nzCoding-system for process output: ")
   (let ((proc (get-buffer-process (current-buffer))))
