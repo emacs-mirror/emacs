@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 5.3
 
-;;	$Id: vc.el,v 1.28 1993/03/17 13:58:48 eric Exp eric $	
+;;	$Id: vc.el,v 1.29 1993/03/28 06:40:46 eric Exp eric $	
 
 ;; This file is part of GNU Emacs.
 
@@ -296,7 +296,7 @@ read-only copy of the changed file is left in place afterwards.
    If the file is registered and locked by someone else, you are given
 the option to steal the lock."
   (interactive "P")
-  (if vc-parent-buffer
+  (while vc-parent-buffer
       (pop-to-buffer vc-parent-buffer))
   (if buffer-file-name
       (let
@@ -584,7 +584,7 @@ popped up to accept a comment."
 (defun vc-diff (historic)
   "Display diffs between file versions."
   (interactive "P")
-  (if vc-parent-buffer
+  (while vc-parent-buffer
       (pop-to-buffer vc-parent-buffer))
   (if historic
       (call-interactively 'vc-version-diff)
@@ -657,7 +657,7 @@ files in or below it."
 Headers desired are inserted at the start of the buffer, and are pulled from
 the variable vc-header-alist"
   (interactive)
-  (if vc-parent-buffer
+  (while vc-parent-buffer
       (pop-to-buffer vc-parent-buffer))
   (save-excursion
     (save-restriction
@@ -789,7 +789,7 @@ levels in the snapshot."
 (defun vc-print-log ()
   "List the change log of the current buffer in a window."
   (interactive)
-  (if vc-parent-buffer
+  (while vc-parent-buffer
       (pop-to-buffer vc-parent-buffer))
   (if (and buffer-file-name (vc-name buffer-file-name))
       (progn
@@ -808,7 +808,7 @@ levels in the snapshot."
 This asks for confirmation if the buffer contents are not identical
 to that version."
   (interactive)
-  (if vc-parent-buffer
+  (while vc-parent-buffer
       (pop-to-buffer vc-parent-buffer))
   (let ((file buffer-file-name)
 	(obuf (current-buffer)) (changed (vc-diff nil)))
@@ -829,10 +829,10 @@ to that version."
 (defun vc-cancel-version (norevert)
   "Undo your latest checkin."
   (interactive "P")
-  (if vc-parent-buffer
-      (pop-to-buffer vc-parent-buffer))
-  (let ((target (concat (vc-latest-version (buffer-file-name))))
-	(yours (concat (vc-your-latest-version)))
+  (while vc-parent-buffer
+    (pop-to-buffer vc-parent-buffer))
+  (let* ((target (concat (vc-latest-version (buffer-file-name))))
+	(yours (concat (vc-your-latest-version (buffer-file-name))))
 	(prompt (if (string-equal yours target)
 		    "Remove your version %s from master?"
 		  "Version %s was not your change.  Remove it anyway?")))
@@ -842,8 +842,7 @@ to that version."
       (if norevert
 	  (vc-mode-line (buffer-file-name))
 	(vc-checkout (buffer-file-name) nil)))
-    )
-  )
+    ))
 
 (defun vc-rename-file (old new)
   "Rename a file, taking its master files with it."
