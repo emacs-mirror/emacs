@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!122.c(trunk.4) $
+ id = $HopeName: MMQA_test_function!122.c(trunk.5) $
  summary = test of mps_arena_roots_walk
  language = c
  link = testlib.o rankfmt.o
@@ -108,9 +108,8 @@ static void test(void)
  die(mmqa_pool_create_chain(&poolamc, arena, mps_class_amc(), format, chain),
      "create pool");
 
- cdie(
-  mps_pool_create(&poollo, arena, mps_class_amcz(), format),
-  "create pool");
+ die(mmqa_pool_create_chain(&poollo, arena, mps_class_amcz(), format, chain),
+     "create pool");
 
  cdie(
   mps_pool_create(&poolawl, arena, mps_class_awl(), format),
