@@ -4050,7 +4050,8 @@ For more details, see `delete-key-deleted-forward'."
 	    (> (prefix-numeric-value arg) 0)
 	  (not delete-key-deletes-forward)))
 
-  (cond ((memq window-system '(x w32 mac))
+  (cond ((or (memq window-system '(x w32 mac pc))
+	     (memq system-type '(ms-dos windows-nt)))
 	 (if delete-key-deletes-forward
 	     (progn
 	       (define-key global-map [delete] 'delete-char)
