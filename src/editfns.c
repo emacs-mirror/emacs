@@ -2280,12 +2280,13 @@ Both characters must have the same length of multi-byte form.")
 #define COMBINING_BOTH (COMBINING_BEFORE | COMBINING_AFTER)
   int maybe_byte_combining = COMBINING_NO;
   int last_changed;
+  int multibyte_p = !NILP (current_buffer->enable_multibyte_characters);
 
   validate_region (&start, &end);
   CHECK_NUMBER (fromchar, 2);
   CHECK_NUMBER (tochar, 3);
 
-  if (! NILP (current_buffer->enable_multibyte_characters))
+  if (multibyte_p)
     {
       len = CHAR_STRING (XFASTINT (fromchar), fromstr);
       if (CHAR_STRING (XFASTINT (tochar), tostr) != len)
@@ -2341,7 +2342,10 @@ Both characters must have the same length of multi-byte form.")
 	  stop = end_byte;
 	}
       p = BYTE_POS_ADDR (pos_byte);
-      INC_POS (pos_byte_next);
+      if (multibyte_p)
+	INC_POS (pos_byte_next);
+      else
+	++pos_byte_next;
       if (pos_byte_next - pos_byte == len
 	  && p[0] == fromstr[0]
 	  && (len == 1
