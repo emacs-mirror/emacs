@@ -3488,8 +3488,16 @@ encode_coding_iso_2022 (coding)
 
 	  if (!charset)
 	    {
-	      c = coding->default_char;
-	      charset = char_charset (c, charset_list, NULL);
+	      if (coding->mode & CODING_MODE_SAFE_ENCODING)
+		{
+		  c = CODING_INHIBIT_CHARACTER_SUBSTITUTION;
+		  charset = CHARSET_FROM_ID (charset_ascii);
+		}
+	      else
+		{
+		  c = coding->default_char;
+		  charset = char_charset (c, charset_list, NULL);
+		}
 	    }
 	  ENCODE_ISO_CHARACTER (charset, c);
 	}
@@ -3851,8 +3859,16 @@ encode_coding_sjis (coding)
 
 	  if (!charset)
 	    {
-	      c = coding->default_char;
-	      charset = char_charset (c, charset_list, &code);
+	      if (coding->mode & CODING_MODE_SAFE_ENCODING)
+		{
+		  code = CODING_INHIBIT_CHARACTER_SUBSTITUTION;
+		  charset = CHARSET_FROM_ID (charset_ascii);
+		}
+	      else
+		{
+		  c = coding->default_char;
+		  charset = char_charset (c, charset_list, &code);
+		}
 	    }
 	  if (code == CHARSET_INVALID_CODE (charset))
 	    abort ();
@@ -3911,8 +3927,16 @@ encode_coding_big5 (coding)
 
 	  if (! charset)
 	    {
-	      c = coding->default_char;
-	      charset = char_charset (c, charset_list, &code);
+	      if (coding->mode & CODING_MODE_SAFE_ENCODING)
+		{
+		  code = CODING_INHIBIT_CHARACTER_SUBSTITUTION;
+		  charset = CHARSET_FROM_ID (charset_ascii);
+		}
+	      else
+		{
+		  c = coding->default_char;
+		  charset = char_charset (c, charset_list, &code);
+		}
 	    }
 	  if (code == CHARSET_INVALID_CODE (charset))
 	    abort ();
@@ -4372,7 +4396,13 @@ encode_coding_charset (coding)
 				 (code >> 8) & 0xFF, code & 0xFF);
 	    }
 	  else
-	    EMIT_ONE_BYTE (coding->default_char);
+	    {
+	      if (coding->mode & CODING_MODE_SAFE_ENCODING)
+		c = CODING_INHIBIT_CHARACTER_SUBSTITUTION;
+	      else
+		c = coding->default_char;
+	      EMIT_ONE_BYTE (c);
+	    }
 	}
     }
 
