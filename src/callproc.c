@@ -897,8 +897,12 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	   but not past 64k.  */
 	if (bufsize < 64 * 1024 && total_read > 32 * bufsize)
 	  {
+	    char *tempptr;
 	    bufsize *= 2;
-	    bufptr = (char *) alloca (bufsize);
+
+	    tempptr = (char *) alloca (bufsize);
+	    bcopy (bufptr, tempptr, bufsize / 2);
+	    bufptr = tempptr;
 	  }
 
 	if (!NILP (display) && INTERACTIVE)
