@@ -1189,6 +1189,7 @@ read1 (readcharfun)
       if (c <= 040) goto retry;
       {
 	register char *p = read_buffer;
+	int quoted = 0;
 
 	{
 	  register char *end = read_buffer + read_buffer_size;
@@ -1212,7 +1213,10 @@ read1 (readcharfun)
 		  end = read_buffer + read_buffer_size;
 		}
 	      if (c == '\\')
-		c = READCHAR;
+		{
+		  c = READCHAR;
+		  quoted = 1;
+		}
 	      *p++ = c;
 	      c = READCHAR;
 	    }
@@ -1229,35 +1233,36 @@ read1 (readcharfun)
 	    UNREAD (c);
 	}
 
-	/* Is it an integer? */
-	{
-	  register char *p1;
-	  register Lisp_Object val;
-	  p1 = read_buffer;
-	  if (*p1 == '+' || *p1 == '-') p1++;
-	  if (p1 != p)
-	    {
-	      while (p1 != p && (c = *p1) >= '0' && c <= '9') p1++;
+	if (!quoted)
+	  {
+	    register char *p1;
+	    register Lisp_Object val;
+	    p1 = read_buffer;
+	    if (*p1 == '+' || *p1 == '-') p1++;
+	    /* Is it an integer? */
+	    if (p1 != p)
+	      {
+		while (p1 != p && (c = *p1) >= '0' && c <= '9') p1++;
 #ifdef LISP_FLOAT_TYPE
-	      /* Integers can have trailing decimal points.  */
-	      if (p1 > read_buffer && p1 < p && *p1 == '.') p1++;
+		/* Integers can have trailing decimal points.  */
+		if (p1 > read_buffer && p1 < p && *p1 == '.') p1++;
 #endif
-	      if (p1 == p)
-		/* It is an integer. */
-		{
+		if (p1 == p)
+		  /* It is an integer. */
+		  {
 #ifdef LISP_FLOAT_TYPE
-		  if (p1[-1] == '.')
-		    p1[-1] = '\0';
+		    if (p1[-1] == '.')
+		      p1[-1] = '\0';
 #endif
-		  XSET (val, Lisp_Int, atoi (read_buffer));
-		  return val;
-		}
-	    }
+		    XSET (val, Lisp_Int, atoi (read_buffer));
+		    return val;
+		  }
+	      }
 #ifdef LISP_FLOAT_TYPE
-	  if (isfloat_string (read_buffer))
-	    return make_float (atof (read_buffer));
+	    if (isfloat_string (read_buffer))
+	      return make_float (atof (read_buffer));
 #endif
-	}
+	  }
 
 	return intern (read_buffer);
       }
