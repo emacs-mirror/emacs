@@ -497,12 +497,12 @@ If N is negative, go backwards."
     (save-excursion
       (set-buffer rmail-buffer)
       (setq subject (mail-fetch-field "Subject"))
-      (setq search-regexp (concat "^Subject: *\\(Re: *\\)?"
-				  (regexp-quote subject)
-				  "\n"))
       (setq i rmail-current-message))
     (if (string-match "Re:[ \t]*" subject)
 	(setq subject (substring subject (match-end 0))))
+    (setq search-regexp (concat "^Subject: *\\(Re: *\\)?"
+				(regexp-quote subject)
+				"\n"))
     (save-excursion
       (while (and (/= n 0)
 		  (if forward
@@ -698,6 +698,13 @@ Commands for sorting the summary:
   (add-hook 'post-command-hook 'rmail-summary-rmail-update nil t)
   (setq revert-buffer-function 'rmail-update-summary))
 
+(defvar rmail-summary-put-back-unseen nil
+  "Used for communicating between calls to `rmail-summary-rmail-update'.
+If it moves to a message within an Incremental Search, and removes
+the `unseen' attribute from that message, it sets this flag
+so that if the next motion between messages is in the same Incremental
+Search, the `unseen' attribute is restored.")
+
 ;; Show in Rmail the message described by the summary line that point is on,
 ;; but only if the Rmail buffer is already visible.
 ;; This is a post-command-hook in summary buffers.
@@ -713,14 +720,38 @@ Commands for sorting the summary:
 				     (point)
 				     (progn (skip-chars-forward "0-9")
 					    (point))))))
+	;; Always leave `unseen' removed
+	;; if we get out of isearch mode.
+	;; Don't let a subsequent isearch restore that `unseen'.
+	(if (not isearch-mode)
+	    (setq rmail-summary-put-back-unseen nil))
+
 	(or (eq rmail-current-message msg-num)
 	    (let ((window (get-buffer-window rmail-buffer))
 		  (owin (selected-window)))
+	      (if isearch-mode
+		  (save-excursion
+		    (set-buffer rmail-buffer)
+		    ;; If we first saw the previous message in this search,
+		    ;; and we have gone to a different message while searching,
+		    ;; put back `unseen' on the former one.
+		    (rmail-set-attribute "unseen" t
+					 rmail-current-message)
+		    ;; Arrange to do that later, for the new current message,
+		    ;; if it still has `unseen'.
+		    (setq rmail-summary-put-back-unseen
+			  (rmail-message-labels-p msg-num ", ?\\(unseen\\),")))
+		(setq rmail-summary-put-back-unseen nil))
+
+	      ;; Go to the desired message.
 	      (setq rmail-current-message msg-num)
+
+	      ;; Update the summary to show the message has been seen.
 	      (if (= (following-char) ?-)
 		  (progn
 		    (delete-char 1)
 		    (insert " ")))
+
 	      (if window
 		  ;; Using save-window-excursion would cause the new value
 		  ;; of point to get lost.
