@@ -1175,7 +1175,7 @@ minibuffer history list `bookmark-history'."
   (let ((start (point)))
     (prog1
 	(insert (bookmark-location bookmark)) ; *Return this line*
-      (if window-system
+      (if (and (display-color-p) (display-mouse-p))
 	  (put-text-property start 
 			     (save-excursion (re-search-backward
 					      "[^ \t]")
@@ -1561,7 +1561,7 @@ deletion, or > if it is flagged for displaying."
            (insert "  "))
 	 (let ((start (point)))
 	   (insert (bookmark-name-from-full-record full-record))
-	   (if window-system
+	   (if (and (display-color-p) (display-mouse-p))
 	       (put-text-property start 
 				  (save-excursion (re-search-backward
 						   "[^ \t]")
@@ -1657,7 +1657,7 @@ Optional argument SHOW means show them unconditionally."
 	      (let ((start (save-excursion (end-of-line) (point))))
 		(move-to-column bookmark-bmenu-file-column t)
 		;; Strip off `mouse-face' from the white spaces region.
-		(if window-system
+		(if (and (display-color-p) (display-mouse-p))
 		    (remove-text-properties start (point)
 					    '(mouse-face))))
 	      (delete-region (point) (progn (end-of-line) (point)))
@@ -1688,7 +1688,7 @@ Optional argument SHOW means show them unconditionally."
                 (bookmark-kill-line)
 		(let ((start (point)))
 		  (insert (car bookmark-bmenu-hidden-bookmarks))
-		  (if window-system
+		  (if (and (display-color-p) (display-mouse-p))
 		      (put-text-property start 
 					 (save-excursion (re-search-backward
 							  "[^ \t]")

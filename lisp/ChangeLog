@@ -1,3 +1,10 @@
+2000-05-25  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* bookmark.el (bookmark-insert-location, bookmark-bmenu-list)
+	(bookmark-bmenu-show-filenames, bookmark-bmenu-hide-filenames):
+	Call display-color-p and display-mouse-p instead of looking at
+	window-system.
+
 2000-06-06  Dave Love  <fx@gnu.org>
 
 	* image.el (find-image): Doc fix.  Return nil if image not found.
