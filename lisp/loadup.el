@@ -114,11 +114,7 @@
       (load "ls-lisp")
       (garbage-collect)
       (load "winnt")
-      (garbage-collect)
-      (if (not (featurep 'mouse))
-	  (progn
-	    (load "mouse")
-	    (garbage-collect)))))
+      (garbage-collect)))
 (if (eq system-type 'ms-dos)
     (progn
       (load "ls-lisp")
@@ -126,13 +122,7 @@
       (load "dos-fns")
       (garbage-collect)
       (load "disp-table") ; needed to setup ibm-pc char set, see internal.el
-      (garbage-collect)
-      (if (not (fboundp 'delete-frame))
-	  (progn
-	    (load "mouse")
-	    (garbage-collect)
-	    (load "faces")
-	    (garbage-collect)))))
+      (garbage-collect)))
 (if (fboundp 'atan)	; preload some constants and 
     (progn		; floating pt. functions if 
       (garbage-collect)	; we have float support.
