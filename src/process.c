@@ -2541,14 +2541,25 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  XSETPROCESS (proc, wait_proc);
 
 	  /* Read data from the process, until we exhaust it.  */
-	  while (XINT (wait_proc->infd) >= 0
-		 && (nread
-		     = read_process_output (proc, XINT (wait_proc->infd))))
+	  while (XINT (wait_proc->infd) >= 0)
 	    {
+	      nread = read_process_output (proc, XINT (wait_proc->infd));
+
+	      if (nread == 0)
+		break;
+
               if (0 < nread) 
                 total_nread += nread;
 #ifdef EIO
 	      else if (nread == -1 && EIO == errno)
+                break;
+#endif
+#ifdef EAGAIN
+	      else if (nread == -1 && EAGAIN == errno)
+                break;
+#endif
+#ifdef EWOULDBLOCK
+	      else if (nread == -1 && EWOULDBLOCK == errno)
                 break;
 #endif
 	    }
