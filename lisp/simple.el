@@ -3322,7 +3322,8 @@ when it is off screen)."
 			      (matching-paren (char-after blinkpos))))))
 	   (if mismatch (setq blinkpos nil))
 	   (if blinkpos
-	       (progn
+	       ;; Don't log messages about paren matching.
+	       (let (message-log-max)
 		(goto-char blinkpos)
 		(if (pos-visible-in-window-p)
 		    (and blink-matching-paren-on-screen
