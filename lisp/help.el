@@ -585,6 +585,8 @@ C-w Display information on absence of warranty for GNU Emacs."
 		((byte-code-function-p def)
 		 (concat beg "compiled Lisp function"))
 		((symbolp def)
+		 (while (symbolp (symbol-function def))
+		   (setq def (symbol-function def)))
 		 (format "alias for `%s'" def))
 		((eq (car-safe def) 'lambda)
 		 (concat beg "Lisp function"))
@@ -625,14 +627,16 @@ C-w Display information on absence of warranty for GNU Emacs."
     (if need-close (princ ")"))
     (princ ".")
     (terpri)
-    (let* ((inner-function (if (and (listp def) 'macro)
-			       (cdr def)
-			     def))
-	   (arglist (cond ((byte-code-function-p inner-function)
-			   (car (append inner-function nil)))
-			  ((eq (car-safe inner-function) 'lambda)
-			   (nth 1 inner-function))
-			  (t t))))
+    ;; Handle symbols aliased to other symbols.
+    (setq def (indirect-function def))
+    ;; If definition is a macro, find the function inside it.
+    (if (eq (car-safe def) 'macro)
+	(setq def (cdr def)))
+    (let ((arglist (cond ((byte-code-function-p def)
+			  (car (append def nil)))
+			 ((eq (car-safe def) 'lambda)
+			  (nth 1 def))
+			 (t t))))
       (if (listp arglist)
 	  (progn
 	    (princ (cons function
