@@ -1473,13 +1473,13 @@ printable using the fonts built into your printer.  You can augment
 the fonts supplied with the printer with those from the GNU Intlfonts
 package, or you can instruct Emacs to use Intlfonts exclusively.  The
 variable @code{ps-multibyte-buffer} controls this: the default value,
-@code{nil}, is appropriate for printing @sc{ascii} and Latin-1
+@code{nil}, is appropriate for printing ASCII and Latin-1
 characters; a value of @code{non-latin-printer} is for printers which
-have the fonts for @sc{ascii}, Latin-1, Japanese, and Korean
+have the fonts for ASCII, Latin-1, Japanese, and Korean
 characters built into them.  A value of @code{bdf-font} arranges for
 the BDF fonts from the Intlfonts package to be used for @emph{all}
 characters.  Finally, a value of @code{bdf-font-except-latin}
-instructs the printer to use built-in fonts for @sc{ascii} and Latin-1
+instructs the printer to use built-in fonts for ASCII and Latin-1
 characters, and Intlfonts BDF fonts for the rest.
 
 @vindex bdf-directory-list
@@ -2293,7 +2293,7 @@ typing @kbd{C-g}.  The dissociation output remains in the
 buffer to another.  In order to produce plausible output rather than
 gibberish, it insists on a certain amount of overlap between the end of
 one run of consecutive words or characters and the start of the next.
-That is, if it has just printed out `president' and then decides to jump
+That is, if it has just output `president' and then decides to jump
 to a different point in the file, it might spot the `ent' in `pentagon'
 and continue from there, producing `presidentagon'.@footnote{This
 dissociword actually appeared during the Vietnam War, when it was very

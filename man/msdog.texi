@@ -131,12 +131,12 @@ length of text you can put into the clipboard is limited by the amount
 of free DOS memory that is available to Emacs.  Usually, up to 620KB of
 text can be put into the clipboard, but this limit depends on the system
 configuration and is lower if you run Emacs as a subprocess of
-another program.  If the killed text does not fit, Emacs prints a
+another program.  If the killed text does not fit, Emacs outputs a
 message saying so, and does not put the text into the clipboard.
 
   Null characters also cannot be put into the Windows clipboard.  If the
 killed text includes null characters, Emacs does not put such text into
-the clipboard, and prints in the echo area a message to that effect.
+the clipboard, and displays in the echo area a message to that effect.
 
 @vindex dos-display-scancodes
   The variable @code{dos-display-scancodes}, when non-@code{nil},
@@ -730,7 +730,7 @@ asynchronous subprocesses are not available.  In particular, Shell
 mode and its variants do not work.  Most Emacs features that use
 asynchronous subprocesses also don't work on MS-DOS, including
 Shell mode and GUD.  When in doubt, try and see; commands that
-don't work print an error message saying that asynchronous processes
+don't work output an error message saying that asynchronous processes
 aren't supported.
 
   Compilation under Emacs with @kbd{M-x compile}, searching files with
