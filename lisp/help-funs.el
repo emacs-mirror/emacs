@@ -436,6 +436,22 @@ it is displayed along with the global value."
 	    (buffer-string)))))))
 
 
+;;;###autoload
+(defun describe-syntax (&optional buffer)
+  (interactive)
+  "Describe the syntax specifications in the syntax table of BUFFER.
+The descriptions are inserted in a help buffer, which is then displayed.
+BUFFER defaults to the current buffer."
+  (setq buffer (or buffer (current-buffer)))
+  (help-setup-xref (list #'describe-syntax buffer) (interactive-p))
+  (with-output-to-temp-buffer (help-buffer)
+    (let ((table (with-current-buffer buffer (syntax-table))))
+      (with-current-buffer standard-output
+	(describe-vector table 'internal-describe-syntax-value)
+	(while (setq table (char-table-parent table))
+	  (insert "\nThe parent syntax table is:")
+	  (describe-vector table 'internal-describe-syntax-value))))))
+
 (provide 'help-funs)
 
 ;;; help-funs.el ends here
