@@ -1306,7 +1306,7 @@ command_loop_1 ()
 		{
                   struct Lisp_Char_Table *dp
 		    = window_display_table (XWINDOW (selected_window));
-		  lose = FETCH_BYTE (PT_BYTE);
+		  lose = FETCH_CHAR (PT_BYTE);
 		  SET_PT (PT + 1);
 		  if ((dp
 		       ? (VECTORP (DISP_CHAR_VECTOR (dp, lose))
@@ -1336,7 +1336,7 @@ command_loop_1 ()
                   struct Lisp_Char_Table *dp
 		    = window_display_table (XWINDOW (selected_window));
 		  SET_PT (PT - 1);
-		  lose = FETCH_BYTE (PT_BYTE);
+		  lose = FETCH_CHAR (PT_BYTE);
 		  if ((dp
 		       ? (VECTORP (DISP_CHAR_VECTOR (dp, lose))
 			  ? XVECTOR (DISP_CHAR_VECTOR (dp, lose))->size == 1
