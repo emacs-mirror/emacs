@@ -2701,10 +2701,10 @@ make_event_array (nargs, args)
     result = Fmake_string (make_number (nargs), make_number (0));
     for (i = 0; i < nargs; i++)
       {
-	SREF (result, i) = XINT (args[i]);
+	SSET (result, i, XINT (args[i]));
 	/* Move the meta bit to the right place for a string char.  */
 	if (XINT (args[i]) & CHAR_META)
-	  SREF (result, i) |= 0x80;
+	  SSET (result, i, SREF (result, i) | 0x80);
       }
     
     return result;
