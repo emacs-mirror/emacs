@@ -1,3 +1,18 @@
+2003-07-16  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-defs.el (c-langelem-sym, c-langelem-pos,
+	c-langelem-2nd-pos): Added accessor functions for syntactic
+	elements.
+
+2003-07-16  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-literal-faces): Declare as a variable
+	since it might be modified.
+
+	* progmodes/cc-langs.el: (c++-make-template-syntax-table,
+	c-syntactic-ws-start, c-syntactic-ws-end): Gave more consistent
+	names to these language constants.
+
 2003-07-15  Kim F. Storm  <storm@cua.dk>
 
 	* apropos.el (apropos-sort-by-scores): Rename from apropos-show-scores.
