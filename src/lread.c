@@ -941,16 +941,19 @@ readevalloop (readcharfun, stream, sourcename, evalfun, printflag)
 
 #ifndef standalone
 
-DEFUN ("eval-buffer", Feval_buffer, Seval_buffer, 0, 2, "",
+DEFUN ("eval-buffer", Feval_buffer, Seval_buffer, 0, 3, "",
   "Execute the current buffer as Lisp code.\n\
 Programs can pass two arguments, BUFFER and PRINTFLAG.\n\
 BUFFER is the buffer to evaluate (nil means use current buffer).\n\
 PRINTFLAG controls printing of output:\n\
 nil means discard it; anything else is stream for print.\n\
 \n\
+If the optional third argument FILENAME is non-nil,\n\
+it specifies the file name to use for `load-history'.\n\
+\n\
 This function preserves the position of point.")
-  (buffer, printflag)
-     Lisp_Object buffer, printflag;
+  (buffer, printflag, filename)
+     Lisp_Object buffer, printflag, filename;
 {
   int count = specpdl_ptr - specpdl;
   Lisp_Object tem, buf;
@@ -960,16 +963,20 @@ This function preserves the position of point.")
   else
     buf = Fget_buffer (buffer);
   if (NILP (buf))
-    error ("No such buffer.");
+    error ("No such buffer");
 
   if (NILP (printflag))
     tem = Qsymbolp;
   else
     tem = printflag;
+
+  if (NILP (filename))
+    filename = XBUFFER (buf)->filename;
+
   specbind (Qstandard_output, tem);
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
   BUF_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
-  readevalloop (buf, 0, XBUFFER (buf)->filename, Feval, !NILP (printflag));
+  readevalloop (buf, 0, filename, Feval, !NILP (printflag));
   unbind_to (count, Qnil);
 
   return Qnil;
