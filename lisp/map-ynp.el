@@ -175,7 +175,7 @@ Returns the number of actions taken."
 			  (funcall actor elt)
 			  (setq actions (1+ actions)
 				next (function (lambda () nil))))
-			 ((or (eq def 'quit) (eq def 'exit-prefix))
+			 ((eq def 'quit)
 			  (setq quit-flag t)
 			  (setq next `(lambda ()
 					(setq next ',next)
@@ -201,8 +201,8 @@ Returns the number of actions taken."
 				(format "Type SPC or `y' to %s the current %s;
 DEL or `n' to skip the current %s;
 RET or `q' to exit (skip all remaining %s);
-! to %s all remaining %s;
-ESC or `q' to exit;\n"
+C-g to quit (cancel the operation);
+! to %s all remaining %s;\n"
 					action object object objects action
 					objects)
 				(mapconcat (function
