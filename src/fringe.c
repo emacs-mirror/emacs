@@ -1189,9 +1189,9 @@ Return new bitmap number, or nil of no more free bitmap slots.  */)
 
   fb.dynamic = 1;
 
-  xfb = (struct fringe_bitmap *)xmalloc (sizeof fb
-					 + fb.height * BYTES_PER_BITMAP_ROW);
-  fb.bits = b = (unsigned short *)(xfb+1);
+  xfb = (struct fringe_bitmap *) xmalloc (sizeof fb
+					  + fb.height * BYTES_PER_BITMAP_ROW);
+  fb.bits = b = (unsigned short *) (xfb + 1);
   bzero (b, fb.height);
 
   j = 0;
@@ -1199,7 +1199,7 @@ Return new bitmap number, or nil of no more free bitmap slots.  */)
     {
       for (i = 0; i < fill1 && j < fb.height; i++)
 	b[j++] = 0;
-      for (i = 0; i < h & j < fb.height; i++)
+      for (i = 0; i < h && j < fb.height; i++)
 	{
 	  Lisp_Object elt = Faref (bits, make_number (i));
 	  b[j++] = NUMBERP (elt) ? XINT (elt) : 0;
