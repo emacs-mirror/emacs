@@ -10410,7 +10410,7 @@ x_create_tip_frame (dpyinfo, parms)
   f = make_frame (1);
   XSETFRAME (frame, f);
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
-  record_unwind_protect (unwind_create_frame, frame);
+  record_unwind_protect (unwind_create_tip_frame, frame);
 
   /* By setting the output method, we're essentially saying that
      the frame is live, as per FRAME_LIVE_P.  If we get a signal
