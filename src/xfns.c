@@ -735,6 +735,7 @@ struct x_frame_parm_table
   void (*setter) P_ ((struct frame *, Lisp_Object, Lisp_Object));
 };
 
+static void x_create_im P_ ((struct frame *));
 void x_set_foreground_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_background_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_mouse_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
@@ -3043,6 +3044,72 @@ hack_wm_protocols (f, widget)
   UNBLOCK_INPUT;
 }
 #endif
+
+
+/* Create input method and input context for frame F.  Set FRAME_XIM
+   (F) and FRAME_XIC (F).  */
+
+static void
+x_create_im (f)
+     struct frame *f;
+{
+  FRAME_XIM (f) = 0;
+  FRAME_XIC (f) = 0;
+  
+#ifdef HAVE_X_I18N
+#ifndef X_I18N_INHIBITED
+  { 
+    XIM xim;
+    XIC xic = NULL;
+    XIMStyles *styles;
+    XIMStyle input_style = XIMPreeditNothing | XIMStatusNothing;
+    int i, n;
+
+    xim = XOpenIM (FRAME_X_DISPLAY(f), NULL, NULL, NULL);
+    if (!xim)
+      return;
+    
+    if (XGetIMValues (xim, XNQueryInputStyle, &styles, NULL)
+	|| !styles)
+      {
+	/* Input method doesn't support any input style.  */
+	XCloseIM (xim);
+	return;
+      }
+
+    /* See if input_style is supported.  Give up if it isn't.  */
+    n = styles->count_styles;
+    for (i = 0; i < n; ++i)
+      if (styles->supported_styles[i] == input_style)
+	break;
+    
+    XFree (styles);
+    if (i == n)
+      {
+	XCloseIM (xim);
+	return;
+      }
+
+    /* Create the input context.  */
+    xic = XCreateIC (xim,  
+		     XNInputStyle,   input_style,
+		     XNClientWindow, FRAME_X_WINDOW(f),
+		     XNFocusWindow,  FRAME_X_WINDOW(f),
+		     NULL);
+    
+    if (!xic)
+      {
+	XCloseIM (xim);
+	return;
+      }
+
+    FRAME_XIM (f) = xim;
+    FRAME_XIC (f) = xic;
+  }
+#endif /* X_I18N_INHIBITED */
+#endif /* HAVE_X_I18N */
+}
+
 
 #ifdef USE_X_TOOLKIT
 
@@ -3198,37 +3265,7 @@ x_window (f, window_prompting, minibuffer_only)
   class_hints.res_name = (char *) XSTRING (Vx_resource_name)->data;
   class_hints.res_class = (char *) XSTRING (Vx_resource_class)->data;
   XSetClassHint (FRAME_X_DISPLAY (f), XtWindow (shell_widget), &class_hints);
-
-#ifdef HAVE_X_I18N
-#ifndef X_I18N_INHIBITED
-  { 
-    XIM xim;
-    XIC xic = NULL;
-
-    xim = XOpenIM (FRAME_X_DISPLAY (f), NULL, NULL, NULL);
-
-    if (xim)
-      {
-	xic = XCreateIC (xim,  
-			 XNInputStyle,   XIMPreeditNothing | XIMStatusNothing,
-			 XNClientWindow, FRAME_X_WINDOW(f),
-			 XNFocusWindow,  FRAME_X_WINDOW(f),
-			 NULL);
-
-	if (xic == 0)
-	  {
-	    XCloseIM (xim);
-	    xim = NULL;
-	  }
-      }
-    FRAME_XIM (f) = xim;
-    FRAME_XIC (f) = xic;
-  }
-#else /* X_I18N_INHIBITED */
-  FRAME_XIM (f) = 0;
-  FRAME_XIC (f) = 0;
-#endif /* X_I18N_INHIBITED */
-#endif /* HAVE_X_I18N */
+  x_create_im (f);
 
   f->output_data.x->wm_hints.input = True;
   f->output_data.x->wm_hints.flags |= InputHint;
@@ -3319,38 +3356,7 @@ x_window (f)
 		     InputOutput, /* class */
 		     FRAME_X_DISPLAY_INFO (f)->visual,
 		     attribute_mask, &attributes);
-#ifdef HAVE_X_I18N
-#ifndef X_I18N_INHIBITED
-  { 
-    XIM xim;
-    XIC xic = NULL;
-
-    xim = XOpenIM (FRAME_X_DISPLAY(f), NULL, NULL, NULL);
-
-    if (xim)
-      {
-	xic = XCreateIC (xim,  
-			 XNInputStyle,   XIMPreeditNothing | XIMStatusNothing,
-			 XNClientWindow, FRAME_X_WINDOW(f),
-			 XNFocusWindow,  FRAME_X_WINDOW(f),
-			 NULL);
-
-	if (!xic)
-	  {
-	    XCloseIM (xim);
-	    xim = NULL;
-	  }
-      }
-
-    FRAME_XIM (f) = xim;
-    FRAME_XIC (f) = xic;
-  }
-#else /* X_I18N_INHIBITED */
-  FRAME_XIM (f) = 0;
-  FRAME_XIC (f) = 0;
-#endif /* X_I18N_INHIBITED */
-#endif /* HAVE_X_I18N */
-
+  x_create_im (f);
   validate_x_resource_name ();
 
   class_hints.res_name = (char *) XSTRING (Vx_resource_name)->data;
