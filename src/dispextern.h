@@ -1190,8 +1190,8 @@ struct face
 
 #ifdef HAVE_WINDOW_SYSTEM
   
-  /* If non-zero, a GC we can use without modification to draw 
-     characters in this face.  */
+  /* If non-zero, this is a GC that we can use without modification for
+     drawing the characters in this face.  */
   GC gc;
   
   /* Font used for this face, or null if the font could not be loaded
