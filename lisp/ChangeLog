@@ -1,3 +1,39 @@
+2000-10-29  Michael Kifer  <kifer@cs.sunysb.edu>
+	
+	* viper-cmd.el (viper-preserve-cursor-color): new test that avoids
+	rewrawing the screen when changing cursor color.
+	(viper-insert-state-pre-command-sentinel,
+	viper-replace-state-pre-command-sentinel,
+	viper-replace-state-post-command-sentinel): use
+	viper-preserve-cursor-color.
+	Many functions changed to use viper= instead of = when comparing
+	characters.
+	* viper-util.el (viper-memq-char,viper=): new functions for
+	working with characters.
+	(viper-change-cursor-color): fixed buglet.
+	Many functions changed to use viper= instead of = when comparing
+	characters.
+	* viper.el (viper-insert-state-mode-list): added eshell.
+	
+	* ediff-init.el (ediff-before-setup-hook): new hook.
+	Several typos fixed in various docstrings.
+	* ediff-merg.el (ediff-show-clashes-only): docstring typo fixed.
+	* ediff-nult.el (ediff-before-session-group-setup-hooks): new
+	hook.
+	(ediff-show-meta-buffer): run ediff-before-session-group-setup-hooks.
+	* ediff-util.el (ediff-setup): run ediff-before-setup-hook.
+	(ediff-other-buffer): use selected buffers if in Buffer-menu buffer.
+	(ediff-get-selected-buffers): new function.
+	* ediff-vers.el (ediff-vc-internal,ediff-rcs-internal,
+	ediff-vc-merge-internal,ediff-rcs-merge-internal): use
+	save-window-excursion.
+	* ediff-wind.el (ediff-skip-unsuitable-frames): more robust
+	termination check in while loop.
+	* ediff.el (ediff-get-default-file-name): better defaults when in
+	dired buffer.
+	(ediff-files,ediff-merge-files,ediff-files3,
+	ediff-merge-files-with-ancestor): use ediff-get-default-file-name.
+	
 2000-10-28  Dave Love  <fx@gnu.org>
 
 	* info.el (Info-fontify-node): Add help-echo for menu items.

@@ -102,6 +102,25 @@
       (symbol-function
        (if viper-xemacs-p 'characterp 'integerp)))
 
+; CHAR is supposed to be a char or an integer; LIST is a list of chars, nil,
+; and negative numbers
+; Check if CHAR is a member by trying to convert into integers, if necessary.
+; Introduced for compatibility with XEmacs, where integers are not the same as
+; chars.
+(defun viper-memq-char (char list)
+  (cond (viper-emacs-p (memq char list))
+	((null char) (memq char list))
+	((characterp char) (memq char list))
+	((integerp char) (memq (int-to-char char) list))
+	(t nil)))
+
+;; Like =, but accommodates null and also is t for eq-objects
+(defun viper= (char char1)
+  (cond ((eq char char1) t)
+	((and (viper-characterp char) (viper-characterp char1))
+	 (= char char1))
+	(t nil)))
+
 (defsubst viper-color-display-p ()
   (if viper-emacs-p
       (x-display-color-p)
@@ -124,8 +143,12 @@
   (if (and (viper-window-display-p)  (viper-color-display-p)
 	   (stringp new-color) (viper-color-defined-p new-color)
 	   (not (string= new-color (viper-get-cursor-color))))
-      (modify-frame-parameters
-       (selected-frame) (list (cons 'cursor-color new-color)))))
+      (if viper-emacs-p
+	  (modify-frame-parameters
+	   (selected-frame) (list (cons 'cursor-color new-color)))
+	(set-frame-property
+	 (selected-frame) 'cursor-color (make-color-instance new-color)))
+    ))
 	 
 ;; By default, saves current frame cursor color in the
 ;; viper-saved-cursor-color-in-replace-mode property of viper-replace-overlay
@@ -701,7 +724,7 @@
   (if (not (viper-overlay-p viper-search-overlay))
       (progn
 	(setq viper-search-overlay
-	      (viper-make-overlay beg end (current-buffer)))
+	      (viper-make-overlay (point-min) (point-min) (current-buffer)))
 	(viper-overlay-put
 	 viper-search-overlay 'priority viper-search-overlay-priority)))
   (viper-overlay-put viper-search-overlay 'face nil))
@@ -954,7 +977,7 @@
 	      )))
       (if (viper-characterp basis)
 	  (setq basis
-		(if (= basis ?\C-?)
+		(if (viper= basis ?\C-?)
 		    (list 'control '\?) ; taking care of an emacs bug
 		  (intern (char-to-string basis)))))
       (if mod
@@ -1199,23 +1222,24 @@ This option is appropriate if you like Emacs-style words."
 	    (looking-at (concat "[" viper-strict-ALPHA-chars addl-chars "]"))
 	  (or
 	   ;; or one of the additional chars being asked to include
-	   (memq char (viper-string-to-list addl-chars))
+	   (viper-memq-char char (viper-string-to-list addl-chars))
 	   (and
-	    ;; not one of the excluded word chars
-	    (not (memq char viper-non-word-characters))
+	    ;; not one of the excluded word chars (note:
+	    ;; viper-non-word-characters is a list)
+	    (not (viper-memq-char char viper-non-word-characters))
 	    ;; char of the Viper-word syntax class
-	    (memq (char-syntax char)
-		  (viper-string-to-list viper-ALPHA-char-class))))))
+	    (viper-memq-char (char-syntax char)
+			     (viper-string-to-list viper-ALPHA-char-class))))))
     ))
 
 (defun viper-looking-at-separator ()
   (let ((char (char-after (point))))
     (if char
 	(if (eq viper-syntax-preference 'strict-vi)
-	    (memq char (viper-string-to-list viper-strict-SEP-chars))
+	    (viper-memq-char char (viper-string-to-list viper-strict-SEP-chars))
 	  (or (eq char ?\n) ; RET is always a separator in Vi
-	      (memq (char-syntax char)
-		    (viper-string-to-list viper-SEP-char-class)))))
+	      (viper-memq-char (char-syntax char)
+			       (viper-string-to-list viper-SEP-char-class)))))
     ))
 
 (defsubst viper-looking-at-alphasep (&optional addl-chars)
@@ -1340,7 +1364,8 @@ This option is appropriate if you like Emacs-style words."
 		    ;; of the excluded characters
 		    (if (and (eq syntax-of-char-looked-at ?w)
 			     (not negated-syntax))
-			(not (memq char-looked-at viper-non-word-characters))
+			(not (viper-memq-char
+			      char-looked-at viper-non-word-characters))
 		      t))
 		   (funcall skip-syntax-func 1)
 		 0)

@@ -376,10 +376,17 @@ that Ediff doesn't know about.")
 
 ;; Hook variables
 
+(defcustom ediff-before-setup-hook nil
+  "*Hooks to run before Ediff begins to set up windows and buffers.
+This hook can be used to save the previous window config, which can be restored
+on ediff-quit or ediff-suspend."
+  :type 'hook
+  :group 'ediff-hook) 
 (defcustom ediff-before-setup-windows-hook nil
   "*Hooks to run before Ediff sets its window configuration. 
-This can be used to save the previous window config, which can be restored
-on ediff-quit or ediff-suspend."
+This hook is called every time when Ediff arranges its windows.
+This happens each time Ediff detects that the windows were messed up by the
+user."
   :type 'hook
   :group 'ediff-hook) 
 (defcustom ediff-after-setup-windows-hook nil
@@ -399,7 +406,7 @@ Can be used to move the frame where it is desired."
   :type 'hook
   :group 'ediff-hook)
 (defcustom ediff-startup-hook nil
-  "*Hooks to run in the control buffer after Ediff has been set up."
+  "*Hooks to run in the control buffer after Ediff has been set up and is ready for the job."
   :type 'hook
   :group 'ediff-hook)
 (defcustom ediff-select-hook nil
@@ -777,14 +784,14 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire."
 					     'display-pixel-height
 					   'x-display-pixel-height)))))
       
-;; A-list of current-diff-overlay symbols asssociated with buf types
+;; A-list of current-diff-overlay symbols associated with buf types
 (defconst ediff-current-diff-overlay-alist
   '((A . ediff-current-diff-overlay-A)
     (B . ediff-current-diff-overlay-B)
     (C . ediff-current-diff-overlay-C)
     (Ancestor . ediff-current-diff-overlay-Ancestor)))
   
-;; A-list of current-diff-face-* symbols asssociated with buf types
+;; A-list of current-diff-face-* symbols associated with buf types
 (defconst ediff-current-diff-face-alist
   '((A . ediff-current-diff-face-A)
     (B . ediff-current-diff-face-B)

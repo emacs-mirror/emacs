@@ -151,7 +151,6 @@ In this case, Ediff will use those frames to display these buffers."
    '(vertical-scroll-bars . nil)  ; Emacs only
    '(scrollbar-width . 0)         ; XEmacs only
    '(menu-bar-lines . 0)          ; Emacs only
-   '(tool-bar-lines . 0)          ; Emacs only
    ;; don't lower and auto-raise
    '(auto-lower . nil)
    '(auto-raise . t)
@@ -831,8 +830,14 @@ into icons, regardless of the window manager."
 ;; create a new splittable frame if none is found
 (defun ediff-skip-unsuitable-frames (&optional ok-unsplittable)
   (if (ediff-window-display-p)
-      (let (last-window)
-	(while (and (not (eq (selected-window) last-window))
+      ;;(let (last-window)
+      (let (seen-windows)
+	;; (memq ... seen-windows) has quadratic behavior,
+	;; but (eq ... last-window) runs into an emacs bug where next-window
+	;; gets stuck in a loop if the only frame is the minibuffer.
+	;;
+	;;(while (and (not (eq (selected-window) last-window))
+	(while (and (not (memq (selected-window) seen-windows))
 		    (or
 		     (ediff-frame-has-dedicated-windows (selected-frame))
 		     (ediff-frame-iconified-p (selected-frame))
@@ -846,10 +851,12 @@ into icons, regardless of the window manager."
 			 nil
 		       (ediff-frame-unsplittable-p (selected-frame)))))
 	  ;; remember where started
-	  (or last-window (setq last-window (selected-window)))
+	  ;;(or last-window (setq last-window (selected-window)))
+	  (setq seen-windows (cons (selected-window) seen-windows))
 	  ;; try new window
 	  (other-window 1 t))
-	(if (eq (selected-window) last-window)
+	;;(if (eq (selected-window) last-window)
+	(if (memq (selected-window) seen-windows)
 	    ;; fed up, no appropriate frame
 	    (progn
 	      (select-frame (make-frame '((unsplittable)))))))))

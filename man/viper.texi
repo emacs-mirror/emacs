@@ -6,7 +6,7 @@
 @comment @setfilename viper.info
 @setfilename ../info/viper
 
-@dircategory Emacs
+@dircategory Editors
 @direntry
 * VIPER: (viper).       The newest Emacs VI-emulation mode.
                           (also, A VI Plan for Emacs Rescue
@@ -20,7 +20,7 @@
 @titlepage
 @title Viper Is a Package for Emacs Rebels
 @subtitle a Vi emulator for Emacs
-@subtitle March 1998, Viper Version 3.02 (Polyglot)
+@subtitle October 2000, Viper Version 3.09
 
 @author Michael Kifer (Viper)
 @author Aamod Sane (VIP 4.4)
@@ -97,7 +97,7 @@ It is recommended that you read the Overview node.  The other nodes may
 be visited as needed.
 
 Comments and bug reports are welcome.
-@code{kifer@@cs.emacs.edu} is the current address for Viper bug reports.
+@code{kifer@@cs.sunysb.edu} is the current address for Viper bug reports.
 Please use the Ex command @kbd{:submitReport} for this purpose.@refill
 
 @end ifinfo
@@ -4419,6 +4419,7 @@ Many contributors on the net pointed out bugs and suggested a number of
 useful features.  Here is a (hopefully) complete list of contributors:
 
 @example
+aaronl@@vitelus.com (Aaron Lehmann),
 ahg@@panix.com (Al Gelders),
 amade@@diagram.fr (Paul-Bernard Amade),
 ascott@@fws214.intel.com (Andy Scott),
@@ -4428,6 +4429,7 @@ dave@@hellgate.utah.edu,
 dominik@@strw.LeidenUniv.nl (Carsten Dominik),
 dwallach@@cs.princeton.edu (Dan Wallach),
 dwight@@toolucky.llnl.gov (Dwight Shih),
+dxc@@xprt.net (David X. Callaway),
 edmonds@@edmonds.home.cs.ubc.ca (Brian Edmonds),
 gviswana@@cs.wisc.edu (Guhan Viswanathan),
 gvr@@halcyon.com (George V.@: Reilly),

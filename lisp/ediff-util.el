@@ -254,6 +254,7 @@ to invocation.")
 (defun ediff-setup (buffer-A file-A buffer-B file-B buffer-C file-C
 			     startup-hooks setup-parameters
 			     &optional merge-buffer-file)
+  (run-hooks 'ediff-before-setup-hook)
   ;; ediff-convert-standard-filename puts file names in the form appropriate
   ;; for the OS at hand.
   (setq file-A (ediff-convert-standard-filename (expand-file-name file-A)))
@@ -955,7 +956,7 @@ On a dumb terminal, switches between ASCII highlighting and no highlighting."
 	
 (defun ediff-make-or-kill-fine-diffs (arg)
   "Compute fine diffs.  With negative prefix arg, kill fine diffs.
-In both cases, operates on the currrent difference region." 
+In both cases, operates on the current difference region." 
   (interactive "P")
   (ediff-barf-if-not-control-buffer)
   (cond ((eq arg '-)
@@ -3459,7 +3460,11 @@ Ediff Control Panel to restore highlighting."
 ;; EXCL-BUFF-LIST is an exclusion list. 
 (defun ediff-other-buffer (excl-buff-lst)
   (or (listp excl-buff-lst) (setq excl-buff-lst (list excl-buff-lst)))
-  (let* ((all-buffers (buffer-list))
+  (let* ((all-buffers (nconc (ediff-get-selected-buffers) (buffer-list)))
+	 ;; we compute this the second time because we need to do memq on it
+	 ;; later, and nconc above will break it. Either this or use slow
+	 ;; append instead of nconc
+	 (selected-buffers (ediff-get-selected-buffers))
 	 (prefered-buffer (car all-buffers))
 	 visible-dired-buffers
 	 (excl-buff-name-list 
@@ -3488,33 +3493,34 @@ Ediff Control Panel to restore highlighting."
 	  (mapcar
 	   (lambda (x)
 	     (cond ((member (buffer-name x) excl-buff-name-list) nil)
-			     ((not (ediff-get-visible-buffer-window x)) nil)
-			     ((eq x prefered-buffer) x)
-			     ;; if prev selected buffer is dired, look only at
-			     ;; dired.
-			     ((eq use-dired-major-mode 'yes)
-			      (if (eq (ediff-with-current-buffer x major-mode)
-				      'dired-mode)
-				  x nil))
-			     ((eq (ediff-with-current-buffer x major-mode)
-				  'dired-mode)
-			      (if (null use-dired-major-mode)
-				  ;; don't know if we must enforce dired.
-				  ;; Remember this buffer in case
-				  ;; dired buffs are the only ones visible.
-				  (setq visible-dired-buffers
-					(cons x visible-dired-buffers)))
-			      ;; skip, if dired is not forced
-			      nil)
-			     ((memq (ediff-with-current-buffer x major-mode)
-				    '(rmail-mode
-				      vm-mode
-				      gnus-article-mode
-				      mh-show-mode))
-			      x)
-			     ((string-match "^[ *]" (buffer-name x)) nil)
-			     ((string= "*scratch*" (buffer-name x)) nil)
-			     (t x)))
+		   ((memq x selected-buffers) x)
+		   ((not (ediff-get-visible-buffer-window x)) nil)
+		   ((eq x prefered-buffer) x)
+		   ;; if prev selected buffer is dired, look only at
+		   ;; dired.
+		   ((eq use-dired-major-mode 'yes)
+		    (if (eq (ediff-with-current-buffer x major-mode)
+			    'dired-mode)
+			x nil))
+		   ((eq (ediff-with-current-buffer x major-mode)
+			'dired-mode)
+		    (if (null use-dired-major-mode)
+			;; don't know if we must enforce dired.
+			;; Remember this buffer in case
+			;; dired buffs are the only ones visible.
+			(setq visible-dired-buffers
+			      (cons x visible-dired-buffers)))
+		    ;; skip, if dired is not forced
+		    nil)
+		   ((memq (ediff-with-current-buffer x major-mode)
+			  '(rmail-mode
+			    vm-mode
+			    gnus-article-mode
+			    mh-show-mode))
+		    x)
+		   ((string-match "^[ *]" (buffer-name x)) nil)
+		   ((string= "*scratch*" (buffer-name x)) nil)
+		   (t x)))
 	   all-buffers))
 	 (clean-significant-buffers (delq nil significant-buffers))
 	 less-significant-buffers)
@@ -3547,6 +3553,23 @@ Ediff Control Panel to restore highlighting."
 	  (t "*scratch*"))
     ))
       
+
+;; If current buffer is a Buffer-menu buffer, then take the selected buffers
+;; and append the buffer at the cursor to the end.
+;; This list would be the preferred list.
+(defun ediff-get-selected-buffers ()
+  (if (eq major-mode 'Buffer-menu-mode)
+      (let ((lis (condition-case nil
+		     (list (Buffer-menu-buffer t))
+		   (error))
+		 ))
+	(save-excursion
+	  (goto-char (point-max))
+	  (while (search-backward "\n>" nil t)
+	    (forward-char 1)
+	    (setq lis (cons (Buffer-menu-buffer t) lis)))
+	  lis))
+    ))
       
 ;; Construct a unique buffer name.
 ;; The first one tried is prefixsuffix, then prefix<2>suffix, 

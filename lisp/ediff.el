@@ -6,8 +6,8 @@
 ;; Created: February 2, 1994
 ;; Keywords: comparing, merging, patching, version control.
 
-(defconst ediff-version "2.74" "The current version of Ediff")
-(defconst ediff-date "October 31, 1999" "Date of last update")  
+(defconst ediff-version "2.75" "The current version of Ediff")
+(defconst ediff-date "October 29, 2000" "Date of last update")  
 
 
 ;; This file is part of GNU Emacs.
@@ -163,13 +163,27 @@
     (toggle-read-only 1)))
 
 ;; Return a plausible default for ediff's first file:
-;; In dired, return the file name under the point, unless it is a directory
-;; If the buffer has a file name, return that file name.
-(defun ediff-get-default-file-name ()
+;; In dired, return the file number FILENO (or 0) in the list
+;; (all-selected-files, filename under the cursor), where directories are
+;; ignored. Otherwise, return DEFAULT file name, if non-nil. Else,
+;; if the buffer is visiting a file, return that file name.
+(defun ediff-get-default-file-name (&optional default fileno)
   (cond ((eq major-mode 'dired-mode)
-	 (let ((f (dired-get-filename nil 'no-error)))
-	   (if (and (stringp f) (not (file-directory-p f)))
-	       f)))
+	 (let ((current (dired-get-filename nil 'no-error))
+	       (marked (condition-case nil
+			   (dired-get-marked-files 'no-dir)
+			 (error)))
+	       aux-list choices result)
+	   (or (integerp fileno) (setq fileno 0))
+	   (if (stringp default)
+	       (setq aux-list (cons default aux-list)))
+	   (if (and (stringp current) (not (file-directory-p current)))
+	       (setq aux-list (cons current aux-list)))
+	   (setq choices (nconc  marked aux-list))
+	   (setq result (elt choices fileno))
+	   (or result
+	       default)))
+	((stringp default) default)
 	((buffer-file-name (current-buffer))
 	 (file-name-nondirectory (buffer-file-name (current-buffer))))
 	))
@@ -199,7 +213,7 @@
 						 (file-name-nondirectory f)
 						 dir-B))
 					       file-name-history))
-				   f))
+				   (ediff-get-default-file-name f 1)))
 	   )))
   (ediff-files-internal file-A 
 			(if (file-directory-p file-B)
@@ -234,7 +248,7 @@
 						     (file-name-nondirectory f)
 						     dir-B))
 						   file-name-history))
-					    f)))
+					    (ediff-get-default-file-name f 1))))
 	   (ediff-read-file-name "File C to compare" 
 				 (setq dir-C (if ediff-use-last-dir
 						 ediff-last-dir-C
@@ -246,7 +260,7 @@
 						 (file-name-nondirectory ff)
 						 dir-C))
 					       file-name-history))
-				   ff))
+				   (ediff-get-default-file-name ff 2)))
 	   )))
   (ediff-files-internal file-A 
 			(if (file-directory-p file-B)
@@ -1009,7 +1023,7 @@ Continue anyway? (y/n) "))
 						 (file-name-nondirectory f)
 						 dir-B))
 					       file-name-history))
-				   f))
+				   (ediff-get-default-file-name f 1)))
 	   )))
   (setq startup-hooks (cons 'ediff-merge-on-startup startup-hooks))
   (ediff-files-internal file-A 
@@ -1052,7 +1066,7 @@ Continue anyway? (y/n) "))
 						     (file-name-nondirectory f)
 						     dir-B))
 						   file-name-history))
-					    f)))
+					    (ediff-get-default-file-name f 1))))
 	   (ediff-read-file-name "Ancestor file" 
 				 (setq dir-ancestor
 				       (if ediff-use-last-dir
@@ -1065,7 +1079,7 @@ Continue anyway? (y/n) "))
 						 (file-name-nondirectory ff)
 						 dir-ancestor))
 					       file-name-history))
-				   ff))
+				   (ediff-get-default-file-name ff 2)))
 	   )))
   (setq startup-hooks (cons 'ediff-merge-on-startup startup-hooks))
   (ediff-files-internal file-A 

@@ -8,7 +8,7 @@
 
 ;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000 Free Software Foundation, Inc.
 
-(defconst viper-version "3.08 of October 31, 1999"
+(defconst viper-version "3.09 of October 29, 2000"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
@@ -443,7 +443,10 @@ unless it is coming up in a wrong Viper state."
   :group 'viper-misc)
 
 (defcustom viper-insert-state-mode-list
-  '(internal-ange-ftp-mode comint-mode shell-mode)
+  '(internal-ange-ftp-mode
+    comint-mode
+    eshell-mode
+    shell-mode)
   "*A list of major modes that should come up in Vi Insert state."
   :type '(repeat symbol)
   :group 'viper-misc)

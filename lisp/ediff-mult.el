@@ -187,7 +187,15 @@ This can be toggled with `ediff-toggle-filename-truncation'."
   "*Hooks run just after the registry control panel is set up."
   :type 'hook
   :group 'ediff-mult)
-(defcustom ediff-session-group-setup-hook nil
+
+(defcustom ediff-before-session-group-setup-hooks nil
+  "*Hooks to run before Ediff arranges the window for group-level operations.
+It is used by commands such as ediff-directories.
+This hook can be used to save the previous window config, which can be restored
+on ediff-quit, ediff-suspend, or ediff-quit-session-group-hook."
+  :type 'hook
+  :group 'ediff-hook) 
+(defcustom ediff-after-session-group-setup-hook nil
   "*Hooks run just after a meta-buffer controlling a session group, such as
 ediff-directories, is run."
   :type 'hook
@@ -706,7 +714,7 @@ behavior."
 
       (if (eq ediff-metajob-name 'ediff-registry)
 	  (run-hooks 'ediff-registry-setup-hook)
-	(run-hooks 'ediff-session-group-setup-hook))
+	(run-hooks 'ediff-after-session-group-setup-hook))
       ) ; eval in meta-buffer
     meta-buffer))
 
@@ -1719,6 +1727,7 @@ all marked sessions must be active."
 (defun ediff-show-meta-buffer (&optional meta-buf session-number)
   "Show the session group buffer."
   (interactive)
+  (run-hooks 'ediff-before-directory-setup-hooks)
   (let (wind frame silent)
     (if meta-buf (setq silent t))
 

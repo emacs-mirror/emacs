@@ -14,7 +14,7 @@
 @synindex fn cp
 @synindex pg cp
 
-@dircategory Emacs
+@dircategory Editors
 @direntry
 * Ediff: (ediff).       A visual interface for comparing and merging programs.
 @end direntry
@@ -55,7 +55,7 @@ paragraph not being relevant to the printed manual).
 
 @vskip 0pt plus 1filll
 @noindent
-Copyright @copyright{} 1995, 1996, 1997 Free Software Foundation, Inc.
+Copyright @copyright{} 1995, 1996, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -1077,6 +1077,11 @@ The bulk of customization can be done via the following hooks:
 @vindex ediff-load-hook
 This hook can be used to change defaults after Ediff is loaded.
 
+@item ediff-before-setup-hook
+@vindex ediff-before-setup-hook
+Hook that is run just before Ediff rearranges windows to its liking.
+Can be used to save windows configuration.
+
 @item ediff-keymap-setup-hook
 @vindex ediff-keymap-setup-hook
 @vindex ediff-mode-map
@@ -1092,8 +1097,9 @@ of Ediff.
 @vindex ediff-before-setup-windows-hook
 @vindex ediff-after-setup-windows-hook
 These two hooks are called before and after Ediff sets up its window
-configuration.  Can be used to save the configuration that existed
-before Ediff starts or for whatever other purposes.
+configuration.  These hooks are run each time Ediff rearranges windows to
+its liking. This happens whenever it detects that the user changed the
+windows setup.
 
 @item ediff-suspend-hook
 @itemx ediff-quit-hook
@@ -1186,8 +1192,13 @@ set local variables that alter the look of the display.
 @vindex ediff-registry-setup-hook
 Hooks run after setting up the registry for all active Ediff session.
 @xref{Session Groups}, for details.
-@item ediff-session-group-setup-hook
-@vindex ediff-session-group-setup-hook
+@item ediff-before-session-group-setup-hook
+@vindex ediff-before-session-group-setup-hook
+Hooks run before setting up a control panel for a group of related Ediff
+sessions. Can be used, for example, to save window configuration to restore
+later.
+@item ediff-after-session-group-setup-hook
+@vindex ediff-after-session-group-setup-hook
 Hooks run after setting up a control panel for a group of related Ediff
 sessions.  @xref{Session Groups}, for details.
 @item ediff-quit-session-group-hook
@@ -2009,10 +2020,9 @@ have to tell Ediff which version control package you are using, e.g.,
 @end example
 
 Apart from the standard @file{vc.el}, Ediff supports three other interfaces
-to version control:
-@file{rcs.el}, @file{pcl-cvs.el}, and @file{generic-sc.el}.
-The package @file{rcs.el} is written by Sebastian Kremer
-<sk@@thp.Uni-Koeln.DE> and is available as
+to version control: @file{rcs.el}, @file{pcl-cvs.el} (recently renamed
+pcvs.el), and @file{generic-sc.el}.  The package @file{rcs.el} is written
+by Sebastian Kremer <sk@@thp.Uni-Koeln.DE> and is available as
 @example
 @file{ftp.cs.buffalo.edu:pub/Emacs/rcs.tar.Z}
 @file{ftp.uni-koeln.de:/pub/gnu/emacs/rcs.tar.Z}
@@ -2293,6 +2303,7 @@ Mike Long (mike.long@@analog.com),
 Martin Maechler (maechler@@stat.math.ethz.ch),
 Simon Marshall (simon@@gnu.org),
 Richard Mlynarik (mly@@adoc.xerox.com),
+Stefan Monnier (monnier@@cs.yale.edu),
 Chris Murphy (murphycm@@sun.aston.ac.uk),
 Erik Naggum (erik@@naggum.no),
 Eyvind Ness (Eyvind.Ness@@hrp.no),
@@ -2323,6 +2334,7 @@ Jan Vroonhof (vroonhof@@math.ethz.ch),
 Philippe Waroquiers (philippe.waroquiers@@eurocontrol.be),
 Klaus Weber (gizmo@@zork.north.de),
 Ben Wing (ben@@xemacs.org),
+Tom Wurgler (twurgler@@goodyear.com),
 Ilya Zakharevich (ilya@@math.ohio-state.edu),
 Eli Zaretskii (eliz@@is.elta.co.il)
 @end example

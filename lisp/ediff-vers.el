@@ -47,20 +47,21 @@
 ;; If the current buffer is named `F', the version is named `F.~REV~'.
 ;; If `F.~REV~' already exists, it is used instead of being re-created.
   (let (file1 file2 rev1buf rev2buf)
-    (save-excursion
-      (vc-version-other-window rev1)
-      (setq rev1buf (current-buffer)
-	    file1 (buffer-file-name)))
-    (save-excursion
-      (or (string= rev2 "") 		; use current buffer
-	  (vc-version-other-window rev2))
-      (setq rev2buf (current-buffer)
-	    file2 (buffer-file-name)))
-    (setq startup-hooks
-	  (cons `(lambda ()
-		   (delete-file ,file1)
-		   (or ,(string= rev2 "") (delete-file ,file2)))
-		startup-hooks))
+    (save-window-excursion
+      (save-excursion
+	(vc-version-other-window rev1)
+	(setq rev1buf (current-buffer)
+	      file1 (buffer-file-name)))
+      (save-excursion
+	(or (string= rev2 "") 		; use current buffer
+	    (vc-version-other-window rev2))
+	(setq rev2buf (current-buffer)
+	      file2 (buffer-file-name)))
+      (setq startup-hooks
+	    (cons `(lambda ()
+		     (delete-file ,file1)
+		     (or ,(string= rev2 "") (delete-file ,file2)))
+		  startup-hooks)))
     (ediff-buffers
      rev1buf rev2buf
      startup-hooks
@@ -107,10 +108,12 @@
 (defun ediff-rcs-internal (rev1 rev2 &optional startup-hooks)
 ;; Run Ediff on versions of the current buffer.
 ;; If REV2 is "" then use current buffer.
-  (let ((rev2buf (if (string= rev2 "")
-		     (current-buffer)
-		   (rcs-ediff-view-revision rev2)))
-	(rev1buf (rcs-ediff-view-revision rev1)))
+  (let (rev2buf rev1buf)
+    (save-window-excursion
+      (setq rev2buf (if (string= rev2 "")
+			(current-buffer)
+		      (rcs-ediff-view-revision rev2))
+	    rev1buf (rcs-ediff-view-revision rev1)))
 	
     ;; rcs.el doesn't create temp version files, so we don't have to delete
     ;; anything in startup hooks to ediff-buffers
@@ -149,30 +152,31 @@
 				     &optional startup-hooks merge-buffer-file)
 ;; If ANCESTOR-REV non-nil, merge with ancestor
   (let (buf1 buf2 ancestor-buf)
-    (save-excursion
-      (vc-version-other-window rev1)
-      (setq buf1 (current-buffer)))
-    (save-excursion
-      (or (string= rev2 "")
-	  (vc-version-other-window rev2))
-      (setq buf2 (current-buffer)))
-    (if ancestor-rev
-	(save-excursion
-	  (if (string= ancestor-rev "")
-	      (setq ancestor-rev (vc-workfile-version buffer-file-name)))
-	  (vc-version-other-window ancestor-rev)
-	  (setq ancestor-buf (current-buffer))))
-    (setq startup-hooks 
-	  (cons 
-	   `(lambda () 
-	      (delete-file ,(buffer-file-name buf1))
-	      (or ,(string= rev2 "")
-		  (delete-file ,(buffer-file-name buf2)))
-	      (or ,(string= ancestor-rev "")
-		  ,(not ancestor-rev)
-		  (delete-file ,(buffer-file-name ancestor-buf)))
-	      )
-	   startup-hooks))
+    (save-window-excursion
+      (save-excursion
+	(vc-version-other-window rev1)
+	(setq buf1 (current-buffer)))
+      (save-excursion
+	(or (string= rev2 "")
+	    (vc-version-other-window rev2))
+	(setq buf2 (current-buffer)))
+      (if ancestor-rev
+	  (save-excursion
+	    (if (string= ancestor-rev "")
+		(setq ancestor-rev (vc-workfile-version buffer-file-name)))
+	    (vc-version-other-window ancestor-rev)
+	    (setq ancestor-buf (current-buffer))))
+      (setq startup-hooks 
+	    (cons 
+	     `(lambda () 
+		(delete-file ,(buffer-file-name buf1))
+		(or ,(string= rev2 "")
+		    (delete-file ,(buffer-file-name buf2)))
+		(or ,(string= ancestor-rev "")
+		    ,(not ancestor-rev)
+		    (delete-file ,(buffer-file-name ancestor-buf)))
+		)
+	     startup-hooks)))
     (if ancestor-rev
 	(ediff-merge-buffers-with-ancestor
 	 buf1 buf2 ancestor-buf
@@ -186,14 +190,15 @@
 				      startup-hooks merge-buffer-file)
   ;; If ANCESTOR-REV non-nil, merge with ancestor
   (let (buf1 buf2 ancestor-buf)
-    (setq buf1 (rcs-ediff-view-revision rev1)
-	  buf2 (if (string= rev2 "")
-		   (current-buffer)
-		 (rcs-ediff-view-revision rev2))
-	  ancestor-buf (if ancestor-rev
-			   (if (string= ancestor-rev "")
-			       (current-buffer)
-			     (rcs-ediff-view-revision ancestor-rev))))
+    (save-window-excursion
+      (setq buf1 (rcs-ediff-view-revision rev1)
+	    buf2 (if (string= rev2 "")
+		     (current-buffer)
+		   (rcs-ediff-view-revision rev2))
+	    ancestor-buf (if ancestor-rev
+			     (if (string= ancestor-rev "")
+				 (current-buffer)
+			       (rcs-ediff-view-revision ancestor-rev)))))
     ;; rcs.el doesn't create temp version files, so we don't have to delete
     ;; anything in startup hooks to ediff-buffers
     (if ancestor-rev
