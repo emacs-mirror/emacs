@@ -1,3 +1,11 @@
+2002-10-02  Markus Rost  <rost@math.ohio-state.edu>
+
+	* progmodes/sh-script.el (sh-alias-alist): Use append instead of
+	nconc.
+
+	* startup.el (normal-top-level): Reset standard-value property of
+	`user-full-name' here.
+
 2002-10-01  Bill Wohler  <wohler@newt.com>
 
 	* mail/mh-comp.el, mail/mh-e.el, mail/mh-funcs.el,
