@@ -3102,15 +3102,13 @@ Leave point at the location of the call, or after the last expression."
   (goto-char (point-min))
   (catch 'found
     (while t
-      (let ((sexp (condition-case nil
+      (let ((start (point))
+	    (sexp (condition-case nil
 		      (read (current-buffer))
 		    (end-of-file (throw 'found nil)))))
 	(when (and (listp sexp)
 		   (eq (car sexp) symbol))
-	  (delete-region (save-excursion
-			   (backward-sexp)
-			   (point))
-			 (point))
+	  (delete-region start (point))
 	  (throw 'found nil))))))
 
 (defun custom-save-variables ()
