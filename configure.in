@@ -455,6 +455,11 @@ case "${canonical}" in
     machine=intel386 opsys=usg5-4-2
   ;;
 
+  ## Intel Paragon OSF/1
+  i860-intel-osf1* )
+    machine=paragon opsys=osf1 NON_GNU_CPP=/usr/mach/lib/cpp
+  ;;
+
   ## Intel 860
   i860-*-sysv4* )
     machine=i860 opsys=usg5-4
