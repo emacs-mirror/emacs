@@ -1,3 +1,7 @@
+2002-05-14  Jochen K,A|(Bpper  <jochen@jochen-kuepper.de>
+
+	* calc/calc-units.el (math-standard-units): Update from CODATA.
+
 2002-05-14  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* skeleton.el (skeleton-transformation): Default to `identity'.
