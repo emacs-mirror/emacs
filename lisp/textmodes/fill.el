@@ -951,13 +951,14 @@ MAIL-FLAG for a mail message, i. e. don't fill header lines."
 		   (if (not (and fill-prefix
 				 (looking-at fill-prefix-regexp)))
 		       (setq fill-prefix
-			     (if (and adaptive-fill-mode adaptive-fill-regexp
-				      (looking-at adaptive-fill-regexp))
-				 (match-string 0)
-			       (buffer-substring 
-				(point)
-				(save-excursion (skip-chars-forward " \t")
-						(point))))
+			     (or (let ((adaptive-fill-first-line-regexp ""))
+				   (fill-context-prefix
+				    (point)
+				    (save-excursion (forward-line 2) (point))))
+				 (buffer-substring 
+				  (point)
+				  (save-excursion (skip-chars-forward " \t")
+						  (point))))
 			     fill-prefix-regexp (regexp-quote fill-prefix)))
 		   (forward-line 1)
 		   (if (bolp)
