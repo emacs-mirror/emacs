@@ -1211,14 +1211,16 @@ off screen at the next redisplay, then redisplay computes a new window-start
 position that works well with point, and thus @var{position} is not used.
 @end defun
 
-@defun pos-visible-in-window-p &optional position window fully
+@defun pos-visible-in-window-p &optional position window partially
 This function returns @code{t} if @var{position} is within the range of
-text currently visible on the screen in @var{window}.  If @var{fully} is
-non-@code{nil}, then locations that are partially obscured are not
-considered visible.  It returns @code{nil} if @var{position} is scrolled
-vertically out of view.  The argument @var{position} defaults to the
-current position of point; @var{window}, to the selected window.  Here
-is an example:
+text currently visible on the screen in @var{window}.  It returns
+@code{nil} if @var{position} is scrolled vertically or horizontally out
+of view.  Locations that are partially obscured are not considered
+visible unless @var{partially} is non-@code{nil}.  The argument
+@var{position} defaults to the current position of point in
+@var{window}; @var{window}, to the selected window.
+
+Here is an example:
 
 @example
 @group
@@ -1227,11 +1229,6 @@ is an example:
     (recenter 0))
 @end group
 @end example
-
-The @code{pos-visible-in-window-p} function considers only vertical
-scrolling.  If @var{position} is out of view only because @var{window}
-has been scrolled horizontally, @code{pos-visible-in-window-p} returns
-@code{t} anyway.  @xref{Horizontal Scrolling}.
 @end defun
 
 @node Textual Scrolling
