@@ -43,7 +43,11 @@ Boston, MA 02111-1307, USA.  */
 #include "syssignal.h"
 #include <setjmp.h>
 
-extern char *sbrk ();
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#else
+extern POINTER_TYPE *sbrk ();
+#endif
 
 #ifdef DOUG_LEA_MALLOC
 
@@ -283,6 +287,7 @@ Lisp_Object Vdead;
 
 struct mem_node;
 static void *lisp_malloc P_ ((size_t, enum mem_type));
+static void lisp_free P_ ((POINTER_TYPE *));
 static void mark_stack P_ ((void));
 static void init_stack P_ ((Lisp_Object *));
 static int live_vector_p P_ ((struct mem_node *, void *));
@@ -512,7 +517,7 @@ allocate_buffer ()
 /* Free BLOCK.  This must be called to free memory allocated with a
    call to lisp_malloc.  */
 
-void
+static void
 lisp_free (block)
      POINTER_TYPE *block;
 {
