@@ -64,6 +64,35 @@ Lisp_Object combine_after_change_list;
 /* Buffer which combine_after_change_list is about.  */
 Lisp_Object combine_after_change_buffer;
 
+/* Check all markers in the current buffer, looking for something invalid.  */
+
+static int check_markers_debug_flag;
+
+#define CHECK_MARKERS()				\
+  if (check_markers_debug_flag)			\
+    check_markers ();				\
+  else
+
+void
+check_markers ()
+{
+  register Lisp_Object tail, prev, next;
+
+  tail = BUF_MARKERS (current_buffer);
+
+  while (XSYMBOL (tail) != XSYMBOL (Qnil))
+    {
+      if (XMARKER (tail)->buffer->text != current_buffer->text)
+	abort ();
+      if (XMARKER (tail)->charpos > Z)
+	abort ();
+      if (XMARKER (tail)->bytepos > Z_BYTE)
+	abort ();
+
+      tail = XMARKER (tail)->chain;
+    }
+}
+
 /* Move gap to position CHARPOS.
    Note that this can quit!  */
 
@@ -911,6 +940,8 @@ combine_bytes (pos, pos_byte, nbytes)
   if (BUF_INTERVALS (current_buffer) != 0)
     /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES.  */
     offset_intervals (current_buffer, pos, - nbytes);
+
+  CHECK_MARKERS ();
 }
 
 /* Insert a sequence of NCHARS chars which occupy NBYTES bytes
@@ -1390,6 +1421,8 @@ adjust_before_replace (from, from_byte, to, to_byte)
   Lisp_Object deletion;
   deletion = make_buffer_string_both (from, from_byte, to, to_byte, 1);
 
+  CHECK_MARKERS ();
+
   adjust_markers_for_delete (from, from_byte, to, to_byte);
   record_delete (from, deletion);
   adjust_overlays_for_delete (from, to - from);
@@ -1397,7 +1430,8 @@ adjust_before_replace (from, from_byte, to, to_byte)
 
 /* This function should be called after altering the text between FROM
    and TO to a new text of LEN chars (LEN_BYTE bytes), but before
-   making the text a buffer contents.  It exists just after GPT_ADDR.  */
+   making the text into buffer contents.
+   The new text exists just after GPT_ADDR.  */
 
 void
 adjust_after_replace (from, from_byte, to, to_byte, len, len_byte, replace)
@@ -1472,6 +1506,8 @@ adjust_after_replace (from, from_byte, to, to_byte, len, len_byte, replace)
       combine_bytes (from, from_byte, combined_before_bytes);
   }
 
+  CHECK_MARKERS ();
+
   if (len == 0)
     evaporate_overlays (from);
   MODIFF++;
@@ -1503,6 +1539,8 @@ replace_range (from, to, new, prepare, inherit, nomarkers)
   INTERVAL intervals;
   int outgoing_insbytes = insbytes;
   Lisp_Object deletion;
+
+  CHECK_MARKERS ();
 
   GCPRO1 (new);
 
@@ -1685,6 +1723,8 @@ replace_range (from, to, new, prepare, inherit, nomarkers)
   if (outgoing_insbytes == 0)
     evaporate_overlays (from);
 
+  CHECK_MARKERS ();
+
   MODIFF++;
   UNGCPRO;
 
@@ -1818,6 +1858,8 @@ del_range_2 (from, from_byte, to, to_byte)
   Lisp_Object deletion;
   int from_byte_1;
 
+  CHECK_MARKERS ();
+
   nchars_del = to - from;
   nbytes_del = to_byte - from_byte;
 
@@ -1912,6 +1954,8 @@ del_range_2 (from, from_byte, to, to_byte)
 
       record_insert (GPT - 1, 1);
     }
+
+  CHECK_MARKERS ();
 
   evaporate_overlays (from);
   signal_after_change (from, nchars_del, 0);
@@ -2312,8 +2356,11 @@ syms_of_insdel ()
   staticpro (&combine_after_change_list);
   combine_after_change_list = Qnil;
 
+  DEFVAR_BOOL ("check-markers-debug-flag", &check_markers_debug_flag,
+    "Non-nil means enable debugging checks for invalid marker positions.");
+  check_markers_debug_flag = 0;
   DEFVAR_LISP ("combine-after-change-calls", &Vcombine_after_change_calls,
-     "Used internally by the `combine-after-change-calls' macro.");
+    "Used internally by the `combine-after-change-calls' macro.");
   Vcombine_after_change_calls = Qnil;
 
   defsubr (&Scombine_after_change_execute);
