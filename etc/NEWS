@@ -585,6 +585,8 @@ in line with the output of other GNU tools.
 
 ** perl-mode has a new variable `perl-indent-continued-arguments'.
 
+** fortran-mode has a new variable `fortran-preprocessor-re'.
+
 ** `special-display-buffer-names' and `special-display-regexps' now
 understand two new boolean pseudo-frame-parameters `same-frame' and
 `same-window'.

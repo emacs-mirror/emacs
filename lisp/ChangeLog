@@ -1,3 +1,11 @@
+2002-05-12  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/fortran.el (fortran-preprocessor-re): New variable.
+	Use it for font-locking and indentation.
+	(fortran-previous-statement, fortran-next-statement): Make them
+	skip over preprocessor lines.
+	(fortran-calculate-indent): Use fortran-preprocessor-re.
+
 2002-05-10  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua-enable-cua-keys) 
