@@ -686,24 +686,30 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 	  (goto-char (point-min))
 	  (when (re-search-forward "total [0-9]+$" nil t)
 	    (insert "  free ")
-	    (let ((beg (point)))
-              (condition-case nil
-                  (if (zerop (call-process dired-free-space-program nil t nil
-                                           dired-free-space-args
-                                           (expand-file-name dir-or-list)))
-                      (progn
-                        (goto-char beg)
-                        (forward-line 1)
-                        (skip-chars-forward "^ \t")
-                        (forward-word 2)
-                        (skip-chars-forward " \t")
-                        (delete-region beg (point))
-                        (forward-word 1)
-                        (delete-region (point)
-                                       (progn (forward-line 1) (point))))
-                    ;; The dired-free-space-program failed; delete its output
-                    (delete-region (- beg 7) (point)))
-                (error (delete-region (- beg 7) (point)))))))))
+	    ;; Non-Posix systems don't always have dired-free-space-program,
+	    ;; but might have an equivalent system call.
+	    (if (fboundp 'file-system-info)
+		(insert
+		 (format "%.0f"
+			 (/ (nth 2 (file-system-info dir-or-list)) 1024)))
+	      (let ((beg (point)))
+		(condition-case nil
+		    (if (zerop (call-process dired-free-space-program nil t nil
+					     dired-free-space-args
+					     (expand-file-name dir-or-list)))
+			(progn
+			  (goto-char beg)
+			  (forward-line 1)
+			  (skip-chars-forward "^ \t")
+			  (forward-word 2)
+			  (skip-chars-forward " \t")
+			  (delete-region beg (point))
+			  (forward-word 1)
+			  (delete-region (point)
+					 (progn (forward-line 1) (point))))
+	     ;; The dired-free-space-program failed; delete its output
+		      (delete-region (- beg 7) (point)))
+		  (error (delete-region (- beg 7) (point))))))))))
     ;; Quote certain characters, unless ls quoted them for us.
     (if (not (string-match "b" dired-actual-switches))
 	(save-excursion
