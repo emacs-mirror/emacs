@@ -238,7 +238,7 @@ Lisp_Object Vglyph_table;
 Lisp_Object Vstandard_display_table;
 
 /* Nonzero means reading single-character input with prompt so put
-   cursor on mini-buffer after the prompt.  positive means at end of
+   cursor on mini-buffer after the prompt.  Positive means at end of
    text in echo area; negative means at beginning of line.  */
 
 int cursor_in_echo_area;
@@ -358,7 +358,7 @@ static void add_window_display_history P_ ((struct window *, char *, int));
 
 /* Add to the redisplay history how window W has been displayed.
    MSG is a trace containing the information how W's glyph matrix
-   has been contructed.  PAUSED_P non-zero means that the update
+   has been constructed.  PAUSED_P non-zero means that the update
    has been interrupted for pending input.  */
 
 static void
@@ -624,7 +624,7 @@ adjust_glyph_matrix (w, matrix, x, y, dim)
   int left = -1, right = -1;
   int window_x, window_y, window_width = -1, window_height;
 
-  /* See if W had a top line that has disappeared now, or vice versa.  */
+  /* See if W had a header line that has disappeared now, or vice versa.  */
   if (w)
     {
       header_line_p = WINDOW_WANTS_HEADER_LINE_P (w);
@@ -1124,7 +1124,7 @@ clear_glyph_row (row)
 	 Redisplay outputs such glyphs, and flickering effects were
 	 the result.  This also depended on the contents of memory
 	 returned by xmalloc.  If flickering happens again, activate
-	 the code below If the flickering is gone with that, chances
+	 the code below.  If the flickering is gone with that, chances
 	 are that the flickering has the same reason as here.  */
   bzero (p[0], (char *) p[LAST_AREA] - (char *) p[0]);
 #endif
@@ -1407,7 +1407,7 @@ line_hash_code (row)
 }
 
 
-/* Return the cost of drawing line VPOS In MATRIX.  The cost equals
+/* Return the cost of drawing line VPOS in MATRIX.  The cost equals
    the number of characters in the line.  If must_write_spaces is
    zero, leading and trailing spaces are ignored.  */
 
@@ -1571,7 +1571,7 @@ free_glyph_pool (pool)
 {
   if (pool)
     {
-      /* More freed than allocated? */
+      /* More freed than allocated?  */
       --glyph_pool_count;
       xassert (glyph_pool_count >= 0);
 
@@ -1619,7 +1619,7 @@ realloc_glyph_pool (pool, matrix_dim)
       pool->nglyphs = needed;
     }
 
-  /* Remember the number of rows and columns because (a) we use then
+  /* Remember the number of rows and columns because (a) we use them
      to do sanity checks, and (b) the number of columns determines
      where rows in the frame matrix start---this must be available to
      determine pointers to rows of window sub-matrices.  */
@@ -1782,7 +1782,7 @@ check_matrix_invariants (w)
 
    CHANGED_LEAF_MATRIX set if the dimension or location of a matrix of
    any window in the tree will be changed or have been changed (see
-   DIM_ONLY_P).
+   DIM_ONLY_P)
 
    *WINDOW_CHANGE_FLAGS must be initialized by the caller of this
    function.
@@ -1874,7 +1874,7 @@ allocate_matrices_for_frame_redisplay (window, x, y, dim_only_p,
       w = XWINDOW (window);
 
       /* Get the dimension of the window sub-matrix for W, depending
-	 on whether this a combination or a leaf window.  */
+	 on whether this is a combination or a leaf window.  */
       if (!NILP (w->hchild))
 	dim = allocate_matrices_for_frame_redisplay (w->hchild, x, y, 
 						     dim_only_p,
@@ -1979,7 +1979,7 @@ required_matrix_height (w)
 	      /* One partially visible line at the top and
 		 bottom of the window.  */
 	      + 2
-	      /* 2 for top and mode line.  */
+	      /* 2 for header and mode line.  */
 	      + 2);
     }
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -2188,7 +2188,7 @@ fake_current_matrices (window)
 
 
 /* Save away the contents of frame F's current frame matrix.  Value is
-   a glyph matrix holding the contents of F's current frame matrix. '*/
+   a glyph matrix holding the contents of F's current frame matrix.  */
 
 static struct glyph_matrix *
 save_current_matrix (f)
@@ -2997,7 +2997,7 @@ mirrored_line_dance (matrix, unchanged_at_top, nlines, copy_from,
 	new_rows[i].enabled_p = 0;
     }
 
-  /* Do the same for window matrices, if MATRIX Is a frame matrix.  */
+  /* Do the same for window matrices, if MATRIX is a frame matrix.  */
   if (frame_matrix_frame)
     mirror_line_dance (XWINDOW (frame_matrix_frame->root_window),
 		       unchanged_at_top, nlines, copy_from, retained_p);
@@ -3271,7 +3271,7 @@ window_to_frame_vpos (w, vpos)
 
 
 /* Translate horizontal position HPOS which is relative to window W to
-   a vertical position relative to W's frame.  */
+   a horizontal position relative to W's frame.  */
 
 static int
 window_to_frame_hpos (w, hpos)
@@ -3397,7 +3397,7 @@ direct_output_for_insert (g)
   struct glyph_row *glyph_row;
   struct glyph *glyphs, *glyph, *end;
   int n;
-  /* Non-null means that Redisplay of W is based on window matrices.  */
+  /* Non-null means that redisplay of W is based on window matrices.  */
   int window_redisplay_p = FRAME_WINDOW_P (f);
   /* Non-null means we are in overwrite mode.  */
   int overwrite_p = !NILP (current_buffer->overwrite_mode);
@@ -3799,12 +3799,13 @@ update_frame (f, force_p, inhibit_hairy_id_p)
       /* Update the tool-bar window, if present.  */
       if (WINDOWP (f->tool_bar_window))
 	{
-	  Lisp_Object tem;
 	  struct window *w = XWINDOW (f->tool_bar_window);
 
 	  /* Update tool-bar window.  */
 	  if (w->must_be_updated_p)
 	    {
+	      Lisp_Object tem;
+
 	      update_window (w, 1);
 	      w->must_be_updated_p = 0;
 
@@ -3996,7 +3997,7 @@ redraw_overlapping_rows (w, yb)
 	  if (row->used[RIGHT_MARGIN_AREA])
 	    rif->fix_overlapping_area (w, row, RIGHT_MARGIN_AREA);
 
-	  /* Record in neighbor rows that ROW overwrites part of their
+	  /* Record in neighbour rows that ROW overwrites part of their
 	     display.  */
 	  if (row->phys_ascent > row->ascent && i > 0)
 	    MATRIX_ROW (w->current_matrix, i - 1)->overlapped_p = 1;
@@ -4077,8 +4078,8 @@ update_window (w, force_p)
       rif->update_window_begin_hook (w);
       yb = window_text_bottom_y (w);
 
-      /* If window has a top line, update it before everything else.
-	 Adjust y-positions of other rows by the top line height.  */
+      /* If window has a header line, update it before everything else.
+	 Adjust y-positions of other rows by the header line height.  */
       row = desired_matrix->rows;
       end = row + desired_matrix->nrows - 1;
       
@@ -4123,7 +4124,7 @@ update_window (w, force_p)
 	  changed_p = 1;
 	}
 
-      /* Update the top mode line after scrolling because a new top
+      /* Update the header line after scrolling because a new header
 	 line would otherwise overwrite lines at the top of the window
 	 that can be scrolled.  */
       if (header_line_row && header_line_row->enabled_p)
@@ -4140,7 +4141,7 @@ update_window (w, force_p)
 	    int vpos = MATRIX_ROW_VPOS (row, desired_matrix);
 	    int i;
 	    
-	    /* We'll Have to play a little bit with when to
+	    /* We'll have to play a little bit with when to
 	       detect_input_pending.  If it's done too often,
 	       scrolling large windows with repeated scroll-up
 	       commands will too quickly pause redisplay.  */
@@ -4169,7 +4170,7 @@ update_window (w, force_p)
       
     set_cursor:
       
-      /* Fix the appearance of overlapping(overlapped rows.  */
+      /* Fix the appearance of overlapping/overlapped rows.  */
       if (!paused_p && !w->pseudo_window_p)
 	{
 	  if (changed_p && rif->fix_overlapping_area)
@@ -4683,10 +4684,6 @@ static int runs_size;
 
 static struct run **runs;
 
-static struct row_entry *add_row_entry P_ ((struct window *,
-					    struct glyph_row *));
-
-
 /* Add glyph row ROW to the scrolling hash table during the scrolling
    of window W.  */
 
@@ -4718,7 +4715,7 @@ add_row_entry (w, row)
 
 
 /* Try to reuse part of the current display of W by scrolling lines.
-   HEADER_LINE_P non-zero means W has a top mode line.
+   HEADER_LINE_P non-zero means W has a header line.
 
    The algorithm is taken from Communications of the ACM, Apr78 "A
    Technique for Isolating Differences Between Files."  It should take
@@ -5107,7 +5104,7 @@ update_frame_1 (f, force_p, inhibit_id_p)
 #ifdef EMACS_OUTQSIZE
 		      if (EMACS_OUTQSIZE (0, &outq) < 0)
 			/* Probably not a tty.  Ignore the error and reset
-			 * the outq count.  */
+			   the outq count.  */
 			outq = PENDING_OUTPUT_COUNT (stdout);
 #endif
 		      outq *= 10;
@@ -5717,7 +5714,7 @@ buffer_posn_from_coords (w, x, y, object, pos)
 
 
 /* Value is the string under window-relative coordinates X/Y in the
-   mode or top line of window W, or nil if none.  MODE_LINE_P non-zero
+   mode or header line of window W, or nil if none.  MODE_LINE_P non-zero
    means look at the mode line.  *CHARPOS is set to the position in
    the string returned.  */
 
@@ -6107,7 +6104,7 @@ Emacs was built without floating point support.
   /* Assure that 0 <= usec < 1000000.  */
   if (usec < 0)
     {
-      /* We can't rely on the rounding being correct if user is negative.  */
+      /* We can't rely on the rounding being correct if usec is negative.  */
       if (-1000000 < usec)
 	sec--, usec += 1000000;
       else
@@ -6138,7 +6135,7 @@ Emacs was built without floating point support.
 #else /* not VMS */
 /* The reason this is done this way 
     (rather than defined (H_S) && defined (H_T))
-   is because the VMS preprocessor doesn't grok `defined' */
+   is because the VMS preprocessor doesn't grok `defined'.  */
 #ifdef HAVE_SELECT
   EMACS_GET_TIME (end_time);
   EMACS_SET_SECS_USECS (timeout, sec, usec);
@@ -6435,7 +6432,7 @@ init_display ()
       exit (1);
     }
 
-  /* Look at the TERM variable */
+  /* Look at the TERM variable.  */
   terminal_type = (char *) getenv ("TERM");
   if (!terminal_type)
     {
