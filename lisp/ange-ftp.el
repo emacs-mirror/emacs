@@ -2963,7 +2963,7 @@ logged in as user USER and cd'd to directory DIR."
 					      "\\|"
 					      ange-ftp-good-msgs))
 		  (result (ange-ftp-send-cmd host user
-					     (list 'get dir grep-null-device)
+					     (list 'get dir null-device)
 					     (format "expanding %s" dir)))
 		  (line (cdr result)))
 	     (setq res
