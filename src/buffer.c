@@ -2677,7 +2677,7 @@ evaporate_overlays (pos)
 	if (endpos < pos)
 	  break;
 	if (endpos == pos && OVERLAY_POSITION (OVERLAY_START (overlay)) == pos
-	    && Foverlay_get (overlay, Qevaporate))
+	    && ! NILP (Foverlay_get (overlay, Qevaporate)))
 	  hit_list = Fcons (overlay, hit_list);
       }
   else
@@ -2690,7 +2690,7 @@ evaporate_overlays (pos)
 	if (startpos > pos)
 	  break;
 	if (startpos == pos && OVERLAY_POSITION (OVERLAY_END (overlay)) == pos
-	    && Foverlay_get (overlay, Qevaporate))
+	    && ! NILP (Foverlay_get (overlay, Qevaporate)))
 	  hit_list = Fcons (overlay, hit_list);
       }
   for (; CONSP (hit_list); hit_list = XCONS (hit_list)->cdr)
