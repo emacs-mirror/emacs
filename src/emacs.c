@@ -988,7 +988,7 @@ struct standard_args standard_args[] =
   { "-load", 0, 0, 1 },
   { "-f", "--funcall", 0, 1 },
   { "-funcall", 0, 0, 1 },
-  { "-eval", "--eval", 0, 0, 1 },
+  { "-eval", "--eval", 0, 1 },
   { "-insert", "--insert", 0, 1 },
   /* This should be processed after ordinary file name args and the like.  */
   { "-kill", "--kill", -10, 0 },
