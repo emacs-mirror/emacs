@@ -60,20 +60,19 @@
   :group 'hl-line)
 
 (defvar hl-line-overlay nil)
-(make-variable-buffer-local 'hl-line-overlay)
-(put 'hl-line-overlay 'permanent-local t)
 
 (defun hl-line-highlight ()
   "Active the Hl-Line overlay on the current line in the current window.
 \(Unless it's a minibuffer window.)"
   (when hl-line-mode			; Could be made buffer-local.
     (unless (window-minibuffer-p (selected-window)) ; silly in minibuffer
-      (unless hl-line-overlay		; new overlay for this buffer
+      (unless hl-line-overlay
 	(setq hl-line-overlay (make-overlay 1 1)) ; to be moved
 	(overlay-put hl-line-overlay 'face hl-line-face))
       (overlay-put hl-line-overlay 'window (selected-window))
       (move-overlay hl-line-overlay
-		    (line-beginning-position) (1+ (line-end-position))))))
+		    (line-beginning-position) (1+ (line-end-position))
+		    (current-buffer)))))
 
 (defun hl-line-unhighlight ()
   "Deactivate the Hl-Line overlay on the current line in the current window."
