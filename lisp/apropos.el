@@ -128,16 +128,10 @@ for the regexp; the part that matches gets displayed in this font."
   "Current item in or for `apropos-accumulator'.")
 
 ;;;###autoload
-(defun apropos-mode ()
+(define-derived-mode apropos-mode fundamental-mode "Apropos"
   "Major mode for following hyperlinks in output of apropos commands.
 
-\\{apropos-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map apropos-mode-map)
-  (setq major-mode 'apropos-mode
-	mode-name "Apropos")
-  (run-hooks 'apropos-mode-hook))
+\\{apropos-mode-map}")
 
 ;;;###autoload
 (defun apropos-variable (regexp &optional do-all)
