@@ -163,7 +163,7 @@ paths.h:	..\nt\paths.h
 #
 DOC		= obj\etc\DOC-X
 $(DOC):;	cd ..\lib-src 
-		- del DOC-X
+		- $(DEL) DOC-X
 		$(MAKE) -f makefile.nt all
 		cd ..\src
 
@@ -230,7 +230,7 @@ install:        all
 #
 # Maintenance
 # 
-clean:;         - del *~ *.pdb config.h paths.h
+clean:;         - $(DEL) *~ *.pdb config.h paths.h
 		- $(DEL_TREE) deleted
 		- $(DEL_TREE) obj
 
@@ -239,7 +239,7 @@ clean:;         - del *~ *.pdb config.h paths.h
 # this target is mostly used for debugging.
 #
 cleandump:;     cd $(BLD)
-		- del callproc.obj data.obj dispnew.obj doc.obj editfns.obj emacs.obj lread.obj process.obj sysdep.obj term.obj ntheap.obj unexnt.obj
+		- $(DEL) callproc.obj data.obj dispnew.obj doc.obj editfns.obj emacs.obj lread.obj process.obj sysdep.obj term.obj ntheap.obj unexnt.obj
 		cd ..\..
 
 

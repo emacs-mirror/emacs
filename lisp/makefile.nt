@@ -27,15 +27,15 @@ all:
 # Assuming INSTALL_DIR is defined, copy the elisp files to it
 #
 install:;	- mkdir $(INSTALL_DIR)\lisp
-		- del .\same-dir.tst
-		- del $(INSTALL_DIR)\lisp\same-dir.tst
+		- $(DEL) .\same-dir.tst
+		- $(DEL) $(INSTALL_DIR)\lisp\same-dir.tst
 		echo SameDirTest > $(INSTALL_DIR)\lisp\same-dir.tst
 		if not exist .\same-dir.tst $(CP_DIR) . $(INSTALL_DIR)\lisp
-		- del $(INSTALL_DIR)\lisp\same-dir.tst
+		- $(DEL) $(INSTALL_DIR)\lisp\same-dir.tst
 		
 
 #
 # Maintenance
 # 
-clean:;		- del *~
+clean:;		- $(DEL) *~
 		- $(DEL_TREE) deleted

@@ -92,7 +92,7 @@ $(BLD)\ctags.exe:           ctags.c $(CTAGSOBJ)
 		$(LINK) -out:$@ $(LINK_FLAGS) $(CTAGSOBJ) $(LIBS)
 
 ctags.c:	etags.c
-		- del ctags.c
+		- $(DEL) ctags.c
 		copy etags.c ctags.c
 
 $(BLD)\ctags.obj: ctags.c
@@ -164,7 +164,7 @@ lisp= \
 
 DOC	      = DOC 
 $(DOC):		$(BLD)\make-docfile.exe
-		- del $(DOC)
+		- $(DEL) $(DOC)
 		$(BLD)\make-docfile -d ..\src $(obj) > $(DOC)
 		$(BLD)\make-docfile -d ..\src $(lisp) >> $(DOC)
 		$(CP) $(DOC) ..\etc\DOC-X
@@ -199,10 +199,9 @@ install:	$(INSTALL_FILES)
 #
 # Maintenance
 # 
-clean:;		- del *~ *.pdb
+clean:;		- $(DEL) *~ *.pdb DOC*
 		- $(DEL_TREE) deleted
 		- $(DEL_TREE) obj
-		- del DOC*
 
 #
 # Headers we would preprocess if we could.
