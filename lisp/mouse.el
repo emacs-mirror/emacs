@@ -759,12 +759,14 @@ If DIR is positive skip forward; if negative, skip backward."
 				  (throw 'mouse-show-mark t)))))
 	  (move-overlay mouse-drag-overlay (point) (mark t))
 	  (catch 'mouse-show-mark
-	    ;; In this loop, read and execute scroll bar events.
-	    ;; Otherwise, if we 
+	    ;; In this loop, execute scroll bar and switch-frame events.
+	    ;; Also ignore down-events that are undefined.
 	    (while (progn (setq event (read-event))
 			  (setq events (append events (list event)))
 			  (setq key (apply 'vector events))
 			  (or (and (consp event)
+				   (eq (car event) 'switch-frame))
+			      (and (consp event)
 				   (eq (posn-point (event-end event))
 				       'vertical-scroll-bar))
 			      (and (memq 'down (event-modifiers event))
@@ -772,8 +774,9 @@ If DIR is positive skip forward; if negative, skip backward."
 				   (not (mouse-undouble-last-event events))
 				   (not (member key mouse-region-delete-keys)))))
 	      (and (consp event)
-		   (eq (posn-point (event-end event))
-		       'vertical-scroll-bar)
+		   (or (eq (car event) 'switch-frame)
+		       (eq (posn-point (event-end event))
+			   'vertical-scroll-bar))
 		   (let ((keys (vector 'vertical-scroll-bar event)))
 		     (and (key-binding keys)
 			  (progn
