@@ -354,7 +354,7 @@ compute_char_face (f, w, pos, endptr)
   return get_display_face (f, &face);
 }
 
-int
+static int
 sort_overlays (s1, s2)
      struct sortvec *s1, *s2;
 {
