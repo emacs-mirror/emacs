@@ -1,3 +1,8 @@
+2003-12-29  Alex Schroeder <alex@emacswiki.org>  (tiny change)
+
+	* custom.el (custom-declare-theme): Use `value' when putting
+	properties on `theme'.
+
 2003-12-29  Takaaki Ota <Takaaki.Ota@am.sony.com>
 
 	* subr.el (insert-for-yank): Call insert-for-yank-1 repetitively
