@@ -6502,7 +6502,7 @@ Unscored articles will be counted as having a score of zero."
   "Prepare summary buffer from THREADS and indentation LEVEL.  
 THREADS is either a list of `(PARENT [(CHILD1 [(GRANDCHILD ...]...) ...])'  
 or a straight list of headers."
-  (message "Generating summary...")
+  (gnus-message 5 "Generating summary...")
   (let ((level 0)
 	thread header number subject stack state gnus-tmp-gathered)
     (if (vectorp (car threads))
@@ -6628,7 +6628,7 @@ or a straight list of headers."
 	    (setq stack (cons (cons (max 0 level) (nthcdr 1 thread)) stack)))
 	(setq level (1+ level))
 	(setq threads (cdr (car thread))))))
-  (message "Generating summary...done"))
+  (gnus-message 5 "Generating summary...done"))
 
 
 
