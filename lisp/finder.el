@@ -209,7 +209,7 @@ arguments compiles from `load-path'."
   (interactive)
   (let* ((str (lm-commentary (finder-find-library file))))
     (if (null str)
-	(error "Can't find any Commentary section."))
+	(error "Can't find any Commentary section"))
     (pop-to-buffer "*Finder*")
     (setq buffer-read-only nil)
     (erase-buffer)
