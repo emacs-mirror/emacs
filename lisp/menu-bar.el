@@ -121,13 +121,20 @@ A subsequent \\[yank] yanks the choice just selected."
 						     0 yank-menu-length)))
 			 (prog1 (cons string count)
 			   (setq count (1+ count))))
-		       kill-ring)))
-    (rotate-yank-pointer (x-popup-menu event 
-				       (list "Yank Menu"
-					     (cons "Pick Selection" menu))))
-    (if (interactive-p)
-	(message "The next yank will insert the selected text.")
-      (current-kill 0))))
+		       kill-ring))
+	 (arg (x-popup-menu event 
+			    (list "Yank Menu"
+				  (cons "Pick Selection" menu)))))
+    ;; A mouse click outside the menu returns nil.
+    ;; Avoid a confusing error from passing nil to rotate-yank-pointer.
+    ;; XXX should this perhaps do something other than simply return? -rm
+    (if arg
+	(progn
+	  (rotate-yank-pointer arg)
+	  (if (interactive-p)
+	      (message "The next yank will insert the selected text.")
+	    (current-kill 0))))))
+(put 'mouse-menu-choose-yank 'menu-enable 'kill-ring)
 
 (define-key menu-bar-edit-menu [choose-selection]
   '("Choose Pasting Selection" . mouse-menu-choose-yank))
