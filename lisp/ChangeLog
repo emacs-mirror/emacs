@@ -1,3 +1,7 @@
+2000-11-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* frame.el (blink-cursor-mode): Doc fix.
+
 2000-11-29  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* subr.el (combine-run-hooks): Only run-hooks if there's a hook to run.
