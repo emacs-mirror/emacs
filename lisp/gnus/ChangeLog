@@ -1,3 +1,8 @@
+2002-09-21  Rob Browning <rlb@defaultvalue.org>
+
+	* gnus-art.el (gnus-article-x-face-command): Use
+	gnus-article-compface-xbm if bound.
+
 2002-09-18  Rob Browning <rlb@defaultvalue.org>
 
 	* gnus-art.el (gnus-article-x-face-command): Don't use
