@@ -1,5 +1,12 @@
 2001-01-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (Qcancel_timer): New variable.
+	(syms_of_xfns): Initialize and staticpro it.
+	(Fx_hide_tip, Fx_show_tip): Use it.
+	(Fx_show_tip): Make sure to set tip_timer to nil when canceling
+	the timer.
+	(toplevel): Lisp code for generating parts of syms_of_xfns removed.
+
 	* window.c (Fwindow_live_p): Use WINDOW_LIVE_P.
 
 	* window.h (WINDOW_LIVE_P): New macro.

@@ -1,3 +1,8 @@
+2001-01-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* tooltip.el (tooltip-hide-delay): New user-option.
+	(tooltip-show): Use tooltip-hide-delay instead of the default.
+
 2001-01-18  Kenichi Handa  <handa@etl.go.jp>
 
 	* mail/sendmail.el (mail-setup): Call set-buffer-multibyte because
