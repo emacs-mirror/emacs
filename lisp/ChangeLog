@@ -1,3 +1,13 @@
+2003-04-10  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el: Set
+	after-insert-file-adjust-coding-function to
+	after-insert-file-set-buffer-file-coding-system instead of adding
+	it to after-insert-file-functions.
+
+	* language/ind-util.el (indian-2-column-to-ucs-region): Fix for
+	the case of replacing multibyte characters.
+
 2003-04-09  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (file-chase-links): Fix previous change.

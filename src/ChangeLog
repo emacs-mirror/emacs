@@ -1,3 +1,12 @@
+2003-04-10  Kenichi Handa  <handa@etlken2>
+
+	* fileio.c (Vafter_insert_file_adjust_coding_function): New
+	variable.
+	(syms_of_fileio): Declare it as a lisp variable.
+	(Finsert_file_contents): Call
+	Vafter_insert_file_adjust_coding_function before calling
+	decode-format.
+
 2003-04-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (xg_scroll_callback): Call gtk_range_get_adjustment to
