@@ -2006,7 +2006,9 @@ The argument is used for internal purposes; do not supply one."
 (defcustom yank-excluded-properties
   '(read-only invisible intangible field mouse-face help-echo local-map keymap
     yank-handler)
-  "*Text properties to discard when yanking."
+  "*Text properties to discard when yanking.
+The value should be a list of text properties to discard or t,
+which means to discard all text properties."
   :type '(choice (const :tag "All" t) (repeat symbol))
   :group 'editing
   :version "21.4")
