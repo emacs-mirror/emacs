@@ -307,7 +307,15 @@ Return what remains of the list.")
 		  if (pos < BEGV || pos > ZV)
 		    error ("Changes to be undone are outside visible portion of buffer");
 		  SET_PT (pos);
-		  Finsert (1, &membuf);
+
+		  /* Insert before markers so that if the mark is
+		     currently on the boundary of this deletion, it
+		     ends up on the other side of the now-undeleted
+		     text from point.  Since undo doesn't even keep
+		     track of the mark, this isn't really necessary,
+		     but it may lead to better behavior in certain
+		     situations.  */
+		  Finsert_before_markers (1, &membuf);
 		  SET_PT (pos);
 		}
 	    }
