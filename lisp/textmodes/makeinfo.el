@@ -112,12 +112,12 @@ command to gain use of `next-error'."
           (goto-char (point-min))
           (if (and 
                (prog1 
-                   (search-forward texinfo-start-of-header search-end t)
+                   (search-forward tex-start-of-header search-end t)
                  (beginning-of-line)
                  ;; Mark beginning of header.
                  (setq filename-or-header-beginning (point)))
                (prog1 
-                   (search-forward texinfo-end-of-header nil t)
+                   (search-forward tex-end-of-header nil t)
                  (beginning-of-line)
                  ;; Mark end of header
                  (setq filename-or-header-end (point))))
