@@ -181,6 +181,17 @@ locale @samp{en_GB.ISO8859-15} matches @code{"Latin-1"} in
 @code{locale-charset-language-names}; since these two language
 environments' character sets disagree, Emacs uses @code{"Latin-9"}.
 
+  If all goes well, the @code{set-locale-environment} function selects
+the language environment, since language is part of locale.  It also
+adjusts the display table and terminal coding system, the locale coding
+system, and the preferred coding system as needed for the locale.
+
+  Since the @code{set-locale-environment} function is automatically
+invoked during startup, you normally do not need to invoke it yourself.
+However, if you modify the @env{LC_ALL}, @env{LC_CTYPE}, or @env{LANG}
+environment variables, you may want to invoke the
+@code{set-locale-environment} function afterwards.
+
 @findex set-locale-environment
 @vindex locale-preferred-coding-systems
   The @code{set-locale-environment} function normally uses the preferred
