@@ -748,6 +748,7 @@ typedef unsigned char UCHAR;
 #else
 #define NUMBERP(x) (INTEGERP (x))
 #endif
+#define NATNUMP(x) (INTEGERP (x) && XINT (x) >= 0)
 
 #define INTEGERP(x) (XTYPE ((x)) == Lisp_Int)
 #define SYMBOLP(x) (XTYPE ((x)) == Lisp_Symbol)
@@ -829,8 +830,7 @@ typedef unsigned char UCHAR;
   do { if (!INTEGERP ((x))) x = wrong_type_argument (Qintegerp, (x)); } while (0)
 
 #define CHECK_NATNUM(x, i) \
-  do { if (!INTEGERP ((x)) || XINT ((x)) < 0)	\
-      x = wrong_type_argument (Qwholenump, (x)); } while (0)
+  do { if (!NATNUMP (x)) x = wrong_type_argument (Qwholenump, (x)); } while (0)
 
 #define CHECK_MARKER(x, i) \
   do { if (!MARKERP ((x))) x = wrong_type_argument (Qmarkerp, (x)); } while (0)
