@@ -45,7 +45,7 @@ M_FILE = ${srcdir}/@machfile@
 S_FILE = ${srcdir}/@opsysfile@
 config_h = config.h $(M_FILE) $(S_FILE)
 
-# ========================== start of cpp stuff ======================= */
+# ========================== start of cpp stuff =======================
 /* From here on, comments must be done in C syntax.  */
 
 CPPFLAGS=
