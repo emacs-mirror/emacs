@@ -565,6 +565,14 @@ This is normally set via `font-lock-defaults'.")
 Currently, valid mode names are `fast-lock-mode', `jit-lock-mode' and
 `lazy-lock-mode'.  This is normally set via `font-lock-defaults'.")
 
+(defvar font-lock-multiline nil
+  "Whether font-lock should cater to multiline keywords.
+If nil, don't try to handle multiline patterns.
+If t, always handle multiline patterns.
+If `undecided', don't try to handle multiline patterns until you see one.
+Major/minor modes can set this variable if they know which option applies.")
+
+(defvar font-lock-fontified nil)	; Whether we have fontified the buffer.
 
 ;; Font Lock mode.
 
@@ -596,6 +604,28 @@ Currently, valid mode names are `fast-lock-mode', `jit-lock-mode' and
   ;;
   ;; Shut up the byte compiler.
   (defvar font-lock-face-attributes))	; Obsolete but respected if set.
+
+;;;###autoload
+(defun font-lock-mode-internal (arg)
+  ;; Turn on Font Lock mode.
+  (when arg
+    (add-hook 'after-change-functions 'font-lock-after-change-function t t)
+    (font-lock-set-defaults)
+    (font-lock-turn-on-thing-lock)
+    ;; Fontify the buffer if we have to.
+    (let ((max-size (font-lock-value-in-major-mode font-lock-maximum-size)))
+      (cond (font-lock-fontified
+	     nil)
+	    ((or (null max-size) (> max-size (buffer-size)))
+	     (font-lock-fontify-buffer))
+	    (font-lock-verbose
+	     (message "Fontifying %s...buffer size greater than font-lock-maximum-size"
+		      (buffer-name))))))
+  ;; Turn off Font Lock mode.
+  (unless font-lock-mode
+    (remove-hook 'after-change-functions 'font-lock-after-change-function t)
+    (font-lock-unfontify-buffer)
+    (font-lock-turn-off-thing-lock)))
 
 ;;;###autoload
 (defun font-lock-add-keywords (mode keywords &optional append)
@@ -1446,51 +1476,61 @@ A LEVEL of nil is equal to a LEVEL of 0, a LEVEL of t is equal to
 	(t
 	 (car keywords))))
 
-(defun font-lock-set-defaults-1 ()
-  (let* ((defaults (or font-lock-defaults
-		       (cdr (assq major-mode font-lock-defaults-alist))))
-	 (keywords
-	  (font-lock-choose-keywords (nth 0 defaults)
-				     (font-lock-value-in-major-mode font-lock-maximum-decoration)))
-	 (local (cdr (assq major-mode font-lock-keywords-alist)))
-	 (removed-keywords
-	  (cdr-safe (assq major-mode font-lock-removed-keywords-alist))))
-    (set (make-local-variable 'font-lock-defaults) defaults)
-    ;; Syntactic fontification?
-    (when (nth 1 defaults)
-      (set (make-local-variable 'font-lock-keywords-only) t))
-    ;; Case fold during regexp fontification?
-    (when (nth 2 defaults)
-      (set (make-local-variable 'font-lock-keywords-case-fold-search) t))
-    ;; Syntax table for regexp and syntactic fontification?
-    (when (nth 3 defaults)
-      (set (make-local-variable 'font-lock-syntax-table)
-	   (copy-syntax-table (syntax-table)))
-      (dolist (selem (nth 3 defaults))
-	;; The character to modify may be a single CHAR or a STRING.
-	(let ((syntax (cdr selem)))
-	  (dolist (char (if (numberp (car selem))
-			    (list (car selem))
-			  (mapcar 'identity (car selem))))
-	    (modify-syntax-entry char syntax font-lock-syntax-table)))))
-    ;; Syntax function for syntactic fontification?
-    (when (nth 4 defaults)
-      (set (make-local-variable 'font-lock-beginning-of-syntax-function)
-	   (nth 4 defaults)))
-    ;; Variable alist?
-    (dolist (x (nthcdr 5 defaults))
-      (set (make-local-variable (car x)) (cdr x)))
-    ;; Setup `font-lock-keywords' last because its value might depend
-    ;; on other settings (e.g. font-lock-compile-keywords uses
-    ;; font-lock-beginning-of-syntax-function).
-    (set (make-local-variable 'font-lock-keywords)
-	 (font-lock-compile-keywords (font-lock-eval-keywords keywords) t))
-    ;; Local fontification?
-    (while local
-      (font-lock-add-keywords nil (car (car local)) (cdr (car local)))
-      (setq local (cdr local)))
-    (when removed-keywords
-      (font-lock-remove-keywords nil removed-keywords))))
+(defvar font-lock-set-defaults nil)	; Whether we have set up defaults.
+
+(defun font-lock-set-defaults ()
+  "Set fontification defaults appropriately for this mode.
+Sets various variables using `font-lock-defaults' (or, if nil, using
+`font-lock-defaults-alist') and `font-lock-maximum-decoration'."
+  ;; Set fontification defaults iff not previously set.
+  (unless font-lock-set-defaults
+    (set (make-local-variable 'font-lock-set-defaults) t)
+    (make-local-variable 'font-lock-fontified)
+    (make-local-variable 'font-lock-multiline)
+    (let* ((defaults (or font-lock-defaults
+			 (cdr (assq major-mode font-lock-defaults-alist))))
+	   (keywords
+	    (font-lock-choose-keywords (nth 0 defaults)
+				       (font-lock-value-in-major-mode font-lock-maximum-decoration)))
+	   (local (cdr (assq major-mode font-lock-keywords-alist)))
+	   (removed-keywords
+	    (cdr-safe (assq major-mode font-lock-removed-keywords-alist))))
+      (set (make-local-variable 'font-lock-defaults) defaults)
+      ;; Syntactic fontification?
+      (when (nth 1 defaults)
+	(set (make-local-variable 'font-lock-keywords-only) t))
+      ;; Case fold during regexp fontification?
+      (when (nth 2 defaults)
+	(set (make-local-variable 'font-lock-keywords-case-fold-search) t))
+      ;; Syntax table for regexp and syntactic fontification?
+      (when (nth 3 defaults)
+	(set (make-local-variable 'font-lock-syntax-table)
+	     (copy-syntax-table (syntax-table)))
+	(dolist (selem (nth 3 defaults))
+	  ;; The character to modify may be a single CHAR or a STRING.
+	  (let ((syntax (cdr selem)))
+	    (dolist (char (if (numberp (car selem))
+			      (list (car selem))
+			    (mapcar 'identity (car selem))))
+	      (modify-syntax-entry char syntax font-lock-syntax-table)))))
+      ;; Syntax function for syntactic fontification?
+      (when (nth 4 defaults)
+	(set (make-local-variable 'font-lock-beginning-of-syntax-function)
+	     (nth 4 defaults)))
+      ;; Variable alist?
+      (dolist (x (nthcdr 5 defaults))
+	(set (make-local-variable (car x)) (cdr x)))
+      ;; Setup `font-lock-keywords' last because its value might depend
+      ;; on other settings (e.g. font-lock-compile-keywords uses
+      ;; font-lock-beginning-of-syntax-function).
+      (set (make-local-variable 'font-lock-keywords)
+	   (font-lock-compile-keywords (font-lock-eval-keywords keywords) t))
+      ;; Local fontification?
+      (while local
+	(font-lock-add-keywords nil (car (car local)) (cdr (car local)))
+	(setq local (cdr local)))
+      (when removed-keywords
+	(font-lock-remove-keywords nil removed-keywords)))))
 
 ;;; Colour etc. support.
 
