@@ -395,6 +395,9 @@ If nil, the user will be asked for a duration."
 
 ;; Internal variables.
 
+(defvar gnus-score-use-all-scores t
+  "If nil, only `gnus-score-find-score-files-function' is used.")
+
 (defvar gnus-adaptive-word-syntax-table
   (let ((table (copy-syntax-table (standard-syntax-table)))
 	(numbers '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9)))
@@ -1099,8 +1102,7 @@ EXTRA is the possible non-standard header."
 					gnus-kill-files-directory)))
 			  (expand-file-name file))
 			 file)
-		    (concat (file-name-as-directory gnus-kill-files-directory)
-			    file))))
+		    (expand-file-name file gnus-kill-files-directory))))
 	 (cached (assoc file gnus-score-cache))
 	 (global (member file gnus-internal-global-score-files))
 	 lists alist)
@@ -1636,204 +1638,211 @@ score in GNUS-NEWSGROUP-SCORED by SCORE."
   nil)
 
 (defun gnus-score-body (scores header now expire &optional trace)
-  (save-excursion
-    (setq gnus-scores-articles
-	  (sort gnus-scores-articles
-		(lambda (a1 a2)
-		  (< (mail-header-number (car a1))
-		     (mail-header-number (car a2))))))
-    (set-buffer nntp-server-buffer)
-    (save-restriction
-      (let* ((buffer-read-only nil)
-	     (articles gnus-scores-articles)
-	     (all-scores scores)
-	     (request-func (cond ((string= "head" header)
-				  'gnus-request-head)
-				 ((string= "body" header)
-				  'gnus-request-body)
-				 (t 'gnus-request-article)))
-	     entries alist ofunc article last)
-	(when articles
-	  (setq last (mail-header-number (caar (last articles))))
+  (if gnus-agent-fetching
+      nil
+    (save-excursion
+      (setq gnus-scores-articles
+	    (sort gnus-scores-articles
+		  (lambda (a1 a2)
+		    (< (mail-header-number (car a1))
+		       (mail-header-number (car a2))))))
+      (set-buffer nntp-server-buffer)
+      (save-restriction
+	(let* ((buffer-read-only nil)
+	       (articles gnus-scores-articles)
+	       (all-scores scores)
+	       (request-func (cond ((string= "head" header)
+				    'gnus-request-head)
+				   ((string= "body" header)
+				    'gnus-request-body)
+				   (t 'gnus-request-article)))
+	       entries alist ofunc article last)
+	  (when articles
+	    (setq last (mail-header-number (caar (last articles))))
 	  ;; Not all backends support partial fetching.  In that case,
-	  ;; we just fetch the entire article.
-	  (unless (gnus-check-backend-function
-		   (and (string-match "^gnus-" (symbol-name request-func))
-			(intern (substring (symbol-name request-func)
-					   (match-end 0))))
-		   gnus-newsgroup-name)
-	    (setq ofunc request-func)
-	    (setq request-func 'gnus-request-article))
-	  (while articles
-	    (setq article (mail-header-number (caar articles)))
-	    (gnus-message 7 "Scoring article %s of %s..." article last)
-	    (widen)
-	    (when (funcall request-func article gnus-newsgroup-name)
-	      (goto-char (point-min))
-	      ;; If just parts of the article is to be searched, but the
-	      ;; backend didn't support partial fetching, we just narrow
-	      ;; to the relevant parts.
-	      (when ofunc
-		(if (eq ofunc 'gnus-request-head)
+	    ;; we just fetch the entire article.
+	    (unless (gnus-check-backend-function
+		     (and (string-match "^gnus-" (symbol-name request-func))
+			  (intern (substring (symbol-name request-func)
+					     (match-end 0))))
+		     gnus-newsgroup-name)
+	      (setq ofunc request-func)
+	      (setq request-func 'gnus-request-article))
+	    (while articles
+	      (setq article (mail-header-number (caar articles)))
+	      (gnus-message 7 "Scoring article %s of %s..." article last)
+	      (widen)
+	      (when (funcall request-func article gnus-newsgroup-name)
+		(goto-char (point-min))
+	    ;; If just parts of the article is to be searched, but the
+	    ;; backend didn't support partial fetching, we just narrow
+		;; to the relevant parts.
+		(when ofunc
+		  (if (eq ofunc 'gnus-request-head)
+		      (narrow-to-region
+		       (point)
+		       (or (search-forward "\n\n" nil t) (point-max)))
 		    (narrow-to-region
-		     (point)
-		     (or (search-forward "\n\n" nil t) (point-max)))
-		  (narrow-to-region
-		   (or (search-forward "\n\n" nil t) (point))
-		   (point-max))))
-	      (setq scores all-scores)
-	      ;; Find matches.
-	      (while scores
-		(setq alist (pop scores)
-		      entries (assoc header alist))
-		(while (cdr entries)	;First entry is the header index.
-		  (let* ((rest (cdr entries))
-			 (kill (car rest))
-			 (match (nth 0 kill))
-			 (type (or (nth 3 kill) 's))
-			 (score (or (nth 1 kill)
-				    gnus-score-interactive-default-score))
-			 (date (nth 2 kill))
-			 (found nil)
-			 (case-fold-search
-			  (not (or (eq type 'R) (eq type 'S)
-				   (eq type 'Regexp) (eq type 'String))))
-			 (search-func
-			  (cond ((or (eq type 'r) (eq type 'R)
-				     (eq type 'regexp) (eq type 'Regexp))
-				 're-search-forward)
-				((or (eq type 's) (eq type 'S)
-				     (eq type 'string) (eq type 'String))
-				 'search-forward)
-				(t
-				 (error "Invalid match type: %s" type)))))
-		    (goto-char (point-min))
-		    (when (funcall search-func match nil t)
-		      ;; Found a match, update scores.
-		      (setcdr (car articles) (+ score (cdar articles)))
-		      (setq found t)
-		      (when trace
-			(push
-			 (cons (car-safe (rassq alist gnus-score-cache)) kill)
-			 gnus-score-trace)))
-		    ;; Update expire date
-		    (unless trace
-		      (cond
-		       ((null date))	;Permanent entry.
-		       ((and found gnus-update-score-entry-dates)
-			;; Match, update date.
-			(gnus-score-set 'touched '(t) alist)
-			(setcar (nthcdr 2 kill) now))
-		       ((and expire (< date expire)) ;Old entry, remove.
-			(gnus-score-set 'touched '(t) alist)
-			(setcdr entries (cdr rest))
-			(setq rest entries))))
-		    (setq entries rest)))))
-	    (setq articles (cdr articles)))))))
-  nil)
+		     (or (search-forward "\n\n" nil t) (point))
+		     (point-max))))
+		(setq scores all-scores)
+		;; Find matches.
+		(while scores
+		  (setq alist (pop scores)
+			entries (assoc header alist))
+		  (while (cdr entries) ;First entry is the header index.
+		    (let* ((rest (cdr entries))
+			   (kill (car rest))
+			   (match (nth 0 kill))
+			   (type (or (nth 3 kill) 's))
+			   (score (or (nth 1 kill)
+				      gnus-score-interactive-default-score))
+			   (date (nth 2 kill))
+			   (found nil)
+			   (case-fold-search
+			    (not (or (eq type 'R) (eq type 'S)
+				     (eq type 'Regexp) (eq type 'String))))
+			   (search-func
+			    (cond ((or (eq type 'r) (eq type 'R)
+				       (eq type 'regexp) (eq type 'Regexp))
+				   're-search-forward)
+				  ((or (eq type 's) (eq type 'S)
+				       (eq type 'string) (eq type 'String))
+				   'search-forward)
+				  (t
+				   (error "Invalid match type: %s" type)))))
+		      (goto-char (point-min))
+		      (when (funcall search-func match nil t)
+			;; Found a match, update scores.
+			(setcdr (car articles) (+ score (cdar articles)))
+			(setq found t)
+			(when trace
+			  (push
+			   (cons (car-safe (rassq alist gnus-score-cache)) kill)
+			   gnus-score-trace)))
+		      ;; Update expire date
+		      (unless trace
+			(cond
+			 ((null date))	;Permanent entry.
+			 ((and found gnus-update-score-entry-dates)
+			  ;; Match, update date.
+			  (gnus-score-set 'touched '(t) alist)
+			  (setcar (nthcdr 2 kill) now))
+			 ((and expire (< date expire)) ;Old entry, remove.
+			  (gnus-score-set 'touched '(t) alist)
+			  (setcdr entries (cdr rest))
+			  (setq rest entries))))
+		      (setq entries rest)))))
+	      (setq articles (cdr articles)))))))
+    nil))
 
 (defun gnus-score-thread (scores header now expire &optional trace)
   (gnus-score-followup scores header now expire trace t))
 
 (defun gnus-score-followup (scores header now expire &optional trace thread)
-  ;; Insert the unique article headers in the buffer.
-  (let ((gnus-score-index (nth 1 (assoc header gnus-header-index)))
-	(current-score-file gnus-current-score-file)
-	(all-scores scores)
-	;; gnus-score-index is used as a free variable.
-	alike last this art entries alist articles
-	new news)
+  (if gnus-agent-fetching
+      ;; FIXME: It seems doable in fetching mode.
+      nil
+    ;; Insert the unique article headers in the buffer.
+    (let ((gnus-score-index (nth 1 (assoc header gnus-header-index)))
+	  (current-score-file gnus-current-score-file)
+	  (all-scores scores)
+	  ;; gnus-score-index is used as a free variable.
+	  alike last this art entries alist articles
+	  new news)
+      
+      ;; Change score file to the adaptive score file.  All entries that
+      ;; this function makes will be put into this file.
+      (save-excursion
+	(set-buffer gnus-summary-buffer)
+	(gnus-score-load-file
+	 (or gnus-newsgroup-adaptive-score-file
+	     (gnus-score-file-name
+	      gnus-newsgroup-name gnus-adaptive-file-suffix))))
 
-    ;; Change score file to the adaptive score file.  All entries that
-    ;; this function makes will be put into this file.
-    (save-excursion
-      (set-buffer gnus-summary-buffer)
-      (gnus-score-load-file
-       (or gnus-newsgroup-adaptive-score-file
-	   (gnus-score-file-name
-	    gnus-newsgroup-name gnus-adaptive-file-suffix))))
+      (setq gnus-scores-articles (sort gnus-scores-articles 
+				       'gnus-score-string<)
+	    articles gnus-scores-articles)
 
-    (setq gnus-scores-articles (sort gnus-scores-articles 'gnus-score-string<)
-	  articles gnus-scores-articles)
+      (erase-buffer)
+      (while articles
+	(setq art (car articles)
+	      this (aref (car art) gnus-score-index)
+	      articles (cdr articles))
+	(if (equal last this)
+	    (push art alike)
+	  (when last
+	    (insert last ?\n)
+	    (put-text-property (1- (point)) (point) 'articles alike))
+	  (setq alike (list art)
+		last this)))
+      (when last ; Bwadr, duplicate code.
+	(insert last ?\n)
+	(put-text-property (1- (point)) (point) 'articles alike))
 
-    (erase-buffer)
-    (while articles
-      (setq art (car articles)
-	    this (aref (car art) gnus-score-index)
-	    articles (cdr articles))
-      (if (equal last this)
-	  (push art alike)
-	(when last
-	  (insert last ?\n)
-	  (put-text-property (1- (point)) (point) 'articles alike))
-	(setq alike (list art)
-	      last this)))
-    (when last				; Bwadr, duplicate code.
-      (insert last ?\n)
-      (put-text-property (1- (point)) (point) 'articles alike))
-
-    ;; Find matches.
-    (while scores
-      (setq alist (car scores)
-	    scores (cdr scores)
-	    entries (assoc header alist))
-      (while (cdr entries)		;First entry is the header index.
-	(let* ((rest (cdr entries))
-	       (kill (car rest))
-	       (match (nth 0 kill))
-	       (type (or (nth 3 kill) 's))
-	       (score (or (nth 1 kill) gnus-score-interactive-default-score))
-	       (date (nth 2 kill))
-	       (found nil)
-	       (mt (aref (symbol-name type) 0))
-	       (case-fold-search
-		(not (or (= mt ?R) (= mt ?S) (= mt ?E) (= mt ?F))))
-	       (dmt (downcase mt))
-	       (search-func
-		(cond ((= dmt ?r) 're-search-forward)
-		      ((or (= dmt ?e) (= dmt ?s) (= dmt ?f)) 'search-forward)
-		      (t (error "Invalid match type: %s" type))))
-	       arts art)
-	  (goto-char (point-min))
-	  (if (= dmt ?e)
+      ;; Find matches.
+      (while scores
+	(setq alist (car scores)
+	      scores (cdr scores)
+	      entries (assoc header alist))
+	(while (cdr entries) ;First entry is the header index.
+	  (let* ((rest (cdr entries))
+		 (kill (car rest))
+		 (match (nth 0 kill))
+		 (type (or (nth 3 kill) 's))
+		 (score (or (nth 1 kill) gnus-score-interactive-default-score))
+		 (date (nth 2 kill))
+		 (found nil)
+		 (mt (aref (symbol-name type) 0))
+		 (case-fold-search
+		  (not (or (= mt ?R) (= mt ?S) (= mt ?E) (= mt ?F))))
+		 (dmt (downcase mt))
+		 (search-func
+		  (cond ((= dmt ?r) 're-search-forward)
+			((or (= dmt ?e) (= dmt ?s) (= dmt ?f)) 'search-forward)
+			(t (error "Invalid match type: %s" type))))
+		 arts art)
+	    (goto-char (point-min))
+	    (if (= dmt ?e)
+		(while (funcall search-func match nil t)
+		  (and (= (progn (beginning-of-line) (point))
+			  (match-beginning 0))
+		       (= (progn (end-of-line) (point))
+			  (match-end 0))
+		       (progn
+			 (setq found (setq arts (get-text-property
+						 (point) 'articles)))
+			 ;; Found a match, update scores.
+			 (while arts
+			   (setq art (car arts)
+				 arts (cdr arts))
+			   (gnus-score-add-followups
+			    (car art) score all-scores thread))))
+		  (end-of-line))
 	      (while (funcall search-func match nil t)
-		(and (= (progn (beginning-of-line) (point))
-			(match-beginning 0))
-		     (= (progn (end-of-line) (point))
-			(match-end 0))
-		     (progn
-		       (setq found (setq arts (get-text-property
-					       (point) 'articles)))
-		       ;; Found a match, update scores.
-		       (while arts
-			 (setq art (car arts)
-			       arts (cdr arts))
-			 (gnus-score-add-followups
-			  (car art) score all-scores thread))))
-		(end-of-line))
-	    (while (funcall search-func match nil t)
-	      (end-of-line)
-	      (setq found (setq arts (get-text-property (point) 'articles)))
-	      ;; Found a match, update scores.
-	      (while (setq art (pop arts))
-		(when (setq new (gnus-score-add-followups
-				 (car art) score all-scores thread))
-		  (push new news)))))
-	  ;; Update expire date
-	  (cond ((null date))		;Permanent entry.
-		((and found gnus-update-score-entry-dates) ;Match, update date.
-		 (gnus-score-set 'touched '(t) alist)
-		 (setcar (nthcdr 2 kill) now))
-		((and expire (< date expire)) ;Old entry, remove.
-		 (gnus-score-set 'touched '(t) alist)
-		 (setcdr entries (cdr rest))
-		 (setq rest entries)))
-	  (setq entries rest))))
-    ;; We change the score file back to the previous one.
-    (save-excursion
-      (set-buffer gnus-summary-buffer)
-      (gnus-score-load-file current-score-file))
-    (list (cons "references" news))))
+		(end-of-line)
+		(setq found (setq arts (get-text-property (point) 'articles)))
+		;; Found a match, update scores.
+		(while (setq art (pop arts))
+		  (when (setq new (gnus-score-add-followups
+				   (car art) score all-scores thread))
+		    (push new news)))))
+	    ;; Update expire date
+	    (cond ((null date))		;Permanent entry.
+		  ((and found gnus-update-score-entry-dates) 
+					;Match, update date.
+		   (gnus-score-set 'touched '(t) alist)
+		   (setcar (nthcdr 2 kill) now))
+		  ((and expire (< date expire))	;Old entry, remove.
+		   (gnus-score-set 'touched '(t) alist)
+		   (setcdr entries (cdr rest))
+		   (setq rest entries)))
+	    (setq entries rest))))
+      ;; We change the score file back to the previous one.
+      (save-excursion
+	(set-buffer gnus-summary-buffer)
+	(gnus-score-load-file current-score-file))
+      (list (cons "references" news)))))
 
 (defun gnus-score-add-followups (header score scores &optional thread)
   "Add a score entry to the adapt file."
@@ -2551,12 +2560,12 @@ GROUP using BNews sys file syntax."
 	      ;; too much.
 	      (delete-char (min (1- (point-max)) klen))
 	    (goto-char (point-max))
-	    (search-backward "/")
+	    (search-backward (string directory-sep-char))
 	    (delete-region (1+ (point)) (point-min)))
 	  ;; If short file names were used, we have to translate slashes.
 	  (goto-char (point-min))
 	  (let ((regexp (concat
-			 "[/:" (if trans (char-to-string trans) "") "]")))
+			 "[/:" (if trans (char-to-string trans)) "]")))
 	    (while (re-search-forward regexp nil t)
 	      (replace-match "." t t)))
 	  ;; Kludge to get rid of "nntp+" problems.
@@ -2707,19 +2716,20 @@ The list is determined from the variable gnus-score-file-alist."
       (and funcs
 	   (not (listp funcs))
 	   (setq funcs (list funcs)))
-      ;; Get the initial score files for this group.
-      (when funcs
-	(setq score-files (nreverse (gnus-score-find-alist group))))
-      ;; Add any home adapt files.
-      (let ((home (gnus-home-score-file group t)))
-	(when home
-	  (push home score-files)
-	  (setq gnus-newsgroup-adaptive-score-file home)))
-      ;; Check whether there is a `adapt-file' group parameter.
-      (let ((param-file (gnus-group-find-parameter group 'adapt-file)))
-	(when param-file
-	  (push param-file score-files)
-	  (setq gnus-newsgroup-adaptive-score-file param-file)))
+      (when gnus-score-use-all-scores
+	;; Get the initial score files for this group.
+	(when funcs
+	  (setq score-files (nreverse (gnus-score-find-alist group))))
+	;; Add any home adapt files.
+	(let ((home (gnus-home-score-file group t)))
+	  (when home
+	    (push home score-files)
+	    (setq gnus-newsgroup-adaptive-score-file home)))
+	;; Check whether there is a `adapt-file' group parameter.
+	(let ((param-file (gnus-group-find-parameter group 'adapt-file)))
+	  (when param-file
+	    (push param-file score-files)
+	    (setq gnus-newsgroup-adaptive-score-file param-file))))
       ;; Go through all the functions for finding score files (or actual
       ;; scores) and add them to a list.
       (while funcs
@@ -2727,14 +2737,15 @@ The list is determined from the variable gnus-score-file-alist."
 	  (setq score-files
 		(nconc score-files (nreverse (funcall (car funcs) group)))))
 	(setq funcs (cdr funcs)))
-      ;; Add any home score files.
-      (let ((home (gnus-home-score-file group)))
-	(when home
-	  (push home score-files)))
-      ;; Check whether there is a `score-file' group parameter.
-      (let ((param-file (gnus-group-find-parameter group 'score-file)))
-	(when param-file
-	  (push param-file score-files)))
+      (when gnus-score-use-all-scores
+	;; Add any home score files.
+	(let ((home (gnus-home-score-file group)))
+	  (when home
+	    (push home score-files)))
+	;; Check whether there is a `score-file' group parameter.
+	(let ((param-file (gnus-group-find-parameter group 'score-file)))
+	  (when param-file
+	    (push param-file score-files))))
       ;; Expand all files names.
       (let ((files score-files))
 	(while files
