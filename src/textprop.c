@@ -61,7 +61,7 @@ Lisp_Object Qfront_sticky, Qrear_nonsticky;
 /* If o1 is a cons whose cdr is a cons, return non-zero and set o2 to
    the o1's cdr.  Otherwise, return zero.  This is handy for
    traversing plists.  */
-#define PLIST_ELT_P(o1, o2) (CONSP (o1) && CONSP ((o2) = XCONS (o1)->cdr))
+#define PLIST_ELT_P(o1, o2) (CONSP (o1) && ((o2)=XCONS (o1)->cdr, CONSP (o2)))
 
 Lisp_Object Vinhibit_point_motion_hooks;
 
