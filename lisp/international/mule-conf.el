@@ -896,7 +896,7 @@
   :short-name "Indian 1-col"
   :long-name "Indian 1 Column"
   :iso-final-char ?6
-  :emacs-mule-id  240
+  :emacs-mule-id  251
   :code-space [33 126 33 126]
   :code-offset #x184000)
 
