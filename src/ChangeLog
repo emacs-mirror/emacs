@@ -1,6 +1,6 @@
 2000-05-25  Kenichi Handa  <handa@etl.go.jp>
 
-	(ccl_driver): Fix previous change.
+	* ccl.c (ccl_driver): Fix previous change.
 
 2000-05-25  Kenichi Handa  <handa@etl.go.jp>
 
