@@ -1683,20 +1683,19 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
 
   tree = BUF_INTERVALS (buffer);
 
-  /* If the new text has no properties, it becomes part of whatever
-     interval it was inserted into.  */
+  /* If the new text has no properties, then with inheritance it
+     becomes part of whatever interval it was inserted into.
+     To prevent inheritance, we must clear out the properties
+     of the newly inserted text.  */
   if (NULL_INTERVAL_P (source))
     {
       Lisp_Object buf;
       if (!inherit && ! NULL_INTERVAL_P (tree))
 	{
-	  int saved_inhibit_modification_hooks = inhibit_modification_hooks;
 	  XSETBUFFER (buf, buffer);
-	  inhibit_modification_hooks = 1;
-	  Fset_text_properties (make_number (position),
-				make_number (position + length),
-				Qnil, buf);
-	  inhibit_modification_hooks = saved_inhibit_modification_hooks;
+	  set_text_properties_1 (make_number (position),
+				 make_number (position + length),
+				 Qnil, buf, 0);
 	}
       if (! NULL_INTERVAL_P (BUF_INTERVALS (buffer)))
 	BUF_INTERVALS (buffer) = balance_an_interval (BUF_INTERVALS (buffer));
