@@ -6,7 +6,7 @@
 ;; Modified by:
 ;;   ttn@netcom.com
 ;;   Per Cederqvist <ceder@lysator.liu.edu>
-;;   Andre Spiegel <spiegel@bruessel.informatik.uni-stuttgart.de>
+;;   Andre Spiegel <spiegel@berlin.informatik.uni-stuttgart.de>
 
 ;; This file is part of GNU Emacs.
 
@@ -186,18 +186,27 @@ and that its contents match what the master file says.")
   ;; log buffer with a nonzero local value of vc-comment-ring-index.
   (setq vc-comment-ring nil))
 
-;;; functions that operate on RCS revision numbers
+(defun vc-file-clear-masterprops (file)
+  ;; clear all properties of FILE that were retrieved
+  ;; from the master file
+  (vc-file-setprop file 'vc-latest-version nil)
+  (vc-file-setprop file 'vc-your-latest-version nil)
+  (vc-backend-dispatch file
+     (progn   ;; SCCS
+       (vc-file-setprop file 'vc-master-locks nil))
+     (progn   ;; RCS
+       (vc-file-setprop file 'vc-default-branch nil)
+       (vc-file-setprop file 'vc-head-version nil)
+       (vc-file-setprop file 'vc-top-version nil)
+       (vc-file-setprop file 'vc-master-locks nil))
+     (progn
+       (vc-file-setprop file 'vc-cvs-status nil))))
 
-;; vc-occurences and vc-branch-p moved to vc-hooks.el
+;;; functions that operate on RCS revision numbers
 
 (defun vc-trunk-p (rev)
   ;; return t if REV is a revision on the trunk
   (not (eq nil (string-match "\\`[0-9]+\\.[0-9]+\\'" rev))))
-
-(defun vc-minor-revision (rev)
-  ;; return the minor revision number of REV, 
-  ;; i.e. the number after the last dot.
-  (substring rev (1+ (string-match "\\.[0-9]+\\'" rev))))
 
 (defun vc-branch-part (rev)
   ;; return the branch part of a revision number REV
@@ -671,11 +680,13 @@ merge in the changes into your working copy."
   (and (string= buffer-file-name file)
        (if keep
 	   (progn
+	     ;; temporarily remove vc-find-file-hook, so that
+             ;; we don't lose the properties
+	     (remove-hook 'find-file-hooks 'vc-find-file-hook)
 	     (vc-revert-buffer1 t noquery)
+	     (add-hook 'find-file-hooks 'vc-find-file-hook)
 	     (vc-mode-line buffer-file-name))
-	 (progn
-	   (delete-window)
-	   (kill-buffer (current-buffer))))))
+	 (kill-buffer (current-buffer)))))
 
 (defun vc-start-entry (file rev comment msg action &optional after-hook)
   ;; Accept a comment for an operation on FILE revision REV.  If COMMENT
@@ -1337,6 +1348,8 @@ A prefix argument means do not revert the buffer afterwards."
       (find-file-other-window (dired-get-filename)))
   (while vc-parent-buffer
     (pop-to-buffer vc-parent-buffer))
+  (if (eq (vc-backend (buffer-file-name)) 'CVS)
+      (error "Unchecking files under CVS is dangerous and not supported in VC"))
   (let* ((target (concat (vc-latest-version (buffer-file-name))))
 	(yours (concat (vc-your-latest-version (buffer-file-name))))
 	(prompt (if (string-equal yours target)
@@ -1555,7 +1568,8 @@ From a program, any arguments are passed to the `rcs2log' script."
 	  (apply 'vc-do-command 0 "get" file 'MASTER;; SCCS
 		 (if writable "-e")
 		 (and rev (concat "-r" (vc-lookup-triple file rev)))
-		 vc-checkout-switches))
+		 vc-checkout-switches)
+	  (vc-file-setprop file 'vc-workfile-version nil))
 	(if workfile;; RCS
 	    ;; RCS doesn't let us check out into arbitrary file names directly.
 	    ;; Use `co -p' and make stdout point to the correct file.
@@ -1617,11 +1631,16 @@ From a program, any arguments are passed to the `rcs2log' script."
 	  (apply 'vc-do-command 0 "cvs" file 'WORKFILE 
 		 "update"
 		 (and rev (concat "-r" rev))
-		 vc-checkout-switches))
+		 vc-checkout-switches)
+	  (vc-file-setprop file 'vc-workfile-version nil))
 	))
-    (or workfile
-	(vc-file-setprop file
-			 'vc-checkout-time (nth 5 (file-attributes file))))
+    (cond 
+     ((not workfile)
+      (vc-file-clear-masterprops file)
+      (if writable 
+	  (vc-file-setprop file 'vc-locking-user (user-login-name)))
+      (vc-file-setprop file
+		       'vc-checkout-time (nth 5 (file-attributes file)))))
     (message "Checking out %s...done" filename))
   )
 
@@ -1658,49 +1677,45 @@ From a program, any arguments are passed to the `rcs2log' script."
 	       (if rev (concat "-r" rev))
 	       (concat "-y" comment)
 	       vc-checkin-switches)
-	(vc-file-setprop file 'vc-locking-user nil)
+	(vc-file-setprop file 'vc-locking-user 'none)
 	(vc-file-setprop file 'vc-workfile-version nil)
 	(if vc-keep-workfiles
 	    (vc-do-command 0 "get" file 'MASTER))
 	)
       ;; RCS
-      (let ((lock-version nil))
-	;; if this is an explicit check-in to a different branch,
-	;; remember the workfile version (in order to remove the lock later)
-	(if (and rev 
-		 (not (vc-trunk-p rev))
-		 (not (string= (vc-branch-part rev)
-			       (vc-branch-part (vc-workfile-version file)))))
-	    (setq lock-version (vc-workfile-version file)))
-
-        (apply 'vc-do-command 0 "ci" file 'MASTER
+      (let ((old-version (vc-workfile-version file)) new-version)
+	(apply 'vc-do-command 0 "ci" file 'MASTER
 	       (concat (if vc-keep-workfiles "-u" "-r") rev)
 	       (concat "-m" comment)
 	       vc-checkin-switches)
-	(vc-file-setprop file 'vc-locking-user nil)
+	(vc-file-setprop file 'vc-locking-user 'none)
 	(vc-file-setprop file 'vc-workfile-version nil)
 
-	;; determine the new workfile version and
-        ;; adjust the master file branch accordingly
-        ;; (this currently has to be done on every check-in)
-	(progn 
-	  (set-buffer "*vc*")
-	  (goto-char (point-min))
-	  (if (or (re-search-forward 
-		   "new revision: \\([0-9.]+\\);" nil t)
-		  (re-search-forward 
-		   "reverting to previous revision \\([0-9.]+\\)" nil t))
-	      (progn (setq rev (buffer-substring (match-beginning 1)
-						 (match-end 1)))
-		     (vc-file-setprop file 'vc-workfile-version rev)))
-	  (if rev (vc-do-command 0 "rcs" file 'MASTER 
-				 (if (vc-trunk-p rev) "-b"
-				   (concat "-b" (vc-branch-part rev)))))
-	  (if lock-version 
-	      ;; exit status of 1 is also accepted.
-              ;; It means that the lock was removed before.
-	      (vc-do-command 1 "rcs" file 'MASTER 
-			     (concat "-u" lock-version)))))
+	;; determine the new workfile version
+	(set-buffer "*vc*")
+	(goto-char (point-min))
+	(if (or (re-search-forward 
+		 "new revision: \\([0-9.]+\\);" nil t)
+		(re-search-forward 
+		 "reverting to previous revision \\([0-9.]+\\)" nil t))
+	    (progn (setq new-version (buffer-substring (match-beginning 1)
+						       (match-end 1)))
+		   (vc-file-setprop file 'vc-workfile-version new-version)))
+
+	;; if we got to a different branch, adjust the default
+	;; branch accordingly, and remove any remaining 
+	;; lock on the old version.
+	(cond 
+	 ((and old-version new-version
+	       (not (string= (vc-branch-part old-version)
+			     (vc-branch-part new-version))))
+	  (vc-do-command 0 "rcs" file 'MASTER 
+			 (if (vc-trunk-p new-version) "-b"
+			   (concat "-b" (vc-branch-part new-version))))
+	  ;; exit status of 1 is also accepted.
+	  ;; It means that the lock was removed before.
+	  (vc-do-command 1 "rcs" file 'MASTER 
+			 (concat "-u" old-version)))))
       ;; CVS
       (progn
 	;; explicit check-in to the trunk requires a 
@@ -1725,11 +1740,11 @@ From a program, any arguments are passed to the `rcs2log' script."
 	;; if this was an explicit check-in, remove the sticky tag
 	(if rev
 	    (vc-do-command 0 "cvs" file 'WORKFILE "update" "-A"))
-	(vc-file-setprop file 'vc-locking-user nil)
+	(vc-file-setprop file 'vc-locking-user 'none)
 	(vc-file-setprop file 'vc-checkout-time 
 			 (nth 5 (file-attributes file))))))
-  (message "Checking in %s...done" file)
-  )
+  (vc-file-clear-masterprops file)
+  (message "Checking in %s...done" file))
 
 (defun vc-backend-revert (file)
   ;; Revert file to latest checked-in version.
@@ -1748,7 +1763,7 @@ From a program, any arguments are passed to the `rcs2log' script."
    (progn
      (delete-file file)
      (vc-do-command 0 "cvs" file 'WORKFILE "update")))
-  (vc-file-setprop file 'vc-locking-user nil)
+  (vc-file-setprop file 'vc-locking-user 'none)
   (vc-file-setprop file 'vc-checkout-time (nth 5 (file-attributes file)))
   (message "Reverting %s...done" file)
   )
@@ -1776,7 +1791,7 @@ From a program, any arguments are passed to the `rcs2log' script."
   (vc-backend-dispatch file
    (vc-do-command 0 "rmdel" file 'MASTER (concat "-r" target))
    (vc-do-command 0 "rcs" file 'MASTER (concat "-o" target))
-   (error "Unchecking files under CVS is dangerous and not supported in VC.")
+   nil  ;; this is never reached under CVS
    )
   (message "Removing last change from %s...done" file)
   )
