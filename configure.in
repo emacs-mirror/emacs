@@ -34,7 +34,7 @@ AC_ARG_WITH(x-toolkit,
 	    y | ye | yes )	val=athena ;;
 	    n | no )		val=no  ;;
 	    l | lu | luc | luci | lucid )	val=lucid ;;
-	    a | at | ath | athe | athena )	val=athena ;;
+	    a | at | ath | athe | athen | athena )	val=athena ;;
 	    m | mo | mot | moti | motif )	val=motif ;;
 dnl These don't currently work.
 dnl	    o | op | ope | open | open- | open-l | open-lo \
