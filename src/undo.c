@@ -111,9 +111,9 @@ record_delete (beg, length)
   if (point == beg + length)
     XSETINT (sbeg, -beg);
   else
-    XFASTINT (sbeg) = beg;
-  XFASTINT (lbeg) = beg;
-  XFASTINT (lend) = beg + length;
+    XSETFASTINT (sbeg, beg);
+  XSETFASTINT (lbeg, beg);
+  XSETFASTINT (lend, beg + length);
 
   /* If we are just after an undo boundary, and 
      point wasn't at start of deleted range, record where it was.  */
@@ -154,8 +154,8 @@ record_first_change ()
     Fundo_boundary ();
   XSETBUFFER (last_undo_buffer, current_buffer);
 
-  XFASTINT (high) = (current_buffer->modtime >> 16) & 0xffff;
-  XFASTINT (low) = current_buffer->modtime & 0xffff;
+  XSETFASTINT (high, (current_buffer->modtime >> 16) & 0xffff);
+  XSETFASTINT (low, current_buffer->modtime & 0xffff);
   current_buffer->undo_list = Fcons (Fcons (Qt, Fcons (high, low)), current_buffer->undo_list);
 }
 
