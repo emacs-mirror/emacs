@@ -1,5 +1,8 @@
 2001-02-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* simple.el (previous-matching-history-element)
+	(next-matching-history-element): Doc fix.
+
 	* loadup.el: Load ccl before utf-8; don't load ccl in the ms-dos
 	specific part.
 
