@@ -272,8 +272,7 @@ Gregorian date Sunday, December 31, 1 BC."
 		 (and (car zone) zone))))))
 
 (defun timezone-fix-time (date local timezone)
-  "Find the time represented by the string DATE (with default timezone LOCAL),
-and represent it as a YY-MM-DD-HH-MM-SS-TIMEZONE vector.
+  "Convert DATE (default timezone LOCAL) to YYYY-MM-DD-HH-MM-SS-ZONE vector.
 If LOCAL is nil, it is assumed to be GMT.
 If TIMEZONE is nil, use the local time zone."
   (let* ((date   (timezone-parse-date date))
