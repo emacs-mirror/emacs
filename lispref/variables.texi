@@ -1666,12 +1666,12 @@ chosen, or because its meaning has partly changed---it can be useful
 to keep the old name as an @emph{alias} of the new one for
 compatibility.  You can do this with @code{defvaralias}.
 
-@defmacro defvaralias alias-var base-var
+@defmac defvaralias alias-var base-var
 This function defines the symbol @var{alias-var} as a variable alias
 for symbol @var{base-var}.  This means that retrieving the value of
 @var{alias-var} returns the value of @var{base-var}, and changing the
 value of @var{alias-var} changes the value of @var{base-var}.
-@end defmacro
+@end defmac
 
 @defun indirect-variable variable
 This function returns the variable at the end of the chain of aliases
