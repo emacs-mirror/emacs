@@ -1,3 +1,9 @@
+2004-02-16  John Basrai  <jbasrai@comcast.net>  (tiny change)
+
+	* man.el (Man-fontify-manpage): Render section headings in
+	`Man-overstrike-face' even when overstrike was not used by man
+	formatter for section headings.
+
 2004-02-16  Eli Tziperman  <eli@deas.harvard.edu>
 
 	* rmail-spam-filter.el: (vm-use-spam-filter)
