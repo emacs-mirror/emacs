@@ -204,6 +204,7 @@ Use the `derived-mode-parent' property of the symbol to trace backwards."
 
 ;; Utility functions for defining a derived mode.
 
+;;;###autoload
 (defun derived-mode-init-mode-variables (mode)
   "Initialise variables for a new mode. 
 Right now, if they don't already exist, set up a blank keymap, an
