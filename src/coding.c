@@ -3683,19 +3683,19 @@ See also the function `find-coding-system'.");
 
   DEFVAR_INT ("eol-mnemonic-unix", &eol_mnemonic_unix,
     "Mnemonic character indicating UNIX-like end-of-line format (i.e. LF) .");
-  eol_mnemonic_unix = '.';
+  eol_mnemonic_unix = ':';
 
   DEFVAR_INT ("eol-mnemonic-dos", &eol_mnemonic_dos,
     "Mnemonic character indicating DOS-like end-of-line format (i.e. CRLF).");
-  eol_mnemonic_dos = ':';
+  eol_mnemonic_dos = '\\';
 
   DEFVAR_INT ("eol-mnemonic-mac", &eol_mnemonic_mac,
     "Mnemonic character indicating MAC-like end-of-line format (i.e. CR).");
-  eol_mnemonic_mac = '\'';
+  eol_mnemonic_mac = '/';
 
   DEFVAR_INT ("eol-mnemonic-undecided", &eol_mnemonic_undecided,
     "Mnemonic character indicating end-of-line format is not yet decided.");
-  eol_mnemonic_undecided = '-';
+  eol_mnemonic_undecided = ':';
 
   DEFVAR_LISP ("enable-character-unification", &Venable_character_unification,
     "Non-nil means ISO 2022 encoder/decoder do character unification.");
