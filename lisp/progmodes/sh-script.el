@@ -406,6 +406,7 @@ the car and cdr are the same symbol.")
 	?. "_"
 	?^ "_"
 	?~ "_"
+	?, "_"
 	?< "."
 	?> ".")
     (csh eval identity sh)
