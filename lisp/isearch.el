@@ -170,7 +170,7 @@ an overlay having an `invisible' property and that overlay has a property
 \(This applies when using `outline.el' and `hideshow.el'.)"
   :type '(choice (const :tag "Match hidden text" t)
 		 (const :tag "Open overlays" open)
-		 (const :tag "Don't match hidden text" t))
+		 (const :tag "Don't match hidden text" nil))
   :group 'isearch)
 
 (defcustom isearch-hide-immediately t
@@ -1434,7 +1434,8 @@ If there is no completion possible, say so and continue searching."
       (setq isearch-case-fold-search
 	    (isearch-no-upper-case-p isearch-string isearch-regexp)))
   (condition-case lossage
-      (let ((inhibit-quit nil)
+      (let ((inhibit-point-motion-hooks search-invisible)
+	    (inhibit-quit nil)
 	    (case-fold-search isearch-case-fold-search)
 	    (retry t))
 	(if isearch-regexp (setq isearch-invalid-regexp nil))
@@ -1490,7 +1491,6 @@ If there is no completion possible, say so and continue searching."
 
 ;;; Called when opening an overlay, and we are still in isearch.
 (defun isearch-open-overlay-temporary (ov)
-  (message "temporary called")
   (if (not (null (overlay-get ov 'isearch-open-invisible-temporary))) 
       ;; Some modes would want to open the overlays temporary during
       ;; isearch in their own way, they should set the
@@ -1568,7 +1568,7 @@ If there is no completion possible, say so and continue searching."
 	  (overlay-put ov 'isearch-intangible nil))))))
 
 (defun isearch-range-invisible (beg end)
-  "Return t if all the bext from BEG to END is invisible."
+  "Return t if all the text from BEG to END is invisible."
   (and (/= beg end)
        ;; Check that invisibility runs up to END.
        (save-excursion
