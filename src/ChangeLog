@@ -1,5 +1,7 @@
 2003-02-10  Kenichi Handa  <handa@m17n.org>
 
+	* fns.c (Fstring_to_multibyte): Fix typo in the docstring.
+
 	* process.c (QCfilter_multibyte): New variable.
 	(setup_process_coding_systems): New function.
 	(Fset_process_buffer, Fset_process_filter): Call
