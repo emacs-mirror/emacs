@@ -1565,8 +1565,10 @@ static struct dos_keyboard_map dk_keyboard = {
 };
 
 static struct kbd_translate jp_kbd_translate_table[] = {
-  { 0x73, 0x5c, Map | 0 },
-  { 0x7d, 0x5c, Map | 13 },
+  { 0x73, 0x5c, Normal | 0 },
+  { 0x73, 0x5f, Normal | 0 },
+  { 0x7d, 0x5c, Normal | 13 },
+  { 0x7d, 0x7c, Normal | 13 },
   { 0, 0, 0 }
 };
 static struct dos_keyboard_map jp_keyboard = {
