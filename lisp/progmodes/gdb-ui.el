@@ -664,6 +664,7 @@ This filter may simply queue output for a later time."
     ("commands" gdb-subprompt)
     ("overload-choice" gdb-subprompt)
     ("query" gdb-subprompt)
+    ("nquery" gdb-subprompt)
     ("prompt-for-continue" gdb-subprompt)
     ("post-prompt" gdb-post-prompt)
     ("source" gdb-source)
