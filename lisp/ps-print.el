@@ -3501,6 +3501,11 @@ The table depends on the current ps-print setup."
      #'ps-print-quote
      (list
       (concat "\n;;; ps-print version " ps-print-version "\n")
+      ";; internal vars"
+      (ps-comment-string "ps-print-emacs-type" ps-print-emacs-type)
+      (ps-comment-string "ps-windows-system  " ps-windows-system)
+      (ps-comment-string "ps-lp-system       " ps-lp-system)
+      nil
       '(25 . ps-print-color-p)
       '(25 . ps-lpr-command)
       '(25 . ps-lpr-switches)
@@ -3657,12 +3662,26 @@ If `ps-prefix-quote' is nil, it's set to t after generating string."
 	      (if (> col len)
 		  (make-string (- col len) ?\ )
 		" ")
-	      (cond ((null val) "nil")
-		    ((eq val t) "t")
-		    ((or (symbolp val) (listp val)) (format "'%S" val))
-		    (t          (format "%S" val))))))
+	      (ps-value-string val))))
    (t "")
    ))
+
+
+(defun ps-value-string (val)
+  "Return a string representation of VAL.  Used by `ps-print-quote'."
+  (cond ((null val)
+	 "nil")
+	((eq val t)
+	 "t")
+	((or (symbolp val) (listp val))
+	 (format "'%S" val))
+	(t
+	 (format "%S" val))))
+
+
+(defun ps-comment-string (str value)
+  "Return a comment string like \";; STR = VALUE\"."
+  (format ";; %s = %s" str (ps-value-string value)))
 
 
 (defun ps-value (alist-sym key)

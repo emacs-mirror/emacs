@@ -4177,8 +4177,7 @@ w32_read_socket (sd, expected, hold_quit)
   /* So people can tell when we have read the available input.  */
   input_signal_count++;
 
-  /* TODO: tool-bars, ghostscript integration, mouse
-     cursors. */
+  /* TODO: ghostscript integration. */
   while (get_next_msg (&msg, FALSE))
     {
       struct input_event inev;
@@ -4934,16 +4933,9 @@ x_draw_hollow_cursor (w, row)
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   HDC hdc;
   RECT rect;
-  int wd;
+  int wd, h;
   struct glyph *cursor_glyph;
   HBRUSH hb = CreateSolidBrush (f->output_data.w32->cursor_pixel);
-
-  /* Compute frame-relative coordinates from window-relative
-     coordinates.  */
-  rect.left = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
-  rect.top = (WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y)
-              + row->ascent - w->phys_cursor_ascent);
-  rect.bottom = rect.top + row->height;
 
   /* Get the glyph the cursor is on.  If we can't tell because
      the current matrix is invalid or such, give up.  */
@@ -4951,11 +4943,28 @@ x_draw_hollow_cursor (w, row)
   if (cursor_glyph == NULL)
     return;
 
+  /* Compute frame-relative coordinates from window-relative
+     coordinates.  */
+  rect.left = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
+  rect.top = (WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y)
+              + row->ascent - w->phys_cursor_ascent);
+
+  /* Compute the proper height and ascent of the rectangle, based
+     on the actual glyph.  Using the full height of the row looks
+     bad when there are tall images on that row.  */
+  h = max (min (FRAME_LINE_HEIGHT (f), row->height),
+	   cursor_glyph->ascent + cursor_glyph->descent);
+  if (h < row->height)
+    rect.top += row->ascent /* - w->phys_cursor_ascent */ + cursor_glyph->descent - h;
+  h--;
+
+  rect.bottom = rect.top + h;
+
   /* Compute the width of the rectangle to draw.  If on a stretch
      glyph, and `x-stretch-block-cursor' is nil, don't draw a
      rectangle as wide as the glyph, but use a canonical character
      width instead.  */
-  wd = cursor_glyph->pixel_width;
+  wd = cursor_glyph->pixel_width; /* TODO: Why off by one compared with X? */
   if (cursor_glyph->type == STRETCH_GLYPH
       && !x_stretch_cursor_p)
     wd = min (FRAME_COLUMN_WIDTH (f), wd);

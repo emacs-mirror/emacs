@@ -1,3 +1,273 @@
+
+2004-05-07  Juanma Barranquero  <lektu@terra.es>
+
+	* emacs-lisp/byte-run.el (make-obsolete, make-obsolete-variable):
+	Make argument names match their use in docstring.
+
+	* subr.el (lambda): Add arglist description to docstring.
+	(declare): Fix typo in docstring.
+	(open-network-stream): Fix docstring.
+	(process-kill-without-query): Fix docstring and add obsolescence
+	info.
+	(last, butlast, nbutlast): Make arguments match their use in docstring.
+	(insert-buffer-substring-no-properties): Likewise.
+	(insert-buffer-substring-as-yank): Likewise.
+	(split-string): Fix docstring.
+
+	* emacs-lisp/re-builder.el (reb-auto-update): Fix typo in docstring.
+
+2004-05-06  Nick Roberts  <nickrob@gnu.org>
+
+	* progmodes/gdb-ui.el: Improve/extend documentation strings.
+	Fit first sentence on one line for apropos-command.
+
+2004-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Changes largely merged in from Dave Love's code.
+	* progmodes/python.el: Doc fixes.
+	(python-mode-map): Add python-complete-symbol.
+	(python-comment-line-p, python-beginning-of-string): Use syntax-ppss.
+	(python-comment-indent, python-complete-symbol)
+	(python-symbol-completions, python-partial-symbol)
+	(python-try-complete): New.
+	(python-indent-line): Remove optional arg.  Use python-block-end-p.
+	(python-check): Bind compilation-error-regexp-alist.
+	(inferior-python-mode): Use rx.  Move keybindings to top level.
+	Set comint-input-filter.
+	(python-preoutput-filter): Use rx.
+	(python-input-filter): Re-introduce.
+	(python-proc): Start new process if necessary.
+	Check python-buffer non-nil.
+	(view-return-to-alist): Defvar.
+	(python-send-receive): New.
+	(python-eldoc-function): Use it.
+	(python-mode-running): Don't defvar.
+	(python-mode): Set comment-indent-function.
+	Maybe update hippie-expand-try-functions-list.
+	(python-indentation-levels): Initialize differently.
+	(python-block-end-p): New.
+	(python-indent-line): Use it.
+	(python-compilation-regexp-alist): Augment.
+	(run-python): Import `emacs' module to Python rather than loading
+	code directly.  Set python-buffer differently.
+	(python-send-region): Use emacs.eexecfile.  Fix orig-start calculation.
+	Use python-proc.
+	(python-send-command): Go to end of comint buffer.
+	(python-load-file): Use python-proc, emacs.eimport.
+	(python-describe-symbol): Simplify interactive form.
+	Use emacs.help.  Do use temp-buffer-show-hook.
+	Call print-help-return-message.
+	(hippie-exp): Require when compiling.
+	(python-preoutput-continuation): Use rx.
+
+	* diff-mode.el (diff-make-unified): Fix regexp.
+
+2004-05-06  Romain Francoise  <romain@orebokech.com>  (tiny change)
+
+	* ibuffer.el (ibuffer-redisplay-engine): Do not remove folded
+	filter groups from the buffer when rebuilding the Ibuffer buffer
+	and `ibuffer-show-empty-filter-groups' is nil.
+
+2004-05-06  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el (ps-print-quote): Call ps-value-string.
+	(ps-setup): Call ps-comment-string.
+	(ps-value-string, ps-comment-string): New funs.
+
+2004-05-06  Juanma Barranquero  <lektu@terra.es>
+
+	* help-fns.el (help-argument-name): Default to bold; don't inherit
+	from font-lock-variable-name-face.
+	(help-do-arg-highlight): Grok also ARGth occurrences in the docstring.
+
+	* ehelp.el (electric-help-command-loop): Check whether the last
+	character is visible, not (point-max).
+
+2004-05-05  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char): Copy the character with text
+	properties and overlays into the first line, and call
+	describe-text-properties on it.
+
+2004-05-05  Stephen Eglen  <stephen@anc.ed.ac.uk>
+
+	* iswitchb.el (iswitchb-global-map): Fix typo.
+	Remove unwanted ###autoloads from source file.
+
+2004-05-05  Lars Hansen  <larsh@math.ku.dk>
+
+	* wdired.el (wdired-change-to-wdired-mode): Quote wdired-mode-hook
+	in run-hooks.  Use substitute-command-keys in message.
+	(wdired-abort-changes): Add message.
+
+2004-05-03  Michael Mauger  <mmaug@yahoo.com>
+
+	* emacs/lisp/progmodes/sql.el (sql-xemacs-p, sql-emacs19-p)
+	(sql-emacs20-p): Remove.
+	(sql-mode-syntax-table): Use shared GNU EMacs/XEmacs syntax.
+	(sql-builtin-face, sql-doc-face): Remove.
+	(sql-mode-ansi-font-lock-keywords)
+	(sql-mode-oracle-font-lock-keywords)
+	(sql-mode-postgres-font-lock-keywords)
+	(sql-mode-linter-font-lock-keywords)
+	(sql-mode-ms-font-lock-keywords)
+	(sql-mode-mysql-font-lock-keywords): Use standard fonts.
+	(sql-product-font-lock): Fix font-lock reset when font rules change.
+	(sql-highlight-product): Remove incorrect font-lock reset logic.
+
+2004-05-04  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* ses.el (ses-set-parameter): Fix typo.
+
+2004-05-04  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-read-internal): Fix call to read-file-name for edit.
+	Must expand directory for completion to work; and don't mess with
+	process-environment.
+	(ido-read-file-name): If command has ido property, don't use ido
+	if value is ignore, or read as directory if value is dir.
+	Set ido ignore property for dired-do-rename command.
+
+2004-05-04  Juanma Barranquero  <lektu@terra.es>
+
+	* help-fns.el (help-argument-name): New face, inheriting from
+	font-lock-variable-name-face, to highlight function arguments in
+	`describe-function' and `describe-key'.
+	(help-do-arg-highlight): Auxiliary function to highlight a given
+	list of arguments in a string.
+	(help-highlight-arguments): Highlight the function arguments and
+	all uses of them in the docstring.
+	(describe-function-1): Use it. Do docstring output via `insert',
+	not 'princ', so text attributes are preserved.
+
+	* winner.el (winner-mode-map): Move winner-undo and winner-redo to
+	C-c <left> and C-c <right>, respectively (the previous bindings
+	conflict with prev-buffer, next-buffer).
+
+	* ehelp.el (electric-help-command-loop, electric-help-undefined)
+	(electric-help-help): Check against unmapped commands.
+
+2004-05-03  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-progress-message): Fix docstring.
+	(bibtex-entry-update): New command bound to C-c C-u.
+	(bibtex-text-in-string): Fix regexp.
+	(bibtex-assoc-of-regexp): Remove.
+	(bibtex-progress-message): Fix docstring.
+	(bibtex-inside-field): Use if.
+	(bibtex-assoc-regexp): New function.
+	(bibtex-format-entry): Make code more robust so that it formats
+	also old entries.
+	(bibtex-autokey-demangle-title): Merge with obsolete function
+	bibtex-assoc-of-regexp.
+	(bibtex-field-list): New function.
+	(bibtex-entry): Use bibtex-field-list.
+	(bibtex-parse-entry): Fix docstring.
+	(bibtex-print-help-message): Use bibtex-field-list.
+	(bibtex-make-field): Use bibtex-field-list.
+	(bibtex-entry-index): Bugfix. Return crossref key if required.
+	(bibtex-lessp): Fix docstring.
+
+2004-05-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* select.el (xselect-convert-to-string): Move comment to intended line.
+
+2004-05-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* toolbar/tool-bar.el (tool-bar-setup): Use lookup-key for
+	cut/copy/paste in case menu-bar-enable-clipboard is in effect.
+
+2004-05-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (x-clipboard-yank): Don't exit on error from
+	x-get-selection.
+
+2004-05-03  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.nt: Remove.
+
+2004-05-03  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua--update-indications): Fix last change.
+	(cua-mode): Deactivate mark when cua-mode is enabled.
+
+2004-05-02  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* select.el (xselect-convert-to-string): Bind `inhibit-read-only' to t.
+
+2004-05-03  Nick Roberts  <nickrob@gnu.org>
+
+	* progmodes/gdb-ui.el (gud-watch, gdb-display-buffer)
+	(gdb-display-source-buffer, gdb-put-breakpoint-icon)
+	(gdb-remove-breakpoint-icons, gdb-assembler-custom): Look for
+	window over visible frames.
+	(gdb-goto-breakpoint): Make buffer display file at breakpoint.
+
+2004-05-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-gcpro): New var.
+	(compilation-fake-loc): Use it.
+	(compilation-forget-errors): Reset it.
+
+2004-05-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* diff-mode.el (diff-header-face, diff-file-header-face):
+	Use min-colors.
+
+2004-05-02  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-sort-buffer): Remove error message.
+	(bibtex-clean-entry): Disentangle code.
+	(bibtex-realign): New function.
+	(bibtex-reformat): Use mapcar and bibtex-realign.  Do not use
+	bibtex-beginning-of-first-entry and bibtex-skip-to-valid-entry.
+	Remove undocumented optional arg called-by-convert-alien.
+	(bibtex-convert-alien): Use bibtex-realign.  Use bibtex-reformat
+	for sorting instead of bibtex-sort-buffer.
+
+2004-05-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/compile.el (compilation-start): In the
+	no-async-subprocesses branch, call sit-for to give redisplay a
+	chance to show the updated process status in the mode line, and
+	fontify the buffer explicitly after the process exits.
+
+2004-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-compilation-line-number): Remove.
+	(python-compilation-regexp-alist): Don't use it any more.
+	(python-orig-start, python-input-filter): Remove.
+	(inferior-python-mode): Don't set up comint-input-filter-functions.
+	(python-send-region): Use compilation-fake-loc.
+
+	* progmodes/compile.el (compilation-messages-start): New var.
+	(compilation-mode): Don't setup next-error-function here.
+	(compilation-setup): Set it up here instead (for minor modes as well).
+	Make compilation-messages-start buffer local.
+	(compilation-next-error-function): Use it.
+	(compilation-forget-errors): Set compilation-messages-start.
+
+2004-05-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* ielm.el (ielm-prompt-read-only): Update docstring.
+
+	* comint.el (comint-prompt-read-only): Update docstring.
+	(comint-update-fence, comint-kill-whole-line)
+	(comint-kill-region): New functions.
+
+	* simple.el (kill-whole-line): Use "p" instead of "P" in
+	interactive form.
+
+2004-05-01  Juanma Barranquero  <lektu@terra.es>
+
+	* help-fns.el (help-add-fundoc-usage): Use %S instead of %s to
+	format arglist so default values in CL-style argument lists are
+	correctly shown.
+
+2004-05-01  Jason Rumney  <jasonr@gnu.org>
+
+	* term/w32-win.el (w32-drag-n-drop): Use x-dnd.el functions.
+
 2004-05-01  Kenichi Handa  <handa@m17n.org>
 
 	* international/titdic-cnv.el (miscdic-convert): Don't generate a
@@ -35,7 +305,7 @@
 	* delsel.el: Don't put `delete-selection' property
 	on `insert-parentheses' symbol to take advantage of
 	region handling in `insert-pair' function.
-	Suggested by Stephan Stahl <stahl@eos.franken.de>
+	Suggested by Stephan Stahl <stahl@eos.franken.de>.
 
 2004-04-30  Kim F. Storm  <storm@cua.dk>
 
@@ -65,7 +335,7 @@
 	New defmacro.
 	(cua-upcase-rectangle, cua-downcase-rectangle): Use it.
 	(cua-upcase-initials-rectangle, cua-capitalize-rectangle):
-	New commands (suggested by Jordan Breeding)..
+	New commands (suggested by Jordan Breeding).
 
 2004-04-30  Juanma Barranquero  <lektu@terra.es>
 
@@ -5779,7 +6049,7 @@
 2003-08-12  Juri Linkov  <juri@jurta.org>  (tiny change)
 
 	* simple.el (backward-word, forward-to-indentation)
-	(backward-to-indentation):  Argument changed to optional.
+	(backward-to-indentation): Argument changed to optional.
 	(next-line, previous-line): Use `or' instead of `unless'.
 
 2003-08-12  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
@@ -5961,7 +6231,7 @@
 	behaviour of `calendar-day-name' and `calendar-month-name' functions.
 	(diary-name-pattern): Use abbrev arrays, rather than fixing
 	abbrevs at three chars.  Calling syntax change.
-	(mark-diary-entries):  Adapt for new behaviours of
+	(mark-diary-entries): Adapt for new behaviours of
 	`diary-name-pattern' and `calendar-make-alist' functions.
 	(fancy-diary-font-lock-keywords): Adapt for new behaviour of
 	`diary-name-pattern' function.
@@ -6412,7 +6682,7 @@
 
 2003-07-08  Markus Rost  <rost@math.ohio-state.edu>
 
-	* subr.el (dolist, dotimes):  Doc fix.
+	* subr.el (dolist, dotimes): Doc fix.
 
 2003-07-08  Kim F. Storm  <storm@cua.dk>
 

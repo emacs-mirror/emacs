@@ -40,6 +40,7 @@ Boston, MA 02111-1307, USA.  */
 #include <unistd.h>	 /* for chdir, dup, dup2, etc. */
 #include <dir.h>	 /* for getdisk */
 #if __DJGPP__ >= 2
+#pragma pack(0)		 /* dir.h does a pack(4), which isn't GCC's default */
 #include <fcntl.h>
 #include <io.h>		 /* for setmode */
 #include <dpmi.h>	 /* for __dpmi_xxx stuff */

@@ -41,7 +41,7 @@ license to the document, as described in section 6 of the license.
 @title SES
 @subtitle Simple Emacs Spreadsheet
 @author Jonathan A. Yavner
-@author @email{jyavner@@engineer.com}
+@author @email{jyavner@@member.fsf.org}
 
 @page
 @vskip 0pt plus 1filll

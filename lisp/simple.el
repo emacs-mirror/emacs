@@ -2401,8 +2401,7 @@ With prefix arg, kill that many lines starting from the current line.
 If arg is negative, kill backward.  Also kill the preceding newline.
 \(This is meant to make C-x z work well with negative arguments.\)
 If arg is zero, kill current line but exclude the trailing newline."
-  (interactive "P")
-  (setq arg (prefix-numeric-value arg))
+  (interactive "p")
   (if (and (> arg 0) (eobp) (save-excursion (forward-visible-line 0) (eobp)))
       (signal 'end-of-buffer nil))
   (if (and (< arg 0) (bobp) (save-excursion (end-of-visible-line) (bobp)))

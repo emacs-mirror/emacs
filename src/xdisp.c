@@ -304,7 +304,7 @@ Lisp_Object Qleft_margin, Qright_margin, Qspace_width, Qraise;
 Lisp_Object Qslice;
 Lisp_Object Qcenter;
 Lisp_Object Qmargin, Qpointer;
-Lisp_Object Qline_height;
+Lisp_Object Qline_height, Qtotal;
 extern Lisp_Object Qheight;
 extern Lisp_Object QCwidth, QCheight, QCascent;
 extern Lisp_Object Qscroll_bar;
@@ -18522,11 +18522,11 @@ produce_stretch_glyph (it)
    Returns height in pixels, or nil.  */
 
 static Lisp_Object
-calc_line_height_property (it, prop, font, boff)
+calc_line_height_property (it, prop, font, boff, total)
      struct it *it;
      Lisp_Object prop;
      XFontStruct *font;
-     int boff;
+     int boff, *total;
 {
   Lisp_Object val;
   Lisp_Object face_name = Qnil;
@@ -18537,6 +18537,12 @@ calc_line_height_property (it, prop, font, boff)
 
   if (NILP (val))
     return val;
+
+  if (total && CONSP (val) && EQ (XCAR (val), Qtotal))
+    {
+      *total = 1;
+      val = XCDR (val);
+    }
 
   if (INTEGERP (val))
     return val;
@@ -18571,12 +18577,12 @@ calc_line_height_property (it, prop, font, boff)
 
       face_id = lookup_named_face (it->f, face_name, ' ');
       if (face_id < 0)
-	return -1;
+	return make_number (-1);
 
       face = FACE_FROM_ID (it->f, face_id);
       font = face->font;
       if (font == NULL)
-	return -1;
+	return make_number (-1);
 
       font_info = FONT_INFO_FROM_ID (it->f, face->font_info_id);
       boff = font_info->baseline_offset;
@@ -18806,13 +18812,13 @@ x_produce_glyphs (it)
 	     But if previous part of the line set a height, don't
 	     increase that height */
 
-	  Lisp_Object height, spacing;
+	  Lisp_Object height;
 
 	  it->override_ascent = -1;
 	  it->pixel_width = 0;
 	  it->nglyphs = 0;
 
-	  height = calc_line_height_property(it, Qline_height, font, boff);
+	  height = calc_line_height_property(it, Qline_height, font, boff, 0);
 
 	  if (it->override_ascent >= 0)
 	    {
@@ -18845,6 +18851,9 @@ x_produce_glyphs (it)
 	    }
 	  else
 	    {
+	      Lisp_Object spacing;
+	      int total = 0;
+
 	      it->phys_ascent = it->ascent;
 	      it->phys_descent = it->descent;
 
@@ -18858,16 +18867,14 @@ x_produce_glyphs (it)
 	      if (!NILP (height)
 		  && XINT (height) > it->ascent + it->descent)
 		it->ascent = XINT (height) - it->descent;
-	    }
 
-	  spacing = calc_line_height_property(it, Qline_spacing, font, boff);
-	  if (!NILP (spacing))
-	    {
-	      int sp = XINT (spacing);
-	      if (sp < 0)
-		extra_line_spacing = (-sp) - (it->phys_ascent + it->phys_descent);
-	      else
-		extra_line_spacing = sp;
+	      spacing = calc_line_height_property(it, Qline_spacing, font, boff, &total);
+	      if (INTEGERP (spacing))
+		{
+		  extra_line_spacing = XINT (spacing);
+		  if (total)
+		    extra_line_spacing -= (it->phys_ascent + it->phys_descent);
+		}
 	    }
 	}
       else if (it->char_to_display == '\t')
@@ -21894,6 +21901,8 @@ syms_of_xdisp ()
   staticpro (&Qcenter);
   Qline_height = intern ("line-height");
   staticpro (&Qline_height);
+  Qtotal = intern ("total");
+  staticpro (&Qtotal);
   QCalign_to = intern (":align-to");
   staticpro (&QCalign_to);
   QCrelative_width = intern (":relative-width");

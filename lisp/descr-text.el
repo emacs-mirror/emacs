@@ -465,6 +465,7 @@ as well as widgets, buttons, overlays, and text properties."
   (if (>= pos (point-max))
       (error "No character follows specified position"))
   (let* ((char (char-after pos))
+	 (char-string (buffer-substring pos (1+ pos)))
 	 (charset (char-charset char))
 	 (buffer (current-buffer))
 	 (composition (find-composition pos nil nil t))
@@ -474,16 +475,11 @@ as well as widgets, buttons, overlays, and text properties."
 			    standard-display-table))
 	 (disp-vector (and display-table (aref display-table char)))
 	 (multibyte-p enable-multibyte-characters)
-	 text-prop-description
+	 (overlays (mapcar #'(lambda (o) (overlay-properties o))
+			   (overlays-at pos)))
 	 item-list max-width unicode)
     (if (eq charset 'unknown)
-	(setq item-list
-	      `(("character"
-		 ,(format "%s (0%o, %d, 0x%x) -- invalid character code"
-			  (if (< char 256)
-			      (single-key-description char)
-			    (char-to-string char))
-			  char char char))))
+	(setq item-list '("character"))
 
       (if (or (< char 256)
 	      (memq 'mule-utf-8 (find-coding-systems-region pos (1+ pos)))
@@ -491,14 +487,7 @@ as well as widgets, buttons, overlays, and text properties."
 	  (setq unicode (or (get-char-property pos 'untranslated-utf-8)
 			    (encode-char char 'ucs))))
       (setq item-list
-	    `(("character"
-	       ,(format "%s (0%o, %d, 0x%x%s)" (if (< char 256)
-						 (single-key-description char)
-					       (char-to-string char))
-			char char char
-			(if unicode
-			    (format ", U+%04X" unicode)
-			  "")))
+	    `(("character")
 	      ("charset"
 	       ,(symbol-name charset)
 	       ,(format "(%s)" (charset-description charset)))
@@ -583,18 +572,31 @@ as well as widgets, buttons, overlays, and text properties."
 		      (cons (list "Unicode data" " ") unicodedata))))))
     (setq max-width (apply #'max (mapcar #'(lambda (x) (length (car x)))
 					 item-list)))
-    (setq text-prop-description
-	  (with-temp-buffer
-	    (let ((buf (current-buffer)))
-	      (save-excursion
-		(set-buffer buffer)
-		(describe-text-properties pos buf)))
-	    (buffer-string)))
+    (pop item-list)
 
     (with-output-to-temp-buffer "*Help*"
       (with-current-buffer standard-output
 	(set-buffer-multibyte multibyte-p)
 	(let ((formatter (format "%%%ds:" max-width)))
+	  (insert (format formatter "character") " ")
+	  (setq pos (point))
+	  (insert char-string
+		  (format " (`%s', 0%o, %d, 0x%x"
+			  (if (< char 256)
+			      (single-key-description char)
+			    (char-to-string char))
+			  char char char)
+		  (if (eq charset 'unknown)
+		      ") -- invalid character code\n"
+		    (if unicode
+			(format ", U+%04X)\n" unicode)
+		      ")\n")))
+	  (mapc #'(lambda (props)
+		    (let ((o (make-overlay pos (1+ pos))))
+		      (while props
+			(overlay-put o (car props) (nth 1 props))
+			(setq props (cddr props)))))
+		overlays)
 	  (dolist (elt item-list)
 	    (when (cadr elt)
 	      (insert (format formatter (car elt)))
@@ -665,7 +667,7 @@ as well as widgets, buttons, overlays, and text properties."
 	  (insert "\nSee the variable `reference-point-alist' for "
 		  "the meaning of the rule.\n"))
 
-	(insert text-prop-description)
+	(describe-text-properties pos (current-buffer))
 	(describe-text-mode)))))
 
 (defalias 'describe-char-after 'describe-char)

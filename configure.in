@@ -170,15 +170,6 @@ if test `pwd` != `(cd ${srcdir} && pwd)` \
    use GNU make.  If you do not have GNU make, then you must
    now do `make distclean' in ${srcdir},
    and then run $0 again.]])
-
-[extrasub='/^VPATH[	 ]*=/c\
-vpath %.c $(srcdir)\
-vpath %.h $(srcdir)\
-vpath %.y $(srcdir)\
-vpath %.l $(srcdir)\
-vpath %.s $(srcdir)\
-vpath %.in $(srcdir)\
-vpath %.texi $(srcdir)']
 fi
 
 #### Given the configuration name, set machfile and opsysfile to the

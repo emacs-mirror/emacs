@@ -176,47 +176,48 @@ Cut buffers are considered obsolete; you should use selections instead."
 	(if coding
 	    (setq coding (coding-system-base coding))
 	  (setq coding 'raw-text))
-	;; Suppress producing escape sequences for compositions.
-	(remove-text-properties 0 (length str) '(composition nil) str)
-	(cond
-	 ((eq type 'TEXT)
-	  (if (not (multibyte-string-p str))
-	      ;; Don't have to encode unibyte string.
-	      (setq type 'STRING)
-	    ;; If STR contains only ASCII, Latin-1, and raw bytes,
-	    ;; encode STR by iso-latin-1, and return it as type
-	    ;; `STRING'.  Otherwise, encode STR by CODING.  In that
-	    ;; case, the returing type depends on CODING.
-	    (let ((charsets (find-charset-string str)))
-	      (setq charsets
-		    (delq 'ascii
-			  (delq 'latin-iso8859-1
-				(delq 'eight-bit-control
-				      (delq 'eight-bit-graphic charsets)))))
-	      (if charsets
-		  (setq str (encode-coding-string str coding)
-			type (if (memq coding '(compound-text
-						compound-text-with-extensions))
-				 'COMPOUND_TEXT
-			       'STRING))
-		(setq type 'STRING
-		      str (encode-coding-string str 'iso-latin-1))))))
+	(let ((inhibit-read-only t))
+	  ;; Suppress producing escape sequences for compositions.
+	  (remove-text-properties 0 (length str) '(composition nil) str)
+	  (cond
+	   ((eq type 'TEXT)
+	    (if (not (multibyte-string-p str))
+		;; Don't have to encode unibyte string.
+		(setq type 'STRING)
+	      ;; If STR contains only ASCII, Latin-1, and raw bytes,
+	      ;; encode STR by iso-latin-1, and return it as type
+	      ;; `STRING'.  Otherwise, encode STR by CODING.  In that
+	      ;; case, the returing type depends on CODING.
+	      (let ((charsets (find-charset-string str)))
+		(setq charsets
+		      (delq 'ascii
+			    (delq 'latin-iso8859-1
+				  (delq 'eight-bit-control
+					(delq 'eight-bit-graphic charsets)))))
+		(if charsets
+		    (setq str (encode-coding-string str coding)
+			  type (if (memq coding '(compound-text
+						  compound-text-with-extensions))
+				   'COMPOUND_TEXT
+				 'STRING))
+		  (setq type 'STRING
+			str (encode-coding-string str 'iso-latin-1))))))
 
-	 ((eq type 'COMPOUND_TEXT)
-	  (setq str (encode-coding-string str coding)))
+	   ((eq type 'COMPOUND_TEXT)
+	    (setq str (encode-coding-string str coding)))
 
-	 ((eq type 'STRING)
-	  (if (memq coding '(compound-text
-			     compound-text-with-extensions))
-	      (setq str (string-make-unibyte str))
-	    (setq str (encode-coding-string str coding))))
+	   ((eq type 'STRING)
+	    (if (memq coding '(compound-text
+			       compound-text-with-extensions))
+		(setq str (string-make-unibyte str))
+	      (setq str (encode-coding-string str coding))))
 
-	 ((eq type 'UTF8_STRING)
-	  (setq str (encode-coding-string str 'utf-8)))
+	   ((eq type 'UTF8_STRING)
+	    (setq str (encode-coding-string str 'utf-8)))
 
-	 (t
-	  (error "Unknow selection type: %S" type))
-	 ))
+	   (t
+	    (error "Unknow selection type: %S" type))
+	   )))
 
       (setq next-selection-coding-system nil)
       (cons type str))))

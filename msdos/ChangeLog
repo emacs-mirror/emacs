@@ -1,3 +1,7 @@
+2004-05-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed2v2.inp (HAVE_GETRUSAGE): Define.
+
 2003-09-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* mainmake.v2 (man lispref lispintro): Specify an explicit target

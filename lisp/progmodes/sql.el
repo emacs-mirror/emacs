@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Michael Mauger <mmaug@yahoo.com>
-;; Version: 2.0.0
+;; Version: 2.0.1
 ;; Keywords: comm languages processes
 ;; URL: http://savannah.gnu.org/cgi-bin/viewcvs/emacs/emacs/lisp/progmodes/sql.el
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?SqlMode
@@ -200,8 +200,11 @@
 ;; Gregor Zych <zych@pool.informatik.rwth-aachen.de>
 ;; nino <nino@inform.dk>
 ;; Berend de Boer <berend@pobox.com>
-;; Michael Mauger <mmaug@yahoo.com>
 ;; Adam Jenkins <adam@thejenkins.org>
+;; Michael Mauger <mmaug@yahoo.com> -- improved product support
+;; Drew Adams <drew.adams@oracle.com> -- Emacs 20 support
+;; Harald Maier <maierh@myself.com> -- sql-send-string
+;; Stefan Monnier <monnier@iro.umontreal.ca> -- font-lock corrections
 
 
 
@@ -693,18 +696,6 @@ Starts `sql-interactive-mode' after doing some setup."
 
 ;;; Variables which do not need customization
 
-(defvar sql-xemacs-p
-  (string-match "XEmacs\\|Lucid" emacs-version)
-  "Is this a non-GNU Emacs?")
-
-(defvar sql-emacs19-p
-  (string-match "GNU Emacs 19" emacs-version)
-  "Is this a GNU Emacs 19?")
-
-(defvar sql-emacs20-p
-  (string-match "20" emacs-version)
-  "Is this a GNU Emacs 20?")
-
 (defvar sql-user-history nil
   "History of usernames used.")
 
@@ -876,9 +867,7 @@ Based on `comint-mode-map'.")
     (modify-syntax-entry ?/ ". 14" table)
     (modify-syntax-entry ?* ". 23" table)
     ;; double-dash starts comment
-    (if sql-xemacs-p
-	(modify-syntax-entry ?- ". 56" table)
-      (modify-syntax-entry ?- ". 12b" table))
+    (modify-syntax-entry ?- ". 12b" table)
     ;; newline and formfeed end coments
     (modify-syntax-entry ?\n "> b" table)
     (modify-syntax-entry ?\f "> b" table)
@@ -904,25 +893,6 @@ Based on `comint-mode-map'.")
 The pattern matches the name in a CREATE, DROP or ALTER
 statement.  The format of variable should be a valid
 `font-lock-keywords' entry.")
-
-(defvar sql-builtin-face
-  (if sql-xemacs-p
-      ;; XEmacs doesn't have the builtin face
-      'font-lock-preprocessor-face
-    ;; GNU Emacs 19 doesn't either
-    (if sql-emacs19-p
-	'font-lock-keyword-face
-      ;; Emacs 2x
-      'font-lock-builtin-face))
-  "Builtin face for font-lock in SQL mode.")
-
-(defvar sql-doc-face
-  (if (or sql-xemacs-p
-	  sql-emacs19-p
-	  sql-emacs20-p)
-      'font-lock-string-face
-    'font-lock-doc-face)
-  "Documentation face for font-lock in SQL mode.")
 
 (defmacro sql-keywords-re (&rest keywords)
   "Compile-time generation of regexp matching any one of KEYWORDS."
@@ -1020,7 +990,7 @@ statement.  The format of variable should be a valid
 
     `((,ansi-non-reserved . font-lock-keyword-face)
       (,ansi-reserved     . font-lock-keyword-face)
-      (,ansi-funcs        . ,sql-builtin-face)
+      (,ansi-funcs        . font-lock-builtin-face)
       (,ansi-types        . font-lock-type-face)))
 
   "ANSI SQL keywords used by font-lock.
@@ -1230,11 +1200,11 @@ add functions and PL/SQL keywords.")
    "\\b.*$"
    ))))
 
-    `((,sqlplus-commands . ,sql-doc-face)
-      (,oracle-functions . ,sql-builtin-face)
+    `((,sqlplus-commands . font-lock-doc-face)
+      (,oracle-functions . font-lock-builtin-face)
       (,oracle-keywords  . font-lock-keyword-face)
       (,oracle-types     . font-lock-type-face)
-      (,plsql-functions  . ,sql-builtin-face)
+      (,plsql-functions  . font-lock-builtin-face)
       (,plsql-keywords   . font-lock-keyword-face)
       (,plsql-type       . font-lock-type-face)
       (,plsql-warning    . font-lock-warning-face)))
@@ -1323,7 +1293,7 @@ to add functions and PL/SQL keywords.")
 "timestamp" "varchar" "varying" "void" "zone"
 )))
 
-  `((,pg-funcs    . ,sql-builtin-face)
+  `((,pg-funcs    . font-lock-builtin-face)
     (,pg-reserved . font-lock-keyword-face)
     (,pg-types    . font-lock-type-face)))
 
@@ -1404,7 +1374,7 @@ you define your own sql-mode-postgres-font-lock-keywords.")
 
     `((,linter-keywords  . font-lock-keyword-face)
       (,linter-reserved  . font-lock-keyword-face)
-      (,linter-functions . ,sql-builtin-face)
+      (,linter-functions . font-lock-builtin-face)
       (,linter-types     . font-lock-type-face)))
 
   "Linter SQL keywords used by font-lock.
@@ -1507,9 +1477,9 @@ function `regexp-opt'.")
 ) t)
 		   "\\)\\)\\|go\\s-*\\|use\\s-+\\|setuser\\s-+\\|dbcc\\s-+\\).*$"))))
 
-    `((,ms-commands  . ,sql-doc-face)
+    `((,ms-commands  . font-lock-doc-face)
       (,ms-reserved  . font-lock-keyword-face)
-      (,ms-functions . ,sql-builtin-face)
+      (,ms-functions . font-lock-builtin-face)
       (,ms-vars      . font-lock-variable-name-face)
       (,ms-types     . font-lock-type-face)))
 
@@ -1626,7 +1596,7 @@ you define your own sql-mode-solid-font-lock-keywords.")
 "zerofill"
 )))
 
-    `((,mysql-funcs    . ,sql-builtin-face)
+    `((,mysql-funcs    . font-lock-builtin-face)
       (,mysql-keywords . font-lock-keyword-face)
       (,mysql-types    . font-lock-type-face)))
 
@@ -1687,16 +1657,35 @@ the product-specific keywords and syntax-alists defined in
     ;; Get the product-specific keywords.
     (setq sql-mode-font-lock-keywords
 	  (append
-	   (eval (sql-product-feature :font-lock))
+	   (unless (eq sql-product 'ansi)
+	     (eval (sql-product-feature :font-lock)))
+	   ;; Always highlight ANSI keywords
 	   (eval (sql-product-feature :font-lock 'ansi))
+	   ;; Fontify object names in CREATE, DROP and ALTER DDL
+	   ;; statements
 	   (list sql-mode-font-lock-object-name)))
 
-    ;; Setup font-lock.  (What is the minimum we should have to do
-    ;; here?)
-    (setq font-lock-set-defaults nil
-	  font-lock-keywords sql-mode-font-lock-keywords
-	  font-lock-defaults (list 'sql-mode-font-lock-keywords
+    ;; Setup font-lock.  Force re-parsing of `font-lock-defaults'.
+    (set (make-local-variable 'font-lock-set-defaults) nil)
+    (setq font-lock-defaults (list 'sql-mode-font-lock-keywords
 				   keywords-only t syntax-alist))
+
+    ;; Force font lock to reinitialize if it is already on
+    ;; Otherwise, we can wait until it can be started.
+    (when (and (fboundp 'font-lock-mode)
+	       font-lock-mode)
+      (font-lock-mode-internal nil)
+      (font-lock-mode-internal t))
+
+    (add-hook 'font-lock-mode-hook
+	      (lambda ()
+		;; Provide defaults for new font-lock faces.
+		(defvar font-lock-builtin-face
+		  (if (boundp 'font-lock-preprocessor-face)
+		      font-lock-preprocessor-face
+		    font-lock-keyword-face))
+		(defvar font-lock-doc-face font-lock-string-face))
+	      nil t)
 
     ;; Setup imenu; it needs the same syntax-alist.
     (when imenu
@@ -1743,11 +1732,6 @@ selected."
   (when (eq major-mode 'sql-mode)
     ;; Setup font-lock
     (sql-product-font-lock nil t)
-
-    ;; Force fontification, if its enabled.
-    (if (and (boundp 'font-lock-mode)
-	     font-lock-mode)
-	(font-lock-fontify-buffer))
 
     ;; Set the mode name to include the product.
     (setq mode-name (concat "SQL[" (prin1-to-string sql-product) "]"))))

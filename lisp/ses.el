@@ -983,7 +983,7 @@ be set to VALUE."
 	(ses-aset-with-undo (symbol-value def) elem value)
       (ses-set-with-undo def value))
     (let ((inhibit-read-only t)
-	  (fmt (plist-get '(ses--column-widths   "(ses-column-widths %S)"
+	  (fmt (plist-get '(ses--col-widths      "(ses-column-widths %S)"
 			    ses--col-printers    "(ses-column-printers %S)"
 			    ses--default-printer "(ses-default-printer %S)"
 			    ses--header-row      "(ses-header-row %S)"

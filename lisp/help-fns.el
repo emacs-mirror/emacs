@@ -181,7 +181,7 @@ ARGLIST can also be t or a string of the form \"(fun ARG1 ARG2 ...)\"."
   (unless (stringp doc) (setq doc "Not documented"))
   (if (or (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" doc) (eq arglist t))
       doc
-    (format "%s%s%s" doc
+    (format "%s%s%S" doc
 	    (if (string-match "\n?\n\\'" doc)
 		(if (< (- (match-end 0) (match-beginning 0)) 2) "\n" "")
 	      "\n\n")
@@ -236,6 +236,43 @@ KIND should be `var' for a variable or `subr' for a subroutine."
 	(if (string-match "\\.c\\'" file)
 	    (concat "src/" file)
 	  file)))))
+
+(defface help-argument-name '((t (:weight bold)))
+  "Face to highlight function arguments in docstrings.")
+
+(defun help-do-arg-highlight (doc args)
+  (while args
+    (let ((arg (prog1 (car args) (setq args (cdr args)))))
+      (setq doc (replace-regexp-in-string
+                 (concat "\\<\\(" arg "\\)\\(?:es\\|s\\|th\\)?\\>")
+                 (propertize arg 'face 'help-argument-name)
+                 doc t t 1))))
+  doc)
+
+(defun help-highlight-arguments (usage doc &rest args)
+  (when usage
+    (let ((case-fold-search nil)
+          (next (not args)))
+      ;; Make a list of all arguments
+      (with-temp-buffer
+        (insert usage)
+        (goto-char (point-min))
+        ;; Make a list of all arguments
+        (while next
+          (if (not (re-search-forward " \\([\\[(]?\\)\\([^] &)\.]+\\)" nil t))
+              (setq next nil)
+            (setq args (cons (match-string 2) args))
+            (when (string= (match-string 1) "(")
+              ;; A pesky CL-style optional argument with default value,
+              ;; so let's skip over it
+              (search-backward "(")
+              (goto-char (scan-sexps (point) 1)))))
+        ;; Highlight aguments in the USAGE string
+        (setq usage (help-do-arg-highlight (buffer-string) args)))
+      ;; Highlight arguments in the DOC string
+      (setq doc (and doc (help-do-arg-highlight doc args)))
+      ;; Return value is like the one from help-split-fundoc, but highlighted
+      (cons usage doc))))
 
 ;;;###autoload
 (defun describe-function-1 (function)
@@ -339,7 +376,7 @@ KIND should be `var' for a variable or `subr' for a subroutine."
 	  ;; FIXME: This list can be very long (f.ex. for self-insert-command).
 	  ;; If there are many, remove them from KEYS.
 	  (if (< (length non-modified-keys) 10)
-	      (princ (mapconcat 'key-description keys ", "))	      
+	      (princ (mapconcat 'key-description keys ", "))
 	    (dolist (key non-modified-keys)
 	      (setq keys (delq key keys)))
 	    (if keys
@@ -353,40 +390,44 @@ KIND should be `var' for a variable or `subr' for a subroutine."
     (let* ((arglist (help-function-arglist def))
 	   (doc (documentation function))
 	   (usage (help-split-fundoc doc function)))
-      ;; If definition is a keymap, skip arglist note.
-      (unless (keymapp def)
-	(princ (cond
-		(usage (setq doc (cdr usage)) (car usage))
-		((listp arglist) (help-make-usage function arglist))
-		((stringp arglist) arglist)
-		;; Maybe the arglist is in the docstring of the alias.
-		((let ((fun function))
-		   (while (and (symbolp fun)
-			       (setq fun (symbol-function fun))
-			       (not (setq usage (help-split-fundoc
-						 (documentation fun)
-						 function)))))
-		   usage)
-		 (car usage))
- 		((or (stringp def)
- 		     (vectorp def))
-		 (format "\nMacro: %s" (format-kbd-macro def)))
-		(t "[Missing arglist.  Please make a bug report.]")))
-	(terpri))
-      (let ((obsolete (and
-		       ;; function might be a lambda construct.
-		       (symbolp function)
-		       (get function 'byte-obsolete-info))))
-	(when obsolete
-	  (terpri)
-	  (princ "This function is obsolete")
-	  (if (nth 2 obsolete) (princ (format " since %s" (nth 2 obsolete))))
-	  (princ ";") (terpri)
-	  (princ (if (stringp (car obsolete)) (car obsolete)
-		   (format "use `%s' instead." (car obsolete))))
-	  (terpri)))
-      (terpri)
-      (princ (or doc "Not documented.")))))
+      (with-current-buffer standard-output
+        ;; If definition is a keymap, skip arglist note.
+        (unless (keymapp def)
+          (let* ((use (cond
+                        (usage (setq doc (cdr usage)) (car usage))
+                        ((listp arglist)
+                         (format "%S" (help-make-usage function arglist)))
+                        ((stringp arglist) arglist)
+                        ;; Maybe the arglist is in the docstring of the alias.
+                        ((let ((fun function))
+                           (while (and (symbolp fun)
+                                       (setq fun (symbol-function fun))
+                                       (not (setq usage (help-split-fundoc
+                                                         (documentation fun)
+                                                         function)))))
+                           usage)
+                         (car usage))
+                        ((or (stringp def)
+                             (vectorp def))
+                         (format "\nMacro: %s" (format-kbd-macro def)))
+                        (t "[Missing arglist.  Please make a bug report.]")))
+                 (high (help-highlight-arguments use doc)))
+            (insert (car high) "\n")
+            (setq doc (cdr high))))
+        (let ((obsolete (and
+                         ;; function might be a lambda construct.
+                         (symbolp function)
+                         (get function 'byte-obsolete-info))))
+          (when obsolete
+            (princ "\nThis function is obsolete")
+            (when (nth 2 obsolete)
+              (insert (format " since %s" (nth 2 obsolete))))
+            (insert ";\n"
+                    (if (stringp (car obsolete)) (car obsolete)
+                      (format "use `%s' instead." (car obsolete)))
+                    "\n"))
+          (insert "\n"
+                  (or doc "Not documented.")))))))
 
 
 ;; Variables

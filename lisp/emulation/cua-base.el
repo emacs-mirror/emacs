@@ -1039,7 +1039,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 	(set-cursor-color color))
     (if (and type
 	     (symbolp type)
-	     (not (eq type (frame-parameter nil 'cursor-type))))
+	     (not (eq type default-cursor-type)))
 	(setq default-cursor-type type))))
 
 
@@ -1336,6 +1336,7 @@ paste (in addition to the normal emacs bindings)."
 	(delete-selection-mode -1))
     (if (and (boundp 'pc-selection-mode) pc-selection-mode)
 	(pc-selection-mode -1))
+    (cua--deactivate)
     (setq transient-mark-mode (and cua-mode
 				   (if cua-highlight-region-shift-only
 				       (not cua--explicit-region-start)

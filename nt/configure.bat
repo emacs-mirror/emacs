@@ -294,13 +294,20 @@ rem   Check for external image libraries. Since they are loaded
 rem   dynamically, the libraries themselves do not need to be present
 rem   at compile time, but the header files are required.
 
+set mingwflag=
+
+if (%nocygwin%) == (N) goto flagsOK
+set mingwflag=-mno-cygwin
+
+:flagsOK
+
 if (%pngsupport%) == (N) goto pngDone
 
 echo Checking for libpng...
 echo #include "png.h" >junk.c
 echo main (){} >>junk.c
 rem   -o option is ignored with cl, but allows result to be consistent.
-%COMPILER% %usercflags% -c junk.c -o junk.obj >junk.out 2>junk.err
+%COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >junk.out 2>junk.err
 if exist junk.obj goto havePng
 
 echo ...png.h not found, building without PNG support.
@@ -320,7 +327,7 @@ echo Checking for jpeg-6b...
 echo #include "jconfig.h" >junk.c
 echo main (){} >>junk.c
 rem   -o option is ignored with cl, but allows result to be consistent.
-%COMPILER% %usercflags% -c junk.c -o junk.obj >junk.out 2>junk.err
+%COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >junk.out 2>junk.err
 if exist junk.obj goto haveJpeg
 
 echo ...jconfig.h not found, building without JPEG support.
@@ -340,7 +347,7 @@ echo Checking for libgif...
 echo #include "gif_lib.h" >junk.c
 echo main (){} >>junk.c
 rem   -o option is ignored with cl, but allows result to be consistent.
-%COMPILER% %usercflags% -c junk.c -o junk.obj >junk.out 2>junk.err
+%COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >junk.out 2>junk.err
 if exist junk.obj goto haveGif
 
 echo ...gif_lib.h not found, building without GIF support.
@@ -360,7 +367,7 @@ echo Checking for tiff...
 echo #include "tiffio.h" >junk.c
 echo main (){} >>junk.c
 rem   -o option is ignored with cl, but allows result to be consistent.
-%COMPILER% %usercflags% -c junk.c -o junk.obj >junk.out 2>junk.err
+%COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >junk.out 2>junk.err
 if exist junk.obj goto haveTiff
 
 echo ...tiffio.h not found, building without TIFF support.
@@ -381,7 +388,7 @@ echo #define FOR_MSW 1 >junk.c
 echo #include "X11/xpm.h" >>junk.c
 echo main (){} >>junk.c
 rem   -o option is ignored with cl, but allows result to be consistent.
-%COMPILER% %usercflags% -c junk.c -o junk.obj >junk.out 2>junk.err
+%COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >junk.out 2>junk.err
 if exist junk.obj goto haveXpm
 
 echo ...X11/xpm.h not found, building without XPM support.
@@ -466,6 +473,7 @@ set COMPILER=
 set MAKECMD=
 set usercflags=
 set userldflags=
+set mingwflag=
 
 goto skipArchTag
    arch-tag: 300d20a4-1675-4e75-b615-7ce1a8c5376c

@@ -90,7 +90,9 @@ DOCSTRING is an optional documentation string.
  But documentation strings are usually not useful in nameless functions.
 INTERACTIVE should be a call to the function `interactive', which see.
 It may also be omitted.
-BODY should be a list of Lisp expressions."
+BODY should be a list of Lisp expressions.
+
+\(fn ARGS [DOCSTRING] [INTERACTIVE] BODY)"
   ;; Note that this definition should not use backquotes; subr.el should not
   ;; depend on backquote.el.
   (list 'function (cons 'lambda cdr)))
@@ -161,7 +163,7 @@ the return value (nil if RESULT is omitted).
 (defmacro declare (&rest specs)
   "Do not evaluate any arguments and return nil.
 Treated as a declaration when used at the right place in a
-`defmacro' form.  \(See Info anchor `(elisp)Definition of declare'."
+`defmacro' form.  \(See Info anchor `(elisp)Definition of declare'.)"
   nil)
 
 (defsubst caar (x)
@@ -180,34 +182,34 @@ Treated as a declaration when used at the right place in a
   "Return the cdr of the cdr of X."
   (cdr (cdr x)))
 
-(defun last (x &optional n)
-  "Return the last link of the list X.  Its car is the last element.
-If X is nil, return nil.
-If N is non-nil, return the Nth-to-last link of X.
-If N is bigger than the length of X, return X."
+(defun last (list &optional n)
+  "Return the last link of LIST.  Its car is the last element.
+If LIST is nil, return nil.
+If N is non-nil, return the Nth-to-last link of LIST.
+If N is bigger than the length of LIST, return LIST."
   (if n
-      (let ((m 0) (p x))
+      (let ((m 0) (p list))
 	(while (consp p)
 	  (setq m (1+ m) p (cdr p)))
 	(if (<= n 0) p
-	  (if (< n m) (nthcdr (- m n) x) x)))
-    (while (consp (cdr x))
-      (setq x (cdr x)))
-    x))
+	  (if (< n m) (nthcdr (- m n) list) list)))
+    (while (consp (cdr list))
+      (setq list (cdr list)))
+    list))
 
-(defun butlast (x &optional n)
+(defun butlast (list &optional n)
   "Returns a copy of LIST with the last N elements removed."
-  (if (and n (<= n 0)) x
-    (nbutlast (copy-sequence x) n)))
+  (if (and n (<= n 0)) list
+    (nbutlast (copy-sequence list) n)))
 
-(defun nbutlast (x &optional n)
+(defun nbutlast (list &optional n)
   "Modifies LIST to remove the last N elements."
-  (let ((m (length x)))
+  (let ((m (length list)))
     (or n (setq n 1))
     (and (< n m)
 	 (progn
-	   (if (> n 0) (setcdr (nthcdr (- (1- m) n) x) nil))
-	   x))))
+	   (if (> n 0) (setcdr (nthcdr (- (1- m) n) list) nil))
+	   list))))
 
 (defun delete-dups (list)
   "Destructively remove `equal' duplicates from LIST.
@@ -1114,6 +1116,7 @@ FILE should be the name of a library, with no directory name."
   "Open a TCP connection for a service to a host.
 Returns a subprocess-object to represent the connection.
 Input and output work as for subprocesses; `delete-process' closes it.
+
 Args are NAME BUFFER HOST SERVICE.
 NAME is name for process.  It is modified if necessary to make it unique.
 BUFFER is the buffer (or buffer-name) to associate with the process.
@@ -1178,12 +1181,13 @@ does not use these function."
 
 ;; compatibility
 
+(make-obsolete 'process-kill-without-query
+               "use `process-query-on-exit-flag'\nor `set-process-query-on-exit-flag'."
+               "21.5")
 (defun process-kill-without-query (process &optional flag)
   "Say no query needed if PROCESS is running when Emacs is exited.
 Optional second argument if non-nil says to require a query.
-Value is t if a query was formerly required.
-New code should not use this function; use `process-query-on-exit-flag'
-or `set-process-query-on-exit-flag' instead."
+Value is t if a query was formerly required."
   (let ((old (process-query-on-exit-flag process)))
     (set-process-query-on-exit-flag process nil)
     old))
@@ -1693,26 +1697,27 @@ If UNDO is present and non-nil, it is a function that will be called
     (if (nth 4 handler) ;; COMMAND
 	(setq this-command (nth 4 handler)))))
 
-(defun insert-buffer-substring-no-properties (buf &optional start end)
-  "Insert before point a substring of buffer BUFFER, without text properties.
+(defun insert-buffer-substring-no-properties (buffer &optional start end)
+  "Insert before point a substring of BUFFER, without text properties.
 BUFFER may be a buffer or a buffer name.
 Arguments START and END are character numbers specifying the substring.
 They default to the beginning and the end of BUFFER."
   (let ((opoint (point)))
-    (insert-buffer-substring buf start end)
+    (insert-buffer-substring buffer start end)
     (let ((inhibit-read-only t))
       (set-text-properties opoint (point) nil))))
 
-(defun insert-buffer-substring-as-yank (buf &optional start end)
-  "Insert before point a part of buffer BUFFER, stripping some text properties.
-BUFFER may be a buffer or a buffer name.  Arguments START and END are
-character numbers specifying the substring.  They default to the
-beginning and the end of BUFFER.  Strip text properties from the
-inserted text according to `yank-excluded-properties'."
+(defun insert-buffer-substring-as-yank (buffer &optional start end)
+  "Insert before point a part of BUFFER, stripping some text properties.
+BUFFER may be a buffer or a buffer name.
+Arguments START and END are character numbers specifying the substring.
+They default to the beginning and the end of BUFFER.
+Strip text properties from the inserted text according to
+`yank-excluded-properties'."
   ;; Since the buffer text should not normally have yank-handler properties,
   ;; there is no need to handle them here.
   (let ((opoint (point)))
-    (insert-buffer-substring buf start end)
+    (insert-buffer-substring buffer start end)
     (remove-yank-excluded-properties opoint (point))))
 
 
@@ -2073,7 +2078,7 @@ which separates, but is not part of, the substrings.  If nil it defaults to
 `split-string-default-separators', normally \"[ \\f\\t\\n\\r\\v]+\", and
 OMIT-NULLS is forced to t.
 
-If OMIT-NULLs is t, zero-length substrings are omitted from the list \(so
+If OMIT-NULLS is t, zero-length substrings are omitted from the list \(so
 that for the default value of SEPARATORS leading and trailing whitespace
 are effectively trimmed).  If nil, all zero-length substrings are retained,
 which correctly parses CSV format, for example.
