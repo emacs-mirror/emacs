@@ -664,7 +664,7 @@ a case-insensitive match is tried."
           ;; Search file for a suitable node.
 	  (let ((guesspos (point-min))
 		(regexp (concat "\\(Node:\\|Ref:\\) *\\("
-				(if (stringp nodename) 
+				(if (stringp nodename)
 				    (regexp-quote nodename)
 				  "")
 				"\\) *[,\t\n\177]"))
@@ -2309,10 +2309,11 @@ Advanced commands:
 (defun Info-clone-buffer-hook ()
   (when (bufferp Info-tag-table-buffer)
     (setq Info-tag-table-buffer
-	  (with-current-buffer Info-tag-table-buffer (clone-buffer)))
-    (let ((m Info-tag-table-marker))
+	  (with-current-buffer Info-tag-table-buffer (clone-buffer))))
+  (let ((m Info-tag-table-marker))
+    (when (markerp m)
       (setq Info-tag-table-marker
-	    (if (and (markerp m) (marker-position m))
+	    (if (and (marker-position m) (bufferp Info-tag-table-buffer))
 		(with-current-buffer Info-tag-table-buffer
 		  (copy-marker (marker-position m)))
 	      (make-marker))))))
