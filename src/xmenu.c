@@ -2427,20 +2427,16 @@ popup_selection_callback (widget, client_data)
   if (cb_data) menu_item_selection = (Lisp_Object *) cb_data->call_data;
 }
 
-static GtkWidget *current_menu;
-
 static Lisp_Object
-pop_down_menu (dummy)
-     Lisp_Object dummy;
+pop_down_menu (arg)
+     Lisp_Object arg;
 {
+  struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
+
   popup_activated_flag = 0;
-  if (current_menu)
-    {
-      BLOCK_INPUT;
-      gtk_widget_destroy (current_menu);
-      UNBLOCK_INPUT;
-      current_menu = 0;
-    }
+  BLOCK_INPUT;
+  gtk_widget_destroy (GTK_WIDGET (p->pointer));
+  UNBLOCK_INPUT;
   return Qnil;
 }
 
@@ -2490,8 +2486,8 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
   gtk_widget_show_all (menu);
   gtk_menu_popup (GTK_MENU (menu), 0, 0, pos_func, &popup_x_y, i, 0);
 
-  current_menu = menu;
-  record_unwind_protect (pop_down_menu, Qnil);
+  fprintf (stderr, "Unwind: %p\n", menu);
+  record_unwind_protect (pop_down_menu, make_save_value (menu, 0));
 
   /* Set this to one.  popup_widget_loop increases it by one, so it becomes
      two.  show_help_echo uses this to detect popup menus.  */
@@ -2925,8 +2921,7 @@ create_and_show_dialog (f, first_wv)
   if (menu)
     {
       int specpdl_count = SPECPDL_INDEX ();
-      current_menu = menu;
-      record_unwind_protect (pop_down_menu, Qnil);
+      record_unwind_protect (pop_down_menu, make_save_value (menu, 0));
 
       /* Display the menu.  */
       gtk_widget_show_all (menu);
@@ -3217,24 +3212,22 @@ menu_help_callback (help_string, pane, item)
  		  Qnil, menu_object, make_number (item), 1);
 }
 
-static XMenu *current_menu;
-
 static Lisp_Object
-pop_down_menu (frame)
-     Lisp_Object frame;
+pop_down_menu (arg)
+     Lisp_Object arg;
 {
-  struct frame *f = XFRAME (frame);
+  struct Lisp_Save_Value *p1 = XSAVE_VALUE (Fcar (arg));
+  struct Lisp_Save_Value *p2 = XSAVE_VALUE (Fcdr (arg));
+  
+  FRAME_PTR f = p1->pointer;
+  XMenu *menu = p2->pointer;
 
   BLOCK_INPUT;
-  if (current_menu)
-    {
 #ifndef MSDOS
-      XUngrabPointer (FRAME_X_DISPLAY (f), CurrentTime);
-      XUngrabKeyboard (FRAME_X_DISPLAY (f), CurrentTime);
+  XUngrabPointer (FRAME_X_DISPLAY (f), CurrentTime);
+  XUngrabKeyboard (FRAME_X_DISPLAY (f), CurrentTime);
 #endif
-      XMenuDestroy (FRAME_X_DISPLAY (f), current_menu);
-      current_menu = 0;
-    }
+  XMenuDestroy (FRAME_X_DISPLAY (f), menu);
 
 #ifdef HAVE_X_WINDOWS
   /* Assume the mouse has moved out of the X window.
@@ -3267,7 +3260,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   Window root;
   XMenu *menu;
   int pane, selidx, lpane, status;
-  Lisp_Object entry, pane_prefix, frame;
+  Lisp_Object entry, pane_prefix;
   char *datap;
   int ulx, uly, width, height;
   int dispwidth, dispheight;
@@ -3469,13 +3462,13 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   XMenuActivateSetWaitFunction (x_menu_wait_for_event, FRAME_X_DISPLAY (f));
 #endif
   
-  XSETFRAME (frame, f);
-  record_unwind_protect (pop_down_menu, frame);
+  record_unwind_protect (pop_down_menu,
+                         Fcons (make_save_value (f, 0),
+                                make_save_value (menu, 0)));
 
   /* Help display under X won't work because XMenuActivate contains
      a loop that doesn't give Emacs a chance to process it.  */
   menu_help_frame = f;
-  current_menu = menu;
   status = XMenuActivate (FRAME_X_DISPLAY (f), menu, &pane, &selidx,
                           x, y, ButtonReleaseMask, &datap,
                           menu_help_callback);
