@@ -712,7 +712,7 @@ Relative ones are stored relative to the output file's directory.");
 	REGEXP is anchored (as if preceded by ^).\n\
 	The form /REGEXP/NAME/ creates a named tag.\n\
 	For example Tcl named tags can be created with:\n\
-	--regex=/proc[ \\t]+\\([^ \\t]+\\)/\\1/.");
+	--regex=\"/proc[ \\t]+\\([^ \\t]+\\)/\\1/.\"");
   puts ("-c /REGEXP/, --ignore-case-regex=/REGEXP/ or --ignore-case-regex=@regexfile\n\
         Like -r, --regex but ignore case when matching expressions.");
   puts ("-R, --no-regex\n\
