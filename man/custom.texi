@@ -1946,7 +1946,7 @@ loaded.
 @file{site-start.el}, if it exists.  Like @file{default.el}, Emacs
 finds this file via the standard search path for Lisp libraries.
 Emacs loads this library before it loads your init file.  To inhibit
-loading of this library, use the option @samp{-no-site-file}.
+loading of this library, use the option @samp{--no-site-file}.
 @xref{Initial Options}.
 
   You can place @file{default.el} and @file{site-start.el} in any of
