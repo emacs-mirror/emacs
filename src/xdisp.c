@@ -190,6 +190,9 @@ Boston, MA 02111-1307, USA.  */
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #endif
+#ifdef WINDOWSNT
+#include "w32term.h"
+#endif
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))

@@ -1,3 +1,33 @@
+2000-02-06  Andrew Innes  <andrewi@gnu.org>
+
+	* dispextern.h: Change HAVE_X_WINDOWS to HAVE_WINDOW_SYSTEM,
+	around image definitions and prototypes.
+	(gamma_correct) [WINDOWSNT]: New prototype.
+
+	* w32term.c (x_make_frame_visible): Replace call to
+	input_poll_signal with poll_for_input.
+
+	* window.c [WINDOWSNT]: Include w32term.h.
+
+	* xdisp.c [WINDOWSNT]: Include w32term.h.
+
+	* makefile.nt: Add dependencies on w32gui.h.
+	(OBJ1): Include atimer.obj.
+	($(BLD)\atimer.obj): New dependency rule.
+
+	* w32.c (sigmask): New function (does nothing).
+	(sigunblock): Ditto.
+
+	* frame.c [WINDOWSNT]: Include w32term.h.
+
+	* w32gui.h (struct W32FontStruct): Add ascent and descent slots.
+
+	* lread.c (syms_of_lread): Fix literal newlines.
+
+	* emacs.c (USAGE): Split into USAGE1 and USAGE2, to work-around
+	the string constant limit (2048 bytes) in MSVC.
+	(main): Ditto.
+
 2000-02-05  INOUE Seiichiro <inoue@ainet.or.jp>
 
 	* xterm.c (x_display_and_set_cursor) [HAVE_X_I18N]: Set pre-edit

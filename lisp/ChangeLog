@@ -1,3 +1,10 @@
+2000-02-06  Andrew Innes  <andrewi@gnu.org>
+
+	* term/w32-win.el (x-handle-args): Comment out call to message,
+	which occurs before window system is initialized.
+
+	* makefile.nt: Add support for recompiling lisp code.
+
 2000-02-04  Dave Love  <fx@gnu.org>
 
 	* bindings.el (mode-line-mule-info): Fix/extend last change.

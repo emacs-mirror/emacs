@@ -1,3 +1,9 @@
+2000-02-06  Andrew Innes  <andrewi@gnu.org>
+
+	* inc/sys/time.h: Add inclusion protection.
+
+	* makefile.def (SYS_LDFLAGS): Add -nologo.
+
 1999-11-22  Andrew Innes  <andrewi@gnu.org>
 
 	* install.bat: Pass on command line arguments to make.

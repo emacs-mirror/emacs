@@ -9,3 +9,5 @@ temacs
 emacs
 emacs-*
 *.core
+obj
+obj-spd
