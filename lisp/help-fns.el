@@ -65,6 +65,8 @@ With ARG, you are asked to choose which language."
       (insert-file-contents (expand-file-name filename data-directory))
       (hack-local-variables)
       (goto-char (point-min))
+      ;; The first line conventionally contains the title.
+      (delete-region (point) (progn (forward-line 1) (point)))
       (search-forward "\n<<")
       (beginning-of-line)
       ;; Convert the <<...>> line to the proper [...] line,
