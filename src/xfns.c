@@ -4897,10 +4897,6 @@ x_sync (f)
 
 static struct image_type *image_types;
 
-/* A list of symbols, one for each supported image type.  */
-
-Lisp_Object Vimage_types;
-
 /* The symbol `image' which is the car of the lists used to represent
    images in Lisp.  */
 
@@ -10311,11 +10307,6 @@ When an image has not been displayed this many seconds, remove it\n\
 from the image cache.  Value must be an integer or nil with nil\n\
 meaning don't clear the cache.");
   Vimage_cache_eviction_delay = make_number (30 * 60);
-
-  DEFVAR_LISP ("image-types", &Vimage_types,
-     "List of supported image types.\n\
-Each element of the list is a symbol for a supported image type.");
-  Vimage_types = Qnil;
 
 #ifdef USE_X_TOOLKIT
   Fprovide (intern ("x-toolkit"));
