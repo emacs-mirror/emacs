@@ -1,4 +1,4 @@
-;;; mule.el --- basic commands for mulitilingual environment
+;;; mule.el --- basic commands for multilingual environment
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -48,7 +48,7 @@ Distribution date of this version of MULE (multilingual environment).")
 (defun define-charset (name docstring &rest props)
   "Define NAME (symbol) as a charset with DOCSTRING.
 The remaining arguments must come in pairs ATTRIBUTE VALUE.  ATTRIBUTE
-may be any symbol.  The followings have special meanings, and one of
+may be any symbol.  The following have special meanings, and one of
 `:code-offset', `:map', `:parents' must be specified.
 
 `:short-name'
@@ -59,20 +59,20 @@ NAME is used.
 `:long-name'
 
 VALUE must be a string longer than `:short-name' to identify the
-charset.  If omitted, the value of `:short-name' attribute is used.
+charset.  If omitted, the value of the `:short-name' attribute is used.
 
 `:dimension'
 
 VALUE must be an integer 0, 1, 2, or 3, specifying the dimension of
-code-points of the charsets.  If omitted, it is calculated from a
-value of `:code-space' attribute.
+code-points of the charsets.  If omitted, it is calculated from the
+value of the `:code-space' attribute.
 
 `:code-space'
 
 VALUE must be a vector of length at most 8 specifying the byte code
 range of each dimension in this format:
 	[ MIN-1 MAX-1 MIN-2 MAX-2 ... ]
-where, MIN-N is the minimum byte value of Nth dimension of code-point,
+where MIN-N is the minimum byte value of Nth dimension of code-point,
 MAX-N is the maximum byte value of that.
 
 `:iso-final-char'
@@ -94,14 +94,14 @@ can't be encoded by coding-systems of type `emacs-mule'.
 
 `:ascii-compatible-p'
 
-VALUE must be nil or t.  If the VALUE is nil, the charset is a not
-compatible with ASCII.  The default value is nil.
+VALUE must be nil or t (default nil).  If VALUE is t, the charset is
+compatible with ASCII, i.e. the first 128 code points map to ASCII.
 
 `:supplementary-p'
 
 VALUE must be nil or t.  If the VALUE is t, the charset is
-supplementary, which means the charset is used only as a parent of
-some other charset.
+supplementary, which means it is used only as a parent of some other
+charset.
 
 `:invalid-code'
 
@@ -112,8 +112,8 @@ should not be omitted.
 
 `:code-offset'
 
-VALUE must be an integer added to an index number of character to get
-the corresponding character code.
+VALUE must be an integer added to the index number of a character to
+get the corresponding character code.
 
 `:map'
 
@@ -121,7 +121,7 @@ VALUE must be vector or string.
 
 If it is a vector, the format is [ CODE-1 CHAR-1 CODE-2 CHAR-2 ... ],
 where CODE-n is a code-point of the charset, and CHAR-n is the
-corresponding charcter code.
+corresponding character code.
 
 If it is a string, it is a name of file that contains the above
 information.   Each line of the file must be this format:
@@ -144,7 +144,7 @@ VALUE must be vector or string.
 
 If it is a vector, the format is [ CODE-1 CHAR-1 CODE-2 CHAR-2 ... ],
 where CODE-n is a code-point of the charset, and CHAR-n is the
-corresponding Unicode charcter code.
+corresponding Unicode character code.
 
 If it is a string, it is a name of file that contains the above
 information.  The file format is the same as what described for `:map'
@@ -311,10 +311,12 @@ It can be retrieved with `(get-charset-property CHARSET PROPNAME)'."
 This function is provided for backward compatibility.
 Now we have the variable `charset-list'."
   charset-list)
+(make-obsolete 'charset-list "Use variable `charset-list'" "22.1")
 
 (defun generic-char-p (char)
   "Always return nil.  This exists only for backward compatibility."
   nil)
+(make-obsolete 'generic-char-p "Generic characters no longer exist" "22.1")
 
 ;; Coding system stuff
 
@@ -428,8 +430,8 @@ selected.
 `:ascii-compatible-p' (optional)
 
 If VALUE is non-nil, the coding system decodes all 7-bit bytes into
-the correponding ASCII characters, and encodes all ASCII characters
-back to the correponding 7-bit bytes.  If omitted, the VALUE defaults
+the corresponding ASCII characters, and encodes all ASCII characters
+back to the corresponding 7-bit bytes.  If omitted, the VALUE defaults
 to nil.
 
 `:decode-translation-table' (optional)
@@ -488,15 +490,15 @@ GN-USAGE specifies the usage of graphic register GN as follows.
 
 If it is nil, no charset can be designated to GN.
 
-If it is a charset, the charset is initially designaged to GN, and
+If it is a charset, the charset is initially designated to GN, and
 never used by the other charsets.
 
 If it is a list, the elements must be charsets, nil, 94, or 96.  GN
 can be used by all listed charsets.  If the list contains 94, any
-charsets whose iso-chars is 94 can be designaged to GN.  If the list
-contains 96, any charsets whose iso-chars is 96 can be designaged to
+charsets whose iso-chars is 94 can be designated to GN.  If the list
+contains 96, any charsets whose iso-chars is 96 can be designated to
 GN.  If the first element is a charset, the charset is initially
-designaged to GN.
+designated to GN.
 
 This attribute has a meaning only when `:coding-type' is `iso-2022'.
 
@@ -616,14 +618,19 @@ See the function `define-coding-system' for more detail."
   (plist-get (coding-system-plist coding-system) :coding-type))
 
 (defun coding-system-charset-list (coding-system)
-  "Return list of charsets supported by COIDNG-SYSTEM.
+  "Return list of charsets supported by CODING-SYSTEM.
 If CODING-SYSTEM supports all ISO-2022 charsets, return `iso-2022'.
 If CODING-SYSTEM supports all emacs-mule charsets, return `emacs-mule'."
   (plist-get (coding-system-plist coding-system) :charset-list))
 
 (defun coding-system-get (coding-system prop)
-  "Extract a value from CODING-SYSTEM's property list for property PROP."
-  (plist-get (coding-system-plist coding-system) prop))
+  "Extract a value from CODING-SYSTEM's property list for property PROP.
+For compatibility with Emacs 20/21, this accepts old-style symbols
+like `mime-charset' as well as the current style like `:mime-charset'."
+  (or (plist-get (coding-system-plist coding-system) prop)
+      (if (not (keywordp prop))
+	  (plist-get (coding-system-plist coding-system)
+		     (intern (concat ":" (symbol-name prop)))))))
 
 (defun coding-system-put (coding-system prop val)
   "Change value in CODING-SYSTEM's property list PROP to VAL."
@@ -877,7 +884,9 @@ Now we have more convenient function `set-coding-system-priority'."
       (setq l (cdr l)))
     ;; Update `coding-category-list' and return it.
     (setq coding-category-list (append arg current-list))
+    ;; Fixme: not defined.
     (set-coding-priority-internal)))
+(make-obsolete 'set-coding-priority 'set-coding-system-priority "22.1")
 
 ;;; X selections
 
@@ -1477,6 +1486,7 @@ the table in `translation-table-vector'."
 (put 'with-category-table 'lisp-indent-function 1)
 
 (defmacro with-category-table (category-table &rest body)
+  "Execute BODY like `progn' with CATEGORY-TABLE the current category table."
   `(let ((current-category-table (category-table)))
      (set-category-table ,category-table)
      (unwind-protect
