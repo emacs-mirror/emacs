@@ -1,5 +1,8 @@
 2001-01-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (display_line): Simplify check for glyphs fitting
+	entirely in the line.
+
 	* xfns.c (xic_style): New variable.
 	(create_frame_xic): Move static variable to global scope for
 	the case that `static' get's defined away.

@@ -1,3 +1,10 @@
+2001-01-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* ebrowse.c (matching_regexp_buffer, matching_regexp_end_buf): 
+	New variables.
+	(matching_regexp): Use them instead of static variables in
+	function scope.
+
 2001-01-25  Francesco Potorti`  <pot@potorti.it>
 
 	* etags.c (struct tok): Renamed from struct token.
