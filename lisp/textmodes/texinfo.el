@@ -317,14 +317,17 @@ chapter."
   "Syntactic keywords to catch comment delimiters in `texinfo-mode'.")
 
 (defconst texinfo-environments
-  '("cartouche" "defcv" "deffn" "defivar" "defmac" "defmethod" "defop"
-    "defopt" "defspec" "deftp" "deftypefn" "deftypefun" "deftypevar"
-    "deftypevr" "defun" "defvar" "defvr" "description" "detailmenu"
-    "direntry" "display" "enumerate" "example" "flushleft" "flushright"
-    "format" "ftable" "group" "ifclear" "ifset" "ifhtml" "ifinfo"
-    "ifnothtml" "ifnotinfo" "ifnottex" "iftex" "ignore" "itemize" "lisp"
-    "macro" "menu" "multitable" "quotation" "smalldisplay" "smallexample"
-    "smallformat" "smalllisp" "table" "tex" "titlepage" "vtable")
+  '("cartouche" "copying" "defcv" "deffn" "defivar" "defmac" 
+    "defmethod" "defop" "defopt" "defspec" "deftp" "deftypefn"
+    "deftypefun" "deftypevar" "deftypevr" "defun" "defvar"
+    "defvr" "description" "detailmenu" "direntry" "display"
+    "documentdescription" "enumerate" "example" "flushleft"
+    "flushright" "format" "ftable" "group" "ifclear" "ifset"
+    "ifhtml" "ifinfo" "ifnothtml" "ifnotinfo" "ifnotplaintext"
+    "ifnottex" "ifplaintext" "iftex" "ignore" "itemize" "lisp"
+    "macro" "menu" "multitable" "quotation" "smalldisplay"
+    "smallexample" "smallformat" "smalllisp" "table" "tex"
+    "titlepage" "verbatim" "vtable")
   "List of TeXinfo environments.")
 
 (defconst texinfo-environment-regexp
