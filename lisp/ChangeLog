@@ -1,3 +1,7 @@
+2002-07-16  Juanma Barranquero  <lektu@terra.es>
+
+	* timer.el (timer-set-time, timer-set-time-with-usecs): Fix docstring.
+
 2002-07-12  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/timeclock.el (timeclock-get-workday-function): 

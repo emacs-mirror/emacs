@@ -45,7 +45,7 @@
 (defun timer-set-time (timer time &optional delta)
   "Set the trigger time of TIMER to TIME.
 TIME must be in the internal format returned by, e.g., `current-time'.
-If optional third argument DELTA is a non-zero integer, make the timer
+If optional third argument DELTA is a positive number, make the timer
 fire repeatedly that many seconds apart."
   (or (timerp timer)
       (error "Invalid timer"))
@@ -138,7 +138,7 @@ SECS may be a fraction."
   "Set the trigger time of TIMER to TIME plus USECS.
 TIME must be in the internal format returned by, e.g., `current-time'.
 The microsecond count from TIME is ignored, and USECS is used instead.
-If optional fourth argument DELTA is a non-zero integer, make the timer
+If optional fourth argument DELTA is a positive number, make the timer
 fire repeatedly that many seconds apart."
   (or (timerp timer)
       (error "Invalid timer"))
