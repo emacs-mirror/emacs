@@ -1,7 +1,7 @@
 2004-03-31  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* autorevert.el: Delete obsolete autoload's and defvar's.
-	(auto-revert-check-vc-info): New variable.
+	(auto-revert-check-vc-info): New user option.
 	(auto-revert-vc-cvs-file-version, auto-revert-vc-buffer-p)
 	(auto-revert-handler-vc): Delete.
 	(auto-revert-handler): Treat return value `fast' of
