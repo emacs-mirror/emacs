@@ -36,6 +36,8 @@
 ;; global bar in modes which have `special' as their `mode-class'
 ;; properlty.)
 
+;; Todo: Somehow make tool bars easily customizable by the naive?
+
 ;;; Code:
 
 ;;;###autoload
@@ -60,7 +62,9 @@ conveniently adding tool bar items."
       (if elt
 	  (setcdr elt lines)
 	(add-to-list 'default-frame-alist (cons 'tool-bar-lines lines)))))
-  (if (and tool-bar-mode (display-graphic-p))
+  (if (and tool-bar-mode
+	   (display-graphic-p)
+	   (= 1 (length (default-value 'tool-bar-map)))) ; not yet setup
       (tool-bar-setup)))
 
 (defvar tool-bar-map (make-sparse-keymap)
