@@ -20,6 +20,8 @@
 	* charset.c (Fdefine_charset_internal): Fix bug for the case of
 	re-defining a charset.  If the charset has :emacs-mule-id, setup
 	emacs_mule_bytes.
+	(Fmake_char): If CODE1 is nil, use the minimum code of the
+	charset.
 
 2002-05-20  Kenichi Handa  <handa@etl.go.jp>
 
