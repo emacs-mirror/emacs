@@ -1824,6 +1824,9 @@ redisplay_region (buf, start, end)
      we must do other windows.  */
   if (buf != XBUFFER (XWINDOW (selected_window)->buffer))
     windows_or_buffers_changed = 1;
+  /* If it's not current, we can't use beg_unchanged, end_unchanged for it.  */
+  else if (buf != current_buffer)
+    windows_or_buffers_changed = 1;
   /* If multiple windows show this buffer, we must do other windows.  */
   else if (buffer_shared > 1)
     windows_or_buffers_changed = 1;
