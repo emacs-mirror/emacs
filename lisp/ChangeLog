@@ -1,3 +1,10 @@
+2004-02-16  Alfred M. Szmidt  <ams@kemisten.nu>  (tiny change)
+
+	* progmodes/compile.el (compilation-directory): New defvar.
+	(compile): Save current directory in compilation-directory.
+	(recompile): Bind default-directory to compilation-directory if
+	that is non-nil.
+
 2004-02-16  Dave Love  <fx@gnu.org>
 
 	* newcomment.el (comment-insert-comment-function) 
