@@ -1,3 +1,8 @@
+2005-01-18  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_iso2022): Translate invalid codes if
+	translation-table is specified.
+
 2005-01-18  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (back_to_previous_visible_line_start): Undo 2004-12-28
