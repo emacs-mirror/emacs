@@ -1,5 +1,11 @@
 2004-08-01  John Paul Wallington  <jpw@gnu.org>
 
+	* printing.el (toplevel, pr-ps-fast-fire, pr-ps-set-utility)
+	(pr-ps-set-printer, pr-txt-set-printer, pr-eval-setting-alist)
+	(pr-switches): Remove period from end of error messages.
+
+	* help-mode.el (help-go-back): Likewise.
+
 	* abbrev.el (only-global-abbrevs): Doc fix.
 	(edit-abbrevs-map): Define within defvar.
 	(quietly-read-abbrev-file): Doc fix.
