@@ -265,7 +265,7 @@
 
   ;; misc
   (autoload 'ediff-show-registry
-    "ediff-meta"
+    "ediff-mult"
     "Display the registry of active Ediff sessions"
     t)
   (autoload 'ediff-version
