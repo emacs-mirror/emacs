@@ -1493,12 +1493,7 @@ typedef struct
 
 /* Return, freeing storage we allocated.  */
 #define FREE_STACK_RETURN(value)		\
-do						\
-{						\
-  free (compile_stack.stack);			\
-  return value;					\
-}						\
-while (1)
+  return (free (compile_stack.stack), value)
 
 static reg_errcode_t
 regex_compile (pattern, size, syntax, bufp)
@@ -4298,7 +4293,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 #endif
 
                 if ((re_opcode_t) p1[3] == exactn
-		    && ! (p2[1] * BYTEWIDTH > p1[4]
+		    && ! ((int) p2[1] * BYTEWIDTH > (int) p1[4]
 			  && (p2[1 + p1[4] / BYTEWIDTH]
 			      & (1 << (p1[4] % BYTEWIDTH)))))
                   {
@@ -4312,9 +4307,9 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		    int idx;
 		    /* We win if the charset_not inside the loop
 		       lists every character listed in the charset after.  */
-		    for (idx = 0; idx < p2[1]; idx++)
+		    for (idx = 0; idx < (int) p2[1]; idx++)
 		      if (! (p2[2 + idx] == 0
-			     || (idx < p1[4]
+			     || (idx < (int) p1[4]
 				 && ((p2[2 + idx] & ~ p1[5 + idx]) == 0))))
 			break;
 
@@ -4329,7 +4324,9 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		    int idx;
 		    /* We win if the charset inside the loop
 		       has no overlap with the one after the loop.  */
-		    for (idx = 0; idx < p2[1] && idx < p1[4]; idx++)
+		    for (idx = 0;
+			 idx < (int) p2[1] && idx < (int) p1[4];
+			 idx++)
 		      if ((p2[2 + idx] & p1[5 + idx]) != 0)
 			break;
 
