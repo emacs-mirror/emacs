@@ -940,20 +940,20 @@ If there is no such live buffer, return nil."
 		  (setq found (car list))))
 	    (setq list (cdr list)))
 	  found)
-	(let ((number (nthcdr 10 (file-attributes truename)))
-	      (list (buffer-list)) found)
+	(let* ((attributes (file-attributes truename))
+	       (number (nthcdr 10 attributes))
+	       (list (buffer-list)) found)
 	  (and buffer-file-numbers-unique
 	       number
 	       (while (and (not found) list)
-		 (save-excursion
-		   (set-buffer (car list))
+		 (with-current-buffer (car list)
 		   (if (and buffer-file-name
 			    (equal buffer-file-number number)
 			    ;; Verify this buffer's file number
 			    ;; still belongs to its file.
 			    (file-exists-p buffer-file-name)
-			    (equal (nthcdr 10 (file-attributes buffer-file-name))
-				   number))
+			    (equal (file-attributes buffer-file-name)
+				   attributes))
 		       (setq found (car list))))
 		 (setq list (cdr list))))
 	  found))))
@@ -1170,7 +1170,7 @@ that are visiting the various files."
   "Like `insert-file-contents', but only reads in the file literally.
 A buffer may be modified in several ways after reading into the buffer,
 to Emacs features such as format decoding, character code
-conversion, find-file-hooks, automatic uncompression, etc.
+conversion, `find-file-hooks', automatic uncompression, etc.
 
 This function ensures that none of these modifications will take place."
   (let ((format-alist nil)
@@ -1382,7 +1382,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\(/\\|\\`\\)\\.\\(bash_profile\\|z?login\\|bash_login\\|z?logout\\)\\'" . sh-mode)
      ("\\(/\\|\\`\\)\\.\\(bash_logout\\|shrc\\|[kz]shrc\\|bashrc\\|t?cshrc\\|esrc\\)\\'" . sh-mode)
      ("\\(/\\|\\`\\)\\.\\([kz]shenv\\|xinitrc\\|startxrc\\|xsession\\)\\'" . sh-mode)
-     ("\\.m?spec$" . sh-mode)
+     ("\\.m?spec\\'" . sh-mode)
      ("\\.mm\\'" . nroff-mode)
      ("\\.me\\'" . nroff-mode)
      ("\\.ms\\'" . nroff-mode)
@@ -1442,15 +1442,11 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("[:/]_emacs\\'" . emacs-lisp-mode)
      ("/crontab\\.X*[0-9]+\\'" . shell-script-mode)
      ("\\.ml\\'" . lisp-mode)
-     ("\\.asn$" . snmp-mode)
-     ("\\.mib$" . snmp-mode)
-     ("\\.smi$" . snmp-mode)
-     ("\\.as2$" . snmpv2-mode)
-     ("\\.mi2$" . snmpv2-mode)
-     ("\\.sm2$" . snmpv2-mode)
+     ("\\.\\(asn\\|mib\\|smi\\)\\'" . snmp-mode)
+     ("\\.\\(as\\|mi\\|sm\\)2\\'" . snmpv2-mode)
      ("\\.\\(diffs?\\|patch\\|rej\\)\\'" . diff-mode)
      ("\\.\\(dif\\|pat\\)\\'" . diff-mode) ; for MSDOG
-     ("\\.[eE]?[pP][sS]$" . ps-mode)
+     ("\\.[eE]?[pP][sS]\\'" . ps-mode)
      ("configure\\.in\\'" . autoconf-mode)
      ("BROWSE\\'" . ebrowse-tree-mode)
      ("\\.ebrowse\\'" . ebrowse-tree-mode)
@@ -2248,7 +2244,7 @@ the value is \"\"."
   "A function to use instead of the default `make-backup-file-name'.
 A value of nil gives the default `make-backup-file-name' behaviour.
 
-This could be buffer-local to do something special for for specific
+This could be buffer-local to do something special for specific
 files.  If you define it, you may need to change `backup-file-name-p'
 and `file-name-sans-versions' too.
 
