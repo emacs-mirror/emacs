@@ -1,5 +1,15 @@
 2002-10-24  Kim F. Storm  <storm@cua.dk>
 
+	* xdisp.c (get_window_cursor_type): New arg ACTIVE_CURSOR.
+	Callers changed (supply dummy arg).
+
+	* lisp.h (get_window_cursor_type): Update prototype.
+	
+	* w32term.c (x_display_and_set_cursor): Get active_cursor from
+	get_window_cursor_type to track system caret.
+
+2002-10-24  Kim F. Storm  <storm@cua.dk>
+
 	* process.c (Fformat_network_address): New function.
 	(syms_of_process): Defsubr it.
 	(list_processes_1): Use it to format :local/:remote address if
