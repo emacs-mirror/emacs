@@ -2145,6 +2145,15 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
++++
+** Cleaner way to enter key sequences.
+
+You can enter a constant key sequence in a more natural format, the
+same one used for saving keyboard macros, using the macro `kbd'.  For
+example,
+
+(kbd "C-x C-f") => "\^x\^f"
+
 ** The sentinel is now called when a network process is deleted with
 delete-process.  The status message passed to the sentinel for a
 deleted network process is "deleted".  The message passed to the
@@ -2155,10 +2164,12 @@ changed to "connection broken by remote peer".
 undo-outer-limit, garbage collection empties it.  This is to prevent
 it from using up the available memory and choking Emacs.
 
+---
 ** New function quail-find-key returns a list of keys to type in the
 current input method to input a character.
 
-** New functions posn-at-point and posn-at-x-y returns
++++
+** New functions posn-at-point and posn-at-x-y return
 click-event-style position information for a given visible buffer
 position or for a given window pixel coordinate.
 

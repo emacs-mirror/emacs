@@ -1,3 +1,31 @@
+2004-06-13  Richard M. Stallman  <rms@gnu.org>
+
+	* regex.h (CHAR_CLASS_MAX_LENGTH, re_wctype_t, re_wchar_t)
+	(re_wctype, re_iswctype, re_wctype_to_bit):
+	Non-function definitions moved here from regex.c.
+	
+	* regex.c (re_wctype, re_iswctype): Function defs longer static.
+	(CHAR_CLASS_MAX_LENGTH, re_wctype_t, re_wchar_t)
+	(re_wctype, re_iswctype, re_wctype_to_bit):
+	Non-function definitions moved to regex.h.
+
+	* window.c (Fselect_window): Doc fix.
+
+	* syntax.c: Include regex.h.
+	(skip_chars): New arg HANDLE_ISO_CLASSES.  Callers changed.
+	If requested, make a list of classes, then check the scanned
+	chars for membership in them.
+	(in_classes): New function.
+	Doc fix.
+
+	* keyboard.c (cmd_error): Don't call any_kboard_state
+	if inside a recursive edit level.
+
+2004-06-13  Lorentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* keyboard.c (command_loop): Call any_kboard_state before
+	command_loop_2 when at top level.
+
 2004-06-13  Andreas Schwab  <schwab@suse.de>
 
 	* print.c (print_object): Always use %ld for printing EMACS_INT.

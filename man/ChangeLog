@@ -1,3 +1,9 @@
+2004-06-13  Richard M. Stallman  <rms@gnu.org>
+
+	* custom.texi (Init Syntax): Explain about vars that do special
+	things when set with setq or with Custom.
+	(Init Examples): Add line-number-mode example.
+
 2004-06-13  Lars Hansen  <larsh@math.ku.dk>
 
 	* dired-x.texi (dired-mark-omitted): Update keybinding.

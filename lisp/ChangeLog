@@ -1,3 +1,20 @@
+2004-06-13  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/paragraphs.el (sentence-end): Add 0x5397d as close brace.
+
+	* emulation/pc-select.el: Doc fixes: say "PC Selection mode",
+	not "`pc-selection-mode'".
+
+	* emacs-lisp/bytecomp.el: Put `...' around symbols in warning messages.
+
+	* simple.el (previous-matching-history-element): Specify a default.
+
+	* hexl.el (hexl-mode): Catch errors in hexl-goto-address.
+
+	* cus-face.el (custom-declare-face): Simplify code.
+
+	* abbrev.el (abbrev-mode, edit-abbrevs-map): Doc fixes.
+
 2004-06-13  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* files.el (before-save-hook): Add `time-stamp' to the options.
