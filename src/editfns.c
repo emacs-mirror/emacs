@@ -1938,6 +1938,7 @@ Both characters must have the same length of multi-byte form.")
   int changed = 0;
   unsigned char fromwork[4], *fromstr, towork[4], *tostr, *p;
   int count = specpdl_ptr - specpdl;
+  int maybe_byte_combining = 0;
 
   validate_region (&start, &end);
   CHECK_NUMBER (fromchar, 2);
@@ -1948,6 +1949,11 @@ Both characters must have the same length of multi-byte form.")
       len = CHAR_STRING (XFASTINT (fromchar), fromwork, fromstr);
       if (CHAR_STRING (XFASTINT (tochar), towork, tostr) != len)
 	error ("Characters in subst-char-in-region have different byte-lengths");
+      if (len == 1)
+	/* If *TOSTR is in the range 0x80..0x9F, it may be combined
+           with the after bytes.  If it is in the range 0xA0..0xFF, it
+           may be combined with the before bytes.  */
+	maybe_byte_combining = !ASCII_BYTE_P (*tostr);
     }
   else
     {
@@ -1980,13 +1986,17 @@ Both characters must have the same length of multi-byte form.")
     stop = min (stop, GPT_BYTE);
   while (1)
     {
+      int pos_byte_next = pos_byte;
+
       if (pos_byte >= stop)
 	{
 	  if (pos_byte >= end_byte) break;
 	  stop = end_byte;
 	}
       p = BYTE_POS_ADDR (pos_byte);
-      if (p[0] == fromstr[0]
+      INC_POS (pos_byte_next);
+      if (pos_byte_next - pos_byte == len
+	  && p[0] == fromstr[0]
 	  && (len == 1
 	      || (p[1] == fromstr[1]
 		  && (len == 2 || (p[2] == fromstr[2]
@@ -2009,14 +2019,11 @@ Both characters must have the same length of multi-byte form.")
 
 	  /* Take care of the case where the new character
 	     combines with neighboring bytes.  */ 
-	  if (len == 1
-	      && ((! CHAR_HEAD_P (tostr[0])
-		   && pos_byte > BEGV_BYTE
-		   && ! ASCII_BYTE_P (FETCH_BYTE (pos_byte - 1)))
-		  ||
-		  (! ASCII_BYTE_P (tostr[0])
-		   && pos_byte + 1 < ZV_BYTE
-		   && ! CHAR_HEAD_P (FETCH_BYTE (pos_byte + 1)))))
+	  if (maybe_byte_combining
+	      && (CHAR_HEAD_P (*tostr)
+		  ? ! CHAR_HEAD_P (FETCH_BYTE (pos_byte + 1))
+		  : (pos_byte > BEGV_BYTE
+		     && ! ASCII_BYTE_P (FETCH_BYTE (pos_byte - 1)))))
 	    {
 	      Lisp_Object tem, string;
 
@@ -2025,15 +2032,24 @@ Both characters must have the same length of multi-byte form.")
 	      tem = current_buffer->undo_list;
 	      GCPRO1 (tem);
 
-	      /* Make a multibyte string containing this
-		 single-byte character.  */
-	      string = Fmake_string (make_number (1),
-				     make_number (tochar));
-	      SET_STRING_BYTES (XSTRING (string), 1);
+	      /* Make a multibyte string containing this single-byte
+		  character.  */
+	      string = make_multibyte_string (tostr, 1, 1);
 	      /* replace_range is less efficient, because it moves the gap,
 		 but it handles combining correctly.  */
 	      replace_range (pos, pos + 1, string,
 			     0, 0, 1);
+	      pos_byte_next = CHAR_TO_BYTE (pos);
+	      if (pos_byte_next > pos_byte)
+		/* Before combining happened.  We should not increment
+		   POS because now it points the next character.  */
+		pos_byte = pos_byte_next;
+	      else
+		{
+		  pos++;
+		  INC_POS (pos_byte_next);
+		}
+		
 	      if (! NILP (noundo))
 		current_buffer->undo_list = tem;
 
@@ -2044,9 +2060,15 @@ Both characters must have the same length of multi-byte form.")
 	      if (NILP (noundo))
 		record_change (pos, 1);
 	      for (i = 0; i < len; i++) *p++ = tostr[i];
+	      pos_byte = pos_byte_next;
+	      pos++;
 	    }
 	}
-      INC_BOTH (pos, pos_byte);
+      else
+	{
+	  pos_byte = pos_byte_next;
+	  pos++;
+	}
     }
 
   if (changed)
@@ -2092,8 +2114,10 @@ It returns the number of characters changed.")
       register unsigned char *p = BYTE_POS_ADDR (pos_byte);
       int len;
       int oc;
+      int pos_byte_next;
 
       oc = STRING_CHAR_AND_LENGTH (p, stop - pos_byte, len);
+      pos_byte_next = pos_byte + len;
       if (oc < size && len == 1)
 	{
 	  nc = tt[oc];
@@ -2101,36 +2125,52 @@ It returns the number of characters changed.")
 	    {
 	      /* Take care of the case where the new character
 		 combines with neighboring bytes.  */ 
-	      if ((! CHAR_HEAD_P (nc)
-		   && pos_byte > BEGV_BYTE
-		   && ! ASCII_BYTE_P (FETCH_BYTE (pos_byte - 1)))
-		  ||
-		  (! ASCII_BYTE_P (nc)
-		   && pos_byte + 1 < ZV_BYTE
-		   && ! CHAR_HEAD_P (FETCH_BYTE (pos_byte + 1))))
+	      if (!ASCII_BYTE_P (nc)
+		  && (CHAR_HEAD_P (nc)
+		      ? ! CHAR_HEAD_P (FETCH_BYTE (pos_byte + 1))
+		      : (pos_byte > BEGV_BYTE
+			 && ! ASCII_BYTE_P (FETCH_BYTE (pos_byte - 1)))))
 		{
 		  Lisp_Object string;
 
-		  string = Fmake_string (make_number (1),
-					 make_number (nc));
-		  SET_STRING_BYTES (XSTRING (string), 1);
-
+		  string = make_multibyte_string (tt + oc, 1, 1);
 		  /* This is less efficient, because it moves the gap,
 		     but it handles combining correctly.  */
 		  replace_range (pos, pos + 1, string,
-				 1, 0, 0);
+				 1, 0, 1);
+		  pos_byte_next = CHAR_TO_BYTE (pos);
+		  if (pos_byte_next > pos_byte)
+		    /* Before combining happened.  We should not
+		       increment POS because now it points the next
+		       character.  */
+		    pos_byte = pos_byte_next;
+		  else
+		    {
+		      pos++;
+		      INC_POS (pos_byte_next);
+		    }
 		}
 	      else
 		{
 		  record_change (pos, 1);
 		  *p = nc;
 		  signal_after_change (pos, 1, 1);
+		  pos_byte++;
+		  pos++;
 		}
 	      ++cnt;
 	    }
+	  else
+	    {
+	      pos_byte++;
+	      pos++;
+	    }
 	}
-      pos_byte += len;
-      pos++;
+      else
+	{
+	  pos_byte += len;
+	  pos++;
+	}
     }
 
   return make_number (cnt);
