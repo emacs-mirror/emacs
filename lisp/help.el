@@ -1028,21 +1028,19 @@ and the file name is displayed in the echo area."
 	  (if nosuffix
 	      '("")
 	    '(".elc" ".el" "")
-;;; load doesn't handle this yet.
-;;;	    (let ((basic '(".elc" ".el" ""))
-;;;		  (compressed '(".Z" ".gz" "")))
-;;;	      ;; If autocompression mode is on,
-;;;	      ;; consider all combinations of library suffixes
-;;;	      ;; and compression suffixes.
-;;;	      (if (rassq 'jka-compr-handler file-name-handler-alist)
-;;;		  (apply 'nconc
-;;;			 (mapcar (lambda (compelt)
-;;;				   (mapcar (lambda (baselt)
-;;;					     (concat baselt compelt))
-;;;					   basic))
-;;;				 compressed))
-;;;		basic))
-	    )))
+	    (let ((basic '(".elc" ".el" ""))
+		  (compressed '(".Z" ".gz" "")))
+	      ;; If autocompression mode is on,
+	      ;; consider all combinations of library suffixes
+	      ;; and compression suffixes.
+	      (if (rassq 'jka-compr-handler file-name-handler-alist)
+		  (apply 'nconc
+			 (mapcar (lambda (compelt)
+				   (mapcar (lambda (baselt)
+					     (concat baselt compelt))
+					   basic))
+				 compressed))
+		basic)))))
        (or path load-path)))
     (and interactive-call
 	 (if result
