@@ -1,7 +1,7 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.72) $
- * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!mpmtypes.h(trunk.73) $
+ * Copyright (C) 1997, 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
  * .design: design.mps.type
@@ -372,6 +372,22 @@ typedef unsigned long WriteFB;
 typedef void *(*WriteFF)(void);
 typedef int WriteFC; /* Promoted */
 typedef double WriteFD;
+
+
+/* STATISTIC_DECL -- declare a field to accumulate statistics in
+ *
+ * The argument is a field declaration (a struct-declaration minus the
+ * semicolon) for a single field (no commas).  Currently, we always
+ * leave them in, see design.mps.metrics.
+ */
+
+#if defined(DIAGNOSTICS)
+#define STATISTIC_DECL(field) field
+#elif defined(DIAGNOSTICS_NONE)
+#define STATISTIC_DECL(field) field
+#else
+#error "No diagnostics configured."
+#endif
 
 
 #endif /* mpmtypes_h */
