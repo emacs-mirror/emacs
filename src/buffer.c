@@ -2440,7 +2440,7 @@ buffer_slot_type_mismatch (valcontents, newval)
     {
     case Lisp_Int:	type_name = "integers";  break;
     case Lisp_String:	type_name = "strings";   break;
-    case Lisp_Marker:	type_name = "markers";   break;
+    case Lisp_Misc:	type_name = "markers";   break;
     case Lisp_Symbol:	type_name = "symbols";   break;
     case Lisp_Cons:	type_name = "lists";     break;
     case Lisp_Vector:	type_name = "vectors";   break;
