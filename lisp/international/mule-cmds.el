@@ -1037,6 +1037,8 @@ is still bound to the language environment being exited.
 This hook is mainly used for canceling the effect of
 `set-language-environment-hook' (which-see).")
 
+(put 'setup-specified-language-environment 'apropos-inhibit t)
+
 (defun setup-specified-language-environment ()
   "Switch to a specified language environment."
   (interactive)
@@ -1238,6 +1240,8 @@ specifies the character set for the major languages of Western Europe."
 (defsubst princ-list (&rest args)
   (while args (princ (car args)) (setq args (cdr args)))
   (princ "\n"))
+
+(put 'describe-specified-language-support 'apropos-inhibit t)
 
 ;; Print a language specific information such as input methods,
 ;; charsets, and coding systems.  This function is intended to be
