@@ -332,7 +332,8 @@ echo_area_display ()
       {
 	int i;
 
-	for (i = vpos + 1; i < vpos + XWINDOW (minibuf_window)->height; i++)
+	for (i = vpos + 1;
+	     i < vpos + XFASTINT (XWINDOW (minibuf_window)->height); i++)
 	  {
 	    get_display_line (f, i, 0);
 	    display_string (XWINDOW (minibuf_window), vpos,
@@ -1599,9 +1600,11 @@ copy_rope (t, s, from, face)
 
   while (n--)
     {
-      if (t >= s) *t = MAKE_GLYPH (GLYPH_CHAR (*f),
-				   (GLYPH_FACE (*f)
-				    ? GLYPH_FACE (*f)
+      int glyph = XFASTINT (*f);
+
+      if (t >= s) *t = MAKE_GLYPH (GLYPH_CHAR (glyph),
+				   (GLYPH_FACE (glyph)
+				    ? GLYPH_FACE (glyph)
 				    : face));
       ++t;
       ++f;
@@ -1625,9 +1628,11 @@ copy_part_of_rope (t, s, from, len, face)
 
   while (n--)
     {
-      if (t >= s) *t = MAKE_GLYPH (GLYPH_CHAR (*f),
-				   (GLYPH_FACE (*f)
-				    ? GLYPH_FACE (*f)
+      int glyph = XFASTINT (*f);
+
+      if (t >= s) *t = MAKE_GLYPH (GLYPH_CHAR (glyph),
+				   (GLYPH_FACE (glyph)
+				    ? GLYPH_FACE (glyph)
 				    : face));
       ++t;
       ++f;
