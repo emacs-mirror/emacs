@@ -2091,12 +2091,13 @@ a Meta character, as in @samp{\M-a} for @kbd{Meta-A} or @samp{\M-\C-a} for
 @cindex international characters in @file{.emacs}
 @cindex non-ASCII characters in @file{.emacs}
 If you want to include non-ASCII characters in strings in your init
-file, you should consider putting a @samp{-*- coding: -*-} tag on the
-first line which states the coding system used to save your
-@file{.emacs}, as explained in @ref{Recognize Coding}.  This is
-because the defaults for decoding non-ASCII text might not yet be set
-up by the time Emacs reads those parts of your init file which use
-such strings, and Emacs might decode those strings incorrectly.
+file, you should consider putting a @samp{-*-coding:
+@var{coding-system}-*-} tag on the first line which states the coding
+system used to save your @file{.emacs}, as explained in @ref{Recognize
+Coding}.  This is because the defaults for decoding non-ASCII text might
+not yet be set up by the time Emacs reads those parts of your init file
+which use such strings, possibly leading Emacs to decode those strings
+incorrectly.
 
 @item Characters:
 Lisp character constant syntax consists of a @samp{?} followed by
