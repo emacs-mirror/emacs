@@ -469,7 +469,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 		(beginning-of-line))
 	    ;; If none exists, add one.
 	    (goto-char (point-max))
-	    (insert "\^_\nFile: dir\tnode: " nodename "\n\n* Menu:\n\n"))
+	    (insert "\^_\nFile: dir\tNode: " nodename "\n\n* Menu:\n\n"))
 	  ;; Merge the text from the other buffer's menu
 	  ;; into the menu in the like-named node in the main buffer.
 	  (apply 'insert-buffer-substring (cdr (car nodes)))
@@ -677,7 +677,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 		(message "Searching subfile %s..." (cdr (car list)))
 		(Info-read-subfile (car (car list)))
 		(setq list (cdr list))
-		(goto-char (point-min))
+;;		(goto-char (point-min))
 		(if (re-search-forward regexp nil t)
 		    (setq found (point) list ())))
 	      (if found
