@@ -1,3 +1,8 @@
+2002-12-06  Francesco Potorti`  <pot@gnu.org>
+
+	* xfns.c (png_load): Avoid double gamma correction for PNG
+	images.
+
 2002-11-29  Dave Love  <fx@gnu.org>
 
 	* fns.c (Frequire): Don't call LOADHIST_ATTACH if feature was
