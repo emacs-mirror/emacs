@@ -31,9 +31,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #undef NOMULTIPLEJOBS
 
-#define START_FILES pre-crt0.o /usr/ccs/lib/crt1.o /usr/ccs/lib/crti.o /usr/ccs/lib/values-Xt.o
+#define LIBS_SYSTEM -lsocket -lnsl -lelf
+#define ORDINARY_LINK
 
-#define LIB_STANDARD -lsocket -lnsl -lelf -lc /usr/ucblib/libucb.a /usr/ccs/lib/crtn.o
+#if 0 /* These should be unnecessary now because of ORDINARY_LINK.  */
+#define START_FILES pre-crt0.o /usr/ccs/lib/crt1.o /usr/ccs/lib/crti.o /usr/ccs/lib/values-Xt.o
+#define LIB_STANDARD -lc /usr/ucblib/libucb.a /usr/ccs/lib/crtn.o
+#endif
 
 /* No <sioctl.h> */
 

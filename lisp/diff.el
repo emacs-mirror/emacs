@@ -24,7 +24,7 @@
 
 (require 'compile)
 
-(defvar diff-switches nil
+(defvar diff-switches "-c"
   "*A string or list of strings specifying switches to be be passed to diff.")
 
 (defvar diff-regexp-alist
@@ -93,9 +93,14 @@ is nil, REGEXP matches only half a section.")
 	 (function (lambda (file subexpr)
 		     (setq compilation-error-list
 			   (cons
-			    (cons (set-marker (make-marker)
-					      (match-beginning subexpr)
-					      (current-buffer))
+			    (cons (save-excursion
+				    ;; Report location of message
+				    ;; at beginning of line.
+				    (goto-char
+				     (match-beginning subexpr))
+				    (beginning-of-line)
+				    (point-marker))
+				  ;; Report location of corresponding text.
 				  (let ((line (string-to-int
 					       (buffer-substring
 						(match-beginning subexpr)
