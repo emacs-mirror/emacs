@@ -1,3 +1,8 @@
+2005-04-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fast-lock.el:
+	* lazy-lock.el: Move them to the obsolete subdir.
+
 2005-04-06  JUAN-LEON Lahoz Garcia  <juanleon1@gmail.com>
 
 	* wdired.el (wdired-advise-functions, wdired-add-skip-in-replace)
