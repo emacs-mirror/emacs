@@ -510,27 +510,29 @@ If you want to read non-character events, or ignore them, call\n\
 `read-event' or `read-char-exclusive' instead.\n\
 \n\
 If the optional argument PROMPT is non-nil, display that as a prompt.\n\
-If the optional argument SUPPRESS-INPUT-METHOD is non-nil,\n\
-disable input method processing for this character.")
-  (prompt, suppress_input_method)
-     Lisp_Object prompt, suppress_input_method;
+If the optional argument INHERIT-INPUT-METHOD is non-nil and some\n\
+input method is turned on in the current buffer, that input method\n\
+is used for reading a character.")
+  (prompt, inherit_input_method)
+     Lisp_Object prompt, inherit_input_method;
 {
   if (! NILP (prompt))
     message_with_string ("%s", prompt, 0);
-  return read_filtered_event (1, 1, 1, NILP (suppress_input_method));
+  return read_filtered_event (1, 1, 1, ! NILP (inherit_input_method));
 }
 
 DEFUN ("read-event", Fread_event, Sread_event, 0, 2, 0,
   "Read an event object from the input stream.\n\
 If the optional argument PROMPT is non-nil, display that as a prompt.\n\
-If the optional argument SUPPRESS-INPUT-METHOD is non-nil,\n\
-disable input method processing for this character.")
-  (prompt, suppress_input_method)
-     Lisp_Object prompt, suppress_input_method;
+If the optional argument INHERIT-INPUT-METHOD is non-nil and some\n\
+input method is turned on in the current buffer, that input method\n\
+is used for reading a character.")
+  (prompt, inherit_input_method)
+     Lisp_Object prompt, inherit_input_method;
 {
   if (! NILP (prompt))
     message_with_string ("%s", prompt, 0);
-  return read_filtered_event (0, 0, 0, NILP (suppress_input_method));
+  return read_filtered_event (0, 0, 0, ! NILP (inherit_input_method));
 }
 
 DEFUN ("read-char-exclusive", Fread_char_exclusive, Sread_char_exclusive, 0, 2, 0,
@@ -538,14 +540,15 @@ DEFUN ("read-char-exclusive", Fread_char_exclusive, Sread_char_exclusive, 0, 2, 
 It is returned as a number.  Non-character events are ignored.\n\
 \n\
 If the optional argument PROMPT is non-nil, display that as a prompt.\n\
-If the optional argument SUPPRESS-INPUT-METHOD is non-nil,\n\
-disable input method processing for this character.")
-  (prompt, suppress_input_method)
-     Lisp_Object prompt, suppress_input_method;
+If the optional argument INHERIT-INPUT-METHOD is non-nil and some\n\
+input method is turned on in the current buffer, that input method\n\
+is used for reading a character.")
+  (prompt, inherit_input_method)
+     Lisp_Object prompt, inherit_input_method;
 {
   if (! NILP (prompt))
     message_with_string ("%s", prompt, 0);
-  return read_filtered_event (1, 1, 0, NILP (suppress_input_method));
+  return read_filtered_event (1, 1, 0, ! NILP (inherit_input_method));
 }
 
 DEFUN ("get-file-char", Fget_file_char, Sget_file_char, 0, 0, 0,
