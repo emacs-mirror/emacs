@@ -585,7 +585,7 @@ If BUFFER is omitted or nil, some interesting buffer is returned.")
       if (XSTRING (XBUFFER (buf)->name)->data[0] == ' ')
 	continue;
       if (NILP (visible_ok))
-	tem = Fget_buffer_window (buf, Qvisible);
+	tem = Fget_buffer_window (buf, Qt);
       else
 	tem = Qnil;
       if (NILP (tem))
