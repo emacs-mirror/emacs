@@ -40,8 +40,8 @@
 ;; Standards docs equivalent to iso-2022 and iso-8859 are at
 ;; http://www.ecma.ch/.
 
-;; FWIW, :http://www.microsoft.com/globaldev/reference/ lists the
-;; following for MS Windows, which are presumbaly the only charsets we
+;; FWIW, http://www.microsoft.com/globaldev/reference/ lists the
+;; following for MS Windows, which are presumably the only charsets we
 ;; really need to worry about on such systems:
 ;; `OEM codepages': 437, 720, 737, 775, 850, 852, 855, 857, 858, 862, 866
 ;; `Windows codepages': 1250, 1251, 1252, 1253, 1254, 1255, 1256, 1257,
@@ -169,9 +169,15 @@
   "ISO/IEC 8859/9" "Latin-5" 148 ?M 141 "8859-9")
 
 (define-iso-single-byte-charset 'iso-8859-10 'latin-iso8859-10
-  "ISO/IEC 8859/9" "Latin-6" 157 ?V nil "8859-10")
+  "ISO/IEC 8859/10" "Latin-6" 157 ?V nil "8859-10")
 
-;; 8859-11, 12 don't (yet?) exist.
+;; http://www.nectec.or.th/it-standards/iso8859-11/
+;; http://www.cwi.nl/~dik/english/codes/8859.html says this is tis-620
+;; plus nbsp
+(define-iso-single-byte-charset 'iso-8859-11 'thai-iso8859-11
+  "ISO/IEC 8859/11" "Latin/Thai" 166 ?T nil "8859-11")
+
+;; 8859-12 doesn't (yet?) exist.
 
 (define-iso-single-byte-charset 'iso-8859-13 'latin-iso8859-13
   "ISO/IEC 8859/13" "Latin-7" 179 ?Y nil "8859-13")
@@ -188,6 +194,7 @@
 ;; No point in keeping it around.
 (fmakunbound 'define-iso-single-byte-charset)
 
+;; Can this be shared with 8859-11?
 (define-charset 'thai-tis620
   "TIS620.2533"
   :short-name "TIS620.2533"
@@ -196,6 +203,7 @@
   :code-space [32 127]
   :code-offset #x0E00)
 
+;; Fixme: doc for this, c.f. above
 (define-charset 'tis620-2533
   "TIS620.2533"
   :short-name "TIS620.2533"
@@ -462,6 +470,10 @@
   :ascii-compatible-p t
   :code-space [0 255]
   :map "ibm866")
+;; Fixme: http://czyborra.com/charsets/cyrillic.html says the
+;; following, but the iconv map for cp866 isn't the same as his chart
+;; for alternativnyj.  I can't find anything that looks like an
+;; official definition of alternativnyj.
 (define-charset-alias 'cp866 'alternativnyj)
 (define-charset-alias 'ibm866 'alternativnyj)
 
@@ -574,8 +586,11 @@
 ;; Original name for cp1125, says Serhii Hlodin <hlodin@lutsk.bank.gov.ua>
 (define-charset-alias 'cp866u 'cp1125)
 
+;; Fixme: C.f. iconv, http://czyborra.com/charsets/codepages.html
+;; shows this as not ASCII comptaible, with various graphics in
+;; 0x01-0x1F.
 (define-charset 'cp437
-  "CP437 (US)"
+  "CP437 (MS-DOS United States, Australia, New Zealand, South Africa)"
   :short-name "CP437"
   :code-space [0 255]
   :ascii-compatible-p t
@@ -589,14 +604,14 @@
   :map "cp720")
 
 (define-charset 'cp737
-  "CP737 (Greek)"
+  "CP737 (PC Greek)"
   :short-name "CP737"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp737")
 
 (define-charset 'cp775
-  "CP775"
+  "CP775 (PC Baltic)"
   :short-name "CP775"
   :code-space [0 255]
   :ascii-compatible-p t
@@ -610,21 +625,21 @@
   :map "cp851")
 
 (define-charset 'cp852
-  "CP852 (Latin II)"
+  "CP852 (MS-DOS Latin-2)"
   :short-name "CP852"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp852")
 
 (define-charset 'cp855
-  "CP855 (Cyrillic)"
+  "CP855 (IBM Cyrillic)"
   :short-name "CP855"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp855")
 
 (define-charset 'cp857
-  "CP857 (Turkish)"
+  "CP857 (IBM Turkish)"
   :short-name "CP857"
   :code-space [0 255]
   :ascii-compatible-p t
@@ -636,58 +651,59 @@
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp858")
+(define-charset-alias 'cp00858 'cp858)	; IANA has IBM00858/CP00858
 
 (define-charset 'cp860
-  "CP860"
+  "CP860 (MS-DOS Portuguese)"
   :short-name "CP860"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp860")
 
 (define-charset 'cp861
-  "CP861"
+  "CP861 (MS-DOS Icelandic)"
   :short-name "CP861"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp861")
 
 (define-charset 'cp862
-  "CP862 (Hebrew)"
+  "CP862 (PC Hebrew)"
   :short-name "CP862"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp862")
 
 (define-charset 'cp863
-  "CP863"
+  "CP863 (MS-DOS Canadian French)"
   :short-name "CP863"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp863")
 
 (define-charset 'cp864
-  "CP864"
+  "CP864 (PC Arabic)"
   :short-name "CP864"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp864")
 
 (define-charset 'cp865
-  "CP865"
+  "CP865 (MS-DOS Nordic)"
   :short-name "CP865"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp865")
 
 (define-charset 'cp869
-  "CP869"
+  "CP869 (IBM Modern Greek)"
   :short-name "CP869"
   :code-space [0 255]
   :ascii-compatible-p t
   :map "cp869")
 
 (define-charset 'cp874
-  "CP874 (Thai)"
+  "CP874 (IBM Thai)"
   :short-name "CP874"
   :code-space [0 255]
   :ascii-compatible-p t
@@ -866,6 +882,9 @@
   :code-space [0 255]
   :map "hp-roman8")
 
+;; To make a coding system with this, a pre-write-conversion should
+;; account for the commented-out multi-valued code points in
+;; stdenc.map.
 (define-charset 'adobe-standard-encoding
   "Adobe `standard encoding' used in PostScript"
   :short-name "ADOBE-STANDARD-ENCODING"
@@ -879,7 +898,7 @@
   :map "symbol")
 
 (define-charset 'ibm850
-  "DOS codepage 850"
+  "DOS codepage 850 (Latin-1)"
   :short-name "IBM850"
   :ascii-compatible-p t
   :code-space [0 255]
