@@ -1988,11 +1988,11 @@ conv_sockaddr_to_lisp (sa, len)
 #ifdef HAVE_LOCAL_SOCKETS
     case AF_LOCAL:
       {
-	struct sockaddr_un *sun = (struct sockaddr_un *) sa;
-	for (i = 0; i < sizeof (sun->sun_path); i++)
-	  if (sun->sun_path[i] == 0)
+	struct sockaddr_un *sockun = (struct sockaddr_un *) sa;
+	for (i = 0; i < sizeof (sockun->sun_path); i++)
+	  if (sockun->sun_path[i] == 0)
 	    break;
-	return make_unibyte_string (sun->sun_path, i);
+	return make_unibyte_string (sockun->sun_path, i);
       }
 #endif
     default:
@@ -2081,10 +2081,10 @@ conv_lisp_to_sockaddr (family, address, sa, len)
 #ifdef HAVE_LOCAL_SOCKETS
       if (family == AF_LOCAL)
 	{
-	  struct sockaddr_un *sun = (struct sockaddr_un *) sa;
+	  struct sockaddr_un *sockun = (struct sockaddr_un *) sa;
 	  cp = XSTRING (address)->data;
-	  for (i = 0; i < sizeof (sun->sun_path) && *cp; i++)
-	    sun->sun_path[i] = *cp++;
+	  for (i = 0; i < sizeof (sockun->sun_path) && *cp; i++)
+	    sockun->sun_path[i] = *cp++;
 	}
 #endif
       return;
