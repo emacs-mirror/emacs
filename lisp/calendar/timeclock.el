@@ -128,7 +128,7 @@ nil, or equal to `timeclock-workday', nothing special will be done.
 If it is a quantity different from `timeclock-workday', however, a
 record will be output to the timelog file to note the fact that that
 day has a different length from the norm."
-  :type 'function
+  :type '(choice (const nil) (function-item timeclock-workday) function)
   :group 'timeclock)
 
 (defcustom timeclock-ask-before-exiting t

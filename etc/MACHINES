@@ -988,7 +988,7 @@ Sun 3, Sun 4 (sparc), Sun 386 (m68k-sun-sunos, sparc-sun-sunos, i386-sun-sunos,
   including large file support) on a Solaris system which supports
   64-bit executables, use the Sun compiler, configuring something like
   this (see the cc documentation for information on 64-bit
-  compilation):  env CC="cc -xarch=v9" ./configure --without-gcc
+  compilation):  env CC="cc -xarch=v9" ./configure
 
   As of version 2.95, GCC doesn't support the 64-bit ABI properly, but
   later releases may.
