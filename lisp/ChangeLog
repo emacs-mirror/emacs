@@ -43,13 +43,18 @@
 	* international/mule-cmds.el (reset-language-environment):
 	Handle coding-systems not being defined yet.
 
-2002-04-07  Sam Steingold  <sds@gnu.org>
+2002-04-08  Sam Steingold  <sds@gnu.org>
 
-	* vc-cvs.el (vc-cvs-checkin): Pass the required argument to `error'.
+	* vc-cvs.el (vc-cvs-valid-version-number-p): New function.
+	(vc-cvs-checkin): Use it.
 
 2002-04-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* files.el (display-time-string): Fix last change.
+
+2002-04-07  Sam Steingold  <sds@gnu.org>
+
+	* vc-cvs.el (vc-cvs-checkin): Pass the required argument to `error'.
 
 2002-04-07  Jason Rumney  <jasonr@gnu.org>
 

@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.38 2002/03/28 14:27:30 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.39 2002/04/08 13:38:48 sds Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -322,7 +322,7 @@ This is only possible if CVS is responsible for FILE's directory."
 		      (list vc-checkin-switches)
 		    vc-checkin-switches))
 	status)
-    (if (not rev)
+    (if (or (not rev) (vc-cvs-valid-version-number-p rev))
         (setq status (apply 'vc-cvs-command nil 1 file
                             "ci" (if rev (concat "-r" rev))
                             (concat "-m" comment)
@@ -816,6 +816,10 @@ essential information."
   (and (string-match "^[a-zA-Z]" tag)
        (not (string-match "[^a-z0-9A-Z-_]" tag))))
 
+(defun vc-cvs-valid-version-number-p (tag)
+  "Return non-nil if TAG is a valid version number."
+  (and (string-match "^[0-9]" tag)
+       (not (string-match "[^0-9.]" tag))))
 
 (defun vc-cvs-parse-sticky-tag (match-type match-tag)
   "Parse and return the sticky tag as a string.
