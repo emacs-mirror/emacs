@@ -16,6 +16,11 @@ so we will look at it and add it to the manual.
 
 * Installation Changes in Emacs 21.4
 
+** Emacs includes now support for loading image libraries on demand.
+(Currently this feature is only used on MS Windows.)  You can configure
+the supported image types and their associated dynamic libraries by
+setting the variable `image-library-alist'.
+
 ---
 ** A Bulgarian translation of the Emacs Tutorial is available.
 
