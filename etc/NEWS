@@ -1109,6 +1109,12 @@ earlier versions of Emacs.
 Custom buffers when you've done with them or just bury them (the
 default).
 
+*** If Emacs was invoked with the `-q' or `--no-init-file' options, it
+does not allow you to save customizations in your `~/.emacs' init
+file.  This is because saving customizations from such a session would
+wipe out all the other customizationss you might have on your init
+file.
+
 ** New features in evaluation commands
 
 *** The commands to evaluate Lisp expressions, such as C-M-x in Lisp
