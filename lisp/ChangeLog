@@ -20,6 +20,8 @@
 
 2000-11-06  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* vc-hooks.el (vc-insert-file): Don't assume byte==char.
+
 	* pcvs.el (cvs-mode-marked): New arg `noquery'.
 	Prompt user for a file rather than raising an error.
 	(cvs-enabledp): Fix call to cvs-mode-marked.
@@ -37,8 +39,8 @@
 	(cvs-status-get-tags): Fix regexp.
 	(cvs-status-trees, cvs-status-cvstrees):
 	Combine after change hooks and don't sit-for.
-	(cvs-tree-use-jisx0208): Renamed from cvs-tree-dstr-2byte-ready.
-	(cvs-tree-char-*): Renamed from cvs-tree-dstr-char-*.
+	(cvs-tree-use-jisx0208): Rename from cvs-tree-dstr-2byte-ready.
+	(cvs-tree-char-*): Rename from cvs-tree-dstr-char-*.
 	Use make-char rather than hard-coded cryptic data.
 	(cvs-status-cvstrees): Convert the buffer to multibyte if necessary.
 
