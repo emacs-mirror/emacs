@@ -1,5 +1,9 @@
 2005-03-28  Richard M. Stallman  <rms@gnu.org>
 
+	* calendar.texi: Minor fixes to previous change.
+
+	* programs.texi (Fortran): Small fixes to previous changes.
+
 	* emacs.texi (Top): Update list of subnodes of Dired.
 	Likewise for building.texi.
 

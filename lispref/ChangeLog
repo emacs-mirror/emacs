@@ -1,3 +1,9 @@
+2005-03-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* anti.texi (Antinews): Mention `G' interactive code.
+
+	* tips.texi (Compilation Tips): Mention benchmark.el.
+
 2005-03-27  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* modes.texi (Other Font Lock Variables): `font-lock-fontify-block'
