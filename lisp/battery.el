@@ -44,14 +44,14 @@
 	      (file-readable-p "/proc/apm"))
 	 'battery-linux-proc-apm))
   "*Function for getting battery status information.
-The function have to return an alist of conversion definitions.
-Cons cells are of the form
+The function has to return an alist of conversion definitions.
+Its cons cells are of the form
 
     (CONVERSION . REPLACEMENT-TEXT)
 
 CONVERSION is the character code of a \"conversion specification\"
 introduced by a `%' character in a control string."
-  :type 'function
+  :type '(choice (const nil) function)
   :group 'battery)
 
 (defcustom battery-echo-area-format
