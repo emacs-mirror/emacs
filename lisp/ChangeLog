@@ -1,3 +1,12 @@
+2001-11-10  Peter Kleiweg  <kleiweg@let.rug.nl>
+
+	* progmodes/ps-mode.el (ps-mode-font-lock-keywords-1): Merge
+	two regular expressions into one.
+	(ps-mode): Make local bindings for `comment-start' and
+	`comment-start-skip'.
+	(ps-mode-looking-at-nested): Simplify an if-else construct;
+	use `set-match-data' to set the result.
+
 2001-11-10  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-correct-word/local-keymap):
