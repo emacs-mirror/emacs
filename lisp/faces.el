@@ -1308,42 +1308,46 @@ this won't have the expected effect."
   (let* ((bg-resource
 	  (and window-system
 	       (x-get-resource ".backgroundMode" "BackgroundMode")))
-	 (bg-mode (cond (frame-background-mode)
-			((null window-system)
-			 ;; No way to determine this automatically (?).
-			 'dark)
-			(bg-resource
-			 (intern (downcase bg-resource)))
-			((< (apply '+ (x-color-values
-				       (frame-parameter frame 'background-color)
-				       frame))
-			    ;; Just looking at the screen, colors whose
-			    ;; values add up to .6 of the white total
-			    ;; still look dark to me.
-			    (* (apply '+ (x-color-values "white" frame)) .6))
-			 'dark)
-			(t 'light)))
-	 (display-type (cond ((null window-system)
-			      (if (tty-display-color-p frame) 'color 'mono))
-			     ((x-display-color-p frame)
-			      'color)
-			     ((x-display-grayscale-p frame)
-			      'grayscale)
-			     (t 'mono))))
-    (modify-frame-parameters frame
-			     (list (cons 'background-mode bg-mode)
-				   (cons 'display-type display-type))))
-  
-  ;; For all named faces, choose face specs matching the new frame
-  ;; parameters.
-  (let ((face-list (face-list)))
-    (while face-list
-      (let* ((face (car face-list))
-	     (spec (or (get face 'saved-face)
-		       (get face 'face-defface-spec))))
-	(when spec
-	  (face-spec-set face spec frame))
-      (setq face-list (cdr face-list))))))
+	 (bg-mode
+	  (cond (frame-background-mode)
+		((null window-system)
+		 ;; No way to determine this automatically (?).
+		 'dark)
+		(bg-resource
+		 (intern (downcase bg-resource)))
+		((< (apply '+ (x-color-values
+			       (frame-parameter frame 'background-color)
+			       frame))
+		    ;; Just looking at the screen, colors whose
+		    ;; values add up to .6 of the white total
+		    ;; still look dark to me.
+		    (* (apply '+ (x-color-values "white" frame)) .6))
+		 'dark)
+		(t 'light)))
+	 (display-type
+	  (cond ((null window-system)
+		 (if (tty-display-color-p frame) 'color 'mono))
+		((x-display-color-p frame)
+		 'color)
+		((x-display-grayscale-p frame)
+		 'grayscale)
+		(t 'mono)))
+	 (old-bg-mode
+	  (frame-parameter frame 'background-mode))
+	 (old-display-type
+	  (frame-parameter frame 'display-type)))
+
+    (unless (and (eq bg-mode old-bg-mode) (eq display-type old-display-type))
+      (modify-frame-parameters frame
+			       (list (cons 'background-mode bg-mode)
+				     (cons 'display-type display-type)))
+      ;; For all named faces, choose face specs matching the new frame
+      ;; parameters.
+      (dolist (face (face-list))
+	(let ((spec (or (get face 'saved-face)
+			(get face 'face-defface-spec))))
+	  (when spec
+	    (face-spec-set face spec frame)))))))
 
 
 
