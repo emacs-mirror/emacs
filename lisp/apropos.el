@@ -156,7 +156,7 @@ for the regexp; the part that matches gets displayed in this font."
   "Returns the next `apropos-label' button after POS, or nil if there's none.
 Will also return nil if more than one `apropos-symbol' button is encountered
 before finding a label."
-  (let* ((button (next-button pos 1 nil t))
+  (let* ((button (next-button pos t))
 	 (already-hit-symbol nil)
 	 (button-type (and button (button-get button 'type))))
     (while (and button
