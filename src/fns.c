@@ -2621,14 +2621,17 @@ DEFUN ("provide", Fprovide, Sprovide, 1, 1, 0,
   return feature;
 }
 
-DEFUN ("require", Frequire, Srequire, 1, 2, 0,
+DEFUN ("require", Frequire, Srequire, 1, 3, 0,
   "If feature FEATURE is not loaded, load it from FILENAME.\n\
 If FEATURE is not a member of the list `features', then the feature\n\
 is not loaded; so load the file FILENAME.\n\
 If FILENAME is omitted, the printname of FEATURE is used as the file name,\n\
-but in this case `load' insists on adding the suffix `.el' or `.elc'.")
-  (feature, file_name)
-     Lisp_Object feature, file_name;
+but in this case `load' insists on adding the suffix `.el' or `.elc'.\n\
+If the optional third argument NOERROR is non-nil,\n\
+then return nil if the file is not found.\n\
+Normally the return value is FEATURE.")
+  (feature, file_name, noerror)
+     Lisp_Object feature, file_name, noerror;
 {
   register Lisp_Object tem;
   CHECK_SYMBOL (feature, 0);
@@ -2642,8 +2645,11 @@ but in this case `load' insists on adding the suffix `.el' or `.elc'.")
       record_unwind_protect (un_autoload, Vautoload_queue);
       Vautoload_queue = Qt;
 
-      Fload (NILP (file_name) ? Fsymbol_name (feature) : file_name,
-	     Qnil, Qt, Qnil, (NILP (file_name) ? Qt : Qnil));
+      tem = Fload (NILP (file_name) ? Fsymbol_name (feature) : file_name,
+		     noerror, Qt, Qnil, (NILP (file_name) ? Qt : Qnil));
+      /* If load failed entirely, return nil.  */
+      if (NILP (tem))
+	return Qnil;
 
       tem = Fmemq (feature, Vfeatures);
       if (NILP (tem))
