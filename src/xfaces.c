@@ -637,27 +637,22 @@ add_to_log (f, format, arg1, arg2)
 }
 
 
-/* If FRAME is nil, return selected_frame.  Otherwise, check that
-   FRAME is a live frame, and return a pointer to it.  NPARAM
-   is the parameter number of FRAME, for CHECK_LIVE_FRAME.  This is
-   here because it's a frequent pattern in Lisp function definitions.  */
+/* If FRAME is nil, return a pointer to the selected frame.
+   Otherwise, check that FRAME is a live frame, and return a pointer
+   to it.  NPARAM is the parameter number of FRAME, for
+   CHECK_LIVE_FRAME.  This is here because it's a frequent pattern in
+   Lisp function definitions.  */
 
 static INLINE struct frame *
 frame_or_selected_frame (frame, nparam)
      Lisp_Object frame;
      int nparam;
 {
-  struct frame *f;
-  
   if (NILP (frame))
-    f = selected_frame;
-  else
-    {
-      CHECK_LIVE_FRAME (frame, nparam);
-      f = XFRAME (frame);
-    }
-
-  return f;
+    frame = selected_frame;
+  
+  CHECK_LIVE_FRAME (frame, nparam);
+  return XFRAME (frame);
 }
 
 
@@ -3174,7 +3169,7 @@ frame.")
   else
     {
       if (NILP (frame))
-	XSETFRAME (frame, selected_frame);
+	frame = selected_frame;
       
       CHECK_LIVE_FRAME (frame, 3);
       lface = lface_from_face_name (XFRAME (frame), face, 0);
@@ -3409,7 +3404,7 @@ frame.")
 
       CHECK_STRING (value, 3);
       if (EQ (frame, Qt))
-	f = selected_frame;
+	f = SELECTED_FRAME ();
       else
 	f = check_x_frame (frame);
       
@@ -3742,7 +3737,7 @@ frames).  If FRAME is omitted or nil, use the selected frame.")
   else
     {
       if (NILP (frame))
-	XSETFRAME (frame, selected_frame);
+	frame = selected_frame;
       CHECK_LIVE_FRAME (frame, 2);
       lface = lface_from_face_name (XFRAME (frame), symbol, 1);
     }
@@ -3983,12 +3978,9 @@ If FRAME is omitted or nil, use the selected frame.")
   int i;
 
   if (NILP (frame))
-    f = selected_frame;
-  else
-    {
-      CHECK_LIVE_FRAME (frame, 0);
-      f = XFRAME (frame);
-    }
+    frame = selected_frame;
+  CHECK_LIVE_FRAME (frame, 0);
+  f = XFRAME (frame);
   
   if (EQ (frame, Qt))
     lface = lface_from_face_name (NULL, face, 1);
@@ -6234,14 +6226,14 @@ DEFUN ("dump-face", Fdump_face, Sdump_face, 0, 1, 0, "")
       debug_print (Vface_alternative_font_family_alist);
       fprintf (stderr, "\n");
 	
-      for (i = 0; i < FRAME_FACE_CACHE (selected_frame)->used; ++i)
+      for (i = 0; i < FRAME_FACE_CACHE (SELECTED_FRAME ())->used; ++i)
 	Fdump_face (make_number (i));
     }
   else
     {
       struct face *face;
       CHECK_NUMBER (n, 0);
-      face = FACE_FROM_ID (selected_frame, XINT (n));
+      face = FACE_FROM_ID (SELECTED_FRAME (), XINT (n));
       if (face == NULL)
 	error ("Not a valid face");
       dump_realized_face (face);
