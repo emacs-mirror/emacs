@@ -1,3 +1,83 @@
+2000-05-30  Jason Rumney  <jasonr@gnu.org>
+
+	* coding.h (ENCODE_SYSTEM, DECODE_SYSTEM) [WINDOWSNT]: New macros.
+	[WINDOWSNT]: Add extern for Vw32_system_coding_system.
+
+	* dispextern.h (struct glyph) [WINDOWSNT]: Add w32_font_type
+	member.
+
+	* fileio.c (Fread_file_name) [HAVE_NTGUI]: Use file dialog.
+	(Fread_file_name) [HAVE_NTGUI, USE_MOTIF]: Do not attempt to
+	expand a nil default_filename.
+
+	* keyboard.c (make_lispy_event) [WINDOWS_NT]: Pass a window
+	pointer to glyph_to_pixel_coords, not a frame.
+
+	* makefile.nt (w32fns.obj, w32menu.obj): Add charset.h and
+	coding.h to dependencies.
+
+	* w32bdf.c (w32_load_bdf_font): Initialize font->double_byte_p.
+
+	* w32console.c (glyph_to_pixel_coords): Change first parameter to
+	window pointer to be consistent with w32term.c and xterm.c.
+
+	* w32fns.c: Format and doc changes to bring closer to xfns.c.
+	(VIETNAMESE_CHARSET): Define if not defined in system headers.
+	(Qline_spacing, Qcenter): New variables.
+	(Qw32_charset_*, w32_codepage_for_font): Moved from w32term.c.
+	(x_set_line_spacing): New function.
+	(x_set_frame_parameters): Use FRAME_NEW_WIDTH, FRAME_NEW_HEIGHT
+	macros.
+	(x_specified_cursor_type): New function.
+	(x_set_cursor_type): Use it.
+	(x_set_name, x_set_title): Use ENCODE_SYSTEM to encode titlebar
+	and icon strings.
+	(validate_x_resource_name, x_get_resource_string): Measure lengths
+	of external strings in bytes.
+	(w32_wnd_proc) [WM_MEASURE_ITEM]: Avoid calling
+	GetTextExtentPoint32 with NULL title.
+	(Fx_create_frame): Initialize Qline_spacing.
+	(w32_load_system_font): Initialize font->double_byte_p.
+	(x_to_w32_charset): Use Vw32_charset_info_alist.
+	(Image, busy cursor, tooltip functions): Merged changes from
+	xfns.c. Not yet functional on Windows.
+
+	* w32gui.h (W32FontStruct): Add double_byte_p member.
+
+	* w32inevt.c (NUM_TRANSLATED_MOUSE_BUTTONS): New constant.
+	(emacs_button_translation): Use it.
+	(do_mouse_event): Allow up to 32 mouse buttons by allowing any bit
+	in `mask' to be set.
+
+	* w32menu.c (single_submenu, w32_menu_show): Call ENCODE_SYSTEM on
+	menu strings.
+
+	* w32term.c: Format and doc changes to bring closer to xterm.c.
+	(w32_char_font_type): New enum.
+	(Qw32_charset_*, w32_codepage_for_font): Moved to w32fns.c.
+	(w32_per_char_metric): Use w32_char_font_type instead of unicode_p.
+	(w32_encode_char): New function.
+	(x_encode_char): Removed.
+	(x_get_glyph_and_face_encoding): Use w32_encode_char in place of
+	x_encode_char and w32_font_is_double_byte.
+	(x_produce_image_glyph): Use image_ascent.
+	(x_produce_glyphs): Use new version of w32_per_char_metric and
+	handle NULL return value. Allow extra line spacing.
+	(W32_TEXTOUT): Distinguish between Unicode and DBCS text.
+	(w32_get_glyph_overhangs): Remove unicode_p param. Use
+	w32_font_type member of glyph instead.
+	(x_draw_glyph_string): Draw underline and strike-out for BDF fonts.
+	(fast_find_position): Make sure not to consider rows not visible
+	in the window.
+	(w32_read_socket) [WM_MENUSELECT]: Cannot call
+	w32_menu_display_help with input blocked, as it can abort.
+	(x_display_and_set_cursor): Choose cursor depending
+	on buffer-local value of cursor_type.
+	(x_draw_bar_cursor): Add parameter WIDTH.
+
+	* w32term.h (CP_DEFAULT): Define.
+	(Fx_display_color_p, Fx_display_grayscale_p, image_ascent): Declare.
+
 2000-05-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* search.c (Fre_search_forward, Fre_search_backward)
