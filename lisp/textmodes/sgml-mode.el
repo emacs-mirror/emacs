@@ -957,7 +957,7 @@ This takes effect when first loading the library.")
 	       "<title>" (setq str (read-input "Title: ")) "</title>\n"
 	       "<body>\n<h1>" str "</h1>\n" _
 	       "\n<address>\n<a href=\"mailto:"
-	       (user-login-name) ?@ (system-name)
+	       user-mail-address
 	       "\">" (user-full-name) "</a>\n</address>"))
       ("i")
       ("ins")
