@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <a.schroeder@bsiag.ch>
 ;; Maintainer: Alex Schroeder <a.schroeder@bsiag.ch>
-;; Version: 1.3.2
+;; Version: 1.4.0
 ;; Keywords: comm languages processes
 
 ;; This file is part of GNU Emacs.
@@ -152,6 +152,31 @@ the window is split and the SQLi buffer is shown.  If this
 variable is not nil, that buffer's window will be selected
 by calling `pop-to-buffer'.  If this variable is nil, that
 buffer is shown using `display-buffer'."
+  :type 'boolean
+  :group 'SQL)
+
+(defcustom sql-input-ring-file-name nil
+  "*If non-nil, name of the file to read/write input history.
+
+This is used to locally set `comint-input-ring-file-name' when reading
+or writing the input history."
+  :type '(choice (const :tag "none" nil)
+		 (file))
+  :group 'SQL)
+
+(defcustom sql-input-ring-separator "\n--\n"
+  "*Separator between commands in the history file.
+
+If set to \"\\n\", each line in the history file will be interpreted as
+one command.  Multi-line commands are split into several commands when
+the input ring is initialized from a history file.
+
+This variable used to locally set `comint-input-ring-separator' when
+reading or writing the history file.  `comint-input-ring-separator' is
+new in Emacs 20.4; if your Emacs does not have it, setting
+`sql-input-ring-separator' will have no effect.  In that case multiline
+commands will be split into several commands when the input history is
+read, as if you had set `sql-input-ring-separator' to \"\\n\"."
   :type 'string
   :group 'SQL)
 
@@ -164,6 +189,14 @@ buffer is shown using `display-buffer'."
 
 (defcustom sql-mode-hook '()
   "*Hook for customising `sql-mode'."
+  :type 'hook
+  :group 'SQL)
+
+(defcustom sql-set-sqli-hook '()
+  "*Hook for reacting to changes of `sql-buffer'.
+
+This is called by `sql-set-sqli-buffer' when the value of `sql-buffer'
+is changed."
   :type 'hook
   :group 'SQL)
 
@@ -281,7 +314,7 @@ The global value of sql-buffer is the name of the latest SQLi buffer
 created.  Any SQL buffer created will make a local copy of this value.
 See `sql-interactive-mode' for more on multiple sessions.  If you want
 to change the SQLi buffer a SQL mode sends its SQL strings to, change
-the local value of sql-buffer using \\[sql-change-sqli-buffer].")
+the local value of `sql-buffer' using \\[sql-set-sqli-buffer].")
 
 (defvar sql-prompt-regexp nil
   "Prompt used to initialize `comint-prompt-regexp'.
@@ -292,6 +325,11 @@ You can change `comint-prompt-regexp' on `sql-interactive-mode-hook'.")
   "Prompt used to set `left-margin' in `sql-interactive-mode'.
 
 You can change it on `sql-interactive-mode-hook'.")
+
+(defvar sql-alternate-buffer-name nil
+  "Buffer-local string used to possibly rename the SQLi buffer.
+
+Used by `sql-rename-buffer'.")
 
 ;; Keymap for sql-interactive-mode, based on comint-mode-map.
 
@@ -337,11 +375,19 @@ You can change it on `sql-interactive-mode-hook'.")
    ["Send Buffer" sql-send-buffer (and (buffer-live-p sql-buffer)
 				       (get-buffer-process sql-buffer))]
    ["Show SQLi buffer" sql-show-sqli-buffer t]
-   ["Change SQLi buffer" sql-change-sqli-buffer t]
+   ["Set SQLi buffer" sql-set-sqli-buffer t]
    ["Pop to SQLi buffer after send" 
     sql-toggle-pop-to-buffer-after-send-region
     :style toggle
     :selected sql-pop-to-buffer-after-send-region]))
+
+;; easy menu for sql-interactive-mode.
+
+(easy-menu-define 
+ sql-interactive-mode-menu sql-interactive-mode-map
+ "Menu for `sql-interactive-mode'."
+ '("SQL"
+   ["Rename Buffer" sql-rename-buffer t]))
 
 ;; Abbreviations -- if you want more of them, define them in your
 ;; ~/.emacs file.  Abbrevs have to be enabled in your ~/.emacs, too.
@@ -647,22 +693,24 @@ function like this: (sql-get-login 'user 'password 'database)."
       (setq sql-database 
 	    (read-from-minibuffer "Database: " sql-database nil nil
 				  sql-database-history))))
+(defun sql-set-sqli-buffer ()
+  "Set the SQLi buffer SQL strings are sent to.
 
-(defun sql-change-sqli-buffer ()
-  "Change the SQLi buffer SQL strings are sent to.
+Call this function in a SQL buffer in order to set the SQLi buffer SQL
+strings are sent to.  Calling this function sets `sql-buffer' and runs
+`sql-set-sqli-hook'.
 
-Call this function in a SQL buffer in order to change the SQLi buffer
-SQL strings are sent to.  Calling this function sets `sql-buffer'.  
-
-If you call it from a SQL buffer, this changes the local copy of
+If you call it from a SQL buffer, this sets the local copy of
 `sql-buffer'.  
 
-If you call it from anywhere else, it changes the global copy of
+If you call it from anywhere else, it sets the global copy of
 `sql-buffer'."
   (interactive)
   (let ((new-buffer (get-buffer (read-buffer "New SQLi buffer: " nil t))))
     (if new-buffer
-	(setq sql-buffer new-buffer))))
+	(progn 
+	  (setq sql-buffer new-buffer)
+	  (run-hooks sql-set-sqli-hook)))))
 
 (defun sql-show-sqli-buffer ()
   "Show the name of current SQLi buffer.
@@ -671,10 +719,31 @@ This is the buffer SQL strings are sent to.  It is stored in the
 variable `sql-buffer'.  See `sql-help' on how to create such a buffer."
   (interactive)
   (if (null (buffer-live-p sql-buffer))
-      (message "There is no SQLi buffer.")
+      (message "%s has no SQLi buffer set." (buffer-name (current-buffer)))
     (if (null (get-buffer-process sql-buffer))
 	(message "Buffer %s has no process." (buffer-name sql-buffer))
       (message "Current SQLi buffer is %s." (buffer-name sql-buffer)))))
+
+(defun sql-make-alternate-buffer-name ()
+  "Return a string that can be used to rename a SQLi buffer.
+
+This is used to set `sql-alternate-buffer-name' within
+`sql-interactive-mode'."
+  (concat (if (string= "" sql-user)
+	      (if (string= "" user-login-name)
+		  ()
+		(concat user-login-name "/"))
+	    (concat sql-user "/"))
+	  (if (string= "" sql-database)
+	      (if (string= "" sql-server)
+		  system-name
+		sql-server)
+	    sql-database)))
+
+(defun sql-rename-buffer ()
+  "Renames a SQLi buffer."
+  (interactive)
+  (rename-buffer (format "*SQL: %s*" sql-alternate-buffer-name) t))
 
 (defun sql-copy-column ()
   "Copy current column to the end of buffer.
@@ -735,6 +804,17 @@ Inserts SELECT or commas if appropriate."
 	       (point))))
     (sql-send-region start end)))
 
+(defun sql-send-paragraph ()
+  "Send the current paragraph to the SQL process."
+  (interactive)
+  (let ((start (save-excursion
+		 (backward-paragraph)
+		 (point)))
+	(end (save-excursion
+	       (forward-paragraph)
+	       (point))))
+    (sql-send-region start end)))
+
 (defun sql-send-buffer ()
   "Send the buffer contents to the SQL process."
   (interactive)
@@ -770,8 +850,8 @@ When you put a buffer in SQL mode, the buffer stores the last SQLi
 buffer created as its destination in the variable `sql-buffer'.  This
 will be the buffer \\[sql-send-region] sends the region to.  If this
 SQLi buffer is killed, \\[sql-send-region] is no longer able to
-determine where the strings should be sent to.  You can change the
-value of `sql-buffer' using \\[sql-change-sqli-buffer].
+determine where the strings should be sent to.  You can set the
+value of `sql-buffer' using \\[sql-set-sqli-buffer].
 
 For information on how to create multiple SQLi buffers, see
 `sql-interactive-mode'."
@@ -786,9 +866,14 @@ For information on how to create multiple SQLi buffers, see
 			     nil t ((95 . "w") (46 . "w"))))
   (make-local-variable 'comment-start)
   (setq comment-start "--")
-  ;; The following will make each buffer in sql-mode remeber the
-  ;; "current" SQLi buffer.
+  ;; Make each buffer in sql-mode remeber the "current" SQLi buffer.
   (make-local-variable 'sql-buffer)
+  ;; Make `sql-send-paragraph' work on paragraphs that contain indented
+  ;; lines.
+  (make-local-variable 'paragraph-separate)
+  (make-local-variable 'paragraph-start)
+  (setq paragraph-separate "[\f]*$"
+	paragraph-start "[\n\f]")
   (setq local-abbrev-table sql-mode-abbrev-table)
   (setq abbrev-all-caps 1)
   (run-hooks 'sql-mode-hook))
@@ -844,8 +929,11 @@ hooks on `comint-input-filter-functions' are run.  After each SQL
 interpreter output, the hooks on `comint-output-filter-functions' are
 run.
 
-Variable `comint-input-ring-file-name' controls the initialisation of
-the input ring history.
+Variable `sql-input-ring-file-name' controls the initialisation of the
+input ring history.  `comint-input-ring-file-name' is temporarily bound
+to `sql-input-ring-file-name' and `comint-input-ring-separator' is
+temporarily bound to `sql-input-ring-separator' when reading the input
+history.
 
 Variables `comint-output-filter-functions', a hook, and
 `comint-scroll-to-bottom-on-input' and
@@ -856,11 +944,10 @@ If you want to make SQL buffers limited in length, add the function
 `comint-truncate-buffer' to `comint-output-filter-functions'.
 
 Here is an example for your .emacs file.  It keeps the SQLi buffer a
-certain length and stores all inputs in an input-ring file.
+certain length.
 
 \(add-hook 'sql-interactive-mode-hook
     \(function (lambda ()
-        \(setq comint-input-ring-file-name \"~/.sql_history\")
         \(setq comint-output-filter-functions 'comint-truncate-buffer))))
 
 Here is another example.  It will always put point back to the statement
@@ -882,25 +969,48 @@ you entered, right above the output it created.
   ;; is disabled for interactive buffers.
   (setq font-lock-defaults '(sql-mode-font-lock-keywords 
 			     t t ((95 . "w") (46 . "w"))))
+  ;; Enable commenting and uncommenting of the region.
   (make-local-variable 'comment-start)
   (setq comment-start "--")
+  ;; Abbreviation table init and case-insensitive.  It is not activatet
+  ;; by default.
   (setq local-abbrev-table sql-mode-abbrev-table)
   (setq abbrev-all-caps 1)
+  ;; Exiting the process will call sql-stop.
   (set-process-sentinel (get-buffer-process sql-buffer) 'sql-stop)
+  ;; Make input-ring stuff buffer local so that people who want a
+  ;; different history file for each buffer/process/client/whatever can
+  ;; change separator and file-name on the sql-interactive-mode-hook.
+  (make-local-variable 'sql-input-ring-separator)
+  (make-local-variable 'sql-input-ring-file-name)
+  ;; Create a usefull name for renaming this buffer later.
+  (make-local-variable 'sql-alternate-buffer-name)
+  (setq sql-alternate-buffer-name (sql-make-alternate-buffer-name))
+  ;; User stuff.
   (run-hooks 'sql-interactive-mode-hook)
-  ;; calling the hook before calling comint-read-input-ring allows users
+  ;; Calling the hook before calling comint-read-input-ring allows users
   ;; to set comint-input-ring-file-name in sql-interactive-mode-hook.
-  (comint-read-input-ring t))
+  ;; While reading the history, file-name and history are rebound...
+  (let ((comint-input-ring-file-name sql-input-ring-file-name)
+	(comint-input-ring-separator sql-input-ring-separator))
+    (comint-read-input-ring t)))
 
 (defun sql-stop (process event)
   "Called when the SQL process is stopped.
 
-Writes the input history to a history file using `comint-write-input-ring'
-and inserts a short message in the SQL buffer.
+Writes the input history to a history file using
+`comint-write-input-ring' and inserts a short message in the SQL buffer.
+`comint-comint-input-ring-file-name' is temporarily bound to
+`sql-input-ring-file-name' and `comint-input-ring-separator' is
+temporarily bound to `sql-input-ring-separator'.
 
 This function is a sentinel watching the SQL interpreter process.
 Sentinels will always get the two parameters PROCESS and EVENT."
-  (comint-write-input-ring)
+  ;; Write history.
+  ;; While reading the history, file-name and history are rebound...
+  (let ((comint-input-ring-file-name sql-input-ring-file-name)
+	(comint-input-ring-separator sql-input-ring-separator))
+    (comint-write-input-ring))
   (if (buffer-live-p sql-buffer)
       (insert (format "\nProcess %s %s\n" process event))))
 
