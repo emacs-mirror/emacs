@@ -1,3 +1,7 @@
+2004-02-04  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in: Sync with Makefile.in changes.
+
 2004-02-03  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* minibuf.texi (Text from Minibuffer): Various corrections and
