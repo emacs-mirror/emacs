@@ -1174,4 +1174,5 @@ Useful when source code is displayed as help.  See the option
 (provide 'idlw-help)
 (provide 'idlwave-help)
 
+;; arch-tag: d27b5505-59de-497f-ba3f-f199fd4fb911
 ;;; idlw-help.el ends here

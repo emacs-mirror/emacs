@@ -4237,3 +4237,7 @@ widget events (those with @code{/NO_BLOCK} passed to @code{XManager}).
 @printindex cp
 
 @bye
+
+@ignore
+   arch-tag: f1d73958-1423-4127-b8aa-f7b953d64492
+@end ignore
