@@ -134,6 +134,10 @@ Info-split to do these manually."
 (defvar texinfo-region-buffer-name "*Info Region*"
   "*Name of the temporary buffer used by \\[texinfo-format-region].")
 
+;; These come from tex-mode.el.
+(defvar tex-start-of-header)
+(defvar tex-end-of-header)
+
 ;;;###autoload
 (defun texinfo-format-region (region-beginning region-end)
   "Convert the current region of the Texinfo file to Info format.
