@@ -38,5 +38,5 @@ install:;	- mkdir $(INSTALL_DIR)\lisp
 # Maintenance
 # 
 clean:;		- del /q *~
-		- delnode /q deleted
+		- $(DEL_TREE) deleted
 
