@@ -1,5 +1,11 @@
 2003-08-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* alloc.c (lisp_align_malloc): Check for memory full when
+	allocating ablocks, which also avoids freeing a pointer into an
+	ablocks structure.
+
+	* puresize.h (BASE_PURESIZE): Increase to 1100000.
+
 	* buffer.c (Fmove_overlay): Set overlay's next pointer
 	unconditionally.
 
