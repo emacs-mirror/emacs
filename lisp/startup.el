@@ -514,6 +514,9 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 			     (or (null bg)
 				 (member bg '(unspecified "unspecified-bg")))))
 		  (setq term (getenv "TERM"))
+		  ;; Some files in lisp/term do a better job with the
+		  ;; background mode, but we leave this here anyway, in
+		  ;; case they remove those files.
 		  (if (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)"
 				    term)
 		      (setq frame-background-mode 'light)))
