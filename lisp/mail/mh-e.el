@@ -60,7 +60,7 @@
 ;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;; Modified by Stephen Gildea 1988.  gildea@lcs.mit.edu
-(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.24 2000/05/22 17:33:32 fx Exp $")
+(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.25 2000/05/23 20:10:46 monnier Exp $")
 
 ;;; Code:
 
@@ -845,8 +845,7 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
   ;; Take VARIABLE-VALUE pairs and make local variables initialized to the
   ;; value.
   (while pairs
-    (make-variable-buffer-local (car pairs))
-    (set (car pairs) (car (cdr pairs)))
+    (set (make-local-variable (car pairs)) (car (cdr pairs)))
     (setq pairs (cdr (cdr pairs)))))
 
 
