@@ -13,17 +13,9 @@ INSTALL_INFO = install-info
 # Where the TeX macros are kept:
 texmacrodir = /usr/local/lib/tex/macros
 
-# Where the Emacs hierarchy lives ($EMACS in the INSTALL document for Emacs.)
-# For example: 
-# emacslibdir = /usr/local/gnu/lib/emacs
-
-# Directory where Emacs is installed, by default:
-emacslibdir = /usr/local/emacs
-
-# Unless you have a nonstandard Emacs installation, these shouldn't have to 
-# be changed.
-prefix = /usr/local
-infodir = ${prefix}/info
+# Standard configure variables.
+prefix = @prefix@
+infodir = @infodir@
 
 # The name of the manual:
 
@@ -101,8 +93,9 @@ dist:
 	-rm -rf temp
 	-mkdir temp
 	-mkdir temp/$(manual)
-	-ln README Makefile permute-index $(srcs) texinfo.tex \
-   elisp.dvi elisp.aux elisp.??s elisp elisp-[0-9] elisp-[0-9][0-9] temp/$(manual)
+	-ln README configure.in configure Makefile.in permute-index $(srcs) \
+ texinfo.tex elisp.dvi elisp.aux elisp.??s elisp elisp-[0-9] elisp-[0-9][0-9] \
+ temp/$(manual)
 	-(cd temp/$(manual); rm -f mkinstalldirs)
 	cp mkinstalldirs temp/$(manual)
 	(cd temp/$(manual); rm -f *~)
