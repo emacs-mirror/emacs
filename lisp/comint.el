@@ -1181,26 +1181,30 @@ This function is similar to `comint-replace-by-expanded-filename', except
 that it won't change parts of the filename already entered in the buffer; 
 it just adds completion characters to the end of the filename."
   (interactive)
-  (let* ((pathname (comint-match-partial-pathname))
-	 (pathdir (file-name-directory pathname))
-	 (pathnondir (file-name-nondirectory pathname))
-	 (completion (file-name-completion
-		      pathnondir
-		      ;; It is important to expand PATHDIR because
-		      ;; default-directory might be a handled name, and the
-		      ;; unexpanded PATHDIR won't necessarily match the
-		      ;; handler regexp.
-		      (if pathdir
-			  (expand-file-name pathdir)
-			default-directory))))
-    (cond ((null completion)
-	   (message "No completions of %s" pathname)
-	   (ding))
-	  ((eql completion t)
-	   (message "Sole completion"))
-	  (t				; this means a string was returned.
-	   (goto-char (match-end 0))
-	   (insert (substring completion (length pathnondir)))))))
+  (if (and (interactive-p)
+	   (eq last-command this-command))
+      ;; If you hit TAB twice in a row, you get a completion list.
+      (comint-dynamic-list-completions)
+    (let* ((pathname (comint-match-partial-pathname))
+	   (pathdir (file-name-directory pathname))
+	   (pathnondir (file-name-nondirectory pathname))
+	   (completion (file-name-completion
+			pathnondir
+			;; It is important to expand PATHDIR because
+			;; default-directory might be a handled name, and the
+			;; unexpanded PATHDIR won't necessarily match the
+			;; handler regexp.
+			(if pathdir
+			    (expand-file-name pathdir)
+			  default-directory))))
+      (cond ((null completion)
+	     (message "No completions of %s" pathname)
+	     (ding))
+	    ((eql completion t)
+	     (message "Sole completion"))
+	    (t				; this means a string was returned.
+	     (goto-char (match-end 0))
+	     (insert (substring completion (length pathnondir))))))))
 
 (defun comint-dynamic-list-completions ()
   "List in help buffer all possible completions of the filename at point."
