@@ -309,10 +309,15 @@ subcommands.)");
       else if (EQ (funcar, Qlambda)
 	       || EQ (funcar, Qautoload))
 	{
-	  tem = Fcar (Fcdr (Fcdr (fun)));
+	  Lisp_Object tem1;
+	  tem1 = Fcdr (Fcdr (fun));
+	  tem = Fcar (tem1);
 	  if (STRINGP (tem))
 	    doc = tem;
-	  else if (NATNUMP (tem) || CONSP (tem))
+	  /* Handle a doc reference--but these never come last
+	     in the function body, so reject them if they are last.  */
+	  else if ((NATNUMP (tem) || CONSP (tem))
+		   && ! NILP (XCONS (tem1)->cdr))
 	    doc = get_doc_string (tem);
 	  else
 	    return Qnil;
