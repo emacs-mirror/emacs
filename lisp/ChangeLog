@@ -1,3 +1,7 @@
+2003-10-16  Lute Kamstra  <lute@gnu.org>
+
+	* subr.el (force-mode-line-update): Fix docstring.
+
 2003-10-14  Dave Love  <fx@gnu.org>
 
 	* international/mule-cmds.el (find-multibyte-characters): Doc fix.

@@ -1,3 +1,8 @@
+2003-10-16  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Mode Line Format): Mention force-mode-line-update's
+	argument.
+
 2003-10-13  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* windows.texi (Choosing Window): Fix typo.
