@@ -1,10 +1,10 @@
 ;;; log-view.el --- Major mode for browsing RCS/CVS/SCCS log output
 
-;; Copyright (C) 1999, 2000  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: rcs sccs cvs log version-control
-;; Revision: $Id: log-view.el,v 1.6 2000/12/18 03:17:31 monnier Exp $
+;; Revision: $Id: log-view.el,v 1.7 2001/10/29 15:46:46 kai Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -90,9 +90,9 @@
 (defconst log-view-font-lock-defaults
   '(log-view-font-lock-keywords t nil nil nil))
 
-;;;; 
+;;;;
 ;;;; Actual code
-;;;; 
+;;;;
 
 ;;;###autoload
 (define-derived-mode log-view-mode fundamental-mode "Log-View"
@@ -171,6 +171,10 @@
 
 ;;; Change Log:
 ;; $Log: log-view.el,v $
+;; Revision 1.7  2001/10/29 15:46:46  kai
+;; (log-view-mode-map): Bind `M-n' and `M-p', not `M n'
+;; and `M p'.
+;;
 ;; Revision 1.6  2000/12/18 03:17:31  monnier
 ;; Remove useless Version.
 ;;
