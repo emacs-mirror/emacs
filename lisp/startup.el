@@ -982,17 +982,17 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 			 (format "%s%s%s"
 				 (get (car error) 'error-message)
 				 (if (cdr error) ": " "")
-				 (mapconcat 'prin1-to-string (cdr error) ", "))
+				 (mapconcat (lambda (s) (prin1-to-string s t)) (cdr error) ", "))
 			 "\n\n"
-			 "To ensure normal operation, you should investigate the cause\n"
-			 "of the error in your initialization file and remove it.  Start\n"
-			 "Emacs with the `--debug-init' option to view a complete error\n"
-			 "backtrace\n"))
+			 "To ensure normal operation, you should investigate and remove the\n"
+			 "cause of the error in your initialization file.  Start Emacs with\n"
+			 "the `--debug-init' option to view a complete error backtrace.\n\n"))
 	       (message "Error in init file: %s%s%s"
 			(get (car error) 'error-message)
 			(if (cdr error) ": " "")
 			(mapconcat 'prin1-to-string (cdr error) ", "))
-	       (pop-to-buffer "*Messages*")
+	       (let ((pop-up-windows nil))
+		 (pop-to-buffer "*Messages*"))
 	       (setq init-file-had-error t)))))
 
 	;; If the user has a file of abbrevs, read it.
