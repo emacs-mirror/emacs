@@ -263,7 +263,7 @@ or more of these options:
 Use --without-toolkit-scroll-bars to disable LessTif/Motif or Xaw3d
 scroll bars.  --without-xim disables the use of X Input Methods, and
 --disable-largefile omits support for files larger than 2GB on systems
-which support that.
+which support that.  Use --without-sound to disable sound support.
 
 The `--prefix=PREFIXDIR' option specifies where the installation process
 should put emacs and its data files.  This defaults to `/usr/local'.
