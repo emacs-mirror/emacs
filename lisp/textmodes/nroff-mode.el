@@ -39,6 +39,9 @@
   "Abbrev table used while in nroff mode.")
 (define-abbrev-table 'nroff-mode-abbrev-table ())
 
+(defvar nroff-electric-mode nil
+  "*Non-nil means automatically closing requests when you insert an open.")
+
 (defvar nroff-mode-map nil
      "Major mode keymap for nroff mode.")
 (if (not nroff-mode-map)
