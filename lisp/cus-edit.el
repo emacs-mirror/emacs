@@ -2120,6 +2120,7 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 	   (push (widget-create-child-and-convert
 		  widget 'visibility
 		  :help-echo "Show the value of this option."
+		  :off "Show Value"
 		  :action 'custom-toggle-parent
 		  nil)
 		 buttons))
@@ -2137,6 +2138,8 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 	     (push (widget-create-child-and-convert
 		    widget 'visibility
 		    :help-echo "Hide the value of this option."
+		    :on "Hide Value"
+		    :off "Show Value"
 		    :action 'custom-toggle-parent
 		    t)
 		   buttons)
@@ -2171,6 +2174,8 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 	     (push (widget-create-child-and-convert
 		    widget 'visibility
 		    :help-echo "Hide the value of this option."
+		    :on "Hide Value"
+		    :off "Show Value"
 		    :action 'custom-toggle-parent
 		    t)
 		   buttons)
@@ -2193,6 +2198,7 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
       ;; this anyway. The doc string widget should be added like the others.
       ;; --dv
       (widget-put widget :buttons buttons)
+      (insert "\n")
       ;; Insert documentation.
       (widget-default-format-handler widget ?h)
 
@@ -2783,6 +2789,8 @@ SPEC must be a full face spec."
 	   (push (widget-create-child-and-convert
 		  widget 'visibility
 		  :help-echo "Hide or show this face."
+		  :on "Hide Face"
+		  :off "Show Face"
 		  :action 'custom-toggle-parent
 		  (not (eq state 'hidden)))
 		 buttons)
