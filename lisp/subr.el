@@ -551,15 +551,7 @@ FUNCTION is added at the end.
 
 HOOK should be a symbol, and FUNCTION may be any valid function.  If
 HOOK is void, it is first set to nil.  If HOOK's value is a single
-function, it is changed to a list of functions.
-
-Note: if you make a hook variable buffer-local, copy its value before
-you use `add-hook' to add to it.  For example,
-
-  (make-local-variable 'foo-hook)
-  (if (boundp 'foo-hook)
-      (setq foo-hook (copy-sequence foo-hook)))
-  (add-hook 'foo-hook 'my-foo-function)"
+function, it is changed to a list of functions."
   (or (boundp hook) (set hook nil))
   ;; If the hook value is a single function, turn it into a list.
   (let ((old (symbol-value hook)))
@@ -570,7 +562,7 @@ you use `add-hook' to add to it.  For example,
 	(memq function (symbol-value hook)))
       (set hook 
 	   (if append
-	       (nconc (symbol-value hook) (list function))
+	       (append (symbol-value hook) (list function))
 	     (cons function (symbol-value hook))))))
 
 (defun remove-hook (hook function)
@@ -584,7 +576,8 @@ list of hooks to run in HOOK, then nothing is done.  See `add-hook'."
       nil				;Do nothing.
     (let ((hook-value (symbol-value hook)))
       (if (consp hook-value)
-	  (setq hook-value (delete function hook-value))
+	  (if (member function hook-value)
+	      (setq hook-value (delete function (copy-sequence hook-value))))
 	(if (equal hook-value function)
 	    (setq hook-value nil)))
       (set hook hook-value))))
