@@ -239,12 +239,13 @@ Fields are separated by whitespace and numbered from 1 up.
 Specified field must contain a number in each line of the region.
 With a negative arg, sorts by the ARGth field counted from the right.
 Called from a program, there are three arguments:
-FIELD, BEG and END.  BEG and END specify region to sort."
+FIELD, BEG and END.  BEG and END specify region to sort.
+If you want to sort floating-point numbers, try `sort-float-fields'."
   (interactive "p\nr")
   (sort-fields-1 field beg end
 		 (function (lambda ()
 			     (sort-skip-fields (1- field))
-			     (string-to-int
+			     (string-to-number
 			      (buffer-substring
 			        (point)
 				(save-excursion
@@ -254,6 +255,7 @@ FIELD, BEG and END.  BEG and END specify region to sort."
 				  (point))))))
 		 nil))
 
+;;;###autoload
 (defun sort-float-fields (field beg end)
   "Sort lines in region numerically by the ARGth field of each line.
 Fields are separated by whitespace and numbered from 1 up.  Specified field
