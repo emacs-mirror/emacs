@@ -6619,7 +6619,7 @@ to the string.  */)
       Lisp_Object args[2];
 
       args[0] = unencodable_char_position (safe_chars, from, p, GPT_ADDR, n);
-      n -= Flength (args[0]);
+      n -= XINT (Flength (args[0]));
       if (n <= 0)
 	positions = args[0];
       else
