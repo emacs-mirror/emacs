@@ -1357,17 +1357,19 @@ bindings; see the description of `lookup-key' for more details about this.")
   return Flist (j, maps);
 }
 
-DEFUN ("define-prefix-command", Fdefine_prefix_command, Sdefine_prefix_command, 1, 2, 0,
+DEFUN ("define-prefix-command", Fdefine_prefix_command, Sdefine_prefix_command, 1, 3, 0,
   "Define COMMAND as a prefix command.  COMMAND should be a symbol.\n\
 A new sparse keymap is stored as COMMAND's function definition and its value.\n\
 If a second optional argument MAPVAR is given, the map is stored as\n\
 its value instead of as COMMAND's value; but COMMAND is still defined\n\
-as a function.")
-  (command, mapvar)
-     Lisp_Object command, mapvar;
+as a function.\n\
+The third optional argument NAME, if given, supplies a menu name\n\
+string for the map.  This is required to use the keymap as a menu.")
+  (command, mapvar, name)
+     Lisp_Object command, mapvar, name;
 {
   Lisp_Object map;
-  map = Fmake_sparse_keymap (Qnil);
+  map = Fmake_sparse_keymap (name);
   Ffset (command, map);
   if (!NILP (mapvar))
     Fset (mapvar, map);
