@@ -1761,7 +1761,7 @@ The file names should be absolute, or relative to the current directory.")
 ;; holding their definitions.  SOURCES holds a list of all the source
 ;; files to examine.
 (defun gud-jdb-build-class-source-alist (sources)
-  (setq gud-jdb-analysis-buffer (get-buffer-create "*gud-jdb-scratch*"))
+  (setq gud-jdb-analysis-buffer (get-buffer-create " *gud-jdb-scratch*"))
   (prog1
       (apply
        'nconc
@@ -2326,18 +2326,17 @@ Obeying it means displaying in another window the specified file and line."
 	  (setq subst (if insource
 			  (save-excursion
 			    (beginning-of-line)
-			    (save-restriction (widen)
-					      (1+ (count-lines 1 (point)))))
+			    (save-restriction
+			      (widen)
+			      (int-to-string (1+ (count-lines 1 (point))))))
 			(cdr frame))))
 	 ((eq key ?e)
 	  (setq subst (gud-find-c-expr)))
 	 ((eq key ?a)
 	  (setq subst (gud-read-address)))
 	 ((eq key ?p)
-	  (setq subst (if arg (int-to-string arg) ""))))
-	(setq result (concat result
-			     (substring str (match-beginning 1) (match-end 1))
-			     subst)))
+	  (setq subst (if arg (int-to-string arg)))))
+	(setq result (concat result (match-string 1 str) subst)))
       (setq str (substring str (match-end 2))))
     ;; There might be text left in STR when the loop ends.
     (concat result str)))
