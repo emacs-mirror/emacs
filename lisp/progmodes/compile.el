@@ -1095,10 +1095,6 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
   (set (make-local-variable 'page-delimiter)
        compilation-page-delimiter)
   (compilation-setup)
-  ;; note that compilation-next-error-function is for interfacing
-  ;; with the next-error function in simple.el, and it's only
-  ;; coincidentally named similarly to compilation-next-error
-  (setq next-error-function 'compilation-next-error-function)
   (run-mode-hooks 'compilation-mode-hook))
 
 (defmacro define-compilation-mode (mode name doc &rest body)
@@ -1150,6 +1146,10 @@ variable exists."
   "Marker to the location from where the next error will be found.
 The global commands next/previous/first-error/goto-error use this.")
 
+(defvar compilation-messages-start nil
+  "Buffer position of the beginning of the compilation messages.
+If nil, use the beginning of buffer.")
+
 ;; A function name can't be a hook, must be something with a value.
 (defconst compilation-turn-on-font-lock 'turn-on-font-lock)
 
@@ -1158,8 +1158,13 @@ The global commands next/previous/first-error/goto-error use this.")
 Optional argument MINOR indicates this is called from
 `compilation-minor-mode'."
   (make-local-variable 'compilation-current-error)
+  (make-local-variable 'compilation-messages-start)
   (make-local-variable 'compilation-error-screen-columns)
   (make-local-variable 'overlay-arrow-position)
+  ;; Note that compilation-next-error-function is for interfacing
+  ;; with the next-error function in simple.el, and it's only
+  ;; coincidentally named similarly to compilation-next-error.
+  (setq next-error-function 'compilation-next-error-function)
   (set (make-local-variable 'font-lock-extra-managed-props)
        '(directory message help-echo mouse-face debug))
   (set (make-local-variable 'compilation-locs)
@@ -1404,16 +1409,16 @@ Use this command in a compilation log buffer.  Sets the mark at point there."
   (let* ((columns compilation-error-screen-columns) ; buffer's local value
 	 (last 1)
 	 (loc (compilation-next-error (or n 1) nil
-				      (or compilation-current-error (point-min))))
+				      (or compilation-current-error
+					  compilation-messages-start
+					  (point-min))))
 	 (end-loc (nth 2 loc))
 	 (marker (point-marker)))
     (setq compilation-current-error (point-marker)
 	  overlay-arrow-position
 	    (if (bolp)
 		compilation-current-error
-	      (save-excursion
-		(beginning-of-line)
-		(point-marker)))
+	      (copy-marker (line-beginning-position)))
 	  loc (car loc))
     ;; If loc contains no marker, no error in that file has been visited.  If
     ;; the marker is invalid the buffer has been killed.  So, recalculate all
@@ -1715,6 +1720,7 @@ FILE should be (ABSOLUTE-FILENAME) or (RELATIVE-FILENAME . DIRNAME)."
   (goto-char limit)
   nil)
 
+;; Beware: this is not only compatiblity code.  New code stil uses it.  --Stef
 (defun compilation-forget-errors ()
   ;; In case we hit the same file/line specs, we want to recompute a new
   ;; marker for them, so flush our cache.
@@ -1730,7 +1736,17 @@ FILE should be (ABSOLUTE-FILENAME) or (RELATIVE-FILENAME . DIRNAME)."
   ;; something equivalent to point-max.  So we speculatively move
   ;; compilation-current-error to point-max (since the external package
   ;; won't know that it should do it).  --stef
-  (setq compilation-current-error (point-max)))
+  (setq compilation-current-error nil)
+  (let* ((proc (get-buffer-process (current-buffer)))
+	 (mark (if proc (process-mark proc)))
+	 (pos (or mark (point-max))))
+    (setq compilation-messages-start
+	  ;; In the future, ignore the text already present in the buffer.
+	  ;; Since many process filter functions insert before markers,
+	  ;; we need to put ours just before the insertion point rather
+	  ;; than at the insertion point.  If that's not possible, then
+	  ;; don't use a marker.  --Stef
+	  (if (> pos (point-min)) (copy-marker (1- pos)) pos))))
 
 (provide 'compile)
 
