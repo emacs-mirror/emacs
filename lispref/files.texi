@@ -349,8 +349,9 @@ to save the data in a corresponding way.
 @defvar write-contents-hooks
 This works just like @code{write-file-hooks}, but it is intended for
 hooks that pertain to the contents of the file, as opposed to hooks that
-pertain to where the file came from.  Typically major mode commands make
-buffer-local bindings for this variable.
+pertain to where the file came from.  Such hooks are usually set up by
+major modes, as buffer-local bindings for this variable.  Switching to a
+new major mode always resets this variable.
 @end defvar
 
 @c Emacs 19 feature
