@@ -2181,7 +2181,7 @@ or forward if N is negative."
 (defun rmail-message-recipients-p (msg recipients &optional primary-only)
   (save-restriction
     (goto-char (rmail-msgbeg msg))
-    (search-forward "\n*** EOOH ***\n" (point-max) t)
+    (search-forward "\n*** EOOH ***\n")
     (narrow-to-region (point) (progn (search-forward "\n\n") (point)))
     (or (string-match recipients (or (mail-fetch-field "To") ""))
 	(string-match recipients (or (mail-fetch-field "From") ""))
@@ -2190,13 +2190,20 @@ or forward if N is negative."
 
 (defun rmail-message-regexp-p (msg regexp)
   "Return t, if for message number MSG, regexp REGEXP matches in the header."
-  (goto-char (rmail-msgbeg msg))
-  (let ((end 
-         (save-excursion 
-           (or (search-forward "\n*** EOOH ***\n" (point-max) t)
-	       (search-forward "\n\n" (point-max)))
-	   (point))))
-    (re-search-forward regexp end t)))
+  (save-excursion
+    (goto-char (rmail-msgbeg msg))
+    (let (beg end)
+      (save-excursion
+	(forward-line 2)
+	(setq beg (point)))
+      (save-excursion 
+	(search-forward "\n*** EOOH ***\n" (point-max))
+	(when (= beg (match-beginning 0))
+	  (setq beg (point))
+	  (search-forward "\n\n" (point-max)))
+	(setq end (point)))
+      (goto-char beg)
+      (re-search-forward regexp end t))))
 
 (defvar rmail-search-last-regexp nil)
 (defun rmail-search (regexp &optional n)
