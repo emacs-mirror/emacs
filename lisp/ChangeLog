@@ -1,7 +1,10 @@
 2001-07-05  Gerd Moellmann  <gerd@gnu.org>
 
-	* battery.el (battery-update): Add help-echo.
-	From Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
+	* play/pong.el: Fix first line.  From Pavel Jan,Bm(Bk
+	<Pavel@Janik.cz>.
+
+	* battery.el (battery-update): Add help-echo.  From Pavel Jan,Bm(Bk
+	<Pavel@Janik.cz>.
 
 2001-07-04  Gerd Moellmann  <gerd@gnu.org>
 
