@@ -25,10 +25,12 @@ describes the X resources that Emacs recognizes and how to use them.
 @cindex resources
 
 @cindex X resources, @file{~/.Xdefaults} file
+@cindex X resources, @file{~/.Xresources} file
   Programs running under the X Window System organize their user
 options under a hierarchy of classes and resources.  You can specify
 default values for these options in your X resources file, usually
-named @file{~/.Xdefaults}.  If changes in @file{~/.Xdefaults} do not
+named @file{~/.Xdefaults} or @file{~/.Xresources}.
+If changes in @file{~/.Xdefaults} do not
 take effect, it is because your X server stores its own list of
 resources; to update them, use the shell command @command{xrdb}---for
 instance, @samp{xrdb ~/.Xdefaults}.
@@ -219,11 +221,9 @@ Font name for menu pane titles, in non-toolkit versions of Emacs.
 @item @code{pointerColor} (class @code{Foreground})
 Color of the mouse cursor.
 
-@ignore
 @item @code{privateColormap} (class @code{PrivateColormap})
 If @samp{on}, use a private color map, in the case where the ``default
 visual'' of class PseudoColor and Emacs is using it.
-@end ignore
 
 @item @code{reverseVideo} (class @code{ReverseVideo})
 Switch foreground and background default colors if @samp{on}, use colors as
@@ -234,10 +234,15 @@ specified if @samp{off}.
 Gamma correction for colors, equivalent to the frame parameter
 @code{screen-gamma}.
 
-@item @code{selectionFont} (class @code{Font})
+@item @code{selectionFont} (class @code{SelectionFont})
 Font name for pop-up menu items, in non-toolkit versions of Emacs.  (For
 toolkit versions, see @ref{Lucid Resources}, also see @ref{LessTif
 Resources}.)
+
+@item @code{selectionTimeout} (class @code{SelectionTimeout})
+Number of milliseconds to wait for a selection reply.
+If the selection owner doesn't reply in this time, we give up.
+A value of 0 means wait as long as necessary.
 
 @item @code{synchronous} (class @code{Synchronous})
 @cindex debugging X problems
