@@ -300,7 +300,7 @@ load_charset_map (charset, entries, n_entries, control_flag)
 	      if (c1 >= 0)
 		{
 		  CHAR_TABLE_SET (table, from_c, make_number (c1));
-		  CHAR_TABLE_SET (Vchar_unify_table, c1, from_c);
+		  CHAR_TABLE_SET (Vchar_unify_table, c1, make_number (from_c));
 		  if (CHAR_TABLE_P (Vchar_unified_charset_table))
 		    CHAR_TABLE_SET (Vchar_unified_charset_table, c1,
 				    CHARSET_NAME (charset));
@@ -661,18 +661,23 @@ range of code points of targer characters.  */)
        Lisp_Object function, charset, arg, from_code, to_code;
 {
   struct charset *cs;
+  unsigned from, to;
 
   CHECK_CHARSET_GET_CHARSET (charset, cs);
   if (NILP (from_code))
-    from_code = 0;
-  if (from_code < CHARSET_MIN_CODE (cs))
-    from_code = CHARSET_MIN_CODE (cs);
+    from_code = make_number (0);
+  CHECK_NATNUM (from_code);
+  from = XINT (from_code);
+  if (from < CHARSET_MIN_CODE (cs))
+    from = CHARSET_MIN_CODE (cs);
   if (NILP (to_code))
-    to_code = 0xFFFFFFFF;
-  if (to_code > CHARSET_MAX_CODE (cs))
-    to_code = CHARSET_MAX_CODE (cs);
+    to_code = make_number (0xFFFFFFFF);
+  CHECK_NATNUM (from_code);
+  to = XINT (to_code);
+  if (to > CHARSET_MAX_CODE (cs))
+    to_code = make_number (CHARSET_MAX_CODE (cs));
 
-  map_charset_chars (NULL, function, arg, cs, from_code, to_code);
+  map_charset_chars (NULL, function, arg, cs, from, to);
   return Qnil;
 }
 
@@ -1208,7 +1213,7 @@ CHARSET should be defined by `define-charset' in advance.  */)
   CHECK_CHARSET_GET_ID (charset, id);
   check_iso_charset_parameter (dimension, chars, final_char);
 
-  ISO_CHARSET_TABLE (dimension, chars, final_char) = id;
+  ISO_CHARSET_TABLE (XINT (dimension), XINT (chars), XINT (final_char)) = id;
   return Qnil;
 }
 
@@ -1608,15 +1613,14 @@ code-point in CCS.  Currently not supported and just ignored.  */)
      (ch, charset, restriction)
      Lisp_Object ch, charset, restriction;
 {
-  int c, id;
+  int id;
   unsigned code;
   struct charset *charsetp;
 
   CHECK_CHARSET_GET_ID (charset, id);
   CHECK_NATNUM (ch);
-  c = XINT (ch);
   charsetp = CHARSET_FROM_ID (id);
-  code = ENCODE_CHAR (charsetp, ch);
+  code = ENCODE_CHAR (charsetp, XINT (ch));
   if (code == CHARSET_INVALID_CODE (charsetp))
     return Qnil;
   if (code > 0x7FFFFFF)
@@ -1739,8 +1743,7 @@ char_charset (c, charset_list, code_return)
 /* Fixme: `unknown' can't happen now?  */
 DEFUN ("split-char", Fsplit_char, Ssplit_char, 1, 1, 0,
        doc: /*Return list of charset and one to three position-codes of CHAR.
-If CHAR is invalid as a character code,
-return a list of symbol `unknown' and CHAR.  */)
+If CHAR is invalid as a character code, return a list `(unknown CHAR)'.  */)
      (ch)
      Lisp_Object ch;
 {
@@ -1868,11 +1871,11 @@ HIGHESTP non-nil means just return the highest priority one.  */)
   Lisp_Object val = Qnil, list = Vcharset_ordered_list;
 
   if (!NILP (highestp))
-    return CHARSET_NAME (CHARSET_FROM_ID (Fcar (list)));
+    return CHARSET_NAME (CHARSET_FROM_ID (XINT (Fcar (list))));
 
   while (!NILP (list))
     {
-      val = Fcons (CHARSET_NAME (CHARSET_FROM_ID (XCAR (list))), val);
+      val = Fcons (CHARSET_NAME (CHARSET_FROM_ID (XINT (XCAR (list)))), val);
       list = XCDR (list);
     }
   return Fnreverse (val);
@@ -1886,15 +1889,15 @@ usage: (set-charset-priority &rest charsets)  */)
      int nargs;
      Lisp_Object *args;
 {
-  Lisp_Object new_head = Qnil, old_list, id, arglist[2];
-  int i;
+  Lisp_Object new_head = Qnil, old_list, arglist[2];
+  int i, id;
 
   old_list = Fcopy_sequence (Vcharset_ordered_list);
   for (i = 0; i < nargs; i++)
     {
       CHECK_CHARSET_GET_ID (args[i], id);
-      old_list = Fdelq (id, old_list);
-      new_head = Fcons (id, new_head);
+      old_list = Fdelq (make_number (id), old_list);
+      new_head = Fcons (make_number (id), new_head);
     }
   arglist[0] = Fnreverse (new_head);
   arglist[1] = old_list;
@@ -2059,7 +2062,7 @@ The default value is sub-directory "charsets" of `data-directory'.  */);
     plist[13] = args[charset_arg_code_offset];
     args[charset_arg_plist] = Flist (14, plist);
     Fdefine_charset_internal (charset_arg_max, args);
-    charset_ascii = CHARSET_SYMBOL_ID (Qascii);
+    charset_ascii = XINT (CHARSET_SYMBOL_ID (Qascii));
 
     args[charset_arg_name] = Qunicode;
     args[charset_arg_dimension] = make_number (3);
@@ -2091,7 +2094,7 @@ The default value is sub-directory "charsets" of `data-directory'.  */);
     plist[13] = args[charset_arg_code_offset];
     args[charset_arg_plist] = Flist (14, plist);
     Fdefine_charset_internal (charset_arg_max, args);
-    charset_unicode = CHARSET_SYMBOL_ID (Qunicode);
+    charset_unicode = XINT (CHARSET_SYMBOL_ID (Qunicode));
   }
 }
 
