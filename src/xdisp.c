@@ -314,6 +314,13 @@ message1 (m)
   message2 (m, (m ? strlen (m) : 0));
 }
 
+void
+message1_nolog (m)
+     char *m;
+{
+  message2_nolog (m, (m ? strlen (m) : 0));
+}
+
 /* Truncate what will be displayed in the echo area
    the next time we display it--but don't redisplay it now.  */
 
