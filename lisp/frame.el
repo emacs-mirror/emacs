@@ -119,11 +119,16 @@ These supersede the values given in `default-frame-alist'.")
 		     frame-initial-frame
 		     ;; Must set cursor-color after background color.
 		     ;; So put it first.
-		     (list (cons 'cursor-color (cdr (assq 'background-color params)))
-			   (cons 'foreground-color (cdr (assq 'background-color params)))
-			   (cons 'background-color (cdr (assq 'foreground-color params)))
-			   (cons 'mouse-color (cdr (assq 'background-color params)))
-			   (cons 'border-color (cdr (assq 'background-color params)))))))))
+		     (list (cons 'cursor-color
+				 (cdr (assq 'background-color params)))
+			   (cons 'foreground-color
+				 (cdr (assq 'background-color params)))
+			   (cons 'background-color
+				 (cdr (assq 'foreground-color params)))
+			   (cons 'mouse-color
+				 (cdr (assq 'background-color params)))
+			   (cons 'border-color
+				 (cdr (assq 'background-color params)))))))))
 
 	;; At this point, we know that we have a frame open, so we 
 	;; can delete the terminal frame.
