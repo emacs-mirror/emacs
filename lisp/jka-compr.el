@@ -171,6 +171,14 @@ a program adds the overhead of starting a shell each time the program is
 invoked.")
 
 
+(defvar jka-compr-file-name-handler-entry
+  nil
+  "The entry in `file-name-handler-alist' used by the jka-compr I/O functions.")
+  
+(defvar jka-compr-op-table
+  (make-vector 127 0)
+  "Hash table of operations supported by jka-compr.")
+
 ;;; Functions for accessing the return value of jka-get-compression-info
 (defun jka-compr-info-regexp               (info)  (aref info 0))
 (defun jka-compr-info-compress-message     (info)  (aref info 1))
@@ -656,11 +664,6 @@ There should be no more than seven characters after the final `/'")
     t))
 
 
-(defvar jka-compr-file-name-handler-entry
-  nil
-  "The entry in `file-name-handler-alist' used by the jka-compr I/O functions.")
-
-
 (defun jka-compr-handler (operation &rest args)
 
   (let ((jka-op (intern-soft (symbol-name operation) jka-compr-op-table))
@@ -691,11 +694,6 @@ There should be no more than seven characters after the final `/'")
 		    inhibit-file-name-handlers)))
 	(inhibit-file-name-operation operation))
     (apply operation args)))
-
-  
-(defvar jka-compr-op-table
-  (make-vector 127 0)
-  "Hash table of operations supported by jka-compr.")
 
 
 (defun jka-compr-intern-operation (op)
