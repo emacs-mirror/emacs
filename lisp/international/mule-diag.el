@@ -576,17 +576,12 @@ which font is being used for displaying the character."
 		      (format "%d" (nth 1 split))
 		    (format "%d %d" (nth 1 split) (nth 2 split)))))
 	      ("syntax"
- 	       ,(let* ((old-table (syntax-table))
- 		       (table (get-char-property (point) 'syntax-table)))
- 		  (if (consp table)
- 		      (nth 1 (assq (car table)
- 				   (mapcar #'cdr syntax-code-table)))
- 		    (unwind-protect
- 			(progn
- 			  (if (syntax-table-p table)
- 			      (set-syntax-table table))
- 			  (nth 2 (assq (char-syntax char) syntax-code-table)))
- 		      (set-syntax-table old-table)))))
+ 	       ,(let ((syntax (get-char-property (point) 'syntax-table)))
+		  (with-temp-buffer
+		    (internal-describe-syntax-value
+		     (if (consp syntax) syntax
+		       (aref (or syntax (syntax-table)) char)))
+		    (buffer-string))))
 	      ("category"
 	       ,@(let ((category-set (char-category-set char)))
 		   (if (not category-set)
