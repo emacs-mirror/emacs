@@ -1668,14 +1668,15 @@ that means the selected frame (@pxref{Input Focus}).
 If @var{frame} is @code{t}, the value is the default for
 @var{face} for new frames.
 
-If @var{inherit} is nil, only attributes directly defined by
+If @var{inherit} is @code{nil}, only attributes directly defined by
 @var{face} are considered, so the return value may be
-@code{unspecified}, or a relative value.  If @var{inherit} is non-nil,
-@var{face}'s definition of @var{attribute} is merged with the faces
-specified by its @code{:inherit} attribute; however the return value
-may still be @code{unspecified} or relative.  If @var{inherit} is a
-face or a list of faces, then the result is further merged with that
-face (or faces), until it becomes specified and absolute.
+@code{unspecified}, or a relative value.  If @var{inherit} is
+non-@code{nil}, @var{face}'s definition of @var{attribute} is merged
+with the faces specified by its @code{:inherit} attribute; however the
+return value may still be @code{unspecified} or relative.  If
+@var{inherit} is a face or a list of faces, then the result is further
+merged with that face (or faces), until it becomes specified and
+absolute.
 
 To ensure that the return value is always specified and absolute, use
 a value of @code{default} for @var{inherit}; this will resolve any
@@ -1790,12 +1791,13 @@ specified, use a value of @code{default} for @var{inherit}.
 This function returns the name of the background stipple pattern of face
 @var{face}, or @code{nil} if it doesn't have one.
 
-If @var{inherit} is nil, only a stipple directly defined by the face
-is returned.  If @var{inherit} is non-nil, any faces specified by its
-@code{:inherit} attribute are considered as well, and if @var{inherit}
-is a face or a list of faces, then they are also considered, until a
-specified stipple is found.  To ensure that the return value is always
-specified, use a value of @code{default} for @var{inherit}.
+If @var{inherit} is @code{nil}, only a stipple directly defined by the
+face is returned.  If @var{inherit} is non-@code{nil}, any faces
+specified by its @code{:inherit} attribute are considered as well, and
+if @var{inherit} is a face or a list of faces, then they are also
+considered, until a specified stipple is found.  To ensure that the
+return value is always specified, use a value of @code{default} for
+@var{inherit}.
 @end defun
 
 @defun face-font face &optional frame
@@ -2140,9 +2142,10 @@ The first five elements correspond to face attributes; if you
 specify these attributes for a face, it will use this font.
 
 The last three elements give additional information about the font.
-@var{fixed-p} is non-nil if the font is fixed-pitch.  @var{full} is the
-full name of the font, and @var{registry-and-encoding} is a string
-giving the registry and encoding of the font.
+@var{fixed-p} is non-@code{nil} if the font is fixed-pitch.
+@var{full} is the full name of the font, and
+@var{registry-and-encoding} is a string giving the registry and
+encoding of the font.
 
 The result list is sorted according to the current face font sort order.
 @end defun
@@ -2685,9 +2688,9 @@ color from the corners is the background color of the image.  Otherwise,
 @var{bg} must be a list @code{(@var{red} @var{green} @var{blue})}
 specifying the color to assume for the background of the image.
 
-If @var{mask} is nil, remove a mask from the image, if it has one.  Images
-in some formats include a mask which can be removed by specifying
-@code{:mask nil}.
+If @var{mask} is @code{nil}, remove a mask from the image, if it has
+one.  Images in some formats include a mask which can be removed by
+specifying @code{:mask nil}.
 @end table
 
 @defun image-mask-p spec &optional frame
@@ -3008,10 +3011,10 @@ This removes only images that were put into @var{buffer} the way
 @tindex image-size
 This function returns the size of an image as a pair
 @w{@code{(@var{width} . @var{height})}}.  @var{spec} is an image
-specification.  @var{pixels} non-nil means return sizes measured in
-pixels, otherwise return sizes measured in canonical character units
-(fractions of the width/height of the frame's default font).
-@var{frame} is the frame on which the image will be displayed.
+specification.  @var{pixels} non-@code{nil} means return sizes
+measured in pixels, otherwise return sizes measured in canonical
+character units (fractions of the width/height of the frame's default
+font).  @var{frame} is the frame on which the image will be displayed.
 @var{frame} null or omitted means use the selected frame (@pxref{Input
 Focus}).
 @end defun

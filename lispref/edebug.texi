@@ -1550,7 +1550,7 @@ until the @emph{next} time Edebug is invoked via a new command.
 @c A new command is not precisely true, but that is close enough -- dan
 
 @defopt edebug-global-break-condition
-If non-@code{nil}, an expression to test for at every stop point.
-If the result is non-nil, then break.  Errors are ignored.
+If non-@code{nil}, an expression to test for at every stop point.  If
+the result is non-@code{nil}, then break.  Errors are ignored.
 @xref{Global Break Condition}.
 @end defopt

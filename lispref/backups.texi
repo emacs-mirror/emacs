@@ -143,9 +143,9 @@ ignored.
 
 @defvar make-backup-file-name-function
 @tindex make-backup-file-name-function
-This variable's value is a function to use for making backups instead of
-the default @code{make-backup-file-name}.  A value of nil gives the
-default @code{make-backup-file-name} behaviour.
+This variable's value is a function to use for making backups instead
+of the default @code{make-backup-file-name}.  A value of @code{nil}
+gives the default @code{make-backup-file-name} behaviour.
 
 This could be buffer-local to do something special for specific
 files.  If you define it, you may need to change
@@ -558,9 +558,9 @@ the current buffer is large, the specified timeout is multiplied by a
 factor that increases as the size increases; for a million-byte
 buffer, the factor is almost 4.)
 
-If the value is zero or nil, then auto-saving is not done as a result
-of idleness, only after a certain number of input events
-as specified by @code{auto-save-interval}.
+If the value is zero or @code{nil}, then auto-saving is not done as a
+result of idleness, only after a certain number of input events as
+specified by @code{auto-save-interval}.
 @end defopt
 
 @defvar auto-save-hook
