@@ -1,3 +1,7 @@
+2001-10-31  Gerd Moellmann  <gerd@gnu.org>
+
+	* fns.c (require_unwind): Return Lisp_Object.
+
 2001-10-31  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* keyboard.c (lucid-menu-bar-dirty-flag): Doc fix.
