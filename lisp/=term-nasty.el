@@ -1,4 +1,5 @@
 ;;; term-nasty.el --- Damned Things from terminfo.el
+;;; This file is in the public domain, and was written by Stallman and Mlynarik
 
 ;;; Commentary:
 
