@@ -402,7 +402,7 @@ space does not end a sentence, so don't break a line there."
 			    (not (= ?\n (char-after end)))
 			    (not (= end (point-max))))
 		  (goto-char (1+ end)))
-		(setq end (min (point-max) (1+ end)))
+		(setq end (if end (min (point-max) (1+ end)) (point-max)))
 		(goto-char initial))
 	    (forward-paragraph 1)
 	    (setq end (point))
