@@ -1,6 +1,6 @@
 ;;; avoid.el --- make mouse pointer stay out of the way of editing
 
-;;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+;;; Copyright (C) 1993, 1994, 2000 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: mouse
@@ -173,15 +173,22 @@ Analogous to mouse-position."
     t))
 
 (defun mouse-avoidance-too-close-p (mouse)
-  ;;  Return t if mouse pointer and point cursor are too close.
-  ;; Acceptable distance is defined by mouse-avoidance-threshold.
-  (let ((point (mouse-avoidance-point-position)))
-    (and (eq (car mouse) (car point))
-	 (car (cdr mouse))
-	 (< (abs (- (car (cdr mouse)) (car (cdr point))))
-	    mouse-avoidance-threshold)
-	 (< (abs (- (cdr (cdr mouse)) (cdr (cdr point))))
-	    mouse-avoidance-threshold))))
+  "Return t if mouse pointer and point cursor are too close.
+MOUSE is the current mouse position as returned by `mouse-position'.
+Acceptable distance is defined by `mouse-avoidance-threshold'."
+  (let* ((frame (car mouse))
+	 (mouse-y (cdr (cdr mouse)))
+	 (tool-bar-lines (frame-parameter nil 'tool-bar-lines)))
+    (if (and mouse-y (< mouse-y tool-bar-lines))
+	nil
+      (let ((point (mouse-avoidance-point-position))
+	    (mouse-x (car (cdr mouse))))
+	(and (eq frame (car point))
+	     (not (null mouse-x))
+	     (< (abs (- mouse-x (car (cdr point))))
+		mouse-avoidance-threshold)
+	     (< (abs (- mouse-y (cdr (cdr point))))
+		mouse-avoidance-threshold))))))
 
 (defun mouse-avoidance-banish-destination ()
   "The position to which mouse-avoidance-mode `banish' moves the mouse.
