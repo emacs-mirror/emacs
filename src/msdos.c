@@ -890,9 +890,13 @@ IT_write_glyphs (struct glyph *str, int str_len)
   register int tlen = GLYPH_TABLE_LENGTH;
   register Lisp_Object *tbase = GLYPH_TABLE_BASE;
 
-  struct coding_system *coding = (CODING_REQUIRE_ENCODING (&terminal_coding)
-				  ? &terminal_coding
-				  : &safe_terminal_coding);
+  /* If terminal_coding does any conversion, use it, otherwise use
+     safe_terminal_coding.  We can't use CODING_REQUIRE_ENCODING here
+     because it always returns 1 if terminal_coding.src_multibyte is 1.  */
+  struct coding_system *coding =
+    (terminal_coding.common_flags & CODING_REQUIRE_ENCODING_MASK
+     ? &terminal_coding
+     : &safe_terminal_coding);
   struct frame *sf;
 
   /* Do we need to consider conversion of unibyte characters to
