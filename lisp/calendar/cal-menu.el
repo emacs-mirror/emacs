@@ -161,6 +161,13 @@
 (define-key calendar-mode-map [menu-bar scroll fwd-1]
   '("Forward 1 Month" . scroll-calendar-left))
 
+(defun cal-menu-x-popup-menu (position menu)
+  "Like `x-popup-menu', but prints an error message if popup menus are
+not available."
+  (if (display-popup-menus-p)
+      (x-popup-menu position menu)
+    (error "Popup menus are not available on this system.")))
+
 (defun cal-menu-list-holidays-year ()
   "Display a list of the holidays of the selected date's year."
   (interactive)
@@ -244,7 +251,7 @@ ERROR is t, otherwise just returns nil."
   "Pop up menu to insert a Hebrew-date diary entry."
   (interactive "e")
   (let ((hebrew-selection
-         (x-popup-menu
+         (cal-menu-x-popup-menu
           event
           (list "Hebrew insert menu"
                 (list (calendar-hebrew-date-string (calendar-cursor-to-date))
@@ -257,7 +264,7 @@ ERROR is t, otherwise just returns nil."
   "Pop up menu to insert an Islamic-date diary entry."
   (interactive "e")
   (let ((islamic-selection
-         (x-popup-menu
+         (cal-menu-x-popup-menu
           event
           (list "Islamic insert menu"
                 (list (calendar-islamic-date-string (calendar-cursor-to-date))
@@ -287,7 +294,7 @@ ERROR is t, otherwise just returns nil."
          (l (mapcar '(lambda (x) (list x))
                     (check-calendar-holidays date)))
          (selection
-          (x-popup-menu
+          (cal-menu-x-popup-menu
            event
            (list
             (format "Holidays for %s" (calendar-date-string date))
@@ -305,7 +312,7 @@ ERROR is t, otherwise just returns nil."
                           (diary-display-hook 'ignore))
                       (list-diary-entries date 1))))
          (selection
-          (x-popup-menu
+          (cal-menu-x-popup-menu
            event
            (list
             (format "Diary entries for %s" (calendar-date-string date))
@@ -331,7 +338,7 @@ ERROR is t, otherwise just returns nil."
          (l (mapcar '(lambda (x) (list (car (cdr x))))
                     (list-diary-entries date 1)))
          (selection
-          (x-popup-menu
+          (cal-menu-x-popup-menu
            event
            (list
             (format "Diary entries from %s for %s"
@@ -459,7 +466,7 @@ The output is in landscape format, one month to a page."
   (interactive)
   (let ((date (calendar-event-to-date))
         (selection
-         (x-popup-menu
+         (cal-menu-x-popup-menu
           event
           (list
            (concat (calendar-date-string date) " (Gregorian)")
@@ -519,7 +526,7 @@ The output is in landscape format, one month to a page."
   (interactive "e")
   (let* ((date (calendar-event-to-date t))
          (selection
-          (x-popup-menu
+          (cal-menu-x-popup-menu
            event
            (list (calendar-date-string date t nil)
                  (list
@@ -540,7 +547,7 @@ The output is in landscape format, one month to a page."
   "Pop up submenu for Mouse-2 for cal-tex commands for selected date in the calendar window."
   (interactive "e")
   (let* ((selection
-          (x-popup-menu
+          (cal-menu-x-popup-menu
            event
            (list (calendar-date-string date t nil)
                  (list
@@ -563,7 +570,7 @@ The output is in landscape format, one month to a page."
   "Pop up sub-submenu for Mouse-2 for Filofax cal-tex commands for selected date."
   (interactive "e")
   (let* ((selection
-          (x-popup-menu
+          (cal-menu-x-popup-menu
            event
            (list (calendar-date-string date t nil)
                  (list
