@@ -66,7 +66,7 @@
     ("h" . ?(1N(B)
     ("nh" . ?(1|(B)
     ("mh" . ?(1}(B)
-    ("lh" . "0(1K\1(B")
+    ("lh" . "0(1K\(B1")
     ))
 
 ;; Semi-vowel-sign-lo is put under the first letter.
@@ -161,7 +161,7 @@
   (let* ((patterns (copy-sequence vowel-pattern))
 	 (tail patterns)
 	 (chars (string-to-list
-		 (if (= (chars-in-string str) 1)
+		 (if (= (length str) 1)
 		     (decompose-string str)
 		   str)))
 	 place)
@@ -343,8 +343,8 @@
 	  (quail-defrule-internal
 	   (concat (car e1) semi-vowel-key)
 	   (vector (concat (compose-string
-			    (format "%c%c" (sref (cdr e1) 0) semi-vowel-char))
-			   (substring (cdr e1) (charset-bytes 'lao))))
+			    (format "%c%c" (aref (cdr e1) 0) semi-vowel-char))
+			   (substring (cdr e1) 1)))
 	   map)
 	  (setq l2 lrt-vowel-table)
 	  (while l2
