@@ -11280,6 +11280,7 @@ The elements of the list are event types that may have menu bar bindings.  */);
 		 doc: /* Per-terminal keymap that overrides all other local keymaps.
 If this variable is non-nil, it is used as a keymap instead of the
 buffer's local map, and the minor mode keymaps and text property keymaps.
+It also overrides `overriding-local-map'.
 This variable is intended to let commands such as `universal-argument'
 set up a different keymap for reading the next command.  */);
 
