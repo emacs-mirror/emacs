@@ -2454,9 +2454,10 @@ specifying headers which should not be copied into the new message."
 	    (let ((codestring
 		   (buffer-substring (progn (beginning-of-line) (point))
 				     (progn (end-of-line) (point)))))
-	      (re-search-forward mail-unsent-separator)
-	      (search-forward codestring)
-	      (or (search-forward "\n\n" nil t)
+	      (or (re-search-forward mail-unsent-separator nil t)
+		  (error "Cannot find beginning of header in failed message"))
+	      (or (and (search-forward codestring nil t)
+		       (search-forward "\n\n" nil t))
 		  (error "Cannot find end of Mime data in failed message"))
 	      (setq bounce-start (point))
 	      (save-excursion
