@@ -213,7 +213,8 @@ Several are for Debian GNU/Linux in particular.
  * Mule-UCS: Universal enCoding System:
    <URL:ftp://ftp.m17n.org/pub/mule/Mule-UCS/>
    Extended coding systems for Mule, specifically for reading and
-   writing UTF-8 encoded Unicode.
+   writing UTF-8 encoded Unicode.  This does more than the built-in
+   utf-8 coding system.
 
    An alternative system for using UTF-8 is at
    <URL:http://www.cs.uu.nl/%7Eotfried/Mule/>.  This includes an
