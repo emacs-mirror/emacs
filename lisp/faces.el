@@ -729,7 +729,13 @@ selected frame."
 	  (let ((beg (point)))
 	    (insert list-faces-sample-text)
 	    (insert "\n")
-	    (put-text-property beg (1- (point)) 'face face)))
+	    (put-text-property beg (1- (point)) 'face face)
+	    ;; If the sample text has multiple lines, line up all of them.
+	    (goto-char beg)
+	    (forward-line 1)
+	    (while (not (eobp))
+	      (insert "                          ")
+	      (forward-line 1))))
 	(goto-char (point-min))))
     ;; If the *Faces* buffer appears in a different frame,
     ;; copy all the face definitions from FRAME,
