@@ -1,5 +1,5 @@
 /* Keyboard and mouse input; editor command loop.
-   Copyright (C) 1985,86,87,88,89,93,94,95,96,97,99, 2000
+   Copyright (C) 1985,86,87,88,89,93,94,95,96,97,99, 2000, 2001
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -920,11 +920,11 @@ recursive_edit_1 ()
     }
 
 #ifdef HAVE_X_WINDOWS
-  /* The command loop has started a busy-cursor timer, so we have to
+  /* The command loop has started an hourglass timer, so we have to
      cancel it here, otherwise it will fire because the recursive edit
      can take some time.  */
-  if (display_busy_cursor_p)
-    cancel_busy_cursor ();
+  if (display_hourglass_p)
+    cancel_hourglass ();
 #endif
 
   /* This function may have been called from a debugger called from
@@ -1249,8 +1249,8 @@ DEFUN ("top-level", Ftop_level, Stop_level, 0, 0, "",
   ()
 {
 #ifdef HAVE_X_WINDOWS
-  if (display_busy_cursor_p)
-    cancel_busy_cursor ();
+  if (display_hourglass_p)
+    cancel_hourglass ();
 #endif
   return Fthrow (Qtop_level, Qnil);
 }
@@ -1606,8 +1606,8 @@ command_loop_1 ()
 	  /* Here for a command that isn't executed directly */
 
 #ifdef HAVE_X_WINDOWS
-	  if (display_busy_cursor_p)
-	    start_busy_cursor ();
+	  if (display_hourglass_p)
+	    start_hourglass ();
 #endif
 
 	  nonundocount = 0;
@@ -1616,8 +1616,8 @@ command_loop_1 ()
 	  Fcommand_execute (Vthis_command, Qnil, Qnil, Qnil);
 
 #ifdef HAVE_X_WINDOWS
-	  if (display_busy_cursor_p)
-	    cancel_busy_cursor ();
+	  if (display_hourglass_p)
+	    cancel_hourglass ();
 #endif
 	}
     directly_done: ;
@@ -8896,8 +8896,8 @@ DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 5, 0,
     }
 
 #ifdef HAVE_X_WINDOWS
-  if (display_busy_cursor_p)
-    cancel_busy_cursor ();
+  if (display_hourglass_p)
+    cancel_hourglass ();
 #endif
 
   i = read_key_sequence (keybuf, (sizeof keybuf/sizeof (keybuf[0])),
@@ -8908,8 +8908,8 @@ DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 5, 0,
 	  then proceeding with a lenghty compuation, but it's not good
 	  for code reading keys in a loop, like an input method.  */
 #ifdef HAVE_X_WINDOWS
-  if (display_busy_cursor_p)
-    start_busy_cursor ();
+  if (display_hourglass_p)
+    start_hourglass ();
 #endif
 #endif
 
@@ -8955,8 +8955,8 @@ DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,
     }
 
 #ifdef HAVE_X_WINDOWS
-  if (display_busy_cursor_p)
-    cancel_busy_cursor ();
+  if (display_hourglass_p)
+    cancel_hourglass ();
 #endif
 
   i = read_key_sequence (keybuf, (sizeof keybuf/sizeof (keybuf[0])),
@@ -8964,8 +8964,8 @@ DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,
 			 ! NILP (can_return_switch_frame), 0);
 
 #ifdef HAVE_X_WINDOWS
-  if (display_busy_cursor_p)
-    start_busy_cursor ();
+  if (display_hourglass_p)
+    start_hourglass ();
 #endif
 
   if (i == -1)

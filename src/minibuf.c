@@ -1,6 +1,6 @@
 /* Minibuffer input and completion.
-   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000
-         Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+   2000, 2001 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -368,8 +368,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   single_kboard_state ();
 #ifdef HAVE_X_WINDOWS
-  if (display_busy_cursor_p)
-    cancel_busy_cursor ();
+  if (display_hourglass_p)
+    cancel_hourglass ();
 #endif
 
   val = Qnil;
