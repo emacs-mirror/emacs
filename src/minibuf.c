@@ -1772,7 +1772,8 @@ t means to return a list of all possible completions of STRING.\n\
 
   DEFVAR_LISP ("minibuffer-history-variable", &Vminibuffer_history_variable,
     "History list symbol to add minibuffer values to.\n\
-Each minibuffer output is added with\n\
+Each string of minibuffer input, as it appears on exit from the minibuffer,\n\
+is added with\n\
   (set minibuffer-history-variable\n\
        (cons STRING (symbol-value minibuffer-history-variable)))");
   XSETFASTINT (Vminibuffer_history_variable, 0);
