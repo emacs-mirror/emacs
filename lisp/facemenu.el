@@ -408,10 +408,12 @@ These special properties include `invisible', `intangible' and `read-only'."
   "Pop up a buffer listing text-properties at LOCATION."
   (interactive "d")
   (let ((props (text-properties-at p))
+	category
 	str)
     (if (null props)
 	(message "None")
       (if (and (not (cdr (cdr props)))
+	       (not (eq (car props) 'category))
 	       (< (length (setq str (format "Text property at %d:  %s  %S"
 					    p (car props) (car (cdr props)))))
 		  (frame-width)))
@@ -419,9 +421,21 @@ These special properties include `invisible', `intangible' and `read-only'."
 	(with-output-to-temp-buffer "*Text Properties*"
 	  (princ (format "Text properties at %d:\n\n" p))
 	  (while props
+	    (if (eq (car props) 'category)
+		(setq category (car (cdr props))))
 	    (princ (format "%-20s %S\n"
 			   (car props) (car (cdr props))))
-	    (setq props (cdr (cdr props)))))))))
+	    (setq props (cdr (cdr props))))
+	  (if category
+	      (progn
+		(setq props (symbol-plist category))
+		(princ (format "\nCategory %s:\n\n" category))
+		(while props
+		  (princ (format "%-20s %S\n"
+				 (car props) (car (cdr props))))
+		  (if (eq (car props) 'category)
+		      (setq category (car (cdr props))))
+		  (setq props (cdr (cdr props)))))))))))
 
 ;;;###autoload
 (defun facemenu-read-color (&optional prompt)
