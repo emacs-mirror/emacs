@@ -212,7 +212,7 @@ COUNT is a repeat count, or nil for once, or 0 for infinite loop.")
       Vexecuting_macro = final;
       executing_macro_index = 0;
 
-      clear_prefix_arg ();
+      current_kboard->Vprefix_arg = Qnil;
       command_loop_1 ();
 
       QUIT;
