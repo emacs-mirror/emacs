@@ -4,7 +4,7 @@
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
-;; Keywords: games
+;; Keywords: games, extensions
 ;; Created: Mon Mar 22 17:06:26 1993
 
 ;; This file is part of GNU Emacs.
