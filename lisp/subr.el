@@ -1843,20 +1843,24 @@ Return the modified alist."
       (setq tail (cdr tail)))
     alist))
 
-(defun make-temp-file (prefix &optional dir-flag)
+(defun make-temp-file (prefix &optional dir-flag suffix)
   "Create a temporary file.
 The returned file name (created by appending some random characters at the end
 of PREFIX, and expanding against `temporary-file-directory' if necessary,
 is guaranteed to point to a newly created empty file.
 You can then use `write-region' to write new data into the file.
 
-If DIR-FLAG is non-nil, create a new empty directory instead of a file."
+If DIR-FLAG is non-nil, create a new empty directory instead of a file.
+
+If SUFFIX is non-nil, add that at the end of the file name."
   (let (file)
     (while (condition-case ()
 	       (progn
 		 (setq file
 		       (make-temp-name
 			(expand-file-name prefix temporary-file-directory)))
+		 (if suffix
+		     (setq file (concat file suffix)))
 		 (if dir-flag
 		     (make-directory file)
 		   (write-region "" nil file nil 'silent nil 'excl))
