@@ -86,14 +86,14 @@
 (defun vt-keypad-on (&optional tell)
   "Turn on the VT applications keypad."
   (interactive)
-  (send-string-to-terminal "\e[\e=")
+  (send-string-to-terminal "\e=")
   (setq vt-applications-keypad-p t)
   (if (or tell (interactive-p)) (message "Applications keypad enabled.")))
 
 (defun vt-keypad-off (&optional tell)
   "Turn off the VT applications keypad."
   (interactive "p")
-  (send-string-to-terminal "\e[\e>")
+  (send-string-to-terminal "\e>")
   (setq vt-applications-keypad-p nil)
   (if (or tell (interactive-p)) (message "Applications keypad disabled.")))
 
