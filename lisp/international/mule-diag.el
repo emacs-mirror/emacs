@@ -46,12 +46,14 @@
 (defun list-character-sets (&optional arg)
   "Display a list of all character sets.
 
-The ID column contains a charset identification number for internal use.
-The B column contains a number of bytes occupied in a buffer.
-The W column contains a number of columns occupied in a screen.
+The ID column contains a charset identification number for internal Emacs use.
+The B column contains a number of bytes occupied in a buffer
+  by any character in this character set.
+The W column contains a number of columns occupied on the screen
+  by any character in this character set.
 
-With prefix arg, the output format gets more cryptic
-but contains full information about each character sets."
+With prefix arg, the output format gets more cryptic,
+but still shows the full information."
   (interactive "P")
   (sort-charset-list)
   (with-output-to-temp-buffer "*Help*"
@@ -148,7 +150,7 @@ but contains full information about each character sets."
 
 ;;;###autoload
 (defun describe-coding-system (coding-system)
-  "Display information of CODING-SYSTEM."
+  "Display information about CODING-SYSTEM."
   (interactive "zDescribe coding system (default, current choices): ")
   (if (null coding-system)
       (describe-current-coding-system)
@@ -234,21 +236,21 @@ but contains full information about each character sets."
 The format is \"F[..],K[..],T[..],P>[..],P<[..], default F[..],P<[..],P<[..]\",
 where mnemonics of the following coding systems come in this order
 at the place of `..':
-  buffer-file-coding-system (of the current buffer)
+  `buffer-file-coding-system` (of the current buffer)
   eol-type of buffer-file-coding-system (of the current buffer)
-  (keyboard-coding-system)
+  Value returned by `keyboard-coding-system'
   eol-type of (keyboard-coding-system)
-  (terminal-coding-system)
+  Value returned by `terminal-coding-system.
   eol-type of (terminal-coding-system)
-  process-coding-system for read (of the current buffer, if any)
+  `process-coding-system' for read (of the current buffer, if any)
   eol-type of process-coding-system for read (of the current buffer, if any)
-  process-coding-system for write (of the current buffer, if any)
+  `process-coding-system' for write (of the current buffer, if any)
   eol-type of process-coding-system for write (of the current buffer, if any)
-  default-buffer-file-coding-system
+  `default-buffer-file-coding-system'
   eol-type of default-buffer-file-coding-system
-  default-process-coding-system for read
+  `default-process-coding-system' for read
   eol-type of default-process-coding-system for read
-  default-process-coding-system for write
+  `default-process-coding-system' for write
   eol-type of default-process-coding-system"
   (interactive)
   (let* ((proc (get-buffer-process (current-buffer)))
@@ -273,7 +275,7 @@ at the place of `..':
      (coding-system-eol-type-mnemonic (cdr default-process-coding-system))
      )))
 
-;; Print symbol name and mnemonic letter of CODING-SYSTEM by `princ'.
+;; Print symbol name and mnemonic letter of CODING-SYSTEM with `princ'.
 (defun print-coding-system-briefly (coding-system &optional doc-string)
   (if (not coding-system)
       (princ "nil\n")
@@ -293,7 +295,7 @@ at the place of `..':
 
 ;;;###autoload
 (defun describe-current-coding-system ()
-  "Display coding systems currently used in a detailed format."
+  "Display coding systems currently used, in detail."
   (interactive)
   (with-output-to-temp-buffer "*Help*"
     (let* ((proc (get-buffer-process (current-buffer)))
@@ -467,10 +469,10 @@ at the place of `..':
 ;;;###autoload
 (defun list-coding-systems (&optional arg)
   "Display a list of all coding systems.
-It prints mnemonic letter, name, and description of each coding systems.
+This shows the mnemonic letter, name, and description of each coding system.
 
 With prefix arg, the output format gets more cryptic,
-but contains full information about each coding systems."
+but still contains full information about each coding system."
   (interactive "P")
   (with-output-to-temp-buffer "*Help*"
     (if (null arg)
@@ -613,8 +615,7 @@ but contains full information about each coding systems."
 ;;;###autoload
 (defun describe-fontset (fontset)
   "Display information of FONTSET.
-
-It prints name, size, and style of FONTSET, and lists up fonts
+This shows the name, size, and style of FONTSET, and the list of fonts
 contained in FONTSET.
 
 The column WDxHT contains width and height (pixels) of each fontset
@@ -622,14 +623,14 @@ The column WDxHT contains width and height (pixels) of each fontset
 column means that the corresponding fontset is not yet used in any
 frame.
 
-The O column of each font contains one of the following letters.
+The O column for each font contains one of the following letters:
  o -- font already opened
  - -- font not yet opened
  x -- font can't be opened
  ? -- no font specified
 
-The Charset column of each font contains a name of character set
-displayed by the font."
+The Charset column for each font contains a name of character set
+displayed (for this fontset) using that font."
   (interactive
    (if (not (and window-system (boundp 'global-fontset-alist)))
        (error "No fontsets being used")
@@ -653,10 +654,9 @@ displayed by the font."
 ;;;###autoload
 (defun list-fontsets (arg)
   "Display a list of all fontsets.
-
-It prints name, size, and style of each fontset.
-With prefix arg, it also lists up fonts contained in each fontset.
-See the function `describe-fontset' for the format of the list."
+This shows the name, size, and style of each fontset.
+With prefix arg, it also list the fonts contained in each fontset;
+see the function `describe-fontset' for the format of the list."
   (interactive "P")
   (if (not (and window-system (boundp 'global-fontset-alist)))
       (error "No fontsets being used")
@@ -672,7 +672,7 @@ See the function `describe-fontset' for the format of the list."
 
 ;;;###autoload
 (defun list-input-methods ()
-  "Print information of all input methods."
+  "Display information about all input methods."
   (interactive)
   (with-output-to-temp-buffer "*Help*"
     (if (not input-method-alist)
@@ -721,9 +721,9 @@ Emacs again, you should be able to use various input methods."))
 (defun mule-diag ()
   "Display diagnosis of the multilingual environment (MULE).
 
-It prints various information related to the current multilingual
+This shows various information related to the current multilingual
 environment, including lists of input methods, coding systems,
-character sets, and fontsets (if Emacs running under some window
+character sets, and fontsets (if Emacs is running under a window
 system which uses fontsets)."
   (interactive)
   (with-output-to-temp-buffer "*Mule-Diagnosis*"
@@ -792,7 +792,7 @@ system which uses fontsets)."
 
 ;;;###autoload
 (defun dump-charsets ()
-  "Dump information of all charsets into the file \"CHARSETS\".
+  "Dump information about all charsets into the file `CHARSETS'.
 The file is saved in the directory `data-directory'."
   (let ((file (expand-file-name "CHARSETS" data-directory))
 	buf)
@@ -815,7 +815,7 @@ The file is saved in the directory `data-directory'."
 
 ;;;###autoload
 (defun dump-codings ()
-  "Dump information of all coding systems into the file \"CODINGS\".
+  "Dump information about all coding systems into the file `CODINGS'.
 The file is saved in the directory `data-directory'."
   (let ((file (expand-file-name "CODINGS" data-directory))
 	buf)
