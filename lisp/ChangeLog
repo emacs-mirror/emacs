@@ -1,3 +1,11 @@
+2000-03-09  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-keymap): Extend to allow
+	more flexibility.
+	(easy-mmode-set-keymap-parents, easy-mmode-define-syntax): New functions.
+	(easy-mmode-defmap, easy-mmode-defsyntax, easy-mmode-define-derived-mode):
+	New macros.
+
 2000-09-01  Didier Verna  <didier@xemacs.org>
 
 	* rect.el (replace-rectangle): New function.
