@@ -713,7 +713,12 @@ static tr_stack *mapping_stack_pointer;
     if (!src)					\
       CCL_INVALID_CMD;				\
     else if (src < src_end)			\
-      r = *src++;				\
+      {						\
+	r = *src++;				\
+	if (r == LEADING_CODE_8_BIT_CONTROL	\
+	    && ccl->multibyte)			\
+	  r = *src++ - 0x20;			\
+      }						\
     else if (ccl->last_block)			\
       {						\
         ic = ccl->eof_ic;			\
@@ -1895,6 +1900,7 @@ is a unibyte string.  By default it is a multibyte string.")
   outbufsize = STRING_BYTES (XSTRING (str)) * ccl.buf_magnification + 256;
   outbuf = (char *) xmalloc (outbufsize);
   ccl.last_block = NILP (contin);
+  ccl.multibyte = STRING_MULTIBYTE (str);
   produced = ccl_driver (&ccl, XSTRING (str)->data, outbuf,
 			 STRING_BYTES (XSTRING (str)), outbufsize, (int *)0);
   for (i = 0; i < 8; i++)
