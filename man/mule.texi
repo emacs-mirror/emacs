@@ -428,8 +428,8 @@ is the command @kbd{C-\} (@code{toggle-input-method}) used twice.
 because it stops waiting for more characters to combine, and starts
 searching for what you have already entered.
 
-  You can see how to input the character at point by the current input
-using the command @kbd{C-u C-x =}.  @xref{Position Info}.
+  To find out how to input the character after point using the current
+input method, type @kbd{C-u C-x =}.  @xref{Position Info}.
 
 @vindex input-method-verbose-flag
 @vindex input-method-highlight-flag
