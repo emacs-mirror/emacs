@@ -380,10 +380,11 @@ MODE-LINE-P non-nil means a mode line is dragged."
 			(when (< (- y top -1) window-min-height)
 			  (setq y (+ top window-min-height -1)))
 			(setq growth (- y bot -1)))
-		       (t
-			(when (< (- bot y -1) window-min-height)
-			  (setq y (- bot window-min-height -1)))
-			(setq growth (- top y -1))))
+		       (t	; header line
+			(when (< (- bot y) window-min-height)
+			  (setq y (- bot window-min-height)))
+			;; The window's top includes the header line!
+			(setq growth (- top y))))
 		 (setq wconfig (current-window-configuration))
 		 
 		 ;; Check for an error case.
