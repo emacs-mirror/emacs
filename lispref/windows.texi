@@ -1202,12 +1202,14 @@ off screen at the next redisplay, then redisplay computes a new window-start
 position that works well with point, and thus @var{position} is not used.
 @end defun
 
-@defun pos-visible-in-window-p &optional position window
-This function returns @code{t} if @var{position} is within the range
-of text currently visible on the screen in @var{window}.  It returns
-@code{nil} if @var{position} is scrolled vertically out of view.  The
-argument @var{position} defaults to the current position of point;
-@var{window}, to the selected window.  Here is an example:
+@defun pos-visible-in-window-p &optional position window fully
+This function returns @code{t} if @var{position} is within the range of
+text currently visible on the screen in @var{window}.  If @var{fully} is
+non-@code{nil}, then locations that are partially obscured are not
+considered visible.  It returns @code{nil} if @var{position} is scrolled
+vertically out of view.  The argument @var{position} defaults to the
+current position of point; @var{window}, to the selected window.  Here
+is an example:
 
 @example
 @group
