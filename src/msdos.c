@@ -3041,12 +3041,13 @@ dos_ttcooked ()
    file TEMPOUT and stderr to TEMPERR.  */
 
 int
-run_msdos_command (argv, dir, tempin, tempout, temperr)
+run_msdos_command (argv, working_dir, tempin, tempout, temperr, envv)
      unsigned char **argv;
-     Lisp_Object dir;
+     const char *working_dir;
      int tempin, tempout, temperr;
+     char **envv;
 {
-  char *saveargv1, *saveargv2, **envv, *lowcase_argv0, *pa, *pl;
+  char *saveargv1, *saveargv2, *lowcase_argv0, *pa, *pl;
   char oldwd[MAXPATHLEN + 1]; /* Fixed size is safe on MSDOS.  */
   int msshell, result = -1;
   int inbak, outbak, errbak;
@@ -3091,29 +3092,7 @@ run_msdos_command (argv, dir, tempin, tempout, temperr)
 	}
     }
 
-  /* Build the environment array.  */
-  {
-    extern Lisp_Object Vprocess_environment;
-    Lisp_Object tmp, lst;
-    int i, len;
-
-    lst = Vprocess_environment;
-    len = XFASTINT (Flength (lst));
-
-    envv = alloca ((len + 1) * sizeof (char *));
-    for (i = 0; i < len; i++)
-      {
-	tmp = Fcar (lst);
-	lst = Fcdr (lst);
-	CHECK_STRING (tmp, 0);
-	envv[i] = alloca (XSTRING (tmp)->size + 1);
-	strcpy (envv[i], XSTRING (tmp)->data);
-      }
-    envv[len] = (char *) 0;
-  }
-
-  if (STRINGP (dir))
-    chdir (XSTRING (dir)->data);
+  chdir (working_dir);
   inbak = dup (0);
   outbak = dup (1);
   errbak = dup (2);
@@ -3137,12 +3116,36 @@ run_msdos_command (argv, dir, tempin, tempout, temperr)
 	 cannot grok commands longer than 126 characters.  In DJGPP v2
 	 and later, `system' is much smarter, so we'll call it instead.  */
 
-      extern char **environ;
-      environ = envv;
+      const char *cmnd;
 
       /* A shell gets a single argument--its full command
 	 line--whose original was saved in `saveargv2'.  */
-      result = system (saveargv2);
+
+      /* Don't let them pass empty command lines to `system', since
+	 with some shells it will try to invoke an interactive shell,
+	 which will hang Emacs.  */
+      for (cmnd = saveargv2; *cmnd && isspace (*cmnd); cmnd++)
+	;
+      if (*cmnd)
+	{
+	  extern char **environ;
+	  int save_system_flags = __system_flags;
+
+	  /* Request the most powerful version of `system'.  We need
+	     all the help we can get to avoid calling stock DOS shells.  */
+	  __system_flags =  (__system_redirect
+			     | __system_use_shell
+			     | __system_allow_multiple_cmds
+			     | __system_allow_long_cmds
+			     | __system_handle_null_commands
+			     | __system_emulate_chdir);
+
+	  environ = envv;
+	  result = system (cmnd);
+	  __system_flags = save_system_flags;
+	}
+      else
+	result = 0;	/* emulate Unixy shell behavior with empty cmd line */
     }
   else
 
@@ -3596,3 +3599,4 @@ nil means don't delete them until `list-processes' is run.");
 }
 
 #endif /* MSDOS */
+ 
