@@ -1,3 +1,8 @@
+2002-11-21  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* ibuffer.el (ibuffer-formats): Change default value; bump width
+	of size column in first format to 7.
+
 2002-11-20  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* help-fns.el (describe-variable): Look for (defvar . <sym>) in the
