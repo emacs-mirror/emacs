@@ -1,8 +1,8 @@
 2001-03-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* help.el (string-key-binding): Renamed from
-	mode-line-key-binding.  Handle any event on a string.  Check for
-	`keymap' properties as well as `local-map' properties.
+	mode-line-key-binding.  Handle any event on a string.
+	Check for `keymap' properties as well as `local-map' properties.
 
 	* comint.el (comint-insert-clicked-input): Use the last key
 	from this-command-keys to lookup the global key definition.
@@ -23,6 +23,13 @@
 
 	* window.el (shrink-window-if-larger-than-buffer): Handle frame
 	parameter `(minibuffer . t)'.
+
+2001-03-07  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/sh-script.el (sh-st-symbol): New symbol.
+	(sh-font-lock-syntactic-keywords): Use it and fix bogus comment regexp.
+	(sh-mode): Remove `make-local-variable' for unused var
+	`font-lock-unfontify-region-function'.
 
 2001-03-07  Richard M. Stallman  <rms@gnu.org>
 
