@@ -488,6 +488,7 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	"{Src}frame.h" ¶
 	"{Src}fontset.h" ¶
 	"{Src}termhooks.h" ¶
+	{BLOCKINPUT_H_GROUP} ¶
 	{DISPEXTERN_H_GROUP} ¶
 	{WINDOW_H_GROUP} ¶
 	"{Src}buffer.h" ¶
@@ -790,9 +791,7 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	"{Src}indent.h" ¶
 	"{Src}commands.h" ¶
 	"{Src}macros.h" ¶
-	"{Src}blockinput.h" ¶
-	"{Src}atimer.h" ¶
-	"{Src}systime.h" ¶
+	{BLOCKINPUT_H_GROUP} ¶
 	"{Src}disptab.h" ¶
 	"{Src}termhooks.h" ¶
 	{INTERVALS_H_GROUP} ¶
