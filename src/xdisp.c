@@ -3251,7 +3251,8 @@ display_menu_bar (w)
   int i;
 
 #ifdef HAVE_NTGUI
-  return;
+  if (!NILP (Vwindow_system))
+    return;
 #endif
 
 #ifdef USE_X_TOOLKIT
