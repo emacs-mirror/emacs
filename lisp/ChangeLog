@@ -1,3 +1,13 @@
+2000-01-05  Carsten Dominik  <cd@gnu.org>
+
+	* progmodes/idlw-shell.el (idlwave-shell-toggle-toolbar): require
+	idlw-toolbar.
+
+	* progmodes/idlwave.el (idlwave-load-system-rinfo): load must read
+	file idlw-rinfo.el.
+	(idlwave-customize): load must read file idlw-shell.el. 
+	(idlwave-create-customize-menu): load must read file idlw-shell.el. 
+
 2000-01-05  Carsten Dominik  <dominik@astro.uva.nl>
 
 	* progmodes/idlw-shell.el: Also provide idlwave-shell
