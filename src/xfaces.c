@@ -1034,8 +1034,8 @@ Optional THOROUGHLY non-nil means try to free unused fonts, too.")
 #ifdef HAVE_WINDOW_SYSTEM
 
 
-/* Remove those fonts from the font table of frame F exept for the
-   default ASCII font for the frame.  Called from clear_face_cache
+/* Remove fonts from the font table of DPYINFO except for the default
+   ASCII fonts of frames on that display.  Called from clear_face_cache
    from time to time.  */
 
 static void
