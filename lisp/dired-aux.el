@@ -292,18 +292,6 @@ with a prefix argument."
 		(insert dired-del-marker)))))
 
 ;;; Shell commands
-;;>>> install (move this function into simple.el)
-(defun dired-shell-quote (filename)
-  "Quote a file name for inferior shell (see variable `shell-file-name')."
-  ;; Quote everything except POSIX filename characters.
-  ;; This should be safe enough even for really weird shells.
-  (let ((result "") (start 0) end)
-    (while (string-match "[^-0-9a-zA-Z_./]" filename start)
-      (setq end (match-beginning 0)
-	    result (concat result (substring filename start end)
-			   "\\" (substring filename end (1+ end)))
-	    start (1+ end)))
-    (concat result (substring filename start))))
 
 (defun dired-read-shell-command (prompt arg files)
 ;;  "Read a dired shell command prompting with PROMPT (using read-string).
@@ -387,8 +375,8 @@ output files usually are created there instead of in a subdir."
 			 (dired-replace-in-string "\\*" x command)))
 	   (function (lambda (x) (concat command " " x))))))
     (if on-each
-	(mapconcat stuff-it (mapcar 'dired-shell-quote file-list) ";")
-      (let ((fns (mapconcat 'dired-shell-quote
+	(mapconcat stuff-it (mapcar 'shell-quote-argument file-list) ";")
+      (let ((fns (mapconcat 'shell-quote-argument
 			    file-list dired-mark-separator)))
 	(if (> (length file-list) 1)
 	    (setq fns (concat dired-mark-prefix fns dired-mark-postfix)))
