@@ -405,7 +405,9 @@ The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
   (interactive (list (gud-query-cmdline 'gdb)))
 
-  (gud-common-init command-line nil
+  (gud-common-init command-line
+		   #'(lambda (file args)
+		       `("-cd" ,(expand-file-name default-directory) . ,args))
 		   'gud-gdb-marker-filter 'gud-gdb-find-file)
   (set (make-local-variable 'gud-minor-mode) 'gdb)
 
