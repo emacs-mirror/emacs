@@ -1,16 +1,16 @@
 /* impl.c.ref: REFERENCES
  *
- * $HopeName: MMsrc!ref.c(trunk.11) $
+ * $HopeName: MMsrc!ref.c(trunk.12) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
- * .purpose: Implement operations on Ref, RefSet, and Rank.
+ * .purpose: Implement operations on Ref, RefSet, ZoneSet, and Rank.
  *
  * .design: See design.mps.ref and design.mps.refset.
  */
 
 #include "mpm.h"
 
-SRCID(ref, "$HopeName: MMsrc!ref.c(trunk.11) $");
+SRCID(ref, "$HopeName: MMsrc!ref.c(trunk.12) $");
 
 
 /* RankCheck -- check a rank value */
@@ -33,54 +33,49 @@ Bool RankSetCheck(RankSet rankSet)
 }
 
 
-/* RefSetOfRange -- calculate the reference set of a range of addresses
- *
- * .rsor.def: The reference set of a segment is the union of the
- * set of potential references _to_ that segment, i.e. of all the
- * addresses the segment occupies.
- *
- * .rsor.zones: The base and limit zones of the segment
- * are calculated.  The limit zone is one plus the zone of the last
- * address in the segment, not the zone of the limit address.
- *
- * .rsor.univ: If the segment is large enough to span all zones,
- * its reference set is universal.
- *
- * .rsor.swap: If the base zone is less than the limit zone,
- * then the reference set looks like 000111100, otherwise it looks like
- * 111000011.
- */
+/* ZoneSetOfRange -- calculate the zone set of a range of addresses */
 
-RefSet RefSetOfRange(Arena arena, Addr base, Addr limit)
+RefSet ZoneSetOfRange(Arena arena, Addr base, Addr limit)
 {
   Word zbase, zlimit;
 
   AVERT(Arena, arena);
   AVER(limit > base);
 
-  /* .rsor.zones */
+  /* The base and limit zones of the range are calculated.  The limit */
+  /* zone is the zone after the last zone of the range, not the zone of */
+  /* the limit address. */
   zbase = (Word)base >> arena->zoneShift;
   zlimit = (((Word)limit-1) >> arena->zoneShift) + 1;
 
-  if (zlimit - zbase >= MPS_WORD_WIDTH)        /* .rsor.univ */
-    return RefSetUNIV;
+
+  /* If the range is large enough to span all zones, its zone set is */
+  /* universal. */
+  if (zlimit - zbase >= MPS_WORD_WIDTH)
+    return ZoneSetUNIV;
 
   zbase  &= MPS_WORD_WIDTH - 1;
   zlimit &= MPS_WORD_WIDTH - 1;
 
-  if (zbase < zlimit)                      /* .rsor.swap */
-    return ((RefSet)1<<zlimit) - ((RefSet)1<<zbase);
+  /* If the base zone is less than the limit zone, the zone set looks */
+  /* like 000111100, otherwise it looks like 111000011. */
+  if (zbase < zlimit)
+    return ((ZoneSet)1<<zlimit) - ((ZoneSet)1<<zbase);
   else
-    return ~(((RefSet)1<<zbase) - ((RefSet)1<<zlimit));
+    return ~(((ZoneSet)1<<zbase) - ((ZoneSet)1<<zlimit));
 }
 
 
-/* RefSetOfSeg -- calculate the reference set of segment addresses */
+/* ZoneSetOfSeg -- calculate the zone set of segment addresses
+ *
+ * .rsor.def: The zone set of a segment is the union of the zones the
+ * segment occupies.
+ */
 
-RefSet RefSetOfSeg(Arena arena, Seg seg)
+ZoneSet ZoneSetOfSeg(Arena arena, Seg seg)
 {
-  /* arena is checked by RefSetOfRange */
+  /* arena is checked by ZoneSetOfRange */
   AVERT(Seg, seg);
 
-  return RefSetOfRange(arena, SegBase(seg), SegLimit(seg));
+  return ZoneSetOfRange(arena, SegBase(seg), SegLimit(seg));
 }
