@@ -451,7 +451,7 @@ COMMENT is a comment string about SYMBOL."
 			;; that the mode function will see other
 			;; customized values rather than default
 			;; values.
-			(t (get sym2 'custom-requests)))))))
+			(t (nth 3 a2)))))))
   (while args
     (let ((entry (car args)))
       (if (listp entry)
