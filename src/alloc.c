@@ -1475,10 +1475,10 @@ mark_object (objptr)
 {
   register Lisp_Object obj;
 
-  obj = *objptr;
-  XUNMARK (obj);
-
  loop:
+  obj = *objptr;
+ loop2:
+  XUNMARK (obj);
 
   if ((PNTR_COMPARISON_TYPE) XPNTR (obj) < (PNTR_COMPARISON_TYPE) ((char *) pure + PURESIZE)
       && (PNTR_COMPARISON_TYPE) XPNTR (obj) >= (PNTR_COMPARISON_TYPE) pure)
@@ -1567,7 +1567,6 @@ mark_object (objptr)
 	      mark_object (&ptr1->contents[i]);
 	  }
 	objptr = &ptr1->contents[COMPILED_CONSTANTS];
-	obj = *objptr;
 	goto loop;
       }
 
@@ -1612,9 +1611,13 @@ mark_object (objptr)
 	ptr = ptr->next;
 	if (ptr)
 	  {
+	    /* For the benefit of the last_marked log.  */
+	    objptr = (Lisp_Object *)&XSYMBOL (obj)->next;
 	    ptrx = ptr;		/* Use of ptrx avoids compiler bug on Sun */
 	    XSETSYMBOL (obj, ptrx);
-	    goto loop;
+	    /* We can't goto loop here because *objptr doesn't contain an
+	       actual Lisp_Object with valid datatype field.  */
+	    goto loop2;
 	  }
       }
       break;
@@ -1638,14 +1641,11 @@ mark_object (objptr)
 	if (EQ (ptr->cdr, Qnil))
 	  {
 	    objptr = &ptr->car;
-	    obj = ptr->car;
-	    XUNMARK (obj);
 	    goto loop;
 	  }
 	mark_object (&ptr->car);
 	/* See comment above under Lisp_Vector for why not use ptr here.  */
 	objptr = &XCONS (obj)->cdr;
-	obj = ptr->cdr;
 	goto loop;
       }
 
