@@ -763,10 +763,14 @@ The menu items come from key bindings that have a menu string as well as\n\
 a definition; actually, the \"definition\" in such a key binding looks like\n\
 \(STRING . REAL-DEFINITION).  To give the menu a title, put a string into\n\
 the keymap as a top-level element.\n\n\
+If REAL-DEFINITION is nil, that puts a nonselectable string in the menu.\n\
+Otherwise, REAL-DEFINITION should be a valid key binding definition.\n\
+\n\
 You can also use a list of keymaps as MENU.\n\
   Then each keymap makes a separate pane.\n\
 When MENU is a keymap or a list of keymaps, the return value\n\
 is a list of events.\n\n\
+\n\
 Alternatively, you can specify a menu of multiple panes\n\
   with a list of the form (TITLE PANE1 PANE2...),\n\
 where each pane is a list of form (TITLE ITEM1 ITEM2...).\n\
