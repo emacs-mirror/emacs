@@ -264,10 +264,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifndef HAVE_XSCREENNUMBEROFSCREEN
 #define HAVE_XSCREENNUMBEROFSCREEN
 #endif
+#endif /* 0 */
+
+/* This is to work around mysterious gcc failures in some system versions.
+   It is unlikely that Emacs changes will work around this problem;
+   therefore, this should remain permanently.  */
 #ifndef HAVE_XRMSETDATABASE
 #define HAVE_XRMSETDATABASE
 #endif
-#endif /* 0 */
 
 /* The regex.o routines are a part of the GNU C-library used with Linux.  */
 #define REGEXP_IN_LIBC
