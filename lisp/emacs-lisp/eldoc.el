@@ -1,13 +1,13 @@
 ;;; eldoc.el --- show function arglist or variable docstring in echo area
 
-;; Copyright (C) 1996, 97, 98, 99, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 97, 98, 99, 2000, 2003 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Maintainer: friedman@splode.com
 ;; Keywords: extensions
 ;; Created: 1995-10-06
 
-;; $Id: eldoc.el,v 1.21 2002/11/19 23:32:54 monnier Exp $
+;; $Id: eldoc.el,v 1.22 2003/01/03 11:46:20 jpw Exp $
 
 ;; This file is part of GNU Emacs.
 
