@@ -577,13 +577,21 @@ down (this *won't* always work)."
 
 (defun browse-url-interactive-arg (prompt)
   "Read a URL from the minibuffer, prompting with PROMPT.
-Default to the URL at or before point.  If invoked with a mouse button,
-set point to the position clicked first.  Return a list for use in
-`interactive' containing the URL and `browse-url-new-window-flag' or its
+If `transient-mark-mode' is non-nil and the mark is active,
+defaults to the current region, else to the URL at or before
+point.  If invoked with a mouse button, set point to the
+position clicked first.  Return a list for use in `interactive'
+containing the URL and `browse-url-new-window-flag' or its
 negation if a prefix argument was given."
   (let ((event (elt (this-command-keys) 0)))
     (and (listp event) (mouse-set-point event)))
-  (list (read-string prompt (browse-url-url-at-point))
+  (list (read-string prompt (or (and transient-mark-mode mark-active
+				     ;; rfc2396 Appendix E.
+				     (replace-regexp-in-string
+				      "[\t\r\f\n ]+" ""
+				      (buffer-substring-no-properties
+				       (region-beginning) (region-end))))
+				(browse-url-url-at-point)))
 	(not (eq (null browse-url-new-window-flag)
 		 (null current-prefix-arg)))))
 
