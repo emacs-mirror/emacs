@@ -364,9 +364,9 @@ text_property_stickiness (prop, pos)
       prev_pos = make_number (XINT (pos) - 1);
       rear_non_sticky = Fget_text_property (prev_pos, Qrear_nonsticky, Qnil);
 
-      if (CONSP (rear_non_sticky)
-	  ? Fmemq (prop, rear_non_sticky)
-	  : !NILP (rear_non_sticky))
+      if (!NILP (CONSP (rear_non_sticky)
+		 ? Fmemq (prop, rear_non_sticky)
+		 : rear_non_sticky))
 	/* PROP is rear-non-sticky.  */
 	is_rear_sticky = 0;
     }
