@@ -65,7 +65,7 @@ Lisp_Object Qhistory_length, Vhistory_length;
 
 Lisp_Object last_minibuf_string;
 
-/* Nonzero means let functions called when within a minibuffer 
+/* Nonzero means let functions called when within a minibuffer
    invoke recursive minibuffers (to read arguments, or whatever) */
 
 int enable_recursive_minibuffers;
@@ -103,7 +103,7 @@ Lisp_Object Qminibuffer_setup_hook, Vminibuffer_setup_hook;
 Lisp_Object Qminibuffer_exit_hook, Vminibuffer_exit_hook;
 
 /* Function to call to read a buffer name.  */
-Lisp_Object Vread_buffer_function; 
+Lisp_Object Vread_buffer_function;
 
 /* Nonzero means completion ignores case.  */
 
@@ -148,7 +148,7 @@ choose_minibuf_frame ()
     {
       struct frame *sf = XFRAME (selected_frame);
       Lisp_Object buffer;
-      
+
       /* I don't think that any frames may validly have a null minibuffer
 	 window anymore.  */
       if (NILP (sf->minibuffer_window))
@@ -230,13 +230,13 @@ string_to_object (val, defalt)
   struct gcpro gcpro1, gcpro2;
   Lisp_Object expr_and_pos;
   int pos;
-      
+
   GCPRO2 (val, defalt);
-      
+
   if (STRINGP (val) && XSTRING (val)->size == 0
       && STRINGP (defalt))
     val = defalt;
-      
+
   expr_and_pos = Fread_from_string (val, Qnil, Qnil);
   pos = XINT (Fcdr (expr_and_pos));
   if (pos != XSTRING (val)->size)
@@ -252,7 +252,7 @@ string_to_object (val, defalt)
 	    error ("Trailing garbage following expression");
 	}
     }
-      
+
   val = Fcar (expr_and_pos);
   RETURN_UNGCPRO (val);
 }
@@ -298,10 +298,10 @@ read_minibuf_noninteractive (map, initial, prompt, backup_n, expflag,
   if (s)
     {
       len = strlen (line);
-      
+
       if (len > 0 && line[len - 1] == '\n')
 	line[--len] = '\0';
-      
+
       val = build_string (line);
       xfree (line);
     }
@@ -310,11 +310,11 @@ read_minibuf_noninteractive (map, initial, prompt, backup_n, expflag,
       xfree (line);
       error ("Error reading from stdin");
     }
-  
+
   /* If Lisp form desired instead of string, parse it. */
   if (expflag)
     val = string_to_object (val, defalt);
-  
+
   return val;
 }
 
@@ -328,7 +328,7 @@ Return (point-min) if current buffer is not a mini-buffer.  */)
   /* This function is written to be most efficient when there's a prompt.  */
   Lisp_Object beg = make_number (BEGV);
   Lisp_Object end = Ffield_end (beg, Qnil, Qnil);
-  
+
   if (XINT (end) == ZV && NILP (Fget_char_property (beg, Qfield, Qnil)))
     return beg;
   else
@@ -581,9 +581,9 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
       Fadd_text_properties (make_number (BEG), make_number (PT),
 			    Vminibuffer_prompt_properties, Qnil);
     }
-  
-  minibuf_prompt_width = current_column ();
-      
+
+  minibuf_prompt_width = (int) current_column (); /* iftc */
+
   /* If appropriate, copy enable-multibyte-characters into the minibuffer.  */
   if (inherit_input_method)
     current_buffer->enable_multibyte_characters = enable_multibyte;
@@ -978,7 +978,7 @@ Prompt with PROMPT.  By default, return DEFAULT-VALUE.  */)
     default_string = SYMBOL_NAME (default_value);
   else
     default_string = default_value;
-    
+
   name = Fcompleting_read (prompt, Vobarray, Qcommandp, Qt,
 			   Qnil, Qnil, default_string, Qnil);
   if (NILP (name))
@@ -1013,7 +1013,7 @@ A user variable is one whose documentation starts with a `*' character.  */)
     default_string = SYMBOL_NAME (default_value);
   else
     default_string = default_value;
-    
+
   name = Fcompleting_read (prompt, Vobarray,
 			   Quser_variable_p, Qt,
 			   Qnil, Qnil, default_string, Qnil);
@@ -1032,7 +1032,7 @@ If optional third arg REQUIRE-MATCH is non-nil,
      Lisp_Object prompt, def, require_match;
 {
   Lisp_Object args[4];
-  
+
   if (BUFFERP (def))
     def = XBUFFER (def)->name;
 
@@ -1463,7 +1463,7 @@ If INITIAL-INPUT is non-nil, insert it in the minibuffer initially.
   This feature is deprecated--it is best to pass nil for INITIAL-INPUT
   and supply the default value DEF instead.  The user can yank the
   default value into the minibuffer easily using \\[next-history-element].
-  
+
 HIST, if non-nil, specifies a history list
   and optionally the initial position in the list.
   It can be a symbol, which is the history list variable to use,
@@ -1969,7 +1969,7 @@ Return nil if there is no valid completion, else t.  */)
     UNGCPRO;
   }
 #endif /* Rewritten code */
-  
+
   prompt_end_charpos = XINT (Fminibuffer_prompt_end ());
 
   {
@@ -2003,7 +2003,7 @@ Return nil if there is no valid completion, else t.  */)
 	  if (STRINGP (tem))
 	    completion = tem;
 	}
-    }      
+    }
 
   /* Now find first word-break in the stuff found by completion.
      i gets index in string of where to stop completing.  */
@@ -2126,7 +2126,7 @@ It can find the completion buffer in `standard-output'.  */)
 	      if (BUFFERP (Vstandard_output))
 		{
 		  tem = Findent_to (make_number (35), make_number (2));
-		  
+
 		  column = XINT (tem);
 		}
 	      else
