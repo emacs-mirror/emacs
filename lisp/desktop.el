@@ -166,6 +166,10 @@ The variables are saved only when they really are local.")
 (defvar desktop-buffer-name nil
   "When desktop creates a buffer, this holds the desired buffer name.")
 
+(defvar desktop-buffer-misc nil
+  "When desktop creates a buffer, this holds a list of misc info.
+It is used by the `desktop-buffer-handlers' functions.")
+
 (defvar desktop-buffer-handlers
   '(desktop-buffer-dired
     desktop-buffer-rmail
@@ -489,7 +493,7 @@ to provide correct modes for autoloaded files."
   (if (eq 'Info-mode desktop-buffer-major-mode)
       (progn
 	(require 'info)
-	(Info-find-node (nth 0 misc) (nth 1 misc))
+	(Info-find-node (nth 0 desktop-buffer-misc) (nth 1 desktop-buffer-misc))
 	t)))
 ;; ----------------------------------------------------------------------------
 (defun desktop-buffer-rmail () "Load an RMAIL file."
@@ -510,12 +514,12 @@ to provide correct modes for autoloaded files."
 ;; ----------------------------------------------------------------------------
 (defun desktop-buffer-dired () "Load a directory using dired."
   (if (eq 'dired-mode desktop-buffer-major-mode)
-      (if (file-directory-p (file-name-directory (car misc)))
+      (if (file-directory-p (file-name-directory (car desktop-buffer-misc)))
 	  (progn
-	    (dired (car misc))
-	    (mapcar 'dired-insert-subdir (cdr misc))
+	    (dired (car desktop-buffer-misc))
+	    (mapcar 'dired-insert-subdir (cdr desktop-buffer-misc))
 	    t)
-	(message "Directory %s no longer exists." (car misc))
+	(message "Directory %s no longer exists." (car desktop-buffer-misc))
 	(sit-for 1)
 	'ignored)))
 ;; ----------------------------------------------------------------------------
@@ -533,7 +537,7 @@ to provide correct modes for autoloaded files."
 ;; only.
 (defun desktop-create-buffer (ver desktop-buffer-file-name desktop-buffer-name
 				  desktop-buffer-major-mode
-				  mim pt mk ro misc &optional locals)
+				  mim pt mk ro desktop-buffer-misc &optional locals)
   (let ((hlist desktop-buffer-handlers)
 	(result)
 	(handler))
@@ -570,9 +574,10 @@ to provide correct modes for autoloaded files."
 ;; Backward compatibility -- update parameters to 205 standards.
 (defun desktop-buffer (desktop-buffer-file-name desktop-buffer-name
 		       desktop-buffer-major-mode
-		       mim pt mk ro tl fc cfs cr misc)
+		       mim pt mk ro tl fc cfs cr desktop-buffer-misc)
   (desktop-create-buffer 205 desktop-buffer-file-name desktop-buffer-name
-			 desktop-buffer-major-mode (cdr mim) pt mk ro misc
+			 desktop-buffer-major-mode (cdr mim) pt mk ro
+			 desktop-buffer-misc
 			 (list (cons 'truncate-lines tl)
 			       (cons 'fill-column fc)
 			       (cons 'case-fold-search cfs)
