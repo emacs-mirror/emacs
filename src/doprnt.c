@@ -34,6 +34,11 @@ Boston, MA 02111-1307, USA.  */
 #define DBL_MAX_10_EXP 308 /* IEEE double */
 #endif
 
+/* Since we use the macro CHAR_HEAD_P, we have to include this, but
+   don't have to include others because CHAR_HEAD_P does not contains
+   another macro.  */
+#include "charset.h"
+
 extern long *xmalloc (), *xrealloc ();
 
 static int doprnt1 ();
@@ -105,7 +110,7 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
   char *fmtcpy;
   int minlen;
   int size;			/* Field width factor; e.g., %90d */
-  char charbuf[2];		/* Used for %c.  */
+  char charbuf[5];		/* Used for %c.  */
 
   if (format_end == 0)
     format_end = format + strlen (format);
@@ -123,6 +128,7 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
       if (*fmt == '%')	/* Check for a '%' character */
 	{
 	  int size_bound = 0;
+	  int width;		/* Columns occupied by STRING.  */
 
 	  fmt++;
 	  /* Copy this one %-spec into fmtcpy.  */
@@ -234,15 +240,21 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 		  string = args[cnt++];
 		  tem = strlen (string);
 		}
+	      width = strwidth (string, tem);
 	      goto doit1;
 
 	      /* Copy string into final output, truncating if no room.  */
 	    doit:
-	      tem = strlen (string);
+	      /* Coming here means STRING contains ASCII only.  */
+	      width = tem = strlen (string);
 	    doit1:
+	      /* We have already calculated:
+		 TEM -- length of STRING,
+		 WIDTH -- columns occupied by STRING when displayed, and
+		 MINLEN -- minimum columns of the output.  */
 	      if (minlen > 0)
 		{
-		  while (minlen > tem && bufsize > 0)
+		  while (minlen > width && bufsize > 0)
 		    {
 		      *bufptr++ = ' ';
 		      bufsize--;
@@ -251,13 +263,21 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 		  minlen = 0;
 		}
 	      if (tem > bufsize)
-		tem = bufsize;
-	      bcopy (string, bufptr, tem);
+		{
+		  /* Truncate the string at character boundary.  */
+		  tem = bufsize;
+		  while (!CHAR_HEAD_P (string + tem - 1)) tem--;
+		  bcopy (string, bufptr, tem);
+		  /* We must calculate WIDTH again.  */
+		  width = strwidth (bufptr, tem);
+		}
+	      else
+		bcopy (string, bufptr, tem);
 	      bufptr += tem;
 	      bufsize -= tem;
 	      if (minlen < 0)
 		{
-		  while (minlen < - tem && bufsize > 0)
+		  while (minlen < - width && bufsize > 0)
 		    {
 		      *bufptr++ = ' ';
 		      bufsize--;
@@ -270,9 +290,10 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 	    case 'c':
 	      if (cnt == nargs)
 		error ("not enough arguments for format string");
-	      *charbuf = (EMACS_INT) args[cnt++];
-	      string = charbuf;
-	      tem = 1;
+	      tem = CHAR_STRING ((EMACS_INT) args[cnt], charbuf, string);
+	      cnt++;
+	      string[tem] = 0;
+	      width = strwidth (string, tem);
 	      if (fmtcpy[1] != 'c')
 		minlen = atoi (&fmtcpy[1]);
 	      goto doit1;
@@ -281,8 +302,20 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 	      fmt--;    /* Drop thru and this % will be treated as normal */
 	    }
 	}
-      *bufptr++ = *fmt++;	/* Just some characters; Copy 'em */
-      bufsize--;
+
+      {
+	/* Just some character; Copy it if the whole multi-byte form
+	   fit in the buffer.  */
+	char *save_bufptr = bufptr;
+
+	do { *bufptr++ = *fmt++; }
+	while (--bufsize > 0 && !CHAR_HEAD_P (fmt));
+	if (!CHAR_HEAD_P (fmt))
+	  {
+	    bufptr = save_bufptr;
+	    break;
+	  }
+      }
     };
 
   /* If we had to malloc something, free it.  */
