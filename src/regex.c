@@ -1256,7 +1256,6 @@ typedef union
    We make the fail stack a global thing, and then grow it to
    re_max_failures when we compile.  */
 #ifndef MATCH_MAY_ALLOCATE
-static int fail_stack_allocated;
 static fail_stack_type fail_stack;
 
 static const char **     regstart, **     regend;
@@ -2493,9 +2492,9 @@ regex_compile (pattern, size, syntax, bufp)
     /* Since DOUBLE_FAIL_STACK refuses to double only if the current size
        is strictly greater than re_max_failures, the largest possible stack
        is 2 * re_max_failures failure points.  */
-    fail_stack.size = (2 * re_max_failures * MAX_FAILURE_ITEMS);
-    if (fail_stack.size > fail_stack_allocated)
+    if (fail_stack.size < (2 * re_max_failures * MAX_FAILURE_ITEMS))
       {
+	fail_stack.size = (2 * re_max_failures * MAX_FAILURE_ITEMS);
 	if (! fail_stack.stack)
 	  fail_stack.stack =
 	    (fail_stack_elt_t *) malloc (fail_stack.size 
@@ -2505,7 +2504,6 @@ regex_compile (pattern, size, syntax, bufp)
 	    (fail_stack_elt_t *) realloc (fail_stack.stack,
 					  (fail_stack.size
 					   * sizeof (fail_stack_elt_t)));
-	fail_stack_allocated = fail_stack.size;
       }
 
     /* Initialize some other variables the matcher uses.  */
