@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    5.12
+;; Version:    5.13
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
@@ -27,6 +27,8 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+(require 'cc-defs)
+
 
 (require 'cc-defs)
 
@@ -36,11 +38,18 @@
 ;; Keywords defining protection levels
 (defconst c-protection-key "\\<\\(public\\|protected\\|private\\)\\>")
 
-;; Regex describing a `symbol' in all languages We cannot use just
+;; Regex describing a `symbol' in all languages.  We cannot use just
 ;; `word' syntax class since `_' cannot be in word class.  Putting
 ;; underscore in word class breaks forward word movement behavior that
-;; users are familiar with.
-(defconst c-symbol-key "\\(\\w\\|\\s_\\)+")
+;; users are familiar with.  Besides, this runs counter to Emacs
+;; convention.
+;;
+;; I suspect this definition isn't correct in light of Java's
+;; definition of a symbol as being Unicode.  I know so little about
+;; I18N (except how to sound cool and say I18N :-) that I'm willing to
+;; punt on this for now.
+
+(defconst c-symbol-key "[_a-zA-Z]\\(\\w\\|\\s_\\)*")
 
 
 ;; keywords introducing class definitions.  language specific
@@ -273,7 +282,7 @@ it finds in `c-file-offsets'."
 
 
 ;; Common routines
-(defsubst c-make-inherited-keymap ()
+(defun c-make-inherited-keymap ()
   (let ((map (make-sparse-keymap)))
     (cond
      ;; XEmacs 19 & 20
@@ -397,17 +406,22 @@ it finds in `c-file-offsets'."
 (defun c-mode-menu (modestr)
   (let ((m
 	 '(["Comment Out Region"     comment-region (mark)]
-	   ["Macro Expand Region"    c-macro-expand (mark)]
-	   ["Backslashify"           c-backslash-region (mark)]
+	   ["Uncomment Region"
+	    (comment-region (region-beginning) (region-end) '(4))
+	    (mark)]
+	   ["Fill Comment Paragraph" c-fill-paragraph t]
+	   "---"
 	   ["Indent Expression"      c-indent-exp
 	    (memq (char-after) '(?\( ?\[ ?\{))]
 	   ["Indent Line"            c-indent-command t]
-	   ["Fill Comment Paragraph" c-fill-paragraph t]
 	   ["Up Conditional"         c-up-conditional t]
 	   ["Backward Conditional"   c-backward-conditional t]
 	   ["Forward Conditional"    c-forward-conditional t]
 	   ["Backward Statement"     c-beginning-of-statement t]
 	   ["Forward Statement"      c-end-of-statement t]
+	   "---"
+	   ["Macro Expand Region"    c-macro-expand (mark)]
+	   ["Backslashify"           c-backslash-region (mark)]
 	   )))
     (cons modestr m)))
 
