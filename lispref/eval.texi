@@ -29,8 +29,8 @@ function @code{eval}.
 @node Intro Eval
 @section Introduction to Evaluation
 
-  The Lisp interpreter, or evaluator, is the program which computes
-the value of an expression which is given to it.  When a function 
+  The Lisp interpreter, or evaluator, is the program that computes
+the value of an expression that is given to it.  When a function 
 written in Lisp is called, the evaluator computes the value of the
 function by evaluating the expressions in the function body.  Thus,
 running any Lisp program really means running the Lisp interpreter.
@@ -41,7 +41,7 @@ type of the object.
 
 @cindex forms
 @cindex expression
-  A Lisp object which is intended for evaluation is called an
+  A Lisp object that is intended for evaluation is called an
 @dfn{expression} or a @dfn{form}.  The fact that expressions are data
 objects and not merely text is one of the fundamental differences
 between Lisp-like languages and typical programming languages.  Any
@@ -77,7 +77,7 @@ function @code{car}.
   The evaluation of forms takes place in a context called the
 @dfn{environment}, which consists of the current values and bindings of
 all Lisp variables.@footnote{This definition of ``environment'' is
-specifically not intended to include all the data which can affect the
+specifically not intended to include all the data that can affect the
 result of a program.}  Whenever the form refers to a variable without
 creating a new binding for it, the value of the binding in the current
 environment is used.  @xref{Variables}.
@@ -134,6 +134,8 @@ Here is an example:
 ;; @r{@code{eval} receives argument @code{bar}, which is the value of @code{foo}}
 (eval foo)
      @result{} baz
+(eval 'foo)
+     @result{} bar
 @end group
 @end example
 
@@ -161,7 +163,7 @@ the region and calls @code{eval} on them until the end of the region is
 reached, or until an error is signaled and not handled.
 
 If @var{stream} is supplied, @code{standard-output} is bound to it
-for the duration of the command.
+during the evaluation.
 
 @code{eval-region} always returns @code{nil}.
 @end deffn
@@ -170,8 +172,9 @@ for the duration of the command.
 This variable defines the maximum depth allowed in calls to @code{eval},
 @code{apply}, and @code{funcall} before an error is signaled (with error
 message @code{"Lisp nesting exceeds max-lisp-eval-depth"}).  This counts
-calling the functions mentioned in Lisp expression, and recursive
-evaluation of function call arguments and function body forms.
+internal uses of those functions, such as for calling the functions
+mentioned in Lisp expressions, and recursive evaluation of function call
+arguments and function body forms.
 
 This limit, with the associated error when it is exceeded, is one way
 that Lisp avoids infinite recursion on an ill-defined function.
@@ -186,7 +189,7 @@ less than 100, Lisp will reset it to 100 if the given value is reached.
 
 @defvar values
 The value of this variable is a list of the values returned by all the
-expressions which were read from buffers (including the minibuffer),
+expressions that were read from buffers (including the minibuffer),
 evaluated, and printed.  The elements are ordered most recent first.
 
 @example
@@ -222,7 +225,7 @@ particular elements, like this:
      @result{} (A 3 t)
 @end group
 @group
-;; @r{This gets the element that was next-to-last}
+;; @r{This gets the element that was next-to-most-recent}
 ;;   @r{before this example.}
 (nth 3 values)
      @result{} 1
@@ -337,8 +340,9 @@ a
 
   The symbols @code{nil} and @code{t} are treated specially, so that the
 value of @code{nil} is always @code{nil}, and the value of @code{t} is
-always @code{t}.  Thus, these two symbols act like self-evaluating
-forms, even though @code{eval} treats them like any other symbol.
+always @code{t}; you cannot set or bind them to any other values.  Thus,
+these two symbols act like self-evaluating forms, even though
+@code{eval} treats them like any other symbol.
 
 @node Classifying Lists
 @subsection Classification of List Forms
@@ -433,8 +437,8 @@ function, not a symbol.
 @end smallexample
 
 @noindent
-After that function is called, its body is evaluated; this does
-involve symbol function indirection when calling @code{erste}.
+Executing the function itself evaluates its body; this does involve
+symbol function indirection when calling @code{erste}.
 
   The built-in function @code{indirect-function} provides an easy way to
 perform symbol function indirection explicitly.
@@ -470,15 +474,15 @@ a @dfn{function call}.  For example, here is a call to the function
 (+ 1 x)
 @end example
 
-  The first step ni evaluating a function call is to evaluate the
-remaining elements of the list in the order they appear.  The results
-are the actual argument values, one value for each list element.  The
-next step is to call the function with this list of arguments,
-effectively using the function @code{apply} (@pxref{Calling Functions}).
-If the function is written in Lisp, the arguments are used to bind the
-argument variables of the function (@pxref{Lambda Expressions}); then
-the forms in the function body are evaluated in order, and the value of
-the last body form becomes the value of the function call.
+  The first step in evaluating a function call is to evaluate the
+remaining elements of the list from left to right.  The results are the
+actual argument values, one value for each list element.  The next step
+is to call the function with this list of arguments, effectively using
+the function @code{apply} (@pxref{Calling Functions}).  If the function
+is written in Lisp, the arguments are used to bind the argument
+variables of the function (@pxref{Lambda Expressions}); then the forms
+in the function body are evaluated in order, and the value of the last
+body form becomes the value of the function call.
 
 @node Macro Forms
 @subsection Lisp Macro Evaluation
@@ -491,12 +495,17 @@ Instead, these elements themselves are used as the arguments of the
 macro.  The macro definition computes a replacement form, called the
 @dfn{expansion} of the macro, to be evaluated in place of the original
 form.  The expansion may be any sort of form: a self-evaluating
-constant, a symbol or a list.  If the expansion is itself a macro call,
+constant, a symbol, or a list.  If the expansion is itself a macro call,
 this process of expansion repeats until some other sort of form results.
+
+  Ordinary evaluation of a macro call finishes by evaluating the
+expansion.  However, the macro expansion is not necessarily evaluated
+right away, or at all, because other programs also expand macro calls,
+and they may or may not evaluate the expansions.
 
   Normally, the argument expressions are not evaluated as part of
 computing the macro expansion, but instead appear as part of the
-expansion, so they are evaluated when the expansion is evaluated.
+expansion, so they are computed when the expansion is computed.
 
   For example, given a macro defined as follows:
 
@@ -616,7 +625,7 @@ Emacs Lisp with a reference to where each is described.
 
 @cindex CL note---special forms compared
 @quotation
-@b{Common Lisp note:} here are some comparisons of special forms in
+@b{Common Lisp note:} Here are some comparisons of special forms in
 GNU Emacs Lisp and Common Lisp.  @code{setq}, @code{if}, and
 @code{catch} are special forms in both Emacs Lisp and Common Lisp.
 @code{defun} is a special form in Emacs Lisp, but a macro in Common
