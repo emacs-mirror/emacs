@@ -556,15 +556,19 @@ word.
 
 NOT-CASECHARS is the opposite regexp of CASECHARS.
 
-OTHERCHARS is a regular expression of other characters that are valid
-in word constructs.  Otherchars cannot be adjacent to each other in a
-word, nor can they begin or end a word.  This implies we can't check
-\"Stevens'\" as a correct possessive and other correct formations.
-
+OTHERCHARS are characters in the NOT-CASECHARS set but which can be used to
+construct words in some special way.  If OTHERCHARS characters follow and
+precede characters from CASECHARS, they are parsed as part of a word,
+otherwise they become word-breaks.  As an example in English, assume the
+set ['] (as a regular expression) for OTHERCHARS.  Then \"they're\" and
+\"Steven's\" are parsed as single words including the \"'\" character, but
+\"Stevens'\" does not include the quote character as part of the word.
+If you want OTHERCHARS to be empty, use nil.
 Hint: regexp syntax requires the hyphen to be declared first here.
 
-MANY-OTHERCHARS-P is non-nil if many otherchars are to be allowed in a
-word instead of only one.
+MANY-OTHERCHARS-P is non-nil when multiple OTHERCHARS are allowed in a word.
+Otherwise only a single OTHERCHARS character is allowed to be part of any
+single word.
 
 ISPELL-ARGS is a list of additional arguments passed to the ispell
 subprocess.
