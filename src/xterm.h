@@ -488,6 +488,7 @@ struct x_output
   Cursor modeline_cursor;
   Cursor cross_cursor;
   Cursor busy_cursor;
+  Cursor horizontal_drag_cursor;
 
   /* Window whose cursor is busy_cursor.  This window is temporarily
      mapped to display a busy-cursor.  */
