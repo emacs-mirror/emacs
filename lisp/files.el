@@ -964,9 +964,10 @@ If the current buffer now contains an empty file that you just visited
 	(lock-buffer)
 	(rename-buffer oname)))
     (unless (eq (current-buffer) obuf)
-      ;; We already asked; don't ask again.
-      (setq kill-buffer-query-functions nil)
-      (kill-buffer obuf))))
+      (with-current-buffer obuf
+	;; We already asked; don't ask again.
+	(let ((kill-buffer-query-functions))
+	  (kill-buffer obuf))))))
 
 (defun create-file-buffer (filename)
   "Create a suitably named buffer for visiting FILENAME, and return it.
