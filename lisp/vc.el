@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 4.0
 
-;;	$Id: vc.el,v 1.15 1992/10/28 09:33:04 rms Exp rms $	
+;;	$Id: vc.el,v 1.16 1992/11/08 18:58:17 rms Exp jimb $	
 
 ;; This file is part of GNU Emacs.
 
@@ -187,36 +187,51 @@ the master name of FILE; this is appended to an optional list of FLAGS."
     status)
   )
 
+;;; Save a bit of the text around POSN in the current buffer, to help
+;;; us find the corresponding position again later.  This works even
+;;; if all markers are destroyed or corrupted.
+(defun vc-position-context (posn)
+  (list posn
+	(buffer-size)
+	(buffer-substring posn
+			  (min (point-max) (+ posn 100)))))
+
+;;; Return the position of CONTEXT in the current buffer, or nil if we
+;;; couldn't find it.
+(defun vc-find-position-by-context (context)
+  (let ((context-string (nth 2 context)))
+    (if (equal "" context-string)
+	(point-max)
+      (save-excursion
+	(let ((diff (- (nth 1 context) (buffer-size))))
+	  (if (< diff 0) (setq diff (- diff)))
+	  (goto-char (nth 0 context))
+	  (if (or (search-forward context-string nil t)
+		  ;; Can't use search-backward since the match may continue
+		  ;; after point.
+		  (progn (goto-char (- (point) diff (length context-string)))
+			 ;; goto-char doesn't signal an error at
+			 ;; beginning of buffer like backward-char would
+			 (search-forward context-string nil t)))
+	      ;; to beginning of OSTRING
+	      (- (point) (length context-string))))))))
+
 (defun vc-revert-buffer1 (&optional arg no-confirm)
   ;; This code was shamelessly lifted from Sebastian Kremer's rcs.el mode.
-  ;; Revert buffer, try to keep point where user expects it in spite
+  ;; Revert buffer, try to keep point and mark where user expects them in spite
   ;; of changes because of expanded version-control key words.
   ;; This is quite important since otherwise typeahead won't work as expected.
   (interactive "P")
   (widen)
-  (let* ((opoint (point))
-	 (osize (buffer-size))
-	 diff
-	 (context 100)
-	 (ostring (buffer-substring (point)
-				    (min (point-max)
-					 (+ (point) context))))
-	 (l (length ostring)))
+  (let ((point-context (vc-position-context (point)))
+	(mark-context  (if (mark) (vc-position-context (mark)))))
     (revert-buffer arg no-confirm)
-    (setq diff (- osize (buffer-size)))
-    (if (< diff 0) (setq diff (- diff)))
-    (goto-char opoint)
-    (cond ((equal "" ostring)
-	   (goto-char (point-max)))
-	  ((or (search-forward ostring nil t)
-	       ;; Can't use search-backward since the match may continue
-	       ;; after point.
-	       (progn (goto-char (- (point) diff l))
-		      ;; goto-char doesn't signal an error at
-		      ;; beginning of buffer like backward-char would
-		      (search-forward ostring nil t)))
-	   ;; to beginning of OSTRING
-	   (backward-char l)))))
+    (let ((new-point (vc-find-position-by-context point-context)))
+      (if new-point (goto-char new-point)))
+    (if mark-context
+	(let ((new-mark (vc-find-position-by-context mark-context)))
+	  (if new-mark (set-mark new-mark))))))
+
 
 (defun vc-buffer-sync ()
   ;; Make sure the current buffer and its working file are in sync
@@ -304,7 +319,7 @@ the option to steal the lock."
 		       (not (buffer-modified-p)))
 		  (progn
 		    (vc-backend-revert file)
-		    (vc-resynch-window file t))
+		    (vc-resynch-window file t t))
 
 		;; user may want to set nonstandard parameters
 		(if verbose
