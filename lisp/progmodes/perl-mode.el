@@ -295,7 +295,7 @@ The expansion is entirely correct because it uses the C preprocessor."
      ((not char)
       ;; Comment or docstring.
       (if (nth 7 state) font-lock-doc-face font-lock-comment-face))
-     ((and (char-valid-p char) (eq (char-syntax (nth 3 state)) ?\"))
+     ((and (characterp char) (eq (char-syntax (nth 3 state)) ?\"))
       ;; Normal string.
       font-lock-string-face)
      ((eq (nth 3 state) ?\n)
