@@ -126,6 +126,7 @@ typedef GtkWidget *xt_or_gtk_widget;
 struct x_bitmap_record
 {
   Pixmap pixmap;
+  Pixmap mask;
   char *file;
   int refcount;
   /* Record some info about this pixmap.  */
@@ -976,6 +977,12 @@ extern int x_create_bitmap_from_data P_ ((struct frame *, char *,
 					  unsigned int, unsigned int));
 extern int x_create_bitmap_from_file P_ ((struct frame *, Lisp_Object));
 extern void x_destroy_bitmap P_ ((struct frame *, int));
+extern int x_create_bitmap_mask P_ ((struct frame * , int));
+
+#ifdef USE_GTK
+extern int xg_set_icon P_ ((struct frame *, Lisp_Object));
+#endif /* USE_GTK */
+
 extern void x_real_positions P_ ((struct frame *, int *, int *));
 extern int defined_color P_ ((struct frame *, char *, XColor *, int));
 extern void x_set_border_pixel P_ ((struct frame *, int));
