@@ -201,24 +201,24 @@ DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
   Lisp_Object tail, frame;
 
   FOR_EACH_FRAME (tail, frame)
-    /* If we simply redrew all visible frames, whether or not they
-       were garbaged, then this would make all frames clear and
-       nredraw whenever a new frame is created or an existing frame
-       is de-iconified; those events set the global frame_garbaged
-       flag, to which redisplay responds by calling this function.
-       
-       This used to redraw all visible frames; the only advantage of
-       that approach is that if a frame changes from invisible to
-       visible without setting its garbaged flag, it still gets
-       redisplayed.  But that should never happen; since invisible
-       frames are not updated, they should always be marked as
-       garbaged when they become visible again.  If that doesn't
-       happen, it's a bug in the visibility code, not a bug here.  */
-    if (FRAME_VISIBLE_P (XFRAME (frame))
-	&& FRAME_GARBAGED_P (XFRAME (frame)))
+    if (FRAME_VISIBLE_P (XFRAME (frame)))
       Fredraw_frame (frame);
 
   return Qnil;
+}
+
+/* This is used when frame_garbaged is set.
+   Redraw the individual frames marked as garbaged.  */
+
+void
+redraw_garbaged_frames ()
+{
+  Lisp_Object tail, frame;
+
+  FOR_EACH_FRAME (tail, frame)
+    if (FRAME_VISIBLE_P (XFRAME (frame))
+	&& FRAME_GARBAGED_P (XFRAME (frame)))
+      Fredraw_frame (frame);
 }
 
 
