@@ -1,3 +1,28 @@
+2003-05-19  Dave Love  <fx@gnu.org>
+
+	* xml.el: Doc fixes.
+	(xml-parse-file, xml-parse-region): Autoload.
+	(xml-syntax-table, xml-name-regexp): New.
+	(xml-parse-region): Narrow to region, set syntax-table and
+	case-fold-search.  Reject fewer valid documents.
+	(xml-parse-tag): Remove arg END.  Callers changed.
+	(xml-parse-tag): Use skip-syntax-forward.  Use PARSE-DTD arg
+	properly.  Don't use buffer-substring-no-properties.  Don't bind
+	case-fold-search.  Fix syntax for empty elements.  Hoist consing
+	of end-of-tag regexp out of loop.
+	(xml-parse-attlist): Remove arg.  Callers changed.  Use
+	skip-syntax-forward, replace-regexp-in-string, forward-sexp.
+	Allow non-ASCII names.
+	(xml-skip-dtd): Remove arg.  Callers changed.  Change matching
+	code.
+	(xml-parse-dtd): Grok external DTDs.  Allow non-ASCII.  Don't use
+	match-string-no-properties.
+	(xml-ucs-to-string): Deleted.
+	(xml-substitute-entity): New.
+	(xml-substitute-special): Use it.
+	(xml-debug-print-internal): Simplify insertions.
+	(xml-parse-file): Avoid finding file in xml-mode.
+
 2003-05-19  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 
 	* simple.el (kill-whole-line): New function.
