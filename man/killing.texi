@@ -117,13 +117,14 @@ kill instead, since they can erase more than one character this way.
 have just @key{DEL}.  (The former variety usually labels the @key{DEL}
 key as @key{BS} or @key{<-} and refers to it as a ``backspace key''.)
 When Emacs starts, it tries to detect keyboards with both @key{BS} and
-@key{Delete} keys, and if so, binds them to the commands users expect:
-@key{Delete} deletes forward, like @kbd{C-d} does, and @key{BS} deletes
-backwards.  However, some systems don't report the keyboard
-configuration.  If your keyboard has these two keys, and if they are
-both reported to Emacs, but Emacs is unable to establish that, you can
-use the @code{delete-key-deletes-forward-mode} command to force Emacs to
-treat @key{BS} and @key{Delete} differently.  Either type @kbd{C-u 1 M-x
+@key{Delete} keys, and if it finds your keyboard to have both keys, it
+binds them to the commands users expect: @key{Delete} deletes forward,
+like @kbd{C-d} does, and @key{BS} deletes backwards.  However, some
+systems don't report the keyboard configuration.  If your keyboard has
+these two keys, and if they are both reported to Emacs, but Emacs is
+unable to establish that, you can use the
+@code{delete-key-deletes-forward-mode} command to force Emacs to treat
+@key{BS} and @key{Delete} differently.  Either type @kbd{C-u 1 M-x
 delete-key-deletes-forward-mode @key{RET}} or put the following line
 into your @file{.emacs} init file (@pxref{Init File}):
 
