@@ -338,6 +338,17 @@ shrink the window or windows above it to make room."
     (select-window window)
     (enlarge-window growth nil (> growth 0))))
 
+(defsubst mouse-drag-move-window-top (window growth)
+  "Move the top of WINDOW up or down by GROWTH lines.
+Move it down if GROWTH is positive, or up if GROWTH is negative.
+If this would make WINDOW too short, shrink the window or windows
+above it to make room."
+  ;; Moving the top of WINDOW is actually moving the bottom of the
+  ;; window above.
+  (let ((window-above (mouse-drag-window-above window)))
+    (and window-above
+	 (mouse-drag-move-window-bottom window-above (- growth)))))
+
 (defun mouse-drag-mode-line-1 (start-event mode-line-p)
   "Change the height of a window by dragging on the mode or header line.
 START-EVENT is the starting mouse-event of the drag action.
@@ -444,7 +455,9 @@ MODE-LINE-P non-nil means dragging a mode line; nil means a header line."
 		       (select-window start-event-window))
 		   ;; no.  grow/shrink the selected window
 		   ;(message "growth = %d" growth)
-		   (mouse-drag-move-window-bottom start-event-window growth))
+		   (if mode-line-p
+		       (mouse-drag-move-window-bottom start-event-window growth)
+		     (mouse-drag-move-window-top start-event-window growth)))
 
 		 ;; if this window's growth caused another
 		 ;; window to be deleted because it was too
