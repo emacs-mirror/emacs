@@ -182,6 +182,10 @@ dnl This used to use changequote, but, apart from `changequote is evil'
 dnl per the autoconf manual, we can speed up autoconf somewhat by quoting
 dnl the great gob of text.  Thus it's not processed for possible expansion.
 dnl Just make sure the brackets remain balanced.
+dnl
+dnl Since Emacs can't find matching pairs of quotes, boundaries are
+dnl indicated by comments.
+dnl quotation begins
 [
 
 ### If you add support for a new configuration, add code to this
@@ -223,6 +227,7 @@ case "${canonical}" in
   *-*-netbsd* )
     opsys=netbsd
     if test -f /usr/lib/crti.o; then]
+dnl Leave quotation here temporarily
       AC_DEFINE(HAVE_CRTIN)
 [   fi
 
@@ -1168,6 +1173,7 @@ if test x"${opsys}" = x; then
 fi
 
 ]
+dnl quotation ends
 
 if test $unported = yes; then
   AC_MSG_ERROR([Emacs hasn't been ported to `${canonical}' systems.
