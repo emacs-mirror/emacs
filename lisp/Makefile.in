@@ -232,6 +232,8 @@ compile: subdirs.el doit
 # Compile all Lisp files, except those from DONTCOMPILE.  This
 # is like `compile' but compiles files unconditionally.
 compile-always: subdirs.el doit
+	# `|| true' prevents old Bash versions from getting confused
+	# by an error.
 	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1 || true; \
 	wd=$(lisp); $(setwins);	\
 	elpat=`echo $$wins | tr ' 	' '\012\012' | \
