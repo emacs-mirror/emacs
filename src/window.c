@@ -5856,24 +5856,22 @@ A nil width parameter means no margin.  */)
 {
   struct window *w = decode_window (window);
 
-  if (!NILP (left))
-    CHECK_NUMBER (left);
-  if (!NILP (right))
-    CHECK_NUMBER (right);
-
-  /* Check widths < 0 and translate a zero width to nil.
+  /* Translate negative or zero widths to nil.
      Margins that are too wide have to be checked elsewhere.  */
-  if ((INTEGERP (left) && XINT (left) < 0)
-      || (FLOATP (left) && XFLOAT_DATA (left) <= 0))
-     XSETFASTINT (left, 0);
-  if (INTEGERP (left) && XFASTINT (left) == 0)
-    left = Qnil;
 
-  if ((INTEGERP (right) && XINT (right) < 0)
-      || (FLOATP (right) && XFLOAT_DATA (right) <= 0))
-    XSETFASTINT (right, 0);
-  if (INTEGERP (right) && XFASTINT (right) == 0)
-    right = Qnil;
+  if (!NILP (left))
+    {
+      CHECK_NUMBER (left);
+      if (XINT (left) <= 0)
+	left = Qnil;
+    }
+
+  if (!NILP (right))
+    {
+      CHECK_NUMBER (right);
+      if (XINT (right) <= 0)
+	right = Qnil;
+    }
 
   if (!EQ (w->left_margin_cols, left)
       || !EQ (w->right_margin_cols, right))
