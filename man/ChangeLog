@@ -1,7 +1,7 @@
 2005-01-08  Jay Belanger  <belanger@truman.edu>
 
-	* calc.texi (General Mode Commands, Installation): Change to
-	reflect new default value of calc-settings-file.
+	* calc.texi: Change throughout to reflect new default value of
+	calc-settings-file.
 
 2005-01-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 

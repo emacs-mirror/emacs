@@ -1,3 +1,8 @@
+2005-01-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-mode): Remove the extension from the
+	`calc-settings-file' file name when loading it.
+
 2005-01-08  Kim F. Storm  <storm@cua.dk>
 
 	* info.el (Info-mode-map, Info-next-link-keymap)
