@@ -814,6 +814,15 @@ reread the file using the correct coding system by typing @kbd{C-x
 the file, look at the coding system mnemonic letter near the left edge
 of the mode line (@pxref{Mode Line}), or type @kbd{C-h C @key{RET}}.
 
+@findex unify-8859-on-decoding-mode
+  The command @code{unify-8859-on-decoding-mode} enables a mode that
+``unifies'' the Latin alphabets when decoding text.  This works by
+converting all non-ASCII Latin-@var{n} characters to either Latin-1 or
+Unicode characters.  This way it is easier to use various
+Latin-@var{n} alphabets together.  In a future Emacs version we hope
+to move towards full Unicode support and complete unification of
+character sets.
+
 @vindex buffer-file-coding-system
   Once Emacs has chosen a coding system for a buffer, it stores that
 coding system in @code{buffer-file-coding-system} and uses that coding
