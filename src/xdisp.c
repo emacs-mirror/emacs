@@ -13694,7 +13694,7 @@ display_mode_element (it, depth, field_width, precision, elt, props)
 			int nglyphs_before, bytepos, charpos, nwritten;
 			
 			nglyphs_before = it->glyph_row->used[TEXT_AREA];
-			bytepos = percent_position - XSTRING (elt)->data;
+			bytepos = percent_position - lisp_string;
 			charpos = (STRING_MULTIBYTE (elt)
 				   ? string_byte_to_char (elt, bytepos)
 				   : bytepos);
