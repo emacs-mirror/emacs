@@ -160,8 +160,8 @@ don't define this value.")
 
 	  (if (not (null smtpmail-recipient-address-list))
 	      (if (not (smtpmail-via-smtp smtpmail-recipient-address-list tembuf))
-		  (error "Sending... Failed. SMTP Protocol Error."))
-	    (error "Sending... failed. No recipients."))
+		  (error "Sending failed; SMTP protocol error"))
+	    (error "Sending failed; no recipients"))
 	  )
       (kill-buffer tembuf)
       (if (bufferp errbuf)
@@ -177,13 +177,11 @@ don't define this value.")
 
 (defun smtpmail-via-smtp (recipient smtpmail-text-buffer)
   (let ((process nil)
-	host
-	port
+	(host smtpmail-smtp-server)
+	(port smtpmail-smtp-service)
 	response-code
-	)
-    (setq host smtpmail-smtp-server)
-    (setq port smtpmail-smtp-service)
-
+	greeting
+	process-buffer)
     (unwind-protect
 	(catch 'done
 	  ;; get or create the trace buffer
@@ -234,17 +232,17 @@ don't define this value.")
 	      )
 	    
 	    ;; RCPT TO: <recipient>
-	    (setq n 0)
-	    (while (not (null (nth n recipient)))
-	      (smtpmail-send-command process (format "RCPT TO: %s" (nth n recipient)))
-	      (setq n (1+ n))
+	    (let ((n 0))
+	      (while (not (null (nth n recipient)))
+		(smtpmail-send-command process (format "RCPT TO: %s" (nth n recipient)))
+		(setq n (1+ n))
 
-	      (if (or (null (car (setq response-code (smtpmail-read-response process))))
-		      (not (integerp (car response-code)))
-		      (>= (car response-code) 400))
-		  (throw 'done nil)
-		)
-	      )
+		(if (or (null (car (setq response-code (smtpmail-read-response process))))
+			(not (integerp (car response-code)))
+			(>= (car response-code) 400))
+		    (throw 'done nil)
+		  )
+		))
 	    
 	    ;; DATA
 	    (smtpmail-send-command process "DATA")
@@ -441,13 +439,13 @@ don't define this value.")
 	  (while (re-search-forward "[ \t]+" header-end t) (replace-match " "))
 
 	  (goto-char (point-min))
-	  (setq recipient-address-list nil)
-	  (while (re-search-forward " [^ ]+ " (point-max) t)
-	    (backward-char 1)
-	    (setq recipient-address-list(cons (buffer-substring (match-beginning 0) (match-end 0))
-					      recipient-address-list))
-	    )
-	  (setq smtpmail-recipient-address-list recipient-address-list)
+	  (let (recipient-address-list)
+	    (while (re-search-forward " [^ ]+ " (point-max) t)
+	      (backward-char 1)
+	      (setq recipient-address-list(cons (buffer-substring (match-beginning 0) (match-end 0))
+						recipient-address-list))
+	      )
+	    (setq smtpmail-recipient-address-list recipient-address-list))
 
 	  )
       )
