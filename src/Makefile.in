@@ -1,5 +1,5 @@
 # Makefile for GNU Emacs.
-# Copyright (C) 1985, 87, 88, 93, 94, 95, 99, 2000, 2001
+# Copyright (C) 1985, 87, 88, 93, 94, 95, 99, 2000, 2001, 2002
 # Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -1025,7 +1025,7 @@ character.o: character.c character.h buffer.h charset.h composite.h disptab.h \
    $(config.h)
 charset.o: charset.c charset.h character.h buffer.h coding.h composite.h \
    disptab.h $(config_h)
-chartab.o: character.h $(config.h)
+chartab.o: charset.h character.h $(config.h)
 coding.o: coding.c coding.h ccl.h buffer.h character.h charset.h composite.h \
    $(config_h)
 cm.o: cm.c cm.h termhooks.h $(config_h)
