@@ -20,9 +20,6 @@
 
 2002-06-20  Francesco Potorti`  <pot@gnu.org>
 
-In short, the "optimised tags" are technically tags using "implicit tag
-names",
-
 	* etags.c: Implement implicit tag names, that is, unnamed tags
 	whose name is automatically deduced by etags.el.  The advantage is
 	that there is no explicit tag name in most tags, so the size of
