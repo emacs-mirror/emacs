@@ -492,7 +492,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o window.o \
 /* Object files used on some machine or other.
    These go in the DOC file on all machines
    in case they are needed there.  */
-SOME_MACHINE_OBJECTS = sunfns.o msdos.o \
+SOME_MACHINE_OBJECTS = sunfns.o dosfns.o msdos.o intervals.o textprop.o \
   xterm.o xfns.o xfaces.o xmenu.o xselect.o xrdb.o
 
 
