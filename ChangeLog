@@ -1,5 +1,7 @@
 2001-02-02  Gerd Moellmann  <gerd@gnu.org>
 
+	* Makefile.in (uninstall): Ignore exit code of `rm'.
+	
 	* Makefile.in (uninstall): Remove more info files.  Remove
 	${libexecdir}/emacs/${version}.  Remove ${archlibdir}/fns-*.
 
