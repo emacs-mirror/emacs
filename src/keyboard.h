@@ -311,7 +311,6 @@ extern void single_kboard_state P_ ((void));
 extern void push_frame_kboard P_ ((struct frame *));
 extern void pop_frame_kboard P_ ((void));
 extern void record_asynch_buffer_change P_ ((void));
-extern void clear_waiting_for_input P_ ((void));
 extern SIGTYPE input_poll_signal P_ ((int));
 extern void start_polling P_ ((void));
 extern void stop_polling P_ ((void));
