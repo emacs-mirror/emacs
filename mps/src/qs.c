@@ -2,7 +2,7 @@
  *
  *                          QUICKSORT
  *
- *  $HopeName: MMsrc!qs.c(trunk.3) $
+ *  $HopeName: MMsrc!qs.c(trunk.4) $
  *
  *  Copyright (C) 1995,1996 Harlequin Group, all rights reserved
  *
@@ -25,10 +25,10 @@
  */
 
 
+#include "testlib.h"
 #include "mps.h"
 #include "mpscamc.h"
 #include "mpscmv.h"
-#include "testlib.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -364,11 +364,13 @@ validate(void)
 }
 
 
-int
-main(void)
+static
+void *
+go(void *p, size_t s)
 {
+  UNUSED(p);
+  UNUSED(s);
 
-  die(mps_space_create(&space), "SpaceCreate");
   die(mps_pool_create(&mpool, space, mps_class_mv(),
 		      (size_t)65536, sizeof(QSCellStruct) * 1000,
 		      (size_t)65536), "MVCreate");
@@ -400,12 +402,22 @@ main(void)
   mps_root_destroy(actroot);
   mps_ap_destroy(ap);
   mps_pool_destroy(pool);
+  mps_pool_destroy(mpool);
   mps_fmt_destroy(format);
+
+  return NULL;
+}
+
+int 
+main()
+{
+  void *r;
+  die(mps_space_create(&space), "SpaceCreate");
+  mps_tramp(&r, &go, NULL, 0);
   mps_space_destroy(space);
 
   return 0;
 }
-
 
 /*  Machine Object Format  */
 
@@ -506,8 +518,6 @@ skip(mps_addr_t object)
   {
   case QSPadOne:
     return (mps_addr_t)((mps_word_t *)cell+1);
-    return MPS_RES_OK;
-
   case QSPadMany:
     return (mps_addr_t)((mps_word_t)cell+((mps_word_t *)cell)[1]);
   default:
