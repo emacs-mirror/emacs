@@ -15,11 +15,11 @@
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.	If not, write to the
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
@@ -34,7 +34,7 @@
 ;; wrote the GDB command completion code.  Dave Love <d.love@dl.ac.uk>
 ;; added the IRIX kluge, re-implemented the Mips-ish variant and added
 ;; a menu. Brian D. Carlstrom <bdc@ai.mit.edu> combined the IRIX kluge with
-;; the gud-xdb-directories hack producing gud-dbx-directories.	Derek L. Davies
+;; the gud-xdb-directories hack producing gud-dbx-directories.  Derek L. Davies
 ;; <ddavies@world.std.com> added support for jdb (Java debugger.)
 
 ;;; Code:
@@ -140,7 +140,7 @@ If SOFT is non-nil, returns nil if the symbol doesn't already exist."
 ;; A macro call like (gud-def FUNC NAME KEY DOC) expands to a form
 ;; which defines FUNC to send the command NAME to the debugger, gives
 ;; it the docstring DOC, and binds that function to KEY in the GUD
-;; major mode.	The function is also bound in the global keymap with the
+;; major mode.  The function is also bound in the global keymap with the
 ;; GUD prefix.
 
 (defmacro gud-def (func cmd key &optional doc)
@@ -148,13 +148,13 @@ If SOFT is non-nil, returns nil if the symbol doesn't already exist."
 optional doc string DOC.  Certain %-escapes in the string arguments
 are interpreted specially if present.  These are:
 
-  %f	name (without directory) of current source file.
-  %F	name (without directory or extension) of current source file.
-  %d	directory of current source file.
-  %l	number of current source line
-  %e	text of the C lvalue or function-call expression surrounding point.
-  %a	text of the hexadecimal address surrounding point
-  %p	prefix argument to the command (if any) as a number
+  %f    name (without directory) of current source file.
+  %F    name (without directory or extension) of current source file.
+  %d    directory of current source file.
+  %l    number of current source line
+  %e    text of the C lvalue or function-call expression surrounding point.
+  %a    text of the hexadecimal address surrounding point
+  %p    prefix argument to the command (if any) as a number
 
   The `current' source file is the file of the current buffer (if
 we're in a C file) or the source file current at the last break or
@@ -209,7 +209,7 @@ we're in the GUD buffer)."
 ;; the rest.
 ;;
 ;; The job of the find-file method is to visit and return the buffer indicated
-;; by the car of gud-tag-frame.	 This may be a file name, a tag name, or
+;; by the car of gud-tag-frame.  This may be a file name, a tag name, or
 ;; something else.
 
 ;; ======================================================================
@@ -401,15 +401,15 @@ and source-file directory for your debugger."
   (gud-def gud-break  "break %f:%l"  "\C-b" "Set breakpoint at current line.")
   (gud-def gud-tbreak "tbreak %f:%l" "\C-t" "Set temporary breakpoint at current line.")
   (gud-def gud-remove "clear %f:%l"  "\C-d" "Remove breakpoint at current line")
-  (gud-def gud-step   "step %p"	     "\C-s" "Step one source line with display.")
+  (gud-def gud-step   "step %p"      "\C-s" "Step one source line with display.")
   (gud-def gud-stepi  "stepi %p"     "\C-i" "Step one instruction with display.")
-  (gud-def gud-next   "next %p"	     "\C-n" "Step one line (skip functions).")
-  (gud-def gud-cont   "cont"	     "\C-r" "Continue with display.")
-  (gud-def gud-finish "finish"	     "\C-f" "Finish executing current function.")
+  (gud-def gud-next   "next %p"      "\C-n" "Step one line (skip functions).")
+  (gud-def gud-cont   "cont"         "\C-r" "Continue with display.")
+  (gud-def gud-finish "finish"       "\C-f" "Finish executing current function.")
   (gud-def gud-jump   "tbreak %f:%l\njump %f:%l" "\C-j" "Relocate execution address to line at point in source buffer.")
 
-  (gud-def gud-up     "up %p"	     "<" "Up N stack frames (numeric arg).")
-  (gud-def gud-down   "down %p"	     ">" "Down N stack frames (numeric arg).")
+  (gud-def gud-up     "up %p"        "<" "Up N stack frames (numeric arg).")
+  (gud-def gud-down   "down %p"      ">" "Down N stack frames (numeric arg).")
   (gud-def gud-print  "print %e"     "\C-p" "Evaluate C expression at point.")
 
   (local-set-key "\C-i" 'gud-gdb-complete-command)
@@ -833,7 +833,7 @@ containing the executable being debugged."
 
     ;; Does the remaining text look like it might end with the
     ;; beginning of another marker?  If it does, then keep it in
-    ;; gud-marker-acc until we receive the rest of it.	Since we
+    ;; gud-marker-acc until we receive the rest of it.  Since we
     ;; know the full marker regexp above failed, it's pretty simple to
     ;; test for marker starts.
     (if (string-match "[][ 0-9]*\032.*\\'" gud-marker-acc)
@@ -853,7 +853,7 @@ containing the executable being debugged."
 
 ;; The dbx in IRIX is a pain.  It doesn't print the file name when
 ;; stopping at a breakpoint (but you do get it from the `up' and
-;; `down' commands...).	 The only way to extract the information seems
+;; `down' commands...).  The only way to extract the information seems
 ;; to be with a `file' command, although the current line number is
 ;; available in $curline.  Thus we have to look for output which
 ;; appears to indicate a breakpoint.  Then we prod the dbx sub-process
@@ -909,7 +909,7 @@ a better solution in 6.1 upwards.")
     (if result
 	(cond
 	 ;; look for breakpoint or signal indication e.g.:
-	 ;; [2] Process	 1267 (pplot) stopped at [params:338 ,0x400ec0]
+	 ;; [2] Process  1267 (pplot) stopped at [params:338 ,0x400ec0]
 	 ;; Process  1281 (pplot) stopped at [params:339 ,0x400ec8]
 	 ;; Process  1270 (pplot) Floating point exception [._read._read:16 ,0x452188]
 	 ((string-match
@@ -1032,13 +1032,13 @@ and source-file directory for your debugger."
 
   (cond
    (gud-mips-p
-    (gud-def gud-up	"up %p"		"<" "Up (numeric arg) stack frames.")
+    (gud-def gud-up	"up %p"	  "<" "Up (numeric arg) stack frames.")
     (gud-def gud-down	"down %p" ">" "Down (numeric arg) stack frames.")
-    (gud-def gud-break "stop at \"%f\":%l"
+    (gud-def gud-break  "stop at \"%f\":%l"
 				  "\C-b" "Set breakpoint at current line.")
     (gud-def gud-finish "return"  "\C-f" "Finish executing current function."))
    (gud-irix-p
-    (gud-def gud-break "stop at \"%d%f\":%l"
+    (gud-def gud-break  "stop at \"%d%f\":%l"
 				  "\C-b" "Set breakpoint at current line.")
     (gud-def gud-finish "return"  "\C-f" "Finish executing current function.")
     (gud-def gud-up	"up %p; printf \"\032\032%1d:\",(int)$curline;file\n"
@@ -1049,7 +1049,7 @@ and source-file directory for your debugger."
     (process-send-string (get-buffer-process gud-comint-buffer)
 			 "printf \"\032\032%1d:\",(int)$curline;file\n"))
    (t
-    (gud-def gud-up	"up %p"		"<" "Up (numeric arg) stack frames.")
+    (gud-def gud-up	"up %p"   "<" "Up (numeric arg) stack frames.")
     (gud-def gud-down	"down %p" ">" "Down (numeric arg) stack frames.")
     (gud-def gud-break "file \"%d%f\"\nstop at %l"
 				  "\C-b" "Set breakpoint at current line.")
@@ -1058,10 +1058,10 @@ and source-file directory for your debugger."
 			     "set $stopformat=1\n"))))
 
   (gud-def gud-remove "clear %l"  "\C-d" "Remove breakpoint at current line")
-  (gud-def gud-step   "step %p"	  "\C-s" "Step one line with display.")
+  (gud-def gud-step   "step %p"   "\C-s" "Step one line with display.")
   (gud-def gud-stepi  "stepi %p"  "\C-i" "Step one instruction with display.")
-  (gud-def gud-next   "next %p"	  "\C-n" "Step one line (skip functions).")
-  (gud-def gud-cont   "cont"	  "\C-r" "Continue with display.")
+  (gud-def gud-next   "next %p"   "\C-n" "Step one line (skip functions).")
+  (gud-def gud-cont   "cont"      "\C-r" "Continue with display.")
   (gud-def gud-print  "print %e"  "\C-p" "Evaluate C expression at point.")
 
   (setq comint-prompt-regexp  "^[^)\n]*dbx) *")
@@ -1153,17 +1153,17 @@ directories if your program contains sources from more than one directory."
 		   'gud-xdb-marker-filter 'gud-xdb-find-file)
   (set (make-local-variable 'gud-minor-mode) 'xdb)
 
-  (gud-def gud-break  "b %f:%l"	   "\C-b" "Set breakpoint at current line.")
+  (gud-def gud-break  "b %f:%l"    "\C-b" "Set breakpoint at current line.")
   (gud-def gud-tbreak "b %f:%l\\t" "\C-t"
 	   "Set temporary breakpoint at current line.")
-  (gud-def gud-remove "db"	   "\C-d" "Remove breakpoint at current line")
-  (gud-def gud-step   "s %p"	   "\C-s" "Step one line with display.")
-  (gud-def gud-next   "S %p"	   "\C-n" "Step one line (skip functions).")
-  (gud-def gud-cont   "c"	   "\C-r" "Continue with display.")
-  (gud-def gud-up     "up %p"	   "<"	  "Up (numeric arg) stack frames.")
-  (gud-def gud-down   "down %p"	   ">"	  "Down (numeric arg) stack frames.")
-  (gud-def gud-finish "bu\\t"	   "\C-f" "Finish executing current function.")
-  (gud-def gud-print  "p %e"	   "\C-p" "Evaluate C expression at point.")
+  (gud-def gud-remove "db"         "\C-d" "Remove breakpoint at current line")
+  (gud-def gud-step   "s %p"       "\C-s" "Step one line with display.")
+  (gud-def gud-next   "S %p"       "\C-n" "Step one line (skip functions).")
+  (gud-def gud-cont   "c"          "\C-r" "Continue with display.")
+  (gud-def gud-up     "up %p"      "<"    "Up (numeric arg) stack frames.")
+  (gud-def gud-down   "down %p"    ">"    "Down (numeric arg) stack frames.")
+  (gud-def gud-finish "bu\\t"      "\C-f" "Finish executing current function.")
+  (gud-def gud-print  "p %e"       "\C-p" "Evaluate C expression at point.")
 
   (setq comint-prompt-regexp  "^>")
   (setq paragraph-start comint-prompt-regexp)
@@ -1293,15 +1293,15 @@ and source-file directory for your debugger."
 		   'gud-perldb-marker-filter 'gud-perldb-find-file)
   (set (make-local-variable 'gud-minor-mode) 'perldb)
 
-  (gud-def gud-break  "b %l"	     "\C-b" "Set breakpoint at current line.")
-  (gud-def gud-remove "d %l"	     "\C-d" "Remove breakpoint at current line")
-  (gud-def gud-step   "s"	     "\C-s" "Step one source line with display.")
-  (gud-def gud-next   "n"	     "\C-n" "Step one line (skip functions).")
-  (gud-def gud-cont   "c"	     "\C-r" "Continue with display.")
-;  (gud-def gud-finish "finish"	      "\C-f" "Finish executing current function.")
-;  (gud-def gud-up     "up %p"	      "<" "Up N stack frames (numeric arg).")
+  (gud-def gud-break  "b %l"         "\C-b" "Set breakpoint at current line.")
+  (gud-def gud-remove "d %l"         "\C-d" "Remove breakpoint at current line")
+  (gud-def gud-step   "s"            "\C-s" "Step one source line with display.")
+  (gud-def gud-next   "n"            "\C-n" "Step one line (skip functions).")
+  (gud-def gud-cont   "c"            "\C-r" "Continue with display.")
+;  (gud-def gud-finish "finish"       "\C-f" "Finish executing current function.")
+;  (gud-def gud-up     "up %p"        "<" "Up N stack frames (numeric arg).")
 ;  (gud-def gud-down   "down %p"      ">" "Down N stack frames (numeric arg).")
-  (gud-def gud-print  "%e"	     "\C-p" "Evaluate perl expression at point.")
+  (gud-def gud-print  "%e"           "\C-p" "Evaluate perl expression at point.")
 
   (setq comint-prompt-regexp "^	 DB<+[0-9]+>+ ")
   (setq paragraph-start comint-prompt-regexp)
@@ -1404,15 +1404,15 @@ and source-file directory for your debugger."
 
   (gud-def gud-break  "break %l"     "\C-b" "Set breakpoint at current line.")
   (gud-def gud-remove "clear %l"     "\C-d" "Remove breakpoint at current line")
-  (gud-def gud-step   "step"	     "\C-s" "Step one source line with display.")
-  (gud-def gud-next   "next"	     "\C-n" "Step one line (skip functions).")
+  (gud-def gud-step   "step"         "\C-s" "Step one source line with display.")
+  (gud-def gud-next   "next"         "\C-n" "Step one line (skip functions).")
   (gud-def gud-cont   "continue"     "\C-r" "Continue with display.")
-  (gud-def gud-finish "return"	     "\C-f" "Finish executing current function.")
-  (gud-def gud-up     "up"	     "<" "Up one stack frame.")
-  (gud-def gud-down   "down"	     ">" "Down one stack frame.")
-  (gud-def gud-print  "p %e"	     "\C-p" "Evaluate Python expression at point.")
+  (gud-def gud-finish "return"       "\C-f" "Finish executing current function.")
+  (gud-def gud-up     "up"           "<" "Up one stack frame.")
+  (gud-def gud-down   "down"         ">" "Down one stack frame.")
+  (gud-def gud-print  "p %e"         "\C-p" "Evaluate Python expression at point.")
   ;; Is this right?
-  (gud-def gud-statement "! %e"	     "\C-e" "Execute Python statement at point.")
+  (gud-def gud-statement "! %e"      "\C-e" "Execute Python statement at point.")
 
   (local-set-key [menu-bar debug finish] '("Finish Function" . gud-finish))
   (local-set-key [menu-bar debug up] '("Up Stack" . gud-up))
@@ -1480,7 +1480,7 @@ and source-file directory for your debugger."
 ;;
 ;; Not sure what happens with inner classes ... haven't tried them.
 ;;
-;; Does not grok UNICODE id's.	Only ASCII id's are supported.
+;; Does not grok UNICODE id's.  Only ASCII id's are supported.
 ;;
 ;; You must not put whitespace between "-classpath" and the path to
 ;; search for java classes even though it is required when invoking jdb
@@ -1497,7 +1497,7 @@ and source-file directory for your debugger."
 ;; every file ending in ".java" in these directories parses without error.
 ;;
 ;; All the .java files in the directories in gud-jdb-directories are
-;; syntactically analyzed each time gud jdb is invoked.	 It would be
+;; syntactically analyzed each time gud jdb is invoked.  It would be
 ;; nice to keep as much information as possible between runs.  It would
 ;; be really nice to analyze the files only as neccessary (when the
 ;; source needs to be displayed.)  I'm not sure to what extent the former
@@ -1575,7 +1575,7 @@ directory.
 
 The set of .java files residing in the directories listed are
 syntactically analyzed to determine the classes they define and the
-packages in which these classes belong.	 In this way gud jdb maps the
+packages in which these classes belong.  In this way gud jdb maps the
 package-qualified class names output by the jdb debugger to the source
 file from which the class originated.  This allows gud mode to keep
 the source code display in sync with the debugging session.")
@@ -1597,7 +1597,7 @@ the source code display in sync with the debugging session.")
 (defun gud-jdb-build-source-files-list (path extn)
 "Return a list of java source files (absolute paths).
 PATH gives the directories in which to search for files with
-extension EXTN.	 Normally EXTN is given as the regular expression
+extension EXTN.  Normally EXTN is given as the regular expression
  \"\\.java$\" ."
   (apply 'nconc (mapcar (lambda (d)
 			  (when (file-directory-p d)
@@ -1728,7 +1728,7 @@ extension EXTN.	 Normally EXTN is given as the regular expression
 		 (not (eobp)))
 	  (cond
 
-	   ;; Any number of semi's following a block is legal.	Move point
+	   ;; Any number of semi's following a block is legal.  Move point
 	   ;; past them.  Note that comments and whitespace may be
 	   ;; interspersed as well.
 	   ((eq (following-char) ?\073)
@@ -1817,11 +1817,11 @@ extension EXTN.	 Normally EXTN is given as the regular expression
 (defun gud-jdb-massage-args (file args)
   ;; The jdb executable must have whitespace between "-classpath" and
   ;; its value while gud-common-init expects all switch values to
-  ;; follow the switch keyword without intervening whitespace.	We
+  ;; follow the switch keyword without intervening whitespace.  We
   ;; require that when the user enters the "-classpath" switch in the
   ;; EMACS minibuffer that they do so without the intervening
   ;; whitespace.  This function adds it back (it's called after
-  ;; gud-common-init).	There are more switches like this (for
+  ;; gud-common-init).  There are more switches like this (for
   ;; instance "-host" and "-password") but I don't care about them
   ;; yet.
   (if args
@@ -2066,10 +2066,10 @@ gud, see `gud-mode'."
 
   (gud-def gud-break  "stop at %c:%l" "\C-b" "Set breakpoint at current line.")
   (gud-def gud-remove "clear %c:%l"   "\C-d" "Remove breakpoint at current line")
-  (gud-def gud-step   "step"	      "\C-s" "Step one source line with display.")
-  (gud-def gud-next   "next"	      "\C-n" "Step one line (skip functions).")
-  (gud-def gud-cont   "cont"	      "\C-r" "Continue with display.")
-  (gud-def gud-finish "step up"	      "\C-f" "Continue until current method returns.")
+  (gud-def gud-step   "step"          "\C-s" "Step one source line with display.")
+  (gud-def gud-next   "next"          "\C-n" "Step one line (skip functions).")
+  (gud-def gud-cont   "cont"          "\C-r" "Continue with display.")
+  (gud-def gud-finish "step up"       "\C-f" "Continue until current method returns.")
   (gud-def gud-up     "up\C-Mwhere"   "<"    "Up one stack frame.")
   (gud-def gud-down   "down\C-Mwhere" ">"    "Up one stack frame.")
   (local-set-key [menu-bar debug finish] '("Finish Function" . gud-finish))
@@ -2185,7 +2185,7 @@ except that the breakpoint is temporary; that is, it is removed when
 execution stops on it.
 
 Under gdb, dbx, and xdb, \\[gud-up] pops up through an enclosing stack
-frame.	\\[gud-down] drops back down through one.
+frame.  \\[gud-down] drops back down through one.
 
 If you are using gdb or xdb, \\[gud-finish] runs execution to the return from
 the current function and stops.
@@ -2630,7 +2630,7 @@ the character after the end of the expr."
 
 (defun gud-expr-compound-sep (span-start span-end)
   "Scan from SPAN-START to SPAN-END for punctuation characters.
-If `->' is found, return `?.'.	If `.' is found, return `?.'.
+If `->' is found, return `?.'.  If `.' is found, return `?.'.
 If any other punctuation is found, return `??'.
 If no punctuation is found, return `? '."
   (let ((result ?\ )
