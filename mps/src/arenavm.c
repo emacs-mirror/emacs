@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.53) $
+ * $HopeName: MMsrc!arenavm.c(trunk.54) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * PURPOSE
@@ -32,7 +32,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.53) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.54) $");
 
 
 /* @@@@ Arbitrary calculation for the maximum number of distinct */
@@ -1293,6 +1293,13 @@ static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
   /* (see design.mps.arena.vm:table.disc) therefore the real pool */
   /* must be non-NULL. */
   AVER(pool != NULL);
+
+  /* SegAlloc will necessarily increase committed by size */
+  /* (possibly more) so check that first. */
+  if(vmArena->committed + size > arena->commitLimit ||
+     vmArena->committed + size < vmArena->committed) {
+    return ResCOMMIT_LIMIT;
+  }
 
   if(!VMSegFind(&baseIndex, &chunk, vmArena, pref, size, FALSE)) {
     VMArenaChunk newChunk;
