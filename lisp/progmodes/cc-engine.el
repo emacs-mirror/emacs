@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    5.14
+;; Version:    5.15
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
@@ -1145,13 +1145,14 @@
 	      (c-add-syntax 'inher-cont (c-point 'boi)))
 	     ;; CASE 5D.4: perhaps a template list continuation?
 	     ((save-excursion
+		(goto-char indent-point)
 		(skip-chars-backward "^<" lim)
 		;; not sure if this is the right test, but it should
 		;; be fast and mostly accurate.
 		(and (eq (char-before) ?<)
 		     (not (c-in-literal lim))))
-	      ;; we can probably indent it just like and arglist-cont
-	      (c-add-syntax 'arglist-cont (point)))
+	      ;; we can probably indent it just like an arglist-cont
+	      (c-add-syntax 'template-args-cont (point)))
 	     ;; CASE 5D.5: perhaps a top-level statement-cont
 	     (t
 	      (c-beginning-of-statement-1 lim)
