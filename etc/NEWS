@@ -495,13 +495,18 @@ Lisp Coding Convention".
     S-f9 ethio-replace-space                unchanged
     C-f9 ethio-toggle-space                 f2
 
+** There are new Leim input methods.
+New input methods "turkish-postfix", "turkish-alt-postfix",
+"greek-mizuochi", "TeX", and "greek-babel" are now part of the Leim
+package.
+
 ** The rule of input method "slovak" is slightly changed.  Now the
 rules for translating "q" and "Q" to "`" (backquote) are deleted, thus
 typing them inserts "q" and "Q" respectively.  Rules for translating
 "=q", "+q", "=Q", and "+Q" to "`" are also deleted.  Now, to input
 "`", you must type "=q".
 
-** When your terminal can't display characters from some of the ISO
+** If your terminal can't display characters from some of the ISO
 8859 character sets but can display Latin-1, you can display
 more-or-less mnemonic sequences of ASCII/Latin-1 characters instead of
 empty boxes (under a window system) or question marks (not under a
