@@ -682,10 +682,8 @@ Do not specify them in other calls."
 	    (setq filename (funcall handler 'file-truename filename))
 	  ;; If filename contains a wildcard, newname will be the old name.
 	  (unless (string-match "[[*?]" filename)
-	    ;; If filename exists, use the long name, otherwise
-	    ;; canonicalize the name, to handle case differences.
-	    (setq filename (or (w32-long-file-name filename)
-			       (untranslated-canonical-name filename)))))
+	    ;; If filename exists, use the long name
+	    (setq filename (or (w32-long-file-name filename) filename))))
 	(setq done t)))
 
     ;; If this file directly leads to a link, process that iteratively
