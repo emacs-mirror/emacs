@@ -1,3 +1,9 @@
+2003-09-10  Mario Lang  <mlang@delysid.org>
+
+	* battery.el: Update Commentary and Copyright.
+	(battery-linux-proc-acpi): Fix a bug in %b which made "!" never
+	appear due to wrong ordering of the expressions in `or'.
+
 2003-09-08  David Ponce  <david@dponce.com>
 
 	Ensure that recentf correctly update the menu bar.
