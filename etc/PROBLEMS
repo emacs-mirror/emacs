@@ -682,36 +682,6 @@ from Emacs 19.34 distribution:
   	$(PURGE) calc.cp calc.fn calc.pg calc.tp calc.vr
   	$(PURGE) calc.cps calc.fns calc.kys calc.pgs calc.tps calc.vrs
   	$(PURGE) calc.toc
-*** calc.texinfo.~1~	Thu Oct 10 18:18:56 1996
---- calc.texinfo	Mon Dec 11 08:25:00 2000
-***************
-*** 12,17 ****
---- 12,19 ----
-  % Because makeinfo.c exists, we can't just define new commands.
-  % So instead, we take over little-used existing commands.
-  %
-+ % Suggested by Karl Berry <karl@@freefriends.org>
-+ \gdef\!{\mskip-\thinmuskip}
-  % Redefine @cite{text} to act like $text$ in regular TeX.
-  % Info will typeset this same as @samp{text}.
-  \gdef\goodtex{\tex \let\rm\goodrm \let\t\ttfont \turnoffactive}
-***************
-*** 23686,23692 ****
-  a vector of the actual parameter values, written as equations:
-  @cite{[a = 3, b = 2]}, in case you'd rather read them in a list
-  than pick them out of the formula.  (You can type @kbd{t y}
-! to move this vector to the stack; @pxref{Trail Commands}.)
-  
-  Specifying a different independent variable name will affect the
-  resulting formula: @kbd{a F 1 k RET} produces @kbd{3 + 2 k}.
---- 23689,23695 ----
-  a vector of the actual parameter values, written as equations:
-  @cite{[a = 3, b = 2]}, in case you'd rather read them in a list
-  than pick them out of the formula.  (You can type @kbd{t y}
-! to move this vector to the stack; see @ref{Trail Commands}.)
-  
-  Specifying a different independent variable name will affect the
-  resulting formula: @kbd{a F 1 k RET} produces @kbd{3 + 2 k}.
 
 * Unicode characters are not unified with other Mule charsets.
 
@@ -858,12 +828,12 @@ file.
 
 If the error message is "ange-ftp-file-modtime: Specified time is not
 representable", then this could happen when `lukemftp' is used as the
-ftp client.  This was reported to happen on Debian GNU/Linux 2.4.3
-with `lukemftp' 1.5-5, but might happen on other systems as well.  To
-avoid this problem, switch to using the standard ftp client.  On a
-Debian system, type
+ftp client.  This was reported to happen on Debian GNU/Linux, kernel
+version 2.4.3, with `lukemftp' 1.5-5, but might happen on other
+systems as well.  To avoid this problem, switch to using the standard
+ftp client.  On a Debian system, type
 
-  update-alternatives --config ftpd
+  update-alternatives --config ftp
 
 and then choose /usr/bin/netkit-ftp.
 
