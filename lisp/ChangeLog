@@ -1,5 +1,9 @@
 2001-03-08  Gerd Moellmann  <gerd@gnu.org>
 
+	* simple.el (choose-completion-string): When not leaving the
+	minibuffer, raise the minibuffer frame when minibuffer-auto-raise
+	is set.
+
 	* window.el (shrink-window-if-larger-than-buffer): Handle frame
 	parameter `(minibuffer . t)'.
 
