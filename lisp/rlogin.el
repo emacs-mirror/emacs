@@ -20,7 +20,7 @@
 ;; along with this program; if not, write to: The Free Software Foundation,
 ;; Inc.; 675 Massachusetts Avenue.; Cambridge, MA 02139, USA.
 
-;; $Id: rlogin.el,v 1.24 1995/02/28 09:51:49 friedman Exp rms $
+;; $Id: rlogin.el,v 1.25 1995/03/12 18:18:29 rms Exp friedman $
 
 ;;; Commentary:
 
@@ -150,24 +150,16 @@ variable."
                         (format "*rlogin-%s@%s*" user host)))
 	 proc)
 
+    (cond ((null prefix))
+          ((numberp prefix)
+           (setq buffer-name (format "%s<%d>" buffer-name prefix)))
+          (t
+           (setq buffer-name (generate-new-buffer-name buffer-name))))
+
+    (pop-to-buffer buffer-name)
     (cond
-     ((and (null prefix)
-           (comint-check-proc buffer-name))
-      (pop-to-buffer buffer-name))
-     ;; This next case is done all in the predicate (including side effects
-     ;; like pop-to-buffer) to avoid extra string consing via multiple
-     ;; concats.
-     ((and (numberp prefix)
-           (let ((bufname (concat buffer-name "<" prefix ">")))
-             (and (comint-check-proc bufname)
-                  (pop-to-buffer bufname)))))
+     ((comint-check-proc buffer-name))
      (t
-      (cond
-       ((numberp prefix)
-        (setq buffer-name (concat buffer-name "<" prefix ">")))
-       (t
-        (setq buffer-name (generate-new-buffer-name buffer-name))))
-      (pop-to-buffer buffer-name)
       (comint-exec (current-buffer) buffer-name rlogin-program nil args)
       (setq proc (get-process buffer-name))
       ;; Set process-mark to point-max in case there is text in the
