@@ -1,6 +1,6 @@
 /* impl.h.check: ASSERTION INTERFACE
  *
- * $HopeName: MMsrc!check.h(trunk.6) $
+ * $HopeName: MMsrc!check.h(trunk.7) $
  *
  * This header defines a family of AVER and NOTREACHED macros. The
  * macros should be used to instrument and annotate code with
@@ -33,11 +33,22 @@
 
 #define AVER(cond)                  NOCHECK(cond)
 #define AVERT(type, val)            NOCHECK(type ## Check(val))
+#define AVER_CRITICAL(cond)         NOCHECK(cond)
+#define AVERT_CRITICAL(type, val)   NOCHECK(type ## Check(val))
 
-#elif defined(MPS_HOT_RED) || defined(MPS_COOL)
+#elif defined(MPS_HOT_RED) 
 
 #define AVER(cond)                  ASSERT(cond)
 #define AVERT(type, val)            ASSERT(type ## Check(val))
+#define AVER_CRITICAL(cond)         NOCHECK(cond)
+#define AVERT_CRITICAL(type, val)   NOCHECK(type ## Check(val))
+
+#elif defined(MPS_COOL)
+
+#define AVER(cond)                  ASSERT(cond)
+#define AVERT(type, val)            ASSERT(type ## Check(val))
+#define AVER_CRITICAL(cond)         ASSERT(cond)
+#define AVERT_CRITICAL(type, val)   ASSERT(type ## Check(val))
 
 #else
 

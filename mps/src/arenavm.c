@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.29) $
+ * $HopeName: MMsrc!arenavm.c(trunk.30) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -29,7 +29,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.29) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.30) $");
 
 
 typedef struct VMArenaStruct *VMArena;
@@ -335,13 +335,15 @@ static Size VMArenaCommitted(Arena arena)
  * is, in a sense, the limit index of the page table.)
  */
 
+#define INDEX_OF_ADDR(vmArena, addr) \
+  (AddrOffset((vmArena)->base, (addr)) >> (vmArena)->pageShift)
 static Index indexOfAddr(VMArena vmArena, Addr addr)
 {
   AVERT(VMArena, vmArena);
   AVER(vmArena->base <= addr);
   AVER(addr <= vmArena->limit);   /* .index.addr */
 
-  return AddrOffset(vmArena->base, addr) >> vmArena->pageShift;
+  return INDEX_OF_ADDR(vmArena, addr);
 }
 
 
@@ -795,12 +797,14 @@ static Bool VMSegOfAddr(Seg *segReturn, Arena arena, Addr addr)
 {
   VMArena vmArena;
   
-  AVER(segReturn != NULL);
+  /* design.mps.trace.fix.noaver */
+  AVER_CRITICAL(segReturn != NULL);
   vmArena = ArenaVMArena(arena);
-  AVERT(VMArena, vmArena);
+  AVERT_CRITICAL(VMArena, vmArena);
   
   if(vmArena->base <= addr && addr < vmArena->limit) {
-    Index i = indexOfAddr(vmArena, addr);
+    /* design.mps.trace.fix.segofaddr */
+    Index i = INDEX_OF_ADDR(vmArena, addr);
     /* .addr.free: If the page is recorded as being free then */
     /* either the page is free or it is */
     /* part of the arena tables (see .tablepages) */

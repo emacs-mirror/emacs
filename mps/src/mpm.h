@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.54) $
+ * $HopeName: MMsrc!mpm.h(trunk.55) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -513,6 +513,9 @@ extern Addr SegBase(Seg seg);
 extern Addr SegLimit(Seg seg);
 extern Size SegSize(Seg seg);
 extern Bool SegOfAddr(Seg *segReturn, Space space, Addr addr);
+/* SegOfAddr macro, see design.mps.trace.fix.segofaddr */
+#define SEG_OF_ADDR(segReturn, arena, addr) \
+  ((*(arena)->class->segOfAddr)((segReturn), (arena), (addr)))
 extern Bool SegFirst(Seg *segReturn, Space space);
 extern Bool SegNext(Seg *segReturn, Space space, Addr addr);
 
@@ -567,8 +570,23 @@ extern void BufferDestroy(Buffer buffer);
 extern Bool BufferCheck(Buffer buffer);
 extern Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream);
 extern Res BufferReserve(Addr *pReturn, Buffer buffer, Size size);
+/* macro equivalent for BufferReserve, keep in sync with 
+ * impl.c.buffer */
+#define BUFFER_RESERVE(pReturn, buffer, size) \
+  (AddrAdd(BufferAlloc((buffer)), (size)) > BufferAlloc((buffer)) && \
+   AddrAdd(BufferAlloc((buffer)), (size)) <= BufferAP((buffer))->limit ? \
+     (*(pReturn) = BufferAlloc((buffer)), \
+      BufferAP((buffer))->alloc = AddrAdd(BufferAlloc((buffer)), (size)), \
+      ResOK) : \
+   BufferFill((pReturn), (buffer), (size)))
+
 extern Res BufferFill(Addr *pReturn, Buffer buffer, Size size);
 extern Bool BufferCommit(Buffer buffer, Addr p, Size size);
+/* macro equivalent for BufferCommit, keep in sync with
+ * impl.c.buffer */
+#define BUFFER_COMMIT(buffer, p, size) \
+  (BufferAP((buffer))->init = BufferAlloc((buffer)), \
+   BufferAP((buffer))->limit != 0 || BufferTrip((buffer), (p), (size)))
 extern Bool BufferTrip(Buffer buffer, Addr p, Size size);
 extern Res BufferInitV(Buffer buffer, Pool pool, va_list args);
 extern void BufferFinish(Buffer buffer);
