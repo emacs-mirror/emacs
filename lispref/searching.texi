@@ -1,9 +1,9 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/searching
-@node Searching and Matching, Syntax Tables, Text, Top
+@node Searching and Matching, Syntax Tables, Non-ASCII Characters, Top
 @chapter Searching and Matching
 @cindex searching
 
@@ -38,14 +38,18 @@ interactively.  If you do so, they prompt for the search string;
 @var{limit} and @var{noerror} are set to @code{nil}, and @var{repeat}
 is set to 1.
 
+  These search functions convert the search string to multibyte if the
+buffer is multibyte; they convert the search string to unibyte if the
+buffer is unibyte.  @xref{Text Representations}.
+
 @deffn Command search-forward string &optional limit noerror repeat
-  This function searches forward from point for an exact match for
+This function searches forward from point for an exact match for
 @var{string}.  If successful, it sets point to the end of the occurrence
 found, and returns the new value of point.  If no match is found, the
 value and side effects depend on @var{noerror} (see below).
 @c Emacs 19 feature
 
-  In the following example, point is initially at the beginning of the
+In the following example, point is initially at the beginning of the
 line.  Then @code{(search-forward "fox")} moves point after the last
 letter of @samp{fox}:
 
@@ -66,20 +70,20 @@ The quick brown fox@point{} jumped over the lazy dog.
 @end group
 @end example
 
-  The argument @var{limit} specifies the upper bound to the search.  (It
+The argument @var{limit} specifies the upper bound to the search.  (It
 must be a position in the current buffer.)  No match extending after
 that position is accepted.  If @var{limit} is omitted or @code{nil}, it
 defaults to the end of the accessible portion of the buffer.
 
 @kindex search-failed
-  What happens when the search fails depends on the value of
+What happens when the search fails depends on the value of
 @var{noerror}.  If @var{noerror} is @code{nil}, a @code{search-failed}
 error is signaled.  If @var{noerror} is @code{t}, @code{search-forward}
 returns @code{nil} and does nothing.  If @var{noerror} is neither
 @code{nil} nor @code{t}, then @code{search-forward} moves point to the
-upper bound and returns @code{nil}.  (It would be more consistent now
-to return the new position of point in that case, but some programs
-may depend on a value of @code{nil}.)
+upper bound and returns @code{nil}.  (It would be more consistent now to
+return the new position of point in that case, but some existing
+programs may depend on a value of @code{nil}.)
 
 If @var{repeat} is supplied (it must be a positive number), then the
 search is repeated that many times (each time starting at the end of the
@@ -214,16 +218,16 @@ possible.  Thus, @samp{o*} matches any number of @samp{o}s (including no
 expression.  Thus, @samp{fo*} has a repeating @samp{o}, not a repeating
 @samp{fo}.  It matches @samp{f}, @samp{fo}, @samp{foo}, and so on.
 
-The matcher processes a @samp{*} construct by matching, immediately,
-as many repetitions as can be found.  Then it continues with the rest
-of the pattern.  If that fails, backtracking occurs, discarding some
-of the matches of the @samp{*}-modified construct in case that makes
-it possible to match the rest of the pattern.  For example, in matching
-@samp{ca*ar} against the string @samp{caaar}, the @samp{a*} first
-tries to match all three @samp{a}s; but the rest of the pattern is
+The matcher processes a @samp{*} construct by matching, immediately, as
+many repetitions as can be found.  Then it continues with the rest of
+the pattern.  If that fails, backtracking occurs, discarding some of the
+matches of the @samp{*}-modified construct in the hope that that will
+make it possible to match the rest of the pattern.  For example, in
+matching @samp{ca*ar} against the string @samp{caaar}, the @samp{a*}
+first tries to match all three @samp{a}s; but the rest of the pattern is
 @samp{ar} and there is only @samp{r} left to match, so this try fails.
-The next alternative is for @samp{a*} to match only two @samp{a}s.
-With this choice, the rest of the regexp matches successfully.@refill
+The next alternative is for @samp{a*} to match only two @samp{a}s.  With
+this choice, the rest of the regexp matches successfully.@refill
 
 Nested repetition operators can be extremely slow if they specify
 backtracking loops.  For example, it could take hours for the regular
@@ -242,7 +246,7 @@ matches the strings @samp{car} and @samp{caaaar} but not the string
 
 @item ?
 @cindex @samp{?} in regexp
-is a postfix operator, similar to @samp{*} except that it can match the
+is a postfix operator, similar to @samp{*} except that it must match the
 preceding expression either once or not at all.  For example,
 @samp{ca?r} matches @samp{car} or @samp{cr}; nothing else.
 
@@ -265,6 +269,19 @@ starting and ending characters with a @samp{-} between them.  Thus,
 intermixed freely with individual characters, as in @samp{[a-z$%.]},
 which matches any lower case ASCII letter or @samp{$}, @samp{%} or
 period.
+ 
+You cannot always match all non-@sc{ASCII} characters with the regular
+expression @samp{[\200-\377]}.  This works when searching a unibyte
+buffer or string (@pxref{Text Representations}), but not in a multibyte
+buffer or string, because many non-@sc{ASCII} characters have codes
+above octal 0377.  However, the regular expression @samp{[^\000-\177]}
+does match all non-@sc{ASCII} characters, in both multibyte and unibyte
+representations, because only the @sc{ASCII} characters are excluded.
+
+The beginning and end of a range must be in the same character set
+(@pxref{Character Sets}).  Thus, @samp{[a-\x8c0]} is invalid because
+@samp{a} is in the @sc{ASCII} character set but the character 0x8c0
+(@samp{a} with grave accent) is in the Latin-1 character set.
 
 Note that the usual regexp special characters are not special inside a
 character set.  A completely different set of special characters exists
@@ -424,9 +441,9 @@ matches any character that is not a word constituent.
 matches any character whose syntax is @var{code}.  Here @var{code} is a
 character that represents a syntax code: thus, @samp{w} for word
 constituent, @samp{-} for whitespace, @samp{(} for open parenthesis,
-etc.  Represent a character of whitespace (which can be a newline) by
-either @samp{-} or a space character.  @xref{Syntax Tables}, for a list
-of syntax codes and the characters that stand for them.
+etc.  To represent whitespace syntax, use either @samp{-} or a space
+character.  @xref{Syntax Class Table}, for a list of syntax codes and
+the characters that stand for them.
 
 @item \S@var{code}
 @cindex @samp{\S} in regexp
@@ -513,6 +530,37 @@ whitespace:
 @end example
 @end defun
 
+@tindex regexp-opt
+@defun regexp-opt strings &optional paren
+This function returns an efficient regular expression that will match
+any of the strings @var{strings}.  This is useful when you need to make
+matching or searching as fast as possible---for example, for Font Lock
+mode.
+
+If the optional argument @var{paren} is non-@code{nil}, then the
+returned regular expression is always enclosed by at least one
+parentheses-grouping construct.
+
+This simplified definition of @code{regexp-opt} produces a
+regular expression which is equivalent to the actual value
+(but not as efficient):
+
+@example
+(defun regexp-opt (strings paren)
+  (let ((open-paren (if paren "\\(" ""))
+        (close-paren (if paren "\\)" "")))
+    (concat open-paren
+            (mapconcat 'regexp-quote strings "\\|")
+            close-paren)))
+@end example
+@end defun
+
+@tindex regexp-opt-depth
+@defun regexp-opt-depth regexp
+This function returns the total number of grouping constructs
+(parenthesised expressions) in @var{regexp}.
+@end defun
+
 @node Regexp Example
 @comment  node-name,  next,  previous,  up
 @subsection Complex Regexp Example
@@ -565,11 +613,11 @@ repeated zero or more times.
 
 @item \\($\\|@ $\\|\t\\|@ @ \\)
 The third part of the pattern matches the whitespace that follows the
-end of a sentence: the end of a line, or a tab, or two spaces.  The
-double backslashes mark the parentheses and vertical bars as regular
-expression syntax; the parentheses delimit a group and the vertical bars
-separate alternatives.  The dollar sign is used to match the end of a
-line.
+end of a sentence: the end of a line (optionally with a space), or a
+tab, or two spaces.  The double backslashes mark the parentheses and
+vertical bars as regular expression syntax; the parentheses delimit a
+group and the vertical bars separate alternatives.  The dollar sign is
+used to match the end of a line.
 
 @item [ \t\n]*
 Finally, the last part of the pattern matches any additional whitespace
@@ -588,6 +636,10 @@ Search, , Regular Expression Search, emacs, The GNU Emacs Manual}.  Here
 we describe only the search functions useful in programs.  The principal
 one is @code{re-search-forward}.
 
+  These search functions convert the regular expression to multibyte if
+the buffer is multibyte; they convert the regular expression to unibyte
+if the buffer is unibyte.  @xref{Text Representations}.
+
 @deffn Command re-search-forward regexp &optional limit noerror repeat
 This function searches forward in the current buffer for a string of
 text that is matched by the regular expression @var{regexp}.  The
@@ -599,19 +651,19 @@ If @var{limit} is non-@code{nil} (it must be a position in the current
 buffer), then it is the upper bound to the search.  No match extending
 after that position is accepted.
 
-What happens when the search fails depends on the value of
+If @var{repeat} is supplied (it must be a positive number), then the
+search is repeated that many times (each time starting at the end of the
+previous time's match).  If all these successive searches succeed, the
+function succeeds, moving point and returning its new value.  Otherwise
+the function fails.
+
+What happens when the function fails depends on the value of
 @var{noerror}.  If @var{noerror} is @code{nil}, a @code{search-failed}
 error is signaled.  If @var{noerror} is @code{t},
 @code{re-search-forward} does nothing and returns @code{nil}.  If
 @var{noerror} is neither @code{nil} nor @code{t}, then
 @code{re-search-forward} moves point to @var{limit} (or the end of the
 buffer) and returns @code{nil}.
-
-If @var{repeat} is supplied (it must be a positive number), then the
-search is repeated that many times (each time starting at the end of the
-previous time's match).  If these successive searches succeed, the
-function succeeds, moving point and returning its new value.  Otherwise
-the search fails.
 
 In the following example, point is initially before the @samp{T}.
 Evaluating the search call moves point to the end of that line (between
@@ -739,9 +791,6 @@ matching.  They continue backtracking until they have tried all
 possibilities and found all matches, so they can report the longest
 match, as required by POSIX.  This is much slower, so use these
 functions only when you really need the longest match.
-
-  In Emacs versions prior to 19.29, these functions did not exist, and
-the functions described above implemented full POSIX backtracking.
 
 @defun posix-search-forward regexp &optional limit noerror repeat
 This is like @code{re-search-forward} except that it performs the full
@@ -879,9 +928,10 @@ The ``key bindings'' are not commands, just symbols that are meaningful
 to the functions that use this map.
 
 @item
-Prefix keys are not supported; each key binding must be for a single event
-key sequence.  This is because the functions don't use read key sequence to
-get the input; instead, they read a single event and look it up ``by hand.''
+Prefix keys are not supported; each key binding must be for a
+single-event key sequence.  This is because the functions don't use
+@code{read-key-sequence} to get the input; instead, they read a single
+event and look it up ``by hand.''
 @end itemize
 @end defvar
 
@@ -993,6 +1043,11 @@ you should omit @var{in-string} or pass @code{nil} for it; but you
 should make sure that the current buffer when you call
 @code{match-string} is the one in which you did the searching or
 matching.
+@end defun
+
+@defun match-string-no-properties count
+This function is like @code{match-string} except that the result
+has no text properties.
 @end defun
 
 @defun match-beginning count
@@ -1240,7 +1295,7 @@ useful for writing code that can run in Emacs 18.  Here is how:
 @group
 (let ((data (match-data)))
   (unwind-protect
-      @dots{}   ; @r{May change the original match data.}
+      @dots{}   ; @r{Ok to change the original match data.}
     (set-match-data data)))
 @end group
 @end example
@@ -1280,9 +1335,9 @@ associated with it still exists.
 
   By default, searches in Emacs ignore the case of the text they are
 searching through; if you specify searching for @samp{FOO}, then
-@samp{Foo} or @samp{foo} is also considered a match.  Regexps, and in
-particular character sets, are included: thus, @samp{[aB]} would match
-@samp{a} or @samp{A} or @samp{b} or @samp{B}.
+@samp{Foo} or @samp{foo} is also considered a match.  This applies to
+regular expressions, too; thus, @samp{[aB]} would match @samp{a} or
+@samp{A} or @samp{b} or @samp{B}.
 
   If you do not want this feature, set the variable
 @code{case-fold-search} to @code{nil}.  Then all letters must match
@@ -1296,7 +1351,7 @@ Buffer-Local}.)  Alternatively, you may change the value of
 distinctions differently.  When given a lower case letter, it looks for
 a match of either case, but when given an upper case letter, it looks
 for an upper case letter only.  But this has nothing to do with the
-searching functions Lisp functions use.
+searching functions used in Lisp code.
 
 @defopt case-replace
 This variable determines whether the replacement functions should

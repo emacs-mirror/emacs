@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/markers
 @node Markers, Text, Positions, Top
@@ -17,7 +17,9 @@ deleted, so that it stays with the two characters on either side of it.
 * Predicates on Markers::    Testing whether an object is a marker.
 * Creating Markers::         Making empty markers or markers at certain places.
 * Information from Markers:: Finding the marker's buffer or character position.
-* Changing Markers::         Moving the marker to a new buffer or position.
+* Marker Insertion Types::   Two ways a marker can relocate when you
+                               insert where it points.
+* Moving Markers::           Moving the marker to a new buffer or position.
 * The Mark::                 How ``the mark'' is implemented with a marker.
 * The Region::               How to access ``the region''.
 @end menu
@@ -197,12 +199,15 @@ chapter.
 @end example
 @end defun
 
-@defun copy-marker marker-or-integer
+@defun copy-marker marker-or-integer insertion-type
 If passed a marker as its argument, @code{copy-marker} returns a
 new marker that points to the same place and the same buffer as does
 @var{marker-or-integer}.  If passed an integer as its argument,
 @code{copy-marker} returns a new marker that points to position
 @var{marker-or-integer} in the current buffer.
+
+The new marker's insertion type is specified by the argument
+@var{insertion-type}.  @xref{Marker Insertion Types}.
 
 If passed an integer argument less than 1, @code{copy-marker} returns a
 new marker that points to the beginning of the current buffer.  If
@@ -294,8 +299,30 @@ This function returns the buffer that @var{marker} points into, or
 @code{eq}) to each other if they have the same position and buffer, or
 if they both point nowhere.
 
-@node Changing Markers
-@section Changing Marker Positions
+@node Marker Insertion Types
+@section Marker Insertion Types
+
+@cindex insertion type of a marker
+  When you insert text directly at the place where a marker points,
+there are two possible ways to relocate that marker: it can point before
+the inserted text, or point after it.  You can specify which one a given
+marker should do by setting its @dfn{insertion type}.
+
+@tindex set-marker-insertion-type
+@defun set-marker-insertion-type marker type
+This function sets the insertion type of marker @var{marker} to
+@var{type}.  If @var{type} is @code{t}, @var{marker} will advances when
+text is inserted at it.  If @var{type} is @code{nil}, @var{marker} does
+not advance when text is inserted there.
+@end defun
+
+@tindex marker-insertion-type
+@defun marker-insertion-type marker
+This function reports the current insertion type of @var{marker}.
+@end defun
+
+@node Moving Markers
+@section Moving Marker Positions
 
   This section describes how to change the position of an existing
 marker.  When you do this, be sure you know whether the marker is used
@@ -521,9 +548,9 @@ is always local in each buffer.
 @defvar activate-mark-hook
 @defvarx deactivate-mark-hook
 These normal hooks are run, respectively, when the mark becomes active
-and when it becomes inactive.  The hook @code{activate-mark-hook} is also
-run at the end of a command if the mark is active and the region may
-have changed.
+and when it becomes inactive.  The hook @code{activate-mark-hook} is
+also run at the end of a command if the mark is active and it is
+possible that the region may have changed.
 @end defvar
 
 @defvar mark-ring

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/streams
 @node Read and Print, Minibuffers, Debugging, Top
@@ -38,8 +38,9 @@ is the read syntax for a cons cell whose @sc{car} is @code{a} and whose
 @sc{cdr} is the number 5.
 
   @dfn{Printing} a Lisp object means producing text that represents that
-object---converting the object to its printed representation.  Printing
-the cons cell described above produces the text @samp{(a .@: 5)}.
+object---converting the object to its @dfn{printed representation}
+(@pxref{Printed Representation}).  Printing the cons cell described
+above produces the text @samp{(a .@: 5)}.
 
   Reading and printing are more or less inverse operations: printing the
 object that results from reading a given piece of text often produces
@@ -57,7 +58,7 @@ three kinds of exceptions:
 @itemize @bullet
 @item
 Printing can produce text that cannot be read.  For example, buffers,
-windows, frames, subprocesses and markers print into text that starts
+windows, frames, subprocesses and markers print as text that starts
 with @samp{#}; if you try to read this text, you get an error.  There is
 no way to read those data types.
 
@@ -112,6 +113,7 @@ character).  When that happens, @var{function} should save the argument
 and arrange to return it on the next call.  This is called
 @dfn{unreading} the character; it happens when the Lisp reader reads one
 character too many and wants to ``put it back where it came from''.
+In this case, it makes no difference what value @var{function} returns.
 
 @item @code{t}
 @cindex @code{t} input stream
@@ -163,7 +165,7 @@ whitespace preceding the significant text.
 
   In Emacs 18, reading a symbol discarded the delimiter terminating the
 symbol.  Thus, point would end up at the beginning of @samp{contents}
-rather than after @samp{the}.  The Emacs 19 behavior is superior because
+rather than after @samp{the}.  The current behavior is superior because
 it correctly handles input such as @samp{bar(foo)}, where the
 open-parenthesis that ends one object is needed as the beginning of
 another object.
@@ -515,7 +517,8 @@ contents more clearly.
 @node Output Functions
 @section Output Functions
 
-  This section describes the Lisp functions for printing Lisp objects.
+  This section describes the Lisp functions for printing Lisp
+objects---converting objects into their printed representation.
 
 @cindex @samp{"} in printing
 @cindex @samp{\} in printing
@@ -661,6 +664,23 @@ See @code{format}, in @ref{String Conversion}, for other ways to obtain
 the printed representation of a Lisp object as a string.
 @end defun
 
+@tindex with-output-to-string
+@defmac with-output-to-string body...
+This macro executes the @var{body} forms with standard-output set up so
+that all output feeds into a string.  Then it returns that string.
+
+For example, if the current buffer name is @samp{foo},
+
+@example
+(with-output-to-string
+  (princ "The buffer is ")
+  (princ (buffer-name)))
+@end example
+
+@noindent
+returns @code{"The buffer is foo"}.
+@end defmac
+
 @node Output Variables
 @section Variables Affecting Output
 
@@ -706,9 +726,9 @@ In the second expression, the local binding of
 
 @defvar print-length
 @cindex printing limits
-The value of this variable is the maximum number of elements of a list,
-vector or bitvector that will be printed.  If an object being printed has
-more than this many elements, it is abbreviated with an ellipsis.
+The value of this variable is the maximum number of elements to print in
+any list, vector or bool-vector.  If an object being printed has more
+than this many elements, it is abbreviated with an ellipsis.
 
 If the value is @code{nil} (the default), then there is no limit.
 
@@ -730,6 +750,4 @@ The value of this variable is the maximum depth of nesting of
 parentheses and brackets when printed.  Any list or vector at a depth
 exceeding this limit is abbreviated with an ellipsis.  A value of
 @code{nil} (which is the default) means no limit.
-
-This variable exists in version 19 and later versions.
 @end defvar

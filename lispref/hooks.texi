@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/hooks
 @node Standard Hooks, Index, Standard Keymaps, Top
@@ -39,22 +39,29 @@ however, we have renamed all of those.)
 @item after-init-hook
 @item after-insert-file-functions
 @item after-make-frame-hook
+@item after-revert-hook
+@item after-save-hook
 @item auto-fill-function
 @item auto-save-hook
 @item before-change-function
 @item before-change-functions
 @item before-init-hook
 @item before-make-frame-hook
+@item before-revert-hook
 @item blink-paren-function
+@item buffer-access-fontify-functions
 @item c-mode-hook
 @item calendar-load-hook
+@item change-major-mode-hook
 @item command-history-hook
+@item command-line-functions
 @item comment-indent-function
 @item deactivate-mark-hook
 @item diary-display-hook
 @item diary-hook
 @item dired-mode-hook
 @item disabled-command-hook
+@item echo-area-clear-hook
 @item edit-picture-hook
 @item electric-buffer-menu-mode-hook
 @item electric-command-history-hook
@@ -69,7 +76,9 @@ however, we have renamed all of those.)
 @item ftp-write-file-hook
 @item indent-mim-hook
 @item initial-calendar-window-hook
+@item kill-buffer-hook
 @item kill-buffer-query-functions
+@item kill-emacs-hook
 @item kill-emacs-query-functions
 @item LaTeX-mode-hook
 @item ledit-mode-hook
@@ -77,15 +86,13 @@ however, we have renamed all of those.)
 @item lisp-interaction-mode-hook
 @item lisp-mode-hook
 @item list-diary-entries-hook
+@item local-write-file-hooks
 @item m2-mode-hook
 @item mail-mode-hook
 @item mail-setup-hook
 @item mark-diary-entries-hook
 @item medit-mode-hook
-@item mh-compose-letter-hook
-@item mh-folder-mode-hook
-@item mh-letter-mode-hook
-@item mim-mode-hook
+@item menu-bar-update-hook
 @item minibuffer-setup-hook
 @item minibuffer-exit-hook
 @item news-mode-hook
@@ -102,6 +109,7 @@ however, we have renamed all of those.)
 @item print-diary-entries-hook
 @item prolog-mode-hook
 @item protect-innocence-hook
+@item redisplay-end-trigger-functions
 @item rmail-edit-mode-hook
 @item rmail-mode-hook
 @item rmail-summary-mode-hook
@@ -122,7 +130,10 @@ however, we have renamed all of those.)
 @item today-invisible-calendar-hook
 @item vi-mode-hook
 @item view-hook
+@item window-configuration-change-hook
+@item window-scroll-functions
 @item window-setup-hook
+@item window-size-change-functions
 @item write-contents-hooks
 @item write-file-hooks
 @item write-region-annotate-functions

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/help
 @node Documentation, Files, Modes, Top
@@ -60,20 +60,20 @@ documentation is displayed.  This allows documentation strings to refer
 to the keys for related commands and be accurate even when a user
 rearranges the key bindings.  (@xref{Accessing Documentation}.)
 
-  Within the Lisp world, a documentation string accessible through the
+  In Emacs Lisp, a documentation string is accessible through the
 function or variable that it describes:
 
 @itemize @bullet
 @item
 The documentation for a function is stored in the function definition
-itself (@pxref{Lambda Expressions}).  The function
-@code{documentation} knows how to extract it.
+itself (@pxref{Lambda Expressions}).  The function @code{documentation}
+knows how to extract it.
 
 @item
 @kindex variable-documentation
 The documentation for a variable is stored in the variable's property
 list under the property name @code{variable-documentation}.  The
-function @code{documentation-property} knows how to extract it.
+function @code{documentation-property} knows how to retrieve it.
 @end itemize
 
 @cindex @file{DOC} (documentation) file
@@ -81,17 +81,17 @@ function @code{documentation-property} knows how to extract it.
 @cindex @file{etc/DOC-@var{version}}
 To save space, the documentation for preloaded functions and variables
 (including primitive functions and autoloaded functions) is stored in
-the file @file{emacs/etc/DOC-@var{version}}.  The documentation for
-functions and variables loaded during the Emacs session from
-byte-compiled files is stored in those files (@pxref{Docs and
-Compilation}).
+the file @file{emacs/etc/DOC-@var{version}}---not inside Emacs.  The
+documentation strings for functions and variables loaded during the
+Emacs session from byte-compiled files are stored in those files
+(@pxref{Docs and Compilation}).
 
 The data structure inside Emacs has an integer offset into the file, or
-a list containing a string and an integer, in place of the documentation
-string.  The functions @code{documentation} and
-@code{documentation-property} use that information to read the
-documentation from the appropriate file; this is transparent to the
-user.
+a list containing a file name and an integer, in place of the
+documentation string.  The functions @code{documentation} and
+@code{documentation-property} use that information to fetch the
+documentation string from the appropriate file; this is transparent to
+the user.
 
   For information on the uses of documentation strings, see @ref{Help, ,
 Help, emacs, The GNU Emacs Manual}.
@@ -110,8 +110,7 @@ This function returns the documentation string that is recorded
 @var{symbol}'s property list under property @var{property}.  It
 retrieves the text from a file if necessary, and runs
 @code{substitute-command-keys} to substitute actual key bindings.  (This
-substitution is not done if @var{verbatim} is non-@code{nil}; the
-@var{verbatim} argument exists only as of Emacs 19.)
+substitution is not done if @var{verbatim} is non-@code{nil}.)
 
 @smallexample
 @group
@@ -242,15 +241,15 @@ When the `track-eol' feature is doing its job, the value is 9999.
 @end smallexample
 
 @defun Snarf-documentation filename
-  This function is used only during Emacs initialization, just before
+This function is used only during Emacs initialization, just before
 the runnable Emacs is dumped.  It finds the file offsets of the
 documentation strings stored in the file @var{filename}, and records
 them in the in-core function definitions and variable property lists in
 place of the actual strings.  @xref{Building Emacs}.
 
-  Emacs finds the file @var{filename} in the @file{emacs/etc} directory.
-When the dumped Emacs is later executed, the same file is found in the
-directory @code{doc-directory}.  Usually @var{filename} is
+Emacs reads the file @var{filename} from the @file{emacs/etc} directory.
+When the dumped Emacs is later executed, the same file will be looked
+for in the directory @code{doc-directory}.  Usually @var{filename} is
 @code{"DOC-@var{version}"}.
 @end defun
 
@@ -289,13 +288,13 @@ stands for a key sequence that will invoke @var{command}, or @samp{M-x
 @var{command}} if @var{command} has no key bindings.
 
 @item \@{@var{mapvar}@} 
-stands for a summary of the value of @var{mapvar}, which should be a
-keymap.  The summary is made by @code{describe-bindings}.
+stands for a summary of the value of @var{mapvar}.  The value should be
+a keymap.  The summary is made by @code{describe-bindings}.
 
 @item \<@var{mapvar}> 
-stands for no text itself.  It is used for a side effect: it specifies
-@var{mapvar} as the keymap for any following @samp{\[@var{command}]}
-sequences in this documentation string.
+stands for no text itself.  It is used only for a side effect: it
+specifies @var{mapvar} as the keymap for any following
+@samp{\[@var{command}]} sequences in this documentation string.
 
 @item \=
 quotes the following character and is discarded; thus, @samp{\=\[} puts
@@ -348,10 +347,10 @@ C-g             abort-recursive-edit
 @node Describing Characters
 @section Describing Characters for Help Messages
 
-  These functions convert events, key sequences or characters to textual
-descriptions.  These descriptions are useful for including arbitrary
-text characters or key sequences in messages, because they convert
-non-printing and whitespace characters to sequences of printing
+  These functions convert events, key sequences, or characters to
+textual descriptions.  These descriptions are useful for including
+arbitrary text characters or key sequences in messages, because they
+convert non-printing and whitespace characters to sequences of printing
 characters.  The description of a non-whitespace printing character is
 the character itself.
 
@@ -428,7 +427,8 @@ we describe some program-level interfaces to the same information.
 This function finds all symbols whose names contain a match for the
 regular expression @var{regexp}, and returns a list of them
 (@pxref{Regular Expressions}).  It also displays the symbols in a buffer
-named @samp{*Help*}, each with a one-line description.
+named @samp{*Help*}, each with a one-line description taken from the
+beginning of its documentation string.
 
 @c Emacs 19 feature
 If @var{do-all} is non-@code{nil}, then @code{apropos} also shows
@@ -441,8 +441,8 @@ displayed.
 
 In the first of the following examples, @code{apropos} finds all the
 symbols with names containing @samp{exec}.  In the second example, it
-finds and returns only those symbols that are also commands.
-(We don't show the output that results in the @samp{*Help*} buffer.)
+finds and returns only those symbols that are also commands.  (We don't
+show here the output that results in the @samp{*Help*} buffer.)
 
 @smallexample
 @group
@@ -471,8 +471,8 @@ execute-extended-command      ESC x
 @end smallexample
 
 The command @kbd{C-h a} (@code{command-apropos}) calls @code{apropos},
-but specifies a @var{predicate} to restrict the output to symbols that
-are commands.  The call to @code{apropos} looks like this:
+but specifies a @var{predicate} that restricts the output to symbols
+that are commands.  The call to @code{apropos} looks like this:
 
 @smallexample
 (apropos string t 'commandp)
@@ -483,8 +483,8 @@ are commands.  The call to @code{apropos} looks like this:
 @deffn Command super-apropos regexp &optional do-all
 This function differs from @code{apropos} in that it searches
 documentation strings as well as symbol names for matches for
-@var{regexp}.  By default, it searches the documentation strings only
-for preloaded functions and variables.  If @var{do-all} is
+@var{regexp}.  By default, it searches the documentation strings for
+preloaded functions and variables only.  If @var{do-all} is
 non-@code{nil}, it scans the names and documentation strings of all
 functions and variables.
 @end deffn
@@ -495,7 +495,7 @@ Help key, @kbd{C-h}.
 @end defvar
 
 @deffn {Prefix Command} help-command
-This symbol is not a function; its function definition is actually the
+This symbol is not a function; its function definition cell holds the
 keymap known as @code{help-map}.  It is defined in @file{help.el} as
 follows:
 
@@ -617,6 +617,9 @@ The argument @var{help-line} should be a single-line summary of the
 alternatives in @var{help-map}.  In the current version of Emacs, this
 argument is used only if you set the option @code{three-step-help} to
 @code{t}.
+
+This macro is used in the command @code{help-for-help} which is the
+binding of @kbd{C-h C-h}.
 @end defmac
 
 @defopt three-step-help

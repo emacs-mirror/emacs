@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/lists
 @node Lists, Sequences Arrays Vectors, Strings and Characters, Top
@@ -327,7 +327,7 @@ If @var{n} is negative, @code{nth} returns the first element of
 
 @defun nthcdr n list
 This function returns the @var{n}th @sc{cdr} of @var{list}.  In other
-words, it removes the first @var{n} links of @var{list} and returns
+words, it skips past the first @var{n} links of @var{list} and returns
 what follows.
 
 If @var{n} is zero or negative, @code{nthcdr} returns all of
@@ -348,6 +348,38 @@ If @var{n} is zero or negative, @code{nthcdr} returns all of
      @result{} (1 2 3 4)
 @end group
 @end example
+@end defun
+
+@tindex safe-length
+@defun safe-length sequence
+This function returns the length of @var{list}, with no risk
+of either an error or an infinite loop.
+
+If @var{list} is not really a list, @code{safe-length} returns 0.  If
+@var{list} is circular, it returns a finite value which is at least the
+number of distinct elements.
+@end defun
+
+@tindex caar
+@defun caar list
+This is the same as @code{(car (car @var{list}))}.
+@end defun
+
+@tindex cadr
+@defun cadr list
+This is the same as @code{(car (cdr @var{list}))}
+or @code{(nth 1 @var{list})}.
+@end defun
+
+@tindex cdar
+@defun cdar list
+This is the same as @code{(cdr (car @var{list}))}.
+@end defun
+
+@tindex cddr
+@defun cddr list
+This is the same as @code{(cdr (cdr @var{list}))}
+or @code{(nthcdr 2 @var{list})}.
 @end defun
 
 @node Building Lists
@@ -439,8 +471,8 @@ elements have the identical value @var{object}.  Compare
 @cindex copying lists
 This function returns a list containing all the elements of
 @var{sequences}.  The @var{sequences} may be lists, vectors, or strings,
-but the last one should be a list.  All arguments except the last one
-are copied, so none of them are altered.
+but the last one should usually be a list.  All arguments except the
+last one are copied, so none of the arguments is altered.
 
 More generally, the final argument to @code{append} may be any Lisp
 object.  The final argument is not copied or converted; it becomes the
@@ -1002,12 +1034,12 @@ nums
 @end example
 
 @noindent
-Note that the list in @code{nums} no longer contains 0; this is the same
-cons cell that it was before, but it is no longer the first one in the
-list.  Don't assume a variable that formerly held the argument now holds
-the entire sorted list!  Instead, save the result of @code{sort} and use
-that.  Most often we store the result back into the variable that held
-the original list:
+@strong{Warning}: Note that the list in @code{nums} no longer contains
+0; this is the same cons cell that it was before, but it is no longer
+the first one in the list.  Don't assume a variable that formerly held
+the argument now holds the entire sorted list!  Instead, save the result
+of @code{sort} and use that.  Most often we store the result back into
+the variable that held the original list:
 
 @example
 (setq nums (sort nums '<))
@@ -1125,8 +1157,7 @@ and the @code{(4)} in the @code{sample-list} are not @code{eq}:
 @end example
 
 The following two functions are like @code{memq} and @code{delq} but use
-@code{equal} rather than @code{eq} to compare elements.  They are new in
-Emacs 19.
+@code{equal} rather than @code{eq} to compare elements.
 
 @defun member object list
 The function @code{member} tests to see whether @var{object} is a member
@@ -1222,7 +1253,7 @@ example:
 
 @noindent
 Here we regard @code{red} as the value associated with @code{rose}.  One
-advantage of this method is that you can store other related
+advantage of this kind of alist is that you can store other related
 information---even a list of other items---in the @sc{cdr} of the
 @sc{cdr}.  One disadvantage is that you cannot use @code{rassq} (see
 below) to find the element containing a given value.  When neither of

@@ -180,8 +180,8 @@ edebug-all-forms} toggles this option.
 
 @findex edebug-eval-top-level-form
 Another command, @kbd{M-x edebug-eval-top-level-form}, is available to
-instrument any top-level form regardless of the value of
-@code{edebug-all-defs} or @code{edebug-all-forms}.
+instrument any top-level form regardless of the values of
+@code{edebug-all-defs} and @code{edebug-all-forms}.
 
 When Edebug is about to instrument code for the first time in a session,
 it runs the hook @code{edebug-setup-hook}, then sets it to @code{nil}.

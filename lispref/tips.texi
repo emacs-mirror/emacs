@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/tips
 @node Tips, GNU Emacs Internals, Calendar, Top
@@ -105,8 +105,7 @@ name that ends in @samp{-flag}.
 @item
 Please do not define @kbd{C-c @var{letter}} as a key in your major
 modes.  These sequences are reserved for users; they are the
-@strong{only} sequences reserved for users, so we cannot do without
-them.
+@strong{only} sequences reserved for users, so do not block them.
 
 Instead, define sequences consisting of @kbd{C-c} followed by a control
 character, a digit, or certain punctuation characters.  These sequences
@@ -131,12 +130,12 @@ Function keys @key{F5} through @key{F9} without modifier keys are
 reserved for users to define.
 
 @item
-You should not bind @kbd{C-h} following any prefix character (including
+Do not bind @kbd{C-h} following any prefix character (including
 @kbd{C-c}).  If you don't bind @kbd{C-h}, it is automatically available
 as a help character for listing the subcommands of the prefix character.
 
 @item
-You should not bind a key sequence ending in @key{ESC} except following
+Do not bind a key sequence ending in @key{ESC} except following
 another @key{ESC}.  (That is, it is ok to bind a sequence ending in
 @kbd{@key{ESC} @key{ESC}}.)
 
@@ -151,10 +150,10 @@ shift key held down.  These events include @kbd{S-mouse-1},
 users.
 
 @item
-Modes should redefine @kbd{mouse-2} as a command to follow some sort of
-reference in the text of a buffer, if users usually would not want to
-alter the text in that buffer by hand.  Modes such as Dired, Info,
-Compilation, and Occur redefine it in this way.
+Special major modes used for read-only text should usually redefine
+@kbd{mouse-2} and @key{RET} to trace some sort of reference in the text.
+Modes such as Dired, Info, Compilation, and Occur redefine it in this
+way.
 
 @item
 When a package provides a modification of ordinary Emacs behavior, it is
@@ -196,7 +195,7 @@ of the intended features of your program.  The mark is a user-level
 feature, so it is incorrect to change the mark except to supply a value
 for the user's benefit.  @xref{The Mark}.
 
-In particular, don't use these functions:
+In particular, don't use any of these functions:
 
 @itemize @bullet
 @item
@@ -278,10 +277,30 @@ to split them in one or two significant places.
 
 @item
 Please put a copyright notice on the file if you give copies to anyone.
-Use the same lines that appear at the top of the Lisp files in Emacs
-itself.  If you have not signed papers to assign the copyright to the
-Foundation, then place your name in the copyright notice in place of the
-Foundation's name.
+Use a message like this one:
+
+@smallexample
+;; Copyright (C) @var{year} @var{name}
+
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2 of
+;; the License, or (at your option) any later version.
+
+;; This program is distributed in the hope that it will be
+;; useful, but WITHOUT ANY WARRANTY; without even the implied
+;; warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+;; PURPOSE.  See the GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public
+;; License along with this program; if not, write to the Free
+;; Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+;; MA 02111-1307 USA
+@end smallexample
+
+If you have signed papers to assign the copyright to the Foundation,
+then use @samp{Free Software Foundation, Inc.} as @var{name}.
+Otherwise, use your name.
 @end itemize
 
 @node Compilation Tips
@@ -308,7 +327,7 @@ is calling another compiled function.
 @item
 Using the primitive list-searching functions @code{memq}, @code{member},
 @code{assq}, or @code{assoc} is even faster than explicit iteration.  It
-may be worth rearranging a data structure so that one of these primitive
+can be worth rearranging a data structure so that one of these primitive
 search functions can be used.
 
 @item
@@ -575,7 +594,7 @@ Manipulating Comments, emacs, The GNU Emacs Manual}.
 @cindex header comments
 @cindex library header comments
 
-  Emacs 19 has conventions for using special comments in Lisp libraries
+  Emacs has conventions for using special comments in Lisp libraries
 to divide them into sections and give information such as who wrote
 them.  This section explains these conventions.  First, an example:
 

@@ -1,9 +1,9 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/loading
-@node Loading, Byte Compilation, Macros, Top
+@node Loading, Byte Compilation, Customization, Top
 @chapter Loading
 @cindex loading
 @cindex library
@@ -47,11 +47,11 @@ containing Lisp code.
 @section How Programs Do Loading
 
   Emacs Lisp has several interfaces for loading.  For example,
-@code{autoload} creates a placeholder object for a function in a file;
-trying to call the autoloading function loads the file to get the
+@code{autoload} creates a placeholder object for a function defined in a
+file; trying to call the autoloading function loads the file to get the
 function's real definition (@pxref{Autoload}).  @code{require} loads a
-file if it isn't already loaded (@pxref{Named Features}).  Ultimately, all
-these facilities call the @code{load} function to do the work.
+file if it isn't already loaded (@pxref{Named Features}).  Ultimately,
+all these facilities call the @code{load} function to do the work.
 
 @defun load filename &optional missing-ok nomessage nosuffix
 This function finds and opens a file of Lisp code, evaluates all the
@@ -70,7 +70,9 @@ evaluation of @code{(load "foo.el")} will indeed find it.)
 
 If the optional argument @var{nosuffix} is non-@code{nil}, then the
 suffixes @samp{.elc} and @samp{.el} are not tried.  In this case, you
-must specify the precise file name you want.
+must specify the precise file name you want.  By specifying the precise
+file name and using @code{t} for @var{nosuffix}, you can prevent
+perverse file names such as @file{foo.el.el} from being tried.
 
 If @var{filename} is a relative file name, such as @file{foo} or
 @file{baz/foo.bar}, @code{load} searches for the file using the variable
@@ -108,22 +110,17 @@ See below.
 @code{load} returns @code{t} if the file loads successfully.
 @end defun
 
-@ignore
 @deffn Command load-file filename
-This function loads the file @var{filename}.  If @var{filename} is an
-absolute file name, then it is loaded.  If it is relative, then the
-current default directory is assumed.  @code{load-path} is not used, and
-suffixes are not appended.  Use this function if you wish to specify
-the file to be loaded exactly.
+This command loads the file @var{filename}.  If @var{filename} is a
+relative file name, then the current default directory is assumed.
+@code{load-path} is not used, and suffixes are not appended.  Use this
+command if you wish to specify the file to be loaded exactly.
 @end deffn
 
 @deffn Command load-library library
-This function loads the library named @var{library}.  A library is
-nothing more than a file that may be loaded as described earlier.  This
-function is identical to @code{load}, save that it reads a file name
-interactively with completion.
+This command loads the library named @var{library}.  It is equivalent to
+@code{load}, except in how it reads its argument interactively.
 @end deffn
-@end ignore
 
 @defopt load-path
 @cindex @code{EMACSLOADPATH} environment variable
@@ -238,6 +235,22 @@ functions should use @code{read}.
 
   To learn how @code{load} is used to build Emacs, see @ref{Building Emacs}.
 
+@deffn Command locate-library library &optional nosuffix path interactive-call
+This command finds the precise file name for library @var{library}.  It
+searches for the library in the same way @code{load} does, and the
+argument @var{nosuffix} has the same meaning as in @code{load}: don't
+add suffixes @samp{.elc} or @samp{.el} to the specified name
+@var{library}.
+
+If the @var{path} is non-@code{nil}, that list of directories is used
+instead of @code{load-path}.
+
+When @code{locate-library} is called from a program, it returns the file
+name as a string.  When the user runs @code{locate-library}
+interactively, the argument @var{interactive-call} is @code{t}, and this
+tells @code{locate-library} to display the file name in the echo area.
+@end deffn
+
 @node Autoload
 @section Autoload
 @cindex autoload
@@ -263,8 +276,13 @@ This function defines the function (or macro) named @var{function} so as
 to load automatically from @var{filename}.  The string @var{filename}
 specifies the file to load to get the real definition of @var{function}.
 
+If @var{filename} does not contain either a directory name, or the
+suffix @code{.el} or @code{.elc}, then @code{autoload} insists on adding
+one of these suffixes, and it will not load from a file whose name is
+just @var{filename} with no added suffix.
+
 The argument @var{docstring} is the documentation string for the
-function.  Normally, this is the identical to the documentation string
+function.  Normally, this should be identical to the documentation string
 in the function definition itself.  Specifying the documentation string
 in the call to @code{autoload} makes it possible to look at the
 documentation without loading the function's real definition.
@@ -272,7 +290,7 @@ documentation without loading the function's real definition.
 If @var{interactive} is non-@code{nil}, then the function can be called
 interactively.  This lets completion in @kbd{M-x} work without loading
 the function's real definition.  The complete interactive specification
-need not be given here; it's not needed unless the user actually calls
+is not given here; it's not needed unless the user actually calls
 @var{function}, and when that happens, it's time to load the real
 definition.
 
@@ -310,9 +328,10 @@ For example,
 
 @noindent
 In this case, @code{"prolog"} is the name of the file to load, 169681
-refers to the documentation string in the @file{emacs/etc/DOC} file
-(@pxref{Documentation Basics}), @code{t} means the function is
-interactive, and @code{nil} that it is not a macro or a keymap.
+refers to the documentation string in the
+@file{emacs/etc/DOC-@var{version}} file (@pxref{Documentation Basics}),
+@code{t} means the function is interactive, and @code{nil} that it is
+not a macro or a keymap.
 @end defun
 
 @cindex autoload errors
@@ -389,16 +408,17 @@ version; you can do this by reloading the file it came from.
   When you load or reload files, bear in mind that the @code{load} and
 @code{load-library} functions automatically load a byte-compiled file
 rather than a non-compiled file of similar name.  If you rewrite a file
-that you intend to save and reinstall, remember to byte-compile it if
-necessary; otherwise you may find yourself inadvertently reloading the
-older, byte-compiled file instead of your newer, non-compiled file!
+that you intend to save and reinstall, you need to byte-compile the new
+version; otherwise Emacs will load the older, byte-compiled file instead
+of your newer, non-compiled file!  If that happens, the message
+displayed when loading the file says, ``(compiled; source is newer'', to
+remind you to recompile.
 
   When writing the forms in a Lisp library file, keep in mind that the
-file might be loaded more than once.  For example, the choice of
-@code{defvar} vs.@: @code{defconst} for defining a variable depends on
-whether it is desirable to reinitialize the variable if the library is
-reloaded: @code{defconst} does so, and @code{defvar} does not.
-(@xref{Defining Variables}.)
+file might be loaded more than once.  For example, think about whether
+each variable should be reinitialized when you reload the library;
+@code{defvar} does not change the value if the variable is already
+initialized.  (@xref{Defining Variables}.)
 
   The simplest way to add an element to an alist is like this:
 
@@ -552,10 +572,15 @@ error in the evaluating its contents, any function definitions or
 
 @defun require feature &optional filename
 This function checks whether @var{feature} is present in the current
-Emacs session (using @code{(featurep @var{feature})}; see below).  If it
-is not, then @code{require} loads @var{filename} with @code{load}.  If
-@var{filename} is not supplied, then the name of the symbol
-@var{feature} is used as the file name to load.
+Emacs session (using @code{(featurep @var{feature})}; see below).  The
+argument @var{feature} must be a symbol.
+
+If the feature is not present, then @code{require} loads @var{filename}
+with @code{load}.  If @var{filename} is not supplied, then the name of
+the symbol @var{feature} is used as the base file name to load.
+However, in this case, @code{require} insists on finding @var{feature}
+with an added suffix; a file whose name is just @var{feature} won't be
+used.
 
 If loading the file fails to provide @var{feature}, @code{require}
 signals an error, @samp{Required feature @var{feature} was not

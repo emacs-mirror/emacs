@@ -425,7 +425,7 @@ describe features of Emacs Lisp that have counterparts in many
 programming languages, and later chapters describe features that are
 peculiar to Emacs Lisp or relate specifically to editing.
 
-  This is edition 2.4.
+  This is edition 2.5.
 
 @menu
 * Caveats::             Flaws and a request for help.
@@ -662,7 +662,7 @@ the echo area.
 
 @example
 (+ 23 'x)
-@error{} Wrong type argument: integer-or-marker-p, x
+@error{} Wrong type argument: number-or-marker-p, x
 @end example
 
 @node Buffer Text Notation

@@ -212,8 +212,9 @@ The returned value of this command is unpredictable.
 This function runs @code{byte-compile-file} on files specified on the
 command line.  This function must be used only in a batch execution of
 Emacs, as it kills Emacs on completion.  An error in one file does not
-prevent processing of subsequent files.  (The file that gets the error
-will not, of course, produce any compiled code.)
+prevent processing of subsequent files, but no output file will be
+generated for it, and the Emacs process will terminate with a nonzero
+status code.
 
 @example
 % emacs -batch -f batch-byte-compile *.el
@@ -368,11 +369,11 @@ this way.
 @end defspec
 
 @defspec eval-when-compile body
-This form marks @var{body} to be evaluated at compile time and not when
+This form marks @var{body} to be evaluated at compile time but not when
 the compiled program is loaded.  The result of evaluation by the
-compiler becomes a constant which appears in the compiled program.  When
-the program is interpreted, not compiled at all, @var{body} is evaluated
-normally.
+compiler becomes a constant which appears in the compiled program.  If
+you load the source file, rather than compiling it, @var{body} is
+evaluated normally.
 
 At top level, this is analogous to the Common Lisp idiom
 @code{(eval-when (compile eval) @dots{})}.  Elsewhere, the Common Lisp

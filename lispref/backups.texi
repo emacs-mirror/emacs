@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/backups
 @node Backups and Auto-Saving, Buffers, Files, Top
@@ -71,10 +71,9 @@ saved for the first time---provided that @code{backup-inhibited}
 is @code{nil} (see below).
 
 The following example shows how to change the @code{make-backup-files}
-variable only in the @file{RMAIL} buffer and not elsewhere.  Setting it
-@code{nil} stops Emacs from making backups of the @file{RMAIL} file,
-which may save disk space.  (You would put this code in your
-@file{.emacs} file.)
+variable only in the Rmail buffers and not elsewhere.  Setting it
+@code{nil} stops Emacs from making backups of these files, which may
+save disk space.  (You would put this code in your @file{.emacs} file.)
 
 @smallexample
 @group
@@ -135,8 +134,9 @@ in that directory.
 @item
 Emacs can copy the original file into a backup file, and then overwrite
 the original file with new contents.  After this procedure, any other
-names (i.e., hard links) of the original file still refer to the current
-version of the file.  The file's owner and group will be unchanged.
+names (i.e., hard links) of the original file continue to refer to the
+current (updated) version of the file.  The file's owner and group will
+be unchanged.
 @end itemize
 
   The first method, renaming, is the default.
@@ -226,7 +226,8 @@ backup version 3 is excess.  The function @code{find-backup-file-name}
 (@pxref{Backup Names}) is responsible for determining which backup
 versions to delete, but does not delete them itself.
 
-@defopt trim-versions-without-asking
+@tindex delete-old-versions
+@defopt delete-old-versions
 If this variable is non-@code{nil}, then saving a file deletes excess
 backup versions silently.  Otherwise, it asks the user whether to delete
 them.

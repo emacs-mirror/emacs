@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/internals
 @node GNU Emacs Internals, Standard Errors, Tips, Top
@@ -125,8 +125,8 @@ running.  It is useful to include this string in bug reports.
 @example
 @group
 (emacs-version)
-  @result{} "GNU Emacs 19.29.1 (i386-debian-linux) \
- of Tue Jun  6 1995 on balloon"
+  @result{} "GNU Emacs 20.2.5 (i486-pc-linux-gnulibc1, X toolkit)
+ of Sat Feb 14 1998 on psilocin.gnu.org"
 @end group
 @end example
 
@@ -148,21 +148,21 @@ emacs-build-time
 
 @defvar emacs-version
 The value of this variable is the version of Emacs being run.  It is a
-string such as @code{"19.29.1"}.
+string such as @code{"20.3.1"}.  The last number in this string is not
+really part of the Emacs release version number; it is incremented each
+time you build Emacs in any given directory.
 @end defvar
 
-  The following two variables did not exist before Emacs version 19.23,
-which reduces their usefulness at present, but we hope they will be
-convenient in the future.
+  The following two variables have existed since Emacs version 19.23,
 
 @defvar emacs-major-version
 The major version number of Emacs, as an integer.  For Emacs version
-19.29, the value is 19.
+20.2, the value is 20.
 @end defvar
 
 @defvar emacs-minor-version
 The minor version number of Emacs, as an integer.  For Emacs version
-19.29, the value is 29.
+20.2, the value is 2.
 @end defvar
 
 @node Pure Storage, Garbage Collection, Building Emacs, GNU Emacs Internals
@@ -294,12 +294,13 @@ information:
  (@var{used-markers} . @var{free-markers})
  @var{used-string-chars} 
  @var{used-vector-slots}
- (@var{used-floats} . @var{free-floats}))
-
+ (@var{used-floats} . @var{free-floats})
+ (@var{used-intervals} . @var{free-intervals}))
 @group
 (garbage-collect)
-     @result{} ((3435 . 2332) (1688 . 0)
-           (57 . 417) 24510 3839 (4 . 1))
+     @result{} ((106886 . 13184) (9769 . 0)
+                (7731 . 4651) 347543 121628
+                (31 . 94) (1273 . 168))
 @end group
 @end example
 
@@ -360,7 +361,7 @@ that the subsequent garbage collection does not happen immediately when
 the threshold is exhausted, but only the next time the Lisp evaluator is
 called.
 
-The initial threshold value is 300,000.  If you specify a larger
+The initial threshold value is 400,000.  If you specify a larger
 value, garbage collection will happen less often.  This reduces the
 amount of time spent garbage collecting, but increases total memory use.
 You may want to do this when running a program that creates lots of
@@ -609,6 +610,8 @@ DEFUN ("coordinates-in-window-p", Fcoordinates_in_window_p,
       || (XINT (xcoord) >= (XINT (XWINDOW (window)->left)
                             + XINT (XWINDOW (window)->width))))
     return Qnil;
+  /* @r{Subtracting from XFASTINT (xcoord) is safe}
+     @r{as long as we know the result is not negative.}  */
   XFASTINT (xcoord) -= XFASTINT (XWINDOW (window)->left);
 @end group
 @group
@@ -652,11 +655,11 @@ functions.
 @cindex object internals
 
   GNU Emacs Lisp manipulates many different types of data.  The actual
-data are stored in a heap and the only access that programs have to it is
-through pointers.  Pointers are thirty-two bits wide in most
+data are stored in a heap and the only access that programs have to it
+is through pointers.  Pointers are thirty-two bits wide in most
 implementations.  Depending on the operating system and type of machine
-for which you compile Emacs, twenty-four to twenty-six bits are used to
-address the object, and the remaining six to eight bits are used for a
+for which you compile Emacs, twenty-eight bits are used to address the
+object, and the remaining four bits are used for a GC mark bit and the
 tag that identifies the object's type.
 
   Because Lisp objects are represented as tagged pointers, it is always

@@ -1,9 +1,9 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/macros
-@node Macros, Loading, Functions, Top
+@node Macros, Customization, Functions, Top
 @chapter Macros
 @cindex macros
 
@@ -153,12 +153,13 @@ intended for the macro, but executes at full compiled speed.  This would
 not work if the macro body computed the value and side effects
 itself---they would be computed at compile time, which is not useful.
 
-  In order for compilation of macro calls to work, the macros must be
-defined in Lisp when the calls to them are compiled.  The compiler has a
-special feature to help you do this: if a file being compiled contains a
-@code{defmacro} form, the macro is defined temporarily for the rest of
-the compilation of that file.  To use this feature, you must define the
-macro in the same file where it is used and before its first use.
+  In order for compilation of macro calls to work, the macros must
+already be defined in Lisp when the calls to them are compiled.  The
+compiler has a special feature to help you do this: if a file being
+compiled contains a @code{defmacro} form, the macro is defined
+temporarily for the rest of the compilation of that file.  To make this
+feature work, you must put the @code{defmacro} in the same file where it
+is used, and before its first use.
 
   Byte-compiling a file executes any @code{require} calls at top-level
 in the file.  This is in case the file needs the required packages for
@@ -244,9 +245,25 @@ argument of @samp{,} and puts the value in the list structure:
 @end group
 @end example
 
+  Substitution with @samp{,} is allowed at deeper levels of the list
+structure also.  For example:
+
+@example
+@group
+(defmacro t-becomes-nil (variable)
+  `(if (eq ,variable t)
+       (setq ,variable nil)))
+@end group
+
+@group
+(t-becomes-nil foo)
+     @equiv{} (if (eq foo t) (setq foo nil))
+@end group
+@end example
+
 @findex ,@@ @r{(with Backquote)}
 @cindex splicing (with backquote)
-You can also @dfn{splice} an evaluated value into the resulting list,
+  You can also @dfn{splice} an evaluated value into the resulting list,
 using the special marker @samp{,@@}.  The elements of the spliced list
 become elements at the same level as the other elements of the resulting
 list.  The equivalent code without using @samp{`} is often unreadable.
@@ -291,8 +308,8 @@ and the following expression.  The old syntax required whitespace
 between the @samp{`}, @samp{,} or @samp{,@@} and the following
 expression.
 
-This syntax is still accepted, but no longer recommended except for
-compatibility with old Emacs versions.
+This syntax is still accepted, for compatibility with old Emacs
+versions, but we recommend not using it in new programs.
 @end quotation
 
 @node Problems with Macros
@@ -488,14 +505,14 @@ in expressions ordinarily.
 @node Eval During Expansion
 @subsection Evaluating Macro Arguments in Expansion
 
-  Another problem can happen if you evaluate any of the macro argument
-expressions during the computation of the expansion, such as by calling
+  Another problem can happen if you the macro definition itself
+evaluates any of the macro argument expressions, such as by calling
 @code{eval} (@pxref{Eval}).  If the argument is supposed to refer to the
 user's variables, you may have trouble if the user happens to use a
 variable with the same name as one of the macro arguments.  Inside the
 macro body, the macro argument binding is the most local binding of this
-variable, so any references inside the form being evaluated do refer
-to it.  Here is an example:
+variable, so any references inside the form being evaluated do refer to
+it.  Here is an example:
 
 @example
 @group
@@ -528,7 +545,8 @@ exist.
 
   The safe way to work with the run-time value of an expression is to
 put the expression into the macro expansion, so that its value is
-computed as part of executing the expansion.
+computed as part of executing the expansion.  This is what the other
+examples in this chapter do.
 
 @node Repeated Expansion
 @subsection How Many Times is the Macro Expanded?

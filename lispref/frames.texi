@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/frames
 @node Frames, Positions, Windows, Top
@@ -49,6 +49,7 @@ This predicate returns @code{t} if @var{object} is a frame, and
 * Dialog Boxes::                Displaying a box to ask yes or no.
 * Pointer Shapes::              Specifying the shape of the mouse pointer.
 * X Selections::		Transferring text to and from other X clients.
+* Font Names::                  Looking up font names.
 * Color Names::	                Getting the definitions of color names.
 * Resources::		        Getting resource values from the server.
 * Server Data::		        Getting info about the X server.
@@ -75,13 +76,17 @@ window system Emacs uses to display its frames.  @xref{X Frame
 Parameters}, for documentation of individual parameters you can specify.
 @end defun
 
+@tindex before-make-frame-hook
 @defvar before-make-frame-hook
 A normal hook run by @code{make-frame} before it actually creates the
 frame.
 @end defvar
 
+@tindex after-make-frame-hook
 @defvar after-make-frame-hook
-A normal hook run by @code{make-frame} after it creates the frame.
+An abnormal hook run by @code{make-frame} after it creates the frame.
+Each function in @code{after-make-frame-hook} receives one argument, the
+frame just created.
 @end defvar
 
 @node Multiple Displays
@@ -129,7 +134,7 @@ This function opens a connection to the X display @var{display}.  It
 does not create a frame on that display, but it permits you to check
 that communication can be established with that display.
 
-The optional argument @var{resource-string}, if not @code{nil}, is a
+The optional argument @var{xrm-string}, if not @code{nil}, is a
 string of resource names and values, in the same format used in the
 @file{.Xresources} file.  The values you specify override the resource
 values recorded in the X server itself; they apply to all Emacs frames
@@ -265,6 +270,9 @@ If you specify the frame name explicitly when you create the frame, the
 name is also used (instead of the name of the Emacs executable) when
 looking up X resources for the frame.
 
+Since a non-window terminal can display only one frame at a time, the
+frame name appears in the mode line.
+
 @item display
 The display on which to open this frame.  It should be a string of the
 form @code{"@var{host}:@var{dpy}.@var{screen}"}, just like the
@@ -356,6 +364,9 @@ decide which buffers it should consider, if the predicate is not
 each buffer; if the predicate returns a non-@code{nil} value, it
 considers that buffer.
 
+@item buffer-list
+A list of buffers recently selected in this frame.
+
 @item font
 The name of the font for displaying text in the frame.  This is a
 string.
@@ -367,8 +378,9 @@ Whether selecting the frame raises it (non-@code{nil} means yes).
 Whether deselecting the frame lowers it (non-@code{nil} means yes).
 
 @item vertical-scroll-bars
-Whether the frame has scroll bars for vertical scrolling
-(non-@code{nil} means yes).
+Whether the frame has scroll bars for vertical scrolling, and which side
+of the frame they should be on.  The possible values are @code{left},
+@code{right}, and @code{nil} for no scroll bars.
 
 @item horizontal-scroll-bars
 Whether the frame has scroll bars for horizontal scrolling
@@ -666,7 +678,7 @@ This function returns the frame that @var{window} is on.
 order.  The order runs from the frame's top window, which is at the
 upper left corner, down and to the right, until it reaches the window at
 the lower right corner (always the minibuffer window, if the frame has
-one), and then it moves back to the top.
+one), and then it moves back to the top.  @xref{Cyclic Window Ordering}.
 
 @defun frame-top-window frame
 This returns the topmost, leftmost window of frame @var{frame}.
@@ -765,8 +777,8 @@ Don't call it for any other reason.
 
 @defun redirect-frame-focus frame focus-frame
 This function redirects focus from @var{frame} to @var{focus-frame}.
-This means that @var{focus-frame} will receive subsequent keystrokes
-intended for @var{frame}.  After such an event, the value of
+This means that @var{focus-frame} will receive subsequent keystrokes and
+events intended for @var{frame}.  After such an event, the value of
 @code{last-event-frame} will be @var{focus-frame}.  Also, switch-frame
 events specifying @var{frame} will instead select @var{focus-frame}.
 
@@ -843,21 +855,21 @@ changes.  @xref{Misc Events}.
 @node Raising and Lowering
 @section Raising and Lowering Frames
 
-The X Window System uses a desktop metaphor.  Part of this metaphor is
+  The X Window System uses a desktop metaphor.  Part of this metaphor is
 the idea that windows are stacked in a notional third dimension
 perpendicular to the screen surface, and thus ordered from ``highest''
-to ``lowest''.  Where two windows overlap, the one higher up covers the
-one underneath.  Even a window at the bottom of the stack can be seen if
-no other window overlaps it.
+to ``lowest''.  Where two X windows overlap, the one higher up covers
+the one underneath.  Even an X window at the bottom of the stack can be
+seen if no other X window overlaps it.
 
 @cindex raising a frame
 @cindex lowering a frame
-A window's place in this ordering is not fixed; in fact, users tend to
-change the order frequently.  @dfn{Raising} a window means moving it
-``up'', to the top of the stack.  @dfn{Lowering} a window means moving
-it to the bottom of the stack.  This motion is in the notional third
-dimension only, and does not change the position of the window on the
-screen.
+  An X window's place in this ordering is not fixed; in fact, users tend
+to change the order frequently.  @dfn{Raising} an X window means moving
+it ``up'', to the top of the stack.  @dfn{Lowering} an X window means
+moving it to the bottom of the stack.  This motion is in the notional
+third dimension only, and does not change the position of the X window
+on the screen.
 
 You can raise and lower Emacs's X windows with these functions:
 
@@ -1046,13 +1058,13 @@ Each @var{line} should be a string, and each @var{item} should be the
 value to return if that @var{line} is chosen.
 @end defun
 
-  @strong{Usage note:} Don't use @code{x-popup-menu} to display a menu if
-a prefix key with a menu keymap would do the job.  If you use a menu
-keymap to implement a menu, @kbd{C-h c} and @kbd{C-h a} can see the
-individual items in that menu and provide help for them.  If instead you
-implement the menu by defining a command that calls @code{x-popup-menu},
-the help facilities cannot know what happens inside that command, so
-they cannot give any help for the menu's items.
+  @strong{Usage note:} Don't use @code{x-popup-menu} to display a menu
+if you could do the job with a prefix key defined with a menu keymap.
+If you use a menu keymap to implement a menu, @kbd{C-h c} and @kbd{C-h
+a} can see the individual items in that menu and provide help for them.
+If instead you implement the menu by defining a command that calls
+@code{x-popup-menu}, the help facilities cannot know what happens inside
+that command, so they cannot give any help for the menu's items.
 
   The menu bar mechanism, which lets you switch between submenus by
 moving the mouse, cannot look within the definition of a command to see
@@ -1162,7 +1174,8 @@ selection.  Otherwise, @var{data} may be a string, a symbol, an integer
 cons of two markers pointing to the same buffer.  An overlay or a pair
 of markers stands for text in the overlay or between the markers.
 
-The data may also be a vector of valid non-vector selection values.
+The argument @var{data} may also be a vector of valid non-vector
+selection values.
 
 Each possible @var{type} has its own selection value, which changes
 independently.  The usual values of @var{type} are @code{PRIMARY} and
@@ -1201,6 +1214,30 @@ This function returns the contents of cut buffer number @var{n}.
 This function stores @var{string} into the first cut buffer (cut buffer
 0), moving the other values down through the series of cut buffers, much
 like the way successive kills in Emacs move down the kill ring.
+@end defun
+
+@node Font Names
+@section Looking up Font Names
+
+@defun x-list-font pattern &optional face frame maximum
+This function returns a list of available font names that match
+@var{pattern}.  If the optional arguments FACE and FRAME are specified,
+then the list is limited to fonts that are the same size as @var{face}
+currently is on @var{frame}.
+
+The argument @var{pattern} should be a string, perhaps with wildcard
+characters: the @samp{*} character matches any substring, and the
+@samp{?} character matches any single character.  Pattern matching
+of font names ignores case.
+
+If you specify @var{face} and @var{frame}, @var{face} should be a face name
+(a symbol) and @var{frame} should be a frame.
+
+The optional argument @var{maximum} sets a limit on how many fonts to
+return.  If this is non-@code{nil}, then the return value is truncated
+after the first @var{maximum} matching fonts.  Specifying a small value
+for @var{maximum} can make this function much faster, in cases where
+many fonts match the pattern.
 @end defun
 
 @node Color Names
@@ -1273,6 +1310,13 @@ If you specify them, the key is
 @samp{@var{instance}.@var{component}.@var{attribute}}, and the class is
 @samp{Emacs.@var{class}.@var{subclass}}.
 @end defun
+
+@defvar x-resource-class
+This variable specifies the application name that @code{x-get-resource}
+should look up.  The default value is @code{"Emacs"}.  You can examine X
+resources for application names other than ``Emacs'' by binding this
+variable to some other string, around a call to @code{x-get-resource}.
+@end defvar
 
   @xref{Resources X,, X Resources, emacs, The GNU Emacs Manual}.
 

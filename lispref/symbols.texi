@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/symbols
 @node Symbols, Evaluation, Sequences Arrays Vectors, Top
@@ -77,14 +77,14 @@ the specified name before it creates a new one.  (In GNU Emacs Lisp,
 this lookup uses a hashing algorithm and an obarray; see @ref{Creating
 Symbols}.)
 
-  In normal usage, the function cell usually contains a function or
-macro, as that is what the Lisp interpreter expects to see there
-(@pxref{Evaluation}).  Keyboard macros (@pxref{Keyboard Macros}),
-keymaps (@pxref{Keymaps}) and autoload objects (@pxref{Autoloading}) are
-also sometimes stored in the function cell of symbols.  We often refer
-to ``the function @code{foo}'' when we really mean the function stored
-in the function cell of the symbol @code{foo}.  We make the distinction
-only when necessary.
+  In normal usage, the function cell usually contains a function
+(@pxref{Functions}) or a macro (@pxref{Macros}), as that is what the
+Lisp interpreter expects to see there (@pxref{Evaluation}).  Keyboard
+macros (@pxref{Keyboard Macros}), keymaps (@pxref{Keymaps}) and autoload
+objects (@pxref{Autoloading}) are also sometimes stored in the function
+cells of symbols.  We often refer to ``the function @code{foo}'' when we
+really mean the function stored in the function cell of the symbol
+@code{foo}.  We make the distinction only when necessary.
 
   The property list cell normally should hold a correctly formatted
 property list (@pxref{Property Lists}), as a number of functions expect
@@ -93,8 +93,8 @@ to see a property list there.
   The function cell or the value cell may be @dfn{void}, which means
 that the cell does not reference any object.  (This is not the same
 thing as holding the symbol @code{void}, nor the same as holding the
-symbol @code{nil}.)  Examining a cell that is void results in an error,
-such as @samp{Symbol's value as variable is void}.
+symbol @code{nil}.)  Examining a function or value cell that is void
+results in an error, such as @samp{Symbol's value as variable is void}.
 
   The four functions @code{symbol-name}, @code{symbol-value},
 @code{symbol-plist}, and @code{symbol-function} return the contents of
@@ -119,13 +119,14 @@ the name of the source file of this chapter of the Emacs Lisp Manual.
 The property list cell contains the list @code{(variable-documentation
 29529)} which tells the documentation functions where to find the
 documentation string for the variable @code{buffer-file-name} in the
-@file{DOC} file.  (29529 is the offset from the beginning of the
-@file{DOC} file to where that documentation string begins.)  The
-function cell contains the function for returning the name of the file.
-@code{buffer-file-name} names a primitive function, which has no read
-syntax and prints in hash notation (@pxref{Primitive Function Type}).  A
-symbol naming a function written in Lisp would have a lambda expression
-(or a byte-code object) in this cell.
+@file{DOC-@var{version}} file.  (29529 is the offset from the beginning
+of the @file{DOC-@var{version}} file to where that documentation string
+begins---@pxref{Documentation Basics}) The function cell contains the
+function for returning the name of the file.  @code{buffer-file-name}
+names a primitive function, which has no read syntax and prints in hash
+notation (@pxref{Primitive Function Type}).  A symbol naming a function
+written in Lisp would have a lambda expression (or a byte-code object)
+in this cell.
 
 @node Definitions, Creating Symbols, Symbol Components, Symbols
 @section Defining Symbols
@@ -169,7 +170,7 @@ They inform programmers who read the code that certain symbols are
 @emph{intended} to be used as variables, or as functions.  In addition,
 utilities such as @file{etags} and @file{make-docfile} recognize
 definitions, and add appropriate information to tag tables and the
-@file{emacs/etc/DOC-@var{version}} file. @xref{Accessing Documentation}.
+@file{DOC-@var{version}} file.  @xref{Accessing Documentation}.
 
 @node Creating Symbols, Property Lists, Definitions, Symbols
 @section Creating and Interning Symbols
@@ -228,17 +229,13 @@ valid way to create an obarray.}  Prime numbers as lengths tend
 to result in good hashing; lengths one less than a power of two are also
 good.
 
-  @strong{Do not try to put symbols in an obarray yourself.}  This does
-not work---only @code{intern} can enter a symbol in an obarray properly.
-@strong{Do not try to intern one symbol in two obarrays.}  This would
-garble both obarrays, because a symbol has just one slot to hold the
-following symbol in the obarray bucket.  The results would be
-unpredictable.
-
   It is possible for two different symbols to have the same name in
 different obarrays; these symbols are not @code{eq} or @code{equal}.
 However, this normally happens only as part of the abbrev mechanism
 (@pxref{Abbrevs}).
+
+  @strong{Do not try to put symbols in an obarray yourself.}  This does
+not work---only @code{intern} can enter a symbol in an obarray properly.
 
 @cindex CL note---symbol in obarrays
 @quotation
@@ -260,8 +257,9 @@ This function returns the string that is @var{symbol}'s name.  For example:
 @end group
 @end example
 
-Changing the string by substituting characters, etc, does change the
-name of the symbol, but fails to update the obarray, so don't do it!
+@strong{Warning:} Changing the string by substituting characters does
+change the name of the symbol, but fails to update the obarray, so don't
+do it!
 @end defun
 
 @defun make-symbol name
@@ -298,6 +296,13 @@ creates a new one, adds it to the obarray, and returns it.  If
      @result{} nil
 @end example
 @end defun
+
+@cindex CL note---interning existing symbol
+@quotation
+@b{Common Lisp note:} In Common Lisp, you can intern an existing symbol
+in an obarray.  In Emacs Lisp, you cannot do this, because the argument
+to @code{intern} must be a string, not a symbol.
+@end quotation
 
 @defun intern-soft name &optional obarray
 This function returns the symbol in @var{obarray} whose name is
@@ -336,10 +341,10 @@ This variable is the standard obarray for use by @code{intern} and
 @end defvar
 
 @defun mapatoms function &optional obarray
-This function calls @var{function} for each symbol in the obarray
-@var{obarray}.  It returns @code{nil}.  If @var{obarray} is omitted, it
-defaults to the value of @code{obarray}, the standard obarray for
-ordinary symbols.
+This function calls @var{function} once with each symbol in the obarray
+@var{obarray}.  Then it returns @code{nil}.  If @var{obarray} is
+omitted, it defaults to the value of @code{obarray}, the standard
+obarray for ordinary symbols.
 
 @smallexample
 (setq count 0)
@@ -388,9 +393,10 @@ symbol (representing a word) in a language-understanding system.
 @xref{Text Properties}.
 
   The property names and values in a property list can be any Lisp
-objects, but the names are usually symbols.  They are compared using
-@code{eq}.  Here is an example of a property list, found on the symbol
-@code{progn} when the compiler is loaded:
+objects, but the names are usually symbols.  Property list functions
+compare the property names using @code{eq}.  Here is an example of a
+property list, found on the symbol @code{progn} when the compiler is
+loaded:
 
 @example
 (lisp-indent-function 0 byte-compile byte-compile-progn)
@@ -417,16 +423,16 @@ pairs in the property list is not significant since the property names
 must be distinct.
 
   Property lists are better than association lists for attaching
-information to various Lisp function names or variables.  If all the
-associations are recorded in one association list, the program will need
-to search that entire list each time a function or variable is to be
-operated on.  By contrast, if the information is recorded in the
-property lists of the function names or variables themselves, each
-search will scan only the length of one property list, which is usually
-short.  This is why the documentation for a variable is recorded in a
-property named @code{variable-documentation}.  The byte compiler
-likewise uses properties to record those functions needing special
-treatment.
+information to various Lisp function names or variables.  If your
+program keeps all of its associations in one association list, it will
+typically need to search that entire list each time it checks for an
+association.  This could be slow.  By contrast, if you keep the same
+information in the property lists of the function names or variables
+themselves, each search will scan only the length of one property list,
+which is usually short.  This is why the documentation for a variable is
+recorded in a property named @code{variable-documentation}.  The byte
+compiler likewise uses properties to record those functions needing
+special treatment.
 
   However, association lists have their own advantages.  Depending on
 your application, it may be faster to add an association to the front of
@@ -522,7 +528,7 @@ in the place where you got @var{plist}.  For example,
 (setq my-plist (plist-put my-plist 'foo 69))
      @result{} (bar t foo 69)
 (setq my-plist (plist-put my-plist 'quux '(a)))
-     @result{} (quux (a) bar t foo 5)
+     @result{} (bar t foo 69 quux (a))
 @end example
 @end defun
 

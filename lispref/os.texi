@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/os
 @node System Interface, Display, Processes, Top
@@ -120,8 +120,9 @@ It runs @code{window-setup-hook}.  @xref{Window Systems}.
 
 @item 
 It displays copyleft, nonwarranty, and basic use information, provided
-there were no remaining command line arguments (a few steps above) and
-the value of @code{inhibit-startup-message} is @code{nil}.
+there were no remaining command line arguments (a few steps above),
+the value of @code{inhibit-startup-message} is @code{nil}, and the
+buffer is still empty.
 @end enumerate
 
 @defopt inhibit-startup-message
@@ -375,8 +376,9 @@ value.
 
 These functions are called with no arguments.  They can access the
 command-line argument under consideration through the variable
-@code{argi}.  The remaining arguments (not including the current one)
-are in the variable @code{command-line-args-left}.
+@code{argi}, which is bound temporarily at this point.  The remaining
+arguments (not including the current one) are in the variable
+@code{command-line-args-left}.
 
 When a function recognizes and processes the argument in @code{argi}, it
 should return a non-@code{nil} value to say it has dealt with that
@@ -432,7 +434,7 @@ subprocesses that are running.  This is done in the function
 
 @defvar kill-emacs-query-functions
 After asking the standard questions, @code{save-buffers-kill-emacs}
-calls the functions in the list @code{kill-buffer-query-functions}, in
+calls the functions in the list @code{kill-emacs-query-functions}, in
 order of appearance, with no arguments.  These functions can ask for
 additional confirmation from the user.  If any of them returns
 @code{nil}, Emacs is not killed.
@@ -610,9 +612,9 @@ systems.
 @end defvar
 
 @defvar system-configuration
-This variable holds the three-part configuration name for the
-hardware/software configuration of your system, as a string.  The
-convenient way to test parts of this string is with @code{string-match}.
+This variable holds the GNU configuration name for the hardware/software
+configuration of your system, as a string.  The convenient way to test
+parts of this string is with @code{string-match}.
 @end defvar
 
 @defun system-name
@@ -719,10 +721,12 @@ containing the Emacs executable.
 @end defvar
 
 @defun load-average
-This function returns the current 1-minute, 5-minute and 15-minute
-load averages in a list.  The values are integers that are 100 times
-the system load averages.  (The load averages indicate the number of
-processes trying to run.)
+This function returns the current 1-minute, 5-minute and 15-minute load
+averages in a list.  The values are integers that are 100 times the
+system load averages, which indicate the average number of processes
+trying to run.  It would be more logical to use floating point numbers,
+but this function was introduced before Emacs supported floating point
+numbers, and it is not worth changing it now.
 
 @example
 @group
@@ -742,6 +746,12 @@ lewis@@rocky[5] % uptime
 This function returns the process @sc{id} of the Emacs process.
 @end defun
 
+@tindex tty-erase-char
+@defvar tty-erase-char
+This variable holds the erase character that was selected
+in the system's terminal driver, before Emacs was started.
+@end defvar
+
 @defun setprv privilege-name &optional setp getprv
 This function sets or resets a VMS privilege.  (It does not exist on
 Unix.)  The first arg is the privilege name, as a string.  The second
@@ -756,6 +766,19 @@ indicating whether the privilege is currently enabled.
 
 @node User Identification
 @section User Identification
+
+@defvar init-file-user
+This variable says which user's init files should be used by Emacs---or
+@code{nil} if none.  The value reflects command line options such as
+@samp{-q} or @samp{-u @var{user}}.
+
+Lisp packages that load files of customizations, or any other sort of
+user profile, should obey this variable in deciding where to find it.
+They should load the profile of the user name found in this variable.
+If @code{init-file-user} is @code{nil}, meaning that the @samp{-q}
+option was used, then Lisp packages should not load any customization
+files or user profile.
+@end defvar
 
 @defvar user-mail-address
 This holds the nominal email address of the user who is using Emacs.
@@ -789,8 +812,9 @@ This function returns the user name corresponding to Emacs's real
 environment variables @code{LOGNAME} and @code{USER}.
 @end defun
 
-@defun user-full-name
-This function returns the full name of the user.
+@defun user-full-name &optional uid
+This function returns the full name of the logged-in user---or the value
+of the environment variables @code{NAME}, if that is set.
 
 @example
 @group
@@ -798,6 +822,10 @@ This function returns the full name of the user.
      @result{} "Bil Lewis"
 @end group
 @end example
+
+If @var{uid} is non-@code{nil}, then it should be an integer, a user-id,
+or a string, a login name.  Then @code{user-full-name} returns the full
+name corresponding to that user-id or login name.
 @end defun
 
 @vindex user-full-name
@@ -837,7 +865,7 @@ string.  The format of the string is unvarying; the number of characters
 used for each part is always the same, so you can reliably use
 @code{substring} to extract pieces of it.  It is wise to count the
 characters from the beginning of the string rather than from the end, as
-additional information may be added at the end.
+additional information may some day be added at the end.
 
 @c Emacs 19 feature
 The argument @var{time-value}, if given, specifies a time to format
@@ -996,6 +1024,16 @@ This stands for the year with century.
 @item %Z
 This stands for the time zone abbreviation.
 @end table
+
+You can also specify the field width and type of padding for any of
+these @samp{%}-constructs.  This works as in @code{printf}: you write
+the field width as digits in the middle of a @samp{%}-construct.  If you
+start the field width with 0, it means to pad with zeros.
+
+For example, @samp{%S} specifies the number of seconds since the minute;
+@samp{%03S} means to pad this with zeros to 3 positions, @samp{%_3S} to
+pad with spaces to 3 positions.  Plain @samp{%3S} pads with zeros,
+because that is how @samp{%S} normally pads to two positions.
 @end defun
 
 @defun decode-time time
@@ -1046,9 +1084,10 @@ before you call @code{encode-time}.
 
 The optional argument @var{zone} defaults to the current time zone and
 its daylight savings time rules.  If specified, it can be either a list
-(as you would get from @code{current-time-zone}) or an integer (as you
-would get from @code{decode-time}).  The specified zone is used without
-any further alteration for daylight savings time.
+(as you would get from @code{current-time-zone}), a string as in the
+@code{TZ} environment variable, or an integer (as you would get from
+@code{decode-time}).  The specified zone is used without any further
+alteration for daylight savings time.
 
 If you pass more than seven arguments to @code{encode-time}, the first
 six are used as @var{seconds} through @var{year}, the last argument is
@@ -1059,6 +1098,10 @@ feature makes it possible to use the elements of a list returned by
 @example
 (apply 'encode-time (decode-time @dots{}))
 @end example
+
+You can perform simple date arithmetic by using out-of-range values for
+the @var{sec}, @var{minute}, @var{hour}, @var{day}, and @var{month}
+arguments; for example, day 0 means the day preceding the given month.
 @end defun
 
 @node Timers
@@ -1104,9 +1147,13 @@ relative time measured in seconds.
 The argument @var{repeat} specifies how often to repeat the call.  If
 @var{repeat} is @code{nil}, there are no repetitions; @var{function} is
 called just once, at @var{time}.  If @var{repeat} is a number, it
-specifies a repetition period measured in seconds.  In any case,
-@var{repeat} has no effect on when @emph{first} call takes
-place---@var{time} alone specifies that.
+specifies a repetition period measured in seconds.
+
+In most cases, @var{repeat} has no effect on when @emph{first} call
+takes place---@var{time} alone specifies that.  There is one exception:
+if @var{time} is @code{t}, then the timer runs whenever the time is a
+multiple of @var{repeat} seconds after the epoch.  This is useful for
+functions like @code{display-time}.
 
 The function @code{run-at-time} returns a timer value that identifies
 the particular scheduled future action.  You can use this value to call
@@ -1295,19 +1342,18 @@ be virtually pressed.
 @defvar keyboard-translate-table
 This variable is the translate table for keyboard characters.  It lets
 you reshuffle the keys on the keyboard without changing any command
-bindings.  Its value must be a string or @code{nil}.
+bindings.  Its value is normally a char-table, or else @code{nil}.
 
-If @code{keyboard-translate-table} is a string, then each character read
-from the keyboard is looked up in this string and the character in the
-string is used instead.  If the string is of length @var{n}, character codes
-@var{n} and up are untranslated.
+If @code{keyboard-translate-table} is a char-table, then each character
+read from the keyboard is looked up in this character.  If the value
+found there is non-@code{nil}, then it is used instead of the
+actual input character.
 
 In the example below, we set @code{keyboard-translate-table} to a
-string of 128 characters.  Then we fill it in to swap the characters
-@kbd{C-s} and @kbd{C-\} and the characters @kbd{C-q} and @kbd{C-^}.
-Subsequently, typing @kbd{C-\} has all the usual effects of typing
-@kbd{C-s}, and vice versa.  (@xref{Flow Control} for more information on
-this subject.)
+char-table.  Then we fill it in to swap the characters @kbd{C-s} and
+@kbd{C-\} and the characters @kbd{C-q} and @kbd{C-^}.  Subsequently,
+typing @kbd{C-\} has all the usual effects of typing @kbd{C-s}, and vice
+versa.  (@xref{Flow Control} for more information on this subject.)
 
 @cindex flow control example
 @example
@@ -1317,20 +1363,18 @@ this subject.)
   (interactive)
 @end group
 @group
-  (let ((the-table (make-string 128 0)))
-    (let ((i 0))
-      (while (< i 128)
-        (aset the-table i i)
-        (setq i (1+ i))))
+  (setq keyboard-translate-table
+        (make-char-table 'keyboard-translate-table nil)))
 @end group
-    ;; @r{Swap @kbd{C-s} and @kbd{C-\}.}
-    (aset the-table ?\034 ?\^s)
-    (aset the-table ?\^s ?\034)
 @group
-    ;; @r{Swap @kbd{C-q} and @kbd{C-^}.}
-    (aset the-table ?\036 ?\^q)
-    (aset the-table ?\^q ?\036)
-    (setq keyboard-translate-table the-table)))
+  ;; @r{Swap @kbd{C-s} and @kbd{C-\}.}
+  (aset keyboard-translate-table ?\034 ?\^s)
+  (aset keyboard-translate-table ?\^s ?\034)
+@end group
+@group
+  ;; @r{Swap @kbd{C-q} and @kbd{C-^}.}
+  (aset keyboard-translate-table ?\036 ?\^q)
+  (aset keyboard-translate-table ?\^q ?\036))
 @end group
 @end example
 
@@ -1343,7 +1387,7 @@ translation.
 @defun keyboard-translate from to
 This function modifies @code{keyboard-translate-table} to translate
 character code @var{from} into character code @var{to}.  It creates
-or enlarges the translate table if necessary.
+the keyboard translate table if necessary.
 @end defun
 
   The remaining translation features translate subsequences of key
@@ -1351,10 +1395,11 @@ sequences being read.  They are implemented in @code{read-key-sequence}
 and have no effect on @code{read-char}.
 
 @defvar function-key-map
-This variable holds a keymap that describes the character sequences
-sent by function keys on an ordinary character terminal.  This keymap
-uses the same data structure as other keymaps, but is used differently: it
-specifies translations to make while reading event sequences.
+This variable holds a keymap that describes the character sequences sent
+by function keys on an ordinary character terminal.  This keymap has the
+same structure as other keymaps, but is used differently: it specifies
+translations to make while reading key sequences, rather than bindings
+for key sequences.
 
 If @code{function-key-map} ``binds'' a key sequence @var{k} to a vector
 @var{v}, then when @var{k} appears as a subsequence @emph{anywhere} in a
@@ -1430,7 +1475,7 @@ to turn the character that follows into a Hyper character:
 (defun hyperify (prompt)
   (let ((e (read-event)))
     (vector (if (numberp e)
-                (logior (lsh 1 20) e)
+                (logior (lsh 1 24) e)
               (if (memq 'hyper (event-modifiers e))
                   e
                 (add-event-modifier "H-" e))))))
@@ -1631,11 +1676,11 @@ terminals, this problem is gradually being cured.  For the mean time,
 Emacs provides a convenient way of enabling flow control if you want it:
 call the function @code{enable-flow-control}.
 
-@defun enable-flow-control
+@deffn Command enable-flow-control
 This function enables use of @kbd{C-s} and @kbd{C-q} for output flow
 control, and provides the characters @kbd{C-\} and @kbd{C-^} as aliases
 for them using @code{keyboard-translate-table} (@pxref{Translating Input}).
-@end defun
+@end deffn
 
 You can use the function @code{enable-flow-control-on} in your
 @file{.emacs} file to enable flow control automatically on certain

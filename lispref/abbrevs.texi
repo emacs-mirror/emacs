@@ -82,7 +82,7 @@ This function defines @var{tabname} (a symbol) as an abbrev table name,
 i.e., as a variable whose value is an abbrev table.  It defines abbrevs
 in the table according to @var{definitions}, a list of elements of the
 form @code{(@var{abbrevname} @var{expansion} @var{hook}
-@var{usecount})}.  The value is always @code{nil}.
+@var{usecount})}.  The return value is always @code{nil}.
 @end defun
 
 @defvar abbrev-table-name-list
@@ -93,7 +93,7 @@ This is a list of symbols whose values are abbrev tables.
 @defun insert-abbrev-table-description name &optional human
 This function inserts before point a description of the abbrev table
 named @var{name}.  The argument @var{name} is a symbol whose value is an
-abbrev table.  The value is always @code{nil}.
+abbrev table.  The return value is always @code{nil}.
 
 If @var{human} is non-@code{nil}, the description is human-oriented.
 Otherwise the description is a Lisp expression---a call to
@@ -124,14 +124,15 @@ existing abbrev.
 @end defun
 
 @defun define-abbrev table name expansion hook
-This function defines an abbrev in @var{table} named @var{name}, to
-expand to @var{expansion}, and call @var{hook}.  The return value is an
-uninterned symbol that represents the abbrev inside Emacs; its name is
-@var{name}.
+This function defines an abbrev named @var{name}, in @var{table}, to
+expand to @var{expansion} and call @var{hook}.  The return value is a
+symbol that represents the abbrev inside Emacs; its name is @var{name}.
 
 The argument @var{name} should be a string.  The argument
-@var{expansion} should be a string, or @code{nil} to undefine the
-abbrev.
+@var{expansion} is normally the desired expansion (a string), or
+@code{nil} to undefine the abbrev.  If it is anything but a string or
+@code{nil}, then the abbreviation ``expands'' solely by running
+@var{hook}.
 
 The argument @var{hook} is a function or @code{nil}.  If @var{hook} is
 non-@code{nil}, then it is called with no arguments after the abbrev is
@@ -198,10 +199,10 @@ define the same abbrevs.  This function returns @code{nil}.
 @comment  node-name,  next,  previous,  up
 @section Looking Up and Expanding Abbreviations
 
-  Abbrevs are usually expanded by commands for interactive use,
+  Abbrevs are usually expanded by certain interactive commands,
 including @code{self-insert-command}.  This section describes the
-subroutines used in writing such functions, as well as the variables
-they use for communication.
+subroutines used in writing such commands, as well as the variables they
+use for communication.
 
 @defun abbrev-symbol abbrev &optional table
 This function returns the symbol representing the abbrev named
@@ -255,22 +256,23 @@ is set by @code{abbrev-prefix-mark}.
 @end defvar
 
 @defvar last-abbrev
-This is the @code{abbrev-symbol} of the last abbrev expanded.  This
+This is the @code{abbrev-symbol} of the most recent abbrev expanded.  This
 information is left by @code{expand-abbrev} for the sake of the
-@code{unexpand-abbrev} command.
+@code{unexpand-abbrev} command (@pxref{Expanding Abbrevs,, Expanding
+Abbrevs, emacs, The GNU Emacs Manual}).
 @end defvar
 
 @defvar last-abbrev-location
-This is the location of the last abbrev expanded.  This contains
+This is the location of the most recent abbrev expanded.  This contains
 information left by @code{expand-abbrev} for the sake of the
 @code{unexpand-abbrev} command.
 @end defvar
 
 @defvar last-abbrev-text
-This is the exact expansion text of the last abbrev expanded, after case
-conversion (if any).  Its value is @code{nil} if the abbrev has already
-been unexpanded.  This contains information left by @code{expand-abbrev}
-for the sake of the @code{unexpand-abbrev} command.
+This is the exact expansion text of the most recent abbrev expanded,
+after case conversion (if any).  Its value is @code{nil} if the abbrev
+has already been unexpanded.  This contains information left by
+@code{expand-abbrev} for the sake of the @code{unexpand-abbrev} command.
 @end defvar
 
 @c Emacs 19 feature

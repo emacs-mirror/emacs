@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/control
 @node Control Structures, Variables, Evaluation, Top
@@ -35,7 +35,7 @@ structure constructs (@pxref{Macros}).
 
 @menu
 * Sequencing::             Evaluation in textual order.
-* Conditionals::           @code{if}, @code{cond}.
+* Conditionals::           @code{if}, @code{cond}, @code{when}, @code{unless}.
 * Combining Conditions::   @code{and}, @code{or}, @code{not}.
 * Iteration::              @code{while} loops.
 * Nonlocal Exits::         Jumping out of a sequence.
@@ -172,7 +172,8 @@ never evaluated---it is ignored.  Thus, in the example below,
 @end example
 @end defspec
 
-@defspec when condition then-forms@dots{}
+@tindex when
+@defmac when condition then-forms@dots{}
 This is a variant of @code{if} where there are no @var{else-forms},
 and possibly several @var{then-forms}.  In particular,
 
@@ -186,9 +187,10 @@ is entirely equivalent to
 @example
 (if @var{condition} (progn @var{a} @var{b} @var{c}) nil)
 @end example
-@end defspec
+@end defmac
 
-@defspec unless condition forms@dots{}
+@tindex condition
+@defmac unless condition forms@dots{}
 This is a variant of @code{if} where there is no @var{then-form}:
 
 @example
@@ -202,7 +204,7 @@ is entirely equivalent to
 (if @var{condition} nil
    @var{a} @var{b} @var{c})
 @end example
-@end defspec
+@end defmac
 
 @defspec cond clause@dots{}
 @code{cond} chooses among an arbitrary number of alternatives.  Each
@@ -271,7 +273,7 @@ For example,
 
 @noindent
 This expression is a @code{cond} which returns @code{foo} if the value
-of @code{a} is 1, and returns the string @code{"default"} otherwise.
+of @code{a} is @code{hack}, and returns the string @code{"default"} otherwise.
 @end defspec
 
 Any conditional construct can be expressed with @code{cond} or with
@@ -491,26 +493,32 @@ that @code{catch}.  For example:
 
 @example
 @group
-(catch 'foo
-  (progn
-    @dots{}
-    (throw 'foo t)
-    @dots{}))
+(defun foo-outer ()
+  (catch 'foo
+    (foo-inner)))
+
+(defun foo-inner ()
+  @dots{}
+  (if x
+      (throw 'foo t))
+  @dots{})
 @end group
 @end example
 
 @noindent
-The @code{throw} transfers control straight back to the corresponding
-@code{catch}, which returns immediately.  The code following the
-@code{throw} is not executed.  The second argument of @code{throw} is used
-as the return value of the @code{catch}.
+The @code{throw} form, if executed, transfers control straight back to
+the corresponding @code{catch}, which returns immediately.  The code
+following the @code{throw} is not executed.  The second argument of
+@code{throw} is used as the return value of the @code{catch}.
 
-  The @code{throw} and the @code{catch} are matched through the first
-argument: @code{throw} searches for a @code{catch} whose first argument
-is @code{eq} to the one specified.  Thus, in the above example, the
-@code{throw} specifies @code{foo}, and the @code{catch} specifies the
-same symbol, so that @code{catch} is applicable.  If there is more than
-one applicable @code{catch}, the innermost one takes precedence.
+  The function @code{throw} finds the matching @code{catch} based on the
+first argument: it searches for a @code{catch} whose first argument is
+@code{eq} to the one specified in the @code{throw}.  If there is more
+than one applicable @code{catch}, the innermost one takes precedence.
+Thus, in the above example, the @code{throw} specifies @code{foo}, and
+the @code{catch} in @code{foo-outer} specifies the same symbol, so that
+@code{catch} is the applicable one (assuming there is no other matching
+@code{catch} in between).
 
   Executing @code{throw} exits all Lisp constructs up to the matching
 @code{catch}, including function calls.  When binding constructs such as
@@ -726,10 +734,10 @@ These examples show typical uses of @code{error}:
 error symbol @code{error}, and a list containing the string returned by
 @code{format}.
 
-If you want to use your own string as an error message verbatim, don't
-just write @code{(error @var{string})}.  If @var{string} contains
-@samp{%}, it will be interpreted as a format specifier, with undesirable
-results.  Instead, use @code{(error "%s" @var{string})}.
+@strong{Warning:} If you want to use your own string as an error message
+verbatim, don't just write @code{(error @var{string})}.  If @var{string}
+contains @samp{%}, it will be interpreted as a format specifier, with
+undesirable results.  Instead, use @code{(error "%s" @var{string})}.
 @end defun
 
 @defun signal error-symbol data
@@ -848,6 +856,13 @@ starting with the most recently established one.  Thus, if two nested
 @code{condition-case} forms offer to handle the same error, the inner of
 the two will actually handle it.
 
+  If an error is handled by some @code{condition-case} form, this
+ordinarily prevents the debugger from being run, even if
+@code{debug-on-error} says this error should invoke the debugger.
+@xref{Error Debugging}.  If you want to be able to debug errors that are
+caught by a @code{condition-case}, set the variable
+@code{debug-on-signal} to a non-@code{nil} value.
+
   When an error is handled, control returns to the handler.  Before this
 happens, Emacs unbinds all variable bindings made by binding constructs
 that are being exited and executes the cleanups of all
@@ -964,7 +979,7 @@ The handler specifies condition name @code{arith-error} so that it will handle o
 @smallexample
 @group
 (safe-divide nil 3)
-     @error{} Wrong type argument: integer-or-marker-p, nil
+     @error{} Wrong type argument: number-or-marker-p, nil
 @end group
 @end smallexample
 
@@ -1094,7 +1109,7 @@ and their conditions.
 
   The @code{unwind-protect} construct is essential whenever you
 temporarily put a data structure in an inconsistent state; it permits
-you to ensure the data are consistent in the event of an error or throw.
+you to make the data consistent again in the event of an error or throw.
 
 @defspec unwind-protect body cleanup-forms@dots{}
 @cindex cleanup forms

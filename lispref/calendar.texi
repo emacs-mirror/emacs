@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @node Calendar, Tips, Display, Top
 @chapter Customizing the Calendar and Diary
@@ -770,7 +770,7 @@ can use
 
 @findex diary-remind
 @smallexample
-%%(diary-remind '(diary-anniversary 12 22 1968) 7) Ruth & Ed's anniversary
+%%(diary-remind '(diary-anniversary 12 22 1968) 7) Ed's anniversary
 @end smallexample
 
 @noindent
@@ -811,7 +811,7 @@ so on.  If @var{n} is negative it counts backward from the end of
 @var{month}.  The value of @var{month} can be a list of months, a single
 month, or @code{t} to specify all months.  You can also use an optional
 parameter @var{day} to specify the @var{n}th @var{dayname} of
-@var{month} on or after/before @var{day}; the value of @{day} defaults
+@var{month} on or after/before @var{day}; the value of @var{day} defaults
 to 1 if @var{n} is positive and to the last day of @var{month} if
 @var{n} is negative.  For example,
 

@@ -5,8 +5,8 @@
 @c %**end of header
 
 @ifinfo
-This version is the edition 2.4.2 of the GNU Emacs Lisp
-Reference Manual.  It corresponds to Emacs Version 19.34.
+This version is the edition 2.5 of the GNU Emacs Lisp
+Reference Manual.  It corresponds to Emacs Version 20.3
 @c Please REMEMBER to update edition number in *four* places in this file
 @c                 and also in *one* place in intro.texi
 
@@ -14,7 +14,7 @@ Published by the Free Software Foundation
 59 Temple Place, Suite 330
 Boston, MA  02111-1307  USA
 
-Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc. 
+Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998 Free Software Foundation, Inc. 
 
 Permission is granted to make and distribute verbatim copies of this
 manual provided the copyright notice and this permission notice are
@@ -56,29 +56,30 @@ instead of in the original English.
 @syncodeindex vr fn
 @syncodeindex ky fn
 @syncodeindex pg fn
-@syncodeindex tp fn
+@c We use the "type index" to index new functions and variables.
+@c @syncodeindex tp fn
 
 @setchapternewpage odd
 @finalout
 
 @titlepage
 @title GNU Emacs Lisp Reference Manual
-@subtitle GNU Emacs Version 19
+@subtitle GNU Emacs Version 20
 @subtitle for Unix Users
 @c The edition number appears in several places in this file
 @c and also in the file intro.texi.
-@subtitle Revision 2.4.2, December 1996
+@subtitle Revision 2.5, February 1998
 
 @author by Bil Lewis, Dan LaLiberte, Richard Stallman
 @author and the GNU Manual Group
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc. 
+Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998 Free Software Foundation, Inc. 
 
 @sp 2
-Edition 2.4.2 @*
-Revised for Emacs Version 19.34,@*
-July 1996.@*
+Edition 2.5 @*
+Revised for Emacs Version 20.3,@*
+February 1998.@*
 @sp 2
 ISBN 1-882114-71-X
 
@@ -111,8 +112,8 @@ Cover art by Etienne Suvasa.
 @node Top, Copying, (dir), (dir)
 
 @ifinfo
-This Info file contains edition 2.4.2 of the GNU Emacs Lisp
-Reference Manual, corresponding to GNU Emacs version 19.34.
+This Info file contains edition 2.5 of the GNU Emacs Lisp
+Reference Manual, corresponding to GNU Emacs version 20.3.
 @end ifinfo
 
 @menu
@@ -135,6 +136,7 @@ Reference Manual, corresponding to GNU Emacs version 19.34.
 * Functions::               A function is a Lisp program
                               that can be invoked from other functions.
 * Macros::                  Macros are a way to extend the Lisp language.
+* Customization::           Writing customization declarations.
 
 * Loading::                 Reading files of Lisp code into Lisp.
 * Byte Compilation::        Compilation makes programs run faster.
@@ -159,6 +161,7 @@ Reference Manual, corresponding to GNU Emacs version 19.34.
                               automatically when the text is changed.
 
 * Text::                    Examining and changing text in buffers.
+* Non-ASCII Characters::    Non-ASCII text in buffers and strings.
 * Searching and Matching::  Searching buffers for strings or regexps.
 * Syntax Tables::           The syntax table controls word and list parsing.
 * Abbrevs::                 How Abbrev mode works, and its data structures.
@@ -182,6 +185,8 @@ Appendices
 
 * Index::                   Index including concepts, functions, variables,
                               and other terms.
+
+* New Symbols::             New functions and variables in Emacs 20.
 
       --- The Detailed Node Listing ---
 
@@ -578,8 +583,8 @@ Files
                                 simultaneous editing by two people.
 * Information about Files::   Testing existence, accessibility, size of files.
 * Contents of Directories::   Getting a list of the files in a directory.
-* Changing File Attributes::  Renaming files, changing protection, etc.
-* File Names::                Decomposing and expanding file names.
+* Changing Files::          Renaming files, changing protection, etc.
+* File Names::              Decomposing and expanding file names.
 
 Visiting Files
 
@@ -651,7 +656,6 @@ Windows
 * Window Start::            The display-start position controls which text
                               is on-screen in the window. 
 * Vertical Scrolling::      Moving text up and down in the window.
-* Scrolling Hooks::         Hooks that run when you scroll a window.
 * Horizontal Scrolling::    Moving text sideways on the window.
 * Size of Window::          Accessing the size of a window.
 * Resizing Windows::        Changing the size of a window.
@@ -707,7 +711,7 @@ Markers
 * Creating Markers::        Making empty markers or markers at certain places.
 * Information from Markers::  Finding the marker's buffer or character
                                 position. 
-* Changing Markers::        Moving the marker to a new buffer or position.
+* Moving Markers::          Moving the marker to a new buffer or position.
 * The Mark::                How ``the mark'' is implemented with a marker.
 * The Region::              How to access ``the region''.
 
@@ -895,33 +899,36 @@ Object Internals
 @include functions.texi
 @include macros.texi
 
+@include customize.texi
 @include loading.texi
 @include compile.texi
 @include debugging.texi
-@include streams.texi
 
+@include streams.texi
 @include minibuf.texi
 @include commands.texi
 @include keymaps.texi
-@include modes.texi
 
+@include modes.texi
 @include help.texi
 @include files.texi
 @include backups.texi
-@include buffers.texi
 
+@include buffers.texi
 @include windows.texi
 @include frames.texi
 @include positions.texi
+
 @include markers.texi
 @include text.texi
-
+@include nonascii.texi
 @include searching.texi
+
 @include syntax.texi
 @include abbrevs.texi
-
 @include processes.texi
 @include os.texi
+
 @include display.texi
 @include calendar.texi
 
@@ -939,6 +946,11 @@ Object Internals
 @include hooks.texi
 
 @include index.texi
+
+@node New Symbols, , Index, Top
+@chapter New Symbols Since the Previous Edition
+
+@include elisp.tps
 
 @c Print the tables of contents
 @summarycontents

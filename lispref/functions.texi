@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/functions
 @node Functions, Macros, Variables, Top
@@ -54,8 +54,8 @@ such as @code{car} or @code{append}.  These functions are also called
 @dfn{built-in} functions or @dfn{subrs}.  (Special forms are also
 considered primitives.)
 
-Usually the reason that a function is a primitives is because it is
-fundamental, because it provides a low-level interface to operating
+Usually the reason we implement a function as a primitive is because it
+is fundamental, because it provides a low-level interface to operating
 system services, or because it needs to run fast.  Primitives can be
 modified or added only by changing the C sources and recompiling the
 editor.  See @ref{Writing Emacs Primitives}.
@@ -109,6 +109,12 @@ editors; for Lisp programs, the distinction is normally unimportant.
 A @dfn{byte-code function} is a function that has been compiled by the
 byte compiler.  @xref{Byte-Code Type}.
 @end table
+
+@tindex functionp
+@defun functionp object
+This function returns @code{t} if @var{object} is any kind of function;
+that is, anything that could be called as a function.
+@end defun
 
 @defun subrp object
 This function returns @code{t} if @var{object} is a built-in function
@@ -188,7 +194,7 @@ reason functions are defined to start with @code{lambda} is so that
 other lists, intended for other uses, will not accidentally be valid as
 functions.
 
-  The second element is a list of symbols--the argument variable names.
+  The second element is a list of symbols---the argument variable names.
 This is called the @dfn{lambda list}.  When a Lisp function is called,
 the argument values are matched up against the variables in the lambda
 list, which are given local bindings with the values provided.
@@ -267,7 +273,7 @@ that time, they were the only way to bind and initialize local
 variables.
 
 @node Argument List
-@subsection Advanced Features of Argument Lists
+@subsection Other Features of Argument Lists
 @kindex wrong-number-of-arguments
 @cindex argument binding
 @cindex binding arguments
@@ -326,7 +332,8 @@ This is what @code{substring} does; @code{nil} as the third argument to
 @quotation
 @b{Common Lisp note:} Common Lisp allows the function to specify what
 default value to use when an optional argument is omitted; Emacs Lisp
-always uses @code{nil}.
+always uses @code{nil}.  Emacs Lisp does not support ``supplied-p''
+variables that tell you whether an argument was explicitly passed.
 @end quotation
 
   For example, an argument list that looks like this:
@@ -453,6 +460,9 @@ equally well a name for the same function.
 
   A symbol used as a function name may also be used as a variable;
 these two uses of a symbol are independent and do not conflict.
+(Some Lisp dialects, such as Scheme, do not distinguish between a
+symbol's value and its function definition; a symbol's value as a variable
+is also its function definition.)
 
 @node Defining Functions
 @section Defining Functions
@@ -476,8 +486,8 @@ value.
 
 As described previously (@pxref{Lambda Expressions}),
 @var{argument-list} is a list of argument names and may include the
-keywords @code{&optional} and @code{&rest}.  Also, the first two forms
-in @var{body-forms} may be a documentation string and an interactive
+keywords @code{&optional} and @code{&rest}.  Also, the first two of the
+@var{body-forms} may be a documentation string and an interactive
 declaration.
 
 There is no conflict if the same symbol @var{name} is also used as a
@@ -566,11 +576,11 @@ function @code{concat} with arguments @code{"a"} and @code{"b"}.
 @xref{Evaluation}, for a description of evaluation.
 
   When you write a list as an expression in your program, the function
-name is part of the program.  This means that you choose which function
-to call, and how many arguments to give it, when you write the program.
-Usually that's just what you want.  Occasionally you need to decide at
-run time which function to call.  To do that, use the functions
-@code{funcall} and @code{apply}.
+name it calls is written in your program.  This means that you choose
+which function to call, and how many arguments to give it, when you
+write the program.  Usually that's just what you want.  Occasionally you
+need to compute at run time which function to call.  To do that, use the
+functions @code{funcall} and @code{apply}.
 
 @defun funcall function &rest arguments
 @code{funcall} calls @var{function} with @var{arguments}, and returns
@@ -616,9 +626,10 @@ Compare these example with the examples of @code{apply}.
 @defun apply function &rest arguments
 @code{apply} calls @var{function} with @var{arguments}, just like
 @code{funcall} but with one difference: the last of @var{arguments} is a
-list of arguments to give to @var{function}, rather than a single
-argument.  We also say that @code{apply} @dfn{spreads} this list so that
-each individual element becomes an argument.
+list of objects, which are passed to @var{function} as separate
+arguments, rather than a single list.  We say that @code{apply}
+@dfn{spreads} this list so that each individual element becomes an
+argument.
 
 @code{apply} returns the result of calling @var{function}.  As with
 @code{funcall}, @var{function} must either be a Lisp function or a
@@ -676,10 +687,12 @@ This function ignores any arguments and returns @code{nil}.
 @cindex mapping functions
 
   A @dfn{mapping function} applies a given function to each element of a
-list or other collection.  Emacs Lisp has three such functions;
+list or other collection.  Emacs Lisp has several such functions;
 @code{mapcar} and @code{mapconcat}, which scan a list, are described
-here.  For the third mapping function, @code{mapatoms}, see
-@ref{Creating Symbols}.
+here.  @xref{Creating Symbols}, for the function @code{mapatoms} which
+maps over the symbols in an obarray.  @xref{Char-Tables}, for the
+function @code{map-char-table}, which maps over the elements in a
+char-table.
 
 @defun mapcar function sequence
 @code{mapcar} applies @var{function} to each element of @var{sequence}
@@ -793,26 +806,68 @@ is not the @emph{function definition} of @code{silly}.  We have not given
 @code{silly} any function definition, just a value as a variable.)
 
   Most of the time, anonymous functions are constants that appear in
-your program.  For example, you might want to pass one as an argument
-to the function @code{mapcar}, which applies any given function to each
-element of a list.  Here we pass an anonymous function that multiplies
-a number by two:
+your program.  For example, you might want to pass one as an argument to
+the function @code{mapcar}, which applies any given function to each
+element of a list.
+
+  Here we define a function @code{change-property} which 
+uses a function as its third argument:
 
 @example
 @group
-(defun double-each (list)
-  (mapcar '(lambda (x) (* 2 x)) list))
-@result{} double-each
+(defun change-property (symbol prop function)
+  (let ((value (get symbol prop)))
+    (put symbol prop (funcall function value))))
 @end group
+@end example
+
+@noindent
+Here we define a function that uses @code{change-property},
+passing a function that doubles its argument:
+
+@example
 @group
-(double-each '(2 11))
-@result{} (4 22)
+(defun double-property (symbol prop)
+  (change-property symbol prop '(lambda (x) (* 2 x))))
 @end group
 @end example
 
 @noindent
 In such cases, we usually use the special form @code{function} instead
-of simple quotation to quote the anonymous function.
+of simple quotation to quote the anonymous function, like this:
+
+@example
+@group
+(defun double-property (symbol prop)
+  (change-property symbol prop (function (lambda (x) (* 2 x)))))
+@end group
+@end example
+
+Using @code{function} instead of @code{quote} makes a difference if you
+compile the function @code{double-property}.  For example, if you
+compile the second definition of @code{double-property}, the anonymous
+function is compiled as well.  By contrast, if you compile the first
+definition which uses ordinary @code{quote}, the argument passed to
+@code{change-property} is the precise list shown:
+
+@example
+(lambda (x) (* x 2))
+@end example
+
+@noindent
+The Lisp compiler cannot assume this list is a function, even though it
+looks like one, since it does not know what @code{change-property} will
+do with the list.  Perhaps will check whether the @sc{car} of the third
+element is the symbol @code{*}!  Using @code{function} tells the
+compiler it is safe to go ahead and compile the constant function.
+
+  We sometimes write @code{function} instead of @code{quote} when
+quoting the name of a function, but this usage is just a sort of
+comment:
+
+@example
+(function @var{symbol}) @equiv{} (quote @var{symbol}) @equiv{} '@var{symbol}
+@end example
 
 @defspec function function-object
 @cindex function quoting
@@ -822,47 +877,6 @@ note to the Emacs Lisp compiler that @var{function-object} is intended
 to be used only as a function, and therefore can safely be compiled.
 Contrast this with @code{quote}, in @ref{Quoting}.
 @end defspec
-
-  Using @code{function} instead of @code{quote} makes a difference
-inside a function or macro that you are going to compile.  For example:
-
-@example
-@group
-(defun double-each (list)
-  (mapcar (function (lambda (x) (* 2 x))) list))
-@result{} double-each
-@end group
-@group
-(double-each '(2 11))
-@result{} (4 22)
-@end group
-@end example
-
-@noindent
-If this definition of @code{double-each} is compiled, the anonymous
-function is compiled as well.  By contrast, in the previous definition
-where ordinary @code{quote} is used, the argument passed to
-@code{mapcar} is the precise list shown:
-
-@example
-(lambda (x) (* x 2))
-@end example
-
-@noindent
-The Lisp compiler cannot assume this list is a function, even though it
-looks like one, since it does not know what @code{mapcar} does with the
-list.  Perhaps @code{mapcar} will check that the @sc{car} of the third
-element is the symbol @code{*}!  The advantage of @code{function} is
-that it tells the compiler to go ahead and compile the constant
-function.
-
-  We sometimes write @code{function} instead of @code{quote} when
-quoting the name of a function, but this usage is just a sort of
-comment.
-
-@example
-(function @var{symbol}) @equiv{} (quote @var{symbol}) @equiv{} '@var{symbol}
-@end example
 
   See @code{documentation} in @ref{Accessing Documentation}, for a
 realistic example using @code{function} and an anonymous function.
@@ -936,7 +950,7 @@ error.  (See also @code{makunbound}, in @ref{Local Variables}.)
 @example
 @group
 (defun foo (x) x)
-     @result{} x
+     @result{} foo
 @end group
 @group
 (foo 1)
@@ -944,7 +958,7 @@ error.  (See also @code{makunbound}, in @ref{Local Variables}.)
 @end group
 @group
 (fmakunbound 'foo)
-     @result{} x
+     @result{} foo
 @end group
 @group
 (foo 1)
@@ -954,9 +968,11 @@ error.  (See also @code{makunbound}, in @ref{Local Variables}.)
 @end defun
 
 @defun fset symbol definition
-This function stores @var{definition} in the function cell of @var{symbol}.
-The result is @var{definition}.  Normally @var{definition} should be a function
-or the name of a function, but this is not checked.
+This function stores @var{definition} in the function cell of
+@var{symbol}.  The result is @var{definition}.  Normally
+@var{definition} should be a function or the name of a function, but
+this is not checked.  The argument @var{symbol} is an ordinary evaluated
+argument.
 
 There are three normal uses of this function:
 

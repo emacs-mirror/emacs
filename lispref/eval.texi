@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/eval
 @node Evaluation, Control Structures, Symbols, Top
@@ -21,9 +21,9 @@ function @code{eval}.
 @ifinfo
 @menu
 * Intro Eval::  Evaluation in the scheme of things.
-* Eval::        How to invoke the Lisp interpreter explicitly.
 * Forms::       How various sorts of objects are evaluated.
 * Quoting::     Avoiding evaluation (to put constants in the program).
+* Eval::        How to invoke the Lisp interpreter explicitly.
 @end menu
 
 @node Intro Eval
@@ -84,9 +84,9 @@ primitive implemented in C, or it may be a byte-compiled function
 @dfn{environment}, which consists of the current values and bindings of
 all Lisp variables.@footnote{This definition of ``environment'' is
 specifically not intended to include all the data that can affect the
-result of a program.}  Whenever the form refers to a variable without
-creating a new binding for it, the value of the binding in the current
-environment is used.  @xref{Variables}.
+result of a program.}  Whenever a form refers to a variable without
+creating a new binding for it, the value of the variable's binding in
+the current environment is used.  @xref{Variables}.
 
 @cindex side effect
   Evaluation of a form may create new environments for recursive
@@ -99,150 +99,15 @@ effects is @code{(setq foo 1)}.
   The details of what evaluation means for each kind of form are
 described below (@pxref{Forms}).
 
-@node Eval
-@section Eval
-@c ??? Perhaps this should be the last section in the chapter.
-
-  Most often, forms are evaluated automatically, by virtue of their
-occurrence in a program being run.  On rare occasions, you may need to
-write code that evaluates a form that is computed at run time, such as
-after reading a form from text being edited or getting one from a
-property list.  On these occasions, use the @code{eval} function.
-
-  @strong{Note:} it is generally cleaner and more flexible to call
-functions that are stored in data structures, rather than to evaluate
-expressions stored in data structures.  Using functions provides the
-ability to pass information to them as arguments.
-
-  The functions and variables described in this section evaluate forms,
-specify limits to the evaluation process, or record recently returned
-values.  Loading a file also does evaluation (@pxref{Loading}).
-
-@defun eval form
-This is the basic function for performing evaluation.  It evaluates
-@var{form} in the current environment and returns the result.  How the
-evaluation proceeds depends on the type of the object (@pxref{Forms}).
-
-Since @code{eval} is a function, the argument expression that appears
-in a call to @code{eval} is evaluated twice: once as preparation before
-@code{eval} is called, and again by the @code{eval} function itself.
-Here is an example:
-
-@example
-@group
-(setq foo 'bar)
-     @result{} bar
-@end group
-@group
-(setq bar 'baz)
-     @result{} baz
-;; @r{@code{eval} receives argument @code{bar}, which is the value of @code{foo}}
-(eval foo)
-     @result{} baz
-(eval 'foo)
-     @result{} bar
-@end group
-@end example
-
-The number of currently active calls to @code{eval} is limited to
-@code{max-lisp-eval-depth} (see below).
-@end defun
-
-@deffn Command eval-region start end &optional stream
-This function evaluates the forms in the current buffer in the region
-defined by the positions @var{start} and @var{end}.  It reads forms from
-the region and calls @code{eval} on them until the end of the region is
-reached, or until an error is signaled and not handled.
-
-If @var{stream} is supplied, @code{standard-output} is bound to it
-during the evaluation.
-
-You can use the variable @code{load-read-function} to specify a function
-for @code{eval-region} to use instead of @code{read} for reading
-expressions.  @xref{How Programs Do Loading}.
-
-@code{eval-region} always returns @code{nil}.
-@end deffn
-
-@cindex evaluation of buffer contents
-@deffn Command eval-current-buffer &optional stream
-This is like @code{eval-region} except that it operates on the whole
-buffer.
-@end deffn
-
-@defvar max-lisp-eval-depth
-This variable defines the maximum depth allowed in calls to @code{eval},
-@code{apply}, and @code{funcall} before an error is signaled (with error
-message @code{"Lisp nesting exceeds max-lisp-eval-depth"}).  This counts
-internal uses of those functions, such as for calling the functions
-mentioned in Lisp expressions, and recursive evaluation of function call
-arguments and function body forms.
-
-This limit, with the associated error when it is exceeded, is one way
-that Lisp avoids infinite recursion on an ill-defined function.
-@cindex Lisp nesting error
-
-The default value of this variable is 200.  If you set it to a value
-less than 100, Lisp will reset it to 100 if the given value is reached.
-
-@code{max-specpdl-size} provides another limit on nesting.
-@xref{Local Variables}.
-@end defvar
-
-@defvar values
-The value of this variable is a list of the values returned by all the
-expressions that were read from buffers (including the minibuffer),
-evaluated, and printed.  The elements are ordered most recent first.
-
-@example
-@group
-(setq x 1)
-     @result{} 1
-@end group
-@group
-(list 'A (1+ 2) auto-save-default)
-     @result{} (A 3 t)
-@end group
-@group
-values
-     @result{} ((A 3 t) 1 @dots{})
-@end group
-@end example
-
-This variable is useful for referring back to values of forms recently
-evaluated.  It is generally a bad idea to print the value of
-@code{values} itself, since this may be very long.  Instead, examine
-particular elements, like this:
-
-@example
-@group
-;; @r{Refer to the most recent evaluation result.}
-(nth 0 values)
-     @result{} (A 3 t)
-@end group
-@group
-;; @r{That put a new element on,}
-;;   @r{so all elements move back one.}
-(nth 1 values)
-     @result{} (A 3 t)
-@end group
-@group
-;; @r{This gets the element that was next-to-most-recent}
-;;   @r{before this example.}
-(nth 3 values)
-     @result{} 1
-@end group
-@end example
-@end defvar
-
 @node Forms
 @section Kinds of Forms
 
   A Lisp object that is intended to be evaluated is called a @dfn{form}.
 How Emacs evaluates a form depends on its data type.  Emacs has three
 different kinds of form that are evaluated differently: symbols, lists,
-and ``all other types''.  This section describes all three kinds,
-starting with ``all other types'' which are self-evaluating forms.
+and ``all other types''.  This section describes all three kinds, one by
+one, starting with the ``all other types'' which are self-evaluating
+forms.
 
 @menu
 * Self-Evaluating Forms::   Forms that evaluate to themselves.
@@ -301,12 +166,12 @@ program.  Here is an example:
 @example
 @group
 ;; @r{Build an expression containing a buffer object.}
-(setq buffer (list 'print (current-buffer)))
+(setq print-exp (list 'print (current-buffer)))
      @result{} (print #<buffer eval.texi>)
 @end group
 @group
 ;; @r{Evaluate it.}
-(eval buffer)
+(eval print-exp)
      @print{} #<buffer eval.texi>
      @result{} #<buffer eval.texi>
 @end group
@@ -344,7 +209,8 @@ a
 value of @code{nil} is always @code{nil}, and the value of @code{t} is
 always @code{t}; you cannot set or bind them to any other values.  Thus,
 these two symbols act like self-evaluating forms, even though
-@code{eval} treats them like any other symbol.
+@code{eval} treats them like any other symbol.  A symbol whose name
+starts with @samp{:} also self-evaluates in the same way.
 
 @node Classifying Lists
 @subsection Classification of List Forms
@@ -507,7 +373,7 @@ and they may or may not evaluate the expansions.
 
   Normally, the argument expressions are not evaluated as part of
 computing the macro expansion, but instead appear as part of the
-expansion, so they are computed when the expansion is computed.
+expansion, so they are computed when the expansion is evaluated.
 
   For example, given a macro defined as follows:
 
@@ -704,3 +570,141 @@ Here are some examples of expressions that use @code{quote}:
 Functions}), which causes an anonymous lambda expression written in Lisp
 to be compiled, and @samp{`} (@pxref{Backquote}), which is used to quote
 only part of a list, while computing and substituting other parts.
+
+@node Eval
+@section Eval
+
+  Most often, forms are evaluated automatically, by virtue of their
+occurrence in a program being run.  On rare occasions, you may need to
+write code that evaluates a form that is computed at run time, such as
+after reading a form from text being edited or getting one from a
+property list.  On these occasions, use the @code{eval} function.
+
+  The functions and variables described in this section evaluate forms,
+specify limits to the evaluation process, or record recently returned
+values.  Loading a file also does evaluation (@pxref{Loading}).
+
+  @strong{Note:} it is generally cleaner and more flexible to store a
+function in a data structure, and call it with @code{funcall} or
+@code{apply}, than to store an expression in the data structure and
+evaluate it.  Using functions provides the ability to pass information
+to them as arguments.
+
+@defun eval form
+This is the basic function evaluating an expression.  It evaluates
+@var{form} in the current environment and returns the result.  How the
+evaluation proceeds depends on the type of the object (@pxref{Forms}).
+
+Since @code{eval} is a function, the argument expression that appears
+in a call to @code{eval} is evaluated twice: once as preparation before
+@code{eval} is called, and again by the @code{eval} function itself.
+Here is an example:
+
+@example
+@group
+(setq foo 'bar)
+     @result{} bar
+@end group
+@group
+(setq bar 'baz)
+     @result{} baz
+;; @r{Here @code{eval} receives argument @code{foo}}
+(eval 'foo)
+     @result{} bar
+;; @r{Here @code{eval} receives argument @code{bar}, which is the value of @code{foo}}
+(eval foo)
+     @result{} baz
+@end group
+@end example
+
+The number of currently active calls to @code{eval} is limited to
+@code{max-lisp-eval-depth} (see below).
+@end defun
+
+@deffn Command eval-region start end &optional stream
+This function evaluates the forms in the current buffer in the region
+defined by the positions @var{start} and @var{end}.  It reads forms from
+the region and calls @code{eval} on them until the end of the region is
+reached, or until an error is signaled and not handled.
+
+If @var{stream} is supplied, @code{standard-output} is bound to it
+during the evaluation.
+
+You can use the variable @code{load-read-function} to specify a function
+for @code{eval-region} to use instead of @code{read} for reading
+expressions.  @xref{How Programs Do Loading}.
+
+@code{eval-region} always returns @code{nil}.
+@end deffn
+
+@cindex evaluation of buffer contents
+@deffn Command eval-current-buffer &optional stream
+This is like @code{eval-region} except that it operates on the whole
+buffer.
+@end deffn
+
+@defvar max-lisp-eval-depth
+This variable defines the maximum depth allowed in calls to @code{eval},
+@code{apply}, and @code{funcall} before an error is signaled (with error
+message @code{"Lisp nesting exceeds max-lisp-eval-depth"}).  This counts
+internal uses of those functions, such as for calling the functions
+mentioned in Lisp expressions, and recursive evaluation of function call
+arguments and function body forms.
+
+This limit, with the associated error when it is exceeded, is one way
+that Lisp avoids infinite recursion on an ill-defined function.
+@cindex Lisp nesting error
+
+The default value of this variable is 200.  If you set it to a value
+less than 100, Lisp will reset it to 100 if the given value is reached.
+
+@code{max-specpdl-size} provides another limit on nesting.
+@xref{Local Variables}.
+@end defvar
+
+@defvar values
+The value of this variable is a list of the values returned by all the
+expressions that were read, evaluated, and printed from buffers
+(including the minibuffer) by the standard Emacs commands which do this.
+The elements are ordered most recent first.
+
+@example
+@group
+(setq x 1)
+     @result{} 1
+@end group
+@group
+(list 'A (1+ 2) auto-save-default)
+     @result{} (A 3 t)
+@end group
+@group
+values
+     @result{} ((A 3 t) 1 @dots{})
+@end group
+@end example
+
+This variable is useful for referring back to values of forms recently
+evaluated.  It is generally a bad idea to print the value of
+@code{values} itself, since this may be very long.  Instead, examine
+particular elements, like this:
+
+@example
+@group
+;; @r{Refer to the most recent evaluation result.}
+(nth 0 values)
+     @result{} (A 3 t)
+@end group
+@group
+;; @r{That put a new element on,}
+;;   @r{so all elements move back one.}
+(nth 1 values)
+     @result{} (A 3 t)
+@end group
+@group
+;; @r{This gets the element that was next-to-most-recent}
+;;   @r{before this example.}
+(nth 3 values)
+     @result{} 1
+@end group
+@end example
+@end defvar

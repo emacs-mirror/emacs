@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/debugging
 @node Debugging, Read and Print, Byte Compilation, Top
@@ -105,6 +105,28 @@ that error does not enter the debugger, regardless of the value of
 
 The normal value of this variable lists several errors that happen often
 during editing but rarely result from bugs in Lisp programs.
+@end defopt
+
+@defopt debug-on-signal
+Normally, errors that are caught by @code{condition-case} never run the
+debugger, even if @code{debug-on-error} is non-@code{nil}.  In other
+words, @code{condition-case} gets a chance to catch the error before the
+debugger gets a chance.
+
+If you set @code{debug-on-signal} non-@code{nil}, then the debugger gets
+first chance at every error; an error will invoke the debugger
+regardless of any @code{condition-case}, if the fits the criterion
+specified by the values of @code{debug-on-error} and
+@code{debug-ignored-errors}.
+
+@strong{Warning:} This variable is strong medecine!  Various parts of
+Emacs handle errors in the normal course of affairs, and you may not
+even realize that errors happen there.  If you set
+@code{debug-on-signal} to a non-@code{nil} value, those errors will
+enter the debugger.
+
+@strong{Warning:} @code{debug-on-signal} has no effect when
+@code{debug-on-error} is @code{nil}.
 @end defopt
 
   To debug an error that happens during loading of the @file{.emacs}
@@ -580,7 +602,8 @@ This function is used only by the debugger.
 This variable records the debugging status of the current interactive
 command.  Each time a command is called interactively, this variable is
 bound to @code{nil}.  The debugger can set this variable to leave
-information for future debugger invocations during the same command.
+information for future debugger invocations during the same command
+invocation.
 
 The advantage, for the debugger, of using this variable rather than
 another global variable is that the data will never carry over to a
@@ -645,7 +668,7 @@ C-@key{SPC}} to set the mark there, undo the insertion of the
 close parenthesis, and finally return to the mark.)
 
   The next step is to determine precisely what is wrong.  There is no
-way to be sure of this except to study the program, but often the
+way to be sure of this except by studying the program, but often the
 existing indentation is a clue to where the parentheses should have
 been.  The easiest way to use this clue is to reindent with @kbd{C-M-q}
 and see what moves.

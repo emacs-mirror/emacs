@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/numbers
 @node Numbers, Strings and Characters, Lisp Data Types, Top
@@ -16,10 +16,6 @@ numbers are numbers with fractional parts, such as @minus{}4.5, 0.0, or
 1.5e2 equals 150; in this example, @samp{e2} stands for ten to the
 second power, and is multiplied by 1.5.  Floating point values are not
 exact; they have a fixed, limited amount of precision.
-
-  Support for floating point numbers is a new feature in Emacs 19, and it
-is controlled by a separate compilation option, so you may encounter a site
-where Emacs does not support them.
 
 @menu
 * Integer Basics::            Representation and range of integers.
@@ -120,34 +116,26 @@ negative integer @minus{}134,217,728:
      @result{} 1000  0000 0000  0000 0000  0000 0000
 @end example
 
-  Many of the following functions accept markers for arguments as well
-as integers.  (@xref{Markers}.)  More precisely, the actual arguments to
-such functions may be either integers or markers, which is why we often
-give these arguments the name @var{int-or-marker}.  When the argument
+  Many of the functions described in this chapter accept markers for
+arguments in place of numbers.  (@xref{Markers}.)  Since the actual
+arguments to such functions may be either numbers or markers, we often
+give these arguments the name @var{number-or-marker}.  When the argument
 value is a marker, its position value is used and its buffer is ignored.
-
-@ignore
-  In version 19, except where @emph{integer} is specified as an
-argument, all of the functions for markers and integers also work for
-floating point numbers.
-@end ignore
 
 @node Float Basics
 @section Floating Point Basics
 
-@cindex @code{LISP_FLOAT_TYPE} configuration macro
-  Emacs version 19 supports floating point numbers, if compiled with the
-macro @code{LISP_FLOAT_TYPE} defined.  The precise range of floating
-point numbers is machine-specific; it is the same as the range of the C
-data type @code{double} on the machine in question.
+  Floating point numbers are useful for representing numbers that are
+not integral.  The precise range of floating point numbers is
+machine-specific; it is the same as the range of the C data type
+@code{double} on the machine you are using.
 
-  The printed representation for floating point numbers requires either
-a decimal point (with at least one digit following), an exponent, or
-both.  For example, @samp{1500.0}, @samp{15e2}, @samp{15.0e2},
-@samp{1.5e3}, and @samp{.15e4} are five ways of writing a floating point
-number whose value is 1500.  They are all equivalent.  You can also use
-a minus sign to write negative floating point numbers, as in
-@samp{-1.0}.
+  The read-syntax for floating point numbers requires either a decimal
+point (with at least one digit following), an exponent, or both.  For
+example, @samp{1500.0}, @samp{15e2}, @samp{15.0e2}, @samp{1.5e3}, and
+@samp{.15e4} are five ways of writing a floating point number whose
+value is 1500.  They are all equivalent.  You can also use a minus sign
+to write negative floating point numbers, as in @samp{-1.0}.
 
 @cindex IEEE floating point
 @cindex positive infinity
@@ -162,8 +150,17 @@ there is no correct answer.  For example, @code{(sqrt -1.0)} returns a
 NaN.  For practical purposes, there's no significant difference between
 different NaN values in Emacs Lisp, and there's no rule for precisely
 which NaN value should be used in a particular case, so this manual
-doesn't try to distinguish them.  Emacs Lisp has no read syntax for NaNs
-or infinities; perhaps we should create a syntax in the future.
+doesn't try to distinguish them.  Here are the read syntaxes for
+these numbers:
+
+@table @asis
+@item positive infinity
+@samp{1.0e+INF}
+@item negative infinity
+@samp{-1.0e+INF}
+@item Not-a-number
+@samp{0.0e+NaN}.
+@end table
 
   You can use @code{logb} to extract the binary exponent of a floating
 point number (or estimate the logarithm of an integer):
@@ -172,6 +169,13 @@ point number (or estimate the logarithm of an integer):
 This function returns the binary exponent of @var{number}.  More
 precisely, the value is the logarithm of @var{number} base 2, rounded
 down to an integer.
+
+@example
+(logb 10)
+     @result{} 3
+(logb 10.0e20)
+     @result{} 69
+@end example
 @end defun
 
 @node Predicates on Numbers
@@ -232,7 +236,7 @@ compare them, then you test whether two values are the same
 of the objects.
 
   At present, each integer value has a unique Lisp object in Emacs Lisp.
-Therefore, @code{eq} is equivalent @code{=} where integers are
+Therefore, @code{eq} is equivalent to @code{=} where integers are
 concerned.  It is sometimes convenient to use @code{eq} for comparing an
 unknown value with an integer, because @code{eq} does not report an
 error if the unknown value is not a number---it accepts arguments of any
@@ -428,11 +432,11 @@ This function adds its arguments together.  When given no arguments,
 @end example
 @end defun
 
-@defun - &optional number-or-marker &rest other-numbers-or-markers
+@defun - &optional number-or-marker &rest more-numbers-or-markers
 The @code{-} function serves two purposes: negation and subtraction.
 When @code{-} has a single argument, the value is the negative of the
 argument.  When there are multiple arguments, @code{-} subtracts each of
-the @var{other-numbers-or-markers} from @var{number-or-marker},
+the @var{more-numbers-or-markers} from @var{number-or-marker},
 cumulatively.  If there are no arguments, the result is 0.
 
 @example

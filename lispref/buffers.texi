@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/buffers
 @node Buffers, Windows, Backups and Auto-Saving, Top
@@ -88,9 +88,9 @@ buffer in which most editing takes place, because most of the primitives
 for examining or changing text in a buffer operate implicitly on the
 current buffer (@pxref{Text}).  Normally the buffer that is displayed on
 the screen in the selected window is the current buffer, but this is not
-always so: a Lisp program can designate any buffer as current
-temporarily in order to operate on its contents, without changing what
-is displayed on the screen.
+always so: a Lisp program can temporarily designate any buffer as
+current in order to operate on its contents, without changing what is
+displayed on the screen.
 
   The way to designate a current buffer in a Lisp program is by calling
 @code{set-buffer}.  The specified buffer remains current until a new one
@@ -110,10 +110,11 @@ Editing commands written in Emacs Lisp can be called from other programs
 as well as from the command loop.  It is convenient for the caller if
 the subroutine does not change which buffer is current (unless, of
 course, that is the subroutine's purpose).  Therefore, you should
-normally use @code{set-buffer} within a @code{save-excursion} that will
-restore the current buffer when your function is done
-(@pxref{Excursions}).  Here is an example, the code for the command
-@code{append-to-buffer} (with the documentation string abridged):
+normally use @code{set-buffer} within a @code{save-current-buffer} or
+@code{save-excursion} (@pxref{Excursions}) form that will restore the
+current buffer when your function is done .  Here is an example, the
+code for the command @code{append-to-buffer} (with the documentation
+string abridged):
 
 @example
 @group
@@ -122,7 +123,7 @@ restore the current buffer when your function is done
 @dots{}"
   (interactive "BAppend to buffer: \nr")
   (let ((oldbuf (current-buffer)))
-    (save-excursion
+    (save-current-buffer
       (set-buffer (get-buffer-create buffer))
       (insert-buffer-substring oldbuf start end))))
 @end group
@@ -130,10 +131,10 @@ restore the current buffer when your function is done
 
 @noindent
 This function binds a local variable to the current buffer, and then
-@code{save-excursion} records the values of point, the mark, and the
-original buffer.  Next, @code{set-buffer} makes another buffer current.
-Finally, @code{insert-buffer-substring} copies the string from the
-original current buffer to the new current buffer.
+@code{save-current-buffer} records which buffer that was.  Next,
+@code{set-buffer} makes another buffer current.  Finally,
+@code{insert-buffer-substring} copies the string from the original
+current buffer to the new current buffer.
 
   If the buffer appended to happens to be displayed in some window, 
 the next redisplay will show how its text has changed.  Otherwise, you
@@ -147,9 +148,9 @@ same buffer is current at the beginning and at the end of the local
 binding's scope.  Otherwise you might bind it in one buffer and unbind
 it in another!  There are two ways to do this.  In simple cases, you may
 see that nothing ever changes the current buffer within the scope of the
-binding.  Otherwise, use @code{save-excursion} to make sure that the
-buffer current at the beginning is current again whenever the variable
-is unbound.
+binding.  Otherwise, use @code{save-current-buffer} or
+@code{save-excursion} to make sure that the buffer current at the
+beginning is current again whenever the variable is unbound.
 
   It is not reliable to change the current buffer back with
 @code{set-buffer}, because that won't do the job if a quit happens while
@@ -166,13 +167,13 @@ the wrong buffer is current.  Here is what @emph{not} to do:
 @end example
 
 @noindent
-Using @code{save-excursion}, as shown below, handles quitting, errors,
-and @code{throw}, as well as ordinary evaluation.
+Using @code{save-current-buffer}, as shown here, handles quitting,
+errors, and @code{throw}, as well as ordinary evaluation.
 
 @example
 @group
 (let (buffer-read-only)
-  (save-excursion
+  (save-current-buffer
     (set-buffer @dots{})
     @dots{}))
 @end group
@@ -199,6 +200,47 @@ This function returns the buffer identified by @var{buffer-or-name}.
 An error is signaled if @var{buffer-or-name} does not identify an
 existing buffer.
 @end defun
+
+@tindex save-current-buffer
+@defmac save-current-buffer body...
+The @code{save-current-buffer} macro saves the identity of the current
+buffer, evaluates the @var{body} forms, and finally restores the buffer.
+The return value is the value of the last form in @var{body}.  The
+current buffer is restored even in case of an abnormal exit via
+@code{throw} or error (@pxref{Nonlocal Exits}).
+
+If the buffer that used to be current has been killed by the time of
+exit from @code{save-current-buffer}, then it is not made current again,
+of course.  Instead, whichever buffer was current just before exit
+remains current.
+@end defmac
+
+@tindex with-current-buffer
+@defmac with-current-buffer buffer body...
+The @code{with-current-buffer} macro saves the identity of the current
+buffer, makes @var{buffer} current, evaluates the @var{body} forms, and
+finally restores the buffer.  The return value is the value of the last
+form in @var{body}.  The current buffer is restored even in case of an
+abnormal exit via @code{throw} or error (@pxref{Nonlocal Exits}).
+@end defmac
+
+@tindex with-temp-buffer
+@defmac with-temp-buffer body...
+The @code{with-temp-buffer} macro evaluates the @var{body} forms
+with a temporary buffer as the current buffer.  It saves the identity of
+the current buffer, creates a temporary buffer and makes it current,
+evaluates the @var{body} forms, and finally restores the previous
+current buffer while killing the temporary buffer.
+
+The return value is the value of the last form in @var{body}.  You can
+return the contents of the temporary buffer by using
+@code{(buffer-string)} as the last form.
+
+The current buffer is restored even in case of an abnormal exit via
+@code{throw} or error (@pxref{Nonlocal Exits}).
+@end defmac
+
+See also @code{with-temp-file} in @ref{Writing to Files}.
 
 @node Buffer Names
 @section Buffer Names
@@ -407,9 +449,9 @@ See also @code{clear-visited-file-modtime} and
 @end deffn
 
 @defvar list-buffers-directory
-This buffer-local variable records a string to display in a buffer
-listing in place of the visited file name, for buffers that don't have a
-visited file name.  Dired buffers use this variable.
+This buffer-local variable specifies a string to display in a buffer
+listing where the visited file name would go, for buffers that don't
+have a visited file name.  Dired buffers use this variable.
 @end defvar
 
 @node Buffer Modification
@@ -567,7 +609,7 @@ narrowing.
 @item
 A buffer visiting a write-protected file is normally read-only.
 
-Here, the purpose is to show the user that editing the buffer with the
+Here, the purpose is to inform the user that editing the buffer with the
 aim of saving it in the file may be futile or undesirable.  The user who
 wants to change the buffer text despite this can do so after clearing
 the read-only flag with @kbd{C-x C-q}.
@@ -578,7 +620,7 @@ contents with the usual editing commands is probably a mistake.
 
 The special commands of these modes bind @code{buffer-read-only} to
 @code{nil} (with @code{let}) or bind @code{inhibit-read-only} to
-@code{t} around the places where they change the text.
+@code{t} around the places where they themselves change the text.
 @end itemize
 
 @defvar buffer-read-only
@@ -619,16 +661,27 @@ signal an error if the current buffer is read-only.
 @cindex buffer list
 
   The @dfn{buffer list} is a list of all live buffers.  Creating a
-buffer adds it to this list, and killing a buffer deletes it.  The order
+buffer adds it to this list, and killing a buffer excises it.  The order
 of the buffers in the list is based primarily on how recently each
 buffer has been displayed in the selected window.  Buffers move to the
 front of the list when they are selected and to the end when they are
-buried.  Several functions, notably @code{other-buffer}, use this
-ordering.  A buffer list displayed for the user also follows this order.
+buried (see @code{bury-buffer}, below).  Several functions, notably
+@code{other-buffer}, use this ordering.  A buffer list displayed for the
+user also follows this order.
 
-@defun buffer-list
+@defun buffer-list &optional frame
 This function returns a list of all buffers, including those whose names
 begin with a space.  The elements are actual buffers, not their names.
+
+If @var{frame} is @code{nil}, all the buffers appear in order of most
+recent selection, regardless of which frames they were selected in.
+
+If @var{frame} is a frame, then the buffers that have been selected in
+@var{frame} all come at the front of the list, ordered by most recent
+selection in @var{frame}.  (This order is recorded in @var{frame}'s
+@code{buffer-list} frame parameter; see @ref{X Frame Parameters}.)  The
+buffers that were never selected in @var{frame} come afterward, ordered
+according to most recent selection in other frames.
 
 @example
 @group
@@ -651,7 +704,8 @@ begin with a space.  The elements are actual buffers, not their names.
   The list that @code{buffer-list} returns is constructed specifically
 by @code{buffer-list}; it is not an internal Emacs data structure, and
 modifying it has no effect on the order of buffers.  If you want to
-change the order of buffers in the list, here is an easy way:
+change the order of buffers in the frame-independent buffer list, here
+is an easy way:
 
 @example
 (defun reorder-buffer-list (new-list)
@@ -664,15 +718,19 @@ change the order of buffers in the list, here is an easy way:
 no danger of losing a buffer or adding something that is not a valid
 live buffer.
 
+  To change the order or value of a frame's buffer list, set the frame's
+@code{buffer-list} frame parameter with @code{modify-frame-parameters}
+(@pxref{Parameter Access}).
+
 @defun other-buffer &optional buffer visible-ok
 This function returns the first buffer in the buffer list other than
-@var{buffer}.  Usually this is the buffer most recently shown in
-the selected window, aside from @var{buffer}.  Buffers whose
-names start with a space are not considered.
+@var{buffer}.  Usually this is the buffer selected most recently (in the
+currently selected frame), aside from @var{buffer}.  Buffers whose names
+start with a space are not considered at all.
 
 If @var{buffer} is not supplied (or if it is not a buffer), then
-@code{other-buffer} returns the first buffer on the buffer list that is
-not visible in any window in a visible frame.
+@code{other-buffer} returns the first buffer in the selected frame's
+buffer list that is not now visible in any window in a visible frame.
 
 If the selected frame has a non-@code{nil} @code{buffer-predicate}
 parameter, then @code{other-buffer} uses that predicate to decide which
@@ -691,10 +749,15 @@ If no suitable buffer exists, the buffer @samp{*scratch*} is returned
 @end defun
 
 @deffn Command bury-buffer &optional buffer-or-name
-This function puts @var{buffer-or-name} at the end of the buffer list
+This function puts @var{buffer-or-name} at the end of the buffer list,
 without changing the order of any of the other buffers on the list.
 This buffer therefore becomes the least desirable candidate for
 @code{other-buffer} to return.
+
+@code{bury-buffer} operates on each frame's @code{buffer-list} parameter
+as well as the frame-independent Emacs buffer list; therefore, the
+buffer that you bury will come last in the value of @code{(buffer-list
+@var{frame})} and in the value of @code{(buffer-list nil)}.
 
 If @var{buffer-or-name} is @code{nil} or omitted, this means to bury the
 current buffer.  In addition, if the buffer is displayed in the selected
@@ -702,7 +765,7 @@ window, this switches to some other buffer (obtained using
 @code{other-buffer}) in the selected window.  But if the buffer is
 displayed in some other window, it remains displayed there.
 
-If you wish to replace a buffer in all the windows that display it, use
+To replace a buffer in all the windows that display it, use
 @code{replace-buffer-in-windows}.  @xref{Buffers and Windows}.
 @end deffn
 

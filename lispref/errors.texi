@@ -16,7 +16,9 @@ list of symbols.  Normally this list includes the error symbol itself
 and the symbol @code{error}.  Occasionally it includes additional
 symbols, which are intermediate classifications, narrower than
 @code{error} but broader than a single error symbol.  For example, all
-the errors in accessing files have the condition @code{file-error}.
+the errors in accessing files have the condition @code{file-error}.  If
+we do not say here that a certain error symbol has additional error
+conditions, that means it has none.
 
   As a special exception, the error symbol @code{quit} does not have the
 condition @code{error}, because quitting is not considered an error.
@@ -65,6 +67,11 @@ loop"}@*
 @code{"End of file during parsing"}@*
 This is not a @code{file-error}.@*
 @xref{Input Functions}.
+
+@item file-date-error
+This is a subcategory of @code{file-error}.  It occurs when
+@code{copy-file} tries and fails to set the last-modification time of
+the output file.  @xref{Changing Files}.
 
 @item file-error
 This error and its subcategories do not have error-strings, because the

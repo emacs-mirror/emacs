@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/minibuf
 @node Minibuffers, Command Loop, Read and Print, Top
@@ -25,6 +25,7 @@ use for reading an argument.
 * Completion::                How to invoke and customize completion.
 * Yes-or-No Queries::         Asking a question with a simple answer.
 * Multiple Queries::	      Asking a series of similar questions.
+* Reading a Password::        Function for reading a password.
 * Minibuffer Misc::           Various customization hooks and variables.
 @end menu
 
@@ -92,7 +93,7 @@ middle of a Lisp function.  Instead, do all minibuffer input as part of
 reading the arguments for a command, in the @code{interactive} spec.
 @xref{Defining Commands}.
 
-@defun read-from-minibuffer prompt-string &optional initial-contents keymap read hist
+@defun read-from-minibuffer prompt-string &optional initial-contents keymap read hist default inherit-input-method
 This function is the most general way to get input through the
 minibuffer.  By default, it accepts arbitrary text and returns it as a
 string; however, if @var{read} is non-@code{nil}, then it uses
@@ -106,6 +107,13 @@ string.
 Then, if @var{initial-contents} is a string, @code{read-from-minibuffer}
 inserts it into the minibuffer, leaving point at the end.  The
 minibuffer appears with this text as its contents.
+
+@strong{Usage note:} The @var{initial-contents} argument and the
+@var{default} argument are two alternative features for the same job.
+It usually does not make sense to use both at once.  In most cases, you
+should use @var{default}, since this permits the user to insert the
+default value but does not burden the user with deleting it from the
+minibuffer.
 
 @c Emacs 19 feature
 The value of @var{initial-contents} may also be a cons cell of the form
@@ -130,25 +138,57 @@ text.  However, if @var{read} is non-@code{nil},
 @code{read-from-minibuffer} reads the text and returns the resulting
 Lisp object, unevaluated.  (@xref{Input Functions}, for information
 about reading.)
+
+If the variable @code{minibuffer-allow-text-properties} is
+non-@code{nil}, then the string which is returned includes whatever text
+properties were present in the minibuffer.  Otherwise all the text
+properties are stripped when the value is returned.
+
+The argument @var{default} specifies a default value to make available
+through the history list.  It should be a string, or @code{nil}.  If
+@var{read} is non-@code{nil}, then @var{default} is passed through
+@code{read}, just as ordinary user input would be.  Unlike many other
+minibuffer functions, this function does @emph{not} return @var{default}
+if the user enters empty input.  It returns @code{""} in that case.
+
+If the argument @var{inherit-input-method} is non-@code{nil}, then the
+minibuffer inherits the current input method and the setting of
+@code{enable-multibyte-characters} from whichever buffer was current
+before entering the minibuffer.
 @end defun
 
-@defun read-string prompt &optional initial
+@defun read-string prompt &optional initial history default inherit-input-method
 This function reads a string from the minibuffer and returns it.  The
 arguments @var{prompt} and @var{initial} are used as in
 @code{read-from-minibuffer}.  The keymap used is
 @code{minibuffer-local-map}.
 
-This is a simplified interface to the
+The optional argument @var{history}, if non-nil, specifies a history
+list and optionally the initial position in the list.  The optional
+argument @var{default} specifies a default value to return if the user
+enters null input; it should be a string.  The optional argument
+@var{inherit-input-method} specifies whether to inherit the current
+buffer's input method.
+
+This function is a simplified interface to the
 @code{read-from-minibuffer} function:
 
 @smallexample
 @group
-(read-string @var{prompt} @var{initial})
+(read-string @var{prompt} @var{initial} @var{history} @var{default} @var{inherit})
 @equiv{}
-(read-from-minibuffer @var{prompt} @var{initial} nil nil nil)
+(read-from-minibuffer @var{prompt} @var{initial} nil nil
+                      @var{history} @var{default} @var{inherit})
 @end group
 @end smallexample
 @end defun
+
+@defvar minibuffer-allow-text-properties
+If this variable is non-@code{nil}, then @code{read-from-minibuffer}
+strips all text properties from the string before returning the string.
+Since all minibuffer input uses @code{read-from-minibuffer}, this
+variable applies to all minibuffer input.
+@end defvar
 
 @defvar minibuffer-local-map
 This is the default local keymap for reading from the minibuffer.  By
@@ -180,11 +220,11 @@ default, it makes the following bindings:
 
 @c In version 18, initial is required
 @c Emacs 19 feature
-@defun read-no-blanks-input prompt &optional initial
+@defun read-no-blanks-input prompt &optional initial inherit-input-method
 This function reads a string from the minibuffer, but does not allow
 whitespace characters as part of the input: instead, those characters
-terminate the input.  The arguments @var{prompt} and @var{initial} are
-used as in @code{read-from-minibuffer}.
+terminate the input.  The arguments @var{prompt}, @var{initial}, and
+@var{inherit-input-method} are used as in @code{read-from-minibuffer}.
 
 This is a simplified interface to the @code{read-from-minibuffer}
 function, and passes the value of the @code{minibuffer-local-ns-map}
@@ -228,7 +268,7 @@ following bindings, in addition to those of @code{minibuffer-local-map}:
 minibuffer.
 
 @defun read-minibuffer prompt &optional initial
-This function reads a Lisp object in the minibuffer and returns it,
+This function reads a Lisp object using the minibuffer, and returns it
 without evaluating it.  The arguments @var{prompt} and @var{initial} are
 used as in @code{read-from-minibuffer}.
 
@@ -267,9 +307,9 @@ default, or can edit the input.
 @end defun
 
 @defun eval-minibuffer prompt &optional initial
-This function reads a Lisp expression in the minibuffer, evaluates it,
-then returns the result.  The arguments @var{prompt} and @var{initial}
-are used as in @code{read-from-minibuffer}.
+This function reads a Lisp expression using the minibuffer, evaluates
+it, then returns the result.  The arguments @var{prompt} and
+@var{initial} are used as in @code{read-from-minibuffer}.
 
 This function simply evaluates the result of a call to
 @code{read-minibuffer}:
@@ -294,7 +334,7 @@ appear in the initial text.  @xref{Output Functions}.
 
 The first thing @code{edit-and-eval-command} does is to activate the
 minibuffer with @var{prompt} as the prompt.  Then it inserts the printed
-representation of @var{form} in the minibuffer, and lets the user edit.
+representation of @var{form} in the minibuffer, and lets the user edit it.
 When the user exits the minibuffer, the edited text is read with
 @code{read} and then evaluated.  The resulting value becomes the value
 of @code{edit-and-eval-command}.
@@ -581,7 +621,7 @@ non-@code{nil}, Emacs does not consider case significant in completion.
   This section describes the basic interface for reading from the
 minibuffer with completion.
 
-@defun completing-read prompt collection &optional predicate require-match initial hist
+@defun completing-read prompt collection &optional predicate require-match initial hist default inherit-input-method
 This function reads a string in the minibuffer, assisting the user by
 providing completion.  It activates the minibuffer with prompt
 @var{prompt}, which must be a string.  If @var{initial} is
@@ -593,12 +633,16 @@ The actual completion is done by passing @var{collection} and
 @var{predicate} to the function @code{try-completion}.  This happens in
 certain commands bound in the local keymaps used for completion.
 
-If @var{require-match} is @code{t}, the usual minibuffer exit commands
-won't exit unless the input completes to an element of @var{collection}.
-If @var{require-match} is neither @code{nil} nor @code{t}, then the exit
-commands won't exit unless the input typed is itself an element of
-@var{collection}.  If @var{require-match} is @code{nil}, the exit
-commands work regardless of the input in the minibuffer.
+If @var{require-match} is @code{nil}, the exit commands work regardless
+of the input in the minibuffer.  If @var{require-match} is @code{t}, the
+usual minibuffer exit commands won't exit unless the input completes to
+an element of @var{collection}.  If @var{require-match} is neither
+@code{nil} nor @code{t}, then the exit commands won't exit unless the
+input already in the buffer matches an element of @var{collection}.
+
+However, empty input is always permitted, regardless of the value of
+@var{require-match}; in that case, @code{completing-read} returns
+@var{default}.
 
 The user can exit with null input by typing @key{RET} with an empty
 minibuffer.  Then @code{completing-read} returns @code{""}.  This is how
@@ -616,6 +660,15 @@ non-@code{nil}.  @xref{Completion Commands}.
 The argument @var{hist} specifies which history list variable to use for
 saving the input and for minibuffer history commands.  It defaults to
 @code{minibuffer-history}.  @xref{Minibuffer History}.
+
+The optional argument @var{default} specifies a default value to return
+if the user enters null input; it should be a string.
+
+If the argument @var{inherit-input-method} is non-@code{nil}, then the
+minibuffer inherits the current input method and the setting of
+@code{enable-multibyte-characters} from whichever buffer was current
+before entering the minibuffer.  @xref{Input Methods,,, emacs, The GNU
+Emacs Manual}.
 
 Completion ignores case when comparing the input against the possible
 matches, if the built-in variable @code{completion-ignore-case} is
@@ -835,12 +888,25 @@ Buffer name? (default foo) @point{}
 @end example
 @end defun
 
-@defun read-command prompt
+@defvar read-buffer-function
+This variable specifies how to read buffer names.  For example, if you
+set this variable to @code{iswitchb-read-buffer}, all Emacs commands
+that call @code{read-buffer} to read a buffer name will actually use the
+@code{iswitchb} package to read it.
+@end defvar
+
+@defun read-command prompt &optional default
 This function reads the name of a command and returns it as a Lisp
 symbol.  The argument @var{prompt} is used as in
 @code{read-from-minibuffer}.  Recall that a command is anything for
 which @code{commandp} returns @code{t}, and a command name is a symbol
 for which @code{commandp} returns @code{t}.  @xref{Interactive Call}.
+
+The argument @var{default} specifies what to return if the user enters
+null input.  It can be a symbol or a string, but the value returned by
+@code{read-command} is always a symbol.  If @var{default} is @code{nil},
+that means no default has been specified; then if the user enters null
+input, the return value is @code{nil}.
 
 @example
 (read-command "Command name? ")
@@ -877,9 +943,15 @@ complete in the set of extant Lisp symbols, and it uses the
 @end example
 @end defun
 
-@defun read-variable prompt
+@defun read-variable prompt &optional default
 This function reads the name of a user variable and returns it as a
 symbol.
+
+The argument @var{default} specifies what to return if the user enters
+null input.  It can be a symbol or a string, but the value returned by
+@code{read-variable} is always a symbol.  If @var{default} is
+@code{nil}, that means no default has been specified; then if the user
+enters null input, the return value is @code{nil}.
 
 @example
 @group
@@ -914,6 +986,22 @@ predicate @code{user-variable-p} instead of @code{commandp}:
                   'user-variable-p t nil))
 @end group
 @end example
+@end defun
+
+@tindex read-coding-system
+@defun read-coding-system prompt default
+This function reads a coding system using the minibuffer, prompting with
+string @var{prompt}, and returns the coding system name as a symbol.  If
+the user tries to enter null input, it asks the user to try again.
+@xref{Coding Systems}.
+@end defun
+
+@tindex read-non-nil-coding-system
+@defun read-non-nil-coding-system prompt
+This function reads a coding system using the minibuffer, prompting with
+string @var{prompt},and returns the coding system name as a symbol.  If
+the user enters null input, it returns @var{default-coding-system}.
+which should be a symbol or a string.  @xref{Coding Systems}.
 @end defun
 
 @node Reading File Names
@@ -1244,8 +1332,8 @@ convenient facilities such as the ability to answer the whole series at
 once.
 
 @defun map-y-or-n-p prompter actor list &optional help action-alist
-This function, new in Emacs 19, asks the user a series of questions,
-reading a single-character answer in the echo area for each one.
+This function asks the user a series of questions, reading a
+single-character answer in the echo area for each one.
 
 The value of @var{list} specifies the objects to ask questions about.
 It should be either a list of objects or a generator function.  If it is
@@ -1323,8 +1411,20 @@ value around the call.
 The return value of @code{map-y-or-n-p} is the number of objects acted on.
 @end defun
 
+@node Reading a Password
+@section Reading a Password
+
+  This function is useful for reading passwords.
+
+@tindex read-password
+@defun read-password prompt default
+This function reads a password, echoing @samp{.} in the echo area
+for each character entered, and returns it as a string.  It prompts
+with @var{prompt}, and returns @var{default} if the user enters the
+null string.
+@end defun
+
 @node Minibuffer Misc
-@comment  node-name,  next,  previous,  up
 @section Minibuffer Miscellany
 
   This section describes some basic functions and variables related to

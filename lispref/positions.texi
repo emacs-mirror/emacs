@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/positions
 @node Positions, Markers, Frames, Top
@@ -287,8 +287,9 @@ The return value of @code{goto-line} is the difference between
 @var{line} and the line number of the line to which point actually was
 able to move (in the full buffer, before taking account of narrowing).
 Thus, the value is positive if the scan encounters the real end of the
-buffer.  The value is zero if scan encounters the end of the accessible
-portion but not the real end of the buffer.
+buffer before finding the specified line.  The value is zero if scan
+encounters the end of the accessible portion but not the real end of the
+buffer.
 
 In an interactive call, @var{line} is the numeric prefix argument if
 one has been provided.  Otherwise @var{line} is read in the minibuffer.
@@ -457,9 +458,9 @@ This function moves point to the start of the screen line @var{count}
 screen lines down from the screen line containing point.  If @var{count}
 is negative, it moves up instead.
 
-@code{vertical-motion} returns the number of lines moved.  The value may
-be less in absolute value than @var{count} if the beginning or end of
-the buffer was reached.
+@code{vertical-motion} returns the number of screen lines over which it
+moved point.  The value may be less in absolute value than @var{count}
+if the beginning or end of the buffer was reached.
 
 The window @var{window} is used for obtaining parameters such as the
 width, the horizontal scrolling, and the display table.  But
@@ -531,7 +532,7 @@ The result @var{prevhpos} is the horizontal position one character back
 from @var{pos}.  The result @var{contin} is @code{t} if the last line
 was continued after (or within) the previous character.
 
-For example, to find the buffer position of column @var{col} of line
+For example, to find the buffer position of column @var{col} of screen line
 @var{line} of a certain window, pass the window's display start location
 as @var{from} and the window's upper-left coordinates as @var{frompos}.
 Pass the buffer's @code{(point-max)} as @var{to}, to limit the scan to
@@ -693,7 +694,7 @@ comes back" twice.
 
 @defun skip-chars-backward character-set &optional limit
 This function moves point backward, skipping characters that match
-@var{character-set}, until @var{limit}.  It just like
+@var{character-set}, until @var{limit}.  It is just like
 @code{skip-chars-forward} except for the direction of motion.
 @end defun
 
@@ -796,7 +797,7 @@ of the current region (point and the mark, with the smallest first).
 This function sets the accessible portion of the current buffer to
 include just the current page.  An optional first argument
 @var{move-count} non-@code{nil} means to move forward or backward by
-@var{move-count} pages and then narrow.  The variable
+@var{move-count} pages and then narrow to one page.  The variable
 @code{page-delimiter} specifies where pages start and end
 (@pxref{Standard Regexps}).
 
@@ -833,7 +834,7 @@ before you try it.
 
 If @var{body} changes the current buffer, @code{save-restriction} still
 restores the restrictions on the original buffer (the buffer whose
-restructions it saved from), but it does not restore the identity of the
+restrictions it saved from), but it does not restore the identity of the
 current buffer.
 
 @code{save-restriction} does @emph{not} restore point and the mark; use
