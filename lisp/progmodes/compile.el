@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 1999 Free Software Foundation, Inc.
 
-;; Author: Roland McGrath <roland@prep.ai.mit.edu>
+;; Author: Roland McGrath <roland@gnu.org>
 ;; Maintainer: FSF
 ;; Keywords: tools, processes
 
@@ -132,7 +132,7 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
 				 minor-mode-alist)))
 
 (defvar compilation-parsing-end nil
-  "Position of end of buffer when last error messages were parsed.")
+  "Marker position of end of buffer when last error messages were parsed.")
 
 (defvar compilation-error-message "No more errors"
   "Message to print when no more matches are found.")
@@ -946,7 +946,7 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
   (setq mode-line-process '(":%s"))
   (set (make-local-variable 'compilation-error-list) nil)
   (set (make-local-variable 'compilation-old-error-list) nil)
-  (set (make-local-variable 'compilation-parsing-end) 1)
+  (set (make-local-variable 'compilation-parsing-end) (copy-marker 1))
   (set (make-local-variable 'compilation-directory-stack)
        (list default-directory))
   (setq compilation-last-buffer (current-buffer)))
@@ -1080,12 +1080,16 @@ Just inserts the text, but uses `insert-before-markers'."
   (if (buffer-name (process-buffer proc))
       (save-excursion
 	(set-buffer (process-buffer proc))
-	(let ((buffer-read-only nil))
+	(let ((buffer-read-only nil)
+	      (end (marker-position compilation-parsing-end)))
 	  (save-excursion
 	    (goto-char (process-mark proc))
 	    (insert-before-markers string)
+	    (set-marker compilation-parsing-end end) ;don't move it
 	    (run-hooks 'compilation-filter-hook)
-	    (set-marker (process-mark proc) (point)))))))
+	    ;; this seems redundant since we insert-before-marks   -stefan
+	    ;;(set-marker (process-mark proc) (point))
+	    )))))
 
 ;; Return the cdr of compilation-old-error-list for the error containing point.
 (defun compile-error-at-point ()
@@ -1679,8 +1683,8 @@ Selects a window with point at SOURCE, with another window displaying ERROR."
 	  (set-marker (cdr next-error) nil)))
     (setq compilation-old-error-list (cdr compilation-old-error-list)))
   (setq compilation-error-list nil
-	compilation-directory-stack (list default-directory)
-	compilation-parsing-end 1)
+	compilation-directory-stack (list default-directory))
+  (set-marker compilation-parsing-end 1)
   ;; Remove the highlighting added by compile-reinitialize-errors:
   (let ((inhibit-read-only t)
 	(buffer-undo-list t)
@@ -1941,7 +1945,7 @@ An error message with no file name and no file name has been seen earlier."))
 
 	(forward-line 1)))		; End of while loop. Look at next line.
 
-    (setq compilation-parsing-end (point))
+    (set-marker compilation-parsing-end (point))
     (setq compilation-error-list (nreverse compilation-error-list))
 ;;; (message "Parsing error messages...done. %d found. %.0f%% of buffer seen."
 ;;;	     compilation-num-errors-found
