@@ -1,6 +1,6 @@
 ;;; cal-menu.el --- calendar functions for menu bar and popup menu support
 
-;; Copyright (C) 1994, 1995, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 2001, 2003 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;;	Lara Rios <lrios@coewl.cen.uiuc.edu>
@@ -36,6 +36,9 @@
 ;;                                   Urbana, Illinois 61801
 
 ;;; Code:
+
+(defvar displayed-month)
+(defvar displayed-year)
 
 (eval-when-compile (require 'calendar))
 (require 'easymenu)
@@ -219,13 +222,13 @@ not available."
                      (increment-calendar-month m2 y2 1)
                      (if (= y1 y2)
                          (format "%s-%s, %d"
-                                 (calendar-month-name m1 3)
-                                 (calendar-month-name m2 3)
+                                 (calendar-month-name m1 'abbrev)
+                                 (calendar-month-name m2 'abbrev)
                                  y2)
                        (format "%s, %d-%s, %d"
-                               (calendar-month-name m1 3)
+                               (calendar-month-name m1 'abbrev)
                                y1
-                               (calendar-month-name m2 3)
+                               (calendar-month-name m2 'abbrev)
                                y2)))))
               (define-key  calendar-mode-map [menu-bar Holidays 3-month]
                 `(,(format "For Window (%s)" title)
