@@ -47,6 +47,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "systty.h"
 #include "syssignal.h"
+#include "process.h"
 
 #ifndef O_RDWR
 #define O_RDWR 2
@@ -169,7 +170,7 @@ init_cmdargs (argc, argv, skip_args)
     {
       Lisp_Object found;
       int yes = openp (Vexec_path, Vinvocation_name,
-		       "", &found, 1);
+		       EXEC_SUFFIXES, &found, 1);
       if (yes)
 	Vinvocation_directory = Ffile_name_directory (found);
     }
