@@ -601,7 +601,7 @@ used instead of browse-url-new-window-p."
   (let* ((process-environment (browse-url-process-environment))
          (process (apply 'start-process
  			(concat "netscape " url) nil
- 			browse-url-netscape-command
+ 			browse-url-netscape-program
 		(append browse-url-netscape-arguments
 			(if new-window '("-noraise"))
 			(list "-remote" 
@@ -619,7 +619,7 @@ used instead of browse-url-new-window-p."
 	;; Netscape not running - start it
 	    (message "Starting Netscape...")
 	(apply 'start-process (concat "netscape" url) nil
-	       browse-url-netscape-command
+	       browse-url-netscape-program
 	       (append browse-url-netscape-startup-arguments (list url))))))
 
 (defun browse-url-netscape-reload ()
@@ -631,7 +631,7 @@ used instead of browse-url-new-window-p."
   "Send a remote control command to Netscape."
   (let* ((process-environment (browse-url-process-environment)))
     (apply 'start-process "netscape" nil
-           browse-url-netscape-command
+           browse-url-netscape-program
          (append browse-url-netscape-arguments
                    (list "-remote" command)))))
 
