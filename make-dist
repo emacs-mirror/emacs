@@ -153,7 +153,7 @@ echo "Making links to \`src'."
  echo "  (If we can't link gmalloc.c, that's okay.)"
  ln [a-zA-Z]*.c ../${tempdir}/src
  ## Might be a symlink to a file on another filesystem.
- cp gmalloc.c ../${tempdir}/src
+ test -f ../${tempdir}/src || cp gmalloc.c ../${tempdir}/src
  ln [a-zA-Z]*.h ../${tempdir}/src
  ln [a-zA-Z]*.s ../${tempdir}/src
  ln README Makefile.in ymakefile ChangeLog config.h.in paths.h.in \
@@ -211,7 +211,9 @@ echo "Making links to \`man'."
 (cd man
  ln *.tex *.texinfo *.texi *.aux *.cps *.fns *.kys *.vrs ../${tempdir}/man
  ln *.c ../${tempdir}/man
- ln ChangeLog Makefile README split-man ../${tempdir}/man)
+ test -f README && ln README ../${tempdir}/man
+ test -f Makefile && ln Makefile ../${tempdir}/man
+ ln ChangeLog split-man ../${tempdir}/man)
 
 echo "Making links to \`shortnames'."
 (cd shortnames
