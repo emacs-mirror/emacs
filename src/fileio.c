@@ -3114,6 +3114,17 @@ syms_of_fileio ()
 nil means use format `var'.  This variable is meaningful only on VMS.");
   vms_stmlf_recfm = 0;
 
+  DEFVAR_LISP ("file-name-handler-alist", &Vfile_name_handler_alist,
+    "*Alist of elements (REGEXP . HANDLER) for file names handled specially.\n\
+If a file name matches REGEXP, then all I/O on that file is done by calling\n\
+HANDLER.\n\
+\n\
+The first argument given to HANDLER is the name of the I/O primitive\n\
+to be handled; the remaining arguments are the arguments that were\n\
+passed to that primitive.  For example, if you do\n\
+    (file-exists-p FILENAME)\n\
+and FILENAME is handled by HANDLER, then HANDLER is called like this:\n\
+    (funcall HANDLER FILENAME)");
   defsubr (&Sfile_name_directory);
   defsubr (&Sfile_name_nondirectory);
   defsubr (&Sfile_name_as_directory);
