@@ -636,6 +636,8 @@ exit -- for a process that has exited.
 signal -- for a process that has got a fatal signal.
 open -- for a network stream connection that is open.
 closed -- for a network stream connection that is closed.
+connect -- when waiting for a non-blocking connection to complete.
+failed -- when a non-blocking connection has failed.
 nil -- if arg is a process name and no such process exists.
 PROCESS may be a process, a buffer, the name of a process, or
 nil, indicating the current buffer's process.  */)
