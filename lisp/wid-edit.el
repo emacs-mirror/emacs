@@ -1765,8 +1765,7 @@ If END is omitted, it defaults to the length of LIST."
 
 (defun widget-url-link-action (widget &optional event)
   "Open the url specified by WIDGET."
-  (require 'browse-url)
-  (funcall browse-url-browser-function (widget-value widget)))
+  (browse-url (widget-value widget)))
 
 ;;; The `function-link' Widget.
 
