@@ -257,10 +257,10 @@ relies on analysis of the syntactic structure of the buffer text.  For
 the purposes of speed, some modes, including C mode and Lisp mode,
 rely on a special convention: an open-parenthesis or open-brace in the
 leftmost column always defines the @w{beginning} of a defun, and is
-thus always outside any string or comment.  (@xref{Defuns}.)  If you
-don't follow this convention, then Font Lock mode can misfontify the
-text that follows an open-parenthesis or open-brace in the leftmost
-column that is inside a string or comment.
+thus always outside any string or comment.  (@xref{Left Margin
+Convention}.)  If you don't follow this convention, Font Lock mode can
+misfontify the text that follows an open-parenthesis or open-brace in
+the leftmost column that is inside a string or comment.
 
 @cindex slow display during scrolling
   The variable @code{font-lock-beginning-of-syntax-function} (always
