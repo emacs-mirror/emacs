@@ -72,6 +72,7 @@
 (defvar debugger-outer-last-event-frame)
 (defvar debugger-outer-standard-input)
 (defvar debugger-outer-standard-output)
+(defvar debugger-outer-inhibit-redisplay)
 (defvar debugger-outer-cursor-in-echo-area)
 
 ;;;###autoload
@@ -116,6 +117,7 @@ first will be printed into the backtrace buffer."
 	(debugger-outer-last-event-frame last-event-frame)
 	(debugger-outer-standard-input standard-input)
 	(debugger-outer-standard-output standard-output)
+	(debugger-outer-inhibit-redisplay inhibit-redisplay)
 	(debugger-outer-cursor-in-echo-area cursor-in-echo-area))
     ;; Set this instead of binding it, so that `q'
     ;; will not restore it.
@@ -133,6 +135,7 @@ first will be printed into the backtrace buffer."
 	  (enable-recursive-minibuffers
 	   (or enable-recursive-minibuffers (> (minibuffer-depth) 0)))
 	  (standard-input t) (standard-output t)
+	  inhibit-redisplay
 	  (cursor-in-echo-area nil))
       (unwind-protect
 	  (save-excursion
@@ -228,6 +231,7 @@ first will be printed into the backtrace buffer."
     (setq last-event-frame debugger-outer-last-event-frame)
     (setq standard-input debugger-outer-standard-input)
     (setq standard-output debugger-outer-standard-output)
+    (setq inhibit-redisplay debugger-outer-inhibit-redisplay)
     (setq cursor-in-echo-area debugger-outer-cursor-in-echo-area)
     (setq debug-on-next-call debugger-step-after-exit)
     debugger-value))
@@ -351,7 +355,11 @@ Applies to the frame whose line point is on in the backtrace."
 	 ;; old buffer deleted
 	 (setq debugger-old-buffer (current-buffer)))
      (set-buffer debugger-old-buffer)
-     (let ((track-mouse debugger-outer-track-mouse)
+     (let ((load-read-function debugger-outer-load-read-function)
+	   (overriding-terminal-local-map
+	    debugger-outer-overriding-terminal-local-map)
+	   (overriding-local-map debugger-outer-overriding-local-map)
+	   (track-mouse debugger-outer-track-mouse)
 	   (last-command debugger-outer-last-command)
 	   (this-command debugger-outer-this-command)
 	   (unread-command-char debugger-outer-unread-command-char)
@@ -364,11 +372,8 @@ Applies to the frame whose line point is on in the backtrace."
 	   (last-event-frame debugger-outer-last-event-frame)
 	   (standard-input debugger-outer-standard-input)
 	   (standard-output debugger-outer-standard-output)
-	   (cursor-in-echo-area debugger-outer-cursor-in-echo-area)
-	   (overriding-local-map debugger-outer-overriding-local-map)
-	   (overriding-terminal-local-map
-	    debugger-outer-overriding-terminal-local-map)
-	   (load-read-function debugger-outer-load-read-function))
+	   (inhibit-redisplay debugger-outer-inhibit-redisplay)
+	   (cursor-in-echo-area debugger-outer-cursor-in-echo-area))
        (set-match-data debugger-outer-match-data)
        (prog1 (progn (,@ body))
 	 (setq debugger-outer-match-data (match-data))
@@ -389,6 +394,7 @@ Applies to the frame whose line point is on in the backtrace."
 	 (setq debugger-outer-last-event-frame last-event-frame)
 	 (setq debugger-outer-standard-input standard-input)
 	 (setq debugger-outer-standard-output standard-output)
+	 (setq debugger-outer-inhibit-redisplay inhibit-redisplay)
 	 (setq debugger-outer-cursor-in-echo-area cursor-in-echo-area)
 	 )))))
 
