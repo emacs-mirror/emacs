@@ -493,7 +493,8 @@ which will run faster and do exactly what you probably want."
 	  ;; Loop reading commands until one of them sets done,
 	  ;; which means it has finished handling this occurrence.
 	  (while (not done)
-	    (message "Query replacing %s with %s: "
+	    (message (substitute-command-keys
+		      "Query replacing %s with %s: (\\<query-replace-map>\\[help] for help) ")
 		     from-string next-replacement)
 	    (setq key (read-event))
 	    (setq key (vector key))
