@@ -456,6 +456,12 @@ main (argc, argv, envp)
       else
 	{
 	  printf ("GNU Emacs %s\n", XSTRING (tem)->data);
+	  printf ("Copyright (C) 1996 Free Software Foundation, Inc.\n");
+	  printf ("GNU Emacs comes with ABSOLUTELY NO WARRANTY.\n");
+	  printf ("You may redistribute copies of Emacs\n");
+	  printf ("under the terms of the GNU General Public License.\n");
+	  printf ("For more information about these matters, ");
+	  printf ("see the files named COPYING.\n");
 	  exit (0);
 	}
     }
