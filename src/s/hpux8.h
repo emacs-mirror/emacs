@@ -13,6 +13,7 @@
 
 #define LIB_X11_LIB -L/usr/lib/X11R5 -L/usr/lib/X11R4 -lX11
 #define C_SWITCH_X_SYSTEM -I/usr/include/X11R5 -I/usr/include/X11R4
+#define LD_SWITCH_X_DEFAULT -L/usr/lib/X11R5 -L/usr/lib/X11R4
 
 /* Don't use shared libraries.  unexec doesn't handle them.
    Note GCC automatically passes -a archive to ld, and it has its own
@@ -22,23 +23,23 @@
 #define ORDINARY_LINK
 
 #ifdef HPUX_USE_SHLIBS
-#define LD_SWITCH_SYSTEM -L/usr/lib/X11R5 -L/usr/lib/X11R4
+#define LD_SWITCH_SYSTEM
 #else
-#define LD_SWITCH_SYSTEM -Xlinker -a -Xlinker archive -L/usr/lib/X11R5 -L/usr/lib/X11R4
+#define LD_SWITCH_SYSTEM -Xlinker -a -Xlinker archive
 #endif
 
 #else /* not __GNUC__ */
 #if (defined(hp9000s700) || defined(__hp9000s700))
 #ifdef HPUX_USE_SHLIBS
-#define LD_SWITCH_SYSTEM -L/lib/pa1.1 -L/usr/lib/X11R5 -L/usr/lib/X11R4
+#define LD_SWITCH_SYSTEM -L/lib/pa1.1
 #else
-#define LD_SWITCH_SYSTEM -a archive -L/lib/pa1.1 -L/usr/lib/X11R5 -L/usr/lib/X11R4
+#define LD_SWITCH_SYSTEM -a archive -L/lib/pa1.1
 #endif
 #else /* not (defined(hp9000s700) || defined(__hp9000s700)) */
 #ifdef HPUX_USE_SHLIBS
-#define LD_SWITCH_SYSTEM -L/usr/lib/X11R5 -L/usr/lib/X11R4
+#define LD_SWITCH_SYSTEM
 #else
-#define LD_SWITCH_SYSTEM -a archive -L/usr/lib/X11R5 -L/usr/lib/X11R4
+#define LD_SWITCH_SYSTEM -a archive
 #endif
 #endif /* not (defined(hp9000s700) || defined(__hp9000s700)) */
 #endif /* not __GNUC__ */
