@@ -144,7 +144,7 @@ The variables are saved only when they really are local.")
 (make-variable-buffer-local 'desktop-locals-to-save)
 
 ;; We skip .log files because they are normally temporary.
-;;         (ftp) files because they require passwords and whatsnot.
+;;         (ftp) files because they require passwords and whatnot.
 ;;         TAGS files to save time (tags-file-name is saved instead).
 (defvar desktop-buffers-not-to-save
  "\\(^nn\\.a[0-9]+\\|\\.log\\|(ftp)\\|^tags\\|^TAGS\\)$"

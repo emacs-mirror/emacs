@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1987 Free Software Foundation, Inc.
 
-;; Author: Richard Mlynark <mly@eddie.mit.edu>
+;; Author: Richard Mlynarik <mly@eddie.mit.edu>
 ;; Created: July 1987
 ;; Maintainer: FSF
 ;; Keywords: lisp, tools

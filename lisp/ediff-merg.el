@@ -137,7 +137,7 @@ skiped over. Nil means show all regions.")
 		    (and (string= state-of-merge "combined")
 			 (not (string=
 			       (ediff-make-combined-diff reg-A reg-B) reg-C)))
-		    ;; was prefered--ignore
+		    ;; was preferred--ignore
 		    (string-match "prefer" state-of-merge))
 		(setq do-not-copy t))
 		

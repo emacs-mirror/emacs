@@ -201,7 +201,7 @@
 		      nneething-group-alist)))))))
 
 (defun nneething-map-file ()
-  ;; We make sure that the .neething directory exists. 
+  ;; We make sure that the .nneething directory exists. 
   (make-directory nneething-map-file-directory 'parents)
   ;; We store it in a special directory under the user's home dir.
   (concat (file-name-as-directory nneething-map-file-directory)

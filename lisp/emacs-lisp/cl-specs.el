@@ -7,7 +7,7 @@
 ;; LCD Archive Entry:
 ;; cl-specs.el|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |Edebug specs for cl.el
-;; |$Date: 1995/04/19 00:47:42 $|1.1|
+;; |$Date: 1995/10/30 16:51:55 $|1.1|
 
 ;; This file is part of GNU Emacs.
 
@@ -30,7 +30,7 @@
 ;; These specs are to be used with edebug.el version 3.3 or later and
 ;; cl.el version 2.03 or later, by Dave Gillespie <daveg@synaptics.com>.
 
-;; This file need not be byte-compiled, but it shouldnt hurt.
+;; This file need not be byte-compiled, but it shouldn't hurt.
 
 (provide 'cl-specs)
 ;; Do the above provide before the following require.
@@ -412,7 +412,7 @@
 
 (def-edebug-spec loop-initial-final
   (&or ["initially" 
-	;; [&optional &or "do" "doing"]  ;; CLtL2 doesnt allow this.
+	;; [&optional &or "do" "doing"]  ;; CLtL2 doesn't allow this.
 	&rest loop-non-atomic-expr]
        ["finally" &or 
 	[[&optional &or "do" "doing"] &rest loop-non-atomic-expr]

@@ -366,7 +366,7 @@ Newsgroup must be selected before calling this function."
 		(nnspool-sift-nov-with-sed articles nov)
 	      (insert-file-contents nov)
 	      ;; First we find the first wanted line. We issue a number
-	      ;; of search-forwards - the first article we are lookign
+	      ;; of search-forwards - the first article we are looking
 	      ;; for may be expired, so we have to go on searching until
 	      ;; we find one of the articles we want.
 	      (while (and articles

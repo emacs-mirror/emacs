@@ -395,7 +395,7 @@
 ;;;    when asked to list a non-existent directory.  Some of the ai.mit.edu
 ;;;    machines cause this problem for some FTP clients. Using
 ;;;    ange-ftp-kill-ftp-process can restart the ftp process, which
-;;;    should get things back in synch.
+;;;    should get things back in sync.
 ;;;
 ;;; 3. Ange-ftp does not check to make sure that when creating a new file,
 ;;;    you provide a valid filename for the remote operating system.
@@ -2242,7 +2242,7 @@ which can parse the output from a DIR listing for a host of type TYPE.")
 ;; 
 ;; With no-error t, it returns:
 ;; an error if not an ange-ftp-name
-;; error if listing is unreable (most likely caused by a slow connection)
+;; error if listing is unreadable (most likely caused by a slow connection)
 ;; nil if ftp error (this is because although asking to list a nonexistent
 ;;                   directory on a remote unix machine usually (except
 ;;                   maybe for dumb hosts) returns an ls error, but no

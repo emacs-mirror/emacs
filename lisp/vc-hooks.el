@@ -183,7 +183,7 @@ See also variable `vc-consult-headers'.")
   ;; Insert the contents of FILE into the current buffer.
   ;; Optional argument LIMIT is a regexp. If present,
   ;; the file is inserted in chunks of size BLOCKSIZE
-  ;; (default 8 kByte), until the first occurence of
+  ;; (default 8 kByte), until the first occurrence of
   ;; LIMIT is found. The function returns nil if FILE 
   ;; doesn't exist.
   (erase-buffer)

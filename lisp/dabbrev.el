@@ -41,7 +41,7 @@
 ;;
 ;; Set the variables you want special for your mode like this:
 ;; (set (make-local-variable 'dabbrev-case-replace) nil)
-;; Then you don't interfer with other modes.
+;; Then you don't interfere with other modes.
 ;;
 ;; If your mode handles buffers that refers to other buffers
 ;; (i.e. compilation-mode, gud-mode), then try to set
@@ -771,7 +771,7 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 
 ;;; ABBREV is string to find as prefix of word.  Second arg, REVERSE,
 ;;; is t for reverse search, nil for forward.  Variable dabbrev-limit
-;;; controls the maximum search region size.  Third argment IGNORE-CASE
+;;; controls the maximum search region size.  Third argument IGNORE-CASE
 ;;; non-nil means treat case as insignificant while looking for a match
 ;;; and when comparing with previous matches.  Also if that's non-nil
 ;;; and the match is found at the beginning of a sentence and is in

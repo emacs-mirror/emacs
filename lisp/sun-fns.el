@@ -319,7 +319,7 @@ this command is insensitive to mouse location."
 relative X divided by window width."
   (eval-in-window window 
     (if (>= x (1- (window-width)))
-	;; When x is maximun (equal to or 1 less than window width),
+	;; When x is maximum (equal to or 1 less than window width),
 	;; goto end of buffer.  We check for this special case
 	;; because the calculated goto-char often goes short of the
 	;; end due to roundoff error, and we often really want to go

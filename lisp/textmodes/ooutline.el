@@ -145,7 +145,7 @@ in the file it applies to.")
 			       (3 . font-lock-comment-face))))
 	      font-lock-variable-name-face))
 	nil t))
-    ;; Highight citations of the form [1] and [Mar94].
+    ;; Highlight citations of the form [1] and [Mar94].
     ("\\[\\([A-Z][A-Za-z]+\\)*[0-9]+\\]" . font-lock-type-face))
   "Additional expressions to highlight in Outline mode.")
 

@@ -452,12 +452,12 @@ See also the documentation for `gnus-article-highlight-citation'."
   ;; loose attribution lines, otherwise the first prefix will be used.
   ;;
   ;; If AFTER is non-nil, only citations after the attribution line
-  ;; will be concidered.
+  ;; will be considered.
   ;;
   ;; If FUN is non-nil, it will be called with the arguments (WROTE
   ;; PREFIX TAG) and expected to return a regular expression.  Only
   ;; citations whose prefix matches the regular expression will be
-  ;; concidered. 
+  ;; considered. 
   ;; 
   ;; WROTE is the attribution line number.
   ;; PREFIX is the attribution line prefix.

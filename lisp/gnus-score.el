@@ -910,7 +910,7 @@ SCORE is the score to add."
             (if last
                 (progn
                   ;; Insert the line, with a text property on the
-                  ;; terminating newline refering to the articles with
+                  ;; terminating newline referring to the articles with
                   ;; this line.
                   (insert last ?\n)
                   (put-text-property (1- (point)) (point) 'articles alike)))
@@ -1252,7 +1252,7 @@ SCORE is the score to add."
 
 (defun gnus-score-string (score-list header now expire &optional trace)
   ;; Score ARTICLES according to HEADER in SCORE-LIST.
-  ;; Update matches entries to NOW and remove unmatched entried older
+  ;; Update matching entries to NOW and remove unmatched entries older
   ;; than EXPIRE.
   
   ;; Insert the unique article headers in the buffer.
@@ -1281,7 +1281,7 @@ SCORE is the score to add."
 	(if last
 	    (progn
 	      ;; Insert the line, with a text property on the
-	      ;; terminating newline refering to the articles with
+	      ;; terminating newline referring to the articles with
 	      ;; this line.
 	      (insert last ?\n)
 	      (put-text-property (1- (point)) (point) 'articles alike)))

@@ -161,7 +161,7 @@
 
 ; You may use either the `C-x C-p d' (pages-directory-for-addresses)
 ; or the `C-x C-p C-d' (pages-directory) command to construct and
-; dislay a directory of all the heading lines.
+; display a directory of all the heading lines.
 
 ; In the directory, you may position the cursor over a heading line
 ; and type `C-c C-c' (pages-directory-goto) to go to the entry to

@@ -415,7 +415,7 @@ NOTE: This command only works with newsgroups that use real or simulated NNTP."
 	  ;; Fucking XEmacs redisplay bug with truncated lines.
 	  (goto-char b)
 	  (sit-for 0)
-	  ;; Grumble.. Fucking XEmacs stickyness of text properties.
+	  ;; Grumble.. Fucking XEmacs stickiness of text properties.
 	  (remove-text-properties
 	   (1+ b) (1+ (gnus-point-at-eol))
 	   '(gnus-number nil gnus-mark nil gnus-level nil))

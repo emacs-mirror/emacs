@@ -35,7 +35,7 @@
 ;; ========== Credits and History ========== 
 ;; In mid 1991, several people posted some interesting improvements to
 ;; man.el from the standard emacs 18.57 distribution.  I liked many of
-;; these, but wanted everthing in one single package, so I decided
+;; these, but wanted everything in one single package, so I decided
 ;; to incorporate them into a single manual browsing mode.  While
 ;; much of the code here has been rewritten, and some features added,
 ;; these folks deserve lots of credit for providing the initial
@@ -56,7 +56,7 @@
 
 ;; Francesco Potorti` <pot@cnuce.cnr.it> cleaned it up thoroughly,
 ;; making it faster, more robust and more tolerant of different
-;; systems' man idiosynchrasies.
+;; systems' man idiosyncrasies.
 
 ;; ========== Features ==========
 ;; + Runs "man" in the background and pipes the results through a

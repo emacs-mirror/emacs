@@ -43,7 +43,7 @@
 ;;	   Actually, the format of this list is pretty much up to the
 ;;	   developer. The only thing is that it must be a list of lists.
 ;;	   Also, keep in mind that the function ediff-prepare-meta-buffer
-;;	   (which see) prepends nil in fron of each list (i.e., the above list
+;;	   (which see) prepends nil in front of each list (i.e., the above list
 ;;	   will become ((nil obj1 obj2 ...) (nil ...) ...).
 ;;	   Ediff expects that your function (in 2 above) will arrange to
 ;;	   replace this prepended nil (via setcar) with the actual ediff
@@ -1209,7 +1209,7 @@ all marked sessions must be active."
       (error "No active Ediff sessions or corrupted session registry"))
   (let (wind frame)
     ;; for some reason, point moves in ediff-registry-buffer, so we preserve it
-    ;; explicity
+    ;; explictly
     (ediff-eval-in-buffer ediff-registry-buffer
       (save-excursion
 	(cond  ((setq wind

@@ -166,7 +166,7 @@ You can redefine this if you want the mouse banished to a different corner."
   ;; Args are the CURRENT location, the desired DELTA for
   ;; warp-conservation, the DISTANCE we like to move, the VARIABILITY
   ;; in distance allowed, and the MIN and MAX possible window positions.
-  ;; Returns something as close to DELTA as possible withing the constraints.
+  ;; Returns something as close to DELTA as possible within the constraints.
   (let ((L1 (max (- min cur) (+ (- dist) (- var))))
 	(R1                  (+ (- dist)    var ))
 	(L2                  (+    dist  (- var)))

@@ -1008,7 +1008,7 @@ Special value `always' suppresses confirmation.")
 ;; which will be added.  The user will be queried if the file already
 ;; exists.  If oldfile is removed by FILE-CREATOR (i.e, it is a
 ;; rename), it is FILE-CREATOR's responsibility to update dired
-;; buffers.  FILE-CREATOR must abort by signalling a file-error if it
+;; buffers.  FILE-CREATOR must abort by signaling a file-error if it
 ;; could not create newfile.  The error is caught and logged.
 
 ;; OPERATION (a capitalized string, e.g. `Copy') describes the

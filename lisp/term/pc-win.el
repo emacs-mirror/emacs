@@ -102,7 +102,7 @@
 ;; We have only one font, so...
 (add-hook 'before-init-hook 'msdos-face-setup)
 ;; ---------------------------------------------------------------------------
-;; More or less useful immitations of certain X-functions.  A lot of the
+;; More or less useful imitations of certain X-functions.  A lot of the
 ;; values returned are questionable, but usually only the form of the
 ;; returned value matters.  Also, by the way, recall that `ignore' is
 ;; a useful function for returning 'nil regardless of argument.

@@ -150,7 +150,7 @@ in that frame; otherwise change each frame."
   ;; For a specific frame, use gray stipple instead of gray color
   ;; if the display does not support a gray color.
   (if (and frame (not (eq frame t)) color
-	   ;; Check for supportedness for foreground, not for background!
+	   ;; Check for support for foreground, not for background!
 	   ;; face-color-supported-p is smart enough to know
 	   ;; that grays are "supported" as background
 	   ;; because we are supposed to use stipple for them!

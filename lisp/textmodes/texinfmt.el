@@ -2893,7 +2893,7 @@ The command  `@value{foo}'  expands to the value."
 ;; In the original version, include files were ignored by Info but
 ;; incorporated in to the printed manual.  To make references to the
 ;; included file, the Texinfo source file has to refer to the included
-;; files using the `(filename)nodename' format for refering to other
+;; files using the `(filename)nodename' format for referring to other
 ;; Info files.  Also, the included files had to be formatted on their
 ;; own.  It was just like they were another file.
 

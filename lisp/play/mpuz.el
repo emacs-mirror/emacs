@@ -185,7 +185,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 		   D (* A (/ B 10))
 		   E (* A B))
 	     (or (< C 1000) (< D 1000)))) ; forbid leading zeros in C or D
-    ;; Individual digits are now put on their respectives squares.
+    ;; Individual digits are now put on their respective squares.
     ;; [NB: A square is a pair <row,column> of the screen.]
     (mpuz-put-digit-on-board A		 '(2 . 9))
     (mpuz-put-digit-on-board (/ A 10)	 '(2 . 7))

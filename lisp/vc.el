@@ -827,7 +827,7 @@ merge in the changes into your working copy."
 
 (defun vc-resynch-window (file &optional keep noquery)
   ;; If the given file is in the current buffer,
-  ;; either revert on it so we see expanded keyworks,
+  ;; either revert on it so we see expanded keywords,
   ;; or unvisit it (depending on vc-keep-workfiles)
   ;; NOQUERY if non-nil inhibits confirmation for reverting.
   ;; NOQUERY should be t *only* if it is known the only difference
@@ -2006,7 +2006,7 @@ From a program, any arguments are passed to the `rcs2log' script."
   ;; Automatically retrieves a read-only version of the file with
   ;; keywords expanded if vc-keep-workfiles is non-nil, otherwise
   ;; it deletes the workfile.
-  ;;   Adaption for RCS branch support: if this is an explicit checkin,
+  ;;   Adaptation for RCS branch support: if this is an explicit checkin,
   ;; or if the checkin creates a new branch, set the master file branch
   ;; accordingly.
   (message "Checking in %s..." file)
@@ -2418,7 +2418,7 @@ Invoke FUNC f ARGS on each non-directory file f underneath it."
 ;;; during the entire execution of vc-next-action, or (b) detect and
 ;;; recover from errors resulting from dispatch on an out-of-date state.
 ;;; 
-;;; Alternative (a) appears to be unfeasible.  The problem is that we can't
+;;; Alternative (a) appears to be infeasible.  The problem is that we can't
 ;;; guarantee that the lock will ever be removed.  Suppose a user starts a
 ;;; checkin, the change message buffer pops up, and the user, having wandered
 ;;; off to do something else, simply forgets about it?

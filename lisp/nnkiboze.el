@@ -101,7 +101,7 @@ If the stream is opened, return T, otherwise return NIL."
   "Select article by message number."
   (nnkiboze-possibly-change-newsgroups newsgroup)
   (if (not (numberp article))
-      ;; This is a real cludge. It might not work at times, but it
+      ;; This is a real kludge. It might not work at times, but it
       ;; does no harm I think. The only alternative is to offer no
       ;; article fetching by message-id at all.
       (nntp-request-article article newsgroup gnus-nntp-server buffer)

@@ -338,7 +338,7 @@
 
 ;; If FORCE, delete article no matter how many X-Gnus-Newsgroup
 ;; headers there are. If LEAVE-DELIM, don't delete the Unix mbox
-;; delimeter line.
+;; delimiter line.
 (defun nnmbox-delete-mail (&optional force leave-delim)
   ;; Delete the current X-Gnus-Newsgroup line.
   (or force

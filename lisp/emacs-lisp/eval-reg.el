@@ -130,7 +130,7 @@ nil means discard it; anything else is stream for print.
 This version, from `eval-reg.el', allows Lisp customization of read,
 eval, and the printer."
 
-  ;; Because this doesnt narrow to the region, one other difference 
+  ;; Because this doesn't narrow to the region, one other difference 
   ;; concerns inserting whitespace after the expression being evaluated.
 
   (interactive "r")
@@ -138,7 +138,7 @@ eval, and the printer."
       (original-eval-region elisp-start elisp-end elisp-output)
     (let ((elisp-pnt (point))
 	  (elisp-buf (current-buffer));; Outside buffer
-	  (elisp-inside-buf (current-buffer));; Buffer current while evaling
+	  (elisp-inside-buf (current-buffer));; Buffer current while evalling
 	  ;; Mark the end because it may move.
 	  (elisp-end-marker (set-marker (make-marker) elisp-end))
 	  elisp-form

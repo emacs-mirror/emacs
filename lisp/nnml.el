@@ -327,7 +327,7 @@ all. This may very well take some time.")
 	(and 
 	 (nnmail-activate 'nnml)
 	 ;; We trick the choosing function into believing that only one
-	 ;; group is availiable.  
+	 ;; group is available.  
 	 (let ((nnmail-split-methods (list (list group ""))))
 	   (setq result (car (nnml-save-mail))))
 	 (progn

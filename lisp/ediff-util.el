@@ -733,7 +733,7 @@ Reestablish the default three-window display."
 		       ediff-patch-action
 		       ediff-toggle-wide-display ediff-toggle-multiframe))
 	       ;; Or one of the movement cmds and prev cmd was an Ediff cmd
-	       ;; This avoids rasing frames unnecessarily.
+	       ;; This avoids raising frames unnecessarily.
 	       (and (memq this-command
 			  '(ediff-next-difference
 			    ediff-previous-difference
@@ -1420,7 +1420,7 @@ the width of the A/B/C windows."
 				(move-to-window-line lines)
 				(point)))
 		       ;; `end' may be beyond the window bottom, so check
-		       ;; that we are making progres
+		       ;; that we are making progress
 		       (< prev-point (point)))
 	    (setq prev-point (point))
 	    (setq lines (1+ lines)))
@@ -2962,7 +2962,7 @@ buffer."
 
 ;;; Misc
 
-;; These two functions are here to neutralize XEmacs unwillingless to
+;; These two functions are here to neutralize XEmacs's unwillingness to
 ;; handle overlays whose buffers were deleted.
 (defun ediff-move-overlay (overlay beg end &optional buffer)
   "Calls `move-overlay' in Emacs and `set-extent-endpoints' in Lemacs.

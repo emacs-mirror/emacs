@@ -1741,7 +1741,7 @@ to the left margin, if they are in windows."
 ;; If there are min-lines lines above and below the region, then don't do
 ;; anything.
 ;; If not, recenter the region to make it so.
-;; If that isn't possible, remove context lines balancedly from top and botton
+;; If that isn't possible, remove context lines balancedly from top and bottom
 ;; so the entire region shows.
 ;; If that isn't possible, show the top of the region.
 ;; BEG must be at the beginning of a line.
@@ -2847,7 +2847,7 @@ keymap.  Leaves merge in fast mode."
 ;; a list of variables.  The argument is a list of symbols (the names of
 ;; the variables).  A list element can also be a list of two functions,
 ;; the first of which (when called with no arguments) gets the value, and
-;; the second (when called with a value as an argment) sets the value.
+;; the second (when called with a value as an argument) sets the value.
 ;; A "function" is anything that funcall can handle as an argument.
 
 (defun emerge-save-variables (vars)

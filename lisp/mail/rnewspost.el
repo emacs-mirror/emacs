@@ -46,7 +46,7 @@
 ;; imported from rmail and modified to work with rnews ...
 ;; Mon Mar 25,1985 at 03:07:04 ads@mit-hermes.
 ;; this is done so that rnews can operate independently from rmail.el and
-;; sendmail and dosen't have to autoload these functions.
+;; sendmail and doesn't have to autoload these functions.
 ;;
 ;;; >> Nuked by Mly to autoload those functions again, as the duplication of
 ;;; >>  code was making maintenance too difficult.

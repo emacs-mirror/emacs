@@ -83,7 +83,7 @@
 ;; printout than to find 50 single-page printouts).
 ;; 
 ;; Ps-print has a hook in the kill-emacs-hooks so that you won't
-;; accidently quit from Emacs while you have unprinted PostScript
+;; accidentally quit from Emacs while you have unprinted PostScript
 ;; waiting in the spool buffer.  If you do attempt to exit with
 ;; spooled PostScript, you'll be asked if you want to print it, and if
 ;; you decline, you'll be asked to confirm the exit; this is modeled
@@ -198,7 +198,7 @@
 ;; Ps-print keeps internal lists of which fonts are bold and which are
 ;; italic; these lists are built the first time you invoke ps-print.
 ;; For the sake of efficiency, the lists are built only once; the same
-;; lists are referred in later invokations of ps-print.
+;; lists are referred in later invocations of ps-print.
 ;;
 ;; Because these lists are built only once, it's possible for them to
 ;; get out of sync, if a face changes, or if new faces are added.  To
@@ -255,7 +255,7 @@
 ;; or variables.  Functions are called, and should return a string to
 ;; show in the header.  Variables should contain strings to display in
 ;; the header.  In either case, function or variable, the PostScript
-;; strings delimeters are added by ps-print, and should not be part of
+;; string delimiters are added by ps-print, and should not be part of
 ;; the returned value.
 ;;
 ;; Here's an example: say we want the left header to display the text
@@ -1836,7 +1836,7 @@ EndDSCPage\n"))
 	      ;; the postscript was generated without error.
 	      (setq completed-safely t))
 
-	  ;; Unwind form: If some bad mojo ocurred while generating
+	  ;; Unwind form: If some bad mojo occurred while generating
 	  ;; postscript, delete all the postscript that was generated.
 	  ;; This protects the previously spooled files from getting
 	  ;; corrupted.

@@ -42,7 +42,7 @@
   (concat (file-name-as-directory nnfolder-directory) "active")
   "The name of the active file.")
 
-;; I renamed this variable to somehting more in keeping with the general GNU
+;; I renamed this variable to something more in keeping with the general GNU
 ;; style. -SLB
 
 (defvar nnfolder-ignore-active-file nil
@@ -566,7 +566,7 @@ such things as moving mail.  All buffers always get killed upon server close.")
 ;; accidentally gotten new mail with something other than Gnus (but why
 ;; would _that_ ever happen? :-).  In that case, we will be in the middle of
 ;; processing the file, ready to add new X-Gnus article number markers, and
-;; we'll run accross a message with no ID yet - the active list _may_not_ be
+;; we'll run across a message with no ID yet - the active list _may_not_ be
 ;; ready for us yet.
 
 ;; To handle this, I'm modifying this routine to maintain the maximum ID seen
@@ -593,7 +593,7 @@ such things as moving mail.  All buffers always get killed upon server close.")
 	  activenumber activemin start end)
       (goto-char (point-min))
       ;;
-      ;; Anytime the active number is 1 or 0, it is supect.  In that case,
+      ;; Anytime the active number is 1 or 0, it is suspect.  In that case,
       ;; search the file manually to find the active number.  Or, of course,
       ;; if we're being paranoid.  (This would also be the place to build
       ;; other lists from the header markers, such as expunge lists, etc., if

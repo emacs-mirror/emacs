@@ -369,7 +369,7 @@ This function is called after the function pointed out by
       (/ (* 100 (1- pos)) (max total 1)))))
 
 ;;;
-;;; Function for suporting general looking submenu names.
+;;; Function for supporting general looking submenu names.
 ;;; Uses `imenu-submenu-name-format' for creating the name.
 ;;; NAME is the base of the new submenu name.
 ;;;

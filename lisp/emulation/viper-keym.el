@@ -31,8 +31,7 @@
 (defvar vip-insert-intercept-map (make-sparse-keymap))
 (defvar vip-emacs-intercept-map (make-sparse-keymap))
 
-;; keymap used to zap all keymaps other than function-key-map,
-;; devide-function-key-map, etc.
+;; keymap used to zap all keymaps other than function-key-map, etc.
 (defvar vip-overriding-map (make-sparse-keymap))
   
 (vip-deflocalvar vip-vi-local-user-map (make-sparse-keymap)

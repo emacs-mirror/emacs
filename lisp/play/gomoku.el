@@ -266,8 +266,8 @@ is non-nil."
 ;; please send me a note. Thanks.
 
 
-;; As we choosed values 0, 1 and 6 to denote empty, X and O squares, the
-;; contents of a qtuple is uniquely determined by the sum of its elements and
+;; As we chose values 0, 1 and 6 to denote empty, X and O squares, the
+;; contents of a qtuple are uniquely determined by the sum of its elements and
 ;; we just have to set up a translation table.
 
 (defconst gomoku-score-trans-table

@@ -326,7 +326,7 @@ instead call function `nntp-status-message' to get status message.")
       (if nntp-server-list-active-group
 	  (progn
 	    ;; We have read active entries, so we just delete the
-	    ;; superfluos gunk.
+	    ;; superfluous gunk.
 	    (goto-char (point-min))
 	    (while (re-search-forward "^[.2-5]" nil t)
 	      (delete-region (match-beginning 0) 
@@ -936,7 +936,7 @@ It will prompt for a password."
 		(accept-process-output)
 		;; On some Emacs versions the preceding function has
 		;; a tendency to change the buffer. Perhaps. It's
-		;; quite difficult to reporduce, because it only
+		;; quite difficult to reproduce, because it only
 		;; seems to happen once in a blue moon. 
 		(set-buffer buf) 
 		(while (progn

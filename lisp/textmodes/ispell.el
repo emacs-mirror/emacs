@@ -1324,7 +1324,7 @@ Optional second argument contains the dictionary to use; the default is
 ;;;   multiple lines.
 ;;; "ispell-filter-continue" is true when we have received only part of a
 ;;;   line as output from a generating function ("output" did not end with \n)
-;;; NOTE THAT THIS FUNCTION WILL FAIL IF THE PROCESS OUTPUT DOESNT END WITH \n!
+;;; THIS FUNCTION WILL FAIL IF THE PROCESS OUTPUT DOESN'T END WITH \n!
 ;;;   This is the case when a process dies or fails. The default behavior
 ;;;   in this case treats the next input received as fresh input.
 
@@ -1370,7 +1370,7 @@ otherwise it is displayed normally."
 	(inhibit-quit t)		; inhibit interrupt processing here.
 	(buffer-undo-list t))		; don't clutter the undo list.
     (delete-region start end)
-    (insert-char ?  (- end start))	; mimimize amount of redisplay
+    (insert-char ?  (- end start))	; minimize amount of redisplay
     (sit-for 0)				; update display
     (if highlight (setq inverse-video (not inverse-video))) ; toggle video
     (delete-region start end)		; delete whitespace
@@ -2200,7 +2200,7 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 					(point))))
 		   (end (or (and end-c end-fwd (min end-c end-fwd))
 			    end-c end-fwd
-			    ;; defalut to limit of text.
+			    ;; default to limit of text.
 			    (marker-position limit))))
 	      (goto-char start)
 	      (ispell-region start end)

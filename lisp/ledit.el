@@ -3,7 +3,7 @@
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
-;; Keyord: languages
+;; Keyword: languages
 
 ;; This file is part of GNU Emacs.
 

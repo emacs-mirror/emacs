@@ -25,7 +25,7 @@
 
 ;; Having loaded this code you can set the region by holding down the
 ;; shift key and move the cursor to the other end of the region.  The
-;; functionallity provided by this code is similar to that provided by
+;; functionality provided by this code is similar to that provided by
 ;; the editors of Borland International's compilers for ms-dos.
 
 ;; Currently, s-region-move may be bound only to events that are vectors

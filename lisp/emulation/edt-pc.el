@@ -38,7 +38,7 @@
 ;; NumLock must be ON.
 ;;
 ;; The PC keypad keys are mapped to the corresponding DEC LK-201
-;; keypad keys according to the corresponding physical possition on
+;; keypad keys according to the corresponding physical position on
 ;; the keyboard.  Thus, the physical position of the PC keypad key
 ;; determines its function, not the PC keycap name.
 ;;

@@ -580,7 +580,7 @@ will attempt to use the foreign server to post the article."
 	   (match-beginning 0)))
 
 	;; Correct newsgroups field: change sequence of spaces to comma and 
-	;; eliminate spaces around commas.  Eliminate imbedded line breaks.
+	;; eliminate spaces around commas.  Eliminate embedded line breaks.
 	(goto-char (point-min))
 	(if (re-search-forward "^Newsgroups: +" nil t)
 	    (save-restriction
@@ -1353,7 +1353,7 @@ domain is undefined, the domain name is got from it."
 ;; You might for example insert a "." somewhere (not next to another dot
 ;; or string boundary), or modify the newsreader name to "Ding".
 (defun gnus-inews-unique-id ()
-  ;; Dont use microseconds from (current-time), they may be unsupported.
+  ;; Don't use microseconds from (current-time), they may be unsupported.
   ;; Instead we use this randomly inited counter.
   (setq gnus-unique-id-char
 	(% (1+ (or gnus-unique-id-char (logand (random t) (1- (lsh 1 20)))))

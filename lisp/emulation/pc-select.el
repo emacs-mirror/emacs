@@ -494,7 +494,7 @@ the MAC GUI or MS-Windows (sorry for the last one)."
   (define-key global-map "\M-w" 'copy-region-as-kill-nomark) 
 
 
-  ;; The followong keybindings are for standard ISO keyboards
+  ;; The following keybindings are for standard ISO keyboards
   ;; as they are used with IBM compatible PCs, IBM RS/6000,
   ;; MACs, many X-Stations and probably more
   (define-key global-map [S-right]   'forward-char-mark)
@@ -533,7 +533,7 @@ the MAC GUI or MS-Windows (sorry for the last one)."
   (define-key global-map [C-insert]  'copy-region-as-kill)
   (define-key global-map [S-delete]  'kill-region)
 
-  ;; The following bindings are usueful on Sun Type 3 keyboards
+  ;; The following bindings are useful on Sun Type 3 keyboards
   ;; They implement the Get-Delete-Put (copy-cut-paste)
   ;; functions from sunview on the L6, L8 and L10 keys
   (define-key global-map [f16]  'yank)

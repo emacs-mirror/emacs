@@ -766,7 +766,7 @@
 
 
 ;; Emacs has a bug in eventp, which causes (eventp nil) to return (nil)
-;; instead of nil, if '(nil) was previously inadvertantly assigned to
+;; instead of nil, if '(nil) was previously inadvertently assigned to
 ;; unread-command-events
 (defun vip-event-key (event)
   (or (and event (eventp event))

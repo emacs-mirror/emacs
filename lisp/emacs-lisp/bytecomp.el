@@ -938,7 +938,7 @@ otherwise pop it")
 (defun byte-compile-arglist-signatures-congruent-p (old new)
   (not (or
 	 (> (car new) (car old))  ; requires more args now
-	 (and (null (cdr old))    ; tooks rest-args, doesn't any more
+	 (and (null (cdr old))    ; took rest-args, doesn't any more
 	      (cdr new))
 	 (and (cdr new) (cdr old) ; can't take as many args now
 	      (< (cdr new) (cdr old)))
@@ -1381,7 +1381,7 @@ With argument, insert value in current buffer after the form."
 	;; Compile pending forms at end of file.
 	(byte-compile-flush-pending)
 	(byte-compile-warn-about-unresolved-functions)
-	;; SHould we always do this?  When calling multiple files, it
+	;; Should we always do this?  When calling multiple files, it
 	;; would be useful to delay this warning until all have
 	;; been compiled.
 	(setq byte-compile-unresolved-functions nil))))

@@ -87,7 +87,7 @@ This variable is buffer-local.")
 (defvar ielm-header 
   (concat
    "*** Welcome to IELM version "
-   (substring "$Revision: 1.4 $" 11 -2)
+   (substring "$Revision: 1.5 $" 11 -2)
    " ***  Type (describe-mode) for help.\n"
    "IELM has ABSOLUTELY NO WARRANTY; type (describe-no-warranty) for details.\n")
   "Message to display when IELM is started.")
@@ -145,7 +145,7 @@ This variable is buffer-local.")
     (or 
      ;; the buffer has been modified
      (not (= btick (buffer-modified-tick))) 
-     ;; a completions buffer has been modifed or created
+     ;; a completions buffer has been modified or created
      (if cbuffer
 	 (not (= ctick (buffer-modified-tick cbuffer)))
        (get-buffer "*Completions*")))))

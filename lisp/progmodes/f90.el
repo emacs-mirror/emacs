@@ -248,7 +248,7 @@ whether to blink the matching beginning.")
   ;; "set_exponent" "shape" "sign" "sin" "sinh" "size" "spacing" "spread"
   ;; "sqrt" "sum" "system_clock" "tan" "tanh" "tiny" "transfer" "transpose"
   ;; "trim" "ubound" "unpack" "verify")
-  ;; A left paranthesis to avoid highlighting non-procedures.
+  ;; A left parenthesis to avoid highlighting non-procedures.
   ;; Real is taken out here to avoid highlighting declarations.
   (concat
    "\\<\\(a\\(bs\\|c\\(har\\|os\\)\\|djust[lr]\\|i\\(mag\\|nt\\)\\|ll\\(\\|"

@@ -85,7 +85,7 @@
 
 ;;  2. On a monochrome display, the repertoire of faces with which to
 ;;  highlight fine differences is limited. By default, Ediff is using
-;;  underlining. However, if the region is already underlied by some other
+;;  underlining. However, if the region is already underlined by some other
 ;;  overlays, there is no simple way to temporarily remove that residual
 ;;  underlining. This problem occurs when a buffer is highlighted with
 ;;  hilit19.el or font-lock.el packages. If this residual highlighting gets
@@ -175,7 +175,7 @@
     ;; Make a temp file, if source-filename has a magic file handler (or if
     ;; it is handled via auto-mode-alist and similar magic).
     ;; Check if there is a buffer visiting source-filename and if they are in
-    ;; synch; arrange for the deletion of temp file.
+    ;; sync; arrange for the deletion of temp file.
     (ediff-find-file 'true-source-filename 'buf-to-patch
 		     'ediff-last-dir-patch 'startup-hooks)
 
@@ -833,7 +833,7 @@ If WIND-B is nil, use window next to WIND-A."
     
     (save-excursion
       (save-window-excursion
-	(sit-for 0) ; synch before using window-start/end -- a precaution
+	(sit-for 0) ; sync before using window-start/end -- a precaution
 	(select-window wind-A)
 	(setq beg-A (window-start)
 	      end-A (window-end))

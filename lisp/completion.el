@@ -221,7 +221,7 @@
 ;;;    With input from many users at TMC, (rose, craig, and gls come to mind),
 ;;; the current style of interface was developed. 
 ;;;    9/87, Jim and Brewster took terminals home.  Yuck.  After 
-;;; complaining for a while Brewester implemented a subset of the current 
+;;; complaining for a while Brewster implemented a subset of the current 
 ;;; LISPM version for GNU Emacs.  
 ;;;    8/88  After complaining for a while (and with sufficient 
 ;;; promised rewards), Jim reimplemented a version of GNU completion
@@ -1045,7 +1045,7 @@ Each symbol is bound to a single completion entry.")
 ;;; A completion entry is a LIST of string, prefix-symbol num-uses, and
 ;;; last-use-time (the time the completion was last used)
 ;;; last-use-time is T if the string should be kept permanently
-;;; num-uses is incremented everytime the completion is used.
+;;; num-uses is incremented every time the completion is used.
 
 ;;; We chose lists because (car foo) is faster than (aref foo 0) and the 
 ;;; creation time is about the same.

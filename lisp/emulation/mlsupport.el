@@ -26,7 +26,7 @@
 ;; This package provides equivalents of certain primitives from Gosling
 ;; Emacs (including the commercial UniPress versions).  These have an
 ;; ml- prefix to distinguish them from native GNU Emacs functions with
-;; similar names.  The oackage mlconvert.el translates Mocklisp code
+;; similar names.  The package mlconvert.el translates Mocklisp code
 ;; to use these names.
 
 ;;; Code:
