@@ -560,7 +560,7 @@ release the mouse button.  Otherwise, it does not."
 	    ;; Run the binding of the terminating up-event, if possible.
 	    ;; In the case of a multiple click, it gives the wrong results,
 	    ;; because it would fail to set up a region.
-	    (if (and (= (mod mouse-selection-click-count 3) 0) (fboundp fun))
+	    (if nil ;; (and (= (mod mouse-selection-click-count 3) 0) (fboundp fun))
 		;; In this case, we can just let the up-event execute normally.
 		(let ((end (event-end event)))
 		  ;; Set the position in the event before we replay it,
@@ -575,11 +575,15 @@ release the mouse button.  Otherwise, it does not."
 	      (if (not (= (overlay-start mouse-drag-overlay)
 			  (overlay-end mouse-drag-overlay)))
 		  (let (last-command this-command)
+		    (let ((inhibit-quit t))
+		      (setq unread-command-events
+			    (cons (read-event) unread-command-events))
+		      (setq quit-flag nil))
 		    (push-mark (overlay-start mouse-drag-overlay) t t)
 		    (goto-char (overlay-end mouse-drag-overlay))
-		    (delete-overlay mouse-drag-overlay)
 		    (copy-region-as-kill (point) (mark t))
-		    (mouse-set-region-1))
+		    (mouse-set-region-1)
+		    (delete-overlay mouse-drag-overlay))
 		(goto-char (overlay-end mouse-drag-overlay))
 		(setq this-command 'mouse-set-point)
 		(delete-overlay mouse-drag-overlay))))
