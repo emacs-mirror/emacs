@@ -1533,7 +1533,8 @@ the source code display in sync with the debugging session.")
 (defun gud-jdb-build-source-files-list (path extn)
   (apply 'nconc (mapcar (lambda (d)
 			  (when (file-directory-p d)
-			    (directory-files d t extn nil)) path))))
+			    (directory-files d t extn nil)))
+			path)))
 
 ;; Move point past whitespace.
 (defun gud-jdb-skip-whitespace ()
