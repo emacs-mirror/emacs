@@ -970,6 +970,21 @@ will lead to undesirable results, so don't let it happen; the first
 change group you start for any given buffer should be the last one
 finished.
 
++++
+** New variable char-property-alias-alist.
+
+This variable allows you to create alternative names for text
+properties.  It works at the same level as `default-text-properties',
+although it applies to overlays as well.  This variable was introduced
+to implement the `font-lock-face' property.
+
+** New special text property `font-lock-face'.
+
+This property acts like the `face' property, but it is controlled by
+M-x font-lock-mode.  It is not, strictly speaking, a builtin text
+property.  Instead, it is implemented inside font-core.el, using the
+new variable `char-property-alias-alist'.
+
 ** New function remove-list-of-text-properties.
 
 The new function `remove-list-of-text-properties' is almost the same

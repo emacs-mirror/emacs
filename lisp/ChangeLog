@@ -1,3 +1,37 @@
+2002-06-08  Colin Walters  <walters@verbum.org>
+
+	* subr.el (copy-list): Moved here from cl.el.
+	(copy-tree): Renamed here from `cl-copy-tree' in cl.el.
+
+	* replace.el (occur-mode): Don't set up categories.
+	(occur-1): Pass `list-matching-lines-face' and
+	`list-matching-lines-buffer-name-face'.
+	(occur-engine): Use `font-lock-face' instead of categories.
+
+	* info.el (Info-mode): Don't set up categories.
+	(Info-fontify-menu-headers): Use `font-lock-face' instead of categories.
+	(Info-fontify-node): Ditto.
+
+	* ibuffer.el (ibuffer-category-alist): Delete.
+	(ibuffer-get-category): Delete.
+	(ibuffer-compile-make-eliding-form): Use `font-lock-face' instead
+	of categories.
+	(ibuffer-compile-format): Don't treat `name' category specially.
+	(ibuffer-column name): Use `font-lock-face'.
+	(filename-and-process): Ditto.
+	(ibuffer-buffer-name-category): Renamed to
+	`ibuffer-buffer-name-face'.  Don't use categories.
+	(ibuffer-update-title-and-summary): Use `font-lock-face'.
+	(ibuffer-insert-filter-group): Ditto.
+	(ibuffer-mode): Don't set up categories.
+
+	* font-core.el (font-lock-category-alist): Delete.
+	(turn-on-font-lock-if-enabled): Don't use it.
+	(font-lock-symbol-category-alist): Delete.
+	(font-lock-default-function): Use new `char-property-alias-alist'
+	to make `font-lock-face' an alias for `face' when font-lock mode
+	is enabled.
+
 2002-06-08  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (find-file-noselect-1): Undo previous change.
