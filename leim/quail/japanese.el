@@ -168,8 +168,12 @@
 ;;
 ;; SPC, C-n	kkc-next
 ;;	次の変換候補を表示
+;;	kkc-show-conversion-list-count 以上続けて打てば、変換候補リス
+;;	トをエコーエリアに表示
 ;; C-p		kkc-prev
 ;;	前の変換候補を表示
+;;	kkc-show-conversion-list-count 以上続けて打てば、変換候補リス
+;;	トをエコーエリアに表示
 ;; l		kkc-show-conversion-list-or-next-group
 ;;	最高１０個までの変換候補をエコーエリアに表示。
 ;;	続けて打たれれば、次の１０候補を表示。
@@ -305,8 +309,12 @@ current phrase.
 
 SPC, C-n	kkc-next
 	Show the next candidate for the current phrase.
+	If typed `kkc-show-conversion-list-count' counts successively,
+	conversion candidates are shown in the echo area.
 C-p		kkc-prev
 	Show the previous candidate for the current phrase.
+	If typed `kkc-show-conversion-list-count' counts successively,
+	conversion candidates are shown in the echo area.
 l		kkc-show-conversion-list-or-next-group
 	Show at most 10  candidates for the current phrase in echo area.
 	If typed repeatedly, show the next 10 candidates.
