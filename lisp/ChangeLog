@@ -1,3 +1,8 @@
+2000-06-13  Dave Love  <fx@gnu.org>
+
+	* info.el Doc fixes.
+	(Info-build-node-completions): Match Ref tags. 
+
 2000-06-13  Eli Zaretskii <eliz@is.elta.co.il>
 
 	* frame.el (display-multi-frame-p, display-multi-font-p): New
