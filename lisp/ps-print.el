@@ -1,6 +1,6 @@
 ;;; ps-print.el --- Print text from the buffer as PostScript
 
-;; Copyright (C) 1993-2000 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2000 Free Software Foundation, Inc.
 
 ;; Author:	Jim Thompson (was <thompson@wg2.waii.com>)
 ;; Author:	Jacques Duthen (was <duthen@cegelec-red.fr>)
@@ -5372,12 +5372,13 @@ If FACE is not a valid face name, it is used default face."
 		    (setq needs-begin-file t))
 		(save-excursion
 		  (set-buffer ps-source-buffer)
-		  (ps-begin-job)
-		  (when needs-begin-file
-		    (ps-begin-file)
-		    (ps-mule-initialize))
-		  (ps-mule-begin-job from to)
-		  (ps-selected-pages)
+		  (let (ps-even-or-odd-pages)
+		    (ps-begin-job)
+		    (when needs-begin-file
+		      (ps-begin-file)
+		      (ps-mule-initialize))
+		    (ps-mule-begin-job from to)
+		    (ps-selected-pages))
 		  (ps-begin-page))
 		(set-buffer ps-source-buffer)
 		(funcall genfunc from to)
