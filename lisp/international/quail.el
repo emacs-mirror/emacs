@@ -1912,12 +1912,12 @@ or in a newly created frame (if the selected frame has no other windows)."
     (let ((default-enable-multibyte-characters enable-multibyte-characters))
       (or (buffer-live-p quail-guidance-buf)
 	  (setq quail-guidance-buf (generate-new-buffer " *Quail-guidance*"))))
-    (let ((name (quail-name))
-	  (title (quail-title)))
+    (let ((package quail-current-package))
       (with-current-buffer quail-guidance-buf
 	;; To show the title of Quail package.
-	(setq current-input-method name
-	      current-input-method-title title)
+	(setq quail-current-package package
+	      current-input-method (quail-name)
+	      current-input-method-title (quail-title))
 	(erase-buffer)
 	(or (overlayp quail-overlay)
 	    (progn
