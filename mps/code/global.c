@@ -183,6 +183,12 @@ Bool GlobalsCheck(Globals arenaGlobals)
     CHECKL(RingCheck(&arena->greyRing[rank]));
   CHECKL(RingCheck(&arena->chainRing));
 
+  CHECKL(arena->tracedSize >= 0.0);
+  CHECKL(arena->tracedTime >= 0.0);
+  CHECKL(arena->savedStepTime >= 0.0);
+  CHECKL(arena->lastStep >= 0);
+  CHECKL(arena->lastCollected >= 0);
+
   /* can't write a check for arena->epoch */
 
   /* check that each history entry is a subset of the next oldest */
@@ -261,6 +267,11 @@ Res GlobalsInit(Globals arenaGlobals)
   arena->finalPool = NULL;
   arena->busyTraces = TraceSetEMPTY;    /* <code/trace.c> */
   arena->flippedTraces = TraceSetEMPTY; /* <code/trace.c> */
+  arena->tracedSize = 0.0;
+  arena->tracedTime = 0.0;
+  arena->savedStepTime = 0.0;
+  arena->lastStep = mps_clock();
+  arena->lastCollected = mps_clock();
   arena->insideShield = FALSE;          /* <code/shield.c> */
   arena->shCacheI = (Size)0;
   arena->shCacheLimit = (Size)1;
@@ -269,7 +280,7 @@ Res GlobalsInit(Globals arenaGlobals)
   for(i = 0; i < ShieldCacheSIZE; i++)
     arena->shCache[i] = NULL;
 
-  for (i=0; i < TraceLIMIT; i++) {
+ for (i=0; i < TraceLIMIT; i++) {
     /* <design/arena/#trace.invalid> */
     arena->trace[i].sig = SigInvalid;
   }
@@ -556,27 +567,92 @@ void ArenaPoll(Globals globals)
 Bool ArenaStep(Globals globals, double interval)
 {
   double size;
-  Bool b, stepped;
-  Word start;
-  Word end;
+  Size scanned;
+  Bool stepped;
+  Word start, end, now;
+  Word clocks_per_sec;
+  Arena arena;
 
   AVERT(Globals, globals);
   AVER(interval >= 0.0);
 
-  interval = interval * mps_clocks_per_sec();
-  start = mps_clock();
-  end = start + interval;
-  
+  arena = GlobalsArena(globals);
+  clocks_per_sec = mps_clocks_per_sec();
 
+  start = mps_clock();
+  end = start + interval * clocks_per_sec;
   AVER(end >= start);
 
   stepped = FALSE;
+
   /* loop while there is work to do and time on the clock. */
   do {
-    b = TracePoll(globals);
-    if (b)
+    scanned = TracePoll(globals);
+    now = mps_clock();
+    if (scanned > 0) {
       stepped = TRUE;
-  } while (b && mps_clock() < end);
+      arena->tracedSize += scanned;
+    }
+  } while ((scanned > 0) && (now < end));
+
+  if (stepped) {
+    arena->tracedTime += (now - start) / (double) clocks_per_sec;
+    arena->savedStepTime = 0.0;
+    arena->lastStep = now;
+  } else if (interval > 0.0) {
+    /* All the CPU time since we last took a sensible step has been
+     * spent in the mutator.  If this is large, the mutator is busy
+     * and doing an opportunistic collect-world is not a good idea.
+     * But if it is small, and we have accumulated a lot of step time
+     * since then, then the mutator is offering us a lot of time in
+     * comparison to the amount of time it is taking, and can be
+     * considered idle for our purposes.
+     *
+     * Here 'large' and 'small' can be assessed by comparing amounts
+     * of time to the amount of time it would take to scan the arena.
+     *
+     * The problem here is spotting when we are idle.  Suppose that
+     * the mutator was busy a while ago, and there was a collection: a
+     * non-trivial step.  Then the mutator continued for a while but
+     * then went idle.  The continuing calls to mps_arena_step()
+     * continue to save up time but it never looks as if the mutator
+     * is really idle.
+     *
+     * So we need a better heuristic.  If we save up enough time, we
+     * can probably kick off a collection anyway, regardless of
+     * apparent mutator busyness.
+     */
+    double scanRate;
+    Size arenaSize;
+    double arenaScanTime;
+    double sinceLastStep;
+
+    arena->savedStepTime += interval;
+
+    if ((arena->tracedSize > 1000000.0) &&
+        (arena->tracedTime > 1.0))
+      scanRate = arena->tracedSize / arena->tracedTime;
+    else
+      scanRate = 25000000.0; /* a reasonable default. */
+
+    arenaSize = ArenaCommitted(arena) - ArenaSpareCommitted(arena);
+    arenaScanTime = arenaSize / scanRate;
+    if (arenaScanTime < 1.0)
+      arenaScanTime = 1.0;     /* clamp below to avoid being too eager */
+    sinceLastStep = (now - arena->lastStep) / (double) clocks_per_sec;
+    if ((arena->lastStep > arena->lastCollected) &&
+        ((arena->savedStepTime > arenaScanTime * 4.0) ||
+         ((arena->savedStepTime > arenaScanTime) &&
+          ((sinceLastStep < arenaScanTime / 10.0))))) {
+      /* either we've accumulated masses of step time since the last
+       * step, or the mutator seems idle and we've accumulated quite a
+       * bit. */
+      ArenaStartCollect(globals);
+      arena->savedStepTime = 0.0;
+      arena->lastStep = now;
+      arena->lastCollected = now;
+    }
+  }
 
   size = globals->fillMutatorSize;
   globals->pollThreshold = size + ArenaPollALLOCTIME;

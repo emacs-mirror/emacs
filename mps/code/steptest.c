@@ -25,6 +25,8 @@
 #define ambigRootsCOUNT   50
 #define objCOUNT          2000000
 #define clockSetFREQ      10000
+#define multiStepFREQ     500000
+#define multiStepSTEPS    100
 
 #define genCOUNT          3
 #define gen1SIZE          750  /* kB */
@@ -298,7 +300,8 @@ static void *test(void *arg, size_t s)
     mps_fmt_t format;
     mps_chain_t chain;
     mps_root_t exactRoot, ambigRoot;
-    unsigned long objs; size_t i;
+    unsigned long objs;
+    size_t i, j;
     mps_message_t message;
     size_t live, condemned, not_condemned;
     size_t messages;
@@ -374,6 +377,10 @@ static void *test(void *arg, size_t s)
 
         if (objs % step_frequencies[test_number] == 0)
             test_step(arena);
+
+        if (objs % multiStepFREQ == 0)
+            for (j=0; j<multiStepSTEPS; ++j)
+                test_step(arena);
 
         if (objs % clockSetFREQ == 0)
             set_clock_timing();

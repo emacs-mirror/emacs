@@ -273,14 +273,14 @@ static void traceUpdateCounts(Trace trace, ScanState ss,
 {
   switch(phase) {
   case traceAccountingPhaseRootScan:
-    STATISTIC(trace->rootScanSize += ss->scannedSize);
-    STATISTIC(trace->rootCopiedSize += ss->copiedSize);
+    trace->rootScanSize += ss->scannedSize;
+    trace->rootCopiedSize += ss->copiedSize;
     STATISTIC(++trace->rootScanCount);
     break;
 
   case traceAccountingPhaseSegScan:
     trace->segScanSize += ss->scannedSize; /* see .workclock */
-    STATISTIC(trace->segCopiedSize += ss->copiedSize);
+    trace->segCopiedSize += ss->copiedSize;
     STATISTIC(++trace->segScanCount);
     break;
 
@@ -657,11 +657,11 @@ found:
   STATISTIC(trace->greySegCount = (Count)0);
   STATISTIC(trace->greySegMax = (Count)0);
   STATISTIC(trace->rootScanCount = (Count)0);
-  STATISTIC(trace->rootScanSize = (Size)0);
-  STATISTIC(trace->rootCopiedSize = (Size)0);
+  trace->rootScanSize = (Size)0;
+  trace->rootCopiedSize = (Size)0;
   STATISTIC(trace->segScanCount = (Count)0);
   trace->segScanSize = (Size)0; /* see .workclock */
-  STATISTIC(trace->segCopiedSize = (Size)0);
+  trace->segCopiedSize = (Size)0;
   STATISTIC(trace->singleScanCount = (Count)0);
   STATISTIC(trace->singleScanSize = (Size)0);
   STATISTIC(trace->singleCopiedSize = (Size)0);
@@ -1467,9 +1467,9 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
 
 /* traceWorkClock -- a measure of the work done for this trace
  *
- * .workclock: Segment scanning work is the regulator.  */
+ * .workclock: Segment and root scanning work is the regulator.  */
 
-#define traceWorkClock(trace) (trace)->segScanSize
+#define traceWorkClock(trace) ((trace)->segScanSize + (trace)->rootScanSize)
 
 
 /* traceQuantum -- progresses a trace by one quantum */
@@ -1541,16 +1541,17 @@ failCondemn:
 
 /* TracePoll -- Check if there's any tracing work to be done */
 
-Bool TracePoll(Globals globals)
+Size TracePoll(Globals globals)
 {
   Trace trace;
   Res res;
   Arena arena;
-  Bool done = FALSE;
+  Size scannedSize;
 
   AVERT(Globals, globals);
   arena = GlobalsArena(globals);
 
+  scannedSize = (Size)0;
   if (arena->busyTraces == TraceSetEMPTY) {
     /* If no traces are going on, see if we need to start one. */
     Size sFoundation, sCondemned, sSurvivors, sConsTrace;
@@ -1574,7 +1575,7 @@ Bool TracePoll(Globals globals)
       res = traceStartCollectAll(&trace, arena);
       if (res != ResOK)
         goto failStart;
-      done = TRUE;
+      scannedSize = traceWorkClock(trace);
     } else { /* Find the nursery most over its capacity. */
       Ring node, nextNode;
       double firstTime = 0.0;
@@ -1603,26 +1604,28 @@ Bool TracePoll(Globals globals)
         trace->chain = firstChain;
         ChainStartGC(firstChain, trace);
         TraceStart(trace, mortality, trace->condemned * TraceWorkFactor);
-        done = TRUE;
+        scannedSize = traceWorkClock(trace);
       }
     } /* (dynamicDeferral > 0.0) */
   } /* (arena->busyTraces == TraceSetEMPTY) */
 
   /* If there is a trace, do one quantum of work. */
   if (arena->busyTraces != TraceSetEMPTY) {
+    Size oldScanned;
     trace = ArenaTrace(arena, (TraceId)0);
     AVER(arena->busyTraces == TraceSetSingle(trace));
+    oldScanned = traceWorkClock(trace);
     traceQuantum(trace);
+    scannedSize = traceWorkClock(trace) - oldScanned;
     if (trace->state == TraceFINISHED)
       TraceDestroy(trace);
-    done = TRUE;
   }
-  return done;
+  return scannedSize;
 
 failCondemn:
   TraceDestroy(trace);
 failStart:
-  return FALSE;
+  return (Size)0;
 }
 
 
