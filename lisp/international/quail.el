@@ -2306,7 +2306,8 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 			  (or (> (length x) (length y))
 			      (and (= (length x) (length y))
 				   (not (string< x y))))))))
-  (let ((frame-width (frame-width))
+  (let ((frame-width (frame-width (window-frame (get-buffer-window
+						 (current-buffer) 'visible))))
 	(single-key-width 3)
 	(single-trans-width 4)
 	(multiple-key-width 3)
@@ -2399,10 +2400,17 @@ package to describe."
       (setq package (assoc package quail-package-alist))
     (setq package quail-current-package))
   (let ((help-xref-mule-regexp help-xref-mule-regexp-template))
+    ;; At first, make sure that the help buffer has window.
     (with-output-to-temp-buffer "*Help*"
       (save-excursion
 	(set-buffer standard-output)
-	(setq quail-current-package package)
+	(setq quail-current-package package)))
+    ;; Then, insert text in the help buffer while paying attention to
+    ;; the width of the frame in which the buffer displayed.
+    (save-excursion
+      (progn
+	(set-buffer (get-buffer "*Help*"))
+	(setq buffer-read-only nil)
 	(insert "Input method: " (quail-name)
 		" (mode line indicator:"
 		(quail-title)
