@@ -227,9 +227,8 @@ rectangle, all continuous whitespace starting at that column is deleted."
 
 ;;;###autoload
 (defun string-rectangle (start end string)
-  "Insert STRING on each line of the region-rectangle, shifting text right.
-The left edge of the rectangle specifies the column for insertion.
-This command does not delete or overwrite any existing text.
+  "Replace rectangle contents with STRING on each line.
+The length of STRING need not be the same as the rectangle width.
 
 Called from a program, takes three args; START, END and STRING."
   (interactive "r\nsString rectangle: ")
@@ -238,7 +237,8 @@ Called from a program, takes three args; START, END and STRING."
 
 (defun string-rectangle-line (startpos begextra endextra)
   (let (whitespace)
-    (goto-char startpos)
+    ;; Delete the width of the rectangle.
+    (delete-region startpos (point))
     ;; Compute horizontal width of following whitespace.
     (let ((ocol (current-column)))
       (skip-chars-forward " \t")
