@@ -115,6 +115,10 @@ at the URL @uref{http://www.gnu.org/software/guile/guile.html}
 and then contact the Guile developers at @email{guile@@gnu.org}.
 
 @item
+A package to convert programs written using MS Access into Scheme,
+making use of a free data base system and the GTK toolkit.
+
+@item
 Help develop XmHTML.  See @uref{http://www.xs4all.nl/~ripley/XmHTML/}.
 
 @item
