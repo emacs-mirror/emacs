@@ -1,3 +1,7 @@
+2001-01-10  Dave Love  <fx@gnu.org>
+
+	* ansi-color.el (ansi-colors) <defgroup>: Fix :version.
+
 2001-01-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* simple.el (set-variable): Force a thorough redisplay for the
