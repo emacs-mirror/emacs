@@ -1,6 +1,6 @@
 /*  impl.c.than: ANSI THREADS MANAGER
  *
- *  $HopeName: MMsrc!than.c(trunk.17) $
+ *  $HopeName: MMsrc!than.c(trunk.18) $
  *  Copyright (C) 1995, 1997 Harlequin Group, all rights reserved
  *
  *  This is a single-threaded implementation of the threads manager.
@@ -14,7 +14,15 @@
 
 #include "mpm.h"
 
-SRCID(than, "$HopeName: MMsrc!than.c(trunk.17) $");
+SRCID(than, "$HopeName: MMsrc!than.c(trunk.18) $");
+
+
+typedef struct ThreadStruct {   /* ANSI fake thread structure */
+  Sig sig;                      /* design.mps.sig */
+  Serial serial;                /* from arena->threadSerial */
+  Arena arena;                  /* owning arena */
+  RingStruct arenaRing;         /* attaches to arena */
+} ThreadStruct;
 
 
 Bool ThreadCheck(Thread thread)
@@ -23,6 +31,13 @@ Bool ThreadCheck(Thread thread)
   CHECKU(Arena, thread->arena);
   CHECKL(thread->serial < thread->arena->threadSerial);
   CHECKL(RingCheck(&thread->arenaRing));
+  return TRUE;
+}
+
+
+Bool ThreadCheckSimple(Thread thread)
+{
+  CHECKS(Thread, thread);
   return TRUE;
 }
 
@@ -84,6 +99,15 @@ void ThreadRingResume(Ring threadRing)
 {
   AVERT(Ring, threadRing);
   return;
+}
+
+Thread ThreadRingThread(Ring threadRing)
+{
+  Thread thread;
+  AVERT(Ring, threadRing);
+  thread = RING_ELT(Thread, arenaRing, threadRing);
+  AVERT(Thread, thread);
+  return thread;
 }
 
 

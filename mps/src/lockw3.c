@@ -1,6 +1,6 @@
 /* impl.c.lockw3: RECURSIVE LOCKS IN WIN32
  *
- * $HopeName$
+ * $HopeName: MMsrc!lockw3.c(trunk.11) $
  * Copyright (C) 1995, 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * .design: These are implemented using critical sections.
@@ -29,8 +29,21 @@
 
 #include "mpswin.h"
 
-SRCID(lockw3, "$HopeName: MMsrc!lockw3.c(trunk.10) $");
+SRCID(lockw3, "$HopeName: MMsrc!lockw3.c(trunk.11) $");
 
+
+/* .lock.win32: Win32 lock structure; uses CRITICAL_SECTION */
+typedef struct LockStruct {
+  Sig sig;                      /* design.mps.sig */
+  unsigned long claims;         /* # claims held by the owning thread */
+  CRITICAL_SECTION cs;          /* Win32's recursive lock thing */
+} LockStruct;
+
+
+size_t LockSize(void)
+{
+  return sizeof(LockStruct);
+}
 
 Bool LockCheck(Lock lock)
 {
@@ -91,26 +104,53 @@ void LockReleaseRecursive(Lock lock)
 }
 
 
-/* Global locking is performed by a normal lock. */
+
+/* Global locking is performed by normal locks. 
+ * A separate lock structure is used for recursive and 
+ * non-recursive locks so that each may be differently ordered
+ * with respect to client-allocated locks.
+ */
 
 static LockStruct globalLockStruct;
+static LockStruct globalRecLockStruct;
 static Lock globalLock = &globalLockStruct;
-static Bool globalLockInit = FALSE; /* TRUE iff globalLock initialized */
+static Lock globalRecLock = &globalRecLockStruct;
+static Bool globalLockInit = FALSE; /* TRUE iff initialized */
+
+
+static void lockEnsureGlobalLock(void)
+{
+  /* Ensure both global locks have been initialized. */
+  /* There is a race condition initializing them. */
+  if (!globalLockInit) {
+    LockInit(globalLock);
+    LockInit(globalRecLock);
+    globalLockInit = TRUE;
+  }
+}
 
 void LockClaimGlobalRecursive(void)
 {
-  /* Ensure the global lock has been initialized */
-  /* There is a race condition initializing the lock. */
-  if (!globalLockInit) {
-    LockInit(globalLock);
-    globalLockInit = TRUE;
-  }
+  lockEnsureGlobalLock();
   AVER(globalLockInit);
-  LockClaimRecursive(globalLock);
+  LockClaimRecursive(globalRecLock);
 }
 
 void LockReleaseGlobalRecursive(void)
 {
   AVER(globalLockInit);
-  LockReleaseRecursive(globalLock);
+  LockReleaseRecursive(globalRecLock);
+}
+
+void LockClaimGlobal(void)
+{
+  lockEnsureGlobalLock();
+  AVER(globalLockInit);
+  LockClaim(globalLock);
+}
+
+void LockReleaseGlobal(void)
+{
+  AVER(globalLockInit);
+  LockReleaseMPM(globalLock);
 }

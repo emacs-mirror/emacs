@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.64) $
+ * $HopeName: MMsrc!arena.c(trunk.65) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.64) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.65) $");
 
 
 /* Forward declarations */
@@ -51,9 +51,18 @@ static Bool NSEGCheck(NSEG nseg);
 /* design.mps.arena.static.ring.init */
 static Bool arenaRingInit = FALSE; 
 static RingStruct arenaRing;       /* design.mps.arena.static.ring */
-/* design.mps.arena.static.ring.lock */
-static LockStruct arenaRingLock;   
 static Serial arenaSerial;         /* design.mps.arena.static.serial */
+
+/* Functions to lock the arena ring. design.mps.arena.static.ring.lock */
+static void arenaClaimRingLock(void)
+{
+  LockClaimGlobal();  /* claim the global lock to protect arenaRing */
+}
+
+static void arenaReleaseRingLock(void)
+{
+  LockReleaseGlobal();  /* release the global lock protecting arenaRing */
+}
 
 #define SegArena(seg) PoolArena(SegPool(seg))
 
@@ -420,7 +429,7 @@ Bool ArenaCheck(Arena arena)
   /* Can't check that limit>=size because we may call ArenaCheck */
   /* while the size is being adjusted. */
 
-  CHECKD(Lock, &arena->lockStruct);
+  CHECKL(LockCheck(arena->lock));
 
   /* no check possible on arena->pollThreshold */
   CHECKL(BoolCheck(arena->insidePoll));
@@ -502,7 +511,6 @@ Bool ArenaCheck(Arena arena)
   /* we also check the statics now. design.mps.arena.static.check */
   CHECKL(BoolCheck(arenaRingInit));
   CHECKL(RingCheck(&arenaRing));
-  CHECKD(Lock, &arenaRingLock);
   /* can't check arenaSerial */
   
   for(rank = 0; rank < RankMAX; ++rank)
@@ -519,7 +527,7 @@ Bool ArenaCheck(Arena arena)
  * responsible for allocating the descriptor.
  */
 
-void ArenaInit(Arena arena, ArenaClass class)
+void ArenaInit(Arena arena, Lock lock, ArenaClass class)
 {
   Index i;
   Rank rank;
@@ -551,7 +559,8 @@ void ArenaInit(Arena arena, ArenaClass class)
   }
   arena->reservoirLimit = (Size)0;
   arena->reservoirSize = (Size)0;
-  LockInit(&arena->lockStruct);
+  LockInit(lock);
+  arena->lock = lock;
   arena->insideShield = FALSE;          /* impl.c.shield */
   arena->shCacheI = (Size)0;
   arena->shCacheLimit = (Size)1;
@@ -606,14 +615,11 @@ Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
   AVERT(ArenaClass, class);
 
   EventInit();
-
-  if(arenaRingInit) {
-    /* Race condition; see design.mps.arena.static.ring.init */
-    LockClaim(&arenaRingLock);
-  } else { /* there isn't a arena ring yet */
+  
+  arenaClaimRingLock();
+  if(!arenaRingInit) {
+    /* there isn't an arena ring yet */
     /* design.mps.arena.static.init */
-    LockInit(&arenaRingLock);
-    LockClaim(&arenaRingLock);
     arenaRingInit = TRUE;
     RingInit(&arenaRing);
     arenaSerial = (Serial)0;
@@ -656,7 +662,7 @@ Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
 
   /* Add initialized arena to the global list of arenas. */
   RingAppend(&arenaRing, &arena->globalRing);
-  LockReleaseMPM(&arenaRingLock);
+  arenaReleaseRingLock();
 
   *arenaReturn = arena;
   return ResOK;
@@ -668,7 +674,7 @@ failControlInit:
 failReservoirInit:
   (*class->finish)(arena);
 failInit:
-  LockReleaseMPM(&arenaRingLock);
+  arenaReleaseRingLock();
 
   return res;
 }
@@ -689,7 +695,7 @@ void ArenaFinish(Arena arena)
                           arena->writeBarrierHitCount));
 
   arena->sig = SigInvalid;
-  LockFinish(&arena->lockStruct);
+  LockFinish(arena->lock);
   RingFinish(&arena->poolRing);
   RingFinish(&arena->formatRing);
   RingFinish(&arena->messageRing);
@@ -713,10 +719,19 @@ void ArenaDestroy(Arena arena)
   /* Empty the reservoir - see .reservoir.finish */
   ArenaReservoirLimitSet(arena, 0);
 
+  /* Temporarily give up the arena lock to avoid deadlock */
+  /* see design.mps.arena.lock.avoid.conflict */
+  ArenaLeave(arena);
+
   /* Detach the arena from the global list. */
-  LockClaim(&arenaRingLock);
+  arenaClaimRingLock();
   RingRemove(&arena->globalRing);
-  LockReleaseMPM(&arenaRingLock);
+  arenaReleaseRingLock();
+
+  /* Reclaim the arena lock and re-test assumptions */
+  ArenaEnter(arena);
+  AVERT(Arena, arena);
+  AVER(!arena->insidePoll);
 
   class = arena->class;
 
@@ -778,7 +793,7 @@ void ArenaEnter(Arena arena)
   AVER(arena->sig == ArenaSig);
 
   StackProbe(STACK_PROBE_DEPTH);
-  LockClaim(&arena->lockStruct);
+  LockClaim(arena->lock);
   AVERT(Arena, arena); /* can't AVER it until we've got the lock */
   ShieldEnter(arena);
 }
@@ -801,7 +816,7 @@ void ArenaLeave(Arena arena)
   AVERT(Arena, arena);
   ShieldLeave(arena);
   ProtSync(arena);              /* design.mps.prot.if.sync */
-  LockReleaseMPM(&arena->lockStruct);
+  LockReleaseMPM(arena->lock);
 }
 #endif
 
@@ -819,7 +834,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
   Ring node, nextNode;
   Res res;
 
-  LockClaim(&arenaRingLock);    /* design.mps.arena.lock.ring */
+  arenaClaimRingLock();    /* design.mps.arena.lock.ring */
   RING_FOR(node, &arenaRing, nextNode) {
     Arena arena = RING_ELT(Arena, globalRing, node);
     Root root;
@@ -831,7 +846,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
     /* protected root on a segment. */
     /* It is possible to overcome this restriction. */
     if(SegOfAddr(&seg, arena, addr)) {
-      LockReleaseMPM(&arenaRingLock);
+      arenaReleaseRingLock();
       /* An access in a different thread may have already caused
        * the protection to be cleared.  This avoids calling
        * TraceAccess on protection that has already been cleared on
@@ -845,7 +860,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
       ArenaLeave(arena);
       return TRUE;
     } else if(RootOfAddr(&root, arena, addr)) {
-      LockReleaseMPM(&arenaRingLock);
+      arenaReleaseRingLock();
       mode &= RootPM(root);
       if(mode != AccessSetEMPTY)
         RootAccess(root, mode);
@@ -856,7 +871,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
     ArenaLeave(arena);
   }
 
-  LockReleaseMPM(&arenaRingLock);
+  arenaReleaseRingLock();
   return FALSE;
 }
 
@@ -1033,7 +1048,7 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
                "  poolReady $S\n",     arena->poolReady ? "YES" : "NO",
                "  controlPool $P\n",   
                (WriteFP)&arena->controlPoolStruct,
-               "  lock $P\n",          (WriteFP)&arena->lockStruct,
+               "  lock $P\n",          (WriteFP)arena->lock,
                "  pollThreshold $U KB\n",
                (WriteFU)(arena->pollThreshold / 1024),
                "  insidePoll $S\n",    arena->insidePoll ? "YES" : "NO",
@@ -1113,7 +1128,7 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
   }
 
   RING_FOR(node, &arena->threadRing, nextNode) {
-    Thread thread = RING_ELT(Thread, arenaRing, node);
+    Thread thread = ThreadRingThread(node);
     res = ThreadDescribe(thread, stream);
     if(res != ResOK) return res;
   }
