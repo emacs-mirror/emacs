@@ -4191,7 +4191,7 @@ Automatically becomes buffer-local when set in any fashion.");
 
   DEFVAR_PER_BUFFER ("case-fold-search", &current_buffer->case_fold_search,
 		     Qnil,
-    "*Non-nil if searches should ignore case.\n\
+    "*Non-nil if searches and matches should ignore case.\n\
 Automatically becomes buffer-local when set in any fashion.");
 
   DEFVAR_PER_BUFFER ("fill-column", &current_buffer->fill_column,
