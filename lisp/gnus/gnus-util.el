@@ -31,7 +31,7 @@
 ;;; Code:
 
 (require 'custom)
-(require 'cl)
+(eval-when-compile (require 'cl))
 (require 'nnheader)
 (require 'timezone)
 (require 'message)
@@ -457,7 +457,9 @@ jabbering all the time."
 If N, return the Nth ancestor instead."
   (when references
     (let ((ids (inline (gnus-split-references references))))
-      (car (last ids (or n 1))))))
+      (while (nthcdr (or n 1) ids)
+	(setq ids (cdr ids)))
+      (car ids))))
 
 (defsubst gnus-buffer-live-p (buffer)
   "Say whether BUFFER is alive or not."
