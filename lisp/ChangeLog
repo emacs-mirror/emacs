@@ -7,6 +7,9 @@
 
 2001-12-16  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* log-view.el (log-view-message-re, log-view-current-tag):
+	Recognize Subversion's log output format.
+
 	* international/fontset.el: Build the list L at compile time.
 
 	* language/ind-util.el (mapthread): Make a closure.
