@@ -1095,7 +1095,7 @@ Keybindings:
 ;;	case-fold-search nil
 	buffer-read-only t
 	selective-display t		; for subdirectory hiding
-	mode-line-buffer-identification '("Dired: %17b"))
+	mode-line-buffer-identification '("  %17b"))
   (set (make-local-variable 'revert-buffer-function)
        (function dired-revert))
   (set (make-local-variable 'page-delimiter)
