@@ -946,6 +946,12 @@ count backward from the end of the year.
 This can be controlled through the variables `diary-header-line-flag'
 and `diary-header-line-format'.
 
++++
+** The procedure for activating appointment reminders has changed: use
+the new function `appt-activate'. The new variable
+`appt-display-format' controls how reminders are displayed, replacing
+appt-issue-message, appt-visible, and appt-msg-window.
+
 ** VC Changes
 
 *** The key C-x C-q no longer checks files in or out, it only changes
