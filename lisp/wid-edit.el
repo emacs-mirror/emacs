@@ -3187,7 +3187,7 @@ To use this type, you must define :match or :match-alternatives."
 			   (aref value 0)
 			 value))
   :match (lambda (widget value)
-	   (char-valid-p value)))
+	   (characterp value)))
 
 (define-widget 'list 'group
   "A Lisp list."
