@@ -331,8 +331,12 @@ discard_tty_input ()
    the terminal.  */
 
 void
+#ifdef PROTOTYPES
+stuff_char (char c)
+#else
 stuff_char (c)
      char c;
+#endif
 {
   if (read_socket_hook)
     return;
