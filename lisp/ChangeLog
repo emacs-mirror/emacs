@@ -1,3 +1,8 @@
+2001-01-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* isearch.el (isearch-done): Set isearch-lazy-highlight-start
+	to nil.
+
 2001-01-10  Dave Love  <fx@gnu.org>
 
 	* vc-cvs.el (vc-cvs-header): Fix :type.
