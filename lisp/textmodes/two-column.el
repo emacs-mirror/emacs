@@ -9,7 +9,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -30,34 +30,6 @@
 
 ;; Minora modalo por samtempa dukolumna	Minor mode for simultaneous
 ;; tajpado				two-column editing
-
-;; ^Ci dataro estas ero de GNU Emacs.	This file is part of GNU Emacs.
-
-;; GNU  Emacs  estas  disdonata   en la	GNU Emacs is distributed in the hope
-;; espero  ke ^gi estos utila,  sed SEN	that it will  be useful, but WITHOUT
-;; IA  GARANTIO.   Neniu   a^utoro  a^u	ANY    WARRANTY.     No  author   or
-;; disdonanto  akceptas respondecon  al	distributor   accepts responsibility
-;; iu ajn  por la sekvoj de ^gia uzado,	to  anyone for the   consequences of
-;; a^u  ^cu  ^gi serveblas al  iu celo,	using it or  for  whether it  serves
-;; a^u e^c  entute funkcias,  se  li ni	any particular purpose   or works at
-;; estas skribinta  tion.  Vidu la  GNU	all,  unless he says so  in writing.
-;; Emacs ^Generala Publika  Licenco por	Refer  to  the   GNU  Emacs  General
-;; plenaj detaloj.			Public License for full details.
-
-;; ^Ciu rajtas  kopii,  modifi kaj  ree	Everyone  is  granted permission  to
-;; disdoni  GNU Emacs,  sed nur  sub la	copy,  modify and  redistribute  GNU
-;; condi^coj  priskribitaj  en  la  GNU	Emacs, but only under the conditions
-;; Emacs  ^Generala  Publika   Licenco.	described in  the  GNU Emacs General
-;; Kopio de  tiu licenso estas supozata	Public  License.   A copy   of  this
-;; donita al vi kune kun GNU Emacs, por	license  is supposed to have    been
-;; ke   vi  sciu   viajn  rajtojn   kaj	given to you along with GNU Emacs so
-;; respondecojn.   ^Gi  devus  esti  en	you   can   know   your   rights and
-;; dataro    nomata    COPYING.   Inter	responsibilities.  It should be in a
-;; alia^joj,  la notico  pri  kopirajto	file named    COPYING.   Among other
-;; kaj  ^ci  notico devas esti  gardata	things, the  copyright   notice  and
-;; sur ^ciuj kopioj.			this notice must be preserved on all
-;;					copies.
-
 
 ;; Tiu minora  modalo  ebligas  al   vi	This     minor mode  allows  you  to
 ;; tajpi   sendepende  en   du   apudaj	independently    edit two   adjacent
