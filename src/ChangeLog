@@ -1,3 +1,8 @@
+2002-11-09  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* syntax.c (scan_sexps_forward): Update syntax table before reading
+	a char rather than after so we don't update the table past eob.
+
 2002-11-09  Dave Love  <fx@gnu.org>
 
 	* buffer.c (Fset_buffer_major_mode): Fix last change.

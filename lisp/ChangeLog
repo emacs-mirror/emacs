@@ -1,16 +1,43 @@
 2002-11-09  Dave Love  <fx@gnu.org>
 
-	* international/mule-cmds.el (current-language-environment): Fix
-	:type.
+	* international/mule-cmds.el (current-language-environment): Fix :type.
 
 	* international/ucs-tables.el: Revert to using
 	translation-table-for-input instead of keyboard-translate-table.
 
-	* international/quail.el (quail-input-string-to-events): Revert
-	last change.
+	* international/quail.el (quail-input-string-to-events):
+	Revert last change.
 
-	* simple.el (quoted-insert): Bind translation-table-for-input, not
-	keyboard-translate-table.
+	* simple.el (quoted-insert): Bind translation-table-for-input,
+	not keyboard-translate-table.
+
+2002-11-08  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* arc-mode.el (archive-zip-summarize): Don't hardcode (point-min) = 1.
+
+	* complete.el (PC-do-completion): Make partial-completion work
+	with incomplete directory names.
+
+	* textmodes/tex-mode.el (latex-standard-block-names): Rename from
+	standard-latex-block-names.
+	(tex-font-lock-keywords-1): Add providecommand, renewenvironment,
+	and renewtheorem.  Highlight \it and \bf separately since they
+	may overlap.
+	(tex-font-lock-suscript, tex-font-lock-unfontify-region): New funs.
+	(tex-font-lock-keywords-3, tex-verbatim-environments)
+	(tex-font-lock-syntactic-keywords): New vars.
+	(superscript, subscript, tex-verbatim-face): New faces.
+	(tex-font-lock-syntactic-face-function): Handle \verb construct.
+	(tex-common-initialization): Update font-lock-defaults setting.
+	(tex-insert-braces): Make it into a skeleton.
+	(latex-fill-nobreak-predicate): Don't break after \.
+	(latex-insert-block): Rename from tex-latex-block.
+	(latex-down-list): Use tex-mode-syntax-table when skipping parens
+	rather than the indentation syntax-table.
+	(latex-close-block): Rename from tex-close-latex-block.
+	(latex-split-block): New fun.
+	(latex-indent): Don't indent inside a verbatim block.
+	(latex-find-indent): Stick \begin{verbatim} to the margin.
 
 2002-11-08  John Wiegley  <johnw@gnu.org>
 
