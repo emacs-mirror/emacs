@@ -106,10 +106,11 @@ struct mps_fmt_A_s fmtA =
    the allocated object to have
 */
 
-mycell *allocdumb(mps_ap_t ap, size_t size, mps_rank_t rank)
-{
+mps_res_t allocrdumb(mps_addr_t *addr, mps_ap_t ap,
+                      size_t size, mps_rank_t rank) {
  mycell *q;
  size_t bytes;
+ mps_res_t res;
  size_t alignment;
 
  bytes = offsetof(struct data, ref) + size;
@@ -121,9 +122,10 @@ mycell *allocdumb(mps_ap_t ap, size_t size, mps_rank_t rank)
 
  do
  {
-  die(mps_reserve(&exfmt_root, ap, bytes), "Reserve: ");
+  res = mps_reserve(addr, ap, bytes);
+  if (res) goto Finish;
   INCCOUNT(RESERVE_COUNT);
-  q=exfmt_root;
+  q=*addr;
   q->data.tag = (mps_word_t) wrapper;
   q->data.assoc = NULL;
   q->data.id = nextid;
@@ -133,20 +135,29 @@ mycell *allocdumb(mps_ap_t ap, size_t size, mps_rank_t rank)
   q->data.rank = rank;
   q->data.size = bytes;
  }
- while (!mps_commit(ap, exfmt_root, bytes));
+ while (!mps_commit(ap, *addr, bytes));
  INCCOUNT(ALLOC_COUNT);
  commentif(alloccomments, "allocated id %li at %p.", nextid, q);
  nextid += 1;
 
+Finish:
+ return res;
+}
+
+mycell *allocdumb(mps_ap_t ap, size_t size, mps_rank_t rank) {
+ mycell *q;
+
+ die(allocrdumb(&exfmt_root, ap, size, rank), "Reserve: ");
+ q = exfmt_root;
  return q;
 }
 
-mycell *allocone(mps_ap_t ap, int size, mps_rank_t rank)
-{
+mps_res_t allocrone(mps_addr_t *addr, mps_ap_t ap, int size, mps_rank_t rank) {
  mycell *q;
  int i;
  size_t bytes;
  size_t alignment;
+ mps_res_t res;
 
  bytes = offsetof(struct data, ref) + size*sizeof(struct refitem);
 
@@ -157,9 +168,10 @@ mycell *allocone(mps_ap_t ap, int size, mps_rank_t rank)
 
  do
  {
-  die(mps_reserve(&exfmt_root, ap, bytes), "Reserve: ");
+  res = mps_reserve(addr, ap, bytes);
+  if (res) goto Finish;
   INCCOUNT(RESERVE_COUNT);
-  q=exfmt_root;
+  q=*addr;
   q->data.tag = MCdata + (mps_word_t) wrapper;
   q->data.assoc = NULL;
   q->data.id = nextid;
@@ -175,14 +187,23 @@ mycell *allocone(mps_ap_t ap, int size, mps_rank_t rank)
    q->data.ref[i].id   = 0;
   }
  }
- while (!mps_commit(ap, exfmt_root, bytes));
+ while (!mps_commit(ap, *addr, bytes));
  INCCOUNT(ALLOC_COUNT);
  commentif(alloccomments, "allocated id %li at %p.", nextid, q);
  nextid += 1;
 
+Finish:
+ return res;
+}
+
+mycell *allocone(mps_ap_t ap, int size, mps_rank_t rank) {
+ mycell *q;
+
+ die(allocrone(&exfmt_root, ap, size, rank), "Reserve: ");
+ q = exfmt_root;
  return q;
 }
- 
+
 static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 {
  int i;
