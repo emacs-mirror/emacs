@@ -1,3 +1,9 @@
+2000-12-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* fileio.c (Fcopy_file): Rename the last argument to keep_time, to
+	be consistent with the doc string.  Reported by NAKAJIMA Mikio
+	<minakaji@osaka.email.ne.jp>.
+
 2000-12-16  Kenichi Handa  <handa@etl.go.jp>
 
 	* xfaces.c (Vface_ignored_fonts): New variable.
