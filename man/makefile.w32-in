@@ -47,14 +47,15 @@ INFO_TARGETS = $(infodir)/emacs $(infodir)/ccmode \
 		$(infodir)/speedbar $(infodir)/tramp \
 		$(infodir)/ses $(infodir)/smtpmail \
 		$(infodir)/flymake $(infodir)/emacs-xtra \
+		$(infodir)/org $(infodir)url \
 		$(infodir)/pgg $(infodir)/sieve
 DVI_TARGETS = 	emacs.dvi calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
 		 ediff.dvi forms.dvi gnus.dvi message.dvi mh-e.dvi \
 		 reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi faq.dvi \
 		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi \
-		 pcl-cvs.dvi woman.dvi emacs-mime.dvi eshell.dvi \
+		 org.dvi pcl-cvs.dvi woman.dvi emacs-mime.dvi eshell.dvi \
 		 speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi flymake.dvi \
-		 emacs-xtra.dvi pgg.dvi sieve.dvi
+		 emacs-xtra.dvi pgg.dvi sieve.dvi url.dvi
 INFOSOURCES = info.texi
 
 # The following rule does not work with all versions of `make'.
@@ -318,6 +319,18 @@ $(infodir)/emacs-xtra: emacs-xtra.texi
 emacs-xtra.dvi: emacs-xtra.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/emacs-xtra.texi
 
+$(infodir)/org: org.texi
+	$(MAKEINFO) org.texi
+
+org.dvi: org.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/org.texi
+
+$(infodir)/url: url.texi
+	$(MAKEINFO) url.texi
+
+url.dvi: url.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/url.texi
+
 mostlyclean:
 	- $(DEL) *.log *.cp *.fn *.ky *.pg *.vr core *.tp *.core gnustmp.*
 
@@ -337,6 +350,7 @@ clean: mostlyclean
 		 $(infodir)/woman* $(infodir)/eshell* \
 		 $(infodir)/speedbar* $(infodir)/tramp* \
 		 $(infodir)/ses* $(infodir)/smtpmail* \
+		 $(infodir)/url* $(infodir)/org* \
 		 $(infodir)/flymake*
 
 distclean: clean
