@@ -62,8 +62,6 @@
 ;;
 ;; To Do:
 ;;
-;; * makefile-backslash-region should be given better behavior.
-;; * Consider binding C-c C-c to comment-region (like cc-mode).
 ;; * Eliminate electric stuff entirely.
 ;; * It might be nice to highlight targets differently depending on
 ;;   whether they are up-to-date or not.  Not sure how this would
@@ -137,6 +135,9 @@ up or down in the browser.")
 
 (defvar makefile-backslash-column 48
   "*Column in which `makefile-backslash-region' inserts backslashes.")
+
+(defvar makefile-backslash-align t
+  "If non-nil, `makefile-backslash-region' will align backslashes.")
 
 (defvar makefile-browser-selected-mark "+  "
   "String used to mark selected entries in the browser.")
@@ -290,6 +291,7 @@ The function must satisfy this calling convention:
 	(define-key makefile-mode-map "." 'makefile-electric-dot)))
   (define-key makefile-mode-map "\C-c\C-f" 'makefile-pickup-filenames-as-targets)
   (define-key makefile-mode-map "\C-c\C-b" 'makefile-switch-to-browser)
+  (define-key makefile-mode-map "\C-c\C-c" 'comment-region)
   (define-key makefile-mode-map "\C-c\C-p" 'makefile-pickup-everything)
   (define-key makefile-mode-map "\C-c\C-u" 'makefile-create-up-to-date-overview)
   (define-key makefile-mode-map "\C-c\C-i" 'makefile-insert-gmake-function)
@@ -507,6 +509,10 @@ makefile-special-targets-list:
   ;; Dabbrev.
   (make-local-variable 'dabbrev-abbrev-skip-leading-regexp)
   (setq dabbrev-abbrev-skip-leading-regexp "\\$")
+
+  ;; Filling.
+  (make-local-variable 'fill-paragraph-function)
+  (setq fill-paragraph-function 'makefile-fill-paragraph)
 
   ;; Comment stuff.
   (make-local-variable 'comment-start)
@@ -835,51 +841,141 @@ The context determines which are considered."
 
 ;; Backslashification.  Stolen from cc-mode.el.
 
-(defun makefile-backslashify-current-line (doit)
-  (end-of-line)
-  (if doit
-      (if (not (save-excursion
-		 (forward-char -1)
-		 (eq (char-after (point)) ?\\ )))
-	  (progn
-	    (if (>= (current-column) makefile-backslash-column)
-		(insert " \\")
-	      (while (<= (current-column) makefile-backslash-column)
-		(insert "\t")
-		(end-of-line))
-	      (delete-char -1)
-	      (while (< (current-column) makefile-backslash-column)
-		(insert " ")
-		(end-of-line))
-	      (insert "\\"))))
-    (if (not (bolp))
-	(progn
-	  (forward-char -1)
-	  (if (eq (char-after (point)) ?\\ )
-	      (let ((saved (save-excursion
-			    (end-of-line)
-			    (point))))
-		(skip-chars-backward " \t")
-		(delete-region (point) saved)))))))
+(defun makefile-backslash-region (from to delete-flag)
+  "Insert, align, or delete end-of-line backslashes on the lines in the region.
+With no argument, inserts backslashes and aligns existing backslashes.
+With an argument, deletes the backslashes.
 
-(defun makefile-backslash-region (beg end arg)
-  "Insert backslashes at end of every line in region.
-Useful for defining multi-line rules.
-If called with a prefix argument, trailing backslashes are removed."
+This function does not modify the last line of the region if the region ends 
+right at the start of the following line; it does not modify blank lines
+at the start of the region.  So you can put the region around an entire macro
+definition and conveniently use this command."
   (interactive "r\nP")
   (save-excursion
-    (let ((do-lastline-p (progn (goto-char end) (not (bolp)))))
+    (goto-char from)
+    (let ((column makefile-backslash-column)
+          (endmark (make-marker)))
+      (move-marker endmark to)
+      ;; Compute the smallest column number past the ends of all the lines.
+      (if makefile-backslash-align
+	  (progn
+	    (if (not delete-flag)
+		(while (< (point) to)
+		  (end-of-line)
+		  (if (= (preceding-char) ?\\)
+		      (progn (forward-char -1)
+			     (skip-chars-backward " \t")))
+		  (setq column (max column (1+ (current-column))))
+		  (forward-line 1)))
+	    ;; Adjust upward to a tab column, if that doesn't push
+	    ;; past the margin.
+	    (if (> (% column tab-width) 0)
+		(let ((adjusted (* (/ (+ column tab-width -1) tab-width)
+				   tab-width)))
+		  (if (< adjusted (window-width))
+		      (setq column adjusted))))))
+      ;; Don't modify blank lines at start of region.
+      (goto-char from)
+      (while (and (< (point) endmark) (eolp))
+        (forward-line 1))
+      ;; Add or remove backslashes on all the lines.
+      (while (and (< (point) endmark)
+                  ;; Don't backslashify the last line
+                  ;; if the region ends right at the start of the next line.
+                  (save-excursion
+                    (forward-line 1)
+                    (< (point) endmark)))
+        (if (not delete-flag)
+            (makefile-append-backslash column)
+          (makefile-delete-backslash))
+        (forward-line 1))
+      (move-marker endmark nil))))
+
+(defun makefile-append-backslash (column)
+  (end-of-line)
+  ;; Note that "\\\\" is needed to get one backslash.
+  (if (= (preceding-char) ?\\)
+      (progn (forward-char -1)
+             (delete-horizontal-space)
+             (indent-to column (if makefile-backslash-align nil 1)))
+    (indent-to column (if makefile-backslash-align nil 1))
+    (insert "\\")))
+
+(defun makefile-delete-backslash ()
+  (end-of-line)
+  (or (bolp)
+      (progn
+ 	(forward-char -1)
+ 	(if (looking-at "\\\\")
+ 	    (delete-region (1+ (point))
+ 			   (progn (skip-chars-backward " \t") (point)))))))
+
+
+
+;; Filling
+
+(defun makefile-fill-paragraph (arg)
+  ;; Fill comments, backslashed lines, and variable definitions
+  ;; specially.
+  (save-excursion
+    (beginning-of-line)
+    (cond
+     ((looking-at "^#+ ")
+      ;; Found a comment.  Set the fill prefix and then fill.
+      (let ((fill-prefix (buffer-substring-no-properties (match-beginning 0)
+							 (match-end 0)))
+	    (fill-paragraph-function nil))
+	(fill-paragraph nil)
+	t))
+
+     ;; Must look for backslashed-region before looking for variable
+     ;; assignment.
+     ((save-excursion
+	(end-of-line)
+	(or
+	 (= (preceding-char) ?\\)
+	 (progn
+	   (end-of-line -1)
+	   (= (preceding-char) ?\\))))
+      ;; A backslash region.  Find beginning and end, remove
+      ;; backslashes, fill, and then reapply backslahes.
+      (end-of-line)
+      (let ((beginning
+	     (save-excursion
+	       (end-of-line 0)
+	       (while (= (preceding-char) ?\\)
+		 (end-of-line 0))
+	       (forward-char)
+	       (point)))
+	    (end
+	     (save-excursion
+	       (while (= (preceding-char) ?\\)
+		 (end-of-line 2))
+	       (point))))
+	(save-restriction
+	  (narrow-to-region beginning end)
+	  (makefile-backslash-region (point-min) (point-max) t)
+	  (let ((fill-paragraph-function nil))
+	    (fill-paragraph nil))
+	  (makefile-backslash-region (point-min) (point-max) nil)
+	  (goto-char (point-max))
+	  (if (< (skip-chars-backward "\n") 0)
+	      (delete-region (point) (point-max))))))
+
+     ((looking-at makefile-macroassign-regex)
+      ;; Have a macro assign.  Fill just this line, and then backslash
+      ;; resulting region.
       (save-restriction
-	(narrow-to-region beg end)
-	(goto-char (point-min))
-	(while (not (save-excursion
-		      (forward-line 1)
-		      (eobp)))
-	  (makefile-backslashify-current-line (null arg))
-	  (forward-line 1)))
-      (and do-lastline-p
-	   (progn (goto-char end)
-		  (makefile-backslashify-current-line (null arg)))))))
+	(narrow-to-region (point) (save-excursion
+				    (end-of-line)
+				    (forward-char)
+				    (point)))
+	(let ((fill-paragraph-function nil))
+	  (fill-paragraph nil))
+	(makefile-backslash-region (point-min) (point-max) nil)))))
+
+  ;; Always return non-nil so we don't fill anything else.
+  t)
 
 
 
