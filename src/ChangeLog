@@ -1,3 +1,8 @@
+2001-04-06  Dave Love  <fx@gnu.org>
+
+	* composite.c (update_compositions) <check_mask & CHECK_HEAD>: Fix
+	test of `from'.
+
 2001-04-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* composite.h (COMPOSITION_VALID_P): Allow integers as cdrs of
