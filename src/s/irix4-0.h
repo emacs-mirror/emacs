@@ -3,6 +3,8 @@
 #define USG5_3
 #define IRIX4
 
+#define USE_IRIX_BSDPGRP
+
 #define HAVE_ALLOCA
 #ifndef NOT_C_CODE
 #include <alloca.h>
@@ -53,6 +55,3 @@
 /* jpff@maths.bath.ac.uk reports `struct exception' is not defined
    on this system, so inhibit use of matherr.  */
 #define NO_MATHERR
-
-/* Info from simon@lia.di.epfl.ch (Simon Leinen) suggests this is needed.  */
-#define GETPGRP_NO_ARG

@@ -143,7 +143,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* When you *do* link with -lbsd, you *still* get System V getpgrp, unless:
    you define _BSD_COMPAT, -or- you call `BSDgetpgrp' explicitly.
-   Emacs does neither, so it gets SysV getpgrp which wants no arguments.  */
+   Emacs does the latter.  */
 
 #ifdef HAVE_CRTN
 /* Must define START-FILES so that the linker can find /usr/lib/crt0.o.  */
