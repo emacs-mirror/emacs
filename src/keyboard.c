@@ -3251,6 +3251,31 @@ discard_mouse_events ()
 	}
     }
 }
+
+/* Return non-zero if there are any events waiting in the event buffer
+   whose .kind is not no_event.  If DISCARD is non-zero, discard all
+   no_event placeholders up to the first real event.  If there are no
+   real events waiting and DISCARD is non-zero, this function makes
+   the event buffer empty as side effect.  */
+int
+kbd_buffer_events_waiting (discard)
+     int discard;
+{
+  struct input_event *sp;
+  for (sp = kbd_fetch_ptr; sp != kbd_store_ptr; sp++)
+    {
+      if (sp == kbd_buffer + KBD_BUFFER_SIZE)
+	sp = kbd_buffer;
+
+      if (sp->kind != no_event)
+	return 1;
+      if (discard)
+	kbd_fetch_ptr = sp;
+    }
+  if (discard)
+    kbd_fetch_ptr = sp;
+  return 0;
+}
 
 /* Read one event from the event buffer, waiting if necessary.
    The value is a Lisp object representing the event.
