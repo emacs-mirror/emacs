@@ -544,12 +544,15 @@ newsgroup @samp{gnu.emacs.bug}; keep in mind, however, that as a
 spectator you should not criticize anything about what you see there.
 The purpose of bug reports is to give information to the Emacs
 maintainers.  Spectators are welcome only as long as they do not
-interfere with this.  In particular, some bug reports contain large
-amounts of data; spectators should not complain about this.
+interfere with this.  In particular, some bug reports contain fairly
+large amounts of data; spectators should not complain about this.
 
   Please do not post bug reports using netnews; mail is more reliable
-than netnews about reporting your correct address, which we may need in
-order to ask you for more information.
+than netnews about reporting your correct address, which we may need
+in order to ask you for more information.  If your data is more than
+500,000 bytes, please don't include it directly in the bug report;
+instead, offer to send it on request, or make it available by ftp and
+say where.
 
   If you can't send electronic mail, then mail the bug report on paper
 or machine-readable media to this address:
