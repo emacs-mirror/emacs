@@ -1041,9 +1041,10 @@ with Custom.
 
 * Lisp Changes in Emacs 21.4
 
++++
 ** The option --script FILE runs Emacs in batch mode and loads FILE.
 It is useful for writing Emacs Lisp shell script files, because they
-can start with
+can start with this line:
 
    #!/usr/bin/emacs --script
 
