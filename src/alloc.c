@@ -579,6 +579,17 @@ xstrdup (s)
 }
 
 
+/* Unwind for SAFE_ALLOCA */
+
+Lisp_Object
+safe_alloca_unwind (arg)
+     Lisp_Object arg;
+{
+  xfree (XSAVE_VALUE (arg)->pointer);
+  return Qnil;
+}
+
+
 /* Like malloc but used for allocating Lisp data.  NBYTES is the
    number of bytes to allocate, TYPE describes the intended use of the
    allcated memory block (for strings, for conses, ...).  */
