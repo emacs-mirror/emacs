@@ -1,7 +1,7 @@
 /*  impl.c.mpmss: MPM STRESS TEST
  *
- *  $HopeName: MMsrc!mpmss.c(trunk.14) $
- * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
+ * $HopeName: MMsrc!mpmss.c(trunk.15) $
+ * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  */
 
 
@@ -15,6 +15,7 @@
 #include "mpslib.h"
 #include "mpsavm.h"
 #include "testlib.h"
+#include "mpsavm.h"
 #ifdef MPS_OS_SU
 #include "ossu.h"
 #endif
@@ -35,8 +36,8 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
   mps_res_t res;
   mps_pool_t pool;
   va_list arg;
-  int i,k;
-  void *ps[TEST_SET_SIZE];
+  int i, k;
+  int *ps[TEST_SET_SIZE];
   size_t ss[TEST_SET_SIZE];
 
   va_start(arg, size);
@@ -51,6 +52,7 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
 
     res = mps_alloc((mps_addr_t *)&ps[i], pool, ss[i]);
     if(res != MPS_RES_OK) return res;
+    *ps[i] = 1; /* Write something, so it gets swap. */
 
     if(i && i%4==0) putchar('\n');
     printf("%8lX %6lX ", (unsigned long)ps[i], (unsigned long)ss[i]);
@@ -119,8 +121,10 @@ static size_t fixedSize(int i)
 int main(void)
 {
   mps_arena_t arena;
+  int i;
 
-  srand(time(NULL));
+  /* Randomize the random number generator a bit. */
+  for(i = time(NULL) % 67; i > 0; --i) rnd();
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "mps_arena_create");
