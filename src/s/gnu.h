@@ -78,3 +78,12 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #define NARROWPROTO 1
+
+#ifdef emacs
+#include <stdio.h>  /* Get the definition of _IO_STDIO_H.  */
+#if defined(_IO_STDIO_H) || defined(_STDIO_USES_IOSTREAM)
+/* new C libio names */
+#define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) \
+  ((FILE)->_IO_write_ptr - (FILE)->_IO_write_base)
+#endif /* !_IO_STDIO_H */
+#endif /* emacs */
