@@ -1,6 +1,6 @@
 2000-08-29  Kenichi Handa  <handa@etl.go.jp>
 
-	* help.el (help-xref-mule-regexp): New variable
+	* help.el (help-xref-mule-regexp): New variable.
 	(help-make-xrefs): Handle help-xref-mule-regexp.
 
 	* international/mule-cmds.el (help-xref-mule-regexp-template): New
