@@ -508,61 +508,12 @@ struct PERDISPLAY
        carry that information itself (i.e. if it was a character).  */
     Lisp_Object Vlast_event_frame;
 
+    Lisp_Object kbd_queue;
+
     /* Placeholder for future vars that will be moved here.  */
-    Lisp_Object unused[20];
+    Lisp_Object unused[23];
 
     Lisp_Object this_command_keys;
-
-    /* Vector to GCPRO the frames and windows mentioned in kbd_buffer.
-
-       The interrupt-level event handlers will never enqueue an event on a
-       frame which is not in Vframe_list, and once an event is dequeued,
-       internal_last_event_frame or the event itself points to the frame.
-       So that's all fine.
-
-       But while the event is sitting in the queue, it's completely
-       unprotected.  Suppose the user types one command which will run for
-       a while and then delete a frame, and then types another event at
-       the frame that will be deleted, before the command gets around to
-       it.  Suppose there are no references to this frame elsewhere in
-       Emacs, and a GC occurs before the second event is dequeued.  Now we
-       have an event referring to a freed frame, which will crash Emacs
-       when it is dequeued.
-
-       Similar things happen when an event on a scroll bar is enqueued; the
-       window may be deleted while the event is in the queue.
-
-       So, we use this vector to protect the frame_or_window field in the
-       event queue.  That way, they'll be dequeued as dead frames or
-       windows, but still valid lisp objects.
-
-       If perd->kbd_buffer[i].kind != no_event, then
-	 (XVECTOR (perd->kbd_buffer_frame_or_window)->contents[i]
-	  == perd->kbd_buffer[i].frame_or_window.  */
-    Lisp_Object kbd_buffer_frame_or_window;
-
-    /* Circular buffer for pre-read keyboard input.  */
-    struct input_event *kbd_buffer;
-
-    /* Pointer to next available character in kbd_buffer.
-       If kbd_fetch_ptr == kbd_store_ptr, the buffer is empty.
-       This may be kbd_buffer + KBD_BUFFER_SIZE, meaning that the the
-       next available char is in kbd_buffer[0].  */
-    struct input_event *kbd_fetch_ptr;
-
-    /* Pointer to next place to store character in kbd_buffer.  This
-       may be kbd_buffer + KBD_BUFFER_SIZE, meaning that the next
-       character should go in kbd_buffer[0].  */
-    volatile struct input_event *kbd_store_ptr;
-
-    /* The above pair of variables forms a "queue empty" flag.  When we
-       enqueue a non-hook event, we increment kbd_store_ptr.  When we
-       dequeue a non-hook event, we increment kbd_fetch_ptr.  We say that
-       there is input available iff the two counters are not equal.
-
-       Why not just have a flag set and cleared by the enqueuing and
-       dequeuing functions?  Such a flag could be screwed up by interrupts
-       at inopportune times.  */
 
     int this_command_key_count;
 
