@@ -312,6 +312,7 @@ Default value, nil, means edit the string instead."
     (define-key map [delete-frame] nil)
     (define-key map [iconify-frame] nil)
     (define-key map [make-frame-visible] nil)
+    (define-key map [mouse-movement] nil)
     ;; For searching multilingual text.
     (define-key map "\C-\\" 'isearch-toggle-input-method)
     (define-key map "\C-^" 'isearch-toggle-specified-input-method)
