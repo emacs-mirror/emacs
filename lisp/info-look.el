@@ -1,7 +1,7 @@
 ;;; info-look.el --- major-mode-sensitive Info index lookup facility
 ;; An older version of this was known as libc.el.
 
-;; Copyright (C) 1995,96,97,98,99,2001  Free Software Foundation, Inc.
+;; Copyright (C) 1995,96,97,98,99,2001,2003  Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
 ;;         (did not show signs of life (Nov 2001)  -stef)
@@ -468,7 +468,7 @@ If optional argument QUERY is non-nil, query for the help mode."
 	      (progn
 		(goto-char (point-min))
 		(and (search-forward "\n* Menu:" nil t)
-		     (while (re-search-forward "\n\\* \\([^:\t\n]*\\):" nil t)
+		     (while (re-search-forward "\n\\* \\(.*\\): " nil t)
 		       (setq entry (match-string 1)
 			     item (funcall trans entry))
 		       ;; `trans' can return nil if the regexp doesn't match.
