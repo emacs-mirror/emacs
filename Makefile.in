@@ -205,7 +205,7 @@ src/paths.h: Makefile ${srcdir}/src/paths.in
 	@echo "Producing \`src/paths.h' from \`src/paths.in'."
 	@(lisppath=`echo ${lisppath} | ${removenullpaths}` ;		\
 	  buildlisppath=`echo ${buildlisppath} | ${removenullpaths}` ;	\
-	  sed < ${srcdir}/src/paths.in > paths.h.tmp$$$$		\
+	  sed < ${srcdir}/src/paths.in > paths.h.$$$$		\
 	  -e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "'$${lisppath}'";'	\
 	  -e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "'$${buildlisppath}'";' \
 	  -e 's;\(#.*PATH_EXEC\).*$$;\1 "${archlibdir}";'		\
@@ -214,14 +214,14 @@ src/paths.h: Makefile ${srcdir}/src/paths.in
 	  -e 's;\(#.*PATH_BITMAPS\).*$$;\1 "${bitmapdir}";'		\
 	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";'			\
 	  -e 's;\(#.*PATH_LOCK\).*$$;\1 "${lockdir}/";') &&		\
-	${srcdir}/move-if-change paths.h.tmp$$$$ src/paths.h
+	${srcdir}/move-if-change paths.h.$$$$ src/paths.h
 
 # For `make all',
 # we force the rebuilding of src/paths.h because the user might give
 # make different values for the various directories.  Since we use
 # move-if-change, src/paths.h only actually changes if the user did
 # something notable, so the only unnecessary work we do is in building
-# paths.h.tmp$$$$, which isn't much.
+# paths.h.$$, which isn't much.
 # Note that sed is not in /bin on 386bsd.
 # We depend on src/paths.h here to prevent simultaneous execution of
 # that rule and this one, in a parallel make.
@@ -230,7 +230,7 @@ paths-force: FRC src/paths.h
 	@echo "Producing \`src/paths.h' from \`src/paths.in'."
 	@(lisppath=`echo ${lisppath} | ${removenullpaths}` ;		\
 	  buildlisppath=`echo ${buildlisppath} | ${removenullpaths}` ;	\
-	  sed < ${srcdir}/src/paths.in > paths.h.tmp$$$$		\
+	  sed < ${srcdir}/src/paths.in > paths.h.$$$$		\
 	  -e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "'$${lisppath}'";'	\
 	  -e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "'$${buildlisppath}'";' \
 	  -e 's;\(#.*PATH_EXEC\).*$$;\1 "${archlibdir}";'		\
@@ -239,7 +239,7 @@ paths-force: FRC src/paths.h
 	  -e 's;\(#.*PATH_BITMAPS\).*$$;\1 "${bitmapdir}";'		\
 	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";'			\
 	  -e 's;\(#.*PATH_LOCK\).*$$;\1 "${lockdir}/";') &&		\
-	${srcdir}/move-if-change paths.h.tmp$$$$ src/paths.h
+	${srcdir}/move-if-change paths.h.$$$$ src/paths.h
 
 src:	lib-src FRC src/paths.h
 
