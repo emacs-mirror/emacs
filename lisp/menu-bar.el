@@ -109,7 +109,7 @@
 (define-key menu-bar-files-menu [kill-buffer]
   '("Kill Current Buffer" . kill-this-buffer))
 (define-key menu-bar-files-menu [insert-file]
-  '("Insert File" . insert-file))
+  '("Insert File..." . insert-file))
 (define-key menu-bar-files-menu [revert-buffer]
   '("Revert Buffer" . revert-buffer))
 (define-key menu-bar-files-menu [write-file]
@@ -154,30 +154,32 @@
     (isearch-update-ring string t)
     (re-search-backward string)))
 
-(defun noninteractive-repeat-search-forward ()
+(defun nonincremental-repeat-search-forward ()
   "Search forward for the previous search string."
   (interactive)
   (search-forward (car search-ring)))
 
-(defun noninteractive-repeat-search-backward ()
+(defun nonincremental-repeat-search-backward ()
   "Search backward for the previous search string."
   (interactive)
   (search-backward (car search-ring)))
 
-(defun noninteractive-repeat-re-search-forward ()
+(defun nonincremental-repeat-re-search-forward ()
   "Search forward for the previous regular expression."
   (interactive)
   (re-search-forward (car regexp-search-ring)))
 
-(defun noninteractive-repeat-re-search-backward ()
+(defun nonincremental-repeat-re-search-backward ()
   "Search backward for the previous regular expression."
   (interactive)
   (re-search-backward (car regexp-search-ring)))
 
+(define-key menu-bar-search-menu [query-replace-regexp]
+  '("Query Replace Regexp..." . query-replace-regexp))
 (define-key menu-bar-search-menu [query-replace]
-  '("Query Replace" . query-replace))
+  '("Query Replace..." . query-replace))
 (define-key menu-bar-search-menu [find-tag]
-  '("Find Tag" . find-tag))
+  '("Find Tag..." . find-tag))
 (put 'find-tag 'menu-enable 'tags-table-list)
 (define-key menu-bar-search-menu [bookmark]
   '("Bookmarks" . menu-bar-bookmark-map))
@@ -198,13 +200,13 @@
   '("--"))
 
 (define-key menu-bar-search-menu [re-search-back]
-  '("Regexp Search Backwards" . nonincremental-re-search-backward))
+  '("Regexp Search Backwards..." . nonincremental-re-search-backward))
 (define-key menu-bar-search-menu [search-back]
-  '("Search Backwards" . nonincremental-search-backward))
+  '("Search Backwards..." . nonincremental-search-backward))
 (define-key menu-bar-search-menu [re-search-fwd]
-  '("Regexp Search" . nonincremental-re-search-forward))
+  '("Regexp Search..." . nonincremental-re-search-forward))
 (define-key menu-bar-search-menu [search-fwd]
-  '("Search" . nonincremental-search-forward))
+  '("Search..." . nonincremental-search-forward))
 
 (if (fboundp 'start-process)
     (define-key menu-bar-edit-menu [spell] '("Spell" . ispell-menu-map)))
@@ -327,9 +329,27 @@ Do the same for the keys of the same name."
       (or (string-match "^ " (buffer-name (car buffers)))
 	  (setq count (1+ count)))
       (setq buffers (cdr buffers)))
-    (> count 1)))
+    (and (not (window-minibuffer-p (selected-window)))
+	 (> count 1))))
 
-(put 'save-buffer 'menu-enable '(buffer-modified-p))
+(put 'kill-this-buffer 'menu-enable '(kill-this-buffer-enabled-p))
+
+(put 'save-buffer 'menu-enable
+     '(and (buffer-modified-p)
+	   (not (window-minibuffer-p (selected-window)))))
+
+(put 'write-file 'menu-enable
+     '(not (window-minibuffer-p (selected-window))))
+
+(put 'find-file 'menu-enable
+     '(not (window-minibuffer-p (selected-window))))
+
+(put 'dired 'menu-enable
+     '(not (window-minibuffer-p (selected-window))))
+
+(put 'insert-file 'menu-enable
+     '(not (window-minibuffer-p (selected-window))))
+
 (put 'revert-buffer 'menu-enable
      '(or revert-buffer-function revert-buffer-insert-file-contents-function
 	  (and (buffer-file-name)
@@ -344,7 +364,6 @@ Do the same for the keys of the same name."
 	      (setq count (1+ count)))
 	  (setq frames (cdr frames)))
 	(> count 1)))
-(put 'kill-this-buffer 'menu-enable '(kill-this-buffer-enabled-p))
 
 (put 'advertised-undo 'menu-enable
      '(and (not (eq t buffer-undo-list))
