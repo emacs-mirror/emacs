@@ -78,7 +78,7 @@ nil means use the value returned by \\[user-login-name].")
 
 (defvar remote-compile-run-before nil
   "*Command to run before compilation.
-This can be used for setting up enviroment variables,
+This can be used for setting up environment variables,
 since rsh does not invoke the shell as a login shell and files like .login
 \(tcsh\) and .bash_profile \(bash\) are not run.
 nil means run no commands.")
