@@ -2591,7 +2591,8 @@ it were the arg to `interactive' (which see) to interactively read the value."
 (put 'completion-list-mode 'mode-class 'special)
 
 ;; Record the buffer that was current when the completion list was requested.
-(defvar completion-reference-buffer)
+;; Initial value is nil to avoid some compiler warnings.
+(defvar completion-reference-buffer nil)
 
 ;; This records the length of the text at the beginning of the buffer
 ;; which was not included in the completion.
