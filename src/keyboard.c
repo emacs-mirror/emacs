@@ -901,6 +901,7 @@ cmd_error (data)
   Vstandard_output = Qt;
   Vstandard_input = Qt;
   Vexecuting_macro = Qnil;
+  executing_macro = Qnil;
   current_kboard->Vprefix_arg = Qnil;
   cancel_echoing ();
 
