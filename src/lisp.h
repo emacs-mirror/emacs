@@ -1874,6 +1874,7 @@ struct gcpro
 #if GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS
 
 /* Do something silly with gcproN vars just so gcc shuts up.  */
+/* You get warnings from MIPSPro...  */
 
 #define GCPRO1(varname) ((void) gcpro1)
 #define GCPRO2(varname1, varname2)(((void) gcpro2, (void) gcpro1))
