@@ -246,7 +246,7 @@ Has a preference of looking backwards."
 				  (looking-at "[ \t]*#[ \t]*define[ \t]")))
 	     ;; Handle a C macro definition.
 	     (beginning-of-line)
-	     (while (= (char-after (- (point) 2)) ?\\)
+	     (while (eq (char-after (- (point) 2)) ?\\) ;not =; note above
 	       (forward-line -1))
 	     (search-forward "define")
 	     (skip-chars-forward " \t")
