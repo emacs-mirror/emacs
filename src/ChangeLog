@@ -1,3 +1,7 @@
+2004-07-22  Barry Fishman <barry_fishman@att.net>  (tiny change)
+
+	* s/gnu-linux.h: Use GC_MARK_STACK if __amd64__ is defined.
+
 2004-07-21  Kim F. Storm  <storm@cua.dk>
 
 	* window.h (struct glyph_matrix): New members nrows_scale_factor
