@@ -592,6 +592,35 @@ search_command (string, bound, noerror, count, direction, RE)
   return make_number (np);
 }
 
+static int
+trivial_regexp_p (regexp)
+     Lisp_Object regexp;
+{
+  int len = XSTRING (regexp)->size;
+  unsigned char *s = XSTRING (regexp)->data;
+  unsigned char c;
+  while (--len >= 0)
+    {
+      switch (*s++)
+	{
+	case '.': case '*': case '+': case '?': case '[': case '^': case '$':
+	  return 0;
+	case '\\':
+	  if (--len < 0)
+	    return 0;
+	  switch (*s++)
+	    {
+	    case '|': case '(': case ')': case '`': case '\'': case 'b':
+	    case 'B': case '<': case '>': case 'w': case 'W': case 's':
+	    case 'S': case '1': case '2': case '3': case '4': case '5':
+	    case '6': case '7': case '8': case '9':
+	      return 0;
+	    }
+	}
+    }
+  return 1;
+}
+
 /* Search for the n'th occurrence of STRING in the current buffer,
    starting at position POS and stopping at position LIM,
    treating PAT as a literal string if RE is false or as
@@ -636,32 +665,10 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
   if (n == 0)
     return pos;
 
-  if (RE)
-    compile_pattern (string, &searchbuf, &search_regs, (char *) trt);
-  
-  if (RE			/* Here we detect whether the */
-				/* generality of an RE search is */
-				/* really needed. */
-      /* first item is "exact match" */
-      && *(searchbuf.buffer) == (char) RE_EXACTN_VALUE
-      && searchbuf.buffer[1] + 2 == searchbuf.used) /*first is ONLY item */
+  if (RE && !trivial_regexp_p (string))
     {
-      RE = 0;			/* can do straight (non RE) search */
-      pat = (base_pat = (unsigned char *) searchbuf.buffer + 2);
-				/* trt already applied */
-      len = searchbuf.used - 2;
-    }
-  else if (!RE)
-    {
-      pat = (unsigned char *) alloca (len);
+      compile_pattern (string, &searchbuf, &search_regs, (char *) trt);
 
-      for (i = len; i--;)		/* Copy the pattern; apply trt */
-	*pat++ = (((int) trt) ? trt [*base_pat++] : *base_pat++);
-      pat -= len; base_pat = pat;
-    }
-
-  if (RE)
-    {
       immediate_quit = 1;	/* Quit immediately if user types ^G,
 				   because letting this function finish
 				   can take too long. */
@@ -693,7 +700,9 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 			     /* Don't allow match past current point */
 			     pos - BEGV);
 	  if (val == -2)
-	    matcher_overflow ();
+	    {
+	      matcher_overflow ();
+	    }
 	  if (val >= 0)
 	    {
 	      j = BEGV;
@@ -721,7 +730,9 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 			     pos - BEGV, lim - pos, &search_regs,
 			     lim - BEGV);
 	  if (val == -2)
-	    matcher_overflow ();
+	    {
+	      matcher_overflow ();
+	    }
 	  if (val >= 0)
 	    {
 	      j = BEGV;
@@ -752,6 +763,24 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 #else
       BM_tab = (int *) alloca (0400 * sizeof (int));
 #endif
+      {
+	unsigned char *patbuf = (unsigned char *) alloca (len);
+	pat = patbuf;
+	while (--len >= 0)
+	  {
+	    /* If we got here and the RE flag is set, it's because we're
+	       dealing with a regexp known to be trivial, so the backslash
+	       just quotes the next character.  */
+	    if (RE && *base_pat == '\\')
+	      {
+		len--;
+		base_pat++;
+	      }
+	    *pat++ = (trt ? trt[*base_pat++] : *base_pat++);
+	  }
+	len = pat - patbuf;
+	pat = base_pat = patbuf;
+      }
       /* The general approach is that we are going to maintain that we know */
       /* the first (closest to the present position, in whatever direction */
       /* we're searching) character that could possibly be the last */
