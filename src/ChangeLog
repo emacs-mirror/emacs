@@ -1,3 +1,13 @@
+2002-10-05  Dave Love  <fx@gnu.org>
+
+	* xfns.c (x_window, x_window): Use use_xim.
+
+	* xterm.c (use_xim): Initialize.
+	(xim_open_dpy, xim_initialize, xim_close_dpy): Use use_xim.
+	(x_term_init): Maybe set use_xim.
+
+	* xterm.h (use_xim) [HAVE_X_I18N]: Declare.
+
 2002-10-01  Kenichi Handa  <handa@m17n.org>
 
 	* search.c (search_buffer): Fix case-fold-search of multibyte
@@ -469,9 +479,8 @@
 	* msdos.c (XMenuActivate): Adjuted for the change of
 	lookup_derived_face.
 
-	* xdisp.c (message_dolog, set_message_1,
-	extend_face_to_end_of_line): Use ASCII_CHAR_P, not
-	SINGLE_BYTE_CHAR_P.
+	* xdisp.c (message_dolog, set_message_1, extend_face_to_end_of_line):
+	Use ASCII_CHAR_P, not SINGLE_BYTE_CHAR_P.
 	(highlight_trailing_whitespace): Adjusted for the change of
 	lookup_named_face.
 

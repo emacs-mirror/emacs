@@ -1,3 +1,36 @@
+2002-10-05  Dave Love  <fx@gnu.org>
+
+	* language/czech.el ("Czech"): 
+	* language/slovak.el ("Slovak"): 
+	* language/romanian.el ("Romanian"): Remove unibyte-syntax property.
+
+	* language/greek.el ("Greek"): Remove unibyte-syntax property.
+	(cp737): New coding system.
+
+	* language/european.el: Remove unibyte-syntax properties.
+	Augment some coding-system properties.
+
+	* international/mule-cmds.el (set-language-environment): Check
+	for charset property of environment.
+	(language-info-alist): Doc fix.
+
+	* Makefile.in (DONTCOMPILE): Remove latin-N.el.
+
+	* international/characters.el: Add Latin-1.
+
+	* international/latin-1, international/latin-2, international/latin-3:
+	* international/latin-4, international/latin-5, international/latin-8:
+	* international/latin-9: Deleted.
+
+	* loadup.el: Remove international/latin-N.el.
+
+	* case-table.el (set-case-syntax-charset, set-case-syntax-1)
+	(set-case-syntax-delims, set-case-syntax-pair, set-case-syntax):
+	Undo last changes.
+
+	* international/mule-diag.el (unicode-data): Check that
+	`unicodedata-file' exists.
+
 2002-10-05  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el (charset-script-alist): Fix script
@@ -39,7 +72,7 @@
 2002-09-27  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/fontset.el (generate-fontset-menu): Exclude the
-	defualt fontset.
+	default fontset.
 
 	* faces.el (describe-face): Describe :fontset property too.
 
