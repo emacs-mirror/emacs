@@ -1,3 +1,7 @@
+2002-02-03  Pavel Janík  <Pavel@Janik.cz>
+
+	* calculator.el (calculator-displayers): Doc fixes.
+
 2002-02-03  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* menu-bar.el (menu-bar-help-menu): Use different text for
