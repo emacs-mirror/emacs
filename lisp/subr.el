@@ -656,9 +656,7 @@ as returned by the `event-start' and `event-end' functions.
 For a scroll-bar event, the result column is 0, and the row
 corresponds to the vertical position of the click in the scroll bar."
   (let* ((pair   (nth 2 position))
-	 (window (posn-window position))
-	 (vspacing (or (frame-parameter (window-frame window) 'line-spacing)
-		       default-line-spacing)))
+	 (window (posn-window position)))
     (if (eq (if (consp (nth 1 position))
 		(car (nth 1 position))
 	      (nth 1 position))
@@ -672,7 +670,9 @@ corresponds to the vertical position of the click in the scroll bar."
 	(let* ((frame (if (framep window) window (window-frame window)))
 	       (x (/ (car pair) (frame-char-width frame)))
 	       (y (/ (cdr pair) (+ (frame-char-height frame)
-				   (or vspacing 0)))))
+				   (or (frame-parameter frame 'line-spacing)
+				       default-line-spacing
+				       0)))))
 	  (cons x y))))))
 
 (defsubst posn-timestamp (position)

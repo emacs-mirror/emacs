@@ -324,16 +324,16 @@ Archive and member name will be added."
 ;; -------------------------------------------------------------------------
 ;; Section: Variables
 
-(defvar archive-subtype nil "*Symbol describing archive type.")
-(defvar archive-file-list-start nil "*Position of first contents line.")
-(defvar archive-file-list-end nil "*Position just after last contents line.")
-(defvar archive-proper-file-start nil "*Position of real archive's start.")
-(defvar archive-read-only nil "*Non-nil if the archive is read-only on disk.")
-(defvar archive-local-name nil "*Name of local copy of remote archive.")
-(defvar archive-mode-map nil "*Local keymap for archive mode listings.")
-(defvar archive-file-name-indent nil "*Column where file names start.")
+(defvar archive-subtype nil "Symbol describing archive type.")
+(defvar archive-file-list-start nil "Position of first contents line.")
+(defvar archive-file-list-end nil "Position just after last contents line.")
+(defvar archive-proper-file-start nil "Position of real archive's start.")
+(defvar archive-read-only nil "Non-nil if the archive is read-only on disk.")
+(defvar archive-local-name nil "Name of local copy of remote archive.")
+(defvar archive-mode-map nil "Local keymap for archive mode listings.")
+(defvar archive-file-name-indent nil "Column where file names start.")
 
-(defvar archive-remote nil "*Non-nil if the archive is outside file system.")
+(defvar archive-remote nil "Non-nil if the archive is outside file system.")
 (make-variable-buffer-local 'archive-remote)
 (put 'archive-remote 'permanent-local t)
 
@@ -341,14 +341,14 @@ Archive and member name will be added."
 (make-variable-buffer-local 'archive-member-coding-system)
 
 (defvar archive-alternate-display nil
-  "*Non-nil when alternate information is shown.")
+  "Non-nil when alternate information is shown.")
 (make-variable-buffer-local 'archive-alternate-display)
 (put 'archive-alternate-display 'permanent-local t)
 
-(defvar archive-superior-buffer nil "*In archive members, points to archive.")
+(defvar archive-superior-buffer nil "In archive members, points to archive.")
 (put 'archive-superior-buffer 'permanent-local t)
 
-(defvar archive-subfile-mode nil "*Non-nil in archive member buffers.")
+(defvar archive-subfile-mode nil "Non-nil in archive member buffers.")
 (make-variable-buffer-local 'archive-subfile-mode)
 (put 'archive-subfile-mode 'permanent-local t)
 

@@ -3467,7 +3467,13 @@ Then you'll be asked about a number of files to recover."
       (error "You set `auto-save-list-file-prefix' to disable making session files"))
   (let ((dir (file-name-directory auto-save-list-file-prefix)))
     (unless (file-directory-p dir)
-      (make-directory dir t)))
+      (make-directory dir t))
+    (unless (directory-files dir nil
+			     (concat "\\`" (regexp-quote
+					    (file-name-nondirectory
+					     auto-save-list-file-prefix)))
+			     t)
+      (error "No previous sessions to recover")))
   (let ((ls-lisp-support-shell-wildcards t))
     (dired (concat auto-save-list-file-prefix "*")
 	   (concat dired-listing-switches "t")))
