@@ -102,10 +102,6 @@ For expample:
 For double-width GB2312 characters correponding to ASCII, use the
 input method `chinese-qj'.")
 
-    ("chinese-ctlau" "$AAuTA(B")
-
-    ("chinese-ctlaub" "$(0N,Gn(B")
-
     ("chinese-ecdict" "$(05CKH(B"
 "In this input method, you enter a Chinese (Big5) charactere or word
 by typing the corresponding English word.  For example, if you type
@@ -669,6 +665,68 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; You should have received a copy of the GNU General Public License along with
 ;; CCE; see the file COPYING.  If not, write to the Free Software Foundation, 
 ;; 675 Mass Ave, Cambridge, MA 02139, USA.")
+
+    ("chinese-b5-quick" "$(0X|(BB"
+     "cangjie-table.b5" big5 "quick-b5.el" 
+     quick-b5-converter
+     "\
+;; # Copyright 2001 Christian Wittern <wittern@iis.sinica.edu.tw>
+;; #
+;; # Permission to copy and distribute both modified and
+;; # unmodified versions is granted without royalty provided
+;; # this notice is preserved.")
+
+    ("chinese-ctlau" "$AAuTA(B"
+     "CTLau.html" cn-gb-2312 "CTLau.el"
+     ctlau-gb-converter
+     "\
+;; \"CTLau.html\" is available at:
+;;
+;;   http://umunhum.stanford.edu/~lee/chicomp/CTLau.html
+;;
+;; It contains the following copyright notice:
+;;
+;; # Copyright (C) 1988-2001  Fung Fung Lee (lee@umunhum.stanford.edu)
+;; # 
+;; # This program is free software; you can redistribute it and/or
+;; # modify it under the terms of the GNU General Public License
+;; # as published by the Free Software Foundation; either version 2
+;; # of the License, or any later version.
+;; # 
+;; # This program is distributed in the hope that it will be useful,
+;; # but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; # GNU General Public License for more details.
+;; # 
+;; # You should have received a copy of the GNU General Public License
+;; # along with this program; if not, write to the Free Software Foundation,
+;; # Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.")
+
+    ("chinese-ctlaub" "$(0N,Gn(B"
+     "CTLau-b5.html" big5 "CTLauB.el"
+     ctlau-b5-converter
+     "\
+;; \"CTLau-b5.html\" is available at:
+;;
+;;   http://umunhum.stanford.edu/~lee/chicomp/CTLau-b5.html
+;;
+;; It contains the following copyright notice:
+;;
+;; # Copyright (C) 1988-2001  Fung Fung Lee (lee@umunhum.stanford.edu)
+;; # 
+;; # This program is free software; you can redistribute it and/or
+;; # modify it under the terms of the GNU General Public License
+;; # as published by the Free Software Foundation; either version 2
+;; # of the License, or any later version.
+;; # 
+;; # This program is distributed in the hope that it will be useful,
+;; # but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; # GNU General Public License for more details.
+;; # 
+;; # You should have received a copy of the GNU General Public License
+;; # along with this program; if not, write to the Free Software Foundation,
+;; # Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.")
     ))
 
 ;; Generate a code of a Quail package in the current buffer from Tsang
@@ -962,6 +1020,86 @@ To input symbols and punctuations, type `/' followed by one of `a' to
     (dolist (elt dic)
       (insert (format "(%S %S)\n" (car elt) (cdr elt))))
     (insert ")\n")))
+
+;; Generate the code for a Quail package in the current buffer from a
+;; CTLau or CTLau-b5 dictionary in the buffer DICBUF.  The input
+;; method name of the Quail package is NAME, and the title string is
+;; TITLE.  DESCRIPTION is the string shown by describe-input-method.
+
+(defun ctlau-converter (dicbuf name title description)
+  (goto-char (point-max))
+  (insert (format "%S\n" description))
+  (insert "  '((\"\C-?\" . quail-delete-last-char)
+   (\".\" . quail-next-translation)
+   (\">\" . quail-next-translation)
+   (\",\" . quail-prev-translation)
+   (\"<\" . quail-prev-translation))
+  nil nil nil nil)\n\n")
+  (insert "(quail-define-rules\n")
+  (let (dicbuf-start dicbuf-end key-start key (pos (point)))
+    ;; Find the dictionary, which starts below a horizontal rule and
+    ;; ends at the second to last line in the HTML file.
+    (save-excursion
+      (set-buffer dicbuf)
+      (goto-char (point-min))
+      (search-forward "#\n#<hr>\n")
+      (setq dicbuf-start (point))
+      (goto-char (point-max))
+      (forward-line -1)
+      (setq dicbuf-end (point)))
+    (insert-buffer-substring dicbuf dicbuf-start dicbuf-end)
+    ;; CTLau-b5.html contains characters (0xa1 0xbc) which show up as
+    ;; hollow boxes when the original characters in CTLau.html from
+    ;; which the file is converted have no Big5 equivalent.  Go
+    ;; through and delete them.
+    (goto-char pos)
+    (while (search-forward "$(0!{(B" nil t)
+      (delete-char -1))
+    ;; Uppercase keys in dictionary need to be downcased.  Backslashes
+    ;; at the beginning of keys need to be turned into double
+    ;; backslashes.
+    (goto-char pos)
+    (while (not (eobp))
+      (insert "(\"")
+      (if (char-equal (following-char) ?\\)
+	  (insert "\\"))
+      (setq key-start (point))
+      (skip-chars-forward "\\\\A-Z")
+      (downcase-region key-start (point))
+      (insert "\" \"")
+      (delete-char 1)
+      (end-of-line)
+      (insert "\")")
+      (forward-line 1)))
+  (insert ")\n"))
+
+(defun ctlau-gb-converter (dicbuf name title)
+  (ctlau-converter dicbuf name title
+"$A::WVJdHk!KAuN}OiJ=TARt!K(B
+
+ $AAuN}OiJ=TASoW"Rt7=08(B
+ Sidney Lau's Cantonese transcription scheme as described in his book
+ \"Elementary Cantonese\", The Government Printer, Hong Kong, 1972.
+ This file was prepared by Fung Fung Lee ($A@n7c7e(B).
+ Originally converted from CTCPS3.tit
+ Last modified: June 2, 1993.
+
+ Some infrequent GB characters are accessed by typing \, followed by
+ the Cantonese romanization of the respective radical ($A2?JW(B)."))
+
+(defun ctlau-b5-converter (dicbuf name title)
+  (ctlau-converter dicbuf name title
+"$(0KH)tTT&,!(N,Tg>A*#Gn5x!((B
+
+ $(0N,Tg>A*#GnM$0D5x'J7{(B
+ Sidney Lau's Cantonese transcription scheme as described in his book
+ \"Elementary Cantonese\", The Government Printer, Hong Kong, 1972.
+ This file was prepared by Fung Fung Lee ($(0,XFS76(B).
+ Originally converted from CTCPS3.tit
+ Last modified: June 2, 1993.
+
+ Some infrequent characters are accessed by typing \, followed by
+ the Cantonese romanization of the respective radical ($(0?f5}(B)."))
 
 (defun miscdic-convert (filename &optional dirname)
   "Convert a dictionary file FILENAME into a Quail package. 
