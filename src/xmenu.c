@@ -380,7 +380,8 @@ keymap_panes (keymaps, nmaps, notreal)
      But don't make a pane that is empty--ignore that map instead.
      P is the number of panes we have made so far.  */
   for (mapno = 0; mapno < nmaps; mapno++)
-    single_keymap_panes (keymaps[mapno], Qnil, Qnil, notreal, 10);
+    single_keymap_panes (keymaps[mapno],
+			 map_prompt (keymaps[mapno]), Qnil, notreal, 10);
 
   finish_menu_items ();
 }
