@@ -3,7 +3,7 @@
 ;; Copyright (C) 1992, 1996 Free Software Foundation, Inc.
 
 ;; Author: Ashwin Ram <ashwin@cc.gatech.edu>
-;; Maintainer: Gernot Heiser <gernot@jungfrau.disy.cse.unsw.EDU.AU>
+;; Maintainer: Gernot Heiser <gernot@acm.org>
 ;; Adapted-By: ESR
 ;; Keywords: bib
 
