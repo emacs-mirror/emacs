@@ -2367,6 +2367,8 @@ sit_for (sec, usec, reading, display)
 {
   Lisp_Object read_kbd;
 
+  swallow_events (display);
+
   if (detect_input_pending_run_timers (display))
     return Qnil;
 
