@@ -534,13 +534,13 @@ See `fast-lock-cache-directories'."
 ;; than one file would have the same cache name in that directory, if the luser
 ;; made a link from one relative cache directory to another.  (Phew!)
 (defun fast-lock-cache-name (directory)
-  "Return full cache path name using caching DIRECTORY.
-If DIRECTORY is `.', the path is the buffer file name appended with `.flc'.
-Otherwise, the path name is constructed from DIRECTORY and the buffer's true
+  "Return full cache file name using caching DIRECTORY.
+If DIRECTORY is `.', the file name is the buffer file name appended with `.flc'.
+Otherwise, the file name is constructed from DIRECTORY and the buffer's true
 abbreviated file name, with all `/' characters in the name replaced with `#'
 characters, and appended with `.flc'.
 
-If the same file has different cache path names when edited on different
+If the same file has different cache file names when edited on different
 machines, e.g., on one machine the cache file name has the prefix `#home',
 perhaps due to automount, try putting in your `~/.emacs' something like:
 
