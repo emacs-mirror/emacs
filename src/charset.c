@@ -1161,7 +1161,7 @@ char_bytes (c)
 {
   int charset;
 
-  if (SINGLE_BYTE_CHAR_P (c) || (c & ~GLYPH_MASK_CHAR))
+  if (SINGLE_BYTE_CHAR_P (c) || (c & ~((1 << CHARACTERBITS) - 1)))
     return 1;
 
   charset = CHAR_CHARSET (c);
