@@ -1,5 +1,9 @@
 2003-11-25  Kenichi Handa  <handa@m17n.org>
 
+	* international/mule-cmds.el (select-safe-coding-system): Fix for
+	the case that the first element of default-coding-system is t.
+	Fix a message when some coding systems are rejected.
+
 	* composite.el (auto-compose-chars): Fix previous change.
 
 2003-11-24  Kenichi Handa  <handa@m17n.org>
