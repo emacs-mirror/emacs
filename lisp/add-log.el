@@ -47,9 +47,28 @@ This defaults to the value returned by the `user-full-name' function.")
 This defaults to the value of `user-mail-address'.")
 
 (defvar change-log-font-lock-keywords
-  '(("^[12].+" . font-lock-function-name-face)	; Date line.
-    ("^\t\\* \\([^ :\n]+\\)" 1 font-lock-comment-face)	; File name.
-    ("(\\([^)\n]+\\)):" 1 font-lock-keyword-face))	; Function name.
+  '(;;
+    ;; Date lines, new and old styles.
+    ("^\\sw........."
+     (0 font-lock-string-face)
+     ("[A-Z][^\n<]+" nil nil (0 font-lock-reference-face)))
+    ;;
+    ;; File names.
+    ("^\t\\* \\([^ ,:([\n]+\\)"
+     (1 font-lock-function-name-face)
+     ("\\=, \\([^ ,:([\n]+\\)" nil nil (1 font-lock-function-name-face)))
+    ;;
+    ;; Function or variable names.
+    ("(\\([^ ,:\n]+\\)"
+     (1 font-lock-keyword-face)
+     ("\\=, \\([^ ,:\n]+\\)" nil nil (1 font-lock-keyword-face)))
+    ;;
+    ;; Conditionals.
+    ("\\[!?\\([^]\n]+\\)\\]\\(:\\| (\\)" (1 font-lock-variable-name-face))
+    ;;
+    ;; Acknowledgments.
+    ("^\t\\(From\\|Reported by\\)" 1 font-lock-comment-face)
+    )
   "Additional expressions to highlight in Change Log mode.")
 
 (defvar change-log-mode-map nil
