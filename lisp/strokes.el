@@ -173,6 +173,8 @@
 ;; Other: I always have the most beta version of strokes, so if you
 ;;        want it just let me know.
 
+;; Fixme: Use pbm instead of xpm for pixmaps to work generally.
+
 ;;; Code:
 
 ;;; Requirements and provisions...
