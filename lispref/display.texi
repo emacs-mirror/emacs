@@ -25,7 +25,10 @@ that Emacs presents to the user.
 * Faces::               A face defines a graphics style for text characters:
                           font, colors, etc.
 * Fringes::             Controlling window fringes.
+* Fringe Bitmaps::      Displaying bitmaps in the window fringes.
+* Customizing Bitmaps:: Specifying your own bitmaps to use in the fringes.
 * Scroll Bars::         Controlling vertical scroll bars.
+* Pointer Shape::       Controlling the mouse pointer shape.
 * Display Property::    Enabling special display features.
 * Images::              Displaying images in Emacs buffers.
 * Buttons::             Adding clickable buttons to Emacs buffers.
@@ -1486,7 +1489,7 @@ font.  (This works only on certain systems.)
 
 @item fringe
 @kindex fringe @r{(face name)}
-This face controls the colors of window fringes, the thin areas on
+This face controls the default colors of window fringes, the thin areas on
 either side that are used to display continuation and truncation glyphs.
 
 @item minibuffer-prompt
@@ -2560,7 +2563,7 @@ non-@code{nil} value.
 
 @defvar fringes-outside-margins
 If the value is non-@code{nil}, the frames appear outside
-the display margins. 
+the display margins.
 @end defvar
 
 @defvar left-fringe-width
@@ -2596,6 +2599,191 @@ window is used.  The value has the form @code{(@var{left-width}
 @var{right-width} @var{frames-outside-margins})}.
 @end defun
 
+@defvar overflow-newline-into-fringe
+If this is non-@code{nil}, lines exactly as wide as the window (not
+counting the final newline character) are not continued.  Instead,
+when point is at the end of the line, the cursor appears in the right
+fringe.
+@end defvar
+
+@node Fringe Bitmaps
+@section Fringe Bitmaps
+@cindex fringe bitmaps
+@cindex bitmaps, fringe
+
+  The @dfn{fringe bitmaps} are tiny icons Emacs displays in the window
+fringe (on a graphic display) to indicate truncated or continued
+lines, buffer boundaries, overlay arrow, etc.  The fringe bitmaps are
+shared by all frames and windows.  You can redefine the built-in
+fringe bitmaps, and you can define new fringe bitmaps.  However, Emacs
+can handle only 255 different fringe bitmaps.
+
+  The way to display a bitmap in the left or right fringes for a given
+line in a window is by specifying the @code{display} property for one
+of the characters that appears in it.  Use a display specification of
+the form @code{(left-fringe @var{bitmap} [@var{face}])} or
+@code{(right-fringe @var{bitmap} [@var{face}])} (@pxref{Display
+Property}).  Here, @var{bitmap} is an integer identifying the bitmap
+you want, and @var{face} (which is optional) is the name of the face
+whose colors should be used for displaying the bitmap.
+@c ??? Shouldn't the symbol name be used?
+
+  These are the symbols identify the standard fringe bitmaps.
+Evaluate @code{(require 'fringe)} to define them.  Each symbol's
+value is an integer that identifies the corresponding bitmap.
+
+@table @asis
+@item Truncation and continuation line bitmaps:
+@code{left-truncation-fringe-bitmap},
+@code{right-truncation-fringe-bitmap},
+@code{continued-line-fringe-bitmap},
+@code{continuation-line-fringe-bitmap}.
+
+@item Buffer indication bitmaps:
+@code{up-arrow-fringe-bitmap},
+@code{down-arrow-fringe-bitmap},
+@code{top-left-angle-fringe-bitmap},
+@code{top-right-angle-fringe-bitmap},
+@code{bottom-left-angle-fringe-bitmap},
+@code{bottom-right-angle-fringe-bitmap},
+@code{left-bracket-fringe-bitmap},
+@code{right-bracket-fringe-bitmap}.
+
+@item Empty line indication bitmap:
+@code{empty-line-fringe-bitmap}.
+
+@item Overlay arrow bitmap:
+@code{overlay-arrow-fringe-bitmap}.
+
+@item Bitmaps for displaying the cursor in right fringe:
+@code{filled-box-cursor-fringe-bitmap},
+@code{hollow-box-cursor-fringe-bitmap},
+@code{hollow-square-fringe-bitmap}, @code{bar-cursor-fringe-bitmap},
+@code{hbar-cursor-fringe-bitmap}.
+
+@item Value indicating that no fringe bitmap is present:
+@code{no-fringe-bitmap}.
+@c ??? I don't understand what that means.
+@c ??? Where would you find that value?
+
+@item Value indicating a reference to an undefined bitmap:
+@code{undef-fringe-bitmap}.
+@c ??? I don't understand what that means.
+@c ??? Where would you find that value?
+@end table
+
+@defun fringe-bitmaps-at-pos &optional pos window
+This function returns the fringe bitmaps of the display line
+containing position @var{pos} in window @var{window}.  The return
+value has the form @code{(@var{left} . @var{right})}, where @var{left}
+is a list of fringe bitmap numbers for left fringe, and @var{right} is
+similar for the right fringe.  These bitmap numbers are usually values
+of symbols such as the ones listed above.
+
+@c ??? Why not return a list of symbols that identify the bitmaps?
+@c ??? This is Lisp, not C.
+
+The value is @code{nil} if @var{pos} is not visible in @var{window}.
+If @var{window} is @code{nil}, that stands for the selected window.
+If @var{pos} is @code{nil}, that stands for the value of point in
+@var{window}.
+@end defun
+
+@node Customizing Bitmaps
+@section Customizing Fringe Bitmaps
+
+@c ??? Why not pass a symbol as the first argument
+@c ??? and define that symbol.  It would be cleaner.
+
+@defun define-fringe-bitmap bits &optional height width align bitmap
+This function defines a new fringe bitmap, or replaces an existing
+bitmap.
+
+The argument @var{bits} specifies the image to use.  It should be
+either a string or a vector of integers, where each element (an
+integer) corresponds to one row of the bitmap.  Each bit of an integer
+corresponds to one pixel of the bitmap.
+@c ??? Is the low bit the leftmost or the rightmost bit?
+
+The height is normally the length of @var{bits}.  However, you
+can specify a different height with non-@code{nil} @var{height}.  The width
+is normally 8, but you can specify a different width with non-@code{nil}
+@var{width}.  The width must be an integer between 1 and 16.
+
+The argument @var{align} specifies the positioning of the bitmap
+relative to the range of rows where it is used; the default is to
+center the bitmap.  The allowed values are @code{top}, @code{center},
+or @code{bottom}.
+
+The @var{align} argument may also be a list @code{(@var{align}
+@var{periodic})} where @var{align} is intepreted as described above.
+If @var{periodic} is non-@code{nil}, it specifies that the rows in
+@code{bits} should be repeated enough times to reach the specified
+height.
+
+The argument @var{bitmap} specifies an existing bitmap to redefine.
+You should pass the value of the symbol that identifies the bitmap.
+
+The return value on success is an integer identifying the new bitmap.
+You should save that integer in a variable so it can be used to select
+this bitmap.  The value can also be @code{nil} of there are no more
+free bitmap slots.
+@c ??? Why not signal an error?  That would be cleaner.
+@end defun
+
+@defun destroy-fringe-bitmap bitmap
+This function destroy the fringe bitmap identified by @var{bitmap}.
+If @var{bitmap} identifies a standard fringe bitmap, it actually
+restores the standard definition of that bitmap, instead of
+eliminating it entirely.
+@end defun
+
+@defun set-fringe-bitmap-face bitmap &optional face
+This sets the face for the fringe bitmap @var{bitmap} to @var{face}.
+If @var{face} is @code{nil}, it selects the @code{fringe} face.  The
+bitmap's face controls the color to draw it in.
+
+The face you use here should be derived from @code{fringe}, and should
+specify only the foreground color.
+@end defun
+
+@defvar indicate-buffer-boundaries
+This buffer-local variable controls how the buffer boundaries and
+window scrolling are indicated in the window fringes.
+
+Emacs can indicate the buffer boundaries---that is, the first and last
+line in the buffer---with angle icons when they appear on the screen.
+In addition, Emacs can display an up-arrow in the fringe to show
+that there is text above the screen, and a down-arrow to show
+there is text below the screen.
+
+There are four kinds of basic values:
+
+@table @asis
+@item @code{nil}
+Don't display the icons.
+@item @code{left}
+Display them in the left fringe.
+@item @code{right}
+Display them in the right fringe.
+@item @var{anything-else}
+Display the icon at the top of the window top in the left fringe, and other
+in the right fringe.
+@end table
+
+If value is a cons @code{(@var{angles} . @var{arrows})}, @var{angles}
+controls the angle icons, and @var{arrows} controls the arrows.  Both
+@var{angles} and @var{arrows} work according to the table above.
+Thus, @code{(t .  right)} places the top angle icon in the left
+fringe, the bottom angle icon in the right fringe, and both arrows in
+the right fringe.
+@end defvar
+
+@defvar default-indicate-buffer-boundaries
+The value of this variable is the default value for
+@code{indicate-buffer-boundaries} in buffers that do not override it.
+@end defvar
+
 @node Scroll Bars
 @section Scroll Bars
 
@@ -2609,18 +2797,19 @@ You can also control this for individual windows.  Call the function
 @code{set-window-scroll-bars} to specify what to do for a specific window:
 
 @defun set-window-scroll-bars window width &optional vertical-type horizontal-type
-Set width and type of scroll bars of window @var{window}.  
-If @var{window} is @code{nil}, the selected window is used.
+This function sets the width and type of scroll bars for window
+@var{window}.
+
 @var{width} specifies the scroll bar width in pixels (@code{nil} means
-use whatever is specified for width for the frame).
-@var{vertical-type} specifies whether to have a vertical scroll bar
-and, if so, where.  The possible values are @code{left}, @code{right}
-and @code{nil}, just like the values of the
-@code{vertical-scroll-bars} frame parameter.
+use the width specified for the frame).  @var{vertical-type} specifies
+whether to have a vertical scroll bar and, if so, where.  The possible
+values are @code{left}, @code{right} and @code{nil}, just like the
+values of the @code{vertical-scroll-bars} frame parameter.
 
 The argument @var{horizontal-type} is meant to specify whether and
 where to have horizontal scroll bars, but since they are not
-implemented, it has no effect.
+implemented, it has no effect.  If @var{window} is @code{nil}, the
+selected window is used.
 @end defun
 
 @defun window-scroll-bars &optional window
@@ -2644,6 +2833,26 @@ in a buffer that is already visible in a window, you can make the
 window take note of the new values by calling @code{set-window-buffer}
 specifying the same buffer that is already displayed.
 
+@node Pointer Shape
+@section Pointer Shape
+
+  Normally, the mouse pointer has the @code{text} shape over text and
+the @code{arrow} shape over window areas which do not correspond to
+any buffer text.  You can specify the mouse pointer shape over text or
+images via the @code{pointer} text property, and for images with the
+@code{:pointer} and @code{:map} image properties.
+
+  The available pointer shapes are: @code{text} (or @code{nil}),
+@code{arrow}, @code{hand}, @code{vdrag}, @code{hdrag},
+@code{modeline}, and @code{hourglass}.
+
+@defvar void-text-area-pointer
+@tindex void-text-area-pointer
+This variable specifies the mouse pointer shape in void text areas,
+i.e. the areas after the end of a line or below the last line in the
+buffer.  The default is to use the @code{arrow} (non-text) pointer.
+@end defvar
+
 @node Display Property
 @section The @code{display} Property
 @cindex display specification
@@ -2659,6 +2868,7 @@ they mean.
 
 @menu
 * Specified Space::      Displaying one space with a specified width.
+* Pixel Specification::  Specifying space width or height in pixels.
 * Other Display Specs::  Displaying an image; magnifying text; moving it
                           up or down on the page; adjusting the width
                           of spaces within text.
@@ -2683,9 +2893,10 @@ can use in @var{props} to specify the weight of the space:
 
 @table @code
 @item :width @var{width}
-Specifies that the space width should be @var{width} times the normal
-character width.  @var{width} can be an integer or floating point
-number.
+If @var{width} is an integer or floating point number, it specifies
+that the space width should be @var{width} times the normal character
+width.  @var{width} can also be a @dfn{pixel width} specification
+(@pxref{Pixel Specification}).
 
 @item :relative-width @var{factor}
 Specifies that the width of the stretch should be computed from the
@@ -2694,40 +2905,130 @@ same @code{display} property.  The space width is the width of that
 character, multiplied by @var{factor}.
 
 @item :align-to @var{hpos}
-Specifies that the space should be wide enough to reach @var{hpos}.  The
-value @var{hpos} is measured in units of the normal character width.  It
-may be an integer or a floating point number.
+Specifies that the space should be wide enough to reach @var{hpos}.
+If @var{hpos} is a number, it is measured in units of the normal
+character width.  @var{hpos} can also be a @dfn{pixel width}
+specification (@pxref{Pixel Specification}).
 @end table
 
   You should use one and only one of the above properties.  You can
-also specify the height of the space, with other properties:
+also specify the height of the space, with these properties:
 
 @table @code
 @item :height @var{height}
-Specifies the height of the space, as @var{height},
-measured in terms of the normal line height.
+Specifies the height of the space.
+If @var{height} is an integer or floating point number, it specifies
+that the space height should be @var{height} times the normal character
+height.  The @var{height} may also be a @dfn{pixel height} specification
+(@pxref{Pixel Specification}).
 
 @item :relative-height @var{factor}
 Specifies the height of the space, multiplying the ordinary height
 of the text having this display specification by @var{factor}.
 
 @item :ascent @var{ascent}
-Specifies that @var{ascent} percent of the height of the space should be
-considered as the ascent of the space---that is, the part above the
-baseline.  The value of @var{ascent} must be a non-negative number no
-greater than 100.
+If the value of @var{ascent} is a non-negative number no greater than
+100, it specifies that @var{ascent} percent of the height of the space
+should be considered as the ascent of the space---that is, the part
+above the baseline.  The ascent may also be specified in pixel units
+with a @dfn{pixel ascent} specification (@pxref{Pixel Specification}).
+
 @end table
 
   Don't use both @code{:height} and @code{:relative-height} together.
 
+  The @code{:height} and @code{:align-to} properties are supported on
+non-graphic terminals, but the other space properties in this section
+are not.
+
+@node Pixel Specification
+@subsection Pixel Specification for Spaces
+@cindex spaces, pixel specification
+
+  The value of the @code{:width}, @code{:align-to}, @code{:height},
+and @code{:ascent} properties can be a special kind of expression that
+is evaluated during redisplay.  The result of the evaluation is used
+as an absolute number of pixels.
+
+  The following expressions are supported:
+
+@example
+@group
+  @var{expr} ::= @var{num} | (@var{num}) | @var{unit} | @var{elem} | @var{pos} | IMAGE | @var{form}
+  @var{num}  ::= @var{integer} | @var{float} | @var{symbol}
+  @var{unit} ::= in | mm | cm | width | height
+  @var{elem} ::= left-fringe | right-fringe | left-margin | right-margin
+        |  scroll-bar | text
+  @var{pos}  ::= left | center | right
+  @var{form} ::= (@var{num} . @var{expr}) | (@var{op} @var{expr} ...)
+  @var{op}   ::= + | -
+@end group
+@end example
+
+  The form @var{num} specifies a fraction of the default frame font
+height or width.  The form @code{(@var{num})} specifies an absolute
+number of pixels.  If @var{num} is a symbol, @var{symbol}, its
+buffer-local variable binding is used.
+
+  The @code{in}, @code{mm}, and @code{cm} units specify the number of
+pixels per inch, millimeter, and centimeter, respectively.  The
+@code{width} and @code{height} units correspond to the default width
+and height of the current face.  An image specification @code{IMAGE}
+corresponds to the width or height of the image.
+
+  The @code{left-fringe}, @code{right-fringe}, @code{left-margin},
+@code{right-margin}, @code{scroll-bar}, and @code{text} elements
+specify to the width of the corresponding area of the window.
+
+  The @code{left}, @code{center}, and @code{right} positions can be
+used with @code{:align-to} to specify a position relative to the left
+edge, center, or right edge of the text area.
+
+  Any of the above window elements (except @code{text}) can also be
+used with @code{:align-to} to specify that the position is relative to
+the left edge of the given area.  Once the base offset for a relative
+position has been set (by the first occurrence of one of these
+symbols), further occurences of these symbols are interpreted as the
+width of the specified area.  For example, to align to the center of
+the left-margin, use
+
+@example
+:align-to (+ left-margin (0.5 . left-margin))
+@end example
+
+  If no specific base offset is set for alignment, it is always relative
+to the left edge of the text area.  For example, @samp{:align-to 0} in a
+header-line aligns with the first text column in the text area.
+
+  A value of the form @code{(@var{num} . @var{expr})} stands
+multiplying the values of @var{num} and @var{expr}.  For example,
+@code{(2 . in)} specifies a width of 2 inches, while @code{(0.5 .
+IMAGE)} specifies half the width (or height) of the specified image.
+
+  The form @code{(+ @var{expr} ...)} adds up the value of the
+expressions.  The form @code{(- @var{expr} ...)} negates or subtracts
+the value of the expressions.
+
 @node Other Display Specs
 @subsection Other Display Specifications
+
+  Here are the other sorts of display specifications that you can use
+in the @code{display} text property.
 
 @table @code
 @item (image . @var{image-props})
 This is in fact an image descriptor (@pxref{Images}).  When used as a
 display specification, it means to display the image instead of the text
 that has the display specification.
+
+@item (slice @var{x} @var{y} @var{width} @var{height})
+This specification together with @code{image} specifies a @dfn{slice}
+(a partial area) of the image to display.  The elements @var{y} and
+@var{x} specify the top left corner of the slice, within the image;
+@var{width} and @var{height} specify the width and height of the
+slice.  Integer values are numbers of pixels.  A floating point number
+in the range 0.0--1.0 stands for that fraction of the width or height
+of the entire image.
 
 @item ((margin nil) @var{string})
 @itemx @var{string}
@@ -3105,6 +3406,43 @@ specifying the color to assume for the background of the image.
 If @var{mask} is @code{nil}, remove a mask from the image, if it has
 one.  Images in some formats include a mask which can be removed by
 specifying @code{:mask nil}.
+
+@item :pointer @var{shape}
+This specifies the pointer shape when the mouse pointer is over this
+image.  @xref{Pointer Shapes}, for available pointer shapes.
+
+@item :map @var{map}
+This associates an image map of @dfn{hot spots} with this image.
+
+An image map is an alist where each element has the format
+@code{(@var{area} @var{id} @var{plist})}.  An @var{area} is specified
+as either a rectangle, a circle, or a polygon.
+
+A rectangle is a cons
+@code{(rect . ((@var{x0} . @var{y0}) . (@var{x1} . @var{y1})))}
+which specifies the pixel coordinates of the upper left and bottom right
+corners of the rectangle area.
+
+A circle is a cons
+@code{(circle . ((@var{x0} . @var{y0}) . @var{r}))}
+which specifies the center and the radius of the circle; @var{r} may
+be a float or integer.
+
+A polygon is a cons
+@code{(poly . [@var{x0} @var{y0} @var{x1} @var{y1} ...])}
+where each pair in the vector describes one corner in the polygon.
+
+When the mouse pointer is above a hot-spot area of an image, the
+@var{plist} of that hot-spot is consulted; if it contains a @code{help-echo}
+property it defines a tool-tip for the hot-spot, and if it contains
+a @code{pointer} property, it defines the shape of the mouse cursor when
+it is over the hot-spot.
+@xref{Pointer Shapes}, for available pointer shapes.
+
+When you click the mouse when the mouse pointer is over a hot-spot, an
+event is composed by combining the @var{id} of the hot-spot with the
+mouse event; for instance, @code{[area4 mouse-1]} if the hot-spot's
+@var{id} is @code{area4}.
 @end table
 
 @defun image-mask-p spec &optional frame
@@ -3372,7 +3710,7 @@ The image is looked for first on @code{load-path} and then in
 property yourself, but it is easier to use the functions in this
 section.
 
-@defun insert-image image &optional string area
+@defun insert-image image &optional string area slice
 This function inserts @var{image} in the current buffer at point.  The
 value @var{image} should be an image descriptor; it could be a value
 returned by @code{create-image}, or the value of a symbol defined with
@@ -3385,9 +3723,24 @@ If it is @code{left-margin}, the image appears in the left margin;
 @code{nil} or omitted, the image is displayed at point within the
 buffer's text.
 
+The argument @var{slice} specifies a slice of the image to insert.  If
+@var{slice} is @code{nil} or omitted the whole image is inserted.
+Otherwise, @var{slice} is a list @code{(@var{x} @var{y} @var{width}
+@var{height})} which specifies the @var{x} and @var{y} positions and
+@var{width} and @var{height} of the image area to insert.  Integer
+values are in units of pixels.  A floating point number in the range
+0.0--1.0 stands for that fraction of the width or height of the entire
+image.
+
 Internally, this function inserts @var{string} in the buffer, and gives
 it a @code{display} property which specifies @var{image}.  @xref{Display
 Property}.
+@end defun
+
+@defun insert-sliced-image image &optional string area rows cols
+This function inserts @var{image} in the current buffer at point, like
+@code{insert-image}, but splits the image into @var{rows}x@var{cols}
+equally sized slices.
 @end defun
 
 @defun put-image image pos &optional string area
@@ -3498,7 +3851,7 @@ entries).
 * Making Buttons::         Adding buttons to Emacs buffers.
 * Manipulating Buttons::   Getting and setting properties of buttons.
 * Button Buffer Commands:: Buffer-wide commands and bindings for buttons.
-* Manipulating Button Types:: 
+* Manipulating Button Types::
 @end menu
 
 @node Button Properties

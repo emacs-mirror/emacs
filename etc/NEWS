@@ -436,6 +436,7 @@ feature.
 	% emacsclient -s foo file1
 	% emacsclient -s bar file2
 
++++
 ** On window systems, lines which are exactly as wide as the window
 (not counting the final newline character) are no longer broken into
 two lines on the display (with just the newline on the second line).
@@ -445,6 +446,7 @@ cursor will be displayed in the fringe when positioned on that newline.
 The new user option 'overflow-newline-into-fringe' may be set to nil to
 revert to the old behaviour of continuing such lines.
 
++++
 ** The buffer boundaries (i.e. first and last line in the buffer) may
 now be marked with angle bitmaps in the fringes.  In addition, up and
 down arrow bitmaps may be shown at the top and bottom of the left or
@@ -1482,6 +1484,12 @@ appointments, paydays or anything else using a sexp.
 year and day number, and moves to that date. Negative day numbers
 count backward from the end of the year.
 
+---
+** The functions `holiday-easter-etc' and `holiday-advent' now take
+arguments, and only report on the specified holiday rather than all.
+This makes customization of the variable `christian-holidays' simpler,
+but existing customizations may need to be updated.
+
 ** The function `simple-diary-display' now by default sets a header line.
 This can be controlled through the variables `diary-header-line-flag'
 and `diary-header-line-format'.
@@ -2395,9 +2403,11 @@ operation.
 if the file is indeed remote.  (Before, the return value was t in
 this case.)
 
++++
 ** The display space :width and :align-to text properties are now
 supported on text terminals.
 
++++
 ** Support for displaying image slices
 
 *** New display property (slice X Y WIDTH HEIGHT) may be used with
@@ -2409,6 +2419,7 @@ specify image slice (X Y WIDTH HEIGHT).
 *** New function insert-sliced-image inserts a given image as a
 specified number of evenly sized slices (rows x columns).
 
++++
 ** New line-height and line-spacing properties for newline characters
 
 A newline may now have line-height and line-spacing text or overlay
@@ -2445,10 +2456,10 @@ any of the forms described above, the value of SPACING is used as the
 total height of the line, i.e. a varying number of pixels are inserted
 after each line to make each line exactly that many pixels high.
 
-
 ** The buffer local line-spacing variable may now have a float value,
 which is used as a height relative to the default frame line height.
 
++++
 ** Enhancements to stretch display properties
 
 The display property stretch specification form `(space PROPS)', where
@@ -2505,6 +2516,7 @@ height) of the specified image.
 The form `(+ EXPR ...)' adds up the value of the expressions.
 The form `(- EXPR ...)' negates or subtracts the value of the expressions.
 
++++
 ** Normally, the cursor is displayed at the end of any overlay and
 text property string that may be present at the current window
 position.  The cursor may now be placed on any character of such
@@ -2522,7 +2534,10 @@ a terminal that supports at least this many colors.  This is now the
 preferred method for defining default faces in a way that makes a good
 use of the capabilities of the display.
 
-** New function 'define-fringe-bitmap' can now be used to change the
++++
+** Customizable fringe bitmaps
+
+*** New function 'define-fringe-bitmap' can now be used to change the
 built-in fringe bitmaps, as well as create new fringe bitmaps.
 The return value is a number identifying the new fringe bitmap.
 
@@ -2530,15 +2545,15 @@ To change a built-in bitmap, do (require 'fringe) and identify the
 bitmap to change with the value of the corresponding symbol, like
 `left-truncation-fringe-bitmap' or `continued-line-fringe-bitmap'.
 
-** New function 'destroy-fringe-bitmap' may be used to destroy a
+*** New function 'destroy-fringe-bitmap' may be used to destroy a
 previously created bitmap, or restore a built-in bitmap.
 
-** New function 'set-fringe-bitmap-face' can now be used to set a
+*** New function 'set-fringe-bitmap-face' can now be used to set a
 specific face to be used for a specific fringe bitmap.  Normally,
 this should be a face derived from the `fringe' face, specifying
 the foreground color as the desired color of the bitmap.
 
-** There are new display properties, left-fringe and right-fringe,
+*** There are new display properties, left-fringe and right-fringe,
 that can be used to show a specific bitmap in the left or right fringe
 bitmap of the display line.
 
@@ -2547,7 +2562,7 @@ number identifying a fringe bitmap, either built-in or as returned by
 `define-fringe-bitmap', and FACE is an optional face name to be used
 for displaying the bitmap.
 
-** New function `fringe-bitmaps-at-pos' returns a cons (LEFT . RIGHT)
+*** New function `fringe-bitmaps-at-pos' returns a cons (LEFT . RIGHT)
 identifying the current fringe bitmaps in the display line at a given
 buffer position.  A nil value means no bitmap.
 
@@ -2614,18 +2629,23 @@ return value of `get-char-property' called with those arguments and
 whose cdr is the overlay in which the property was found, or nil if
 it was found as a text property or not found at all.
 
++++ (lispref)
+??? (man)
 ** The mouse pointer shape in void text areas (i.e. after the end of a
 line or below the last line in the buffer) of the text window is now
 controlled by the new variable `void-text-area-pointer'.  The default
 is to use the `arrow' (non-text) pointer.  Other choices are `text'
 (or nil), `hand', `vdrag', `hdrag', `modeline', and `hourglass'.
 
++++
 ** The mouse pointer shape over an image can now be controlled by the
 :pointer image property.
 
++++
 ** The mouse pointer shape over ordinary text or images may now be
 controlled/overriden via the `pointer' text property.
 
++++
 ** Images may now have an associated image map via the :map property.
 
 An image map is an alist where each element has the format (AREA ID PLIST).

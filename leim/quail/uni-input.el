@@ -73,8 +73,9 @@
 			(ucs-input-insert-char key))
 		    (let ((last-command-char key)
 			  (current-prefix-arg))
-		      (condition-case nil
-			  (call-interactively (key-binding seq))))
+		      (condition-case err
+			  (call-interactively (key-binding seq))
+			(quail-error (message "%s" (cdr err)) (beep))))
 		    (quail-delete-region)
 		    (throw 'non-digit (append (reverse events)
 					      (listify-key-sequence seq))))))

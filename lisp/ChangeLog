@@ -1,3 +1,93 @@
+2004-09-25  Lars Hansen  <larsh@math.ku.dk>
+
+	* ls-lisp.el (ls-lisp-format): Mark file names with poperty
+	dired-filename.
+
+2004-09-25  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-max-directory-size): New defcustom.
+	(ido-decorations): Add "too big" element.
+	(ido-directory-too-big): New dynamic var.
+	(ido-may-cache-directory): Don't cache big directories.
+	(ido-directory-too-big-p): New defun.
+	(ido-set-current-directory): Update ido-directory-too-big.
+	(ido-read-internal): Make empty ido-cur-item if too-big.
+	(ido-buffer-internal): Use ido-read-internal directly instead of
+	ido-read-buffer.
+	(ido-file-internal): Init ido-directory-too-big.
+	(ido-complete): <TAB> If ido-directory-too-big is set, clear it,
+	and redo completion with full list.
+	(ido-toggle-ignore): <C-a> If ido-directory-too-big is set, clear
+	it, and show completions.
+	(ido-all-completions): Let bind ido-directory-too-big to nil.
+	(ido-exhibit): Handle ido-directory-too-big.
+	(ido-read-buffer): Handle fallback to read-buffer.  Init
+	ido-directory-too-big.
+	(ido-read-file-name, ido-read-directory-name, ido-completing-read):
+	Init ido-directory-too-big.
+
+2004-09-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (delay-mode-hooks): Doc fix.
+
+2004-09-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* textmodes/enriched.el
+	(enriched-default-text-properties-local-flag): New variable.
+	(enriched-mode): Make sure that enabling and disabling the mode is
+	a no-op.  Doc fix.
+
+2004-09-23  H,Ae(Bkon Malmedal  <hmalmedal@yahoo.no>  (tiny change)
+
+	* calendar/holidays.el (holiday-advent): Report on a specified day
+	offset from advent, not just advent.
+	(holiday-easter-etc): Report on one specified day offset from
+	easter, not all easter holidays. Various Easter holidays moved to
+	`christian-holidays' variable in calendar.el.
+	* calendar/calendar.el (christian-holidays): Adapt for new
+	behaviour of `holiday-advent' and `holiday-easter-etc' functions.
+
+2004-09-23  Kim F. Storm  <storm@cua.dk>
+
+	* image.el (insert-sliced-image): Add doc string.
+
+	* ido.el (ido-choice-list): New dynamic var for `list' context.
+	(ido-context-switch-command): New dynamic var.
+	(ido-define-mode-map): Generalize switch between file/buffer contexts.
+	(ido-read-internal): Handle new `list' context.
+	Handle insert-buffer and insert-file ido-exit values.
+	(ido-buffer-internal): New arg switch-cmd.  Use it to setup
+	ido-context-switch-command. Handle insert-file ido-exit value.
+	(ido-read-buffer): Set ido-context-switch-command to 'ignore
+	unless it is already bound by caller.
+	(ido-file-internal): New arg switch-cmd.  Use it to setup
+	ido-context-switch-command.  Handle insert-buffer ido-exit value.
+	(ido-enter-insert-buffer, ido-enter-insert-file): New commands
+	used for context switching.
+	(ido-all-completions): Handle new `list' context.
+	(ido-make-choice-list): Return choices for `list' context.
+	(ido-find-file-in-dir, ido-display-file, ido-write-file)
+	(ido-display-buffer, ido-kill-buffer): Disable context switching.
+	(ido-insert-buffer, ido-insert-file): Setup context switching.
+	(ido-exhibit): Handle `list' context.
+	(ido-read-file-name): Disable context switching.  Handle fallback.
+	(ido-read-directory-name): Disable context switching.
+	(ido-completing-read): New defun like completing-read.  Setup and
+	use new `list' context.
+
+2004-09-20  Jesper Harder  <harder@ifa.au.dk>
+
+	* progmodes/tcl.el (inferior-tcl): Use pop-to-buffer.
+
+2004-09-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (after-change-major-mode-hook): Doc fix.
+
+2004-09-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Doc fix.  Add a new tip about the use of gsprint instead
+	of ghostscript for monochrome PostScript file in Windows.
+
 2004-09-21  Kenichi Handa  <handa@m17n.org>
 
 	* descr-text.el (describe-char): Checking of quail activation

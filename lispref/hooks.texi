@@ -35,6 +35,7 @@ however, we have renamed all of those.)
 @table @code
 @item activate-mark-hook
 @item after-change-functions
+@item after-change-major-mode-hook
 @item after-init-hook
 @item after-insert-file-functions
 @item after-make-frame-functions
