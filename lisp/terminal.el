@@ -45,33 +45,46 @@
 
 (require 'ehelp)
 
-(defvar terminal-escape-char ?\C-^
+(defgroup terminal nil
+  "Terminal emulator for Emacs."
+  :group 'terminals)
+
+
+(defcustom terminal-escape-char ?\C-^
   "*All characters except for this are passed verbatim through the
 terminal-emulator.  This character acts as a prefix for commands
 to the emulator program itself.  Type this character twice to send
 it through the emulator.  Type ? after typing it for a list of
 possible commands.
-This variable is local to each terminal-emulator buffer.")
+This variable is local to each terminal-emulator buffer."
+  :type 'character
+  :group 'terminal)
 
-(defvar terminal-scrolling t ;;>> Setting this to T sort-of defeats my whole aim in writing this package...
+(defcustom terminal-scrolling t ;;>> Setting this to T sort-of defeats my whole aim in writing this package...
   "*If non-nil, the terminal-emulator will losingly `scroll' when output occurs
 past the bottom of the screen.  If nil, output will win and `wrap' to the top
 of the screen.
-This variable is local to each terminal-emulator buffer.")
+This variable is local to each terminal-emulator buffer."
+  :type 'boolean
+  :group 'terminal)
 
-(defvar terminal-more-processing t
+(defcustom terminal-more-processing t
   "*If non-nil, do more-processing.
-This variable is local to each terminal-emulator buffer.")
+This variable is local to each terminal-emulator buffer."
+  :type 'boolean
+  :group 'terminal)
 
 ;; If you are the sort of loser who uses scrolling without more breaks
 ;; and expects to actually see anything, you should probably set this to
 ;; around 400
-(defvar terminal-redisplay-interval 5000
+(defcustom terminal-redisplay-interval 5000
   "*Maximum number of characters which will be processed by the
 terminal-emulator before a screen redisplay is forced.
 Set this to a large value for greater throughput,
 set it smaller for more frequent updates but overall slower
-performance.")
+performance."
+  :type 'integer
+  :group 'terminal)
 
 (defvar terminal-more-break-insertion
   "*** More break -- Press space to continue ***")
@@ -1044,8 +1057,11 @@ move to start of new line, clear to end of line."
 ;; This used to have `new' in it, but that loses outside BSD
 ;; and it's apparently not needed in BSD.
 
-(defvar explicit-shell-file-name nil
-  "*If non-nil, is file name to use for explicitly requested inferior shell.")
+(defcustom explicit-shell-file-name nil
+  "*If non-nil, is file name to use for explicitly requested inferior shell."
+  :type '(choice (const :tag "None" nil)
+		 file)
+  :group 'terminal)
 
 ;;;###autoload
 (defun terminal-emulator (buffer program args &optional width height)
