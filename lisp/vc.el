@@ -1353,17 +1353,18 @@ Return nil if there is no such person."
     ;; control and has -rw-r--r-- is locked by its owner.  This is true
     ;; for both RCS and SCCS, which keep unlocked files at -r--r--r--.
     ;; We have to be careful not to exclude files with execute bits on;
-    ;; scripts can be under version control too.  The advantage of this
-    ;; hack is that calls to the very expensive vc-fetch-properties
+    ;; scripts can be under version control too.  Also, we must ignore
+    ;; the group-read and other-read bits, since paranoid users turn them off.
+    ;; This hack wins because calls to the very expensive vc-fetch-properties
     ;; function only have to be made if (a) the file is locked by someone
     ;; other than the current user, or (b) some untoward manipulation
     ;; behind vc's back has changed the owner or the `group' or `other'
     ;; write bits.
     (let ((attributes (file-attributes file)))
-      (cond ((string-match ".r-.r-.r-." (nth 8 attributes))
+      (cond ((string-match ".r-..-..-." (nth 8 attributes))
 	     nil)
 	    ((and (= (nth 2 attributes) (user-uid))
-		  (string-match ".rw.r-.r-." (nth 8 attributes)))
+		  (string-match ".rw..-..-." (nth 8 attributes)))
 	     (user-login-name))
 	    (t
 	     (vc-true-locking-user file))))))
