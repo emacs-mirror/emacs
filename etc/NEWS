@@ -53,11 +53,14 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
-** The appearance of the fringes can now be customized, using either
-the global command M-x fringe-mode, the frame specific command M-x
-set-fringe-style, the Show/Hide submenu of the top-level Options menu,
-or customizing the `fringe-mode' variable.
++++
+** You can now customize the use of window fringes.  To control this
+for all frames, use M-x fringe-mode or the Show/Hide submenu of the
+top-level Options menu, or customize the `fringe-mode' variable.  To
+control this for a specific frame, use the command M-x
+set-fringe-style.
 
++++
 ** There is a new user option `mail-default-directory' that allows you
 to specify the value of `default-directory' for mail buffers.  This
 directory is used for auto-save files of mail buffers.  It defaults to
@@ -91,9 +94,11 @@ the Buffers menu is regenerated.
 +++
 ** `C-u C-x =' now displays text properties of the character at point.
 
++++
 ** The commands M-x customize-face and M-x customize-face-other-window
-now look at the text at point.  If that text has a face specified,
-the commands suggest to customize that face.
+now look at the character after point.  If a face or faces are
+specified for that character, the commands by default customize those
+faces.
 
 ** Limited support for charset unification has been added.
 By default, Emacs now knows how to translate latin-N chars between their
@@ -101,7 +106,7 @@ charset and some other latin-N charset or unicode.  You can force a
 more complete unification by calling (unify-8859-on-decoding-mode 1).
 
 ---
-** The scrollbar under Motif has a smoother drag-scrolling.
+** The scrollbar under LessTif or Motif has a smoother drag-scrolling.
 On the other hand, the size of the thumb does not represent the actual
 amount of text shown any more (only a crude approximation of it).
 
@@ -130,6 +135,7 @@ when Emacs visits them.
 default, all trivial operations involving whole lines are performed
 automatically.  The game uses faces for better visual feedback.
 
++++
 ** On X and MS Windows, the blinking cursor's "off" state is now shown
 as a hollow box or a thin bar.
 
@@ -175,10 +181,11 @@ Emacs window will select that window (minibuffer window can be selected
 only when it is active).  The default is nil, so that this feature is not
 enabled.
 
-** The new command `describe-text-at' pops up a buffer with description
-of text properties, overlays, and widgets at point, and lets you get
-more information about them, by clicking on mouse-sensitive areas or
-moving there and pressing RET.
+** The new command `describe-char pops up a buffer with description
+various information about a character, including its encodings and
+syntax, its text properties, overlays, and widgets at point.  You can
+get more information about some of them, by clicking on
+mouse-sensitive areas or moving there and pressing RET.
 
 +++
 ** The new command `multi-occur' is just like `occur', except it can
@@ -215,13 +222,16 @@ the mode line of the currently selected window.
 The new variable `mode-line-in-non-selected-windows' controls whether
 the `mode-line-inactive' face is used.
 
+---
 ** A menu item "Show/Hide" was added to the top-level menu "Options".
-This menu allows you to turn various display features on and off (like
-tool bar and the menu bar itself).  You can also move the vertical
-scroll bar to either side here or turn it off completely.  There is also
-a menu-item to toggle displaying of current date and time, current line
-and column number in the mode-line.
+This menu allows you to turn various display features on and off (such
+as the fringes, the tool bar, the speedbar, and the menu bar itself).
+You can also move the vertical scroll bar to either side here or turn
+it off completely.  There is also a menu-item to toggle displaying of
+current date and time, current line and column number in the
+mode-line.
 
+---
 ** Speedbar has moved from the "Tools" top level menu to "Show/Hide".
 
 +++
@@ -252,6 +262,7 @@ argument it toggles the mode.
 Turning off PC-Selection mode restores the global key bindings
 that were replaced by turning on the mode.
 
++++
 ** Emacs now displays a splash screen by default even if command-line
 arguments were given.  The new command-line option --no-splash
 disables the splash screen; see also the variable

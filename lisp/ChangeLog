@@ -1,3 +1,22 @@
+2002-06-17  Richard M. Stallman  <rms@gnu.org>
+
+	* facemenu.el (facemenu-map): Rename to Describe Text
+	to Describe Properties and use describe-text-properties.
+
+	* simple.el (what-cursor-position): Use describe-char.
+
+	* descr-text.el (describe-char): Moved from mule-diag.el, renamed
+	from describe-char-after.  Now calls describe-text-properties.
+	(describe-property-list): Renamed from describe-text-properties.
+	(describe-text-properties): Renamed from describe-text-at.
+	New arg OUTPUT-BUFFER.
+	(describe-text-properties-1):
+	New subroutine, broken out from describe-text-properties.
+	Output a newline before each section of the output.
+	
+	* international/mule-diag.el (describe-char-after):
+	Moved to descr-text.el.
+
 2002-06-17  Eli Zaretskii <eliz@is.elta.co.il>
 
 	* international/mule.el (ctext-pre-write-conversion): Fix the values
