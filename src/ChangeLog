@@ -1,5 +1,8 @@
 2004-04-27  Kim F. Storm  <storm@cua.dk>
 
+	* xdisp.c (x_produce_glyphs): Fix last change; handle newline in
+	header line strings.
+
 	* dispextern.h (struct it): New member use_default_face.
 
 	* xdisp.c (Qline_height): New variable.
