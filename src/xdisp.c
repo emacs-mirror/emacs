@@ -881,9 +881,8 @@ redisplay_internal (preserve_echo_area)
   if (windows_or_buffers_changed)
     update_mode_lines++;
 
-  /* Detect case that we need to write a star in the mode line.  */
-  if (XFASTINT (w->last_modified) < MODIFF
-      && XFASTINT (w->last_modified) <= SAVE_MODIFF)
+  /* Detect case that we need to write or remove a star in the mode line.  */
+  if ((SAVE_MODIFF < MODIFF) != !NILP (w->last_had_star))
     {
       w->update_mode_line = Qt;
       if (buffer_shared > 1)
@@ -1201,6 +1200,9 @@ update:
 	  b->clip_changed = 0;
 	  w->update_mode_line = Qnil;
 	  XSETFASTINT (w->last_modified, BUF_MODIFF (b));
+	  w->last_had_star
+	    = (BUF_MODIFF (XBUFFER (w->buffer)) > BUF_SAVE_MODIFF (XBUFFER (w->buffer))
+	       ? Qt : Qnil);
 	  w->window_end_valid = w->buffer;
 	  last_arrow_position = Voverlay_arrow_position;
 	  last_arrow_string = Voverlay_arrow_string;
@@ -1269,6 +1271,9 @@ mark_window_display_accurate (window, flag)
 	{
 	  XSETFASTINT (w->last_modified,
 		       !flag ? 0 : BUF_MODIFF (XBUFFER (w->buffer)));
+	  w->last_had_star
+	    = (BUF_MODIFF (XBUFFER (w->buffer)) > BUF_SAVE_MODIFF (XBUFFER (w->buffer))
+	       ? Qt : Qnil);
 
 	  /* Record if we are showing a region, so can make sure to
 	     update it fully at next redisplay.  */
@@ -1341,9 +1346,9 @@ update_menu_bar (f, save_match_data)
 	 windows_or_buffers_changed anyway.  */
       if (windows_or_buffers_changed
 	  || !NILP (w->update_mode_line)
-	  || (XFASTINT (w->last_modified) < MODIFF
-	      && (XFASTINT (w->last_modified)
-		  <= BUF_SAVE_MODIFF (XBUFFER (w->buffer))))
+	  || ((BUF_SAVE_MODIFF (XBUFFER (w->buffer))
+	       < BUF_MODIFF (XBUFFER (w->buffer)))
+	      != !NILP (w->last_had_star))
 	  || ((!NILP (Vtransient_mark_mode)
 	       && !NILP (XBUFFER (w->buffer)->mark_active))
 	      != !NILP (w->region_showing)))
@@ -1368,12 +1373,19 @@ update_menu_bar (f, save_match_data)
 	    call0 (Qrecompute_lucid_menubar);
 	  safe_run_hooks (Qmenu_bar_update_hook);
 	  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
-	  /* Make sure to redisplay the menu bar in case we change it.  */
-	  w->update_mode_line = Qt;
+	  /* Redisplay the menu bar in case we changed it.  */
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
 	  if (FRAME_WINDOW_P (f))
 	    set_frame_menubar (f, 0, 0);
-#endif /* USE_X_TOOLKIT || HAVE_NTGUI */
+	  else
+	    /* On a terminal screen, the menu bar is an ordinary screen
+	     line, and this makes it get updated.  */
+	    w->update_mode_line = Qt;
+#else /* ! (USE_X_TOOLKIT || HAVE_NTGUI) */
+	  /* In the non-toolkit version, the menu bar is an ordinary screen
+	     line, and this makes it get updated.  */
+	  w->update_mode_line = Qt;
+#endif /* ! (USE_X_TOOLKIT || HAVE_NTGUI) */
 
 	  unbind_to (count, Qnil);
 	  set_buffer_internal_1 (prev);
