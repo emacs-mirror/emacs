@@ -238,6 +238,22 @@ when they are created.")
 requested in `facemenu-keybindings'.")
 (defalias 'facemenu-keymap facemenu-keymap)
 
+
+(defvar facemenu-add-face-function nil
+  "Function called at beginning of text to change or `nil'.
+This function is passed the FACE to set and END of text to change, and must
+return a string which is inserted.  It may set `facemenu-end-add-face'.")
+
+(defvar facemenu-end-add-face nil
+  "String to insert or function called at end of text to change or `nil'.
+This function is passed the FACE to set, and must return a string which is
+inserted.")
+
+(defvar facemenu-remove-face-function nil
+  "When non-`nil' function called to remove faces.
+This function is passed the START and END of text to change.
+May also be `t' meaning to use `facemenu-add-face-function'.")
+
 ;;; Internal Variables
 
 (defvar facemenu-color-alist nil
@@ -280,7 +296,7 @@ typing a character to insert cancels the specification."
       (let ((start (or start (region-beginning)))
 	    (end (or end (region-end))))
 	(facemenu-add-face face start end))
-    (facemenu-self-insert-face face)))
+    (facemenu-add-face face)))
 
 ;;;###autoload
 (defun facemenu-set-foreground (color &optional start end)
@@ -333,15 +349,7 @@ typing a character to insert cancels the specification."
   (facemenu-get-face face)
   (if start 
       (facemenu-add-face face start end)
-    (facemenu-self-insert-face face)))
-
-(defun facemenu-self-insert-face (face)
-  (setq self-insert-face (if (eq last-command self-insert-face-command)
-			     (cons face (if (listp self-insert-face)
-					    self-insert-face
-					  (list self-insert-face)))
-			   face)
-	self-insert-face-command this-command))
+    (facemenu-add-face face)))
 
 ;;;###autoload
 (defun facemenu-set-invisible (start end)
@@ -396,22 +404,28 @@ These special properties include `invisible', `intangible' and `read-only'."
 (defun list-text-properties-at (p)
   "Pop up a buffer listing text-properties at LOCATION."
   (interactive "d")
-  (let ((props (text-properties-at p)))
+  (let ((props (text-properties-at p))
+	str)
     (if (null props)
 	(message "None")
-      (with-output-to-temp-buffer "*Text Properties*"
-	(princ (format "Text properties at %d:\n\n" p))
-	(while props
-	  (princ (format "%-20s %S\n"
-			 (car props) (car (cdr props))))
-	  (setq props (cdr (cdr props))))))))
+      (if (and (not (cdr (cdr props)))
+	       (< (length (setq str (format "Text property at %d:  %s  %S"
+					    p (car props) (car (cdr props)))))
+		  (frame-width)))
+	  (message str)
+	(with-output-to-temp-buffer "*Text Properties*"
+	  (princ (format "Text properties at %d:\n\n" p))
+	  (while props
+	    (princ (format "%-20s %S\n"
+			   (car props) (car (cdr props))))
+	    (setq props (cdr (cdr props)))))))))
 
 ;;;###autoload
 (defun facemenu-read-color (&optional prompt)
   "Read a color using the minibuffer."
   (let ((col (completing-read (or prompt "Color: ") 
 			      (or facemenu-color-alist
-				  (if (or (eq window-system 'x) (eq window-system 'win32))
+				  (if window-system
 				      (mapcar 'list (x-defined-colors))))
 			      nil t)))
     (if (equal "" col)
@@ -425,7 +439,7 @@ If the optional argument LIST is non-nil, it should be a list of
 colors to display.  Otherwise, this command computes a list
 of colors that the current display can handle."
   (interactive)
-  (if (and (null list) (or (eq window-system 'x) (eq window-system 'win32)))
+  (if (and (null list) window-system)
       (progn
 	(setq list (x-defined-colors))
 	;; Delete duplicate colors.
@@ -461,31 +475,61 @@ color names mean.  It returns nil if the colors differ or if it can't
 determine the correct answer."
   (cond ((equal a b) t)
 	((and (or (eq window-system 'x) (eq window-system 'win32))
-	      (equal (x-color-values a) (x-color-values b))))))
+	      (equal (x-color-values a) (x-color-values b))))
+	((eq window-system 'pc)
+	 (and (x-color-defined-p a) (x-color-defined-p b)
+	      (eq (msdos-color-translate a) (msdos-color-translate b))))))
 
-(defun facemenu-add-face (face start end)
+(defun facemenu-add-face (face &optional start end)
   "Add FACE to text between START and END.
-For each section of that region that has a different face property, FACE will
-be consed onto it, and other faces that are completely hidden by that will be
-removed from the list.
+If START is `nil' or START to END is empty, add FACE to next typed character
+instead.  For each section of that region that has a different face property,
+FACE will be consed onto it, and other faces that are completely hidden by
+that will be removed from the list.
+If `facemenu-add-face-function' and maybe `facemenu-end-add-face' are non-`nil'
+they are used to set the face information.
 
 As a special case, if FACE is `default', then the region is left with NO face
 text property.  Otherwise, selecting the default face would not have any
-effect."
-  (interactive "*xFace:\nr")
-  (if (eq face 'default)
-      (remove-text-properties start end '(face default))
-    (let ((part-start start) part-end)
-      (while (not (= part-start end))
-	(setq part-end (next-single-property-change part-start 'face nil end))
-	(let ((prev (get-text-property part-start 'face)))
-	  (put-text-property part-start part-end 'face
-			     (if (null prev)
-				 face
-			       (facemenu-active-faces
-				(cons face
-				      (if (listp prev) prev (list prev)))))))
-	(setq part-start part-end)))))
+effect.  See `facemenu-remove-face-function'."
+  (interactive "*xFace: \nr")
+  (if (and (eq face 'default)
+	   (not (eq facemenu-remove-face-function t)))
+      (if facemenu-remove-face-function
+	  (funcall facemenu-remove-face-function start end)
+	(remove-text-properties start end '(face default)))
+    (if facemenu-add-face-function
+	(save-excursion
+	  (if end (goto-char end))
+	  (save-excursion
+	    (if start (goto-char start))
+	    (insert-before-markers
+	     (funcall facemenu-add-face-function face end)))
+	  (if facemenu-end-add-face
+	      (insert (if (stringp facemenu-end-add-face)
+			  facemenu-end-add-face
+			(funcall facemenu-end-add-face face)))))
+      (if (and start (< start end))
+	  (let ((part-start start) part-end)
+	    (while (not (= part-start end))
+	      (setq part-end (next-single-property-change part-start 'face
+							  nil end))
+	      (let ((prev (get-text-property part-start 'face)))
+		(put-text-property part-start part-end 'face
+				   (if (null prev)
+				       face
+				     (facemenu-active-faces
+				      (cons face
+					    (if (listp prev)
+						prev
+					      (list prev)))))))
+	      (setq part-start part-end)))
+	(setq self-insert-face (if (eq last-command self-insert-face-command)
+				   (cons face (if (listp self-insert-face)
+						  self-insert-face
+						(list self-insert-face)))
+				 face)
+	      self-insert-face-command this-command)))))
 
 (defun facemenu-active-faces (face-list &optional frame)
   "Return from FACE-LIST those faces that would be used for display.
@@ -520,10 +564,12 @@ or nil if given a bad color."
 		 (color (substring name 3)))
 	    (cond ((string-match "^fg:" name)
 		   (set-face-foreground face color)
-		   (and (or (eq window-system 'x) (eq window-system 'win32)) (x-color-defined-p color)))
+		   (and window-system
+			(x-color-defined-p color)))
 		  ((string-match "^bg:" name)
 		   (set-face-background face color)
-		   (and (or (eq window-system 'x) (eq window-system 'win32)) (x-color-defined-p color)))
+		   (and window-system
+			(x-color-defined-p color)))
 		  (t))))
       symbol))
 
