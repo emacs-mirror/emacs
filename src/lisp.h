@@ -2053,6 +2053,7 @@ extern int char_table_translate P_ ((Lisp_Object, int));
 extern void map_char_table P_ ((void (*) (Lisp_Object, Lisp_Object, Lisp_Object),
 				Lisp_Object, Lisp_Object, Lisp_Object, int,
 				Lisp_Object *));
+extern Lisp_Object char_table_ref_and_index P_ ((Lisp_Object, int, int *));
 extern void syms_of_fns P_ ((void));
 
 /* Defined in floatfns.c */
