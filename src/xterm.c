@@ -351,7 +351,6 @@ static void x_flush P_ ((struct frame *f));
 static void x_update_begin P_ ((struct frame *));
 static void x_update_window_begin P_ ((struct window *));
 static void x_after_update_window_line P_ ((struct glyph_row *));
-static INLINE void take_vertical_position_into_account P_ ((struct it *));
 static struct scroll_bar *x_window_to_scroll_bar P_ ((Window));
 static void x_scroll_bar_report_motion P_ ((struct frame **, Lisp_Object *,
 					    enum scroll_bar_part *,
@@ -3950,6 +3949,7 @@ static Boolean xaw3d_arrow_scroll;
 
 static Boolean xaw3d_pick_top;
 
+extern void set_vertical_scroll_bar P_ ((struct window *));
 
 /* Action hook installed via XtAppAddActionHook when toolkit scroll
    bars are used..  The hook is responsible for detecting when
@@ -3986,6 +3986,11 @@ xt_action_hook (widget, client_data, action_name, event, params,
       x_send_scroll_bar_event (window_being_scrolled,
 			       scroll_bar_end_scroll, 0, 0);
       w = XWINDOW (window_being_scrolled);
+      
+      if (!NILP (XSCROLL_BAR (w->vertical_scroll_bar)->dragging))
+	/* The thumb size is incorrect while dragging: fix it.  */
+	set_vertical_scroll_bar (w);
+
       XSCROLL_BAR (w->vertical_scroll_bar)->dragging = Qnil;
       window_being_scrolled = Qnil;
       last_scroll_bar_part = -1;
@@ -4105,9 +4110,7 @@ x_scroll_bar_to_input_event (event, ievent)
 
 /* Minimum and maximum values used for Motif scroll bars.  */
 
-#define XM_SB_MIN 1
 #define XM_SB_MAX 10000000
-#define XM_SB_RANGE (XM_SB_MAX - XM_SB_MIN)
 
 
 /* Scroll bar callback for Motif scroll bars.  WIDGET is the scroll
@@ -4158,16 +4161,14 @@ xm_scroll_callback (widget, client_data, call_data)
     case XmCR_DRAG:
       {
 	int slider_size;
-	int dragging_down_p = (INTEGERP (bar->dragging)
-			       && XINT (bar->dragging) <= cs->value);
 
 	/* Get the slider size.  */
 	BLOCK_INPUT;
 	XtVaGetValues (widget, XmNsliderSize, &slider_size, NULL);
 	UNBLOCK_INPUT;
 
-	whole = XM_SB_RANGE - slider_size;
-	portion = min (cs->value - XM_SB_MIN, whole);
+	whole = XM_SB_MAX;
+	portion = min (cs->value, whole);
 	part = scroll_bar_handle;
 	bar->dragging = make_number (cs->value);
       }
@@ -4382,7 +4383,7 @@ x_create_toolkit_scroll_bar (f, bar)
 #ifdef USE_MOTIF
   /* Set resources.  Create the widget.  */
   XtSetArg (av[ac], XtNmappedWhenManaged, False); ++ac;
-  XtSetArg (av[ac], XmNminimum, XM_SB_MIN); ++ac;
+  XtSetArg (av[ac], XmNminimum, 0); ++ac;
   XtSetArg (av[ac], XmNmaximum, XM_SB_MAX); ++ac;
   XtSetArg (av[ac], XmNorientation, XmVERTICAL); ++ac;
   XtSetArg (av[ac], XmNprocessingDirection, XmMAX_ON_BOTTOM), ++ac;
@@ -4607,14 +4608,13 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
       /* Slider size.  Must be in the range [1 .. MAX - MIN] where MAX
          is the scroll bar's maximum and MIN is the scroll bar's minimum
 	 value.  */
-      size = shown * XM_SB_RANGE;
-      size = min (size, XM_SB_RANGE);
+      size = shown * XM_SB_MAX;
+      size = min (size, XM_SB_MAX);
       size = max (size, 1);
 
       /* Position.  Must be in the range [MIN .. MAX - SLIDER_SIZE].  */
-      value = top * XM_SB_RANGE;
+      value = top * XM_SB_MAX;
       value = min (value, XM_SB_MAX - size);
-      value = max (value, XM_SB_MIN);
 
       XmScrollBarSetValues (widget, value, size, 0, 0, False);
     }
@@ -5240,6 +5240,7 @@ XTjudge_scroll_bars (f)
 }
 
 
+#ifndef USE_TOOLKIT_SCROLL_BARS
 /* Handle an Expose or GraphicsExpose event on a scroll bar.  This
    is a no-op when using toolkit scroll bars.
 
@@ -5251,8 +5252,6 @@ x_scroll_bar_expose (bar, event)
      struct scroll_bar *bar;
      XEvent *event;
 {
-#ifndef USE_TOOLKIT_SCROLL_BARS
-
   Window w = SCROLL_BAR_X_WINDOW (bar);
   FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   GC gc = f->output_data.x->normal_gc;
@@ -5272,8 +5271,8 @@ x_scroll_bar_expose (bar, event)
 
   UNBLOCK_INPUT;
 
-#endif /* not USE_TOOLKIT_SCROLL_BARS */
 }
+#endif /* not USE_TOOLKIT_SCROLL_BARS */
 
 /* Handle a mouse click on the scroll bar BAR.  If *EMACS_EVENT's kind
    is set to something other than NO_EVENT, it is enqueued.
@@ -7043,7 +7042,6 @@ XTread_socket (sd, bufp, numchars, expected)
      int expected;
 {
   int count = 0;
-  int nbytes = 0;
   XEvent event;
   int event_found = 0;
   struct x_display_info *dpyinfo;
@@ -8859,12 +8857,10 @@ x_make_frame_invisible (f)
 
 #ifdef USE_GTK
   if (FRAME_GTK_OUTER_WIDGET (f))
-    {
-      gtk_widget_hide (FRAME_GTK_OUTER_WIDGET (f));
-      goto out;
-    }
+    gtk_widget_hide (FRAME_GTK_OUTER_WIDGET (f));
+  else
 #endif
-
+  {
 #ifdef HAVE_X11R4
 
   if (! XWithdrawWindow (FRAME_X_DISPLAY (f), window,
@@ -8898,8 +8894,8 @@ x_make_frame_invisible (f)
   /* Unmap the window ourselves.  Cheeky!  */
   XUnmapWindow (FRAME_X_DISPLAY (f), window);
 #endif /* ! defined (HAVE_X11R4) */
+  }
 
- out:
   /* We can't distinguish this from iconification
      just by the event that we get from the server.
      So we can't win using the usual strategy of letting
