@@ -1,3 +1,24 @@
+2001-10-28  Dave Love  <fx@gnu.org>
+
+	* international/mule-cmds.el (locale-language-names): Use defconst
+	and purecopy it.  Add entries for new environments/locales.
+	(locale-charset-language-names): Use defconst, purecopy and add
+	UTF-8.
+	(locale-preferred-coding-systems): Use defconst and purecopy.
+	(set-language-environment): Use `functionp' to check exit and
+	setup functions.
+
+	* language/european.el (mac-roman): Add mime-charset.
+	("UTF-8"): New language environment.
+	(file-coding-system-alist): Add an entry for utf-8.
+
+2001-09-15  Dave Love  <fx@gnu.org>
+
+	* language/extra-lang.el: New file.
+
+	* international/latin1-disp.el: Fix some 8-bit-graphic
+	characters.  Use iso2022 encoding.
+
 2001-09-10  Dave Love  <fx@gnu.org>
 
 	* international/latin-9.el: Give pilcrow punctuation syntax.
