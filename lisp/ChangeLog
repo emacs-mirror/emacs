@@ -1,3 +1,8 @@
+2003-05-05  John Paul Wallington  <jpw@gnu.org>
+
+	* emacs-lisp/autoload.el (batch-update-autoloads): Call
+	`update-directory-autoloads'.
+
 2003-05-04  Emmanuel Briot  <briot@gnat.com>
 
 	* progmodes/ada-mode.el
@@ -100,7 +105,7 @@
 
 2003-04-29  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* (isearch-complete1): Don't allocate unnecessarily.
+	* isearch.el (isearch-complete1): Don't allocate unnecessarily.
 	(isearch-complete-edit): Adjust to Emacs-21's new minibuffer handling.
 	(isearch-update-ring): Use push.
 
