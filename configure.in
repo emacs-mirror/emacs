@@ -2089,9 +2089,7 @@ if test "${HAVE_X11}" = "yes"; then
   if test "${HAVE_JPEG}" = "yes"; then
     AC_DEFINE(HAVE_JPEG)
     AC_EGREP_CPP([version= *(6[2-9]|[7-9][0-9])],
-        [
-/* HP compiler A.10.32.30 seems to need #include to be at start of line.  */
-#include <jpeglib.h>
+        [#include <jpeglib.h>
 	 version=JPEG_LIB_VERSION
 ],
         AC_DEFINE(HAVE_JPEG),
