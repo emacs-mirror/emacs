@@ -1054,7 +1054,7 @@ print_error_message (data, stream)
 
   /* For file-error, make error message by concatenating
      all the data items.  They are all strings.  */
-  if (!NILP (file_error) && !NILP (tail))
+  if (!NILP (file_error) && CONSP (tail))
     errmsg = XCONS (tail)->car, tail = XCONS (tail)->cdr;
 
   if (STRINGP (errmsg))
