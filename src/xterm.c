@@ -10495,7 +10495,8 @@ XTread_socket (sd, bufp, numchars, expected)
 						    copy_bufsiz, &keysym,
 						    &status_return);
 			}
-#ifdef X_HAVE_UTF8_STRING
+/* Xutf8LookupString is a new but already deprecated interface.  -stef  */
+#if 0 && defined X_HAVE_UTF8_STRING
 		      else if (status_return == XLookupKeySym)
 			{  /* Try again but with utf-8.  */
 			  coding_system = Qutf_8;
