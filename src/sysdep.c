@@ -226,7 +226,7 @@ static int baud_convert[] =
   };
 #endif
 
-#ifdef HAVE_TERMIOS
+#ifdef HAVE_TERMIOS_H
 extern speed_t ospeed;
 #else
 extern short ospeed;
