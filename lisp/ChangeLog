@@ -1,3 +1,8 @@
+2002-10-18  Juanma Barranquero  <lektu@terra.es>
+
+	* textmodes/artist.el (artist-ff-is-bottommost-line): Fix misplaced
+	ELSE expression on IF.
+
 2002-10-17  Juanma Barranquero  <lektu@terra.es>
 
 	* align.el (align-rules-list, align-exclude-rules-list): Fix typos.
