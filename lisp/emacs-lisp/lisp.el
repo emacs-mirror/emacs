@@ -316,12 +316,7 @@ function definitions, values or properties are considered."
 	   (insert completion))
 	  (t
 	   (message "Making completion list...")
-	   (let ((list (all-completions pattern obarray predicate))
-		 (completion-fixup-function
-		  (function (lambda () (if (save-excursion
-					     (goto-char (max (point-min) (- (point) 4)))
-					     (looking-at " <f>"))
-					   (forward-char -4))))))
+	   (let ((list (all-completions pattern obarray predicate)))
 	     (setq list (sort list 'string<))
 	     (or (eq predicate 'fboundp)
 		 (let (new)
