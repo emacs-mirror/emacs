@@ -2108,7 +2108,7 @@ set_tty_color_mode (f, val)
   tty_color_mode_alist = Fintern_soft (build_string ("tty-color-mode-alist"),
 				       Qnil);
 
-  if (NATNUMP (val))
+  if (INTEGERP (val))
     color_mode = val;
   else
     {
@@ -2127,11 +2127,11 @@ set_tty_color_mode (f, val)
     current_mode = XCDR (current_mode_spec);
   else
     current_mode = Qnil;
-  if (NATNUMP (color_mode))
+  if (INTEGERP (color_mode))
     mode = XINT (color_mode);
   else
     mode = 0;	/* meaning default */
-  if (NATNUMP (current_mode))
+  if (INTEGERP (current_mode))
     old_mode = XINT (current_mode);
   else
     old_mode = 0;
