@@ -803,8 +803,8 @@ shortnames:
 #define LWLIB_OPTIONS
 #endif
 
-#ifdef HAVE_X_WINDOWS
-#ifdef HAVE_X11
+#if defined (HAVE_X_WINDOWS) && defined (HAVE_X11) && defined (HAVE_MENUS)
+
 #ifdef USE_X_TOOLKIT
 $(OLDXMENU): really-lwlib
 
@@ -828,7 +828,6 @@ really-lwlib:
 	@true  /* make -t should not create really-lwlib.  */
 .PHONY: really-lwlib
 #else /* not USE_X_TOOLKIT */
-#ifdef HAVE_MENUS
 $(OLDXMENU): really-oldXMenu
 
 /* Encode the values of these two macros in Make variables,
@@ -850,10 +849,8 @@ really-oldXMenu:
     "C_SWITCH_SYSTEM=$(C_SWITCH_SYSTEM_1)"
 	@true  /* make -t should not create really-oldXMenu.  */
 .PHONY: really-oldXMenu
-#endif /* HAVE_MENUS */
 #endif /* not USE_X_TOOLKIT */
-#endif /* HAVE_X11 */
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS */
 
 paths.h: paths.in
 	@echo "The file paths.h needs to be set up from paths.in."
