@@ -1,3 +1,9 @@
+2000-04-12  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (NUM_MOUSE_BUTTONS): Define.
+	(IT_frame_up_to_date): Support the buffer local value of
+	cursor-type, if defined.
+
 2000-04-10  Dave Love  <fx@gnu.org>
 
 	* editfns.c (preceding-char, following-char): Doc fix.
