@@ -26,5 +26,5 @@ access(2), but in the meantime, some of us need the right behavior.  */
 
 /* Well, we released Emacs with this change, and fixed a typo, but
    people keep saying that it doesn't work, and that the patch is easy
-   to install.  */
+   to install.  Patch number is 100947-02.  */
 #undef SOLARIS_BROKEN_ACCESS
