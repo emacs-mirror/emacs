@@ -1,6 +1,7 @@
 ;;; rmailsum.el --- make summary buffers for the mail reader
 
-;; Copyright (C) 1985, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1993, 1994, 1995, 1996, 2000
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -339,6 +340,24 @@ By default, `identity' is set."
 			   (substring line (1+ pos)))))
     ))
 
+;;;###autoload
+(defcustom rmail-user-mail-address-regexp nil
+  "*Regexp matching user mail addresses.
+If non-nil, this variable is used to identify the correspondent
+when receiving new mail.  If it matches the address of the sender,
+the recipient is taken as correspondent of a mail.
+If nil \(default value\), your `user-login-name' and `user-mail-address'
+are used to exclude yourself as correspondent.
+
+Usually you don't have to set this variable, except if you collect mails
+sent by you under different user names.
+Then it should be a regexp matching your mail adresses.
+
+Setting this variable has an effect only before reading a mail."
+  :type '(choice (const :tag "None" nil) regexp)
+  :group 'rmail-retrieve
+  :version "21.1")
+
 (defun rmail-make-basic-summary-line ()
   (goto-char (point-min))
   (concat (save-excursion
@@ -388,19 +407,21 @@ By default, `identity' is set."
 			       (skip-chars-backward " \t")
 			       (point)))))
                      len mch lo)
-		(if (string-match (concat "^\\("
-					  (regexp-quote (user-login-name))
-					  "\\($\\|@\\)\\|"
-					  (regexp-quote
-					   ;; Don't lose if run from init file
-					   ;; where user-mail-address is not
-					   ;; set yet.
-					   (or user-mail-address
-					       (concat (user-login-name) "@"
-						       (or mail-host-address
-							   (system-name)))))
-					  "\\>\\)")
-				  from)
+		(if (string-match 
+		     (or rmail-user-mail-address-regexp 
+			 (concat "^\\("
+				 (regexp-quote (user-login-name))
+				 "\\($\\|@\\)\\|"
+				 (regexp-quote
+				  ;; Don't lose if run from init file
+				  ;; where user-mail-address is not
+				  ;; set yet.
+				  (or user-mail-address
+				      (concat (user-login-name) "@"
+					      (or mail-host-address
+						  (system-name)))))
+				 "\\>\\)"))
+		     from)
 		    (save-excursion
 		      (goto-char (point-min))
 		      (if (not (re-search-forward "^To:[ \t]*" nil t))
