@@ -869,7 +869,7 @@ again afterward.
 FUNCTION may not change the visible text of the message, but it may
 change the invisible header text."
   (save-excursion
-    (let ((obeg (- (point-max) (point-min)))
+    (let ((obeg (- (point-max) (point-min))))
       (unwind-protect
 	  (progn
 	    (narrow-to-region (rmail-msgbeg rmail-current-message)
@@ -881,7 +881,7 @@ change the invisible header text."
 	;; before that restriction is restored.
 	;; Here we assume that changes made by FUNCTION
 	;; occur before the visible region of the message.
-	(narrow-to-region (- (point-max) obeg) (point-max)))))))
+	(narrow-to-region (- (point-max) obeg) (point-max))))))
 
 (defun rmail-forget-messages ()
   (unwind-protect
