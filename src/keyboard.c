@@ -2611,6 +2611,13 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	  XSETBUFFER (obj, current_buffer);
 	  kbd_fetch_ptr = event + 1;
 	}
+#ifdef USE_X_TOOLKIT
+      else if (event->kind == menu_bar_activate_event)
+	{
+	  kbd_fetch_ptr = event + 1;
+	  x_activate_menubar (XFRAME (event->frame_or_window));
+	}
+#endif
       /* Just discard these, by returning nil.
 	 With MULTI_KBOARD, these events are used as placeholders
 	 when we need to randomly delete events from the queue.
