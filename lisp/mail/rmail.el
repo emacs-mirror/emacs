@@ -762,28 +762,29 @@ original copy."
   (let ((menu (make-sparse-keymap menu-name)))
     (mapcar
      (function (lambda (item)
-		 (if (consp item)
+		 (let (command)
+		   (if (consp item)
+		       (progn
+			 (setq command
+			       (rmail-list-to-menu (car item) (cdr item) 
+						   action 
+						   (if full-name
+						       (concat full-name "/"
+							       (car item))
+						     (car item))))
+			 (setq name (car item)))
 		     (progn
-		       (setq command
-			     (rmail-list-to-menu (car item) (cdr item) 
-						 action 
-						 (if full-name
-						     (concat full-name "/"
-							     (car item))
-						   (car item))))
-		       (setq name (car item)))
-		   (progn
-		     (setq name item)
-		     (setq command 
-			   (list 'lambda () '(interactive)
-				 (list action
-				  (expand-file-name 
-				   (if full-name
-				       (concat full-name "/" item)
-				     item)
-				   rmail-secondary-file-directory))))))
-		 (define-key menu (vector (intern name))
-		   (cons name command))))
+		       (setq name item)
+		       (setq command 
+			     (list 'lambda () '(interactive)
+				   (list action
+					 (expand-file-name 
+					  (if full-name
+					      (concat full-name "/" item)
+					    item)
+					  rmail-secondary-file-directory))))))
+		   (define-key menu (vector (intern name))
+		     (cons name command)))))
      (reverse l))
     menu))
  
