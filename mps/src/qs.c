@@ -2,7 +2,7 @@
  *
  *                          QUICKSORT
  *
- *  $HopeName$
+ *  $HopeName: MMsrc!qs.c(trunk.1) $
  *
  *  Copyright (C) 1995,1996 Harlequin Group, all rights reserved
  *
@@ -22,16 +22,12 @@
  *
  *  Some registers are not nulled out when they could be.
  *
- *  .collect.hack: There's a hack to start a collection.  It's
- *    completely unsatisfactory, because AMC doesn't collect
- *    on its own yet.
  */
 
 
 #include "std.h"
 #include "lib.h"
 #include "amc.h"
-#include "coll.h"
 #include "format.h"
 #include "pool.h"
 #include "root.h"
@@ -39,6 +35,8 @@
 #include "testlib.h"
 
 #include <stdlib.h>
+
+SRCID("$HopeName$");
 
 
 static Error scan(ScanState ss, Addr base, Addr limit);
@@ -154,7 +152,7 @@ append(void)
   ret:
   /* null out reg[1] */
   regtag[1] = QSRef;
-  reg[1] = NULL;
+  reg[1] = (Addr)0;
   return;
 }
 
@@ -194,7 +192,7 @@ swap(void)
   regtag[1]=regtag[2];
   reg[1]=reg[2];
   regtag[2]=QSRef;
-  reg[2]=NULL;
+  reg[2]=(Addr)0;
 }
 
 static
@@ -212,7 +210,7 @@ makerndlist(int l)
   listl = l;
   die(PoolAlloc((Addr *)&list, mpool, (Size)(l * sizeof(Addr))),
       "Alloc List");
-  reg[0] = NULL;
+  reg[0] = (Addr)0;
   regtag[0] = QSRef;
   for(i = 0; i < l; ++i) {
     r = rnd();
@@ -232,11 +230,11 @@ part(Addr p)
   reg[2]=reg[0];
   AVER(regtag[2] == QSRef);
   regtag[0]=QSRef;
-  reg[0]=NULL;
+  reg[0]=(Addr)0;
   regtag[1]=QSRef;
-  reg[1]=NULL;
+  reg[1]=(Addr)0;
 
-  while(reg[2] != NULL) {
+  while(reg[2] != (Addr)0) {
     AVER(((QSCell)reg[2])->tag == QSInt);
     if(((QSCell)reg[2])->value < p) {
       /* cons onto reg[0] */
@@ -264,7 +262,7 @@ qs(void)
   AVER(regtag[0] == QSRef);
 
   /* base case */
-  if(reg[0] == NULL) {
+  if(reg[0] == (Addr)0) {
     return;
   }
 
@@ -353,7 +351,7 @@ validate(void)
     }
     reg[1] = (Addr)((QSCell)reg[1])->tail;
   }
-  AVER(reg[1] == NULL);
+  AVER(reg[1] == (Addr)0);
   LibFormat(LibStreamOut(), "Note: Lists compare equal.\n");
 }
 
@@ -362,8 +360,6 @@ int
 main(void)
 {
   AMC amc;
-  Coll coll;
-  int i;
 
   die(SpaceCreate(&space), "SpaceCreate");
   mpool = SpaceControlPool(space);
@@ -413,15 +409,6 @@ main(void)
   qsort(list, listl, sizeof(Addr), &compare);
   printlist(LibStreamOut());
   validate();
-
-  SpaceDescribe(space, LibStreamOut());
-
-  die(CollCreate(&coll, pool), "CollCreate");
-  die(SchedProcAdd(SpaceSched(space), CollProc, coll, 0),
-      "SchedProcAdd");
-  for(i = 0; i < 10; ++i) {
-    SchedRun(SpaceSched(space));
-  }
 
   SpaceDescribe(space, LibStreamOut());
 
