@@ -547,3 +547,9 @@ extern char *getenv ();
 
 /* Should we enable expensive run-time checking of data types?  */
 #undef ENABLE_CHECKING
+
+#if defined __GNUC__ && (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR >= 5))
+#define NO_RETURN	__attribute__ ((__noreturn__))
+#else
+#define NO_RETURN	/* nothing */
+#endif
