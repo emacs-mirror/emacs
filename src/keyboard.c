@@ -2582,7 +2582,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	  copy = *event;
 	  kbd_fetch_ptr = event + 1;
 	  input_pending = readable_events ();
-	  x_handle_selection_clear (event);
+	  x_handle_selection_clear (&copy);
 #else
 	  /* We're getting selection request events, but we don't have
              a window system.  */
@@ -2790,7 +2790,7 @@ swallow_events ()
 
 	  kbd_fetch_ptr = event + 1;
 	  input_pending = readable_events ();
-	  x_handle_selection_clear (event);
+	  x_handle_selection_clear (&copy);
 #else
 	  /* We're getting selection request events, but we don't have
              a window system.  */
