@@ -302,12 +302,14 @@ Keymap to display on major and minor modes.")
 
   (setq-default mode-line-position
     `((-3 . ,(propertize "%p" 'help-echo help-echo))
-      (line-number-mode 
+      (line-number-mode
        ((column-number-mode
 	 (10 ,(propertize " (%l,%c)" 'help-echo help-echo))
 	 (6 ,(propertize " L%l" 'help-echo help-echo))))
        ((column-number-mode
 	 (5 ,(propertize " C%c" 'help-echo help-echo))))))))
+
+(put 'mode-name 'risky-local-variable t)
 
 (defvar mode-line-buffer-identification-keymap nil "\
 Keymap for what is displayed by `mode-line-buffer-identification'.")
