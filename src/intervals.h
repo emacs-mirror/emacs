@@ -195,28 +195,13 @@ Boston, MA 02111-1307, USA.  */
 
 
 /* If PROP is the `invisible' property of a character,
-   this is 1 if the character should be treated as invisible.  */
+   this is 1 if the character should be treated as invisible,
+   and 2 if it is invisible but with an ellipsis.  */
 
 #define TEXT_PROP_MEANS_INVISIBLE(prop)				\
   (EQ (current_buffer->invisibility_spec, Qt)			\
    ? !NILP (prop)						\
    : invisible_p (prop, current_buffer->invisibility_spec))
-
-/* If PROP is the `invisible' property of a character,
-   this is 1 if the character should be treated as invisible
-   and should have an ellipsis.  */
-
-#define TEXT_PROP_MEANS_INVISIBLE_WITH_ELLIPSIS(prop)		\
-  (EQ (current_buffer->invisibility_spec, Qt)			\
-   ? 0								\
-   : 1 == invisible_p (prop, current_buffer->invisibility_spec))
-
-/* As above but for "completely" invisible (no ellipsis).  */
-
-#define TEXT_PROP_MEANS_INVISIBLE_NOELLIPSIS(prop)		\
-  (EQ (current_buffer->invisibility_spec, Qt)			\
-   ? !NILP (prop)						\
-   : 2 == invisible_p (prop, current_buffer->invisibility_spec))
 
 /* Declared in alloc.c */
 
