@@ -193,7 +193,7 @@ actually occur.")
 	'("^B?CC:\\|^Reply-To:" . font-lock-keyword-face)
 	'("^Subject:" . font-lock-comment-face)
 	'("^Subject:\\s *\\(.+\\)" 1 font-lock-type-face)
-	(list (concat "^\\(" mail-header-separator "\\)$") 1
+	(list (concat "^\\(" (regexp-quote mail-header-separator) "\\)$") 1
 	      'font-lock-comment-face)
 	'("^[ \t]*\\sw*[>|}].*" . font-lock-reference-face)	; Citation.
 	'("^\\(X-[A-Za-z0-9-]+\\|In-reply-to\\):.*" . font-lock-string-face))
