@@ -442,7 +442,7 @@ screen size.  (For now, this does not work with some window managers.)
 automatically.
 
 +++
-** The new command `comint-input-previous-argument' in comint-derived
+** The new command `comint-insert-previous-argument' in comint-derived
 modes (shell-mode etc) inserts arguments from previous command lines,
 like bash's `ESC .' binding.  It is bound by default to `C-c .', but
 otherwise behaves quite similarly to the bash version.
