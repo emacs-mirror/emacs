@@ -1,6 +1,6 @@
 /* impl.h.eventdef -- Event Logging Definitions
  *
- * $HopeName: MMsrc!eventdef.h(trunk.9) $
+ * $HopeName: MMsrc!eventdef.h(trunk.10) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
  *
  * .readership: MPS developers.
@@ -113,3 +113,6 @@ RELATION(BufferCommit                    , 0x0035, TRUE, Object, PAWW)
 /* BufferInit/Finish is not really pool level event */
 RELATION(BufferInit                      , 0x0036, TRUE, Pool, PPU)
 RELATION(BufferFinish                    , 0x0037, TRUE, Pool, P)
+RELATION(MV2Finish                       , 0x0038, TRUE, Pool, P)
+RELATION(MV2BufferFill                   , 0x0039, TRUE, Seg, PPWAW)
+RELATION(MV2BufferEmpty                  , 0x003A, TRUE, Seg, PPW)

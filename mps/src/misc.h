@@ -1,6 +1,6 @@
 /* impl.h.misc: MISCELLANEOUS DEFINITIONS
  *
- * $HopeName: MMsrc!misc.h(trunk.20) $
+ * $HopeName: MMsrc!misc.h(trunk.21) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * Small general things which are useful for C but aren't part of the
@@ -71,6 +71,15 @@ typedef const struct SrcIdStruct {
 #define BEGIN           do {
 #define END             } while(0)
 
+
+
+/* RVALUE -- for method-style macros
+ *
+ * RVALUE is used to enclose the expansion of a macro that must not be
+ * used as an lvalue, e.g. a getter method.
+ */
+
+#define RVALUE(expr) ((void)0, (expr))
 
 /* NOOP -- null statement
  *
