@@ -204,7 +204,7 @@ static int window_initialized;
 Lisp_Object Qwindow_configuration_change_hook;
 Lisp_Object Vwindow_configuration_change_hook;
 
-/* Nonzero means scroll commands try to put point
+/* Non-nil means scroll commands try to put point
    at the same screen height as previously.  */
 
 Lisp_Object Vscroll_preserve_screen_position;
@@ -4523,7 +4523,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
       start = it.current.pos;
     }
 
-  /* If scroll_preserve_screen_position is non-zero, we try to set
+  /* If scroll_preserve_screen_position is non-nil, we try to set
      point in the same window line as it is now, so get that line.  */
   if (!NILP (Vscroll_preserve_screen_position))
     {

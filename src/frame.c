@@ -4037,7 +4037,7 @@ is a reasonable practice.  See also the variable `x-resource-name'.  */);
   DEFVAR_LISP ("default-frame-alist", &Vdefault_frame_alist,
 	       doc: /* Alist of default values for frame creation.
 These may be set in your init file, like this:
-  (setq default-frame-alist '((width . 80) (height . 55) (menu-bar-lines . 1))
+  (setq default-frame-alist '((width . 80) (height . 55) (menu-bar-lines . 1)))
 These override values given in window system configuration data,
  including X Windows' defaults database.
 For values specific to the first Emacs frame, see `initial-frame-alist'.

@@ -63,78 +63,78 @@ A large number or nil slows down menu responsiveness."
   (cons "Options" menu-bar-options-menu))
 (defvar menu-bar-edit-menu (make-sparse-keymap "Edit"))
 (define-key global-map [menu-bar edit] (cons "Edit" menu-bar-edit-menu))
-(defvar menu-bar-files-menu (make-sparse-keymap "File"))
-(define-key global-map [menu-bar files] (cons "File" menu-bar-files-menu))
+(defvar menu-bar-file-menu (make-sparse-keymap "File"))
+(define-key global-map [menu-bar file] (cons "File" menu-bar-file-menu))
 
 ;; This alias is for compatibility with 19.28 and before.
-(defvar menu-bar-file-menu menu-bar-files-menu)
+(defvar menu-bar-files-menu menu-bar-file-menu)
 
 ;; This is referenced by some code below; it is defined in uniquify.el
 (defvar uniquify-buffer-name-style)
 
 
 ;; The "File" menu items
-(define-key menu-bar-files-menu [exit-emacs]
+(define-key menu-bar-file-menu [exit-emacs]
   '(menu-item "Exit Emacs" save-buffers-kill-emacs
 	      :help "Save unsaved buffers, then exit"))
 
-(define-key menu-bar-files-menu [separator-exit]
+(define-key menu-bar-file-menu [separator-exit]
   '("--"))
 
 ;; Don't use delete-frame as event name because that is a special
 ;; event.
-(define-key menu-bar-files-menu [delete-this-frame]
+(define-key menu-bar-file-menu [delete-this-frame]
   '(menu-item "Delete Frame" delete-frame
 	      :visible (fboundp 'delete-frame)
 	      :enable (delete-frame-enabled-p)
 	      :help "Delete currently selected frame"))
-(define-key menu-bar-files-menu [make-frame-on-display]
+(define-key menu-bar-file-menu [make-frame-on-display]
   '(menu-item "New Frame on Display..." make-frame-on-display
 	      :visible (fboundp 'make-frame-on-display)
 	      :help "Open a new frame on another display"))
-(define-key menu-bar-files-menu [make-frame]
+(define-key menu-bar-file-menu [make-frame]
   '(menu-item "New Frame" make-frame-command
 	      :visible (fboundp 'make-frame-command)
 	      :help "Open a new frame"))
 
-(define-key menu-bar-files-menu [one-window]
+(define-key menu-bar-file-menu [one-window]
   '(menu-item "Unsplit Windows" delete-other-windows
 	      :enable (not (one-window-p t nil))
 	      :help "Make selected window fill its frame"))
 
-(define-key menu-bar-files-menu [split-window]
+(define-key menu-bar-file-menu [split-window]
   '(menu-item "Split Window" split-window-vertically
 	      :help "Split selected window in two"))
 
-(define-key menu-bar-files-menu [separator-window]
+(define-key menu-bar-file-menu [separator-window]
   '(menu-item "--"))
 
-(define-key menu-bar-files-menu [ps-print-region]
+(define-key menu-bar-file-menu [ps-print-region]
   '(menu-item "Postscript Print Region (B+W)" ps-print-region
 	      :enable mark-active
 	      :help "Pretty-print marked region in black and white to PostScript printer"))
-(define-key menu-bar-files-menu [ps-print-buffer]
+(define-key menu-bar-file-menu [ps-print-buffer]
   '(menu-item "Postscript Print Buffer (B+W)" ps-print-buffer
 	      :help "Pretty-print current buffer in black and white to PostScript printer"))
-(define-key menu-bar-files-menu [ps-print-region-faces]
+(define-key menu-bar-file-menu [ps-print-region-faces]
   '(menu-item "Postscript Print Region" ps-print-region-with-faces
 	      :enable mark-active
 	      :help "Pretty-print marked region to PostScript printer"))
-(define-key menu-bar-files-menu [ps-print-buffer-faces]
+(define-key menu-bar-file-menu [ps-print-buffer-faces]
   '(menu-item "Postscript Print Buffer" ps-print-buffer-with-faces
 	      :help "Pretty-print current buffer to PostScript printer"))
-(define-key menu-bar-files-menu [print-region]
+(define-key menu-bar-file-menu [print-region]
   '(menu-item "Print Region" print-region
 	      :enable mark-active
 	      :help "Print region between mark and current position"))
-(define-key menu-bar-files-menu [print-buffer]
+(define-key menu-bar-file-menu [print-buffer]
   '(menu-item "Print Buffer" print-buffer
 	      :help "Print current buffer with page headings"))
 
-(define-key menu-bar-files-menu [separator-print]
+(define-key menu-bar-file-menu [separator-print]
   '(menu-item "--"))
 
-(define-key menu-bar-files-menu [recover-session]
+(define-key menu-bar-file-menu [recover-session]
   '(menu-item "Recover Crashed Session..." recover-session
 	      :enable (and auto-save-list-file-prefix
 			   (file-directory-p
@@ -148,7 +148,7 @@ A large number or nil slows down menu responsiveness."
 				      auto-save-list-file-prefix)))
 			    t))
 	      :help "Recover edits from a crashed session"))
-(define-key menu-bar-files-menu [revert-buffer]
+(define-key menu-bar-file-menu [revert-buffer]
   '(menu-item "Revert Buffer" revert-buffer
 	      :enable (or revert-buffer-function
 			  revert-buffer-insert-file-contents-function
@@ -157,12 +157,12 @@ A large number or nil slows down menu responsiveness."
 				   (not (verify-visited-file-modtime
 					 (current-buffer))))))
 	      :help "Re-read current buffer from its file"))
-(define-key menu-bar-files-menu [write-file]
+(define-key menu-bar-file-menu [write-file]
   '(menu-item "Save Buffer As..." write-file
 	      :enable (not (window-minibuffer-p
 			    (frame-selected-window menu-updating-frame)))
 	      :help "Write current buffer to another file"))
-(define-key menu-bar-files-menu [save-buffer]
+(define-key menu-bar-file-menu [save-buffer]
   '(menu-item "Save (current buffer)" save-buffer
 	      :enable (and (buffer-modified-p)
 			   (buffer-file-name)
@@ -170,27 +170,27 @@ A large number or nil slows down menu responsiveness."
 				 (frame-selected-window menu-updating-frame))))
 	      :help "Save current buffer to its file"))
 
-(define-key menu-bar-files-menu [separator-save]
+(define-key menu-bar-file-menu [separator-save]
   '(menu-item "--"))
 
-(define-key menu-bar-files-menu [kill-buffer]
+(define-key menu-bar-file-menu [kill-buffer]
   '(menu-item "Close (current buffer)" kill-this-buffer
 	      :enable (kill-this-buffer-enabled-p)
 	      :help "Discard current buffer"))
-(define-key menu-bar-files-menu [insert-file]
+(define-key menu-bar-file-menu [insert-file]
   '(menu-item "Insert File..." insert-file
 	      :enable (not (window-minibuffer-p
 			    (frame-selected-window menu-updating-frame)))
 	      :help "Insert another file into current buffer"))
-(define-key menu-bar-files-menu [dired]
+(define-key menu-bar-file-menu [dired]
   '(menu-item "Open Directory..." dired
 	      :help "Read a directory, operate on its files"))
-(define-key menu-bar-files-menu [open-file]
+(define-key menu-bar-file-menu [open-file]
   '(menu-item "Open File..." find-file-existing
 	      :enable (not (window-minibuffer-p
 			    (frame-selected-window menu-updating-frame)))
 	      :help "Read an existing file into an Emacs buffer"))
-(define-key menu-bar-files-menu [new-file]
+(define-key menu-bar-file-menu [new-file]
   '(menu-item "New File..." find-file
 	      :enable (not (window-minibuffer-p
 			    (frame-selected-window menu-updating-frame)))

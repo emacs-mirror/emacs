@@ -1119,11 +1119,13 @@ such as the creation time of each version, who created it, and a
 description of what was changed in that version.
 
   The Emacs version control interface is called VC.  Its commands work
-with three version control systems---RCS, CVS, and SCCS.  The GNU
-project recommends RCS and CVS, which are free software and available
-from the Free Software Foundation.  We also have free software to
-replace SCCS, known as CSSC; if you are using SCCS and don't want to
-make the incompatible change to RCS or CVS, you can switch to CSSC.
+with different version control systems---currently, it supports CVS,
+GNU Arch, RCS, Meta-CVS, Subversion, and SCCS.  Of these, the GNU
+project distributes CVS, GNU Arch, and RCS; we recommend that you use
+either CVS or GNU Arch for your projects, and RCS for individual
+files.  We also have free software to replace SCCS, known as CSSC; if
+you are using SCCS and don't want to make the incompatible change to
+RCS or CVS, you can switch to CSSC.
 
   VC is enabled by default in Emacs.  To disable it, set the
 customizable variable @code{vc-handled-backends} to @code{nil}
@@ -1164,31 +1166,61 @@ you want to use.
 @node Version Systems
 @subsubsection Supported Version Control Systems
 
-@cindex RCS
 @cindex back end (version control)
-  VC currently works with three different version control systems or
-``back ends'': RCS, CVS, and SCCS.
-
-  RCS is a free version control system that is available from the Free
-Software Foundation.  It is perhaps the most mature of the supported
-back ends, and the VC commands are conceptually closest to RCS.  Almost
-everything you can do with RCS can be done through VC.
+  VC currently works with six different version control systems or
+``back ends'': CVS, GNU Arch, RCS, Meta-CVS, Subversion, and SCCS.
 
 @cindex CVS
-  CVS is built on top of RCS, and extends the features of RCS, allowing
-for more sophisticated release management, and concurrent multi-user
-development.  VC supports basic editing operations under CVS, but for
-some less common tasks you still need to call CVS from the command line.
-Note also that before using CVS you must set up a repository, which is a
-subject too complex to treat here.
+  CVS is a free version control system that is used for the majority
+of free software projects today.  It allows concurrent multi-user
+development either locally or over the network.  Some of its
+shortcomings, corrected by newer systems such as GNU Arch, are that it
+lacks atomic commits or support for renaming files.  VC supports all
+basic editing operations under CVS, but for some less common tasks you
+still need to call CVS from the command line.  Note also that before
+using CVS you must set up a repository, which is a subject too complex
+to treat here.
+
+@cindex GNU Arch
+@cindex Arch
+  GNU Arch is a new version control system that is designed for
+distributed work.  It differs in many ways from old well-known
+systems, such as CVS and RCS.  It supports different transports for
+interoperating between users, offline operations, and it has good
+branching and merging features.  It also supports atomic commits, and
+history of file renaming and moving.  VC does not support all
+operations provided by GNU Arch, so you must sometimes invoke it from
+the command line, or use a specialized module.
+
+@cindex RCS
+  RCS is the free version control system around which VC was initially
+built.  The VC commands are therefore conceptually closest to RCS.
+Almost everything you can do with RCS can be done through VC.  You
+cannot use RCS over the network though, and it only works at the level
+of individual files, rather than projects.  You should use it if you
+want a simple, yet reliable tool for handling individual files.
+
+@cindex SVN
+@cindex Subversion
+  Subversion is a free version control system designed to be similar
+to CVS but without CVS's problems.  Subversion supports atomic commits,
+and versions directories, symbolic links, meta-data, renames, copies,
+and deletes.  It can be used via http or via its own protocol.
+
+@cindex MCVS
+@cindex Meta-CVS
+  Meta-CVS is another attempt to solve problems, arising in CVS.  It
+supports directory structure versioning, improved branching and
+merging, and use of symbolic links and meta-data in repositories.
 
 @cindex SCCS
   SCCS is a proprietary but widely used version control system.  In
-terms of capabilities, it is the weakest of the three that VC
-supports.  VC compensates for certain features missing in SCCS
-(snapshots, for example) by implementing them itself, but some other VC
-features, such as multiple branches, are not available with SCCS.  You
-should use SCCS only if for some reason you cannot use RCS.
+terms of capabilities, it is the weakest of the six that VC supports.
+VC compensates for certain features missing in SCCS (snapshots, for
+example) by implementing them itself, but some other VC features, such
+as multiple branches, are not available with SCCS.  You should use
+SCCS only if for some reason you cannot use RCS, or one of the
+higher-level systems such as CVS or GNU Arch.
 
 @node VC Concepts
 @subsubsection Concepts of Version Control

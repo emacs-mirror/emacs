@@ -1068,8 +1068,7 @@ If MODE is 2 then do the same for lines."
     (unless ignore
       ;; For certain special keys, delete the region.
       (if (member key mouse-region-delete-keys)
-	  (delete-region (overlay-start mouse-drag-overlay)
-			 (overlay-end mouse-drag-overlay))
+	  (delete-region (mark t) (point))
 	;; Otherwise, unread the key so it gets executed normally.
 	(setq unread-command-events
 	      (nconc events unread-command-events))))

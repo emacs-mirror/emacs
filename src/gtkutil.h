@@ -126,6 +126,10 @@ typedef struct _widget_value
   struct _widget_value *free_list;
 } widget_value;
 
+#ifdef HAVE_GTK_FILE_BOTH
+extern int use_old_gtk_file_dialog;
+#endif
+
 extern widget_value *malloc_widget_value P_ ((void));
 extern void free_widget_value P_ ((widget_value *));
 

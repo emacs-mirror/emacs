@@ -714,8 +714,10 @@ already is one.)"
   (if (and (eq (following-char) ?.)
 	   (save-excursion
 	     (forward-char 1)
-	     (and (>= (following-char) ?0)
-		  (<= (following-char) ?9))))
+	     (or (and (eq (aref edebug-read-syntax-table (following-char))
+			  'symbol)
+		      (not (= (following-char) ?\;)))
+		 (memq (following-char) '(?\, ?\.)))))
       'symbol
     (aref edebug-read-syntax-table (following-char))))
 

@@ -1,7 +1,8 @@
 ;;; iso-cvt.el --- translate ISO 8859-1 from/to various encodings -*- coding: iso-latin-1 -*-
 ;; This file was formerly called gm-lingo.el.
 
-;; Copyright (C) 1993, 1994, 1995, 1996, 1998, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1996, 1998, 2000, 2003, 2004
+;;           Free Software Foundation, Inc.
 
 ;; Author: Michael Gschwind <mike@vlsivie.tuwien.ac.at>
 ;; Keywords: tex, iso, latin, i18n
@@ -828,69 +829,67 @@ Optional arg BUFFER is ignored (for use in `format-alist')."
 
 ;;;###autoload
 (defun iso-cvt-define-menu ()
-  "Add submenus to the Files menu, to convert to and from various formats."
+  "Add submenus to the File menu, to convert to and from various formats."
   (interactive)
 
-  (define-key menu-bar-files-menu [load-as-separator] '("--"))
+  (let ((load-as-menu-map (make-sparse-keymap "Load As..."))
+	(insert-as-menu-map (make-sparse-keymap "Insert As..."))
+	(write-as-menu-map (make-sparse-keymap "Write As..."))
+	(translate-to-menu-map (make-sparse-keymap "Translate to..."))
+	(translate-from-menu-map (make-sparse-keymap "Translate from..."))
+	(menu menu-bar-file-menu))
+	
+    (define-key menu [load-as-separator] '("--"))
 
-  (define-key menu-bar-files-menu [load-as] '("Load As..."  . load-as))
-  (defvar load-as-menu-map (make-sparse-keymap "Load As..."))
-  (fset 'load-as load-as-menu-map)
+    (define-key menu [load-as] '("Load As..." . iso-cvt-load-as))
+    (fset 'iso-cvt-load-as load-as-menu-map)
 
-  ;;(define-key menu-bar-files-menu [insert-as] '("Insert As..."  . insert-as))
-  (defvar insert-as-menu-map (make-sparse-keymap "Insert As..."))
-  (fset 'insert-as insert-as-menu-map)
+    ;;(define-key menu [insert-as] '("Insert As..." . iso-cvt-insert-as))
+    (fset 'iso-cvt-insert-as insert-as-menu-map)
 
-  (define-key menu-bar-files-menu [write-as] '("Write As..."  . write-as))
-  (defvar write-as-menu-map (make-sparse-keymap "Write As..."))
-  (fset 'write-as write-as-menu-map)
+    (define-key menu [write-as] '("Write As..." . iso-cvt-write-as))
+    (fset 'iso-cvt-write-as write-as-menu-map)
 
-  (define-key menu-bar-files-menu [translate-separator] '("--"))
+    (define-key menu [translate-separator] '("--"))
 
-  (define-key menu-bar-files-menu [translate-to] '("Translate to..."  . translate-to))
-  (defvar translate-to-menu-map (make-sparse-keymap "Translate to..."))
-  (fset 'translate-to translate-to-menu-map)
+    (define-key menu [translate-to] '("Translate to..." . iso-cvt-translate-to))
+    (fset 'iso-cvt-translate-to translate-to-menu-map)
 
-  (define-key menu-bar-files-menu [translate-from] '("Translate from..."  . translate-from))
-  (defvar translate-from-menu-map (make-sparse-keymap "Translate from..."))
-  (fset 'translate-from translate-from-menu-map)
+    (define-key menu [translate-from] '("Translate from..." . iso-cvt-translate-from))
+    (fset 'iso-cvt-translate-from translate-from-menu-map)
 
-  (let ((file-types (reverse format-alist))
-	name
-	str-name)
-    (while file-types
-      (setq name (car (car file-types))
-	    str-name (car (cdr (car file-types)))
-	    file-types (cdr file-types))
-      (if (stringp str-name)
-	  (progn
-	    (define-key load-as-menu-map (vector name)
-	      (cons str-name
-		    `(lambda (file)
-		       (interactive (format "FFind file (as %s): " ,name))
-		       (format-find-file file ',name))))
-	    (define-key insert-as-menu-map (vector name)
-	      (cons str-name
-		    `(lambda (file)
-		       (interactive (format "FInsert file (as %s): " ,name))
-		       (format-insert-file file ',name))))
-	    (define-key write-as-menu-map (vector name)
-	      (cons str-name
-		    `(lambda (file)
-		       (interactive (format "FWrite file (as %s): " ,name))
-			  (format-write-file file ',name))))
-	    (define-key translate-to-menu-map (vector name)
-	      (cons str-name
-		    `(lambda ()
-		       (interactive)
-			  (format-encode-buffer ',name))))
-	    (define-key translate-from-menu-map (vector name)
-	      (cons str-name
-		    `(lambda ()
-		       (interactive)
-		       (format-decode-buffer ',name)))))))))
+    (dolist (file-type (reverse format-alist))
+      (let ((name (car file-type))
+	    (str-name (cadr file-type)))
+	(if (stringp str-name)
+	    (progn
+	      (define-key load-as-menu-map (vector name)
+		(cons str-name
+		      `(lambda (file)
+			 (interactive ,(format "FFind file (as %s): " name))
+			 (format-find-file file ',name))))
+	      (define-key insert-as-menu-map (vector name)
+		(cons str-name
+		      `(lambda (file)
+			 (interactive (format "FInsert file (as %s): " ,name))
+			 (format-insert-file file ',name))))
+	      (define-key write-as-menu-map (vector name)
+		(cons str-name
+		      `(lambda (file)
+			 (interactive (format "FWrite file (as %s): " ,name))
+			 (format-write-file file ',name))))
+	      (define-key translate-to-menu-map (vector name)
+		(cons str-name
+		      `(lambda ()
+			 (interactive)
+			 (format-encode-buffer ',name))))
+	      (define-key translate-from-menu-map (vector name)
+		(cons str-name
+		      `(lambda ()
+			 (interactive)
+			 (format-decode-buffer ',name))))))))))
 
 (provide 'iso-cvt)
 
-;;; arch-tag: 64ae843f-ed0e-43e1-ba50-ffd581b90840
+;; arch-tag: 64ae843f-ed0e-43e1-ba50-ffd581b90840
 ;;; iso-cvt.el ends here

@@ -2070,7 +2070,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
   struct backtrace backtrace;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
-  if (handling_signal || INPUT_BLOCKED_P)
+  if (handling_signal)
     abort ();
 
   if (SYMBOLP (form))

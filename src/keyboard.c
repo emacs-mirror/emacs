@@ -1840,6 +1840,14 @@ command_loop_1 ()
 
       if (!NILP (current_buffer->mark_active) && !NILP (Vrun_hooks))
 	{
+	  /* Setting transient-mark-mode to `only' is a way of
+	     turning it on for just one command.  */
+
+	  if (EQ (Vtransient_mark_mode, Qidentity))
+	    Vtransient_mark_mode = Qnil;
+	  if (EQ (Vtransient_mark_mode, Qonly))
+	    Vtransient_mark_mode = Qidentity;
+
 	  if (!NILP (Vdeactivate_mark) && !NILP (Vtransient_mark_mode))
 	    {
 	      /* We could also call `deactivate'mark'.  */
@@ -1853,16 +1861,6 @@ command_loop_1 ()
 	    }
 	  else if (current_buffer != prev_buffer || MODIFF != prev_modiff)
 	    call1 (Vrun_hooks, intern ("activate-mark-hook"));
-	}
-
-      /* Setting transient-mark-mode to `only' is a way of
-	 turning it on for just one command.  */
-      if (!NILP (current_buffer->mark_active) && !NILP (Vrun_hooks))
-	{
-	  if (EQ (Vtransient_mark_mode, Qidentity))
-	    Vtransient_mark_mode = Qnil;
-	  if (EQ (Vtransient_mark_mode, Qonly))
-	    Vtransient_mark_mode = Qidentity;
 	}
 
     finalize:
@@ -3698,36 +3696,26 @@ kbd_buffer_store_event_hold (event, hold_quit)
      Discard the event if it would fill the last slot.  */
   if (kbd_fetch_ptr - 1 != kbd_store_ptr)
     {
-
-#if 0 /* The SELECTION_REQUEST_EVENT case looks bogus, and it's error
-	 prone to assign individual members for other events, in case
-	 the input_event structure is changed.  --2000-07-13, gerd.  */
-      struct input_event *sp = kbd_store_ptr;
-      sp->kind = event->kind;
-      if (event->kind == SELECTION_REQUEST_EVENT)
-	{
-	  /* We must not use the ordinary copying code for this case,
-	     since `part' is an enum and copying it might not copy enough
-	     in this case.  */
-	  bcopy (event, (char *) sp, sizeof (*event));
-	}
-      else
-
-	{
-	  sp->code = event->code;
-	  sp->part = event->part;
-	  sp->frame_or_window = event->frame_or_window;
-	  sp->arg = event->arg;
-	  sp->modifiers = event->modifiers;
-	  sp->x = event->x;
-	  sp->y = event->y;
-	  sp->timestamp = event->timestamp;
-	}
-#else
       *kbd_store_ptr = *event;
-#endif
-
       ++kbd_store_ptr;
+    }
+}
+
+
+/* Put an input event back in the head of the event queue.  */
+
+void
+kbd_buffer_unget_event (event)
+     register struct input_event *event;
+{
+  if (kbd_fetch_ptr == kbd_buffer)
+    kbd_fetch_ptr = kbd_buffer + KBD_BUFFER_SIZE;
+
+  /* Don't let the very last slot in the buffer become full,  */
+  if (kbd_fetch_ptr - 1 != kbd_store_ptr)
+    {
+      --kbd_fetch_ptr;
+      *kbd_fetch_ptr = *event;
     }
 }
 
@@ -3942,7 +3930,8 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
       /* These two kinds of events get special handling
 	 and don't actually appear to the command loop.
 	 We return nil for them.  */
-      if (event->kind == SELECTION_REQUEST_EVENT)
+      if (event->kind == SELECTION_REQUEST_EVENT
+	  || event->kind == SELECTION_CLEAR_EVENT)
 	{
 #ifdef HAVE_X11
 	  struct input_event copy;
@@ -3953,7 +3942,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	  copy = *event;
 	  kbd_fetch_ptr = event + 1;
 	  input_pending = readable_events (0);
-	  x_handle_selection_request (&copy);
+	  x_handle_selection_event (&copy);
 #else
 	  /* We're getting selection request events, but we don't have
              a window system.  */
@@ -3961,22 +3950,6 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 #endif
 	}
 
-      else if (event->kind == SELECTION_CLEAR_EVENT)
-	{
-#ifdef HAVE_X11
-	  struct input_event copy;
-
-	  /* Remove it from the buffer before processing it.  */
-	  copy = *event;
-	  kbd_fetch_ptr = event + 1;
-	  input_pending = readable_events (0);
-	  x_handle_selection_clear (&copy);
-#else
-	  /* We're getting selection request events, but we don't have
-             a window system.  */
-	  abort ();
-#endif
-	}
 #if defined (HAVE_X11) || defined (HAVE_NTGUI) || defined (MAC_OS)
       else if (event->kind == DELETE_WINDOW_EVENT)
 	{
@@ -4201,7 +4174,8 @@ swallow_events (do_display)
 
       /* These two kinds of events get special handling
 	 and don't actually appear to the command loop.  */
-      if (event->kind == SELECTION_REQUEST_EVENT)
+      if (event->kind == SELECTION_REQUEST_EVENT
+	  || event->kind == SELECTION_CLEAR_EVENT)
 	{
 #ifdef HAVE_X11
 	  struct input_event copy;
@@ -4212,25 +4186,7 @@ swallow_events (do_display)
 	  copy = *event;
 	  kbd_fetch_ptr = event + 1;
 	  input_pending = readable_events (0);
-	  x_handle_selection_request (&copy);
-#else
-	  /* We're getting selection request events, but we don't have
-             a window system.  */
-	  abort ();
-#endif
-	}
-
-      else if (event->kind == SELECTION_CLEAR_EVENT)
-	{
-#ifdef HAVE_X11
-	  struct input_event copy;
-
-	  /* Remove it from the buffer before processing it,  */
-	  copy = *event;
-
-	  kbd_fetch_ptr = event + 1;
-	  input_pending = readable_events (0);
-	  x_handle_selection_clear (&copy);
+	  x_handle_selection_event (&copy);
 #else
 	  /* We're getting selection request events, but we don't have
              a window system.  */
@@ -6671,7 +6627,6 @@ read_avail_input (expected)
 
   if (read_socket_hook)
     {
-      int discard = 0;
       int nr;
       struct input_event hold_quit;
 
@@ -11456,7 +11411,8 @@ mark_kboards ()
       {
 	if (event == kbd_buffer + KBD_BUFFER_SIZE)
 	  event = kbd_buffer;
-	if (event->kind != SELECTION_REQUEST_EVENT)
+	if (event->kind != SELECTION_REQUEST_EVENT
+	    && event->kind != SELECTION_CLEAR_EVENT)
 	  {
 	    mark_object (event->x);
 	    mark_object (event->y);

@@ -5292,7 +5292,7 @@ Customized by setting variables `cperl-shrink-wrap-info-frame',
 	  iniwin (selected-window)
 	  fr1 (window-frame iniwin))
     (set-buffer buf)
-    (beginning-of-buffer)
+    (goto-char (point-min))
     (or isvar
 	(progn (re-search-forward "^-X[ \t\n]")
 	       (forward-line -1)))

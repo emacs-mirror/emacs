@@ -23104,8 +23104,8 @@
 	* message.el (message-mode): Delete abbrev mode initialization.
 	(message-mode-hook): Move it here, instead, so the user can
 	override it.
-	(message-y-or-n-p, message-talkative-question,
-	message-flatten-list, message-flatten-list-1): Move utility
+	(message-y-or-n-p, message-talkative-question)
+	(message-flatten-list, message-flatten-list-1): Move utility
 	functions up so macro is defined before first invocation.
 
 	* f90.el (f90-auto-fill-mode): Function deleted, all references
@@ -23115,24 +23115,23 @@
 
 1996-08-13  Torbjorn Einarsson  <etxeina@etxdn.ericsson.se>
 
-	* f90.el: (f90-do-auto-fill): Fixed bug which made program hang for
+	* f90.el: (f90-do-auto-fill): Fix bug which made program hang for
 	space in fill-column.
 	(f90-font-lock-keywords-1): Now we have common font-lock
 	exps for Emacs and XEmacs
-	(f90-font-lock-keywords-2): Changed reg-exp for line number.  A
-	number must be followed by a letter to be highlighted.  Fixed
-	highlighting of declarations with trailing comments.
-	(f90-match-end): Fixed bug due to new message syntax.
-	(f90-mode): Fixed setup of variable font-lock-defaults.
+	(f90-font-lock-keywords-2): Change reg-exp for line number.
+	A number must be followed by a letter to be highlighted.
+	Fix highlighting of declarations with trailing comments.
+	(f90-match-end): Fix bug due to new message syntax.
+	(f90-mode): Fix setup of variable font-lock-defaults.
 	(f90-looking-at-program-block-start): Small error in detecting of
 	function start. Made the detection of subroutine start more flexible.
 	(f90-mode-map): Much nicer menu with sections and added submenus
 	for highlighting and keyword case change.
 	Also added 'menu-enable' properties for region-based commands.
-	(f90-imenu-generic-expression): Fixed expression to find
+	(f90-imenu-generic-expression): Fix expression to find
 	procedures, modules and types.
-	(f90-add-imenu-menu): New function for adding imenu menu to the
-	menubar.
+	(f90-add-imenu-menu): New function for adding imenu menu to the menubar.
 
 1996-08-13  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 

@@ -1131,7 +1131,7 @@ enum
 };
 
 #ifdef HAVE_GTK_FILE_BOTH
-static int use_old_gtk_file_dialog;
+int use_old_gtk_file_dialog;
 #endif
 
 
@@ -1178,8 +1178,24 @@ xg_get_file_with_chooser (f, prompt, default_filename, mustmatch_p, only_dir_p)
 
 
   if (default_filename)
-    gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (filewin),
-                                   default_filename);
+    {
+      Lisp_Object file;
+      struct gcpro gcpro1;
+      GCPRO1 (file);
+
+      /* File chooser does not understand ~/... in the file name.  It must be
+         an absolute name starting with /.  */
+      if (default_filename[0] != '/')
+        {
+          file = Fexpand_file_name (build_string (default_filename), Qnil);
+          default_filename = SDATA (file);
+        }
+
+      gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (filewin),
+                                     default_filename);
+
+      UNGCPRO;
+    }
 
   gtk_widget_show (filewin);
 
@@ -3538,14 +3554,6 @@ xg_initialize ()
                                     "gtk-key-theme-name",
                                     "Emacs",
                                     EMACS_CLASS);
-
-#ifdef HAVE_GTK_FILE_BOTH
-  DEFVAR_BOOL ("use-old-gtk-file-dialog", &use_old_gtk_file_dialog,
-    doc: /* *Non-nil means that the old GTK file selection dialog is used.
-            If nil the new GTK file chooser is used instead.  To turn off
-            all file dialogs set the variable `use-file-dialog'.  */);
-  use_old_gtk_file_dialog = 0;
-#endif
 }
 
 #endif /* USE_GTK */

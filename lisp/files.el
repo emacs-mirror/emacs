@@ -676,7 +676,7 @@ The truename of a file name is found by chasing symbolic links
 both at the level of the file and at the level of the directories
 containing it, until no links are left at any level.
 
-\(fn FILENAME)"
+\(fn FILENAME)"  ;; Don't document the optional arguments.
   ;; COUNTER and PREV-DIRS are only used in recursive calls.
   ;; COUNTER can be a cons cell whose car is the count of how many
   ;; more links to chase before getting an error.
@@ -1751,6 +1751,30 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("BROWSE\\'" . ebrowse-tree-mode)
      ("\\.ebrowse\\'" . ebrowse-tree-mode)
      ("#\\*mail\\*" . mail-mode)
+     ("\\.g\\'" . antlr-mode)
+     ("\\.ses\\'" . ses-mode)
+     ("\\.\\(soa\\|zone\\)\\'" . dns-mode)
+     ("\\.docbook\\'" . sgml-mode)
+     ("/config\\.\\(?:bat\\|log\\)\\'" . fundamental-mode)
+     ;; Windows candidates may be opened case sensitively on Unix
+     ("\\.\\(?:[iI][nN][iI]\\|[lL][sS][tT]\\|[rR][eE][gG]\\|[sS][yY][sS]\\)\\'" . conf-mode)
+     ("\\.\\(?:desktop\\|la\\)\\'" . conf-unix-mode)
+     ("java.+\\.conf\\'" . conf-javaprop-mode)
+     ("\\.properties\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-javaprop-mode)
+     ;; *.cf, *.cfg, *.conf, *.config[.local|.de_DE.UTF8|...], */config
+     ("[/.]c\\(?:on\\)?f\\(?:i?g\\)?\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-mode)
+     ("\\`/etc/\\(?:DIR_COLORS\\|ethers\\|.?fstab\\|.*hosts\\|lesskey\\|login\\.?de\\(?:fs\\|vperm\\)\\|magic\\|mtab\\|permissions\\|protocols\\|rpc\\|services\\)\\'" . conf-space-mode)
+     ("\\`/etc/\\(?:aliases\\|hosts\\..+\\|ksysguarddrc\\|opera6rc\\)\\'" . conf-mode)
+     ;; either user's dot-files or under /etc or some such
+     ("/\\.?\\(?:gnokiirc\\|kde.*rc\\|mime\\.types\\|wgetrc\\)\\'" . conf-mode)
+     ;; alas not all ~/.*rc files are like this
+     ("/\\.\\(?:enigma\\|gltron\\|hxplayer\\|net\\|neverball\\|qt/.+\\|realplayer\\|scummvm\\|sversion\\|sylpheed/.+\\|xmp\\)rc\\'" . conf-mode)
+     ("/\\.\\(?:gdbtkinit\\|grip\\|orbital/.+txt\\|rhosts\\|tuxracer/options\\)\\'" . conf-mode)
+     ("/\\.?X\\(?:default\\|resource\\|re\\)s\\>" . conf-xdefaults-mode)
+     ("/X11.+app-defaults/" . conf-xdefaults-mode)
+     ("/X11.+locale/.+/Compose\\'" . conf-colon-mode)
+     ;; this contains everything twice, with space and with colon :-(
+     ("/X11.+locale/compose\\.dir\\'" . conf-javaprop-mode)
      ;; Get rid of any trailing .n.m and try again.
      ;; This is for files saved by cvs-merge that look like .#<file>.<rev>
      ;; or .#<file>.<rev>-<rev> or VC's <file>.~<rev>~.
@@ -1761,11 +1785,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ;; for the sake of ChangeLog.1, etc.
      ;; and after the .scm.[0-9] and CVS' <file>.<rev> patterns too.
      ("\\.[1-9]\\'" . nroff-mode)
-     ("\\.g\\'" . antlr-mode)
-     ("\\.ses\\'" . ses-mode)
-     ("\\.orig\\'" nil t)		; from patch
-     ("\\.\\(soa\\|zone\\)\\'" . dns-mode)
-     ("\\.in\\'" nil t)))
+     ("\\.\\(?:orig\\|in\\|[bB][aA][kK]\\)\\'" nil t)))
   "Alist of filename patterns vs corresponding major mode functions.
 Each element looks like (REGEXP . FUNCTION) or (REGEXP FUNCTION NON-NIL).
 \(NON-NIL stands for anything that is not nil; the value does not matter.)
@@ -1846,26 +1866,32 @@ regular expression.  The mode is then determined as the mode associated
 with that interpreter in `interpreter-mode-alist'.")
 
 (defvar magic-mode-alist
-  '(;; The < comes before the groups (but the first) to reduce backtracking.
-    ;; Is there a nicer way of getting . including \n?
+  `(;; The < comes before the groups (but the first) to reduce backtracking.
     ;; TODO: UTF-16 <?xml may be preceded by a BOM 0xff 0xfe or 0xfe 0xff.
-    ("\\(?:<\\?xml\\s +[^>]*>\\)?\\s *<\\(?:!--\\(?:.\\|\n\\)*?-->\\s *<\\)*\\(?:!DOCTYPE\\s +[^>]*>\\s *<\\)?\\s *\\(?:!--\\(?:.\\|\n\\)*?-->\\s *<\\)*[Hh][Tt][Mm][Ll]" . html-mode)
+    (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
+	     (comment-re (concat "\\(?:!--" incomment-re "*-->\\s *<\\)")))
+	(concat "\\(?:<\\?xml\\s +[^>]*>\\)?\\s *<"
+		comment-re "*"
+		"\\(?:!DOCTYPE\\s +[^>]*>\\s *<\\s *" comment-re "*\\)?"
+		"[Hh][Tt][Mm][Ll]")) . html-mode)
     ;; These two must come after html, because they are more general:
     ("<\\?xml " . xml-mode)
-    ("\\s *<\\(?:!--\\(?:.\\|\n\\)*?-->\\s *<\\)*!DOCTYPE " . sgml-mode)
-    ("%![^V]" . ps-mode))
-  "Alist of buffer beginnings vs corresponding major mode functions.
+    (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
+	     (comment-re (concat "\\(?:!--" incomment-re "*-->\\s *<\\)")))
+	(concat "\\s *<" comment-re "*!DOCTYPE ")) . sgml-mode)
+    ("%![^V]" . ps-mode)
+    ("# xmcd " . conf-unix-mode))
+  "Alist of buffer beginnings vs. corresponding major mode functions.
 Each element looks like (REGEXP . FUNCTION).  FUNCTION will be
-called, unless it is nil.")
+called, unless it is nil (to allow `auto-mode-alist' to override).")
 
 (defun set-auto-mode (&optional keep-mode-if-same)
   "Select major mode appropriate for current buffer.
 
 This checks for a -*- mode tag in the buffer's text, checks the
 interpreter that runs this file against `interpreter-mode-alist',
-compares the buffer beginning against `magic-mode-alist',
-or compares the filename against the entries in
-`auto-mode-alist'.
+compares the buffer beginning against `magic-mode-alist', or
+compares the filename against the entries in `auto-mode-alist'.
 
 It does not check for the `mode:' local variable in the
 Local Variables section of the file; for that, use `hack-local-variables'.
@@ -1876,13 +1902,11 @@ If `enable-local-variables' is nil, this function does not check for a
 If the optional argument KEEP-MODE-IF-SAME is non-nil, then we
 only set the major mode, if that would change it."
   ;; Look for -*-MODENAME-*- or -*- ... mode: MODENAME; ... -*-
-  (let (end done mode modes xml)
+  (let (end done mode modes)
     ;; Find a -*- mode tag
     (save-excursion
       (goto-char (point-min))
       (skip-chars-forward " \t\n")
-      ;; While we're at this point, check xml for later.
-      (setq xml (looking-at "<\\?xml \\|<!DOCTYPE"))
       (and enable-local-variables
 	   (setq end (set-auto-mode-1))
 	   (if (save-excursion (search-forward ":" end t))
@@ -1912,6 +1936,7 @@ only set the major mode, if that would change it."
 		(message "Ignoring unknown mode `%s'" mode)
 	      (setq done t)
 	      (or (set-auto-mode-0 mode keep-mode-if-same)
+		  ;; continuing would call minor modes again, toggling them off
 		  (throw 'nop nil)))))
       ;; If we didn't, look for an interpreter specified in the first line.
       ;; As a special case, allow for things like "#!/bin/env perl", which
@@ -1924,16 +1949,19 @@ only set the major mode, if that would change it."
 	    ;; Map interpreter name to a mode, signalling we're done at the
 	    ;; same time.
 	    done (assoc (file-name-nondirectory mode)
-			interpreter-mode-alist)))
-    ;; If we found an interpreter mode to use, invoke it now.
-    (if done
-	(set-auto-mode-0 (cdr done) keep-mode-if-same)
+			interpreter-mode-alist))
+      ;; If we found an interpreter mode to use, invoke it now.
+      (if done
+	  (set-auto-mode-0 (cdr done) keep-mode-if-same)))
+    ;; If we didn't, match the buffer beginning against magic-mode-alist.
+    (unless done
       (if (setq done (save-excursion
 		       (goto-char (point-min))
 		       (assoc-default nil magic-mode-alist
 				      (lambda (re dummy)
 					(looking-at re)))))
 	  (set-auto-mode-0 done keep-mode-if-same)
+	;; Compare the filename against the entries in auto-mode-alist.
 	(if buffer-file-name
 	    (let ((name buffer-file-name))
 	      ;; Remove backup-suffixes from file name.
@@ -1943,7 +1971,7 @@ only set the major mode, if that would change it."
 		(let ((case-fold-search
 		       (memq system-type '(vax-vms windows-nt cygwin))))
 		  (if (and (setq mode (assoc-default name auto-mode-alist
-						 'string-match))
+						     'string-match))
 			   (consp mode)
 			   (cadr mode))
 		      (setq mode (car mode)
@@ -1951,7 +1979,6 @@ only set the major mode, if that would change it."
 		    (setq name)))
 		(when mode
 		  (set-auto-mode-0 mode keep-mode-if-same)))))))))
-
 
 ;; When `keep-mode-if-same' is set, we are working on behalf of
 ;; set-visited-file-name.  In that case, if the major mode specified is the
@@ -1970,7 +1997,6 @@ same, do nothing and return nil."
   (when mode
     (funcall mode)
     mode))
-
 
 (defun set-auto-mode-1 ()
   "Find the -*- spec in the buffer.

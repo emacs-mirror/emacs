@@ -956,9 +956,7 @@ Mostly we check word delimiters."
 ;*---------------------------------------------------------------------*/
 (defun flyspell-word (&optional following)
   "Spell check a word."
-  (interactive (list current-prefix-arg))
-  (if (interactive-p)
-      (setq following ispell-following-word))
+  (interactive (list ispell-following-word))
   (save-excursion
     ;; use the correct dictionary
     (flyspell-accept-buffer-local-defs)
@@ -1283,7 +1281,7 @@ Word syntax described by `ispell-dictionary-alist' (which see)."
 (defun flyspell-external-point-words ()
   (let ((buffer flyspell-external-ispell-buffer))
     (set-buffer buffer)
-    (beginning-of-buffer)
+    (goto-char (point-min))
     (let ((size (- flyspell-large-region-end flyspell-large-region-beg))
 	  (start flyspell-large-region-beg))
       ;; now we are done with ispell, we have to find the word in

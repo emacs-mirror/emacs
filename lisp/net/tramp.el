@@ -159,7 +159,8 @@ Nil means to use a separate filename syntax for Tramp.")
 
 (defgroup tramp nil
   "Edit remote files with a combination of rsh and rcp or similar programs."
-  :group 'files)
+  :group 'files
+  :version "21.4")
 
 (defcustom tramp-verbose 9
   "*Verbosity level for tramp.el.  0 means be silent, 10 is most verbose."
@@ -1535,8 +1536,9 @@ cat /tmp/tramp.$$
 rm -f /tmp/tramp.$$
 }"
   "Shell function to implement `uudecode' to standard output.
-Many systems support `uudecode -o -' for this or `uudecode -p', but
-some systems don't, and for them we have this shell function.")
+Many systems support `uudecode -o /dev/stdout' for this or
+`uudecode -o -' or `uudecode -p', but some systems don't, and for
+them we have this shell function.")
 
 ;; Perl script to implement `file-attributes' in a Lisp `read'able
 ;; output.  If you are hacking on this, note that you get *no* output
@@ -5970,6 +5972,8 @@ locale to C and sets up the remote shell search path."
      base64-encode-region base64-decode-region)
     ("recode data..base64" "recode base64..data"
      base64-encode-region base64-decode-region)
+    ("uuencode xxx" "uudecode -o /dev/stdout"
+     tramp-uuencode-region uudecode-decode-region)
     ("uuencode xxx" "uudecode -o -"
      tramp-uuencode-region uudecode-decode-region)
     ("uuencode xxx" "uudecode -p"

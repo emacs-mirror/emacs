@@ -126,7 +126,9 @@ If `on-mouse' use a popup menu when `imenu' was invoked with the mouse."
 (defcustom imenu-eager-completion-buffer
   (not (eq imenu-always-use-completion-buffer-p 'never))
   "If non-nil, eagerly popup the completion buffer."
-  :type 'boolean)
+  :type 'boolean
+  :group 'imenu
+  :version "21.4")
 
 (defcustom imenu-after-jump-hook nil
   "*Hooks called after jumping to a place in the buffer.

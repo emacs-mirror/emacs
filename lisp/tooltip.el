@@ -1,6 +1,6 @@
 ;;; tooltip.el --- show tooltip windows
 
-;; Copyright (C) 1997, 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2000, 2001, 2004  Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@acm.org>
 ;; Keywords: help c mouse tools
@@ -26,11 +26,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl)
-  (require 'comint)
-  (require 'gud)
-  (require 'gdb-ui))
+(eval-when-compile (require 'cl)) ; for case macro
 
 
 ;;; Customizable settings
@@ -524,5 +520,5 @@ use either \\[customize] or the function `tooltip-mode'."
 
 (provide 'tooltip)
 
-;;; arch-tag: 3d61135e-4618-4a78-af28-183f6df5636f
+;; arch-tag: 3d61135e-4618-4a78-af28-183f6df5636f
 ;;; tooltip.el ends here

@@ -1,3 +1,233 @@
+2004-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fkeymap_prompt): Accept symbol keymaps.
+
+2004-11-09  Kim F. Storm  <storm@cua.dk>
+
+	* xselect.c: Include <sys/types.h> and <unistd.h> (for getpid).
+	Fix various comments referring to XEvents instead of input events.
+	(x_queue_event): Fix format strings.
+	(x_stop_queuing_selection_requests): Likewise.
+
+	* xdisp.c (produce_image_glyph): Remove unused variable 'face_ascent'.
+	(pint2hrstr): Add extra braces to silence compiler.
+
+	* print.c (print_object): Fix format string.
+
+	* lread.c (read1): Fix next_char matching.
+
+	* lisp.h (Fdelete): Add EXFUN.
+	(replace_range_2): Add prototype.
+
+	* keyboard.c (read_avail_input): Remove unused variable 'discard'.
+
+	* intervals.h (NULL_INTERVAL_P): Add separate version when
+	ENABLE_CHECKING is not defined to silence compiler.
+	(compare_string_intervals): Add prototype.
+
+	* fringe.c (destroy_fringe_bitmap): Fix return type.
+	(Ffringe_bitmaps_at_pos): Remove unused var 'old_buffer'.
+
+	* emacs.c (Fdump_emacs): Fix format string.
+
+	* doc.c: Include <ctype.h>.
+	(Fsubstitute_command_keys): Remove unused variable 'firstkey'.
+
+	* data.c (store_symval_forwarding): Remove unused variables.
+
+	* callint.c (Fcall_interactively): Remove unused variable 'funcar'.
+
+2004-11-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* Makefile.in (stamp-oldxmenu): If HAVE_GTK, don't add dependencies
+	to ${OLDXMENU}.
+
+2004-11-09  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (Fmake_network_process): Remove kludge for interrupted
+	connects on BSD.  If connect is interrupted, just close socket and
+	start over rather than sleeping and retry with same socket.
+
+2004-11-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* .cvsignore: Add buildobj.lst.
+
+	* doc.c: New variable Vbuild_files.
+	(Fsnarf_documentation): If Vbuild_files is nil, populate it with
+	file names from buildobh.lst.  Only attach docstrings from files
+	that are in Vbuild_files.
+	(syms_of_doc): Defvar Vbuild_files.
+
+	* Makefile.in (SOME_MACHINE_OBJECTS): Add fringe.o, image.o
+	and w32*.o.
+	(temacs${EXEEXT}): Generate buildobj.lst when temacs is linked.
+	(mostlyclean): rm buildobj.lst
+
+	* makefile.w32-in ($(TEMACS)): Generate buildobj.lst when temacs
+	is linked.
+
+2004-11-09  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c (update_window_fringes): Update fringe bitmaps if
+	cur and row ends_at_zv_p differs.  If bitmaps of a row is updated,
+	also update previous row to get rid of misc. artifacts.
+
+2004-11-08  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (fast_find_position): Fix start pos if header line present.
+	(note_mouse_highlight): Clear mouse face if we move out of text area.
+
+2004-11-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* editfns.c: Move #include "systime.h" before <sys/resource.h>.
+	Don't include <sys/time.h> explicitly.
+	Include <stdio.h> unconditionally, not just on MacOS.
+
+2004-11-08  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_pattern_regexp): Cancel my previous change;
+	don't pay attention to '\' before '*'.
+	(fontset_pattern_regexp): Change the meaning of the second arg.
+	(Fnew_fontset): Call fs_query_fontset, not Fquery_fontset.
+	(check_fontset_name): Try NAME as literal at first, and if it
+	failes, try NAME as pattern.
+
+2004-11-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* emacs.c (Fdump_emacs): Only output warning on GNU/Linux.
+
+2004-11-07  Andreas Schwab  <schwab@suse.de>
+
+	* lisp.h: Declare Fmsdos_downcase_filename.
+	* dired.c: Don't declare Fmsdos_downcase_filename.
+	* fileio.c: Likewise.
+
+2004-11-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* dosfns.c (Fdos_memget, Fdos_memput): Use integer variable offs in
+	comparisons with integers instead of Lisp_Object address.
+	(Fmsdos_set_keyboard): Declare argument allkeys.
+
+	* msdos.c (IT_set_frame_parameters): Use EQ, not ==, for Lisp_Object:s.
+
+	* dired.c: extern declare Fmsdos_downcase_filename on MSDOS to avoid
+	int/Lisp_Object mixup.
+
+	* fileio.c: Ditto.
+
+2004-11-06  Steven Tamm  <steventamm@mac.com>
+
+	* editfns.c: Need to include sys/time.h before resource.h on darwin.
+
+2004-11-06  Richard M. Stallman  <rms@gnu.org>
+
+	* callint.c (Fcall_interactively): Avoid reusing EVENT for other data.
+
+	* xfaces.c (merge_named_face): GCPRO the face_name in the
+	named_merge_point struct that we make.
+	(merge_face_heights): Eliminate GCPRO arg.  All callers changed.
+
+	* keyboard.c (command_loop_1): Change Vtransient_mark_mode
+	before deciding whether to inactivate mark.
+
+2004-11-06  Lars Brinkhoff  <lars@nocrew.org>
+
+	* config.in: Regenerate (add HAVE_GETRUSAGE).
+	* editfns.c (Fget_internal_run_time): New function.
+	(syms_of_data): Defsubr it.
+	* fns.c (sxhash): As far as possible, merge calculation of
+	hash code for symbols and strings.
+
+2004-11-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.c (syms_of_frame): Fix the example in the doc string.
+
+2004-11-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* eval.c (Feval): Remove check for INPUT_BLOCKED_P.
+
+	* xmenu.c (popup_get_selection, create_and_show_popup_menu)
+	(create_and_show_dialog): Revert change from 2004-10-31.
+
+2004-11-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* macros.c (syms_of_macros) <defining-kbd-macro>: Doc fix.
+
+2004-11-05  Kim F. Storm  <storm@cua.dk>
+
+	* print.c (print_object): Print Lisp_Misc_Save_Value objects.
+
+	* fileio.c (Ffile_modes): Doc fix.
+	(auto_save_1): Check for Ffile_modes nil value.
+
+2004-11-05  Kim F. Storm  <storm@cua.dk>
+
+	* xselect.c (struct selection_event_queue, selection_queue)
+	(x_queue_selection_requests, x_queue_event)
+	(x_start_queuing_selection_requests)
+	(x_stop_queuing_selection_requests): Add new queue for selection
+	input events to replace previous XEvent queue in xterm.c.
+	(queue_selection_requests_unwind): Adapt to new queue.
+	(x_reply_selection_request): Adapt to new queue.
+	Unexpect wait_object in case of x errors (memory leak).
+	(x_handle_selection_request, x_handle_selection_clear): Make static.
+	(x_handle_selection_event): New function.  May queue selection events.
+	(wait_for_property_change_unwind): Use save_value instead of cons.
+	Clear property_change_reply_object.
+	(wait_for_property_change): Abort if already waiting.
+	Use save_value instead of cons for unwind data.
+	(x_handle_property_notify): Skip events already arrived, but don't
+	free them, as "arrived" field is checked by wait_for_property_change,
+	and it will be freed by unwind or explicit unexpect_property_change.
+	(x_get_foreign_selection): Add to new queue.
+	(receive_incremental_selection): Don't unexpect wait_object when done
+	as it has already been freed by previous wait_for_property_change.
+
+	* xterm.h (x_start_queuing_selection_requests)
+	(x_stop_queuing_selection_requests, x_handle_selection_request)
+	(x_handle_selection_clear): Remove prototypes.
+	(x_handle_selection_event): Add prototype.
+
+	* xterm.c (handle_one_xevent): Don't queue X selection events
+	here, it may be too late if we start queuing after we have already
+	stored some selection events into the kbd buffer.
+	(struct selection_event_queue, queue, x_queue_selection_requests)
+	(x_queue_event, x_unqueue_events, x_start_queuing_selection_requests)
+	(x_stop_queuing_selection_requests): Remove/move to xselect.c.
+	(x_catch_errors_unwind): Block input around final XSync.
+
+	* keyboard.h (kbd_buffer_unget_event): Add prototype.
+
+	* keyboard.c (kbd_buffer_store_event_hold): Remove obsolete code.
+	(kbd_buffer_unget_event): New function.
+	(kbd_buffer_get_event, swallow_events): Combine SELECTION events
+	and use x_handle_selection_event.
+	(mark_kboards): Don't mark x and y of SELECTION_CLEAR_EVENT.
+
+2004-11-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xselect.c (TRACE3): New debug macro.
+	(x_reply_selection_request): Use it.
+	(receive_incremental_selection): In call to TRACE0, the name of
+	a symbol is in xname.
+
+2004-11-05  Kim F. Storm  <storm@cua.dk>
+
+	* fontset.c (fontset_pattern_regexp): Use unsigned char.
+
+2004-11-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* fileio.c (Fnext_read_file_uses_dialog_p): New function.
+
+	* gtkutil.h: Declare use_old_gtk_file_dialog.
+
+	* gtkutil.c: Make use_old_gtk_file_dialog non-static.
+	(xg_initialize): Move DEFVAR_BOOL for use_old_gtk_file_dialog ...
+	* xfns.c (syms_of_xfns): ... to here.
+
+	* gtkutil.c (xg_get_file_with_chooser): Expand DEFAULT_FILENAME if
+	it doesn't start with /.
+
 2004-11-04  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (fontset_pattern_regexp): If '*' is preceded by '\',
@@ -67,20 +297,20 @@
 
 	* lisp.h: Fx_file_dialog takes 5 parameters.
 
-	* xfns.c (Fx_file_dialog): Both Motif and GTK version:  Add
-	parameter only_dir_p.
+	* xfns.c (Fx_file_dialog): Both Motif and GTK version:
+	Add parameter only_dir_p.
 	In Motif version, don't put DEFAULT_FILENAME in filter part of the
 	dialog, just text field part.  Do not add DEFAULT_FILENAME
 	to list of files if it isn't there.
 	In GTK version, pass only_dir_p parameter to xg_get_file_name.
 
-	* macfns.c (Fx_file_dialog): Add parameter only_dir_p.  Check
-	only_dir_p instead of comparing prompt to "Dired".  When using
+	* macfns.c (Fx_file_dialog): Add parameter only_dir_p.
+	Check only_dir_p instead of comparing prompt to "Dired".  When using
 	a save dialog, add option kNavDontConfirmReplacement, change title
 	to "Enter name", change text for save button to "Ok".
 
-	* w32fns.c (Fx_file_dialog): Add parameter only_dir_p.  Check
-	only_dir_p instead of comparing prompt to "Dired".
+	* w32fns.c (Fx_file_dialog): Add parameter only_dir_p.
+	Check only_dir_p instead of comparing prompt to "Dired".
 
 	* gtkutil.c (xg_get_file_with_chooser)
 	(xg_get_file_with_selection): New functions, only defined ifdef
@@ -97,8 +327,8 @@
 
 2004-11-01  Kim F. Storm  <storm@cua.dk>
 
-	* process.c (connect_wait_mask, num_pending_connects): Only
-	declare and use them if NON_BLOCKING_CONNECT is defined.
+	* process.c (connect_wait_mask, num_pending_connects):
+	Only declare and use them if NON_BLOCKING_CONNECT is defined.
 	(init_process): Initialize them if NON_BLOCKING_CONNECT defined.
 	(IF_NON_BLOCKING_CONNECT): New helper macro.
 	(wait_reading_process_output): Only declare and use local vars
@@ -113,8 +343,8 @@
 	* xmenu.c: Add prototypes for forward function declarations.
 	(popup_get_selection): Remove parameter do_timers, remove call to
 	timer_check.
-	(create_and_show_popup_menu, create_and_show_dialog): Remove
-	parameter do_timers from call to popup_get_selection.
+	(create_and_show_popup_menu, create_and_show_dialog):
+	Remove parameter do_timers from call to popup_get_selection.
 
 	* xdisp.c (update_tool_bar): Pass a copy of f->tool_bar_items to
 	tool_bar_items and assign the result to f->tool_bar_items if
@@ -133,7 +363,7 @@
 	* macterm.c: allow user to assign key modifiers to the Mac Option
 	key via a 'mac-option-modifier' variable.
 
-2004-10-28  Stefan  <monnier@iro.umontreal.ca>
+2004-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xselect.c (Vx_lost_selection_functions, Vx_sent_selection_functions):
 	Rename from Vx_lost_selection_hooks and Vx_sent_selection_hooks.

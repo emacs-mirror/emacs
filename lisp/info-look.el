@@ -328,22 +328,22 @@ If optional argument QUERY is non-nil, query for the help mode."
          (modes (info-lookup->all-modes topic mode))
          (window (selected-window))
          found doc-spec node prefix suffix doc-found)
-    (if (or (not info-lookup-other-window-flag)
-	    (eq (current-buffer) (get-buffer "*info*")))
-	(info)
-      (progn
-	(save-window-excursion (info))
-	;; Determine whether or not the Info buffer is visible in
-	;; another frame on the same display.  If it is, simply raise
-	;; that frame.  Otherwise, display it in another window.
-	(let* ((window (get-buffer-window "*info*" t))
-	       (info-frame (and window (window-frame window))))
-	  (if (and info-frame
-		   (display-multi-frame-p)
-		   (memq info-frame (frames-on-display-list))
-		   (not (eq info-frame (selected-frame))))
-	    (select-frame info-frame)
-	  (switch-to-buffer-other-window "*info*")))))
+    (if (not (eq major-mode 'Info-mode))
+	(if (not info-lookup-other-window-flag)
+	    (info)
+	  (progn
+	    (save-window-excursion (info))
+	    ;; Determine whether or not the Info buffer is visible in
+	    ;; another frame on the same display.  If it is, simply raise
+	    ;; that frame.  Otherwise, display it in another window.
+	    (let* ((window (get-buffer-window "*info*" t))
+		   (info-frame (and window (window-frame window))))
+	      (if (and info-frame
+		       (display-multi-frame-p)
+		       (memq info-frame (frames-on-display-list))
+		       (not (eq info-frame (selected-frame))))
+		  (select-frame info-frame)
+		(switch-to-buffer-other-window "*info*"))))))
     (while (and (not found) modes)
       (setq doc-spec (info-lookup->doc-spec topic (car modes)))
       (while (and (not found) doc-spec)
@@ -633,11 +633,11 @@ Return nil if there is nothing appropriate in the buffer near point."
  :mode 'c-mode :topic 'symbol
  :regexp "\\(struct \\|union \\|enum \\)?[_a-zA-Z][_a-zA-Z0-9]*"
  :doc-spec '(("(libc)Function Index" nil
-	      "^[ \t]+- \\(Function\\|Macro\\): .*\\<" "\\>")
+	      "^[ \t]+-+ \\(Function\\|Macro\\): .*\\<" "\\>")
 	     ("(libc)Variable Index" nil
-	      "^[ \t]+- \\(Variable\\|Macro\\): .*\\<" "\\>")
+	      "^[ \t]+-+ \\(Variable\\|Macro\\): .*\\<" "\\>")
 	     ("(libc)Type Index" nil
-	      "^[ \t]+- Data Type: \\<" "\\>")
+	      "^[ \t]+-+ Data Type: \\<" "\\>")
 	     ("(termcap)Var Index" nil
 	      "^[ \t]*`" "'"))
  :parse-rule 'info-lookup-guess-c-symbol)
@@ -673,7 +673,7 @@ Return nil if there is nothing appropriate in the buffer near point."
 	      (lambda (item)
 		(if (string-match "^\\([a-zA-Z]+\\|[^a-zA-Z]\\)\\( .*\\)?$" item)
 		    (concat "@" (match-string 1 item))))
-	      "`" "'")))
+	      "`" "[' ]")))
 
 (info-lookup-maybe-add-help
  :mode 'm4-mode
@@ -690,7 +690,7 @@ Return nil if there is nothing appropriate in the buffer near point."
              ("(autoconf)Autoconf Macro Index"
               (lambda (item)
                 (if (string-match "^A._" item) item (concat "AC_" item)))
-	      "^[ \t]+- \\(Macro\\|Variable\\): .*\\<" "\\>")
+	      "^[ \t]+-+ \\(Macro\\|Variable\\): .*\\<" "\\>")
              ;; M4 Macro Index entries are without "AS_" prefixes, and
              ;; mostly without "m4_" prefixes.  "dnl" is an exception, not
              ;; wanting any prefix.  So AS_ is added back to upper-case
@@ -705,13 +705,13 @@ Return nil if there is nothing appropriate in the buffer near point."
                          (concat "AS_" item))
                         (t
                          (concat "m4_" item)))))
-	      "^[ \t]+- Macro: .*\\<" "\\>")
+	      "^[ \t]+-+ Macro: .*\\<" "\\>")
              ;; Autotest Macro Index entries are without "AT_".
              ("(autoconf)Autotest Macro Index" "AT_"
-	      "^[ \t]+- Macro: .*\\<" "\\>")
+	      "^[ \t]+-+ Macro: .*\\<" "\\>")
 	     ;; This is for older versions (probably pre autoconf 2.5x):
 	     ("(autoconf)Macro Index" "AC_"
-	      "^[ \t]+- \\(Macro\\|Variable\\): .*\\<" "\\>")
+	      "^[ \t]+-+ \\(Macro\\|Variable\\): .*\\<" "\\>")
 	     ;; Automake has index entries for its notes on various autoconf
 	     ;; macros (eg. AC_PROG_CC).  Ensure this is after the autoconf
 	     ;; index, so as to prefer the autoconf docs.
@@ -788,13 +788,13 @@ Return nil if there is nothing appropriate in the buffer near point."
              ;; Variables normally appear in nodes as just `foo'.
              ("(emacs)Variable Index" nil "`" "'")
              ;; Almost all functions, variables, etc appear in nodes as
-             ;; " - Function: foo" etc.  A small number of aliases and
+             ;; " -- Function: foo" etc.  A small number of aliases and
              ;; symbols appear only as `foo', and will miss out on exact
              ;; positions.  Allowing `foo' would hit too many false matches
              ;; for things that should go to Function: etc, and those latter
              ;; are much more important.  Perhaps this could change if some
              ;; sort of fallback match scheme existed.
-             ("(elisp)Index"          nil "^ - .*: " "\\( \\|$\\)")))
+             ("(elisp)Index"          nil "^ -+ .*: " "\\( \\|$\\)")))
 
 (info-lookup-maybe-add-help
  :mode 'lisp-interaction-mode
@@ -814,14 +814,14 @@ Return nil if there is nothing appropriate in the buffer near point."
  :ignore-case t
  ;; Aubrey Jaffer's rendition from <URL:ftp://ftp-swiss.ai.mit.edu/pub/scm>
  :doc-spec '(("(r5rs)Index" nil
-	      "^[ \t]+- [^:]+:[ \t]*" "\\b")))
+	      "^[ \t]+-+ [^:]+:[ \t]*" "\\b")))
 
 (info-lookup-maybe-add-help
  :mode 'octave-mode
  :regexp "[_a-zA-Z0-9]+"
  :doc-spec '(("(octave)Function Index" nil
-	      "^ - [^:]+:[ ]+\\(\\[[^=]*=[ ]+\\)?" nil)
-	     ("(octave)Variable Index" nil "^ - [^:]+:[ ]+" nil)
+	      "^ -+ [^:]+:[ ]+\\(\\[[^=]*=[ ]+\\)?" nil)
+	     ("(octave)Variable Index" nil "^ -+ [^:]+:[ ]+" nil)
 	     ;; Catch lines of the form "xyz statement"
 	     ("(octave)Concept Index"
 	      (lambda (item)
@@ -829,15 +829,15 @@ Return nil if there is nothing appropriate in the buffer near point."
 		 ((string-match "^\\([A-Z]+\\) statement\\b" item)
 		    (match-string 1 item))
 		 (t nil)))
-	      nil; "^ - [^:]+:[ ]+" don't think this prefix is useful here.
+	      nil; "^ -+ [^:]+:[ ]+" don't think this prefix is useful here.
 	      nil)))
 
 (info-lookup-maybe-add-help
  :mode 'maxima-mode
  :ignore-case t
  :regexp "[a-zA-Z_%]+"
- :doc-spec '( ("(maxima)Function and Variable Index" nil 
-	       "^ - [^:]+:[ ]+\\(\\[[^=]*=[ ]+\\)?" nil)))
+ :doc-spec '( ("(maxima)Function and Variable Index" nil
+	       "^ -+ [^:]+:[ ]+\\(\\[[^=]*=[ ]+\\)?" nil)))
 
 (info-lookup-maybe-add-help
  :mode 'inferior-maxima-mode

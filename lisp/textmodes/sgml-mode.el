@@ -1,6 +1,7 @@
 ;;; sgml-mode.el --- SGML- and HTML-editing modes
 
-;; Copyright (C) 1992,95,96,98,2001,2002, 2003  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1995, 1996, 1998, 2001, 2002, 2003, 2004
+;;           Free Software Foundation, Inc.
 
 ;; Author: James Clark <jjc@jclark.com>
 ;; Maintainer: FSF
@@ -1053,53 +1054,79 @@ You might want to turn on `auto-fill-mode' to get better results."
     (and (>= start (point-min))
          (equal str (buffer-substring-no-properties start (point))))))
 
+(defun sgml-tag-text-p (start end)
+  "Return non-nil if text between START and END is a tag.
+Checks among other things that the tag does not contain spurious
+unquoted < or > chars inside, which would indicate that it
+really isn't a tag after all."
+  (save-excursion
+    (with-syntax-table sgml-tag-syntax-table
+      (let ((pps (parse-partial-sexp start end 2)))
+	(and (= (nth 0 pps) 0))))))
+
 (defun sgml-parse-tag-backward (&optional limit)
   "Parse an SGML tag backward, and return information about the tag.
 Assume that parsing starts from within a textual context.
 Leave point at the beginning of the tag."
-  (let (tag-type tag-start tag-end name)
-    (or (re-search-backward "[<>]" limit 'move)
-        (error "No tag found"))
-    (when (eq (char-after) ?<)
-      ;; Oops!! Looks like we were not in a textual context after all!.
-      ;; Let's try to recover.
-      (with-syntax-table sgml-tag-syntax-table
-	(forward-sexp)
-	(forward-char -1)))
-    (setq tag-end (1+ (point)))
-    (cond
-     ((sgml-looking-back-at "--")   ; comment
-      (setq tag-type 'comment
-            tag-start (search-backward "<!--" nil t)))
-     ((sgml-looking-back-at "]]")   ; cdata
-      (setq tag-type 'cdata
-            tag-start (re-search-backward "<!\\[[A-Z]+\\[" nil t)))
-     (t
-      (setq tag-start
-            (with-syntax-table sgml-tag-syntax-table
-              (goto-char tag-end)
-              (backward-sexp)
-              (point)))
-      (goto-char (1+ tag-start))
-      (case (char-after)
-        (?!                             ; declaration
-         (setq tag-type 'decl))
-        (??                             ; processing-instruction
-         (setq tag-type 'pi))
-        (?/                             ; close-tag
-         (forward-char 1)
-         (setq tag-type 'close
-               name (sgml-parse-tag-name)))
-        (?%                             ; JSP tags
-         (setq tag-type 'jsp))
-        (t                              ; open or empty tag
-         (setq tag-type 'open
-               name (sgml-parse-tag-name))
-         (if (or (eq ?/ (char-before (- tag-end 1)))
-                 (sgml-empty-tag-p name))
-             (setq tag-type 'empty))))))
-    (goto-char tag-start)
-    (sgml-make-tag tag-type tag-start tag-end name)))
+  (catch 'found
+    (let (tag-type tag-start tag-end name)
+      (or (re-search-backward "[<>]" limit 'move)
+	  (error "No tag found"))
+      (when (eq (char-after) ?<)
+	;; Oops!! Looks like we were not in a textual context after all!.
+	;; Let's try to recover.
+	(with-syntax-table sgml-tag-syntax-table
+	  (let ((pos (point)))
+	    (condition-case nil
+		(forward-sexp)
+	      (scan-error
+	       ;; This < seems to be just a spurious one, let's ignore it.
+	       (goto-char pos)
+	       (throw 'found (sgml-parse-tag-backward limit))))
+	    ;; Check it is really a tag, without any extra < or > inside.
+	    (unless (sgml-tag-text-p pos (point))
+	      (goto-char pos)
+	      (throw 'found (sgml-parse-tag-backward limit)))
+	    (forward-char -1))))
+      (setq tag-end (1+ (point)))
+      (cond
+       ((sgml-looking-back-at "--")	; comment
+	(setq tag-type 'comment
+	      tag-start (search-backward "<!--" nil t)))
+       ((sgml-looking-back-at "]]")	; cdata
+	(setq tag-type 'cdata
+	      tag-start (re-search-backward "<!\\[[A-Z]+\\[" nil t)))
+       (t
+	(setq tag-start
+	      (with-syntax-table sgml-tag-syntax-table
+		(goto-char tag-end)
+		(condition-case nil
+		    (backward-sexp)
+		  (scan-error
+		   ;; This > isn't really the end of a tag. Skip it.
+		   (goto-char (1- tag-end))
+		   (throw 'found (sgml-parse-tag-backward limit))))
+		(point)))
+	(goto-char (1+ tag-start))
+	(case (char-after)
+	  (?!				; declaration
+	   (setq tag-type 'decl))
+	  (??				; processing-instruction
+	   (setq tag-type 'pi))
+	  (?/				; close-tag
+	   (forward-char 1)
+	   (setq tag-type 'close
+		 name (sgml-parse-tag-name)))
+	  (?%				; JSP tags
+	   (setq tag-type 'jsp))
+	  (t				; open or empty tag
+	   (setq tag-type 'open
+		 name (sgml-parse-tag-name))
+	   (if (or (eq ?/ (char-before (- tag-end 1)))
+		   (sgml-empty-tag-p name))
+	       (setq tag-type 'empty))))))
+      (goto-char tag-start)
+      (sgml-make-tag tag-type tag-start tag-end name))))
 
 (defun sgml-get-context (&optional until)
   "Determine the context of the current position.
@@ -1966,5 +1993,5 @@ Can be used as a value for `html-mode-hook'."
 
 (provide 'sgml-mode)
 
-;;; arch-tag: 9675da94-b7f9-4bda-ad19-73ed7b4fb401
+;; arch-tag: 9675da94-b7f9-4bda-ad19-73ed7b4fb401
 ;;; sgml-mode.el ends here

@@ -311,8 +311,11 @@ bootstrap-prepare:
 	  fi							\
 	fi
 
-maintainer-clean:
+maintainer-clean: distclean
 	cd $(lisp); rm -f *.elc */*.elc $(AUTOGENEL)
+
+bootstrap-clean:
+	cd $(lisp); rm -f *.elc */*.elc
 
 # Generate/update files for the bootstrap process.
 
