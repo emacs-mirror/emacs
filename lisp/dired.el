@@ -185,7 +185,7 @@ directory name and the cdr is the actual files to list.")
 	       "-[-r][-w].[-r][-w][xs][-r][-w]."
 	       "-[-r][-w].[-r][-w].[-r][-w][xst]")
 	     "\\|"))
-(defvar dired-re-perms "-[-r][-w].[-r][-w].[-r][-w].")
+(defvar dired-re-perms "[-dl][-r][-w].[-r][-w].[-r][-w].")
 (defvar dired-re-dot "^.* \\.\\.?$")
 
 ;; The subdirectory names in this list are expanded.
