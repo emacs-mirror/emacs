@@ -699,6 +699,9 @@ top of the file is on the screen, it will say --Top-- instead of
 --Bot--.  If you are looking at text so small that all of it fits on
 the screen, the mode line says --All--.
 
+The L and digits indicate position in another way: they give the
+current line number of point.
+
 The stars near the front mean that you have made changes to the text.
 Right after you visit or save a file, that part of the mode line shows
 no stars, just dashes.
@@ -948,7 +951,7 @@ The most basic HELP feature is C-h c.  Type C-h, the character c, and
 a command character or sequence; then Emacs displays a very brief
 description of the command.
 
->> Type C-h c Control-p.
+>> Type C-h c C-p.
   The message should be something like
 
 	C-p runs the command previous-line
@@ -964,7 +967,7 @@ EDIT or ALT key) <ESC>v are also allowed after C-h c.
 
 To get more information about a command, use C-h k instead of C-h c.
 
->> Type C-h k Control-p.
+>> Type C-h k C-p.
 
 This displays the documentation of the function, as well as its
 name, in an Emacs window.  When you are finished reading the

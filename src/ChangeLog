@@ -1,3 +1,12 @@
+2000-06-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (realize_x_face): When copying BASE_FACE bitwise to the
+	result face, set flags in the face indicating that colors may not
+	be freed.
+
+	* xterm.c (x_set_mouse_face_gc): If first glyph isn't a character
+	glyph, use the ASCII NUL character to determine the face.
+
 2000-06-02  Dave Love  <fx@gnu.org>
 
 	* sysdep.c: Conditionally include stdlib.h, unistd.h.
