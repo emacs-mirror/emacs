@@ -2754,6 +2754,8 @@ reset_modifiers ()
 static int
 modifier_set (int vkey)
 {
+  if (vkey == VK_CAPITAL)
+    return (GetKeyState (vkey) & 0x1);
   if (!modifiers_recorded)
     return (GetKeyState (vkey) & 0x8000);
 
@@ -2767,8 +2769,6 @@ modifier_set (int vkey)
       return modifiers[EMACS_LMENU];
     case VK_RMENU:
       return modifiers[EMACS_RMENU];
-    case VK_CAPITAL:
-      return (GetKeyState (vkey) & 0x1);
     default:
       break;
     }
