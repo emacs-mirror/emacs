@@ -1079,35 +1079,23 @@ work with `terminfo' we will try to use it."
                      ;;-- For disgusting programs.
                      ;; (VI? What losers need these, I wonder?)
                      "im=:ei=:dm=:ed=:mi:do=^p^j:nl=^p^j:bs:")))
-	(if (fboundp 'start-subprocess)
-	    ;; this winning function would do everything, except that
-	    ;;  rms doesn't want it.
-	    (setq te-process (start-subprocess "terminal-emulator"
-			       program args
-			       'channel-type 'terminal
-			       'filter 'te-filter
-			       'buffer (current-buffer)
-			       'sentinel 'te-sentinel
-			       'modify-environment
-			         (list (cons "TERM" "emacs-virtual")
-				       (cons "TERMCAP" termcap))))
-	  ;; so instead we resort to this...
-	  (setq te-process (start-process "terminal-emulator" (current-buffer)
-			     "/bin/sh" "-c"
-			     ;; Yuck!!! Start a shell to set some terminal
-			     ;; control characteristics.  Then start the
-			     ;; "env" program to setup the terminal type
-			     ;; Then finally start the program we wanted.
-			     (format "%s; exec %s TERM=emacs-virtual %s %s"
-                                     te-stty-string
-				     (te-quote-arg-for-sh
-				       (concat exec-directory "env"))
-				     (te-quote-arg-for-sh
-				       (concat "TERMCAP=" termcap))
-				     (mapconcat 'te-quote-arg-for-sh
-						(cons program args) " "))))
-	  (set-process-filter te-process 'te-filter)
-	  (set-process-sentinel te-process 'te-sentinel)))
+	(let ((process-environment
+	       (cons "TERM=emacs-virtual"
+		     (cons (concat "TERMCAP=" termcap)
+			   process-environment))))
+	  (setq te-process
+		(start-process "terminal-emulator" (current-buffer)
+			       "/bin/sh" "-c"
+			       ;; Yuck!!! Start a shell to set some terminal
+			       ;; control characteristics.  Then start the
+			       ;; "env" program to setup the terminal type
+			       ;; Then finally start the program we wanted.
+			       (format "%s; exec %s"
+				       te-stty-string
+				       (mapconcat 'te-quote-arg-for-sh
+						  (cons program args) " ")))))
+	(set-process-filter te-process 'te-filter)
+	(set-process-sentinel te-process 'te-sentinel))
     (error (fundamental-mode)
 	   (signal (car err) (cdr err))))
   ;; sigh
