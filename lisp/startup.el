@@ -753,6 +753,7 @@ If this is nil, no message will be displayed."
 (defun command-line-1 (command-line-args-left)
   (or noninteractive (input-pending-p) init-file-had-error
       (and inhibit-startup-echo-area-message
+	   user-init-file
 	   (or (and (get 'inhibit-startup-echo-area-message 'saved-value)
 		    (equal inhibit-startup-echo-area-message
 			   (if (string= init-file-user "")
