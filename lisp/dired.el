@@ -2178,7 +2178,7 @@ Command symbols are `byte-compile', `chgrp', `chmod', `chown', `compress',
   ;; Point must be at beginning of line
   ;; Should be equivalent to (save-excursion (not (dired-move-to-filename)))
   ;; but is about 1.5..2.0 times as fast. (Actually that's not worth it)
-  (or (looking-at "^$\\|^. *$\\|^. total\\|^. wildcard")
+  (or (looking-at "^$\\|^. *$\\|^. total\\|^. wildcard\\|^. used")
       (and (looking-at dired-subdir-regexp)
 	   (save-excursion (not (dired-move-to-filename))))))
 
