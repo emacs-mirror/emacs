@@ -50,7 +50,8 @@
 
 ;;; Bugs:
 
-;; - VC-dired doesn't work.
+;; - Retrieving snapshots doesn't filter `cvs update' output and thus
+;;   parses bogus filenames.  Don't know if it harms.
 
 ;;; Code:
 
@@ -185,7 +186,7 @@ This is only meaningful if you don't use the implicit checkout model
 	    (vc-mcvs-state-heuristic file)
 	  state))
     (with-temp-buffer
-      (cd (file-name-directory file))
+      (setq default-directory (vc-mcvs-root file))
       (vc-mcvs-command t 0 file "status")
       (vc-cvs-parse-status t))))
 
@@ -202,6 +203,7 @@ This is only meaningful if you don't use the implicit checkout model
 	;; Don't specify DIR in this command, the default-directory is
 	;; enough.  Otherwise it might fail with remote repositories.
 	(with-temp-buffer
+	  (setq default-directory (vc-mcvs-root dir))
 	  (vc-mcvs-command t 0 nil "status" "-l")
 	  (goto-char (point-min))
 	  (while (re-search-forward "^=+\n\\([^=\n].*\n\\|\n\\)+" nil t)
@@ -216,7 +218,12 @@ This is only meaningful if you don't use the implicit checkout model
 
 (defun vc-mcvs-mode-line-string (file)
   (let ((s (vc-mcvs-cvs mode-line-string file)))
-    (if s (concat "M" s))))
+    (when s
+      (if (and (not (memq (vc-state file) '(up-to-date needs-patch)))
+	       (string-match "\\`CVS-" s))
+	  ;; The CVS file is not in sync, so we need to adjust the state.
+	  (concat "MCVS:" (substring s 4))
+	(concat "M" s)))))
 
 ;;;
 ;;; State-changing functions
@@ -284,6 +291,9 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
 	(error "%s is not a valid symbolic tag name" rev)
       ;; If the input revision is a valid symbolic tag name, we create it
       ;; as a branch, commit and switch to it.
+      ;; This file-specific form of branching is deprecated.
+      ;; We can't use `mcvs branch' and `mcvs switch' because they cannot
+      ;; be applied just to this one file.
       (apply 'vc-mcvs-command nil 0 file "tag" "-b" (list rev))
       (apply 'vc-mcvs-command nil 0 file "update" "-r" (list rev))
       (vc-file-setprop file 'vc-mcvs-sticky-tag rev)
@@ -440,10 +450,13 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 
 (defun vc-mcvs-print-log (file)
   "Get change log associated with FILE."
-  (vc-mcvs-command
-   nil
-   (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
-   file "log"))
+  (let ((default-directory (vc-mcvs-root file)))
+    ;; Run the command from the root dir so that `mcvs filt' returns
+    ;; valid relative names.
+    (vc-mcvs-command
+     nil
+     (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
+     file "log")))
 
 (defun vc-mcvs-diff (file &optional oldvers newvers)
   "Get a difference report using Meta-CVS between two versions of FILE."
@@ -460,6 +473,9 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 	;; Even if it's empty, it's locally modified.
 	1)
     (let* ((async (and (vc-stay-local-p file) (fboundp 'start-process)))
+	   ;; Run the command from the root dir so that `mcvs filt' returns
+	   ;; valid relative names.
+	   (default-directory (vc-mcvs-root file))
 	   (status
 	    (apply 'vc-mcvs-command "*vc-diff*"
 		   (if async 'async 1)
@@ -472,26 +488,15 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 (defun vc-mcvs-diff-tree (dir &optional rev1 rev2)
   "Diff all files at and below DIR."
   (with-current-buffer "*vc-diff*"
-    (setq default-directory dir)
-    (if (vc-stay-local-p dir)
-        ;; local diff: do it filewise, and only for files that are modified
-        (vc-file-tree-walk
-         dir
-         (lambda (f)
-           (vc-exec-after
-            `(let ((coding-system-for-read (vc-coding-system-for-diff ',f)))
-               ;; possible optimization: fetch the state of all files
-               ;; in the tree via vc-mcvs-dir-state-heuristic
-               (unless (vc-up-to-date-p ',f)
-                 (message "Looking at %s" ',f)
-                 (vc-diff-internal ',f ',rev1 ',rev2))))))
-      ;; cvs diff: use a single call for the entire tree
-      (let ((coding-system-for-read
-             (or coding-system-for-read 'undecided)))
-        (apply 'vc-mcvs-command "*vc-diff*" 1 nil "diff"
-               (and rev1 (concat "-r" rev1))
-               (and rev2 (concat "-r" rev2))
-               (vc-switches 'MCVS 'diff))))))
+    ;; Run the command from the root dir so that `mcvs filt' returns
+    ;; valid relative names.
+    (setq default-directory (vc-mcvs-root dir))
+    ;; cvs diff: use a single call for the entire tree
+    (let ((coding-system-for-read (or coding-system-for-read 'undecided)))
+      (apply 'vc-mcvs-command "*vc-diff*" 1 dir "diff"
+	     (and rev1 (concat "-r" rev1))
+	     (and rev2 (concat "-r" rev2))
+	     (vc-switches 'MCVS 'diff)))))
 
 (defun vc-mcvs-annotate-command (file buffer &optional version)
   "Execute \"mcvs annotate\" on FILE, inserting the contents in BUFFER.
@@ -512,8 +517,10 @@ Optional arg VERSION is a version to annotate from."
   "Assign to DIR's current version a given NAME.
 If BRANCHP is non-nil, the name is created as a branch (and the current
 workspace is immediately moved to that new branch)."
-  (vc-mcvs-command nil 0 dir "tag" "-c" (if branchp "-b") name)
-  (when branchp (vc-mcvs-command nil 0 dir "update" "-r" name)))
+  (if (not branchp)
+      (vc-mcvs-command nil 0 dir "tag" "-c" name)
+    (vc-mcvs-command nil 0 dir "branch" name)
+    (vc-mcvs-command nil 0 dir "switch" name)))
 
 (defun vc-mcvs-retrieve-snapshot (dir name update)
   "Retrieve a snapshot at and below DIR.
@@ -569,22 +576,26 @@ If UPDATE is non-nil, then update (resynch) any affected buffers."
   "A wrapper around `vc-do-command' for use in vc-mcvs.el.
 The difference to vc-do-command is that this function always invokes `mcvs',
 and that it passes `vc-mcvs-global-switches' to it before FLAGS."
-  (let ((args (append '("--error-continue")
+  (let ((args (append '("--error-terminate")
 		      (if (stringp vc-mcvs-global-switches)
 			  (cons vc-mcvs-global-switches flags)
-			(append vc-mcvs-global-switches
-				flags)))))
-    (if (member (car flags) '("diff" "log"))
-	;; We need to filter the output.
-	(vc-do-command buffer okstatus "sh" nil "-c"
-		       (concat "mcvs "
-			       (mapconcat
-				'shell-quote-argument
-				(append (remq nil args)
-					(if file (list (file-relative-name file))))
-				" ")
-			       " | mcvs filt"))
-      (apply 'vc-do-command buffer okstatus "mcvs" file args))))
+			(append vc-mcvs-global-switches flags)))))
+    (if (not (member (car flags) '("diff" "log" "status")))
+	;; No need to filter: do it the easy way.
+	(apply 'vc-do-command buffer okstatus "mcvs" file args)
+      ;; We need to filter the output.
+      ;; The output of the filter uses filenames relative to the root,
+      ;; so we need to change the default-directory.
+      (assert (equal default-directory (vc-mcvs-root file)))
+      (vc-do-command
+       buffer okstatus "sh" nil "-c"
+       (concat "mcvs "
+	       (mapconcat
+		'shell-quote-argument
+		(append (remq nil args)
+			(if file (list (file-relative-name file))))
+		" ")
+	       " | mcvs filt")))))
 
 (defun vc-mcvs-repository-hostname (dirname)
   (vc-cvs-repository-hostname (vc-mcvs-root dirname)))
