@@ -1,3 +1,8 @@
+2000-11-20  Kenichi Handa  <handa@etl.go.jp>
+
+	* alloc.c (make_string): Fix previous change.  Be sure to make
+	unibyte string correctly.
+
 2000-11-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (Fwindow_list): Change parameter list to be XEmacs

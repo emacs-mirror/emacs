@@ -1701,12 +1701,12 @@ make_string (contents, nbytes)
   int nchars, multibyte_nbytes;
 
   parse_str_as_multibyte (contents, nbytes, &nchars, &multibyte_nbytes);
-  val = make_uninit_multibyte_string (nchars, nbytes);
-  bcopy (contents, XSTRING (val)->data, nbytes);
   if (nbytes == nchars || nbytes != multibyte_nbytes)
     /* CONTENTS contains no multibyte sequences or contains an invalid
        multibyte sequence.  We must make unibyte string.  */
-    SET_STRING_BYTES (XSTRING (val), -1);
+    val = make_unibyte_string (contents, nbytes);
+  else
+    val = make_multibyte_string (contents, nchars, nbytes);
   return val;
 }
 
