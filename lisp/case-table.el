@@ -27,10 +27,6 @@
 
 ;;; Code:
 
-;; Temporary workaround for loading latin-X.el.  They must bind this
-;; variable to a charset to convert code points to characters.
-(defvar set-case-syntax-charset nil)
-
 (defun describe-buffer-case-table ()
   "Describe the case table of the current buffer."
   (interactive)
@@ -66,20 +62,12 @@
     (set-char-table-extra-slot copy 2 nil)
     copy))
 
-(defun set-case-syntax-1 (code)
-  (if (and (charsetp set-case-syntax-charset)
-	   (< code 256))
-      (decode-char set-case-syntax-charset code)
-    code))
-
 (defun set-case-syntax-delims (l r table)
   "Make characters L and R a matching pair of non-case-converting delimiters.
 This sets the entries for L and R in TABLE, which is a string
 that will be used as the downcase part of a case table.
 It also modifies `standard-syntax-table' to
 indicate left and right delimiters."
-  (setq l (set-case-syntax-1 l))
-  (setq r (set-case-syntax-1 r))
   (aset table l l)
   (aset table r r)
   ;; Clear out the extra slots so that they will be
@@ -98,8 +86,6 @@ This sets the entries for characters UC and LC in TABLE, which is a string
 that will be used as the downcase part of a case table.
 It also modifies `standard-syntax-table' to give them the syntax of
 word constituents."
-  (setq uc (set-case-syntax-1 uc))
-  (setq lc (set-case-syntax-1 lc))
   (aset table uc lc)
   (aset table lc lc)
   (set-char-table-extra-slot table 0 nil)
@@ -114,7 +100,6 @@ This sets the entry for character C in TABLE, which is a string
 that will be used as the downcase part of a case table.
 It also modifies `standard-syntax-table'.
 SYNTAX should be \" \", \"w\", \".\" or \"_\"."
-  (setq c (set-case-syntax-1 c))
   (aset table c c)
   (set-char-table-extra-slot table 0 nil)
   (set-char-table-extra-slot table 1 nil)
