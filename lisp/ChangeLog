@@ -1,3 +1,16 @@
+2000-09-12  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/quail.el (quail-translation-docstring): New
+	variable.
+	(quail-show-keyboard-layout): Docstring modified.
+	(quail-select-current): Likewise.
+	(quail-build-decode-map): Change arg MAP to MAP-LIST to avoid
+	infinite recursive call.
+	(quail-help): Check quail-translation-docstring.  Format of the
+	output changed.
+	(quail-help-insert-keymap-description): Adjusted for the above
+	change.
+
 2000-09-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* bytecomp.el (byte-compile-defvar): Only cons onto
