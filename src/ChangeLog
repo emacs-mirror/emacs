@@ -1,5 +1,8 @@
 2000-02-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* lread.c (Fload): Use `xfree' instead of `free'.
+	(init_obarray): Use `xmalloc' instead of `malloc'.
+
 	* window.c (Fset_window_buffer): Set WINDOW to the window
 	after decoding.
 	(coordinates_in_window): Take frame's internal border width
@@ -40,7 +43,7 @@
 
 2000-02-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* frame.c (Fdelete_frame): Don't let echo_area_window to remain on
+	* frame.c (Fdelete_frame): Don't let echo_area_window remain on
         a deleted frame.
 
 2000-02-21  Gerd Moellmann  <gerd@gnu.org>
