@@ -3863,7 +3863,8 @@ actually used.")
 	  close (fd);
 	  specpdl_ptr--;
 	  /* Truncate the buffer to the size of the file.  */
-	  del_range_1 (same_at_start, same_at_end, 0);
+	  del_range_byte (same_at_start, same_at_end, 0);
+	  inserted = 0;
 	  goto handled;
 	}
 
@@ -3905,18 +3906,23 @@ actually used.")
 	 and update INSERTED to equal the number of bytes
 	 we are taking from the file.  */
       inserted -= (Z_BYTE - same_at_end) + (same_at_start - BEG_BYTE);
-      del_range_byte (same_at_start, same_at_end, 0);
+
       if (same_at_end != same_at_start)
-	SET_PT_BOTH (GPT, GPT_BYTE);
+	{
+	  del_range_byte (same_at_start, same_at_end, 0);
+	  temp = GPT;
+	  same_at_start = GPT_BYTE;
+	}
       else
 	{
-	  /* Insert from the file at the proper position.  */
 	  temp = BYTE_TO_CHAR (same_at_start);
-	  SET_PT_BOTH (temp, same_at_start);
 	}
-
+      /* Insert from the file at the proper position.  */
+      SET_PT_BOTH (temp, same_at_start);
       insert_1 (conversion_buffer + same_at_start - BEG_BYTE, inserted,
 		0, 0, 0);
+      /* Set `inserted' to the number of inserted characters.  */
+      inserted = PT - temp;
 
       free (conversion_buffer);
       close (fd);
