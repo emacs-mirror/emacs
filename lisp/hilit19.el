@@ -1,4 +1,4 @@
-;; hilit19.el (Release 2.7) -- customizable highlighting for Emacs19.
+;; hilit19.el (Release 2.19) -- customizable highlighting for Emacs19.
 ;; Copyright (c) 1993 Free Software Foundation, Inc.
 ;;
 ;; Author:   Jonathan Stigelman <Stig@netcom.com>
@@ -39,12 +39,12 @@
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;; hilit19.el,v 2.7 1993/07/30 02:43:01 stig Release
+;; hilit19.el,v 2.19 1993/09/08 18:44:10 stig Release
 ;;
 ;; LCD Archive Entry:
 ;; hilit19|Jonathan Stigelman|Stig@netcom.com|
 ;; Comprehensive (and comparatively fast) regex-based highlighting for Emacs 19|
-;; 1993/07/30 02:43:01|Release 2.7|~/packages/hilit19.el.Z|
+;; 1993/09/08 18:44:10|Release 2.19|~/packages/hilit19.el.Z|
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -97,12 +97,14 @@
 ;; SETUP -- Are you using the right font for Emacs?
 ;;
 ;; Emacs cannot properly find bold and italic fonts unless you specify a
-;; verbose X11 font name.  Here's a good font menu:
+;; verbose X11 font name.  If you specify a font for emacs in your
+;; .Xdefaults, it *MUST* be specified using the long form of the font name.
+;; Here's a good font menu:
 ;;
 ;; (setq
 ;;  x-fixed-font-alist
 ;;  '("Font Menu"
-;;    ("Fonts"
+;;    ("Misc"
 ;;     ("6x12" "-misc-fixed-medium-r-semicondensed--12-110-75-75-c-60-*-1")
 ;;     ("6x13" "-misc-fixed-medium-r-semicondensed--13-120-75-75-c-60-*-1")
 ;;     ("lucida 13"
@@ -133,15 +135,8 @@
 ;; * When more than one size of font is used in different frames, only one
 ;;   font size can have bold & italic properties.
 ;;
-;; * When identifiers such as remove_switch_entry, ar highlighted in C/C++,
-;;   imbedded keywords--"switch" in this case--are highlighted.  I don't
-;;   personally see this problem because I modify the syntax for C/C++ so that
-;;   ?_ is a word character "w".  This also means that forward-word skips over
-;;   entire variables.  This will be fixed when I generalize the highlighting
-;;   patterns.
-;;
 ;; * unbalanced, unescaped double quote characters can confuse hilit19.
-;;   This will be fixed, so don't bug me about it.
+;;   This will be fixed someday, so don't bug me about it.
 ;;
 ;; * ALTHOUGH HILIT19 IS FASTER THAN FONT-LOCK-MODE...
 ;;   For various reasons, the speed of the package could still stand to be
@@ -170,12 +165,89 @@
 ;;    Alon Albert <alon@milcse.rtsg.mot.com>, advice & patches
 ;;    dana@thumper.bellcore.com (Dana A. Chee), working on the multi-frame bug
 ;;    derway@ndc.com (Don Erway), for breaking it...
+;;    moss_r@summer.chem.su.oz.au (Richard Moss), first pass at add-pattern
+;;    Olivier Lecarme <ol@aiguemarine.unice.fr>, Pascal & Icon patterns
 ;;
 ;; With suggestions and minor regex patches from numerous others...
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; hilit19.el,v
+;; Revision 2.19  1993/09/08  18:44:10  stig
+;; installed patch for elusive bug in hilit-rehighlight-region that caused
+;; hilit-unhighlight-region to hang in an infinite loop.
+;;
+;; Revision 2.18  1993/08/27  03:51:00  stig
+;; minor mods to lisp-mode and c/c++ mode patterns
+;;
+;; Revision 2.17  1993/08/25  02:19:17  stig
+;; work-around for bug in next-overlay-change that caused dired and jargon-mode
+;; to hang in an endless loop.  Perhaps other modes were doing this too.
+;;
+;; Revision 2.16  1993/08/22  19:46:00  stig
+;; bug fix for next-overlay-change and accompanying change to
+;; hilit-unhighlight-region
+;;
+;; Revision 2.15  1993/08/20  12:16:22  stig
+;; minor change to fortran patterns
+;;
+;; Revision 2.14  1993/08/17  14:12:10  stig
+;; added default face mapping for 'formula' which is needed for new latex
+;; patterns.
+;;
+;; twiddled the calendar-mode patterns a bit.
+;;
+;; Revision 2.13  1993/08/16  04:33:54  stig
+;; hilit-set-mode-patterns was screwing up two part patterns.  it doesn't now.
+;;
+;; Revision 2.12  1993/08/16  00:16:41  stig
+;; changed references to default-bold-italic to just bold-italic because the
+;;   font for that face is maintained by emacs.
+;;
+;; the pattern matcher now starts it's searches from the end of the most
+;;   recently highlighted region (which is not necessarily the end of the most
+;;   recently matched regex).
+;;
+;; multiple errors in pattern matcher now just give an error instead of lots of
+;;   annoying messages and dings.
+;;
+;; no longer use vm-summary-mode-hooks.
+;;
+;; some code moved from hilit-highlight-region to hilit-set-mode-patterns.
+;;   This will affect you if you pass your patterns directly to
+;;   hilit-highlight-region....use a pseudo-mode instead.
+;;
+;; pattern changes to C/C++, latex, texinfo, fortran, nroff, etc.
+;;
+;; Revision 2.11  1993/08/13  12:12:37  stig
+;; removed some crufty commented-out code
+;;
+;; diverged lisp-mode and emacs-lisp-mode...also added lisp keywords.
+;;
+;; Revision 2.10  1993/08/13  09:47:06  stig
+;; added calendar-mode, icon-mode and pascal-mode patterns
+;;
+;; commented out hilit-toggle-highlight because I want to phase it out entirely
+;;
+;; Revision 2.9  1993/08/13  08:44:22  stig
+;; added optional case-fold argument to hilit-set-mode-patterns, this case-fold
+;; parameter is now stored in hilit-patterns-alist.
+;;
+;; Revision 2.8  1993/08/12  22:05:03  stig
+;; fixed some typos in documentation
+;;
+;; twiddled some of the color defaults for dark backgrounds
+;;
+;; always get 'mono color defaults if (not (x-display-color-p))
+;;
+;; added hilit-rehighlight-buffer-quietly to dired-after-readin-hook
+;;
+;; fixed bug in hilit-string-find that mishandled strings of the form: "\\"
+;;
+;; NEW FUNCTION: hilit-add-mode-pattern...  kinda like add-hook for patterns
+;;
+;; fixed minor pattern bugs for latex-mode and emacs-lisp-mode
+;;
 ;; Revision 2.7  1993/07/30  02:43:01  stig
 ;; added const to the list of modifiers for C/C++ types
 ;;
@@ -255,7 +327,7 @@
   "* T if we should highlight all buffers as we find 'em, nil to disable
   automatic highlighting by the find-file hook.")
 
-(defvar hilit-auto-highlight-maxout 57000
+(defvar hilit-auto-highlight-maxout 60000 ; hilit19 keeps getting bigger...
   "* auto-highlight is disabled in buffers larger than this")
 
 (defvar hilit-auto-rehighlight t
@@ -308,10 +380,13 @@ like to make this more universal?")
 (defvar hilit-patterns-alist nil
   "alist of major-mode values and default highlighting patterns
 
-A hilighting pattern is a list of the form (start end face), where
-start is a regex, end is a regex (or nil if it's not needed) and face
+A highlighting pattern is a list of the form (start end face), where
+start is a regex, end is either a regex or a match number for start, and face
 is the name of an entry in hilit-face-translation-table, the name of a face,
 or nil (which disables the pattern).
+
+Each entry in the alist is of the form:
+	(mode . (case-fold pattern [pattern ...]))
 
 See the hilit-lookup-face-create documentation for valid face names.")
 
@@ -321,19 +396,21 @@ See the hilit-lookup-face-create documentation for valid face names.")
 If hilit19 is dumped into emacs at your site, you may have to set this in
 your init file.")
 
+(eval-when-compile (setq byte-optimize t))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Use this to report bugs:
 
 (eval-when-compile (require 'reporter))	; no compilation gripes
 
-(defun hilit-submit-feeback ()
+(defun hilit-submit-feedback ()
   "Submit feedback on hilit19 to the author: Stig@netcom.com"
   (interactive)
   (require 'reporter)
   (and (y-or-n-p "Do you really want to submit a report on hilit19? ")
        (reporter-submit-bug-report
 	"Jonathan Stigelman <Stig@netcom.com>"
-	"hilit19.el (Release 2.7)"
+	"hilit19.el (Release 2.19)"
 	(and (y-or-n-p "Do you need to include a dump hilit variables? ")
 	     (append
 	      '(
@@ -361,15 +438,15 @@ your init file.")
 	  "This is (check all that apply, and delete what's irrelevant):\n"
 	  "  [ ] a _MASSIVE_THANK_YOU_ for writing hilit19.el\n"
 	  "  [ ] An invitation to attend the next Hackers Conference\n"
-	  "  [ ] my DONATION to your vacation fund (prototype digital cash)\n"
 	  "  [ ] You're a RIGHTEOUS HACKER, what are your rates?\n"
 	  "  [ ] I've used the force and read the source, but I'M CONFUSED\n"
-	  "  [ ] a PATCH (diff -cw oldversion newversion) to fix a problem\n"
-	  "  [ ] a REPRODUCABLE BUG that I do not believe to be an EMACS bug\n"
+	  "  [ ] a PATCH. (output of 'diff -uw old.el new.el' or 'diff -cw')\n"
+	  "  [ ] a SERIOUS AND REPRODUCABLE BUG that is not an EMACS bug\n"
 	  "     - I *swear* that it's not already mentioned in the KNOWN BUGS\n"
-	  "     - Also, I have checked netcom.com:/pub/stig/src/hilit19.el.gz\n"
+	  "     - I HAVE CHECKED netcom.com:/pub/stig/src/Beta/hilit19.el.gz\n"
 	  "       for a newer release that fixes the problem.\n"
-	  "  [ ] ADVICE -- or an unfulfilled desire that I suspect you share\n"
+	  "    >> I HAVE ALSO CHECKED netcom.com:/pub/stig/src/Beta/hl319.el.gz\n"
+	  "       This is the alpha version...what will become hilit19 (Beta 3.0).\n"
 	  "\n"
 	  "Hey Stig, I *know* you're busy but...\n"))))
 
@@ -382,13 +459,13 @@ your init file.")
   '(
     ;; used for C/C++ and elisp and perl
     (comment	firebrick-italic    moccasin           italic)
-    (include	purple		    Plum1	       default-bold-italic)
+    (include	purple		    Plum1	       bold-italic)
     (define	ForestGreen-bold    green	       bold)
-    (defun	blue-bold	    cyan-bold	       default-bold-italic)
+    (defun	blue-bold	    cyan-bold	       bold-italic)
     (decl	RoyalBlue	    cyan	       bold)
     (type	nil		    yellow	       nil)
-    (keyword	RoyalBlue	    cyan	       default-bold-italic)
-    (label	red-bold	    orange-underlined  underline)
+    (keyword	RoyalBlue	    cyan	       bold-italic)
+    (label	red-underline	    orange-underlined  underline)
     (string	grey40		    orange	       underline)
     
     ;; some further faces for Ada
@@ -398,40 +475,41 @@ your init file.")
 	
     ;; and anotherone for LaTeX
     (crossref	  DarkGoldenrod	    Goldenrod	       underline)
+    (formula	  Goldenrod	    DarkGoldenrod      underline)
  
     ;; compilation buffers
-    (active-error default/pink-bold  default/DeepPink-bold  bold-underline)
-    (error	  red-bold           yellow		    bold)
-    (warning	  blue-italic	     green		    italic)
+    (active-error default/pink-bold  default/DeepPink-bold  default-underline)
+    (error	  red-bold           yellow	       bold)
+    (warning	  blue-italic	     green	       italic)
 
     ;; Makefiles (some faces borrowed from C/C++ too)
-    (rule	  blue-bold-underline cyan-underline   bold-underline)
+    (rule	  blue-bold-underline cyan-underline   default-bold-underline)
     
     ;; VM, GNUS and Text mode
     (msg-subject    blue-bold       yellow             bold)
-    (msg-from	    purple-bold	    SeaGreen	       bold)
+    (msg-from	    purple-bold	    green	       bold)
     (msg-header	    firebrick-bold  cyan	       italic)
-    (msg-separator  black/tan-bold  lightblue	       nil)
-    (msg-quote	    ForestGreen	    green	       italic)
+    (msg-separator  black/tan-bold  black/lightblue    nil)
+    (msg-quote	    ForestGreen	    pink	       italic)
 
     (summary-seen     grey40	    white	       nil)
     (summary-killed   grey50	    white	       nil)
     (summary-Xed      OliveDrab2    green	       nil)
     (summary-deleted  firebrick	    white	       italic)
     (summary-unread   RoyalBlue	    yellow	       bold)
-    (summary-new      blue-bold	    yellow-bold	       default-bold-italic)
-    (summary-current  default/skyblue-bold green/LightGrey-bold reverse-default)
+    (summary-new      blue-bold	    yellow-bold	       bold-italic)
+    (summary-current  default/skyblue-bold green/dimgrey-bold reverse-default)
 
     (gnus-group-unsubscribed grey50		white	    nil)
-    (gnus-group-empty	     nil		yellow	    nil)
+    (gnus-group-empty	     nil		nil	    nil)
     (gnus-group-full	     ForestGreen	green	    italic)
-    (gnus-group-overflowing  firebrick		orange	    default-bold-italic)
+    (gnus-group-overflowing  firebrick		red	    bold-italic)
 
     ;; dired mode
     (dired-directory blue-bold         cyan            bold)
     (dired-link	     firebrick-italic  green	       italic)
     (dired-ignored   ForestGreen       moccasin	       nil)
-    (dired-deleted   red-bold-italic   orange	       default-bold-italic)
+    (dired-deleted   red-bold-italic   orange	       bold-italic)
     (dired-marked    purple	       Plum1	       nil)
 	
     ;; Info-mode, and jargon-mode.el and prep.ai.mit.edu:/pub/gnu/jargon*
@@ -439,11 +517,18 @@ your init file.")
     (jargon-xref     purple-bold       Plum1	       italic)
     (jargon-keyword  firebrick-underline yellow	       underline)
     )
-  "alist of default faces (face . (light-default dark-default mono-default))")
+  "alist of default faces (face . (light-default dark-default mono-default))
+
+There is no way for the user to modify this table such that it will have any
+effect upon the translations used by hilit19.  Instead, use the function
+hilit-translate AFTER hilit19 has been loaded.
+
+See also the documentation for hilit-lookup-face-create.")
 
 (defconst hilit-face-translation-table
-  (let ((index (or (cdr (assq hilit-background-mode
-			      '((light . 1) (dark . 2))))
+  (let ((index (or (and (x-display-color-p)
+			(cdr (assq hilit-background-mode
+				   '((light . 1) (dark . 2)))))
 		   3)))
     (mapcar (function (lambda (x) (cons (car x) (nth index x))))
 	    hilit-default-face-table))
@@ -583,11 +668,12 @@ The optional 5th arg, PROP is a property to set instead of 'hilit."
   "Unhighlights the region from START to END, optionally in a QUIET way"
   (interactive "r")
   (or quietly hilit-quietly (message "Unhighlighting"))
-  (while (< start end)
-    (mapcar (function (lambda (ovr)
-			(and (overlay-get ovr 'hilit) (delete-overlay ovr))))
-	    (overlays-at start))
-    (setq start (next-overlay-change start)))
+  (let ((lstart 0))
+    (while (and start (> start lstart) (< start end))
+      (mapcar (function (lambda (ovr)
+			  (and (overlay-get ovr 'hilit) (delete-overlay ovr))))
+	      (overlays-at start))
+      (setq lstart start start (next-overlay-change start))))
   (or quietly hilit-quietly (message "Done unhighlighting")))
 
 ;;;; These functions use text properties instead of overlays.  Text properties
@@ -625,12 +711,13 @@ non-nil."
 	((symbolp patterns)
 	 (setq patterns (cdr (assq patterns hilit-patterns-alist)))))  
   ;; txt prop: (setq patterns (reverse patterns))
-  (let ((prio (length patterns))
-	(case-fold-search nil)
+  (let ((case-fold-search (car patterns))
+	(prio (1- (length patterns)))
 	;; txt prop: (buffer-read-only nil)
 	;; txt prop: (bm (buffer-modified-p))
-	p pstart pend face mstart)
+	p pstart pend face mstart (puke-count 0))
     ;; txt prop: (unwind-protect
+    (setq patterns (cdr patterns))	; remove case-fold from head of pattern
     (save-excursion
       (save-restriction
 	(narrow-to-region start end)
@@ -643,9 +730,9 @@ non-nil."
 	      nil
 	    (or quietly hilit-quietly
 		(message "highlighting %d: %s%s" prio pstart 
-			 (if pend (concat " ... " pend) "")))
+			 (if (stringp pend) (concat " ... " pend) "")))
 	    (goto-char (point-min))
-	    (condition-case nil
+	    (condition-case msg
 		(cond 
 		      ((symbolp pstart)
 		       ;; inner loop -- special function to find pattern
@@ -661,18 +748,20 @@ non-nil."
 			     (hilit-region-set-face mstart (match-end 0)
 						    face prio)
 			   (forward-char 1))))
-		      (t
-		       (or (numberp pend) (setq pend 0))
+		      ((numberp pend)
 		       ;; inner loop -- just one regex to match whole pattern
 		       (while (re-search-forward pstart nil t nil)
+			 (goto-char (match-end pend))
 			 (hilit-region-set-face  (match-beginning pend)
-						 (match-end pend) face prio))))
-	      (error (message "Unbalanced delimiters?  Barfed on '%s'"
-			      pstart)
-		     (ding) (sit-for 4))))
+						 (match-end pend) face prio)))
+		      (t (error "malformed pattern")))
+	      (error (if (> (setq puke-count (1+ puke-count)) 1)
+			 (error msg)
+		       (message "Error: '%s'" msg)
+		       (ding) (sit-for 4)))))
 	  (setq prio (1- prio)
 		patterns (cdr patterns)))
-	))				
+	))
     (or quietly hilit-quietly (message "")) ; "Done highlighting"
     ;; txt prop: (set-buffer-modified-p bm)) ; unwind protection
     ))
@@ -680,10 +769,12 @@ non-nil."
 (defun hilit-rehighlight-region (start end &optional quietly)
   "Re-highlights the region, optionally in a QUIET way"
   (interactive "r")
-  (setq start (apply 'min start (mapcar 'overlay-start (overlays-at start)))
-	end (apply 'max end (mapcar 'overlay-end (overlays-at end))))
-  (hilit-unhighlight-region start end quietly)
-  (hilit-highlight-region   start end nil quietly))
+  (save-restriction
+    (widen)
+    (setq start (apply 'min start (mapcar 'overlay-start (overlays-at start)))
+	  end (apply 'max end (mapcar 'overlay-end (overlays-at end))))
+    (hilit-unhighlight-region start end quietly)
+    (hilit-highlight-region   start end nil quietly)))
 
 (defun hilit-rehighlight-buffer (&optional quietly)
   "Re-highlights the buffer, optionally in a QUIET way"
@@ -708,16 +799,19 @@ non-nil."
 
 (defalias 'hilit-highlight-buffer 'hilit-rehighlight-buffer)
 
-(defun hilit-toggle-highlight (arg)
-  "Locally toggle highlighting.  With arg, forces highlighting off."
-  (interactive "P")
-  ;; FIXME -- this loses numeric information in hilit-auto-rehighlight
-  (setq hilit-auto-rehighlight
-	(and (not arg) (not hilit-auto-rehighlight)))
-  (if hilit-auto-rehighlight
-      (hilit-rehighlight-buffer)
-    (hilit-unhighlight-region (point-min) (point-max)))
-  (message "Rehighlighting is set to %s" hilit-auto-rehighlight))
+;; Well, I want to remove this function...there's one sure way to find out if
+;; anyone uses it or not...and that's to comment it out.
+;; 
+;; (defun hilit-toggle-highlight (arg)
+;;   "Locally toggle highlighting.  With arg, forces highlighting off."
+;;   (interactive "P")
+;;   ;; FIXME -- this loses numeric information in hilit-auto-rehighlight
+;;   (setq hilit-auto-rehighlight
+;;         (and (not arg) (not hilit-auto-rehighlight)))
+;;   (if hilit-auto-rehighlight
+;;       (hilit-rehighlight-buffer)
+;;     (hilit-unhighlight-region (point-min) (point-max)))
+;;   (message "Rehighlighting is set to %s" hilit-auto-rehighlight))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; HOOKS
@@ -754,18 +848,6 @@ prefix argument if that is specified.
     (if st
 	  (hilit-rehighlight-region st en quietly))))
 
-;; (defun hilit-rehighlight-yank-region ()
-;;   "Rehighlights from the beginning of the line where the region starts to
-;; the end of the line where the region ends.  This could flake out on
-;; multi-line highlights (like C comments and lisp strings.)"
-;;   (if hilit-auto-rehighlight
-;;       (hilit-rehighlight-region
-;;        (save-excursion (goto-char (region-beginning))
-;; 		       (beginning-of-line) (point))
-;;        (save-excursion (goto-char (region-end))
-;; 		       (end-of-line) (point))
-;;        t)))
-
 (defun hilit-recenter (arg)
   "Recenter, then rehighlight according to hilit-auto-rehighlight.  If called
 with an unspecified prefix argument (^U but no number), then a rehighlight of
@@ -775,14 +857,6 @@ the entire buffer is forced."
   ;; force display update
   (sit-for 0)
   (hilit-repaint-command (consp arg)))
-
-;; (defun hilit-redraw-display (arg)
-;;   "Rehighlights according to the value of hilit-auto-rehighlight, a prefix
-;; arg forces a rehighlight of the whole buffer.  Otherwise just like
-;; redraw-display."
-;;   (interactive "P")
-;;   (hilit-redraw-internal arg)
-;;   (redraw-display))
 
 (defun hilit-yank (arg)
   "Yank with rehighlighting"
@@ -898,12 +972,9 @@ the entire buffer is forced."
 		    (lambda (hook)
 		      (add-hook hook 'hilit-rehighlight-buffer-quietly)))
 		   '(
-		     compilation-parse-hook
-
-		     Info-select-hook	; FIXME -- phase this out later
 		     Info-selection-hook
 
-		     vm-summary-mode-hooks
+;; runs too early		     vm-summary-mode-hooks
 		     vm-summary-pointer-hook
 		     vm-preview-message-hook
 		     vm-show-message-hook
@@ -915,9 +986,11 @@ the entire buffer is forced."
 		     rmail-show-message-hook
 		     mail-setup-hook 
 		     mh-show-mode-hook
+
+		     dired-after-readin-hook
 		     ))
 
-	   ;; rehilight only the visible part of the summary buffer for speed.
+	   ;; rehighlight only visible part of summary buffer for speed.
 	   (add-hook 'gnus-mark-article-hook
 		     (function
 		      (lambda ()
@@ -956,9 +1029,20 @@ the entire buffer is forced."
 	(setcdr oldentry val)
       (set alist (cons (cons key val) (eval alist))))))
   
-(defun hilit-set-mode-patterns (modelist patterns &optional parse-fn)
+(defun hilit-set-mode-patterns (modelist patterns
+					 &optional parse-fn case-fold)
   "Sets the default highlighting patterns for MODE to PATTERNS.
-See the variable hilit-mode-enable-list."
+See the variable hilit-mode-enable-list.
+
+Takes optional arguments PARSE-FN and CASE-FOLD."
+  ;; change pattern
+  (mapcar (function (lambda (p)
+		      (and (stringp (car p))
+			   (null (nth 1 p))
+			   (setcar (cdr p) 0))))
+	  patterns)
+  (setq patterns (cons case-fold patterns))
+  
   (or (consp modelist) (setq modelist (list modelist)))
   (let (ok (flip (eq (car hilit-mode-enable-list) 'not)))
     (mapcar (function
@@ -967,59 +1051,96 @@ See the variable hilit-mode-enable-list."
 			    (memq m hilit-mode-enable-list)))
 	       (and flip (setq ok (not ok)))
 	       (and ok
-		   (progn
-		     (and parse-fn
-			  (hilit-associate 'hilit-parser-alist m parse-fn))
-		     (hilit-associate 'hilit-patterns-alist m patterns)))))
+		    (progn
+		      (and parse-fn
+			   (hilit-associate 'hilit-parser-alist m parse-fn))
+		      (hilit-associate 'hilit-patterns-alist m patterns)))))
 	    modelist)))
+
+(defun hilit-add-pattern (pstart pend face &optional mode first)
+  "Highlight pstart with face for the current major-mode.
+Optionally, place the new pattern first in the pattern list"
+  (interactive "sPattern start regex: \nsPattern end regex (default none): \nxFace: ")
+
+  (and (equal pstart "") (error "Must specify starting regex"))
+  (cond ((equal pend "") (setq pend 0))
+	((string-match "^[0-9]+$" pend) (setq pend (string-to-int pend))))
+  (or mode (setq mode major-mode))
+  (let ((old-patterns (cdr (assq mode hilit-patterns-alist)))
+	(new-pat (list pstart pend face)))
+    (cond ((not old-patterns)
+	   (hilit-set-mode-patterns mode (list new-pat)))
+	  (first
+	   (setcdr old-patterns (cons new-pat (cdr old-patterns))))
+	  (t 
+	   (nconc old-patterns (list new-pat)))))
+  (and (interactive-p) (hilit-rehighlight-buffer)))
 
 (defun hilit-string-find (qchar)
   "looks for a string and returns (start . end) or NIL.  The argument QCHAR
 is the character that would precede a character constant double quote.
-Finds  [^QCHAR]\" ... [^\\]\""
+Finds strings delimited by double quotes.  The first double quote may not be
+preceded by QCHAR and the closing double quote may not be preceded by an odd
+number of backslashes."
   (let (st en)
     (while (and (search-forward "\"" nil t)
 		(eq qchar (char-after (1- (setq st (match-beginning 0)))))))
     (while (and (search-forward "\"" nil t)
-		(eq ?\\ (char-after (- (setq en (point)) 2)))))
+		(save-excursion
+		  (setq en (point))
+		  (forward-char -1)
+		  (skip-chars-backward "\\\\")
+		  (forward-char 1)
+		  (not (zerop (% (- en (point)) 2))))))
     (and en (cons st en))))    
 
-(hilit-set-mode-patterns
- '(c-mode c++-c-mode elec-c-mode)
- '(("/\\*" "\\*/" comment)
-					;	("\"" "[^\\]\"" string)
-   (hilit-string-find ?' string)
-   ;; declaration
-   ("^#[ \t]*\\(undef\\|define\\).*$" nil define)
-   ("^#.*$" nil include)
-   ;; function decls are expected to have types on the previous line
-   ("^\\(\\w\\|[$_]\\)+\\s *\\(\\(\\w\\|[$_]\\)+\\s *((\\|(\\)[^)]*)+" nil defun)
-   ("^\\(typedef\\|struct\\|union\\|enum\\).*$" nil decl)
-   ;; datatype -- black magic regular expression
-   ("[ \n\t({]\\(\\(const\\|register\\|volatile\\|unsigned\\|extern\\|static\\)\\s +\\)*\\(\\(\\w\\|[$_]\\)+_t\\|float\\|double\\|void\\|char\\|short\\|int\\|long\\|FILE\\|\\(\\(struct\\|union\\|enum\\)\\([ \t]+\\(\\w\\|[$_]\\)*\\)\\)\\)\\(\\s +\\*+)?\\|[ \n\t;()]\\)" nil type)
-   ;; key words
-   ("[^_]\\<\\(return\\|goto\\|if\\|else\\|case\\|default\\|switch\\|break\\|continue\\|while\\|do\\|for\\)\\>[^_]" 1 keyword)
-   ))
+;; return types on same line...
+;; ("^[a-zA-z].*\\(\\w\\|[$_]\\)+\\s *\\(\\(\\w\\|[$_]\\)+\\s *((\\|(\\)[^)]*)+" nil defun)
 
-(hilit-set-mode-patterns
- 'c++-mode
- '(("/\\*" "\\*/" comment)
-   ("//.*$" nil comment)
-   ("^/.*$" nil comment)
-;   ("\"" "[^\\]\"" string)
-   (hilit-string-find ?' string)
-   ;; declaration	
-   ("^#[ \t]*\\(undef\\|define\\).*$" nil define)
-   ("^#.*$" nil include)
-   ;; function decls are expected to have types on the previous line
-   ("^\\(\\(\\w\\|[$_]\\)+::\\)?\\(\\w\\|[$_]\\)+\\s *\\(\\(\\w\\|[$_]\\)+\\s *((\\|(\\)[^)]*)+" nil defun)
-   ("^\\(\\(\\w\\|[$_]\\)+[ \t]*::[ \t]*\\)?\\(\\(\\w\\|[$_]\\)+\\|operator.*\\)\\s *\\(\\(\\w\\|[$_]\\)+\\s *((\\|(\\)[^)]*)+" nil defun)
-   ("^\\(template\\|typedef\\|struct\\|union\\|class\\|enum\\|public\\|private\\|protected\\).*$" nil decl)
-   ;; datatype -- black magic regular expression
-   ("[ \n\t({]\\(\\(const\\|register\\|volatile\\|unsigned\\|extern\\|static\\)\\s +\\)*\\(\\(\\w\\|[$_]\\)+_t\\|float\\|double\\|void\\|char\\|short\\|int\\|long\\|FILE\\|\\(\\(struct\\|union\\|enum\\|class\\)\\([ \t]+\\(\\w\\|[$_]\\)*\\)\\)\\)\\(\\s +\\*+)?\\|[ \n\t;()]\\)" nil type)
-   ;; key words
-   ("[^_]\\<\\(return\\|goto\\|if\\|else\\|case\\|default\\|switch\\|break\\|continue\\|while\\|do\\|for\\|public\\|protected\\|private\\|delete\\|new\\)\\>[^_]"
-    1 keyword)))
+;; On another note, a working pattern for grabbing function definitions for C is
+;; 
+;; ("^[a-zA-Z_]+.*[;{]$" nil ForestGreen)  ; global defns ( start at col 1 )
+;; ("^[a-zA-Z_]+.*(" ")" defun)
+;; ; defuns assumed to start at col 1, not with # or {
+;; 
+;; this will make external declarations/definitions green, and function
+;; definitions the defun face.  Hmmm - seems to work for me anyway.
+
+(let ((comments     '(("/\\*" "\\*/" comment)))
+      (c++-comments '(("//.*$" nil comment)
+		      ("^/.*$" nil comment)))
+      (strings      '((hilit-string-find ?' string)))
+      (preprocessor '(("^#[ \t]*\\(undef\\|define\\).*$" "[^\\]$" define)
+		      ("^#.*$" nil include))))
+
+  (hilit-set-mode-patterns
+   '(c-mode c++-c-mode elec-c-mode)
+   (append
+    comments strings preprocessor
+    '(
+      ;; function decls are expected to have types on the previous line
+      ("^\\(\\w\\|[$_]\\)+\\s *\\(\\(\\w\\|[$_]\\)+\\s *((\\|(\\)[^)]*)+" nil defun)
+      ("^\\(typedef\\|struct\\|union\\|enum\\).*$" nil decl)
+      ;; datatype -- black magic regular expression
+      ("[ \n\t({]\\(\\(const\\|register\\|volatile\\|unsigned\\|extern\\|static\\)\\s +\\)*\\(\\(\\w\\|[$_]\\)+_t\\|float\\|double\\|void\\|char\\|short\\|int\\|long\\|FILE\\|\\(\\(struct\\|union\\|enum\\)\\([ \t]+\\(\\w\\|[$_]\\)*\\)\\)\\)\\(\\s +\\*+)?\\|[ \n\t;()]\\)" nil type)
+      ;; key words
+      ("[^_]\\<\\(return\\|goto\\|if\\|else\\|case\\|default\\|switch\\|break\\|continue\\|while\\|do\\|for\\)\\>[^_]" 1 keyword)
+      )))
+
+  (hilit-set-mode-patterns
+   'c++-mode
+   (append
+    comments c++-comments strings preprocessor
+    '(
+      ;; function decls are expected to have types on the previous line
+      ("^\\(\\(\\w\\|[$_]\\)+::\\)?\\(\\w\\|[$_]\\)+\\s *\\(\\(\\w\\|[$_]\\)+\\s *((\\|(\\)[^)]*)+" nil defun)
+      ("^\\(\\(\\w\\|[$_]\\)+[ \t]*::[ \t]*\\)?\\(\\(\\w\\|[$_]\\)+\\|operator.*\\)\\s *\\(\\(\\w\\|[$_]\\)+\\s *((\\|(\\)[^)]*)+" nil defun)
+      ("^\\(template\\|typedef\\|struct\\|union\\|class\\|enum\\|public\\|private\\|protected\\).*$" nil decl)
+      ;; datatype -- black magic regular expression
+      ("[ \n\t({]\\(\\(const\\|register\\|volatile\\|unsigned\\|extern\\|static\\)\\s +\\)*\\(\\(\\w\\|[$_]\\)+_t\\|float\\|double\\|void\\|char\\|short\\|int\\|long\\|FILE\\|\\(\\(struct\\|union\\|enum\\|class\\)\\([ \t]+\\(\\w\\|[$_]\\)*\\)\\)\\)\\(\\s +\\*+)?\\|[ \n\t;()]\\)" nil type)
+      ;; key words
+      ("[^_]\\<\\(return\\|goto\\|if\\|else\\|case\\|default\\|switch\\|break\\|continue\\|while\\|do\\|for\\|public\\|protected\\|private\\|delete\\|new\\)\\>[^_]"
+       1 keyword)))))
 
 (hilit-set-mode-patterns
  'perl-mode
@@ -1063,16 +1184,17 @@ Finds  [^QCHAR]\" ... [^\\]\""
 (hilit-set-mode-patterns
  'fortran-mode
  '(("^[*Cc].*$" nil comment)
-   ("[ \t]\\(call\\|program\\|subroutine\\|function\\|stop\\|return\\|end\\|include\\)[ \t\n]" nil include)
+   ("'[^'\n]*'" nil string)
    ("\\(^[ \t]*[0-9]+\\|[ \t]continue[ \t\n]\\|format\\)" nil define)
    ("[ \t]\\(do\\|do[ \t]*[0-9]+\\|go[ \t]*to[ \t]*[0-9]+\\|end[ \t]*do\\|if\\|else[ \t]*if\\|then\\|else\\|end[ \t]*if\\)[ \t\n(]" nil define)
+   ("[ \t]\\(call\\|program\\|subroutine\\|function\\|stop\\|return\\|end\\|include\\)[ \t\n]" nil include)
    ("[ \t]\\(parameter[\t\n ]*([^)]*)\\|data\\|save\\|common[ \t\n]*/[^/]*/\\)" 
     nil decl)
    ("^     ." nil type)
    ("implicit[ \t]*none" nil decl)
    ("\\([ \t]\\|implicit[ \t]*\\)\\(dimension\\|integer\\|real\\|double[ \t]*precision\\|character\\|logical\\|complex\\|double[ \t]*complex\\)\\([*][0-9]*\\|[ \t\n]\\)" nil keyword)
-   ("'[^'\n]*'" nil string)
-   ))
+   )
+ nil 'case-insensitive)
 
 (hilit-set-mode-patterns
  '(m2-mode modula-2-mode)
@@ -1080,7 +1202,8 @@ Finds  [^QCHAR]\" ... [^\\]\""
    (hilit-string-find ?\\ string)
    ("^[ \t]*PROCEDURE[ \t]+\\w+[^ \t(;]*" nil defun)
    ("\\<\\(RECORD\\|ARRAY\\|OF\\|POINTER\\|TO\\|BEGIN\\|END\\|FOR\\|IF\\|THEN\\|ELSE\\|ELSIF\\|CASE\\|WHILE\\|DO\\|MODULE\\|FROM\\|RETURN\\|IMPORT\\|EXPORT\\|VAR\\|LOOP\\|UNTIL\\|\\DEFINITION\\|IMPLEMENTATION\\|AND\\|OR\\|NOT\\|CONST\\|TYPE\\|QUALIFIED\\)\\>" nil keyword)
-   ))
+   )
+ nil 'case-insensitive)
 
 (hilit-set-mode-patterns 'prolog-mode
  '(("/\\*" "\\*/" comment)
@@ -1115,7 +1238,7 @@ Finds  [^QCHAR]\" ... [^\\]\""
 
    ;; various declarations/definitions
    ("\\\\\\(setlength\\|settowidth\\|addtolength\\|setcounter\\|addtocounter\\)" nil define)
-   ("\\\\\\(\\|title\\|author\\|date\\|thanks\\){" "}" define)
+   ("\\\\\\(title\\|author\\|date\\|thanks\\){" "}" define)
 
    ("\\\\documentstyle\\(\\[.*\\]\\)?{" "}" decl)
    ("\\\\\\(begin\\|end\\|nofiles\\|includeonly\\){" "}" decl)
@@ -1128,10 +1251,14 @@ Finds  [^QCHAR]\" ... [^\\]\""
    ("\\\\\\(bf\\|em\\|it\\|rm\\|sf\\|sl\\|ss\\|tt\\)\\b" nil decl)
 
    ;; label-like things
-   ("\\\\item\\[" "\\]" label)
-   ("\\\\item\\b" nil label)
-   ("\\\\caption\\(\\[.*\\]\\)?{" "}" label)
+   ("\\\\item\\(\\[[^]]*\\]\\)?" nil label)
+   ("\\\\caption\\(\\[[^]]*\\]\\)?{" "}" label)
 
+   ;; formulas
+   ("\\\\("  "\\\\)" formula)                   ; \( \)
+   ("\\\\\\[" "\\\\\\]" formula)                ; \[ \]
+   ("[^$]\\($\\($[^$]*\\$\\|[^$]*\\)\\$\\)" 1 formula) ; '$...$' or '$$...$$'
+   
    ;; things that bring in external files
    ("\\\\\\(include\\|input\\|bibliography\\){" "}" include)
 
@@ -1215,17 +1342,48 @@ Finds  [^QCHAR]\" ... [^\\]\""
    ("^  N.*$" nil summary-new)))
 
 
+;;; this will match only comments w/ an even (zero is even) number of quotes...
+;;; which is still inadequate because it matches comments in multi-line strings
+;;; how anal do you want to get about never highlighting comments in strings?
+;;; I could twiddle with this forever and still it wouldn't be perfect.
+;;;   (";\\([^\"\n]*\"[^\"\n]*\"\\)*[^\"\n]*$" nil comment)
+
 (hilit-set-mode-patterns
- '(emacs-lisp-mode lisp-mode)
+ '(emacs-lisp-mode lisp-interaction-mode)
  '(
    (";.*" nil comment)
-;;;	 ("^;.*$" nil comment)
-;;;	 ("\\s ;+[ ;].*$" nil comment)
+
+;;; This almost works...but I think I'll stick with the parser function 
+;;;("[^?]\\(\"\\(\"\\||\\([^\"]+\\|[\\]\\([\\][\\]\\)*\"\\)*\"\\)\\)" 1 string)
    (hilit-string-find ?\\ string)
-   ("^\\s *(def\\(un\\|macro\\|advice\\|subst\\)\\s " "\\()\\|nil\\)" defun)
+
+   ("^\\s *(def\\(un\\|macro\\|advice\\|alias\\|subst\\)[ \t\n]"
+    "\\()\\|nil\\)" defun)
    ("^\\s *(defvar\\s +\\S +" nil decl)
    ("^\\s *(defconst\\s +\\S +" nil define)
    ("^\\s *(\\(provide\\|require\\|\\(auto\\)?load\\).*$" nil include)
+   ("\\s *\\&\\(rest\\|optional\\)\\s *" nil keyword)
+   ("(\\(let\\*?\\|cond\\|if\\|or\\|and\\|map\\(car\\|concat\\)\\|prog[n1*]?\\|while\\|lambda\\|function\\|set\\([qf]\\|car\\|cdr\\)?\\|nconc\\|eval-when-compile\\|condition-case\\|unwind-protect\\|catch\\|throw\\|error\\)[ \t\n]" 1 keyword)
+   ))
+
+(hilit-set-mode-patterns
+ '(lisp-mode ilisp-mode)
+ '(
+   (";.*" nil comment)
+   ("#|" "|#" comment)
+;;; This almost works...but I think I'll stick with the parser function 
+;;;("[^?]\\(\"\\(\"\\||\\([^\"]+\\|[\\]\\([\\][\\]\\)*\"\\)*\"\\)\\)" 1 string)
+   (hilit-string-find ?\\ string)
+
+   ;; this is waaaaaaaay too slow
+   ;;   ("^\\s *(def\\(un\\|macro\\|advice\\|alias\\|method\\|subst\\)\\s \\S +[ \t\n]+\\(nil\\|(\\(([^()]*)\\|[^()]+\\)*)\\)" nil defun)
+   ("^\\s *(def\\(un\\|macro\\|advice\\|subst\\|method\\)\\s " "\\()\\|nil\\)" defun)
+
+   ("^\\s *(\\(def\\(var\\|type\\|parameter\\)\\|declare\\)\\s +\\S +" nil decl)
+   ("^\\s *(def\\(const\\(ant\\)?\\|class\\|struct\\)\\s \\S +[ \t\n]+\\((\\(([^()]*)\\|[^()]+\\)*)\\)?" nil define)
+   ("^\\s *(\\(provide\\|require\\|\\(auto\\)?load\\).*$" nil include)
+   ("[ \t]\\&\\(key\\|rest\\|optional\\|aux\\)\\s *" nil keyword)
+   ("(\\(let\\*?\\|locally\\|cond\\|if\\*?\\|or\\|and\\|map\\(car\\|c[ao]n\\)?\\|prog[nv1*]?\\|while\\|when\\|unless\\|do\\(\\*\\|list\\|times\\)\\|lambda\\|function\\|values\\|set\\([qf]\\|car\\|cdr\\)?\\|rplac[ad]\\|nconc\\|block\\|go\\|return\\(-from\\)?\\|[ec]?\\(type\\)?case\\|multiple-value-\\(bind\\|setq\\|list\\|call\\|prog1\\)\\|unwind-protect\\|handler-case\\|catch\\|throw\\|eval-when\\(-compile\\)?\\)[ \t\n]" 1 keyword)
    ))
 
 
@@ -1237,7 +1395,7 @@ Finds  [^QCHAR]\" ... [^\\]\""
    ("{\\\\bf\\([^}]+\\)}" nil keyword)
    ("^[ \t\n]*\\\\def[\\\\@]\\(\\w+\\)" nil defun)
    ("\\\\\\(begin\\|end\\){\\([A-Za-z0-9\\*]+\\)}" nil defun)
-;   ("[^\\\\]\\$\\([^$]*\\)\\$" nil string)
+   ;; ("[^\\\\]\\$\\([^$]*\\)\\$" nil string)
    ("\\$\\([^$]*\\)\\$" nil string)
    ))
 
@@ -1252,16 +1410,17 @@ Finds  [^QCHAR]\" ... [^\\]\""
    ("^\\.[ST]H.*$" nil defun)
 ;;   ("^[^\\.].*\"[^\\\"]*\\(\\\\\\(.\\)[^\\\"]*\\)*\"" nil string)
    ("\"" "[^\\]\"" string)
-   ("^\\.[A-Za-z12\\\\].*$" nil define)
+   ("^\\.[A-Z12\\\\].*$" nil define)
    ("\\([\\\][^ ]*\\)" nil keyword)
-   ("^\\.[a-zA-Z].*$" nil keyword)))
+   ("^\\.[A-Z].*$" nil keyword))
+ nil 'case-insensitive)
 
 (hilit-set-mode-patterns
  'texinfo-mode
  '(("^\\(@c\\|@comment\\)\\>.*$" nil comment)
    ("@\\(emph\\|strong\\|b\\|i\\){[^}]+}" nil comment)
-; seems broken
-;   ("\\$[^$]*\\$" nil string)
+;; seems broken
+;; ("\\$[^$]*\\$" nil string)
    ("@\\(file\\|kbd\\|key\\){[^}]+}" nil string)
    ("^\\*.*$" nil defun)
    ("@\\(if\\w+\\|format\\|item\\)\\b.*$" nil defun)
@@ -1297,6 +1456,73 @@ Finds  [^QCHAR]\" ... [^\\]\""
    ("- \\(Variable\\|Function\\|Macro\\|Command\\|Special Form\\|User Option\\):.*$"
     nil jargon-keyword)))	; lisp manual
 
+(hilit-set-mode-patterns
+ 'calendar-mode
+ '(("[A-Z][a-z]+ [0-9]+" nil define)	; month and year
+   ("S  M Tu  W Th  F  S" nil label)	; week days
+   ("[0-9]+\\*" nil defun)		; holidays
+   ("[0-9]+\\+" nil comment)		; diary days
+   ))
+
+(hilit-set-mode-patterns
+ 'pascal-mode
+ '(("(\\*" "\\*)" comment)
+   ("{" "}" comment)
+   ;; Doesn't work when there are strings in comments....
+   ;; ("'[^']*'" nil string)
+   ("^#.*$" nil include)
+   ("^[ \t]*\\(procedure\\|function\\)[ \t]+\\w+[^ \t(;]*" nil defun)
+   ("\\<\\(program\\|begin\\|end\\)\\>" nil defun)
+   ("\\<\\(external\\|forward\\)\\>" nil include)
+   ("\\<\\(label\\|const\\|type\\|var\\)\\>" nil define)
+   ("\\<\\(record\\|array\\|file\\)\\>" nil type)
+   ("\\<\\(of\\|to\\|for\\|if\\|then\\|else\\|case\\|while\\|do\\|until\\|and\\|or\\|not\\|with\\|repeat\\)\\>" nil keyword)
+   )
+ nil 'case-insensitive)
+
+(hilit-set-mode-patterns
+ 'icon-mode
+ '(("#.*$" nil comment)
+   ("\"[^\\\"]*\\(\\\\.[^\\\"]*\\)*\"" nil string)
+   ;; charsets: these do not work because of a conflict with strings
+   ;; ("'[^\\']*\\(\\\\.[^\\']*\\)*'" nil string)
+   ("^[ \t]*procedure[ \t]+\\w+[ \t]*(" ")" defun)
+   ("^[ \t]*record.*(" ")" include)
+   ("^[ \t]*\\(global\\|link\\)[ \t\n]+[A-Za-z_0-9]+\\([ \t\n]*,[ \t\n]*[A-Za-z_0-9]+\\)*" nil include)
+   ("^[ \t]*\\(local\\|static\\)[ \t\n]+[A-Za-z_0-9]+\\([ \t\n]*,[ \t\n]*[A-Za-z_0-9]+\\)*" nil decl)
+   ("\\<\\(initial\\|end\\)\\>" nil glob-struct)
+   ("\\<\\(while\\|until\\|return\\|every\\|if\\|then\\|else\\|to\\|case\\|of\\|suspend\\|create\\|do\\|repeat\\|break\\)\\>" nil keyword)
+   ))
+
+;; as you can see, I had two similar problems for Pascal and Icon. In
+;; Pascal, strings are delimited with ' and an embedded quote is doubled,
+;; thus string syntax would be extremely simple. However, if a string
+;; occurs within a comment, the following text is considered a string.
+;; 
+;; In Icon, strings are similar to C ones, but there are also charsets,
+;; delimited with simple quotes. I could not manage to use both regexps at
+;; the same time.
+
+;; The problem I have with my patterns for Icon is that this language has a
+;; string similar constant to the C one (but a string can be cut on several
+;; lines, if terminated by a dash and continued with initial blanks, like
+;; this:
+;;         "This is a somewhat long -
+;;          string, written on three -
+;;          succesive lines"
+;; in order to insert a double quote in a string, you have to escape it
+;; with a \), bu also a character set constant (named a charset), which
+;; uses single quotes instead of double ones. It would seem intuitive to
+;; highlight both constants in the same way.
+
+
 (provide 'hilit19)
 
 ;;; hilit19 ends here.
+
+
+;; __________________________________________________________________________
+;; Stig@netcom.com                            netcom.com:/pub/stig/00-PGP-KEY
+;; It's hard to be cutting-edge at your own pace...   32 DF B9 19 AE 28 D1 7A
+;; Bullet-proof code cannot stand up to teflon bugs.  A3 9D 0B 1A 33 13 4D 7F
+
