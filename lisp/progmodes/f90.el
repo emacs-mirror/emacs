@@ -3,7 +3,7 @@
 ;; Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
 ;; Author: Torbj\"orn Einarsson <T.Einarsson@clab.ericsson.se>
-;; Last Change: Aug. 12, 1996
+;; Last Change: Oct. 14, 1996
 ;; Keywords: fortran, f90, languages
 
 ;; This file is part of GNU Emacs.
@@ -344,16 +344,15 @@ whether to blink the matching beginning.")
        ;; Variable declarations (avoid the real function call)
        '("^[ \t0-9]*\\(real\\|integer\\|c\\(haracter\\|omplex\\)\\|logical\\|type[ \t]*(\\sw+)\\)\\(.*::\\|[ \t]*(.*)\\)?\\([^!\n]*\\)"
 	 (1 font-lock-type-face) (4 font-lock-variable-name-face))
-       ;; do, if and select constructs
-       '("\\<\\(end[ \t]*\\(do\\|if\\|select\\)\\)\\>\\([ \t]+\\(\\sw+\\)\\)?"
+       ;; do, if, select, where, and forall constructs
+       '("\\<\\(end[ \t]*\\(do\\|if\\|select\\|forall\\|where\\)\\)\\>\\([ \t]+\\(\\sw+\\)\\)?"
 	 (1 font-lock-keyword-face) (3 font-lock-reference-face nil t))
-       '("^[ \t0-9]*\\(\\(\\sw+\\)[ \t]*:[ \t]*\\)?\\(\\(if\\|do\\([ \t]*while\\)?\\|select[ \t]*case\\)\\)\\>"
+       '("^[ \t0-9]*\\(\\(\\sw+\\)[ \t]*:[ \t]*\\)?\\(\\(if\\|do\\([ \t]*while\\)?\\|select[ \t]*case\\|where\\|forall\\)\\)\\>"
 	 (2 font-lock-reference-face nil t) (3 font-lock-keyword-face))
        ;; implicit declaration
        '("\\<\\(implicit\\)[ \t]*\\(real\\|integer\\|c\\(haracter\\|omplex\\)\\|logical\\|type[ \t]*(\\sw+)\\|none\\)\\>" (1 font-lock-keyword-face) (2 font-lock-type-face))
        '("\\<\\(namelist\\|common\\)[ \t]*\/\\(\\sw+\\)?\/" (1 font-lock-keyword-face) (2 font-lock-reference-face nil t))
-       '("\\<\\(where\\|forall\\)[ \t]*(" . 1)
-       "\\<e\\(lse\\([ \t]*if\\|where\\)?\\|nd[ \t]*\\(where\\|forall\\)\\)\\>"
+       "\\<else\\([ \t]*if\\|where\\)?\\>"
        "\\<\\(then\\|continue\\|format\\|include\\|stop\\|return\\)\\>"
        '("\\<\\(exit\\|cycle\\)[ \t]*\\(\\sw+\\)?\\>" 
 	 (1 font-lock-keyword-face) (2 font-lock-reference-face nil t))
@@ -428,7 +427,12 @@ whether to blink the matching beginning.")
   (define-key f90-mode-map "\C-c\C-p" 'f90-previous-statement)
   (define-key f90-mode-map "\C-c\C-n" 'f90-next-statement)
   (define-key f90-mode-map "\C-c\C-w" 'f90-insert-end)
-  (define-key f90-mode-map "\t"       'f90-indent-line))
+  (define-key f90-mode-map "\t"       'f90-indent-line)
+  (define-key f90-mode-map ","        'f90-electric-insert)
+  (define-key f90-mode-map "+"        'f90-electric-insert)
+  (define-key f90-mode-map "-"        'f90-electric-insert)
+  (define-key f90-mode-map "*"        'f90-electric-insert)
+  (define-key f90-mode-map "/"        'f90-electric-insert))
 
  
 ;; menus
@@ -816,7 +820,7 @@ with no args, if that value is non-nil."
   (setq normal-auto-fill-function 'f90-do-auto-fill)
   (setq indent-tabs-mode nil)
   ;; Setting up things for font-lock
-  (if (string-match "Xemacs" emacs-version)
+  (if (string-match "XEmacs" emacs-version)
       (progn
 	(put 'f90-mode 'font-lock-keywords-case-fold-search t)
 	(if (and current-menubar
@@ -953,16 +957,14 @@ Name is nil if the statement has no label."
 		(list struct label)))))))
 
 (defsubst f90-looking-at-where-or-forall ()
-  "Return (kind nil) if where/forall...end starts after point."
-  (save-excursion
-    (let (command)
-      (if (looking-at "\\(where\\|forall\\)[ \t]*(")
-	  (progn
-	    (setq command (list (f90-match-piece 1) nil))
-	    (goto-char (scan-lists (point) 1 0))
-	    (skip-chars-forward " \t")
-	    (if (looking-at "\\(!\\|$\\)")
-		command))))))
+  "Return (kind name) if a where or forall statement starts after point.
+Name is nil if the statement has no label."
+  (if (looking-at "\\(\\(\\sw+\\)[ \t]*\:\\)?[ \t]*\\(where\\|forall\\)[ \t]*(")
+      (let (label
+	    (struct (f90-match-piece 3)))
+	(if (looking-at "\\(\\sw+\\)[ \t]*\:")
+	    (setq label (f90-match-piece 1)))
+	(list struct label))))
 
 (defsubst f90-looking-at-type-like ()
   "Return (kind name) at the start of a type/interface/block-data block.
@@ -1025,8 +1027,8 @@ Name is non-nil only for type."
   (let ((eol (f90-get-end-of-line)))
     (save-excursion
       (not (or (looking-at "end")
-	       (looking-at "\\(do\\|if\\|else\\|select[ \t]*case\\|\
-case\\|where\\|forall\\)\\>")
+	       (looking-at "\\(do\\|if\\|else\\(if\\|where\\)?\
+\\|select[ \t]*case\\|case\\|where\\|forall\\)\\>")
 	       (looking-at "\\(program\\|module\\|interface\\|\
 block[ \t]*data\\)\\>")
 	       (looking-at "\\(contains\\|\\sw+[ \t]*:\\)")
@@ -1041,6 +1043,13 @@ block[ \t]*data\\)\\>")
 	       (if f90-auto-keyword-case
 		   (f90-change-keywords f90-auto-keyword-case bol eol))))))
 
+(defun f90-electric-insert ()
+  (interactive)
+  "Calls f90-do-auto-fill at each operator insertion."
+  (self-insert-command 1)
+  (f90-update-line)
+  (if auto-fill-function (f90-do-auto-fill)))
+
 (defun f90-get-correct-indent ()
   "Get correct indent for a line starting with line number.
 Does not check type and subprogram indentation."
@@ -1257,9 +1266,7 @@ or, if already present, remove it."
     (if (< (point) (marker-position pos))
 	(goto-char (marker-position pos)))
     (if (not no-update) (f90-update-line))
-    (if (and auto-fill-function
-	     (> (save-excursion (end-of-line) (current-column)) fill-column))
-	(save-excursion (f90-do-auto-fill)))
+    (if auto-fill-function (f90-do-auto-fill))
     (set-marker pos nil)))
 
 (defun f90-indent-new-line ()
@@ -1418,7 +1425,7 @@ If run in the middle of a line, the line is not broken."
 	     (if (not no-update) (f90-update-line))
 	     (newline)
 	     (if f90-beginning-ampersand (insert "&")))))
-  (if (not no-update) (f90-indent-line)))
+  (f90-indent-line))
   
 (defun f90-find-breakpoint ()
   "From fill-column, search backward for break-delimiter."
@@ -1433,11 +1440,12 @@ If run in the middle of a line, the line is not broken."
 	(forward-char)))))
 
 (defun f90-do-auto-fill ()
-  "Break line if non-white characters beyond fill-column."
+  "Break line if non-white characters beyond fill-column. Also, update line. "
   (interactive)
   ;; Break the line before or after the last delimiter (non-word char) if
   ;; position is beyond fill-column.
   ;; Will not break **, //, or => (specified by f90-no-break-re).
+  (f90-update-line)
   (while (> (current-column) fill-column)
       (let ((pos-mark (point-marker)))
 	(move-to-column fill-column)
@@ -1475,27 +1483,22 @@ If run in the middle of a line, the line is not broken."
   "Fill every line in region by forward parsing. Join lines if possible."
   (interactive "*r")
   (let ((end-region-mark (make-marker))
-	(f90-smart-end nil) (f90-auto-keyword-case nil) indent (go-on t)
-	(af-function auto-fill-function) (auto-fill-function nil))
+	(f90-smart-end nil) (f90-auto-keyword-case nil) (go-on t)
+	(auto-fill-function nil))
     (set-marker end-region-mark end-region)
     (goto-char beg-region)
     (while go-on
       ;; join as much as possible
-      (while (f90-join-lines));
-      (setq indent (+ (f90-current-indentation) f90-continuation-indent))
+      (while (f90-join-lines))
       ;; chop the line if necessary
       (while (> (save-excursion (end-of-line) (current-column))
 		fill-column)
 	(move-to-column fill-column)
-	(if (and (looking-at "[ \t]*$") (not (f90-in-string)))
-	    (delete-horizontal-space)
-	  (f90-find-breakpoint)
-	  (f90-break-line 'no-update)
-	  (f90-indent-to indent 'no-line-no)))
+	(f90-find-breakpoint)
+	(f90-break-line 'no-update))
       (setq go-on (and  (< (point) (marker-position end-region-mark))
 			(zerop (forward-line 1))))
       (setq f90-cache-position (point)))
-    (setq auto-fill-function af-function)
     (setq f90-cache-position nil)
     (if (string-match "XEmacs" emacs-version)
 	(zmacs-deactivate-region)
