@@ -19,7 +19,7 @@ when it detects the known problems in your cpp, but you might hit some
 unknown ones.  To force the `configure' script to use `-traditional',
 run the script like this:
 
-  CPP='gcc -E -traditional" ./configure ...
+  CPP='gcc -E -traditional' ./configure ...
 
 (replace the ellipsis "..." with any additional arguments you pass to
 the script).
