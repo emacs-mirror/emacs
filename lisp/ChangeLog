@@ -1,3 +1,13 @@
+2003-06-29  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdb-display-number-end): Don't re-initialise local
+	variables to preserve array slices.
+	(gdb-array-slice): Rename gdb-mouse-array-slice.
+	(gdb-array-slice): Interactive function bound to "\r" for text
+	terminals.
+	(gdb-view-source): Rename gdb-view-source-function.
+	Set uninitialised variables (defvars) to nil.
+
 2003-06-29  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 
 	* international/mule-cmds.el
