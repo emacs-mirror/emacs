@@ -1313,6 +1313,7 @@ window_loop (type, obj, mini, frames)
 DEFUN ("get-lru-window", Fget_lru_window, Sget_lru_window, 0, 1, 0,
   "Return the window least recently selected or used for display.\n\
 If optional argument FRAME is `visible', search all visible frames.\n\
+If FRAME is 0, search all visible and iconified frames.\n\
 If FRAME is t, search all frames.\n\
 If FRAME is nil, search only the selected frame.\n\
 If FRAME is a frame, search only that frame.")
@@ -1331,6 +1332,7 @@ If FRAME is a frame, search only that frame.")
 DEFUN ("get-largest-window", Fget_largest_window, Sget_largest_window, 0, 1, 0,
   "Return the largest window in area.\n\
 If optional argument FRAME is `visible', search all visible frames.\n\
+If FRAME is 0, search all visible and iconified frames.\n\
 If FRAME is t, search all frames.\n\
 If FRAME is nil, search only the selected frame.\n\
 If FRAME is a frame, search only that frame.")
@@ -1806,6 +1808,9 @@ Returns the window displaying BUFFER.")
   if (pop_up_windows
 #ifdef MULTI_FRAME
       || FRAME_MINIBUF_ONLY_P (selected_frame)
+      /* If the current frame is a special display frame,
+	 don't try to reuse its windows.  */
+      || !NILP (XWINDOW (FRAME_ROOT_WINDOW (selected_frame))->dedicated)
 #endif
       )
     {
@@ -1820,8 +1825,27 @@ Returns the window displaying BUFFER.")
       if (split_height_threshold < window_min_height << 1)
 	split_height_threshold = window_min_height << 1;
 
-      window = Fget_largest_window (frames);
+      /* Note that both Fget_largest_window and Fget_lru_window
+	 ignore minibuffers and dedicated windows.
+	 This means they can return nil.  */
 
+      /* If the frame we would try to split cannot be split,
+	 try other frames.  */
+      if (FRAME_NO_SPLIT_P (NILP (frames) ? selected_frame
+			    : last_nonminibuf_frame))
+	{
+	  /* Try visible frames first.  */
+	  window = Fget_largest_window (Qvisible);
+	  /* If that didn't work, try iconified frames.  */
+	  if (NILP (window))
+	    window = Fget_largest_window (make_number (0));
+	  if (NILP (window))
+	    window = Fget_largest_window (Qt);
+	}
+      else
+	window = Fget_largest_window (frames);
+
+      /* If we got a tall enough full-width window, split it.  */
       if (!NILP (window)
 	  && window_height (window) >= split_height_threshold
 	  && (XFASTINT (XWINDOW (window)->width)
@@ -1830,10 +1854,31 @@ Returns the window displaying BUFFER.")
       else
 	{
 	  window = Fget_lru_window (frames);
-	  if ((EQ (window, selected_window)
-	       || EQ (XWINDOW (window)->parent, Qnil))
+	  /* If the LRU window is selected, and big enough, split it.  */
+	  if (!NILP (window)
+	      && (EQ (window, selected_window)
+		  || EQ (XWINDOW (window)->parent, Qnil))
 	      && window_height (window) >= window_min_height << 1)
 	    window = Fsplit_window (window, Qnil, Qnil);
+#ifdef MULTI_FRAME
+	  /* If Fget_lru_window returned nil, try other approaches.  */
+	  /* Try visible frames first.  */
+	  if (NILP (window))
+	    window = Fget_largest_window (Qvisible);
+	  /* If that didn't work, try iconified frames.  */
+	  if (NILP (window))
+	    window = Fget_largest_window (make_number (0));
+	  /* Try invisible frames.  */
+	  if (NILP (window))
+	    window = Fget_largest_window (Qt);
+	  /* As a last resort, make a new frame.  */
+	  if (NILP (window))
+	    window = Fframe_selected_window (call0 (Vpop_up_frame_function));
+#else
+	  /* As a last resort, use a non minibuffer window.  */
+	  if (NILP (window))
+	    window = Fframe_first_window (Fselected_frame ());
+#endif
 	}
     }
   else
