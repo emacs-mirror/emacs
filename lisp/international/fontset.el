@@ -76,7 +76,7 @@
 	   (indian-2-column . ("*" . "MuleIndian-2"))
 	   (indian-1-column . ("*" . "MuleIndian-1"))
 	   (lao . ("*" . "MuleLao-1"))
-	   (tibetan . ("proportional" . "MuleTibetan-0"))
+	   (tibetan . ("proportional" . "MuleTibetan-2"))
 	   (tibetan-1-column . ("*" . "MuleTibetan-1"))
 	   (latin-iso8859-14 . (nil . "ISO8859-14"))
 	   (latin-iso8859-15 . (nil . "ISO8859-15"))
@@ -109,6 +109,21 @@
 (set-font-encoding "ISO8859-1" 'ascii 0)
 (set-font-encoding "JISX0201" 'latin-jisx0201 0)
 
+(define-ccl-program ccl-encode-mule-unicode-0100-24ff
+  `(0
+    (if (r0 == ,(charset-id 'mule-unicode-0100-24ff))
+	((r1 *= 96)
+	 (r1 += r2)
+	 (r1 += ,(- ?\x100 (* 32 96) 32))
+	 (r1 >8= 0)
+	 (r2 = r7))
+      ((r2 = r1)
+       (r1 = 0)))))
+
+(setq font-ccl-encoder-alist
+      (cons '("ISO10646-1" . ccl-encode-mule-unicode-0100-24ff)
+	    font-ccl-encoder-alist))
+
 ;; Setting for suppressing XLoadQueryFont on big fonts.
 (setq x-pixel-size-width-font-regexp
       "gb2312\\|jisx0208\\|ksc5601\\|cns11643\\|big5")
@@ -132,7 +147,8 @@
     ("koi8" ascii cyrillic-iso8859-5)
     ("viscii" ascii vietnamese-viscii-upper vietnamese-viscii-lower)
     ("vscii" ascii vietnamese-viscii-upper vietnamese-viscii-lower)
-    ("mulelao-1" ascii lao))
+    ("mulelao-1" ascii lao)
+    ("iso10646-1" ascii mule-unicode-0100-24ff))
   "Alist of font names vs list of charsets the font can display.
 
 When a font name which matches some element of this alist is given as
