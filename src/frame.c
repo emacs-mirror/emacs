@@ -380,6 +380,7 @@ make_frame (mini_p)
   return f;
 }
 
+#ifdef HAVE_WINDOW_SYSTEM
 /* Make a frame using a separate minibuffer window on another frame.
    MINI_WINDOW is the minibuffer window to use.  nil means use the
    default (the global minibuffer).  */
@@ -473,6 +474,7 @@ make_minibuffer_frame ()
 		       : Fcar (Vminibuffer_list)));
   return f;
 }
+#endif /* HAVE_WINDOW_SYSTEM */
 
 /* Construct a frame that refers to the terminal (stdin and stdout).  */
 
