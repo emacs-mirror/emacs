@@ -203,7 +203,7 @@ glyph_to_str_cpy (glyphs, str)
 	 {							\
            print_buffer_size = 1000;				\
            print_buffer = (char *) xmalloc (print_buffer_size);	\
-	   free_print_buffer = 0;				\
+	   free_print_buffer = 1;				\
 	 }							\
        print_buffer_pos = 0;					\
      }								\
