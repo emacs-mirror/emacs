@@ -41,17 +41,27 @@ extern int display_completed;
 struct face
   {
     /* If this is non-zero, it is a GC we can use without modification
-       to represent this face.  */
+       to represent this face.  Used only for ASCII characters.  */
     GC gc;
-  
+
+    /* GC used for non-ASCII characters.  */
+    GC non_ascii_gc;
+
     /* Pixel value for foreground color.  */
     EMACS_UINT foreground;
   
     /* Pixel value for background color.  */
     EMACS_UINT background;
   
-    /* Font used for this face.  */
+    /* Font used for this face.  If any fontset is set for this face,
+       this points to a `font' slot of the struct `font_info' for an
+       ASCII font of the fontset.  In that case, we should not call
+       XFreeFont on it because the font may still be used somewhere
+       else.  */
     XFontStruct *font;
+
+    /* Fontset ID if any fontset is set for this face, else -1.  */
+    int fontset;
   
     /* Background stipple or bitmap used for this face.  */
     Pixmap stipple;
@@ -70,9 +80,11 @@ typedef struct face *FACE;
 
 #define FACE_HAS_GC(f) ((f)->gc)
 #define FACE_GC(f) ((f)->gc)
+#define FACE_NON_ASCII_GC(f) ((f)->non_ascii_gc)
 #define FACE_FOREGROUND(f) ((f)->foreground)
 #define FACE_BACKGROUND(f) ((f)->background)
 #define FACE_FONT(f) ((f)->font)
+#define FACE_FONTSET(f) ((f)->fontset)
 #define FACE_STIPPLE(f) ((f)->stipple)
 #define FACE_UNDERLINE_P(f) ((f)->underline)
 
