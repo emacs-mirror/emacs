@@ -425,37 +425,41 @@ The optional second argument PARAMETERS specifies additional frame parameters."
       (make-frame)
     (select-frame (make-frame))))
 
+(defvar before-make-frame-hook nil
+  "Functions to run before a frame is created.")
+
+(defvar after-make-frame-functions nil
+  "Functions to run after a frame is created.
+The functions are run with one arg, the newly created frame.")
+
 ;; Alias, kept temporarily.
 (defalias 'new-frame 'make-frame)
+
 (defun make-frame (&optional parameters)
-  "Create a new frame, displaying the current buffer.
+  "Return a newly created frame displaying the current buffer.
+Optional argument PARAMETERS is an alist of parameters for the new frame.
+Each element of PARAMETERS should have the form (NAME . VALUE), for example:
 
-Optional argument PARAMETERS is an alist of parameters for the new
-frame.  Specifically, PARAMETERS is a list of pairs, each having
-the form (NAME . VALUE).
+ (name . STRING)	The frame should be named STRING.
 
-Here are some of the parameters allowed (not a complete list):
+ (width . NUMBER)	The frame should be NUMBER characters in width.
+ (height . NUMBER)	The frame should be NUMBER text lines high.
 
-\(name . STRING)	- The frame should be named STRING.
+You cannot specify either `width' or `height', you must use neither or both.
 
-\(height . NUMBER) - The frame should be NUMBER text lines high.  If
-	this parameter is present, the width parameter must also be
-	given.
+ (minibuffer . t)	The frame should have a minibuffer.
+ (minibuffer . nil)	The frame should have no minibuffer.
+ (minibuffer . only)	The frame should contain only a minibuffer.
+ (minibuffer . WINDOW)	The frame should use WINDOW as its minibuffer window.
 
-\(width . NUMBER) - The frame should be NUMBER characters in width.
-	If this parameter is present, the height parameter must also
-	be given.
-
-\(minibuffer . t) - the frame should have a minibuffer
-\(minibuffer . nil) - the frame should have no minibuffer
-\(minibuffer . only) - the frame should contain only a minibuffer
-\(minibuffer . WINDOW) - the frame should use WINDOW as its minibuffer window."
+Before the frame is created (via `frame-creation-function'), functions on the
+hook `before-make-frame-hook' are run.  After the frame is created, functions
+on `after-make-frame-functions' are run with one arg, the newly created frame."
   (interactive)
-  (let ((nframe))
-    (run-hooks 'before-make-frame-hook)
-    (setq nframe (funcall frame-creation-function parameters))
-    (run-hooks 'after-make-frame-hook)
-    nframe))
+  (run-hooks 'before-make-frame-hook)
+  (let ((frame (funcall frame-creation-function parameters)))
+    (run-hook-with-args 'after-make-frame-functions frame)
+    frame))
 
 (defun filtered-frame-list (predicate)
   "Return a list of all live frames which satisfy PREDICATE."
