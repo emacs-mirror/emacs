@@ -521,7 +521,7 @@ detect_coding_emacs_mule (src, src_end)
    function		control char	escape sequence	description
    ----------------------------------------------------------------------
    SI  (shift-in)		0x0F	none		invoke G0 to GL
-   SI  (shift-out)		0x0E	none		invoke G1 to GL
+   SO  (shift-out)		0x0E	none		invoke G1 to GL
    LS2 (locking-shift-2)	none	ESC 'n'		invoke G2 into GL
    LS3 (locking-shift-3)	none	ESC 'o'		invoke G3 into GL
    SS2 (single-shift-2)		0x8E	ESC 'N'		invoke G2 into GL
@@ -2593,7 +2593,8 @@ detect_coding_mask (src, src_bytes)
        or a leading code of Emacs.  */
     mask = (detect_coding_iso2022 (src, src_end)
 	    | detect_coding_sjis (src, src_end)
-	    | detect_coding_emacs_mule (src, src_end));
+	    | detect_coding_emacs_mule (src, src_end)
+	    | CODING_CATEGORY_MASK_BINARY);
 
   else if (c == ISO_CODE_CSI
 	   && (src < src_end
@@ -2604,13 +2605,15 @@ detect_coding_mask (src, src_bytes)
     /* C is an ISO2022's control-sequence-introducer.  */
     mask = (detect_coding_iso2022 (src, src_end)
 	    | detect_coding_sjis (src, src_end)
-	    | detect_coding_emacs_mule (src, src_end));
+	    | detect_coding_emacs_mule (src, src_end)
+	    | CODING_CATEGORY_MASK_BINARY);
     
   else if (c < 0xA0)
     /* C is the first byte of SJIS character code,
        or a leading-code of Emacs.  */
     mask = (detect_coding_sjis (src, src_end)
-	    | detect_coding_emacs_mule (src, src_end));
+	    | detect_coding_emacs_mule (src, src_end)
+	    | CODING_CATEGORY_MASK_BINARY);
 
   else
     /* C is a character of ISO2022 in graphic plane right,
@@ -2618,7 +2621,8 @@ detect_coding_mask (src, src_bytes)
        or the first byte of BIG5's 2-byte code.  */
     mask = (detect_coding_iso2022 (src, src_end)
 	    | detect_coding_sjis (src, src_end)
-	    | detect_coding_big5 (src, src_end));
+	    | detect_coding_big5 (src, src_end)
+	    | CODING_CATEGORY_MASK_BINARY);
 
   return mask;
 }
@@ -3801,18 +3805,20 @@ syms_of_coding ()
   }
 
   DEFVAR_LISP ("coding-system-for-read", &Vcoding_system_for_read,
-    "A variable of internal use only.\n\
+    "Specify the coding system for read operations.\n\
+It is useful to bind this variable with `let', but do not set it globally.
 If the value is a coding system, it is used for decoding on read operation.\n\
 If not, an appropriate element is used from one of the coding system alists:\n\
-There are three of such tables, `file-coding-system-alist',\n\
+There are three such tables, `file-coding-system-alist',\n\
 `process-coding-system-alist', and `network-coding-system-alist'.");
   Vcoding_system_for_read = Qnil;
 
   DEFVAR_LISP ("coding-system-for-write", &Vcoding_system_for_write,
-    "A variable of internal use only.\n\
+    "Specify the coding system for write operations.\n\
+It is useful to bind this variable with `let', but do not set it globally.
 If the value is a coding system, it is used for encoding on write operation.\n\
 If not, an appropriate element is used from one of the coding system alists:\n\
-There are three of such tables, `file-coding-system-alist',\n\
+There are three such tables, `file-coding-system-alist',\n\
 `process-coding-system-alist', and `network-coding-system-alist'.");
   Vcoding_system_for_write = Qnil;
 
