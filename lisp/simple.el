@@ -1142,7 +1142,7 @@ specifies the value of ERROR-BUFFER."
 			     (make-temp-name "scor"))
 		   nil)))
 	    (barf-if-buffer-read-only)
-	    (push-mark)
+	    (push-mark nil t)
 	    ;; We do not use -f for csh; we will not support broken use of
 	    ;; .cshrcs.  Even the BSD csh manual says to use
 	    ;; "if ($?prompt) exit" before things which are not useful
