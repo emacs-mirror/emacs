@@ -2126,18 +2126,21 @@ gc_sweep ()
   /* Put all unmarked conses on free list */
   {
     register struct cons_block *cblk;
+    struct cons_block **cprev = &cons_block;
     register int lim = cons_block_index;
     register int num_free = 0, num_used = 0;
 
     cons_free_list = 0;
   
-    for (cblk = cons_block; cblk; cblk = cblk->next)
+    for (cblk = cons_block; cblk; cblk = *cprev)
       {
 	register int i;
+	int this_free = 0;
 	for (i = 0; i < lim; i++)
 	  if (!XMARKBIT (cblk->conses[i].car))
 	    {
 	      num_free++;
+	      this_free++;
 	      *(struct Lisp_Cons **)&cblk->conses[i].cdr = cons_free_list;
 	      cons_free_list = &cblk->conses[i];
 	    }
@@ -2147,6 +2150,19 @@ gc_sweep ()
 	      XUNMARK (cblk->conses[i].car);
 	    }
 	lim = CONS_BLOCK_SIZE;
+	/* If this block contains only free conses and we have already
+	   seen more than two blocks worth of free conses then deallocate
+	   this block.  */
+	if (this_free == CONS_BLOCK_SIZE && num_free > 2*CONS_BLOCK_SIZE)
+	  {
+	    num_free -= CONS_BLOCK_SIZE;
+	    *cprev = cblk->next;
+	    /* Unhook from the free list.  */
+	    cons_free_list = *(struct Lisp_Cons **) &cblk->conses[0].cdr;
+	    xfree (cblk);
+	  }
+	else
+	  cprev = &cblk->next;
       }
     total_conses = num_used;
     total_free_conses = num_free;
@@ -2156,18 +2172,21 @@ gc_sweep ()
   /* Put all unmarked floats on free list */
   {
     register struct float_block *fblk;
+    struct float_block **fprev = &float_block;
     register int lim = float_block_index;
     register int num_free = 0, num_used = 0;
 
     float_free_list = 0;
   
-    for (fblk = float_block; fblk; fblk = fblk->next)
+    for (fblk = float_block; fblk; fblk = *fprev)
       {
 	register int i;
+	int this_free = 0;
 	for (i = 0; i < lim; i++)
 	  if (!XMARKBIT (fblk->floats[i].type))
 	    {
 	      num_free++;
+	      this_free++;
 	      *(struct Lisp_Float **)&fblk->floats[i].data = float_free_list;
 	      float_free_list = &fblk->floats[i];
 	    }
@@ -2177,6 +2196,19 @@ gc_sweep ()
 	      XUNMARK (fblk->floats[i].type);
 	    }
 	lim = FLOAT_BLOCK_SIZE;
+	/* If this block contains only free floats and we have already
+	   seen more than two blocks worth of free floats then deallocate
+	   this block.  */
+	if (this_free == FLOAT_BLOCK_SIZE && num_free > 2*FLOAT_BLOCK_SIZE)
+	  {
+	    num_free -= FLOAT_BLOCK_SIZE;
+	    *fprev = fblk->next;
+	    /* Unhook from the free list.  */
+	    float_free_list = *(struct Lisp_Float **) &fblk->floats[0].data;
+	    xfree (fblk);
+	  }
+	else
+	  fprev = &fblk->next;
       }
     total_floats = num_used;
     total_free_floats = num_free;
@@ -2187,14 +2219,16 @@ gc_sweep ()
   /* Put all unmarked intervals on free list */
   {
     register struct interval_block *iblk;
+    struct interval_block **iprev = &interval_block;
     register int lim = interval_block_index;
     register int num_free = 0, num_used = 0;
 
     interval_free_list = 0;
 
-    for (iblk = interval_block; iblk; iblk = iblk->next)
+    for (iblk = interval_block; iblk; iblk = *iprev)
       {
 	register int i;
+	int this_free = 0;
 
 	for (i = 0; i < lim; i++)
 	  {
@@ -2203,6 +2237,7 @@ gc_sweep ()
 		iblk->intervals[i].parent = interval_free_list;
 		interval_free_list = &iblk->intervals[i];
 		num_free++;
+		this_free++;
 	      }
 	    else
 	      {
@@ -2211,6 +2246,20 @@ gc_sweep ()
 	      }
 	  }
 	lim = INTERVAL_BLOCK_SIZE;
+	/* If this block contains only free intervals and we have already
+	   seen more than two blocks worth of free intervals then
+	   deallocate this block.  */
+	if (this_free == INTERVAL_BLOCK_SIZE
+	    && num_free > 2*INTERVAL_BLOCK_SIZE)
+	  {
+	    num_free -= INTERVAL_BLOCK_SIZE;
+	    *iprev = iblk->next;
+	    /* Unhook from the free list.  */
+	    interval_free_list = iblk->intervals[0].parent;
+	    xfree (iblk);
+	  }
+	else
+	  iprev = &iblk->next;
       }
     total_intervals = num_used;
     total_free_intervals = num_free;
@@ -2220,20 +2269,23 @@ gc_sweep ()
   /* Put all unmarked symbols on free list */
   {
     register struct symbol_block *sblk;
+    struct symbol_block **sprev = &symbol_block;
     register int lim = symbol_block_index;
     register int num_free = 0, num_used = 0;
 
     symbol_free_list = 0;
   
-    for (sblk = symbol_block; sblk; sblk = sblk->next)
+    for (sblk = symbol_block; sblk; sblk = *sprev)
       {
 	register int i;
+	int this_free = 0;
 	for (i = 0; i < lim; i++)
 	  if (!XMARKBIT (sblk->symbols[i].plist))
 	    {
 	      *(struct Lisp_Symbol **)&sblk->symbols[i].value = symbol_free_list;
 	      symbol_free_list = &sblk->symbols[i];
 	      num_free++;
+	      this_free++;
 	    }
 	  else
 	    {
@@ -2243,6 +2295,19 @@ gc_sweep ()
 	      XUNMARK (sblk->symbols[i].plist);
 	    }
 	lim = SYMBOL_BLOCK_SIZE;
+	/* If this block contains only free symbols and we have already
+	   seen more than two blocks worth of free symbols then deallocate
+	   this block.  */
+	if (this_free == SYMBOL_BLOCK_SIZE && num_free > 2*SYMBOL_BLOCK_SIZE)
+	  {
+	    num_free -= SYMBOL_BLOCK_SIZE;
+	    *sprev = sblk->next;
+	    /* Unhook from the free list.  */
+	    symbol_free_list = *(struct Lisp_Symbol **)&sblk->symbols[0].value;
+	    xfree (sblk);
+	  }
+	else
+	  sprev = &sblk->next;
       }
     total_symbols = num_used;
     total_free_symbols = num_free;
@@ -2254,14 +2319,16 @@ gc_sweep ()
      but only if it's a real marker.  */
   {
     register struct marker_block *mblk;
+    struct marker_block **mprev = &marker_block;
     register int lim = marker_block_index;
     register int num_free = 0, num_used = 0;
 
     marker_free_list = 0;
   
-    for (mblk = marker_block; mblk; mblk = mblk->next)
+    for (mblk = marker_block; mblk; mblk = *mprev)
       {
 	register int i;
+	int this_free = 0;
 	EMACS_INT already_free = -1;
 
 	for (i = 0; i < lim; i++)
@@ -2305,6 +2372,7 @@ gc_sweep ()
 		mblk->markers[i].u_free.chain = marker_free_list;
 		marker_free_list = &mblk->markers[i];
 		num_free++;
+		this_free++;
 	      }
 	    else
 	      {
@@ -2314,6 +2382,19 @@ gc_sweep ()
 	      }
 	  }
 	lim = MARKER_BLOCK_SIZE;
+	/* If this block contains only free markers and we have already
+	   seen more than two blocks worth of free markers then deallocate
+	   this block.  */
+	if (this_free == MARKER_BLOCK_SIZE && num_free > 2*MARKER_BLOCK_SIZE)
+	  {
+	    num_free -= MARKER_BLOCK_SIZE;
+	    *mprev = mblk->next;
+	    /* Unhook from the free list.  */
+	    marker_free_list = mblk->markers[0].u_free.chain;
+	    xfree (mblk);
+	  }
+	else
+	  mprev = &mblk->next;
       }
 
     total_markers = num_used;
