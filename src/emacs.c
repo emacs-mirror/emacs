@@ -955,9 +955,6 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
   init_vmsfns ();
 #endif /* VMS */
   init_process ();
-#ifdef CLASH_DETECTION
-  init_filelock ();
-#endif /* CLASH_DETECTION */
 
 /* Intern the names of all standard functions and variables; define standard keys */
 
