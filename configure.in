@@ -1649,10 +1649,10 @@ if test "${with_kerberos+set}" = set; then
   AC_CHECK_LIB(crypto, mit_des_cbc_encrypt)
   AC_CHECK_LIB(krb5, krb5_init_context)
   if test "${with_kerberos5+set}" != set; then
-    AC_CHECK_LIB(des, des_cbc_encrypt,,
-		 AC_CHECK_LIB(des425, des_cbc_encrypt))
-    AC_CHECK_LIB(krb, krb_get_cred,,
-		 AC_CHECK_LIB(krb4, krb_get_cred))
+    AC_CHECK_LIB(des425, des_cbc_encrypt,,
+		 AC_CHECK_LIB(des, des_cbc_encrypt))
+    AC_CHECK_LIB(krb4, krb_get_cred,,
+		 AC_CHECK_LIB(krb, krb_get_cred))
   fi
 
   if test "${with_kerberos5+set}" = set; then
