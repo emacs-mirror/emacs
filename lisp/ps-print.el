@@ -15,7 +15,7 @@
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
 (defconst ps-print-version "6.6.6"
-  "ps-print.el, v 6.6.6 <2004/07/21 vinicius>
+  "ps-print.el, v 6.6.6 <2005/03/19 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
