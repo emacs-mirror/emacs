@@ -369,6 +369,11 @@ Do \\[describe-key] on the following bindings to discover what they do.
 \\{sgml-mode-map}"
   (interactive)
   (sgml-mode-common sgml-tag-face-alist sgml-display-text)
+  ;; Set imenu-generic-expression here, rather than in sgml-mode-common,
+  ;; because this definition probably is not useful in HTML mode.
+  (make-local-variable 'imenu-generic-expression)
+  (setq imenu-generic-expression
+	"<!\\(element\\|entity\\)[ \t\n]+%?[ \t\n]*\\([A-Za-z][-A-Za-z.0-9]*\\)")
   (use-local-map sgml-mode-map)
   (setq mode-name "SGML"
 	major-mode 'sgml-mode))
