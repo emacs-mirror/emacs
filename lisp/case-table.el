@@ -37,24 +37,37 @@
 (defun describe-buffer-case-table ()
   "Describe the case table of the current buffer."
   (interactive)
-  (let ((vector (make-vector 256 nil))
-	(ch 0))
-    (while (< ch 256)
-      (aset vector ch
-	    (cond ((/= ch (downcase ch))
-		   (concat "uppercase, matches "
-			   (char-to-string (downcase ch))))
-		  ((/= ch (upcase ch))
-		   (concat "lowercase, matches "
-			   (char-to-string (upcase ch))))
-		  (t "case-invariant")))
-      (setq ch (1+ ch)))
+  (let ((description (make-char-table 'case-table)))
+    (map-char-table
+     (function (lambda (key value)
+		 (set-case-table-range
+		  description key
+		  (cond ((null key)
+			 "case-invariant")
+			((/= key (downcase key))
+			 (concat "uppercase, matches "
+				 (char-to-string (downcase key))))
+			((/= key (upcase key))
+			 (concat "lowercase, matches "
+				 (char-to-string (upcase key))))
+			(t "case-invariant")))))
+     (current-case-table))
     (save-excursion
      (with-output-to-temp-buffer "*Help*"
        (set-buffer standard-output)
-       (describe-vector vector)
+       (describe-vector description)
        (help-mode)))))
 
+;;;###autoload
+(defun copy-case-table (case-table)
+  (let ((copy (copy-sequence case-table)))
+    ;; Clear out the extra slots so that they will be
+    ;; recomputed from the main (downcase) table.
+    (set-char-table-extra-slot copy 0 nil)
+    (set-char-table-extra-slot copy 1 nil)
+    (set-char-table-extra-slot copy 2 nil)
+    copy))
+    
 ;;;###autoload
 (defun set-case-syntax-delims (l r table)
   "Make characters L and R a matching pair of non-case-converting delimiters.
@@ -64,6 +77,11 @@ It also modifies `standard-syntax-table' to
 indicate left and right delimiters."
   (aset table l l)
   (aset table r r)
+  ;; Clear out the extra slots so that they will be
+  ;; recomputed from the main (downcase) table.
+  (set-char-table-extra-slot table 0 nil)
+  (set-char-table-extra-slot table 1 nil)
+  (set-char-table-extra-slot table 2 nil)
   (modify-syntax-entry l (concat "(" (char-to-string r) "  ")
 		       (standard-syntax-table))
   (modify-syntax-entry r (concat ")" (char-to-string l) "  ")
@@ -78,6 +96,9 @@ It also modifies `standard-syntax-table' to give them the syntax of
 word constituents."
   (aset table uc lc)
   (aset table lc lc)
+  (set-char-table-extra-slot table 0 nil)
+  (set-char-table-extra-slot table 1 nil)
+  (set-char-table-extra-slot table 2 nil)
   (modify-syntax-entry lc "w   " (standard-syntax-table))
   (modify-syntax-entry uc "w   " (standard-syntax-table)))
 
@@ -89,6 +110,9 @@ that will be used as the downcase part of a case table.
 It also modifies `standard-syntax-table'.
 SYNTAX should be \" \", \"w\", \".\" or \"_\"."
   (aset table c c)
+  (set-char-table-extra-slot table 0 nil)
+  (set-char-table-extra-slot table 1 nil)
+  (set-char-table-extra-slot table 2 nil)
   (modify-syntax-entry c syntax (standard-syntax-table)))
 
 (provide 'case-table)
