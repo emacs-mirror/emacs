@@ -618,6 +618,12 @@ readevalloop (readcharfun, stream, sourcename, evalfun, printflag)
   register Lisp_Object val;
   int count = specpdl_ptr - specpdl;
   struct gcpro gcpro1;
+  struct buffer *b = 0;
+
+  if (BUFFERP (readcharfun))
+    b = XBUFFER (readcharfun);
+  else if (MARKERP (readcharfun))
+    b = XMARKER (readcharfun)->buffer;
 
   specbind (Qstandard_input, readcharfun);
   specbind (Qcurrent_load_list, Qnil);
@@ -628,6 +634,9 @@ readevalloop (readcharfun, stream, sourcename, evalfun, printflag)
 
   while (1)
     {
+      if (b != 0 && NILP (b->name))
+	error ("Reading from killed buffer");
+
       instream = stream;
       c = READCHAR;
       if (c == ';')
