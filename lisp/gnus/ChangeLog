@@ -1,3 +1,10 @@
+2000-09-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* gnus.el (gnus-mode-line-buffer-identification)[EMACS]: Use
+	`:ascent center'.
+
+	* smiley-ems.el (smiley-update-cache):  Use `:ascent center'.
+
 2000-09-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* gnus.el (gnus-mode-line-buffer-identification) [Emacs]: Change
