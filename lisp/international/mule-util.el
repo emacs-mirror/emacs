@@ -358,7 +358,7 @@ coding systems ordered by priority."
 
 ;;;###autoload
 (defun detect-coding-with-language-environment (from to lang-env)
-  "Detect a coding system of the text between FROM and TO with LANG-ENV.
+  "Detect a coding system for the text between FROM and TO with LANG-ENV.
 The detection takes into account the coding system priorities for the
 language environment LANG-ENV."
   (let ((coding-priority (get-language-info lang-env 'coding-priority)))
