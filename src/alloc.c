@@ -4230,12 +4230,13 @@ Does not copy symbols.  Copies strings without text properties.  */)
   else if (COMPILEDP (obj) || VECTORP (obj))
     {
       register struct Lisp_Vector *vec;
-      register int i, size;
+      register int i;
+      EMACS_INT size;
 
       size = XVECTOR (obj)->size;
       if (size & PSEUDOVECTOR_FLAG)
 	size &= PSEUDOVECTOR_SIZE_MASK;
-      vec = XVECTOR (make_pure_vector ((EMACS_INT) size));
+      vec = XVECTOR (make_pure_vector (size));
       for (i = 0; i < size; i++)
 	vec->contents[i] = Fpurecopy (XVECTOR (obj)->contents[i]);
       if (COMPILEDP (obj))
