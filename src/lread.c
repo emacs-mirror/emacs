@@ -526,8 +526,8 @@ Return t if file exists.")
 
 	  /* If we won't print another message, mention this anyway.  */
 	  if (! NILP (nomessage))
-	    message ("Source file `%s' newer than byte-compiled file",
-		     XSTRING (found)->data);
+	    message_with_string ("Source file `%s' newer than byte-compiled file",
+				 found, 1);
 	}
       XSTRING (found)->data[XSTRING (found)->size - 1] = 'c';
     }
@@ -561,12 +561,12 @@ Return t if file exists.")
   if (NILP (nomessage))
     {
       if (!compiled)
-	message ("Loading %s (source)...", XSTRING (file)->data);
+	message_with_string ("Loading %s (source)...", file, 1);
       else if (newer)
-	message ("Loading %s (compiled; note, source file is newer)...",
-		 XSTRING (file)->data);
+	message_with_string ("Loading %s (compiled; note, source file is newer)...",
+		 file, 1);
       else /* The typical case; compiled file newer than source file.  */
-	message ("Loading %s...", XSTRING (file)->data);
+	message_with_string ("Loading %s...", file, 1);
     }
 
   GCPRO1 (file);
@@ -597,12 +597,12 @@ Return t if file exists.")
   if (!noninteractive && NILP (nomessage))
     {
       if (!compiled)
-	message ("Loading %s (source)...done", XSTRING (file)->data);
+	message_with_string ("Loading %s (source)...done", file, 1);
       else if (newer)
-	message ("Loading %s (compiled; note, source file is newer)...done",
-		 XSTRING (file)->data);
+	message_with_string ("Loading %s (compiled; note, source file is newer)...done",
+		 file, 1);
       else /* The typical case; compiled file newer than source file.  */
-	message ("Loading %s...done", XSTRING (file)->data);
+	message_with_string ("Loading %s...done", file, 1);
     }
   return Qt;
 }
@@ -1125,19 +1125,21 @@ START and END optionally delimit a substring of STRING from which to read;\n\
   CHECK_STRING (string,0);
 
   if (NILP (end))
-    endval = XSTRING (string)->size;
+    endval = XSTRING (string)->size_byte;
   else
-    { CHECK_NUMBER (end,2);
-      endval = XINT (end);
-      if (endval < 0 || endval > XSTRING (string)->size)
+    {
+      CHECK_NUMBER (end, 2);
+      endval = string_char_to_byte (string, XINT (end));
+      if (endval < 0 || endval > XSTRING (string)->size_byte)
 	args_out_of_range (string, end);
     }
 
   if (NILP (start))
     startval = 0;
   else
-    { CHECK_NUMBER (start,1);
-      startval = XINT (start);
+    {
+      CHECK_NUMBER (start, 1);
+      startval = string_char_to_byte (string, XINT (start));
       if (startval < 0 || startval > endval)
 	args_out_of_range (string, start);
     }
@@ -1149,21 +1151,26 @@ START and END optionally delimit a substring of STRING from which to read;\n\
   read_objects = Qnil;
 
   tem = read0 (string);
-  return Fcons (tem, make_number (read_from_string_index));
+  endval = string_byte_to_char (string,
+				read_from_string_index);
+  return Fcons (tem, make_number (endval));
 }
 
 /* Use this for recursive reads, in contexts where internal tokens
    are not allowed. */
+
 static Lisp_Object
 read0 (readcharfun)
      Lisp_Object readcharfun;
 {
   register Lisp_Object val;
-  char c;
+  int c;
 
   val = read1 (readcharfun, &c, 0);
   if (c)
-    Fsignal (Qinvalid_read_syntax, Fcons (make_string (&c, 1), Qnil));
+    Fsignal (Qinvalid_read_syntax, Fcons (Fmake_string (make_number (c),
+							make_number (1)),
+					  Qnil));
 
   return val;
 }
@@ -1224,6 +1231,8 @@ read_escape (readcharfun)
     case 'v':
       return '\v';
     case '\n':
+      return -1;
+    case ' ':
       return -1;
 
     case 'M':
@@ -1364,7 +1373,7 @@ read_escape (readcharfun)
 static Lisp_Object
 read1 (readcharfun, pch, first_in_list)
      register Lisp_Object readcharfun;
-     char *pch;
+     int *pch;
      int first_in_list;
 {
   register int c;
@@ -1470,7 +1479,7 @@ read1 (readcharfun, pch, first_in_list)
 	{
 	  Lisp_Object tmp;
 	  struct gcpro gcpro1;
-	  char ch;
+	  int ch;
 
 	  /* Read the string itself.  */
 	  tmp = read1 (readcharfun, &ch, 0);
@@ -1734,9 +1743,12 @@ read1 (readcharfun, pch, first_in_list)
 	  return make_number (0);
 
 	if (read_pure)
-	  return make_pure_string (read_buffer, p - read_buffer);
-	else
+	  return make_pure_string (read_buffer, p - read_buffer,
+				   p - read_buffer);
+	else if (! NILP (current_buffer->enable_multibyte_characters))
 	  return make_string (read_buffer, p - read_buffer);
+	else
+	  return make_unibyte_string (read_buffer, p - read_buffer);
       }
 
     case '.':
@@ -1969,7 +1981,7 @@ read_list (flag, readcharfun)
 
   while (1)
     {
-      char ch;
+      int ch;
       GCPRO2 (val, tail);
       elt = read1 (readcharfun, &ch, first_in_list);
       UNGCPRO;
@@ -2127,7 +2139,7 @@ intern (str)
   obarray = Vobarray;
   if (!VECTORP (obarray) || XVECTOR (obarray)->size == 0)
     obarray = check_obarray (obarray);
-  tem = oblookup (obarray, str, len);
+  tem = oblookup (obarray, str, len, len);
   if (SYMBOLP (tem))
     return tem;
   return Fintern (make_string (str, len), obarray);
@@ -2142,7 +2154,7 @@ make_symbol (str)
   int len = strlen (str);
 
   return Fmake_symbol ((!NILP (Vpurify_flag)
-			? make_pure_string (str, len)
+			? make_pure_string (str, len, len)
 			: make_string (str, len)));
 }
 
@@ -2161,7 +2173,9 @@ it defaults to the value of `obarray'.")
 
   CHECK_STRING (string, 0);
 
-  tem = oblookup (obarray, XSTRING (string)->data, XSTRING (string)->size);
+  tem = oblookup (obarray, XSTRING (string)->data,
+		  XSTRING (string)->size,
+		  XSTRING (string)->size_byte);
   if (!INTEGERP (tem))
     return tem;
 
@@ -2196,7 +2210,9 @@ it defaults to the value of `obarray'.")
 
   CHECK_STRING (string, 0);
 
-  tem = oblookup (obarray, XSTRING (string)->data, XSTRING (string)->size);
+  tem = oblookup (obarray, XSTRING (string)->data,
+		  XSTRING (string)->size,
+		  XSTRING (string)->size_byte);
   if (!INTEGERP (tem))
     return tem;
   return Qnil;
@@ -2225,7 +2241,9 @@ OBARRAY defaults to the value of the variable `obarray'.")
       string = name;
     }
 
-  tem = oblookup (obarray, XSTRING (string)->data, XSTRING (string)->size);
+  tem = oblookup (obarray, XSTRING (string)->data,
+		  XSTRING (string)->size,
+		  XSTRING (string)->size_byte);
   if (INTEGERP (tem))
     return Qnil;
   /* If arg was a symbol, don't delete anything but that symbol itself.  */
@@ -2262,16 +2280,16 @@ OBARRAY defaults to the value of the variable `obarray'.")
 }
 
 /* Return the symbol in OBARRAY whose names matches the string
-   of SIZE characters at PTR.  If there is no such symbol in OBARRAY,
-   return nil.
+   of SIZE characters (SIZE_BYTE bytes) at PTR.
+   If there is no such symbol in OBARRAY, return nil.
 
    Also store the bucket number in oblookup_last_bucket_number.  */
 
 Lisp_Object
-oblookup (obarray, ptr, size)
+oblookup (obarray, ptr, size, size_byte)
      Lisp_Object obarray;
      register char *ptr;
-     register int size;
+     int size, size_byte;
 {
   int hash;
   int obsize;
@@ -2287,7 +2305,7 @@ oblookup (obarray, ptr, size)
   /* This is sometimes needed in the middle of GC.  */
   obsize &= ~ARRAY_MARK_FLAG;
   /* Combining next two lines breaks VMS C 2.3.  */
-  hash = hash_string (ptr, size);
+  hash = hash_string (ptr, size_byte);
   hash %= obsize;
   bucket = XVECTOR (obarray)->contents[hash];
   oblookup_last_bucket_number = hash;
@@ -2298,8 +2316,9 @@ oblookup (obarray, ptr, size)
   else
     for (tail = bucket; ; XSETSYMBOL (tail, XSYMBOL (tail)->next))
       {
-	if (XSYMBOL (tail)->name->size == size
-	    && !bcmp (XSYMBOL (tail)->name->data, ptr, size))
+	if (XSYMBOL (tail)->name->size_byte == size_byte
+	    && XSYMBOL (tail)->name->size == size
+	    && !bcmp (XSYMBOL (tail)->name->data, ptr, size_byte))
 	  return tail;
 	else if (XSYMBOL (tail)->next == 0)
 	  break;
@@ -2383,7 +2402,7 @@ init_obarray ()
 
   XSETFASTINT (oblength, OBARRAY_SIZE);
 
-  Qnil = Fmake_symbol (make_pure_string ("nil", 3));
+  Qnil = Fmake_symbol (make_pure_string ("nil", 3, 3));
   Vobarray = Fmake_vector (oblength, make_number (0));
   initial_obarray = Vobarray;
   staticpro (&initial_obarray);
@@ -2396,7 +2415,7 @@ init_obarray ()
   tem = &XVECTOR (Vobarray)->contents[hash];
   *tem = Qnil;
 
-  Qunbound = Fmake_symbol (make_pure_string ("unbound", 7));
+  Qunbound = Fmake_symbol (make_pure_string ("unbound", 7, 7));
   XSYMBOL (Qnil)->function = Qunbound;
   XSYMBOL (Qunbound)->value = Qunbound;
   XSYMBOL (Qunbound)->function = Qunbound;
@@ -2733,7 +2752,7 @@ dir_warning (format, dirname)
 
   fprintf (stderr, format, XSTRING (dirname)->data);
   sprintf (buffer, format, XSTRING (dirname)->data);
-  message_dolog (buffer, strlen (buffer), 0);
+  message_dolog (buffer, strlen (buffer), 0, STRING_MULTIBYTE (dirname));
 }
 
 void
