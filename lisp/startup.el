@@ -1,6 +1,7 @@
 ;;; startup.el --- process Emacs shell arguments
 
-;; Copyright (C) 1985, 86, 92, 94, 95, 96, 97, 98, 99, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 92, 94, 95, 96, 97, 98, 99, 2000
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -965,7 +966,7 @@ If this is nil, no message will be displayed."
 	   "You can do basic editing with the menu bar and scroll bar \
 using the mouse.\n\n"
 	   :face (variable-pitch :weight bold)
-	   "Useful Files menu items:\n"
+	   "Useful File menu items:\n"
 	   :face variable-pitch "\
 Exit Emacs\t(or type Control-x followed by Control-c)
 Recover Session\trecover files you were editing before a crash
@@ -1263,7 +1264,7 @@ where FACE is a valid face specification, as it can be used with
 			       (insert "\
 You can do basic editing with the menu bar and scroll bar using the mouse.
 
-Useful Files menu items:
+Useful File menu items:
 Exit Emacs		(or type Control-x followed by Control-c)
 Recover Session		recover files you were editing before a crash
 
