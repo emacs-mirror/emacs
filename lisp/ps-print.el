@@ -10,12 +10,12 @@
 ;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Time-stamp: <2003/03/05 21:54:55 vinicius>
-;; Version: 6.6
+;; Time-stamp: <2003/05/14 22:34:05 vinicius>
+;; Version: 6.6.1
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.6"
-  "ps-print.el, v 6.6 <2003/03/05 vinicius>
+(defconst ps-print-version "6.6.1"
+  "ps-print.el, v 6.6.1 <2003/05/14 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -840,7 +840,7 @@ Please send all bug fixes and enhancements to
 ;;		22       +   22          +
 ;;		--------     -----------     ---------     ----------------
 ;;
-;; Any other value is treated as `nil'.
+;; Any other value is treated as nil.
 ;;
 ;; See also section How Ps-Print Has A Text And/Or Image On Background.
 ;;
@@ -4666,6 +4666,42 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
     (goto-char (point-max))
     (insert-file fname)))
 
+;; These functions are used in `ps-mule' to get charset of header and footer.
+;; To avoid unnecessary calls to functions in `ps-left-header',
+;; `ps-right-header', `ps-left-footer' and `ps-right-footer'.
+
+(defun ps-generate-string-list (content)
+  (let (str)
+    (while content
+      (setq str (cons (cond
+		       ((stringp (car content))
+			(car content))
+		       ((and (symbolp (car content)) (fboundp (car content)))
+			(concat "(" (funcall (car content)) ")"))
+		       ((and (symbolp (car content)) (boundp (car content)))
+			(concat "(" (symbol-value (car content)) ")"))
+		       (t
+			""))
+		      str)
+	    content (cdr content)))
+    (nreverse str)))
+
+(defvar ps-lh-cache nil)
+(defvar ps-rh-cache nil)
+(defvar ps-lf-cache nil)
+(defvar ps-rf-cache nil)
+
+(defun ps-header-footer-string ()
+  (and ps-print-header
+       (setq ps-lh-cache (ps-generate-string-list ps-left-header)
+	     ps-rh-cache (ps-generate-string-list ps-right-header)))
+  (and ps-print-footer
+       (setq ps-lf-cache (ps-generate-string-list ps-left-footer)
+	     ps-rf-cache (ps-generate-string-list ps-right-footer)))
+  (mapconcat 'identity
+	     (append ps-lh-cache ps-rh-cache ps-lf-cache ps-rf-cache)
+	     ""))
+
 ;; These functions insert the arrays that define the contents of the headers.
 
 (defun ps-generate-header-line (fonttag &optional content)
@@ -5809,14 +5845,22 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	     (format "/PageNumber %d def\n" (ps-page-number)))
 
   (when ps-print-header
-    (ps-generate-header "HeaderLinesLeft"  "/h0" "/h1" ps-left-header)
-    (ps-generate-header "HeaderLinesRight" "/h0" "/h1" ps-right-header)
-    (ps-output (format "%d SetHeaderLines\n" ps-header-lines)))
+    (ps-generate-header "HeaderLinesLeft"  "/h0" "/h1"
+			(or ps-lh-cache ps-left-header))
+    (ps-generate-header "HeaderLinesRight" "/h0" "/h1"
+			(or ps-rh-cache ps-right-header))
+    (ps-output (format "%d SetHeaderLines\n" ps-header-lines))
+    (setq ps-lh-cache nil
+	  ps-rh-cache nil))
 
   (when ps-print-footer
-    (ps-generate-header "FooterLinesLeft"  "/H0" "/H0" ps-left-footer)
-    (ps-generate-header "FooterLinesRight" "/H0" "/H0" ps-right-footer)
-    (ps-output (format "%d SetFooterLines\n" ps-footer-lines)))
+    (ps-generate-header "FooterLinesLeft"  "/H0" "/H0"
+			(or ps-lf-cache ps-left-footer))
+    (ps-generate-header "FooterLinesRight" "/H0" "/H0"
+			(or ps-rf-cache ps-right-footer))
+    (ps-output (format "%d SetFooterLines\n" ps-footer-lines))
+    (setq ps-lf-cache nil
+	  ps-rf-cache nil))
 
   (ps-output (number-to-string ps-lines-printed) " BeginPage\n")
   (ps-set-font  ps-current-font)

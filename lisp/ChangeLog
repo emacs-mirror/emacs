@@ -1,3 +1,16 @@
+2003-05-15  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Avoid unnecessary calls to funs in header and footer
+	variables.  Reported by Greg Hill <ghill@synergymicro.com>.
+	(ps-print-version): New version number (6.6.1).
+	(ps-begin-page): Code fix.
+	(ps-generate-string-list, ps-header-footer-string): New funs.
+	(ps-lh-cache, ps-rh-cache, ps-lf-cache, ps-rf-cache): New vars.
+
+	* ps-mule.el (ps-mule-header-string-charsets): Call
+	ps-header-footer-string to avoid unnecessary calls to functions in
+	header and footer variables.
+
 2003-05-15  John Paul Wallington  <jpw@gnu.org>
 
 	* mail/rmail.el (rmail-ignored-headers): Ignore Face: header.
