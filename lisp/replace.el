@@ -773,7 +773,8 @@ See also `multi-occur'."
 			    title-face prefix-face match-face keep-props)
   (with-current-buffer out-buf
     (setq buffer-read-only nil)
-    (let ((globalcount 0))
+    (let ((globalcount 0)
+	  (coding nil))
       ;; Map over all the buffers
       (dolist (buf buffers)
 	(when (buffer-live-p buf)
@@ -789,6 +790,11 @@ See also `multi-occur'."
 		(headerpt (with-current-buffer out-buf (point))))
 	    (save-excursion
 	      (set-buffer buf)
+	      (or coding
+		  ;; Set CODING only if the current buffer locally
+		  ;; binds buffer-file-coding-system.
+		  (not (local-variable-p 'buffer-file-coding-system))
+		  (setq coding buffer-file-coding-system))
 	      (save-excursion
 		(goto-char (point-min)) ;; begin searching in the buffer
 		(while (not (eobp))
@@ -878,6 +884,11 @@ See also `multi-occur'."
 					  `(font-lock-face ,title-face))
 					`(occur-title ,buf))))
 		(goto-char (point-min)))))))
+      (if coding
+	  ;; CODING is buffer-file-coding-system of the first buffer
+	  ;; that locally binds it.  Let's use it also for the output
+	  ;; buffer.
+	  (set-buffer-file-coding-system coding))
       ;; Return the number of matches
       globalcount)))
 
