@@ -1289,6 +1289,18 @@ and it reactivates the mark."
     (set-mark (point))
     (goto-char omark)
     nil))
+
+(defun transient-mark-mode (arg)
+  "Toggle Transient Mark mode.
+With arg, turn Transient Mark mode on if and only if arg is positive.
+
+In Transient Mark mode, changing the buffer \"deactivates\" the mark.
+While the mark is active, the region is highlighted."
+  (interactive "P")
+  (setq transient-mark-mode
+	(if (null arg)
+	    (not transient-mark-mode)
+	  (> (prefix-numeric-value arg) 0))))
 
 (defvar next-line-add-newlines t
   "*If non-nil, `next-line' inserts newline to avoid `end of buffer' error.")
