@@ -9981,11 +9981,16 @@ height of the Calc window.
 @kindex M-# 0
 @pindex calc-reset
 The @kbd{M-# 0} command (@code{calc-reset}; that's @kbd{M-#} followed
-by a zero) resets the Calculator to its default state.  This clears
-the stack, resets all the modes, clears the caches (@pxref{Caches}),
-and so on.  (It does @emph{not} erase the values of any variables.)
-With a numeric prefix argument, @kbd{M-# 0} preserves the contents
-of the stack but resets everything else.
+by a zero) resets the Calculator to its initial state.  This clears
+the stack, resets all the modes to their initial values (the values
+that were saved with @kbd{m m} (@code{calc-save-modes})), clears the
+caches (@pxref{Caches}), and so on.  (It does @emph{not} erase the
+values of any variables.) With an argument of 0, Calc will be reset to
+its default state; namely, the modes will be given their default values.
+With a positive prefix argument, @kbd{M-# 0} preserves the contents of
+the stack but resets everything else to its initial state; with a
+negative prefix argument, @kbd{M-# 0} preserves the contents of the
+stack but resets everything else to its default state.
 
 @pindex calc-version
 The @kbd{M-x calc-version} command displays the current version number
