@@ -80,7 +80,8 @@
 (define-category ?| "While filling, we can break a line at this character.")
 
 ;; For indentation calculation.
-(define-category ?\  "This character counts as a space for indentation purposes.")
+(define-category ? 
+  "This character counts as a space for indentation purposes.")
 
 ;; Keep the followings for `kinsoku' processing.  See comments in
 ;; kinsoku.el.
@@ -543,3 +544,59 @@
 	(?C . ?A)			; Chinese - Alpha numeric
 	(?C . ?K)			; Chinese - Katakana
 	))
+
+
+;; For each character set, put the information of the most proper
+;; coding system to encode it by `prefered-coding-system' property.
+
+(let ((l '((latin-iso8859-1	. iso-latin-1)
+	   (latin-iso8859-2	. iso-latin-2)
+	   (latin-iso8859-3	. iso-latin-3)
+	   (latin-iso8859-4	. iso-latin-4)
+	   (thai-tis620		. thai-tis620)
+	   (greek-iso8859-7	. greek-iso-8bit)
+	   (arabic-iso8859-6	. iso-2022-7bit)
+	   (hebrew-iso8859-8	. hebrew-iso-8bit)
+	   (katakana-jisx0201	. japanese-shift-jis)
+	   (latin-jisx0201	. japanese-shift-jis)
+	   (cyrillic-iso8859-5	. cyrillic-iso-8bit)
+	   (latin-iso8859-9	. iso-latin-5)
+	   (japanese-jisx0208-1978 . iso-2022-jp)
+	   (chinese-gb2312	. cn-gb-2312)
+	   (japanese-jisx0208	. iso-2022-jp)
+	   (korean-ksc5601	. iso-2022-kr)
+	   (japanese-jisx0212	. iso-2022-jp)
+	   (chinese-cns11643-1	. iso-2022-cn)
+	   (chinese-cns11643-2	. iso-2022-cn)
+	   (chinese-big5-1	. chinese-big5)
+	   (chinese-big5-2	. chinese-big5)
+	   (chinese-sisheng	. iso-2022-7bit)
+	   (ipa			. iso-2022-7bit)
+	   (vietnamese-viscii-lower . vietnamese-viscii)
+	   (vietnamese-viscii-upper . vietnamese-viscii)
+	   (arabic-digit	. iso-2022-7bit)
+	   (arabic-1-column	. iso-2022-7bit)
+	   (ascii-right-to-left	. iso-2022-7bit)
+	   (lao			. lao)
+	   (arabic-2-column	. iso-2022-7bit)
+	   (indian-is13194	. devanagari)
+	   (indian-1-column	. devanagari)
+	   (tibetan-1-column	. tibetan)
+	   (ethiopic		. iso-2022-jp)
+	   (chinese-cns11643-3	. iso-2022-cn)
+	   (chinese-cns11643-4	. iso-2022-cn)
+	   (chinese-cns11643-5	. iso-2022-cn)
+	   (chinese-cns11643-6	. iso-2022-cn)
+	   (chinese-cns11643-7	. iso-2022-cn)
+	   (indian-2-column	. devanagari)
+	   (tibetan		. tibetan))))
+  (while l
+    (put-charset-property (car (car l)) 'prefered-coding-system (cdr (car l)))
+    (setq l (cdr l))))
+  
+
+;;; Local Variables:
+;;; coding: iso-2022-7bit
+;;; End:
+
+;;; end of characters.el
