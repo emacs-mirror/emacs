@@ -50,10 +50,6 @@
     &res;})
 #endif
 
-#ifndef HAVE_STDLIB_H
-char *malloc __P ((size_t size))), *realloc __P ((POINTER_TYPE *ptr, size_t size));
-#endif
-
 void yow();
 void setup_yow();
 
@@ -158,7 +154,7 @@ yow (fp)
   }
 
   bufsize = BUFSIZE;
-  buf = malloc(bufsize);
+  buf = (char *) malloc(bufsize);
   if (buf == (char *)0) {
     fprintf(stderr, "yow: virtual memory exhausted\n");
     exit (3);
@@ -171,7 +167,7 @@ yow (fp)
     if (i == bufsize-1) {
       /* Yow! Is this quotation too long yet? */
       bufsize *= 2;
-      buf = realloc(buf, bufsize);
+      buf = (char *) realloc(buf, bufsize);
       if (buf == (char *)0) {
 	fprintf(stderr, "yow: virtual memory exhausted\n");
 	exit (3);
