@@ -1,11 +1,11 @@
 ;;; hideshow.el --- minor mode cmds to selectively display blocks of code
 
-;; Copyright (C) 1994, 95, 96, 97, 98 Free Software Foundation
+;; Copyright (C) 1994, 95, 96, 97, 98, 99 Free Software Foundation
 
 ;; Author: Thien-Thi Nguyen <ttn@netcom.com>
-;;	Dan Nicolaescu <dann@ics.uci.edu>
+;;      Dan Nicolaescu <dann@ics.uci.edu>
 ;; Keywords: C C++ java lisp tools editing comments blocks hiding outlines
-;; Maintainer-Version: 4.22
+;; Maintainer-Version: 5.9
 ;; Time-of-Day-Author-Most-Likely-to-be-Recalcitrant: early morning
 
 ;; This file is part of GNU Emacs.
@@ -27,85 +27,149 @@
 
 ;;; Commentary:
 
-;; - Commands provided
+;; * Commands provided
 ;;
-;; This file provides `hs-minor-mode'.  When active, seven commands:
+;; This file provides `hs-minor-mode'. When active, eight commands are
+;; available, implementing block hiding and showing.  They (and their
+;; keybindings) are:
 ;;
-;;   hs-{hide,show}-{all,block}, hs-show-region,
-;;   hs-hide-level and hs-minor-mode
+;;   hs-hide-block                      C-c h
+;;   hs-show-block                      C-c s
+;;   hs-hide-all                        C-c H
+;;   hs-show-all                        C-c S
+;;   hs-show-region                     C-c R
+;;   hs-hide-level                      C-c L
+;;   hs-mouse-toggle-hiding             [(shift button-2)]
+;;   hs-hide-initial-comment-block
 ;;
-;; are available, implementing block hiding and showing.  Blocks are
-;; defined per mode.  In c-mode or c++-mode, they are simply curly braces,
-;; while in Lisp-ish modes they are parens.  Multi-line comments can also
-;; be hidden.  The command `M-x hs-minor-mode' toggles the minor mode or
-;; sets it (similar to outline minor mode).
+;; Blocks are defined per mode.  In c-mode, c++-mode and java-mode, they
+;; are simply text between curly braces, while in Lisp-ish modes parens
+;; are used.  Multi-line comment blocks can also be hidden.  Read-only
+;; buffers are not a problem, since hideshow doesn't modify the text.
+;;
+;; The command `M-x hs-minor-mode' toggles the minor mode or sets it
+;; (similar to other minor modes).
 
-;; - Customization
+;; * Customization
 ;;
-;; Variables control things thusly:
+;; You can use `M-x customize-variable' on the following variables:
 ;;
-;; hs-hide-comments-when-hiding-all -- self-explanatory!
-;; hs-show-hidden-short-form   -- whether or not the last line in a form
-;;                                is omitted (saving screen space)
-;; hs-isearch-open             -- what kind of hidden blocks to open when
-;;                                doing isearch
-;; hs-special-modes-alist      -- keeps at bay hideshow's heuristics with
-;;                                respect to block definitions
+;;   hs-hide-comments-when-hiding-all -- self-explanatory!
+;;   hs-isearch-open                  -- what kind of hidden blocks to
+;;                                       open when doing isearch
+;;
+;; Hideshow works w/ incremental search (isearch) by setting the variable
+;; `hs-headline', which is the line of text at the beginning of a hidden
+;; block that contains a match for the search.  You can have this show up
+;; in the mode line by modifying the variable `mode-line-format'.  For
+;; example, the following code prepends this info to the mode line:
+;;
+;;   (unless (memq 'hs-headline mode-line-format)
+;;     (setq mode-line-format
+;;           (append '("-" hs-headline) mode-line-format)))
+;;
+;; See documentation for `mode-line-format' for more info.
 ;;
 ;; Hooks are run after some commands:
 ;;
 ;;   hs-hide-hook     in      hs-hide-block, hs-hide-all, hs-hide-level
 ;;   hs-show-hook             hs-show-block, hs-show-all, hs-show-region
 ;;
-;; See docs for each variable or hook for more info.
+;; All hooks are run w/ `run-hooks'.  See docs for each variable or hook
+;; for more info.
+;;
+;; Normally, hideshow tries to determine appropriate values for block
+;; and comment definitions by examining the buffer's major mode.  If
+;; there are problems, hideshow will not activate and in that case you
+;; may wish to override hideshow's heuristics by adding an entry to
+;; variable `hs-special-modes-alist'.  Packages that use hideshow should
+;; do something like:
+;;
+;;   (let ((my-mode-hs-info '(my-mode "{{" "}}" ...)))
+;;     (if (not (member my-mode-hs-info hs-special-modes-alist))
+;;         (setq hs-special-modes-alist
+;;               (cons my-mode-hs-info hs-special-modes-alist))))
+;;
+;; If you have an entry that works particularly well, consider
+;; submitting it for inclusion in hideshow.el.  See docstring for
+;; `hs-special-modes-alist' for more info on the entry format.
 
-;; - Suggested usage
+;; * Suggested usage
+;;
+;; First make sure hideshow.el is in a directory in your `load-path'.
+;; You can optionally byte-compile it using `M-x byte-compile-file'.
+;; Then, add the following to your ~/.emacs:
 ;;
 ;; (load-library "hideshow")
 ;; (add-hook 'X-mode-hook 'hs-minor-mode)   ; other modes similarly
 ;;
-;; where X = {emacs-lisp,c,c++,perl,...}.  See the doc for the variable
-;; `hs-special-modes-alist' if you'd like to use hideshow w/ other modes.
+;; where X = {emacs-lisp,c,c++,perl,...}.  You can also manually toggle
+;; hideshow minor mode by typing `M-x hs-minor-mode'.  After hideshow is
+;; activated, `hs-minor-mode-hook' is run w/ `run-hooks'.  A good hook
+;; to add is `hs-hide-initial-comment-block'.
 
-;; - Bugs / caveats
+;; * Bugs
 ;;
-;; 1.  Hideshow does not work w/ emacs 18 because emacs 18 lacks the
-;; function `forward-comment' (among other things).  If someone writes
-;; this, please send me a copy.
+;; (1) Hideshow does not work w/ emacs 18 because emacs 18 lacks the
+;;     function `forward-comment' (among other things).  If someone
+;;     writes this, please send me a copy.
 ;;
-;; 2.  Users of cc-mode.el should not hook hideshow into
-;; c-mode-common-hook since at that stage of the call sequence, the
-;; variables `comment-start' and `comment-end' are not yet provided.
-;; Instead, use c-mode-hook and c++-mode-hook as suggested above.
+;; (2) Sometimes `hs-headline' can become out of sync.  To reset, type
+;;     `M-x hs-minor-mode' twice (that is, deactivate then activate
+;;     hideshow).
+;;
+;; (3) Hideshow 5.x is developed and tested on GNU Emacs 20.4.
+;;     XEmacs compatibility may have bitrotted since 4.29.
+;;
+;; Correspondance welcome; please indicate version number.  Send bug
+;; reports and inquiries to <ttn@netcom.com>.
 
-;; - Thanks and feedback
+;; * Thanks
 ;;
-;; Thanks go to the following people for valuable ideas, code and bug
-;; reports.
-;;     adahome@ix.netcom.com           Dean Andrews
-;;     alfh@ifi.uio.no                 Alf-Ivar Holm
-;;     gael@gnlab030.grenoble.hp.com   Gael Marziou
-;;     jan.djarv@sa.erisoft.se         Jan Djarv
-;;     preston.f.crow@dartmouth.edu    Preston F. Crow
-;;     qhslali@aom.ericsson.se         Lars Lindberg
-;;     sheff@edcsgw2.cr.usgs.gov       Keith Sheffield
-;;     ware@cis.ohio-state.edu         Pete Ware
-;;     d.love@dl.ac.uk                 Dave Love
+;; Thanks go to the following people for valuable ideas, code and
+;; bug reports.
 ;;
-;; Special thanks go to Dan Nicolaescu <dann@ics.uci.edu>, who
-;; reimplemented hideshow using overlays (rather than selective display),
-;; added isearch magic, folded in custom.el compatibility, generalized
-;; comment handling, incorporated mouse support, and maintained the code
-;; in general.  Version 4.0 is largely due to his efforts.
+;;     adahome@ix.netcom.com                 Dean Andrews
+;;     alfh@ifi.uio.no                       Alf-Ivar Holm
+;;     bauer@itsm.uni-stuttgart.de           Holger Bauer
+;;     christoph.conrad@post.rwth-aachen.de  Christoph Conrad
+;;     d.love@dl.ac.uk                       Dave Love
+;;     dirk@ida.ing.tu-bs.de                 Dirk Herrmann
+;;     gael@gnlab030.grenoble.hp.com         Gael Marziou
+;;     jan.djarv@sa.erisoft.se               Jan Djarv
+;;     leray@dev-lme.pcc.philips.com         Guillaume Leray
+;;     moody@mwt.net                         Moody Ahmad
+;;     preston.f.crow@dartmouth.edu          Preston F. Crow
+;;     qhslali@aom.ericsson.se               Lars Lindberg
+;;     reto@synopsys.com                     Reto Zimmermann
+;;     sheff@edcsgw2.cr.usgs.gov             Keith Sheffield
+;;     smes@post1.com                        Chew Meng Kuan
+;;     tonyl@eng.sun.com                     Tony Lam
+;;     ware@cis.ohio-state.edu               Pete Ware
 ;;
-;; Correspondance welcome; please indicate version number.
+;; Special thanks go to Dan Nicolaescu <dann@ics.uci.edu>, who reimplemented
+;; hideshow using overlays (rather than selective display), added isearch
+;; magic, folded in custom.el compatibility, generalized comment handling,
+;; incorporated mouse support, and maintained the code in general.  Version
+;; 4.0 is largely due to his efforts.
+
+;; * History
+;;
+;; Hideshow was inspired when I learned about selective display.  It was
+;; reimplemented to use overlays for 4.0 (see above).  WRT older history,
+;; entries in the masterfile corresponding to versions 1.x and 2.x have
+;; been lost.  XEmacs support is reliable as of 4.29.  State save and
+;; restore was added in 3.5 (not widely distributed), and reliable as of
+;; 4.30.  Otherwise, the code seems stable.  Passes checkdoc as of 4.32.
+;; Version 5.x uses new algorithms for block selection and traversal,
+;; unbundles state save and restore, and includes more isearch support.
 
 ;;; Code:
 
 (require 'easymenu)
 
-;;;----------------------------------------------------------------------------
-;;; user-configurable variables
+;;---------------------------------------------------------------------------
+;; user-configurable variables
 
 (defgroup hideshow nil
   "Minor mode for hiding and showing program and comment blocks."
@@ -114,59 +178,18 @@
 
 ;;;###autoload
 (defcustom hs-hide-comments-when-hiding-all t
-  "Hide the comments too when you do an `hs-hide-all'."
+  "*Hide the comments too when you do an `hs-hide-all'."
   :type 'boolean
   :group 'hideshow)
 
-;;;###autoload
-(defcustom hs-show-hidden-short-form t
-  "Leave only the first line visible in a hidden block.
-If non-nil only the first line is visible when a block is in the
-hidden state, else both the first line and the last line are shown.
-A nil value disables `hs-adjust-block-beginning', which see.
-
-An example of how this works: (in C mode)
-original:
-
-  /* My function main
-     some more stuff about main
-  */
-  int
-  main(void)
-  {
-    int x=0;
-    return 0;
-  }
-
-
-hidden and `hs-show-hidden-short-form' is nil
-  /* My function main...
-  */
-  int
-  main(void)
-  {...
-  }
-
-hidden and `hs-show-hidden-short-form' is t
-  /* My function main...
-  int
-  main(void)...
-
-For the last case you have to be on the line containing the
-ellipsis when you do `hs-show-block'."
-  :type 'boolean
-  :group 'hideshow)
-
-(defcustom hs-minor-mode-hook 'hs-hide-initial-comment-block
-  "Hook called when `hs-minor-mode' is installed.
-A good value for this would be `hs-hide-initial-comment-block' to
-hide all the comments at the beginning of the file."
+(defcustom hs-minor-mode-hook nil
+  "*Hook called when hideshow minor mode is activated."
   :type 'hook
   :group 'hideshow)
 
 (defcustom hs-isearch-open 'block
-  "What kind of hidden blocks to open when doing `isearch'.
-One of the following values:
+  "*What kind of hidden blocks to open when doing `isearch'.
+One of the following symbols:
 
   block   -- open only blocks
   comment -- open only comments
@@ -175,96 +198,61 @@ One of the following values:
 
 This has effect iff `search-invisible' is set to `open'."
   :type '(choice (const :tag "open only blocks" block)
-	         (const :tag "open only comments" comment)
-	         (const :tag "open both blocks and comments" t)
-	         (const :tag "don't open any of them" nil))
+                 (const :tag "open only comments" comment)
+                 (const :tag "open both blocks and comments" t)
+                 (const :tag "don't open any of them" nil))
   :group 'hideshow)
 
 ;;;###autoload
 (defvar hs-special-modes-alist
-  '((c-mode "{" "}" nil nil hs-c-like-adjust-block-beginning)
+  '((c-mode "{" "}" "/[*/]" nil hs-c-like-adjust-block-beginning)
     (c++-mode "{" "}" "/[*/]" nil hs-c-like-adjust-block-beginning)
-    (java-mode "\\(\\(\\([ \t]*\\(\\(abstract\\|final\\|native\\|p\\(r\\(ivate\\|otected\\)\\|ublic\\)\\|s\\(tatic\\|ynchronized\\)\\)[ \t\n]+\\)*[.a-zA-Z0-9_:]+[ \t\n]*\\(\\[[ \t\n]*\\][ \t\n]*\\)?\\([a-zA-Z0-9_:]+[ \t\n]*\\)([^)]*)\\([ \n\t]+throws[ \t\n][^{]+\\)?\\)\\|\\([ \t]*static[^{]*\\)\\)[ \t\n]*{\\)" "}" "/[*/]" java-hs-forward-sexp hs-c-like-adjust-block-beginning))
-; I tested the java regexp using the following:
-;(defvar hsj-public)
-;(defvar hsj-type)
-;(defvar hsj-fname)
-;(defvar hsj-par)
-;(defvar hsj-throws)
-;(defvar hsj-static)
-
-;(setq hsj-public
-;      (concat "[ \t]*\\("
-;	      (regexp-opt '("public" "private" "protected" "abstract"
-;			    "synchronized" "static" "final" "native") 1)
-;	      "[ \t\n]+\\)*"))
-
-;(setq hsj-type "[.a-zA-Z0-9_:]+[ \t\n]*\\(\\[[ \t\n]*\\][ \t\n]*\\)?")
-;(setq hsj-fname "\\([a-zA-Z0-9_:]+[ \t\n]*\\)")
-;(setq hsj-par "([^)]*)")
-;(setq hsj-throws "\\([ \n\t]+throws[ \t\n][^{]+\\)?")
-
-;(setq hsj-static "[ \t]*static[^{]*")
-
-
-;(setq hs-block-start-regexp (concat
-;			     "\\("
-;			         "\\("
-;				      "\\("
-;				         hsj-public
-;					 hsj-type
-;					 hsj-fname
-;					 hsj-par
-;					 hsj-throws
-;				      "\\)"
-;				      "\\|"
-;				      "\\("
-;				         hsj-static
-;				      "\\)"
-;				 "\\)"
-;				    "[ \t\n]*{"
-;			      "\\)"
-;				    ))
-
+    (bibtex-mode ("^@\\S(*\\(\\s(\\)" 1))
+    (java-mode "{" "}" "/[*/]" nil hs-c-like-adjust-block-beginning)
+    )
   "*Alist for initializing the hideshow variables for different modes.
-It has the form
+Each element has the form
   (MODE START END COMMENT-START FORWARD-SEXP-FUNC ADJUST-BEG-FUNC).
-If present, hideshow will use these values as regexps for start, end
-and comment-start, respectively.  Since Algol-ish languages do not have
-single-character block delimiters, the function `forward-sexp' used
-by hideshow doesn't work.  In this case, if a similar function is
-available, you can register it and have hideshow use it instead of
-`forward-sexp'.  See the documentation for `hs-adjust-block-beginning'
-to see what is the use of ADJUST-BEG-FUNC.
 
-If any of those is left nil, hideshow will try to guess some values
-using function `hs-grok-mode-type'.
+If non-nil, hideshow will use these values as regexps to define blocks
+and comments, respectively for major mode MODE.
 
-Note that the regexps should not contain leading or trailing whitespace.")
+START, END and COMMENT-START are regular expressions.  A block is
+defined as text surrounded by START and END.
+
+As a special case, START may be a list of the form (COMPLEX-START
+MDATA-SELECTOR), where COMPLEX-START is a regexp w/ multiple parts and
+MDATA-SELECTOR an integer that specifies which sub-match is the proper
+place to adjust point, before calling `hs-forward-sexp-func'.  For
+example, see the `hs-special-modes-alist' entry for `bibtex-mode'.
+
+For some major modes, `forward-sexp' does not work properly.  In those
+cases, FORWARD-SEXP-FUNC specifies another function to use instead.
+
+See the documentation for `hs-adjust-block-beginning' to see what is the
+use of ADJUST-BEG-FUNC.
+
+If any of the elements is left nil or omitted, hideshow tries to guess
+appropriate values.  The regexps should not contain leading or trailing
+whitespace.  Case does not matter.")
 
 (defvar hs-hide-hook nil
-  "*Hooks called at the end of commands to hide text.
+  "*Hook called (with `run-hooks') at the end of commands to hide text.
 These commands include `hs-hide-all', `hs-hide-block' and `hs-hide-level'.")
 
 (defvar hs-show-hook nil
-  "*Hooks called at the end of commands to show text.
+  "*Hook called (with `run-hooks') at the end of commands to show text.
 These commands include `hs-show-all', `hs-show-block' and `hs-show-region'.")
 
-(defvar hs-minor-mode-prefix "\C-c"
-  "*Prefix key to use for hideshow commands in hideshow minor mode.")
-
-;;;----------------------------------------------------------------------------
-;;; internal variables
+;;---------------------------------------------------------------------------
+;; internal variables
 
 (defvar hs-minor-mode nil
   "Non-nil if using hideshow mode as a minor mode of some other mode.
-Use the command `hs-minor-mode' to toggle this variable.")
+Use the command `hs-minor-mode' to toggle or set this variable.")
 
 (defvar hs-minor-mode-map nil
-  "Mode map for hideshow minor mode.")
-
-;(defvar hs-menu-bar nil
-;  "Menu bar for hideshow minor mode (Xemacs only).")
+  "Keymap for hideshow minor mode.")
 
 (defvar hs-c-start-regexp nil
   "Regexp for beginning of comments.
@@ -273,6 +261,11 @@ surrounding whitespace is stripped.")
 
 (defvar hs-block-start-regexp nil
   "Regexp for beginning of block.")
+
+(defvar hs-block-start-mdata-select nil
+  "Element in `hs-block-start-regexp' match data to consider as block start.
+The internal function `hs-forward-sexp' moves point to the beginning of this
+element (using `match-beginning') before calling `hs-forward-sexp-func'.")
 
 (defvar hs-block-end-regexp nil
   "Regexp for end of block.")
@@ -287,13 +280,14 @@ function is necessary.")
 
 (defvar hs-adjust-block-beginning nil
   "Function used to tweak the block beginning.
-It has effect only if `hs-show-hidden-short-form' is non-nil.
-The block it is hidden from the point returned by this function,
-as opposed to hiding it from the point returned when searching
-`hs-block-start-regexp'.  In c-like modes, if we wish to also hide the
-curly braces (if you think they occupy too much space on the screen),
-this function should return the starting point (at the end of line) of
-the hidden region.
+The block is hidden from the position returned by this function,
+as opposed to hiding it from the position returned when searching
+for `hs-block-start-regexp'.
+
+For example, in c-like modes, if we wish to also hide the curly braces
+(if you think they occupy too much space on the screen), this function
+should return the starting point (at the end of line) of the hidden
+region.
 
 It is called with a single argument ARG which is the the position in
 buffer after the block beginning.
@@ -304,146 +298,157 @@ It should not move the point.
 
 See `hs-c-like-adjust-block-beginning' for an example of using this.")
 
-;(defvar hs-emacs-type 'fsf
-;  "Used to support both Emacs and Xemacs.")
+(defvar hs-headline nil
+  "Text of the line where a hidden block begins, set during isearch.
+You can display this in the mode line by adding the symbol `hs-headline'
+to the variable `mode-line-format'.  For example,
 
-;(eval-when-compile
-;  (if (string-match "xemacs\\|lucid" emacs-version)
-;      (progn
-;	(defvar current-menubar nil "")
-;	(defun set-buffer-menubar (arg1))
-;	(defun add-menu (arg1 arg2 arg3)))))
+  (unless (memq 'hs-headline mode-line-format)
+    (setq mode-line-format
+          (append '(\"-\" hs-headline) mode-line-format)))
 
-;;;----------------------------------------------------------------------------
-;;; support funcs
+Note that `mode-line-format' is buffer-local.")
 
-;; snarfed from outline.el;
+;;---------------------------------------------------------------------------
+;; system dependency
+
+; ;; xemacs compatibility
+; (when (string-match "xemacs\\|lucid" emacs-version)
+;   ;; use pre-packaged compatiblity layer
+;   (require 'overlay))
+;
+; ;; xemacs and emacs-19 compatibility
+; (when (or (not (fboundp 'add-to-invisibility-spec))
+;           (not (fboundp 'remove-from-invisibility-spec)))
+;   ;; `buffer-invisibility-spec' mutators snarfed from Emacs 20.3 lisp/subr.el
+;   (defun add-to-invisibility-spec (arg)
+;     (cond
+;      ((or (null buffer-invisibility-spec) (eq buffer-invisibility-spec t))
+;       (setq buffer-invisibility-spec (list arg)))
+;      (t
+;       (setq buffer-invisibility-spec
+;             (cons arg buffer-invisibility-spec)))))
+;   (defun remove-from-invisibility-spec (arg)
+;     (if buffer-invisibility-spec
+;         (setq buffer-invisibility-spec
+;               (delete arg buffer-invisibility-spec)))))
+
+;; hs-match-data
+(defalias 'hs-match-data 'match-data)
+
+;;---------------------------------------------------------------------------
+;; support functions
+
+(defun hs-discard-overlays (from to)
+  (when (< to from)
+    (setq from (prog1 to (setq to from))))
+  (mapcar (lambda (ov)
+            (when (overlay-get ov 'hs)
+              (delete-overlay ov)))
+          (overlays-in from to)))
+
+(defun hs-isearch-show (ov)
+  (setq hs-headline nil)
+  (hs-flag-region (overlay-start ov) (overlay-end ov) nil))
+
+(defun hs-isearch-show-temporary (ov hide-p)
+  (setq hs-headline
+	(if hide-p
+	    nil
+	  (or hs-headline
+	      (let ((start (overlay-start ov)))
+		(buffer-substring
+		 (save-excursion (goto-char start)
+				 (beginning-of-line)
+				 (skip-chars-forward " \t")
+				 (point))
+		 start)))))
+  (force-mode-line-update)
+  (overlay-put ov 'invisible (and hide-p 'hs)))
+
 (defun hs-flag-region (from to flag)
   "Hide or show lines from FROM to TO, according to FLAG.
-If FLAG is nil then text is shown, while if FLAG is non-nil the text
-is hidden.  Actually flag is really either `comment' or `block'
-depending on what kind of block it is suppose to hide."
-    (save-excursion
-      (goto-char from)
-      (end-of-line)
-      (hs-discard-overlays (point) to 'invisible 'hs)
-      (if flag
-	  (let ((overlay (make-overlay (point) to)))
-	    ;; Make overlay hidden and intangible.
-	    (overlay-put overlay 'invisible 'hs)
-	    (overlay-put overlay 'hs t)
-	    (when (or (eq hs-isearch-open t) (eq hs-isearch-open flag))
-		(overlay-put overlay 'isearch-open-invisible
-			     'hs-isearch-open-invisible))
-	    (overlay-put overlay 'intangible t)))))
-
-;; This is set as an `isearch-open-invisible' property to hidden
-;; overlays.
-(defun hs-isearch-open-invisible (ov)
+If FLAG is nil then text is shown, while if FLAG is non-nil the text is
+hidden.  Actually flag is really either `comment' or `block' depending
+on what kind of block it is suppose to hide."
   (save-excursion
-    (goto-char (overlay-start ov))
-    (hs-show-block)))
+    ;; first clear it all out
+    (hs-discard-overlays from to)
+    ;; now create overlays if needed
+    (when flag
+      (let ((overlay (make-overlay from to)))
+        (overlay-put overlay 'invisible 'hs)
+        (overlay-put overlay 'intangible t)
+        (overlay-put overlay 'hs flag)
+        (when (or (eq hs-isearch-open t) (eq hs-isearch-open flag))
+          (mapcar
+           (lambda (pair)
+             (overlay-put overlay (car pair) (cdr pair)))
+	   '((isearch-open-invisible . hs-isearch-show)
+	     (isearch-open-invisible-temporary . hs-isearch-show-temporary))))
+        overlay))))
 
-;; Remove from the region BEG ... END all overlays
-;; with a PROP property equal to VALUE.
-;; Overlays with a PROP property different from VALUE are not touched.
-(defun hs-discard-overlays (beg end prop value)
-  (if (< end beg)
-      (setq beg (prog1 end (setq end beg))))
-  (save-excursion
-    (goto-char beg)
-    (let ((overlays (overlays-in beg end))
-	  o)
-      (while overlays
-	(setq o (car overlays))
-	(if (eq (overlay-get o prop) value)
-	    (delete-overlay o))
-	  (setq overlays (cdr overlays))))))
+(defun hs-forward-sexp (match-data arg)
+  "Adjust point based on MATCH-DATA and call `hs-forward-sexp-func' w/ ARG.
+Original match data is restored upon return."
+  (save-match-data
+    (set-match-data match-data)
+    (goto-char (match-beginning hs-block-start-mdata-select))
+    (funcall hs-forward-sexp-func arg)))
+
+(defun hs-hide-comment-region (beg end &optional repos-end)
+  "Hide a region from BEG to END, marking it as a comment.
+Optional arg REPOS-END means reposition at end."
+  (hs-flag-region (progn (goto-char beg) (end-of-line) (point))
+                  (progn (goto-char end) (end-of-line) (point))
+                  'comment)
+  (goto-char (if repos-end end beg)))
 
 (defun hs-hide-block-at-point (&optional end comment-reg)
   "Hide block iff on block beginning.
 Optional arg END means reposition at end.
-Optional arg COMMENT-REG is a list of the form (BEGIN . END) and
+Optional arg COMMENT-REG is a list of the form (BEGIN END) and
 specifies the limits of the comment, or nil if the block is not
-a comment."
-  (if comment-reg
-      (progn
-	;; goto the end of line at the end of the comment
-	(goto-char (nth 1 comment-reg))
-	(unless hs-show-hidden-short-form (forward-line -1))
-	(end-of-line)
-	(hs-flag-region (car comment-reg)  (point) 'comment)
-	(goto-char (if end (nth 1 comment-reg) (car comment-reg))))
-      (if (looking-at hs-block-start-regexp)
-	  (let* ((p ;; p is the point at the end of the block beginning
-		  (if (and  hs-show-hidden-short-form
-			    hs-adjust-block-beginning)
-		      ;; we need to adjust the block beginning
-		      (funcall hs-adjust-block-beginning (match-end 0))
-		    (match-end 0)))
-		 ;; q is the point at the end of the block
-		 (q (progn (funcall hs-forward-sexp-func 1) (point))))
-	    ;; position the point so we can call `hs-flag-region'
-	    (unless hs-show-hidden-short-form (forward-line -1))
-	    (end-of-line)
-	    (if (and (< p (point)) (> (count-lines p q)
-				      (if hs-show-hidden-short-form 1 2)))
-		(hs-flag-region p (point) 'block))
-	    (goto-char (if end q p))))))
+a comment.
 
-(defun hs-show-block-at-point (&optional end comment-reg)
-  "Show block iff on block beginning.
-Optional arg END means reposition at end.
-Optional arg COMMENT-REG is a list of the forme (BEGIN . END) and
-specifies the limits of the comment. It should be nil when hiding
-a block."
+The block beginning is adjusted by `hs-adjust-block-beginning'
+and then further adjusted to be at the end of the line."
   (if comment-reg
-      (when (car comment-reg)
-	(hs-flag-region (car comment-reg) (nth 1 comment-reg) nil)
-	(goto-char (if end (nth 1 comment-reg) (car comment-reg))))
+      (hs-hide-comment-region (car comment-reg) (cadr comment-reg) end)
     (if (looking-at hs-block-start-regexp)
-	(let* ((p (point))
-	       (q
-		(condition-case error	; probably unbalanced paren
-		    (progn
-		      (funcall hs-forward-sexp-func 1)
-		      (point))
-		  (error
-		   ;; try to get out of rat's nest and expose the whole func
-		   (if (/= (current-column) 0) (beginning-of-defun))
-		   (setq p (point))
-		   (re-search-forward (concat "^" hs-block-start-regexp)
-				      (point-max) t 2)
-		   (point)))))
-	  (hs-flag-region p q nil)
-	  (goto-char (if end (1+ (point)) p))))))
+        (let* ((mdata (hs-match-data t))
+               (pure-p (match-end 0))
+               (p
+                ;; `p' is the point at the end of the block beginning,
+                ;; which may need to be adjusted
+                (save-excursion
+                  (goto-char (funcall (or hs-adjust-block-beginning
+                                          'identity)
+                                      pure-p))
+                  ;; whatever the adjustment, we move to eol
+                  (end-of-line)
+                  (point)))
+               (q
+                ;; `q' is the point at the end of the block
+                (progn (hs-forward-sexp mdata 1)
+                       (end-of-line)
+                       (point))))
+          (if (and (< p (point)) (> (count-lines p q) 1))
+              (overlay-put (hs-flag-region p q 'block)
+                           'hs-ofs
+                           (- pure-p p)))
+          (goto-char (if end q (min p pure-p)))))))
 
 (defun hs-safety-is-job-n ()
-  "Warn if `buffer-invisibility-spec' does not contain hs."
-    (if (or buffer-invisibility-spec (assq 'hs buffer-invisibility-spec) )
-	nil
+  "Warn if `buffer-invisibility-spec' does not contain symbol `hs'."
+    (unless (and (listp buffer-invisibility-spec)
+                 (assq 'hs buffer-invisibility-spec))
       (message "Warning: `buffer-invisibility-spec' does not contain hs!!")
       (sit-for 2)))
 
-(defun hs-hide-initial-comment-block ()
-  (interactive)
-  "Hide the first block of comments in a file.
-This is useful when a part of `hs-minor-mode-hook', especially with
-huge header-comment RCS logs."
-      (let ((p (point))
-	    c-reg)
-	(goto-char (point-min))
-	(skip-chars-forward " \t\n^L")
-	(setq c-reg (hs-inside-comment-p))
-	;; see if we have enough comment lines to hide
-	(if (and c-reg (> (count-lines (car c-reg) (nth 1 c-reg))
-			  (if hs-show-hidden-short-form 1 2)))
-	    (hs-hide-block)
-	  (goto-char p))))
-
 (defun hs-inside-comment-p ()
   "Return non-nil if point is inside a comment, otherwise nil.
-Actually, returns a list containing the buffer position of the start
+Actually, return a list containing the buffer position of the start
 and the end of the comment.  A comment block can be hidden only if on
 its starting line there is only whitespace preceding the actual comment
 beginning.  If we are inside of a comment but this condition is not met,
@@ -455,140 +460,120 @@ as cdr."
     ;; forward and backward as long as we have comments
     (let ((q (point)))
       (when (or (looking-at hs-c-start-regexp)
-	      (re-search-backward hs-c-start-regexp (point-min) t))
-	(forward-comment (- (buffer-size)))
-	(skip-chars-forward " \t\n")
-	(let ((p (point))
-	      (not-hidable nil))
-	  (beginning-of-line)
-	  (unless (looking-at (concat "[ \t]*" hs-c-start-regexp))
-	    ;; we are in this situation: (example)
-	    ;; (defun bar ()
-	    ;;      (foo)
-	    ;;                ) ; comment
-	    ;;                 ^
-	    ;;   the point was here before doing (beginning-of-line)
-	    ;; here we should advance till the next comment which
-	    ;; eventually has only white spaces preceding it on the same
-	    ;; line
-	    (goto-char p)
-	    (forward-comment 1)
-	    (skip-chars-forward " \t\n")
-	    (setq p (point))
-	    (while (and (< (point) q)
-			(> (point) p)
-			(not (looking-at hs-c-start-regexp)))
-	      (setq p (point))  ;; use this to avoid an infinit cycle.
-	      (forward-comment 1)
-	      (skip-chars-forward " \t\n"))
-	    (if (or (not (looking-at hs-c-start-regexp))
-		    (> (point) q))
-		;; we cannot hide this comment block
-		(setq not-hidable t)))
-	  ;; goto the end of the comment
-	  (forward-comment (buffer-size))
-	  (skip-chars-backward " \t\n")
-	  (end-of-line)
-	  (if (>= (point) q)
-	      (list (if not-hidable nil p) (point))))))))
+                (re-search-backward hs-c-start-regexp (point-min) t))
+        (forward-comment (- (buffer-size)))
+        (skip-chars-forward " \t\n\f")
+        (let ((p (point))
+              (not-hidable nil))
+          (beginning-of-line)
+          (unless (looking-at (concat "[ \t]*" hs-c-start-regexp))
+            ;; we are in this situation: (example)
+            ;; (defun bar ()
+            ;;      (foo)
+            ;;                ) ; comment
+            ;;                 ^
+            ;;   the point was here before doing (beginning-of-line)
+            ;; here we should advance till the next comment which
+            ;; eventually has only white spaces preceding it on the same
+            ;; line
+            (goto-char p)
+            (forward-comment 1)
+            (skip-chars-forward " \t\n\f")
+            (setq p (point))
+            (while (and (< (point) q)
+                        (> (point) p)
+                        (not (looking-at hs-c-start-regexp)))
+              (setq p (point));; use this to avoid an infinite cycle
+              (forward-comment 1)
+              (skip-chars-forward " \t\n\f"))
+            (if (or (not (looking-at hs-c-start-regexp))
+                    (> (point) q))
+                ;; we cannot hide this comment block
+                (setq not-hidable t)))
+          ;; goto the end of the comment
+          (forward-comment (buffer-size))
+          (skip-chars-backward " \t\n\f")
+          (end-of-line)
+          (if (>= (point) q)
+              (list (if not-hidable nil p) (point))))))))
 
 (defun hs-grok-mode-type ()
   "Set up hideshow variables for new buffers.
 If `hs-special-modes-alist' has information associated with the
 current buffer's major mode, use that.
-Otherwise, guess start, end and comment-start regexps; forward-sexp
+Otherwise, guess start, end and `comment-start' regexps; `forward-sexp'
 function; and adjust-block-beginning function."
   (if (and (boundp 'comment-start)
-	   (boundp 'comment-end)
-	   comment-start comment-end)
-      (let ((lookup (assoc major-mode hs-special-modes-alist)))
-	(setq hs-block-start-regexp (or (nth 1 lookup) "\\s\(")
-	      hs-block-end-regexp (or (nth 2 lookup) "\\s\)")
-	      hs-c-start-regexp (or (nth 3 lookup)
-				    (let ((c-start-regexp
-					   (regexp-quote comment-start)))
-				      (if (string-match " +$" c-start-regexp)
-					  (substring c-start-regexp 0 (1- (match-end 0)))
-					c-start-regexp)))
-	      hs-forward-sexp-func (or (nth 4 lookup) 'forward-sexp)
-	      hs-adjust-block-beginning (nth 5 lookup)))
-    (error "%s Mode doesn't support Hideshow Mode" mode-name)))
+           (boundp 'comment-end)
+           comment-start comment-end)
+      (let* ((lookup (assoc major-mode hs-special-modes-alist))
+             (start-elem (or (nth 1 lookup) "\\s(")))
+        (if (listp start-elem)
+            ;; handle (START-REGEXP MDATA-SELECT)
+            (setq hs-block-start-regexp (car start-elem)
+                  hs-block-start-mdata-select (cadr start-elem))
+          ;; backwards compatibility: handle simple START-REGEXP
+          (setq hs-block-start-regexp start-elem
+                hs-block-start-mdata-select 0))
+        (setq hs-block-end-regexp (or (nth 2 lookup) "\\s)")
+              hs-c-start-regexp (or (nth 3 lookup)
+                                    (let ((c-start-regexp
+                                           (regexp-quote comment-start)))
+                                      (if (string-match " +$" c-start-regexp)
+                                          (substring c-start-regexp
+                                                     0 (1- (match-end 0)))
+                                        c-start-regexp)))
+              hs-forward-sexp-func (or (nth 4 lookup) 'forward-sexp)
+              hs-adjust-block-beginning (nth 5 lookup)))
+    (progn
+      (setq hs-minor-mode nil)
+      (error "%s Mode doesn't support Hideshow Minor Mode" mode-name))))
 
 (defun hs-find-block-beginning ()
   "Reposition point at block-start.
 Return point, or nil if top-level."
-  (let (done
-	(try-again t)
-	(here (point))
-	(both-regexps (concat "\\(" hs-block-start-regexp "\\)\\|\\("
-			      hs-block-end-regexp "\\)"))
-	(buf-size (buffer-size)))
-    (beginning-of-line)
-    ;; A block beginning can span on multiple lines, if the point
-    ;; is on one of those lines, trying a regexp search from
-    ;; that point would fail to find the block beginning, so we look
-    ;; backwards for the block beginning, or a block end.
-    (while try-again
-      (setq try-again nil)
-      (if (and (re-search-backward both-regexps (point-min) t)
-	       (match-beginning 1)) ; found a block beginning
-	  (if (save-match-data (hs-inside-comment-p))
-	      ;;but it was inside a comment, so we have to look for
-	      ;;it again
-	      (setq try-again t)
-	    ;; that's what we were looking for
-	    (setq done (match-beginning 0)))
-	;; we found a block end, or we reached the beginning of the
-	;; buffer look to see if we were on a block beginning when we
-	;; started
-	(if (and
-	     (re-search-forward hs-block-start-regexp (point-max) t)
-	     (or
-	      (and (>= here (match-beginning 0)) (< here (match-end 0)))
-	      (and hs-show-hidden-short-form hs-adjust-block-beginning
-		   (save-match-data
-		     (= 1 (count-lines
-			   (funcall hs-adjust-block-beginning
-				    (match-end 0)) here))))))
-	      (setq done (match-beginning 0)))))
-    (goto-char here)
-    (while (and (not done)
-		;; This had problems because the regexp can match something
-		;; inside of a comment!
-		;; Since inside a comment we can have incomplete sexps
-		;; this would have signaled an error.
-		(or (forward-comment (- buf-size)) t); `or' is a hack to
-							 ; make it return t
-		(re-search-backward both-regexps (point-min) t))
-      (if (match-beginning 1)		; start of start-regexp
-	  (setq done (match-beginning 0))
-	(goto-char (match-end 0))	; end of end-regexp
-	(funcall hs-forward-sexp-func -1)))
-    (goto-char (or done here))
-    done))
+  (let ((done nil)
+        (here (point)))
+    ;; look if current line is block start
+    (if (looking-at hs-block-start-regexp)
+        (point)
+      ;; look backward for the start of a block that contains the cursor
+      (while (and (re-search-backward hs-block-start-regexp nil t)
+                  (not (setq done
+                             (< here (save-excursion
+                                       (hs-forward-sexp (hs-match-data t) 1)
+                                       (point)))))))
+      (if done
+          (point)
+        (goto-char here)
+        nil))))
 
 (defun hs-hide-level-recursive (arg minp maxp)
-  "Hide blocks ARG levels below this block recursively."
+  "Recursively hide blocks ARG levels below point in region (MINP MAXP)."
   (when (hs-find-block-beginning)
     (setq minp (1+ (point)))
-    (forward-sexp)
+    (funcall hs-forward-sexp-func 1)
     (setq maxp (1- (point))))
-  (hs-flag-region minp maxp ?\n)	; eliminate weirdness
+  (hs-flag-region minp maxp nil)        ; eliminate weirdness
   (goto-char minp)
   (while (progn
-	   (forward-comment (buffer-size))
-	   (re-search-forward hs-block-start-regexp maxp t))
+           (forward-comment (buffer-size))
+           (and (< (point) maxp)
+                (re-search-forward hs-block-start-regexp maxp t)))
     (if (> arg 1)
-	(hs-hide-level-recursive (1- arg) minp maxp)
-      (goto-char (match-beginning 0))
+        (hs-hide-level-recursive (1- arg) minp maxp)
+      (goto-char (match-beginning hs-block-start-mdata-select))
       (hs-hide-block-at-point t)))
     (hs-safety-is-job-n)
   (goto-char maxp))
 
 (defmacro hs-life-goes-on (&rest body)
-  "Execute optional BODY iff variable `hs-minor-mode' is non-nil."
-  `(let ((inhibit-point-motion-hooks t))
-     (when hs-minor-mode
+  "Evaluate BODY forms iff variable `hs-minor-mode' is non-nil.
+In the dynamic context of this macro, `inhibit-point-motion-hooks'
+and `case-fold-search' are both t."
+  `(when hs-minor-mode
+     (let ((inhibit-point-motion-hooks t)
+           (case-fold-search t))
        ,@body)))
 
 (put 'hs-life-goes-on 'edebug-form-spec '(&rest form))
@@ -598,51 +583,39 @@ Return point, or nil if top-level."
   (save-excursion
     (let ((c-reg (hs-inside-comment-p)))
       (if (and c-reg (nth 0 c-reg))
-	  ;; point is inside a comment, and that comment is hidable
-	  (goto-char (nth 0 c-reg))
-	(if (and (not c-reg) (hs-find-block-beginning)
-		 (looking-at hs-block-start-regexp))
-	    ;; point is inside a block
-	    (goto-char (match-end 0)))))
+          ;; point is inside a comment, and that comment is hidable
+          (goto-char (nth 0 c-reg))
+        (if (and (not c-reg)
+                 (hs-find-block-beginning)
+                 (looking-at hs-block-start-regexp))
+            ;; point is inside a block
+            (goto-char (match-end 0)))))
     (end-of-line)
     (let ((overlays (overlays-at (point)))
-	  (found nil))
+          (found nil))
       (while (and (not found) (overlayp (car overlays)))
-	   (setq found (overlay-get (car overlays) 'hs)
-		 overlays (cdr overlays)))
+           (setq found (overlay-get (car overlays) 'hs)
+                 overlays (cdr overlays)))
       found)))
 
-(defun java-hs-forward-sexp (arg)
-  "Function used by `hs-minor-mode' for `forward-sexp' in Java mode."
-  (if (< arg 0)
-      (backward-sexp 1)
-    (if (looking-at hs-block-start-regexp)
-	(progn
-	  (goto-char (match-end 0))
-	  (forward-char -1)
-	  (forward-sexp 1))
-      (forward-sexp 1))))
-
-(defun hs-c-like-adjust-block-beginning (arg)
-  "Function to be assigned to `hs-adjust-block-beginning' for C-like modes.
-Arg is a position in buffer just after {.  This goes back to the end of
-the function header.  The purpose is to save some space on the screen
-when displaying hidden blocks."
+(defun hs-c-like-adjust-block-beginning (initial)
+  "Adjust INITIAL, the buffer position after `hs-block-start-regexp'.
+Actually, point is never moved; a new position is returned that is
+the end of the C-function header.  This adjustment function is meant
+to be assigned to `hs-adjust-block-beginning' for C-like modes."
   (save-excursion
-    (goto-char arg)
-    (forward-char -1)
+    (goto-char (1- initial))
     (forward-comment (- (buffer-size)))
     (point)))
 
-;;;----------------------------------------------------------------------------
-;;; commands
+;;---------------------------------------------------------------------------
+;; commands
 
-;;;###autoload
 (defun hs-hide-all ()
-  "Hide all top-level blocks, displaying only first and last lines.
-Move point to the beginning of the line, and it run the normal hook
+  "Hide all top level blocks, displaying only first and last lines.
+Move point to the beginning of the line, and run the normal hook
 `hs-hide-hook'.  See documentation for `run-hooks'.
-If `hs-hide-comments-when-hiding-all' is t, also hide the comments."
+If `hs-hide-comments-when-hiding-all' is non-nil, also hide the comments."
   (interactive)
   (hs-life-goes-on
    (message "Hiding all blocks ...")
@@ -650,46 +623,44 @@ If `hs-hide-comments-when-hiding-all' is t, also hide the comments."
      (hs-flag-region (point-min) (point-max) nil) ; eliminate weirdness
      (goto-char (point-min))
      (if hs-hide-comments-when-hiding-all
-	 (let (c-reg
-	       (count 0)
-	       (block-and-comment-re  ;; this should match
-		(concat "\\(^"        ;; the block beginning and comment start
-			hs-block-start-regexp
-			"\\)\\|\\(" hs-c-start-regexp "\\)")))
-	   (while (re-search-forward block-and-comment-re (point-max) t)
-	     (if (match-beginning 1) ;; we have found a block beginning
-		 (progn
-		   (goto-char (match-beginning 1))
-		   (hs-hide-block-at-point t)
-		   (message "Hiding ... %d" (setq count (1+ count))))
-	       ;;found a comment
-	       (setq c-reg (hs-inside-comment-p))
-	       (if (and c-reg (car c-reg))
-		   (if (> (count-lines (car c-reg) (nth 1 c-reg))
-			  (if hs-show-hidden-short-form 1 2))
-		       (progn
-			 (hs-hide-block-at-point t c-reg)
-			 (message "Hiding ... %d" (setq count (1+ count))))
-		     (goto-char (nth 1 c-reg)))))))
+         (let ((c-reg nil)
+               (count 0)
+               (block-and-comment-re
+                (concat "\\("
+                        hs-block-start-regexp
+                        "\\)\\|\\("
+                        hs-c-start-regexp
+                        "\\)")))
+           (while (re-search-forward block-and-comment-re (point-max) t)
+             (if (match-beginning 1) ;; we have found a block beginning
+                 (progn
+                   (goto-char (match-beginning 1))
+                   (hs-hide-block-at-point t)
+                   (message "Hiding ... %d" (setq count (1+ count))))
+               ;;found a comment
+               (setq c-reg (hs-inside-comment-p))
+               (if (and c-reg (car c-reg))
+                   (if (> (count-lines (car c-reg) (nth 1 c-reg)) 1)
+                       (progn
+                         (hs-hide-block-at-point t c-reg)
+                         (message "Hiding ... %d" (setq count (1+ count))))
+                     (goto-char (nth 1 c-reg)))))))
        (let ((count 0)
-	     (top-level-re (concat "^" hs-block-start-regexp))
-	     (buf-size (buffer-size)))
-	 (while
-	     (progn
-	       (forward-comment buf-size)
-	       (re-search-forward top-level-re (point-max) t))
-	   (goto-char (match-beginning 0))
-	   (hs-hide-block-at-point t)
-	   (message "Hiding ... %d" (setq count (1+ count))))))
+             (buf-size (buffer-size)))
+         (while
+             (progn
+               (forward-comment buf-size)
+               (re-search-forward hs-block-start-regexp (point-max) t))
+           (goto-char (match-beginning 0))
+           (hs-hide-block-at-point t)
+           (message "Hiding ... %d" (setq count (1+ count))))))
    (hs-safety-is-job-n))
    (beginning-of-line)
    (message "Hiding all blocks ... done")
    (run-hooks 'hs-hide-hook)))
 
 (defun hs-show-all ()
-  "Show all top-level blocks.
-Point is unchanged; run the normal hook `hs-show-hook'.
-See documentation for `run-hooks'."
+  "Show everything then run `hs-show-hook'.  See `run-hooks'."
   (interactive)
   (hs-life-goes-on
    (message "Showing all blocks ...")
@@ -698,9 +669,7 @@ See documentation for `run-hooks'."
    (run-hooks 'hs-show-hook)))
 
 (defun hs-hide-block (&optional end)
-  "Select a block and hide it.
-With prefix arg, reposition at end.  Block is defined as a sexp for
-Lispish modes, mode-specific otherwise.  Comments are blocks, too.
+  "Select a block and hide it.  With prefix arg, reposition at END.
 Upon completion, point is repositioned and the normal hook
 `hs-hide-hook' is run.  See documentation for `run-hooks'."
   (interactive "P")
@@ -708,36 +677,60 @@ Upon completion, point is repositioned and the normal hook
    (let ((c-reg (hs-inside-comment-p)))
      (cond
       ((and c-reg (or (null (nth 0 c-reg))
-		      (<= (count-lines (car c-reg) (nth 1 c-reg))
-			  (if hs-show-hidden-short-form 1 2))))
-	   (message "Not enough comment lines to hide!"))
-      ((or c-reg (looking-at hs-block-start-regexp)
-	       (hs-find-block-beginning))
+                      (<= (count-lines (car c-reg) (nth 1 c-reg)) 1)))
+       (message "(not enough comment lines to hide)"))
+      ((or c-reg
+           (looking-at hs-block-start-regexp)
+           (hs-find-block-beginning))
        (hs-hide-block-at-point end c-reg)
        (hs-safety-is-job-n)
        (run-hooks 'hs-hide-hook))))))
 
 (defun hs-show-block (&optional end)
   "Select a block and show it.
-With prefix arg, reposition at end.  Upon completion, point is
+With prefix arg, reposition at END.  Upon completion, point is
 repositioned and the normal hook `hs-show-hook' is run.
-See documentation for `hs-hide-block' and `run-hooks'."
+See documentation for functions `hs-hide-block' and `run-hooks'."
   (interactive "P")
   (hs-life-goes-on
-   (let ((c-reg (hs-inside-comment-p)))
-     (if (or c-reg
-	     (looking-at hs-block-start-regexp)
-	     (hs-find-block-beginning))
-	   (progn
-	     (hs-show-block-at-point end c-reg)
-	     (hs-safety-is-job-n)
-	     (run-hooks 'hs-show-hook))))))
+   (or
+    ;; first see if we have something at the end of the line
+    (catch 'eol-begins-hidden-region-p
+      (let ((here (point)))
+        (mapcar (lambda (ov)
+                  (when (overlay-get ov 'hs)
+                    (goto-char
+                     (cond
+                      (end (overlay-end ov))
+                      ((eq 'comment (overlay-get ov 'hs)) here)
+                      (t (+ (overlay-start ov) (overlay-get ov 'hs-ofs)))))
+                    (delete-overlay ov)
+                    (throw 'eol-begins-hidden-region-p t)))
+                (save-excursion (end-of-line) (overlays-at (point))))
+        nil))
+    ;; not immediately obvious, look for a suitable block
+    (let ((c-reg (hs-inside-comment-p))
+          p q)
+      (cond (c-reg
+             (when (car c-reg)
+               (setq p (car c-reg)
+                     q (cadr c-reg))))
+            ((and (hs-find-block-beginning)
+                  (looking-at hs-block-start-regexp)) ; fresh match-data, ugh
+             (setq p (point)
+                   q (progn (hs-forward-sexp (hs-match-data t) 1) (point)))))
+      (when (and p q)
+        (hs-flag-region p q nil)
+        (goto-char (if end q (1+ p)))))
+    (hs-safety-is-job-n)
+    (run-hooks 'hs-show-hook))))
 
 (defun hs-show-region (beg end)
   "Show all lines from BEG to END, without doing any block analysis.
 Note: `hs-show-region' is intended for use when `hs-show-block' signals
 \"unbalanced parentheses\" and so is an emergency measure only.  You may
-become very confused if you use this command indiscriminately."
+become very confused if you use this command indiscriminately.
+The hook `hs-show-hook' is run; see `run-hooks'."
   (interactive "r")
   (hs-life-goes-on
    (hs-flag-region beg end nil)
@@ -745,7 +738,8 @@ become very confused if you use this command indiscriminately."
    (run-hooks 'hs-show-hook)))
 
 (defun hs-hide-level (arg)
-  "Hide all blocks ARG levels below this block."
+  "Hide all blocks ARG levels below this block.
+The hook `hs-hide-hook' is run; see `run-hooks'."
   (interactive "p")
   (hs-life-goes-on
    (save-excursion
@@ -755,15 +749,32 @@ become very confused if you use this command indiscriminately."
    (hs-safety-is-job-n)
    (run-hooks 'hs-hide-hook)))
 
-;;;###autoload
 (defun hs-mouse-toggle-hiding (e)
   "Toggle hiding/showing of a block.
-Should be bound to a mouse key."
+This command should be bound to a mouse key.
+Argument E is a mouse event used by `mouse-set-point'.
+See `hs-hide-block' and `hs-show-block'."
   (interactive "@e")
-  (mouse-set-point e)
-  (if (hs-already-hidden-p)
-      (hs-show-block)
-    (hs-hide-block)))
+  (hs-life-goes-on
+   (mouse-set-point e)
+   (if (hs-already-hidden-p)
+       (hs-show-block)
+     (hs-hide-block))))
+
+(defun hs-hide-initial-comment-block ()
+  "Hide the first block of comments in a file.
+This can be useful if you have huge RCS logs in those comments."
+  (interactive)
+  (hs-life-goes-on
+   (let ((c-reg (save-excursion
+                  (goto-char (point-min))
+                  (skip-chars-forward " \t\n\f")
+                  (hs-inside-comment-p))))
+     (when c-reg
+       (let ((beg (car c-reg)) (end (cadr c-reg)))
+         ;; see if we have enough comment lines to hide
+         (when (> (count-lines beg end) 1)
+           (hs-hide-comment-region beg end)))))))
 
 ;;;###autoload
 (defun hs-minor-mode (&optional arg)
@@ -772,12 +783,11 @@ With ARG, turn hideshow minor mode on if ARG is positive, off otherwise.
 When hideshow minor mode is on, the menu bar is augmented with hideshow
 commands and the hideshow commands are enabled.
 The value '(hs . t) is added to `buffer-invisibility-spec'.
-Last, the normal hook `hs-minor-mode-hook' is run; see the doc
-for `run-hooks'.
+Last, the normal hook `hs-minor-mode-hook' is run; see `run-hooks'.
 
 The main commands are: `hs-hide-all', `hs-show-all', `hs-hide-block',
-`hs-show-block', `hs-hide-level' and `hs-show-region'.
-Also see the documentation for the variable `hs-show-hidden-short-form'.
+`hs-show-block', `hs-hide-level' and `hs-show-region'.  There is also
+`hs-hide-initial-comment-block' and `hs-mouse-toggle-hiding'.
 
 Turning hideshow minor mode off reverts the menu bar and the
 variables to default values and disables the hideshow commands.
@@ -786,34 +796,23 @@ Key bindings:
 \\{hs-minor-mode-map}"
 
   (interactive "P")
-  (setq hs-minor-mode
-        (if (null arg)
-	    (not hs-minor-mode)
-          (> (prefix-numeric-value arg) 0)))
+  (setq hs-headline nil
+	hs-minor-mode (if (null arg)
+			  (not hs-minor-mode)
+			(> (prefix-numeric-value arg) 0)))
   (if hs-minor-mode
       (progn
-; 	(if (eq hs-emacs-type 'lucid)
-;	    (progn
-;	      (set-buffer-menubar (copy-sequence current-menubar))
-;	      (add-menu nil (car hs-menu-bar) (cdr hs-menu-bar))))
-	(make-local-variable 'line-move-ignore-invisible)
-	(setq  line-move-ignore-invisible t)
-	(add-to-invisibility-spec '(hs . t)) ;;hs invisible
-	(hs-grok-mode-type)
-	(run-hooks 'hs-minor-mode-hook))
-;    (if (eq hs-emacs-type 'lucid)
-;	(set-buffer-menubar (delete hs-menu-bar current-menubar)))
+        (easy-menu-add hs-minor-mode-menu)
+        (make-variable-buffer-local 'line-move-ignore-invisible)
+        (setq line-move-ignore-invisible t)
+        (add-to-invisibility-spec '(hs . t))            ; hs invisible
+        (hs-grok-mode-type)
+        (run-hooks 'hs-minor-mode-hook))
+    (easy-menu-remove hs-minor-mode-menu)
     (remove-from-invisibility-spec '(hs . t))))
 
-
-;;;----------------------------------------------------------------------------
-;;; load-time setup routines
-
-;; which emacs being used?
-;(setq hs-emacs-type
-;      (if (string-match "xemacs\\|lucid" emacs-version)
-;	  'lucid
-;	'fsf))
+;;---------------------------------------------------------------------------
+;; load-time actions
 
 ;; keymaps and menus
 (if hs-minor-mode-map
@@ -823,22 +822,23 @@ Key bindings:
     hs-minor-mode-map
     "Menu used when hideshow minor mode is active."
     (cons "Hide/Show"
-	  (mapcar
-	   ;; populate keymap then massage entry for easymenu
-	   (lambda (ent)
-	     (define-key hs-minor-mode-map (aref ent 2) (aref ent 1))
-	     (aset ent 2 (not (vectorp (aref ent 2))))	; disable mousy stuff
-	     ent)
-	   ;; I believe there is nothing bound on these keys
-	   ;; menu entry      command                key
-	   '(["Hide Block"    hs-hide-block          "\C-ch"]
-	     ["Show Block"    hs-show-block          "\C-cs"]
-	     ["Hide All"      hs-hide-all            "\C-cH"]
-	     ["Show All"      hs-show-all            "\C-cS"]
-	     ["Hide Level"    hs-hide-level          "\C-cL"]
-	     ["Show Region"   hs-show-region         "\C-cR"]
-	     ["Toggle Hiding" hs-mouse-toggle-hiding [S-mouse-2]]
-	     )))))
+          (mapcar
+           ;; Interpret each table entry as follows: first, populate keymap
+           ;; with elements 2 and 1; then, for easymenu, use entry directly
+           ;; unless element 0 is nil, in which case the entry is "omitted".
+           (lambda (ent)
+             (define-key hs-minor-mode-map (aref ent 2) (aref ent 1))
+             (if (aref ent 0) ent "-----"))
+           ;; I believe there is nothing bound on these keys.
+           ;; menu entry      command                key
+           '(["Hide Block"    hs-hide-block          "\C-ch"]
+             ["Show Block"    hs-show-block          "\C-cs"]
+             ["Hide All"      hs-hide-all            "\C-cH"]
+             ["Show All"      hs-show-all            "\C-cS"]
+             ["Hide Level"    hs-hide-level          "\C-cL"]
+             ["Show Region"   hs-show-region         "\C-cR"]
+             [nil             hs-mouse-toggle-hiding [(shift button2)]]
+             )))))
 
 ;; some housekeeping
 (or (assq 'hs-minor-mode minor-mode-map-alist)
@@ -851,17 +851,18 @@ Key bindings:
 
 ;; make some variables permanently buffer-local
 (mapcar (lambda (var)
-	  (make-variable-buffer-local var)
-	  (put var 'permanent-local t))
-	'(hs-minor-mode
-	  hs-c-start-regexp
-	  hs-block-start-regexp
-	  hs-block-end-regexp
-	  hs-forward-sexp-func
-	  hs-adjust-block-beginning))
+          (make-variable-buffer-local var)
+          (put var 'permanent-local t))
+        '(hs-minor-mode
+          hs-c-start-regexp
+          hs-block-start-regexp
+          hs-block-start-mdata-select
+          hs-block-end-regexp
+          hs-forward-sexp-func
+          hs-adjust-block-beginning))
 
-;;;----------------------------------------------------------------------------
-;;; that's it
+;;---------------------------------------------------------------------------
+;; that's it
 
 (provide 'hideshow)
 
