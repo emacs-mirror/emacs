@@ -2287,7 +2287,7 @@ The next window is the one below the current one; or the one at the top\n\
 if the current one is at the bottom.\n\
 When calling from a program, supply a number as argument or nil.\n\
 \n\
-If in the minibuffer, `minibuf-scroll-window' if non-nil\n\
+If in the minibuffer, `minibuffer-scroll-window' if non-nil\n\
 specifies the window to scroll.\n\
 If `other-window-scroll-buffer' is non-nil, scroll the window\n\
 showing that buffer, popping the buffer up if necessary.")
