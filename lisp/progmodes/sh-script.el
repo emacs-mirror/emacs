@@ -656,7 +656,7 @@ with your script for an edit-interpret-debug cycle."
 				   (indent-rigidly b (point) sh-indentation)))
 	skeleton-end-hook (lambda ()
 			    (or (eolp) (newline) (indent-relative)))
-! 	paragraph-start (concat page-delimiter "\\|$")
+ 	paragraph-start (concat page-delimiter "\\|$")
 	paragraph-separate paragraph-start
 	comment-start "# "
 	comint-dynamic-complete-functions sh-dynamic-complete-functions
