@@ -1,6 +1,6 @@
 /* impl.h.eventdef -- Event Logging Definitions
  *
- * $HopeName: MMsrc!eventdef.h(trunk.4) $
+ * $HopeName: MMsrc!eventdef.h(trunk.5) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
  *
  * .readership: MPS developers.
@@ -97,3 +97,5 @@ RELATION(VMMap                           , 0x002d, TRUE, Seg, PAA)
 RELATION(VMUnmap                         , 0x002e, TRUE, Seg, PAA)
 RELATION(ArenaExtend                     , 0x002f, TRUE, Arena, PAW)
 RELATION(ArenaRetract                    , 0x0030, TRUE, Arena, PAW)
+RELATION(TraceSegGreyen                  , 0x0031, TRUE, Seg, PPU)
+
