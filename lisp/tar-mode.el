@@ -366,7 +366,9 @@ MODE should be an integer which is a file mode value."
 	    (if (= 0 (length gname)) gid gname)
 	    size
 	    (if tar-mode-show-date (tar-clip-time-string time) "")
-	    (propertize name 'mouse-face 'highlight)
+	    (propertize name
+			'mouse-face 'highlight
+			'help-echo "mouse-2: extract this file into a buffer")
 	    (if (or (eq type 1) (eq type 2))
 		(concat (if (= type 1) " ==> " " --> ") link-name)
 	      ""))))
