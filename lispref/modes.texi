@@ -129,7 +129,7 @@ line.
 Since all global names are in the same name space, all the global
 variables, constants, and functions that are part of the mode should
 have names that start with the major mode name (or with an abbreviation
-of it if the name is long).  @xref{Style Tips}.
+of it if the name is long).  @xref{Coding Conventions}.
 
 @item
 @cindex keymaps in modes
@@ -144,6 +144,24 @@ mode sets this variable.
 
 @xref{Tips for Defining}, for advice about how to write the code to set
 up the mode's keymap variable.
+
+@item
+The key sequences bound in a major mode keymap should usually start with
+@kbd{C-c}, followed by a control-character, a digit, or @kbd{@{},
+@kbd{@}}, @kbd{<}, @kbd{>}, @kbd{:} or @kbd{;}.  The other punctuation
+characters are reserved for minor modes, and ordinary letters are
+reserved for users.
+
+It is reasonable for a major mode to rebind a key sequence with a
+standard meaning, if it implements a command that does ``the same job''
+in a way that fits the major mode better.  For example, a major mode for
+editing a programming language might redefine @kbd{C-M-a} to ``move to
+the beginning of a function'' in a way that works better for that
+language.
+
+Major modes such as Dired or Rmail that do not allow self-insertion of
+text can reasonably redefine letters and other printing characters as
+editing commands.  Dired and Rmail both do this.
 
 @item
 @cindex syntax tables in modes
@@ -201,7 +219,7 @@ variable used only within a single Lisp package.
 Each major mode should have a @dfn{mode hook} named
 @code{@var{modename}-mode-hook}.  The major mode command should run that
 hook, with @code{run-hooks}, as the very last thing it
-does. @xref{Hooks}.
+does.  @xref{Hooks}.
 
 @item
 The major mode command may also run the hooks of some more basic modes.
@@ -893,6 +911,11 @@ facilities for customizing @code{self-insert-command} are limited to
 special cases (designed for abbrevs and Auto Fill mode).  (Do not try
 substituting your own definition of @code{self-insert-command} for the
 standard one.  The editor command loop handles this function specially.)
+
+The key sequences bound in a minor mode should consist of @kbd{C-c}
+followed by a punctuation character @emph{other than} @kbd{@{},
+@kbd{@}}, @kbd{<}, @kbd{>}, @kbd{:} or @kbd{;}.  (Those few punctuation
+characters are reserved for major modes.)
 
 @node Mode Line Format
 @section Mode Line Format
