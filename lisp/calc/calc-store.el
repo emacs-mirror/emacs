@@ -373,9 +373,10 @@
    (if var1
        (let ((value (calc-var-value var1)))
 	 (or value
-	     (error "No such variable: \"%s\"" (calc-var-name var)))
+	     (error "No such variable: \"%s\"" (calc-var-name var1)))
 	 (or var2 (setq var2 (calc-read-var-name
-			      (format "Copy variable: %s, to: " var1))))
+			      (format "Copy variable: %s, to: " 
+                                      (calc-var-name var1)))))
 	 (if var2
 	     (calc-store-value var2 value ""))))))
 
