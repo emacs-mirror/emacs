@@ -1,3 +1,9 @@
+2004-04-07  Jan Nieuwenhuizen  <janneke@gnu.org>
+
+	* info.el (Info-hide-cookies-node): New function.
+	(Info-select-node): Use it.
+	(Info-display-images-node): Remove message with image file name.
+
 2004-04-07  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* progmodes/compile.el (compilation-warning-face)
@@ -186,7 +192,7 @@
 
 2004-03-31  H,Ae(Bkan Granath  <hakan.granath@kau.se>  (tiny change)
 
-	* dired.el (dired-move-to-filename-regexp): Add . to HH:MM.
+	* dired.el (dired-move-to-filename-regexp): Add `.' to HH:MM.
 
 2004-03-30  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
