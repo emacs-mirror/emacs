@@ -981,9 +981,22 @@ x_report_frame_params (f, alistptr)
      Lisp_Object *alistptr;
 {
   char buf[16];
+  Lisp_Object tem;
 
-  store_in_alist (alistptr, Qleft, make_number (f->display.x->left_pos));
-  store_in_alist (alistptr, Qtop, make_number (f->display.x->top_pos));
+  /* Represent negative positions (off the top or left screen edge)
+     in a way that Fmodify_frame_parameters will understand correctly.  */
+  XSETINT (tem, f->display.x->left_pos);
+  if (f->display.x->left_pos >= 0)
+    store_in_alist (alistptr, Qleft, tem);
+  else
+    store_in_alist (alistptr, Qleft, Fcons (Qplus, Fcons (tem, Qnil)));
+
+  XSETINT (tem, f->display.x->top_pos);
+  if (f->display.x->top_pos >= 0)
+    store_in_alist (alistptr, Qtop, tem);
+  else
+    store_in_alist (alistptr, Qtop, Fcons (Qplus, Fcons (tem, Qnil)));
+
   store_in_alist (alistptr, Qborder_width,
        	   make_number (f->display.x->border_width));
   store_in_alist (alistptr, Qinternal_border_width,
