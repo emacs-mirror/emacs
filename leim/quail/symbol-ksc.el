@@ -32,10 +32,10 @@
 (require 'quail)
 
 (defun quail-hangul-switch-back (key idx)
-  (if (not previous-input-method)
+  (if (not input-method-history
       (toggle-input-method t)
     (quail-delete-region)
-    (select-input-method previous-input-method))
+    (activate-input-method (car input-method-history))
   (throw 'quail-tag nil))
 
 (quail-define-package
