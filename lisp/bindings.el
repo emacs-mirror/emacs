@@ -322,6 +322,9 @@ Return a string to display in the mode line for the current mode name."
 (define-key mode-line-mode-menu [highlight-changes-mode]
   `(menu-item ,(purecopy "Highlight changes") highlight-changes-mode
 	      :button (:toggle . highlight-changes-mode)))
+(define-key mode-line-mode-menu [glasses-mode]
+  `(menu-item ,(purecopy "Glasses") glasses-mode
+	      :button (:toggle . glasses-mode)))
 (define-key mode-line-mode-menu [hide-ifdef-mode]
   `(menu-item ,(purecopy "Hide ifdef") hide-ifdef-mode
 	      :button (:toggle . (bound-and-true-p hide-ifdef-mode))))
