@@ -638,6 +638,7 @@ void x_set_vertical_scroll_bars ();
 void x_set_visibility ();
 void x_set_menu_bar_lines ();
 void x_set_scroll_bar_width ();
+void x_set_unsplittable ();
 
 static struct x_frame_parm_table x_frame_parms[] =
 {
@@ -658,6 +659,7 @@ static struct x_frame_parm_table x_frame_parms[] =
   "visibility", x_set_visibility,
   "menu-bar-lines", x_set_menu_bar_lines,
   "scroll-bar-width", x_set_scroll_bar_width,
+  "unsplittable", x_set_unsplittable,
 };
 
 /* Attach the `x-frame-parameter' properties to
@@ -1615,6 +1617,14 @@ x_set_autolower (f, arg, oldval)
      Lisp_Object arg, oldval;
 {
   f->auto_lower = !EQ (Qnil, arg);
+}
+
+void
+x_set_unsplittable (f, arg, oldval)
+     struct frame *f;
+     Lisp_Object arg, oldval;
+{
+  f->no_split = !NILP (arg);
 }
 
 void
