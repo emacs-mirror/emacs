@@ -85,7 +85,7 @@ to your .emacs to revert to the old behavior.
 automatically at startup, if it exists.  When Emacs offers to save
 modified buffers, it saves the abbrevs too if they have changed.  It
 can do this either silently or asking for confirmation first,
-according to the value of `save-abbrebvs'.
+according to the value of `save-abbrevs'.
 
 ** Display of hollow cursors now obeys the buffer-local value (if any)
 of `cursor-in-non-selected-windows' in the buffer that the cursor
