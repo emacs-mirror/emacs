@@ -1808,6 +1808,18 @@ Intended as the value of `fill-paragraph-function'."
 	  (fortran-previous-statement)))
     (fortran-indent-line)))
 
+(defun fortran-strip-sqeuence-nos (do-space)
+  "Delete all text after column 72 (assumed to be sequence numbers).
+Also delete trailing whitespace after stripping such text.  Supplying
+prefix arg DO-SPACE prevent stripping the whitespace."
+  (interactive "p")
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward (concat "^" (make-string 72 ?.)" \\(.*\\)")
+			      nil t)
+      (replace-match "" nil nil nil 1)
+      (unless do-space (delete-horizontal-space)))))
+
 (provide 'fortran)
 
 ;;; fortran.el ends here
