@@ -771,7 +771,7 @@ and nil for X and Y.")
 }
 
 DEFUN ("set-mouse-position", Fset_mouse_position, Sset_mouse_position, 3, 3, 0,
-  "Move the mouse pointer to the center of cell (X,Y) in FRAME.\n\
+  "Move the mouse pointer to the center of character cell (X,Y) in FRAME.\n\
 WARNING:  If you use this under X, you should do `unfocus-frame' afterwards.")
   (frame, x, y)
      Lisp_Object frame, x, y;
