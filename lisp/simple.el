@@ -682,36 +682,6 @@ to handle recursive uses of the minibuffer.")
 (setq minibuffer-history-position nil)
 (defvar minibuffer-history-search-history nil)
 
-(mapcar
- (lambda (key-and-command)
-   (mapcar
-    (lambda (keymap-and-completionp)
-      ;; Arg is (KEYMAP-SYMBOL . COMPLETION-MAP-P).
-      ;; If the cdr of KEY-AND-COMMAND (the command) is a cons,
-      ;; its car is used if COMPLETION-MAP-P is nil, its cdr if it is t.
-      (define-key (symbol-value (car keymap-and-completionp))
-	(car key-and-command)
-	(let ((command (cdr key-and-command)))
-	  (if (consp command)
-	      ;; (and ... nil) => ... turns back on the completion-oriented
-	      ;; history commands which rms turned off since they seem to
-	      ;; do things he doesn't like.
-	      (if (and (cdr keymap-and-completionp) nil) ;XXX turned off
-		  (progn (error "EMACS BUG!") (cdr command))
-		(car command))
-	    command))))
-    '((minibuffer-local-map . nil)
-      (minibuffer-local-ns-map . nil)
-      (minibuffer-local-completion-map . t)
-      (minibuffer-local-must-match-map . t)
-      (read-expression-map . nil))))
- '(("\en" . (next-history-element . next-complete-history-element))
-   ([next] . (next-history-element . next-complete-history-element))
-   ("\ep" . (previous-history-element . previous-complete-history-element))
-   ([prior] . (previous-history-element . previous-complete-history-element))
-   ("\er" . previous-matching-history-element)
-   ("\es" . next-matching-history-element)))
-
 (defvar minibuffer-text-before-history nil
   "Text that was in this minibuffer before any history commands.
 This is nil if there have not yet been any history commands
