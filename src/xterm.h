@@ -956,7 +956,6 @@ extern void pixel_to_glyph_coords P_ ((struct frame *, int, int,
 
 /* Defined in xterm.c */
 
-extern void clear_mouse_face P_ ((struct x_display_info *));
 extern void cancel_mouse_face P_ ((struct frame *));
 extern void x_scroll_bar_clear P_ ((struct frame *));
 extern void x_start_queuing_selection_requests P_ ((Display *));
