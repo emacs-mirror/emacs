@@ -396,7 +396,7 @@
 
 ;; This is passed to the inferior in the EMACS environment variable,
 ;; so it is important to increase it if there are protocol-relevant changes.
-(defconst term-protocol-version "0.95")
+(defconst term-protocol-version "0.96")
 
 (eval-when-compile
   (require 'ange-ftp))
@@ -457,7 +457,7 @@
 ;;		we want suppressed.
 (defvar term-terminal-parameter)
 (defvar term-terminal-previous-parameter)
-(defvar term-current-face 'term-default)
+(defvar term-current-face 'default)
 (defvar term-scroll-start 0) ;; Top-most line (inclusive) of scrolling region.
 (defvar term-scroll-end) ;; Number of line (zero-based) after scrolling region.
 (defvar term-pager-count nil) ;; If nil, paging is disabled.
@@ -1365,11 +1365,14 @@ The main purpose is to get rid of the local keymap."
 (defvar term-termcap-format
   "%s%s:li#%d:co#%d:cl=\\E[H\\E[J:cd=\\E[J:bs:am:xn:cm=\\E[%%i%%d;%%dH\
 :nd=\\E[C:up=\\E[A:ce=\\E[K:ho=\\E[H:pt\
-:al=\\E[L:dl=\\E[M:DL=\\E[%%dM:AL=\\E[%%dL:cs=\\E[%%i%%d;%%dr:sf=\\n\
+:al=\\E[L:dl=\\E[M:DL=\\E[%%dM:AL=\\E[%%dL:cs=\\E[%%i%%d;%%dr:sf=^J\
 :te=\\E[2J\\E[?47l\\E8:ti=\\E7\\E[?47h\
 :dc=\\E[P:DC=\\E[%%dP:IC=\\E[%%d@:im=\\E[4h:ei=\\E[4l:mi:\
 :so=\\E[7m:se=\\E[m:us=\\E[4m:ue=\\E[m:md=\\E[1m:mr=\\E[7m:me=\\E[m\
-:UP=\\E[%%dA:DO=\\E[%%dB:LE=\\E[%%dD:RI=\\E[%%dC"
+:UP=\\E[%%dA:DO=\\E[%%dB:LE=\\E[%%dD:RI=\\E[%%dC\
+:kl=\\EOD:kd=\\EOB:kr=\\EOC:ku=\\EOA:kN=\\E[6~:kP=\\E[5~:@7=\\E[4~:kh=\\E[1~\
+:mk=\\E[8m:cb=\\E[1K:op=\\E[39;49m:Co#8:pa#64:AB=\\E[4%%dm:AF=\\E[3%%dm:cr=^M\
+:bl=^G:do=^J:le=^H:ta=^I:se=\E[27m:ue=\E24m:"
 ;;; : -undefine ic
   "termcap capabilities supported")
 
@@ -1386,10 +1389,9 @@ The main purpose is to get rid of the local keymap."
 	 (nconc
 	  (list
 	   (format "TERM=%s" term-term-name)
-	   (if (and (boundp 'system-uses-terminfo) system-uses-terminfo)
-	       (format "TERMINFO=%s" data-directory)
-	    (format term-termcap-format "TERMCAP="
-		    term-term-name term-height term-width))
+	   (format "TERMINFO=%s" data-directory)
+	   (format term-termcap-format "TERMCAP="
+		   term-term-name term-height term-width)
 	   ;; Breaks `./configure' of w3 and url which try to run $EMACS.
 	   (format "EMACS=%s (term:%s)" emacs-version term-protocol-version)
 	   (format "LINES=%d" term-height)
@@ -1408,18 +1410,6 @@ if [ $1 = .. ]; then shift; fi; exec \"$@\""
 		   term-height term-width)
 	   ".."
 	   command switches)))
-
-;;; This should be in Emacs, but it isn't.
-(defun term-mem (item list &optional elt=)
-  "Test to see if ITEM is equal to an item in LIST.
-Option comparison function ELT= defaults to equal."
-  (let ((elt= (or elt= (function equal)))
-	(done nil))
-    (while (and list (not done))
-      (if (funcall elt= item (car list))
-	  (setq done list)
-	  (setq list (cdr list))))
-    done))
 
 
 ;;; Input history processing in a buffer
@@ -2990,6 +2980,14 @@ See `term-prompt-regexp'."
    ((eq parameter 8)
     (setq term-ansi-current-invisible 1))
 
+;;; Reset reverse (i.e. terminfo rmso)
+   ((eq parameter 24)
+    (setq term-ansi-current-reverse 0))
+
+;;; Reset underline (i.e. terminfo rmul)
+   ((eq parameter 27)
+    (setq term-ansi-current-underline 0))
+
 ;;; Foreground
    ((and (>= parameter 30) (<= parameter 37))
     (setq term-ansi-current-color (- parameter 29)))
@@ -3044,9 +3042,13 @@ See `term-prompt-regexp'."
 		    )
 	    (setq term-current-face
 		  (list :background
-			(elt ansi-term-color-vector term-ansi-current-color)
+			(if (= term-ansi-current-color 0)
+			    (face-foreground 'default)
+			    (elt ansi-term-color-vector term-ansi-current-color))
 			:foreground
-			(elt ansi-term-color-vector term-ansi-current-bg-color)))
+			(if (= term-ansi-current-bg-color 0)
+			    (face-background 'default)
+			(elt ansi-term-color-vector term-ansi-current-bg-color))))
 	    (if (= term-ansi-current-bold 1)
 		(setq term-current-face
 		      (append '(:weight bold) term-current-face)))
@@ -3503,7 +3505,7 @@ all pending output has been dealt with."))
     (if (and check-for-scroll (or term-scroll-with-delete term-pager-count))
 	(setq down (term-handle-scroll down)))
     (term-adjust-current-row-cache down)
-    (if (/= (point) (point-max))
+    (if (or (/= (point) (point-max)) (< down 0))
 	(setq down (- down (term-vertical-motion down))))
     ;; Extend buffer with extra blank lines if needed.
     (cond ((> down 0)
