@@ -98,6 +98,9 @@ int pureptr;
 /* If nonzero, this is a warning delivered by malloc and not yet displayed.  */
 char *pending_malloc_warning;
 
+/* Pre-computed signal argument for use when memory is exhausted.  */
+static Lisp_Object memory_signal_data;
+
 /* Maximum amount of C stack to save when a GC happens.  */
 
 #ifndef MAX_SAVE_STACK
@@ -148,7 +151,10 @@ display_malloc_warning ()
 /* Called if malloc returns zero */
 memory_full ()
 {
-  error ("Memory exhausted");
+  /* This used to call error, but if we've run out of memory, we could get
+     infinite recursion trying to build the string.  */
+  while (1)
+    Fsignal (Qerror, memory_signal_data);
 }
 
 /* like malloc routines but check for no memory and block interrupt input.  */
@@ -2215,6 +2221,11 @@ This limit is applied when garbage collection happens.\n\
 The size is counted as the number of bytes occupied,\n\
 which includes both saved text and other data.");
   undo_strong_limit = 30000;
+
+  /* We build this in advance because if we wait until we need it, we might
+     not be able to allocate the memory to hold it.  */
+  memory_signal_data = Fcons (build_string ("Memory exhausted"), Qnil);
+  staticpro (&memory_signal_data);
 
   defsubr (&Scons);
   defsubr (&Slist);
