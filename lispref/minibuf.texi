@@ -37,7 +37,7 @@ for reading an argument.
 @emph{within} a buffer, such as editing commands, work normally in a
 minibuffer.  However, many operations for managing buffers do not apply
 to minibuffers.  The name of a minibuffer always has the form @w{@samp{
-*Minibuf-@var{number}}}, and it cannot be changed.  Minibuffers are
+*Minibuf-@var{number}*}}, and it cannot be changed.  Minibuffers are
 displayed only in special windows used only for minibuffers; these
 windows always appear at the bottom of a frame.  (Sometimes frames have
 no minibuffer window, and sometimes a special kind of frame contains
