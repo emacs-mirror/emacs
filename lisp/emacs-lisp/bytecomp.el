@@ -9,7 +9,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.53 $")
+(defconst byte-compile-version "$Revision: 2.54 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -333,9 +333,7 @@ Elements of the list may be be:
   callargs    lambda calls with args that don't match the definition.
   redefine    function cell redefined from a macro to a lambda or vice
               versa, or redefined to take a different number of arguments.
-  obsolete      obsolete variables and functions.
-
-See also the macro `byte-compiler-options'."
+  obsolete    obsolete variables and functions."
   :group 'bytecomp
   :type '(choice (const :tag "All" t)
 		 (set :menu-tag "Some"
