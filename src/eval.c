@@ -134,7 +134,7 @@ int max_lisp_eval_depth;
 
 int debug_on_next_call;
 
-/* Non-zero means debuffer may continue.  This is zero when the
+/* Non-zero means debugger may continue.  This is zero when the
    debugger is called during redisplay, where it might not be safe to
    continue the interrupted redisplay. */
 
@@ -151,7 +151,7 @@ Lisp_Object Vstack_trace_on_error;
 Lisp_Object Vdebug_on_error;
 
 /* List of conditions and regexps specifying error messages which
-   do not enter the debugger even if Vdebug_on_errors says they should.  */
+   do not enter the debugger even if Vdebug_on_error says they should.  */
 
 Lisp_Object Vdebug_ignored_errors;
 
@@ -265,7 +265,7 @@ call_debugger (arg)
 
   /* Interrupting redisplay and resuming it later is not safe under
      all circumstances.  So, when the debugger returns, abort the
-     interupted redisplay by going back to the top-level.  */
+     interrupted redisplay by going back to the top-level.  */
   if (debug_while_redisplaying)
     Ftop_level ();
 
@@ -1184,7 +1184,7 @@ struct handler *handlerlist;
 
 DEFUN ("condition-case", Fcondition_case, Scondition_case, 2, UNEVALLED, 0,
        doc: /* Regain control when an error is signaled.
-executes BODYFORM and returns its value if no error happens.
+Executes BODYFORM and returns its value if no error happens.
 Each element of HANDLERS looks like (CONDITION-NAME BODY...)
 where the BODY is made of Lisp expressions.
 
@@ -1555,7 +1555,7 @@ wants_debugger (list, conditions)
 
 /* Return 1 if an error with condition-symbols CONDITIONS,
    and described by SIGNAL-DATA, should skip the debugger
-   according to debugger-ignore-errors.  */
+   according to debugger-ignored-errors.  */
 
 static int
 skip_debugger (conditions, data)
@@ -3069,8 +3069,8 @@ unbind_to (count, value)
       /* If the symbol is a list, it is really (SYMBOL WHERE
 	 . CURRENT-BUFFER) where WHERE is either nil, a buffer, or a
 	 frame.  If WHERE is a buffer or frame, this indicates we
-	 bound a variable that had a buffer-local or frmae-local
-	 binding..  WHERE nil means that the variable had the default
+	 bound a variable that had a buffer-local or frame-local
+	 binding.  WHERE nil means that the variable had the default
 	 value when it was bound.  CURRENT-BUFFER is the buffer that
          was current when the variable was bound.  */
       else if (CONSP (specpdl_ptr->symbol))
