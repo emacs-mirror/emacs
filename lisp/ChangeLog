@@ -1,3 +1,11 @@
+2001-11-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* international/mule-diag.el (list-character-sets)
+	(sort-listed-character-sets, describe-character-set)
+	(describe-coding-system, describe-fontset, list-fontsets):
+	Use `help-buffer' and move `help-setup-xref' to beginning.
+	(describe-char-after): Use `internal-describe-syntax-value'.
+
 2001-11-02  Richard M. Stallman  <rms@gnu.org>
 
 	* mouse.el (popup-menu): If the user refuses to select
@@ -34,7 +42,7 @@
 
 	* textmodes/sgml-mode.el (sgml-xml-guess): Fix regexp
 	to avoid ambiguous nested loops.
-	
+
 	* files.el (find-file-noselect): Offer to change buffer-read-only
 	only when the file's read-only status has changed from before
 	as well as disagreeing with the buffer's current status.
