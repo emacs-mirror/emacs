@@ -123,11 +123,6 @@ int minibuffer_auto_raise;
 
 static Lisp_Object last_exact_completion;
 
-/* Non-nil means it is the window for C-M-v to scroll
-   when the minibuffer is selected.  */
-
-extern Lisp_Object Vminibuf_scroll_window;
-
 extern Lisp_Object Voverriding_local_map;
 
 Lisp_Object Quser_variable_p;
@@ -551,6 +546,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
     Fredirect_frame_focus (selected_frame, mini_frame);
 
   Vminibuf_scroll_window = selected_window;
+  if (minibuf_level == 1 || !EQ (minibuf_window, selected_window))
+    Vminibuf_selected_window = selected_window;
   Fset_window_buffer (minibuf_window, Fcurrent_buffer ());
   Fselect_window (minibuf_window);
   XSETFASTINT (XWINDOW (minibuf_window)->hscroll, 0);
