@@ -347,10 +347,9 @@ until a user explicitly requires it."
 
 ;;;###autoload
 (defvar rmail-mime-feature 'rmail-mime
-  "Feature to provide for using MIME feature in RMAIL.
-When starting rmail, this feature is requrired if rmail-enable-mime
-is non-nil.")
-
+  "Feature to require to load MIME support in Rmail.
+When starting Rmail, if `rmail-enable-mime' is non-nil,
+this feature is required with `require'.")
 
 ;;; Regexp matching the delimiter of messages in UNIX mail format
 ;;; (UNIX From lines), minus the initial ^.  Note that if you change
