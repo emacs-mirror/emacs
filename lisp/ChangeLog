@@ -1,3 +1,7 @@
+1999-11-29  Dave Love  <fx@gnu.org>
+
+	* help.el (help-mode-hook): Define.
+
 1999-11-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/edebug.el (edebug-make-enter-wrapper): Correct
