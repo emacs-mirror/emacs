@@ -38,8 +38,8 @@ when creating new masters.")
   "*If non-nil, backups of registered files are made as with other files.
 If nil (the default), files covered by version control don't get backups.")
 
-(defvar vc-rcs-status t
-  "*If non-nil, revision and locks on RCS working file displayed in modeline.
+(defvar vc-display-status t
+  "*If non-nil, display revision number and lock status in modeline.
 Otherwise, not displayed.")
 
 ;; Tell Emacs about this new kind of minor mode
@@ -132,16 +132,18 @@ of the buffer."
 (defun vc-mode-line (file &optional label)
   "Set `vc-mode' to display type of version control for FILE.
 The value is set in the current buffer, which should be the buffer
-visiting FILE."
+visiting FILE.  Second optional arg LABEL is put in place of version
+control system name."
   (interactive (list buffer-file-name nil))
   (if file
       (let ((vc-type (vc-backend-deduce file)))
 	(setq vc-mode
-	      (and vc-type
-		   (concat " " (or label (symbol-name vc-type))
-			   (if (and vc-rcs-status (eq vc-type 'RCS))
-			       (vc-rcs-status file)))))
-	;; Even root shouldn't modify a registered file without locking it first.
+	      (if vc-type
+		  (concat " " (or label (symbol-name vc-type))
+			  (if vc-display-status
+			      (vc-status file vc-type)))))
+	;; Even root shouldn't modify a registered file without
+	;; locking it first.
 	(and vc-type
 	     (not buffer-read-only)
 	     (zerop (user-uid))
@@ -158,9 +160,9 @@ visiting FILE."
 	;;(set-buffer-modified-p (buffer-modified-p))  ;;use this if Emacs 18
 	vc-type)))
 
-(defun vc-rcs-status (file)
+(defun vc-status (file vc-type)
   ;; Return string for placement in modeline by `vc-mode-line'.
-  ;; If FILE is not registered under RCS, return nil.
+  ;; If FILE is not registered, return nil.
   ;; If FILE is registered but not locked, return " REV" if there is a head
   ;; revision and " @@" otherwise.
   ;; If FILE is locked then return all locks in a string of the
@@ -169,18 +171,19 @@ visiting FILE."
 
   ;; Algorithm: 
 
-  ;; 1. Check for master file corresponding to FILE being visited.
+  ;; Check for master file corresponding to FILE being visited.
   ;; 
-  ;; 2. Insert the first few characters of the master file into a work
-  ;; buffer.
-  ;;  
-  ;; 3. Search work buffer for "locks...;" phrase; if not found, then
-  ;; keep inserting more characters until the phrase is found.
-  ;; 
-  ;; 4. Extract the locks, and remove control characters
+  ;; RCS: Insert the first few characters of the master file into a
+  ;; work buffer.  Search work buffer for "locks...;" phrase; if not
+  ;; found, then keep inserting more characters until the phrase is
+  ;; found.  Extract the locks, and remove control characters
   ;; separating them, like newlines; the string " user1:revision1
   ;; user2:revision2 ..." is returned.
-
+  ;;
+  ;; SCCS: Check if the p-file exists.  If it does, read it and
+  ;; extract the locks, giving them the right format.  Else use prs to
+  ;; find the revision number.
+  
   ;; Limitations:
 
   ;; The output doesn't show which version you are actually looking at.
@@ -188,55 +191,85 @@ visiting FILE."
   ;; The head revision is probably not what you want if you've used `rcs -b'.
 
   (let ((master (vc-name file))
-	found)
+	found
+	status)
 
-    ;; If master file exists, then parse its contents, otherwise we return the 
-    ;; nil value of this if form.
-    (if master
+    ;; If master file exists, then parse its contents, otherwise we
+    ;; return the nil value of this if form.
+    (if (and master vc-type)
         (save-excursion
 
           ;; Create work buffer.
-          (set-buffer (get-buffer-create " *vc-rcs-status*"))
+          (set-buffer (get-buffer-create " *vc-status*"))
           (setq buffer-read-only nil
                 default-directory (file-name-directory master))
           (erase-buffer)
 
-          ;; Check if we have enough of the header.
-	  ;; If not, then keep including more.
-          (while
-	      (not (or found
-		       (let ((s (buffer-size)))
-			 (goto-char (1+ s))
-			 (zerop (car (cdr (insert-file-contents
-					   master nil s (+ s 8192))))))))
-	    (beginning-of-line)
-	    (setq found (re-search-forward "^locks\\([^;]*\\);" nil t)))
+	  ;; Set the `status' var to the return value.
+	  (cond
 
-          (if found
-	      ;; Clean control characters and self-locks from text.
-	      (let* ((lock-pattern
-		      (concat "[ \b\t\n\v\f\r]+\\("
-			      (regexp-quote (user-login-name))
-			      ":\\)?"))
-		     (locks
-		      (save-restriction
-			(narrow-to-region (match-beginning 1) (match-end 1))
-			(goto-char (point-min))
-			(while (re-search-forward lock-pattern nil t)
-			  (replace-match (if (eobp) "" ":") t t))
-			(buffer-string)))
-		     (status
-		      (if (not (string-equal locks ""))
-			  locks
-			(goto-char (point-min))
-			(if (looking-at "head[ \b\t\n\v\f\r]+\\([.0-9]+\\)")
-			    (concat "-" (buffer-substring (match-beginning 1)
-							  (match-end 1)))
-			  " @@"))))
-		;; Clean work buffer.
-		(erase-buffer)
-		(set-buffer-modified-p nil)
-		status))))))
+	   ;; RCS code.
+	   ((eq vc-type 'RCS)
+	    ;; Check if we have enough of the header.
+	    ;; If not, then keep including more.
+	    (while
+		(not (or found
+			 (let ((s (buffer-size)))
+			   (goto-char (1+ s))
+			   (zerop (car (cdr (insert-file-contents
+					     master nil s (+ s 8192))))))))
+	      (beginning-of-line)
+	      (setq found (re-search-forward "^locks\\([^;]*\\);" nil t)))
+
+	    (if found
+		;; Clean control characters and self-locks from text.
+		(let* ((lock-pattern
+			(concat "[ \b\t\n\v\f\r]+\\("
+				(regexp-quote (user-login-name))
+				":\\)?"))
+		       (locks
+			(save-restriction
+			  (narrow-to-region (match-beginning 1) (match-end 1))
+			  (goto-char (point-min))
+			  (while (re-search-forward lock-pattern nil t)
+			    (replace-match (if (eobp) "" ":") t t))
+			  (buffer-string))))
+		  (setq status
+			(if (not (string-equal locks ""))
+			    locks
+			  (goto-char (point-min))
+			  (if (looking-at "head[ \b\t\n\v\f\r]+\\([.0-9]+\\)")
+			      (concat "-"
+				      (buffer-substring (match-beginning 1)
+							(match-end 1)))
+			    " @@"))))))
+
+	   ;; SCCS code.
+	   ((eq vc-type 'SCCS)
+	    ;; Build the name of the p-file and put it in the work buffer.
+	    (insert master)
+	    (search-backward "/s.")
+	    (delete-char 2)
+	    (insert "/p")
+	    (if (not (file-exists-p (buffer-string)))
+		;; No lock.
+		(let ((exec-path (if vc-path (append exec-path vc-path)
+				   exec-path)))
+		  (erase-buffer)
+		  (insert "-")
+		  (if (zerop (call-process "prs" nil t nil "-d:I:" master))
+		      (setq status (buffer-substring 1 (1- (point-max))))))
+	      ;; Locks exist.
+	      (insert-file-contents (buffer-string) nil nil nil t)
+	      (while (looking-at "[^ ]+ \\([^ ]+\\) \\([^ ]+\\).*\n")
+		(replace-match " \\2:\\1"))
+	      (setq status (buffer-string))
+	      (aset status 0 ?:))))
+
+	  ;; Clean work buffer.
+	  (erase-buffer)
+	  (set-buffer-modified-p nil)
+	  status))))
 
 ;;; install a call to the above as a find-file hook
 (defun vc-find-file-hook ()
@@ -258,7 +291,7 @@ visiting FILE."
   "When file is not found, try to check it out from RCS or SCCS.
 Returns t if checkout was successful, nil otherwise."
   (if (vc-backend-deduce buffer-file-name)
-      (progn
+      (save-excursion
 	(require 'vc)
 	(not (vc-error-occurred (vc-checkout buffer-file-name))))))
 
@@ -284,8 +317,40 @@ Returns t if checkout was successful, nil otherwise."
       (define-key vc-prefix-map "u" 'vc-revert-buffer)
       (define-key vc-prefix-map "v" 'vc-next-action)
       (define-key vc-prefix-map "=" 'vc-diff)
-      (define-key vc-prefix-map "~" 'vc-version-other-window)
-      ))
+      (define-key vc-prefix-map "~" 'vc-version-other-window)))
+
+;;;(define-key vc-menu-map [show-files]
+;;;  '("Show Files under VC" . (vc-directory t)))
+(define-key vc-menu-map [vc-directory] '("Show Locked Files" . vc-directory))
+(define-key vc-menu-map [separator1] '("----"))
+(define-key vc-menu-map [vc-rename-file] '("Rename File" . vc-rename-file))
+(define-key vc-menu-map [vc-version-other-window]
+  '("Show Other Version" . vc-version-other-window))
+(define-key vc-menu-map [vc-diff] '("Compare with Last Version" . vc-diff))
+(define-key vc-menu-map [vc-update-change-log]
+  '("Update ChangeLog" . vc-update-change-log))
+(define-key vc-menu-map [vc-print-log] '("Show History" . vc-print-log))
+(define-key vc-menu-map [separator2] '("----"))
+(define-key vc-menu-map [undo] '("Undo Last Check-In" . vc-cancel-version))
+(define-key vc-menu-map [vc-revert-buffer]
+  '("Revert to Last Version" . vc-revert-buffer))
+(define-key vc-menu-map [vc-insert-header]
+  '("Insert Header" . vc-insert-headers))
+(define-key vc-menu-map [vc-menu-check-in] '("Check In" . vc-next-action))
+(define-key vc-menu-map [vc-check-out] '("Check Out" . vc-toggle-read-only))
+(define-key vc-menu-map [vc-register] '("Register" . vc-register))
+
+(put 'vc-rename-file 'menu-enable 'vc-mode)
+(put 'vc-version-other-window 'menu-enable 'vc-mode)
+(put 'vc-diff 'menu-enable 'vc-mode)
+(put 'vc-update-change-log 'menu-enable '(eq (vc-backend-deduce (buffer-file-name)) 'RCS))
+(put 'vc-print-log 'menu-enable 'vc-mode)
+(put 'vc-cancel-version 'menu-enable 'vc-mode)
+(put 'vc-revert-buffer 'menu-enable 'vc-mode)
+(put 'vc-insert-headers 'menu-enable 'vc-mode)
+(put 'vc-next-action 'menu-enable '(and vc-mode (not buffer-read-only)))
+(put 'vc-toggle-read-only 'menu-enable '(and vc-mode buffer-read-only))
+(put 'vc-register 'menu-enable '(not vc-mode))
 
 (provide 'vc-hooks)
 
