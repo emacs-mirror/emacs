@@ -124,25 +124,47 @@ C-l -- redisplay screen and ask again."
 	(recursive-edit))
     (if (not executing-macro)
 	nil
-      (let ((loop t))
+      (let ((loop t)
+	    (msg (substitute-command-keys
+		  "Proceed with macro?\\<query-replace-map>\
+ (\\[act], \\[skip], \\[exit], \\[recenter], \\[edit]")))
 	(while loop
-	  (let ((char (let ((executing-macro nil)
-			    (defining-kbd-macro nil))
-			(message "Proceed with macro? (Space, DEL, C-d, C-r or C-l) ")
-			(read-char))))
-	    (cond ((= char ? )
+	  (let ((key (let ((executing-macro nil)
+			   (defining-kbd-macro nil))
+		       (message msg)
+		       (read-event)))
+		def)
+	    (setq key (vector key))
+	    (setq def (lookup-key query-replace-map key))
+	    (cond ((eq def 'act)
 		   (setq loop nil))
-		  ((= char ?\177)
+		  ((eq def 'skip)
 		   (setq loop nil)
 		   (setq executing-macro ""))
-		  ((= char ?\C-d)
+		  ((eq def 'exit)
 		   (setq loop nil)
 		   (setq executing-macro t))
-		  ((= char ?\C-l)
+		  ((eq def 'recenter)
 		   (recenter nil))
-		  ((= char ?\C-r)
+		  ((eq def 'edit)
 		   (let (executing-macro defining-kbd-macro)
-		     (recursive-edit))))))))))
+		     (recursive-edit)))
+		  ((eq def 'quit)
+		   (setq quit-flag t))
+		  (t
+		   (or (eq def 'help)
+		       (ding))
+		   (with-output-to-temp-buffer "*Help*"
+		     (princ
+		      (substitute-command-keys
+		       "Specify how to procede with keyboard macro execution.
+Possibilities: \\<query-replace-map>
+\\[act]	Finish this iteration normally and continue with the next.
+\\[skip]	Skip the rest of this iteration, and start the next.
+\\[exit]	Stop the macro entirely right now.
+\\[recenter]	Redisplay the screen, then ask again.
+\\[edit]	Enter recursive edit; ask again when you exit from that."))))
+		  )))))))
 
 ;;;###autoload
 (defun apply-macro-to-region-lines (top bottom &optional macro)
