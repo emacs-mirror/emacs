@@ -514,6 +514,26 @@ Use \\[toggle-read-only] to permit editing."
   (setq buffer-read-only t)
   (current-buffer))
 
+(defun find-alternate-file-other-window (filename)
+  "Find file FILENAME as a replacement for the file in the next window.
+This command does not select that window."
+  (interactive
+   (save-selected-window
+     (other-window 1)
+     (let ((file buffer-file-name)
+	   (file-name nil)
+	   (file-dir nil))
+       (and file
+	    (setq file-name (file-name-nondirectory file)
+		  file-dir (file-name-directory file)))
+       (list (read-file-name
+	      "Find alternate file: " file-dir nil nil file-name)))))
+  (if (one-window-p)
+      (find-file-other-window filename)
+    (save-selected-window
+      (other-window 1)
+      (find-alternate-file filename))))
+
 (defun find-alternate-file (filename)
   "Find file FILENAME, select its buffer, kill previous buffer.
 If the current buffer now contains an empty file that you just visited
