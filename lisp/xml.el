@@ -27,13 +27,13 @@
 
 ;; This file contains a somewhat incomplete non-validating XML parser.  It
 ;; parses a file, and returns a list that can be used internally by
-;; any other lisp libraries.
+;; any other Lisp libraries.
 
 ;;; FILE FORMAT
 
 ;; The document type declaration may either be ignored or (optionally)
 ;; parsed, but currently the parsing will only accept element
-;; declarations.  The XML file is assumed to be well-formed. In case
+;; declarations.  The XML file is assumed to be well-formed.  In case
 ;; of error, the parsing stops and the XML file is shown where the
 ;; parsing stopped.
 ;;
@@ -44,7 +44,7 @@
 ;;       <node2 attr3="name3" attr4="name4">value2</node2>
 ;;       <node3 attr5="name5" attr6="name6">value3</node3>
 ;;    </node1>
-;; Of course, the name of the nodes and attributes can be anything. There can
+;; Of course, the name of the nodes and attributes can be anything.  There can
 ;; be any number of attributes (or none), as well as any number of children
 ;; below the nodes.
 ;;
@@ -86,7 +86,18 @@
 
 (defsubst xml-node-name (node)
   "Return the tag associated with NODE.
-The tag is a lower-case symbol."
+Without namespace-aware parsing, the tag is a symbol.
+
+With namespace-aware parsing, the tag is a cons of a string
+representing the uri of the namespace with the local name of the
+tag.  For example,
+
+    <foo>
+
+would be represented by
+
+    '(\"\" . \"foo\")."
+
   (car node))
 
 (defsubst xml-node-attributes (node)
@@ -101,17 +112,17 @@ This is a list of nodes, and it can be nil."
 
 (defun xml-get-children (node child-name)
   "Return the children of NODE whose tag is CHILD-NAME.
-CHILD-NAME should be a lower case symbol."
+CHILD-NAME should match the value returned by `xml-node-name'."
   (let ((match ()))
     (dolist (child (xml-node-children node))
-      (if child
-	  (if (equal (xml-node-name child) child-name)
-	      (push child match))))
+      (if (and (listp child)
+               (equal (xml-node-name child) child-name))
+          (push child match)))
     (nreverse match)))
 
 (defun xml-get-attribute-or-nil (node attribute)
   "Get from NODE the value of ATTRIBUTE.
-Return `nil' if the attribute was not found.
+Return nil if the attribute was not found.
 
 See also `xml-get-attribute'."
   (cdr (assoc attribute (xml-node-attributes node))))
@@ -236,7 +247,8 @@ If PARSE-NS is non-nil, then QNAMES are expanded."
 	    (nreverse xml)))))))
 
 (defun xml-maybe-do-ns (name default xml-ns)
-  "Perform any namespace expansion.  NAME is the name to perform the expansion on.
+  "Perform any namespace expansion.
+NAME is the name to perform the expansion on.
 DEFAULT is the default namespace.  XML-NS is a cons of namespace
 names to uris.  When namespace-aware parsing is off, then XML-NS
 is nil.
@@ -381,8 +393,8 @@ Returns one of:
       (error "XML: Invalid character")))))
 
 (defun xml-parse-attlist (&optional xml-ns)
-  "Return the attribute-list after point.  Leave point at the
-first non-blank character after the tag."
+  "Return the attribute-list after point.
+Leave point at the first non-blank character after the tag."
   (let ((attlist ())
 	end-pos name)
     (skip-syntax-forward " ")
@@ -573,7 +585,7 @@ This follows the rule [28] in the XML specifications."
 
 ;; Fixme:  Take declared entities from the DTD when they're available.
 (defun xml-substitute-entity (match)
-  "Subroutine of xml-substitute-special."
+  "Subroutine of `xml-substitute-special'."
   (save-match-data
     (let ((match1 (match-string 1 str)))
       (cond ((string= match1 "lt") "<")
