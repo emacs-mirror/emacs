@@ -1,0 +1,32 @@
+# impl.gmk.gp: GNUMAKEFILE FRAGMENT FOR GNU CC/GPROF
+#
+# $HopeName$
+# Copyright (C) 1998 Harlequin Group plc, all rights reserved
+#
+# This file is included by platform makefiles that use the GNU CC
+# compiler with gprof.  It defines the compiler specific variables 
+# that the common makefile fragment (impl.gmk.comm) requires.
+
+
+CC = gcc
+CFLAGSCOMPILER = \
+	-ansi -pedantic -Wall -Werror -Wpointer-arith \
+	-Wstrict-prototypes -Wmissing-prototypes \
+	-Winline -Waggregate-return -Wnested-externs \
+	-Wcast-qual -Wshadow -pg
+CFLAGSDEBUG = -g -ggdb3
+CFLAGSOPT = -O -g -ggdb3
+CFLAGSOPTNODEBUG = -O -g0
+
+# gcc -MM generates a dependency line of the form:
+#   thing.o : thing.c ...
+# The sed line converts this into:
+#   <pfm>/<variety>/thing.o <pfm>/<variety>/thing.d : thing.c ...
+# @@ This sequence is vulnerable to interrupts (for some reason)
+
+define gendep
+	$(SHELL) -ec "gcc -c $(CFLAGS) -MM $< | \
+		sed '/:/s!$*.o!$(@D)/& $(@D)/$*.d!' > $@"
+endef
+
+include comm.gmk
