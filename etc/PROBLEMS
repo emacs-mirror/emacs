@@ -44,7 +44,7 @@ distributions, such as Debian, may already have applied such a patch.)
 Note that Emacs 21 has native support for (non-CJK) Unicode, so you
 may not need Mule-UCS to edit Western utf-8 text, for instance.  There
 are various enhancements at <URL:ftp://dlpx1.dl.ac.uk/fx/emacs/Mule>
-which improve Emacs 21's handling of non-ASCII text including dealing
+which improve Emacs 21's handling of non-ASCII text, including dealing
 with CJK Unicode.
 
 * Building Emacs with GCC 2.9x fails in the `src' directory.
@@ -964,28 +964,6 @@ can be found.
 Other systems allow to set LD_RUN_PATH in a similar way, but before
 Emacs is linked.  With LD_RUN_PATH set, the linker will include a
 specified run-time search path in the executable.
-
-On some systems, Emacs could crash due to problems with dynamic
-linking.  Specifically, on SGI Irix 6.5, crashes were reported with
-backtraces like this:
-
-  (dbx) where
-   0 strcmp(0xf49239d, 0x4031184, 0x40302b4, 0x12, 0xf0000000, 0xf4923aa, 0x0, 0x492ddb2) ["/xlv22/ficus-jan23/work/irix/lib/libc/libc_n32_M3_ns/strings/strcmp.s":35, 0xfb7e480]
-   1 general_find_symbol(0xf49239d, 0x0, 0x0, 0x0, 0xf0000000, 0xf4923aa, 0x0, 0x492ddb2)
- ["/comp2/mtibuild/v73/workarea/v7.3/rld/rld.c":2140, 0xfb65a98]
-   2 resolve_symbol(0xf49239d, 0x4031184, 0x0, 0xfbdd438, 0x0, 0xf4923aa, 0x0, 0x492ddb2)
- ["/comp2/mtibuild/v73/workarea/v7.3/rld/rld.c":1947, 0xfb657e4]
-   3 lazy_text_resolve(0xd18, 0x1a3, 0x40302b4, 0x12, 0xf0000000, 0xf4923aa, 0x0, 0x492ddb2)
- ["/comp2/mtibuild/v73/workarea/v7.3/rld/rld.c":997, 0xfb64d44]
-   4 _rld_text_resolve(0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0)
- ["/comp2/mtibuild/v73/workarea/v7.3/rld/rld_bridge.s":175, 0xfb6032c]
-
-(`rld' is the dynamic linker.)  We don't know yet why this
-happens, but setting the environment variable LD_BIND_NOW to 1 (which
-forces the dynamic linker to bind all shared objects early on) seems
-to work around the problem.
-
-Please refer to the documentation of your dynamic linker for details.
 
 * On Solaris 2.7, building Emacs with WorkShop Compilers 5.0 98/12/15
 C 5.0 failed, apparently with non-default CFLAGS, most probably due to

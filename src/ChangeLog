@@ -1,3 +1,7 @@
+2002-10-15  Dave Love  <fx@gnu.org>
+
+	* unexelf.c (unexec): Deal with .got on Irix 6.5.
+
 2002-10-14  Juanma Barranquero  <lektu@terra.es>
 
 	* xselect.c (syms_of_xselect): Fix docstring for
