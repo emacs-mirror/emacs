@@ -1135,7 +1135,7 @@ merge_properties_sticky (pleft, pright)
       tmp = Fassq (sym, Vtext_property_default_nonsticky);
       use_left = (lpresent
 		  && ! (TMEM (sym, lrear)
-			|| CONSP (tmp) && ! NILP (XCDR (tmp))));
+			|| (CONSP (tmp) && ! NILP (XCDR (tmp)))));
       use_right = (TMEM (sym, rfront)
 		   || (CONSP (tmp) && NILP (XCDR (tmp))));
       if (use_left && use_right)
