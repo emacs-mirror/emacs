@@ -556,6 +556,9 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
   (setq parse-sexp-ignore-comments t)
   (make-local-variable 'compare-windows-whitespace)
   (setq compare-windows-whitespace 'tex-categorize-whitespace)
+  (make-local-variable 'skeleton-further-elements)
+  (setq skeleton-further-elements
+	  '((indent-line-function 'indent-relative-maybe)))
   (make-local-variable 'facemenu-add-face-function)
   (make-local-variable 'facemenu-end-add-face)
   (make-local-variable 'facemenu-remove-face-function)
@@ -728,25 +731,20 @@ A prefix arg inhibits the checking."
     (insert ?})))
 
 ;;; Like tex-insert-braces, but for LaTeX.
-(defun tex-latex-block (name)
-  "Creates a matching pair of lines `\\begin{NAME}' and `\\end{NAME}' at point.
+(define-skeleton tex-latex-block
+  "Create a matching pair of lines \\begin[OPT]{NAME} and \\end{NAME} at point.
 Puts point on a blank line between them."
-  (interactive
-   (prog2
-      (barf-if-buffer-read-only)
-      (list
-       (completing-read "LaTeX block name: "
-			(mapcar 'list
-                                (append standard-latex-block-names
-                                        latex-block-names))))))
-  (let ((col (current-column)))
-    (insert (format "\\begin{%s}\n" name))
-    (indent-to col)
-    (save-excursion
-      (insert ?\n)
-      (indent-to col)
-      (insert-string (format "\\end{%s}" name))
-      (if (eobp) (insert ?\n)))))
+  (completing-read "LaTeX block name: "
+		   (mapcar 'list
+			   (append standard-latex-block-names
+				   latex-block-names)))
+  "\\begin["
+  (skeleton-read "[options]: ") & ?\] | -1
+  ?\{
+  str
+  ?\} \n
+  _ \n
+  "\\end{" str ?\})
 
 (defun tex-last-unended-begin ()
   "Leave point at the beginning of the last `\\begin{...}' that is unended."
