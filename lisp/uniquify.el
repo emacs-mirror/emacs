@@ -166,6 +166,11 @@ contains the name of the directory which the buffer is visiting.")
 ;; Internal variables used free
 (defvar uniquify-possibly-resolvable nil)
 
+(defvar uniquify-managed nil
+  "Non-nil if the name of this buffer is managed by uniquify.")
+(make-variable-buffer-local 'uniquify-managed)
+(put 'uniquify-managed 'permanent-local t)
+
 ;;; Main entry point.
 
 (defun uniquify-rationalize-file-buffer-names (&optional newbuffile newbuf)
@@ -184,6 +189,9 @@ Arguments NEWBUFFILE and NEWBUF cause only a subset of buffers to be renamed."
 	(when (and (not (and uniquify-ignore-buffers-re
 			     (string-match uniquify-ignore-buffers-re
 					   bufname)))
+		   ;; Only try to rename buffers we actually manage.
+		   (or (buffer-local-value 'uniquify-managed buffer)
+		       (eq buffer newbuf))
 		   (setq bfn (if (eq buffer newbuf) newbuffile
 			       (uniquify-buffer-file-name buffer)))
 		   (setq rawname (file-name-nondirectory bfn))
@@ -193,6 +201,10 @@ Arguments NEWBUFFILE and NEWBUF cause only a subset of buffers to be renamed."
 	  (push (uniquify-make-item rawname bfn buffer
 				    (uniquify-get-proposed-name rawname bfn))
 		fix-list))))
+    ;; Mark the new buffer as managed.
+    (when newbuf
+      (with-current-buffer newbuf
+	(setq uniquify-managed t)))
     ;; selects buffers whose names may need changing, and others that
     ;; may conflict, then bring conflicting names together
     (uniquify-rationalize-a-list fix-list)))
@@ -322,7 +334,7 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
     (unless (equal newname (buffer-name buffer))
       (with-current-buffer buffer
 	(let ((uniquify-buffer-name-style nil))	;Avoid hooks on rename-buffer.
-	  ;; Pass the `unique' arg, just in case.
+	  ;; Pass the `unique' arg, so the advice doesn't mark it as unmanaged.
 	  (rename-buffer newname t))))))
 
 ;;; Hooks from the rest of Emacs
@@ -344,17 +356,18 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 
 (defadvice rename-buffer (after rename-buffer-uniquify activate)
   "Uniquify buffer names with parts of directory name."
-  (if (and uniquify-buffer-name-style
-	   ;; UNIQUE argument
-	   (ad-get-arg 1))
-      (progn
-	(if uniquify-after-kill-buffer-p
-	    ;; call with no argument; rationalize vs. old name as well as new
-	    (uniquify-rationalize-file-buffer-names)
-	  ;; call with argument: rationalize vs. new name only
-	  (uniquify-rationalize-file-buffer-names
-	   (uniquify-buffer-file-name (current-buffer)) (current-buffer)))
-	(setq ad-return-value (buffer-name (current-buffer))))))
+  (if (null (ad-get-arg 1))		; no UNIQUE argument.
+      ;; Mark this buffer so it won't be renamed by uniquify.
+      (setq uniquify-managed nil)
+    (when uniquify-buffer-name-style
+      (if uniquify-after-kill-buffer-p
+	  ;; call with no argument; rationalize vs. old name as well as new
+	  (progn (setq uniquify-managed t)
+		 (uniquify-rationalize-file-buffer-names))
+	;; call with argument: rationalize vs. new name only
+	(uniquify-rationalize-file-buffer-names
+	 (uniquify-buffer-file-name (current-buffer)) (current-buffer)))
+      (setq ad-return-value (buffer-name (current-buffer))))))
 
 (defadvice create-file-buffer (after create-file-buffer-uniquify activate)
   "Uniquify buffer names with parts of directory name."
@@ -375,7 +388,8 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 (defun uniquify-delay-rationalize-file-buffer-names ()
   "Add `delayed-uniquify-rationalize-file-buffer-names' to `post-command-hook'.
 For use on, eg, `kill-buffer-hook', to rationalize *after* buffer deletion."
-  (if (and uniquify-buffer-name-style
+  (if (and uniquify-managed
+	   uniquify-buffer-name-style
 	   uniquify-after-kill-buffer-p
 	   ;; Rationalizing is costly, so don't do it for temp buffers.
 	   (uniquify-buffer-file-name (current-buffer)))
