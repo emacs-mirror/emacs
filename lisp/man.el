@@ -3,8 +3,6 @@
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author:		Barry A. Warsaw <bwarsaw@cen.com>
-;; Last-Modified:	$Date: 1995/05/29 13:20:51 $
-;; Version:		$Revision: 1.62 $
 ;; Keywords:		help
 ;; Adapted-By:		ESR, pot
 
