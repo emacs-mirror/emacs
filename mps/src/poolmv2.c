@@ -1,14 +1,12 @@
 /* impl.c.poolmv2: MANUAL VARIABLE POOL, II
  *
- * $HopeName: MMsrc!poolmv2.c(trunk.13) $
- * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
- *
- * .readership: any MPS developer
+ * $HopeName: MMsrc!poolmv2.c(trunk.14) $
+ * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * .purpose: A manual-variable pool designed to take advantage of
  *  placement according to predicted deathtime.
  *
- * .design: See design.mps.poolmv2
+ * .design: See design.mps.poolmv2.  UNFINISHED.
  */
 
 #include "mpm.h"
@@ -18,7 +16,7 @@
 #include "cbs.h"
 #include "meter.h"
 
-SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.13) $");
+SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.14) $");
 
 
 /* Signatures */
@@ -35,8 +33,7 @@ static void MV2Finish(Pool pool);
 static Res MV2BufferFill(Addr *baseReturn, Addr *limitReturn,
                          Pool pool, Buffer buffer, Size minSize,
                          Bool withReservoirPermit);
-static void MV2BufferEmpty(Pool pool, Buffer buffer, 
-                           Addr base, Addr limit);
+static void MV2BufferEmpty(Pool pool, Buffer buffer, Addr base, Addr limit);
 static void MV2Free(Pool pool, Addr base, Size size);
 static Res MV2Describe(Pool pool, mps_lib_FILE *stream);
 static Res MV2SegAlloc(Seg *segReturn, MV2 mv2, Size size, Pool pool,
@@ -47,13 +44,9 @@ static Bool MV2ReturnBlockSegs(MV2 mv2, CBSBlock block, Arena arena);
 static void MV2NoteNew(CBS cbs, CBSBlock block, Size oldSize, Size newSize);
 static void MV2NoteDelete(CBS cbs, CBSBlock block, Size oldSize, Size newSize);
 static void ABQRefillIfNecessary(MV2 mv2, Size size);
-static Bool ABQRefillCallback(CBS cbs, CBSBlock block, void *closureP,
-                              unsigned long closureS);
-static Res MV2ContingencySearch(CBSBlock *blockReturn, CBS cbs,
-                                Size min);
-static Bool MV2ContingencyCallback(CBS cbs, CBSBlock block,
-                                   void *closureP,
-                                   unsigned long closureS);
+static Bool ABQRefillCallback(CBS cbs, CBSBlock block, void *closureP);
+static Res MV2ContingencySearch(CBSBlock *blockReturn, CBS cbs, Size min);
+static Bool MV2ContingencyCallback(CBS cbs, CBSBlock block, void *closureP);
 static Bool MV2CheckFit(CBSBlock block, Size min, Arena arena);
 static MV2 PoolPoolMV2(Pool pool);
 static Pool MV2Pool(MV2 mv2);
@@ -703,10 +696,10 @@ static Res MV2Describe(Pool pool, mps_lib_FILE *stream)
   Res res;
   MV2 mv2;
 
-  AVERT(Pool, pool);
+  if (!CHECKT(Pool, pool)) return ResFAIL;
   mv2 = PoolPoolMV2(pool);
-  AVERT(MV2, mv2);
-  AVER(stream != NULL);
+  if (!CHECKT(MV2, mv2)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
 
   res = WriteF(stream,
 	       "MV2 $P\n{\n", (WriteFP)mv2,
@@ -727,113 +720,78 @@ static Res MV2Describe(Pool pool, mps_lib_FILE *stream)
 	       "  available: $U \n", (WriteFU)mv2->available,
 	       "  unavailable: $U \n", (WriteFU)mv2->unavailable,
 	       NULL);
-  if(res != ResOK)
-    return res;
+  if(res != ResOK) return res;
 
   res = CBSDescribe(MV2CBS(mv2), stream);
-  if(res != ResOK)
-    return res;
+  if(res != ResOK) return res;
 
   res = ABQDescribe(MV2ABQ(mv2), stream);
-  if(res != ResOK)
-    return res;
+  if(res != ResOK) return res;
 
   res = METER_WRITE(mv2->segAllocs, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->segFrees, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->bufferFills, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->bufferEmpties, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->poolFrees, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->poolSize, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->poolAllocated, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->poolAvailable, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->poolUnavailable, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->poolUtilization, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->finds, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->overflows, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->underflows, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->refills, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->refillPushes, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->refillOverflows, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->refillReturns, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->perfectFits, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->firstFits, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->secondFits, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->failures, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->emergencyContingencies, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->fragLimitContingencies, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->contingencySearches, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->contingencyHardSearches, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->splinters, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->splintersUsed, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->splintersDropped, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->sawdust, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->exceptions, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->exceptionSplinters, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   res = METER_WRITE(mv2->exceptionReturns, stream);
-  if (res != ResOK)
-    return res;
+  if (res != ResOK) return res;
   
   res = WriteF(stream, "}\n", NULL);
   return res;
@@ -922,8 +880,7 @@ static Res MV2SegAlloc(Seg *segReturn, MV2 mv2, Size size,
     mv2->size += segSize;
     mv2->available += segSize;
     mv2->availLimit = mv2->size * mv2->fragLimit / 100;
-    AVER(mv2->size == mv2->allocated + mv2->available +
-         mv2->unavailable);
+    AVER(mv2->size == mv2->allocated + mv2->available + mv2->unavailable);
     METER_ACC(mv2->segAllocs, segSize);
   }
   return res;
@@ -940,8 +897,7 @@ static void MV2SegFree(MV2 mv2, Seg seg)
   mv2->available -= size;
   mv2->size -= size;
   mv2->availLimit = mv2->size * mv2->fragLimit / 100;
-  AVER(mv2->size == mv2->allocated + mv2->available +
-       mv2->unavailable);
+  AVER(mv2->size == mv2->allocated + mv2->available + mv2->unavailable);
   SegFree(seg);
   METER_ACC(mv2->segFrees, size);
 }
@@ -969,10 +925,8 @@ static Bool MV2ReturnBlockSegs(MV2 mv2, CBSBlock block, Arena arena)
     segBase = SegBase(seg);
     segLimit = SegLimit(seg);
     if (base <= segBase && limit >= segLimit) {
-      {
-        Res r = CBSDelete(MV2CBS(mv2), segBase, segLimit);
-        AVER(r == ResOK);
-      }
+      Res r = CBSDelete(MV2CBS(mv2), segBase, segLimit);
+      AVER(r == ResOK);
       MV2SegFree(mv2, seg);
       success = TRUE;
     }
@@ -1050,7 +1004,7 @@ static void ABQRefillIfNecessary(MV2 mv2, Size size)
   if (mv2->abqOverflow && ABQIsEmpty(MV2ABQ(mv2))) {
     mv2->abqOverflow = FALSE;
     METER_ACC(mv2->refills, size);
-    CBSIterateLarge(MV2CBS(mv2), &ABQRefillCallback, NULL, 0);
+    CBSIterateLarge(MV2CBS(mv2), &ABQRefillCallback, NULL);
   }
 }
 
@@ -1058,8 +1012,7 @@ static void ABQRefillIfNecessary(MV2 mv2, Size size)
 /* ABQRefillCallback -- called from CBSIterate at the behest of
  * ABQRefillIfNecessary
  */
-static Bool ABQRefillCallback(CBS cbs, CBSBlock block, void *closureP,
-                              unsigned long closureS)
+static Bool ABQRefillCallback(CBS cbs, CBSBlock block, void *closureP)
 {
   Res res;
   MV2 mv2;
@@ -1071,7 +1024,6 @@ static Bool ABQRefillCallback(CBS cbs, CBSBlock block, void *closureP,
   AVERT(CBSBlock, block);
   AVER(CBSBlockSize(block) >= mv2->reuseSize);
   UNUSED(closureP);
-  UNUSED(closureS);
 
   METER_ACC(mv2->refillPushes, ABQDepth(MV2ABQ(mv2)));
   res = ABQPush(MV2ABQ(mv2), block);
@@ -1104,10 +1056,9 @@ typedef struct MV2ContigencyStruct
 } MV2ContigencyStruct;
 
 
-/* MV2ContingencySearch -- search the CBS for a block of size min
- */
-static Res MV2ContingencySearch(CBSBlock *blockReturn, CBS cbs,
-                                Size min)
+/* MV2ContingencySearch -- search the CBS for a block of size min */
+
+static Res MV2ContingencySearch(CBSBlock *blockReturn, CBS cbs, Size min)
 {
   MV2ContigencyStruct cls;
 
@@ -1117,8 +1068,7 @@ static Res MV2ContingencySearch(CBSBlock *blockReturn, CBS cbs,
   cls.steps = 0;
   cls.hardSteps = 0;
   
-  CBSIterate(cbs, &MV2ContingencyCallback, (void *)&cls,
-             (unsigned long)sizeof(cls));
+  CBSIterate(cbs, &MV2ContingencyCallback, (void *)&cls);
   if (cls.blockReturn != NULL) {
     AVER(CBSBlockSize(cls.blockReturn) >= min);
     METER_ACC(CBSMV2(cbs)->contingencySearches, cls.steps);
@@ -1136,9 +1086,7 @@ static Res MV2ContingencySearch(CBSBlock *blockReturn, CBS cbs,
 /* MV2ContingencyCallback -- called from CBSIterate at the behest of
  * MV2ContingencySearch
  */
-static Bool MV2ContingencyCallback(CBS cbs, CBSBlock block,
-                                   void *closureP,
-                                   unsigned long closureS)
+static Bool MV2ContingencyCallback(CBS cbs, CBSBlock block, void *closureP)
 {
   MV2Contigency cl;
   Size size;
@@ -1146,7 +1094,6 @@ static Bool MV2ContingencyCallback(CBS cbs, CBSBlock block,
   AVERT(CBS, cbs);
   AVERT(CBSBlock, block);
   AVER(closureP != NULL);
-  AVER(closureS == sizeof(MV2ContigencyStruct));
 
   cl = (MV2Contigency)closureP;
   size = CBSBlockSize(block);
