@@ -201,7 +201,7 @@ set_bdf_font_info(bdffont *fontp)
     else if (search_file_line("CHARSET_ENCODING", start, len,
 			      (char **)&p, (char **)&q) == 1)
       {
-        fontp->encoding = get_quoted_string(p, q);
+	fontp->encoding = get_quoted_string(p, q);
       }
     else if (search_file_line("SLANT", start, len,
 			      (char **)&p, (char **)&q) == 1)
@@ -768,6 +768,7 @@ struct font_info *w32_load_bdf_font (struct frame *f, char *fontname,
 
   /* Now fill in the slots of *FONTP.  */
   BLOCK_INPUT;
+  bzero (fontp, sizeof (*fontp));
   fontp->font = font;
   fontp->font_idx = dpyinfo->n_fonts;
   fontp->name = (char *) xmalloc (strlen (fontname) + 1);
@@ -785,7 +786,7 @@ struct font_info *w32_load_bdf_font (struct frame *f, char *fontname,
        uses this font.  So, we set informatoin in fontp->encoding[1]
        which is never used by any charset.  If mapping can't be
        decided, set FONT_ENCODING_NOT_DECIDED.  */
-    fontp->encoding[1] = FONT_ENCODING_NOT_DECIDED;
+    fontp->encoding_type = FONT_ENCODING_NOT_DECIDED;
     fontp->baseline_offset = bdf_font->yoffset;
     fontp->relative_compose = bdf_font->relative_compose;
     fontp->default_ascent = bdf_font->default_ascent;
