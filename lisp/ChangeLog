@@ -1,3 +1,10 @@
+2001-12-10  Noah Friedman  <friedman@splode.com>
+
+	* battery.el (battery-insert-file-contents): Obsolete function
+	removed.
+	(battery-read-function): Obsolete function removed.
+	(battery-linux-proc-apm): Use insert-file-contents.
+
 2001-12-07  Stephen Eglen  <stephen@gnu.org>
 
 	* iswitchb.el (iswitchb-visit-buffer): Use
@@ -45,8 +52,8 @@
 	unibyte codes.
 
 	* language/european.el (diacritic-composition-pattern): New constant.
-	(diacritic-compose-region, diacritic-compose-string) 
-	(diacritic-compose-buffer, diacritic-post-read-conversion) 
+	(diacritic-compose-region, diacritic-compose-string)
+	(diacritic-compose-buffer, diacritic-post-read-conversion)
 	(diacritic-composition-function): New functions.
 
 	* international/utf-8.el (ucs-mule-to-mule-unicode): New
