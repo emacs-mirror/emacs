@@ -3826,6 +3826,7 @@ maybe_resize_hash_table (h)
 	new_size = old_size + XFASTINT (h->rehash_size);
       else
 	new_size = old_size * XFLOATINT (h->rehash_size);
+      new_size = max (old_size + 1, new_size);
       index_size = next_almost_prime (new_size
 				      / XFLOATINT (h->rehash_threshold));
       if (max (index_size, 2 * new_size) & ~VALMASK)
