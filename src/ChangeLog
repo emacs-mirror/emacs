@@ -1,3 +1,27 @@
+2000-05-29  Dave Love  <fx@gnu.org>
+
+	* textprop.c (Qkeymap): New variable.
+	(syms_of_textprop): Intern it.
+
+	* keymap.c: Include intervals.h.
+	(Fkey_binding, Fwhere_is_internal): Deal with `keymap' property.
+
+	* Makefile.in (keymap.o): Depend on intervals.h.
+
+	* keyboard.c (menu_bar_items, tool_bar_items)
+	(Fexecute_extended_command): Deal with `keymap' property.
+	(read_key_sequence): Track map from `keymap' property as well as
+	`local_map'.
+
+	* intervals.c (get_local_map): Extra arg to allow looking for
+	`keymap' too.
+
+	* intervals.h (map_property): New enum.
+	(get_local_map): Extra arg using it.
+	(Qkeymap): Declare.
+
+	* lisp.h: (get_local_map: Don't declare here.
+
 2000-05-29  Kenichi Handa  <handa@etl.go.jp>
 
 	* Makefile.in (callproc.o): Depend on composite.h.
