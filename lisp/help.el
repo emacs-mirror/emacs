@@ -66,6 +66,7 @@
 (define-key help-map "F" 'view-emacs-FAQ)
 
 (define-key help-map "i" 'info)
+(define-key help-map "4i" 'info-other-window)
 (define-key help-map "\C-f" 'Info-goto-emacs-command-node)
 (define-key help-map "\C-k" 'Info-goto-emacs-key-command-node)
 (define-key help-map "\C-i" 'info-lookup-symbol)
@@ -214,14 +215,6 @@ With arg, you are asked to choose which language."
   "Print the name of the function KEY invokes.  KEY is a string.
 If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
   (interactive "kDescribe key briefly: \nP")
-  ;; If this key seq ends with a down event, discard the
-  ;; following click or drag event.  Otherwise that would
-  ;; erase the message.
-  (let ((type (aref key (1- (length key)))))
-    (if (listp type) (setq type (car type)))
-    (and (symbolp type)
-	 (memq 'down (event-modifiers type))
-	 (read-event)))
   (save-excursion
     (let ((modifiers (event-modifiers (aref key 0)))
 	  (standard-output (if insert (current-buffer) t))
@@ -305,14 +298,6 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
 (defun describe-key (key)
   "Display documentation of the function invoked by KEY.  KEY is a string."
   (interactive "kDescribe key: ")
-  ;; If this key seq ends with a down event, discard the
-  ;; following click or drag event.  Otherwise that would
-  ;; erase the message.
-  (let ((type (aref key (1- (length key)))))
-    (if (listp type) (setq type (car type)))
-    (and (symbolp type)
-	 (memq 'down (event-modifiers type))
-	 (read-event)))
   (save-excursion
     (let ((modifiers (event-modifiers (aref key 0)))
 	  window position)
