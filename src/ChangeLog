@@ -1,5 +1,7 @@
 2002-07-12  Richard M. Stallman  <rms@gnu.org>
 
+	* fileio.c (Fwrite_region): Doc fix.
+
 	* print.c (print_error_message): Don't handle Vsignaling_function here.
 
 	* keyboard.c (cmd_error_internal): Handle Vsignaling_function here.

@@ -1,3 +1,18 @@
+2002-07-12  Richard M. Stallman  <rms@gnu.org>
+
+	* strokes.el (strokes-help): Call print-help-return-message
+	while inside with-output-to-temp-buffer.
+
+	* info.el (info-emacs-manual): New function.
+	(Info-use-header-line): Doc fix.
+
+	* emacs-lisp/cl.el (multiple-value-call): Add alias.
+
+	* progmodes/compile.el (compilation-normalize-filename):
+	New subroutine, taken out of compilation-parse-errors.
+	(compilation-parse-errors): Use that, and for directories too.
+	Don't check whether a directory really exists.
+
 2002-07-12  Juanma Barranquero  <lektu@terra.es>
 
 	* help-fns.el (describe-variable): Put `defvaralias' info before the
@@ -52,6 +67,11 @@
 	(speedbar-file-lists): Likewise.
 
 	* emacs-lisp/authors.el (authors-obsolete-file-p): Fix typo.
+
+2002-07-09  Ole Aamot  <ole@gnu.org>
+
+	* compile.el (compilation-error-regexp-alist):
+	Recognize Valgrind messages.
 
 2002-07-09  Juanma Barranquero  <lektu@terra.es>
 
