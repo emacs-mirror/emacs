@@ -151,7 +151,7 @@ mkdir ${tempdir}
 echo "Making links to top-level files." 
 ln GETTING.GNU.SOFTWARE INSTALL PROBLEMS README BUGS move-if-change ${tempdir}
 ln ChangeLog Makefile.in configure configure.in ${tempdir}
-ln config.bat make-dist vpath.sed ${tempdir}
+ln config.bat make-dist update-subdirs vpath.sed ${tempdir}
 ### Copy these files; they're cross-filesystem symlinks.
 cp config.sub ${tempdir}
 cp config.guess ${tempdir}
@@ -186,7 +186,6 @@ echo "Making links to \`lisp'."
  ln ChangeLog Makefile ChangeLog.? README dired.todo ../${tempdir}/lisp
  cd ../${tempdir}/lisp
  rm -f TAGS =*
- rm -f subdirs.el
  rm -f site-init site-init.el site-init.elc
  rm -f site-load site-load.el site-load.elc
  rm -f default default.el default.elc)
@@ -260,7 +259,7 @@ echo "Making links to \`lib-src'."
 echo "Making links to \`msdos'."
 (cd msdos
  ln  ChangeLog emacs.ico emacs.pif ../${tempdir}/msdos
- ln mainmake sed[1234].inp ../${tempdir}/msdos
+ ln mainmake sed*.inp ../${tempdir}/msdos
  cd ../${tempdir}/msdos
  rm -f =*)
 
