@@ -7,11 +7,11 @@
 ;; Author:     Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:   print, PostScript
-;; Time-stamp: <98/05/22  21:11:07 vinicius>
-;; Version:    3.06.2
+;; Time-stamp: <98/06/04  15:23:12 vinicius>
+;; Version:    3.06.3
 
-(defconst ps-print-version "3.06.2"
-  "ps-print.el, v 3.06.2 <98/05/22 vinicius>
+(defconst ps-print-version "3.06.3"
+  "ps-print.el, v 3.06.3 <98/06/04 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs,
@@ -2398,6 +2398,7 @@ StandardEncoding 46 82 getinterval aload pop
 (defvar ps-output-head nil)
 (defvar ps-output-tail nil)
 
+(defvar ps-page-postscript 0)
 (defvar ps-page-count 0)
 (defvar ps-showline-count 1)
 
@@ -3203,7 +3204,7 @@ page-height == bm + print-height + tm - ho - hh
 
 (defun ps-begin-file ()
   (ps-get-page-dimensions)
-  (setq ps-showline-count (if ps-printing-region (car ps-printing-region) 1)
+  (setq ps-page-postscript 0
 	ps-background-text-count 0
 	ps-background-image-count 0
 	ps-background-pages nil
@@ -3263,14 +3264,7 @@ page-height == bm + print-height + tm - ho - hh
 
   (ps-output-boolean "Zebra" ps-zebra-stripes)
   (ps-output-boolean "PrintLineNumber" ps-line-number)
-  (ps-output (format "/ZebraHeight %d def\n" ps-zebra-stripe-height)
-	     (format "/Lines %d def\n"
-		     (if ps-printing-region
-			 (cdr ps-printing-region)
-		       (ps-count-lines (point-min) (point-max))))
-	     "/PageCount 0 def\n")	; set total page number
-					; when printing has finished
-					; (see `ps-generate')
+  (ps-output (format "/ZebraHeight %d def\n" ps-zebra-stripe-height))
 
   (ps-background-text)
   (ps-background-image)
@@ -3329,7 +3323,13 @@ page-height == bm + print-height + tm - ho - hh
        (and (buffer-modified-p) " (unsaved)")))))
 
 (defun ps-begin-job ()
-  (setq ps-page-count 0
+  (save-excursion
+    (set-buffer ps-spool-buffer)
+    (goto-char (point-max))
+    (and (re-search-backward "^%%Trailer$" nil t)
+	 (delete-region (match-beginning 0) (point-max))))
+  (setq ps-showline-count (if ps-printing-region (car ps-printing-region) 1)
+	ps-page-count 0
 	ps-control-or-escape-regexp
 	(cond ((eq ps-print-control-characters '8-bit)
 	       "[\000-\037\177-\377]")
@@ -3344,7 +3344,7 @@ page-height == bm + print-height + tm - ho - hh
 
 (defun ps-end-file ()
   (ps-output "\n%%Trailer\n%%Pages: "
-	     (format "%d" (ps-page-number))
+	     (format "%d" ps-page-postscript)
 	     "\n\nEndDoc\n\n%%EOF\n"))
 
 
@@ -3354,17 +3354,21 @@ page-height == bm + print-height + tm - ho - hh
   (ps-begin-page))
 
 (defun ps-header-page ()
+  ;; set total line and page number when printing has finished
+  ;; (see `ps-generate')
   (if (prog1
 	  (zerop (mod ps-page-count ps-number-of-columns))
 	(setq ps-page-count (1+ ps-page-count)))
       ;; Print only when a new real page begins.
-      (let ((page-number (ps-page-number)))
-	(ps-output (format "\n%%%%Page: %d %d\n" page-number page-number))
-	(ps-output "BeginDSCPage\n")
-	(ps-background page-number)
+      (progn
+	(setq ps-page-postscript (1+ ps-page-postscript))
+	(ps-output (format "\n%%%%Page: %d %d\n"
+			   ps-page-postscript ps-page-postscript))
+	(ps-output "/Lines 0 def\n/PageCount 0 def\nBeginDSCPage\n")
+	(ps-background ps-page-postscript)
 	(run-hooks 'ps-print-begin-page-hook))
     ;; Print when any other page begins.
-    (ps-output "BeginDSCPage\n")
+    (ps-output "/Lines 0 def\n/PageCount 0 def\nBeginDSCPage\n")
     (run-hooks 'ps-print-begin-column-hook)))
 
 (defun ps-begin-page ()
@@ -3907,7 +3911,7 @@ If FACE is not a valid face name, it is used default face."
 	  (unwind-protect
 	      (progn
 		(set-buffer ps-spool-buffer)
-
+		(set-buffer-multibyte nil)
 		;; Get a marker and make it point to the current end of the
 		;; buffer,  If an error occurs, we'll delete everything from
 		;; the end of this marker onwards.
@@ -3928,17 +3932,22 @@ If FACE is not a valid face name, it is used default face."
 
 		(and ps-spool-duplex (= (mod ps-page-count 2) 1)
 		     (ps-dummy-page))
+		(ps-end-file)
 		(ps-flush-output)
 
 		;; Back to the PS output buffer to set the page count
-		(set-buffer ps-spool-buffer)
-		(goto-char (point-min))
-		(and (re-search-forward "^/PageCount 0 def$" nil t)
-		     (replace-match (format "/PageCount %d def"
-					    (if ps-print-only-one-header
-						(ps-page-number)
-					      ps-page-count))
-				    t))
+		(let ((total-lines (if ps-printing-region
+				       (cdr ps-printing-region)
+				     (ps-count-lines (point-min) (point-max))))
+		      (total-pages (if ps-print-only-one-header
+				       (ps-page-number)
+				     ps-page-count)))
+		  (set-buffer ps-spool-buffer)
+		  (goto-char (point-min))
+		  (while (re-search-forward "^/Lines 0 def\n/PageCount 0 def$"
+					    nil t)
+		    (replace-match (format "/Lines %d def\n/PageCount %d def"
+					   total-lines total-pages) t)))
 
 		;; Setting this variable tells the unwind form that the
 		;; the PostScript was generated without error.
@@ -3960,8 +3969,6 @@ If FACE is not a valid face name, it is used default face."
   (if (or (not (boundp 'ps-spool-buffer))
 	  (not (symbol-value 'ps-spool-buffer)))
       (message "No spooled PostScript to print")
-    (ps-end-file)
-    (ps-flush-output)
     (if filename
 	(save-excursion
 	  (and ps-razzle-dazzle (message "Saving..."))
