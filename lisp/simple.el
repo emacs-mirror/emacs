@@ -2622,7 +2622,8 @@ it were the arg to `interactive' (which see) to interactively read the value."
 
 ;; Define the major mode for lists of completions.
 
-(defvar completion-list-mode-map nil)
+(defvar completion-list-mode-map nil
+  "Local map for completion list buffers.")
 (or completion-list-mode-map
     (let ((map (make-sparse-keymap)))
       (define-key map [mouse-2] 'mouse-choose-completion)
@@ -2636,13 +2637,17 @@ it were the arg to `interactive' (which see) to interactively read the value."
 ;; Completion mode is suitable only for specially formatted data.
 (put 'completion-list-mode 'mode-class 'special)
 
-;; Record the buffer that was current when the completion list was requested.
-;; Initial value is nil to avoid some compiler warnings.
-(defvar completion-reference-buffer nil)
+(defvar completion-reference-buffer nil
+  "Record the buffer that was current when the completion list was requested.
+This is a local variable in the completion list buffer.
+Initial value is nil to avoid some compiler warnings."
 
-;; This records the length of the text at the beginning of the buffer
-;; which was not included in the completion.
-(defvar completion-base-size nil)
+(defvar completion-base-size nil
+  "Number of chars at beginning of minibuffer not involved in completion.
+This is a local variable in the completion list buffer
+but it talks about the buffer in `completion-reference-buffer'.
+If this is nil, it means to compare text to determine which part
+of the tail end of the buffer's text is involved in completion.")
 
 (defun delete-completion-window ()
   "Delete the completion list window.
@@ -2724,6 +2729,9 @@ WIth prefix argument N, move N items (negative N means move backward)."
       (forward-char 1))
     (delete-char len)))
 
+;; Switch to BUFFER and insert the completion choice CHOICE.
+;; BASE-SIZE, if non-nil, says how many characters of BUFFER's text
+;; to keep.  If it is nil, use choose-completion-delete-max-match instead.
 (defun choose-completion-string (choice &optional buffer base-size)
   (let ((buffer (or buffer completion-reference-buffer)))
     ;; If BUFFER is a minibuffer, barf unless it's the currently
@@ -2764,17 +2772,26 @@ Use \\<completion-list-mode-map>\\[mouse-choose-completion] to select one\
   (setq completion-base-size nil)
   (run-hooks 'completion-list-mode-hook))
 
-(defvar completion-fixup-function nil)
+(defvar completion-fixup-function nil
+  "A function to customize how completions are identified in completion lists.
+`completion-setup-function' calls this function with no arguments
+each time it has found what it thinks is one completion.
+Point is at the end of the completion in the completion list buffer.
+If this function moves point, it can alter the end of that completion.")
+
+;; This function goes in completion-setup-hook, so that it is called
+;; after the text of the completion list buffer is written.
 
 (defun completion-setup-function ()
   (save-excursion
-    (let ((mainbuf (current-buffer))
-	  (base-size (- (point-max) (point-min))))
+    (let ((mainbuf (current-buffer)))
       (set-buffer standard-output)
       (completion-list-mode)
       (make-local-variable 'completion-reference-buffer)
       (setq completion-reference-buffer mainbuf)
-      (setq completion-base-size base-size)
+;;; The value 0 is right in most cases, but not for file name completion.
+;;; so this has to be turned off.
+;;;      (setq completion-base-size 0)
       (goto-char (point-min))
       (if window-system
 	  (insert (substitute-command-keys
