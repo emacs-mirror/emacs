@@ -1,3 +1,7 @@
+2004-04-11  Dave Love  <fx@gnu.org>
+
+	* progmodes/python.el: New file.
+
 2004-04-11  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-hooks.el (vc-arg-list): Function removed.
