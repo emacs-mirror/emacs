@@ -33,12 +33,19 @@
 This regexp should match lines that separate paragraphs
 and should also match lines that start a paragraph
 \(and are part of that paragraph).
+
 The variable `paragraph-separate' specifies how to distinguish
-lines that start paragraphs from lines that separate them.")
+lines that start paragraphs from lines that separate them.
+
+If the variable `use-hard-newlines' is nonnil, then only lines following a
+hard newline are considered to match.")
 
 (defconst paragraph-separate "^[ \t\f]*$" "\
 *Regexp for beginning of a line that separates paragraphs.
-If you change this, you may have to change paragraph-start also.")
+If you change this, you may have to change paragraph-start also.
+
+If the variable `use-hard-newlines' is nonnil, then only lines following a
+hard newline are considered to match.")
 
 (defconst sentence-end (purecopy "[.?!][]\"')}]*\\($\\| $\\|\t\\|  \\)[ \t\n]*") "\
 *Regexp describing the end of a sentence.
@@ -55,6 +62,12 @@ unless it's inside some sort of quotes or parenthesis.")
 Non-nil means the paragraph commands are not affected by `fill-prefix'.
 This is desirable in modes where blank lines are the paragraph delimiters.")
 
+(defsubst looking-at-hard (re)
+  ;; Just for convenience in writing the function below.
+  (and (or (null use-hard-newlines)
+	   (bobp)
+	   (get-text-property (1- (point)) 'hard))
+       (looking-at re)))
 
 (defun forward-paragraph (&optional arg)
   "Move forward to end of paragraph.
@@ -76,12 +89,14 @@ to which the end of the previous line belongs, or the end of the buffer."
 		      fill-prefix-regexp "[ \t]*$")
 	    paragraph-separate)))
     (while (and (< arg 0) (not (bobp)))
-      (if (and (not (looking-at paragraph-separate))
-	       (re-search-backward "^\n" (max (1- (point)) (point-min)) t))
+      (if (and (not (looking-at-hard paragraph-separate))
+	       (re-search-backward "^\n" (max (1- (point)) (point-min)) t)
+	       (looking-at-hard paragraph-separate))
 	  nil
 	;; Move back over paragraph-separating lines.
 	(forward-char -1) (beginning-of-line)
-	(while (and (not (bobp)) (looking-at paragraph-separate))
+	(while (and (not (bobp))
+		    (looking-at-hard paragraph-separate))
 	  (forward-line -1))
 	(if (bobp)
 	    nil
@@ -93,17 +108,23 @@ to which the end of the previous line belongs, or the end of the buffer."
 		  (progn
 		   (while (progn (beginning-of-line)
 				 (and (not (bobp))
-				      (not (looking-at paragraph-separate))
+				      (not (looking-at-hard 
+					    paragraph-separate))
 				      (looking-at fill-prefix-regexp)))
 		     (forward-line -1))
 		   (not (bobp)))
-		(re-search-backward paragraph-start nil t))
+		(while (and (re-search-backward paragraph-start nil 1)
+			    use-hard-newlines
+			    (not (bobp))
+			    (null (get-text-property (1- (point)) 'hard)))
+		  (if (not (bobp)) (backward-char 1)))
+		(> (point) (point-min)))
 	      ;; Found one.
 	      (progn
 		;; Move forward over paragraph separators.
 		;; We know this cannot reach the place we started
 		;; because we know we moved back over a non-separator.
-		(while (and (not (eobp)) (looking-at paragraph-separate))
+		(while (and (not (eobp)) (looking-at-hard paragraph-separate))
 		  (forward-line 1))
 		(if (eq (char-after (- (point) 2)) ?\n)
 		    (forward-line -1)))
@@ -113,17 +134,21 @@ to which the end of the previous line belongs, or the end of the buffer."
     (while (and (> arg 0) (not (eobp)))
       (beginning-of-line)
       (while (prog1 (and (not (eobp))
-			 (looking-at paragraph-separate))
-		    (forward-line 1)))
+			 (looking-at-hard paragraph-separate))
+	       (forward-line 1)))
       (if fill-prefix-regexp
 	  ;; There is a fill prefix; it overrides paragraph-start.
 	  (while (and (not (eobp))
-		      (not (looking-at paragraph-separate))
+		      (not (looking-at-hard paragraph-separate))
 		      (looking-at fill-prefix-regexp))
 	    (forward-line 1))
-	(if (re-search-forward paragraph-start nil t)
-	    (goto-char (match-beginning 0))
-	  (goto-char (point-max))))
+	(while (and (not (eobp))
+		    (re-search-forward paragraph-start nil 1)
+		    use-hard-newlines
+		    (null (get-text-property (1- (match-beginning 0)) 'hard)))
+	  (forward-char 1))
+	(if (< (point) (point-max))
+	    (goto-char (match-beginning 0))))
       (setq arg (1- arg)))))
 
 (defun backward-paragraph (&optional arg)
