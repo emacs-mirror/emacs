@@ -334,6 +334,15 @@ nil for FUNCTION means all messages."
 					     (match-end 4)))
 			     (buffer-substring
 			      (match-beginning 2) (match-end 2))))
+		    ((re-search-forward "\\(19\\|20\\)\\([0-9][0-9]\\)-\\([01][0-9]\\)-\\([0-3][0-9]\\)"
+		      (save-excursion (end-of-line) (point)) t)
+		     (format "%2s%2s%2s"
+			     (buffer-substring
+			      (match-beginning 2) (match-end 2))
+			     (buffer-substring
+			      (match-beginning 3) (match-end 3))
+			     (buffer-substring
+			      (match-beginning 4) (match-end 4))))
 		    (t "??????"))))
 	  "  "
 	  (save-excursion
