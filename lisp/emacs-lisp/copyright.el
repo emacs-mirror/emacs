@@ -57,8 +57,8 @@ The second \\( \\) construct must match the years."
 When this is `function', only ask when called non-interactively."
   :group 'copyright
   :type '(choice (const :tag "Do not ask")
-		 (const :tag "Ask" t)
-		 (const :tag "Ask unless interactive" function)))
+		 (const :tag "Ask unless interactive" function)
+		 (other :tag "Ask" t)))
 
 
 (defconst copyright-current-year (substring (current-time-string) -4)
