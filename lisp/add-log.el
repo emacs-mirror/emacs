@@ -441,6 +441,9 @@ non-nil, otherwise in local time."
 		     (or file-name (find-change-log file-name buffer-file))))
 	 ;; Set ENTRY to the file name to use in the new entry.
 	 (entry (add-log-file-name buffer-file file-name))
+	 ;; Get copies from this buffer
+	 (full-name add-log-full-name)
+	 (mailing-address add-log-mailing-address)
 	 bound)
 
     (if (or (and other-window (not (equal file-name buffer-file-name)))
@@ -452,8 +455,8 @@ non-nil, otherwise in local time."
     (undo-boundary)
     (goto-char (point-min))
     (let ((new-entry (concat (funcall add-log-time-format)
-			     "  " add-log-full-name
-			     "  <" add-log-mailing-address ">")))
+			     "  " full-name
+			     "  <" mailing-address ">")))
       (if (looking-at (regexp-quote new-entry))
 	  (forward-line 1)
 	(insert new-entry "\n\n")))

@@ -1,3 +1,8 @@
+2003-04-12  Morten Welinder  <terra@gnu.org>
+
+	* add-log.el (add-change-log-entry): Get add-log-full-name and
+	add-log-mailing-address from the right buffer.
+
 2003-04-07  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* xt-mouse.el (xterm-mouse-event-read): New function.
