@@ -24,7 +24,7 @@ infodir = ${prefix}/info
 
 # The name of the manual:
 
-VERSION=2.3
+VERSION=2.4
 manual = elisp-manual-19-$(VERSION)
 
 # Uncomment this line for permuted index.
@@ -90,7 +90,7 @@ clean:
 	rm -f makeinfo.o makeinfo getopt.o getopt1.o
 	rm -f texindex.o texindex index.texi
 
-realclean: clean
+maintainer-clean: clean
 	rm -f elisp elisp-*
 
 dist:
