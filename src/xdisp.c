@@ -3829,7 +3829,10 @@ handle_auto_composed_prop (it)
 	  unbind_to (count, Qnil);
 
 	  val = Fget_char_property (args[1], Qauto_composed, it->string);
-	  if (! NILP (val) && this_pos == pos)
+	  /* Return HANDLED_RECOMPUTE_PROPS only if function fontified
+	     something.  This avoids an endless loop if they failed to
+	     fontify the text for which reason ever.  */
+	  if (! NILP (val))
 	    handled = HANDLED_RECOMPUTE_PROPS;
 	}
     }
