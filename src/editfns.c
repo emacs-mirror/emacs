@@ -1202,8 +1202,7 @@ lisp_time_argument (specified_time, result, usec)
         {
           EMACS_TIME t;
 
-          if (-1 == EMACS_GET_TIME (t))
-            return 0;
+          EMACS_GET_TIME (t);
           *usec = EMACS_USECS (t);
           *result = EMACS_SECS (t);
           return 1;
