@@ -1026,31 +1026,31 @@ Optional argument (the prefix) non-nil means save all with no questions.
 Optional second argument EXITING means ask about certain non-file buffers
  as well as about file buffers."
   (interactive "P")
-  (if (zerop (map-y-or-n-p
-	      (function
-	       (lambda (buffer)
-		 (and (buffer-modified-p buffer)
-		      (or
-		       (buffer-file-name buffer)
-		       (and exiting
-			    (save-excursion
-			      (set-buffer buffer)
-			      (and buffer-offer-save (> (buffer-size) 0)))))
-		      (if arg
-			  t
-			(if (buffer-file-name buffer)
-			    (format "Save file %s? "
-				    (buffer-file-name buffer))
-			  (format "Save buffer %s? "
-				  (buffer-name buffer)))))))
-	      (function
-	       (lambda (buffer)
-		 (save-excursion
-		   (set-buffer buffer)
-		   (save-buffer))))
-	      (buffer-list)
-	      '("buffer" "buffers" "save")))
-      (message "(No files need saving)")))
+  (save-excursion
+    (if (zerop (map-y-or-n-p
+		(function
+		 (lambda (buffer)
+		   (and (buffer-modified-p buffer)
+			(or
+			 (buffer-file-name buffer)
+			 (and exiting
+			      (progn
+				(set-buffer buffer)
+				(and buffer-offer-save (> (buffer-size) 0)))))
+			(if arg
+			    t
+			  (if (buffer-file-name buffer)
+			      (format "Save file %s? "
+				      (buffer-file-name buffer))
+			    (format "Save buffer %s? "
+				    (buffer-name buffer)))))))
+		(function
+		 (lambda (buffer)
+		     (set-buffer buffer)
+		     (save-buffer)))
+		(buffer-list)
+		'("buffer" "buffers" "save")))
+	(message "(No files need saving)"))))
 
 (defun not-modified (&optional arg)
   "Mark current buffer as unmodified, not needing to be saved.
