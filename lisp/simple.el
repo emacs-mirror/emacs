@@ -2277,17 +2277,32 @@ in the mode line."
 		  (goto-char blinkpos)
 		  (message
 		   "Matches %s"
+		   ;; Show what precedes the open in its line, if anything.
 		   (if (save-excursion
 			 (skip-chars-backward " \t")
 			 (not (bolp)))
 		       (buffer-substring (progn (beginning-of-line) (point))
 					 (1+ blinkpos))
-		     (buffer-substring blinkpos
-				       (progn
-					(forward-char 1)
-					(skip-chars-forward "\n \t")
-					(end-of-line)
-					(point)))))))
+		     ;; Show what follows the open in its line, if anything.
+		     (if (save-excursion
+			   (forward-char 1)
+			   (skip-chars-forward " \t")
+			   (not (eolp)))
+			 (buffer-substring blinkpos
+					   (progn (end-of-line) (point)))
+		       ;; Otherwise show the previous nonblank line.
+		       (concat
+			(buffer-substring (progn
+					   (backward-char 1)
+					   (skip-chars-backward "\n \t")
+					   (beginning-of-line)
+					   (point))
+					  (progn (end-of-line)
+						 (skip-chars-backward " \t")
+						 (point)))
+			;; Replace the newline and other whitespace with `...'.
+			"..."
+			(buffer-substring blinkpos (1+ blinkpos))))))))
 	     (cond (mismatch
 		    (message "Mismatched parentheses"))
 		   ((not blink-matching-paren-distance)
