@@ -92,32 +92,32 @@ Boston, MA 02111-1307, USA.  */
 
    The former is a hash table in which keys are COMPONENTS-VECs and
    values are the corresponding COMPOSITION-IDs.  This hash table is
-   weak, but as each key (COMPONENTS-VEC) is also kept as a value of
+   weak, but as each key (COMPONENTS-VEC) is also kept as a value of the
    `composition' property, it won't be collected as garbage until all
-   text that have the same COMPONENTS-VEC are deleted.
+   bits of text that have the same COMPONENTS-VEC are deleted.
 
    The latter is a table of pointers to `struct composition' indexed
-   by COMPOSITION-ID.  This structure keep the other information (see
+   by COMPOSITION-ID.  This structure keeps the other information (see
    composite.h).
 
    In general, a text property holds information about individual
    characters.  But, a `composition' property holds information about
-   a sequence of characters (in this sense, it is like `intangible'
+   a sequence of characters (in this sense, it is like the `intangible'
    property).  That means that we should not share the property value
-   in adjacent compositions we can't distinguish them if they have the
+   in adjacent compositions -- we can't distinguish them if they have the
    same property.  So, after any changes, we call
    `update_compositions' and change a property of one of adjacent
    compositions to a copy of it.  This function also runs a proper
    composition modification function to make a composition that gets
    invalid by the change valid again.
 
-   As a value of `composition' property holds information about a
+   As the value of the `composition' property holds information about a
    specific range of text, the value gets invalid if we change the
-   text in the range.  We treat `composition' property always
+   text in the range.  We treat the `composition' property as always
    rear-nonsticky (currently by setting default-text-properties to
    (rear-nonsticky (composition))) and we never make properties of
    adjacent compositions identical.  Thus, any such changes make the
-   range just shorter.  So, we can check the validity of `composition'
+   range just shorter.  So, we can check the validity of the `composition'
    property by comparing LENGTH information with the actual length of
    the composition.
 
@@ -843,7 +843,7 @@ syms_of_composite ()
     args[0] = QCtest;
     args[1] = Qequal;
     args[2] = QCweakness;
-    args[3] = Qnil;
+    args[3] = Qt;
     args[4] = QCsize;
     args[5] = make_number (311);
     composition_hash_table = Fmake_hash_table (6, args);
