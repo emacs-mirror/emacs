@@ -5013,8 +5013,17 @@ make_lispy_event (event)
     case MULTIBYTE_CHAR_KEYSTROKE_EVENT:
       {
 	Lisp_Object lispy_c;
+	int c = event->code;
 
-	XSETFASTINT (lispy_c, event->code);
+	/* Add in the other modifier bits.  We took care of ctrl_modifier
+	   just above, and the shift key was taken care of by the X code,
+	   and applied to control characters by make_ctrl_char.  */
+	c |= (event->modifiers
+	      & (meta_modifier | alt_modifier
+		 | hyper_modifier | super_modifier | ctrl_modifier));
+	/* What about the `shift' modifier ?  */
+	button_down_time = 0;
+	XSETFASTINT (lispy_c, c);
 	return lispy_c;
       }
 
@@ -8205,7 +8214,7 @@ follow_key (key, nmaps, current, defs, next)
    such as Vfunction_key_map and Vkey_translation_map.  */
 typedef struct keyremap
 {
-  Lisp_Object map;
+  Lisp_Object map, parent;
   int start, end;
 } keyremap;
 
@@ -8270,8 +8279,8 @@ access_keymap_keyremap (map, key, prompt, do_funcall)
    The return value is non-zero if the remapping actually took place.  */
 
 static int
-keyremap_step (keybuf, bufsize, fkey, input, doit, diff, parent, prompt)
-     Lisp_Object *keybuf, prompt, parent;
+keyremap_step (keybuf, bufsize, fkey, input, doit, diff, prompt)
+     Lisp_Object *keybuf, prompt;
      keyremap *fkey;
      int input, doit, *diff, bufsize;
 {
@@ -8306,7 +8315,7 @@ keyremap_step (keybuf, bufsize, fkey, input, doit, diff, parent, prompt)
 	  = Faref (next, make_number (i));
 
       fkey->start = fkey->end += *diff;
-      fkey->map = parent;
+      fkey->map = fkey->parent;
 
       return 1;
     }
@@ -8318,7 +8327,7 @@ keyremap_step (keybuf, bufsize, fkey, input, doit, diff, parent, prompt)
   if (!CONSP (fkey->map))
     {
       fkey->end = ++fkey->start;
-      fkey->map = parent;
+      fkey->map = fkey->parent;
     }
   return 0;
 }
@@ -8474,8 +8483,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   last_nonmenu_event = Qnil;
 
   delayed_switch_frame = Qnil;
-  fkey.map = Vfunction_key_map;
-  keytran.map = Vkey_translation_map;
+  fkey.map = fkey.parent = Vfunction_key_map;
+  keytran.map = keytran.parent = Vkey_translation_map;
   /* If there is no translation-map, turn off scanning.  */
   fkey.start = fkey.end = KEYMAPP (fkey.map) ? 0 : bufsize + 1;
   keytran.start = keytran.end = KEYMAPP (keytran.map) ? 0 : bufsize + 1;
@@ -8631,9 +8640,9 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	    keybuf[i - first_unbound - 1] = keybuf[i];
 	  mock_input = t - first_unbound - 1;
 	  fkey.end = fkey.start -= first_unbound + 1;
-	  fkey.map = Vfunction_key_map;
+	  fkey.map = fkey.parent;
 	  keytran.end = keytran.start -= first_unbound + 1;
-	  keytran.map = Vkey_translation_map;
+	  keytran.map = keytran.parent;
 	  goto replay_sequence;
 	}
 
@@ -9185,7 +9194,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	   invariant that keytran.end <= fkey.start).  */
 	{
 	  if (fkey.start < t)
-	    (fkey.start = fkey.end = t, fkey.map = Vfunction_key_map);
+	    (fkey.start = fkey.end = t, fkey.map = fkey.parent);
 	}
       else
 	/* If the sequence is unbound, see if we can hang a function key
@@ -9203,7 +9212,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 				     first_binding >= nmaps) we don't want
 				     to apply this function-key-mapping.  */
 				  fkey.end + 1 == t && first_binding >= nmaps,
-				  &diff, Vfunction_key_map, prompt);
+				  &diff, prompt);
 	    UNGCPRO;
 	    if (done)
 	      {
@@ -9221,7 +9230,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
 	  GCPRO3 (fkey.map, keytran.map, delayed_switch_frame);
 	  done = keyremap_step (keybuf, bufsize, &keytran, max (t, mock_input),
-				1, &diff, Vkey_translation_map, prompt);
+				1, &diff, prompt);
 	  UNGCPRO;
 	  if (done)
 	    {
