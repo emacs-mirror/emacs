@@ -1002,6 +1002,8 @@ extern Lisp_Object Qx_resource_name;
 extern Lisp_Object Qleft, Qright, Qtop, Qbox;
 extern Lisp_Object Qdisplay;
 
+extern Lisp_Object Qwindow_system;
+
 #ifdef HAVE_WINDOW_SYSTEM
 
 /* The class of this X application.  */

@@ -108,6 +108,7 @@ Lisp_Object Qleft_fringe, Qright_fringe;
 Lisp_Object Qbuffer_predicate, Qbuffer_list;
 Lisp_Object Qtty_color_mode;
 Lisp_Object Qtty, Qtty_type;
+Lisp_Object Qwindow_system;
 
 Lisp_Object Qfullscreen, Qfullwidth, Qfullheight, Qfullboth;
 
@@ -750,6 +751,7 @@ Note that changing the size of one terminal frame automatically affects all.  */
   XSETFRAME (frame, f);
   Fmodify_frame_parameters (frame, Vdefault_frame_alist);
   Fmodify_frame_parameters (frame, parms);
+  Fmodify_frame_parameters (frame, Fcons (Fcons (Qwindow_system, Qnil), Qnil));
 
   /* Make the frame face alist be frame-specific, so that each
      frame could change its face definitions independently.  */
@@ -4134,7 +4136,9 @@ syms_of_frame ()
   staticpro (&Qtty);
   Qtty_type = intern ("tty-type");
   staticpro (&Qtty_type);
-
+  Qwindow_system = intern ("window-system");
+  staticpro (&Qwindow_system);
+  
   Qface_set_after_frame_default = intern ("face-set-after-frame-default");
   staticpro (&Qface_set_after_frame_default);
 

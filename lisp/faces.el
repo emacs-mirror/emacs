@@ -1658,7 +1658,7 @@ Value is the new frame created."
   (setq parameters (x-handle-named-frame-geometry parameters))
   (let ((visibility-spec (assq 'visibility parameters))
 	(frame-list (frame-list))
-	(frame (x-create-frame `((window-system . x) (visibility . nil) . ,parameters)))
+	(frame (x-create-frame `((visibility . nil) . ,parameters)))
 	success)
     (unwind-protect
 	(progn
@@ -1744,7 +1744,7 @@ Parameters not specified by PARAMETERS are taken from
 `default-frame-alist'.  If either PARAMETERS or `default-frame-alist'
 contains a `reverse' parameter, handle that.  Value is the new frame
 created."
-  (let ((frame (make-terminal-frame `((window-system . nil) . ,parameters)))
+  (let ((frame (make-terminal-frame parameters))
 	success)
     (unwind-protect
 	(progn

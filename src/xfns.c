@@ -3334,6 +3334,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
       specbind (Qx_resource_name, name);
     }
 
+  Fmodify_frame_parameters (frame, Fcons (Fcons (Qwindow_system, Qx), Qnil));
+
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
   {
@@ -10209,6 +10211,8 @@ x_create_tip_frame (dpyinfo, parms, text)
       Fmodify_frame_parameters (frame, Fcons (Fcons (Qbackground_color, bg),
 					      Qnil));
   }
+
+  Fmodify_frame_parameters (frame, Fcons (Fcons (Qwindow_system, Qx), Qnil));
 
   f->no_split = 1;
 
