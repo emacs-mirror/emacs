@@ -232,19 +232,20 @@ Returns nil if nothing was entered."
 
 (defun solar-atn2 (x y)
    "Arctan of point X, Y."
-   (if (= y 0)
-       (if (> x 0) 90 270)
-     (solar-arctan (/ x y) y)))
+   (if (= x 0)
+       (if (> y 0) 90 270)
+     (solar-arctan (/ y x) x)))
 
 (defun solar-arccos (x)
-  "Arcos of X."
-  (let ((y (sqrt (- 1 (* x x)))))
-    (solar-arctan (/ y x) (solar-xy-to-quadrant x y))))
+     "Arcos of X."
+     (let ((y (sqrt (- 1 (* x x)))))
+       (solar-atn2 x y)))
 
 (defun solar-arcsin (y)
-  "Arcsin of Y."
-  (let ((x (sqrt (- 1 (* y y)))))
-    (solar-arctan (/ y x) (solar-xy-to-quadrant x y))))
+     "Arcsin of Y."
+     (let ((x (sqrt (- 1 (* y y)))))
+       (solar-atn2 x y)
+       ))
 
 (defsubst solar-degrees-to-hours (degrees)
   "Convert DEGREES to hours."
@@ -290,8 +291,9 @@ degrees to find out if polar regions have 24 hours of sun or only night."
           (setq day-length 24)
           (setq day-length 0))
         (setq day-length (- set-time rise-time)))
-    (list (+ rise-time (/ calendar-time-zone 60.0)) 
-          (+ set-time (/ calendar-time-zone 60.0)) day-length)))
+    (list (if rise-time (+ rise-time (/ calendar-time-zone 60.0)) nil)
+          (if set-time (+ set-time (/ calendar-time-zone 60.0)) nil)
+          day-length)))
 
 (defun solar-moment (direction latitude longitude time)
   "Sunrise/sunset at location.
@@ -336,7 +338,7 @@ Uses binary search."
                     (if (< hut -0.61) (setq utmin utmoment))
                     (if (> hut -0.61) (setq utmax utmoment))
                    )
-                (setq possible 0)) the sun never rises
+                (setq possible 0)) ; the sun never rises
                 (setq possible 0)) ; the sun never sets
      (if (equal possible 0) nil utmoment)))
 
@@ -512,11 +514,11 @@ The azimuth is given in degrees as well as the height (between -180 and 180)."
          (ah (- (* st 15) (* 15 (car ec)) (* -1 (calendar-longitude))))
                        ; hour angle (in degrees)
          (de (car (cdr ec)))
-         (azimuth (solar-atn2 (solar-sin-degrees ah)
-                             (- (* (solar-cosine-degrees ah)
+         (azimuth (solar-atn2 (- (* (solar-cosine-degrees ah)
                                    (solar-sin-degrees latitude))
                                 (* (solar-tangent-degrees de)
-                                   (solar-cosine-degrees latitude)))))
+                                   (solar-cosine-degrees latitude)))
+                              (solar-sin-degrees ah)))
          (height (solar-arcsin 
                   (+ (* (solar-sin-degrees latitude) (solar-sin-degrees de))
                      (* (solar-cosine-degrees latitude)
