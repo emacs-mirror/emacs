@@ -214,12 +214,12 @@
 (if (not (boundp 'outline-minor-mode))
     (error "Can't find outline-minor-mode"))
 
-(defconst foldout-fold-list nil
+(defvar foldout-fold-list nil
   "List of start and end markers for the folds currently entered.
 An end marker of nil means the fold ends after (point-max).")
 (make-variable-buffer-local 'foldout-fold-list)
 
-(defconst foldout-modeline-string nil
+(defvar foldout-modeline-string nil
   "Modeline string announcing that we are in an outline fold.")
 (make-variable-buffer-local 'foldout-modeline-string)
 
