@@ -235,13 +235,13 @@ if %COMPILER% == cl set MAKECMD=nmake
 rem   Pass on chosen settings to makefiles.
 echo # Start of settings from configure.bat >config.settings
 echo COMPILER=%COMPILER% >>config.settings
-if (%nodebug%) == (Y) echo NODEBUG=1 >>config.settings
-if (%noopt%) == (Y) echo NOOPT=1 >>config.settings
-if (%nocygwin%) == (Y) echo NOCYGWIN=1 >>config.settings
-if not "(%prefix%)" == "()" echo INSTALL_DIR=%prefix% >>config.settings
-if not "(%usercflags%)" == "()" echo USER_CFLAGS=%usercflags% >>config.settings
-if not "(%userldflags%)" == "()" echo USER_LDFLAGS=%userldflags% >>config.settings
-echo # End of settings from configure.bat >>config.settings
+if (%nodebug%) == (Y) echo NODEBUG=1>>config.settings
+if (%noopt%) == (Y) echo NOOPT=1>>config.settings
+if (%nocygwin%) == (Y) echo NOCYGWIN=1>>config.settings
+if not "(%prefix%)" == "()" echo INSTALL_DIR=%prefix%>>config.settings
+if not "(%usercflags%)" == "()" echo USER_CFLAGS=%usercflags%>>config.settings
+if not "(%userldflags%)" == "()" echo USER_LDFLAGS=%userldflags%>>config.settings
+echo # End of settings from configure.bat>>config.settings
 echo. >>config.settings
 
 copy config.nt ..\src\config.h
