@@ -70,12 +70,6 @@ typedef u_int32_t md5_uint32;
 # endif
 #endif
 
-#undef __P
-#if defined (__STDC__) && __STDC__
-# define __P(x) x
-#else
-# define __P(x) ()
-#endif
 
 #ifndef __GNUC__
 #define __attribute__(X)
