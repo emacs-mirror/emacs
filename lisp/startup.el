@@ -583,6 +583,9 @@ from being initialized."
   (if site-run-file 
       (load site-run-file t t))
 
+  ;; Register avairable input methods by loading LEIM list file.
+  (load "leim-list.el" 'noerror 'nomessage 'nosuffix)
+
   ;; Sites should not disable this.  Only individuals should disable
   ;; the startup message.
   (setq inhibit-startup-message nil)
