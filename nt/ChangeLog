@@ -1,3 +1,8 @@
+2001-12-14  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (bootstrap): Build addsection program before
+	bootstrap (required for post-processing temacs.exe).
+
 2001-12-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* COPYING: New file.
