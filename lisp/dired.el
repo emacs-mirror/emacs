@@ -1199,7 +1199,7 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
 			 ;; some ls -b don't escape quotes, argh!
 			 ;; This is not needed for GNU ls, though.
 			 (or (dired-string-replace-match
-			      "\\([^\\]\\)\"" file "\\1\\\\\"")
+			      "\\([^\\]\\|\\`\\)\"" file "\\1\\\\\"" nil t)
 			     file)
 			 "\"")))))
     (if (eq localp 'no-dir)
