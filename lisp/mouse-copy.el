@@ -77,7 +77,7 @@
 ;;; Future plans:
 ;;;
 ;;; I read about the chording features of Plan-9's Acme environment at
-;;; <http://swifty.dap.csiro.au/%7Ecameron/wily/auug.html>.  I'd like
+;;; <http://www.zip.com.au/~cs/app/wily/auug.html>.  I'd like
 ;;; to incorporate some of these ideas into mouse-copy.  The only
 ;;; lose is that this is not the current Emacs Way Of Doing Things, so
 ;;; there would be a learning curve for existing emacs users.
@@ -93,28 +93,6 @@
 ;;; implementation of horizontal drag-scrolling.
 ;;;
 ;;;    -johnh, 11-Jul-96
-;;;
-;;;
-;;; Old changes, for reference:
-;;;
-;;; What's new with mouse-copy 2.22?
-;;;
-;;; - copy functions split out from mouse-extras.el
-;;; - support for emacs-19.{29,30,31} (no changes needed for the 31 port!)
-;;;
-;;;
-;;; What's new with mouse-extras 2.21?
-;;;
-;;; - support for emacs-19.{29,30}
-;;; - point now stays on the visible screen during horizontal scrolling
-;;;   (bug identified and fix suggested by Tom Wurgler <twurgler@goodyear.com>)
-;;; - better work-around for lost-mouse-events bug (supports double/triple
-;;;   clicks), see \\[mouse-extras-work-around-drag-bug] for details.
-;;; - work-around for lost-mouse-events bug now is OFF by default;
-;;;   enable it if you have problems
-;;;
-
-
 
 ;;; Code:
 
