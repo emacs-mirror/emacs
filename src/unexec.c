@@ -207,11 +207,15 @@ static long data_scnptr;
 
 #else /* not COFF */
 
+#ifdef HPUX
+extern void *sbrk ();
+#else
 #ifdef __STDC__
 extern void *sbrk ();
 #else
 extern char *sbrk ();
-#endif
+#endif /* __STDC__ */
+#endif /* HPUX */
 
 #define SYMS_START ((long) N_SYMOFF (ohdr))
 
