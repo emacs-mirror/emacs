@@ -431,7 +431,7 @@ ENDFUN should return the end position (with or without moving point)."
   (let* ((base-name (symbol-name base))
 	 (prev-sym (intern (concat base-name "-prev")))
 	 (next-sym (intern (concat base-name "-next"))))
-    (unless name (setq name (symbol-name base-name)))
+    (unless name (setq name base-name))
     `(progn
        (add-to-list 'debug-ignored-errors
 		    ,(concat "^No \\(previous\\|next\\) " (regexp-quote name)))
@@ -444,7 +444,7 @@ ENDFUN should return the end position (with or without moving point)."
 	   (if (not (re-search-forward ,re nil t count))
 	       (if (looking-at ,re)
 		   (goto-char (or ,(if endfun `(,endfun)) (point-max)))
-		 (error ,(format "No next %s" name)))
+		 (error "No next %s" ,name))
 	     (goto-char (match-beginning 0))
 	     (when (and (eq (current-buffer) (window-buffer (selected-window)))
 			(interactive-p))
@@ -460,7 +460,7 @@ ENDFUN should return the end position (with or without moving point)."
 	 (unless count (setq count 1))
 	 (if (< count 0) (,next-sym (- count))
 	   (unless (re-search-backward ,re nil t count)
-	     (error ,(format "No previous %s" name))))))))
+	     (error "No previous %s" ,name)))))))
 
 (provide 'easy-mmode)
 
