@@ -1,9 +1,10 @@
-;;; thai.el --- Support for Thai -*- coding: iso-2022-7bit; -*-
+;;; thai.el --- support for Thai -*- coding: iso-2022-7bit; -*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2001  Free Software Foundation, Inc.
 
-;; Keywords: multilingual, Thai
+;; Keywords: multilingual, Thai, i18n
 
 ;; This file is part of GNU Emacs.
 
@@ -56,8 +57,11 @@
 
 
 ;; Register a function to compose Thai characters.
-(aset composition-function-table (make-char 'thai-tis620)
-      '(("\\c0\\c4\\|\\c0\\(\\c2\\|\\c3\\)\\c4?" . thai-composition-function)))
+(let ((patterns '(("\\c0\\c4\\|\\c0\\(\\c2\\|\\c3\\)\\c4?"
+		   . thai-composition-function))))
+  (aset composition-function-table (make-char 'thai-tis620) patterns)
+  (dotimes (i (1+ (- #xe7f #xe00)))
+    (aset composition-function-table (decode-char 'ucs (+ i #xe00)) patterns)))
 
 (provide 'thai)
 
