@@ -278,7 +278,7 @@ summary (abstract) of the message."
 					;"-n" newsgroups
 	      (error "Posting to USENET failed")
 	    (message "Posting to USENET... done"))
-	(mail-sendmail-delmit-header)
+	(mail-sendmail-delimit-header)
 	(set-buffer-modified-p nil)))
     (bury-buffer)))
 
