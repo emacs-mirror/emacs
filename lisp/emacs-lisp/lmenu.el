@@ -227,7 +227,7 @@ The syntax, more precisely:
 						 (car pos))
 					   menu-keymap)))
       (setq cmd (lookup-key menu-keymap (apply 'vector answer)))
-      (setq menu nil)
+      (setq menu-keymap nil)
       (and cmd
 	   (if (keymapp cmd)
 	       (setq menu-keymap cmd)
