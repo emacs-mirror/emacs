@@ -1,3 +1,8 @@
+2004-03-30  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* progmodes/ebnf2ps.el (ebnf-eps-finish-and-write): Write a buffer if
+	and only if the buffer was modified.
+
 2004-03-30  Kenichi Handa  <handa@m17n.org>
 
 	* international/characters.el: Delete pairs for U+2308..U+230B.

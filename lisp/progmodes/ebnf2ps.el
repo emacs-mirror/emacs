@@ -5,7 +5,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/03/28 19:56:21 vinicius>
+;; Time-stamp: <2004/03/30 21:49:21 vinicius>
 ;; Keywords: wp, ebnf, PostScript
 ;; Version: 4.1
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
@@ -4762,52 +4762,53 @@ killed after process termination."
 
 
 (defun ebnf-eps-finish-and-write (buffer filename)
-  (save-excursion
-    (set-buffer buffer)
-    (setq ebnf-eps-upper-x (max ebnf-eps-upper-x ebnf-eps-max-width)
-	  ebnf-eps-upper-y (if (zerop ebnf-eps-upper-y)
-			       ebnf-eps-max-height
-			     (+ ebnf-eps-upper-y
-				ebnf-production-vertical-space
-				ebnf-eps-max-height)))
-    ;; prologue
-    (goto-char (point-min))
-    (insert
-     "%!PS-Adobe-3.0 EPSF-3.0"
-     "\n%%BoundingBox: 0 0 "
-     (format "%d %d" (1+ ebnf-eps-upper-x) (1+ ebnf-eps-upper-y))
-     "\n%%Title: " filename
-     "\n%%CreationDate: " (format-time-string "%T %b %d %Y")
-     "\n%%Creator: " (user-full-name) " (using ebnf2ps v" ebnf-version ")"
-     "\n%%DocumentNeededResources: font "
-     (or ebnf-fonts-required
-	 (setq ebnf-fonts-required
-	       (mapconcat 'identity
-			  (ps-remove-duplicates
-			   (mapcar 'ebnf-font-name-select
-				   (list ebnf-production-font
-					 ebnf-terminal-font
-					 ebnf-non-terminal-font
-					 ebnf-special-font
-					 ebnf-except-font
-					 ebnf-repeat-font)))
-			  "\n%%+ font ")))
-     "\n%%Pages: 0\n%%EndComments\n\n%%BeginProlog\n"
-     ebnf-eps-prologue)
-    (ebnf-insert-ebnf-prologue)
-    (insert ebnf-eps-begin
-	    "\n0 " (ebnf-format-float
-		    (- ebnf-eps-upper-y (* ebnf-font-height-P 0.7)))
-	    " #ebnf2ps#begin\n")
-    ;; epilogue
-    (goto-char (point-max))
-    (insert ebnf-eps-end)
-    ;; write file
-    (message "Saving...")
-    (setq filename (expand-file-name filename))
-    (let ((coding-system-for-write 'raw-text-unix))
-      (write-region (point-min) (point-max) filename))
-    (message "Wrote %s" filename)))
+  (when (buffer-modified-p buffer)
+    (save-excursion
+      (set-buffer buffer)
+      (setq ebnf-eps-upper-x (max ebnf-eps-upper-x ebnf-eps-max-width)
+	    ebnf-eps-upper-y (if (zerop ebnf-eps-upper-y)
+				 ebnf-eps-max-height
+			       (+ ebnf-eps-upper-y
+				  ebnf-production-vertical-space
+				  ebnf-eps-max-height)))
+      ;; prologue
+      (goto-char (point-min))
+      (insert
+       "%!PS-Adobe-3.0 EPSF-3.0"
+       "\n%%BoundingBox: 0 0 "
+       (format "%d %d" (1+ ebnf-eps-upper-x) (1+ ebnf-eps-upper-y))
+       "\n%%Title: " filename
+       "\n%%CreationDate: " (format-time-string "%T %b %d %Y")
+       "\n%%Creator: " (user-full-name) " (using ebnf2ps v" ebnf-version ")"
+       "\n%%DocumentNeededResources: font "
+       (or ebnf-fonts-required
+	   (setq ebnf-fonts-required
+		 (mapconcat 'identity
+			    (ps-remove-duplicates
+			     (mapcar 'ebnf-font-name-select
+				     (list ebnf-production-font
+					   ebnf-terminal-font
+					   ebnf-non-terminal-font
+					   ebnf-special-font
+					   ebnf-except-font
+					   ebnf-repeat-font)))
+			    "\n%%+ font ")))
+       "\n%%Pages: 0\n%%EndComments\n\n%%BeginProlog\n"
+       ebnf-eps-prologue)
+      (ebnf-insert-ebnf-prologue)
+      (insert ebnf-eps-begin
+	      "\n0 " (ebnf-format-float
+		      (- ebnf-eps-upper-y (* ebnf-font-height-P 0.7)))
+	      " #ebnf2ps#begin\n")
+      ;; epilogue
+      (goto-char (point-max))
+      (insert ebnf-eps-end)
+      ;; write file
+      (message "Saving...")
+      (setq filename (expand-file-name filename))
+      (let ((coding-system-for-write 'raw-text-unix))
+	(write-region (point-min) (point-max) filename))
+      (message "Wrote %s" filename))))
 
 
 (defun ebnf-insert-ebnf-prologue ()
