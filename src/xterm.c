@@ -7290,8 +7290,8 @@ void
 clear_mouse_face (dpyinfo)
      struct x_display_info *dpyinfo;
 {
-#if 0 /* This prevents redrawing tool bar items when changing
-	 from one to another, so don't do it.  */
+#if 0 /* This prevents redrawing tool bar items when changing from one
+	 to another while a tooltip is open, so don't do it.  */
   if (!NILP (tip_frame))
     return;
 #endif
