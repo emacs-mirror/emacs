@@ -221,7 +221,7 @@ adjust_markers (from, to, amount)
   register struct Lisp_Marker *m;
   register int mpos;
 
-  marker = current_buffer->markers;
+  marker = BUF_MARKERS (current_buffer);
 
   while (!NILP (marker))
     {
@@ -254,7 +254,7 @@ adjust_markers (from, to, amount)
 static void
 adjust_point (amount)
 {
-  current_buffer->text.pt += amount;
+  BUF_PT (current_buffer) += amount;
 }
 
 /* Make the gap INCREMENT characters longer.  */
@@ -357,7 +357,7 @@ insert_1 (string, length, inherit)
   bcopy (string, GPT_ADDR, length);
 
 #ifdef USE_TEXT_PROPERTIES
-  if (current_buffer->intervals != 0)
+  if (BUF_INTERVALS (current_buffer) != 0)
     /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES.  */
     offset_intervals (current_buffer, PT, length);
 #endif
@@ -369,7 +369,7 @@ insert_1 (string, length, inherit)
   adjust_point (length);
 
 #ifdef USE_TEXT_PROPERTIES
-  if (!inherit && current_buffer->intervals != 0)
+  if (!inherit && BUF_INTERVALS (current_buffer) != 0)
     Fset_text_properties (make_number (PT - length), make_number (PT),
 			  Qnil, Qnil);
 #endif
@@ -497,7 +497,7 @@ insert_from_buffer_1 (buf, pos, length, inherit)
 	   GPT_ADDR + chunk, length - chunk);
 
 #ifdef USE_TEXT_PROPERTIES
-  if (current_buffer->intervals != 0)
+  if (BUF_INTERVALS (current_buffer) != 0)
     offset_intervals (current_buffer, PT, length);
 #endif
 
@@ -508,7 +508,8 @@ insert_from_buffer_1 (buf, pos, length, inherit)
   adjust_point (length);
 
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
-  graft_intervals_into_buffer (copy_intervals (buf->intervals, pos, length),
+  graft_intervals_into_buffer (copy_intervals (BUF_INTERVALS (buf),
+					       pos, length),
 			       PT - length, length, current_buffer, inherit);
 }
 
@@ -660,7 +661,7 @@ modify_region (buffer, start, end)
       || unchanged_modified == MODIFF)
     end_unchanged = Z - end;
 
-  if (MODIFF <= current_buffer->save_modified)
+  if (MODIFF <= SAVE_MODIFF)
     record_first_change ();
   MODIFF++;
 
@@ -680,17 +681,17 @@ prepare_to_modify_buffer (start, end)
     Fbarf_if_buffer_read_only ();
 
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
-  if (current_buffer->intervals != 0)
+  if (BUF_INTERVALS (current_buffer) != 0)
     verify_interval_modification (current_buffer, start, end);
 
 #ifdef CLASH_DETECTION
   if (!NILP (current_buffer->filename)
-      && current_buffer->save_modified >= MODIFF)
+      && SAVE_MODIFF >= MODIFF)
     lock_file (current_buffer->filename);
 #else
   /* At least warn if this file has changed on disk since it was visited.  */
   if (!NILP (current_buffer->filename)
-      && current_buffer->save_modified >= MODIFF
+      && SAVE_MODIFF >= MODIFF
       && NILP (Fverify_visited_file_modtime (Fcurrent_buffer ()))
       && !NILP (Ffile_exists_p (current_buffer->filename)))
     call1 (intern ("ask-user-about-supersession-threat"),
@@ -747,7 +748,7 @@ signal_before_change (start, end)
      Lisp_Object start, end;
 {
   /* If buffer is unmodified, run a special hook for that case.  */
-  if (current_buffer->save_modified >= MODIFF
+  if (SAVE_MODIFF >= MODIFF
       && !NILP (Vfirst_change_hook)
       && !NILP (Vrun_hooks))
     call1 (Vrun_hooks, Qfirst_change_hook);
