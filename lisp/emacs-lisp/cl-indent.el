@@ -377,7 +377,8 @@ by `lisp-body-indent'."
 	   (cond        (&rest (&whole 2 &rest 1)))
 	   (block 1)
 	   (defvar      (4 2 2))
-	   (defconstant . defvar) (defparameter . defvar)
+	   (defconstant . defvar)
+	   (defparameter . defvar)
 	   (define-modify-macro
 			(4 &body))
 	   (define-setf-method
@@ -402,7 +403,7 @@ by `lisp-body-indent'."
 	   (if          (nil nil &body))
 	   ;; single-else style (then and else equally indented)
 	   (if          (&rest nil))
-	   ;(lambda     ((&whole 4 &rest 1) &body))
+	   ;; (lambda     ((&whole 4 &rest 1) &body))
 	   (lambda      ((&whole 4 &rest 1)
 			 &rest lisp-indent-function-lambda-hack))
 	   (let         ((&whole 4 &rest (&whole 1 1 2)) &body))
@@ -410,10 +411,13 @@ by `lisp-body-indent'."
 	   (compiler-let . let) ;barf
 	   (locally 1)
 	   ;(loop ...)
-	   (multiple-value-bind ((&whole 6 &rest 1) 4 &body))
-	   (multiple-value-call (4 &body))
+	   (multiple-value-bind 
+			((&whole 6 &rest 1) 4 &body))
+	   (multiple-value-call
+			(4 &body))
 	   (multiple-value-prog1 1)
-	   (multiple-value-setq (4 2))
+	   (multiple-value-setq
+			(4 2))
 	   (multiple-value-setf . multiple-value-setq)
 	   ;; Combines the worst features of BLOCK, LET and TAGBODY
 	   (prog        ((&whole 4 &rest 1) &rest lisp-indent-tagbody))
