@@ -57,6 +57,11 @@ Buffer}).  Then you can use @kbd{C-x m} or its variants described above
 to make a new @samp{*mail*} buffer.  Once you've done that, you can work
 with each mail buffer independently.
 
+@vindex mail-default-directory
+  The variable @code{mail-default-directory} controls the default
+directory for mail buffers, and also says where to put their auto-save
+files.
+
 @ignore
 @c Commented out because it is not user-oriented;
 @c it doesn't say how to do some job.  -- rms.
