@@ -475,6 +475,9 @@ Here are commands that move to a header field (and create it if there isn't):
   (setq normal-auto-fill-function 'mail-mode-auto-fill)
   (make-local-variable 'fill-paragraph-function)
   (setq fill-paragraph-function 'mail-mode-fill-paragraph)
+  ;; Allow using comment commands to add/remove quoting (this only does
+  ;; anything if mail-yank-prefix is set to a non-nil value).
+  (set (make-local-variable 'comment-start) mail-yank-prefix)
   (make-local-variable 'adaptive-fill-regexp)
   (setq adaptive-fill-regexp
 	(concat "[ \t]*\\([-|#;>*]+ *\\|(?[0-9]+[.)] *\\)+"
