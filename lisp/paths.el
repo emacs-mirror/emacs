@@ -101,7 +101,7 @@ Will use `gnus-startup-file'-SERVER instead if exists.")
 
 (defconst rmail-spool-directory
   (cond ((memq system-type '(dgux-unix hpux usg-unix-v unisoft-unix rtu
-				       irix silicon-graphics-unix))
+				       irix))
 	 "/usr/mail/")
 	((eq system-type 'netbsd)
 	 "/var/mail/")
