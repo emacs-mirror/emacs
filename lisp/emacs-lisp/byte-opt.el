@@ -700,6 +700,10 @@
 ;;; (actually, it would be safe if we know the sole arg
 ;;; is not a marker).
 ;;	((null (cdr (cdr form))) (nth 1 form))
+	((null (cddr form))
+	 (if (numberp (nth 1 form))
+	     (nth 1 form)
+	   form))
 	((and (null (nthcdr 3 form))
 	      (or (memq (nth 1 form) '(1 -1))
 		  (memq (nth 2 form) '(1 -1))))
