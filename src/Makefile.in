@@ -144,6 +144,12 @@ CC = C_COMPILER
 #endif /* ! defined(COFF_ENCAPSULATE) || (defined (BSD_SYSTEM) && !defined (COFF)) */
 #endif /* LD_SWITCH_SYSTEM */
 
+/* This holds special options for linking temacs
+   that should be used for linking anything else.  */
+#ifndef LD_SWITCH_SYSTEM_TEMACS
+#define LD_SWITCH_SYSTEM_TEMACS
+#endif
+
 /* Some m/MACHINE.h files define this to request special switches in ld.  */
 #ifndef LD_SWITCH_MACHINE
 #define LD_SWITCH_MACHINE
@@ -685,6 +691,7 @@ lisp= \
 	VMS_SUPPORT \
 	MSDOS_SUPPORT \
 	WINNT_SUPPORT \
+	${lispsource}widget.elc \
 	${lispsource}window.elc \
 	${lispsource}version.el
 
@@ -741,6 +748,7 @@ shortlisp= \
 	../lisp/text-mode.elc \
 	../lisp/vc-hooks.elc \
 	../lisp/ediff-hook.elc \
+	../lisp/widget.elc \
 	../lisp/window.elc \
 	../lisp/version.el
 
