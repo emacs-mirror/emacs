@@ -1,7 +1,7 @@
-# $Id: etc:crontab,v 1.1 1994/06/15 12:43:24 mm Exp $
+# $Id: etc:crontab,v 1.2 1995/03/22 11:52:50 richard Exp $
  0 21  *  *  *  sh -c ". etc/shenv && overnight checkout"
-30 21  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MMprod_dw_0"
- 0 22  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MMprod_dw"
+30 21  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MMprod_dw_alloc_0"
+ 0 22  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MMprod_dw_alloc"
 30 22  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MM_minimal_0"
  0 23  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MM_minimal"
  0  1  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/trunk"
