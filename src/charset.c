@@ -110,7 +110,7 @@ struct charset *emacs_mule_charset[256];
    CHARS, and FINAL-CHAR) to Emacs' charset.  */
 int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
 
-Lisp_Object Vcharset_map_directory;
+Lisp_Object Vcharset_map_path;
 
 Lisp_Object Vchar_unified_charset_table;
 
@@ -406,8 +406,7 @@ load_charset_map_from_file (charset, mapfile, control_flag)
   suffixes = Fcons (build_string (".map"),
 		    Fcons (build_string (".TXT"), Qnil));
 
-  fd = openp (Fcons (Vcharset_map_directory, Qnil), mapfile, suffixes,
-	      NULL, Qnil);
+  fd = openp (Vcharset_map_path, mapfile, suffixes, NULL, Qnil);
   if (fd < 0
       || ! (fp = fdopen (fd, "r")))
     {
@@ -2039,7 +2038,9 @@ Return charset identification number of CHARSET.  */)
 void
 init_charset ()
 {
-
+  Vcharset_map_path
+    = Fcons (Fexpand_file_name (build_string ("charsets"), Vdata_directory),
+	     Qnil);
 }
 
 
@@ -2131,11 +2132,9 @@ syms_of_charset ()
   defsubr (&Sset_charset_priority);
   defsubr (&Scharset_id_internal);
 
-  DEFVAR_LISP ("charset-map-directory", &Vcharset_map_directory,
-	       doc: /* Directory of charset map files that come with GNU Emacs.
-The default value is sub-directory "charsets" of `data-directory'.  */);
-  Vcharset_map_directory = Fexpand_file_name (build_string ("charsets"),
-					      Vdata_directory);
+  DEFVAR_LISP ("charset-map-path", &Vcharset_map_path,
+	       doc: /* *Lisp of directories to search for charset map files.  */);
+  Vcharset_map_path = Qnil;
 
   DEFVAR_LISP ("charset-list", &Vcharset_list,
 	       doc: /* List of all charsets ever defined.  */);
