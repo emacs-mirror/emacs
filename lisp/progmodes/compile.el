@@ -321,6 +321,7 @@ Returns the compilation buffer created."
 					       outbuf
 					       command)))
 	(set-process-sentinel proc 'compilation-sentinel)
+	(set-process-filter proc 'compilation-filter)
 	(setq compilation-in-progress (cons proc compilation-in-progress))))
     ;; Make it so the next C-x ` will use this buffer.
     (setq compilation-last-buffer outbuf)))
@@ -403,6 +404,17 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
 		(set-buffer obuf))))
 	  (setq compilation-in-progress (delq proc compilation-in-progress))
 	  ))))
+
+(defun compilation-filter (proc string)
+  "Process filter for compilation buffers.
+Just inserts the text, but uses insert-before-markers."
+  (save-excursion
+    (set-buffer (process-buffer proc))
+    (let ((buffer-read-only nil))
+      (save-excursion
+	(goto-char (process-mark proc))
+	(insert-before-markers string)
+	(set-marker (process-mark proc) (point))))))
 
 ;; Return the cdr of compilation-old-error-list for the error containing point.
 (defun compile-error-at-point ()
