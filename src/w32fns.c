@@ -5994,7 +5994,7 @@ static char *
 w32_to_x_charset (fncharset)
     int fncharset;
 {
-  static char buf[16];
+  static char buf[32];
   Lisp_Object charset_type;
 
   switch (fncharset)
@@ -6141,8 +6141,8 @@ w32_to_x_charset (fncharset)
         return buf;
       }
 
-    strncpy(buf, best_match, 15);
-    buf[15] = '\0';
+    strncpy(buf, best_match, 31);
+    buf[31] = '\0';
     return buf;
   }
 }
@@ -6672,13 +6672,16 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
     int FontType;
     enumfont_t * lpef;
 {
-  if (lplf->elfLogFont.lfStrikeOut || lplf->elfLogFont.lfUnderline)
-    return (1);
-  
+  /* Ignore struck out, underlined and vertical versions of fonts.  */
+  if (lplf->elfLogFont.lfStrikeOut || lplf->elfLogFont.lfUnderline
+      || lplf->elfLogFont.lfEscapement != 0
+      || lplf->elfLogFont.lfOrientation != 0)
+    return 1;
+
   /* Check that the character set matches if it was specified */
   if (lpef->logfont.lfCharSet != DEFAULT_CHARSET &&
       lplf->elfLogFont.lfCharSet != lpef->logfont.lfCharSet)
-    return (1);
+    return 1;
 
   {
     char buf[100];
@@ -6725,7 +6728,7 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
 
     /* TODO: List all relevant charsets if charset not specified. */
     if (!w32_to_x_font (&(lplf->elfLogFont), buf, 100, charset))
-      return (0);
+      return 0;
 
     if (NILP (*(lpef->pattern))
         || w32_font_match (buf, XSTRING (*(lpef->pattern))->data))
@@ -6736,7 +6739,7 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
       }
   }
 
-  return (1);
+  return 1;
 }
 
 static int CALLBACK 
