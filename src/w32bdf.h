@@ -29,14 +29,37 @@ Boston, MA 02111-1307, USA.  */
 #define BDF_SECOND_OFFSET(x) ((x) & 0x7f)
 #define BDF_FIRST_OFFSET(x) (((x) >> 8) | (((x) & 0x80) << 1))
 
+#define BDF_FONT_CACHE_SIZE 5000
+#define BDF_FONT_CLEAR_SIZE 1000
+
 /* Structure of glyph information of one character.  */
 typedef struct
 {
   int dwidth;			/* width in pixels */
   int bbw, bbh, bbox, bboy;	/* bounding box in pixels */
+} glyph_metric;
+
+typedef struct
+{
+  glyph_metric metric;
   int bitmap_size;		/* byte lengh of the following slots */
   unsigned char *bitmap;	/*  */
 } glyph_struct;
+
+typedef struct fchar *pfont_char;
+
+typedef struct
+{
+  glyph_metric metric;
+  pfont_char psrc;
+  HBITMAP hbmp;
+} cache_bitmap;
+
+typedef struct fchar
+{
+  unsigned char *offset;
+  cache_bitmap *pcbmp;
+} font_char;
 
 typedef struct
 {
@@ -46,12 +69,19 @@ typedef struct
   unsigned char *font;
   unsigned char *seeked;
   DWORD size;
-  unsigned char **offset[BDF_FIRST_OFFSET_TABLE];
+
+  font_char *chtbl[BDF_FIRST_OFFSET_TABLE];
   int llx, lly, urx, ury;	/* Font bounding box */
 
   int yoffset;
   int relative_compose;
   int default_ascent;
+
+  unsigned char *registry;
+  unsigned char *encoding;
+  unsigned char *slant;
+/*  unsigned char *width; */
+
   int width;
   int height;
   int pixsz;
