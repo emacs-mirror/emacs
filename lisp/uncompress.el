@@ -77,4 +77,6 @@ It then selects a major mode from the uncompressed file name and contents."
 	(setq error nil)
 	t)))
 
+(provide 'uncompress)
+
 ;;; uncompress.el ends here
