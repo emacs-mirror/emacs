@@ -1,3 +1,8 @@
+2004-11-04  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_pattern_regexp): If '*' is preceded by '\',
+	treat it as a literal character.
+
 2004-11-03  Kim F. Storm  <storm@cua.dk>
 
 	* .gdbinit (ppt): New function.
