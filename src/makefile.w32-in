@@ -230,8 +230,11 @@ install:        $(ALL)
 # Maintenance
 # 
 clean:;         - $(DEL) *~ "s/*~" "m/*~"
-		- $(DEL) *.pdb config.h epaths.h
+		- $(DEL) *.pdb
 		- $(DEL_TREE) $(OBJDIR)
+
+distclean:	clean
+		- $(DEL) config.h epaths.h
 
 cleanall:	clean
 		- $(DEL_TREE) obj
