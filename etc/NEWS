@@ -360,6 +360,10 @@ use the -f option when sending mail.
 ** In Isearch mode, mouse-2 in the echo area now yanks the current
 selection into the search string rather than giving an error.
 
+** Ange-ftp allows you to specify of a port number in remote file
+names cleanly.  It is appended to the host name, separated by a hash
+sign, e.g. `/foo@bar.org#666:mumble'.  (This syntax comes from EFS.)
+
 ** New modes and packages
 
 *** 5x5.el is a simple puzzle game.
