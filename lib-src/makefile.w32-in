@@ -139,7 +139,7 @@ WINNT_SUPPORT = $(lispsource)ls-lisp.elc $(lispsource)disp-table.elc $(lispsourc
 MSDOS_SUPPORT = $(lispsource)dos-fns.elc $(lispsource)dos-vars.elc $(lispsource)international/ccl.elc $(lispsource)international/codepage.elc
 VMS_SUPPORT = $(lispsource)vmsproc.elc $(lispsource)vms-patch.elc
 
-lisp= \
+lisp1= \
 	$(lispsource)abbrev.elc \
 	$(lispsource)buff-menu.elc \
 	$(lispsource)button.elc \
@@ -178,7 +178,9 @@ lisp= \
 	$(lispsource)international/latin-5.el \
 	$(lispsource)international/latin-8.el \
 	$(lispsource)international/latin-9.el \
-	$(lispsource)case-table.elc \
+	$(lispsource)case-table.elc
+
+lisp2 = \
 	$(lispsource)language/chinese.elc \
 	$(lispsource)language/cyrillic.elc \
 	$(lispsource)language/indian.elc \
@@ -228,7 +230,8 @@ DOC	      = DOC
 $(DOC):		make-docfile
 		- $(DEL) $(DOC)
 		"$(THISDIR)/$(BLD)/make-docfile" -o $(DOC) -d ../src $(obj)
-		"$(THISDIR)/$(BLD)/make-docfile" -a $(DOC) -d ../src $(lisp)
+		"$(THISDIR)/$(BLD)/make-docfile" -a $(DOC) -d ../src $(lisp1)
+		"$(THISDIR)/$(BLD)/make-docfile" -a $(DOC) -d ../src $(lisp2)
 		$(CP) $(DOC) ../etc/DOC-X
 		- mkdir "../src/$(OBJDIR)"
 		- mkdir "../src/$(OBJDIR)/etc"

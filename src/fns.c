@@ -527,27 +527,6 @@ with the original. */)
   return concat (1, &arg, CONSP (arg) ? Lisp_Cons : XTYPE (arg), 0);
 }
 
-/* In string STR of length LEN, see if bytes before STR[I] combine
-   with bytes after STR[I] to form a single character.  If so, return
-   the number of bytes after STR[I] which combine in this way.
-   Otherwize, return 0.  */
-
-static int
-count_combining (str, len, i)
-     unsigned char *str;
-     int len, i;
-{
-  int j = i - 1, bytes;
-
-  if (i == 0 || i == len || CHAR_HEAD_P (str[i]))
-    return 0;
-  while (j >= 0 && !CHAR_HEAD_P (str[j])) j--;
-  if (j < 0 || ! BASE_LEADING_CODE_P (str[j]))
-    return 0;
-  PARSE_MULTIBYTE_SEQ (str + j, len - j, bytes);
-  return (bytes <= i - j ? 0 : bytes - (i - j));
-}
-
 /* This structure holds information of an argument of `concat' that is
    a string and has text properties to be copied.  */
 struct textprop_rec
@@ -710,25 +689,18 @@ concat (nargs, args, target_type, last_special)
 	  && STRING_MULTIBYTE (this) == some_multibyte)
 	{
 	  int thislen_byte = SBYTES (this);
-	  int combined;
 
 	  bcopy (SDATA (this), SDATA (val) + toindex_byte,
 		 SBYTES (this));
-	  combined =  (some_multibyte && toindex_byte > 0
-		       ? count_combining (SDATA (val),
-					  toindex_byte + thislen_byte,
-					  toindex_byte)
-		       : 0);
 	  if (! NULL_INTERVAL_P (STRING_INTERVALS (this)))
 	    {
 	      textprops[num_textprops].argnum = argnum;
-	      /* We ignore text properties on characters being combined.  */
-	      textprops[num_textprops].from = combined;
+	      textprops[num_textprops].from = 0;
 	      textprops[num_textprops++].to = toindex;
 	    }
 	  toindex_byte += thislen_byte;
-	  toindex += thisleni - combined;
-	  STRING_SET_CHARS (val, SCHARS (val) - combined);
+	  toindex += thisleni;
+	  STRING_SET_CHARS (val, SCHARS (val));
 	}
       /* Copy a single-byte string to a multibyte string.  */
       else if (STRINGP (this) && STRINGP (val))
@@ -814,13 +786,7 @@ concat (nargs, args, target_type, last_special)
 					SDATA (val) + toindex_byte);
 		    else
 		      SSET (val, toindex_byte++, XINT (elt));
-		    if (some_multibyte
-			&& toindex_byte > 0
-			&& count_combining (SDATA (val),
-					    toindex_byte, toindex_byte - 1))
-		      STRING_SET_CHARS (val, SCHARS (val) - 1);
-		    else
-		      toindex++;
+		    toindex++;
 		  }
 		else
 		  /* If we have any multibyte characters,

@@ -1,3 +1,41 @@
+2004-05-10  Andreas Schwab  <schwab@suse.de>
+
+	* lisp.h: Declare Fmake_symbolic_link.
+
+	* fileio.c (Frename_file): Remove extra argument in call to
+	Fmake_symbolic_link.
+
+2004-05-10  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (calc_line_height_property): Use string position when
+	object is a string.
+
+2004-05-10  Kenichi Handa  <handa@m17n.org>
+
+	* print.c (temp_output_buffer_setup): Bind inhibit-read-only and
+	inhibit-modification-hooks to t temporarily before calling
+	Ferase_buffer.
+
+	* xfns.c (x_create_tip_frame): Bind inhibit-read-only and
+	inhibit-modification-hooks to t temporarily before calling
+	Ferase_buffer.
+
+	* w32fns.c (x_create_tip_frame): Bind inhibit-read-only and
+	inhibit-modification-hooks to t temporarily before calling
+	Ferase_buffer.
+
+	* fns.c (count_combining): Delete it.
+	(concat): Don't check combining bytes.
+
+2004-05-09  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Vw32_ansi_code_page): New Lisp variable.
+	(globals_of_w32fns): Set it.
+
+2004-05-09  Piet van Oostrum  <piet@cs.uu.nl>  (tiny change)
+
+	* data.c (Fquo): Simplify.
+
 2004-05-08  Peter Whaite  <emacs@whaite.ca>  (tiny change)
 
 	* data.c (Fquo): If any argument is float, do the computation in

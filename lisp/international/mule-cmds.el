@@ -2413,6 +2413,16 @@ See also `locale-charset-language-names', `locale-language-names',
 	  (prefer-coding-system coding-system)
 	  (setq locale-coding-system coding-system))))
 
+    ;; On Windows, override locale-coding-system, keyboard-coding-system,
+    ;; selection-coding-system with system codepage.
+    (when (boundp 'w32-ansi-code-page)
+      (let ((code-page-coding (intern (format "cp%d" w32-ansi-code-page))))
+	(when (coding-system-p code-page-coding)
+	  (setq locale-coding-system code-page-coding)
+	  (set-selection-coding-system code-page-coding)
+	  (set-keyboard-coding-system code-page-coding)
+	  (set-terminal-coding-system code-page-coding))))
+
     ;; Default to A4 paper if we're not in a C, POSIX or US locale.
     ;; (See comments in Flocale_info.)
     (let ((locale locale)
@@ -2435,7 +2445,11 @@ See also `locale-charset-language-names', `locale-language-names',
 						("posix$" . letter)
 						(".._us" . letter)
 						(".._pr" . letter)
-						(".._ca" . letter)))
+						(".._ca" . letter)
+						("enu$" . letter) ; Windows
+						("esu$" . letter)
+						("enc$" . letter)
+						("frc$" . letter)))
 		    'a4))))))
   nil)
 

@@ -4482,19 +4482,17 @@ Return an updated `non-iso-charset-alist'."
   ?๐  ?๑  ?๒  ?๓  ?๔  ?๕  ?๖  ?๗  ?๘  ?๙  ?๚  ?๛   nil nil nil nil]
  "ISO-8859-11.  This is `thai-tis620' with the addition of no-break-space.")
 
-(dotimes (i 8)
+(dotimes (i 9)
   (let ((w (intern (format "windows-125%d" i)))
 	(c (intern (format "cp125%d" i))))
-    (if (coding-system-p c)		; 1251 is in cyrillic.el
+    ;; Define cp125* as aliases for all windows-125*, so on Windows
+    ;; we can just concat "cp" to the ANSI codepage we get from the system
+    ;; and not have to worry about whether it should be "cp" or "windows-".
+    (if (coding-system-p w)
 	(define-coding-system-alias c w))
     ;; Compatibility with codepage.el, though cp... are not the
     ;; canonical names.
     (push (assoc w non-iso-charset-alist) non-iso-charset-alist)))
-
-;; Use Unicode font under Windows.  Jason Rumney fecit.
-(if (fboundp 'w32-add-charset-info)
-    (unless (boundp 'w32-unicode-charset-defined)
-      (w32-add-charset-info "iso10646-1" 'w32-charset-ansi t)))
 
 (provide 'code-pages)
 

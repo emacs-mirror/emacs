@@ -574,11 +574,6 @@ ought to recognize the Windows language-change event and set up the
 appropriate keyboard encoding automatically, but it doesn't do that
 yet.)
 
-Windows uses UTF-16 encoding to deal with multilingual text (text not
-encodable in the `system codepage') in the clipboard.  To deal with
-this, load the library `utf-16' and use `set-selection-coding-system'
-to set the clipboard coding system to `utf-16-le-with-signature-dos'.
-
 The %b specifier for format-time-string does not produce abbreviated
 month names with consistent widths for some locales on some versions
 of Windows. This is caused by a deficiency in the underlying system

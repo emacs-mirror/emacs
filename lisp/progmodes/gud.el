@@ -4,7 +4,7 @@
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
 
-;; Copyright (C) 1992,93,94,95,96,1998,2000,02,2003 Free Software Foundation, Inc.
+;; Copyright (C) 1992,93,94,95,96,1998,2000,02,03,04 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -2387,7 +2387,8 @@ comint mode, which see."
 	 (filepart (and file-word (concat "-" (file-name-nondirectory file))))
 	 (existing-buffer (get-buffer (concat "*gud" filepart "*"))))
     (pop-to-buffer (concat "*gud" filepart "*"))
-    (if existing-buffer (error "This program is already running under gdb"))
+    (when (and existing-buffer (get-buffer-process existing-buffer))
+      (error "This program is already running under gdb"))
     ;; Set the dir, in case the buffer already existed with a different dir.
     (setq default-directory dir)
     ;; Set default-directory to the file's directory.

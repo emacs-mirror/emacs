@@ -465,7 +465,6 @@ as well as widgets, buttons, overlays, and text properties."
   (if (>= pos (point-max))
       (error "No character follows specified position"))
   (let* ((char (char-after pos))
-	 (char-string (buffer-substring pos (1+ pos)))
 	 (charset (char-charset char))
 	 (buffer (current-buffer))
 	 (composition (find-composition pos nil nil t))
@@ -478,125 +477,114 @@ as well as widgets, buttons, overlays, and text properties."
 	 (overlays (mapcar #'(lambda (o) (overlay-properties o))
 			   (overlays-at pos)))
 	 item-list max-width unicode)
-    (if (eq charset 'unknown)
-	(setq item-list '("character"))
 
-      (if (or (< char 256)
-	      (memq 'mule-utf-8 (find-coding-systems-region pos (1+ pos)))
-	      (get-char-property pos 'untranslated-utf-8))
-	  (setq unicode (or (get-char-property pos 'untranslated-utf-8)
-			    (encode-char char 'ucs))))
-      (setq item-list
-	    `(("character")
-	      ("charset"
-	       ,(symbol-name charset)
-	       ,(format "(%s)" (charset-description charset)))
-	      ("code point"
-	       ,(let ((split (split-char char)))
-		  (if (= (charset-dimension charset) 1)
-		      (format "%d" (nth 1 split))
-		    (format "%d %d" (nth 1 split) (nth 2 split)))))
-	      ("syntax"
- 	       ,(let ((syntax (syntax-after pos)))
-		  (with-temp-buffer
-		    (internal-describe-syntax-value syntax)
-		    (buffer-string))))
-	      ("category"
-	       ,@(let ((category-set (char-category-set char)))
-		   (if (not category-set)
-		       '("-- none --")
-		     (mapcar #'(lambda (x) (format "%c:%s  "
-						   x (category-docstring x)))
-			     (category-set-mnemonics category-set)))))
-	      ,@(let ((props (aref char-code-property-table char))
-		      ps)
-		  (when props
-		    (while props
-		      (push (format "%s:" (pop props)) ps)
-		      (push (format "%s;" (pop props)) ps))
-		    (list (cons "Properties" (nreverse ps)))))
-	      ("buffer code"
-	       ,(encoded-string-description
-		 (string-as-unibyte (char-to-string char)) nil))
-	      ("file code"
-	       ,@(let* ((coding buffer-file-coding-system)
-			(encoded (encode-coding-char char coding)))
-		   (if encoded
-		       (list (encoded-string-description encoded coding)
-			     (format "(encoded by coding system %S)" coding))
-		     (list "not encodable by coding system"
-			   (symbol-name coding)))))
-	      ("display"
-	       ,(cond
-		 (disp-vector
-		  (setq disp-vector (copy-sequence disp-vector))
-		  (dotimes (i (length disp-vector))
-		    (setq char (aref disp-vector i))
-		    (aset disp-vector i
-			  (cons char (describe-char-display pos char))))
-		  (format "by display table entry [%s] (see below)"
-			  (mapconcat #'(lambda (x) (format "?%c" (car x)))
-				     disp-vector " ")))
-		 (composition
-		  (let ((from (car composition))
-			(to (nth 1 composition))
-			(next (1+ pos))
-			(components (nth 2 composition))
-			ch)
-		    (setcar composition
-			    (and (< from pos) (buffer-substring from pos)))
-		    (setcar (cdr composition)
-			    (and (< next to) (buffer-substring next to)))
-		    (dotimes (i (length components))
-		      (if (integerp (setq ch (aref components i)))
-			  (push (cons ch (describe-char-display pos ch))
-				component-chars)))
-		    (setq component-chars (nreverse component-chars))
-		    (format "composed to form \"%s\" (see below)"
-			    (buffer-substring from to))))
-		 (t
-		  (let ((display (describe-char-display pos char)))
-		    (if (display-graphic-p (selected-frame))
-			(if display
-			    (concat
-			     "by this font (glyph code)\n"
-			     (format "     %s (0x%02X)"
-				     (car display) (cdr display)))
-			  "no font available")
+    (if (or (< char 256)
+	    (memq 'mule-utf-8 (find-coding-systems-region pos (1+ pos)))
+	    (get-char-property pos 'untranslated-utf-8))
+	(setq unicode (or (get-char-property pos 'untranslated-utf-8)
+			  (encode-char char 'ucs))))
+    (setq item-list
+	  `(("character"
+	    ,(format "%s (0%o, %d, 0x%x%s)" 
+		     (apply 'propertize (if (not multibyte-p)
+					    (single-key-description char)
+					  (if (< char 128)
+					      (single-key-description char)
+					    (string-to-multibyte
+					     (char-to-string char))))
+			    (text-properties-at pos))
+		     char char char
+		     (if unicode
+			 (format ", U+%04X" unicode)
+		       "")))
+	    ("charset"
+	     ,(symbol-name charset)
+	     ,(format "(%s)" (charset-description charset)))
+	    ("code point"
+	     ,(let ((split (split-char char)))
+		(if (= (charset-dimension charset) 1)
+		    (format "%d" (nth 1 split))
+		  (format "%d %d" (nth 1 split) (nth 2 split)))))
+	    ("syntax"
+	     ,(let ((syntax (syntax-after pos)))
+		(with-temp-buffer
+		  (internal-describe-syntax-value syntax)
+		  (buffer-string))))
+	    ("category"
+	     ,@(let ((category-set (char-category-set char)))
+		 (if (not category-set)
+		     '("-- none --")
+		   (mapcar #'(lambda (x) (format "%c:%s  "
+						 x (category-docstring x)))
+			   (category-set-mnemonics category-set)))))
+	    ,@(let ((props (aref char-code-property-table char))
+		    ps)
+		(when props
+		  (while props
+		    (push (format "%s:" (pop props)) ps)
+		    (push (format "%s;" (pop props)) ps))
+		  (list (cons "Properties" (nreverse ps)))))
+	    ("buffer code"
+	     ,(encoded-string-description
+	       (string-as-unibyte (char-to-string char)) nil))
+	    ("file code"
+	     ,@(let* ((coding buffer-file-coding-system)
+		      (encoded (encode-coding-char char coding)))
+		 (if encoded
+		     (list (encoded-string-description encoded coding)
+			   (format "(encoded by coding system %S)" coding))
+		   (list "not encodable by coding system"
+			 (symbol-name coding)))))
+	    ("display"
+	     ,(cond
+	       (disp-vector
+		(setq disp-vector (copy-sequence disp-vector))
+		(dotimes (i (length disp-vector))
+		  (setq char (aref disp-vector i))
+		  (aset disp-vector i
+			(cons char (describe-char-display pos char))))
+		(format "by display table entry [%s] (see below)"
+			(mapconcat #'(lambda (x) (format "?%c" (car x)))
+				   disp-vector " ")))
+	       (composition
+		(let ((from (car composition))
+		      (to (nth 1 composition))
+		      (next (1+ pos))
+		      (components (nth 2 composition))
+		      ch)
+		  (setcar composition
+			  (and (< from pos) (buffer-substring from pos)))
+		  (setcar (cdr composition)
+			  (and (< next to) (buffer-substring next to)))
+		  (dotimes (i (length components))
+		    (if (integerp (setq ch (aref components i)))
+			(push (cons ch (describe-char-display pos ch))
+			      component-chars)))
+		  (setq component-chars (nreverse component-chars))
+		  (format "composed to form \"%s\" (see below)"
+			  (buffer-substring from to))))
+	       (t
+		(let ((display (describe-char-display pos char)))
+		  (if (display-graphic-p (selected-frame))
 		      (if display
-			  (format "terminal code %s" display)
-			"not encodable for terminal"))))))
-	      ,@(let ((unicodedata (and unicode
-					(describe-char-unicode-data unicode))))
-		  (if unicodedata
-		      (cons (list "Unicode data" " ") unicodedata))))))
+			  (concat
+			   "by this font (glyph code)\n"
+			   (format "     %s (0x%02X)"
+				   (car display) (cdr display)))
+			"no font available")
+		    (if display
+			(format "terminal code %s" display)
+		      "not encodable for terminal"))))))
+	    ,@(let ((unicodedata (and unicode
+				      (describe-char-unicode-data unicode))))
+		(if unicodedata
+		    (cons (list "Unicode data" " ") unicodedata)))))
     (setq max-width (apply #'max (mapcar #'(lambda (x) (length (car x)))
 					 item-list)))
-    (pop item-list)
-
     (with-output-to-temp-buffer "*Help*"
       (with-current-buffer standard-output
 	(set-buffer-multibyte multibyte-p)
 	(let ((formatter (format "%%%ds:" max-width)))
-	  (insert (format formatter "character") " ")
-	  (setq pos (point))
-	  (insert char-string
-		  (format " (`%s', 0%o, %d, 0x%x"
-			  (if (< char 256)
-			      (single-key-description char)
-			    (char-to-string char))
-			  char char char)
-		  (if (eq charset 'unknown)
-		      ") -- invalid character code\n"
-		    (if unicode
-			(format ", U+%04X)\n" unicode)
-		      ")\n")))
-	  (mapc #'(lambda (props)
-		    (let ((o (make-overlay pos (1+ pos))))
-		      (while props
-			(overlay-put o (car props) (nth 1 props))
-			(setq props (cddr props)))))
-		overlays)
 	  (dolist (elt item-list)
 	    (when (cadr elt)
 	      (insert (format formatter (car elt)))
@@ -609,6 +597,18 @@ as well as widgets, buttons, overlays, and text properties."
 		  (indent-to (1+ max-width)))
 		(insert " " clm))
 	      (insert "\n"))))
+
+	(save-excursion
+	  (goto-char (point-min))
+	  (search-forward "character: ")
+	  (setq pos (point)))
+	(if overlays
+	    (mapc #'(lambda (props)
+		      (let ((o (make-overlay pos (1+ pos))))
+			(while props
+			  (overlay-put o (car props) (nth 1 props))
+			  (setq props (cddr props)))))
+		  overlays))
 
 	(when disp-vector
 	  (insert

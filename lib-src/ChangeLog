@@ -1,3 +1,8 @@
+2004-05-08  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (lisp1, lisp2): Split lisp to avoid long
+	command-lines.
+
 2004-05-08  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* cvtmail.c: Throughout, replace 0 destined for `exit' arg

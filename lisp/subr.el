@@ -1280,7 +1280,7 @@ any other non-digit terminates the character code and is then used as input."))
 (defun read-passwd (prompt &optional confirm default)
   "Read a password, prompting with PROMPT.  Echo `.' for each character typed.
 End with RET, LFD, or ESC.  DEL or C-h rubs out.  C-u kills line.
-Optional argument CONFIRM, if non-nil, then read it twice to make sure.
+If optional CONFIRM is non-nil, read password twice to make sure.
 Optional DEFAULT is a default password to use instead of empty input."
   (if confirm
       (let (success)
@@ -1534,8 +1534,8 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 
 (defun remove-overlays (&optional beg end name val)
   "Clear BEG and END of overlays whose property NAME has value VAL.
-Overlays might be moved and or split.
-BEG and END default to the beginning resp. end of buffer."
+Overlays might be moved and/or split.
+BEG and END default respectively to the beginning and end of buffer."
   (unless beg (setq beg (point-min)))
   (unless end (setq end (point-max)))
   (if (< end beg)

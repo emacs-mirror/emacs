@@ -1,4 +1,56 @@
+2004-05-10  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char): Fix previous change.  Don't make
+	a unibyte character to multibyte in the *Help* buffer.
+
+2004-05-10  Miles Bader  <miles@gnu.org>
+
+	* lisp/progmodes/gud.el (gud-common-init): Only consider an existing
+	buffer an error if the debugger process is actually running.
+
+2004-05-10  Juanma Barranquero  <lektu@terra.es>
+
+	* subr.el (remove-overlays, read-passwd): Fix docstring.
+
+	* help-fns.el (help-argument-name): Default to italic.
+	(help-highlight-arguments): Return always (usage . doc), even when
+	usage is nil.
+
+2004-05-09  Jason Rumney  <jasonr@gnu.org>
+
+	* international/code-pages (cp932, cp936, cp949, c950): Remove.
+	Only define cp125* if windows-125* is already defined.
+
+	* language/korean.el (cp949): Add alias.
+
+	* language/chinese.el (cp936, cp950): Add aliases.
+
+	* language/japanese.el (cp932): Add alias.
+
+	* term/w32-win.el: Require code-pages.
+
+	* international/mule-cmds.el (set-locale-environment): On
+	MS-Windows use ansi code-page for default coding-systems.
+	Set up paper sizes for Windows 3 letter languages.
+
+	* international/code-pages.el (cp932, cp936, cp949, cp950): Add
+	aliases.  Also add cp125* if not already defined.
+
+2004-05-09  Juanma Barranquero  <lektu@terra.es>
+
+	* net/quickurl.el (quickurl, quickurl-browse-url, quickurl-read):
+	Don't use CL-style default args.
+
+	* pcvs.el (cvs-mode-run, cvs-is-within-p): Fix typo in docstring.
+	(cvs-get-marked): Remove redundant arglist info.
+
+	* help-fns.el (help-highlight-arguments): Don't try to highlight
+	missing or autoloaded arglists.  Accept structured arguments, like
+	the first ones of `do' and `flet'.
+
 2004-05-08  Andreas Schwab  <schwab@suse.de>
+
+	* emacs-lisp/checkdoc.el (checkdoc-minor-mode): Doc fix.
 
 	* international/subst-ksc.el: Fix references to utf-translate-cjk
 	into utf-translate-cjk-mode.
@@ -42,7 +94,7 @@
 	Baha'i calendar to Emacs.  This calendar is based on a solar year
 	of 19 months of 19 days, with 4 intercalary days.  Each year
 	begins on March 21, with the calendar starting in 1844.
-	
+
 	* calendar/cal-menu.el, calendar/calendar.el,
 	calendar/diary-lib.el, calendar/holidays.el: Added support for
 	using cal-bahai.el.
@@ -62,6 +114,14 @@
 	* simple.el (next-error): Fix typo in docstring.
 	(open-line): Make argument names match their use in docstring.
 	(split-line): Fix docstring.
+
+	* emacs-lisp/cl-macs.el (do, do*): Put usage info in a format
+	usable by `describe-function'.
+	(gensym, gentemp, typep, ignore-errors): Make argument names match
+	their use in docstring.
+
+	* progmodes/python.el (python-describe-symbol): Pass INTERACTIVE-P
+	argument to `help-setup-xref'.
 
 2004-05-07  Kai Grossjohann  <kai@emptydomain.de>
 

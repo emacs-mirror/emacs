@@ -256,14 +256,16 @@ returned."
 
 ;; Main code:
 
-(defun* quickurl-read (&optional (buffer (current-buffer)))
+(defun* quickurl-read (&optional buffer)
   "`read' the URL list from BUFFER into `quickurl-urls'.
 
+BUFFER, if nil, defaults to current buffer.
 Note that this function moves point to `point-min' before doing the `read'
 It also restores point after the `read'."
   (save-excursion
     (setf (point) (point-min))
-    (setq quickurl-urls (funcall quickurl-sort-function (read buffer)))))
+    (setq quickurl-urls (funcall quickurl-sort-function
+                                 (read (or buffer (current-buffer)))))))
 
 (defun quickurl-load-urls ()
   "Load the contents of `quickurl-url-file' into `quickurl-urls'."
@@ -298,14 +300,15 @@ Also display a `message' saying what the URL was unless SILENT is non-nil."
     (message "Found %s" (quickurl-url-url url))))
 
 ;;;###autoload
-(defun* quickurl (&optional (lookup (funcall quickurl-grab-lookup-function)))
+(defun* quickurl (&optional lookup)
   "Insert an URL based on LOOKUP.
 
 If not supplied LOOKUP is taken to be the word at point in the current
 buffer, this default action can be modifed via
 `quickurl-grab-lookup-function'."
   (interactive)
-  (when lookup
+  (when (or lookup
+            (setq lookup (funcall quickurl-grab-lookup-function)))
     (quickurl-load-urls)
     (let ((url (quickurl-find-url lookup)))
       (if (null url)
@@ -392,14 +395,15 @@ is decided."
           (message "Added %s" url))))))
 
 ;;;###autoload
-(defun* quickurl-browse-url (&optional (lookup (funcall quickurl-grab-lookup-function)))
+(defun quickurl-browse-url (&optional lookup)
   "Browse the URL associated with LOOKUP.
 
 If not supplied LOOKUP is taken to be the word at point in the
 current buffer, this default action can be modifed via
 `quickurl-grab-lookup-function'."
   (interactive)
-  (when lookup
+  (when (or lookup
+            (setq lookup (funcall quickurl-grab-lookup-function)))
     (quickurl-load-urls)
     (let ((url (quickurl-find-url lookup)))
       (if url

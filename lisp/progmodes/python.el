@@ -1343,7 +1343,7 @@ don't support `help'."
 	     (toggle-read-only 1)
 	     (setq view-return-to-alist
 		   (list (cons (selected-window) help-return-method))))))
-      (help-setup-xref (list 'python-describe-symbol symbol))
+      (help-setup-xref (list 'python-describe-symbol symbol) (interactive-p))
       (with-output-to-temp-buffer (help-buffer)
 	(with-current-buffer standard-output
 	  (set (make-local-variable 'comint-redirect-subvert-readonly) t)
@@ -1387,7 +1387,7 @@ Used with `eval-after-load'."
 		    (string-match "^Python \\([0-9]+\\.[0-9]+\\>\\)" s)
 		    (match-string 1 s)))
 	 ;; Whether info files have a Python version suffix, e.g. in Debian.
-	 (versioned 
+	 (versioned
 	  (with-temp-buffer
 	    (with-no-warnings (Info-mode))
 	    (condition-case ()

@@ -164,21 +164,21 @@
 ;;; Symbols.
 
 (defvar *gensym-counter*)
-(defun gensym (&optional arg)
+(defun gensym (&optional prefix)
   "Generate a new uninterned symbol.
 The name is made by appending a number to PREFIX, default \"G\"."
-  (let ((prefix (if (stringp arg) arg "G"))
-	(num (if (integerp arg) arg
+  (let ((pfix (if (stringp prefix) prefix "G"))
+	(num (if (integerp prefix) prefix
 	       (prog1 *gensym-counter*
 		 (setq *gensym-counter* (1+ *gensym-counter*))))))
-    (make-symbol (format "%s%d" prefix num))))
+    (make-symbol (format "%s%d" pfix num))))
 
-(defun gentemp (&optional arg)
+(defun gentemp (&optional prefix)
   "Generate a new interned symbol with a unique name.
 The name is made by appending a number to PREFIX, default \"G\"."
-  (let ((prefix (if (stringp arg) arg "G"))
+  (let ((pfix (if (stringp prefix) prefix "G"))
 	name)
-    (while (intern-soft (setq name (format "%s%d" prefix *gensym-counter*)))
+    (while (intern-soft (setq name (format "%s%d" pfix *gensym-counter*)))
       (setq *gensym-counter* (1+ *gensym-counter*)))
     (intern name)))
 
@@ -1177,12 +1177,14 @@ Valid clauses are:
 
 (defmacro do (steps endtest &rest body)
   "The Common Lisp `do' loop.
-Format is: (do ((VAR INIT [STEP])...) (END-TEST [RESULT...]) BODY...)"
+
+\(fn ((VAR INIT [STEP])...) (END-TEST [RESULT...]) BODY...)"
   (cl-expand-do-loop steps endtest body nil))
 
 (defmacro do* (steps endtest &rest body)
   "The Common Lisp `do*' loop.
-Format is: (do* ((VAR INIT [STEP])...) (END-TEST [RESULT...]) BODY...)"
+
+\(fn ((VAR INIT [STEP])...) (END-TEST [RESULT...]) BODY...)"
   (cl-expand-do-loop steps endtest body t))
 
 (defun cl-expand-do-loop (steps endtest body star)
@@ -2398,10 +2400,10 @@ The type name can then be used in `typecase', `check-type', etc."
 	  ((eq (car type) 'satisfies) (list (cadr type) val))
 	  (t (error "Bad type spec: %s" type)))))
 
-(defun typep (val type)   ; See compiler macro below.
+(defun typep (object type)   ; See compiler macro below.
   "Check that OBJECT is of type TYPE.
 TYPE is a Common Lisp-style type specifier."
-  (eval (cl-make-type-test 'val type)))
+  (eval (cl-make-type-test 'object type)))
 
 (defmacro check-type (form type &optional string)
   "Verify that FORM is of type TYPE; signal an error if not.
@@ -2438,8 +2440,8 @@ omitted, a default message listing FORM itself is used."
 	       nil))))
 
 (defmacro ignore-errors (&rest body)
-  "Execute FORMS; if an error occurs, return nil.
-Otherwise, return result of last FORM."
+  "Execute BODY; if an error occurs, return nil.
+Otherwise, return result of last form in BODY."
   `(condition-case nil (progn ,@body) (error nil)))
 
 

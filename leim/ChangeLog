@@ -1,3 +1,8 @@
+2004-05-10  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (all): Readd dependency on ${WORLD} so that lisp
+	files are compiled when bootstrapping.
+
 2004-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* quail/latin-ltx.el ("TeX"): Fix typo.

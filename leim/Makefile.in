@@ -1,5 +1,5 @@
 # Makefile for leim subdirectory in GNU Emacs.
-# Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
+# Copyright (C) 1997, 2004 Electrotechnical Laboratory, JAPAN.
 # Licensed to the Free Software Foundation.
 
 # This file is part of GNU Emacs.
@@ -147,7 +147,7 @@ NON-TIT-MISC=${CHINESE-NON-TIT} ${JAPANESE} ${KOREAN} ${EUROPEAN} ${OTHERS}
 .el.elc:
 	${RUN-EMACS} -f batch-byte-compile $<
 
-all: ${BUILT-EMACS} ${SUBDIRS} leim-list.el
+all: ${BUILT-EMACS} ${SUBDIRS} leim-list.el ${WORLD}
 
 # To ensure that we can run Emacs.  This target is ignored (never
 # being hit) if a user changes default value of EMACS.
