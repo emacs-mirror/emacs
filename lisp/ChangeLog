@@ -1,3 +1,9 @@
+Mon Jul 09 2001  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el: Extended the kludge to interoperate with the
+	delsel and pending-del packages wrt to the new function
+	`c-electric-delete-forward'.
+
 2001-07-08  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Use eval-after-load
