@@ -1,4 +1,13 @@
+2000-10-07  Simon Josefsson  <simon@josefsson.org>
+
+	* fns.c (Fmd5): New function.
+	(syms_of_fns): Defsubr md5.
+
+	* Makefile.in (obj): Add md5.o
+
 2000-11-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* md5.h, md5.c: New files, taken from glibc.
 
 	* xmenu.c (popup_get_selection): Use xmalloc instead of malloc.
 
