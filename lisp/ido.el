@@ -3632,7 +3632,6 @@ See `read-file-name' for additional parameters."
    (ido-read-directory-name prompt dir default-filename mustmatch initial))
   ((and (not (memq this-command ido-read-file-name-non-ido))
 	(or (null predicate) (eq predicate 'file-exists-p)))
-   (message "gotit")
    (let (filename
 	 ido-saved-vc-mt
 	 (vc-master-templates (and (boundp 'vc-master-templates) vc-master-templates))
