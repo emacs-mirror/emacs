@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.36) $
+ * $HopeName: MMsrc!arena.c(trunk.37) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.36) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.37) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -473,6 +473,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
 {
   Seg seg;
   Ring node, nextNode;
+  Res res;
 
   LockClaim(&arenaRingLock);    /* design.mps.arena.lock.ring */
   RING_FOR(node, &arenaRing, nextNode) {
@@ -493,8 +494,10 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
        * a separate thread.
        */
       mode &= SegPM(seg);
-      if(mode != AccessSetEMPTY)
-        PoolAccess(SegPool(seg), seg, addr, mode, context);
+      if(mode != AccessSetEMPTY) {
+        res = PoolAccess(SegPool(seg), seg, addr, mode, context);
+	AVER(res == ResOK); /* Mutator can't continue unless this succeeds */
+      }
       ArenaLeave(arena);
       return TRUE;
     } else if(RootOfAddr(&root, arena, addr)) {
