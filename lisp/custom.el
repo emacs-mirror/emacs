@@ -39,6 +39,11 @@
   ;; Customize information for this option is in `cus-edit.el'.
   "Hook called after defining each customize option.")
 
+(defvar custom-dont-initialize nil
+  "Non-nil means `defcustom' should not initialize the variable.
+That is used for the sake of `custom-make-dependencies'.
+Users should not set it.")
+
 (defvar custom-current-group-alist nil
   "Alist of (FILE . GROUP) indicating the current group to use for FILE.")
 
@@ -152,7 +157,8 @@ not the default value itself."
 					'custom-variable))))))
     (put symbol 'custom-requests requests)
     ;; Do the actual initialization.
-    (funcall initialize symbol default))
+    (unless custom-dont-initialize
+      (funcall initialize symbol default)))
   (setq current-load-list (cons symbol current-load-list))
   (run-hooks 'custom-define-hook)
   symbol)
