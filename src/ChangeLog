@@ -1,3 +1,8 @@
+2001-09-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* callproc.c (Fcall_process): Handle errors from pipe(2).
+	(child_setup): Delete code in #ifdef vipc.
+
 2001-09-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (decode_mode_spec): Add parameter MULTIBYTE.
