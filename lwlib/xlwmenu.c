@@ -1,6 +1,6 @@
 /* Implements a lightweight menubar widget.
    Copyright (C) 1992 Lucid, Inc.
-   Copyright (C) 2002 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2005 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -135,8 +135,13 @@ xlwMenuTranslations [] =
 static XtResource
 xlwMenuResources[] =
 {
+#ifdef HAVE_X_I18N
+  {XtNfont,  XtCFont, XtRFontSet, sizeof(XFontSet),
+     offset(menu.font), XtRString, "XtDefaultFontSet"},
+#else
   {XtNfont,  XtCFont, XtRFontStruct, sizeof(XFontStruct *),
-     offset(menu.font),XtRString, "XtDefaultFont"},
+     offset(menu.font), XtRString, "XtDefaultFont"},
+#endif
   {XtNforeground, XtCForeground, XtRPixel, sizeof(Pixel),
      offset(menu.foreground), XtRString, "XtDefaultForeground"},
   {XtNdisabledForeground, XtCDisabledForeground, XtRPixel, sizeof(Pixel),
@@ -235,7 +240,7 @@ XlwMenuClassRec xlwMenuClassRec =
     XtNumber(xlwMenuResources),		/* resource_count	  */
     NULLQUARK,				/* xrm_class		  */
     TRUE,				/* compress_motion	  */
-    TRUE,				/* compress_exposure	  */
+    XtExposeCompressMaximal,		/* compress_exposure	  */
     TRUE,				/* compress_enterleave    */
     FALSE,				/* visible_interest	  */
     XlwMenuDestroy,			/* destroy		  */
@@ -353,18 +358,34 @@ string_width (mw, s)
      XlwMenuWidget mw;
      char *s;
 {
+#ifdef HAVE_X_I18N
+  XRectangle ink, logical;
+  XmbTextExtents (mw->menu.font, s, strlen (s), &ink, &logical);
+  return logical.width;
+#else
   XCharStruct xcs;
   int drop;
 
   XTextExtents (mw->menu.font, s, strlen (s), &drop, &drop, &drop, &xcs);
   return xcs.width;
+#endif
 }
+
+#ifdef HAVE_X_I18N
+#define MENU_FONT_HEIGHT(mw) \
+  ((mw)->menu.font_extents->max_logical_extent.height)
+#define MENU_FONT_ASCENT(mw) (MENU_FONT_HEIGHT(mw) * 9 / 10)
+#else
+#define MENU_FONT_HEIGHT(mw) \
+  ((mw)->menu.font->ascent + (mw)->menu.font->descent)
+#define MENU_FONT_ASCENT(mw) ((mw)->menu.font->ascent)
+#endif
 
 static int
 arrow_width (mw)
      XlwMenuWidget mw;
 {
-  return (mw->menu.font->ascent * 3/4) | 1;
+  return (MENU_FONT_ASCENT (mw) * 3/4) | 1;
 }
 
 /* Return the width of toggle buttons of widget MW.  */
@@ -373,7 +394,7 @@ static int
 toggle_button_width (mw)
      XlwMenuWidget mw;
 {
-  return ((mw->menu.font->ascent + mw->menu.font->descent) * 2 / 3) | 1;
+  return (MENU_FONT_HEIGHT (mw) * 2 / 3) | 1;
 }
 
 
@@ -454,9 +475,8 @@ size_menu_item (mw, val, horizontal_p, label_width, rest_width, button_width,
     }
   else
     {
-      *height =
-	mw->menu.font->ascent + mw->menu.font->descent
-	  + 2 * mw->menu.vertical_spacing + 2 * mw->menu.shadow_thickness;
+      *height = MENU_FONT_HEIGHT (mw)
+	+ 2 * mw->menu.vertical_spacing + 2 * mw->menu.shadow_thickness;
 
       *label_width =
 	string_width (mw, resource_widget_value (mw, val))
@@ -571,7 +591,7 @@ draw_arrow (mw, window, gc, x, y, width, down_p)
   double factor = 1.62;
   int thickness2 = thickness * factor;
 
-  y += (mw->menu.font->ascent + mw->menu.font->descent - height) / 2;
+  y += (MENU_FONT_HEIGHT (mw) - height) / 2;
 
   if (down_p)
     {
@@ -757,7 +777,7 @@ draw_toggle (mw, window, x, y, selected_p)
   width = toggle_button_width (mw);
   height = width;
   x += mw->menu.horizontal_spacing;
-  y += (mw->menu.font->ascent - height) / 2;
+  y += (MENU_FONT_ASCENT (mw) - height) / 2;
   draw_shadow_rectangle (mw, window, x, y, width, height, False, selected_p);
 }
 
@@ -777,7 +797,7 @@ draw_radio (mw, window, x, y, selected_p)
   width = radio_button_width (mw);
   height = width;
   x += mw->menu.horizontal_spacing;
-  y += (mw->menu.font->ascent - height) / 2;
+  y += (MENU_FONT_ASCENT (mw) - height) / 2;
   draw_shadow_rhombus (mw, window, x, y, width, height, False, selected_p);
 }
 
@@ -954,8 +974,8 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
 {
   GC deco_gc;
   GC text_gc;
-  int font_ascent = mw->menu.font->ascent;
-  int font_descent = mw->menu.font->descent;
+  int font_height = MENU_FONT_HEIGHT (mw);
+  int font_ascent = MENU_FONT_ASCENT (mw);
   int shadow = mw->menu.shadow_thickness;
   int margin = mw->menu.margin;
   int h_spacing = mw->menu.horizontal_spacing;
@@ -1028,7 +1048,12 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
 	    x_offset += ws->button_width;
 
 
-          XDrawString (XtDisplay (mw), ws->window, text_gc, x_offset,
+#ifdef HAVE_X_I18N
+          XmbDrawString (XtDisplay (mw), ws->window, mw->menu.font,
+#else
+          XDrawString (XtDisplay (mw), ws->window,
+#endif
+		       text_gc, x_offset,
 		       y + v_spacing + shadow + font_ascent,
 		       display_string, strlen (display_string));
 
@@ -1053,7 +1078,12 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
 		}
 	      else if (val->key)
 		{
-		  XDrawString (XtDisplay (mw), ws->window, text_gc,
+#ifdef HAVE_X_I18N
+		  XmbDrawString (XtDisplay (mw), ws->window, mw->menu.font,
+#else
+		  XDrawString (XtDisplay (mw), ws->window,
+#endif
+			       text_gc,
 			       x + label_width + mw->menu.arrow_spacing,
 			       y + v_spacing + shadow + font_ascent,
 			       val->key, strlen (val->key));
@@ -1065,7 +1095,7 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
 			      mw->menu.background_gc,
 			      x + shadow, y + shadow,
 			      label_width + h_spacing - 1,
-			      font_ascent + font_descent + 2 * v_spacing - 1);
+			      font_height + 2 * v_spacing - 1);
 	      draw_shadow_rectangle (mw, ws->window, x, y, width, height,
 				     True, False);
 	    }
@@ -1460,21 +1490,33 @@ make_drawing_gcs (mw)
   XGCValues xgcv;
   float scale;
 
+#ifndef HAVE_X_I18N
   xgcv.font = mw->menu.font->fid;
+#endif
   xgcv.foreground = mw->menu.foreground;
   xgcv.background = mw->core.background_pixel;
   mw->menu.foreground_gc = XtGetGC ((Widget)mw,
-				    GCFont | GCForeground | GCBackground,
+#ifndef HAVE_X_I18N
+				    GCFont |
+#endif
+				    GCForeground | GCBackground,
 				    &xgcv);
 
+#ifndef HAVE_X_I18N
   xgcv.font = mw->menu.font->fid;
+#endif
   xgcv.foreground = mw->menu.button_foreground;
   xgcv.background = mw->core.background_pixel;
   mw->menu.button_gc = XtGetGC ((Widget)mw,
-				GCFont | GCForeground | GCBackground,
+#ifndef HAVE_X_I18N
+				GCFont |
+#endif
+				GCForeground | GCBackground,
 				&xgcv);
 
+#ifndef HAVE_X_I18N
   xgcv.font = mw->menu.font->fid;
+#endif
   xgcv.background = mw->core.background_pixel;
 
 #define BRIGHTNESS(color) (((color) & 0xff) + (((color) >> 8) & 0xff) + (((color) >> 16) & 0xff))
@@ -1500,31 +1542,47 @@ make_drawing_gcs (mw)
       xgcv.fill_style = FillStippled;
       xgcv.stipple = mw->menu.gray_pixmap;
       mw->menu.disabled_gc = XtGetGC ((Widget)mw,
-				      (GCFont | GCForeground | GCBackground
-				       | GCFillStyle | GCStipple), &xgcv);
+#ifndef HAVE_X_I18N
+				      GCFont |
+#endif
+				      GCForeground | GCBackground
+				      | GCFillStyle | GCStipple, &xgcv);
     }
   else
     {
       /* Many colors available, use disabled pixel.  */
       xgcv.foreground = mw->menu.disabled_foreground;
       mw->menu.disabled_gc = XtGetGC ((Widget)mw,
-				      (GCFont | GCForeground | GCBackground), &xgcv);
+#ifndef HAVE_X_I18N
+				      GCFont |
+#endif
+				      GCForeground | GCBackground, &xgcv);
     }
 
+#ifndef HAVE_X_I18N
   xgcv.font = mw->menu.font->fid;
+#endif
   xgcv.foreground = mw->menu.button_foreground;
   xgcv.background = mw->core.background_pixel;
   xgcv.fill_style = FillStippled;
   xgcv.stipple = mw->menu.gray_pixmap;
   mw->menu.inactive_button_gc = XtGetGC ((Widget)mw,
-				  (GCFont | GCForeground | GCBackground
-				   | GCFillStyle | GCStipple), &xgcv);
+#ifndef HAVE_X_I18N
+					 GCFont |
+#endif
+					 GCForeground | GCBackground
+					 | GCFillStyle | GCStipple, &xgcv);
 
+#ifndef HAVE_X_I18N
   xgcv.font = mw->menu.font->fid;
+#endif
   xgcv.foreground = mw->core.background_pixel;
   xgcv.background = mw->menu.foreground;
   mw->menu.background_gc = XtGetGC ((Widget)mw,
-				    GCFont | GCForeground | GCBackground,
+#ifndef HAVE_X_I18N
+				    GCFont |
+#endif
+				    GCForeground | GCBackground,
 				    &xgcv);
 }
 
@@ -1731,12 +1789,16 @@ XlwMenuInitialize (request, mw, args, num_args)
 				   gray_bitmap_width, gray_bitmap_height,
 				   (unsigned long)1, (unsigned long)0, 1);
 
+#ifndef HAVE_X_I18N
   /* I don't understand why this ends up 0 sometimes,
      but it does.  This kludge works around it.
      Can anyone find a real fix?   -- rms.  */
   if (mw->menu.font == 0)
     mw->menu.font = xlwmenu_default_font;
-
+#else
+  mw->menu.font_extents = XExtentsOfFontSet (mw->menu.font);
+#endif
+      
   make_drawing_gcs (mw);
   make_shadow_gcs (mw);
 
@@ -1903,7 +1965,10 @@ XlwMenuSetValues (current, request, new)
 
   if (newmw->core.background_pixel != oldmw->core.background_pixel
       || newmw->menu.foreground != oldmw->menu.foreground
-      || newmw->menu.font != oldmw->menu.font)
+#ifndef HAVE_X_I18N
+      || newmw->menu.font != oldmw->menu.font
+#endif
+      )
     {
       release_drawing_gcs (newmw);
       make_drawing_gcs (newmw);
@@ -1928,6 +1993,14 @@ XlwMenuSetValues (current, request, new)
 			0, 0, 0, 0, True);
 	  }
     }
+
+#ifdef HAVE_X_I18N
+  if (newmw->menu.font != oldmw->menu.font)
+    {
+      redisplay = True;
+      newmw->menu.font_extents = XExtentsOfFontSet (newmw->menu.font);
+    }
+#endif
 
   return redisplay;
 }
