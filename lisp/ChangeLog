@@ -1,3 +1,35 @@
+1999-10-19  Paul Eggert  <eggert@twinsun.com>
+
+	Fix bootstrapping problems.
+	Use the system locale to specify Emacs locale defaults.
+	
+	* international/mule-cmds.el (global-map):
+	Do not use backquote, because that makes a bootstrapping
+	problem if you need to recompile all Lisp files using interpreted code.
+	* international/mule.el (charset-id, charset-bytes,
+	charset-dimension, charset-chars, charset-width,
+	charset-direction, charset-iso-final-char,
+	charset-iso-graphic-plane, charset-reverse-charset,
+	charset-short-name, charset-long-name, charset-description,
+	charset-plist): Likewise.
+	* subr.el (save-match-data): Likewise.
+
+	* international/mule-cmds.el
+	(set-display-table-and-terminal-coding-system): New function,
+	containing code migrated out of set-language-environment.
+	(set-language-environment, set-locale-environment): Use it.
+	(locale-translation-file-name): Moved here from startup.el.
+	(locale-language-names, locale-preferred-coding-systems):
+	New vars.
+	(locale-name-match, set-locale-environment): New functions.
+
+	* language/japan-util.el (setup-japanese-environment-internal):
+	Prefer japanese-iso-8bit if the system-type is usg-unix-v.
+
+	* startup.el (iso-8859-n-locale-regexp): Remove.
+	(locale-translation-file-name): Move to mule-cmds.el.
+	(command-line): Move locale-stuff into set-locale-environment.
+
 1999-10-18  Dave Love  <fx@gnu.org>
 
 	* abbrev.el (add-abbrev, inverse-add-abbrev)

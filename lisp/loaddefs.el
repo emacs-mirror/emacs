@@ -154,7 +154,7 @@ If you use ada-xref.el:
 ;;;***
 
 ;;;### (autoloads (ada-header) "ada-stmt" "progmodes/ada-stmt.el"
-;;;;;;  (14332 44800))
+;;;;;;  (14344 1074))
 ;;; Generated autoloads from progmodes/ada-stmt.el
 
 (autoload (quote ada-header) "ada-stmt" "\
@@ -341,7 +341,7 @@ Look at the file `advice.el' for comprehensive documentation." nil (quote macro)
 ;;;***
 
 ;;;### (autoloads (ange-ftp-hook-function ange-ftp-reread-dir) "ange-ftp"
-;;;;;;  "ange-ftp.el" (14333 58084))
+;;;;;;  "ange-ftp.el" (14344 981))
 ;;; Generated autoloads from ange-ftp.el
  (defalias 'ange-ftp-re-read-dir 'ange-ftp-reread-dir)
 
@@ -1221,7 +1221,7 @@ corresponding bookmark function from Lisp (the one without the
 ;;;;;;  browse-url-of-buffer browse-url-of-file browse-url-generic-program
 ;;;;;;  browse-url-save-file browse-url-netscape-display browse-url-new-window-p
 ;;;;;;  browse-url-browser-function) "browse-url" "browse-url.el"
-;;;;;;  (14124 22275))
+;;;;;;  (14344 983))
 ;;; Generated autoloads from browse-url.el
 
 (defvar browse-url-browser-function (if (eq system-type (quote windows-nt)) (quote browse-url-default-windows-browser) (quote browse-url-netscape)) "\
@@ -2414,7 +2414,7 @@ a future Emacs interpreter will be able to use it.")
 ;;;***
 
 ;;;### (autoloads (common-lisp-indent-function) "cl-indent" "emacs-lisp/cl-indent.el"
-;;;;;;  (13903 51267))
+;;;;;;  (14347 61984))
 ;;; Generated autoloads from emacs-lisp/cl-indent.el
 
 (autoload (quote common-lisp-indent-function) "cl-indent" nil nil nil)
@@ -2422,7 +2422,7 @@ a future Emacs interpreter will be able to use it.")
 ;;;***
 
 ;;;### (autoloads (c-macro-expand) "cmacexp" "progmodes/cmacexp.el"
-;;;;;;  (14286 28586))
+;;;;;;  (14344 1077))
 ;;; Generated autoloads from progmodes/cmacexp.el
 
 (autoload (quote c-macro-expand) "cmacexp" "\
@@ -3396,7 +3396,7 @@ The most useful commands are:
 ;;;***
 
 ;;;### (autoloads (delimit-columns-rectangle delimit-columns-region)
-;;;;;;  "delim-col" "delim-col.el" (14309 21213))
+;;;;;;  "delim-col" "delim-col.el" (14344 985))
 ;;; Generated autoloads from delim-col.el
 
 (autoload (quote delimit-columns-region) "delim-col" "\
@@ -3662,11 +3662,25 @@ The backup file is the first file given to `diff'." t nil)
 
 ;;;***
 
+;;;### (autoloads (diff-mode) "diff-mode" "diff-mode.el" (14344 986))
+;;; Generated autoloads from diff-mode.el
+
+(autoload (quote diff-mode) "diff-mode" "\
+Major mode for viewing context diffs.
+Supports unified and context diffs as well as (to a lesser extent) normal diffs.
+When the buffer is read-only, the ESC prefix is not necessary.
+This mode runs `diff-mode-hook'.
+\\{diff-mode-map}" t nil)
+
+(add-to-list (quote auto-mode-alist) (quote ("\\.\\(diffs?\\|patch\\|rej\\)\\'" . diff-mode)))
+
+;;;***
+
 ;;;### (autoloads (dired-noselect dired-other-frame dired-other-window
 ;;;;;;  dired dired-copy-preserve-time dired-dwim-target dired-keep-marker-symlink
 ;;;;;;  dired-keep-marker-hardlink dired-keep-marker-copy dired-keep-marker-rename
 ;;;;;;  dired-trivial-filenames dired-ls-F-marks-symlinks dired-listing-switches)
-;;;;;;  "dired" "dired.el" (14315 30001))
+;;;;;;  "dired" "dired.el" (14344 987))
 ;;; Generated autoloads from dired.el
 
 (defvar dired-listing-switches "-al" "\
@@ -4328,7 +4342,7 @@ With prefix arg NOCONFIRM, execute current line as-is without editing." t nil)
 ;;;***
 
 ;;;### (autoloads (edebug-eval-top-level-form def-edebug-spec edebug-all-forms
-;;;;;;  edebug-all-defs) "edebug" "emacs-lisp/edebug.el" (14315 34133))
+;;;;;;  edebug-all-defs) "edebug" "emacs-lisp/edebug.el" (14347 61987))
 ;;; Generated autoloads from emacs-lisp/edebug.el
 
 (defvar edebug-all-defs nil "\
@@ -4542,7 +4556,7 @@ Display Ediff's registry." t nil)
 ;;;***
 
 ;;;### (autoloads (ediff-toggle-use-toolbar ediff-toggle-multiframe)
-;;;;;;  "ediff-util" "ediff-util.el" (13896 8938))
+;;;;;;  "ediff-util" "ediff-util.el" (14344 991))
 ;;; Generated autoloads from ediff-util.el
 
 (autoload (quote ediff-toggle-multiframe) "ediff-util" "\
@@ -4733,7 +4747,7 @@ Prompts for bug subject.  Leaves you in a mail buffer." t nil)
 ;;;;;;  emerge-revisions emerge-files-with-ancestor-remote emerge-files-remote
 ;;;;;;  emerge-files-with-ancestor-command emerge-files-command emerge-buffers-with-ancestor
 ;;;;;;  emerge-buffers emerge-files-with-ancestor emerge-files) "emerge"
-;;;;;;  "emerge.el" (13661 53633))
+;;;;;;  "emerge.el" (14344 994))
 ;;; Generated autoloads from emerge.el
 
 (defvar menu-bar-emerge-menu (make-sparse-keymap "Emerge"))
@@ -5605,7 +5619,7 @@ Start Dired, defaulting to file at point.  See `ffap'." t nil)
 ;;;***
 
 ;;;### (autoloads (file-cache-minibuffer-complete) "filecache" "filecache.el"
-;;;;;;  (14332 47695))
+;;;;;;  (14332 47759))
 ;;; Generated autoloads from filecache.el
 
 (autoload (quote file-cache-minibuffer-complete) "filecache" "\
@@ -5622,7 +5636,7 @@ the name is considered already unique; only the second substitution
 ;;;***
 
 ;;;### (autoloads (find-grep-dired find-name-dired find-dired find-grep-options
-;;;;;;  find-ls-option) "find-dired" "find-dired.el" (14263 35426))
+;;;;;;  find-ls-option) "find-dired" "find-dired.el" (14344 998))
 ;;; Generated autoloads from find-dired.el
 
 (defvar find-ls-option (if (eq system-type (quote berkeley-unix)) (quote ("-ls" . "-gilsb")) (quote ("-exec ls -ld {} \\;" . "-ld"))) "\
@@ -6058,7 +6072,7 @@ Fontify the current buffer the way `font-lock-mode' would." t nil)
 ;;;***
 
 ;;;### (autoloads (create-fontset-from-fontset-spec) "fontset" "international/fontset.el"
-;;;;;;  (14094 46602))
+;;;;;;  (14344 1056))
 ;;; Generated autoloads from international/fontset.el
 
 (autoload (quote create-fontset-from-fontset-spec) "fontset" "\
@@ -6404,7 +6418,7 @@ Update the format specification near point." t nil)
 ;;;***
 
 ;;;### (autoloads (gnus-declare-backend gnus-unload) "gnus-start"
-;;;;;;  "gnus/gnus-start.el" (14030 49423))
+;;;;;;  "gnus/gnus-start.el" (14344 1048))
 ;;; Generated autoloads from gnus/gnus-start.el
 
 (autoload (quote gnus-unload) "gnus-start" "\
@@ -7094,7 +7108,7 @@ Switches to the buffer `*ielm*', or creates it if it does not exist." t nil)
 
 ;;;### (autoloads (defimage remove-images insert-image put-image
 ;;;;;;  create-image image-type-available-p image-type-from-file-header)
-;;;;;;  "image" "image.el" (14330 17997))
+;;;;;;  "image" "image.el" (14344 1003))
 ;;; Generated autoloads from image.el
 
 (autoload (quote image-type-from-file-header) "image" "\
@@ -7357,7 +7371,7 @@ of `inferior-lisp-program').  Runs the hooks from
 
 ;;;### (autoloads (Info-speedbar-browser Info-goto-emacs-key-command-node
 ;;;;;;  Info-goto-emacs-command-node info-standalone info info-other-window)
-;;;;;;  "info" "info.el" (14331 38705))
+;;;;;;  "info" "info.el" (14344 1005))
 ;;; Generated autoloads from info.el
 
 (autoload (quote info-other-window) "info" "\
@@ -7809,7 +7823,7 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 
 ;;;### (autoloads (iswitchb-buffer-other-frame iswitchb-display-buffer
 ;;;;;;  iswitchb-buffer-other-window iswitchb-buffer iswitchb-default-keybindings
-;;;;;;  iswitchb-read-buffer) "iswitchb" "iswitchb.el" (14327 30798))
+;;;;;;  iswitchb-read-buffer) "iswitchb" "iswitchb.el" (14347 61960))
 ;;; Generated autoloads from iswitchb.el
 
 (autoload (quote iswitchb-read-buffer) "iswitchb" "\
@@ -7854,7 +7868,7 @@ For details of keybindings, do `\\[describe-function] iswitchb'." t nil)
 ;;;;;;  japanese-hiragana-region japanese-katakana-region japanese-zenkaku
 ;;;;;;  japanese-hankaku japanese-hiragana japanese-katakana setup-japanese-environment-internal
 ;;;;;;  setup-japanese-environment) "japan-util" "language/japan-util.el"
-;;;;;;  (13903 50605))
+;;;;;;  (14347 63248))
 ;;; Generated autoloads from language/japan-util.el
 
 (autoload (quote setup-japanese-environment) "japan-util" "\
@@ -7955,7 +7969,7 @@ Unconditionally turn on Just-in-time Lock mode." nil nil)
 ;;;***
 
 ;;;### (autoloads (auto-compression-mode) "jka-compr" "jka-compr.el"
-;;;;;;  (14263 64153))
+;;;;;;  (14344 1006))
 ;;; Generated autoloads from jka-compr.el
 
 (defvar auto-compression-mode nil "\
@@ -8181,11 +8195,12 @@ is nil, raise an error." t nil)
 ;;;***
 
 ;;;### (autoloads (locate-with-filter locate) "locate" "locate.el"
-;;;;;;  (13685 31872))
+;;;;;;  (14344 1013))
 ;;; Generated autoloads from locate.el
 
 (autoload (quote locate) "locate" "\
-Run the program `locate', putting results in `*Locate*' buffer." t nil)
+Run the program `locate', putting results in `*Locate*' buffer.
+With prefix arg, prompt for the locate command to run." t nil)
 
 (autoload (quote locate-with-filter) "locate" "\
 Run the locate command with a filter." t nil)
@@ -8791,7 +8806,7 @@ Turning on MetaPost mode calls the value of the variable
 
 ;;;### (autoloads (metamail-region metamail-buffer metamail-interpret-body
 ;;;;;;  metamail-interpret-header) "metamail" "mail/metamail.el"
-;;;;;;  (14280 10636))
+;;;;;;  (14344 1065))
 ;;; Generated autoloads from mail/metamail.el
 
 (autoload (quote metamail-interpret-header) "metamail" "\
@@ -9321,9 +9336,9 @@ even if WITH-COMPOSITION-RULE is t." nil nil)
 ;;;***
 
 ;;;### (autoloads (network-connection network-connection-to-service
-;;;;;;  whois-reverse-lookup whois finger ftp nslookup nslookup-host
+;;;;;;  whois-reverse-lookup whois finger ftp dig nslookup nslookup-host
 ;;;;;;  route arp netstat ipconfig ping traceroute) "net-utils" "net-utils.el"
-;;;;;;  (14241 51006))
+;;;;;;  (14344 1016))
 ;;; Generated autoloads from net-utils.el
 
 (autoload (quote traceroute) "net-utils" "\
@@ -9353,6 +9368,9 @@ Lookup the DNS information for HOST." t nil)
 
 (autoload (quote nslookup) "net-utils" "\
 Run nslookup program." t nil)
+
+(autoload (quote dig) "net-utils" "\
+Run dig program." t nil)
 
 (autoload (quote ftp) "net-utils" "\
 Run ftp program." t nil)
@@ -9904,7 +9922,7 @@ for the existing fields and displays a corresponding form." t nil)
 ;;;***
 
 ;;;### (autoloads (picture-mode) "picture" "textmodes/picture.el"
-;;;;;;  (14240 52722))
+;;;;;;  (14347 62026))
 ;;; Generated autoloads from textmodes/picture.el
 
 (autoload (quote picture-mode) "picture" "\
@@ -10022,8 +10040,8 @@ The default value is '(\"/usr/local/share/emacs/fonts/bdf\").")
 
 ;;;***
 
-;;;### (autoloads (ps-mode) "ps-mode" "progmodes/ps-mode.el" (14337
-;;;;;;  63130))
+;;;### (autoloads (ps-mode) "ps-mode" "progmodes/ps-mode.el" (14339
+;;;;;;  19431))
 ;;; Generated autoloads from progmodes/ps-mode.el
 
 (autoload (quote ps-mode) "ps-mode" "\
@@ -10437,7 +10455,7 @@ of each directory." t nil)
 
 ;;;### (autoloads (quickurl-list quickurl-list-mode quickurl-edit-urls
 ;;;;;;  quickurl-browse-url-ask quickurl-browse-url quickurl-add-url
-;;;;;;  quickurl-ask quickurl) "quickurl" "quickurl.el" (14339 7894))
+;;;;;;  quickurl-ask quickurl) "quickurl" "quickurl.el" (14344 1017))
 ;;; Generated autoloads from quickurl.el
 
 (defconst quickurl-reread-hook-postfix "\n;; Local Variables:\n;; eval: (progn (require 'quickurl) (add-hook 'local-write-file-hooks (lambda () (quickurl-read) nil)))\n;; End:\n" "\
@@ -10493,7 +10511,7 @@ See \\[compile]." t nil)
 ;;;***
 
 ;;;### (autoloads (recentf-cleanup recentf-save-list recentf-mode)
-;;;;;;  "recentf" "recentf.el" (14339 41278))
+;;;;;;  "recentf" "recentf.el" (14339 41776))
 ;;; Generated autoloads from recentf.el
 
 (autoload (quote recentf-mode) "recentf" "\
@@ -10671,7 +10689,7 @@ While entering the regexp, completion on knows citation keys is possible.
 ;;;***
 
 ;;;### (autoloads (regexp-opt-depth regexp-opt) "regexp-opt" "emacs-lisp/regexp-opt.el"
-;;;;;;  (14334 30691))
+;;;;;;  (14334 30885))
 ;;; Generated autoloads from emacs-lisp/regexp-opt.el
 
 (autoload (quote regexp-opt) "regexp-opt" "\
@@ -10812,7 +10830,7 @@ variable." t nil)
 ;;;;;;  rmail-mail-new-frame rmail-primary-inbox-list rmail-delete-after-output
 ;;;;;;  rmail-highlight-face rmail-highlighted-headers rmail-retry-ignored-headers
 ;;;;;;  rmail-displayed-headers rmail-ignored-headers rmail-dont-reply-to-names)
-;;;;;;  "rmail" "mail/rmail.el" (14292 14011))
+;;;;;;  "rmail" "mail/rmail.el" (14344 1068))
 ;;; Generated autoloads from mail/rmail.el
 
 (defvar rmail-dont-reply-to-names nil "\
@@ -11546,7 +11564,7 @@ To work around that, do:
 ;;;***
 
 ;;;### (autoloads (sh-mode) "sh-script" "progmodes/sh-script.el"
-;;;;;;  (14339 9963))
+;;;;;;  (14344 1082))
 ;;; Generated autoloads from progmodes/sh-script.el
 
 (put (quote sh-mode) (quote mode-class) (quote special))
@@ -11863,7 +11881,7 @@ symmetrical ones, and the same character twice for the others." t nil)
 ;;;***
 
 ;;;### (autoloads (smtpmail-send-it) "smtpmail" "mail/smtpmail.el"
-;;;;;;  (14186 47152))
+;;;;;;  (14344 1070))
 ;;; Generated autoloads from mail/smtpmail.el
 
 (autoload (quote smtpmail-send-it) "smtpmail" nil nil nil)
@@ -13689,8 +13707,8 @@ The buffer in question is current when this function is called." nil nil)
 ;;;;;;  vc-create-snapshot vc-directory vc-resolve-conflicts vc-merge
 ;;;;;;  vc-insert-headers vc-version-other-window vc-diff vc-register
 ;;;;;;  vc-next-action edit-vc-file with-vc-file vc-annotate-mode-hook
-;;;;;;  vc-before-checkin-hook vc-checkin-hook) "vc" "vc.el" (14325
-;;;;;;  58398))
+;;;;;;  vc-before-checkin-hook vc-checkin-hook) "vc" "vc.el" (14344
+;;;;;;  1029))
 ;;; Generated autoloads from vc.el
 
 (defvar vc-checkin-hook nil "\

@@ -296,15 +296,6 @@ is less convenient."
   :type '(choice (const :tag "none" nil) string)
   :group 'initialization)
 
-(defconst iso-8859-n-locale-regexp "8859[-_]?\\([1-49]\\|1[45]\\)\\>"
-  "Regexp that specifies when to enable an ISO 8859-N character set.
-We do that if this regexp matches the locale name specified by
-one of the environment variables LC_ALL, LC_CTYPE, or LANG.
-The paren group in the regexp should match the specific character
-set number, N.  Currently only Latin-[1234589] are supported.
-\(Note that Latin-5 is ISO 8859-9, because 8859-[678] are non-Latin
-alphabets; hence, supported values of N are 1, 2, 3, 4, 9, 14 and 15.\)")
-
 (defcustom mail-host-address nil
   "*Name of this machine, for purposes of naming users."
   :type '(choice (const nil) string)
@@ -330,20 +321,6 @@ from being initialized."
   :type '(choice (const :tag "Don't record a session's auto save list" nil)
 		 string)
   :group 'auto-save)
-
-(defvar locale-translation-file-name
-  (let ((files '("/usr/lib/X11/locale/locale.alias" ; e.g. X11R6.4
-		 "/usr/X11R6/lib/X11/locale/locale.alias" ; e.g. RedHat 4.2
-		 "/usr/openwin/lib/locale/locale.alias" ; e.g. Solaris 2.6
-		 ;;
-		 ;; The following name appears after the X-related names above,
-		 ;; since the X-related names are what X actually uses.
-		 "/usr/share/locale/locale.alias" ; GNU/Linux sans X
-		 )))
-    (while (and files (not (file-exists-p (car files))))
-      (setq files (cdr files)))
-    (car files))
-  "*File name for the system's file of locale-name aliases, or nil if none.")
 
 (defvar init-file-debug nil)
 
@@ -521,46 +498,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	       (string= vc "simple"))
 	   (setq version-control 'never))))
 
-  (let ((ctype
-	 ;; Use the first of these three envvars that has a nonempty value.
-	 (or (let ((string (getenv "LC_ALL")))
-	       (and (not (equal string "")) string))
-	     (let ((string (getenv "LC_CTYPE")))
-	       (and (not (equal string "")) string))
-	     (let ((string (getenv "LANG")))
-	       (and (not (equal string "")) string)))))
-    ;; Translate "swedish" into "sv_SE.ISO-8859-1", and so on,
-    ;; using the translation file that GNU/Linux systems have.
-    (and ctype
-	 locale-translation-file-name
-	 (not (string-match iso-8859-n-locale-regexp ctype))
-	 (with-temp-buffer
-	   (insert-file-contents locale-translation-file-name)
-	   (if (re-search-forward
-		(concat "^" (regexp-quote ctype) ":?[ \t]+") nil t)
-	       (setq ctype (buffer-substring (point) (line-end-position))))))
-    ;; Now see if the locale specifies an ISO 8859 character set.
-    (when (and ctype
-	       (string-match iso-8859-n-locale-regexp ctype))
-      (let* ((which (match-string 1 ctype))
-	     (latin (cdr (assoc which '(("9" . "5") ("14" . "8")
-					("15" . "9")))))
-	    charset)
-	(if latin  (setq which latin))
-	(setq charset (concat "latin-" which))
-	(when (string-match "latin-[1-589]" charset)
-	  ;; Set up for this character set.
-	  ;; This is now the right way to do it
-	  ;; for both unibyte and multibyte modes.
-	  (set-language-environment charset)
-	  (unless (or noninteractive (eq window-system 'x))
-	    ;; Send those codes literally to a non-X terminal.
-	    (when default-enable-multibyte-characters
-	      ;; If this is nil, we are using single-byte characters,
-	      ;; so the terminal coding system is irrelevant.
-	      (set-terminal-coding-system
-	       (intern (downcase charset)))))
-	  (standard-display-european-internal)))))
+  (set-locale-environment nil)
 
   ;;! This has been commented out; I currently find the behavior when
   ;;! split-window-keep-point is nil disturbing, but if I can get used

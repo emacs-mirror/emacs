@@ -1,6 +1,6 @@
 ;;; subr.el --- basic lisp subroutines for Emacs
 
-;; Copyright (C) 1985, 1986, 1992, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 92, 94, 95, 1999 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -1069,10 +1069,14 @@ in BODY."
 ;; now, but it generates slower code.
 (defmacro save-match-data (&rest body)
   "Execute the BODY forms, restoring the global value of the match data."
-  `(let ((save-match-data-internal (match-data)))
-       (unwind-protect
-	   (progn ,@body)
-	 (set-match-data save-match-data-internal))))
+  ;; It is better not to use backquote here,
+  ;; because that makes a bootstrapping problem
+  ;; if you need to recompile all the Lisp files using interpreted code.
+  (list 'let
+	'((save-match-data-internal (match-data)))
+	(list 'unwind-protect
+	      (cons 'progn body)
+	      '(set-match-data save-match-data-internal))))
 
 (defun match-string (num &optional string)
   "Return string of text matched by last search.
