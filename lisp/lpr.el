@@ -43,7 +43,7 @@
   "*Name of program for printing a file.")
 
 (defvar lpr-headers-switches
-  (if (memq system-type '(usg-unix-v dgux hpux irix)) nil "-p")
+  (if (equal lpr-command "lpr") "-p" nil)
   "*List of strings to use as options for `lpr' to request page headings.")
 
 (defvar print-region-function nil
