@@ -21,19 +21,36 @@
 #						  9-6-94
 !include makefile.def
 
-SUBDIRS	      = lib-src src lisp
+# Since Windows 95 does not support multiple commands on one command line
+# (e.g., in for loops), we cannot use for loops any more.
+# SUBDIRS	      = lib-src src lisp
 
 #
 # Build emacs
 #
-all:;		for %%f in ( $(SUBDIRS) ) do cd ..\%%f & $(MAKE) -f makefile.nt all
+BUILD_CMD	= $(MAKE) -f makefile.nt all
+all:;		cd ..\lib-src
+		$(BUILD_CMD)
+		cd ..\src
+		$(BUILD_CMD)
+		cd ..\lisp
+		$(BUILD_CMD)
+		cd ..\nt
+
 
 #
 # Build and install emacs in INSTALL_DIR
 #
+INSTALL_CMD	= $(MAKE) -f makefile.nt install
 install:	all
 		- mkdir $(INSTALL_DIR)
-		for %%f in ( $(SUBDIRS) ) do cd ..\%%f & $(MAKE) -f makefile.nt install
+		cd ..\lib-src
+		$(INSTALL_CMD)
+		cd ..\src
+		$(INSTALL_CMD)
+		cd ..\lisp
+		$(INSTALL_CMD)
+		cd ..\nt		
 		- $(CP) emacs.bat $(INSTALL_DIR)\bin
 		- del /q ..\same-dir.tst
 		- del /q $(INSTALL_DIR)\same-dir.tst
@@ -77,7 +94,14 @@ real_install:
 #
 # Maintenance
 # 
+CLEAN_CMD	= $(MAKE) -f makefile.nt clean
 clean:;		- del /q /s *~
 		- $(DEL_TREE) deleted
 		- $(DEL_TREE) ..\bin
-		for %%f in ( $(SUBDIRS) ) do cd ..\%%f & $(MAKE) -f makefile.nt clean
+		cd ..\lib-src
+		$(CLEAN_CMD)
+		cd ..\src
+		$(CLEAN_CMD)
+		cd ..\lisp
+		$(CLEAN_CMD)
+		cd ..\nt
