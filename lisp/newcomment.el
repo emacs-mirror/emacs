@@ -5,7 +5,7 @@
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
-;; Revision: $Id: newcomment.el,v 1.46 2002/04/08 22:58:27 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.47 2002/04/29 23:43:11 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -88,7 +88,7 @@ Major modes should set this variable.")
 
 (defcustom comment-fill-column nil
   "Column to use for `comment-indent'.  If nil, use `fill-column' instead."
-  :type '(choice nil integer))
+  :type '(choice (const nil) integer))
 
 ;;;###autoload
 (defcustom comment-column 32
