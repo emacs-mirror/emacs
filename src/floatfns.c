@@ -624,10 +624,11 @@ This is the same as the exponent of a float.")
   error ("SYSV apparently doesn't have a logb function; what to do?");
 #else
   Lisp_Object val;
-  double f = extract_float (num);
+  int value;
+  double f = extract_float (arg);
 
-  IN_FLOAT (val = logb (f), "logb", num);
-  XSET (val, Lisp_Int, val);
+  IN_FLOAT (value = logb (f), "logb", arg);
+  XSET (val, Lisp_Int, value);
   return val;
 #endif
 }
