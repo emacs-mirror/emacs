@@ -509,7 +509,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	 (file-exists-p locale-translation-file-name)
 	 (with-temp-buffer
 	   (insert-file-contents locale-translation-file-name)
-	   (if (re-search-forward (concat "^" ctype "[ \t]*") nil t)
+	   (if (re-search-forward (concat "^" ctype "[ \t]+") nil t)
 	       (setq ctype (buffer-substring (point)
 					     (progn (end-of-line) (point)))))))
     ;; Now see if the locale specifies an ISO 8859 character set.
