@@ -2190,6 +2190,8 @@ VC's perspective on FILE, it does not register or unregister it."
    (list
     buffer-file-name
     (intern (upcase (read-string "Switch to backend: ")))))
+  (unless (vc-call-backend backend 'registered file)
+    (error "%s is not registered in %s" file backend))
   (vc-file-clearprops file)
   (vc-file-setprop file 'vc-backend backend)
   (vc-resynch-buffer file t t))
