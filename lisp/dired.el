@@ -1710,9 +1710,12 @@ OLD and NEW are both characters used to mark files."
 
 (defun dired-unmark-all-files (flag &optional arg)
   "Remove a specific mark or any mark from every file.
-With an arg, queries for each marked file.
+With prefix arg, query for each marked file.
 Type \\[help-command] at that time for help."
-  (interactive "sRemove mark: (default: all marks) \nP")
+  (interactive
+   (let* ((cursor-in-echo-area t))
+     (list (progn (message "Remove marks (RET means all): ") (read-char))
+	   current-prefix-arg)))
   (let ((count 0)
 	(re (if (zerop (length flag)) dired-re-mark
 	      (concat "^" (regexp-quote flag)))))
