@@ -1258,7 +1258,6 @@ if test "${HAVE_X11}" = "yes"; then
 
   AC_CHECK_FUNCS(XrmSetDatabase XScreenResourceString \
 XScreenNumberOfScreen XSetWMProtocols)
-  AC_CHECK_LIB(Xmu, XmuConvertStandardSelection)
 fi
 
 if test "${window_system}" = "x11"; then
@@ -1296,6 +1295,13 @@ fail;
 ], [AC_MSG_RESULT(6)
     AC_DEFINE(HAVE_X11XTR6)],
    [AC_MSG_RESULT(not 6)])
+
+dnl If using toolkit, check whether libXmu.a exists.
+dnl tranle@intellicorp.com says libXmu.a can need XtMalloc in libXt.a to link.
+  OLDLIBS="$LIBS"
+  LIBS="-lXt $LIBS"
+  AC_CHECK_LIB(Xmu, XmuConvertStandardSelection)
+  LIBS=$"OLDLIBS"
 fi
 
 # If netdb.h doesn't declare h_errno, we must declare it by hand.
