@@ -5,7 +5,7 @@
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
-;; Revision: $Id: newcomment.el,v 1.33 2001/09/01 21:19:45 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.34 2001/09/01 21:23:17 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -241,7 +241,9 @@ This is obsolete because you might as well use \\[newline-and-indent]."
       (let ((ce (if (string= "" comment-end) "\n"
 		  (comment-string-strip comment-end t t))))
 	(set (make-local-variable 'comment-end-skip)
-	     (concat "\\s-*\\(\\s>" (if comment-quote-nested "" "+")
+	     ;; We use [ \t] rather than \s- because we don't want to
+	     ;; remove ^L in C mode when uncommenting.
+	     (concat "[ \t]*\\(\\s>" (if comment-quote-nested "" "+")
 		     "\\|" (regexp-quote (substring ce 0 1))
 		     (if (and comment-quote-nested (<= (length ce) 1)) "" "+")
 		     (regexp-quote (substring ce 1))

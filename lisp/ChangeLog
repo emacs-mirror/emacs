@@ -1,10 +1,15 @@
+2001-09-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* newcomment.el (comment-normalize-vars): Use " \t" rather than
+	"\\s-" when defining comment-end-skip.
+
 2001-09-27  Gerd Moellmann  <gerd@gnu.org>
 
-	* mail/feedmail.el (feedmail-queue-send-edit-prompt-help): 
+	* mail/feedmail.el (feedmail-queue-send-edit-prompt-help):
 	Call get-buffer-window first second arg `visible'.
 
-	* international/mule-diag.el (list-input-methods-1): Output 
-	something that's independent of Emacs' version.
+	* international/mule-diag.el (list-input-methods-1):
+	Output something that's independent of Emacs' version.
 
 	* tar-mode.el (tar-mode-write-file): Don't signal an error by
 	calling byte-to-position with a nil tar-header-offset.
