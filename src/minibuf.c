@@ -1187,7 +1187,7 @@ is added, provided that matches some possible completion.")
 	  {
 	    tem = substituted;
 	    Ferase_buffer ();
-	    insert_from_string (tem, 0, XSTRING (tem)->size);
+	    insert_from_string (tem, 0, XSTRING (tem)->size, 0);
 	  }
       }
     buffer_string = XSTRING (tem)->data;
@@ -1252,7 +1252,7 @@ is added, provided that matches some possible completion.")
   /* Otherwise insert in minibuffer the chars we got */
 
   Ferase_buffer ();
-  insert_from_string (completion, 0, i);
+  insert_from_string (completion, 0, i, 1);
   return Qt;
 }
 
