@@ -1,6 +1,7 @@
 2004-11-06  Lars Brinkhoff  <lars@nocrew.org>
 
 	* configure.in: Add check for getrusage.
+	* configure: Regenerate.
 
 2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 

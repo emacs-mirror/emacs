@@ -1,3 +1,8 @@
+2004-11-06  Lars Brinkhoff  <lars@nocrew.org>
+
+	* os.texi (Processor Run Time): New section documenting
+	get-internal-run-time.
+
 2004-11-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (install, maintainer-clean): Don't use "elisp-*" as

@@ -1,6 +1,10 @@
 2004-11-06  Lars Brinkhoff  <lars@nocrew.org>
 
 	* config.in: Regenerate (add HAVE_GETRUSAGE).
+	* editfns.c (Fget_internal_run_time): New function.
+	(syms_of_data): Defsubr it.
+	* fns.c (sxhash): As far as possible, merge calculation of
+	hash code for symbols and strings.
 
 2004-11-06  Eli Zaretskii  <eliz@gnu.org>
 
