@@ -587,7 +587,7 @@ Key translation rules are:
   circumflex |   ^    | ^a -> ,Cb(B
   diaeresis  |   \"    | \"a -> ,Cd(B   \"\" -> ,C((B
    cedilla   |   ~    | ~c -> ,Cg(B   ~s -> ,C:(B   ~~ -> ,C8(B
-  dot above  | ~ / .  | ~o -> ,Cu(B   /o -> ,Cu(B   .o -> ,Cu(B
+  dot above  |   .    | /o -> ,Cu(B   .o -> ,Cu(B
     misc     | \" ~ /  | \"s -> ,C_(B   ~g -> ,C;(B   ~u -> ,C}(B   /h -> ,C1(B   /i -> ,C9(B
    symbol    |   ~    | ~` -> ,C"(B   /# -> ,C#(B   /$ -> ,C$(B   // -> ,C0(B
 " nil t nil nil nil nil nil nil nil nil t)
@@ -652,17 +652,10 @@ Key translation rules are:
  ("\"s" ?,C_(B)
  ("\"\"" ?,C((B)
  ("\" " ?\")
- ("~A" ?,CC(B)
  ("~C" ?,CG(B)
- ("~D" ?,CP(B)
  ("~N" ?,CQ(B)
- ("~O" ?,CU(B)
- ("~a" ?,Cc(B)
  ("~c" ?,Cg(B)
- ("~d" ?,Cp(B)
  ("~n" ?,Cq(B)
- ("~o" ?,Cu(B)
- ("~$" ?,C%(B)
  ("~S" ?,C*(B)
  ("~s" ?,C:(B)
  ("~G" ?,C+(B)
@@ -682,7 +675,6 @@ Key translation rules are:
  ("/h" ?,C1(B)
  ("/i" ?,C9(B)
  ("/z" ?,C?(B)
- ("/r" ?,C.(B)
  ("/." ?,C(B)
  ("/#" ?,C#(B)
  ("/$" ?,C$(B)
