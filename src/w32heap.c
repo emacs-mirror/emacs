@@ -157,7 +157,8 @@ allocate_heap (void)
   unsigned long end  = 1 << VALBITS; /* 256MB */
   void *ptr = NULL;
 
-#if NTHEAP_PROBE_BASE /* This is never normally defined */
+#define NTHEAP_PROBE_BASE 1
+#if NTHEAP_PROBE_BASE
   /* Try various addresses looking for one the kernel will let us have.  */
   while (!ptr && (base < end))
     {
