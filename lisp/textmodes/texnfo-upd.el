@@ -1205,7 +1205,8 @@ document; the values are regular expressions.")
       "\\(^@\\("
       texinfo-subsubsection-level-regexp
       "\\)\\>[ \t]+\\)"))
-    (subsubsection . "nothing lower"))
+    ;; There's nothing below 5, use a bogus regexp that can't match.
+    (5 . "a\\(^\\)"))
   "*Regexps for searching for lower level sections in a Texinfo file.
 The keys are strings specifying the general hierarchical level in the
 document; the values are regular expressions.")
