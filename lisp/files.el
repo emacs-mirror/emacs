@@ -1406,7 +1406,7 @@ unless NOMODES is non-nil."
 		       (file-newer-than-file-p (or buffer-auto-save-file-name
 						   (make-auto-save-file-name))
 					       buffer-file-name))
-		  (format "%s has auto save data; consider M-x recover-file"
+		  (format "%s has auto save data; consider M-x recover-this-file"
 			  (file-name-nondirectory buffer-file-name))
 		(setq not-serious t)
 		(if error "(New file)" nil)))
@@ -3334,6 +3334,11 @@ non-nil, it is called instead of rereading visited file contents."
 		 (kill-local-variable 'revert-buffer-internal-hook))
 	       (run-hooks 'revert-buffer-internal-hook))
 	     t)))))
+
+(defun recover-this-file ()
+  "Recover the visited file--get contents from its last auto-save file."
+  (interactive)
+  (recover-file buffer-file-name))
 
 (defun recover-file (file)
   "Visit file FILE, but get contents from its last auto-save file."
