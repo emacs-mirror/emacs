@@ -5007,14 +5007,13 @@ sxhash (obj, depth)
       hash = XUINT (obj);
       break;
 
-    case Lisp_Symbol:
-      hash = sxhash_string (SDATA (SYMBOL_NAME (obj)),
-			    SCHARS (SYMBOL_NAME (obj)));
-      break;
-
     case Lisp_Misc:
       hash = XUINT (obj);
       break;
+
+    case Lisp_Symbol:
+      obj = SYMBOL_NAME (obj);
+      /* Fall through.  */
 
     case Lisp_String:
       hash = sxhash_string (SDATA (obj), SCHARS (obj));
