@@ -1,3 +1,9 @@
+2001-07-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* fileio.c (unwind_read): New function.
+	(Finsert_file_contents): Record it as unwind-function for
+	the case that reading is interrupted by C-g.
+
 2001-07-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* dispnew.c (update_window): Don't skip the header-line 
