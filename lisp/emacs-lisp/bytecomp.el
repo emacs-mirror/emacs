@@ -1125,7 +1125,7 @@ otherwise pop it")
 (defun byte-force-recompile (directory)
   "Recompile every `.el' file in DIRECTORY that already has a `.elc' file.
 Files in subdirectories of DIRECTORY are processed also."
-  (interactive "DByte recompile directory: ")
+  (interactive "DByte force recompile (directory): ")
   (byte-recompile-directory directory nil t))
 
 ;;;###autoload
@@ -1905,9 +1905,16 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 		  ;; If the interactive spec is a call to `list',
 		  ;; don't compile it, because `call-interactively'
 		  ;; looks at the args of `list'.
-		  (or (eq (car-safe (nth 1 int)) 'list)
-		      (setq int (list 'interactive
-				      (byte-compile-top-level (nth 1 int))))))
+		  (let ((form (nth 1 int)))
+		    (while (or (eq (car-safe form) 'let)
+			       (eq (car-safe form) 'let*)
+			       (eq (car-safe form) 'save-excursion))
+		      (while (consp (cdr form))
+			(setq form (cdr form)))
+		      (setq form (car form)))
+		    (or (eq (car-safe form) 'list)
+			(setq int (list 'interactive
+					(byte-compile-top-level (nth 1 int)))))))
 		 ((cdr int)
 		  (byte-compile-warn "malformed interactive spec: %s"
 				     (prin1-to-string int))))))
@@ -2418,13 +2425,18 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 
 
 ;; Compile a function that accepts one or more args and is right-associative.
+;; We do it by left-associativity so that the operations
+;; are done in the same order as in interpreted code.
 (defun byte-compile-associative (form)
   (if (cdr form)
-      (let ((opcode (get (car form) 'byte-opcode)))
-	;; To compile all the args first may enable some optimizations.
-	(mapcar 'byte-compile-form (setq form (cdr form)))
-	(while (setq form (cdr form))
-	  (byte-compile-out opcode 0)))
+      (let ((opcode (get (car form) 'byte-opcode))
+	    (args (copy-sequence (cdr form))))
+	(byte-compile-form (car args))
+	(setq args (cdr args))
+	(while args
+	  (byte-compile-form (car args))
+	  (byte-compile-out opcode 0)
+	  (setq args (cdr args))))
     (byte-compile-constant (eval form))))
 
 
