@@ -1948,9 +1948,9 @@ w32_defined_color (f, color, color_def, alloc)
       w32_color_ref = XUINT (tem) | 0x2000000;
 
       color_def->pixel = w32_color_ref;
-      color_def->red = GetRValue (w32_color_ref);
-      color_def->green = GetGValue (w32_color_ref);
-      color_def->blue = GetBValue (w32_color_ref);
+      color_def->red = GetRValue (w32_color_ref) * 256;
+      color_def->green = GetGValue (w32_color_ref) * 256;
+      color_def->blue = GetBValue (w32_color_ref) * 256;
 
       return 1;
     }
@@ -8540,6 +8540,7 @@ or omitted means use the selected frame.  */)
 
 static struct image *make_image P_ ((Lisp_Object spec, unsigned hash));
 static void free_image P_ ((struct frame *f, struct image *img));
+static void x_destroy_x_image P_ ((XImage *));
 
 
 /* Allocate and return a new image structure for image specification
@@ -8646,18 +8647,18 @@ image_ascent (img, face)
 /* Find the "best" corner color of a bitmap.  XIMG is assumed to a device
    context with the bitmap selected.  */
 static COLORREF
-four_corners_best (ximg, width, height)
-     HDC ximg;
+four_corners_best (img_dc, width, height)
+     HDC img_dc;
      unsigned long width, height;
 {
   COLORREF corners[4], best;
   int i, best_count;
 
-  /* Get the colors at the corners of ximg.  */
-  corners[0] = GetPixel (ximg, 0, 0);
-  corners[1] = GetPixel (ximg, width - 1, 0);
-  corners[2] = GetPixel (ximg, width - 1, height - 1);
-  corners[3] = GetPixel (ximg, 0, height - 1);
+  /* Get the colors at the corners of img_dc.  */
+  corners[0] = GetPixel (img_dc, 0, 0);
+  corners[1] = GetPixel (img_dc, width - 1, 0);
+  corners[2] = GetPixel (img_dc, width - 1, height - 1);
+  corners[3] = GetPixel (img_dc, 0, height - 1);
 
   /* Choose the most frequently found color as background.  */
   for (i = best_count = 0; i < 4; ++i)
@@ -8676,32 +8677,39 @@ four_corners_best (ximg, width, height)
 }
 
 /* Return the `background' field of IMG.  If IMG doesn't have one yet,
-   it is guessed heuristically.  If non-zero, XIMG is an existing XImage
-   object to use for the heuristic.  */
+   it is guessed heuristically.  If non-zero, IMG_DC is an existing
+   device context with the image selected to use for the heuristic.  */
 
 unsigned long
-image_background (img, f, ximg)
+image_background (img, f, img_dc)
      struct image *img;
      struct frame *f;
-     XImage *ximg;
+     HDC img_dc;
 {
   if (! img->background_valid)
     /* IMG doesn't have a background yet, try to guess a reasonable value.  */
     {
-#if 0 /* TODO: Image support.  */
-      int free_ximg = !ximg;
-
-      if (! ximg)
-	ximg = XGetImage (FRAME_X_DISPLAY (f), img->pixmap,
-			  0, 0, img->width, img->height, ~0, ZPixmap);
-
-      img->background = four_corners_best (ximg, img->width, img->height);
+      int free_ximg = !img_dc;
+      HGDIOBJ prev;
 
       if (free_ximg)
-	XDestroyImage (ximg);
+	{
+	  HDC frame_dc = get_frame_dc (f);
+	  img_dc = CreateCompatibleDC (frame_dc);
+	  release_frame_dc (f, frame_dc);
+
+	  prev = SelectObject (img_dc, img->pixmap);
+	}
+
+      img->background = four_corners_best (img_dc, img->width, img->height);
+
+      if (free_ximg)
+	{
+	  SelectObject (img_dc, prev);
+	  DeleteDC (img_dc);
+	}
 
       img->background_valid = 1;
-#endif
     }
 
   return img->background;
@@ -8715,28 +8723,35 @@ int
 image_background_transparent (img, f, mask)
      struct image *img;
      struct frame *f;
-     XImage *mask;
+     HDC mask;
 {
   if (! img->background_transparent_valid)
     /* IMG doesn't have a background yet, try to guess a reasonable value.  */
     {
-#if 0 /* TODO: Image support.  */
       if (img->mask)
 	{
 	  int free_mask = !mask;
+	  HGDIOBJ prev;
 
-	  if (! mask)
-	    mask = XGetImage (FRAME_X_DISPLAY (f), img->mask,
-			      0, 0, img->width, img->height, ~0, ZPixmap);
+	  if (free_mask)
+	    {
+	      HDC frame_dc = get_frame_dc (f);
+	      mask = CreateCompatibleDC (frame_dc);
+	      release_frame_dc (f, frame_dc);
+
+	      prev = SelectObject (mask, img->mask);	      
+	    }
 
 	  img->background_transparent
 	    = !four_corners_best (mask, img->width, img->height);
 
 	  if (free_mask)
-	    XDestroyImage (mask);
+	    {
+	      SelectObject (mask, prev);
+	      DeleteDC (mask);
+	    }
 	}
       else
-#endif
 	img->background_transparent = 0;
 
       img->background_transparent_valid = 1;
@@ -8879,6 +8894,7 @@ x_alloc_image_color (f, img, color_name, dflt)
 
 static void cache_image P_ ((struct frame *f, struct image *img));
 static void postprocess_image P_ ((struct frame *, struct image *));
+static void x_disable_image P_ ((struct frame *, struct image *));
 
 
 /* Return a new, initialized image cache that is allocated from the
@@ -9018,7 +9034,6 @@ postprocess_image (f, img)
      struct frame *f;
      struct image *img;
 {
-#if 0  /* TODO: image support.  */
   /* Manipulation of the image's mask.  */
   if (img->pixmap)
     {
@@ -9083,7 +9098,6 @@ postprocess_image (f, img)
 			      Fplist_get (tem, QCcolor_adjustment));
 	}
     }
-#endif
 }
 
 
@@ -9275,7 +9289,6 @@ forall_images_in_image_cache (f, fn)
 
 static int x_create_x_image_and_pixmap P_ ((struct frame *, int, int, int,
                                             XImage **, Pixmap *));
-static void x_destroy_x_image P_ ((XImage *));
 static void x_put_x_image P_ ((struct frame *, XImage *, Pixmap, int, int));
 
 
@@ -9338,11 +9351,14 @@ x_create_x_image_and_pixmap (f, width, height, depth, ximg, pixmap)
   header->biCompression = BI_RGB;
   header->biClrUsed = palette_colors;
 
+  /* TODO: fill in palette.  */
+
   hdc = get_frame_dc (f);
 
   /* Create a DIBSection and raster array for the bitmap,
      and store its handle in *pixmap.  */
-  *pixmap = CreateDIBSection (hdc, &((*ximg)->info), DIB_RGB_COLORS,
+  *pixmap = CreateDIBSection (hdc, &((*ximg)->info),
+			      (depth < 16) ? DIB_PAL_COLORS : DIB_RGB_COLORS,
 			      &((*ximg)->data), NULL, 0);
 
   /* Realize display palette and garbage all frames. */
@@ -9388,14 +9404,10 @@ x_put_x_image (f, ximg, pixmap, width, height)
      XImage *ximg;
      Pixmap pixmap;
 {
-
-#if TODO  /* W32 specific image code.  */
-  GC gc;
-
-  xassert (interrupt_input_blocked);
-  gc = XCreateGC (NULL, pixmap, 0, NULL);
-  XPutImage (NULL, pixmap, gc, ximg, 0, 0, 0, 0, width, height);
-  XFreeGC (NULL, gc);
+#if 0  /* I don't think this is necessary looking at where it is used.  */
+  HDC hdc = get_frame_dc (f);
+  SetDIBits (hdc, pixmap, 0, height, ximg->data, &(ximg->info), DIB_RGB_COLORS);
+  release_frame_dc (f, hdc);
 #endif
 }
 
@@ -10065,7 +10077,6 @@ xbm_load (f, img)
     {
       struct image_keyword fmt[XBM_LAST];
       Lisp_Object data;
-      int depth;
       unsigned long foreground = FRAME_FOREGROUND_PIXEL (f);
       unsigned long background = FRAME_BACKGROUND_PIXEL (f);
       char *bits;
@@ -10127,7 +10138,6 @@ xbm_load (f, img)
 	    bits = XBOOL_VECTOR (data)->data;
 
 	  /* Create the pixmap.  */
-	  depth = one_w32_display_info.n_cbits;
 	  img->pixmap
 	    = w32_create_pixmap_from_bitmap_data (img->width, img->height,
 						  bits);
@@ -10200,7 +10210,7 @@ static struct image_keyword xpm_format[XPM_LAST] =
   {":background",       IMAGE_STRING_OR_NIL_VALUE,              0}
 };
 
-/* Structure describing the image type XBM.  */
+/* Structure describing the image type XPM.  */
 
 static struct image_type xpm_type =
 {
@@ -10641,13 +10651,16 @@ x_to_xcolors (f, img, rgb_p)
 {
   int x, y;
   XColor *colors, *p;
-  XImage *ximg;
+  HDC hdc, bmpdc;
+  HGDIOBJ prev;
 
   colors = (XColor *) xmalloc (img->width * img->height * sizeof *colors);
-#if 0 /* TODO: implement image colors.  */
-  /* Get the X image IMG->pixmap.  */
-  ximg = XGetImage (FRAME_X_DISPLAY (f), img->pixmap,
-		    0, 0, img->width, img->height, ~0, ZPixmap);
+
+  /* Load the image into a memory device context.  */
+  hdc = get_frame_dc (f);
+  bmpdc = CreateCompatibleDC (hdc);
+  release_frame_dc (f, hdc);
+  prev = SelectObject (bmpdc, img->pixmap);
 
   /* Fill the `pixel' members of the XColor array.  I wished there
      were an easy and portable way to circumvent XGetPixel.  */
@@ -10657,14 +10670,22 @@ x_to_xcolors (f, img, rgb_p)
       XColor *row = p;
 
       for (x = 0; x < img->width; ++x, ++p)
-	p->pixel = XGetPixel (ximg, x, y);
+	{
+	  /* TODO: palette support needed here?  */
+	  p->pixel = GetPixel (bmpdc, x, y);
 
-      if (rgb_p)
-	x_query_colors (f, row, img->width);
+	  if (rgb_p)
+	    {
+	      p->red = 256 * GetRValue (p->pixel);
+	      p->green = 256 * GetGValue (p->pixel);
+	      p->blue = 256 * GetBValue (p->pixel);
+	    }
+	}
     }
 
-  XDestroyImage (ximg);
-#endif
+  SelectObject (bmpdc, prev);
+  DeleteDC (bmpdc);
+
   return colors;
 }
 
@@ -10723,7 +10744,7 @@ x_from_xcolors (f, img, colors)
 #if 0  /* TODO: color tables.  */
 	pixel = lookup_rgb_color (f, p->red, p->green, p->blue);
 #else
-	pixel = PALETTERGB (p->red, p->green, p->blue);
+	pixel = PALETTERGB (p->red / 256, p->green / 256, p->blue / 256);
 #endif
 	XPutPixel (oimg, x, y, pixel);
       }
@@ -10916,29 +10937,32 @@ x_disable_image (f, img)
      should.  */
   if (dpyinfo->n_planes * dpyinfo->n_cbits < 2 || cross_disabled_images)
     {
-#if 0 /* TODO: full image support  */
-      Display *dpy = FRAME_X_DISPLAY (f);
-      GC gc;
+      HDC hdc, bmpdc;
+      HGDIOBJ prev;
 
-      gc = XCreateGC (dpy, img->pixmap, 0, NULL);
-      XSetForeground (dpy, gc, BLACK_PIX_DEFAULT (f));
-      XDrawLine (dpy, img->pixmap, gc, 0, 0,
-		 img->width - 1, img->height - 1);
-      XDrawLine (dpy, img->pixmap, gc, 0, img->height - 1,
-		 img->width - 1, 0);
-      XFreeGC (dpy, gc);
+      hdc = get_frame_dc (f);
+      bmpdc = CreateCompatibleDC (hdc);
+      release_frame_dc (f, hdc);
+
+      prev = SelectObject (bmpdc, img->pixmap);
+
+      SetTextColor (bmpdc, BLACK_PIX_DEFAULT (f));
+      MoveToEx (bmpdc, 0, 0, NULL);
+      LineTo (bmpdc, img->width - 1, img->height - 1);
+      MoveToEx (bmpdc, 0, img->height - 1, NULL);
+      LineTo (bmpdc, img->width - 1, 0);
 
       if (img->mask)
 	{
-	  gc = XCreateGC (dpy, img->mask, 0, NULL);
-	  XSetForeground (dpy, gc, WHITE_PIX_DEFAULT (f));
-	  XDrawLine (dpy, img->mask, gc, 0, 0,
-		     img->width - 1, img->height - 1);
-	  XDrawLine (dpy, img->mask, gc, 0, img->height - 1,
-		     img->width - 1, 0);
-	  XFreeGC (dpy, gc);
+	  SelectObject (bmpdc, img->mask);
+	  SetTextColor (bmpdc, WHITE_PIX_DEFAULT (f));
+	  MoveToEx (bmpdc, 0, 0, NULL);
+	  LineTo (bmpdc, img->width - 1, img->height - 1);
+	  MoveToEx (bmpdc, 0, img->height - 1, NULL);
+	  LineTo (bmpdc, img->width - 1, 0);
 	}
-#endif
+      SelectObject (bmpdc, prev);
+      DeleteDC (bmpdc);
     }
 }
 
@@ -10956,30 +10980,32 @@ x_build_heuristic_mask (f, img, how)
      struct image *img;
      Lisp_Object how;
 {
-#if 0 /* TODO: full image support.  */
-  Display *dpy = FRAME_W32_DISPLAY (f);
-  XImage *ximg, *mask_img;
+  HDC img_dc, frame_dc;
+  HGDIOBJ prev;
+  char *mask_img;
   int x, y, rc, use_img_background;
   unsigned long bg = 0;
+  int row_width;
 
   if (img->mask)
     {
-      XFreePixmap (FRAME_X_DISPLAY (f), img->mask);
-      img->mask = None;
+      DeleteObject (img->mask);
+      img->mask = NULL;
       img->background_transparent_valid = 0;
     }
 
-  /* Create an image and pixmap serving as mask.  */
-  rc = x_create_x_image_and_pixmap (f, img->width, img->height, 1,
-				    &mask_img, &img->mask);
-  if (!rc)
-    return 0;
+  /* Create the bit array serving as mask.  */
+  row_width = (img->width + 7) / 8;
+  mask_img = xmalloc (row_width * img->height);
+  bzero (mask_img, row_width * img->height);
 
-  /* Get the X image of IMG->pixmap.  */
-  ximg = XGetImage (dpy, img->pixmap, 0, 0, img->width, img->height,
-		    ~0, ZPixmap);
+  /* Create a memory device context for IMG->pixmap.  */
+  frame_dc = get_frame_dc (f);
+  img_dc = CreateCompatibleDC (frame_dc);
+  release_frame_dc (f, frame_dc);
+  prev = SelectObject (img_dc, img->pixmap);
 
-  /* Determine the background color of ximg.  If HOW is `(R G B)'
+  /* Determine the background color of img_dc.  If HOW is `(R G B)'
      take that as color.  Otherwise, use the image's background color.  */
   use_img_background = 1;
 
@@ -11003,26 +11029,33 @@ x_build_heuristic_mask (f, img, how)
     }
 
   if (use_img_background)
-    bg = four_corners_best (ximg, img->width, img->height);
+    bg = four_corners_best (img_dc, img->width, img->height);
 
   /* Set all bits in mask_img to 1 whose color in ximg is different
      from the background color bg.  */
   for (y = 0; y < img->height; ++y)
     for (x = 0; x < img->width; ++x)
-      XPutPixel (mask_img, x, y, XGetPixel (ximg, x, y) != bg);
+      {
+	COLORREF p = GetPixel (img_dc, x, y);
+	if (p != bg)
+	  mask_img[y * row_width + x / 8] |= 1 << (x % 8);
+      }
+
+  /* Create the mask image.  */
+  img->mask = w32_create_pixmap_from_bitmap_data (img->width, img->height,
+						  mask_img);
 
   /* Fill in the background_transparent field while we have the mask handy. */
-  image_background_transparent (img, f, mask_img);
+  SelectObject (img_dc, img->mask);
+
+  image_background_transparent (img, f, img_dc);
 
   /* Put mask_img into img->mask.  */
-  x_put_x_image (f, mask_img, img->mask, img->width, img->height);
   x_destroy_x_image (mask_img);
-  XDestroyImage (ximg);
+  SelectObject (img_dc, prev);
+  DeleteDC (img_dc);
 
   return 1;
-#else
-  return 0;
-#endif
 }
 
 
