@@ -1,6 +1,6 @@
 ;;; mailabbrev.el --- abbrev-expansion of mail aliases.
 
-;; Copyright (C) 1985, 1986, 87, 92, 93, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 92, 93, 96, 1997 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;; Maintainer: Jamie Zawinski <jwz@lucid.com>
@@ -129,6 +129,26 @@
 
 (require 'sendmail)
 
+(defgroup mail-abbrev nil
+  "Expand mail aliases as abbrevs, in certain mail headers."
+  :group 'abbrev-mode)
+
+(defcustom mail-abbrevs-mode nil
+  "*Non-nil means expand mail aliases as abbrevs, in certain message headers."
+  :type 'boolean
+  :group 'mail-abbrev
+  :require 'mailabbrev
+  :set '(lambda (symbol value)
+	  (setq mail-abbrevs-mode value)
+	  (if value (mail-abbrevs-enable) (mail-abbrevs-disable)))
+  :initialize 'custom-initialize-default)
+
+(defcustom mail-abbrevs-only nil
+  "*Non-nil means only mail abbrevs should expand automatically.
+Other abbrevs expand only when you explicitly use `expand-abbrev'."
+  :type 'boolean
+  :group 'mail-abbrev)
+
 ;; originally defined in sendmail.el - used to be an alist, now is a table.
 (defvar mail-abbrevs nil
   "Word-abbrev table of mail address aliases.
@@ -161,6 +181,14 @@ no aliases, which is represented by this being a table with no entries.)")
   (add-hook 'pre-abbrev-expand-hook 'sendmail-pre-abbrev-expand-hook
 	    nil t)
   (abbrev-mode 1))
+
+(defun mail-abbrevs-enable ()
+  (add-hook 'mail-setup-hook 'mail-abbrevs-setup))
+
+(defun mail-abbrevs-disable ()
+  "Turn off use of the `mailabbrev' package."
+  (remove-hook 'mail-setup-hook 'mail-abbrevs-setup)
+  (abbrev-mode (if (default-value 'abbrev-mode) 1 -1)))
 
 ;;;###autoload
 (defun build-mail-abbrevs (&optional file recursivep)
@@ -482,13 +510,20 @@ of a mail alias.")
 	     (setq abbrev-start-location (point-max) ; This is the trick.
 		   abbrev-start-location-buffer (current-buffer)))
 
-	 ;; We're not in a mail header where mail aliases should
-	 ;; be expanded, then use the normal mail-mode abbrev table
-	 ;; (if any) and the normal mail-mode syntax table.
+	 (if (or (not mail-abbrevs-only)
+		 (eq this-command 'expand-abbrev))
+	     (progn
+	       ;; We're not in a mail header where mail aliases should
+	       ;; be expanded, then use the normal mail-mode abbrev table
+	       ;; (if any) and the normal mail-mode syntax table.
 
-	 (setq local-abbrev-table (and (boundp 'mail-mode-abbrev-table)
-				       mail-mode-abbrev-table))
-	 (set-syntax-table mail-mode-syntax-table))
+	       (setq local-abbrev-table (and (boundp 'mail-mode-abbrev-table)
+					     mail-mode-abbrev-table))
+	       (set-syntax-table mail-mode-syntax-table))
+	   ;; This is not a mail abbrev, and we should not expand it.
+	   ;; This kludge stops expand-abbrev from doing anything.
+	   (setq abbrev-start-location (point-max)
+		 abbrev-start-location-buffer (current-buffer))))
        ))
 
 ;;; utilities
@@ -572,5 +607,8 @@ Don't use this command in Lisp programs!
 ;;(define-key mail-mode-map "\M->" 'mail-abbrev-end-of-buffer)
 
 (provide 'mailabbrev)
+
+(if mail-abbrevs-mode
+    (mail-abbrevs-enable))
 
 ;;; mailabbrev.el ends here.
