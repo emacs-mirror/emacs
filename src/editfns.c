@@ -817,6 +817,122 @@ They default to the beginning and the end of BUFFER.")
 
   return Qnil;
 }
+
+DEFUN ("compare-buffer-substrings", Fcompare_buffer_substrings, Scompare_buffer_substrings,
+  6, 6, 0,
+  "Compare two substrings of two buffers; return result as number.\n\
+the value is -N if first string is less after N-1 chars,\n\
++N if first string is greater after N-1 chars, or 0 if strings match.\n\
+Each substring is represented as three arguments: BUFFER, START and END.\n\
+That makes six args in all, three for each substring.\n\n\
+The value of `case-fold-search' in the current buffer\n\
+determines whether case is significant or ignored.")
+  (buffer1, start1, end1, buffer2, start2, end2)
+     Lisp_Object buffer1, start1, end1, buffer2, start2, end2;
+{
+  register int begp1, endp1, begp2, endp2, temp, len1, len2, length, i;
+  register struct buffer *bp1, *bp2;
+  register unsigned char *trt
+    = (!NILP (current_buffer->case_fold_search)
+       ? XSTRING (current_buffer->case_canon_table)->data : 0);
+
+  /* Find the first buffer and its substring.  */
+
+  if (NILP (buffer1))
+    bp1 = current_buffer;
+  else
+    {
+      buffer1 = Fget_buffer (buffer1);
+      bp1 = XBUFFER (buffer1);
+    }
+
+  if (NILP (start1))
+    begp1 = BUF_BEGV (bp1);
+  else
+    {
+      CHECK_NUMBER_COERCE_MARKER (start1, 1);
+      begp1 = XINT (start1);
+    }
+  if (NILP (end1))
+    endp1 = BUF_ZV (bp1);
+  else
+    {
+      CHECK_NUMBER_COERCE_MARKER (end1, 2);
+      endp1 = XINT (end1);
+    }
+
+  if (begp1 > endp1)
+    temp = begp1, begp1 = endp1, endp1 = temp;
+
+  if (!(BUF_BEGV (bp1) <= begp1
+	&& begp1 <= endp1
+        && endp1 <= BUF_ZV (bp1)))
+    args_out_of_range (start1, end1);
+
+  /* Likewise for second substring.  */
+
+  if (NILP (buffer2))
+    bp2 = current_buffer;
+  else
+    {
+      buffer2 = Fget_buffer (buffer2);
+      bp2 = XBUFFER (buffer2);
+    }
+
+  if (NILP (start2))
+    begp2 = BUF_BEGV (bp2);
+  else
+    {
+      CHECK_NUMBER_COERCE_MARKER (start2, 4);
+      begp2 = XINT (start2);
+    }
+  if (NILP (end2))
+    endp2 = BUF_ZV (bp2);
+  else
+    {
+      CHECK_NUMBER_COERCE_MARKER (end2, 5);
+      endp2 = XINT (end2);
+    }
+
+  if (begp2 > endp2)
+    temp = begp2, begp2 = endp2, endp2 = temp;
+
+  if (!(BUF_BEGV (bp2) <= begp2
+	&& begp2 <= endp2
+        && endp2 <= BUF_ZV (bp2)))
+    args_out_of_range (start2, end2);
+
+  len1 = endp1 - begp1;
+  len2 = endp2 - begp2;
+  length = len1;
+  if (len2 < length)
+    length = len2;
+
+  for (i = 0; i < length; i++)
+    {
+      int c1 = *BUF_CHAR_ADDRESS (bp1, begp1 + i);
+      int c2 = *BUF_CHAR_ADDRESS (bp2, begp2 + i);
+      if (trt)
+	{
+	  c1 = trt[c1];
+	  c2 = trt[c2];
+	}
+      if (c1 < c2)
+	return make_number (- 1 - i);
+      if (c1 > c2)
+	return make_number (i + 1);
+    }
+
+  /* The strings match as far as they go.
+     If one is shorter, that one is less.  */
+  if (length < len1)
+    return make_number (length + 1);
+  else if (length < len2)
+    return make_number (- length - 1);
+
+  /* Same length too => they are equal.  */
+  return make_number (0);
+}
 
 DEFUN ("subst-char-in-region", Fsubst_char_in_region,
   Ssubst_char_in_region, 4, 5, 0,
@@ -1319,6 +1435,7 @@ syms_of_editfns ()
   defsubr (&Sformat);
 
   defsubr (&Sinsert_buffer_substring);
+  defsubr (&Scompare_buffer_substrings);
   defsubr (&Ssubst_char_in_region);
   defsubr (&Stranslate_region);
   defsubr (&Sdelete_region);
