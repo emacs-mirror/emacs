@@ -6,7 +6,7 @@
 ;; Created: 6 Dec 2001
 ;; Keywords: buffer, convenience
 
-;; This file is not currently part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -61,7 +61,7 @@ During evaluation of body, bind `it' to the value returned by TEST."
 	     (save-excursion
 	       ,@body))
 	 (with-current-buffer ,bufsym
-	   (ibuffer-insert-buffers-and-marks
+	   (ibuffer-redisplay-engine
 	    ;; Get rid of dead buffers
 	    (delq nil
 		  (mapcar #'(lambda (e) (when (buffer-live-p (car e))
