@@ -622,6 +622,8 @@ run `normal-mode' explicitly."
 				  ("\\.el\\'" . emacs-lisp-mode)
 				  ("\\.mm\\'" . nroff-mode)
 				  ("\\.me\\'" . nroff-mode)
+				  ("\\.ms\\'" . nroff-mode)
+				  ("\\.man\\'" . nroff-mode)
 				  ("\\.scm\\'" . scheme-mode)
 				  ("\\.l\\'" . lisp-mode)
 				  ("\\.lisp\\'" . lisp-mode)
@@ -631,6 +633,8 @@ run `normal-mode' explicitly."
 				  ("\\.pl\\'" . prolog-mode)
 				  ("\\.cc\\'" . c++-mode)
 				  ("\\.C\\'" . c++-mode)
+				  ("\\.mk" . . makefile-mode)
+				  ("[Mm]akefile" . makefile-mode)
 ;;; Less common extensions come here
 ;;; so more common ones above are found faster.
 				  ("\\.s\\'" . asm-mode)
@@ -651,6 +655,7 @@ run `normal-mode' explicitly."
 				  ("\\.lsp\\'" . lisp-mode)
 				  ("\\.awk\\'" . awk-mode)
 				  ("\\.prolog\\'" . prolog-mode)
+				  ("\\.tar\\'" . tar-mode)
 				  ;; Mailer puts message to be edited in
 				  ;; /tmp/Re.... or Message
 				  ("^/tmp/Re" . text-mode)
@@ -658,6 +663,7 @@ run `normal-mode' explicitly."
 				  ;; some news reader is reported to use this
 				  ("^/tmp/fol/" . text-mode)
 				  ("\\.y\\'" . c-mode)
+				  ("\\.lex\\'" . c-mode)
 				  ("\\.oak\\'" . scheme-mode)
 				  ("\\.scm.[0-9]*\\'" . scheme-mode)
 				  ;; .emacs following a directory delimiter
