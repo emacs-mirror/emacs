@@ -11640,8 +11640,6 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
 	  else
 	    new_cursor_type = HOLLOW_BOX_CURSOR;
 	}
-      else if (w->cursor_off_p)
-	new_cursor_type = NO_CURSOR;
       else
 	{
 	  struct buffer *b = XBUFFER (w->buffer);
@@ -11651,6 +11649,15 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
 	  else
 	    new_cursor_type = x_specified_cursor_type (b->cursor_type, 
 						       &new_cursor_width);
+	  if (w->cursor_off_p)
+	    {
+	      if (new_cursor_type == FILLED_BOX_CURSOR)
+		new_cursor_type = HOLLOW_BOX_CURSOR;
+	      else if (new_cursor_type == BAR_CURSOR && new_cursor_width > 1)
+		new_cursor_width = 1;
+	      else
+		new_cursor_type = NO_CURSOR;
+	    }
 	}
     }
 
@@ -11661,7 +11668,9 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
       && (!on
 	  || w->phys_cursor.x != x
 	  || w->phys_cursor.y != y
-	  || new_cursor_type != w->phys_cursor_type))
+	  || new_cursor_type != w->phys_cursor_type
+	  || (new_cursor_type == BAR_CURSOR
+	      && new_cursor_width != w->phys_cursor_width)))
     x_erase_phys_cursor (w);
 
   /* If the cursor is now invisible and we want it to be visible,
@@ -11678,6 +11687,7 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
       w->phys_cursor.hpos = hpos;
       w->phys_cursor.vpos = vpos;
       w->phys_cursor_type = new_cursor_type;
+      w->phys_cursor_width = new_cursor_width;
       w->phys_cursor_on_p = 1;
 
       switch (new_cursor_type)
