@@ -2272,11 +2272,36 @@ This is text showing the elements of vector matched against indices.")
   int count = specpdl_ptr - specpdl;
 
   specbind (Qstandard_output, Fcurrent_buffer ());
-  CHECK_VECTOR (vector, 0);
+  CHECK_VECTOR_OR_CHAR_TABLE (vector, 0);
   describe_vector (vector, Qnil, describe_vector_princ, 0, Qnil, Qnil);
 
   return unbind_to (count, Qnil);
 }
+
+/* Insert in the current buffer a description of the contents of VECTOR.
+   We call ELT_DESCRIBER to insert the description of one value found
+   in VECTOR.
+
+   ELT_PREFIX describes what "comes before" the keys or indices defined
+   by this vector.
+
+   If the vector is in a keymap, ELT_PREFIX is a prefix key which
+   leads to this keymap.
+
+   If the vector is a chartable, ELT_PREFIX is the vector
+   of bytes that lead to the character set or portion of a character
+   set described by this chartable.
+
+   If PARTIAL is nonzero, it means do not mention suppressed commands
+   (that assumes the vector is in a keymap).
+
+   SHADOW is a list of keymaps that shadow this map.
+   If it is non-nil, then we look up the key in those maps
+   and we don't mention it now if it is defined by any of them.
+
+   ENTIRE_MAP is the keymap in which this vector appears.
+   If the definition in effect in the whole map does not match
+   the one in this vector, we ignore this one.  */
 
 describe_vector (vector, elt_prefix, elt_describer,
 		 partial, shadow, entire_map)
@@ -2294,17 +2319,19 @@ describe_vector (vector, elt_prefix, elt_describer,
   register int i;
   Lisp_Object suppress;
   Lisp_Object kludge;
+  Lisp_Object chartable_kludge;
   int first = 1;
   int size;
-  struct gcpro gcpro1, gcpro2, gcpro3;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
   definition = Qnil;
+  chartable_kludge = Qnil;
 
   /* This vector gets used to present single keys to Flookup_key.  Since
      that is done once per vector element, we don't want to cons up a
      fresh vector every time.  */
   kludge = Fmake_vector (make_number (1), Qnil);
-  GCPRO3 (elt_prefix, definition, kludge);
+  GCPRO4 (elt_prefix, definition, kludge, chartable_kludge);
 
   if (partial)
     suppress = intern ("suppress-keymap");
@@ -2351,22 +2378,65 @@ describe_vector (vector, elt_prefix, elt_describer,
 	    continue;
 	}
 
+      /* If we find a char-table within a char-table,
+	 scan it recursively; it defines the details for
+	 a character set or a portion of a character set.  */
+      if (CHAR_TABLE_P (vector) && CHAR_TABLE_P (definition))
+	{
+	  int outer_level
+	    = !NILP (elt_prefix) ? XVECTOR (elt_prefix)->size : 0;
+	  if (NILP (chartable_kludge))
+	    {
+	      chartable_kludge
+		= Fmake_vector (make_number (outer_level + 1), Qnil);
+	      if (outer_level != 0)
+		bcopy (XVECTOR (elt_prefix)->contents,
+		       XVECTOR (chartable_kludge)->contents,
+		       outer_level * sizeof (Lisp_Object));
+	    }
+	  XVECTOR (chartable_kludge)->contents[outer_level]
+	    = make_number (i);
+	  describe_vector (definition, chartable_kludge, elt_describer,
+			   partial, shadow, entire_map);
+	  continue;
+	}
+
       if (first)
 	{
 	  insert ("\n", 1);
 	  first = 0;
 	}
 
-      /* Output the prefix that applies to every entry in this map.  */
-      if (!NILP (elt_prefix))
-	insert1 (elt_prefix);
+      if (CHAR_TABLE_P (vector))
+	{
+	  if (!NILP (elt_prefix))
+	    {
+	      /* Must combine elt_prefix with i to produce a character
+		 code, then insert that character's description.  */
+	    }
+	  else
+	    {
+	      /* Get the string to describe the character I, and print it.  */
+	      XSETFASTINT (dummy, i);
 
-      /* Get the string to describe the character I, and print it.  */
-      XSETFASTINT (dummy, i);
+	      /* THIS gets the string to describe the character DUMMY.  */
+	      this = Fsingle_key_description (dummy);
+	      insert1 (this);
+	    }
+	}
+      else
+	{
+	  /* Output the prefix that applies to every entry in this map.  */
+	  if (!NILP (elt_prefix))
+	    insert1 (elt_prefix);
 
-      /* THIS gets the string to describe the character DUMMY.  */
-      this = Fsingle_key_description (dummy);
-      insert1 (this);
+	  /* Get the string to describe the character I, and print it.  */
+	  XSETFASTINT (dummy, i);
+
+	  /* THIS gets the string to describe the character DUMMY.  */
+	  this = Fsingle_key_description (dummy);
+	  insert1 (this);
+	}
 
       /* Find all consecutive characters that have the same definition.  */
       while (i + 1 < XVECTOR (vector)->size
@@ -2380,11 +2450,29 @@ describe_vector (vector, elt_prefix, elt_describer,
       if (i != XINT (dummy))
 	{
 	  insert (" .. ", 4);
-	  if (!NILP (elt_prefix))
-	    insert1 (elt_prefix);
+	  if (CHAR_TABLE_P (vector))
+	    {
+	      if (!NILP (elt_prefix))
+		{
+		  /* Must combine elt_prefix with i to produce a character
+		     code, then insert that character's description.  */
+		}
+	      else
+		{
+		  XSETFASTINT (dummy, i);
 
-	  XSETFASTINT (dummy, i);
-	  insert1 (Fsingle_key_description (dummy));
+		  this = Fsingle_key_description (dummy);
+		  insert1 (this);
+		}
+	    }
+	  else
+	    {
+	      if (!NILP (elt_prefix))
+		insert1 (elt_prefix);
+
+	      XSETFASTINT (dummy, i);
+	      insert1 (Fsingle_key_description (dummy));
+	    }
 	}
 
       /* Print a description of the definition of this character.
