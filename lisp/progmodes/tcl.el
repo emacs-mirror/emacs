@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.31 $
+;; Version: $Revision: 1.32 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1995/05/10 23:38:12 $|$Revision: 1.31 $|~/modes/tcl.el.Z|
+;; $Date: 1995/05/11 22:12:49 $|$Revision: 1.32 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.32  1995/05/11  22:12:49  tromey
+;; (tcl-type-alist): Include entry for "proc".
+;;
 ;; Revision 1.31  1995/05/10  23:38:12  tromey
 ;; (tcl-add-fsf-menu): Use make-lucid-menu-keymap, not
 ;; "make-xemacs-menu-keymap".
@@ -300,7 +303,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.31 $")
+(defconst tcl-version "$Revision: 1.32 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -587,7 +590,7 @@ Emacs 18 users must use `setq':
   "Hook for customizing Inferior Tcl mode.")
 
 (defvar tcl-proc-list
-  '("proc")
+  '("proc" "method" "itcl_class")
   "List of commands whose first argument defines something.
 This exists because some people (eg, me) use \"defvar\" et al.
 Call `tcl-set-proc-regexp' and `tcl-set-font-lock-keywords'
@@ -597,7 +600,7 @@ after changing this list.")
   "Regexp to use when matching proc headers.")
 
 (defvar tcl-typeword-list
-  '("global" "upvar")
+  '("global" "upvar" "inherit" "public" "protected" "common")
   "List of Tcl keywords denoting \"type\".  Used only for highlighting.
 Call `tcl-set-font-lock-keywords' after changing this list.")
 
@@ -605,7 +608,8 @@ Call `tcl-set-font-lock-keywords' after changing this list.")
 (defvar tcl-keyword-list
   '("if" "then" "else" "elseif" "for" "foreach" "break" "continue" "while"
     "eval" "case" "in" "switch" "default" "exit" "error" "proc" "return"
-    "uplevel" "loop" "for_array_keys" "for_recursive_glob" "for_file")
+    "uplevel" "constructor" "destructor" "itcl_class" "loop" "for_array_keys"
+    "for_recursive_glob" "for_file")
   "List of Tcl keywords.  Used only for highlighting.
 Default list includes some TclX keywords.
 Call `tcl-set-font-lock-keywords' after changing this list.")
@@ -790,7 +794,7 @@ An end of a defun is found by moving forward from the beginning of one."
 
 (defun tcl-set-proc-regexp ()
   "Set `tcl-proc-regexp' from variable `tcl-proc-list'."
-  (setq tcl-proc-regexp (concat "^\\("
+  (setq tcl-proc-regexp (concat "^\\s-*\\("
 				(mapconcat 'identity tcl-proc-list "\\|")
 				"\\)[ \t]+")))
 
