@@ -278,13 +278,21 @@ Lisp_Object Vcoding_system_for_write;
 /* Coding-system actually used in the latest I/O.  */
 Lisp_Object Vlast_coding_system_used;
 
+/* A vector of length 256 which contains information about special
+   Microsoft codes.  */
+Lisp_Object Vmicrosoft_code_table;
+
 /* Flag to inhibit code conversion of end-of-line format.  */
 int inhibit_eol_conversion;
 
-/* Coding-system of what terminal accept for displaying.  */
+/* Coding system to be used to encode text for terminal display.  */
 struct coding_system terminal_coding;
 
-/* Coding-system of what is sent from terminal keyboard.  */
+/* Coding system to be used to encode text for terminal display when
+   terminal coding system is nil.  */
+struct coding_system safe_terminal_coding;
+
+/* Coding system of what is sent from terminal keyboard.  */
 struct coding_system keyboard_coding;
 
 Lisp_Object Vfile_coding_system_alist;
@@ -681,7 +689,16 @@ detect_coding_iso2022 (src, src_end)
 	  if (c < 0x80)
 	    break;
 	  else if (c < 0xA0)
-	    return 0;
+	    {
+	      if (VECTORP (Vmicrosoft_code_table)
+		  && !NILP (XVECTOR (Vmicrosoft_code_table)->contents[c]))
+		{
+		  mask &= ~(CODING_CATEGORY_MASK_ISO_7
+			    | CODING_CATEGORY_MASK_ISO_7_ELSE);
+		  break;
+		}
+	      return 0;
+	    }
 	  else
 	    {
 	      unsigned char *src_begin = src;
@@ -1165,66 +1182,88 @@ decode_coding_iso2022 (coding, source, destination,
    sequences are also produced in advance if necessary.  */
 
 
-#define ENCODE_ISO_CHARACTER_DIMENSION1(charset, c1)			\
-  do {									\
-    if (CODING_SPEC_ISO_SINGLE_SHIFTING (coding))			\
-      {									\
-	if (coding->flags & CODING_FLAG_ISO_SEVEN_BITS)			\
-	  *dst++ = c1 & 0x7F;						\
-	else								\
-	  *dst++ = c1 | 0x80;						\
-	CODING_SPEC_ISO_SINGLE_SHIFTING (coding) = 0;			\
-	break;								\
-      }									\
-    else if (charset == CODING_SPEC_ISO_PLANE_CHARSET (coding, 0))	\
-      {									\
-	*dst++ = c1 & 0x7F;						\
-	break;								\
-      }									\
-    else if (charset == CODING_SPEC_ISO_PLANE_CHARSET (coding, 1))	\
-      {									\
-	*dst++ = c1 | 0x80;						\
-	break;								\
-      }									\
-    else								\
-      /* Since CHARSET is not yet invoked to any graphic planes, we	\
-	 must invoke it, or, at first, designate it to some graphic	\
-	 register.  Then repeat the loop to actually produce the	\
-	 character.  */							\
-      dst = encode_invocation_designation (charset, coding, dst);	\
+#define ENCODE_ISO_CHARACTER_DIMENSION1(charset, c1)			 \
+  do {									 \
+    if (CODING_SPEC_ISO_SINGLE_SHIFTING (coding))			 \
+      {									 \
+	if (coding->flags & CODING_FLAG_ISO_SEVEN_BITS)			 \
+	  *dst++ = c1 & 0x7F;						 \
+	else								 \
+	  *dst++ = c1 | 0x80;						 \
+	CODING_SPEC_ISO_SINGLE_SHIFTING (coding) = 0;			 \
+	break;								 \
+      }									 \
+    else if (charset == CODING_SPEC_ISO_PLANE_CHARSET (coding, 0))	 \
+      {									 \
+	*dst++ = c1 & 0x7F;						 \
+	break;								 \
+      }									 \
+    else if (charset == CODING_SPEC_ISO_PLANE_CHARSET (coding, 1))	 \
+      {									 \
+	*dst++ = c1 | 0x80;						 \
+	break;								 \
+      }									 \
+    else if (coding->flags & CODING_FLAG_ISO_SAFE			 \
+	     && (CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset) \
+		 == CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION))		 \
+      {									 \
+	/* We should not encode this character, instead produce one or	 \
+	   two `?'s.  */						 \
+	*dst++ = CODING_INHIBIT_CHARACTER_SUBSTITUTION;			 \
+	if (CHARSET_WIDTH (charset) == 2)				 \
+	  *dst++ = CODING_INHIBIT_CHARACTER_SUBSTITUTION;		 \
+	break;								 \
+      }									 \
+    else								 \
+      /* Since CHARSET is not yet invoked to any graphic planes, we	 \
+	 must invoke it, or, at first, designate it to some graphic	 \
+	 register.  Then repeat the loop to actually produce the	 \
+	 character.  */							 \
+      dst = encode_invocation_designation (charset, coding, dst);	 \
   } while (1)
 
 /* Produce codes for a DIMENSION2 character whose character set is
    CHARSET and whose position-codes are C1 and C2.  Designation and
    invocation codes are also produced in advance if necessary.  */
 
-#define ENCODE_ISO_CHARACTER_DIMENSION2(charset, c1, c2)		\
-  do {									\
-    if (CODING_SPEC_ISO_SINGLE_SHIFTING (coding))			\
-      {									\
-	if (coding->flags & CODING_FLAG_ISO_SEVEN_BITS)			\
-	  *dst++ = c1 & 0x7F, *dst++ = c2 & 0x7F;			\
-	else								\
-	  *dst++ = c1 | 0x80, *dst++ = c2 | 0x80;			\
-	CODING_SPEC_ISO_SINGLE_SHIFTING (coding) = 0;			\
-	break;								\
-      }									\
-    else if (charset == CODING_SPEC_ISO_PLANE_CHARSET (coding, 0))	\
-      {									\
-	*dst++ = c1 & 0x7F, *dst++= c2 & 0x7F;				\
-	break;								\
-      }									\
-    else if (charset == CODING_SPEC_ISO_PLANE_CHARSET (coding, 1))	\
-      {									\
-	*dst++ = c1 | 0x80, *dst++= c2 | 0x80;				\
-	break;								\
-      }									\
-    else								\
-      /* Since CHARSET is not yet invoked to any graphic planes, we	\
-	 must invoke it, or, at first, designate it to some graphic	\
-	 register.  Then repeat the loop to actually produce the	\
-	 character.  */							\
-      dst = encode_invocation_designation (charset, coding, dst);	\
+#define ENCODE_ISO_CHARACTER_DIMENSION2(charset, c1, c2)		 \
+  do {									 \
+    if (CODING_SPEC_ISO_SINGLE_SHIFTING (coding))			 \
+      {									 \
+	if (coding->flags & CODING_FLAG_ISO_SEVEN_BITS)			 \
+	  *dst++ = c1 & 0x7F, *dst++ = c2 & 0x7F;			 \
+	else								 \
+	  *dst++ = c1 | 0x80, *dst++ = c2 | 0x80;			 \
+	CODING_SPEC_ISO_SINGLE_SHIFTING (coding) = 0;			 \
+	break;								 \
+      }									 \
+    else if (charset == CODING_SPEC_ISO_PLANE_CHARSET (coding, 0))	 \
+      {									 \
+	*dst++ = c1 & 0x7F, *dst++= c2 & 0x7F;				 \
+	break;								 \
+      }									 \
+    else if (charset == CODING_SPEC_ISO_PLANE_CHARSET (coding, 1))	 \
+      {									 \
+	*dst++ = c1 | 0x80, *dst++= c2 | 0x80;				 \
+	break;								 \
+      }									 \
+    else if (coding->flags & CODING_FLAG_ISO_SAFE			 \
+	     && (CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset) \
+		 == CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION))		 \
+      {									 \
+	/* We should not encode this character, instead produce one or	 \
+	   two `?'s.  */						 \
+	*dst++ = CODING_INHIBIT_CHARACTER_SUBSTITUTION;			 \
+	if (CHARSET_WIDTH (charset) == 2)				 \
+	  *dst++ = CODING_INHIBIT_CHARACTER_SUBSTITUTION;		 \
+	break;								 \
+      }									 \
+    else								 \
+      /* Since CHARSET is not yet invoked to any graphic planes, we	 \
+	 must invoke it, or, at first, designate it to some graphic	 \
+	 register.  Then repeat the loop to actually produce the	 \
+	 character.  */							 \
+      dst = encode_invocation_designation (charset, coding, dst);	 \
   } while (1)
 
 #define ENCODE_ISO_CHARACTER(charset, c1, c2)				  \
@@ -2331,7 +2370,9 @@ setup_coding_system (coding_system, coding)
 	     | (NILP (flags[11]) ? 0 : CODING_FLAG_ISO_USE_OLDJIS)
 	     | (NILP (flags[12]) ? 0 : CODING_FLAG_ISO_NO_DIRECTION)
 	     | (NILP (flags[13]) ? 0 : CODING_FLAG_ISO_INIT_AT_BOL)
-	     | (NILP (flags[14]) ? 0 : CODING_FLAG_ISO_DESIGNATE_AT_BOL));
+	     | (NILP (flags[14]) ? 0 : CODING_FLAG_ISO_DESIGNATE_AT_BOL)
+	     | (NILP (flags[15]) ? 0 : CODING_FLAG_ISO_SAFE)
+	     );
 
 	/* Invoke graphic register 0 to plane 0.  */
 	CODING_SPEC_ISO_INVOCATION (coding, 0) = 0;
@@ -2415,34 +2456,35 @@ setup_coding_system (coding_system, coding)
 	      default_reg_bits &= 3;
 	  }
 
-	for (charset = 0; charset <= MAX_CHARSET; charset++)
-	  if (CHARSET_VALID_P (charset)
-	      && (CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
-		  == CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION))
-	    {
-	      /* We have not yet decided where to designate CHARSET.  */
-	      int reg_bits = default_reg_bits;
+	if (! (coding->flags & CODING_FLAG_ISO_SAFE))
+	  for (charset = 0; charset <= MAX_CHARSET; charset++)
+	    if (CHARSET_VALID_P (charset)
+		&& (CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
+		    == CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION))
+	      {
+		/* We have not yet decided where to designate CHARSET.  */
+		int reg_bits = default_reg_bits;
 
-	      if (CHARSET_CHARS (charset) == 96)
-		/* A charset of CHARS96 can't be designated to REG 0.  */
-		reg_bits &= ~1;
+		if (CHARSET_CHARS (charset) == 96)
+		  /* A charset of CHARS96 can't be designated to REG 0.  */
+		  reg_bits &= ~1;
 
-	      if (reg_bits)
-		/* There exist some default graphic register.  */
-		CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
-		  = (reg_bits & 1
-		     ? 0 : (reg_bits & 2 ? 1 : (reg_bits & 4 ? 2 : 3)));
-	      else
-		/* We anyway have to designate CHARSET to somewhere.  */
-		CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
-		  = (CHARSET_CHARS (charset) == 94
-		     ? 0
-		     : ((coding->flags & CODING_FLAG_ISO_LOCKING_SHIFT
-			 || ! coding->flags & CODING_FLAG_ISO_SEVEN_BITS)
-			? 1
-			: (coding->flags & CODING_FLAG_ISO_SINGLE_SHIFT
-			   ? 2 : 0)));
-	    }
+		if (reg_bits)
+		  /* There exist some default graphic register.  */
+		  CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
+		    = (reg_bits & 1
+		       ? 0 : (reg_bits & 2 ? 1 : (reg_bits & 4 ? 2 : 3)));
+		else
+		  /* We anyway have to designate CHARSET to somewhere.  */
+		  CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
+		    = (CHARSET_CHARS (charset) == 94
+		       ? 0
+		       : ((coding->flags & CODING_FLAG_ISO_LOCKING_SHIFT
+			   || ! coding->flags & CODING_FLAG_ISO_SEVEN_BITS)
+			  ? 1
+			  : (coding->flags & CODING_FLAG_ISO_SINGLE_SHIFT
+			     ? 2 : 0)));
+	      }
       }
       coding->require_flushing = 1;
       break;
@@ -2608,34 +2650,33 @@ detect_coding_mask (src, src_bytes)
 	/* No valid ISO2022 code follows C.  Try again.  */
 	goto label_loop_detect_coding;
     }
-  else if (c == ISO_CODE_SS2 || c == ISO_CODE_SS3)
-    /* C is an ISO2022 specific control code of C1,
-       or the first byte of SJIS's 2-byte character code,
-       or a leading code of Emacs.  */
-    mask = (detect_coding_iso2022 (src, src_end)
-	    | detect_coding_sjis (src, src_end)
-	    | detect_coding_emacs_mule (src, src_end)
-	    | CODING_CATEGORY_MASK_BINARY);
-
-  else if (c == ISO_CODE_CSI
-	   && (src < src_end
-	      && (*src == ']'
-		  || (src + 1 < src_end
-		      && src[1] == ']'
-		      && (*src == '0' || *src == '1' || *src == '2')))))
-    /* C is an ISO2022's control-sequence-introducer.  */
-    mask = (detect_coding_iso2022 (src, src_end)
-	    | detect_coding_sjis (src, src_end)
-	    | detect_coding_emacs_mule (src, src_end)
-	    | CODING_CATEGORY_MASK_BINARY);
-    
   else if (c < 0xA0)
-    /* C is the first byte of SJIS character code,
-       or a leading-code of Emacs.  */
-    mask = (detect_coding_sjis (src, src_end)
-	    | detect_coding_emacs_mule (src, src_end)
-	    | CODING_CATEGORY_MASK_BINARY);
+    {
+      /* If C is a special Microsoft code,
+	 or is an ISO2022 specific control code of C1 (SS2 or SS3), 
+	 or is an ISO2022 control-sequence-introducer (CSI),
+	 we should also consider the possibility of someof ISO2022 codings.  */
+      if ((VECTORP (Vmicrosoft_code_table)
+	   && !NILP (XVECTOR (Vmicrosoft_code_table)->contents[c]))
+	  || (c == ISO_CODE_SS2 || c == ISO_CODE_SS3)
+	  || (c == ISO_CODE_CSI
+	      && (src < src_end
+		  && (*src == ']'
+		      || (src + 1 < src_end
+			  && src[1] == ']'
+			  && (*src == '0' || *src == '1' || *src == '2'))))))
+	mask = (detect_coding_iso2022 (src, src_end)
+		| detect_coding_sjis (src, src_end)
+		| detect_coding_emacs_mule (src, src_end)
+		| CODING_CATEGORY_MASK_BINARY);
 
+      else
+	/* C is the first byte of SJIS character code, or a
+	   leading-code of Emacs.  */
+	mask = (detect_coding_sjis (src, src_end)
+		| detect_coding_emacs_mule (src, src_end)
+		| CODING_CATEGORY_MASK_BINARY);
+    }
   else
     /* C is a character of ISO2022 in graphic plane right,
        or a SJIS's 1-byte character code (i.e. JISX0201),
@@ -3547,6 +3588,18 @@ DEFUN ("set-terminal-coding-system-internal",
   return Qnil;
 }
 
+DEFUN ("set-safe-terminal-coding-system-internal",
+       Fset_safe_terminal_coding_system_internal,
+       Sset_safe_terminal_coding_system_internal, 1, 1, 0, "")
+  (coding_system)
+     Lisp_Object coding_system;
+{
+  CHECK_SYMBOL (coding_system, 0);
+  setup_coding_system (Fcheck_coding_system (coding_system),
+		       &safe_terminal_coding);
+  return Qnil;
+}
+
 DEFUN ("terminal-coding-system",
        Fterminal_coding_system, Sterminal_coding_system, 0, 0, 0,
   "Return coding-system of your terminal.")
@@ -3710,6 +3763,7 @@ init_coding_once ()
 
   setup_coding_system (Qnil, &keyboard_coding);
   setup_coding_system (Qnil, &terminal_coding);
+  setup_coding_system (Qnil, &safe_terminal_coding);
 
 #if defined (MSDOS) || defined (WINDOWSNT)
   system_eol_type = CODING_EOL_CRLF;
@@ -3824,6 +3878,7 @@ syms_of_coding ()
   defsubr (&Sdecode_big5_char);
   defsubr (&Sencode_big5_char);
   defsubr (&Sset_terminal_coding_system_internal);
+  defsubr (&Sset_safe_terminal_coding_system_internal);
   defsubr (&Sterminal_coding_system);
   defsubr (&Sset_keyboard_coding_system_internal);
   defsubr (&Skeyboard_coding_system);
@@ -3954,6 +4009,16 @@ designate it with the escape sequence identifing revision (cdr part of the eleme
 The car part is used for decoding a process output,\n\
 the cdr part is used for encoding a text to be sent to a process.");
   Vdefault_process_coding_system = Qnil;
+
+  DEFVAR_LISP ("special-microsoft-code-table", &Vmicrosoft_code_table,
+    "Table of special Microsoft codes in the range 128..159 (inclusive).\n\
+This is a vector of length 256.\n\
+If Nth element is non-nil, the existence of code N in a file\n\
+(or output of subprocess) doesn't prevent it to be detected as\n\
+a coding system of ISO 2022 variant (e.g. iso-latin-1) on reading a file\n\
+or reading output of a subprocess.\n\
+Only 128th through 159th elements has a meaning.");
+  Vmicrosoft_code_table = Fmake_vector (make_number (256), Qnil);
 }
 
 #endif /* emacs */
