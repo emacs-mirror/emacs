@@ -500,8 +500,21 @@ to write these unknown annotations back into the file."
 						    (assoc r open-ans))
 						  ans))
 				    nil	; multiple ans not satisfied
-				  ;; Yes, use the current property name &
-				  ;; value.  Set loop variables to nil so loop
+				  ;; Yes, all set.
+				  ;; If there are multiple annotations going
+				  ;; into one text property, adjust the 
+				  ;; begin points of the other annotations
+				  ;; so that we don't get double marking.
+				  (let ((to-reset ans)
+					this-one)
+				    (while to-reset
+				      (setq this-one
+					    (assoc (car to-reset) 
+						   (cdr open-ans)))
+				      (if this-one
+					  (setcdr this-one (list loc)))
+				      (setq to-reset (cdr to-reset))))
+				  ;; Set loop variables to nil so loop
 				  ;; will exit.
 				  (setq alist nil aalist nil matched t
 					;; pop annotation off stack.
