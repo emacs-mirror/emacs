@@ -54,6 +54,8 @@ static int message_log_need_newline;
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
+#define minmax(floor, val, ceil) \
+	((val) < (floor) ? (floor) : (val) > (ceil) ? (ceil) : (val))
 
 /* The buffer position of the first character appearing
  entirely or partially on the current frame line.
@@ -936,8 +938,9 @@ redisplay ()
 				 pos_tab_offset (w, tlbufpos), w);
 	  if (pos.vpos < 1)
 	    {
+	      int width = window_internal_width (w) - 1;
 	      FRAME_CURSOR_X (selected_frame)
-		= XFASTINT (w->left) + max (pos.hpos, 0);
+		= XFASTINT (w->left) + minmax (0, pos.hpos, width);
 	      FRAME_CURSOR_Y (selected_frame) = this_line_vpos;
 	      goto update;
 	    }
@@ -1444,7 +1447,8 @@ redisplay_window (window, just_this_one)
 	    {
 	      if (current_buffer == old)
 		lpoint = PT;
-	      FRAME_CURSOR_X (f) = max (0, pos.hpos) + XFASTINT (w->left);
+	      FRAME_CURSOR_X (f) = (XFASTINT (w->left)
+				    + minmax (0, pos.hpos, width));
 	      FRAME_CURSOR_Y (f) = pos.vpos + XFASTINT (w->top);
 	    }
 	  /* If we are highlighting the region,
@@ -1494,7 +1498,8 @@ redisplay_window (window, just_this_one)
 	  if (w == XWINDOW (FRAME_SELECTED_WINDOW (f)))
 	    {
 	      /* These variables are supposed to be origin 1 */
-	      FRAME_CURSOR_X (f) = max (0, pos.hpos) + XFASTINT (w->left);
+	      FRAME_CURSOR_X (f) = (XFASTINT (w->left)
+				    + minmax (0, pos.hpos, width));
 	      FRAME_CURSOR_Y (f) = pos.vpos + XFASTINT (w->top);
 	    }
 	  /* This doesn't do the trick, because if a window to the right of
@@ -1577,15 +1582,12 @@ redisplay_window (window, just_this_one)
     {
       if (PT > startp)
 	{
-	  pos = *vmotion (Z - XFASTINT (w->window_end_pos),
-			  scroll_step, width, hscroll, window);
+	  pos = *vmotion (Z - XFASTINT (w->window_end_pos), scroll_step, w);
 	  if (pos.vpos >= height)
 	    goto scroll_fail;
 	}
 
-      pos = *vmotion (startp,
-		      (PT < startp ? - scroll_step : scroll_step),
-		      width, hscroll, window);
+      pos = *vmotion (startp, (PT < startp ? - scroll_step : scroll_step), w);
 
       if (PT >= pos.bufpos)
 	{
@@ -1609,7 +1611,7 @@ recenter:
   /* Forget any previously recorded base line for line number display.  */
   w->base_line_number = Qnil;
 
-  pos = *vmotion (PT, - (height / 2), width, hscroll, window);
+  pos = *vmotion (PT, - (height / 2), w);
   try_window (window, pos.bufpos);
 
   startp = marker_position (w->start);
@@ -1821,7 +1823,7 @@ try_window_id (window)
   vpos = bp.vpos;
 
   /* Find beginning of that frame line.  Must display from there.  */
-  bp = *vmotion (bp.bufpos, 0, width, hscroll, window);
+  bp = *vmotion (bp.bufpos, 0, w);
 
   pos = bp.bufpos;
   val.hpos = lmargin;
@@ -1836,7 +1838,7 @@ try_window_id (window)
       /* Likewise if we have to worry about selective display.  */
       (selective > 0 && bp.bufpos - 1 == beg_unchanged && vpos > 0))
     {
-      bp = *vmotion (bp.bufpos, -1, width, hscroll, window);
+      bp = *vmotion (bp.bufpos, -1, w);
       --vpos;
       pos = bp.bufpos;
     }
@@ -1925,7 +1927,7 @@ try_window_id (window)
 	  if (pp.bufpos < PT || pp.vpos == height)
 	    return 0;
 	  cursor_vpos = pp.vpos + top;
-	  cursor_hpos = pp.hpos + XFASTINT (w->left);
+	  cursor_hpos = XFASTINT (w->left) + minmax (0, pp.hpos, width);
 	}
 
       if (stop_vpos - scroll_amount >= height
@@ -2107,8 +2109,7 @@ try_window_id (window)
 	  || (delta > 0 && xp.bufpos <= ZV)
 	  || (delta == 0 && xp.hpos))
 	{
-	  val = *vmotion (Z - XFASTINT (w->window_end_pos),
-			  delta, width, hscroll, window);
+	  val = *vmotion (Z - XFASTINT (w->window_end_pos), delta, w);
 	  XSETFASTINT (w->window_end_pos, Z - val.bufpos);
 	  XSETFASTINT (w->window_end_vpos,
 		       XFASTINT (w->window_end_vpos) + val.vpos);
@@ -2131,10 +2132,10 @@ try_window_id (window)
 	  return 0;
 	}
       cursor_vpos = val.vpos + top;
-      cursor_hpos = val.hpos + XFASTINT (w->left);
+      cursor_hpos = XFASTINT (w->left) + minmax (0, val.hpos, width);
     }
 
-  FRAME_CURSOR_X (f) = max (0, cursor_hpos);
+  FRAME_CURSOR_X (f) = cursor_hpos;
   FRAME_CURSOR_Y (f) = cursor_vpos;
 
   if (debug_end_pos)
