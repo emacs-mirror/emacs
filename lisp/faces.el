@@ -691,8 +691,7 @@ If NOERROR is non-nil, return nil on failure."
       (set-face-font face (if (memq 'italic (face-font face t))
 			      '(bold italic) '(bold))
 		     t)
-    (let ((ofont (face-font face frame))
-	  font)
+    (let (font)
       (if (null frame)
 	  (let ((frames (frame-list)))
 	    ;; Make this face bold in global-face-data.
@@ -709,10 +708,10 @@ If NOERROR is non-nil, return nil on failure."
 	(setq font (or font
 		       (face-font 'default frame)
 		       (cdr (assq 'font (frame-parameters frame)))))
-	(and font (make-face-bold-internal face frame font)))
-      (or (not (equal ofont (face-font face)))
-	  (and (not noerror)
-	       (error "No bold version of %S" font))))))
+	(or (and font (make-face-bold-internal face frame font))
+	    ;; We failed to find a bold version of the font.
+	    noerror
+	    (error "No bold version of %S" font))))))
 
 (defun make-face-bold-internal (face frame font)
   (let (f2)
@@ -729,8 +728,7 @@ If NOERROR is non-nil, return nil on failure."
       (set-face-font face (if (memq 'bold (face-font face t))
 			      '(bold italic) '(italic))
 		     t)
-    (let ((ofont (face-font face frame))
-	  font)
+    (let (font)
       (if (null frame)
 	  (let ((frames (frame-list)))
 	    ;; Make this face italic in global-face-data.
@@ -747,10 +745,10 @@ If NOERROR is non-nil, return nil on failure."
 	(setq font (or font
 		       (face-font 'default frame)
 		       (cdr (assq 'font (frame-parameters frame)))))
-	(and font (make-face-italic-internal face frame font)))
-      (or (not (equal ofont (face-font face)))
-	  (and (not noerror)
-	       (error "No italic version of %S" font))))))
+	(or (and font (make-face-italic-internal face frame font))
+	    ;; We failed to find an italic version of the font.
+	    noerror
+	    (error "No italic version of %S" font))))))
 
 (defun make-face-italic-internal (face frame font)
   (let (f2)
@@ -765,8 +763,7 @@ If NOERROR is non-nil, return nil on failure."
   (interactive (list (read-face-name "Make which face bold-italic: ")))
   (if (and (eq frame t) (listp (face-font face t)))
       (set-face-font face '(bold italic) t)
-    (let ((ofont (face-font face frame))
-	  font)
+    (let (font)
       (if (null frame)
 	  (let ((frames (frame-list)))
 	    ;; Make this face bold-italic in global-face-data.
@@ -783,10 +780,10 @@ If NOERROR is non-nil, return nil on failure."
 	(setq font (or font
 		       (face-font 'default frame)
 		       (cdr (assq 'font (frame-parameters frame)))))
-	(and font (make-face-bold-italic-internal face frame font)))
-      (or (not (equal ofont (face-font face)))
-	  (and (not noerror)
-	       (error "No bold italic version of %S" font))))))
+	(or (and font (make-face-bold-italic-internal face frame font))
+	    ;; We failed to find a bold italic version.
+	    noerror
+	    (error "No bold italic version of %S" font))))))
 
 (defun make-face-bold-italic-internal (face frame font)
   (let (f2 f3)
@@ -819,8 +816,7 @@ If NOERROR is non-nil, return nil on failure."
       (set-face-font face (if (memq 'italic (face-font face t))
 			      '(italic) nil)
 		     t)
-    (let ((ofont (face-font face frame))
-	  font font1)
+    (let (font font1)
       (if (null frame)
 	  (let ((frames (frame-list)))
 	    ;; Make this face unbold in global-face-data.
@@ -838,10 +834,9 @@ If NOERROR is non-nil, return nil on failure."
 			(face-font 'default frame)
 			(cdr (assq 'font (frame-parameters frame)))))
 	(setq font (and font1 (x-make-font-unbold font1)))
-	(if font (internal-try-face-font face font frame)))
-      (or (not (equal ofont (face-font face)))
-	  (and (not noerror)
-	       (error "No unbold version of %S" font1))))))
+	(or (if font (internal-try-face-font face font frame))
+	    noerror
+	    (error "No unbold version of %S" font1))))))
 
 (defun make-face-unitalic (face &optional frame noerror)
   "Make the font of the given face be non-italic, if possible.  
@@ -851,8 +846,7 @@ If NOERROR is non-nil, return nil on failure."
       (set-face-font face (if (memq 'bold (face-font face t))
 			      '(bold) nil)
 		     t)
-    (let ((ofont (face-font face frame))
-	  font font1)
+    (let (font font1)
       (if (null frame)
 	  (let ((frames (frame-list)))
 	    ;; Make this face unitalic in global-face-data.
@@ -870,10 +864,9 @@ If NOERROR is non-nil, return nil on failure."
 			(face-font 'default frame)
 			(cdr (assq 'font (frame-parameters frame)))))
 	(setq font (and font1 (x-make-font-unitalic font1)))
-	(if font (internal-try-face-font face font frame)))
-      (or (not (equal ofont (face-font face)))
-	  (and (not noerror)
-	       (error "No unitalic version of %S" font1))))))
+	(or (if font (internal-try-face-font face font frame))
+	    noerror
+	    (error "No unitalic version of %S" font1))))))
 
 (defvar list-faces-sample-text
   "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ"
