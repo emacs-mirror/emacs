@@ -191,7 +191,7 @@ asynchronously.	 The compressed face will be piped to this command."
 	 (lambda (spec)
 	   (list
 	    (format format (car spec) (cadr spec))
-	    2 3 (intern (format "gnus-emphasis-%s" (car (cddr spec))))))
+	    2 3 (intern (format "gnus-emphasis-%s" (caddr spec)))))
 	 types)))
   "Alist that says how to fontify certain phrases.
 Each item looks like this:
@@ -397,6 +397,11 @@ If you want to run a special decoding program like nkf, use this hook."
   :type 'hook
   :group 'gnus-article-various)
 
+(defcustom gnus-article-hide-pgp-hook nil
+  "*A hook called after successfully hiding a PGP signature."
+  :type 'hook
+  :group 'gnus-article-various)
+
 (defcustom gnus-article-button-face 'bold
   "Face used for highlighting buttons in the article buffer.
 
@@ -413,9 +418,17 @@ above them."
   :type 'face
   :group 'gnus-article-buttons)
 
-(defcustom gnus-signature-face 'italic
-  "Face used for highlighting a signature in the article buffer."
+(defcustom gnus-signature-face 'gnus-signature-face
+  "Face used for highlighting a signature in the article buffer.
+Obsolete; use the face `gnus-signature-face' for customizations instead."
   :type 'face
+  :group 'gnus-article-highlight
+  :group 'gnus-article-signature)
+
+(defface gnus-signature-face
+  '((((type x))
+     (:italic t)))
+  "Face used for highlighting a signature in the article buffer."
   :group 'gnus-article-highlight
   :group 'gnus-article-signature)
 
@@ -569,20 +582,20 @@ Initialized from `text-mode-syntax-table.")
 (defun gnus-article-delete-text-of-type (type)
   "Delete text of TYPE in the current buffer."
   (save-excursion
-    (let ((e (point-min))
-	  b)
-      (while (setq b (text-property-any e (point-max) 'article-type type))
-	(setq e (text-property-not-all b (point-max) 'article-type type))
-	(delete-region b e)))))
+    (let ((b (point-min)))
+      (while (setq b (text-property-any b (point-max) 'article-type type))
+	(delete-region
+	 b (or (text-property-not-all b (point-max) 'article-type type)
+	       (point-max)))))))
 
 (defun gnus-article-delete-invisible-text ()
   "Delete all invisible text in the current buffer."
   (save-excursion
-    (let ((e (point-min))
-	  b)
-      (while (setq b (text-property-any e (point-max) 'invisible t))
-	(setq e (text-property-not-all b (point-max) 'invisible t))
-	(delete-region b e)))))
+    (let ((b (point-min)))
+      (while (setq b (text-property-any b (point-max) 'invisible t))
+	(delete-region
+	 b (or (text-property-not-all b (point-max) 'invisible t)
+	       (point-max)))))))
 
 (defun gnus-article-text-type-exists-p (type)
   "Say whether any text of type TYPE exists in the buffer."
@@ -828,33 +841,46 @@ always hide."
 	(nnheader-narrow-to-headers)
 	(setq from (message-fetch-field "from"))
 	(goto-char (point-min))
-	(when (and gnus-article-x-face-command
-		   (or force
-		       ;; Check whether this face is censored.
-		       (not gnus-article-x-face-too-ugly)
-		       (and gnus-article-x-face-too-ugly from
-			    (not (string-match gnus-article-x-face-too-ugly
-					       from))))
-		   ;; Has to be present.
-		   (re-search-forward "^X-Face: " nil t))
+	(while (and gnus-article-x-face-command
+		    (or force
+			;; Check whether this face is censored.
+			(not gnus-article-x-face-too-ugly)
+			(and gnus-article-x-face-too-ugly from
+			     (not (string-match gnus-article-x-face-too-ugly
+						from))))
+		    ;; Has to be present.
+		    (re-search-forward "^X-Face: " nil t))
 	  ;; We now have the area of the buffer where the X-Face is stored.
-	  (let ((beg (point))
-		(end (1- (re-search-forward "^\\($\\|[^ \t]\\)" nil t))))
-	    ;; We display the face.
-	    (if (symbolp gnus-article-x-face-command)
-		;; The command is a lisp function, so we call it.
-		(if (gnus-functionp gnus-article-x-face-command)
-		    (funcall gnus-article-x-face-command beg end)
-		  (error "%s is not a function" gnus-article-x-face-command))
-	      ;; The command is a string, so we interpret the command
-	      ;; as a, well, command, and fork it off.
-	      (let ((process-connection-type nil))
-		(process-kill-without-query
-		 (start-process
-		  "article-x-face" nil shell-file-name shell-command-switch
-		  gnus-article-x-face-command))
-		(process-send-region "article-x-face" beg end)
-		(process-send-eof "article-x-face")))))))))
+	  (save-excursion
+	    (let ((beg (point))
+		  (end (1- (re-search-forward "^\\($\\|[^ \t]\\)" nil t))))
+	      ;; We display the face.
+	      (if (symbolp gnus-article-x-face-command)
+		  ;; The command is a lisp function, so we call it.
+		  (if (gnus-functionp gnus-article-x-face-command)
+		      (funcall gnus-article-x-face-command beg end)
+		    (error "%s is not a function" gnus-article-x-face-command))
+		;; The command is a string, so we interpret the command
+		;; as a, well, command, and fork it off.
+		(let ((process-connection-type nil))
+		  (process-kill-without-query
+		   (start-process
+		    "article-x-face" nil shell-file-name shell-command-switch
+		    gnus-article-x-face-command))
+		  (process-send-region "article-x-face" beg end)
+		  (process-send-eof "article-x-face"))))))))))
+
+(defun gnus-hack-decode-rfc1522 ()
+  "Emergency hack function for avoiding problems when decoding."
+  (let ((buffer-read-only nil))
+    (goto-char (point-min))
+    ;; Remove encoded TABs.
+    (while (search-forward "=09" nil t)
+      (replace-match " " t t))
+    ;; Remove encoded newlines.
+    (goto-char (point-min))
+    (while (search-forward "=10" nil t)
+      (replace-match " " t t))))
 
 (defalias 'gnus-decode-rfc1522 'article-decode-rfc1522)
 (defalias 'gnus-article-decode-rfc1522 'article-decode-rfc1522)
@@ -937,27 +963,28 @@ always hide."
 	;; Hide the "header".
 	(when (search-forward "\n-----BEGIN PGP SIGNED MESSAGE-----\n" nil t)
 	  (gnus-article-hide-text-type (1+ (match-beginning 0))
-				       (match-end 0) 'pgp))
-	(setq beg (point))
-	;; Hide the actual signature.
-	(and (search-forward "\n-----BEGIN PGP SIGNATURE-----\n" nil t)
-	     (setq end (1+ (match-beginning 0)))
-	     (gnus-article-hide-text-type
-	      end
-	      (if (search-forward "\n-----END PGP SIGNATURE-----\n" nil t)
-		  (match-end 0)
-		;; Perhaps we shouldn't hide to the end of the buffer
-		;; if there is no end to the signature?
-		(point-max))
-	      'pgp))
-	;; Hide "- " PGP quotation markers.
-	(when (and beg end)
-	  (narrow-to-region beg end)
-	  (goto-char (point-min))
-	  (while (re-search-forward "^- " nil t)
-	    (gnus-article-hide-text-type
-	     (match-beginning 0) (match-end 0) 'pgp))
-	  (widen))))))
+				       (match-end 0) 'pgp)
+	  (setq beg (point))
+	  ;; Hide the actual signature.
+	  (and (search-forward "\n-----BEGIN PGP SIGNATURE-----\n" nil t)
+	       (setq end (1+ (match-beginning 0)))
+	       (gnus-article-hide-text-type
+		end
+		(if (search-forward "\n-----END PGP SIGNATURE-----\n" nil t)
+		    (match-end 0)
+		  ;; Perhaps we shouldn't hide to the end of the buffer
+		  ;; if there is no end to the signature?
+		  (point-max))
+		'pgp))
+	  ;; Hide "- " PGP quotation markers.
+	  (when (and beg end)
+	    (narrow-to-region beg end)
+	    (goto-char (point-min))
+	    (while (re-search-forward "^- " nil t)
+	      (gnus-article-hide-text-type
+	       (match-beginning 0) (match-end 0) 'pgp))
+	    (widen))
+	  (run-hooks 'gnus-article-hide-pgp-hook))))))
 
 (defun article-hide-pem (&optional arg)
   "Toggle hiding of any PEM headers and signatures in the current article.
@@ -1101,7 +1128,8 @@ Put point at the beginning of the signature separator."
       nil)))
 
 (eval-and-compile
-  (autoload 'w3-parse-buffer "w3-parse"))
+  (autoload 'w3-display "w3-parse")
+  (autoload 'w3-do-setup "w3" "" t))
 
 (defun gnus-article-treat-html ()
   "Render HTML."
@@ -1109,6 +1137,7 @@ Put point at the beginning of the signature separator."
   (let ((cbuf (current-buffer)))
     (set-buffer gnus-article-buffer)
     (let (buf buffer-read-only b e)
+      (w3-do-setup)
       (goto-char (point-min))
       (narrow-to-region
        (if (search-forward "\n\n" nil t)
@@ -1117,12 +1146,13 @@ Put point at the beginning of the signature separator."
        (setq e (point-max)))
       (nnheader-temp-write nil
 	(insert-buffer-substring gnus-article-buffer b e)
+	(require 'url)
 	(save-window-excursion
-	  (setq buf (car (w3-parse-buffer (current-buffer))))))
+	  (w3-region (point-min) (point-max))
+	  (setq buf (buffer-substring-no-properties (point-min) (point-max)))))
       (when buf
 	(delete-region (point-min) (point-max))
-	(insert-buffer-substring buf)
-	(kill-buffer buf))
+	(insert buf))
       (widen)
       (goto-char (point-min))
       (set-window-start (get-buffer-window (current-buffer)) (point-min))
@@ -1391,7 +1421,7 @@ This format is defined by the `gnus-article-time-format' variable."
       (gnus-article-hide-headers 1 t)))
   (save-window-excursion
     (if (not gnus-default-article-saver)
-	(error "No default saver is defined.")
+	(error "No default saver is defined")
       ;; !!! Magic!  The saving functions all save
       ;; `gnus-original-article-buffer' (or so they think), but we
       ;; bind that variable to our save-buffer.
@@ -1452,7 +1482,8 @@ This format is defined by the `gnus-article-time-format' variable."
 		  default-name))
 		;; A single split name was found
 		((= 1 (length split-name))
-		 (let* ((name (car split-name))
+		 (let* ((name (expand-file-name
+			       (car split-name) gnus-article-save-directory))
 			(dir (cond ((file-directory-p name)
 				    (file-name-as-directory name))
 				   ((file-exists-p name) name)
@@ -1718,34 +1749,33 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 
 (put 'gnus-article-mode 'mode-class 'special)
 
-(when t
-  (gnus-define-keys gnus-article-mode-map
-    " " gnus-article-goto-next-page
-    "\177" gnus-article-goto-prev-page
-    [delete] gnus-article-goto-prev-page
-    "\C-c^" gnus-article-refer-article
-    "h" gnus-article-show-summary
-    "s" gnus-article-show-summary
-    "\C-c\C-m" gnus-article-mail
-    "?" gnus-article-describe-briefly
-    gnus-mouse-2 gnus-article-push-button
-    "\r" gnus-article-press-button
-    "\t" gnus-article-next-button
-    "\M-\t" gnus-article-prev-button
-    "e" gnus-article-edit
-    "<" beginning-of-buffer
-    ">" end-of-buffer
-    "\C-c\C-i" gnus-info-find-node
-    "\C-c\C-b" gnus-bug
+(gnus-define-keys gnus-article-mode-map
+  " " gnus-article-goto-next-page
+  "\177" gnus-article-goto-prev-page
+  [delete] gnus-article-goto-prev-page
+  "\C-c^" gnus-article-refer-article
+  "h" gnus-article-show-summary
+  "s" gnus-article-show-summary
+  "\C-c\C-m" gnus-article-mail
+  "?" gnus-article-describe-briefly
+  gnus-mouse-2 gnus-article-push-button
+  "\r" gnus-article-press-button
+  "\t" gnus-article-next-button
+  "\M-\t" gnus-article-prev-button
+  "e" gnus-article-edit
+  "<" beginning-of-buffer
+  ">" end-of-buffer
+  "\C-c\C-i" gnus-info-find-node
+  "\C-c\C-b" gnus-bug
 
-    "\C-d" gnus-article-read-summary-keys
-    "\M-*" gnus-article-read-summary-keys
-    "\M-#" gnus-article-read-summary-keys
-    "\M-^" gnus-article-read-summary-keys
-    "\M-g" gnus-article-read-summary-keys)
+  "\C-d" gnus-article-read-summary-keys
+  "\M-*" gnus-article-read-summary-keys
+  "\M-#" gnus-article-read-summary-keys
+  "\M-^" gnus-article-read-summary-keys
+  "\M-g" gnus-article-read-summary-keys)
 
-  (substitute-key-definition
-   'undefined 'gnus-article-read-summary-keys gnus-article-mode-map))
+(substitute-key-definition
+ 'undefined 'gnus-article-read-summary-keys gnus-article-mode-map)
 
 (defun gnus-article-make-menu-bar ()
   (gnus-turn-off-edit-menu 'article)
@@ -2032,7 +2062,8 @@ Provided for backwards compatibility."
       ;; save it to file.
       (goto-char (point-max))
       (insert "\n")
-      (append-to-file (point-min) (point-max) file-name))))
+      (append-to-file (point-min) (point-max) file-name)
+      t)))
 
 (defun gnus-narrow-to-page (&optional arg)
   "Narrow the article buffer to a page.
@@ -2151,6 +2182,7 @@ Argument LINES specifies lines to be scrolled down."
   (interactive)
   (if (not (gnus-buffer-live-p gnus-summary-buffer))
       (error "There is no summary buffer for this article buffer")
+    (gnus-article-set-globals)
     (gnus-configure-windows 'article)
     (gnus-summary-goto-subject gnus-current-article)))
 
@@ -2442,7 +2474,7 @@ groups."
   (interactive "P")
   (when (and (not force)
 	     (gnus-group-read-only-p))
-    (error "The current newsgroup does not support article editing."))
+    (error "The current newsgroup does not support article editing"))
   (gnus-article-edit-article
    `(lambda ()
       (gnus-summary-edit-article-done
@@ -2454,7 +2486,7 @@ groups."
   (let ((winconf (current-window-configuration)))
     (set-buffer gnus-article-buffer)
     (gnus-article-edit-mode)
-    (set-text-properties (point-min) (point-max) nil)
+    (gnus-set-text-properties (point-min) (point-max) nil)
     (gnus-configure-windows 'edit-article)
     (setq gnus-article-edit-done-function exit-func)
     (setq gnus-prev-winconf winconf)
@@ -2532,14 +2564,14 @@ groups."
 (defcustom gnus-button-alist
   `(("<\\(url: ?\\)?news:\\([^>\n\t ]*@[^>\n\t ]*\\)>" 0 t
      gnus-button-message-id 2)
-    ("\\bnews:\\([^>\n\t ]*@[^>\n\t ]*+\\)" 0 t gnus-button-message-id 1)
+    ("\\bnews:\\([^>\n\t ]*@[^>\n\t ]*\\)" 0 t gnus-button-message-id 1)
     ("\\(\\b<\\(url: ?\\)?news:\\(//\\)?\\([^>\n\t ]*\\)>\\)" 1 t
      gnus-button-fetch-group 4)
     ("\\bnews:\\(//\\)?\\([^>\n\t ]+\\)" 0 t gnus-button-fetch-group 2)
     ("\\bin\\( +article\\)? +\\(<\\([^\n @<>]+@[^\n @<>]+\\)>\\)" 2
      t gnus-button-message-id 3)
-    ("\\(<URL: *\\)mailto: *\\([^> \n\t]+\\)>" 0 t gnus-url-mailto 1)
-    ("\\bmailto:\\([^ \n\t]+\\)" 0 t gnus-url-mailto 2)
+    ("\\(<URL: *\\)mailto: *\\([^> \n\t]+\\)>" 0 t gnus-url-mailto 2)
+    ("\\bmailto:\\([^ \n\t]+\\)" 0 t gnus-url-mailto 1)
     ;; This is how URLs _should_ be embedded in text...
     ("<URL: *\\([^>]*\\)>" 0 t gnus-button-embedded-url 1)
     ;; Raw URLs.
@@ -2572,6 +2604,7 @@ variable it the real callback function."
     ("^\\(Cc\\|To\\):" "[^ \t\n<>,()\"]+@[^ \t\n<>,()\"]+"
      0 t gnus-button-mailto 0)
     ("^X-[Uu][Rr][Ll]:" ,gnus-button-url-regexp 0 t gnus-button-url 0)
+    ("^Subject:" ,gnus-button-url-regexp 0 t gnus-button-url 0)
     ("^[^:]+:" ,gnus-button-url-regexp 0 t gnus-button-url 0)
     ("^[^:]+:" "\\(<\\(url: \\)?news:\\([^>\n ]*\\)>\\)" 1 t
      gnus-button-message-id 3))
@@ -2845,6 +2878,11 @@ specified by `gnus-button-alist'."
 	  (and data (list 'gnus-data data)))))
 
 ;;; Internal functions:
+
+(defun gnus-article-set-globals ()
+  (save-excursion
+    (set-buffer gnus-summary-buffer)
+    (gnus-set-global-variables)))
 
 (defun gnus-signature-toggle (end)
   (save-excursion

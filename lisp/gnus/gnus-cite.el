@@ -100,13 +100,14 @@ The first regexp group should match the Supercite attribution."
   :group 'gnus-cite
   :type 'integer)
 
-(defcustom gnus-cite-attribution-prefix "in article\\|in <"
+(defcustom gnus-cite-attribution-prefix 
+  "in article\\|in <\\|On \\(Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\|Sun\\),"
   "Regexp matching the beginning of an attribution line."
   :group 'gnus-cite
   :type 'regexp)
 
 (defcustom gnus-cite-attribution-suffix
-  "\\(wrote\\|writes\\|said\\|says\\):[ \t]*$"
+  "\\(\\(wrote\\|writes\\|said\\|says\\|>\\)\\(:\\|\\.\\.\\.\\)\\)[ 	]*$"
   "Regexp matching the end of an attribution line.
 The text matching the first grouping will be used as a button."
   :group 'gnus-cite
@@ -439,7 +440,8 @@ If WIDTH (the numerical prefix), use that text width when filling."
 	(setq gnus-cite-prefix-alist nil
 	      gnus-cite-attribution-alist nil
 	      gnus-cite-loose-prefix-alist nil
-	      gnus-cite-loose-attribution-alist nil)))))
+	      gnus-cite-loose-attribution-alist nil
+	      gnus-cite-article nil)))))
 
 (defun gnus-article-hide-citation (&optional arg force)
   "Toggle hiding of all cited text except attribution lines.

@@ -237,7 +237,7 @@ The SOUP packet file name will be inserted at the %s.")
 
 (deffoo nnsoup-request-type (group &optional article)
   (nnsoup-possibly-change-group group)
-  ;; Try to guess the type based on the first articl ein the group.
+  ;; Try to guess the type based on the first article in the group.
   (when (not article)
     (setq article
 	  (cdaar (cddr (assoc group nnsoup-group-alist)))))
@@ -623,7 +623,7 @@ The SOUP packet file name will be inserted at the %s.")
   (nnsoup-write-replies)
   ;; Check whether there is anything here.
   (when (null (directory-files nnsoup-replies-directory nil "\\.MSG$"))
-    (error "No files to pack."))
+    (error "No files to pack"))
   ;; Pack all these files into a SOUP packet.
   (gnus-soup-pack nnsoup-replies-directory nnsoup-packer))
 

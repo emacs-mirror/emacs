@@ -45,13 +45,13 @@
   :type '(repeat (string :tag "Group")))
 
 (defcustom gnus-nocem-issuers
- '("AutoMoose-1" "Automoose-1"   ; CancelMoose[tm]
-   "rbraver@ohww.norman.ok.us"   ; Robert Braver
-   "clewis@ferret.ocunix.on.ca;" ; Chris Lewis
-   "jem@xpat.com;"		 ; Despammer from Korea
-   "snowhare@xmission.com"       ; Benjamin "Snowhare" Franz
-   "red@redpoll.mrfs.oh.us (Richard E. Depew)" ; ARMM! ARMM!
-   )
+  '("AutoMoose-1" "Automoose-1"		; CancelMoose[tm]
+    "rbraver@ohww.norman.ok.us"		; Robert Braver
+    "clewis@ferret.ocunix.on.ca"	; Chris Lewis
+    "jem@xpat.com"			; Despammer from Korea
+    "snowhare@xmission.com"		; Benjamin "Snowhare" Franz
+    "red@redpoll.mrfs.oh.us (Richard E. Depew)" ; ARMM! ARMM!
+    )
   "List of NoCeM issuers to pay attention to."
   :group 'gnus-nocem
   :type '(repeat string))
@@ -98,6 +98,23 @@ matches an previously scanned and verified nocem message."
 (defun gnus-nocem-cache-file ()
   (concat (file-name-as-directory gnus-nocem-directory) "cache"))
 
+;;
+;; faster lookups for group names:
+;;
+
+(defvar gnus-nocem-real-group-hashtb nil
+  "Real-name mappings of subscribed groups.")
+
+(defun gnus-fill-real-hashtb ()
+  "Fill up a hash table with the real-name mappings from the user's
+active file."
+  (setq gnus-nocem-real-group-hashtb (gnus-make-hashtable
+				      (length gnus-newsrc-alist)))
+  (mapcar (lambda (group)
+	    (setq group (gnus-group-real-name (car group)))
+	    (gnus-sethash group t gnus-nocem-real-group-hashtb))
+	  gnus-newsrc-alist))
+
 (defun gnus-nocem-scan-groups ()
   "Scan all NoCeM groups for new NoCeM messages."
   (interactive)
@@ -107,6 +124,8 @@ matches an previously scanned and verified nocem message."
     (gnus-make-directory gnus-nocem-directory)
     ;; Load any previous NoCeM headers.
     (gnus-nocem-load-cache)
+    ;; Get the group name mappings:
+    (gnus-fill-real-hashtb)
     ;; Read the active file if it hasn't been read yet.
     (and (file-exists-p (gnus-nocem-active-file))
 	 (not gnus-nocem-active)
@@ -187,6 +206,8 @@ matches an previously scanned and verified nocem message."
 	(narrow-to-region b e)
 	(setq issuer (mail-fetch-field "issuer"))
 	(widen)
+	(or (member issuer gnus-nocem-issuers)
+	    (message "invalid NoCeM issuer: %s" issuer))
 	(and (member issuer gnus-nocem-issuers) ; We like her....
 	     (gnus-nocem-verify-issuer issuer) ; She is who she says she is...
 	     (gnus-nocem-enter-article)	; We gobble the message..
@@ -196,7 +217,8 @@ matches an previously scanned and verified nocem message."
 (defun gnus-nocem-verify-issuer (person)
   "Verify using PGP that the canceler is who she says she is."
   (if (fboundp gnus-nocem-verifyer)
-      (funcall gnus-nocem-verifyer)
+      (ignore-errors
+	(funcall gnus-nocem-verifyer))
     ;; If we don't have Mailcrypt, then we use the message anyway.
     t))
 
@@ -223,7 +245,8 @@ matches an previously scanned and verified nocem message."
 	  ;; Make sure all entries in the hashtb are bound.
 	  (set group nil))
 	 (t
-	  (when (gnus-gethash (symbol-name group) gnus-newsrc-hashtb)
+	  (when (gnus-gethash (gnus-group-real-name (symbol-name group))
+			      gnus-nocem-real-group-hashtb)
 	    ;; Valid group.
 	    (beginning-of-line)
 	    (while (= (following-char) ?\t)
@@ -294,7 +317,8 @@ matches an previously scanned and verified nocem message."
 	gnus-nocem-hashtb nil
 	gnus-nocem-active nil
 	gnus-nocem-touched-alist nil
-	gnus-nocem-seen-message-ids nil))
+	gnus-nocem-seen-message-ids nil
+	gnus-nocem-real-group-hashtb nil))
 
 (defun gnus-nocem-unwanted-article-p (id)
   "Say whether article ID in the current group is wanted."

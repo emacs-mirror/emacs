@@ -79,7 +79,6 @@ with some simple extensions.
 
 (defvar gnus-topic-killed-topics nil)
 (defvar gnus-topic-inhibit-change-level nil)
-(defvar gnus-topic-tallied-groups nil)
 
 (defconst gnus-topic-line-format-alist
   `((?n name ?s)
@@ -364,8 +363,6 @@ If LOWEST is non-nil, list all newsgroups of level LOWEST or higher."
   (let ((buffer-read-only nil)
         (lowest (or lowest 1)))
 
-    (setq gnus-topic-tallied-groups nil)
-
     (when (or (not gnus-topic-alist)
 	      (not gnus-topology-checked-p))
       (gnus-topic-check-topology))
@@ -441,10 +438,7 @@ articles in the topic and its subtopics."
 	     (gnus-info-level info) (gnus-info-marks info)
 	     (car entry) (gnus-info-method info)))))
       (when (and (listp entry)
-		 (numberp (car entry))
-		 (not (member (gnus-info-group (setq info (nth 2 entry)))
-			      gnus-topic-tallied-groups)))
-	(push (gnus-info-group info) gnus-topic-tallied-groups)
+		 (numberp (car entry)))
 	(incf unread (car entry)))
       (when (listp entry)
 	(setq tick t)))
@@ -520,8 +514,7 @@ articles in the topic and its subtopics."
     (gnus-add-text-properties
      (point)
      (prog1 (1+ (point))
-       (eval gnus-topic-line-format-spec)
-       (gnus-topic-remove-excess-properties)1)
+       (eval gnus-topic-line-format-spec))
      (list 'gnus-topic (intern name)
 	   'gnus-topic-level level
 	   'gnus-topic-unread unread
@@ -549,12 +542,14 @@ articles in the topic and its subtopics."
   (when (and (eq major-mode 'gnus-group-mode)
 	     gnus-topic-mode)
     (let ((group (gnus-group-group-name))
+          (m (point-marker))
 	  (buffer-read-only nil))
       (when (and group
 		 (gnus-get-info group)
 		 (gnus-topic-goto-topic (gnus-current-topic)))
 	(gnus-topic-update-topic-line (gnus-group-topic-name))
-	(gnus-group-goto-group group)
+	(goto-char m)
+	(set-marker m nil)
 	(gnus-group-position-point)))))
 
 (defun gnus-topic-goto-missing-group (group)
@@ -648,7 +643,6 @@ articles in the topic and its subtopics."
   (setq gnus-topic-active-topology nil
 	gnus-topic-active-alist nil
 	gnus-topic-killed-topics nil
-	gnus-topic-tallied-groups nil
 	gnus-topology-checked-p nil))
 
 (defun gnus-topic-check-topology ()
@@ -681,18 +675,20 @@ articles in the topic and its subtopics."
   ;; they belong to some topic.
   (let* ((tgroups (apply 'append (mapcar (lambda (entry) (cdr entry))
 					 gnus-topic-alist)))
-	 (entry (assoc (caar gnus-topic-topology) gnus-topic-alist))
+	 (entry (last (assoc (caar gnus-topic-topology) gnus-topic-alist)))
 	 (newsrc (cdr gnus-newsrc-alist))
 	 group)
     (while newsrc
       (unless (member (setq group (gnus-info-group (pop newsrc))) tgroups)
-	(setcdr entry (cons group (cdr entry))))))
+	(setcdr entry (list group))
+	(setq entry (cdr entry)))))
   ;; Go through all topics and make sure they contain only living groups.
   (let ((alist gnus-topic-alist)
 	topic)
     (while (setq topic (pop alist))
       (while (cdr topic)
-	(if (gnus-gethash (cadr topic) gnus-newsrc-hashtb)
+	(if (and (cadr topic)
+		 (gnus-gethash (cadr topic) gnus-newsrc-hashtb))
 	    (setq topic (cdr topic))
 	  (setcdr topic (cddr topic)))))))
 
@@ -729,10 +725,11 @@ articles in the topic and its subtopics."
 	(push (cons topic-name (nreverse filtered-topic)) result)))
     (setq gnus-topic-alist (nreverse result))))
 
-(defun gnus-topic-change-level (group level oldlevel)
+(defun gnus-topic-change-level (group level oldlevel &optional previous)
   "Run when changing levels to enter/remove groups from topics."
   (save-excursion
     (set-buffer gnus-group-buffer)
+    (gnus-group-goto-group (or (car (nth 2 previous)) group))
     (when (and gnus-topic-mode
 	       gnus-topic-alist
 	       (not gnus-topic-inhibit-change-level))
@@ -900,7 +897,9 @@ articles in the topic and its subtopics."
     "\C-i" gnus-topic-indent
     [tab] gnus-topic-indent
     "r" gnus-topic-rename
-    "\177" gnus-topic-delete)
+    "\177" gnus-topic-delete
+    [delete] gnus-topic-delete
+    "h" gnus-topic-toggle-display-empty-topics)
 
   (gnus-define-keys (gnus-topic-sort-map "S" gnus-group-topic-map)
     "s" gnus-topic-sort-groups
@@ -930,7 +929,9 @@ articles in the topic and its subtopics."
 	["Rename" gnus-topic-rename t]
 	["Create" gnus-topic-create-topic t]
 	["Mark" gnus-topic-mark-topic t]
-	["Indent" gnus-topic-indent t])
+	["Indent" gnus-topic-indent t]
+	["Toggle hide empty" gnus-topic-toggle-display-empty-topics t]
+	["Edit parameters" gnus-topic-edit-parameters t])
        ["List active" gnus-topic-list-active t]))))
 
 (defun gnus-topic-mode (&optional arg redisplay)
@@ -942,17 +943,14 @@ articles in the topic and its subtopics."
 	  (if (null arg) (not gnus-topic-mode)
 	    (> (prefix-numeric-value arg) 0)))
     ;; Infest Gnus with topics.
-    (when gnus-topic-mode
+    (if (not gnus-topic-mode)
+	(setq gnus-goto-missing-group-function nil)
       (when (gnus-visual-p 'topic-menu 'menu)
 	(gnus-topic-make-menu-bar))
       (setq gnus-topic-line-format-spec
 	    (gnus-parse-format gnus-topic-line-format
 			       gnus-topic-line-format-alist t))
-      (unless (assq 'gnus-topic-mode minor-mode-alist)
-	(push '(gnus-topic-mode " Topic") minor-mode-alist))
-      (unless (assq 'gnus-topic-mode minor-mode-map-alist)
-	(push (cons 'gnus-topic-mode gnus-topic-mode-map)
-	      minor-mode-map-alist))
+      (gnus-add-minor-mode 'gnus-topic-mode " Topic" gnus-topic-mode-map)
       (add-hook 'gnus-summary-exit-hook 'gnus-topic-update-topic)
       (add-hook 'gnus-group-catchup-group-hook 'gnus-topic-update-topic)
       (set (make-local-variable 'gnus-group-prepare-function)
@@ -1024,6 +1022,8 @@ If performed over a topic line, toggle folding the topic."
     (gnus-group-read-group all no-article group)))
 
 (defun gnus-topic-create-topic (topic parent &optional previous full-topic)
+  "Create a new TOPIC under PARENT.
+When used interactively, PARENT will be the topic under point."
   (interactive
    (list
     (read-string "New topic: ")
@@ -1234,7 +1234,8 @@ If COPYP, copy the groups instead."
     ;; Remove from alist.
     (setq gnus-topic-alist (delq entry gnus-topic-alist))
     ;; Remove from topology.
-    (gnus-topic-find-topology topic nil nil 'delete)))
+    (gnus-topic-find-topology topic nil nil 'delete)
+    (gnus-dribble-touch)))
 
 (defun gnus-topic-rename (old-name new-name)
   "Rename a topic."
@@ -1303,6 +1304,16 @@ If FORCE, always re-read the active file."
 	gnus-killed-list gnus-zombie-list)
     (gnus-group-list-groups 9 nil 1)))
 
+(defun gnus-topic-toggle-display-empty-topics ()
+  "Show/hide topics that have no unread articles."
+  (interactive)
+  (setq gnus-topic-display-empty-topics
+	(not gnus-topic-display-empty-topics))
+  (gnus-group-list-groups)
+  (message "%s empty topics"
+	   (if gnus-topic-display-empty-topics
+	       "Showing" "Hiding")))
+
 ;;; Topic sorting functions
 
 (defun gnus-topic-edit-parameters (group)
@@ -1312,7 +1323,7 @@ If performed on a topic, edit the topic parameters instead."
   (if group
       (gnus-group-edit-group-parameters group)
     (if (not (gnus-group-topic-p))
-	(error "Nothing to edit on the current line.")
+	(error "Nothing to edit on the current line")
       (let ((topic (gnus-group-topic-name)))
 	(gnus-edit-form
 	 (gnus-topic-parameters topic)

@@ -190,11 +190,9 @@
 
 (deffoo nnmh-request-list (&optional server dir)
   (nnheader-insert "")
-  (let (;; 1997/8/14 by MORIOKA Tomohiko
- 	;;	for XEmacs/mule.
- 	(pathname-coding-system 'binary)
+  (let ((pathname-coding-system 'binary)
 	(nnmh-toplev
-	 (or dir (file-truename (file-name-as-directory nnmh-directory)))))
+	 (file-truename (or dir (file-name-as-directory nnmh-directory)))))
     (nnmh-request-list-1 nnmh-toplev))
   (setq nnmh-group-alist (nnmail-get-active))
   t)

@@ -73,15 +73,15 @@
    "\M-\C-_"     gnus-undo
    "\C-_"        gnus-undo
    "\C-xu"       gnus-undo
-   [(control /)] gnus-undo    ; many people are used to type `C-/' on
-			      ; X terminals and get `C-_'.
-   ))
+   ;; many people are used to type `C-/' on X terminals and get `C-_'.
+   [(control /)] gnus-undo))
 
 (defun gnus-undo-make-menu-bar ()
+  ;; This is disabled for the time being.
   (when nil
-  (define-key-after (current-local-map) [menu-bar file gnus-undo]
-    (cons "Undo" 'gnus-undo-actions)
-    [menu-bar file whatever])))
+    (define-key-after (current-local-map) [menu-bar file gnus-undo]
+      (cons "Undo" 'gnus-undo-actions)
+      [menu-bar file whatever])))
 
 (defun gnus-undo-mode (&optional arg)
   "Minor mode for providing `undo' in Gnus buffers.
@@ -97,15 +97,9 @@
     ;; Set up the menu.
     (when (gnus-visual-p 'undo-menu 'menu)
       (gnus-undo-make-menu-bar))
-    ;; Don't display anything in the mode line -- too annoying.
-    ;;(unless (assq 'gnus-undo-mode minor-mode-alist)
-    ;;  (push '(gnus-undo-mode " Undo") minor-mode-alist))
-    (unless (assq 'gnus-undo-mode minor-mode-map-alist)
-      (push (cons 'gnus-undo-mode gnus-undo-mode-map)
-	    minor-mode-map-alist))
+    (gnus-add-minor-mode 'gnus-undo-mode "" gnus-undo-mode-map)
     (make-local-hook 'post-command-hook)
     (add-hook 'post-command-hook 'gnus-undo-boundary nil t)
-    (add-hook 'gnus-summary-exit-hook 'gnus-undo-boundary)
     (run-hooks 'gnus-undo-mode-hook)))
 
 ;;; Interface functions.
@@ -123,6 +117,11 @@
   (if gnus-undo-boundary-inhibit
       (setq gnus-undo-boundary-inhibit nil)
     (setq gnus-undo-boundary t)))
+
+(defun gnus-undo-force-boundary ()
+  "Set Gnus undo boundary."
+  (setq gnus-undo-boundary-inhibit nil
+	gnus-undo-boundary t))
 
 (defun gnus-undo-register (form)
   "Register FORMS as something to be performed to undo a change.

@@ -143,7 +143,7 @@
 	 (def (assq backend nnoo-definition-alist))
 	 (parents (nth 1 def)))
     (unless def
-      (error "%s belongs to a backend that hasn't been declared." var))
+      (error "%s belongs to a backend that hasn't been declared" var))
     (setcar (nthcdr 2 def)
 	    (delq (assq var (nth 2 def)) (nth 2 def)))
     (setcar (nthcdr 2 def)

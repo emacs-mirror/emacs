@@ -851,11 +851,8 @@ recommend using both scores and grouplens predictions together."
       (when (and menu-bar-mode
 		 (gnus-visual-p 'grouplens-menu 'menu))
 	(gnus-grouplens-make-menu-bar))
-      (unless (assq 'gnus-grouplens-mode minor-mode-alist)
-	(push '(gnus-grouplens-mode " GroupLens") minor-mode-alist))
-      (unless (assq 'gnus-grouplens-mode minor-mode-map-alist)
-	(push (cons 'gnus-grouplens-mode gnus-grouplens-mode-map)
-	      minor-mode-map-alist))
+      (gnus-add-minor-mode
+       'gnus-grouplens-mode " GroupLens" gnus-grouplens-mode-map)
       (run-hooks 'gnus-grouplens-mode-hook))))
 
 (provide 'gnus-gl)

@@ -145,6 +145,18 @@
   :link '(custom-manual "(gnus)Various Summary Stuff")
   :group 'gnus-summary)
 
+(defgroup gnus-summary-pick nil
+  "Pick mode in the summary buffer."
+  :link '(custom-manual "(gnus)Pick and Read")
+  :prefix "gnus-pick-"
+  :group 'gnus-summary)
+
+(defgroup gnus-summary-tree nil
+  "Tree display of threads in the summary buffer."
+  :link '(custom-manual "(gnus)Tree Display")
+  :prefix "gnus-tree-"
+  :group 'gnus-summary)
+
 ;; Belongs to gnus-uu.el
 (defgroup gnus-extract-view nil
   "Viewing extracted files."
@@ -257,7 +269,6 @@ be set in `.emacs' instead."
   (defalias 'gnus-extent-start-open 'ignore)
   (defalias 'gnus-set-text-properties 'set-text-properties)
   (defalias 'gnus-group-remove-excess-properties 'ignore)
-  (defalias 'gnus-topic-remove-excess-properties 'ignore)
   (defalias 'gnus-appt-select-lowest-window 'appt-select-lowest-window)
   (defalias 'gnus-mail-strip-quoted-names 'mail-strip-quoted-names)
   (defalias 'gnus-character-to-event 'identity)
@@ -649,12 +660,13 @@ be set in `.emacs' instead."
   (save-excursion
     (save-restriction
       (narrow-to-region start end)
-      (indent-rigidly start end arg)
-      ;; We translate tabs into spaces -- not everybody uses
-      ;; an 8-character tab.
-      (goto-char (point-min))
-      (while (search-forward "\t" nil t)
-	(replace-match "        " t t)))))
+      (let ((tab-width 8))
+	(indent-rigidly start end arg)
+	;; We translate tabs into spaces -- not everybody uses
+	;; an 8-character tab.
+	(goto-char (point-min))
+	(while (search-forward "\t" nil t)
+	  (replace-match "        " t t))))))
 
 (defvar gnus-simple-splash nil)
 
@@ -781,7 +793,7 @@ used to 899, you would say something along these lines:
 		     (when (and gnus-default-nntp-server
 				(not (string= gnus-default-nntp-server "")))
 		       gnus-default-nntp-server)
-		     (system-name)))
+		     "news"))
      (if (or (null gnus-nntp-service)
 	     (equal gnus-nntp-service "nntp"))
 	 nil
@@ -1346,7 +1358,6 @@ want."
 	     gnus-article-fill-cited-article
 	     gnus-article-remove-cr
 	     gnus-article-de-quoted-unreadable
-	     gnus-article-display-x-face
 	     gnus-summary-stop-page-breaking
 	     ;; gnus-summary-caesar-message
 	     ;; gnus-summary-verbose-headers
@@ -1370,7 +1381,9 @@ want."
 	     gnus-article-strip-leading-blank-lines
 	     gnus-article-strip-multiple-blank-lines
 	     gnus-article-strip-blank-lines
-	     gnus-article-treat-overstrike))
+	     gnus-article-treat-overstrike
+	     gnus-article-display-x-face
+	     gnus-smiley-display))
 
 (defcustom gnus-article-save-directory gnus-directory
   "*Name of the directory articles will be saved in (default \"~/News\")."
@@ -1643,7 +1656,7 @@ gnus-newsrc-hashtb should be kept so that both hold the same information.")
       gnus-article-next-page gnus-article-prev-page
       gnus-request-article-this-buffer gnus-article-mode
       gnus-article-setup-buffer gnus-narrow-to-page
-      gnus-article-delete-invisible-text)
+      gnus-article-delete-invisible-text gnus-hack-decode-rfc1522)
      ("gnus-art" :interactive t
       gnus-article-hide-headers gnus-article-hide-boring-headers
       gnus-article-treat-overstrike gnus-article-word-wrap
@@ -1910,6 +1923,20 @@ This restriction may disappear in later versions of Gnus."
 ;;; Gnus Utility Functions
 ;;;
 
+(defmacro gnus-string-or (&rest strings)
+  "Return the first element of STRINGS that is a non-blank string.
+STRINGS will be evaluated in normal `or' order."
+  `(gnus-string-or-1 ',strings))
+
+(defun gnus-string-or-1 (strings)
+  (let (string)
+    (while strings
+      (setq string (eval (pop strings)))
+      (if (string-match "^[ \t]*$" string)
+	  (setq string nil)
+	(setq strings nil)))
+    string))
+
 ;; Add the current buffer to the list of buffers to be killed on exit.
 (defun gnus-add-current-to-buffer-list ()
   (or (memq (current-buffer) gnus-buffer-list)
@@ -2001,7 +2028,7 @@ that that variable is buffer-local to the summary buffers."
       (string-match gnus-total-expirable-newsgroups group)))))
 
 (defun gnus-group-auto-expirable-p (group)
-  "Check whether GROUP is total-expirable or not."
+  "Check whether GROUP is auto-expirable or not."
   (let ((params (gnus-group-find-parameter group))
 	val)
     (cond
@@ -2064,7 +2091,7 @@ that that variable is buffer-local to the summary buffers."
 
 (defun gnus-simplify-mode-line ()
   "Make mode lines a bit simpler."
-  (setq mode-line-modified "-- ")
+  (setq mode-line-modified (cdr gnus-mode-line-modified))
   (when (listp mode-line-format)
     (make-local-variable 'mode-line-format)
     (setq mode-line-format (copy-sequence mode-line-format))

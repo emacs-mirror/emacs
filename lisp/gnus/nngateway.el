@@ -58,9 +58,11 @@ parameter -- the gateway address.")
 	(insert-buffer-substring buf)
 	(message-narrow-to-head)
 	(funcall nngateway-header-transformation nngateway-address)
+	(goto-char (point-max))
+	(insert mail-header-separator "\n")
 	(widen)
 	(let (message-required-mail-headers)
-	  (message-send-mail))))))
+	  (funcall message-send-mail-function))))))
 
 ;;; Internal functions
 

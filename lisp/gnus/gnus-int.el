@@ -377,7 +377,7 @@ If GROUP is nil, all groups on METHOD are scanned."
 	     last)))
 
 (defun gnus-request-replace-article (article group buffer)
-  (let ((func (car (gnus-find-method-for-group group))))
+  (let ((func (car (gnus-group-name-to-method group))))
     (funcall (intern (format "%s-request-replace-article" func))
 	     article (gnus-group-real-name group) buffer)))
 

@@ -505,6 +505,7 @@ The following commands are available:
    "n" gnus-browse-next-group
    "p" gnus-browse-prev-group
    "\177" gnus-browse-prev-group
+   [delete] gnus-browse-prev-group
    "N" gnus-browse-next-group
    "P" gnus-browse-prev-group
    "\M-n" gnus-browse-next-group
@@ -552,7 +553,8 @@ The following commands are available:
     (cond
      ((not (gnus-check-server method))
       (gnus-message
-       1 "Unable to contact server: %s" (gnus-status-message method))
+       1 "Unable to contact server %s: %s" (nth 1 method)
+       (gnus-status-message method))
       nil)
      ((not
        (prog2
@@ -663,7 +665,7 @@ buffer.
   "(Un)subscribe to the next ARG groups."
   (interactive "p")
   (when (eobp)
-    (error "No group at current line."))
+    (error "No group at current line"))
   (let ((ward (if (< arg 0) -1 1))
 	(arg (abs arg)))
     (while (and (> arg 0)
@@ -695,7 +697,9 @@ buffer.
       ;; If this group it killed, then we want to subscribe it.
       (when (= (following-char) ?K)
 	(setq sub t))
-      (setq group (gnus-browse-group-name))
+      (when (gnus-gethash (setq group (gnus-browse-group-name))
+			  gnus-newsrc-hashtb)
+	(error "Group already subscribed"))
       ;; Make sure the group has been properly removed before we
       ;; subscribe to it.
       (gnus-kill-ephemeral-group group)
@@ -745,6 +749,8 @@ buffer.
 	      'request-regenerate (car (gnus-server-to-method server))))
 	(error "This backend doesn't support regeneration")
       (gnus-message 5 "Requesting regeneration of %s..." server)
+      (unless (gnus-open-server server)
+	(error "Couldn't open server"))
       (if (gnus-request-regenerate server)
 	  (gnus-message 5 "Requesting regeneration of %s...done" server)
 	(gnus-message 5 "Couldn't regenerate %s" server)))))

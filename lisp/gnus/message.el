@@ -596,6 +596,25 @@ actually occur."
 (defvar message-mh-deletable-headers '(Message-ID Date Lines Sender)
   "If non-nil, delete the deletable headers before feeding to mh.")
 
+(defvar message-send-method-alist
+  '((news message-news-p message-send-via-news)
+    (mail message-mail-p message-send-via-mail))
+  "Alist of ways to send outgoing messages.
+Each element has the form
+
+  \(TYPE PREDICATE FUNCTION)
+
+where TYPE is a symbol that names the method; PREDICATE is a function
+called without any parameters to determine whether the message is
+a message of type TYPE; and FUNCTION is a function to be called if
+PREDICATE returns non-nil.  FUNCTION is called with one parameter --
+the prefix.")
+
+(defvar message-mail-alias-type 'abbrev
+  "*What alias expansion type to use in Message buffers.
+The default is `abbrev', which uses mailabbrev.  nil switches
+mail aliases off.")
+
 ;;; Internal variables.
 ;;; Well, not really internal.
 
@@ -725,19 +744,19 @@ Defaults to `text-mode-abbrev-table'.")
   (let* ((cite-prefix "A-Za-z")
 	 (cite-suffix (concat cite-prefix "0-9_.@-"))
 	 (content "[ \t]*\\(.+\\(\n[ \t].*\\)*\\)"))
-    `((,(concat "^\\(To:\\)" content)
+    `((,(concat "^\\([Tt]o:\\)" content)
        (1 'message-header-name-face)
        (2 'message-header-to-face nil t))
-      (,(concat "^\\(^[GBF]?[Cc][Cc]:\\|^Reply-To:\\)" content)
+      (,(concat "^\\(^[GBF]?[Cc][Cc]:\\|^[Rr]eply-[Tt]o:\\)" content)
        (1 'message-header-name-face)
        (2 'message-header-cc-face nil t))
-      (,(concat "^\\(Subject:\\)" content)
+      (,(concat "^\\([Ss]ubject:\\)" content)
        (1 'message-header-name-face)
        (2 'message-header-subject-face nil t))
-      (,(concat "^\\(Newsgroups:\\|Followup-to:\\)" content)
+      (,(concat "^\\([Nn]ewsgroups:\\|Followup-[Tt]o:\\)" content)
        (1 'message-header-name-face)
        (2 'message-header-newsgroups-face nil t))
-      (,(concat "^\\([^: \n\t]+:\\)" content)
+      (,(concat "^\\([A-Z][^: \n\t]+:\\)" content)
        (1 'message-header-name-face)
        (2 'message-header-other-face nil t))
       (,(concat "^\\(X-[A-Za-z0-9-]+\\|In-Reply-To\\):" content)
@@ -1263,9 +1282,10 @@ C-c C-r  message-caesar-buffer-body (rot13 the message body)."
   (easy-menu-add message-mode-menu message-mode-map)
   (easy-menu-add message-mode-field-menu message-mode-map)
   ;; Allow mail alias things.
-  (if (fboundp 'mail-abbrevs-setup)
-      (mail-abbrevs-setup)
-    (funcall (intern "mail-aliases-setup")))
+  (when (eq message-mail-alias-type 'abbrev)
+    (if (fboundp 'mail-abbrevs-setup)
+	(mail-abbrevs-setup)
+      (funcall (intern "mail-aliases-setup"))))
   (run-hooks 'text-mode-hook 'message-mode-hook))
 
 
@@ -1348,11 +1368,15 @@ C-c C-r  message-caesar-buffer-body (rot13 the message body)."
 
 
 
-(defun message-insert-to ()
-  "Insert a To header that points to the author of the article being replied to."
-  (interactive)
+(defun message-insert-to (&optional force)
+  "Insert a To header that points to the author of the article being replied to.
+If the original author requested not to be sent mail, the function signals
+an error.
+With the prefix argument FORCE, insert the header anyway."
+  (interactive "P")
   (let ((co (message-fetch-reply-field "mail-copies-to")))
-    (when (and co
+    (when (and (null force)
+	       co
 	       (equal (downcase co) "never"))
       (error "The user has requested not to have copies sent via mail")))
   (when (and (message-position-on-field "To")
@@ -1733,30 +1757,43 @@ the user from the mailer."
     (message-fix-before-sending)
     (run-hooks 'message-send-hook)
     (message "Sending...")
-    (when (and (or (not (message-news-p))
-		   (and (or (not (memq 'news message-sent-message-via))
-			    (y-or-n-p
-			     "Already sent message via news; resend? "))
-			(funcall message-send-news-function arg)))
-	       (or (not (message-mail-p))
-		   (and (or (not (memq 'mail message-sent-message-via))
-			    (y-or-n-p
-			     "Already sent message via mail; resend? "))
-			(message-send-mail arg))))
-      (message-do-fcc)
-      ;;(when (fboundp 'mail-hist-put-headers-into-history)
-      ;; (mail-hist-put-headers-into-history))
-      (run-hooks 'message-sent-hook)
-      (message "Sending...done")
-      ;; If buffer has no file, mark it as unmodified and delete autosave.
-      (unless buffer-file-name
-	(set-buffer-modified-p nil)
-	(delete-auto-save-file-if-necessary t))
-      ;; Delete other mail buffers and stuff.
-      (message-do-send-housekeeping)
-      (message-do-actions message-send-actions)
-      ;; Return success.
-      t)))
+    (let ((alist message-send-method-alist)
+	  (success t)
+	  elem sent)
+      (while (and success
+		  (setq elem (pop alist)))
+	(when (and (or (not (funcall (cadr elem)))
+		       (and (or (not (memq (car elem)
+					   message-sent-message-via))
+				(y-or-n-p
+				 (format
+				  "Already sent message via %s; resend? "
+				  (car elem))))
+			    (setq success (funcall (caddr elem) arg)))))
+	  (setq sent t)))
+      (when (and success sent)
+	(message-do-fcc)
+	;;(when (fboundp 'mail-hist-put-headers-into-history)
+	;; (mail-hist-put-headers-into-history))
+	(run-hooks 'message-sent-hook)
+	(message "Sending...done")
+	;; If buffer has no file, mark it as unmodified and delete autosave.
+	(unless buffer-file-name
+	  (set-buffer-modified-p nil)
+	  (delete-auto-save-file-if-necessary t))
+	;; Delete other mail buffers and stuff.
+	(message-do-send-housekeeping)
+	(message-do-actions message-send-actions)
+	;; Return success.
+	t))))
+
+(defun message-send-via-mail (arg)
+  "Send the current message via mail."  
+  (message-send-mail arg))
+
+(defun message-send-via-news (arg)
+  "Send the current message via news."
+  (funcall message-send-news-function arg))
 
 (defun message-fix-before-sending ()
   "Do various things to make the message nice before sending it."
@@ -1926,10 +1963,10 @@ to find out how to use this."
     ;; qmail-inject doesn't say anything on it's stdout/stderr,
     ;; we have to look at the retval instead
     (0 nil)
-    (1   (error "qmail-inject reported permanent failure."))
-    (111 (error "qmail-inject reported transient failure."))
+    (1   (error "qmail-inject reported permanent failure"))
+    (111 (error "qmail-inject reported transient failure"))
     ;; should never happen
-    (t   (error "qmail-inject reported unknown failure."))))
+    (t   (error "qmail-inject reported unknown failure"))))
 
 (defun message-send-mail-with-mh ()
   "Send the prepared message buffer with mh."
@@ -2007,7 +2044,8 @@ to find out how to use this."
 	    (funcall (intern (format "%s-open-server" (car method)))
 		     (cadr method) (cddr method))
 	    (setq result
-		  (funcall (intern (format "%s-request-post" (car method))))))
+		  (funcall (intern (format "%s-request-post" (car method)))
+			   (cadr method))))
 	(kill-buffer tembuf))
       (set-buffer messbuf)
       (if result
@@ -2191,6 +2229,22 @@ to find out how to use this."
 	 (y-or-n-p
 	  (format "The %s header looks odd: \"%s\".  Really post? "
 		  (car headers) header)))))
+   (message-check 'repeated-newsgroups
+     (let ((case-fold-search t)
+	   (headers '("Newsgroups" "Followup-To"))
+	   header error groups group)
+       (while (and headers
+		   (not error))
+	 (when (setq header (mail-fetch-field (pop headers)))
+	   (setq groups (message-tokenize-header header ","))
+	   (while (setq group (pop groups))
+	     (when (member group groups)
+	       (setq error group
+		     groups nil)))))
+       (if (not error)
+	   t
+	 (y-or-n-p
+	  (format "Group %s is repeated in headers.  Really post? " error)))))
    ;; Check the From header.
    (message-check 'from
      (let* ((case-fold-search t)
@@ -2282,7 +2336,8 @@ to find out how to use this."
        (concat "^" (regexp-quote mail-header-separator) "$"))
       (while (not (eobp))
 	(when (not (looking-at "[ \t\n]"))
-	  (setq sum (logxor (ash sum 1) (following-char))))
+ 	  (setq sum (logxor (ash sum 1) (if (natnump sum) 0 1)
+ 			    (following-char))))
 	(forward-char 1)))
     sum))
 
@@ -2373,16 +2428,21 @@ to find out how to use this."
 (defun message-make-message-id ()
   "Make a unique Message-ID."
   (concat "<" (message-unique-id)
-	  (let ((psubject (save-excursion (message-fetch-field "subject"))))
-	    (if (and message-reply-headers
-		     (mail-header-references message-reply-headers)
-		     (mail-header-subject message-reply-headers)
-		     psubject
-		     (mail-header-subject message-reply-headers)
-		     (not (string=
-			   (message-strip-subject-re
-			    (mail-header-subject message-reply-headers))
-			   (message-strip-subject-re psubject))))
+	  (let ((psubject (save-excursion (message-fetch-field "subject")))
+		(psupersedes
+		 (save-excursion (message-fetch-field "supersedes"))))
+	    (if (or
+		 (and message-reply-headers
+		      (mail-header-references message-reply-headers)
+		      (mail-header-subject message-reply-headers)
+		      psubject
+		      (mail-header-subject message-reply-headers)
+		      (not (string=
+			    (message-strip-subject-re
+			     (mail-header-subject message-reply-headers))
+			    (message-strip-subject-re psubject))))
+		 (and psupersedes
+		      (string-match "_-_@" psupersedes)))
 		"_-_" ""))
 	  "@" (message-make-fqdn) ">"))
 
@@ -2468,9 +2528,10 @@ to find out how to use this."
 	(let ((stop-pos
 	       (string-match "  *at \\|  *@ \\| *(\\| *<" from)))
 	  (concat (if stop-pos (substring from 0 stop-pos) from)
-		  "'s message of "
+		  "'s message of \""
 		  (if (or (not date) (string= date ""))
-		      "(unknown date)" date)))))))
+		      "(unknown date)" date)
+		  "\""))))))
 
 (defun message-make-distribution ()
   "Make a Distribution header."
@@ -2633,6 +2694,8 @@ Headers already prepared in the buffer are not modified."
 	   header value elem)
       ;; First we remove any old generated headers.
       (let ((headers message-deletable-headers))
+	(unless (buffer-modified-p)
+	  (setq headers (delq 'Message-ID (copy-sequence headers))))
 	(while headers
 	  (goto-char (point-min))
 	  (and (re-search-forward
@@ -2939,6 +3002,7 @@ Headers already prepared in the buffer are not modified."
     (message-narrow-to-headers)
     (run-hooks 'message-header-setup-hook))
   (set-buffer-modified-p nil)
+  (setq buffer-undo-list nil)
   (run-hooks 'message-setup-hook)
   (message-position-point)
   (undo-boundary))
@@ -2951,7 +3015,11 @@ Headers already prepared in the buffer are not modified."
     (let ((name (make-temp-name
 		 (expand-file-name
 		  (concat (file-name-as-directory message-autosave-directory)
-			  "msg.")))))
+			  "msg."
+			  (nnheader-replace-chars-in-string
+			   (nnheader-replace-chars-in-string
+			    (buffer-name) ?* ?.)
+			   ?/ ?-))))))
       (setq buffer-auto-save-file-name
 	    (save-excursion
 	      (prog1
@@ -3246,9 +3314,10 @@ responses here are directed to other newsgroups."))
 		mail-header-separator "\n"
 		message-cancel-message)
 	(message "Canceling your article...")
-	(let ((message-syntax-checks 'dont-check-for-anything-just-trust-me))
-	  (funcall message-send-news-function))
-	(message "Canceling your article...done")
+	(if (let ((message-syntax-checks
+		   'dont-check-for-anything-just-trust-me))
+	      (funcall message-send-news-function))
+	    (message "Canceling your article...done"))
 	(kill-buffer buf)))))
 
 ;;;###autoload
@@ -3576,14 +3645,15 @@ Do a `tab-to-tab-stop' if not in those headers."
       (insert string)
       (if (not comp)
 	  (message "No matching groups")
-	(pop-to-buffer "*Completions*")
-	(buffer-disable-undo (current-buffer))
-	(let ((buffer-read-only nil))
-	  (erase-buffer)
-	  (let ((standard-output (current-buffer)))
-	    (display-completion-list (sort completions 'string<)))
-	  (goto-char (point-min))
-	  (pop-to-buffer cur)))))))
+	(save-selected-window
+	  (pop-to-buffer "*Completions*")
+	  (buffer-disable-undo (current-buffer))
+	  (let ((buffer-read-only nil))
+	    (erase-buffer)
+	    (let ((standard-output (current-buffer)))
+	      (display-completion-list (sort completions 'string<)))
+	    (goto-char (point-min))
+	    (delete-region (point) (progn (forward-line 3) (point))))))))))
 
 ;;; Help stuff.
 
@@ -3617,18 +3687,26 @@ The following arguments may contain lists of values."
 Then clone the local variables and values from the old buffer to the
 new one, cloning only the locals having a substring matching the
 regexp varstr."
-  (let ((oldlocals (buffer-local-variables)))
+  (let ((oldbuf (current-buffer)))
     (save-excursion
       (set-buffer (generate-new-buffer name))
-      (mapcar (lambda (dude)
-		(when (and (car dude)
-			   (or (not varstr)
-			       (string-match varstr (symbol-name (car dude)))))
-		  (ignore-errors
-		    (set (make-local-variable (car dude))
-			 (cdr dude)))))
-	      oldlocals)
+      (message-clone-locals oldbuf)
       (current-buffer))))
+
+(defun message-clone-locals (buffer)
+  "Clone the local variables from BUFFER to the current buffer."
+  (let ((locals (save-excursion
+		  (set-buffer buffer)
+		  (buffer-local-variables)))
+	(regexp "^gnus\\|^nn\\|^message"))
+    (mapcar
+     (lambda (local)
+       (when (and (car local)
+		  (string-match regexp (symbol-name (car local))))
+	 (ignore-errors
+	   (set (make-local-variable (car local))
+		(cdr local)))))
+     locals)))
 
 (run-hooks 'message-load-hook)
 

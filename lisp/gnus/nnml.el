@@ -38,7 +38,7 @@
 (nnoo-declare nnml)
 
 (defvoo nnml-directory message-directory
-  "Mail spool directory.")
+  "Spool directory for the nnml mail backend.")
 
 (defvoo nnml-active-file
   (concat (file-name-as-directory nnml-directory) "active")
@@ -474,8 +474,15 @@ all.  This may very well take some time.")
 (defun nnml-article-to-file (article)
   (nnml-update-file-alist)
   (let (file)
-    (when (setq file (cdr (assq article nnml-article-file-alist)))
-      (concat nnml-current-directory file))))
+    (if (setq file (cdr (assq article nnml-article-file-alist)))
+	(concat nnml-current-directory file)
+      ;; Just to make sure nothing went wrong when reading over NFS --
+      ;; check once more.
+      (when (file-exists-p
+	     (setq file (concat nnml-current-directory "/"
+				(number-to-string article))))
+	(nnml-update-file-alist t)
+	file))))
 
 (defun nnml-deletable-article-p (group article)
   "Say whether ARTICLE in GROUP can be deleted."
@@ -769,8 +776,7 @@ all.  This may very well take some time.")
 	     (search-forward "\n\n" nil t)
 	     (setq chars (- (point-max) (point)))
 	     (max 1 (1- (point)))))
-	  (when (and (not (= 0 chars))	; none of them empty files...
-		     (not (= (point-min) (point-max))))
+	  (unless (zerop (buffer-size))
 	    (goto-char (point-min))
 	    (setq headers (nnml-parse-head chars (caar files)))
 	    (save-excursion
@@ -800,8 +806,9 @@ all.  This may very well take some time.")
 		(setf (car active) num)))))))
     t))
 
-(defun nnml-update-file-alist ()
-  (unless nnml-article-file-alist
+(defun nnml-update-file-alist (&optional force)
+  (when (or (not nnml-article-file-alist)
+	    force)
     (setq nnml-article-file-alist
 	  (nnheader-article-to-file-alist nnml-current-directory))))
 

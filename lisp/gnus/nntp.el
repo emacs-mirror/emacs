@@ -73,10 +73,11 @@ It will be called with the buffer to output in.
 
 Two pre-made functions are `nntp-open-network-stream', which is the
 default, and simply connects to some port or other on the remote
-system (see nntp-port-number).  The other are `nntp-open-rlogin', which
-does an rlogin on the remote system, and then does a telnet to the
-NNTP server available there (see nntp-rlogin-parameters) and `nntp-open-telnet' which
-telnets to a remote system, logs in and does the same")
+system (see nntp-port-number).  The other are `nntp-open-rlogin',
+which does an rlogin on the remote system, and then does a telnet to
+the NNTP server available there (see nntp-rlogin-parameters) and
+`nntp-open-telnet' which telnets to a remote system, logs in and does
+the same.")
 
 (defvoo nntp-rlogin-parameters '("telnet" "-8" "${NNTPSERVER:=news}" "nntp")
   "*Parameters to `nntp-open-login'.
@@ -97,6 +98,12 @@ via telnet.")
 
 (defvoo nntp-telnet-passwd nil
   "Password to use to log in via telnet with.")
+
+(defvoo nntp-telnet-command "telnet"
+  "Command used to start telnet.")
+
+(defvoo nntp-telnet-switches '("-8")
+  "Switches given to the telnet command.")
 
 (defvoo nntp-end-of-line "\r\n"
   "String to use on the end of lines when talking to the NNTP server.
@@ -122,7 +129,7 @@ The strings are tried in turn until a positive response is gotten.  If
 none of the commands are successful, nntp will just grab headers one
 by one.")
 
-(defvoo nntp-nov-gap 20
+(defvoo nntp-nov-gap 5
   "*Maximum allowed gap between two articles.
 If the gap between two consecutive articles is bigger than this
 variable, split the XOVER request into two requests.")
@@ -187,7 +194,7 @@ server there that you can connect to.  See also `nntp-open-connection-function'"
   (save-excursion
     (set-buffer (process-buffer process))
     (goto-char (point-min))
-    (while (or (not (memq (following-char) '(?2 ?3 ?4 ?5)))
+    (while (or (not (memq (char-after (point)) '(?2 ?3 ?4 ?5)))
 	       (looking-at "480"))
       (when (looking-at "480")
 	(erase-buffer)
@@ -568,20 +575,22 @@ server there that you can connect to.  See also `nntp-open-connection-function'"
   (when (nntp-send-command-and-decode
 	 "\r?\n\\.\r?\n" "ARTICLE"
 	 (if (numberp article) (int-to-string article) article))
-    (when (and buffer
-	       (not (equal buffer nntp-server-buffer)))
-      (save-excursion
-	(set-buffer nntp-server-buffer)
-	(copy-to-buffer buffer (point-min) (point-max))
-	(nntp-find-group-and-number)))
-    (nntp-find-group-and-number)))
+    (if (and buffer
+	     (not (equal buffer nntp-server-buffer)))
+	(save-excursion
+	  (set-buffer nntp-server-buffer)
+	  (copy-to-buffer buffer (point-min) (point-max))
+	  (nntp-find-group-and-number))
+      (nntp-find-group-and-number))))
 
 (deffoo nntp-request-head (article &optional group server)
   (nntp-possibly-change-group group server)
-  (when (nntp-send-command-and-decode
+  (when (nntp-send-command
 	 "\r?\n\\.\r?\n" "HEAD"
 	 (if (numberp article) (int-to-string article) article))
-    (nntp-find-group-and-number)))
+    (prog1
+	(nntp-find-group-and-number)
+      (nntp-decode-text))))
 
 (deffoo nntp-request-body (article &optional group server)
   (nntp-possibly-change-group group server)
@@ -1046,8 +1055,9 @@ This function is supposed to be called from `nntp-server-opened-hook'."
   (save-excursion
     (set-buffer buffer)
     (erase-buffer)
-    (let ((proc (start-process
-		 "nntpd" buffer "telnet" "-8"))
+    (let ((proc (apply
+		 'start-process
+		 "nntpd" buffer nntp-telnet-command nntp-telnet-switches))
 	  (case-fold-search t))
       (when (memq (process-status proc) '(open run))
 	(process-send-string proc "set escape \^X\n")

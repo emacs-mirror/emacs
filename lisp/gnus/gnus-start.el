@@ -79,7 +79,7 @@ saved will be used."
   :group 'gnus-dribble-file
   :type '(choice directory (const nil)))
 
-(defcustom gnus-check-new-newsgroups t
+(defcustom gnus-check-new-newsgroups 'ask-server
   "*Non-nil means that Gnus will run gnus-find-new-newsgroups at startup.
 This normally finds new newsgroups by comparing the active groups the
 servers have already reported with those Gnus already knows, either alive
@@ -123,7 +123,7 @@ check for bogus newsgroups with \\<gnus-group-mode-map>\\[gnus-group-check-bogus
   :group 'gnus-start-server
   :type 'boolean)
 
-(defcustom gnus-read-active-file t
+(defcustom gnus-read-active-file 'some
   "*Non-nil means that Gnus will read the entire active file at startup.
 If this variable is nil, Gnus will only know about the groups in your
 `.newsrc' file.
@@ -643,8 +643,8 @@ prompt the user for the name of an NNTP server to use."
     (gnus-splash)
     (gnus-clear-system)
     (nnheader-init-server-buffer)
-    (gnus-read-init-file)
     (setq gnus-slave slave)
+    (gnus-read-init-file)
 
     (when (and (string-match "XEmacs" (emacs-version))
 	       gnus-simple-splash)
@@ -691,7 +691,7 @@ prompt the user for the name of an NNTP server to use."
   "Unload all Gnus features."
   (interactive)
   (unless (boundp 'load-history)
-    (error "Sorry, `gnus-unload' is not implemented in this Emacs version."))
+    (error "Sorry, `gnus-unload' is not implemented in this Emacs version"))
   (let ((history load-history)
 	feature)
     (while history
@@ -762,6 +762,7 @@ prompt the user for the name of an NNTP server to use."
 	  ;; Set the file modes to reflect the .newsrc file modes.
 	  (save-buffer)
 	  (when (and (file-exists-p gnus-current-startup-file)
+		     (file-exists-p dribble-file)
 		     (setq modes (file-modes gnus-current-startup-file)))
 	    (set-file-modes dribble-file modes))
 	  ;; Possibly eval the file later.
@@ -839,7 +840,7 @@ If LEVEL is non-nil, the news will be set up at level LEVEL."
     ;; done in `gnus-get-unread-articles'.
     (and gnus-read-active-file
 	 (not level)
-	 (gnus-read-active-file))
+	 (gnus-read-active-file nil dont-connect))
 
     (unless gnus-active-hashtb
       (setq gnus-active-hashtb (gnus-make-hashtable 4096)))
@@ -861,7 +862,8 @@ If LEVEL is non-nil, the news will be set up at level LEVEL."
 
     ;; See whether we need to read the description file.
     (when (and (boundp 'gnus-group-line-format)
-	       (string-match "%[-,0-9]*D" gnus-group-line-format)
+	       (let ((case-fold-search nil))
+		 (string-match "%[-,0-9]*D" gnus-group-line-format))
 	       (not gnus-description-hashtb)
 	       (not dont-connect)
 	       gnus-read-active-file)
@@ -895,8 +897,8 @@ If LEVEL is non-nil, the news will be set up at level LEVEL."
   "Search for new newsgroups and add them.
 Each new newsgroup will be treated with `gnus-subscribe-newsgroup-method.'
 The `-n' option line from .newsrc is respected.
-If ARG (the prefix), use the `ask-server' method to query
-the server for new groups."
+If ARG (the prefix), use the `ask-server' method to query the server
+for new groups."
   (interactive "P")
   (let ((check (if (or (and arg (not (listp gnus-check-new-newsgroups)))
 		       (null gnus-read-active-file)
@@ -1050,7 +1052,8 @@ the server for new groups."
       nil
     (gnus-message 6 "First time user; subscribing you to default groups")
     (unless (gnus-read-active-file-p)
-      (gnus-read-active-file))
+      (let ((gnus-read-active-file t))
+	(gnus-read-active-file)))
     (setq gnus-newsrc-last-checked-date (current-time-string))
     (let ((groups gnus-default-subscribed-newsgroups)
 	  group)
@@ -1209,7 +1212,8 @@ the server for new groups."
 	   (format
 	    "(gnus-group-set-info '%S)" info)))))
       (when gnus-group-change-level-function
-	(funcall gnus-group-change-level-function group level oldlevel)))))
+	(funcall gnus-group-change-level-function
+		 group level oldlevel previous)))))
 
 (defun gnus-kill-newsgroup (newsgroup)
   "Obsolete function.  Kills a newsgroup."
@@ -1282,12 +1286,11 @@ newsgroup."
     "Alter the ACTIVE info for GROUP to reflect the articles in the cache."
     (when gnus-cache-active-hashtb
       (let ((cache-active (gnus-gethash group gnus-cache-active-hashtb)))
-	(and cache-active
-	     (< (car cache-active) (car active))
-	     (setcar active (car cache-active)))
-	(and cache-active
-	     (> (cdr cache-active) (cdr active))
-	     (setcdr active (cdr cache-active)))))))
+	(when cache-active
+	  (when (< (car cache-active) (car active))
+	    (setcar active (car cache-active)))
+	  (when (> (cdr cache-active) (cdr active))
+	    (setcdr active (cdr cache-active))))))))
 
 (defun gnus-activate-group (group &optional scan dont-check method)
   ;; Check whether a group has been activated or not.
@@ -1307,9 +1310,18 @@ newsgroup."
 	     (inline (gnus-request-group group dont-check method))
 	   (error nil)
 	   (quit nil))
-	 (gnus-set-active group (setq active (gnus-parse-active)))
-	 ;; Return the new active info.
-	 active)))
+	 (setq active (gnus-parse-active))
+	 ;; If there are no articles in the group, the GROUP
+	 ;; command may have responded with the `(0 . 0)'.  We
+	 ;; ignore this if we already have an active entry
+	 ;; for the group.
+	 (if (and (zerop (car active))
+		  (zerop (cdr active))
+		  (gnus-active group))
+	     (gnus-active group)
+	   (gnus-set-active group active)
+	   ;; Return the new active info.
+	   active))))
 
 (defun gnus-get-unread-articles-in-group (info active &optional update)
   (when active
@@ -1552,11 +1564,12 @@ newsgroup."
   (gnus-dribble-touch))
 
 ;; Get the active file(s) from the backend(s).
-(defun gnus-read-active-file (&optional force)
+(defun gnus-read-active-file (&optional force not-native)
   (gnus-group-set-mode-line)
   (let ((methods
 	 (append
-	  (if (gnus-check-server gnus-select-method)
+	  (if (and (not not-native)
+		   (gnus-check-server gnus-select-method))
 	      ;; The native server is available.
 	      (cons gnus-select-method gnus-secondary-select-methods)
 	    ;; The native server is down, so we just do the
@@ -1616,7 +1629,7 @@ newsgroup."
 	     (t
 	      (if (not (gnus-request-list method))
 		  (unless (equal method gnus-message-archive-method)
-		    (gnus-error 1 "Cannot read active file from %s server."
+		    (gnus-error 1 "Cannot read active file from %s server"
 				(car method)))
 		(gnus-message 5 mesg)
 		(gnus-active-to-gnus-format method gnus-active-hashtb)
@@ -1647,7 +1660,7 @@ newsgroup."
 				(gnus-make-hashtable
 				 (count-lines (point-min) (point-max)))
 			      (gnus-make-hashtable 4096)))))))
-    ;; Delete unnecessary lines, cleaned up dmoore@ucsd.edu 31.10.1996
+    ;; Delete unnecessary lines.
     (goto-char (point-min))
     (cond ((gnus-ignored-newsgroups-has-to-p)
 	   (delete-matching-lines gnus-ignored-newsgroups))
@@ -1659,21 +1672,20 @@ newsgroup."
 
     ;; Make the group names readable as a lisp expression even if they
     ;; contain special characters.
-    ;; Fix by Luc Van Eycken <Luc.VanEycken@esat.kuleuven.ac.be>.
     (goto-char (point-max))
     (while (re-search-backward "[][';?()#]" nil t)
       (insert ?\\))
 
     ;; If these are groups from a foreign select method, we insert the
     ;; group prefix in front of the group names.
-    (and method (not (gnus-server-equal
-		      (gnus-server-get-method nil method)
-		      (gnus-server-get-method nil gnus-select-method)))
-	 (let ((prefix (gnus-group-prefixed-name "" method)))
-	   (goto-char (point-min))
-	   (while (and (not (eobp))
-		       (progn (insert prefix)
-			      (zerop (forward-line 1)))))))
+    (when (not (gnus-server-equal
+		(gnus-server-get-method nil method)
+		(gnus-server-get-method nil gnus-select-method)))
+      (let ((prefix (gnus-group-prefixed-name "" method)))
+	(goto-char (point-min))
+	(while (and (not (eobp))
+		    (progn (insert prefix)
+			   (zerop (forward-line 1)))))))
     ;; Store the active file in a hash table.
     (goto-char (point-min))
     (let (group max min)
@@ -2199,7 +2211,8 @@ If FORCE is non-nil, the .newsrc file is read."
 
 (defun gnus-gnus-to-quick-newsrc-format ()
   "Insert Gnus variables such as gnus-newsrc-alist in lisp format."
-  (let ((print-quoted t))
+  (let ((print-quoted t)
+	(print-escape-newlines t))
     (insert ";; -*- emacs-lisp -*-\n")
     (insert ";; Gnus startup file.\n")
     (insert

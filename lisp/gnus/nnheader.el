@@ -683,9 +683,7 @@ without formatting."
 	 (concat dir group "/")
        ;; If not, we translate dots into slashes.
        (concat dir
-	       ;; 1997/8/10 by MORIOKA Tomohiko
-	       ;;	encode file name for Emacs 20.
-	       (encode-coding-string
+	       (gnus-encode-coding-string
 		(nnheader-replace-chars-in-string group ?. ?/)
 		nnheader-pathname-coding-system)
 	       "/")))

@@ -34,11 +34,16 @@
 
 (defvar gnus-mouse-2 [mouse-2])
 (defvar gnus-down-mouse-2 [down-mouse-2])
+(defvar gnus-mode-line-modified
+  (if (or gnus-xemacs
+	  (< emacs-major-version 20))
+      '("--**-" . "-----")
+    '("**" "--")))
 
 (eval-and-compile
   (autoload 'gnus-xmas-define "gnus-xmas")
   (autoload 'gnus-xmas-redefine "gnus-xmas")
-  (autoload 'appt-select-lowest-window "appt.el"))
+  (autoload 'appt-select-lowest-window "appt"))
 
 (or (fboundp 'mail-file-babyl-p)
     (fset 'mail-file-babyl-p 'rmail-file-p))
@@ -70,18 +75,15 @@
 	   (truncate-string valstr (, max-width))
 	 valstr))))
 
+(defun gnus-encode-coding-string (string system)
+  string)
+
 (eval-and-compile
   (if (string-match "XEmacs\\|Lucid" emacs-version)
       nil
 
     (defvar gnus-mouse-face-prop 'mouse-face
-      "Property used for highlighting mouse regions.")
-
-    (defvar gnus-article-x-face-command
-      "{ echo '/* Width=48, Height=48 */'; uncompface; } | icontopbm | xv -quit -"
-      "String or function to be executed to display an X-Face header.
-If it is a string, the command will be executed in a sub-shell
-asynchronously.	 The compressed face will be piped to this command."))
+      "Property used for highlighting mouse regions."))
 
   (cond
    ((string-match "XEmacs\\|Lucid" emacs-version)
@@ -171,6 +173,7 @@ asynchronously.	 The compressed face will be piped to this command."))
     (fset 'gnus-cite-add-face 'gnus-mule-cite-add-face)
     (fset 'gnus-max-width-function 'gnus-mule-max-width-function)
     (fset 'gnus-summary-set-display-table 'ignore)
+    (fset 'gnus-encode-coding-string 'encode-coding-string)
 
     (when (boundp 'gnus-check-before-posting)
       (setq gnus-check-before-posting
@@ -202,6 +205,15 @@ asynchronously.	 The compressed face will be piped to this command."))
        transient-mark-mode
        (boundp 'mark-active)
        mark-active))
+
+(defun gnus-add-minor-mode (mode name map)
+  (if (fboundp 'add-minor-mode)
+      (add-minor-mode mode name map)
+    (unless (assq mode minor-mode-alist)
+      (push `(,mode ,name) minor-mode-alist))
+    (unless (assq mode minor-mode-map-alist)
+      (push (cons mode map)
+	    minor-mode-map-alist))))
 
 (provide 'gnus-ems)
 

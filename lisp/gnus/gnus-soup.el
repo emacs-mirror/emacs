@@ -358,7 +358,7 @@ If NOT-ALL, don't pack ticked articles."
 	  (call-process shell-file-name nil nil nil shell-command-switch
 			(concat "cd " dir " ; rm " files))
 	  (gnus-message 4 "Packing...done" packer))
-      (error "Couldn't pack packet."))))
+      (error "Couldn't pack packet"))))
 
 (defun gnus-soup-parse-areas (file)
   "Parse soup area file FILE.
@@ -523,7 +523,7 @@ Return whether the unpacking was successful."
 	    (goto-char (point-min))
 	    (while (not (eobp))
 	      (unless (looking-at "#! *rnews +\\([0-9]+\\)")
-		(error "Bad header."))
+		(error "Bad header"))
 	      (forward-line 1)
 	      (setq beg (point)
 		    end (+ (point) (string-to-int

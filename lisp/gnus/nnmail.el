@@ -113,7 +113,9 @@ If nil, the first match found will be used."
 
 ;; Added by gord@enci.ucalgary.ca (Gordon Matzigkeit).
 (defcustom nnmail-keep-last-article nil
-  "If non-nil, nnmail will never delete the last expired article in a directory.
+  "If non-nil, nnmail will never delete/move a group's last article.
+It can be marked expirable, so it will be deleted when it is no longer last.
+
 You may need to set this variable if other programs are putting
 new mail into folder numbers that Gnus has marked as expired."
   :group 'nnmail-procmail
@@ -396,7 +398,9 @@ Example:
   '((any . "from\\|to\\|cc\\|sender\\|apparently-to\\|resent-from\\|resent-to\\|resent-cc")
     (mail . "mailer-daemon\\|postmaster\\|uucp")
     (to . "to\\|cc\\|apparently-to\\|resent-to\\|resent-cc")
-    (from . "from\\|sender\\|resent-from"))
+    (from . "from\\|sender\\|resent-from")
+    (nato . "to\\|cc\\|resent-to\\|resent-cc")
+    (naany . "from\\|to\\|cc\\|sender\\|resent-from\\|resent-to\\|resent-cc"))
   "Alist of abbreviations allowed in `nnmail-split-fancy'."
   :group 'nnmail-split
   :type '(repeat (cons :format "%v" symbol regexp)))
@@ -505,9 +509,7 @@ parameter.  It should return nil, `warn' or `delete'."
 	 (concat dir group "/")
        ;; If not, we translate dots into slashes.
        (concat dir
-	       ;; 1997/8/10 by MORIOKA Tomohiko
-	       ;;	encode file name for Emacs 20.
-	       (encode-coding-string
+	       (gnus-encode-coding-string
 		(nnheader-replace-chars-in-string group ?. ?/)
 		nnmail-pathname-coding-system)
 	       "/")))
@@ -559,18 +561,17 @@ parameter.  It should return nil, `warn' or `delete'."
 (defun nnmail-move-inbox (inbox)
   "Move INBOX to `nnmail-crash-box'."
   (if (not (file-writable-p nnmail-crash-box))
-      (gnus-error 1 "Can't write to crash box %s.  Not moving mail."
+      (gnus-error 1 "Can't write to crash box %s.  Not moving mail"
 		  nnmail-crash-box)
     ;; If the crash box exists and is empty, we delete it.
     (when (and (file-exists-p nnmail-crash-box)
 	       (zerop (nnheader-file-size (file-truename nnmail-crash-box))))
       (delete-file nnmail-crash-box))
-    (let ((inbox (file-truename (expand-file-name inbox)))
-	  (tofile (file-truename (expand-file-name nnmail-crash-box)))
-	  movemail popmail errors result)
-      (if (setq popmail (string-match
-			 "^po:" (file-name-nondirectory inbox)))
-	  (setq inbox (file-name-nondirectory inbox))
+    (let ((tofile (file-truename (expand-file-name nnmail-crash-box)))
+	  (popmail (string-match "^po:" inbox))
+	  movemail errors result)
+      (unless popmail
+	(setq inbox (file-truename (expand-file-name inbox)))
 	(setq movemail t)
 	;; On some systems, /usr/spool/mail/foo is a directory
 	;; and the actual inbox is /usr/spool/mail/foo/foo.
@@ -590,7 +591,7 @@ parameter.  It should return nil, `warn' or `delete'."
 		      (nnmail-read-passwd
 		       (format "Password for %s: "
 			       (substring inbox (+ popmail 3))))))
-	      (message "Getting mail from post office ..."))
+	      (message "Getting mail from the post office..."))
 	  (when (or (and (file-exists-p tofile)
 			 (/= 0 (nnheader-file-size tofile)))
 		    (and (file-exists-p inbox)
@@ -831,7 +832,7 @@ is a spool.  If not using procmail, return GROUP."
 			   (= (following-char) ?\n)))
 		     (save-excursion
 		       (forward-line 1)
-		       (while (looking-at ">From ")
+		       (while (looking-at ">From \\|From ")
 			 (forward-line 1))
 		       (looking-at "[^ \n\t:]+[ \n\t]*:")))
 	    (setq found 'yes)))))
@@ -860,7 +861,7 @@ is a spool.  If not using procmail, return GROUP."
 			   (= (following-char) ?\n)))
 		     (save-excursion
 		       (forward-line 1)
-		       (while (looking-at ">From ")
+		       (while (looking-at ">From \\|From ")
 			 (forward-line 1))
 		       (looking-at "[^ \n\t:]+[ \n\t]*:")))
 	    (setq found 'yes)))))
@@ -1069,6 +1070,9 @@ FUNC will be called with the group name to determine the article number."
 		 (fboundp nnmail-split-methods))
 	    (let ((split
 		   (condition-case nil
+		       ;; `nnmail-split-methods' is a function, so we
+		       ;; just call this function here and use the
+		       ;; result.
 		       (or (funcall nnmail-split-methods)
 			   '("bogus"))
 		     (error
@@ -1076,9 +1080,13 @@ FUNC will be called with the group name to determine the article number."
 		       "Error in `nnmail-split-methods'; using `bogus' mail group")
 		      (sit-for 1)
 		      '("bogus")))))
-	      (unless (equal split '(junk))
-		;; `nnmail-split-methods' is a function, so we just call
-		;; this function here and use the result.
+	      ;; The article may be "cross-posted" to `junk'.  What
+	      ;; to do?  Just remove the `junk' spec.  Don't really
+	      ;; see anything else to do...
+	      (let (elem)
+		(while (setq elem (car (memq 'junk split)))
+		  (setq split (delq elem split))))
+	      (when split
 		(setq group-art
 		      (mapcar
 		       (lambda (group) (cons group (funcall func group)))
@@ -1109,7 +1117,13 @@ FUNC will be called with the group name to determine the article number."
 	;; See whether the split methods returned `junk'.
 	(if (equal group-art '(junk))
 	    nil
-	  (nreverse (delq 'junk group-art)))))))
+	  ;; The article may be "cross-posted" to `junk'.  What
+	  ;; to do?  Just remove the `junk' spec.  Don't really
+	  ;; see anything else to do...
+	  (let (elem)
+	    (while (setq elem (car (memq 'junk group-art)))
+	      (setq group-art (delq elem group-art)))
+	    (nreverse group-art)))))))
 
 (defun nnmail-insert-lines ()
   "Insert how many lines there are in the body of the mail.
@@ -1139,10 +1153,8 @@ Return the number of characters in the body."
 		       (progn (forward-line 1) (point))))
       (insert (format "Xref: %s" (system-name)))
       (while group-alist
-	;; 1997/8/10 by MORIOKA Tomohiko
-	;;	encode file name for Emacs 20.
 	(insert (format " %s:%d"
-			(encode-coding-string (caar group-alist)
+			(gnus-encode-coding-string (caar group-alist)
 					      nnmail-pathname-coding-system)
 			(cdar group-alist)))
 	(setq group-alist (cdr group-alist)))

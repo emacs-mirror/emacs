@@ -154,7 +154,9 @@
   (nnkiboze-possibly-change-group group)
   (when force
      (let ((files (list (nnkiboze-nov-file-name)
-			(concat nnkiboze-directory group ".newsrc")
+			(concat nnkiboze-directory
+                                (nnheader-translate-file-chars
+                                 (concat group ".newsrc")))
 			(nnkiboze-score-file group))))
        (while files
 	 (and (file-exists-p (car files))
@@ -205,8 +207,12 @@ Finds out what articles are to be part of the nnkiboze groups."
 
 (defun nnkiboze-generate-group (group)
   (let* ((info (nth 2 (gnus-gethash group gnus-newsrc-hashtb)))
-	 (newsrc-file (concat nnkiboze-directory group ".newsrc"))
-	 (nov-file (concat nnkiboze-directory group ".nov"))
+	 (newsrc-file (concat nnkiboze-directory 
+                              (nnheader-translate-file-chars
+                               (concat group ".newsrc"))))
+	 (nov-file (concat nnkiboze-directory
+                           (nnheader-translate-file-chars
+                            (concat group ".nov"))))
 	 method nnkiboze-newsrc gname newsrc active
 	 ginfo lowest glevel orig-info nov-buffer
 	 ;; Bind various things to nil to make group entry faster.

@@ -1388,7 +1388,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
 
 	(if (not (looking-at gnus-uu-begin-string))
 	    (setq state (list 'middle))
-	  ;; This is the beginning of an uuencoded article.
+	  ;; This is the beginning of a uuencoded article.
 	  ;; We replace certain characters that could make things messy.
 	  (setq gnus-uu-file-name
 		(let ((nnheader-file-name-translation-alist
@@ -1779,7 +1779,7 @@ post the entire file."
 This may not be smart, as no other decoder I have seen are able to
 follow threads when collecting uuencoded articles.  (Well, I have seen
 one package that does that - gnus-uu, but somehow, I don't think that
-counts...) Default is nil."
+counts...)  The default is nil."
   :group 'gnus-extract-post
   :type 'boolean)
 
@@ -1878,28 +1878,7 @@ If no file has been included, the user will be asked for a file."
 	(setq file-name gnus-uu-post-inserted-file-name)
       (setq file-name (gnus-uu-post-insert-binary)))
 
-    (if gnus-uu-post-threaded
-	(let ((message-required-news-headers
-	       (if (memq 'Message-ID message-required-news-headers)
-		   message-required-news-headers
-		 (cons 'Message-ID message-required-news-headers)))
-	      gnus-inews-article-hook)
-
-	  (setq gnus-inews-article-hook (if (listp gnus-inews-article-hook)
-					    gnus-inews-article-hook
-					  (list gnus-inews-article-hook)))
-	  (push
-	   '(lambda ()
-	      (save-excursion
-		(goto-char (point-min))
-		(if (re-search-forward "^Message-ID: \\(.*\\)$" nil t)
-		    (setq gnus-uu-post-message-id
-			  (buffer-substring
-			   (match-beginning 1) (match-end 1)))
-		  (setq gnus-uu-post-message-id nil))))
-	   gnus-inews-article-hook)
-	  (gnus-uu-post-encoded file-name t))
-      (gnus-uu-post-encoded file-name nil)))
+    (gnus-uu-post-encoded file-name gnus-uu-post-threaded))
   (setq gnus-uu-post-inserted-file-name nil)
   (when gnus-uu-winconf-post-news
     (set-window-configuration gnus-uu-winconf-post-news)))
@@ -1966,12 +1945,12 @@ If no file has been included, the user will be asked for a file."
       (goto-char (point-min))
       (setq length (count-lines 1 (point-max)))
       (setq parts (/ length gnus-uu-post-length))
-      (when (not (< (% length gnus-uu-post-length) 4))
-	(setq parts (1+ parts))))
+      (unless (< (% length gnus-uu-post-length) 4)
+	(incf parts)))
 
     (when gnus-uu-post-separate-description
       (forward-line -1))
-    (kill-region (point) (point-max))
+    (delete-region (point) (point-max))
 
     (goto-char (point-min))
     (re-search-forward
@@ -1980,12 +1959,13 @@ If no file has been included, the user will be asked for a file."
     (setq header (buffer-substring 1 (point)))
 
     (goto-char (point-min))
-    (if (not gnus-uu-post-separate-description)
-	()
-      (when (and (not threaded) (re-search-forward "^Subject: " nil t))
+    (when gnus-uu-post-separate-description
+      (when (re-search-forward "^Subject: " nil t)
 	(end-of-line)
 	(insert (format " (0/%d)" parts)))
-      (message-send))
+      (save-excursion
+	(message-send))
+      (setq gnus-uu-post-message-id (message-fetch-field "message-id")))
 
     (save-excursion
       (setq i 1)
@@ -1995,7 +1975,7 @@ If no file has been included, the user will be asked for a file."
 	(erase-buffer)
 	(insert header)
 	(when (and threaded gnus-uu-post-message-id)
-	  (insert (format "References: %s\n" gnus-uu-post-message-id)))
+	  (insert "References: " gnus-uu-post-message-id "\n"))
 	(insert separator)
 	(setq whole-len
 	      (- 62 (length (format top-string "" file-name i parts ""))))
@@ -2010,15 +1990,9 @@ If no file has been included, the user will be asked for a file."
 		  (if (= 0 (% whole-len 2)) (1- minlen) minlen) ?-)))
 
 	(goto-char (point-min))
-	(if (not (re-search-forward "^Subject: " nil t))
-	    ()
-	  (if (not threaded)
-	      (progn
-		(end-of-line)
-		(insert (format " (%d/%d)" i parts)))
-	    (when (or (and (= i 2) gnus-uu-post-separate-description)
-		      (and (= i 1) (not gnus-uu-post-separate-description)))
-	      (replace-match "Subject: Re: "))))
+	(when (re-search-forward "^Subject: " nil t)
+	  (end-of-line)
+	  (insert (format " (%d/%d)" i parts)))
 
 	(goto-char (point-max))
 	(save-excursion
@@ -2031,10 +2005,9 @@ If no file has been included, the user will be asked for a file."
 	    (forward-line -4))
 	  (setq end (point)))
 	(insert-buffer-substring uubuf beg end)
-	(insert beg-line)
-	(insert "\n")
+	(insert beg-line "\n")
 	(setq beg end)
-	(setq i (1+ i))
+	(incf i)
 	(goto-char (point-min))
 	(re-search-forward
 	 (concat "^" (regexp-quote mail-header-separator) "$") nil t)
@@ -2048,12 +2021,14 @@ If no file has been included, the user will be asked for a file."
 	(insert beg-line)
 	(insert "\n")
 	(let (message-sent-message-via)
-	  (message-send))))
+	  (save-excursion
+	    (message-send))
+	  (setq gnus-uu-post-message-id
+		(concat (message-fetch-field "references") " "
+			(message-fetch-field "message-id"))))))
 
-    (when (setq buf (get-buffer send-buffer-name))
-      (kill-buffer buf))
-    (when (setq buf (get-buffer encoded-buffer-name))
-      (kill-buffer buf))
+    (gnus-kill-buffer send-buffer-name)
+    (gnus-kill-buffer encoded-buffer-name)
 
     (when (not gnus-uu-post-separate-description)
       (set-buffer-modified-p nil)

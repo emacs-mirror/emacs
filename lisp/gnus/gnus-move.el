@@ -61,15 +61,18 @@ Update the .newsrc.eld file to reflect the change of nntp server."
   "Move group INFO from FROM-SERVER to TO-SERVER."
   (let ((group (gnus-info-group info))
 	to-active hashtb type mark marks
-	to-article to-reads to-marks article)
+	to-article to-reads to-marks article
+	act-articles)
     (gnus-message 7 "Translating %s..." group)
     (when (gnus-request-group group nil to-server)
       (setq to-active (gnus-parse-active)
-	    hashtb (gnus-make-hashtable 1024))
+	    hashtb (gnus-make-hashtable 1024)
+	    act-articles (gnus-uncompress-range to-active))
       ;; Fetch the headers from the `to-server'.
       (when (and to-active
+		 act-articles
 		 (setq type (gnus-retrieve-headers
-			     (gnus-uncompress-range to-active)
+			     act-articles
 			     group to-server)))
 	;; Convert HEAD headers.  I don't care.
 	(when (eq type 'headers)
@@ -127,7 +130,7 @@ Update the .newsrc.eld file to reflect the change of nntp server."
 	  ;; into the Gnus info format.
 	  (setq to-reads
 		(gnus-range-add
-		 (gnus-compress-sequence (sort to-reads '<) t)
+		 (gnus-compress-sequence (and to-reads (sort to-reads '<)) t)
 		 (cons 1 (1- (car to-active)))))
 	  (gnus-info-set-read info to-reads)
 	  ;; Do the marks.  I'm sure y'all understand what's
@@ -144,7 +147,8 @@ Update the .newsrc.eld file to reflect the change of nntp server."
 			(cons article (cdr a)))))
 	    (setq a lists)
 	    (while a
-	      (setcdr (car a) (gnus-compress-sequence (sort (cdar a) '<)))
+	      (setcdr (car a) (gnus-compress-sequence
+			       (and (cdar a) (sort (cdar a) '<))))
 	      (pop a))
 	    (gnus-info-set-marks info lists t)))))
     (gnus-message 7 "Translating %s...done" group)))

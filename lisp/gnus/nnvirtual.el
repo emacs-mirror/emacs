@@ -374,22 +374,29 @@ to virtual article number.")
 
   (insert "Xref: " system-name " " group ":")
   (princ article (current-buffer))
+  (insert " ")
 
   ;; If there were existing xref lines, clean them up to have the correct
   ;; component server prefix.
-  (let ((xref-end (save-excursion
-		    (search-forward "\t" (gnus-point-at-eol) 'move)
-		    (point)))
-	(len (length prefix)))
-    (unless (= (point) xref-end)
+  (save-restriction
+    (narrow-to-region (point)
+		      (or (search-forward "\t" (gnus-point-at-eol) t)
+			  (gnus-point-at-eol)))
+    (goto-char (point-min))
+    (when (re-search-forward "Xref: *[^\n:0-9 ]+ *" nil t)
+      (replace-match "" t t))
+    (goto-char (point-min))
+    (when (re-search-forward
+	   (concat (gnus-group-real-name group) ":[0-9]+")
+	   nil t)
+      (replace-match "" t t))
+    (unless (= (point) (point-max))
       (insert " ")
       (when (not (string= "" prefix))
-	(while (re-search-forward "[^ ]+:[0-9]+" xref-end t)
+	(while (re-search-forward "[^ ]+:[0-9]+" nil t)
 	  (save-excursion
 	    (goto-char (match-beginning 0))
-	    (insert prefix))
-	  (setq xref-end (+ xref-end len)))
-	)))
+	    (insert prefix))))))
 
   ;; Ensure a trailing \t.
   (end-of-line)

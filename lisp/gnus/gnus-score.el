@@ -1,4 +1,4 @@
-;;; gnus-score.el --- scoring code for Gnus
+1;;; gnus-score.el --- scoring code for Gnus
 ;; Copyright (C) 1995,96,97 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <amanda@iesd.auc.dk>
@@ -31,6 +31,7 @@
 (require 'gnus)
 (require 'gnus-sum)
 (require 'gnus-range)
+(require 'message)
 
 (defcustom gnus-global-score-files nil
   "List of global score files and directories.
@@ -528,7 +529,8 @@ used as score."
 
 	  (gnus-score-kill-help-buffer)
 	  (unless (setq entry (assq (downcase hchar) char-to-header))
-	    (if mimic (error "%c %c" prefix hchar) (error "")))
+	    (if mimic (error "%c %c" prefix hchar)
+	      (error "Illegal header type")))
 
 	  (when (/= (downcase hchar) hchar)
 	    ;; This was a majuscule, so we end reading and set the defaults.
@@ -536,36 +538,32 @@ used as score."
 	    (setq tchar (or tchar ?s)
 		  pchar (or pchar ?t)))
 
-	  ;; We continue reading - the type.
-	  (while (not tchar)
-	    (if mimic
-		(progn
-		  (sit-for 1) (message "%c %c-" prefix hchar))
-	      (message "%s header '%s' with match type (%s?): "
-		       (if increase "Increase" "Lower")
-		       (nth 1 entry)
-		       (mapconcat (lambda (s)
-				    (if (eq (nth 4 entry)
-					    (nth 3 s))
-					(char-to-string (car s))
-				      ""))
-				  char-to-type "")))
-	    (setq tchar (read-char))
-	    (when (or (= tchar ??) (= tchar ?\C-h))
-	      (setq tchar nil)
-	      (gnus-score-insert-help
-	       "Match type"
-	       (delq nil
-		     (mapcar (lambda (s)
-			       (if (eq (nth 4 entry)
-				       (nth 3 s))
-				   s nil))
-			     char-to-type))
-	       2)))
+	  (let ((legal-types
+		 (delq nil
+		       (mapcar (lambda (s)
+				 (if (eq (nth 4 entry)
+					 (nth 3 s))
+				     s nil))
+			       char-to-type))))
+	    ;; We continue reading - the type.
+	    (while (not tchar)
+	      (if mimic
+		  (progn
+		    (sit-for 1) (message "%c %c-" prefix hchar))
+		(message "%s header '%s' with match type (%s?): "
+			 (if increase "Increase" "Lower")
+			 (nth 1 entry)
+			 (mapconcat (lambda (s) (char-to-string (car s)))
+				    legal-types "")))
+	      (setq tchar (read-char))
+	      (when (or (= tchar ??) (= tchar ?\C-h))
+		(setq tchar nil)
+		(gnus-score-insert-help "Match type" legal-types 2)))
 
-	  (gnus-score-kill-help-buffer)
-	  (unless (setq type (nth 1 (assq (downcase tchar) char-to-type)))
-	    (if mimic (error "%c %c" prefix hchar) (error "")))
+	    (gnus-score-kill-help-buffer)
+	    (unless (setq type (nth 1 (assq (downcase tchar) legal-types)))
+	      (if mimic (error "%c %c" prefix hchar)
+		(error "Illegal match type"))))
 
 	  (when (/= (downcase tchar) tchar)
 	    ;; It was a majuscule, so we end reading and use the default.
@@ -598,7 +596,7 @@ used as score."
 	      (error "You rang?"))
 	    (if mimic
 		(error "%c %c %c %c" prefix hchar tchar pchar)
-	      (error ""))))
+	      (error "Illegal match duration"))))
       ;; Always kill the score help buffer.
       (gnus-score-kill-help-buffer))
 
@@ -1005,6 +1003,7 @@ SCORE is the score to add."
     (gnus-make-directory (file-name-directory file))
     (setq gnus-score-edit-buffer (find-file-noselect file))
     (gnus-configure-windows 'edit-score)
+    (select-window (get-buffer-window gnus-score-edit-buffer))
     (gnus-score-mode)
     (setq gnus-score-edit-exit-function 'gnus-score-edit-done)
     (make-local-variable 'gnus-prev-winconf)
@@ -1086,11 +1085,11 @@ SCORE is the score to add."
 	  (decay (car (gnus-score-get 'decay alist)))
 	  (eval (car (gnus-score-get 'eval alist))))
       ;; Perform possible decays.
-      (when (and gnus-decay-scores
-		 (gnus-decay-scores
-		  alist (or decay (gnus-time-to-day (current-time)))))
-	(gnus-score-set 'touched '(t) alist)
-	(gnus-score-set 'decay (list (gnus-time-to-day (current-time)))))
+      (when gnus-decay-scores
+	(when (or (not decay)
+		  (gnus-decay-scores alist decay))
+	  (gnus-score-set 'touched '(t) alist)
+	  (gnus-score-set 'decay (list (gnus-time-to-day (current-time))))))
       ;; We do not respect eval and files atoms from global score
       ;; files.
       (and files (not global)
@@ -1280,8 +1279,7 @@ SCORE is the score to add."
 	  (erase-buffer)
 	  (let (emacs-lisp-mode-hook)
 	    (if (string-match
-		 (concat (regexp-quote gnus-adaptive-file-suffix)
-			 "$")
+		 (concat (regexp-quote gnus-adaptive-file-suffix) "$")
 		 file)
 		;; This is an adaptive score file, so we do not run
 		;; it through `pp'.  These files can get huge, and
@@ -1364,6 +1362,7 @@ SCORE is the score to add."
 	  (save-excursion
 	    (set-buffer (get-buffer-create "*Headers*"))
 	    (buffer-disable-undo (current-buffer))
+	    (message-clone-locals gnus-summary-buffer)
 
 	    ;; Set the global variant of this variable.
 	    (setq gnus-current-score-file current-score-file)
@@ -2201,7 +2200,9 @@ SCORE is the score to add."
 	(gnus-add-current-to-buffer-list)
 	(while trace
 	  (insert (format "%S  ->  %s\n" (cdar trace)
-			  (file-name-nondirectory (caar trace))))
+			  (if (caar trace)
+			      (file-name-nondirectory (caar trace))
+			    "(non-file rule)")))
 	  (setq trace (cdr trace)))
 	(goto-char (point-min))
 	(gnus-configure-windows 'score-trace)))
@@ -2457,8 +2458,8 @@ GROUP using BNews sys file syntax."
 	  (if (looking-at "not.")
 	      (progn
 		(setq not-match t)
-		(setq regexp (concat "^" (buffer-substring 5 (point-max)))))
-	    (setq regexp (concat "^" (buffer-substring 1 (point-max))))
+		(setq regexp (concat "^" (buffer-substring 5 (point-max)) "$")))
+	    (setq regexp (concat "^" (buffer-substring 1 (point-max)) "$"))
 	    (setq not-match nil))
 	  ;; Finally - if this resulting regexp matches the group name,
 	  ;; we add this score file to the list of score files
@@ -2730,11 +2731,11 @@ If ADAPT, return the home adaptive file instead."
 ;;;
 
 (defun gnus-decay-score (score)
-  "Decay SCORE."
+  "Decay SCORE according to `gnus-score-decay-constant' and `gnus-score-decay-scale'."
   (floor
    (- score
-      (* (if (< score 0) 1 -1)
-	 (min score
+      (* (if (< score 0) -1 1)
+	 (min (abs score)
 	      (max gnus-score-decay-constant
 		   (* (abs score)
 		      gnus-score-decay-scale)))))))
@@ -2750,11 +2751,13 @@ If ADAPT, return the home adaptive file instead."
 	  (while (setq kill (pop entry))
 	    (when (nth 2 kill)
 	      (setq updated t)
-	      (setq score (or (car kill) gnus-score-interactive-default-score)
+	      (setq score (or (nth 1 kill)
+			      gnus-score-interactive-default-score)
 		    n times)
 	      (while (natnump (decf n))
 		(setq score (funcall gnus-decay-score-function score)))
-	      (setcar kill score))))))
+	      (setcdr kill (cons score 
+				 (cdr (cdr kill)))))))))
     ;; Return whether this score file needs to be saved.  By Je-haysuss!
     updated))
 

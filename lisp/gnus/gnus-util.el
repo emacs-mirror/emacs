@@ -255,7 +255,8 @@
 	 (date (mapcar (lambda (d) (and d (string-to-int d))) parse))
 	 (time (mapcar 'string-to-int (timezone-parse-time (aref parse 3)))))
     (encode-time (caddr time) (cadr time) (car time)
-		 (caddr date) (cadr date) (car date) (nth 4 date))))
+		 (caddr date) (cadr date) (car date)
+		 (* 60 (timezone-zone-to-minute (nth 4 date))))))
 
 (defun gnus-time-minus (t1 t2)
   "Subtract two internal times."
@@ -530,7 +531,7 @@ Timezone package is used."
   (unless gnus-xemacs
     (let* ((overlayss (overlay-lists))
 	   (buffer-read-only nil)
-	   (overlays (nconc (car overlayss) (cdr overlayss))))
+	   (overlays (delq nil (nconc (car overlayss) (cdr overlayss)))))
       (while overlays
 	(delete-overlay (pop overlays))))))
 

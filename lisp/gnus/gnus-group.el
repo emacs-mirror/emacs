@@ -84,8 +84,10 @@ with the best level."
 
 (defcustom gnus-permanently-visible-groups nil
   "*Regexp to match groups that should always be listed in the group buffer.
-This means that they will still be listed when there are no unread
-articles in the groups."
+This means that they will still be listed even when there are no
+unread articles in the groups.
+
+If nil, no groups are permanently visible."
   :group 'gnus-group-listing
   :type '(choice regexp (const nil)))
 
@@ -446,7 +448,7 @@ ticked: The number of ticked articles."
     "r" gnus-group-read-init-file
     "B" gnus-group-browse-foreign-server
     "b" gnus-group-check-bogus-groups
-    "F" gnus-find-new-newsgroups
+    "F" gnus-group-find-new-groups
     "\C-c\C-d" gnus-group-describe-group
     "\M-d" gnus-group-describe-all-groups
     "\C-c\C-a" gnus-group-apropos
@@ -485,7 +487,7 @@ ticked: The number of ticked articles."
     "m" gnus-group-mark-group
     "u" gnus-group-unmark-group
     "w" gnus-group-mark-region
-    "m" gnus-group-mark-buffer
+    "b" gnus-group-mark-buffer
     "r" gnus-group-mark-regexp
     "U" gnus-group-unmark-all-groups)
 
@@ -604,8 +606,7 @@ ticked: The number of ticked articles."
 	 (gnus-group-group-name)]
 	["Info" gnus-group-edit-group (gnus-group-group-name)]
 	["Local kill file" gnus-group-edit-local-kill (gnus-group-group-name)]
-	["Global kill file" gnus-group-edit-global-kill t])
-       ))
+	["Global kill file" gnus-group-edit-global-kill t])))
 
     (easy-menu-define
      gnus-group-group-menu gnus-group-mode-map ""
@@ -692,11 +693,10 @@ ticked: The number of ticked articles."
 	["First unread group" gnus-group-first-unread-group t]
 	["Best unread group" gnus-group-best-unread-group t])
        ["Delete bogus groups" gnus-group-check-bogus-groups t]
-       ["Find new newsgroups" gnus-find-new-newsgroups t]
+       ["Find new newsgroups" gnus-group-find-new-groups t]
        ["Transpose" gnus-group-transpose-groups
 	(gnus-group-group-name)]
-       ["Read a directory as a group..." gnus-group-enter-directory t]
-       ))
+       ["Read a directory as a group..." gnus-group-enter-directory t]))
 
     (easy-menu-define
      gnus-group-misc-menu gnus-group-mode-map ""
@@ -727,8 +727,7 @@ ticked: The number of ticked articles."
        ["Flush score cache" gnus-score-flush-cache t]
        ["Toggle topics" gnus-topic-mode t]
        ["Exit from Gnus" gnus-group-exit t]
-       ["Exit without saving" gnus-group-quit t]
-       ))
+       ["Exit without saving" gnus-group-quit t]))
 
     (run-hooks 'gnus-group-menu-hook)))
 
@@ -1218,7 +1217,9 @@ already."
 		     (not (zerop (buffer-size))))))
 	     (mode-string (eval gformat)))
 	;; Say whether the dribble buffer has been modified.
-	(setq mode-line-modified (if modified "**" "--"))
+	(setq mode-line-modified
+	      (if modified (car gnus-mode-line-modified)
+		(cdr gnus-mode-line-modified)))
 	;; If the line is too long, we chop it off.
 	(when (> (length mode-string) max-len)
 	  (setq mode-string (substring mode-string 0 (- max-len 4))))
@@ -1278,24 +1279,26 @@ If FIRST-TOO, the current line is also eligible as a target."
 	      (not (eobp))
 	      (not (setq
 		    found
-		    (and (or all
-			     (and
-			      (let ((unread
-				     (get-text-property (point) 'gnus-unread)))
-				(and (numberp unread) (> unread 0)))
-			      (setq lev (get-text-property (point)
+		    (and
+		     (get-text-property (point) 'gnus-group)
+		     (or all
+			 (and
+			  (let ((unread
+				 (get-text-property (point) 'gnus-unread)))
+			    (and (numberp unread) (> unread 0)))
+			  (setq lev (get-text-property (point)
+						       'gnus-level))
+			  (<= lev gnus-level-subscribed)))
+		     (or (not level)
+			 (and (setq lev (get-text-property (point)
 							   'gnus-level))
-			      (<= lev gnus-level-subscribed)))
-			 (or (not level)
-			     (and (setq lev (get-text-property (point)
-							       'gnus-level))
-				  (or (= lev level)
-				      (and (< lev low)
-					   (< level lev)
-					   (progn
-					     (setq low lev)
-					     (setq pos (point))
-					     nil))))))))
+			      (or (= lev level)
+				  (and (< lev low)
+				       (< level lev)
+				       (progn
+					 (setq low lev)
+					 (setq pos (point))
+					 nil))))))))
 	      (zerop (forward-line way)))))
     (if found
 	(progn (gnus-group-position-point) t)
@@ -1449,10 +1452,14 @@ Take into consideration N (the prefix) and the list of marked groups."
 FUNCTION will be called with the group name as the paremeter
 and with point over the group in question."
   (let ((groups (gnus-group-process-prefix arg))
+	(window (selected-window))
 	group)
     (while (setq group (pop groups))
+      (select-window window)
       (gnus-group-remove-mark group)
-      (funcall function group))))
+      (save-selected-window
+	(save-excursion
+	  (funcall function group))))))
 
 (put 'gnus-group-iterate 'lisp-indent-function 1)
 
@@ -1961,7 +1968,7 @@ and NEW-NAME will be prompted for."
    (let ((entry (assoc (completing-read "Create group: " gnus-useful-groups
 					nil t)
 		       gnus-useful-groups)))
-     (list (cadr entry) (nth 2 entry))))
+     (list (cadr entry) (caddr entry))))
   (setq method (gnus-copy-sequence method))
   (let (entry)
     (while (setq entry (memq (assq 'eval method) method))
@@ -2026,15 +2033,16 @@ If SOLID (the prefix), create a solid group."
   (let* ((group
 	  (if solid (gnus-read-group "Group name: ")
 	    (message-unique-id)))
+	 (default-type (or (car gnus-group-web-type-history)
+			   (symbol-name (caar nnweb-type-definition))))
 	 (type
-	  (completing-read
-	   "Search engine type: "
-	   (mapcar (lambda (elem) (list (symbol-name (car elem))))
-		   nnweb-type-definition)
-	   nil t (cons (or (car gnus-group-web-type-history)
-			   (symbol-name (caar nnweb-type-definition)))
-		       0)
-	   'gnus-group-web-type-history))
+	  (gnus-string-or
+	   (completing-read
+	    (format "Search engine type (default %s): " default-type)
+	    (mapcar (lambda (elem) (list (symbol-name (car elem))))
+		    nnweb-type-definition)
+	    nil t nil 'gnus-group-web-type-history)
+	   default-type))
 	 (search
 	  (read-string
 	   "Search string: "
@@ -2147,7 +2155,7 @@ score file entries for articles to include in the group."
 	 (pgroup (gnus-group-prefixed-name group method)))
     ;; Check whether it exists already.
     (when (gnus-gethash pgroup gnus-newsrc-hashtb)
-      (error "Group %s already exists." pgroup))
+      (error "Group %s already exists" pgroup))
     ;; Subscribe the new group after the group on the current line.
     (gnus-subscribe-group pgroup (gnus-group-group-name) method)
     (gnus-group-update-group pgroup)
@@ -2878,7 +2886,7 @@ re-scanning.  If ARG is non-nil and not a number, this will force
     (gnus-group-list-groups (and (numberp arg)
 				 (max (car gnus-group-list-mode) arg)))))
 
-(defun gnus-group-get-new-news-this-group (&optional n)
+(defun gnus-group-get-new-news-this-group (&optional n dont-scan)
   "Check for newly arrived news in the current group (and the N-1 next groups).
 The difference between N and the number of newsgroup checked is returned.
 If N is negative, this group and the N-1 previous groups will be checked."
@@ -2892,7 +2900,7 @@ If N is negative, this group and the N-1 previous groups will be checked."
       (gnus-group-remove-mark group)
       ;; Bypass any previous denials from the server.
       (gnus-remove-denial (gnus-find-method-for-group group))
-      (if (gnus-activate-group group 'scan)
+      (if (gnus-activate-group group (if dont-scan nil 'scan))
 	  (progn
 	    (gnus-get-unread-articles-in-group
 	     (gnus-get-info group) (gnus-active group) t)
@@ -2917,11 +2925,11 @@ to use."
   (interactive
    (list
     (gnus-group-group-name)
-    (cond (current-prefix-arg
-	   (completing-read
-	    "Faq dir: " (and (listp gnus-group-faq-directory)
-			     (mapcar (lambda (file) (list file))
-				     gnus-group-faq-directory)))))))
+    (when current-prefix-arg
+      (completing-read
+       "Faq dir: " (and (listp gnus-group-faq-directory)
+			(mapcar (lambda (file) (list file))
+				gnus-group-faq-directory))))))
   (unless group
     (error "No group name given"))
   (let ((dirs (or faq-dir gnus-group-faq-directory))
@@ -3082,7 +3090,8 @@ If FORCE, force saving whether it is necessary or not."
 (defun gnus-group-read-init-file ()
   "Read the Gnus elisp init file."
   (interactive)
-  (gnus-read-init-file))
+  (gnus-read-init-file)
+  (gnus-message 5 "Read %s" gnus-init-file))
 
 (defun gnus-group-check-bogus-groups (&optional silent)
   "Check bogus newsgroups.
@@ -3092,6 +3101,15 @@ group."
   (gnus-check-bogus-newsgroups (and (not silent) (not gnus-expert-user)))
   (gnus-group-list-groups))
 
+(defun gnus-group-find-new-groups (&optional arg)
+  "Search for new groups and add them.
+Each new group will be treated with `gnus-subscribe-newsgroup-method.'
+If ARG (the prefix), use the `ask-server' method to query
+the server for new groups."
+  (interactive "P")
+  (gnus-find-new-newsgroups arg)
+  (gnus-group-list-groups))
+  
 (defun gnus-group-edit-global-kill (&optional article group)
   "Edit the global kill file.
 If GROUP, edit that local kill file instead."

@@ -146,7 +146,8 @@ variable to \"^nnml\"."
 	(mail-header-set-number headers (cdr result))))
     (let ((number (mail-header-number headers))
 	  file dir)
-      (when (and (> number 0)		; Reffed article.
+      (when (and number
+		 (> number 0)		; Reffed article.
 		 (or force
 		     (and (or (not gnus-uncacheable-groups)
 			      (not (string-match
@@ -256,15 +257,13 @@ variable to \"^nnml\"."
 
 (defun gnus-cache-possibly-alter-active (group active)
   "Alter the ACTIVE info for GROUP to reflect the articles in the cache."
-  (when (equal group "no.norsk") (error "hie"))
   (when gnus-cache-active-hashtb
     (let ((cache-active (gnus-gethash group gnus-cache-active-hashtb)))
-      (and cache-active
-	   (< (car cache-active) (car active))
-	   (setcar active (car cache-active)))
-      (and cache-active
-	   (> (cdr cache-active) (cdr active))
-	   (setcdr active (cdr cache-active))))))
+      (when cache-active
+	(when (< (car cache-active) (car active))
+	  (setcar active (car cache-active)))
+	(when (> (cdr cache-active) (cdr active))
+	  (setcdr active (cdr cache-active)))))))
 
 (defun gnus-cache-retrieve-headers (articles group &optional fetch-old)
   "Retrieve the headers for ARTICLES in GROUP."
@@ -453,13 +452,20 @@ Returns the list of articles removed."
 
 (defun gnus-cache-articles-in-group (group)
   "Return a sorted list of cached articles in GROUP."
-  (let ((dir (file-name-directory (gnus-cache-file-name group 1))))
+  (let ((dir (file-name-directory (gnus-cache-file-name group 1)))
+	articles)
     (when (file-exists-p dir)
-      (sort (mapcar (lambda (name) (string-to-int name))
-		    (directory-files dir nil "^[0-9]+$" t))
-	    '<))))
+      (setq articles
+	    (sort (mapcar (lambda (name) (string-to-int name))
+			  (directory-files dir nil "^[0-9]+$" t))
+		  '<))
+      ;; Update the cache active file, just to synch more.
+      (when articles
+	(gnus-cache-update-active group (car articles) t)
+	(gnus-cache-update-active group (car (last articles))))
+      articles)))
 
-(defun gnus-cache-braid-nov (group cached)
+(defun gnus-cache-braid-nov (group cached &optional file)
   (let ((cache-buf (get-buffer-create " *gnus-cache*"))
 	beg end)
     (gnus-cache-save-buffers)
@@ -467,7 +473,7 @@ Returns the list of articles removed."
       (set-buffer cache-buf)
       (buffer-disable-undo (current-buffer))
       (erase-buffer)
-      (insert-file-contents (gnus-cache-file-name group ".overview"))
+      (insert-file-contents (or file (gnus-cache-file-name group ".overview")))
       (goto-char (point-min))
       (insert "\n")
       (goto-char (point-min)))
@@ -540,22 +546,21 @@ $ emacs -batch -l ~/.emacs -l gnus -f gnus-jog-cache"
     (gnus)
     ;; Go through all groups...
     (gnus-group-mark-buffer)
-    (gnus-group-universal-argument
-     nil nil
-     (lambda ()
-       (interactive)
-       (gnus-summary-read-group (gnus-group-group-name) nil t)
-       ;; ... and enter the articles into the cache.
-       (when (eq major-mode 'gnus-summary-mode)
-	 (gnus-uu-mark-buffer)
-	 (gnus-cache-enter-article)
-	 (kill-buffer (current-buffer)))))))
+    (gnus-group-iterate nil
+      (lambda (group)
+	(let (gnus-auto-select-next)
+	  (gnus-summary-read-group group nil t)
+	  ;; ... and enter the articles into the cache.
+	  (when (eq major-mode 'gnus-summary-mode)
+	    (gnus-uu-mark-buffer)
+	    (gnus-cache-enter-article)
+	    (kill-buffer (current-buffer))))))))
 
 (defun gnus-cache-read-active (&optional force)
   "Read the cache active file."
   (gnus-make-directory gnus-cache-directory)
-  (if (not (and (file-exists-p gnus-cache-active-file)
-		(or force (not gnus-cache-active-hashtb))))
+  (if (or (not (file-exists-p gnus-cache-active-file))
+	  force)
       ;; There is no active file, so we generate one.
       (gnus-cache-generate-active)
     ;; We simply read the active file.
@@ -651,7 +656,7 @@ If LOW, update the lower bound instead."
 
 (defun gnus-cache-move-cache (dir)
   "Move the cache tree to somewhere else."
-  (interactive "DMove the cache tree to: ")
+  (interactive "FMove the cache tree to: ")
   (rename-file gnus-cache-directory dir))
 
 (provide 'gnus-cache)
