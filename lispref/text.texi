@@ -3403,29 +3403,29 @@ customize this behaviour through the variable
 @code{mouse-1-click-follows-link}.
 
   To define text as a link at the Lisp level, you should bind the
-@code{mouse-2} event to a command to follow the link.  Then, to
-indicate that @key{Mouse-1} should also follow the link, here is what
-you do:
+@code{mouse-2} event to a command to follow the link.  Then, to indicate that
+@key{Mouse-1} should also follow the link, you should specify a
+@code{follow-link} condition either as a text property or as a key
+binding:
 
 @table @asis
 @item @code{follow-link} property
 If the clickable text has a non-@code{nil} @code{follow-link} text or overlay
-property, the value of that property determines what to do.
+property, that specifies the condition.
 
 @item @code{follow-link} event
-If there is a binding for the @code{follow-link} event, either on
-the clickable text or in the local keymap, the binding of that event
-determines whether the mouse click position is inside a link.
+If there is a binding for the @code{follow-link} event, either on the
+clickable text or in the local keymap, the binding is the condition.
 @end table
 
-  Regardless of where the @code{follow-link} value comes from, that
-value is used according to the following table to determine whether
-the given position is inside a link, and (if so) to compute an
-@dfn{action code} saying how @key{Mouse-1} should handle the link.
+  Regardless of how you set the @code{follow-link} condition, its
+value is used as follows to determine whether the given position is
+inside a link, and (if so) to compute an @dfn{action code} saying how
+@key{Mouse-1} should handle the link.
 
 @table @asis
 @item @code{mouse-face}
-If the value is @code{mouse-face}, a position is inside a link if
+If the condition is @code{mouse-face}, a position is inside a link if
 there is a non-@code{nil} @code{mouse-face} property at that position.
 The action code is always @code{t}.
 
@@ -3436,10 +3436,10 @@ For example, here is how Info mode handles @key{Mouse-1}:
 @end example
 
 @item a function
-If the value is a function, @var{func}, then a position @var{pos} is
-inside a link if @code{(@var{func} @var{pos})} evaluates to
-non-@code{nil}.  The value returned by @var{func} serves as the action
-code.
+If the condition is a valid function, @var{func}, then a position
+@var{pos} is inside a link if @code{(@var{func} @var{pos})} evaluates
+to non-@code{nil}.  The value returned by @var{func} serves as the
+action code.
 
 For example, here is how pcvs enables @key{Mouse-1} to follow links on
 file names only:
@@ -3451,26 +3451,23 @@ file names only:
 @end example
 
 @item anything else
-If the value is anything else, it is the action code.
+If the condition value is anything else, then the position is inside a
+link and the condition itself is the action code.  Clearly you should
+only specify this kind of condition on the text that constitutes a
+link.
 @end table
 
 @noindent
-Here's how the action code determines what @key{Mouse-1} should do:
+The action code tells @key{Mouse-1} how to follow the link:
 
 @table @asis
 @item a string
-If the action code is a string, the @key{Mouse-1} event is translated
-into the first character of the string, i.e., the action of the
-@key{Mouse-1} click is the local or global binding of that character.
-Thus, if the action code is @code{"foo"}, @key{Mouse-1} translates
-into @kbd{f}.
-
-@item a vector
-If the action code is is a vector, the @key{Mouse-1} event is
-translated into the first element of that vector, i.e,. the action of
-the @key{Mouse-1} click is the local or global binding of that event.
-Thus, if the action code is @code{[?f ?o ?o]}, @key{Mouse-1}
-translates into @kbd{f}.
+If the action code is a string or vector, the @key{Mouse-1} event is
+translated into the first element of the string or vector; i.e., the
+action of the @key{Mouse-1} click is the local or global binding of
+that character.  Thus, if the action code is @code{"foo"},
+@key{Mouse-1} translates into @kbd{f}.  If it is @code{[foo]},
+@key{Mouse-1} translates into @key{foo}.
 
 @item anything else
 For any other non-@code{nil} action code, the @code{mouse-1} event is
