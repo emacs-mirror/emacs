@@ -76,10 +76,7 @@ relock:
 xmakefile: ymakefile config.h ../config.status
 	-rm -f xmakefile xmakefile.new junk.c junk.cpp
 	cp ${srcdir}/ymakefile junk.c
-	${CPP} -I${srcdir} ${CFLAGS} junk.c > junk.cpp \
-	-DC_SWITCH_SITE="`echo ${CFLAGS}' ' \
-			  | sed -e 's/-g /C_DEBUG_SWITCH /' \
-				-e 's/-O[0-9]* /C_OPTIMIZE_SWITCH /'`"
+	${CPP} -I${srcdir} ${CFLAGS} junk.c > junk.cpp
 	< junk.cpp					\
 	sed	-e 's/^#.*//'				\
 		-e 's/^[ \f\t][ \f\t]*$$//'		\
