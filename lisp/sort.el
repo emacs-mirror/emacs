@@ -46,11 +46,11 @@ It should move point to the end of the buffer if there are no more records.
 The first record is assumed to start at the position of point when sort-subr
 is called.
 
-ENDRECFUN is is called with point within the record.
+ENDRECFUN is called with point within the record.
 It should move point to the end of the record.
 
-STARTKEYFUN may moves from the start of the record to the start of the key.
-It may return either return a non-nil value to be used as the key, or
+STARTKEYFUN moves from the start of the record to the start of the key.
+It may return either a non-nil value to be used as the key, or
 else the key is the substring between the values of point after
 STARTKEYFUN and ENDKEYFUN are called.  If STARTKEYFUN is nil, the key
 starts at the beginning of the record.
