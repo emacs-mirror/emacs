@@ -365,6 +365,9 @@ from being initialized."
 
 (defvar normal-top-level-add-subdirs-inode-list nil)
 
+(defvar pure-space-overflow nil
+  "Non-nil if building Emacs overflowed pure space.")
+
 (defun normal-top-level-add-subdirs-to-load-path ()
   "Add all subdirectories of current directory to `load-path'.
 More precisely, this uses only the subdirectories whose names
@@ -1262,6 +1265,8 @@ where FACE is a valid face specification, as it can be used with
   (let ((text (car fancy-current-text)))
     (set-buffer buffer)
     (erase-buffer)
+    (if pure-space-overflow
+	(insert "Warning Warning  Pure space overflow   Warning Warning\n"))
     (fancy-splash-head)
     (apply #'fancy-splash-insert text)
     (fancy-splash-tail)
@@ -1358,6 +1363,9 @@ we put it on this frame."
 	  (let ((tab-width 8)
 		(mode-line-format (propertize "---- %b %-"
 					      'face '(:weight bold))))
+
+	    (if pure-space-overflow
+		(insert "Warning Warning  Pure space overflow   Warning Warning\n"))
 
 	    ;; The convention for this piece of code is that
 	    ;; each piece of output starts with one or two newlines
