@@ -1959,7 +1959,8 @@ FILE = nil means just close any termscript file currently open.")
 
 #ifdef SIGWINCH
 SIGTYPE
-window_change_signal ()
+window_change_signal (signalnum) /* If we don't have an argument, */
+     int signalnum;		/* some compilers complain in signal calls. */
 {
   int width, height;
   extern int errno;
