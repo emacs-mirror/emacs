@@ -1852,19 +1852,23 @@ This function takes some pains to conform to `ls -lR' output."
 			  (> (dired-get-subdir-min elt1)
 			     (dired-get-subdir-min elt2)))))))
 
-(defun dired-kill-tree (dirname &optional remember-marks)
+(defun dired-kill-tree (dirname &optional remember-marks kill-root)
   "Kill all proper subdirs of DIRNAME, excluding DIRNAME itself.
-With optional arg REMEMBER-MARKS, return an alist of marked files."
-  (interactive "DKill tree below directory: ")
-  (setq dirname (expand-file-name dirname))
+Interactively, you can kill DIRNAME as well by using a prefix argument.
+In interactive use, the command prompts for DIRNAME.
+
+When called from Lisp, if REMEMBER-MARKS is non-nil, return an alist
+of marked files.  If KILL-ROOT is non-nil, kill DIRNAME as well."
+  (interactive "DKill tree below directory: \ni\nP")
+  (setq dirname (file-name-as-directory (expand-file-name dirname)))
   (let ((s-alist dired-subdir-alist) dir m-alist)
     (while s-alist
       (setq dir (car (car s-alist))
 	    s-alist (cdr s-alist))
-      (if (and (not (string-equal dir dirname))
-	       (dired-in-this-tree dir dirname)
-	       (dired-goto-subdir dir))
-	  (setq m-alist (nconc (dired-kill-subdir remember-marks) m-alist))))
+      (and (or kill-root (not (string-equal dir dirname)))
+	   (dired-in-this-tree dir dirname)
+	   (dired-goto-subdir dir)
+	   (setq m-alist (nconc (dired-kill-subdir remember-marks) m-alist))))
     m-alist))
 
 (defun dired-insert-subdir-newpos (new-dir)
