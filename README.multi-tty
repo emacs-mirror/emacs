@@ -310,6 +310,9 @@ is probably not very interesting for anyone else.)
 THINGS TO DO
 ------------
 
+** rif->flush_display_optional (NULL) calls should be replaced by a
+   new global function.
+
 ** Hunt down display-related functions in frame.el and extend them all
    to accept display ids.
 

@@ -3529,7 +3529,7 @@ handle_single_display_prop (it, prop, object, position,
 	   && CONSP (XCDR (prop)))
     {
       /* `(raise FACTOR)'.  */
-      if (FRAME_TERMCAP_P (it->f) || FRAME_MSDOS_P (it->f))
+      if (!FRAME_WINDOW_P (it->f))
 	return 0;
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -3572,7 +3572,7 @@ handle_single_display_prop (it, prop, object, position,
 	     when we are finished with the glyph property value.  */
 
 	  /* `(left-fringe BITMAP FACE)'.  */
-	  if (FRAME_TERMCAP_P (it->f) || FRAME_MSDOS_P (it->f))
+	  if (!FRAME_WINDOW_P (it->f))
 	    return 0;
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -3646,7 +3646,7 @@ handle_single_display_prop (it, prop, object, position,
 
       valid_p = (STRINGP (value)
 #ifdef HAVE_WINDOW_SYSTEM
-		 || (!FRAME_TERMCAP_P (it->f) && valid_image_p (value))
+		 || (FRAME_WINDOW_P (it->f) && valid_image_p (value))
 #endif /* not HAVE_WINDOW_SYSTEM */
 		 || (CONSP (value) && EQ (XCAR (value), Qspace)));
 
@@ -3693,11 +3693,14 @@ handle_single_display_prop (it, prop, object, position,
 #ifdef HAVE_WINDOW_SYSTEM
 	  else
 	    {
-	      it->what = IT_IMAGE;
-	      it->image_id = lookup_image (it->f, value);
-	      it->position = start_pos;
-	      it->object = NILP (object) ? it->w->buffer : object;
-	      it->method = next_element_from_image;
+              if (FRAME_WINDOW_P (it->f))
+                {
+                  it->what = IT_IMAGE;
+                  it->image_id = lookup_image (it->f, value);
+                  it->position = start_pos;
+                  it->object = NILP (object) ? it->w->buffer : object;
+                  it->method = next_element_from_image;
+                }
 
 	      /* Say that we haven't consumed the characters with
 		 `display' property yet.  The call to pop_it in
@@ -7828,8 +7831,7 @@ echo_area_display (update_frame_p)
   /* When Emacs starts, selected_frame may be the initial terminal
      frame.  If we let this through, a message would be displayed on
      the terminal.  */
-  if (FRAME_TERMCAP_P (XFRAME (selected_frame))
-      && FRAME_TTY (XFRAME (selected_frame))->type == NULL)
+  if (FRAME_INITIAL_P (XFRAME (selected_frame)))
     return 0;
 #endif /* HAVE_WINDOW_SYSTEM */
 #endif
@@ -10404,8 +10406,9 @@ redisplay_preserve_echo_area (from_where)
   else
     redisplay_internal (1);
 
-  if (rif != NULL && rif->flush_display_optional)
-    rif->flush_display_optional (NULL);
+  if (FRAME_RIF (SELECTED_FRAME ()) != NULL
+      && FRAME_RIF (SELECTED_FRAME ())->flush_display_optional)
+    FRAME_RIF (SELECTED_FRAME ())->flush_display_optional (NULL);
 }
 
 
@@ -12200,22 +12203,25 @@ redisplay_window (window, just_this_one_p)
         display_menu_bar (w);
 
 #ifdef HAVE_WINDOW_SYSTEM
+      if (FRAME_WINDOW_P (f))
+        {
 #ifdef USE_GTK
-      redisplay_tool_bar_p = FRAME_EXTERNAL_TOOL_BAR (f);
+          redisplay_tool_bar_p = FRAME_EXTERNAL_TOOL_BAR (f);
 #else
-      redisplay_tool_bar_p = WINDOWP (f->tool_bar_window)
-        && (FRAME_TOOL_BAR_LINES (f) > 0
-            || auto_resize_tool_bars_p);
-
+          redisplay_tool_bar_p = WINDOWP (f->tool_bar_window)
+            && (FRAME_TOOL_BAR_LINES (f) > 0
+                || auto_resize_tool_bars_p);
 #endif
 
-      if (redisplay_tool_bar_p)
-        redisplay_tool_bar (f);
+          if (redisplay_tool_bar_p)
+            redisplay_tool_bar (f);
+        }
 #endif
     }
 
 #ifdef HAVE_WINDOW_SYSTEM
-  if (update_window_fringes (w, 0)
+  if (FRAME_WINDOW_P (f)
+      && update_window_fringes (w, 0)
       && !just_this_one_p
       && (used_current_matrix_p || overlay_arrow_seen)
       && !w->pseudo_window_p)
@@ -14911,12 +14917,10 @@ display_line (it)
 		{
 		  if (!get_next_display_element (it))
 		    {
-#ifdef HAVE_WINDOW_SYSTEM
 		      it->continuation_lines_width = 0;
 		      row->ends_at_zv_p = 1;
 		      row->exact_window_width_line_p = 1;
 		      break;
-#endif /* HAVE_WINDOW_SYSTEM */
 		    }
 		  if (ITERATOR_AT_END_OF_LINE_P (it))
 		    {
