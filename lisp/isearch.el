@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/10/09 20:03:33 $|$Revision: 1.51 $
+;; |$Date: 1993/10/24 04:05:22 $|$Revision: 1.52 $
 
 ;; This file is part of GNU Emacs.
 
@@ -1001,7 +1001,9 @@ and the meta character is unread so that it applies to editing the string."
 	   (and (> (length key) 1)
 		(symbolp (aref key 0))
 		(listp (aref key 1))
-		(consp (posn-point (event-start (aref key 1))))
+		;; These events now have a symbol; they used to have a list.
+		;; Accept either one.  Other events have a number here.
+		(not (numberp (posn-point (event-start (aref key 1)))))
 		(setq index 1))
 	   ;; If we got a mouse click, maybe it was read with the buffer
 	   ;; it was clicked on.  If so, that buffer, not the current one,
