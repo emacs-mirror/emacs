@@ -1,0 +1,4096 @@
+\input texinfo   @c -*-texinfo-*-
+@c $Id: mh-e.texi,v 1.17 95/08/23 07:00:16 wohler Exp $
+@c %**start of header
+@setfilename ../info/mh-e
+@settitle mh-e
+@c %**end of header
+
+@setchapternewpage odd
+
+@dircategory Editors
+@direntry
+* MH-E: (mh-e).		Emacs interface to the MH mail system.
+@end direntry
+
+@c Version variables.
+@set EDITION 1.2
+@set VERSION 5.0.2
+@set UPDATED 22 August 1995
+@set UPDATE-MONTH August 1995
+
+@ifinfo
+This is Edition @value{EDITION}, last updated @value{UPDATED}, of
+@cite{mh-e, The Emacs Interface to MH}, for mh-e, Version
+@value{VERSION}.
+
+Copyright 1995 Free Software Foundation, Inc.
+
+Permission is granted to make and distribute verbatim
+copies of this manual provided the copyright notice and
+this permission notice are preserved on all copies.
+
+@ignore
+Permission is granted to process this file through TeX
+and print the results, provided the printed document
+carries a copying permission notice identical to this
+one except for the removal of this paragraph (this
+paragraph not being relevant to the printed manual).
+
+@end ignore
+Permission is granted to copy and distribute modified
+versions of this manual under the conditions for
+verbatim copying, provided also that the section
+entitled ``Copying''
+is included exactly as in the original, and provided
+that the entire resulting derived work is distributed
+under the terms of a permission notice identical to this
+one.
+
+Permission is granted to copy and distribute
+translations of this manual into another language,
+under the above conditions for modified versions,
+except that this permission notice may be stated in a
+translation approved by the Free Software Foundation.
+@end ifinfo
+
+@titlepage
+@sp 10
+@center @titlefont{mh-e}
+@sp 2
+@center The Emacs Interface to MH
+@sp 2
+@center by Bill Wohler
+@sp 2
+@center Edition @value{EDITION} for mh-e Version @value{VERSION}
+@sp 2
+@center @value{UPDATE-MONTH}
+
+@page
+@vskip 0pt plus 1filll
+Copyright @copyright{} 1995 Free Software Foundation, Inc.
+
+Permission is granted to make and distribute verbatim
+copies of this manual provided the copyright notice and
+this permission notice are preserved on all copies.
+
+Permission is granted to copy and distribute modified
+versions of this manual under the conditions for
+verbatim copying, provided also that the section
+entitled ``The GNU General Public License''
+is included exactly as in the original, and provided
+that the entire resulting derived work is distributed
+under the terms of a permission notice identical to this
+one.
+
+Permission is granted to copy and distribute
+translations of this manual into another language,
+under the above conditions for modified versions,
+except that this permission notice may be stated in a
+translation approved by the Free Software Foundation.
+@end titlepage
+
+@ifinfo
+@node Top, Preface, (dir), (dir)
+@top MH and Emacs
+This is Edition @value{EDITION} of @cite{mh-e, The Emacs Interface to
+MH}, last updated @value{UPDATED} for mh-e Version @value{VERSION}.
+
+@menu
+* Preface::                     Introduction to mh-e.
+* Tour Through mh-e::           Use mh-e quickly!
+* Using mh-e::                  Documentation for all commands.
+* Customizing mh-e::            Documentation for all variables.
+* Odds and Ends::               Getting mh-e, reporting bugs, mailing
+                                list and FAQ.
+* History::                     The authors speak up!
+* Changes to mh-e::             Actual changes between Versions 3 and beyond.
+* Copying::                     The GNU General Public License
+* Command Index::              
+* Variable Index::              
+* Concept Index::               
+@end menu
+@end ifinfo
+
+@node Preface, Tour Through mh-e, Top, Top
+@unnumbered Preface
+
+@cindex Emacs
+@cindex Unix commands, Emacs
+
+These chapters introduce another interface to MH that is accessible
+through the GNU Emacs editor, namely, @emph{mh-e}.  mh-e is easy to use.
+I don't assume that you know GNU Emacs or even MH at this point, since I
+didn't know either of them when I discovered mh-e.  However, mh-e was
+the tip of the iceberg, and I discovered more and more niceties about
+GNU Emacs and MH@.  Now I'm fully hooked on both of them.
+
+@cindex history
+
+The mh-e package is distributed with GNU Emacs, @footnote{Note that mh-e
+is supported with MH 6 and either @w{Emacs 18} or @w{Emacs 19}.
+Reportedly, large parts of it work with @w{MH 5} and also with
+Lucid/XEmacs and Epoch, but there are no guarantees.  It is also
+distributed with Lucid/XEmacs, as well as with MH itself.} so you shouldn't
+have to do anything special to use it.  But it's important to note a
+brief history of mh-e.  @w{Version 3} was prevalent through the @w{Emacs
+18} and early @w{Emacs 19} years.  Then @w{Version 4} came out (@w{Emacs
+19.23}), which introduced several new and changed commands.  Finally,
+@w{Version 5.0} was released, which fixed some bugs and
+incompatibilities.  This is the version covered by this manual.
+@ref{Getting Started} will help you decide which version you
+have.
+
+If you don't already use GNU Emacs but want to learn more, you can read
+an online tutorial by starting GNU Emacs and typing @kbd{C-h t}
+(@code{help-with-tutorial}).  (This notation is described in
+@ref{Conventions}.)  If you want to take the plunge, consult the
+@iftex
+@cite{GNU Emacs Manual},
+@end iftex
+@ifinfo
+@ref{top, , GNU Emacs Manual, emacs, The GNU Emacs Manual},
+@end ifinfo
+from the Free Software Foundation.
+
+If more information is needed, you can go to the Unix manual pages of
+the individual MH commands.  When the name is not obvious, I'll guide
+you to a relevant MH manual page that describes the action more fully.
+
+I hope you enjoy these chapters!  If you have any comments, or
+suggestions for this document, please let me know.
+
+@noindent
+Bill Wohler <@i{wohler@@newt.com}>@*
+8 February 1995
+
+@node    Tour Through mh-e, Using mh-e, Preface, Top
+@chapter Tour Through mh-e
+
+This chapter introduces some of the terms you'll need to know and then
+takes you on a tour of mh-e. @footnote{The keys mentioned in these
+chapters refer to the default key bindings.  If you've changed the
+bindings, refer to the command summaries at the beginning of each major
+section in @ref{Using mh-e}, for a mapping between default key bindings
+and function names.}  When you're done, you'll be able to send, read,
+and file mail, which is all that a lot of people ever do.  But if you're
+the curious type, you'll read @ref{Using mh-e} to be able to use all
+the features of mh-e.  If you're the adventurous type, you'll read
+@ref{Customizing mh-e} to make mh-e do what you want.  I suggest you
+read this chapter first to get the big picture, and then you can read
+the other two as you wish.
+
+@menu
+* Conventions::                 GNU Emacs Terms and Conventions
+* Getting Started::             
+* Sending Mail Tour::           
+* Reading Mail Tour::           
+* Processing Mail Tour::        
+* Leaving mh-e::                
+* More About mh-e::             
+@end menu
+
+@node Conventions, Getting Started, Tour Through mh-e, Tour Through mh-e
+@section GNU Emacs Terms and Conventions
+
+@cindex Emacs, terms and conventions
+
+@cindex Emacs
+@cindex Unix commands, Emacs
+
+If you're an experienced Emacs user, you can skip the following
+conventions and definition of terms and go directly to @ref{Getting
+Started} below.  The conventions are as follows:
+
+@table @kbd
+@item C-x
+Hold down the @key{CTRL} (Control) key and press the @kbd{x} key.
+@item M-x
+Hold down the @key{META} or @key{ALT} key and press the @kbd{x} key.
+
+Since some keyboards don't have a @key{META} key, you can generate
+@kbd{M-x}, for example, by pressing @key{ESC} (Escape), @emph{releasing
+it}, @footnote{This is emphasized because pressing ESC twice or holding
+it down a second too long so that it repeats gives you an error message.}
+and then pressing the @kbd{x} key.
+@item RET
+Press the @key{RETURN} or @key{ENTER} key.  This is normally used to
+complete a command.
+@item SPC
+Press the space bar.
+@item TAB
+Press the @key{TAB} key.
+@item DEL
+Press the @key{DELETE} key.  This may also be a Backspace key, depending
+on your keyboard or Emacs configuration.
+@end table
+
+@cindex Emacs, prefix argument
+@cindex prefix argument
+
+A @dfn{prefix argument} allows you to pass an argument to any Emacs
+function.  To pass an argument, type @kbd{C-u} before the Emacs command
+or keystroke.  Numeric arguments can be passed as well.  For example, to
+insert five f's, use @kbd{C-u 5 f}.  There is a default of four when
+using @kbd{C-u}, and you can use multiple prefix arguments to provide
+arguments of powers of four.  To continue our example, you could insert
+four f's with @kbd{C-u f}, 16 f's with @kbd{C-u C-u f}, 64 f's with
+@kbd{C-u C-u C-u f}, and so on.  Numeric and valueless negative
+arguments can also be inserted with the @key{META} key.  Examples
+include @kbd{M-5} to specify an argument of 5, or @kbd{M--} which
+specifies a negative argument with no particular value.
+
+@sp 2
+@need 1000
+@center @strong{NOTE}
+
+@quotation
+The prefix @kbd{C-u} or @kbd{M-} is not necessary in mh-e's MH-Folder
+modes (@pxref{Reading Mail Tour}).  In these modes, simply enter the
+numerical argument before entering the command.
+@end quotation
+
+@cindex point
+@cindex Emacs, point
+@cindex mark
+@cindex Emacs, mark
+@cindex region
+@cindex Emacs, region
+
+There are several other terms that are used in Emacs that you should
+know.  The @dfn{point} is where the cursor currently is.  You can save
+your current place in the file by setting a @dfn{mark}.  This operation
+is useful in several ways.  The mark can be later used when defining a
+@dfn{region}, which is the text between the point and mark.  Many
+commands operate on regions, such as those for deleting text or filling
+paragraphs.  A mark can be set with @kbd{C-@@} (or @kbd{C-SPC}).
+
+@cindex minibuffer
+@cindex Emacs, minibuffer
+@cindex file completion
+@cindex Emacs, file completion
+
+The @dfn{minibuffer} is the bottom line of the Emacs window, where all
+prompting and multiple-character input is directed.  If you are prompted
+for information in the minibuffer, such as a filename, Emacs can help
+you complete your answer if you type @key{SPC} or @key{TAB}.  A second
+@key{SPC} or @key{TAB} will list all possibilities at that point.  The
+minibuffer is also where you enter Emacs function names after typing
+@kbd{M-x}.  For example, in the first paragraph, I mentioned that you
+could obtain help with @kbd{C-h t} (@code{help-with-tutorial}).  What
+this means is that you can get a tutorial by typing either @kbd{C-h t}
+or @kbd{M-x help-with-tutorial}.  In the latter case, you are prompted
+for @samp{help-with-tutorial} in the minibuffer after typing @kbd{M-x}.
+
+@cindex interrupting
+@cindex Emacs, interrupting
+@cindex quitting
+@cindex Emacs, quitting
+
+@i{In case of trouble:} Emacs can be interrupted at any time with
+@kbd{C-g}.  For example, if you've started a command that requests that
+you enter something in the minibuffer, but then you change your mind,
+type @kbd{C-g} and you'll be back where you started.  If you want to
+exit Emacs entirely, use @kbd{C-x C-c}.
+
+@node Getting Started, Sending Mail Tour, Conventions, Tour Through mh-e
+@section Getting Started
+
+Because there are many old versions of mh-e out there, it is important to
+know which version you have.  I'll be talking about @w{Version 5} which
+is similar to @w{Version 4} and vastly different from @w{Version 3}.
+
+First, enter @kbd{M-x load-library @key{RET} mh-e
+@key{RET}}. @footnote{You wouldn't ordinarily do this.}  The message,
+@samp{Loading mh-e...done}, should be displayed in the minibuffer.  If
+you get @samp{Cannot open load file: mh-e}, then your Emacs is very
+badly configured, or mh-e is missing.  You may wish to have your system
+administrator install a new Emacs or at least the latest mh-e files.
+
+Having loaded mh-e successfully, enter @kbd{M-x mh-version @key{RET}}.
+The version of mh-e should be displayed.  Hopefully it says that you're
+running @w{Version @value{VERSION}} which is the latest version as of
+this printing.  If instead Emacs beeps and says @samp{[No match]}, then
+you're running an old version of mh-e.
+
+If these tests reveal a non-existent or old version of mh-e, please
+consider obtaining a new version.  You can have your system
+administrator upgrade the system-wide version, or you can install your
+own personal version.  It's really quite easy; instructions for getting
+and installing mh-e are in @ref{Getting mh-e}.  In the meantime, see
+@ref{Changes to mh-e}, which compares the old and new names of commands,
+functions, variables, and buffers.
+
+@cindex @code{install-mh}
+@cindex MH commands, @code{install-mh}
+
+Also, older versions of mh-e assumed that you had already set up your MH
+environment.  Newer versions set up a new MH environment for you by
+running @code{install-mh} and notifying you of this fact with the
+message in a temporary buffer:
+
+@example
+I'm going to create the standard MH path for you.
+@end example
+
+Therefore, if you've never run MH before and you're using an old version
+of mh-e, you need to run @code{install-mh} from the shell before you
+continue the tour.  If you don't, you'll be greeted with the error
+message: @samp{Can't find MH profile}.
+
+@cindex @file{.emacs}
+@cindex files, @file{.emacs}
+
+If, during the tour described in this chapter, you see a message like:
+@samp{Searching for program: no such file or directory,
+/usr/local/bin/mhpath}, it means that the MH programs and files are kept
+in a nonstandard directory.  In this case, simply add the following to
+@file{~/.emacs} and restart @code{emacs}.
+
+@vindex @code{mh-progs}, example
+@vindex @code{mh-lib}, example
+
+@c XXX Real example for really naive user?
+@example
+@group
+(setq mh-progs "@var{/path/to/MH/binary/directory/}")
+(setq mh-lib "@var{/path/to/MH/library/directory/}")
+@end group
+@end example
+
+@cindex ~
+
+The @samp{~} notation used by @file{~/.emacs} above represents your home
+directory.  This is used by the @code{bash} and @code{csh} shells.  If
+your shell does not support this feature, you could use the environment
+variable @samp{$HOME} (such as @file{$HOME/.emacs}) or the absolute path
+(as in @file{/home/wohler/.emacs}) instead.
+
+At this point, you should see something like the screen in the
+figure in @ref{Reading Mail Tour}.  We're now ready to move on.
+
+@node Sending Mail Tour, Reading Mail Tour, Getting Started, Tour Through mh-e
+@section Sending Mail
+
+@cindex sending mail
+@findex @code{mh-smail}
+
+Let's start our tour by sending ourselves a message which we can later
+read and process.  Enter @kbd{M-x mh-smail} to invoke the mh-e program
+to send messages.  You will be prompted in the minibuffer by @samp{To:}.
+Enter your login name.  The next prompt is @samp{cc:}.  Hit @key{RET} to
+indicate that no carbon copies are to be sent.  At the @samp{Subject:}
+prompt, enter @kbd{Test} or anything else that comes to mind.
+
+@cindex MH-Letter mode
+@cindex modes, MH-Letter
+@cindex mode
+
+Once you've specified the recipients and subject, your message appears
+in an Emacs buffer whose mode @footnote{A @dfn{mode} changes Emacs to
+make it easier to edit a particular type of text.} is MH-Letter.
+Enter some text in the body of the message, using normal Emacs commands.
+You should now have something like this: @footnote{If you're running Emacs
+under the X Window System, then you would also see a menubar.  I've left
+out the menubar in all of the example screens.}
+
+@example
+@group
+@cartouche
+
+
+
+
+
+
+-----Emacs: *scratch*         (Lisp Interaction)--All---------------------
+To: wohler
+cc:
+Subject: Test
+--------
+  This is a test message to get the wheels churning...#
+
+
+--**-@{draft@}      (MH-Letter)--All----------------------------------------
+
+@end cartouche
+@i{mh-e message composition window}
+@end group
+@end example
+
+@cindex MH-Letter mode
+@cindex modes, MH-Letter
+
+Note the line of dashes that separates the header and the body of the
+message.  It is essential that these dashes (or a blank line) are
+present or the body of your message will be considered to be part of
+the header.
+
+There are several commands specific to MH-Letter mode, but at
+this time we'll only use @kbd{C-c C-c} to send your message.  Type
+@kbd{C-c C-c} now.  That's all there is to it!
+
+@node Reading Mail Tour, Processing Mail Tour, Sending Mail Tour, Tour Through mh-e
+@section Receiving Mail
+
+@cindex reading mail
+@findex @code{mh-rmail}
+@cindex @code{inc}
+@cindex MH commands, @code{inc}
+@cindex @code{scan}
+@cindex MH commands, @code{scan}
+@cindex MH-Folder mode
+@cindex modes, MH-Folder
+
+To read the mail you've just sent yourself, enter @kbd{M-x mh-rmail}.
+This incorporates the new mail and put the output from @code{inc}
+(called @dfn{scan lines} after the MH program @code{scan} which prints a
+one-line summary of each message) into a buffer called @samp{+inbox}
+whose major mode is MH-Folder.
+
+@sp 2
+@need 1000
+@center @strong{NOTE}
+
+@quotation
+The @kbd{M-x mh-rmail} command will show you only new mail, not old
+mail.  If you were to run this tour again, you would use @kbd{M-r} to
+pull all your messages into mh-e.
+@end quotation
+
+You should see the scan line for your message, and perhaps others.  Use
+@kbd{n} or @kbd{p} to move the cursor to your test message and type
+@key{RET} to read your message.  You should see something like:
+
+@example
+@group
+@cartouche
+   3  24Aug  root       received fax files on Wed Aug 24 11:00:13 PDT 1994
+#  4+ 24Aug  To:wohler  Test<<This is a test message to get the wheels chu
+
+--%%-@{+inbox@} 4 msgs (1-4)      (MH-Folder Show)--Bot---------------------
+To: wohler
+Subject: Test
+Date: Wed, 24 Aug 1994 13:01:13 -0700
+From: Bill Wohler <wohler@@newt.com>
+
+  This is a test message to get the wheels churning...
+
+
+
+
+
+-----@{show-+inbox@} 4      (MH-Show)--Bot----------------------------------
+
+@end cartouche
+@i{After incorporating new messages}
+@end group
+@end example
+
+If you typed a long message, you can view subsequent pages with @key{SPC}
+and previous pages with @key{DEL}.
+
+@node Processing Mail Tour, Leaving mh-e, Reading Mail Tour, Tour Through mh-e
+@section Processing Mail
+
+@cindex processing mail
+
+The first thing we want to do is reply to the message that we sent
+ourselves.  Ensure that the cursor is still on the same line as your
+test message and type @kbd{r}.  You are prompted in the minibuffer with
+@samp{Reply to whom:}.  Here mh-e is asking whether you'd like to reply
+to the original sender only, to the sender and primary recipients, or to
+the sender and all recipients.  If you simply hit @key{RET}, you'll
+reply only to the sender.  Hit @key{RET} now.
+
+You'll find yourself in an Emacs buffer similar to that when you were
+sending the original message, like this:
+
+@example
+@group
+@cartouche
+To: wohler
+Subject: Re: Test
+In-reply-to: Bill Wohler's message of Wed, 24 Aug 1994 13:01:13 -0700
+             <199408242001.NAA00505@@newt.com>
+--------
+#
+
+--**-@{draft@}      (MH-Letter)--All----------------------------------------
+To: wohler
+Subject: Test
+Date: Wed, 24 Aug 1994 13:01:13 -0700
+From: Bill Wohler <wohler@@newt.com>
+
+  This is a test message to get the wheels churning...
+
+-----@{show-+inbox@} 4      (MH-Show)--Bot----------------------------------
+Composing a reply...done
+@end cartouche
+@i{Composition window during reply}
+@end group
+@end example
+
+By default, MH will not add you to the address list of your replies, so
+if you find that the @samp{To:} header field is missing, don't worry.
+In this case, type @kbd{C-c C-f C-t} to create and go to the @samp{To:}
+field, where you can type your login name again.  You can move around
+with the arrow keys or with @kbd{C-p} (@code{previous-line}), @kbd{C-n}
+(@code{next-line}), @kbd{C-b} (@code{backward-char}), and @kbd{C-f}
+(@code{forward-char}) and can delete the previous character with
+@key{DEL}.  When you're finished editing your message, send it with
+@kbd{C-c C-c} as before.
+
+@cindex folder
+
+You'll often want to save messages that were sent to you in an organized
+fashion.  This is done with @dfn{folders}.  You can use folders to keep
+messages from your friends, or messages related to a particular topic.
+With your cursor in the MH-Folder buffer and positioned on the message
+you sent to yourself, type @kbd{o} to output (@code{refile} in MH
+parlance) that message to a folder.  Enter @kbd{test} at the
+@samp{Destination:} prompt and type @kbd{y} (or @key{SPC}) when mh-e
+asks to create the folder @samp{+test}.  Note that a @samp{^} (caret)
+appears next to the message number, which means that the message has
+been marked for refiling but has not yet been refiled.  We'll talk about
+how the refile is actually carried out in a moment.
+
+@cindex MH-Folder mode
+@cindex modes, MH-Folder
+
+Your previous reply is now waiting in the system mailbox.  You
+incorporate this mail into your MH-Folder buffer named @samp{+inbox}
+with the @kbd{i} command.  Do this now.  After the mail is incorporated,
+use @kbd{n} or @kbd{p} to move the cursor to the new message, and read
+it with @key{RET}.  Let's delete this message by typing @kbd{d}.  Note
+that a @samp{D} appears next to the message number.  This means that the
+message is marked for deletion but is not yet deleted.  To perform the
+deletion (and the refile we did previously), use the @kbd{x} command.
+
+@findex @code{mh-smail}
+
+If you want to send another message you can use @kbd{m} instead of
+@kbd{M-x mh-smail}.  So go ahead, send some mail to your friends!
+
+@node Leaving mh-e, More About mh-e, Processing Mail Tour, Tour Through mh-e
+@section Leaving mh-e
+
+@cindex Emacs, quitting
+@cindex quitting
+
+You may now wish to exit @code{emacs} entirely.  Use @kbd{C-x C-c} to
+exit @code{emacs}.  If you exited without running @kbd{x} in the
+@samp{+inbox} buffer, Emacs will offer to save it for you.  Type @kbd{y}
+or @key{SPC} to save @samp{+inbox} changes, which means to perform any refiles
+and deletes that you did there.
+
+If you don't want to leave Emacs, you can type @kbd{q} to bury (hide)
+the mh-e folder or delete them entirely with @kbd{C-x k}.  You can then
+later recall them with @kbd{C-x b} or @kbd{M-x mh-rmail}.
+
+@node More About mh-e,  , Leaving mh-e, Tour Through mh-e
+@section More About mh-e
+
+These are the basic commands to get you going, but there are plenty
+more.  If you think that mh-e is for you, read @ref{Using mh-e} and
+@ref{Customizing mh-e} to find out how you can:
+
+@itemize @bullet
+@item
+Print your messages.  (@ref{Printing} and @ref{Customizing Printing}.)
+@item
+Edit messages and include your signature.  (@ref{Draft Editing}
+and @ref{Customizing Draft Editing}.)
+@item
+Forward messages.  (@ref{Forwarding} and @ref{Customizing Forwarding}.)
+@item
+Read digests.  (@ref{Viewing}.)
+@item
+Edit bounced messages.  (@ref{Old Drafts} and @ref{Customizing Old Drafts}.)
+@item
+Send multimedia messages.  (@ref{Editing MIME} and @ref{Customizing Editing MIME}.)
+@item
+Process mail that was sent with @code{shar} or @code{uuencode}.
+(@ref{Files and Pipes}.)
+@item
+Use sequences conveniently.  (@ref{Sequences}.)
+@item
+Show header fields in different fonts.  (@ref{Customizing Viewing}.)
+@item
+Find previously refiled messages.  (@ref{Searching}.)
+@item
+Place messages in a file.  (@ref{Files and Pipes}.)
+@end itemize
+
+Remember that you can also use MH commands when you're not running mh-e
+(and when you are!).
+
+@node    Using mh-e, Customizing mh-e, Tour Through mh-e, Top
+@chapter Using mh-e
+
+This chapter leaves the tutorial style and goes into more detail about
+every mh-e command.  The default, or "out of the box," behavior is
+documented.  If this is not to your liking (for instance, you print with
+something other than @code{lpr)}, see the associated section in
+@ref{Customizing mh-e} which is organized exactly like this chapter.
+
+@cindex Emacs, functions; describe-mode
+@cindex Emacs, online help
+@cindex online help
+
+There are many commands, but don't get intimidated.  There are command
+summaries at the beginning of each section.  In case you have or would
+like to rebind the keys, the command summaries also list the associated
+Emacs Lisp function.  Furthermore, even if you're stranded on a desert
+island with a laptop and are without your manuals, you can get a summary
+of all these commands with GNU Emacs online help: use @kbd{C-h m}
+(@code{describe-mode}) for a brief summary of commands or @kbd{C-h i} to
+read this manual via Info.  The online help is quite good; try running
+@kbd{C-h C-h C-h}.  This brings up a list of available help topics, one
+of which displays the documentation for a given key (like @kbd{C-h k
+C-n}).  In addition, review @ref{Conventions}, if any of the GNU Emacs
+conventions are strange to you.
+
+Let's get started!
+
+@menu
+* Reading Mail::                
+* Sending Mail::                
+* Draft Editing::               
+* Moving Mail::                 
+* Searching::                   
+* Sequences::                   
+* Miscellaneous::               
+@end menu
+
+@node Reading Mail, Sending Mail, Using mh-e, Using mh-e
+@section Reading Your Mail
+
+@cindex reading mail
+@findex @code{mh-rmail}
+@cindex MH-Folder mode
+@cindex modes, MH-Folder
+
+The mh-e entry point for reading mail is @kbd{M-x mh-rmail}.  This
+command incorporates your mail and creates a buffer called @samp{+inbox}
+in MH-Folder mode.  The @kbd{M-x mh-rmail} command shows you only new
+mail, not old mail. @footnote{If you want to see your old mail as well,
+use @kbd{M-r} to pull all your messages into mh-e.  Or, give a prefix
+argument to @code{mh-rmail} so it will prompt you for folder to visit
+like @kbd{M-f} (for example, @kbd{C-u M-x mh-rmail @key{RET} bob
+@key{RET}}).  Both @kbd{M-r} and @kbd{M-f} are described in
+@ref{Organizing}.}  The @samp{+inbox} buffer contains @dfn{scan lines},
+which are one-line summaries of each incorporated message.  You can
+perform most MH commands on these messages via one-letter commands
+discussed in this chapter.  See @code{scan}(1) for a description of the
+contents of the scan lines, and see the Figure in @ref{Reading Mail
+Tour}, for an example.
+
+@table @kbd
+@item RET
+Display a message (@code{mh-show}).
+
+@item SPC
+Go to next page in message (@code{mh-page-msg}).
+
+@item DEL
+Go to previous page in message (@code{mh-previous-page}).
+
+@item , (comma)
+Display a message with all header fields (@code{mh-header-display}).
+
+@item M-SPC
+Go to next message in digest (@code{mh-page-digest}).
+
+@item M-DEL
+Go to previous message in digest (@code{mh-page-digest-backwards}).
+
+@item M-b
+Break up digest into separate messages (@code{mh-burst-digest}).
+
+@item n
+Display next message (@code{mh-next-undeleted-msg}).
+
+@item p
+Display previous message (@code{mh-previous-undeleted-msg}).
+
+@item g
+Go to a message (@code{mh-goto-msg}).
+
+@item M-<
+Go to first message (@code{mh-first-msg}).
+
+@item M->
+Go to last message (@code{mh-last-msg}).
+
+@item t
+Toggle between MH-Folder and MH-Folder Show modes (@code{mh-toggle-showing}).
+@end table
+
+@menu
+* Viewing::                     
+* Moving Around::               
+@end menu
+
+@node Viewing, Moving Around, Reading Mail, Reading Mail
+@subsection Viewing Your Mail
+
+@findex @code{mh-show}
+@findex @code{mh-page-msg}
+@findex @code{mh-previous-page}
+
+The @kbd{RET} (@code{mh-show}) command displays the message that the
+cursor is on.  If the message is already displayed, it scrolls to the
+beginning of the message.  Use @key{SPC} (@code{mh-page-msg}) and
+@key{DEL} (@code{mh-previous-page}) to move forwards and backwards one
+page at a time through the message.  You can give either of these
+commands a prefix argument that specifies the number of lines to scroll
+(such as @kbd{10 SPC}).  mh-e normally hides a lot of the
+superfluous header fields that mailers add to a message, but if you wish
+to see all of them, use the @kbd{,} (comma; @code{mh-header-display})
+command.
+
+@menu
+* Reading Digests::             
+* Reading MIME::                
+@end menu
+
+@node Reading Digests, Reading MIME, Viewing, Viewing
+@subsubsection Reading Digests
+
+@cindex digests
+@findex @code{mh-page-digest}
+@findex @code{mh-page-digest-backwards}
+
+A digest is a message that contains other messages.  Special mh-e
+commands let you read digests conveniently.  You can use @key{SPC} and
+@key{DEL} to page through the digest as if it were a normal message, but
+if you wish to skip to the next message in the digest, use @kbd{M-SPC}
+(@code{mh-page-digest}).  To return to a previous message, use
+@kbd{M-DEL} (@code{mh-page-digest-backwards}).
+
+@cindex @code{burst}
+@cindex MH commands, @code{burst}
+@cindex MH-Folder Show mode
+@cindex modes, MH-Folder Show
+@findex @code{mh-burst-digest}
+
+@c There was a page break at the colon in the following paragraph which
+@c broke the transition to the example.
+@need 2000
+
+Another handy command is @kbd{M-b} (@code{mh-burst-digest}).  This
+command uses the MH command @code{burst} to break out each message in
+the digest into its own message.  Using this command, you can quickly
+delete unwanted messages, like this: Once the digest is split up, toggle
+out of MH-Folder Show mode with @kbd{t} (@pxref{Moving Around}) so that
+the scan lines fill the screen and messages aren't displayed.  Then use
+@kbd{d} (@pxref{Deleting}) to quickly delete messages that you don't
+want to read (based on the @samp{Subject:} header field).  You can also
+burst the digest to reply directly to the people who posted the messages
+in the digest.  One problem you may encounter is that the @samp{From:}
+header fields are preceded with a @samp{>} so that your reply can't
+create the @samp{To:} field correctly.  In this case, you must correct
+the @samp{To:} field yourself.  This is described later in @ref{Editing
+Textual}.
+
+@node Reading MIME,  , Reading Digests, Viewing
+@subsubsection Reading Multimedia Mail
+
+@cindex multimedia mail
+@cindex MIME
+@cindex @code{show}
+@cindex MH commands, @code{show}
+@cindex @code{mhn}
+@cindex MH commands, @code{mhn}
+
+MH has the ability to read @dfn{@sc{mime}} (Multipurpose Internet Mail
+Extensions) messages.  Unfortunately, mh-e does not yet have this
+ability, so you have to use the MH commands @code{show} or @code{mhn}
+from the shell to read @sc{mime} messages.  @footnote{You can call them
+directly from Emacs if you're running the X Window System: type @kbd{M-!
+xterm -e mhn @var{message-number}}.  You can leave out the @code{xterm
+-e} if you use @code{mhn -list} or @code{mhn -store}.}
+
+@node Moving Around,  , Viewing, Reading Mail
+@subsection Moving Around
+
+@cindex moving between messages
+@findex @code{mh-next-undeleted-msg}
+@findex @code{mh-previous-undeleted-msg}
+@findex @code{mh-goto-msg}
+@findex @code{mh-last-msg}
+@findex @code{mh-first-msg}
+
+To move on to the next message, use the @kbd{n}
+(@code{mh-next-undeleted-msg}) command; use the @kbd{p}
+(@code{mh-previous-undeleted-msg}) command to read the previous message.
+Both of these commands can be given a prefix argument to specify how
+many messages to skip (for example, @kbd{5 n}).  You can also move to a
+specific message with @kbd{g} (@code{mh-goto-msg}).  You can enter the
+message number either before or after typing @kbd{g}.  In the latter
+case, Emacs prompts you.  Finally, you can go to the first or last
+message with @kbd{M-<} (@code{mh-first-msg}) and @kbd{M->}
+(@code{mh-last-msg}) respectively.
+
+@cindex MH-Folder mode
+@cindex modes, MH-Folder
+
+You can also use the Emacs commands @kbd{C-p} (@code{previous-line}) and
+@kbd{C-n} (@code{next-line}) to move up and down the scan lines in the
+MH-Folder window.  These commands can be used in conjunction with
+@kbd{RET} to look at deleted or refiled messages.
+
+@cindex MH-Folder mode
+@cindex modes, MH-Folder
+@cindex MH-Folder Show mode
+@cindex modes, MH-Folder Show
+@cindex junk mail
+@findex @code{mh-toggle-showing}
+
+The command @kbd{t} (@code{mh-toggle-showing}) switches between
+MH-Folder mode and MH-Folder Show mode.  @footnote{For you Emacs
+wizards, this is implemented as an Emacs minor mode.} MH-Folder mode
+turns off the associated show buffer so that you can perform operations
+on the messages quickly without reading them.  This is an excellent way
+to prune out your junk mail or to refile a group of messages to another
+folder for later examination.
+
+@node Sending Mail, Draft Editing, Reading Mail, Using mh-e
+@section Sending Mail
+
+@cindex sending mail
+@findex @code{mh-smail}
+
+You can send a mail message in several ways.  You can call @kbd{M-x
+mh-smail} directly, or from the command line like this:
+
+@cindex starting from command line
+
+@example
+% @kbd{emacs -f mh-smail}
+@end example
+
+From within mh-e's MH-Folder mode, other methods of sending mail
+are available as well:
+
+@table @kbd
+@item m
+Compose a message (@code{mh-send}).
+
+@item r
+Reply to a message (@code{mh-reply}).
+
+@item f
+Forward message(s) (@code{mh-forward}).
+
+@item M-d
+Redistribute a message (@code{mh-redistribute}).
+
+@item M-e
+Edit a message that was bounced by mailer (@code{mh-extract-rejected-mail}).
+
+@item M-a
+Edit a message to send it again (@code{mh-edit-again}).
+@end table
+
+@cindex MH-Folder mode
+@cindex modes, MH-Folder
+@cindex MH-Letter mode
+@cindex modes, MH-Letter
+@findex @code{mh-send}
+
+From within a MH-Folder buffer, you can simply use the command @kbd{m}
+(@code{mh-send}).  However you invoke @code{mh-send}, you are prompted
+for the @samp{To:}, @samp{cc:}, and @samp{Subject:} header fields.  Once
+you've specified the recipients and subject, your message appears in an
+Emacs buffer whose mode is MH-Letter (see the Figure in @ref{Sending
+Mail} to see what the buffer looks like).  MH-Letter mode allows you to
+edit your message, to check the validity of the recipients, to insert
+other messages into your message, and to send the message.  We'll go
+more into depth about editing a @dfn{draft} @footnote{I highly recommend
+that you use a @dfn{draft folder} so that you can edit several drafts in
+parallel.  To do so, create a folder (e.g., @file{+drafts}), and add a
+profile component called @samp{Draft-Folder:} which contains
+@file{+drafts} (see @code{mh-profile}(5)).} (a message you're composing)
+in just a moment.
+
+@findex @code{mh-smail}
+@findex @code{mh-smail-other-window}
+
+@code{mh-smail} always creates a two-window layout with the current
+buffer on top and the draft on the bottom.  If you would rather preserve
+the window layout, use @kbd{M-x mh-smail-other-window}.
+
+@menu
+* Replying::                    
+* Forwarding::                  
+* Redistributing::              
+* Old Drafts::                  
+@end menu
+
+@node Replying, Forwarding, Sending Mail, Sending Mail
+@subsection Replying to Mail
+
+@cindex replying
+@cindex @code{mhl}
+@cindex MH commands, @code{mhl}
+@cindex @file{mhl.reply}
+@cindex files, @file{mhl.reply}
+@findex @code{mh-reply}
+
+To compose a reply to a message, use the @kbd{r} (@code{mh-reply})
+command.  If you supply a prefix argument (as in @kbd{C-u r}), the
+message you are replying to is inserted in your reply after having first
+been run through @code{mhl} with the format file @file{mhl.reply}.  See
+@code{mhl}(1) to see how you can modify the default @file{mhl.reply}
+file.
+
+When you reply to a message, you are first prompted with @samp{Reply to
+whom?}.  You have several choices here.
+
+@example
+@group
+@b{Response}     @b{Reply Goes To}
+
+@kbd{from}         @r{The person who sent the message.  This is the default,}
+             @r{so @key{RET} is sufficient.}
+
+@kbd{to}           @r{Replies to the sender, plus all recipients in the}
+             @r{@samp{To:} header field.}
+
+@kbd{all}
+@kbd{cc}           @r{Forms a reply to the sender, plus all recipients.}
+@end group
+@end example
+
+@cindex @code{repl}
+@cindex MH commands, @code{repl}
+
+Depending on your answer, @code{repl} is given a different argument to
+form your reply.  Specifically, a choice of @kbd{from} or none at all
+runs @code{repl -nocc all}, and a choice of @kbd{to} runs @code{repl -cc
+to}.  Finally, either @kbd{cc} or @kbd{all} runs @code{repl -cc all
+-nocc me}.
+
+@cindex MH-Letter mode
+@cindex modes, MH-Letter
+
+Two windows are then created.  One window contains the message to which
+you are replying.  Your draft, in MH-Letter mode (described in
+@ref{Draft Editing}), is in the other window.
+
+If you wish to customize the header or other parts of the reply draft,
+please see @code{repl}(1) and @code{mh-format}(5).
+
+@node Forwarding, Redistributing, Replying, Sending Mail
+@subsection Forwarding Mail
+
+@cindex forwarding
+@cindex @code{forw}
+@cindex MH commands, @code{forw}
+@findex @code{mh-forward}
+
+To forward a message, use the @kbd{f} (@code{mh-forward}) command.  You
+are given a draft to edit that looks like it would if you had run the MH
+command @code{forw}.  You are given a chance to add some text (see
+@ref{Draft Editing}).
+
+You can forward several messages by using a prefix argument; in this
+case, you are prompted for the name of a @dfn{sequence}, a symbolic name
+that represents a list or range of message numbers (for example,
+@kbd{C-u f forbob @key{RET}}).  All of the messages in the sequence are
+inserted into your draft.  By the way, although sequences are often
+mentioned in this chapter, you don't have to worry about them for now;
+the full description of sequences in mh-e is at the end in
+@ref{Sequences}.  To learn more about sequences in general, please see
+@code{mh-sequence}(5).
+
+@node Redistributing, Old Drafts, Forwarding, Sending Mail
+@subsection Redistributing Your Mail
+
+@cindex redistributing
+@findex @code{mh-redistribute}
+
+The command @kbd{M-d} (@code{mh-redistribute}) is similar in function to
+forwarding mail, but it does not allow you to edit the message, nor does
+it add your name to the @samp{From:} header field.  It appears to the
+recipient as if the message had come from the original sender.  For more
+information on redistributing messages, see @code{dist}(1).  Also
+investigate the @kbd{M-a} (@code{mh-edit-again}) command in @ref{Old
+Drafts}, for another way to redistribute messages.
+
+@node Old Drafts,  , Redistributing, Sending Mail
+@subsection Editing Old Drafts and Bounced Messages
+
+@cindex re-editing drafts
+@cindex @file{draft}
+@cindex files, @file{draft}
+@findex @code{mh-edit-again}
+
+If you don't complete a draft for one reason or another, and if the
+draft buffer is no longer available, you can pick your draft up again
+with @kbd{M-a} (@code{mh-edit-again}).  If you don't use a draft folder,
+your last @file{draft} file will be used.  If you use draft folders,
+you'll need to visit the draft folder with @kbd{M-f drafts @key{RET}},
+use @kbd{n} to move to the appropriate message, and then use @kbd{M-a}
+to prepare the message for editing.
+
+The @kbd{M-a} command can also be used to take messages that were sent
+to you and to send them to more people.
+
+@cindex Mailer-Daemon
+@findex @code{mh-extract-rejected-mail}
+
+Don't use @kbd{M-a} to re-edit a message from a @i{Mailer-Daemon} who
+complained that your mail wasn't posted for some reason or another.  In
+this case, use @kbd{M-e} (@code{mh-extract-rejected-mail}) to prepare
+the message for editing by removing the @i{Mailer-Daemon} envelope and
+unneeded header fields.  Fix whatever addressing problem you had, and
+send the message again with @kbd{C-c C-c}.
+
+@node Draft Editing, Moving Mail, Sending Mail, Using mh-e
+@section Editing a Draft
+
+@cindex editing draft
+@cindex MH-Letter mode
+@cindex modes, MH-Letter
+
+When you edit a message that you want to send (called a @dfn{draft} in
+this case), the mode used is MH-Letter.  This mode provides
+several commands in addition to the normal Emacs editing commands to
+help you edit your draft.
+
+@table @kbd
+@item C-c C-y
+Insert contents of message to which you're replying (@code{mh-yank-cur-msg}).
+
+@item C-c C-i
+Insert a message from a folder (@code{mh-insert-letter}).
+
+@item C-c C-f C-t
+Move to @samp{To:} header field (@code{mh-to-field}).
+
+@item C-c C-f C-c
+Move to @samp{cc:} header field (@code{mh-to-field}).
+
+@item C-c C-f C-s
+Move to @samp{Subject:} header field (@code{mh-to-field}).
+
+@item C-c C-f C-f
+Move to @samp{From:} header field (@code{mh-to-field}).
+
+@item C-c C-f C-b
+Move to @samp{Bcc:} header field (@code{mh-to-field}).
+
+@item C-c C-f C-f
+Move to @samp{Fcc:} header field (@code{mh-to-fcc}).
+
+@item C-c C-f C-d
+Move to @samp{Dcc:} header field (@code{mh-to-field}).
+
+@item C-c C-w
+Display expanded recipient list (@code{mh-check-whom}).
+
+@item C-c C-s
+Insert signature in message (@code{mh-insert-signature}).
+
+@item C-c C-m C-f
+Include forwarded message (@sc{mime}) (@code{mh-mhn-compose-forw}).
+
+@item C-c C-m C-e
+Include anonymous ftp reference (@sc{mime}) (@code{mh-mhn-compose-anon-ftp}).
+
+@item C-c C-m C-t
+Include anonymous ftp reference to compressed tar file (@sc{mime})
+(@code{mh-mhn-compose-external-compressed-tar}).
+
+@item C-c C-m C-i
+Include binary, image, sound, etc. (@sc{mime})
+(@code{mh-mhn-compose-insertion}).
+
+@item C-c C-e
+Run through @code{mhn} before sending (@code{mh-edit-mhn}).
+
+@item C-c C-m C-u
+Undo effects of @code{mhn} (@code{mh-revert-mhn-edit}).
+
+@item C-c C-c
+Save draft and send message (@code{mh-send-letter}).
+
+@item C-c C-q
+Quit editing and delete draft message (@code{mh-fully-kill-draft}).
+@end table
+
+@menu
+* Editing Textual::             
+* Editing MIME::                
+* Sending Message::             
+* Killing Draft::               
+@end menu
+
+@node Editing Textual, Editing MIME, Draft Editing, Draft Editing
+@subsection Editing Textual Messages
+
+The following sections show you how to edit a draft.
+The commands described here are also applicable to messages that have
+multimedia components.
+
+@menu
+* Inserting Letter::            
+* Inserting Messages::          
+* Header::                      
+* Recipients::                  
+* Signature::                   
+@end menu
+
+@node Inserting Letter, Inserting Messages, Editing Textual, Editing Textual
+@subsubsection Inserting letter to which you're replying
+
+@cindex inserting messages
+@findex @code{mh-yank-cur-msg}
+
+It is often useful to insert a snippet of text from a letter that
+someone mailed to provide some context for your reply.  The command
+@kbd{C-c C-y} (@code{mh-yank-cur-msg}) does this by yanking a portion of
+text from the message to which you're replying and inserting @samp{> }
+before each line.
+
+@cindex mark
+@cindex Emacs, mark
+@cindex point
+@cindex Emacs, point
+@cindex region
+@cindex Emacs, region
+
+You can control how much text is included when you run this command.  If
+you run this command right away, without entering the buffer containing
+the message to you, this command will yank the entire message, as is,
+into your reply. @footnote{If you'd rather have the header cleaned up,
+use @kbd{C-u r} instead of @kbd{r} when replying (see @ref{Replying}).}
+If you enter the buffer containing the message sent to you and move the
+cursor to a certain point and return to your reply and run @kbd{C-c
+C-y}, then the text yanked will range from that point to the end of the
+message.  Finally, the most common action you'll perform is to enter the
+message sent to you, move the cursor to the beginning of a paragraph or
+phrase, set the @dfn{mark} with @kbd{C-SPC} or @kbd{C-@@}, and move the
+cursor to the end of the paragraph or phrase.  The cursor position is
+called the @dfn{point}, and the space between the mark and point is
+called the @dfn{region}.  Having done that, @kbd{C-c C-y} will insert
+the region you selected.
+
+@node Inserting Messages, Header, Inserting Letter, Editing Textual
+@subsubsection Inserting messages
+
+@cindex inserting messages
+@findex @code{mh-insert-letter}
+
+Messages can be inserted with @kbd{C-c C-i} (@code{mh-insert-letter}).
+This command prompts you for the folder and message number and inserts
+the message, indented by @samp{> }.  Certain undesirable header fields
+are removed before insertion.  If given a prefix argument (like @kbd{C-u
+C-c C-i}), the header is left intact, the message is not indented, and
+@samp{> } is not inserted before each line.
+
+@node Header, Recipients, Inserting Messages, Editing Textual
+@subsubsection Editing the header
+
+@cindex editing header
+@findex @code{mh-to-field}
+
+Because the header is part of the message, you can edit the header
+fields as you wish.  However, several convenience functions exist to
+help you create and edit them.  For example, the command @kbd{C-c C-f
+C-t} (@code{mh-to-field}; alternatively, @kbd{C-c C-f t}) moves the
+cursor to the @samp{To:} header field, creating it if necessary.  The
+functions to move to the @samp{cc:}, @samp{Subject:}, @samp{From:},
+@samp{Bcc:}, and @samp{Dcc:} header fields are similar.
+
+@findex @code{mh-to-fcc}
+
+One function behaves differently from the others, namely, @kbd{C-c C-f
+C-f} (@code{mh-to-fcc}; alternatively, @kbd{C-c C-f f}).  This function
+will prompt you for the folder name in which to file a copy of the draft.
+
+Be sure to leave a row of dashes or a blank line between the header and
+the body of the message.
+
+@node Recipients, Signature, Header, Editing Textual
+@subsubsection Checking recipients
+
+@cindex checking recipients
+@cindex @code{whom}
+@cindex MH commands, @code{whom}
+@findex @code{mh-check-whom}
+
+The @kbd{C-c C-w} (@code{mh-check-whom}) command expands aliases so you
+can check the actual address(es) in the alias.  A new buffer is created
+with the output of @code{whom}.
+
+@node Signature,  , Recipients, Editing Textual
+@subsubsection Inserting your signature
+
+@cindex inserting signature
+@cindex signature
+@cindex @file{.signature}
+@cindex files, @file{.signature}
+@findex @code{mh-insert-signature}
+
+You can insert your signature at the current cursor location with the
+@kbd{C-c C-s} (@code{mh-insert-signature}) command.  The text of your
+signature is taken from the file @file{~/.signature}.
+
+@node Editing MIME, Sending Message, Editing Textual, Draft Editing
+@subsection Editing Multimedia Messages
+
+@cindex MIME
+@cindex multimedia mail
+@cindex @code{mhn}
+@cindex MH commands, @code{mhn}
+
+mh-e has the capability to create multimedia messages.  It uses the
+@sc{mime} (Multipurpose Internet Mail Extensions) protocol.  The
+@sc{mime} protocol allows you to incorporate images, sound, video,
+binary files, and even commands that fetch a file with @samp{ftp} when
+your recipient reads the message!  If you were to create a multimedia
+message with plain MH commands, you would use @code{mhn}.  Indeed, the
+mh-e @sc{mime} commands merely insert @code{mhn} directives which are
+later expanded by @code{mhn}.
+
+Each of the mh-e commands for editing multimedia messages or for
+incorporating multimedia objects is prefixed with @kbd{C-c C-m} .
+
+@cindex content types
+@cindex MIME, content types
+
+Several @sc{mime} objects are defined.  They are called @dfn{content
+types}.  The table in @ref{Customizing Draft Editing} contains a list of
+the content types that mh-e currently knows about.  Several of the mh-e
+commands fill in the content type for you, whereas others require you to
+enter one.  Most of the time, it should be obvious which one to use
+(e.g., use @kbd{image/jpeg} to include a @sc{jpeg} image).  If not, you
+can refer to @sc{rfc} 1521, 
+@c Footnotes are very fragile.  Hence the duplication.
+@c The line break in the footnote was necessary since TeX wasn't creating one.
+@ifclear html
+@footnote{This @sc{rfc} (Request For Comments) is
+available via the @sc{url} @*
+@file{ftp://ds.internic.net/rfc/rfc1521.txt}.}
+@end ifclear
+@ifset html
+@footnote{This @sc{rfc} (Request For Comments) is
+available via the @sc{url} @*
+@file{<A HREF="ftp://ds.internic.net/rfc/rfc1521.txt">ftp://ds.internic.net/rfc/rfc1521.txt</A>}.}
+@end ifset
+which defines the @sc{mime} protocol, for a list of valid content types.
+
+@cindex content description
+@cindex MIME, content description
+
+You are also sometimes asked for a @dfn{content description}.  This is
+simply an optional brief phrase, in your own words, that describes the
+object.  If you don't care to enter a content description, just press
+return and none will be included; however, a reader may skip over
+multimedia fields unless the content description is compelling.
+
+Remember: you can always add @code{mhn} directives by hand.
+
+@menu
+* Forwarding MIME::             
+* FTP::                         
+* Tar::                         
+* Other MIME Objects::          
+* Sending MIME::                
+@end menu
+
+@node Forwarding MIME, FTP, Editing MIME, Editing MIME
+@subsubsection Forwarding multimedia messages
+
+@findex @code{mh-mhn-compose-forw}
+
+Mail may be forwarded with @sc{mime} using the command @kbd{C-c C-m C-f}
+(@code{mh-mhn-compose-forw}).  You are prompted for a content
+description, the name of the folder in which the messages to forward are
+located, and the messages' numbers.
+
+@node FTP, Tar, Forwarding MIME, Editing MIME
+@subsubsection Including an ftp reference
+
+@cindex @code{ftp}
+@cindex Unix commands, @code{ftp}
+@cindex MIME, @code{ftp}
+@findex @code{mh-mhn-compose-anon-ftp}
+
+You can even have your message initiate an @code{ftp} transfer when the
+recipient reads the message.  To do this, use the @kbd{C-c C-m C-e}
+(@code{mh-mhn-compose-anon-ftp}) command.  You are prompted for the
+remote host and pathname, the content type, and the content description.
+
+@node Tar, Other MIME Objects, FTP, Editing MIME
+@subsubsection Including tar files
+
+@cindex @code{tar}
+@cindex Unix commands, @code{tar}
+@cindex MIME, @code{tar}
+@cindex @code{ftp}
+@cindex Unix commands, @code{ftp}
+@cindex MIME, @code{ftp}
+@findex @code{mh-mhn-compose-external-compressed-tar}
+
+If the remote file (@pxref{FTP}) is a compressed tar file, you can use
+@kbd{C-c C-m C-t} (@code{mh-mhn-compose-external-compressed-tar}).
+Then, in addition to retrieving the file via anonymous @emph{ftp}, the
+file will also be uncompressed and untarred.  You are prompted for the
+remote host and pathname and the content description.  The pathname
+should contain at least one @samp{/} (slash), because the pathname is
+broken up into directory and name components.
+
+@node Other MIME Objects, Sending MIME, Tar, Editing MIME
+@subsubsection Including other multimedia objects
+
+@cindex images
+@cindex MIME, images
+@cindex sound
+@cindex MIME, sound
+@cindex video
+@cindex MIME, video
+@findex @code{mh-mhn-compose-insertion}
+
+Images, sound, and video can be inserted in your message with the
+@kbd{C-c C-m C-i} (@code{mh-mhn-compose-insertion}) command.  You are
+prompted for the filename containing the object, the content type, and a
+content description of the object.
+
+@node Sending MIME,  , Other MIME Objects, Editing MIME
+@subsubsection Readying multimedia messages for sending
+
+When you are finished editing a @sc{mime} message, it might look like this:
+
+@example
+@group
+@cartouche
+   3  24Aug  root               received fax files on Wed Aug 24 11:00:13
+   4+ 24Aug  To:wohler          Test<<This is a test message to get the wh
+
+
+
+
+
+--%%-@{+inbox@} 4 msgs (1-4)      (MH-Folder Show)--Bot-------------------
+To: wohler
+cc:
+Subject: Test of MIME
+--------
+#@@application/octet-stream [Nonexistent ftp test file] \
+access-type=anon-ftp; site=berzerk.com; name=panacea.tar.gz; \
+directory="/pub/"
+#audio/basic [Test sound bite] /tmp/noise.au
+--**-@{draft@}      (MH-Letter)--All--------------------------------------
+
+@end cartouche
+@i{mh-e @sc{mime} draft}
+@end group
+@end example
+
+@cindex @code{mhn}
+@cindex MH commands, @code{mhn}
+@findex @code{mh-edit-mhn}
+
+The lines added by the previous commands are @code{mhn} directives and
+need to be converted to @sc{mime} directives before sending.  This is
+accomplished by the command @kbd{C-c C-e} (@code{mh-edit-mhn}), which
+runs @code{mhn} on the message.  The following screen shows what those
+commands look like in full @sc{mime} format.  You can see why mail user
+agents are usually built to hide these details from the user.
+
+@example
+@group
+@cartouche
+To: wohler
+cc:
+Subject: Test of MIME
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="----- =_aaaaaaaaaa0"
+Content-ID: <1623.777796162.0@@newt.com>
+
+------- =_aaaaaaaaaa0
+Content-Type: message/external-body; access-type="anon-ftp";
+        site="berzerk.com"; name="panacea.tar.gz"; directory="/pub/"
+
+Content-Type: application/octet-stream
+Content-ID: <1623.777796162.1@@newt.com>
+Content-Description: Nonexistent ftp test file
+
+------- =_aaaaaaaaaa0
+Content-Type: audio/basic
+Content-ID: <1623.777796162.2@@newt.com>
+Content-Description: Test sound bite
+Content-Transfer-Encoding: base64
+
+Q3JlYXRpdmUgVm9pY2UgRmlsZRoaAAoBKREBQh8AgwCAgH9/f35+fn59fX5+fn5+f39/f39/f3
+f4B/f39/f39/f39/f39/f39+f39+f39/f39/f4B/f39/fn5/f39/f3+Af39/f39/gH9/f39/fn
+-----@{draft@}      (MH-Letter)--Top--------------------------------------
+
+@end cartouche
+@i{mh-e @sc{mime} draft ready to send}
+@end group
+@end example
+
+@findex @code{mh-revert-mhn-edit}
+
+This action can be undone by running @kbd{C-c C-m C-u}
+(@code{mh-revert-mhn-edit}).  It does this by reverting to a backup
+file.  You are prompted to confirm this action, but you can avoid the
+confirmation by adding an argument (for example, @kbd{C-u C-c C-m C-u}).
+
+@node Sending Message, Killing Draft, Editing MIME, Draft Editing
+@subsection Sending a Message
+
+@cindex sending mail
+@findex @code{mh-send-letter}
+
+When you are all through editing a message, you send it with the
+@kbd{C-c C-c} (@code{mh-send-letter}) command.  You can give an argument
+(as in @kbd{C-u C-c C-c}) to monitor the first stage of the delivery.
+
+@node Killing Draft,  , Sending Message, Draft Editing
+@subsection Killing the Draft
+
+@cindex killing draft
+@findex @code{mh-fully-kill-draft}
+
+If for some reason you are not happy with the draft, you can kill it
+instead with @kbd{C-c C-q} (@code{mh-fully-kill-draft}).  Emacs then
+kills the draft buffer and deletes the draft message.
+
+@node Moving Mail, Searching, Draft Editing, Using mh-e
+@section Moving Your Mail Around
+
+@cindex processing mail
+
+This section covers how messages and folders can be moved about or
+manipulated.  Messages may be incorporated into your @file{+inbox},
+deleted, and refiled.  Messages containing @code{shar} or
+@code{uuencode} output can be stored.  Folders can be visited, sorted,
+packed, or deleted.  Here's a list of the available commands to do these
+things:
+
+@c Stephen thinks that ? should be documented here, since it also shows
+@c which folders a message will be refiled to.
+
+@table @kbd
+@item i
+Incorporate new mail into folder (@code{mh-inc-folder}).
+
+@item d
+Delete message (@code{mh-delete-msg}).
+
+@item C-d
+Delete message, don't move to next message (@code{mh-delete-msg-no-motion}).
+
+@item M-s
+Find messages that meet search criteria (@code{mh-search-folder}).
+
+@item o
+Output (refile) message to folder (@code{mh-refile-msg}).
+
+@item c
+Copy message to folder (@code{mh-copy-msg}).
+
+@item C-o
+Output (write) message to file (@code{mh-write-msg-to-file}).
+
+@item !
+Repeat last output command (@code{mh-refile-or-write-again}).
+
+@item l
+Print message with @code{lpr} (@code{mh-print-msg}).
+
+@item |
+Pipe message through shell command (@code{mh-pipe-msg}).
+
+@item M-n
+Unpack message created with @code{uudecode} or @code{shar}
+(@code{mh-store-msg}).
+
+@item M-l
+List all folders (@code{mh-list-folders}).
+
+@item M-f
+Visit folder (@code{mh-visit-folder}).
+
+@item M-r
+Regenerate scan lines (@code{mh-rescan-folder}).
+
+@item M-x mh-sort-folder
+Sort folder.
+
+@item M-p
+Pack folder (@code{mh-pack-folder}).
+
+@item M-k
+Remove folder (@code{mh-kill-folder}).
+
+@item x
+Execute pending refiles and deletes (@code{mh-execute-commands}).
+
+@item u
+Undo pending refile or delete (@code{mh-undo}).
+
+@item M-u
+Undo all pending refiles and deletes (@code{mh-undo-folder}).
+
+@item q
+Quit (@code{mh-quit}).
+@end table
+
+@menu
+* Incorporating::               
+* Deleting::                    
+* Organizing::                  
+* Printing::                    
+* Files and Pipes::             
+* Finishing Up::                
+@end menu
+
+@node Incorporating, Deleting, Moving Mail, Moving Mail
+@subsection Incorporating Your Mail
+
+@cindex incorporating
+@findex @code{mh-inc-folder}
+
+If at any time you receive new mail, incorporate the new mail into your
+@samp{+inbox} buffer with @kbd{i} (@code{mh-inc-folder}).  Note that
+@kbd{i} will display the @samp{+inbox} buffer, even if there isn't any
+new mail.  You can incorporate mail from any file into the current
+folder by specifying a prefix argument; you'll be prompted for the name
+of the file to use (for example, @kbd{C-u i ~/mbox @key{RET}}).
+
+@cindex Emacs, notification of new mail
+@cindex notification of new mail
+@cindex new mail
+@cindex @file{.emacs}
+@cindex files, @file{.emacs}
+
+Emacs can notify you when you have new mail by displaying @samp{Mail} in
+the mode line.  To enable this behavior, and to have a clock in the mode
+line besides, add the following to @file{~/.emacs}:
+
+@findex @code{display-time}
+
+@lisp
+(display-time)
+@end lisp
+
+@node Deleting, Organizing, Incorporating, Moving Mail
+@subsection Deleting Your Mail
+
+@cindex deleting
+@findex @code{mh-delete-msg}
+@findex @code{mh-delete-msg-no-motion}
+
+To mark a message for deletion, use the @kbd{d} (@code{mh-delete-msg})
+command.  A @samp{D} is placed by the message in the scan window, and
+the next message is displayed.  If the previous command had been
+@kbd{p}, then the next message displayed is the message previous to the
+message just deleted.  If you specify a prefix argument, you will be
+prompted for a sequence (@pxref{Sequences}) to delete (for example,
+@kbd{C-u d frombob RET}).  The @kbd{x} command actually carries out the
+deletion (@pxref{Finishing Up}).  @kbd{C-d}
+(@code{mh-delete-msg-no-motion}) marks the message for deletion but
+leaves the cursor at the current message in case you wish to perform
+other operations on the message.
+
+@node Organizing, Printing, Deleting, Moving Mail
+@subsection Organizing Your Mail with Folders
+
+@cindex using folders
+@cindex @code{folder}
+@cindex MH commands, @code{folder}
+@cindex @code{refile}
+@cindex MH commands, @code{refile}
+@findex @code{mh-refile-msg}
+
+mh-e has analogies for each of the MH @code{folder} and @code{refile}
+commands.  To refile a message in another folder, use the @kbd{o}
+(@code{mh-refile-msg}) (mnemonic: ``output'') command.  You are prompted
+for the folder name.
+
+@findex @code{mh-refile-or-write-again}
+
+If you are refiling several messages into the same folder, you can use
+the @kbd{!} (@code{mh-refile-or-write-again}) command to repeat the last
+refile or write (see the description of @kbd{C-o} in @ref{Files and
+Pipes}).  Or, place the messages into a sequence (@ref{Sequences}) and
+specify a prefix argument to @kbd{o}, in which case you'll be prompted
+for the name of the sequence (for example, @kbd{C-u o search RET}).
+
+@findex @code{mh-copy-msg}
+
+If you wish to copy a message to another folder, you can use the @kbd{c}
+(@code{mh-copy-msg}) command (see the @code{-link} argument to
+@code{refile}(1)).  You are prompted for a folder, and you can specify a
+prefix argument if you want to copy a sequence into another folder.  In
+this case, you are then prompted for the sequence.  Note that unlike the
+@kbd{o} command, the copy takes place immediately.  The original copy
+remains in the current folder.
+
+@findex @code{mh-visit-folder}
+
+When you want to read the messages that you have refiled into folders,
+use the @kbd{M-f} (@code{mh-visit-folder}) command to visit the folder.
+You are prompted for the folder name.
+
+@findex @code{mh-list-folders}
+@findex @code{mh-visit-folder}
+@findex @code{mh-sort-folder}
+@findex @code{mh-pack-folder}
+@findex @code{mh-rescan-folder}
+
+Other commands you can perform on folders include: @kbd{M-l}
+(@code{mh-list-folders}), to list all the folders in your mail
+directory; @kbd{M-k} (@code{mh-kill-folder}), to remove a folder;
+@kbd{M-x mh-sort-folder}, to sort the messages by date (see
+@code{sortm}(1) to see how to sort by other criteria); @kbd{M-p}
+(@code{mh-pack-folder}), to pack a folder, removing gaps from the
+numbering sequence; and @kbd{M-r} (@code{mh-rescan-folder}), to rescan
+the folder, which is useful to grab all messages in your @file{+inbox}
+after processing your new mail for the first time.  If you don't want to
+rescan the entire folder, give @kbd{M-r} or @kbd{M-p} a prefix argument
+and you'll be prompted for a range of messages to display (for instance,
+@kbd{C-u M-r last:50 RET}).
+
+@node Printing, Files and Pipes, Organizing, Moving Mail
+@subsection Printing Your Mail
+
+@cindex printing
+@cindex @code{mhl}
+@cindex MH commands, @code{mhl}
+@cindex @code{lpr}
+@cindex Unix commands, @code{lpr}
+@findex @code{mh-print-msg}
+
+Printing mail is simple.  Enter @kbd{l} (@code{mh-print-msg}) (for
+@i{l}ine printer or @i{l}pr).  The message is formatted with @code{mhl}
+and printed with the @code{lpr} command.  You can print all the messages
+in a sequence by specifying a prefix argument, in which case you are
+prompted for the name of the sequence (as in @kbd{C-u l frombob RET}).
+
+@node Files and Pipes, Finishing Up, Printing, Moving Mail
+@subsection Files and Pipes
+
+@cindex using files
+@cindex using pipes
+@findex @code{mh-write-msg-to-file}
+
+mh-e does offer a couple of commands that are not a part of MH@.  The
+first one, @kbd{C-o} (@code{mh-write-msg-to-file}), writes a message to
+a file (think of the @kbd{o} as in "output").  You are prompted for the
+filename.  If the file already exists, the message is appended to it.
+You can also write the message to the file without the header by
+specifying a prefix argument (such as @kbd{C-u C-o /tmp/foobar RET}).
+Subsequent writes to the same file can be made with the @kbd{!}
+command.
+
+@findex @code{mh-pipe-msg}
+
+You can also pipe the message through a Unix shell command with the
+@kbd{|} (@code{mh-pipe-msg}) command.  You are prompted for the
+Unix command through which you wish to run your message.  If you
+give an argument to this command, the message header is included in the
+text passed to the command (the contrived example @kbd{C-u | lpr}
+would be done with the @kbd{l} command instead).
+
+@cindex @code{shar}
+@cindex Unix commands, @code{shar}
+@cindex @code{uuencode}
+@cindex Unix commands, @code{uuencode}
+@findex @code{mh-store-msg}
+
+If the message is a shell archive @code{shar} or has been run through
+@code{uuencode} use @kbd{M-n} (@code{mh-store-msg}) to extract the body
+of the message.  The default directory for extraction is the current
+directory, and you have a chance to specify a different extraction
+directory.  The next time you use this command, the default directory is
+the last directory you used.
+
+@node Finishing Up,  , Files and Pipes, Moving Mail
+@subsection Finishing Up
+
+@cindex expunging refiles and deletes
+@findex @code{mh-undo}
+@findex @code{mh-undo-folder}
+
+If you've deleted a message or refiled it, but changed your mind, you
+can cancel the action before you've executed it.  Use @kbd{u}
+(@code{mh-undo}) to undo a refile on or deletion of a single message.
+You can also undo refiles and deletes for messages that belong to a
+given sequence by specifying a prefix argument.  You'll be prompted for
+the name of the sequence (as in @kbd{C-u u frombob RET}).
+Alternatively, you can use @kbd{M-u} (@code{mh-undo-folder}) to undo all
+refiles or deletes in the current folder.
+
+@findex @code{mh-execute-commands}
+
+If you've marked messages to be deleted or refiled and you want to go
+ahead and delete or refile the messages, use @kbd{x}
+(@code{mh-execute-commands}).  Many mh-e commands that may affect the
+numbering of the messages (such as @kbd{M-r} or @kbd{M-p}) will ask if you
+want to process refiles or deletes first and then either run @kbd{x} for
+you or undo the pending refiles and deletes, which are lost.
+
+@findex @code{mh-rmail}
+@findex @code{mh-quit}
+
+When you want to quit using mh-e and go back to editing, you can use the
+@kbd{q} (@code{mh-quit}) command.  This buries the buffers of the
+current mh-e folder and restores the buffers that were present when you
+first ran @kbd{M-x mh-rmail}.  You can later restore your mh-e session
+by selecting the @samp{+inbox} buffer or by running @kbd{M-x mh-rmail}
+again.
+
+@node Searching, Sequences, Moving Mail, Using mh-e
+@section Searching Through Messages
+
+@cindex searching
+@findex @code{mh-search-folder}
+
+You can search a folder for messages to or from a particular person or
+about a particular subject.  In fact, you can also search for messages
+containing selected strings in any arbitrary header field or any string
+found within the messages.  Use the @kbd{M-s} (@code{mh-search-folder})
+command.  You are first prompted for the name of the folder to search
+and then placed in the following buffer in MH-Pick mode:
+
+@example
+@group
+@cartouche
+From: #
+To:
+Cc:
+Date:
+Subject:
+--------
+
+
+
+
+
+
+
+
+
+--**-Emacs: pick-pattern    (MH-Pick)------All----------------------------
+
+@end cartouche
+@i{Pick window}
+@end group
+@end example
+
+@cindex @code{pick}
+@cindex MH commands, @code{pick}
+
+Edit this template by entering your search criteria in an appropriate
+header field that is already there, or create a new field yourself.  If
+the string you're looking for could be anywhere in a message, then place
+the string underneath the row of dashes.  The @kbd{M-s} command uses the
+MH command @code{pick} to do the real work, so read @code{pick}(1) to
+find out more about how to enter the criteria.
+
+There are no semantics associated with the search criteria---they are
+simply treated as strings.  Case is ignored when all lowercase is used,
+and regular expressions (a la @code{ed}) are available.  It is all right
+to specify several search criteria.  What happens then is that a logical
+@emph{and} of the various fields is performed.  If you prefer a logical
+@emph{or} operation, run @kbd{M-s} multiple times.
+
+As an example, let's say that we want to find messages from Ginnean
+about horseback riding in the Kosciusko National Park (Australia) during
+January, 1994.  Normally we would start with a broad search and narrow
+it down if necessary to produce a manageable amount of data, but we'll
+cut to the chase and create a fairly restrictive set of criteria as
+follows:
+
+@example
+@group
+From: ginnean
+To:
+Cc:
+Date: Jan 1994
+Subject: horse.*kosciusko
+--------
+@end group
+@end example
+
+@findex @code{mh-to-field}
+
+As with MH-Letter mode, MH-Pick provides commands like
+@kbd{C-c C-f C-t} to help you fill in the blanks.
+
+@table @kbd
+@item C-c C-f C-t
+Move to @samp{To:} header field (@code{mh-to-field}).
+
+@item C-c C-f C-c
+Move to @samp{cc:} header field (@code{mh-to-field}).
+
+@item C-c C-f C-s
+Move to @samp{Subject:} header field (@code{mh-to-field}).
+
+@item C-c C-f C-f
+Move to @samp{From:} header field (@code{mh-to-field}).
+
+@item C-c C-f C-b
+Move to @samp{Bcc:} header field (@code{mh-to-field}).
+
+@item C-c C-f C-f
+Move to @samp{Fcc:} header field (@code{mh-to-field}).
+
+@item C-c C-f C-d
+Move to @samp{Dcc:} header field (@code{mh-to-field}).
+
+@item C-c C-c
+Execute the search (@code{mh-do-pick-search}).
+@end table
+
+@findex @code{mh-do-pick-search}
+
+To perform the search, type @kbd{C-c C-c} (@code{mh-do-pick-search}).
+The selected messages are placed in the @i{search} sequence, which you
+can use later in forwarding (@pxref{Forwarding}), printing
+(@pxref{Printing}), or narrowing your field of view (@pxref{Sequences}).
+Subsequent searches are appended to the @i{search} sequence.  If,
+however, you wish to start with a clean slate, first delete the
+@i{search} sequence (how to do this is discussed in @ref{Sequences}).
+
+@cindex MH-Folder mode
+@cindex modes, MH-Folder
+
+If you're searching in a folder that is already displayed in a
+MH-Folder buffer, only those messages contained in the buffer are
+used for the search.  Therefore, if you want to search in all messages,
+first kill the folder's buffer with @kbd{C-x k} or scan the entire
+folder with @kbd{M-r}.
+
+@node Sequences, Miscellaneous, Searching, Using mh-e
+@section Using Sequences
+
+@cindex sequences
+
+For the whole scoop on MH sequences, refer to @code{mh-sequence}(5).  As
+you've read, several of the mh-e commands can operate on a sequence,
+which is a shorthand for a range or group of messages.  For example, you
+might want to forward several messages to a friend or colleague.  Here's
+how to manipulate sequences.
+
+@table @kbd
+@item %
+Put message in a sequence (@code{mh-put-msg-in-seq}).
+
+@item ?
+Display sequences that message belongs to (@code{mh-msg-is-in-seq}).
+
+@item M-q
+List all sequences in folder (@code{mh-list-sequences}).
+
+@item M-%
+Remove message from sequence (@code{mh-delete-msg-from-seq}).
+
+@item M-#
+Delete sequence (@code{mh-delete-seq}).
+
+@item C-x n
+Restrict display to messages in sequence (@code{mh-narrow-to-seq}).
+
+@item C-x w
+Remove restriction; display all messages (@code{mh-widen}).
+
+@item M-x mh-update-sequences
+Push mh-e's state out to MH@.
+@end table
+
+@cindex @code{pick}
+@cindex MH commands, @code{pick}
+@findex @code{mh-put-msg-in-seq}
+
+To place a message in a sequence, use @kbd{%} (@code{mh-put-msg-in-seq})
+to do it manually, or use the MH command @code{pick} or the mh-e version
+of @code{pick} (@ref{Searching}) which create a sequence automatically.
+Give @kbd{%} a prefix argument and you can add all the messages in one
+sequence to another sequence (for example, @kbd{C-u % SourceSequence
+RET}).
+
+@cindex MH-Folder mode
+@cindex modes, MH-Folder
+@findex @code{mh-narrow-to-seq}
+@findex @code{mh-widen}
+
+Once you've placed some messages in a sequence, you may wish to narrow
+the field of view to just those messages in the sequence you've created.
+To do this, use @kbd{C-x n} (@code{mh-narrow-to-seq}).  You are prompted
+for the name of the sequence.  What this does is show only those
+messages that are in the selected sequence in the MH-Folder buffer.  In
+addition, it limits further mh-e searches to just those messages.  When
+you want to widen the view to all your messages again, use @kbd{C-x w}
+(@code{mh-widen}).
+
+@findex @code{mh-msg-is-in-seq}
+@findex @code{mh-list-sequences}
+
+You can see which sequences a message is in with the @kbd{?}
+(@code{mh-msg-is-in-seq}) command.
+@c Doesn't work:
+@c use a prefix argument to query a
+@c message other than the current one (as in @kbd{C-u ? 42 RET}).
+Or, you can list all sequences in a selected folder (default is current
+folder) with @kbd{M-q} (@code{mh-list-sequences}).
+
+@findex @code{mh-delete-msg-from-seq}
+@findex @code{mh-delete-seq}
+
+If you want to remove a message from a sequence, use @kbd{M-%}
+(@code{mh-delete-msg-from-seq}), and if you want to delete an entire
+sequence, use @kbd{M-#} (@code{mh-delete-seq}).  In the latter case you
+are prompted for the sequence to delete.  Note that this deletes only
+the sequence, not the messages in the sequence.  If you want to delete
+the messages, use @kbd{C-u d} (see @ref{Deleting} above).
+
+@cindex @code{mark}
+@cindex MH commands, @code{mark}
+
+@findex @code{mh-update-sequences}
+
+Two sequences are maintained internally by mh-e and pushed out to MH
+when you type either the @kbd{x} or @kbd{q} command.  They are the
+sequence specified by your @samp{Unseen-Sequence:} profile entry and
+@i{cur}.  However, you can also just update MH's state with the command
+@kbd{M-x mh-update-sequences}.  See @ref{Customizing Viewing} for an
+example of how this command might be used.
+
+With the exceptions of @kbd{C-x n} and @kbd{C-x w}, the underlying MH
+command dealing with sequences is @code{mark}.
+
+@node Miscellaneous,  , Sequences, Using mh-e
+@section Miscellaneous Commands
+
+@findex @code{mh-version}
+
+One other command worth noting is @kbd{M-x mh-version}.  Since there
+were a few changes in command letters between @w{Versions 3} and 4, use
+this command to see which version you are running.  This command didn't
+exist before @w{Version 4}, so the message @samp{[No match]}
+indicates that it's time to upgrade (@pxref{Getting mh-e}).  In the
+meantime, use the older commands that are listed in @ref{Changes to
+mh-e}.  The output of @kbd{M-x mh-version} should also be included with
+any bug report you send (@pxref{Bug Reports}).
+
+@node    Customizing mh-e, Odds and Ends, Using mh-e, Top
+@chapter Customizing mh-e
+
+Until now, we've talked about the mh-e commands as they work ``out of the
+box.''  Of course, it is also possible to reconfigure mh-e
+@c to fit the needs of even the most demanding user. ???
+beyond recognition.  The following sections describe all of the
+customization variables, show the defaults, and make recommendations for
+customization.  The outline of this chapter is identical to that of
+@ref{Using mh-e}, to make it easier to find the variables you'd need to
+modify to affect a particular command.
+
+However, when customizing your mail environment, first try to change
+what you want in MH, and only change mh-e if changing MH is not
+possible.  That way you will get the same behavior inside and outside
+GNU Emacs.  Note that mh-e does not provide hooks for customizations
+that can be done in MH; this omission is intentional.
+
+@cindex @file{.emacs}
+@cindex files, @file{.emacs}
+
+Many string or integer variables are easy enough to modify using Emacs
+Lisp.  Any such modifications should be placed in a file called
+@file{.emacs} in your home directory (that is, @file{~/.emacs}).  For
+example, to modify the variable that controls printing, you could add:
+
+@vindex @code{mh-lpr-command-format}, example
+
+@lisp
+(setq mh-lpr-command-format "nenscript -G -r -2 -i'%s'")
+@end lisp
+
+@ref{Customizing Printing} talks more about this variable.
+
+@cindex setting variables
+@cindex Emacs, setting variables
+
+Variables can also hold Boolean values.  In Emacs Lisp, the Boolean
+values are @code{nil}, which means false, and @code{t}, which means true.
+Usually, variables are turned off by setting their value to @code{nil}, as
+in
+
+@vindex @code{mh-bury-show-buffer}, example
+
+@lisp
+(setq mh-bury-show-buffer nil)
+@end lisp
+
+which keeps the MH-Show buffer at the top of the buffer stack.
+To turn a variable on, you use
+
+@lisp
+(setq mh-bury-show-buffer t)
+@end lisp
+
+which places the MH-Show buffer at the bottom of the buffer
+stack.  However, the text says to turn on a variable by setting it to a
+@emph{non-@code{nil}} value, because sometimes values other than @code{t} are
+meaningful (for example, see @code{mhl-formfile}, described in
+@ref{Customizing Viewing}).  Other variables, such as hooks, involve a
+little more Emacs Lisp programming expertise.
+
+You can also ``preview'' the effects of changing variables before
+committing the changes to @file{~/.emacs}.  Variables can be changed in
+the current Emacs session by using @kbd{M-x set-variable}.
+
+@c XXX Stephen says: would be easier to just call them functions, which
+@c you mostly do.
+In general, @dfn{commands} in this text refer to Emacs Lisp functions.
+Programs outside of Emacs are specifically called MH commands, shell
+commands, or Unix commands.
+
+@cindex Emacs, Emacs Lisp manual
+@cindex Emacs, online help
+@cindex online help
+@cindex Emacs, info
+@cindex info
+
+I hope I've included enough examples here to get you well on your way.
+If you want to explore Emacs Lisp further, a programming manual does
+exist,
+@c Yes, some of the stuff in the following sections is redundant, but
+@c TeX barfs if the @ifs are inside the @footnote.
+@iftex
+@footnote{The @cite{GNU Emacs Lisp Reference Manual} may be available
+online in the Info system by typing @kbd{C-h i m Emacs Lisp RET}.  If
+not, you can order a printed manual, which has the desirable side-effect
+of helping to support the Free Software Foundation which made all this
+great software available.  You can find an order form by running
+@kbd{C-h C-d}, or you can request an order form from
+@i{gnu@@gnu.org}.}
+@end iftex
+@ifinfo
+@footnote{Perhaps you can find the online version of @ref{Top, The GNU
+Emacs Lisp Reference Manual, , elisp, GNU Emacs Lisp Reference Manual}.
+If not, you can order a printed manual, which has the desirable
+side-effect of helping to support the Free Software Foundation which
+made all this great software available.  You can find an order form by
+running @kbd{C-h C-d}, or you can request an order form from
+@i{gnu@@gnu.org}.}
+@end ifinfo
+and you can look at the code itself for examples.  Look in the Emacs
+Lisp directory on your system (such as @file{/usr/local/lib/emacs/lisp})
+and find all the @file{mh-*.el} files there.  When calling mh-e and
+other Emacs Lisp functions directly from Emacs Lisp code, you'll need to
+know the correct arguments.  Use the online help for this.  For example,
+try @kbd{C-h f mh-execute-commands RET}.  If you write your own
+functions, please do not prefix your symbols (variables and functions)
+with @code{mh-}.  This prefix is reserved for the mh-e package.  To
+avoid conflicts with existing mh-e symbols, use a prefix like @code{my-}
+or your initials.
+
+@menu
+* Customizing Reading::         
+* Customizing Sending::         
+* Customizing Draft Editing::   
+* Customizing Moving Mail::     
+* Customizing Searching::       
+@end menu
+
+@node Customizing Reading, Customizing Sending, Customizing mh-e, Customizing mh-e
+@section Reading Your Mail
+
+@cindex reading mail
+@cindex @file{.emacs}
+@cindex files, @file{.emacs}
+
+I'll start out by including a function that I use as a front end to
+mh-e.  @footnote{Stephen Gildea's favorite binding is
+@kbd{(global-set-key "\C-cr" 'mh-rmail)}.} It toggles between your
+working window configuration, which may be quite involved---windows
+filled with source, compilation output, man pages, and other
+documentation---and your mh-e window configuration.  Like the rest of
+the customization described in this chapter, simply add the following
+code to @file{~/.emacs}.  Don't be intimidated by the size of this
+example; most customizations are only one line.
+
+@iftex
+@filbreak
+@end iftex
+
+@findex @code{mh-rmail}, example
+
+@lisp
+@group
+@i{Starting mh-e}
+
+(defvar my-mh-screen-saved nil
+  "Set to non-@code{nil} when mh-e window configuration shown.")
+(defvar my-normal-screen nil "Normal window configuration.")
+(defvar my-mh-screen nil "mh-e window configuration.")
+
+(defun my-mh-rmail (&optional arg)
+  "Toggle between mh-e and normal screen configurations.
+With non-@code{nil} or prefix argument, @i{inc} mailbox as well
+when going into mail."
+  (interactive "P")                 ; @r{user callable function, P=prefix arg}
+  (setq my-mh-screen-saved          ; @r{save state}
+        (cond
+         ;; @r{Bring up mh-e screen if arg or normal window configuration.}
+         ;; @r{If arg or +inbox buffer doesn't exist, run mh-rmail.}
+         ((or arg (null my-mh-screen-saved))
+          (setq my-normal-screen (current-window-configuration))
+          (if (or arg (null (get-buffer "+inbox")))
+              (mh-rmail)
+            (set-window-configuration my-mh-screen))
+          t)                        ; @r{set my-mh-screen-saved to @code{t}}
+         ;; @r{Otherwise, save mh-e screen and restore normal screen.}
+         (t
+          (setq my-mh-screen (current-window-configuration))
+          (set-window-configuration my-normal-screen)
+          nil))))                   ; @r{set my-mh-screen-saved to nil}
+
+(global-set-key "\C-x\r" 'my-mh-rmail)  ;@r{ call with C-x RET}
+@end group
+@end lisp
+
+If you type an argument (@kbd{C-u}) or if @code{my-mh-screen-saved}
+is @code{nil} (meaning a non-mh-e window configuration), the current window
+configuration is saved, either +inbox is displayed or @code{mh-rmail} is
+run, and the mh-e window configuration is shown.  Otherwise, the mh-e
+window configuration is saved and the original configuration is
+displayed.
+
+Now to configure mh-e.  The following table lists general mh-e variables
+and variables that are used while reading mail.
+@c XXX Seth wishes the descriptions to be more parallel.  That is,
+@c some are actions, and some are objects. Hmmm.
+
+@table @code
+@item mh-progs
+Directory containing MH programs (default: dynamic).
+
+@item mh-lib
+Directory containing MH support files and programs (default: dynamic).
+
+@item mh-do-not-confirm
+Don't confirm on non-reversible commands (default: @code{nil}).
+
+@item mh-summary-height
+Number of scan lines to show (includes mode line) (default: 4).
+
+@item mh-folder-mode-hook
+Functions to run in MH-Folder mode (default: @code{nil}).
+
+@item mh-clean-message-header
+Remove extraneous headers (default: @code{nil}).
+
+@item mh-invisible-headers
+Headers to hide (default: @samp{"^Received: \\| ^Message-Id: \\|
+^Remailed-\\| ^Via: \\| ^Mail-from: \\| ^Return-Path: \\| ^In-Reply-To:
+\\| ^Resent-"}).
+
+@item mh-visible-headers
+Headers to display (default: @code{nil}).
+
+@item mhl-formfile
+Format file for @code{mhl} (default: @code{nil}).
+
+@item mh-show-hook
+Functions to run when showing message (default: @code{nil}).
+
+@item mh-show-mode-hook
+Functions to run when showing message (default: @code{nil}).
+
+@item mh-bury-show-buffer
+Leave show buffer at bottom of stack (default: @code{t}).
+
+@item mh-show-buffer-mode-line-buffer-id
+Name of show buffer in mode line (default: @samp{"@{show-%s@} %d"}).
+@end table
+
+@vindex @code{mh-progs}
+@vindex @code{mh-lib}
+
+The two variables @code{mh-progs} and @code{mh-lib} are used to tell
+mh-e where the MH programs and supporting files are kept, respectively.
+mh-e does try to figure out where they are kept for itself by looking in
+common places and in the user's @samp{PATH} environment variable, but if
+it cannot find the directories, or finds the wrong ones, you should set
+these variables.  The name of the directory should be placed in double
+quotes, and there should be a
+trailing slash (@samp{/}).  See the example in @ref{Getting Started}.
+
+@vindex @code{mh-do-not-confirm}
+
+If you never make mistakes, and you do not like confirmations for your
+actions, you can set @code{mh-do-not-confirm} to a non-@code{nil} value to
+disable confirmation for unrecoverable commands such as @kbd{M-k}
+(@code{mh-kill-folder}) and @kbd{M-u} (@code{mh-undo-folder}).  Here's
+how you set boolean values:
+
+@lisp
+(setq mh-do-not-confirm t)
+@end lisp
+
+@vindex @code{mh-summary-height}
+@cindex MH-Folder mode
+@cindex modes, MH-Folder
+
+@c Prevent page break between paragraph and example.
+@need 2000
+The variable @code{mh-summary-height} controls the number of scan lines
+displayed in the MH-Folder window, including the mode line.  The
+default value of 4 means that 3 scan lines are displayed.  Here's how
+you set numerical values:
+
+@lisp
+(setq mh-summary-height 2)              ; @r{only show the current scan line}
+@end lisp
+
+@vindex @code{mh-bury-show-buffer}
+@cindex MH-Folder mode
+@cindex modes, MH-Folder
+
+Normally the buffer for displaying messages is buried at the bottom at
+the buffer stack.  You may wish to disable this feature by setting
+@code{mh-bury-show-buffer} to @code{nil}.  One advantage of not burying the
+show buffer is that one can delete the show buffer more easily in an
+electric buffer list because of its proximity to its associated
+MH-Folder buffer.  Try running @kbd{M-x electric-buffer-list} to
+see what I mean.
+
+@vindex @code{mh-folder-mode-hook}
+@cindex MH-Folder mode
+@cindex modes, MH-Folder
+
+The hook @code{mh-folder-mode-hook} is called when a new folder is
+created with MH-Folder mode.  This could be used to set your own
+key bindings, for example:
+
+@vindex @code{mh-folder-mode-hook}, example
+
+@lisp
+@group
+@i{Create additional key bindings via mh-folder-mode-hook}
+
+(defvar my-mh-init-done nil "Non-@code{nil} when one-time mh-e settings made.")
+
+(defun my-mh-folder-mode-hook ()
+  "Hook to set key bindings in MH-Folder mode."
+  (if (not my-mh-init-done)             ; @r{only need to bind the keys once }
+      (progn
+        (local-set-key "/" 'search-msg)
+        (local-set-key "b" 'mh-burst-digest)    ; @r{better use of @kbd{b}}
+        (setq my-mh-init-done t))))
+
+;;; @r{Emacs 19}
+(add-hook 'mh-folder-mode-hook 'my-mh-folder-mode-hook)
+;;; @r{Emacs 18}
+;;;   @r{(setq mh-folder-mode-hook (cons 'my-mh-folder-mode-hook}
+;;;                               @r{mh-folder-mode-hook))}
+
+(defun search-msg ()
+  "Search for a regexp in the current message."
+  (interactive)                         ; @r{user function}
+  (save-window-excursion
+    (other-window 1)                    ; @r{go to next window}
+    (isearch-forward-regexp)))          ; @r{string search; hit return (ESC}
+                                        ;   @r{in Emacs 18) when done}
+@end group
+@end lisp
+
+@menu
+* Customizing Viewing::         
+* Customizing Moving Around::   
+@end menu
+
+@node Customizing Viewing, Customizing Moving Around, Customizing Reading, Customizing Reading
+@subsection Viewing Your Mail
+
+@vindex @code{mh-clean-message-header}
+@vindex @code{mh-invisible-headers}
+@vindex @code{mh-visible-headers}
+
+Several variables control what displayed messages look like.  Normally
+messages are delivered with a handful of uninteresting header fields.
+You can make them go away by setting @code{mh-clean-message-header} to a
+non-@code{nil} value.  The header can then be cleaned up in two ways.  By
+default, the header fields in @code{mh-invisible-headers} are removed.
+On the other hand, you could set @code{mh-visible-headers} to the fields
+that you would like to see.  If this variable is set,
+@code{mh-invisible-headers} is ignored.  I suggest that you not set
+@code{mh-visible-headers} since if you use this variable, you might miss
+a lot of header fields that you'd rather not miss.  As an example of how
+to set a string variable, @code{mh-visible-headers} can be set to show a
+minimum set of header fields (see (@ref{Regexps, , Syntax of Regular
+Expressions, emacs, The GNU Emacs Manual}, for a description of the
+special characters in this string):
+
+@lisp
+(setq mh-visible-headers "^From: \\|^Subject: \\|^Date: ")
+@end lisp
+
+@cindex @code{mhl}
+@cindex MH commands, @code{mhl}
+@vindex @code{mhl-formfile}
+
+Normally mh-e takes care of displaying messages itself (rather than
+calling an MH program to do the work).  If you'd rather have @code{mhl}
+display the message (within mh-e), set the variable @code{mhl-formfile}
+to a non-@code{nil} value.  You can set this variable either to @code{t}
+to use the default format file or to a filename if you have your own
+format file (@code{mhl}(1) tells you how to write one).  When writing
+your own format file, use a nonzero value for @code{overflowoffset} to
+ensure the header is RFC 822 compliant and parsable by mh-e.
+@code{mhl} is always used for printing and forwarding; in this case, the
+value of @code{mhl-formfile} is consulted if it is a filename.
+
+@vindex @code{mh-show-mode-hook}
+
+Two hooks can be used to control how messages are displayed.  The first
+hook, @code{mh-show-mode-hook}, is called early on in the process of
+displaying of messages.  It is used to perform some actions on the
+contents of messages, such as highlighting the header fields.  If you're
+running Emacs 19 under the X Window System, the following example will
+highlight the @samp{From:} and @samp{Subject:} header fields.  This is a
+very nice feature indeed.
+
+@vindex @code{mh-show-mode-hook}, example
+
+@lisp
+@group
+@i{Emphasize header fields in different fonts via mh-show-mode-hook}
+
+(defvar my-mh-keywords
+   '(("^From: \\(.*\\)" 1 'bold t)
+     ("^Subject: \\(.*\\)" 1 'highlight t))
+  "mh-e additions for font-lock-keywords.")
+
+(defun my-mh-show-mode-hook ()
+  "Hook to turn on and customize fonts."
+  (require 'font-lock)                 ; @r{for font-lock-keywords below}
+  (make-local-variable 'font-lock-mode-hook) ; @r{don't affect other buffers}
+  (add-hook 'font-lock-mode-hook       ; @r{set a hook with inline function}
+            (function                  ; @r{modifies font-lock-keywords when}
+             (lambda ()                ; @r{font-lock-mode run}
+               (setq font-lock-keywords
+                     (append my-mh-keywords font-lock-keywords)))))
+  (font-lock-mode 1))                  ; @r{change the typefaces}
+
+(if window-system                      ; @r{can't do this on @sc{ASCII} terminal}
+    (add-hook 'mh-show-mode-hook 'my-mh-show-mode-hook))
+@end group
+@end lisp
+
+@vindex @code{mh-show-hook}
+
+The second hook, @code{mh-show-hook}, is the last thing called after
+messages are displayed.  It's used to affect the behavior of mh-e in
+general or when @code{mh-show-mode-hook} is too early.  For example, if
+you wanted to keep mh-e in sync with MH, you could use
+@code{mh-show-hook} as follows:
+
+@vindex @code{mh-show-hook}, example
+
+@lisp
+(add-hook 'mh-show-hook 'mh-update-sequences)
+@end lisp
+
+@vindex @code{mh-show-buffer-mode-line-buffer-id}
+@cindex MH-Show mode
+@cindex modes, MH-Show
+
+The function @code{mh-update-sequences} is documented in @ref{Finishing
+Up}.  For those who like to modify their mode lines, use
+@code{mh-show-buffer-mode-line-buffer-id} to modify the mode line in the
+MH-Show buffers.  Place the two escape strings @samp{%s} and @samp{%d},
+which will display the folder name and the message number, respectively,
+somewhere in the string in that order.  The default value of
+@samp{"@{show-%s@} %d"} yields a mode line of
+
+@example
+-----@{show-+inbox@} 4      (MH-Show)--Bot----------------------------------
+@end example
+
+@node Customizing Moving Around,  , Customizing Viewing, Customizing Reading
+@subsection Moving Around
+
+@cindex moving between messages
+@cindex MH-Show mode
+@cindex modes, MH-Show
+@cindex MH-Folder mode
+@cindex modes, MH-Folder
+@vindex @code{mh-recenter-summary-p}
+
+When you use @kbd{t} (@code{mh-toggle-showing}) to toggle between show
+mode and scan mode, the MH-Show buffer is hidden and the
+MH-Folder buffer is left alone.  Setting
+@code{mh-recenter-summary-p} to a non-@code{nil} value causes the toggle to
+display as many scan lines as possible, with the cursor at the middle.
+The effect of @code{mh-recenter-summary-p} is rather useful, but it can
+be annoying on a slow network connection.
+
+@node Customizing Sending, Customizing Draft Editing, Customizing Reading, Customizing mh-e
+@section Sending Mail
+
+@cindex sending mail
+
+You may wish to start off by adding the following useful key bindings to
+your @file{.emacs} file:
+
+@lisp
+(global-set-key "\C-xm" 'mh-smail)
+(global-set-key "\C-x4m" 'mh-smail-other-window)
+@end lisp
+
+In addition, several variables are useful when sending mail or replying
+to mail.  They are summarized in the following table.
+
+@table @code
+@item mh-comp-formfile
+Format file for drafts (default: @samp{"components"}).
+
+@item mh-repl-formfile
+Format file for replies (default: @samp{"replcomps"}).
+
+@item mh-letter-mode-hook
+Functions to run in MH-Letter mode (default: @code{nil}).
+
+@item mh-compose-letter-function
+Functions to run when starting a new draft (default: @code{nil}).
+
+@item mh-reply-default-reply-to
+Whom reply goes to (default: @code{nil}).
+
+@item mh-forward-subject-format
+Format string for forwarded message subject (default: @samp{"%s: %s"}).
+
+@item mh-redist-full-contents
+@code{send} requires entire message (default: @code{nil}).
+
+@item mh-new-draft-cleaned-headers
+Remove these header fields from re-edited draft (default:
+@samp{"^Date:\\| ^Received:\\| ^Message-Id:\\| ^From:\\| ^Sender:\\|
+^Delivery-Date:\\| ^Return-Path:"}).
+@end table
+
+@cindex @code{comp}
+@cindex MH commands, @code{comp}
+@vindex @code{mh-comp-formfile}
+@cindex @file{components}
+@cindex files, @file{components}
+@cindex @code{repl}
+@cindex MH commands, @code{repl}
+@cindex @file{replcomps}
+@cindex files, @file{replcomps}
+@vindex @code{mh-repl-formfile}
+
+Since mh-e does not use @code{comp} to create the initial draft, you
+need to set @code{mh-comp-formfile} to the name of your components file
+if it isn't @file{components}.  This is the name of the file that
+contains the form for composing messages.  If it does not contain an
+absolute pathname, mh-e searches for the file first in your MH directory
+and then in the system MH library directory (such as
+@file{/usr/local/lib/mh}).  Replies, on the other hand, are built using
+@code{repl}.  You can change the location of the field file from the
+default of @file{replcomps} by modifying @code{mh-repl-formfile}.
+
+@vindex @code{mh-letter-mode-hook}
+@cindex @code{repl}
+@cindex MH commands, @code{repl}
+@cindex @file{components}
+@cindex files, @file{components}
+
+Two hooks are provided to run commands on your freshly created draft.
+The first hook, @code{mh-letter-mode-hook}, allows you to do some
+processing before editing a letter.  For example, you may wish to modify
+the header after @code{repl} has done its work, or you may have a
+complicated @file{components} file and need to tell mh-e where the
+cursor should go.  Here's an example of how you would use this hook---all
+of the other hooks are set in this fashion as well.
+
+@findex @code{mh-insert-signature}, example
+
+@lisp
+@group
+@i{Prepare draft for editing via mh-letter-mode-hook}
+
+(defvar letter-mode-init-done nil
+  "Non-@code{nil} when one-time mh-e settings have made.")
+
+(defun my-mh-letter-mode-hook ()
+  "Hook to prepare letter for editing."
+  (if (not letter-mode-init-done)    ; @r{only need to bind the keys once}
+      (progn
+        (local-set-key "\C-ctb" 'add-enriched-text)
+        (local-set-key "\C-cti" 'add-enriched-text)
+        (local-set-key "\C-ctf" 'add-enriched-text)
+        (local-set-key "\C-cts" 'add-enriched-text)
+        (local-set-key "\C-ctB" 'add-enriched-text)
+        (local-set-key "\C-ctu" 'add-enriched-text)
+        (local-set-key "\C-ctc" 'add-enriched-text)
+        (setq letter-mode-init-done t)))
+  (setq fill-prefix "  ")            ; @r{I find indented text easier to read}
+  (save-excursion
+    (goto-char (point-max))          ; @r{go to end of message to}
+    (mh-insert-signature)))          ;   @r{insert signature}
+
+(add-hook 'mh-letter-mode-hook 'my-mh-letter-mode-hook)
+@end group
+@end lisp
+
+The function, @code{add-enriched-text} is defined in the example in
+@ref{Customizing Editing MIME}.
+
+@vindex @code{mh-compose-letter-function}
+
+The second hook, a function really, is
+@code{mh-compose-letter-function}.  Like @code{mh-letter-mode-hook}, it
+is called just before editing a new message; however, it is the last
+function called before you edit your message.  The consequence of this
+is that you can write a function to write and send the message for you.
+This function is passed three arguments: the contents of the @samp{To:},
+@samp{Subject:}, and @samp{cc:} header fields.
+
+@menu
+* Customizing Replying::        
+* Customizing Forwarding::      
+* Customizing Redistributing::  
+* Customizing Old Drafts::      
+@end menu
+
+@node Customizing Replying, Customizing Forwarding, Customizing Sending, Customizing Sending
+@subsection Replying to Mail
+
+@cindex replying
+@vindex @code{mh-reply-default-reply-to}
+
+If you find that most of the time that you specify @kbd{cc} when you
+reply to a message, set @code{mh-reply-default-reply-to} to @samp{cc}.
+This variable is normally set to @code{nil} so that you are prompted for
+the recipient of a reply.  It can be set to one of @samp{from},
+@samp{to}, or @samp{cc}; you are then no longer prompted for the
+recipient(s) of your reply.
+
+@node Customizing Forwarding, Customizing Redistributing, Customizing Replying, Customizing Sending
+@subsection Forwarding Mail
+
+@cindex forwarding
+@vindex @code{mh-forward-subject-format}
+
+When forwarding a message, the format of the @samp{Subject:} header
+field can be modified by the variable @code{mh-forward-subject-format}.
+This variable is a string which includes two escapes (@samp{%s}).  The
+first @samp{%s} is replaced with the sender of the original message, and
+the second one is replaced with the original @samp{Subject:}.  The
+default value of @samp{"%s: %s"} takes a message with the header:
+
+@example
+@group
+To: Bill Wohler <wohler@@newt.com>
+Subject: Re: 49er football
+From: Greg DesBrisay <gd@@cellnet.com>
+@end group
+@end example
+
+and creates a subject header field of:
+
+@example
+Subject: Greg DesBrisay: Re: 49er football
+@end example
+
+@node Customizing Redistributing, Customizing Old Drafts, Customizing Forwarding, Customizing Sending
+@subsection Redistributing Your Mail
+
+@cindex redistributing
+@vindex @code{mh-redist-full-contents}
+@cindex @code{dist}
+@cindex MH commands, @code{dist}
+@cindex @code{send}
+@cindex MH commands, @code{send}
+
+The variable @code{mh-redist-full-contents} must be set to non-@code{nil} if
+@code{dist} requires the whole letter for redistribution, which is the
+case if @code{send} is compiled with the @sc{berk} @footnote{To see which
+options your copy of MH was compiled with, use @kbd{M-x mh-version}
+(@ref{Miscellaneous}).}  option (which many people abhor).  If you find
+that MH will not allow you to redistribute a message that has been
+redistributed before, this variable should be set to @code{nil}.
+
+@node Customizing Old Drafts,  , Customizing Redistributing, Customizing Sending
+@subsection Editing Old Drafts and Bounced Messages
+
+@cindex re-editing drafts
+@vindex @code{mh-new-draft-cleaned-headers}
+
+The header fields specified by @code{mh-new-draft-cleaned-headers} are
+removed from an old draft that has been recreated with @kbd{M-e}
+(@code{mh-extract-rejected-mail}) or @kbd{M-a} (@code{mh-edit-again}).
+If when you edit an old draft with these commands you find that there
+are header fields that you don't want included, you can append them to
+this variable.  For example,
+
+@vindex @code{mh-new-draft-cleaned-headers}, example
+
+@lisp
+(setq mh-new-draft-cleaned-headers
+      (concat mh-new-draft-cleaned-headers "\\|^Some-Field:"))
+@end lisp
+
+@cindex regular expressions
+
+This appends the regular expression @samp{\\|^Some-Field:} to the
+variable (@pxref{Regexps, , Syntax of Regular Expressions, emacs, The
+GNU Emacs Manual}).  The @samp{\\|} means @emph{or}, and the @samp{^}
+(caret) matches the beginning of the line.  This is done to be very
+specific about which fields match.  The literal @samp{:} is appended for
+the same reason.
+
+@node Customizing Draft Editing, Customizing Moving Mail, Customizing Sending, Customizing mh-e
+@section Editing a Draft
+
+@cindex editing draft
+
+There are several variables used during the draft editing phase.
+Examples include changing the name of the file that holds your signature
+or telling mh-e about new multimedia types.  They are:
+
+@table @code
+@item mh-yank-from-start-of-msg
+How to yank when region not set (default: @code{t}).
+
+@item mh-ins-buf-prefix
+Indent for yanked messages (default: @samp{"> "}).
+
+@item mail-citation-hook
+Functions to run on yanked messages (default: @code{nil}).
+
+@item mh-delete-yanked-msg-window
+Delete message window on yank (default: @code{nil}).
+
+@c Need the @* because otherwise TeX fills it wrong and complains
+@c about overfull hbox.
+@item mh-mime-content-types
+List of valid content types (default: @samp{'(("text/plain")@*
+("text/richtext") ("multipart/mixed") ("multipart/alternative")@*
+("multipart/digest") ("multipart/parallel") ("message/rfc822")@*
+("message/partial") ("message/external-body")@*
+("application/octet-stream") ("application/postscript")@*
+("image/jpeg") ("image/gif") ("audio/basic") ("video/mpeg"))}).
+
+@item mh-mhn-args
+Additional arguments for @code{mhn} (default: @code{nil}).
+
+@item mh-signature-file-name
+File containing signature (default: @samp{"~/.signature"}).
+
+@item mh-before-send-letter-hook
+Functions to run before sending draft (default: @code{nil}).
+
+@item mh-send-prog
+MH program used to send messages (default: @samp{"send"}).
+@end table
+
+@menu
+* Customizing Editing Textual::  
+* Customizing Editing MIME::    
+* Customizing Sending Message::  
+@end menu
+
+@node Customizing Editing Textual, Customizing Editing MIME, Customizing Draft Editing, Customizing Draft Editing
+@subsection Editing Textual Messages
+
+The following two sections include variables that customize the way you
+edit a draft.  The discussion here applies to editing multimedia
+messages as well.
+
+@menu
+* Customizing Inserting Letter::  
+* Customizing Signature::       
+@end menu
+
+@node Customizing Inserting Letter, Customizing Signature, Customizing Editing Textual, Customizing Editing Textual
+@subsubsection Inserting letter to which you're replying
+
+@cindex inserting messages
+@vindex @code{mh-yank-from-start-of-msg}
+@vindex @code{mh-ins-buf-prefix}
+@vindex @code{mail-citation-hook}
+@vindex @code{mh-ins-buf-prefix}
+@vindex @code{mh-delete-yanked-msg-window}
+
+To control how much of the message to which you are replying is yanked
+by @kbd{C-c C-y} (@code{mh-yank-cur-msg}) into your reply, modify
+@code{mh-yank-from-start-of-msg}.  The default value of @code{t} means
+that the entire message is copied.  If it is set to @code{'body} (don't
+forget the apostrophe), then only the message body is copied.  If it is
+set to @code{nil}, only the part of the message following point (the
+current cursor position in the message's buffer) is copied.  In any
+case, this variable is ignored if a region is set in the message you are
+replying to.  The string contained in @code{mh-ins-buf-prefix} is
+inserted before each line of a message that is inserted into a draft
+with @kbd{C-c C-y} (@code{mh-yank-cur-msg}).  I suggest that you not
+modify this variable.  The default value of @samp{"> "} is the default
+string for many mailers and news readers: messages are far easier to
+read if several included messages have all been indented by the same
+string.  The variable @code{mail-citation-hook} is @code{nil} by
+default, which means that when a message is inserted into the letter,
+each line is prefixed by @code{mh-ins-buf-prefix}.  Otherwise, it can be
+set to a function that modifies an included
+@cindex Emacs, packages, supercite
+citation. 
+@c Footnotes are fragile; hence the redundancy.
+@c TeX not inserting a line break; hence the @*
+@ifclear html
+@footnote{@emph{Supercite} is an example of a full-bodied, full-featured
+citation package.  It is in Emacs versions 19.15 and later, and can be
+found via anonymous @code{ftp} on @samp{archive.cis.ohio-state.edu} in
+@* @file{/pub/gnu/emacs/elisp-archive/packages/sc3.1.tar.Z}}
+@end ifclear
+@ifset html
+@footnote{@emph{Supercite} is an example of a full-bodied,
+full-featured citation package.  It is in Emacs versions 19.15 and
+later, and its @sc{url} is @*
+@file{<A HREF="ftp://archive.cis.ohio-state.edu/pub/gnu/emacs/elisp-archive/packages/sc3.1.tar.Z">ftp://archive.cis.ohio-state.edu/pub/gnu/emacs/elisp-archive/packages/sc3.1.tar.Z</A>}}
+@end ifset
+If you like to yank all the text from the message you're replying to in
+one go, set @code{mh-delete-yanked-msg-window} to non-@code{nil} to delete
+the window containing the original message after yanking it to make more
+room on your screen for your reply.
+
+@node Customizing Signature,  , Customizing Inserting Letter, Customizing Editing Textual
+@subsubsection Inserting your signature
+
+@cindex inserting signature
+@cindex signature
+@vindex @code{mh-signature-file-name}
+@cindex @file{.signature}
+@cindex files, @file{.signature}
+
+You can change the name of the file inserted with @kbd{C-c C-s}
+(@code{mh-insert-signature}) by changing @code{mh-signature-file-name}
+(default: @file{"~/.signature"}).
+
+@node Customizing Editing MIME, Customizing Sending Message, Customizing Editing Textual, Customizing Draft Editing
+@subsection Editing Multimedia Messages
+
+@cindex MIME
+@cindex multimedia mail
+@vindex @code{mh-mime-content-types}
+
+The variable @code{mh-mime-content-types} contains a list of the
+currently valid content types.  They are listed in the table in
+@ref{Customizing Draft Editing}.  If you encounter a new content type,
+you can add it like this:
+
+@vindex @code{mh-mime-content-types}, example
+
+@lisp
+(setq mh-mime-content-types (append mh-mime-content-types
+                                    '(("@var{new/type}"))))
+@end lisp
+
+Emacs macros can be used to insert enriched text directives like
+@samp{<bold>}.  The following code will make, for example, @kbd{C-c t
+b} insert the @samp{<bold>} directive.
+
+@lisp
+@group
+@i{Emacs macros for entering enriched text}
+
+(defvar enriched-text-types '(("b" . "bold") ("i" . "italic") ("f" . "fixed")
+                              ("s" . "smaller") ("B" . "bigger")
+                              ("u" . "underline") ("c" . "center"))
+  "Alist of (final-character . directive) choices for add-enriched-text.
+Additional types can be found in RFC 1563.")
+
+(defun add-enriched-text (begin end)
+  "Add enriched text directives around region.
+The directive used comes from the list enriched-text-types and is
+specified by the last keystroke of the command.  When called from Lisp,
+arguments are BEGIN and END@."
+  (interactive "r")
+  ;; @r{Set type to the directive indicated by the last keystroke.}
+  (let ((type (cdr (assoc (char-to-string (logior last-input-char ?@w{`}))
+                          enriched-text-types))))
+    (save-restriction              ; @r{restores state from narrow-to-region}
+      (narrow-to-region begin end) ; @r{narrow view to region}
+      (goto-char (point-min))      ; @r{move to beginning of text}
+      (insert "<" type ">")        ; @r{insert beginning directive}
+      (goto-char (point-max))      ; @r{move to end of text}
+      (insert "</" type ">"))))    ; @r{insert terminating directive}
+@end group
+@end lisp
+
+To use the function @code{add-enriched-text}, first create keybindings
+for it (@pxref{Customizing Sending}).  Then, set the mark with
+@kbd{C-@@} or @kbd{C-SPC}, type in the text to be highlighted, and type
+@kbd{C-c t b}.  This adds @samp{<bold>} where you set the mark and
+adds @samp{</bold>} at the location of your cursor, giving you something
+like: @samp{You should be <bold>very</bold>}.  You may also be
+interested in investigating @code{sgml-mode}.
+
+@menu
+* Customizing Sending MIME::    
+@end menu
+
+@node Customizing Sending MIME,  , Customizing Editing MIME, Customizing Editing MIME
+@subsubsection Readying multimedia messages for sending
+
+@vindex @code{mh-mhn-args}
+
+If you wish to pass additional arguments to @code{mhn} to affect how it
+builds your message, use the variable @code{mh-mhn-args}.  For example,
+you can build a consistency check into the message by setting
+@code{mh-mhn-args} to @code{-check}.  The recipient of your message can
+then run @code{mhn -check} on the message---@code{mhn} will complain if
+the message has been corrupted on the way.  The @kbd{C-c C-e}
+(@code{mh-mhn-edit}) command only consults this variable when given a
+prefix argument.
+
+@node Customizing Sending Message,  , Customizing Editing MIME, Customizing Draft Editing
+@subsection Sending a Message
+
+@cindex sending mail
+@cindex spell check
+@vindex @code{mh-before-send-letter-hook}
+
+If you want to check your spelling in your message before sending, use
+@code{mh-before-send-letter-hook} like this:
+
+@i{Spell-check message via mh-before-send-letter-hook}
+
+@vindex @code{mh-before-send-letter-hook}, example
+
+@lisp
+(add-hook 'mh-before-send-letter-hook 'ispell-message)
+@end lisp
+
+@cindex @code{send}
+@cindex MH commands, @code{send}
+@vindex @code{mh-send-prog}
+
+In case the MH @code{send} program is installed under a different name,
+use @code{mh-send-prog} to tell mh-e the name.
+
+@node Customizing Moving Mail, Customizing Searching, Customizing Draft Editing, Customizing mh-e
+@section Moving Your Mail Around
+
+@cindex processing mail
+
+If you change the name of some of the MH programs or have your own
+printing programs, the following variables can help you.
+They are described in detail in the subsequent sections.
+
+@table @code
+@item mh-inc-prog
+Program to incorporate mail (default: @samp{"inc"}).
+
+@item mh-inc-folder-hook
+Functions to run when incorporating mail (default: @code{nil}).
+
+@item mh-delete-msg-hook
+Functions to run when deleting messages (default: @code{nil}).
+
+@item mh-print-background
+Print in foreground or background (default: @code{nil}).
+
+@item mh-lpr-command-format
+Command used to print (default: @samp{"lpr -J '%s'"}).
+
+@item mh-default-folder-for-message-function
+Function to generate a default folder (default: @code{nil}).
+
+@item mh-auto-folder-collect
+Collect folder names in background at startup (default: @code{t}).
+
+@item mh-recursive-folders
+Collect nested folders (default: @code{nil}).
+
+@item mh-refile-msg-hook
+Functions to run when refiling message (default: @code{nil}).
+
+@item mh-store-default-directory
+Default directory for storing files created by @code{uuencode} or @code{shar}
+(default: @code{nil}).
+
+@item mh-sortm-args
+Additional arguments for @code{sortm} (default: @code{nil}).
+
+@item mh-scan-prog
+Program to scan messages (default: @samp{"scan"}).
+
+@item mh-before-quit-hook
+Functions to run before quitting (default: @code{nil}).  See also
+@code{mh-quit-hook}. 
+
+@item mh-quit-hook
+Functions to run after quitting (default: @code{nil}). See also
+@code{mh-before-quit-hook}.
+@end table
+
+@menu
+* Customizing Incorporating::   
+* Customizing Deleting::        
+* Customizing Organizing::      
+* Customizing Printing::        
+* Customizing Files and Pipes::  
+* Customizing Finishing Up::    
+@end menu
+
+@node Customizing Incorporating, Customizing Deleting, Customizing Moving Mail, Customizing Moving Mail
+@subsection Incorporating Your Mail
+
+@cindex incorporating
+@vindex @code{mh-inc-prog}
+@cindex @code{inc}
+@cindex MH commands, @code{inc}
+@vindex @code{mh-progs}
+@vindex @code{mh-scan-prog}
+@vindex @code{mh-inc-folder-hook}
+
+The name of the program that incorporates new mail is stored in
+@code{mh-inc-prog}; it is @samp{"inc"} by default.  This program
+generates a one-line summary for each of the new messages.  Unless it is
+an absolute pathname, the file is assumed to be in the @code{mh-progs}
+directory.  You may also link a file to @code{inc} that uses a different
+format (see @code{mh-profile}(5)).  You'll then need to modify several
+variables appropriately; see @code{mh-scan-prog} below.  You can set the
+hook @code{mh-inc-folder-hook}, which is called after new mail is
+incorporated by the @kbd{i} (@code{mh-inc-folder}) command.  A good use
+of this hook is to rescan the whole folder either after running @kbd{M-x
+mh-rmail} the first time or when you've changed the message numbers from
+outside of mh-e.
+
+@findex @code{mh-execute-commands}
+@findex @code{mh-rescan-folder}, example
+@findex @code{mh-show}, example
+@vindex @code{mh-inc-folder-hook}, example
+
+@lisp
+@group
+@i{Rescan folder after incorporating new mail via mh-inc-folder-hook}
+
+(defun my-mh-inc-folder-hook ()
+  "Hook to rescan folder after incorporating mail."
+  (if (buffer-modified-p)            ; @r{if outstanding refiles and deletes,}
+      (mh-execute-commands))         ;   @r{carry them out}
+  (mh-rescan-folder)                 ; @r{synchronize with +inbox}
+  (mh-show))                         ; @r{show the current message}
+
+(add-hook 'mh-inc-folder-hook 'my-mh-inc-folder-hook)
+@end group
+@end lisp
+
+@node Customizing Deleting, Customizing Organizing, Customizing Incorporating, Customizing Moving Mail
+@subsection Deleting Your Mail
+
+@cindex deleting
+@vindex @code{mh-delete-msg-hook}
+
+The hook @code{mh-delete-msg-hook} is called after you mark a message
+for deletion.  For example, the current maintainer of mh-e used this
+once when he kept statistics on his mail usage.
+
+@node Customizing Organizing, Customizing Printing, Customizing Deleting, Customizing Moving Mail
+@subsection Organizing Your Mail with Folders
+
+@cindex using folders
+@vindex @code{mh-recursive-folders}
+@vindex @code{mh-auto-folder-collect}
+
+By default, operations on folders work only one level at a time.  Set
+@code{mh-recursive-folders} to non-@code{nil} to operate on all folders.
+This mostly means that you'll be able to see all your folders when you
+press @key{TAB} when prompted for a folder name.  The variable
+@code{mh-auto-folder-collect} is normally turned on to generate a list
+of folder names in the background as soon as mh-e is loaded.  Otherwise,
+the list is generated when you need a folder name the first time (as
+with @kbd{o} (@code{mh-refile-msg})).  If you have a lot of folders and
+you have @code{mh-recursive-folders} set, this could take a while, which
+is why it's nice to do the folder collection in the background.
+
+@vindex @code{mh-default-folder-for-message-function}
+@findex @code{mh-refile-msg}
+@findex @code{mh-to-fcc}
+@cindex @file{.emacs}
+@cindex files, @file{.emacs}
+
+The function @code{mh-default-folder-for-message-function} is used by
+@kbd{o} (@code{mh-refile-msg}) and @kbd{C-c C-f C-f} (@code{mh-to-fcc})
+to generate a default folder.  The generated folder name should be a
+string with a @samp{+} before it.  For each of my correspondents, I use the
+same name for both an alias and a folder.  So, I wrote a function that
+takes the address in the @samp{From:} header field, finds it in my alias
+file, and returns the alias, which is used as a default folder name.
+This is the most complicated example given here, and it demonstrates
+several features of Emacs Lisp programming.  You should be able to drop
+this into @file{~/.emacs}, however.  If you use this to store messages
+in a subfolder of your Mail directory, you can modify the line that
+starts @samp{(format +%s...}  and insert your subfolder after the folder
+symbol @samp{+}.
+@c Note for me: if I insert a new version, don't forget to remove the
+@c "a/" from the folder name.
+
+@iftex
+@filbreak
+@end iftex
+
+@vindex @code{mh-default-folder-for-message-function}, example
+@vindex @code{mh-user-path}, example
+
+@lisp
+@group
+@i{Creating useful default folder for refiling via mh-default-folder-for-message-function}
+
+(defun my-mh-folder-from-address ()
+  "Determine folder name from address.
+Takes the address in the From: header field, and returns its corresponding
+alias from the user's personal aliases file. Returns @code{nil} if the address
+was not found."
+  (require 'rfc822)                         ; @r{for the rfc822 functions}
+  (search-forward-regexp "^From: \\(.*\\)") ; @r{grab header field contents}
+  (save-excursion                     ; @r{save state}
+    (let ((addr (car (rfc822-addresses  ; @r{get address}
+                      (buffer-substring (match-beginning 1)
+                                        (match-end 1)))))
+          (buffer (get-buffer-create " *temp*")) ; @r{set local variables}
+          folder)
+      (set-buffer buffer)             ; @r{jump to temporary buffer}
+      (unwind-protect                 ; @r{run kill-buffer when done}
+          (progn                      ; @r{function grouping construct}
+            (insert-file-contents (expand-file-name "aliases"
+                                                    mh-user-path))
+            (goto-char (point-min))   ; @r{grab aliases file and go to start}
+            (setq folder
+                  ;; @r{Search for the given address, even commented-out}
+                  ;; @r{addresses are found!}
+                  ;; @r{The function search-forward-regexp sets values that are}
+                  ;; @r{later used by match-beginning and match-end.}
+                  (if (search-forward-regexp (format "^;*\\(.*\\):.*%s"
+                                                     addr) nil t)
+                      ;; @r{NOTE WELL: this is what the return value looks like.}
+                      ;; @r{You can modify the format string to match your own}
+                      ;; @r{Mail hierarchy.}
+                      (format "+%s" (buffer-substring (match-beginning 1)
+                                                      (match-end 1))))))
+        (kill-buffer buffer))          ; @r{get rid of our temporary buffer}
+      folder)))                        ; @r{function's return value}
+
+(setq mh-default-folder-for-message-function 'my-mh-folder-from-address)
+@end group
+@end lisp
+
+@vindex @code{mh-refile-msg-hook}
+
+The hook @code{mh-refile-msg-hook} is called after a message is marked
+to be refiled.
+
+@vindex @code{mh-sortm-args}
+@cindex @code{sortm}
+@cindex MH commands, @code{sortm}
+@findex @code{mh-sort-folder}
+@cindex MH profile components, @code{sortm}
+@cindex @file{.mh_profile}
+@cindex files, @file{.mh_profile}
+
+The variable @code{mh-sortm-args} holds extra arguments to pass on to
+the @code{sortm} command.  Note: this variable is only consulted when a
+prefix argument is given to @kbd{M-x mh-sort-folder}.  It is used to
+override any arguments given in a @code{sortm:} entry in your MH profile
+(@file{~/.mh_profile}).
+
+@menu
+* Customizing Scan Line Formats::  
+@end menu
+
+@node Customizing Scan Line Formats,  , Customizing Organizing, Customizing Organizing
+@subsubsection Scan line formatting
+
+@vindex @code{mh-scan-prog}
+@cindex @code{scan}
+@cindex MH commands, @code{scan}
+@vindex @code{mh-progs}
+
+The name of the program that generates a listing of one line per message
+is held in @code{mh-scan-prog} (default: @samp{"scan"}).  Unless this
+variable contains an absolute pathname, it is assumed to be in the
+@code{mh-progs} directory.  You may link another program to @code{scan}
+(see @code{mh-profile}(5)) to produce a different type of listing.
+
+If you change the format of the scan lines you'll need to tell mh-e how
+to parse the new format.  As you see, quite a lot of variables are
+involved to do that.  The first variable has to do with pruning out
+garbage.
+
+@table @code
+@item mh-valid-scan-line
+@vindex @code{mh-valid-scan-line}
+@cindex @code{inc}
+@cindex MH commands, @code{inc}
+@cindex @code{scan}
+@cindex MH commands, @code{scan}
+This regular expression describes a valid scan line.  This is used to
+eliminate error messages that are occasionally produced by @code{inc} or
+@code{scan} (default: @samp{"^ *[0-9]"}).
+@end table
+
+Next, two variables control how the message numbers are parsed.
+
+@table @code
+
+@item mh-msg-number-regexp
+@vindex @code{mh-msg-number-regexp}
+This regular expression is used to extract the message number from a
+scan line.  Note that the message number must be placed in quoted
+parentheses, (\\(...\\)), as in the default of @w{@samp{"^
+*\\([0-9]+\\)"}}.
+
+@item mh-msg-search-regexp
+@vindex @code{mh-msg-search-regexp}
+Given a message number (which is inserted in @samp{%d}), this regular
+expression will match the scan line that it represents (default:
+@samp{"^[^0-9]*%d[^0-9]"}).
+@end table
+
+Finally, there are a slew of variables that control how mh-e marks up
+the scan lines.
+
+@table @code
+@item mh-cmd-note
+@vindex @code{mh-cmd-note}
+Number of characters to skip over before inserting notation (default:
+4).  Note how it relates to the following regular expressions.
+
+@item mh-deleted-msg-regexp
+@vindex @code{mh-deleted-msg-regexp}
+This regular expression describes deleted messages (default:
+@samp{"^....D"}).  See also @code{mh-note-deleted}.
+
+@item mh-refiled-msg-regexp
+@vindex @code{mh-refiled-msg-regexp}
+This regular expression describes refiled messages (default:
+@samp{"^....\\^"}).  See also @code{mh-note-refiled}.
+
+@item mh-cur-scan-msg-regexp
+@vindex @code{mh-cur-scan-msg-regexp}
+This regular expression matches the current message (default:
+@samp{"^....\\+"}).  See also @code{mh-note-cur}.
+
+@item mh-good-msg-regexp
+@vindex @code{mh-good-msg-regexp}
+This regular expression describes which messages should be shown when
+mh-e goes to the next or previous message.  Normally, deleted or refiled
+messages are skipped over (default: @samp{"^....[^D^]"}).
+
+@item mh-note-deleted
+@vindex @code{mh-note-deleted}
+Messages that have been deleted to are marked by this string (default:
+@samp{"D"}).  See also @code{mh-deleted-msg-regexp}.
+
+@item mh-note-refiled
+@vindex @code{mh-note-refiled}
+Messages that have been refiled are marked by this string (default:
+@samp{"^"}).  See also @code{mh-refiled-msg-regexp}.
+
+@item mh-note-copied
+@vindex @code{mh-note-copied}
+Messages that have been copied are marked by this string (default:
+@samp{"C"}).
+
+@item mh-note-cur
+@vindex @code{mh-note-cur}
+The current message (in MH, not in mh-e) is marked by this string
+(default: @samp{"+"}).  See also @code{mh-cur-scan-msg-regexp}.
+
+@item mh-note-repl
+@vindex @code{mh-note-repl}
+Messages that have been replied to are marked by this string (default:
+@samp{"-"}).
+
+@item mh-note-forw
+@vindex @code{mh-note-forw}
+Messages that have been forwarded are marked by this string (default:
+@samp{"F"}).
+
+@item mh-note-dist
+@vindex @code{mh-note-dist}
+Messages that have been redistributed are marked by this string
+(default: @samp{"R"}).
+
+@item mh-note-printed
+@vindex @code{mh-note-printed}
+Messages that have been printed are marked by this string (default:
+@samp{"P"}).
+
+@item mh-note-seq
+@vindex @code{mh-note-seq}
+Messages in a sequence are marked by this string (default: @samp{"%"}).
+@end table
+
+@node Customizing Printing, Customizing Files and Pipes, Customizing Organizing, Customizing Moving Mail
+@subsection Printing Your Mail
+
+@cindex printing
+@vindex @code{mh-print-background}
+@vindex @code{mh-lpr-command-format}
+@cindex @code{lpr}
+@cindex Unix commands, @code{lpr}
+
+Normally messages are printed in the foreground.  If this is slow on
+your system, you may elect to set @code{mh-print-background} to
+non-@code{nil} to print in the background.  If you do this, do not delete
+the message until it is printed or else the output may be truncated.
+The variable @code{mh-lpr-command-format} controls how the printing is
+actually done.  The string can contain one escape, @samp{%s}, which is
+filled with the name of the folder and the message number and is useful
+for print job names.  As an example, the default is @samp{"lpr -J
+'%s'"}.
+
+@node Customizing Files and Pipes, Customizing Finishing Up, Customizing Printing, Customizing Moving Mail
+@subsection Files and Pipes
+
+@cindex using files
+@cindex using pipes
+@findex @code{mh-store-msg}
+@vindex @code{mh-store-default-directory}
+
+The initial directory for the @code{mh-store-msg} command is held in
+@code{mh-store-default-directory}.  Since I almost always run
+@code{mh-store-msg} on sources, I set it to my personal source directory
+like this:
+
+@vindex @code{mh-store-default-directory}, example
+
+@lisp
+(setq mh-store-default-directory (expand-file-name "~/src/"))
+@end lisp
+
+@findex @code{mh-store-buffer}
+@cindex @code{uuencode}
+@cindex Unix commands, @code{uuencode}
+@cindex @code{shar}
+@cindex Unix commands, @code{shar}
+
+Subsequent incarnations of @code{mh-store-msg} offer the last directory
+used as the default.  By the way, @code{mh-store-msg} calls the Emacs
+Lisp function @code{mh-store-buffer}.  I mention this because you can use
+it directly if you're editing a buffer that contains a file that has
+been run through @code{uuencode} or @code{shar}.  For example, you can
+extract the contents of the current buffer in your home directory by
+typing @kbd{M-x mh-store-buffer @key{RET} ~ @key{RET}}.
+
+@node Customizing Finishing Up,  , Customizing Files and Pipes, Customizing Moving Mail
+@subsection Finishing Up
+
+@cindex quitting
+@vindex @code{mh-before-quit-hook}
+@vindex @code{mh-quit-hook}
+@findex @code{mh-execute-commands}
+
+The two variables @code{mh-before-quit-hook} and @code{mh-quit-hook} are
+called by @kbd{q} (@code{mh-quit}).  The former one is called before the
+quit occurs, so you might use it to perform any mh-e operations; you
+could perform some query and abort the quit or call
+@code{mh-execute-commands}, for example.  The latter is not run in an
+mh-e context, so you might use it to modify the window setup.
+
+@node Customizing Searching,  , Customizing Moving Mail, Customizing mh-e
+@section Searching Through Messages
+@cindex searching
+
+@vindex @code{mh-pick-mode-hook}
+@vindex @code{mh-partial-folder-mode-line-annotation}
+
+If you find that you do the same thing over and over when editing the
+search template, you may wish to bind some shortcuts to keys.  This can
+be done with the variable @code{mh-pick-mode-hook}, which is called when
+@kbd{M-s} (@code{mh-search-folder}) is run on a new pattern.  
+
+The string
+@code{mh-partial-folder-mode-line-annotation} is used to annotate the
+mode line when only a portion of the folder is shown.  For example, this
+will be displayed after running @kbd{M-s} (@code{mh-search-folder}) to
+list messages based on some search criteria (see @ref{Searching}).  The
+default annotation of @samp{"select"} yields a mode line that looks
+like:
+
+@example
+--%%-@{+inbox/select@} 2 msgs (2-3)      (MH-Folder)--All-----------------
+@end example
+
+@node Odds and Ends, History, Customizing mh-e, Top
+@appendix Odds and Ends
+
+This appendix covers a few topics that don't fit elsewhere.  Here I tell
+you how to report bugs and how to get on the mh-e mailing list.  I also
+point out some additional sources of information.
+
+@menu
+* Bug Reports::                 
+* Mailing List::                
+* MH FAQ::                      
+* Getting mh-e::                
+@end menu
+
+@node Bug Reports, Mailing List, Odds and Ends, Odds and Ends
+@appendixsec Bug Reports
+
+@cindex bugs
+@cindex Gildea, Stephen
+
+The current maintainer of mh-e is Stephen Gildea
+<@i{gildea@@lcs.mit.edu}>.  Please mail bug reports directly to him, as
+well as any praise or suggestions.  Please include the output of
+@kbd{M-x mh-version} (@pxref{Miscellaneous}) in any bug report you send.
+
+@node Mailing List, MH FAQ, Bug Reports, Odds and Ends
+@appendixsec mh-e Mailing List
+
+@cindex mailing list
+
+There is a mailing list, @i{mh-e@@x.org}, for discussion of mh-e and
+announcements of new versions.  Send a ``subscribe'' message to
+@i{mh-e-request@@x.org} to be added.  Do not report bugs on this list;
+mail them directly to the maintainer (@pxref{Bug Reports}).
+
+@node MH FAQ, Getting mh-e, Mailing List, Odds and Ends
+@appendixsec MH FAQ
+
+@cindex MH FAQ
+@cindex FAQ
+
+An FAQ appears monthly in the newsgroup @samp{comp.mail.mh}.  While very
+little is there that deals with mh-e specifically, there is an
+incredible wealth of material about MH itself which you will find
+useful.  The subject of the FAQ is @cite{MH Frequently Asked Questions
+(FAQ) with Answers}.
+
+The FAQ can be also obtained by anonymous @code{ftp} or via the
+World Wide Web (WWW)@.  It is located at:
+
+@ifclear html
+@example
+ftp://rtfm.mit.edu/pub/usenet/news.answers/mail/mh-faq/part1
+http://www.cis.ohio-state.edu/hypertext/faq/usenet/mail/mh-faq/part1/faq.html
+@end example
+@end ifclear
+
+@ifset html
+@example
+<A HREF="ftp://rtfm.mit.edu/pub/usenet/news.answers/mail/mh-faq/part1">ftp://rtfm.mit.edu/pub/usenet/news.answers/mail/mh-faq/part1</A>
+<A HREF="http://www.cis.ohio-state.edu/hypertext/faq/usenet/mail/mh-faq/part1/faq.html">http://www.cis.ohio-state.edu/hypertext/faq/usenet/mail/mh-faq/part1/faq.html</A>
+@end example
+@end ifset
+
+Otherwise, you can use mail.  Send mail to @i{mail-server@@rtfm.mit.edu}
+containing the following:
+
+@example
+send usenet/news.answers/mail/mh-faq/part1
+@end example
+
+@node Getting mh-e,  , MH FAQ, Odds and Ends
+@appendixsec Getting mh-e
+
+@cindex obtaining mh-e
+
+If you're running a pre-4.0 version of mh-e, please consider upgrading.
+You can either have your system administrator upgrade your Emacs, or
+just the files for mh-e.
+
+The MH distribution contains a copy of mh-e in @file{miscellany/mh-e}.
+Make sure it is at least @w{Version 4.0}.
+
+The latest version of mh-e can be obtained via anonymous @code{ftp} from
+@samp{ftp.x.org}.  The file containing mh-e is currently
+@ifclear html
+@file{/misc/mh-e/mh-e-@value{VERSION}.tar.Z}.
+@end ifclear
+@ifset html
+@file{<A HREF="ftp://ftp.x.org/misc/mh-e/mh-e-@value{VERSION}.tar.Z">/misc/mh-e/mh-e-@value{VERSION}.tar.Z</A>}
+@end ifset
+I suggest that you
+extract the files from @file{mh-e-@value{VERSION}.tar.Z} in the
+following fashion:
+
+@example
+@group
+% @kbd{cd}                                  # @r{Start in your home directory}
+% @kbd{mkdir lib lib/emacs}                 # @r{Create directory for mh-e}
+% @kbd{cd lib/emacs}
+% @kbd{zcat @var{path/to/}mh-e-@value{VERSION}.tar.Z | tar xvf -}    # @r{Extract files}
+@end group
+@end example
+
+@cindex @file{.emacs}
+@cindex files, @file{.emacs}
+
+To use these new files, add the following to @file{~/.emacs}:
+
+@lisp
+(setq load-path (cons (expand-file-name "~/lib/emacs") load-path))
+@end lisp
+
+@cindex news
+@cindex files, @samp{MH-E-NEWS}
+
+That's it!  If you're already running Emacs, please quit that session
+and start again to load in the new mh-e.  Check that you're running the
+new version with the command @kbd{M-x mh-version} after running any mh-e
+command.  The distribution comes with a file called @file{MH-E-NEWS} so
+you can see what's new.
+
+@node    History, Changes to mh-e, Odds and Ends, Top
+@appendix History of mh-e
+
+@cindex history of mh-e
+
+mh-e was originally written by Brian Reid in 1983 and has changed hands
+twice since then.  Jim Larus wanted to do something similar for GNU
+Emacs, and ended up completely rewriting it that same year.  In 1989,
+Stephen Gildea picked it up and is now currently improving and
+maintaining it.
+
+@menu
+* From Brian Reid::             
+* From Jim Larus::              
+* From Stephen Gildea::         
+@end menu
+
+@node From Brian Reid, From Jim Larus, History, History
+@appendixsec From Brian Reid
+
+@cindex Reid, Brian
+
+One day in 1983 I got the flu and had to stay home from work for three
+days with nothing to do.  I used that time to write MHE@.  The
+fundamental idea behind MHE was that it was a ``puppeteer'' driving the MH
+programs underneath it.  MH had a model that the editor was supposed to
+run as a subprocess of the mailer, which seemed to me at the time to be
+the tail wagging the dog.  So I turned it around and made the editor
+drive the MH programs.  I made sure that the UCI people (who were
+maintaining MH at the time) took in my changes and made them stick.
+
+Today, I still use my own version of MHE because I don't at all like the
+way that GNU mh-e works and I've never gotten to be good enough at
+hacking Emacs Lisp to make GNU mh-e do what I want.  The Gosling-emacs
+version of MHE and the GNU Emacs version of mh-e have almost nothing in
+common except similar names.  They work differently, have different
+conceptual models, and have different key bindings.  @footnote{After
+reading this article, I questioned Brian about his version of MHE, and
+received some great ideas for improving mh-e such as a dired-like method
+of selecting folders; and removing the prompting when sending mail,
+filling in the blanks in the draft buffer instead.  I passed them on to
+Stephen Gildea, the current maintainer, and he was excited about the
+ideas as well.  Perhaps one day, mh-e will again resemble MHE, although
+none of these ideas are manifest in Version 5.0.}
+
+Brian Reid, June 1994
+
+@node From Jim Larus, From Stephen Gildea, From Brian Reid, History
+@appendixsec From Jim Larus
+
+@cindex Larus, Jim
+
+Brian Reid, while at CMU or shortly after going to Stanford wrote a mail
+reading program called MHE for Gosling Emacs.  It had much the same
+structure as mh-e (i.e., invoked MH programs), though it was simpler and
+the commands were slightly different.  Unfortunately, I no longer have a
+copy so the differences are lost in the mists of time.
+
+In '82-83, I was working at BBN and wrote a lot of mlisp code in Gosling
+Emacs to make it look more like Tennex Emacs.  One of the packages that
+I picked up and improved was Reid's mail system.  In '83, I went back to
+Berkeley.  About that time, Stallman's first version of GNU Emacs came
+out and people started to move to it from Gosling Emacs (as I recall,
+the transition took a year or two).  I decided to port Reid's MHE and
+used the mlisp to Emacs Lisp translator that came with GNU Emacs.  It
+did a lousy job and the resulting code didn't work, so I bit the bullet
+and rewrote the code by hand (it was a lot smaller and simpler then, so
+it took only a day or two).
+
+Soon after that, mh-e became part of the standard Emacs distribution and
+suggestions kept dribbling in for improvements.  mh-e soon reached
+sufficient functionality to keep me happy, but I kept on improving it
+because I was a graduate student with plenty of time on my hands and it
+was more fun than my dissertation.  In retrospect, the one thing that I
+regret is not writing any documentation, which seriously limited the use
+and appeal of the package.
+
+@cindex @code{xmh}, in mh-e history
+
+In '89, I came to Wisconsin as a professor and decided not to work on
+mh-e.  It was stable, except for minor bugs, and had enough
+functionality, so I let it be for a few years.  Stephen Gildea of BBN
+began to pester me about the bugs, but I ignored them.  In 1990, he went
+off to the X Consortium, said good bye, and said that he would now be
+using @code{xmh}.  A few months later, he came back and said that he
+couldn't stand @code{xmh} and could I put a few more bug fixes into
+mh-e.  At that point, I had no interest in fixing mh-e, so I gave the
+responsibility of maintenance to him and he has done a fine job since
+then.
+
+Jim Larus, June 1994
+
+@node From Stephen Gildea,  , From Jim Larus, History
+@appendixsec From Stephen Gildea
+
+@cindex Gildea, Stephen
+
+In 1987 I went to work for Bolt Beranek and Newman, as Jim had before
+me.  In my previous job, I had been using RMAIL, but as my folders tend
+to run large, I was frustrated with the speed of RMAIL@.  However, I
+stuck with it because I wanted the GNU Emacs interface.  I am very
+familiar and comfortable with the Emacs interface (with just a few
+modifications of my own) and dislike having to use applications with
+embedded editors; they never live up to Emacs.
+
+MH is the mail reader of choice at BBN, so I converted to it.  Since I
+didn't want to give up using an Emacs interface, I started using mh-e.
+As is my wont, I started hacking on it almost immediately.  I first used
+version 3.4m.  One of the first features I added was to treat the folder
+buffer as a file-visiting buffer: you could lock it, save it, and be
+warned of unsaved changes when killing it.  I also worked to bring its
+functionality a little closer to RMAIL@.  Jim Larus was very cooperative
+about merging in my changes, and my efforts first appeared in version
+3.6, distributed with Emacs 18.52 in 1988.  Next I decided mh-e was too
+slow and optimized it a lot.  Version, 3.7, distributed with Emacs 18.56
+in 1990, was noticeably faster.
+
+When I moved to the X Consortium I became the first person there to not
+use xmh.  (There is now one other engineer there using mh-e.)  About
+this point I took over maintenance of mh-e from Jim and was finally able
+to add some features Jim hadn't accepted, such as the backward searching
+undo.  My first release was 3.8 (Emacs 18.58) in 1992.
+
+Now, in 1994, we see a flurry of releases, with both 4.0 and 5.0.
+Version 4.0 added many new features, including background folder
+collection and support for composing @sc{mime} messages.  (Reading
+@sc{mime} messages remains to be done, alas.)  While writing this book,
+Bill Wohler gave mh-e its closest examination ever, uncovering bugs and
+inconsistencies that required a new major version to fix, and so version
+5 was released.
+
+Stephen Gildea, June 1994
+
+@node Changes to mh-e, Copying, History, Top
+@appendix Changes to mh-e
+
+@cindex @code{mh-e}: comparison between versions
+
+mh-e had a fairly major facelift between @w{Versions 3} and 4.  The
+differences between @w{Versions 4} and 5 from the user's viewpoint are
+relatively minor.  The prompting order for the folder and message number
+in a couple of functions had been switched inadvertently in @w{Version
+4}.  @w{Version 5} switches the order back.  The @file{+inbox} folder is
+no longer hard-coded, but rather uses the @samp{Inbox} MH Profile entry.
+See the file @file{etc/MH-E-NEWS} in the Emacs distribution for more
+details on the changes.
+
+This section documents the changes between @w{Version 3} and newer
+versions so that you'll know which commands to use (or which commands
+you won't have) in case you're stuck with an old version.
+
+The following tables summarize the changes to buffer names, commands
+and variables.
+
+@unnumberedsec Buffer Mode Names
+
+@example
+@group
+@b{Version 3}           @b{Version 4}
+
+mh-e folder        MH-Folder
+mh-e scan          MH-Folder
+mh-e show          MH-Folder Show
+Fundamental        MH-Show
+mh-e letter        MH-Letter
+mh-e letter        MH-Pick
+@end group
+@end example
+
+@page
+
+@unnumberedsec Commands
+
+@example
+@group
+           @b{Version 3}                        @b{Version 4}
+
+@b{Function}               @b{Command}   @b{Command}          @b{Function}
+
+mh-first-msg           <          M-<               mh-first-msg
+-                      -          M->               mh-last-msg
+mh-show                .          RET               mh-show
+-                      -          ,                 mh-header-display
+mh-reply               a          r                 mh-reply
+mh-redistribute        r          M-d               mh-redistribute
+mh-unshar-msg          -          M-n               mh-store-msg
+mh-write-msg-to-file   M-o        C-o               mh-write-msg-to-file
+mh-delete-msg-from-seq C-u M-%    M-#               mh-delete-seq
+-                      -          M-q               mh-list-sequences
+mh-quit                b          q                 mh-quit
+-                      -          C-C C-f C-r       mh-to-field (@samp{From:})
+-                      -          C-C C-f C-d       mh-to-field (@samp{Dcc:})
+@end group
+@end example
+
+@unnumberedsec Variables
+
+@example
+@group
+          @b{Version 3}                           @b{Version 4}
+
+@b{Variable}              @b{Value}             @b{Value}           @b{Variable}
+
+mh-show-buffer-      "@{%%b@}  %s/%d"    "@{show-%s@} %d"  mh-show-buffer-
+mode-line-buffer-id                                    mode-line-buffer-id
+mh-unshar-default-   ""                nil             mh-store-default-
+directory                                              directory
+@end group
+@end example
+
+
+@unnumberedsec New Variables
+
+@example
+@group
+mail-citation-hook                           mh-new-draft-cleaned-headers
+mail-header-separator                        mh-pick-mode-hook
+mh-auto-folder-collect                       mh-refile-msg-hook
+mh-comp-formfile                             mh-scan-prog
+mh-repl-formfile                             mh-send-prog
+mh-delete-msg-hook                           mh-show-hook
+mh-forward-subject-format                    mh-show-mode-hook
+mh-inc-prog                                  mh-signature-file-name
+mh-mime-content-types                        mh-sortm-args
+mh-default-folder-for-message-function       mh-repl-formfile
+mh-mhn-args
+@end group
+@end example
+
+@node Copying, Command Index, Changes to mh-e, Top
+@appendix GNU GENERAL PUBLIC LICENSE
+@center Version 2, June 1991
+
+@display
+Copyright @copyright{} 1989, 1991 Free Software Foundation, Inc.
+59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+Everyone is permitted to copy and distribute verbatim copies
+of this license document, but changing it is not allowed.
+@end display
+
+@appendixsec Preamble
+
+  The licenses for most software are designed to take away your
+freedom to share and change it.  By contrast, the GNU General Public
+License is intended to guarantee your freedom to share and change free
+software---to make sure the software is free for all its users.  This
+General Public License applies to most of the Free Software
+Foundation's software and to any other program whose authors commit to
+using it.  (Some other Free Software Foundation software is covered by
+the GNU Library General Public License instead.)  You can apply it to
+your programs, too.
+
+  When we speak of free software, we are referring to freedom, not
+price.  Our General Public Licenses are designed to make sure that you
+have the freedom to distribute copies of free software (and charge for
+this service if you wish), that you receive source code or can get it
+if you want it, that you can change the software or use pieces of it
+in new free programs; and that you know you can do these things.
+
+  To protect your rights, we need to make restrictions that forbid
+anyone to deny you these rights or to ask you to surrender the rights.
+These restrictions translate to certain responsibilities for you if you
+distribute copies of the software, or if you modify it.
+
+  For example, if you distribute copies of such a program, whether
+gratis or for a fee, you must give the recipients all the rights that
+you have.  You must make sure that they, too, receive or can get the
+source code.  And you must show them these terms so they know their
+rights.
+
+  We protect your rights with two steps: (1) copyright the software, and
+(2) offer you this license which gives you legal permission to copy,
+distribute and/or modify the software.
+
+  Also, for each author's protection and ours, we want to make certain
+that everyone understands that there is no warranty for this free
+software.  If the software is modified by someone else and passed on, we
+want its recipients to know that what they have is not the original, so
+that any problems introduced by others will not reflect on the original
+authors' reputations.
+
+  Finally, any free program is threatened constantly by software
+patents.  We wish to avoid the danger that redistributors of a free
+program will individually obtain patent licenses, in effect making the
+program proprietary.  To prevent this, we have made it clear that any
+patent must be licensed for everyone's free use or not licensed at all.
+
+  The precise terms and conditions for copying, distribution and
+modification follow.
+
+@iftex
+@appendixsec TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+@end iftex
+@ifinfo
+@center TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+@end ifinfo
+
+@enumerate 0
+@item
+This License applies to any program or other work which contains
+a notice placed by the copyright holder saying it may be distributed
+under the terms of this General Public License.  The ``Program'', below,
+refers to any such program or work, and a ``work based on the Program''
+means either the Program or any derivative work under copyright law:
+that is to say, a work containing the Program or a portion of it,
+either verbatim or with modifications and/or translated into another
+language.  (Hereinafter, translation is included without limitation in
+the term ``modification''.)  Each licensee is addressed as ``you''.
+
+Activities other than copying, distribution and modification are not
+covered by this License; they are outside its scope.  The act of
+running the Program is not restricted, and the output from the Program
+is covered only if its contents constitute a work based on the
+Program (independent of having been made by running the Program).
+Whether that is true depends on what the Program does.
+
+@item
+You may copy and distribute verbatim copies of the Program's
+source code as you receive it, in any medium, provided that you
+conspicuously and appropriately publish on each copy an appropriate
+copyright notice and disclaimer of warranty; keep intact all the
+notices that refer to this License and to the absence of any warranty;
+and give any other recipients of the Program a copy of this License
+along with the Program.
+
+You may charge a fee for the physical act of transferring a copy, and
+you may at your option offer warranty protection in exchange for a fee.
+
+@item
+You may modify your copy or copies of the Program or any portion
+of it, thus forming a work based on the Program, and copy and
+distribute such modifications or work under the terms of Section 1
+above, provided that you also meet all of these conditions:
+
+@enumerate a
+@item
+You must cause the modified files to carry prominent notices
+stating that you changed the files and the date of any change.
+
+@item
+You must cause any work that you distribute or publish, that in
+whole or in part contains or is derived from the Program or any
+part thereof, to be licensed as a whole at no charge to all third
+parties under the terms of this License.
+
+@item
+If the modified program normally reads commands interactively
+when run, you must cause it, when started running for such
+interactive use in the most ordinary way, to print or display an
+announcement including an appropriate copyright notice and a
+notice that there is no warranty (or else, saying that you provide
+a warranty) and that users may redistribute the program under
+these conditions, and telling the user how to view a copy of this
+License.  (Exception: if the Program itself is interactive but
+does not normally print such an announcement, your work based on
+the Program is not required to print an announcement.)
+@end enumerate
+
+These requirements apply to the modified work as a whole.  If
+identifiable sections of that work are not derived from the Program,
+and can be reasonably considered independent and separate works in
+themselves, then this License, and its terms, do not apply to those
+sections when you distribute them as separate works.  But when you
+distribute the same sections as part of a whole which is a work based
+on the Program, the distribution of the whole must be on the terms of
+this License, whose permissions for other licensees extend to the
+entire whole, and thus to each and every part regardless of who wrote it.
+
+Thus, it is not the intent of this section to claim rights or contest
+your rights to work written entirely by you; rather, the intent is to
+exercise the right to control the distribution of derivative or
+collective works based on the Program.
+
+In addition, mere aggregation of another work not based on the Program
+with the Program (or with a work based on the Program) on a volume of
+a storage or distribution medium does not bring the other work under
+the scope of this License.
+
+@item
+You may copy and distribute the Program (or a work based on it,
+under Section 2) in object code or executable form under the terms of
+Sections 1 and 2 above provided that you also do one of the following:
+
+@enumerate a
+@item
+Accompany it with the complete corresponding machine-readable
+source code, which must be distributed under the terms of Sections
+1 and 2 above on a medium customarily used for software interchange; or,
+
+@item
+Accompany it with a written offer, valid for at least three
+years, to give any third party, for a charge no more than your
+cost of physically performing source distribution, a complete
+machine-readable copy of the corresponding source code, to be
+distributed under the terms of Sections 1 and 2 above on a medium
+customarily used for software interchange; or,
+
+@item
+Accompany it with the information you received as to the offer
+to distribute corresponding source code.  (This alternative is
+allowed only for noncommercial distribution and only if you
+received the program in object code or executable form with such
+an offer, in accord with Subsection b above.)
+@end enumerate
+
+The source code for a work means the preferred form of the work for
+making modifications to it.  For an executable work, complete source
+code means all the source code for all modules it contains, plus any
+associated interface definition files, plus the scripts used to
+control compilation and installation of the executable.  However, as a
+special exception, the source code distributed need not include
+anything that is normally distributed (in either source or binary
+form) with the major components (compiler, kernel, and so on) of the
+operating system on which the executable runs, unless that component
+itself accompanies the executable.
+
+If distribution of executable or object code is made by offering
+access to copy from a designated place, then offering equivalent
+access to copy the source code from the same place counts as
+distribution of the source code, even though third parties are not
+compelled to copy the source along with the object code.
+
+@item
+You may not copy, modify, sublicense, or distribute the Program
+except as expressly provided under this License.  Any attempt
+otherwise to copy, modify, sublicense or distribute the Program is
+void, and will automatically terminate your rights under this License.
+However, parties who have received copies, or rights, from you under
+this License will not have their licenses terminated so long as such
+parties remain in full compliance.
+
+@item
+You are not required to accept this License, since you have not
+signed it.  However, nothing else grants you permission to modify or
+distribute the Program or its derivative works.  These actions are
+prohibited by law if you do not accept this License.  Therefore, by
+modifying or distributing the Program (or any work based on the
+Program), you indicate your acceptance of this License to do so, and
+all its terms and conditions for copying, distributing or modifying
+the Program or works based on it.
+
+@item
+Each time you redistribute the Program (or any work based on the
+Program), the recipient automatically receives a license from the
+original licensor to copy, distribute or modify the Program subject to
+these terms and conditions.  You may not impose any further
+restrictions on the recipients' exercise of the rights granted herein.
+You are not responsible for enforcing compliance by third parties to
+this License.
+
+@item
+If, as a consequence of a court judgment or allegation of patent
+infringement or for any other reason (not limited to patent issues),
+conditions are imposed on you (whether by court order, agreement or
+otherwise) that contradict the conditions of this License, they do not
+excuse you from the conditions of this License.  If you cannot
+distribute so as to satisfy simultaneously your obligations under this
+License and any other pertinent obligations, then as a consequence you
+may not distribute the Program at all.  For example, if a patent
+license would not permit royalty-free redistribution of the Program by
+all those who receive copies directly or indirectly through you, then
+the only way you could satisfy both it and this License would be to
+refrain entirely from distribution of the Program.
+
+If any portion of this section is held invalid or unenforceable under
+any particular circumstance, the balance of the section is intended to
+apply and the section as a whole is intended to apply in other
+circumstances.
+
+It is not the purpose of this section to induce you to infringe any
+patents or other property right claims or to contest validity of any
+such claims; this section has the sole purpose of protecting the
+integrity of the free software distribution system, which is
+implemented by public license practices.  Many people have made
+generous contributions to the wide range of software distributed
+through that system in reliance on consistent application of that
+system; it is up to the author/donor to decide if he or she is willing
+to distribute software through any other system and a licensee cannot
+impose that choice.
+
+This section is intended to make thoroughly clear what is believed to
+be a consequence of the rest of this License.
+
+@item
+If the distribution and/or use of the Program is restricted in
+certain countries either by patents or by copyrighted interfaces, the
+original copyright holder who places the Program under this License
+may add an explicit geographical distribution limitation excluding
+those countries, so that distribution is permitted only in or among
+countries not thus excluded.  In such case, this License incorporates
+the limitation as if written in the body of this License.
+
+@item
+The Free Software Foundation may publish revised and/or new versions
+of the General Public License from time to time.  Such new versions will
+be similar in spirit to the present version, but may differ in detail to
+address new problems or concerns.
+
+Each version is given a distinguishing version number.  If the Program
+specifies a version number of this License which applies to it and ``any
+later version'', you have the option of following the terms and conditions
+either of that version or of any later version published by the Free
+Software Foundation.  If the Program does not specify a version number of
+this License, you may choose any version ever published by the Free Software
+Foundation.
+
+@item
+If you wish to incorporate parts of the Program into other free
+programs whose distribution conditions are different, write to the author
+to ask for permission.  For software which is copyrighted by the Free
+Software Foundation, write to the Free Software Foundation; we sometimes
+make exceptions for this.  Our decision will be guided by the two goals
+of preserving the free status of all derivatives of our free software and
+of promoting the sharing and reuse of software generally.
+
+@iftex
+@heading NO WARRANTY
+@end iftex
+@ifinfo
+@center NO WARRANTY
+@end ifinfo
+
+@item
+BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY
+FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW@.  EXCEPT WHEN
+OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES
+PROVIDE THE PROGRAM ``AS IS'' WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED
+OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE@.  THE ENTIRE RISK AS
+TO THE QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU@.  SHOULD THE
+PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING,
+REPAIR OR CORRECTION.
+
+@item
+IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
+WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY AND/OR
+REDISTRIBUTE THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES,
+INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING
+OUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED
+TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY
+YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER
+PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGES.
+@end enumerate
+
+@iftex
+@heading END OF TERMS AND CONDITIONS
+@end iftex
+@ifinfo
+@center END OF TERMS AND CONDITIONS
+@end ifinfo
+
+@page
+@appendixsec How to Apply These Terms to Your New Programs
+
+  If you develop a new program, and you want it to be of the greatest
+possible use to the public, the best way to achieve this is to make it
+free software which everyone can redistribute and change under these terms.
+
+  To do so, attach the following notices to the program.  It is safest
+to attach them to the start of each source file to most effectively
+convey the exclusion of warranty; and each file should have at least
+the ``copyright'' line and a pointer to where the full notice is found.
+
+@smallexample
+@var{one line to give the program's name and an idea of what it does.}
+Copyright (C) 19@var{yy}  @var{name of author}
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE@.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
+@end smallexample
+
+Also add information on how to contact you by electronic and paper mail.
+
+If the program is interactive, make it output a short notice like this
+when it starts in an interactive mode:
+
+@smallexample
+Gnomovision version 69, Copyright (C) 19@var{yy} @var{name of author}
+Gnomovision comes with ABSOLUTELY NO WARRANTY; for details
+type `show w'.  This is free software, and you are welcome
+to redistribute it under certain conditions; type `show c' 
+for details.
+@end smallexample
+
+The hypothetical commands @samp{show w} and @samp{show c} should show
+the appropriate parts of the General Public License.  Of course, the
+commands you use may be called something other than @samp{show w} and
+@samp{show c}; they could even be mouse-clicks or menu items---whatever
+suits your program.
+
+You should also get your employer (if you work as a programmer) or your
+school, if any, to sign a ``copyright disclaimer'' for the program, if
+necessary.  Here is a sample; alter the names:
+
+@smallexample
+@group
+Yoyodyne, Inc., hereby disclaims all copyright
+interest in the program `Gnomovision'
+(which makes passes at compilers) written 
+by James Hacker.
+
+@var{signature of Ty Coon}, 1 April 1989
+Ty Coon, President of Vice
+@end group
+@end smallexample
+
+This General Public License does not permit incorporating your program into
+proprietary programs.  If your program is a subroutine library, you may
+consider it more useful to permit linking proprietary applications with the
+library.  If this is what you want to do, use the GNU Library General
+Public License instead of this License.
+
+@node    Command Index, Variable Index, Copying, Top
+@unnumbered Command Index
+
+@printindex fn
+
+@node    Variable Index, Concept Index, Command Index, Top
+@unnumbered Variable Index
+
+@printindex vr
+
+@node    Concept Index,  , Variable Index, Top
+@unnumbered Concept Index
+
+@printindex cp
+
+@contents
+@bye
+
+@c XXX In the sections on customizing mh-e, you can add cross-references
+@c to the Emacs manual and the Emacs Lisp manual wherever they are
+@c useful. @pxref{node, , section, emacs, The GNU Emacs Manual}

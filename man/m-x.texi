@@ -1,0 +1,72 @@
+@c This is part of the Emacs manual.
+@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
+@c See file emacs.texi for copying conditions.
+@node M-x, Help, Minibuffer, Top
+@chapter Running Commands by Name
+
+  The Emacs commands that are used often or that must be quick to type are
+bound to keys---short sequences of characters---for convenient use.  Other
+Emacs commands that do not need to be brief are not bound to keys; to run
+them, you must refer to them by name.
+
+  A command name is, by convention, made up of one or more words,
+separated by hyphens; for example, @code{auto-fill-mode} or
+@code{manual-entry}.  The use of English words makes the command name
+easier to remember than a key made up of obscure characters, even though
+it is more characters to type.
+
+@kindex M-x
+  The way to run a command by name is to start with @kbd{M-x}, type the
+command name, and finish it with @key{RET}.  @kbd{M-x} uses the
+minibuffer to read the command name.  @key{RET} exits the minibuffer and
+runs the command.  The string @samp{M-x} appears at the beginning of the
+minibuffer as a @dfn{prompt} to remind you to enter the name of a
+command to be run.  @xref{Minibuffer}, for full information on the
+features of the minibuffer.
+
+  You can use completion to enter the command name.  For example, the
+command @code{forward-char} can be invoked by name by typing
+
+@example
+M-x forward-char @key{RET}
+@end example
+
+@noindent
+or
+
+@example
+M-x forw @key{TAB} c @key{RET}
+@end example
+
+@noindent
+Note that @code{forward-char} is the same command that you invoke with
+the key @kbd{C-f}.  You can run any Emacs command by name using
+@kbd{M-x}, whether or not any keys are bound to it.
+
+  If you type @kbd{C-g} while the command name is being read, you cancel
+the @kbd{M-x} command and get out of the minibuffer, ending up at top level.
+
+  To pass a numeric argument to the command you are invoking with
+@kbd{M-x}, specify the numeric argument before the @kbd{M-x}.  @kbd{M-x}
+passes the argument along to the command it runs.  The argument value
+appears in the prompt while the command name is being read.
+
+@vindex suggest-key-bindings
+  If the command you type has a key binding of its own, Emacs mentions
+this in the echo area, two seconds after the command finishes (if you
+don't type anything else first).  For example, if you type @kbd{M-x
+forward-word}, the message says that you can run the same command more
+easily by typing @kbd{M-f}.  You can turn off these messages by setting
+@code{suggest-key-bindings} to @code{nil}.
+
+  Normally, when describing in this manual a command that is run by
+name, we omit the @key{RET} that is needed to terminate the name.  Thus
+we might speak of @kbd{M-x auto-fill-mode} rather than @kbd{M-x
+auto-fill-mode @key{RET}}.  We mention the @key{RET} only when there is
+a need to emphasize its presence, such as when we show the command
+together with following arguments.
+
+@findex execute-extended-command
+  @kbd{M-x} works by running the command
+@code{execute-extended-command}, which is responsible for reading the
+name of another command and invoking it.

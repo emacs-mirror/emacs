@@ -1,0 +1,1325 @@
+\input texinfo                  @c -*-texinfo-*-
+
+@setfilename ../info/message
+@settitle Message 5.7 Manual
+@synindex fn cp
+@synindex vr cp
+@synindex pg cp
+@direntry
+* Message: (message).   Mail and news composition mode that goes with Gnus.
+@end direntry
+@iftex
+@finalout
+@end iftex
+@setchapternewpage odd
+
+@ifinfo
+
+This file documents Message, the Emacs message composition mode.
+
+Copyright (C) 1996 Free Software Foundation, Inc.
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+@ignore
+Permission is granted to process this file through Tex and print the
+results, provided the printed document carries copying permission
+notice identical to this one except for the removal of this paragraph
+(this paragraph not being relevant to the printed manual).
+
+@end ignore
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided also that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions.
+@end ifinfo
+
+@tex
+
+@titlepage
+@title Message 5.7 Manual
+
+@author by Lars Magne Ingebrigtsen
+@page
+
+@vskip 0pt plus 1filll
+Copyright @copyright{} 1996 Free Software Foundation, Inc. 
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions.
+
+@end titlepage
+@page
+
+@end tex
+
+@node Top
+@top Message
+
+All message composition from Gnus (both mail and news) takes place in
+Message mode buffers.
+
+@menu
+* Interface::         Setting up message buffers.
+* Commands::          Commands you can execute in message mode buffers.
+* Variables::         Customizing the message buffers.
+* Compatibility::     Making Message backwards compatible.
+* Appendices::        More technical things.
+* Index::             Variable, function and concept index.
+* Key Index::         List of Message mode keys.
+@end menu
+
+This manual corresponds to Message 5.7.  Message is distributed with
+the Gnus distribution bearing the same version number as this manual
+has. 
+
+
+@node Interface
+@chapter Interface
+
+When a program (or a person) wants to respond to a message -- reply,
+follow up, forward, cancel -- the program (or person) should just put
+point in the buffer where the message is and call the required command.
+@code{Message} will then pop up a new @code{message} mode buffer with
+appropriate headers filled out, and the user can edit the message before
+sending it.
+
+@menu
+* New Mail Message::     Editing a brand new mail message.
+* New News Message::     Editing a brand new news message.
+* Reply::                Replying via mail.
+* Wide Reply::           Responding to all people via mail.
+* Followup::             Following up via news.
+* Canceling News::       Canceling a news article.
+* Superseding::          Superseding a message.
+* Forwarding::           Forwarding a message via news or mail.
+* Resending::            Resending a mail message.
+* Bouncing::             Bouncing a mail message.
+@end menu
+
+
+@node New Mail Message
+@section New Mail Message
+
+@findex message-mail
+The @code{message-mail} command pops up a new message buffer.  
+
+Two optional parameters are accepted: The first will be used as the
+@code{To} header and the second as the @code{Subject} header.  If these
+are @code{nil}, those two headers will be empty.
+
+
+@node New News Message
+@section New News Message
+
+@findex message-news
+The @code{message-news} command pops up a new message buffer.  
+
+This function accepts two optional parameters.  The first will be used
+as the @code{Newsgroups} header and the second as the @code{Subject}
+header.  If these are @code{nil}, those two headers will be empty.
+
+
+@node Reply
+@section Reply
+
+@findex message-reply
+The @code{message-reply} function pops up a message buffer that's a
+reply to the message in the current buffer.
+
+@vindex message-reply-to-function
+Message uses the normal methods to determine where replies are to go
+(@pxref{Responses}), but you can change the behavior to suit your needs
+by fiddling with the @code{message-reply-to-function} variable.
+
+If you want the replies to go to the @code{Sender} instead of the
+@code{From}, you could do something like this:
+
+@lisp
+(setq message-reply-to-function
+      (lambda ()
+       (cond ((equal (mail-fetch-field "from") "somebody")
+               (mail-fetch-field "sender"))     
+             (t 
+              nil))))
+@end lisp
+
+This function will be called narrowed to the head of the article that is
+being replied to.
+
+As you can see, this function should return a string if it has an
+opinion as to what the To header should be.  If it does not, it should
+just return @code{nil}, and the normal methods for determining the To
+header will be used.
+
+This function can also return a list.  In that case, each list element
+should be a cons, where the car should be the name of an header
+(eg. @code{Cc}) and the cdr should be the header value
+(eg. @samp{larsi@@ifi.uio.no}).  All these headers will be inserted into
+the head of the outgoing mail. 
+
+
+@node Wide Reply
+@section Wide Reply
+
+@findex message-wide-reply
+The @code{message-wide-reply} pops up a message buffer that's a wide
+reply to the message in the current buffer.  A @dfn{wide reply} is a
+reply that goes out to all people listed in the @code{To}, @code{From}
+(or @code{Reply-to}) and @code{Cc} headers.
+
+@vindex message-wide-reply-to-function
+Message uses the normal methods to determine where wide replies are to go,
+but you can change the behavior to suit your needs by fiddling with the
+@code{message-wide-reply-to-function}.  It is used in the same way as
+@code{message-reply-to-function} (@pxref{Reply}). 
+
+@findex rmail-dont-reply-to-names
+Addresses that match the @code{rmail-dont-reply-to-names} regular
+expression will be removed from the @code{Cc} header.
+
+
+@node Followup
+@section Followup
+
+@findex message-followup
+The @code{message-followup} command pops up a message buffer that's a
+followup to the message in the current buffer.
+
+@vindex message-followup-to-function
+Message uses the normal methods to determine where followups are to go,
+but you can change the behavior to suit your needs by fiddling with the
+@code{message-followup-to-function}.  It is used in the same way as
+@code{message-reply-to-function} (@pxref{Reply}).
+
+@vindex message-use-followup-to
+The @code{message-use-followup-to} variable says what to do about
+@code{Followup-To} headers.  If it is @code{use}, always use the value.
+If it is @code{ask} (which is the default), ask whether to use the
+value.  If it is @code{t}, use the value unless it is @samp{poster}.  If
+it is @code{nil}, don't use the value.
+
+
+@node Canceling News
+@section Canceling News
+
+@findex message-cancel-news
+The @code{message-cancel-news} command cancels the article in the
+current buffer.
+
+
+@node Superseding
+@section Superseding
+
+@findex message-supersede
+The @code{message-supersede} command pops up a message buffer that will
+supersede the message in the current buffer.
+
+@vindex message-ignored-supersedes-headers
+Headers matching the @code{message-ignored-supersedes-headers} are
+removed before popping up the new message buffer.  The default is@*
+@samp{^Path:\\|^Date\\|^NNTP-Posting-Host:\\|^Xref:\\|^Lines:\\|@*
+^Received:\\|^X-From-Line:\\|Return-Path:\\|^Supersedes:}.
+
+
+
+@node Forwarding
+@section Forwarding
+
+@findex message-forward
+The @code{message-forward} command pops up a message buffer to forward
+the message in the current buffer.  If given a prefix, forward using
+news.
+
+@table @code
+@item message-forward-start-separator
+@vindex message-forward-start-separator
+Delimiter inserted before forwarded messages.  The default is@*
+@samp{------- Start of forwarded message -------\n}. 
+
+@vindex message-forward-end-separator
+@item message-forward-end-separator
+@vindex message-forward-end-separator
+Delimiter inserted after forwarded messages.  The default is@*
+@samp{------- End of forwarded message -------\n}. 
+
+@item message-signature-before-forwarded-message
+@vindex message-signature-before-forwarded-message
+If this variable is @code{t}, which it is by default, your personal
+signature will be inserted before the forwarded message.  If not, the
+forwarded message will be inserted first in the new mail.
+
+@item message-included-forward-headers
+@vindex message-included-forward-headers
+Regexp matching header lines to be included in forwarded messages.  
+
+@item message-make-forward-subject-function
+@vindex message-make-forward-subject-function
+A list of functions that are called to generate a subject header for
+forwarded messages.  The subject generated by the previous function is
+passed into each successive function.
+
+The provided functions are:
+
+@table @code
+@item message-forward-subject-author-subject
+@findex message-forward-subject-author-subject
+Source of article (author or newsgroup), in brackets followed by the
+subject.
+
+@item message-forward-subject-fwd
+Subject of article with @samp{Fwd:} prepended to it.
+@end table
+
+@item message-wash-forwarded-subjects
+@vindex message-wash-forwarded-subjects
+If this variable is @code{t}, the subjects of forwarded messages have
+the evidence of previous forwards (such as @samp{Fwd:}, @samp{Re:}, 
+@samp{(fwd)}) removed before the new subject is
+constructed.  The default value is @code{nil}.
+
+@end table
+
+
+@node Resending
+@section Resending
+
+@findex message-resend
+The @code{message-resend} command will prompt the user for an address
+and resend the message in the current buffer to that address.
+
+@vindex message-ignored-resent-headers
+Headers that match the @code{message-ignored-resent-headers} regexp will
+be removed before sending the message.  The default is
+@samp{^Return-receipt}. 
+
+
+@node Bouncing
+@section Bouncing
+
+@findex message-bounce
+The @code{message-bounce} command will, if the current buffer contains a
+bounced mail message, pop up a message buffer stripped of the bounce
+information.  A @dfn{bounced message} is typically a mail you've sent
+out that has been returned by some @code{mailer-daemon} as
+undeliverable. 
+
+@vindex message-ignored-bounced-headers
+Headers that match the @code{message-ignored-bounced-headers} regexp
+will be removed before popping up the buffer.  The default is
+@samp{^\\(Received\\|Return-Path\\):}.
+
+
+@node Commands
+@chapter Commands
+
+@menu
+* Header Commands::     Commands for moving to headers.
+* Movement::            Moving around in message buffers.
+* Insertion::           Inserting things into message buffers.
+* Various Commands::    Various things.
+* Sending::             Actually sending the message.
+* Mail Aliases::        How to use mail aliases.
+@end menu
+
+
+@node Header Commands
+@section Header Commands
+
+All these commands move to the header in question.  If it doesn't exist,
+it will be inserted.
+
+@table @kbd
+
+@item C-c ?
+@kindex C-c ?
+@findex message-goto-to
+Describe the message mode.
+
+@item C-c C-f C-t
+@kindex C-c C-f C-t 
+@findex message-goto-to
+Go to the @code{To} header (@code{message-goto-to}).
+
+@item C-c C-f C-b
+@kindex C-c C-f C-b 
+@findex message-goto-bcc
+Go to the @code{Bcc} header (@code{message-goto-bcc}).
+
+@item C-c C-f C-f
+@kindex C-c C-f C-f 
+@findex message-goto-fcc
+Go to the @code{Fcc} header (@code{message-goto-fcc}).
+
+@item C-c C-f C-c
+@kindex C-c C-f C-c 
+@findex message-goto-cc
+Go to the @code{Cc} header (@code{message-goto-cc}).
+
+@item C-c C-f C-s
+@kindex C-c C-f C-s 
+@findex message-goto-subject
+Go to the @code{Subject} header (@code{message-goto-subject}).
+
+@item C-c C-f C-r
+@kindex C-c C-f C-r 
+@findex message-goto-reply-to
+Go to the @code{Reply-To} header (@code{message-goto-reply-to}).
+
+@item C-c C-f C-n
+@kindex C-c C-f C-n 
+@findex message-goto-newsgroups
+Go to the @code{Newsgroups} header (@code{message-goto-newsgroups}).
+
+@item C-c C-f C-d
+@kindex C-c C-f C-d 
+@findex message-goto-distribution
+Go to the @code{Distribution} header (@code{message-goto-distribution}).
+
+@item C-c C-f C-o
+@kindex C-c C-f C-o 
+@findex message-goto-followup-to
+Go to the @code{Followup-To} header (@code{message-goto-followup-to}).
+
+@item C-c C-f C-k
+@kindex C-c C-f C-k 
+@findex message-goto-keywords
+Go to the @code{Keywords} header (@code{message-goto-keywords}).
+
+@item C-c C-f C-u
+@kindex C-c C-f C-u 
+@findex message-goto-summary
+Go to the @code{Summary} header (@code{message-goto-summary}).
+
+@end table
+
+
+@node Movement
+@section Movement
+
+@table @kbd
+@item C-c C-b
+@kindex C-c C-b 
+@findex message-goto-body
+Move to the beginning of the body of the message
+(@code{message-goto-body}). 
+
+@item C-c C-i
+@kindex C-c C-i 
+@findex message-goto-signature
+Move to the signature of the message (@code{message-goto-signature}).
+
+@end table
+
+
+@node Insertion
+@section Insertion
+
+@table @kbd
+
+@item C-c C-y
+@kindex C-c C-y 
+@findex message-yank-original
+Yank the message that's being replied to into the message buffer
+(@code{message-yank-original}). 
+
+@item C-c C-q
+@kindex C-c C-q 
+@findex message-fill-yanked-message
+Fill the yanked message (@code{message-fill-yanked-message}).  Warning:
+Can severely mess up the yanked text if its quoting conventions are
+strange.  You'll quickly get a feel for when it's safe, though.  Anyway,
+just remember that @kbd{C-x u} (@code{undo}) is available and you'll be
+all right.
+
+
+@item C-c C-w
+@kindex C-c C-w 
+@findex message-insert-signature
+Insert a signature at the end of the buffer
+(@code{message-insert-signature}).  
+
+@end table
+
+@table @code
+@item message-ignored-cited-headers
+@vindex message-ignored-cited-headers
+All headers that match this regexp will be removed from yanked
+messages.  The default is @samp{.}, which means that all headers will be
+removed.
+
+@item message-citation-line-function
+@vindex message-citation-line-function
+Function called to insert the citation line.  The default is
+@code{message-insert-citation-line}, which will lead to citation lines
+that look like:
+
+@example
+Hallvard B Furuseth <h.b.furuseth@@usit.uio.no> writes:
+@end example
+
+Point will be at the beginning of the body of the message when this
+function is called.
+
+@item message-yank-prefix
+@vindex message-yank-prefix
+@cindex yanking
+@cindex quoting
+When you are replying to or following up an article, you normally want
+to quote the person you are answering.  Inserting quoted text is done by
+@dfn{yanking}, and each quoted line you yank will have
+@code{message-yank-prefix} prepended to it.  The default is @samp{> }.
+If it is @code{nil}, just indent the message.
+
+@item message-indentation-spaces
+@vindex message-indentation-spaces
+Number of spaces to indent yanked messages.
+
+@item message-cite-function
+@vindex message-cite-function
+@findex message-cite-original
+@findex sc-cite-original
+@findex message-cite-original-without-signature
+@cindex Supercite
+Function for citing an original message.  The default is
+@code{message-cite-original}, which simply inserts the original message
+and prepends @samp{> } to each line.
+@code{message-cite-original-without-signature} does the same, but elides
+the signature.  You can also set it to @code{sc-cite-original} to use
+Supercite.
+
+@item message-indent-citation-function
+@vindex message-indent-citation-function
+Function for modifying a citation just inserted in the mail buffer.
+This can also be a list of functions.  Each function can find the
+citation between @code{(point)} and @code{(mark t)}.  And each function
+should leave point and mark around the citation text as modified.
+
+@item message-signature
+@vindex message-signature
+String to be inserted at the end of the message buffer.  If @code{t}
+(which is the default), the @code{message-signature-file} file will be
+inserted instead.  If a function, the result from the function will be
+used instead.  If a form, the result from the form will be used instead.
+If this variable is @code{nil}, no signature will be inserted at all.
+
+@item message-signature-file
+@vindex message-signature-file
+File containing the signature to be inserted at the end of the buffer.
+The default is @samp{~/.signature}.
+
+@end table
+
+Note that RFC1036bis says that a signature should be preceded by the three
+characters @samp{-- } on a line by themselves.  This is to make it
+easier for the recipient to automatically recognize and process the
+signature.  So don't remove those characters, even though you might feel
+that they ruin your beautiful design, like, totally.
+
+Also note that no signature should be more than four lines long.
+Including ASCII graphics is an efficient way to get everybody to believe
+that you are silly and have nothing important to say.
+
+
+
+@node Various Commands
+@section Various Commands
+
+@table @kbd
+
+@item C-c C-r
+@kindex C-c C-r 
+@findex message-caesar-buffer-body
+Caesar rotate (aka. rot13) the current message
+(@code{message-caesar-buffer-body}).  If narrowing is in effect, just
+rotate the visible portion of the buffer.  A numerical prefix says how
+many places to rotate the text.  The default is 13.
+
+@item C-c C-e
+@kindex C-c C-e
+@findex message-elide-region
+Elide the text between point and mark (@code{message-elide-region}).
+The text is killed and an ellipsis (@samp{[...]}) will be inserted in
+its place.
+
+@item C-c C-z
+@kindex C-c C-x
+@findex message-kill-to-signature
+Kill all the text up to the signature, or if that's missing, up to the
+end of the message (@code{message-kill-to-signature}).
+
+@item C-c C-v
+@kindex C-c C-v
+@findex message-delete-not-region
+Delete all text in the body of the message that is outside the region
+(@code{message-delete-not-region}).
+
+@item M-RET
+@kindex M-RET
+@kindex message-newline-and-reformat
+Insert four newlines, and then reformat if inside quoted text.
+
+Here's an example:
+
+@example
+> This is some quoted text.  And here's more quoted text.
+@end example
+
+If point is before @samp{And} and you press @kbd{M-RET}, you'll get:
+
+@example
+> This is some quoted text.
+
+*
+
+> And here's more quoted text.
+@end example
+
+@samp{*} says where point will be placed.  
+
+@item C-c C-t
+@kindex C-c C-t 
+@findex message-insert-to
+Insert a @code{To} header that contains the @code{Reply-To} or
+@code{From} header of the message you're following up
+(@code{message-insert-to}). 
+
+@item C-c C-n
+@kindex C-c C-n 
+@findex message-insert-newsgroups
+Insert a @code{Newsgroups} header that reflects the @code{Followup-To}
+or @code{Newsgroups} header of the article you're replying to
+(@code{message-insert-newsgroups}).
+
+@item C-c M-r
+@kindex C-c M-r
+@findex message-rename-buffer
+Rename the buffer (@code{message-rename-buffer}).  If given a prefix,
+prompt for a new buffer name.
+
+@end table
+
+
+@node Sending
+@section Sending
+
+@table @kbd
+@item C-c C-c
+@kindex C-c C-c 
+@findex message-send-and-exit
+Send the message and bury the current buffer
+(@code{message-send-and-exit}). 
+
+@item C-c C-s
+@kindex C-c C-s 
+@findex message-send
+Send the message (@code{message-send}). 
+
+@item C-c C-d
+@kindex C-c C-d
+@findex message-dont-send
+Bury the message buffer and exit (@code{message-dont-send}).
+
+@item C-c C-k
+@kindex C-c C-k
+@findex message-kill-buffer
+Kill the message buffer and exit (@code{message-kill-buffer}).
+
+@end table
+
+
+
+@node Mail Aliases
+@section Mail Aliases
+@cindex mail aliases
+@cindex aliases
+
+@vindex message-mail-alias-type
+The @code{message-mail-alias-type} variable controls what type of mail
+alias expansion to use.  Currently only one form is supported---Message
+uses @code{mailabbrev} to handle mail aliases.  If this variable is
+@code{nil}, no mail alias expansion will be performed.
+
+@code{mailabbrev} works by parsing the @file{/etc/mailrc} and
+@file{~/.mailrc} files.  These files look like:
+
+@example
+alias lmi "Lars Magne Ingebrigtsen <larsi@@ifi.uio.no>"
+alias ding "ding@@ifi.uio.no (ding mailing list)"
+@end example
+
+After adding lines like this to your @file{~/.mailrc} file, you should
+be able to just write @samp{lmi} in the @code{To} or @code{Cc} (and so
+on) headers and press @kbd{SPC} to expand the alias.
+
+No expansion will be performed upon sending of the message---all
+expansions have to be done explicitly.
+
+
+
+@node Variables
+@chapter Variables
+
+@menu
+* Message Headers::             General message header stuff.
+* Mail Headers::                Customizing mail headers.
+* Mail Variables::              Other mail variables.
+* News Headers::                Customizing news headers.
+* News Variables::              Other news variables.
+* Various Message Variables::   Other message variables.
+* Sending Variables::           Variables for sending.
+* Message Buffers::             How Message names its buffers.
+* Message Actions::             Actions to be performed when exiting.
+@end menu
+
+
+@node Message Headers
+@section Message Headers
+
+Message is quite aggressive on the message generation front.  It has to
+be -- it's a combined news and mail agent.  To be able to send combined
+messages, it has to generate all headers itself (instead of letting the
+mail/news system do it) to ensure that mail and news copies of messages
+look sufficiently similar.
+
+@table @code
+
+@item message-generate-headers-first
+@vindex message-generate-headers-first
+If non-@code{nil}, generate all headers before starting to compose the
+message.  
+
+@item message-from-style
+@vindex message-from-style
+Specifies how @code{From} headers should look.  There are four valid
+values:
+
+@table @code
+@item nil
+Just the address -- @samp{king@@grassland.com}.
+
+@item parens
+@samp{king@@grassland.com (Elvis Parsley)}.
+
+@item angles
+@samp{Elvis Parsley <king@@grassland.com>}.
+
+@item default
+Look like @code{angles} if that doesn't require quoting, and
+@code{parens} if it does.  If even @code{parens} requires quoting, use
+@code{angles} anyway.
+
+@end table
+
+@item message-deletable-headers
+@vindex message-deletable-headers
+Headers in this list that were previously generated by Message will be
+deleted before posting.  Let's say you post an article.  Then you decide
+to post it again to some other group, you naughty boy, so you jump back
+to the @code{*post-buf*} buffer, edit the @code{Newsgroups} line, and
+ship it off again.  By default, this variable makes sure that the old
+generated @code{Message-ID} is deleted, and a new one generated.  If
+this isn't done, the entire empire would probably crumble, anarchy would
+prevail, and cats would start walking on two legs and rule the world.
+Allegedly.  
+
+@item message-default-headers
+@vindex message-default-headers
+This string is inserted at the end of the headers in all message
+buffers.
+
+@item message-subject-re-regexp
+@vindex message-subject-re-regexp
+Responses to messages have subjects that start with @samp{Re: }.  This
+is @emph{not} an abbreviation of the English word ``response'', but in
+Latin, and means ``in response to''.  Some illiterate nincompoops have
+failed to grasp this fact, and have ``internationalized'' their software
+to use abonimations like @samp{Aw: } (``antwort'') or @samp{Sv: }
+(``svar'') instead, which is meaningless and evil.  However, you may
+have to deal with users that use these evil tools, in which case you may
+set this variable to a regexp that matches these prefixes.  Myself, I
+just throw away non-compliant mail.
+
+@end table
+
+
+@node Mail Headers
+@section Mail Headers
+
+@table @code
+@item message-required-mail-headers
+@vindex message-required-mail-headers
+@xref{News Headers}, for the syntax of this variable.  It is
+@code{(From Date Subject (optional . In-Reply-To) Message-ID Lines
+(optional . X-Mailer))} by default.
+
+@item message-ignored-mail-headers
+@vindex message-ignored-mail-headers
+Regexp of headers to be removed before mailing.  The default is
+@samp{^[GF]cc:\\|^Resent-Fcc:}.
+
+@item message-default-mail-headers
+@vindex message-default-mail-headers
+This string is inserted at the end of the headers in all message
+buffers that are initialized as mail.
+
+@end table
+
+
+@node Mail Variables
+@section Mail Variables 
+
+@table @code
+@item message-send-mail-function
+@vindex message-send-mail-function
+Function used to send the current buffer as mail.  The default is
+@code{message-send-mail-with-sendmail}.   If you prefer using MH
+instead, set this variable to @code{message-send-mail-with-mh}.
+
+@item message-mh-deletable-headers
+@vindex message-mh-deletable-headers
+Most versions of MH doesn't like being fed messages that contain the
+headers in this variable.  If this variable is non-@code{nil} (which is
+the default), these headers will be removed before mailing when sending
+messages via MH.  Set it to @code{nil} if your MH can handle these
+headers.
+
+@end table
+
+
+@node News Headers
+@section News Headers
+
+@vindex message-required-news-headers
+@code{message-required-news-headers} a list of header symbols.  These
+headers will either be automatically generated, or, if that's
+impossible, they will be prompted for.  The following symbols are valid:
+
+@table @code
+
+@item From
+@cindex From
+@findex user-full-name
+@findex user-mail-address
+This required header will be filled out with the result of the
+@code{message-make-from} function, which depends on the
+@code{message-from-style}, @code{user-full-name},
+@code{user-mail-address} variables.
+
+@item Subject
+@cindex Subject
+This required header will be prompted for if not present already. 
+
+@item Newsgroups
+@cindex Newsgroups
+This required header says which newsgroups the article is to be posted
+to.  If it isn't present already, it will be prompted for.
+
+@item Organization
+@cindex organization
+This optional header will be filled out depending on the
+@code{message-user-organization} variable.
+@code{message-user-organization-file} will be used if this variable is
+@code{t}.  This variable can also be a string (in which case this string
+will be used), or it can be a function (which will be called with no
+parameters and should return a string to be used).
+
+@item Lines
+@cindex Lines
+This optional header will be computed by Message.
+
+@item Message-ID
+@cindex Message-ID
+@vindex mail-host-address
+@findex system-name
+@cindex Sun
+This required header will be generated by Message.  A unique ID will be
+created based on the date, time, user name and system name.  Message will
+use @code{mail-host-address} as the fully qualified domain name (FQDN)
+of the machine if that variable is defined.  If not, it will use
+@code{system-name}, which doesn't report a FQDN on some machines --
+notably Suns.
+
+@item X-Newsreader
+@cindex X-Newsreader
+This optional header will be filled out according to the
+@code{message-newsreader} local variable.
+
+@item X-Mailer
+This optional header will be filled out according to the
+@code{message-mailer} local variable, unless there already is an
+@code{X-Newsreader} header present.
+
+@item In-Reply-To
+This optional header is filled out using the @code{Date} and @code{From}
+header of the article being replied to.
+
+@item Expires
+@cindex Expires
+This extremely optional header will be inserted according to the
+@code{message-expires} variable.  It is highly deprecated and shouldn't
+be used unless you know what you're doing.
+
+@item Distribution
+@cindex Distribution
+This optional header is filled out according to the
+@code{message-distribution-function} variable.  It is a deprecated and
+much misunderstood header.
+
+@item Path
+@cindex path
+This extremely optional header should probably never be used.
+However, some @emph{very} old servers require that this header is
+present.  @code{message-user-path} further controls how this
+@code{Path} header is to look.  If it is @code{nil}, use the server name
+as the leaf node.  If it is a string, use the string.  If it is neither
+a string nor @code{nil}, use the user name only.  However, it is highly
+unlikely that you should need to fiddle with this variable at all.
+@end table
+
+@findex yow
+@cindex Mime-Version
+In addition, you can enter conses into this list.  The car of this cons
+should be a symbol.  This symbol's name is the name of the header, and
+the cdr can either be a string to be entered verbatim as the value of
+this header, or it can be a function to be called.  This function should
+return a string to be inserted.  For instance, if you want to insert
+@code{Mime-Version: 1.0}, you should enter @code{(Mime-Version . "1.0")}
+into the list.  If you want to insert a funny quote, you could enter
+something like @code{(X-Yow . yow)} into the list.  The function
+@code{yow} will then be called without any arguments.
+
+If the list contains a cons where the car of the cons is
+@code{optional}, the cdr of this cons will only be inserted if it is
+non-@code{nil}.
+
+Other variables for customizing outgoing news articles:
+
+@table @code
+
+@item message-syntax-checks
+@vindex message-syntax-checks
+Controls what syntax checks should not be performed on outgoing posts.
+To disable checking of long signatures, for instance, add
+
+@lisp
+(signature . disabled)
+@end lisp
+
+to this list.
+
+Valid checks are:
+
+@table @code
+@item subject-cmsg 
+Check the subject for commands.
+@item sender
+@cindex Sender
+Insert a new @code{Sender} header if the @code{From} header looks odd. 
+@item multiple-headers 
+Check for the existence of multiple equal headers.
+@item sendsys 
+@cindex sendsys
+Check for the existence of version and sendsys commands.
+@item message-id
+Check whether the @code{Message-ID} looks ok.
+@item from
+Check whether the @code{From} header seems nice.
+@item long-lines 
+@cindex long lines
+Check for too long lines.
+@item control-chars
+Check for invalid characters.
+@item size
+Check for excessive size.
+@item new-text
+Check whether there is any new text in the messages.
+@item signature
+Check the length of the signature.
+@item approved
+@cindex approved
+Check whether the article has an @code{Approved} header, which is
+something only moderators should include.
+@item empty
+Check whether the article is empty.
+@item empty-headers
+Check whether any of the headers are empty.
+@item existing-newsgroups
+Check whether the newsgroups mentioned in the @code{Newsgroups} and 
+@code{Followup-To} headers exist.
+@item valid-newsgroups
+Check whether the @code{Newsgroups} and @code{Followup-to} headers
+are valid syntactically.
+@item repeated-newsgroups
+Check whether the @code{Newsgroups} and @code{Followup-to} headers
+contains repeated group names.
+@item shorten-followup-to
+Check whether to add a @code{Followup-to} header to shorten the number
+of groups to post to.
+@end table
+
+All these conditions are checked by default.
+
+@item message-ignored-news-headers
+@vindex message-ignored-news-headers
+Regexp of headers to be removed before posting.  The default is@*
+@samp{^NNTP-Posting-Host:\\|^Xref:\\|^[BGF]cc:\\|^Resent-Fcc:}.
+
+@item message-default-news-headers
+@vindex message-default-news-headers
+This string is inserted at the end of the headers in all message
+buffers that are initialized as news.
+
+@end table
+
+
+@node News Variables
+@section News Variables
+
+@table @code
+@item message-send-news-function
+@vindex message-send-news-function
+Function used to send the current buffer as news.  The default is
+@code{message-send-news}. 
+
+@item message-post-method
+@vindex message-post-method
+Gnusish @dfn{select method} (see the Gnus manual for details) used for
+posting a prepared news message.
+
+@end table
+
+
+@node Various Message Variables
+@section Various Message Variables
+
+@table @code
+@item message-signature-separator
+@vindex message-signature-separator
+Regexp matching the signature separator.  It is @samp{^-- *$} by
+default. 
+
+@item mail-header-separator
+@vindex mail-header-separator
+String used to separate the headers from the body.  It is @samp{--text
+follows this line--} by default.
+
+@item message-directory
+@vindex message-directory
+Directory used by many mailey things.  The default is @file{~/Mail/}. 
+
+@item message-signature-setup-hook
+@vindex message-signature-setup-hook
+Hook run when initializing the message buffer.  It is run after the
+headers have been inserted but before the signature has been inserted. 
+
+@item message-setup-hook
+@vindex message-setup-hook
+Hook run as the last thing when the message buffer has been initialized,
+but before yanked text is inserted.
+
+@item message-header-setup-hook
+@vindex message-header-setup-hook
+Hook called narrowed to the headers after initializing the headers. 
+
+For instance, if you're running Gnus and wish to insert a
+@samp{Mail-Copies-To} header in all your news articles and all messages
+you send to mailing lists, you could do something like the following:
+
+@lisp
+(defun my-message-header-setup-hook ()
+  (let ((group (or gnus-newsgroup-name "")))
+    (when (or (message-fetch-field "newsgroups")
+              (gnus-group-find-parameter group 'to-address)
+              (gnus-group-find-parameter group 'to-list))
+      (insert "Mail-Copies-To: never\n"))))
+
+(add-hook 'message-header-setup-hook
+          'my-message-header-setup-hook)
+@end lisp
+
+@item message-send-hook
+@vindex message-send-hook
+Hook run before sending messages.
+
+If you want to add certain headers before sending, you can use the
+@code{message-add-header} function in this hook.  For instance:
+@findex message-add-header
+
+@lisp
+(add-hook 'message-send-hook 'my-message-add-content)
+(defun my-message-add-content ()
+  (message-add-header
+   "Mime-Version: 1.0"
+   "Content-Type: text/plain"
+   "Content-Transfer-Encoding: 7bit"))
+@end lisp
+
+This function won't add the header if the header is already present.
+
+@item message-send-mail-hook
+@vindex message-send-mail-hook
+Hook run before sending mail messages.
+
+@item message-send-news-hook
+@vindex message-send-news-hook
+Hook run before sending news messages.
+
+@item message-sent-hook
+@vindex message-sent-hook
+Hook run after sending messages.
+
+@item message-mode-syntax-table
+@vindex message-mode-syntax-table
+Syntax table used in message mode buffers.
+
+@item message-send-method-alist
+@vindex message-send-method-alist
+
+Alist of ways to send outgoing messages.  Each element has the form
+
+@lisp
+(TYPE PREDICATE FUNCTION)
+@end lisp
+
+@table @var
+@item type
+A symbol that names the method.
+
+@item predicate
+A function called without any parameters to determine whether the
+message is a message of type @var{type}.
+
+@item function
+A function to be called if @var{predicate} returns non-@code{nil}.
+@var{function} is called with one parameter -- the prefix.
+@end table
+
+@lisp
+((news message-news-p message-send-via-news)
+ (mail message-mail-p message-send-via-mail))
+@end lisp
+
+
+
+@end table
+
+
+
+@node Sending Variables
+@section Sending Variables
+
+@table @code
+
+@item message-fcc-handler-function 
+@vindex message-fcc-handler-function 
+A function called to save outgoing articles.  This function will be
+called with the name of the file to store the article in. The default
+function is @code{message-output} which saves in Unix mailbox format.
+
+@item message-courtesy-message
+@vindex message-courtesy-message
+When sending combined messages, this string is inserted at the start of
+the mailed copy.  If the string contains the format spec @samp{%s}, the
+newsgroups the article has been posted to will be inserted there.  If
+this variable is @code{nil}, no such courtesy message will be added.
+The default value is @samp{"The following message is a courtesy copy of
+an article\nthat has been posted to %s as well.\n\n"}. 
+
+@end table
+
+
+@node Message Buffers
+@section Message Buffers
+
+Message will generate new buffers with unique buffer names when you
+request a message buffer.  When you send the message, the buffer isn't
+normally killed off.  Its name is changed and a certain number of old
+message buffers are kept alive.
+
+@table @code
+@item message-generate-new-buffers
+@vindex message-generate-new-buffers
+If non-@code{nil}, generate new buffers.  The default is @code{t}.  If
+this is a function, call that function with three parameters: The type,
+the to address and the group name.  (Any of these may be @code{nil}.)
+The function should return the new buffer name.
+
+@item message-max-buffers
+@vindex message-max-buffers
+This variable says how many old message buffers to keep.  If there are
+more message buffers than this, the oldest buffer will be killed.  The
+default is 10.  If this variable is @code{nil}, no old message buffers
+will ever be killed.
+
+@item message-send-rename-function
+@vindex message-send-rename-function
+After sending a message, the buffer is renamed from, for instance,
+@samp{*reply to Lars*} to @samp{*sent reply to Lars*}.  If you don't
+like this, set this variable to a function that renames the buffer in a
+manner you like.  If you don't want to rename the buffer at all, you can
+say:
+
+@lisp
+(setq message-send-rename-function 'ignore)
+@end lisp
+
+@item message-kill-buffer-on-exit
+@findex message-kill-buffer-on-exit
+If non-@code{nil}, kill the buffer immediately on exit.
+
+@end table
+
+
+@node Message Actions
+@section Message Actions
+
+When Message is being used from a news/mail reader, the reader is likely
+to want to perform some task after the message has been sent.  Perhaps
+return to the previous window configuration or mark an article as
+replied.  
+
+@vindex message-kill-actions
+@vindex message-postpone-actions
+@vindex message-exit-actions
+@vindex message-send-actions
+The user may exit from the message buffer in various ways.  The most
+common is @kbd{C-c C-c}, which sends the message and exits.  Other
+possibilities are @kbd{C-c C-s} which just sends the message, @kbd{C-c
+C-d} which postpones the message editing and buries the message buffer,
+and @kbd{C-c C-k} which kills the message buffer.  Each of these actions
+have lists associated with them that contains actions to be executed:
+@code{message-send-actions}, @code{message-exit-actions},
+@code{message-postpone-actions}, and @code{message-kill-actions}.  
+
+Message provides a function to interface with these lists:
+@code{message-add-action}.  The first parameter is the action to be
+added, and the rest of the arguments are which lists to add this action
+to.  Here's an example from Gnus:
+
+@lisp
+  (message-add-action
+   `(set-window-configuration ,(current-window-configuration))
+   'exit 'postpone 'kill)
+@end lisp
+
+This restores the Gnus window configuration when the message buffer is
+killed, postponed or exited.
+
+An @dfn{action} can be either: a normal function, or a list where the
+@code{car} is a function and the @code{cdr} is the list of arguments, or
+a form to be @code{eval}ed.
+
+
+@node Compatibility
+@chapter Compatibility
+@cindex compatibility
+
+Message uses virtually only its own variables---older @code{mail-}
+variables aren't consulted.  To force Message to take those variables
+into account, you can put the following in your @code{.emacs} file:
+
+@lisp
+(require 'messcompat)
+@end lisp
+
+This will initialize many Message variables from the values in the
+corresponding mail variables.
+
+
+@node Appendices
+@chapter Appendices
+
+@menu
+* Responses::          Standard rules for determining where responses go.
+@end menu
+
+
+@node Responses
+@section Responses
+
+To determine where a message is to go, the following algorithm is used
+by default.
+
+@table @dfn
+@item reply
+A @dfn{reply} is when you want to respond @emph{just} to the person who
+sent the message via mail.  There will only be one recipient.  To
+determine who the recipient will be, the following headers are
+consulted, in turn:
+
+@table @code
+@item Reply-To
+
+@item From
+@end table
+
+
+@item wide reply
+A @dfn{wide reply} is a mail response that includes @emph{all} entities
+mentioned in the message you are responded to.  All mailboxes from the
+following headers will be concatenated to form the outgoing
+@code{To}/@code{Cc} headers:
+
+@table @code
+@item From
+(unless there's a @code{Reply-To}, in which case that is used instead).
+
+@item Cc
+
+@item To
+@end table
+
+If a @code{Mail-Copies-To} header is present, it will also be included
+in the list of mailboxes.  If this header is @samp{never}, that means
+that the @code{From} (or @code{Reply-To}) mailbox will be suppressed.
+
+
+@item followup
+A @dfn{followup} is a response sent via news.  The following headers
+(listed in order of precedence) determine where the response is to be
+sent:
+
+@table @code
+
+@item Followup-To
+
+@item Newsgroups
+
+@end table
+
+If a @code{Mail-Copies-To} header is present, it will be used as the
+basis of the new @code{Cc} header, except if this header is
+@samp{never}.
+
+@end table
+
+
+
+@node Index
+@chapter Index
+@printindex cp
+
+@node Key Index
+@chapter Key Index
+@printindex ky
+
+@summarycontents
+@contents
+@bye
+
+@c End:

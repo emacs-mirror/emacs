@@ -1,0 +1,465 @@
+1999-07-12  Richard Stallman  <rms@gnu.org>
+
+	* Version 20.4 released.
+
+1999-02-22  Andreas Schwab  <schwab@gnu.org>
+
+	* gnus.texi: Fix punctuation after @xref.
+
+1999-01-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (MS-DOS and MULE): dos-unsupported-character-glyph is
+	a triangle by default, not a solid box.
+
+1999-01-17  Andrew Innes  <andrewi@gnu.org>
+
+	* msdog.texi (MS-DOS Printing): Rewrite section.
+
+	* emacs.texi (Top): Include Windows 98 in the MS-DOS section.
+
+1998-12-04  Markus Rost  <rost@delysid.gnu.org>
+
+	* Makefile.in (INFO_TARGETS): Delete customize.info.
+	(DVI_TARGETS): Delete customize.dvi.
+	(../info/customize, customize.dvi): Targets deleted.
+	
+1998-11-18  Richard Stallman  <rms@psilocin.ai.mit.edu>
+
+	* customize.texi: File deleted.
+
+1998-11-08  Eli Zaretskii  <eliz@mescaline.gnu.org>
+
+	* frames.texi: Change @xref to @pxref and add comma after @xref.
+	* custom.texi (Locals): Likewise.
+	* programs.texi (Fortran Autofill): Likewise.
+	* text.texi (TeX Editing): Likewise.
+	* viper.texi: Likewise.
+
+1998-08-24  Andreas Schwab  <schwab@delysid.gnu.org>
+
+	* reftex.texi: Fix info file name.
+
+	* forms.texi (Forms Commands): Change @item to @itemx for
+	secondary items.
+	* viper.texi (Groundwork): Likewise.
+	(Commands): Remove extra Top from @node.
+
+1998-08-19  Richard Stallman  <rms@psilocin.ai.mit.edu>
+
+	* Version 20.3 released.
+
+1998-08-10  Carsten Dominik  <cd@delysid.gnu.org>
+
+	* reftex.texi: Updated to the latest RefTeX version.
+
+1998-05-06  Richard Stallman  <rms@psilocin.gnu.org>
+
+	* Makefile.in (EMACSSOURCES): Add mule.texi.
+	Add msdog.texi, ack.texi.  Remove gnu1.texi.
+	
+1998-04-06  Andreas Schwab  <schwab@gnu.org>
+
+	* Makefile.in (ENVADD): Enviroment vars to pass to texi2dvi.  Use
+	it in dvi targets.
+	(../etc/GNU): Change to $(srcdir) first.
+
+1998-03-11  Carsten Dominik  <cd@delysid.gnu.org>
+
+	* reftex.texi Updated for RefTeX version 3.22.
+
+1998-02-08  Richard Stallman  <rms@psilocin.gnu.org>
+
+	* Makefile.in (reftex.dvi, ../info/reftex): New targets.
+	(INFO_TARGETS, DVI_TARGETS): Add the new targets.
+
+1997-09-23  Paul Eggert  <eggert@twinsun.com>
+
+	* Makefile.in: Merge changes mistakenly made to `Makefile'.
+	(INFO_TARGETS): Change ../info/custom to ../info/customize.
+	(../info/customize): Renamed from ../info/custom.
+	(../info/viper, viper.dvi): Remove dependency on viper-cmd.texi.
+
+1997-09-19  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Version 20.2 released.
+
+1997-09-15  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Version 20.1 released.
+
+1997-08-24  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Makefile (../info/customize, customize.dvi): New targets.
+	(INFO_TARGETS): Add ../info/customize.
+	(DVI_TARGETS): Add customize.dvi.
+
+1997-07-10  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Makefile (../info/viper, viper.dvi): Delete viper-cmd.texi dep.
+
+1996-08-11  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Version 19.33 released.
+
+1996-07-31  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Version 19.32 released.
+
+1996-06-27  Lars Magne Ingebrigtsen  <larsi@ifi.uio.no>
+
+	* Makefile.in: Add rules for the Message manual.
+
+1996-06-26  Lars Magne Ingebrigtsen  <larsi@ifi.uio.no>
+
+	* gnus.texi: New version.
+
+	* message.texi: New manual.
+
+1996-06-20  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Makefile.in (All info targets): cd $(srcdir) to do the work.
+
+1996-06-19  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Makefile.in (All info targets): Specify $(srcdir) in input files.
+	Specify -I option.
+	(All dvi targets): Set the TEXINPUTS variable.
+	
+1996-05-25  Karl Heuer  <kwzh@gnu.ai.mit.edu>
+
+	* Version 19.31 released.
+
+1996-01-07  Richard Stallman  <rms@whiz-bang.gnu.ai.mit.edu>
+
+	* Makefile.in (../info/ccmode): Renamed from ../info/cc-mode.
+	(INFO_TARGETS): Use new name.  This avoids name conflict on MSDOS.
+
+1995-11-29  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* Makefile.in (../info/cc-mode, cc-mode.dvi): New targets.
+	(INFO_TARGETS): Add ../info/cc-mode.
+	(DVI_TARGETS): Add cc-mode.dvi.
+
+1995-11-24  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* Version 19.30 released.
+
+1995-11-04  Lars Magne Ingebrigtsen  <larsi@ifi.uio.no>
+
+	* gnus.texi: New file.
+
+1995-11-04  Erik Naggum  <erik@naggum.no>
+
+	* gnus.texi: File deleted.
+
+1995-11-02  Stephen Gildea <gildea@x.org>
+
+	* mh-e.texi: "Function Index" -> "Command Index" to work with
+	Emacs 19.30 C-h C-k support of separately-documented commands.
+
+1995-06-26  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* Makefile.in (../info/ediff, ediff.dvi): New targets.
+	(INFO_TARGETS, DVI_TARGETS): Add those new targets.
+
+1995-04-24  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add viper targets.
+	(../info/viper, viper.dvi): New targets.
+
+1995-04-20  Kevin Rodgers <kevinr@ihs.com>
+
+	* dired-x.texi (Installation): Change the example to set
+	buffer-local variables like dired-omit-files-p in
+	dired-mode-hook.
+
+1995-04-17  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add mh-e targets.
+	(../info/mh-e, mh-e.dvi): New targets.
+
+1995-02-07  Richard Stallman  <rms@pogo.gnu.ai.mit.edu>
+
+	* Makefile.in (maintainer-clean): Renamed from realclean.
+
+1994-11-23  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* Makefile.in: New file.
+	* Makefile: File deleted.
+
+1994-11-19  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* Makefile (TEXINDEX_OBJS): Variable deleted.
+	(texindex, texindex.o, getopt.o): Rules deleted.
+	All deps on texindex deleted.
+	(distclean): Don't delete texindex.
+	(mostlyclean): Don't delete *.o.
+	* texindex.c, getopt.c: Files deleted.
+
+1994-09-07  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* Version 19.26 released.
+
+1994-07-02  Richard Stallman  (rms@gnu.ai.mit.edu)
+
+	* Makefile (EMACSSOURCES): Exclude undo.texi.
+
+1994-05-30  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.25 released.
+
+1994-05-23  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.24 released.
+
+1994-05-16  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.23 released.
+
+1994-04-17  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile: Delete spurious tab.
+
+1994-02-16  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (.SUFFIXES): New rule.
+
+1994-01-15  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (dired-x.dvi, ../info/dired-x): New targets.
+	(INFO_TARGETS, DVI_TARGETS): Add the new targets.
+
+1994-01-08  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (../info/sc): Renamed frin sc.info.
+	(../info/cl): Likewise.
+	(INFO_TARGETS): Use new names.
+
+1993-12-04  Richard Stallman  (rms@srarc2)
+
+	* getopt.c: New file.
+	* Makefile (TEXINDEX_OBJS): Use getopt.o in this dir, not ../lib-src.
+	(getopt.o): New rule.
+	(dvi): Don't depend on texindex.
+	(emacs.dvi, cl.dvi, forms.dvi, vip.dvi, gnus.dvi, sc.dvi):
+	Depend on texindex.
+
+1993-12-03  Richard Stallman  (rms@srarc2)
+
+	* Makefile (../info/sc.info): Renamed from ../info/sc.
+	(TEXI2DVI): New variable.
+	(emacs.dvi, cl.dvi forms.dvi, sc.dvi, vip.dvi, gnus.dvi, info.dvi):
+	Add explicit commands.
+	(TEXINDEX_OBJS): Delete duplicate getopt.o.
+
+1993-11-27  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.22 released.
+
+1993-11-18  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (TEXINDEX_OBJS): Delete spurious period.
+
+1993-11-16  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.21 released.
+
+1993-11-15  Paul Eggert  (eggert@twinsun.com)
+
+	* man/Makefile (../info/cl.info): Renamed from ../info/cl.
+
+1993-11-15  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (../etc/GNU): New target.
+	(EMACSSOURCES): Add gnu1.texi.
+
+1993-11-14  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (realclean): Don't delete the Info files.
+
+1993-10-25  Brian Fox  (bfox@albert.gnu.ai.mit.edu)
+
+	* forms.texi: Fix forms.texi so that it will format correctly.
+	Added missing `@end iftex', fixed bad reference.
+
+	* info.texi, info-stn.texi: New files implement texinfo version of
+	`info' file.
+
+  	* frames.texi (Creating Frames): Mention `C-x 5' instead of `C-x
+  	4' where appropriate.
+
+1993-10-20  Brian Fox  (bfox@ai.mit.edu)
+
+	* Makefile: Fix targets for texindex, new info.texi files.
+	* info-stnd.texi: New file implements info for standalone info
+	reader.
+	* info.texi: Updated to include recent changes to "../info/info".
+	New source file for ../info/info; includes info-stnd.texi.
+
+	* texindex.c: Include "../src/config.h" if building in emacs.
+
+	* Makefile: Change all files to FILENAME.texi, force all targets
+	to be FILENAME, not FILENAME.info.  This changes sc.texinfo,
+	vip.texinfo, forms.texinfo, cl.texinfo.
+	Add target to build texindex.c, defining `emacs'.
+
+	* forms.texi: Install new file to match version 2.3 of forms.el.
+
+1993-08-14  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.19 released.
+
+1993-08-10  Simon Leinen  (simon@lia.di.epfl.ch)
+
+	* sc.texinfo: Fix info file name.
+
+	* Makefile (info): Added gnus and sc.
+	(dvi): Added gnus.dvi and sc.dvi.
+	(../info/sc, sc.dvi): New targets.
+
+1993-08-08  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.18 released.
+
+1993-07-20  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile: Fix source file names of the separate manuals.
+	(gnus.dvi, ../info/gnus): New targets.
+
+1993-07-18  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.17 released.
+
+1993-07-10  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* split-man: Fix typos in last change.
+
+1993-07-06  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
+
+	* Version 19.16 released.
+
+1993-06-19  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
+
+	* version 19.15 released.
+
+1993-06-18  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
+
+	* Makefile (distclean): It's rm, not rf.
+
+1993-06-17  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
+
+	* Version 19.14 released.
+
+1993-06-16  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
+
+	* Makefile: New file.
+
+1993-06-08  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
+
+	* Version 19.13 released.
+
+1993-05-27  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
+
+	* Version 19.9 released.
+
+1993-05-25  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
+
+	* Version 19.8 released.
+
+1993-05-25  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
+
+	* cmdargs.texi: Document the -i, -itype, and -iconic options.
+
+	* trouble.texi: It's `enable-flow-control-on', not
+	`evade-flow-control-on'.
+
+1993-05-24  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
+
+	* display.texi: Document standard-display-european.
+
+1993-05-22  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
+
+	* Version 19.7 released.
+
+	* emacs.texi: Add a sentence to the top menu mentioning the
+	specific version of Emacs this manual applies to.
+
+1993-04-25  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+
+	* basic.texi: Documented next-line-add-lines variable used to
+	implement down-arrow.
+
+	* killing.texi: Documented kill-whole-line.
+
+1993-04-18  Noah Friedman  (friedman@nutrimat.gnu.ai.mit.edu)
+
+        * text.texi: Updated unix TeX ordering information.
+
+1993-03-26  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+
+	* news.texi: Mentioned fill-rectangle in keybinding list.
+
+	* killing.texi: Documented fill-rectangle.
+
+1993-03-17  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+
+	* vc.texi: Brought the docs up to date with VC 5.2.
+
+1992-01-10  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+
+	* emacs.tex: Mentioned blackbox and gomoku under Amusements.
+		     Assembler mode is now mentioned and appropriately
+		     indexed under Programming Modes.
+
+1991-02-15  Robert J. Chassell  (bob at wookumz.ai.mit.edu)
+
+        * emacs.tex: Updated TeX ordering information.
+
+1990-08-30  David Lawrence  (tale at pogo.ai.mit.edu)
+
+	* gnus.texinfo:  New file.  Removed installation instructions.
+
+1990-06-26  David Lawrence  (tale at geech)
+
+	* emacs.tex:  Noted that completion-ignored-extensions is not used
+	to filter out names when all completions are displayed in
+	*Completions*.
+
+1990-05-25  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* texindex.tex: If USG, include sys/types.h and sys/fcntl.h.
+
+1990-03-21  Jim Kingdon  (kingdon at pogo.ai.mit.edu)
+
+	* emacs.tex: Add @findex grep.
+
+1989-01-17  Robert J. Chassell  (bob at rice-chex.ai.mit.edu)
+
+	* texinfo.tex:  Changed spelling of `\sc' font to `\smallcaps' and
+	then defined `\sc' as the command for smallcaps in Texinfo.  This
+	measns that the @sc command will produce small caps.  bfox has
+	made the corresponding change to makeinfo and texinfm.el.
+
+1988-08-16  Robert J. Chassell (bob at frosted-flakes.ai.mit.edu)
+
+	* emacs.tex:  Corrected two typos.  No other changes before
+	Version 19 will be made.
+
+	* vip.texinfo: Removed menu entry Adding Lisp Code in node
+	Customization since the menu entry did not point to anything.
+	Also added an @finalout command to remove overfull hboxes from the
+	printed output.
+
+	* cl.texinfo:  Added @bye, \input line and @settitle to file.
+	This file is clearly intended to be a chapter of some other work,
+	but the other work does not yet exist.
+
+1988-07-25  Robert J. Chassell (bob at frosted-flakes.ai.mit.edu)
+
+	* texinfo.texinfo: Three typos corrected.
+
+1988-05-23  Robert J. Chassell (bob at frosted-flakes.ai.mit.edu)
+
+	* emacs.tex: Update information for obtaining TeX distribution from the
+	University of Washington.
+
