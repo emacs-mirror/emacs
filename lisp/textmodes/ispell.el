@@ -1479,7 +1479,8 @@ scrolling the current window.  Leave the new window selected."
       ;; So we increment the height for this case.
       (if (string-match "19\.9.*Lucid" (emacs-version))
 	  (setq height (1+ height)))
-      (split-window nil height)
+      (let ((frame-override-unsplittable t))
+	(split-window nil height))
       (set-window-start (next-window) top))))
 
 
