@@ -122,11 +122,11 @@ The elements of the vector are:
 	PLIST,
 where
 CHARSET-ID (integer) is the identification number of the charset.
+BYTES (integer) is the length of multi-byte form of a character in
+  the charset: one of 1, 2, 3, and 4.
 DIMENSION (integer) is the number of bytes to represent a character of
 the charset: 1 or 2.
 CHARS (integer) is the number of characters in a dimension: 94 or 96.
-BYTE (integer) is the length of multi-byte form of a character in
-  the charset: one of 1, 2, 3, and 4.
 WIDTH (integer) is the number of columns a character in the charset
   occupies on the screen: one of 0, 1, and 2.
 DIRECTION (integer) is the rendering direction of characters in the
