@@ -744,6 +744,7 @@ struct x_frame_parm_table
   void (*setter) P_ ((struct frame *, Lisp_Object, Lisp_Object));
 };
 
+static void x_disable_image P_ ((struct frame *, struct image *));
 static void x_create_im P_ ((struct frame *));
 void x_set_foreground_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
 static void x_set_line_spacing P_ ((struct frame *, Lisp_Object, Lisp_Object));
@@ -5760,7 +5761,7 @@ lookup_image (f, spec)
 	{
 	  /* Handle image type independent image attributes
 	     `:ascent ASCENT', `:margin MARGIN', `:relief RELIEF'.  */
-	  Lisp_Object ascent, margin, relief, algorithm;
+	  Lisp_Object ascent, margin, relief;
 	  Lisp_Object file;
 
 	  ascent = image_spec_value (spec, QCascent, NULL);
@@ -5778,26 +5779,6 @@ lookup_image (f, spec)
 	    {
 	      img->relief = XINT (relief);
 	      img->margin += abs (img->relief);
-	    }
-
-	  /* Should we apply an image transformation algorithm?  */
-	  algorithm = image_spec_value (spec, QCalgorithm, NULL);
-	  if (img->pixmap)
-	    {
-	      if (EQ (algorithm, Qlaplace))
-		x_laplace (f, img);
-	      else if (EQ (algorithm, Qemboss))
-		x_emboss (f, img);
-	      else if (CONSP (algorithm)
-		       && EQ (XCAR (algorithm), Qedge_detection))
-		{
-		  Lisp_Object tem;
-		  tem = XCDR (algorithm);
-		  if (CONSP (tem))
-		    x_edge_detection (f, img,
-				      Fplist_get (tem, QCmatrix),
-				      Fplist_get (tem, QCcolor_adjustment));
-		}
 	    }
 
 	  /* Manipulation of the image's mask.  */
@@ -5843,6 +5824,31 @@ lookup_image (f, spec)
 		    }
     		}
 	    }
+	  
+	  /* Should we apply an image transformation algorithm?  */
+	  if (img->pixmap)
+	    {
+	      Lisp_Object algorithm;
+
+	      algorithm = image_spec_value (spec, QCalgorithm, NULL);
+	      if (EQ (algorithm, Qdisabled))
+		x_disable_image (f, img);
+	      else if (EQ (algorithm, Qlaplace))
+		x_laplace (f, img);
+	      else if (EQ (algorithm, Qemboss))
+		x_emboss (f, img);
+	      else if (CONSP (algorithm)
+		       && EQ (XCAR (algorithm), Qedge_detection))
+		{
+		  Lisp_Object tem;
+		  tem = XCDR (algorithm);
+		  if (CONSP (tem))
+		    x_edge_detection (f, img,
+				      Fplist_get (tem, QCmatrix),
+				      Fplist_get (tem, QCcolor_adjustment));
+		}
+	    }
+
 	}
     }
 
@@ -7347,6 +7353,11 @@ static XColor *x_to_xcolors P_ ((struct frame *, struct image *, int));
 static void x_from_xcolors P_ ((struct frame *, struct image *, XColor *));
 static void x_detect_edges P_ ((struct frame *, struct image *, int[9], int));
 
+/* Non-zero means draw a cross on images having `:algorithm
+   disabled'.  */
+
+int cross_disabled_images;
+
 /* Edge detection matrices for different edge-detection
    strategies.  */
 
@@ -7363,6 +7374,11 @@ static int laplace_matrix[9] = {
         0,      0,        0,		/* y     */
         0,      0,       -1		/* y + 1 */
 };
+
+/* Value is the intensity of the color whose red/green/blue values
+   are R, G, and B.  */
+
+#define COLOR_INTENSITY(R, G, B) ((2 * (R) + 3 * (G) + (B)) / 6)
 
 
 /* On frame F, return an array of XColor structures describing image
@@ -7499,7 +7515,7 @@ x_detect_edges (f, img, matrix, color_adjust)
       
       for (x = 1; x < img->width - 1; ++x, ++p)
 	{
-	  int r, g, b, intensity, y1, x1;
+	  int r, g, b, y1, x1;
 
 	  r = g = b = i = 0;
 	  for (y1 = y - 1; y1 < y + 2; ++y1)
@@ -7515,9 +7531,7 @@ x_detect_edges (f, img, matrix, color_adjust)
 	  r = (r / sum + color_adjust) & 0xffff;
 	  g = (g / sum + color_adjust) & 0xffff;
 	  b = (b / sum + color_adjust) & 0xffff;
-
-	  intensity = (2 * r + 3 * g + b) / 6;
-	  p->red = p->green = p->blue = intensity;
+	  p->red = p->green = p->blue = COLOR_INTENSITY (r, g, b);
 	}
     }
 
@@ -7590,6 +7604,69 @@ x_edge_detection (f, img, matrix, color_adjust)
 
   if (i == 9 && NUMBERP (color_adjust))
     x_detect_edges (f, img, trans, (int) XFLOATINT (color_adjust));
+}
+
+
+/* Transform image IMG on frame F so that it looks disabled.  */
+
+static void
+x_disable_image (f, img)
+     struct frame *f;
+     struct image *img;
+{
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  
+  if (dpyinfo->n_planes >= 2)
+    {
+      /* Color (or grayscale).  Convert to gray, and equalize.  Just
+	 drawing such images with a stipple can look very odd, so
+	 we're using this method instead.  */
+      XColor *colors = x_to_xcolors (f, img, 1);
+      XColor *p, *end;
+      const int h = 15000;
+      const int l = 30000;
+
+      for (p = colors, end = colors + img->width * img->height;
+	   p < end;
+	   ++p)
+	{
+	  int i = COLOR_INTENSITY (p->red, p->green, p->blue);
+	  int i2 = (0xffff - h - l) * i / 0xffff + l;
+	  p->red = p->green = p->blue = i2;
+	}
+
+      x_from_xcolors (f, img, colors);
+    }
+
+  /* Draw a cross over the disabled image, if we must or if we
+     should.  */
+  if (dpyinfo->n_planes < 2 || cross_disabled_images)
+    {
+      Display *dpy = FRAME_X_DISPLAY (f);
+      GC gc;
+
+      BLOCK_INPUT;
+      gc = XCreateGC (dpy, img->pixmap, 0, NULL);
+      XSetForeground (dpy, gc, BLACK_PIX_DEFAULT (f));
+      XDrawLine (dpy, img->pixmap, gc, 0, 0,
+		 img->width - 1, img->height - 1);
+      XDrawLine (dpy, img->pixmap, gc, 0, img->height - 1,
+		 img->width - 1, 0);
+      XFreeGC (dpy, gc);
+
+      if (img->mask)
+	{
+	  gc = XCreateGC (dpy, img->mask, 0, NULL);
+	  XSetForeground (dpy, gc, WHITE_PIX_DEFAULT (f));
+	  XDrawLine (dpy, img->mask, gc, 0, 0,
+		     img->width - 1, img->height - 1);
+	  XDrawLine (dpy, img->mask, gc, 0, img->height - 1,
+		     img->width - 1, 0);
+	  XFreeGC (dpy, gc);
+	}
+      
+      UNBLOCK_INPUT;
+    }
 }
 
 
@@ -10837,6 +10914,12 @@ syms_of_xfns ()
 	build_string ("Undefined color"));
 
   init_x_parm_symbols ();
+
+  DEFVAR_BOOL ("cross-disabled-images", &cross_disabled_images,
+    "Non-nil means always draw a cross over disabled images.\n\
+Disabled images are those having an `:algorithm disabled' property.\n\
+A cross is always drawn on black & white displays.");
+  cross_disabled_images = 0;
 
   DEFVAR_LISP ("x-bitmap-file-path", &Vx_bitmap_file_path,
     "List of directories to search for bitmap files for X.");
