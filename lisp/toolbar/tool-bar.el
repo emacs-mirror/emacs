@@ -99,6 +99,7 @@ function."
       (define-key-after tool-bar-map (vector key)
 	`(menu-item ,(symbol-name key) ,def :image ,image ,@props)))))
 
+;;;###autoload
 (defun tool-bar-add-item-from-menu (command icon &optional map &rest props)
   "Define tool bar binding for COMMAND using the given ICON in keymap MAP.
 The binding of COMMAND is looked up in the menu bar in MAP (default

@@ -2,6 +2,7 @@
 
 	* toolbar/tool-bar.el (tool-bar-mode): Check whether tool-bar-map
 	has been initialized before calling tool-bar-setup.
+	(tool-bar-add-item-from-menu): Add autoload cookie.
 
 2000-10-09  Eli Zaretskii  <eliz@is.elta.co.il>
 
