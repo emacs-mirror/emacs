@@ -885,8 +885,8 @@ run `normal-mode' explicitly."
 				  ("\\.hxx\\'" . c++-mode)
 				  ("\\.c\\+\\+\\'" . c++-mode)
 				  ("\\.h\\+\\+\\'" . c++-mode)
-;;;				  ("\\.mk\\'" . makefile-mode)
-;;;				  ("[Mm]akefile" . makefile-mode)
+				  ("\\.mk\\'" . makefile-mode)
+				  ("[Mm]akefile\\(.in\\)?\\'" . makefile-mode)
 ;;; Less common extensions come here
 ;;; so more common ones above are found faster.
 				  ("\\.texinfo\\'" . texinfo-mode)
