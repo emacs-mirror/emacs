@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.37) $
+ * $HopeName: MMsrc!mpmst.h(trunk.38) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -37,8 +37,8 @@
 
 #if defined(MPS_OS_W3)
 /* windows.h included for CRITICAL_SECTION only, see .lock.win32 */
-#include <windows.h>            
-#endif /* MPS_OS_w3 */
+#include "mpswin.h"
+#endif /* MPS_OS_W3 */
 
 
 /* RingStruct -- double-ended queue structure
