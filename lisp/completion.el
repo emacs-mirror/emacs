@@ -285,7 +285,7 @@ If nil, no new words added to the database or saved to the init file.")
   "*Non-nil means save most-used completions when exiting Emacs.
 See also `saved-completions-retention-time'.")
 
-(defvar save-completions-file-name "~/.completions"
+(defvar save-completions-file-name (convert-standard-filename "~/.completions")
   "*The filename to save completions to.")
 
 (defvar save-completions-retention-time 336
