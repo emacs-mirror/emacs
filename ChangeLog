@@ -1,3 +1,7 @@
+2000-07-24  Dave Love  <fx@gnu.org>
+
+	* configure.in: Add AC_SIZE_T.
+
 2000-07-18  Dave Love  <fx@gnu.org>
 
 	* configure.in: Reorder so that most tests are done after CPPFLAGS

@@ -1,3 +1,13 @@
+2000-07-24  Dave Love  <fx@gnu.org>
+
+	* s/sunos4-0.h, s/sol2.h:
+	(LIBS_TERMCAP): Move from m/sparc.h.
+
+	* m/sparc.h (TERMINFO): Moved to system files (probably only
+	relevant for sunos4 judging by its vintage).
+	(BITS_PER_LONG, BITS_PER_EMACS_INT, _LP64): Define conditional on
+	__arch64__.
+
 2000-07-24  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* xmenu.c (keymap_panes): Pass the keymap's prompt as the pane
