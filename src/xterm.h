@@ -77,7 +77,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define DISPLAY_SCREEN_ARG x_current_display, \
 				      XDefaultScreen (x_current_display)
 #define DISPLAY_CELLS DisplayCells (x_current_display, XDefaultScreen (x_current_display))
-#define ROOT_WINDOW RootWindow (x_current_display, XDefaultScreen (x_current_display))
+#define ROOT_WINDOW RootWindow (x_current_display, DefaultScreen (x_current_display))
 #define FONT_TYPE XFontStruct
 #define Color XColor
 
