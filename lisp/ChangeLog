@@ -1,6 +1,10 @@
+2001-07-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* play/fortune.el: Add types to defcustoms.
+
 2001-07-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* language/czech.el: a fix to follow coding conventions.
+	* language/czech.el: A fix to follow coding conventions.
 
 2001-07-11  Eli Zaretskii  <eliz@is.elta.co.il>
 
