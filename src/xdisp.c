@@ -4222,14 +4222,14 @@ get_next_display_element (it)
 	     If it->multibyte_p is zero, eight-bit characters that
 	     don't have corresponding multibyte char code are also
 	     translated to octal form.  */
-	  else if (((it->c < ' ' || it->c == 127)
+	  else if (((it->c < ' '
 		    && (it->area != TEXT_AREA
 			|| (it->c != '\n' && it->c != '\t')))
 		   || (it->multibyte_p
 		       ? ((it->c >= 127
 			   && it->len == 1)
 			  || !CHAR_PRINTABLE_P (it->c))
-		       : (it->c >= 128
+		       : (it->c >= 127
 			  && it->c == unibyte_char_to_multibyte (it->c))))
 	    {
 	      /* IT->c is a control character which must be displayed
