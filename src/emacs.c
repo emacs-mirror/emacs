@@ -859,7 +859,8 @@ Usage: %s [--batch]  [-t term] [--terminal term]\n\
       [-q] [--no-init-file]  [-u user] [--user user]  [--debug-init]\n\
       [--unibyte] [--multibyte] [--version] [--no-site-file]\n\
       [-f func] [--funcall func]  [-l file] [--load file]  [--eval expr]\n\
-      [--insert file] [+linenum] file-to-visit  [--kill]\n\
+      [--execute expr] [--visit file] [--file file] [--insert file]\n\
+      [+linenum] file-to-visit  [--kill]\n\
 Report bugs to bug-gnu-emacs@gnu.org.  First, please see\n\
 the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
       exit (0);
@@ -1379,7 +1380,10 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
       extern void _mcleanup ();       
       extern char etext;
       extern void safe_bcopy ();
+      extern void dump_opcode_frequencies ();
+
       atexit (_mcleanup);
+      // atexit (dump_opcode_frequencies);
       /* This uses safe_bcopy because that function comes first in the
 	 Emacs executable.  It might be better to use something that
 	 gives the start of the text segment, but start_of_text is not
@@ -1484,8 +1488,10 @@ struct standard_args standard_args[] =
   { "-f", "--funcall", 0, 1 },
   { "-funcall", 0, 0, 1 },
   { "-eval", "--eval", 0, 1 },
+  { "-execute", "--execute", 0, 1 },
   { "-find-file", "--find-file", 0, 1 },
   { "-visit", "--visit", 0, 1 },
+  { "-file", "--file", 0, 1 },
   { "-insert", "--insert", 0, 1 },
   /* This should be processed after ordinary file name args and the like.  */
   { "-kill", "--kill", -10, 0 },
