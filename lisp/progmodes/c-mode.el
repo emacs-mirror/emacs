@@ -569,7 +569,10 @@ Returns nil if line starts inside a string, t if in a comment."
 				(looking-at "DEFUN\\b"))
 			      c-argdecl-indent
 			    (if (and (looking-at "\\sw\\|\\s_")
-				     (looking-at "[^\"\n=]*(")
+				     ;; This is careful to stop at the first
+				     ;; paren if we have
+				     ;; int foo Proto ((int, int));
+				     (looking-at "[^\"\n=(]*(")
 				     (progn
 				       (goto-char (1- (match-end 0)))
 				       (setq lim (point))
