@@ -479,7 +479,7 @@ An error is raised if not inside a conflict."
 	  (cond
 	   ((save-excursion
 	      (goto-char mine-start)
-	      (re-search-forward smerge-begin-re nil end))
+	      (re-search-forward smerge-begin-re end t))
 	    ;; There's a nested conflict and we're after the the beginning
 	    ;; of the outer one but before the beginning of the inner one.
 	    (error "There is a nested conflict"))
