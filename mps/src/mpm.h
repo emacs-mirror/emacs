@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.83) $
+ * $HopeName: MMsrc!mpm.h(trunk.84) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  */
 
@@ -77,6 +77,14 @@ extern Size (AddrOffset)(Addr base, Addr limit);
 extern Addr (AddrAlignDown)(Addr addr, Align align);
 #define AddrAlignDown(p, a)     ((Addr)WordAlignDown((Word)(p), (a)))
 
+#define AddrWord(a)             ((Word)(a))
+#define SizeWord(s)             ((Word)(s))
+#define AddrIsAligned(p, a)     WordIsAligned(AddrWord(p), (a))
+#define AddrAlignUp(p, a)       ((Addr)WordAlignUp(AddrWord(p), (a)))
+#define SizeIsAligned(s, a)     WordIsAligned(SizeWord(s), (a))
+#define SizeAlignUp(s, a)       ((Size)WordAlignUp(SizeWord(s), (a)))
+#define SizeAlignDown(s, a)     ((Size)WordAlignDown(SizeWord(s), (a)))
+
 
 /* Logs and Powers
  * 
@@ -92,14 +100,6 @@ extern Addr (AddrAlignDown)(Addr addr, Align align);
 extern Bool SizeIsP2(Size size);
 extern Shift SizeLog2(Size size);
 extern Shift SizeFloorLog2(Size size);
-
-#define AddrWord(a)             ((Word)(a))
-#define SizeWord(s)             ((Word)(s))
-#define AddrIsAligned(p, a)     WordIsAligned(AddrWord(p), (a))
-#define AddrAlignUp(p, a)       ((Addr)WordAlignUp(AddrWord(p), (a)))
-#define SizeIsAligned(s, a)     WordIsAligned(SizeWord(s), (a))
-#define SizeAlignUp(s, a)       ((Size)WordAlignUp(SizeWord(s), (a)))
-#define SizeAlignDown(s, a)     ((Size)WordAlignDown(SizeWord(s), (a)))
 
 
 /* Formatted Output -- see design.mps.writef, impl.c.mpm */
