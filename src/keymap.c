@@ -1845,26 +1845,38 @@ push_key_description (c, p)
       *p++ = 'L';
     }
   else if (c == ' ')
-    {
+   {
       *p++ = 'S';
       *p++ = 'P';
       *p++ = 'C';
     }
   else if (c < 128)
     *p++ = c;
-  else if (c < 512)
-    {
-      *p++ = '\\';
-      *p++ = (7 & (c >> 6)) + '0';
-      *p++ = (7 & (c >> 3)) + '0';
-      *p++ = (7 & (c >> 0)) + '0';
-    }
   else
     {
-      unsigned char work[4], *str;
-      int i = CHAR_STRING (c, work, str);
-      bcopy (str, p, i);
-      p += i;
+      if (! NILP (current_buffer->enable_multibyte_characters))
+	c = unibyte_char_to_multibyte (c);
+
+      if (NILP (current_buffer->enable_multibyte_characters)
+	  || SINGLE_BYTE_CHAR_P (c)
+	  || ! char_valid_p (c, 0))
+	{
+	  int bit_offset;
+	  *p++ = '\\';
+	  /* The biggest character code uses 19 bits.  */
+	  for (bit_offset = 18; bit_offset >= 0; bit_offset -= 3)
+	    {
+	      if (c >= (1 << bit_offset))
+		*p++ = ((c & (7 << bit_offset)) >> bit_offset) + '0';
+	    }
+	}
+      else
+	{
+	  unsigned char work[4], *str;
+	  int i = CHAR_STRING (c, work, str);
+	  bcopy (str, p, i);
+	  p += i;
+	}
     }
 
   return p;  
@@ -1894,6 +1906,7 @@ Control characters turn into C-whatever, etc.")
 	SPLIT_NON_ASCII_CHAR (without_bits, charset, c1, c2);
 
       if (charset
+	  && CHARSET_DEFINED_P (charset)
 	  && ((c1 >= 0 && c1 < 32)
 	      || (c2 >= 0 && c2 < 32)))
 	{
