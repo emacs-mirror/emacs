@@ -447,7 +447,7 @@ If `center', vector elements are centered.")
   (calc-vector-brackets "[]"
    "If non-nil, surround displayed vectors with these characters.")
 
-  (calc-matrix-brackets '(R O)
+  (calc-matrix-brackets (R O)
    "A list of code-letter symbols that control \"big\" matrix display.
 If `R' is present, display inner brackets for matrices.
 If `O' is present, display outer brackets for matrices (above/below).

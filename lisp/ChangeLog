@@ -1,3 +1,77 @@
+2004-09-19  Stefan  <monnier@iro.umontreal.ca>
+
+	* subr.el (event-basic-type): Fix mask (extend to 22bits).
+
+2004-09-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* textmodes/enriched.el (enriched-rerun-flag): New variable.
+	(enriched-before-change-major-mode): New function.
+	Add it to `change-major-mode-hook'.
+	(enriched-after-change-major-mode): New function.
+	Add it to `after-change-major-mode-hook'.
+	(enriched-mode): Make it work correctly if called from
+	`after-change-major-mode-hook'.
+	No longer set `indent-line-function'.
+
+	* simple.el (fundamental-mode): Run `after-change-major-mode-hook'.
+
+	* subr.el (after-change-major-mode-hook): New variable.
+	(run-mode-hooks): Implement it.
+
+2004-09-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* battery.el (battery-linux-proc-apm): Use string-to-number.
+	(battery-linux-proc-acpi): Ignore all hidden files in the battery dir.
+	Use dolist (and less indentation).  Use erase-buffer.
+	Pre-initialize `design-capacity', `warn', and `low'.
+	(battery-format): Use replace-regexp-in-string.
+
+2004-09-18  Ralph Schleicher  <rs@nunatak.allgaeu.org>
+
+	* battery.el: Delete superfluous empty lines.
+	(battery-linux-proc-acpi): Attempt to gather information from all
+	battery subdirectories regardless of their file name.
+	(battery-linux-proc-apm): Replace all occurrences of
+	battery-hex-to-int-2 with string-to-int (base 16).
+	(battery-hex-to-int-2, battery-hex-to-int): Delete functions.
+	(battery-hex-map): Delete variable.
+
+2004-09-18  John Paul Wallington  <jpw@gnu.org>
+
+	* calc/calc-units.el (calc-quick-units): Fix overzealous
+	s/or/unless/.
+
+2004-09-17  Romain Francoise  <romain@orebokech.com>
+
+	* ibuf-ext.el (define-ibuffer-filter filename):
+	Expand dired-directory since buffer-file-name is absolute.
+
+2004-09-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ediff-init.el (ediff-current-diff-face-A)
+	(ediff-current-diff-face-B, ediff-current-diff-face-C)
+	(ediff-current-diff-face-Ancestor)
+	(ediff-fine-diff-face-A, ediff-fine-diff-face-B)
+	(ediff-fine-diff-face-C, ediff-fine-diff-face-Ancestor)
+	(ediff-even-diff-face-A, ediff-even-diff-face-B)
+	(ediff-even-diff-face-C, ediff-even-diff-face-Ancestor)
+	(ediff-odd-diff-face-A, ediff-odd-diff-face-B)
+	(ediff-odd-diff-face-C, ediff-odd-diff-face-Ancestor):
+	Use min-colors.
+
+	* term.el (term-down): Perform vertical motion if DOWN is negative.
+	(term-exec-1): Set both TERMCAP and TERMINFO unconditionally.
+	(term-termcap-format): Synchronyze with the eterm terminfo entry
+	in etc/e/eterm.ti.
+	(term-handle-colors-array): If the current foreground or
+	background are zero (i.e. unspecified), use the foreground and
+	background of the default face for reverse video.
+	(term-ansi-at-eval-string, term-ansi-default-fg)
+	(term-ansi-default-bg, term-ansi-current-temp): Delete unused variable.
+	(term-mem): Delete ununsed function.
+	(term-protocol-version): Increment.
+	(term-current-face): Set to default.
+
 2004-09-15  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* vc.el (annotate-time): Document point handling.

@@ -1,7 +1,7 @@
 ;;; subr.el --- basic lisp subroutines for Emacs
 
-;; Copyright (C) 1985, 86, 92, 94, 95, 99, 2000, 2001, 2002, 03, 2004
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1999, 2000, 2001, 2002, 2003,
+;;   2004  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -683,7 +683,7 @@ in the current Emacs session, then this function may return nil."
       (setq event (car event)))
   (if (symbolp event)
       (car (get event 'event-symbol-elements))
-    (let ((base (logand event (1- (lsh 1 18)))))
+    (let ((base (logand event (1- ?\A-\^@))))
       (downcase (if (< base 32) (logior base 64) base)))))
 
 (defsubst mouse-movement-p (object)
@@ -1949,6 +1949,10 @@ in BODY."
 (make-variable-buffer-local 'delayed-mode-hooks)
 (put 'delay-mode-hooks 'permanent-local t)
 
+(defvar after-change-major-mode-hook nil
+  "Mode independent hook run at the end of major mode functions.
+This is run just before the mode dependent hooks.")
+
 (defun run-mode-hooks (&rest hooks)
   "Run mode hooks `delayed-mode-hooks' and HOOKS, or delay HOOKS.
 Execution is delayed if `delay-mode-hooks' is non-nil.
@@ -1960,6 +1964,7 @@ Major mode functions should use this."
     ;; Normal case, just run the hook as before plus any delayed hooks.
     (setq hooks (nconc (nreverse delayed-mode-hooks) hooks))
     (setq delayed-mode-hooks nil)
+    (run-hooks 'after-change-major-mode-hook)
     (apply 'run-hooks hooks)))
 
 (defmacro delay-mode-hooks (&rest body)
@@ -2656,5 +2661,5 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
   (put symbol 'abortfunc (or abortfunc 'kill-buffer))
   (put symbol 'hookvar (or hookvar 'mail-send-hook)))
 
-;;; arch-tag: f7e0e6e5-70aa-4897-ae72-7a3511ec40bc
+;; arch-tag: f7e0e6e5-70aa-4897-ae72-7a3511ec40bc
 ;;; subr.el ends here

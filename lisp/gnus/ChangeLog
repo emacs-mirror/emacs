@@ -1,3 +1,12 @@
+2004-09-16  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-sum.el (gnus-fetch-old-headers): Added custom choices `t'
+	and `invisible'.
+
+2004-09-13  Simon Josefsson  <jas@extundo.com>
+
+	* nnimap.el (nnimap-demule): Revert 2004-08-30 change.
+
 2004-09-13  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-sum.el (gnus-summary-copy-article): Fixed doc string.

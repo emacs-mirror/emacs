@@ -50,85 +50,45 @@ proof-read the corresponding manual section.
 DONE	SECTION
 ---------------------------------------------
 	man/abbrevs.texi
-	man/ack.texi
-	man/ada-mode.texi
 	man/anti.texi
-	man/autotype.texi
-	man/back.texi
-	man/basic.texi
-	man/buffers.texi
+LT	man/basic.texi
+LT	man/buffers.texi
 	man/building.texi
-	man/calc.texi
 	man/calendar.texi
-	man/cc-mode.texi
-	man/cl.texi
 	man/cmdargs.texi
-	man/commands.texi
+LT	man/commands.texi
 	man/custom.texi
 	man/dired.texi
-	man/dired-x.texi
-	man/display.texi
-	man/doclicense.texi
-	man/ebrowse.texi
-	man/ediff.texi
-	man/emacs-mime.texi
-	man/emacs.texi
-	man/emacs-xtra.texi
-	man/entering.texi
-	man/eshell.texi
-	man/eudc.texi
-	man/faq.texi
-	man/files.texi
-	man/fixit.texi
-	man/flymake.texi
-	man/forms.texi
-	man/frames.texi
+LT	man/display.texi
+LT	man/emacs.texi
+LT	man/entering.texi
+LT	man/files.texi
+LT	man/fixit.texi
+LT	man/frames.texi
 	man/glossary.texi
-	man/gnus-faq.texi
-	man/gnus.texi
-	man/gnu.texi
-	man/help.texi
-	man/idlwave.texi
-	man/indent.texi
-	man/info.texi
-	man/killing.texi
-	man/kmacro.texi
+LT	man/help.texi
+LT	man/indent.texi
+LT	man/killing.texi
+LT	man/kmacro.texi
 	man/macos.texi
 	man/maintaining.texi
-	man/major.texi
-	man/mark.texi
-	man/message.texi
-	man/mh-e.texi
-	man/mini.texi
+LT	man/major.texi
+LT	man/mark.texi
+LT	man/mini.texi
 	man/misc.texi
 	man/msdog.texi
-	man/mule.texi
-	man/m-x.texi
-	man/pcl-cvs.texi
-	man/pgg.texi
+LT	man/mule.texi
+LT	man/m-x.texi
 	man/picture.texi
 	man/programs.texi
-	man/reftex.texi
-	man/regs.texi
+LT	man/regs.texi
 	man/rmail.texi
-	man/screen.texi
-	man/sc.texi
-	man/search.texi
+LT	man/screen.texi
+LT	man/search.texi
 	man/sending.texi
-	man/ses.texi
-	man/sieve.texi
-	man/smtpmail.texi
-	man/speedbar.texi
-	man/texinfo.tex
-	man/text.texi
-	man/tramp.texi
-	man/trampver.texi
+LT	man/text.texi
 	man/trouble.texi
-	man/viper.texi
-	man/vip.texi
-	man/widget.texi
-	man/windows.texi
-	man/woman.texi
+LT	man/windows.texi
 	man/xresources.texi
 
 ** Check the Emacs Lisp manual.
@@ -138,62 +98,55 @@ proof-read the corresponding manual section.
 
 DONE	SECTION
 ---------------------------------------------
-	lispref/abbrevs.texi
+LT	lispref/abbrevs.texi
 	lispref/advice.texi
 	lispref/anti.texi
-	lispref/back.texi
-	lispref/backups.texi
-	lispref/buffers.texi
+LT	lispref/backups.texi
+LT	lispref/buffers.texi
 	lispref/calendar.texi
-	lispref/commands.texi
-	lispref/compile.texi
-	lispref/control.texi
+LT	lispref/commands.texi
+LT	lispref/compile.texi
+LT	lispref/control.texi
 	lispref/customize.texi
 	lispref/debugging.texi
 	lispref/display.texi
-	lispref/doclicense.texi
 	lispref/edebug.texi
-	lispref/elisp-covers.texi
-	lispref/elisp.texi
-	lispref/errors.texi
-	lispref/eval.texi
-	lispref/files.texi
-	lispref/frames.texi
-	lispref/front-cover-1.texi
-	lispref/functions.texi
-	lispref/gpl.texi
-	lispref/hash.texi
-	lispref/help.texi
+LT	lispref/elisp.texi
+LT	lispref/errors.texi
+LT	lispref/eval.texi
+LT	lispref/files.texi
+LT	lispref/frames.texi
+LT	lispref/functions.texi
+LT	lispref/hash.texi
+LT	lispref/help.texi
 	lispref/hooks.texi
-	lispref/index.texi
-	lispref/internals.texi
-	lispref/intro.texi
-	lispref/keymaps.texi
-	lispref/lay-flat.texi
-	lispref/lists.texi
-	lispref/loading.texi
+LT	lispref/internals.texi
+LT	lispref/intro.texi
+LT	lispref/keymaps.texi
+LT	lispref/lists.texi
+LT	lispref/loading.texi
 	lispref/locals.texi
-	lispref/macros.texi
+LT	lispref/macros.texi
 	lispref/maps.texi
-	lispref/markers.texi
-	lispref/minibuf.texi
+LT	lispref/markers.texi
+LT	lispref/minibuf.texi
 	lispref/modes.texi
-	lispref/nonascii.texi
-	lispref/numbers.texi
-	lispref/objects.texi
-	lispref/os.texi
-	lispref/positions.texi
+LT	lispref/nonascii.texi
+LT	lispref/numbers.texi
+LT	lispref/objects.texi
+LT	lispref/os.texi
+LT	lispref/positions.texi
 	lispref/processes.texi
-	lispref/searching.texi
-	lispref/sequences.texi
-	lispref/streams.texi
-	lispref/strings.texi
-	lispref/symbols.texi
-	lispref/syntax.texi
+LT	lispref/searching.texi
+LT	lispref/sequences.texi
+LT	lispref/streams.texi
+LT	lispref/strings.texi
+LT	lispref/symbols.texi
+LT	lispref/syntax.texi
 	lispref/text.texi
-	lispref/tips.texi
-	lispref/variables.texi
-	lispref/windows.texi
+LT	lispref/tips.texi
+LT	lispref/variables.texi
+LT	lispref/windows.texi
 
 
 Local variables:

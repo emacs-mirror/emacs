@@ -1,6 +1,7 @@
 ;;; battery.el --- display battery status information
 
-;; Copyright (C) 1997, 1998, 2000, 2001, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2000, 2001, 2003, 2004
+;;           Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
 ;; Keywords: hardware
@@ -31,9 +32,9 @@
 ;;; Code:
 
 (require 'timer)
+(eval-when-compile (require 'cl))
 
 
-
 (defgroup battery nil
   "Display battery status information."
   :prefix "battery-"
@@ -182,20 +183,20 @@ The following %-sequences are provided:
 	  (re-search-forward battery-linux-proc-apm-regexp)
 	  (setq driver-version (match-string 1))
 	  (setq bios-version (match-string 2))
-	  (setq tem (battery-hex-to-int-2 (match-string 3)))
+	  (setq tem (string-to-number (match-string 3) 16))
 	  (if (not (logand tem 2))
 	      (setq bios-interface "not supported")
 	    (setq bios-interface "enabled")
 	    (cond ((logand tem 16) (setq bios-interface "disabled"))
 		  ((logand tem 32) (setq bios-interface "disengaged")))
-	    (setq tem (battery-hex-to-int-2 (match-string 4)))
+	    (setq tem (string-to-number (match-string 4) 16))
 	    (cond ((= tem 0) (setq line-status "off-line"))
 		  ((= tem 1) (setq line-status "on-line"))
 		  ((= tem 2) (setq line-status "on backup")))
-	    (setq tem (battery-hex-to-int-2 (match-string 6)))
+	    (setq tem (string-to-number (match-string 6) 16))
 	    (if (= tem 255)
 		(setq battery-status "N/A")
-	      (setq tem (battery-hex-to-int-2 (match-string 5)))
+	      (setq tem (string-to-number (match-string 5) 16))
 	      (cond ((= tem 0) (setq battery-status "high"
 				     battery-status-symbol ""))
 		    ((= tem 1) (setq battery-status "low"
@@ -243,54 +244,52 @@ The following %-sequences are provided:
 %m Remaining time in minutes
 %h Remaining time in hours
 %t Remaining time in the form `h:min'"
-  (let (capacity design-capacity rate rate-type charging-state warn low
-		 minutes hours)
-    (when (file-directory-p "/proc/acpi/battery/")
-      ;; ACPI provides information about each battery present in the system in
-      ;; a separate subdirectory.  We are going to merge the available
-      ;; information together since displaying for a variable amount of
-      ;; batteries seems overkill for format-strings.
-      (mapc
-       (lambda (dir)
-	 (with-temp-buffer
-	   (insert-file-contents (expand-file-name "state" dir))
-	   (when (re-search-forward "present: +yes$" nil t)
-	     (and (re-search-forward "charging state: +\\(.*\\)$" nil t)
-		  (or (null charging-state) (string= charging-state
-						     "unknown"))
-		  ;; On most multi-battery systems, most of the time only one
-		  ;; battery is "charging"/"discharging", the others are
-		  ;; "unknown".
-		  (setq charging-state (match-string 1)))
-	     (when (re-search-forward "present rate: +\\([0-9]+\\) \\(m[AW]\\)$"
-				      nil t)
-	       (setq rate (+ (or rate 0) (string-to-int (match-string 1)))
-		     rate-type (or (and rate-type
-					(if (string= rate-type (match-string 2))
-					    rate-type
-					  (error
-					   "Inconsistent rate types (%s vs. %s)"
-					   rate-type (match-string 2))))
-				   (match-string 2))))
-	     (when (re-search-forward "remaining capacity: +\\([0-9]+\\) m[AW]h$"
-				      nil t)
-	       (setq capacity
-		     (+ (or capacity 0) (string-to-int (match-string 1))))))
-	   (goto-char (point-max))
-	   (insert-file-contents (expand-file-name "info" dir))
-	   (when (re-search-forward "present: +yes$" nil t)
-	     (when (re-search-forward "design capacity: +\\([0-9]+\\) m[AW]h$"
-				      nil t)
-	       (setq design-capacity (+ (or design-capacity 0)
-					(string-to-int (match-string 1)))))
-	     (when (re-search-forward "design capacity warning: +\\([0-9]+\\) m[AW]h$"
-				      nil t)
-	       (setq warn (+ (or warn 0) (string-to-int (match-string 1)))))
-	     (when (re-search-forward "design capacity low: +\\([0-9]+\\) m[AW]h$"
-				      nil t)
-	       (setq low (+ (or low 0)
-			    (string-to-int (match-string 1))))))))
-       (directory-files "/proc/acpi/battery/" t "\\(BAT\\|CMB\\)")))
+  (let ((design-capacity 0)
+	(warn 0)
+	(low 0)
+	capacity rate rate-type charging-state minutes hours)
+    ;; ACPI provides information about each battery present in the system in
+    ;; a separate subdirectory.  We are going to merge the available
+    ;; information together since displaying for a variable amount of
+    ;; batteries seems overkill for format-strings.
+    (with-temp-buffer
+      (dolist (dir (ignore-errors (directory-files "/proc/acpi/battery/"
+						   t "\\`[^.]")))
+	(erase-buffer)
+	(ignore-errors (insert-file-contents (expand-file-name "state" dir)))
+	(when (re-search-forward "present: +yes$" nil t)
+	  (and (re-search-forward "charging state: +\\(.*\\)$" nil t)
+	       (member charging-state '("unknown" nil))
+	       ;; On most multi-battery systems, most of the time only one
+	       ;; battery is "charging"/"discharging", the others are
+	       ;; "unknown".
+	       (setq charging-state (match-string 1)))
+	  (when (re-search-forward "present rate: +\\([0-9]+\\) \\(m[AW]\\)$"
+				   nil t)
+	    (setq rate (+ (or rate 0) (string-to-number (match-string 1)))
+		  rate-type (or (and rate-type
+				     (if (string= rate-type (match-string 2))
+					 rate-type
+				       (error
+					"Inconsistent rate types (%s vs. %s)"
+					rate-type (match-string 2))))
+				(match-string 2))))
+	  (when (re-search-forward "remaining capacity: +\\([0-9]+\\) m[AW]h$"
+				   nil t)
+	    (setq capacity
+		  (+ (or capacity 0) (string-to-number (match-string 1))))))
+	(goto-char (point-max))
+	(ignore-errors (insert-file-contents (expand-file-name "info" dir)))
+	(when (re-search-forward "present: +yes$" nil t)
+	  (when (re-search-forward "design capacity: +\\([0-9]+\\) m[AW]h$"
+				   nil t)
+	    (incf design-capacity (string-to-number (match-string 1))))
+	  (when (re-search-forward
+		 "design capacity warning: +\\([0-9]+\\) m[AW]h$" nil t)
+	    (incf warn (string-to-number (match-string 1))))
+	  (when (re-search-forward "design capacity low: +\\([0-9]+\\) m[AW]h$"
+				   nil t)
+	    (incf low (string-to-number (match-string 1)))))))
     (and capacity rate
 	 (setq minutes (if (zerop rate) 0
 			 (floor (* (/ (float (if (string= charging-state
@@ -327,8 +326,8 @@ The following %-sequences are provided:
 					 rate-type)) "N/A"))
 	  (cons ?B (or charging-state "N/A"))
 	  (cons ?b (or (and (string= charging-state "charging") "+")
-		       (and low (< capacity low) "!")
-		       (and warn (< capacity warn) "-")
+		       (and (< capacity low) "!")
+		       (and (< capacity warn) "-")
 		       ""))
 	  (cons ?h (or (and hours (number-to-string hours)) "N/A"))
 	  (cons ?m (or (and minutes (number-to-string minutes)) "N/A"))
@@ -346,54 +345,16 @@ The following %-sequences are provided:
 
 (defun battery-format (format alist)
   "Substitute %-sequences in FORMAT."
-  (let ((index 0)
-	(length (length format))
-	(result "")
-	char flag elem)
-    (while (< index length)
-      (setq char (aref format index))
-      (if (not flag)
-	  (if (char-equal char ?%)
-	      (setq flag t)
-	    (setq result (concat result (char-to-string char))))
-	(cond ((char-equal char ?%)
-	       (setq result (concat result "%")))
-	      ((setq elem (assoc char alist))
-	       (setq result (concat result (cdr elem)))))
-	(setq flag nil))
-      (setq index (1+ index)))
-    (or (null flag)
-	(setq result (concat result "%")))
-    result))
-
-(defconst battery-hex-map '((?0 .  0) (?1 .  1) (?2 .  2) (?3 .  3)
-			    (?4 .  4) (?5 .  5) (?6 .  6) (?7 .  7)
-			    (?8 .  8) (?9 .  9) (?a . 10) (?b . 11)
-			    (?c . 12) (?d . 13) (?e . 14) (?f . 15)))
-
-(defun battery-hex-to-int (string)
-  "Convert a hexadecimal number (a string) into a number."
-  (save-match-data
-    (and (string-match "^[ \t]+" string)
-	 (setq string (substring string (match-end 0))))
-    (and (string-match "^0[xX]" string)
-	 (setq string (substring string (match-end 0)))))
-  (battery-hex-to-int-2 string))
-
-(defun battery-hex-to-int-2 (string)
-  (let ((index 0)
-	(length (length string))
-	(value 0)
-	(elem nil))
-    (while (and (< index length)
-		(setq elem (assoc (downcase (aref string index))
-				  battery-hex-map)))
-      (setq value (+ (* 16 value) (cdr elem))
-	    index (1+ index)))
-    value))
+  (replace-regexp-in-string
+   "%."
+   (lambda (str)
+     (let ((char (aref str 1)))
+       (if (eq char ?%) "%"
+	 (or (cdr (assoc char alist)) ""))))
+   format t t))
 
 
 (provide 'battery)
 
-;;; arch-tag: 65916f50-4754-4b6b-ac21-0b510f545a37
+;; arch-tag: 65916f50-4754-4b6b-ac21-0b510f545a37
 ;;; battery.el ends here
