@@ -348,12 +348,12 @@ CHARSETS is a list of character sets."
       '(undecided)
     (setq charsets (delq 'composition charsets))
     (let ((l (coding-system-list 'base-only))
-	  (charset-prefered-codings
+	  (charset-preferred-codings
 	   (mapcar (function
 		    (lambda (x)
 		      (if (eq x 'unknown)
 			  'raw-text
-			(get-charset-property x 'prefered-coding-system))))
+			(get-charset-property x 'preferred-coding-system))))
 		   charsets))
 	  (priorities (mapcar (function (lambda (x) (symbol-value x)))
 			      coding-category-list))
@@ -367,13 +367,13 @@ CHARSETS is a list of character sets."
 		 (or (eq safe t)
 		     (find-coding-systems-region-subset-p charsets safe)))
 	    ;; We put the higher priority to coding systems included
-	    ;; in CHARSET-PREFERED-CODINGS, and within them, put the
+	    ;; in CHARSET-PREFERRED-CODINGS, and within them, put the
 	    ;; higher priority to coding systems which support smaller
 	    ;; number of charsets.
 	    (let ((priority
 		   (+ (if (coding-system-get coding 'mime-charset) 4096 0)
 		      (lsh (length (memq coding priorities)) 7)
-		      (if (memq coding charset-prefered-codings) 64 0)
+		      (if (memq coding charset-preferred-codings) 64 0)
 		      (if (> (coding-system-type coding) 0) 32 0)
 		      (if (consp safe) (- 32 (length safe)) 0))))
 	      (setq codings (cons (cons priority coding) codings)))))
