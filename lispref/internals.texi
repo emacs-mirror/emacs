@@ -382,6 +382,17 @@ You can use this to get a general idea of how your actions affect the
 memory usage.
 @end defun
 
+@defvar gcs-done
+This variable contains the total number of garbage collections
+done so far in this Emacs session.
+@end defun
+
+@defvar gc-elapsed
+This variable contains the total number of seconds of elapsed time
+during garbage collection so far in this Emacs session, as a floating
+point number.
+@end defun
+
 @node Memory Usage
 @section Memory Usage
 
