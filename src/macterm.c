@@ -1,5 +1,5 @@
 /* Implementation of GUI terminal on the Mac OS.
-   Copyright (C) 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -6372,81 +6372,6 @@ x_find_ccl_program (fontp)
 
 
 
-/***********************************************************************
-			    Initialization
- ***********************************************************************/
-
-#ifdef USE_X_TOOLKIT
-static XrmOptionDescRec emacs_options[] = {
-  {"-geometry",	".geometry", XrmoptionSepArg, NULL},
-  {"-iconic",	".iconic", XrmoptionNoArg, (XtPointer) "yes"},
-
-  {"-internal-border-width", "*EmacsScreen.internalBorderWidth",
-     XrmoptionSepArg, NULL},
-  {"-ib",	"*EmacsScreen.internalBorderWidth", XrmoptionSepArg, NULL},
-
-  {"-T",	"*EmacsShell.title", XrmoptionSepArg, (XtPointer) NULL},
-  {"-wn",	"*EmacsShell.title", XrmoptionSepArg, (XtPointer) NULL},
-  {"-title",	"*EmacsShell.title", XrmoptionSepArg, (XtPointer) NULL},
-  {"-iconname",	"*EmacsShell.iconName", XrmoptionSepArg, (XtPointer) NULL},
-  {"-in",	"*EmacsShell.iconName", XrmoptionSepArg, (XtPointer) NULL},
-  {"-mc",	"*pointerColor", XrmoptionSepArg, (XtPointer) NULL},
-  {"-cr",	"*cursorColor", XrmoptionSepArg, (XtPointer) NULL}
-};
-#endif /* USE_X_TOOLKIT */
-
-static int x_initialized;
-
-#ifdef MULTI_KBOARD
-/* Test whether two display-name strings agree up to the dot that separates
-   the screen number from the server number.  */
-static int
-same_x_server (name1, name2)
-     char *name1, *name2;
-{
-  int seen_colon = 0;
-  unsigned char *system_name = SDATA (Vsystem_name);
-  int system_name_length = strlen (system_name);
-  int length_until_period = 0;
-
-  while (system_name[length_until_period] != 0
-	 && system_name[length_until_period] != '.')
-    length_until_period++;
-
-  /* Treat `unix' like an empty host name.  */
-  if (! strncmp (name1, "unix:", 5))
-    name1 += 4;
-  if (! strncmp (name2, "unix:", 5))
-    name2 += 4;
-  /* Treat this host's name like an empty host name.  */
-  if (! strncmp (name1, system_name, system_name_length)
-      && name1[system_name_length] == ':')
-    name1 += system_name_length;
-  if (! strncmp (name2, system_name, system_name_length)
-      && name2[system_name_length] == ':')
-    name2 += system_name_length;
-  /* Treat this host's domainless name like an empty host name.  */
-  if (! strncmp (name1, system_name, length_until_period)
-      && name1[length_until_period] == ':')
-    name1 += length_until_period;
-  if (! strncmp (name2, system_name, length_until_period)
-      && name2[length_until_period] == ':')
-    name2 += length_until_period;
-
-  for (; *name1 != '\0' && *name1 == *name2; name1++, name2++)
-    {
-      if (*name1 == ':')
-	seen_colon++;
-      if (seen_colon && *name1 == '.')
-	return 1;
-    }
-  return (seen_colon
-	  && (*name1 == '.' || *name1 == '\0')
-	  && (*name2 == '.' || *name2 == '\0'));
-}
-#endif
-
-
 /* The Mac Event loop code */
 
 #ifndef MAC_OSX
@@ -8329,74 +8254,6 @@ make_mac_terminal_frame (struct frame *f)
 /***********************************************************************
 			    Initialization
  ***********************************************************************/
-
-#ifdef USE_X_TOOLKIT
-static XrmOptionDescRec emacs_options[] = {
-  {"-geometry",	".geometry", XrmoptionSepArg, NULL},
-  {"-iconic",	".iconic", XrmoptionNoArg, (XtPointer) "yes"},
-
-  {"-internal-border-width", "*EmacsScreen.internalBorderWidth",
-     XrmoptionSepArg, NULL},
-  {"-ib",	"*EmacsScreen.internalBorderWidth", XrmoptionSepArg, NULL},
-
-  {"-T",	"*EmacsShell.title", XrmoptionSepArg, (XtPointer) NULL},
-  {"-wn",	"*EmacsShell.title", XrmoptionSepArg, (XtPointer) NULL},
-  {"-title",	"*EmacsShell.title", XrmoptionSepArg, (XtPointer) NULL},
-  {"-iconname",	"*EmacsShell.iconName", XrmoptionSepArg, (XtPointer) NULL},
-  {"-in",	"*EmacsShell.iconName", XrmoptionSepArg, (XtPointer) NULL},
-  {"-mc",	"*pointerColor", XrmoptionSepArg, (XtPointer) NULL},
-  {"-cr",	"*cursorColor", XrmoptionSepArg, (XtPointer) NULL}
-};
-#endif /* USE_X_TOOLKIT */
-
-#ifdef MULTI_KBOARD
-/* Test whether two display-name strings agree up to the dot that separates
-   the screen number from the server number.  */
-static int
-same_x_server (name1, name2)
-     char *name1, *name2;
-{
-  int seen_colon = 0;
-  unsigned char *system_name = SDATA (Vsystem_name);
-  int system_name_length = strlen (system_name);
-  int length_until_period = 0;
-
-  while (system_name[length_until_period] != 0
-	 && system_name[length_until_period] != '.')
-    length_until_period++;
-
-  /* Treat `unix' like an empty host name.  */
-  if (! strncmp (name1, "unix:", 5))
-    name1 += 4;
-  if (! strncmp (name2, "unix:", 5))
-    name2 += 4;
-  /* Treat this host's name like an empty host name.  */
-  if (! strncmp (name1, system_name, system_name_length)
-      && name1[system_name_length] == ':')
-    name1 += system_name_length;
-  if (! strncmp (name2, system_name, system_name_length)
-      && name2[system_name_length] == ':')
-    name2 += system_name_length;
-  /* Treat this host's domainless name like an empty host name.  */
-  if (! strncmp (name1, system_name, length_until_period)
-      && name1[length_until_period] == ':')
-    name1 += length_until_period;
-  if (! strncmp (name2, system_name, length_until_period)
-      && name2[length_until_period] == ':')
-    name2 += length_until_period;
-
-  for (; *name1 != '\0' && *name1 == *name2; name1++, name2++)
-    {
-      if (*name1 == ':')
-	seen_colon++;
-      if (seen_colon && *name1 == '.')
-	return 1;
-    }
-  return (seen_colon
-	  && (*name1 == '.' || *name1 == '\0')
-	  && (*name2 == '.' || *name2 == '\0'));
-}
-#endif
 
 int mac_initialized = 0;
 
