@@ -215,8 +215,7 @@ access_keymap (map, idx)
   /* If idx is a list (some sort of mouse click, perhaps?),
      the index we want to use is the car of the list, which
      ought to be a symbol.  */
-  if (EVENT_HAS_PARAMETERS (idx))
-    idx = EVENT_HEAD (idx);
+  idx = EVENT_HEAD (idx);
 
   if (XTYPE (idx) == Lisp_Int
       && (XINT (idx) < 0 || XINT (idx) >= DENSE_TABLE_SIZE))
@@ -312,8 +311,7 @@ store_in_keymap (keymap, idx, def)
   /* If idx is a list (some sort of mouse click, perhaps?),
      the index we want to use is the car of the list, which
      ought to be a symbol.  */
-  if (EVENT_HAS_PARAMETERS (idx))
-    idx = EVENT_HEAD (idx);
+  idx = EVENT_HEAD (idx);
 
   if (XTYPE (idx) == Lisp_Int
       && (XINT (idx) < 0 || XINT (idx) >= DENSE_TABLE_SIZE))
@@ -1105,8 +1103,7 @@ Control characters turn into C-whatever, etc.")
   register unsigned char c;
   char tem[6];
 
-  if (EVENT_HAS_PARAMETERS (key))
-    key = EVENT_HEAD (key);
+  key = EVENT_HEAD (key);
 
   switch (XTYPE (key))
     {
