@@ -99,7 +99,9 @@ It then selects a major mode from the uncompressed file name and contents."
 	(progn
 	  (insert-file-contents buffer-file-name t)
 	  (goto-char (point-min))
-	  (setq error nil)
+	  ;; No need for this, because error won't be set to t
+	  ;; if this function returns t.
+	  ;; (setq error nil)
 	  t))))
 
 (provide 'uncompress)
