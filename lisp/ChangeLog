@@ -1,3 +1,9 @@
+2000-05-18  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-diag.el (describe-char-after): Call
+	internal-char-font, not char-font.  If internal-char-font returns
+	nil, display "-- none --".
+
 2000-05-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* image.el (image-type-available-p): Don't reference image-types
@@ -183,9 +189,7 @@
 	* international/mule-conf.el: Add more information in descriptions
 	of character sets.
 
-	* international/mule-diag.el (syntax-description-table): New
-	variable.
-	(describe-char-after): New function.
+	* international/mule-diag.el (describe-char-after): New function.
 	(describe-font-internal): Adjusted for the change of font-info.
 	(describe-font): Likewise.
 	(print-fontset): Rewritten for the new fontset implementation.
@@ -195,7 +199,9 @@
 	* simple.el (what-cursor-position): If DETAIL is non-nil, call
 	describe-char-after instead of displaying the detail in the echo
 	area.
-
+	(syntax-code-table): Format changed.
+	(string-to-syntax): Adjusted for the above change.
+	
 2000-05-12  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* font-lock.el (lisp-font-lock-keywords-1): Add define-minor-mode.

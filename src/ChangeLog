@@ -1,3 +1,21 @@
+2000-05-18  Kenichi Handa  <handa@etl.go.jp>
+
+	* fns.c (map_char_table): Pay attention to character number of
+	charset.  Check the validity of charset at the first level.   For
+	leaf nodes that has nil value, call C_FUNCTION or FUNCTION with
+	the default value.
+
+	* fontset.c: Include "buffer.h".
+	(fs_load_font): If the face has fontset, record the face ID in
+	that fontset.
+	(Finternal_char_font): New function.
+	(accumulate_font_info): New function.
+	(Ffontset_info): Rewritten for the new fontset implementation.
+	(syms_of_fontset): Register Vdefault_fontset in the first element
+	of Vfontset_table.  Include Vdefault_fontset in
+	Vfontset_alias_alist.  Declare `internal-char-font' as a Lisp
+	function.
+
 2000-05-16  Dave Love  <fx@gnu.org>
 
 	* m/iris5d.h: Deleted -- unused.

@@ -4730,29 +4730,7 @@ integers, including negative integers.")
   return Fput (name, Qhash_table_test, list2 (test, hash));
 }
 
-
-#include <sys/times.h>
-#include <limits.h>
 
-DEFUN ("cpu-ticks", Fcpy_ticks, Scpu_ticks, 0, 0, 0,
-       "Return time-accounting information.\n\
-Value is a list (UTIME STIME CUTIME CSTIME), where\n\
-UTIME is the CPU time used by the current process in the user space,\n\
-STIME is the CPU time used by the current process in the system kernel space\n\
-CUTIME is the CPU time used by the current and its children processs\n\
-  in the user space,\n\
-CSTIME is the CPU time used by the current and its children processs\n\
-  in the system kernel space.")
-     ()
-{
-  struct tms buf;
-
-  times (&buf);
-  return list4 (make_number (buf.tms_utime),
-		make_number (buf.tms_stime),
-		make_number (buf.tms_cutime),
-		make_number (buf.tms_cstime));
-}
 
 
 void
@@ -4897,7 +4875,6 @@ invoked by mouse clicks and mouse menu items.");
   defsubr (&Sbase64_decode_region);
   defsubr (&Sbase64_encode_string);
   defsubr (&Sbase64_decode_string);
-  defsubr (&Scpu_ticks);
 }
 
 
