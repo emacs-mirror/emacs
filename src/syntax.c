@@ -2174,12 +2174,16 @@ This includes chars with \"quote\" or \"prefix\" syntax (' or p).")
 
   DEC_BOTH (pos, pos_byte);
 
-  while (pos + 1 > beg && !char_quoted (pos, pos_byte)
+  while (!char_quoted (pos, pos_byte)
 	 /* Previous statement updates syntax table.  */
 	 && ((c = FETCH_CHAR (pos_byte), SYNTAX (c) == Squote)
 	     || SYNTAX_PREFIX (c)))
     {
-      DEC_BOTH (pos, pos_byte);
+      opoint = pos;
+      opoint_byte = pos_byte;
+
+      if (pos + 1 > beg)
+	DEC_BOTH (pos, pos_byte);
     }
 
   SET_PT_BOTH (opoint, opoint_byte);
@@ -2220,6 +2224,7 @@ scan_sexps_forward (stateptr, from, from_byte, end, targetdepth,
   Lisp_Object tem;
   int prev_from;		/* Keep one character before FROM.  */
   int prev_from_byte;
+  int prev_from_syntax;
   int boundary_stop = commentstop == -1;
   int nofence;
 
@@ -2232,13 +2237,14 @@ scan_sexps_forward (stateptr, from, from_byte, end, targetdepth,
 #define INC_FROM				\
 do { prev_from = from;				\
      prev_from_byte = from_byte; 		\
+     prev_from_syntax				\
+       = SYNTAX_WITH_FLAGS (FETCH_CHAR (prev_from_byte)); \
      INC_BOTH (from, from_byte);		\
+     UPDATE_SYNTAX_TABLE_FORWARD (from);	\
   } while (0)
 
   immediate_quit = 1;
   QUIT;
-
-  SETUP_SYNTAX_TABLE (from, 1);
 
   if (NILP (oldstate))
     {
@@ -2302,11 +2308,15 @@ do { prev_from = from;				\
     }
   if (start_quoted) goto startquoted;
 
+
+  SETUP_SYNTAX_TABLE (prev_from, 1);
+  prev_from_syntax = SYNTAX_WITH_FLAGS (FETCH_CHAR (prev_from_byte));
+  UPDATE_SYNTAX_TABLE_FORWARD (from);
+
   while (from < end)
     {
-      UPDATE_SYNTAX_TABLE_FORWARD (from);
-      code = SYNTAX (FETCH_CHAR (from_byte));
       INC_FROM;
+      code = prev_from_syntax & 0xff;
 
       if (code == Scomment)
 	state.comstr_start = prev_from;
@@ -2319,13 +2329,14 @@ do { prev_from = from;				\
 			     ? ST_COMMENT_STYLE 
 			     : SYNTAX_COMMENT_STYLE (FETCH_CHAR (from_byte)));
 	  state.comstr_start = prev_from;
-	  if (code != Scomment_fence) INC_FROM;
+	  if (code != Scomment_fence)
+	    INC_FROM;
 	  code = Scomment;
 	}
      else if (from < end)
-	if (SYNTAX_COMSTART_FIRST (FETCH_CHAR (prev_from_byte)))
+	if (SYNTAX_FLAGS_COMSTART_FIRST (prev_from_syntax))
 	  if (SYNTAX_COMSTART_SECOND (FETCH_CHAR (from_byte)))
-	    /* Duplicate code to avoid a very complex if-expression
+	    /* Duplicate code to avoid a complex if-expression
 	       which causes trouble for the SGI compiler.  */
 	    {
 	      /* Record the comment style we have entered so that only
@@ -2335,11 +2346,12 @@ do { prev_from = from;				\
 				 ? ST_COMMENT_STYLE 
 				 : SYNTAX_COMMENT_STYLE (FETCH_CHAR (from_byte)));
 	      state.comstr_start = prev_from;
-	      if (code != Scomment_fence) INC_FROM;
+	      if (code != Scomment_fence)
+		INC_FROM;
 	      code = Scomment;
 	    }
 
-      if (SYNTAX_PREFIX (FETCH_CHAR (prev_from_byte)))
+      if (SYNTAX_FLAGS_PREFIX (prev_from_syntax))
 	continue;
       switch (SWITCH_ENUM_CAST (code))
 	{
@@ -2359,7 +2371,6 @@ do { prev_from = from;				\
 	symstarted:
 	  while (from < end)
 	    {
-	      UPDATE_SYNTAX_TABLE_FORWARD (from);
 	      switch (SWITCH_ENUM_CAST (SYNTAX (FETCH_CHAR (from_byte))))
 		{
 		case Scharquote:
@@ -2387,7 +2398,6 @@ do { prev_from = from;				\
 	    {
 	      /* Enter the loop in the middle so that we find
 		 a 2-char comment ender if we start in the middle of it.  */
-	      prev = FETCH_CHAR (prev_from_byte);
 	      goto startincomment_1;
 	    }
 	  /* At beginning of buffer, enter the loop the ordinary way.  */
@@ -2401,7 +2411,6 @@ do { prev_from = from;				\
 	  while (1)
 	    {
 	      if (from == end) goto done;
-	      UPDATE_SYNTAX_TABLE_FORWARD (from);
 	      prev = FETCH_CHAR (from_byte);
 	      if (SYNTAX (prev) == Sendcomment
 		  && SYNTAX_COMMENT_STYLE (prev) == state.comstyle)
@@ -2414,9 +2423,10 @@ do { prev_from = from;				\
 		break;
 	      INC_FROM;
 	    startincomment_1:
-	      if (from < end && SYNTAX_COMEND_FIRST (prev)
+	      if (from < end && SYNTAX_FLAGS_COMEND_FIRST (prev_from_syntax)
 		  && SYNTAX_COMEND_SECOND (FETCH_CHAR (from_byte))
-		  && SYNTAX_COMMENT_STYLE (prev) == state.comstyle)
+		  && (SYNTAX_FLAGS_COMMENT_STYLE (prev_from_syntax)
+		      == state.comstyle))
 		/* Only terminate the comment section if the end-comment
 		   sequence of the same style as the start sequence has
 		   been encountered.  */
@@ -2470,7 +2480,6 @@ do { prev_from = from;				\
 		if (from >= end) goto done;
 		c = FETCH_CHAR (from_byte);
 		if (nofence && c == state.instring) break;
-		UPDATE_SYNTAX_TABLE_FORWARD (from);
 		switch (SWITCH_ENUM_CAST (SYNTAX (c)))
 		  {
 		  case Sstring_fence:
