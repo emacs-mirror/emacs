@@ -1,3 +1,7 @@
+2003-06-16  Andreas Schwab  <schwab@suse.de>
+
+	* hash.texi (Creating Hash): Fix description of :weakness.
+
 2003-06-13  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 
 	* files.texi (Changing Files): copy-file copies file modes, too.
