@@ -370,6 +370,8 @@ FIND-REASON is non-nil -- or the user calls `timeclock-out'
 interactively -- call the function `timeclock-get-reason-function' to
 discover the reason."
   (interactive "P")
+  (or timeclock-last-event
+      (error "You haven't clocked in!"))
   (if (equal (downcase (car timeclock-last-event)) "o")
       (error "You've already clocked out!")
     (timeclock-log
