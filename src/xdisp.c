@@ -21086,9 +21086,9 @@ note_mode_line_or_margin_highlight (w, x, y, area)
 		  help_echo_pos = charpos;
 		}
 	    }
-	  if (NILP (pointer))
-	    pointer = Fsafe_plist_get (XCDR (object), QCpointer);
 	}
+      if (NILP (pointer))
+	pointer = Fsafe_plist_get (XCDR (object), QCpointer);
     }
 
   if (STRINGP (string))
