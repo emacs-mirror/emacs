@@ -1,3 +1,156 @@
+2003-03-31  Kim F. Storm  <storm@cua.dk>
+
+	The following changes consolidates the common code related to
+	frame-parameter handling from the xfns.c, w32fns.c, and macfns.c
+	files into frame.c.
+	
+	* frame.c: Include blockinput.h.
+	(Vx_resource_name, Vx_resource_class, Qx_frame_parameter)
+	(Qx_resource_name, Qface_set_after_frame_default): Define vars here.
+	(Qauto_raise, Qauto_lower, ...): Define all frame parameter
+	related vars here.
+	(struct frame_parm_table, frame_parms): New table for describing
+	frame parameters and their associated Q-variable.
+	The order of the parameters corresponds to the sequence of the
+	frame_parm_handlers table in redisplay_interface.
+	(x_fullscreen_move, x_set_frame_parameters)
+	(x_report_frame_params, x_set_fullscreen, x_set_line_spacing)
+	(x_set_screen_gamma, x_set_font, x_set_fringe_width)
+	(x_set_border_width, x_set_internal_border_width, x_set_visibility)
+	(x_set_autoraise, x_set_autolower, x_set_unsplittable)
+	(x_set_vertical_scroll_bars, x_set_scroll_bar_width, x_icon_type):
+	Generic functions for processing of frame parameters.
+	(validate_x_resource_name, xrdb_get_resource, Fx_get_resource)
+	(display_x_get_resource, x_get_resource_string): Functions for
+	generic access to X resources.
+	(x_get_arg, x_frame_get_arg, x_frame_get_and_record_arg)
+	(x_default_parameter, Fx_parse_geometry): Functions for generic
+	access to frame parameters.
+	(x_figure_window_size): Generic calculation of frame size. Fixed
+	to add space needed for tool bar.  Also setup size_hint_flags.
+	(syms_of_frame): Intern and staticpro frame parameter variables.
+	Defvar_lisp Vx_resource_class and Vx_resource_name here.
+	Defsubr Sx_get_resource and Sx_parse_geometry.
+	
+	* frame.h (Qauto_raise, Qauto_lower, ...): Declare extern all frame
+	parameter related vars defined in frame.c.
+	(EMACS_CLASS): Define here.
+	(enum FULLSCREEN_*): Define here.
+	(x_set_scroll_bar_default_width, x_wm_set_icon_position)
+	(x_set_offset, x_new_font, x_new_fontset): Add prototypes.
+	(x_fullscreen_adjust, x_set_frame_parameters, x_report_frame_params)
+	(x_set_fullscreen, x_set_line_spacing, x_set_screen_gamma, x_set_font)
+	(x_set_fringe_width, x_set_border_width, x_set_internal_border_width)
+	(x_set_visibility, x_set_autoraise, x_set_autolower)
+	(x_set_unsplittable, x_set_vertical_scroll_bars)
+	(x_set_scroll_bar_width, x_icon_type, validate_x_resource_name)
+	(x_figure_window_size): Add prototypes.
+
+	* dispextern.h (frame_parm_handler): New typedef.
+	(struct redisplay_interface): New member frame_parm_handlers.
+	(enum resource_types): Move declaration here.
+	(x_get_arg, x_frame_get_arg, x_frame_get_and_record_arg)
+	(x_default_parameter): Add prototypes.
+
+	* window.c: Remove extern decl for frame parameter vars.
+	(change_window_heights): New generic function;
+	replaces x_change_window_heights.  All users changed.
+
+	* window.h (change_window_heights): Add prototype.
+
+	* xfaces.c: Remove extern decl for frame parameter vars.
+
+	* xterm.h (EMACS_CLASS): Remove.  Use generic define.
+	(struct w32_display_info): Fix type of xrdb member.
+	(enum FULLSCREEN_*): Remove.
+	Remove prototypes for generic functions (in frame.h).
+
+	* xfns.c (Qauto_raise, Qauto_lower, ...): Remove vars for frame
+	parameters now defined in frame.h and frame.c.
+	(Vx_resource_name): Remove. Use generic var.
+	(enum x_frame_parms): Remove (bogus, unused enum).
+	(check_x_display_info): Make non-static (for frame.c).
+	(struct x_frame_parm_table, x_frame_parms): Remove.
+	(init_x_parm_symbols, x_set_frame_parameters, x_report_frame_params)
+	(x_set_line_spacing, x_set_screen_gamma, x_icon_type, x_set_font)
+	(x_set_border_width, x_set_internal_border_width, x_set_visibility)
+	(x_change_window_heights, x_set_autoraise, x_set_autolower)
+	(x_set_vertical_scroll_bars, x_set_scroll_bar_width)
+	(validate_x_resource_name, Fx_get_resource, x_get_resource_string)
+	(x_default_parameter, Fx_parse_geometry, x_figure_window_size):
+	Remove.  Use generic functions instead.
+	(enum resource_types): Remove.
+	(x_set_scroll_bar_default_width): New global function (for frame.c).
+	(Fx_create_frame): Depend on x_figure_window_size to add space for
+	toolbar and setup size_hint_flags.
+	(x_frame_parm_handlers): New table for redisplay_interface.
+	(syms_of_xfns): Don't intern/staticpro removed vars.
+	
+	* xterm.c: Remove unnecessary extern declarations.
+	(x_fullscreen_adjust): Remove. Use generic instead.
+	(x_redisplay_interface): Add x_frame_parm_handlers member.
+
+	* w32gui.h (XrmDatabase): New (dummy) typedef.
+
+	* w32term.h (EMACS_CLASS): Remove.  Use generic define.
+	(struct w32_display_info): Fix type of xrdb member.
+	(enum FULLSCREEN_*): Remove.
+	(x_fullscreen_adjust): Remove prototype.
+
+	* w32fns.c (Qauto_raise, Qauto_lower, ...): Remove vars for frame
+	parameters now defined in frame.h and frame.c.
+	(Vx_resource_name): Remove. Use generic var.
+	(enum x_frame_parms): Remove (bogus, unused enum).
+	(check_x_display_info): Make non-static (for frame.c).
+	(struct x_frame_parm_table, x_frame_parms): Remove.
+	(init_x_parm_symbols, x_set_frame_parameters, x_report_frame_params)
+	(x_set_line_spacing, x_set_screen_gamma, x_icon_type, x_set_font)
+	(x_set_border_width, x_set_internal_border_width, x_set_visibility)
+	(x_change_window_heights, x_set_autoraise, x_set_autolower)
+	(x_set_vertical_scroll_bars, x_set_scroll_bar_width)
+	(validate_x_resource_name, Fx_get_resource, x_get_resource_string)
+	(x_default_parameter, Fx_parse_geometry, x_figure_window_size):
+	Remove.  Use generic functions instead.
+	(enum resource_types): Remove.
+	(x_set_scroll_bar_default_width): New global function (for frame.c).
+	(Fx_create_frame): Depend on x_figure_window_size to add space for
+	toolbar and setup size_hint_flags.
+	(w32_frame_parm_handlers): New table for redisplay_interface.
+	(syms_of_w32fns): Don't intern/staticpro removed vars.
+	
+	* w32term.c: Remove unnecessary extern declarations.
+	(x_fullscreen_adjust): Remove. Use generic instead.
+	(x_redisplay_interface): Add w32_frame_parm_handlers member.
+
+	* w32reg.c (x_get_string_resource): Use XrmDatabase.
+
+	* macgui.h (XrmDatabase): New (dummy) typedef.
+
+	* macterm.h (EMACS_CLASS): Remove.
+	(struct mac_display_info): Add xrdb member.
+	(struct mac_output): Add want_fullscreen member.
+
+	* macfns.c (Qauto_raise, Qauto_lower, ...): Remove vars for frame
+	parameters now defined in frame.h and frame.c.
+	(Vx_resource_name): Remove. Use generic var.
+	(check_x_display_info): Make non-static (for frame.c).
+	(struct x_frame_parm_table, x_frame_parms): Remove.
+	(init_x_parm_symbols, x_set_frame_parameters, x_report_frame_params)
+	(x_set_line_spacing, x_set_screen_gamma, x_icon_type, x_set_font)
+	(x_set_border_width, x_set_internal_border_width, x_set_visibility)
+	(x_change_window_heights, x_set_autoraise, x_set_autolower)
+	(x_set_vertical_scroll_bars, x_set_scroll_bar_width)
+	(validate_x_resource_name, Fx_get_resource, x_get_resource_string)
+	(x_default_parameter, Fx_parse_geometry, x_figure_window_size):
+	Remove.  Use generic functions instead.
+	(enum resource_types): Remove.
+	(x_set_scroll_bar_default_width): New global function (for frame.c).
+	(mac_frame_parm_handlers): New table for redisplay_interface.
+	(syms_of_macfns): Don't intern/staticpro removed vars.
+	
+	* macterm.c: Remove unnecessary extern declarations.
+	(x_redisplay_interface): Add mac_frame_parm_handlers member.
+
 2003-03-30  Andreas Schwab  <schwab@suse.de>
 
 	* xdisp.c (x_insert_glyphs): Fix swapped width and height
