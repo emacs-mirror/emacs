@@ -1,3 +1,15 @@
+2000-12-01  Miles Bader  <miles@gnu.org>
+
+	* simple.el (minibuffer-contents) 
+	(minibuffer-contents-no-properties, delete-minibuffer-contents):
+	New functions.
+	* filecache.el (file-cache-directory-name)
+	(file-cache-minibuffer-complete): Ignore the minibuffer prompt.
+
+	From Milan Zamazal <Milan.Zamazal@qbizm.com>:
+	* filecache.el (file-cache-minibuffer-complete): Don't try to
+	delete the minibuffer prompt.
+
 2000-11-30  Dave Love  <fx@gnu.org>
 
 	* cus-start.el: Fix read-buffer-function type.
