@@ -1462,7 +1462,7 @@ do {						\
 int
 process_pp_line ()
 {
-  int in_comment = 0;
+  int in_comment = 0, in_string = 0;
   int c;
   char *p = yytext;
 
@@ -1501,7 +1501,7 @@ process_pp_line ()
 	}
     }
   
-  while (c && (c != '\n' || in_comment))
+  while (c && (c != '\n' || in_comment || in_string))
     {
       if (c == '\\')
 	GET (c);
@@ -1515,13 +1515,15 @@ process_pp_line ()
 	  if (GET (c) == '/')
 	    in_comment = 0;
 	}
+      else if (c == '"')
+	in_string = !in_string;
       
       if (c == '\n')
 	INCREMENT_LINENO;
 
       GET (c);
     }
-  
+
   return c;
 }
 
@@ -1579,6 +1581,7 @@ yylex ()
                   else switch (c)
                     {
                     case '\n':
+		      INCREMENT_LINENO;
                     case 'a':
                     case 'b':
                     case 'f':
@@ -1641,7 +1644,7 @@ yylex ()
                   else
                     yyerror ("newline in string constant");
                   INCREMENT_LINENO;
-                  goto end_string;
+                  break;
 
                 default:
                   break;
