@@ -96,7 +96,7 @@ accepts a float as UID parameter.
 
 ** `define-key-after' now accepts keys longer than 1.
 
-** `define-derived-mode' now accept nil as the parent.
+** `define-derived-mode' now accepts nil as the parent.
 
 ** The local variable `no-byte-compile' in elisp files is now obeyed.
 

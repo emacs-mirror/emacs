@@ -1,3 +1,9 @@
+2001-10-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (maybe_bootstrap): New target.
+	(all): Add to prerequisites to bootstrap if abbrev.elc doesn't
+	exist.
+
 2001-10-24  Ken Raeburn  <raeburn@gnu.org>
 
 	* configure.in: If --with-hesiod is given, look for
