@@ -163,7 +163,7 @@ Turn it on to use emacs mouse commands, and off to use xterm mouse commands."
 		  mouse-position-function nil)
 	    (set-buffer-modified-p (buffer-modified-p))))
     ;;Turn it on
-    (unless (or window-systemxterm-mouse-mode)
+    (unless (or window-system xterm-mouse-mode)
       (setq xterm-mouse-mode t
 	    mouse-position-function #'xterm-mouse-position-function)
       (turn-on-xterm-mouse-tracking)
