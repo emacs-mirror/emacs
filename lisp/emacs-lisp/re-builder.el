@@ -1,6 +1,6 @@
 ;;; re-builder.el --- building Regexps with visual feedback
 
-;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Detlev Zundel <dzu@gnu.org>
 ;; Keywords: matching, lisp, tools
@@ -43,6 +43,11 @@
 ;; shown only in the modeline without throwing the errors at you.  If
 ;; you want to know the reason why RE Builder considers it as invalid
 ;; call `reb-force-update' ("\C-c\C-u") which should reveal the error.
+
+;; The target buffer can be changed with `reb-change-target-buffer'
+;; ("\C-c\C-b"). Changing the target buffer automatically removes
+;; the overlays from the old buffer and displays the new one in the
+;; target window.
 
 ;; The `re-builder' keeps the focus while updating the matches in the
 ;; target buffer so corrections are easy to incorporate.  If you are
@@ -224,6 +229,7 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
       (define-key reb-mode-map "\C-c\C-r" 'reb-prev-match)
       (define-key reb-mode-map "\C-c\C-i" 'reb-change-syntax)
       (define-key reb-mode-map "\C-c\C-e" 'reb-enter-subexp-mode)
+      (define-key reb-mode-map "\C-c\C-b" 'reb-change-target-buffer)
       (define-key reb-mode-map "\C-c\C-u" 'reb-force-update)))
 
 (define-derived-mode reb-mode nil "RE Builder"
@@ -322,6 +328,18 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
     (reb-lisp-mode))
    (t (reb-mode))))
 
+(defun reb-change-target-buffer (buf)
+  "Change the target buffer and display it in the target window."
+  (interactive "bSet target buffer to: ")
+
+  (let ((buffer (get-buffer buf)))
+    (if (not buffer)
+        (error "No such buffer")
+      (reb-delete-overlays)
+      (setq reb-target-buffer buffer)
+      (reb-do-update
+       (if reb-subexp-mode reb-subexp-displayed nil))
+      (reb-update-modestring))))
 
 (defun reb-force-update ()
   "Forces an update in the RE Builder target window without a match limit."
