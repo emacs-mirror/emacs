@@ -308,11 +308,18 @@ status_message (status)
 
   if (EQ (symbol, Qsignal) || EQ (symbol, Qstop))
     {
+      char *signame = 0;
+      if (code < NSIG)
+	{
 #ifndef VMS
-      string = build_string (code < NSIG ? sys_siglist[code] : "unknown");
+	  signame = sys_siglist[code];
 #else
-      string = build_string (code < NSIG ? sys_errlist[code] : "unknown");
+	  signame = sys_errlist[code];
 #endif
+	}
+      if (signame == 0)
+	signame = "unknown";
+      string = build_string (signame);
       string2 = build_string (coredump ? " (core dumped)\n" : "\n");
       XSTRING (string)->data[0] = DOWNCASE (XSTRING (string)->data[0]);
       return concat2 (string, string2);
@@ -2827,11 +2834,23 @@ sigchld_handler (signo)
 	  if (WIFEXITED (w))
 	    synch_process_retcode = WRETCODE (w);
 	  else if (WIFSIGNALED (w))
+	    {
+	      int code = WTERMSIG (w);
+	      char *signame = 0;
+
+	      if (code < NSIG)
+		{
 #ifndef VMS
-	    synch_process_death = (char *) sys_siglist[WTERMSIG (w)];
+		  signame = sys_siglist[code];
 #else
-	    synch_process_death = sys_errlist[WTERMSIG (w)];
+		  signame = sys_errlist[code];
 #endif
+		}
+	      if (signame == 0)
+		signame = "unknown";
+
+	      synch_process_death = signame;
+	    }
 
 	  /* Tell wait_reading_process_input that it needs to wake up and
 	     look around.  */
