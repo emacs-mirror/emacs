@@ -1517,6 +1517,25 @@ DEFUN ("minibuffer-depth", Fminibuffer_depth, Sminibuffer_depth, 0, 0, 0,
   return make_number (minibuf_level);
 }
 
+DEFUN ("minibuffer-prompt", Fminibuffer_prompt, Sminibuffer_prompt, 0, 0, 0,
+  "Return the prompt string of the currently-active minibuffer.\n\
+If no minibuffer is active, return nil.")
+  ()
+{
+  if (!minibuf_prompt)
+    return Qnil;
+  return build_string (minibuf_prompt);
+}
+
+DEFUN ("minibuffer-prompt-width", Fminibuffer_prompt_width,
+  Sminibuffer_prompt_width, 0, 0, 0,
+  "Return the display width of the minibuffer prompt.")
+  ()
+{
+  Lisp_Object width;
+  XFASTINT (width) = minibuf_prompt_width;
+  return width;
+}
 
 init_minibuf_once ()
 {
@@ -1628,6 +1647,8 @@ Each minibuffer output is added with\n\
   defsubr (&Sread_buffer);
   defsubr (&Sread_no_blanks_input);
   defsubr (&Sminibuffer_depth);
+  defsubr (&Sminibuffer_prompt);
+  defsubr (&Sminibuffer_prompt_width);
 
   defsubr (&Stry_completion);
   defsubr (&Sall_completions);
