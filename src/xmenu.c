@@ -2456,7 +2456,7 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
      two.  show_help_echo uses this to detect popup menus.  */
   popup_activated_flag = 1;
   /* Process events that apply to the menu.  */
-  popup_widget_loop (0);
+  popup_widget_loop (1);
 
   gtk_widget_destroy (menu);
 
@@ -2544,7 +2544,7 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
   popup_activated_flag = 1;
 
   /* Process events that apply to the menu.  */
-  popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), menu_id, 0, 0);
+  popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), menu_id, 1, 0);
 
   /* fp turned off the following statement and wrote a comment
      that it is unnecessary--that the menu has already disappeared.
