@@ -1,3 +1,33 @@
+2002-08-04  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el: Version 2.0.10 released.
+	(tramp-uudecode): New shell function `tramp_uudecode' to decode to
+	standard output even if `uudecode -p' and `uudecode -o -' don't
+	work.
+	(tramp-post-connection): After finding the right shell, wait a
+	bit.  This is a kludge to avoid a race condition, even though I
+	don't understand why there is a race condition in the first place.
+	(tramp-post-connection): Install the `tramp_uudecode' shell
+	function on the remote host.
+	(tramp-coding-commands): Add an alternative for `tramp_uudecode'.
+	(tramp-bug): Include more variables in the report.
+
+2002-08-04  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el: Version 2.0.9 released.
+	(tramp-bug): Add wording about additional info to include in bug
+	report.
+	(tramp-find-shell): Set $PS1 for invocation of second shell (for
+	tilde expansion).
+	(tramp-find-shell): Shell prompt must match at end of buffer.  Do
+	this also for fallback shell prompt.
+	(tramp-find-shell): More debugging output.
+	(tramp-find-inline-encoding): When checking the decoding command,
+	some commands fail when reading from /dev/null.  So we pass a
+	known string through the encoding command and pass that through
+	the decoding command.  So we know whether the decoding command can
+	deal with some real input.
+
 2002-08-04  Andreas Schwab  <schwab@suse.de>
 
 	* net/tramp.el (tramp-perl-encode, tramp-perl-decode): Doc fix.

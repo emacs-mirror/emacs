@@ -72,7 +72,7 @@
 ;; In the Tramp CVS repository, the version numer is auto-frobbed from
 ;; the Makefile, so you should edit the top-level Makefile to change
 ;; the version number.
-(defconst tramp-version "2.0.9"
+(defconst tramp-version "2.0.10"
   "This version of tramp.")
 
 (defconst tramp-bug-report-address "tramp-devel@mail.freesoftware.fsf.org"
@@ -1202,9 +1202,20 @@ upon opening the connection.")
 This variable is automatically made buffer-local to each rsh process buffer
 upon opening the connection.")
 
-;; Perl script to implement `file-attributes' in a Lisp `read'able output.
-;; If you are hacking on this, note that you get *no* output unless this
-;; spits out a complete line, including the '\n' at the end.
+(defconst tramp-uudecode "\
+tramp_uudecode () {
+\(echo begin 600 /tmp/tramp.$$; tail +2) | uudecode
+cat /tmp/tramp.$$
+rm -f /tmp/tramp.$$
+}"
+  "Shell function to implement `uudecode' to standard output.
+Many systems support `uudecode -o -' for this or `uudecode -p', but
+some systems don't, and for them we have this shell function.")
+
+;; Perl script to implement `file-attributes' in a Lisp `read'able
+;; output.  If you are hacking on this, note that you get *no* output
+;; unless this spits out a complete line, including the '\n' at the
+;; end.
 (defconst tramp-perl-file-attributes (concat
  "$f = $ARGV[0];
 @s = lstat($f);
@@ -4432,8 +4443,6 @@ locale to C and sets up the remote shell search path."
   ;; with buggy /bin/sh implementations will have a working bash or
   ;; ksh.  Whee...
   (tramp-find-shell multi-method method user host)
-  (tramp-find-file-exists-command multi-method method user host)
-  (sit-for 1)
   ;; Without (sit-for 0.1) at least, my machine will almost always blow
   ;; up on 'not numberp /root' - a race that causes the 'echo ~root'
   ;; output of (tramp-find-shell) to show up along with the output of
@@ -4446,6 +4455,8 @@ locale to C and sets up the remote shell search path."
   ;; of that function though. The workaround stays for me at least. :/
   ;;
   ;; Daniel Pittman <daniel@danann.net>
+  (sleep-for 1)
+  (tramp-find-file-exists-command multi-method method user host)
   (make-local-variable 'tramp-ls-command)
   (setq tramp-ls-command (tramp-find-ls-command multi-method method user host))
   (unless tramp-ls-command
@@ -4500,15 +4511,20 @@ locale to C and sets up the remote shell search path."
              "test -n \"`find $1 -prune -newer $2 -print`\"" tramp-rsh-end-of-line
              "}")))
   (tramp-wait-for-output)
+  ;; Send the fallback `uudecode' script.
+  (erase-buffer)
+  (tramp-send-linewise multi-method method user host tramp-uudecode)
+  (tramp-wait-for-output)
   ;; Find a `perl'.
   (erase-buffer)
   (let ((tramp-remote-perl
 	 (or (tramp-find-executable multi-method method user host
-				  "perl5" tramp-remote-path nil)
+				    "perl5" tramp-remote-path nil)
 	     (tramp-find-executable multi-method method user host
-				  "perl" tramp-remote-path nil))))
+				    "perl" tramp-remote-path nil))))
     (when tramp-remote-perl
-      (tramp-set-connection-property "perl" tramp-remote-perl multi-method method user host)
+      (tramp-set-connection-property "perl" tramp-remote-perl
+				     multi-method method user host)
       ;; Set up stat in Perl if we can.
       (when tramp-remote-perl
 	(tramp-message 5 "Sending the Perl `file-attributes' implementation.")
@@ -4600,6 +4616,8 @@ locale to C and sets up the remote shell search path."
     ("uuencode xxx" "uudecode -o -"
      nil uudecode-decode-region)
     ("uuencode xxx" "uudecode -p"
+     nil uudecode-decode-region)
+    ("uuencode xxx" "tramp_uudecode"
      nil uudecode-decode-region)
     ("tramp_encode_with_module" "tramp_decode_with_module"
      base64-encode-region base64-decode-region)
@@ -5630,6 +5648,7 @@ Only works for Bourne-like shells."
        tramp-login-prompt-regexp
        tramp-password-prompt-regexp
        tramp-wrong-passwd-regexp
+       tramp-yesno-prompt-regexp
        tramp-temp-name-prefix
        tramp-file-name-structure
        tramp-file-name-regexp
@@ -5639,6 +5658,9 @@ Only works for Bourne-like shells."
        tramp-multi-connection-function-alist
        tramp-make-tramp-file-format
        tramp-end-of-output
+       tramp-coding-commands
+       tramp-actions-before-shell
+       tramp-multi-actions
 
        ;; Non-tramp variables of interest
        shell-prompt-pattern
@@ -5664,7 +5686,8 @@ the ~/.emacs file and to repeat the bug.  Then, include the contents
 of the *tramp/foo* buffer and the *debug tramp/foo* buffer in your bug
 report.
 
---bug report follows this line--")))
+--bug report follows this line--
+")))
 
 (defalias 'tramp-submit-bug 'tramp-bug)
 
