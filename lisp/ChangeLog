@@ -1,5 +1,24 @@
 2000-02-23  Dave Love  <fx@gnu.org>
 
+	* gud.el (gud-jdb-build-class-source-alist): Prepend space to
+	scratch buffer name.
+	(gud-format-command): Use int-to-string in ?l case.  Simplify
+	slightly.
+
+	* term/w32-win.el (internal-face-interactive): Update prompt for
+	new read-face-name.
+
+	* mail/footnote.el (footnote): Add :version to defgroup.
+	(footnote-section-tag-regexp): Customize.
+	(footnote-start-tag, footnote-end-tag): New option.
+	(footnote-latin-regexp): New variable.
+	(Footnote-latin): New function.
+	(footnote-style-alist): Add element for latin style.
+	(footnote-style): Moved.
+	(Footnote-goto-footnote): Use eq to test arg.
+
+	* mouse.el (mouse-drag-mode-line-1): Remove `growth =' message.
+
 	* emacs-lisp/byte-opt.el: Change old backquote syntax.
 	(byte-compile-trueconstp): Include keywords.
 	(byte-optimize-quote, byte-optimize-lapcode): Use
