@@ -5507,7 +5507,7 @@ decode_eol (coding)
    attribute vector ATTRS for encoding (ENCODEP is nonzero) or
    decoding (ENCODEP is zero). */
 
-static INLINE
+static Lisp_Object
 get_translation_table (attrs, encodep)
 {
   Lisp_Object standard, translation_table;
@@ -5540,6 +5540,30 @@ get_translation_table (attrs, encodep)
     }
   return translation_table;
 }
+
+#define LOOKUP_TRANSLATION_TABLE(table, c, trans)	\
+  do {							\
+    if (CHAR_TABLE_P (table))				\
+      {							\
+	trans = CHAR_TABLE_REF (table, c);		\
+	if (CHARACTERP (trans))				\
+	  c = XFASTINT (trans), trans = Qnil;		\
+      }							\
+    else						\
+      {							\
+	Lisp_Object tail = table;			\
+							\
+	for (; CONSP (tail); tail = XCDR (tail))	\
+	  if (CHAR_TABLE_P (XCAR (tail)))		\
+	    {						\
+	      trans = CHAR_TABLE_REF (table, c);	\
+	      if (CHARACTERP (trans))			\
+		c = XFASTINT (trans), trans = Qnil;	\
+	      else if (! NILP (trans))			\
+		break;					\
+	    }						\
+      }							\
+  } while (0)
 
 
 static Lisp_Object
@@ -5621,8 +5645,9 @@ produce_chars (coding, translation_table, last_block)
 	      int from_nchars = 1, to_nchars = 1;
 	      Lisp_Object trans = Qnil;
 
-	      if (! NILP (translation_table)
-		  && ! NILP (trans = CHAR_TABLE_REF (translation_table, c)))
+	      if (! NILP (translation_table))
+		LOOKUP_TRANSLATION_TABLE (translation_table, c, trans);
+	      if (! NILP (trans))
 		{
 		  trans = get_translation (trans, buf, buf_end, last_block,
 					   &from_nchars, &to_nchars);
@@ -6264,8 +6289,10 @@ consume_chars (coding, translation_table)
 	    }
 	}
 
-      if (NILP (translation_table)
-	  || NILP (trans = CHAR_TABLE_REF (translation_table, c)))
+      trans = Qnil;
+      if (! NILP (translation_table))
+	LOOKUP_TRANSLATION_TABLE (translation_table, c, trans);
+      if (NILP (trans))
 	*buf++ = c;
       else
 	{
