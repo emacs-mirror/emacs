@@ -853,9 +853,10 @@ The current buffer should be the desired compilation output buffer."
       (while
 	  (if (null next-error)
 	      (progn
-		(if move (if (> move 0)
-			     (error "Moved past last error")
-			   (error "Moved back past first error")))
+		(and move (/= move 1)
+		     (error (if (> move 0)
+				"Moved past last error")
+			    "Moved back past first error"))
 		(compilation-forget-errors)
 		(error (concat compilation-error-message
 			       (and (get-buffer-process (current-buffer))
