@@ -2,13 +2,13 @@
 
 
 ;;; CSI sequences - those that start with "\e[".
-(define-prefix-command 'vt100-CSI-prefix 'vt100-CSI-map)
+(define-prefix-command 'vt100-CSI-prefix)
 (define-key function-key-map "\e[" 'vt100-CSI-prefix)
 
-(define-key vt100-CSI-map "A" [up])
-(define-key vt100-CSI-map "B" [down])
-(define-key vt100-CSI-map "C" [right])
-(define-key vt100-CSI-map "D" [left])
+(define-key vt100-CSI-prefix "A" [up])
+(define-key vt100-CSI-prefix "B" [down])
+(define-key vt100-CSI-prefix "C" [right])
+(define-key vt100-CSI-prefix "D" [left])
 
 (defun enable-arrow-keys ()
   "Enable the use of the VT100 arrow keys for cursor motion.
@@ -21,31 +21,31 @@ but only if you give this command."
 
 
 ;;; SS3 sequences - those that start with "\eO".
-(define-prefix-command 'vt100-SS3-prefix 'vt100-SS3-map)
+(define-prefix-command 'vt100-SS3-prefix)
 (define-key function-key-map "\eO" 'vt100-SS3-prefix)
 
-(define-key vt100-SS3-map "A" [up])
-(define-key vt100-SS3-map "B" [down])		; down-arrow
-(define-key vt100-SS3-map "C" [right])		; right-arrow
-(define-key vt100-SS3-map "D" [left])		; left-arrow
-(define-key vt100-SS3-map "M" [kp-enter])       ; Enter
-(define-key vt100-SS3-map "P" [kp-f1])	   	; PF1  
-(define-key vt100-SS3-map "Q" [kp-f2])	   	; PF2  
-(define-key vt100-SS3-map "R" [kp-f3])	   	; PF3  
-(define-key vt100-SS3-map "S" [kp-f4])	   	; PF4  
-(define-key vt100-SS3-map "l" [kp-separator])   ; ,
-(define-key vt100-SS3-map "m" [kp-subtract])    ; -
-(define-key vt100-SS3-map "n" [kp-period])	; .
-(define-key vt100-SS3-map "p" [kp-0])		; 0
-(define-key vt100-SS3-map "q" [kp-1])		; 1
-(define-key vt100-SS3-map "r" [kp-2])		; 2
-(define-key vt100-SS3-map "s" [kp-3])		; 3
-(define-key vt100-SS3-map "t" [kp-4])		; 4
-(define-key vt100-SS3-map "u" [kp-5])		; 5
-(define-key vt100-SS3-map "v" [kp-6])		; 6
-(define-key vt100-SS3-map "w" [kp-7])		; 7
-(define-key vt100-SS3-map "x" [kp-8])		; 8
-(define-key vt100-SS3-map "y" [kp-9])		; 9
+(define-key vt100-SS3-prefix "A" [up])
+(define-key vt100-SS3-prefix "B" [down])		; down-arrow
+(define-key vt100-SS3-prefix "C" [right])		; right-arrow
+(define-key vt100-SS3-prefix "D" [left])		; left-arrow
+(define-key vt100-SS3-prefix "M" [kp-enter])       	; Enter
+(define-key vt100-SS3-prefix "P" [kp-f1])	   	; PF1  
+(define-key vt100-SS3-prefix "Q" [kp-f2])	   	; PF2  
+(define-key vt100-SS3-prefix "R" [kp-f3])	   	; PF3  
+(define-key vt100-SS3-prefix "S" [kp-f4])	   	; PF4  
+(define-key vt100-SS3-prefix "l" [kp-separator])   	; ,
+(define-key vt100-SS3-prefix "m" [kp-subtract])    	; -
+(define-key vt100-SS3-prefix "n" [kp-period])		; .
+(define-key vt100-SS3-prefix "p" [kp-0])		; 0
+(define-key vt100-SS3-prefix "q" [kp-1])		; 1
+(define-key vt100-SS3-prefix "r" [kp-2])		; 2
+(define-key vt100-SS3-prefix "s" [kp-3])		; 3
+(define-key vt100-SS3-prefix "t" [kp-4])		; 4
+(define-key vt100-SS3-prefix "u" [kp-5])		; 5
+(define-key vt100-SS3-prefix "v" [kp-6])		; 6
+(define-key vt100-SS3-prefix "w" [kp-7])		; 7
+(define-key vt100-SS3-prefix "x" [kp-8])		; 8
+(define-key vt100-SS3-prefix "y" [kp-9])		; 9
 					   	   
 
 ;;; Controlling the screen width.
