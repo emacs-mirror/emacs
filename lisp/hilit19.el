@@ -1472,6 +1472,20 @@ number of backslashes."
    ("S  M Tu  W Th  F  S" nil label)))	; week days
 
 (hilit-set-mode-patterns
+ 'asm-mode
+ '(("/\\*" "\\*/" comment)
+   ("^#[ \t]*\\(undef\\|define\\).*$" "[^\\]$" define)
+   ("^#.*$" nil include)
+   ;; labels
+   ("^.+:" nil defun)
+   ;; assembler directives
+   ("^[ \t]*\\..*$" nil decl)
+   ;; register names
+   ("\\$[a-z0-9]+" nil string)
+   ;; mnemonics
+   ("^[ \t]*[a-z]+" nil struct)))
+
+(hilit-set-mode-patterns
  'pascal-mode
  '(("(\\*" "\\*)" comment)
    ("{" "}" comment)
