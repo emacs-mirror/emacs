@@ -1,3 +1,7 @@
+2003-12-29  Eli Zaretskii  <eliz@elta.co.il>
+
+	* xml.el (xml-get-attribute-or-nil): Doc fix.
+
 2003-12-29  Peter 'Luna' Runestig <peter@runestig.com>
 
 	* net/zone-mode.el (zone-mode): Use write-file-functions, not
