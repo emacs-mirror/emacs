@@ -1,3 +1,8 @@
+2004-05-11  Juanma Barranquero  <lektu@terra.es>
+
+	* custom.el (custom-initialize-default, defcustom): Fix typo in
+	docstring.
+
 2004-05-10  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* progmodes/compile.el (compile): Add universal prefix arg.
