@@ -1480,6 +1480,23 @@ inheritance is used when determining the value of a face attribute.
 ** New functions face-attribute-relative-p and merge-face-attribute
 help with handling relative face attributes.
 
+** Enhancements to process support
+
+*** Function list-processes now has an optional argument; if non-nil,
+only the processes whose query-on-exit flag is set are listed.
+
+*** New set-process-query-on-exit-flag and process-query-on-exit-flag
+functions.  The existing process-kill-without-query function is still
+supported, but new code should use the new functions.
+
+*** Function signal-process now accepts a process object or process
+name in addition to a process id to identify the signalled process.
+
+*** Processes now have an associated `private variables' property list
+where programs can maintain process state and other per-process
+related information.  The new functions process-variable and
+set-process-variable are used to access and modify this list.
+
 ** Enhanced networking support.
 
 *** There is a new `make-network-process' function which supports
@@ -1541,23 +1558,6 @@ the fifth is the port number.
 `stop-process' and `continue-process'.  For a server process, no
 connections are accepted in the stopped state.  For a client process,
 no input is received in the stopped state.
-
-** Enhancements to process support
-
-*** Function list-processes now has an optional argument; if non-nil,
-only the processes whose query-on-exit flag is set are listed.
-
-*** New set-process-query-on-exit-flag and process-query-on-exit-flag
-functions.  The existing process-kill-without-query function is still
-supported, but new code should use the new functions.
-
-*** Function signal-process now accepts a process object or process
-name in addition to a process id to identify the signalled process.
-
-*** Processes now have an associated `private variables' property list
-where programs can maintain process state and other per-process
-related information.  The new functions process-variable and
-set-process-variable are used to access and modify this list.
 
 ** New function copy-tree.
 
