@@ -1,3 +1,7 @@
+2001-10-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (clear_garbaged_frames): Call Fredraw_frame.
+
 2001-10-29  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* xmenu.c: Include coding.h and charset.h.
