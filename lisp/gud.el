@@ -168,49 +168,48 @@ we're in the GUD buffer)."
 (make-variable-buffer-local 'gud-marker-acc)
 
 (defun gud-gdb-marker-filter (string)
-  (save-match-data
-    (setq gud-marker-acc (concat gud-marker-acc string))
-    (let ((output ""))
+  (setq gud-marker-acc (concat gud-marker-acc string))
+  (let ((output ""))
 
-      ;; Process all the complete markers in this chunk.
-      (while (string-match "\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n"
-			   gud-marker-acc)
-	(setq
+    ;; Process all the complete markers in this chunk.
+    (while (string-match "\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n"
+			 gud-marker-acc)
+      (setq
 
-	 ;; Extract the frame position from the marker.
-	 gud-last-frame
-	 (cons (substring gud-marker-acc (match-beginning 1) (match-end 1))
-	       (string-to-int (substring gud-marker-acc
-					 (match-beginning 2)
-					 (match-end 2))))
+       ;; Extract the frame position from the marker.
+       gud-last-frame
+       (cons (substring gud-marker-acc (match-beginning 1) (match-end 1))
+	     (string-to-int (substring gud-marker-acc
+				       (match-beginning 2)
+				       (match-end 2))))
 
-	 ;; Append any text before the marker to the output we're going
-	 ;; to return - we don't include the marker in this text.
-	 output (concat output
-			(substring gud-marker-acc 0 (match-beginning 0)))
+       ;; Append any text before the marker to the output we're going
+       ;; to return - we don't include the marker in this text.
+       output (concat output
+		      (substring gud-marker-acc 0 (match-beginning 0)))
 
-	 ;; Set the accumulator to the remaining text.
-	 gud-marker-acc (substring gud-marker-acc (match-end 0))))
+       ;; Set the accumulator to the remaining text.
+       gud-marker-acc (substring gud-marker-acc (match-end 0))))
 
-      ;; Does the remaining text look like it might end with the
-      ;; beginning of another marker?  If it does, then keep it in
-      ;; gud-marker-acc until we receive the rest of it.  Since we
-      ;; know the full marker regexp above failed, it's pretty simple to
-      ;; test for marker starts.
-      (if (string-match "\032.*\\'" gud-marker-acc)
-	  (progn
-	    ;; Everything before the potential marker start can be output.
-	    (setq output (concat output (substring gud-marker-acc
-						   0 (match-beginning 0))))
+    ;; Does the remaining text look like it might end with the
+    ;; beginning of another marker?  If it does, then keep it in
+    ;; gud-marker-acc until we receive the rest of it.  Since we
+    ;; know the full marker regexp above failed, it's pretty simple to
+    ;; test for marker starts.
+    (if (string-match "\032.*\\'" gud-marker-acc)
+	(progn
+	  ;; Everything before the potential marker start can be output.
+	  (setq output (concat output (substring gud-marker-acc
+						 0 (match-beginning 0))))
 
-	    ;; Everything after, we save, to combine with later input.
-	    (setq gud-marker-acc
-		  (substring gud-marker-acc (match-beginning 0))))
+	  ;; Everything after, we save, to combine with later input.
+	  (setq gud-marker-acc
+		(substring gud-marker-acc (match-beginning 0))))
 
-	(setq output (concat output gud-marker-acc)
-	      gud-marker-acc ""))
+      (setq output (concat output gud-marker-acc)
+	    gud-marker-acc ""))
 
-      output)))
+    output))
 
 (defun gud-gdb-find-file (f)
   (find-file-noselect f))
@@ -478,52 +477,51 @@ and source-file directory for your debugger."
 ;; This is just like the gdb one except for the regexps since we need to cope
 ;; with an optional breakpoint number in [] before the ^Z^Z
 (defun gud-mipsdbx-marker-filter (string)
-  (save-match-data
-    (setq gud-marker-acc (concat gud-marker-acc string))
-    (let ((output ""))
+  (setq gud-marker-acc (concat gud-marker-acc string))
+  (let ((output ""))
 
-      ;; Process all the complete markers in this chunk.
-      (while (string-match
-	      ;; This is like th gdb marker but with an optional
-	      ;; leading break point number like `[1] '
-	      "[][ 0-9]*\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n"
-	      gud-marker-acc)
-	(setq
+    ;; Process all the complete markers in this chunk.
+    (while (string-match
+	    ;; This is like th gdb marker but with an optional
+	    ;; leading break point number like `[1] '
+	    "[][ 0-9]*\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n"
+	    gud-marker-acc)
+      (setq
 
-	 ;; Extract the frame position from the marker.
-	 gud-last-frame
-	 (cons (substring gud-marker-acc (match-beginning 1) (match-end 1))
-	       (string-to-int (substring gud-marker-acc
-					 (match-beginning 2)
-					 (match-end 2))))
+       ;; Extract the frame position from the marker.
+       gud-last-frame
+       (cons (substring gud-marker-acc (match-beginning 1) (match-end 1))
+	     (string-to-int (substring gud-marker-acc
+				       (match-beginning 2)
+				       (match-end 2))))
 
-	 ;; Append any text before the marker to the output we're going
-	 ;; to return - we don't include the marker in this text.
-	 output (concat output
-			(substring gud-marker-acc 0 (match-beginning 0)))
+       ;; Append any text before the marker to the output we're going
+       ;; to return - we don't include the marker in this text.
+       output (concat output
+		      (substring gud-marker-acc 0 (match-beginning 0)))
 
-	 ;; Set the accumulator to the remaining text.
-	 gud-marker-acc (substring gud-marker-acc (match-end 0))))
+       ;; Set the accumulator to the remaining text.
+       gud-marker-acc (substring gud-marker-acc (match-end 0))))
 
-      ;; Does the remaining text look like it might end with the
-      ;; beginning of another marker?  If it does, then keep it in
-      ;; gud-marker-acc until we receive the rest of it.  Since we
-      ;; know the full marker regexp above failed, it's pretty simple to
-      ;; test for marker starts.
-      (if (string-match "[][ 0-9]*\032.*\\'" gud-marker-acc)
-	  (progn
-	    ;; Everything before the potential marker start can be output.
-	    (setq output (concat output (substring gud-marker-acc
-						   0 (match-beginning 0))))
+    ;; Does the remaining text look like it might end with the
+    ;; beginning of another marker?  If it does, then keep it in
+    ;; gud-marker-acc until we receive the rest of it.  Since we
+    ;; know the full marker regexp above failed, it's pretty simple to
+    ;; test for marker starts.
+    (if (string-match "[][ 0-9]*\032.*\\'" gud-marker-acc)
+	(progn
+	  ;; Everything before the potential marker start can be output.
+	  (setq output (concat output (substring gud-marker-acc
+						 0 (match-beginning 0))))
 
-	    ;; Everything after, we save, to combine with later input.
-	    (setq gud-marker-acc
-		  (substring gud-marker-acc (match-beginning 0))))
+	  ;; Everything after, we save, to combine with later input.
+	  (setq gud-marker-acc
+		(substring gud-marker-acc (match-beginning 0))))
 
-	(setq output (concat output gud-marker-acc)
-	      gud-marker-acc ""))
+      (setq output (concat output gud-marker-acc)
+	    gud-marker-acc ""))
 
-      output)))
+    output))
 
 ;; The dbx in IRIX is a pain.  It doesn't print the file name when
 ;; stopping at a breakpoint (but you do get it from the `up' and
@@ -549,55 +547,54 @@ This works in IRIX 4 and probably IRIX 5.")
 
 ;; this filter is influenced by the xdb one rather than the gdb one
 (defun gud-irixdbx-marker-filter (string)
-  (save-match-data
-    (let (result (case-fold-search nil))
-      (if (or (string-match comint-prompt-regexp string)
-              (string-match ".*\012" string))
-          (setq result (concat gud-marker-acc string)
-                gud-marker-acc "")
-        (setq gud-marker-acc (concat gud-marker-acc string)))
-      (if result
-          (cond
-           ;; look for breakpoint or signal indication e.g.:
-           ;; [2] Process  1267 (pplot) stopped at [params:338 ,0x400ec0]
-           ;; Process  1281 (pplot) stopped at [params:339 ,0x400ec8]
-           ;; Process  1270 (pplot) Floating point exception [._read._read:16 ,0x452188]
-           ((string-match
-             "^\\(\\[[0-9]+] \\)?Process +[0-9]+ ([^)]*) [^[]+\\[[^]\n]*]\n" 
-             result)
-	    ;; prod dbx into printing out the line number and file
-	    ;; name in a form we can grok as below
-            (process-send-string (get-buffer-process gud-comint-buffer)
-				 "printf \"\032\032%1d:\",(int)$curline;file\n"))
-           ;; look for result of, say, "up" e.g.:
-           ;; .pplot.pplot(0x800) ["src/pplot.f":261, 0x400c7c]
-	   ;; (this will also catch one of the lines printed by "where")
-           ((string-match
-             "^[^ ][^[]*\\[\"\\([^\"]+\\)\":\\([0-9]+\\), [^]]+]\n"
-             result)
-            (let ((file (substring result (match-beginning 1)
-                                   (match-end 1))))
-              (if (file-exists-p file)
-                  (setq gud-last-frame
-                        (cons
-                         (substring
-                          result (match-beginning 1) (match-end 1))
-                         (string-to-int 
-                          (substring
-                           result (match-beginning 2) (match-end 2)))))))
-            result)
-           ((string-match               ; kluged-up marker as above
-             "\032\032\\([0-9]*\\):\\(.*\\)\n" result)
-            (let ((file (substring result (match-beginning 2) (match-end 2))))
-              (if (file-exists-p file)
-                  (setq gud-last-frame
-                        (cons
-                         file
-                         (string-to-int 
-                          (substring
-                           result (match-beginning 1) (match-end 1)))))))
-            (setq result (substring result 0 (match-beginning 0))))))
-      (or result ""))))
+  (let (result (case-fold-search nil))
+    (if (or (string-match comint-prompt-regexp string)
+	    (string-match ".*\012" string))
+	(setq result (concat gud-marker-acc string)
+	      gud-marker-acc "")
+      (setq gud-marker-acc (concat gud-marker-acc string)))
+    (if result
+	(cond
+	 ;; look for breakpoint or signal indication e.g.:
+	 ;; [2] Process  1267 (pplot) stopped at [params:338 ,0x400ec0]
+	 ;; Process  1281 (pplot) stopped at [params:339 ,0x400ec8]
+	 ;; Process  1270 (pplot) Floating point exception [._read._read:16 ,0x452188]
+	 ((string-match
+	   "^\\(\\[[0-9]+] \\)?Process +[0-9]+ ([^)]*) [^[]+\\[[^]\n]*]\n" 
+	   result)
+	  ;; prod dbx into printing out the line number and file
+	  ;; name in a form we can grok as below
+	  (process-send-string (get-buffer-process gud-comint-buffer)
+			       "printf \"\032\032%1d:\",(int)$curline;file\n"))
+	 ;; look for result of, say, "up" e.g.:
+	 ;; .pplot.pplot(0x800) ["src/pplot.f":261, 0x400c7c]
+	 ;; (this will also catch one of the lines printed by "where")
+	 ((string-match
+	   "^[^ ][^[]*\\[\"\\([^\"]+\\)\":\\([0-9]+\\), [^]]+]\n"
+	   result)
+	  (let ((file (substring result (match-beginning 1)
+				 (match-end 1))))
+	    (if (file-exists-p file)
+		(setq gud-last-frame
+		      (cons
+		       (substring
+			result (match-beginning 1) (match-end 1))
+		       (string-to-int 
+			(substring
+			 result (match-beginning 2) (match-end 2)))))))
+	  result)
+	 ((string-match			; kluged-up marker as above
+	   "\032\032\\([0-9]*\\):\\(.*\\)\n" result)
+	  (let ((file (substring result (match-beginning 2) (match-end 2))))
+	    (if (file-exists-p file)
+		(setq gud-last-frame
+		      (cons
+		       file
+		       (string-to-int 
+			(substring
+			 result (match-beginning 1) (match-end 1)))))))
+	  (setq result (substring result 0 (match-beginning 0))))))
+    (or result "")))
 
 (defun gud-dbx-find-file (f)
   (find-file-noselect f))
@@ -770,49 +767,48 @@ directories if your program contains sources from more than one directory."
 (defvar gud-perldb-marker-acc "")
 
 (defun gud-perldb-marker-filter (string)
-  (save-match-data
-    (setq gud-marker-acc (concat gud-marker-acc string))
-    (let ((output ""))
+  (setq gud-marker-acc (concat gud-marker-acc string))
+  (let ((output ""))
 
-      ;; Process all the complete markers in this chunk.
-      (while (string-match "\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n"
-			   gud-marker-acc)
-	(setq
+    ;; Process all the complete markers in this chunk.
+    (while (string-match "\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n"
+			 gud-marker-acc)
+      (setq
 
-	 ;; Extract the frame position from the marker.
-	 gud-last-frame
-	 (cons (substring gud-marker-acc (match-beginning 1) (match-end 1))
-	       (string-to-int (substring gud-marker-acc
-					 (match-beginning 2)
-					 (match-end 2))))
+       ;; Extract the frame position from the marker.
+       gud-last-frame
+       (cons (substring gud-marker-acc (match-beginning 1) (match-end 1))
+	     (string-to-int (substring gud-marker-acc
+				       (match-beginning 2)
+				       (match-end 2))))
 
-	 ;; Append any text before the marker to the output we're going
-	 ;; to return - we don't include the marker in this text.
-	 output (concat output
-			(substring gud-marker-acc 0 (match-beginning 0)))
+       ;; Append any text before the marker to the output we're going
+       ;; to return - we don't include the marker in this text.
+       output (concat output
+		      (substring gud-marker-acc 0 (match-beginning 0)))
 
-	 ;; Set the accumulator to the remaining text.
-	 gud-marker-acc (substring gud-marker-acc (match-end 0))))
+       ;; Set the accumulator to the remaining text.
+       gud-marker-acc (substring gud-marker-acc (match-end 0))))
 
-      ;; Does the remaining text look like it might end with the
-      ;; beginning of another marker?  If it does, then keep it in
-      ;; gud-marker-acc until we receive the rest of it.  Since we
-      ;; know the full marker regexp above failed, it's pretty simple to
-      ;; test for marker starts.
-      (if (string-match "\032.*\\'" gud-marker-acc)
-	  (progn
-	    ;; Everything before the potential marker start can be output.
-	    (setq output (concat output (substring gud-marker-acc
-						   0 (match-beginning 0))))
+    ;; Does the remaining text look like it might end with the
+    ;; beginning of another marker?  If it does, then keep it in
+    ;; gud-marker-acc until we receive the rest of it.  Since we
+    ;; know the full marker regexp above failed, it's pretty simple to
+    ;; test for marker starts.
+    (if (string-match "\032.*\\'" gud-marker-acc)
+	(progn
+	  ;; Everything before the potential marker start can be output.
+	  (setq output (concat output (substring gud-marker-acc
+						 0 (match-beginning 0))))
 
-	    ;; Everything after, we save, to combine with later input.
-	    (setq gud-marker-acc
-		  (substring gud-marker-acc (match-beginning 0))))
+	  ;; Everything after, we save, to combine with later input.
+	  (setq gud-marker-acc
+		(substring gud-marker-acc (match-beginning 0))))
 
-	(setq output (concat output gud-marker-acc)
-	      gud-marker-acc ""))
+      (setq output (concat output gud-marker-acc)
+	    gud-marker-acc ""))
 
-      output)))
+    output))
 
 (defun gud-perldb-find-file (f)
   (find-file-noselect f))
