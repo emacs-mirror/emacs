@@ -133,8 +133,8 @@ lock_file_1 (lfname, force)
      int force;
 {
   register int err;
-  char *user_name = XSTRING (Fuser_login_name (Qnil))->data;
-  char *host_name = XSTRING (Fsystem_name ())->data;
+  char *user_name = (char *) XSTRING (Fuser_login_name (Qnil))->data;
+  char *host_name = (char *) XSTRING (Fsystem_name ())->data;
   char *lock_info_str = alloca (strlen (user_name) + strlen (host_name)
                                 + LOCK_PID_MAX + 5);
 
@@ -195,7 +195,7 @@ current_lock_owner (owner, lfname)
      read it to determine return value, so allocate it.  */
   if (!owner)
     {
-      owner = alloca (sizeof (lock_info_type));
+      owner = (lock_info_type *) alloca (sizeof (lock_info_type));
       local_owner = 1;
     }
   
