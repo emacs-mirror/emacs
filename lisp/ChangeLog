@@ -1,3 +1,8 @@
+2004-03-17  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdb-var-list-children-handler): Handle C++ classes
+	properly for watching in speedbar.
+
 2004-03-17  Masatake YAMATO  <jet@gyve.org>
 
 	* smerge-mode.el (smerge-popup-context-menu): Put 
