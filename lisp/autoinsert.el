@@ -1,6 +1,6 @@
 ;;; autoinsert.el --- automatic mode-dependent insertion of text into new files
 
-;; Copyright (C) 1985, 1986, 1987, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 94, 95, 98 Free Software Foundation, Inc.
 
 ;; Author: Charlie Martin <crm@cs.duke.edu>
 ;; Adapted-By: Daniel.Pfeiffer@Informatik.START.dbp.de, fax (+49 69) 7588-2389
@@ -76,13 +76,18 @@ save it with  \\[write-file] RET.
 This variable is used when `auto-insert' is called as a function, e.g.
 when you do (add-hook 'find-file-hooks 'auto-insert).
 With \\[auto-insert], this is always treated as if it were `t'."
-  :type '(choice (const t) (const nil) (const not-modified))
+  :type '(choice (const :tag "Insert if possible" t)
+                 (const :tag "Do nothing" nil)
+                 (const :tag "insert if possible, mark as unmodified." 
+                        not-modified))
   :group 'auto-insert)
 
 (defcustom auto-insert-query 'function
   "*If non-`nil', ask user before auto-inserting.
 When this is `function', only ask when called non-interactively."
-  :type '(choice (const t) (const nil) (const function))
+  :type '(choice (const :tag "Ask" t)
+                 (const :tag "Don't ask" nil)
+                 (const :tag "Ask if called non-interactively" function))
   :group 'auto-insert)
 
 (defcustom auto-insert-prompt "Perform %s auto-insertion? "
@@ -262,11 +267,11 @@ Matches the visited file name against the elements of `auto-insert-alist'."
 
 
 ;;;###autoload
-(defun define-auto-insert (key action &optional after)
+(defun define-auto-insert (condition action &optional after)
   "Associate CONDITION with (additional) ACTION in `auto-insert-alist'.
 Optional AFTER means to insert action after all existing actions for CONDITION,
 or if CONDITION had no actions, after all other CONDITIONs."
-  (let ((elt (assoc key auto-insert-alist)))
+  (let ((elt (assoc condition auto-insert-alist)))
     (if elt
 	(setcdr elt
 		(if (vectorp (cdr elt))
@@ -277,8 +282,8 @@ or if CONDITION had no actions, after all other CONDITIONs."
 		      (vector (cdr elt) action)
 		    (vector action (cdr elt)))))
       (if after
-	  (nconc auto-insert-alist (list (cons key action)))
-	(setq auto-insert-alist (cons (cons key action)
+	  (nconc auto-insert-alist (list (cons condition action)))
+	(setq auto-insert-alist (cons (cons condition action)
 				      auto-insert-alist))))))
 
 ;;;###autoload
