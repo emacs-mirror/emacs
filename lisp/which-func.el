@@ -80,12 +80,12 @@ then current-function recognition is enabled in any mode."
   :type '(choice (const :tag "All modes" t)
 		 (list (symbol :tag "Major mode"))))
 
-(defcustom which-func-amodes '(emacs-lisp-mode c-mode c++-mode)
-  "List of major modes for which the Imenu menu should be computed automatically.
-It is computed when you visit a file in one of these major modes.
-If the variable's value is nil, then the Imenu menu is not computed
-automatically in any mode.  Note that the menu is never computed
-automatically if the buffer size exceeds `which-func-maxout'."
+(defcustom which-func-non-auto-modes nil
+  "List of major modes where Which Function mode is inactive till Imenu is used.
+
+Note that the menu is never computed automatically if the buffer size
+exceeds `which-func-maxout'."
+
   :group 'which-func
   :type '(list (symbol :tag "Major mode")))
 
@@ -137,7 +137,7 @@ It creates the Imenu index for the buffer, if necessary."
     (setq which-func-mode nil))
 
   (if (and which-func-mode
-           (member major-mode which-func-amodes)
+           (not (member major-mode which-func-non-auto-modes))
            (or (< buffer-saved-size which-func-maxout)
                (= which-func-maxout 0)))
       (setq imenu--index-alist
