@@ -189,7 +189,6 @@ This returns ARGS with the arguments that have been processed removed."
 ;; Handle Xresources.
 
 (defun x-read-resources ()
-  "Return an alist of values 
   "Reread the X defaults from the X server and install them in
 `screen-default-alist', to be used in new screens."
   (interactive)
