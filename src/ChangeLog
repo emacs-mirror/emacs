@@ -1,3 +1,7 @@
+2000-12-15  Kenichi Handa  <handa@etl.go.jp>
+
+	* fns.c (Fmd5): Docstring improved.
+
 2000-12-15  Miles Bader  <miles@gnu.org>
 
 	* xdisp.c (window_box_height): Only use mode-line glyph-rows that
