@@ -140,7 +140,7 @@ apply to chars in regexps that are prefixed with `\\'.
 If this value is `not-yanks', yanked text is always downcased."
   :type '(choice (const :tag "off" nil)
 		 (const not-yanks)
-		 (sexp :tag "on" :format "%t\n" t))
+		 (other :tag "on" t))
   :group 'isearch)
 
 (defcustom search-nonincremental-instead t
