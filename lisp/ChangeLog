@@ -8043,7 +8043,115 @@
 	(compilation-forget-errors): Don't localize already local
 	compilation-locs and remove FIXME about refontifying.
 
-2004-04-14
+2004-04-14  Kim F. Storm  <storm@cua.dk>
+
+	* startup.el (emacs-quick-startup): New defvar (set by -Q).
+	(command-line): New option -Q.  Like -q --no-site-file, but
+	in addition it also disables menu-bar, tool-bar, scroll-bars,
+	tool-tips, and the blinking cursor.
+	(command-line-1): Skip startup screen if -Q.
+	(fancy-splash-head): Use ":align-to center" prop to center splash image.
+
+	* emulation/cua-base.el (cua-read-only-cursor-color)
+	(cua-overwrite-cursor-color, cua-global-mark-cursor-color): Doc fix.
+
+2004-04-13  Dave Love  <fx@gnu.org>
+
+	* progmodes/python.el: Doc fixes.  Changes for compiler warnings.
+	(syntax): Don't require.
+	(python) <defgroup>: Add :version.
+	(python-quote-syntax): Re-written.
+	(inferior-python-mode): Move stuff here from run-python and add
+	some more.
+	(python-preoutput-continuation, python-preoutput-result)
+	(python-dotty-syntax-table): New.
+	(python-describe-symbol): Use them.
+	(run-python): Move stuff to inferior-python-mode.  Modify code
+	loaded into Python.
+	(python-send-region): Use python-proc, python-send-string.
+	(python-send-string): Send newlines too.  Callers changed.
+	(python-load-file): Re-written.
+	(python-eldoc-function): New.
+	(info-look): Don't require.
+	(python-after-info-look): New.  A modified version of former
+	top-level code for use with eval-after-load.
+	(python-maybe-jython, python-guess-indent): Use widened buffer.
+	(python-fill-paragraph): Re-written.
+	(python-mode): Fix outline-regexp.  Set outline-heading-end-regexp,
+	eldoc-print-current-symbol-info-function.  Add to eldoc-mode-hook.
+
+2004-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (run-python): Use compilation-shell-minor-mode.
+	Set compilation-error-regexp-alist earlier.
+
+	* progmodes/compile.el (compilation-minor-mode-map)
+	(compilation-shell-minor-mode-map, compile-mouse-goto-error)
+	(compile-goto-error): Re-merge the mouse and non-mouse commands.
+
+2004-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compile-goto-error): Select the buffer/window
+	corresponding to the event.
+
+2004-04-12  Joe Buehler  <jbuehler@hekiman.com>
+
+	* loadup.el: Add cygwin to system-type list, for unexec() support.
+
+2004-04-12  John Paul Wallington  <jpw@gnu.org>
+
+	* ibuffer.el (ibuffer-delete-window-on-quit): Remove.
+	(ibuffer-restore-window-config-on-quit): New variable to replace
+	`ibuffer-delete-window-on-quit'.  Update all references.
+	(ibuffer-prev-window-config): New variable.
+	(ibuffer-quit): Restore previous window configuration instead of
+	deleting window.
+	(ibuffer): Save window configuration before showing Ibuffer buffer.
+
+	* help.el (describe-mode): Doc fix.
+
+2004-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-mode-font-lock-keywords): Fix test
+	not to treat nil as a function.
+
+	* vc-arch.el (vc-arch-root): Be a bit more careful.
+	(vc-arch-register): Save the buffer if we modified it.
+	(vc-arch-delete-rej-if-obsolete): Save excursion.
+	(vc-arch-find-file-hook): Use the simpler after-save-hook.
+	(vc-arch-responsible-p, vc-arch-init-version): New functions.
+
+	* net/ldap.el (ldap-search): Use list*.
+
+2004-04-12  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-follow-reference): Allow multiline reference name.
+
+2004-04-11  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-cond): Fix last change.
+
+	* progmodes/python.el: New file.
+
+2004-04-11  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-arg-list): Function removed.
+	(vc-default-workfile-unchanged-p): Use condition-case to check for
+	backward compatibility.
+
+	* vc.el (vc-print-log): Use condition-case to check for backward
+	compatibility.
+
+2004-04-11  Juri Linkov  <juri@jurta.org>
+
+	* dired.el (dired-faces): New defgroup.
+	(dired-header, dired-mark, dired-marked, dired-flagged)
+	(dired-warning, dired-directory, dired-symlink, dired-ignored):
+	New faces.
+	(dired-header-face, dired-mark-face, dired-marked-face)
+	(dired-flagged-face, dired-warning-face, dired-directory-face)
+	(dired-symlink-face, dired-ignored-face): New face variables.
+	(dired-font-lock-keywords): Use them instead of font-lock faces.
 	Split the rule for dired marks into 3 separate rules: for marks,
 	marked file names and flagged file names.
 
