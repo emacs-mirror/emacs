@@ -35,6 +35,27 @@ static void gap_right ();
 static void adjust_markers ();
 static void adjust_point ();
 
+Lisp_Object Fcombine_after_change_execute ();
+
+/* Non-nil means don't call the after-change-functions right away,
+   just record an element in Vcombine_after_change_calls_list.  */
+Lisp_Object Vcombine_after_change_calls;
+
+/* List of elements of the form (BEG-UNCHANGED END-UNCHANGED CHANGE-AMOUNT)
+   describing changes which happened while combine_after_change_calls
+   was nonzero.  We use this to decide how to call them
+   once the deferral ends.
+
+   In each element.
+   BEG-UNCHANGED is the number of chars before the changed range.
+   END-UNCHANGED is the number of chars after the changed range,
+   and CHANGE-AMOUNT is the number of characters inserted by the change
+   (negative for a deletion).  */
+Lisp_Object combine_after_change_list;
+
+/* Buffer which combine_after_change_list is about.  */
+Lisp_Object combine_after_change_buffer;
+
 /* Move gap to position `pos'.
    Note that this can quit!  */
 
@@ -853,6 +874,33 @@ void
 signal_after_change (pos, lendel, lenins)
      int pos, lendel, lenins;
 {
+  /* If we are deferring calls to the after-change functions
+     and there are no before-change functions,
+     just record the args that we were going to use.  */
+  if (! NILP (Vcombine_after_change_calls)
+      && NILP (Vbefore_change_function) && NILP (Vbefore_change_functions)
+      && NILP (current_buffer->overlays_before)
+      && NILP (current_buffer->overlays_after))
+    {
+      Lisp_Object elt;
+
+      if (!NILP (combine_after_change_list)
+	  && current_buffer != XBUFFER (combine_after_change_buffer))
+	Fcombine_after_change_execute ();
+
+      elt = Fcons (make_number (pos - BEG),
+		   Fcons (make_number (Z - (pos - lendel + lenins)),
+			  Fcons (make_number (lenins - lendel), Qnil)));
+      combine_after_change_list
+	= Fcons (elt, combine_after_change_list);
+      combine_after_change_buffer = Fcurrent_buffer ();
+
+      return;
+    }
+
+  if (!NILP (combine_after_change_list)) 
+    Fcombine_after_change_execute ();
+
   /* Run the after-change-function if any.
      We don't bother "binding" this variable to nil
      because it is obsolete anyway and new code should not use it.  */
@@ -903,4 +951,94 @@ signal_after_change (pos, lendel, lenins)
      insert-behind-hooks or insert-in-front-hooks.  */
   if (lendel == 0)
     report_interval_modification (pos, pos + lenins);
+}
+
+Lisp_Object
+Fcombine_after_change_execute_1 (val)
+     Lisp_Object val;
+{
+  Vcombine_after_change_calls = val;
+  return val;
+}
+
+DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
+  Scombine_after_change_execute, 0, 0, 0,
+  "This function is for use internally in `combine-after-change-calls'.")
+  ()
+{
+  register Lisp_Object val;
+  int count = specpdl_ptr - specpdl;
+  int beg, end, change;
+  int begpos, endpos;
+  Lisp_Object tail;
+
+  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+
+  Fset_buffer (combine_after_change_buffer);
+
+  /* # chars unchanged at beginning of buffer.  */
+  beg = Z - BEG;
+  /* # chars unchanged at end of buffer.  */
+  end = beg;
+  /* Total amount of insertion (negative for deletion).  */
+  change = 0;
+
+  /* Scan the various individual changes,
+     accumulating the range info in BEG, END and CHANGE.  */
+  for (tail = combine_after_change_list; CONSP (tail);
+       tail = XCONS (tail)->cdr)
+    {
+      Lisp_Object elt, thisbeg, thisend, thischange;
+
+      /* Extract the info from the next element.  */
+      elt = XCONS (tail)->car;
+      if (! CONSP (elt))
+	continue;
+      thisbeg = XINT (XCONS (elt)->car);
+
+      elt = XCONS (elt)->cdr;
+      if (! CONSP (elt))
+	continue;
+      thisend = XINT (XCONS (elt)->car);
+
+      elt = XCONS (elt)->cdr;
+      if (! CONSP (elt))
+	continue;
+      thischange = XINT (XCONS (elt)->car);
+
+      /* Merge this range into the accumulated range.  */
+      change += thischange;
+      if (thisbeg < beg)
+	beg = thisbeg;
+      if (thisend < end)
+	end = thisend;
+    }
+
+  /* Get the current start and end positions of the range
+     that was changed.  */
+  begpos = BEG + beg;
+  endpos = Z - end;
+  
+  /* We are about to handle these, so discard them.  */
+  combine_after_change_list = Qnil;
+
+  /* Now run the after-change functions for real.
+     Turn off the flag that defers them.  */
+  record_unwind_protect (Fcombine_after_change_execute_1,
+			 Vcombine_after_change_calls);
+  signal_after_change (begpos, endpos - begpos - change, endpos - begpos);
+
+  return unbind_to (count, val);
+}
+
+syms_of_insdel ()
+{
+  staticpro (&combine_after_change_list);
+  combine_after_change_list = Qnil;
+
+  DEFVAR_LISP ("combine-after-change-calls", &Vcombine_after_change_calls,
+     "Used internally by the `combine-after-change-calls' macro.");
+  Vcombine_after_change_calls = Qnil;
+
+  defsubr (&Scombine_after_change_execute);
 }
