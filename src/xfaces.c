@@ -136,6 +136,8 @@ int next_face_id;
 /* The number of the face to use to indicate the region.  */
 int region_face;
 
+/* This is what appears in a slot in a face to signify that the face
+   does not specify that display aspect.  */
 #define FACE_DEFAULT (~0)
 
 Lisp_Object Qface, Qwindow, Qpriority;
@@ -638,7 +640,6 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr)
   int i, j, noverlays;
   int facecode;
   Lisp_Object *overlay_vec;
-  int len;
   struct sortvec *sortvec;
   Lisp_Object frame;
   int endpos;
@@ -666,10 +667,23 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr)
 
   {
     int next_overlay;
+    int len;
 
-    len = 10;
-    overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
-    noverlays = overlays_at (pos, &overlay_vec, &len, &next_overlay);
+    /* First try with room for 40 overlays.  */
+    len = 40;
+    overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
+    
+    noverlays = overlays_at (pos, 0, &overlay_vec, &len, &next_overlay);
+
+    /* If there are more than 40,
+       make enough space for all, and try again.  */
+    if (noverlays > len)
+      {
+	len = noverlays;
+	overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
+	noverlays = overlays_at (pos, 0, &overlay_vec, &len, &next_overlay);
+      }
+
     if (next_overlay < endpos)
       endpos = next_overlay;
   }
@@ -762,8 +776,6 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr)
       if (region_face >= 0 && region_face < next_face_id)
 	merge_faces (FRAME_FACES (f) [region_face], &face);
     }
-
-  xfree (overlay_vec);
 
   *endptr = endpos;
 
