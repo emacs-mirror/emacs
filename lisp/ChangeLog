@@ -1,3 +1,9 @@
+2002-09-26  Stephen Eglen  <stephen@gnu.org>
+
+	* iswitchb.el (iswitchb-completions): Test that
+	iswitchb-common-match-string is a string, before printing common
+	completions.
+
 2002-09-24  Simon Josefsson  <jas@extundo.com>
 
 	* mail/mail-extr.el (mail-extr-ignore-single-names): Change default.
