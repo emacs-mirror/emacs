@@ -158,11 +158,10 @@
   (make-local-variable 'lisp-indent-function)
   (set lisp-indent-function 'scheme-indent-function)
   (setq mode-line-process '("" scheme-mode-line-process))
-  (make-local-variable 'imenu-case-fold-search)
-  (setq imenu-case-fold-search t)
+  (set (make-local-variable 'imenu-case-fold-search) t)
   (setq imenu-generic-expression scheme-imenu-generic-expression)
-  (make-local-variable 'imenu-syntax-alist)
-  (setq imenu-syntax-alist '(("+-*/.<>=?!$%_&~^:" . "w")))
+  (set (make-local-variable 'imenu-syntax-alist)
+	'(("+-*/.<>=?!$%_&~^:" . "w")))
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults
         '((scheme-font-lock-keywords
@@ -210,8 +209,10 @@ In addition, if an inferior Scheme process is running, some additional
 commands will be defined, for evaluating expressions and controlling
 the interpreter, and the state of the process will be displayed in the
 modeline of all Scheme buffers.  The names of commands that interact
-with the Scheme process start with \"xscheme-\".  For more information
-see the documentation for xscheme-interaction-mode.
+with the Scheme process start with \"xscheme-\" if you use the MIT
+Scheme-specific `xscheme' package; for more information see the
+documentation for `xscheme-interaction-mode'.  Use \\[run-scheme] to
+start an inferior Scheme using the more general `cmuscheme' package.
 
 Commands:
 Delete converts tabs to spaces as it moves back.
@@ -290,7 +291,7 @@ See `run-hooks'."
 		   ;; Function names.
 		   "\\(\\|-public\\|-method\\|-generic\\(-procedure\\)?\\)\\|"
 		   ;; Macro names, as variable names.  A bit dubious, this.
-		   "\\(-syntax\\)\\|"
+		   "\\(-syntax\\|-macro\\)\\|"
 		   ;; Class names.
 		   "-class"
                    ;; Guile modules.
@@ -368,9 +369,10 @@ that variable's value is a string."
 			     nil t (("+-*/.<>=?$%_&~^:" . "w"))
 			     beginning-of-defun
 			     (font-lock-mark-block-function . mark-defun)))
-  (setq imenu-case-fold-search nil)
+  (set (make-local-variable 'imenu-case-fold-search) nil)
   (setq imenu-generic-expression dsssl-imenu-generic-expression)
-  (setq imenu-syntax-alist '(("+-*/.<>=?$%_&~^:" . "w")))
+  (set (make-local-variable 'imenu-syntax-alist)
+       '(("+-*/.<>=?$%_&~^:" . "w")))
   (run-hooks 'scheme-mode-hook)
   (run-hooks 'dsssl-mode-hook))
 
