@@ -1,4 +1,3 @@
-/* $Header: /cvsroot/emacs/emacs/oldXMenu/copyright.h,v 1.1 1999/10/03 19:35:25 fx Exp $ */
 /*
 
 Copyright 1985, 1986, 1987 by the Massachusetts Institute of Technology

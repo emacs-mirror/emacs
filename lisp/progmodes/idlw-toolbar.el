@@ -4,7 +4,6 @@
 ;; Author: Carsten Dominik <dominik@astro.uva.nl>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
 ;; Version: 4.15
-;; Date: $Date: 2003/02/04 13:24:35 $
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.

@@ -7,8 +7,6 @@
 ;; Maintainer: Noah Friedman <friedman@splode.com>
 ;; Keywords: minibuffer, window, frame, display
 
-;; $Id: rsz-mini.el,v 1.1 2001/08/30 07:29:18 gerd Exp $
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify

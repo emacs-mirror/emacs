@@ -1,4 +1,3 @@
-/* $Header: /cvsroot/emacs/emacs/oldXMenu/X10.h,v 1.2 2003/02/04 14:19:01 lektu Exp $ */
 /*
  * Copyright 1985, 1986, 1987 by the Massachusetts Institute of Technology
  *

@@ -1,7 +1,4 @@
 ;;; url-methods.el --- Load URL schemes as needed
-;; Author: $Author: monnier $
-;; Created: $Date: 2004/04/04 03:10:58 $
-;; Version: $Revision: 1.2 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -5,7 +5,6 @@
 ;; Authors:     Reto Zimmermann <reto@gnu.org>
 ;;              Rodney J. Whitby <software.vhdl-mode@rwhitby.net>
 ;; Maintainer:  Reto Zimmermann <reto@gnu.org>
-;; RCS:         $Id: vhdl-mode.el,v 1.20 2003/03/05 07:50:38 lektu Exp $
 ;; Keywords:    languages vhdl
 ;; WWW:         http://opensource.ethz.ch/emacs/vhdl-mode.html
 

@@ -6,8 +6,6 @@
 ;; Maintainer: Noah Friedman <friedman@splode.com>
 ;; Keywords: unix, comm
 
-;; $Id: rlogin.el,v 1.4 2003/05/06 17:46:28 lektu Exp $
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify

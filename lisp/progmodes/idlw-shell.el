@@ -5,7 +5,6 @@
 ;;         Chris Chase <chase@att.com>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
 ;; Version: 4.15
-;; Date: $Date: 2002/10/17 15:41:01 $
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.

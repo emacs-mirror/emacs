@@ -1,7 +1,4 @@
 ;;; url-auth.el --- Uniform Resource Locator authorization modules
-;; Author: $Author: monnier $
-;; Created: $Date: 2004/04/04 01:21:46 $
-;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

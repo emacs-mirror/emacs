@@ -1,6 +1,5 @@
 #include "copyright.h"
 
-/* $Header: /cvsroot/emacs/emacs/oldXMenu/EvHand.c,v 1.1 1999/10/03 19:35:01 fx Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*

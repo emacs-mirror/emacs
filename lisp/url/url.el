@@ -1,6 +1,5 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool
 ;; Author: Bill Perry <wmperry@gnu.org>
-;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

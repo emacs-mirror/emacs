@@ -1,5 +1,4 @@
 
-/* $Header: /cvsroot/emacs/emacs/oldXMenu/XMenuInt.h,v 1.2 2003/02/04 14:19:01 lektu Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*

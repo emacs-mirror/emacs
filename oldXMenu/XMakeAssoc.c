@@ -1,4 +1,3 @@
-/* $XConsortium: XMakeAssoc.c,v 10.18 91/01/06 12:09:28 rws Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*

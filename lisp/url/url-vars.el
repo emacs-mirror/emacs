@@ -1,7 +1,4 @@
 ;;; url-vars.el --- Variables for Uniform Resource Locator tool
-;; Author: $Author: monnier $
-;; Created: $Date: 2004/04/04 01:21:46 $
-;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -29,10 +26,7 @@
 (require 'mm-util)
 (eval-when-compile (require 'cl))
 
-(defconst url-version (let ((x "$State: Exp $"))
-			(if (string-match "State: \\([^ \t\n]+\\)" x)
-			    (substring x (match-beginning 1) (match-end 1))
-			  x))
+(defconst url-version "Emacs"
   "Version number of URL package.")
 
 (defgroup url nil
