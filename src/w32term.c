@@ -176,8 +176,6 @@ extern unsigned int msh_mousewheel;
 
 extern void free_frame_menubar ();
 
-extern void w32_menu_display_help (HMENU menu, UINT menu_item, UINT flags);
-
 extern int w32_codepage_for_font (char *fontname);
 
 extern glyph_metric *w32_BDF_TextMetric(bdffont *fontp,
@@ -8728,16 +8726,6 @@ w32_read_socket (sd, bufp, numchars, expected)
             }
 	  break;
 
-        case WM_MENUSELECT:
-          {
-            HMENU menu = (HMENU) msg.msg.lParam;
-            UINT menu_item = (UINT) LOWORD (msg.msg.wParam);
-            UINT flags = (UINT) HIWORD (msg.msg.wParam);
-
-            w32_menu_display_help (menu, menu_item, flags);
-          }
-          break;
-
 	case WM_DROPFILES:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 
@@ -9079,7 +9067,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 	  FRAME_PTR f = XFRAME (frame);
 	  /* The tooltip has been drawn already.  Avoid the
 	     SET_FRAME_GARBAGED below.  */
-	  if (f == XFRAME (tip_frame))
+	  if (EQ (frame, tip_frame))
 	    continue;
 
 	  /* Check "visible" frames and mark each as obscured or not.
