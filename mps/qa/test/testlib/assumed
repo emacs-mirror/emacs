@@ -1,4 +1,4 @@
-% $HopeName:$
+% $HopeName: MMQA_harness!testlib:assumed(trunk.2) $
 %
 % Symbols listed here will be assumed by the harness to be available for
 % tests to use, even if they're not present in mps header files.
@@ -25,3 +25,7 @@ mps_arena_t
 mps_arena_spare_committed
 mps_arena_spare_commit_limit
 mps_arena_spare_commit_limit_set
+mps_gen_param_s
+mps_chain_t
+mps_chain_create
+mps_chain_destroy
