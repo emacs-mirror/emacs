@@ -369,9 +369,11 @@ Returns non-nil iff it is a valid table."
 		;; the one which includes the table we found.
 		(setq could-be (cons (car elt) could-be)))
 	    (setq elt (cdr elt)))
-	  ;; The last element we found in the computed list before
-	  ;; FOUND that appears in the 
-    found))
+	  ;; The last element we found in the computed list before FOUND
+	  ;; that appears in the user's list will be the table that
+	  ;; included the one we found.  This will be the head of the
+	  ;; COULD-BE list.
+	  (car could-be)))))
 
 ;; Subroutine of visit-tags-table-buffer.  Move tags-table-list-pointer
 ;; along and set tags-file-name.  Returns nil when out of tables.
