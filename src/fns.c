@@ -1351,7 +1351,7 @@ map_char_table (c_function, function, chartable, depth, indices)
       indices[depth] = i;
       elt = XCHAR_TABLE (chartable)->contents[i];
       if (CHAR_TABLE_P (elt))
-	map_char_table (chartable, c_function, function, depth + 1, indices);
+	map_char_table (c_function, function, chartable, depth + 1, indices);
       else if (c_function)
 	(*c_function) (depth + 1, indices, elt);
       /* Here we should handle all cases where the range is a single character
