@@ -1,3 +1,12 @@
+2002-12-16  Francesco Potorti`  <pot@gnu.org>
+
+	* mail/undigest.el (rmail-digest-methods)
+	(rmail-digest-mail-separator): New variables.
+	(rmail-digest-parse-mime, rmail-digest-parse-rfc1153strict)
+	(rmail-digest-parse-rfc1153sloppy, rmail-digest-rfc1153)
+	(rmail-digest-parse-rfc934): New functions.
+	(undigestify-rmail-message): Completely rewritten.
+
 2002-12-16  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-read-file-name): Removed debug message.
