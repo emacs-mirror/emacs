@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/windows
 @node Windows, Frames, Buffers, Top
@@ -11,24 +11,25 @@ Emacs windows.  See @ref{Display}, for information on how text is
 displayed in windows.
 
 @menu
-* Basic Windows::          Basic information on using windows.
-* Splitting Windows::      Splitting one window into two windows.
-* Deleting Windows::       Deleting a window gives its space to other windows.
-* Selecting Windows::      The selected window is the one that you edit in.
-* Cyclic Window Ordering:: Moving around the existing windows.
-* Buffers and Windows::    Each window displays the contents of a buffer.
-* Displaying Buffers::     Higher-lever functions for displaying a buffer
-                             and choosing a window for it.
-* Choosing Window::	   How to choose a window for displaying a buffer.
-* Window Point::           Each window has its own location of point.
-* Window Start::           The display-start position controls which text
-                             is on-screen in the window. 
-* Vertical Scrolling::     Moving text up and down in the window.
-* Horizontal Scrolling::   Moving text sideways on the window.
-* Size of Window::         Accessing the size of a window.
-* Resizing Windows::       Changing the size of a window.
-* Coordinates and Windows::Converting coordinates to windows.
-* Window Configurations::  Saving and restoring the state of the screen.
+* Basic Windows::           Basic information on using windows.
+* Splitting Windows::       Splitting one window into two windows.
+* Deleting Windows::        Deleting a window gives its space to other windows.
+* Selecting Windows::       The selected window is the one that you edit in.
+* Cyclic Window Ordering::  Moving around the existing windows.
+* Buffers and Windows::     Each window displays the contents of a buffer.
+* Displaying Buffers::      Higher-lever functions for displaying a buffer
+                              and choosing a window for it.
+* Choosing Window::	    How to choose a window for displaying a buffer.
+* Window Point::            Each window has its own location of point.
+* Window Start::            The display-start position controls which text
+                              is on-screen in the window.
+* Vertical Scrolling::      Moving text up and down in the window.
+* Scrolling Hooks::         Hooks that run when you scroll a window.
+* Horizontal Scrolling::    Moving text sideways on the window.
+* Size of Window::          Accessing the size of a window.
+* Resizing Windows::        Changing the size of a window.
+* Coordinates and Windows:: Converting coordinates to windows.
+* Window Configurations::   Saving and restoring the state of the screen.
 @end menu
 
 @node Basic Windows
@@ -66,31 +67,31 @@ life.  (@xref{Deleting Windows}.)
 @item
 containing frame
 
-@item 
+@item
 window height
 
-@item 
+@item
 window width
 
-@item 
+@item
 window edges with respect to the screen or frame
 
-@item 
+@item
 the buffer it displays
 
-@item 
+@item
 position within the buffer at the upper left of the window
 
-@item 
+@item
 amount of horizontal scrolling, in columns
 
-@item 
+@item
 point
 
-@item 
+@item
 the mark
 
-@item 
+@item
 how recently the window was selected
 @end itemize
 
@@ -173,7 +174,7 @@ lines high by 80 columns wide; then the window is split.
 
 @group
 ;; @r{Returns window created}
-(setq w2 (split-window w 15))   
+(setq w2 (split-window w 15))
      @result{} #<window 28 on windows.texi>
 @end group
 @group
@@ -191,8 +192,8 @@ The screen looks like this:
 
 @smallexample
 @group
-         __________ 
-        |          |  line 0  
+         __________
+        |          |  line 0
         |    w     |
         |__________|
         |          |  line 15
@@ -230,8 +231,8 @@ Now, the screen looks like this:
 @smallexample
 @group
      column 35
-         __________ 
-        |   |      |  line 0  
+         __________
+        |   |      |  line 0
         | w |  w3  |
         |___|______|
         |          |  line 15
@@ -417,9 +418,15 @@ The return value is @var{window}.
 @defmac save-selected-window forms@dots{}
 This macro records the selected window, executes @var{forms}
 in sequence, then restores the earlier selected window.
-It does not save or restore anything about the sizes, arrangement
+
+This macro does not save or restore anything about the sizes, arrangement
 or contents of windows; therefore, if the @var{forms} change them,
-the changes are permanent.
+the change persists.
+
+Each frame, at any time, has a window selected within the frame.  This
+macro only saves @emph{the} selected window; it does not save anything
+about other frames.  If the @var{forms} select some other frame and
+alter the window selected within it, the change persists.
 @end defmac
 
 @cindex finding windows
@@ -468,7 +475,7 @@ considered.  See @code{get-lru-window}, above.
 @section Cyclic Ordering of Windows
 @cindex cyclic ordering of windows
 @cindex ordering of windows, cyclic
-@cindex window ordering, cyclic 
+@cindex window ordering, cyclic
 
   When you use the command @kbd{C-x o} (@code{other-window}) to select
 the next window, it moves through all the windows on the screen in a
@@ -529,7 +536,7 @@ Consider all windows in all visible or iconified frames.
 Consider precisely the windows in @var{window}'s frame, and no others.
 @end table
 
-This example assumes there are two windows, both displaying the 
+This example assumes there are two windows, both displaying the
 buffer @samp{windows.texi}:
 
 @example
@@ -622,6 +629,32 @@ This function returns a window currently displaying
 several such windows, then the function returns the first one in the
 cyclic ordering of windows, starting from the selected window.
 @xref{Cyclic Window Ordering}.
+
+The argument @var{all-frames} controls which windows to consider.
+
+@itemize @bullet
+@item
+If it is @code{nil}, consider windows on the selected frame.
+@item
+If it is @code{t}, consider windows on all frames.
+@item
+If it is @code{visible}, consider windows on all visible frames.
+@item
+If it is 0, consider windows on all visible or iconified frames.
+@item
+If it is a frame, consider windows on that frame.
+@end itemize
+@end defun
+
+@defun get-buffer-window-list buffer-or-name &optional minibuf all-frames
+This function returns a list of all the windows currently displaying
+@var{buffer-or-name}.
+
+The two optional arguments work like the optional arguments of
+@code{next-window} (@pxref{Cyclic Window Ordering}); they are @emph{not}
+like the single optional argument of @code{get-buffer-window}.  Perhaps
+we should change @code{get-buffer-window} in the future to make it
+compatible with the other functions.
 
 The argument @var{all-frames} controls which windows to consider.
 
@@ -990,7 +1023,7 @@ inevitably, at the beginning of a text line.
 @cindex window top line
 This function returns the display-start position of window
 @var{window}.  If @var{window} is @code{nil}, the selected window is
-used.  For example, 
+used.  For example,
 
 @example
 @group
@@ -1252,13 +1285,64 @@ separate key binding to do this.  For example,
 (defun line-to-top-of-window ()
   "Scroll current line to top of window.
 Replaces three keystroke sequence C-u 0 C-l."
-  (interactive) 
+  (interactive)
   (recenter 0))
 
-(global-set-key [kp-multiply] 'line-to-top-of-window)  
+(global-set-key [kp-multiply] 'line-to-top-of-window)
 @end group
 @end example
 @end deffn
+
+@node Scrolling Hooks
+@section Hooks for Vertical Scrolling
+
+This section describes how a Lisp program can take action whenever a
+window displays a different part of its buffer or a different buffer.
+There are three actions that can change this: scrolling the window,
+switching buffers in the window, and changing the size of the window.
+The first two actions run @code{window-scroll-functions}; the last runs
+@code{window-size-change-functions}.  The paradigmatic use of these
+hooks is Lazy Lock mode; see @ref{Support Modes, Lazy Lock, Font Lock
+Support Modes, emacs, The GNU Emacs Manual}.
+
+@defvar window-scroll-functions
+This variable holds a list of functions that Emacs should call before
+redisplaying a window with scrolling.  It is not a normal hook, because
+each function is called with two arguments: the window, and its new
+display-start position.
+
+Displaying a different buffer in the window also runs these functions.
+
+These functions cannot expect @code{window-end} (@pxref{Window Start})
+to return a meaningful value, because that value is updated only by
+redisplaying the buffer.  So if one of these functions needs to know the
+last character that will fit in the window with its current
+display-start position, it has to find that character using
+@code{vertical-motion} (@pxref{Screen Lines}).
+@end defvar
+
+@defvar window-size-change-functions
+This variable holds a list of functions to be called if the size of any
+window changes for any reason.  The functions are called just once per
+redisplay, and just once for each frame on which size changes have
+occurred.
+
+Each function receives the frame as its sole argument.  There is no
+direct way to find out which windows on that frame have changed size, or
+precisely how.  However, if a size-change function records, at each
+call, the existing windows and their sizes, it can also compare the
+present sizes and the previous sizes.
+
+Creating or deleting windows counts as a size change, and therefore
+causes these functions to be called.  Changing the frame size also
+counts, because it changes the sizes of the existing windows.
+
+It is not a good idea to use @code{save-window-excursion} (@pxref{Window
+Configurations}) in these functions, because that always counts as a
+size change, and it would cause these functions to be called over and
+over.  In most cases, @code{save-selected-window} (@pxref{Selecting
+Windows}) is what you need here.
+@end defvar
 
 @node Horizontal Scrolling
 @section Horizontal Scrolling
@@ -1349,9 +1433,9 @@ is off the screen due to horizontal scrolling:
 @example
 @group
 (defun hscroll-on-screen (window position)
-  (save-excursion 
+  (save-excursion
     (goto-char position)
-    (and 
+    (and
      (>= (- (current-column) (window-hscroll window)) 0)
      (< (- (current-column) (window-hscroll window))
         (window-width window)))))
@@ -1455,15 +1539,15 @@ holds the mode line, shown here with @samp{xxxxxxxxx}.
 
 @example
 @group
-           0    
+           0
            _______
-        0 |       | 
-          |       |   
-          |       | 
-          |       | 
+        0 |       |
+          |       |
+          |       |
+          |       |
           xxxxxxxxx  4
 
-                  7  
+                  7
 @end group
 @end example
 
@@ -1480,9 +1564,9 @@ and the edges of the right window are @w{@samp{4 0 7 3}}.
 @example
 @group
            ___ ___
-          |   |   |    
-          |   |   |    
-          xxxxxxxxx 
+          |   |   |
+          |   |   |
+          xxxxxxxxx
 
            0  34  7
 @end group
@@ -1521,7 +1605,7 @@ If @var{size} is negative, this function shrinks the window by
 than the minimum size (@code{window-min-height} and
 @code{window-min-width}), @code{enlarge-window} deletes the window.
 
-@code{enlarge-window} returns @code{nil}.  
+@code{enlarge-window} returns @code{nil}.
 @end deffn
 
 @deffn Command enlarge-window-horizontally columns
@@ -1580,28 +1664,6 @@ created narrower than this.  The absolute minimum width is one; any
 value below that is ignored.  The default value is 10.
 @end defopt
 
-@defvar window-size-change-functions
-This variable holds a list of functions to be called if the size of any
-window changes for any reason.  The functions are called just once per
-redisplay, and just once for each frame on which size changes have
-occurred.
-
-Each function receives the frame as its sole argument.  There is no
-direct way to find out which windows changed size, or precisely how;
-however, if your size-change function keeps track, after each change, of
-the windows that interest you, you can figure out what has changed by
-comparing the old size data with the new.
-
-Creating or deleting windows counts as a size change, and therefore
-causes these functions to be called.  Changing the frame size also
-counts, because it changes the sizes of the existing windows.
-
-It is not a good idea to use @code{save-window-excursion} in these
-functions, because that always counts as a size change, and it would
-cause these functions to be called over and over.  In most cases,
-@code{save-selected-window} is what you need here.
-@end defvar
-
 @node Coordinates and Windows
 @section Coordinates and Windows
 
@@ -1647,7 +1709,7 @@ The coordinates are in the mode line of @var{window}.
 
 @item vertical-split
 The coordinates are in the vertical line between @var{window} and its
-neighbor to the right.  This value occurs only if the window doesn't 
+neighbor to the right.  This value occurs only if the window doesn't
 have a scroll bar; positions in a scroll bar are considered outside the
 window.
 
