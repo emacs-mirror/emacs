@@ -75,6 +75,18 @@ Lisp_Object Vtext_property_default_nonsticky;
    to be run later by report_interval_modification.  */
 Lisp_Object interval_insert_behind_hooks;
 Lisp_Object interval_insert_in_front_hooks;
+
+
+/* Signal a `text-read-only' error.  This function makes it easier
+   to capture that error in GDB by putting a breakpoint on it.  */
+
+static void
+text_read_only ()
+{
+  Fsignal (Qtext_read_only, Qnil);
+}
+
+
 
 /* Extract the interval at the position pointed to by BEGIN from
    OBJECT, a string or buffer.  Additionally, check that the positions
@@ -1784,7 +1796,7 @@ verify_interval_modification (buf, start, end)
   /* For an insert operation, check the two chars around the position.  */
   if (start == end)
     {
-      INTERVAL prev;
+      INTERVAL prev = NULL;
       Lisp_Object before, after;
 
       /* Set I to the interval containing the char after START,
@@ -1828,7 +1840,7 @@ verify_interval_modification (buf, start, end)
 		      if (TMEM (Qread_only, tem)
 			  || (NILP (Fplist_get (i->plist, Qread_only))
 			      && TMEM (Qcategory, tem)))
-			Fsignal (Qtext_read_only, Qnil);
+			text_read_only ();
 		    }
 		}
 
@@ -1848,7 +1860,7 @@ verify_interval_modification (buf, start, end)
 		      if (! TMEM (Qread_only, tem)
 			  && (! NILP (Fplist_get (prev->plist,Qread_only))
 			      || ! TMEM (Qcategory, tem)))
-			Fsignal (Qtext_read_only, Qnil);
+			text_read_only ();
 		    }
 		}
 	    }
@@ -1867,13 +1879,13 @@ verify_interval_modification (buf, start, end)
 		  if (TMEM (Qread_only, tem)
 		      || (NILP (Fplist_get (i->plist, Qread_only))
 			  && TMEM (Qcategory, tem)))
-		    Fsignal (Qtext_read_only, Qnil);
+		    text_read_only ();
 
 		  tem = textget (prev->plist, Qrear_nonsticky);
 		  if (! TMEM (Qread_only, tem)
 		      && (! NILP (Fplist_get (prev->plist, Qread_only))
 			  || ! TMEM (Qcategory, tem)))
-		    Fsignal (Qtext_read_only, Qnil);
+		    text_read_only ();
 		}
 	    }
 	}
@@ -1895,7 +1907,7 @@ verify_interval_modification (buf, start, end)
       do
 	{
 	  if (! INTERVAL_WRITABLE_P (i))
-	    Fsignal (Qtext_read_only, Qnil);
+	    text_read_only ();
 
 	  mod_hooks = textget (i->plist, Qmodification_hooks);
 	  if (! NILP (mod_hooks) && ! EQ (mod_hooks, prev_mod_hooks))
