@@ -170,13 +170,31 @@ not it is actually displayed."
   (let* ((local-menu (and (current-local-map)
 			  (lookup-key (current-local-map) [menu-bar])))
 	 (global-menu (lookup-key global-map [menu-bar]))
+	 ;; If a keymap doesn't have a prompt string (a lazy
+	 ;; programmer didn't bother to provide one), create it and
+	 ;; insert it into the keymap; each keymap gets its own
+	 ;; prompt.  This is required for non-toolkit versions to
+	 ;; display non-empty menu pane names.
+	 (minor-mode-menus
+	  (mapcar
+	   (function
+	    (lambda (menu)
+	      (let* ((minor-mode (car menu))
+		     (menu (cdr menu))
+		     (title-or-map (cadr menu)))
+		(or (stringp title-or-map)
+		    (setq menu
+			  (cons 'keymap
+				(cons (concat
+				       (capitalize (subst-char-in-string
+						    ?- ?\  (symbol-name
+							    minor-mode)))
+				       " Menu")
+				      (cdr menu)))))
+		menu)))
+	   (minor-mode-key-binding [menu-bar])))
 	 (local-title-or-map (and local-menu (cadr local-menu)))
-	 (minor-mode-menus (mapcar #'cdr (minor-mode-key-binding [menu-bar])))
 	 (global-title-or-map (cadr global-menu)))
-    ;; If the keymaps don't have prompt string (a lazy programmer
-    ;; didn't bother to provide one), create it and insert it into the
-    ;; keymaps; each keymap gets its own prompt.  This is required for
-    ;; non-toolkit versions to display non-empty menu pane names.
     (or (null local-menu)
 	(stringp local-title-or-map)
 	(setq local-menu (cons 'keymap
