@@ -868,6 +868,12 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (define-key map [menu-bar immediate]
       (cons "Immediate" (make-sparse-keymap "Immediate")))
 
+    (define-key map [menu-bar immediate revert-buffer]
+      '("Update Buffer" . revert-buffer))
+
+    (define-key map [menu-bar immediate dashes]
+      '("--"))
+
     (define-key map [menu-bar immediate backup-diff]
       '("Compare with Backup" . dired-backup-diff))
     (define-key map [menu-bar immediate diff]
