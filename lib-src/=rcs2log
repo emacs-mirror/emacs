@@ -2,11 +2,32 @@
 
 # RCS to ChangeLog generator
 
-#	$Id$
+#	$Id: rcs2clog,v 1.2 1992/02/05 04:29:40 eggert Exp $
 
 # Generate a change log prefix from RCS/* and the existing ChangeLog (if any).
 # Output the new prefix to standard output.
 # You can edit this prefix by hand, and then prepend it to ChangeLog.
+
+
+# Parse options.
+
+# defaults
+indent=8 # indent of log line
+length=79 # suggested max width of log line
+tabwidth=8 # width of horizontal tab
+
+while :
+do
+	case $1 in
+	-i)	indent=${2?};;
+	-l)	length=${2?};;
+	-t)	tabwidth=${2?};;
+	-*)	echo >&2 "$0: usage: $0 [-i indent] [-l length] [-t tabwidth] [file ...]"
+		exit 1;;
+	*)	break
+	esac
+	shift; shift
+done
 
 
 # Log into $rlogout the revisions checked in since the first ChangeLog entry.
@@ -23,7 +44,11 @@ rlogout=/tmp/chg$$
 trap exit 1 2 13 15
 trap 'rm -f $rlogout; exit 1' 0
 
-rlog "$datearg" RCS/* >$rlogout || exit
+case $# in
+0) set RCS/*
+esac
+
+rlog "$datearg" "$@" >$rlogout || exit
 
 
 # Get the full name of each author the logs mention, and set initialize_fullname
@@ -53,8 +78,11 @@ do
 		`
 		fullname=`echo "$fullname" | sed "s:&:$User:"`
 	esac
-	initialize_fullname="$initialize_fullname
-		fullname[\"$author\"] = \"$fullname\""
+	case $fullname in
+	?*)
+		initialize_fullname="$initialize_fullname
+			fullname[\"$author\"] = \"$fullname\""
+	esac
 done
 
 
@@ -62,9 +90,6 @@ done
 # We don't use awk functions, to stay compatible with old awk versions.
 # `Log' is the log message (with \n replaced by \r).
 # `files' contains the affected files (each preceded by a space).
-LINE_LENGTH=79 # suggested max width of log line
-LOG_INDENT='\t' # what to indent each log entry with
-LOG_INDENT_LENGTH=8 # print length of "LOG_INDENT"
 printlogline='{
 
 	# Following the GNU coding standards, rewrite
@@ -79,15 +104,15 @@ printlogline='{
 
 	# If "label: comment" is too long, break the line after the ":".
 	sep = " "
-	if ('"$LINE_LENGTH"' <= '"$LOG_INDENT_LENGTH"' + 1 + length(files) + index(Log, "\r")) sep = "\n'"$LOG_INDENT"'"
+	if ('"$length"' <= '"$indent"' + 1 + length(files) + index(Log, "\r")) sep = "\n" indent_string
 
 	# Print the label.
-	printf "'"$LOG_INDENT"'*%s:", files
+	printf "%s*%s:", indent_string, files
 
 	# Print each line of the log, transliterating \r to \n.
 	while ((i = index(Log, "\r")) != 0) {
 		printf "%s%s\n", sep, substr(Log, 1, i-1)
-		sep = "'"$LOG_INDENT"'"
+		sep = indent_string
 		Log = substr(Log, i+1)
 	}
 
@@ -137,6 +162,15 @@ awk '
 		# Initialize the fullname associative array.
 		'"$initialize_fullname"'
 
+		# Initialize indent string.
+		indent_string = ""
+		i = '"$indent"'
+		if (0 < '"$tabwidth"')
+			for (;  '"$tabwidth"' <= i;  i -= '"$tabwidth"')
+				indent_string = indent_string "\t"
+		while (1 <= i--)
+			indent_string = indent_string " "
+
 		# Set up date conversion tables.
 		# RCS uses a nice, clean, sortable format,
 		# but ChangeLog wants the traditional, ugly ctime format.
@@ -168,6 +202,9 @@ awk '
 
 			# Get ready for the next log.
 			Log = newlog
+			if (files != "")
+				for (i in filesknown)
+					filesknown[i] = 0
 			files = ""
 		}
 		if (date != $2  ||  author != $4) {
@@ -189,12 +226,20 @@ awk '
 			if (2 <= month && year%4 == 0 && (year%100 != 0 || year%400 == 0)) leap = 1
 			days_since_Sunday_before_epoch = EPOCH_WEEKDAY + year * 365 + int((year + 3) / 4) - int((year + 99) / 100) + int((year + 399) / 400) + mo[month-1] + leap + day - 1
 
-			# Print "date  fullname  (email address)".
+			# Print "date  fullname  (email address)" if the fullname is known;
+			# print "date  author" otherwise.
 			# Get the fullname from the associative array.
 			# The email address is just author@thishostname.
-			printf "%s %s %2d %s %d  %s  (%s@%s)\n\n", w[days_since_Sunday_before_epoch%7], m[month-1], day, $3, year, fullname[author], author, "'"$hostname"'"
+			printf "%s %s %2d %s %d  ", w[days_since_Sunday_before_epoch%7], m[month-1], day, $3, year
+			if (fullname[author])
+				printf "%s  (%s@%s)\n\n", fullname[author], author, "'"$hostname"'"
+			else
+				printf "%s\n\n", author
 		}
-		files = files " " $1
+		if (! filesknown[$1]) {
+			filesknown[$1] = 1
+			files = files " " $1
+		}
 	}
 	END {
 		# Print the last log.
