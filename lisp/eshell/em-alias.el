@@ -28,7 +28,7 @@
 (defgroup eshell-alias nil
   "Command aliases allow for easy definition of alternate commands."
   :tag "Command aliases"
-  :link '(info-link "(eshell)Command aliases")
+  ;; :link '(info-link "(eshell)Command aliases")
   :group 'eshell-module)
 
 ;;; Commentary:
@@ -103,7 +103,7 @@ gained by using this module."
 (defcustom eshell-bad-command-tolerance 3
   "*The number of failed commands to ignore before creating an alias."
   :type 'integer
-  :link '(custom-manual "(eshell)Auto-correction of bad commands")
+  ;; :link '(custom-manual "(eshell)Auto-correction of bad commands")
   :group 'eshell-alias)
 
 ;;;
