@@ -729,7 +729,7 @@ Puts `fortran-comment-region' at the beginning of every line in the region.
 BEG-REGION and END-REGION are args which specify the region boundaries.
 With non-nil ARG, uncomments the region."
   (interactive "*r\nP")
-  (let ((end-region-mark (copy-marker beg-region))
+  (let ((end-region-mark (copy-marker end-region))
 	(save-point (point-marker)))
     (goto-char beg-region)
     (beginning-of-line)
