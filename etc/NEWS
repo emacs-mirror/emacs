@@ -847,6 +847,11 @@ Version numbers are only found in the first 10 percent of a file.
 *** Change Log mode now defines its own faces for font-lock
 highlighting.
 
+** Changes to cmuscheme
+
+*** The user-option `scheme-program-name' has been renamed
+`cmuscheme-program-name' due to conflicts with xscheme.el.
+
 ** Changes in Font Lock
 
 *** The new function `font-lock-remove-keywords' can be used to remove
