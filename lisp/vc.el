@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.220 1998/04/09 13:45:44 spiegel Exp spiegel $
+;; $Id: vc.el,v 1.221 1998/04/14 12:38:25 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2682,7 +2682,7 @@ THRESHOLD, nil otherwise"
      ;; Checking out explicit versions is not supported under SCCS, yet.
      ;; We always "revert" to the latest version; therefore 
      ;; vc-workfile-version is cleared here so that it gets recomputed.
-     (vc-file-setprop 'vc-workfile-version nil))
+     (vc-file-setprop file 'vc-workfile-version nil))
    ;; RCS
    (vc-do-command nil 0 "co" file 'MASTER
 		  "-f" (concat "-u" (vc-workfile-version file)))
