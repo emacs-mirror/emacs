@@ -123,6 +123,9 @@
 (defun create-glyph (string)
   (if (= (length glyph-table) 65536)
       (error "No free glyph codes remain"))
+  ;; Don't use slots that correspond to ASCII characters.
+  (if (= (length glyph-table) 32)
+      (setq glyph-table (vconcat glyph-table (make-vector 224 nil))))
   (setq glyph-table (vconcat glyph-table (list string)))
   (1- (length glyph-table)))
 
