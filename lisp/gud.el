@@ -104,12 +104,12 @@ If SOFT is non-nil, returns nil if the symbol doesn't already exist."
 			:enable (memq gud-minor-mode '(gdb sdb xdb)))
     ([break]	"Set Breakpoint" . gud-break)
     ([up]	menu-item "Up Stack" gud-up
-			:enable (memq gud-minor-mode '(gdb dbx xdb)))
+			:enable (memq gud-minor-mode '(gdb dbx xdb jdb)))
     ([down]	menu-item "Down Stack" gud-down
-			:enable (memq gud-minor-mode '(gdb dbx xdb)))
+			:enable (memq gud-minor-mode '(gdb dbx xdb jdb)))
     ([print]	"Print Expression" . gud-print)
     ([finish]	menu-item "Finish Function" gud-finish
-			:enable (memq gud-minor-mode '(gdb xdb)))
+			:enable (memq gud-minor-mode '(gdb xdb jdb)))
     ([stepi]	"Step Instruction" . gud-stepi)
     ([step]	"Step Line" . gud-step)
     ([next]	"Next Line" . gud-next)
@@ -1427,8 +1427,10 @@ and source-file directory for your debugger."
 ;; JDB support.
 ;;
 ;; AUTHOR:	Derek Davies <ddavies@world.std.com>
+;;              Zoltan Kemenczy <zoltan@ieee.org;zkemenczy@rim.net>
 ;;
 ;; CREATED:	Sun Feb 22 10:46:38 1998 Derek Davies.
+;; UPDATED:     Nov 11, 2001 Zoltan Kemenczy
 ;;
 ;; INVOCATION NOTES:
 ;;
@@ -1484,6 +1486,11 @@ and source-file directory for your debugger."
 ;; search for java classes even though it is required when invoking jdb
 ;; from the command line.  See gud-jdb-massage-args for details.
 ;;
+;; Note: The following applies only if `gud-jdb-use-classpath' is nil;
+;; refer to the documentation of `gud-jdb-use-classpath' and
+;; `gud-jdb-classpath' variables for information on using the classpath
+;; for locating java source files.
+;;
 ;; If any of the source files in the directories listed in
 ;; gud-jdb-directories won't parse you'll have problems.  Make sure
 ;; every file ending in ".java" in these directories parses without error.
@@ -1503,8 +1510,56 @@ and source-file directory for your debugger."
 ;; ======================================================================
 ;; gud jdb variables and functions
 
-;; History of argument lists passed to jdb.
-(defvar gud-jdb-history nil)
+(defcustom gud-jdb-command-name "jdb"
+  "Command that executes the Java debugger."
+  :type 'string
+  :group 'gud)
+
+(defcustom gud-jdb-use-classpath t
+  "If non-nil, search for Java source files in classpath directories.
+The list of directories to search is the value of `gud-jdb-classpath'.
+The file pathname is obtained by converting the fully qualified
+class information output by jdb to a relative pathname and appending
+it to `gud-jdb-classpath' element by element until a match is found.
+
+This method has a significant jdb startup time reduction advantage
+since it does not require the scanning of all `gud-jdb-directories'
+and parsing all Java files for class information.
+
+Set to nil to use `gud-jdb-directories' to scan java sources for
+class information on jdb startup (original method)."
+  :type 'boolean
+  :group 'gud)
+
+(defvar gud-jdb-classpath nil
+ "Java/jdb classpath directories list.
+If `gud-jdb-use-classpath' is non-nil, gud-jdb derives the `gud-jdb-classpath'
+list automatically using the following methods in sequence
+(with subsequent successful steps overriding the results of previous
+steps):
+
+1) Read the CLASSPATH environment variable,
+2) Read any \"-classpath\" argument used to run jdb,
+   or detected in jdb output (e.g. if jdb is run by a script
+   that echoes the actual jdb command before starting jdb)
+3) Send a \"classpath\" command to jdb and scan jdb output for
+   classpath information if jdb is invoked with an \"-attach\" (to
+   an already running VM) argument (This case typically does not
+   have a \"-classpath\" command line argument - that is provided
+   to the VM when it is started).
+
+Note that method 3 cannot be used with oldjdb (or Java 1 jdb) since
+those debuggers do not support the classpath command. Use 1) or 2).")
+
+(defvar gud-marker-acc-max-length 4000
+  "Maximum number of debugger output characters to keep.
+This variable limits the size of `gud-marker-acc' which holds
+the most recent debugger output history while searching for
+source file information.")
+
+(defvar gud-jdb-history nil
+"History of argument lists passed to jdb.")
+
 
 ;; List of Java source file directories.
 (defvar gud-jdb-directories (list ".")
@@ -1519,20 +1574,25 @@ package-qualified class names output by the jdb debugger to the source
 file from which the class originated.  This allows gud mode to keep
 the source code display in sync with the debugging session.")
 
-;; List of the java source files for this debugging session.
-(defvar gud-jdb-source-files nil)
+(defvar gud-jdb-source-files nil
+"List of the java source files for this debugging session.")
 
-;; Association list of fully qualified class names (package + class name) and
-;; their source files.
-(defvar gud-jdb-class-source-alist nil)
+;; Association list of fully qualified class names (package + class name)
+;; and their source files.
+(defvar gud-jdb-class-source-alist nil
+"Association list of fully qualified class names and source files.")
 
 ;; This is used to hold a source file during analysis.
 (defvar gud-jdb-analysis-buffer nil)
 
-;; Return a list of java source files.  PATH gives the directories in
-;; which to search for files with extension EXTN.  Normally EXTN is
-;; given as the regular expression "\\.java$" .
+(defvar gud-jdb-classpath-string nil
+"Holds temporary classpath values.")
+
 (defun gud-jdb-build-source-files-list (path extn)
+"Return a list of java source files.
+PATH gives the directories in which to search for files with
+extension EXTN.  Normally EXTN is given as the regular expression
+ \"\\.java$\" ."
   (apply 'nconc (mapcar (lambda (d)
 			  (when (file-directory-p d)
 			    (directory-files d t extn nil)))
@@ -1783,9 +1843,10 @@ the source code display in sync with the debugging session.")
 		   massaged-args
 		   (list "-classpath")
 		   (list
-		    (substring
-		     (car args)
-		     (match-beginning 1) (match-end 1)))
+		    (setq gud-jdb-classpath-string
+			  (substring
+			   (car args)
+			   (match-beginning 1) (match-end 1))))
 		   (cdr args)))
 	  massaged-args))))
 
@@ -1794,6 +1855,50 @@ the source code display in sync with the debugging session.")
 ;; qualified file name of the source file which produced the class.
 (defun gud-jdb-find-source-file (p)
   (cdr (assoc p gud-jdb-class-source-alist)))
+
+;; Note: Reset to this value every time a prompt is seen
+(defvar gud-jdb-lowest-stack-level 999)
+
+(defun gud-jdb-find-source-using-classpath (p)
+"Find source file corresponding to fully qualified class p.
+Convert p from jdb's output, converted to a pathname
+relative to a classpath directory."
+  (save-match-data
+    (let
+      (;; Replace dots with slashes and append ".java" to generate file
+       ;; name relative to classpath
+       (filename
+        (concat
+         (mapconcat (lambda (x) x)
+                    (split-string
+                     ;; Eliminate any subclass references in the class
+                     ;; name string. These start with a "$"
+                     ((lambda (x)
+                        (if (string-match "$.*" x)
+                            (replace-match "" t t x) p))
+                      p)
+                     "\\.") "/")
+         ".java"))
+       (cplist gud-jdb-classpath)
+       found-file)
+    (while (and cplist
+                (not (setq found-file
+                           (file-readable-p
+                            (concat (car cplist) "/" filename)))))
+      (setq cplist (cdr cplist)))
+    (if found-file (concat (car cplist) "/" filename)))))
+
+(defun gud-jdb-find-source (string)
+"Alias for function used to locate source files.
+Set to `gud-jdb-find-source-using-classpath' or `gud-jdb-find-source-file'
+during jdb initialization depending on the value of
+`gud-jdb-use-classpath'."
+nil)
+
+(defun gud-jdb-parse-classpath-string (string)
+"Parse the classpath list and convert each item to an absolute pathname."
+  (mapcar 'file-truename (split-string string
+        (concat "[ \t\n\r,\"" path-separator "]+"))))
 
 ;; See comentary for other debugger's marker filters - there you will find
 ;; important notes about STRING.
@@ -1805,14 +1910,22 @@ the source code display in sync with the debugging session.")
 	    (concat gud-marker-acc string)
 	  string))
 
-  ;; We process STRING from left to right.  Each time through the following
-  ;; loop we process at most one marker.  The start variable keeps track of
-  ;; where we are in the input string through the iterations of this loop.
-  (let (start file-found)
+  ;; Look for classpath information until gud-jdb-classpath-string is found
+  (if (and gud-jdb-use-classpath
+           (not gud-jdb-classpath-string)
+           (or (string-match "classpath:[ \t[]+\\([^]]+\\)" gud-marker-acc)
+               (string-match "-classpath[ \t\"]+\\([^ \"]+\\)" gud-marker-acc)))
+      (setq gud-jdb-classpath
+            (gud-jdb-parse-classpath-string
+                    (setq gud-jdb-classpath-string
+                          (substring gud-marker-acc
+                               (match-beginning 1) (match-end 1))))))
 
-    ;; Process each complete marker in the input.  There may be an incomplete
-    ;; marker at the end of the input string.  Incomplete markers are left
-    ;; in the accumulator for processing the next time the function is called.
+  ;; We process STRING from left to right.  Each time through the
+  ;; following loop we process at most one marker. After we've found a
+  ;; marker, delete gud-marker-acc up to and including the match
+  (let (file-found)
+    ;; Process each complete marker in the input.
     (while
 
 	;; Do we see a marker?
@@ -1838,31 +1951,53 @@ the source code display in sync with the debugging session.")
 	 ;;
 	 ;; FIXME: Java ID's are UNICODE strings, this matches ASCII
 	 ;; ID's only.
-	 "\\([a-zA-Z0-9.$_]+\\)\\.[a-zA-Z0-9$_<>]+ (\\([a-zA-Z0-9$_]+\\):\\([0-9]+\\))"
-	 gud-marker-acc start)
+	 "\\(\[[0-9]+\] \\)*\\([a-zA-Z0-9.$_]+\\)\\.[a-zA-Z0-9$_<>(),]+ \
+\\(([a-zA-Z0-9.$_]+:\\|line=\\)\\([0-9]+\\)"
+	 gud-marker-acc)
 
+      ;; A good marker is one that:
+      ;; 1) does not have a "[n] " prefix (not part of a stack backtrace)
+      ;; 2) does have an "[n] " prefix and n is the lowest prefix seen
+      ;;    since the last prompt
       ;; Figure out the line on which to position the debugging arrow.
       ;; Return the info as a cons of the form:
       ;;
       ;;     (<file-name> . <line-number>) .
-      (if (setq
-	   file-found
-	   (gud-jdb-find-source-file
-	    (substring gud-marker-acc
-		       (match-beginning 1)
-		       (match-end 1))))
-	  (setq gud-last-frame
-		(cons
-		 file-found
-		 (string-to-int
-		  (substring gud-marker-acc
-			     (match-beginning 3)
-			     (match-end 3)))))
-	(message "Could not find source file."))
+      (if (if (match-beginning 1)
+	      (let (n)
+		(setq n (string-to-int (substring
+					gud-marker-acc
+					(1+ (match-beginning 1))
+					(- (match-end 1) 2))))
+		(if (< n gud-jdb-lowest-stack-level)
+		    (progn (setq gud-jdb-lowest-stack-level n) t)))
+            t)
+	  (if (setq file-found
+		    (gud-jdb-find-source
+		     (substring gud-marker-acc
+				(match-beginning 2)
+				(match-end 2))))
+	      (setq gud-last-frame
+		    (cons file-found
+			  (string-to-int
+			   (substring gud-marker-acc
+				      (match-beginning 4)
+				      (match-end 4)))))
+	    (message "Could not find source file.")))
 
-      ;; Set start after the last character of STRING that we've looked at
-      ;; and loop to look for another marker.
-      (setq start (match-end 0))))
+      ;; Set the accumulator to the remaining text.
+      (setq gud-marker-acc (substring gud-marker-acc (match-end 0))))
+
+    (if (string-match comint-prompt-regexp gud-marker-acc)
+	(setq gud-jdb-lowest-stack-level 999)))
+
+  ;; Do not allow gud-marker-acc to grow without bound. If the source
+  ;; file information is not within the last 3/4
+  ;; gud-marker-acc-max-length characters, well,...
+  (if (> (length gud-marker-acc) gud-marker-acc-max-length)
+      (setq gud-marker-acc
+            (substring gud-marker-acc
+                       (- (/ (* gud-marker-acc-max-length 3) 4)))))
 
   ;; We don't filter any debugger output so just return what we were given.
   string)
@@ -1871,39 +2006,75 @@ the source code display in sync with the debugging session.")
   (and (file-readable-p f)
        (find-file-noselect f)))
 
-(defvar gud-jdb-command-name "jdb" "Command that executes the Java debugger.")
-
 ;;;###autoload
 (defun jdb (command-line)
   "Run jdb with command line COMMAND-LINE in a buffer.
 The buffer is named \"*gud*\" if no initial class is given or
 \"*gud-<initial-class-basename>*\" if there is.  If the \"-classpath\"
-switch is given, omit all whitespace between it and it's value."
+switch is given, omit all whitespace between it and its value.
+
+See `gud-jdb-use-classpath' and `gud-jdb-classpath' documentation for
+information on how jdb accesses source files. Alternatively (if
+`gud-jdb-use-classpath' is nil), see `gud-jdb-directories' for the
+original source file access method.
+
+For general information about commands available to control jdb from
+gud, see `gud-mode'."
   (interactive
    (list (gud-query-cmdline 'jdb)))
 
+  ;; Set gud-jdb-classpath from the CLASSPATH environment variable,
+  ;; if CLASSPATH is set.
+  (setq gud-jdb-classpath-string (getenv "CLASSPATH"))
+  (if gud-jdb-classpath-string
+      (setq gud-jdb-classpath
+            (gud-jdb-parse-classpath-string gud-jdb-classpath-string)))
+  (setq gud-jdb-classpath-string nil)   ; prepare for next
+
   (gud-common-init command-line 'gud-jdb-massage-args
-	   'gud-jdb-marker-filter 'gud-jdb-find-file)
+		   'gud-jdb-marker-filter 'gud-jdb-find-file)
   (set (make-local-variable 'gud-minor-mode) 'jdb)
 
-  (gud-def gud-break  "stop at %F:%l" "\C-b" "Set breakpoint at current line.")
-  (gud-def gud-remove "clear %l" "\C-d" "Remove breakpoint at current line")
-  (gud-def gud-step   "step"    "\C-s" "Step one source line with display.")
-  (gud-def gud-next   "next"    "\C-n" "Step one line (skip functions).")
-  (gud-def gud-cont   "cont"    "\C-r" "Continue with display.")
+  ;; If a -classpath option was provided, set gud-jdb-classpath
+  (if gud-jdb-classpath-string
+      (setq gud-jdb-classpath
+	    (gud-jdb-parse-classpath-string gud-jdb-classpath-string)))
+  (setq gud-jdb-classpath-string nil)   ; prepare for next
 
-  (setq comint-prompt-regexp "^> \\|^.+\\[[0-9]+\\] ")
+  (gud-def gud-break  "stop at %c:%l" "\C-b" "Set breakpoint at current line.")
+  (gud-def gud-remove "clear %c:%l"   "\C-d" "Remove breakpoint at current line")
+  (gud-def gud-step   "step"          "\C-s" "Step one source line with display.")
+  (gud-def gud-next   "next"          "\C-n" "Step one line (skip functions).")
+  (gud-def gud-cont   "cont"          "\C-r" "Continue with display.")
+  (gud-def gud-finish "step up"       "\C-f" "Continue until current method returns.")
+  (gud-def gud-up     "up\C-Mwhere"   "<"    "Up one stack frame.")
+  (gud-def gud-down   "down\C-Mwhere" ">"    "Up one stack frame.")
+  (local-set-key [menu-bar debug finish] '("Finish Function" . gud-finish))
+  (local-set-key [menu-bar debug up] '("Up Stack" . gud-up))
+  (local-set-key [menu-bar debug down] '("Down Stack" . gud-down))
+
+  (setq comint-prompt-regexp "^> \\|^[^ ]+\\[[0-9]+\\] ")
   (setq paragraph-start comint-prompt-regexp)
   (run-hooks 'jdb-mode-hook)
 
-  ;; Create and bind the class/source association list as well as the source
-  ;; file list.
-  (setq
-   gud-jdb-class-source-alist
-   (gud-jdb-build-class-source-alist
-    (setq
-     gud-jdb-source-files
-     (gud-jdb-build-source-files-list gud-jdb-directories "\\.java$")))))
+  (if gud-jdb-use-classpath
+      ;; Get the classpath information from the debugger (this is much
+      ;; faster) and does not need the constant updating of
+      ;; gud-jdb-directories
+      (progn
+        (if (string-match "-attach" command-line)
+            (gud-call "classpath"))
+        (fset 'gud-jdb-find-source
+              'gud-jdb-find-source-using-classpath))
+
+    ;; Else create and bind the class/source association list as well
+    ;; as the source file list.
+    (setq gud-jdb-class-source-alist
+          (gud-jdb-build-class-source-alist
+           (setq gud-jdb-source-files
+                 (gud-jdb-build-source-files-list gud-jdb-directories
+                                                  "\\.java$"))))
+    (fset 'gud-jdb-find-source 'gud-jdb-find-source-file)))
 
 
 ;;
@@ -1960,9 +2131,9 @@ switch is given, omit all whitespace between it and it's value."
   "Major mode for interacting with an inferior debugger process.
 
    You start it up with one of the commands M-x gdb, M-x sdb, M-x dbx,
-M-x perldb, or M-x xdb.  Each entry point finishes by executing a
+M-x perldb, M-x xdb, or M-x jdb.  Each entry point finishes by executing a
 hook; `gdb-mode-hook', `sdb-mode-hook', `dbx-mode-hook',
-`perldb-mode-hook', or `xdb-mode-hook' respectively.
+`perldb-mode-hook', `xdb-mode-hook', or `jdb-mode-hook' respectively.
 
 After startup, the following commands are available in both the GUD
 interaction buffer and any source buffer GUD visits due to a breakpoint stop
@@ -2255,7 +2426,7 @@ Obeying it means displaying in another window the specified file and line."
   (let ((insource (not (eq (current-buffer) gud-comint-buffer)))
 	(frame (or gud-last-frame gud-last-last-frame))
 	result)
-    (while (and str (string-match "\\([^%]*\\)%\\([adeflp]\\)" str))
+    (while (and str (string-match "\\([^%]*\\)%\\([adeflpc]\\)" str))
       (let ((key (string-to-char (substring str (match-beginning 2))))
 	    subst)
 	(cond
@@ -2284,6 +2455,10 @@ Obeying it means displaying in another window the specified file and line."
 	  (setq subst (gud-find-c-expr)))
 	 ((eq key ?a)
 	  (setq subst (gud-read-address)))
+	 ((eq key ?c)
+	  (setq subst (gud-find-class (if insource
+					  (buffer-file-name)
+					(car frame)))))
 	 ((eq key ?p)
 	  (setq subst (if arg (int-to-string arg)))))
 	(setq result (concat result (match-string 1 str) subst)))
@@ -2484,6 +2659,33 @@ Link exprs of the form:
 	  ((= span-end ?[) t)
 	  (t nil)))
      (t nil))))
+
+(defun gud-find-class (f)
+  "Find fully qualified class corresponding to file F.
+This function uses the `gud-jdb-classpath' list to derive a file
+pathname relative to its classpath directory. The values in
+`gud-jdb-classpath' are assumed to have been converted to absolute
+pathname standards using file-truename."
+  ;; Convert f to a standard representation and remove suffix
+  (setq f (file-name-sans-extension (file-truename f)))
+  (if gud-jdb-classpath
+      (save-match-data
+        (let ((cplist gud-jdb-classpath)
+              class-found)
+          ;; Search through classpath list for an entry that is
+          ;; contained in f
+          (while (and cplist (not class-found))
+            (if (string-match (car cplist) f)
+                (setq class-found
+                      (mapconcat (lambda(x) x)
+                                 (split-string
+                                   (substring f (+ (match-end 0) 1))
+                                  "/") ".")))
+            (setq cplist (cdr cplist)))
+          (if (not class-found)
+             (message "gud-find-class: class for file %s not found!" f))
+          class-found))
+    (message "gud-find-class: classpath information not available!")))
 
 (provide 'gud)
 
