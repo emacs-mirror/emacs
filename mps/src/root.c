@@ -2,7 +2,7 @@
  *
  *                   ROOT IMPLEMENTATION
  *
- *  $HopeName: !root.c(trunk.8) $
+ *  $HopeName: MMsrc!root.c(trunk.9) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -20,12 +20,9 @@
 #include "trace.h"
 #include "space.h"
 
-SRCID("$HopeName");
-
+SRCID("$HopeName$");
 
 static SigStruct RootSigStruct;
-
-
 
 Bool RootIsValid(Root root, ValidationType validParam)
 {
@@ -34,8 +31,6 @@ Bool RootIsValid(Root root, ValidationType validParam)
   AVER(root->sig == &RootSigStruct);
   AVER(ISVALIDNESTED(DequeNode, &root->spaceDeque));
   AVER(ISVALIDNESTED(RefRank, root->rank));
-  AVER(root->type == RootTABLE || root->type == RootFUN ||
-       root->type == RootREG);
   switch(root->type)
   {
     case RootTABLE:
@@ -52,12 +47,17 @@ Bool RootIsValid(Root root, ValidationType validParam)
     AVER(ISVALIDNESTED(Thread, root->the.reg.thread));
     break;
 
+    case RootFMT:
+    AVER(root->the.fmt.scan != NULL);
+    AVER(root->the.fmt.base != 0);
+    AVER(root->the.fmt.base < root->the.fmt.limit);
+    break;
+
     default:
     NOTREACHED;
   }
   return TRUE;
 }
-
 
 static Error create(Root *rootReturn, Space space,
                     RefRank rank, RootType type, RootUnion theUnion)
@@ -92,7 +92,6 @@ static Error create(Root *rootReturn, Space space,
   return ErrSUCCESS;
 }
 
-
 Error RootCreateTable(Root *rootReturn, Space space,
                       RefRank rank, Addr *base, Addr *limit)
 {
@@ -106,7 +105,6 @@ Error RootCreateTable(Root *rootReturn, Space space,
   
   return create(rootReturn, space, rank, RootTABLE, theUnion);
 }
-
 
 Error RootCreateReg(Root *rootReturn, Space space,
                     RefRank rank, Thread thread,
@@ -124,6 +122,22 @@ Error RootCreateReg(Root *rootReturn, Space space,
   return create(rootReturn, space, rank, RootREG, theUnion);
 }
 
+Error RootCreateFmt(Root *rootReturn, Space space,
+                    RefRank rank, FormatScanMethod scan,
+                    Addr base, Addr limit)
+{
+  RootUnion theUnion;
+
+  AVER(scan != NULL);
+  AVER(base != 0);
+  AVER(base < limit);
+
+  theUnion.fmt.scan = scan;
+  theUnion.fmt.base = base;
+  theUnion.fmt.limit = limit;
+
+  return create(rootReturn, space, rank, RootFMT, theUnion);
+}
 
 Error RootCreate(Root *rootReturn, Space space,
                  RefRank rank,
@@ -140,7 +154,6 @@ Error RootCreate(Root *rootReturn, Space space,
 
   return create(rootReturn, space, rank, RootFUN, theUnion);
 }
-
 
 void RootDestroy(Root root)
 {
@@ -160,14 +173,11 @@ void RootDestroy(Root root)
   PoolFree(SpaceControlPool(space), (Addr)root, sizeof(RootStruct));
 }
 
-
 RefRank RootRank(Root root)
 {
   AVER(ISVALID(Root, root));
-
   return root->rank;
 }
-
 
 void RootMark(Root root, Trace trace)
 {
@@ -177,7 +187,6 @@ void RootMark(Root root, Trace trace)
   root->marked = TraceSetAdd(root->marked, TraceTraceId(trace));
   TraceNoteMarked(trace, root->rank, (Addr)1);
 }
-
 
 Error RootScan(Root root, Trace trace)
 {
@@ -223,6 +232,14 @@ Error RootScan(Root root, Trace trace)
       return e;
     break;
 
+    case RootFMT:
+    e = (*root->the.fmt.scan)(TraceScanState(trace),
+                              root->the.fmt.base,
+                              root->the.fmt.limit);
+    if(e != ErrSUCCESS)
+      return e;
+    break;
+
     default:
     NOTREACHED;
   }
@@ -233,7 +250,7 @@ Error RootScan(Root root, Trace trace)
   return ErrSUCCESS;
 }
 
-/* Thread safe */
+/* Must be thread-safe.  See impl.c.mpsi.thread-safety. */
 Space RootSpace(Root root)
 {
   return PARENT(SpaceStruct, rootDeque, root->spaceDeque.deque);
