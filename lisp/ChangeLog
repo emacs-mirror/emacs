@@ -1,5 +1,8 @@
 2002-07-18  Dave Love  <fx@gnu.org>
 
+	* help.el (describe-function-1): Cope with alias of manyarg
+	function.
+
 	* info-look.el: Support current auto{conf,make} manuals.
 
 2002-07-16  Dave Love  <fx@gnu.org>
