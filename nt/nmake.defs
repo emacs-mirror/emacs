@@ -20,6 +20,7 @@
 all:
 
 THE_SHELL = $(COMSPEC)
+SHELLTYPE=CMD
 
 ALL_DEPS	= $**
 
