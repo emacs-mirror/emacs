@@ -1,6 +1,6 @@
 /*  ==== MPM STRESS TEST ====
  *
- *  $HopeName: MMsrc!mpmss.c(trunk.7) $
+ *  $HopeName: MMsrc!mpmss.c(trunk.8) $
  */
 
 
@@ -72,8 +72,8 @@ static mps_res_t stress(mps_class_t class, mps_space_t space, size_t (*size)(int
 
 static size_t randomSize(int i)
 {
-  return (rand() % 1000)+1;
   (void)i;
+  return (rand() % 1000)+1;
 }
 
 
@@ -81,8 +81,8 @@ static size_t fixedSizeSize = 0;
 
 static size_t fixedSize(int i)
 {
-  return fixedSizeSize;
   (void)i;
+  return fixedSizeSize;
 }
 
 
