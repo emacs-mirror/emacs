@@ -1054,17 +1054,6 @@ socket_connection (host, flags)
   }
 #endif
 
-  do
-    {
-      hostent = gethostbyname (host);
-      try_count++;
-      if ((! hostent) && ((h_errno != TRY_AGAIN) || (try_count == 5)))
-	{
-	  strcpy (pop_error, "Could not determine POP server's address");
-	  return (-1);
-	}
-    } while (! hostent);
-
   bzero ((char *) &addr, sizeof (addr));
   addr.sin_family = AF_INET;
 
@@ -1114,6 +1103,17 @@ socket_connection (host, flags)
       return (-1);
 	  
     }
+
+  do
+    {
+      hostent = gethostbyname (host);
+      try_count++;
+      if ((! hostent) && ((h_errno != TRY_AGAIN) || (try_count == 5)))
+	{
+	  strcpy (pop_error, "Could not determine POP server's address");
+	  return (-1);
+	}
+    } while (! hostent);
 
   while (*hostent->h_addr_list)
     {
