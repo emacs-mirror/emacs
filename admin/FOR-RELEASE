@@ -11,6 +11,8 @@ To be done by Andre Spiegel <spiegel@gnu.org>.
 ** define-minor-mode should not put :require into defcustom.
 See msg from rms to emacs-devel on 21 Dec.
 
+** Update Speedbar.
+
 * FATAL ERRORS
 
 ** Investigate face cache related crash.
