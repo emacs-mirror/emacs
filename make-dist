@@ -603,6 +603,7 @@ echo "Making links to \`man'"
 echo "Making links to \`lispref'"
 (cd lispref
  ln *.texi *.aux *.cps *.fns *.kys *.vrs index.*perm ../${tempdir}/lispref
+ ln *.txt *.el spellfile permute-index tindex.pl ../${tempdir}/lispref
  test -f README && ln README ../${tempdir}/lispref
  test -f Makefile.in && ln Makefile.in ../${tempdir}/lispref
  ln ChangeLog ../${tempdir}/lispref
