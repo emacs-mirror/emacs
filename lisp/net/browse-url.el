@@ -557,7 +557,7 @@ negation if a prefix argument was given."
 ;; interactive-p needs to be called at a function's top-level, hence
 ;; the macro.
 (defmacro browse-url-maybe-new-window (arg)
-  `(if (interactive-p)
+  `(if (not (interactive-p))
        ,arg
      browse-url-new-window-flag))
 
