@@ -1,3 +1,8 @@
+2003-08-28  David Abrahams  <dave@boost-consulting.com>  (tiny change)
+
+	* coding.c (decode_coding_iso2022): Initialized local variable c2.
+	(decode_coding_sjis_big5): Likewise.
+
 2003-08-27  Jason Rumney  <jasonr@gnu.org>
 
 	* w32.c (sys_pipe): Protect against file descriptor overflow.
