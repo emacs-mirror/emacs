@@ -1074,8 +1074,8 @@ Returns the contents of write buffer as a string,\n\
 
 DEFUN ("register-ccl-program", Fregister_ccl_program, Sregister_ccl_program,
        2, 2, 0,
-  "Register CCL program PROGRAM of NAME in `ccl-program-table'.
-PROGRAM should be a compiled code of CCL program, or nil.
+  "Register CCL program PROGRAM of NAME in `ccl-program-table'.\n\
+PROGRAM should be a compiled code of CCL program, or nil.\n\
 Return index number of the registered CCL program.")
   (name, ccl_prog)
      Lisp_Object name, ccl_prog;
