@@ -36,7 +36,19 @@
 Arguments are TIME, REPEAT, FUNCTION &rest ARGS.
 TIME, a string,  can be specified absolutely or relative to now.
 REPEAT, an integer number of seconds, is the interval on which to repeat
-the call to the function.  If REPEAT is nil, call it just once."
+the call to the function.  If REPEAT is nil, call it just once.
+
+Absolute times may be specified in a wide variety of formats;
+Something of the form `HOUR:MIN:SEC TIMEZONE MONTH/DAY/YEAR', where
+all fields are numbers, will work; the format used by the Unix `date'
+command will work too.
+
+Relative times may be specified as a series of numbers followed by units:
+  1 min         	denotes one minute from now.
+  min			does too.
+  1 min 5 sec		denotes 65 seconds from now.
+  1 min 2 sec 3 hour 4 day 5 week 6 fortnight 7 month 8 year
+			denotes the sum of all the given durations from now."
   (interactive "sRun at time: \nNRepeat interval: \naFunction: ")
   (cond ((or (not timer-process) 
              (memq (process-status timer-process) '(exit signal nil)))
