@@ -290,7 +290,8 @@ Then bury it, and return a suggested buffer to select next."
  	  (function
  	   (lambda ()
 	     (or (not server-buffer-clients)
-		 (yes-or-no-p "Buffer `%s' still has clients; kill it? ")))))
+		 (yes-or-no-p (format "Buffer `%s' still has clients; kill it? "
+				      (buffer-name (current-buffer))))))))
 
 (add-hook 'kill-emacs-query-functions
  	  (function
