@@ -27,3 +27,6 @@
 /* According to template.h HAVE_TERMIO and HAVE_TERMIOS shouldn't be */
 /* defined at the same time. */
 #undef HAVE_TERMIO
+
+/* ISC 4.1 has sys/wait.h but it does not work right.  */
+#undef HAVE_SYS_WAIT_H
