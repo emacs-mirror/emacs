@@ -1515,7 +1515,8 @@ DIR must be a directory name, not a file name."
 			          "\\|" yyyy s s "?"
 			          "\\|" s "?" yyyy
 			     "\\)"))
-	 (japanese (concat mm k s dd k s "\\(" s HH:MM "\\|" yyyy k "\\)")))
+	 (japanese
+	  (concat mm k s dd k "?" s "\\(" s HH:MM "\\|" yyyy k "?" "\\)")))
 	 ;; The "[0-9]" below requires the previous column to end in a digit.
 	 ;; This avoids recognizing `1 may 1997' as a date in the line:
 	 ;; -r--r--r--   1 may      1997        1168 Oct 19 16:49 README
