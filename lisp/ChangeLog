@@ -1,3 +1,8 @@
+2005-02-20  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* ses.el (undo-more): restore defadvice, but only the part that
+	allows changes outside the restricted area of the buffer.
+
 2005-02-20  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (line-move): Add fourth optional arg try-vscroll which
