@@ -1,3 +1,8 @@
+2000-04-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* startup.el (auto-save-list-file-prefix): Set default to
+	`~/.emacs.d/auto-save-list/.saves-' for systems other than MS-DOS.
+
 2000-04-24  Sam Steingold  <sds@gnu.org>
 
 	* time-stamp.el (time-stamp-string-preprocess): Always convert

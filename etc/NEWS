@@ -16,6 +16,10 @@ images and toolkit scrollbars.  Use the --help option to list them.
 
 * Changes in Emacs 21.1
 
+** Emacs' auto-save list files are now by default stored in a
+sub-directory `.emacs.d/auto-save-list/' of the user's home directory.
+You can customize `auto-save-list-prefix' to change this location.
+
 ** On window-systems, additional space can be put between text lines
 on the display using several methods
 

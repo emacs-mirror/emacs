@@ -1,5 +1,8 @@
 2000-04-24  Gerd Moellmann  <gerd@gnu.org>
 
+	* fileio.c (Fdo_auto_save): Create directories for auto-save
+	list file if necessary.
+
 	* xdisp.c (init_iterator): Set iterator's extra_line_spacing
 	from buffer or frame.
 	(automatic_hscrolling_p): New variable.
@@ -18,7 +21,7 @@
 
 	* buffer.c (init_buffer_once): Handle extra_line_spacing.
 	(syms_of_buffer): Add `default-line-spacing' and `line-spacing'.
-	(reset_buffer): Don't initialize extra2 and extra3.  Intialize
+	(reset_buffer): Don't initialize extra2 and extra3.  Initialize
 	extra_line_spacing from default value.
 	(init_buffer_once): Initialize default value of extra_line_spacing.
 
