@@ -31,6 +31,7 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/types.h>
 #include <dispextern.h>
 #include <errno.h>
+#include <atimer.h>
 
 /* FreeBSD has machine/soundcard.h.  Voxware sound driver docs mention
    sys/soundcard.h.  So, let's try whatever's there.  */
@@ -411,7 +412,7 @@ a system-dependent default device name is used.")
     {
       /* Open the sound file.  */
       s.fd = openp (Fcons (Vdata_directory, Qnil),
-		     attrs[SOUND_FILE], "", &file, 0);
+		    attrs[SOUND_FILE], "", &file, 0);
       if (s.fd < 0)
 	sound_perror ("Open sound file");
 
@@ -764,6 +765,8 @@ vox_configure (sd)
   
   xassert (sd->fd >= 0);
 
+  turn_on_atimers (0);
+
   val = sd->format;
   if (ioctl (sd->fd, SNDCTL_DSP_SETFMT, &sd->format) < 0
       || val != sd->format)
@@ -791,6 +794,8 @@ vox_configure (sd)
       /* This may fail if there is no mixer.  Ignore the failure.  */
       ioctl (sd->fd, SOUND_MIXER_WRITE_PCM, &volume);
     }
+  
+  turn_on_atimers (1);
 }
 
 
@@ -803,7 +808,9 @@ vox_close (sd)
   if (sd->fd >= 0)
     {
       /* Flush sound data, and reset the device.  */
+      turn_on_atimers (0);
       ioctl (sd->fd, SNDCTL_DSP_SYNC, NULL);
+      turn_on_atimers (1);
 
       /* Close the device.  */
       emacs_close (sd->fd);
