@@ -122,25 +122,22 @@ extern Lisp_Object syntax_parent_lookup ();
     : syntax_temp))
 
 #define SYNTAX(c)							\
-  (syntax_temp								\
-     = SYNTAX_ENTRY (current_buffer->syntax_table, (c)),		\
+  (syntax_temp = SYNTAX_ENTRY ((c)),					\
    (CONSP (syntax_temp)							\
     ? (enum syntaxcode) (XINT (XCONS (syntax_temp)->car) & 0xff)	\
-    : wrong_type_argument (Qconsp, syntax_temp)) })
+    : wrong_type_argument (Qconsp, syntax_temp)))
 
 #define SYNTAX_WITH_FLAGS(c)						\
-  (syntax_temp								\
-     = SYNTAX_ENTRY (current_buffer->syntax_table, (c)),		\
+  (syntax_temp = SYNTAX_ENTRY ((c)),					\
    (CONSP (syntax_temp)							\
     ? XINT (XCONS (syntax_temp)->car)					\
-    : wrong_type_argument (Qconsp, syntax_temp)) })
+    : wrong_type_argument (Qconsp, syntax_temp)))
 
 #define SYNTAX_MATCH(c)							\
-  (syntax_temp								\
-     = SYNTAX_ENTRY (current_buffer->syntax_table, (c)),		\
+  (syntax_temp = SYNTAX_ENTRY ((c)),					\
    (CONSP (syntax_temp)							\
     ? XINT (XCONS (syntax_temp)->cdr)					\
-    : wrong_type_argument (Qconsp, syntax_temp)) })
+    : wrong_type_argument (Qconsp, syntax_temp)))
 #endif
 
 /* Then there are six single-bit flags that have the following meanings:
