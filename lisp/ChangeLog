@@ -22,7 +22,7 @@
 	* vc.el (vc-diff-switches-list): Fix prev change, making the macro
 	consistent with the others that take a backend name as a symbol.
 
-	* vc-{cvs,rcs,sccs}.el: Update callers to the above.
+	* vc-cvs.el, vc-rcs.el, vc-sccs.el: Fix calls to vc-diff-switches-list.
 
 2002-02-25  Kim F. Storm  <no-spam@cua.dk>
 
