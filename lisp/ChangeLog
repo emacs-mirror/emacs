@@ -1,3 +1,31 @@
+2002-12-23  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/checkdoc.el: Don't define a name for the minor mode menu.
+
+	* emacs-lisp/easymenu.el (easy-menu-do-define): Handle nil for SYMBOL.
+	(easy-menu-define): Doc fix, say SYMBOL can be nil.
+
+	* window.el (save-selected-window): Save and restore
+	selected windows of all frames.
+
+	* cus-start.el (scroll-up-aggressively, scroll-down-aggressively):
+	Update custom types.
+
+2002-12-23  Matthew Swift  <swift@alum.mit.edu>
+
+	* emacs-lisp/rx.el (rx-and): Generate a shy group.
+	Specify `no-group' when calling rx-to-string.
+	(rx-submatch): Specify `no-group' when calling rx-to-string.
+	(rx-kleene): Use rx-atomic-p to decide whether to make a group.
+	(rx-atomic-p): New function.
+
+2002-12-23  Kevin Ryde  <user42@zip.com.au>
+
+	* info-look.el (info-lookup): For ease of use try item
+	case-insensitive if not found case-sensitive.
+	Do case sensitive search in index nodes, so items differing only in
+	case go correctly to their respective nodes.
+
 2002-12-22  Richard M. Stallman  <rms@gnu.org>
 
 	* subr.el (add-to-invisibility-spec): If it was t, start it out at (t).
@@ -1560,7 +1588,7 @@
 	* progmodes/make-mode.el (makefile-warn-continuations):
 	Don't barf when there _aren't_ any suspicious continuations.
 
-2002-10-28  Matthew Swift  <swift@alum.mit.edu>  (tiny change)
+2002-10-28  Matthew Swift  <swift@alum.mit.edu>
 
 	* progmodes/compile.el (grep-find-use-xargs): Fix docstring.
 
@@ -1638,7 +1666,7 @@
 	* textmodes/outline.el (outline-next-heading): Make sure the match-data
 	is really correct where returning.
 
-2002-10-24  Matthew Swift  <swift@alum.mit.edu>  (tiny change)
+2002-10-24  Matthew Swift  <swift@alum.mit.edu>
 
 	* textmodes/outline.el (outline-minor-mode): Add customization group.
 
