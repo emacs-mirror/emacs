@@ -1,6 +1,11 @@
 2002-05-28  Kim F. Storm  <storm@cua.dk>
 
-	* fileio.c: (Vread_file_name_function, Vread_file_name_predicate):
+	* fileio.c (Fread_file_name_internal): Added brute-force
+	speed up for using predicate file-directory-p.
+
+2002-05-28  Kim F. Storm  <storm@cua.dk>
+
+	* fileio.c (Vread_file_name_function, Vread_file_name_predicate):
 	New variables.
 	(syms_of_fileio): DEFVAR_LISP them.
 	(read_file_name_cleanup): New unwind function.

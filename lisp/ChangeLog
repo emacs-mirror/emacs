@@ -1,3 +1,8 @@
+2002-05-28  Kim F. Storm  <storm@cua.dk>
+
+	* files.el (read-directory-name): New function.
+	(cd): Use it instead of read-file-name.
+
 2002-05-27  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (push-mark-command): Added optional NOMSG arg.
