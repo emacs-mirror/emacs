@@ -626,6 +626,9 @@ the end keyword."
     (delete-horizontal-space)
     (insert (concat " " octave-continuation-string))))
 
+(defvar octave-xemacs-p
+  (string-match "XEmacs\\|Lucid" emacs-version))
+
 ;;; Comments
 (defun octave-comment-region (beg end &optional arg)
   "Comment or uncomment each line in the region as Octave code.
@@ -1337,9 +1340,12 @@ Note that all Octave mode abbrevs start with a grave accent."
       (self-insert-command 1)
     (let (c)
       (insert last-command-char)
-      (if (or (eq (setq c (read-event)) ??)
-	      (eq c help-char))
-	  (let ((abbrev-table-name-list '(octave-mode-abbrev-table)))
+      (if (if octave-xemacs-p
+	      (or (eq (event-to-character (setq c (next-event))) ??)
+		  (eq (event-to-character c) help-char))
+	    (or (eq (setq c (read-event)) ??)
+		(eq c help-char)))
+	  (let ((abbrev-table-name-list '(octave-abbrev-table)))
 	    (list-abbrevs))
 	(setq unread-command-events (list c))))))
 
