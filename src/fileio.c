@@ -5600,7 +5600,11 @@ Default name to DEFAULT-FILENAME if user enters a null string.\n\
 Fourth arg MUSTMATCH non-nil means require existing file's name.\n\
  Non-nil and non-t means also require confirmation after completion.\n\
 Fifth arg INITIAL specifies text to start with.\n\
-DIR defaults to current buffer's directory default.")
+DIR defaults to current buffer's directory default.\n\
+\n\
+If this command was invoked with the mouse, use a file dialog box if\n\
+`use-dialog-box' is non-nil, and the window system or X toolkit in use\n\
+provides a file dialog box..")
   (prompt, dir, default_filename, mustmatch, initial)
      Lisp_Object prompt, dir, default_filename, mustmatch, initial;
 {
