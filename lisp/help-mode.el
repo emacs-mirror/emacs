@@ -577,12 +577,11 @@ help buffer."
 	(goto-char position)))))
 
 (defun help-go-back ()
-  "Invoke the [back] button (if any) in the Help mode buffer."
+  "Go back to previous topic in this help buffer."
   (interactive)
-  (let ((back-button (button-at (1- (point-max)))))
-    (if back-button
-	(button-activate back-button)
-      (error "No [back] button"))))
+  (if help-xref-stack
+      (help-xref-go-back (current-buffer))
+    (error "No previous help buffer.")))
 
 (defun help-do-xref (pos function args)
   "Call the help cross-reference function FUNCTION with args ARGS.
