@@ -308,6 +308,8 @@ looking_at_1 (string, posix)
   i = re_match_2 (bufp, (char *) p1, s1, (char *) p2, s2,
 		  PT_BYTE - BEGV_BYTE, &search_regs,
 		  ZV_BYTE - BEGV_BYTE);
+  immediate_quit = 0;
+  
   if (i == -2)
     matcher_overflow ();
 
@@ -322,7 +324,6 @@ looking_at_1 (string, posix)
 	    = BYTE_TO_CHAR (search_regs.end[i] + BEGV_BYTE);
 	}
   XSETBUFFER (last_thing_searched, current_buffer);
-  immediate_quit = 0;
   return val;
 }
 
