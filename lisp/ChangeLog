@@ -1,3 +1,10 @@
+2000-03-30  Peter Breton  <pbreton@ne.mediaone.net>
+
+	* lisp/locate.el:
+	(locate-word-at-point): Added this function
+	(locate): Default to using locate-word-at-point as input
+	Run dired-mode-hook
+
 2000-03-29  Dave Love  <fx@gnu.org>
 
 	* calendar/appt.el: Doc fixes.
