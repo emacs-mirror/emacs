@@ -314,10 +314,11 @@ insert (string, length)
   signal_after_change (point-length, 0, length);
 }
 
-/* Function to insert part of the text of a string (STRING)
-   consisting of LENGTH characters at position POS.
-   It does not work to use `insert' for this.  */
-
+/* Function to insert part of the text of a string (STRING) consisting
+   of LENGTH characters at position POS.
+   It does not work to use `insert' for this, becase a GC could happen
+   before we bcopy the stuff into the buffer, and relocate the string
+   without insert noticing.  */
 insert_from_string (string, pos, length)
      Lisp_Object string;
      register int pos, length;
