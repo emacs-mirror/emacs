@@ -93,6 +93,8 @@ int (*set_terminal_window_hook) ();
 
 int (*read_socket_hook) ();
 
+int (*frame_up_to_date_hook) ();
+
 /* Return the current position of the mouse.
 
    Set *f to the frame the mouse is in, or zero if the mouse is in no
