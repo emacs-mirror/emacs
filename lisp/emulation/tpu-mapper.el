@@ -1,6 +1,6 @@
 ;;; tpu-mapper.el  ---  Create a TPU-edt keymap file for x-windows emacs.
 
-;; Copyright (C) 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
@@ -67,13 +67,6 @@
 ;;; Code:
 
 ;;;
-;;;  Revision Information
-;;;
-(defconst tpu-mapper-revision "$Revision: 1.4 $"
-    "Revision number of TPU-edt x-windows emacs key mapper.")
-
-
-;;;
 ;;;  Make sure we're running X-windows and Emacs version 19
 ;;;
 (cond
@@ -99,6 +92,8 @@
 ;;;
 ;;;  Key variables
 ;;;
+(defvar tpu-kp4 nil)
+(defvar tpu-kp5 nil)
 (defvar tpu-key nil)
 (defvar tpu-enter nil)
 (defvar tpu-return nil)
@@ -110,7 +105,7 @@
 ;;;
 ;;;  Make sure the window is big enough to display the instructions
 ;;;
-(if tpu-lucid-emacs19-p (set-screen-size nil 80 36)
+(if tpu-lucid-emacs19-p (set-screen-size (selected-screen) 80 36)
   (set-frame-size (selected-frame) 80 36))
 
 
@@ -171,6 +166,7 @@
 
 ")
 (delete-other-windows)
+(goto-char (point-min))
 
 ;;;
 ;;;  Save <CR> for future reference
@@ -275,8 +271,8 @@
 (tpu-map-key "KP-1"      " - The Word/Change-Case key"             "'tpu-word"                 "'tpu-change-case")
 (tpu-map-key "KP-2"      " - The EOL/Delete-EOL key"               "'tpu-end-of-line"          "'tpu-delete-to-eol")
 (tpu-map-key "KP-3"      " - The Character/Special-Insert key"     "'tpu-char"                 "'tpu-special-insert")
-(tpu-map-key "KP-4"      " - The Forward/Bottom key"               "'tpu-advance-direction"    "'tpu-move-to-end")
-(tpu-map-key "KP-5"      " - The Reverse/Top key"                  "'tpu-backup-direction"     "'tpu-move-to-beginning")
+(setq tpu-kp4 (tpu-map-key "KP-4"      " - The Forward/Bottom key"               "'tpu-advance-direction"    "'tpu-move-to-end"))
+(setq tpu-kp5 (tpu-map-key "KP-5"      " - The Reverse/Top key"                  "'tpu-backup-direction"     "'tpu-move-to-beginning"))
 (tpu-map-key "KP-6"      " - The Remove/Insert key"                "'tpu-cut"                  "'tpu-paste")
 (tpu-map-key "KP-7"      " - The Page/Do key"                      "'tpu-page"                 "'execute-extended-command")
 (tpu-map-key "KP-8"      " - The Section/Fill key"                 "'tpu-scroll-window"        "'tpu-fill")
@@ -344,6 +340,16 @@
   (insert (format "(define-key minibuffer-local-completion-map %s 'exit-minibuffer)\n" tpu-enter))
   (insert (format "(define-key minibuffer-local-must-match-map %s 'minibuffer-complete-and-exit)\n" tpu-enter))))
 
+(cond
+ ((not (or (equal tpu-kp4 tpu-return) (equal tpu-kp5 tpu-return)))
+  (insert "
+;;  Minibuffer map additions to allow KP-4/5 termination of search strings.
+;;
+")
+
+  (insert (format "(define-key minibuffer-local-map %s 'tpu-search-forward-exit)\n" tpu-kp4))
+  (insert (format "(define-key minibuffer-local-map %s 'tpu-search-backward-exit)\n" tpu-kp5))))
+
 (insert "
 ;;  Define the tpu-help-enter/return symbols
 ;;
@@ -367,7 +373,7 @@
 ;;;
 (let ((file (if tpu-lucid-emacs19-p "~/.tpu-lucid-keys" "~/.tpu-gnu-keys")))
   (set-visited-file-name
-   (read-file-name (format "Save key mapping to file (default %s): " file) nil file)))
+   (read-file-name (format "Save key mapping to file (default %s): " file) "" file)))
 (save-buffer)
 
 (message "That's it!  Press any key to exit")
