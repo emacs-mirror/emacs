@@ -1459,7 +1459,8 @@ keymap entries using @code{eq}.
 If @var{keymap} is @code{nil}, then the maps used are the current active
 keymaps, disregarding @code{overriding-local-map} (that is, pretending
 its value is @code{nil}).  If @var{keymap} is non-@code{nil}, then the
-maps searched are @var{keymap} and the global keymap.
+maps searched are @var{keymap} and the global keymap.  If @var{keymap}
+is a list of keymaps, only those keymaps are searched.
 
 Usually it's best to use @code{overriding-local-map} as the expression
 for @var{keymap}.  Then @code{where-is-internal} searches precisely the
