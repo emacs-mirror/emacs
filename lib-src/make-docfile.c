@@ -403,6 +403,7 @@ scan_c_file (filename)
   (defconst NAME VALUE DOCSTRING)
   (fset (quote NAME) (make-byte-code ... DOCSTRING ...))
   (fset (quote NAME) #[... DOCSTRING ...])
+  (defalias (quote NAME) #[... DOCSTRING ...])
  starting in column zero.
  (quote NAME) may appear as 'NAME as well.
  For defun, defmacro, and autoload, we know how to skip over the arglist.
@@ -563,7 +564,7 @@ scan_lisp_file (filename)
 	    }
 	}
 
-      else if (! strcmp (buffer, "fset"))
+      else if (! strcmp (buffer, "fset") || ! strcmp (buffer, "defalias"))
 	{
 	  char c1 = 0, c2 = 0;
 	  type = 'F';
