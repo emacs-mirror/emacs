@@ -1361,14 +1361,15 @@ Optional DEFAULT is password to start with."
 	   (ange-ftp-ftp-name buffer-file-name))
       (auto-save-mode ange-ftp-auto-save)))
 
-(defun ange-ftp-kill-ftp-process (buffer)
-  "Kill the FTP process associated with BUFFER.
+(defun ange-ftp-kill-ftp-process (&optional buffer)
+  "Kill the FTP process associated with BUFFER (the current buffer, if nil).
 If the BUFFER's visited filename or default-directory is an ftp filename
 then kill the related ftp process."
   (interactive "bKill FTP process associated with buffer: ")
   (if (null buffer)
       (setq buffer (current-buffer)))
-  (let ((file (or (buffer-file-name) default-directory)))
+  (let ((file (or (buffer-file-name buffer)
+		  (save-excursion (set-buffer buffer) default-directory))))
     (if file
 	(let ((parsed (ange-ftp-ftp-name (expand-file-name file))))
 	  (if parsed
