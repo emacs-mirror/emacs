@@ -61,6 +61,7 @@
    "\\)")
   "Regexp matching a composable sequence of Kannada characters.")
 
+;;;###autoload
 (defun kannada-compose-region (from to)
   (interactive "r")
   (save-excursion
@@ -70,12 +71,14 @@
       (while (re-search-forward kannada-composable-pattern nil t)
         (kannada-compose-syllable-region (match-beginning 0)
                                             (match-end 0))))))
+;;;###autoload
 (defun kannada-compose-string (string)
   (with-temp-buffer
     (insert (decompose-string string))
     (kannada-compose-region (point-min) (point-max))
     (buffer-string)))
 
+;;;###autoload
 (defun kannada-post-read-conversion (len)
   (save-excursion
     (save-restriction
