@@ -1,3 +1,9 @@
+2004-02-20  John Wiegley  <johnw@newartisans.com>
+
+	* eshell/em-pred.el (eshell-modifier-alist): Changed the "eval
+	again" modifier from 'e' to 'E', since 'e' is also used by the
+	"file extension" modifier.
+
 2004-02-19  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* help-fns.el (describe-categories): Doc fix.
