@@ -1,3 +1,8 @@
+2000-11-16  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/quail.el (quail-start-translation): Don't call
+	`message' before reading key sequence.
+
 2000-11-16  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* net/ange-ftp.el (ange-ftp-file-modtime): Don't use `caddr'.
