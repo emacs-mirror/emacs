@@ -24,12 +24,11 @@
 	On some systems, XtCloseDisplay seems to cause a SIGSEGV when
 	called for a lost connection.  Prevent dumping core in this case.
 	Instead print the X error, and exit.  On user request.
-	
+
 	* xterm.c (error_msg): New variable.
 	(x_fatal_error_signal): New function.
-	(x_connection_closed): Set error_msg.  Install
-	x_fatal_error_signal as fatal_error_signal_hook around the call to
-	XtCloseDisplay.
+	(x_connection_closed): Set error_msg.  Install x_fatal_error_signal
+	as fatal_error_signal_hook around the call to XtCloseDisplay.
 
 	* emacs.c (fatal_error_signal_hook): New variable.
 	(fatal_error_signal): Call that function.
@@ -54,24 +53,22 @@
 
 2001-10-04  Gerd Moellmann  <gerd@gnu.org>
 
-	This adds a post-gc-hook that's run with GC inhibited.  Requested
-	by Francois Pinard.  XEmacs has it.  Added to NEWS.
+	This adds a post-gc-hook that's run with GC inhibited.
+	Requested by Francois Pinard.  XEmacs has it.  Added to NEWS.
 
 	* alloc.c (Vpost_gc_hook, Qpost_gc_hook): New variables.
-	(syms_of_alloc): DEFVAR_LISP post-gc-hook, initialize 
-	Qpost_gc_hook.
+	(syms_of_alloc): DEFVAR_LISP post-gc-hook, initialize Qpost_gc_hook.
 	(Fgarbage_collect): Run post-gc-hook.
 
 2001-10-04  Gerd Moellmann  <gerd@gnu.org>
 
 	This adds `defvaralias' and `indirect-variable'.  Changes not
 	directly related to this feature are there to gain the same
-	performance again as before variable aliases.  
+	performance again as before variable aliases.
 
 	You must use the SYMBOL_VALUE and SET_SYMBOL_VALUE macros in C
-	code to get and set symbol values, to take defvaralias into
-	account.
-	
+	code to get and set symbol values, to take defvaralias into account.
+
 	(Note: the new `constant' bit-flag in symbols would make it
 	possible to define arbitrary read-only variables, e.g. with
 	`defconst'.)
@@ -105,8 +102,8 @@
 	(swap_in_symval_forwarding): If SYMBOL is an alias, use the
 	aliased symbol.
 	(let_shadows_buffer_binding_p): Check for variable aliases.
-	(set_internal): Simplify the test if SYMBOL is a constant.  If
-	SYMBOL has a buffer-local value and is an alias, use the aliased
+	(set_internal): Simplify the test if SYMBOL is a constant.
+	If SYMBOL has a buffer-local value and is an alias, use the aliased
 	symbol instead.
 	(syms_of_data): Initialize Qcyclic_variable_indirection and defsubr
 	Sindirect_variable.
@@ -117,10 +114,9 @@
 
 	* alloc.c (Fmake_symbol): Adapt to changes of struct Lisp_Symbol.
 
-	* abbrev.c, buffer.c, coding.c, fns.c, frame.c, keyboard.c: 
+	* abbrev.c, buffer.c, coding.c, fns.c, frame.c, keyboard.c:
 	* minibuf.c, sunfns.c, w16select.c: Use SYMBOL_VALUE/
-	SET_SYMBOL_VALUE macros instead of accessing symbol values
-	directly.
+	SET_SYMBOL_VALUE macros instead of accessing symbol values directly.
 
 2001-10-03  Miles Bader  <miles@gnu.org>
 
