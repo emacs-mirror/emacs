@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.22 2000/09/21 16:52:23 monnier Exp $
+;; Revision: $Id: diff-mode.el,v 1.23 2000/09/29 02:25:32 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -448,6 +448,7 @@ Non-nil OLD means that we want the old file."
 	      (cons (cons fs file) diff-remembered-files-alist))
 	 file)))))
 
+
 (defun diff-mouse-goto-source (event)
   "Run `diff-goto-source' for the diff at a mouse click."
   (interactive "e")
@@ -455,12 +456,6 @@ Non-nil OLD means that we want the old file."
     (mouse-set-point event)
     (diff-goto-source)))
 
-(defun diff-add-log-file-name (log-file)
-  "File name to use in add-log for the hunk at point.
-For use in `add-log-file-name-function'.
-LOG-FILE should be the path to the ChangeLog file."
-  (add-log-file-name (expand-file-name (diff-find-file-name)) log-file))
-    
 
 (defun diff-ediff-patch ()
   "Call `ediff-patch-file' on the current buffer."
@@ -835,8 +830,8 @@ This mode runs `diff-mode-hook'.
   ;; add-log support
   (set (make-local-variable 'add-log-current-defun-function)
        'diff-current-defun)
-  (set (make-local-variable 'add-log-file-name-function)
-       'diff-add-log-file-name))
+  (set (make-local-variable 'add-log-buffer-file-name-function)
+       'diff-find-file-name))
 
 ;;;###autoload
 (define-minor-mode diff-minor-mode
