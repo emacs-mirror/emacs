@@ -1,3 +1,14 @@
+2002-05-04  Jason Rumney  <jasonr@gnu.org>
+
+	* mwheel.el (mwheel-event-button): Translate mouse-wheel events.
+	(mwheel-scroll): Recognize nil scroll amount as documented.
+
+	* term/w32-win.el (mouse-wheel-scroll-line)
+	(mouse-wheel-scroll-screen): Remove.
+	([mouse-wheel], [C-mouse-wheel], [S-mouse-wheel]): Use mwheel-scroll.
+
+	* w32-vars.el: (mouse-wheel-scroll-amount): Removed.
+
 2002-05-04  Markus Rost  <rost@math.ohio-state.edu>
 
 	* emacs-lisp/find-func.el (find-function-search-for-symbol): Bind

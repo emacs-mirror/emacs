@@ -1,5 +1,8 @@
 2002-05-04  Jason Rumney  <jasonr@gnu.org>
 
+	* keyboard.c (make_lispy_event) <mouse-wheel>: Set count to 1
+	for event-click-count.
+
 	* process.c (init_process): Only add server subfeature if we can
 	use non-blocking I/O.
 
