@@ -1,3 +1,10 @@
+2000-10-23  Andrew Innes  <andrewi@gnu.org>
+
+	* files.el (make-backup-file-name-1) [windowsnt, ms-dos]: Remove
+	superfluous calls to subst-char-in-string; instead apply
+	expand-file-name after convert-standard-filename to ensure
+	expected directory separators are used.
+
 2000-10-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info.el (Info-file-list-for-emacs): Add an entry for Eshell.
