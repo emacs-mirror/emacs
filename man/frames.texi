@@ -1145,11 +1145,15 @@ line containing the whitespace.
 @cindex balloon help
 @findex tooltip-mode
 Tooltips are small X windows displaying a help string at the current
-mouse position, typically over text which can be activated with the
-mouse or other keys.  (This facility is sometimes known as `balloon
-help'.)  To use them customize the user option.  @code{tooltip-mode}.
-The customization group @code{tooltip} controls various aspects of their
-display.
+mouse position, typically over text---including the mode line---which
+can be activated with the mouse or other keys.  (This facility is
+sometimes known as `balloon help'.)  Tooltips may be available for menu
+items too.
+
+To use tooltips, customize the user option @code{tooltip-mode}.  The
+customization group @code{tooltip} controls various aspects of their
+display.  If Tooltip mode is not activated, the help text is displayed
+in the echo area instead.
 
 @node Mouse Avoidance
 @section Mouse Avoidance
@@ -1207,6 +1211,11 @@ there is only one frame.
 Select another frame, raise it, and warp the mouse to it so that it
 stays selected.  If you repeat this command, it cycles through all the
 frames on your terminal.
+
+@item C-x 5 1
+@kindex C-x 5 1
+@findex delete-other-frames
+Delete all frames except the selected one.
 @end table
 
 @node Non-Window Terminals
