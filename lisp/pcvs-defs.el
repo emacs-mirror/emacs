@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs-defs.el,v 1.7 2000/12/06 19:51:40 fx Exp $
+;; Revision: $Id: pcvs-defs.el,v 1.8 2000/12/08 16:58:37 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -299,15 +299,16 @@ This variable is buffer local and only used in the *cvs* buffer.")
   "The default branch used by CVS for vendor code.")
 
 (easy-mmode-defmap cvs-mode-diff-map
-  '(("=" .	cvs-mode-diff)
-    ("b" .	cvs-mode-diff-backup)
-    ("2" .	cvs-mode-idiff-other)
-    ("h" .	cvs-mode-diff-head)
-    ("v" .	cvs-mode-diff-vendor)
-    ("?" .	cvs-mode-diff-help)
-    ("e" .	cvs-mode-idiff)
-    ("E" .	cvs-mode-imerge))
-  "Keymap for diff-related operations in `cvs-mode'.")
+  '(("E" "imerge" .	cvs-mode-imerge)
+    ("=" .		cvs-mode-diff)
+    ("e" "idiff" .	cvs-mode-idiff)
+    ("2" "other" .	cvs-mode-idiff-other)
+    ("d" "diff" .	cvs-mode-diff)
+    ("b" "backup" .	cvs-mode-diff-backup)
+    ("h" "head" .	cvs-mode-diff-head)
+    ("v" "vendor" .	cvs-mode-diff-vendor))
+  "Keymap for diff-related operations in `cvs-mode'."
+  :name "Diff")
 ;; This is necessary to allow correct handling of \\[cvs-mode-diff-map] 
 ;; in substitute-command-keys.
 (fset 'cvs-mode-diff-map cvs-mode-diff-map)
@@ -429,7 +430,7 @@ This variable is buffer local and only used in the *cvs* buffer.")
 
 (easy-mmode-defmap cvs-minor-mode-map
   `((,cvs-minor-mode-prefix . cvs-mode-map))
-  "Keymap for `cvs-minor-mode', used in buffers related to pcl-cvs.")
+  "Keymap for `cvs-minor-mode', used in buffers related to PCL-CVS.")
 
 (defvar cvs-buffer nil
   "(Buffer local) The *cvs* buffer associated with this buffer.")
