@@ -975,7 +975,7 @@ Prompt with PROMPT.  By default, return DEFAULT-VALUE.  */)
   if (NILP (default_value))
     default_string = Qnil;
   else if (SYMBOLP (default_value))
-    XSETSTRING (default_string, XSYMBOL (default_value)->name);
+    default_string = SYMBOL_NAME (default_value);
   else
     default_string = default_value;
     
@@ -1010,7 +1010,7 @@ A user variable is one whose documentation starts with a `*' character.  */)
   if (NILP (default_value))
     default_string = Qnil;
   else if (SYMBOLP (default_value))
-    XSETSTRING (default_string, XSYMBOL (default_value)->name);
+    default_string = SYMBOL_NAME (default_value);
   else
     default_string = default_value;
     
