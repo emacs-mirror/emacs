@@ -248,7 +248,7 @@ Currently, the following KEYs are used by Emacs:
 
 charset: list of symbols whose values are charsets specific to the language.
 
-coding-system: list of coding systems specific to the langauge.
+coding-system: list of coding systems specific to the language.
 
 tutorial: a tutorial file name written in the language.
 
@@ -626,7 +626,7 @@ just activated.")
   "Normal hook run just after an input method is inactivated.
 
 The variable `current-input-method' still keeps the input method name
-just inacitvated.")
+just inactivated.")
 
 (defvar input-method-after-insert-chunk-hook nil
   "Normal hook run just after an input method insert some chunk of text.")
