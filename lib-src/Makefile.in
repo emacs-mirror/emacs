@@ -108,7 +108,7 @@ ALL_CFLAGS = ${C_SWITCH_SYSTEM} -Demacs -DHAVE_CONFIG_H \
 .c.o:
 	${CC} -c ${CPPFLAGS} ${ALL_CFLAGS} $<
 
-all: ${EXECUTABLES}
+all: ${UTILITIES} ${INSTALLABLES}
 
 ### Install the internal utilities.  Until they are installed, we can
 ### just run them directly from lib-src.
