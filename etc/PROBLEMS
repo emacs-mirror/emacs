@@ -893,6 +893,26 @@ functions, one each for every macro.  Here's an example:
 Then replace all references to UPDATE_SYNTAX_TABLE_FORWARD in syntax.c
 with a call to the function update_syntax_table_forward.
 
+* Emacs fails to start, complaining about missing fonts.
+
+A typical error message might be something like
+
+  No fonts match `-*-fixed-medium-r-*--6-*-*-*-*-*-iso8859-1'
+
+This happens because some X resource specifies a bad font family for
+Emacs to use.  The possible places where this specification might be
+are:
+
+  - in your ~/.Xdefaults file
+
+  - client-side X resource file, such as  ~/Emacs or
+    /usr/X11R6/lib/app-defaults/Emacs or
+    /usr/X11R6/lib/X11/app-defaults/Emacs
+
+One of these files might have bad or malformed specification of a
+fontset that Emacs should use.  To fix the problem, you need to find
+the problematic line(s) and correct them.
+
 * Emacs 20 and later fails to load Lisp files at startup.
 
 The typical error message might be like this:
