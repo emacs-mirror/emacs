@@ -1,5 +1,10 @@
 2002-04-23  Miles Bader  <miles@gnu.org>
 
+	* menu-bar.el (menu-bar-update-buffers-1): Don't display a
+	directory separator if there's no directory.  Don't display
+	directories at all if uniquify is active.  Some code cleanup.
+	(uniquify-buffer-name-style): Declare (but don't initialize).
+
 	* menu-bar.el (menu-bar-update-buffers): Don't use constant lists
 	for command menu entries, since the low-level menu code modifies
 	them.  Cache the resulting list.
