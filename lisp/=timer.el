@@ -1,6 +1,6 @@
-;;; timer.el --- run a function with args at some time in future
+;;; timers.el --- run a function with args at some time in future
 
-;; Copyright (C) 1990, 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1996 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -29,155 +29,193 @@
 
 ;;; Code:
 
-(defvar timer-program (expand-file-name "timer" exec-directory)
-  "The name of the program to run as the timer subprocess.
-It should normally be in the exec-directory.")
+;; Layout of a timer vector:
+;; [triggered-p trigger-high trigger-low delta-secs function args]
 
-(defvar timer-process nil)
-(defvar timer-alist ())
-(defvar timer-out "")
-(defvar timer-dont-exit nil
-  ;; this is useful for functions which will be doing their own erratic
-  ;; rescheduling or people who otherwise expect to use the process frequently
-  "If non-nil, don't exit the timer process when no more events are pending.")
+(defun timer-create ()
+  "Create a timer object."
+  (let ((timer (make-vector 7 nil)))
+    (aset timer 0 (make-vector 1 'timer-event))
+    timer))
 
-;; Error symbols for timers
-(put 'timer-error 'error-conditions '(error timer-error))
-(put 'timer-error 'error-message "Timer error")
+(defun timerp (object)
+  "Return t if OBJECT is a timer."
+  (and (vectorp object) (= (length object) 7)))
 
-(put 'timer-abnormal-termination 
-     'error-conditions 
-     '(error timer-error timer-abnormal-termination))
-(put 'timer-abnormal-termination 
-     'error-message 
-     "Timer exited abnormally--all events cancelled")
-
-(put 'timer-filter-error
-     'error-conditions
-     '(error timer-error timer-filter-error))
-(put 'timer-filter-error
-     'error-message 
-     "Error in timer process filter")
+(defun timer-set-time (timer time &optional delta)
+  "Set the trigger time of TIMER to TIME.
+TIME must be in the internal format returned by, e.g., `current-time'
+If optional third argument DELTA is a non-zero integer make the timer
+fire repeatedly that menu seconds apart."
+  (or (timerp timer)
+      (error "Invalid timer"))
+  (aset timer 1 (car time))
+  (aset timer 2 (if (consp (cdr time)) (car (cdr time)) (cdr time)))
+  (aset timer 3 (if (consp (cdr time)) (nth 2 time) 0))
+  (aset timer 4 (and (integerp delta) (> delta 0) delta))
+  timer)
 
 
-;; This should not be necessary, but on some systems, we get
-;; unkillable processes without this.
-;; It may be a kernel bug, but that's not certain.
-(defun timer-kill-emacs-hook ()
-  (if timer-process
-      (progn
-	(set-process-sentinel timer-process nil)
-	(set-process-filter timer-process nil)
-	(delete-process timer-process))))
-(add-hook 'kill-emacs-hook 'timer-kill-emacs-hook)
+(defun timer-inc-time (timer secs &optional usecs)
+  "Increment the time set in TIMER by SECS seconds and USECS microseconds.
+SECS may be a fraction."
+  (or usecs (setq usecs 0))
+  (if (floatp secs)
+      (let* ((integer (floor secs))
+	     (fraction (floor (* 1000000 (- secs integer)))))
+	(setq usecs fraction secs integer)))
+  (let ((newusecs (+ (aref timer 3) usecs)))
+    (aset timer 3 (mod newusecs 1000000))
+    (setq secs (+ secs (/ newusecs 1000000))))
+  (let ((newlow (+ (aref timer 2) secs))
+	(newhigh (aref timer 1)))
+    (setq newhigh (+ newhigh (/ newlow 65536))
+	  newlow (logand newlow 65535))
+    (aset timer 1 newhigh)
+    (aset timer 2 newlow)))
 
+(defun timer-set-time-with-usecs (timer time usecs &optional delta)
+  "Set the trigger time of TIMER to TIME.
+TIME must be in the internal format returned by, e.g., `current-time'
+If optional third argument DELTA is a non-zero integer make the timer
+fire repeatedly that menu seconds apart."
+  (or (timerp timer)
+      (error "Invalid timer"))
+  (aset timer 1 (car time))
+  (aset timer 2 (if (consp (cdr time)) (car (cdr time)) (cdr time)))
+  (aset timer 3 usecs)
+  (aset timer 4 (and (integerp delta) (> delta 0) delta))
+  timer)
+
+(defun timer-set-function (timer function &optional args)
+  "Make TIMER call FUNCTION with optional ARGS when triggering."
+  (or (timerp timer)
+      (error "Invalid timer"))
+  (aset timer 5 function)
+  (aset timer 6 args)
+  timer)
+
+(defun timer-activate (timer)
+  "Put TIMER on the list of active timers."
+  (if (and (timerp timer)
+	   (integerp (aref timer 1))
+	   (integerp (aref timer 2))
+	   (integerp (aref timer 3))
+	   (aref timer 5))
+      (let ((timers timer-list)
+	    last)
+	;; Skip all timers to trigger before the new one.
+	(while (and timers
+		    (or (> (aref timer 1) (aref (car timers) 1))
+			(and (= (aref timer 1) (aref (car timers) 1))
+			     (> (aref timer 2) (aref (car timers) 2)))
+			(and (= (aref timer 1) (aref (car timers) 1))
+			     (= (aref timer 2) (aref (car timers) 2))
+			     (> (aref timer 3) (aref (car timers) 3)))))
+	  (setq last timers
+		timers (cdr timers)))
+	;; Insert new timer after last which possibly means in front of queue.
+	(if last
+	    (setcdr last (cons timer timers))
+	  (setq timer-list (cons timer timers)))
+	(aset timer 0 nil)
+	nil)
+    (error "Invalid or uninitialized timer")))
+
+(defun cancel-timer (timer)
+  "Remove TIMER from the list of active timers."
+  (or (timerp timer)
+      (error "Invalid timer"))
+  (setq timer-list (delq timer timer-list))
+  nil)
+
+(defun cancel-function-timers (function)
+  "Cancel all timers scheduled by `run-at-time' which would run FUNCTION."
+  (interactive "aCancel timers of function: ")
+  (let ((tail timer-list))
+    (while tail
+      (if (eq (aref (car tail) 5) function)
+          (setq timer-list (delq (car tail) timer-list)))
+      (setq tail (cdr tail)))))
+
+;; Set up the common handler for all timer events.  Since the event has
+;; the timer as parameter we can still distinguish.  Note that using
+;; special-event-map ensures that event timer events that arrive in the
+;; middle of a key sequence being entered are still handled correctly.
+(define-key special-event-map [timer-event] 'timer-event-handler)
+(defun timer-event-handler (event)
+  "Call the handler for the timer in the event EVENT."
+  (interactive "e")
+  (let ((timer (cdr-safe event)))
+    (if (timerp timer)
+	(progn
+	  ;; Delete from queue.
+	  (cancel-timer timer)
+	  ;; Run handler
+	  (apply (aref timer 5) (aref timer 6))
+	  ;; Re-schedule if requested.
+	  (if (aref timer 4)
+	      (progn
+		(timer-inc-time timer (aref timer 4) 0)
+		(timer-activate timer))))
+      (error "Bogus timer event"))))
+
 ;;;###autoload
 (defun run-at-time (time repeat function &rest args)
   "Run a function at a time, and optionally on a regular interval.
 Arguments are TIME, REPEAT, FUNCTION &rest ARGS.
-TIME, a string, can be specified absolutely or relative to now.
-TIME can also be an integer, a number of seconds.
+TIME is a string like \"11:23pm\" or a value from `encode-time'.
 REPEAT, an integer number of seconds, is the interval on which to repeat
-the call to the function.  If REPEAT is nil or 0, call it just once.
-
-Absolute times may be specified in a wide variety of formats;
-Something of the form `HOUR:MIN:SEC TIMEZONE MONTH/DAY/YEAR', where
-all fields are numbers, works; the format used by the Unix `date'
-command works too.
-
-Relative times may be specified as a series of numbers followed by units:
-  1 min         	denotes one minute from now.
-  min			does too.
-  1 min 5 sec		denotes 65 seconds from now.
-  1 min 2 sec 3 hour 4 day 5 week 6 fortnight 7 month 8 year
-			denotes the sum of all the given durations from now."
+the call to the function.  If REPEAT is nil or 0, call it just once."
   (interactive "sRun at time: \nNRepeat interval: \naFunction: ")
-  (if (equal repeat 0)
-      (setq repeat nil))
-  ;; Make TIME a string.
-  (if (integerp time)
-      (setq time (format "%d sec" time)))
-  (cond ((or (not timer-process) 
-             (memq (process-status timer-process) '(exit signal nil)))
-         (if timer-process (delete-process timer-process))
-         (setq timer-process
-	       (let ((process-connection-type nil))
-		 (start-process "timer" nil timer-program))
-               timer-alist nil)
-         (set-process-filter   timer-process 'timer-process-filter)
-         (set-process-sentinel timer-process 'timer-process-sentinel)
-         (process-kill-without-query timer-process))
-        ((eq (process-status timer-process) 'stop)
-         (continue-process timer-process)))
-  ;; There should be a living, breathing timer process now
-  (let* ((token (concat (current-time-string) "-" (length timer-alist)))
-	 (elt (list token repeat function args)))
-    (process-send-string timer-process (concat time "@" token "\n"))
-    (setq timer-alist (cons elt timer-alist))
-    elt))
 
-(defun cancel-timer (elt)
-  "Cancel a timer previously made with `run-at-time'.
-The argument should be a value previously returned by `run-at-time'.
-Cancelling the timer means that nothing special 
-will happen at the specified time."
-  (setcar (cdr elt) nil)
-  (setcar (cdr (cdr elt)) 'ignore))
+  ;; Handle "11:23pm" and the like.  Interpret it as meaning today
+  ;; which admittedly is rather stupid if we have passed that time
+  ;; already.  Unfortunately we don't have a `parse-time' function
+  ;; to do the right thing.
+  (if (stringp time)
+      (progn
+	(require 'diary-lib)
+	(let ((hhmm (diary-entry-time time))
+	      (now (decode-time)))
+	  (if (< hhmm 0)
+	      (setq time 'bad)
+	    (setq time
+		  (encode-time 0 (% hhmm 100) (/ hhmm 100) (nth 3 now)
+			       (nth 4 now) (nth 5 now) (nth 8 now)))))))
 
-(defun timer-process-filter (proc str)
-  (setq timer-out (concat timer-out str))
-  (let (do token error)
-    (while (string-match "\n" timer-out)
-      (setq token (substring timer-out 0 (match-beginning 0))
-	    do (assoc token timer-alist)
-	    timer-out (substring timer-out (match-end 0)))
-      (cond
-       (do
-	(apply (nth 2 do) (nth 3 do))	; do it
-	(if (natnump (nth 1 do))	; reschedule it
-	    (send-string proc (concat (nth 1 do) " sec@" (car do) "\n"))
-	  (setq timer-alist (delq do timer-alist))))
-       ((string-match "timer: \\([^:]+\\): \\([^@]*\\)@\\(.*\\)$" token)
-	(setq error (substring token (match-beginning 1) (match-end 1))
-	      do    (substring token (match-beginning 2) (match-end 2))
-	      token (assoc (substring token (match-beginning 3) (match-end 3))
-			   timer-alist)
-	      timer-alist (delq token timer-alist))
-	(or timer-alist 
-	    timer-dont-exit
-	    (process-send-eof proc))
-	;; Update error message for this particular instance
-	(put 'timer-filter-error
-	     'error-message
-	     (format "%s for %s; couldn't set at \"%s\"" 
-		     error (nth 2 token) do))
-	(signal 'timer-filter-error (list proc str)))))
-    (or timer-alist timer-dont-exit (process-send-eof proc))))
+  ;; Special case: nil means "now" and is useful when repeting.
+  (if (null time)
+      (setq time (current-time)))
 
-(defun timer-process-sentinel (proc str)
-  (let ((stat (process-status proc)))
-    (if (eq stat 'stop)
-	(continue-process proc)
-      ;; if it exited normally, presumably it was intentional.
-      ;; if there were no pending events, who cares that it exited?
-      (or (null timer-alist)
-          (eq stat 'exit)
-          (let ((alist timer-alist))
-            (setq timer-process nil timer-alist nil)
-            (signal 'timer-abnormal-termination (list proc stat str alist))))
-      ;; Used to set timer-scratch to "", but nothing uses that var.
-      (setq timer-process nil timer-alist nil))))
+  (or (consp time)
+      (error "Invalid time format"))
 
-(defun cancel-function-timers (function)
-  "Cancel all events scheduled by `run-at-time' which would run FUNCTION."
-  (interactive "aCancel timers of function: ")
-  (let ((alist timer-alist))
-    (while alist
-      (if (eq (nth 2 (car alist)) function)
-          (setq timer-alist (delq (car alist) timer-alist)))
-      (setq alist (cdr alist))))
-  (or timer-alist timer-dont-exit (process-send-eof timer-process)))
+  (or (null repeat)
+      (natnump repeat)
+      (error "Invalid repetition interval"))
 
-(provide 'timer)
+  (let ((timer (timer-create)))
+    (timer-set-time timer time repeat)
+    (timer-set-function timer function args)
+    (timer-activate timer)))
 
-;;; timer.el ends here
+(defun run-after-delay (secs usecs repeat function &rest args)
+  "Perform an action after a delay of SECS seconds and USECS microseconds.
+Repeat the action every REPEAT seconds, if REPEAT is non-nil.
+The action is to call FUNCTION with arguments ARGS."
+  (interactive "sRun after delay (seconds): \nNRepeat interval: \naFunction: ")
+
+  (or (null repeat)
+      (natnump repeat)
+      (error "Invalid repetition interval"))
+
+  (let ((timer (timer-create)))
+    (timer-set-time timer (current-time))
+    (timer-inc-time timer secs usecs)
+    (timer-set-function timer function args)
+    (timer-activate timer)))
+
+(provide 'timers)
+
+;;; timers.el ends here
