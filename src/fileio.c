@@ -2506,7 +2506,7 @@ to the file, instead of any buffer contents, and END is ignored.")
 
   filename = Fexpand_file_name (filename, Qnil);
   if (XTYPE (visit) == Lisp_String)
-    visit = Fexpand_file_name (visit, Qnil);
+    visit_file = Fexpand_file_name (visit, Qnil);
   else
     visit_file = filename;
 
