@@ -120,57 +120,6 @@ with a definition that really does change some file names."
 (defsubst intdos (regs)
   (int86 33 regs))
 
-;; Support for printing under MS-DOS, see lpr.el and ps-print.el.
-;; See dos-vars.el for defcustom.
-(defvar dos-printer)
-
-(defun dos-print-region-function (start end
-					&optional lpr-prog
-					delete-text buf display rest)
-  "MS-DOS-specific function to print the region on a printer.
-Writes the region to the device or file which is a value of
-`dos-printer' \(which see\).  Ignores any arguments beyond
-START and END."
-
-  ;; DOS printers need the lines to end with CR-LF pairs, so make
-  ;; sure it always happens that way, unless the buffer is binary.
-  (let* ((coding coding-system-for-write)
-	 (coding-base
-	  (if (null coding) 'undecided (coding-system-base coding)))
-	 (eol-type (coding-system-eol-type coding-base)))
-    (or (eq coding-system-for-write 'no-conversion)
-	(setq coding-system-for-write
-	      (aref eol-type 1)))	; force conversion to DOS EOLs
-    (write-region start end dos-printer t 0)
-    ;; Make each print-out start on a new page, but don't waste
-    ;; paper if there was a form-feed at the end of this file.
-    (if (not (char-equal (char-after (1- end)) ?\C-l))
-	(write-region "\f" nil dos-printer t 0))))
-
-;; Set this to nil if you have a port of the `lpr' program and
-;; you want to use it for printing.  If the default setting is
-;; in effect, `lpr-command' and its switches are ignored when
-;; printing with `lpr-xxx' and `print-xxx'.
-(setq print-region-function 'dos-print-region-function)
-
-;; Set this to nil if you have a port of the `pr' program
-;; (e.g., from GNU Textutils), or if you have an `lpr'
-;; program (see above) that can print page headers.
-;; If `lpr-headers-switches' is non-nil (the default) and
-;; `print-region-function' is set to `dos-print-region-function',
-;; then requests to print page headers will be silently
-;; ignored, and `print-buffer' and `print-region' produce
-;; the same output as `lpr-buffer' and `lpr-region', accordingly.
-(setq lpr-headers-switches "(page headers are not supported)")
-
-;; See dos-vars.el for defcustom.
-(defvar dos-ps-printer)
-
-(setq ps-lpr-command "gs")
-
-(setq ps-lpr-switches '("-q" "-dNOPAUSE" "-sDEVICE=epson" "-r240x60"
-			  "-sOutputFile=LPT1" "-"))
-
 ;; Backward compatibility for obsolescent functions which
 ;; set screen size.
 
