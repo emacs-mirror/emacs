@@ -1,3 +1,16 @@
+2001-12-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* time.el (display-time-load-average-threshold): New variable.
+	(display-time-update): Use it.
+	
+	These changes allow cycling through past 1, 5 and 15 minutes
+	load-average displayed in the mode-line.
+
+	* time.el (display-time-default-load-average): New customizable option.
+	(display-time-load-average): New variable.
+	(display-time-cycle-load-average): New function.
+	(display-time-update): Use them.
+
 2001-12-21  Richard M. Stallman  <rms@gnu.org>
 
 	* apropos.el (apropos-print): SPACING is now nil or a separator string.
