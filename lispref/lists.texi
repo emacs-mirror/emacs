@@ -638,9 +638,11 @@ x
 
 @node Modifying Lists
 @section Modifying Existing List Structure
+@cindex destructive list operations
 
   You can modify the @sc{car} and @sc{cdr} contents of a cons cell with the
-primitives @code{setcar} and @code{setcdr}.
+primitives @code{setcar} and @code{setcdr}.  We call these ``destructive'' 
+operations because they change existing list structure.
 
 @cindex CL note---@code{rplaca} vrs @code{setcar}
 @quotation
@@ -875,7 +877,8 @@ x1
   Here are some functions that rearrange lists ``destructively'' by
 modifying the @sc{cdr}s of their component cons cells.  We call these
 functions ``destructive'' because they chew up the original lists passed
-to them as arguments, to produce a new list that is the returned value.
+to them as arguments, relinking their cons cells to form a new list that
+is the returned value.
 
 @ifinfo
   See @code{delq}, in @ref{Sets And Lists}, for another function

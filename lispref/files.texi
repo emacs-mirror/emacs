@@ -165,10 +165,10 @@ When this command is called interactively, it prompts for
 @end deffn
 
 @deffn Command view-file filename
-This command visits @var{filename} in View mode, and displays it in a
-recursive edit, returning to the previous buffer when done.  View mode
-is a mode that allows you to skim rapidly through the file but does not
-let you modify it.  Entering View mode runs the normal hook
+This command visits @var{filename} using View mode, returning to the
+previous buffer when you exit View mode.  View mode is a minor mode that
+provides commands to skim rapidly through the file, but does not let you
+modify the text.  Entering View mode runs the normal hook
 @code{view-mode-hook}.  @xref{Hooks}.
 
 When @code{view-file} is called interactively, it prompts for
@@ -182,7 +182,7 @@ have been processed before the hooks are run.  The buffer visiting the
 file is current when the hook functions are run.
 
 This variable works just like a normal hook, but we think that renaming
-it would not be advisable.
+it would not be advisable.  @xref{Hooks}.
 @end defvar
 
 @defvar find-file-not-found-hooks
@@ -338,7 +338,7 @@ The hook functions in @code{write-file-hooks} are also responsible for
 encoding the data (if desired): they must choose a suitable coding
 system (@pxref{Lisp and Coding Systems}), perform the encoding
 (@pxref{Explicit Encoding}), and set @code{last-coding-system-used} to
-the coding system that was used (@pxref{Specifying Coding Systems}).
+the coding system that was used (@pxref{Encoding and I/O}).
 
 Do not make this variable buffer-local.  To set up buffer-specific hook
 functions, use @code{write-contents-hooks} instead.
@@ -376,6 +376,8 @@ used @emph{only} buffer-locally.
 @c Emacs 19 feature
 @defvar after-save-hook
 This normal hook runs after a buffer has been saved in its visited file.
+One use of this hook is in Fast Lock mode; it uses this hook to save the
+highlighting information in a cache file.
 @end defvar
 
 @defvar file-precious-flag
@@ -390,7 +392,7 @@ As a side effect, backups are necessarily made by copying.  @xref{Rename
 or Copy}.  Yet, at the same time, saving a precious file always breaks
 all hard links between the file you save and other file names.
 
-Some modes give this variable non-@code{nil} buffer-local value
+Some modes give this variable a non-@code{nil} buffer-local value
 in particular buffers.
 @end defvar
 
@@ -527,7 +529,7 @@ the appropriate file formats specified by @code{buffer-file-format}.
 @xref{Format Conversion}.  It also calls the functions in the list
 @code{write-region-annotate-functions}; see @ref{Saving Properties}.
 
-Normally, @code{write-region} displays a message @samp{Wrote file
+Normally, @code{write-region} displays the message @samp{Wrote
 @var{filename}} in the echo area.  If @var{visit} is neither @code{t}
 nor @code{nil} nor a string, then this message is inhibited.  This
 feature is useful for programs that use files for internal purposes,
@@ -567,10 +569,10 @@ visiting a file changed on disk catches some cases of simultaneous
 editing; see @ref{Modification Time}.
 
 @defun file-locked-p filename
-  This function returns @code{nil} if the file @var{filename} is not
-locked by this Emacs process.  It returns @code{t} if it is locked by
-this Emacs, and it returns the name of the user who has locked it if it
-is locked by someone else.
+This function returns @code{nil} if the file @var{filename} is not
+locked.  It returns @code{t} if it is locked by this Emacs process, and
+it returns the name of the user who has locked it if it is locked by
+some other job.
 
 @example
 @group
@@ -869,11 +871,12 @@ other I/O device).
 
 @c Emacs 19 features
   The @dfn{truename} of a file is the name that you get by following
-symbolic links until none remain, then expanding to get rid of @samp{.}
-and @samp{..} as components.  Strictly speaking, a file need not have a
-unique truename; the number of distinct truenames a file has is equal to
-the number of hard links to the file.  However, truenames are useful
-because they eliminate symbolic links as a cause of name variation.
+symbolic links until none remain, then simplifying away @samp{.}@: and
+@samp{..}@: appearing as components.  Strictly speaking, a file need not
+have a unique truename; the number of distinct truenames a file has is
+equal to the number of hard links to the file.  However, truenames are
+useful because they eliminate symbolic links as a cause of name
+variation.
 
 @defun file-truename filename
 The function @code{file-truename} returns the true name of the file
@@ -1674,7 +1677,7 @@ use @code{temporary-file-directory} for this purpose, to give the user
 a uniform way to specify the directory for all temporary files.
 
 @defun make-temp-name string
-This function generates string that can be used as a unique file name.
+This function generates a string that can be used as a unique file name.
 The name starts with @var{string}, and contains a number that is
 different in each Emacs job.
 
@@ -1698,9 +1701,9 @@ names even in one Emacs job.
 @cindex @code{TMP} environment variable.
 This variable specifies the directory name for creating temporary files.
 Its value should be a directory name (@pxref{Directory Names}), but it
-is good for Lisp programs to cope if the value is a file name instead.
-(Using the value as the second argument to @code{expand-file-name} is a
-good way to achieve that.)
+is good for Lisp programs to cope if the value is a directory's file
+name instead.  Using the value as the second argument to
+@code{expand-file-name} is a good way to achieve that.
 
 The default value is determined in a reasonable way for your operating
 system; on GNU and Unix systems it is based on the @code{TMP} and
@@ -1995,6 +1998,7 @@ called like this:
 
 Here are the operations that a magic file name handler gets to handle:
 
+@ifinfo
 @noindent
 @code{add-name-to-file}, @code{copy-file}, @code{delete-directory},
 @code{delete-file},
@@ -2024,11 +2028,48 @@ Here are the operations that a magic file name handler gets to handle:
 @code{insert-file-contents},
 @code{load}, @code{make-directory},
 @code{make-symbolic-link}, @code{rename-file}, @code{set-file-modes},
-@code{set-visited-file-modtime}, @code{shell-command}.@*
+@code{set-visited-file-modtime}, @code{shell-command},@*
 @code{unhandled-file-name-directory},
 @code{vc-registered},
 @code{verify-visited-file-modtime},@*
 @code{write-region}.
+@end ifinfo
+@iftex
+@noindent
+@code{add-name-to-file}, @code{copy-file}, @code{delete-directory},
+@code{delete-file},
+@code{diff-latest-backup-file},
+@code{directory-file-name},
+@code{directory-files},
+@code{dired-call-process},
+@code{dired-compress-file}, @code{dired-uncache},
+@code{expand-file-name},
+@code{file-accessible-direc@discretionary{}{}{}tory-p},
+@code{file-attributes},
+@code{file-direct@discretionary{}{}{}ory-p},
+@code{file-executable-p}, @code{file-exists-p},
+@code{file-local-copy},
+@code{file-modes}, @code{file-name-all-completions},
+@code{file-name-as-directory},
+@code{file-name-completion},
+@code{file-name-directory},
+@code{file-name-nondirec@discretionary{}{}{}tory},
+@code{file-name-sans-versions}, @code{file-newer-than-file-p},
+@code{file-ownership-pre@discretionary{}{}{}served-p},
+@code{file-readable-p}, @code{file-regular-p}, @code{file-symlink-p},
+@code{file-truename}, @code{file-writable-p},
+@code{find-backup-file-name},
+@code{get-file-buffer},
+@code{insert-directory},
+@code{insert-file-contents},
+@code{load}, @code{make-direc@discretionary{}{}{}tory},
+@code{make-symbolic-link}, @code{rename-file}, @code{set-file-modes},
+@code{set-visited-file-modtime}, @code{shell-command},
+@code{unhandled-file-name-directory},
+@code{vc-regis@discretionary{}{}{}tered},
+@code{verify-visited-file-modtime},
+@code{write-region}.
+@end iftex
 
 Handlers for @code{insert-file-contents} typically need to clear the
 buffer's modified flag, with @code{(set-buffer-modified-p nil)}, if the
@@ -2089,7 +2130,7 @@ for comparison with @code{inhibit-file-name-operation}.
 This function copies file @var{filename} to an ordinary non-magic file,
 if it isn't one already.
 
-If @var{filename} specifies a ``magic'' file name, which programs
+If @var{filename} specifies a magic file name, which programs
 outside Emacs cannot directly read or write, this copies the contents to
 an ordinary file and returns that file's name.
 

@@ -178,14 +178,14 @@ Here is an example of how to set your @code{EMACSLOADPATH} variable from
 a @code{csh} @file{.login} file:
 
 @smallexample
-setenv EMACSLOADPATH .:/user/bil/emacs:/usr/local/lib/emacs/20.3/lisp
+setenv EMACSLOADPATH .:/user/bil/emacs:/usr/local/share/emacs/20.3/lisp
 @end smallexample
 
   Here is how to set it using @code{sh}:
 
 @smallexample
 export EMACSLOADPATH
-EMACSLOADPATH=.:/user/bil/emacs:/usr/local/lib/emacs/20.3/lisp
+EMACSLOADPATH=.:/user/bil/emacs:/usr/local/share/emacs/20.3/lisp
 @end smallexample
 
   Here is an example of code you can place in a @file{.emacs} file to add
