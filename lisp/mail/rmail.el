@@ -1139,7 +1139,9 @@ Instead, these commands are available:
   (make-local-variable 'kill-buffer-hook)
   (add-hook 'kill-buffer-hook 'rmail-mode-kill-summary)
   (make-local-variable 'file-precious-flag)
-  (setq file-precious-flag t))
+  (setq file-precious-flag t)
+  (make-local-variable 'desktop-save-buffer)
+  (setq desktop-save-buffer t))
 
 ;; Handle M-x revert-buffer done in an rmail-mode buffer.
 (defun rmail-revert (arg noconfirm)
