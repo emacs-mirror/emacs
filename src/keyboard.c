@@ -1,5 +1,5 @@
 /* Keyboard and mouse input; editor command loop.
-   Copyright (C) 1985,86,87,88,89,93,94 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,87,88,89,93,94,95 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4666,7 +4666,8 @@ read_key_sequence (keybuf, bufsize, prompt)
 	     && fkey_start < t
 	     /* mock input is never part of a function key's sequence.  */
 	     && mock_input <= fkey_start)
-	 || (keytran_start < t && key_translation_possible)
+	 || (first_binding >= nmaps
+	     && keytran_start < t && key_translation_possible)
 	 /* Don't return in the middle of a possible function key sequence,
 	    if the only bindings we found were via case conversion.
 	    Thus, if ESC O a has a function-key-map translation
@@ -4949,6 +4950,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	      /* The Microsoft C compiler can't handle the goto that
 		 would go here.  */
 	      dummyFlag = 1;
+	      break;
 	    }
 
 	  if (SYMBOLP (head))
