@@ -3120,8 +3120,7 @@ by pops to non-distinctive yanks.  Bug..."
       (let (file-name)
         (save-excursion
           (let* ((text-start outline-recent-prefix-end)
-                 (heading-end (progn (outline-pre-next-preface)
-                                     (point))))
+                 (heading-end (progn (end-of-line) (point))))
             (goto-char text-start)
             (setq file-name
                   (if (re-search-forward "\\s-\\(\\S-*\\)" heading-end t)
