@@ -2736,6 +2736,7 @@ extern Lisp_Object Vtty_erase_char, Vhelp_form, Vtop_level;
 extern int input_pending;
 EXFUN (Fdiscard_input, 0);
 EXFUN (Frecursive_edit, 0);
+EXFUN (Ftop_level, 0);
 EXFUN (Fcommand_execute, 4);
 EXFUN (Finput_pending_p, 0);
 extern Lisp_Object menu_bar_items P_ ((Lisp_Object));
