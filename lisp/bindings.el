@@ -1,6 +1,6 @@
 ;;; bindings.el --- define standard key bindings and some variables.
 
-;; Copyright (C) 1985,86,87,92,93,94,95,96 Free Software Foundation, Inc.
+;; Copyright (C) 1985,86,87,92,93,94,95,96,99 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -184,39 +184,63 @@ Return a string to display in the mode line for the current mode name."
 			     'help-echo "mouse-3: minor mode menu" result))))
     result))
 
+(defmacro bound-and-true-p (var)
+  "Return the value of symbol VAR if it is bound, else nil."
+  `(and (boundp (quote ,v)) ,var))
+
 (defvar mode-line-mouse-sensitive-p nil "\
 Non-nil means mode line has been made mouse-sensitive.")
+
+(defvar mode-line-mode-menu nil "\
+Menu of mode operations in the mode line.")
 
 (defun make-mode-line-mouse-sensitive ()
   (when (and window-system
 	     (not mode-line-mouse-sensitive-p))
     (setq mode-line-mouse-sensitive-p t)
-    (require 'easymenu)
-    (easy-menu-define mode-line-mode-menu mode-line-mode-menu-keymap
-       "Menu of mode operations in the mode line."
-       '("Minor Modes"
-	 ["Abbrev" abbrev-mode :active t :style toggle
-	  :selected abbrev-mode]
-	 ["Auto revert" auto-revert-mode :active t :style toggle
-	  :selected auto-revert-mode]
-	 ["Auto-fill" auto-fill-mode :active t :style toggle
-	  :selected auto-fill-function]
-	 ["Column number" column-number-mode :active t :style toggle
-	  :selected column-number-mode]
-	 ["Flyspell" flyspell-mode :active t :style toggle
-	  :selected flyspell-mode]
-	 ["Font-lock" font-lock-mode :active t :style toggle
-	  :selected font-lock-mode]
-	 ["Hide ifdef" hide-ifdef-mode :active t :style toggle
-	  :selected hide-ifdef-mode]
-	 ["Highlight changes" highlight-changes-mode :active t :style toggle
-	  :selected highlight-changes-mode]
-	 ["Line number" line-number-mode :active t :style toggle
-	  :selected line-number-mode]
-	 ["Outline" outline-minor-mode :active t :style toggle
-	  :selected outline-minor-mode]
-	 ["Overwrite" overwrite-mode :active t :style toggle
-	  :selected overwrite-mode]))
+    (let ((map (make-sparse-keymap "Minor Modes")))
+      (define-key map [abbrev-mode]
+	'(menu-item "Abbrev" abbrev-mode
+		    :active t :style toggle :selected abbrev-mode))
+      (define-key map [auto-revert-mode]
+	'(menu-item "Auto revert" auto-revert-mode
+		    :active t :style toggle
+		    :selected (bound-and-true-p auto-revert-mode)))
+      (define-key map [auto-fill-mode]
+	'(menu-item "Auto-fill" auto-fill-mode
+		    :active t :style toggle :selected auto-fill-function))
+      (define-key map [column-number-mode]
+	'(menu-item "Column number" column-number-mode
+		    :active t :style toggle :selected column-number-mode))
+      (define-key map [flyspell-mode]
+	'(menu-item "Flyspell" flyspell-mode
+		    :active t :style toggle
+		    :selected (bound-and-true-p flyspell-mode)))
+      (define-key map [font-lock-mode]
+	'(menu-item "Font-lock" font-lock-mode
+		    :active t :style toggle :selected font-lock-mode))
+      (define-key map [hide-ifdef-mode]
+	'(menu-item "Hide ifdef" hide-ifdef-mode
+		    :active t :style toggle
+		    :selected (bound-and-true-p hide-ifdef-mode)))
+      (define-key map [highlight-changes-mode]
+	'(menu-item "Highlight changes" highlight-changes-mode
+		    :active t :style toggle
+		    :selected (bound-and-true-p highlight-changes-mode)))
+      (define-key map [line-number-mode]
+	'(menu-item "Line number" line-number-mode
+		    :active t :style toggle :selected line-number-mode))
+      (define-key map [outline-minor-mode]
+	'(menu-item "Outline" outline-minor-mode
+		    :active t :style toggle
+		    :selected (bound-and-true-p outline-minor-mode)))
+      (define-key map [overwrite-mode]
+	'(menu-item "Overwrite" overwrite-mode
+		    :active t :style toggle :selected overwrite-mode))
+      (setq mode-line-mode-menu map)
+      (defun mode-line-mode-menu (event)
+	(interactive "@e")
+	(x-popup-menu event mode-line-mode-menu)))
 
     ;; Add menu of buffer operations to the buffer identification part
     ;; of the mode line.
