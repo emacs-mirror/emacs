@@ -1,5 +1,5 @@
 ;;; rfc2104.el --- RFC2104 Hashed Message Authentication Codes
-;; Copyright (C) 1998,1999 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <jas@pdc.kth.se>
 ;; Keywords: mail
@@ -31,10 +31,16 @@
 ;;; (rfc2104-hash 'md5 64 16 "Jefe" "what do ya want for nothing?")
 ;;; "750c783e6ab0b503eaa86e310a5db738"
 ;;;
+;;; (require 'sha-1)
+;;; (rfc2104-hash 'sha1-encode 64 20 "Jefe" "what do ya want for nothing?")
+;;; "effcdf6ae5eb2fa2d27416d5f184df9c259a7c79"
+;;;
 ;;; 64 is block length of hash function (64 for MD5 and SHA), 16 is
 ;;; resulting hash length (16 for MD5, 20 for SHA).
 ;;;
 ;;; Tested with Emacs 20.2 and XEmacs 20.3.
+;;;
+;;; Test case reference: RFC 2202.
 
 ;;; Release history:
 ;;;
@@ -43,6 +49,8 @@
 ;;; 1998-08-26  don't require hexl
 ;;; 1998-09-25  renamed from hmac.el to rfc2104.el, also renamed functions
 ;;; 1999-10-23  included in pgnus
+;;; 2000-08-15  `rfc2104-hexstring-to-bitstring'
+;;; 2000-05-12  added sha-1 example, added test case reference
  
 (eval-when-compile (require 'cl))
 
@@ -76,6 +84,13 @@
 	(rfc2104-hex-to-int (reverse (append str nil))))
     0))
 
+(defun rfc2104-hexstring-to-bitstring (str)
+  (let (out)
+    (while (< 0 (length str))
+      (push (rfc2104-hex-to-int (substring str -2)) out)
+      (setq str (substring str 0 -2)))
+    (concat out)))
+
 (defun rfc2104-hash (hash block-length hash-length key text)
   (let* (;; if key is longer than B, reset it to HASH(key)
 	 (key (if (> (length key) block-length) 
@@ -90,14 +105,10 @@
     ;; XOR key with ipad/opad into k_ipad/k_opad
     (setq k_ipad (mapcar (lambda (c) (logxor c rfc2104-ipad)) k_ipad))
     (setq k_opad (mapcar (lambda (c) (logxor c rfc2104-opad)) k_opad))
-    ;; perform inner hash
-    (let ((first-round (funcall hash (concat k_ipad text)))
-	  de-hexed)
-      (while (< 0 (length first-round))
-	(push (rfc2104-hex-to-int (substring first-round -2)) de-hexed)
-	(setq first-round (substring first-round 0 -2)))
-      ;; perform outer hash
-      (funcall hash (concat k_opad de-hexed)))))
+    ;; perform outer hash
+    (funcall hash (concat k_opad (rfc2104-hexstring-to-bitstring
+				  ;; perform inner hash
+				  (funcall hash (concat k_ipad text)))))))
 
 (provide 'rfc2104)
 
