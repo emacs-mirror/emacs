@@ -1,4 +1,4 @@
-/* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
+/* poolams.c: AUTOMATIC MARK & SWEEP POOL CLASS
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -1426,7 +1426,7 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream)
 
 /* AMSPoolClass -- the class definition */
 
-/* impl.h.poolams contains the type definition.  Hence the use */
+/* <code/poolams.h> contains the type definition.  Hence the use */
 /* of DEFINE_CLASS rather than DEFINE_POOL_CLASS */
 
 DEFINE_CLASS(AMSPoolClass, this)

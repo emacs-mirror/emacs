@@ -1,4 +1,4 @@
-/* impl.c.vman: ANSI VM: MALLOC-BASED PSEUDO MEMORY MAPPING
+/* vman.c: ANSI VM: MALLOC-BASED PSEUDO MEMORY MAPPING
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

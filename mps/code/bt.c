@@ -1,4 +1,4 @@
-/* impl.c.bt: BIT TABLES
+/* bt.c: BIT TABLES
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -245,7 +245,7 @@ Bool (BTGet)(BT t, Index i)
   AVER(BTCheck(t));
   /* Can't check i */
 
-  /* see macro in impl.h.mpm */
+  /* see macro in <code/mpm.h> */
   return BTGet(t, i);
 }
  
@@ -260,7 +260,7 @@ void (BTSet)(BT t, Index i)
   AVER(BTCheck(t));
   /* Can't check i */
 
-  /* see macro in impl.h.mpm */
+  /* see macro in <code/mpm.h> */
   BTSet(t, i);
 }
 
@@ -275,7 +275,7 @@ void (BTRes)(BT t, Index i)
   AVER(BTCheck(t));
   /* Can't check i */
 
-  /* see macro in impl.h.mpm */
+  /* see macro in <code/mpm.h> */
   BTRes(t, i);
 }
 

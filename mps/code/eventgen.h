@@ -1,4 +1,4 @@
-/* impl.h.eventgen -- Automatic event header
+/* <code/eventgen.h> -- Automatic event header
  *
  * $Id$
  * $HopeName$

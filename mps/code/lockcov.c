@@ -1,4 +1,4 @@
-/* impl.c.lockcov: LOCK COVERAGE TEST
+/* lockcov.c: LOCK COVERAGE TEST
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

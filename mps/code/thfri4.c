@@ -1,10 +1,10 @@
-/*  impl.c.thfri3: Threads Manager for Intel x86 systems on FreeBSD
+/* thfri3.c: Threads Manager for Intel x86 systems on FreeBSD
  *
  *  $Id$
  *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is a pthreads implementation of the threads manager.
- * This implements impl.h.th.
+ * This implements <code/th.h>.
  *
  * .design: See design.mps.thread-manager.
  *

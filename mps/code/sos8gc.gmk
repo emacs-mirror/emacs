@@ -1,4 +1,4 @@
-# impl.gmk.sos8gc: BUILD FOR SOLARIS/SPARC V8/GCC PLATFORM
+# sos8gc.gmk: BUILD FOR SOLARIS/SPARC V8/GCC PLATFORM
 #
 # $Id$
 # Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
-/* impl.c.poollo: LEAF POOL CLASS
+/* poollo.c: LEAF POOL CLASS
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -54,7 +54,7 @@ typedef struct LOSegStruct {
   BT alloc;                 /* alloc bit table */
   Count free;               /* number of free grains */
   Count newAlloc;           /* number of grains allocated since last GC */
-  Sig sig;                  /* impl.h.misc.sig */
+  Sig sig;                  /* <code/misc.h#sig> */
 } LOSegStruct;
 
 #define SegLOSeg(seg)             ((LOSeg)(seg))
@@ -529,7 +529,7 @@ static void LOFinish(Pool pool)
     LOSeg loseg = SegLOSeg(seg);
 
     AVERT(LOSeg, loseg);
-    UNUSED(loseg); /* impl.c.mpm.check.unused */
+    UNUSED(loseg); /* <code/mpm.c#check.unused> */
     SegFree(seg);
   }
   PoolGenFinish(&lo->pgen);

@@ -1,4 +1,4 @@
-/* impl.c.protan: ANSI MEMORY PROTECTION
+/* protan.c: ANSI MEMORY PROTECTION
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

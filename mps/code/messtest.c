@@ -1,4 +1,4 @@
-/* impl.c.messtest: MESSAGE TEST
+/* messtest.c: MESSAGE TEST
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
-/* impl.c.amcssth: POOL CLASS AMC STRESS TEST WITH TWO THREADS
+/* amcssth.c: POOL CLASS AMC STRESS TEST WITH TWO THREADS
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

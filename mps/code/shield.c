@@ -1,4 +1,4 @@
-/* impl.c.shield: SHIELD IMPLEMENTATION
+/* shield.c: SHIELD IMPLEMENTATION
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

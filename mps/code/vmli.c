@@ -1,4 +1,4 @@
-/* impl.c.vmli: VIRTUAL MEMORY MAPPING FOR LINUX
+/* vmli.c: VIRTUAL MEMORY MAPPING FOR LINUX
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

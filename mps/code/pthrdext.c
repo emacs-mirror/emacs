@@ -1,4 +1,4 @@
-/*  impl.c.pthreadext: POSIX THREAD EXTENSIONS
+/* pthreadext.c: POSIX THREAD EXTENSIONS
  *
  *  $Id$
  *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

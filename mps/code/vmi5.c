@@ -1,4 +1,4 @@
-/* impl.c.vmi5: VIRTUAL MEMORY MAPPING FOR IRIX 5 (AND 6)
+/* vmi5.c: VIRTUAL MEMORY MAPPING FOR IRIX 5 (AND 6)
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

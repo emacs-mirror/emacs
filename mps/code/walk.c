@@ -1,4 +1,4 @@
-/* impl.c.walk: OBJECT WALKER
+/* walk.c: OBJECT WALKER
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -156,7 +156,7 @@ typedef struct rootsStepClosureStruct {
   void *p;                           /* client closure data */
   size_t s;                          /* client closure data */
   Root root;                         /* current root, or NULL */
-  Sig sig;                           /* impl.h.misc.sig */
+  Sig sig;                           /* <code/misc.h#sig> */
 } rootsStepClosureStruct;
 
 #define rootsStepClosure2ScanState(rsc) (&(rsc)->ssStruct)

@@ -1,4 +1,4 @@
-/* impl.h.ossu: SUNOS ANSI COMPATABILITY HEADER
+/* ossu.h: SUNOS ANSI COMPATABILITY HEADER
  *
  *  $Id$
  *

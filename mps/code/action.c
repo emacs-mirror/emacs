@@ -1,4 +1,4 @@
-/* impl.c.action: STRATEGIC ACTION
+/* action.c: STRATEGIC ACTION
  *
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  * $Id$

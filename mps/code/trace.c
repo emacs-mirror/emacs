@@ -1,4 +1,4 @@
-/* impl.c.trace: GENERIC TRACER IMPLEMENTATION
+/* trace.c: GENERIC TRACER IMPLEMENTATION
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -203,7 +203,7 @@ void ScanStateFinish(ScanState ss)
 Bool TraceIdCheck(TraceId ti)
 {
   CHECKL(ti < TraceLIMIT);
-  UNUSED(ti); /* impl.c.mpm.check.unused */
+  UNUSED(ti); /* <code/mpm.c#check.unused> */
   return TRUE;
 }
 
@@ -213,7 +213,7 @@ Bool TraceIdCheck(TraceId ti)
 Bool TraceSetCheck(TraceSet ts)
 {
   CHECKL(ts < (1uL << TraceLIMIT));
-  UNUSED(ts); /* impl.c.mpm.check.unused */
+  UNUSED(ts); /* <code/mpm.c#check.unused> */
   return TRUE;
 }
 
@@ -813,7 +813,7 @@ static void traceReclaim(Trace trace)
           Seg nonWhiteSeg = NULL;       /* prevents compiler warning */
           AVER_CRITICAL(!(SegOfAddr(&nonWhiteSeg, arena, base)
                           && TraceSetIsMember(SegWhite(nonWhiteSeg), trace)));
-          UNUSED(nonWhiteSeg); /* impl.c.mpm.check.unused */
+          UNUSED(nonWhiteSeg); /* <code/mpm.c#check.unused> */
         }
       }
     } while (SegNext(&seg, arena, base));

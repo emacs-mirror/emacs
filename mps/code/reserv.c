@@ -1,4 +1,4 @@
-/* impl.c.reserv: ARENA RESERVOIR
+/* reserv.c: ARENA RESERVOIR
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -88,7 +88,7 @@ Bool ReservoirCheck(Reservoir reservoir)
   CHECKS(Reservoir, reservoir);
   CHECKD(Pool, &reservoir->poolStruct);
   CHECKL(reservoir->poolStruct.class == reservoircl);
-  UNUSED(reservoircl); /* impl.c.mpm.check.unused */
+  UNUSED(reservoircl); /* <code/mpm.c#check.unused> */
   arena = reservoirArena(reservoir);
   CHECKU(Arena, arena);
   /* could call ReservoirIsConsistent, but it's costly. */

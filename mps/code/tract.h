@@ -1,4 +1,4 @@
-/* impl.h.tract: PAGE TABLE INTERFACE
+/* tract.h: PAGE TABLE INTERFACE
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

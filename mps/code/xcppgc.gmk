@@ -1,4 +1,4 @@
-# impl.gmk.xcppgc: BUILD FOR MACOS X (CARBON)/POWERPC/GCC PLATFORM
+# xcppgc.gmk: BUILD FOR MACOS X (CARBON)/POWERPC/GCC PLATFORM
 #
 # $Id$
 # Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

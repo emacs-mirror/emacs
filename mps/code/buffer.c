@@ -1,11 +1,11 @@
-/* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
+/* buffer.c: ALLOCATION BUFFER IMPLEMENTATION
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
  * Several macros which also form part of the implementation are in
- * impl.h.mps.  Several macros forming part of impl.h.mps should be
+ * <code/mps.h>.  Several macros forming part of <code/mps.h> should be
  * consistent with the macros and functions in this module.
  *
  * DESIGN
@@ -20,7 +20,7 @@
  * TRANSGRESSIONS
  *
  * .trans.mod: There are several instances where pool structures are
- * directly accessed by this module because impl.c.pool does not provide
+ * directly accessed by this module because <code/pool.c> does not provide
  * an adequate (or adequately documented) interface.  They bear this
  * tag.  */
 
@@ -142,7 +142,7 @@ Bool BufferCheck(Buffer buffer)
 
 /* BufferDescribe -- write out description of buffer
  *
- * See impl.h.mpmst for structure definitions.  */
+ * See <code/mpmst.h> for structure definitions.  */
 
 Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
 {
@@ -198,7 +198,7 @@ static Res BufferInitV(Buffer buffer, BufferClass class,
   AVER((pool->class->attr & AttrBUF)); /* .trans.mod */
  
   arena = PoolArena(pool);
-  /* Initialize the buffer.  See impl.h.mpmst for a definition of */
+  /* Initialize the buffer.  See <code/mpmst.h> for a definition of */
   /* the structure.  sig and serial comes later .init.sig-serial */
   buffer->arena = arena;
   buffer->class = class;
@@ -597,7 +597,7 @@ Res BufferFramePop(Buffer buffer, AllocFrame frame)
 
 /* BufferReserve -- reserve memory from an allocation buffer
  *
- * .reserve: Keep in sync with impl.h.mps.reserve.  */
+ * .reserve: Keep in sync with <code/mps.h#reserve>.  */
 
 Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
                   Bool withReservoirPermit)
@@ -755,7 +755,7 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
 
 /* BufferCommit -- commit memory previously reserved
  *
- * .commit: Keep in sync with impl.h.mps.commit.  */
+ * .commit: Keep in sync with <code/mps.h#commit>.  */
 
 Bool BufferCommit(Buffer buffer, Addr p, Size size)
 {
@@ -1004,7 +1004,7 @@ static Bool AllocPatternCheck(AllocPattern pattern)
 {
   CHECKL(pattern == &AllocPatternRampCollectAllStruct
          || pattern == &AllocPatternRampStruct);
-  UNUSED(pattern); /* impl.c.mpm.check.unused */
+  UNUSED(pattern); /* <code/mpm.c#check.unused> */
   return TRUE;
 }
 
@@ -1487,7 +1487,7 @@ DEFINE_CLASS(SegBufClass, class)
 static Res rankBufInit (Buffer buffer, Pool pool, va_list args)
 {
   /* Assumes pun compatibility between Rank and mps_rank_t */
-  /* Which is checked by mpsi_check in impl.c.mpsi */
+  /* Which is checked by mpsi_check in <code/mpsi.c> */
   Rank rank = va_arg(args, Rank);
   BufferClass super;
   Res res;

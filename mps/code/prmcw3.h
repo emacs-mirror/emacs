@@ -1,4 +1,4 @@
-/* impl.h.prmcw3:  PROTECTION FOR WIN32
+/* prmcw3.h:  PROTECTION FOR WIN32
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

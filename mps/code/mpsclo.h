@@ -1,4 +1,4 @@
-/* impl.h.mpsclo: MEMORY POOL SYSTEM CLASS "LO"
+/* mpsclo.h: MEMORY POOL SYSTEM CLASS "LO"
  *
  * $Id$
  *

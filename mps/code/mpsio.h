@@ -1,4 +1,4 @@
-/* impl.h.mpsio: RAVENBROOK MEMORY POOL SYSTEM I/O INTERFACE
+/* mpsio.h: RAVENBROOK MEMORY POOL SYSTEM I/O INTERFACE
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

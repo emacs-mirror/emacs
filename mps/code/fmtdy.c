@@ -1,4 +1,4 @@
-/* impl.c.fmtdy: DYLAN OBJECT FORMAT IMPLEMENTATION
+/* fmtdy.c: DYLAN OBJECT FORMAT IMPLEMENTATION
  *
  *  $Id$
  *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

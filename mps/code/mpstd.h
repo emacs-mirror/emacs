@@ -1,4 +1,4 @@
-/* impl.h.mpstd: RAVENBROOK MEMORY POOL SYSTEM TARGET DETECTION
+/* mpstd.h: RAVENBROOK MEMORY POOL SYSTEM TARGET DETECTION
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

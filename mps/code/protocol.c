@@ -1,4 +1,4 @@
-/* impl.c.pool: PROTOCOL IMPLEMENTATION
+/* pool.c: PROTOCOL IMPLEMENTATION
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

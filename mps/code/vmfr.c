@@ -1,4 +1,4 @@
-/* impl.c.vmfr: VIRTUAL MEMORY MAPPING FOR FreeBSD
+/* vmfr.c: VIRTUAL MEMORY MAPPING FOR FreeBSD
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

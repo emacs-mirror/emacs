@@ -1,4 +1,4 @@
-/* impl.c.amssshe: POOL CLASS AMS STRESS TEST WITH HEADERS
+/* amssshe.c: POOL CLASS AMS STRESS TEST WITH HEADERS
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

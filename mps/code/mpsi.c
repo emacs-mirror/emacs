@@ -1,11 +1,11 @@
-/* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
+/* mpsi.c: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This code bridges between the MPS interface to C,
- * impl.h.mps, and the internal MPM interfaces, as defined by
- * impl.h.mpm.  .purpose.check: It performs checking of the C client's
+ * <code/mps.h>, and the internal MPM interfaces, as defined by
+ * <code/mpm.h>.  .purpose.check: It performs checking of the C client's
  * usage of the MPS Interface.  .purpose.thread: It excludes multiple
  * threads from the MPM by locking the Arena (see .thread-safety).
  *
@@ -58,7 +58,7 @@ SRCID(mpsi, "$Id$");
 /* mpsi_check -- check consistency of interface mappings
  *
  * .check.purpose: The mpsi_check function attempts to check whether
- * the defintions in impl.h.mpsi match the equivalent definition in
+ * the defintions in <code/mpsi.h> match the equivalent definition in
  * the MPM.  It is checking the assumptions made in the other functions
  * in this implementation.
  *
@@ -70,7 +70,7 @@ SRCID(mpsi, "$Id$");
 static Bool mpsi_check(void)
 {
   /* .check.rc: Check that external and internal result codes match. */
-  /* See impl.h.mps.result-codes and impl.h.mpmtypes.result-codes. */
+  /* See <code/mps.h#result-codes> and <code/mpmtypes.h#result-codes>. */
   /* Also see .check.enum.cast. */
   CHECKL(CHECKTYPE(mps_res_t, Res));
   CHECKL((int)MPS_RES_OK == (int)ResOK);
@@ -83,7 +83,7 @@ static Bool mpsi_check(void)
   CHECKL((int)MPS_RES_COMMIT_LIMIT == (int)ResCOMMIT_LIMIT);
 
   /* Check that external and internal rank numbers match. */
-  /* See impl.h.mps.ranks and impl.h.mpmtypes.ranks. */
+  /* See <code/mps.h#ranks> and <code/mpmtypes.h#ranks>. */
   /* Also see .check.enum.cast. */
   CHECKL(CHECKTYPE(mps_rank_t, Rank));
   CHECKL((int)MPS_RANK_AMBIG == (int)RankAMBIG);
@@ -105,14 +105,14 @@ static Bool mpsi_check(void)
   CHECKL(CHECKTYPE(size_t, Size));
 
   /* Check ap_s/APStruct compatibility by hand */
-  /* .check.ap: See impl.h.mps.ap and impl.h.buffer.ap. */
+  /* .check.ap: See <code/mps.h#ap> and <code/buffer.h#ap>. */
   CHECKL(sizeof(mps_ap_s) == sizeof(APStruct));
   CHECKL(CHECKFIELD(mps_ap_s, init,  APStruct, init));
   CHECKL(CHECKFIELD(mps_ap_s, alloc, APStruct, alloc));
   CHECKL(CHECKFIELD(mps_ap_s, limit, APStruct, limit));
 
   /* Check sac_s/ExternalSACStruct compatibility by hand */
-  /* See impl.h.mps.sac and impl.h.sac.sac. */
+  /* See <code/mps.h#sac> and <code/sac.h#sac>. */
   CHECKL(sizeof(mps_sac_s) == sizeof(ExternalSACStruct));
   CHECKL(CHECKFIELD(mps_sac_s, mps_middle, ExternalSACStruct, middle));
   CHECKL(CHECKFIELD(mps_sac_s, mps_trapped,
@@ -131,7 +131,7 @@ static Bool mpsi_check(void)
                     SACFreeListBlockStruct, blocks));
 
   /* Check sac_classes_s/SACClassesStruct compatibility by hand */
-  /* See impl.h.mps.sacc and impl.h.sac.sacc. */
+  /* See <code/mps.h#sacc> and <code/sac.h#sacc>. */
   CHECKL(sizeof(mps_sac_classes_s) == sizeof(SACClassesStruct));
   CHECKL(CHECKFIELD(mps_sac_classes_s, mps_block_size,
                     SACClassesStruct, blockSize));
@@ -141,9 +141,9 @@ static Bool mpsi_check(void)
                     SACClassesStruct, frequency));
 
   /* Check ss_s/ScanStateStruct compatibility by hand */
-  /* .check.ss: See impl.h.mps.ss and impl.h.mpmst.ss. */
+  /* .check.ss: See <code/mps.h#ss> and <code/mpmst.h#ss>. */
   /* Note that the size of the mps_ss_s and ScanStateStruct */
-  /* are not equal.  See impl.h.mpmst.ss.  CHECKFIELDAPPROX */
+  /* are not equal.  See <code/mpmst.h#ss>.  CHECKFIELDAPPROX */
   /* is used on the fix field because its type is punned and */
   /* therefore isn't exactly checkable.  See */
   /* <design/interface-c/#pun.addr>. */
@@ -153,7 +153,7 @@ static Bool mpsi_check(void)
   CHECKL(CHECKFIELD(mps_ss_s, w2, ScanStateStruct, unfixedSummary));
 
   /* Check ld_s/LDStruct compatibility by hand */
-  /* .check.ld: See also impl.h.mpmst.ld.struct and impl.h.mps.ld */
+  /* .check.ld: See also <code/mpmst.h#ld.struct> and <code/mps.h#ld> */
   CHECKL(sizeof(mps_ld_s) == sizeof(LDStruct));
   CHECKL(CHECKFIELD(mps_ld_s, w0, LDStruct, epoch));
   CHECKL(CHECKFIELD(mps_ld_s, w1, LDStruct, rs));
@@ -783,7 +783,7 @@ void mps_ap_destroy(mps_ap_t mps_ap)
 /* mps_reserve -- allocate store in preparation for initialization
  *
  * .reserve.call: mps_reserve does not call BufferReserve, but instead
- * uses the in-line macro from impl.h.mps.  This is so that it calls
+ * uses the in-line macro from <code/mps.h>.  This is so that it calls
  * mps_ap_fill and thence ArenaPoll (.poll).  The consistency checks are
  * those which can be done outside the MPM.  See also .commit.call.  */
 
@@ -825,7 +825,7 @@ mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *p_o,
 /* mps_commit -- commit initialized object, finishing allocation
  *
  * .commit.call: mps_commit does not call BufferCommit, but instead uses
- * the in-line commit macro from impl.h.mps.  This is so that it calls
+ * the in-line commit macro from <code/mps.h>.  This is so that it calls
  * mps_ap_trip and thence ArenaPoll in future (.poll).  The consistency
  * checks here are the ones which can be done outside the MPM.  See also
  * .reserve.call.  */
@@ -1458,7 +1458,7 @@ mps_res_t mps_fix(mps_ss_t mps_ss, mps_addr_t *ref_io)
 mps_word_t mps_collections(mps_arena_t mps_arena)
 {
   Arena arena = (Arena)mps_arena;
-  return ArenaEpoch(arena); /* thread safe: see impl.h.arena.epoch.ts */
+  return ArenaEpoch(arena); /* thread safe: see <code/arena.h#epoch.ts> */
 }
 
 

@@ -1,4 +1,4 @@
-/* impl.c.awlutth: THREADING UNIT TEST USING POOL CLASS AWL
+/* awlutth.c: THREADING UNIT TEST USING POOL CLASS AWL
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -30,7 +30,7 @@
 #define CHATTER 100
 /* The number that a half of all numbers generated from rnd are less
  * than.  Hence, probability a-half, or P a-half */
-/* see impl.h.testlib */
+/* see <code/testlib.h> */
 #define P_A_HALF (1024uL*1024uL*1024uL - 1)     /* 2^30 - 1 */
 
 

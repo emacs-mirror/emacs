@@ -1,12 +1,9 @@
-/*  impl.h.ss
- *              STACK SCANNING
+/* ss.h: STACK SCANNING
  *
- *  $Id$
+ * $Id$
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
- *
- *  Provides a function for scanning the stack and registers
- *
+ * Provides a function for scanning the stack and registers
  */
 
 #ifndef ss_h

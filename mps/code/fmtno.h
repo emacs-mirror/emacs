@@ -1,4 +1,4 @@
-/* impl.h.fmtdy: NULL OBJECT FORMAT
+/* fmtdy.h: NULL OBJECT FORMAT
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

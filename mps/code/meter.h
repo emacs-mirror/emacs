@@ -1,4 +1,4 @@
-/* impl.h.meter: METER INTERFACE
+/* meter.h: METER INTERFACE
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,10 +1,10 @@
-/* impl.c.assert: ASSERTION IMPLEMENTATION
+/* assert.c: ASSERTION IMPLEMENTATION
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * This source provides the AssertFail function which is
- * invoked by the assertion macros (see impl.h.assert).
+ * invoked by the assertion macros (see <code/assert.h>).
  * It also provides for user-installed assertion failure handlers.
  */
 

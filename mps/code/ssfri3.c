@@ -1,4 +1,4 @@
-/* impl.c.ssfri3: FREEBSD/INTEL STACK SCANNING
+/* ssfri3.c: FREEBSD/INTEL STACK SCANNING
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

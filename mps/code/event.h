@@ -1,4 +1,4 @@
-/* impl.h.event -- Event Logging Interface
+/* <code/event.h> -- Event Logging Interface
  *
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  * $Id$

@@ -1,4 +1,4 @@
-/* impl.c.sac: SEGREGATED ALLOCATION CACHES
+/* sac.c: SEGREGATED ALLOCATION CACHES
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -120,7 +120,7 @@ Res SACCreate(SAC *sacReturn, Pool pool, Count classesCount,
     unsigned oldFreq = totalFreq;
     totalFreq += classes[i].frequency;
     AVER(oldFreq <= totalFreq); /* check for overflow */
-    UNUSED(oldFreq); /* impl.c.mpm.check.unused */
+    UNUSED(oldFreq); /* <code/mpm.c#check.unused> */
   }
 
   /* Find middle one */
