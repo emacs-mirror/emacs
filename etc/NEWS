@@ -213,11 +213,12 @@ and its use is deprecated.
 +++
 ** Mouse-sensitive mode line.
 
-Different parts of the mode line under X have been made
-mouse-sensitive.  Moving the mouse to a mouse-sensitive part in the mode
-line changes the appearance of the mouse pointer to an arrow, and help
-about available mouse actions is displayed either in the echo area, or
-in the tooltip window if you have enabled one.
+Different parts of the mode line have been made mouse-sensitive on all
+systems which support the mouse.  Moving the mouse to a
+mouse-sensitive part in the mode line changes the appearance of the
+mouse pointer to an arrow, and help about available mouse actions is
+displayed either in the echo area, or in the tooltip window if you
+have enabled one.
 
 Currently, the following actions have been defined:
 
