@@ -345,29 +345,32 @@ find_next_newline (from, cnt)
   return (scan_buffer ('\n', from, cnt, (int *) 0));
 }
 
+Lisp_Object skip_chars ();
+
 DEFUN ("skip-chars-forward", Fskip_chars_forward, Sskip_chars_forward, 1, 2, 0,
   "Move point forward, stopping before a char not in CHARS, or at position LIM.\n\
 CHARS is like the inside of a `[...]' in a regular expression\n\
 except that `]' is never special and `\\' quotes `^', `-' or `\\'.\n\
 Thus, with arg \"a-zA-Z\", this skips letters stopping before first nonletter.\n\
-With arg \"^a-zA-Z\", skips nonletters stopping before first letter.")
+With arg \"^a-zA-Z\", skips nonletters stopping before first letter.\n\
+Returns the distance traveled, either zero or positive.")
   (string, lim)
      Lisp_Object string, lim;
 {
-  skip_chars (1, string, lim);
-  return Qnil;
+  return skip_chars (1, string, lim);
 }
 
 DEFUN ("skip-chars-backward", Fskip_chars_backward, Sskip_chars_backward, 1, 2, 0,
   "Move point backward, stopping after a char not in CHARS, or at position LIM.\n\
-See `skip-chars-forward' for details.")
+See `skip-chars-forward' for details.\n\
+Returns the distance traveled, either zero or negative.")
   (string, lim)
      Lisp_Object string, lim;
 {
-  skip_chars (0, string, lim);
-  return Qnil;
+  return skip_chars (0, string, lim);
 }
 
+Lisp_Object
 skip_chars (forwardp, string, lim)
      int forwardp;
      Lisp_Object string, lim;
@@ -433,18 +436,24 @@ skip_chars (forwardp, string, lim)
     for (i = 0; i < sizeof fastmap; i++)
       fastmap[i] ^= 1;
 
-  immediate_quit = 1;
-  if (forwardp)
-    {
-      while (point < XINT (lim) && fastmap[FETCH_CHAR (point)])
-	SET_PT (point + 1);
-    }
-  else
-    {
-      while (point > XINT (lim) && fastmap[FETCH_CHAR (point - 1)])
-	SET_PT (point - 1);
-    }
-  immediate_quit = 0;
+  {
+    int start_point = point;
+
+    immediate_quit = 1;
+    if (forwardp)
+      {
+	while (point < XINT (lim) && fastmap[FETCH_CHAR (point)])
+	  SET_PT (point + 1);
+      }
+    else
+      {
+	while (point > XINT (lim) && fastmap[FETCH_CHAR (point - 1)])
+	  SET_PT (point - 1);
+      }
+    immediate_quit = 0;
+
+    return make_number (point - start_point);
+  }
 }
 
 /* Subroutines of Lisp buffer search functions. */
