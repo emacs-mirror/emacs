@@ -58,7 +58,8 @@ in paths.el.")
 	(sep (if (or (eq system-type 'ms-dos) 
 		     (eq system-type 'windows-nt))
 		 ";" ":"))
-	(sibling (expand-file-name "../info/" (invocation-directory))))
+	(sibling (if installation-directory
+		     (expand-file-name "info/" installation-directory))))
     (if path
 	(let ((list nil)
 	      idx)
@@ -68,7 +69,8 @@ in paths.el.")
 		  path (substring path (min (1+ idx)
 					    (length path)))))
 	  (nreverse list))
-      (if (or (member sibling Info-default-directory-list)
+      (if (or (null sibling)
+	      (member sibling Info-default-directory-list)
 	      (not (file-exists-p sibling))
 	      ;; On DOS/NT, we use movable executables always,
 	      ;; and we must always find the Info dir at run time.
@@ -77,8 +79,8 @@ in paths.el.")
 		;; Use invocation-directory for Info only if we used it for
 		;; exec-directory also.
 		(not (string= exec-directory
-			      (expand-file-name "../lib-src/"
-						(invocation-directory))))))
+			      (expand-file-name "lib-src/"
+						installation-directory)))))
 	  Info-default-directory-list
 	(reverse (cons sibling (cdr (reverse Info-default-directory-list)))))))
   "List of directories to search for Info documentation files.
