@@ -243,3 +243,8 @@ Other features we would like:
   cmacexp, hideif, mantemp [obsolete?], pcomplete, assoc, xml,
   cvs-status (should be described in PCL-CVS manual); other progmodes,
   probably in separate manual.
+
+* Convenient access to the `values' variable.  It would be nice to have an
+  interface that would show you the printed reps of the elements of the
+  list in a menu, let you select one of the values, and put it into some
+  other variable, without changing the value of `values'.
