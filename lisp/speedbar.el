@@ -5,7 +5,7 @@
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.7.2a
 ;; Keywords: file, tags, tools
-;; X-RCS: $Id: speedbar.el,v 1.9 1998/08/19 01:43:37 zappo Exp done $
+;; X-RCS: $Id: speedbar.el,v 1.10 1998/08/19 21:43:56 done Exp zappo $
 
 ;; This file is part of GNU Emacs.
 
@@ -1174,6 +1174,7 @@ in the selected file.
 						       speedbar-buffer)
 						   (speedbar-frame-mode -1)))))
 	      t t)
+    (toggle-read-only 1)
     (speedbar-set-mode-line-format)
     (if speedbar-xemacsp
 	(progn
@@ -1810,7 +1811,6 @@ to track file check ins, and will change the mode line to match
 (defmacro speedbar-with-writable (&rest forms)
   "Allow the buffer to be writable and evaluate FORMS."
   (list 'let '((inhibit-read-only t))
-	'(toggle-read-only -1)
 	(cons 'progn forms)))
 (put 'speedbar-with-writable 'lisp-indent-function 0)
 
