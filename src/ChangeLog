@@ -1,3 +1,18 @@
+1999-10-08  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (code_convert_string): Add record_unwind_protect to
+	assure setting inhibit_pre_post_conversion back to zero.  Take
+	care of the multibyteness of the working buffer.
+
+	* coding.c (inhibit_pre_post_conversion): New variable.
+	(setup_coding_system): If inhibit_pre_post_conversion is nonzero,
+	ignore post-read-conversion and pre-write-conversion property of
+	the coding system.
+	(code_convert_region_unwind): New function.
+	(code_convert_region): Set inhibit_pre_post_conversion to 1 while
+	running pre-write-conversion and post-read-conversion.
+	(code_convert_string): Likewise.
+
 1999-10-17  Miles Bader  <miles@gnu.org>
 
 	* editfns.c: Doc fix.
