@@ -526,7 +526,7 @@ but still contains full information about each coding system."
 	(print-coding-system coding-system))
       (setq bases (cdr bases)))))
 
-;;;###automatic
+;;;###autoload
 (defun list-coding-categories ()
   "Display a list of all coding categories."
   (with-output-to-temp-buffer "*Help*"
