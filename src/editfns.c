@@ -560,7 +560,7 @@ DEFUN ("eolp", Feolp, Seolp, 0, 0, 0,
   return Qnil;
 }
 
-DEFUN ("char-after", Fchar_after, Schar_after, 1, 1, 0,
+DEFUN ("char-after", Fchar_after, Schar_after, 0, 1, 0,
   "Return character in current buffer at position POS.\n\
 POS is an integer or a buffer pointer.\n\
 If POS is out of range, the value is nil.\n\
@@ -573,16 +573,22 @@ If `enable-multibyte-characters' is nil or POS is not at character boundary,\n\
   register Lisp_Object val;
   register int n;
 
-  CHECK_NUMBER_COERCE_MARKER (pos, 0);
+  if (NILP (pos))
+    n = PT;
+  else
+    {
+      CHECK_NUMBER_COERCE_MARKER (pos, 0);
 
-  n = XINT (pos);
-  if (n < BEGV || n >= ZV) return Qnil;
+      n = XINT (pos);
+      if (n < BEGV || n >= ZV)
+	return Qnil;
+    }
 
   XSETFASTINT (val, FETCH_CHAR (n));
   return val;
 }
 
-DEFUN ("char-before", Fchar_before, Schar_before, 1, 1, 0,
+DEFUN ("char-before", Fchar_before, Schar_before, 0, 1, 0,
   "Return character in current buffer preceding position POS.\n\
 POS is an integer or a buffer pointer.\n\
 If POS is out of range, the value is nil.\n\
@@ -595,10 +601,16 @@ is returned as a character.")
   register Lisp_Object val;
   register int n;
 
-  CHECK_NUMBER_COERCE_MARKER (pos, 0);
+  if (NILP (pos))
+    n = PT;
+  else
+    {
+      CHECK_NUMBER_COERCE_MARKER (pos, 0);
 
-  n = XINT (pos);
-  if (n <= BEGV || n > ZV) return Qnil;
+      n = XINT (pos);
+      if (n < BEGV || n >= ZV)
+	return Qnil;
+    }
 
   if (!NILP (current_buffer->enable_multibyte_characters))
     {
