@@ -551,7 +551,15 @@ FUNCTION is added at the end.
 
 HOOK should be a symbol, and FUNCTION may be any valid function.  If
 HOOK is void, it is first set to nil.  If HOOK's value is a single
-function, it is changed to a list of functions."
+function, it is changed to a list of functions.
+
+Note: if you make a hook variable buffer-local, copy its value before
+you use `add-hook' to add to it.  For example,
+
+  (make-local-variable 'foo-hook)
+  (if (boundp 'foo-hook)
+      (setq foo-hook (copy-sequence foo-hook)))
+  (add-hook 'foo-hook 'my-foo-function)"
   (or (boundp hook) (set hook nil))
   ;; If the hook value is a single function, turn it into a list.
   (let ((old (symbol-value hook)))
