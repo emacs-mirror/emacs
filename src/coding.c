@@ -7763,7 +7763,8 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS ...)  */)
 DEFUN ("set-coding-system-priority", Fset_coding_system_priority,
        Sset_coding_system_priority, 0, MANY, 0,
        doc: /* Assign higher priority to the coding systems given as arguments.
-usage: (set-coding-system-priority CODING-SYSTEM ...)  */)
+If multiple coding systems belongs to the same category,
+all but the first one are ignored.  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -7791,6 +7792,7 @@ usage: (set-coding-system-priority CODING-SYSTEM ...)  */)
       if (coding_categories[category].id >= 0
 	  && ! EQ (args[i], CODING_ID_NAME (coding_categories[category].id)))
 	setup_coding_system (args[i], &coding_categories[category]);
+      Fset (AREF (Vcoding_category_table, category), args[i]);
     }
 
   /* Now we have decided top J priorities.  Reflect the order of the
@@ -7807,6 +7809,14 @@ usage: (set-coding-system-priority CODING-SYSTEM ...)  */)
     }
 
   bcopy (priorities, coding_priorities, sizeof priorities);
+
+  /* Update `coding-category-list'.  */
+  Vcoding_category_list = Qnil;
+  for (i = coding_category_max - 1; i >= 0; i--)
+    Vcoding_category_list
+      = Fcons (AREF (Vcoding_category_table, priorities[i]),
+	       Vcoding_category_list);
+
   return Qnil;
 }
 
@@ -8633,6 +8643,8 @@ syms_of_coding ()
 	intern ("coding-category-utf-8"));
   ASET (Vcoding_category_table, coding_category_utf_16_be,
 	intern ("coding-category-utf-16-be"));
+  ASET (Vcoding_category_table, coding_category_utf_16_auto,
+	intern ("coding-category-utf-16-auto"));
   ASET (Vcoding_category_table, coding_category_utf_16_le,
 	intern ("coding-category-utf-16-le"));
   ASET (Vcoding_category_table, coding_category_utf_16_be_nosig,
@@ -8954,6 +8966,13 @@ character.");
   setup_coding_system (Qno_conversion, &keyboard_coding);
   setup_coding_system (Qno_conversion, &terminal_coding);
   setup_coding_system (Qno_conversion, &safe_terminal_coding);
+
+  {
+    int i;
+
+    for (i = 0; i < coding_category_max; i++)
+      Fset (AREF (Vcoding_category_table, i), Qno_conversion);
+  }
 }
 
 char *
