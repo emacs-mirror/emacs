@@ -274,6 +274,7 @@ seek.  This feature is available only when you are using a window
 system.  @xref{Frames}.
 
 @findex find-file-literally
+@vindex require-final-newline@r{, and }find-file-literally
   If you wish to edit a file as a sequence of characters with no special
 encoding or conversion, use the @kbd{M-x find-file-literally} command.
 It visits a file, like @kbd{C-x C-f}, but does not do format conversion
