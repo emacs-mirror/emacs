@@ -3468,14 +3468,15 @@ where `pop-up-frame-alist' would hold the default frame parameters.");
   DEFVAR_LISP ("special-display-buffer-names", &Vspecial_display_buffer_names,
     "*List of buffer names that should have their own special frames.\n\
 Displaying a buffer whose name is in this list makes a special frame for it\n\
-using `special-display-function'.\n\
+using `special-display-function'.  See also `special-display-regexps'.\n\
 \n\
-An element of the list can be a cons cell instead of just a string.\n\
-Then the car should be a buffer name, and the cdr specifies frame\n\
-parameters for creating the frame for that buffer.\n\
-More precisely, the cdr is passed as the second argument to\n\
-the function found in `special-display-function', when making that frame.\n\
-See also `special-display-regexps'.");
+An element of the list can be a list instead of just a string.\n\
+There are two ways to use a list as an element:\n\
+  (BUFFER FRAME-PARAMETERS...)   (BUFFER FUNCTION OTHER-ARGS...)\n\
+In the first case, FRAME-PARAMETERS are used to create the frame.\n\
+In the latter case, FUNCTION is called with BUFFER as the first argument,\n\
+followed by OTHER-ARGS--it can display BUFFER in any way it likes.\n\
+All this is done by the function found in `special-display-function'.");
   Vspecial_display_buffer_names = Qnil;
 
   DEFVAR_LISP ("special-display-regexps", &Vspecial_display_regexps,
@@ -3484,12 +3485,13 @@ If a buffer name matches one of these regexps, it gets its own frame.\n\
 Displaying a buffer whose name is in this list makes a special frame for it\n\
 using `special-display-function'.\n\
 \n\
-An element of the list can be a cons cell instead of just a string.\n\
-Then the car should be the regexp, and the cdr specifies frame\n\
-parameters for creating the frame for buffers that match.\n\
-More precisely, the cdr is passed as the second argument to\n\
-the function found in `special-display-function', when making that frame.\n\
-See also `special-display-buffer-names'.");
+An element of the list can be a list instead of just a string.\n\
+There are two ways to use a list as an element:\n\
+  (REGEXP FRAME-PARAMETERS...)   (REGEXP FUNCTION OTHER-ARGS...)\n\
+In the first case, FRAME-PARAMETERS are used to create the frame.\n\
+In the latter case, FUNCTION is called with the buffer as first argument,\n\
+followed by OTHER-ARGS--it can display the buffer in any way it likes.\n\
+All this is done by the function found in `special-display-function'.");
   Vspecial_display_regexps = Qnil;
 
   DEFVAR_LISP ("special-display-function", &Vspecial_display_function,
