@@ -1,6 +1,6 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
- * $HopeName: MMsrc!amcss.c(trunk.31) $
+ * $HopeName: MMsrc!amcss.c(trunk.32) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  */
 
@@ -21,12 +21,13 @@
 #include <string.h>
 
 
-#define testArenaSIZE     ((size_t)64<<20)
+/* These values have been tuned to cause one top generation collection. */
+#define testArenaSIZE     ((size_t)1600*1024)
 #define avLEN             3
-#define exactRootsCOUNT   300
+#define exactRootsCOUNT   224
 #define ambigRootsCOUNT   50
-#define collectionsCOUNT  18
-#define rampSIZE          5
+#define collectionsCOUNT  44
+#define rampSIZE          10
 #define initTestFREQ      6000
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
 #define objNULL           ((mps_addr_t)0xDECEA5ED)
@@ -195,9 +196,10 @@ int main(int argc, char **argv)
 
   randomize(argc, argv);
 
-  die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
+  die(mps_arena_create(&arena, mps_arena_class_vm(), 2*testArenaSIZE),
       "arena_create");
-  adjust_collection_freq(0.2);
+  adjust_collection_freq(0.05);
+  die(mps_arena_commit_limit_set(arena, testArenaSIZE), "set limit");
   die(mps_thread_reg(&thread, arena), "thread_reg");
   mps_tramp(&r, test, arena, 0);
   mps_thread_dereg(thread);
