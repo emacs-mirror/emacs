@@ -39,13 +39,13 @@ INFO_TARGETS = ../info/emacs ../info/ccmode ../info/cl \
 		../info/efaq ../info/ada-mode ../info/autotype ../info/calc \
 		../info/idlwave ../info/eudc ../info/ebrowse ../info/pcl-cvs \
 		../info/woman ../info/emacs-mime ../info/eshell \
-		../info/speedbar ../info/tramp
+		../info/speedbar ../info/tramp ../info/ses
 DVI_TARGETS = 	emacs.dvi calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
 		 ediff.dvi forms.dvi gnus.dvi message.dvi mh-e.dvi \
 		 reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi faq.dvi \
 		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi \
 		 pcl-cvs.dvi woman.dvi emacs-mime.dvi eshell.dvi \
-		 speedbar.dvi tramp.dvi
+		 speedbar.dvi tramp.dvi ses.dvi
 INFOSOURCES = info.texi
 
 # The following rule does not work with all versions of `make'.
@@ -271,6 +271,11 @@ emacs-mime.dvi: emacs-mime.texi
 	cd $(srcdir); $(MAKEINFO) tramp.texi
 tramp.dvi: tramp.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/tramp.texi
+
+../info/ses: ses.texi
+	cd $(srcdir); $(MAKEINFO) ses.texi
+ses.dvi: ses.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/ses.texi
 
 mostlyclean:
 	rm -f *.log *.cp *.fn *.ky *.pg *.vr core *.tp *.core gnustmp.*

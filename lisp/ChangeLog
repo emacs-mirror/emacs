@@ -895,6 +895,17 @@
 
 	* viper.el (viper-emacs-state-mode-list): Added modes.
 
+2002-09-18  Jonathan Yavner  <jyavner@engineer.com>
+
+	* emacs-lisp/testcover.el: New file.  Uses edebug to instrument a
+	module of code, with graphical display of poor-coverage spots.
+
+	* emacs-lisp/testcover-ses.el: New file.  Demonstrates use of
+	testcover on a interactive module like ses.
+
+	* emacs-lisp/testcover-unsafep.el: New file.  Demonstrates use of
+	testcover on a noninteractive module like unsafep.
+
 2002-09-18  Miles Bader  <miles@gnu.org>
 
 	* diff-mode.el (diff-mode): Don't evaluate `compilation-last-buffer'
@@ -908,6 +919,21 @@
 	handle the new &n quoting.  Use push.  Use server-log's new arg.
 	Don't output the C-x # message if `nowait'.
 	(server-buffer-done): Use server-log's new arg.
+
+2002-09-16  Jonathan Yavner  <jyavner@engineer.com>
+
+	* ses.el: New file.
+
+	* emacs-lisp/unsafep.el: New file.
+
+	* files.el (auto-mode-alist): Add ".ses" for ses-mode.
+	(inhibit-quit): This is risky for unsafep, doesn't matter much for
+	anybody else.
+	(risky-local-variable-p): New function.  Split off from
+	hack-one-local-variable so unsafep can use it.  Add \|-history$ to
+	the list of disallowed local variable names (malicious user could
+	stuff a `display' property in there that would be activated when
+	na,Ao(Bve user called up the history).
 
 2002-09-16  Markus Rost  <rost@math.ohio-state.edu>
 

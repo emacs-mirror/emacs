@@ -1617,6 +1617,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ;; and after the .scm.[0-9] and CVS' <file>.<rev> patterns too.
      ("\\.[1-9]\\'" . nroff-mode)
      ("\\.g\\'" . antlr-mode)
+     ("\\.ses\\'" . ses-mode)
      ("\\.in\\'" nil t)))
   "Alist of filename patterns vs corresponding major mode functions.
 Each element looks like (REGEXP . FUNCTION) or (REGEXP FUNCTION NON-NIL).
@@ -2010,6 +2011,7 @@ is specified, returning t if it is specified."
 (put 'ignored-local-variables 'risky-local-variable t)
 (put 'eval 'risky-local-variable t)
 (put 'file-name-handler-alist 'risky-local-variable t)
+(put 'inhibit-quit 'risky-local-variable t)
 (put 'minor-mode-alist 'risky-local-variable t)
 (put 'minor-mode-map-alist 'risky-local-variable t)
 (put 'minor-mode-overriding-map-alist 'risky-local-variable t)
@@ -2057,6 +2059,14 @@ is specified, returning t if it is specified."
 
 ;; This one is safe because the user gets to check it before it is used.
 (put 'compile-command 'safe-local-variable t)
+
+(defun risky-local-variable-p (sym)
+  "Returns non-nil if SYM could be dangerous as a file-local variable."
+  (or (memq sym ignored-local-variables)
+      (get sym 'risky-local-variable)
+      (and (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|-command$\\|-predicate$\\|font-lock-keywords$\\|font-lock-keywords-[0-9]+$\\|font-lock-syntactic-keywords$\\|-frame-alist$\\|-mode-alist$\\|-map$\\|-map-alist$"
+			 (symbol-name sym))
+	   (not (get sym 'safe-local-variable)))))
 
 (defcustom safe-local-eval-forms nil
   "*Expressions that are considered \"safe\" in an `eval:' local variable.
@@ -2122,15 +2132,9 @@ is considered risky."
 	((eq var 'coding)
 	 ;; We have already handled coding: tag in set-auto-coding.
 	 nil)
-	((memq var ignored-local-variables)
-	 nil)
 	;; "Setting" eval means either eval it or do nothing.
 	;; Likewise for setting hook variables.
-	((or (get var 'risky-local-variable)
-	     (and
-	      (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|-command$\\|-predicate$\\|font-lock-keywords$\\|font-lock-keywords-[0-9]+$\\|font-lock-syntactic-keywords$\\|-frame-alist$\\|-mode-alist$\\|-map$\\|-map-alist$"
-			    (symbol-name var))
-	      (not (get var 'safe-local-variable))))
+	((risky-local-variable-p var)
 	 ;; Permit evalling a put of a harmless property.
 	 ;; if the args do nothing tricky.
 	 (if (or (and (eq var 'eval)
