@@ -1,3 +1,13 @@
+2005-02-22  Kenichi Handa  <handa@m17n.org>
+
+	* ps-mule.el (ps-mule-header-string-charsets): Delete it.
+	(ps-mule-show-warning): New function.
+	(ps-mule-begin-job): Use ps-mule-show-warning if unprintable
+	characters are found.
+
+	* ps-print.el (ps-header-footer-string): Return a list of header
+	and footer strings.
+
 2005-02-21  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
 
 	* pcvs.el (cvs-retrieve-revision): Fix thinko.
