@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.44) $
+ * $HopeName: MMsrc!arena.c(trunk.45) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName$");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.45) $");
 
 
 /* Forward declarations */
@@ -228,7 +228,7 @@ static Seg ArenaReservoirFirstSeg(Arena arena)
 static void ArenaShrinkReservoir(Arena arena, Size want)
 {
   AVER(SizeIsAligned(want, arena->alignment));
-  AVER(arena->reservoirSize > want);
+  AVER(arena->reservoirSize >= want);
 
   if (arena->reservoirSize == want)
     return;
