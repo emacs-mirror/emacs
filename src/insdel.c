@@ -774,8 +774,8 @@ signal_before_change (start, end)
 	 That way, if there's an error in them, they will stay nil.  */
       before_change_functions = Vbefore_change_functions;
       after_change_functions = Vafter_change_functions;
-      Vbefore_change_function = Qnil;
-      Vafter_change_function = Qnil;
+      Vbefore_change_functions = Qnil;
+      Vafter_change_functions = Qnil;
       GCPRO2 (before_change_functions, after_change_functions);
 
       /* Actually run the hook functions.  */
@@ -827,8 +827,8 @@ signal_after_change (pos, lendel, lenins)
 	 That way, if there's an error in them, they will stay nil.  */
       before_change_functions = Vbefore_change_functions;
       after_change_functions = Vafter_change_functions;
-      Vbefore_change_function = Qnil;
-      Vafter_change_function = Qnil;
+      Vbefore_change_functions = Qnil;
+      Vafter_change_functions = Qnil;
       GCPRO2 (before_change_functions, after_change_functions);
 
       /* Actually run the hook functions.  */
