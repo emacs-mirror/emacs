@@ -1588,8 +1588,10 @@ set_point (position, buffer)
   register INTERVAL to, from, toprev, fromprev, target;
   int buffer_point;
   register Lisp_Object obj;
-  int backwards = (position < BUF_PT (buffer)) ? 1 : 0;
   int old_position = BUF_PT (buffer);
+  int backwards = (position < old_position ? 1 : 0);
+  int have_overlays;
+  int original_position;
 
   buffer->point_before_scroll = Qnil;
 
@@ -1602,9 +1604,13 @@ set_point (position, buffer)
   if (position > BUF_Z (buffer) || position < BUF_BEG (buffer))
     abort ();
 
-  if (NULL_INTERVAL_P (BUF_INTERVALS (buffer)))
+  have_overlays = (! NILP (buffer->overlays_before)
+		   || ! NILP (buffer->overlays_after));
+
+  /* If we have no text properties and overlays,
+     then we can do it quickly.  */
+  if (NULL_INTERVAL_P (BUF_INTERVALS (buffer)) && ! have_overlays)
     {
-      
       BUF_PT (buffer) = position;
       return;
     }
@@ -1615,7 +1621,7 @@ set_point (position, buffer)
   to = find_interval (BUF_INTERVALS (buffer), position);
   if (position == BUF_BEGV (buffer))
     toprev = 0;
-  else if (to->position == position)
+  else if (to && to->position == position)
     toprev = previous_interval (to);
   else
     toprev = to;
@@ -1631,7 +1637,7 @@ set_point (position, buffer)
   from = find_interval (BUF_INTERVALS (buffer), buffer_point);
   if (buffer_point == BUF_BEGV (buffer))
     fromprev = 0;
-  else if (from->position == BUF_PT (buffer))
+  else if (from && from->position == BUF_PT (buffer))
     fromprev = previous_interval (from);
   else if (buffer_point != BUF_PT (buffer))
     fromprev = from, from = 0;
@@ -1639,64 +1645,71 @@ set_point (position, buffer)
     fromprev = from;
 
   /* Moving within an interval.  */
-  if (to == from && toprev == fromprev && INTERVAL_VISIBLE_P (to))
+  if (to == from && toprev == fromprev && INTERVAL_VISIBLE_P (to)
+      && ! have_overlays)
     {
       BUF_PT (buffer) = position;
       return;
     }
 
+  original_position = position;
+
   /* If the new position is between two intangible characters
      with the same intangible property value,
      move forward or backward until a change in that property.  */
-  if (NILP (Vinhibit_point_motion_hooks) && ! NULL_INTERVAL_P (to)
-      && ! NULL_INTERVAL_P (toprev))
+  if (NILP (Vinhibit_point_motion_hooks)
+      && ((! NULL_INTERVAL_P (to) && ! NULL_INTERVAL_P (toprev))
+	  || have_overlays))
     {
+      Lisp_Object intangible_propval;
+      Lisp_Object pos;
+
+      XSETINT (pos, position);
+
       if (backwards)
 	{
-	  Lisp_Object intangible_propval;
-	  intangible_propval = textget (to->plist, Qintangible);
+	  intangible_propval = Fget_char_property (make_number (position),
+						   Qintangible, Qnil);
 
 	  /* If following char is intangible,
 	     skip back over all chars with matching intangible property.  */
 	  if (! NILP (intangible_propval))
-	    while (to == toprev
-		   || ((! NULL_INTERVAL_P (toprev)
-			&& EQ (textget (toprev->plist, Qintangible),
-			       intangible_propval))))
-	      {
-		to = toprev;
-		toprev = previous_interval (toprev);
-		if (NULL_INTERVAL_P (toprev))
-		  position = BUF_BEGV (buffer);
-		else
-		  /* This is the only line that's not
-		     dual to the following loop.
-		     That's because we want the position
-		     at the end of TOPREV.  */
-		  position = to->position;
-	      }
+	    while (XINT (pos) > BUF_BEGV (buffer)
+		   && EQ (Fget_char_property (make_number (XINT (pos) - 1),
+					      Qintangible, Qnil),
+			  intangible_propval))
+	      pos = Fprevious_char_property_change (pos, Qnil);
 	}
       else
 	{
-	  Lisp_Object intangible_propval;
-	  intangible_propval = textget (toprev->plist, Qintangible);
+	  intangible_propval = Fget_char_property (make_number (position - 1),
+						   Qintangible, Qnil);
 
-	  /* If previous char is intangible,
-	     skip fwd over all chars with matching intangible property.  */
+	  /* If following char is intangible,
+	     skip back over all chars with matching intangible property.  */
 	  if (! NILP (intangible_propval))
-	    while (to == toprev
-		   || ((! NULL_INTERVAL_P (to)
-			&& EQ (textget (to->plist, Qintangible),
-			       intangible_propval))))
-	      {
-		toprev = to;
-		to = next_interval (to);
-		if (NULL_INTERVAL_P (to))
-		  position = BUF_ZV (buffer);
-		else
-		  position = to->position;
-	      }
+	    while (XINT (pos) < BUF_ZV (buffer)
+		   && EQ (Fget_char_property (pos, Qintangible, Qnil),
+			  intangible_propval))
+	      pos = Fnext_char_property_change (pos, Qnil);
+
 	}
+
+      position = XINT (pos);
+    }
+
+  if (position != original_position)
+    {
+      /* Set TO to the interval containing the char after POSITION,
+	 and TOPREV to the interval containing the char before POSITION.
+	 Either one may be null.  They may be equal.  */
+      to = find_interval (BUF_INTERVALS (buffer), position);
+      if (position == BUF_BEGV (buffer))
+	toprev = 0;
+      else if (to && to->position == position)
+	toprev = previous_interval (to);
+      else
+	toprev = to;
     }
 
   /* Here TO is the interval after the stopping point
