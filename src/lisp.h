@@ -202,7 +202,7 @@ Lisp_Object;
 #define PSEUDOVECTOR_FLAG ((ARRAY_MARK_FLAG >> 1) & ~ARRAY_MARK_FLAG)
 #endif
 
-/* In a pseudo-vector, the size field actually contains a word with one
+/* In a pseudovector, the size field actually contains a word with one
    PSEUDOVECTOR_FLAG bit set, and exactly one of the following bits to
    indicate the actual type.  */
 enum pvec_type
@@ -830,13 +830,13 @@ typedef unsigned char UCHAR;
 #define GC_SOME_BUFFER_LOCAL_VALUEP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Some_Buffer_Local_Value)
 
 
-/* True if object X is a pseudo vector whose code is CODE.  */
+/* True if object X is a pseudovector whose code is CODE.  */
 #define PSEUDOVECTORP(x, code)					\
   (VECTORLIKEP (x)						\
    && (((XVECTOR (x)->size & (PSEUDOVECTOR_FLAG | (code))))	\
        == (PSEUDOVECTOR_FLAG | (code))))
 
-/* True if object X is a pseudo vector whose code is CODE.
+/* True if object X is a pseudovector whose code is CODE.
    This one works during GC.  */
 #define GC_PSEUDOVECTORP(x, code)				\
   (GC_VECTORLIKEP (x)						\
