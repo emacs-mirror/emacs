@@ -464,12 +464,7 @@ it is displayed along with the global value."
                 (terpri))
               (princ (or doc "Not documented as a variable.")))
 	    ;; Make a link to customize if this variable can be customized.
-	    ;; Note, it is not reliable to test only for a custom-type property
-	    ;; because those are only present after the var's definition
-	    ;; has been loaded.
-	    (if (or (get variable 'custom-type) ; after defcustom
-		    (get variable 'custom-loads) ; from loaddefs.el
-		    (get variable 'standard-value)) ; from cus-start.el
+	    (if (custom-variable-p variable)
 		(let ((customize-label "customize"))
 		  (terpri)
 		  (terpri)
