@@ -243,15 +243,9 @@ It calls them sequentially, and if any returns non-nil,
 Uses `which-function-functions', `imenu--index-alist'
 or `add-log-current-defun-function'.
 If no function name is found, return nil."
-  (let (name)
-    ;; Try the which-function-functions functions first.
-    (let ((hooks which-func-functions))
-      (while hooks
-	(let ((value (funcall (car hooks))))
-	  (when value
-	    (setq name value
-		  hooks nil)))
-	(setq hooks (cdr hooks))))
+  (let ((name
+	 ;; Try the `which-function-functions' functions first.
+	 (run-hook-with-args-until-success 'which-func-functions)))
 
     ;; If Imenu is loaded, try to make an index alist with it.
     (when (and (null name)
