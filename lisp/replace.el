@@ -65,8 +65,7 @@ only matches surrounded by word boundaries.
 
 To customize possible responses, change the \"bindings\" in `query-replace-map'."
   (interactive (query-replace-read-args "Query replace" nil))
-  (perform-replace from-string to-string t nil arg)
-  (or unread-command-events (message "Done")))
+  (perform-replace from-string to-string t nil arg))
 (define-key esc-map "%" 'query-replace)
 
 (defun query-replace-regexp (regexp to-string &optional arg)
@@ -86,8 +85,7 @@ In TO-STRING, `\\&' stands for whatever matched the whole of REGEXP,
 and `\\=\\N' (where N is a digit) stands for
  whatever what matched the Nth `\\(...\\)' in REGEXP."
   (interactive (query-replace-read-args "Query replace regexp" t))
-  (perform-replace regexp to-string t t arg)
-  (or unread-command-events (message "Done")))
+  (perform-replace regexp to-string t t arg))
 
 (defun map-query-replace-regexp (regexp to-strings &optional arg)
   "Replace some matches for REGEXP with various strings, in rotation.
@@ -129,8 +127,7 @@ before rotating to the next."
 				       (1+ (string-match " " to-strings))))
 	  (setq replacements (append replacements (list to-strings))
 		to-strings ""))))
-    (perform-replace regexp replacements t t nil arg))
-  (or unread-command-events (message "Done")))
+    (perform-replace regexp replacements t t nil arg)))
 
 (defun replace-string (from-string to-string &optional delimited)
   "Replace occurrences of FROM-STRING with TO-STRING.
@@ -152,8 +149,7 @@ What you probably want is a loop like this:
     (replace-match TO-STRING nil t))
 which will run faster and will not set the mark or print anything."
   (interactive (query-replace-read-args "Replace string" nil))
-  (perform-replace from-string to-string nil nil delimited)
-  (or unread-command-events (message "Done")))
+  (perform-replace from-string to-string nil nil delimited))
 
 (defun replace-regexp (regexp to-string &optional delimited)
   "Replace things after point matching REGEXP with TO-STRING.
@@ -174,8 +170,7 @@ What you probably want is a loop like this:
     (replace-match TO-STRING nil nil))
 which will run faster and will not set the mark or print anything."
   (interactive (query-replace-read-args "Replace regexp" t))
-  (perform-replace regexp to-string nil t delimited)
-  (or unread-command-events (message "Done")))
+  (perform-replace regexp to-string nil t delimited))
 
 (defvar regexp-history nil
   "History list for some commands that read regular expressions.")
@@ -665,7 +660,11 @@ which will run faster and probably do exactly what you want."
 	      (if replaced (setq replace-count (1+ replace-count)))))
 	  (setq lastrepl (point)))
       (replace-dehighlight))
-  (and keep-going stack)))
+    (or unread-command-events
+	(message "Replaced %d occurrence%s"
+		 replace-count
+		 (if (= replace-count 1) "" "s")))
+    (and keep-going stack)))
 
 (defvar query-replace-highlight nil
   "*Non-nil means to highlight words during query replacement.")
