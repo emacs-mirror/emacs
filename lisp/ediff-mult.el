@@ -161,6 +161,11 @@ ediff-directories, is run.")
   "*Hooks run just after the registry buffer is shown.")
 (defvar ediff-show-session-group-hook nil
   "*Hooks run just after a session group buffer is shown.")
+(defvar ediff-meta-buffer-keymap-setup-hook nil
+  "*Hooks run just after setting up the ediff-meta-buffer-map.
+This keymap controls key bindings in the meta buffer and is a local variable.
+This means that you can set different bindings for different kinds of meta
+buffers.")
 
 ;; buffer holding the multi-file patch. local to the meta buffer
 (ediff-defvar-local ediff-meta-patchbufer nil "")
@@ -230,7 +235,9 @@ ediff-directories, is run.")
       (define-key ediff-meta-buffer-map [mouse-2] ediff-meta-action-function)
     (define-key ediff-meta-buffer-map [button2] ediff-meta-action-function))
 
-  (use-local-map ediff-meta-buffer-map))
+  (use-local-map ediff-meta-buffer-map)
+  ;; modify ediff-meta-buffer-map here
+  (run-hooks 'ediff-meta-buffer-keymap-setup-hook))
 
 (defun ediff-meta-mode ()
   "This mode controls all operations on Ediff session groups.
@@ -1275,6 +1282,7 @@ all marked sessions must be active."
 			     (setq ediff-merge-store-file
 				   (, (concat
 				       merge-autostore-dir
+				       "mrg_"
 				       (file-name-nondirectory file1))))
 			     ;; make ediff-startup pass
 			     ;; ediff-control-buffer back to the meta
@@ -1291,6 +1299,7 @@ all marked sessions must be active."
 				 (setq ediff-merge-store-file
 				       (, (concat
 					   merge-autostore-dir
+					   "mrg_"
 					   (file-name-nondirectory file1))))
 				 ;; make ediff-startup pass
 				 ;; ediff-control-buffer back to the meta
@@ -1306,6 +1315,7 @@ all marked sessions must be active."
 				 (setq ediff-merge-store-file
 				       (, (concat
 					   merge-autostore-dir
+					   "mrg_"
 					   (file-name-nondirectory file1))))
 				 ;; make ediff-startup pass
 				 ;; ediff-control-buffer back to the meta
@@ -1320,6 +1330,7 @@ all marked sessions must be active."
 				 (setq ediff-merge-store-file
 				       (, (concat
 					   merge-autostore-dir
+					   "mrg_"
 					   (file-name-nondirectory file1))))
 				 (setq ediff-meta-buffer (, (current-buffer)))
 				 ;; this arranges that ediff-startup will pass

@@ -354,8 +354,10 @@ this command."
 				    vip-mouse-click-search-limit nil)))
 	      (goto-char (match-beginning 0))
 	      (message "Searching for: %s" vip-s-string)
-	      (if (<= arg 1)
-		  (vip-flash-search-pattern))
+	      (if (<= arg 1) ; found the right occurrence of the pattern
+		  (progn
+		    (vip-adjust-window)
+		    (vip-flash-search-pattern)))
 	      )
 	  (error (beep 1)
 		 (if (or (not (string= click-word previous-search-string))

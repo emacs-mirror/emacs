@@ -479,7 +479,11 @@ it better fits your working style.")
 
 (defvar vip-replace-overlay-cursor-color "Red"
   "*Cursor color to use in Replace state")
-
+(defvar vip-insert-state-cursor-color nil
+  "Cursor color for Viper insert state.")
+(put 'vip-insert-state-cursor-color 'permanent-local t)
+;; place to save cursor colow when switching to insert mode
+(vip-deflocalvar vip-saved-cursor-color nil "")
   
 (vip-deflocalvar vip-replace-overlay nil "")
 (put 'vip-replace-overlay 'permanent-local t)
@@ -698,10 +702,14 @@ to a new place after repeating previous Vi command.")
 (defvar vip-s-forward nil)
 
 (defconst vip-case-fold-search nil
-  "*If t, search ignores cases.")
+  "*If not nil, search ignores cases.")
 
 (defconst vip-re-search t
-  "*If t, search is reg-exp search, otherwise vanilla search.")
+  "*If not nil, search is reg-exp search, otherwise vanilla search.")
+
+(defvar vip-adjust-window-after-search t
+  "*If not nil, pull the window up or down, depending on the direction of the
+search, if search ends up near the bottom or near the top of the window.")
 
 (defconst vip-re-query-replace t
   "*If t then do regexp replace, if nil then do string replace.")
@@ -983,6 +991,14 @@ Should be set in `~/.vip' file.")
 	   vip-insert-point
 	   (>= (point) vip-insert-point))
       (setq vip-last-posn-while-in-insert-state (point-marker)))
+  (if (eq vip-current-state 'insert-state)
+      (progn
+	(or (stringp vip-saved-cursor-color)
+	    (string= (vip-get-cursor-color) vip-insert-state-cursor-color)
+	    (setq vip-saved-cursor-color (vip-get-cursor-color)))
+	(if (stringp vip-saved-cursor-color)
+	    (vip-change-cursor-color vip-insert-state-cursor-color))
+	))
   (if (and (eq this-command 'dabbrev-expand)
 	   (integerp vip-pre-command-point)
 	   (> vip-insert-point vip-pre-command-point))
@@ -990,6 +1006,11 @@ Should be set in `~/.vip' file.")
   )
   
 (defsubst vip-insert-state-pre-command-sentinel ()
+  (or (memq this-command '(self-insert-command))
+      (memq (vip-event-key last-command-event)
+	    '(up down left right (meta f) (meta b)
+		 (control n) (control p) (control f) (control b)))
+      (vip-restore-cursor-color-after-insert))
   (if (and (eq this-command 'dabbrev-expand)
 	   (markerp vip-insert-point)
 	   (marker-position vip-insert-point))
@@ -1005,7 +1026,7 @@ Should be set in `~/.vip' file.")
   (if (and (<= (vip-replace-start) (point))
 	   (<=  (point) (vip-replace-end)))
       (vip-change-cursor-color vip-replace-overlay-cursor-color)
-    (vip-restore-cursor-color)
+    (vip-restore-cursor-color-after-replace)
     ))
 
 ;; to speed up, don't change cursor color before self-insert
@@ -1015,7 +1036,7 @@ Should be set in `~/.vip' file.")
       (memq (vip-event-key last-command-event)
 	    '(up down left right (meta f) (meta b)
 		 (control n) (control p) (control f) (control b)))
-      (vip-restore-cursor-color)))
+      (vip-restore-cursor-color-after-replace)))
   
 (defun vip-replace-state-post-command-sentinel ()
   ;; Restoring cursor color is needed despite
@@ -1029,7 +1050,7 @@ Should be set in `~/.vip' file.")
   ;; cursor color or, if they terminate replace mode, the color will be changed
   ;; in vip-finish-change
   (or (memq this-command '(self-insert-command))
-      (vip-restore-cursor-color))
+      (vip-restore-cursor-color-after-replace))
   (cond 
    ((eq vip-current-state 'replace-state)
     ;; delete characters to compensate for inserted chars.
@@ -1148,18 +1169,18 @@ Should be set in `~/.vip' file.")
 		   
 	 (if vip-want-ctl-h-help
 	     (progn 
-	       (define-key vip-insert-basic-map "\C-h" 'help-command)
-	       (define-key vip-replace-map "\C-h" 'help-command))
+	       (define-key vip-insert-basic-map [(control h)] 'help-command)
+	       (define-key vip-replace-map [(control h)] 'help-command))
 	   (define-key vip-insert-basic-map 
-	     "\C-h" 'vip-del-backward-char-in-insert)
+	     [(control h)] 'vip-del-backward-char-in-insert)
 	   (define-key vip-replace-map
-	     "\C-h" 'vip-del-backward-char-in-replace)))
+	     [(control h)] 'vip-del-backward-char-in-replace)))
 		     
-	(t
+	(t ; Vi state
 	 (setq vip-vi-diehard-minor-mode (not vip-want-emacs-keys-in-vi))
 	 (if vip-want-ctl-h-help
-	     (define-key vip-vi-basic-map "\C-h" 'help-command)
-	   (define-key vip-vi-basic-map "\C-h" 'vip-backward-char)))
+	     (define-key vip-vi-basic-map [(control h)] 'help-command)
+	   (define-key vip-vi-basic-map [(control h)] 'vip-backward-char)))
 	))
 	     
     
@@ -1429,6 +1450,8 @@ This startup message appears whenever you load Viper, unless you type `y' now."
     ;; keys `,',^ in Vi state, as they will do accents instead of Vi actions.
     (if (and (boundp 'iso-accents-mode) iso-accents-mode)
 	(iso-accents-mode -1))
+
+    (vip-restore-cursor-color-after-insert)
     
     ;; Protection against user errors in hooks
     (condition-case conds
@@ -1443,6 +1466,14 @@ This startup message appears whenever you load Viper, unless you type `y' now."
   (if (and vip-automatic-iso-accents (fboundp 'iso-accents-mode))
       (iso-accents-mode 1)) ; turn iso accents on
   
+  (or (stringp vip-saved-cursor-color)
+      (string= (vip-get-cursor-color) vip-insert-state-cursor-color)
+      (setq vip-saved-cursor-color (vip-get-cursor-color)))
+  ;; Commented out, because if vip-change-state-to-insert is executed
+  ;; non-interactively then the old cursor color may get lost. Same old Emacs
+  ;; bug related to local variables?
+;;;(if (stringp vip-saved-cursor-color)
+;;;      (vip-change-cursor-color vip-insert-state-cursor-color))
   ;; Protection against user errors in hooks
   (condition-case conds
       (run-hooks 'vip-insert-state-hook)
@@ -2546,20 +2577,23 @@ Undo previous insertion and inserts new."
 ;;  Tells whether BEG is on the same line as END.
 ;;  If one of the args is nil, it'll return nil.
 (defun vip-same-line (beg end)
-   (let ((selective-display nil))
-     (cond ((and beg end)
-	    ;; This 'if' is needed because Emacs treats the next empty line
-	    ;; as part of the previous line.
-	    (if (or (> beg (point-max)) (> end (point-max))) ; out of range
-		()
-	      (if (and (> end beg) (= (vip-line-pos 'start) end))
-		  (setq end (min (1+ end) (point-max))))
-	      (if (and (> beg end) (= (vip-line-pos 'start) beg))
-		  (setq beg (min (1+ beg) (point-max))))
-	      (<= (count-lines beg end) 1) ))
-	   
-	   (t nil))
-	 ))
+   (let ((selective-display nil)
+	 (incr 0)
+	 temp)
+     (if (and beg end (> beg end))
+	 (setq temp beg
+	       beg end
+	       end temp))
+     (if (and beg end)
+	 (cond ((or (> beg (point-max)) (> end (point-max))) ; out of range
+		nil)
+	       (t
+		;; This 'if' is needed because Emacs treats the next empty line
+		;; as part of the previous line.
+		(if (= (vip-line-pos 'start) end)
+		    (setq incr 1))
+		(<= (+ incr (count-lines beg end)) 1))))
+     ))
 	 
 	 
 ;; Check if the string ends with a newline.
@@ -3024,7 +3058,7 @@ Undo previous insertion and inserts new."
 		   'vip-replace-state-post-command-sentinel) 
   (vip-remove-hook
    'vip-pre-command-hooks 'vip-replace-state-pre-command-sentinel) 
-  (vip-restore-cursor-color)
+  (vip-restore-cursor-color-after-replace)
   (setq vip-sitting-in-replace nil) ; just in case we'll need to know it
   (save-excursion
     (if (and 
@@ -3840,6 +3874,32 @@ controlled by the sign of prefix numeric value."
   (interactive "p")
   (recenter (- (window-height) (1+ arg))))
 
+;; If vip-adjust-window-after-search is t, scroll up or down 1/4 of window
+;; height, depending on whether we are at the bottom or at the top of the
+;; window. This function is called by vip-search (which is called from
+;; vip-search-forward/backward/next)
+(defun vip-adjust-window ()
+  (let ((win-height (if vip-emacs-p
+			(1- (window-height)) ; adjust for modeline
+		      (window-displayed-height)))
+	(pt (point))
+	at-top-p at-bottom-p
+	min-scroll direction)
+    (save-excursion
+      (move-to-window-line 0) ; top
+      (setq at-top-p (<= (count-lines pt (point)) 2))
+      (move-to-window-line -1) ; bottom
+      (setq at-bottom-p (<= (count-lines pt (point)) 2))
+      )
+    (cond (at-top-p (setq min-scroll 1
+			  direction  1))
+	  (at-bottom-p (setq min-scroll 2
+			     direction -1)))
+    (if (and vip-adjust-window-after-search min-scroll)
+	(recenter
+	 (* (max min-scroll (/ win-height 7)) direction)))
+    ))
+
 
 ;; paren match
 ;; must correct this to only match ( to ) etc. On the other hand
@@ -4091,6 +4151,62 @@ the Emacs binding of `/'."
 	   (setq msg "Search style remains unchanged")))
     (prin1 msg t)))
 
+(defun vip-set-vi-search-style-macros (unset)
+  "Set the macros for toggling the search style in Viper's vi-state.
+The macro that toggles case sensitivity is bound to `//', and the one that
+toggles regexp search is bound to `///'.
+With a prefix argument, this function unsets the macros. "
+  (interactive "P")
+  (or noninteractive
+      (if (not unset)
+	  (progn
+	    ;; toggle case sensitivity in search
+	    (vip-record-kbd-macro
+	     "//" 'vi-state
+	     [1 (meta x) v i p - t o g g l e - s e a r c h - s t y l e return]
+	     't)
+	    ;; toggle regexp/vanila search
+	    (vip-record-kbd-macro
+	     "///" 'vi-state
+	     [2 (meta x) v i p - t o g g l e - s e a r c h - s t y l e return]
+	     't)
+	    (if (interactive-p)
+		(message
+		 "// and /// now toggle case-sensitivity and regexp search.")))
+	(vip-unrecord-kbd-macro "//" 'vi-state)
+	(sit-for 2)
+	(vip-unrecord-kbd-macro "///" 'vi-state))))
+
+(defun vip-set-emacs-search-style-macros (unset &optional arg-majormode)
+  "Set the macros for toggling the search style in Viper's emacs-state.
+The macro that toggles case sensitivity is bound to `//', and the one that
+toggles regexp search is bound to `///'.
+With a prefix argument, this function unsets the macros. 
+If the optional prefix argument is non-nil and specifies a valid major mode,
+this sets the macros only in the macros in that major mode. Otherwise,
+the macros are set in the current major mode.
+\(When unsetting the macros, the second argument has no effect.\)"
+  (interactive "P")
+  (or noninteractive
+      (if (not unset)
+	  (progn
+	    ;; toggle case sensitivity in search
+	    (vip-record-kbd-macro
+	     "//" 'emacs-state
+	     [1 (meta x) v i p - t o g g l e - s e a r c h - s t y l e return] 
+	     (or arg-majormode major-mode))
+	    ;; toggle regexp/vanila search
+	    (vip-record-kbd-macro
+	     "///" 'emacs-state
+	     [2 (meta x) v i p - t o g g l e - s e a r c h - s t y l e return]
+	     (or arg-majormode major-mode))
+	    (if (interactive-p)
+		(message
+		 "// and /// now toggle case-sensitivity and regexp search.")))
+	(vip-unrecord-kbd-macro "//" 'emacs-state)
+	(sit-for 2)
+	(vip-unrecord-kbd-macro "///" 'emacs-state))))
+
 
 (defun vip-search-forward (arg)
   "Search a string forward. 
@@ -4159,9 +4275,6 @@ Null string will repeat previous search."
 		      (re-search-backward string))
 		  (search-forward string nil nil val)
 		  (search-backward string))
-		;; don't wait and don't flash in macros
-		(or executing-kbd-macro
-		    (vip-flash-search-pattern))
 		(if (not (equal start-point (point)))
 		    (push-mark start-point t))) 
 	    (search-failed
@@ -4186,9 +4299,6 @@ Null string will repeat previous search."
 	      (if vip-re-search
 		  (re-search-backward string nil nil val)
 	        (search-backward string nil nil val))
-	      ;; don't wait and don't flash in macros
-	      (or executing-kbd-macro
-		  (vip-flash-search-pattern))
 	      (if (not (equal start-point (point)))
 		  (push-mark start-point t))) 
 	  (search-failed
@@ -4206,7 +4316,14 @@ Null string will repeat previous search."
 	     (error "`%s': %s not found"
 		    string
 		    (if vip-re-search "Pattern" "String"))
-	     )))))))
+	     ))))
+      ;; pull up or down if at top/bottom of window
+      (vip-adjust-window)
+      ;; highlight the result of search
+      ;; don't wait and don't highlight in macros
+      (or executing-kbd-macro
+	  (vip-flash-search-pattern))
+      )))
 
 (defun vip-search-next (arg)
   "Repeat previous search."
@@ -4412,6 +4529,7 @@ To turn this feature off, set this variable to nil.")
     (setq vip-use-register nil)
     (if (vip-end-with-a-newline-p text)
 	(progn
+	  (end-of-line)
 	  (if (eobp)
 	      (insert "\n")
 	    (forward-line 1))
@@ -5507,6 +5625,11 @@ Mail anyway (y or n)? ")
 
   (defvar fortran-mode-hook)
   (add-hook 'fortran-mode-hook 'vip-mode)
+
+  (defvar basic-mode-hook)
+  (add-hook 'basic-mode-hook 'vip-mode)
+  (defvar bat-mode-hook)
+  (add-hook 'bat-mode-hook 'vip-mode)
       
   (defvar text-mode-hook)
   (add-hook 'text-mode-hook 'viper-mode)
@@ -5567,6 +5690,21 @@ Mail anyway (y or n)? ")
    'comint-mode 'insert-state vip-comint-mode-modifier-map)
   (vip-modify-major-mode 
    'comint-mode 'vi-state vip-comint-mode-modifier-map)
+  (vip-modify-major-mode 
+   'shell-mode 'insert-state vip-comint-mode-modifier-map)
+  (vip-modify-major-mode 
+   'shell-mode 'vi-state vip-comint-mode-modifier-map)
+  ;; ange-ftp in XEmacs
+  (vip-modify-major-mode 
+   'ange-ftp-shell-mode 'insert-state vip-comint-mode-modifier-map)
+  (vip-modify-major-mode 
+   'ange-ftp-shell-mode 'vi-state vip-comint-mode-modifier-map)
+  ;; ange-ftp in Emacs
+  (vip-modify-major-mode 
+   'internal-ange-ftp-mode 'insert-state vip-comint-mode-modifier-map)
+  (vip-modify-major-mode 
+   'internal-ange-ftp-mode 'vi-state vip-comint-mode-modifier-map)
+  ;; set hook
   (add-hook 'comint-mode-hook 'vip-comint-mode-hook)
   
   ;; Shell scripts
@@ -5577,18 +5715,26 @@ Mail anyway (y or n)? ")
   
   ;; Dired
   (vip-modify-major-mode 'dired-mode 'emacs-state vip-dired-modifier-map)
+  (vip-set-emacs-search-style-macros nil 'dired-mode)
   (add-hook 'dired-mode-hook 'vip-change-state-to-emacs)
+
+  ;; Tar
+  (vip-modify-major-mode 'tar-mode 'emacs-state vip-slash-and-colon-map)
+  (vip-set-emacs-search-style-macros nil 'tar-mode)
 
   ;; MH-E
   (vip-modify-major-mode 'mh-folder-mode 'emacs-state vip-slash-and-colon-map)
+  (vip-set-emacs-search-style-macros nil 'mh-folder-mode)
   ;; changing state to emacs is needed so the preceding will take hold
   (add-hook 'mh-folder-mode-hook 'vip-change-state-to-emacs)
   (add-hook 'mh-show-mode-hook 'viper-mode)
 
   ;; Gnus
   (vip-modify-major-mode 'gnus-group-mode 'emacs-state vip-slash-and-colon-map)
+  (vip-set-emacs-search-style-macros nil 'gnus-group-mode)
   (vip-modify-major-mode 
    'gnus-summary-mode 'emacs-state vip-slash-and-colon-map)
+  (vip-set-emacs-search-style-macros nil 'gnus-summary-mode)
   ;; changing state to emacs is needed so the preceding will take hold
   (add-hook 'gnus-group-mode-hook 'vip-change-state-to-emacs)
   (add-hook 'gnus-summary-mode-hook 'vip-change-state-to-emacs)
@@ -5596,6 +5742,7 @@ Mail anyway (y or n)? ")
 
   ;; Info
   (vip-modify-major-mode 'Info-mode 'emacs-state vip-slash-and-colon-map)
+  (vip-set-emacs-search-style-macros nil 'Info-mode)
   ;; Switching to emacs is needed  so the above will take hold
   (defadvice Info-mode (after vip-Info-ad activate)
     "Switch to emacs mode."
@@ -5604,6 +5751,7 @@ Mail anyway (y or n)? ")
   ;; Buffer menu
   (vip-modify-major-mode 
    'Buffer-menu-mode 'emacs-state vip-slash-and-colon-map)
+  (vip-set-emacs-search-style-macros nil 'Buffer-menu-mode)
   ;; Switching to emacs is needed  so the above will take hold
   (defadvice Buffer-menu-mode (after vip-Buffer-menu-ad activate)
     "Switch to emacs mode."
@@ -5652,14 +5800,8 @@ Mail anyway (y or n)? ")
  (vector vip-repeat-from-history-key '\2) 'vi-state
  [(meta x) v i p - r e p e a t - f r o m - h i s t o r y return] 't)
  
-;; toggle case sensitivity in search
-(vip-record-kbd-macro
- "//" 'vi-state
- [1 (meta x) v i p - t o g g l e - s e a r c h - s t y l e return] 't)
-;; toggle regexp/vanila search
-(vip-record-kbd-macro
- "///" 'vi-state
- [2 (meta x) v i p - t o g g l e - s e a r c h - s t y l e return] 't)
+;; set the toggle case sensitivity and regexp search macros
+(vip-set-vi-search-style-macros nil)
  
 
 ;; ~/.vip is loaded if it exists

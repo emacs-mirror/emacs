@@ -398,6 +398,7 @@ Useful in some modes, such as Gnus, MH, etc.")
 (defvar vip-dired-modifier-map (make-sparse-keymap)
   "This map modifies Dired behavior.")
 (define-key vip-dired-modifier-map ":" 'vip-ex)
+(define-key vip-dired-modifier-map "/" 'vip-search-forward)
 
 
 

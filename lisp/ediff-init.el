@@ -62,7 +62,7 @@ that Ediff doesn't know about.")
 	(ediff-force-faces)
 	(ediff-emacs-p (memq (ediff-device-type) '(pc)))
 	(ediff-xemacs-p (memq (ediff-device-type) '(tty pc)))))
-  
+
   
 ;; Defines SYMBOL as an advertised local variable.  
 ;; Performs a defvar, then executes `make-variable-buffer-local' on
@@ -302,12 +302,17 @@ that Ediff doesn't know about.")
   (memq (or metajob ediff-metajob-name)
 	'(ediff-directories3 ediff-filegroups3)))
 
-(defsubst ediff-barf-if-not-control-buffer (&optional meta-buf)
-  (or (eq (if meta-buf ediff-meta-buffer ediff-control-buffer)
-	  (current-buffer))
+;; with no argument, checks if we are in ediff-control-buffer
+;; with argument, checks if we are in ediff-meta-buffer
+(defun ediff-in-control-buffer-p (&optional meta-buf-p)
+  (and (boundp 'ediff-control-buffer)
+       (eq (if meta-buf-p ediff-meta-buffer ediff-control-buffer)
+	   (current-buffer))))
+
+(defsubst ediff-barf-if-not-control-buffer (&optional meta-buf-p)
+  (or (ediff-in-control-buffer-p meta-buf-p)
       (error "%S: This command runs in Ediff Control Buffer only!"
 	     this-command)))
-
 
 ;; Hook variables
 
@@ -588,7 +593,6 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire.")
       (fset 'ediff-delete-overlay (symbol-function 'delete-extent)))
   (fset 'ediff-read-event (symbol-function 'read-event))
   (fset 'ediff-overlayp (symbol-function 'overlayp))
-  (fset 'ediff-overlayp (symbol-function 'overlayp))
   (fset 'ediff-make-overlay (symbol-function 'make-overlay))
   (fset 'ediff-delete-overlay (symbol-function 'delete-overlay)))
   
@@ -831,7 +835,8 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire.")
 	(ediff-hide-face 'ediff-current-diff-face-Ancestor)
 	(or (face-differs-from-default-p 'ediff-current-diff-face-Ancestor)
 	    (copy-face 
-	     'ediff-current-diff-face-C 'ediff-current-diff-face-Ancestor))))
+	     'ediff-current-diff-face-C 'ediff-current-diff-face-Ancestor))
+	'ediff-current-diff-face-Ancestor))
   "Face for highlighting the selected difference in the ancestor buffer.")
 
 (defvar ediff-fine-diff-pixmap "gray3"

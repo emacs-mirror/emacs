@@ -249,9 +249,12 @@ that Viper doesn't know about.")
 		 (not (string= color vip-replace-overlay-cursor-color)))
 	    (vip-overlay-put vip-replace-overlay 'vip-cursor-color color)))))
 	
-(defsubst vip-restore-cursor-color ()
+;; restore cursor color from replace overlay
+(defsubst vip-restore-cursor-color-after-replace ()
   (vip-change-cursor-color
    (vip-overlay-get vip-replace-overlay 'vip-cursor-color)))
+(defsubst vip-restore-cursor-color-after-insert ()
+  (vip-change-cursor-color vip-saved-cursor-color))
 	 
 
 ;; Check the current version against the major and minor version numbers
@@ -789,7 +792,8 @@ to write a custom function, similar to `vip-ex-nontrivial-find-file-unix'."
   
 (defsubst vip-hide-replace-overlay ()
   (vip-set-replace-overlay-glyphs nil nil)
-  (vip-restore-cursor-color)
+  (vip-restore-cursor-color-after-replace)
+  (vip-restore-cursor-color-after-insert)
   (if (vip-has-face-support-p)
       (vip-overlay-put vip-replace-overlay 'face nil)))
 

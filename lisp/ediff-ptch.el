@@ -462,10 +462,9 @@ Else, read patch file into a new buffer."
     (setq file-name-magic-p (not (equal (file-truename true-source-filename)
 					(file-truename source-filename))))
     
-    ;; Checkout orig file, if necessary, so that the patched file could be
-    ;; checked back in.
-    (if (ediff-file-checked-in-p (buffer-file-name buf-to-patch))
-	(ediff-toggle-read-only buf-to-patch))
+    ;; Checkout orig file, if necessary, so that the patched file 
+    ;; could be checked back in.
+    (ediff-maybe-checkout buf-to-patch)
 
     (ediff-eval-in-buffer patch-diagnostics
       (insert-buffer patch-buf)
@@ -506,23 +505,28 @@ Else, read patch file into a new buffer."
 Patch has failed OR the backup version of the patched file was not created by
 the patch program.
 
-A possible reason is that the values of the variables
+One reason may be that the values of the variables
 
-ediff-patch-options    = %S
-ediff-backup-extension = %S
-ediff-backup-specs     = %S
+    ediff-patch-options    = %S
+    ediff-backup-extension = %S
+    ediff-backup-specs     = %S
 
 are not appropriate for the program specified in the variable
 
-ediff-patch-program    = %S
+    ediff-patch-program    = %S
+
+Another reason could be that the %S program doesn't understand
+the format of the patch file you used.
 
 See Ediff on-line manual for more details on these variables.
 \(Or use a GNU-compatible patch program and stay out of trouble.\)
 
-Type any key to continue... "
+Type any key to continue... 
+"
 			   ediff-patch-options
 			   ediff-backup-extension
 			   ediff-backup-specs
+			   ediff-patch-program
 			   ediff-patch-program)))
 	  (beep 1)
 	  (if (setq aux-wind (get-buffer-window ediff-msg-buffer))

@@ -566,7 +566,7 @@ can be used to filter out certain file names."
 The second argument, REGEXP, is a regular expression that filters the file
 names. Only the files that are under revision control are taken into account."
   (interactive
-   (let* ((dir-A (ediff-get-default-directory-name)))
+   (let ((dir-A (ediff-get-default-directory-name)))
      (list (ediff-read-file-name
 	    "Directory to merge with revisions:" dir-A nil)
 	   (read-string "Filter through regular expression: "
@@ -585,7 +585,7 @@ names. Only the files that are under revision control are taken into account."
 The second argument, REGEXP, is a regular expression that filters the file
 names. Only the files that are under revision control are taken into account."
   (interactive
-   (let* ((dir-A (ediff-get-default-directory-name)))
+   (let ((dir-A (ediff-get-default-directory-name)))
      (list (ediff-read-file-name
 	    "Directory to merge with revisions and ancestors:" dir-A nil)
 	   (read-string "Filter through regular expression: "

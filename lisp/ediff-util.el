@@ -23,10 +23,6 @@
 
 ;;; Code:
 
-(require 'ediff-init)
-(require 'ediff-help)
-(require 'ediff-mult)
-
 ;; Pacify compiler and avoid the need in checking for boundp
 (defvar ediff-patch-diagnostics nil)
 (defvar ediff-patchbufer nil)
@@ -36,6 +32,17 @@
 	 (load-file "ediff-init.el")
 	 (load-file "ediff-help.el"))))
 ;; end pacifier
+
+(require 'ediff-init)
+(require 'ediff-help)
+(require 'ediff-mult)
+
+;;(if ediff-xemacs-p
+;;    (require 'ediff-tbar)
+;;  (defun ediff-use-toolbar-p () nil))
+;;
+;; for the time being
+(defun ediff-use-toolbar-p () nil)
 
 
 ;;; Functions
@@ -489,6 +496,8 @@ to invocation.")
 		  ediff-split-window-function
 		  (ediff-multiframe-setup-p)
 		  ediff-wide-display-p))
+    (if (not (ediff-multiframe-setup-p))
+	(ediff-make-bottom-toolbar))    ; checks if toolbar is requested
     (goto-char (point-min))
     (skip-chars-forward ediff-whitespace)))
     
@@ -954,12 +963,13 @@ of the current buffer."
 		   (setq toggle-ro-cmd 'toggle-read-only)
 		   (beep 1) (beep 1)
 		   (message
-		    "Boy, this is risky! Better don't change this file...")
+		    "Boy, this is risky! Don't modify this file...")
 		   (sit-for 3)))) ; let the user see the warning
 	(if (and toggle-ro-cmd 
 		 (string-match "toggle-read-only" (symbol-name toggle-ro-cmd)))
 	    (save-excursion
 	      (save-window-excursion
+		(select-window (ediff-get-visible-buffer-window buf))
 		(command-execute toggle-ro-cmd)))
 	  (error "Don't know how to toggle read-only in buffer %S" buf))
 	
@@ -972,33 +982,51 @@ of the current buffer."
 	    (message "Warning: file %s is read-only"
 		     (ediff-abbreviate-file-name file) (beep 1)))
 	))))
-  
 
-;; This is a simple-minded check for whether a file is under version control
-;; and is checked out.
+;; checkout if visited file is checked in
+(defun ediff-maybe-checkout (buf)
+  (let ((file (buffer-file-name buf))
+	(checkout-function (key-binding "\C-x\C-q")))
+    (if (and (ediff-file-checked-in-p file)
+	     (or (beep 1) t)
+	     (y-or-n-p
+	      (format
+	       "File %s is under version control. Check it out? "
+	       (ediff-abbreviate-file-name file))))
+	(ediff-eval-in-buffer buf
+	  (command-execute checkout-function)))))
+	   
+
+;; This is a simple-minded check for whether a file is under version control.
 ;; If file,v exists but file doesn't, this file is considered to be not checked
 ;; in and not checked out for the purpose of patching (since patch won't be
 ;; able to read such a file anyway).
 ;; FILE is a string representing file name
+(defun ediff-file-under-version-control (file)
+  (let* ((filedir (file-name-directory file))
+	 (file-nondir (file-name-nondirectory file))
+	 (trial (concat file-nondir ",v"))
+	 (full-trial (concat filedir trial))
+	 (full-rcs-trial (concat filedir "RCS/" trial)))
+    (and (stringp file)
+	 (file-exists-p file)
+	 (or
+	  (and
+	   (file-exists-p full-trial)
+	   ;; in FAT FS, `file,v' and `file' may turn out to be the same!
+	   ;; don't be fooled by this!
+	   (not (equal (file-attributes file)
+		       (file-attributes full-trial))))
+	  ;; check if a version is in RCS/ directory
+	  (file-exists-p full-rcs-trial)))
+       ))
+
 (defun ediff-file-checked-out-p (file)
-  (and (stringp file)
-       (file-exists-p file)
-       (file-writable-p file)
-       (or
-	(file-exists-p (concat file ",v"))
-	(file-exists-p (concat (file-name-directory file)
-			       "RCS/"
-			       (file-name-nondirectory file)
-			       ",v")))
-       ))
+  (and (ediff-file-under-version-control file)
+       (file-writable-p file)))
 (defun ediff-file-checked-in-p (file)
-  (and (stringp file)
-       (file-exists-p file)
-       (not (file-writable-p file))
-       (or
-	(file-exists-p (concat file ",v"))
-	(file-exists-p (concat "RCS/" file ",v")))
-       ))
+  (and (ediff-file-under-version-control file)
+       (not (file-writable-p file))))
       
 (defun ediff-swap-buffers ()
   "Rotate the display of buffers A, B, and C."
@@ -1132,21 +1160,56 @@ This is especially useful when comparing buffers side-by-side."
 	(setq ediff-window-B nil) ; force update of window config
 	(ediff-recenter 'no-rehighlight)))))
 	
+;;;###autoload
 (defun ediff-toggle-multiframe ()
   "Switch from the multiframe display to single-frame display and back.
 For a permanent change, set the variable `ediff-window-setup-function',
 which see."
   (interactive)
-  (ediff-barf-if-not-control-buffer)
+  (let (set-func)
   (or (ediff-window-display-p)
       (error "%sEmacs is not running as a window application"
 	     (if ediff-emacs-p "" "X")))
+
+  (setq set-func (if (ediff-in-control-buffer-p) 'setq 'setq-default))
+
   (cond ((eq ediff-window-setup-function 'ediff-setup-windows-multiframe)
-	 (setq ediff-window-setup-function 'ediff-setup-windows-plain))
+	 (eval
+	  (list
+	   set-func
+	   'ediff-window-setup-function ''ediff-setup-windows-plain)))
 	((eq ediff-window-setup-function 'ediff-setup-windows-plain)
-	 (setq ediff-window-setup-function 'ediff-setup-windows-multiframe)))
-  (setq ediff-window-B nil)
-  (ediff-recenter 'no-rehighlight))
+	 (if (ediff-in-control-buffer-p)
+	     (ediff-kill-bottom-toolbar))
+	 (eval
+	  (list
+	   set-func
+	   'ediff-window-setup-function ''ediff-setup-windows-multiframe))))
+  (if (ediff-in-control-buffer-p)
+      (progn
+	(setq ediff-window-B nil)
+	(ediff-recenter 'no-rehighlight)))))
+
+;; if was using toolbar, kill it
+(defun ediff-kill-bottom-toolbar ()
+  ;; Using ctl-buffer or ediff-control-window for LOCALE does not
+  ;; work properly in XEmacs 19.14: we have to use
+  ;;(selected-frame).
+  ;; The problem with this is that any previous bottom-toolbar
+  ;; will not re-appear after our cleanup here.  Is there a way
+  ;; to do "push" and "pop" toolbars ?  --marcpa  
+  (if (ediff-use-toolbar-p)
+      (progn
+	(set-specifier bottom-toolbar (list (selected-frame) nil))
+	(set-specifier bottom-toolbar-visible-p (list (selected-frame) nil)))))
+
+;; if wants to use toolbar, make it
+(defun ediff-make-bottom-toolbar ()
+  (if (ediff-use-toolbar-p)
+      (progn
+	(set-specifier bottom-toolbar (list (selected-frame) ediff-toolbar))
+	(set-specifier bottom-toolbar-visible-p (list (selected-frame) t)) 
+	(set-specifier bottom-toolbar-height (list (selected-frame) 34)))))
 	       
 ;; Merging
 
@@ -2262,6 +2325,10 @@ temporarily reverses the meaning of this variable."
 
     (if (and (ediff-window-display-p) (frame-live-p ctl-frame))
 	(delete-frame ctl-frame))
+    ;; Hide bottom toolbar.  --marcpa
+    (if (not (ediff-multiframe-setup-p))
+	(ediff-kill-bottom-toolbar))
+
     (ediff-kill-buffer-carefully ctl-buf)
       
     (delete-other-windows)
@@ -2343,8 +2410,9 @@ only if this merge job is part of a group, i.e., was invoked from within
 		     (read-file-name "Save the result of the merge in: "))
 	       (ediff-write-merge-buffer-then-kill
 		ediff-buffer-C merge-store-file))
-	      ((ediff-eval-in-buffer ediff-meta-buffer
-		 (ediff-merge-metajob))
+	      ((and (ediff-buffer-live-p ediff-meta-buffer)
+		    (ediff-eval-in-buffer ediff-meta-buffer
+		      (ediff-merge-metajob)))
 	       ;; This case shouldn't occur, as the parent metajob must pass on
 	       ;; a file name, ediff-merge-store-file, where to save the result
 	       ;; of the merge.
@@ -2837,6 +2905,8 @@ Ediff Control Panel to restore highlighting."
   (interactive)
   (let ((answer "")
 	(possibilities (list ?A ?B ?C))
+	(zmacs-regions t)
+	quit-now
 	begA begB endA endB bufA bufB)
 
     (cond ((ediff-merge-job)
@@ -2849,7 +2919,7 @@ Ediff Control Panel to restore highlighting."
 			 nil)
 			((equal answer ""))
 			(t (beep 1)
-			   (message "Valid answers are A or B")
+			   (message "Valid values are A or B")
 			   (sit-for 2)
 			   t))
 	     (let ((cursor-in-echo-area t))
@@ -2866,7 +2936,7 @@ Ediff Control Panel to restore highlighting."
 			((equal answer ""))
 			(t (beep 1)
 			   (message 
-			    "Valid answers are %s"
+			    "Valid values are %s"
 			    (mapconcat 'char-to-string possibilities " or "))
 			   (sit-for 2)
 			   t))
@@ -2884,7 +2954,7 @@ Ediff Control Panel to restore highlighting."
 			((equal answer ""))
 			(t (beep 1)
 			   (message 
-			    "Valid answers are %s"
+			    "Valid values are %s"
 			    (mapconcat 'char-to-string possibilities " or "))
 			   (sit-for 2)
 			   t))
@@ -2897,6 +2967,8 @@ Ediff Control Panel to restore highlighting."
 		 bufB ediff-buffer-B)))
 
     (ediff-eval-in-buffer bufA
+      (or (mark t)
+	  (error "You forgot to specify a region in buffer %s" (buffer-name)))
       (setq begA (region-beginning)
 	    endA (region-end))
       (goto-char begA)
@@ -2907,6 +2979,8 @@ Ediff Control Panel to restore highlighting."
       (or (eobp) (forward-char)) ; include the newline char
       (setq endA (point)))
     (ediff-eval-in-buffer bufB
+      (or (mark t)
+	  (error "You forgot to specify a region in buffer %s" (buffer-name)))
       (setq begB (region-beginning)
 	    endB (region-end))
       (goto-char begB)
@@ -2921,6 +2995,32 @@ Ediff Control Panel to restore highlighting."
      ediff-current-difference 'unselect-only)
     (ediff-paint-background-regions 'unhighlight)
 
+    (ediff-eval-in-buffer bufA
+      (goto-char begA)
+      (set-mark endA)
+      (narrow-to-region begA endA)
+      ;; (ediff-activate-mark)
+      )
+    ;; (sit-for 0)
+    (ediff-eval-in-buffer bufB
+      (goto-char begB)
+      (set-mark endB)
+      (narrow-to-region begB endB)
+      ;; (ediff-activate-mark)
+      )
+    ;; (sit-for 0)
+    
+    (or (y-or-n-p 
+	 "Please check the selected regions. Continue? ")
+	(setq quit-now t))
+    
+    (ediff-eval-in-buffer bufA
+      (widen))
+    (ediff-eval-in-buffer bufB
+      (widen))
+    (if quit-now
+	(error "Thank you. Come back another day..."))
+
     (ediff-regions-internal
      bufA begA endA bufB begB endB
      nil  			; startup hook
@@ -2930,26 +3030,20 @@ Ediff Control Panel to restore highlighting."
       
     
 
-;; will simplify it in due time, when emacs acquires before/after strings
 (defun ediff-remove-flags-from-buffer (buffer overlay)
   (ediff-eval-in-buffer buffer
     (let ((inhibit-read-only t))
       (if ediff-xemacs-p
 	  (ediff-overlay-put overlay 'begin-glyph nil)
-	;; before-string is not yet implemented in emacs.
-	;; when it will be, I will be able to delete much of the rest of
-	;; this function
 	(ediff-overlay-put overlay 'before-string nil))
       
       (if ediff-xemacs-p
 	  (ediff-overlay-put overlay 'end-glyph nil)
-	;; after-string is not yet implemented in emacs.
 	(ediff-overlay-put overlay 'after-string nil))
       )))
 
 
 
-;; will simplify it in due time, when emacs acquires before/after strings
 (defun ediff-place-flags-in-buffer (buf-type buffer ctl-buffer diff)
   (ediff-eval-in-buffer buffer
     (ediff-place-flags-in-buffer1 buf-type ctl-buffer diff)))
@@ -3266,6 +3360,10 @@ Mail anyway? (y or n) ")
   (if ediff-xemacs-p
 	  (zmacs-deactivate-region)
 	(deactivate-mark)))
+(defun ediff-activate-mark ()
+  (if ediff-emacs-p
+      (setq mark-active t)
+    (zmacs-activate-region)))
 
 (cond ((fboundp 'nuke-selective-display)
        ;; XEmacs 19.12 has nuke-selective-display

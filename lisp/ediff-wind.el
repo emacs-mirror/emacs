@@ -24,6 +24,9 @@
 ;;; Code:
 
 (require 'ediff-init)
+(if ediff-xemacs-p
+    (require 'ediff-tbar)
+  (defun ediff-compute-toolbar-width () 0))
 
 ;; Compiler pacifier
 (defvar icon-title-format)
@@ -853,7 +856,8 @@ into icons, regardless of the window manager.")
     ;; 1 more line for the modeline
     (setq lines (1+ (count-lines (point-min) (point-max)))
 	  fheight lines
-	  fwidth (+ (ediff-help-message-line-length) 1)
+	  fwidth (max (+ (ediff-help-message-line-length) 2)
+		      (ediff-compute-toolbar-width))
 	  adjusted-parameters (append (list
 				       ;; possibly change surrogate minibuffer
 				       (cons 'minibuffer
@@ -876,9 +880,6 @@ into icons, regardless of the window manager.")
 	  (set-specifier bottom-toolbar-height (list ctl-frame 0))
 	  (set-specifier left-toolbar-width (list ctl-frame 0))
 	  (set-specifier right-toolbar-width (list ctl-frame 0))
-	  ;; XEmacs needed a redisplay, as it had trouble setting
-	  ;; height correctly otherwise.
-	  ;;(sit-for 0)
 	  ))
     
     ;; Under OS/2 (emx) we have to call modify frame parameters twice, in order
@@ -893,6 +894,7 @@ into icons, regardless of the window manager.")
     
     (modify-frame-parameters ctl-frame adjusted-parameters)
     (make-frame-visible ctl-frame)
+    (ediff-make-bottom-toolbar) ; no effect if the toolbar is not requested
     
     ;; This works around a bug in 19.25 and earlier. There, if frame gets
     ;; iconified, the current buffer changes to that of the frame that
