@@ -97,7 +97,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Define AMPERSAND_FULL_NAME if you use the convention
    that & in the full name stands for the login id.  */
-#undef AMPERSAND_FULL_NAME
+/* Turned on June 1996 supposing nobody will mind it.  */
+#define AMPERSAND_FULL_NAME
 
 /* Things set by --with options in the configure script.  */
 
