@@ -1,5 +1,9 @@
 2000-09-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* startup.el (fancy-splash-delay, fancy-splash-image): Add
+	:version.
+	(fancy-splash-screen): Defgroup.
+
 	* add-log.el (change-log-font-lock-keywords): Match names
 	more exactly for the case that font-lock-constant-face is
 	underlined.
