@@ -170,7 +170,7 @@ int region_face;
    does not specify that display aspect.  */
 #define FACE_DEFAULT (~0)
 
-Lisp_Object Qface;
+Lisp_Object Qface, Qmouse_face;
 
 static void build_face ( /* FRAME_PTR, struct face * */ );
 int face_name_id_number ( /* FRAME_PTR, Lisp_Object name */ );
@@ -709,16 +709,19 @@ compute_base_face (f, face)
    REGION_BEG, REGION_END delimit the region, so it can be highlighted.
 
    LIMIT is a position not to scan beyond.  That is to limit
-   the time this function can take.  */
+   the time this function can take.
+
+   If MOUSE is nonzero, use the character's mouse-face, not its face.  */
 
 int
-compute_char_face (f, w, pos, region_beg, region_end, endptr, limit)
+compute_char_face (f, w, pos, region_beg, region_end, endptr, limit, mouse)
      struct frame *f;
      struct window *w;
      int pos;
      int region_beg, region_end;
      int *endptr;
      int limit;
+     int mouse;
 {
   struct face face;
   Lisp_Object prop, position;
@@ -727,6 +730,7 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr, limit)
   Lisp_Object *overlay_vec;
   Lisp_Object frame;
   int endpos;
+  Lisp_Object propname;
 
   /* W must display the current buffer.  We could write this function
      to use the frame and buffer of W, but right now it doesn't.  */
@@ -740,12 +744,19 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr, limit)
     endpos = region_beg;
 
   XFASTINT (position) = pos;
-  prop = Fget_text_property (position, Qface, w->buffer);
+
+  if (mouse)
+    propname = Qmouse_face;
+  else
+    propname = Qface;
+
+  prop = Fget_text_property (position, propname, w->buffer);
+
   {
     Lisp_Object limit1, end;
 
     XFASTINT (limit1) = (limit < endpos ? limit : endpos);
-    end = Fnext_single_property_change (position, Qface, w->buffer, limit1);
+    end = Fnext_single_property_change (position, propname, w->buffer, limit1);
     if (INTEGERP (end))
       endpos = XINT (end);
   }
@@ -795,7 +806,7 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr, limit)
   /* Now merge the overlay data in that order.  */
   for (i = 0; i < noverlays; i++)
     {
-      prop = Foverlay_get (overlay_vec[i], Qface);
+      prop = Foverlay_get (overlay_vec[i], propname);
       if (!NILP (prop))
 	{
 	  Lisp_Object oend;
@@ -804,7 +815,7 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr, limit)
 	  facecode = face_name_id_number (f, prop);
 	  if (facecode >= 0 && facecode < FRAME_N_PARAM_FACES (f)
 	      && FRAME_PARAM_FACES (f) [facecode] != 0)
-	    merge_faces (FRAME_PARAM_FACES (f) [facecode], &face);
+	    merge_faces (FRAME_PARAM_FACES (f)[facecode], &face);
 
 	  oend = OVERLAY_END (overlay_vec[i]);
 	  oendpos = OVERLAY_POSITION (oend);
@@ -818,7 +829,7 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr, limit)
       if (region_end < endpos)
 	endpos = region_end;
       if (region_face >= 0 && region_face < next_face_id)
-	merge_faces (FRAME_PARAM_FACES (f) [region_face], &face);
+	merge_faces (FRAME_PARAM_FACES (f)[region_face], &face);
     }
 
   *endptr = endpos;
@@ -1043,6 +1054,8 @@ syms_of_xfaces ()
 {
   Qface = intern ("face");
   staticpro (&Qface);
+  Qmouse_face = intern ("mouse-face");
+  staticpro (&Qmouse_face);
 
   DEFVAR_INT ("region-face", &region_face,
     "Face number to use to highlight the region\n\
