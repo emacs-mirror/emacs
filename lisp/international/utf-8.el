@@ -299,6 +299,7 @@ lower-casing commands won't work with them."
     mule-unicode-0100-24ff
     mule-unicode-2500-33ff
     mule-unicode-e000-ffff)
-   (mime-charset . utf-8)))
+   (mime-charset . utf-8)
+   (valid-codes (0 . 255))))
 
 (define-coding-system-alias 'utf-8 'mule-utf-8)
