@@ -1008,9 +1008,9 @@ static const char *re_error_msgid[] =
    This is a variable only so users of regex can assign to it; we never
    change it ourselves.  */
 #if defined (MATCH_MAY_ALLOCATE)
-/* 8600 was enough to cause a crash on Ultrix,
+/* 4400 was enough to cause a crash on Alpha OSF/1,
    whose default stack limit is 2mb.  */
-int re_max_failures = 8000;
+int re_max_failures = 4000;
 #else
 int re_max_failures = 2000;
 #endif
