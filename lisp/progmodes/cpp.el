@@ -70,7 +70,8 @@
 (defcustom cpp-face-type 'light 
   "*Indicate what background face type you prefer.
 Can be either light or dark for color screens, mono for monochrome
-screens, and none if you don't use a window system."
+screens, and none if you don't use a window system and don't have
+a color-capable display."
   :options '(light dark mono nil)
   :type 'symbol
   :group 'cpp)
@@ -797,7 +798,8 @@ BRANCH should be either nil (false branch), t (true branch) or 'both."
   ;; Create entry for face with background COLOR.
   (cons color (cons 'background-color color)))
 
-(cpp-choose-default-face (if window-system cpp-face-type 'none))
+(cpp-choose-default-face
+ (if (or window-system (display-color-p)) cpp-face-type 'none))
 
 (defun cpp-face-name (face)
   ;; Return the name of FACE from `cpp-face-all-list'.
