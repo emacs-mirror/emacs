@@ -1,3 +1,7 @@
+2004-10-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* fileio.c (auto_save_1) Call Ffile_modes for remote files.
+
 2004-09-30  Kenichi Handa  <handa@m17n.org>
 
 	* process.c (send_process): Free composition data.
