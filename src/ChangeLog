@@ -1,3 +1,10 @@
+2002-04-19  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xfaces.c (clear_font_table): Don't free the default font of
+	a frame even if it's on another display.
+	(Finternal_set_lisp_face_attribute): Don't use XFRAME on something
+	that could be Qt.
+
 2002-04-19  Juanma Barranquero  <lektu@terra.es>
 
 	* indent.c (Fmove_to_column): Remove unused local variable
@@ -7,7 +14,7 @@
 2002-04-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (Qhbar): New variable.
-	(syms_of_msdos): intern and staticpro it.
+	(syms_of_msdos): Intern and staticpro it.
 	(IT_set_cursor_type, IT_set_frame_parameters): Handle the `hbar'
 	cursor type.
 
@@ -22,7 +29,7 @@
 	(x_display_and_set_cursor): Handle the HBAR_CURSOR case.
 
 	* xfns.c (Qhbar): New variable.
-	(syms_of_xfns): intern and staticpro it.
+	(syms_of_xfns): Intern and staticpro it.
 	(x_specified_cursor_type): Handle `hbar' cursor.
 
 	* s/sol2-5.h (bcopy, bzero, bcmp): Define only if HAVE_BCOPY is
@@ -44,8 +51,7 @@
 
 2002-04-17  Juanma Barranquero  <lektu@terra.es>
 
-	* indent.c (Fmove_to_column): Remove unused local variable
-	`end_byte'.
+	* indent.c (Fmove_to_column): Remove unused local variable `end_byte'.
 
 2002-04-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -57,7 +63,7 @@
 	* w32fns.c (Fx_file_dialog): Decode file name before using.
 
 	* w32term.c (construct_drag_n_drop): Likewise.
-	
+
 2002-04-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* puresize.h (BASE_PURESIZE): Increase to 830000, since we now
