@@ -1393,7 +1393,7 @@ and generates the overview, one line per target name."
   (if (eq major-mode 'makefile-mode)
       (save-excursion
 	(goto-char (point-min))
-	(if (re-search-forward "\\\\[ \t]+$")
+	(if (re-search-forward "\\\\[ \t]+$" nil t)
 	    (not (y-or-n-p
 		  (format "Suspicious continuation in line %d. Save anyway? "
 			  (count-lines (point-min) (point)))))))))
