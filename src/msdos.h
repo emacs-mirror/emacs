@@ -85,6 +85,8 @@ struct display_info
   int mouse_face_hidden;
 };
 
+typedef struct display_info Display_Info;
+
 /* This is a cut-down version of the one in xterm.h, which see.  */
 struct x_output
 {
