@@ -2621,6 +2621,24 @@ when he invoked the menu."
 	(widget-glyph-insert widget on "down" "down-pushed")
       (widget-glyph-insert widget off "right" "right-pushed"))))
 
+(define-widget 'group-visibility 'item
+  "An indicator and manipulator for hidden group contents."
+  :format "%[%v%]"
+  :create 'widget-group-visibility-create
+  :button-prefix ""
+  :button-suffix ""
+  :on "Hide"
+  :off "Show"
+  :value-create 'widget-visibility-value-create
+  :action 'widget-toggle-action
+  :match (lambda (widget value) t))
+
+(defun widget-group-visibility-create (widget)
+  (let ((visible (widget-value widget)))
+    (if visible
+	(insert "--------")))
+  (widget-default-create widget))
+
 ;;; The `documentation-link' Widget.
 ;;
 ;; This is a helper widget for `documentation-string'.
