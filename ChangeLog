@@ -1,3 +1,12 @@
+2000-06-02  Dave Love  <fx@gnu.org>
+
+	* configure.in: Don't specify -n32 flag for mips-sgi-irix6.5.
+	Check for struct exception.  Use AC_SYS_LARGEFILE and move ftello
+	test.
+
+	* aclocal.m4 (AC_SYS_LARGEFILE_TEST_INCLUDES)
+	(AC_SYS_LARGEFILE_MACRO_VALUE, AC_SYS_LARGEFILE): New.
+
 2000-05-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in: Add check for speed_t typedef.
