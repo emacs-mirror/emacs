@@ -258,13 +258,15 @@ current when you use this command, because the effects apply globally to
 the Emacs session.  The supported language environments include:
 
 @cindex Euro sign
+@cindex UTF-8
 @quotation
 Chinese-BIG5, Chinese-CNS, Chinese-GB, Cyrillic-ALT, Cyrillic-ISO,
 Cyrillic-KOI8, Czech, Devanagari, Dutch, English, Ethiopic, German,
 Greek, Hebrew, IPA, Japanese, Korean, Lao, Latin-1, Latin-2, Latin-3,
 Latin-4, Latin-5, Latin-8 (Celtic), Latin-9 (updated Latin-1, with the
-Euro sign), Polish, Romanian, Slovak, Slovenian, Spanish, Thai,
-Tibetan, Turkish, and Vietnamese.
+Euro sign), Polish, Romanian, Slovak, Slovenian, Spanish, Thai, Tibetan,
+Turkish, UTF-8 (for a setup which prefers Unicode characters and files
+encoded in UTF-8), and Vietnamese.
 @end quotation
 
 @cindex fonts for various scripts
