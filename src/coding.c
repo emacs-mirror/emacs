@@ -584,12 +584,11 @@ decode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
   unsigned char *src_base;
 
   coding->produced_char = 0;
-  while (src < src_end)
+  while ((src_base = src) < src_end)
     {
       unsigned char tmp[MAX_MULTIBYTE_LENGTH], *p;
       int bytes;
 
-      src_base = src;
       if (UNIBYTE_STR_AS_MULTIBYTE_P (src, src_end - src, bytes))
 	{
 	  p = src;
