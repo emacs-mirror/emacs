@@ -275,6 +275,14 @@ Value is a list of strings, which may be nil."
   :type '(repeat (string :tag "Argument"))
   :group 'shell)
 
+(defcustom explicit-bash-args
+    ;; Tell bash not to use readline.
+    '("--noediting" "-i")
+  "*Args passed to inferior shell by M-x shell, if the shell is bash.
+Value is a list of strings, which may be nil."
+  :type '(repeat (string :tag "Argument"))
+  :group 'shell)
+
 (defcustom shell-input-autoexpand 'history
   "*If non-nil, expand input command history references on completion.
 This mirrors the optional behavior of tcsh (its autoexpand and histlit).
