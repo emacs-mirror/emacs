@@ -928,9 +928,10 @@ x_real_positions (f, xptr, yptr)
   Window *tmp_children;
   int tmp_nchildren;
 
-  x_catch_errors (FRAME_X_DISPLAY (f));
   while (1)
     {
+      x_catch_errors (FRAME_X_DISPLAY (f));
+
       XQueryTree (FRAME_X_DISPLAY (f), outer, &tmp_root_window,
 		  &f->display.x->parent_desc,
 		  &tmp_children, &tmp_nchildren);
@@ -971,6 +972,8 @@ x_real_positions (f, xptr, yptr)
 	 Detect that and try the whole thing over.  */
       if (! x_had_errors_p (FRAME_X_DISPLAY (f)))
 	break;
+
+      x_uncatch_errors (FRAME_X_DISPLAY (f));
     }
 
   x_uncatch_errors (FRAME_X_DISPLAY (f));
