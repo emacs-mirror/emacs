@@ -39,6 +39,9 @@ Boston, MA 02111-1307, USA.  */
 #ifdef WINDOWSNT
 #include "w32term.h"
 #endif
+#ifdef MSDOS
+#include "msdos.h"
+#endif
 
 #ifndef max
 #define max(a, b) ((a) < (b) ? (b) : (a))
