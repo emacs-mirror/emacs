@@ -1,5 +1,5 @@
 /* Simple built-in editing commands.
-   Copyright (C) 1985, 93, 94, 95, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1985, 93, 94, 95, 96, 1997 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -285,7 +285,7 @@ N was explicitly specified.")
 
       value = Fdelete_char (make_number (-XINT (n)), killflag);
       i = column - current_column ();
-      Finsert_char (make_number (' '), i);
+      Finsert_char (make_number (' '), make_number (i), Qnil);
       SET_PT (PT - i);
     }
   else
@@ -419,7 +419,8 @@ internal_self_insert (c, noautofill)
 		 if the TARGET_CLM is middle of multi-column
 		 character.  In that case, the new point is set after
 		 that character.  */
-	      int actual_clm = XFASTINT (Fmove_to_column (target_clm));
+	      int actual_clm
+		= XFASTINT (Fmove_to_column (make_number (target_clm), Qnil));
 
 	      del_range (pos, PT);
 	      if (actual_clm > target_clm)
