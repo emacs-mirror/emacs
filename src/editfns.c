@@ -2478,8 +2478,7 @@ transpose_markers (start1, end1, start2, end2,
 	    mpos += diff_byte;
 	  else
 	    mpos -= amt2_byte;
-	  if (mpos > GPT_BYTE) mpos += GAP_SIZE;
-	  XMARKER (marker)->bufpos = mpos;
+	  XMARKER (marker)->bytepos = mpos;
 	}
       mpos = XMARKER (marker)->charpos;
       if (mpos >= start1 && mpos < end2)
