@@ -1652,7 +1652,6 @@ mark_object (objptr)
       break;
 
     case Lisp_Int:
-    case Lisp_Void:
     case Lisp_Subr:
     case Lisp_Intfwd:
     case Lisp_Boolfwd:
