@@ -247,6 +247,9 @@ struct frame
      on the fly, using scroll_bar_cols and the current font width.  */
   int scroll_bar_pixel_width;
   int scroll_bar_cols;
+
+  /* The baud rate that was used to calculate costs for this frame.  */
+  int cost_calculation_baud_rate;
 };
 
 #ifdef MULTI_FRAME
@@ -305,6 +308,7 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_SCROLL_BARS(f) ((f)->scroll_bars)
 #define FRAME_CONDEMNED_SCROLL_BARS(f) ((f)->condemned_scroll_bars)
 #define FRAME_MENU_BAR_ITEMS(f) ((f)->menu_bar_items)
+#define FRAME_COST_BAUD_RATE(f) ((f)->cost_calculation_baud_rate)
 
 /* Emacs's redisplay code could become confused if a frame's
    visibility changes at arbitrary times.  For example, if a frame is
@@ -449,6 +453,7 @@ extern FRAME_PTR last_nonminibuf_frame;
 #define FRAME_SCROLL_BARS(f) (the_only_frame.scroll_bars)
 #define FRAME_CONDEMNED_SCROLL_BARS(f) (the_only_frame.condemned_scroll_bars)
 #define FRAME_MENU_BAR_ITEMS(f) (the_only_frame.menu_bar_items)
+#define FRAME_COST_BAUD_RATE(f) (the_only_frame.cost_calculation_baud_rate)
 
 /* See comments in definition above.  */
 #define FRAME_SAMPLE_VISIBILITY(f) (0)
