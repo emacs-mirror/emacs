@@ -658,10 +658,6 @@ Buffer local variable.")
 (put 'term-scroll-show-maximum-output 'permanent-local t)
 (put 'term-ptyp 'permanent-local t)
 
-;; Do FORMS if running under Emacs 19 or later.
-(defmacro term-if-emacs19 (&rest forms)
-  (if (string-match "^\\(19\\|[2-9][0-9]\\)" emacs-version)
-      (cons 'progn forms)))
 ;; True if running under XEmacs (previously Lucid Emacs).
 (defmacro term-is-xemacs ()  '(string-match "Lucid" emacs-version))
 ;; Do FORM if running under XEmacs (previously Lucid Emacs).
@@ -1064,7 +1060,7 @@ Entry to this mode runs the hooks on term-mode-hook"
 
 ;; Menu bars:
 (term-ifnot-xemacs
- (term-if-emacs19
+ (progn
 
   ;; terminal:
   (let (newmap)
@@ -1300,7 +1296,7 @@ intervention from Emacs, except for the escape character (usually C-c)."
 
 ;;; Added nearly all the 'grey keys' -mm
 
-	(term-if-emacs19
+	(progn
 	 (term-if-xemacs
 	  (define-key term-raw-map [button2] 'term-mouse-paste))
 	 (term-ifnot-xemacs
@@ -3368,7 +3364,7 @@ The top-most line is line 0."
 	(define-key map ">" 'term-pager-eob)
 
 	;; Add menu bar.
-	(term-if-emacs19
+	(progn
 	 (term-ifnot-xemacs
 	  (define-key map [menu-bar terminal] term-terminal-menu)
 	  (define-key map [menu-bar signals] term-signals-menu)
