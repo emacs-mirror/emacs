@@ -1129,6 +1129,7 @@ gmalloc.o: gmalloc.c $(config_h)
 ralloc.o: ralloc.c $(config_h)
 vm-limit.o: vm-limit.c mem-limits.h $(config_h)
 marker.o: marker.c buffer.h charset.h $(config_h)
+md5.o: md5.c md5.h $(config_h)
 minibuf.o: minibuf.c syntax.h dispextern.h frame.h window.h keyboard.h \
    buffer.h commands.h charset.h msdos.h $(config_h)
 mktime.o: mktime.c $(config_h)
