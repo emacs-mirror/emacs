@@ -280,7 +280,7 @@ A large number or nil slows down menu responsiveness."
 (defun menu-bar-kill-ring-save (beg end)
   (interactive "r")
   (if (mouse-region-match)
-      (message "Select a region with the mouse does `copy' automatically")
+      (message "Selecting a region with the mouse does `copy' automatically")
     (kill-ring-save beg end)))
 
 (put 'fill-region 'menu-enable '(and mark-active (not buffer-read-only)))
