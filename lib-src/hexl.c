@@ -12,11 +12,6 @@
 #define TRUE  (1)
 #define FALSE (0)
 
-#ifndef MSDOS
-/* Defined volatile by std.h in MsDos.  */
-extern void exit (), perror ();
-#endif
-
 int base = DEFAULT_BASE, un_flag = FALSE, iso_flag = FALSE, endian = 1;
 int group_by = DEFAULT_GROUPING;
 char *progname;
