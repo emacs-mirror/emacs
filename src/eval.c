@@ -136,7 +136,7 @@ Lisp_Object Vdebug_on_error;
 Lisp_Object Vdebug_ignored_errors;
 
 /* Non-nil means call the debugger even if the error will be handled.  */
-Lisp_Object Vdebug_force;
+Lisp_Object Vdebug_on_signal;
 
 /* Hook for edebug to use.  */
 Lisp_Object Vsignal_hook_function;
@@ -1348,8 +1348,8 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
   /* error is used similarly, but means print an error message
      and run the debugger if that is enabled.  */
   if (EQ (handlers, Qerror)
-      || !NILP (Vdebug_force)) /* This says call debugger even if
-				     there is a handler.  */
+      || !NILP (Vdebug_on_signal)) /* This says call debugger even if
+				      there is a handler.  */
     {
       int count = specpdl_ptr - specpdl;
       int debugger_called = 0;
@@ -2957,11 +2957,11 @@ The Edebug package uses this to regain control.");
     "While in a mocklisp function, the list of its unevaluated args.");
   Vmocklisp_arguments = Qt;
 
-  DEFVAR_LISP ("debug-force", &Vdebug_force,
+  DEFVAR_LISP ("debug-on-signal", &Vdebug_on_signal,
     "*Non-nil means call the debugger regardless of condition handlers.\n\
 Note that `debug-on-error', `debug-on-quit' and friends\n\
 still determine whether to handle the particular condition.");
-  Vdebug_force = Qnil;
+  Vdebug_on_signal = Qnil;
 
   Vrun_hooks = intern ("run-hooks");
   staticpro (&Vrun_hooks);
