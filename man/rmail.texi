@@ -1264,7 +1264,6 @@ constructed by appending the values of @code{rmail-movemail-search-path} and
 @section Retrieving Mail from Remote Mailboxes
 @pindex movemail
 
-
 @vindex rmail-preserve-inbox
   When getting new mail, Rmail first copies the new mail from the inbox
 file to the Rmail file; then it saves the Rmail file; then it truncates
@@ -1345,13 +1344,17 @@ mailbox in the inbox list, use the following mailbox @acronym{URL}:
 following algorithm to retrieve it:
 
 @enumerate
-@item If the @var{password} is present in mailbox URL (see above), it
-is used.
-@item If the variable @code{rmail-remote-password} is
-non-@code{nil}, its value is used.
-@item Otherwise, if @code{rmail-remote-password-required} is
-non-@code{nil}, then Rmail will ask you for the password to use.
-@item Otherwise Rmail assumes no password is required.
+@item 
+If the @var{password} is present in mailbox URL (see above), it is
+used.
+@item 
+If the variable @code{rmail-remote-password} is non-@code{nil}, its
+value is used.
+@item
+Otherwise, if @code{rmail-remote-password-required} is non-@code{nil},
+then Rmail will ask you for the password to use.
+@item
+Otherwise, Rmail assumes no password is required.
 @end enumerate
 
   For compatibility with previous versions, @code{rmail-pop-password}
