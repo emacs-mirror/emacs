@@ -2072,7 +2072,7 @@ minibuffer contents show.")
 	  message_text = (char *)xmalloc (80);
 	  message_length = 80;
 	}
-      if (XSTRING (val)->size > message_length)
+      if (XSTRING (val)->size_byte > message_length)
 	{
 	  message_length = XSTRING (val)->size_byte;
 	  message_text = (char *)xrealloc (message_text, message_length);
