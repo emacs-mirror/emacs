@@ -8375,8 +8375,10 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	     keymap may have changed, so replay the sequence.  */
 	  if (BUFFERP (key))
 	    {
-	      EMACS_TIME initial_idleness_start_time
-		= timer_last_idleness_start_time;
+	      EMACS_TIME initial_idleness_start_time;
+	      EMACS_SET_SECS_USECS (initial_idleness_start_time,
+				    EMACS_SECS (timer_last_idleness_start_time),
+				    EMACS_USECS (timer_last_idleness_start_time));
 
 	      /* Resume idle state, using the same start-time as before.  */
 	      timer_start_idle ();
