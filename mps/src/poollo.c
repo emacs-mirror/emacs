@@ -1,6 +1,6 @@
 /* impl.c.poollo: LEAF POOL CLASS
  *
- * $HopeName: MMsrc!poollo.c(trunk.7) $
+ * $HopeName: MMsrc!poollo.c(trunk.8) $
  * Copyright (C) 1997,1998 Harlequin Group plc, all rights reserved.
  *
  * READERSHIP
@@ -19,7 +19,7 @@
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.7) $");
+SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.8) $");
 
 
 /* MACROS */
@@ -87,7 +87,7 @@ static Bool LOGroupCheck(LOGroup group)
   CHECKL(group->alloc != NULL);
   CHECKL(SegCheck(group->seg));
   CHECKL(group->free <= /* Could check exactly */
-	 SegSize(group->seg) >> group->lo->alignShift);
+         SegSize(group->seg) >> group->lo->alignShift);
   return TRUE;
 }
 
@@ -116,7 +116,7 @@ static Count loGroupBits(LOGroup group)
 
 
 static void loGroupFree(LOGroup group,
-			Index baseIndex, Index limitIndex)
+                        Index baseIndex, Index limitIndex)
 {
   Count bits;
   Size size;
@@ -174,7 +174,7 @@ static Bool loGroupFindFree(Addr *bReturn, Addr *lReturn,
 
   tablesize = SegSize(group->seg) >> lo->alignShift;
   if(!BTFindLongResRange(&baseIndex, &limitIndex, group->alloc,
-		     0, tablesize, agrains)) {
+                     0, tablesize, agrains)) {
     return FALSE;
   }
 
@@ -305,6 +305,8 @@ static void loGroupReclaim(LOGroup group, Trace trace)
   Bool marked;
   Count bytesReclaimed = (Count)0;
   LO lo;
+  Count preservedInPlaceCount = (Count)0;
+  Size preservedInPlaceSize = (Size)0;
 
   AVERT(LOGroup, group);
   AVERT(Trace, trace);
@@ -328,7 +330,7 @@ static void loGroupReclaim(LOGroup group, Trace trace)
     if(buffer != NULL) {
       marked = TRUE;
       if(p == BufferScanLimit(buffer) &&
-	 BufferScanLimit(buffer) != BufferLimit(buffer)) {
+         BufferScanLimit(buffer) != BufferLimit(buffer)) {
         /* skip over buffered area */
         p = BufferLimit(buffer);
         continue;
@@ -346,6 +348,8 @@ static void loGroupReclaim(LOGroup group, Trace trace)
     q = (*LOPool(lo)->format->skip)(p);
     if(BTGet(group->mark, i)) {
       marked = TRUE;
+      ++preservedInPlaceCount;
+      preservedInPlaceSize += AddrOffset(p, q);
     } else {
       Index j = loIndexOfAddr(base, lo, q);
       /* This object is not marked, so free it */
@@ -358,6 +362,8 @@ static void loGroupReclaim(LOGroup group, Trace trace)
 
   AVER(bytesReclaimed <= SegSize(group->seg));
   trace->reclaimSize += bytesReclaimed;
+  trace->preservedInPlaceCount += preservedInPlaceCount;
+  trace->preservedInPlaceSize += preservedInPlaceSize;
 
   SegSetWhite(group->seg, TraceSetDel(SegWhite(group->seg), trace->ti));
 
@@ -371,7 +377,7 @@ static void loGroupReclaim(LOGroup group, Trace trace)
 /* a leaf pool, so there can't be any dangling references */
 static void LOWalk(Pool pool, Seg seg,
                    FormattedObjectsStepMethod f,
-		   void *p, unsigned long s)
+                   void *p, unsigned long s)
 {
   Addr base;
   LO lo;
@@ -402,10 +408,10 @@ static void LOWalk(Pool pool, Seg seg,
     if(SegBuffer(seg) != NULL) {
       Buffer buffer = SegBuffer(seg);
       if(object == BufferScanLimit(buffer) &&
-	 BufferScanLimit(buffer) != BufferLimit(buffer)) {
+         BufferScanLimit(buffer) != BufferLimit(buffer)) {
         /* skip over buffered area */
         object = BufferLimit(buffer);
-	i = loIndexOfAddr(base, lo, object);
+        i = loIndexOfAddr(base, lo, object);
         continue;
       }
       /* since we skip over the buffered area we are always */
@@ -761,7 +767,7 @@ static struct PoolClassStruct PoolClassLOStruct = {
   LOBufferFill,                         /* bufferFill */
   LOBufferEmpty,                        /* bufferEmpty */
   PoolTrivBufferFinish,                 /* bufferFinish */
-  LOTraceBegin,				/* traceBegin */
+  LOTraceBegin,                         /* traceBegin */
   PoolSegAccess,
   LOWhiten,                             /* whiten */
   PoolNoGrey,                           /* grey */
@@ -770,7 +776,7 @@ static struct PoolClassStruct PoolClassLOStruct = {
   LOFix,                                /* fix */
   LOFix,                                /* fix */
   LOReclaim,                            /* reclaim */
-  LOBenefit,				/* benefit */
+  LOBenefit,                            /* benefit */
   PoolCollectAct,                       /* act */
   PoolNoRampBegin,
   PoolNoRampEnd,

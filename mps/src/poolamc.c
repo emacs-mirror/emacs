@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.19) $
+ * $HopeName: MMsrc!poolamc.c(trunk.20) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -9,7 +9,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.19) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.20) $");
 
 
 /* Binary i/f used by ASG (drj 1998-06-11) */
@@ -1320,7 +1320,6 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     }
     /* object is not preserved yet (neither moved, nor nailed) */
     /* so should be preserved by forwarding */
-    ++ss->forwardCount;
     EVENT_A(AMCFixForward, newRef);
     /* design.mps.fix.protocol.was-marked */
     ss->wasMarked = FALSE;
@@ -1331,6 +1330,9 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     AVER_CRITICAL(buffer != NULL);
 
     length = AddrOffset(ref, (*format->skip)(ref));
+
+    ++ss->forwardedCount;
+    ss->forwardedSize += length;
 
     do {
       res = BUFFER_RESERVE(&newRef, buffer, length,
@@ -1396,7 +1398,9 @@ static void AMCReclaimNailed(Pool pool, Trace trace, Seg seg)
   Addr p, limit;
   Arena arena;
   Format format;
-  Size bytesReclaimed = 0;
+  Size bytesReclaimed = (Size)0;
+  Count preservedInPlaceCount = (Count)0;
+  Size preservedInPlaceSize = (Size)0;
   AMC amc;
 
   /* All arguments AVERed by AMCReclaim */
@@ -1410,6 +1414,8 @@ static void AMCReclaimNailed(Pool pool, Trace trace, Seg seg)
 
   if(!AMCSegHasNailBoard(seg)) {
     /* We didn't keep a mark table, so preserve everything. */
+    /* We can't do anything about preservedInPlaceCount. */
+    trace->preservedInPlaceSize += SegSize(seg);
     goto adjustColour;
   }
 
@@ -1422,11 +1428,17 @@ static void AMCReclaimNailed(Pool pool, Trace trace, Seg seg)
     limit = SegLimit(seg);
   while(p < limit) {
     Addr q;
+    Size length;
     q = (*format->skip)(p);
+    length = AddrOffset(p, q);
     if(!AMCNailGetMark(seg, p)) {
-      (*format->pad)(p, AddrOffset(p, q));
-      bytesReclaimed += AddrOffset(p, q);
+      (*format->pad)(p, length);
+      bytesReclaimed += length;
+    } else {
+      ++preservedInPlaceCount;
+      preservedInPlaceSize += length;
     }
+
     AVER(p < q);
     p = q;
   }
@@ -1442,6 +1454,8 @@ adjustColour:
 
   AVER(bytesReclaimed <= SegSize(seg));
   trace->reclaimSize += bytesReclaimed;
+  trace->preservedInPlaceCount += preservedInPlaceCount;
+  trace->preservedInPlaceSize += preservedInPlaceSize;
 }
 
 
