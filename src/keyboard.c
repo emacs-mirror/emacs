@@ -3299,7 +3299,7 @@ kbd_buffer_store_event (event)
 
       if (c == quit_char)
 	{
-	  static SIGTYPE interrupt_signal (int);
+	  static SIGTYPE interrupt_signal P_ ((int));
 #ifdef MULTI_KBOARD
 	  KBOARD *kb;
 	  struct input_event *sp;
