@@ -5,8 +5,11 @@ rem Need to fiddle with the dumped image so prep doesn't break it
 obj\i386\preprep ..\src\obj\i386\emacs.exe ..\src\obj\i386\pemacs.exe
 copy ..\src\obj\i386\temacs.map ..\src\obj\i386\pemacs.map
 rem -----------------------------------------------------------------
+rem    Use this version to profile explicit commands only.
+prep /om /ft /inc libc.lib /sf _Fexecute_extended_command ..\src\obj\i386\pemacs
+rem -----------------------------------------------------------------
 rem    Use this version to ignore startup code
-prep /om /ft /inc libc.lib /sf _command_loop_1 ..\src\obj\i386\pemacs
+rem prep /om /ft /inc libc.lib /sf _command_loop_1 ..\src\obj\i386\pemacs
 rem -----------------------------------------------------------------
 rem    Use this version to include startup code
 rem prep /om /ft /inc libc.lib ..\src\obj\i386\pemacs
