@@ -472,9 +472,12 @@ extern int width_by_char_head[256];
 	      : (CHAR_FIELD2 (c) >= 16 && CHAR_FIELD3 (c) >= 32))	\
 	   : (c) < MIN_CHAR_COMPOSITION + n_cmpchars)))
 
-/* The charset of non-ASCII character C is set to CHARSET, and the
-   position-codes of C are set to C1 and C2.  C2 of DIMENSION1 character
-   is -1.  */
+/* The charset of non-ASCII character C is stored in CHARSET, and the
+   position-codes of C are stored in C1 and C2.
+   We store -1 in C2 if the character is just 2 bytes.
+
+   Do not use this macro for an ASCII character.  */
+
 #define SPLIT_NON_ASCII_CHAR(c, charset, c1, c2)			 \
   ((c) < MIN_CHAR_OFFICIAL_DIMENSION2					 \
    ? (charset = CHAR_FIELD2 (c) + 0x70,					 \
@@ -487,19 +490,23 @@ extern int width_by_char_head[256];
       c1 = CHAR_FIELD2 (c),						 \
       c2 = CHAR_FIELD3 (c)))
 
-/* The charset of character C is set to CHARSET, and the
-   position-codes of C are set to C1 and C2.  C2 of DIMENSION1 character
-   is -1.  */
+/* The charset of character C is stored in CHARSET, and the
+   position-codes of C are stored in C1 and C2.
+   We store -1 in C2 if the character is just 2 bytes.  */
+
 #define SPLIT_CHAR(c, charset, c1, c2)		 	\
   (SINGLE_BYTE_CHAR_P (c)			 	\
    ? charset = CHARSET_ASCII, c1 = (c), c2 = -1	 	\
    : SPLIT_NON_ASCII_CHAR (c, charset, c1, c2))
 
-/* The charset of the character at STR is set to CHARSET, and the
-   position-codes are set to C1 and C2.  C2 of DIMENSION1 character is -1.
+/* The charset of the character at STR is stored in CHARSET, and the
+   position-codes are stored in C1 and C2.
+   We store -1 in C2 if the character is just 2 bytes.
+
    If the character is a composite character, the upper 7-bit and
    lower 7-bit of CMPCHAR-ID are set in C1 and C2 respectively.  No
    range checking.  */
+
 #define SPLIT_STRING(str, len, charset, c1, c2)			      	\
   ((BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) < 2		      	\
     || BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) > len	      	\
