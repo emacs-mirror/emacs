@@ -1272,7 +1272,7 @@ Does not copy symbols.")
 
 struct gcpro *gcprolist;
 
-#define NSTATICS 512
+#define NSTATICS 768
 
 Lisp_Object *staticvec[NSTATICS] = {0};
 
@@ -1876,8 +1876,8 @@ mark_perdisplays ()
   PERDISPLAY *perd;
   for (perd = all_perdisplays; perd; perd = perd->next_perdisplay)
     {
-      mark_object (&perd->Vprefix_arg);
-      mark_object (&perd->Vcurrent_prefix_arg);
+      mark_object (&perd->prefix_factor);
+      mark_object (&perd->prefix_value);
       mark_object (&perd->kbd_queue);
     }
 }
