@@ -3003,9 +3003,8 @@ Driven by the variable `calendar-date-display-form'."
   (interactive)
   (message "Hebrew date (until sunset): %s"
            (calendar-hebrew-date-string
-            (calendar-hebrew-from-absolute
-             (or (calendar-cursor-to-date)
-                 (error "Cursor is not on a date!"))))))
+            (or (calendar-cursor-to-date)
+                (error "Cursor is not on a date!")))))
 
 (defun hebrew-calendar-yahrzeit (death-date year)
   "Absolute date of the anniversary of Hebrew DEATH-DATE in Hebrew YEAR."
