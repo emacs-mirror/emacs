@@ -1,5 +1,9 @@
 1999-12-16  Dave Love  <fx@gnu.org>
 
+	* faces.el (set-face-attribute): Purecopy the attributes set.
+
+	* custom.el (custom-declare-variable): Purecopy value.
+
 	* bytecomp.el (byte-compile-bound-variables): Doc fix.
 	(byte-extrude-byte-code-vectors): Use remprop.
 	(byte-compile-lambda): Check that arg is a lambda.
