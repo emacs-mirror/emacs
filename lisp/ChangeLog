@@ -26,6 +26,31 @@
 	* diff-mode.el (diff-goto-source): Update call to
 	`diff-hunk-status-msg' to reflect new REV variable.
 
+2000-10-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/icon.el (icon-mode):
+	Don't gratuitously override the default for comment-column.
+
+	* vc-hooks.el (vc-mode-line): Fix interactive spec.
+
+	* jit-lock.el (with-buffer-unmodified): Use unwind-protect.
+	(jit-lock-mode): Make sure font-lock-keywords-only is bound before use.
+	(jit-lock-functions): New var.
+	(jit-lock-function-1): Use it if non-nil.
+	Don't switch the syntax-table.  Don't set parse-sexp-lookup-properties.
+	Set the `fontified' property before doing the fontification to avoid
+	repeatedly going through the same error.
+	Don't turn errors into messages.
+	(jit-lock-register, jit-lock-unregister): New functions.
+
+	* dired.el (dired-mark-pop-up): Turn comment into docstring.
+	Use with-current-buffer.
+
+	* dired-aux.el (dired-do-create-files, dired-kill-tree):
+	Turn comment into docstring.
+
+	* apropos.el (apropos-mode): Use define-derived-mode.
+
 2000-10-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (fancy-splash-pending-command): New variable.
