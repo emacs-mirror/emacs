@@ -1915,6 +1915,11 @@ x_set_menu_bar_lines_1 (window, n)
   XSETFASTINT (w->top, XFASTINT (w->top) + n);
   XSETFASTINT (w->height, XFASTINT (w->height) - n);
 
+  if (INTEGERP (w->orig_top))
+    XSETFASTINT (w->orig_top, XFASTINT (w->orig_top) + n);
+  if (INTEGERP (w->orig_height))
+    XSETFASTINT (w->orig_height, XFASTINT (w->orig_height) - n);
+
   /* Handle just the top child in a vertical split.  */
   if (!NILP (w->vchild))
     x_set_menu_bar_lines_1 (w->vchild, n);
