@@ -3501,7 +3501,7 @@ See also `auto-save-file-name-p'."
 
     (let ((buffer-name (buffer-name))
 	  (limit 0)
-	  filename)
+	  file-name)
       ;; Eliminate all slashes and backslashes by
       ;; replacing them with sequences that start with %.
       ;; Quote % also, to keep distinct names distinct.
