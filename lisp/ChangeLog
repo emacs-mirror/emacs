@@ -10,6 +10,8 @@
 
 2004-09-12  Kim F. Storm  <storm@cua.dk>
 
+	* kmacro.el (kmacro-step-edit-prompt): Add "%s" format to message.
+
 	* emulation/cua-rect.el (cua--rectangle-operation): Let bind
 	inhibit-field-text-motion to t so rectangles work in comint buffers.
 

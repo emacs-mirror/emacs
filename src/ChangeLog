@@ -1,3 +1,9 @@
+2004-09-12  Kim F. Storm  <storm@cua.dk>
+
+	* editfns.c (Fformat): Handle format strings with multiple text
+	properties.  Reverse text property list from the format string,
+	so the positions are in increasing order.
+
 2004-09-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xselect.c (x_reply_selection_request): XSync and UNBLOCK before
