@@ -233,10 +233,7 @@ or an integer of the form +-HHMM, or a time zone name."
 	    (setq timezone (string-to-int timezone)))
 	;; Taking account of minute in timezone.
 	;; HHMM -> MM
-	;;(+ (* 60 (/ timezone 100)) (% timezone 100))
-	;; ANSI C compliance about truncation of integer division
-	;; by eggert@twinsun.com (Paul Eggert)
-	(let* ((abszone (max timezone (- timezone)))
+	(let* ((abszone (abs timezone))
  	       (minutes (+ (* 60 (/ abszone 100)) (% abszone 100))))
  	  (if (< timezone 0) (- minutes) minutes))))
      (t 0)))
@@ -293,12 +290,7 @@ If TIMEZONE is nil, use the local time zone."
 	 (diff   (- (timezone-zone-to-minute timezone)
 		    (timezone-zone-to-minute local)))
 	 (minute (+ minute diff))
-	 (hour-fix
-	  (if (< minute 0)
-	     ;;(/ (- minute 59) 60) (/ minute 60)
-	     ;; ANSI C compliance about truncation of integer division
-	     ;; by eggert@twinsun.com (Paul Eggert)
-	     (- (/ (- 59 minute) 60)) (/ minute 60))))
+	 (hour-fix (floor minute 60)))
     (setq hour (+ hour hour-fix))
     (setq minute (- minute (* 60 hour-fix)))
     ;; HOUR may be larger than 24 or smaller than 0.
