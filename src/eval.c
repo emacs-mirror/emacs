@@ -1328,10 +1328,15 @@ See also the function `condition-case'.")
   /* Remember from where signal was called.  Skip over the frame for
      `signal' itself.  If a frame for `error' follows, skip that,
      too.  */
-  bp = backtrace_list->next;
-  if (bp && bp->function && EQ (*bp->function, Qerror))
-    bp = bp->next;
-  Vsignaling_function = bp && bp->function ? *bp->function : Qnil;
+  Vsignaling_function = Qnil;
+  if (backtrace_list)
+    {
+      bp = backtrace_list->next;
+      if (bp && bp->function && EQ (*bp->function, Qerror))
+	bp = bp->next;
+      if (bp && bp->function)
+	Vsignaling_function = *bp->function;
+    }
 
   for (; handlerlist; handlerlist = handlerlist->next)
     {
