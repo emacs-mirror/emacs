@@ -60,11 +60,26 @@ PREFIX is the prefix argument (if any) to pass to the command."
 		  (if filter (funcall filter (symbol-function map)) map)))))
 	 event)
     ;; The looping behavior was taken from lmenu's popup-menu-popup
-    (while (and map (setq event (x-popup-menu position map)))
+    (while (and map (setq event
+			  ;; map could be a prefix key, in which case
+			  ;; we need to get its function cell
+			  ;; definition.
+			  (x-popup-menu position (indirect-function map))))
       ;; Strangely x-popup-menu returns a list.
       ;; mouse-major-mode-menu was using a weird:
       ;; (key-binding (apply 'vector (append '(menu-bar) menu-prefix events)))
-      (let ((cmd (lookup-key map (apply 'vector event))))
+      (let ((cmd
+	     (if (and (not (keymapp map)) (listp map))
+		 ;; We were given a list of keymaps.  Search them all
+		 ;; in sequence until a first binding is found.
+		 (let ((mouse-click (apply 'vector event))
+		       binding)
+		   (while (and map (null binding))
+		     (setq binding (lookup-key (car map) mouse-click))
+		     (setq map (cdr map)))
+		   binding)
+	       ;; We were given a single keymap.
+	       (lookup-key map (apply 'vector event)))))
 	(setq map nil)
 	;; Clear out echoing, which perhaps shows a prefix arg.
 	(message "")
@@ -145,10 +160,29 @@ The contents are the items that would be in the menu bar whether or
 not it is actually displayed."
   (interactive "@e \nP")
   (run-hooks 'activate-menubar-hook)
-  (let* ((local-menu (lookup-key (current-local-map) [menu-bar]))
-	 (global-menu (lookup-key global-map [menu-bar])))
+  (let* ((local-menu (and (current-local-map)
+			  (lookup-key (current-local-map) [menu-bar])))
+	 (global-menu (lookup-key global-map [menu-bar]))
+	 (local-title-or-map (and local-menu (cadr local-menu)))
+	 (global-title-or-map (cadr global-menu)))
+    ;; If the keymaps don't have prompt string (a lazy programmer
+    ;; didn't bother to provide one), create it and insert it into the
+    ;; keymaps; each keymap gets its own prompt.  This is required for
+    ;; non-toolkit versions to display non-empty menu pane names.
+    (or (null local-menu)
+	(stringp local-title-or-map)
+	(setq local-menu (cons 'keymap
+			       (cons (concat mode-name " Mode Menu")
+				     (cdr local-menu)))))
+    (or (stringp global-title-or-map)
+	(setq global-menu (cons 'keymap
+			        (cons "Global Menu"
+				      (cdr global-menu)))))
     ;; Supplying the list is faster than making a new map.
-    (popup-menu (list global-menu local-menu) event prefix)))
+    (popup-menu (if local-menu
+		    (list global-menu local-menu)
+		  (list global-menu))
+		event prefix)))
 
 (defun mouse-popup-menubar-stuff (event prefix)
   "Popup a menu like either `mouse-major-mode-menu' or `mouse-popup-menubar'.
