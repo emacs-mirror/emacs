@@ -354,6 +354,10 @@ that form should be displayed.")
 ;;; This parser is limited to the operators &&, ||, !, and "defined".
 ;;; Added ==, !=, +, and -.  Gary Oberbrunner, garyo@avs.com, 8/9/94
 
+(defsubst hif-nexttoken ()
+  "Pop the next token from token-list into the let variable \"hif-token\"."
+  (setq hif-token (pop hif-token-list)))
+
 (defun hif-parse-if-exp (hif-token-list)
   "Parse the TOKEN-LIST.  Return translated list in prefix form."
   (hif-nexttoken)
@@ -361,10 +365,6 @@ that form should be displayed.")
       (hif-expr)
     (if hif-token ; is there still a token?
 	(error "Error: unexpected token: %s" hif-token))))
-
-(defsubst hif-nexttoken ()
-  "Pop the next token from token-list into the let variable \"hif-token\"."
-  (setq hif-token (pop hif-token-list)))
 
 (defun hif-expr ()
   "Parse an expression as found in #if.
