@@ -2026,6 +2026,8 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
   while (1)
     {
+      int timeout_reduced_for_timers = 0;
+
       /* If calling from keyboard input, do not quit
 	 since we want to return C-g as an input character.
 	 Otherwise, do pending quit if requested.  */
@@ -2064,13 +2066,17 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 call timer_delay on their own.)  */
       if (read_kbd >= 0)
 	{
-	  EMACS_TIME timer_delay = timer_check (1);
-	  if (! EMACS_TIME_NEG_P (timer_delay))
+	  EMACS_TIME timer_delay;
+	  timer_delay = timer_check (1);
+	  if (! EMACS_TIME_NEG_P (timer_delay) && time_limit != -1)
 	    {
 	      EMACS_TIME difference;
 	      EMACS_SUB_TIME (difference, timer_delay, timeout);
 	      if (EMACS_TIME_NEG_P (difference))
-		timeout = timer_delay;
+		{
+		  timeout = timer_delay;
+		  timeout_reduced_for_timers = 1;
+		}
 	    }
 	}
 
@@ -2149,7 +2155,8 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       /*  If we woke up due to SIGWINCH, actually change size now.  */
       do_pending_window_change ();
 
-      if (time_limit && nfds == 0) /* timeout elapsed */
+      if (time_limit && nfds == 0 && ! timeout_reduced_for_timers)
+	/* We wanted the full specified time, so return now.  */
 	break;
       if (nfds < 0)
 	{
