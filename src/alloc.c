@@ -575,7 +575,7 @@ xfree (block)
 
 char *
 xstrdup (s)
-     char *s;
+     const char *s;
 {
   size_t len = strlen (s) + 1;
   char *p = (char *) xmalloc (len);
@@ -1757,7 +1757,7 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
 
 Lisp_Object
 make_string (contents, nbytes)
-     char *contents;
+     const char *contents;
      int nbytes;
 {
   register Lisp_Object val;
@@ -1778,7 +1778,7 @@ make_string (contents, nbytes)
 
 Lisp_Object
 make_unibyte_string (contents, length)
-     char *contents;
+     const char *contents;
      int length;
 {
   register Lisp_Object val;
@@ -1794,7 +1794,7 @@ make_unibyte_string (contents, length)
 
 Lisp_Object
 make_multibyte_string (contents, nchars, nbytes)
-     char *contents;
+     const char *contents;
      int nchars, nbytes;
 {
   register Lisp_Object val;
@@ -1845,7 +1845,7 @@ make_specified_string (contents, nchars, nbytes, multibyte)
 
 Lisp_Object
 build_string (str)
-     char *str;
+     const char *str;
 {
   return make_string (str, strlen (str));
 }
