@@ -694,11 +694,10 @@ remote machine.
 @appendixsec Font Specification Options
 @cindex font name (X Window System)
 
-  By default, Emacs displays text in the font named @samp{9x15}, which
-makes each character nine pixels wide and fifteen pixels high.  You can
-specify a different font on your command line through the option
-@samp{-fn @var{name}} (or @samp{--font}, which is an alias for
-@samp{-fn}).
+  By default, Emacs displays text in a twelve point Courier font (when
+using X).  You can specify a different font on your command line
+through the option @samp{-fn @var{name}} (or @samp{--font}, which is
+an alias for @samp{-fn}).
 
 @table @samp
 @item -fn @var{name}
@@ -709,12 +708,19 @@ specify a different font on your command line through the option
 Use font @var{name} as the default font.
 @end table
 
-  Under X, each font has a long name which consists of eleven words or
-numbers, separated by dashes.  Some fonts also have shorter
-nicknames---@samp{9x15} is such a nickname.  You can use either kind of
-name.  You can use wildcard patterns for the font name; then Emacs lets
-X choose one of the fonts that match the pattern.  Here is an example,
-which happens to specify the font whose nickname is @samp{6x13}:
+  Under X, each font has a long name which consists of fourteen words
+or numbers, separated by dashes.  Some fonts also have shorter
+nicknames.  For instance, @samp{9x15} is such a nickname.  This font
+makes each character nine pixels wide and fifteen pixels high.  You
+can use either kind of name.  Case is insignificant in both kinds.
+You can use wildcard patterns for the font name; then Emacs lets X
+choose one of the fonts that match the pattern.  The wildcard
+character @samp{*} matches any sequence of characters (including none)
+and @samp{?} matches any single character.  However, matching is
+implementation-dependent, and can be inaccurate when wildcards match
+dashes in a long name.  For reliable results, supply all 14 dashes and
+use wildcards only within a field.  Here is an example, which happens
+to specify the font whose nickname is @samp{6x13}:
 
 @smallexample
 emacs -fn \
@@ -728,11 +734,23 @@ You can also specify the font in your @file{.Xdefaults} file:
 emacs.font: -misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1
 @end smallexample
 
+  Note that if you use a wildcard pattern on the command line, you
+need to enclose it in single or double quotes, to prevent the shell
+from accidentally expanding it into a list of file names.  On the
+other hand, you should not quote the name in the @file{.Xdefaults}
+file.
+
+The default font used by Emacs (under X) is:
+
+@smallexample
+-adobe-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1
+@end smallexample
+
   A long font name has the following form:
 
 @smallexample
 -@var{maker}-@var{family}-@var{weight}-@var{slant}-@var{widthtype}-@var{style}@dots{}
-@dots{}-@var{pixels}-@var{height}-@var{horiz}-@var{vert}-@var{spacing}-@var{width}-@var{charset}
+@dots{}-@var{pixels}-@var{height}-@var{horiz}-@var{vert}-@var{spacing}-@var{width}-@var{registry}-@var{encoding}
 @end smallexample
 
 @table @var
@@ -773,9 +791,14 @@ This is @samp{m} (monospace), @samp{p} (proportional) or @samp{c}
 (character cell).
 @item width
 This is the average character width, in pixels, multiplied by ten.
-@item charset
-This is the character set that the font depicts.
-Normally you should use @samp{iso8859-1}.
+@item registry
+@itemx encoding
+These together make up the X font character set that the font depicts.
+(X font character sets are not the same as Emacs charsets, but they
+are solutions for the same problem.)  You can use the
+@command{xfontsel} program to check which choices you have.  However,
+normally you should use @samp{iso8859} for @var{registry} and @samp{1}
+for @var{encoding}.
 @end table
 
 @cindex listing system fonts
