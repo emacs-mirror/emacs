@@ -1,3 +1,10 @@
+2001-08-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* lazy-lock.el (lazy-lock-fontify-region): Widen the current
+	buffer in a save-restriction.  Under one test case with Ediff,
+	window-scroll-functions are run with a window start that's
+	temporarily outside of the restriction.
+
 2001-08-16  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.nt (DONTCOMPILE): Omit bindings.el.
