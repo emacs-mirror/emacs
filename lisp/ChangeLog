@@ -1,3 +1,8 @@
+1999-10-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* smtpmail.el (smtpmail-via-smtp): Add support for
+	automatically appending a domain to RCPT TO: addresses.
+
 1999-10-14  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* dired.el (dired-insert-directory): Insert the amount of
