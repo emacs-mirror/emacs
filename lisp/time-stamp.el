@@ -1,6 +1,6 @@
 ;;; time-stamp.el --- Maintain last change time stamps in files edited by Emacs
 ;;; Copyright 1989, 1993, 1994, 1995 Free Software Foundation, Inc.
-;;; Maintainer's Time-stamp: <95/05/31 10:47:14 gildea>
+;;; Maintainer's Time-stamp: <95/09/21 12:32:56 gildea>
 
 ;; Maintainer: Stephen Gildea <gildea@lcs.mit.edu>
 ;; Keywords: tools
@@ -48,28 +48,52 @@
 ;;; Originally based on the 19 Dec 88 version of
 ;;;   date.el by John Sturdy <mcvax!harlqn.co.uk!jcgs@uunet.uu.net>
 ;;; version 2, January 1995: replaced functions with %-escapes
-;;; $Id: time-stamp.el,v 1.13 1995/05/30 21:20:09 kwzh Exp kwzh $
+;;; $Id: time-stamp.el,v 1.14 1995/05/31 20:00:40 kwzh Exp kwzh $
 
 ;;; Code:
 
 (defvar time-stamp-active t
-  "*Non-nil to enable time-stamping of files.
+  "*Non-nil to enable time-stamping of buffers by \\[time-stamp].
 Can be toggled by \\[time-stamp-toggle-active].
 See also the variable time-stamp-warn-inactive.")
 
 (defvar time-stamp-warn-inactive t
-  "*Non-nil to have time-stamp warn if time-stamp-active is nil.")
+  "*Non-nil to have \\[time-stamp] warn if a buffer did not get time-stamped.
+A warning is printed if time-stamp-active is nil and the buffer contains
+a time stamp template that would otherwise have been updated.")
 
 (defvar time-stamp-format "%02y/%02m/%02d %02H:%02M:%02S %u"
-  "*Template for the string inserted by the time-stamp function.
+  "*Template for the string inserted by \\[time-stamp].
 Value may be a string or a list.  (Lists are supported only for
-backward compatibility.)  A string is used verbatim except for character
-sequences beginning with %.  See the documentation for the function
-time-stamp-strftime for a list of %-escapes.
-     Each element of a list is called as a function and the results are
-concatenated together separated by spaces.  List elements may also be
-strings, which are included verbatim.  Spaces are not inserted around
-literal strings.")
+backward compatibility.)  A string is used verbatim except
+for character sequences beginning with %:
+
+%a  weekday name: `Monday'.		%A gives uppercase: `MONDAY'
+%b  month name: `January'.		%B gives uppercase: `JANUARY'
+%d  day of month
+%H  24-hour clock hour
+%I  12-hour clock hour
+%m  month number
+%M  minute
+%p  `am' or `pm'.			%P gives uppercase: `AM' or `PM'
+%S  seconds
+%w  day number of week, Sunday is 0
+%y  year: `1995'
+%z  time zone name: `est'.		%Z gives uppercase: `EST'
+
+Non-date items:
+%%  a literal percent character: `%'
+%f  file name without directory		%F gives absolute pathname
+%s  system name
+%u  user's login name
+%h  mail host name
+
+Decimal digits between the % and the type character specify the
+field width.  Strings are truncated on the right; numbers on the left.
+A leading zero causes numbers to be zero-filled.
+
+For example, to get the format used by the `date' command,
+use \"%3a %3b %2d %02H:%02M:%02S %Z %y\"")
 
 
 ;;; Do not change time-stamp-line-limit, time-stamp-start, or
@@ -135,43 +159,46 @@ control finding the template."
 	  (save-restriction
 	    (widen)
 	    (goto-char (point-min))
-	    (if (re-search-forward time-stamp-start
-				   (save-excursion
-				     (forward-line time-stamp-line-limit)
-				     (point))
-				   t)
-		(let ((start (point)))
-		  (if (re-search-forward time-stamp-end
-					 (save-excursion
-					   (end-of-line)
-					   (point))
-					 t)
-		      (if time-stamp-active
-			  (let ((end (match-beginning 0)))
-			    (delete-region start end)
-			    (goto-char start)
-			    (insert (time-stamp-string))
-			    (setq end (point))
-			    ;; remove any tabs used to format the time stamp
-			    (goto-char start)
-			    (if (search-forward "\t" end t)
-				(untabify start end)))
-			(if time-stamp-warn-inactive
-			    ;; do the actual warning outside save-excursion
-			    (setq need-to-warn t))))))))
+	    (forward-line time-stamp-line-limit)
+	    (let ((start (point-min))
+		  (search-end (point)))
+	      (goto-char start)
+	      (while
+		  (and (< (point) search-end)
+		       (re-search-forward time-stamp-start search-end 'move))
+		(setq start (point))
+		(end-of-line)
+		(let ((line-end (point)))
+		  (goto-char start)
+		  (if (re-search-forward time-stamp-end line-end 'move)
+		      (progn
+			(if time-stamp-active
+			    (let ((end (match-beginning 0)))
+			      (delete-region start end)
+			      (goto-char start)
+			      (insert (time-stamp-string))
+			      (setq end (point))
+			      ;; remove any tabs used to format time stamp
+			      (goto-char start)
+			      (if (search-forward "\t" end t)
+				  (untabify start end)))
+			  (if time-stamp-warn-inactive
+			      ;; do warning outside save-excursion
+			      (setq need-to-warn t)))
+			(setq search-end (point)))))))))
       ;; don't signal an error in a write-file-hook
       (message "time-stamp-start or time-stamp-end is not a string")
       (sit-for 1))
     (if need-to-warn
 	(progn
-	  (message "Warning: did not time-stamp buffer.")
+	  (message "Warning: time-stamp-active is off; did not time-stamp buffer.")
 	  (sit-for 1))))
   ;; be sure to return nil so can be used on write-file-hooks
   nil)
 
 ;;;###autoload
 (defun time-stamp-toggle-active (&optional arg)
-  "Toggle time-stamp-active, which enables time stamping of files.
+  "Toggle time-stamp-active, setting whether \\[time-stamp] updates a buffer.
 With arg, turn time stamping on if and only if arg is positive."
   (interactive "P")
   (setq time-stamp-active
@@ -207,34 +234,8 @@ With arg, turn time stamping on if and only if arg is positive."
 (defun time-stamp-strftime (format &optional time)
   "Uses a FORMAT to format date, time, file, and user information.
 Optional second argument TIME will be used instead of the current time.
-Characters in the format are copied literally except for %-directives:
-
-%a  weekday name: `Monday'.		%A gives uppercase: `MONDAY'
-%b  month name: `January'.		%B gives uppercase: `JANUARY'
-%d  day of month
-%H  24-hour clock hour
-%I  12-hour clock hour
-%m  month number
-%M  minute
-%p  `am' or `pm'.			%P gives uppercase: `AM' or `PM'
-%S  seconds
-%w  day number of week, Sunday is 0
-%y  year: `1995'
-%z  time zone name: `est'.		%Z gives uppercase: `EST'
-
-Non-date items:
-%%  a literal percent character: `%'
-%f  file name without directory		%F gives absolute pathname
-%s  system name
-%u  user's login name
-%h  mail host name
-
-Decimal digits between the % and the type character specify the
-field width.  Strings are truncated on the right; numbers on the left.
-A leading zero causes numbers to be zero-filled.
-
-For example, to get the format used by the `date' command,
-use \"%3a %3b %2d %02H:%02M:%02S %Z %y\""
+See the description of the variable `time-stamp-format' for a description
+of the format string."
   (let ((time-string (cond ((stringp time)
 			    time)
 			   (time
@@ -244,24 +245,46 @@ use \"%3a %3b %2d %02H:%02M:%02S %Z %y\""
 	(fmt-len (length format))
 	(ind 0)
 	cur-char
+	(prev-char nil)
 	(result "")
 	field-index
 	field-width
-	field-result)
+	field-result
+	(paren-level 0))
     (while (< ind fmt-len)
       (setq cur-char (aref format ind))
       (setq
        result
        (concat result 
       (cond
-       ((and (eq cur-char ?%)
-	     (< (1+ ind) fmt-len))
+       ((eq cur-char ?%)
 	(setq field-index (1+ ind))
 	(while (progn
 		 (setq ind (1+ ind))
-		 (setq cur-char (aref format ind))
+		 (setq cur-char (if (< ind fmt-len)
+				    (aref format ind)
+				  ?\0))
 		 (and (<= ?0 cur-char) (>= ?9 cur-char))))
 	(setq field-width (substring format field-index ind))
+	;; eat any additional args to allow for future expansion
+	(while (or (and (<= ?0 cur-char) (>= ?9 cur-char)) (eq ?. cur-char)
+		   (eq ?, cur-char) (eq ?: cur-char) (eq ?@ cur-char)
+		   (eq ?- cur-char) (eq ?+ cur-char)
+		   (eq ?\  cur-char) (eq ?# cur-char)
+		   (and (eq ?\( cur-char)
+			(not (eq prev-char ?\\))
+			(setq paren-level (1+ paren-level)))
+		   (if (and (eq ?\) cur-char)
+			    (not (eq prev-char ?\\))
+			    (> paren-level 0))
+		       (setq paren-level (1- paren-level))
+		     (and (> paren-level 0)
+			  (< ind fmt-len))))
+	  (setq ind (1+ ind))
+	  (setq prev-char cur-char)
+	  (setq cur-char (if (< ind fmt-len)
+			     (aref format ind)
+			   ?\0)))
 	(setq field-result
 	(cond
 	 ((eq cur-char ?%)
