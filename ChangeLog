@@ -1,3 +1,8 @@
+2001-01-28  Bill Wohler  <wohler@newt.com>
+
+	* Makefile.in (extraclean): Added -f to -rm config-tmp-* to keep
+	it quiet.
+
 2001-01-24  Colin Walters  <walters@cis.ohio-state.edu>
 
 	* Makefile.in (tags): Fix typo.
