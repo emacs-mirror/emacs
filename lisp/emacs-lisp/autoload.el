@@ -206,11 +206,11 @@ are used."
 					   outbuf))
 				  (terpri outbuf)))
 			    (let ((print-escape-newlines t))
-			      (print autoload outbuf)))
+			      (print autoload outbuf))))
 			  ;; Copy the rest of the line to the output.
 			  (let ((begin (point)))
 			    (forward-line 1)
-			    (princ (buffer-substring begin (point)) outbuf)))))
+			    (princ (buffer-substring begin (point)) outbuf))))
 		   ((looking-at ";")
 		    ;; Don't read the comment.
 		    (forward-line 1))
