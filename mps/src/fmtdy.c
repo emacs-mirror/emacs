@@ -1,6 +1,6 @@
 /* impl.c.fmtdy: DYLAN OBJECT FORMAT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!fmtdy.c(trunk.7) $
+ *  $HopeName: MMsrc!fmtdy.c(trunk.8) $
  *  Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  *
  *  All objects, B:
@@ -50,7 +50,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifdef MPS_PF_SUSPLC
+#ifdef MPS_PF_SUS8LC
 /* .hack.stderr: builder.lc (LCC) uses Sun's header files.  Sun's
    assert.h is broken, as it assumes it can use stderr.  We have to
    fix it by supplying stderr.
