@@ -459,6 +459,9 @@ To control it, set `auto-compression-mode' via Custom or use the
 ** `browse-url-gnome-moz' is a new option for
 `browse-url-browser-function', invoking Mozilla in GNOME.
 
+** The user-option `browse-url-new-window-p' has been renamed to
+`browse-url-new-window-flag'.
+
 +++
 ** The functions `keep-lines', `flush-lines' and `how-many' now
 operate on the active region in Transient Mark mode.
