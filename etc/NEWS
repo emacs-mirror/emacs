@@ -118,6 +118,9 @@ in case it has been renamed.
 This enables Emacs to work better with programs that need to track
 the cursor, for example screen magnifiers and text to speech programs.
 
+** Tooltips now work on MS Windows.
+See the Emacs 21.1 NEWS entry for tooltips for details.
+
 ---
 ** A French translation of the `Emacs Survival Guide' is available.
 
