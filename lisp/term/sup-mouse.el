@@ -1,14 +1,13 @@
 ;;; sup-mouse.el --- supdup mouse support for lisp machines
 
+;; Copyright (C) Free Software Foundation 1985, 1986
+
 ;; Author: Wolfgang Rupprecht
 ;; Maintainer: FSF
 ;; Created: 21 Nov 1986
-;; Last-Modified: 16 Mar 1992
 ;; Keywords: hardware
 
 ;;     (from code originally written by John Robinson@bbn for the bitgraph)
-
-;; Copyright (C) Free Software Foundation 1985, 1986
 
 ;; This file is part of GNU Emacs.
 

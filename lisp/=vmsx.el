@@ -1,11 +1,10 @@
 ;;; vmsx.el --- run asynchronous VMS subprocesses under Emacs
 
+;; Copyright (C) 1986 Free Software Foundation, Inc.
+
 ;; Author: Mukesh Prasad
 ;; Maintainer: FSF
-;; Last-Modified: 29 Sep 1986
 ;; Keywords: vms
-
-;; Copyright (C) 1986 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

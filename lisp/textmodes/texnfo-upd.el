@@ -1,11 +1,10 @@
 ;;; texnfo-upd.el --- a utility for updating nodes and menus in Texinfo files.
 
+;;;; Copyright 1989, 1990, 1992 Free Software Foundation
+
 ;; Author: Bob Chassell <bob@gnu.ai.mit.edu>
 ;; Version: 2.00
-;; Last-Modified: 14 Dec 1990
 ;; Keywords: maint, tex, docs
-
-;;;; Copyright 1989, 1990, 1992 Free Software Foundation
 
 ;; This file is part of GNU Emacs.
 

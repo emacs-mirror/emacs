@@ -1,9 +1,8 @@
 ;;; windows.el --- GNU Emacs window commands aside from those written in C.
 
-;; Maintainer: FSF
-;; Last-Modified: 21 Dec 1987
-
 ;;; Copyright (C) 1985, 1989, 1992 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
 

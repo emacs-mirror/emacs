@@ -1,11 +1,10 @@
 ;;; sun-keys.el --- support for Sun function keys
 
+;;; Copyright (C) 1986 Free Software Foundation, Inc.
+
 ;; Author: Ian G. Batten <batten@uk.ac.bham.multics>
-;; Last-Modified: 30 May 1992
 ;; Keywords: terminals
 
-;;; Copyright (C) 1986 Free Software Foundation, Inc.
-;;; 
 ;;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify

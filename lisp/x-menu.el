@@ -1,8 +1,5 @@
 ;;; x-menu.el --- menu support for X 
 
-;; Maintainer: FSF
-;; Last-Modified: 15 Sep 1987
-
 ;; Copyright (C) 1986 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.

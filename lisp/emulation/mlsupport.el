@@ -1,10 +1,9 @@
 ;;; mlsupport.el --- run-time support for mocklisp code.
 
-;; Maintainer: FSF
-;; Last-Modified: 16 Mar 1992
-;; Keywords: extensions
-
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: extensions
 
 ;; This file is part of GNU Emacs.
 

@@ -1,10 +1,9 @@
 ;;; yow.el --- generate random zippyisms
 
-;; Maintainer: FSF
-;; Last-Modified: 14 Jun 1992
-;; Keywords: games
-
 ;; Copyright (C) 1985, 1987 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: games
 
 ;; This file is part of GNU Emacs.
 

@@ -1,10 +1,9 @@
 ;;; sun-fns.el --- subroutines of Mouse handling for Sun windows
 
-;; Author: Jeff Peck <peck@sun.com>
-;; Last-Modified: 14 Aug 1987
-;; Keywords: hardware
-
 ;; Copyright (C) 1987 Free Software Foundation, Inc.
+
+;; Author: Jeff Peck <peck@sun.com>
+;; Keywords: hardware
 
 ;; This file is part of GNU Emacs.
 

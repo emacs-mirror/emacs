@@ -1,11 +1,12 @@
 ;;; upd-copyr.el --- update the copyright notice in a GNU Emacs Lisp file
 
+;;; Copyright (C) 1991, 1992 Free Software Foundation, Inc.
+
 ;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
-;; Last-Modified: 03 Jun 1991
 ;; Keywords: maint
 
-;;; Copyright (C) 1991, 1992 Free Software Foundation, Inc.
-;;;
+;;; This file is part of GNU Emacs.
+
 ;;; This program is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
 ;;; the Free Software Foundation; either version 2, or (at your option)

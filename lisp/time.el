@@ -1,9 +1,8 @@
 ;;; time.el --- display time and load in mode line of Emacs.
 
-;; Maintainer: FSF
-;; Last-Modified: 09 Oct 1990
-
 ;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
 

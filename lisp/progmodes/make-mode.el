@@ -1,12 +1,12 @@
 ;;; makefile.el --- makefile editing commands for Emacs
 
+;; Copyright (C) 1992 Free Software Foundation, Inc.
+
 ;; Author: Thomas Neumann <tom@smart.bo.open.de>
 ;; Adapted-By: ESR
 ;; Keywords: unix, tools
 
 ;; $Id: makefile.el,v 1.7.1.17 1992/07/15 20:05:15 tom Exp tom $
-
-;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

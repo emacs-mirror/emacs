@@ -1,10 +1,9 @@
 ;;; userlock.el --- handle file access contention between multiple users
 
-;; Maintainer: FSF
-;; Last-Modified: 26 May 1987
-;; Keywords: internal
-
 ;; Copyright (C) 1985, 1986 Free Software Foundation, inc.
+
+;; Maintainer: FSF
+;; Keywords: internal
 
 ;; This file is part of GNU Emacs.
 

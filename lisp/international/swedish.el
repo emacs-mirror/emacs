@@ -1,9 +1,10 @@
 ;;; swedish.el --- miscellaneous functions for dealing with Swedish.
 
+;; Copyright (C) 1988 Free Software Foundation, Inc.
+
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
-
-;; Copyright (C) 1988 Free Software Foundation, Inc.
+;; Keywords: i14n
 
 ;; This file is part of GNU Emacs.
 

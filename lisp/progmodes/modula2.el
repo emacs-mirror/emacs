@@ -2,7 +2,6 @@
 
 ;; Author: Michael Schmidt <michael@pbinfo.UUCP> 
 ;;	Tom Perrine <Perrin@LOGICON.ARPA>
-;; Last-Modified: 30 May 1992 
 ;; Keywords: languages
 
 ;; The authors distributed this without a copyright notice

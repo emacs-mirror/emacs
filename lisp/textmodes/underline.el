@@ -1,10 +1,9 @@
 ;;; underline.el --- insert/remove underlining (done by overstriking) in Emacs.
 
-;; Maintainer: FSF
-;; Last-Modified: 30 May 1988
-;; Keywords: wp
-
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: wp
 
 ;; This file is part of GNU Emacs.
 

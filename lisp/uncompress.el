@@ -1,9 +1,8 @@
 ;;; uncompress.el --- auto-decompression hook for visiting .Z files
 
-;; Maintainer: FSF
-;; Last-Modified: 30 May 1988
-
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
 

@@ -1,10 +1,9 @@
 ;;; spook.el --- spook phrase utility for overloading the NSA line eater
 
-;; Maintainer: FSF
-;; Last-Modified: 05 Dec 1991
-;; Keywords: games
-
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: games
 
 ;; This file is part of GNU Emacs.
 
