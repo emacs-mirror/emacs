@@ -2,7 +2,7 @@
  *
  *                  PROTECTION FOR SUNOS
  *
- *  $HopeName: MMsrc!protsu.c(trunk.2) $
+ *  $HopeName: MMsrc!protsu.c(trunk.3) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -13,8 +13,8 @@
  */
 
 #include "std.h"
+#include "space.h"
 #include "prot.h"
-#include "fault.h"
 #include "lock.h"
 #include "lockst.h"
 #include <limits.h>
@@ -23,8 +23,8 @@
 #include <sys/mman.h>
 #include <signal.h>
 
-#ifndef OS_SUNOS
-#error "protsu.c is SunOS 4 specific, but OS_SUNOS is not set"
+#ifndef MPS_OS_SU
+#error "protsu.c is SunOS 4 specific, but MPS_OS_SU is not set"
 #endif
 
 SRCID("$HopeName");
@@ -48,22 +48,6 @@ extern int getpagesize(void);
 extern int getpid(void);
 typedef void (*handler_t)(int sig, int code,
                           struct sigcontext *scp, char *addr);
-
-
-/*  == Protection Granularity ==
- *
- *  The granularity of protection is one page under SunOS.
- */
-
-Addr ProtGrain(void)
-{
-  Addr grain;
-
-  grain = (Addr)getpagesize();
-  AVER(IsPoT(grain));
-
-  return(grain);
-}
 
 
 /* Pointer to the previously-installed signal handler, as returned by */
@@ -112,7 +96,7 @@ static void sigHandle(int sig, int code,
     /* Offer each protection structure the opportunity to handle the */
     /* exception.  If it succeeds, then allow the mutator to continue. */
 
-    if(FaultDispatch(base, limit, mode))
+    if(SpaceAccess(base, mode))
       return;
   }
 
@@ -178,17 +162,12 @@ void ProtSetup(void)
 
 void ProtSet(Addr base, Addr limit, ProtMode mode)
 {
-#ifdef DEBUG
-  Addr grain = ProtGrain();
-#endif
   int flags;
 
   AVER(sizeof(int) == sizeof(Addr));
   AVER(base < limit);
   AVER(base != 0);
   AVER((limit - base) <= INT_MAX);	/* should be redundant */
-  AVER(IsAligned(grain, base));
-  AVER(IsAligned(grain, limit));
 
   flags = PROT_READ | PROT_WRITE | PROT_EXEC;
   if((mode & ProtREAD) != 0)
