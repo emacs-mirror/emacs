@@ -1,3 +1,15 @@
+2002-03-06  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/hideif.el: Augment expression parser to handle
+	conditional expressions.
+	(hif-token-regexp): Also match `?' and `:'.
+	(hif-tokenize): Handle `?' and ':' as tokens.
+	(hif-expr): Parse conditional expressions.
+	(hif-or-expr): Parse `||' expressions.
+	(hif-and-expr): Renamed from hif-term.
+	(hif-conditional): New function to evaluate a conditional
+	expression.
+
 2002-03-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* vc.el (vc-branch-part): Add autoload cookie.  This function can
