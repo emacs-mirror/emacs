@@ -1,5 +1,5 @@
 #!/usr/local/perl -w
-# $HopeName: MMQA_harness!script:optproc(trunk.14) $
+# $HopeName: MMQA_harness!script:optproc(trunk.15) $
 #
 # subroutines for processing options to qa commands
 # Each command can specify which options it requires,
@@ -176,7 +176,7 @@ sub explainoptions {
  print "\n";
 
  foreach $key (sort @keys) {
-  $optname = "MMQA_$key";
+  $optname = "$key";
   if (&optioncode($key)) {
    $optcode = "-".&optioncode($key)." <val>";
   } elsif (&flagcode($key)) {
@@ -195,6 +195,9 @@ sub displayalloptions {
 
 ";
  &explainoptions(values %qa_options, values %qa_flags);
+ print"
+ (Add MMQA_ to start of option to give environment variable)
+";
  print"------------------------------------------------------------------------
 ";
 }
