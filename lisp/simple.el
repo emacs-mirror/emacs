@@ -3418,6 +3418,7 @@ During execution of Lisp code, this character causes a quit directly.
 At top-level, as an editor command, this simply beeps."
   (interactive)
   (deactivate-mark)
+  (setq defining-kbd-macro nil)
   (signal 'quit nil))
 
 (define-key global-map "\C-g" 'keyboard-quit)
