@@ -29,7 +29,7 @@
 
 
 ;; imenu integration
-(require 'imenu)
+(eval-when-compile (require 'imenu))
 
 (defvar cc-imenu-c-prototype-macro-regexp nil
   "RE matching macro names used to conditionally specify function prototypes.
