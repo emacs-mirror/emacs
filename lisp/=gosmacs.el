@@ -46,7 +46,7 @@ Use \\[set-gnu-bindings] to restore previous global bindings."
 	   ("\C-x\C-n" next-error)
 	   ("\C-x\C-o" switch-to-buffer)
 	   ("\C-x\C-r" insert-file)
-	   ("\C-x\C-u" undo)
+	   ("\C-x\C-u" undo-with-space)
 	   ("\C-x\C-v" find-file-other-window)
 	   ("\C-x\C-z" shrink-window)
 	   ("\C-x!" shell-command)
@@ -113,5 +113,22 @@ From the window at the lower right corner, select the one at the upper left."
   "Scroll the selected window up so that the current line is at the top."
   (interactive)
   (recenter 0))
+
+(defun undo-with-space ()
+  "Enter an undo loop that continues while you type SPC characters.  Exit
+with ESC; any other character exits and begins a new command."
+  (interactive)
+  (undo-start)
+  (undo-more 1)
+  (message "Hit <space> to undo more")
+  (let ((event 32))
+    (while (equal event 32)
+      (message "undoing..")
+      (undo-more 1)
+      (message "Hit <space> to undo more")
+      (setq event (read-event)))
+    (message "Finished undoing.")
+    (if (not (equal event 27))
+	(setq unread-command-event event))))
 
 ;;; gosmacs.el ends here
