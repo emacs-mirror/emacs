@@ -569,6 +569,7 @@ Do the same for the keys of the same name."
 		   case-fold-search truncate-lines show-paren-mode
 		   transient-mark-mode global-font-lock-mode
 		   display-time-mode auto-compression-mode
+		   current-language-environment default-input-method
 		   ;; Saving `text-mode-hook' is somewhat questionable,
 		   ;; as we might get more than we bargain for, if
 		   ;; other code may has added hooks as well.
@@ -579,10 +580,6 @@ Do the same for the keys of the same name."
       (and (get elt 'customized-value)
 	   (customize-mark-to-save elt)
 	   (setq need-save t)))
-    ;; These are set with other functions.
-    (dolist (elt '(current-language-environment default-input-method))
-      (when (customize-mark-to-save elt)
-	(setq need-save t)))
     ;; Save if we changed anything.
     (when need-save
       (custom-save-all))))

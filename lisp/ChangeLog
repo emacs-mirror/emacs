@@ -1,3 +1,16 @@
+2002-02-12  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* menu-bar.el (menu-bar-options-save): Only save
+	`current-language-environment' and `default-input-method' when
+	marked as customized.
+
+	* international/mule-cmds.el
+	(setup-specified-language-environment): Mark
+	`current-language-environment' as customized.
+	(set-input-method): Mark
+	`default-input-method' as customized when called interactively.
+	(toggle-input-method): Ditto.
+
 2002-02-11  Colin Walters  <walters@verbum.org>
 
 	* ibuffer.el (ibuffer-switch-format): Supply required argument for

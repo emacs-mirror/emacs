@@ -1103,7 +1103,10 @@ To deactivate it programmatically, use \\[inactivate-input-method]."
 	    (if default "Select input method (default %s): " "Select input method: ")
 	    default t))))
   (activate-input-method input-method)
-  (setq default-input-method input-method))
+  (setq default-input-method input-method)
+  (when (interactive-p)
+    (customize-mark-as-set 'default-input-method))
+  default-input-method)
 
 (defun toggle-input-method (&optional arg)
   "Enable or disable multilingual text input method for the current buffer.
@@ -1134,8 +1137,11 @@ and enable that one.  The default is the most recent input method specified
 	      (if default "Input method (default %s): " "Input method: " )
 	      default t))
 	 default))
-      (or default-input-method
-	  (setq default-input-method current-input-method)))))
+      (unless default-input-method
+	(prog1 
+	    (setq default-input-method current-input-method)
+	  (when (interactive-p)
+	    (customize-mark-as-set 'default-input-method)))))))
 
 (defun describe-input-method (input-method)
   "Describe input method INPUT-METHOD."
@@ -1297,7 +1303,9 @@ This hook is mainly used for canceling the effect of
 	     (or (not (eq last-command-event 'Default))
 		 (setq last-command-event 'English))
 	     (setq language-name (symbol-name last-command-event)))
-	(set-language-environment language-name)
+	(prog1
+	    (set-language-environment language-name)
+	  (customize-mark-as-set 'current-language-environment))
       (error "Bogus calling sequence"))))
 
 (defcustom current-language-environment "English"
