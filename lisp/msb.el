@@ -663,7 +663,7 @@ If the argument is left out or nil, then the current buffer is considered."
 		     (format
 		      "In msb-menu-cond, error for buffer `%s'."
 		      (buffer-name buffer)))
-	       (error msb--error))))))
+	       (error "%s" msb--error))))))
 
 ;; Return (SORT-KEY TITLE . BUFFER-LIST) or nil if the
 ;; buffer-list is empty.
