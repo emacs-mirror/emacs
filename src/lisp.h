@@ -64,10 +64,13 @@ enum Lisp_Type
   };
 
 /* This is the set of datatypes that share a common structure.
-   The first member of the structure is a type code from this set.  */
+   The first member of the structure is a type code from this set.
+   The enum values are arbitrary, but we'll use large numbers to make it
+   more likely that we'll spot the error if a random word in memory is
+   mistakenly interpreted as a Lisp_Misc.  */
 enum Lisp_Misc_Type
   {
-    Lisp_Misc_Free,
+    Lisp_Misc_Free = 0x5eab,
     Lisp_Misc_Marker,
     Lisp_Misc_Intfwd,
     Lisp_Misc_Boolfwd,
@@ -1323,6 +1326,33 @@ extern Lisp_Object Ffeaturep (), Frequire () , Fprovide ();
 extern Lisp_Object concat2 (), nconc2 ();
 extern Lisp_Object assq_no_quit ();
 extern Lisp_Object Fcopy_alist ();
+
+/* Defined in insdel.c */
+extern void move_gap ();
+extern void make_gap ();
+extern void insert ();
+extern void insert_and_inherit ();
+extern void insert_1 ();
+extern void insert_from_string ();
+extern void insert_from_buffer ();
+extern void insert_char ();
+extern void insert_string ();
+extern void insert_before_markers ();
+extern void insert_before_markers_and_inherit ();
+extern void insert_from_string_before_markers ();
+extern void del_range ();
+extern void del_range_1 ();
+extern void modify_region ();
+extern void prepare_to_modify_buffer ();
+extern void signal_before_change ();
+extern void signal_after_change ();
+
+/* Defined in xdisp.c */
+extern void message ();
+extern void message1 ();
+extern void message1_nolog ();
+extern void message2 ();
+extern void message2_nolog ();
 
 /* Defined in alloc.c */
 extern Lisp_Object Vpurify_flag;
