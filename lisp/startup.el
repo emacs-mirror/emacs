@@ -698,6 +698,13 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
   (set-locale-environment nil)
 
+  ;; Convert the arguments to Emacs internal representation.
+  (let ((args (cdr command-line-args)))
+    (while args
+      (setcar args
+	      (decode-coding-string (car args) locale-coding-system t))
+      (setq args (cdr args))))
+
   (let ((done nil)
 	(args (cdr command-line-args)))
 
