@@ -1,5 +1,9 @@
 2001-12-11  Richard M. Stallman  <rms@gnu.org>
 
+	* derived.el (derived-mode-p): Function moved to subr.el.
+
+	* subr.el (derived-mode-p): Moved here from derived.el.
+
 	* international/mule.el (set-auto-coding): Use set-auto-mode-1.
 
 	* files.el (set-auto-mode-1): New subroutine, broken out of
