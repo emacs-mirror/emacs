@@ -2,7 +2,7 @@
  * 
  * MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.16) $
+ * $HopeName: MMsrc!poolmrg.c(trunk.17) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -26,7 +26,7 @@
 #include "mpm.h"
 #include "poolmrg.h"
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.16) $");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.17) $");
 
 
 /* Types */
@@ -72,56 +72,27 @@ typedef struct RefPartStruct {
  * Might be more efficient to take a seg, rather than calculate it
  * every time.
  *
- * Maybe the MPS should have generalised peek and poke methods.
- *
- * These methods generalise the access to the reference with its
- * inherent shield and summary manipulation.
- *
  * See also .ref.direct which accesses it directly.
  */
 
 static Ref MRGRefPartRef(Arena arena, RefPart refPart)
 {
-  Seg seg;
-  Bool b;
   Ref ref;
 
   AVERT(Arena, arena);
   AVER(refPart != NULL);
 
-  b = SegOfAddr(&seg, arena, (Addr)refPart);
-  AVER(b);
-  AVERT(Seg, seg);
+  ref = (Ref)ArenaPeek(arena, (Addr)&refPart->ref);
 
-  ShieldExpose(arena, seg);
-  ref = refPart->ref;
-  ShieldCover(arena, seg);
-
-  return(ref);
+  return ref;
 }
 
 static void MRGRefPartSetRef(Arena arena, RefPart refPart, Ref ref)
 {
-  Seg seg;
-  Bool b;
-  RefSet sum;
-
   AVERT(Arena, arena);
   AVER(refPart != NULL);
 
-  b = SegOfAddr(&seg, arena, (Addr)refPart);
-  AVER(b);
-  AVERT(Seg, seg);
-
-  ShieldExpose(arena, seg);
-
-  refPart->ref = ref;
-
-  sum = SegSummary(seg);
-  sum = RefSetAdd(arena, sum, (Addr)ref);
-  SegSetSummary(seg, sum);
-
-  ShieldCover(arena, seg);
+  ArenaPoke(arena, (Addr)&refPart->ref, (Word)ref);
 }
 
 
