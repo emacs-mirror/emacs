@@ -1,5 +1,8 @@
 2001-12-18  Richard M. Stallman  <rms@gnu.org>
 
+	* international/mule-diag.el (describe-character-set):
+	Fix the arg to help-xref-button.
+
 	* files.el (directory-free-space-program): New variable.
 	(directory-free-space-args): New variable.
 	(insert-directory): Use those two variables for getting free space.
