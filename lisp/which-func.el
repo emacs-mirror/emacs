@@ -62,6 +62,11 @@
 (defvar which-func-unknown "???"
   "String to display in the mode line when current function is unknown.")
 
+(defgroup which-func nil
+  "Mode to display the current function name in the modeline."
+  :group 'tools
+  :version "20.3")
+
 (defcustom which-func-modes 
   '(emacs-lisp-mode c-mode c++-mode perl-mode makefile-mode sh-mode)
   "List of major modes for which `which-func-mode' should be used.

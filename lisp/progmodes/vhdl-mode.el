@@ -5885,7 +5885,8 @@ This does highlighting of signal names with specific syntax.")
       (re-search-forward "\\s-*\\<end\\s-+\\(process\\|block\\)\\>" nil t)
   )))
 
-(require 'hideshow)
+;; Not needed `hs-special-modes-alist' is autoloaded.
+;(require 'hideshow)
 
 (unless (assq 'vhdl-mode hs-special-modes-alist)
     (setq hs-special-modes-alist
