@@ -793,7 +793,7 @@ of the first character in the buffer)."
       (setq l (cdr l)))))
 
 (defun format-annotate-value (old new)
-  "Return OLD and NEW as a \(close . open) annotation pair.
+  "Return OLD and NEW as a \(CLOSE . OPEN) annotation pair.
 Useful as a default function for TRANSLATIONS alist when the value of the text
 property is the name of the annotation that you want to use, as it is for the
 `unknown' text property."
