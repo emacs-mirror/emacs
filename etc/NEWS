@@ -8,6 +8,10 @@ For older news, see the file ONEWS
 
 * Changes in Emacs 21.2
 
+** Lisp-mode now uses font-lock-docstring-face for the docstrings.
+
+** perl-mode has a new variable `perl-indent-continued-arguments'.
+
 ** When pure storage overflows while dumping, Emacs now prints how
 much pure storage it will approximately need.
 
@@ -35,6 +39,12 @@ settings.
 
 * Lisp Changes in Emacs 21.2
 
+** `define-key-after' now accepts keys longer than 1.
+
+** `define-derived-mode' now accept nil as the parent.
+
+** The local variable `no-byte-compile' in elisp files is now obeyed.
+
 ** Variable aliases have been implemented
 
 - Macro: defvaralias ALIAS-VAR BASE-VAR
@@ -61,6 +71,11 @@ the file is copied to that directory instead of signaling an error.
 
 ** The variables most-positive-fixnum and most-negative-fixnum
 have been moved from the CL package to the core.
+
+** New packages:
+
+*** The new package syntax.el provides an efficient way to find the
+current syntactic context (as returned by parse-partial-sexp).
 
 
 * Installation Changes in Emacs 21.1

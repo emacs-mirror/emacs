@@ -1,3 +1,7 @@
+2001-10-10  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/copyright.el (copyright): Add final \n.
+
 2001-10-11  Miles Bader  <miles@gnu.org>
 
 	* diff.el (diff): Display default values in prompts as
@@ -5,6 +9,8 @@
 	* info.el (Info-follow-reference): Likewise.
 
 2001-10-10  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/autoload.el (doc-string-elt): Remove.
 
 	* newcomment.el (comment-indent): Be a little more robust in case
 	comment-indent-function does funny things.
