@@ -77,7 +77,7 @@ Do so after `tooltip-short-delay'."
 
 
 (defcustom tooltip-x-offset nil
-  "Specify an X offset, in pixels, for the display of tooltips.
+  "X offset, in pixels, for the display of tooltips.
 The offset is relative to the position of the mouse.  It must
 be chosen so that the tooltip window doesn't contain the mouse
 when it pops up.  If the value is nil, the default offset is 5
@@ -92,7 +92,7 @@ the value of `tooltip-x-offset' is ignored."
 
 
 (defcustom tooltip-y-offset nil
-  "Specify a Y offset, in pixels, for the display of tooltips.
+  "Y offset, in pixels, for the display of tooltips.
 The offset is relative to the position of the mouse.  It must
 be chosen so that the tooltip window doesn't contain the mouse
 when it pops up.  If the value is nil, the default offset is -10
