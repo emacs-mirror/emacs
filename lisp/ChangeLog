@@ -1,3 +1,11 @@
+2002-12-05  Dave Love  <fx@gnu.org>
+
+	* international/characters.el: Move parts around so that syntax
+	definitions aren't overwritten wrongly.
+
+	* international/mule-diag.el (unicode-data): Fix treatment of
+	numeric-value fields.
+
 2002-12-01  Dave Love  <fx@gnu.org>
 
 	* progmodes/cap-words.el: New file.
