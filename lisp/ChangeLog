@@ -1,3 +1,13 @@
+2003-02-26  Oliver Scholz  <alkibiades@gmx.de>
+
+	* play/gamegrid.el (gamegrid-add-score): Add info to docstring.
+	(gamegrid-add-score-with-update-game-score-1): New function,
+	factored out of `gamegriod-add-score-with-update-game-score'.
+	(gamegrid-add-score-with-update-game-score): Use it.  Fall back on
+	`gamegrid-add-score-insecure' if the requested file does not exist
+	in $(gamedir), in case the user has installed a game on his own.
+	(gamegrid-add-score-insecure): Accept optional directory argument.
+
 2003-02-25  Andreas Schwab  <schwab@suse.de>
 
 	* progmodes/make-mode.el (makefile-font-lock-keywords): Protect
