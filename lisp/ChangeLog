@@ -1,3 +1,12 @@
+2003-11-16  John Wiegley  <johnw@newartisans.com>
+
+	* eshell/em-ls.el (eshell-ls-file): There are times with
+	size-width is nil and uncomputed (when directories are created in
+	dired, for example); in this case, 4 is reasonable default value,
+	although it may caused skewed new entries (which could be avoided
+	by returning the original value of 8 in all cases, but 99% of the
+	time this is a waste of whitespace).
+
 2003-11-16  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* cc-engine.el (c-guess-continued-construct,
