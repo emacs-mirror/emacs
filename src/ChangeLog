@@ -1,3 +1,15 @@
+2002-05-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keymap.c (keymap_parent): New fun, extracted from Fkeymap_parent.
+	(Fkeymap_parent, keymap_memberp, fix_submap_inheritance): Use it.
+	(Fset_keymap_parent): Gcpro a bit more.
+	(access_keymap): Gcpro around meta_map call and around the main loop.
+	(get_keyelt): Gcpro when following indirect references.
+	(copy_keymap_item): New fun, extracted from Fcopy_keymap.
+	(copy_keymap_1, Fcopy_keymap): Use it.  Don't copy the parent map.
+	(Fdefine_key, Flookup_key): Gcpro before calling get_keymap.
+	Remove useless ad-hoc remap code.
+
 2002-05-13  Richard M. Stallman  <rms@gnu.org>
 
 	* search.c (search_buffer): Give up boyer moore search if inverse
