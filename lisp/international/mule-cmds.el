@@ -167,10 +167,10 @@
 ;; but it won't be used that frequently.
 (define-key global-map "\C-\\" 'toggle-input-method)
 
-;;; This is no good because people often type Shift-SPC
-;;; meaning to type SPC.  -- rms.
-;;; ;; Here's an alternative key binding for X users (Shift-SPACE).
-;;; (define-key global-map [?\S- ] 'toggle-input-method)
+;; This is no good because people often type Shift-SPC
+;; meaning to type SPC.  -- rms.
+;; ;; Here's an alternative key binding for X users (Shift-SPACE).
+;; (define-key global-map [?\S- ] 'toggle-input-method)
 
 ;;; Mule related hyperlinks.
 (defconst help-xref-mule-regexp-template
@@ -1155,7 +1155,9 @@ and enable that one.  The default is the most recent input method specified
 	    (activate-input-method current))
 	(error 
 	 (activate-input-method current)
-	 (with-output-to-temp-buffer "*Help*"
+	 (help-setup-xref (list #'describe-input-method input-method)
+			  (interactive-p))
+	 (with-output-to-temp-buffer (help-buffer)
 	   (let ((elt (assoc input-method input-method-alist)))
 	     (princ (format
 		     "Input method: %s (`%s' in mode line) for %s\n  %s\n"
@@ -1389,8 +1391,8 @@ The default status is as follows:
   ;; Don't alter the terminal and keyboard coding systems here.
   ;; The terminal still supports the same coding system
   ;; that it supported a minute ago.
-;;;  (set-terminal-coding-system-internal nil)
-;;;  (set-keyboard-coding-system-internal nil)
+;;  (set-terminal-coding-system-internal nil)
+;;  (set-keyboard-coding-system-internal nil)
 
   (setq nonascii-translation-table nil
 	nonascii-insert-offset 0))
@@ -1426,7 +1428,7 @@ specifies the character set for the major languages of Western Europe."
       (let ((func (get-language-info current-language-environment
 				     'exit-function)))
 	(run-hooks 'exit-language-environment-hook)
-	(if (fboundp func) (funcall func))))
+	(if (functionp func) (funcall func))))
   (let ((default-eol-type (coding-system-eol-type
 			   default-buffer-file-coding-system)))
     (reset-language-environment)
@@ -1486,7 +1488,7 @@ specifies the character set for the major languages of Western Europe."
       (require (car required-features))
       (setq required-features (cdr required-features))))
   (let ((func (get-language-info language-name 'setup-function)))
-    (if (fboundp func)
+    (if (functionp func)
 	(funcall func)))
   (run-hooks 'set-language-environment-hook)
   (force-mode-line-update t))
@@ -1507,8 +1509,11 @@ specifies the character set for the major languages of Western Europe."
 	(aset standard-display-table 2208 [32]) ; Latin-1 NBSP
 	;; Most Windows programs send out apostrophes as \222.  Most X fonts
 	;; don't contain a character at that position.  Map it to the ASCII
-	;; apostrophe.  [This is actually RIGHT SINGLE QUOTATION MARK
-	;; from the cp1252, aka Windows-1252 character set.  --fx]
+	;; apostrophe.  [This is actually RIGHT SINGLE QUOTATION MARK,
+	;; U+2019, normally from the windows-1252 character set.  XFree 4
+	;; fonts probably have the appropriate glyph at this position,
+	;; so they could use standard-display-8bit.  It's better to use a
+	;; proper windows-1252 coding system.  --fx]
 	(aset standard-display-table 146 [39]))))
 
 (defun set-language-environment-coding-systems (language-name
@@ -1648,25 +1653,31 @@ of buffer-file-coding-system set by this function."
 (defvar locale-translation-file-name nil
   "File name for the system's file of locale-name aliases, or nil if none.")
 
-(defvar locale-language-names
-  '(
-    ;; UTF-8 is not yet implemented.
-    ;; Put this first, so that e.g. "ko.UTF-8" does not match "ko" below.
-    (".*[._]utf" . nil)
+;; The following definitions might as well be marked as constants and
+;; purecopied, since they're normally used on startup, and probably
+;; should reflect the facilities of the base Emacs.
+(defconst locale-language-names
+  (purecopy
+   '(
+     ;; UTF-8 is not yet implemented.
+     ;; Put this first, so that e.g. "ko.UTF-8" does not match "ko" below.
+     (".*[._]utf" . nil)
 
     ;; Locale names of the form LANGUAGE[_TERRITORY][.CODESET][@MODIFIER]
     ;; as specified in the Single Unix Spec, Version 2.
     ;; LANGUAGE is a language code taken from ISO 639:1988 (E/F)
     ;; with additions from ISO 639/RA Newsletter No.1/1989;
-    ;; see Internet RFC 2165 (1997-06).
-    ;; TERRITORY is a country code taken from ISO 3166.
+    ;; see Internet RFC 2165 (1997-06) and
+    ;; http://www.evertype.com/standards/iso639/iso639-en.html
+    ;; TERRITORY is a country code taken from ISO 3166
+    ;; http://www.din.de/gremien/nas/nabd/iso3166ma/codlstp1/en_listp1.html.
     ;; CODESET and MODIFIER are implementation-dependent.
-    ;;
+
     ; aa Afar
     ; ab Abkhazian
     ("af" . "Latin-1") ; Afrikaans
     ("am" . "Ethiopic") ; Amharic
-    ; ar Arabic
+    ; ar Arabic glibc uses 8859-6
     ; as Assamese
     ; ay Aymara
     ; az Azerbaijani
@@ -1703,9 +1714,10 @@ of buffer-file-coding-system set by this function."
     ("gl" . "Latin-1") ; Galician
     ; gn Guarani
     ; gu Gujarati
+    ("gv" . "Latin-8") ; Manx Gaelic
     ; ha Hausa
     ("he" . "Hebrew")
-    ("hi" . "Devanagari") ; Hindi
+    ("hi" . "Devanagari") ; Hindi  glibc uses utf-8
     ("hr" . "Latin-2") ; Croatian
     ("hu" . "Latin-2") ; Hungarian
     ; hy Armenian
@@ -1726,27 +1738,29 @@ of buffer-file-coding-system set by this function."
     ("ko" . "Korean")
     ; ks Kashmiri
     ; ku Kurdish
+    ("kw" . "Latin-1") ; Cornish
     ; ky Kirghiz
     ("la" . "Latin-1") ; Latin
+    ("lb" . "Latin-1") ; Luxemburgish
     ; ln Lingala
     ("lo" . "Lao") ; Laothian
     ("lt" . "Latin-4") ; Lithuanian
     ("lv" . "Latin-4") ; Latvian, Lettish
     ; mg Malagasy
-    ; mi Maori
+    ("mi" . "Latin-7") ; Maori
     ("mk" . "Latin-5") ; Macedonian
     ; ml Malayalam
     ; mn Mongolian
     ; mo Moldavian
-    ("mr" . "Devanagari") ; Marathi
-    ; ms Malay
+    ("mr" . "Devanagari") ; Marathi  glibc uses utf-8
+    ("ms" . "Latin-1") ; Malay
     ("mt" . "Latin-3") ; Maltese
     ; my Burmese
     ; na Nauru
     ("ne" . "Devanagari") ; Nepali
     ("nl" . "Dutch")
     ("no" . "Latin-1") ; Norwegian
-    ; oc Occitan
+    ("oc" . "Latin-1") ; Occitan
     ; om (Afan) Oromo
     ; or Oriya
     ; pa Punjabi
@@ -1762,6 +1776,7 @@ of buffer-file-coding-system set by this function."
     ; rw Kinyarwanda
     ("sa" . "Devanagari") ; Sanskrit
     ; sd Sindhi
+    ; se   Northern Sami
     ; sg Sangho
     ("sh" . "Latin-2") ; Serbo-Croatian
     ; si Sinhalese
@@ -1777,9 +1792,9 @@ of buffer-file-coding-system set by this function."
     ; su Sundanese
     ("sv" . "Latin-1") ; Swedish
     ("sw" . "Latin-1") ; Swahili
-    ; ta Tamil
-    ; te Telugu
-    ; tg Tajik
+    ; ta Tamil  glibc uses utf-8
+    ; te Telugu  glibc uses utf-8
+    ; tg Tajik "Cyrillic-KOI8-T"
     ("th" . "Thai")
     ; ti Tigrinya
     ; tk Turkmen
@@ -1792,15 +1807,23 @@ of buffer-file-coding-system set by this function."
     ; tw Twi
     ; ug Uighur
     ("uk" . "Latin-5") ; Ukrainian
-    ; ur Urdu
-    ; uz Uzbek
-    ("vi" . "Vietnamese")
+    ; ur Urdu  glibc uses utf-8
+    ("uz" . "Latin-1") ; Uzbek
+    ("vi" . "Vietnamese") ;  glibc uses utf-8
     ; vo Volapuk
     ; wo Wolof
     ; xh Xhosa
     ; yi Yiddish
     ; yo Yoruba
     ; za Zhuang
+
+    ; glibc:
+    ; zh_CN.GB18030/GB18030 \
+    ; zh_CN.GBK/GBK \
+    ; zh_HK/BIG5-HKSCS \
+    ; zh_TW/BIG5 \
+    ; zh_TW.EUC-TW/EUC-TW \
+
     ("zh.*[._]big5" . "Chinese-BIG5")
     ("zh.*[._]gbk" . nil) ; Solaris 2.7; has gbk-0 as well as GB 2312.1980-0
     ("zh_tw" . "Chinese-CNS")
@@ -1830,28 +1853,30 @@ The first element whose locale regexp matches the start of a downcased locale
 specifies the language name corresponding to that locale.
 If the language name is nil, there is no corresponding language environment.")
 
-(defvar locale-charset-language-names
-  '((".*8859[-_]?1\\>" . "Latin-1")
-    (".*8859[-_]?2\\>" . "Latin-2")
-    (".*8859[-_]?3\\>" . "Latin-3")
-    (".*8859[-_]?4\\>" . "Latin-4")
-    (".*8859[-_]?9\\>" . "Latin-5")
-    (".*8859[-_]?14\\>" . "Latin-8")
-    (".*8859[-_]?15\\>" . "Latin-9")
-    (".*@euro\\>" . "Latin-9")
-    )
+(defconst locale-charset-language-names
+  (purecopy
+   '((".*8859[-_]?1\\>" . "Latin-1")
+     (".*8859[-_]?2\\>" . "Latin-2")
+     (".*8859[-_]?3\\>" . "Latin-3")
+     (".*8859[-_]?4\\>" . "Latin-4")
+     (".*8859[-_]?9\\>" . "Latin-5")
+     (".*8859[-_]?14\\>" . "Latin-8")
+     (".*8859[-_]?15\\>" . "Latin-9")
+     (".*@euro\\>" . "Latin-9")
+     ))
   "List of pairs of locale regexps and charset language names.
 The first element whose locale regexp matches the start of a downcased locale
 specifies the language name whose charsets corresponds to that locale.
 This language name is used if its charsets disagree with the charsets of
 the language name that would otherwise be used for this locale.")
 
-(defvar locale-preferred-coding-systems
-  '(("ja.*[._]euc" . japanese-iso-8bit)
-    ("ja.*[._]jis7" . iso-2022-jp)
-    ("ja.*[._]pck" . japanese-shift-jis)
-    ("ja.*[._]sjis" . japanese-shift-jis)
-    )
+(defconst locale-preferred-coding-systems
+  (purecopy
+   '(("ja.*[._]euc" . japanese-iso-8bit)
+     ("ja.*[._]jis7" . iso-2022-jp)
+     ("ja.*[._]pck" . japanese-shift-jis)
+     ("ja.*[._]sjis" . japanese-shift-jis)
+     ))
   "List of pairs of locale regexps and preferred coding systems.
 The first element whose locale regexp matches the start of a downcased locale
 specifies the coding system to prefer when using that locale.")
@@ -1944,6 +1969,7 @@ See also `locale-charset-language-names', `locale-language-names',
 	    (coding-system
 	     (locale-name-match locale locale-preferred-coding-systems)))
 
+	;; Give preference to charset-language-name over language-name.
 	(if (and charset-language-name
 		 (not
 		  (equal (get-language-info language-name 'charset)
