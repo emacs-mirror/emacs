@@ -367,6 +367,8 @@ Lisp_Object Qtarget_idx;
 
 Lisp_Object Vselect_safe_coding_system_function;
 
+int coding_system_require_warning;
+
 /* Mnemonic string for each format of end-of-line.  */
 Lisp_Object eol_mnemonic_unix, eol_mnemonic_dos, eol_mnemonic_mac;
 /* Mnemonic string to indicate format of end-of-line is not yet
@@ -7530,6 +7532,15 @@ coding system used in each operation can't encode the text.
 
 The default value is `select-safe-coding-system' (which see).  */);
   Vselect_safe_coding_system_function = Qnil;
+
+  DEFVAR_BOOL ("coding-system-require-warning",
+	       &coding_system_require_warning,
+	       doc: /* Internal use only.
+If non-nil, on writing a file, select-safe-coding-system-function is
+called even if coding-system-for-write is non-nil.  The command
+universal-coding-system-argument binds this variable to t temporarily.  */);
+  coding_system_require_warning = 0;
+
 
   DEFVAR_LISP ("char-coding-system-table", &Vchar_coding_system_table,
 	       doc: /* Char-table containing safe coding systems of each characters.
