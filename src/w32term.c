@@ -2218,6 +2218,37 @@ static Time enter_timestamp;
 int temp_index;
 short temp_buffer[100];
 
+extern int key_event (KEY_EVENT_RECORD *, struct input_event *);
+
+/* Map a Win32 WM_CHAR message into a KEY_EVENT_RECORD so that
+   we can use the same routines to handle input in both console
+   and window modes.  */
+
+static void
+convert_to_key_event (Win32Msg *msgp, KEY_EVENT_RECORD *eventp)
+{
+  eventp->bKeyDown = TRUE;
+  eventp->wRepeatCount = 1;
+  eventp->wVirtualKeyCode = msgp->msg.wParam;
+  eventp->wVirtualScanCode = (msgp->msg.lParam & 0xFF0000) >> 16;
+  eventp->uChar.AsciiChar = 0;
+  eventp->dwControlKeyState = msgp->dwModifiers;
+}
+
+/* Return nonzero if the virtual key is a dead key.  */
+
+static int
+is_dead_key (int wparam)
+{
+  unsigned int code = MapVirtualKey (wparam, 2);
+
+  /* Win95 returns 0x8000, NT returns 0x80000000.  */
+  if ((code & 0x8000) || (code & 0x80000000))
+    return 1;
+  else
+    return 0;
+}
+
 /* Read events coming from the Win32 shell.
    This routine is called by the SIGIO handler.
    We return as soon as there are no more events to be read.
@@ -2319,7 +2350,7 @@ w32_read_socket (sd, bufp, numchars, waitp, expected)
 	      temp_buffer[temp_index++] = msg.msg.wParam;
 	      bufp->kind = non_ascii_keystroke;
 	      bufp->code = msg.msg.wParam;
-	      bufp->modifiers = msg.dwModifiers;
+ 	      bufp->modifiers = win32_kbd_mods_to_emacs (msg.dwModifiers);
 	      XSETFRAME (bufp->frame_or_window, f);
 	      bufp->timestamp = msg.msg.time;
 	      bufp++;
@@ -2335,17 +2366,33 @@ w32_read_socket (sd, bufp, numchars, waitp, expected)
 	    {
 	      if (numchars > 1) 
 		{
+		  int add;
+		  KEY_EVENT_RECORD key, *keyp = &key;
+
 		  if (temp_index == sizeof temp_buffer / sizeof (short))
 		    temp_index = 0;
-		  temp_buffer[temp_index++] = msg.msg.wParam;
-		  bufp->kind = ascii_keystroke;
-		  bufp->code = msg.msg.wParam;
-		  XSETFRAME (bufp->frame_or_window, f);
-		  bufp->modifiers = msg.dwModifiers;
-		  bufp->timestamp = msg.msg.time;
-		  bufp++;
-		  numchars--;
-		  count++;
+		  
+		  convert_to_key_event (&msg, keyp);
+		  add = key_event (keyp, bufp);
+		  if (add == -1)
+		    {
+		      /* The key pressed generated two characters, most likely
+			 an accent character and a key that could not be
+			 combined with it.  Prepend the message on the queue
+			 again to process the second character (which is
+			 being held internally in key_event), and process
+			 the first character now.  */
+		      prepend_msg (&msg);
+		      add = 1;
+		    }
+
+		  /* Throw dead keys away.  */
+		  if (is_dead_key (msg.msg.wParam))
+		    break;
+
+		  bufp += add;
+		  numchars -= add;
+		  count += add;
 		} 
 	      else 
 		{
@@ -3283,11 +3330,14 @@ x_make_frame_visible (f)
 	 if we get to x_make_frame_visible a second time
 	 before the window gets really visible.  */
       if (! FRAME_ICONIFIED_P (f)
-	  && ! f->output_data.win32->asked_for_visible)
-	x_set_offset (f, f->output_data.win32->left_pos, f->output_data.win32->top_pos, 0);
+ 	  && ! f->output_data.win32->asked_for_visible) 
+	{
+	  x_set_offset (f, f->output_data.win32->left_pos, 
+			f->output_data.win32->top_pos, 0);
+	  SetForegroundWindow (FRAME_WIN32_WINDOW (f));
+	}
 
       f->output_data.win32->asked_for_visible = 1;
-
       ShowWindow (FRAME_WIN32_WINDOW (f), SW_SHOW);
     }
 
