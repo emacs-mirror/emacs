@@ -1,3 +1,8 @@
+2001-03-26  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/titdic-cnv.el (quail-cxterm-package-ext-info):
+	Prepend `\' to "\<quail-translation-docstring>".
+
 2001-03-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* autorevert.el (global-auto-revert-non-file-buffers): Remove
