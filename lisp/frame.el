@@ -112,9 +112,7 @@ These supersede the values given in `default-frame-alist'.")
 		  (setq tail (cdr tail))))
 	      ;; Handle `reverse' as a parameter.
 	      (if (cdr (or (assq 'reverse initial-frame-alist)
-			   (assq 'reverse default-frame-alist)
-			   (cons nil
-				 (x-get-resource "reverseVideo" "ReverseVideo"))))
+			   (assq 'reverse default-frame-alist)))
 		  (let ((params (frame-parameters frame-initial-frame)))
 		    (modify-frame-parameters
 		     frame-initial-frame

@@ -529,6 +529,13 @@ This returns ARGS with the arguments that have been processed removed."
       (setq initial-frame-alist (append initial-frame-alist
 					(x-parse-geometry res-geometry)))))
 
+;; Check the reverseVideo resource.
+(if (assoc
+     (x-get-resource "reverseVideo"
+		     "ReverseVideo")
+     '("True" "true" "Yes" "yes"))
+    (setq default-frame-alist (cons '(reverse . t) default-frame-alist)))
+
 ;; Set x-selection-timeout, measured in milliseconds.
 (let ((res-selection-timeout
        (x-get-resource "selectionTimeout" "SelectionTimeout")))
