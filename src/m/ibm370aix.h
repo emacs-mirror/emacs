@@ -4,6 +4,10 @@
 
 #define AIX
 
+/* these were defined in "ibmps2-aix.h" */
+#undef INTEL386
+#undef aix386
+
 /* i370 is  big-endian */
 #define BIG_ENDIAN 
 
@@ -23,6 +27,7 @@
 
 #undef LIBS_MACHINE
 #define LIBS_MACHINE 
+#undef HAVE_VFORK
 
 #undef LD_SWITCH_MACHINE
 #define LD_SWITCH_MACHINE -xa
