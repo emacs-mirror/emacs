@@ -599,14 +599,14 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj)
 
 #ifdef MSDOS
 #define MSDOS_SUPPORT ${lispsource}ls-lisp.elc ${lispsource}disp-table.elc \
- ${lispsource}dos-fns.elc ${lispsource}dos-nt.elc
+ ${lispsource}dos-fns.elc ${lispsource}dos-w32.elc
 #else
 #define MSDOS_SUPPORT
 #endif
 
 #ifdef WINDOWSNT
-#define WINNT_SUPPORT ${lispsource}ls-lisp.elc ${lispsource}winnt.elc \
-  ${lispsource}dos-nt.elc
+#define WINNT_SUPPORT ${lispsource}ls-lisp.elc ${lispsource}w32-fns.elc \
+  ${lispsource}dos-w32.elc
 #else
 #define WINNT_SUPPORT
 #endif
@@ -702,7 +702,7 @@ SOME_MACHINE_LISP =  ${dotdot}/lisp/faces.elc ${dotdot}/lisp/facemenu.elc \
   ${dotdot}/lisp/select.elc ${dotdot}/lisp/scroll-bar.elc \
   ${dotdot}/lisp/vmsproc.elc ${dotdot}/lisp/vms-patch.elc \
   ${dotdot}/lisp/ls-lisp.elc ${dotdot}/lisp/dos-fns.elc \
-  ${dotdot}/lisp/winnt.elc ${dotdot}/lisp/dos-nt.elc
+  ${dotdot}/lisp/w32-fns.elc ${dotdot}/lisp/dos-w32.elc
 
 /* Construct full set of libraries to be linked.
    Note that SunOS needs -lm to come before -lc; otherwise, you get

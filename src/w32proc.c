@@ -40,7 +40,7 @@ Boston, MA 02111-1307, USA.
 #include <windows.h>
 
 #include "lisp.h"
-#include "nt.h"
+#include "w32.h"
 #include "systime.h"
 #include "syswait.h"
 #include "process.h"

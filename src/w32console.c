@@ -34,7 +34,7 @@ Boston, MA 02111-1307, USA.
 #include "disptab.h"
 #include "termhooks.h"
 
-#include "ntinevt.h"
+#include "w32inevt.h"
 
 /* from window.c */
 extern Lisp_Object Frecenter ();

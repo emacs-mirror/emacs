@@ -28,7 +28,7 @@ Boston, MA 02111-1307, USA.
 
 extern BOOL ctrl_c_handler (unsigned long type);
 
-#include "ntheap.h"
+#include "w32heap.h"
 
 /* A convenient type for keeping all the info about a mapped file together.  */
 typedef struct file_data {

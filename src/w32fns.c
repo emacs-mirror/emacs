@@ -33,7 +33,7 @@ Boston, MA 02111-1307, USA.  */
 #include "keyboard.h"
 #include "blockinput.h"
 #include "paths.h"
-#include "ntheap.h"
+#include "w32heap.h"
 #include "termhooks.h"
 
 #include <commdlg.h>

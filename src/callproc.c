@@ -47,7 +47,7 @@ extern char *strerror ();
 #include <windows.h>
 #include <stdlib.h>	/* for proper declaration of environ */
 #include <fcntl.h>
-#include "nt.h"
+#include "w32.h"
 #define _P_NOWAIT 1	/* from process.h */
 #endif
 

@@ -114,15 +114,15 @@
       (garbage-collect)
       (load "disp-table") ; needed to setup ibm-pc char set, see internal.el
       (garbage-collect)
-      (load "dos-nt")
+      (load "dos-w32")
       (garbage-collect)
-      (load "winnt")
+      (load "w32-fns")
       (garbage-collect)))
 (if (eq system-type 'ms-dos)
     (progn
       (load "ls-lisp")
       (garbage-collect)
-      (load "dos-nt")
+      (load "dos-w32")
       (garbage-collect)
       (load "dos-fns")
       (garbage-collect)

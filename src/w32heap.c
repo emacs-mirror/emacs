@@ -26,7 +26,7 @@ Boston, MA 02111-1307, USA.
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "ntheap.h"
+#include "w32heap.h"
 #include "lisp.h"  /* for VALMASK */
 
 /* This gives us the page size and the size of the allocation unit on NT.  */

@@ -75,9 +75,9 @@ Boston, MA 02111-1307, USA.
 #undef getservbyname
 #endif
 
-#include "nt.h"
+#include "w32.h"
 #include "ndir.h"
-#include "ntheap.h"
+#include "w32heap.h"
 
 /* Get the current working directory.  */
 char *
