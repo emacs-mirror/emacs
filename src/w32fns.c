@@ -6209,8 +6209,7 @@ x_to_w32_font (lpxstr, lplogfont)
 
       fields--;
 
-      if (!NILP (Vw32_enable_synthesized_fonts))
-	lplogfont->lfItalic = (fields > 0 && slant == 'i');
+      lplogfont->lfItalic = (fields > 0 && slant == 'i');
 
       fields--;
 
