@@ -144,11 +144,11 @@ glyph_to_str_cpy (glyphs, str)
 #define PRINTPREPARE						\
    original = printcharfun;					\
    if (NILP (printcharfun)) printcharfun = Qt;			\
-   if (XTYPE (printcharfun) == Lisp_Buffer)			\
+   if (BUFFERP (printcharfun))					\
      { if (XBUFFER (printcharfun) != current_buffer)		\
 	 Fset_buffer (printcharfun);				\
        printcharfun = Qnil;}					\
-   if (XTYPE (printcharfun) == Lisp_Marker)			\
+   if (MARKERP (printcharfun))					\
      { if (!(XMARKER (original)->buffer))			\
          error ("Marker does not point anywhere");		\
        if (XMARKER (original)->buffer != current_buffer)	\
@@ -159,7 +159,7 @@ glyph_to_str_cpy (glyphs, str)
        printcharfun = Qnil;}
 
 #define PRINTFINISH					\
-   if (XTYPE (original) == Lisp_Marker)			\
+   if (MARKERP (original))				\
      Fset_marker (original, make_number (point), Qnil);	\
    if (old_point >= 0)					\
      SET_PT (old_point + (old_point >= start_point	\
@@ -638,7 +638,7 @@ float_to_string (buf, data)
   int width;
       
   if (NILP (Vfloat_output_format)
-      || XTYPE (Vfloat_output_format) != Lisp_String)
+      || !STRINGP (Vfloat_output_format))
   lose:
     {
       sprintf (buf, "%.17g", data);
@@ -719,8 +719,7 @@ print (obj, printcharfun, escapeflag)
 #if 1  /* I'm not sure this is really worth doing.  */
   /* Detect circularities and truncate them.
      No need to offer any alternative--this is better than an error.  */
-  if (XTYPE (obj) == Lisp_Cons || XTYPE (obj) == Lisp_Vector
-      || XTYPE (obj) == Lisp_Compiled)
+  if (CONSP (obj) || VECTORP (obj) || COMPILEDP (obj))
     {
       int i;
       for (i = 0; i < print_depth; i++)
@@ -870,7 +869,7 @@ print (obj, printcharfun, escapeflag)
 
     case Lisp_Cons:
       /* If deeper than spec'd depth, print placeholder.  */
-      if (XTYPE (Vprint_level) == Lisp_Int
+      if (INTEGERP (Vprint_level)
 	  && print_depth > XINT (Vprint_level))
 	{
 	  strout ("...", -1, printcharfun);
@@ -882,7 +881,7 @@ print (obj, printcharfun, escapeflag)
 	register int i = 0;
 	register int max = 0;
 
-	if (XTYPE (Vprint_length) == Lisp_Int)
+	if (INTEGERP (Vprint_length))
 	  max = XINT (Vprint_length);
 	/* Could recognize circularities in cdrs here,
 	   but that would make printing of long lists quadratic.
