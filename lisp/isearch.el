@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/12/25 00:50:10 $|$Revision: 1.58 $
+;; |$Date: 1994/01/02 17:43:16 $|$Revision: 1.59 $
 
 ;; This file is part of GNU Emacs.
 
@@ -503,8 +503,8 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 	isearch-old-local-map (current-local-map)
 	search-ring-yank-pointer nil
 	regexp-search-ring-yank-pointer nil)
-  (if isearch-slow-terminal-mode
-      (setq isearch-window-configuration (current-window-configuration)))
+  (setq isearch-window-configuration
+	(if isearch-slow-terminal-mode (current-window-configuration) nil))
 
 ;; This was for Lucid Emacs.  But now that we have pre-command-hook,
 ;; it causes trouble.
