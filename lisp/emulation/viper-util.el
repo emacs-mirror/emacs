@@ -219,30 +219,6 @@
 		  (error "%S: Invalid op in vip-check-version" op))))
     (cond ((memq op '(= > >=)) nil)
 	  ((memq op '(< <=)) t))))
-	  
-;; warn if it is a wrong emacs
-(if (or (vip-check-version '< 19 29 'emacs)
-	(vip-check-version '< 19 12 'xemacs))
-    (progn
-      (with-output-to-temp-buffer " *vip-info*"
-	(switch-to-buffer " *vip-info*")
-	(insert
-	 (format "
-
-This version of Viper requires 
-
-\t Emacs 19.29 and higher
-\t OR
-\t XEmacs 19.12 and higher
-
-It is unlikely to work under Emacs version %s
-that you are using...
-
-Type any key to continue..." emacs-version))
-	(beep 1)
-	(beep 1)
-	(vip-read-event))
-      (kill-buffer " *vip-info*")))
   
 
 (defun vip-get-visible-buffer-window (wind)

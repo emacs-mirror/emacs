@@ -607,31 +607,6 @@ ediff-toggle-hilit. Use `setq-default' to set it.")
     (cond ((memq op '(= > >=)) nil)
 	  ((memq op '(< <=)) t))))
   
-  
-;; warn if it is a wrong emacs
-(if (or (ediff-check-version '< 19 29 'emacs)
-	(ediff-check-version '< 19 12 'xemacs))
-    (progn
-      (with-output-to-temp-buffer ediff-msg-buffer
-	(switch-to-buffer ediff-msg-buffer)
-	(insert
-	 (format "
-
-This version of Ediff requires 
-
-\t Emacs 19.29 and higher
-\t OR
-\t XEmacs 19.12 and higher
-
-It is unlikely to work under Emacs version %s
-that you are using...
-
-Type any key to continue..." emacs-version))
-	(beep 1)
-	(beep 1)
-	(ediff-read-event))
-      (kill-buffer ediff-msg-buffer)))
-
 ;; A fix for NeXT Step
 ;; Should probably be eliminated in later versions.
 (if (and (ediff-window-display-p) (eq (ediff-device-type) 'ns))
