@@ -192,17 +192,6 @@ This variable is buffer-local."
 		 (const history))
   :group 'comint)
 
-(defface comint-input-face '((((class color)
-			      (background dark))
-			     (:foreground "red"))
-			    (((class color)
-			      (background light))
-			     (:foreground "blue"))
-			    (t 
-			     (:bold t)))
-  "How to display user input for comint shells."
-  :group 'comint)
-
 (defcustom comint-input-ignoredups nil
   "*If non-nil, don't add input matching the last on the input ring.
 This mirrors the optional behavior of bash.
