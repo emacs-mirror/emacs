@@ -830,7 +830,7 @@ the variable `vc-header-alist'."
 (or (not (boundp 'minor-mode-map-alist))
     (assq 'vc-dired-mode minor-mode-map-alist)
     (setq minor-mode-map-alist
-	   (cons '(vc-dired-mode . vc-dired-prefix-map)
+	   (cons (cons 'vc-dired-mode vc-dired-prefix-map)
 		 minor-mode-map-alist)))
 
 (defun vc-dired-mode ()

@@ -31,7 +31,7 @@
 
 ;;;###autoload
 (defvar compilation-mode-hook nil
-  "*List of hook functions run by compilation-mode (see `run-hooks').")
+  "*List of hook functions run by `compilation-mode' (see `run-hooks').")
 
 ;;;###autoload
 (defconst compilation-window-height nil
@@ -336,7 +336,7 @@ Returns the compilation buffer created."
     (define-key map "\M-{" 'compilation-previous-file)
     (define-key map "\M-}" 'compilation-next-file)
     map)
-  "Keymap for compilation-minor-mode.")
+  "Keymap for `compilation-minor-mode'.")
 
 (defvar compilation-mode-map
   (let ((map (cons 'keymap compilation-minor-mode-map)))
@@ -344,7 +344,7 @@ Returns the compilation buffer created."
     (define-key map "\^?" 'scroll-down)
     map)
   "Keymap for compilation log buffers.
-compilation-minor-mode-map is a cdr of this.")
+`compilation-minor-mode-map' is a cdr of this.")
 
 (defun compilation-mode ()
   "Major mode for compilation log buffers.
@@ -380,8 +380,8 @@ Compilation major mode are available.")
     (setq minor-mode-alist (cons '(compilation-minor-mode " Compilation")
 				 minor-mode-alist)))
 (or (assq 'compilation-minor-mode minor-mode-map-alist)
-    (setq minor-mode-map-alist (cons '(compilation-minor-mode
-				       . compilation-minor-mode-map)
+    (setq minor-mode-map-alist (cons (cons 'compilation-minor-mode
+					   compilation-minor-mode-map)
 				     minor-mode-map-alist)))
 
 (defun compilation-minor-mode (&optional arg)
@@ -441,7 +441,7 @@ See `compilation-mode'."
 
 (defun compilation-filter (proc string)
   "Process filter for compilation buffers.
-Just inserts the text, but uses insert-before-markers."
+Just inserts the text, but uses `insert-before-markers'."
   (save-excursion
     (set-buffer (process-buffer proc))
     (let ((buffer-read-only nil))
