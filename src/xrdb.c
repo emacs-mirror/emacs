@@ -542,6 +542,8 @@ x_load_resources (display, xrm_string, myname, myclass)
      will use some other default font.  */
 #ifdef USE_MOTIF
 
+  sprintf (line, "%s.pane.background: grey75", myname);
+  XrmPutLineResource (&rdb, line);
   sprintf (line, "%s*fontList: %s", myname, helv);
   XrmPutLineResource (&rdb, line);
   sprintf (line, "%s*menu*background: grey75", myname);
@@ -549,6 +551,8 @@ x_load_resources (display, xrm_string, myname, myclass)
   sprintf (line, "%s*menubar*background: grey75", myname, helv);
   XrmPutLineResource (&rdb, line);
   sprintf (line, "%s*verticalScrollBar.background: grey75", myname);
+  XrmPutLineResource (&rdb, line);
+  sprintf (line, "%s*verticalScrollBar.troughColor: grey75", myname);
   XrmPutLineResource (&rdb, line);
   sprintf (line, "%s.dialog*.background: grey75", myname);
   XrmPutLineResource (&rdb, line);
