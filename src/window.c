@@ -4473,8 +4473,13 @@ displayed_window_lines (w)
   if (old_buffer)
     set_buffer_internal (old_buffer);
 
-  /* Add in empty lines at the bottom of the window.  */
   bottom_y = it.current_y + it.max_ascent + it.max_descent;
+
+  if (bottom_y > it.current_y && bottom_y < it.last_visible_y)
+    /* Hit a line without a terminating newline.  */
+    it.vpos++;
+
+  /* Add in empty lines at the bottom of the window.  */
   if (bottom_y < height)
     {
       struct frame *f = XFRAME (w->frame);
@@ -4484,6 +4489,21 @@ displayed_window_lines (w)
     }
 
   return it.vpos;
+}
+
+
+DEFUN ("window-text-height", Fwindow_text_height, Swindow_text_height,
+  0, 1, 0,
+  "Return the height in lines of the text display area of WINDOW.\n\
+This doesn't include the mode-line (or header-line if any) or any\n\
+partial-height lines in the text display area.")
+  (window)
+     Lisp_Object window;
+{
+  struct window *w = decode_window (window);
+  int pixel_height = window_box_height (w);
+  int line_height = pixel_height / CANON_Y_UNIT (XFRAME (w->frame));
+  return make_number (line_height);
 }
 
 
@@ -5739,6 +5759,7 @@ The selected frame is the one whose configuration has changed.");
   defsubr (&Sother_window_for_scrolling);
   defsubr (&Sscroll_other_window);
   defsubr (&Srecenter);
+  defsubr (&Swindow_text_height);
   defsubr (&Smove_to_window_line);
   defsubr (&Swindow_configuration_p);
   defsubr (&Swindow_configuration_frame);
