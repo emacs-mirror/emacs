@@ -6536,7 +6536,12 @@ xpm_load (f, img)
       img->colors = (unsigned long *) xmalloc (img->ncolors
 					       * sizeof *img->colors);
       for (i = 0; i < attrs.nalloc_pixels; ++i)
-	img->colors[i] = attrs.alloc_pixels[i];
+	{
+	  img->colors[i] = attrs.alloc_pixels[i];
+#ifdef DEBUG_X_COLORS
+	  register_color (img->colors[i]);
+#endif
+	}
 
       img->width = attrs.width;
       img->height = attrs.height;
