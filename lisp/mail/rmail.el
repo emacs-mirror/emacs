@@ -443,7 +443,7 @@ Note:    it means the file has no messages in it.\n\^_")))
 (define-key rmail-mode-map [menu-bar mail]
   (cons "Mail" (make-sparse-keymap "Mail")))
 
-(define-key rmail-mode-map [menu-bar mail continue]
+(define-key rmail-mode-map [menu-bar mail rmail-get-new-mail]
   '("Get New Mail" . rmail-get-new-mail))
 
 (define-key rmail-mode-map [menu-bar mail lambda]
