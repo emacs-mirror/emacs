@@ -856,7 +856,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.26 $")
+(defconst ange-ftp-version "$Revision: 1.27 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -2900,7 +2900,7 @@ system TYPE.")
 	  (ange-ftp-add-file-entry filename))
       (ange-ftp-real-write-region start end filename append visit))))
 
-(defun ange-ftp-insert-file-contents (filename &optional visit)
+(defun ange-ftp-insert-file-contents (filename &optional visit beg end)
   (barf-if-buffer-read-only)
   (setq filename (expand-file-name filename))
   (let ((parsed (ange-ftp-ftp-name filename)))
@@ -2941,7 +2941,8 @@ system TYPE.")
 			  (setq
 			   size
 			   (nth 1 (ange-ftp-real-insert-file-contents temp
-								      visit)))
+								      visit
+								      beg end)))
 			(signal 'ftp-error
 				(list
 				 "Opening input file:"
@@ -2958,7 +2959,7 @@ system TYPE.")
 		    (list 
 		     "Opening input file"
 		     filename))))
-      (ange-ftp-real-insert-file-contents filename visit))))
+      (ange-ftp-real-insert-file-contents filename visit beg end))))
  
 (defun ange-ftp-expand-symlink (file dir)
   (if (file-name-absolute-p file)
