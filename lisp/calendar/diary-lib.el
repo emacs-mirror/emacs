@@ -589,7 +589,7 @@ is created."
   (if (boundp 'user-mail-address) user-mail-address nil)
   "*Email address that `diary-mail-entries' will send email to."
   :group 'diary
-  :type 'string
+  :type '(choice string (const nil))
   :version "20.3")
 
 (defcustom diary-mail-days 7
