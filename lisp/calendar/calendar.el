@@ -1506,9 +1506,9 @@ calendar."
   "String of Chinese date of Gregorian date."
   t)
 
-(autoload 'calendar-absolute-from-astro
+(autoload 'calendar-absolute-from-astro  "cal-julian"
   "Absolute date of astronomical (Julian) day number D."
-  "cal-julian")
+  t )
 
 (autoload 'calendar-astro-from-absolute "cal-julian"
   "Astronomical (Julian) day number of absolute date D.")
@@ -1519,6 +1519,10 @@ calendar."
 
 (autoload 'calendar-goto-astro-day-number "cal-julian"
    "Move cursor to astronomical (Julian) day number."
+   t)
+
+(autoload 'calendar-print-astro-day-number "cal-julian"
+   "Show the astro date equivalents of date."
    t)
 
 (autoload 'calendar-julian-from-absolute "cal-julian"
