@@ -278,7 +278,8 @@ Prefix arg means just kill any existing server communications subprocess."
 	  (setq request (substring request (match-end 0)))
 	  (cond
 	   ((equal "-nowait" arg) (setq nowait t))
-	   ((equal "-eval" arg) (setq eval t))
+;;; This is not safe unless we make sure other users can't send commands.
+;;;	   ((equal "-eval" arg) (setq eval t))
 	   ((and (equal "-display" arg) (string-match "\\([^ ]*\\) " request))
 	    (let ((display (server-unquote-arg (match-string 1 request))))
 	      (setq request (substring request (match-end 0)))
@@ -325,11 +326,12 @@ Prefix arg means just kill any existing server communications subprocess."
 	    (server-log "Close empty client" proc))
 	;; We visited some buffer for this client.
 	(or nowait (push client server-clients))
-	(server-switch-buffer (nth 1 client))
-	(run-hooks 'server-switch-hook)
-	(unless nowait
-	  (message (substitute-command-keys
-		    "When done with a buffer, type \\[server-edit]"))))))
+	(unless (or isearch-mode (minibuffer-active))
+	  (server-switch-buffer (nth 1 client))
+	  (run-hooks 'server-switch-hook)
+	  (unless nowait
+	    (message (substitute-command-keys
+		      "When done with a buffer, type \\[server-edit]")))))))
   ;; Save for later any partial line that remains.
   (when (> (length string) 0)
     (let ((ps (assq proc server-previous-strings)))
