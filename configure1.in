@@ -1336,6 +1336,8 @@ esac
 [ -n "${x_libraries}" ] && LD_SWITCH_X_SITE_AUX="-R${x_libraries}"
 [ -n "${x_includes}" ] && C_SWITCH_X_SITE="-I${x_includes}"
 
+bitmapdir="${x_includes}"
+
 # Avoid forcing the search of /usr/include before fixed include files.
 if [ "$C_SWITCH_X_SITE" = "-I/usr/include" ]; then
    C_SWITCH_X_SITE=" "
@@ -1614,6 +1616,7 @@ fi
 ]
 AC_SUBST(version)
 AC_SUBST(configuration)
+AC_SUBST(canonical)
 AC_SUBST(srcdir)
 AC_SUBST(prefix)
 AC_SUBST(exec_prefix)
@@ -1630,6 +1633,7 @@ AC_SUBST(etcdir)
 AC_SUBST(lockdir)
 AC_SUBST(archlibdir)
 AC_SUBST(docdir)
+AC_SUBST(bitmapdir)
 AC_SUBST(c_switch_system)
 AC_SUBST(c_switch_machine)
 AC_SUBST(LD_SWITCH_X_SITE)
