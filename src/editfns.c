@@ -109,6 +109,8 @@ init_editfns ()
   p = (unsigned char *) getenv ("NAME");
   if (p)
     Vuser_full_name = build_string (p);
+  else if (NILP (Vuser_full_name))
+    Vuser_full_name = build_string ("unknown");
 }
 
 DEFUN ("char-to-string", Fchar_to_string, Schar_to_string, 1, 1, 0,
@@ -585,7 +587,7 @@ name, or \"unknown\" if no such user could be found.")
     error ("Invalid UID specification");
 
   if (!pw)
-    return build_string ("unknown");
+    return Qnil;
   
   p = (unsigned char *) USER_FULL_NAME;
   /* Chop off everything after the first comma. */
