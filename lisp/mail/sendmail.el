@@ -575,6 +575,13 @@ the user from the mailer."
 		  (or (y-or-n-p "Message contains non-ASCII characters; send anyway? ")
 		      (error "Aborted"))
 		(error "Message contains non-ASCII characters"))))
+	;; Complain about any invalid line.
+	(goto-char (point-min))
+	(while (not (looking-at (regexp-quote mail-header-separator)))
+	  (unless (looking-at "[ \t]\\|.*:\\|$")
+	    (push-mark opoint)
+	    (error "Invalid header line (maybe a continuation line lacks initial whitespace)"))
+	  (forward-line 1))
 	(goto-char opoint)
 	(run-hooks 'mail-send-hook)
 	(message "Sending...")
@@ -633,10 +640,11 @@ the user from the mailer."
 	  (if mail-aliases
 	      (expand-mail-aliases (point-min) delimline))
 	  (goto-char (point-min))
-	  ;; ignore any blank lines in the header
+	  ;; Ignore any blank lines in the header
 	  (while (and (re-search-forward "\n\n\n*" delimline t)
 		      (< (point) delimline))
 	    (replace-match "\n"))
+	  (goto-char (point-min))
 	  (let ((case-fold-search t))
 	    (goto-char (point-min))
 	    (while (re-search-forward "^Resent-\\(to\\|cc\\|bcc\\):" delimline t)
