@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.34 2002/02/25 22:03:24 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.35 2002/03/05 13:30:50 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -279,7 +279,7 @@ COMMENT can be used to provide an initial description of FILE.
 
 `vc-register-switches' and `vc-cvs-register-switches' are passed to
 the CVS command (in that order)."
-    (let ((switches (list
+    (let ((switches (append
 		     (if (stringp vc-register-switches)
 			 (list vc-register-switches)
 		       vc-register-switches)
