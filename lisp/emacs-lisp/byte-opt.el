@@ -501,6 +501,13 @@
 		 (cons (byte-optimize-form (nth 1 form) nil)
 		       (cdr (cdr form)))))
 
+	  ((eq fn 'ignore)
+	   ;; Don't treat the args to `ignore' as being
+	   ;; computed for effect.  We want to avoid the warnings
+	   ;; that might occur if they were treated that way.
+	   ;; However, don't actually bother calling `ignore'.
+	   `(prog1 nil . ,(mapcar 'byte-optimize-form (cdr form))))
+
 	  ;; If optimization is on, this is the only place that macros are
 	  ;; expanded.  If optimization is off, then macroexpansion happens
 	  ;; in byte-compile-form.  Otherwise, the macros are already expanded
@@ -526,9 +533,21 @@
 	  ((and for-effect (setq tmp (get fn 'side-effect-free))
 		(or byte-compile-delete-errors
 		    (eq tmp 'error-free)
+		    ;; Detect the expansion of (pop foo).
+		    ;; There is no need to compile the call to `car' there.
+		    (and (eq fn 'car)
+			 (eq (car-safe (cadr form)) 'prog1)
+			 (let ((var (cadr (cadr form)))
+			       (last (nth 2 (cadr form))))
+			   (and (symbolp var)
+				(null (nthcdr 3 (cadr form)))
+				(eq (car-safe last) 'setq)
+				(eq (cadr last) var)
+				(eq (car-safe (nth 2 last)) 'cdr)
+				(eq (cadr (nth 2 last)) var))))
 		    (progn
 		      (byte-compile-warn "`%s' called for effect"
-					 (prin1-to-string form))
+					 (prin1-to-string (car form)))
 		      nil)))
 	   (byte-compile-log "  %s called for effect; deleted" fn)
 	   ;; appending a nil here might not be necessary, but it can't hurt.
