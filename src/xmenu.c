@@ -879,6 +879,8 @@ xmenu_show (f, val, x, y, menubarp, vw)
   XMEventQue *feq_tmp;		/* Foreign event queue temporary. */
   
   BLOCK_INPUT;
+  if (val == 0) return Qnil;
+
   menu_id = ++popup_id_tick;
   menu = lw_create_widget ("popup", val->name, menu_id, val, 
 			   f->display.x->widget, 1, 0,
