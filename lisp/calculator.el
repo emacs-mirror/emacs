@@ -4,7 +4,7 @@
 
 ;; Author: Eli Barzilay <eli@barzilay.org>
 ;; Keywords: tools, convenience
-;; Time-stamp: <2001-09-23 02:24:35 eli>
+;; Time-stamp: <2001-10-11 16:18:29 eli>
 
 ;; This file is part of GNU Emacs.
 
@@ -988,7 +988,9 @@ the 'left or 'right when one of the standard modes is used."
                       (setq num (/ num 1000.0)) (setq exp (+ exp 3))
                       (setq i (1+ i)))))))
       (or calculator-eng-tmp-show (setq calculator-eng-extra nil))
-      (let ((str (format (concat "%." calculator-number-digits "f")
+      (let ((str (format (concat "%." (number-to-string
+                                       calculator-number-digits)
+                                 "f")
                          num)))
         (concat (let ((calculator-remove-zeros
                        ;; make sure we don't leave integers
