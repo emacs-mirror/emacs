@@ -63,6 +63,9 @@ CATEGORIES is a string of category mnemonics.")
   CHECK_STRING (categories, 0);
   val = MAKE_CATEGORY_SET;
 
+  if (STRING_MULTIBYTE (categories))
+    error ("Multibyte string in make-category-set");
+
   len = XSTRING (categories)->size;
   while (--len >= 0)
     {
@@ -486,7 +489,8 @@ describe_category (value)
     }
 
   mnemonics = Fcategory_set_mnemonics (value);
-  insert_from_string (mnemonics, 0, XSTRING (mnemonics)->size, 0);
+  insert_from_string (mnemonics, 0, 0, XSTRING (mnemonics)->size,
+		      XSTRING (mnemonics)->size_byte, 0);
   insert_string ("\n");
   return;
 }
@@ -519,7 +523,8 @@ describe_category_1 (vector)
 
 	insert_char (i + 32);
 	insert (": ", 2);
-	insert_from_string (elt, 0, XSTRING (elt)->size, 0);
+	insert_from_string (elt, 0, 0, XSTRING (elt)->size,
+			    XSTRING (elt)->size_byte, 0);
 	insert ("\n", 1);
       }
   }
