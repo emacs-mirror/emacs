@@ -181,18 +181,16 @@ appended."
   )
 
 ;; Regexp describing a `symbol' in all languages, not excluding
-;; keywords.  We cannot use just `word' syntax class since `_' cannot
-;; be in word class.  Putting underscore in word class breaks forward
-;; word movement behavior that users are familiar with.  Besides, it
-;; runs counter to Emacs convention.
-;;
-;; This definition isn't correct for the first character in the
-;; languages that accept the full range of Unicode word constituents
-;; in identifiers (e.g. Java and Pike).  For that we'd need to make a
-;; regexp that matches all characters in the word constituent class
-;; except 0-9, and the regexp engine currently can't do that.
+;; keywords.
 (c-lang-defconst c-symbol-key
-  (c c++ objc java idl) "[_a-zA-Z]\\(\\w\\|\\s_\\)*"
+  (c c++ objc java idl)
+  (if (string-match "[[:alpha:]]" "a")
+      "[[:alpha:]_][[:alnum:]_]*"	; Emacs 21.
+    ;; We cannot use just `word' syntax class since `_' cannot be
+    ;; in word class.  Putting underscore in word class breaks
+    ;; forward word movement behavior that users are familiar
+    ;; with.  Besides, it runs counter to Emacs convention.
+    "[a-zA-Z_]\\(\\w\\|_\\)*")
   pike (concat "\\(" (c-lang-var c-symbol-key c) "\\|"
 	       (c-make-keywords-re nil
 		 '("`+" "`-" "`&" "`|" "`^" "`<<" "`>>" "`*" "`/" "`%" "`~"
