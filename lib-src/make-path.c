@@ -82,4 +82,6 @@ main (argc, argv)
     next_pathname:
       ;
     }
+
+  return 0;
 }
