@@ -3282,7 +3282,7 @@ get_next_display_element (it)
 			|| (it->c != '\n'
 			    && it->c != '\t'
 			    && it->c != '\r')))
-		   || (it->c >= 128
+		   || (it->c >= 127
 		       && it->len == 1))
 	    {
 	      /* IT->c is a control character which must be displayed
@@ -3292,7 +3292,7 @@ get_next_display_element (it)
 		 display.  Then, set IT->dpvec to these glyphs.  */
 	      GLYPH g;
 
-	      if (it->c < ' ' && it->ctl_arrow_p)
+	      if (it->c < 128 && it->ctl_arrow_p)
 		{
 		  /* Set IT->ctl_chars[0] to the glyph for `^'.  */
 		  if (it->dp
