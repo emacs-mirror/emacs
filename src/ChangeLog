@@ -1,5 +1,8 @@
 2001-10-24  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* window.c: Don't define max.
+	(coordinates_in_window): Remove unused variable `uy'.
+
 	* widget.c: Don't define max.
 
 	* process.c: Don't define max.
