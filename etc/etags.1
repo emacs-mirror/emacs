@@ -58,7 +58,9 @@ table (defaults: \fBTAGS\fP for \fBetags\fP, \fBtags\fP for
 \fBctags\fP) in the current working directory.
 Files specified with relative file names will be recorded in the tag
 table with file names relative to the directory where the tag table
-resides.  Files specified with absolute file names will be recorded
+resides.  If the tag table is in /dev, however, the file names are made
+relative to the working directory.  Files specified with absolute file
+names will be recorded
 with absolute file names.  Files generated from a source file\-\-like
 a C file generated from a source Cweb file\-\-will be recorded with
 the name of the source file.
