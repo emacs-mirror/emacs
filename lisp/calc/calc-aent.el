@@ -295,11 +295,17 @@
 		calc-dollar-used 0)))
       (calc-handle-whys))))
 
+(defvar calc-alg-ent-map nil
+  "The keymap used for algebraic entry.")
+
+(defvar calc-alg-ent-esc-map nil
+  "The keymap used for escapes in algebraic entry.")
+
 (defun calc-do-alg-entry (&optional initial prompt no-normalize)
   (let* ((calc-buffer (current-buffer))
 	 (blink-paren-function 'calcAlg-blink-matching-open)
 	 (alg-exp 'error))
-    (unless (boundp 'calc-alg-ent-map)
+    (unless calc-alg-ent-map
       (setq calc-alg-ent-map (copy-keymap minibuffer-local-map))
       (define-key calc-alg-ent-map "'" 'calcAlg-previous)
       (define-key calc-alg-ent-map "`" 'calcAlg-edit)
