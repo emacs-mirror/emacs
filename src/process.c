@@ -1514,7 +1514,15 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
     }
 
 #ifndef TERM
-  host_info_ptr = gethostbyname (XSTRING (host)->data);
+  while (1)
+    {
+      host_info_ptr = gethostbyname (XSTRING (host)->data);
+#ifdef TRY_AGAIN
+      if (! (host_info_ptr == 0 && h_errno == TRY_AGAIN))
+#endif
+	break;
+      Fsleep_for (make_number (1), Qnil);
+    }
   if (host_info_ptr == 0)
     /* Attempt to interpret host as numeric inet address */
     {
