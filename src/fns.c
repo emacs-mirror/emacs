@@ -473,7 +473,7 @@ concat (nargs, args, target_type, last_special)
 	      }
 	  else if (STRINGP (this))
 	    {
-	      result_len_byte += XSTRING (this)->size_byte;
+	      if (STRING_MULTIBYTE (this))
 		{
 		  some_multibyte = 1;
 		  result_len_byte += XSTRING (this)->size_byte;
@@ -572,17 +572,9 @@ concat (nargs, args, target_type, last_special)
 		      {
 			unsigned char c;
 			XSETFASTINT (elt, XSTRING (this)->data[thisindex++]);
-			if (some_multibyte && XINT (elt) >= 0200
-			    && XINT (elt) < 0400)
-			  {
-			    c = XINT (elt);
-			    if (nonascii_insert_offset > 0)
-			      c += nonascii_insert_offset;
-			    else
-			      c += DEFAULT_NONASCII_INSERT_OFFSET;
-
-			    XSETINT (elt, c);
-			  }
+			if (some_multibyte)
+			  XSETINT (elt,
+				   unibyte_char_to_multibyte (XINT (elt)));
 		      }
 		  }
 		else if (BOOL_VECTOR_P (this))
