@@ -2159,6 +2159,8 @@ face_numeric_swidth (width)
   return face_numeric_value (swidth_table, DIM (swidth_table), width);
 }
 
+#ifdef HAVE_WINDOW_SYSTEM
+
 Lisp_Object
 split_font_name_into_vector (fontname)
      Lisp_Object fontname;
@@ -2215,8 +2217,6 @@ build_font_name_from_vector (vec)
   xfree (p);
   return fontname;
 }
-
-#ifdef HAVE_WINDOW_SYSTEM
 
 /* Return non-zero if FONT is the name of a fixed-pitch font.  */
 
@@ -5679,7 +5679,7 @@ lookup_face (f, attr)
   return face->id;
 }
 
-
+#ifdef HAVE_WINDOW_SYSTEM
 /* Look up a realized face that has the same attributes as BASE_FACE
    except for the font in the face cache of frame F.  If FONT_ID is
    not negative, it is an ID number of an already opened font that is
@@ -5722,6 +5722,7 @@ lookup_non_ascii_face (f, font_id, base_face)
 
   return face->id;
 }
+#endif	/* HAVE_WINDOW_SYSTEM */
 
 /* Return the face id of the realized face for named face SYMBOL on
    frame F suitable for displaying ASCII characters.  Value is -1 if
@@ -7201,6 +7202,7 @@ realize_face (cache, attrs, former_face_id)
 }
 
 
+#ifdef HAVE_WINDOW_SYSTEM
 /* Realize the fully-specified face that has the same attributes as
    BASE_FACE except for the font on frame F.  If FONT_ID is not
    negative, it is an ID number of an already opened font that should
@@ -7243,6 +7245,7 @@ realize_non_ascii_face (f, font_id, base_face)
 
   return face;
 }
+#endif	/* HAVE_WINDOW_SYSTEM */
 
 
 /* Realize the fully-specified face with attributes ATTRS in face
