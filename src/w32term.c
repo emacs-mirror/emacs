@@ -542,6 +542,26 @@ w32_use_unicode_for_codepage (codepage)
 #define BYTE2(ch) \
  (ch & 0x00ff)
 
+#define W32_TEXTOUT(start_offset,nchars)                             \
+{                                                                    \
+  int charset_dim = CHARSET_DIMENSION(charset);                      \
+  if (font->bdf)                                                     \
+    w32_BDF_TextOut (font->bdf, hdc, left + xoffset,                 \
+                     top + yoffset,                                  \
+                     x_1byte_buffer + start_offset,                  \
+                     charset_dim, charset_dim * nchars, 0);          \
+  else if (print_via_unicode)                                        \
+    ExtTextOutW (hdc, left + xoffset, top + yoffset,                 \
+                 fuOptions, clip_region,                             \
+                 x_2byte_buffer + start_offset, nchars, NULL);       \
+  else                                                               \
+    ExtTextOut (hdc, left + xoffset, top + yoffset,                  \
+                fuOptions, clip_region,                              \
+                x_1byte_buffer + start_offset,                       \
+                nchars * charset_dim, NULL);                         \
+    start_offset += nchars * (print_via_unicode ? 1 : charset_dim ); \
+    xoffset += nchars * glyph_width;                                 \
+}
 
 /* Display a sequence of N glyphs found at GP.
    WINDOW is the window to output to.  LEFT and TOP are starting coords.
@@ -689,6 +709,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	   2) A height of font is shorter than LINE_HEIGHT.
 	   3) Drawing a composite character.
 	   4) Font has non-zero _MULE_BASELINE_OFFSET property.
+           5) Font is a bdf font.
 	   After filling background, we draw glyphs by XDrawString16.  */
 	int background_filled;
 	/* Baseline position of a character, offset from TOP.  */
@@ -698,6 +719,10 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	int relative_compose = 0, default_ascent = 0;
 	/* 1 if we find no font or a font of inappropriate size.  */
 	int require_clipping;
+        RECT clip_rectangle;
+        LPRECT clip_region = NULL;
+        UINT fuOptions = 0;
+
         int codepage = CP_DEFAULT;
         BOOL print_via_unicode = FALSE;
 
@@ -744,21 +769,11 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 
 	    font = (XFontStruct *) (fontp->font);
             codepage = w32_codepage_for_font (fontp->name);
+
+            if ( font && !font->bdf )
             print_via_unicode = w32_use_unicode_for_codepage (codepage);
 
-            /* tmLastChar will only exceed 255 if TEXTMETRICW is used
-               (ie on NT but not on 95). In this case there is no harm
-               in being wrong, so have a go anyway.  */
-            baseline = 
-              (font->tm.tmLastChar > 255
-                 ? (line_height + font->tm.tmAscent - font->tm.tmDescent) / 2
-                 : f->output_data.w32->font_baseline - fontp->baseline_offset);
-            if (FONT_HEIGHT (font) <= line_height
-                && (font->tm.tmAscent > baseline
-                    || font->tm.tmDescent > line_height - baseline))
-              /* Adjust baseline for this font to show the whole
-                 glyphs in a line.  */
-              baseline = line_height - font->tm.tmDescent;
+            baseline = FONT_BASE (font) + fontp->baseline_offset;
 
 	    if (cmpcharp && cmpcharp->cmp_rule == NULL)
 	      {
@@ -808,19 +823,6 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 #endif
 		    }
 	      }
-            /* Japanese Kanji are a special case under w32, as they
-               must be printed in SJIS rather than EUC.  */
-            else if ((charset == charset_jisx0208)
-                     || (charset == charset_jisx0208_1978)
-                     || (charset == charset_id_internal ("japanese-jisx0212")))
-              {
-                int sjis1, sjis2;
-                for (cp = x_2byte_buffer; cp < x_2byte_buffer + len; cp++)
-                  {
-                    ENCODE_SJIS (BYTE1 (*cp), BYTE2 (*cp), sjis1, sjis2);
-                    *cp = BUILD_WCHAR_T (sjis1, sjis2);
-                  }
-              }
 	    else if (fontp->encoding[charset])
 	      {
 		int enc = fontp->encoding[charset];
@@ -831,6 +833,26 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 		if (enc == 1 || enc == 3)
 		  for (cp = x_2byte_buffer; cp < x_2byte_buffer + len; cp++)
 		    *cp = BUILD_WCHAR_T (BYTE1 (*cp), BYTE2 (*cp) | 0x80);
+                /* Special encoding for SJIS Kanji.  */
+                if (enc == 4)
+                  {
+                    if (CHARSET_DIMENSION (charset) == 2)
+                      {
+                        int sjis1, sjis2;
+                        for (cp = x_2byte_buffer;
+                             cp < x_2byte_buffer + len; cp++)
+                          {
+                            ENCODE_SJIS (BYTE1 (*cp), BYTE2 (*cp),
+                                         sjis1, sjis2);
+                            *cp = BUILD_WCHAR_T (sjis1, sjis2);
+                          }
+                      }
+                    else
+                      for (cp = x_2byte_buffer;
+                           cp < x_2byte_buffer + len; cp++)
+                        *cp = BUILD_WCHAR_T (BYTE1 (*cp),
+                                             BYTE2 (*cp) | 0x80);
+                  }
 	      }
 	  }
 	else
@@ -844,7 +866,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 		baseline = FONT_BASE (FRAME_FONT (f));
 		if (charset == charset_latin_iso8859_1)
 		  {
-		    if (font->tm.tmLastChar < 0x80)
+		    if (!font->bdf && font->tm.tmLastChar < 0x80)
 		      /* This font can't display Latin1 characters.  */
 		      font = NULL;
 		    else
@@ -911,11 +933,12 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 
 	if (font)
 	  require_clipping = (!NILP (Vclip_large_size_font)
-			      && (font->tm.tmAscent > baseline
-				  || font->tm.tmDescent >
-                                     line_height - baseline
-				  || (!cmpcharp
-				      && FONT_MAX_WIDTH (font) > glyph_width)));
+	     && ((font->bdf
+                  ? (font->bdf->ury > baseline
+                     || font->bdf->lly > line_height - baseline)
+                  : (font->tm.tmAscent > baseline
+                     || font->tm.tmDescent > line_height - baseline))
+                 || (!cmpcharp && FONT_MAX_WIDTH (font) > glyph_width)));
 
         if (font && (just_foreground || (cmpcharp && gidx > 0)))
           background_filled = 1;
@@ -923,6 +946,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
         /* Stippling not supported under w32.  */
 
         else if (!font
+                 || font->bdf
                  || FONT_HEIGHT (font) < line_height
                  || FONT_WIDTH (font) < glyph_width
                  || FONT_MAX_WIDTH (font) != FONT_WIDTH (font)
@@ -946,6 +970,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	SetBkMode (hdc, background_filled ? TRANSPARENT : OPAQUE);
 	SetTextColor (hdc, fg);
 	SetBkColor (hdc, bg);
+        SetTextAlign (hdc, TA_BASELINE | TA_LEFT);
 
         if ( print_via_unicode )
           n_chars = MultiByteToWideChar
@@ -954,19 +979,18 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 
 	if (font)
 	  {
+            if (font->hfont)
 	    SelectObject (hdc, font->hfont);
 
             if (!cmpcharp)
 	      {
-                int multibyte_pos_offset = 0;
+                int xoffset = 0, yoffset = baseline;
                 if (require_clipping || FONT_WIDTH (font) != glyph_width
                     || FONT_MAX_WIDTH (font) != FONT_WIDTH (font))
                   {
-                    RECT clip_rectangle;
-                    LPRECT clip_region = NULL;
-                    UINT fuOptions = 0;
-
-                    for (i = 0; i < n_chars; i++)
+                    /* The incrementing of i in this loop is done
+                       inside the W32_CHAROUT macro.  */
+                    for (i = 0; i < n_chars; )
                       {
                         if (require_clipping)
                           {
@@ -979,42 +1003,13 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
                             clip_rectangle.bottom = top + line_height;
                             clip_region = &clip_rectangle;
 			  }
-
-                        /* baseline works differently on w32 than X,
-                           leave it out for now.  */
-                        if (print_via_unicode)
-                          ExtTextOutW (hdc, left + glyph_width * i,
-                                       top /*+ baseline*/, fuOptions,
-                                       clip_region, x_2byte_buffer + i,
-                                       1, NULL);
-                        else if (CHARSET_DIMENSION (charset) > 1)
-			  {
-                            /* Keep character together */
-                            int n = CHARSET_DIMENSION (charset) ;
-                            ExtTextOut (hdc, left + multibyte_pos_offset,
-                                        top /*+ baseline*/, fuOptions,
-                                        clip_region, x_1byte_buffer + i,
-                                        n, NULL);
-                            /* fiddle i.  */
-                            i += n - 1;
-                            multibyte_pos_offset += glyph_width;
-                          }
-                        else
-                          ExtTextOut (hdc, left + glyph_width * i,
-                                      top /*+ baseline*/, fuOptions,
-                                      clip_region, x_1byte_buffer + i,
-                                      1, NULL);
+                        W32_TEXTOUT (i, 1);
                       }
 		  }
                 else
                   {
-                    /* Print the whole run of characters.  */
-                    if (print_via_unicode)
-                      TextOutW (hdc, left, top /*+ baseline*/,
-                                x_2byte_buffer, n_chars);
-                    else
-                      TextOut (hdc, left, top /*+ baseline*/,
-                               x_1byte_buffer, n_chars);
+                    i = 0;
+                    W32_TEXTOUT (i, n_chars);
                   }
               }
             else
@@ -1042,7 +1037,9 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 		    /* This is the first character.  Initialize variables.
 		       HIGHEST is the highest position of glyphs ever
 		       written, LOWEST the lowest position.  */
-		    int x_offset = 0;
+		    int xoffset = 0;
+                    int yoffset = baseline;
+                    int start = 0;
 
 		    if (default_ascent
 			&& CHAR_TABLE_P (Vuse_default_ascent)
@@ -1051,16 +1048,15 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 			highest = default_ascent;
 			lowest = 0;
 		      }
-		    else
+                    /* TODO: per char metrics for Truetype and BDF
+                       fonts.  */
 		      {
-                        /* Per char metrics not supported on w32 - use
-                           font's metrics.  */
-			highest = font->tm.tmAscent + 1;
-			lowest = - font->tm.tmDescent;
+                        highest = FONT_BASE (font) + 1;
+                        lowest = - (FONT_HEIGHT (font) - FONT_BASE (font));
 		      }
 
 		    if (cmpcharp->cmp_rule)
-		      x_offset = (int)(cmpcharp->col_offset[0]
+		      xoffset = (int)(cmpcharp->col_offset[0]
 				  * FONT_WIDTH (FRAME_FONT (f)));
 
                     i = 1;
@@ -1080,46 +1076,27 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
                       {
                         char_width = char_placement.abcA
                           + char_placement.abcB + char_placement.abcC;
-                        x_offset += FONT_WIDTH (font) - char_width;
+                        xoffset += FONT_WIDTH (font) - char_width;
                       }
                     /* Don't let characters go beyond the glyph
                        boundary whatever their over/underhangs. */
-                    if (x_offset > glyph_width - char_width)
-                      x_offset = glyph_width - char_width;
+                    if (xoffset > glyph_width - char_width)
+                      xoffset = glyph_width - char_width;
 
-                    if (x_offset < 0)
-                      x_offset = 0;
+                    if (xoffset < 0)
+                      xoffset = 0;
 
-		    /* Draw the first character at the normal position.  */
-                    if (print_via_unicode)
-                      ExtTextOutW (hdc, left + x_offset,
-                                   top /*+ baseline*/,
-                                   fuOptions, clip_region,
-                                   x_2byte_buffer, 1, NULL);
-                    else if (CHARSET_DIMENSION (charset) > 1)
-                      {
-                        /* Keep character together */
-                        int n = CHARSET_DIMENSION (charset) ;
-                        ExtTextOut (hdc, left + x_offset,
-                                    top /*+ baseline*/,
-                                    fuOptions, clip_region,
-                                    x_1byte_buffer, n, NULL);
-                        /* fiddle i.  */
-                        i += n - 1;
-                      }
-                    else
-                      ExtTextOut (hdc, left + x_offset,
-                                  top /*+ baseline*/,
-                                  fuOptions, clip_region,
-                                  x_1byte_buffer, 1, NULL);
+		    /* Draw the first character at the normal
+                       position.  */
+                    W32_TEXTOUT (start, 1);
                     gidx++;
                   }
                 else
                   i = 0;
 
-                for (; i < n_chars; i++, gidx++)
+                for (; i < n_chars; gidx++)
 		  {
-		    int x_offset = 0, y_offset = 0;
+		    int xoffset = 0, yoffset = FONT_BASE (font);
 
 		    if (relative_compose)
 		      {
@@ -1128,19 +1105,18 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 			    || NILP (Faref (Vignore_relative_composition,
 					    make_number (cmpcharp->glyph[gidx]))))
 			  {
-			    if (- font->tm.tmDescent >= relative_compose)
+			    if (- (FONT_HEIGHT (font) - FONT_BASE (font))
+                                >= relative_compose)
 			      {
 				/* Draw above the current glyphs.  */
-				y_offset = highest + font->tm.tmDescent;
-				highest += font->tm.tmAscent
-                                         + font->tm.tmDescent;
+				yoffset = highest + FONT_HEIGHT (font);
+				highest += FONT_HEIGHT (font);
 			      }
-			    else if (font->tm.tmAscent <= 0)
+			    else if (FONT_BASE (font) <= 0)
 			      {
 				/* Draw beneath the current glyphs.  */
-				y_offset = lowest - font->tm.tmAscent;
-				lowest -= font->tm.tmAscent
-                                        + font->tm.tmDescent;
+				yoffset = lowest;
+				lowest -= FONT_HEIGHT (font);
 			      }
 			  }
 			else
@@ -1148,10 +1124,12 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 			    /* Draw the glyph at normal position.  If
                                it sticks out of HIGHEST or LOWEST,
                                update them appropriately.  */
-			    if (font->tm.tmAscent > highest)
-			      highest = font->tm.tmAscent;
-			    else if (- font->tm.tmDescent < lowest)
-			      lowest = - font->tm.tmDescent;
+			    if (FONT_BASE (font) > highest)
+			      highest = FONT_BASE (font);
+			    else if (- (FONT_HEIGHT (font) - FONT_BASE (font))
+                                     < lowest)
+			      lowest = - (FONT_HEIGHT (font) -
+                                          FONT_BASE (font));
 			  }
 		      }
 		    else if (cmpcharp->cmp_rule)
@@ -1170,20 +1148,19 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 			bottom = ((gref == 0 ? highest : gref == 1 ? 0
 				   : gref == 2 ? lowest
 				   : (highest + lowest) / 2)
-				  - (nref == 0 ? font->tm.tmAscent
-                                               + font->tm.tmDescent
-				     : nref == 1 ? font->tm.tmDescent
+			  - (nref == 0 ? FONT_HEIGHT (font)
+			   : nref == 1 ? (FONT_HEIGHT (font) -
+                                          FONT_BASE (font))
                                      : nref == 2 ? 0
-				     : (font->tm.tmAscent +
-                                        font->tm.tmDescent) / 2));
-			top = bottom + (font->tm.tmAscent +
-                                        font->tm.tmDescent);
+                           : (FONT_HEIGHT (font) / 2)));
+			top = bottom + FONT_HEIGHT (font);
+
 			if (top > highest)
 			  highest = top;
 			if (bottom < lowest)
 			  lowest = bottom;
-			y_offset = bottom + font->tm.tmDescent;
-			x_offset = (int)(cmpcharp->col_offset[gidx]
+			yoffset = bottom + FONT_HEIGHT (font);
+			xoffset = (int)(cmpcharp->col_offset[gidx]
 				    * FONT_WIDTH (FRAME_FONT(f)));
 		      }
 
@@ -1202,37 +1179,17 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
                       {
                         char_width = char_placement.abcA
                           + char_placement.abcB + char_placement.abcC;
-                        x_offset += FONT_WIDTH (font) - char_width;
+                        xoffset += FONT_WIDTH (font) - char_width;
                       }
                     /* Don't let characters go beyond the glyph
                        boundary whatever their over/underhangs. */
-                    if (x_offset > glyph_width - char_width)
-                      x_offset = glyph_width - char_width;
+                    if (xoffset > glyph_width - char_width)
+                      xoffset = glyph_width - char_width;
 
-                    if (x_offset < 0)
-                      x_offset = 0;
+                    if (xoffset < 0)
+                      xoffset = 0;
 
-                    if (print_via_unicode)
-                      ExtTextOutW (hdc, left + x_offset,
-                                   top /*+ baseline - y_offset*/,
-                                   fuOptions, clip_region,
-                                   x_2byte_buffer + i, 1, NULL);
-                    else if (CHARSET_DIMENSION (charset) > 1)
-                      {
-                        /* Keep character together */
-                        int n = CHARSET_DIMENSION (charset) ;
-                        ExtTextOut (hdc, left + x_offset,
-                                    top /*+ baseline - y_offset*/,
-                                    fuOptions, clip_region,
-                                    x_1byte_buffer + i, n, NULL);
-                        /* fiddle i.  */
-                        i += n - 1;
-                      }
-                    else
-                      ExtTextOut (hdc, left + x_offset,
-                                  top /*+ baseline - y_offset*/,
-                                  fuOptions, clip_region,
-                                  x_1byte_buffer + i, 1, NULL);
+                    W32_TEXTOUT (i, 1);
 		  }
 	      }
 	  }
@@ -1266,8 +1223,10 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	     on the default font of this frame.  */
 	  int underline_position = 1;
 
-	  if (FRAME_FONT (f)->tm.tmDescent <= underline_position)
-	    underline_position = FRAME_FONT (f)->tm.tmDescent - 1;
+	  if (FONT_HEIGHT (FRAME_FONT (f)) - FONT_BASE(FRAME_FONT (f))
+              <= underline_position)
+	    underline_position = (FONT_HEIGHT (FRAME_FONT (f)) -
+                                  FONT_BASE(FRAME_FONT (f))) - 1;
 
 	  if (face->underline)
 	    w32_fill_area (f, hdc, fg, left,
@@ -4178,7 +4137,7 @@ x_new_font (f, fontname)
 
   FRAME_FONT (f) = (XFontStruct *) (fontp->font);
   f->output_data.w32->font_baseline
-    = FRAME_FONT(f)->tm.tmAscent + fontp->baseline_offset;
+    = FONT_BASE (FRAME_FONT (f)) + fontp->baseline_offset;
   FRAME_FONTSET (f) = -1;
 
   /* Compute the scroll bar width in character columns.  */
@@ -5155,7 +5114,6 @@ NT uses Unicode internally anyway, so this flag will probably have no\n\
 affect on NT machines.");
   w32_enable_unicode_output = 1;
 
-  /* w32-charset-to-codepage-alist is initialized in w32-win.el.  */
   DEFVAR_LISP ("w32-charset-to-codepage-alist",
                &Vw32_charset_to_codepage_alist,
                "Alist linking character sets to Windows Codepages.");
@@ -5169,11 +5127,10 @@ affect on NT machines.");
                   build_string ("big5"), codepage);
   XSETFASTINT (codepage, 949);
   store_in_alist (&Vw32_charset_to_codepage_alist,
-                  build_string ("ksc5601"), codepage);
-  XSETFASTINT (codepage, 932);
-  /* SJIS only contains a subset of JISX0212, but list it anyway.  */
+                  build_string ("ksc5601.1987"), codepage);
+  XSETFASTINT (codepage, 1361);
   store_in_alist (&Vw32_charset_to_codepage_alist,
-                  build_string ("jisx0212-sjis"), codepage);
+                  build_string ("ksc5601.1992"), codepage);
   XSETFASTINT (codepage, 932);
   store_in_alist (&Vw32_charset_to_codepage_alist,
                   build_string ("jisx0208-sjis"), codepage);
