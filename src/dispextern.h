@@ -1903,6 +1903,9 @@ struct image
   /* Reference to the type of the image.  */
   struct image_type *type;
 
+  /* 1 means that loading the image failed.  Don't try again.  */
+  unsigned load_failed_p;
+
   /* A place for image types to store additional data.  The member
      data.lisp_val is marked during GC, so it's safe to store Lisp data
      there.  Image types should free this data when their `free'
