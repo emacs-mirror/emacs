@@ -1874,7 +1874,7 @@ Use \\[dired-unmark-all-files] to remove all marks
 and \\[dired-unmark] on a subdir to remove the marks in
 this subdir."
   (interactive "P")
-  (if (and (cdr dired-subdir-alist) (dired-get-subdir))
+  (if (dired-get-subdir)
       (save-excursion (dired-mark-subdir-files))
     (let (buffer-read-only)
       (dired-repeat-over-lines
