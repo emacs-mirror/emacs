@@ -931,13 +931,19 @@ amount of text shown any more (only a crude approximation of it).
 
 ---
 ** The pop up menus for Lucid now stay up if you do a fast click and can
-be navigated with the arrow keys (like Gtk+ and W32).
+be navigated with the arrow keys (like Gtk+, Mac and W32).
 
 ---
-** Dialogs for Lucid/Athena and Lesstif/Motif pops down when pressing ESC.
+** Dialogs for Lucid/Athena and Lesstif/Motif now pops down when pressing
+ESC, like they do for Gtk+, Mac and W32.
+
+---
+** The menu item "Open File..." has been split into two items, "New File..."
+and "Open File...".  "Open File..." now opens only existing files.  This is
+to support existing GUI file selection dialogs better.
 
 +++
-** The file selection dialog for Gtk+, W32 and Motif/Lesstif can be
+** The file selection dialog for Gtk+, Mac, W32 and Motif/Lesstif can be
 disabled by customizing the variable `use-file-dialog'.
 
 +++
