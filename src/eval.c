@@ -32,17 +32,17 @@ Boston, MA 02111-1307, USA.  */
 /* Putting it in lisp.h makes cc bomb out! */
 
 struct backtrace
-  {
-    struct backtrace *next;
-    Lisp_Object *function;
-    Lisp_Object *args;	/* Points to vector of args. */
-    int nargs;		/* Length of vector.
+{
+  struct backtrace *next;
+  Lisp_Object *function;
+  Lisp_Object *args;	/* Points to vector of args. */
+  int nargs;		/* Length of vector.
 			   If nargs is UNEVALLED, args points to slot holding
 			   list of unevalled args */
-    char evalargs;
-    /* Nonzero means call value of debugger when done with this operation. */
-    char debug_on_exit;
-  };
+  char evalargs;
+  /* Nonzero means call value of debugger when done with this operation. */
+  char debug_on_exit;
+};
 
 struct backtrace *backtrace_list;
 
@@ -64,20 +64,21 @@ struct backtrace *backtrace_list;
 
    All the other members are concerned with restoring the interpreter
    state.  */
+
 struct catchtag
-  {
-    Lisp_Object tag;
-    Lisp_Object val;
-    struct catchtag *next;
-    struct gcpro *gcpro;
-    jmp_buf jmp;
-    struct backtrace *backlist;
-    struct handler *handlerlist;
-    int lisp_eval_depth;
-    int pdlcount;
-    int poll_suppress_count;
-    struct byte_stack *byte_stack;
-  };
+{
+  Lisp_Object tag;
+  Lisp_Object val;
+  struct catchtag *next;
+  struct gcpro *gcpro;
+  jmp_buf jmp;
+  struct backtrace *backlist;
+  struct handler *handlerlist;
+  int lisp_eval_depth;
+  int pdlcount;
+  int poll_suppress_count;
+  struct byte_stack *byte_stack;
+};
 
 struct catchtag *catchlist;
 
@@ -95,6 +96,7 @@ Lisp_Object Qdebug_on_error;
 /* This holds either the symbol `run-hooks' or nil.
    It is nil at an early stage of startup, and when Emacs
    is shutting down.  */
+
 Lisp_Object Vrun_hooks;
 
 /* Non-nil means record all fset's and provide's, to be undone
@@ -105,24 +107,31 @@ Lisp_Object Vrun_hooks;
 Lisp_Object Vautoload_queue;
 
 /* Current number of specbindings allocated in specpdl.  */
+
 int specpdl_size;
 
 /* Pointer to beginning of specpdl.  */
+
 struct specbinding *specpdl;
 
 /* Pointer to first unused element in specpdl.  */
+
 struct specbinding *specpdl_ptr;
 
 /* Maximum size allowed for specpdl allocation */
+
 int max_specpdl_size;
 
 /* Depth in Lisp evaluations and function calls.  */
+
 int lisp_eval_depth;
 
 /* Maximum allowed depth in Lisp evaluations and function calls.  */
+
 int max_lisp_eval_depth;
 
 /* Nonzero means enter debugger before next function call */
+
 int debug_on_next_call;
 
 /* Non-zero means debuffer may continue.  This is zero when the
@@ -133,24 +142,30 @@ int debugger_may_continue;
 
 /* List of conditions (non-nil atom means all) which cause a backtrace
    if an error is handled by the command loop's error handler.  */
+
 Lisp_Object Vstack_trace_on_error;
 
 /* List of conditions (non-nil atom means all) which enter the debugger
    if an error is handled by the command loop's error handler.  */
+
 Lisp_Object Vdebug_on_error;
 
 /* List of conditions and regexps specifying error messages which
    do not enter the debugger even if Vdebug_on_errors says they should.  */
+
 Lisp_Object Vdebug_ignored_errors;
 
 /* Non-nil means call the debugger even if the error will be handled.  */
+
 Lisp_Object Vdebug_on_signal;
 
 /* Hook for edebug to use.  */
+
 Lisp_Object Vsignal_hook_function;
 
 /* Nonzero means enter debugger if a quit signal
    is handled by the command loop's error handler. */
+
 int debug_on_quit;
 
 /* The value of num_nonmacro_input_events as of the last time we
@@ -159,6 +174,7 @@ int debug_on_quit;
    know that the debugger itself has an error, and we should just
    signal the error instead of entering an infinite loop of debugger
    invocations.  */
+
 int when_entered_debugger;
 
 Lisp_Object Vdebugger;
@@ -167,6 +183,12 @@ Lisp_Object Vdebugger;
    Fsignal.  */
 
 Lisp_Object Vsignaling_function;
+
+/* Set to non-zero while processing X events.  Checked in Feval to
+   make sure the Lisp interpreter isn't called from a signal handler,
+   which is unsafe because the interpreter isn't reentrant.  */
+
+int handling_signal;
 
 void specbind (), record_unwind_protect ();
 
@@ -1769,6 +1791,7 @@ do_autoload (fundef, funname)
 	   XSYMBOL (funname)->name->data);
   UNGCPRO;
 }
+
 
 DEFUN ("eval", Feval, Seval, 1, 1, 0,
   "Evaluate FORM and return its value.")
@@ -1780,14 +1803,8 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
   struct backtrace backtrace;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
-#if 0 /* Can't do this check anymore because realize_basic_faces has
-	 to BLOCK_INPUT, and can call Lisp.  What's really needed is a
-	 flag indicating that we're currently handling a signal.  */
-  /* Since Fsignal resets this to 0, it had better be 0 now
-     or else we have a potential bug.  */
-  if (interrupt_input_blocked != 0)
+  if (handling_signal)
     abort ();
-#endif
   
   if (SYMBOLP (form))
     {
