@@ -504,7 +504,7 @@ In the latter case, ITEM is normally added at the end of the submenu.
 However, if BEFORE is a string and there is an item in the submenu
 with that name, then ITEM is added before that item.
 
-MAP should normally be a keymap; nil stands for the global menu-bar keymap.
+MAP should normally be a keymap; nil stands for the local menu-bar keymap.
 It can also be a symbol, which has earlier been used as the first
 argument in a call to `easy-menu-define', or the value of such a symbol.
 
