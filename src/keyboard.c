@@ -2354,6 +2354,8 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
 	{
 	  window = Qnil;
 	  posn = Qnil;
+	  XFASTINT (x) = 0;
+	  XFASTINT (y) = 0;
 	}
 
       return Fcons (Qmouse_movement,
