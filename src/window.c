@@ -359,7 +359,7 @@ and BOTTOM is one more than the bottommost row used by WINDOW\n\
   register struct window *w = decode_window (window);
 
   return Fcons (w->left, Fcons (w->top,
-           Fcons (make_number (XFASTINT (w->left) + XFASTINT (w->width)),
+           Fcons (make_number (WINDOW_RIGHT_EDGE (w)),
 		  Fcons (make_number (XFASTINT (w->top)
 				      + XFASTINT (w->height)),
 			 Qnil))));
@@ -380,25 +380,28 @@ coordinates_in_window (w, x, y)
      register int *x, *y;
 {
   register int left = XINT (w->left);
-  register int width = XINT (w->width);
+  register int right_edge = WINDOW_RIGHT_EDGE (w);
+  register int left_margin = WINDOW_LEFT_MARGIN (w);
+  register int right_margin = WINDOW_RIGHT_MARGIN (w);
   register int window_height = XINT (w->height);
   register int top = XFASTINT (w->top);
-
-  if (   *x < left || *x >= left + width
+  
+  if (   *x < left || *x >= right_edge
       || *y < top  || *y >= top  + window_height)
     return 0;
 
+  if (left_margin != left && *x < left_margin && *x >= left)
+    return 3;
+  
+  if (right_margin != right_edge && *x >= right_margin && *x < right_edge)
+    return 3;
+  
   /* Is the character is the mode line?  */
   if (*y == top + window_height - 1
       && ! MINI_WINDOW_P (w))
     return 2;
 
-  /* Is the character in the right border?  */
-  if (*x == left + width - 1
-      && left + width != FRAME_WIDTH (XFRAME (w->frame)))
-    return 3;
-
-  *x -= left;
+  *x -= WINDOW_LEFT_MARGIN (w);
   *y -= top;
   return 1;
 }
@@ -1322,8 +1325,7 @@ window_loop (type, obj, mini, frames)
 
 	  case GET_LRU_WINDOW:
 	    /* t as arg means consider only full-width windows */
-	    if (!NILP (obj) && XFASTINT (XWINDOW (w)->width)
-		!= FRAME_WIDTH (XFRAME (WINDOW_FRAME (XWINDOW (w)))))
+	    if (!NILP (obj) && !WINDOW_FULL_WIDTH_P (XWINDOW (w)))
 	      break;
 	    /* Ignore dedicated windows and minibuffers.  */
 	    if (MINI_WINDOW_P (XWINDOW (w))
@@ -2134,8 +2136,7 @@ buffer names are handled.")
       if (!NILP (window)
 	  && ! FRAME_NO_SPLIT_P (XFRAME (XWINDOW (window)->frame))
 	  && window_height (window) >= split_height_threshold
-	  && (XFASTINT (XWINDOW (window)->width)
-	      == FRAME_WIDTH (XFRAME (WINDOW_FRAME (XWINDOW (window))))))
+	  && WINDOW_FULL_WIDTH_P (XWINDOW (window)))
 	window = Fsplit_window (window, Qnil, Qnil);
       else
 	{
@@ -2593,16 +2594,7 @@ window_internal_width (w)
      struct window *w;
 {
   FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
-  int left = XINT (w->left);
   int width = XINT (w->width);
-
-  /* If this window is flush against the right edge of the frame, its
-     internal width is its full width.  */
-  if (left + width >= FRAME_WIDTH (f))
-    return width;
-
-  /* If we are not flush right, then our rightmost columns are
-     occupied by some sort of separator.  */
 
   /* Scroll bars occupy a few columns.  */
   if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
@@ -2610,7 +2602,10 @@ window_internal_width (w)
 
   /* The column of `|' characters separating side-by-side windows
      occupies one column only.  */
-  return width - 1;
+  if (!WINDOW_RIGHTMOST_P (w) && !WINDOW_FULL_WIDTH_P (w))
+    return width - 1;
+
+  return width;
 }
 
 
