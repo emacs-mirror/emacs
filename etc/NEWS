@@ -88,12 +88,18 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
-** M-x compile has been completely overhauled
+** M-x compile has become more robust and reliable
 
-It now uses font-lock for turning compiler output into hypertext.  Quite a few
-more kinds of messages are recognized.  Messages that are recognized as
-warnings or informational come in orange or green, instead of red.
-Informational messages are by default skipped with `next-error'.
+Quite a few more kinds of messages are recognized.  Messages that are
+recognized as warnings or informational come in orange or green, instead of
+red.  Informational messages are by default skipped with `next-error'
+(controlled by `compilation-skip-threshold').
+
+The variable `compilation-error-regexp-alist' has now become customizable.  If
+you had added your own regexps to this, you'll probably need to include a
+leading `^', otherwise they'll match anywhere on a line.  There is now also a
+`compilation-mode-font-lock-keywords' and it nicely handles all the checks
+that configure outputs and -o options so you see at a glance where you are.
 
 The new file etc/compilation.txt gives examples of each type of message.
 
