@@ -1,3 +1,8 @@
+2000-05-25  Ken Raeburn  <raeburn@gnu.org>
+
+	* emacs.c (main): Initialize keyboard syms before initializing
+	window code, so face names are available.
+
 2000-05-25  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* regex.c (at_begline_loc_p): Also recognize the \\(?:^ case

@@ -1100,6 +1100,11 @@ main (argc, argv, envp)
 	 faces, and the face implementation uses some symbols as
 	 face names.  */
       syms_of_xfaces ();
+      /* Call syms_of_keyboard before init_window_once because
+	 keyboard sets up symbols that include some face names that
+	 the X support will want to use.  This can happen when
+	 CANNOT_DUMP is defined.  */
+      syms_of_keyboard ();
 
       init_window_once ();	/* Init the window system */
       init_fileio_once ();	/* Must precede any path manipulation.  */
@@ -1331,7 +1336,6 @@ main (argc, argv, envp)
 #endif /* CLASH_DETECTION */
       syms_of_indent ();
       syms_of_insdel ();
-      syms_of_keyboard ();
       syms_of_keymap ();
       syms_of_macros ();
       syms_of_marker ();
