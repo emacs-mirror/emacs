@@ -1149,8 +1149,16 @@ a non-nil `permanent-local' property are not eliminated by this function.")
 	     Set it up for the current buffer with the default value.  */
 
 	  tem = XCONS (XCONS (XSYMBOL (sym)->value)->cdr)->cdr;
+	  /* Store the symbol's current value into the alist entry
+	     it is currently set up for.  This is so that, if the
+	     local is marked permanent, and we make it local again below,
+	     we don't lose the value.  */
+	  XCONS (XCONS (tem)->car)->cdr = XCONS (XSYMBOL (sym)->value)->car;
+	  /* Switch to the symbol's default-value alist entry.  */
 	  XCONS (tem)->car = tem;
+	  /* Mark it as current for the current buffer.  */
 	  XCONS (XCONS (XSYMBOL (sym)->value)->cdr)->car = Fcurrent_buffer ();
+	  /* Store the current value into any forwarding in the symbol.  */
 	  store_symval_forwarding (sym, XCONS (XSYMBOL (sym)->value)->car,
 				   XCONS (tem)->cdr);
 	}
