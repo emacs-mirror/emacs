@@ -159,6 +159,8 @@ checker program Ispell, which is not part of Emacs.
 @table @kbd
 @item M-x flyspell-mode
 Enable Flyspell mode, which highlights all misspelled words.
+@item M-x flyspell-progmode
+Enable Flyspell mode for comments and strings only.
 @item M-$
 Check and correct spelling of the word at point (@code{ispell-word}).
 @item M-@key{TAB}
@@ -192,6 +194,12 @@ flyspell-mode} to enable or disable this mode in the current buffer.
 it with @kbd{Mouse-2} to display a menu of possible corrections and
 actions.  You can also correct the word by editing it manually in any
 way you like.
+
+@findex flyspell-prog-mode
+Flyspell Prog mode works just like ordinary Flyspell mode, except that
+it only checks words in comments and string constants.  This feature
+is useful for editing programs.  Type @kbd{M-x flyspell-prog-mode} to
+enable or disable this mode in the current buffer.
 
   The other Emacs spell-checking features check or look up words when
 you give an explicit command to do so.  Checking all or part of the
