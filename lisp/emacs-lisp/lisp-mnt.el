@@ -549,7 +549,7 @@ Prompts for bug subject TOPIC.  Leaves you in a mail buffer."
     (mail nil
 	  (if addr
 	      (concat (car addr) " <" (cdr addr) ">")
-	    bug-gnu-emacs)
+	    report-emacs-bug-address)
 	  topic)
     (goto-char (point-max))
     (insert "\nIn "
