@@ -7,7 +7,7 @@
 ;;; Maintainer: friedman@prep.ai.mit.edu
 ;;; Keywords: minibuffer, window, frame, display
 ;;; Status: Known to work in FSF GNU Emacs 19.26 and later.
-;;; $Id: rsz-mini.el,v 1.5 1994/06/30 06:46:44 friedman Exp rms $
+;;; $Id: rsz-mini.el,v 1.6 1994/07/12 19:51:30 rms Exp friedman $
 
 ;; This file is part of GNU Emacs.
 
@@ -142,25 +142,36 @@ counterparts."
     (cond
      ((and window-system
            (eq 'only (cdr (assq 'minibuffer (frame-parameters)))))
+      ;; Checking for resize-minibuffer-frame is done outside the cond
+      ;; predicate because that should always be t if this is a minibuffer
+      ;; frame; it just shouldn't do anything if this flag is nil.
       (and resize-minibuffer-frame
            (progn
-             ;; Squirrel away the current height of the frame so we can
-             ;; restore it later.  We do this rather than trusting the
-             ;; value in minibuffer-frame-alist since the frame can be
-             ;; resized by the window manager and that variable isn't updated.
+             ;; Can't trust the height stored in minibuffer-frame-alist
+             ;; since the frame can be resized by the window manager and
+             ;; that variable isn't updated.
              (make-local-variable 'resize-minibuffer-frame-original-height)
              (setq resize-minibuffer-frame-original-height (frame-height))
-             (make-local-variable 'minibuffer-exit-hook)
-             (add-hook 'minibuffer-exit-hook 'resize-minibuffer-frame-restore)
+
              (make-local-variable 'post-command-hook)
 	     ;; Copy this because add-hook modifies the list structure.
 	     (setq post-command-hook (copy-sequence post-command-hook))
-             (add-hook 'post-command-hook 'resize-minibuffer-frame 'append))))
+             (add-hook 'post-command-hook 'resize-minibuffer-frame 'append)
+
+             (make-local-variable 'minibuffer-exit-hook)
+             (add-hook 'minibuffer-exit-hook 'resize-minibuffer-frame-restore)
+
+             (resize-minibuffer-frame))))
      (t
       (make-local-variable 'post-command-hook)
+      ;; Copy this because add-hook modifies the list structure.
+      (setq post-command-hook (copy-sequence post-command-hook))
       (add-hook 'post-command-hook 'resize-minibuffer-window 'append)
+
       (make-local-variable 'minibuffer-exit-hook)
-      (add-hook 'minibuffer-exit-hook 'resize-minibuffer-window-restore))))))
+      (add-hook 'minibuffer-exit-hook 'resize-minibuffer-window-restore)
+
+      (resize-minibuffer-window))))))
 
 (defun resize-minibuffer-count-window-lines (&optional start end)
   "Return number of window lines occupied by text in region.
