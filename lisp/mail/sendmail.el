@@ -623,7 +623,8 @@ the user from the mailer."
 	 (if (local-variable-p 'buffer-file-coding-system)
 	     buffer-file-coding-system
 	   (or sendmail-coding-system
-	       default-buffer-file-coding-system))))
+	       default-buffer-file-coding-system
+	       'iso-latin-1))))
     (unwind-protect
 	(save-excursion
 	  (set-buffer tembuf)
