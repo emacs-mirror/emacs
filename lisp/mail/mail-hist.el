@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1994 Free Software Foundation, Inc.
 
-;; Author: Karl Fogel <kfogel@cs.oberlin.edu>
+;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Created: March, 1994
 ;; Keywords: mail, history
 
@@ -228,22 +228,18 @@ This function normally would be called when the message is sent."
      (let ((body-contents
 	    (buffer-substring (mail-text-start) (point-max))))
        (mail-hist-add-header-contents-to-ring "body" body-contents)))))
-
-(defun mail-hist-previous-input (header)
-  "Insert the previous contents of this mail header or message body.
-Moves back through the history of sent mail messages.  Each header has
-its own independent history, as does the body of the message.
 
-The history only contains the contents of outgoing messages, not
-received mail."
-  (interactive (list (or (mail-hist-current-header-name) "body")))
+
+
+(defun mail-hist-retrieve-and-insert (header access-func)
+  "Helper for `mail-hist-previous-input' and `mail-hist-next-input'."
   (setq header (downcase header))
   (let* ((ring (cdr (assoc header mail-hist-header-ring-alist)))
          (len (ring-length ring))
          (repeat (eq last-command 'mail-hist-input-access)))
     (if repeat
         (setq mail-hist-access-count
-              (ring-plus1 mail-hist-access-count len))
+              (funcall access-func mail-hist-access-count len))
       (setq mail-hist-access-count 0))
     (if (null ring)
         (progn
@@ -257,7 +253,29 @@ received mail."
         (let ((start (point)))
           (insert (ring-ref ring mail-hist-access-count))
           (setq mail-hist-last-bounds (cons start (point)))
-          (setq this-command 'mail-hist-input-access))))))
+          (setq this-command 'mail-hist-input-access)
+          ;; Special case: when flipping through message bodies, it's
+          ;; usually most useful for point to stay at the top.  This
+          ;; is because the unique part of a message in a thread is
+          ;; more likely to be at the top than the bottom, as the
+          ;; bottom is often just the same quoted history for every
+          ;; message in the thread, differing only in indentation
+          ;; level.
+          (if (string-equal header "body") 
+              (goto-char start)))
+        ))))
+
+
+(defun mail-hist-previous-input (header)
+  "Insert the previous contents of this mail header or message body.
+Moves back through the history of sent mail messages.  Each header has
+its own independent history, as does the body of the message.
+
+The history only contains the contents of outgoing messages, not
+received mail."
+  (interactive (list (or (mail-hist-current-header-name) "body")))
+  (mail-hist-retrieve-and-insert header 'ring-plus1))
+
 
 (defun mail-hist-next-input (header)
   "Insert next contents of this mail header or message body.
@@ -271,27 +289,8 @@ without having called `mail-hist-previous-header' first
 The history only contains the contents of outgoing messages, not
 received mail."
   (interactive (list (or (mail-hist-current-header-name) "body")))
-  (setq header (downcase header))
-  (let* ((ring (cdr (assoc header mail-hist-header-ring-alist)))
-         (len (ring-length ring))
-         (repeat (eq last-command 'mail-hist-input-access)))
-    (if repeat
-        (setq mail-hist-access-count
-              (ring-minus1 mail-hist-access-count len))
-      (setq mail-hist-access-count 0))
-    (if (null ring)
-        (progn
-          (ding)
-          (message "No history for \"%s\"." header))
-      (if (ring-empty-p ring)
-          (error "\"%s\" ring is empty." header)
-        (and repeat
-             (delete-region (car mail-hist-last-bounds)
-                            (cdr mail-hist-last-bounds)))
-        (let ((start (point)))
-          (insert (ring-ref ring mail-hist-access-count))
-          (setq mail-hist-last-bounds (cons start (point)))
-          (setq this-command 'mail-hist-input-access))))))
+  (mail-hist-retrieve-and-insert header 'ring-minus1))
+
 
 (provide 'mail-hist)
 
