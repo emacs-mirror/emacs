@@ -558,8 +558,8 @@ static int
 same_size_fonts (font1, font2)
      XFontStruct *font1, *font2;
 {
-  XCharStruct *bounds1 = font1->min_bounds;
-  XCharStruct *bounds2 = font2->min_bounds;
+  XCharStruct *bounds1 = &font1->min_bounds;
+  XCharStruct *bounds2 = &font2->min_bounds;
 
   return (bounds1->width == bounds2->width
 	  && bounds1->ascent == bounds2->ascent
