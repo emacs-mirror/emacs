@@ -12960,16 +12960,6 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 	          bufp->code = KeyTranslate (kchr_ptr, new_keycode,
 					     &some_state) & 0xff;
 	        }
-#if USE_CARBON_EVENTS
-	      else if (er.modifiers & cmdKey &&
-		       (NILP (Vmac_command_key_is_meta)))
-		{
-		  /* If this is a command key (and we are not overriding it),
-		     send back to the operating system  */
-		  SendEventToEventTarget (eventRef, GetEventDispatcherTarget ());
-		  break;
-		}
-#endif
 	      else
 	        bufp->code = er.message & charCodeMask;
 	      bufp->kind = ASCII_KEYSTROKE_EVENT;
