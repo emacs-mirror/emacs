@@ -216,10 +216,6 @@ Several are for Debian GNU/Linux in particular.
    writing UTF-8 encoded Unicode.  This does more than the built-in
    utf-8 coding system.
 
-   An alternative system for using UTF-8 is at
-   <URL:http://www.cs.uu.nl/%7Eotfried/Mule/>.  This includes an
-   external program for (partial) inter-conversion of UTF-8.
-
  * Mailcrypt:
    <URL:http://www.pobox.com/%7Elbudney/linux/software/mailcrypt.html>
    PGP and GPG support.  PGP isn't free software, but GPG, the GNU

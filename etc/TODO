@@ -149,7 +149,9 @@
 * Add horizontal scroll bars.
 
 * Integrate Vroonhof's Custom themes code and make it do useful
-  things.
+  things.  [The integration is partly done.]
 
 * Provide an optional feature which computes a scroll bar slider's
   size and its position from lines instead of characters.
+
+* Adapt the gnuserv/gnudoit features for server/emacsclient.
