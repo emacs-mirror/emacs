@@ -406,6 +406,13 @@ static char *noname[] = {
 
 (defun gamegrid-add-score (file score)
   "Add the current score to the high score file."
+  (case system-type
+    ((ms-dos windows-nt)
+     (gamegrid-add-score-insecure file score))
+    (t
+     (gamegrid-add-score-with-update-game-score file score))))
+
+(defun gamegrid-add-score-with-update-game-score (file score)
   (let ((result nil)
 	(errbuf (generate-new-buffer " *update-game-score loss*"))
 	(target (if game-score-directory
@@ -445,6 +452,28 @@ static char *noname[] = {
     (save-excursion
       (find-file-read-only-other-window target))))
 	
+(defun gamegrid-add-score-insecure (file score)
+  (save-excursion
+    (setq file (expand-file-name file temporary-file-directory))
+    (find-file-other-window file)
+    (setq buffer-read-only nil)
+    (goto-char (point-max))
+    (insert (format "%05d\t%s\t%s <%s>\n"
+		    score
+		    (current-time-string)
+		    (user-full-name)
+		    (cond ((fboundp 'user-mail-address)
+			   (user-mail-address))
+			  ((boundp 'user-mail-address)
+			   user-mail-address)
+			  (t ""))))
+    (sort-numeric-fields 1 (point-min) (point-max))
+    (reverse-region (point-min) (point-max))
+    (goto-line (1+ gamegrid-score-file-length))
+    (delete-region (point) (point-max))
+    (setq buffer-read-only t)
+    (save-buffer)))
+
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
