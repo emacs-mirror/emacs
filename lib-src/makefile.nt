@@ -72,6 +72,7 @@ ETAGSOBJ      = $(BLD)\etags.obj \
 		$(BLD)\regex.obj \
 		$(BLD)\alloca.obj
 
+
 $(BLD)\etags.exe: 	$(ETAGSOBJ)
 		$(LINK) -out:$@ $(LINK_FLAGS) $(ETAGSOBJ) $(LIBS)
 
@@ -80,13 +81,16 @@ $(BLD)\regex.obj: ../src/regex.c ../src/regex.h ../src/config.h
 		$(CC)  $(CFLAGS) -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER \
 		../src/regex.c -Fo$@
 
+ETAGS_CFLAGS  = -DETAGS_REGEXPS
 $(BLD)\etags.obj: etags.c
-		$(CC) $(CFLAGS) -DETAGS_REGEXPS -Fo$@ etags.c
+		$(CC) $(CFLAGS) $(ETAGS_CFLAGS) -Fo$@ etags.c
 
 CTAGSOBJ      = $(BLD)\ctags.obj \
 		$(BLD)\getopt.obj \
 		$(BLD)\getopt1.obj \
-		$(BLD)\ntlib.obj
+		$(BLD)\ntlib.obj \
+		$(BLD)\regex.obj \
+		$(BLD)\alloca.obj
 
 $(BLD)\ctags.exe:           ctags.c $(CTAGSOBJ)
 		$(LINK) -out:$@ $(LINK_FLAGS) $(CTAGSOBJ) $(LIBS)
@@ -95,8 +99,9 @@ ctags.c:	etags.c
 		- $(DEL) ctags.c
 		copy etags.c ctags.c
 
+CTAGS_CFLAGS  = -DCTAGS $(ETAGS_CFLAGS)
 $(BLD)\ctags.obj: ctags.c
-	$(CC) $(CFLAGS) -DCTAGS -Fo$@ ctags.c
+		$(CC) $(CFLAGS) $(CTAGS_CFLAGS) -Fo$@ ctags.c
 
 #
 # don't know what to do with these yet...
