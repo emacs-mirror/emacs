@@ -1,3 +1,7 @@
+2005-02-12  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (expose_window): Don't fix overlaps for mode lines.
+
 2005-02-10  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (try_window_id): Set first_unchanged_at_end_row to NULL
