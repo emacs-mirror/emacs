@@ -84,7 +84,7 @@ only if necessary.  It leaves point at end of indentation."
   (back-to-indentation)
   (let ((cur-col (current-column)))
     (cond ((< cur-col column)
-	   (if (> (- column (* (/ cur-col tab-width) tab-width)) tab-width)
+	   (if (>= (- column (* (/ cur-col tab-width) tab-width)) tab-width)
 	       (delete-region (point)
 			      (progn (skip-chars-backward " ") (point))))
 	   (indent-to column))
