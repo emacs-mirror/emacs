@@ -85,6 +85,7 @@ Lisp_Object Qunsplittable;
 Lisp_Object Qmenu_bar_lines;
 Lisp_Object Qwidth;
 Lisp_Object Qx;
+Lisp_Object Qvisible;
 
 extern Lisp_Object Vminibuffer_list;
 extern Lisp_Object get_minibuffer ();
@@ -469,7 +470,9 @@ DEFUN ("frame-list", Fframe_list, Sframe_list,
    If MINIBUF is nil, exclude minibuffer-only frames.
    If MINIBUF is a window, include only frames using that window for
    their minibuffer.
-   If MINIBUF is non-nil, and not a window, include all frames.  */
+   If MINIBUF is `visible', include all visible frames.
+   Otherwise, include all frames.  */
+
 Lisp_Object
 next_frame (frame, minibuf)
      Lisp_Object frame;
@@ -506,7 +509,13 @@ next_frame (frame, minibuf)
 		if (! FRAME_MINIBUF_ONLY_P (XFRAME (f)))
 		  return f;
 	      }
-	    else if (XTYPE (minibuf) == Lisp_Window)
+	    else if (EQ (minibuf, Qvisible))
+	      {
+		FRAME_SAMPLE_VISIBILITY (XFRAME (f));
+		if (FRAME_VISIBLE_P (XFRAME (f)))
+		  return f;
+	      }
+	    else if (WINDOWP (minibuf))
 	      {
 		if (EQ (FRAME_MINIBUF_WINDOW (XFRAME (f)), minibuf))
 		  return f;
@@ -524,7 +533,9 @@ next_frame (frame, minibuf)
    If MINIBUF is nil, exclude minibuffer-only frames.
    If MINIBUF is a window, include only frames using that window for
    their minibuffer.
-   If MINIBUF is non-nil and not a window, include all frames.  */
+   If MINIBUF is `visible', include all visible frames.
+   Otherwise, include all frames.  */
+
 Lisp_Object
 prev_frame (frame, minibuf)
      Lisp_Object frame;
@@ -560,6 +571,12 @@ prev_frame (frame, minibuf)
 	  if (EQ (FRAME_MINIBUF_WINDOW (XFRAME (f)), minibuf))
 	    prev = f;
 	}
+      else if (EQ (minibuf, Qvisible))
+	{
+	  FRAME_SAMPLE_VISIBILITY (XFRAME (f));
+	  if (FRAME_VISIBLE_P (XFRAME (f)))
+	    prev = f;
+	}
       else
 	prev = f;
     }
@@ -584,7 +601,8 @@ If omitted, FRAME defaults to the selected frame.\n\
 If optional argument MINIFRAME is nil, exclude minibuffer-only frames.\n\
 If MINIFRAME is a window, include only frames using that window for their\n\
 minibuffer.\n\
-If MINIFRAME is non-nil and not a window, include all frames.")
+If MINIFRAME is `visible', include all visible frames.\n\
+Otherwise, include all frames.")
   (frame, miniframe)
      Lisp_Object frame, miniframe;
 {
@@ -605,7 +623,8 @@ If omitted, FRAME defaults to the selected frame.\n\
 If optional argument MINIFRAME is nil, exclude minibuffer-only frames.\n\
 If MINIFRAME is a window, include only frames using that window for their\n\
 minibuffer.\n\
-If MINIFRAME is non-nil and not a window, include all frames.")
+If MINIFRAME is `visible', include all visible frames.\n\
+Otherwise, include all frames.")
   (frame, miniframe)
      Lisp_Object frame, miniframe;
 {
@@ -1505,12 +1524,14 @@ syms_of_frame ()
   staticpro (&Qonly);
   Qunsplittable = intern ("unsplittable");
   staticpro (&Qunsplittable);
+  Qmenu_bar_lines = intern ("menu-bar-lines");
+  staticpro (&Qmenu_bar_lines);
   Qwidth = intern ("width");
   staticpro (&Qwidth);
   Qx = intern ("x");
   staticpro (&Qx);
-  Qmenu_bar_lines = intern ("menu-bar-lines");
-  staticpro (&Qmenu_bar_lines);
+  Qvisible = intern ("visible");
+  staticpro (&Qvisible);
 
   staticpro (&Vframe_list);
 
