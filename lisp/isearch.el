@@ -552,7 +552,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 
   ;; We must bypass input method while reading key.  When a user type
   ;; printable character, appropriate input method is turned on in
-  ;; minibuffer to read multibyte charactes.
+  ;; minibuffer to read multibyte characters.
   (or isearch-input-method-local-p
       (make-local-variable 'input-method-function))
   (setq input-method-function nil)
@@ -1607,7 +1607,7 @@ If there is no completion possible, say so and continue searching."
     ;; properties, and then set them to nil. This way the text hidden
     ;; by this overlay becomes visible.
 
-    ;; Do we realy need to set the `intangible' property to t? Can we
+    ;; Do we really need to set the `intangible' property to t? Can we
     ;; have the point inside an overlay with an `intangible' property?
     ;; In 19.34 this does not exist so I cannot test it.
     (overlay-put ov 'isearch-invisible (overlay-get ov 'invisible))
@@ -1924,7 +1924,7 @@ This function is called when exiting an incremental search."
 (defun isearch-lazy-highlight-remove-overlays (&optional keep-start keep-end)
   "Remove lazy highlight overlays from the current buffer.
 With optional arguments KEEP-START and KEEP-END,
-prserve any overlays in that range."
+preserve any overlays in that range."
   (let ((tem isearch-lazy-highlight-overlays))
     (while tem
       (if (or (null keep-start)
@@ -1961,7 +1961,7 @@ search string to change)."
 			       'isearch-lazy-highlight-update))))
 
 (defun isearch-lazy-highlight-update ()
-  "Update highlighting of possible other matchesfor isearch."
+  "Update highlighting of possible other matches for isearch."
   (unless (and (eq isearch-lazy-highlight-window (selected-window))
 	       (equal isearch-lazy-highlight-start (window-start)))
 
