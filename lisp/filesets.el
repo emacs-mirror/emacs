@@ -2432,7 +2432,7 @@ transform all entries as shown in this example:
    	\(\"Test\" (:pattern \"~/dir/^pattern$\"))
 	--> \(\"Test\" (:pattern \"~/dir/\" \"^pattern$\"))
 
-2. `filesets-data': Change all occurances of \":document\" to \":ingroup\":
+2. `filesets-data': Change all occurrences of \":document\" to \":ingroup\":
 
       \(\(\"Test\" \(:document \"~/dir/file\"))
       --> \(\(\"Test\" \(:ingroup \"~/dir/file\"))
