@@ -1,9 +1,12 @@
 2002-04-02  Mike Williams  <mdub@bigfoot.com>
 
-	* sgml-mode.el (sgml-close-tag): Rename from
+	* textmodes/sgml-mode.el (sgml-close-tag): Rename from
 	sgml-insert-end-tag. Simplify by using sgml-lexical-context.
 	(sgml-get-context): Remove use of sgml-inside-tag-p.
 	(sgml-inside-tag-p): Remove.
+	(sgml-looking-back-at): Short-circuit at beg of buffer.
+	(sgml-lexical-context,sgml-calculate-indent): Add support for
+	CDATA sections. 
 
 2002-04-01  Stefan Monnier  <monnier@cs.yale.edu>
 
