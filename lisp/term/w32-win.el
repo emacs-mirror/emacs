@@ -94,6 +94,7 @@
 	    (select-window window)
 	    (cond
 	     ((eq bar-part 'up)
+	      (goto-char (window-start window))
 	      (scroll-down 1))
 	     ((eq bar-part 'above-handle)
 	      (scroll-down))
@@ -102,6 +103,7 @@
 	     ((eq bar-part 'below-handle)
 	      (scroll-up))
 	     ((eq bar-part 'down)
+	      (goto-char (window-start window))
 	      (scroll-up 1))
 	     )))
       (select-window old-window))))
@@ -112,6 +114,35 @@
 (global-set-key [vertical-scroll-bar mouse-1] 'w32-handle-scroll-bar-event)
 
 ;; (scroll-bar-mode nil)
+
+(defvar mouse-wheel-scroll-amount 4
+  "*Number of lines to scroll per click of the mouse wheel.")
+
+(defun mouse-wheel-scroll-line (event)
+  "Scroll the current buffer by `mouse-wheel-scroll-amount'."
+  (interactive "e")
+  (condition-case nil
+      (if (< (car (cdr (cdr event))) 0)
+	  (scroll-up mouse-wheel-scroll-amount)
+	(scroll-down mouse-wheel-scroll-amount))
+    (error nil)))
+
+;; for scroll-in-place.el, this way the -scroll-line and -scroll-screen
+;; commands won't interact
+(setq scroll-command-groups (list '(mouse-wheel-scroll-line)))
+
+(defun mouse-wheel-scroll-screen (event)
+  "Scroll the current buffer by `mouse-wheel-scroll-amount'."
+  (interactive "e")
+  (condition-case nil
+      (if (< (car (cdr (cdr event))) 0)
+          (scroll-up)
+        (scroll-down))
+    (error nil)))
+
+;; Bind the mouse-wheel event:
+(global-set-key [mouse-wheel] 'mouse-wheel-scroll-line)
+(global-set-key [C-mouse-wheel] 'mouse-wheel-scroll-screen)
 
 (defvar x-invocation-args)
 
@@ -462,7 +493,13 @@ The value may be different for frames on different X displays."
 	   (setq defined-colors (cons this-color defined-colors))))
     defined-colors))
 
+
 ;;;; Function keys
+
+;;; make f10 activate the real menubar rather than the mini-buffer menu
+;;; navigation feature.
+(global-set-key [f10] (lambda ()
+			(interactive) (w32-send-sys-command ?\xf100)))
 
 (defun iconify-or-deiconify-frame ()
   "Iconify the selected frame, or deiconify if it's currently an icon."
@@ -473,36 +510,6 @@ The value may be different for frames on different X displays."
 
 (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
 			   global-map)
-
-;; Map certain keypad keys into ASCII characters
-;; that people usually expect.
-(define-key function-key-map [tab] [?\t])
-(define-key function-key-map [linefeed] [?\n])
-(define-key function-key-map [clear] [11])
-(define-key function-key-map [return] [13])
-(define-key function-key-map [escape] [?\e])
-(define-key function-key-map [M-tab] [?\M-\t])
-(define-key function-key-map [M-linefeed] [?\M-\n])
-(define-key function-key-map [M-clear] [?\M-\013])
-(define-key function-key-map [M-return] [?\M-\015])
-(define-key function-key-map [M-escape] [?\M-\e])
-
-;; These don't do the right thing (voelker)
-;(define-key function-key-map [backspace] [127])
-;(define-key function-key-map [delete] [127])
-;(define-key function-key-map [M-backspace] [?\M-\d])
-;(define-key function-key-map [M-delete] [?\M-\d])
-
-;; These tell read-char how to convert
-;; these special chars to ASCII.
-(put 'tab 'ascii-character ?\t)
-(put 'linefeed 'ascii-character ?\n)
-(put 'clear 'ascii-character 12)
-(put 'return 'ascii-character 13)
-(put 'escape 'ascii-character ?\e)
-;; These don't seem to be necessary (voelker)
-;(put 'backspace 'ascii-character 127)
-;(put 'delete 'ascii-character 127)
 
 
 ;;;; Selections and cut buffers
