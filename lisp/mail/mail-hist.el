@@ -210,19 +210,19 @@ message.
 This function normally would be called when the message is sent." 
   (and
    mail-hist-keep-history
-   (progn
+   (save-excursion
      (goto-char (point-min))
      (while (mail-hist-forward-header 1)
        (mail-hist-add-header-contents-to-ring
         (mail-hist-current-header-name)))
      (let ((body-contents
             (save-excursion
-            (goto-char (point-min))
-            (re-search-forward
-	     (concat "^" (regexp-quote mail-header-separator) "$")
-	     nil)
-            (forward-line 1)
-            (buffer-substring (point) (point-max)))))
+	      (goto-char (point-min))
+	      (re-search-forward
+	       (concat "^" (regexp-quote mail-header-separator) "$")
+	       nil)
+	      (forward-line 1)
+	      (buffer-substring (point) (point-max)))))
        (mail-hist-add-header-contents-to-ring "body" body-contents)))))
 
 (defun mail-hist-previous-input (header)
