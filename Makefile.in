@@ -66,7 +66,7 @@ libsrc_libs=@libsrc_libs@
 prefix=@prefix@
 
 # Like `prefix', but used for architecture-specific files.
-exec_prefix=${prefix}
+exec_prefix=@exec_prefix@
 
 # Where to install Emacs and other binaries that people will want to
 # run directly (like etags).
@@ -183,9 +183,8 @@ buildlisppath=${srcdir}/lisp
 # ==================== Utility Programs for the Build ====================
 
 # Allow the user to specify the install program.
-INSTALL = install -c
-INSTALL_PROGRAM = ${INSTALL}
-INSTALL_DATA = ${INSTALL}
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
 
 # ============================= Targets ==============================
 

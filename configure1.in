@@ -103,6 +103,7 @@ inst_paths=''
 
 ### Establish some default values.
 prefix='/usr/local'
+exec_prefix='${prefix}'
 
 while [ $# != 0 ]; do
   arg="$1"
@@ -238,6 +239,22 @@ Set it to either \`yes' or \`no'."
 	    shift; val="$1"
 	  fi
 	  prefix="${val}"
+        ;;
+
+	## Has the user specifiec an installation prefix?
+	"exec_prefix" )
+	  ## If the value was omitted, get it from the next argument.
+	  if [ "${valomitted}" = "yes" ]; then
+	    ## Get the next argument from the argument list, if there is one.
+            if [ $# = 1 ]; then
+	      (echo "${progname}: You must give a value for the \`--${optname}' option, as in
+    \`--${optname}=FOO'."
+	       echo "${short_usage}") >&2
+	      exit 1
+	    fi
+	    shift; val="$1"
+	  fi
+	  exec_prefix="${val}"
         ;;
 
 	## Has the user asked for some help?
@@ -835,6 +852,7 @@ fi
 dnl checks for programs
 AC_LN_S
 AC_PROG_CPP
+AC_PROG_INSTALL
 
 dnl checks for UNIX variants that set `DEFS'
 
@@ -1028,6 +1046,7 @@ AC_SUBST(LD_SWITCH_X_SITE)
 AC_SUBST(C_SWITCH_X_SITE)
 AC_SUBST(CFLAGS)
 AC_SUBST(prefix)
+AC_SUBST(exec_prefix)
 
 AC_DEFINE_UNQUOTED(config_machfile,  "\"${machfile}\"")
 AC_DEFINE_UNQUOTED(config_opsysfile, "\"${opsysfile}\"")
