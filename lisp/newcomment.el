@@ -1,11 +1,12 @@
 ;;; newcomment.el --- (un)comment regions of buffers
 
-;; Copyright (C) 1999  Stefan Monnier <monnier@cs.yale.edu>
+;; Copyright (C) 1999-2000  Free Software Foundation Inc.
 
-;; Author: Stefan Monnier <monnier@cs.yale.edu>
+;; Author: FSF??
+;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
 ;; Version: $Name:  $
-;; Revision: $Id: newcomment.el,v 1.5 1999/11/30 16:20:55 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.6 1999/12/08 00:19:51 monnier Exp $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -23,27 +24,41 @@
 
 ;;; Commentary:
 
-;;; History:
+;; A replacement for simple.el's comment-related functions.
 
 ;;; Bugs:
 
 ;; - single-char nestable comment-start can only do the "\\s<+" stuff
 ;;   if the corresponding closing marker happens to be right.
-;; - C-u C-u comment-region in TeXinfo generates bogus comments @ccccc@
+;; - comment-box in TeXinfo generate bogus comments @ccccc@
 ;; - the code assumes that bol is outside of any comment/string.
 ;; - uncomment-region with a numeric argument can render multichar
 ;;   comment markers invalid.
+;; - comment-box in C with a numeric argument generates wrong end-of-line
+;;   continuation markers.
 
 ;;; Todo:
 
-;; - extract comment data from the syntax-table
-;; - maybe do the opposite as well (set the syntax-table from other data)
+;; - try to align tail comments
+;; - check what c-comment-line-break-function has to say
 ;; - spill auto-fill of comments onto the end of the next line
 ;; - uncomment-region with a consp (for blocks) or somehow make the
 ;;   deletion of continuation markers less dangerous
 ;; - drop block-comment-<foo> unless it's really used
 ;; - uncomment-region on a part of a comment
 ;; - obey the numarg of uncomment-region for continuation markers
+;; - support gnu-style "multi-line with space in continue"
+;; - document string-strip
+;; - better document comment-continue (and probably turn it into a
+;;   simple string).
+;; - don't overwrite comment-padding.
+;; - better document comment-end-quote.  Probably make it better
+;;   self-sufficient so that other quoting can be used.
+;; - comment the padright/padleft.
+;; - somehow allow comment-dwim to use the region even if transient-mark-mode
+;;   is not turned on.
+;; - document comment-region-internal
+;; - comment-quote-nested should quote both the start and end of comment.
 
 ;;; Code:
 
@@ -54,8 +69,11 @@
   :prefix "comment-"
   :group 'fill)
 
-(defvar comment-use-syntax 'maybe
-  "Non-nil if syntax-tables can be used instead of regexps.")
+(defvar comment-use-syntax 'undecided
+  "Non-nil if syntax-tables can be used instead of regexps.
+Can also be `undecided' which means that a somewhat expensive test will
+be used to try to determine whether syntax-tables should be trusted
+to understand comments or not.")
 
 (defcustom comment-column 32
   "*Column to indent right-margin comments to.
@@ -79,6 +97,7 @@ at the place matched by the close of the first pair."
   :type '(choice (const :tag "None" nil)
 		 regexp)
   :group 'comment)
+
 (defvar comment-end-skip nil
   "Regexp to match the end of a comment plus everything up to its body.")
 
@@ -94,7 +113,7 @@ This function is called with no args with point at the beginning of
 the comment's starting delimiter.")
 
 (defvar comment-indent-function
-  '(lambda () comment-column)
+  (lambda () comment-column)
   "Function to compute desired indentation for a comment.
 This function is called with no args with point at the beginning of
 the comment's starting delimiter.")
@@ -102,33 +121,40 @@ the comment's starting delimiter.")
 (defvar block-comment-start nil)
 (defvar block-comment-end nil)
 
-(defcustom comment-nested 'maybe
-  "Whether the comments can be nested.")
-(defcustom comment-continue nil
+(defvar comment-quote-nested t
+  "Non-nil if nested comments should be quoted.
+This should be locally set by each major mode if needed.")
+
+(defvar comment-continue nil
   "Pair of strings to insert for multiline comments.")
-(defcustom comment-add '(0 . 2)
+(defvar comment-add 0
   "How many more chars should be inserted by default.")
 
-(defcustom comment-style 'multi-line
+(defcustom comment-style 'plain
   "*Style to be used for inserting comments."
   :group 'comment
   :type '(choice (const plain)
+		 (const indent)
 		 (const aligned)
 		 (const multi-line)
-		 (const extra-line)))
+		 (const extra-line)
+		 (const box)))
 (defconst comment-styles
-  '((plain	. (nil nil nil))
-    (aligned	. (nil t nil))
-    (multi-line	. (t nil nil))
-    (extra-line	. (t nil t)))
-  "Possible styles.")
+  '((plain	. (nil nil nil nil))
+    (indent	. (nil nil nil t))
+    (aligned	. (nil t nil t))
+    (multi-line	. (t nil nil t))
+    (extra-line	. (t nil t t))
+    (box	. (t t t t)))
+  "Possible styles.
+(STYLE . (MULTI ALIGN EXTRA INDENT).")
 
 (defcustom comment-padding 1
   "Number of spaces `comment-region' puts between comment chars and text.
 Can also be a string instead.
 
 Extra spacing between the comment characters and the comment text
-makes the comment easier to read.  Default is 1.  Nil means 0.")
+makes the comment easier to read.  Default is 1.  nil means 0.")
 
 (defcustom comment-multi-line nil
   "*Non-nil means \\[indent-new-comment-line] should continue same comment
@@ -148,29 +174,21 @@ This is obsolete because you might as well use \\[newline-and-indent]."
   (match-string 1 str))
 
 (defun comment-string-reverse (s)
-  (comment-string-strip (concat (reverse (string-to-list s))) nil t))
+  (comment-string-strip (concat (nreverse (string-to-list s))) nil t))
 
 (defun comment-normalize-vars (&optional noerror)
   (if (not comment-start) (or noerror (error "No comment syntax is defined"))
     ;; comment-use-syntax
-    (when (eq comment-use-syntax 'maybe)
+    (when (eq comment-use-syntax 'undecided)
       (set (make-local-variable 'comment-use-syntax)
 	   (let ((st (syntax-table))
 		 (cs comment-start)
 		 (ce (if (string= "" comment-end) "\n" comment-end)))
+	     ;; Try to skip over a comment using forward-comment
+	     ;; to see if the syntax tables properly recognize it.
 	     (with-temp-buffer
 	       (set-syntax-table st)
 	       (insert cs " hello " ce)
-	       (goto-char (point-min))
-	       (and (forward-comment 1) (eobp))))))
-    (when (eq comment-nested 'maybe)
-      (set (make-local-variable 'comment-nested)
-	   (let ((st (syntax-table))
-		 (cs comment-start)
-		 (ce (if (string= "" comment-end) "\n" comment-end)))
-	     (with-temp-buffer
-	       (set-syntax-table st)
-	       (insert cs " he " cs " hello " ce " ho " ce)
 	       (goto-char (point-min))
 	       (and (forward-comment 1) (eobp))))))
     ;; comment-padding
@@ -196,9 +214,9 @@ This is obsolete because you might as well use \\[newline-and-indent]."
       (let ((ce (if (string= "" comment-end) "\n"
 		  (comment-string-strip comment-end t t))))
 	(set (make-local-variable 'comment-end-skip)
-	     (concat "\\s-*\\(\\s>" (if comment-nested "+" "")
+	     (concat "\\s-*\\(\\s>" (if comment-quote-nested "" "+")
 		     "\\|" (regexp-quote (substring ce 0 1))
-		     (if (or comment-nested (> (length ce) 1)) "+" "")
+		     (if (and comment-quote-nested (<= (length ce) 1)) "" "+")
 		     (regexp-quote (substring ce 1))
 		     "\\)"))))))
  
@@ -214,7 +232,7 @@ This is obsolete because you might as well use \\[newline-and-indent]."
 The regexp has one group in it which matches RE right after the
 potential quoting."
   (setq str (comment-string-strip str t t))
-  (when (and (not comment-nested) (> (length str) 1))
+  (when (and comment-quote-nested (> (length str) 1))
     (concat (regexp-quote (substring str 0 1))
 	    "\\\\*\\(" re "\\)"
 	    (regexp-quote (substring str 1)))))
@@ -224,9 +242,9 @@ potential quoting."
 ;;;;
 
 (defun comment-search-forward (&optional limit noerror)
-  "Find a comment start between the point and LIMIT.
-Moves the point to inside the comment and returns the position of the
-comment-starter.  If no comment is found, moves the point to LIMIT
+  "Find a comment start between point and LIMIT.
+Moves point to inside the comment and returns the position of the
+comment-starter.  If no comment is found, moves point to LIMIT
 and raises an error or returns nil of NOERROR is non-nil."
   (if (not comment-use-syntax)
       (when (re-search-forward comment-start-skip limit noerror)
@@ -239,7 +257,7 @@ and raises an error or returns nil of NOERROR is non-nil."
 		(end nil))
 	    (while (and (null end) (>= (point) bol))
 	      (if (looking-at comment-start-skip)
-		  (setq end (match-end 0))
+		  (setq end (min (or limit (point-max)) (match-end 0)))
 		(backward-char)))
 	    (goto-char end)
 	    start)
@@ -247,8 +265,8 @@ and raises an error or returns nil of NOERROR is non-nil."
 
 (defun comment-search-backward (&optional limit noerror)
   "Find a comment start between LIMIT and point.
-Moves the point to inside the comment and returns the position of the
-comment-starter.  If no comment is found, moves the point to LIMIT
+Moves point to inside the comment and returns the position of the
+comment-starter.  If no comment is found, moves point to LIMIT
 and raises an error or returns nil of NOERROR is non-nil."
   (if (not (re-search-backward comment-start-skip limit t))
       (unless noerror (error "No comment"))
@@ -268,8 +286,8 @@ and raises an error or returns nil of NOERROR is non-nil."
 	cs))))
 
 (defun comment-beginning ()
-  "Find the beginning of the inclosing comment.
-Returns nil if not inside a comment, else moves the point and returns
+  "Find the beginning of the enclosing comment.
+Returns nil if not inside a comment, else moves point and returns
 the same as `comment-search-forward'."
   (let ((pt (point))
 	(cs (comment-search-backward nil t)))
@@ -295,7 +313,7 @@ and can use regexps instead of syntax."
 
 (defun comment-enter-backward ()
   "Move from the end of a comment to the end of its content.
-The point is assumed to be right at the end of a comment."
+Point is assumed to be just at the end of a comment."
   (if (bolp)
       ;; comment-end = ""
       (progn (backward-char) (skip-syntax-backward " "))
@@ -328,8 +346,6 @@ If CONTINUE is non-nil, use the `comment-continuation' markers if any."
                cpos indent begpos)
           (beginning-of-line)
           (when (setq begpos (comment-search-forward eolpos t))
-	    (skip-chars-forward
-	     (concat (buffer-substring (1- (point)) (point)) " \t"))
 	    (setq cpos (point-marker))
 	    (goto-char begpos))
 	  (setq begpos (point))
@@ -401,7 +417,7 @@ It contains N copies of the last non-whitespace chars of STR.
 If STR already contains padding, the corresponding amount is
   ignored from `comment-padding'.
 N defaults to 1.
-It N is 're, a regexp is returned instead, that would match
+If N is `re', a regexp is returned instead, that would match
   the string for any N."
   (setq n (or n 0))
   (when (and (stringp str) (not (string= "" str)))
@@ -426,7 +442,7 @@ It contains N copies of the last non-whitespace chars of STR.
 If STR already contains padding, the corresponding amount is
   ignored from `comment-padding'.
 N defaults to 1.
-It N is 're, a regexp is returned instead, that would match
+If N is `re', a regexp is returned instead, that would match
   the string for any N."
   (setq n (or n 0))
   (when (and (stringp str) (not (string= "" str)))
@@ -437,7 +453,7 @@ It N is 're, a regexp is returned instead, that would match
 				       (length comment-padding)))
 		       (match-string 0 str)))
 	  (c (aref str (match-end 0)))
-	  (multi (or comment-nested (string= comment-end "")
+	  (multi (or (not comment-quote-nested) (string= comment-end "")
 		     (> (length str) (1+ (match-end 0))))))
       (if (symbolp n)
 	  (concat "\\s-*"
@@ -542,7 +558,7 @@ ARG is currently ignored."
 		     min-indent)))
       (setq ce (concat cce "\n" (make-string indent ? ) (or ce cs)))
       (setq cs (concat cs "\n" (make-string min-indent ? ) ccs))))
-  (values cs ce))
+  (cons cs ce))
 
 (def-edebug-spec comment-with-narrowing t)
 (put 'comment-with-narrowing 'lisp-indent-function 2)
@@ -573,7 +589,8 @@ indentation to be kept as it was before narrowing."
 		 (delete-char n)
 		 (decf -bindent n)))))))))
 
-(defun comment-region-internal (beg end cs ce &optional ccs cce block lines)
+(defun comment-region-internal (beg end cs ce
+				    &optional ccs cce block lines indent)
   (assert (< beg end))
   (let ((no-empty t))
     ;; sanitize ce and cce
@@ -600,7 +617,7 @@ indentation to be kept as it was before narrowing."
 	   (unless (looking-at "[ \t]*$")
 	     (setq min-indent (min min-indent (current-indentation))))
 	   (when ce-quote-re
-	     (let ((eol (save-excursion (end-of-line) (point))))
+	     (let ((eol (line-end-position)))
 	       (while (re-search-forward ce-quote-re eol 'move)
 		 (incf eol)
 		 (replace-match "\\" t t nil 1))))
@@ -610,12 +627,15 @@ indentation to be kept as it was before narrowing."
 
 	  ;; inserting ccs can change max-indent by (1- tab-width)
 	  (incf max-indent (+ (max (length cs) (length ccs)) -1 tab-width))
+	  (unless indent (setq min-indent 0))
 
 	  ;; make the leading and trailing lines if requested
 	  (when lines
-	    (multiple-value-setq (cs ce)
-	      (comment-make-extra-lines
-	       cs ce ccs cce min-indent max-indent block)))
+	    (let ((csce
+		   (comment-make-extra-lines
+		    cs ce ccs cce min-indent max-indent block)))
+	      (setq cs (car csce))
+	      (setq ce (cdr csce))))
 	  
 	  (goto-char (point-min))
 	  ;; Loop over all lines from BEG to END.
@@ -645,7 +665,7 @@ The strings used as comment starts are built from
   (comment-normalize-vars)
   (if (> beg end) (let (mid) (setq mid beg beg end end mid)))
   (let* ((numarg (prefix-numeric-value arg))
-	 (add (car comment-add))
+	 (add comment-add)
 	 (style (cdr (assoc comment-style comment-styles)))
 	 (lines (nth 2 style))
 	 (block (nth 1 style))
@@ -669,13 +689,8 @@ The strings used as comment starts are built from
 		    (>= (point) beg))
 	     (progn (goto-char end) (end-of-line) (skip-syntax-backward " ")
 		    (<= (point) end))
-	     (not (string= "" comment-end))
+	     (or (not (string= "" comment-end)) block)
 	     (progn (goto-char beg) (search-forward "\n" end t)))))
-
-    ;; C-u C-u makes a full block
-    (when (and (consp arg) (>= numarg 16))
-      (setq lines t block t add (or (cdr comment-add) 2))
-      (setq arg nil numarg 1))
 
     ;; don't add end-markers just because the user asked for `block'
     (unless (or lines (string= "" comment-end)) (setq block nil))
@@ -697,17 +712,27 @@ The strings used as comment starts are built from
        (if multi (comment-padright (car comment-continue) numarg))
        (if multi (comment-padleft (cdr comment-continue) numarg))
        block
-       lines)))))
+       lines
+       (nth 3 style))))))
+
+(defun comment-box (beg end &optional arg)
+  "Comment out the BEG..END region, putting it inside a box.
+The numeric prefix ARG specifies how many characters to add to begin- and
+end- comment markers additionally to what `comment-add' already specifies."
+  (interactive "*r\np")
+  (let ((comment-style 'box))
+    (comment-region beg end (+ comment-add arg))))
 
 (defun comment-dwim (arg)
   "Call the comment command you want.
-If the region is active, calls `comment-region' (unless it only consists
+If the region is active and `transient-mark-mode' is on,
+calls `comment-region' (unless it only consists
 in comments, in which case it calls `uncomment-region').
 Else, if the current line is empty, insert a comment and indent it.
 Else call `indent-for-comment' or `kill-comment' if a prefix ARG is specified."
   (interactive "*P")
   (comment-normalize-vars)
-  (if mark-active
+  (if (and mark-active transient-mark-mode)
       (let ((beg (min (point) (mark)))
 	    (end (max (point) (mark))))
 	(if (save-excursion ;; check for already commented region
@@ -719,7 +744,7 @@ Else call `indent-for-comment' or `kill-comment' if a prefix ARG is specified."
     (if (save-excursion (beginning-of-line) (not (looking-at "\\s-*$")))
 	(if arg (kill-comment (and (integerp arg) arg)) (indent-for-comment))
       (let ((add (if arg (prefix-numeric-value arg)
-		   (if (= (length comment-start) 1) (car comment-add) 0))))
+		   (if (= (length comment-start) 1) comment-add 0))))
 	(insert (comment-padright comment-start add))
 	(save-excursion
 	  (unless (string= "" comment-end)
@@ -804,6 +829,9 @@ unless optional argument SOFT is non-nil."
 
 ;;; Change Log:
 ;; $Log: newcomment.el,v $
+;; Revision 1.6  1999/12/08 00:19:51  monnier
+;; various fixes and gratuitous movements.
+;;
 ;; Revision 1.5  1999/11/30 16:20:55  monnier
 ;; (comment-style(s)): Replaces comment-extra-lines (and comment-multi-line).
 ;; (comment-use-syntax): Whether to use the syntax-table or just the regexps.
