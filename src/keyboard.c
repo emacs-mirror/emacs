@@ -5618,7 +5618,7 @@ parse_modifiers (symbol)
 					 STRING_BYTES (XSYMBOL (symbol)->name) - end),
 			    Qnil);
 
-      if (modifiers & ~(((EMACS_INT)1 << VALBITS) - 1))
+      if (modifiers & ~VALMASK)
 	abort ();
       XSETFASTINT (mask, modifiers);
       elements = Fcons (unmodified, Fcons (mask, Qnil));
@@ -5655,7 +5655,7 @@ apply_modifiers (modifiers, base)
   Lisp_Object cache, index, entry, new_symbol;
 
   /* Mask out upper bits.  We don't know where this value's been.  */
-  modifiers &= ((EMACS_INT)1 << VALBITS) - 1;
+  modifiers &= VALMASK;
 
   /* The click modifier never figures into cache indices.  */
   cache = Fget (base, Qmodifier_cache);
