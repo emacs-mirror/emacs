@@ -1,3 +1,10 @@
+2001-11-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (infodir): Define relative to $(srcdir).
+	($(infodir)/elisp): Don't chdir into $(srcdir), but add it to the
+	include directories list via -I switch to makeinfo.
+	(index.texi): Use cp if both hard and symbolic links fail.
+
 2001-11-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (distclean): Add.
@@ -18,7 +25,7 @@
 	(info): Add target.
 	(installall): Target removed.
 
-2001-10-31  Pavel Janík  <Pavel@Janik.cz>
+2001-10-31  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* tips.texi (Coding Conventions): Fix typo.
 
@@ -447,6 +454,9 @@ Tue Apr 11 12:23:28 1989  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 	* Cleaned up `Makefile' and defined the `emacslibdir' directory
 	for the Project GNU development environment.
 
+;; Local Variables:
+;; coding: iso-2022-7bit-unix
+;; End:
 
     Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
