@@ -1,5 +1,5 @@
 /* Manipulation of keymaps
-   Copyright (C) 1985, 86,87,88,93,94,95,98,99, 2000
+   Copyright (C) 1985, 86,87,88,93,94,95,98,99, 2000, 2001
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -114,6 +114,9 @@ static void describe_translation P_ ((Lisp_Object));
 static void describe_map P_ ((Lisp_Object, Lisp_Object,
 			      void (*) P_ ((Lisp_Object)),
 			      int, Lisp_Object, Lisp_Object*, int));
+static int mouse_key_p P_ ((Lisp_Object));
+static int ascii_sequence_p P_ ((Lisp_Object));
+
 
 /* Keymap object support - constructors and predicates.			*/
 
@@ -2013,6 +2016,7 @@ Control characters turn into \"^char\", etc.")
 
 /* Return non-zero if SEQ contains only ASCII characters, perhaps with
    a meta bit.  */
+
 static int
 ascii_sequence_p (seq)
      Lisp_Object seq;
@@ -2034,6 +2038,48 @@ ascii_sequence_p (seq)
 
   return 1;
 }
+
+
+/* Value is non-zero if SEQ is a mouse key.
+
+   Note: We can't use the property lists of mouse-key symbols to
+   determine this, because these symbols and their property lists are
+   created only when a mouse-event has been seen.  */
+
+static int
+mouse_key_p (seq)
+     Lisp_Object seq;
+{
+  int mouse_p = 0;
+  
+  seq = Faref (seq, 0);
+  if (SYMBOLP (seq))
+    {
+      unsigned char *name = XSYMBOL (seq)->name->data;
+
+      while (*(name + 1) == '-'
+	     && (*name == 'S' || *name == 'C' || *name == 'M'
+		 || *name == 'A' || *name == 'H'))
+	name += 2;
+
+      if (bcmp (name, "up-", 3) == 0)
+	name += 3;
+      else if (bcmp (name, "down-", 5) == 0)
+	name += 5;
+
+      if (bcmp (name, "mouse-", 6) == 0)
+	{
+	  name += 6;
+	  while (*name >= '0' && *name <= '9')
+	    ++name;
+	}
+
+      mouse_p = *name == '\0';
+    }
+
+  return mouse_p;
+}
+
 
 
 /* where-is - finding a command in a set of keymaps.			*/
@@ -2102,7 +2148,7 @@ where_is_internal (definition, keymaps, firstonly, noindirect)
       last_is_meta = (XINT (last) >= 0
 		      && EQ (Faref (this, last), meta_prefix_char));
 
-      if (nomenus && !ascii_sequence_p (this))
+      if (nomenus && !ascii_sequence_p (this) && !mouse_key_p (this))
 	/* If no menu entries should be returned, skip over the
 	   keymaps bound to `menu-bar' and `tool-bar' and other
 	   non-ascii prefixes.  */
@@ -2204,7 +2250,9 @@ where_is_internal (definition, keymaps, firstonly, noindirect)
 		 we find.  */
 	      if (EQ (firstonly, Qnon_ascii))
 		RETURN_UNGCPRO (sequence);
-	      else if (! NILP (firstonly) && ascii_sequence_p (sequence))
+	      else if (!NILP (firstonly)
+		       && (ascii_sequence_p (sequence)
+			   || mouse_key_p (sequence)))
 		RETURN_UNGCPRO (sequence);
 	    }
 	}
@@ -2304,7 +2352,8 @@ indirect definition itself.")
       result = Qnil;
       for (i = n - 1; i >= 0; --i)
 	if (EQ (shadow_lookup (keymaps, defns[i], Qnil), definition)
-	    && ascii_sequence_p (defns[i]))
+	    && (ascii_sequence_p (defns[i])
+		|| mouse_key_p (defns[i])))
 	  break;
 
       result = i >= 0 ? defns[i] : Qnil;
