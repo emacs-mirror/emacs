@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.125) $
+ * $HopeName: MMsrc!mpm.h(trunk.126) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  */
 
@@ -456,6 +456,7 @@ extern Bool MessageGet(Message *messageReturn, Arena arena,
                        MessageType type);
 extern Bool MessageQueueType(MessageType *typeReturn, Arena arena);
 extern void MessageTypeEnable(Arena arena, MessageType type);
+extern void MessageTypeDisable(Arena arena, MessageType type);
 
 /* Message methods for MessageTypeFinalization */
 
