@@ -1,6 +1,6 @@
 /* impl.c.vmso: VIRTUAL MEMORY MAPPING FOR SOLARIS 2.x
  *
- * $HopeName: MMsrc!vmso.c(trunk.2) $
+ * $HopeName: MMsrc!vmso.c(trunk.3) $
  * Copyright (C) 1995 Harlequin Group, all rights reserved
  *
  * Design: design.mps.vm
@@ -44,7 +44,7 @@
 #include <errno.h>
 #include <sys/errno.h>
 
-SRCID(vmso, "$HopeName: MMsrc!vmso.c(trunk.2) $");
+SRCID(vmso, "$HopeName: MMsrc!vmso.c(trunk.3) $");
 
 
 /* Fix up unprototyped system calls.  */
@@ -195,6 +195,21 @@ Addr VMLimit(Space space)
   VM vm = SpaceVM(space);
   AVERT(VM, vm);
   return vm->limit;
+}
+
+
+Size VMReserved(Space space)
+{
+  VM vm = SpaceVM(space);
+  AVERT(VM, vm);
+  return vm->reserved;
+}
+
+Size VMMapped(Space space)
+{
+  VM vm = SpaceVM(space);
+  AVERT(VM, vm);
+  return vm->mapped;
 }
 
 
