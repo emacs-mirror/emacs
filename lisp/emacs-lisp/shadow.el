@@ -137,8 +137,8 @@ See the documentation for `list-load-path-shadows' for further information."
 				;; This is a bit strict, but safe.
 				(shadow-same-file-or-nonexistent
 				 (concat base1 ".elc") (concat base2 ".elc"))))
-		(setq shadows
-		      (append shadows (list base1 base2)))))
+		      (setq shadows
+			    (append shadows (list base1 base2)))))
 
 	      ;; Not seen before, add it to the list of seen files.
 	      (setq files (cons (cons file dir) files))))
