@@ -1,3 +1,11 @@
+2001-01-31  Francesco Potorti`  <pot@gnu.org>
+
+	* etags.c: [NDEBUG] #undef assert and #define it as ((void)0), for
+	the sake of some buggy assert.h (e.g. in MinGW and sunos4 pcc).
+	(C_entries): Tag token renamed to still_in_token because sunos4
+	pcc wants to expand it as the token() macro even though it has no
+	arguments.
+
 2001-01-30  Andrew Innes  <andrewi@gnu.org>
 
 	* etags.c (assert) [__MINGW32__]: Redefine assert to work around a

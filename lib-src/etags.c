@@ -32,7 +32,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potortì <pot@gnu.org> has maintained it since 1993.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 14.13";
+char pot_etags_version[] = "@(#) pot revision number is $Revision: 14.14 $";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -122,14 +122,13 @@ char pot_etags_version[] = "@(#) pot revision number is 14.13";
 #ifndef errno
   extern int errno;
 #endif
-#include <assert.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
-/* Work around bug in Mingw assert.h.  */
-#if defined (__MINGW32__) && defined(NDEBUG) && defined (assert)
-#undef assert
-#define assert(x) ((void) 0)
+#include <assert.h>
+#ifdef NDEBUG
+# undef  assert			/* some systems have a buggy assert.h */
+# define assert(x) ((void) 0)
 #endif
 
 #if !defined (S_ISREG) && defined (S_IFREG)
@@ -2983,7 +2982,7 @@ C_entries (c_ext, inf)
 		      lp += 2;
 		      toklen += 2;
 		      c = lp[-1];
-		      goto intoken;
+		      goto still_in_token;
 		    }
 		  else
 		    {
@@ -3105,7 +3104,7 @@ C_entries (c_ext, inf)
 		    }
 		} /* if (endtoken (c)) */
 	      else if (intoken (c))
-		intoken:
+		still_in_token:
 		{
 		  toklen++;
 		  continue;
