@@ -247,6 +247,9 @@ src/config.stamp: src/config.in config.status
 lib-src/Makefile: lib-src/Makefile.in config.status
 	./config.status
 
+man/Makefile: man/Makefile.in config.status
+	./config.status
+
 oldXMenu/Makefile: oldXMenu/Makefile.in config.status
 	./config.status
 
@@ -542,8 +545,11 @@ relock:
 	(cd lwlib; chmod u+w *.[ch] Makefile README)
 	(cd src; $(MAKE) $(MFLAGS) relock)
 
-TAGS tags:	lib-src
-	cd ${srcdir}/src; $(MAKE) tags
+TAGS tags:	lib-src src
+	export EMACSDIR; EMACSDIR=`pwd`/src; \
+	export EMACS;  EMACS=`pwd`/src/emacs; \
+	cd ${srcdir}/src; \
+	$(MAKE) tags -f $$EMACSDIR/Makefile
 
 check:
 	@echo "We don't have any tests for GNU Emacs yet."
