@@ -125,6 +125,23 @@ in that frame; otherwise change each frame."
   (interactive (internal-face-interactive "foreground"))
   (internal-set-face-1 face 'foreground color 4 frame))
 
+(defvar face-default-stipple "gray3" 
+  "Default stipple pattern used on monochrome displays.
+This stipple pattern is used on monochrome displays
+instead of shades of gray for a face background color.
+See `set-face-stipple' for possible values for this variable.")
+
+(defun face-color-gray-p (color &optional frame)
+  "Return t if COLOR is a shade of gray (or white or black).
+FRAME specifies the frame and thus the display for interpreting COLOR."
+  (let* ((values (x-color-values color frame))
+	 (r (nth 0 values))
+	 (g (nth 1 values))
+	 (b (nth 2 values)))
+    (and (< (abs (- r g)) (/ (max 1 (abs r) (abs g)) 20))
+	 (< (abs (- g b)) (/ (max 1 (abs g) (abs b)) 20))
+	 (< (abs (- b r)) (/ (max 1 (abs b) (abs r)) 20)))))
+
 (defun set-face-background (face color &optional frame)
   "Change the background color of face FACE to COLOR (a string).
 If the optional FRAME argument is provided, change only
@@ -133,10 +150,8 @@ in that frame; otherwise change each frame."
   ;; For a specific frame, use gray stipple instead of gray color
   ;; if the display does not support a gray color.
   (if (and frame (not (eq frame t))
-	   (member color '("gray" "gray1" "gray3"))
-	   (not (x-display-color-p frame))
-	   (not (x-display-grayscale-p frame)))
-      (set-face-stipple face color frame)
+	   (not (face-color-supported-p frame color)))
+      (set-face-stipple face face-default-stipple frame)
     (if (null frame)
 	(let ((frames (frame-list)))
 	  (while frames
@@ -146,7 +161,7 @@ in that frame; otherwise change each frame."
 	  color)
       (internal-set-face-1 face 'background color 5 frame))))
 
-(defun set-face-stipple (face name &optional frame)
+(defun set-face-stipple (face pixmap &optional frame)
   "Change the stipple pixmap of face FACE to PIXMAP.
 PIXMAP should be a string, the name of a file of pixmap data.
 The directories listed in the `x-bitmap-file-path' variable are searched.
@@ -158,7 +173,7 @@ and DATA is a string, containing the raw bits of the bitmap.
 If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
   (interactive (internal-face-interactive "stipple"))
-  (internal-set-face-1 face 'background-pixmap name 6 frame))
+  (internal-set-face-1 face 'background-pixmap pixmap 6 frame))
 
 (defalias 'set-face-background-pixmap 'set-face-stipple)
 
@@ -605,23 +620,36 @@ also the same size as FACE on FRAME, or fail."
     (cdr (assq 'font (frame-parameters (selected-frame))))))
 
 (defun x-frob-font-weight (font which)
-  (if (or (string-match x-font-regexp font)
-	  (string-match x-font-regexp-head font)
-	  (string-match x-font-regexp-weight font))
-      (concat (substring font 0 (match-beginning 1)) which
-	      (substring font (match-end 1)))
-    nil))
+  (cond ((string-match x-font-regexp font)
+	 (concat (substring font 0 (match-beginning x-font-regexp-weight-subnum))
+		 which
+		 (substring font (match-end x-font-regexp-weight-subnum)
+			    (match-beginning x-font-regexp-adstyle-subnum))
+		 ;; Replace the ADD_STYLE_NAME field with *
+		 ;; because the info in it may not be the same
+		 ;; for related fonts.
+		 "*"
+		 (substring font (match-end x-font-regexp-adstyle-subnum))))
+	((or (string-match x-font-regexp-head font)
+	     (string-match x-font-regexp-weight font))
+	 (concat (substring font 0 (match-beginning 1)) which
+		 (substring font (match-end 1))))))
 
 (defun x-frob-font-slant (font which)
-  (cond ((or (string-match x-font-regexp font)
-	     (string-match x-font-regexp-head font))
-	 (concat (substring font 0 (match-beginning 2)) which
-		 (substring font (match-end 2))))
-	((string-match x-font-regexp-slant font)
+  (cond ((string-match x-font-regexp font)
+	 (concat (substring font 0 (match-beginning x-font-regexp-slant-subnum))
+		 which
+		 (substring font (match-end x-font-regexp-slant-subnum)
+			    (match-beginning x-font-regexp-adstyle-subnum))
+		 ;; Replace the ADD_STYLE_NAME field with *
+		 ;; because the info in it may not be the same
+		 ;; for related fonts.
+		 "*"
+		 (substring font (match-end x-font-regexp-adstyle-subnum))))
+	((or (string-match x-font-regexp-head font)
+	     (string-match x-font-regexp-slant font))
 	 (concat (substring font 0 (match-beginning 1)) which
-		 (substring font (match-end 1))))
-	(t nil)))
-
+		 (substring font (match-end 1))))))
 
 (defun x-make-font-bold (font)
   "Given an X font specification, make a bold version of it.
@@ -981,57 +1009,80 @@ selected frame."
 	  (setq parameters (append parameters
 				   default-frame-alist
 				   parsed)))))
-  (if (null global-face-data)
-      (x-create-frame parameters)
-    (let* ((visibility-spec (assq 'visibility parameters))
-	   (frame (x-create-frame (cons '(visibility . nil) parameters)))
-	   (faces (copy-alist global-face-data))
-	   success
-	   (rest faces))
-      (unwind-protect
-	  (progn
-	    (set-frame-face-alist frame faces)
+  (let (frame)
+    (if (null global-face-data)
+	(setq frame (x-create-frame parameters))
+      (let* ((visibility-spec (assq 'visibility parameters))
+	     (faces (copy-alist global-face-data))
+	     success
+	     (rest faces))
+	(setq frame (x-create-frame (cons '(visibility . nil) parameters)))
+	(unwind-protect
+	    (progn
+	      (set-frame-face-alist frame faces)
 
-	    (if (cdr (or (assq 'reverse parameters)
-			 (assq 'reverse default-frame-alist)
-			 (let ((resource (x-get-resource "reverseVideo"
-							 "ReverseVideo")))
-			   (if resource
-			       (cons nil (member (downcase resource)
-						 '("on" "true")))))))
-		(let* ((params (frame-parameters frame))
-		       (bg (cdr (assq 'foreground-color params)))
-		       (fg (cdr (assq 'background-color params))))
-		  (modify-frame-parameters frame
-					   (list (cons 'foreground-color fg)
-						 (cons 'background-color bg)))
-		  (if (equal bg (cdr (assq 'border-color params)))
-		      (modify-frame-parameters frame
-					       (list (cons 'border-color fg))))
-		  (if (equal bg (cdr (assq 'mouse-color params)))
-		      (modify-frame-parameters frame
-					       (list (cons 'mouse-color fg))))
-		  (if (equal bg (cdr (assq 'cursor-color params)))
-		      (modify-frame-parameters frame
-					       (list (cons 'cursor-color fg))))))
-	    ;; Copy the vectors that represent the faces.
-	    ;; Also fill them in from X resources.
-	    (while rest
-	      (let ((global (cdr (car rest))))
-		(setcdr (car rest) (vector 'face
-					   (face-name (cdr (car rest)))
-					   (face-id (cdr (car rest)))
-					   nil nil nil nil nil))
-		(face-fill-in (car (car rest)) global frame))
-	      (make-face-x-resource-internal (cdr (car rest)) frame t)
-	      (setq rest (cdr rest)))
-	    (if (null visibility-spec)
-		(make-frame-visible frame)
-	      (modify-frame-parameters frame (list visibility-spec)))
-	    (setq success t)
-	    frame)
-	(or success
-	    (delete-frame frame))))))
+	      (if (cdr (or (assq 'reverse parameters)
+			   (assq 'reverse default-frame-alist)
+			   (let ((resource (x-get-resource "reverseVideo"
+							   "ReverseVideo")))
+			     (if resource
+				 (cons nil (member (downcase resource)
+						   '("on" "true")))))))
+		  (let* ((params (frame-parameters frame))
+			 (bg (cdr (assq 'foreground-color params)))
+			 (fg (cdr (assq 'background-color params))))
+		    (modify-frame-parameters frame
+					     (list (cons 'foreground-color fg)
+						   (cons 'background-color bg)))
+		    (if (equal bg (cdr (assq 'border-color params)))
+			(modify-frame-parameters frame
+						 (list (cons 'border-color fg))))
+		    (if (equal bg (cdr (assq 'mouse-color params)))
+			(modify-frame-parameters frame
+						 (list (cons 'mouse-color fg))))
+		    (if (equal bg (cdr (assq 'cursor-color params)))
+			(modify-frame-parameters frame
+						 (list (cons 'cursor-color fg))))))
+	      ;; Copy the vectors that represent the faces.
+	      ;; Also fill them in from X resources.
+	      (while rest
+		(let ((global (cdr (car rest))))
+		  (setcdr (car rest) (vector 'face
+					     (face-name (cdr (car rest)))
+					     (face-id (cdr (car rest)))
+					     nil nil nil nil nil))
+		  (face-fill-in (car (car rest)) global frame))
+		(make-face-x-resource-internal (cdr (car rest)) frame t)
+		(setq rest (cdr rest)))
+	      (if (null visibility-spec)
+		  (make-frame-visible frame)
+		(modify-frame-parameters frame (list visibility-spec)))
+	      (setq success t))
+	  (or success
+	      (delete-frame frame)))))
+    ;; Set up the background-mode frame parameter
+    ;; so that programs can decide good ways of highlighting
+    ;; on this frame.
+    (let ((bg-resource (x-get-resource ".backgroundMode"
+				       "BackgroundMode"))
+	  (params (frame-parameters))
+	  (bg-mode))
+      (setq bg-mode
+	    (cond (bg-resource (intern (downcase bg-resource)))
+		  ((< (apply '+ (x-color-values
+				 (cdr (assq 'background-color params))))
+		      (/ (apply '+ (x-color-values "white")) 3))
+		   'dark)
+		  (t 'light)))
+      (modify-frame-parameters frame
+			       (list (cons 'background-mode bg-mode)
+				     (cons 'display-type
+					   (cond ((x-display-color-p frame)
+						  'color)
+						 ((x-display-grayscale-p frame)
+						  'grayscale)
+						 (t 'mono))))))
+    frame))
 
 ;; Update a frame's faces when we change its default font.
 (defun frame-update-faces (frame)
@@ -1125,18 +1176,12 @@ selected frame."
   (or (x-display-color-p frame)
       ;; A black-and-white display can implement these.
       (member color '("black" "white"))
-      ;; A black-and-white display can fake these for background.
+      ;; A black-and-white display can fake gray for background.
       (and background-p
-	   (member color '("gray" "gray1" "gray3")))
+	   (face-color-gray-p color frame))
       ;; A grayscale display can implement colors that are gray (more or less).
       (and (x-display-grayscale-p frame)
-	   (let* ((values (x-color-values color frame))
-		  (r (nth 0 values))
-		  (g (nth 1 values))
-		  (b (nth 2 values)))
-	     (and (< (abs (- r g)) (/ (abs (+ r g)) 20))
-		  (< (abs (- g b)) (/ (abs (+ g b)) 20))
-		  (< (abs (- b r)) (/ (abs (+ b r)) 20)))))))
+	   (face-color-gray-p color frame))))
 
 ;; Use FUNCTION to store a color in FACE on FRAME.
 ;; COLORS is either a single color or a list of colors.
