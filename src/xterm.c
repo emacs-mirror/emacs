@@ -6474,6 +6474,7 @@ x_list_fonts (f, pattern, size, maxnames)
   Lisp_Object list = Qnil, patterns, newlist = Qnil, key, tem, second_best;
   Display *dpy = f != NULL ? FRAME_X_DISPLAY (f) : x_display_list->display;
   int try_XLoadQueryFont = 0;
+  int count;
 
   patterns = Fassoc (pattern, Valternate_fontname_alist);
   if (NILP (patterns))
