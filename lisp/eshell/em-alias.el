@@ -26,7 +26,7 @@
 (defgroup eshell-alias nil
   "Command aliases allow for easy definition of alternate commands."
   :tag "Command aliases"
-  :link '(info-link "(eshell.info)Command aliases")
+  :link '(info-link "(eshell)Command aliases")
   :group 'eshell-module)
 
 ;;; Commentary:
@@ -101,7 +101,7 @@ gained by using this module."
 (defcustom eshell-bad-command-tolerance 3
   "*The number of failed commands to ignore before creating an alias."
   :type 'integer
-  :link '(custom-manual "(eshell.info)Auto-correction of bad commands")
+  :link '(custom-manual "(eshell)Auto-correction of bad commands")
   :group 'eshell-alias)
 
 ;;;
@@ -210,7 +210,7 @@ command, which will automatically write them to the file named by
 (defvar eshell-prevent-alias-expansion nil)
 
 (defun eshell-maybe-replace-by-alias (command args)
-  "If COMMAND has an alias definition, call that instead using RAGS."
+  "If COMMAND has an alias definition, call that instead using ARGS."
   (unless (and eshell-prevent-alias-expansion
 	       (member command eshell-prevent-alias-expansion))
     (let ((alias (eshell-lookup-alias command)))
