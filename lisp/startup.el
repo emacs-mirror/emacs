@@ -334,8 +334,13 @@ from being initialized."
 
 ;; This function is called from the subdirs.el file.
 (defun normal-top-level-add-to-load-path (dirs)
-  (let ((tail (or (member (directory-file-name default-directory) load-path)
-		  (member default-directory load-path))))
+  (let ((tail load-path)
+	(thisdir (directory-file-name default-directory)))
+    (while (and tail
+		(not (equal thisdir (car tail)))
+		(not (and (memq system-type '(ms-dos windows-nt))
+			  (equal (downcase thisdir) (downcase (car tail))))))
+      (setq tail (cdr tail)))
     (setcdr tail (append (mapcar 'expand-file-name dirs) (cdr tail)))))
 
 (defun normal-top-level ()
