@@ -947,14 +947,20 @@ Show wall-clock time elapsed during execution of COMMAND.")
 	       (throw 'eshell-replace-command
 		      (eshell-parse-command "*diff" orig-args))))
 	  (when (fboundp 'diff-mode)
-	    (diff-mode)
-	    (set (make-local-variable 'eshell-diff-window-config) config)
-	    (local-set-key [?q] 'eshell-diff-quit)
-	    (if (fboundp 'turn-on-font-lock-if-enabled)
-		(turn-on-font-lock-if-enabled))))
-	(other-window 1)
-	(goto-char (point-min))
-	nil))))
+	    (make-local-variable 'compilation-finish-functions)
+	    (add-hook
+	     'compilation-finish-functions
+	     `(lambda (buff msg)
+		(with-current-buffer buff
+		  (diff-mode)
+		  (set (make-local-variable 'eshell-diff-window-config)
+		       ,config)
+		  (local-set-key [?q] 'eshell-diff-quit)
+		  (if (fboundp 'turn-on-font-lock-if-enabled)
+		      (turn-on-font-lock-if-enabled))
+		  (goto-char (point-min))))))
+	  (pop-to-buffer (current-buffer))))))
+  nil)
 
 (defun eshell/locate (&rest args)
   "Alias \"locate\" to call Emacs `locate' function."
