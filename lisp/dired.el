@@ -46,7 +46,8 @@ may contain even `F', `b', `i' and `s'.")
 
 ;;;###autoload
 (defvar dired-chown-program
-  (if (memq system-type '(hpux dgux usg-unix-v)) "chown" "/etc/chown")
+  (if (memq system-type '(hpux dgux usg-unix-v silicon-graphics-unix))
+      "chown" "/etc/chown")
   "Name of chown command (usully `chown' or `/etc/chown').")
 
 ;;;###autoload
