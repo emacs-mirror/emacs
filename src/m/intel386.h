@@ -192,7 +192,7 @@ NOTE-END */
 #define HAVE_ALLOCA
 #define NO_REMAP 
 #define TEXT_START 0
-#endif /* not USG */
+#endif /* USG */
 #endif /* not XENIX */
 
 #ifdef BSD
