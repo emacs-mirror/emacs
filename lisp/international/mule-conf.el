@@ -244,16 +244,16 @@
    short ascii-eol ascii-cntl seven))
 
 (make-coding-system
- 'iso-2022-7bit-ss2 2 ?<
+ 'iso-2022-7bit-ss2 2 ?$
  "ISO 2022 based 7-bit encoding using SS2 for 96-charset"
  '((ascii t) nil t nil
    short ascii-eol ascii-cntl seven nil single-shift))
 
 (make-coding-system
- 'iso-2022-7bit-lock 2 ?>
+ 'iso-2022-7bit-lock 2 ?&
  "ISO-2022 coding system using Locking-Shift for 96-charset"
  '((ascii t) t nil nil
-   nil ascii-eol ascii-cntl locking-shift))
+   nil ascii-eol ascii-cntl seven locking-shift))
 
 (define-coding-system-alias 'iso-2022-7bit-lock 'iso-2022-int-1)
 
@@ -293,14 +293,14 @@
 
 ;; This setting is just to read an Emacs Lisp source files which
 ;; contain multilingual text while dumping Emacs.  More appropriate
-;; values are set by the command `setup-language-environment' for each
+;; values are set by the command `set-language-environment' for each
 ;; language environment.
 
 (setq coding-category-emacs-mule 'emacs-mule
       coding-category-sjis	'japanese-shift-jis
       coding-category-iso-7	'iso-2022-7bit
       coding-category-iso-8-1	'iso-latin-1
-      coding-category-iso-8-2	'iso-latin-1
+      coding-category-iso-8-2	'japanese-iso-8bit
       coding-category-iso-else	'iso-2022-7bit-lock
       coding-category-big5	'chinese-big5
       coding-category-binary	'no-conversion)
