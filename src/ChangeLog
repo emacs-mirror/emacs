@@ -1,3 +1,11 @@
+2003-02-25  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (redisplay_window): Fix infinite loop in redisplay.
+	If centering point failed to make whole line visible and vscroll
+	is non-zero, disable vscroll and try centering point again.
+
+	* lread.c (read1): Accept `single space' syntax like (? x).
+
 2003-02-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* keyboard.c (cancel_hourglass_unwind): Surround with
