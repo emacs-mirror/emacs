@@ -53,10 +53,17 @@
 (define-key menu-bar-file-menu [open-file] '("Open File..." . find-file))
 (define-key menu-bar-file-menu [new-frame] '("New Frame" . new-frame))
 
-
 (define-key menu-bar-edit-menu [spell] '("Spell..." . ispell-menu-map))
 (define-key menu-bar-edit-menu [fill] '("Fill" . fill-region))
 (define-key menu-bar-edit-menu [clear] '("Clear" . delete-region))
+(define-key menu-bar-edit-menu [re-search-back]
+  '("Regexp Search Backwards" . re-search-backward))
+(define-key menu-bar-edit-menu [search-back]
+  '("Search Backwards" . search-backward))
+(define-key menu-bar-edit-menu [re-search-fwd]
+  '("Regexp Search" . re-search-forward))
+(define-key menu-bar-edit-menu [search-fwd]
+  '("Search" . search-forward))
 (define-key menu-bar-edit-menu [choose-next-paste]
   '("Choose Next Paste" . mouse-menu-choose-yank))
 (define-key menu-bar-edit-menu [paste] '("Paste" . yank))
