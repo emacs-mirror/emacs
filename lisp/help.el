@@ -970,6 +970,8 @@ that."
                         (help-xref-button 1 #'describe-function sym)))))
               ;; Look for commands in whole keymap substitutions:
               (save-excursion
+		;; Make sure to find the first keymap.
+		(goto-char (point-min))
                 ;; Find a header and the column at which the command
                 ;; name will be found.
                 (while (re-search-forward "^key +binding\n\\(-+ +\\)-+\n\n" 
@@ -1054,11 +1056,10 @@ help buffer."
 (defun help-follow-mouse (click)
   "Follow the cross-reference that you click on."
   (interactive "e")
-  (save-excursion
-    (let* ((start (event-start click))
-	   (window (car start))
-	   (pos (car (cdr start))))
-      (set-buffer (window-buffer window))
+  (let* ((start (event-start click))
+	 (window (car start))
+	 (pos (car (cdr start))))
+    (with-current-buffer (window-buffer window)
       (help-follow pos))))
 
 (defun help-xref-go-back (buffer)
