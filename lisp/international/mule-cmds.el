@@ -764,14 +764,8 @@ or a string."
 	    (read-input-method-name "Input method: " nil t)))
   (if (and input-method (symbolp input-method))
       (setq input-method (symbol-name input-method)))
-  (let ((previous-input-method current-input-method))
-    (unwind-protect
-	(progn
-	  (activate-input-method input-method)
-	  (read-string prompt initial-input nil nil t))
-      (if previous-input-method
-	  (activate-input-method previous-input-method)
-	(inactivate-input-method)))))
+  (let ((current-input-method input-method))
+    (read-string prompt initial-input nil nil t)))
 
 ;; Variables to control behavior of input methods.  All input methods
 ;; should react to these variables.
