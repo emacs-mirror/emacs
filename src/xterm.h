@@ -1009,7 +1009,7 @@ extern void x_check_errors P_ ((Display *, char *));
 extern int x_had_errors_p P_ ((Display *));
 extern void x_uncatch_errors P_ ((Display *, int));
 extern Lisp_Object x_new_font P_ ((struct frame *, char *));
-extern Lisp_Object x_new_fontset P_ ((struct frame *, char *));
+extern Lisp_Object x_new_fontset P_ ((struct frame *, Lisp_Object));
 extern void x_compute_fringe_widths P_ ((struct frame *, int));
 extern void x_set_offset P_ ((struct frame *, int, int, int));
 extern void x_set_window_size P_ ((struct frame *, int, int, int));
