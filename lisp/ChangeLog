@@ -1,3 +1,17 @@
+2005-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-cmds.el (set-locale-environment): For Mac OS X's
+	Terminal.app, use utf-8.
+	(set-display-table-and-terminal-coding-system): Add coding-system arg.
+	(set-locale-environment): Use it.
+
+	* term/xterm.el: Undo last change, better done in mule-cmds.el.
+
+	* emacs-lisp/rx.el (rx-constituents): Add symbol-start and symbol-end.
+
+	* progmodes/python.el (python-close-block-statement-p)
+	(python-outdent-p, python-current-defun): Use symbol-end.
+
 2005-03-25  Karl Chen  <quarl@cs.berkeley.edu>  (tiny change)
 
 	* files.el (save-some-buffers): Doc fix.
@@ -16,13 +30,11 @@
 
 2005-03-25  Werner Lemberg  <wl@gnu.org>
 
-	* calc/calc-forms.el, calc/calc-sel: Replace `illegal' with
-	`invalid'.
+	* calc/calc-forms.el, calc/calc-sel: Replace `illegal' with `invalid'.
 	* midnight.el, vc-cvs.el: Replace `illegal' with `invalid'.
 	* emacs-lisp/cl-macs.el: Replace `illegal' with `invalid'.
 	* emulation/vip.el: Replace `illegal' with `invalid'.
-	* eshell/esh-io.el, eshell/esh-var.el: Replace `illegal' with
-	`invalid'.
+	* eshell/esh-io.el, eshell/esh-var.el: Replace `illegal' with `invalid'.
 	* mail/supercite.el: Replace `illegal' with `invalid'.
 	* progmodes/ebnf-abn.el, progmodes/ebnf-bnf.el,
 	progmodes/ebnf-ebx.el, progmodes/ebnf-dtd.el, progmodes/ebnf-iso.el,
@@ -32,10 +44,40 @@
 	* textmodes/refbib.el, textmodes/refer.el, textmodes/reftex-cite.el,
 	textmodes/reftex-index.el, textmodes/reftex-parse.el,
 	textmodes/reftex-ref.el, textmodes/reftex-vars.el,
-	textmodes/reftex.el, textmodes/org.el: Replace `illegal' with
-	`invalid'.
+	textmodes/reftex.el, textmodes/org.el: Replace `illegal' with `invalid'.
 
 2005-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/flymake.el (flymake-get-file-name-mode-and-masks)
+	(flymake-find-buildfile, flymake-find-possible-master-files)
+	(flymake-check-include, flymake-parse-line): Replace loops over the
+	length of lists, by loops over lists, to remove silly O(n,A2(B) behavior.
+
+	* progmodes/flymake.el (flymake-ensure-ends-with-slash): Remove.
+	Substitute file-name-as-directory in the rest of the file.
+	(flymake-get-common-file-prefix): Rewrite, using compare-strings.
+	(flymake-replace-region): Remove unused arg `buffer'.
+	(flymake-check-patch-master-file-buffer): Update calls to it.
+	(flymake-add-err-info): Remove unused var `count'.
+	(flymake-mode): Use define-minor-mode.
+
+	* progmodes/flymake.el: Use with-current-buffer.
+	(flymake-float-time, flymake-get-temp-dir, flymake-line-end-position)
+	flymake-replace-regexp-in-string, flymake-line-beginning-position)
+	(flymake-popup-menu, flymake-current-row, flymake-selected-frame):
+	Avoid testing for `xemacs'.
+	(flymake-nop): Move.
+	(flymake-region-has-flymake-overlays): Return the computed value.
+	(flymake-reformat-err-line-patterns-from-compile-el): Use dolist.
+	Remove unused var `endline'.
+	(flymake-get-line-count): Remove unused function.
+	(flymake-display-err-menu-for-current-line): Unused var move-mouse-pos.
+
+	* emulation/vi.el:
+	* generic.el:
+	* hilit-chg.el (global-highlight-changes):
+	* hi-lock.el (hi-lock-mode):
+	* follow.el: find-file-hooks -> find-file-hook.
 
 	* comint.el (comint-insert-input): Obey mouse-yank-at-point.
 
