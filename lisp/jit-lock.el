@@ -30,8 +30,6 @@
 ;;; Code:
 
 
-(require 'font-lock)
-
 (eval-when-compile
   (defmacro with-buffer-unmodified (&rest body)
     "Eval BODY, preserving the current buffer's modified state."
@@ -141,23 +139,19 @@ The value of this variable is used when JIT Lock mode is turned on."
 (defvar jit-lock-functions nil
   "Functions to do the actual fontification.
 They are called with two arguments: the START and END of the region to fontify.")
+(make-variable-buffer-local 'jit-lock-functions)
 
 (defvar jit-lock-first-unfontify-pos nil
-  "Consider text after this position as unfontified.
+  "Consider text after this position as contextually unfontified.
 If nil, contextual fontification is disabled.")
 (make-variable-buffer-local 'jit-lock-first-unfontify-pos)
 
 
 (defvar jit-lock-stealth-timer nil
   "Timer for stealth fontification in Just-in-time Lock mode.")
-
-(defvar jit-lock-saved-fontify-buffer-function nil
-  "Value of `font-lock-fontify-buffer-function' before jit-lock's activation.") 
-
 
 ;;; JIT lock mode
 
-;;;###autoload
 (defun jit-lock-mode (arg)
   "Toggle Just-in-time Lock mode.
 Turn Just-in-time Lock mode on if and only if ARG is non-nil.
@@ -193,21 +187,8 @@ the variable `jit-lock-stealth-nice'."
   (cond (;; Turn Just-in-time Lock mode on.
 	 jit-lock-mode
 
-	 ;; Mark the buffer for refontification
-	 ;; (in case spurious `fontified' text-props were left around).
-	 (jit-lock-fontify-buffer)
-
-	 ;; Setting `font-lock-fontified' makes font-lock believe the
-	 ;; buffer is already fontified, so that it won't highlight
-	 ;; the whole buffer or bail out on a large buffer.
-	 (set (make-local-variable 'font-lock-fontified) t)
-
-	 ;; Setup JIT font-lock-fontify-buffer.
-	 (unless jit-lock-saved-fontify-buffer-function
-	   (set (make-local-variable 'jit-lock-saved-fontify-buffer-function)
-		font-lock-fontify-buffer-function)
-	   (set (make-local-variable 'font-lock-fontify-buffer-function)
-		'jit-lock-fontify-buffer))
+ 	 ;; Mark the buffer for refontification
+	 (jit-lock-refontify)
 
 	 ;; Install an idle timer for stealth fontification.
 	 (when (and jit-lock-stealth-time (null jit-lock-stealth-timer))
@@ -217,19 +198,12 @@ the variable `jit-lock-stealth-nice'."
 				      'jit-lock-stealth-fontify)))
 
 	 ;; Initialize deferred contextual fontification if requested.
-	 (when (or (eq jit-lock-defer-contextually t)
-		   (and jit-lock-defer-contextually
-			(boundp 'font-lock-keywords-only)
-			(null font-lock-keywords-only)))
+	 (when (eq jit-lock-defer-contextually t)
 	   (setq jit-lock-first-unfontify-pos
 		 (or jit-lock-first-unfontify-pos (point-max))))
 
-	 ;; Setup our after-change-function
-	 ;; and remove font-lock's (if any).
-	 (remove-hook 'after-change-functions 'font-lock-after-change-function t)
+	 ;; Setup our hooks.
 	 (add-hook 'after-change-functions 'jit-lock-after-change nil t)
-	 
-	 ;; Install the fontification hook.
 	 (add-hook 'fontification-functions 'jit-lock-function))
 
 	;; Turn Just-in-time Lock mode off.
@@ -239,17 +213,8 @@ the variable `jit-lock-stealth-nice'."
 	   (cancel-timer jit-lock-stealth-timer)
 	   (setq jit-lock-stealth-timer nil))
 
-	 ;; Restore non-JIT font-lock-fontify-buffer.
-	 (when jit-lock-saved-fontify-buffer-function
-	   (set (make-local-variable 'font-lock-fontify-buffer-function)
-		jit-lock-saved-fontify-buffer-function)
-	   (setq jit-lock-saved-fontify-buffer-function nil))
-
-	 ;; Remove hooks (and restore font-lock's if necessary).
+	 ;; Remove hooks.
 	 (remove-hook 'after-change-functions 'jit-lock-after-change t)
-	 (when font-lock-mode
-	   (add-hook 'after-change-functions
-		     'font-lock-after-change-function nil t))
 	 (remove-hook 'fontification-functions 'jit-lock-function))))
 
 ;;;###autoload
@@ -267,21 +232,20 @@ If non-nil, CONTEXTUAL means that a contextual fontification would be useful."
   "Unregister FUN as a fontification function.
 Only applies to the current buffer."
   (remove-hook 'jit-lock-functions fun t)
-  (when (or (null jit-lock-functions)
-	    (and (equal jit-lock-functions '(t))
-		 (null (default-value 'jit-lock-functions))))
-    (jit-lock-mode nil)))
+  (unless jit-lock-functions (jit-lock-mode nil)))
 
 ;; This function is used to prevent font-lock-fontify-buffer from
 ;; fontifying eagerly the whole buffer.  This is important for
 ;; things like CWarn mode which adds/removes a few keywords and
 ;; does a refontify (which takes ages on large files).
-(defun jit-lock-fontify-buffer ()
+(defalias 'jit-lock-fontify-buffer 'jit-lock-refontify)
+(defun jit-lock-refontify (&optional beg end)
+  "Force refontification of the region BEG..END (default whole buffer)."
   (with-buffer-prepared-for-jit-lock
    (save-restriction
      (widen)
-     (add-text-properties (point-min) (point-max) '(fontified nil)))))
-
+     (add-text-properties (or beg (point-min)) (or end (point-max))
+			  '(fontified nil)))))
 
 ;;; On demand fontification.
 
@@ -290,17 +254,19 @@ Only applies to the current buffer."
 This function is added to `fontification-functions' when `jit-lock-mode'
 is active."
   (when jit-lock-mode
-    (jit-lock-function-1 start)))
+    (jit-lock-fontify-now start (+ start jit-lock-chunk-size))))
      
-  
-(defun jit-lock-function-1 (start)
-  "Fontify current buffer starting at position START."
+
+(defun jit-lock-fontify-now (&optional start end)
+  "Fontify current buffer from START to END.
+Defaults to the whole buffer.  END can be out of bounds."
   (with-buffer-prepared-for-jit-lock
    (save-excursion
      (save-restriction
        (widen)
-       (let ((end (min (point-max) (+ start jit-lock-chunk-size)))
-	     (font-lock-beginning-of-syntax-function nil)
+       (unless start (setq start (point-min)))
+       (setq end (if end (min end (point-max)) (point-max)))
+       (let ((font-lock-beginning-of-syntax-function nil)
 	     next)
 	 (save-match-data
 	   ;; Fontify chunks beginning at START.  The end of a
@@ -317,18 +283,14 @@ is active."
 	     ;; Until someone has a better idea, let's start
 	     ;; at the start of the line containing START and
 	     ;; stop at the start of the line following NEXT.
-	     (goto-char next)
-	     (setq next (line-beginning-position 2))
-	     (goto-char start)
-	     (setq start (line-beginning-position))
-		   
+	     (goto-char next)  (setq next (line-beginning-position 2))
+	     (goto-char start) (setq start (line-beginning-position))
+	     
 	     ;; Fontify the chunk, and mark it as fontified.
 	     ;; We mark it first, to make sure that we don't indefinitely
 	     ;; re-execute this fontification if an error occurs.
 	     (add-text-properties start next '(fontified t))
-	     (if jit-lock-functions
-		 (run-hook-with-args 'jit-lock-functions start next)
-	       (font-lock-fontify-region start next))
+	     (run-hook-with-args 'jit-lock-functions start next)
 		   
 	     ;; Find the start of the next chunk, if any.
 	     (setq start (text-property-any next end 'fontified nil)))))))))
@@ -441,7 +403,8 @@ This functions is called after Emacs has been idle for
 		    
 		    ;; Unless there's input pending now, fontify.
 		    (unless (input-pending-p)
-		      (jit-lock-function-1 start))))))))))))
+		      (jit-lock-fontify-now
+		       start (+ start jit-lock-chunk-size)))))))))))))
 
 
 
