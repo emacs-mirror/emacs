@@ -1,3 +1,8 @@
+2002-04-03  Juanma Barranquero  <lektu@terra.es>
+
+	* doc.c (Fdocumentation): Add missing parentheses.
+	(Fdocumentation_property): Likewise.
+
 2002-04-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (syms_of_msdos): Fix last change with
