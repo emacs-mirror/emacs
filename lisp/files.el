@@ -2793,15 +2793,16 @@ Then you'll be asked about a number of files to recover."
   (let ((ls-lisp-support-shell-wildcards t))
     (dired (concat auto-save-list-file-prefix "*")
 	   (concat dired-listing-switches "t")))
-  (goto-char (point-min))
-  (or (looking-at "Move to the session you want to recover,")
-      (let ((inhibit-read-only t))
-	;; Each line starts with a space
-	;; so that Font Lock mode won't highlight the first character.
-	(insert " Move to the session you want to recover,\n"
-		" then type C-c C-c to select it.\n\n"
-		" You can also delete some of these files;\n"
-		" type d on a line to mark that file for deletion.\n\n")))
+  (save-excursion
+    (goto-char (point-min))
+    (or (looking-at " Move to the session you want to recover,")
+	(let ((inhibit-read-only t))
+	  ;; Each line starts with a space
+	  ;; so that Font Lock mode won't highlight the first character.
+	  (insert " Move to the session you want to recover,\n"
+		  " then type C-c C-c to select it.\n\n"
+		  " You can also delete some of these files;\n"
+		  " type d on a line to mark that file for deletion.\n\n"))))
   (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
   (define-key (current-local-map) "\C-c\C-c" 'recover-session-finish))
 
