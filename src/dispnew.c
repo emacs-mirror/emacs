@@ -3638,6 +3638,8 @@ redraw_overlapped_rows (w, yb)
      struct window *w;
      int yb;
 {
+  int i;
+  
   /* If rows overlapping others have been changed, the rows being
      overlapped have to be redrawn.  This won't draw lines that have
      already been drawn in update_window_line because overlapped_p in
@@ -4638,7 +4640,6 @@ scrolling_window (w, header_line_p)
 	    to = MATRIX_ROW (current_matrix, r->desired_vpos + j);
 	    from = MATRIX_ROW (desired_matrix, r->desired_vpos + j);
 	    to_overlapped_p = to->overlapped_p;
-	    xassert (!to->mouse_face_p);
 	    assign_row (to, from);
 	    to->enabled_p = 1, from->enabled_p = 0;
 	    to->overlapped_p = to_overlapped_p;
