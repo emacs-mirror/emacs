@@ -150,10 +150,9 @@ against the file name, and TYPE is nil for text, t for binary.")
 
 ;; Really should provide this capability at the drive letter granularity.
 (defun using-unix-filesystems (flag)
-  "Read and write all files assuming that they are on a drive attached 
-to a remote Unix file system.  No CR/LF translation is done on any files
-in this case.  This behavior is activated when FLAG is t and deactived
-when FLAG is any other value."
+  "Read and write files without CR/LF translation, if FLAG is non-nil.
+This is in effect assuming the files are on a remote Unix file system.
+If FLAG is nil, resume using CR/LF translation as usual."
   (if flag
       (progn
 	(add-hook 'write-file-hooks 'save-to-unix-hook)
@@ -162,7 +161,7 @@ when FLAG is any other value."
       (remove-hook 'write-file-hooks 'save-to-unix-hook)
       (remove-hook 'after-save-hook 'revert-from-unix-hook))))
 
-;;; Avoid creating auto-save file names containing illegal characters
+;;; Avoid creating auto-save file names containing invalid characters
 ;;; (primarily "*", eg. for the *mail* buffer).
 (fset 'original-make-auto-save-file-name
       (symbol-function 'make-auto-save-file-name))
