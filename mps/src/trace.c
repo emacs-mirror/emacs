@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.56) $
+ * $HopeName: MMsrc!trace.c(trunk.57) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .sources: design.mps.tracer.
@@ -8,7 +8,7 @@
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.56) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.57) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -864,26 +864,30 @@ Res TracePoll(Trace trace)
   EVENT_PP(TracePoll, trace, arena);
 
   switch(trace->state) {
-    case TraceUNFLIPPED: {
-      res = TraceFlip(trace);
-      if(res != ResOK) return res;
-    } break;
+  case TraceUNFLIPPED:
+    /* all traces are flipped in TraceStart at the moment */
+    NOTREACHED;
+    res = TraceFlip(trace);
+    if(res != ResOK)
+      return res;
+    break;
 
-    case TraceFLIPPED: {
-      res = TraceRun(trace);
-      if(res != ResOK) return res;
-    } break;
+  case TraceFLIPPED:
+    res = TraceRun(trace);
+    if(res != ResOK)
+      return res;
+    break;
 
-    case TraceRECLAIM: {
-      TraceReclaim(trace);
-    } break;
+  case TraceRECLAIM:
+    TraceReclaim(trace);
+    break;
 
-    case TraceFINISHED:
-    case TraceINIT:
+  case TraceFINISHED:
+  case TraceINIT:
     NOOP;
     break;
 
-    default:
+  default:
     NOTREACHED;
     break;
   }
