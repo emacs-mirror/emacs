@@ -1253,7 +1253,10 @@ The value of this variable is used when Font Lock mode is turned on."
 (defvar font-lock-extra-managed-props nil
   "Additional text properties managed by font-lock.
 This is used by `font-lock-default-unfontify-region' to decide
-what properties to clear before refontifying a region.")
+what properties to clear before refontifying a region.
+Since it is more or less directly passed to `remove-text-properties',
+it should have the shape of a property list (i.e. every other element
+is ignored).")
 
 (defun font-lock-default-unfontify-region (beg end)
   (save-buffer-state nil
