@@ -1,3 +1,8 @@
+2002-09-30  Markus Rost  <rost@math.ohio-state.edu>
+
+	* emacsclient.c (main): Remove reference to SERVER_HOME_DIR
+	completely.
+
 2002-09-27  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacsclient.c: Remove SYSV support.
