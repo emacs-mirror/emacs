@@ -681,7 +681,7 @@ If used within a line, follow `@br' with braces."
 
 (defun texinfo-format-footnote ()
   "Format a footnote in either `end node' or `make node' style.
-The   texinfo-footnote-style  variable controls which style is used."
+The `texinfo-footnote-style' variable controls which style is used."
   (setq texinfo-footnote-number (1+ texinfo-footnote-number))
   (cond ((eq texinfo-footnote-style 'EN) (texinfo-format-end-node))
         ((eq texinfo-footnote-style 'MN) (texinfo-format-make-node))))
@@ -1766,7 +1766,7 @@ If used within a line, follow `@minus' with braces."
 
 ;;;###autoload
 (defun batch-texinfo-format ()
-  "Runs  texinfo-format-buffer  on the files remaining on the command line.
+  "Runs `texinfo-format-buffer' on the files remaining on the command line.
 Must be used only with -batch, and kills emacs on completion.
 Each file will be processed even if an error occurred previously.
 For example, invoke

@@ -57,7 +57,7 @@ inherit all the commands defined in this map.")
 
 (defun text-mode ()
   "Major mode for editing text intended for humans to read.  Special commands:\\{text-mode-map}
-Turning on text-mode calls the value of the variable `text-mode-hook',
+Turning on Text mode calls the value of the variable `text-mode-hook',
 if that value is non-nil."
   (interactive)
   (kill-all-local-variables)
@@ -82,8 +82,8 @@ All the commands defined in Text mode are inherited unless overridden.")
 
 (defun indented-text-mode ()
   "Major mode for editing indented text intended for humans to read.\\{indented-text-mode-map}
-Turning on indented-text-mode calls the value of the variable `text-mode-hook',
-if that value is non-nil."
+Turning on `indented-text-mode' calls the value of the variable
+`text-mode-hook', if that value is non-nil."
   (interactive)
   (kill-all-local-variables)
   (use-local-map text-mode-map)
@@ -99,7 +99,7 @@ if that value is non-nil."
 
 (defun center-paragraph ()
   "Center each nonblank line in the paragraph at or after point.
-See center-line for more info."
+See `center-line' for more info."
   (interactive)
   (save-excursion
     (forward-paragraph)
@@ -110,7 +110,7 @@ See center-line for more info."
 
 (defun center-region (from to)
   "Center each nonblank line starting in the region.
-See center-line for more info."
+See `center-line' for more info."
   (interactive "r")
   (if (> from to)
       (let ((tem to))
