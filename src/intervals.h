@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifdef USE_INTERVALS
+#ifdef USE_TEXT_PROPERTIES
 #include "dispextern.h"
 
 #define NULL_INTERVAL 0
@@ -153,9 +153,6 @@ extern INTERVAL make_interval ();
 
 /* Declared in intervals.c */
 
-extern INTERVAL mouse_interval;
-extern Lisp_Object Vmouse_buffer;
-extern int mouse_buffer_offset;
 extern Lisp_Object interval_balance_threshold;
 
 extern INTERVAL create_root_interval ();
@@ -169,6 +166,7 @@ extern void delete_interval ();
 extern INLINE void offset_intervals ();
 extern void graft_intervals_into_buffer ();
 extern void set_point ();
+extern INLINE void temp_set_point (position, buffer)
 extern void verify_interval_modification ();
 extern INTERVAL balance_intervals ();
 extern void copy_intervals_to_string ();
@@ -193,7 +191,7 @@ extern Lisp_Object Fremove_text_properties (), Ferase_text_properties ();
 
 extern void syms_of_textprop ();
 
-#else  /* intervals not used */
+#else  /* don't support text properties */
 
 #define NULL_INTERVAL_P(i) 1
 #define INTERVAL_SIZE 0
@@ -205,4 +203,6 @@ extern void syms_of_textprop ();
 #define graft_intervals_into_buffer(tree,position,bufferptr)
 #define offset_intervals(buffer,position,length)
 
-#endif /* intervals not used */
+#define syms_of_textprop()
+
+#endif /* don't support text properties */
