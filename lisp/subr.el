@@ -1,6 +1,6 @@
 ;;; subr.el --- basic lisp subroutines for Emacs
 
-;; Copyright (C) 1985, 86, 92, 94, 95, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 92, 94, 95, 99, 2000 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -67,11 +67,11 @@ change the list."
 	(list 'setq listname (list 'cdr listname))))
 
 (defmacro when (cond &rest body)
-  "(when COND BODY...): if COND yields non-nil, do BODY, else return nil."
+  "If COND yields non-nil, do BODY, else return nil."
   (list 'if cond (cons 'progn body)))
 
 (defmacro unless (cond &rest body)
-  "(unless COND BODY...): if COND yields nil, do BODY, else return nil."
+  "If COND yields nil, do BODY, else return nil."
   (cons 'if (cons cond (cons nil body))))
 
 (defmacro dolist (spec &rest body)
@@ -862,7 +862,6 @@ Optional DEFAULT is a default password to use instead of empty input."
 	      (message "Password not repeated accurately; please start over")
 	      (sit-for 1))))
 	success)
-    (clear-this-command-keys)
     (let ((pass nil)
 	  (c 0)
 	  (echo-keystrokes 0)
@@ -878,6 +877,7 @@ Optional DEFAULT is a default password to use instead of empty input."
 	      (setq pass (concat pass (char-to-string c)))
 	    (if (> (length pass) 0)
 		(setq pass (substring pass 0 -1))))))
+      (clear-this-command-keys)
       (message nil)
       (or pass default ""))))
 
@@ -1155,7 +1155,9 @@ If SEPARATORS is absent, it defaults to \"[ \\f\\t\\n\\r\\v]+\".
 
 If there is match for SEPARATORS at the beginning of STRING, we do not
 include a null substring for that.  Likewise, if there is a match
-at the end of STRING, we don't include a null substring for that."
+at the end of STRING, we don't include a null substring for that.
+
+Modifies the match data; use `save-match-data' if necessary."
   (let ((rexp (or separators "[ \f\t\n\r\v]+"))
 	(start 0)
 	notfirst
@@ -1190,6 +1192,60 @@ Unless optional argument INPLACE is non-nil, return a new string."
       (if (eq (aref newstr i) fromchar)
 	  (aset newstr i tochar)))
     newstr))
+
+(defun replace-regexps-in-string (regexp rep string &optional
+					 fixedcase literal subexp start)
+  "Replace all matches for REGEXP with REP in STRING.
+
+Return a new string containing the replacements.
+
+Optional arguments FIXEDCASE, LITERAL and SUBEXP are like the
+arguments with the same names of function `replace-match'.  If START
+is non-nil, start replacements at that index in STRING.
+
+REP is either a string used as the NEWTEXT arg of `replace-match' or a
+function.  If it is a function it is applied to each match to generate
+the replacement passed to `replace-match'; the match-data at this
+point are such that match 0 is the function's argument.
+
+To replace a single match, make REGEXP match up to \\'."
+
+  ;; To avoid excessive consing from multiple matches in long strings,
+  ;; don't just call `replace-match' continually.  Walk down the
+  ;; string looking for matches of REGEXP and building up a (reversed)
+  ;; list MATCHES.  This comprises segments of STRING which weren't
+  ;; matched interspersed with replacements for segments that were.
+  ;; [For a `large' number of replacments it's more efficient to
+  ;; operate in a temporary buffer; we can't tell from the function's
+  ;; args whether to choose the buffer-based implementation, though it
+  ;; might be reasonable to do so for long enough STRING.]
+  (let ((l (length string))
+	(start (or start 0))
+	matches str mb me)
+    (save-match-data
+      (while (and (< start l) (string-match regexp string start))
+	(setq mb (match-beginning 0)
+	      me (match-end 0))
+	(if (= me mb)
+	    (setq start l		; Matched empty string -- bail out.
+		  matches (list string))
+	  ;; Generate a replacement for the matched substring.
+	  ;; Operate only on the substring to minimize string consing.
+	  ;; Set up match data for the substring for replacement;
+	  ;; presumably this is likely to be faster than munging the
+	  ;; match data directly in Lisp.
+	  (string-match regexp (setq str (substring string mb me)))
+	  (setq matches
+		(cons (replace-match (if (stringp rep)
+					 rep
+				       (funcall rep (match-string 0 str)))
+				     fixedcase literal str subexp)
+		      (cons (substring string start mb) ; unmatched prefix
+			    matches)))
+	  (setq start me)))
+      ;; Reconstruct a string from the pieces.
+      (setq matches (cons (substring string start l) matches)) ; leftover
+      (apply #'concat (nreverse matches)))))
 
 (defun shell-quote-argument (argument)
   "Quote an argument for passing as argument to an inferior shell."
