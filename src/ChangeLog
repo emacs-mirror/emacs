@@ -1,3 +1,27 @@
+2003-03-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (xg_scroll_callback): Remove xg_ignore_next_thumb.
+
+	* gtkutil.c (xg_initialize): Remove xg_ignore_next_thumb.
+
+2003-03-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c: Removed handle_fixed_child, struct xg_last_sb_pos.
+	(xg_resize_widgets): Don't call foreach(handle_fixed_child).
+	(xg_gtk_scroll_destroy): Remove free of struct xg_last_sb_pos.
+	(scroll_bar_button_cb): Set bar->dragging to NIL on button release.
+	(xg_create_scroll_bar): Pass bar to button event callback.
+	(xg_find_top_left_in_fixed): New function.
+	(xg_update_scrollbar_pos): Don't call gdk_window_clear on
+	whole scroll bar area.  Get old position with
+	xg_find_top_left_in_fixed, calculate and only clear needed areas.
+	(xg_set_toolkit_scroll_bar_thumb): Do not adjust scroll bar if
+	dragging is in progress.  Calculate whole as for Motif.
+	Remove code that saved last values.  Call gtk_range functions to
+	set scroll bar sizes.
+
+	* gtkutil.h: Removed xg_ignore_next_thumb.
+
 2003-03-17  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in ($(BLD)/xdisp.$(O)): Add dependency on blockinput.h

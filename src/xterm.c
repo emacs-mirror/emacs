@@ -6395,7 +6395,7 @@ xm_scroll_callback (widget, client_data, call_data)
 
 #else /* !USE_MOTIF, i.e. Xaw or GTK */
 #ifdef USE_GTK
-/* Scroll bar callback for Gtk scroll bars.  WIDGET is the scroll
+/* Scroll bar callback for GTK scroll bars.  WIDGET is the scroll
    bar adjustment widget.  DATA is a pointer to the scroll_bar structure. */
 
 static void
@@ -6453,13 +6453,12 @@ xg_scroll_callback (widget, data)
     {
       part = scroll_bar_handle;
       whole = adj->upper - adj->page_size;
-      portion = min (position, whole);
-      bar->dragging = make_number (portion);
+      portion = min ((int)position, whole);
+      bar->dragging = make_number ((int)portion);
     }
 
   if (part >= 0)
     {
-      xg_ignore_next_thumb = 1;
       window_being_scrolled = bar->window;
       last_scroll_bar_part = part;
       x_send_scroll_bar_event (bar->window, part, portion, whole);
