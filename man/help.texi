@@ -33,39 +33,41 @@ define other meanings for it, but they all support @key{F1}.)
 
   Most help buffers use a special major mode, Help mode, which lets you
 scroll conveniently with @key{SPC} and @key{DEL}.  It also offers
-hyperlinks to more help on cross-referenced names, Info nodes,
+hyperlinks to further help regarding cross-referenced names, Info nodes,
 customization buffers and the like.  @xref{Help Mode}.
 
 @cindex searching documentation efficiently
 @cindex looking for a subject in documentation
   If you are looking for a certain feature, but don't know where exactly
 it is documented, and aren't even sure what is the name of the related
-command or option, we recommend the following procedure:
+command or option, we recommend these commands:
 
 @table @kbd
 @item C-h a @var{topic} @key{RET}
-This searches for commands whose names match @var{topic}.  @var{topic}
-is a regular expression (@pxref{Regexps}).  Browse the buffer popped up
-by Emacs, to find what you are looking for.  @xref{Apropos}.
+This searches for commands whose names match @var{topic}, which should
+be a regular expression (@pxref{Regexps}).  Browse the buffer popped
+up by Emacs, to find what you are looking for.  @xref{Apropos}.
 
 @item M-x apropos @var{topic} @key{RET}
 This works like @kbd{C-h a}, but it also searches for user options and
 other variables, in case the feature you are looking for is controlled
 by an option, not a command.  @xref{Apropos}.
 
-@item C-h i m emacs @key{RET} i @var{topic} @key{RET}
-This looks up @var{topic} in the indices of the Emacs on-line manual.
-Press @key{,} repetitively until you find what you are looking for.
-
-@item C-h i m emacs @key{RET} s @var{topic} @key{RET}
-This works like the previous command, but it searches for @var{topic}
-(which can be a regular expression) in the @emph{text} of the manual
-rather than in its indices.
-
 @item M-x apropos-documentation @var{topic} @key{RET}
 This searches the @emph{documentation strings} (the built-in short
 descriptions) of all variables and functions (not their names) for a
 match for @var{topic}, a regular expression.  @xref{Apropos}.
+
+@item C-h i m emacs @key{RET} i @var{topic} @key{RET}
+This looks up @var{topic} in the indices of the Emacs on-line manual.
+There may be several matches, so displays the first one.  You can then
+press @key{,} to move to other matches, until you find what you are
+looking for.
+
+@item C-h i m emacs @key{RET} s @var{topic} @key{RET}
+Similar, but searches for @var{topic} (which can be a regular
+expression) in the @emph{text} of the manual rather than in its
+indices.
 
 @item C-h F
 This brings up the Emacs FAQ, where you can use the usual search
@@ -252,11 +254,13 @@ Lisp variables instead of Lisp functions.  Its default is the Lisp symbol
 around or before point, but only if that is the name of a known Lisp
 variable.  @xref{Variables}.@refill
 
-Help buffers describing variables or functions defined in Lisp normally
-have hyperlinks to their definitions if you have the Lisp source files
-installed.  If you can read Lisp, this provides the ultimate
-documentation.
-  
+  Help buffers describing variables or functions defined in Lisp
+normally have hyperlinks to the Lisp definition, if you have the Lisp
+source files installed.  If you know Lisp, this provides the ultimate
+documentation.  If you don't know Lisp, you should learn it.  If you
+are treating Emacs as an object file, then you are just @emph{using}
+Emacs.  For real intimacy with Emacs, you must read the source code.
+
 @node Apropos
 @section Apropos
 
