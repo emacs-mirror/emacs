@@ -1,9 +1,9 @@
 2001-07-20  Juanma Barranquero  <lektu@terra.es>
 
-	* grep-changelog (parse_changelog): Add test for defined value to
-	quiet warning from Perl 5.005 or above.
+	* grep-changelog (parse_changelog): Add tests for defined values
+	to quiet warning from Perl 5.005 or above.
 	(entry_match_p, header_match_p): Fix handling of null or empty
-	argument to prevent duplicate headers.
+	argument to prevent duplicate headers.  * grep-changelog
 
 2001-07-17  Jan Nieuwenhuizen  <janneke@gnu.org>
 

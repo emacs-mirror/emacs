@@ -1,3 +1,8 @@
+2001-07-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* simple.el (delete-trailing-whitespace): Save match data 
+	around looking-at.  From Markus Rost <rost@math.ohio-state.edu>.
+
 2001-07-19  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* progmodes/compile.el (compilation-parse-errors): `linenum' might

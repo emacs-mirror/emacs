@@ -1,5 +1,8 @@
 2001-07-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* dispextern.h (struct face): Change type of `stipple' to
+	int; it's an ID.
+
 	* xterm.c (x_fill_stretch_glyph_string): Remove an assertion.
 
 2001-07-19  Gerd Moellmann  <gerd@gnu.org>
