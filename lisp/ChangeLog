@@ -1,3 +1,9 @@
+2002-03-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (auto-save-file-name-transforms): Fix last change.
+
+	* startup.el (command-line): Fix last change.
+
 2002-03-29  Richard M. Stallman  <rms@gnu.org>
 
 	* subr.el (play-sound-file): Moved to simple.el.
