@@ -333,8 +333,7 @@
 
 (defvar *completep* t
   "*Set to nil to turn off the completion hooks.
-(No new words added to the database or saved to the init file)."
-  )
+(No new words added to the database or saved to the init file).")
 
 (defvar *save-completions-p* t
   "*If non-nil, the most useful completions are saved to disk when
@@ -344,10 +343,9 @@ exiting EMACS.  See *saved-completions-decay-factor*.")
   "*The filename to save completions to.")
 
 (defvar *saved-completion-retention-time* 336
-  "*The maximum amout of time to save a completion for if it has not been used.
+  "*The maximum amount of time to save a completion for if it has not been used.
 In hours.  (1 day = 24, 1 week = 168).  If this is 0, non-permanent completions
-will not be saved unless these are used.  Default is two weeks."
-  )
+will not be saved unless these are used.  Default is two weeks.")
 
 (defvar *separator-character-uses-completion-p* nil
   "*If non-nil, typing a separator character after a completion symbol that
@@ -363,7 +361,7 @@ after inserting the current one."
   )
 
 (defvar *print-next-completion-does-cdabbrev-search-p* nil
-  "*If non-NIL, the next completion prompt will also do a cdabbrev search.
+  "*If non-nil, the next completion prompt will also do a cdabbrev search.
 This can be time consuming.")
 
 (defvar *cdabbrev-radius* 15000
@@ -371,7 +369,7 @@ This can be time consuming.")
 whole buffer is searched.")
 
 (defvar *modes-for-completion-find-file-hook* '(lisp c)
-  "*A list of modes {either c or lisp}.  Definitions from visited files
+  "*A list of modes {either C or Lisp}.  Definitions from visited files
 of those types are automatically added to the completion database.")
 
 (defvar *record-cmpl-statistics-p* nil
@@ -396,8 +394,7 @@ DON'T CHANGE WITHOUT RECOMPILING !  This is used by macros.")
 (defmacro eval-when-compile-load-eval (&rest body)
   ;; eval everything before expanding
   (mapcar 'eval body)
-  (cons 'progn body)
-  )
+  (cons 'progn body))
 
 (defun completion-eval-when ()
   (eval-when-compile-load-eval
@@ -406,8 +403,7 @@ DON'T CHANGE WITHOUT RECOMPILING !  This is used by macros.")
    (setq *completion-max-length* 200)
    (setq *completion-prefix-min-length* 3)
    ;; Need this file around too
-   (require 'cl)
-   )) ;; eval-when
+   (require 'cl)))
 
 (completion-eval-when)
  
@@ -416,8 +412,8 @@ DON'T CHANGE WITHOUT RECOMPILING !  This is used by macros.")
 ;;;---------------------------------------------------------------------------
 
 (defvar cmpl-initialized-p nil
-  "Set to t when the completion system is initialized.  Indicates that the old 
-completion file has been read in.")
+  "Set to t when the completion system is initialized.  Indicates that the
+old completion file has been read in.")
 
 (defvar cmpl-completions-accepted-p nil
   "Set to T as soon as the first completion has been accepted.  Used to
@@ -434,8 +430,7 @@ decide whether to save completions.")
 
 (defun remove (item list)
   (setq list (copy-sequence list))
-  (delq item list)
-  )
+  (delq item list))
 
 (defun minibuffer-window-selected-p ()
   "True iff the current window is the minibuffer."
@@ -447,18 +442,15 @@ decide whether to save completions.")
   ;; autoloaded.
   (and (listp (symbol-function symbol))
        (eq 'autoload (car (symbol-function symbol)))
-       ))
-) ;; eval-when
+       )))
 
 (defun function-defined-and-loaded (symbol)
   ;; True iff symbol is bound to a loaded function.
-  (and (fboundp symbol) (not (function-needs-autoloading-p symbol)))
-  )
+  (and (fboundp symbol) (not (function-needs-autoloading-p symbol))))
 
 (defmacro read-time-eval (form)
   ;; Like the #. reader macro
-  (eval form)
-  )
+  (eval form))
 
 ;;;-----------------------------------------------
 ;;; Emacs Version 19 compatibility
@@ -626,7 +618,7 @@ WHERE is either :BEFORE or :AFTER."
 (defvar cmpl-emacs-idle-process nil)
 
 (defvar cmpl-emacs-idle-interval 150
-  "Seconds between running the emacs idle process.")
+  "Seconds between running the Emacs idle process.")
 
 (defun init-cmpl-emacs-idle-process ()
   "Initialize the emacs idle process."
@@ -667,7 +659,7 @@ WHERE is either :BEFORE or :AFTER."
       ))
 	   
 (defvar cmpl-emacs-idle-time 0
-  "The idle time of emacs in seconds.")
+  "The idle time of Emacs in seconds.")
 
 (defvar inside-cmpl-emacs-idle-filter nil)
 (defvar cmpl-emacs-idle-time-hooks nil)
@@ -696,7 +688,7 @@ WHERE is either :BEFORE or :AFTER."
 ;;;-----------------------------------------------
 ;;; Time 
 ;;;-----------------------------------------------
-;;; What a backwards way to get the time ! Unfortunately, GNU Emacs
+;;; What a backwards way to get the time!  Unfortunately, GNU Emacs
 ;;; doesn't have an accessible time function.
 
 (defconst cmpl-hours-per-day  24)
@@ -708,8 +700,7 @@ WHERE is either :BEFORE or :AFTER."
 (defconst cmpl-days-since-start-of-leap-year
     '(0 31 60 91 121 152 182 213 244 274 305 335))
 (defconst cmpl-months
-    '("Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec")
-  )
+    '("Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"))
 
 (defun cmpl-hours-since-1900-internal (month day year hours)
   "Month is an integer from 1 to 12.  Year is a two digit integer (19XX)"
@@ -723,8 +714,7 @@ WHERE is either :BEFORE or :AFTER."
 			   cmpl-days-since-start-of-leap-year
 			   cmpl-days-since-start-of-year)))
     (* (1- day) cmpl-hours-per-day)
-    hours
-    ))
+    hours))
 
 (defun cmpl-month-from-string (month-string)
   "Month string is a three char. month string"
@@ -745,8 +735,7 @@ WHERE is either :BEFORE or :AFTER."
 	 (year (string-to-int (substring string 22 24)))
 	 (hour (string-to-int (substring string 11 13)))
 	 )
-    (cmpl-hours-since-1900-internal month day year hour)
-    ))
+    (cmpl-hours-since-1900-internal month day year hour)))
 
 ;;; Tests -
 ;;;(cmpl-hours-since-1900 "Wed Jan  1 00:00:28 1900") -->  35040
