@@ -95,16 +95,15 @@ This takes effect when first loading the sgml-mode library.")
     (define-key map "\C-c?" 'sgml-tag-help)
     (define-key map "\C-c8" 'sgml-name-8bit-mode)
     (define-key map "\C-c\C-v" 'sgml-validate)
-    (if sgml-quick-keys
-	(progn
-	  (define-key map "&" 'sgml-name-char)
-	  (define-key map "<" 'sgml-tag)
-	  (define-key map " " 'sgml-auto-attributes)
-	  (define-key map ">" 'sgml-maybe-end-tag)
-	  (if (memq ?\" sgml-specials)
-	      (define-key map "\"" 'sgml-name-self))
-	  (if (memq ?' sgml-specials)
-	      (define-key map "'" 'sgml-name-self))))
+    (when sgml-quick-keys
+      (define-key map "&" 'sgml-name-char)
+      (define-key map "<" 'sgml-tag)
+      (define-key map " " 'sgml-auto-attributes)
+      (define-key map ">" 'sgml-maybe-end-tag)
+      (when (memq ?\" sgml-specials)
+        (define-key map "\"" 'sgml-name-self))
+      (when (memq ?' sgml-specials)
+        (define-key map "'" 'sgml-name-self)))
     (define-key map (vector (make-char 'latin-iso8859-1))
       'sgml-maybe-name-self)
     (define-key map [menu-bar sgml] (cons "SGML" menu-map))
@@ -509,9 +508,8 @@ skeleton-transformation RET upcase RET, or put this in your `.emacs':
     (if (string= "![" ,str)
 	(prog1 '(("") " [ " _ " ]]")
 	  (backward-char))
-      (if (or (eq v2 t)
-	      (string-match "^[/!?]" ,str))
-	  ()
+      (unless (or (sgml-skip-close-p v2) ; (eq v2 t)
+                  (string-match "^[/!?]" ,str))
 	(if (symbolp v2)
 	    ;; We go use `identity' to prevent skeleton from passing
 	    ;; `str' through skeleton-transformation a second time.
@@ -807,13 +805,16 @@ If this can't be done, return t."
 	   (match-end 0))
 	t)))
 
+(defun sgml-skip-close-p (obj)
+  (and (eq obj t) (not html-xhtml)))
+
 (defun sgml-value (alist)
   "Interactively insert value taken from attributerule ALIST.
 See `sgml-tag-alist' for info about attributerules.."
   (setq alist (cdr alist))
   (if (stringp (car alist))
       (insert "=\"" (car alist) ?\")
-    (if (eq (car alist) t)
+    (if (sgml-skip-close-p (car alist)) ; (eq (car alist) t)
 	(if (cdr alist)
 	    (progn
 	      (insert "=\"")
@@ -940,6 +941,13 @@ This takes effect when first loading the library.")
     (li . "o "))
   "Value of `sgml-display-text' for HTML mode.")
 
+
+(defcustom html-xhtml nil
+  "*When non-nil, tag insertion functions will be XHTML-compliant."
+  :type 'boolean
+  :version "21.2"
+  :group 'sgml)
+
 ;; should code exactly HTML 3 here when that is finished
 (defvar html-tag-alist
   (let* ((1-7 '(("1") ("2") ("3") ("4") ("5") ("6") ("7")))
@@ -955,7 +963,8 @@ This takes effect when first loading the library.")
 		 ("rel" ,@rel)
 		 ("rev" ,@rel)
 		 ("title")))
-	 (list '((nil \n ("List item: " "<li>" str \n))))
+	 (list '((nil \n ("List item: " "<li>" str
+                          (if html-xhtml "</li>") \n))))
 	 (cell `(t
 		 ,@align
 		 ("valign" ,@valign)
@@ -1029,7 +1038,8 @@ This takes effect when first loading the library.")
       ("div")
       ("dl" (nil \n
 		 ( "Term: "
-		   "<dt>" str "<dd>" _ \n)))
+		   "<dt>" str (if html-xhtml "</dt>")
+                   "<dd>" _ (if html-xhtml "</dd>") \n)))
       ("dt" (t _ "<dd>"))
       ("em")
       ;("fn" "id" "fn")  ; ???
@@ -1100,7 +1110,7 @@ This takes effect when first loading the library.")
     ("dir" . "Directory list (obsolete)")
     ("dl" . "Definition list")
     ("dt" . "Term to be definined")
-    ("em" . "Emphasised") 
+    ("em" . "Emphasised")
     ("embed" . "Embedded data in foreign format")
     ("fig" . "Figure")
     ("figa" . "Figure anchor")
@@ -1217,7 +1227,7 @@ To work around that, do:
   (setq sentence-end
 	(if sentence-end-double-space
 	    "[.?!][]\"')}]*\\(<[^>]*>\\)*\\($\\| $\\|\t\\|  \\)[ \t\n]*"
-	    
+
 	  "[.?!][]\"')}]*\\(<[^>]*>\\)*\\($\\| \\|\t\\)[ \t\n]*"))
   (setq sgml-tag-alist html-tag-alist
 	sgml-face-tag-alist html-face-tag-alist
@@ -1312,43 +1322,44 @@ Can be used as a value for `html-mode-hook'."
 (define-skeleton html-horizontal-rule
   "HTML horizontal rule tag."
   nil
-  "<hr>" \n)
+  (if html-xhtml "<hr/>" "<hr>") \n)
 
 (define-skeleton html-image
   "HTML image tag."
   nil
-  "<img src=\"" _ "\">")
+  "<img src=\"" _ "\""
+  (if html-xhtml "/>" ">"))
 
 (define-skeleton html-line
   "HTML line break tag."
   nil
-  "<br>" \n)
+  (if html-xhtml "<br/>" "<br>") \n)
 
 (define-skeleton html-ordered-list
   "HTML ordered list tags."
   nil
   "<ol>" \n
-  "<li>" _ \n
+  "<li>" _ (if html-xhtml "</li>") \n
   "</ol>")
 
 (define-skeleton html-unordered-list
   "HTML unordered list tags."
   nil
   "<ul>" \n
-  "<li>" _ \n
+  "<li>" _ (if html-xhtml "</li>") \n
   "</ul>")
 
 (define-skeleton html-list-item
   "HTML list item tag."
   nil
   (if (bolp) nil '\n)
-  "<li>")
+  "<li>" _ (if html-xhtml "</li>"))
 
 (define-skeleton html-paragraph
   "HTML paragraph tag."
   nil
   (if (bolp) nil ?\n)
-  \n "<p>")
+  \n "<p>" _ (if html-xhtml "</p>"))
 
 (define-skeleton html-checkboxes
   "Group of connected checkbox inputs."
@@ -1359,11 +1370,13 @@ Can be used as a value for `html-mode-hook'."
    "<input type=\"" (identity "checkbox") ; see comment above about identity
    "\" name=\"" (or v1 (setq v1 (skeleton-read "Name: ")))
    "\" value=\"" str ?\"
-   (if (y-or-n-p "Set \"checked\" attribute? ")
-        (funcall skeleton-transformation " checked")) ">"
+   (when (y-or-n-p "Set \"checked\" attribute? ")
+     (funcall skeleton-transformation " checked"))
+   (if html-xhtml "/>" ">")
    (skeleton-read "Text: " (capitalize str))
    (or v2 (setq v2 (if (y-or-n-p "Newline after text? ")
-		       (funcall skeleton-transformation "<br>")
+		       (funcall skeleton-transformation
+                                (if html-xhtml "<br/>" "<br>"))
 		     "")))
    \n))
 
@@ -1376,11 +1389,13 @@ Can be used as a value for `html-mode-hook'."
    "<input type=\"" (identity "radio") ; see comment above about identity
    "\" name=\"" (or (car v2) (setcar v2 (skeleton-read "Name: ")))
    "\" value=\"" str ?\"
-   (if (and (not v1) (setq v1 (y-or-n-p "Set \"checked\" attribute? ")))
-       (funcall skeleton-transformation " checked") ">")
+   (when (and (not v1) (setq v1 (y-or-n-p "Set \"checked\" attribute? ")))
+     (funcall skeleton-transformation " checked"))
+   (if html-xhtml "/>" ">")
    (skeleton-read "Text: " (capitalize str))
    (or (cdr v2) (setcdr v2 (if (y-or-n-p "Newline after text? ")
-			       (funcall skeleton-transformation "<br>")
+			       (funcall skeleton-transformation
+                                        (if html-xhtml "<br/>" "<br>"))
 			     "")))
    \n))
 

@@ -1,5 +1,14 @@
 2001-10-05  Sam Steingold  <sds@gnu.org>
 
+	* textmodes/sgml-mode.el (html-xhtml): New user option.
+	(html-tag-alist, html-horizontal-rule, html-image, html-line)
+	(html-ordered-list, html-unordered-list, html-list-item)
+	(html-paragraph, html-checkboxes, html-radio-buttons): Use it.
+	(sgml-skip-close-p): New function.
+	(sgml-value): Use it.
+
+2001-10-05  Sam Steingold  <sds@gnu.org>
+
 	* calendar/diary-lib.el (diary-entry-compare): When times are
 	identical, compare the entries lexicographically.
 
