@@ -1161,6 +1161,7 @@ actually appears.
 * %-Constructs::          Putting information into a mode line.
 * Properties in Mode::    Using text properties in the mode line.
 * Header Lines::          Like a mode line, but at the top.
+* Emulating Mode Line::   Formating text as the mode line would.
 @end menu
 
 @node Mode Line Data
@@ -1610,6 +1611,31 @@ that do not override it.  This is the same as @code{(default-value
 It is normally @code{nil}, so that ordinary buffers have no header line.
 @end defvar
 
+@node Emulating Mode Line
+@section Emulating Mode Line Formating
+
+  You can use the function @code{format-mode-line} to compute
+the text that would appear in a mode line or header line
+based on certain mode line specification.
+
+@defun format-mode-line &optional format window no-props
+This function formats a line of text according to @var{format} as if
+it were generating the mode line for @var{window}, but instead of
+displaying the text in the mode line or the header line, it returns
+the text as a string.
+
+If @var{format} is @code{nil}, that means to use
+@code{mode-line-format} and return the text that would appear in the
+mode line.  If @var{format} is @code{t}, that means to use
+@code{header-line-format} so as to return the text that would appear
+in the header line (@code{""} if the window has no header line).
+The argument @var{window} defaults to the selected window.
+
+The value string normally has text properties that correspond to the
+faces, keymaps, etc., that the mode line would have.  If
+@var{no-props} is non-@code{nil}, the value has no text properties.
+@end defun
+
 @node Imenu
 @section Imenu
 
@@ -1970,13 +1996,14 @@ of the match to fontify (0 means the entire matching text).  The second
 subelement, @var{facename}, specifies the face, as described above.
 
 The last two values in @var{highlighter}, @var{override} and
-@var{laxmatch}, are flags.  If @var{override} is @code{t}, this element
-can override existing fontification made by previous elements of
-@code{font-lock-keywords}.  If it is @code{keep}, then each character is
-fontified if it has not been fontified already by some other element.
-If it is @code{prepend}, the face @var{facename} is added to the
-beginning of the @code{face} property.  If it is @code{append}, the face
-@var{facename} is added to the end of the @code{face} property.
+@var{laxmatch}, are flags.  If @var{override} is @code{t}, this
+element can override existing fontification made by previous elements
+of @code{font-lock-keywords}.  If it is @code{keep}, then each
+character is fontified if it has not been fontified already by some
+other element.  If it is @code{prepend}, the face @var{facename} is
+added to the beginning of the @code{font-lock-face} property.  If it
+is @code{append}, the face @var{facename} is added to the end of the
+@code{font-lock-face} property.
 
 If @var{laxmatch} is non-@code{nil}, it means there should be no error
 if there is no subexpression numbered @var{subexp} in @var{matcher}.
@@ -2132,11 +2159,11 @@ textual modes.
 @end defvar
 
 @defvar font-lock-extra-managed-props
-Additional properties (other than @code{face}) that are being managed
-by Font Lock mode.  Font Lock mode normally manages only the @code{face}
-property; if you want it to manage others as well, you must specify
-them in a @var{facename} in @code{font-lock-keywords} as well as adding
-them to this list.
+Additional properties (other than @code{font-lock-face}) that are
+being managed by Font Lock mode.  Font Lock mode normally manages only
+the @code{font-lock-face} property; if you want it to manage others as
+well, you must specify them in a @var{facename} in
+@code{font-lock-keywords} as well as adding them to this list.
 @end defvar
 
 @node Levels of Font Lock
