@@ -2389,8 +2389,8 @@ cell of the form ( 'DIRLIST .  'FILELIST )"
 		(if (looking-at "[0-9]+:[ ]*<")
 		    (progn
 		      (goto-char (match-end 0))
-		  (speedbar-do-function-pointer)))
-		(setq sf (cdr sf)))))
+		      (speedbar-do-function-pointer)))))
+	  (setq sf (cdr sf)))
 	)))
 
 (defun speedbar-sort-tag-hierarchy (lst)
