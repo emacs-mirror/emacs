@@ -163,7 +163,8 @@ struct sound_device
 			      struct sound *s));
 
   /* Write NYBTES bytes from BUFFER to device SD.  */
-  void (* write) P_ ((struct sound_device *sd, char *buffer, int nbytes));
+  void (* write) P_ ((struct sound_device *sd, const char *buffer,
+		      int nbytes));
 
   /* A place for devices to store additional data.  */
   void *data;
@@ -233,7 +234,7 @@ static void vox_configure P_ ((struct sound_device *));
 static void vox_close P_ ((struct sound_device *sd));
 static void vox_choose_format P_ ((struct sound_device *, struct sound *));
 static void vox_init P_ ((struct sound_device *));
-static void vox_write P_ ((struct sound_device *, char *, int));
+static void vox_write P_ ((struct sound_device *, const char *, int));
 static void sound_perror P_ ((char *));
 static void sound_warning P_ ((char *));
 static int parse_sound P_ ((Lisp_Object, Lisp_Object *));
@@ -914,7 +915,7 @@ vox_init (sd)
 static void
 vox_write (sd, buffer, nbytes)
      struct sound_device *sd;
-     char *buffer;
+     const char *buffer;
      int nbytes;
 {
   int nwritten = emacs_write (sd->fd, buffer, nbytes);
