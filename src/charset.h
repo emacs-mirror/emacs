@@ -341,8 +341,8 @@ extern struct charset *emacs_mule_charset[256];
 									\
     if (! SYMBOLP (x) || (idx = CHARSET_SYMBOL_HASH_INDEX (x)) < 0)	\
       x = wrong_type_argument (Qcharsetp, (x));				\
-    id = AREF (HASH_VALUE (XHASH_TABLE (Vcharset_hash_table), idx),	\
-	       charset_id);						\
+    id = XINT (AREF (HASH_VALUE (XHASH_TABLE (Vcharset_hash_table), idx), \
+		     charset_id));					\
   } while (0)
 
 
