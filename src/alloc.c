@@ -39,6 +39,7 @@ Boston, MA 02111-1307, USA.  */
 
 #undef HIDE_LISP_IMPLEMENTATION
 #include "lisp.h"
+#include "process.h"
 #include "intervals.h"
 #include "puresize.h"
 #include "buffer.h"
@@ -276,7 +277,14 @@ enum mem_type
   MEM_TYPE_MISC,
   MEM_TYPE_SYMBOL,
   MEM_TYPE_FLOAT,
-  MEM_TYPE_VECTOR
+  /* Keep the following vector-like types together, with
+     MEM_TYPE_WINDOW being the last, and MEM_TYPE_VECTOR the
+     first.  Or change the code of live_vector_p, for instance.  */
+  MEM_TYPE_VECTOR,
+  MEM_TYPE_PROCESS,
+  MEM_TYPE_HASH_TABLE,
+  MEM_TYPE_FRAME,
+  MEM_TYPE_WINDOW
 };
 
 #if GC_MARK_STACK || defined GC_MALLOC_CHECK
@@ -343,12 +351,17 @@ Lisp_Object *stack_base;
 
 static struct mem_node *mem_root;
 
+/* Lowest and highest known address in the heap.  */
+
+static void *min_heap_address, *max_heap_address;
+
 /* Sentinel node of the tree.  */
 
 static struct mem_node mem_z;
 #define MEM_NIL &mem_z
 
 static POINTER_TYPE *lisp_malloc P_ ((size_t, enum mem_type));
+static struct Lisp_Vector *allocate_vectorlike P_ ((EMACS_INT, enum mem_type));
 static void lisp_free P_ ((POINTER_TYPE *));
 static void mark_stack P_ ((void));
 static void init_stack P_ ((Lisp_Object *));
@@ -397,6 +410,7 @@ static POINTER_TYPE *pure_alloc P_ ((size_t, int));
 
 #define ALIGN(SZ, ALIGNMENT) \
   (((SZ) + (ALIGNMENT) - 1) & ~((ALIGNMENT) - 1))
+
 
 
 /************************************************************************
@@ -2195,9 +2209,10 @@ int n_vectors;
 /* Value is a pointer to a newly allocated Lisp_Vector structure
    with room for LEN Lisp_Objects.  */
 
-struct Lisp_Vector *
-allocate_vectorlike (len)
+static struct Lisp_Vector *
+allocate_vectorlike (len, type)
      EMACS_INT len;
+     enum mem_type type;
 {
   struct Lisp_Vector *p;
   size_t nbytes;
@@ -2210,7 +2225,7 @@ allocate_vectorlike (len)
 #endif
   
   nbytes = sizeof *p + (len - 1) * sizeof p->contents[0];
-  p = (struct Lisp_Vector *) lisp_malloc (nbytes, MEM_TYPE_VECTOR);
+  p = (struct Lisp_Vector *) lisp_malloc (nbytes, type);
   
 #ifdef DOUG_LEA_MALLOC
   /* Back to a reasonable maximum of mmap'ed areas.  */
@@ -2228,6 +2243,94 @@ allocate_vectorlike (len)
 }
 
 
+/* Allocate a vector with NSLOTS slots.  */
+
+struct Lisp_Vector *
+allocate_vector (nslots)
+     EMACS_INT nslots;
+{
+  struct Lisp_Vector *v = allocate_vectorlike (nslots, MEM_TYPE_VECTOR);
+  v->size = nslots;
+  return v;
+}
+
+
+/* Allocate other vector-like structures.  */
+
+struct Lisp_Hash_Table *
+allocate_hash_table ()
+{
+  EMACS_INT len = VECSIZE (struct Lisp_Hash_Table);
+  struct Lisp_Vector *v = allocate_vectorlike (len, MEM_TYPE_HASH_TABLE);
+  EMACS_INT i;
+  
+  v->size = len;
+  for (i = 0; i < len; ++i)
+    v->contents[i] = Qnil;
+  
+  return (struct Lisp_Hash_Table *) v;
+}
+
+
+struct window *
+allocate_window ()
+{
+  EMACS_INT len = VECSIZE (struct window);
+  struct Lisp_Vector *v = allocate_vectorlike (len, MEM_TYPE_WINDOW);
+  EMACS_INT i;
+  
+  for (i = 0; i < len; ++i)
+    v->contents[i] = Qnil;
+  v->size = len;
+  
+  return (struct window *) v;
+}
+
+
+struct frame *
+allocate_frame ()
+{
+  EMACS_INT len = VECSIZE (struct frame);
+  struct Lisp_Vector *v = allocate_vectorlike (len, MEM_TYPE_FRAME);
+  EMACS_INT i;
+  
+  for (i = 0; i < len; ++i)
+    v->contents[i] = make_number (0);
+  v->size = len;
+  return (struct frame *) v;
+}
+
+
+struct Lisp_Process *
+allocate_process ()
+{
+  EMACS_INT len = VECSIZE (struct Lisp_Process);
+  struct Lisp_Vector *v = allocate_vectorlike (len, MEM_TYPE_PROCESS);
+  EMACS_INT i;
+  
+  for (i = 0; i < len; ++i)
+    v->contents[i] = Qnil;
+  v->size = len;
+  
+  return (struct Lisp_Process *) v;
+}
+
+
+struct Lisp_Vector *
+allocate_other_vector (len)
+     EMACS_INT len;
+{
+  struct Lisp_Vector *v = allocate_vectorlike (len, MEM_TYPE_VECTOR);
+  EMACS_INT i;
+  
+  for (i = 0; i < len; ++i)
+    v->contents[i] = Qnil;
+  v->size = len;
+  
+  return v;
+}
+
+
 DEFUN ("make-vector", Fmake_vector, Smake_vector, 2, 2, 0,
   "Return a newly created vector of length LENGTH, with each element being INIT.\n\
 See also the function `vector'.")
@@ -2242,8 +2345,7 @@ See also the function `vector'.")
   CHECK_NATNUM (length, 0);
   sizei = XFASTINT (length);
 
-  p = allocate_vectorlike (sizei);
-  p->size = sizei;
+  p = allocate_vector (sizei);
   for (index = 0; index < sizei; index++)
     p->contents[index] = init;
 
@@ -2622,6 +2724,9 @@ mem_find (start)
 {
   struct mem_node *p;
 
+  if (start < min_heap_address || start > max_heap_address)
+    return MEM_NIL;
+
   /* Make the search always successful to speed up the loop below.  */
   mem_z.start = start;
   mem_z.end = (char *) start + 1;
@@ -2643,6 +2748,11 @@ mem_insert (start, end, type)
      enum mem_type type;
 {
   struct mem_node *c, *parent, *x;
+
+  if (start < min_heap_address)
+    min_heap_address = start;
+  if (end > max_heap_address)
+    max_heap_address = end;
 
   /* See where in the tree a node for START belongs.  In this
      particular application, it shouldn't happen that a node is already
@@ -3124,7 +3234,9 @@ live_vector_p (m, p)
      struct mem_node *m;
      void *p;
 {
-  return m->type == MEM_TYPE_VECTOR && p == m->start;
+  return (p == m->start
+	  && m->type >= MEM_TYPE_VECTOR
+	  && m->type <= MEM_TYPE_WINDOW);
 }
 
 
@@ -3276,14 +3388,123 @@ mark_maybe_object (obj)
 	}
     }
 }
+
+
+/* If P points to Lisp data, mark that as live if it isn't already
+   marked.  */
+
+static INLINE void
+mark_maybe_pointer (p)
+     void *p;
+{
+  struct mem_node *m;
+
+  /* Quickly rule out some values which can't point to Lisp data.  We
+     assume that Lisp data is aligned on even addresses.  */
+  if ((EMACS_INT) p & 1)
+    return;
+      
+  m = mem_find (p);
+  if (m != MEM_NIL)
+    {
+      Lisp_Object obj = Qnil;
+      
+      switch (m->type)
+	{
+	case MEM_TYPE_NON_LISP:
+	  /* NOthing to do; not a pointer to Lisp memory.  */
+	  break;
 	  
-/* Mark Lisp objects in the address range START..END.  */
+	case MEM_TYPE_BUFFER:
+	  if (live_buffer_p (m, p)
+	      && !XMARKBIT (((struct buffer *) p)->name))
+	    XSETVECTOR (obj, p);
+	  break;
+	  
+	case MEM_TYPE_CONS:
+	  if (live_cons_p (m, p)
+	      && !XMARKBIT (((struct Lisp_Cons *) p)->car))
+	    XSETCONS (obj, p);
+	  break;
+	  
+	case MEM_TYPE_STRING:
+	  if (live_string_p (m, p)
+	      && !STRING_MARKED_P ((struct Lisp_String *) p))
+	    XSETSTRING (obj, p);
+	  break;
+
+	case MEM_TYPE_MISC:
+	  if (live_misc_p (m, p))
+	    {
+	      Lisp_Object tem;
+	      XSETMISC (tem, p);
+	      
+	      switch (XMISCTYPE (tem))
+		{
+		case Lisp_Misc_Marker:
+		  if (!XMARKBIT (XMARKER (tem)->chain))
+		    obj = tem;
+		  break;
+		      
+		case Lisp_Misc_Buffer_Local_Value:
+		case Lisp_Misc_Some_Buffer_Local_Value:
+		  if (!XMARKBIT (XBUFFER_LOCAL_VALUE (tem)->realvalue))
+		    obj = tem;
+		  break;
+		      
+		case Lisp_Misc_Overlay:
+		  if (!XMARKBIT (XOVERLAY (tem)->plist))
+		    obj = tem;
+		  break;
+		}
+	    }
+	  break;
+	  
+	case MEM_TYPE_SYMBOL:
+	  if (live_symbol_p (m, p)
+	      && !XMARKBIT (((struct Lisp_Symbol *) p)->plist))
+	    XSETSYMBOL (obj, p);
+	  break;
+	  
+	case MEM_TYPE_FLOAT:
+	  if (live_float_p (m, p)
+	      && !XMARKBIT (((struct Lisp_Float *) p)->type))
+	    XSETFLOAT (obj, p);
+	  break;
+	  
+	case MEM_TYPE_VECTOR:
+	case MEM_TYPE_PROCESS:
+	case MEM_TYPE_HASH_TABLE:
+	case MEM_TYPE_FRAME:
+	case MEM_TYPE_WINDOW:
+	  if (live_vector_p (m, p))
+	    {
+	      Lisp_Object tem;
+	      XSETVECTOR (tem, p);
+	      if (!GC_SUBRP (tem)
+		  && !(XVECTOR (tem)->size & ARRAY_MARK_FLAG))
+		obj = tem;
+	    }
+	  break;
+
+	default:
+	  abort ();
+	}
+
+      if (!GC_NILP (obj))
+	mark_object (&obj);
+    }
+}
+
+
+/* Mark Lisp objects referenced from the address range START..END.  */
 
 static void 
 mark_memory (start, end)
      void *start, *end;
 {
   Lisp_Object *p;
+  void **pp;
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
   nzombies = 0;
@@ -3297,9 +3518,31 @@ mark_memory (start, end)
       start = end;
       end = tem;
     }
-  
+
+  /* Mark Lisp_Objects.  */
   for (p = (Lisp_Object *) start; (void *) p < end; ++p)
     mark_maybe_object (*p);
+
+  /* Mark Lisp data pointed to.  This is necessary because, in some
+     situations, the C compiler optimizes Lisp objects away, so that
+     only a pointer to them remains.  Example:
+
+     DEFUN ("testme", Ftestme, Stestme, 0, 0, 0, "")
+          ()
+     {
+       Lisp_Object obj = build_string ("test");
+       struct Lisp_String *s = XSTRING (obj);
+       Fgarbage_collect ();
+       fprintf (stderr, "test `%s'\n", s->data);
+       return Qnil;
+     }
+
+     Here, `obj' isn't really used, and the compiler optimizes it
+     away.  The only reference to the life string is through the
+     pointer `s'.  */
+  
+  for (pp = (void **) start; (void *) pp < end; ++pp)
+    mark_maybe_pointer (*pp);
 }
 
 
