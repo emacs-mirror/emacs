@@ -825,10 +825,6 @@ commands like @kbd{M-x calc} (for the standard user interface) or
 (that's Meta with the letter @kbd{x}), then, at the prompt,
 type the full command (like @kbd{calc-keypad}) and press Return.
 
-If you type @kbd{M-x calc} and Emacs still doesn't recognize the
-command (it will say @samp{[No match]} when you try to press
-@key{RET}), then Calc has not been properly installed.
-
 The same commands (like @kbd{M-# c} or @kbd{M-# M-#}) that start
 the Calculator also turn it off if it is already on.
 
@@ -954,8 +950,7 @@ go into regular Calc (with @kbd{M-# c}) to change the mode settings.
 @dfn{Keypad Mode} is a mouse-based interface to the Calculator.
 It is designed for use with terminals that support a mouse.  If you
 don't have a mouse, you will have to operate keypad mode with your
-arrow keys (which is probably more trouble than it's worth).  Keypad
-mode is currently not supported under Emacs 19.
+arrow keys (which is probably more trouble than it's worth).
 
 Type @kbd{M-# k} to turn Keypad Mode on or off.  Once again you
 get two new windows, this time on the righthand side of the screen

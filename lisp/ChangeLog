@@ -1,3 +1,22 @@
+2004-12-09  Richard M. Stallman  <rms@gnu.org>
+
+	* isearch.el (isearch-mode-map): Treat S-SPC like SPC.
+
+2004-12-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* xt-mouse.el (xterm-mouse-event): Correct cursor position in a
+	buffer with a display margin.
+
+2004-12-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-keypd.el (calc-keypad-mode): Unbind unused mouse events.
+	(calc-keypad-left-click): Set buffer to calc-keymap-buffer.
+
+2004-12-08  Richard M. Stallman  <rms@gnu.org>
+
+	* faces.el: Delete code to set display table.
+	(escape-glyph): Redefine to be less loud.  (Copy minibuffer-prompt.)
+
 2004-12-08  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc.el: Add math-read-preprocess-string to autoloads.

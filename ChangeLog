@@ -1,3 +1,9 @@
+2004-12-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* info/dir (File): Add URL and Org Mode manuals.
+	* Makefile.in (install-arch-indep, uninstall): Add url and org
+	manuals.
+
 2004-12-07  Stefan  <monnier@iro.umontreal.ca>
 
 	* configure.in (INLINE, RE_TRANSLATE_P): Move patches mistakenly

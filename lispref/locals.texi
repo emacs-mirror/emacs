@@ -132,8 +132,7 @@ Does not work yet.
 @xref{Display Margins}.
 
 @item line-spacing
-@c Cause an error so we will fix this.
-@xref{Yet to be written}.
+@xref{Window Frame Parameters}.
 
 @item local-abbrev-table
 @xref{Abbrevs}.

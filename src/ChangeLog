@@ -1,3 +1,17 @@
+2004-12-08  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (get_next_display_element): Use `escape-glyph' for
+	control chars and escaped octal codes.
+	(Qescape_glyph): New variable.
+	(syms_of_xdisp): Initialize it.
+	(escape_glyph_face): New variable.
+	(redisplay_window): Initialize it.
+
+2004-12-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (our_fill_input_buffer, jpeg_load, CHECK_LIB_AVAILABLE)
+	(init_image): Use 1 rather than TRUE.  TRUE's not always defined.
+
 2004-12-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* emacs.c (Fdump_emacs): Add ! defined (SYSTEM_MALLOC) around
