@@ -112,9 +112,7 @@ would have the following buffer names in the various styles:
   :require 'uniquify)
 
 (defcustom uniquify-after-kill-buffer-p nil
-  "*If non-nil, rerationalize buffer names after a buffer has been killed.
-This can be dangerous if Emacs Lisp code is keeping track of buffers by their
-names (rather than keeping pointers to the buffers themselves)."
+  "If non-nil, rerationalize buffer names after a buffer has been killed."
   :type 'boolean)
 
 (defcustom uniquify-ask-about-buffer-names-p nil
@@ -150,6 +148,15 @@ if it is `reverse', add the separator at the beginning; otherwise, this
 variable is ignored."
   :type 'boolean)
 
+(defcustom uniquify-strip-common-suffix
+  ;; Using it when uniquify-min-dir-content>0 doesn't make much sense.
+  (eq 0 uniquify-min-dir-content)
+  "If non-nil, strip common directory suffixes of conflicting files.
+E.g. if you open /a1/b/c/d and /a2/b/c/d, the buffer names will say
+\"d|a1\" and \"d|a2\" instead of \"d|a1/b/c\" and \"d|a2/b/c\".
+This can be handy when you have deep parallel hierarchies."
+  :type 'boolean)
+
 (defvar uniquify-list-buffers-directory-modes '(dired-mode cvs-mode)
   "List of modes for which uniquify should obey `list-buffers-directory'.
 That means that when `buffer-file-name' is set to nil, `list-buffers-directory'
@@ -160,7 +167,8 @@ contains the name of the directory which the buffer is visiting.")
 ;; uniquify-fix-list data structure
 (defstruct (uniquify-item
 	    (:constructor nil) (:copier nil)
-	    (:constructor uniquify-make-item (base dirname buffer proposed)))
+	    (:constructor uniquify-make-item
+	     (base dirname buffer &optional proposed)))
   base dirname buffer proposed)
 
 ;; Internal variables used free
@@ -199,8 +207,7 @@ Arguments NEWBUFFILE and NEWBUF cause only a subset of buffers to be renamed."
 		     (equal (file-name-nondirectory bfn) base))
 	    (when (setq bfn (file-name-directory bfn)) ;Strip off the `base'.
 	      (setq bfn (directory-file-name bfn)))    ;Strip trailing slash.
-	    (push (uniquify-make-item base bfn buffer
-				      (uniquify-get-proposed-name base bfn))
+	    (push (uniquify-make-item base bfn buffer)
 		  fix-list))))
       ;; selects buffers whose names may need changing, and others that
       ;; may conflict, then bring conflicting names together
@@ -213,18 +220,9 @@ Works on ordinary file-visiting buffers and buffers whose mode is mentioned
 in `uniquify-list-buffers-directory-modes', otherwise returns nil."
   (or (buffer-file-name buffer)
       (with-current-buffer buffer
-	(and
-	 (memq major-mode uniquify-list-buffers-directory-modes)
-	 (if (boundp 'list-buffers-directory) ; XEmacs mightn't define this
-	     (and list-buffers-directory
-		  (directory-file-name list-buffers-directory))
-	   ;; don't use default-directory if dired-directory is nil
-	   (and dired-directory
-		(expand-file-name
-		 (directory-file-name
-		  (if (consp dired-directory)
-		      (car dired-directory)
-		    dired-directory)))))))))
+	(if (memq major-mode uniquify-list-buffers-directory-modes)
+	    (and list-buffers-directory
+		 (directory-file-name list-buffers-directory))))))
 
 (defun uniquify-rerationalize-w/o-cb (fix-list)
   "Re-rationalize the buffers in FIX-LIST, but ignoring current-buffer."
@@ -243,9 +241,36 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 (defun uniquify-rationalize (fix-list)
   ;; Set up uniquify to re-rationalize after killing/renaming
   ;; if there is a conflict.
-  (dolist (fix fix-list)
-    (with-current-buffer (uniquify-item-buffer fix)
+  (dolist (item fix-list)
+    (with-current-buffer (uniquify-item-buffer item)
+      ;; Reset the proposed names.
+      (setf (uniquify-item-proposed item)
+	    (uniquify-get-proposed-name (uniquify-item-base item)
+					(uniquify-item-dirname item)))
       (setq uniquify-managed fix-list)))
+  ;; Strip any shared last directory names of the dirname.
+  (when (and (cdr fix-list) uniquify-strip-common-suffix)
+    (let ((strip t))
+      (while (let* ((base (file-name-nondirectory
+			   (uniquify-item-dirname (car fix-list))))
+		    (items fix-list))
+	       (when (> (length base) 0)
+		 (while (and strip items)
+		   (unless (equal base (file-name-nondirectory
+					(uniquify-item-dirname (pop items))))
+		     (setq strip nil)))
+		 strip))
+	;; It's all the same => strip.
+	(dolist (item (prog1 fix-list (setq fix-list nil)))
+	  ;; Create new items because the old ones are kept (with the true
+	  ;; `dirname') for later rerationalizing.
+	  (push (uniquify-make-item (uniquify-item-base item)
+				    (let ((f (file-name-directory
+					      (uniquify-item-dirname item))))
+				      (and f (directory-file-name f)))
+				    (uniquify-item-buffer item)
+				    (uniquify-item-proposed item))
+		fix-list)))))
   ;; If uniquify-min-dir-content is 0, this will end up just
   ;; passing fix-list to uniquify-rationalize-conflicting-sublist.
   (uniquify-rationalize-a-list fix-list))
@@ -274,7 +299,7 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 
 (defun uniquify-get-proposed-name (base dirname &optional depth)
   (unless depth (setq depth uniquify-min-dir-content))
-  (assert (equal (directory-file-name dirname) dirname)) ;No trailing slash.
+  (assert (equal (directory-file-name dirname) dirname))  ;No trailing slash.
 
   ;; Distinguish directories by adding extra separator.
   (if (and uniquify-trailing-separator-p
@@ -294,7 +319,7 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 	  (setq dirname (directory-file-name dirname)))
 	(setq n (1- n))
 	(push (if (zerop (length file)) ;nil or "".
-		  (prog1 "" (setq dirname nil))	;Could be `dirname' iso "".
+		  (prog1 "" (setq dirname nil)) ;Could be `dirname' iso "".
 		file)
 	      extra-string)))
     (when (zerop n)
