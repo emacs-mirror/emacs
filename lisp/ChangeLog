@@ -1,3 +1,8 @@
+2004-04-18  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/compile.el (compilation-start): Set window start to
+	point-min if compilation-scroll-output is nil.
+
 2004-04-18  John Wiegley  <johnw@newartisans.com>
 
 	* iswitchb.el (iswitchb-completions): Removed dependency on cl.
