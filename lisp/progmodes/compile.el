@@ -1,6 +1,6 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages.
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 1997 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@prep.ai.mit.edu>
 ;; Maintainer: FSF
@@ -309,12 +309,22 @@ write into the compilation buffer, and to put in its mode line.")
 ;; History of grep commands.
 (defvar grep-history nil)
 
-(defvar compilation-mode-font-lock-keywords
-  ;; This regexp needs a bit of rewriting.  What is the third grouping for?
-  '(("^\\([a-zA-Z]?:?[^ \n:]*:\\([0-9]+:\\)+\\)\\(.*\\)$"
-     1 font-lock-function-name-face))
-;;;  ("^\\([^\n:]*:\\([0-9]+:\\)+\\)\\(.*\\)$" 0 font-lock-keyword-face keep)
-  "Additional expressions to highlight in Compilation mode.")
+(defun compilation-mode-font-lock-keywords ()
+  "Return expressions to highlight in Compilation mode."
+  (nconc
+   ;;
+   ;; Compiler warning/error lines.
+   (mapcar #'(lambda (item)
+	       (list (nth 0 item)
+		     (list (nth 1 item) 'font-lock-warning-face nil t)
+		     (list (nth 2 item) 'font-lock-variable-name-face nil t)))
+	   compilation-error-regexp-alist)
+   (list
+    ;;
+    ;; Compiler output lines.  Recognise `make[n]:' lines too.
+    '("^\\([A-Za-z_0-9/\.+-]+\\)\\(\\[\\([0-9]+\\)\\]\\)?[ \t]*:"
+      (1 font-lock-function-name-face) (3 font-lock-comment-face nil t)))
+   ))
 
 ;;;###autoload
 (defun compile (command)
