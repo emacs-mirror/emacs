@@ -157,6 +157,9 @@ struct composition {
   /* Number of glyphs of the composition components.  */
   unsigned char glyph_len;
 
+  /* Width, ascent, and descent pixels of the composition.  */
+  short pixel_width, ascent, descent;
+
   /* Method of the composition.  */
   enum composition_method method;
 
@@ -173,10 +176,6 @@ struct composition {
      registered in composition_table.  X-offset and Y-offset of Nth
      glyph are (2N)th and (2N+1)th elements respectively.  */
   short *offsets;
-
-  /* Width, ascent, and descent pixels of the composition.  */
-  short pixel_width, ascent, descent;
-
 };
 
 /* Table of pointers to the structure `composition' indexed by
