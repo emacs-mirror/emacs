@@ -1424,7 +1424,7 @@ specifies the value of ERROR-BUFFER."
 	(let ((swap (and replace (< start end))))
 	  ;; Don't muck with mark unless REPLACE says we should.
 	  (goto-char start)
-	  (and replace (push-mark))
+	  (and replace (push-mark (point) 'nomsg))
 	  (setq exit-status
 		(call-process-region start end shell-file-name t
 				     (if error-file
