@@ -1294,7 +1294,10 @@ DEFUN ("display-completion-list", Fdisplay_completion_list, Sdisplay_completion_
        1, 1, 0,
   "Display the list of completions, COMPLETIONS, using `standard-output'.\n\
 Each element may be just a symbol or string\n\
-or may be a list of two strings to be printed as if concatenated.")
+or may be a list of two strings to be printed as if concatenated.\n\
+`standard-output' must be a buffer.\n\
+At the end, run the normal hook `completion-setup-hook'.\n\
+It can find the completion buffer in `standard-output'.")
   (completions)
      Lisp_Object completions;
 {
@@ -1365,11 +1368,12 @@ or may be a list of two strings to be printed as if concatenated.")
 	}
     }
 
+  if (XTYPE (Vstandard_output) == Lisp_Buffer)
+    set_buffer_internal (old);
+
   if (!NILP (Vrun_hooks))
     call1 (Vrun_hooks, intern ("completion-setup-hook"));
 
-  if (XTYPE (Vstandard_output) == Lisp_Buffer)
-    set_buffer_internal (old);
   return Qnil;
 }
 
