@@ -18,10 +18,12 @@ extern int alloccomments;
 */
 
 
-typedef struct psobj {
- mps_addr_t *obj;
+typedef struct psobj psobj;
+
+struct psobj {
+ psobj *obj;
  mps_word_t size;
-} psobj;
+};
 
 extern struct mps_fmt_A_s fmtepvm;
 
