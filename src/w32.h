@@ -98,6 +98,7 @@ extern filedesc fd_info [ MAXDESC ];
 #define FILE_SEND_SIGCHLD       0x0080
 #define FILE_PIPE               0x0100
 #define FILE_SOCKET             0x0200
+#define FILE_NDELAY             0x0400
 
 extern child_process * new_child (void);
 extern void delete_child (child_process *cp);
