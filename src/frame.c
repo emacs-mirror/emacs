@@ -1610,7 +1610,7 @@ but that the idea of the actual height of the frame should not be changed.")
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (f))
     {
-      if (XINT (rows) != f->width)
+      if (XINT (rows) != f->height)
 	x_set_window_size (f, 1, f->width, XINT (rows));
     }
   else
