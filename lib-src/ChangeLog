@@ -1,3 +1,11 @@
+2002-07-31  Colin Walters  <walters@gnu.org>
+
+	* update-game-score.c (P_): New macro.  Use it for all prototypes.
+	(lose): Don't use varargs.
+	(lose_syserr): New function.
+
+	* update-game-score.c: Change all functions to K&R style.
+
 2002-07-30  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (localstatedir): New variable.

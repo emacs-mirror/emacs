@@ -1,3 +1,10 @@
+2002-07-31  Colin Walters  <walters@debian.org>
+
+	* ibuffer.el (ibuffer-hooks): Rename to `ibuffer-hook'; Add
+	defvaralias for compatibility.
+	(ibuffer-mode-hooks): Rename to `ibuffer-mode-hook'; Add
+	defvaralias for compatibility.
+
 2002-07-31  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* ibuffer.el (ibuffer-fontification-alist): Use
