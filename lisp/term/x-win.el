@@ -78,35 +78,53 @@
 
 (defvar x-command-line-resources nil)
 
-(setq command-switch-alist
-      (append '(("-bw" .	x-handle-numeric-switch)
-		("-d" .		x-handle-display)
-		("-display" .	x-handle-display)
-		("-name" .	x-handle-name-rn-switch)
-		("-rn" .	x-handle-name-rn-switch)
-		("-T" .		x-handle-switch)
-		("-r" .		x-handle-switch)
-		("-rv" .	x-handle-switch)
-		("-reverse" .	x-handle-switch)
-		("-fn" .	x-handle-switch)
-		("-font" .	x-handle-switch)
-		("-ib" .	x-handle-numeric-switch)
-		("-g" .		x-handle-geometry)
-		("-geometry" .	x-handle-geometry)
-		("-fg" .	x-handle-switch)
-		("-foreground".	x-handle-switch)
-		("-bg" .	x-handle-switch)
-		("-background".	x-handle-switch)
-		("-ms" .	x-handle-switch)
-		("-itype" .	x-handle-switch)
-		("-i" 	.	x-handle-switch)
-		("-iconic" .	x-handle-iconic)
-		("-xrm" .       x-handle-xrm-switch)
-		("-cr" .	x-handle-switch)
-		("-vb" .	x-handle-switch)
-		("-hb" .	x-handle-switch)
-		("-bd" .	x-handle-switch))
-	      command-switch-alist))
+(defconst x-option-alist
+  '(("-bw" .	x-handle-numeric-switch)
+    ("-d" .		x-handle-display)
+    ("-display" .	x-handle-display)
+    ("-name" .	x-handle-name-rn-switch)
+    ("-rn" .	x-handle-name-rn-switch)
+    ("-T" .		x-handle-switch)
+    ("-r" .		x-handle-switch)
+    ("-rv" .	x-handle-switch)
+    ("-reverse" .	x-handle-switch)
+    ("-fn" .	x-handle-switch)
+    ("-font" .	x-handle-switch)
+    ("-ib" .	x-handle-numeric-switch)
+    ("-g" .		x-handle-geometry)
+    ("-geometry" .	x-handle-geometry)
+    ("-fg" .	x-handle-switch)
+    ("-foreground".	x-handle-switch)
+    ("-bg" .	x-handle-switch)
+    ("-background".	x-handle-switch)
+    ("-ms" .	x-handle-switch)
+    ("-itype" .	x-handle-switch)
+    ("-i" 	.	x-handle-switch)
+    ("-iconic" .	x-handle-iconic)
+    ("-xrm" .       x-handle-xrm-switch)
+    ("-cr" .	x-handle-switch)
+    ("-vb" .	x-handle-switch)
+    ("-hb" .	x-handle-switch)
+    ("-bd" .	x-handle-switch)))
+
+(defconst x-long-option-alist
+  '(("--border-width" .	"-bw")
+    ("--display" .	"-d")
+    ("--name" .		"-name")
+    ("--title" .	"-T")
+    ("--reverse-video" . "-reverse")
+    ("--font" .		"-font")
+    ("--internal-border" . "-ib")
+    ("--geometry" .	"-geometry")
+    ("--foreground-color" . "-fg")
+    ("--background-color" . "-bg")
+    ("--mouse-color" .	"-ms")
+    ("--icon-type" .	"-itype")
+    ("--iconic" .	"-iconic")
+    ("--xrm" .		"-xrm")
+    ("--cursor-color" .	"-cr")
+    ("--vertical-scroll-bars" . "-vb")
+    ("--border-color" .	"-bd")))
 
 (defconst x-switch-definitions
   '(("-name" name)
@@ -207,14 +225,38 @@ x-invocation args from which the X-related things are extracted, first
 the switch (e.g., \"-fg\") in the following code, and possible values
 \(e.g., \"black\") in the option handler code (e.g., x-handle-switch).
 This returns ARGS with the arguments that have been processed removed."
+  (message "%s" args)
   (setq x-invocation-args args
 	args nil)
   (while x-invocation-args
     (let* ((this-switch (car x-invocation-args))
-	   (aelt (assoc this-switch command-switch-alist)))
+	   (orig-this-switch this-switch)
+	   completion argval aelt)
       (setq x-invocation-args (cdr x-invocation-args))
+      ;; Check for long options with attached arguments
+      ;; and separate out the attached option argument into argval.
+      (if (string-match "^--[^=]*=" this-switch)
+	  (setq argval (substring this-switch (match-end 0))
+		this-switch (substring this-switch 0 (1- (match-end 0)))))
+      (setq completion (try-completion this-switch x-long-option-alist))
+      (if (eq completion t)
+	  ;; Exact match for long option.
+	  (setq this-switch (cdr (assoc this-switch x-long-option-alist)))
+	(if (stringp completion)
+	    (let ((elt (assoc completion x-long-option-alist)))
+	      ;; Check for abbreviated long option.
+	      (or elt
+		  (error "Option `%s' is ambiguous" this-switch))
+	      (setq this-switch (cdr elt)))
+	  ;; Check for a short option.
+	  (setq argval nil this-switch orig-this-switch)))
+      (setq aelt (assoc this-switch x-option-alist))
       (if aelt
-	  (funcall (cdr aelt) this-switch)
+	  (if argval
+	      (let ((x-invocation-args
+		     (cons argval x-invocation-args)))
+		(funcall (cdr aelt) this-switch))
+	    (funcall (cdr aelt) this-switch))
 	(setq args (cons this-switch args)))))
   (setq args (nreverse args)))
 
