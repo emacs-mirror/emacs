@@ -3758,7 +3758,7 @@ menu_bar_one_keymap (keymap)
 		menu_bar_item (key, item_string, Fcdr (binding));
 	    }
 	  else if (EQ (binding, Qundefined))
-	    menu_bar_item (key, item_string, binding);
+	    menu_bar_item (key, Qnil, binding);
 	}
       else if (XTYPE (item) == Lisp_Vector)
 	{
@@ -3777,7 +3777,7 @@ menu_bar_one_keymap (keymap)
 		    menu_bar_item (key, item_string, Fcdr (binding));
 		}
 	      else if (EQ (binding, Qundefined))
-		menu_bar_item (key, item_string, binding);
+		menu_bar_item (key, Qnil, binding);
 	    }
 	}
     }
@@ -3818,6 +3818,10 @@ menu_bar_item (key, item_string, def)
 	    menu_bar_items_index -= 3;
 	    return;
 	  }
+
+      /* If there's no definition for this key yet,
+	 just ignore `undefined'.  */
+      return;
     }
 
   /* See if this entry is enabled.  */
