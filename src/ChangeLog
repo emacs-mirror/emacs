@@ -1,3 +1,14 @@
+2004-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (struct backtrace): Remove.
+	(Fgarbage_collect): Use the new mark_backtrace.
+
+	* eval.c (mark_backtrace): New function.
+
+	* minibuf.c (run_exit_minibuf_hook): New function.
+	(read_minibuf_unwind): Don't run exit-minibuffer-hook any more.
+	(read_minibuf): Use separate unwind handler to run exit-minibuf-hook.
+
 2004-05-27  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (back_to_previous_visible_line_start): Skip backwards
@@ -15,8 +26,8 @@
 
 2004-05-23  K,Ba(Broly L,Bu(Brentey  <lorentey@elte.hu>  (tiny change)
 
-	* coding.c (Fset_safe_terminal_coding_system_internal): Set
-	suppress_error in safe_terminal_coding, not terminal_coding.
+	* coding.c (Fset_safe_terminal_coding_system_internal):
+	Set suppress_error in safe_terminal_coding, not terminal_coding.
 
 2004-05-22  Richard M. Stallman  <rms@gnu.org>
 
@@ -71,7 +82,7 @@
 	(re_opcode_t): New opcodes `symbeg' and `symend'.
 	(print_partial_compiled_pattern): Print the new opcodes properly.
 	(regex_compile): Parse the new operators.
-	(analyse_first): Skip symbeg and symend (they match only the empty string).
+	(analyse_first): Skip sym(beg|end) (they match only the empty string).
 	(mutually_exclusive_p): `symend' is mutually exclusive with \s_ and
 	\sw; `symbeg' is mutually exclusive with \S_ and \Sw.
 	(re_match_2_internal): Match symbeg and symend.
