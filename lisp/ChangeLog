@@ -1,3 +1,8 @@
+2001-04-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* textmodes/ispell.el, emacs-lisp/checkdoc.el,
+	* progmodes/ebrowse.el, play/fortune.el: Fix autoload cookies.
+
 2001-04-23  Alex Schroeder  <alex@gnu.org>
 
 	* goto-addr.el: Instead of defining line-beginning-position and
