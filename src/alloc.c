@@ -1,5 +1,5 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98, 1999, 2000
+   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98, 1999, 2000, 2001
       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -3702,6 +3702,7 @@ Garbage collection happens automatically if you cons more than\n\
   register int i;
   int message_p;
   Lisp_Object total[8];
+  int count = BINDING_STACK_SIZE ();
 
   /* In case user calls debug_print during GC,
      don't let that cause a recursive GC.  */
@@ -3709,6 +3710,7 @@ Garbage collection happens automatically if you cons more than\n\
 
   /* Save what's currently displayed in the echo area.  */
   message_p = push_message ();
+  record_unwind_protect (push_message_unwind, Qnil);
 
   /* Save a copy of the contents of the stack, for debugging.  */
 #if MAX_SAVE_STACK > 0
@@ -3913,7 +3915,7 @@ Garbage collection happens automatically if you cons more than\n\
 	message1_nolog ("Garbage collecting...done");
     }
 
-  pop_message ();
+  unbind_to (count, Qnil);
 
   total[0] = Fcons (make_number (total_conses),
 		    make_number (total_free_conses));
