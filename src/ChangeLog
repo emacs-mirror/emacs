@@ -1,3 +1,34 @@
+2000-08-17  Dave Love  <fx@gnu.org>
+
+	* lisp.h: Remove DECLARE_INTERVALS, INITIALIZE_INTERVAL.  Don't
+	declare make_temp_name twice.
+
+	* lread.c: Prototype readevalloop, load_unwind,
+	load_descriptor_unwind.
+	(unreadpure): Give it an arg.
+
+	* unexalpha.c: Prototype fatal_unexec, mark_x,
+	update_dynamic_symbols.  Declare unexec as void.
+
+	* cm.c [HAVE_TERMCAP_H]: Include <termcap.h>.
+	[!HAVE_TERMCAP_H]: Prototype tputs, tgoto.
+
+	* alloc.c (lisp_malloc): Declare with POINTER_TYPE.
+	[SYSTEM_MALLOC]: Make decls in malloc.h conditional on
+	DOUG_LEA_MALLOC.
+
+	* alloca.c: Use #error.
+	[POINTER_TYPE]: Use it.
+
+	* eval.c (Fdefvar): Doc fix.
+
+	* buffer.c (Fget_buffer_create, Fmake_indirect_buffer): Avoid
+	INITIALIZE_INTERVAL.
+
+	* buffer.h: Avoid DECLARE_INTERVALS.
+
+	* config.in: Add size_t.
+
 2000-08-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* w16select.c (set_clipboard_data): If there's not enough memory
