@@ -1,5 +1,9 @@
 2001-09-04  Gerd Moellmann  <gerd@gnu.org>
 
+	* comint.el (comint-insert-clicked-input): Goto point-max before
+	deleting previous input.  From "Dr Francis J. Wright"
+	<F.J.Wright@qmw.ac.uk>.
+
 	* simple.el (backward-word): Doc fix.
 
 2001-09-04  Eli Zaretskii  <eliz@is.elta.co.il>
