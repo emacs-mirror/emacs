@@ -1,3 +1,21 @@
+2001-03-10  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-do-command): If the destination buffer is already
+	current, don't set it up and don't erase it.  Updated doc string 
+	to reflect that.
+	(vc-version-diff): When doing a single file diff, don't switch to the
+	*vc-diff* buffer before the command.  This is to preserve local 
+	variable bindings that might affect the diff command.
+	(vc-print-log): Don't switch to the *vc* buffer before the
+	command, so that local variable bindings are preserved.
+
+	* vc-{cvs,rcs,sccs}.el: (vc-*-print-log): Output to buffer *vc*,
+	not the current buffer.
+	(vc-*-diff): Output to buffer *vc-diff*, not the current buffer.
+
+	* vc-cvs.el: (vc-cvs-checkin): When removing the sticky tag,
+	make output go to buffer *vc*, not the current buffer.
+	
 2001-03-09  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* hi-lock.el (hi-lock-line-face-buffer): Wrap the regexp in a group
