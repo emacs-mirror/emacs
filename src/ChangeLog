@@ -1,3 +1,12 @@
+2002-05-11  Kim F. Storm  <storm@cua.dk>
+
+	* keymap.c (current_minor_maps): Fixed resizing of cmm_maps;
+	only update cmm_size if realloc actually succeeds.
+	Testing with initial size of 2 elements revealed that using
+	realloc on GNU/Linux would cause a random trap in xmalloc
+	later on, so I rewrote the code to use malloc/bcopy/free instead
+	of realloc.
+
 2002-05-10  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (enum_font_cb2): Avoid DBCS raster fonts.
