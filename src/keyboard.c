@@ -663,9 +663,17 @@ recursive_edit_1 ()
 }
 
 /* When an auto-save happens, record the "time", and don't do again soon.  */
+
 record_auto_save ()
 {
   last_auto_save = num_nonmacro_input_chars;
+}
+
+/* Make an auto save happen as soon as possible at command level.  */
+
+force_auto_save_soon ()
+{
+  last_auto_save = - auto_save_interval - 1;
 }
 
 DEFUN ("recursive-edit", Frecursive_edit, Srecursive_edit, 0, 0, "",
@@ -2479,7 +2487,7 @@ make_lispy_event (event)
 				   / sizeof (lispy_function_keys[0])));
       break;
 
-#ifdef MULTI_FRAME
+#if defined(MULTI_FRAME) || defined(HAVE_MOUSE)
       /* A mouse click.  Figure out where it is, decide whether it's 
          a press, click or drag, and build the appropriate structure.  */
     case mouse_click:
@@ -2708,7 +2716,7 @@ make_lispy_event (event)
 				 Qnil));
 	}
       }
-#endif /* MULTI_FRAME */
+#endif /* MULTI_FRAME or HAVE_MOUSE */
 
       /* The 'kind' field of the event is something we don't recognize.  */
     default:
