@@ -2598,7 +2598,7 @@ in the mode line."
 	  (> (prefix-numeric-value arg) 0)))
   (force-mode-line-update))
 
-(defvar column-number-mode t
+(defvar column-number-mode nil
   "*Non-nil means display column number in mode line.")
 
 (defun column-number-mode (arg)
