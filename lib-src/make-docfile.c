@@ -363,7 +363,7 @@ read_c_string_or_comment (infile, printflag, comment, saw_usage)
 	      if (c == 't')
 		c = '\t';
 	    }
-	  
+
 	  if (c == ' ')
 	    state.pending_spaces++;
 	  else if (c == '\n')
@@ -387,19 +387,19 @@ read_c_string_or_comment (infile, printflag, comment, saw_usage)
 	      c = getc (infile);
 	      break;
 	    }
-	  
+
 	  scan_keyword_or_put_char ('*', &state);
 	}
       else
 	{
 	  if (c != '"')
 	    break;
-      
+
 	  /* If we had a "", concatenate the two strings.  */
 	  c = getc (infile);
 	}
     }
-  
+
   if (printflag < 0)
     *state.buf_ptr = 0;
 
@@ -644,10 +644,10 @@ scan_c_file (filename, mode)
 
       while (c == ' ' || c == '\n' || c == '\r' || c == '\t')
 	c = getc (infile);
-      
+
       if (c == '"')
 	c = read_c_string_or_comment (infile, 0, 0, 0);
-      
+
       while (c != EOF && c != ',' && c != '/')
 	c = getc (infile);
       if (c == ',')
@@ -674,7 +674,7 @@ scan_c_file (filename, mode)
 	{
 	  int comment = c != '"';
 	  int saw_usage;
-	  
+
 	  putc (037, outfile);
 	  putc (defvarflag ? 'V' : 'F', outfile);
 	  fprintf (outfile, "%s\n", buf);
@@ -704,7 +704,7 @@ scan_c_file (filename, mode)
 		      goto eof;
 		    c = getc (infile);
 		  }
-	      
+
 	      /* Skip into arguments.  */
 	      while (c != '(')
 		{
@@ -748,14 +748,14 @@ scan_c_file (filename, mode)
  When we find that, we save it for the following defining-form,
  and we use that instead of reading a doc string within that defining-form.
 
- For defvar, defconst, and fset we skip to the docstring with a kludgy 
+ For defvar, defconst, and fset we skip to the docstring with a kludgy
  formatting convention: all docstrings must appear on the same line as the
- initial open-paren (the one in column zero) and must contain a backslash 
+ initial open-paren (the one in column zero) and must contain a backslash
  and a newline immediately after the initial double-quote.  No newlines
  must appear between the beginning of the form and the first double-quote.
  For defun, defmacro, and autoload, we know how to skip over the
  arglist, but the doc string must still have a backslash and newline
- immediately after the double quote. 
+ immediately after the double quote.
  The only source files that must follow this convention are preloaded
  uncompiled ones like loaddefs.el and bindings.el; aside
  from that, it is always the .elc file that we look at, and they are no
@@ -801,7 +801,7 @@ read_lisp_symbol (infile, buffer)
 
   if (! buffer[0])
     fprintf (stderr, "## expected a symbol, got '%c'\n", c);
-  
+
   skip_white (infile);
 }
 
@@ -945,7 +945,7 @@ scan_lisp_file (filename, mode)
 		  c1 = c;
 		  c = getc (infile);
 		}
-	  
+
 	      /* If two previous characters were " and \,
 		 this is a doc string.  Otherwise, there is none.  */
 	      if (c2 != '"' || c1 != '\\')
@@ -1004,7 +1004,7 @@ scan_lisp_file (filename, mode)
 		  c1 = c;
 		  c = getc (infile);
 		}
-	  
+
 	      /* If two previous characters were " and \,
 		 this is a doc string.  Otherwise, there is none.  */
 	      if (c2 != '"' || c1 != '\\')
@@ -1061,7 +1061,7 @@ scan_lisp_file (filename, mode)
 		  c1 = c;
 		  c = getc (infile);
 		}
-	  
+
 	      /* If two previous characters were " and \,
 		 this is a doc string.  Otherwise, there is none.  */
 	      if (c2 != '"' || c1 != '\\')
