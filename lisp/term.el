@@ -783,8 +783,6 @@ name of one"
   (let ((proc (get-buffer-process buffer)))
     (and proc (memq (process-status proc) '(run stop)))))
 
-;;; Note that this guy, unlike shell.el's make-shell, barfs if you pass it ()
-;;; for the second argument (program).
 ;;;###autoload
 (defun make-term (name program &optional startfile &rest switches)
 "Make a term process NAME in a buffer, running PROGRAM.
@@ -3241,12 +3239,6 @@ Typing SPC flushes the help buffer."
 ;;;   (add-hook 'term-input-filter-functions 'shell-directory-tracker)
 ;;;   (run-hooks 'shell-mode-hook))
 ;;;
-;;;
-;;; Note that make-term is different from make-shell in that it
-;;; doesn't have a default program argument. If you give make-shell
-;;; a program name of NIL, it cleverly chooses one of explicit-shell-name,
-;;; $ESHELL, $SHELL, or /bin/sh. If you give make-term a program argument
-;;; of NIL, it barfs. Adjust your code accordingly...
 ;;;
 ;;; Completion for term-mode users
 ;;; 
