@@ -55,7 +55,7 @@ Boston, MA 02111-1307, USA.  */
 #include "dispextern.h"
 #include "dosfns.h"
 #include "termopts.h"
-#include "charset.h"
+#include "character.h"
 #include "coding.h"
 #include "disptab.h"
 #include "frame.h"

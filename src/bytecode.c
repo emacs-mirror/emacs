@@ -37,7 +37,7 @@ by Hallvard:
 #include <config.h>
 #include "lisp.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "syntax.h"
 
 #ifdef CHECK_FRAME_FONT

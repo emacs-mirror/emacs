@@ -31,7 +31,7 @@ Boston, MA 02111-1307, USA.
 #include <string.h>
 
 #include "lisp.h"
-#include "charset.h"
+#include "character.h"
 #include "coding.h"
 #include "disptab.h"
 #include "termhooks.h"

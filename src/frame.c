@@ -23,7 +23,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include <stdio.h>
 #include "lisp.h"
-#include "charset.h"
+#include "character.h"
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #endif

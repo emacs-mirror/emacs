@@ -39,7 +39,7 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "buffer.h"
 #include "keyboard.h"
-#include "charset.h"
+#include "character.h"
 #include "keymap.h"
 
 #ifdef HAVE_INDEX

@@ -46,7 +46,7 @@ Boston, MA 02111-1307, USA.  */
 /* Since we use the macro CHAR_HEAD_P, we have to include this, but
    don't have to include others because CHAR_HEAD_P does not contains
    another macro.  */
-#include "charset.h"
+#include "character.h"
 
 static int doprnt1 ();
 
