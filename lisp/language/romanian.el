@@ -1,4 +1,4 @@
-;;; romanian.el --- Support for Romanian
+;;; romanian.el --- Support for Romanian -*- coding: iso-latin-2; -*-
 
 ;; Copyright (C) 1998 Free Software Foundation.
 
@@ -39,7 +39,7 @@
 	      (charset . (ascii latin-iso8859-2))
 	      (coding-system . (iso-8859-2))
 	      (coding-priority . (iso-8859-2))
-	      (sample-text . "Bun,Ac(B ziua, bine a,A~(Bi venit!")
+	      (sample-text . "Bun-Aã-B ziua, bine a-Aþi-B venit!")
 	      (documentation . t))
  '("European"))
 
