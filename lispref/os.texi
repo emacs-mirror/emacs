@@ -687,7 +687,7 @@ done when Emacs starts up, the value actually used is the one saved when
 Emacs was dumped.  @xref{Building Emacs}.)
 @end defvar
 
-@defun getenv var
+@deffn Command getenv var
 @cindex environment variable access
 This function returns the value of the environment variable @var{var},
 as a string.  Within Emacs, the environment variable values are kept in
