@@ -2494,7 +2494,7 @@ if that proves inconveniently small.");
 
   DEFVAR_LISP ("quit-flag", &Vquit_flag,
     "Non-nil causes `eval' to abort, unless `inhibit-quit' is non-nil.\n\
-Typing C-G sets `quit-flag' non-nil, regardless of `inhibit-quit'.");
+Typing C-g sets `quit-flag' non-nil, regardless of `inhibit-quit'.");
   Vquit_flag = Qnil;
 
   DEFVAR_LISP ("inhibit-quit", &Vinhibit_quit,
@@ -2553,7 +2553,7 @@ See also variable `debug-on-quit'.");
   Vdebug_on_error = Qnil;
 
   DEFVAR_BOOL ("debug-on-quit", &debug_on_quit,
-    "*Non-nil means enter debugger if quit is signaled (C-G, for example).\n\
+    "*Non-nil means enter debugger if quit is signaled (C-g, for example).\n\
 Does not apply if quit is handled by a `condition-case'.");
   debug_on_quit = 0;
 
