@@ -1,5 +1,5 @@
 display options and their current values
-% $HopeName: MMQA_harness!script:help:options(trunk.5) $
+% $HopeName: MMQA_harness!script:help:options(trunk.6) $
 
 Usage: qa options [<options>]
 
@@ -21,48 +21,18 @@ What the options mean:
 
 MMQA_MPS_INCLUDE_DIR / -i
  a directory where the MM header files may be found. No default.
- Note: if you change this setting, it may be necessary to recompile
- the test libraries (qa clib).
 
 MMQA_MPS_LINK_OBJ / -l
  the MM libraries and plinth to link with. Separate multiple files
- with spaces. No default.
- Note: if you change this setting, it may be necessary to recompile
- the test libraries (qa clib), because if may change the value of
- MMQA_MPS_PRODUCT.
+ with spaces. (Spaces in the paths will make the test harness go
+ wrong, unfortunately.) No default.
 
 MMQA_MPS_PRODUCT / -prod
- Should be "epcore" or "dylan", according to which memory manager
- you are testing. The only difference this makes is whether the
- test harness uses the trampoline or not. Usually you will not need
- to set this option, as if it is left unset, the harness will use
- MPS version identification to choose the right value.
- Note: if you change this setting, it may be necessary to recompile
- the test libraries (qa clib).
-
-MMQA_MPS_INTERFACE_VERSION / -v
- It should be one of the following:
-
-  OS (oldstyle)  release.dylan.incr.patch.11
-  MO (modern)    release.mps.thursdaypm
-  GR (grotesque) release.dylan.honeybee   ("space"->"arena")
-  BQ (baroque)   release.dylan.meadowlark (needs mpsw3.h)
-  HU (humanist)  release.dylan.kinglet    (spare committed fund)
-
- These are in order from oldest to newest, so e.g. GR is appropriate
- for releases from honeybee upto but not including meadowlark. If
- you just want to test a build from the trunk or a development
- branch then it's anybody's guess what version you should use, if
- indeed there is an appropriate one. This situation won't improve
- until the MPS has an interface-version-interface -- then it can
- all be automated.
-
- The default is the most recent version. New interface versions
- are added (by rit) when he discovers that the MM interface has changed
- so as to require them.
-
- If you change this setting, it is necessary to recompile the
- test libraries (qa clib).
+ You won't normally need to (and shouldn't) set this option, which
+ will default to "epcore" or "dylan", whichever is appropriate to
+ the memory manager specified in MMQA_MPS_LINK_OBJ. If however you
+ want to test a memory manager which predates MPS version
+ identification, then you must set it manually.
 
 MMQA_LOG_DIR / -g
  the directory in which log files should be saved. Default is
@@ -118,6 +88,13 @@ MMQA_DEBUG_INFO / -[no]debug
  default is 'off'. If you turn this on, qa commands will output
  various diagnostic messages, which may or may not be useful in
  the event of a problem with the test system. Not recommended.
+
+MMQA_DANGEROUS / -[no]danger
+ default is 'off'. With default setting, the harness will refuse
+ to run a test if it believes the test libraries may not be compatible
+ with the current settings. Normally you will want to "qa clib" when
+ this happens, but to force the harness to run the test with the
+ old libraries (and symbol lists), turn this option on.
 
 MMQA_MAIL_RESULTS / -[no]mail
  If MAIL_RESULTS is on, then MAIL_SUBJECT will be put at the beginning
