@@ -1,19 +1,13 @@
 #!/usr/local/bin/perl
-# $HopeName$
+# $HopeName: MMQA_harness!script:commands:try(trunk.8) $
 #
 # run tests interactively (allows for user input, immediate results,
 # &c, but doesn't give results in standard format)
 
-&options(
- "MPS_INCLUDE_DIR",
- "MPS_LINK_OBJ",
- "INTERFACE_VERSION",
- "PLATFORM"
-);
+&options();
 
 require "require";
 
-foreach $testfile (@qa_args) {
- &try_test($testfile);
-}
+print "The try command has been removed. Please use the run command instead.\n";
+
 
