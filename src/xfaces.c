@@ -807,7 +807,7 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr, limit, mouse)
   if (XBUFFER (w->buffer) != current_buffer)
     abort ();
 
-  XSET (frame, Lisp_Frame, f);
+  XSETFRAME (frame, f);
 
   endpos = ZV;
   if (pos < region_beg && region_beg < endpos)
