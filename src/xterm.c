@@ -1117,11 +1117,49 @@ XTflash (f)
     }
 
     {
-      int width  = PIXEL_WIDTH  (f);
-      int height = PIXEL_HEIGHT (f);
+      /* Get the height not including a menu bar widget.  */
+      int height = CHAR_TO_PIXEL_HEIGHT (f, FRAME_HEIGHT (f));
+      /* Height of each line to flash.  */
+      int flash_height = FRAME_LINE_HEIGHT (f);
+      /* These will be the left and right margins of the rectangles.  */
+      int flash_left = FRAME_INTERNAL_BORDER_WIDTH (f);
+      int flash_right = PIXEL_WIDTH (f) - FRAME_INTERNAL_BORDER_WIDTH (f);
 
-      XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
-		      width/4, height/4, width/2, height/2);
+      int width;
+
+      /* Don't flash the area between a scroll bar and the frame
+	 edge it is next to.  */
+      switch (FRAME_VERTICAL_SCROLL_BAR_TYPE (f))
+	{
+	case vertical_scroll_bar_left:
+	  flash_left += VERTICAL_SCROLL_BAR_WIDTH_TRIM;
+	  break;
+
+	case vertical_scroll_bar_right:
+	  flash_right -= VERTICAL_SCROLL_BAR_WIDTH_TRIM;
+	  break;
+	}
+
+      width = flash_right - flash_left;
+
+      /* If window is tall, flash top and bottom line.  */
+      if (height > 3 * FRAME_LINE_HEIGHT (f))
+	{
+	  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
+			  flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
+			  width, flash_height);
+	  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
+			  flash_left,
+			  (height - flash_height
+			   - FRAME_INTERNAL_BORDER_WIDTH (f)),
+			  width, flash_height);
+	}
+      else
+	/* If it is short, flash it all.  */ 
+	XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
+			flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
+			width, height - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
+
       XFlush (FRAME_X_DISPLAY (f));
 
       {
@@ -1151,8 +1189,24 @@ XTflash (f)
 	  }
       }
 
-      XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
-		      width/4, height/4, width/2, height/2);
+      /* If window is tall, flash top and bottom line.  */
+      if (height > 3 * FRAME_LINE_HEIGHT (f))
+	{
+	  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
+			  flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
+			  width, flash_height);
+	  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
+			  flash_left,
+			  (height - flash_height
+			   - FRAME_INTERNAL_BORDER_WIDTH (f)),
+			  width, flash_height);
+	}
+      else
+	/* If it is short, flash it all.  */ 
+	XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
+			flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
+			width, height - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
+
       XFreeGC (FRAME_X_DISPLAY (f), gc);
       XFlush (FRAME_X_DISPLAY (f));
     }
@@ -3241,7 +3295,6 @@ XTread_socket (sd, bufp, numchars, expected)
      register int sd;
      /* register */ struct input_event *bufp;
      /* register */ int numchars;
-     int waitp;
      int expected;
 {
   int count = 0;
