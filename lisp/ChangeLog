@@ -1,3 +1,8 @@
+2004-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/telnet.el (telnet-mode): Use define-derived-mode.
+	Don't modify the global value of comint-prompt-regexp.
+
 2004-05-13  John Paul Wallington  <jpw@gnu.org>
 
 	* version.el (emacs-version): Check for `gtk' feature before
@@ -12,8 +17,8 @@
 
 2004-05-13  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
-	* calendar/appt.el (appt-disp-window): Use
-	`calendar-set-mode-line' for a centered mode-line.
+	* calendar/appt.el (appt-disp-window):
+	Use `calendar-set-mode-line' for a centered mode-line.
 
 2004-05-13  Takaaki Ota  <Takaaki.Ota@am.sony.com>  (tiny change)
 
@@ -28,8 +33,8 @@
 
 2004-05-12  Daniel Pfeiffer  <occitan@esperanto.org>
 
-	* progmodes/compile.el (compilation-set-window-height): Use
-	save-excursion to protect against misplaced marker.
+	* progmodes/compile.el (compilation-set-window-height):
+	Use save-excursion to protect against misplaced marker.
 
 2004-05-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -57,8 +62,7 @@
 2004-05-11  Alexander Pohoyda  <alexander.pohoyda@gmx.net>  (tiny change)
 
 	* man.el (Man-getpage-in-background): Use shell-file-name
-	and shell-command-switch variables instead of hard-coded
-	values.
+	and shell-command-switch variables instead of hard-coded values.
 
 2004-05-11  Eli Zaretskii  <eliz@gnu.org>
 
@@ -66,8 +70,7 @@
 
 2004-05-11  Juanma Barranquero  <lektu@terra.es>
 
-	* custom.el (custom-initialize-default, defcustom): Fix typo
-	in docstring.
+	* custom.el (custom-initialize-default, defcustom): Typo in docstring.
 
 	* files.el (set-visited-file-name, file-expand-wildcards):
 	Fix docstring.
