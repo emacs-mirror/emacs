@@ -1049,7 +1049,8 @@ that are visiting the various files."
       ;; Record the file's truename, and maybe use that as visited name.
       (if (equal filename buffer-file-name)
 	  (setq buffer-file-truename truename)
-	(setq buffer-file-truename (file-truename buffer-file-name)))
+	(setq buffer-file-truename
+	      (abbreviate-file-name (file-truename buffer-file-name))))
       (setq buffer-file-number number)
       ;; On VMS, we may want to remember which directory in a search list
       ;; the file was found in.
