@@ -1058,7 +1058,9 @@ direct_output_for_insert (g)
     int face = compute_char_face (frame, w, point - 1, -1, -1, &dummy, point);
 #endif
     current_frame->glyphs[vpos][hpos] = MAKE_GLYPH (frame, g, face);
-    current_frame->charstarts[vpos][hpos] = point;
+    current_frame->charstarts[vpos][hpos] = point - 1;
+    /* Record the entry for after the newly inserted character.  */
+    current_frame->charstarts[vpos][hpos + 1] = point;
     adjust_window_charstarts (w, vpos, 1);
   }
   unchanged_modified = MODIFF;
