@@ -730,6 +730,25 @@ else
       CCL_SUSPEND (CCL_STAT_SUSPEND_BY_DST);				\
   } while (0)
 
+/* Encode one character CH to multibyte form and write to the current
+   output buffer.  The output bytes always forms a valid multibyte
+   sequence.  */
+#define CCL_WRITE_MULTIBYTE_CHAR(ch)					\
+  do {									\
+    int bytes = CHAR_BYTES (ch);					\
+    if (!dst)								\
+      CCL_INVALID_CMD;							\
+    else if (dst + bytes + extra_bytes < (dst_bytes ? dst_end : src))	\
+      {									\
+	if (CHAR_VALID_P ((ch), 0))					\
+	  dst += CHAR_STRING ((ch), dst);				\
+	else								\
+	  CCL_INVALID_CMD;						\
+      }									\
+    else								\
+      CCL_SUSPEND (CCL_STAT_SUSPEND_BY_DST);				\
+  } while (0)
+
 /* Write a string at ccl_prog[IC] of length LEN to the current output
    buffer.  */
 #define CCL_WRITE_STRING(len)				\
@@ -1340,7 +1359,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	      else
 		i = ((i - 0xE0) << 14) | reg[rrr];
 
-	      CCL_WRITE_CHAR (i);
+	      CCL_WRITE_MULTIBYTE_CHAR (i);
 
 	      break;
 
@@ -1805,6 +1824,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
   ccl->ic = ic;
   ccl->stack_idx = stack_idx;
   ccl->prog = ccl_prog;
+  ccl->eight_bit_control = (extra_bytes > 0);
   if (consumed) *consumed = src - source;
   return (dst ? dst - destination : 0);
 }
