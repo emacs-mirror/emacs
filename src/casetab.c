@@ -23,11 +23,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "lisp.h"
 #include "buffer.h"
 
-Lisp_Object Qcase_table_p;
+Lisp_Object Qcase_table_p, Qcase_table;
 Lisp_Object Vascii_downcase_table, Vascii_upcase_table;
 Lisp_Object Vascii_canon_table, Vascii_eqv_table;
 
-void compute_trt_inverse ();
+static void compute_trt_inverse ();
 
 DEFUN ("case-table-p", Fcase_table_p, Scase_table_p, 1, 1, 0,
   "Return t iff ARG is a case table.\n\
@@ -36,18 +36,20 @@ See `set-case-table' for more information on these data structures.")
      Lisp_Object table;
 {
   Lisp_Object down, up, canon, eqv;
-  down = Fcar_safe (table);
-  up = Fcar_safe (Fcdr_safe (table));
-  canon = Fcar_safe (Fcdr_safe (Fcdr_safe (table)));
-  eqv = Fcar_safe (Fcdr_safe (Fcdr_safe (Fcdr_safe (table))));
 
-#define STRING256_P(obj) (STRINGP (obj) && XSTRING (obj)->size == 256)
+  if (! CHAR_TABLE_P (table))
+    return Qnil;
+  if (! EQ (XCHAR_TABLE (table)->purpose, Qcase_table))
+    return Qnil;
 
-  return (STRING256_P (down)
-	  && (NILP (up) || STRING256_P (up))
+  up = XCHAR_TABLE (table)->extras[0];
+  canon = XCHAR_TABLE (table)->extras[1];
+  eqv = XCHAR_TABLE (table)->extras[2];
+
+  return ((NILP (up) || CHAR_TABLE_P (up))
 	  && ((NILP (canon) && NILP (eqv))
- 	      || (STRING256_P (canon)
-		  && (NILP (eqv) || STRING256_P (eqv))))
+ 	      || (CHAR_TABLE_P (canon)
+		  && (NILP (eqv) || CHAR_TABLE_P (eqv))))
 	  ? Qt : Qnil);
 }
 
@@ -68,12 +70,7 @@ DEFUN ("current-case-table", Fcurrent_case_table, Scurrent_case_table, 0, 0, 0,
 {
   Lisp_Object down, up, canon, eqv;
   
-  down = current_buffer->downcase_table;
-  up = current_buffer->upcase_table;
-  canon = current_buffer->case_canon_table;
-  eqv = current_buffer->case_eqv_table;
-
-  return Fcons (down, Fcons (up, Fcons (canon, Fcons (eqv, Qnil))));
+  return current_buffer->downcase_table;
 }
 
 DEFUN ("standard-case-table", Fstandard_case_table, Sstandard_case_table, 0, 0, 0,
@@ -81,19 +78,17 @@ DEFUN ("standard-case-table", Fstandard_case_table, Sstandard_case_table, 0, 0, 
 This is the one used for new buffers.")
   ()
 {
-  return Fcons (Vascii_downcase_table,
-		Fcons (Vascii_upcase_table,
-		       Fcons (Vascii_canon_table,
-			      Fcons (Vascii_eqv_table, Qnil))));
+  return Vascii_downcase_table;
 }
 
 static Lisp_Object set_case_table ();
 
 DEFUN ("set-case-table", Fset_case_table, Sset_case_table, 1, 1, 0,
   "Select a new case table for the current buffer.\n\
-A case table is a list (DOWNCASE UPCASE CANONICALIZE EQUIVALENCES)\n\
- where each element is either nil or a string of length 256.\n\
-DOWNCASE maps each character to its lower-case equivalent.\n\
+A case table is a char-table which maps characters
+to their lower-case equivalents.  It also has three \"extra\" slots
+which may be additional char-tables or nil.
+These slots are called UPCASE, CANONICALIZE and EQUIVALENCES.\n\
 UPCASE maps each character to its upper-case equivalent;\n\
  if lower and upper case characters are in 1-1 correspondence,\n\
  you may use nil and the upcase table will be deduced from DOWNCASE.\n\
@@ -128,53 +123,45 @@ set_case_table (table, standard)
 
   check_case_table (table);
 
-  down = Fcar_safe (table);
-  up = Fcar_safe (Fcdr_safe (table));
-  canon = Fcar_safe (Fcdr_safe (Fcdr_safe (table)));
-  eqv = Fcar_safe (Fcdr_safe (Fcdr_safe (Fcdr_safe (table))));
+  up = XCHAR_TABLE (table)->extras[0];
+  canon = XCHAR_TABLE (table)->extras[1];
+  eqv = XCHAR_TABLE (table)->extras[2];
 
   if (NILP (up))
     {
-      up = Fmake_string (make_number (256), make_number (0));
-      compute_trt_inverse (XSTRING (down)->data, XSTRING (up)->data);
+      up = Fmake_char_table (Qcase_table, Qnil);
+      compute_trt_inverse (XCHAR_TABLE (down), XCHAR_TABLE (up));
+      XCHAR_TABLE (table)->extras[0] = up;
     }
 
   if (NILP (canon))
     {
       register int i;
-      unsigned char *upvec = XSTRING (up)->data;
-      unsigned char *downvec = XSTRING (down)->data;
+      Lisp_Object *upvec = XCHAR_TABLE (up)->contents;
+      Lisp_Object *downvec = XCHAR_TABLE (down)->contents;
 
-      canon = Fmake_string (make_number (256), make_number (0));
+      up = Fmake_char_table (Qcase_table, Qnil);
 
       /* Set up the CANON vector; for each character,
 	 this sequence of upcasing and downcasing ought to
 	 get the "preferred" lowercase equivalent.  */
       for (i = 0; i < 256; i++)
-	XSTRING (canon)->data[i] = downvec[upvec[downvec[i]]];
+	XCHAR_TABLE (canon)->contents[i] = downvec[upvec[downvec[i]]];
+      XCHAR_TABLE (table)->extras[1] = canon;
     }
 
   if (NILP (eqv))
     {
-      eqv = Fmake_string (make_number (256), make_number (0));
-
-      compute_trt_inverse (XSTRING (canon)->data, XSTRING (eqv)->data);
+      eqv = Fmake_char_table (Qcase_table, Qnil);
+      compute_trt_inverse (XCHAR_TABLE (canon), XCHAR_TABLE (eqv));
+      XCHAR_TABLE (table)->extras[0] = eqv;
     }
 
   if (standard)
-    {
-      Vascii_downcase_table = down;
-      Vascii_upcase_table = up;
-      Vascii_canon_table = canon;
-      Vascii_eqv_table = eqv;
-    }
+    Vascii_downcase_table = down;
   else
-    {
-      current_buffer->downcase_table = down;
-      current_buffer->upcase_table = up;
-      current_buffer->case_canon_table = canon;
-      current_buffer->case_eqv_table = eqv;
-    }
+    current_buffer->downcase_table = down;
+
   return table;
 }
 
@@ -184,24 +171,23 @@ set_case_table (table, standard)
    All characters in a given class form one circular list, chained through
    the elements of INVERSE.  */
 
-void
+static void
 compute_trt_inverse (trt, inverse)
-     register unsigned char *trt;
-     register unsigned char *inverse;
+     struct Lisp_Char_Table *trt, *inverse;
 {
   register int i = 0400;
   register unsigned char c, q;
 
   while (i--)
-    inverse[i] = i;
+    inverse->contents[i] = i;
   i = 0400;
   while (i--)
     {
-      if ((q = trt[i]) != (unsigned char) i)
+      if ((q = trt->contents[i]) != (unsigned char) i)
 	{
-	  c = inverse[q];
-	  inverse[q] = i;
-	  inverse[i] = c;
+	  c = inverse->contents[q];
+	  inverse->contents[q] = i;
+	  inverse->contents[i] = c;
 	}
     }
 }
@@ -209,47 +195,51 @@ compute_trt_inverse (trt, inverse)
 init_casetab_once ()
 {
   register int i;
-  Lisp_Object tem;
+  Lisp_Object down, up;
+  Qcase_table = intern ("case-table");
+  staticpro (&Qcase_table);
 
-  tem = Fmake_string (make_number (256), make_number (0));
-  Vascii_downcase_table = tem;
-  Vascii_canon_table = tem;
+  /* Intern this now in case it isn't already done.
+     Setting this variable twice is harmless.
+     But don't staticpro it here--that is done in alloc.c.  */
+  Qchar_table_extra_slots = intern ("char-table-extra-slots");
+
+  /* Now we are ready to set up this property, so we can
+     create char tables.  */
+  Fput (Qcase_table, Qchar_table_extra_slots, make_number (4));
+
+  down = Fmake_char_table (Qcase_table, Qnil);
+  Vascii_downcase_table = down;
 
   for (i = 0; i < 256; i++)
-    XSTRING (tem)->data[i] = (i >= 'A' && i <= 'Z') ? i + 040 : i;
+    XCHAR_TABLE (down)->contents[i] = (i >= 'A' && i <= 'Z') ? i + 040 : i;
 
-  tem = Fmake_string (make_number (256), make_number (0));
-  Vascii_upcase_table = tem;
-  Vascii_eqv_table = tem;
+  XCHAR_TABLE (down)->extras[1] = Fcopy_sequence (down);
+
+  up = Fmake_char_table (Qcase_table, Qnil);
+  XCHAR_TABLE (down)->extras[0] = up;
 
   for (i = 0; i < 256; i++)
-    XSTRING (tem)->data[i]
+    XCHAR_TABLE (up)->contents[i]
       = ((i >= 'A' && i <= 'Z')
 	 ? i + ('a' - 'A')
 	 : ((i >= 'a' && i <= 'z')
 	    ? i + ('A' - 'a')
 	    : i));
+
+  XCHAR_TABLE (down)->extras[2] = Fcopy_sequence (up);
 }
 
 syms_of_casetab ()
 {
   Qcase_table_p = intern ("case-table-p");
   staticpro (&Qcase_table_p);
+
   staticpro (&Vascii_downcase_table);
-  staticpro (&Vascii_upcase_table);
-  staticpro (&Vascii_canon_table);
-  staticpro (&Vascii_eqv_table);
 
   defsubr (&Scase_table_p);
   defsubr (&Scurrent_case_table);
   defsubr (&Sstandard_case_table);
   defsubr (&Sset_case_table);
   defsubr (&Sset_standard_case_table);
-
-#if 0
-  DEFVAR_LISP ("ascii-downcase-table", &Vascii_downcase_table,
-	       "String mapping ASCII characters to lowercase equivalents.");
-  DEFVAR_LISP ("ascii-upcase-table", &Vascii_upcase_table,
-	       "String mapping ASCII characters to uppercase equivalents.");
-#endif
 }
