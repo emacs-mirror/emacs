@@ -1,5 +1,9 @@
 2004-05-02  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* syssignal.h (init_signals): Move decl outside `#ifdef POSIX_SIGNALS'.
+
+2004-05-02  Thien-Thi Nguyen  <ttn@gnu.org>
+
 	* tparam.c (tparam1): Add handling for `%pN', which
 	means use param N for the next substitution.
 
