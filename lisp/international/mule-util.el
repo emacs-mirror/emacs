@@ -234,22 +234,22 @@ Optional 3rd argument NIL-FOR-TOO-LONG non-nil means return nil
 
 ;;;###autoload
 (defun coding-system-post-read-conversion (coding-system)
-  "Return the value of CODING-SYSTEM's post-read-conversion property."
+  "Return the value of CODING-SYSTEM's `post-read-conversion' property."
   (coding-system-get coding-system 'post-read-conversion))
 
 ;;;###autoload
 (defun coding-system-pre-write-conversion (coding-system)
-  "Return the value of CODING-SYSTEM's pre-write-conversion property."
+  "Return the value of CODING-SYSTEM's `pre-write-conversion' property."
   (coding-system-get coding-system 'pre-write-conversion))
 
 ;;;###autoload
 (defun coding-system-translation-table-for-decode (coding-system)
-  "Return the value of CODING-SYSTEM's translation-table-for-decode property."
+  "Return the value of CODING-SYSTEM's `translation-table-for-decode' property."
   (coding-system-get coding-system 'translation-table-for-decode))
 
 ;;;###autoload
 (defun coding-system-translation-table-for-encode (coding-system)
-  "Return the value of CODING-SYSTEM's translation-table-for-encode property."
+  "Return the value of CODING-SYSTEM's `translation-table-for-encode' property."
   (coding-system-get coding-system 'translation-table-for-encode))
 
 ;;;###autoload
