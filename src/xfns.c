@@ -5195,7 +5195,7 @@ Lisp_Object Qxbm;
 extern Lisp_Object QCwidth, QCheight, QCforeground, QCbackground, QCfile;
 extern Lisp_Object QCdata;
 Lisp_Object QCtype, QCascent, QCmargin, QCrelief;
-Lisp_Object QCalgorithm, QCcolor_symbols, QCheuristic_mask;
+Lisp_Object QCconversion, QCcolor_symbols, QCheuristic_mask;
 Lisp_Object QCindex, QCmatrix, QCcolor_adjustment, QCmask;
 
 /* Other symbols.  */
@@ -6036,20 +6036,20 @@ lookup_image (f, spec)
 	  /* Should we apply an image transformation algorithm?  */
 	  if (img->pixmap)
 	    {
-	      Lisp_Object algorithm;
+	      Lisp_Object conversion;
 
-	      algorithm = image_spec_value (spec, QCalgorithm, NULL);
-	      if (EQ (algorithm, Qdisabled))
+	      conversion = image_spec_value (spec, QCconversion, NULL);
+	      if (EQ (conversion, Qdisabled))
 		x_disable_image (f, img);
-	      else if (EQ (algorithm, Qlaplace))
+	      else if (EQ (conversion, Qlaplace))
 		x_laplace (f, img);
-	      else if (EQ (algorithm, Qemboss))
+	      else if (EQ (conversion, Qemboss))
 		x_emboss (f, img);
-	      else if (CONSP (algorithm)
-		       && EQ (XCAR (algorithm), Qedge_detection))
+	      else if (CONSP (conversion)
+		       && EQ (XCAR (conversion), Qedge_detection))
 		{
 		  Lisp_Object tem;
-		  tem = XCDR (algorithm);
+		  tem = XCDR (conversion);
 		  if (CONSP (tem))
 		    x_edge_detection (f, img,
 				      Fplist_get (tem, QCmatrix),
@@ -6350,7 +6350,7 @@ static struct image_keyword xbm_format[XBM_LAST] =
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,   0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
-  {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
@@ -6983,7 +6983,7 @@ static struct image_keyword xpm_format[XPM_LAST] =
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
-  {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":color-symbols",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
@@ -7611,7 +7611,7 @@ static XColor *x_to_xcolors P_ ((struct frame *, struct image *, int));
 static void x_from_xcolors P_ ((struct frame *, struct image *, XColor *));
 static void x_detect_edges P_ ((struct frame *, struct image *, int[9], int));
 
-/* Non-zero means draw a cross on images having `:algorithm
+/* Non-zero means draw a cross on images having `:conversion
    disabled'.  */
 
 int cross_disabled_images;
@@ -8068,7 +8068,7 @@ static struct image_keyword pbm_format[PBM_LAST] =
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
-  {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":foreground",	IMAGE_STRING_VALUE,			0},
@@ -8395,7 +8395,7 @@ static struct image_keyword png_format[PNG_LAST] =
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
-  {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
@@ -8872,7 +8872,7 @@ static struct image_keyword jpeg_format[JPEG_LAST] =
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
-  {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":conversions",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
@@ -9227,7 +9227,7 @@ static struct image_keyword tiff_format[TIFF_LAST] =
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
-  {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":conversions",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
@@ -9550,7 +9550,7 @@ static struct image_keyword gif_format[GIF_LAST] =
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
-  {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":image",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0}
@@ -9863,7 +9863,7 @@ static struct image_keyword gs_format[GS_LAST] =
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
-  {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
@@ -11373,7 +11373,7 @@ syms_of_xfns ()
 
   DEFVAR_BOOL ("cross-disabled-images", &cross_disabled_images,
     "Non-nil means always draw a cross over disabled images.\n\
-Disabled images are those having an `:algorithm disabled' property.\n\
+Disabled images are those having an `:conversion disabled' property.\n\
 A cross is always drawn on black & white displays.");
   cross_disabled_images = 0;
 
@@ -11543,8 +11543,8 @@ meaning don't clear the cache.");
   staticpro (&Qxbm);
   QCtype = intern (":type");
   staticpro (&QCtype);
-  QCalgorithm = intern (":algorithm");
-  staticpro (&QCalgorithm);
+  QCconversion = intern (":conversion");
+  staticpro (&QCconversion);
   QCheuristic_mask = intern (":heuristic-mask");
   staticpro (&QCheuristic_mask);
   QCcolor_symbols = intern (":color-symbols");
