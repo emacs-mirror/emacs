@@ -166,22 +166,22 @@ fatal (s1, s2)
 
 /* Like malloc but get fatal error if memory is exhausted.  */
 
-static char *
+static long *
 xmalloc (size)
      int size;
 {
-  char *result = (char *) malloc (((unsigned) size));
-  if (result == ((char *) NULL))
+  long *result = (long *) malloc (((unsigned) size));
+  if (result == ((long *) NULL))
     fatal ("virtual memory exhausted", 0);
   return result;
 }
 
-static char *
+static long *
 xrealloc (ptr, size)
-     char *ptr;
+     long *ptr;
      int size;
 {
-  char *result = (char *) realloc (ptr, ((unsigned) size));
+  long *result = (long *) realloc (ptr, ((unsigned) size));
   if (result == ((char *) NULL))
     fatal ("virtual memory exhausted");
   return result;
