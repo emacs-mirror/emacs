@@ -42,6 +42,11 @@ A directory name is ok too; it means file TAGS in that directory."
 				     (concat default-directory "TAGS")
 				     t)))
   (setq file (expand-file-name file))
+  ;; Get rid of the prefixes added by the automounter.
+  (if (and (string-match "^/tmp_mnt/" file)
+	   (file-exists-p (file-name-directory
+			   (substring file (1- (match-end 0))))))
+      (setq file (substring file (1- (match-end 0)))))
   (if (file-directory-p file)
       (setq file (concat file "TAGS")))
   (setq tag-table-files nil
