@@ -5,6 +5,9 @@
 
 2002-01-12  Richard M. Stallman  <rms@gnu.org>
 
+	* simple.el (line-move): If we can't move enough lines,
+	go to beginning or end of line.
+
 	* help-mode.el (help-xref-go-back): Restore POSITION in proper buffer
 	and proper window.
 
