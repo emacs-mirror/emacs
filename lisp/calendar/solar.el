@@ -920,9 +920,12 @@ Accurate to a few seconds."
   :type 'integer
   :version "21.1")
 
-(defun diary-sabbath-candles ()
+(defun diary-sabbath-candles (&optional mark)
   "Local time of candle lighting diary entry--applies if date is a Friday.
-No diary entry if there is no sunset on that date."
+No diary entry if there is no sunset on that date.
+
+An optional parameter MARK specifies a face or single-character string to 
+use when highlighting the day in the calendar."
   (if (not (and calendar-latitude calendar-longitude calendar-time-zone))
       (solar-setup))
   (if (= (% (calendar-absolute-from-gregorian date) 7) 5);;  Friday
@@ -932,8 +935,9 @@ No diary entry if there is no sunset on that date."
                                  (/ diary-sabbath-candles-minutes 60.0))
                               (cdr sunset)))))
         (if sunset
-            (format "%s Sabbath candle lighting"
-                    (apply 'solar-time-string light))))))
+            (cons mark
+		  (format "%s Sabbath candle lighting"
+                    (apply 'solar-time-string light)))))))
 
 (defun solar-equinoxes/solstices (k year)
   "Date of equinox/solstice K for YEAR.
