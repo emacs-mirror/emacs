@@ -769,8 +769,8 @@ the hash tables.")
 (defvar gnus-article-mode-map nil)
 (defvar gnus-kill-file-mode-map nil)
 
-(defvar rmail-last-file (expand-file-name "~/XMBOX"))
-(defvar rmail-last-rmail-file (expand-file-name "~/XNEWS"))
+(defvar rmail-default-file (expand-file-name "~/XMBOX"))
+(defvar rmail-default-rmail-file (expand-file-name "~/XNEWS"))
 
 ;; Define GNUS Subsystems.
 (autoload 'gnus-group-post-news "gnuspost"
@@ -3719,13 +3719,13 @@ is non-nil. The hook is intended to customize Rmail mode."
 			 (message "(No changes need to be saved)")
 			 'no-need-to-write-this-buffer))))
 	  ;; Default file name saving digest messages.
-	  (setq rmail-last-rmail-file
+	  (setq rmail-default-rmail-file
 		(funcall gnus-rmail-save-name
 			 gnus-newsgroup-name
 			 gnus-current-headers
 			 gnus-newsgroup-last-rmail
 			 ))
-	  (setq rmail-last-file
+	  (setq rmail-default-file
 		(funcall gnus-mail-save-name
 			 gnus-newsgroup-name
 			 gnus-current-headers
@@ -5259,7 +5259,7 @@ ROT47 will be performed for Japanese text in any case."
   (require 'rmail)
   ;; Most of these codes are borrowed from rmailout.el.
   (setq file-name (expand-file-name file-name))
-  (setq rmail-last-rmail-file file-name)
+  (setq rmail-default-rmail-file file-name)
   (let ((artbuf (current-buffer))
 	(tmpbuf (get-buffer-create " *GNUS-output*")))
     (save-excursion
