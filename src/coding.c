@@ -147,7 +147,8 @@ detect_coding_emacs_mule (src, src_end, multibytep)
 static void
 decode_coding_XXX (coding, source, destination, src_bytes, dst_bytes)
      struct coding_system *coding;
-     unsigned char *source, *destination;
+     const unsigned char *source;
+     unsigned char *destination;
      int src_bytes, dst_bytes;
 {
   ...
@@ -800,12 +801,13 @@ static INLINE int
 decode_composition_emacs_mule (coding, src, src_end,
 			       destination, dst_end, dst_bytes)
      struct coding_system *coding;
-     unsigned char *src, *src_end, **destination, *dst_end;
+     const unsigned char *src, *src_end;
+     unsigned char **destination, *dst_end;
      int dst_bytes;
 {
   unsigned char *dst = *destination;
   int method, data_len, nchars;
-  unsigned char *src_base = src++;
+  const unsigned char *src_base = src++;
   /* Store components of composition.  */
   int component[COMPOSITION_DATA_MAX_BUNCH_LENGTH];
   int ncomponent;
@@ -946,23 +948,25 @@ decode_composition_emacs_mule (coding, src, src_end,
 static void
 decode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
      struct coding_system *coding;
-     unsigned char *source, *destination;
+     const unsigned char *source;
+     unsigned char *destination;
      int src_bytes, dst_bytes;
 {
-  unsigned char *src = source;
-  unsigned char *src_end = source + src_bytes;
+  const unsigned char *src = source;
+  const unsigned char *src_end = source + src_bytes;
   unsigned char *dst = destination;
   unsigned char *dst_end = destination + dst_bytes;
   /* SRC_BASE remembers the start position in source in each loop.
      The loop will be exited when there's not enough source code, or
      when there's not enough destination area to produce a
      character.  */
-  unsigned char *src_base;
+  const unsigned char *src_base;
 
   coding->produced_char = 0;
   while ((src_base = src) < src_end)
     {
-      unsigned char tmp[MAX_MULTIBYTE_LENGTH], *p;
+      unsigned char tmp[MAX_MULTIBYTE_LENGTH];
+      const unsigned char *p;
       int bytes;
 
       if (*src == '\r')
@@ -1116,14 +1120,15 @@ static void encode_eol P_ ((struct coding_system *, const unsigned char *,
 static void
 encode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
      struct coding_system *coding;
-     unsigned char *source, *destination;
+     const unsigned char *source;
+     unsigned char *destination;
      int src_bytes, dst_bytes;
 {
-  unsigned char *src = source;
-  unsigned char *src_end = source + src_bytes;
+  const unsigned char *src = source;
+  const unsigned char *src_end = source + src_bytes;
   unsigned char *dst = destination;
   unsigned char *dst_end = destination + dst_bytes;
-  unsigned char *src_base;
+  const unsigned char *src_base;
   int c;
   int char_offset;
   int *data;
@@ -1810,11 +1815,12 @@ coding_allocate_composition_data (coding, char_offset)
 static void
 decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
      struct coding_system *coding;
-     unsigned char *source, *destination;
+     const unsigned char *source;
+     unsigned char *destination;
      int src_bytes, dst_bytes;
 {
-  unsigned char *src = source;
-  unsigned char *src_end = source + src_bytes;
+  const unsigned char *src = source;
+  const unsigned char *src_end = source + src_bytes;
   unsigned char *dst = destination;
   unsigned char *dst_end = destination + dst_bytes;
   /* Charsets invoked to graphic plane 0 and 1 respectively.  */
@@ -1825,7 +1831,7 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
      (within macro ONE_MORE_BYTE), or when there's not enough
      destination area to produce a character (within macro
      EMIT_CHAR).  */
-  unsigned char *src_base;
+  const unsigned char *src_base;
   int c, charset;
   Lisp_Object translation_table;
   Lisp_Object safe_chars;
@@ -2596,7 +2602,8 @@ static unsigned char *
 encode_designation_at_bol (coding, translation_table, src, src_end, dst)
      struct coding_system *coding;
      Lisp_Object translation_table;
-     unsigned char *src, *src_end, *dst;
+     const unsigned char *src, *src_end;
+     unsigned char *dst;
 {
   int charset, c, found = 0, reg;
   /* Table of charsets to be designated to each graphic register.  */
@@ -2637,11 +2644,12 @@ encode_designation_at_bol (coding, translation_table, src, src_end, dst)
 static void
 encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
      struct coding_system *coding;
-     unsigned char *source, *destination;
+     const unsigned char *source;
+     unsigned char *destination;
      int src_bytes, dst_bytes;
 {
-  unsigned char *src = source;
-  unsigned char *src_end = source + src_bytes;
+  const unsigned char *src = source;
+  const unsigned char *src_end = source + src_bytes;
   unsigned char *dst = destination;
   unsigned char *dst_end = destination + dst_bytes;
   /* Since the maximum bytes produced by each loop is 20, we subtract 19
@@ -2653,7 +2661,7 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
      analyze multi-byte codes (within macro ONE_MORE_CHAR), or when
      there's not enough destination area to produce encoded codes
      (within macro EMIT_BYTES).  */
-  unsigned char *src_base;
+  const unsigned char *src_base;
   int c;
   Lisp_Object translation_table;
   Lisp_Object safe_chars;
@@ -3047,12 +3055,13 @@ static void
 decode_coding_sjis_big5 (coding, source, destination,
 			 src_bytes, dst_bytes, sjis_p)
      struct coding_system *coding;
-     unsigned char *source, *destination;
+     const unsigned char *source;
+     unsigned char  *destination;
      int src_bytes, dst_bytes;
      int sjis_p;
 {
-  unsigned char *src = source;
-  unsigned char *src_end = source + src_bytes;
+  const unsigned char *src = source;
+  const unsigned char *src_end = source + src_bytes;
   unsigned char *dst = destination;
   unsigned char *dst_end = destination + dst_bytes;
   /* SRC_BASE remembers the start position in source in each loop.
@@ -3060,7 +3069,7 @@ decode_coding_sjis_big5 (coding, source, destination,
      (within macro ONE_MORE_BYTE), or when there's not enough
      destination area to produce a character (within macro
      EMIT_CHAR).  */
-  unsigned char *src_base;
+  const unsigned char *src_base;
   Lisp_Object translation_table;
 
   if (NILP (Venable_character_translation))
@@ -3320,12 +3329,13 @@ detect_coding_ccl (src, src_end, multibytep)
 static void
 decode_eol (coding, source, destination, src_bytes, dst_bytes)
      struct coding_system *coding;
-     unsigned char *source, *destination;
+     const unsigned char *source;
+     unsigned char *destination;
      int src_bytes, dst_bytes;
 {
-  unsigned char *src = source;
+  const unsigned char *src = source;
   unsigned char *dst = destination;
-  unsigned char *src_end = src + src_bytes;
+  const unsigned char *src_end = src + src_bytes;
   unsigned char *dst_end = dst + dst_bytes;
   Lisp_Object translation_table;
   /* SRC_BASE remembers the start position in source in each loop.
@@ -3333,7 +3343,7 @@ decode_eol (coding, source, destination, src_bytes, dst_bytes)
      (within macro ONE_MORE_BYTE), or when there's not enough
      destination area to produce a character (within macro
      EMIT_CHAR).  */
-  unsigned char *src_base;
+  const unsigned char *src_base;
   int c;
 
   translation_table = Qnil;
@@ -4860,7 +4870,7 @@ decode_eol_post_ccl (coding, ptr, bytes)
 int
 decode_coding (coding, source, destination, src_bytes, dst_bytes)
      struct coding_system *coding;
-     const unsigned char *source;
+     const const unsigned char *source;
      unsigned char *destination;
      int src_bytes, dst_bytes;
 {

@@ -1,3 +1,11 @@
+2004-12-28  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* coding.c (decode_coding_XXX, decode_composition_emacs_mule)
+	(decode_coding_emacs_mule, encode_coding_emacs_mule)
+	(decode_coding_iso2022, encode_designation_at_bol)
+	(encode_coding_iso2022, decode_coding_sjis_big5, decode_eol)
+	(decode_coding): Constify arguments and local vars.
+
 2004-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (popup_get_selection): Only pop down dialogs
