@@ -2,6 +2,10 @@
 
 	* menu-bar.el (menu-bar-help-menu): Change menu-item "Show Emacs
 	Version" to "About Emacs".
+	(menu-bar-options-save): Add `default-frame-alist'
+	to saved variables.
+	(menu-bar-showhide-scroll-bar-menu): Use frame-parameters instead
+	of the variable `scroll-bar-mode'.
 
 	* startup.el (normal-splash-screen, display-splash-screen):
 	New functions (separated from command-line-1).
