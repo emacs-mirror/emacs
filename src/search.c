@@ -2245,14 +2245,20 @@ since only regular expressions have distinguished subexpressions.  */)
     {
       /* Decide how to casify by examining the matched text. */
       int last;
+      int multibyte;
 
       pos = search_regs.start[sub];
       last = search_regs.end[sub];
 
       if (NILP (string))
-	pos_byte = CHAR_TO_BYTE (pos);
+	{
+	  pos_byte = CHAR_TO_BYTE (pos);
+	  multibyte = ! NILP (current_buffer->enable_multibyte_characters);
       else
-	pos_byte = string_char_to_byte (string, pos);
+	{
+	  pos_byte = string_char_to_byte (string, pos);
+	  multibyte = STRING_MULTIBYTE (string);
+	}
 
       prevc = '\n';
       case_action = all_caps;
@@ -2273,6 +2279,10 @@ since only regular expressions have distinguished subexpressions.  */)
 	    }
 	  else
 	    FETCH_STRING_CHAR_ADVANCE (c, string, pos, pos_byte);
+	  if (! multibyte)
+	    {
+	      MAKE_CHAR_MULTIBYTE (c);
+	    }
 
 	  if (LOWERCASEP (c))
 	    {
