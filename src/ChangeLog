@@ -1,3 +1,8 @@
+2000-04-14  Kenichi Handa  <handa@etl.go.jp>
+
+	* composite.c (update_compositions): If FROM and TO is not in a
+	valid range, do nothing.
+
 2000-04-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* tparam.c (tparam1): Abort when encountering an unknown
