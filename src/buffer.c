@@ -3424,7 +3424,8 @@ fix_overlays_before (bp, prev, pos)
 	  Lisp_Object found = tail;
 
 	  /* Unlink the found overlay.  */
-	  XSETCDR (parent, XCDR (found));
+	  tail = XCDR (found);
+	  XSETCDR (parent, tail);
 	  /* Move an overlay at RIGHT_PLACE to the next of the found one,
 	     and link it into the right place.  */
 	  if (NILP (right_pair))
