@@ -1,6 +1,6 @@
 /* Lisp functions pertaining to editing.
-   Copyright (C) 1985,86,87,89,93,94,95,96,97,98,1999,2000,01,02,03,2004
-	Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1989, 1993, 1994, 1995, 1996, 1997, 1998,
+     1999, 2000, 2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -265,10 +265,7 @@ clip_to_bounds (lower, num, upper)
 
 DEFUN ("goto-char", Fgoto_char, Sgoto_char, 1, 1, "NGoto char: ",
        doc: /* Set point to POSITION, a number or marker.
-Beginning of buffer is position (point-min), end is (point-max).
-If the position is in the middle of a multibyte form,
-the actual point is set at the head of the multibyte form
-except in the case that `enable-multibyte-characters' is nil.  */)
+Beginning of buffer is position (point-min), end is (point-max).  */)
      (position)
      register Lisp_Object position;
 {
