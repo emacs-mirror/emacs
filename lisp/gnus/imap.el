@@ -75,11 +75,11 @@
 ;;
 ;; imap.el support RFC1730/2060 (IMAP4/IMAP4rev1), implemented IMAP
 ;; extensions are RFC2195 (CRAM-MD5), RFC2086 (ACL), RFC2342
-;; (NAMESPACE), RFC2359 (UIDPLUS), the IMAP-part of RFC2595 (STARTTLS)
-;; (with use of external library starttls.el and program starttls) and
-;; the GSSAPI / kerberos V4 sections of RFC1731 (with use of external
-;; program `imtest').  It also take advantage the UNSELECT extension
-;; in Cyrus IMAPD.
+;; (NAMESPACE), RFC2359 (UIDPLUS), the IMAP-part of RFC2595 (STARTTLS,
+;; LOGINDISABLED) (with use of external library starttls.el and
+;; program starttls) and the GSSAPI / kerberos V4 sections of RFC1731
+;; (with use of external program `imtest').  It also take advantage
+;; the UNSELECT extension in Cyrus IMAPD.
 ;;
 ;; Without the work of John McClary Prevost and Jim Radford this library
 ;; would not have seen the light of day.  Many thanks.
@@ -480,7 +480,8 @@ If ARGS, PROMPT is used as an argument to `format'."
 		   (goto-char (point-max))
 		   (insert-buffer-substring buffer)))
 	    (erase-buffer)
-	    (message "Kerberos 4 IMAP connection: %s" (or response "failed"))
+	    (message "Opening Kerberos 4 IMAP connection with `%s'...%s" cmd
+		     (if response (concat "done, " response) "failed"))
 	    (if (and response (let ((case-fold-search nil))
 				(not (string-match "failed" response))))
 		(setq done process)
@@ -590,7 +591,7 @@ If ARGS, PROMPT is used as an argument to `format'."
 	(progn
 	  (message "imap: Opening SSL connection with `%s'...done" cmd)
 	  done)
-      (message "imap: Failed opening SSL connection")
+	  (message "imap: Opening SSL connection with `%s'...failed" cmd)
       nil)))
 
 (defun imap-network-p (buffer)
@@ -656,20 +657,24 @@ If ARGS, PROMPT is used as an argument to `format'."
 	(progn
 	  (message "imap: Opening IMAP connection with `%s'...done" cmd)
 	  done)
-      (message "imap: Failed opening IMAP connection")
+	  (message "imap: Opening IMAP connection with `%s'...failed" cmd)
       nil)))
 
 (defun imap-starttls-p (buffer)
-  (and (condition-case ()
-	   (require 'starttls)
-	 (error nil))
-       (imap-capability 'STARTTLS buffer)))
+  (and (imap-capability 'STARTTLS buffer)
+       (condition-case ()
+	   (progn
+	     (require 'starttls)
+	     (call-process "starttls"))
+	 (error nil))))
 
 (defun imap-starttls-open (name buffer server port)
   (let* ((port (or port imap-default-port))
 	 (coding-system-for-read imap-coding-system-for-read)
 	 (coding-system-for-write imap-coding-system-for-write)
-	 (process (starttls-open-stream name buffer server port)))
+	 (process (starttls-open-stream name buffer server port))
+	 done)
+    (message "imap: Connecting with STARTTLS...")
     (when process
       (while (and (memq (process-status process) '(open run))
 		  (goto-char (point-min))
@@ -690,7 +695,13 @@ If ARGS, PROMPT is used as an argument to `format'."
 		(starttls-negotiate imap-process)))
 	  (set-process-filter imap-process nil)))
       (when (memq (process-status process) '(open run))
-	process))))
+	(setq done process)))
+    (if done
+	(progn
+	  (message "imap: Connecting with STARTTLS...done")
+	  done)
+      (message "imap: Connecting with STARTTLS...failed")
+      nil)))
   
 ;; Server functions; authenticator stuff:
 
@@ -736,12 +747,16 @@ Returns t if login was successful, nil otherwise."
   (imap-capability 'AUTH=GSSAPI buffer))
 
 (defun imap-gssapi-auth (buffer)
+  (message "imap: Authenticating using GSSAPI...%s"
+	   (if (eq imap-stream 'gssapi) "done" "failed"))
   (eq imap-stream 'gssapi))
 
 (defun imap-kerberos4-auth-p (buffer)
   (imap-capability 'AUTH=KERBEROS_V4 buffer))
 
 (defun imap-kerberos4-auth (buffer)
+  (message "imap: Authenticating using Kerberos 4...%s"
+	   (if (eq imap-stream 'kerberos4) "done" "failed"))
   (eq imap-stream 'kerberos4))
 
 (defun imap-cram-md5-p (buffer)
@@ -749,25 +764,33 @@ Returns t if login was successful, nil otherwise."
 
 (defun imap-cram-md5-auth (buffer)
   "Login to server using the AUTH CRAM-MD5 method."
-  (imap-interactive-login
-   buffer
-   (lambda (user passwd)
-     (imap-ok-p
-      (imap-send-command-wait
-       (list
-	"AUTHENTICATE CRAM-MD5"
-	(lambda (challenge)
-	  (let* ((decoded (base64-decode-string challenge))
-		 (hash (rfc2104-hash 'md5 64 16 passwd decoded))
-		 (response (concat user " " hash))
-		 (encoded (base64-encode-string response)))
-	    encoded))))))))
+  (message "imap: Authenticating using CRAM-MD5...")
+  (let ((done (imap-interactive-login
+	       buffer
+	       (lambda (user passwd)
+		 (imap-ok-p
+		  (imap-send-command-wait
+		   (list
+		    "AUTHENTICATE CRAM-MD5"
+		    (lambda (challenge)
+		      (let* ((decoded (base64-decode-string challenge))
+			     (hash (rfc2104-hash 'md5 64 16 passwd decoded))
+			     (response (concat user " " hash))
+			     (encoded (base64-encode-string response)))
+			encoded)))))))))
+    (if done
+	(message "imap: Authenticating using CRAM-MD5...done")
+      (message "imap: Authenticating using CRAM-MD5...failed"))))
+      
+  
 
 (defun imap-login-p (buffer)
-  (not (imap-capability 'X-LOGIN-CMD-DISABLED buffer)))
+  (and (not (imap-capability 'LOGINDISABLED buffer))
+       (not (imap-capability 'X-LOGIN-CMD-DISABLED buffer))))
 
 (defun imap-login-auth (buffer)
   "Login to server using the LOGIN command."
+  (message "imap: Plaintext authentication...")
   (imap-interactive-login buffer 
 			  (lambda (user passwd)
 			    (imap-ok-p (imap-send-command-wait 
@@ -778,19 +801,21 @@ Returns t if login was successful, nil otherwise."
   t)
 
 (defun imap-anonymous-auth (buffer)
+  (message "imap: Loging in anonymously...")
   (with-current-buffer buffer
     (imap-ok-p (imap-send-command-wait
 		(concat "LOGIN anonymous \"" (concat (user-login-name) "@" 
 						     (system-name)) "\"")))))
 
 (defun imap-digest-md5-p (buffer)
-  (and (condition-case ()
+  (and (imap-capability 'AUTH=DIGEST-MD5 buffer)
+       (condition-case ()
 	   (require 'digest-md5)
-	 (error nil))
-       (imap-capability 'AUTH=DIGEST-MD5 buffer)))
+	 (error nil))))
 
 (defun imap-digest-md5-auth (buffer)
   "Login to server using the AUTH DIGEST-MD5 method."
+  (message "imap: Authenticating using DIGEST-MD5...")
   (imap-interactive-login
    buffer
    (lambda (user passwd)
@@ -861,37 +886,44 @@ necessery.  If nil, the buffer name is generated."
     (setq imap-port (or port imap-port))
     (setq imap-auth (or auth imap-auth))
     (setq imap-stream (or stream imap-stream))
-    (when (let ((imap-stream (or imap-stream imap-default-stream)))
-	    (imap-open-1 buffer))
-      ;; Choose stream.
-      (let (stream-changed)
-	(when (null imap-stream)
-	  (let ((streams imap-streams))
-	    (while (setq stream (pop streams))
-	      (if (funcall (nth 1 (assq stream imap-stream-alist)) buffer)
-		  (setq stream-changed (not (eq (or imap-stream 
-						    imap-default-stream)
-						stream))
-			imap-stream stream
-			streams nil)))
-	    (unless imap-stream
-	      (error "Couldn't figure out a stream for server"))))
-	(when stream-changed
-	  (message "Reconnecting with %s..." imap-stream)
-	  (imap-close buffer)
-	  (imap-open-1 buffer)
-	  (setq imap-capability nil)))
-      (if (imap-opened buffer)
-	  ;; Choose authenticator
-	  (when (and (null imap-auth) (not (eq imap-state 'auth)))
-	    (let ((auths imap-authenticators))
-	      (while (setq auth (pop auths))
-		(if (funcall (nth 1 (assq auth imap-authenticator-alist)) 
-			     buffer)
-		    (setq imap-auth auth
-			  auths nil)))
-	      (unless imap-auth
-		(error "Couldn't figure out authenticator for server"))))))
+    (message "imap: Connecting to %s..." imap-server)
+    (if (let ((imap-stream (or imap-stream imap-default-stream)))
+	  (imap-open-1 buffer))
+	;; Choose stream.
+	(let (stream-changed)
+	  (message "imap: Connecting to %s...done" imap-server)
+	  (when (null imap-stream)
+	    (let ((streams imap-streams))
+	      (while (setq stream (pop streams))
+		(if (funcall (nth 1 (assq stream imap-stream-alist)) buffer)
+		    (setq stream-changed (not (eq (or imap-stream 
+						      imap-default-stream)
+						  stream))
+			  imap-stream stream
+			  streams nil)))
+	      (unless imap-stream
+		(error "Couldn't figure out a stream for server"))))
+	  (when stream-changed
+	    (message "imap: Reconnecting with stream `%s'..." imap-stream)
+	    (imap-close buffer)
+	    (if (imap-open-1 buffer)
+		(message "imap: Reconnecting with stream `%s'...done"
+			 imap-stream)
+	      (message "imap: Reconnecting with stream `%s'...failed" 
+		       imap-stream))
+	    (setq imap-capability nil))
+	  (if (imap-opened buffer)
+	      ;; Choose authenticator
+	      (when (and (null imap-auth) (not (eq imap-state 'auth)))
+		(let ((auths imap-authenticators))
+		  (while (setq auth (pop auths))
+		    (if (funcall (nth 1 (assq auth imap-authenticator-alist)) 
+				 buffer)
+			(setq imap-auth auth
+			      auths nil)))
+		  (unless imap-auth
+		    (error "Couldn't figure out authenticator for server"))))))
+      (message "imap: Connecting to %s...failed" imap-server))
     (when (imap-opened buffer)
       (setq imap-mailbox-data (make-vector imap-mailbox-prime 0))
       buffer)))
@@ -2182,14 +2214,14 @@ Return nil if no complete line has arrived."
 
 (defun imap-parse-flag-list ()
   (let (flag-list start)
-    (when (eq (char-after) ?\()
-      (imap-forward)
-      (while (and (not (eq (char-before) ?\)))
-		  (setq start (point))
-		  (> (skip-chars-forward "^ )" (gnus-point-at-eol)) 0))
-	(push (buffer-substring start (point)) flag-list)
-	(imap-forward))
-      (nreverse flag-list))))
+    (assert (eq (char-after) ?\())
+    (while (and (not (eq (char-after) ?\)))
+		(setq start (progn (imap-forward) (point)))
+		(> (skip-chars-forward "^ )" (gnus-point-at-eol)) 0))
+      (push (buffer-substring start (point)) flag-list))
+    (assert (eq (char-after) ?\)))
+    (imap-forward)
+    (nreverse flag-list)))
 
 ;;   envelope        = "(" env-date SP env-subject SP env-from SP env-sender SP
 ;;                     env-reply-to SP env-to SP env-cc SP env-bcc SP
@@ -2414,7 +2446,10 @@ Return nil if no complete line has arrived."
 	(imap-forward)
 	(push (imap-parse-nstring) body);; body-fld-desc
 	(imap-forward)
-	(push (imap-parse-string) body);; body-fld-enc
+	;; next `or' for Sun SIMS bug, it regard body-fld-enc as a
+	;; nstring and return NIL instead of defaulting back to 7BIT
+	;; as the standard says.
+	(push (or (imap-parse-nstring) "7BIT") body);; body-fld-enc
 	(imap-forward)
 	(push (imap-parse-number) body);; body-fld-octets
 

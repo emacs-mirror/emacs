@@ -323,10 +323,26 @@ If SERVER is nil, uses the current server."
 		     group (gnus-server-to-method
 			    (format "nnimap:%s" server))))
 	 (new-uidvalidity (imap-mailbox-get 'uidvalidity))
-	 (old-uidvalidity (gnus-group-get-parameter gnusgroup 'uidvalidity)))
+	 (old-uidvalidity (gnus-group-get-parameter gnusgroup 'uidvalidity))
+	 (dir (file-name-as-directory (expand-file-name nnimap-directory)))
+         (nameuid (nnheader-translate-file-chars
+                   (concat nnimap-nov-file-name
+                           (if (equal server "")
+                               "unnamed"
+                             server) "." group "." old-uidvalidity
+                             nnimap-nov-file-name-suffix) t))
+         (file (if (or nnmail-use-long-file-names
+		       (file-exists-p (expand-file-name nameuid dir)))
+		   (expand-file-name nameuid dir)
+		 (expand-file-name
+		  (mm-encode-coding-string
+		   (nnheader-replace-chars-in-string nameuid ?. ?/)
+		   nnmail-pathname-coding-system)
+		  dir))))
     (if old-uidvalidity
 	(if (not (equal old-uidvalidity new-uidvalidity))
-	    nil	;; uidvalidity clash
+	    ;; uidvalidity clash
+	    (gnus-delete-file file)
 	  (gnus-group-set-parameter gnusgroup 'uidvalidity new-uidvalidity)
 	  t)
       (gnus-group-add-parameter gnusgroup (cons 'uidvalidity new-uidvalidity))
@@ -442,18 +458,48 @@ If EXAMINE is non-nil the group is selected read-only."
 
 (defun nnimap-group-overview-filename (group server)
   "Make pathname for GROUP on SERVER."
-  (let ((dir (file-name-as-directory (expand-file-name nnimap-directory)))
-	(file (nnheader-translate-file-chars
-	       (concat nnimap-nov-file-name
-		       (if (equal server "")
-			   "unnamed"
-			 server) "." group nnimap-nov-file-name-suffix) t)))
-    (if (or nnmail-use-long-file-names
-	    (file-exists-p (concat dir file)))
-	(concat dir file)
-      (concat dir (mm-encode-coding-string
-		   (nnheader-replace-chars-in-string file ?. ?/)
-		   nnmail-pathname-coding-system)))))
+  (let* ((dir (file-name-as-directory (expand-file-name nnimap-directory)))
+         (uidvalidity (gnus-group-get-parameter
+                       (gnus-group-prefixed-name
+                        group (gnus-server-to-method
+                               (format "nnimap:%s" server)))
+                       'uidvalidity))
+         (name (nnheader-translate-file-chars
+                (concat nnimap-nov-file-name
+                        (if (equal server "")
+                            "unnamed"
+                          server) "." group nnimap-nov-file-name-suffix) t))
+         (nameuid (nnheader-translate-file-chars
+                   (concat nnimap-nov-file-name
+                           (if (equal server "")
+                               "unnamed"
+                             server) "." group "." uidvalidity
+                             nnimap-nov-file-name-suffix) t))
+         (oldfile (if (or nnmail-use-long-file-names
+                          (file-exists-p (expand-file-name name dir)))
+                      (expand-file-name name dir)
+                    (expand-file-name
+                     (mm-encode-coding-string
+                      (nnheader-replace-chars-in-string name ?. ?/)
+                      nnmail-pathname-coding-system)
+                     dir)))
+         (newfile (if (or nnmail-use-long-file-names
+                          (file-exists-p (expand-file-name nameuid dir)))
+                      (expand-file-name nameuid dir)
+                    (expand-file-name
+                     (mm-encode-coding-string
+                      (nnheader-replace-chars-in-string nameuid ?. ?/)
+                      nnmail-pathname-coding-system)
+                     dir))))
+    (when (and (file-exists-p oldfile) (not (file-exists-p newfile)))
+      (message "nnimap: Upgrading novcache filename...")
+      (sit-for 1)
+      (gnus-make-directory (file-name-directory newfile))
+      (unless (ignore-errors (rename-file oldfile newfile) t)
+	(if (ignore-errors (copy-file oldfile newfile) t)
+	    (delete-file oldfile)
+	  (error "Can't rename `%s' to `%s'" oldfile newfile))))
+    newfile))
 
 (defun nnimap-retrieve-headers-from-file (group server)
   (with-current-buffer nntp-server-buffer
@@ -1119,9 +1165,13 @@ function is generally only called when Gnus is shutting down."
 					     nnimap-current-move-article)
 					    group 'dontcreate nil
 					    nnimap-server-buffer))
-		  ;; turn into rfc822 format (\r\n eol's)
 		  (with-current-buffer (current-buffer)
 		    (goto-char (point-min))
+		    ;; remove any 'From blabla' lines, some IMAP servers
+		    ;; reject the entire message otherwise.
+		    (when (looking-at "^From[^:]")
+		      (kill-region (point) (progn (forward-line) (point))))
+		    ;; turn into rfc822 format (\r\n eol's)
 		    (while (search-forward "\n" nil t)
 		      (replace-match "\r\n")))
                   ;; this 'or' is for Cyrus server bug
@@ -1151,7 +1201,8 @@ function is generally only called when Gnus is shutting down."
 
 (defun nnimap-acl-get (mailbox server)
   (when (nnimap-possibly-change-server server)
-    (imap-mailbox-acl-get mailbox nnimap-server-buffer)))
+    (and (imap-capability 'ACL nnimap-server-buffer)
+	 (imap-mailbox-acl-get mailbox nnimap-server-buffer))))
 
 (defun nnimap-acl-edit (mailbox method old-acls new-acls)
   (when (nnimap-possibly-change-server (cadr method))
