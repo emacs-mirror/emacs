@@ -483,6 +483,14 @@ returns nil."
 	  b (cdr b)))
   a)
 
+(defun format-proper-list-p (list)
+  "Return t if LIST is a proper list.
+A proper list is a list ending with a nil cdr, not with an atom "
+  (when (listp list)
+    (while (consp list)
+      (setq list (cdr list)))
+    (null list)))
+
 (defun format-reorder (items order)
   "Arrange ITEMS to following partial ORDER.
 Elements of ITEMS equal to elements of ORDER will be rearranged to follow the
@@ -925,25 +933,28 @@ Annotations to open and to close are returned as a dotted pair."
     (if (not prop-alist)
 	nil
       ;; If either old or new is a list, have to treat both that way.
-      (if (and (or (consp old) (consp new))
+      (if (and (or (listp old) (listp new))
 	       (not (get prop 'format-list-atomic-p)))
-	  (let* ((old (if (listp old) old (list old)))
-		 (new (if (listp new) new (list new)))
-		 (tail (format-common-tail old new))
-		 close open)
-	    (while old
-	      (setq close
-		    (append (car (format-annotate-atomic-property-change
-				  prop-alist (car old) nil))
-			    close)
-		    old (cdr old)))
-	    (while new
-	      (setq open
-		    (append (cdr (format-annotate-atomic-property-change
-				  prop-alist nil (car new)))
-			    open)
-		    new (cdr new)))
-	    (format-make-relatively-unique close open))
+	  (if (or (not (format-proper-list-p old))
+		  (not (format-proper-list-p new)))
+	      (format-annotate-atomic-property-change prop-alist old new)
+	    (let* ((old (if (listp old) old (list old)))
+		   (new (if (listp new) new (list new)))
+		   (tail (format-common-tail old new))
+		   close open)
+	      (while old
+		(setq close
+		      (append (car (format-annotate-atomic-property-change
+				    prop-alist (car old) nil))
+			      close)
+		      old (cdr old)))
+	      (while new
+		(setq open
+		      (append (cdr (format-annotate-atomic-property-change
+				    prop-alist nil (car new)))
+			      open)
+		      new (cdr new)))
+	      (format-make-relatively-unique close open)))
 	(format-annotate-atomic-property-change prop-alist old new)))))
 
 (defun format-annotate-atomic-property-change (prop-alist old new)
