@@ -4521,8 +4521,8 @@ actually used.  */)
   /* Use the conversion type to determine buffer-file-type
      (find-buffer-file-type is now used to help determine the
      conversion).  */
-  if ((coding.eol_type == eol_type_undecided
-       || coding.eol_type == eol_type_lf)
+  if ((EQ (CODING_ID_EOL_TYPE (coding.id), Qundecided)
+       || EQ (CODING_ID_EOL_TYPE (coding.id), Qunix))
       && ! CODING_REQUIRE_DECODING (&coding))
     current_buffer->buffer_file_type = Qt;
   else
