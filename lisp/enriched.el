@@ -73,7 +73,7 @@ in text/enriched files."
 (defface excerpt
   '((t (:italic t)))
   "Face used for text that is an excerpt from another document.
-This is used in enriched-mode for text explicitly marked as an excerpt."
+This is used in `enriched-mode' for text explicitly marked as an excerpt."
   :group 'enriched)
 
 (defconst enriched-display-table (or (copy-sequence standard-display-table)
@@ -141,18 +141,9 @@ Any property that is neither on this list nor dealt with by
 
 ;;; Internal variables
 
-(defvar enriched-mode nil
-  "True if Enriched mode is in use.")
-(make-variable-buffer-local 'enriched-mode)
-(put 'enriched-mode 'permanent-local t)
-
-(if (not (assq 'enriched-mode minor-mode-alist))
-    (setq minor-mode-alist
-	  (cons '(enriched-mode " Enriched")
-		minor-mode-alist)))
 
 (defcustom enriched-mode-hook nil
-  "Functions to run when entering Enriched mode.
+  "Hook run after entering/leaving Enriched mode.
 If you set variables in this hook, you should arrange for them to be restored
 to their old values if you leave Enriched mode.  One way to do this is to add
 them and their old values to `enriched-old-bindings'."
@@ -168,59 +159,53 @@ The value is a list of \(VAR VALUE VAR VALUE...).")
 ;;; Define the mode
 ;;;
 
+(put 'enriched-mode 'permanent-local t)
 ;;;###autoload
-(defun enriched-mode (&optional arg)
+(define-minor-mode enriched-mode
   "Minor mode for editing text/enriched files.
 These are files with embedded formatting information in the MIME standard
 text/enriched format.
 Turning the mode on runs `enriched-mode-hook'.
 
 More information about Enriched mode is available in the file 
-etc/enriched.doc  in the Emacs distribution directory.
+etc/enriched.doc in the Emacs distribution directory.
 
 Commands:
 
 \\<enriched-mode-map>\\{enriched-mode-map}"
-  (interactive "P")
-  (let ((mod (buffer-modified-p)))
-    (cond ((or (<= (prefix-numeric-value arg) 0)
-	       (and enriched-mode (null arg)))
-	   ;; Turn mode off
-	   (setq enriched-mode nil)
-	   (setq buffer-file-format (delq 'text/enriched buffer-file-format))
-	   ;; restore old variable values
-	   (while enriched-old-bindings
-	     (funcall 'set (car enriched-old-bindings)
-		      (car (cdr enriched-old-bindings)))
-	     (setq enriched-old-bindings (cdr (cdr enriched-old-bindings)))))
+  nil " Enriched" nil
+  (cond ((null enriched-mode)
+	 ;; Turn mode off
+	 (setq buffer-file-format (delq 'text/enriched buffer-file-format))
+	 ;; restore old variable values
+	 (while enriched-old-bindings
+	   (set (pop enriched-old-bindings) (pop enriched-old-bindings))))
+	  
+	((memq 'text/enriched buffer-file-format)
+	 ;; Mode already on; do nothing.
+	 nil)
 
-	  (enriched-mode nil)		; Mode already on; do nothing.
-
-	  (t (setq enriched-mode t)	; Turn mode on
-	     (add-to-list 'buffer-file-format 'text/enriched)
-	     ;; Save old variable values before we change them.
-	     ;; These will be restored if we exit Enriched mode.
-	     (setq enriched-old-bindings
-		   (list 'buffer-display-table buffer-display-table
-			 'indent-line-function indent-line-function
-			 'default-text-properties default-text-properties))
-	     (make-local-variable 'indent-line-function)
-	     (make-local-variable 'default-text-properties)
-	     (setq indent-line-function 'indent-to-left-margin
-		   buffer-display-table  enriched-display-table)
-	     (use-hard-newlines 1 nil)
-	     (let ((sticky (plist-get default-text-properties 'front-sticky))
-		   (p enriched-par-props))
-	       (while p
-		 (add-to-list 'sticky (car p))
-		 (setq p (cdr p)))
-	       (if sticky
-		   (setq default-text-properties
-			 (plist-put default-text-properties
-				    'front-sticky sticky))))
-	     (run-hooks 'enriched-mode-hook)))
-    (set-buffer-modified-p mod)
-    (force-mode-line-update)))
+	(t				; Turn mode on
+	 (push 'text/enriched buffer-file-format)
+	 ;; Save old variable values before we change them.
+	 ;; These will be restored if we exit Enriched mode.
+	 (setq enriched-old-bindings
+	       (list 'buffer-display-table buffer-display-table
+		     'indent-line-function indent-line-function
+		     'default-text-properties default-text-properties))
+	 (make-local-variable 'indent-line-function)
+	 (make-local-variable 'default-text-properties)
+	 (setq indent-line-function 'indent-to-left-margin ;WHY??  -sm
+	       buffer-display-table  enriched-display-table)
+	 (use-hard-newlines 1 nil)
+	 (let ((sticky (plist-get default-text-properties 'front-sticky))
+	       (p enriched-par-props))
+	   (dolist (x p)
+	     (add-to-list 'sticky x))
+	   (if sticky
+	       (setq default-text-properties
+		     (plist-put default-text-properties
+				'front-sticky sticky)))))))
 
 ;;;
 ;;; Keybindings
