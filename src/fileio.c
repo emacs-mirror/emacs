@@ -3532,7 +3532,7 @@ read_non_regular ()
   immediate_quit = 1;
   QUIT;
   nbytes = emacs_read (non_regular_fd,
-		       BEG_ADDR + PT_BYTE - 1 + non_regular_inserted,
+		       BEG_ADDR + PT_BYTE - BEG_BYTE + non_regular_inserted,
 		       non_regular_nbytes);
   immediate_quit = 0;
   return make_number (nbytes);
@@ -4321,7 +4321,7 @@ actually used.  */)
 	       here doesn't do any harm.  */
 	    immediate_quit = 1;
 	    QUIT;
-	    this = emacs_read (fd, BEG_ADDR + PT_BYTE - 1 + inserted, trytry);
+	    this = emacs_read (fd, BEG_ADDR + PT_BYTE - BEG_BYTE + inserted, trytry);
 	    immediate_quit = 0;
 	  }
       
@@ -4550,16 +4550,16 @@ actually used.  */)
     }
 
   p = Vafter_insert_file_functions;
-  while (!NILP (p))
+  while (CONSP (p))
     {
-      insval = call1 (Fcar (p), make_number (inserted));
+      insval = call1 (XCAR (p), make_number (inserted));
       if (!NILP (insval))
 	{
 	  CHECK_NUMBER (insval);
 	  inserted = XFASTINT (insval);
 	}
       QUIT;
-      p = Fcdr (p);
+      p = XCDR (p);
     }
 
   if (!NILP (visit)
@@ -5166,11 +5166,11 @@ build_annotations (start, end)
   annotations = Qnil;
   p = Vwrite_region_annotate_functions;
   GCPRO2 (annotations, p);
-  while (!NILP (p))
+  while (CONSP (p))
     {
       struct buffer *given_buffer = current_buffer;
       Vwrite_region_annotations_so_far = annotations;
-      res = call2 (Fcar (p), start, end);
+      res = call2 (XCAR (p), start, end);
       /* If the function makes a different buffer current,
 	 assume that means this buffer contains altered text to be output.
 	 Reset START and END from the buffer bounds
@@ -5184,7 +5184,7 @@ build_annotations (start, end)
 	}
       Flength (res);   /* Check basic validity of return value */
       annotations = merge (annotations, res, Qcar_less_than_car);
-      p = Fcdr (p);
+      p = XCDR (p);
     }
 
   /* Now do the same for annotation functions implied by the file-format */
@@ -5192,7 +5192,7 @@ build_annotations (start, end)
     p = Vauto_save_file_format;
   else
     p = current_buffer->file_format;
-  for (i = 0; !NILP (p); p = Fcdr (p), ++i)
+  for (i = 0; CONSP (p); p = XCDR (p), ++i)
     {
       struct buffer *given_buffer = current_buffer;
       
@@ -5201,7 +5201,7 @@ build_annotations (start, end)
       /* Value is either a list of annotations or nil if the function
          has written annotations to a temporary buffer, which is now
          current.  */
-      res = call5 (Qformat_annotate_function, Fcar (p), start, end,
+      res = call5 (Qformat_annotate_function, XCAR (p), start, end,
 		   original_buffer, make_number (i));
       if (current_buffer != given_buffer)
 	{
@@ -6287,7 +6287,8 @@ of the form (POSITION . STRING), consisting of strings to be effectively
 inserted at the specified positions of the file being written (1 means to
 insert before the first byte written).  The POSITIONs must be sorted into
 increasing order.  If there are several functions in the list, the several
-lists are merged destructively.  */);
+lists are merged destructively.  Alternatively, the function can return
+with a different buffer current and value nil.*/);
   Vwrite_region_annotate_functions = Qnil;
 
   DEFVAR_LISP ("write-region-annotations-so-far",
