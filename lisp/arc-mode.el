@@ -364,24 +364,25 @@ in which case a second argument, length, should be supplied."
     result))
 
 (defun archive-int-to-mode (mode)
-  "Turn an integer like 0700 (i.e., 448) into a mode string like -rwx------"
-  (let ((str (make-string 10 ?-)))
-    (or (zerop (logand 16384 mode)) (aset str 0 ?d))
-    (or (zerop (logand  8192 mode)) (aset str 0 ?c)) ; completeness
-    (or (zerop (logand   256 mode)) (aset str 1 ?r))
-    (or (zerop (logand   128 mode)) (aset str 2 ?w))
-    (or (zerop (logand    64 mode)) (aset str 3 ?x))
-    (or (zerop (logand    32 mode)) (aset str 4 ?r))
-    (or (zerop (logand    16 mode)) (aset str 5 ?w))
-    (or (zerop (logand     8 mode)) (aset str 6 ?x))
-    (or (zerop (logand     4 mode)) (aset str 7 ?r))
-    (or (zerop (logand     2 mode)) (aset str 8 ?w))
-    (or (zerop (logand     1 mode)) (aset str 9 ?x))
-    (or (zerop (logand  1024 mode)) (aset str 3 (if (zerop (logand 64 mode))
-						    ?S ?s)))
-    (or (zerop (logand  2048 mode)) (aset str 6 (if (zerop (logand  8 mode))
-						    ?S ?s)))
-    str))
+  "Turn an integer like 0700 (i.e., 448) into a mode string like -rwx------."
+  ;; FIXME: merge with tar-grind-file-mode.
+  (string
+    (if (zerop (logand  8192 mode))
+	(if (zerop (logand 16384 mode)) ?- ?d)
+      ?c) ; completeness
+    (if (zerop (logand   256 mode)) ?- ?r)
+    (if (zerop (logand   128 mode)) ?- ?w)
+    (if (zerop (logand    64 mode))
+	(if (zerop (logand  1024 mode)) ?- ?S)
+      (if (zerop (logand  1024 mode)) ?x ?s))
+    (if (zerop (logand    32 mode)) ?- ?r)
+    (if (zerop (logand    16 mode)) ?- ?w)
+    (if (zerop (logand     8 mode))
+	(if (zerop (logand  2048 mode)) ?- ?S)
+      (if (zerop (logand  2048 mode)) ?x ?s))
+    (if (zerop (logand     4 mode)) ?- ?r)
+    (if (zerop (logand     2 mode)) ?- ?w)
+    (if (zerop (logand     1 mode)) ?- ?x)))
 
 (defun archive-calc-mode (oldmode newmode &optional error)
   "From the integer OLDMODE and the string NEWMODE calculate a new file mode.
@@ -505,8 +506,7 @@ archive.
       (funcall default-major-mode)
     (if (and (not force) archive-files) nil
       (let* ((type (archive-find-type))
-	     (typename (copy-sequence (symbol-name type))))
-	(aset typename 0 (upcase (aref typename 0)))
+	     (typename (capitalize (symbol-name type))))
 	(kill-all-local-variables)
 	(make-local-variable 'archive-subtype)
 	(setq archive-subtype type)
@@ -769,13 +769,14 @@ This function changes the set of information shown for each files."
 If FNAME can be uniquely created in DIR, it is returned unaltered.
 If FNAME is something our underlying filesystem can't grok, or if another
 file by that name already exists in DIR, a unique new name is generated
-using `make-temp-name', and the generated name is returned."
+using `make-temp-file', and the generated name is returned."
   (let ((fullname (expand-file-name fname dir))
 	(alien (string-match file-name-invalid-regexp fname)))
     (if (or alien (file-exists-p fullname))
-	(make-temp-name
+	(make-temp-file
 	 (expand-file-name
-	  (if (and (eq system-type 'ms-dos) (not (msdos-long-file-names)))
+	  (if (and (fboundp 'msdos-long-file-names)
+		   (not (msdos-long-file-names)))
 	      "am"
 	    "arc-mode.")
 	  dir))
