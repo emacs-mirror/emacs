@@ -1,5 +1,8 @@
 2001-12-25  Richard M. Stallman  <rms@gnu.org>
 
+	* help-mode.el (help-xref-on-pp): Catch and ignore errors in scanning
+	the buffer.
+
 	* startup.el (command-line): Convert command line args
 	to Emacs internal representation using locale-coding-system.
 
