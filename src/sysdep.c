@@ -380,7 +380,7 @@ child_setup_tty (out)
 
   EMACS_GET_TTY (out, &s);
 
-#ifdef HAVE_TERMIO
+#if defined (HAVE_TERMIO) || defined (HAVE_TERMIOS)
   s.main.c_oflag |= OPOST;	/* Enable output postprocessing */
   s.main.c_oflag &= ~ONLCR;	/* Disable map of NL to CR-NL on output */
   s.main.c_oflag &= ~(NLDLY|CRDLY|TABDLY|BSDLY|VTDLY|FFDLY);
@@ -770,7 +770,7 @@ init_sys_modes ()
     {
       tty = old_tty;
 
-#ifdef HAVE_TERMIO
+#if defined (HAVE_TERMIO) || defined (HAVE_TERMIOS)
       tty.main.c_iflag |= (IGNBRK);	/* Ignore break condition */
       tty.main.c_iflag &= ~ICRNL;	/* Disable map of CR to NL on input */
 #ifdef ISTRIP
