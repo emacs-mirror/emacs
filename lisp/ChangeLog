@@ -1,5 +1,8 @@
 2001-10-04  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* derived.el (define-derived-mode, derived-mode-make-docstring):
+	Allow `parent' to be nil.
+
 	* textmodes/nroff-mode.el (nroff-mode-abbrev-table, nroff-mode):
 	Use define-derived-mode.
 	(nroff-mode-map, nroff-mode-syntax-table): Massage.
