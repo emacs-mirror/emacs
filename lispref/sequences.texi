@@ -69,8 +69,8 @@ elements.  This section describes functions that accept any kind of
 sequence.
 
 @defun sequencep object
-Returns @code{t} if @var{object} is a list, vector, or
-string, @code{nil} otherwise.
+Returns @code{t} if @var{object} is a list, vector,
+string, or char-table, @code{nil} otherwise.
 @end defun
 
 @defun length sequence
@@ -78,10 +78,12 @@ string, @code{nil} otherwise.
 @cindex list length
 @cindex vector length
 @cindex sequence length
+@cindex char-table length
 This function returns the number of elements in @var{sequence}.  If
 @var{sequence} is a cons cell that is not a list (because the final
 @sc{cdr} is not @code{nil}), a @code{wrong-type-argument} error is
-signaled.
+signaled.  For a char-table, the value returned is always one more
+than the maximum Emacs character code.
 
 @xref{List Elements}, for the related function @code{safe-length}.
 
@@ -107,6 +109,13 @@ signaled.
     @result{} 5
 @end group
 @end example
+@end defun
+
+@defun string-bytes string
+@cindex string, number of bytes
+This function returns the number of bytes in @var{string}.
+If @var{string} is a multibyte string, this is greater than
+@code{(length @var{string})}.
 @end defun
 
 @defun elt sequence index
