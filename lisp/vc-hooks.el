@@ -1,6 +1,6 @@
 ;;; vc-hooks.el --- resident support for version-control
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998 Free Software Foundation, Inc.
 
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
@@ -113,6 +113,15 @@ value of this flag."
   "*If non-nil, don't assume that permissions and ownership track 
 version-control status.  If nil, do rely on the permissions.
 See also variable `vc-consult-headers'."
+  :type 'boolean
+  :group 'vc)
+
+(defcustom vc-ignore-vc-files nil
+  "*If non-nil don't look for version control information when finding files.
+
+It may be useful to set this if (say) you edit files in a directory
+containing corresponding RCS files but don't have RCS available;
+similarly for other version control systems."
   :type 'boolean
   :group 'vc)
 
@@ -1009,7 +1018,7 @@ control system name."
   ;; Recompute whether file is version controlled,
   ;; if user has killed the buffer and revisited.
   (cond 
-   (buffer-file-name
+   ((and (not vc-ignore-vc-files) buffer-file-name)
     (vc-file-clearprops buffer-file-name)
     (cond
      ((vc-backend buffer-file-name)
@@ -1052,7 +1061,8 @@ control system name."
 (defun vc-file-not-found-hook ()
   "When file is not found, try to check it out from RCS or SCCS.
 Returns t if checkout was successful, nil otherwise."
-  (if (vc-backend buffer-file-name)
+  (if (and (not vc-ignore-vc-files) 
+           (vc-backend buffer-file-name))
       (save-excursion
 	(require 'vc)
 	(setq default-directory (file-name-directory (buffer-file-name)))
