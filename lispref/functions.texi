@@ -1195,7 +1195,7 @@ risky to call a function whose source code is stored in a user file
 until you have determined that it is safe.
 
 @defun unsafep form &optional unsafep-vars
-Returns @code{nil} if @var{form} is a @dfn{safe} lisp expression, or
+Returns @code{nil} if @var{form} is a @dfn{safe} Lisp expression, or
 returns a list that describes why it might be unsafe.  The argument
 @var{unsafep-vars} is a list of symbols known to have temporary
 bindings at this point; it is mainly used for internal recursive
