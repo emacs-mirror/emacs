@@ -162,8 +162,7 @@ StandardEncoding 46 82 getinterval aload pop
     0 Descent Ascent sub rlineto	% D
     neg 0 rlineto			% E
     closepath
-    bgcolor aload pop setrgbcolor
-    fill
+    FillBgColor
   grestore
 }def
 
@@ -322,10 +321,13 @@ StandardEncoding 46 82 getinterval aload pop
   }if
 }def
 
+% stack: color-specifier |- --
+/SetColor{dup type /realtype eq{setgray}{aload pop setrgbcolor}ifelse}def
+
 % stack: --
 /printZebra{
   gsave
-  ZebraGray setgray
+  ZebraColor SetColor
   /double-zebra ZebraHeight ZebraHeight add def
   /yiter double-zebra LineHeight mul neg def
   /xiter PrintWidth InterColumn add def
@@ -353,6 +355,25 @@ StandardEncoding 46 82 getinterval aload pop
   0 zh rlineto
   fill
   grestore
+}def
+
+% stack: --
+/printBackground{
+  /BackgroundColor where{
+    pop gsave BackgroundColor SetColor
+    NumberOfColumns{
+     gsave
+     0 LineHeight 0.65 mul rmoveto
+     PrintWidth 0 rlineto
+     0 PrintHeight neg rlineto
+     PrintWidth neg 0 rlineto
+     0 PrintHeight rlineto
+     fill
+     grestore
+     PrintWidth InterColumn add 0 rmoveto
+    }repeat
+    grestore
+  }if
 }def
 
 % tx ty rotation xscale yscale xpos ypos BeginBackImage
@@ -459,6 +480,7 @@ StandardEncoding 46 82 getinterval aload pop
   % ---- when 1st column, print all background effects
   ColumnIndex 1 eq{
     0 PrintStartY moveto		% move to where printing will start
+    printBackground
     Zebra {printZebra}if
     printGlobalBackground
     printLocalBackground
@@ -655,7 +677,7 @@ StandardEncoding 46 82 getinterval aload pop
   /t1 F
   gsave
     (languagelevel = ) show
-    gs_languagelevel 32 string cvs show
+    languagelevel 32 string cvs show
   grestore
   0 FontHeight neg rmoveto
   gsave
