@@ -22,6 +22,7 @@
 
 
 (provide 'calc-ext)
+(require 'calc)
 
 (setq calc-extensions-loaded t)
 
@@ -1354,6 +1355,25 @@ calc-kill calc-kill-region calc-yank)
   (calc-fancy-prefix 'calc-inverse-flag "Inverse..." n)
 )
 
+(defconst calc-fancy-prefix-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [t] 'calc-fancy-prefix-other-key)
+    (define-key map (vector meta-prefix-char t) 'calc-fancy-prefix-other-key)
+    (define-key map [switch-frame] nil)
+    (define-key map [?\C-u] 'universal-argument)
+    (define-key map [?0] 'digit-argument)
+    (define-key map [?1] 'digit-argument)
+    (define-key map [?2] 'digit-argument)
+    (define-key map [?3] 'digit-argument)
+    (define-key map [?4] 'digit-argument)
+    (define-key map [?5] 'digit-argument)
+    (define-key map [?6] 'digit-argument)
+    (define-key map [?7] 'digit-argument)
+    (define-key map [?8] 'digit-argument)
+    (define-key map [?9] 'digit-argument)
+    map)
+  "Keymap used while processing calc-fancy-prefix.")
+
 (defun calc-fancy-prefix (flag msg n)
   (let (prefix)
     (calc-wrapper
@@ -1363,23 +1383,32 @@ calc-kill calc-kill-region calc-yank)
 	   prefix-arg n)
      (message (if prefix msg "")))
     (and prefix
-         nil   ; Excise broken code we can live without.  -- daveg 12/12/96
 	 (not calc-is-keypad-press)
-	 (let ((event (calc-read-key t)))
-	   (if (eq (setq last-command-char (car event)) ?\C-u)
-	       (universal-argument)
-	     (if (or (not (integerp last-command-char))
-		     (and (>= last-command-char 0) (< last-command-char ? )
-			  (not (memq last-command-char '(?\e)))))
-		 (calc-wrapper))  ; clear flags if not a Calc command.
-	     (if calc-emacs-type-19
-		 (setq last-command-event (cdr event)))
-	     (if (or (not (integerp last-command-char))
-		     (eq last-command-char ?-))
-		 (calc-unread-command)
-	       (digit-argument n))))))
-)
+	 (if (boundp 'overriding-terminal-local-map)
+	     (setq overriding-terminal-local-map calc-fancy-prefix-map)
+	   (let ((event (calc-read-key t)))
+	     (if (eq (setq last-command-char (car event)) ?\C-u)
+		 (universal-argument)
+	       (if (or (not (integerp last-command-char))
+		       (and (>= last-command-char 0) (< last-command-char ? )
+			    (not (memq last-command-char '(?\e)))))
+		   (calc-wrapper))  ; clear flags if not a Calc command.
+	       (if calc-emacs-type-19
+		   (setq last-command-event (cdr event)))
+	       (if (or (not (integerp last-command-char))
+		       (eq last-command-char ?-))
+		   (calc-unread-command)
+		 (digit-argument n))))))))
 (setq calc-is-keypad-press nil)
+
+(defun calc-fancy-prefix-other-key (arg)
+  (interactive "P")
+  (if (or (not (integerp last-command-char))
+	  (and (>= last-command-char 0) (< last-command-char ? )
+	       (not (eq last-command-char meta-prefix-char))))
+     (calc-wrapper))  ; clear flags if not a Calc command.
+  (calc-unread-command)
+  (setq overriding-terminal-local-map nil))
 
 (defun calc-invert-func ()
   (save-excursion
