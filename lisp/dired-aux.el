@@ -1417,13 +1417,13 @@ of `dired-dwim-target', which see."
 ;;; 5K
 ;;;###begin dired-re.el
 (defun dired-do-create-files-regexp
-  (file-creator operation arg regexp newname &optional whole-path marker-char)
+  (file-creator operation arg regexp newname &optional whole-name marker-char)
   ;; Create a new file for each marked file using regexps.
   ;; FILE-CREATOR and OPERATION as in dired-create-files.
   ;; ARG as in dired-get-marked-files.
   ;; Matches each marked file against REGEXP and constructs the new
   ;;   filename from NEWNAME (like in function replace-match).
-  ;; Optional arg WHOLE-PATH means match/replace the whole file name
+  ;; Optional arg WHOLE-NAME means match/replace the whole file name
   ;;   instead of only the non-directory part of the file.
   ;; Optional arg MARKER-CHAR as in dired-create-files.
   (let* ((fn-list (dired-get-marked-files nil arg))
@@ -1436,7 +1436,7 @@ Type SPC or `y' to %s one match, DEL or `n' to skip to next,
 					  (downcase operation)))
 	 (regexp-name-constructor
 	  ;; Function to construct new filename using REGEXP and NEWNAME:
-	  (if whole-path		; easy (but rare) case
+	  (if whole-name		; easy (but rare) case
 	      (function
 	       (lambda (from)
 		 (let ((to (dired-string-replace-match regexp from newname))
@@ -1451,7 +1451,7 @@ Type SPC or `y' to %s one match, DEL or `n' to skip to next,
 			    to)
 		     (dired-log "%s: %s did not match regexp %s\n"
 				operation from regexp)))))
-	    ;; not whole-path, replace non-directory part only
+	    ;; not whole-name, replace non-directory part only
 	    (function
 	     (lambda (from)
 	       (let* ((new (dired-string-replace-match
@@ -1474,21 +1474,21 @@ Type SPC or `y' to %s one match, DEL or `n' to skip to next,
 
 (defun dired-mark-read-regexp (operation)
   ;; Prompt user about performing OPERATION.
-  ;; Read and return list of: regexp newname arg whole-path.
-  (let* ((whole-path
+  ;; Read and return list of: regexp newname arg whole-name.
+  (let* ((whole-name
 	  (equal 0 (prefix-numeric-value current-prefix-arg)))
 	 (arg
-	  (if whole-path nil current-prefix-arg))
+	  (if whole-name nil current-prefix-arg))
 	 (regexp
 	  (dired-read-regexp
-	   (concat (if whole-path "Path " "") operation " from (regexp): ")))
+	   (concat (if whole-name "Abs. " "") operation " from (regexp): ")))
 	 (newname
 	  (read-string
-	   (concat (if whole-path "Path " "") operation " " regexp " to: "))))
-    (list regexp newname arg whole-path)))
+	   (concat (if whole-name "Abs. " "") operation " " regexp " to: "))))
+    (list regexp newname arg whole-name)))
 
 ;;;###autoload
-(defun dired-do-rename-regexp (regexp newname &optional arg whole-path)
+(defun dired-do-rename-regexp (regexp newname &optional arg whole-name)
   "Rename selected files whose names match REGEXP to NEWNAME.
 
 With non-zero prefix argument ARG, the command operates on the next ARG
@@ -1505,10 +1505,10 @@ Normally, only the non-directory part of the file name is used and changed."
   (interactive (dired-mark-read-regexp "Rename"))
   (dired-do-create-files-regexp
    (function dired-rename-file)
-   "Rename" arg regexp newname whole-path dired-keep-marker-rename))
+   "Rename" arg regexp newname whole-name dired-keep-marker-rename))
 
 ;;;###autoload
-(defun dired-do-copy-regexp (regexp newname &optional arg whole-path)
+(defun dired-do-copy-regexp (regexp newname &optional arg whole-name)
   "Copy selected files whose names match REGEXP to NEWNAME.
 See function `dired-do-rename-regexp' for more info."
   (interactive (dired-mark-read-regexp "Copy"))
@@ -1516,25 +1516,25 @@ See function `dired-do-rename-regexp' for more info."
     (dired-do-create-files-regexp
      (function dired-copy-file)
      (if dired-copy-preserve-time "Copy [-p]" "Copy")
-     arg regexp newname whole-path dired-keep-marker-copy)))
+     arg regexp newname whole-name dired-keep-marker-copy)))
 
 ;;;###autoload
-(defun dired-do-hardlink-regexp (regexp newname &optional arg whole-path)
+(defun dired-do-hardlink-regexp (regexp newname &optional arg whole-name)
   "Hardlink selected files whose names match REGEXP to NEWNAME.
 See function `dired-do-rename-regexp' for more info."
   (interactive (dired-mark-read-regexp "HardLink"))
   (dired-do-create-files-regexp
    (function add-name-to-file)
-   "HardLink" arg regexp newname whole-path dired-keep-marker-hardlink))
+   "HardLink" arg regexp newname whole-name dired-keep-marker-hardlink))
 
 ;;;###autoload
-(defun dired-do-symlink-regexp (regexp newname &optional arg whole-path)
+(defun dired-do-symlink-regexp (regexp newname &optional arg whole-name)
   "Symlink selected files whose names match REGEXP to NEWNAME.
 See function `dired-do-rename-regexp' for more info."
   (interactive (dired-mark-read-regexp "SymLink"))
   (dired-do-create-files-regexp
    (function make-symbolic-link)
-   "SymLink" arg regexp newname whole-path dired-keep-marker-symlink))
+   "SymLink" arg regexp newname whole-name dired-keep-marker-symlink))
 
 (defun dired-create-files-non-directory
   (file-creator basename-constructor operation arg)
