@@ -47,6 +47,14 @@
 
 ;;; Code:
 
+(defconst mode-line-mule-info
+  (purecopy '(enable-multibyte-characters
+	      ((current-input-method ("[" current-input-method-title "]"))
+	       "%z:")))
+  "Mode-line control for displaying information of multilingual environment.")
+
+(make-variable-buffer-local 'mode-line-mule-info)
+
 (defvar mode-line-buffer-identification (purecopy '("%F: %12b"))
   "Mode-line control for identifying the buffer being displayed.
 Its default value is (\"%F: %12b\").  Under X, `%F' is replaced with `Emacs'.
@@ -68,6 +76,7 @@ Normally nil in most modes, since there is no process to display.")
 
 (setq-default mode-line-format
   (list (purecopy "")
+   'mode-line-mule-info
    'mode-line-modified
    'mode-line-buffer-identification
    (purecopy "   ")
