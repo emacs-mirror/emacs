@@ -3049,7 +3049,7 @@ In that case, or when called interactively, also don't do (WHAT?)."
           ((fboundp init)
            (insert (funcall init)))))
   (unless called-by-yank (insert (bibtex-field-right-delimiter)))
-  (when interactivw
+  (when interactive
     (forward-char -1)
     (bibtex-print-help-message)))
 
