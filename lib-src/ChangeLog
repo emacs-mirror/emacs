@@ -1486,10 +1486,6 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* hexl.c: Include <config.h>, so DOS_NT is defined on MSDOS.
 
-1996-08-21  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
-
-	* Version 19.34 released.
-
 1996-08-11  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
 	* Version 19.33 released.

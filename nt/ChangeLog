@@ -568,10 +568,6 @@
 	* addpm.c (env_vars): Add site-lisp to EMACSLOADPATH.
 	* emacs.bat.in: Add site-lisp to EMACSLOADPATH.
 
-1996-08-21  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
-
-	* Version 19.34 released.
-
 1996-08-11  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
 	* Version 19.33 released.
