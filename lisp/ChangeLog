@@ -1,5 +1,8 @@
 2000-11-10  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* textmodes/texinfo.el (texinfo-block-default): New var.
+	(texinfo-insert-block): Use it.  Insert a newline if needed.
+
 	* textmodes/fill.el (fill-indent-according-to-mode): New var.
 	(fill-region-as-paragraph): Use it.
 
