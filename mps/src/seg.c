@@ -1,6 +1,6 @@
 /* impl.c.seg: SEGMENTS
  *
- * $HopeName$
+ * $HopeName: MMsrc!seg.c(trunk.24) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .design: The design for this module is design.mps.seg.
@@ -29,7 +29,7 @@
 #include "tract.h"
 #include "mpm.h"
 
-SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.23) $");
+SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.24) $");
 
 
 /* SegGCSeg -- convert generic Seg to GCSeg */
@@ -171,7 +171,8 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
   seg->sig = SegSig;  /* set sig now so tract checks will see it */
 
   TRACT_FOR(tract, addr, arena, base, limit) {
-    AVER(NULL == TractP(tract));
+    AVER(TractCheck(tract));  /* design.mps.check.type.no-sig */
+    AVER(TractP(tract) == NULL);
     AVER(!TractHasSeg(tract));
     AVER(TractPool(tract) == pool);
     AVER(TractWhite(tract) == TraceSetEMPTY);
@@ -199,6 +200,7 @@ failInit:
   RingFinish(SegPoolRing(seg));
   seg->sig = SigInvalid;
   TRACT_FOR(tract, addr, arena, base, limit) {
+    AVER(TractCheck(tract));  /* design.mps.check.type.no-sig */
     TRACT_UNSET_SEG(tract);
   }
   return res;
@@ -234,6 +236,7 @@ static void SegFinish(Seg seg)
   base = SegBase(seg);
   limit = SegLimit(seg);
   TRACT_TRACT_FOR(tract, addr, arena, seg->firstTract, limit) {
+    AVER(TractCheck(tract));  /* design.mps.check.type.no-sig */
     TractSetWhite(tract, TraceSetEMPTY);
     TRACT_UNSET_SEG(tract);
   }
@@ -624,9 +627,10 @@ Bool SegCheck(Seg seg)
   /* CHECKL(TraceSetSub(seg->nailed, seg->white)); */
   CHECKL(TraceSetCheck(seg->grey));
   CHECKL(TractCheck(seg->firstTract));  /* design.mps.check.type.no-sig */
-  pool = TractPool(seg->firstTract);
-  CHECKD(Pool, pool);
+  pool = SegPool(seg);
+  CHECKU(Pool, pool);
   arena = PoolArena(pool);
+  CHECKU(Arena, arena);
   align = ArenaAlign(arena);
   CHECKL(AddrIsAligned(TractBase(seg->firstTract), align));
   CHECKL(AddrIsAligned(seg->limit, align));
@@ -635,7 +639,9 @@ Bool SegCheck(Seg seg)
   /* Each tract of the segment must agree about white traces */
   TRACT_TRACT_FOR(tract, addr, arena, seg->firstTract, seg->limit) {
     Seg trseg;
-    UNUSED(trseg); /* @@@@ hack: unused in hot varieties */
+
+    UNUSED(trseg); /* @@@@ unused in hot varieties */
+    CHECKL(TractCheck(tract));  /* design.mps.check.type.no-sig */
     CHECKL(TRACT_SEG(&trseg, tract) && (trseg == seg));
     CHECKL(TractWhite(tract) == seg->white);
     CHECKL(TractPool(tract) == pool);
@@ -862,6 +868,7 @@ static Res segTrivMerge(Seg seg, Seg segHi,
 
   seg->limit = limit;
   TRACT_FOR(tract, addr, arena, mid, limit) {
+    AVER(TractCheck(tract));  /* design.mps.check.type.no-sig */
     AVER(TractHasSeg(tract));
     AVER(segHi == TractP(tract));
     AVER(TractPool(tract) == pool);
@@ -939,6 +946,7 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   segHi->sig = SegSig;
 
   TRACT_FOR(tract, addr, arena, mid, limit) {
+    AVER(TractCheck(tract));  /* design.mps.check.type.no-sig */
     AVER(TractHasSeg(tract));
     AVER(seg == TractP(tract));
     AVER(TractPool(tract) == pool);
@@ -1238,16 +1246,19 @@ static void gcSegSetWhite(Seg seg, TraceSet white)
   AVER_CRITICAL(&gcseg->segStruct == seg);
 
   arena = PoolArena(SegPool(seg));
+  AVERT_CRITICAL(Arena, arena);
   limit = SegLimit(seg);
-
   /* Each tract of the segment records white traces */
   TRACT_TRACT_FOR(tract, addr, arena, seg->firstTract, limit) {
     Seg trseg;
+
     UNUSED(trseg); /* @@@@ hack: unused in hot varieties */
+    AVER_CRITICAL(TractCheck(tract));  /* design.mps.check.type.no-sig */
     AVER_CRITICAL(TRACT_SEG(&trseg, tract) && (trseg == seg));
     TractSetWhite(tract, white);
   }
   AVER(addr == limit);
+
   seg->white = white;
 }
 
@@ -1273,8 +1284,8 @@ static void gcSegSetRankSet(Seg seg, RankSet rankSet)
 
   AVERT_CRITICAL(Seg, seg);                /* .seg.method.check */
   AVER_CRITICAL(RankSetCheck(rankSet));    /* .seg.method.check */
-  AVER_CRITICAL(rankSet == RankSetEMPTY ||
-                RankSetIsSingle(rankSet)); /* .seg.method.check */
+  AVER_CRITICAL(rankSet == RankSetEMPTY
+                || RankSetIsSingle(rankSet)); /* .seg.method.check */
   gcseg = SegGCSeg(seg);
   AVERT_CRITICAL(GCSeg, gcseg);
   AVER_CRITICAL(&gcseg->segStruct == seg);
