@@ -1621,7 +1621,9 @@ If the element is just a file name, the file name also serves as the prefix.")
 
 (defun Info-find-emacs-command-nodes (command)
   "Return a list of locations documenting COMMAND.
-The variable `Info-file-alist' tells what Info manual to search.
+The `info-file' property of COMMAND says which Info manual to search.
+If COMMAND has no property, the variable `Info-file-list-for-emacs'
+defines heuristics for which Info manual to try.
 The locations are of the format used in Info-history, i.e.
 \(FILENAME NODENAME BUFFERPOS\)."
   (let ((where '())
@@ -1640,7 +1642,7 @@ The locations are of the format used in Info-history, i.e.
 			   (car elt)
 			 elt))
 		 (file (if (consp elt) (cdr elt) elt))
-		 (regexp (concat "^" (regexp-quote name)
+		 (regexp (concat "\\`" (regexp-quote name)
 				 "\\(\\'\\|-\\)")))
 	    (if (string-match regexp (symbol-name command))
 		(setq info-file file file-list nil))
@@ -1668,7 +1670,8 @@ The locations are of the format used in Info-history, i.e.
 (defun Info-goto-emacs-command-node (command)
   "Go to the Info node in the Emacs manual for command COMMAND.
 The command is found by looking up in Emacs manual's Command Index
-or in another manual found via `Info-file-list-for-emacs'."
+or in another manual found via COMMAND's `info-file' property or
+the variable `Info-file-list-for-emacs'."
   (interactive "CFind documentation for command: ")
   (or (commandp command)
       (signal 'wrong-type-argument (list 'commandp command)))
@@ -1699,7 +1702,8 @@ or in another manual found via `Info-file-list-for-emacs'."
   "Go to the Info node in the Emacs manual the command bound to KEY, a string.
 Interactively, if the binding is execute-extended-command, a command is read.
 The command is found by looking up in Emacs manual's Command Index
-or in another manual found via `Info-file-list-for-emacs'."
+or in another manual found via COMMAND's `info-file' property or
+the variable `Info-file-list-for-emacs'."
   (interactive "kFind documentation for key:")
   (let ((command (key-binding key)))
     (cond ((null command)
