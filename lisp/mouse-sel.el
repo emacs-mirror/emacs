@@ -198,7 +198,7 @@ If nil, point will always be placed at the beginning of the region."
 
 (defvar mouse-sel-original-bindings nil)
 (defvar mouse-sel-original-interprogram-cut-function nil)
-(defvar mouse-sel-original-interprogram-cut-function nil)
+(defvar mouse-sel-original-interprogram-paste-function nil)
 
 ;;;###autoload
 (define-minor-mode mouse-sel-mode
