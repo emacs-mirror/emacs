@@ -461,7 +461,8 @@ or `keymap' property, return the binding of KEY in the string's keymap."
 
 (defun help-key-description (key untranslated)
   (let ((string (key-description key)))
-    (if (or (not untranslated) (eq (aref untranslated 0) ?\e))
+    (if (or (not untranslated)
+	    (and (eq (aref untranslated 0) ?\e) (not (eq (aref key 0) ?\e))))
 	string
       (let ((otherstring (key-description untranslated)))
 	(if (equal string otherstring)
