@@ -2360,7 +2360,7 @@ In usual case returns an integer: the column to indent to.
 Returns nil if line starts inside a string, t if in a comment.
 
 Will not correct the indentation for labels, but will correct it for braces
-and closing parentheses and brackets.."
+and closing parentheses and brackets."
   (save-excursion
     (if (or
 	 (and (memq (get-text-property (point) 'syntax-type)
@@ -6796,9 +6796,7 @@ prototype \&SUB	Returns prototype of the function given a reference.
   "Do it.  (Experimental, may change semantics, recheck the result.)
 We suppose that the regexp is scanned already."
   (interactive "P")
-  (if deep
-      (prefix-numeric-value deep)
-    (setq deep -1))
+  (setq deep (if deep (prefix-numeric-value deep) -1))
   (save-excursion
     (goto-char (cperl-make-regexp-x))
     (let ((b (point)) (e (make-marker)))
@@ -6871,9 +6869,7 @@ We suppose that the regexp is scanned already."
 \(Experimental, may change semantics, recheck the result.)
 We suppose that the regexp is scanned already."
   (interactive "P")
-  (if deep
-      (prefix-numeric-value deep)
-    (setq deep -1))
+  (setq deep (if deep (prefix-numeric-value deep) -1))
   (save-excursion
     (cperl-regext-to-level-start)
     (let ((b (point)) (e (make-marker)))
