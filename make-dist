@@ -276,6 +276,13 @@ for subdir in lisp src lib-src info shortnames; do
   cp etc/COPYING ${tempdir}/${subdir}
 done
 
+#### Make sure that there aren't any hard links between files in the
+#### distribution; people with afs can't deal with that.  Okay,
+#### actually we just re-copy anything with a link count greater
+#### than two.
+echo "Breaking intra-tree links."
+find ${tempdir} ! -type d -links +2 -exec cp {} $$ \; -exec mv $$ {} \;
+
 if [ "${newer}" ]; then
   echo "Removing files older than $newer."
   ## We remove .elc files unconditionally, on the theory that anyone picking
