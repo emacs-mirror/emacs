@@ -317,6 +317,17 @@ available with older versions of GDB."
 	    (setcdr first (setq second (cdr second)))
 	  (setq first second
 		second (cdr second)))))
+    ;; Add a trailing single quote if there is a unique completion
+    ;; and it contains an odd number of unquoted single quotes.
+    (and (= (length gud-gdb-complete-list) 1)
+	 (let ((str (car gud-gdb-complete-list))
+	       (pos 0)
+	       (count 0))
+	   (while (string-match "\\([^'\\]\\|\\\\'\\)*'" str pos)
+	     (setq count (1+ count)
+		   pos (match-end 0)))
+	   (and (= (mod count 2) 1)
+		(setq gud-gdb-complete-list (list (concat str "'"))))))
     ;; Let comint handle the rest.
     (comint-dynamic-simple-complete command-word gud-gdb-complete-list)))
     
