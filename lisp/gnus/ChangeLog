@@ -2,6 +2,12 @@
 
 	* nnfolder.el (nnfolder-read-folder): Force to use a multibyte buffer.
 
+2001-07-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* gnus-srvr.el (gnus-browse-make-menu-bar): Changed one of the
+	Browse->Next entries to Browse->Prev.
+	From: Bj,Av(Brn Torkelsson  <torkel@hpc2n.umu.se>.
+
 2001-07-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* nnheader.el (nnheader-init-server-buffer): Make sure the
