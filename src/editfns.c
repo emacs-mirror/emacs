@@ -2736,8 +2736,10 @@ Both characters must have the same length of multi-byte form.  */)
   return Qnil;
 }
 
-DEFUN ("translate-region", Ftranslate_region, Stranslate_region, 3, 3, 0,
-       doc: /* From START to END, translate characters according to TABLE.
+DEFUN ("translate-region-internal", Ftranslate_region_internal,
+       Stranslate_region_internal, 3, 3, 0,
+       doc: /* Internal use only.
+From START to END, translate characters according to TABLE.
 TABLE is a string; the Nth character in it is the mapping
 for the character with code N.
 It returns the number of characters changed.  */)
@@ -2750,31 +2752,37 @@ It returns the number of characters changed.  */)
   register int nc;		/* New character. */
   int cnt;			/* Number of changes made. */
   int size;			/* Size of translate table. */
-  int pos, pos_byte;
+  int pos, pos_byte, end_pos;
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
   int string_multibyte;
 
   validate_region (&start, &end);
-  CHECK_STRING (table);
+  if (CHAR_TABLE_P (table))
+    {
+      size = MAX_CHAR;
+      tt = NULL;
+    }
+  else
+    {
+      CHECK_STRING (table);
 
-  if (multibyte != (SCHARS (table) < SBYTES (table)))
-    table = (multibyte
-	     ? string_make_multibyte (table)
-	     : string_make_unibyte (table));
-  string_multibyte = SCHARS (table) < SBYTES (table);
-
-  size = SCHARS (table);
-  tt = SDATA (table);
+      if (! multibyte && (SCHARS (table) < SBYTES (table)))
+	table = string_make_unibyte (table);
+      string_multibyte = SCHARS (table) < SBYTES (table);
+      size = SCHARS (table);
+      tt = SDATA (table);
+    }
 
   pos = XINT (start);
   pos_byte = CHAR_TO_BYTE (pos);
+  end_pos = XINT (end); 
   modify_region (current_buffer, pos, XINT (end));
 
   cnt = 0;
-  for (; pos < XINT (end); )
+  for (; pos < end_pos; )
     {
       register unsigned char *p = BYTE_POS_ADDR (pos_byte);
-      unsigned char *str;
+      unsigned char *str, buf[MAX_MULTIBYTE_LENGTH];
       int len, str_len;
       int oc;
 
@@ -2784,16 +2792,45 @@ It returns the number of characters changed.  */)
 	oc = *p, len = 1;
       if (oc < size)
 	{
-	  if (string_multibyte)
+	  if (tt)
 	    {
-	      str = tt + string_char_to_byte (table, oc);
-	      nc = STRING_CHAR_AND_LENGTH (str, MAX_MULTIBYTE_LENGTH, str_len);
+	      if (string_multibyte)
+		{
+		  str = tt + string_char_to_byte (table, oc);
+		  nc = STRING_CHAR_AND_LENGTH (str, MAX_MULTIBYTE_LENGTH,
+					       str_len);
+		}
+	      else
+		{
+		  nc = tt[oc];
+		  if (! ASCII_BYTE_P (nc) && multibyte)
+		    {
+		      str_len = CHAR_STRING (nc, buf);
+		      str = buf;
+		    }
+		  else
+		    {
+		      str_len = 1;
+		      str = tt + oc;
+		    }
+		}
 	    }
 	  else
 	    {
-	      str = tt + oc;
-	      nc = tt[oc], str_len = 1;
+	      Lisp_Object val;
+	      int c;
+
+	      nc = oc;
+	      val = CHAR_TABLE_REF (table, oc);
+	      if (INTEGERP (val)
+		  && (c = XINT (val), CHAR_VALID_P (c, 0)))
+		{
+		  nc = c;
+		  str_len = CHAR_STRING (nc, buf);
+		  str = buf;
+		}
 	    }
+
 	  if (nc != oc)
 	    {
 	      if (len != str_len)
@@ -2844,6 +2881,8 @@ DEFUN ("delete-and-extract-region", Fdelete_and_extract_region,
      Lisp_Object start, end;
 {
   validate_region (&start, &end);
+  if (XINT (start) == XINT (end))
+    return build_string ("");
   return del_range_1 (XINT (start), XINT (end), 1, 1);
 }
 
@@ -4288,7 +4327,7 @@ functions if all the text being accessed has this property.  */);
   defsubr (&Sinsert_buffer_substring);
   defsubr (&Scompare_buffer_substrings);
   defsubr (&Ssubst_char_in_region);
-  defsubr (&Stranslate_region);
+  defsubr (&Stranslate_region_internal);
   defsubr (&Sdelete_region);
   defsubr (&Sdelete_and_extract_region);
   defsubr (&Swiden);

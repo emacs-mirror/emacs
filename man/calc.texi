@@ -2038,8 +2038,7 @@ though regular numeric keys still use RPN numeric entry.  There is also
 a ``total algebraic mode,'' started by typing @kbd{m t}, in which all
 normal keys begin algebraic entry.  You must then use the @key{META} key
 to type Calc commands:  @kbd{M-m t} to get back out of total algebraic
-mode, @kbd{M-q} to quit, etc.  Total algebraic mode is not supported
-under Emacs 19.)
+mode, @kbd{M-q} to quit, etc.)
 
 If you're still in algebraic mode, press @kbd{m a} again to turn it off.
 

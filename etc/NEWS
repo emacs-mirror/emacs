@@ -2052,6 +2052,8 @@ anyone has committed to the repository since you last executed
 
 * New modes and packages in Emacs 21.4
 
+** The new package password.el provide a password cache and expiring mechanism.
+
 ** The new package dns-mode.el add syntax highlight of DNS master files.
 The key binding C-c C-s (`dns-mode-soa-increment-serial') can be used
 to increment the SOA serial.
@@ -2286,6 +2288,9 @@ timing measurements of code (including the garbage collection component).
 configuration files.
 
 * Lisp Changes in Emacs 21.4
+
+** Function `translate-region' accepts also a char-table as TABLE
+argument.
 
 +++
 ** Major mode functions now run the new normal hook
@@ -3502,6 +3507,11 @@ status, and other information about a specific network interface.
 
 +++
 ** New function `call-process-shell-command'.
+
+** New function `process-file'.
+
+This is similar to `call-process', but obeys file handlers.  The file
+handler is chosen based on default-directory.
 
 ---
 ** The dummy function keys made by easymenu

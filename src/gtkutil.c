@@ -550,24 +550,6 @@ xg_resize_outer_widget (f, columns, rows)
   gdk_window_process_all_updates ();
 }
 
-/* This gets called after the frame F has been cleared.  Since that is
-   done with X calls, we need to redraw GTK widget (scroll bars).  */
-void
-xg_frame_cleared (f)
-     FRAME_PTR f;
-{
-  GtkWidget *w = f->output_data.x->widget;
-
-  if (w)
-    {
-      gtk_container_set_reallocate_redraws (GTK_CONTAINER (w), TRUE);
-      gtk_container_foreach (GTK_CONTAINER (w),
-                             (GtkCallback) gtk_widget_queue_draw,
-                             0);
-      gdk_window_process_all_updates ();
-    }
-}
-
 /* Function to handle resize of our widgets.  Since Emacs has some layouts
    that does not fit well with GTK standard containers, we do most layout
    manually.
@@ -585,8 +567,10 @@ xg_resize_widgets (f, pixelwidth, pixelheight)
   int columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixelwidth);
 
   if (FRAME_GTK_WIDGET (f)
-      && (columns != FRAME_COLS (f) || rows != FRAME_LINES (f)
-          || pixelwidth != FRAME_PIXEL_WIDTH (f) || pixelheight != FRAME_PIXEL_HEIGHT (f)))
+      && (columns != FRAME_COLS (f) 
+	  || rows != FRAME_LINES (f)
+          || pixelwidth != FRAME_PIXEL_WIDTH (f) 
+	  || pixelheight != FRAME_PIXEL_HEIGHT (f)))
     {
       struct x_output *x = f->output_data.x;
       GtkAllocation all;
@@ -681,54 +665,6 @@ xg_pix_to_gcolor (w, pixel, c)
   gdk_colormap_query_color (map, pixel, c);
 }
 
-/* Turning off double buffering for our GtkFixed widget has the side
-   effect of turning it off also for its children (scroll bars).
-   But we want those to be double buffered to not flicker so handle
-   expose manually here.
-   WIDGET is the GtkFixed widget that gets exposed.
-   EVENT is the expose event.
-   USER_DATA is unused.
-
-   Return TRUE to tell GTK that this expose event has been fully handeled
-   and that GTK shall do nothing more with it.  */
-static gboolean
-xg_fixed_handle_expose (GtkWidget *widget,
-                        GdkEventExpose *event,
-                        gpointer user_data)
-{
-  GList *iter;
-
-  for (iter = GTK_FIXED (widget)->children; iter; iter = g_list_next (iter))
-    {
-      GtkFixedChild *child_data = (GtkFixedChild *) iter->data;
-      GtkWidget *child = child_data->widget;
-      GdkWindow *window = child->window;
-      GdkRegion *region = gtk_widget_region_intersect (child, event->region);
-
-      if (! gdk_region_empty (region))
-        {
-          GdkEvent child_event;
-          child_event.expose = *event;
-          child_event.expose.region = region;
-
-          /* Turn on double buffering, i.e. draw to an off screen area.  */
-          gdk_window_begin_paint_region (window, region);
-
-          /* Tell child to redraw itself.  */
-          gdk_region_get_clipbox (region, &child_event.expose.area);
-          gtk_widget_send_expose (child, &child_event);
-          gdk_window_process_updates (window, TRUE);
-
-          /* Copy off screen area to the window.  */
-          gdk_window_end_paint (window);
-        }
-
-      gdk_region_destroy (region);
-     }
-
-  return TRUE;
-}
-
 /* Create and set up the GTK widgets for frame F.
    Return 0 if creation failed, non-zero otherwise.  */
 int
@@ -803,12 +739,6 @@ xg_create_frame_widgets (f)
      will make the widget blank, and then Emacs redraws it.  This flickers
      a lot, so we turn off double buffering.  */
   gtk_widget_set_double_buffered (wfixed, FALSE);
-
-  /* Turning off double buffering above has the side effect of turning
-     it off also for its children (scroll bars).  But we want those
-     to be double buffered to not flicker so handle expose manually.  */
-  g_signal_connect (G_OBJECT (wfixed), "expose-event",
-                    G_CALLBACK (xg_fixed_handle_expose), 0);
 
   /* GTK documents says use gtk_window_set_resizable.  But then a user
      can't shrink the window from its starting size.  */
@@ -2770,6 +2700,7 @@ xg_create_scroll_bar (f, bar, scroll_callback, scroll_bar_name)
      char *scroll_bar_name;
 {
   GtkWidget *wscroll;
+  GtkWidget *webox;
   GtkObject *vadj;
   int scroll_id;
 
@@ -2779,6 +2710,7 @@ xg_create_scroll_bar (f, bar, scroll_callback, scroll_bar_name)
                              0.1, 0.1, 0.1);
 
   wscroll = gtk_vscrollbar_new (GTK_ADJUSTMENT (vadj));
+  webox = gtk_event_box_new ();
   gtk_widget_set_name (wscroll, scroll_bar_name);
   gtk_range_set_update_policy (GTK_RANGE (wscroll), GTK_UPDATE_CONTINUOUS);
 
@@ -2804,11 +2736,18 @@ xg_create_scroll_bar (f, bar, scroll_callback, scroll_bar_name)
                     G_CALLBACK (scroll_bar_button_cb),
                     (gpointer) bar);
 
-  gtk_fixed_put (GTK_FIXED (f->output_data.x->edit_widget),
-                 wscroll, -1, -1);
+  /* The scroll bar widget does not draw on a window of its own.  Instead
+     it draws on the parent window, in this case the edit widget.  So
+     whenever the edit widget is cleared, the scroll bar needs to redraw
+     also, which causes flicker.  Put an event box between the edit widget
+     and the scroll bar, so the scroll bar instead draws itself on the
+     event box window.  */
+  gtk_fixed_put (GTK_FIXED (f->output_data.x->edit_widget), webox, -1, -1);
+  gtk_container_add (GTK_CONTAINER (webox), wscroll);
+  
 
   /* Set the cursor to an arrow.  */
-  xg_set_cursor (wscroll, FRAME_X_DISPLAY_INFO (f)->xg_cursor);
+  xg_set_cursor (webox, FRAME_X_DISPLAY_INFO (f)->xg_cursor);
 
   SET_SCROLL_BAR_X_WINDOW (bar, scroll_id);
 }
@@ -2820,7 +2759,7 @@ xg_show_scroll_bar (scrollbar_id)
 {
   GtkWidget *w = xg_get_widget_from_map (scrollbar_id);
   if (w)
-    gtk_widget_show (w);
+    gtk_widget_show_all (gtk_widget_get_parent (w));
 }
 
 /* Remove the scroll bar represented by SCROLLBAR_ID from the frame F.  */
@@ -2832,33 +2771,11 @@ xg_remove_scroll_bar (f, scrollbar_id)
   GtkWidget *w = xg_get_widget_from_map (scrollbar_id);
   if (w)
     {
+      GtkWidget *wparent = gtk_widget_get_parent (w);
       gtk_widget_destroy (w);
+      gtk_widget_destroy (wparent);
       SET_FRAME_GARBAGED (f);
     }
-}
-
-/* Find left/top for widget W in GtkFixed widget WFIXED.  */
-static void
-xg_find_top_left_in_fixed (w, wfixed, left, top)
-     GtkWidget *w, *wfixed;
-     int *left, *top;
-{
-  GList *iter;
-
-  for (iter = GTK_FIXED (wfixed)->children; iter; iter = g_list_next (iter))
-    {
-      GtkFixedChild *child = (GtkFixedChild *) iter->data;
-
-      if (child->widget == w)
-        {
-          *left = child->x;
-          *top = child->y;
-          return;
-        }
-    }
-
-  /* Shall never end up here.  */
-  abort ();
 }
 
 /* Update the position of the vertical scroll bar represented by SCROLLBAR_ID
@@ -2866,8 +2783,7 @@ xg_find_top_left_in_fixed (w, wfixed, left, top)
    TOP/LEFT are the new pixel positions where the bar shall appear.
    WIDTH, HEIGHT is the size in pixels the bar shall have.  */
 void
-xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height,
-                         real_left, canon_width)
+xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height)
      FRAME_PTR f;
      int scrollbar_id;
      int top;
@@ -2881,44 +2797,12 @@ xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height,
   if (wscroll)
     {
       GtkWidget *wfixed = f->output_data.x->edit_widget;
-
-      gtk_container_set_reallocate_redraws (GTK_CONTAINER (wfixed), TRUE);
+      GtkWidget *wparent = gtk_widget_get_parent (wscroll);
 
       /* Move and resize to new values.  */
-      gtk_fixed_move (GTK_FIXED (wfixed), wscroll, left, top);
       gtk_widget_set_size_request (wscroll, width, height);
+      gtk_fixed_move (GTK_FIXED (wfixed), wparent, left, top);
 
-      /* Scroll bars in GTK has a fixed width, so if we say width 16, it
-         will only be its fixed width (14 is default) anyway, the rest is
-         blank.  We are drawing the mode line across scroll bars when
-         the frame is split:
-                               |bar| |fringe|
-                              ----------------
-                              mode line
-                              ----------------
-                               |bar| |fringe|
-
-         When we "unsplit" the frame:
-
-                               |bar| |fringe|
-                              -|   |-|      |
-                              m¦   |i|      |
-                              -|   |-|      |
-                               |   | |      |
-
-
-         the remains of the mode line can be seen in these blank spaces.
-         So we must clear them explicitly.
-         GTK scroll bars should do that, but they don't.
-         Also, the canonical width may be wider than the width for the
-         scroll bar so that there is some space (typically 1 pixel) between
-         the scroll bar and the edge of the window and between the scroll
-         bar and the fringe.  */
-      gdk_window_clear (wscroll->window);
-
-      /* Must force out update so changed scroll bars gets redrawn.  */
-      gdk_window_process_all_updates ();
-      
       SET_FRAME_GARBAGED (f);
       cancel_mouse_face (f);
     }

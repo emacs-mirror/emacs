@@ -106,7 +106,7 @@ the environment variable INFOPATH is set.")
       "/usr/spool/news/"
     "/var/spool/news/")
   "The root directory below which all news files are stored.")
-(defalias 'news-path 'news-directory)
+(defvaralias 'news-path 'news-directory)
 
 (defvar news-inews-program
   (cond ((file-exists-p "/usr/bin/inews") "/usr/bin/inews")

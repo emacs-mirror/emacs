@@ -7974,7 +7974,7 @@ store_frame_title (str, field_width, precision)
 
   /* Copy at most PRECISION chars from STR.  */
   nbytes = strlen (str);
-  n+= c_string_width (str, nbytes, precision, &dummy, &nbytes);
+  n += c_string_width (str, nbytes, precision, &dummy, &nbytes);
   while (nbytes--)
     store_frame_title_char (*str++);
 
@@ -15459,14 +15459,15 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 
 	    if (this - 1 != last)
 	      {
+		int nchars, nbytes;
+
 		/* Output to end of string or up to '%'.  Field width
 		   is length of string.  Don't output more than
 		   PRECISION allows us.  */
 		--this;
 
-		prec = chars_in_text (last, this - last);
-		if (precision > 0 && prec > precision - n)
-		  prec = precision - n;
+		prec = c_string_width (last, this - last, precision - n,
+				       &nchars, &nbytes);
 
 		if (frame_title_ptr)
 		  n += store_frame_title (last, 0, prec);
@@ -15474,9 +15475,12 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 		  {
 		    int bytepos = last - lisp_string;
 		    int charpos = string_byte_to_char (elt, bytepos);
+		    int endpos = (precision <= 0 ? SCHARS (elt)
+				  : charpos + nchars);
+
 		    n += store_mode_line_string (NULL,
 						 Fsubstring (elt, make_number (charpos),
-							     make_number (charpos + prec)),
+							     make_number (endpos)),
 						 0, 0, 0, Qnil);
 		  }
 		else

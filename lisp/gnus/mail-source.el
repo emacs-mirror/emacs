@@ -257,7 +257,7 @@ If non-nil, this maildrop will be checked periodically for new mail."
   :type 'file)
 
 (defcustom mail-source-directory message-directory
-  "Directory where files (if any) will be stored."
+  "Directory where incoming mail source files (if any) will be stored."
   :group 'mail-source
   :type 'directory)
 

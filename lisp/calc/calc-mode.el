@@ -429,8 +429,6 @@
 
 (defun calc-total-algebraic-mode (flag)
   (interactive "P")
-  (if calc-emacs-type-19
-      (error "Total algebraic mode not yet supported for Emacs 19"))
   (calc-wrapper
    (if (eq calc-algebraic-mode 'total)
        (calc-algebraic-mode nil)

@@ -6122,7 +6122,7 @@ positives are possible."
     ("\\(<URL: *\\)mailto: *\\([^> \n\t]+\\)>"
      0 (>= gnus-button-message-level 0) gnus-url-mailto 2)
     ;; RFC 2368 (The mailto URL scheme)
-    ("mailto:\\([-a-z.@_+0-9%=?&]+\\)"
+    ("\\bmailto:\\([-a-z.@_+0-9%=?&/]+\\)"
      0 (>= gnus-button-message-level 0) gnus-url-mailto 1)
     ("\\bmailto:\\([^ \n\t]+\\)"
      0 (>= gnus-button-message-level 0) gnus-url-mailto 1)
@@ -6170,8 +6170,9 @@ positives are possible."
     ("M-x[ \t\n]+apropos-documentation[ \t\n]+RET[ \t\n]+\\([^ \t\n]+\\)[ \t\n]+RET"
      0 (>= gnus-button-emacs-level 1) gnus-button-handle-apropos-documentation 1)
     ;; The following entries may lead to many false positives so don't enable
-    ;; them by default (use a high button level):
-    ("/\\([a-z][-a-z0-9]+\\.el\\)\\>"
+    ;; them by default (use a high button level).
+    ("/\\([a-z][-a-z0-9]+\\.el\\)\\>[^.?]"
+     ;; Exclude [.?] for URLs in gmane.emacs.cvs
      1 (>= gnus-button-emacs-level 8) gnus-button-handle-library 1)
     ("`\\([a-z][-a-z0-9]+\\.el\\)'"
      1 (>= gnus-button-emacs-level 8) gnus-button-handle-library 1)
@@ -6204,16 +6205,16 @@ positives are possible."
     (gnus-button-url-regexp
      0 (>= gnus-button-browse-level 0) browse-url 0)
     ;; man pages
-    ("\\b\\([a-z][a-z]+\\)([1-9])\\W"
+    ("\\b\\([a-z][a-z]+([1-9])\\)\\W"
      0 (and (>= gnus-button-man-level 1) (< gnus-button-man-level 3))
      gnus-button-handle-man 1)
     ;; more man pages: resolv.conf(5), iso_8859-1(7), xterm(1x)
-    ("\\b\\([a-z][-_.a-z0-9]+\\)([1-9])\\W"
+    ("\\b\\([a-z][-_.a-z0-9]+([1-9])\\)\\W"
      0 (and (>= gnus-button-man-level 3) (< gnus-button-man-level 5))
      gnus-button-handle-man 1)
     ;; even more: Apache::PerlRun(3pm), PDL::IO::FastRaw(3pm),
     ;; SoWWWAnchor(3iv), XSelectInput(3X11), X(1), X(7)
-    ("\\b\\([a-z][-+_.:a-z0-9]+\\)([1-9][X1a-z]*)\\W\\|\\b\\(X\\)([1-9])\\W"
+    ("\\b\\(\\(?:[a-z][-+_.:a-z0-9]+([1-9][X1a-z]*)\\)\\|\\b\\(?:X([1-9])\\)\\)\\W"
      0 (>= gnus-button-man-level 5) gnus-button-handle-man 1)
     ;; MID or mail: To avoid too many false positives we don't try to catch
     ;; all kind of allowed MIDs or mail addresses.  Domain part must contain
@@ -6257,7 +6258,7 @@ variable it the real callback function."
      0 (>= gnus-button-browse-level 0) browse-url 0)
     ("^[^:]+:" gnus-button-url-regexp
      0 (>= gnus-button-browse-level 0) browse-url 0)
-    ("^[^:]+:" "\\bmailto:\\([-a-z.@_+0-9%=?&]+\\)"
+    ("^[^:]+:" "\\bmailto:\\([-a-z.@_+0-9%=?&/]+\\)"
      0 (>= gnus-button-message-level 0) gnus-url-mailto 1)
     ("^[^:]+:" "\\(<\\(url: \\)?\\(nntp\\|news\\):\\([^>\n ]*\\)>\\)"
      1 (>= gnus-button-message-level 0) gnus-button-message-id 4))
@@ -6602,6 +6603,10 @@ specified by `gnus-button-alist'."
 
 (defun gnus-button-handle-man (url)
   "Fetch a man page."
+  (gnus-message 9 "`%s' `%s'" gnus-button-man-handler url)
+  (when (eq gnus-button-man-handler 'woman)
+    (setq url (gnus-replace-in-string url "([1-9][X1a-z]*).*\\'" "")))
+  (gnus-message 9 "`%s' `%s'" gnus-button-man-handler url)
   (funcall gnus-button-man-handler url))
 
 (defun gnus-button-handle-info-url (url)

@@ -316,7 +316,8 @@ typedef enum
   /* Error codes we've added.  */
   REG_EEND,		/* Premature end.  */
   REG_ESIZE,		/* Compiled pattern bigger than 2^16 bytes.  */
-  REG_ERPAREN		/* Unmatched ) or \); not returned from regcomp.  */
+  REG_ERPAREN,		/* Unmatched ) or \); not returned from regcomp.  */
+  REG_ERANGEX		/* Range striding over charsets.  */
 } reg_errcode_t;
 
 /* This data structure represents a compiled pattern.  Before calling

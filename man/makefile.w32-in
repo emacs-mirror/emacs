@@ -125,9 +125,11 @@ dvi: $(DVI_TARGETS)
 # The following target uses an explicit -o switch to work around
 # the @setfilename directive in info.texi, which is required for
 # the Texinfo distribution.
+# Some Windows ports of makeinfo seem to require -o to come before the
+# texi filename, contrary to GNU standards.
 
 $(infodir)/info: $(INFOSOURCES)
-	$(MAKEINFO) --no-split info.texi -o $@
+	$(MAKEINFO) --no-split -o $@ info.texi
 
 info.dvi: $(INFOSOURCES)
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/info.texi

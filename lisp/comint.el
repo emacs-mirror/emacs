@@ -369,7 +369,7 @@ Takes one argument, the input.  If non-nil, the input may be saved on the input
 history list.  Default is to save anything that isn't all whitespace.")
 
 (defvar comint-input-filter-functions '()
-  "Special hook run before input is sent to the process.
+  "Abnormal hook run before input is sent to the process.
 These functions get one argument, a string containing the text to send.")
 
 (defvar comint-output-filter-functions '(comint-postoutput-scroll-to-bottom comint-watch-for-password-prompt)
@@ -788,7 +788,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 
 (defun comint-insert-input (&optional event)
   "In a Comint buffer, set the current input to the previous input at point."
-  (interactive (list last-input-event))
+  (interactive "@")
   (if event (mouse-set-point event))
   (let ((pos (point)))
     (if (not (eq (get-char-property pos 'field) 'input))
@@ -2282,7 +2282,7 @@ preceding newline is removed."
 
 (defun comint-kill-whole-line (&optional arg)
   "Kill current line, ignoring read-only and field properties.
-With prefix ARG, kill that many lines starting from the current line.
+With prefix arg, kill that many lines starting from the current line.
 If arg is negative, kill backward.  Also kill the preceding newline,
 instead of the trailing one.  \(This is meant to make \\[repeat] work well
 with negative arguments.)
@@ -2430,7 +2430,7 @@ Provides a default, if there is one, and returns the result filename.
 
 See `comint-source-default' for more on determining defaults.
 
-PROMPT is the prompt string.  PREV-DIR/FILE is the (directory . file) pair
+PROMPT is the prompt string.  PREV-DIR/FILE is the (DIRECTORY . FILE) pair
 from the last source processing command.  SOURCE-MODES is a list of major
 modes used to determine what file buffers contain source files.  (These
 two arguments are used for determining defaults).  If MUSTMATCH-P is true,

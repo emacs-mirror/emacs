@@ -873,8 +873,8 @@ width and the longest string in LIST."
 				    default-directory)
 				default-directory))))
      (list (read-file-name "Find file: " default-directory)
-	   current-prefix-arg)))
-  (find-file file (or wildcards (interactive-p))))
+	   t)))
+  (find-file file wildcards))
 
 (defun ibuffer-mouse-visit-buffer (event)
   "Visit the buffer chosen with the mouse."

@@ -726,6 +726,46 @@ If GROUP is non-nil, also cater to `gnus-cacheable-groups' and
 	      (or (not gnus-uncacheable-groups)
 		  (not (string-match gnus-uncacheable-groups group)))))))
 
+;;;###autoload
+(defun gnus-cache-rename-group (old-group new-group)
+  "Rename OLD-GROUP as NEW-GROUP.  Always updates the cache, even when
+disabled, as the old cache files would corrupt gnus when the cache was
+next enabled. Depends upon the caller to determine whether group renaming is supported."
+  (let ((old-dir (gnus-cache-file-name old-group ""))
+	(new-dir (gnus-cache-file-name new-group "")))
+    (gnus-rename-file old-dir new-dir t))
+
+  (let ((no-save gnus-cache-active-hashtb))
+    (unless gnus-cache-active-hashtb
+      (gnus-cache-read-active))
+    (let* ((old-group-hash-value (gnus-gethash old-group gnus-cache-active-hashtb))
+	   (new-group-hash-value (gnus-gethash new-group gnus-cache-active-hashtb))
+	   (delta                (or old-group-hash-value new-group-hash-value)))
+      (gnus-sethash new-group old-group-hash-value gnus-cache-active-hashtb)
+      (gnus-sethash old-group nil gnus-cache-active-hashtb)
+
+      (if no-save
+	  (setq gnus-cache-active-altered delta)
+	(gnus-cache-write-active delta)))))
+
+;;;###autoload
+(defun gnus-cache-delete-group (group)
+  "Delete GROUP.  Always updates the cache, even when
+disabled, as the old cache files would corrupt gnus when the cache was
+next enabled. Depends upon the caller to determine whether group deletion is supported."
+  (let ((dir (gnus-cache-file-name group "")))
+    (gnus-delete-file dir))
+
+  (let ((no-save gnus-cache-active-hashtb))
+    (unless gnus-cache-active-hashtb
+      (gnus-cache-read-active))
+    (let* ((group-hash-value (gnus-gethash group gnus-cache-active-hashtb)))
+      (gnus-sethash group nil gnus-cache-active-hashtb)
+
+      (if no-save
+	  (setq gnus-cache-active-altered group-hash-value)
+	(gnus-cache-write-active group-hash-value)))))
+
 (provide 'gnus-cache)
 
 ;;; arch-tag: 05a79442-8c58-4e65-bd0a-3cbb1b89a33a

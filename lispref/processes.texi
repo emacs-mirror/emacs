@@ -317,6 +317,47 @@ be found in the definition of @code{insert-directory}:
 @end smallexample
 @end defun
 
+@defun process-file program &optional infile buffer display &rest args
+This function processes files synchronously in a separate process.  It
+is similar to @code{call-process} but may invoke a file handler based
+on the value of the variable @code{default-directory}.  The current
+working directory of the subprocess is @code{default-directory}.
+
+The arguments are handled in almost the same way as for
+@code{call-process}, with the following differences:
+
+Some file handlers may not support all combinations and forms of the
+arguments @var{infile}, @var{buffer}, and @var{display}.  For example,
+some file handlers might behave as if @var{display} was nil,
+regardless of the value actually passed.  As another example, some
+file handlers might not support separating standard output and error
+output by way of the @var{buffer} argument.
+
+If a file handler is invoked, it determines the program to run based
+on the first argument @var{program}.  For instance, consider that a
+handler for remote files is invoked.  Then the path that is used for
+searching the program might be different than @code{exec-path}.
+
+The second argument @var{infile} may invoke a file handler.  The file
+handler could be different from the handler chosen for the
+@code{process-file} function itself.  (For example,
+@code{default-directory} could be on a remote host, whereas
+@var{infile} is on another remote host.  Or @code{default-directory}
+could be non-special, whereas @var{infile} is on a remote host.)
+
+If @var{buffer} has the form @code{(@var{real-destination}
+@var{error-destination})}, and @var{error-destination} names a file,
+then the same remarks as for @var{infile} apply.
+
+The remaining arguments (@var{args}) will be passed to the process
+verbatim.  Emacs is not involved in processing file names that are
+present in @var{args}.  To avoid confusion, it may be best to avoid
+absolute file names in @var{args}, but rather to specify all file
+names as relative to @code{default-directory}.  The function
+@code{file-relative-name} is useful for constructing such relative
+file names.
+@end defun
+
 @defun call-process-region start end program &optional delete destination display &rest args
 This function sends the text from @var{start} to @var{end} as
 standard input to a process running @var{program}.  It deletes the text

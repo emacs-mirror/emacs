@@ -33,6 +33,7 @@
 (require 'gnus-range)
 
 (autoload 'gnus-agent-expire "gnus-agent")
+(autoload 'gnus-agent-regenerate-group "gnus-agent")
 (autoload 'gnus-agent-read-servers-validate-native "gnus-agent")
 
 (defcustom gnus-open-server-hook nil
@@ -176,7 +177,7 @@ If it is down, start it up (again)."
     (setq method (gnus-server-to-method method)))
   ;; Check cache of constructed names.
   (let* ((method-sym (if gnus-agent
-			 (gnus-agent-get-function method)
+			 (inline (gnus-agent-get-function method))
 		       (car method)))
 	 (method-fns (get method-sym 'gnus-method-functions))
 	 (func (let ((method-fnlist-elt (assq function method-fns)))
@@ -570,7 +571,7 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
 			  (nth 1 gnus-command-method) accept-function last)))
     (when (and result gnus-agent
 	       (gnus-agent-method-p gnus-command-method))
-      (gnus-agent-expire (list article) group 'force))
+      (gnus-agent-unfetch-articles group (list article)))
     result))
     
 (defun gnus-request-accept-article (group &optional gnus-command-method last
@@ -580,7 +581,8 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
     (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
   (when (and (not gnus-command-method)
 	     (stringp group))
-    (setq gnus-command-method (gnus-group-name-to-method group)))
+    (setq gnus-command-method (or (gnus-find-method-for-group group)
+                                  (gnus-group-name-to-method group))))
   (goto-char (point-max))
   (unless (bolp)
     (insert "\n"))
@@ -592,12 +594,17 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
 	(let ((mail-parse-charset message-default-charset))
 	  (mail-encode-encoded-word-buffer)))
       (message-encode-message-body)))
-  (let ((gnus-command-method (or gnus-command-method
-				 (gnus-find-method-for-group group))))
-    (funcall (gnus-get-function gnus-command-method 'request-accept-article)
-	     (if (stringp group) (gnus-group-real-name group) group)
-	     (cadr gnus-command-method)
-	     last)))
+(let ((gnus-command-method (or gnus-command-method
+				 (gnus-find-method-for-group group)))
+	(result 
+	 (funcall 
+	  (gnus-get-function gnus-command-method 'request-accept-article)
+	  (if (stringp group) (gnus-group-real-name group) group)
+	  (cadr gnus-command-method)
+	  last)))
+    (when (and gnus-agent (gnus-agent-method-p gnus-command-method))
+      (gnus-agent-regenerate-group group (list (cdr result))))
+    result))
 
 (defun gnus-request-replace-article (article group buffer &optional no-encode)
   (unless no-encode
@@ -608,9 +615,12 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
 	(let ((mail-parse-charset message-default-charset))
 	  (mail-encode-encoded-word-buffer)))
       (message-encode-message-body)))
-  (let ((func (car (gnus-group-name-to-method group))))
-    (funcall (intern (format "%s-request-replace-article" func))
-	     article (gnus-group-real-name group) buffer)))
+  (let* ((func (car (gnus-group-name-to-method group)))
+         (result (funcall (intern (format "%s-request-replace-article" func))
+			  article (gnus-group-real-name group) buffer)))
+    (when (and gnus-agent (gnus-agent-method-p gnus-command-method))
+      (gnus-agent-regenerate-group group (list article)))
+    result))
 
 (defun gnus-request-associate-buffer (group)
   (let ((gnus-command-method (gnus-find-method-for-group group)))
@@ -633,15 +643,25 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
 	     (gnus-group-real-name group) (nth 1 gnus-command-method) args)))
 
 (defun gnus-request-delete-group (group &optional force)
-  (let ((gnus-command-method (gnus-find-method-for-group group)))
-    (funcall (gnus-get-function gnus-command-method 'request-delete-group)
-	     (gnus-group-real-name group) force (nth 1 gnus-command-method))))
+  (let* ((gnus-command-method (gnus-find-method-for-group group))
+	 (result
+	  (funcall (gnus-get-function gnus-command-method 'request-delete-group)
+		   (gnus-group-real-name group) force (nth 1 gnus-command-method))))
+    (when result
+      (gnus-cache-delete-group group)
+      (gnus-agent-delete-group group))
+    result))
 
 (defun gnus-request-rename-group (group new-name)
-  (let ((gnus-command-method (gnus-find-method-for-group group)))
-    (funcall (gnus-get-function gnus-command-method 'request-rename-group)
-	     (gnus-group-real-name group)
-	     (gnus-group-real-name new-name) (nth 1 gnus-command-method))))
+  (let* ((gnus-command-method (gnus-find-method-for-group group))
+	 (result
+	  (funcall (gnus-get-function gnus-command-method 'request-rename-group)
+		   (gnus-group-real-name group)
+		   (gnus-group-real-name new-name) (nth 1 gnus-command-method))))
+    (when result
+      (gnus-cache-rename-group group new-name)
+      (gnus-agent-rename-group group new-name))
+    result))
 
 (defun gnus-close-backends ()
   ;; Send a close request to all backends that support such a request.

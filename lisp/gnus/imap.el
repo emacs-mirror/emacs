@@ -270,6 +270,11 @@ Shorter values mean quicker response, but is more CPU intensive."
   :type 'number
   :group 'imap)
 
+(defcustom imap-store-password nil
+  "If non-nil, store session password without promting."
+  :group 'imap
+  :type 'boolean)
+
 ;; Various variables.
 
 (defvar imap-fetch-data-hook nil
@@ -827,9 +832,10 @@ Returns t if login was successful, nil otherwise."
 	      (progn
 		(setq ret t
 		      imap-username user)
-		(if (and (not imap-password)
-			 (y-or-n-p "Store password for this session? "))
-		    (setq imap-password passwd)))
+		(when (and (not imap-password)
+			   (or imap-store-password
+			       (y-or-n-p "Store password for this session? ")))
+		  (setq imap-password passwd)))
 	    (message "Login failed...")
 	    (setq passwd nil)
 	    (setq imap-password nil)

@@ -168,9 +168,7 @@ extern void xg_update_scrollbar_pos P_ ((FRAME_PTR f,
                                          int top,
                                          int left,
                                          int width,
-                                         int height,
-                                         int real_left,
-                                         int canon_width));
+                                         int height));
 
 extern void xg_set_toolkit_scroll_bar_thumb P_ ((struct scroll_bar *bar,
                                                  int portion,
@@ -184,7 +182,6 @@ extern void free_frame_tool_bar P_ ((FRAME_PTR f));
 extern void xg_resize_widgets P_ ((FRAME_PTR f,
                                    int pixelwidth,
                                    int pixelheight));
-extern void xg_frame_cleared P_ ((FRAME_PTR f));
 extern void xg_frame_set_char_size P_ ((FRAME_PTR f, int cols, int rows));
 extern GtkWidget * xg_win_to_widget P_ ((Display *dpy, Window wdesc));
 

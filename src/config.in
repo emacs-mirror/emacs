@@ -414,6 +414,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the <nlist.h> header file. */
 #undef HAVE_NLIST_H
 
+/* Define to 1 if personality LINUX32 can be set. */
+#undef HAVE_PERSONALITY_LINUX32
+
 /* Define to 1 if you have the png library (-lpng). */
 #undef HAVE_PNG
 
@@ -431,9 +434,6 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if you have the `random' function. */
 #undef HAVE_RANDOM
-
-/* Define to 1 if this OS randomizes the start address of the heap. */
-#undef HAVE_RANDOM_HEAPSTART
 
 /* Define to 1 if you have the `recvfrom' function. */
 #undef HAVE_RECVFROM
@@ -757,9 +757,9 @@ Boston, MA 02111-1307, USA.  */
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
    automatically deduced at run-time.
-        STACK_DIRECTION > 0 => grows toward higher addresses
-        STACK_DIRECTION < 0 => grows toward lower addresses
-        STACK_DIRECTION = 0 => direction of growth unknown */
+	STACK_DIRECTION > 0 => grows toward higher addresses
+	STACK_DIRECTION < 0 => grows toward lower addresses
+	STACK_DIRECTION = 0 => direction of growth unknown */
 #undef STACK_DIRECTION
 
 /* Define to 1 if you have the ANSI C header files. */

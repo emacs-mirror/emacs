@@ -1077,9 +1077,9 @@ If RAW, don't highlight the article."
 					   (message-fetch-field "Newsgroups")))
 					message-posting-charset)))
       (message-options-set-recipient)
-      (switch-to-buffer (generate-new-buffer
-			 (concat (if raw "*Raw MIME preview of "
-				   "*MIME preview of ") (buffer-name))))
+      (pop-to-buffer (generate-new-buffer
+		      (concat (if raw "*Raw MIME preview of "
+				"*MIME preview of ") (buffer-name))))
       (when (boundp 'gnus-buffers)
 	(push (current-buffer) gnus-buffers))
       (erase-buffer)

@@ -2629,7 +2629,7 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
 (defun message-goto-mail-followup-to ()
   "Move point to the Mail-Followup-To header."
   (interactive)
-  (message-position-on-field "Mail-Followup-To" "From"))
+  (message-position-on-field "Mail-Followup-To" "To"))
 
 (defun message-goto-keywords ()
   "Move point to the Keywords header."
@@ -2739,6 +2739,7 @@ or in the synonym headers, defined by `message-header-synonyms'."
   ;; FIXME: Should compare only the address and not the full name.  Comparison
   ;; should be done case-folded (and with `string=' rather than
   ;; `string-match').
+  ;; (mail-strip-quoted-names "Foo Bar <foo@bar>, bla@fasel (Bla Fasel)")
   (dolist (header headers)
     (let* ((header-name (symbol-name (car header)))
            (new-header (cdr header))

@@ -1,6 +1,7 @@
 ;;; calc-help.el --- help display functions for Calc,
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2004
+;;           Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainers: D. Goel <deego@gnufans.org>
@@ -112,7 +113,7 @@ C-w  Describe how there is no warranty for Calc."
   (describe-bindings)
   (save-excursion
     (set-buffer "*Help*")
-    (let ((buffer-read-only nil))
+    (let ((inhibit-read-only t))
       (goto-char (point-min))
       (when (search-forward "Major Mode Bindings:" nil t)
         (delete-region (point-min) (point))
@@ -673,5 +674,5 @@ C-w  Describe how there is no warranty for Calc."
      "} (matrix brackets); . (abbreviate); / (multi-lines)")
    "vec/mat" ?v))
 
-;;; arch-tag: 2d347593-7591-449e-a64a-93dab5f2f686
+;; arch-tag: 2d347593-7591-449e-a64a-93dab5f2f686
 ;;; calc-help.el ends here

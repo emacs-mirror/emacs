@@ -2516,7 +2516,7 @@ x_draw_glyph_string (s)
         }
           else
             {
-              w32_fill_area (s->f, s->hdc, s->face->underline_color, s->x,
+              w32_fill_area (s->f, s->hdc, s->face->overline_color, s->x,
                              s->y + dy, s->width, h);
             }
         }

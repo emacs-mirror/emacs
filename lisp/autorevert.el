@@ -421,6 +421,9 @@ This is an internal function used by Auto-Revert Mode."
 	   'no-mini t))
 	(if auto-revert-tail-mode
 	    (auto-revert-tail-handler)
+	  ;; Bind buffer-read-only in case user has done C-x C-q,
+	  ;; so as not to forget that.  This gives undesirable results
+	  ;; when the file's mode changes, but that is less common.
 	  (let ((buffer-read-only buffer-read-only))
 	    (revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)))
 	(when buffer-file-name
