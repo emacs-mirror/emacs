@@ -939,7 +939,13 @@ MAIL-FLAG for a mail message, i. e. don't fill header lines."
 	      (forward-line 1))))
       (narrow-to-region (point) max)
       ;; Loop over paragraphs.
-      (while (progn (skip-chars-forward " \t\n") (not (eobp)))
+      (while (progn
+	       ;; Skip over all paragraph-separating lines
+	       ;; so as to not include them in any paragraph.
+               (while (progn (move-to-left-margin)
+			     (and (not (eobp)) (looking-at paragraph-separate)))
+                 (forward-line 1))
+               (skip-chars-forward " \t\n") (not (eobp)))
 	(move-to-left-margin)
 	(let ((start (point))
 	      fill-prefix fill-prefix-regexp)
