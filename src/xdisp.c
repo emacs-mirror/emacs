@@ -1,5 +1,5 @@
 /* Display generation from window structure and buffer text.
-   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 1997
+   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 97, 1998
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -50,8 +50,6 @@ extern int interrupt_input;
 extern int command_loop_level;
 
 extern int minibuffer_auto_raise;
-
-extern int nonascii_insert_offset;
 
 extern Lisp_Object Qface;
 
@@ -301,9 +299,9 @@ message_dolog (m, len, nlflag, multibyte)
       oldbegv = Fpoint_min_marker ();
       oldzv = Fpoint_max_marker ();
 
-      if (oldpoint == Z)
+      if (PT == Z)
 	point_at_end = 1;
-      if (oldzv == Z)
+      if (ZV == Z)
 	zv_at_end = 1;
 
       BEGV = BEG;
@@ -334,15 +332,12 @@ message_dolog (m, len, nlflag, multibyte)
       else if (! multibyte
 	       && ! NILP (current_buffer->enable_multibyte_characters))
 	{
-	  int c, i = 0;
+	  int i = 0;
 	  /* Convert a single-byte string to multibyte
 	     for the *Message* buffer.  */
 	  while (i < len)
 	    {
-	      c = m[i++];
-	      /* Convert non-ascii chars as if for self-insert.  */
-	      if (c >= 0200 && c <= 0377)
-		c += nonascii_insert_offset;
+	      int c = unibyte_char_to_multibyte (m[i++]);
 	      insert_char (c);
 	    }
 	}
@@ -360,7 +355,7 @@ message_dolog (m, len, nlflag, multibyte)
 
 	  if (this_bol > BEG)
 	    {
-	      scan_newline (Z, Z_BYTE, BEG, BEG_BYTE, -2, 0);
+	      scan_newline (PT, PT_BYTE, BEG, BEG_BYTE, -2, 0);
 	      prev_bol = PT;
 	      prev_bol_byte = PT_BYTE;
 
