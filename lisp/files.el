@@ -343,6 +343,16 @@ and ignores this variable."
 (defvar view-read-only nil
   "*Non-nil means buffers visiting files read-only, do it in view mode.")
 
+(defvar system-tmp-directory
+  (directory-file-name 
+   (cond ((memq system-type '(ms-dos windows-nt))
+	  (or (getenv "TEMP") (getenv "TMPDIR") (getenv "TMP") "c:/temp"))
+	 ((memq system-type '(vax-vms axp-vms))
+	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "SYS$SCRATCH:"))
+	 (t
+	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "/tmp"))))
+  "The directory for writing temporary files--actually, its name as a file.")
+
 ;; This hook function provides support for ange-ftp host name
 ;; completion.  It runs the usual ange-ftp hook, but only for
 ;; completion operations.  Having this here avoids the need
@@ -2685,6 +2695,7 @@ This command is used in the special Dired buffer created by
   (let ((file (dired-get-filename))
 	files
 	(buffer (get-buffer-create " *recover*")))
+    (dired-unmark 1)
     (dired-do-flagged-delete t)
     (unwind-protect
 	(save-excursion
