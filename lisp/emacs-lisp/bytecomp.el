@@ -3991,7 +3991,7 @@ already up-to-date."
        nil))))
 
 ;;;###autoload
-(defun batch-byte-recompile-directory ()
+(defun batch-byte-recompile-directory (&optional arg)
   "Run `byte-recompile-directory' on the dirs remaining on the command line.
 Must be used only with `-batch', and kills Emacs on completion.
 For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
@@ -4002,7 +4002,7 @@ For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
   (or command-line-args-left
       (setq command-line-args-left '(".")))
   (while command-line-args-left
-    (byte-recompile-directory (car command-line-args-left))
+    (byte-recompile-directory (car command-line-args-left) arg)
     (setq command-line-args-left (cdr command-line-args-left)))
   (kill-emacs 0))
 
