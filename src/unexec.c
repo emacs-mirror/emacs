@@ -173,18 +173,12 @@ pointer looks like an int) but not on all machines.
 
 #ifdef COFF
 #include <coff.h>
-#else
-#ifdef COFF_ENCAPSULATE
-int need_coff_header = 1;
-#include <coff-encap/a.out.encap.h> /* The location might be a poor assumption */
-#else
 #ifdef MSDOS
 #if __DJGPP__ > 1
 #include <fcntl.h>  /* for O_RDONLY, O_RDWR */
 #include <crt0.h>   /* for _crt0_startup_flags and its bits */
 static int save_djgpp_startup_flags;
-#endif
-#include <coff.h>
+#endif /* __DJGPP__ > 1 */
 #define filehdr external_filehdr
 #define scnhdr external_scnhdr
 #define syment external_syment
@@ -202,12 +196,14 @@ struct aouthdr
   unsigned long	 	text_start;/* base of text used for this file */
   unsigned long	 	data_start;/* base of data used for this file */
 };
-
-
-#else /* not MSDOS */
-#include <a.out.h>
 #endif /* not MSDOS */
-#endif
+#else  /* not COFF */
+#ifdef COFF_ENCAPSULATE
+int need_coff_header = 1;
+#include <coff-encap/a.out.encap.h> /* The location might be a poor assumption */
+#else  /* not COFF_ENCAPSULATE */
+#include <a.out.h>
+#endif /* not COFF_ENCAPSULATE */
 #endif /* not COFF */
 
 /* Define getpagesize if the system does not.
