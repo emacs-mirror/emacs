@@ -255,6 +255,11 @@ struct window
     /* Z_BYTE - the buffer position of the last glyph in the current matrix
        of W.  Only valid if WINDOW_END_VALID is not nil.  */
     int window_end_bytepos;
+
+    /* 1 means the window start of this window is frozen and may not
+       be changed during redisplay.  If point is not in the window,
+       accept that.  */
+    unsigned frozen_window_start_p : 1;
 };
 
 /* 1 if W is a minibuffer window.  */
@@ -359,6 +364,8 @@ extern void set_window_height P_ ((Lisp_Object, int, int));
 extern void set_window_width P_ ((Lisp_Object, int, int));
 extern void change_window_height P_ ((int, int));
 extern void delete_all_subwindows P_ ((struct window *));
+extern void free_window_starts P_ ((struct frame *, int));
+extern void foreach_window ();
 
 /* Make WINDOW display BUFFER as its contents.  RUN_HOOKS_P non-zero
    means it's allowed to run hooks.  See make_frame for a case where
