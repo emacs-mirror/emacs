@@ -1,9 +1,8 @@
 /* impl.h.eventdef -- Event Logging Definitions
  *
- * $HopeName: MMsrc!eventdef.h(trunk.23) $
+ * $HopeName: MMsrc!eventdef.h(trunk.24) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
- * .readership: MPS developers.
  * .source: design.mps.telemetry
  *
  * .desc: This file declares relationships that define the various 
@@ -74,7 +73,9 @@ RELATION(AMCFix                          , 0x000c, TRUE, Ref, 0)
 RELATION(AMCFixInPlace                   , 0x000d, TRUE, Ref, 0)
 RELATION(AMCFixForward                   , 0x000e, TRUE, Ref, A)
 RELATION(AMCReclaim                      , 0x000f, TRUE, Seg, PPP)
+#if 0 /* Not in use */
 RELATION(AMCTraceEnd                     , 0x0010, TRUE, Trace, PPP)
+#endif
 RELATION(ArenaCreateCL                   , 0x0011, TRUE, Arena, PWA)
 RELATION(ArenaDestroy                    , 0x0012, TRUE, Arena, P)
 RELATION(SegAlloc                        , 0x0013, TRUE, Seg, PPAWP)
@@ -123,7 +124,9 @@ RELATION(BufferCommit                    , 0x0035, TRUE, Object, PAWA)
 /* BufferInit/Finish abuse kind, see .kind.abuse */
 RELATION(BufferInit                      , 0x0036, TRUE, Pool, PPU)
 RELATION(BufferFinish                    , 0x0037, TRUE, Pool, P)
-RELATION(MV2Finish                       , 0x0038, TRUE, Pool, P)
+#if 0 /* not in use */
+RELATION(MVTFinish                       , 0x0038, TRUE, Pool, P)
+#endif
 RELATION(BufferFill                      , 0x0039, TRUE, Seg, PWAW)
 RELATION(BufferEmpty                     , 0x003A, TRUE, Seg, PW)
 RELATION(SegAllocFail                    , 0x003B, TRUE, Seg, PWP)
@@ -146,7 +149,7 @@ RELATION(PoolInitAMCZ                    , 0x0049, TRUE, Pool, PP)
 RELATION(PoolInitAWL                     , 0x004A, TRUE, Pool, PP)
 RELATION(PoolInitLO                      , 0x004B, TRUE, Pool, PP)
 RELATION(PoolInitSNC                     , 0x004C, TRUE, Pool, PP)
-RELATION(PoolInitMV2                     , 0x004D, TRUE, Pool, PWWWWW)
+RELATION(PoolInitMVT                     , 0x004D, TRUE, Pool, PWWWWW)
 
 RELATION(BufferInitEPVM                  , 0x0050, TRUE, Pool, PPU)
 RELATION(BufferInitSeg                   , 0x0051, TRUE, Pool, PPU)
@@ -158,7 +161,6 @@ RELATION(PoolPop                         , 0x0061, TRUE, Object, PU)
 RELATION(ReservoirLimitSet               , 0x0062, TRUE, Arena, PW)
 RELATION(CommitLimitSet                  , 0x0063, TRUE, Arena, PWU)
 RELATION(SpareCommitLimitSet             , 0x0064, TRUE, Arena, PW)
-
 RELATION(ArenaAlloc                      , 0x0065, TRUE, Arena, PPAWP)
 RELATION(ArenaFree                       , 0x0066, TRUE, Arena, PAW)
 RELATION(ArenaAllocFail                  , 0x0067, TRUE, Arena, PWP)
