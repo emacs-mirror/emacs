@@ -3217,66 +3217,53 @@ set_lface_from_font_name (f, lface, fontname, force_p, may_fail_p)
 
 /* Merges the face height FROM with the face height TO, and returns the
    merged height.  If FROM is an invalid height, then INVALID is
-   returned instead.  FROM may be a either an absolute face height or a
-   `relative' height, and TO must be an absolute height.  The returned
-   value is always an absolute height.  GCPRO is a lisp value that will
-   be protected from garbage-collection if this function makes a call
-   into lisp.  */
+   returned instead.  FROM and TO may be either absolute face heights or
+   `relative' heights; the returned value is always an absolute height
+   unless both FROM and TO are relative.  GCPRO is a lisp value that
+   will be protected from garbage-collection if this function makes a
+   call into lisp.  */
 
 Lisp_Object
 merge_face_heights (from, to, invalid, gcpro)
      Lisp_Object from, to, invalid, gcpro;
 {
-  int result = 0;
+  Lisp_Object result = invalid;
 
   if (INTEGERP (from))
-    result = XINT (from);
-  else if (NUMBERP (from))
-    result = XFLOATINT (from) * XINT (to);
-#if 0 /* Probably not so useful.  */
-  else if (CONSP (from) && CONSP (XCDR (from)))
+    /* FROM is absolute, just use it as is.  */
+    result = from;
+  else if (FLOATP (from))
+    /* FROM is a scale, use it to adjust TO.  */
     {
-      if (EQ (XCAR(from), Qplus) || EQ (XCAR(from), Qminus))
-	{
-	  if (INTEGERP (XCAR (XCDR (from))))
-	    {
-	      int inc = XINT (XCAR (XCDR (from)));
-	      if (EQ (XCAR (from), Qminus))
-		inc = -inc;
-
-	      result = XFASTINT (to);
-	      if (result + inc > 0)
-		/* Note that `underflows' don't mean FROM is invalid, so
-		   we just pin the result at TO if it would otherwise be
-		   negative or 0.  */
-		result += inc;
-	    }
-	}
+      if (INTEGERP (to))
+	/* relative X absolute => absolute */
+	result = make_number (XFLOAT_DATA (from) * XINT (to));
+      else if (FLOATP (to))
+	/* relative X relative => relative */
+	result = make_float (XFLOAT_DATA (from) * XFLOAT_DATA (to));
     }
-#endif
   else if (FUNCTIONP (from))
+    /* FROM is a function, which use to adjust TO.  */
     {
       /* Call function with current height as argument.
 	 From is the new height.  */
-      Lisp_Object args[2], height;
+      Lisp_Object args[2];
       struct gcpro gcpro1;
 
       GCPRO1 (gcpro);
 
       args[0] = from;
       args[1] = to;
-      height = safe_call (2, args);
+      result = safe_call (2, args);
 
       UNGCPRO;
 
-      if (NUMBERP (height))
-	result = XFLOATINT (height);
+      /* Ensure that if TO was absolute, so is the result.  */
+      if (INTEGERP (to) && !INTEGERP (result))
+	result = invalid;
     }
 
-  if (result > 0)
-    return make_number (result);
-  else
-    return invalid;
+  return result;
 }
 
 
@@ -4494,6 +4481,36 @@ x_update_menu_appearance (f)
 
 #endif /* HAVE_X_WINDOWS && USE_X_TOOLKIT */
 
+
+DEFUN ("face-attribute-relative-p", Fface_attribute_relative_p, 
+       Sface_attribute_relative_p,
+       2, 2, 0,
+       doc: /* Return non-nil if face ATTRIBUTE VALUE is relative.  */)
+     (attribute, value)
+{
+  if (EQ (value, Qunspecified))
+    return Qt;
+  else if (EQ (attribute, QCheight))
+    return INTEGERP (value) ? Qnil : Qt;
+  else
+    return Qnil;
+}
+
+DEFUN ("merge-face-attribute", Fmerge_face_attribute, Smerge_face_attribute,
+       3, 3, 0,
+       doc: /* Return face ATTRIBUTE VALUE1 merged with VALUE2.
+If VALUE1 or VALUE2 are absolute (see `face-attribute-relative-p'), then
+the result will be absolute, otherwise it will be relative.  */)
+     (attribute, value1, value2)
+     Lisp_Object attribute, value1, value2;
+{
+  if (EQ (value1, Qunspecified))
+    return value2;
+  else if (EQ (attribute, QCheight))
+    return merge_face_heights (value1, value2, value1, Qnil);
+  else
+    return value1;
+}
 
 
 DEFUN ("internal-get-lisp-face-attribute", Finternal_get_lisp_face_attribute,
@@ -7205,6 +7222,8 @@ syms_of_xfaces ()
 #endif
   defsubr (&Scolor_gray_p);
   defsubr (&Scolor_supported_p);
+  defsubr (&Sface_attribute_relative_p);
+  defsubr (&Smerge_face_attribute);
   defsubr (&Sinternal_get_lisp_face_attribute);
   defsubr (&Sinternal_lisp_face_attribute_values);
   defsubr (&Sinternal_lisp_face_equal_p);
