@@ -509,10 +509,10 @@ remove_process (proc)
 
 DEFUN ("processp", Fprocessp, Sprocessp, 1, 1, 0,
   "Return t if OBJECT is a process.")
-  (obj)
-     Lisp_Object obj;
+  (object)
+     Lisp_Object object;
 {
-  return PROCESSP (obj) ? Qt : Qnil;
+  return PROCESSP (object) ? Qt : Qnil;
 }
 
 DEFUN ("get-process", Fget_process, Sget_process, 1, 1, 0,
@@ -529,13 +529,13 @@ DEFUN ("get-process", Fget_process, Sget_process, 1, 1, 0,
 DEFUN ("get-buffer-process", Fget_buffer_process, Sget_buffer_process, 1, 1, 0,
   "Return the (or, a) process associated with BUFFER.\n\
 BUFFER may be a buffer or the name of one.")
-  (name)
-     register Lisp_Object name;
+  (buffer)
+     register Lisp_Object buffer;
 {
   register Lisp_Object buf, tail, proc;
 
-  if (NILP (name)) return Qnil;
-  buf = Fget_buffer (name);
+  if (NILP (buffer)) return Qnil;
+  buf = Fget_buffer (buffer);
   if (NILP (buf)) return Qnil;
 
   for (tail = Vprocess_alist; !NILP (tail); tail = Fcdr (tail))
@@ -590,27 +590,27 @@ DEFUN ("delete-process", Fdelete_process, Sdelete_process, 1, 1, 0,
   "Delete PROCESS: kill it and forget about it immediately.\n\
 PROCESS may be a process, a buffer, the name of a process or buffer, or\n\
 nil, indicating the current buffer's process.")
-  (proc)
-     register Lisp_Object proc;
+  (process)
+     register Lisp_Object process;
 {
-  proc = get_process (proc);
-  XPROCESS (proc)->raw_status_low = Qnil;
-  XPROCESS (proc)->raw_status_high = Qnil;
-  if (NETCONN_P (proc))
+  process = get_process (process);
+  XPROCESS (process)->raw_status_low = Qnil;
+  XPROCESS (process)->raw_status_high = Qnil;
+  if (NETCONN_P (process))
     {
-      XPROCESS (proc)->status = Fcons (Qexit, Fcons (make_number (0), Qnil));
-      XSETINT (XPROCESS (proc)->tick, ++process_tick);
+      XPROCESS (process)->status = Fcons (Qexit, Fcons (make_number (0), Qnil));
+      XSETINT (XPROCESS (process)->tick, ++process_tick);
     }
-  else if (XINT (XPROCESS (proc)->infd) >= 0)
+  else if (XINT (XPROCESS (process)->infd) >= 0)
     {
-      Fkill_process (proc, Qnil);
+      Fkill_process (process, Qnil);
       /* Do this now, since remove_process will make sigchld_handler do nothing.  */
-      XPROCESS (proc)->status 
+      XPROCESS (process)->status 
 	= Fcons (Qsignal, Fcons (make_number (SIGKILL), Qnil));
-      XSETINT (XPROCESS (proc)->tick, ++process_tick);
+      XSETINT (XPROCESS (process)->tick, ++process_tick);
       status_notify ();
     }
-  remove_process (proc);
+  remove_process (process);
   return Qnil;
 }
 
@@ -625,27 +625,27 @@ closed -- for a network stream connection that is closed.\n\
 nil -- if arg is a process name and no such process exists.\n\
 PROCESS may be a process, a buffer, the name of a process or buffer, or\n\
 nil, indicating the current buffer's process.")
-  (proc)
-     register Lisp_Object proc;
+  (process)
+     register Lisp_Object process;
 {
   register struct Lisp_Process *p;
   register Lisp_Object status;
 
-  if (STRINGP (proc))
-    proc = Fget_process (proc);
+  if (STRINGP (process))
+    process = Fget_process (process);
   else
-    proc = get_process (proc);
+    process = get_process (process);
 
-  if (NILP (proc))
-    return proc;
+  if (NILP (process))
+    return process;
 
-  p = XPROCESS (proc);
+  p = XPROCESS (process);
   if (!NILP (p->raw_status_low))
     update_status (p);
   status = p->status;
   if (CONSP (status))
     status = XCONS (status)->car;
-  if (NETCONN_P (proc))
+  if (NETCONN_P (process))
     {
       if (EQ (status, Qrun))
 	status = Qopen;
@@ -659,14 +659,14 @@ DEFUN ("process-exit-status", Fprocess_exit_status, Sprocess_exit_status,
        1, 1, 0,
   "Return the exit status of PROCESS or the signal number that killed it.\n\
 If PROCESS has not yet exited or died, return 0.")
-  (proc)
-     register Lisp_Object proc;
+  (process)
+     register Lisp_Object process;
 {
-  CHECK_PROCESS (proc, 0);
-  if (!NILP (XPROCESS (proc)->raw_status_low))
-    update_status (XPROCESS (proc));
-  if (CONSP (XPROCESS (proc)->status))
-    return XCONS (XCONS (XPROCESS (proc)->status)->cdr)->car;
+  CHECK_PROCESS (process, 0);
+  if (!NILP (XPROCESS (process)->raw_status_low))
+    update_status (XPROCESS (process));
+  if (CONSP (XPROCESS (process)->status))
+    return XCONS (XCONS (XPROCESS (process)->status)->cdr)->car;
   return make_number (0);
 }
 
@@ -674,22 +674,22 @@ DEFUN ("process-id", Fprocess_id, Sprocess_id, 1, 1, 0,
   "Return the process id of PROCESS.\n\
 This is the pid of the Unix process which PROCESS uses or talks to.\n\
 For a network connection, this value is nil.")
-  (proc)
-     register Lisp_Object proc;
+  (process)
+     register Lisp_Object process;
 {
-  CHECK_PROCESS (proc, 0);
-  return XPROCESS (proc)->pid;
+  CHECK_PROCESS (process, 0);
+  return XPROCESS (process)->pid;
 }
 
 DEFUN ("process-name", Fprocess_name, Sprocess_name, 1, 1, 0,
   "Return the name of PROCESS, as a string.\n\
 This is the name of the program invoked in PROCESS,\n\
 possibly modified to make it unique among process names.")
-  (proc)
-     register Lisp_Object proc;
+  (process)
+     register Lisp_Object process;
 {
-  CHECK_PROCESS (proc, 0);
-  return XPROCESS (proc)->name;
+  CHECK_PROCESS (process, 0);
+  return XPROCESS (process)->name;
 }
 
 DEFUN ("process-command", Fprocess_command, Sprocess_command, 1, 1, 0,
@@ -697,34 +697,34 @@ DEFUN ("process-command", Fprocess_command, Sprocess_command, 1, 1, 0,
 This is a list of strings, the first string being the program executed\n\
 and the rest of the strings being the arguments given to it.\n\
 For a non-child channel, this is nil.")
-  (proc)
-     register Lisp_Object proc;
+  (process)
+     register Lisp_Object process;
 {
-  CHECK_PROCESS (proc, 0);
-  return XPROCESS (proc)->command;
+  CHECK_PROCESS (process, 0);
+  return XPROCESS (process)->command;
 }
 
 DEFUN ("process-tty-name", Fprocess_tty_name, Sprocess_tty_name, 1, 1, 0,
   "Return the name of the terminal PROCESS uses, or nil if none.\n\
 This is the terminal that the process itself reads and writes on,\n\
 not the name of the pty that Emacs uses to talk with that terminal.")
-  (proc)
-     register Lisp_Object proc;
+  (process)
+     register Lisp_Object process;
 {
-  CHECK_PROCESS (proc, 0);
-  return XPROCESS (proc)->tty_name;
+  CHECK_PROCESS (process, 0);
+  return XPROCESS (process)->tty_name;
 }
 
 DEFUN ("set-process-buffer", Fset_process_buffer, Sset_process_buffer,
   2, 2, 0,
   "Set buffer associated with PROCESS to BUFFER (a buffer, or nil).")
-  (proc, buffer)
-     register Lisp_Object proc, buffer;
+  (process, buffer)
+     register Lisp_Object process, buffer;
 {
-  CHECK_PROCESS (proc, 0);
+  CHECK_PROCESS (process, 0);
   if (!NILP (buffer))
     CHECK_BUFFER (buffer, 1);
-  XPROCESS (proc)->buffer = buffer;
+  XPROCESS (process)->buffer = buffer;
   return buffer;
 }
 
@@ -733,21 +733,21 @@ DEFUN ("process-buffer", Fprocess_buffer, Sprocess_buffer,
   "Return the buffer PROCESS is associated with.\n\
 Output from PROCESS is inserted in this buffer\n\
 unless PROCESS has a filter.")
-  (proc)
-     register Lisp_Object proc;
+  (process)
+     register Lisp_Object process;
 {
-  CHECK_PROCESS (proc, 0);
-  return XPROCESS (proc)->buffer;
+  CHECK_PROCESS (process, 0);
+  return XPROCESS (process)->buffer;
 }
 
 DEFUN ("process-mark", Fprocess_mark, Sprocess_mark,
   1, 1, 0,
   "Return the marker for the end of the last output from PROCESS.")
-  (proc)
-     register Lisp_Object proc;
+  (process)
+     register Lisp_Object process;
 {
-  CHECK_PROCESS (proc, 0);
-  return XPROCESS (proc)->mark;
+  CHECK_PROCESS (process, 0);
+  return XPROCESS (process)->mark;
 }
 
 DEFUN ("set-process-filter", Fset_process_filter, Sset_process_filter,
@@ -758,21 +758,21 @@ When a process has a filter, each time it does output\n\
 the entire string of output is passed to the filter.\n\
 The filter gets two arguments: the process and the string of output.\n\
 If the process has a filter, its buffer is not used for output.")
-  (proc, filter)
-     register Lisp_Object proc, filter;
+  (process, filter)
+     register Lisp_Object process, filter;
 {
-  CHECK_PROCESS (proc, 0);
+  CHECK_PROCESS (process, 0);
   if (EQ (filter, Qt))
     {
-      FD_CLR (XINT (XPROCESS (proc)->infd), &input_wait_mask);
-      FD_CLR (XINT (XPROCESS (proc)->infd), &non_keyboard_wait_mask);
+      FD_CLR (XINT (XPROCESS (process)->infd), &input_wait_mask);
+      FD_CLR (XINT (XPROCESS (process)->infd), &non_keyboard_wait_mask);
     }
-  else if (EQ (XPROCESS (proc)->filter, Qt))
+  else if (EQ (XPROCESS (process)->filter, Qt))
     {
-      FD_SET (XINT (XPROCESS (proc)->infd), &input_wait_mask);
-      FD_SET (XINT (XPROCESS (proc)->infd), &non_keyboard_wait_mask);
+      FD_SET (XINT (XPROCESS (process)->infd), &input_wait_mask);
+      FD_SET (XINT (XPROCESS (process)->infd), &non_keyboard_wait_mask);
     }
-  XPROCESS (proc)->filter = filter;
+  XPROCESS (process)->filter = filter;
   return filter;
 }
 
@@ -780,11 +780,11 @@ DEFUN ("process-filter", Fprocess_filter, Sprocess_filter,
   1, 1, 0,
   "Returns the filter function of PROCESS; nil if none.\n\
 See `set-process-filter' for more info on filter functions.")
-  (proc)
-     register Lisp_Object proc;
+  (process)
+     register Lisp_Object process;
 {
-  CHECK_PROCESS (proc, 0);
-  return XPROCESS (proc)->filter;
+  CHECK_PROCESS (process, 0);
+  return XPROCESS (process)->filter;
 }
 
 DEFUN ("set-process-sentinel", Fset_process_sentinel, Sset_process_sentinel,
@@ -792,11 +792,11 @@ DEFUN ("set-process-sentinel", Fset_process_sentinel, Sset_process_sentinel,
   "Give PROCESS the sentinel SENTINEL; nil for none.\n\
 The sentinel is called as a function when the process changes state.\n\
 It gets two arguments: the process, and a string describing the change.")
-  (proc, sentinel)
-     register Lisp_Object proc, sentinel;
+  (process, sentinel)
+     register Lisp_Object process, sentinel;
 {
-  CHECK_PROCESS (proc, 0);
-  XPROCESS (proc)->sentinel = sentinel;
+  CHECK_PROCESS (process, 0);
+  XPROCESS (process)->sentinel = sentinel;
   return sentinel;
 }
 
@@ -804,23 +804,23 @@ DEFUN ("process-sentinel", Fprocess_sentinel, Sprocess_sentinel,
   1, 1, 0,
   "Return the sentinel of PROCESS; nil if none.\n\
 See `set-process-sentinel' for more info on sentinels.")
-  (proc)
-     register Lisp_Object proc;
+  (process)
+     register Lisp_Object process;
 {
-  CHECK_PROCESS (proc, 0);
-  return XPROCESS (proc)->sentinel;
+  CHECK_PROCESS (process, 0);
+  return XPROCESS (process)->sentinel;
 }
 
 DEFUN ("set-process-window-size", Fset_process_window_size,
   Sset_process_window_size, 3, 3, 0,
   "Tell PROCESS that it has logical window size HEIGHT and WIDTH.")
-  (proc, height, width)
-     register Lisp_Object proc, height, width;
+  (process, height, width)
+     register Lisp_Object process, height, width;
 {
-  CHECK_PROCESS (proc, 0);
+  CHECK_PROCESS (process, 0);
   CHECK_NATNUM (height, 0);
   CHECK_NATNUM (width, 0);
-  if (set_window_size (XINT (XPROCESS (proc)->infd),
+  if (set_window_size (XINT (XPROCESS (process)->infd),
 		       XINT (height), XINT(width)) <= 0)
     return Qnil;
   else
@@ -832,14 +832,14 @@ DEFUN ("process-kill-without-query", Fprocess_kill_without_query,
   "Say no query needed if PROCESS is running when Emacs is exited.\n\
 Optional second argument if non-nil says to require a query.\n\
 Value is t if a query was formerly required.")
-  (proc, value)
-     register Lisp_Object proc, value;
+  (process, value)
+     register Lisp_Object process, value;
 {
   Lisp_Object tem;
 
-  CHECK_PROCESS (proc, 0);
-  tem = XPROCESS (proc)->kill_without_query;
-  XPROCESS (proc)->kill_without_query = Fnull (value);
+  CHECK_PROCESS (process, 0);
+  tem = XPROCESS (process)->kill_without_query;
+  XPROCESS (process)->kill_without_query = Fnull (value);
 
   return Fnull (tem);
 }
@@ -1866,8 +1866,8 @@ Non-nil second arg TIMEOUT and third arg TIMEOUT-MSECS are number of\n\
 seconds and microseconds to wait; return after that much time whether\n\
 or not there is input.\n\
 Return non-nil iff we received any output before the timeout expired.")
-  (proc, timeout, timeout_msecs)
-     register Lisp_Object proc, timeout, timeout_msecs;
+  (process, timeout, timeout_msecs)
+     register Lisp_Object process, timeout, timeout_msecs;
 {
   int seconds;
   int useconds;
@@ -1907,17 +1907,17 @@ Return non-nil iff we received any output before the timeout expired.")
     }
   else
     {
-      if (NILP (proc))
+      if (NILP (process))
 	seconds = -1;
       else
 	seconds = 0;
     }
 
-  if (NILP (proc))
-    XSETFASTINT (proc, 0);
+  if (NILP (process))
+    XSETFASTINT (process, 0);
 
   return
-    (wait_reading_process_input (seconds, useconds, proc, 0)
+    (wait_reading_process_input (seconds, useconds, process, 0)
      ? Qt : Qnil);
 }
 
