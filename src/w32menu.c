@@ -47,6 +47,8 @@ Boston, MA 02111-1307, USA.  */
 #define min(x, y) (((x) < (y)) ? (x) : (y))
 #define max(x, y) (((x) > (y)) ? (x) : (y))
 
+Lisp_Object Vmenu_updating_frame;
+
 typedef struct menu_map 
 {
   Lisp_Object menu_items;
@@ -1298,8 +1300,11 @@ cached information about equivalent key sequences.")
       
       xpos += XINT (x);
       ypos += XINT (y);
+
+      XSETFRAME (Vmenu_updating_frame, f);
     }
-  
+  Vmenu_updating_frame = Qnil;
+
   title = Qnil;
   GCPRO1 (title);
   
@@ -1525,6 +1530,8 @@ set_frame_menubar (f, first_time, deep_p)
 
   struct buffer *prev = current_buffer;
   Lisp_Object buffer;
+
+  XSETFRAME (Vmenu_updating_frame, f);
 
   /* We must not change the menubar when actually in use.  */
   if (f->output_data.w32->menubar_active)
@@ -2140,6 +2147,11 @@ syms_of_w32menu ()
 {
   Qdebug_on_next_call = intern ("debug-on-next-call");
   staticpro (&Qdebug_on_next_call);
+
+  DEFVAR_LISP ("menu-updating-frame", &Vmenu_updating_frame,
+	       "Frame for which we are updating a menu\n\
+The enable predicate for a menu command should check this variable.");
+  Vmenu_updating_frame = Qnil;
 
   defsubr (&Sx_popup_menu);
   defsubr (&Sx_popup_dialog);
