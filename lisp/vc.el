@@ -825,6 +825,20 @@ NOT-URGENT means it is ok to continue if the user says not to save."
 	(unless not-urgent
 	  (error "Aborted")))))
 
+(defun vc-workfile-unchanged-p (file)
+  "Has FILE changed since last checkout?"
+  (let ((checkout-time (vc-file-getprop file 'vc-checkout-time))
+        (lastmod (nth 5 (file-attributes file))))
+    (if checkout-time
+        (equal checkout-time lastmod)
+      (let ((unchanged (vc-call workfile-unchanged-p file)))
+        (vc-file-setprop file 'vc-checkout-time (if unchanged lastmod 0))
+        unchanged))))
+
+(defun vc-default-workfile-unchanged-p (file)
+  "Default check whether FILE is unchanged: diff against master version."
+  (zerop (vc-call diff file (vc-workfile-version file))))
+
 (defun vc-recompute-state (file)
   "Force a recomputation of the version control state of FILE.
 The state is computed using the exact, and possibly expensive
