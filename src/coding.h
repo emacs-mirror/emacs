@@ -157,6 +157,12 @@ struct iso2022_spec
   /* A graphic register to which each charset should be designated.  */
   unsigned char requested_designation[MAX_CHARSET + 1];
 
+  /* Table of expected character sets for this coding system.  If the
+     Nth element is 0, the charset of ID N is not an expected
+     character set.  Such a character set is not encoded when
+     CODING_ISO_FLAG_SAFE is set.  */
+  unsigned char expected_charsets[MAX_CHARSET + 1];
+
   /* Set to 1 temporarily only when graphic register 2 or 3 is invoked
      by single-shift while encoding.  */
   int single_shifting;
@@ -174,6 +180,8 @@ struct iso2022_spec
   coding->spec.iso2022.initial_designation[reg]
 #define CODING_SPEC_ISO_REQUESTED_DESIGNATION(coding, charset) \
   coding->spec.iso2022.requested_designation[charset]
+#define CODING_SPEC_ISO_EXPECTED_CHARSETS(coding) \
+  coding->spec.iso2022.expected_charsets
 #define CODING_SPEC_ISO_SINGLE_SHIFTING(coding) \
   coding->spec.iso2022.single_shifting
 #define CODING_SPEC_ISO_BOL(coding) \
