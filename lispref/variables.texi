@@ -1733,7 +1733,7 @@ The argument @var{force} usually comes from the argument @var{find-file}
 given to @code{normal-mode}.
 @end defun
 
-  If a file local variable list could specify the a function that will
+  If a file local variable list could specify a function that will
 be called later, or an expression that will be executed later, simply
 visiting a file could take over your Emacs.  To prevent this, Emacs
 takes care not to allow local variable lists to set such variables.
