@@ -732,13 +732,13 @@ text, is Auto Fill mode.  When this mode is on, Emacs breaks the line
 in between words automatically whenever you insert text and make a
 line that is too wide.
 
-You can turn Auto Fill mode on by doing M-x auto-fill-mode<Return>.
+You can turn Auto Fill mode on by doing M-x auto fill mode<Return>.
 When the mode is on, you can turn it off by doing M-x
-auto-fill-mode<Return>.  If the mode is off, this command turns it on,
+auto fill mode<Return>.  If the mode is off, this command turns it on,
 and if the mode is on, this command turns it off.  We say that the
 command "toggles the mode".
 
->> Type M-x auto-fill-mode<Return> now.  Then insert a line of "asdf "
+>> Type M-x auto fill mode<Return> now.  Then insert a line of "asdf "
    over again until you see it divide into two lines.  You must put in
    spaces between them because Auto Fill breaks lines only at spaces.
 
