@@ -14770,10 +14770,12 @@ x_term_init (display_name, xrm_option, resource_name)
 	argv[argc++] = "-xrm";
 	argv[argc++] = xrm_option;
       }
+    stop_polling ();
     dpy = XtOpenDisplay (Xt_app_con, XSTRING (display_name)->data,
 			 resource_name, EMACS_CLASS,
 			 emacs_options, XtNumber (emacs_options),
 			 &argc, argv);
+    start_polling ();
 
 #ifdef HAVE_X11XTR6
     /* I think this is to compensate for XtSetLanguageProc.  */
