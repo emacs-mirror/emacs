@@ -2720,6 +2720,9 @@ syms_of_keymap ()
 		      Fcons (Fmake_vector (make_number (0400), Qnil), Qnil));
   Fset (intern ("global-map"), global_map);
 
+  current_global_map = global_map;
+  staticpro (&current_global_map);
+
   meta_map = Fmake_keymap (Qnil);
   Fset (intern ("esc-map"), meta_map);
   Ffset (intern ("ESC-prefix"), meta_map);
@@ -2749,8 +2752,6 @@ don't alter it yourself.");
   DEFVAR_LISP ("minibuffer-local-must-match-map", &Vminibuffer_local_must_match_map,
     "Local keymap for minibuffer input with completion, for exact match.");
   Vminibuffer_local_must_match_map = Fmake_sparse_keymap (Qnil);
-
-  current_global_map = global_map;
 
   DEFVAR_LISP ("minor-mode-map-alist", &Vminor_mode_map_alist,
     "Alist of keymaps to use for minor modes.\n\
