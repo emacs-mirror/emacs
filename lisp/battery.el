@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1997, 1998 Free Software Foundation, Inc.
 
-;; Author: Ralph Schleicher <rs@purple.UL.BaWue.DE>
+;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
 ;; Keywords: hardware
 
 ;; This file is part of GNU Emacs.
