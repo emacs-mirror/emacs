@@ -415,13 +415,14 @@ fix_submap_inheritance (map, event, submap)
 
   map_parent = Fkeymap_parent (map);
   if (! NILP (map_parent))
-    parent_entry = access_keymap (map_parent, event, 0, 0, 0);
+    parent_entry =
+      get_keymap_1 (access_keymap (map_parent, event, 0, 0, 0), 0, 0);
   else
     parent_entry = Qnil;
 
   /* If MAP's parent has something other than a keymap,
      our own submap shadows it completely.  */
-  if (! KEYMAPP (parent_entry))
+  if (NILP (parent_entry))
     return;
 
   if (! EQ (parent_entry, submap))
