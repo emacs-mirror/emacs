@@ -513,6 +513,12 @@ case "${canonical}" in
     machine=symmetry opsys=bsd4-3
   ;;
 
+  ## Sequent Symmetry running ptx 4, which is a modified SVR4.
+  i[3456]86-sequent-ptx4* | i[3456]86-sequent-sysv4* )
+    machine=sequent-ptx opsys=ptx4
+    NON_GNU_CPP=/usr/lib/cpp
+  ;;
+
   ## Sequent Symmetry running DYNIX/ptx
   ## Use the old cpp rather than the newer ANSI one.
   i[3456]86-sequent-ptx* )
