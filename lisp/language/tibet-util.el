@@ -123,7 +123,7 @@ The returned string has no composition information."
 ;;;
 ;;; Here are examples of the words "bsgrubs" and "h'uM"
 ;;;
-;;;            $(7"7"G###C"U"7"G(B         $(7"H"A"U"_(B
+;;;            4$(7"70"714%qx!"U0"G###C"U14"70"714"G0"G1(B         4$(7"Hx!#Ax!"Ur'"_0"H"A"U"_1(B
 ;;;
 ;;;                             M
 ;;;             b s b s         h
