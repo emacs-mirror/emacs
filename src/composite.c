@@ -154,8 +154,6 @@ Lisp_Object composition_temp;
   (SINGLE_BYTE_CHAR_P (c) ? 1 : CHARSET_WIDTH (CHAR_CHARSET (c)))
 
 /* The following macros for hash table are copied from fns.c.  */
-/* Return the contents of vector V at index IDX.  */
-#define AREF(V, IDX)       XVECTOR (V)->contents[IDX]
 /* Value is the key part of entry IDX in hash table H.  */
 #define HASH_KEY(H, IDX)   AREF ((H)->key_and_value, 2 * (IDX))
 /* Value is the value part of entry IDX in hash table H.  */
