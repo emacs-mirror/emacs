@@ -227,13 +227,13 @@ ${archlibdir}: all
 	$(top_srcdir)/mkinstalldirs ${archlibdir}
 	if [ `(cd ${archlibdir} && /bin/pwd)` != `/bin/pwd` ]; then \
 	  for file in ${UTILITIES}; do \
-	    (cd ..; $(INSTALL_PROGRAM) lib-src/$$file ${archlibdir}/$$file) ; \
+	    $(INSTALL_PROGRAM) $$file ${archlibdir}/$$file ; \
 	  done ; \
         fi
         if [ `(cd ${archlibdir} && /bin/pwd)` \
              != `(cd ${srcdir} && /bin/pwd)` ]; then \
 	  for file in ${SCRIPTS}; do \
-	    (cd ..; $(INSTALL_PROGRAM) ${srcdir}/$$file ${archlibdir}/$$file); \
+	    $(INSTALL_PROGRAM) ${srcdir}/$$file ${archlibdir}/$$file; \
 	  done ; \
 	fi
 
@@ -243,10 +243,10 @@ install: ${archlibdir}
 	@echo
 	@echo "Installing utilities for users to run."
 	for file in ${INSTALLABLES} ; do \
-	  (cd ..; $(INSTALL_PROGRAM) lib-src/$${file} ${bindir}/$${file}) ; \
+	  $(INSTALL_PROGRAM) $${file} ${bindir}/$${file} ; \
 	done
 	for file in ${INSTALLABLE_SCRIPTS} ; do \
-	  (cd ..; $(INSTALL_PROGRAM) ${srcdir}/$${file} ${bindir}/$${file}) ; \
+	  $(INSTALL_PROGRAM) ${srcdir}/$${file} ${bindir}/$${file} ; \
 	done
 
 uninstall:
