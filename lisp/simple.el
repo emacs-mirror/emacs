@@ -769,7 +769,7 @@ Repeating \\[universal-argument] without digits or minus sign
     (if (= (length key) 1)
 	;; Make sure self-insert-command finds the proper character;
 	;; unread the character and let the command loop process it.
-	(setq unread-command-char (string-to-char key))
+	(setq unread-command-event (string-to-char key))
       ;; We can't push back a longer string, so we'll emulate the
       ;; command loop ourselves.
       (command-execute (key-binding key)))))
@@ -1406,7 +1406,9 @@ With argument 0, interchanges line point is in with line mark is in."
 
 (defconst comment-column 32
   "*Column to indent right-margin comments to.
-Setting this variable automatically makes it local to the current buffer.")
+Setting this variable automatically makes it local to the current buffer.
+Each mode establishes a different default value for this variable; you
+can the value for a particular mode using that mode's hook.")
 (make-variable-buffer-local 'comment-column)
 
 (defconst comment-start nil
