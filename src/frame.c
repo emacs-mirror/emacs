@@ -556,9 +556,10 @@ DEFUN ("frame-list", Fframe_list, Sframe_list,
 
 /* Return the next frame in the frame list after FRAME.
    If MINIBUF is nil, exclude minibuffer-only frames.
-   If MINIBUF is a window, include only frames using that window for
-   their minibuffer.
+   If MINIBUF is a window, include only its own frame
+   and any frame now using that window as the minibuffer.
    If MINIBUF is `visible', include all visible frames.
+   If MINIBUF is 0, include all visible and iconified frames.
    Otherwise, include all frames.  */
 
 Lisp_Object
@@ -604,9 +605,21 @@ next_frame (frame, minibuf)
 		if (FRAME_VISIBLE_P (XFRAME (f)))
 		  return f;
 	      }
+	    else if (XFASTINT (minibuf) == 0)
+	      {
+		FRAME_SAMPLE_VISIBILITY (XFRAME (f));
+		if (FRAME_VISIBLE_P (XFRAME (f))
+		    || FRAME_ICONIFIED_P (XFRAME (f)))
+		  return f;
+	      }
 	    else if (WINDOWP (minibuf))
 	      {
-		if (EQ (FRAME_MINIBUF_WINDOW (XFRAME (f)), minibuf))
+		if (EQ (FRAME_MINIBUF_WINDOW (XFRAME (f)), minibuf)
+		    /* Check that F either is, or has forwarded its focus to,
+		       MINIBUF's frame.  */
+		    && (EQ (WINDOW_FRAME (XWINDOW (minibuf)), f)
+			|| EQ (WINDOW_FRAME (XWINDOW (minibuf)),
+			       FRAME_FOCUS_FRAME (XFRAME (f)))))
 		  return f;
 	      }
 	    else
@@ -620,9 +633,10 @@ next_frame (frame, minibuf)
 
 /* Return the previous frame in the frame list before FRAME.
    If MINIBUF is nil, exclude minibuffer-only frames.
-   If MINIBUF is a window, include only frames using that window for
-   their minibuffer.
+   If MINIBUF is a window, include only its own frame
+   and any frame now using that window as the minibuffer.
    If MINIBUF is `visible', include all visible frames.
+   If MINIBUF is 0, include all visible and iconified frames.
    Otherwise, include all frames.  */
 
 Lisp_Object
@@ -658,13 +672,25 @@ prev_frame (frame, minibuf)
 	}
       else if (XTYPE (minibuf) == Lisp_Window)
 	{
-	  if (EQ (FRAME_MINIBUF_WINDOW (XFRAME (f)), minibuf))
+	  if (EQ (FRAME_MINIBUF_WINDOW (XFRAME (f)), minibuf)
+	      /* Check that F either is, or has forwarded its focus to,
+		 MINIBUF's frame.  */
+	      && (EQ (WINDOW_FRAME (XWINDOW (minibuf)), f)
+		  || EQ (WINDOW_FRAME (XWINDOW (minibuf)),
+			 FRAME_FOCUS_FRAME (XFRAME (f)))))
 	    prev = f;
 	}
       else if (EQ (minibuf, Qvisible))
 	{
 	  FRAME_SAMPLE_VISIBILITY (XFRAME (f));
 	  if (FRAME_VISIBLE_P (XFRAME (f)))
+	    prev = f;
+	}
+      else if (XFASTINT (f) == 0)
+	{
+	  FRAME_SAMPLE_VISIBILITY (XFRAME (f));
+	  if (FRAME_VISIBLE_P (XFRAME (f))
+	      || FRAME_ICONIFIED_P (XFRAME (f)))
 	    prev = f;
 	}
       else
@@ -689,9 +715,10 @@ DEFUN ("next-frame", Fnext_frame, Snext_frame, 0, 2, 0,
 By default, skip minibuffer-only frames.\n\
 If omitted, FRAME defaults to the selected frame.\n\
 If optional argument MINIFRAME is nil, exclude minibuffer-only frames.\n\
-If MINIFRAME is a window, include only frames using that window for their\n\
-minibuffer.\n\
+If MINIBUF is a window, include only its own frame\n\
+and any frame now using that window as the minibuffer.\n\
 If MINIFRAME is `visible', include all visible frames.\n\
+If MINIBUF is 0, include all visible and iconified frames.\n\
 Otherwise, include all frames.")
   (frame, miniframe)
      Lisp_Object frame, miniframe;
@@ -711,9 +738,10 @@ DEFUN ("previous-frame", Fprevious_frame, Sprevious_frame, 0, 2, 0,
 By default, skip minibuffer-only frames.\n\
 If omitted, FRAME defaults to the selected frame.\n\
 If optional argument MINIFRAME is nil, exclude minibuffer-only frames.\n\
-If MINIFRAME is a window, include only frames using that window for their\n\
-minibuffer.\n\
+If MINIBUF is a window, include only its own frame\n\
+and any frame now using that window as the minibuffer.\n\
 If MINIFRAME is `visible', include all visible frames.\n\
+If MINIBUF is 0, include all visible and iconified frames.\n\
 Otherwise, include all frames.")
   (frame, miniframe)
      Lisp_Object frame, miniframe;
