@@ -173,68 +173,88 @@ and selects that window."
 	(if (> (length buffers) buffers-menu-max-size)
 	    (setcdr (nthcdr buffers-menu-max-size buffers) nil)))
     (setq menu
-	  (list "Buffer Menu"
-		(cons "Select Buffer"
-		      (let ((tail buffers)
-			    (maxbuf 0)
-			    (maxlen 0)
-			    head)
-			(while tail
-			  (or (eq ?\ (aref (buffer-name (car tail)) 0))
-			      (setq maxbuf
-				    (max maxbuf
-					 (length (buffer-name (car tail))))))
-			  (setq tail (cdr tail)))
-			(setq tail buffers)
-			(while tail
-			  (let ((elt (car tail)))
-			    (if (not (string-match "^ "
-						   (buffer-name elt)))
-				(setq head (cons
-					    (cons
-					     (format
-					      (format "%%%ds  %%s%%s  %%s"
-						      maxbuf)
-					      (buffer-name elt)
-					      (if (buffer-modified-p elt) "*" " ")
-					      (save-excursion
-						(set-buffer elt)
-						(if buffer-read-only "%" " "))
-					      (or (buffer-file-name elt) ""))
-					     elt)
-					    head)))
-			    (and head (> (length (car (car head))) maxlen)
-				 (setq maxlen (length (car (car head))))))
-			  (setq tail (cdr tail)))
-			(nconc (reverse head)
-			       (list (cons (concat (make-string (max 0 (- (/ maxlen 2) 8)) ?\ )
-						   "List All Buffers")
-					   'list-buffers)))))))
+	  (cons "Select Buffer"
+		(let ((tail buffers)
+		      (maxbuf 0)
+		      (maxlen 0)
+		      head)
+		  (while tail
+		    (or (eq ?\ (aref (buffer-name (car tail)) 0))
+			(setq maxbuf
+			      (max maxbuf
+				   (length (buffer-name (car tail))))))
+		    (setq tail (cdr tail)))
+		  (setq tail buffers)
+		  (while tail
+		    (let ((elt (car tail)))
+		      (if (not (string-match "^ "
+					     (buffer-name elt)))
+			  (setq head (cons
+				      (cons
+				       (format
+					(format "%%%ds  %%s%%s  %%s"
+						maxbuf)
+					(buffer-name elt)
+					(if (buffer-modified-p elt)
+					    "*" " ")
+					(save-excursion
+					  (set-buffer elt)
+					  (if buffer-read-only "%" " "))
+					(or (buffer-file-name elt) ""))
+				       elt)
+				      head)))
+		      (and head (> (length (car (car head))) maxlen)
+			   (setq maxlen (length (car (car head))))))
+		    (setq tail (cdr tail)))
+		  (nconc (nreverse head)
+			 (list (cons
+				(concat (make-string (max (- (/ maxlen
+								2)
+							     8)
+							  0) ?\ )
+					"List All Buffers")
+				'list-buffers))))))
+    (setq menu (list menu))
 
+    (if (cdr (frame-list))
+	(setq menu
+	      (cons (cons "Select Frame"
+			  (mapcar (lambda (frame)
+				    (cons (cdr (assq 'name
+						     (frame-parameters frame)))
+					  frame))
+				  (frame-list)))
+		    menu)))
+    (setq menu (cons "Buffer and Frame Menu" menu))
 
     (let ((buf (x-popup-menu (if (listp event) event
 			       (cons '(0 0) (selected-frame)))
 			     menu))
 	  (window (and (listp event) (posn-window (event-start event)))))
-      (if (eq buf 'list-buffers)
-	  (list-buffers)
-	(if buf
-	    (if complex-buffers-menu-p
-		(let ((action (x-popup-menu (if (listp event) event
-					      (cons '(0 0) (selected-frame)))
-					    '("Buffer Action"
-					      (""
-					       ("Save Buffer" . save-buffer)
-					       ("Kill Buffer" . kill-buffer)
-					       ("Select Buffer" . switch-to-buffer))))))
-		  (if (eq action 'save-buffer)
-		      (save-excursion
-			(set-buffer buf)
-			(save-buffer))
-		    (funcall action buf)))
-	      (and (windowp window)
-		   (select-window window))
-	      (switch-to-buffer buf)))))))
+      (cond ((framep buf)
+	     (make-frame-visible buf)
+	     (raise-frame buf)
+	     (select-frame buf))
+	    ((eq buf 'list-buffers)
+	     (list-buffers))
+	    (buf
+	     (if complex-buffers-menu-p
+		 (let ((action (x-popup-menu
+				(if (listp event) event
+				  (cons '(0 0) (selected-frame)))
+				'("Buffer Action"
+				  (""
+				   ("Save Buffer" . save-buffer)
+				   ("Kill Buffer" . kill-buffer)
+				   ("Select Buffer" . switch-to-buffer))))))
+		   (if (eq action 'save-buffer)
+		       (save-excursion
+			 (set-buffer buf)
+			 (save-buffer))
+		     (funcall action buf)))
+	       (and (windowp window)
+		    (select-window window))
+	       (switch-to-buffer buf)))))))
 
 ;; this version is too slow
 ;;;(defun format-buffers-menu-line (buffer)
