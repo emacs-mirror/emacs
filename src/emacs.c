@@ -1363,7 +1363,7 @@ main (argc, argv, envp)
   init_ntproc ();	/* must precede init_editfns.  */
 #endif
 
-#ifdef MAC_OSX
+#ifdef HAVE_CARBON
   if (initialized)
     init_mac_osx_environment ();
 #endif
