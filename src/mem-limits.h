@@ -29,8 +29,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/resource.h>
 #define BSD4_2			/* Tell code below to use getrlimit.  */
 
-extern int __data_start;
-#define start_of_data()	&__data_start
+/* Old Linux startup code won't define __data_start.  */
+extern int __data_start; weak_symbol (__data_start)
+#define start_of_data()	(&__data_start ?: &etext)
 
 #else /* not _LIBC */
 
@@ -88,7 +89,7 @@ extern char etext;
 #endif
 #endif
 
-#else  /* not emacs */ 
+#else  /* not emacs */
 extern char etext;
 #define start_of_data() &etext
 #endif /* not emacs */
