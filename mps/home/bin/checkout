@@ -1,0 +1,16 @@
+#!/bin/sh
+# ==== ROBOT CHECKOUT SCRIPT ====
+#
+# $Id$
+#
+# This script is run in the MM Project Robot's home directory (~mm) as the
+# user `mm'.  It checks out the HOMEmm compound in order be sure that the
+# robot's files are up to date before running the main overnight build
+# script.
+#
+
+script="`basename $0`"
+
+cd $HOME &&
+hope checkout -compound HOMEmm -recursive -working-file abort &&
+crontab < $HOME/etc/crontab
