@@ -1,3 +1,10 @@
+2002-03-12  Francesco Potorti`  <pot@gnu.org>
+
+	* progmodes/etags.el (tag-exact-file-name-match-p)
+	(tag-file-name-match-p, tag-partial-file-name-match-p): Assume
+	that the header of a tags section has either a number or nothing
+	after the last comma.
+
 2002-03-11  Colin Walters  <walters@verbum.org>
 
 	* shell.el (toplevel): Revert previous change to use pcomplete.
@@ -87,10 +94,10 @@
 	(ibuffer-clear-summary-columns): New function.
 
 	* ibuf-ext.el (ibuffer-filter-format-alist): Add type and group.
-	
+
 2002-03-07  Gerd Moellmann  <gerd@gnu.org>
 
-	* progmodes/ebrowse.el (ebrowse-view/find-file-and-search-pattern): 
+	* progmodes/ebrowse.el (ebrowse-view/find-file-and-search-pattern):
 	Use the other-window instead of the other-frame functions when
 	the window is dedicated.
 
