@@ -85,7 +85,7 @@
 (defvar profile-time-list nil 
     "List of cumulative calls and time for each profiled function.")
 (defvar profile-init-list nil
-    "List of entry time for each function. \n\
+    "List of entry time for each function. 
 Both how many times invoked and real time of start.")
 (defvar profile-max-fun-name 0 "Max length of name of any function profiled.")
 (defvar profile-temp-result- nil "Should NOT be used anywhere else.")
@@ -97,7 +97,7 @@ Both how many times invoked and real time of start.")
 ;;;
 
 (defun profile-functions (&optional flist)
-  "Profile all the functions listed in `profile-functions-list'.\n\
+  "Profile all the functions listed in `profile-functions-list'.
 With argument FLIST, use the list FLIST instead."
   (interactive "P")
   (if (null flist) (setq flist profile-functions-list))
@@ -253,37 +253,47 @@ With argument FLIST, use the list FLIST instead."
     (fset fun (profile-fix-fun fun def))))
 
 (defun profile-fix-fun (fun def)
-  "Take function FUN and return it fixed for profiling.\n\
+  "Take function FUN and return it fixed for profiling.
 DEF is (symbol-function FUN)."
   (let (prefix first second third (count 2) inter suffix)
-    (if (< (length def) 3) nil		; nothing to see
+    (if (< (length def) 3)
+	nil		; nothing to see
       (setq first (car def) second (car (cdr def))
 	    third (car (nthcdr 2 def)))
       (setq prefix (list first second))
-      (if (and (stringp third) (< (length def) 3)) nil ; nothing to see
-	(if (not (stringp third))  (setq inter third) 
-	  (setq count 3			; suffix to start after doc string
-		prefix (nconc prefix (list third))
-		inter (car (nthcdr 3 def))) ; fourth sexp
-	  )
-	(if (not (and (listp inter) 
-		      (eq (car inter) 'interactive))) nil
-	  (setq prefix (nconc prefix (list inter)))
-	  (setq count (1+ count)))	; skip this sexp for suffix
-	(setq suffix (nthcdr count def))
-	(if (equal (car suffix) '(profile-get-time)) nil;; already set
-	  ;; prepare new function
-	  (nconc prefix
-		 (list '(profile-get-time)) ; read time
-		 (list (list 'profile-start-function 
-			     (list 'quote fun)))
-		 (list (list 'setq 'profile-temp-result- 
-			     (nconc (list 'progn) suffix)))
-		 (list '(profile-get-time)) ; read time
-		 (list (list 'profile-update-function 
-			     (list 'quote fun)))
-		 (list 'profile-temp-result-)
-		 ))))))
+      ;; Skip the doc string, if there is a string
+      ;; which serves only as a doc string,
+      ;; and put it in PREFIX.
+      (if (or (not (stringp third)) (not (nthcdr 3 def)))
+	  ;; Either no doc string, or it is also the function value.
+	  (setq inter third) 
+	;; Skip the doc string,
+	(setq count 3
+	      prefix (nconc prefix (list third))
+	      inter (car (nthcdr 3 def))))
+      ;; Check for an interactive spec.
+      ;; If found, put it inu  PREFIX and skip it.
+      (if (not (and (listp inter) 
+		    (eq (car inter) 'interactive)))
+	  nil
+	(setq prefix (nconc prefix (list inter)))
+	(setq count (1+ count)))	; skip this sexp for suffix
+      ;; Set SUFFIX to the function body forms.
+      (setq suffix (nthcdr count def))
+      (if (equal (car suffix) '(profile-get-time))
+	  nil
+	;; Prepare new function definition.
+	(nconc prefix
+	       (list '(profile-get-time)) ; read time
+	       (list (list 'profile-start-function 
+			   (list 'quote fun)))
+	       (list (list 'setq 'profile-temp-result- 
+			   (nconc (list 'progn) suffix)))
+	       (list '(profile-get-time)) ; read time
+	       (list (list 'profile-update-function 
+			   (list 'quote fun)))
+	       (list 'profile-temp-result-)
+	       )))))
 
 (defun profile-restore-fun (fun)
   "Restore profiled function FUN to its original state."
