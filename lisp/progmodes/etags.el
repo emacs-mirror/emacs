@@ -29,6 +29,7 @@
 *File name of tags table.
 To switch to a new tags table, setting this variable is sufficient.
 Use the `etags' program to make a tags table file.")
+;;;###autoload (put 'tags-file-name 'variable-interactive "fVisit tags table: ")
 
 ;;;###autoload
 (defvar tags-table-list nil
@@ -89,8 +90,7 @@ nil means it has not yet been computed; use `tags-table-files' to do so.")
 ;; Hooks for file formats.
 
 (defvar tags-table-format-hooks '(etags-recognize-tags-table
-				  recognize-empty-tags-table
-				  ctags-recognize-tags-table)
+				  recognize-empty-tags-table)
   "List of functions to be called in a tags table buffer to identify
 the type of tags table.  The functions are called in order, with no arguments,
 until one returns non-nil.  The function should make buffer-local bindings
@@ -164,7 +164,6 @@ file the tag was in."
 						       default-directory)
 				     t)
 		     current-prefix-arg))
-  (setq file (abbreviate-file-name (expand-file-name file)))
   (if (file-directory-p file)
       (setq file (expand-file-name "TAGS" file)))
   (if local
@@ -260,6 +259,13 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 		(revert-buffer t t)
 		(initialize-new-tags-table)))
 	  (set-buffer (find-file-noselect file))
+	  (or (string= file buffer-file-name)
+	      ;; find-file-noselect has changed the file name.
+	      ;; Propagate the change to tags-file-name and tags-table-list.
+	      (let ((tail (assoc file tags-table-list)))
+		(if tail
+		    (setcar tail buffer-file-name))
+		(setq tags-file-name buffer-file-name)))
 	  (initialize-new-tags-table))
 	
 	(if (and put-in-list
