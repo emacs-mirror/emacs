@@ -964,6 +964,7 @@ menubar_selection_callback (FRAME_PTR f, void * client_data)
 
   if (!f)
     return;
+  entry = Qnil;
   subprefix_stack = (Lisp_Object *) alloca (f->menu_bar_items_used * sizeof (Lisp_Object));
   vector = f->menu_bar_vector;
   prefix = Qnil;
@@ -1765,7 +1766,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
     {
       Lisp_Object prefix, entry;
 
-      prefix = Qnil;
+      prefix = entry = Qnil;
       i = 0;
       while (i < menu_items_used)
 	{
@@ -1833,7 +1834,7 @@ w32_dialog_show (f, keymaps, title, error)
   char dialog_name[6];
   int menu_item_selection;
 
-  widget_value *wv, *save_wv = 0, *first_wv = 0, *prev_wv = 0;
+  widget_value *wv, *first_wv = 0, *prev_wv = 0;
 
   /* Number of elements seen so far, before boundary.  */
   int left_count = 0;
@@ -2012,9 +2013,14 @@ static int
 name_is_separator (name)
      char *name;
 {
-  /* Check if name string consists of only dashes ('-') */
+  char *start = name;
+
+  /* Check if name string consists of only dashes ('-').  */
   while (*name == '-') name++;
-  return (*name == '\0');
+  /* Separators can also be of the form "--:TripleSuperMegaEtched"
+     or "--deep-shadow".  We don't implement them yet, se we just treat
+     them like normal separators.  */
+  return (*name == '\0' || start + 2 == name);
 }
 
 
