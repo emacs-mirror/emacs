@@ -149,7 +149,8 @@ arguments compiles from `load-path'."
 
 (defun finder-compile-keywords-make-dist ()
   "Regenerate `finder-inf.el' for the Emacs distribution."
-  (finder-compile-keywords default-directory))
+  (apply 'finder-compile-keywords command-line-args-left)
+  (kill-emacs))
 
 ;;; Now the retrieval code
 
