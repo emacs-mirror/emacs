@@ -93,6 +93,12 @@
 
 ;;; Code:
 
+(eval-when-compile 
+  (defvar displayed-month)
+  (defvar displayed-year)
+  (defvar calendar-month-name-array)
+  (defvar calendar-starred-day))
+
 (defun calendar-version ()
   (interactive)
   (message "Version 6, October 12, 1995"))
@@ -2021,11 +2027,37 @@ the inserted text.  Value is always t."
 
 (defvar calendar-mode-line-format
   (list
-   (substitute-command-keys "\\<calendar-mode-map>\\[scroll-calendar-left]")
+   (propertize (substitute-command-keys
+		"\\<calendar-mode-map>\\[scroll-calendar-left]")
+	       'help-echo "mouse-2: scroll left"
+	       'keymap (make-mode-line-mouse2-map #'scroll-calendar-left))
    "Calendar"
-   (substitute-command-keys "\\<calendar-mode-map>\\[calendar-goto-info-node] info/\\[calendar-other-month] other/\\[calendar-goto-today] today")
+   (concat
+    (propertize
+     (substitute-command-keys
+      "\\<calendar-mode-map>\\[calendar-goto-info-node] info")
+     'help-echo "mouse-2: read Info on Calendar"
+     'keymap (make-mode-line-mouse2-map #'calendar-goto-info-node))
+    "/"
+    (propertize
+     (substitute-command-keys
+     "\\<calendar-mode-map>\\[calendar-other-month] other")
+     'help-echo "mouse-2: choose another month"
+     'keymap (make-mode-line-mouse2-map (lambda ()
+					  (interactive)
+					  (call-interactively
+					   'calendar-other-month))))
+    "/"
+    (propertize
+     (substitute-command-keys
+     "\\<calendar-mode-map>\\[calendar-goto-today] today")
+     'help-echo "mouse-2: go to today's date"
+     'keymap (make-mode-line-mouse2-map #'calendar-goto-today)))
    '(calendar-date-string (calendar-current-date) t)
-   (substitute-command-keys "\\<calendar-mode-map>\\[scroll-calendar-right]"))
+   (propertize (substitute-command-keys
+		"\\<calendar-mode-map>\\[scroll-calendar-right]")
+	       'help-echo "mouse-2: scroll right"
+	       'keymap (make-mode-line-mouse2-map #'scroll-calendar-right)))
   "The mode line of the calendar buffer.")
 
 (defun calendar-goto-info-node ()
@@ -2102,9 +2134,9 @@ the STRINGS are just concatenated and the result truncated."
   "List of all calendar-related windows."
   (let ((calendar-buffers (calendar-buffer-list))
         list)
-    (walk-windows '(lambda (w)
-                     (if (memq (window-buffer w) calendar-buffers)
-                         (setq list (cons w list))))
+    (walk-windows (lambda (w)
+		    (if (memq (window-buffer w) calendar-buffers)
+			(setq list (cons w list))))
                   nil t)
     list))
 
@@ -2324,7 +2356,7 @@ If optional NODAY is t, does not ask for day, but just returns
 \(month year) "
   (let* ((year (calendar-read
                 "Year (>0): "
-                '(lambda (x) (> x 0))
+                (lambda (x) (> x 0))
                 (int-to-string (extract-calendar-year
                                 (calendar-current-date)))))
          (month-array calendar-month-name-array)
@@ -2342,7 +2374,7 @@ If optional NODAY is t, does not ask for day, but just returns
           (list month year))
       (list month
             (calendar-read (format "Day (1-%d): " last)
-                                   '(lambda (x) (and (< 0 x) (<= x last))))
+			   (lambda (x) (and (< 0 x) (<= x last))))
             year))))
 
 (defun calendar-interval (mon1 yr1 mon2 yr2)
@@ -2389,7 +2421,7 @@ If WIDTH is non-nil, return just the first WIDTH characters of the name."
     (if width
 	(let ((i 0) (result "") (pos 0))
 	  (while (< i width)
-	    (let ((chartext (char-to-string (sref string pos))))
+	    (let ((chartext (char-to-string (aref string pos))))
 	      (setq pos (+ pos (length chartext)))
 	      (setq result (concat result chartext)))
 	    (setq i (1+ i)))
