@@ -76,10 +76,10 @@ sub readvals {
  %keyvalues = ();
  %keyrelations = ();
 
- s/([^\/]);/\1;;/g;
+ s/([^\/]);/$1;;/g;
 
  foreach (split(/\s*;;\s*/)) {
-  s/\\(\\|;)/\1/g;
+  s/\\(\\|;)/$1/g;
 
   if (m/^\W*(\w+)\s*($relations)\s*(.+)\s*/) {
    $keyvalues{$1} = $3;
