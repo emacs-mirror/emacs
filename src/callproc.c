@@ -91,7 +91,9 @@ extern char **environ;
 #endif
 
 #ifdef HAVE_SETPGID
+#if !defined (USG) || defined (BSD_PGRPS)
 #define setpgrp setpgid
+#endif
 #endif
 
 #define max(a, b) ((a) > (b) ? (a) : (b))

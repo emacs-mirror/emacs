@@ -65,7 +65,9 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #ifdef HAVE_SETPGID
+#if !defined (USG) || defined (BSD_PGRPS)
 #define setpgrp setpgid
+#endif
 #endif
 
 extern void malloc_warning ();

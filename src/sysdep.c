@@ -76,7 +76,9 @@ extern int h_errno;
 #endif
 
 #ifdef HAVE_SETPGID
+#if !defined (USG) || defined (BSD_PGRPS)
 #define setpgrp setpgid
+#endif
 #endif
 
 /* Get SI_SRPC_DOMAIN, if it is available.  */
