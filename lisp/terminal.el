@@ -168,26 +168,39 @@ performance.")
 (defun te-escape ()
   (interactive)
   (let (s 
-	(local (current-local-map))
-	(global (current-global-map)))
+	(local ((defun te-escape ()
+  (interactive)
+  (let (s 
+        (local (current-local-map))
+        (global (current-global-map)))
     (unwind-protect
-	(progn
-	  (use-global-map terminal-escape-map)
-	  (use-local-map terminal-escape-map)
-	  (setq s (read-key-sequence
-		    (if current-prefix-arg
-			(format "Emacs Terminal escape> %d "
-				(prefix-numeric-value current-prefix-arg))
-		        "Emacs Terminal escape> "))))
+        (progn
+          (use-global-map terminal-escape-map)
+          (use-local-map terminal-escape-map)
+          (setq s (read-key-sequence
+                    (if current-prefix-arg
+                        (format "Emacs Terminal escape> %d "
+                                (prefix-numeric-value current-prefix-arg))
+                        "Emacs Terminal escape> "))))
       (use-global-map global)
       (use-local-map local))
+
     (message "")
-    (cond ((string= s (make-string 1 terminal-escape-char))
-	   (setq last-command-char terminal-escape-char)
-	   (let ((terminal-escape-char -259))
-	     (te-pass-through)))
-	  ((setq s (lookup-key terminal-escape-map s))
-	   (call-interactively s)))))
+
+    (cond 
+     ;;  Certain keys give vector notation, like [escape] when
+     ;;  you hit esc key...
+     ((and (stringp s)
+	   (string= s (make-string 1 terminal-escape-char)))
+      (setq last-command-char terminal-escape-char)
+      (let ((terminal-escape-char -259))
+	(te-pass-through)))
+
+     ((setq s (lookup-key terminal-escape-map s))
+      (call-interactively s)))
+
+    ))
+
 
 (defun te-escape-help ()
   "Provide help on commands available after terminal-escape-char is typed."
