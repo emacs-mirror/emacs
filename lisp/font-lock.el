@@ -720,7 +720,8 @@ buffer local value for `font-lock-defaults', via its mode hook."
 	      ((or (null max-size) (> max-size (buffer-size)))
 	       (font-lock-fontify-buffer))
 	      (font-lock-verbose
-	       (message "Fontifying %s...buffer too big" (buffer-name))))))
+	       (message "Fontifying %s...buffer size greater than font-lock-maximum-size"
+			(buffer-name))))))
     ;; Turn off Font Lock mode.
     (unless on-p
       (remove-hook 'after-change-functions 'font-lock-after-change-function t)
