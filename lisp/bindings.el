@@ -292,7 +292,7 @@ Call `unbury-buffer' in this window."
     (unbury-buffer)))
 
 (defun mode-line-bury-buffer (event) "\
-Like bury-buffer, but temporarily select EVENT's window."
+Like `bury-buffer', but temporarily select EVENT's window."
   (interactive "e")
   (save-selected-window
     (select-window (posn-window (event-start event)))
