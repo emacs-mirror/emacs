@@ -3415,7 +3415,7 @@ get_input_pending (addr)
   *addr = !NILP (Vquit_flag) || readable_events ();
 }
 
-/* Interface to read_avail_input, blocking SIGIO if necessary.  */
+/* Interface to read_avail_input, blocking SIGIO or SIGALRM if necessary.  */
 
 int
 gobble_input (expected)
@@ -3427,6 +3427,16 @@ gobble_input (expected)
     {
       SIGMASKTYPE mask;
       mask = sigblockx (SIGIO);
+      read_avail_input (expected);
+      sigsetmask (mask);
+    }
+  else
+#endif
+#ifdef POLL_FOR_INPUT
+  if (read_socket_hook && !interrupt_input && poll_suppress_count == 0)
+    {
+      SIGMASKTYPE mask;
+      mask = sigblockx (SIGALRM);
       read_avail_input (expected);
       sigsetmask (mask);
     }
