@@ -4975,7 +4975,8 @@ make_lispy_event (event)
 	  return Qnil;
 	pixel_to_glyph_coords (f, XINT (event->x), XINT (event->y),
 			       &column, &row, NULL, 1);
-	window = window_from_coordinates (f, column, row, &part, 0);
+	window = window_from_coordinates (f, XINT (event->x),
+                                          XINT (event->y), &part, 0);
 
 	if (!WINDOWP (window))
 	  {
@@ -5033,7 +5034,6 @@ make_lispy_event (event)
 	Lisp_Object window;
 	Lisp_Object posn;
 	Lisp_Object files;
-	int row, column;
 
 	/* The frame_or_window field should be a cons of the frame in
 	   which the event occurred and a list of the filenames
@@ -5048,9 +5048,9 @@ make_lispy_event (event)
 	   have been deleted.  */
 	if (! FRAME_LIVE_P (f))
 	  return Qnil;
-	pixel_to_glyph_coords (f, XINT (event->x), XINT (event->y),
-			       &column, &row, NULL, 1);
-	window = window_from_coordinates (f, column, row, &part, 0);
+
+	window = window_from_coordinates (f, XINT (event->x),
+                                          XINT (event->y), &part, 0);
 
 	if (!WINDOWP (window))
 	  {
