@@ -193,6 +193,16 @@ and that its contents match what the master file says.")
 (if (not (boundp 'file-regular-p))
     (fset 'file-regular-p 'file-regular-p-18))
 
+;;; functions that operate on RCS revision numbers
+
+(defun vc-trunk-p (rev)
+  ;; return t if REV is a revision on the trunk
+  (not (eq nil (string-match "\\`[0-9]+\\.[0-9]+\\'" rev))))
+
+(defun vc-branch-part (rev)
+  ;; return the branch part of a revision number REV
+  (substring rev 0 (string-match "\\.[0-9]+\\'" rev)))
+
 ;; File property caching
 
 (defun vc-clear-context ()
@@ -219,17 +229,43 @@ and that its contents match what the master file says.")
      (progn
        (vc-file-setprop file 'vc-cvs-status nil))))
 
-;;; functions that operate on RCS revision numbers
-
-(defun vc-trunk-p (rev)
-  ;; return t if REV is a revision on the trunk
-  (not (eq nil (string-match "\\`[0-9]+\\.[0-9]+\\'" rev))))
-
-(defun vc-branch-part (rev)
-  ;; return the branch part of a revision number REV
-  (substring rev 0 (string-match "\\.[0-9]+\\'" rev)))
+(defun vc-head-version (file)
+  ;; Return the RCS head version of FILE 
+  (cond ((vc-file-getprop file 'vc-head-version))
+	(t (vc-fetch-master-properties file)
+	   (vc-file-getprop file 'vc-head-version))))
 
 ;; Random helper functions
+
+(defun vc-latest-on-branch-p (file)
+  ;; return t iff the current workfile version of FILE is
+  ;; the latest on its branch.
+  (vc-backend-dispatch file
+     ;; SCCS
+     (string= (vc-workfile-version file) (vc-latest-version file)) 
+     ;; RCS
+     (let ((workfile-version (vc-workfile-version file)) tip-version)
+       (if (vc-trunk-p workfile-version) 
+	   (progn 
+	     ;; Re-fetch the head version number.  This is to make
+             ;; sure that no-one has checked in a new version behind
+	     ;; our back.
+	     (vc-fetch-master-properties file)
+	     (string= (vc-file-getprop file 'vc-head-version)
+		      workfile-version))
+	 ;; If we are not on the trunk, we need to examine the
+	 ;; whole current branch.  (vc-top-version is not what we need.)
+	 (save-excursion
+	   (set-buffer (get-buffer-create "*vc-info*"))
+	   (vc-insert-file (vc-name file) "^desc")
+	   (setq tip-version (car (vc-parse-buffer (list (list 
+             (concat "^\\(" (regexp-quote (vc-branch-part workfile-version))
+		     "\\.[0-9]+\\)\ndate[ \t]+\\([0-9.]+\\);") 1 2)))))
+	   (if (get-buffer "*vc-info*") 
+	       (kill-buffer (get-buffer "*vc-info*")))
+	   (string= tip-version workfile-version))))
+     ;; CVS
+     (error "vc-latest-on-branch-p is not defined for CVS files")))
 
 (defun vc-registration-error (file)
   (if file
@@ -322,6 +358,7 @@ to an optional list of FLAGS."
 ;;; Save a bit of the text around POSN in the current buffer, to help
 ;;; us find the corresponding position again later.  This works even
 ;;; if all markers are destroyed or corrupted.
+;;; A lot of this was shamelessly lifted from Sebastian Kremer's rcs.el mode.
 (defun vc-position-context (posn)
   (list posn
 	(buffer-size)
@@ -348,13 +385,9 @@ to an optional list of FLAGS."
 	      ;; to beginning of OSTRING
 	      (- (point) (length context-string))))))))
 
-(defun vc-revert-buffer1 (&optional arg no-confirm)
-  ;; Most of this was shamelessly lifted from Sebastian Kremer's rcs.el mode.
-  ;; Revert buffer, try to keep point and mark where user expects them in spite
-  ;; of changes because of expanded version-control key words.
-  ;; This is quite important since otherwise typeahead won't work as expected.
-  (interactive "P")
-  (widen)
+(defun vc-buffer-context ()
+  ;; Return a list '(point-context mark-context reparse); from which
+  ;; vc-restore-buffer-context can later restore the context.
   (let ((point-context (vc-position-context (point)))
 	;; Use mark-marker to avoid confusion in transient-mark-mode.
 	(mark-context  (if (eq (marker-buffer (mark-marker)) (current-buffer))
@@ -385,9 +418,14 @@ to an optional list of FLAGS."
 					(setq errors (cdr errors)))
 				      (if buffer-error-marked-p buffer))))
 				  (buffer-list)))))))
+    (list point-context mark-context reparse)))
 
-    (revert-buffer arg no-confirm)
-
+(defun vc-restore-buffer-context (context)
+  ;; Restore point/mark, and reparse any affected compilation buffers.
+  ;; CONTEXT is that which vc-buffer-context returns.
+  (let ((point-context (nth 0 context))
+	(mark-context (nth 1 context))
+	(reparse (nth 2 context)))
     ;; Reparse affected compilation buffers.
     (while reparse
       (if (car reparse)
@@ -413,6 +451,16 @@ to an optional list of FLAGS."
     (if mark-context
 	(let ((new-mark (vc-find-position-by-context mark-context)))
 	  (if new-mark (set-mark new-mark))))))
+
+(defun vc-revert-buffer1 (&optional arg no-confirm)
+  ;; Revert buffer, try to keep point and mark where user expects them in spite
+  ;; of changes because of expanded version-control key words.
+  ;; This is quite important since otherwise typeahead won't work as expected.
+  (interactive "P")
+  (widen)
+  (let ((context (vc-buffer-context)))
+    (revert-buffer arg no-confirm)
+    (vc-restore-buffer-context context)))
 
 
 (defun vc-buffer-sync (&optional not-urgent)
@@ -1089,6 +1137,16 @@ the variable `vc-header-alist'."
 	      )
 	    )))))
 
+(defun vc-clear-headers ()
+  ;; Clear all version headers in the current buffer, i.e. reset them 
+  ;; to the nonexpanded form.  Only implemented for RCS, yet.
+  ;; Don't lose point and mark during this.
+  (let ((context (vc-buffer-context)))
+    (goto-char (point-min))
+    (while (re-search-forward "\\$\\([A-Za-z]+\\): [^\\$]+\\$" nil t)
+      (replace-match "$\\1$"))
+    (vc-restore-buffer-context context)))
+
 ;; The VC directory submode.  Coopt Dired for this.
 ;; All VC commands get mapped into logical equivalents.
 
@@ -1397,21 +1455,31 @@ A prefix argument means do not revert the buffer afterwards."
       (find-file-other-window (dired-get-filename)))
   (while vc-parent-buffer
     (pop-to-buffer vc-parent-buffer))
-  (if (eq (vc-backend (buffer-file-name)) 'CVS)
-      (error "Unchecking files under CVS is dangerous and not supported in VC"))
-  (let* ((target (concat (vc-latest-version (buffer-file-name))))
-	(yours (concat (vc-your-latest-version (buffer-file-name))))
-	(prompt (if (string-equal yours target)
-		    "Remove your version %s from master? "
-		  "Version %s was not your change.  Remove it anyway? ")))
-    (if (null (yes-or-no-p (format prompt target)))
+  (cond 
+   ((eq (vc-backend (buffer-file-name)) 'CVS)
+    (error "Unchecking files under CVS is dangerous and not supported in VC"))
+   ((vc-locking-user (buffer-file-name))
+    (error "This version is locked.  Use vc-revert-buffer to discard changes."))
+   ((not (vc-latest-on-branch-p (buffer-file-name)))
+    (error "This is not the latest version.  VC cannot cancel it.")))
+  (let ((target (vc-workfile-version (buffer-file-name))))
+    (if (null (yes-or-no-p "Remove this version from master? "))
 	nil
+      (setq norevert (or norevert (not 
+           (yes-or-no-p "Revert buffer to most recent remaining version? "))))
       (vc-backend-uncheck (buffer-file-name) target)
-      (if (or norevert
-	      (not (yes-or-no-p "Revert buffer to most recent remaining version? ")))
-	  (vc-mode-line (buffer-file-name))
-	(vc-checkout (buffer-file-name) nil)))
-    ))
+      (if (not norevert)
+	  (vc-checkout (buffer-file-name) nil)
+	;; If norevert, lock the most recent remaining version, 
+        ;; and mark the buffer modified.
+	(if (eq (vc-backend (buffer-file-name)) 'RCS)
+	    (progn (setq buffer-read-only nil)
+		   (vc-clear-headers)))
+	(vc-backend-checkout (buffer-file-name) t (vc-branch-part target))
+	(set-visited-file-name (buffer-file-name))
+	(vc-mode-line (buffer-file-name)))
+      (message "Version %s has been removed from the master." target)
+      )))
 
 ;;;###autoload
 (defun vc-rename-file (old new)
@@ -1841,8 +1909,7 @@ From a program, any arguments are passed to the `rcs2log' script."
   )  
 
 (defun vc-backend-uncheck (file target)
-  ;; Undo the latest checkin.  Note: this code will have to get a lot
-  ;; smarter when we support multiple branches.
+  ;; Undo the latest checkin.
   (message "Removing last change from %s..." file)
   (vc-backend-dispatch file
    (vc-do-command nil 0 "rmdel" file 'MASTER (concat "-r" target))
