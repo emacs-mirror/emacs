@@ -3169,6 +3169,7 @@ etags_getcwd ()
 
     } while (buf[strlen (buf) - 1] != '\n');
 
+  buf[strlen (buf) - 1] = '\0';
   return buf;
 }
 #endif /* not MSDOS */
