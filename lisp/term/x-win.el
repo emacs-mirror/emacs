@@ -574,7 +574,7 @@ This returns ARGS with the arguments that have been processed removed."
 ;; Set x-selection-timeout, measured in milliseconds.
 (let ((res-selection-timeout
        (x-get-resource "selectionTimeout" "SelectionTimeout")))
-  (setq x-selection-timeout 5000)
+  (setq x-selection-timeout 20000)
   (if res-selection-timeout
       (setq x-selection-timeout (string-to-number res-selection-timeout))))
 
