@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.10) $
+/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.11) $
 test_lib.h
    various handy things for running tests, reporting errors &c
 */
@@ -118,9 +118,12 @@ int read_event(log_event*);
 
 size_t arena_committed_and_used(mps_arena_t);
 
+#ifdef MMQA_SYMBOL_mps_arena_t
+
 mps_res_t mmqa_arena_create(mps_arena_t *arena_p,
  mps_arena_class_t arena_class, size_t chunk_size, size_t limit_size);
 
+#endif
 
 /* time-based queue
    (use for killing objects at the right time)
