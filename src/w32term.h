@@ -110,14 +110,18 @@ struct w32_display_info
   /* The cursor to use for vertical scroll bars.  */
   Cursor vertical_scroll_bar_cursor;
 
-  /* color palette information */
+  /* color palette information.  */
   int has_palette;
   struct w32_palette_entry * color_list;
   unsigned num_colors;
   HPALETTE palette;
 
-  /* deferred action flags checked when starting frame update */
+  /* deferred action flags checked when starting frame update.  */
   int regen_palette;
+
+  /* Keystroke that has been faked by Emacs and will be ignored when
+     received; value is reset after key is received.  */
+  int faked_key;
 
   /* A table of all the fonts we have already loaded.  */
   struct font_info *font_table;
@@ -610,18 +614,21 @@ extern void w32_unload_font ();
 #endif /* MSH_MOUSEWHEEL */
 
 #define WM_EMACS_START                 (WM_USER + 1)
-#define WM_EMACS_KILL                  (WM_EMACS_START + 0x00)
-#define WM_EMACS_CREATEWINDOW          (WM_EMACS_START + 0x01)
-#define WM_EMACS_DONE                  (WM_EMACS_START + 0x02)
-#define WM_EMACS_CREATESCROLLBAR       (WM_EMACS_START + 0x03)
-#define WM_EMACS_SHOWWINDOW            (WM_EMACS_START + 0x04)
-#define WM_EMACS_SETWINDOWPOS          (WM_EMACS_START + 0x05)
-#define WM_EMACS_DESTROYWINDOW         (WM_EMACS_START + 0x06)
-#define WM_EMACS_TRACKPOPUPMENU        (WM_EMACS_START + 0x07)
-#define WM_EMACS_SETFOCUS              (WM_EMACS_START + 0x08)
-#define WM_EMACS_SETFOREGROUND         (WM_EMACS_START + 0x09)
-#define WM_EMACS_SETLOCALE             (WM_EMACS_START + 0x0a)
-#define WM_EMACS_END                   (WM_EMACS_START + 0x0b)
+#define WM_EMACS_KILL                  (WM_EMACS_START + 0)
+#define WM_EMACS_CREATEWINDOW          (WM_EMACS_START + 1)
+#define WM_EMACS_DONE                  (WM_EMACS_START + 2)
+#define WM_EMACS_CREATESCROLLBAR       (WM_EMACS_START + 3)
+#define WM_EMACS_SHOWWINDOW            (WM_EMACS_START + 4)
+#define WM_EMACS_SETWINDOWPOS          (WM_EMACS_START + 5)
+#define WM_EMACS_DESTROYWINDOW         (WM_EMACS_START + 6)
+#define WM_EMACS_TRACKPOPUPMENU        (WM_EMACS_START + 7)
+#define WM_EMACS_SETFOCUS              (WM_EMACS_START + 8)
+#define WM_EMACS_SETFOREGROUND         (WM_EMACS_START + 9)
+#define WM_EMACS_SETLOCALE             (WM_EMACS_START + 10)
+#define WM_EMACS_SETKEYBOARDLAYOUT     (WM_EMACS_START + 11)
+#define WM_EMACS_REGISTER_HOT_KEY      (WM_EMACS_START + 12)
+#define WM_EMACS_UNREGISTER_HOT_KEY    (WM_EMACS_START + 13)
+#define WM_EMACS_END                   (WM_EMACS_START + 14)
 
 #define WND_FONTWIDTH_INDEX    (0) 
 #define WND_LINEHEIGHT_INDEX   (4) 
@@ -699,3 +706,10 @@ extern BOOL parse_button ();
 #define VK_RWIN			0x5C
 #define VK_APPS			0x5D
 #endif
+
+/* Support for treating Windows and Apps keys as modifiers.  These
+   constants must not overlap with any of the dwControlKeyState flags in
+   KEY_EVENT_RECORD.  */
+#define LEFT_WIN_PRESSED       0x8000
+#define RIGHT_WIN_PRESSED      0x4000
+#define APPS_PRESSED           0x2000
