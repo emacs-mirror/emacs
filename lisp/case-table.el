@@ -35,17 +35,19 @@
   (let ((description (make-char-table 'case-table)))
     (map-char-table
      (function (lambda (key value)
-		 (aset
-		  description key
-		  (cond ((not (natnump value))
-			 "case-invariant")
-			((/= key (downcase key))
-			 (concat "uppercase, matches "
-				 (char-to-string (downcase key))))
-			((/= key (upcase key))
-			 (concat "lowercase, matches "
-				 (char-to-string (upcase key))))
-			(t "case-invariant")))))
+		 (if (consp key)
+		     (set-char-table-range description key "case-invariant")
+		   (aset
+		    description key
+		    (cond ((not (natnump value))
+			   "case-invariant")
+			  ((/= key (downcase key))
+			   (concat "uppercase, matches "
+				   (char-to-string (downcase key))))
+			  ((/= key (upcase key))
+			   (concat "lowercase, matches "
+				   (char-to-string (upcase key))))
+			  (t "case-invariant"))))))
      (current-case-table))
     (save-excursion
      (with-output-to-temp-buffer "*Help*"
