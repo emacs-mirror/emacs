@@ -1011,8 +1011,8 @@ x_real_positions (f, xptr, yptr)
       x_uncatch_errors (FRAME_X_DISPLAY (f), count);
     }
 
-  *xptr = win_x;
-  *yptr = win_y;
+  *xptr = win_x - f->output_data.x->border_width;
+  *yptr = win_y - f->output_data.x->border_width;
 }
 
 /* Insert a description of internally-recorded parameters of frame X
