@@ -1,5 +1,14 @@
 2003-06-05  Kenichi Handa  <handa@m17n.org>
 
+	* callproc.c (Fcall_process): Handle carryover correctly.
+
+	* coding.c (decode_coding_iso_2022): Fix handling of invalid
+	bytes.
+	(raw_text_coding_system): Check NILP (coding_system).
+	(coding_inherit_eol_type): Check NILP (coding_system) and
+	NILP (parent).
+	(consume_chars): Fix for the case of raw-text. 
+
 	* process.c (read_process_output): Handle carryover correctly.
 
 2003-06-02  Dave Love  <fx@gnu.org>

@@ -1,3 +1,9 @@
+2003-06-05  Kenichi Handa  <handa@m17n.org>
+
+	* font-lock.el
+	(font-lock-match-c-style-declaration-item-and-skip-to-next):
+	Check (match-end 2) before goto there.
+
 2003-05-30  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (ctext-non-standard-designations-alist):
