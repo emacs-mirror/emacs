@@ -687,6 +687,8 @@ void x_set_title P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_unsplittable P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_tool_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
 static void x_set_screen_gamma P_ ((struct frame *, Lisp_Object, Lisp_Object));
+static void x_edge_detection P_ ((struct frame *, struct image *, Lisp_Object,
+				  Lisp_Object));
 
 static struct x_frame_parm_table x_frame_parms[] =
 {
@@ -1956,11 +1958,18 @@ x_set_foreground_color (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  FRAME_FOREGROUND_PIXEL (f)
-    = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
+  struct w32_output *x = f->output_data.w32;
+  PIX_TYPE fg, old_fg;
+
+  fg = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
+  old_fg = FRAME_FOREGROUND_PIXEL (f);
+  FRAME_FOREGROUND_PIXEL (f) = fg;
 
   if (FRAME_W32_WINDOW (f) != 0)
     {
+      if (x->cursor_pixel == old_fg)
+	x->cursor_pixel = fg;
+
       update_face_from_frame_parameter (f, Qforeground_color, arg);
       if (FRAME_VISIBLE_P (f))
         redraw_frame (f);
@@ -2367,6 +2376,7 @@ x_set_font (f, arg, oldval)
   Lisp_Object result;
   Lisp_Object fontset_name;
   Lisp_Object frame;
+  int old_fontset = FRAME_FONTSET(f);
 
   CHECK_STRING (arg, 1);
 
@@ -2384,8 +2394,16 @@ x_set_font (f, arg, oldval)
     error ("The characters of the given font have varying widths");
   else if (STRINGP (result))
     {
-      if (!NILP (Fequal (result, oldval)))
+      if (STRINGP (fontset_name))
+	{
+	  /* Fontset names are built from ASCII font names, so the
+	     names may be equal despite there was a change.  */
+	  if (old_fontset == FRAME_FONTSET (f))
+	    return;
+	}
+      else if (!NILP (Fequal (result, oldval)))
         return;
+
       store_frame_param (f, Qfont, result);
       recompute_basic_faces (f);
     }
@@ -2602,6 +2620,9 @@ x_set_tool_bar_lines (f, value, oldval)
         release_frame_dc (f, hdc);
       }
       UNBLOCK_INPUT;
+
+      if (WINDOWP (f->tool_bar_window))
+	clear_glyph_matrix (XWINDOW (f->tool_bar_window)->current_matrix);
     }
 }
 
@@ -5355,6 +5376,35 @@ This function is an internal primitive--use `make-frame' instead.")
 
   f->output_data.w32->dwStyle = WS_OVERLAPPEDWINDOW;
   f->output_data.w32->parent_desc = FRAME_W32_DISPLAY_INFO (f)->root_window;
+
+  /* Add the tool-bar height to the initial frame height so that the
+     user gets a text display area of the size he specified with -g or
+     via .Xdefaults.  Later changes of the tool-bar height don't
+     change the frame size.  This is done so that users can create
+     tall Emacs frames without having to guess how tall the tool-bar
+     will get.  */
+  if (FRAME_TOOL_BAR_LINES (f))
+    {
+      int margin, relief, bar_height;
+      
+      relief = (tool_bar_button_relief > 0
+		? tool_bar_button_relief
+		: DEFAULT_TOOL_BAR_BUTTON_RELIEF);
+
+      if (INTEGERP (Vtool_bar_button_margin)
+	  && XINT (Vtool_bar_button_margin) > 0)
+	margin = XFASTINT (Vtool_bar_button_margin);
+      else if (CONSP (Vtool_bar_button_margin)
+	       && INTEGERP (XCDR (Vtool_bar_button_margin))
+	       && XINT (XCDR (Vtool_bar_button_margin)) > 0)
+	margin = XFASTINT (XCDR (Vtool_bar_button_margin));
+      else
+	margin = 0;
+	  
+      bar_height = DEFAULT_TOOL_BAR_IMAGE_HEIGHT + 2 * margin + 2 * relief;
+      f->height += (bar_height + CANON_Y_UNIT (f) - 1) / CANON_Y_UNIT (f);
+    }
+
   window_prompting = x_figure_window_size (f, parms);
 
   if (window_prompting & XNegative)
@@ -5405,34 +5455,6 @@ This function is an internal primitive--use `make-frame' instead.")
      f->height.  */
   width = f->width;
   height = f->height;
-
-  /* Add the tool-bar height to the initial frame height so that the
-     user gets a text display area of the size he specified with -g or
-     via .Xdefaults.  Later changes of the tool-bar height don't
-     change the frame size.  This is done so that users can create
-     tall Emacs frames without having to guess how tall the tool-bar
-     will get.  */
-  if (FRAME_TOOL_BAR_LINES (f))
-    {
-      int margin, relief, bar_height;
-      
-      relief = (tool_bar_button_relief > 0
-		? tool_bar_button_relief
-		: DEFAULT_TOOL_BAR_BUTTON_RELIEF);
-
-      if (INTEGERP (Vtool_bar_button_margin)
-	  && XINT (Vtool_bar_button_margin) > 0)
-	margin = XFASTINT (Vtool_bar_button_margin);
-      else if (CONSP (Vtool_bar_button_margin)
-	       && INTEGERP (XCDR (Vtool_bar_button_margin))
-	       && XINT (XCDR (Vtool_bar_button_margin)) > 0)
-	margin = XFASTINT (XCDR (Vtool_bar_button_margin));
-      else
-	margin = 0;
-	  
-      bar_height = DEFAULT_TOOL_BAR_IMAGE_HEIGHT + 2 * margin + 2 * relief;
-      height += (bar_height + CANON_Y_UNIT (f) - 1) / CANON_Y_UNIT (f);
-    }
 
   f->height = 0;
   SET_FRAME_WIDTH (f, 0);
@@ -7680,11 +7702,11 @@ extern Lisp_Object QCwidth, QCheight, QCforeground, QCbackground, QCfile;
 extern Lisp_Object QCdata;
 Lisp_Object QCtype, QCascent, QCmargin, QCrelief;
 Lisp_Object QCconversion, QCcolor_symbols, QCheuristic_mask;
-Lisp_Object QCindex;
+Lisp_Object QCindex, QCmatrix, QCcolor_adjustment, QCmask;
 
 /* Other symbols.  */
 
-Lisp_Object Qlaplace;
+Lisp_Object Qlaplace, Qemboss, Qedge_detection, Qheuristic;
 
 /* Time in seconds after which images should be removed from the cache
    if not displayed.  */
@@ -7697,6 +7719,7 @@ static void define_image_type P_ ((struct image_type *type));
 static struct image_type *lookup_image_type P_ ((Lisp_Object symbol));
 static void image_error P_ ((char *format, Lisp_Object, Lisp_Object));
 static void x_laplace P_ ((struct frame *, struct image *));
+static void x_emboss P_ ((struct frame *, struct image *));
 static int x_build_heuristic_mask P_ ((struct frame *, struct image *,
 				       Lisp_Object));
 
@@ -7750,11 +7773,22 @@ valid_image_p (object)
   
   if (CONSP (object) && EQ (XCAR (object), Qimage))
     {
-      Lisp_Object symbol = Fplist_get (XCDR (object), QCtype);
-      struct image_type *type = lookup_image_type (symbol);
-      
-      if (type)
-	valid_p = type->valid_p (object);
+      Lisp_Object tem;
+
+      for (tem = XCDR (object); CONSP (tem); tem = XCDR (tem))
+	if (EQ (XCAR (tem), QCtype))
+	  {
+	    tem = XCDR (tem);
+	    if (CONSP (tem) && SYMBOLP (XCAR (tem)))
+	      {
+		struct image_type *type;
+		type = lookup_image_type (XCAR (tem));
+		if (type)
+		  valid_p = type->valid_p (object);
+	      }
+
+	    break;
+	  }
     }
 
   return valid_p;
@@ -7785,6 +7819,7 @@ enum image_value_type
 {
   IMAGE_DONT_CHECK_VALUE_TYPE,
   IMAGE_STRING_VALUE,
+  IMAGE_STRING_OR_NIL_VALUE,
   IMAGE_SYMBOL_VALUE,
   IMAGE_POSITIVE_INTEGER_VALUE,
   IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,
@@ -7879,6 +7914,11 @@ parse_image_spec (spec, keywords, nkeywords, type)
 	{
 	case IMAGE_STRING_VALUE:
 	  if (!STRINGP (value))
+	    return 0;
+	  break;
+
+	case IMAGE_STRING_OR_NIL_VALUE:
+	  if (!STRINGP (value) && !NILP (value))
 	    return 0;
 	  break;
 
@@ -8195,6 +8235,7 @@ x_alloc_image_color (f, img, color_name, dflt)
  ***********************************************************************/
 
 static void cache_image P_ ((struct frame *f, struct image *img));
+static void postprocess_image P_ ((struct frame *, struct image *));
 
 
 /* Return a new, initialized image cache that is allocated from the
@@ -8312,6 +8353,83 @@ FRAME t means clear the image caches of all frames.")
 }
 
 
+/* Compute masks and transform image IMG on frame F, as specified
+   by the image's specification,  */
+
+static void
+postprocess_image (f, img)
+     struct frame *f;
+     struct image *img;
+{
+#if 0  /* TODO: image support.  */
+  /* Manipulation of the image's mask.  */
+  if (img->pixmap)
+    {
+      Lisp_Object conversion, spec;
+      Lisp_Object mask;
+
+      spec = img->spec;
+      
+      /* `:heuristic-mask t'
+	 `:mask heuristic'
+	 means build a mask heuristically.
+	 `:heuristic-mask (R G B)'
+	 `:mask (heuristic (R G B))'
+	 means build a mask from color (R G B) in the
+	 image.
+	 `:mask nil'
+	 means remove a mask, if any.  */
+	      
+      mask = image_spec_value (spec, QCheuristic_mask, NULL);
+      if (!NILP (mask))
+	x_build_heuristic_mask (f, img, mask);
+      else
+	{
+	  int found_p;
+		    
+	  mask = image_spec_value (spec, QCmask, &found_p);
+		  
+	  if (EQ (mask, Qheuristic))
+	    x_build_heuristic_mask (f, img, Qt);
+	  else if (CONSP (mask)
+		   && EQ (XCAR (mask), Qheuristic))
+	    {
+	      if (CONSP (XCDR (mask)))
+		x_build_heuristic_mask (f, img, XCAR (XCDR (mask)));
+	      else
+		x_build_heuristic_mask (f, img, XCDR (mask));
+	    }
+	  else if (NILP (mask) && found_p && img->mask)
+	    {
+	      XFreePixmap (FRAME_X_DISPLAY (f), img->mask);
+	      img->mask = NULL;
+	    }
+	}
+ 
+	  
+      /* Should we apply an image transformation algorithm?  */
+      conversion = image_spec_value (spec, QCconversion, NULL);
+      if (EQ (conversion, Qdisabled))
+	x_disable_image (f, img);
+      else if (EQ (conversion, Qlaplace))
+	x_laplace (f, img);
+      else if (EQ (conversion, Qemboss))
+	x_emboss (f, img);
+      else if (CONSP (conversion)
+	       && EQ (XCAR (conversion), Qedge_detection))
+	{
+	  Lisp_Object tem;
+	  tem = XCDR (conversion);
+	  if (CONSP (tem))
+	    x_edge_detection (f, img,
+			      Fplist_get (tem, QCmatrix),
+			      Fplist_get (tem, QCcolor_adjustment));
+	}
+    }
+#endif
+}
+
+
 /* Return the id of image with Lisp specification SPEC on frame F.
    SPEC must be a valid Lisp image specification (see valid_image_p).  */
 
@@ -8345,6 +8463,8 @@ lookup_image (f, spec)
   /* If not found, create a new image and cache it.  */
   if (img == NULL)
     {
+      extern Lisp_Object Qpostscript;
+
       BLOCK_INPUT;
       img = make_image (spec, hash);
       cache_image (f, img);
@@ -8396,74 +8516,12 @@ lookup_image (f, spec)
 	      img->vmargin += abs (img->relief);
 	    }
 
-#if 0 /* TODO: image mask and algorithm.  */
-	  /* Manipulation of the image's mask.  */
-	  if (img->pixmap)
-	    {
-	      /* `:heuristic-mask t'
-		 `:mask heuristic'
-			means build a mask heuristically.
-		 `:heuristic-mask (R G B)'
-		 `:mask (heuristic (R G B))'
-			means build a mask from color (R G B) in the
-			image.
-		 `:mask nil'
-			means remove a mask, if any.  */
-	      
-	      Lisp_Object mask;
-
-	      mask = image_spec_value (spec, QCheuristic_mask, NULL);
-	      if (!NILP (mask))
-		x_build_heuristic_mask (f, img, mask);
-	      else
-		{
-		  int found_p;
-		    
-		  mask = image_spec_value (spec, QCmask, &found_p);
-		  
-		  if (EQ (mask, Qheuristic))
-		    x_build_heuristic_mask (f, img, Qt);
-		  else if (CONSP (mask)
-			   && EQ (XCAR (mask), Qheuristic))
-		    {
-		      if (CONSP (XCDR (mask)))
-			x_build_heuristic_mask (f, img, XCAR (XCDR (mask)));
-		      else
-			x_build_heuristic_mask (f, img, XCDR (mask));
-		    }
-		  else if (NILP (mask) && found_p && img->mask)
-		    {
-		      XFreePixmap (FRAME_X_DISPLAY (f), img->mask);
-		      img->mask = None;
-		    }
-    		}
-	    }
-	  
-	  /* Should we apply an image transformation algorithm?  */
-	  if (img->pixmap)
-	    {
-	      Lisp_Object conversion;
-
-	      algorithm = image_spec_value (spec, QCconversion, NULL);
-	      if (EQ (conversion, Qdisabled))
-		x_disable_image (f, img);
-	      else if (EQ (conversion, Qlaplace))
-		x_laplace (f, img);
-	      else if (EQ (conversion, Qemboss))
-		x_emboss (f, img);
-	      else if (CONSP (conversion)
-		       && EQ (XCAR (conversion), Qedge_detection))
-		{
-		  Lisp_Object tem;
-		  tem = XCDR (conversion);
-		  if (CONSP (tem))
-		    x_edge_detection (f, img,
-				      Fplist_get (tem, QCmatrix),
-				      Fplist_get (tem, QCcolor_adjustment));
-		}
-	    }
-#endif /* TODO.  */
+	  /* Do image transformations and compute masks, unless we
+	     don't have the image yet.  */
+	  if (!EQ (*img->type->type, Qpostscript))
+	    postprocess_image (f, img);
 	}
+
       UNBLOCK_INPUT;
       xassert (!interrupt_input_blocked);
     }
@@ -8638,10 +8696,12 @@ x_put_x_image (f, ximg, pixmap, width, height)
 
 
 /***********************************************************************
-			      Searching files
+			      File Handling
  ***********************************************************************/
 
 static Lisp_Object x_find_image_file P_ ((Lisp_Object));
+static char *slurp_file P_ ((char *, int *));
+
 
 /* Find image file FILE.  Look in data-directory, then
    x-bitmap-file-path.  Value is the full name of the file found, or
@@ -8669,6 +8729,42 @@ x_find_image_file (file)
 
   UNGCPRO;
   return file_found;
+}
+
+
+/* Read FILE into memory.  Value is a pointer to a buffer allocated
+   with xmalloc holding FILE's contents.  Value is null if an error
+   occurred.  *SIZE is set to the size of the file.  */
+
+static char *
+slurp_file (file, size)
+     char *file;
+     int *size;
+{
+  FILE *fp = NULL;
+  char *buf = NULL;
+  struct stat st;
+
+  if (stat (file, &st) == 0
+      && (fp = fopen (file, "r")) != NULL
+      && (buf = (char *) xmalloc (st.st_size),
+	  fread (buf, 1, st.st_size, fp) == st.st_size))
+    {
+      *size = st.st_size;
+      fclose (fp);
+    }
+  else
+    {
+      if (fp)
+	fclose (fp);
+      if (buf)
+	{
+	  xfree (buf);
+	  buf = NULL;
+	}
+    }
+  
+  return buf;
 }
 
 
@@ -8714,8 +8810,8 @@ static struct image_keyword xbm_format[XBM_LAST] =
   {":width",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":height",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":data",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-  {":foreground",	IMAGE_STRING_VALUE,			0},
-  {":background",	IMAGE_STRING_VALUE,			0},
+  {":foreground",	IMAGE_STRING_OR_NIL_VALUE,			0},
+  {":background",	IMAGE_STRING_OR_NIL_VALUE,			0},
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
@@ -8862,30 +8958,33 @@ xbm_image_p (object)
    scanning a number, store its value in *IVAL.  */
 
 static int
-xbm_scan (fp, sval, ival)
-     FILE *fp;
+xbm_scan (s, end, sval, ival)
+     char **s, *end;
      char *sval;
      int *ival;
 {
   int c;
-  
+
+ loop:
+
   /* Skip white space.  */
-  while ((c = fgetc (fp)) != EOF && isspace (c))
+  while (*s < end &&(c = *(*s)++, isspace (c)))
     ;
 
-  if (c == EOF)
+  if (*s >= end)
     c = 0;
   else if (isdigit (c))
     {
       int value = 0, digit;
       
-      if (c == '0')
+      if (c == '0' && *s < end)
 	{
-	  c = fgetc (fp);
+	  c = *(*s)++;
 	  if (c == 'x' || c == 'X')
 	    {
-	      while ((c = fgetc (fp)) != EOF)
+	      while (*s < end)
 		{
+		  c = *(*s)++;
 		  if (isdigit (c))
 		    digit = c - '0';
 		  else if (c >= 'a' && c <= 'f')
@@ -8900,34 +8999,46 @@ xbm_scan (fp, sval, ival)
 	  else if (isdigit (c))
 	    {
 	      value = c - '0';
-	      while ((c = fgetc (fp)) != EOF
-		     && isdigit (c))
+	      while (*s < end
+		     && (c = *(*s)++, isdigit (c)))
 		value = 8 * value + c - '0';
 	    }
 	}
       else
 	{
 	  value = c - '0';
-	  while ((c = fgetc (fp)) != EOF
-		 && isdigit (c))
+	  while (*s < end
+		 && (c = *(*s)++, isdigit (c)))
 	    value = 10 * value + c - '0';
 	}
 
-      if (c != EOF)
-	ungetc (c, fp);
+      if (*s < end)
+	*s = *s - 1;
       *ival = value;
       c = XBM_TK_NUMBER;
     }
   else if (isalpha (c) || c == '_')
     {
       *sval++ = c;
-      while ((c = fgetc (fp)) != EOF
-	     && (isalnum (c) || c == '_'))
+      while (*s < end
+	     && (c = *(*s)++, (isalnum (c) || c == '_')))
 	*sval++ = c;
       *sval = 0;
-      if (c != EOF)
-	ungetc (c, fp);
+      if (*s < end)
+	*s = *s - 1;
       c = XBM_TK_IDENT;
+    }
+  else if (c == '/' && **s == '*')
+    {
+      /* C-style comment.  */
+      ++*s;
+      while (**s && (**s != '*' || *(*s + 1) != '/'))
+	++*s;
+      if (**s)
+	{
+	  *s += 2;
+	  goto loop;
+	}
     }
 
   return c;
@@ -8935,18 +9046,19 @@ xbm_scan (fp, sval, ival)
 
 
 /* Replacement for XReadBitmapFileData which isn't available under old
-   X versions.  FILE is the name of the bitmap file to read.  Set
-   *WIDTH and *HEIGHT to the width and height of the image.  Return in
-   *DATA the bitmap data allocated with xmalloc.  Value is non-zero if
-   successful.  */
+   X versions.  CONTENTS is a pointer to a buffer to parse; END is the
+   buffer's end.  Set *WIDTH and *HEIGHT to the width and height of
+   the image.  Return in *DATA the bitmap data allocated with xmalloc.
+   Value is non-zero if successful.  DATA null means just test if
+   CONTENTS looks like an in-memory XBM file.  */
 
 static int
-xbm_read_bitmap_file_data (file, width, height, data)
-     char *file;
+xbm_read_bitmap_data (contents, end, width, height, data)
+     char *contents, *end;
      int *width, *height;
      unsigned char **data;
 {
-  FILE *fp;
+  char *s = contents;
   char buffer[BUFSIZ];
   int padding_p = 0;
   int v10 = 0;
@@ -8956,7 +9068,7 @@ xbm_read_bitmap_file_data (file, width, height, data)
   int LA1;
 
 #define match() \
-     LA1 = xbm_scan (fp, buffer, &value)
+     LA1 = xbm_scan (contents, end, buffer, &value)
 
 #define expect(TOKEN)		\
      if (LA1 != (TOKEN)) 	\
@@ -8970,13 +9082,10 @@ xbm_read_bitmap_file_data (file, width, height, data)
      else							\
        goto failure
 
-  fp = fopen (file, "r");
-  if (fp == NULL)
-    return 0;
-
   *width = *height = -1;
-  *data = NULL;
-  LA1 = xbm_scan (fp, buffer, &value);
+  if (data)
+    *data = NULL;
+  LA1 = xbm_scan (&s, end, buffer, &value);
 
   /* Parse defines for width, height and hot-spots.  */
   while (LA1 == '#')
@@ -8999,6 +9108,8 @@ xbm_read_bitmap_file_data (file, width, height, data)
 
   if (*width < 0 || *height < 0)
     goto failure;
+  else if (data == NULL)
+    goto success;
 
   /* Parse bits.  Must start with `static'.  */
   expect_ident ("static");
@@ -9068,13 +9179,12 @@ xbm_read_bitmap_file_data (file, width, height, data)
 	}
     }
 
-  fclose (fp);
+ success:
   return 1;
 
  failure:
-  
-  fclose (fp);
-  if (*data)
+
+  if (data && *data)
     {
       xfree (*data);
       *data = NULL;
@@ -9087,35 +9197,21 @@ xbm_read_bitmap_file_data (file, width, height, data)
 }
 
 
-/* Load XBM image IMG which will be displayed on frame F from file
-   SPECIFIED_FILE.  Value is non-zero if successful.  */
+/* Load XBM image IMG which will be displayed on frame F from buffer
+   CONTENTS.  END is the end of the buffer. Value is non-zero if
+   successful.  */
 
 static int
-xbm_load_image_from_file (f, img, specified_file)
+xbm_load_image (f, img, contents, end)
      struct frame *f;
      struct image *img;
-     Lisp_Object specified_file;
+     char *contents, *end;
 {
   int rc;
   unsigned char *data;
   int success_p = 0;
-  Lisp_Object file;
-  struct gcpro gcpro1;
   
-  xassert (STRINGP (specified_file));
-  file = Qnil;
-  GCPRO1 (file);
-
-  file = x_find_image_file (specified_file);
-  if (!STRINGP (file))
-    {
-      image_error ("Cannot find image file `%s'", specified_file, Qnil);
-      UNGCPRO;
-      return 0;
-    }
-	  
-  rc = xbm_read_bitmap_file_data (XSTRING (file)->data, &img->width,
-				  &img->height, &data);
+  rc = xbm_read_bitmap_data (contents, end, &img->width, &img->height, &data);
   if (rc)
     {
       int depth = one_w32_display_info.n_cbits;
@@ -9135,7 +9231,6 @@ xbm_load_image_from_file (f, img, specified_file)
 	background = x_alloc_image_color (f, img, value, background);
 
 #if 0 /* TODO : Port image display to W32 */
-      BLOCK_INPUT;
       img->pixmap
 	= XCreatePixmapFromBitmapData (FRAME_W32_DISPLAY (f),
 				       FRAME_W32_WINDOW (f),
@@ -9148,22 +9243,34 @@ xbm_load_image_from_file (f, img, specified_file)
       if (img->pixmap == 0)
 	{
 	  x_clear_image (f, img);
-	  image_error ("Unable to create X pixmap for `%s'", file, Qnil);
+	  image_error ("Unable to create X pixmap for `%s'", img->spec, Qnil);
 	}
       else
 	success_p = 1;
-      
-      UNBLOCK_INPUT;
 #endif
     }
   else
     image_error ("Error loading XBM image `%s'", img->spec, Qnil);
 
-  UNGCPRO;
   return success_p;
 }
 
 
+/* Value is non-zero if DATA looks like an in-memory XBM file.  */
+
+static int
+xbm_file_p (data)
+     Lisp_Object data;
+{
+  int w, h;
+  return (STRINGP (data)
+	  && xbm_read_bitmap_data (XSTRING (data)->data,
+				   (XSTRING (data)->data
+				    + STRING_BYTES (XSTRING (data))),
+				   &w, &h, NULL));
+}
+
+    
 /* Fill image IMG which is used on frame F with pixmap data.  Value is
    non-zero if successful.  */
 
@@ -9180,7 +9287,32 @@ xbm_load (f, img)
   /* If IMG->spec specifies a file name, create a non-file spec from it.  */
   file_name = image_spec_value (img->spec, QCfile, NULL);
   if (STRINGP (file_name))
-    success_p = xbm_load_image_from_file (f, img, file_name);
+    {
+      Lisp_Object file;
+      char *contents;
+      int size;
+      struct gcpro gcpro1;
+
+      file = x_find_image_file (file_name);
+      GCPRO1 (file);
+      if (!STRINGP (file))
+	{
+	  image_error ("Cannot find image file `%s'", file_name, Qnil);
+	  UNGCPRO;
+	  return 0;
+	}
+
+      contents = slurp_file (XSTRING (file)->data, &size);
+      if (contents == NULL)
+	{
+	  image_error ("Error loading XBM image `%s'", img->spec, Qnil);
+	  UNGCPRO;
+	  return 0;
+	}
+
+      success_p = xbm_load_image (f, img, contents, contents + size);
+      UNGCPRO;
+    }
   else
     {
       struct image_keyword fmt[XBM_LAST];
@@ -9190,6 +9322,11 @@ xbm_load (f, img)
       unsigned long background = FRAME_BACKGROUND_PIXEL (f);
       char *bits;
       int parsed_p;
+      int in_memory_file_p = 0;
+
+      /* See if data looks like an in-memory XBM file.  */
+      data = image_spec_value (img->spec, QCdata, NULL);
+      in_memory_file_p = xbm_file_p (data);
 
       /* Parse the list specification.  */
       bcopy (xbm_format, fmt, sizeof fmt);
@@ -9197,68 +9334,68 @@ xbm_load (f, img)
       xassert (parsed_p);
 
       /* Get specified width, and height.  */
-      img->width = XFASTINT (fmt[XBM_WIDTH].value);
-      img->height = XFASTINT (fmt[XBM_HEIGHT].value);
-      xassert (img->width > 0 && img->height > 0);
-
-      BLOCK_INPUT;
-      
-      if (fmt[XBM_ASCENT].count)
-	img->ascent = XFASTINT (fmt[XBM_ASCENT].value);
-
+      if (!in_memory_file_p)
+	{
+	  img->width = XFASTINT (fmt[XBM_WIDTH].value);
+	  img->height = XFASTINT (fmt[XBM_HEIGHT].value);
+	  xassert (img->width > 0 && img->height > 0);
+	}
       /* Get foreground and background colors, maybe allocate colors.  */
-      if (fmt[XBM_FOREGROUND].count)
+      if (fmt[XBM_FOREGROUND].count
+	  && STRINGP (fmt[XBM_FOREGROUND].value))
 	foreground = x_alloc_image_color (f, img, fmt[XBM_FOREGROUND].value,
 					  foreground);
-      if (fmt[XBM_BACKGROUND].count)
+      if (fmt[XBM_BACKGROUND].count
+	  && STRINGP (fmt[XBM_BACKGROUND].value))
 	background = x_alloc_image_color (f, img, fmt[XBM_BACKGROUND].value,
 					  background);
 
-      /* Set bits to the bitmap image data.  */
-      data = fmt[XBM_DATA].value;
-      if (VECTORP (data))
+      if (in_memory_file_p)
+	success_p = xbm_load_image (f, img, XSTRING (data)->data,
+				    (XSTRING (data)->data
+				     + STRING_BYTES (XSTRING (data))));
+      else
 	{
-	  int i;
-	  char *p;
-	  int nbytes = (img->width + BITS_PER_CHAR - 1) / BITS_PER_CHAR;
-	  
-	  p = bits = (char *) alloca (nbytes * img->height);
-	  for (i = 0; i < img->height; ++i, p += nbytes)
+	  if (VECTORP (data))
 	    {
-	      Lisp_Object line = XVECTOR (data)->contents[i];
-	      if (STRINGP (line))
-		bcopy (XSTRING (line)->data, p, nbytes);
-	      else
-		bcopy (XBOOL_VECTOR (line)->data, p, nbytes);
+	      int i;
+	      char *p;
+	      int nbytes = (img->width + BITS_PER_CHAR - 1) / BITS_PER_CHAR;
+	  
+	      p = bits = (char *) alloca (nbytes * img->height);
+	      for (i = 0; i < img->height; ++i, p += nbytes)
+		{
+		  Lisp_Object line = XVECTOR (data)->contents[i];
+		  if (STRINGP (line))
+		    bcopy (XSTRING (line)->data, p, nbytes);
+		  else
+		    bcopy (XBOOL_VECTOR (line)->data, p, nbytes);
+		}
+	    }
+	  else if (STRINGP (data))
+	    bits = XSTRING (data)->data;
+	  else
+	    bits = XBOOL_VECTOR (data)->data;
+#ifdef TODO /* image support.  */
+	  /* Create the pixmap.  */
+	  depth = DefaultDepthOfScreen (FRAME_X_SCREEN (f));
+	  img->pixmap
+	    = XCreatePixmapFromBitmapData (FRAME_X_DISPLAY (f),
+					   FRAME_X_WINDOW (f),
+					   bits,
+					   img->width, img->height,
+					   foreground, background,
+					   depth);
+#endif
+	  if (img->pixmap)
+	    success_p = 1;
+	  else
+	    {
+	      image_error ("Unable to create pixmap for XBM image `%s'",
+			   img->spec, Qnil);
+	      x_clear_image (f, img);
 	    }
 	}
-      else if (STRINGP (data))
-	bits = XSTRING (data)->data;
-      else
-	bits = XBOOL_VECTOR (data)->data;
-
-#if 0 /* TODO : W32 XPM code */
-      /* Create the pixmap.  */
-      depth = DefaultDepthOfScreen (FRAME_X_SCREEN (f));
-      img->pixmap
-	= XCreatePixmapFromBitmapData (FRAME_W32_DISPLAY (f),
-				       FRAME_W32_WINDOW (f),
-				       bits,
-				       img->width, img->height,
-				       foreground, background,
-				       depth);
-#endif /* TODO */
-
-      if (img->pixmap)
-	success_p = 1;
-      else
-	{
-	  image_error ("Unable to create pixmap for XBM image `%s'",
-                       img->spec, Qnil);
-	  x_clear_image (f, img);
-	}
-
-      UNBLOCK_INPUT;
     }
 
   return success_p;
@@ -9708,54 +9845,204 @@ colors_in_color_table (n)
 /***********************************************************************
 			      Algorithms
  ***********************************************************************/
+#if 0 /* TODO: image support. */
+static XColor *x_to_xcolors P_ ((struct frame *, struct image *, int));
+static void x_from_xcolors P_ ((struct frame *, struct image *, XColor *));
+static void x_detect_edges P_ ((struct frame *, struct image *, int[9], int));
 
-#if 0 /* TODO : W32 versions of low level algorithms */
-static void x_laplace_write_row P_ ((struct frame *, long *,
-				     int, XImage *, int));
-static void x_laplace_read_row P_ ((struct frame *, Colormap,
-				    XColor *, int, XImage *, int));
+/* Non-zero means draw a cross on images having `:conversion
+   disabled'.  */
+
+int cross_disabled_images;
+
+/* Edge detection matrices for different edge-detection
+   strategies.  */
+
+static int emboss_matrix[9] = {
+   /* x - 1	x	x + 1  */
+        2,     -1,  	  0,		/* y - 1 */
+       -1,      0,        1,		/* y     */
+        0,      1,       -2		/* y + 1 */
+};
+
+static int laplace_matrix[9] = {
+   /* x - 1	x	x + 1  */
+        1,      0,  	  0,		/* y - 1 */
+        0,      0,        0,		/* y     */
+        0,      0,       -1		/* y + 1 */
+};
+
+/* Value is the intensity of the color whose red/green/blue values
+   are R, G, and B.  */
+
+#define COLOR_INTENSITY(R, G, B) ((2 * (R) + 3 * (G) + (B)) / 6)
 
 
-/* Fill COLORS with RGB colors from row Y of image XIMG.  F is the
-   frame we operate on, CMAP is the color-map in effect, and WIDTH is
-   the width of one row in the image.  */
+/* On frame F, return an array of XColor structures describing image
+   IMG->pixmap.  Each XColor structure has its pixel color set.  RGB_P
+   non-zero means also fill the red/green/blue members of the XColor
+   structures.  Value is a pointer to the array of XColors structures,
+   allocated with xmalloc; it must be freed by the caller.  */
+
+static XColor *
+x_to_xcolors (f, img, rgb_p)
+     struct frame *f;
+     struct image *img;
+     int rgb_p;
+{
+  int x, y;
+  XColor *colors, *p;
+  XImage *ximg;
+
+  colors = (XColor *) xmalloc (img->width * img->height * sizeof *colors);
+
+  /* Get the X image IMG->pixmap.  */
+  ximg = XGetImage (FRAME_X_DISPLAY (f), img->pixmap,
+		    0, 0, img->width, img->height, ~0, ZPixmap);
+
+  /* Fill the `pixel' members of the XColor array.  I wished there
+     were an easy and portable way to circumvent XGetPixel.  */
+  p = colors;
+  for (y = 0; y < img->height; ++y)
+    {
+      XColor *row = p;
+      
+      for (x = 0; x < img->width; ++x, ++p)
+	p->pixel = XGetPixel (ximg, x, y);
+
+      if (rgb_p)
+	x_query_colors (f, row, img->width);
+    }
+
+  XDestroyImage (ximg);
+  return colors;
+}
+
+
+/* Create IMG->pixmap from an array COLORS of XColor structures, whose
+   RGB members are set.  F is the frame on which this all happens.
+   COLORS will be freed; an existing IMG->pixmap will be freed, too.  */
 
 static void
-x_laplace_read_row (f, cmap, colors, width, ximg, y)
+x_from_xcolors (f, img, colors)
      struct frame *f;
-     Colormap cmap;
+     struct image *img;
      XColor *colors;
-     int width;
-     XImage *ximg;
-     int y;
 {
-  int x;
+  int x, y;
+  XImage *oimg;
+  Pixmap pixmap;
+  XColor *p;
+  
+  init_color_table ();
+  
+  x_create_x_image_and_pixmap (f, img->width, img->height, 0,
+			       &oimg, &pixmap);
+  p = colors;
+  for (y = 0; y < img->height; ++y)
+    for (x = 0; x < img->width; ++x, ++p)
+      {
+	unsigned long pixel;
+	pixel = lookup_rgb_color (f, p->red, p->green, p->blue);
+	XPutPixel (oimg, x, y, pixel);
+      }
 
-  for (x = 0; x < width; ++x)
-    colors[x].pixel = XGetPixel (ximg, x, y);
+  xfree (colors);
+  x_clear_image_1 (f, img, 1, 0, 1);
 
-  XQueryColors (NULL, cmap, colors, width);
+  x_put_x_image (f, oimg, pixmap, img->width, img->height);
+  x_destroy_x_image (oimg);
+  img->pixmap = pixmap;
+  img->colors = colors_in_color_table (&img->ncolors);
+  free_color_table ();
 }
 
 
-/* Write row Y of image XIMG.  PIXELS is an array of WIDTH longs
-   containing the pixel colors to write.  F is the frame we are
-   working on.  */
+/* On frame F, perform edge-detection on image IMG.
+
+   MATRIX is a nine-element array specifying the transformation
+   matrix.  See emboss_matrix for an example.
+   
+   COLOR_ADJUST is a color adjustment added to each pixel of the
+   outgoing image.  */
 
 static void
-x_laplace_write_row (f, pixels, width, ximg, y)
+x_detect_edges (f, img, matrix, color_adjust)
      struct frame *f;
-     long *pixels;
-     int width;
-     XImage *ximg;
-     int y;
+     struct image *img;
+     int matrix[9], color_adjust;
 {
-  int x;
+  XColor *colors = x_to_xcolors (f, img, 1);
+  XColor *new, *p;
+  int x, y, i, sum;
+
+  for (i = sum = 0; i < 9; ++i)
+    sum += abs (matrix[i]);
+
+#define COLOR(A, X, Y) ((A) + (Y) * img->width + (X))
+
+  new = (XColor *) xmalloc (img->width * img->height * sizeof *new);
+
+  for (y = 0; y < img->height; ++y)
+    {
+      p = COLOR (new, 0, y);
+      p->red = p->green = p->blue = 0xffff/2;
+      p = COLOR (new, img->width - 1, y);
+      p->red = p->green = p->blue = 0xffff/2;
+    }
   
-  for (x = 0; x < width; ++x)
-    XPutPixel (ximg, x, y, pixels[x]);
+  for (x = 1; x < img->width - 1; ++x)
+    {
+      p = COLOR (new, x, 0);
+      p->red = p->green = p->blue = 0xffff/2;
+      p = COLOR (new, x, img->height - 1);
+      p->red = p->green = p->blue = 0xffff/2;
+    }
+
+  for (y = 1; y < img->height - 1; ++y)
+    {
+      p = COLOR (new, 1, y);
+      
+      for (x = 1; x < img->width - 1; ++x, ++p)
+	{
+	  int r, g, b, y1, x1;
+
+	  r = g = b = i = 0;
+	  for (y1 = y - 1; y1 < y + 2; ++y1)
+	    for (x1 = x - 1; x1 < x + 2; ++x1, ++i)
+	      if (matrix[i])
+	        {
+	          XColor *t = COLOR (colors, x1, y1);
+		  r += matrix[i] * t->red;
+		  g += matrix[i] * t->green;
+		  b += matrix[i] * t->blue;
+		}
+
+	  r = (r / sum + color_adjust) & 0xffff;
+	  g = (g / sum + color_adjust) & 0xffff;
+	  b = (b / sum + color_adjust) & 0xffff;
+	  p->red = p->green = p->blue = COLOR_INTENSITY (r, g, b);
+	}
+    }
+
+  xfree (colors);
+  x_from_xcolors (f, img, new);
+
+#undef COLOR
 }
-#endif
+
+
+/* Perform the pre-defined `emboss' edge-detection on image IMG
+   on frame F.  */
+
+static void
+x_emboss (f, img)
+     struct frame *f;
+     struct image *img;
+{
+  x_detect_edges (f, img, emboss_matrix, 0xffff / 2);
+}
+
 
 /* Transform image IMG which is used on frame F with a Laplace
    edge-detection algorithm.  The result is an image that can be used
@@ -9766,85 +10053,108 @@ x_laplace (f, img)
      struct frame *f;
      struct image *img;
 {
-#if 0 /* TODO : W32 version */
-  Colormap cmap = DefaultColormapOfScreen (FRAME_X_SCREEN (f));
-  XImage *ximg, *oimg;
-  XColor *in[3];
-  long *out;
-  Pixmap pixmap;
-  int x, y, i;
-  long pixel;
-  int in_y, out_y, rc;
-  int mv2 = 45000;
+  x_detect_edges (f, img, laplace_matrix, 45000);
+}
 
-  BLOCK_INPUT;
 
-  /* Get the X image IMG->pixmap.  */
-  ximg = XGetImage (NULL, img->pixmap,
-		    0, 0, img->width, img->height, ~0, ZPixmap);
+/* Perform edge-detection on image IMG on frame F, with specified
+   transformation matrix MATRIX and color-adjustment COLOR_ADJUST.
 
-  /* Allocate 3 input rows, and one output row of colors.  */
-  for (i = 0; i < 3; ++i)
-    in[i] = (XColor *) alloca (img->width * sizeof (XColor));
-  out = (long *) alloca (img->width * sizeof (long));
+   MATRIX must be either
 
-  /* Create an X image for output.  */
-  rc = x_create_x_image_and_pixmap (f, img->width, img->height, 0,
-				    &oimg, &pixmap);
+   - a list of at least 9 numbers in row-major form
+   - a vector of at least 9 numbers
 
-  /* Fill first two rows.  */
-  x_laplace_read_row (f, cmap, in[0], img->width, ximg, 0);
-  x_laplace_read_row (f, cmap, in[1], img->width, ximg, 1);
-  in_y = 2;
+   COLOR_ADJUST nil means use a default; otherwise it must be a
+   number.  */
 
-  /* Write first row, all zeros.  */
-  init_color_table ();
-  pixel = lookup_rgb_color (f, 0, 0, 0);
-  for (x = 0; x < img->width; ++x)
-    out[x] = pixel;
-  x_laplace_write_row (f, out, img->width, oimg, 0);
-  out_y = 1;
-
-  for (y = 2; y < img->height; ++y)
+static void
+x_edge_detection (f, img, matrix, color_adjust)
+     struct frame *f;
+     struct image *img;
+     Lisp_Object matrix, color_adjust;
+{
+  int i = 0;
+  int trans[9];
+  
+  if (CONSP (matrix))
     {
-      int rowa = y % 3;
-      int rowb = (y + 2) % 3;
-
-      x_laplace_read_row (f, cmap, in[rowa], img->width, ximg, in_y++);
-
-      for (x = 0; x < img->width - 2; ++x)
-	{
-	  int r = in[rowa][x].red + mv2 - in[rowb][x + 2].red;
-	  int g = in[rowa][x].green + mv2 - in[rowb][x + 2].green;
-	  int b = in[rowa][x].blue + mv2 - in[rowb][x + 2].blue;
-	  
-	  out[x + 1] = lookup_rgb_color (f, r & 0xffff, g & 0xffff,
-					 b & 0xffff);
-	}
-
-      x_laplace_write_row (f, out, img->width, oimg, out_y++);
+      for (i = 0;
+	   i < 9 && CONSP (matrix) && NUMBERP (XCAR (matrix));
+	   ++i, matrix = XCDR (matrix))
+	trans[i] = XFLOATINT (XCAR (matrix));
+    }
+  else if (VECTORP (matrix) && ASIZE (matrix) >= 9)
+    {
+      for (i = 0; i < 9 && NUMBERP (AREF (matrix, i)); ++i)
+	trans[i] = XFLOATINT (AREF (matrix, i));
     }
 
-  /* Write last line, all zeros.  */
-  for (x = 0; x < img->width; ++x)
-    out[x] = pixel;
-  x_laplace_write_row (f, out, img->width, oimg, out_y);
+  if (NILP (color_adjust))
+    color_adjust = make_number (0xffff / 2);
 
-  /* Free the input image, and free resources of IMG.  */
-  XDestroyImage (ximg);
-  x_clear_image (f, img);
-  
-  /* Put the output image into pixmap, and destroy it.  */
-  x_put_x_image (f, oimg, pixmap, img->width, img->height);
-  x_destroy_x_image (oimg);
+  if (i == 9 && NUMBERP (color_adjust))
+    x_detect_edges (f, img, trans, (int) XFLOATINT (color_adjust));
+}
 
-  /* Remember new pixmap and colors in IMG.  */
-  img->pixmap = pixmap;
-  img->colors = colors_in_color_table (&img->ncolors);
-  free_color_table ();
 
-  UNBLOCK_INPUT;
-#endif /* TODO */
+/* Transform image IMG on frame F so that it looks disabled.  */
+
+static void
+x_disable_image (f, img)
+     struct frame *f;
+     struct image *img;
+{
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+
+  if (dpyinfo->n_planes >= 2)
+    {
+      /* Color (or grayscale).  Convert to gray, and equalize.  Just
+	 drawing such images with a stipple can look very odd, so
+	 we're using this method instead.  */
+      XColor *colors = x_to_xcolors (f, img, 1);
+      XColor *p, *end;
+      const int h = 15000;
+      const int l = 30000;
+
+      for (p = colors, end = colors + img->width * img->height;
+	   p < end;
+	   ++p)
+	{
+	  int i = COLOR_INTENSITY (p->red, p->green, p->blue);
+	  int i2 = (0xffff - h - l) * i / 0xffff + l;
+	  p->red = p->green = p->blue = i2;
+	}
+
+      x_from_xcolors (f, img, colors);
+    }
+
+  /* Draw a cross over the disabled image, if we must or if we
+     should.  */
+  if (dpyinfo->n_planes < 2 || cross_disabled_images)
+    {
+      Display *dpy = FRAME_X_DISPLAY (f);
+      GC gc;
+
+      gc = XCreateGC (dpy, img->pixmap, 0, NULL);
+      XSetForeground (dpy, gc, BLACK_PIX_DEFAULT (f));
+      XDrawLine (dpy, img->pixmap, gc, 0, 0,
+		 img->width - 1, img->height - 1);
+      XDrawLine (dpy, img->pixmap, gc, 0, img->height - 1,
+		 img->width - 1, 0);
+      XFreeGC (dpy, gc);
+
+      if (img->mask)
+	{
+	  gc = XCreateGC (dpy, img->mask, 0, NULL);
+	  XSetForeground (dpy, gc, WHITE_PIX_DEFAULT (f));
+	  XDrawLine (dpy, img->mask, gc, 0, 0,
+		     img->width - 1, img->height - 1);
+	  XDrawLine (dpy, img->mask, gc, 0, img->height - 1,
+		     img->width - 1, 0);
+	  XFreeGC (dpy, gc);
+	}
+    }
 }
 
 
@@ -9861,7 +10171,6 @@ x_build_heuristic_mask (f, img, how)
      struct image *img;
      Lisp_Object how;
 {
-#if 0 /* TODO : W32 version */
   Display *dpy = FRAME_W32_DISPLAY (f);
   XImage *ximg, *mask_img;
   int x, y, rc, look_at_corners_p;
@@ -9953,11 +10262,10 @@ x_build_heuristic_mask (f, img, how)
   XDestroyImage (ximg);
   
   UNBLOCK_INPUT;
-#endif /* TODO */
 
   return 1;
 }
-
+#endif /* TODO */
 
 
 /***********************************************************************
@@ -10000,7 +10308,10 @@ static struct image_keyword pbm_format[PBM_LAST] =
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
+  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":foreground",	IMAGE_STRING_OR_NIL_VALUE,		0},
+  {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
 
 /* Structure describing the image type `pbm'.  */
@@ -10140,7 +10451,7 @@ pbm_load (f, img)
           return 0;
         }
 
-      contents = pbm_read_file (file, &size);
+      contents = slurp_file (XSTRING (file)->data, &size);
       if (contents == NULL)
 	{
 	  image_error ("Error reading `%s'", file, Qnil);
@@ -10217,20 +10528,31 @@ pbm_load (f, img)
       || (type != PBM_MONO && max_color_idx < 0))
     goto error;
 
-  BLOCK_INPUT;
   if (!x_create_x_image_and_pixmap (f, width, height, 0,
 				    &ximg, &img->pixmap))
-    {
-      UNBLOCK_INPUT;
-      goto error;
-    }
-  
+    goto error;
+
   /* Initialize the color hash table.  */
   init_color_table ();
 
   if (type == PBM_MONO)
     {
       int c = 0, g;
+      struct image_keyword fmt[PBM_LAST];
+      unsigned long fg = FRAME_FOREGROUND_PIXEL (f);
+      unsigned long bg = FRAME_BACKGROUND_PIXEL (f);
+
+      /* Parse the image specification.  */
+      bcopy (pbm_format, fmt, sizeof fmt);
+      parse_image_spec (img->spec, fmt, PBM_LAST, Qpbm);
+      
+      /* Get foreground and background colors, maybe allocate colors.  */
+      if (fmt[PBM_FOREGROUND].count
+	  && STRINGP (fmt[PBM_FOREGROUND].value))
+	fg = x_alloc_image_color (f, img, fmt[PBM_FOREGROUND].value, fg);
+      if (fmt[PBM_BACKGROUND].count
+	  && STRINGP (fmt[PBM_BACKGROUND].value))
+	bg = x_alloc_image_color (f, img, fmt[PBM_BACKGROUND].value, bg);
       
       for (y = 0; y < height; ++y)
 	for (x = 0; x < width; ++x)
@@ -10245,9 +10567,7 @@ pbm_load (f, img)
 	    else
 	      g = pbm_scan_number (&p, end);
 
-	    XPutPixel (ximg, x, y, (g
-				    ? FRAME_FOREGROUND_PIXEL (f)
-				    : FRAME_BACKGROUND_PIXEL (f)));
+	    XPutPixel (ximg, x, y, g ? fg : bg);
 	  }
     }
   else
@@ -10277,7 +10597,6 @@ pbm_load (f, img)
 		xfree (ximg->data);
 		ximg->data = NULL;
 		XDestroyImage (ximg);
-		UNBLOCK_INPUT;
 		image_error ("Invalid pixel value in image `%s'",
 			     img->spec, Qnil);
                 goto error;
@@ -10300,7 +10619,6 @@ pbm_load (f, img)
   /* Put the image into a pixmap.  */
   x_put_x_image (f, ximg, img->pixmap, width, height);
   x_destroy_x_image (ximg);
-  UNBLOCK_INPUT;
       
   img->width = width;
   img->height = height;
@@ -11348,6 +11666,35 @@ tiff_size_of_memory (data)
   return ((tiff_memory_source *) data)->len;
 }
 
+
+static void
+tiff_error_handler (title, format, ap)
+     const char *title, *format;
+     va_list ap;
+{
+  char buf[512];
+  int len;
+  
+  len = sprintf (buf, "TIFF error: %s ", title);
+  vsprintf (buf + len, format, ap);
+  add_to_log (buf, Qnil, Qnil);
+}
+
+
+static void
+tiff_warning_handler (title, format, ap)
+     const char *title, *format;
+     va_list ap;
+{
+  char buf[512];
+  int len;
+  
+  len = sprintf (buf, "TIFF warning: %s ", title);
+  vsprintf (buf + len, format, ap);
+  add_to_log (buf, Qnil, Qnil);
+}
+
+
 /* Load TIFF image IMG for use on frame F.  Value is non-zero if
    successful.  */
 
@@ -11371,25 +11718,28 @@ tiff_load (f, img)
   file = Qnil;
   GCPRO1 (file);
 
+  TIFFSetErrorHandler (tiff_error_handler);
+  TIFFSetWarningHandler (tiff_warning_handler);
+
   if (NILP (specified_data))
     {
       /* Read from a file */
       file = x_find_image_file (specified_file);
       if (!STRINGP (file))
-        {
-          image_error ("Cannot find image file `%s'", file, Qnil);
-          UNGCPRO;
-          return 0;
-        }
-  
+	{
+	  image_error ("Cannot find image file `%s'", file, Qnil);
+	  UNGCPRO;
+	  return 0;
+	}
+	  
       /* Try to open the image file.  */
       tiff = TIFFOpen (XSTRING (file)->data, "r");
       if (tiff == NULL)
-        {
-          image_error ("Cannot open `%s'", file, Qnil);
-          UNGCPRO;
-          return 0;
-        }
+	{
+	  image_error ("Cannot open `%s'", file, Qnil);
+	  UNGCPRO;
+	  return 0;
+	}
     }
   else
     {
@@ -11431,12 +11781,9 @@ tiff_load (f, img)
       return 0;
     }
 
-  BLOCK_INPUT;
-
   /* Create the X image and pixmap.  */
   if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
     {
-      UNBLOCK_INPUT;
       xfree (buf);
       UNGCPRO;
       return 0;
@@ -11468,7 +11815,6 @@ tiff_load (f, img)
   x_put_x_image (f, ximg, img->pixmap, width, height);
   x_destroy_x_image (ximg);
   xfree (buf);
-  UNBLOCK_INPUT;
       
   img->width = width;
   img->height = height;
@@ -11793,14 +12139,14 @@ gif_load (f, img)
 				Ghostscript
  ***********************************************************************/
 
+Lisp_Object Qpostscript;
+
 #ifdef HAVE_GHOSTSCRIPT
 static int gs_image_p P_ ((Lisp_Object object));
 static int gs_load P_ ((struct frame *f, struct image *img));
 static void gs_clear_image P_ ((struct frame *f, struct image *img));
 
 /* The symbol `postscript' identifying images of this type.  */
-
-Lisp_Object Qpostscript;
 
 /* Keyword symbols.  */
 
@@ -11999,9 +12345,13 @@ x_kill_gs_process (pixmap, f)
     if (c->images[i]->pixmap == pixmap)
       break;
 
+  /* Should someone in between have cleared the image cache, for
+     instance, give up.  */
+  if (i == c->used)
+    return;
+
   /* Kill the GS process.  We should have found PIXMAP in the image
      cache and its image should contain a process object.  */
-  xassert (i < c->used);
   img = c->images[i];
   xassert (PROCESSP (img->data.lisp_val));
   Fkill_process (img->data.lisp_val, Qnil);
@@ -12049,11 +12399,8 @@ x_kill_gs_process (pixmap, f)
 	     allocated colors on behalf of us.  So, to get the
 	     reference counts right, free them once.  */
 	  if (img->ncolors)
-	    {
-	      Colormap cmap = DefaultColormapOfScreen (FRAME_X_SCREEN (f));
-	      XFreeColors (FRAME_W32_DISPLAY (f), cmap,
+	    x_free_colors (FRAME_W32_DISPLAY (f), cmap,
 			   img->colors, img->ncolors, 0);
-	    }
 #endif
 	}
       else
@@ -12062,6 +12409,12 @@ x_kill_gs_process (pixmap, f)
       
       UNBLOCK_INPUT;
     }
+
+  /* Now that we have the pixmap, compute mask and transform the
+     image if requested.  */
+  BLOCK_INPUT;
+  postprocess_image (f, img);
+  UNBLOCK_INPUT;
 }
 
 #endif /* HAVE_GHOSTSCRIPT */
@@ -12361,9 +12714,11 @@ hide_hourglass ()
  ***********************************************************************/
 
 static Lisp_Object x_create_tip_frame P_ ((struct w32_display_info *,
-					   Lisp_Object));
+					   Lisp_Object, Lisp_Object));
+static void compute_tip_xy P_ ((struct frame *, Lisp_Object, Lisp_Object,
+				Lisp_Object, int, int, int *, int *));
      
-/* The frame of a currently visible tooltip, or null.  */
+/* The frame of a currently visible tooltip.  */
 
 Lisp_Object tip_frame;
 
@@ -12372,6 +12727,16 @@ Lisp_Object tip_frame;
 
 Lisp_Object tip_timer;
 Window tip_window;
+
+/* If non-nil, a vector of 3 elements containing the last args
+   with which x-show-tip was called.  See there.  */
+
+Lisp_Object last_show_tip_args;
+
+/* Maximum size for tooltips; a cons (COLUMNS . ROWS).  */
+
+Lisp_Object Vx_max_tooltip_size;
+
 
 static Lisp_Object
 unwind_create_tip_frame (frame)
@@ -12391,7 +12756,8 @@ unwind_create_tip_frame (frame)
 
 
 /* Create a frame for a tooltip on the display described by DPYINFO.
-   PARMS is a list of frame parameters.  Value is the frame.
+   PARMS is a list of frame parameters.  TEXT is the string to
+   display in the tip frame.  Value is the frame.
 
    Note that functions called here, esp. x_default_parameter can
    signal errors, for instance when a specified color name is
@@ -12399,9 +12765,9 @@ unwind_create_tip_frame (frame)
    when this happens.  */
 
 static Lisp_Object
-x_create_tip_frame (dpyinfo, parms)
+x_create_tip_frame (dpyinfo, parms, text)
      struct w32_display_info *dpyinfo;
-     Lisp_Object parms;
+     Lisp_Object parms, text;
 {
 #if 0 /* TODO : w32 version */
   struct frame *f;
@@ -12412,6 +12778,9 @@ x_create_tip_frame (dpyinfo, parms)
   int count = BINDING_STACK_SIZE ();
   struct gcpro gcpro1, gcpro2, gcpro3;
   struct kboard *kb;
+  int face_change_count_before = face_change_count;
+  Lisp_Object buffer;
+  struct buffer *old_buffer;
 
   check_x ();
 
@@ -12437,9 +12806,23 @@ x_create_tip_frame (dpyinfo, parms)
   GCPRO3 (parms, name, frame);
   f = make_frame (1);
   XSETFRAME (frame, f);
+
+  buffer = Fget_buffer_create (build_string (" *tip*"));
+  Fset_window_buffer (FRAME_ROOT_WINDOW (f), buffer);
+  old_buffer = current_buffer;
+  set_buffer_internal_1 (XBUFFER (buffer));
+  current_buffer->truncate_lines = Qnil;
+  Ferase_buffer ();
+  Finsert (1, &text);
+  set_buffer_internal_1 (old_buffer);
+  
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
   record_unwind_protect (unwind_create_tip_frame, frame);
 
+  /* By setting the output method, we're essentially saying that
+     the frame is live, as per FRAME_LIVE_P.  If we get a signal
+     from this point on, x_destroy_window might screw up reference
+     counts etc.  */
   f->output_method = output_w32;
   f->output_data.w32 =
     (struct w32_output *) xmalloc (sizeof (struct w32_output));
@@ -12580,7 +12963,10 @@ x_create_tip_frame (dpyinfo, parms)
     unsigned long mask;
     
     BLOCK_INPUT;
-    mask = CWBackPixel | CWOverrideRedirect | CWSaveUnder | CWEventMask;
+    mask = CWBackPixel | CWOverrideRedirect | CWEventMask;
+    if (DoesSaveUnders (dpyinfo->screen))
+      mask |= CWSaveUnder;
+
     /* Window managers looks at the override-redirect flag to
        determine whether or net to give windows a decoration (Xlib
        3.2.8).  */
@@ -12620,6 +13006,26 @@ x_create_tip_frame (dpyinfo, parms)
   SET_FRAME_WIDTH (f, 0);
   change_frame_size (f, height, width, 1, 0, 0);
 
+  /* Set up faces after all frame parameters are known.  This call
+     also merges in face attributes specified for new frames.
+
+     Frame parameters may be changed if .Xdefaults contains
+     specifications for the default font.  For example, if there is an
+     `Emacs.default.attributeBackground: pink', the `background-color'
+     attribute of the frame get's set, which let's the internal border
+     of the tooltip frame appear in pink.  Prevent this.  */
+  {
+    Lisp_Object bg = Fframe_parameter (frame, Qbackground_color);
+
+    /* Set tip_frame here, so that */
+    tip_frame = frame;
+    call1 (Qface_set_after_frame_default, frame);
+    
+    if (!EQ (bg, Fframe_parameter (frame, Qbackground_color)))
+      Fmodify_frame_parameters (frame, Fcons (Fcons (Qbackground_color, bg),
+					      Qnil));
+  }
+  
   f->no_split = 1;
 
   UNGCPRO;
@@ -12628,16 +13034,78 @@ x_create_tip_frame (dpyinfo, parms)
      below.  And the frame needs to be on Vframe_list or making it
      visible won't work.  */
   Vframe_list = Fcons (frame, Vframe_list);
-  tip_frame = frame;
 
   /* Now that the frame is official, it counts as a reference to
      its display.  */
   FRAME_W32_DISPLAY_INFO (f)->reference_count++;
 
+  /* Setting attributes of faces of the tooltip frame from resources
+     and similar will increment face_change_count, which leads to the
+     clearing of all current matrices.  Since this isn't necessary
+     here, avoid it by resetting face_change_count to the value it
+     had before we created the tip frame.  */
+  face_change_count = face_change_count_before;
+
+  /* Discard the unwind_protect.  */
   return unbind_to (count, frame);
 #endif /* TODO */
   return Qnil;
 }
+
+
+/* Compute where to display tip frame F.  PARMS is the list of frame
+   parameters for F.  DX and DY are specified offsets from the current
+   location of the mouse.  WIDTH and HEIGHT are the width and height
+   of the tooltip.  Return coordinates relative to the root window of
+   the display in *ROOT_X, and *ROOT_Y.  */
+
+static void
+compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
+     struct frame *f;
+     Lisp_Object parms, dx, dy;
+     int width, height;
+     int *root_x, *root_y;
+{
+#ifdef TODO /* Tool tips not supported. */
+  Lisp_Object left, top;
+  int win_x, win_y;
+  Window root, child;
+  unsigned pmask;
+  
+  /* User-specified position?  */
+  left = Fcdr (Fassq (Qleft, parms));
+  top  = Fcdr (Fassq (Qtop, parms));
+  
+  /* Move the tooltip window where the mouse pointer is.  Resize and
+     show it.  */
+  if (!INTEGERP (left) && !INTEGERP (top))
+    {
+      BLOCK_INPUT;
+      XQueryPointer (FRAME_X_DISPLAY (f), FRAME_X_DISPLAY_INFO (f)->root_window,
+		     &root, &child, root_x, root_y, &win_x, &win_y, &pmask);
+      UNBLOCK_INPUT;
+    }
+
+  if (INTEGERP (top))
+    *root_y = XINT (top);
+  else if (*root_y + XINT (dy) - height < 0)
+    *root_y -= XINT (dy);
+  else
+    {
+      *root_y -= height;
+      *root_y += XINT (dy);
+    }
+
+  if (INTEGERP (left))
+    *root_x = XINT (left);
+  else if (*root_x + XINT (dx) + width > FRAME_X_DISPLAY_INFO (f)->width)
+    *root_x -= width + XINT (dx);
+  else
+    *root_x += XINT (dx);
+
+#endif /* Tooltip support.  */
+}
+
 
 #ifdef TODO /* Tooltip support not complete.  */
 DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
@@ -12658,19 +13126,20 @@ displayed at the mouse position, with offset DX added (default is 5 if\n\
 DX isn't specified).  Likewise for the y-position; if a `top' frame\n\
 parameter is specified, it determines the y-position of the tooltip\n\
 window, otherwise it is displayed at the mouse position, with offset\n\
-DY added (default is 10).")
+DY added (default is -10).\n\
+\n\
+A tooltip's maximum size is specified by `x-max-tooltip-size'.\n\
+Text larger than the specified size is clipped.")
   (string, frame, parms, timeout, dx, dy)
      Lisp_Object string, frame, parms, timeout, dx, dy;
 {
   struct frame *f;
   struct window *w;
-  Window root, child;
-  Lisp_Object buffer, top, left;
+  Lisp_Object buffer, top, left, max_width, max_height;
+  int root_x, root_y;
   struct buffer *old_buffer;
   struct text_pos pos;
   int i, width, height;
-  int root_x, root_y, win_x, win_y;
-  unsigned pmask;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   int old_windows_or_buffers_changed = windows_or_buffers_changed;
   int count = specpdl_ptr - specpdl;
@@ -12753,23 +13222,33 @@ DY added (default is 10).")
   frame = x_create_tip_frame (FRAME_W32_DISPLAY_INFO (f), parms);
   f = XFRAME (frame);
 
-  /* Set up the frame's root window.  Currently we use a size of 80
-     columns x 40 lines.  If someone wants to show a larger tip, he
-     will loose.  I don't think this is a realistic case.  */
+  /* Set up the frame's root window.  */
   w = XWINDOW (FRAME_ROOT_WINDOW (f));
   w->left = w->top = make_number (0);
-  w->width = make_number (80);
-  w->height = make_number (40);
+
+  if (CONSP (Vx_max_tooltip_size)
+      && INTEGERP (XCAR (Vx_max_tooltip_size))
+      && XINT (XCAR (Vx_max_tooltip_size)) > 0
+      && INTEGERP (XCDR (Vx_max_tooltip_size))
+      && XINT (XCDR (Vx_max_tooltip_size)) > 0)
+    {
+      w->width = XCAR (Vx_max_tooltip_size);
+      w->height = XCDR (Vx_max_tooltip_size);
+    }
+  else
+    {
+      w->width = make_number (80);
+      w->height = make_number (40);
+    }
+  
+  f->window_width = XINT (w->width);
   adjust_glyphs (f);
   w->pseudo_window_p = 1;
 
   /* Display the tooltip text in a temporary buffer.  */
-  buffer = Fget_buffer_create (build_string (" *tip*"));
-  Fset_window_buffer (FRAME_ROOT_WINDOW (f), buffer);
   old_buffer = current_buffer;
-  set_buffer_internal_1 (XBUFFER (buffer));
-  Ferase_buffer ();
-  Finsert (1, &string);
+  set_buffer_internal_1 (XBUFFER (XWINDOW (FRAME_ROOT_WINDOW (f))->buffer));
+  current_buffer->truncate_lines = Qnil;
   clear_glyph_matrix (w->desired_matrix);
   clear_glyph_matrix (w->current_matrix);
   SET_TEXT_POS (pos, BEGV, BEGV_BYTE);
@@ -12811,15 +13290,13 @@ DY added (default is 10).")
 
   /* Move the tooltip window where the mouse pointer is.  Resize and
      show it.  */
-  compute_tip_xy (f, parms, dx, dy, &root_x, &root_y);
+  compute_tip_xy (f, parms, dx, dy, width, height, &root_x, &root_y);
 
-#if 0 /* TODO : W32 specifics */
   BLOCK_INPUT;
   XMoveResizeWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		     root_x, root_y - height, width, height);
   XMapRaised (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
   UNBLOCK_INPUT;
-#endif /* TODO */
 
   /* Draw into the window.  */
   w->must_be_updated_p = 1;
@@ -12841,7 +13318,7 @@ DY added (default is 10).")
 
 DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
   "Hide the current tooltip window, if there is any.\n\
-Value is t is tooltip was open, nil otherwise.")
+Value is t if tooltip was open, nil otherwise.")
   ()
 {
   int count;
@@ -12887,8 +13364,7 @@ DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 4, 0,
   "Read file name, prompting with PROMPT in directory DIR.\n\
 Use a file selection dialog.\n\
 Select DEFAULT-FILENAME in the dialog's file selection box, if\n\
-specified.  Don't let the user enter a file name in the file\n\
-selection dialog's entry field, if MUSTMATCH is non-nil.")
+specified.  Ensure that file exists if MUSTMATCH is non-nil.")
   (prompt, dir, default_filename, mustmatch)
      Lisp_Object prompt, dir, default_filename, mustmatch;
 {
@@ -12949,6 +13425,9 @@ selection dialog's entry field, if MUSTMATCH is non-nil.")
       bzero (&file_details, sizeof (file_details));
       file_details.lStructSize = sizeof (file_details);
       file_details.hwndOwner = FRAME_W32_WINDOW (f);
+      /* Undocumented Bug in Common File Dialog:
+         If a filter is not specified, shell links are not resolved.  */
+      file_details.lpstrFilter = "ALL Files (*.*)\0*.*\0\0";
       file_details.lpstrFile = filename;
       file_details.nMaxFile = sizeof (filename);
       file_details.lpstrInitialDir = init_dir;
@@ -13547,6 +14026,18 @@ syms_of_w32fns ()
 
   Qlaplace = intern ("laplace");
   staticpro (&Qlaplace);
+  Qemboss = intern ("emboss");
+  staticpro (&Qemboss);
+  Qedge_detection = intern ("edge-detection");
+  staticpro (&Qedge_detection);
+  Qheuristic = intern ("heuristic");
+  staticpro (&Qheuristic);
+  QCmatrix = intern (":matrix");
+  staticpro (&QCmatrix);
+  QCcolor_adjustment = intern (":color-adjustment");
+  staticpro (&QCcolor_adjustment);
+  QCmask = intern (":mask");
+  staticpro (&QCmask);
 
   Qface_set_after_frame_default = intern ("face-set-after-frame-default");
   staticpro (&Qface_set_after_frame_default);
@@ -13729,6 +14220,11 @@ or when you set the mouse color.");
 	       "A string indicating the foreground color of the cursor box.");
   Vx_cursor_fore_pixel = Qnil;
 
+  DEFVAR_LISP ("x-max-tooltip-size", &Vx_max_tooltip_size,
+   "Maximum size for tooltips.  Value is a pair (COLUMNS . ROWS).\n\
+Text larger than this is clipped.");
+  Vx_max_tooltip_size = Fcons (make_number (80), make_number (40));
+  
   DEFVAR_LISP ("x-no-window-manager", &Vx_no_window_manager,
 	       "Non-nil if no window manager is in use.\n\
 Emacs doesn't try to figure this out; this is always nil\n\
