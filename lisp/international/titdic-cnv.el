@@ -52,7 +52,7 @@
 ;; See the manual page of `tit2cit' of cxterm distribution for more
 ;; detail.
 ;;
-;; At the tail of this file, we also have another tools to convert
+;; Near the end of this file, we also have a few other tools to convert
 ;; miscellaneous dictionaries.
 
 ;;; Code:
