@@ -365,20 +365,25 @@ Returns non-nil iff it is a valid table."
       (setq tables (cdr tables)))
     (if found
 	;; Now determine if the table we found was one included by another
-	;; table, not explicitly listed.
+	;; table, not explicitly listed.  We do this by checking each
+	;; element of the computed list to see if it appears in the user's
+	;; explicit list; the last element we will check is FOUND itself.
+	;; Then we return the last one which did in fact appear in
+	;; tags-table-list.
 	(let ((could-be nil)
 	      (elt tags-table-computed-list))
 	  (while (not (eq elt (cdr found)))
 	    (if (tags-table-list-member (car elt) tags-table-list)
 		;; This table appears in the user's list, so it could be
 		;; the one which includes the table we found.
-		(setq could-be (cons (car elt) could-be)))
-	    (setq elt (cdr elt)))
+		(setq could-be (car elt)))
+	    (setq elt (cdr elt))
+	    (if (eq t (car elt))
+		(setq elt (cdr elt))))
 	  ;; The last element we found in the computed list before FOUND
 	  ;; that appears in the user's list will be the table that
-	  ;; included the one we found.  This will be the head of the
-	  ;; COULD-BE list.
-	  (car could-be)))))
+	  ;; included the one we found.  
+	  could-be))))
 
 ;; Subroutine of visit-tags-table-buffer.  Move tags-table-list-pointer
 ;; along and set tags-file-name.  Returns nil when out of tables.
