@@ -52,8 +52,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define O_RDWR 2
 #endif
 
-#define PRIO_PROCESS 0
-
 /* Command line args from shell, as list of strings */
 Lisp_Object Vcommand_line_args;
 

@@ -35,7 +35,7 @@ extern char *sys_errlist[];
 #endif /* SIGCLD */
 
 #include <sys/types.h>
-#define PRIO_PROCESS 0
+
 #include <sys/file.h>
 #ifdef USG5
 #include <fcntl.h>
