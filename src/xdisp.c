@@ -12229,10 +12229,12 @@ display_line (it)
       nglyphs = row->used[TEXT_AREA] - n_glyphs_before;
       hpos_before = it->hpos;
       x_before = x;
-	  
-      if (it->current_x < it->last_visible_x)
-	{
+
+      if (/* Not a newline. */
+	  nglyphs > 0
 	  /* Glyphs produced fit entirely in the line.  */
+	  && it->current_x < it->last_visible_x)
+	{
 	  it->hpos += nglyphs;
 	  row->ascent = max (row->ascent, it->max_ascent);
 	  row->height = max (row->height, it->max_ascent + it->max_descent);
