@@ -1,4 +1,4 @@
-/* impl.h.mpsio: HARLEQUIN MEMORY POOL SYSTEM I/O INTERFACE
+/* impl.h.mpsio: RAVENBROOK MEMORY POOL SYSTEM I/O INTERFACE
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.

@@ -1,4 +1,4 @@
-/* impl.h.mpswin: HARLEQUIN MEMORY POOL SYSTEM WINDOWS.H INTERFACE
+/* impl.h.mpswin: RAVENBROOK MEMORY POOL SYSTEM WINDOWS.H INTERFACE
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.

@@ -1,4 +1,4 @@
-/* impl.h.mpstd: HARLEQUIN MEMORY POOL SYSTEM TARGET DETECTION
+/* impl.h.mpstd: RAVENBROOK MEMORY POOL SYSTEM TARGET DETECTION
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.

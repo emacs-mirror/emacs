@@ -1,4 +1,4 @@
-/* impl.c.mpsioan: HARLEQUIN MEMORY POOL SYSTEM I/O IMPLEMENTATION (ANSI)
+/* impl.c.mpsioan: RAVENBROOK MEMORY POOL SYSTEM I/O IMPLEMENTATION (ANSI)
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.

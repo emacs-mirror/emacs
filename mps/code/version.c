@@ -48,7 +48,7 @@ char MPSCopyrightNotice[] =
  */
 
 char MPSVersionString[] =
-  "@(#)HQNMPS, "
+  "@(#)Ravenbrook MPS, "
   "product." MPS_PROD_STRING ", " MPS_RELEASE ", platform." MPS_PF_STRING
   ", variety." MPS_VARIETY_STRING ", compiled on " __DATE__ " " __TIME__;
 
