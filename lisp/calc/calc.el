@@ -405,6 +405,7 @@ If `C' is present, display outer brackets for matrices (centered).")
   pascal	Use Pascal language notation.
   fortran	Use Fortran language notation.
   tex		Use TeX notation.
+  latex         Use LaTeX notation.
   eqn		Use eqn notation.
   math		Use Mathematica(tm) notation.
   maple		Use Maple notation.")
@@ -704,6 +705,7 @@ If nil, selections displayed but ignored.")
 (defvar math-eval-rules-cache-tag t)
 (defvar math-radix-explicit-format t)
 (defvar math-expr-function-mapping nil)
+(defvar math-expr-special-function-mapping nil)
 (defvar math-expr-variable-mapping nil)
 (defvar math-read-expr-quotes nil)
 (defvar math-working-step nil)
@@ -1368,6 +1370,7 @@ See calc-keypad for details."
 		     (if calc-leading-zeros "Zero " "")
 		     (cond ((null calc-language) "")
 			   ((eq calc-language 'tex) "TeX ")
+			   ((eq calc-language 'latex) "LaTeX ")
 			   (t (concat
 			       (capitalize (symbol-name calc-language))
 			       " ")))
