@@ -1197,9 +1197,19 @@ create_process (process, new_argv, current_dir)
 {
   int pid, inchannel, outchannel;
   int sv[2];
+#ifdef POSIX_SIGNALS
+  sigset_t procmask;
+  sigset_t blocked;
+  struct sigaction sigint_action;
+  struct sigaction sigquit_action;
+#ifdef AIX
+  struct sigaction sighup_action;
+#endif
+#else /* !POSIX_SIGNALS */
 #ifdef SIGCHLD
   SIGTYPE (*sigchld)();
 #endif
+#endif /* !POSIX_SIGNALS */
   /* Use volatile to protect variables from being clobbered by longjmp.  */
   volatile int forkin, forkout;
   volatile int pty_flag = 0;
@@ -1298,6 +1308,24 @@ create_process (process, new_argv, current_dir)
 
   /* Delay interrupts until we have a chance to store
      the new fork's pid in its process structure */
+#ifdef POSIX_SIGNALS
+  sigemptyset (&blocked);
+#ifdef SIGCHLD
+  sigaddset (&blocked, SIGCHLD);
+#endif
+#ifdef HAVE_VFORK
+  /* On many hosts (e.g. Solaris 2.4), if a vforked child calls `signal',
+     this sets the parent's signal handlers as well as the child's.
+     So delay all interrupts whose handlers the child might munge,
+     and record the current handlers so they can be restored later.  */
+  sigaddset (&blocked, SIGINT );  sigaction (SIGINT , 0, &sigint_action );
+  sigaddset (&blocked, SIGQUIT);  sigaction (SIGQUIT, 0, &sigquit_action);
+#ifdef AIX
+  sigaddset (&blocked, SIGHUP );  sigaction (SIGHUP , 0, &sighup_action );
+#endif
+#endif /* HAVE_VFORK */
+  sigprocmask (SIG_BLOCK, &blocked, &procmask);
+#else /* !POSIX_SIGNALS */
 #ifdef SIGCHLD
 #ifdef BSD4_1
   sighold (SIGCHLD);
@@ -1312,6 +1340,7 @@ create_process (process, new_argv, current_dir)
 #endif /* ordinary USG */
 #endif /* not BSD4_1 */
 #endif /* SIGCHLD */
+#endif /* !POSIX_SIGNALS */
 
   FD_SET (inchannel, &input_wait_mask);
   FD_SET (inchannel, &non_keyboard_wait_mask);
@@ -1455,6 +1484,13 @@ create_process (process, new_argv, current_dir)
 #endif
 #endif /* HAVE_PTYS */
 
+	signal (SIGINT, SIG_DFL);
+	signal (SIGQUIT, SIG_DFL);
+
+	/* Stop blocking signals in the child.  */
+#ifdef POSIX_SIGNALS
+	sigprocmask (SIG_SETMASK, &procmask, 0);
+#else /* !POSIX_SIGNALS */
 #ifdef SIGCHLD
 #ifdef BSD4_1
 	sigrelse (SIGCHLD);
@@ -1468,9 +1504,7 @@ create_process (process, new_argv, current_dir)
 #endif /* ordinary USG */
 #endif /* not BSD4_1 */
 #endif /* SIGCHLD */
-
-	signal (SIGINT, SIG_DFL);
-	signal (SIGQUIT, SIG_DFL);
+#endif /* !POSIX_SIGNALS */
 
 	if (pty_flag)
 	  child_setup_tty (xforkout);
@@ -1521,6 +1555,18 @@ create_process (process, new_argv, current_dir)
 #endif
     XPROCESS (process)->tty_name = Qnil;
 
+#ifdef POSIX_SIGNALS
+#ifdef HAVE_VFORK
+  /* Restore the parent's signal handlers.  */
+  sigaction (SIGINT, &sigint_action, 0);
+  sigaction (SIGQUIT, &sigquit_action, 0);
+#ifdef AIX
+  sigaction (SIGHUP, &sighup_action, 0);
+#endif
+#endif /* HAVE_VFORK */
+  /* Stop blocking signals in the parent.  */
+  sigprocmask (SIG_SETMASK, &procmask, 0);
+#else /* !POSIX_SIGNALS */
 #ifdef SIGCHLD
 #ifdef BSD4_1
   sigrelse (SIGCHLD);
@@ -1538,6 +1584,7 @@ create_process (process, new_argv, current_dir)
 #endif /* ordinary USG */
 #endif /* not BSD4_1 */
 #endif /* SIGCHLD */
+#endif /* !POSIX_SIGNALS */
 }
 #endif /* not VMS */
 
