@@ -3270,6 +3270,10 @@ If FRAME is nil, search only the selected frame
  unless `pop-up-frames' or `display-buffer-reuse-frames' is non-nil,
  which means search visible and iconified frames.
 
+If a full-width window on a splittable frame is available to display
+the buffer, it may be split, subject to the value of the variable
+`split-height-threshold'.
+
 If `even-window-heights' is non-nil, window heights will be evened out
 if displaying the buffer causes two vertically adjacent windows to be
 displayed.  */)
@@ -3585,7 +3589,8 @@ DEFUN ("split-window", Fsplit_window, Ssplit_window, 0, 3, "",
 WINDOW defaults to selected one and SIZE to half its size.
 If optional third arg HORFLAG is non-nil, split side by side
 and put SIZE columns in the first of the pair.  In that case,
-SIZE includes that window's scroll bar, or the divider column to its right.  */)
+SIZE includes that window's scroll bar, or the divider column to its right.
+Returns the newly-created window.  */)
      (window, size, horflag)
      Lisp_Object window, size, horflag;
 {
@@ -6592,7 +6597,7 @@ See also `same-window-buffer-names'.  */);
   next_screen_context_lines = 2;
 
   DEFVAR_INT ("split-height-threshold", &split_height_threshold,
-	      doc: /* *display-buffer would prefer to split the largest window if this large.
+	      doc: /* *A window must be at least this tall to be eligible for splitting by `display-buffer'.
 If there is only one window, it is split regardless of this value.  */);
   split_height_threshold = 500;
 

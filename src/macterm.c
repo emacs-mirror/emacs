@@ -1210,7 +1210,7 @@ x_flush (f)
       FOR_EACH_FRAME (rest, frame)
 	x_flush (XFRAME (frame));
     }
-  else if (FRAME_X_P (f))
+  else if (FRAME_MAC_P (f))
     XFlush (FRAME_MAC_DISPLAY (f));
   UNBLOCK_INPUT;
 #endif /* TARGET_API_MAC_CARBON */
@@ -1410,7 +1410,7 @@ static void
 XTframe_up_to_date (f)
      struct frame *f;
 {
-  if (FRAME_X_P (f))
+  if (FRAME_MAC_P (f))
     {
       struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
 
@@ -7033,8 +7033,8 @@ static int
 mac_get_emulated_btn ( UInt32 modifiers )
 {
   int result = 0;
-  if (Vmac_emulate_three_button_mouse != Qnil) {
-    int cmdIs3 = (Vmac_emulate_three_button_mouse != Qreverse);
+  if (!NILP (Vmac_emulate_three_button_mouse)) {
+    int cmdIs3 = !EQ (Vmac_emulate_three_button_mouse, Qreverse);
     if (modifiers & controlKey)
       result = cmdIs3 ? 2 : 1;
     else if (modifiers & optionKey)
@@ -7052,7 +7052,7 @@ mac_event_to_emacs_modifiers (EventRef eventRef)
   UInt32 mods = 0;
   GetEventParameter (eventRef, kEventParamKeyModifiers, typeUInt32, NULL,
 		    sizeof (UInt32), NULL, &mods);
-  if (Vmac_emulate_three_button_mouse != Qnil &&
+  if (!NILP (Vmac_emulate_three_button_mouse) &&
       GetEventClass(eventRef) == kEventClassMouse)
     {
       mods &= ~(optionKey & cmdKey);
@@ -7071,7 +7071,7 @@ mac_get_mouse_btn (EventRef ref)
   switch (result)
     {
     case kEventMouseButtonPrimary:
-      if (Vmac_emulate_three_button_mouse == Qnil)
+      if (NILP (Vmac_emulate_three_button_mouse))
 	return 0;
       else {
 	UInt32 mods = 0;
@@ -8227,7 +8227,7 @@ XTread_socket (int sd, int expected, struct input_event *hold_quit)
 	      inev.timestamp = er.when * (1000 / 60);
 	        /* ticks to milliseconds */
 
-              XSETINT (inev.x, tracked_scroll_bar->left + 2);
+              XSETINT (inev.x, XFASTINT (tracked_scroll_bar->left) + 2);
               XSETINT (inev.y, mouse_loc.v - 24);
               tracked_scroll_bar->dragging = Qnil;
               mouse_tracking_in_progress = mouse_tracking_none;
@@ -8312,6 +8312,8 @@ XTread_socket (int sd, int expected, struct input_event *hold_quit)
 		  else
 	            {
 		      Lisp_Object window;
+		      int x = mouse_loc.h;
+		      int y = mouse_loc.v;
 
 		      XSETFRAME (inev.frame_or_window, mwp->mFP);
 		      if (er.what == mouseDown)
@@ -8319,14 +8321,14 @@ XTread_socket (int sd, int expected, struct input_event *hold_quit)
 			  = mouse_tracking_mouse_movement;
 		      else
 			mouse_tracking_in_progress = mouse_tracking_none;
-		      window = window_from_coordinates (mwp->mFP, inev.x, inev.y, 0, 0, 0, 1);
+		      window = window_from_coordinates (mwp->mFP, x, y, 0, 0, 0, 1);
 
 		      if (EQ (window, mwp->mFP->tool_bar_window))
 			{
 			  if (er.what == mouseDown)
-			    handle_tool_bar_click (mwp->mFP, inev.x, inev.y, 1, 0);
+			    handle_tool_bar_click (mwp->mFP, x, y, 1, 0);
 			  else
-			    handle_tool_bar_click (mwp->mFP, inev.x, inev.y, 0,
+			    handle_tool_bar_click (mwp->mFP, x, y, 0,
 #if USE_CARBON_EVENTS
 						   mac_event_to_emacs_modifiers (eventRef)
 #else
@@ -9024,7 +9026,7 @@ mac_check_for_quit_char ()
       EVENT_INIT (e);
       e.kind = ASCII_KEYSTROKE_EVENT;
       e.code = quit_char;
-      e.arg = NULL;
+      e.arg = Qnil;
       e.modifiers = NULL;
       e.timestamp = EventTimeToTicks (GetEventTime (event)) * (1000/60);
       XSETFRAME (e.frame_or_window, mwp->mFP);

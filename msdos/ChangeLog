@@ -1,3 +1,9 @@
+2004-05-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedleim.inp (distclean): Remove stamp-subdirs.
+	(SUBDIRS): Don't use `touch', use `djecho' instead.
+	(changed.tit, changed.misc): Use `djecho' instead of `echo'.
+
 2004-05-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed2v2.inp (HAVE_GETRUSAGE): Define.

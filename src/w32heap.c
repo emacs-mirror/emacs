@@ -245,6 +245,7 @@ init_heap ()
 	  exit (1);
 	}
 
+#if defined (NO_UNION_TYPE) && !defined (USE_LSB_TAG)
       /* Ensure that the addresses don't use the upper tag bits since
 	 the Lisp type goes there.  */
       if (((unsigned long) data_region_base & ~VALMASK) != 0)
@@ -252,7 +253,7 @@ init_heap ()
 	  printf ("Error: The heap was allocated in upper memory.\n");
 	  exit (1);
 	}
-
+#endif
       data_region_end = data_region_base;
       real_data_region_end = data_region_end;
     }

@@ -1572,7 +1572,7 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
       {
 	extern Lisp_Object Qmouse_face;
 	Lisp_Object mouse_face, overlay, position, *overlay_vec;
-	int len, noverlays, obegv, ozv;;
+	int noverlays, obegv, ozv;;
 	struct buffer *obuf;
 
 	/* If we get an out-of-range value, return now; avoid an error.  */
@@ -1591,20 +1591,8 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 	/* Is this char mouse-active or does it have help-echo?  */
 	XSETINT (position, pos);
 
-	/* Put all the overlays we want in a vector in overlay_vec.
-	   Store the length in len.  If there are more than 10, make
-	   enough space for all, and try again.  */
-	len = 10;
-	overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL, 0);
-	if (noverlays > len)
-	  {
-	    len = noverlays;
-	    overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	    noverlays = overlays_at (pos,
-				     0, &overlay_vec, &len, NULL, NULL, 0);
-	  }
-
+	/* Put all the overlays we want in a vector in overlay_vec. */
+	GET_OVERLAYS_AT (pos, overlay_vec, noverlays, NULL, 0);
 	/* Sort overlays into increasing priority order.  */
 	noverlays = sort_overlays (overlay_vec, noverlays, w);
 

@@ -448,7 +448,7 @@ alternative printed representations that can be displayed."
   "Return a string representing CHAR as a character rather than as an integer.
 If CHAR is not a character, return nil."
   (and (integerp char)
-       (char-valid-p (event-basic-type char))
+       (eventp char)
        (let ((c (event-basic-type char)))
 	 (concat
 	  "?"

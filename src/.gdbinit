@@ -81,7 +81,7 @@ end
 define xvectype
   xgetptr $
   set $size = ((struct Lisp_Vector *) $ptr)->size
-  output ($size & PVEC_FLAG) ? (enum pvec_type) ($size & PVEC_TYPE_MASK) : $size
+  output ($size & PVEC_FLAG) ? (enum pvec_type) ($size & PVEC_TYPE_MASK) : $size & ~gdb_array_mark_flag
   echo \n
 end
 document xvectype
@@ -199,7 +199,7 @@ end
 define xstring
   xgetptr $
   print (struct Lisp_String *) $ptr
-  output ($->size > 1000) ? 0 : ($->data[0])@($->size_byte < 0 ? $->size : $->size_byte)
+  output ($->size > 1000) ? 0 : ($->data[0])@($->size_byte < 0 ? $->size & ~gdb_array_mark_flag : $->size_byte)
   echo \n
 end
 document xstring
@@ -210,7 +210,7 @@ end
 define xvector
   xgetptr $
   print (struct Lisp_Vector *) $ptr
-  output ($->size > 50) ? 0 : ($->contents[0])@($->size)
+  output ($->size > 50) ? 0 : ($->contents[0])@($->size & ~gdb_array_mark_flag)
 echo \n
 end
 document xvector
@@ -289,7 +289,7 @@ end
 define xboolvector
   xgetptr $
   print (struct Lisp_Bool_Vector *) $ptr
-  output ($->size > 256) ? 0 : ($->data[0])@(($->size + 7)/ 8)
+  output ($->size > 256) ? 0 : ($->data[0])@((($->size & ~gdb_array_mark_flag) + 7)/ 8)
   echo \n
 end
 document xboolvector
@@ -377,7 +377,7 @@ define xprintsym
   set $sym = (struct Lisp_Symbol *) $ptr
   xgetptr $sym->xname
   set $sym_name = (struct Lisp_String *) $ptr
-  output ($sym_name->data[0])@($sym_name->size_byte < 0 ? $sym_name->size : $sym_name->size_byte)
+  output ($sym_name->data[0])@($sym_name->size_byte < 0 ? $sym_name->size & ~gdb_array_mark_flag : $sym_name->size_byte)
 end
 document xprintsym
   Print argument as a symbol.
@@ -395,7 +395,7 @@ define xbacktrace
       if $type == Lisp_Vectorlike
 	xgetptr (*$bt->function)
         set $size = ((struct Lisp_Vector *) $ptr)->size
-        output ($size & PVEC_FLAG) ? (enum pvec_type) ($size & PVEC_TYPE_MASK) : $size
+        output ($size & PVEC_FLAG) ? (enum pvec_type) ($size & PVEC_TYPE_MASK) : $size & ~gdb_array_mark_flag
       else
         printf "Lisp type %d", $type
       end

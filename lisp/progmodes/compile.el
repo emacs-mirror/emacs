@@ -448,17 +448,19 @@ starting the compilation process.")
 (defvar compile-history nil)
 
 (defface compilation-warning-face
-  '((((type tty) (class color)) (:foreground "cyan" :weight bold))
-    (((class color)) (:foreground "Orange" :weight bold))
+  '((((class color) (min-colors 16)) (:foreground "Orange" :weight bold))
+    (((class color)) (:foreground "cyan" :weight bold))
     (t (:weight bold)))
   "Face used to highlight compiler warnings."
   :group 'font-lock-highlighting-faces
   :version "21.4")
 
 (defface compilation-info-face
-  '((((type tty) (class color)) (:foreground "green" :weight bold))
-    (((class color) (background light)) (:foreground "Green3" :weight bold))
-    (((class color) (background dark)) (:foreground "Green" :weight bold))
+  '((((class color) (min-colors 16) (background light)) 
+     (:foreground "Green3" :weight bold))
+    (((class color) (min-colors 16) (background dark)) 
+     (:foreground "Green" :weight bold))
+    (((class color)) (:foreground "green" :weight bold))
     (t (:weight bold)))
   "Face used to highlight compiler warnings."
   :group 'font-lock-highlighting-faces
@@ -990,8 +992,9 @@ exited abnormally with code %d\n"
 	 ;; buffer, which might not be the same as the selected window's buffer.
 	 (save-current-buffer
 	   (save-selected-window
-	     (select-window window)
-	     (enlarge-window (- height (window-height))))))))
+	     (save-excursion
+	       (select-window window)
+	       (enlarge-window (- height (window-height)))))))))
 
 (defvar compilation-menu-map
   (let ((map (make-sparse-keymap "Errors")))

@@ -90,6 +90,12 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** New input method chinese-sisheng for inputting Chinese Pinyin
+characters.
+
+** New command quail-show-key shows what key (or key sequence) to type
+in the current input method to input a character at point.
+
 ** Convenient commands to switch buffers in a cyclic order are C-x <left>
 (prev-buffer) and C-x <right> (next-buffer).
 
@@ -97,8 +103,8 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 C-c <left> and C-c <right>, respectively.  This is an incompatible change.
 
 ** Help commands `describe-funcion' and `describe-key' now show function
-arguments in italics.  To change the default highlighting customize the
-face `help-argument-name'.
+arguments in lowercase italics on displays that support it.  To change the
+default, redefine the function `help-default-arg-highlight'.
 
 ---
 ** The comint prompt can now be made read-only, using the new user
@@ -795,9 +801,9 @@ to give it focus.
 +++
 ** The new command `describe-char' (C-u C-x =) pops up a buffer with
 description various information about a character, including its
-encodings and syntax, its text properties, overlays, and widgets at
-point.  You can get more information about some of them, by clicking
-on mouse-sensitive areas or moving there and pressing RET.
+encodings and syntax, its text properties, how to input, overlays, and
+widgets at point.  You can get more information about some of them, by
+clicking on mouse-sensitive areas or moving there and pressing RET.
 
 +++
 ** The new command `multi-occur' is just like `occur', except it can
@@ -1644,6 +1650,10 @@ Lines that match are never indented, and are given distinctive font-locking.
 ** F90 mode has new navigation commands `f90-end-of-block',
 `f90-beginning-of-block', `f90-next-block', `f90-previous-block'.
 
+** F90 mode now has support for hs-minor-mode (hideshow).
+It cannot deal with every code format, but ought to handle a sizeable
+majority.
+
 ---
 ** Prolog mode has a new variable `prolog-font-lock-keywords'
 to support use of font-lock.
@@ -1790,6 +1800,10 @@ to view diffs or log entries directly from vc-annotate-mode:
     W:  annotates the workfile (most up to date) version
 
 * New modes and packages in Emacs 21.4
+
+** The library tree-widget.el provides a new widget to display a set
+of hierarchical data as an outline.  For example, the tree-widget is
+well suited to display a hierarchy of directories and files.
 
 ** The wdired.el package allows you to use normal editing commands on dired
 buffers to change filenames, permissions, etc...
@@ -2018,6 +2032,9 @@ a match if part of it has a read-only property.
 configuration files.
 
 * Lisp Changes in Emacs 21.4
+
+** New function quail-find-key returns a list of keys to type in the
+current input method to input a character.
 
 ** New functions posn-at-point and posn-at-x-y returns
 click-event-style position information for a given visible buffer

@@ -663,13 +663,12 @@ The truename of a file name is found by chasing symbolic links
 both at the level of the file and at the level of the directories
 containing it, until no links are left at any level.
 
-The arguments COUNTER and PREV-DIRS are used only in recursive calls.
-Do not specify them in other calls."
-  ;; COUNTER can be a cons cell whose car is the count of how many more links
-  ;; to chase before getting an error.
+\(fn FILENAME)"
+  ;; COUNTER and PREV-DIRS are only used in recursive calls.
+  ;; COUNTER can be a cons cell whose car is the count of how many
+  ;; more links to chase before getting an error.
   ;; PREV-DIRS can be a cons cell whose car is an alist
   ;; of truenames we've just recently computed.
-
   (cond ((or (string= filename "") (string= filename "~"))
 	 (setq filename (expand-file-name filename))
 	 (if (string= filename "")
@@ -2330,7 +2329,7 @@ However, the mode will not be changed if
 (defun set-visited-file-name (filename &optional no-query along-with-file)
   "Change name of file visited in current buffer to FILENAME.
 The next time the buffer is saved it will go in the newly specified file.
-nil or empty string as argument means make buffer not be visiting any file.
+FILENAME nil or an empty string means make buffer not be visiting any file.
 Remember to delete the initial contents of the minibuffer
 if you wish to pass an empty string as the argument.
 
@@ -4024,7 +4023,7 @@ by `sh' are supported."
   "Expand wildcard pattern PATTERN.
 This returns a list of file names which match the pattern.
 
-If PATTERN is written as an absolute relative file name,
+If PATTERN is written as an absolute file name,
 the values are absolute also.
 
 If PATTERN is written as a relative file name, it is interpreted

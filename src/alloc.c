@@ -844,7 +844,7 @@ lisp_align_free (block)
   free_ablock = ablock;
   /* Update busy count.  */
   ABLOCKS_BUSY (abase) = (struct ablocks *) (-2 + (long) ABLOCKS_BUSY (abase));
-  
+
   if (2 > (long) ABLOCKS_BUSY (abase))
     { /* All the blocks are free.  */
       int i = 0, aligned = (long) ABLOCKS_BUSY (abase);
@@ -4977,6 +4977,14 @@ mark_object (arg)
       break;
 
     case Lisp_Misc:
+      if (XMISCTYPE (obj) == Lisp_Misc_Free)
+	{
+	  /* This is (probably) a freed marker which may still exist on
+	     a buffer undo list, so accept it here, as check below will
+	     fail (not live).  KFS 2004-05-17 */
+	  XMARKER (obj)->gcmarkbit = 1;
+	  break;
+	}
       CHECK_ALLOCATED_AND_LIVE (live_misc_p);
       if (XMARKER (obj)->gcmarkbit)
 	break;

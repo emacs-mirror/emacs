@@ -996,6 +996,11 @@ This function is called by the editor initialization to begin editing.  */)
   int count = SPECPDL_INDEX ();
   Lisp_Object buffer;
 
+  /* If we enter while input is blocked, don't lock up here.
+     This may happen through the debugger during redisplay.  */
+  if (INPUT_BLOCKED_P)
+    return Qnil;
+
   command_loop_level++;
   update_mode_lines = 1;
 
@@ -1294,6 +1299,12 @@ DEFUN ("top-level", Ftop_level, Stop_level, 0, 0, "",
   if (display_hourglass_p)
     cancel_hourglass ();
 #endif
+
+  /* Unblock input if we enter with input blocked.  This may happen if
+     redisplay traps e.g. during tool-bar update with input blocked.  */
+  while (INPUT_BLOCKED_P)
+    UNBLOCK_INPUT;
+
   return Fthrow (Qtop_level, Qnil);
 }
 
@@ -3967,9 +3978,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
       else if (event->kind == LANGUAGE_CHANGE_EVENT)
 	{
 	  /* Make an event (language-change (FRAME CHARSET LCID)).  */
-	  obj = Fcons (event->modifiers, Qnil);
-	  obj = Fcons (event->code, obj);
-	  obj = Fcons (event->frame_or_window, obj);
+	  obj = Fcons (event->frame_or_window, Qnil);
 	  obj = Fcons (Qlanguage_change, Fcons (obj, Qnil));
 	  kbd_fetch_ptr = event + 1;
 	}
@@ -11413,8 +11422,11 @@ mark_kboards ()
       {
 	if (event == kbd_buffer + KBD_BUFFER_SIZE)
 	  event = kbd_buffer;
-	mark_object (event->x);
-	mark_object (event->y);
+	if (event->kind != SELECTION_REQUEST_EVENT)
+	  {
+	    mark_object (event->x);
+	    mark_object (event->y);
+	  }
 	mark_object (event->frame_or_window);
 	mark_object (event->arg);
       }

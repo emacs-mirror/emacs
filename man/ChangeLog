@@ -1,3 +1,14 @@
+2004-05-16  Karl Berry  <karl@gnu.org>
+
+	* emacs.texi (ack.texi) [@ifnottex]: Change condition; with @ifinfo,
+	makeinfo --html fails.
+	* help.texi (Help Summary) [@ifnottex]: Likewise.
+
+2004-05-13  Nick Roberts  <nickrob@gnu.org>
+
+	* building.texi (GDB Graphical Interface): Update and describe
+	layout first.
+
 2004-05-07  Kai Grossjohann  <kai@emptydomain.de>
 
 	Version 2.0.40 of Tramp released.
