@@ -1,3 +1,8 @@
+2004-06-12  Karl Chen <quarl@hkn.eecs.berkeley.edu>  (tiny change)
+
+	* progmodes/python.el (python-open-block-statement-p): Fix
+	indentation after a block opening that contains a comment.
+
 2004-06-12  J,Ai(Br,At(Bme Marant  <jerome@marant.org>  (tiny change)
 
 	* bindings.el (completion-ignored-extensions): Add file extensions
