@@ -206,6 +206,8 @@ how the hiding is done:
 	(set (make-local-variable 'hide-ifdef-hiding)
 	     (default-value 'hide-ifdef-hiding))
 	(set (make-local-variable 'hif-outside-read-only) buffer-read-only)
+	(set (make-local-variable 'line-move-ignore-invisible) t)
+	(add-hook 'change-major-mode-hook (lambda () (hide-ifdef-mode -1)))
 
 	(add-to-invisibility-spec '(hide-ifdef . t))
 
@@ -213,6 +215,7 @@ how the hiding is done:
 	    (hide-ifdefs)
 	  (show-ifdefs)))
     ;; else end hide-ifdef-mode
+    (kill-local-variable 'line-move-ignore-invisible)
     (if hide-ifdef-hiding
 	(show-ifdefs))))
   
@@ -230,15 +233,23 @@ how the hiding is done:
        (hide-ifdefs t)))
 (add-hook 'after-revert-hook 'hif-after-revert-function)
 
+(defun hif-end-of-line ()
+  (end-of-line)
+  (while (= (logand 1 (skip-chars-backward "\\\\")) 1)
+    (end-of-line 2)))
+
+(defun hide-ifdef-region-internal (start end)
+  (remove-overlays start end 'invisible 'hide-ifdef)
+  (let ((o (make-overlay start end)))
+    (overlay-put o 'invisible 'hide-ifdef)))
+
 (defun hide-ifdef-region (start end)
   "START is the start of a #if or #else form.  END is the ending part.
 Everything including these lines is made invisible."
   (save-excursion
-    (goto-char start) (end-of-line) (setq start (point))
-    (goto-char end) (end-of-line) (setq end (point))
-    (remove-overlays start end 'invisible 'hide-ifdef)
-    (let ((o (make-overlay start end)))
-      (overlay-put o 'invisible 'hide-ifdef))))
+    (goto-char start) (hif-end-of-line) (setq start (point))
+    (goto-char end) (hif-end-of-line) (setq end (point))
+    (hide-ifdef-region-internal start end)))
 
 (defun hif-show-ifdef-region (start end)
   "Everything between START and END is made visible."
@@ -271,13 +282,7 @@ that form should be displayed.")
       hif-undefined-symbol)))
 
 (defun hif-defined (var)
-  (hif-lookup var)
-  ;; when #if expressions are fully supported, defined result should be 1
-  ;;  (if (assoc var  hide-ifdef-env)
-  ;;      1
-  ;;    nil)
-  )
-
+   (if (assoc var hide-ifdef-env) 1 0))
 
 ;;===%%SF%% evaluation (End)  ===
 
@@ -299,71 +304,47 @@ that form should be displayed.")
 (defvar hif-token)
 (defvar hif-token-list)
 
-(defun hif-infix-to-prefix (token-list)
-  "Convert list of tokens in infix into prefix list."
-  ;;  (message "hif-infix-to-prefix: %s" token-list)
-  (if (= 1 (length token-list))
-      `(hif-lookup (quote ,(car token-list)))
-    (hif-parse-if-exp token-list)))
-
 ;; pattern to match initial identifier, !, &&, ||, (, or ).
 ;; Added ==, + and -: garyo@avs.com 8/9/94
-(defconst hif-token-regexp "^\\(&&\\|||\\|[!=]=\\|!\\|[()+-]\\|[<>]=?\\|\\w+\\)")
-(defconst hif-end-of-comment "\\*/")
+(defconst hif-token-regexp
+  "\\(&&\\|||\\|[!=]=\\|!\\|[()+-]\\|[<>]=?\\|\\w+\\)")
 
-
-(defun hif-tokenize (expr-string)
-  "Separate string into a list of tokens."
-  (let ((token-list nil)
-	(expr-start 0)
-	(expr-length (length expr-string)))
+(defun hif-tokenize (start end)
+  "Separate string between START and END into a list of tokens."
+  (let ((token-list nil))
     (with-syntax-table hide-ifdef-syntax-table
-      (while (< expr-start expr-length) 
-	;; (message "expr-start = %d" expr-start) (sit-for 1)
-	(cond
-	 ((string-match "^[ \t]+" expr-string expr-start)
-	  ;; skip whitespace
-	  (setq expr-start (match-end 0))
-	  ;; stick newline in string so ^ matches on the next string-match
-	  (aset expr-string (1- expr-start) ?\n))
+      (save-excursion
+	(goto-char start)
+	(while (progn (forward-comment (point-max)) (< (point) end))
+	  ;; (message "expr-start = %d" expr-start) (sit-for 1)
+	  (cond
+	   ((looking-at "\\\\\n")
+	    (forward-char 2))
 
-	 ((string-match "^/\\*" expr-string expr-start)
-	  (setq expr-start (match-end 0))
-	  (aset expr-string (1- expr-start) ?\n)
-	  (or
-	   (string-match hif-end-of-comment
-			 expr-string expr-start) ; eat comment
-	   (string-match "$" expr-string expr-start)) ; multi-line comment
-	  (setq expr-start (match-end 0))
-	  (aset expr-string (1- expr-start) ?\n))
-
-	 ((string-match "^//" expr-string expr-start)
-	  (string-match "$" expr-string expr-start)
-	  (setq expr-start (match-end 0)))
-
-	 ((string-match hif-token-regexp expr-string expr-start)
-	  (let ((token (substring expr-string expr-start (match-end 0))))
-	    (setq expr-start (match-end 0))
-	    (aset expr-string (1- expr-start) ?\n)
-	    ;; (message "token: %s" token) (sit-for 1)
-	    (push (cond
-		   ((string-equal token "||") 'or)
-		   ((string-equal token "&&") 'and)
-		   ((string-equal token "==") 'equal)
-		   ((string-equal token "!=") 'hif-notequal)
-		   ((string-equal token "!")  'not)
-		   ((string-equal token "defined") 'hif-defined)
-		   ((string-equal token "(") 'lparen)
-		   ((string-equal token ")") 'rparen)
-		   ((string-equal token ">") 'hif-greater)
-		   ((string-equal token "<") 'hif-less)
-		   ((string-equal token ">=") 'hif-greater-equal)
-		   ((string-equal token "<=") 'hif-less-equal)
-		   ((string-equal token "+") 'hif-plus)
-		   ((string-equal token "-") 'hif-minus)
-		   (t (intern token)))
-		  token-list)))
-	 (t (error "Bad #if expression: %s" expr-string)))))
+	   ((looking-at hif-token-regexp)
+	    (let ((token (buffer-substring (point) (match-end 0))))
+	      (goto-char (match-end 0))
+	      ;; (message "token: %s" token) (sit-for 1)
+	      (push (cond
+		     ((string-equal token "||") 'or)
+		     ((string-equal token "&&") 'and)
+		     ((string-equal token "==") 'equal)
+		     ((string-equal token "!=") 'hif-notequal)
+		     ((string-equal token "!")  'not)
+		     ((string-equal token "defined") 'hif-defined)
+		     ((string-equal token "(") 'lparen)
+		     ((string-equal token ")") 'rparen)
+		     ((string-equal token ">") 'hif-greater)
+		     ((string-equal token "<") 'hif-less)
+		     ((string-equal token ">=") 'hif-greater-equal)
+		     ((string-equal token "<=") 'hif-less-equal)
+		     ((string-equal token "+") 'hif-plus)
+		     ((string-equal token "-") 'hif-minus)
+		     ((string-match "\\`[0-9]*\\'" token)
+		      (string-to-number token))
+		     (t (intern token)))
+		    token-list)))
+	   (t (error "Bad #if expression: %s" (buffer-string)))))))
     (nreverse token-list)))
 
 ;;;-----------------------------------------------------------------
@@ -379,11 +360,9 @@ that form should be displayed.")
     (if hif-token ; is there still a token?
 	(error "Error: unexpected token: %s" hif-token))))
 
-(defun hif-nexttoken ()
+(defsubst hif-nexttoken ()
   "Pop the next token from token-list into the let variable \"hif-token\"."
-  (setq hif-token (car hif-token-list))
-  (setq hif-token-list (cdr hif-token-list))
-  hif-token)
+  (setq hif-token (pop hif-token-list)))
 
 (defun hif-expr ()
   "Parse an expression as found in #if.
@@ -391,7 +370,7 @@ that form should be displayed.")
   (let ((result (hif-term)))
     (while (eq hif-token 'or)
       (hif-nexttoken)
-      (setq result (list 'or result (hif-term))))
+      (setq result (list 'hif-or result (hif-term))))
   result))
 
 (defun hif-term ()
@@ -399,7 +378,7 @@ that form should be displayed.")
   (let ((result (hif-eq-expr)))
     (while (eq hif-token 'and)
       (hif-nexttoken)
-      (setq result (list 'and result (hif-eq-expr))))
+      (setq result (list 'hif-and result (hif-eq-expr))))
     result))
 
 (defun hif-eq-expr ()
@@ -418,7 +397,7 @@ that form should be displayed.")
        math : factor | math '+|-' factor."
   (let ((result (hif-factor))
 	(math-op nil))
-    (while (or (eq hif-token 'hif-plus) (eq hif-token 'hif-minus))
+    (while (memq hif-token '(hif-plus hif-minus))
       (setq math-op hif-token)
       (hif-nexttoken)
       (setq result (list math-op result (hif-factor))))
@@ -429,7 +408,7 @@ that form should be displayed.")
   (cond
    ((eq hif-token 'not)
     (hif-nexttoken)
-    (list 'not (hif-factor)))
+    (list 'hif-not (hif-factor)))
 
    ((eq hif-token 'lparen)
     (hif-nexttoken)
@@ -441,17 +420,19 @@ that form should be displayed.")
 
    ((eq hif-token 'hif-defined)
     (hif-nexttoken)
-    (if (not (eq hif-token 'lparen))
-	(error "Error: expected \"(\" after \"defined\""))
-    (hif-nexttoken)
-    (let ((ident hif-token))
+    (let ((paren (when (eq hif-token 'lparen) (hif-nexttoken) t))
+	  (ident hif-token))
       (if (memq hif-token '(or and not hif-defined lparen rparen))
 	  (error "Error: unexpected token: %s" hif-token))
-      (hif-nexttoken)
-      (unless (eq hif-token 'rparen)
-	(error "Error: expected \")\" after identifier"))
+      (when paren
+	(hif-nexttoken)
+	(unless (eq hif-token 'rparen)
+	  (error "Error: expected \")\" after identifier")))
       (hif-nexttoken)
       `(hif-defined (quote ,ident))))
+
+   ((numberp hif-token)
+    (prog1 hif-token (hif-nexttoken)))
 
    (t					; identifier
     (let ((ident hif-token))
@@ -466,6 +447,12 @@ that form should be displayed.")
 	((null val) 0)
 	(t val)))
 
+(defun hif-and (a b)
+  (and (not (zerop (hif-mathify a))) (not (zerop (hif-mathify b)))))
+(defun hif-or (a b)
+  (or (not (zerop (hif-mathify a))) (not (zerop (hif-mathify b)))))
+(defun hif-not (a)
+  (zerop (hif-mathify a)))
 (defun hif-plus (a b)
   "Like ordinary plus but treat t and nil as 1 and 0."
   (+ (hif-mathify a) (hif-mathify b)))
@@ -495,13 +482,12 @@ that form should be displayed.")
   (save-excursion
     (let ((negate (looking-at hif-ifndef-regexp)))
       (re-search-forward hif-ifx-regexp)
-      (let* ((expr-string
-	      (buffer-substring (point)
-				(progn (skip-chars-forward "^\n\r") (point))))
-	     (expr (hif-infix-to-prefix (hif-tokenize expr-string))))
+      (let* ((tokens (hif-tokenize (point)
+				   (progn (hif-end-of-line) (point))))
+	     (expr (hif-parse-if-exp tokens)))
 	;; (message "hif-canonicalized: %s" expr)
 	(if negate
-	    (list 'not expr)
+	    (list 'hif-not expr)
 	  expr)))))
 
 
@@ -669,12 +655,12 @@ With argument, do this that many times."
 ;;;			Only valid if ELSE-P is true.
 ;;; END		The end of the range.  (beginning of line)
 
-(defun hif-make-range (start end &optional else)
+(defsubst hif-make-range (start end &optional else)
   (list start else end))
 
-(defun hif-range-start (range) (elt range 0))
-(defun hif-range-else (range) (elt range 1))
-(defun hif-range-end (range) (elt range 2))
+(defsubst hif-range-start (range) (elt range 0))
+(defsubst hif-range-else (range) (elt range 1))
+(defsubst hif-range-end (range) (elt range 2))
 
 
 
@@ -716,16 +702,14 @@ Point is left unchanged."
 
 	  
 ;;; A bit slimy.
-;;; NOTE:  If there's an #ifdef at the beginning of the file, we can't
-;;; hide it.  There's no previous newline to replace.  If we added
-;;; one, we'd throw off all the counts.  Feh.
 
 (defun hif-hide-line (point)
   "Hide the line containing point.  Does nothing if `hide-ifdef-lines' is nil."
   (if hide-ifdef-lines
       (save-excursion
 	(goto-char point)
-	(hide-ifdef-region (line-end-position 0) (line-end-position)))))
+	(hide-ifdef-region-internal (line-beginning-position)
+				    (progn (hif-end-of-line) (point))))))
 		  
 
 ;;;  Hif-Possibly-Hide
@@ -769,10 +753,10 @@ It uses the judgement of `hide-ifdef-evaluator'."
     ;; (message "test = %s" test) (sit-for 1)
       
     (hif-hide-line (hif-range-end range))
-    (if (funcall hide-ifdef-evaluator test)
-	(cond ((hif-range-else range) ; case 1
+    (if (not (hif-not (funcall hide-ifdef-evaluator test)))
+	(cond ((hif-range-else range)	; case 1
 	       (hif-hide-line (hif-range-else range))
-	       (hide-ifdef-region (hif-range-else range) 
+	       (hide-ifdef-region (hif-range-else range)
 				  (1- (hif-range-end range)))
 	       (hif-recurse-on (hif-range-start range)
 			       (hif-range-else range)))
