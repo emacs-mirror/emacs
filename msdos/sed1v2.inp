@@ -45,4 +45,8 @@ s/\.h\.in/.h-in/
 /^[ 	]*$/d
 /^temacs:/s/prefix-args//
 /^temacs:/s/stamp-oldxmenu//
+/^	mv \.\/\.gdbinit/d
+/^	if test -f/c\
+	command.com /c if exist .gdbinit rm -f _gdbinit
+/^	else mv \.\/\.gdbinit/d
 /^	#/d
