@@ -1788,11 +1788,20 @@ expand_and_dir_to_file (filename, defdir)
   return abspath;
 }
 
+/* Signal an error if the file ABSNAME already exists.
+   If INTERACTIVE is nonzero, ask the user whether to proceed,
+   and bypass the error if the user says to go ahead.
+   QUERYSTRING is a name for the action that is being considered
+   to alter the file.
+   *STATPTR is used to store the stat information if the file exists.
+   If the file does not exist, STATPTR->st_mode is set to 0.  */
+
 void
-barf_or_query_if_file_exists (absname, querystring, interactive)
+barf_or_query_if_file_exists (absname, querystring, interactive, statptr)
      Lisp_Object absname;
      unsigned char *querystring;
      int interactive;
+     struct stat *statptr;
 {
   register Lisp_Object tem;
   struct stat statbuf;
@@ -1814,6 +1823,13 @@ barf_or_query_if_file_exists (absname, querystring, interactive)
 	Fsignal (Qfile_already_exists,
 		 Fcons (build_string ("File already exists"),
 			Fcons (absname, Qnil)));
+      if (statptr)
+	*statptr = statbuf;
+    }
+  else
+    {
+      if (statptr)
+	statptr->st_mode = 0;
     }
   return;
 }
@@ -1833,7 +1849,7 @@ A prefix arg makes KEEP-TIME non-nil.")
 {
   int ifd, ofd, n;
   char buf[16 * 1024];
-  struct stat st;
+  struct stat st, out_st;
   Lisp_Object handler;
   struct gcpro gcpro1, gcpro2;
   int count = specpdl_ptr - specpdl;
@@ -1858,7 +1874,9 @@ A prefix arg makes KEEP-TIME non-nil.")
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (newname, "copy to it",
-				  INTEGERP (ok_if_already_exists));
+				  INTEGERP (ok_if_already_exists), &out_st);
+  else if (stat (XSTRING (newname)->data, &out_st) < 0)
+    out_st.st_mode = 0;
 
   ifd = open (XSTRING (filename)->data, O_RDONLY);
   if (ifd < 0)
@@ -1870,6 +1888,16 @@ A prefix arg makes KEEP-TIME non-nil.")
      copyable by us. */
   input_file_statable_p = (fstat (ifd, &st) >= 0);
 
+#ifndef DOS_NT
+  if (out_st.st_mode != 0
+      && st.st_dev == out_st.st_dev && st.st_ino == out_st.st_ino)
+    {
+      errno = 0;
+      report_file_error ("Input and output files are the same",
+			 Fcons (filename, Fcons (newname, Qnil)));
+    }
+#endif
+
 #if defined (S_ISREG) && defined (S_ISLNK)
   if (input_file_statable_p)
     {
@@ -1879,7 +1907,7 @@ A prefix arg makes KEEP-TIME non-nil.")
 	  /* Get a better looking error message. */
 	  errno = EISDIR;
 #endif /* EISDIR */
-	report_file_error ("Non-regular file", Fcons (filename, Qnil));
+	  report_file_error ("Non-regular file", Fcons (filename, Qnil));
 	}
     }
 #endif /* S_ISREG && S_ISLNK */
@@ -1896,7 +1924,7 @@ A prefix arg makes KEEP-TIME non-nil.")
 #endif /* not MSDOS */
 #endif /* VMS */
   if (ofd < 0)
-      report_file_error ("Opening output file", Fcons (newname, Qnil));
+    report_file_error ("Opening output file", Fcons (newname, Qnil));
 
   record_unwind_protect (close_file_unwind, make_number (ofd));
 
@@ -1904,7 +1932,7 @@ A prefix arg makes KEEP-TIME non-nil.")
   QUIT;
   while ((n = read (ifd, buf, sizeof buf)) > 0)
     if (write (ofd, buf, n) != n)
-	report_file_error ("I/O error", Fcons (newname, Qnil));
+      report_file_error ("I/O error", Fcons (newname, Qnil));
   immediate_quit = 0;
 
   /* Closing the output clobbers the file times on some systems.  */
@@ -2054,7 +2082,7 @@ This is what happens in interactive use with M-x.")
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (newname, "rename to it",
-				  INTEGERP (ok_if_already_exists));
+				  INTEGERP (ok_if_already_exists), 0);
 #ifndef BSD4_1
   if (0 > rename (XSTRING (filename)->data, XSTRING (newname)->data))
 #else
@@ -2134,7 +2162,7 @@ This is what happens in interactive use with M-x.")
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (newname, "make it a new name",
-				  INTEGERP (ok_if_already_exists));
+				  INTEGERP (ok_if_already_exists), 0);
 #ifdef WINDOWSNT
   /* Windows does not support this operation.  */
   report_file_error ("Adding new name", Flist (2, &filename));
@@ -2201,7 +2229,7 @@ This happens for interactive use with M-x.")
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (linkname, "make it a link",
-				  INTEGERP (ok_if_already_exists));
+				  INTEGERP (ok_if_already_exists), 0);
   if (0 > symlink (XSTRING (filename)->data, XSTRING (linkname)->data))
     {
       /* If we didn't complain already, silently delete existing file.  */
