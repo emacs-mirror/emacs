@@ -185,24 +185,27 @@ wrong, use this command again to toggle back to the right mode."
 
 (defun set-default-coding-systems (coding-system)
   "Set default value of various coding systems to CODING-SYSTEM.
-This sets the follwing coding systems:
+This sets the following coding systems:
   o coding system of a newly created buffer
   o default coding system for subprocess I/O
 This also sets the following values:
+  o default value used as file-name-coding-system for converting file names.
   o default value for the command `set-terminal-coding-system'
   o default value for the command `set-keyboard-coding-system'"
   (check-coding-system coding-system)
   (setq-default buffer-file-coding-system coding-system)
+  (setq default-file-name-coding-system coding-system)
   (setq default-terminal-coding-system coding-system)
   (setq default-keyboard-coding-system coding-system)
   (setq default-process-coding-system (cons coding-system coding-system)))
 
 (defun prefer-coding-system (coding-system)
   "Add CODING-SYSTEM at the front of the priority list for automatic detection.
-This also sets the follwing coding systems:
+This also sets the following coding systems:
   o coding system of a newly created buffer
   o default coding system for subprocess I/O
 This also sets the following values:
+  o default value used as file-name-coding-system for converting file names.
   o default value for the command `set-terminal-coding-system'
   o default value for the command `set-keyboard-coding-system'"
   (interactive "zPrefer coding system: ")
