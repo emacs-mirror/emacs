@@ -1,3 +1,11 @@
+2001-11-12  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (clone-indirect-buffer): Error if major mode symbol
+	has a no-clone-indirect property.
+	(clone-buffer): Check for obvious errors before reading clone name.
+
+	* info.el (Info-mode): Add a no-clone-indirect property.
+
 2001-11-12  Sam Steingold  <sds@gnu.org>
 
 	* vc.el (vc-print-log): Bind `inhibit-read-only' to t before and
