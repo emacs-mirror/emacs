@@ -1,6 +1,6 @@
 ;;; shell.el --- specialized comint.el for running the shell.
 
-;; Copyright (C) 1988, 93, 94, 95, 96, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 93, 94, 95, 96, 1997, 2000 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu> then
 ;;	Simon Marshall <simon@gnu.org>
@@ -456,10 +456,11 @@ Sentinels will always get the two parameters PROCESS and EVENT."
       (insert (format "\nProcess %s %s\n" process event))))
 
 ;;;###autoload
-(defun shell ()
-  "Run an inferior shell, with I/O through buffer *shell*.
-If buffer exists but shell process is not running, make new shell.
-If buffer exists and shell process is running, just switch to buffer `*shell*'.
+(defun shell (&optional buffer)
+  "Run an inferior shell, with I/O through BUFFER (which defaults to `*shell*').
+Interactively, a prefix arg means to prompt for BUFFER.
+If BUFFER exists but shell process is not running, make new shell.
+If BUFFER exists and shell process is running, just switch to BUFFER.
 Program used comes from variable `explicit-shell-file-name',
  or (if that is nil) from the ESHELL environment variable,
  or else from SHELL if there is no ESHELL.
@@ -483,8 +484,13 @@ its value is used as a list of arguments when invoking the shell.
 Otherwise, one argument `-i' is passed to the shell.
 
 \(Type \\[describe-mode] in the shell buffer for a list of commands.)"
-  (interactive)
-  (if (not (comint-check-proc "*shell*"))
+  (interactive
+   (list
+    (and current-prefix-arg
+	 (read-buffer "Shell buffer: " "*shell*"))))
+  (when (null buffer)
+    (setq buffer "*shell*"))
+  (if (not (comint-check-proc buffer))
       (let* ((prog (or explicit-shell-file-name
 		       (getenv "ESHELL")
 		       (getenv "SHELL")
@@ -494,7 +500,7 @@ Otherwise, one argument `-i' is passed to the shell.
 	     (xargs-name (intern-soft (concat "explicit-" name "-args")))
 	     shell-buffer)
 	(save-excursion
-	  (set-buffer (apply 'make-comint "shell" prog
+	  (set-buffer (apply 'make-comint-in-buffer "shell" buffer prog
 			     (if (file-exists-p startfile) startfile)
 			     (if (and xargs-name (boundp xargs-name))
 				 (symbol-value xargs-name)
@@ -502,7 +508,7 @@ Otherwise, one argument `-i' is passed to the shell.
 	  (setq shell-buffer (current-buffer))
 	  (shell-mode))
 	(pop-to-buffer shell-buffer))
-    (pop-to-buffer "*shell*")))
+    (pop-to-buffer buffer)))
 
 ;;; Don't do this when shell.el is loaded, only while dumping.
 ;;;###autoload (add-hook 'same-window-buffer-names "*shell*")
