@@ -40,6 +40,11 @@
 ;; previous region with available local help and print the help found
 ;; there.
 ;;
+;; Suggested key bindings:
+;;
+;; (global-set-key [C-tab] 'scan-buf-next-region)
+;; (global-set-key [C-M-tab] 'scan-buf-previous-region)
+;;
 ;; You do not have to do anything special to use the functionality
 ;; provided by this file, because all important functions autoload.
 
@@ -345,11 +350,6 @@ different regions.  With numeric argument ARG, behaves like
 
 (defvar help-at-pt-unload-hook '(help-at-pt-cancel-timer)
   "Normal hook run when `help-at-pt' is unloaded.")
-
-;; Suggested key bindings:
-;;
-;; (global-set-key [C-tab] 'scan-buf-next-region)
-;; (global-set-key [C-M-tab] 'scan-buf-previous-region)
 
 (provide 'help-at-pt)
 
