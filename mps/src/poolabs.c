@@ -1,7 +1,7 @@
 /* impl.c.poolabs: ABSTRACT POOL CLASSES
  *
- * $HopeName: MMsrc!poolabs.c(trunk.2) $
- * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
+ * $HopeName: MMsrc!poolabs.c(trunk.3) $
+ * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * READERSHIP
  *
@@ -11,9 +11,9 @@
  *
  * .purpose: This defines the abstract pool classes, giving
  * a single-inheritance framework which concrete classes 
- * may utilize. The purpose is to reduce the fragility of class 
+ * may utilize.  The purpose is to reduce the fragility of class 
  * definitions for pool implementations when small changes are 
- * made to the pool protocol. For now, the class hierarchy for
+ * made to the pool protocol.   For now, the class hierarchy for
  * the abstract classes is intended to be useful, but not to
  * represent any particular design for pool inheritance.
  * 
@@ -30,7 +30,7 @@
 
 #include "mpm.h"
 
-SRCID(poolabs, "$HopeName: MMsrc!poolabs.c(trunk.2) $");
+SRCID(poolabs, "$HopeName: MMsrc!poolabs.c(trunk.3) $");
 
 typedef PoolClassStruct AbstractPoolClassStruct;
 typedef PoolClassStruct AbstractAllocFreePoolClassStruct;
@@ -175,6 +175,7 @@ DEFINE_CLASS(AbstractPoolClass, class)
   class->walk = PoolNoWalk;
   class->describe = PoolTrivDescribe;
   class->debugMixin = PoolNoDebugMixin;
+  class->labelled = FALSE;
   class->sig = PoolClassSig;
 }
 
