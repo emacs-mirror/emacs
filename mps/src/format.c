@@ -1,11 +1,11 @@
 /* impl.c.format: OBJECT FORMATS
  *
- *  $HopeName: MMsrc!format.c(trunk.13) $
+ *  $HopeName: MMsrc!format.c(trunk.14) $
  */
 
 #include "mpm.h"
 
-SRCID(format, "$HopeName: MMsrc!format.c(trunk.13) $");
+SRCID(format, "$HopeName: MMsrc!format.c(trunk.14) $");
 
 
 Bool FormatCheck(Format format)
@@ -85,6 +85,8 @@ void FormatDestroy(Format format)
 /* Must be thread safe.  See design.mps.interface.c.thread-safety. */
 Space FormatSpace(Format format)
 {
+  /* Can't AVER format as that would not be thread-safe */
+  /* AVERT(Format, format); */
   return format->space;
 }
 
