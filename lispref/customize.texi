@@ -943,20 +943,20 @@ the item itself, the second argument is the item that was changed, and
 the third argument is the event leading to the change, if any.
 
 @item :menu-tag
-Tag used in the menu when the widget is used as an option in a
+A tag used in the menu when the widget is used as an option in a
 @code{menu-choice} widget.
 
 @item :menu-tag-get
-Function used for finding the tag when the widget is used as an option
+A function used for finding the tag when the widget is used as an option
 in a @code{menu-choice} widget.  By default, the tag used will be either the
 @code{:menu-tag} or @code{:tag} property if present, or the @code{princ}
 representation of the @code{:value} property if not.
 
 @item :validate
-A function which takes a widget as an argument, and return nil if the
-widgets current value is valid for the widget.  Otherwise, it should
-return the widget containing the invalid data, and set that widgets
-@code{:error} property to a string explaining the error.
+A function which takes a widget as an argument, and return @code{nil}
+if the widget's current value is valid for the widget.  Otherwise, it
+should return the widget containing the invalid data, and set that
+widget's @code{:error} property to a string explaining the error.
 
 You can use the function @code{widget-children-validate} for this job;
 it tests that all children of @var{widget} are valid.
