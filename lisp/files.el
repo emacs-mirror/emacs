@@ -343,15 +343,15 @@ and ignores this variable."
 (defvar view-read-only nil
   "*Non-nil means buffers visiting files read-only, do it in view mode.")
 
-(defvar system-tmp-directory
-  (directory-file-name 
+(defvar temporary-file-directory
+  (file-name-as-directory
    (cond ((memq system-type '(ms-dos windows-nt))
 	  (or (getenv "TEMP") (getenv "TMPDIR") (getenv "TMP") "c:/temp"))
 	 ((memq system-type '(vax-vms axp-vms))
 	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "SYS$SCRATCH:"))
 	 (t
 	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "/tmp"))))
-  "The directory for writing temporary files--actually, its name as a file.")
+  "The directory for writing temporary files.")
 
 ;; This hook function provides support for ange-ftp host name
 ;; completion.  It runs the usual ange-ftp hook, but only for
