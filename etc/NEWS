@@ -844,8 +844,7 @@ version number is performed based on regular expressions from
 `change-log-version-number-regexp-list' which can be cutomized.
 Version numbers are only found in the first 10 percent of a file.
 
-*** Change Log mode now defines its own faces for font-lock
-highlighting.
+*** Change Log mode now defines its own faces for font-lock highlighting.
 
 ** Changes to cmuscheme
 
@@ -857,6 +856,8 @@ highlighting.
 *** The new function `font-lock-remove-keywords' can be used to remove
 font-lock keywords from the current buffer or from a specific major
 mode.
+
+*** multiline patterns are now supported.
 
 ** Comint (subshell) changes
 
