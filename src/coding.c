@@ -6414,7 +6414,7 @@ DEFUN ("find-coding-systems-region-internal",
   Lisp_Object work_table, safe_codings;
   int non_ascii_p = 0;
   int single_byte_char_found = 0;
-  unsigned char *p1, *p1end, *p2, *p2end, *p;
+  const unsigned char *p1, *p1end, *p2, *p2end, *p;
 
   if (STRINGP (start))
     {
