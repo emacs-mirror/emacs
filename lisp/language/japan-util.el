@@ -45,7 +45,7 @@
   (set-default-coding-systems
    (if (eq system-type 'ms-dos)
        'japanese-shift-jis
-     'iso-2022-7bit))
+     'iso-2022-jp))
 
   (setq default-input-method "japanese"))
 
@@ -286,7 +286,7 @@ Optional argument ASCII-ONLY non-nil means to convert only to ASCII char."
 (defun read-hiragana-string (prompt &optional initial-input)
   "Read a Hiragana string from the minibuffer, prompting with string PROMPT.
 If non-nil, second arg INITIAL-INPUT is a string to insert before reading."
-  (read-multilingual-string prompt initial-input "quail-ja-hiragana"))
+  (read-multilingual-string prompt initial-input "japanese-hiragana"))
 
 ;;
 (provide 'japan-util)
