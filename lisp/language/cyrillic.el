@@ -115,7 +115,7 @@
   :mime-charset 'koi8-u)
 
 (define-coding-system 'koi8-t
-  "KOI8-T 8-bit encoding for Cyrillic (MIME: KOI8-T)"
+  "KOI8-T 8-bit encoding for Cyrillic"
   :coding-type 'charset
   :mnemonic ?*
   :charset-list '(koi8-t)
@@ -130,7 +130,7 @@
 (define-coding-system-alias 'cp1251 'windows-1251)
 
 (define-coding-system 'cp1125
-  "cp1125 8-bit encoding for Cyrillic (MIME: CP1125)"
+  "cp1125 8-bit encoding for Cyrillic"
   :coding-type 'charset
   :mnemonic ?*
   :charset-list '(cp1125))
@@ -183,7 +183,7 @@
 		(features code-pages)
 		(documentation
 		 . "Support for Belarusian with windows-1251 character set.
-(The name Belarusian replaced Byelorussian in the eraly 1990s.)"))
+\(The name Belarusian replaced Byelorussian in the early 1990s.)"))
  '("Cyrillic"))
 
 (provide 'cyrillic)
