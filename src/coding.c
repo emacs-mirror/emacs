@@ -8107,7 +8107,6 @@ usage: (define-coding-system-internal ...)  */)
 
   if (EQ (coding_type, Qcharset))
     {
-      Lisp_Object list;
       /* Generate a lisp vector of 256 elements.  Each element is nil,
 	 integer, or a list of charset IDs.
 
@@ -8119,8 +8118,10 @@ usage: (define-coding-system-internal ...)  */)
 
 	 If Nth element is a list of charset IDs, N is the first byte
 	 of one of them.  The list is sorted by dimensions of the
-	 charsets.  A charset of smaller dimension comes firtst.
-      */
+	 charsets.  A charset of smaller dimension comes firtst. */
+      Lisp_Object list;
+      int maybe_ascii_compatible = 1;
+
       for (list = Qnil, tail = charset_list; CONSP (tail); tail = XCDR (tail))
 	{
 	  struct charset *charset = CHARSET_FROM_ID (XFASTINT (XCAR (tail)));
@@ -8130,6 +8131,7 @@ usage: (define-coding-system-internal ...)  */)
 	      val = CHARSET_SUPERSET (charset);
 	      for (; CONSP (val); val = XCDR (val))
 		list = Fcons (XCAR (XCAR (val)), list);
+	      maybe_ascii_compatible = 0;
 	    }
 	  else
 	    list = Fcons (XCAR (tail), list);
@@ -8143,7 +8145,8 @@ usage: (define-coding-system-internal ...)  */)
 	  int dim = CHARSET_DIMENSION (charset);
 	  int idx = (dim - 1) * 4;
 
-	  if (CHARSET_ASCII_COMPATIBLE_P (charset))
+	  if (CHARSET_ASCII_COMPATIBLE_P (charset)
+	      && maybe_ascii_compatible)
 	    CODING_ATTR_ASCII_COMPAT (attrs) = Qt;
 
 	  for (i = charset->code_space[idx];
