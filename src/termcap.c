@@ -300,8 +300,10 @@ tputs (str, nlines, outfun)
 #else
   if (ospeed == 0)
     speed = tputs_baud_rate;
-  else
+  else if (ospeed > 0 && ospeed < (sizeof speeds / sizeof speeds[0]))
     speed = speeds[ospeed];
+  else
+    speed = 0;
 #endif
 
   if (!str)
