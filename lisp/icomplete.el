@@ -1,155 +1,195 @@
-;;; icomplete.el - minibuffer completion incremental feedback
-;;; This package is in the public domain.
+;;;_. icomplete.el - minibuffer completion incremental feedback
+
+;;; Copyright (C) 1992, 1993, 1994 Free Software Foundation, Inc.
 
 ;;; Author: Ken Manheimer <klm@nist.gov>
 ;;; Maintainer: Ken Manheimer <klm@nist.gov>
-;;; Version: icomplete.el,v 3.3 1993/12/11 11:27:35 klm Exp klm
+;;; Version: Id: icomplete.el,v 4.3 1994/08/31 18:48:29 klm Exp 
 ;;; Created: Mar 1993 klm@nist.gov - first release to usenet
 ;;; Keywords: help, abbrev
 
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
 ;;; Commentary:
 
-;;; Loading this package implements a more finely-grained completion
-;;; feedback scheme, indicating, within the minibuffer, the
-;;; prospective minibuffer completion candidates, as you type.  See
-;;; the documentation string for 'icomplete-prompt' for a specific
-;;; description of icompletion.
+;;; Loading this package implements a more fine-grained minibuffer
+;;; completion feedback scheme.  Prospective completions are concisely
+;;; indicated within the minibuffer itself, with each successive
+;;; keystroke.
 
-;;; It should run on most version of Emacs 19 (including Lucid emacs
-;;; 19 - thanks to the efforts of Colin Rafferty (craffert@lehman.com)
-;;; - thanks, Colin!)  This version of icomplete will *not* work on
-;;; Emacs 18 versions - the elisp archives, at
-;;; archive.cis.ohio-state.edu:/pub/gnu/emacs/elisp-archive, probably
-;;; still has a version that works in GNU Emacs v18.
+;;; See 'icomplete-completions' docstring for a description of the
+;;; icomplete display format.
 
-;;; Thanks to Colin Rafferty for assistance reconciling for lemacs,
-;;; and to Michael Cook, who implemented an incremental completion
-;;; style in his 'iswitch' functions that served as the basis for
-;;; icomplete.
+;;; See the `icomplete-minibuffer-setup-hook' docstring for a means to
+;;; customize icomplete setup for interoperation with other
+;;; minibuffer-oriented packages.
+
+;;; To activate icomplete mode, simply load the package.  You can
+;;; subsequently deactivate it by invoking the function icomplete-mode
+;;; with a negative prefix-arg (C-U -1 ESC-x icomplete-mode).  Also,
+;;; you can prevent activation of the mode during package load by
+;;; first setting the variable `icomplete-mode' to nil.  Icompletion
+;;; can be enabled any time after the package is loaded by invoking
+;;; icomplete-mode without a prefix arg.
+
+;;; This version of icomplete runs on Emacs 19.18 and later.  (It
+;;; depends on the incorporation of minibuffer-setup-hook.)  The elisp
+;;; archives, ftp://archive.cis.ohio-state.edu/pub/gnu/emacs/elisp-archive,
+;;; probably still has a version that works in GNU Emacs v18.
+
+;;; Thanks to everyone for their suggestions for refinements of this
+;;; package.  I particularly have to credit Michael Cook, who
+;;; implemented an incremental completion style in his 'iswitch'
+;;; functions that served as a model for icomplete.  Some other
+;;; contributors: Noah Freidman (restructuring as minor mode), Colin
+;;; Rafferty (lemacs reconciliation), Lars Lindberg, RMS, and
+;;; others.
+
+;;; klm.
 
 ;;; Code:
 
-;;;_* (Allout outline root topic.  Please leave this in.)
-
-;;;_ + Provide
+;;;_* Provide
 (provide 'icomplete)
 
-;;;_ + User Customization variables
-;;;_  = icomplete-inhibit
-(defvar icomplete-inhibit nil
-  "*Set this variable to t at any time to inhibit icomplete.")
+;;;_* User Customization variables
+
+;;;_* Initialization
+;;;_  = icomplete-minibuffer-setup-hook
+(defvar icomplete-minibuffer-setup-hook nil
+  "*Icomplete-specific customization of minibuffer setup.
+
+This hook is run during minibuffer setup iff icomplete will be active.
+It is intended for use in customizing icomplete for interoperation
+with other packages.  For instance:
+
+  \(add-hook 'icomplete-minibuffer-setup-hook 
+	    \(function
+	     \(lambda ()
+	       \(make-local-variable 'resize-minibuffer-window-max-height)
+	       \(setq resize-minibuffer-window-max-height 3))))
+
+will constrain rsz-mini to a maximum minibuffer height of 3 lines when
+icompletion is occurring.")
 
 ;;;_ + Internal Variables
+;;;_  = icomplete-mode
+(defvar icomplete-mode t
+  "Non-nil enables incremental minibuffer completion, once
+`\\[icomplete-mode]' function has set things up.")
 ;;;_  = icomplete-eoinput 1
 (defvar icomplete-eoinput 1
   "Point where minibuffer input ends and completion info begins.")
 (make-variable-buffer-local 'icomplete-eoinput)
+;;;_  = icomplete-pre-command-hook
+(defvar icomplete-pre-command-hook nil
+  "Incremental-minibuffer-completion pre-command-hook.
 
-;;;_ > icomplete-prime-session ()
+Is run in minibuffer before user input when `icomplete-mode' is non-nil.
+Use `icomplete-mode' function to set it up properly for incremental
+minibuffer completion.")
+(add-hook 'icomplete-pre-command-hook 'icomplete-tidy)
+;;;_  = icomplete-post-command-hook
+(defvar icomplete-post-command-hook nil
+  "Incremental-minibuffer-completion post-command-hook.
+
+Is run in minibuffer after user input when `icomplete-mode' is non-nil.
+Use `icomplete-mode' function to set it up properly for incremental
+minibuffer completion.")
+(add-hook 'icomplete-post-command-hook 'icomplete-exhibit)
+
+;;;_ > icomplete-mode (&optional prefix)
 ;;;###autoload
-(defun icomplete-prime-session ()
+(defun icomplete-mode (&optional prefix)
+  "Activate incremental minibuffer completion for this emacs session,
+or deactivate with negative prefix arg."
+  (interactive "p")
+  (or prefix (setq prefix 0))
+  (cond ((>= prefix 0)
+	 (setq icomplete-mode t)
+	 ;; The following is not really necessary after first time -
+	 ;; no great loss.
+	 (add-hook 'minibuffer-setup-hook 'icomplete-minibuffer-setup))
+	(t (setq icomplete-mode nil))))
 
-  "Prep emacs v 19 for more finely-grained minibuffer completion-feedback.
+;;;_ > icomplete-simple-completing-p ()
+(defun icomplete-simple-completing-p ()
 
-You can inhibit icomplete after loading by setting icomplete-inhibit
-non-nil.  Set the var back to nil to re-enable icomplete."
+  "Non-nil if current window is minibuffer that's doing simple completion.
 
-  ;; For emacs v19.18 and later revs, the icomplete key function is
-  ;; installed in 'minibuffer-setup-hook'.  Global pre- and post-
-  ;; command-hook functions are used in v19.17 and earlier v19 revs."
+Conditions are:
+   the selected window is a minibuffer,
+   and not in the middle of macro execution,
+   and minibuffer-completion-table is not a symbol (which would
+       indicate some non-standard, non-simple completion mechansm,
+       like file-name and other custom-func completions)."
 
-  (let* ((v19-rev (and (string-match "^19\\.\\([0-9]+\\)" emacs-version)
-		       (string-to-int (substring emacs-version
-						 (match-beginning 1)
-						 (match-end 1))))))
+  (and (window-minibuffer-p (selected-window))
+       (not executing-macro)
+       (not (symbolp minibuffer-completion-table))))
+;;;_ > icomplete-minibuffer-setup ()
+;;;###autoload
+(defun icomplete-minibuffer-setup ()
 
-    (cond ((and v19-rev			; emacs v 19, some rev,
-		(> v19-rev 17))
-	   ;; Post v19rev17, has minibuffer-setup-hook, use it:
-	   (add-hook 'minibuffer-setup-hook 'icomplete-prime-minibuffer))
-	  (v19-rev
-	   ;; v19rev17 and prior (including lucid): use global
-	   ;; pre- and post-command-hooks, instead:
-	   (add-hook 'pre-command-hook 'icomplete-pre-command-hook 'append)
-	   (add-hook 'post-command-hook
-		     'icomplete-post-command-hook 'append))
-	  ((format "icomplete: non v19 emacs, %s - %s"
-		   emacs-version "try elisp-archive icomplete")))))
+  "Run in minibuffer on activation to establish incremental completion.
 
-;;;_ > icomplete-prime-minibuffer ()
-(defun icomplete-prime-minibuffer ()
-  "Prep emacs, v 19.18 or later, for icomplete.
-\(In emacs v19.17 and earlier, and in lemacs, icomplete-prime-session
-is used, instead to establish global hooks.\)
+Usually run by inclusion in minibuffer-setup-hook."
 
-Run via `minibuffer-setup-hook', adds icomplete pre- and post-command
-hooks at the start of each minibuffer."
+  (cond ((and icomplete-mode (icomplete-simple-completing-p))
+	 (make-local-variable 'pre-command-hook)
+	 (setq pre-command-hook (copy-sequence pre-command-hook))
+	 (add-hook 'pre-command-hook
+		   (function (lambda ()
+			       (run-hooks 'icomplete-pre-command-hook))))
+	 (make-local-variable 'post-command-hook)
+	 (setq post-command-hook (copy-sequence post-command-hook))
+	 (add-hook 'post-command-hook
+		   (function (lambda ()
+			       (run-hooks 'icomplete-post-command-hook))))
+	 (run-hooks 'icomplete-minibuffer-setup-hook))))
 
-  ;; Append the hooks to avoid as much as posssible interference from
-  ;; other hooks that foul up minibuffer quit.
-  (make-local-variable 'pre-command-hook)
-  (make-local-variable 'post-command-hook)
-  (setq pre-command-hook (copy-sequence pre-command-hook))
-  (setq post-command-hook (copy-sequence post-command-hook))
-  (add-hook 'pre-command-hook 'icomplete-pre-command-hook)
-  (add-hook 'post-command-hook 'icomplete-post-command-hook))
+;;;_* Completion
 
-;;;_ > icomplete-window-minibuffer-p ()
-(defmacro icomplete-window-minibuffer-p ()
+;;;_ > icomplete-tidy ()
+(defun icomplete-tidy ()
+  "Remove completions display \(if any) prior to new user input.
 
-  "Returns non-nil if current window is a minibuffer window.
-
-Trivially equates to '(window-minibuffer-p (selected-window))', with
-the argument definitely provided for emacsen that require it, eg Lucid."
-
-  '(window-minibuffer-p (selected-window)))
-
-;;;_ + Completion
-
-;;;_  - Completion feedback hooks
-;;;_   > icomplete-pre-command-hook ()
-(defun icomplete-pre-command-hook ()
-  "Cleanup completions display before user's new command is dealt with."
-  (if (and (icomplete-window-minibuffer-p)
-	   (not executing-macro)
-	   (not (symbolp minibuffer-completion-table))
-	   (not icomplete-inhibit))
+Should be run in on the minibuffer pre-command-hook.  See `icomplete-mode'
+and `minibuffer-setup-hook'."
+  (if (icomplete-simple-completing-p)
       (if (and (boundp 'icomplete-eoinput)
 	       icomplete-eoinput)
+
 	  (if (> icomplete-eoinput (point-max))
 	      ;; Oops, got rug pulled out from under us - reinit:
 	      (setq icomplete-eoinput (point-max))
 	    (let ((buffer-undo-list buffer-undo-list )) ; prevent entry
 	      (delete-region icomplete-eoinput (point-max))))
+
 	;; Reestablish the local variable 'cause minibuffer-setup is weird:
 	(make-local-variable 'icomplete-eoinput)
 	(setq icomplete-eoinput 1))))
-;;;_   > icomplete-post-command-hook ()
-(defun icomplete-post-command-hook ()
-  "Exhibit completions, leaving bookkeeping so pre- hook can tidy up."
-
-  (if (and (icomplete-window-minibuffer-p)	; ... in a minibuffer.
-	   (not executing-macro)
-	   (not icomplete-inhibit)	; ... not specifically inhibited.
-	   ;(sit-for 0)			; ... redisplay and if there's input
-					; waiting, then don't icomplete
-					; (stigs suggestion) (too jumpy!)
-	   ;; Inhibit for file-name and other custom-func completions:
-	   (not (symbolp minibuffer-completion-table))
-	   )
-      (let ((buffer-undo-list buffer-undo-list ))	; prevent entry
-	(icomplete-exhibit))))
-;;;_   > icomplete-window-setup-hook ()
-(defun icomplete-window-setup-hook ()
-  "Exhibit completions, leaving bookkeeping so pre- hook can tidy up."
-
-  (if (and (icomplete-window-minibuffer-p)	; ... in a minibuffer.
-	   )
-      (message "ic ws doing")(sit-for 1)))
-;;;_   > icomplete-exhibit ()
+;;;_ > icomplete-exhibit ()
 (defun icomplete-exhibit ()
-  "Insert icomplete completions display."
-  (if (not (symbolp minibuffer-completion-table))
+  "Insert icomplete completions display.
+
+Should be run via minibuffer post-command-hook.  See `icomplete-mode'
+and `minibuffer-setup-hook'."
+  (if (icomplete-simple-completing-p)
       (let ((contents (buffer-substring (point-min)(point-max)))
 	    (buffer-undo-list t))
 	(save-excursion
@@ -164,15 +204,13 @@ the argument definitely provided for emacsen that require it, eg Lucid."
                                         ; Insert the match-status information:
 	  (if (> (point-max) 1)
 	      (insert-string
-		(icomplete-prompt contents
-				  minibuffer-completion-table
-				  minibuffer-completion-predicate
-				  (not
-				   minibuffer-completion-confirm))))))))
-
-;;;_  - Completion feedback producer
-;;;_   > icomplete-prompt (name candidates predicate require-match)
-(defun icomplete-prompt (name candidates predicate require-match)
+	       (icomplete-completions contents
+				      minibuffer-completion-table
+				      minibuffer-completion-predicate
+				      (not
+				       minibuffer-completion-confirm))))))))
+;;;_ > icomplete-completions (name candidates predicate require-match)
+(defun icomplete-completions (name candidates predicate require-match)
   "Identify prospective candidates for minibuffer completion.
 
 The display is updated with each minibuffer keystroke during
@@ -215,20 +253,21 @@ matches exist."
                   most-is-exact
                   (alternatives
                    (apply
-                    'concat
-                    (cdr (apply 'append
-                                (mapcar '(lambda (com)
-                                           (if (= (length com) most-len)
-                                               ;; Most is one exact match,
-                                               ;; note that and leave out
-                                               ;; for later indication:
-                                               (progn
-                                                 (setq most-is-exact t)
-                                                 ())
-                                             (list ","
-                                                   (substring com
-                                                              most-len))))
-                                        comps))))))
+                    (function concat)
+                    (cdr (apply
+			  (function nconc)
+			  (mapcar '(lambda (com)
+				     (if (= (length com) most-len)
+					 ;; Most is one exact match,
+					 ;; note that and leave out
+					 ;; for later indication:
+					 (progn
+					   (setq most-is-exact t)
+					   ())
+				       (list ","
+					     (substring com
+							most-len))))
+				  comps))))))
              (concat (and (> most-len (length name))
                           (concat open-bracket-determined
                                   (substring most (length name))
@@ -239,25 +278,17 @@ matches exist."
                        alternatives)
                      close-bracket-prospects))))))
 
-;;;_  - Initialization
-(icomplete-prime-session)
+;;;_ + Initialization
+;;; If user hasn't setq-default icomplete-mode to nil, then setup for
+;;; activation:
+(if icomplete-mode
+    (icomplete-mode))
 
 
-;;;_ + Local emacs vars.
-'(
-Local variables:
-eval: (save-excursion
-        (if (not (condition-case err (outline-mode t)
-                   (wrong-number-of-arguments nil)))
-            (progn
-              (message
-               "Allout outline-mode not loaded, not adjusting buffer exposure")
-              (sit-for 1))
-          (message "Adjusting '%s' visibility" (buffer-name))
-          (outline-lead-with-comment-string ";;;_")
-          (goto-char 0)
-          (outline-exposure -1 0)))
-End:)
+;;;_* Local emacs vars.
+;;;Local variables:
+;;;outline-layout: (-2 :)
+;;;End:
 
 ;;; icomplete.el ends here
 
