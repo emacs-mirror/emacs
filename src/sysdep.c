@@ -104,10 +104,14 @@ extern char *sys_errlist[];
 #endif
 #endif /* not 4.1 bsd */
 
-/* Get DGUX definition for FASYNC - DJB */
-#ifdef DGUX
-#include <sys/file.h>
-#endif /* DGUX */
+#ifdef BROKEN_FASYNC
+/* On some systems (DGUX comes to mind real fast) FASYNC causes
+   background writes to the terminal to stop all processes in the
+   process group when invoked under the csh (and probably any shell
+   with job control). This stops Emacs dead in its tracks when coming
+   up under X11. */
+#undef FASYNC
+#endif
 
 #include <sys/ioctl.h>
 #include "systty.h"
