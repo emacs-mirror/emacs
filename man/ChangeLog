@@ -1,3 +1,7 @@
+2003-09-22  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* emacs.texi (Acknowledgements): Correct typo.
+
 2003-09-22  Richard M. Stallman  <rms@gnu.org>
 
 	* dired.texi (Misc Dired Commands): New node.
