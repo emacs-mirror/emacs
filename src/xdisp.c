@@ -1379,6 +1379,7 @@ update:
    area to be cleared.  See tracking_off and
    wait_reading_process_input for examples of these situations.  */
 
+void
 redisplay_preserve_echo_area ()
 {
   if (echo_area_glyphs == 0 && previous_echo_glyphs != 0)
