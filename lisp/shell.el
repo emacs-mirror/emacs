@@ -144,7 +144,7 @@
 (require 'comint)
 
 ;;;###autoload
-(defconst shell-prompt-pattern "^[^#$%>]*[#$%>] *"
+(defconst shell-prompt-pattern "^[^#$%>;]*[#$%>;] *"
   "Regexp to match prompts in the inferior shell.
 Defaults to \"^[^#$%>]*[#$%>] *\", which works pretty well.
 This variable is used to initialise comint-prompt-regexp in the 
