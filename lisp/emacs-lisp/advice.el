@@ -3,8 +3,8 @@
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
+;; Maintainer: FSF
 ;; Created: 12 Dec 1992
-;; Version: advice.el,v 2.14 1994/08/05 03:42:04 hans Exp
 ;; Keywords: extensions, lisp, tools
 
 ;; This file is part of GNU Emacs.
@@ -3538,7 +3538,7 @@ The current definition and its cache-id will be put into the cache."
        function (symbol-function function) (ad-make-cache-id function)))))
 
 (defun ad-handle-definition (function)
-  "Handles re/definition of an advised FUNCTION during de/activation.
+  "Handle re/definition of an advised FUNCTION during de/activation.
 If FUNCTION does not have an original definition associated with it and
 the current definition is usable, then it will be stored as FUNCTION's
 original definition.  If no current definition is available (even in the
@@ -3582,7 +3582,7 @@ the value of `ad-redefinition-action' and de/activate again."
 ;; ==================================
 
 (defun ad-activate (function &optional compile)
-  "Activates all the advice information of an advised FUNCTION.
+  "Activate all the advice information of an advised FUNCTION.
 If FUNCTION has a proper original definition then an advised
 definition will be generated from FUNCTION's advice info and the
 definition of FUNCTION will be replaced with it.  If a previously
@@ -3622,7 +3622,7 @@ definition will always be cached for later usage."
 (defalias 'ad-activate-on 'ad-activate)
 
 (defun ad-deactivate (function)
-  "Deactivates the advice of an actively advised FUNCTION.
+  "Deactivate the advice of an actively advised FUNCTION.
 If FUNCTION has a proper original definition, then the current
 definition of FUNCTION will be replaced with it.  All the advice
 information will still be available so it can be activated again with
@@ -3651,7 +3651,7 @@ See `ad-activate' for documentation on the optional COMPILE argument."
       (ad-activate function compile)))
 
 (defun ad-unadvise (function)
-  "Deactivates FUNCTION and then remove all its advice information.
+  "Deactivate FUNCTION and then remove all its advice information.
 If FUNCTION was not advised this will be a noop."
   (interactive
    (list (ad-read-advised-function "Unadvise function: ")))
@@ -3663,9 +3663,9 @@ If FUNCTION was not advised this will be a noop."
 	 (ad-pop-advised-function function))))
 
 (defun ad-recover (function)
-  "Try to recover FUNCTION's original definition and unadvises it.
-This is more low-level than `ad-unadvise' because it does not do any
-deactivation which might run hooks and get into other trouble.
+  "Try to recover FUNCTION's original definition, and unadvise it.
+This is more low-level than `ad-unadvise' in that it does not do
+deactivation, which might run hooks and get into other trouble."
 Use in emergencies."
   ;; Use more primitive interactive behavior here: Accept any symbol that's
   ;; currently defined in obarray, not necessarily with a function definition:
@@ -3680,7 +3680,9 @@ Use in emergencies."
 	 (ad-pop-advised-function function))))
 
 (defun ad-activate-regexp (regexp &optional compile)
-  "Activates functions with an advice name containing a REGEXP match.
+  "Activate functions with an advice name containing a REGEXP match.
+This activates the advice for each function
+that has at least one piece of advice whose name includes a match for REGEXP.
 See `ad-activate' for documentation on the optional COMPILE argument."
   (interactive
    (list (ad-read-regexp "Activate via advice regexp: ")
@@ -3690,7 +3692,9 @@ See `ad-activate' for documentation on the optional COMPILE argument."
 	(ad-activate function compile))))
 
 (defun ad-deactivate-regexp (regexp)
-  "Deactivates functions with an advice name containing REGEXP match."
+  "Deactivate functions with an advice name containing REGEXP match.
+This deactivates the advice for each function
+that has at least one piece of advice whose name includes a match for REGEXP."
   (interactive
    (list (ad-read-regexp "Deactivate via advice regexp: ")))
   (ad-do-advised-functions (function)
@@ -3699,6 +3703,8 @@ See `ad-activate' for documentation on the optional COMPILE argument."
 
 (defun ad-update-regexp (regexp &optional compile)
   "Update functions with an advice name containing a REGEXP match.
+This reactivates the advice for each function
+that has at least one piece of advice whose name includes a match for REGEXP.
 See `ad-activate' for documentation on the optional COMPILE argument."
   (interactive
    (list (ad-read-regexp "Update via advice regexp: ")
@@ -3708,14 +3714,14 @@ See `ad-activate' for documentation on the optional COMPILE argument."
 	(ad-update function compile))))
 
 (defun ad-activate-all (&optional compile)
-  "Activates all currently advised functions.
+  "Activate all currently advised functions.
 See `ad-activate' for documentation on the optional COMPILE argument."
   (interactive "P")
   (ad-do-advised-functions (function)
     (ad-activate function compile)))
 
 (defun ad-deactivate-all ()
-  "Deactivates all currently advised functions."
+  "Deactivate all currently advised functions."
   (interactive)
   (ad-do-advised-functions (function)
     (ad-deactivate function)))
@@ -3728,13 +3734,17 @@ With prefix argument, COMPILE resulting advised definitions."
     (ad-update function compile)))
 
 (defun ad-unadvise-all ()
-  "Unadvises all currently advised functions."
+  "Unadvise all currently advised functions."
   (interactive)
   (ad-do-advised-functions (function)
     (ad-unadvise function)))
 
 (defun ad-recover-all ()
-  "Recovers all currently advised functions.  Use in emergencies."
+  "Recover all currently advised functions.  Use in emergencies.
+To recover a function means to try to find its original (pre-advice)
+definition, and delete all advice.
+This is more low-level than `ad-unadvise' in that it does not do
+deactivation, which might run hooks and get into other trouble."
   (interactive)
   (ad-do-advised-functions (function)
     (condition-case nil
@@ -3945,7 +3955,7 @@ undone on exit of this macro."
   (ad-activate 'documentation 'compile))
 
 (defun ad-stop-advice ()
-  "Stops the automatic advice handling magic.
+  "Stop the automatic advice handling magic.
 You should only need this in case of Advice-related emergencies."
   (interactive)
   ;; Advising `ad-activate-internal' means death!!
