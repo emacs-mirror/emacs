@@ -32,14 +32,9 @@
 ;;; tmm-menubar.
 
 (require 'electric)
-(define-key completion-list-mode-map "\e\e" 'abort-recursive-edit)
-(define-key completion-list-mode-map [left] 'backward-word)
-(define-key completion-list-mode-map [right] 'forward-word)
 ;(define-key minibuffer-local-must-match-map [pageup] 'tmm-goto-completions)
 ;(define-key minibuffer-local-must-match-map [prior] 'tmm-goto-completions)
 ;(define-key minibuffer-local-must-match-map "\ev" 'tmm-goto-completions)
-(define-key minibuffer-local-must-match-map [up] 'previous-history-element)
-(define-key minibuffer-local-must-match-map [down] 'next-history-element)
 
 ;;; The following will be localized, added only to pacify the compiler.
 (defvar tmm-short-cuts)
@@ -48,6 +43,8 @@
 (defvar tmm-c-prompt)
 (defvar tmm-km-list)
 (defvar tmm-table-undef)
+
+;;;###autoload (define-key global-map "\M-`" tmm-menubar)
 
 ;;;###autoload
 (defun tmm-menubar ()
@@ -67,7 +64,7 @@ See the documentation for `tmm-prompt'."
   "Press PageUp Key to reach this buffer from the minibuffer.
 Alternatively, you can use Up/Down keys (or your History keys) to change
 the item in the minibuffer, and press RET when you are done, or press the 
-marked letters to pick up your choice. ESC ESC to cancel.
+marked letters to pick up your choice.  Type ESC ESC to cancel.
 "
   "What insert on top of completion buffer.")
 
@@ -166,7 +163,8 @@ shortcuts added to these cars. Adds the shortcuts to a free variable
 
 (defun tmm-add-prompt ()
   (remove-hook 'minibuffer-setup-hook 'tmm-add-prompt)
-  (add-hook 'minibuffer-exit-hook 'tmm-delete-map)
+  (make-local-hook 'minibuffer-exit-hook)
+  (add-hook 'minibuffer-exit-hook 'tmm-delete-map nil t)
   (let ((map (make-sparse-keymap)) (win (selected-window)))
     (mapcar (lambda (str)
 	      (define-key map str 'tmm-shortcut)
@@ -198,7 +196,7 @@ shortcuts added to these cars. Adds the shortcuts to a free variable
     (insert tmm-c-prompt)))
 
 (defun tmm-delete-map ()
-  (remove-hook 'minibuffer-exit-hook 'tmm-delete-map)
+  (remove-hook 'minibuffer-exit-hook 'tmm-delete-map t)
   (use-local-map tmm-old-mb-map))
 
 (defun tmm-shortcut ()
