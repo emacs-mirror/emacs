@@ -5,7 +5,7 @@
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
-;; Revision: $Id: newcomment.el,v 1.37 2001/10/12 22:37:51 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.38 2001/11/13 20:17:26 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -464,14 +464,15 @@ If CONTINUE is non-nil, use the `comment-continue' markers if any."
       ;; Compute desired indent.
       (setq indent (save-excursion (funcall comment-indent-function)))
       (if (not indent)
-	  ;; comment-indent-function refuses delegates to indent.
+	  ;; comment-indent-function refuses: delegate to indent.
 	  (indent-according-to-mode)
 	;; Avoid moving comments past the fill-column.
-	(setq indent
-	      (min indent
-		   (+ (current-column)
-		      (- fill-column
-			 (save-excursion (end-of-line) (current-column))))))
+	(unless (save-excursion (skip-chars-backward " \t") (bolp))
+	  (setq indent
+		(min indent
+		     (+ (current-column)
+			(- fill-column
+			   (save-excursion (end-of-line) (current-column)))))))
 	(unless (= (current-column) indent)
 	  ;; If that's different from current, change it.
 	  (delete-region (point) (progn (skip-chars-backward " \t") (point)))
@@ -969,7 +970,7 @@ unless optional argument SOFT is non-nil."
 	    (insert-and-inherit fill-prefix))
 
 	;; If necessary check whether we're inside a comment.
-	(unless (or comment-multi-line compos (null comment-start))
+	(unless (or compos (null comment-start))
 	  (save-excursion
 	    (backward-char)
 	    (setq compos (comment-beginning))
@@ -992,6 +993,7 @@ unless optional argument SOFT is non-nil."
 		  ;; and the current comment's indentation, with a preference
 		  ;; for comment-column.
 		  (save-excursion
+		    ;; FIXME: use prev line's info rather than first line's.
 		    (goto-char compos)
 		    (min (current-column) (max comment-column
 					       (+ 2 (current-indentation))))))
@@ -1013,22 +1015,25 @@ unless optional argument SOFT is non-nil."
 			  (point))
 			 nil t)))))
 		 (comment-start comstart)
+		 (continuep (or comment-multi-line
+				(cadr (assoc comment-style comment-styles))))
 		 ;; Force comment-continue to be recreated from comment-start.
 		 ;; FIXME: wrong if comment-continue was set explicitly!
+		 ;; FIXME: use prev line's continuation if available.
 		 (comment-continue nil))
-	    (insert-and-inherit ?\n)
-	    (forward-char -1)
-	    (comment-indent (cadr (assoc comment-style comment-styles)))
-	    (save-excursion
-	      (let ((pt (point)))
-		(end-of-line)
-		(let ((comend (buffer-substring pt (point))))
-		  ;; The 1+ is to make sure we delete the \n inserted above.
-		  (delete-region pt (1+ (point)))
-		  (beginning-of-line)
-		  (backward-char)
-		  (insert comend)
-		  (forward-char)))))))))))
+	    (if (and comment-multi-line (> (length comment-end) 0))
+		(indent-according-to-mode)
+	      (insert-and-inherit ?\n)
+	      (forward-char -1)
+	      (comment-indent continuep)
+	      (save-excursion
+		(let ((pt (point)))
+		  (end-of-line)
+		  (let ((comend (buffer-substring pt (point))))
+		    ;; The 1+ is to make sure we delete the \n inserted above.
+		    (delete-region pt (1+ (point)))
+		    (end-of-line 0)
+		    (insert comend))))))))))))
 
 (provide 'newcomment)
 
