@@ -1,4 +1,4 @@
-;;; viet-util.el ---  utilities for Vietnamese
+;;; viet-util.el ---  utilities for Vietnamese  -*- coding: iso-2022-7bit; -*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

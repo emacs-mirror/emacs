@@ -1,4 +1,4 @@
-;;; tibet-util.el --- Support for inputting Tibetan characters
+;;; tibet-util.el --- Support for Tibetan   -*- coding: iso-2022-7bit; -*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

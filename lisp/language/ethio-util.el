@@ -1,4 +1,4 @@
-;;; ethio-util.el --- utilities for Ethiopic
+;;; ethio-util.el --- utilities for Ethiopic -*- coding: iso-2022-7bit; -*-
 
 ;; Copyright (C) 1997, 2001 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

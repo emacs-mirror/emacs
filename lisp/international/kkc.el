@@ -1,4 +1,4 @@
-;;; kkc.el --- Kana Kanji converter
+;;; kkc.el --- Kana Kanji converter    -*- coding: iso-2022-7bit; -*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

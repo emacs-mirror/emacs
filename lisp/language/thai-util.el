@@ -1,4 +1,4 @@
-;;; thai-util.el --- utilities for Thai
+;;; thai-util.el --- utilities for Thai -*- coding: iso-2022-7bit; -*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
