@@ -2822,27 +2822,45 @@ Next attempt to save will certainly not complain of a discrepancy.")
   return Qnil;
 }
 
-DEFUN ("set-visited-file-modtime", Fset_visited_file_modtime,
-  Sset_visited_file_modtime, 0, 0, 0,
-  "Update buffer's recorded modification time from the visited file's time.\n\
-Useful if the buffer was not read from the file normally\n\
-or if the file itself has been changed for some known benign reason.")
+DEFUN ("visited-file-modtime", Fvisited_file_modtime,
+  Svisited_file_modtime, 0, 0, 0,
+  "Return the current buffer's recorded visited file modification time.\n\
+The value is a list of the form (HIGH . LOW), like the time values\n\
+that `file-attributes' returns.")
   ()
 {
-  register Lisp_Object filename;
-  struct stat st;
-  Lisp_Object handler;
+  return long_to_cons (current_buffer->modtime);
+}
 
-  filename = Fexpand_file_name (current_buffer->filename, Qnil);
+DEFUN ("set-visited-file-modtime", Fset_visited_file_modtime,
+  Sset_visited_file_modtime, 0, 1, 0,
+  "Update buffer's recorded modification time from the visited file's time.\n\
+Useful if the buffer was not read from the file normally\n\
+or if the file itself has been changed for some known benign reason.\n\
+An argument specifies the modification time value to use\n\
+\(instead of that of the visited file), in the form of a list\n\
+\(HIGH . LOW) or (HIGH LOW).")
+  (time_list)
+     Lisp_Object time_list;
+{
+  if (!NILP (time_list))
+    current_buffer->modtime = cons_to_long (time_list);
+  else
+    {
+      register Lisp_Object filename;
+      struct stat st;
+      Lisp_Object handler;
 
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename);
-  if (!NILP (handler))
-    current_buffer->modtime = 0;
-  
-  else if (stat (XSTRING (filename)->data, &st) >= 0)
-    current_buffer->modtime = st.st_mtime;
+      filename = Fexpand_file_name (current_buffer->filename, Qnil);
+
+      /* If the file name has special constructs in it,
+	 call the corresponding file handler.  */
+      handler = Ffind_file_name_handler (filename);
+      if (!NILP (handler))
+	return call3 (handler, Qfile_name_directory, filename, Qnil);
+      else if (stat (XSTRING (filename)->data, &st) >= 0)
+	current_buffer->modtime = st.st_mtime;
+    }
 
   return Qnil;
 }
@@ -3378,6 +3396,7 @@ for its argument.");
   defsubr (&Swrite_region);
   defsubr (&Sverify_visited_file_modtime);
   defsubr (&Sclear_visited_file_modtime);
+  defsubr (&Svisited_file_modtime);
   defsubr (&Sset_visited_file_modtime);
   defsubr (&Sdo_auto_save);
   defsubr (&Sset_buffer_auto_saved);
