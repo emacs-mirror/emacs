@@ -2558,6 +2558,7 @@ make_lispy_event (event)
       /* A simple keystroke.  */
     case ascii_keystroke:
       {
+	Lisp_Object lispy_c;
 	int c = event->code & 0377;
 	/* Turn ASCII characters into control characters
 	   when proper.  */
@@ -2571,7 +2572,8 @@ make_lispy_event (event)
 	      & (meta_modifier | alt_modifier
 		 | hyper_modifier | super_modifier));
 	button_down_time = 0;
-	return c;
+	XFASTINT (lispy_c) = c;
+	return lispy_c;
       }
 
       /* A function key.  The symbol may need to have modifier prefixes
@@ -3617,7 +3619,7 @@ read_avail_input (expected)
       /* Don't look at input that follows a C-g too closely.
 	 This reduces lossage due to autorepeat on C-g.  */
       if (buf[i].kind == ascii_keystroke
-	  && XINT(buf[i].code) == quit_char)
+	  && buf[i].code == quit_char)
 	break;
     }
 
@@ -3715,7 +3717,7 @@ static void menu_bar_one_keymap ();
    menu_bar_items and its subroutines, and the current index
    for storing into that vector.  */
 static Lisp_Object menu_bar_items_vector;
-static Lisp_Object menu_bar_items_index;
+static int menu_bar_items_index;
 
 /* Return a vector of menu items for a menu bar, appropriate
    to the current buffer.  Each item has three elements in the vector:
@@ -4636,7 +4638,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	  /* If we have a quit that was typed in another frame, and
 	     quit_throw_to_read_char switched buffers,
 	     replay to get the right keymap.  */
-	  if (EQ (key, quit_char) && current_buffer != starting_buffer)
+	  if (XINT (key) == quit_char && current_buffer != starting_buffer)
 	    {
 	      keybuf[t++] = key;
 	      mock_input = t;
