@@ -2348,6 +2348,7 @@ If in the minibuffer, `minibuffer-scroll-window' if non-nil\n\
 specifies the window.\n\
 If `other-window-scroll-buffer' is non-nil, a window\n\
 showing that buffer is used.")
+  ()
 {
   Lisp_Object window;
 
@@ -2984,8 +2985,10 @@ redirection (see `redirect-frame-focus').")
 DEFUN ("save-window-excursion", Fsave_window_excursion, Ssave_window_excursion,
   0, UNEVALLED, 0,
   "Execute body, preserving window sizes and contents.\n\
-Restores which buffer appears in which window, where display starts,\n\
-as well as the current buffer.\n\
+Restore which buffer appears in which window, where display starts,\n\
+and the value of point and mark for each window.\n\
+Also restore which buffer is current.\n\
+But do not preserve point in the current buffer.\n\
 Does not restore the value of point in current buffer.")
   (args)
      Lisp_Object args;
