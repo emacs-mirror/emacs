@@ -404,6 +404,10 @@ this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
 	     (and window-setup-hook
 		  (run-hooks 'window-setup-hook))
 	     (setq window-setup-hook nil)
+	     ;; Do this now to avoid an annoying delay if the user
+	     ;; clicks the menu bar during the sit-for.
+	     (precompute-menubar-bindings)
+	     (setq menubar-bindings-done t)
 	     (unwind-protect
 		 (progn
 		   (insert (emacs-version)
@@ -437,11 +441,6 @@ GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for f
 You may give out copies of Emacs; type \\[describe-copying] to see the conditions.
 Type \\[describe-distribution] for information on getting the latest version.")))
 		   (set-buffer-modified-p nil)
-		   ;; Do this now to avoid an annoying delay if the user
-		   ;; clicks the menu bar during the sit-for.
-		   (sit-for 0)
-		   (precompute-menubar-bindings)
-		   (setq menubar-bindings-done t)
 		   (sit-for 120))
 	       (save-excursion
 		 ;; In case the Emacs server has already selected
