@@ -6898,12 +6898,12 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
   Lisp_Object function;
   char buf[40];
   Lisp_Object saved_keys;
-  struct gcpro gcpro1;
+  struct gcpro gcpro1, gcpro2;
 
   saved_keys = Fvector (this_command_key_count,
 			XVECTOR (this_command_keys)->contents);
   buf[0] = 0;
-  GCPRO1 (saved_keys);
+  GCPRO1 (saved_keys, prefixarg);
 
   if (EQ (prefixarg, Qminus))
     strcpy (buf, "- ");
