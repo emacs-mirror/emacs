@@ -106,7 +106,7 @@ static struct hfctlack  ACK =
           else { (l) -= j; (p) += j; }
 
 /*************** function prototypes ***************************/
-#ifdef __STDC__
+#ifdef PROTOTYPES
 static GT_ACK (int fd, int req, char *buf);
 static WR_REQ (int fd, int request, int cmdlen, char *cmd, int resplen);
 static void hft_alrm(int sig);
