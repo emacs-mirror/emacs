@@ -42,7 +42,10 @@ Lisp_Object Vmark_even_if_inactive;
 Lisp_Object Vmouse_leave_buffer_hook, Qmouse_leave_buffer_hook;
 
 Lisp_Object Qlist;
-Lisp_Object preserved_fns;
+static Lisp_Object preserved_fns;
+
+/* Marker used within call-interactively to refer to point.  */
+static Lisp_Object point_marker;
 
 /* This comment supplies the doc string for interactive,
    for make-docfile to see.  We cannot put this in the real DEFUN
@@ -443,7 +446,8 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  break;
 
 	case 'd':		/* Value of point.  Does not do I/O.  */
-	  XSETFASTINT (args[i], point);
+	  Fset_marker (point_marker, make_number (PT), Qnil);
+	  args[i] = point_marker;
 	  /* visargs[i] = Qnil; */
 	  varies[i] = 1;
 	  break;
@@ -495,7 +499,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	case 'm':		/* Value of mark.  Does not do I/O.  */
 	  check_mark ();
 	  /* visargs[i] = Qnil; */
-	  XSETFASTINT (args[i], marker_position (current_buffer->mark));
+	  args[i] = current_buffer->mark;
 	  varies[i] = 2;
 	  break;
 
@@ -524,12 +528,13 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 
 	case 'r':		/* Region, point and mark as 2 args. */
 	  check_mark ();
+	  Fset_marker (point_marker, make_number (PT), Qnil);
 	  /* visargs[i+1] = Qnil; */
 	  foo = marker_position (current_buffer->mark);
 	  /* visargs[i] = Qnil; */
-	  XSETFASTINT (args[i], point < foo ? point : foo);
+	  args[i] = point < foo ? point_marker : current_buffer->mark;
 	  varies[i] = 3;
-	  XSETFASTINT (args[++i], point > foo ? point : foo);
+	  args[++i] = point > foo ? point_marker : current_buffer->mark;
 	  varies[i] = 4;
 	  break;
 
@@ -585,13 +590,21 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
     {
       visargs[0] = function;
       for (i = 1; i < count + 1; i++)
-	if (varies[i] > 0)
-	  visargs[i] = Fcons (intern (callint_argfuns[varies[i]]), Qnil);
-	else
-	  visargs[i] = quotify_arg (args[i]);
+	{
+	  if (varies[i] > 0)
+	    visargs[i] = Fcons (intern (callint_argfuns[varies[i]]), Qnil);
+	  else
+	    visargs[i] = quotify_arg (args[i]);
+	}
       Vcommand_history = Fcons (Flist (count + 1, visargs),
 				Vcommand_history);
     }
+
+  /* If we used a marker to hold point, mark, or an end of the region,
+     temporarily, convert it to an integer now.  */
+  for (i = 0; i++; i < count)
+    if (varies[i] >= 1 && varies[i] <= 4)
+      XSETINT (args[i], marker_position (args[i]));
 
   {
     Lisp_Object val;
@@ -629,6 +642,9 @@ Its numeric meaning is what you would get from `(interactive \"p\")'.")
 
 syms_of_callint ()
 {
+  point_marker = Fmake_marker ();
+  staticpro (&point_marker);
+
   preserved_fns = Fcons (intern ("region-beginning"),
 			 Fcons (intern ("region-end"),
 				Fcons (intern ("point"),
