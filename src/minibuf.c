@@ -251,6 +251,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
   minibuf_prompt = (char *) alloca (XSTRING (prompt)->size + 1);
   bcopy (XSTRING (prompt)->data, minibuf_prompt, XSTRING (prompt)->size + 1);
   echo_area_glyphs = 0;
+  /* This is in case the minibuffer-setup-hook calls Fsit_for.  */
+  previous_echo_glyphs = 0;
 
   Vhelp_form = Vminibuffer_help_form;
   current_buffer->keymap = map;
