@@ -165,9 +165,9 @@ Called with region narrowed to the message, including headers.")
 ;; Last set of values specified to C-M-n, C-M-p, C-M-s or C-M-l.
 (defvar rmail-last-multi-labels nil)
 (defvar rmail-last-regexp nil)
-(defvar rmail-default-file nil
+(defvar rmail-default-file "~/xmail"
   "*Default file name for \\[rmail-output].")
-(defvar rmail-default-rmail-file (expand-file-name "~/XMAIL")
+(defvar rmail-default-rmail-file "~/XMAIL"
   "*Default file name for \\[rmail-output-to-rmail-file].")
 
 ;;; Regexp matching the delimiter of messages in UNIX mail format
@@ -252,8 +252,6 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
   (interactive (if current-prefix-arg
 		   (list (read-file-name "Run rmail on RMAIL file: "
 					 nil nil t))))
-  (or rmail-default-file
-      (setq rmail-default-file (expand-file-name "~/xmail")))
   (let* ((file-name (expand-file-name (or file-name-arg rmail-file-name)))
 	 (existed (get-file-buffer file-name)))
     ;; Like find-file, but in the case where a buffer existed
