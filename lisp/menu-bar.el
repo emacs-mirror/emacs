@@ -57,11 +57,15 @@
 (define-key menu-bar-file-menu [rmail] '("Read Mail" . rmail))
 (define-key menu-bar-file-menu [gnus] '("Read Net News" . gnus))
 
-(define-key menu-bar-file-menu [separator-frames]
-  '("--"))
+(if (fboundp 'delete-frame)
+    (progn
+      (define-key menu-bar-file-menu [separator-frames]
+	'("--"))
 
-(define-key menu-bar-file-menu [delete-frame] '("Delete Frame" . delete-frame))
-(define-key menu-bar-file-menu [make-frame] '("Make New Frame" . make-frame))
+      (define-key menu-bar-file-menu [delete-frame]
+	'("Delete Frame" . delete-frame))
+      (define-key menu-bar-file-menu [make-frame]
+	'("Make New Frame" . make-frame))))
 
 (define-key menu-bar-file-menu [separator-buffers]
   '("--"))
