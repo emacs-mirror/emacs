@@ -106,6 +106,9 @@ infodir=@infodir@
 # set by the configure script's `--srcdir' option.
 srcdir=@srcdir@
 
+# Tell make where to find source files; this is needed for the makefiles.
+VPATH=@srcdir@
+
 # ==================== Emacs-specific directories ====================
 
 # These variables hold the values Emacs will actually use.  They are
