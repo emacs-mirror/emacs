@@ -385,7 +385,7 @@ struct w32_output
   /* The extra width currently allotted for the areas in which
      truncation marks, continuation marks, and overlay arrows are
      displayed.  */
-  int flags_areas_extra;
+  int fringes_extra;
 
   /* This is the gravity value for the specified window position.  */
   int win_gravity;
@@ -468,38 +468,38 @@ extern struct w32_output w32term_display;
 #define FRAME_X_IMAGE_CACHE(F) FRAME_W32_DISPLAY_INFO ((F))->image_cache
 
 
-/* Pixel width of the bitmaps drawn to indicate truncation,
+/* Pixel width of the fringe bitmaps drawn to indicate truncation,
    continuation etc.  */
 
-#define FRAME_FLAGS_BITMAP_WIDTH(f)	8
-#define FRAME_FLAGS_BITMAP_HEIGHT(f)	8
+#define FRAME_FRINGE_BITMAP_WIDTH(f)	8
+#define FRAME_FRINGE_BITMAP_HEIGHT(f)	8
 
-/* Total width of areas reserved for drawing truncation bitmaps,
+/* Total width of fringes reserved for drawing truncation bitmaps,
    continuation bitmaps and alike.  The width is in canonical char
    units of the frame.  This must currently be the case because window
    sizes aren't pixel values.  If it weren't the case, we wouldn't be
    able to split windows horizontally nicely.  */
 
-#define FRAME_X_FLAGS_AREA_COLS(F)				\
-     ((2 * FRAME_FLAGS_BITMAP_WIDTH ((F)) + CANON_X_UNIT ((F)) - 1)	\
+#define FRAME_X_FRINGE_COLS(F)				\
+     ((2 * FRAME_FRINGE_BITMAP_WIDTH ((F)) + CANON_X_UNIT ((F)) - 1)	\
       / CANON_X_UNIT ((F)))
 
-/* Total width of flags areas in pixels.  */
+/* Total width of fringes in pixels.  */
 
-#define FRAME_X_FLAGS_AREA_WIDTH(F) \
-     (FRAME_X_FLAGS_AREA_COLS ((F)) * CANON_X_UNIT ((F)))
+#define FRAME_X_FRINGE_WIDTH(F) \
+     (FRAME_X_FRINGE_COLS ((F)) * CANON_X_UNIT ((F)))
 
-/* Pixel-width of the left flags area.  */
+/* Pixel-width of the left fringe.  */
 
-#define FRAME_X_LEFT_FLAGS_AREA_WIDTH(F) \
-     (FRAME_X_FLAGS_AREA_WIDTH (F) / 2)
+#define FRAME_X_LEFT_FRINGE_WIDTH(F) \
+     (FRAME_X_FRINGE_WIDTH (F) / 2)
 
-/* Pixel-width of the right flags area.  Note that we are doing
+/* Pixel-width of the right fringe.  Note that we are doing
    integer arithmetic here, so don't loose a pixel if the total
    width is an odd number.  */
 
-#define FRAME_X_RIGHT_FLAGS_AREA_WIDTH(F) 	\
-     (FRAME_X_FLAGS_AREA_WIDTH (F) - FRAME_X_FLAGS_AREA_WIDTH (F) / 2)
+#define FRAME_X_RIGHT_FRINGE_WIDTH(F) 	\
+     (FRAME_X_FRINGE_WIDTH (F) - FRAME_X_FRINGE_WIDTH (F) / 2)
 
 
 
@@ -657,7 +657,7 @@ struct scroll_bar {
 #define CHAR_TO_PIXEL_WIDTH(f, width) \
   (CHAR_TO_PIXEL_COL (f, width) \
    + (f)->output_data.w32->vertical_scroll_bar_extra \
-   + (f)->output_data.w32->flags_areas_extra \
+   + (f)->output_data.w32->fringes_extra \
    + (f)->output_data.w32->internal_border_width)
 #define CHAR_TO_PIXEL_HEIGHT(f, height) \
   (CHAR_TO_PIXEL_ROW (f, height) \
@@ -678,7 +678,7 @@ struct scroll_bar {
 #define PIXEL_TO_CHAR_WIDTH(f, width) \
   (PIXEL_TO_CHAR_COL (f, ((width) \
 			  - (f)->output_data.w32->internal_border_width \
-			  - (f)->output_data.w32->flags_areas_extra \
+			  - (f)->output_data.w32->fringes_extra \
 			  - (f)->output_data.w32->vertical_scroll_bar_extra)))
 #define PIXEL_TO_CHAR_HEIGHT(f, height) \
   (PIXEL_TO_CHAR_ROW (f, ((height) \
