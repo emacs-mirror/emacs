@@ -815,6 +815,7 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
   int len;
   register int tlen = GLYPH_TABLE_LENGTH;
   register Lisp_Object *tbase = GLYPH_TABLE_BASE;
+  int result;
   struct coding_system *coding;
 
   coding = (CODING_REQUIRE_ENCODING (&terminal_coding)
@@ -857,19 +858,24 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
 	      buf = GLYPH_STRING (tbase, g);
 	    }
 	  
-	  encode_coding (coding, buf, dst, len, dst_end - dst);
+	  result = encode_coding (coding, buf, dst, len, dst_end - dst);
 	  len -= coding->consumed;
 	  dst += coding->produced;
+	  if (result == CODING_FINISH_INSUFFICIENT_DST
+	      || (result == CODING_FINISH_INSUFFICIENT_SRC
+		  && len > dst_end - dst))
+	    /* The remaining output buffer is too short.  We must
+	       break the loop here without increasing SRC so that the
+	       next call of this function starts from the same glyph.  */
+	    break;
+
 	  if (len > 0)
 	    {
-	      if (len > dst_end - dst)
-		/* The remaining output buffer is too short.  We must
-		   break the loop here without increasing SRC so that
-		   the next call of this function start from the same
-		   glyph.  */
-		break;
-	      buf += len;
-	      while (len--) *dst++ = *buf++;
+	      /* This is the case that a code of the range 0200..0237
+		 exists in buf.  We must just write out such a code.  */
+	      buf += coding->consumed;
+	      while (len--)
+		*dst++ = *buf++;
 	    }
 	}
       src++;
