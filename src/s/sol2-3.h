@@ -49,6 +49,11 @@
     pty_name[sizeof(pty_name) - 1] = 0;		\
   }
 
-/* David Miller <davem@caip.rutgers.edu> says vfork fails on 2.4.  */
-/* Brendan Kehoe <brendan@zen.org> says it also fails on 2.3.  */
+/* David Miller <davem@caip.rutgers.edu> says vfork fails on 2.4.
+   Brendan Kehoe <brendan@zen.org> says it also fails on 2.3.
+   So we'll use the alternate definition in sysdep.c.
+   But a header file has a declaration
+   that would conflict with the definition of vfork in sysdep.c.
+   So we'll choose the return type to match the system header.  */
 #undef HAVE_VFORK
+#define VFORK_RETURN_TYPE pid_t
