@@ -1375,7 +1375,6 @@ find_charsets_in_text (ptr, nchars, nbytes, charsets, table, multibyte)
      int multibyte;
 {
   const unsigned char *pend = ptr + nbytes;
-  int ncharsets = ASIZE (charsets);
 
   if (nchars == nbytes)
     {
@@ -1989,6 +1988,7 @@ usage: (set-charset-priority &rest charsets)  */)
      Lisp_Object *args;
 {
   Lisp_Object new_head, old_list, arglist[2];
+  Lisp_Object list_2022, list_emacs_mule;
   int i, id;
 
   old_list = Fcopy_sequence (Vcharset_ordered_list);
@@ -2007,13 +2007,16 @@ usage: (set-charset-priority &rest charsets)  */)
   Vcharset_ordered_list = Fnconc (2, arglist);
   charset_ordered_list_tick++;
 
-  for (old_list = Vcharset_ordered_list, new_head = Qnil;
+  for (old_list = Vcharset_ordered_list, list_2022 = list_emacs_mule = Qnil;
        CONSP (old_list); old_list = XCDR (old_list))
     {
       if (! NILP (Fmemq (XCAR (old_list), Viso_2022_charset_list)))
-	new_head = Fcons (XCAR (old_list), new_head);
+	list_2022 = Fcons (XCAR (old_list), list_2022);
+      if (! NILP (Fmemq (XCAR (old_list), Vemacs_mule_charset_list)))
+	list_emacs_mule = Fcons (XCAR (old_list), list_emacs_mule);
     }
-  Viso_2022_charset_list = Fnreverse (new_head);
+  Viso_2022_charset_list = Fnreverse (list_2022);
+  Vemacs_mule_charset_list = Fnreverse (list_emacs_mule);
 
   return Qnil;
 }
