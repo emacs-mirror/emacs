@@ -2,7 +2,7 @@
 ;;; Copyright (C) 1991, 1993 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans <jv@mh.nl>
-;; Version: 2.0
+;; Version: 2.2
 
 ;; This file is part of GNU Emacs.
 
@@ -26,8 +26,8 @@
 ;;;
 ;;; === Naming conventions
 ;;;
-;;; The names of all variables and functions start with 'form-'.
-;;; Names which start with 'form--' are intended for internal use, and
+;;; The names of all variables and functions start with 'forms-'.
+;;; Names which start with 'forms--' are intended for internal use, and
 ;;; should *NOT* be used from the outside.
 ;;;
 ;;; All variables are buffer-local, to enable multiple forms visits 
@@ -253,7 +253,7 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version "2.0"
+(defconst forms-version "2.2"
   "Version of forms-mode implementation.")
 
 (defvar forms-mode-hooks nil
@@ -643,12 +643,9 @@ Commands (prefix with C-c if not in read-only mode):
 	    (aset forms--elements field-num (1- el)))
 	  (setq field-num (1+ field-num))
 
-	  ;; Make sure the field is preceded by something.
 	  (if prev-item
 	      (setq forms-format-list
-		    (append forms-format-list (list prev-item) nil))
-	    (setq forms-format-list
-		  (append forms-format-list (list "\n") nil)))
+		    (append forms-format-list (list prev-item) nil)))
 	  (setq prev-item el))
 
 	 ;; Try function ...
@@ -680,7 +677,7 @@ Commands (prefix with C-c if not in read-only mode):
 	  (setq forms-format-list
 		(append forms-format-list (list prev-item) nil))
 	  ;; Append a newline if the last item is a field.
-	  ;; This prevents pasrsing problems.
+	  ;; This prevents parsing problems.
 	  ;; Also it makes it possible to insert an empty last field.
 	  (if (numberp prev-item)
 	      (setq forms-format-list
@@ -691,74 +688,66 @@ Commands (prefix with C-c if not in read-only mode):
 
 ;; Special treatment for read-only segments.
 ;;
-;; If text is inserted after a read-only segment, it inherits the
+;; If text is inserted between two read-only segments, it inherits the
 ;; read-only properties.  This is not what we want.
-;; The modification hook of the last character of the read-only segment
-;; temporarily switches its properties to read-write, so the new
+;; To solve this, read-only segments get the `insert-in-front-hooks'
+;; property set with a function that temporarily switches the properties
+;; of the first character of the segment to read-write, so the new
 ;; text gets the right properties.
-;; The post-command-hook is used to restore the original properties.
-;;
-;; A character category `forms-electric' is used for the characters
-;; that get the modification hook set.  Using a category, it is
-;; possible to globally enable/disable the modification hook.  This is
-;; necessary, since modifying a hook or setting text properties are
-;; considered modifications and would trigger the hooks while building
-;; the forms.
+;; The `post-command-hook' is used to restore the original properties.
 
-(defvar forms--ro-modification-start nil
+(defvar forms--iif-start nil
   "Record start of modification command.")
-(defvar forms--ro-properties nil
+(defvar forms--iif-properties nil
   "Original properties of the character being overridden.")
 
-(defun forms--romh (begin end)
-  "`modification-hook' function for forms-electric characters."
+(defun forms--iif-hook (begin end)
+  "`insert-in-front-hooks' function for read-only segments."
 
-  ;; Note start location.
-  (or forms--ro-modification-start
-      (setq forms--ro-modification-start (point)))
+  ;; Note start location.  By making it a marker that points one 
+  ;; character beyond the actual location, it is guaranteed to move 
+  ;; correctly if text is inserted.
+  (or forms--iif-start
+      (setq forms--iif-start (copy-marker (1+ (point)))))
 
-  ;; Fetch current properties.
-  (setq forms--ro-properties 
-	(text-properties-at (1- forms--ro-modification-start)))
+  ;; Check if there is special treatment required.
+  (if (or (<= forms--iif-start 2)
+	  (get-text-property (- forms--iif-start 2)
+			     'read-only))
+      (progn
+	;; Fetch current properties.
+	(setq forms--iif-properties 
+	      (text-properties-at (1- forms--iif-start)))
 
-  ;; Disarm modification hook.
-  (setplist 'forms--electric nil)
+	;; Replace them.
+	(let ((inhibit-read-only t))
+	  (set-text-properties 
+	   (1- forms--iif-start) forms--iif-start
+	   (list 'face forms--rw-face 'front-sticky '(face))))
 
-  ;; Replace them.
-  (let ((inhibit-read-only t))
-    (set-text-properties 
-     (1- forms--ro-modification-start) forms--ro-modification-start
-     (list 'face forms--rw-face)))
+	;; Enable `post-command-hook' to restore the properties.
+	(setq post-command-hook
+	      (append (list 'forms--iif-post-command-hook) post-command-hook)))
 
-  ;; Re-arm electric.
-  (setplist 'forms--electric '(modification-hooks (forms--romh)))
+    ;; No action needed.  Clear marker.
+    (setq forms--iif-start nil)))
 
-  ;; Enable `post-command-hook' to restore the properties.
-  (setq post-command-hook
-	(append (list 'forms--romh-post-command-hook) post-command-hook)))
-
-(defun forms--romh-post-command-hook ()
-  "`post-command-hook' function for forms--electric characters."
+(defun forms--iif-post-command-hook ()
+  "`post-command-hook' function for read-only segments."
 
   ;; Disable `post-command-hook'.
   (setq post-command-hook
-	(delq 'forms--romh-post-command-hook post-command-hook))
-
-  ;; Disarm modification hook.
-  (setplist 'forms--electric nil)
+	(delq 'forms--iif-hook-post-command-hook post-command-hook))
 
   ;; Restore properties.
-  (if forms--ro-modification-start
+  (if forms--iif-start
       (let ((inhibit-read-only t))
 	(set-text-properties 
-	 (1- forms--ro-modification-start) forms--ro-modification-start
-	 forms--ro-properties)))
-
-  ;; Re-arm electric.
-  (setplist 'forms--electric '(modification-hooks (forms--romh)))
+	 (1- forms--iif-start) forms--iif-start
+	 forms--iif-properties)))
 
   ;; Cleanup.
-  (setq forms--ro-modification-start nil))
+  (setq forms--iif-start nil))
 
 (defvar forms--marker)
 (defvar forms--dyntext)
@@ -778,13 +767,18 @@ Commands (prefix with C-c if not in read-only mode):
      (if forms-use-text-properties 
 	 (` (lambda (arg)
 	      (let ((inhibit-read-only t))
-		(setplist 'forms--electric nil)
 		(,@ (apply 'append
 			   (mapcar 'forms--make-format-elt-using-text-properties
-				   forms-format-list))))
-	      (setplist 'forms--electric
-			'(modification-hooks (forms--romh)))
-	      (setq forms--ro-modification-start nil)))
+				   forms-format-list)))
+		;; Prevent insertion before the first text.
+		(,@ (if (numberp (car forms-format-list))
+			nil
+		      '((add-text-properties (point-min) (1+ (point-min))
+					     '(front-sticky (read-only))))))
+		;; Prevent insertion after the last text.
+		(remove-text-properties (1- (point)) (point)
+					'(rear-nonsticky)))
+	      (setq forms--iif-start nil)))
        (` (lambda (arg)
 	    (,@ (apply 'append
 		       (mapcar 'forms--make-format-elt forms-format-list)))))))
@@ -803,47 +797,55 @@ Commands (prefix with C-c if not in read-only mode):
   ;; ;; preamble
   ;; (lambda (arg)
   ;;   (let ((inhibit-read-only t))
-  ;;     (setplist 'forms--electric nil)
   ;;
-  ;;     ;; a string, e.g. "text: "
+  ;;     ;; A string, e.g. "text: ".
   ;;     (set-text-properties 
   ;;      (point)
   ;;      (progn (insert "text: ") (point)) 
-  ;;      (list 'face forms--ro-face 'read-only 1))
+  ;;      (list 'face forms--ro-face
+  ;;		'read-only 1
+  ;;		'insert-in-front-hooks 'forms--iif-hook
+  ;;		'rear-nonsticky '(read-only face insert-in-front-hooks)))
   ;;
-  ;;     ;; a field, e.g. 6
+  ;;     ;; A field, e.g. 6.
   ;;     (let ((here (point)))
   ;;       (aset forms--markers 0 (point-marker))
   ;;       (insert (elt arg 5))
   ;;       (or (= (point) here)
   ;; 	  (set-text-properties 
   ;; 	   here (point)
-  ;; 	   (list 'face forms--rw-face)))
-  ;;       (if (get-text-property (1- here) 'read-only)
-  ;; 	  (put-text-property 
-  ;; 	   (1- here) here
-  ;; 	   'category 'forms--electric)))
+  ;; 	   (list 'face forms--rw-face
+  ;;		 'front-sticky '(face))))
   ;;
-  ;;     ;; another string, e.g. "\nmore text: "
+  ;;     ;; Another string, e.g. "\nmore text: ".
   ;;     (set-text-properties
   ;;      (point)
   ;;      (progn (insert "\nmore text: ") (point))
   ;;      (list 'face forms--ro-face
-  ;; 	   'read-only 2))
+  ;;		'read-only 2
+  ;;		'insert-in-front-hooks 'forms--iif-hook
+  ;;		'rear-nonsticky '(read-only face insert-in-front-hooks)))
   ;;
-  ;;     ;; a function, e.g. (tocol 40)
+  ;;     ;; A function, e.g. (tocol 40).
   ;;     (set-text-properties
   ;;      (point)
   ;;      (progn
   ;;        (insert (aset forms--dyntexts 0 (tocol 40)))
   ;;        (point))
   ;;      (list 'face forms--ro-face
-  ;; 	   'read-only 2))
+  ;;		'read-only 2
+  ;;		'insert-in-front-hooks 'forms--iif-hook
+  ;;		'rear-nonsticky '(read-only face insert-in-front-hooks)))
+  ;;
+  ;;	 ;; Prevent insertion before the first text.
+  ;;	 (add-text-properties (point-min) (1+ (point-min))
+  ;;			      '(front-sticky (read-only))))))
+  ;;	 ;; Prevent insertion after the last text.
+  ;;	 (remove-text-properties (1- (point)) (point)
+  ;;	 			 '(rear-nonsticky)))
   ;;
   ;;     ;; wrap up
-  ;;     (setplist 'forms--electric
-  ;; 	      '(modification-hooks (forms--romh)))
-  ;;     (setq forms--ro-modification-start nil)
+  ;;     (setq forms--iif-start nil)
   ;;     ))
 
   (cond
@@ -855,7 +857,10 @@ Commands (prefix with C-c if not in read-only mode):
 	   (insert (, el))
 	   (point))
 	 (list 'face forms--ro-face	; read-only appearance
-	       'read-only (,@ (list (1+ forms--marker))))))))
+	       'read-only (,@ (list (1+ forms--marker)))
+	       'insert-in-front-hooks '(forms--iif-hook)
+	       'rear-nonsticky '(face read-only insert-in-front-hooks))))))
+    
    ((numberp el)
     (` ((let ((here (point)))
 	  (aset forms--markers 
@@ -866,11 +871,8 @@ Commands (prefix with C-c if not in read-only mode):
 	  (or (= (point) here)
 	      (set-text-properties 
 	       here (point)
-	       (list 'face forms--rw-face)))
-	  (if (get-text-property (1- here) 'read-only)
-	      (put-text-property
-	       (1- here) here
-	       'category 'forms--electric))))))
+	       (list 'face forms--rw-face
+		     'front-sticky '(face))))))))
 
    ((listp el)
     (` ((set-text-properties
@@ -882,8 +884,9 @@ Commands (prefix with C-c if not in read-only mode):
 			 (, el)))
 	   (point))
 	 (list 'face forms--ro-face
-	       'read-only 
-	       (,@ (list (1+ forms--marker))))))))
+	       'read-only (,@ (list (1+ forms--marker)))
+	       'insert-in-front-hooks '(forms--iif-hook)
+	       'rear-nonsticky '(read-only face insert-in-front-hooks))))))
 
    ;; end of cond
    ))
@@ -1207,7 +1210,6 @@ Commands (prefix with C-c if not in read-only mode):
   (setq buffer-read-only nil)
   (if forms-use-text-properties
       (let ((inhibit-read-only t))
-	(setplist 'forms--electric nil)
 	(set-text-properties (point-min) (point-max) nil)))
   (erase-buffer)
 
@@ -1291,11 +1293,10 @@ As a side effect: sets `forms--the-record-list'."
 
 	(save-excursion
 	  (set-buffer forms--file-buffer)
-	  ;; Insert something before kill-line is called.  See kill-line
-	  ;; doc.  Bugfix provided by Ignatios Souvatzis.
-	  (insert "*")
-	  (beginning-of-line)
-	  (kill-line nil)
+	  ;; Use delete-region instead of kill-region, to avoid
+	  ;; adding junk to the kill-ring.
+	  (delete-region (save-excursion (beginning-of-line) (point))
+			 (save-excursion (end-of-line) (point)))
 	  (insert the-record)
 	  (beginning-of-line))))))
 
@@ -1499,7 +1500,10 @@ it is called to fill (some of) the fields with default values."
 	(save-excursion
 	  (set-buffer forms--file-buffer)
 	  (goto-line ln)
-	  (kill-line 1))
+	  ;; Use delete-region instead of kill-region, to avoid
+	  ;; adding junk to the kill-ring.
+	  (delete-region (save-excursion (beginning-of-line) (point))
+			 (save-excursion (end-of-line) (1+ (point)))))
 	(setq forms--total-records (1- forms--total-records))
 	(if (> forms--current-record forms--total-records)
 	    (setq forms--current-record forms--total-records))
