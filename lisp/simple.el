@@ -1,6 +1,6 @@
 ;;; simple.el --- basic editing commands for Emacs
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 99, 2000, 2001
+;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 99, 2000, 2001, 2002
 ;;        Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -3932,17 +3932,18 @@ Returns nil if PROCESS has already terminated."
       (setq newname (substring newname 0 (match-beginning 0))))
   (when (memq (process-status process) '(run stop open))
     (let* ((process-connection-type (process-tty-name process))
-	   (old-kwoq (process-kill-without-query process nil))
 	   (new-process
 	    (if (memq (process-status process) '(open))
-		(apply 'open-network-stream newname
-		       (if (process-buffer process) (current-buffer))
-		       (process-contact process))
+		(let ((args (process-contact process t)))
+		  (setq args (plist-put args :name newname))
+		  (setq args (plist-put args :buffer
+					(if (process-buffer process) (current-buffer))))
+		  (apply 'make-network-process args))
 	      (apply 'start-process newname
 		     (if (process-buffer process) (current-buffer))
 		     (process-command process)))))
-      (process-kill-without-query new-process old-kwoq)
-      (process-kill-without-query process old-kwoq)
+      (set-process-query-on-exit-flag
+       new-process (process-query-on-exit-flag process))
       (set-process-inherit-coding-system-flag
        new-process (process-inherit-coding-system-flag process))
       (set-process-filter new-process (process-filter process))
@@ -4202,6 +4203,88 @@ See also `normal-erase-is-backspace'."
       (message "Delete key deletes %s"
 	       (if normal-erase-is-backspace "forward" "backward"))))
 
+
+;;; make-network-process wrappers
+
+(if (fboundp 'make-network-process)
+    (progn
+
+(defun open-network-stream (name buffer host service)
+  "Open a TCP connection for a service to a host.
+Returns a subprocess-object to represent the connection.
+Input and output work as for subprocesses; `delete-process' closes it.
+Args are NAME BUFFER HOST SERVICE.
+NAME is name for process.  It is modified if necessary to make it unique.
+BUFFER is the buffer (or buffer-name) to associate with the process.
+ Process output goes at end of that buffer, unless you specify
+ an output stream or filter function to handle the output.
+ BUFFER may be also nil, meaning that this process is not associated
+ with any buffer
+Third arg is name of the host to connect to, or its IP address.
+Fourth arg SERVICE is name of the service desired, or an integer
+specifying a port number to connect to."
+  (make-network-process :name name :buffer buffer
+			:host host :service service))
+
+(defun open-network-stream-nowait (name buffer host service &optional sentinel filter)
+  "Initiate connection to a TCP connection for a service to a host.
+It returns nil if non-blocking connects are not supported; otherwise,
+it returns a subprocess-object to represent the connection.
+
+This function is similar to `open-network-stream', except that this
+function returns before the connection is established.  When the
+connection is completed, the sentinel function will be called with
+second arg matching `open' (if successful) or `failed' (on error).
+
+Args are NAME BUFFER HOST SERVICE SENTINEL FILTER.
+NAME, BUFFER, HOST, and SERVICE are as for `open-network-stream'.
+Optional args, SENTINEL and FILTER specifies the sentinel and filter
+functions to be used for this network stream."
+  (if (make-network-process :feature :nowait t)
+      (make-network-process :name name :buffer buffer :nowait t
+			    :host host :service service
+			    :filter filter :sentinel sentinel)))
+
+(defun open-network-stream-server (name buffer service &optional sentinel filter)
+  "Create a network server process for a TCP service.
+It returns nil if server processes are not supported; otherwise,
+it returns a subprocess-object to represent the server.
+
+When a client connects to the specified service, a new subprocess
+is created to handle the new connection, and the sentinel function
+is called for the new process.
+
+Args are NAME BUFFER SERVICE SENTINEL FILTER.
+NAME is name for the server process.  Client processes are named by
+appending the ip-address and port number of the client to NAME.
+BUFFER is the buffer (or buffer-name) to associate with the server
+process.  Client processes will not get a buffer if a process filter
+is specified or BUFFER is nil; otherwise, a new buffer is created for
+the client process.  The name is similar to the process name.
+Third arg SERVICE is name of the service desired, or an integer
+specifying a port number to connect to.  It may also be t to selected
+an unused port number for the server.
+Optional args, SENTINEL and FILTER specifies the sentinel and filter
+functions to be used for the client processes; the server process
+does not use these function."
+  (if (make-network-process :feature :server t)
+      (make-network-process :name name :buffer buffer
+			    :service service :server t :noquery t)))
+
+))  ;; (fboundp 'make-network-process)
+
+
+;; compatibility
+
+(defun process-kill-without-query (process &optional flag)
+  "Say no query needed if PROCESS is running when Emacs is exited.
+Optional second argument if non-nil says to require a query.
+Value is t if a query was formerly required.  
+New code should not use this function; use `process-query-on-exit-flag'
+or `set-process-query-on-exit-flag' instead."
+  (let ((old (process-query-on-exit-flag process)))
+    (set-process-query-on-exit-flag process nil)
+    old))
 
 ;;; Misc
 
