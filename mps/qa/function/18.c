@@ -19,6 +19,7 @@ static void test(void) {
  mps_fmt_t format;
  mps_root_t root;
  mps_addr_t q;
+ mps_res_t res;
 
  int p;
 
@@ -31,7 +32,10 @@ static void test(void) {
  die(mps_pool_create(&pool, space, mps_class_mv(),
   1024*32, 1024*16, 1024*256), "pool");
 
- while (mps_alloc(&q, pool, 64*1024)==MPS_RES_OK);
+ do {
+  res = mps_alloc(&q, pool, 64*1024);
+ } while (res==MPS_RES_OK);
+
  p=0;
 
  while (1) {
