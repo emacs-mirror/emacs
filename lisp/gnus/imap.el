@@ -44,7 +44,7 @@
 ;;
 ;; Mailbox commands:
 ;;
-;; imap-mailbox-get,       imap-mailbox-map,         imap-current-mailbox, 
+;; imap-mailbox-get,       imap-mailbox-map,         imap-current-mailbox,
 ;; imap-current-mailbox-p, imap-search,              imap-mailbox-select,
 ;; imap-mailbox-examine,   imap-mailbox-unselect,    imap-mailbox-expunge
 ;; imap-mailbox-close,     imap-mailbox-create,      imap-mailbox-delete
@@ -57,7 +57,7 @@
 ;; imap-fetch-asynch,                 imap-fetch,
 ;; imap-current-message,              imap-list-to-message-set,
 ;; imap-message-get,                  imap-message-map
-;; imap-message-envelope-date,        imap-message-envelope-subject, 
+;; imap-message-envelope-date,        imap-message-envelope-subject,
 ;; imap-message-envelope-from,        imap-message-envelope-sender,
 ;; imap-message-envelope-reply-to,    imap-message-envelope-to,
 ;; imap-message-envelope-cc,          imap-message-envelope-bcc
@@ -120,7 +120,7 @@
 ;; => "X-Sieve: cmu-sieve 1.3^M\nX-Username: <jas@pdc.kth.se>^M\r...."
 ;;
 ;; Todo:
-;; 
+;;
 ;; o Parse UIDs as strings? We need to overcome the 28 bit limit somehow.
 ;; o Don't use `read' at all (important places already fixed)
 ;; o Accept list of articles instead of message set string in most
@@ -246,7 +246,7 @@ NAME names the stream, CHECK is a function returning non-nil if the
 server support the stream and OPEN is a function for opening the
 stream.")
 
-(defvar imap-authenticators '(gssapi 
+(defvar imap-authenticators '(gssapi
 			      kerberos4
 			      digest-md5
 			      cram-md5
@@ -254,7 +254,7 @@ stream.")
 			      anonymous)
   "Priority of authenticators to consider when authenticating to server.")
 
-(defvar imap-authenticator-alist 
+(defvar imap-authenticator-alist
   '((gssapi     imap-gssapi-auth-p    imap-gssapi-auth)
     (kerberos4  imap-kerberos4-auth-p imap-kerberos4-auth)
     (cram-md5   imap-cram-md5-p       imap-cram-md5-auth)
@@ -312,7 +312,7 @@ encoded mailboxes which doesn't translate into ISO-8859-1.")
 (defvar imap-username nil)
 (defvar imap-password nil)
 (defvar imap-calculate-literal-size-first nil)
-(defvar imap-state 'closed 
+(defvar imap-state 'closed
   "IMAP state.
 Valid states are `closed', `initial', `nonauth', `auth', `selected'
 and `examine'.")
@@ -353,7 +353,7 @@ and `examine'.")
 (defvar imap-reached-tag 0
   "Lower limit on command tags that have been parsed.")
 
-(defvar imap-failed-tags nil 
+(defvar imap-failed-tags nil
   "Alist of tags that failed.
 Each element is a list with four elements; tag (a integer), response
 state (a symbol, `OK', `NO' or `BAD'), response code (a string), and
@@ -406,7 +406,7 @@ If ARGS, PROMPT is used as an argument to `format'."
       (and string
 	   (condition-case ()
 	       (utf7-encode string t)
-	     (error (message 
+	     (error (message
 		     "imap: Could not UTF7 encode `%s', using it unencoded..."
 		     string)
 		    string)))
@@ -448,7 +448,7 @@ If ARGS, PROMPT is used as an argument to `format'."
       (let* ((port (or port imap-default-port))
 	     (coding-system-for-read imap-coding-system-for-read)
 	     (coding-system-for-write imap-coding-system-for-write)
-	     (process (start-process 
+	     (process (start-process
 		       name buffer shell-file-name shell-command-switch
 		       (format-spec
 			cmd
@@ -498,7 +498,7 @@ If ARGS, PROMPT is used as an argument to `format'."
 	      (delete-process process)
 	      nil)))))
     done))
-  
+
 (defun imap-gssapi-stream-p (buffer)
   (imap-capability 'AUTH=GSSAPI buffer))
 
@@ -510,7 +510,7 @@ If ARGS, PROMPT is used as an argument to `format'."
       (let* ((port (or port imap-default-port))
 	     (coding-system-for-read imap-coding-system-for-read)
 	     (coding-system-for-write imap-coding-system-for-write)
-	     (process (start-process 
+	     (process (start-process
 		       name buffer shell-file-name shell-command-switch
 		       (format-spec
 			cmd
@@ -637,7 +637,7 @@ If ARGS, PROMPT is used as an argument to `format'."
       (let* ((port (or port imap-default-port))
 	     (coding-system-for-read imap-coding-system-for-read)
 	     (coding-system-for-write imap-coding-system-for-write)
-	     (process (start-process 
+	     (process (start-process
 		       name buffer shell-file-name shell-command-switch
 		       (format-spec
 			cmd
@@ -710,7 +710,7 @@ If ARGS, PROMPT is used as an argument to `format'."
 	  done)
       (message "imap: Connecting with STARTTLS...failed")
       nil)))
-  
+
 ;; Server functions; authenticator stuff:
 
 (defun imap-interactive-login (buffer loginfunc)
@@ -725,12 +725,12 @@ Returns t if login was successful, nil otherwise."
       ;;      (condition-case ()
       (while (or (not user) (not passwd))
 	(setq user (or imap-username
-		       (read-from-minibuffer 
+		       (read-from-minibuffer
 			(concat "IMAP username for " imap-server ": ")
 			(or user imap-default-user))))
 	(setq passwd (or imap-password
 			 (imap-read-passwd
-			  (concat "IMAP password for " user "@" 
+			  (concat "IMAP password for " user "@"
 				  imap-server ": "))))
 	(when (and user passwd)
 	  (if (funcall loginfunc user passwd)
@@ -789,8 +789,8 @@ Returns t if login was successful, nil otherwise."
     (if done
 	(message "imap: Authenticating using CRAM-MD5...done")
       (message "imap: Authenticating using CRAM-MD5...failed"))))
-      
-  
+
+
 
 (defun imap-login-p (buffer)
   (and (not (imap-capability 'LOGINDISABLED buffer))
@@ -799,10 +799,10 @@ Returns t if login was successful, nil otherwise."
 (defun imap-login-auth (buffer)
   "Login to server using the LOGIN command."
   (message "imap: Plaintext authentication...")
-  (imap-interactive-login buffer 
+  (imap-interactive-login buffer
 			  (lambda (user passwd)
-			    (imap-ok-p (imap-send-command-wait 
-					(concat "LOGIN \"" user "\" \"" 
+			    (imap-ok-p (imap-send-command-wait
+					(concat "LOGIN \"" user "\" \""
 						passwd "\""))))))
 
 (defun imap-anonymous-p (buffer)
@@ -812,7 +812,7 @@ Returns t if login was successful, nil otherwise."
   (message "imap: Loging in anonymously...")
   (with-current-buffer buffer
     (imap-ok-p (imap-send-command-wait
-		(concat "LOGIN anonymous \"" (concat (user-login-name) "@" 
+		(concat "LOGIN anonymous \"" (concat (user-login-name) "@"
 						     (system-name)) "\"")))))
 
 (defun imap-digest-md5-p (buffer)
@@ -827,7 +827,7 @@ Returns t if login was successful, nil otherwise."
   (imap-interactive-login
    buffer
    (lambda (user passwd)
-     (let ((tag 
+     (let ((tag
 	    (imap-send-command
 	     (list
 	      "AUTHENTICATE DIGEST-MD5"
@@ -835,10 +835,10 @@ Returns t if login was successful, nil otherwise."
 		(digest-md5-parse-digest-challenge
 		 (base64-decode-string challenge))
 		(let* ((digest-uri
-			(digest-md5-digest-uri 
+			(digest-md5-digest-uri
 			 "imap" (digest-md5-challenge 'realm)))
 		       (response
-			(digest-md5-digest-response 
+			(digest-md5-digest-response
 			 user passwd digest-uri)))
 		  (base64-encode-string response 'no-line-break))))
 	     )))
@@ -857,7 +857,7 @@ Returns t if login was successful, nil otherwise."
 	  imap-current-message nil
 	  imap-state 'initial
 	  imap-process (condition-case ()
-			   (funcall (nth 2 (assq imap-stream 
+			   (funcall (nth 2 (assq imap-stream
 						 imap-stream-alist))
 				    "imap" buffer imap-server imap-port)
 			 ((error quit) nil)))
@@ -904,7 +904,7 @@ necessery.  If nil, the buffer name is generated."
 	    (let ((streams imap-streams))
 	      (while (setq stream (pop streams))
 		(if (funcall (nth 1 (assq stream imap-stream-alist)) buffer)
-		    (setq stream-changed (not (eq (or imap-stream 
+		    (setq stream-changed (not (eq (or imap-stream
 						      imap-default-stream)
 						  stream))
 			  imap-stream stream
@@ -917,7 +917,7 @@ necessery.  If nil, the buffer name is generated."
 	    (if (imap-open-1 buffer)
 		(message "imap: Reconnecting with stream `%s'...done"
 			 imap-stream)
-	      (message "imap: Reconnecting with stream `%s'...failed" 
+	      (message "imap: Reconnecting with stream `%s'...failed"
 		       imap-stream))
 	    (setq imap-capability nil))
 	  (if (imap-opened buffer)
@@ -925,7 +925,7 @@ necessery.  If nil, the buffer name is generated."
 	      (when (and (null imap-auth) (not (eq imap-state 'auth)))
 		(let ((auths imap-authenticators))
 		  (while (setq auth (pop auths))
-		    (if (funcall (nth 1 (assq auth imap-authenticator-alist)) 
+		    (if (funcall (nth 1 (assq auth imap-authenticator-alist))
 				 buffer)
 			(setq imap-auth auth
 			      auths nil)))
@@ -1028,7 +1028,7 @@ If BUFFER is nil, the current buffer is assumed."
 (defun imap-mailbox-map-1 (func &optional mailbox-decoder buffer)
   (with-current-buffer (or buffer (current-buffer))
     (let (result)
-      (mapatoms 
+      (mapatoms
        (lambda (s)
 	 (push (funcall func (if mailbox-decoder
 				 (funcall mailbox-decoder (symbol-name s))
@@ -1064,7 +1064,7 @@ If EXAMINE is non-nil, do a read-only select."
       imap-current-mailbox
     (setq imap-current-mailbox mailbox)
     (if (imap-ok-p (imap-send-command-wait
-		    (concat (if examine "EXAMINE" "SELECT") " \"" 
+		    (concat (if examine "EXAMINE" "SELECT") " \""
 			    mailbox "\"")))
 	(progn
 	  (setq imap-message-data (make-vector imap-message-prime 0)
@@ -1073,18 +1073,18 @@ If EXAMINE is non-nil, do a read-only select."
       ;; Failed SELECT/EXAMINE unselects current mailbox
       (setq imap-current-mailbox nil))))
 
-(defun imap-mailbox-select (mailbox &optional examine buffer)  
+(defun imap-mailbox-select (mailbox &optional examine buffer)
   (with-current-buffer (or buffer (current-buffer))
-    (imap-utf7-decode 
+    (imap-utf7-decode
      (imap-mailbox-select-1 (imap-utf7-encode mailbox) examine))))
 
 (defun imap-mailbox-examine-1 (mailbox &optional buffer)
   (with-current-buffer (or buffer (current-buffer))
-    (imap-mailbox-select-1 mailbox 'exmine)))
+    (imap-mailbox-select-1 mailbox 'examine)))
 
 (defun imap-mailbox-examine (mailbox &optional buffer)
   "Examine MAILBOX on server in BUFFER."
-  (imap-mailbox-select mailbox 'exmine buffer))
+  (imap-mailbox-select mailbox 'examine buffer))
 
 (defun imap-mailbox-unselect (&optional buffer)
   "Close current folder in BUFFER, without expunging articles."
@@ -1092,7 +1092,7 @@ If EXAMINE is non-nil, do a read-only select."
     (when (or (eq imap-state 'auth)
 	      (and (imap-capability 'UNSELECT)
 		   (imap-ok-p (imap-send-command-wait "UNSELECT")))
-	      (and (imap-ok-p 
+	      (and (imap-ok-p
 		    (imap-send-command-wait (concat "EXAMINE \""
 						    imap-current-mailbox
 						    "\"")))
@@ -1147,7 +1147,7 @@ If BUFFER is nil the current buffer is assumed."
        (imap-send-command-wait (list "RENAME \"" oldname "\" "
 				     "\"" newname "\""))))))
 
-(defun imap-mailbox-lsub (&optional root reference add-delimiter buffer) 
+(defun imap-mailbox-lsub (&optional root reference add-delimiter buffer)
   "Return a list of subscribed mailboxes on server in BUFFER.
 If ROOT is non-nil, only list matching mailboxes.  If ADD-DELIMITER is
 non-nil, a hierarchy delimiter is added to root.  REFERENCE is a
@@ -1161,7 +1161,7 @@ implementation-specific string that has to be passed to lsub command."
     (imap-mailbox-map-1 (lambda (mailbox)
 			  (imap-mailbox-put 'lsub nil mailbox)))
     (when (imap-ok-p
-	   (imap-send-command-wait 
+	   (imap-send-command-wait
 	    (concat "LSUB \"" reference "\" \"" (imap-utf7-encode root)
 		    (and add-delimiter (imap-mailbox-get-1 'delimiter root))
 		    "%\"")))
@@ -1185,7 +1185,7 @@ passed to list command."
     (imap-mailbox-map-1 (lambda (mailbox)
 			  (imap-mailbox-put 'list nil mailbox)))
     (when (imap-ok-p
-	   (imap-send-command-wait 
+	   (imap-send-command-wait
 	    (concat "LIST \"" reference "\" \"" (imap-utf7-encode root)
 		    (and add-delimiter (imap-mailbox-get-1 'delimiter root))
 		    "%\"")))
@@ -1199,7 +1199,7 @@ passed to list command."
   "Send the SUBSCRIBE command on the mailbox to server in BUFFER.
 Returns non-nil if successful."
   (with-current-buffer (or buffer (current-buffer))
-    (imap-ok-p (imap-send-command-wait (concat "SUBSCRIBE \"" 
+    (imap-ok-p (imap-send-command-wait (concat "SUBSCRIBE \""
 					       (imap-utf7-encode mailbox)
 					       "\"")))))
 
@@ -1207,7 +1207,7 @@ Returns non-nil if successful."
   "Send the SUBSCRIBE command on the mailbox to server in BUFFER.
 Returns non-nil if successful."
   (with-current-buffer (or buffer (current-buffer))
-    (imap-ok-p (imap-send-command-wait (concat "UNSUBSCRIBE " 
+    (imap-ok-p (imap-send-command-wait (concat "UNSUBSCRIBE "
 					       (imap-utf7-encode mailbox)
 					       "\"")))))
 
@@ -1218,13 +1218,13 @@ the STATUS data items -- ie 'messages, 'recent, 'uidnext, 'uidvalidity
 or 'unseen.  If ITEMS is a list of symbols, a list of values is
 returned, if ITEMS is a symbol only it's value is returned."
   (with-current-buffer (or buffer (current-buffer))
-    (when (imap-ok-p 
+    (when (imap-ok-p
 	   (imap-send-command-wait (list "STATUS \""
 					 (imap-utf7-encode mailbox)
 					 "\" "
 					 (format "%s"
 						 (if (listp items)
-						     items 
+						     items
 						   (list items))))))
       (if (listp items)
 	  (mapcar (lambda (item)
@@ -1304,7 +1304,7 @@ returned, if ITEMS is a symbol only it's value is returned."
 UIDS can be a string, number or a list of numbers.  If RECEIVE
 is non-nil return theese properties."
   (with-current-buffer (or buffer (current-buffer))
-    (when (imap-ok-p (imap-send-command-wait 
+    (when (imap-ok-p (imap-send-command-wait
 		      (format "%sFETCH %s %s" (if nouidfetch "" "UID ")
 			      (if (listp uids)
 				  (imap-list-to-message-set uids)
@@ -1321,7 +1321,7 @@ is non-nil return theese properties."
 			(imap-message-get uid receive)))
 		    uids)
 	  (imap-message-get uids receive))))))
-    
+
 (defun imap-message-put (uid propname value &optional buffer)
   (with-current-buffer (or buffer (current-buffer))
     (if imap-message-data
@@ -1466,7 +1466,7 @@ first element, rest of list contain the saved articles' UIDs."
 		  (imap-ok-p (imap-send-command-wait cmd)))))
 	    (or no-copyuid
 		(imap-message-copyuid-1 mailbox)))))))
-      
+
 (defun imap-message-appenduid-1 (mailbox)
   (if (imap-capability 'UIDPLUS)
       (imap-mailbox-get-1 'appenduid mailbox)
@@ -1495,11 +1495,11 @@ on failure."
   (let ((mailbox (imap-utf7-encode mailbox)))
     (with-current-buffer (or buffer (current-buffer))
       (and (let ((imap-current-target-mailbox mailbox))
-	     (imap-ok-p 
-	      (imap-send-command-wait 
+	     (imap-ok-p
+	      (imap-send-command-wait
 	       (list "APPEND \"" mailbox "\" "  article))))
 	   (imap-message-appenduid-1 mailbox)))))
-  
+
 (defun imap-body-lines (body)
   "Return number of lines in article by looking at the mime bodystructure BODY."
   (if (listp body)
@@ -1519,8 +1519,8 @@ on failure."
   (and from
        (concat (aref from 0)
 	       (if (aref from 0) " <")
-	       (aref from 2) 
-	       "@" 
+	       (aref from 2)
+	       "@"
 	       (aref from 3)
 	       (if (aref from 0) ">"))))
 
@@ -1560,7 +1560,7 @@ on failure."
 		       (replace-match eol)))
 		   (if (not calcfirst)
 		       (setq size (buffer-size))))
-		 (setq cmdstr 
+		 (setq cmdstr
 		       (concat cmdstr (format "{%d}" size))))
 	       (unwind-protect
 		   (progn
@@ -1653,7 +1653,7 @@ Return nil if no complete line has arrived."
 			 (eq imap-state 'examine))
 		     (imap-parse-response))
 		    (t
-		     (message "Unknown state %s in arrival filter" 
+		     (message "Unknown state %s in arrival filter"
 			      imap-state)))
 	    (delete-region (point-min) (point-max))))))))
 
@@ -1740,7 +1740,7 @@ Return nil if no complete line has arrived."
 
 (defsubst imap-parse-astring ()
   (or (imap-parse-string)
-      (buffer-substring (point) 
+      (buffer-substring (point)
 			(if (re-search-forward "[(){ \r\n%*\"\\]" nil t)
 			    (goto-char (1- (match-end 0)))
 			  (end-of-line)
@@ -1886,11 +1886,11 @@ Return nil if no complete line has arrived."
 	   (FLAGS      (imap-mailbox-put 'flags (imap-parse-flag-list)))
 	   (LIST       (imap-parse-data-list 'list))
 	   (LSUB       (imap-parse-data-list 'lsub))
-	   (SEARCH     (imap-mailbox-put 
-			'search 
+	   (SEARCH     (imap-mailbox-put
+			'search
 			(read (concat "(" (buffer-substring (point) (point-max)) ")"))))
 	   (STATUS     (imap-parse-status))
-	   (CAPABILITY (setq imap-capability 
+	   (CAPABILITY (setq imap-capability
 			     (read (concat "(" (upcase (buffer-substring
 							(point) (point-max)))
 					   ")"))))
@@ -1920,7 +1920,7 @@ Return nil if no complete line has arrived."
 						       (search-forward "]")))
 			  (imap-forward))
 			(setq text (buffer-substring (point) (point-max)))
-			(push (list token status code text) 
+			(push (list token status code text)
 			      imap-failed-tags))))
 	       (BAD (progn
 		      (setq imap-reached-tag (max imap-reached-tag token))
@@ -1948,14 +1948,14 @@ Return nil if no complete line has arrived."
 
 ;;   resp-text-code  = "ALERT" /
 ;;                     "BADCHARSET [SP "(" astring *(SP astring) ")" ] /
-;;                     "NEWNAME" SP string SP string / 
+;;                     "NEWNAME" SP string SP string /
 ;;		       "PARSE" /
-;;                     "PERMANENTFLAGS" SP "(" 
+;;                     "PERMANENTFLAGS" SP "("
 ;;                               [flag-perm *(SP flag-perm)] ")" /
-;;                     "READ-ONLY" / 
-;;		       "READ-WRITE" / 
+;;                     "READ-ONLY" /
+;;		       "READ-WRITE" /
 ;;	 	       "TRYCREATE" /
-;;                     "UIDNEXT" SP nz-number / 
+;;                     "UIDNEXT" SP nz-number /
 ;;		       "UIDVALIDITY" SP nz-number /
 ;;                     "UNSEEN" SP nz-number /
 ;;                     resp-text-atom [SP 1*<any TEXT-CHAR except "]">]
@@ -1974,7 +1974,7 @@ Return nil if no complete line has arrived."
 ;;                          ; delimits between two numbers inclusive.
 ;;                          ; Example: 2,4:7,9,12:* is 2,4,5,6,7,9,12,13,
 ;;                          ; 14,15 for a mailbox with 15 messages.
-;; 
+;;
 ;;   sequence-num    = nz-number / "*"
 ;;                          ; * is the largest number in use.  For message
 ;;                          ; sequence numbers, it is the number of messages
@@ -2072,18 +2072,18 @@ Return nil if no complete line has arrived."
 ;;                      "BODY" ["STRUCTURE"] SPACE body /
 ;;                      "BODY" section ["<" number ">"] SPACE nstring /
 ;;                      "UID" SPACE uniqueid) ")"
-;;  
+;;
 ;;  date_time       ::= <"> date_day_fixed "-" date_month "-" date_year
 ;;                      SPACE time SPACE zone <">
-;;  
+;;
 ;;  section         ::= "[" [section_text / (nz_number *["." nz_number]
 ;;                      ["." (section_text / "MIME")])] "]"
-;;  
+;;
 ;;  section_text    ::= "HEADER" / "HEADER.FIELDS" [".NOT"]
 ;;                      SPACE header_list / "TEXT"
-;;  
+;;
 ;;  header_fld_name ::= astring
-;;  
+;;
 ;;  header_list     ::= "(" 1#header_fld_name ")"
 
 (defsubst imap-parse-header-list ()
@@ -2096,7 +2096,7 @@ Return nil if no complete line has arrived."
       (nreverse strlist))))
 
 (defsubst imap-parse-fetch-body-section ()
-  (let ((section 
+  (let ((section
 	 (buffer-substring (point) (1- (re-search-forward "[] ]" nil t)))))
     (if (eq (char-before) ? )
 	(prog1
@@ -2106,7 +2106,7 @@ Return nil if no complete line has arrived."
 
 (defun imap-parse-fetch (response)
   (when (eq (char-after) ?\()
-    (let (uid flags envelope internaldate rfc822 rfc822header rfc822text 
+    (let (uid flags envelope internaldate rfc822 rfc822header rfc822text
 	      rfc822size body bodydetail bodystructure)
       (while (not (eq (char-after) ?\)))
 	(imap-forward)
@@ -2158,7 +2158,7 @@ Return nil if no complete line has arrived."
 
 ;;   mailbox-data    =  ...
 ;;                      "STATUS" SP mailbox SP "("
-;;	                      [status-att SP number 
+;;	                      [status-att SP number
 ;;                            *(SP status-att SP number)] ")"
 ;;                      ...
 ;;
@@ -2183,7 +2183,7 @@ Return nil if no complete line has arrived."
 		((eq token 'UNSEEN)
 		 (imap-mailbox-put 'unseen (read (current-buffer)) mailbox))
 		(t
-		 (message "Unknown status data %s in mailbox %s ignored" 
+		 (message "Unknown status data %s in mailbox %s ignored"
 			  token mailbox))))))))
 
 ;;   acl_data        ::= "ACL" SPACE mailbox *(SPACE identifier SPACE
@@ -2495,7 +2495,7 @@ Return nil if no complete line has arrived."
 	  (imap-forward)
 	  (push (imap-parse-nstring) body);; body-fld-md5
 	  (setq body (append (imap-parse-body-ext) body)));; body-ext-1part..
-    
+
 	(assert (eq (char-after) ?\)))
 	(imap-forward)
 	(nreverse body)))))
@@ -2503,7 +2503,7 @@ Return nil if no complete line has arrived."
 (when imap-debug			; (untrace-all)
   (require 'trace)
   (buffer-disable-undo (get-buffer-create imap-debug))
-  (mapcar (lambda (f) (trace-function-background f imap-debug)) 
+  (mapcar (lambda (f) (trace-function-background f imap-debug))
 	  '(
 	    imap-read-passwd
 	    imap-utf7-encode
@@ -2597,7 +2597,7 @@ Return nil if no complete line has arrived."
 	    imap-parse-body-extension
 	    imap-parse-body
 	    )))
-	
+
 (provide 'imap)
 
 ;;; imap.el ends here
