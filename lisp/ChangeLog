@@ -1,3 +1,8 @@
+2001-05-18  Sam Steingold  <sds@gnu.org>
+
+	* pcvs-defs.el (cvs-mode-map): bind "z" to `kill-this-buffer'
+	and [RET] to `cvs-mode-find-file'.
+
 2001-05-18  John Wiegley  <johnw@gnu.org>
 
 	* eshell/esh-ext.el (eshell-explicit-command-char): A new
@@ -7,10 +12,10 @@
 
 	* eshell/esh-ext.el (eshell-explicit-command):
 	Use `eshell-explicit-command-char' instead of ?*.
-	
+
 	* eshell/esh-cmd.el (eshell/which):
 	Use `eshell-explicit-command-char' instead of ?*.
-	
+
 	* eshell/em-cmpl.el (eshell-completion-command-name,
 	eshell-complete-commands-list): Use `eshell-explicit-command-char'
 	instead of ?*.

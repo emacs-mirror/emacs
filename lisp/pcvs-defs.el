@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-defs.el,v 1.12 2001/04/13 15:19:50 monnier Exp $
+;; Revision: $Id: pcvs-defs.el,v 1.13 2001/05/11 20:50:37 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -306,7 +306,7 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ("v" "vendor" .	cvs-mode-diff-vendor))
   "Keymap for diff-related operations in `cvs-mode'."
   :name "Diff")
-;; This is necessary to allow correct handling of \\[cvs-mode-diff-map] 
+;; This is necessary to allow correct handling of \\[cvs-mode-diff-map]
 ;; in substitute-command-keys.
 (fset 'cvs-mode-diff-map cvs-mode-diff-map)
 
@@ -322,7 +322,7 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ("?" .	cvs-help)
     ("h" .	cvs-help)
     ("q" .	cvs-bury-buffer)
-    ;;("Q" .	kill-buffer)
+    ("z" .	kill-this-buffer)
     ("F" .	cvs-mode-set-flags)
     ("\M-f" .	cvs-mode-force-command)
     ("\C-c\C-c" . cvs-mode-kill-process)
@@ -365,6 +365,7 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ("c" .	cvs-mode-commit)
     ("e" .	cvs-mode-examine)
     ("f" .	cvs-mode-find-file)
+    ([RET] .	cvs-mode-find-file)
     ("i" .	cvs-mode-ignore)
     ("l" .	cvs-mode-log)
     ("o" .	cvs-mode-find-file-other-window)
@@ -423,9 +424,9 @@ This variable is buffer local and only used in the *cvs* buffer.")
     "----"
     ["Quit"			cvs-mode-quit		t]))
 
-;;;; 
+;;;;
 ;;;; CVS-Minor mode
-;;;; 
+;;;;
 
 (defcustom cvs-minor-mode-prefix "\C-xc"
   "Prefix key for the `cvs-mode' bindings in `cvs-minor-mode'."
@@ -455,9 +456,9 @@ It is expected to call the function.")
 
 (defconst cvs-pcl-cvs-dirchange-re "^pcl-cvs: descending directory \\(.*\\)$")
 
-;;;; 
+;;;;
 ;;;; autoload the global menu
-;;;; 
+;;;;
 
 ;;;###autoload
 (defvar cvs-global-menu
