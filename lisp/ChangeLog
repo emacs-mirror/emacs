@@ -1,3 +1,10 @@
+2000-10-18  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* diff-mode.el (diff-header-face, diff-file-header-face)
+	(diff-changed-face): Add bold and italic attributes to tty faces.
+	(diff-function-face): New face.
+	(diff-font-lock-keywords): Use it.
+
 2000-10-18  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* comint.el (comint-output-filter): Fixup comint-last-input-end too.
