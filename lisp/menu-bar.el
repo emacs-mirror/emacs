@@ -152,7 +152,7 @@ A large number or nil slows down menu responsiveness."
   '(menu-item "Revert Buffer" revert-buffer
 	      :enable (or revert-buffer-function
 			  revert-buffer-insert-file-contents-function
-			  (and (buffer-file-name)
+			  (and buffer-file-number
 			       (or (buffer-modified-p)
 				   (not (verify-visited-file-modtime
 					 (current-buffer))))))
