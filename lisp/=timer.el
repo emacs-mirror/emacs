@@ -124,35 +124,34 @@ will happen at the specified time."
   (setcar (cdr (cdr elt)) 'ignore))
 
 (defun timer-process-filter (proc str)
-  (save-match-data
-    (setq timer-out (concat timer-out str))
-    (let (do token error)
-      (while (string-match "\n" timer-out)
-	(setq token (substring timer-out 0 (match-beginning 0))
-	      do (assoc token timer-alist)
-	      timer-out (substring timer-out (match-end 0)))
-	(cond
-	 (do
-	  (apply (nth 2 do) (nth 3 do))	; do it
-	  (if (natnump (nth 1 do))	; reschedule it
-	      (send-string proc (concat (nth 1 do) " sec@" (car do) "\n"))
-	    (setq timer-alist (delq do timer-alist))))
-	 ((string-match "timer: \\([^:]+\\): \\([^@]*\\)@\\(.*\\)$" token)
-	  (setq error (substring token (match-beginning 1) (match-end 1))
-		do    (substring token (match-beginning 2) (match-end 2))
-		token (assoc (substring token (match-beginning 3) (match-end 3))
-			     timer-alist)
-		timer-alist (delq token timer-alist))
-	  (or timer-alist 
-	      timer-dont-exit
-	      (process-send-eof proc))
-	  ;; Update error message for this particular instance
-	  (put 'timer-filter-error
-	       'error-message
-	       (format "%s for %s; couldn't set at \"%s\"" 
-		       error (nth 2 token) do))
-	  (signal 'timer-filter-error (list proc str)))))
-      (or timer-alist timer-dont-exit (process-send-eof proc)))))
+  (setq timer-out (concat timer-out str))
+  (let (do token error)
+    (while (string-match "\n" timer-out)
+      (setq token (substring timer-out 0 (match-beginning 0))
+	    do (assoc token timer-alist)
+	    timer-out (substring timer-out (match-end 0)))
+      (cond
+       (do
+	(apply (nth 2 do) (nth 3 do))	; do it
+	(if (natnump (nth 1 do))	; reschedule it
+	    (send-string proc (concat (nth 1 do) " sec@" (car do) "\n"))
+	  (setq timer-alist (delq do timer-alist))))
+       ((string-match "timer: \\([^:]+\\): \\([^@]*\\)@\\(.*\\)$" token)
+	(setq error (substring token (match-beginning 1) (match-end 1))
+	      do    (substring token (match-beginning 2) (match-end 2))
+	      token (assoc (substring token (match-beginning 3) (match-end 3))
+			   timer-alist)
+	      timer-alist (delq token timer-alist))
+	(or timer-alist 
+	    timer-dont-exit
+	    (process-send-eof proc))
+	;; Update error message for this particular instance
+	(put 'timer-filter-error
+	     'error-message
+	     (format "%s for %s; couldn't set at \"%s\"" 
+		     error (nth 2 token) do))
+	(signal 'timer-filter-error (list proc str)))))
+    (or timer-alist timer-dont-exit (process-send-eof proc))))
 
 (defun timer-process-sentinel (proc str)
   (let ((stat (process-status proc)))
