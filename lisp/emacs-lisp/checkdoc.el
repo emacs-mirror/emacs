@@ -1132,13 +1132,8 @@ generating a buffered list of errors."
 
 ;;; Minor Mode specification
 ;;
-(defvar checkdoc-minor-mode nil
-  "Non-nil in `emacs-lisp-mode' for automatic documentation checking.")
-(make-variable-buffer-local 'checkdoc-minor-mode)
 
-(checkdoc-add-to-list 'minor-mode-alist '(checkdoc-minor-mode " CDoc"))
-
-(defvar checkdoc-minor-keymap
+(defvar checkdoc-minor-mode-map
   (let ((map (make-sparse-keymap))
 	(pmap (make-sparse-keymap)))
     ;; Override some bindings
@@ -1170,63 +1165,54 @@ generating a buffered list of errors."
     map)
   "Keymap used to override evaluation key-bindings for documentation checking.")
 
+(defvar checkdoc-minor-keymap checkdoc-minor-mode-map
+  "Obsolete!  Use `checkdoc-minor-mode-map'.")
+
 ;; Add in a menubar with easy-menu
 
-(if checkdoc-minor-keymap
-    (easy-menu-define
-     checkdoc-minor-menu checkdoc-minor-keymap "Checkdoc Minor Mode Menu"
-     '("CheckDoc"
-       ["Interactive Buffer Style Check" checkdoc t]
-       ["Interactive Buffer Style and Spelling Check" checkdoc-ispell t]
-       ["Check Buffer" checkdoc-current-buffer t]
-       ["Check and Spell Buffer" checkdoc-ispell-current-buffer t]
-       "---"
-       ["Interactive Style Check" checkdoc-interactive t]
-       ["Interactive Style and Spelling Check" checkdoc-ispell-interactive t]
-       ["Find First Style Error" checkdoc-start t]
-       ["Find First Style or Spelling  Error" checkdoc-ispell-start t]
-       ["Next Style Error" checkdoc-continue t]
-       ["Next Style or Spelling  Error" checkdoc-ispell-continue t]
-       ["Interactive Message Text Style Check" checkdoc-message-interactive t]
-       ["Interactive Message Text Style and Spelling Check"
-	checkdoc-ispell-message-interactive t]
-       ["Check Message Text" checkdoc-message-text t]
-       ["Check and Spell Message Text" checkdoc-ispell-message-text t]
-       ["Check Comment Style" checkdoc-comments buffer-file-name]
-       ["Check Comment Style and Spelling" checkdoc-ispell-comments
-	buffer-file-name]
-       ["Check for Rogue Spaces" checkdoc-rogue-spaces t]
-       "---"
-       ["Check Defun" checkdoc-defun t]
-       ["Check and Spell Defun" checkdoc-ispell-defun t]
-       ["Check and Evaluate Defun" checkdoc-eval-defun t]
-       ["Check and Evaluate Buffer" checkdoc-eval-current-buffer t]
-       )))
+(easy-menu-define
+ checkdoc-minor-menu checkdoc-minor-mode-map "Checkdoc Minor Mode Menu"
+ '("CheckDoc"
+   ["Interactive Buffer Style Check" checkdoc t]
+   ["Interactive Buffer Style and Spelling Check" checkdoc-ispell t]
+   ["Check Buffer" checkdoc-current-buffer t]
+   ["Check and Spell Buffer" checkdoc-ispell-current-buffer t]
+   "---"
+   ["Interactive Style Check" checkdoc-interactive t]
+   ["Interactive Style and Spelling Check" checkdoc-ispell-interactive t]
+   ["Find First Style Error" checkdoc-start t]
+   ["Find First Style or Spelling  Error" checkdoc-ispell-start t]
+   ["Next Style Error" checkdoc-continue t]
+   ["Next Style or Spelling  Error" checkdoc-ispell-continue t]
+   ["Interactive Message Text Style Check" checkdoc-message-interactive t]
+   ["Interactive Message Text Style and Spelling Check"
+    checkdoc-ispell-message-interactive t]
+   ["Check Message Text" checkdoc-message-text t]
+   ["Check and Spell Message Text" checkdoc-ispell-message-text t]
+   ["Check Comment Style" checkdoc-comments buffer-file-name]
+   ["Check Comment Style and Spelling" checkdoc-ispell-comments
+    buffer-file-name]
+   ["Check for Rogue Spaces" checkdoc-rogue-spaces t]
+   "---"
+   ["Check Defun" checkdoc-defun t]
+   ["Check and Spell Defun" checkdoc-ispell-defun t]
+   ["Check and Evaluate Defun" checkdoc-eval-defun t]
+   ["Check and Evaluate Buffer" checkdoc-eval-current-buffer t]
+   ))
 ;; XEmacs requires some weird stuff to add this menu in a minor mode.
 ;; What is it?
 
-;; Allow re-insertion of a new keymap
-(let ((a (assoc 'checkdoc-minor-mode minor-mode-map-alist)))
-  (if a
-      (setcdr a checkdoc-minor-keymap)
-    (checkdoc-add-to-list 'minor-mode-map-alist (cons 'checkdoc-minor-mode
-						      checkdoc-minor-keymap))))
-
 ;;;###autoload
-(defun checkdoc-minor-mode (&optional arg)
+(easy-mmode-define-minor-mode checkdoc-minor-mode
   "Toggle Checkdoc minor mode, a mode for checking Lisp doc strings.
 With prefix ARG, turn Checkdoc minor mode on iff ARG is positive.
 
 In Checkdoc minor mode, the usual bindings for `eval-defun' which is
-bound to \\<checkdoc-minor-keymap> \\[checkdoc-eval-defun] and `checkdoc-eval-current-buffer' are overridden to include
+bound to \\<checkdoc-minor-mode-map> \\[checkdoc-eval-defun] and `checkdoc-eval-current-buffer' are overridden to include
 checking of documentation strings.
 
-\\{checkdoc-minor-keymap}"
-  (interactive "P")
-  (setq checkdoc-minor-mode
-	(not (or (and (null arg) checkdoc-minor-mode)
-		 (<= (prefix-numeric-value arg) 0))))
-  (checkdoc-mode-line-update))
+\\{checkdoc-minor-mode-map}"
+  nil " CDoc" nil)
 
 ;;; Subst utils
 ;;
@@ -1769,7 +1755,7 @@ Replace with \"%s\"? " original replace)
        (let ((found nil) (start (point)) (msg nil) (ms nil))
 	 (while (and (not msg)
 		     (re-search-forward
-		      "[^([`':a-zA-Z]\\(\\w+[:-]\\(\\w\\|\\s_\\)+\\)[^]']"
+		      "[^-([`':a-zA-Z]\\(\\w+[:-]\\(\\w\\|\\s_\\)+\\)[^]']"
 		      e t))
 	   (setq ms (match-string 1))
 	   (save-match-data
@@ -1855,7 +1841,7 @@ from the comment."
 	;; Interactive
 	(save-excursion
 	  (setq ret (cons
-		     (re-search-forward "(interactive"
+		     (re-search-forward "^\\s-*(interactive"
 					(save-excursion (end-of-defun) (point))
 					t)
 		     ret)))
@@ -2654,6 +2640,9 @@ function called to create the messages."
 
 (custom-add-option 'emacs-lisp-mode-hook
 		   (lambda () (checkdoc-minor-mode 1)))
+
+(add-to-list 'debug-ignored-errors
+	     "Argument `.*' should appear (as .*) in the doc string")
 
 (provide 'checkdoc)
 
