@@ -1,6 +1,6 @@
 ;;; dired-aux.el --- less commonly used parts of dired  -*-byte-compile-dynamic: t;-*-
 
-;; Copyright (C) 1985, 1986, 1992, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992, 1994, 1998 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>.
 ;; Maintainer: FSF
@@ -384,7 +384,11 @@ output files usually are created there instead of in a subdir."
 
 ;; This is an extra function so that it can be redefined by ange-ftp.
 (defun dired-run-shell-command (command)
-  (shell-command command)
+  (let ((handler
+	 (find-file-name-handler (directory-file-name default-directory)
+				 'shell-command)))
+    (if handler (apply handler 'shell-command (list command))
+      (shell-command command)))
   ;; Return nil for sake of nconc in dired-bunch-files.
   nil)
 
