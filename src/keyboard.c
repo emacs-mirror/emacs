@@ -3191,17 +3191,20 @@ make_lispy_event (event)
 	       (In the toolkit version, the toolkit handles the menu bar
 	       and Emacs doesn't know about it until after the user
 	       makes a selection.)  */
-	    if (row >= 0 && row < FRAME_MENU_BAR_LINES (f))
+	    if (row >= 0 && row < FRAME_MENU_BAR_LINES (f)
+		&& (event->modifiers & down_modifier))
 	      {
 		Lisp_Object items, item;
 		int hpos;
 		int i;
 
+#if 0
 		/* Activate the menu bar on the down event.  If the
 		   up event comes in before the menu code can deal with it,
 		   just ignore it.  */
 		if (! (event->modifiers & down_modifier))
 		  return Qnil;
+#endif
 
 		item = Qnil;
 		items = FRAME_MENU_BAR_ITEMS (f);
@@ -6870,7 +6873,11 @@ See also `current-input-mode'.")
   stop_polling ();
 #endif
 
+#ifndef MSDOS
+  /* this causes startup screen to be restored and messes with the mouse */
   reset_sys_modes ();
+#endif
+
 #ifdef SIGIO
 /* Note SIGIO has been undef'd if FIONREAD is missing.  */
   if (read_socket_hook)
@@ -6905,7 +6912,9 @@ See also `current-input-mode'.")
     /* Don't let this value be out of range.  */
     quit_char = XINT (quit) & (meta_key ? 0377 : 0177);
 
+#ifndef MSDOS
   init_sys_modes ();
+#endif
 
 #ifdef POLL_FOR_INPUT
   poll_suppress_count = 1;
