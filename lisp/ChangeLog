@@ -1,3 +1,51 @@
+2003-09-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-parse-state): Fixed bug that could
+	cause errors when the state cache contains info on parts that have
+	been narrowed out.
+
+2003-09-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-vars.el (c-comment-prefix-regexp): Document that
+	`c-setup-paragraph-variables' has to be used when this variable is
+	changed; it doesn't work to reinitialize the mode since that
+	typically clobbers the variable.
+
+	* progmodes/cc-styles.el (c-setup-paragraph-variables): Made it
+	interactive.
+
+2003-09-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Fixed
+	recognition of constructors and destructors for classes whose
+	names are matched by `*-font-lock-extra-types'.
+
+	* progmodes/cc-langs.el (c-type-list-kwds): If "operator" is
+	followed by an identifier in C++ then it's a type.
+
+2003-09-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-fonts.el (c-font-lock-invalid-string): Fixed eob
+	problem that primarily affected XEmacs.  Don't use faces to find
+	unterminated strings since Emacs and XEmacs fontify strings
+	differently - this function should now work better in XEmacs.
+
+2003-09-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-cmds.el (c-electric-brace): Fixed a bug in the
+	`expand-abbrev' workaround which caused braces to disbehave inside
+	macros.
+
+	* progmodes/cc-engine.el (c-forward-keyword-clause): Fixed error
+	handling.  This bug could cause interactive font locking to bail
+	out.
+
+2003-09-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-just-after-func-arglist-p): Handle
+	paren-style types in Pike.  Also fixed some cases of insufficient
+	handling of unbalanced parens.
+
 2003-09-24  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-cvs.el (vc-cvs-parse-entry): Restore the code to compare time
