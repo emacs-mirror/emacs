@@ -46,7 +46,9 @@
   (funcall indent-line-function))
 
 (defun indent-for-tab-command (&optional prefix-arg)
-  "Indent line in proper way for current major mode."
+  "Indent line in proper way for current major mode.
+The function actually called is determined by the value of
+`indent-line-function'."
   (interactive "P")
   (if (eq indent-line-function 'indent-to-left-margin)
       (insert-tab prefix-arg)
