@@ -1,3 +1,9 @@
+2002-08-04  Andrew Choi  <akochoi@shaw.ca>
+
+	* macterm.c (XTread_socket): Check that FrontNonFloatingWindow
+	returns a valid window pointer before proceeding for keyDown and
+	autoKey events.
+
 2002-08-03  Andrew Choi  <akochoi@shaw.ca>
 
 	* macterm.c (USE_CARBON_EVENTS): New macro.

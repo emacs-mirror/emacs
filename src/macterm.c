@@ -12610,7 +12610,9 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 
 #if USE_CARBON_EVENTS
   rneResult = ReceiveNextEvent (0, NULL, 
-				expected ? TicksToEventTime(app_sleep_time) : 0,
+				expected
+				? TicksToEventTime (app_sleep_time)
+				: 0,
 				true, &eventRef);
   if (!rneResult)
     {
@@ -12869,6 +12871,13 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 	  int keycode = (er.message & keyCodeMask) >> 8;
 	  int xkeysym;
 	  
+	  if (!IsValidWindowPtr (FrontNonFloatingWindow ()))
+	    {
+	      SysBeep (1);
+	      UNBLOCK_INPUT;
+	      return 0;
+	    }
+
 	  ObscureCursor ();
 
 	  if (keycode == 0x33)  /* delete key (charCode translated to 0x8) */
