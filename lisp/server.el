@@ -124,12 +124,28 @@ If it is a frame, use the frame's selected window.")
 (defcustom server-temp-file-regexp "^/tmp/Re\\|/draft$"
   "*Regexp which should match filenames of temporary files
 which are deleted and reused after each edit
-by the programs that invoke the emacs server."
+by the programs that invoke the Emacs server."
   :group 'server
   :type 'regexp)
 
+(defcustom server-kill-new-buffers t
+  "*Whether to kill buffers when done with them.
+If non-nil, kill a buffer unless it already existed before editing
+it with Emacs server. If nil, kill only buffers as specified by
+`server-temp-file-regexp'.
+Please note that only buffers are killed that still have a client,
+i.e. buffers visited which \"emacsclient --no-wait\" are never killed in
+this way."
+  :group 'server
+  :type 'boolean
+  :version "21.1")
+
 (or (assq 'server-buffer-clients minor-mode-alist)
     (setq minor-mode-alist (cons '(server-buffer-clients " Server") minor-mode-alist)))
+
+(defvar server-existing-buffer nil
+  "Non-nil means a server buffer existed before visiting a file.")
+(make-variable-buffer-local 'server-existing-buffer)
 
 ;; If a *server* buffer exists,
 ;; write STRING to it for logging purposes.
@@ -286,22 +302,24 @@ so don't mark these buffers specially, just visit them normally."
     ;; if it happens to be one of those specified by the server.
     (unwind-protect
 	(while files
-	  ;; If there is an existing buffer modified or the file is modified,
-	  ;; revert it.
-	  ;; If there is an existing buffer with deleted file, offer to write it.
+	  ;; If there is an existing buffer modified or the file is
+	  ;; modified, revert it.  If there is an existing buffer with
+	  ;; deleted file, offer to write it.
 	  (let* ((filen (car (car files)))
 		 (obuf (get-file-buffer filen)))
 	    (if (and obuf (set-buffer obuf))
-		(if (file-exists-p filen)
-		    (if (or (not (verify-visited-file-modtime obuf))
-			    (buffer-modified-p obuf))
-			(revert-buffer t nil))
-		  (if (y-or-n-p
-		       (concat "File no longer exists: "
-			       filen
-			       ", write buffer to file? "))
-		      (write-file filen)))
+		(cond ((file-exists-p filen)
+		       (if (or (not (verify-visited-file-modtime obuf))
+			       (buffer-modified-p obuf))
+			   (revert-buffer t nil)))
+		      (t
+		       (if (y-or-n-p
+			    (concat "File no longer exists: "
+				    filen
+				    ", write buffer to file? "))
+			   (write-file filen))))
 	      (set-buffer (find-file-noselect filen))
+	      (setq server-existing-buffer t)
 	      (run-hooks 'server-visit-hook)))
 	  (goto-line (nth 1 (car files)))
 	  (if (not nowait)
@@ -364,10 +382,19 @@ or nil.  KILLED is t if we killed BUFFER
 	    ;; Don't bother killing or burying the buffer
 	    ;; when we are called from kill-buffer.
 	    (unless for-killing
-	      (if (server-temp-file-p buffer)
-		  (progn (kill-buffer buffer)
-			 (setq killed t))
-		(bury-buffer buffer))))))
+	      (when (and (not killed)
+			 server-kill-new-buffers
+			 (save-excursion
+			   (set-buffer buffer)
+			   server-existing-buffer))
+		(setq killed t)
+		(kill-buffer buffer))
+	      (unless killed
+		(if (server-temp-file-p buffer)
+		    (progn
+		      (kill-buffer buffer)
+		      (setq killed t))
+		  (bury-buffer buffer)))))))
     (list next-buffer killed)))
 
 (defun server-temp-file-p (buffer)
