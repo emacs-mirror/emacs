@@ -286,6 +286,8 @@ The following variables control the action of the notification:
 		  (let ((diary-display-hook 'appt-make-list))
 		    (diary))))
 
+	    (setq appt-mode-string nil)
+
 	    ;; If there are entries in the list, and the
 	    ;; user wants a message issued
 	    ;; get the first time off of the list
