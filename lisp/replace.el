@@ -471,9 +471,6 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   (setq major-mode 'occur-mode)
   (setq mode-name "Occur")
   (make-local-variable 'revert-buffer-function)
-  (set (make-local-variable 'font-lock-category-alist)
-       `((,(make-symbol "occur-match") . bold)
-	 (,(make-symbol "occur-title") . underline)))
   (set (make-local-variable 'revert-buffer-function) 'occur-revert-function)
   (make-local-variable 'occur-revert-arguments)
   (run-hooks 'occur-mode-hook))
@@ -706,7 +703,8 @@ See also `multi-occur'."
 		    (or nlines list-matching-lines-default-context-lines)
 		    (and case-fold-search
 			 (isearch-no-upper-case-p regexp t))
-		    nil nil nil nil)))
+		    list-matching-lines-buffer-name-face
+		    nil list-matching-lines-face nil)))
 	(let* ((diff (- (length bufs) (length active-bufs)))
 	       (bufcount (- (length bufs) diff))
 	       (msg (concat
@@ -780,8 +778,6 @@ See also `multi-occur'."
 		    ;; Depropertize the string, and maybe
 		    ;; highlight the matches
 		    (let ((len (length curstring))
-			  (match-category (with-current-buffer out-buf
-					    (car (nth 0 font-lock-category-alist))))
 			  (start 0))
 		      (unless keep-props
 			(set-text-properties 0 len nil curstring))
@@ -790,9 +786,9 @@ See also `multi-occur'."
 			(add-text-properties (match-beginning 0)
 					     (match-end 0)
 					     (append
-					      `(occur-match t category ,match-category)
+					      `(occur-match t)
 					      (when match-face
-						`(face ,match-face)))
+						`(font-lock-face ,match-face)))
 					     curstring)
 			(setq start (match-end 0))))
 		    ;; Generate the string to insert for this match
@@ -801,7 +797,7 @@ See also `multi-occur'."
 			     (apply #'propertize (format "%6d:" lines)
 				    (append
 				     (when prefix-face
-				       `(face prefix-face))
+				       `(font-lock-face prefix-face))
 				     '(occur-prefix t)))
 			     curstring
 			     "\n"))
@@ -848,10 +844,8 @@ See also `multi-occur'."
 		  (add-text-properties beg end
 				       (append
 					(when title-face
-					  `(face ,title-face))
-					`(occur-title
-					  ,buf category
-					  ,(car (nth 1 font-lock-category-alist))))))
+					  `(font-lock-face ,title-face))
+					`(occur-title ,buf))))
 		(goto-char (point-min)))))))
       ;; Return the number of matches
       globalcount)))
