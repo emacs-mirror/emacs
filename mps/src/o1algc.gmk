@@ -1,13 +1,10 @@
 # impl.gmk.o1algc: BUILD FOR OSF/1, ALPHA, GCC PLATFORM
 #
-# $HopeName: MMsrc!o1algc.gmk(trunk.22) $
-# Copyright (C) 2000.  Harlequin Ltd.  All rights reserved.
-#
-# This is the GNU makefile for platform.o1algc.
+# $HopeName: MMsrc!o1algc.gmk(trunk.23) $
+# Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 #
 # _ANSI_C_SOURCE is defined in PFMDEFS to avoid bug in library headers
 # which define TRUE and FALSE.
-#
 
 PFM = o1algc
 PFMDEFS = -D_ANSI_C_SOURCE
@@ -19,3 +16,5 @@ MPMS = sso1al.s
 LIBS = -lm
 
 include gc.gmk
+
+include comm.gmk
