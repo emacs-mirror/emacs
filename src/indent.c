@@ -748,7 +748,7 @@ vmotion (from, vtarget, width, hscroll, window)
   struct position pos;
   /* vpos is cumulative vertical position, changed as from is changed */
   register int vpos = 0;
-  register int prevline;
+  Lisp_Object prevline;
   register int first;
   int lmargin = hscroll > 0 ? 1 - hscroll : 0;
   int selective
@@ -768,20 +768,22 @@ vmotion (from, vtarget, width, hscroll, window)
 	 to determine hpos of starting point */
       if (from > BEGV && FETCH_CHAR (from - 1) != '\n')
 	{
-	  prevline = find_next_newline_no_quit (from, -1);
-	  while (prevline > BEGV
+	  XFASTINT (prevline) = find_next_newline_no_quit (from, -1);
+	  while (XFASTINT (prevline) > BEGV
 		 && ((selective > 0
-		      && indented_beyond_p (prevline, selective))
+		      && indented_beyond_p (XFASTINT (prevline), selective))
 #ifdef USE_TEXT_PROPERTIES
 		     /* watch out for newlines with `invisible' property */
-		     || ! NILP (Fget_char_property (XFASTINT (prevline),
+		     || ! NILP (Fget_char_property (prevline,
 						    Qinvisible,
 						    window))
 #endif
 		 ))
-	    prevline = find_next_newline_no_quit (prevline - 1, -1);
-	  pos = *compute_motion (prevline, 0,
-				 lmargin + (prevline == 1 ? start_hpos : 0),
+	    XFASTINT (prevline)
+	      = find_next_newline_no_quit (XFASTINT (prevline) - 1, -1);
+	  pos = *compute_motion (XFASTINT (prevline), 0,
+				 lmargin + (XFASTINT (prevline) == 1
+					    ? start_hpos : 0),
 				 from, 1 << (INTBITS - 2), 0,
 				 width, hscroll, 0, XWINDOW (window));
 	}
@@ -803,29 +805,29 @@ vmotion (from, vtarget, width, hscroll, window)
 
   while ((vpos > vtarget || first) && from > BEGV)
     {
-      prevline = from;
+      XFASTINT (prevline) = from;
       while (1)
 	{
-	  prevline = find_next_newline_no_quit (prevline - 1, -1);
-	  if (prevline == BEGV
+	  XFASTINT (prevline)
+	    = find_next_newline_no_quit (XFASTINT (prevline) - 1, -1);
+	  if (XFASTINT (prevline) == BEGV
 	      || ((selective <= 0
-		   || ! indented_beyond_p (prevline, selective))
+		   || ! indented_beyond_p (XFASTINT (prevline), selective))
 #ifdef USE_TEXT_PROPERTIES
 		  /* watch out for newlines with `invisible' property */
-		  && NILP (Fget_char_property (XFASTINT (prevline),
-					       Qinvisible,
-					       window))
+		  && NILP (Fget_char_property (prevline, Qinvisible, window))
 #endif
 		  ))
 	    break;
 	}
-      pos = *compute_motion (prevline, 0,
-			     lmargin + (prevline == 1 ? start_hpos : 0),
+      pos = *compute_motion (XFASTINT (prevline), 0,
+			     lmargin + (XFASTINT (prevline) == 1
+					? start_hpos : 0),
 			     from, 1 << (INTBITS - 2), 0,
 			     width, hscroll, 0, XWINDOW (window));
       vpos -= pos.vpos;
       first = 0;
-      from = prevline;
+      from = XFASTINT (prevline);
     }
 
   /* If we made exactly the desired vertical distance,
@@ -869,7 +871,7 @@ if beginning or end of buffer was reached.")
   if (! NILP (window))
     CHECK_WINDOW (window, 0);
   else
-    XSET (window, Lisp_Window, selected_window);
+    window = selected_window;
 
   w = XWINDOW (window);
 
