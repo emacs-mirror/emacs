@@ -292,8 +292,8 @@ See also the documentation of make-char."
 (defun decode-char (ccs code-point &optional restriction)
   "Return character specified by coded character set CCS and CODE-POINT in it.
 Return nil if such a character is not supported.
-Currently, supported coded character set is `ucs' (ISO/IEC
-10646: Universal Multi-Octet Coded Character Set) only.
+Currently the only supported coded character set is `ucs' (ISO/IEC
+10646: Universal Multi-Octet Coded Character Set).
 
 Optional argument RESTRICTION specifies a way to map the pair of CCS
 and CODE-POINT to a chracter.   Currently not supported and just ignored."
@@ -319,8 +319,8 @@ and CODE-POINT to a chracter.   Currently not supported and just ignored."
 (defun encode-char (char ccs &optional restriction)
   "Return code-point in coded character set CCS that corresponds to CHAR.
 Return nil if CHAR is not included in CCS.
-Currently, supported coded character set is `ucs' (ISO/IEC
-10646: Universal Multi-Octet Coded Character Set) only.
+Currently the only supported coded character set is `ucs' (ISO/IEC
+10646: Universal Multi-Octet Coded Character Set).
 
 CHAR should be in one of these charsets:
   ascii, latin-iso8859-1, mule-unicode-0100-24ff, mule-unicode-2500-33ff,
@@ -347,7 +347,7 @@ code-point in CCS.  Currently not supported and just ignored."
 			       (- (nth 2 split) 32)))))))))
 
 
-;; Coding system staffs
+;; Coding system stuff
 
 ;; Coding system is a symbol that has the property `coding-system'.
 ;;
@@ -1080,7 +1080,7 @@ LIST is a list of coding categories ordered by priority."
 
 ;;; FILE I/O
 
-(defvar auto-coding-alist
+(defcustom auto-coding-alist
   '(("\\.\\(arc\\|zip\\|lzh\\|zoo\\|jar\\|tar\\|tgz\\)\\'" . no-conversion)
     ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|JAR\\|TAR\\|TGZ\\)\\'" . no-conversion))
   "Alist of filename patterns vs corresponding coding systems.
@@ -1089,7 +1089,11 @@ A file whose name matches REGEXP is decoded by CODING-SYSTEM on reading.
 
 The settings in this alist take priority over `coding:' tags
 in the file (see the function `set-auto-coding')
-and the contents of `file-coding-system-alist'.")
+and the contents of `file-coding-system-alist'."
+  :group 'files
+  :group 'mule
+  :type '(repeat (cons (regexp :tag "File name regexp")
+		       (symbol :tag "Coding system"))))
 
 (defvar set-auto-coding-for-load nil
   "Non-nil means look for `load-coding' property instead of `coding'.
