@@ -6199,7 +6199,7 @@ sit_for (sec, usec, reading, display, initial_display)
 
 
 DEFUN ("sit-for", Fsit_for, Ssit_for, 1, 3, 0,
-  doc: /* Perform redisplay, then wait for SECONDS seconds or until input is available.
+       doc: /* Perform redisplay, then wait for SECONDS seconds or until input is available.
 SECONDS may be a floating-point value, meaning that you can wait for a
 fraction of a second.  Optional second arg MILLISECONDS specifies an
 additional wait period, in milliseconds; this may be useful if your
@@ -6250,7 +6250,7 @@ static Lisp_Object frame_and_buffer_state;
 
 DEFUN ("frame-or-buffer-changed-p", Fframe_or_buffer_changed_p,
        Sframe_or_buffer_changed_p, 0, 0, 0,
-  doc: /* Return non-nil if the frame and buffer state appears to have changed.
+       doc: /* Return non-nil if the frame and buffer state appears to have changed.
 The state variable is an internal vector containing all frames and buffers,
 aside from buffers whose names start with space,
 along with the buffers' read-only and modified flags, which allows a fast
@@ -6547,7 +6547,7 @@ don't show a cursor.  */)
 
 DEFUN ("internal-show-cursor-p", Finternal_show_cursor_p,
        Sinternal_show_cursor_p, 0, 1, 0,
-   doc: /* Value is non-nil if next redisplay will display a cursor in WINDOW.
+       doc: /* Value is non-nil if next redisplay will display a cursor in WINDOW.
 WINDOW nil or omitted means report on the selected window.  */)
      (window)
      Lisp_Object window;
@@ -6595,38 +6595,38 @@ syms_of_display ()
   staticpro (&Qredisplay_dont_pause);
 
   DEFVAR_INT ("baud-rate", &baud_rate,
-    doc: /* *The output baud rate of the terminal.
+	      doc: /* *The output baud rate of the terminal.
 On most systems, changing this value will affect the amount of padding
 and the other strategic decisions made during redisplay.  */);
   
   DEFVAR_BOOL ("inverse-video", &inverse_video,
-    doc: /* *Non-nil means invert the entire frame display.
+	       doc: /* *Non-nil means invert the entire frame display.
 This means everything is in inverse video which otherwise would not be.  */);
   
   DEFVAR_BOOL ("visible-bell", &visible_bell,
-    doc: /* *Non-nil means try to flash the frame to represent a bell.
+	       doc: /* *Non-nil means try to flash the frame to represent a bell.
 
 See also `ring-bell-function'.  */);
   
   DEFVAR_BOOL ("no-redraw-on-reenter", &no_redraw_on_reenter,
-    doc: /* *Non-nil means no need to redraw entire frame after suspending.
+	       doc: /* *Non-nil means no need to redraw entire frame after suspending.
 A non-nil value is useful if the terminal can automatically preserve
 Emacs's frame display when you reenter Emacs.
 It is up to you to set this variable if your terminal can do that.  */);
   
   DEFVAR_LISP ("window-system", &Vwindow_system,
-    doc: /* A symbol naming the window-system under which Emacs is running
+	       doc: /* A symbol naming the window-system under which Emacs is running
 \(such as `x'), or nil if emacs is running on an ordinary terminal.  */);
   
   DEFVAR_LISP ("window-system-version", &Vwindow_system_version,
-    doc: /* The version number of the window system in use.
+	       doc: /* The version number of the window system in use.
 For X windows, this is 10 or 11.  */);
   
   DEFVAR_BOOL ("cursor-in-echo-area", &cursor_in_echo_area,
-    doc: /* Non-nil means put cursor in minibuffer, at end of any message there.  */);
+	       doc: /* Non-nil means put cursor in minibuffer, at end of any message there.  */);
   
   DEFVAR_LISP ("glyph-table", &Vglyph_table,
-    doc: /* Table defining how to output a glyph code to the frame.
+	       doc: /* Table defining how to output a glyph code to the frame.
 If not nil, this is a vector indexed by glyph code to define the glyph.
 Each element can be:
  integer: a glyph code which this glyph is an alias for.
@@ -6637,12 +6637,12 @@ Each element can be:
   Vglyph_table = Qnil;
 
   DEFVAR_LISP ("standard-display-table", &Vstandard_display_table,
-    doc: /* Display table to use for buffers that specify none.
+	       doc: /* Display table to use for buffers that specify none.
 See `buffer-display-table' for more information.  */);
   Vstandard_display_table = Qnil;
 
   DEFVAR_BOOL ("redisplay-dont-pause", &redisplay_dont_pause,
-    doc: /* *Non-nil means update isn't paused when input is detected.  */);
+	       doc: /* *Non-nil means update isn't paused when input is detected.  */);
   redisplay_dont_pause = 0;
 
   /* Initialize `window-system', unless init_display already decided it.  */
