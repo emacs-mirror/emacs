@@ -731,7 +731,15 @@ to make it write to the debugging output.\n")
 {
   CHECK_NUMBER (character, 0);
   putc (XINT (character), stderr);
-  
+
+#ifdef WINDOWSNT
+  /* Send the output to a debugger (nothing happens if there isn't one).  */
+  {
+    char buf[2] = {(char) XINT (character), '\0'};
+    OutputDebugString (buf);
+  }
+#endif
+
   return character;
 }
 
