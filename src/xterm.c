@@ -4252,6 +4252,8 @@ static void
 x_draw_glyph_string (s)
      struct glyph_string *s;
 {
+  int relief_drawn_p = 0;
+
   /* If S draws into the background of its successor, draw the
      background of the successor first so that S can draw into it.
      This makes S->next use XDrawString instead of XDrawImageString.  */
@@ -4266,6 +4268,19 @@ x_draw_glyph_string (s)
   /* Set up S->gc, set clipping and draw S.  */
   x_set_glyph_string_gc (s);
   x_set_glyph_string_clipping (s);
+
+  /* Draw relief (if any) in advance for char/composition so that the
+     glyph string can be drawn over it.  */
+  if (!s->for_overlaps_p
+      && s->face->box != FACE_NO_BOX
+      && (s->first_glyph->type == CHAR_GLYPH
+	  || s->first_glyph->type == COMPOSITE_GLYPH))
+
+    {
+      x_draw_glyph_string_background (s, 1);
+      x_draw_glyph_string_box (s);
+      relief_drawn_p = 1;
+    }
 
   switch (s->first_glyph->type)
     {
@@ -4377,8 +4392,8 @@ x_draw_glyph_string (s)
 	    }
 	}
   
-      /* Draw relief.  */
-      if (s->face->box != FACE_NO_BOX)
+      /* Draw relief if not yet drawn.  */
+      if (!relief_drawn_p && s->face->box != FACE_NO_BOX)
 	x_draw_glyph_string_box (s);
     }
   
