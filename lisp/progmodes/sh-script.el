@@ -3305,43 +3305,91 @@ Argument ARG if non-nil disables this test."
 	(goto-char next-change)))
     ))
 
+;; (defun sh-search-word (word &optional limit)
+;;   "Search forward for regexp WORD occurring as a word not in string nor comment.
+;; If found, returns non nil with the match available in  \(match-string 2\).
+;; Yes 2, not 1, since we build a regexp to guard against false matches
+;; such as matching \"a-case\" when we are searching for \"case\".
+;; If not found, it returns nil.
+;; The search maybe limited by optional argument LIMIT."
+;;   (interactive "sSearch for: ")
+;;   (let ((found nil)
+;; 	;; Cannot use \\b here since it matches "-" and "_"
+;; 	(regexp (sh-mkword-regexp word))
+;; 	start state where)
+;;     (setq start (point))
+;;     (while (and (setq start (point))
+;; 		(not found)
+;; 		(re-search-forward regexp limit t))
+;;       ;; Found str;  check it is not in a comment or string.
+;;       (setq state
+;; 	    ;; Stop on comment:
+;; 	    (parse-partial-sexp start (point) nil nil nil 'syntax_table))
+;;       (if (setq where (nth 8 state))
+;; 	  ;; in comment or string
+;; 	  (if (= where -1)
+;; 	      (setq found (point))
+;; 	    (if (eq (char-after where) ?#)
+;; 		(end-of-line)
+;; 	      (goto-char where)
+;; 	      (unless (sh-safe-forward-sexp)
+;; 		;; If the above fails we must either give up or
+;; 		;; move forward and try again.
+;; 		(forward-line 1))
+;; 	      ))
+;; 	;; not in comment or string, so accept it
+;; 	(setq found (point))
+;; 	))
+;;     found
+;;     ))
+
 (defun sh-search-word (word &optional limit)
   "Search forward for regexp WORD occurring as a word not in string nor comment.
-If found, returns non nil with the match available in  \(match-string 2\).
-Yes 2, not 1, since we build a regexp to guard against false matches
-such as matching \"a-case\" when we are searching for \"case\".
+If found, returns non-nil, with the match available in  \(match-string 2\).
+Yes, that is 2, not 1.
 If not found, it returns nil.
-The search maybe limited by optional argument LIMIT."
+The search may be limited by optional argument LIMIT."
   (interactive "sSearch for: ")
   (let ((found nil)
-	;; Cannot use \\b here since it matches "-" and "_"
-	(regexp (sh-mkword-regexp word))
-	start state where)
+	start state where match)
     (setq start (point))
-    (while (and (setq start (point))
-		(not found)
-		(re-search-forward regexp limit t))
-      ;; Found str;  check it is not in a comment or string.
-      (setq state
-	    ;; Stop on comment:
-	    (parse-partial-sexp start (point) nil nil nil 'syntax_table))
-      (if (setq where (nth 8 state))
-	  ;; in comment or string
-	  (if (= where -1)
-	      (setq found (point))
-	    (if (eq (char-after where) ?#)
-		(end-of-line)
-	      (goto-char where)
-	      (unless (sh-safe-forward-sexp)
-		;; If the above fails we must either give up or
-		;; move forward and try again.
-		(forward-line 1))
-	      ))
-	;; not in comment or string, so accept it
-	(setq found (point))
-	))
+    (debug)
+    (while (and (not found)
+		(re-search-forward word limit t))
+      (setq match (match-data))
+      ;; Found the word as a string; check it occurs as a word.
+      (when (and (or (= (match-beginning 0) (point-min))
+		     (save-excursion
+		       (goto-char (1- (match-beginning 0)))
+		       (looking-at "[^-a-z0-9_]")))
+		 (or (= (point) (point-max))
+		     (looking-at "[^-a-z0-9_]")))
+	;; Check it is not in a comment or string.
+	(setq state
+	      ;; Stop on comment:
+	      (parse-partial-sexp start (point) nil nil nil 'syntax_table))
+	(if (setq where (nth 8 state))
+	    ;; in comment or string
+	    (if (= where -1)
+		(setq found (point))
+	      (if (eq (char-after where) ?#)
+		  (end-of-line)
+		(goto-char where)
+		(unless (sh-safe-forward-sexp)
+		  ;; If the above fails we must either give up or
+		  ;; move forward and try again.
+		  (forward-line 1))))
+	  ;; not in comment or string, so accept it
+	  (setq found (point)))
+	(setq start (point))))
+    (when found
+      (set-match-data match)
+      (goto-char (1- (match-beginning 0)))
+      (looking-at (sh-mkword-regexp word))
+      (goto-char found))
     found
     ))
+
 
 (defun sh-scan-case ()
   "Scan a case statement for right parens belonging to case alternatives.
