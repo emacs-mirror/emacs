@@ -987,7 +987,7 @@ Remaining arguments are strings to give program as arguments.")
 
     current_dir = 
       expand_and_dir_to_file
-	(Funhandled_file_name_directory (current_dir, Qnil));
+	(Funhandled_file_name_directory (current_dir), Qnil);
     if (NILP (Ffile_accessible_directory_p (current_dir)))
       report_file_error ("Setting current directory",
 			 Fcons (current_buffer->directory, Qnil));
