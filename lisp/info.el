@@ -77,7 +77,7 @@ Marker points nowhere if file has no tag table.")
 			    (".z"      . "gunzip")
 			    (".info.Z" . "uncompress")
 			    (".info.Y" . "unyabba")
-			    (".z"      . "gunzip"))
+			    (".info.z" . "gunzip"))
   "List of file name suffixes and associated decoding commands.
 Each entry should be (SUFFIX . STRING); the file is given to
 the command as standard input.  If STRING is nil, no decoding is done.")
