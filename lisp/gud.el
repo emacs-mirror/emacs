@@ -45,7 +45,7 @@
 ;; GUD commands must be visible in C buffers visited by GUD
 
 (defgroup gud nil
-  "Grand Unified Debugger mode for gdb, sdb, dbx, or xdb under Emacs."
+  "Grand Unified Debugger mode for gdb, sdb, dbx, xdb or perldb under Emacs."
   :group 'unix
   :group 'tools)
 
