@@ -82,9 +82,10 @@ to your .emacs to revert to the old behavior.
 
 +++
 ** Emacs now reads the standard abbrevs file ~/.abbrev_defs
-automatically at startup, if it exists.  And it always offers to save
-abbrevs (if you have changed them) when if offers to save modified
-buffers.
+automatically at startup, if it exists.  When Emacs offers to save
+modified buffers, it saves the abbrevs too if they have changed.  It
+can do this either silently or asking for confirmation first,
+according to the value of `save-abbrebvs'.
 
 ** Display of hollow cursors now obeys the buffer-local value (if any)
 of `cursor-in-non-selected-windows' in the buffer that the cursor
@@ -2839,11 +2840,6 @@ patterns are checked against file contents instead of file names.
 
 * Lisp changes in Emacs 21.1 (see following page for display-related features)
 
-Note that +++ before an item means the Lisp manual has been updated.
---- means that I have decided it does not need to be in the Lisp manual.
-When you add a new item, please add it without either +++ or ---
-so I will know I still need to look at it -- rms.
-
 ** The new package rx.el provides an alternative sexp notation for
 regular expressions.
 
@@ -3846,11 +3842,6 @@ below).
 
 
 * New Lisp-level Display features in Emacs 21.1
-
-Note that +++ before an item means the Lisp manual has been updated.
---- means that I have decided it does not need to be in the Lisp manual.
-When you add a new item, please add it without either +++ or ---
-so I will know I still need to look at it -- rms.
 
 ** The function tty-suppress-bold-inverse-default-colors can be used
 to make Emacs avoid displaying text with bold black foreground on TTYs.
