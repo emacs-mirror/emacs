@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.63) $
+ * $HopeName: MMsrc!mpsi.c(trunk.64) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -46,13 +46,14 @@
  * interface is designed allows for the possibility of change.
  *
  * .naming: (rule.impl.guide) The exported identifiers do not follow the
- * normal MPS naming conventions.  See design.mps.interface.c.naming.  */
+ * normal MPS naming conventions.  See design.mps.interface.c.naming.
+ */
 
 #include "mpm.h"
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.63) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.64) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -65,7 +66,7 @@ SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.63) $");
  * .check.empty: Note that mpsi_check compiles away to almost nothing.
  * 
  * .check.enum.cast: enum comparisons have to be cast to avoid a warning
- * from the SunPro C compiler. See builder.sc.warn.enum.
+ * from the SunPro C compiler.  See builder.sc.warn.enum.
  */
 
 static Bool mpsi_check(void)
@@ -522,20 +523,9 @@ void mps_pool_destroy(mps_pool_t mps_pool)
   ArenaLeave(arena);
 }
 
-mps_res_t mps_alloc(mps_addr_t *p_o,
-                    mps_pool_t mps_pool,
-                    size_t size, ...)
-{
-  mps_res_t res;
-  va_list args;
-  va_start(args, size);
-  res = mps_alloc_v(p_o, mps_pool, size, args);
-  va_end(args);
-  return res;
-}
 
-mps_res_t mps_alloc_v(mps_addr_t *p_o, mps_pool_t mps_pool, size_t size,
-                      va_list args)
+mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t mps_pool,
+                    size_t size, ...)
 {
   Pool pool = (Pool)mps_pool;
   Arena arena;
@@ -552,11 +542,10 @@ mps_res_t mps_alloc_v(mps_addr_t *p_o, mps_pool_t mps_pool, size_t size,
   AVER(p_o != NULL);
   AVERT(Pool, pool);
   AVER(size > 0);
-  UNUSED(args);
   /* Note: class may allow unaligned size, see */
   /* design.mps.class-interface.alloc.size.align. */
+  /* Rest ignored, see .varargs. */
 
-  /* See .varargs. */
   /* @@@@ There is currently no requirement for reservoirs to work */
   /* with unbuffered allocation. */
   res = PoolAlloc(&p, pool, size, /* withReservoirPermit */ FALSE);
@@ -567,6 +556,18 @@ mps_res_t mps_alloc_v(mps_addr_t *p_o, mps_pool_t mps_pool, size_t size,
   *p_o = (mps_addr_t)p;
   return MPS_RES_OK;
 }
+
+
+mps_res_t mps_alloc_v(mps_addr_t *p_o, mps_pool_t mps_pool, size_t size,
+                      va_list args)
+{
+  mps_res_t res;
+
+  UNUSED(args); /* See .varargs. */
+  res = mps_alloc(p_o, mps_pool, size);
+  return res;
+}
+
 
 void mps_free(mps_pool_t mps_pool, mps_addr_t p, size_t size)
 {
