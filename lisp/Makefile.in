@@ -80,6 +80,7 @@ DONTCOMPILE = \
 	$(lisp)/language/utf-8-lang.el \
 	$(lisp)/language/georgian.el \
 	$(lisp)/loaddefs.el \
+	$(lisp)/loaddefs-boot.el \
 	$(lisp)/loadup.el \
 	$(lisp)/mail/blessmail.el \
 	$(lisp)/patcomp.el \
@@ -186,11 +187,11 @@ update-authors:
 	$(emacs) -f batch-update-authors $(srcdir)/AUTHORS $(srcdir)
 
 TAGS: $(lisptagsfiles1) $(lisptagsfiles2)
-	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/loaddefs.el,,"`; \
+	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/loaddefs.*\.el,,"`; \
 	${ETAGS} $$els
 
 TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
-	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/loaddefs.el,,"`; \
+	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/loaddefs.*\.el,,"`; \
 	${ETAGS} -o TAGS-LISP $$els
 
 .SUFFIXES: .elc .el
@@ -274,14 +275,27 @@ compile-after-backup: backup-compiled-files compile-always
 recompile: doit
 	$(EMACS) $(EMACSOPT) -f batch-byte-recompile-directory $(lisp)
 
-# Prepare a bootstrap in the lisp subdirectory.  Build loaddefs.el,
-# because it's not sure it's up-to-date, and if it's not, that might
-# lead to errors during the bootstrap because something fails to
-# autoload as expected.  Remove compiled Lisp files so that
-# bootstrap-emacs will be built from sources only.
+# Prepare a bootstrap in the lisp subdirectory.
+#
+# Build loaddefs.el, because it's not sure it's up-to-date, and if it's not,
+# that might lead to errors during the bootstrap because something fails to
+# autoload as expected.  However, if there is no emacs binary, then we can't
+# build autoloads yet, so just make sure there's some loaddefs.el file, as
+# it's necessary for generating the binary (because loaddefs.el is an
+# automatically generated file, we don't want to store it in the source
+# repository).
+#
+# Remove compiled Lisp files so that bootstrap-emacs will be built from
+# sources only.
 
 bootstrap-clean:
-	if test -x $(EMACS); then $(MAKE) $(MFLAGS) autoloads; fi
+	if test -x $(EMACS); then				\
+	  $(MAKE) $(MFLAGS) autoloads;				\
+	else							\
+	  if ! test -r $(lisp)/loaddefs.el; then		\
+	    cp $(lisp)/loaddefs-boot.el $(lisp)/loaddefs.el;	\
+	  fi							\
+	fi
 	cd $(lisp); rm -f *.elc */*.elc
 
 # Generate/update files for the bootstrap process.
