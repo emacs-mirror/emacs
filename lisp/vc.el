@@ -289,7 +289,7 @@ the master name of FILE; this is appended to an optional list of FLAGS."
 						   compilation-old-error-list
 						   compilation-error-list))
 					  (buffer-error-marked-p nil))
-				      (while (and errors
+				      (while (and (consp errors)
 						  (not buffer-error-marked-p))
 					(and (markerp (cdr (car errors)))
 					     (eq buffer
