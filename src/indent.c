@@ -408,27 +408,9 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
      register int width;
      int hscroll, tab_offset;
 {
-/* Note that `cpos' is CURRENT_VPOS << SHORTBITS + CURRENT_HPOS,
-   and that CURRENT_HPOS may be negative.  Use these macros
-   to extract the hpos or the vpos from cpos or anything like it.
- */
-#ifndef SHORT_CAST_BUG
-#define HPOS(VAR) (short) (VAR)
-#else
-#define HPOS(VAR) (((VAR) & (1 << (SHORTBITS - 1)) \
-		    ? ~((1 << SHORTBITS) - 1) : 0) \
-		   | (VAR) & ((1 << SHORTBITS) - 1))
-/* #define HPOS(VAR) (((VAR) & 0x8000 ? 0xffff0000 : 0) | ((VAR) & 0xffff)) */
-#endif /* SHORT_CAST_BUG */
+  register int hpos = fromhpos;
+  register int vpos = fromvpos;
 
-#define VPOS(VAR) (((VAR) >> SHORTBITS) + (HPOS (VAR) < 0))
-
-
-#ifndef TAHOE_REGISTER_BUG
-  register
-#endif /* TAHOE_REGISTER_BUG */
-    int cpos = fromhpos + (fromvpos << SHORTBITS);
-  register int target = tohpos + (tovpos << SHORTBITS);
   register int pos;
   register int c;
   register int tab_width = XFASTINT (current_buffer->tab_width);
@@ -438,28 +420,34 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
     = XTYPE (current_buffer->selective_display) == Lisp_Int
       ? XINT (current_buffer->selective_display)
 	: !NILP (current_buffer->selective_display) ? -1 : 0;
-  int prevpos;
+  int prev_vpos, prev_hpos;
   int selective_rlen
     = (selective && dp && XTYPE (DISP_INVIS_ROPE (dp)) == Lisp_String
        ? XSTRING (DISP_INVIS_ROPE (dp))->size / sizeof (GLYPH) : 0);
 
   if (tab_width <= 0 || tab_width > 20) tab_width = 8;
-  for (pos = from; pos < to && cpos < target; pos++)
+  for (pos = from; pos < to; pos++)
     {
-      prevpos = cpos;
+      /* Stop if past the target screen position.  */
+      if (vpos > tovpos
+	  || (vpos == tovpos && hpos >= tohpos))
+	break;
+
+      prev_vpos = vpos;
+      prev_hpos = hpos;
+
       c = FETCH_CHAR (pos);
       if (c >= 040 && c < 0177
 	  && (dp == 0 || XTYPE (DISP_CHAR_ROPE (dp, c)) != Lisp_String))
-	cpos++;
+	hpos++;
       else if (c == '\t')
 	{
-	  cpos += tab_width
-	    - HPOS (cpos + tab_offset + hscroll - (hscroll > 0)
-		    /* Add tab_width here to make sure positive.
-		       cpos can be negative after continuation
-		       but can't be less than -tab_width.  */
-		    + tab_width)
-	      % tab_width;
+	  hpos += tab_width - ((hpos + tab_offset + hscroll - (hscroll > 0)
+				/* Add tab_width here to make sure positive.
+				   hpos can be negative after continuation
+				   but can't be less than -tab_width.  */
+				+ tab_width)
+			       % tab_width);
 	}
       else if (c == '\n')
 	{
@@ -468,61 +456,71 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 	      /* Skip any number of invisible lines all at once */
 	      do
 		{
-		  while (++pos < to && FETCH_CHAR(pos) != '\n');
+		  while (++pos < to && FETCH_CHAR (pos) != '\n');
 		}
 	      while (selective > 0 && position_indentation (pos + 1) >= selective);
 	      pos--;
 	      /* Allow for the " ..." that is displayed for them. */
 	      if (selective_rlen)
 		{
-		  cpos += selective_rlen;
-		  if (HPOS (cpos) >= width)
-		    cpos -= HPOS (cpos) - width;
+		  hpos += selective_rlen;
+		  if (hpos >= width)
+		    hpos = width;
 		}
 	    }
 	  else
-	    cpos += (1 << SHORTBITS) - HPOS (cpos);
-	  cpos -= hscroll;
-	  if (hscroll > 0) cpos++; /* Count the ! on column 0 */
+	    {
+	      /* A visible line.  */
+	      vpos++;
+	      hpos = 0;
+	    }
+	  hpos -= hscroll;
+	  if (hscroll > 0) hpos++; /* Count the ! on column 0 */
 	  tab_offset = 0;
 	}
       else if (c == CR && selective < 0)
 	{
 	  /* In selective display mode,
 	     everything from a ^M to the end of the line is invisible */
-	  while (pos < to && FETCH_CHAR(pos) != '\n') pos++;
+	  while (pos < to && FETCH_CHAR (pos) != '\n') pos++;
+	  /* Stop *before* the real newline.  */
 	  pos--;
 	  /* Allow for the " ..." that is displayed for them. */
 	  if (selective_rlen)
 	    {
-	      cpos += selective_rlen;
-	      if (HPOS (cpos) >= width)
-		cpos -= HPOS (cpos) - width;
+	      hpos += selective_rlen;
+	      if (hpos >= width)
+		hpos = width;
 	    }
 	}
       else if (dp != 0 && XTYPE (DISP_CHAR_ROPE (dp, c)) == Lisp_String)
-	cpos += XSTRING (DISP_CHAR_ROPE (dp, c))->size / sizeof (GLYPH);
+	hpos += XSTRING (DISP_CHAR_ROPE (dp, c))->size / sizeof (GLYPH);
       else
-	cpos += (ctl_arrow && c < 0200) ? 2 : 4;
+	hpos += (ctl_arrow && c < 0200) ? 2 : 4;
 
-      if (HPOS (cpos) >= width
-	  && (HPOS (cpos) > width
-	      || (pos < (ZV - 1)
+      /* Handle right margin.  */
+      if (hpos >= width
+	  && (hpos > width
+	      || (pos < ZV - 1
 		  && FETCH_CHAR (pos + 1) != '\n')))
 	{
-	  if (cpos >= target)
+	  if (vpos > tovpos
+	      || (vpos == tovpos && hpos >= tohpos))
 	    break;
 	  if (hscroll
 	      || (truncate_partial_width_windows
 		  && width + 1 < SCREEN_WIDTH (selected_screen))
 	      || !NILP (current_buffer->truncate_lines))
 	    {
-	      while (pos < to && FETCH_CHAR(pos) != '\n') pos++;
+	      /* Truncating: skip to newline.  */
+	      while (pos < to && FETCH_CHAR (pos) != '\n') pos++;
 	      pos--;
 	    }
 	  else
 	    {
-	      cpos += (1 << SHORTBITS) - width;
+	      /* Continuing.  */
+	      vpos++;
+	      hpos -= width;
 	      tab_offset += width;
 	    }
 
@@ -530,20 +528,18 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
     }
 
   val_compute_motion.bufpos = pos;
-  val_compute_motion.hpos = HPOS (cpos);
-  val_compute_motion.vpos = VPOS (cpos);
-  val_compute_motion.prevhpos = HPOS (prevpos);
+  val_compute_motion.hpos = hpos;
+  val_compute_motion.vpos = vpos;
+  val_compute_motion.prevhpos = prev_hpos;
 
   /* Nonzero if have just continued a line */
   val_compute_motion.contin
-    = pos != from
-      && (val_compute_motion.vpos != VPOS (prevpos))
-      && c != '\n';
+    = (pos != from
+       && (val_compute_motion.vpos != prev_vpos)
+       && c != '\n');
 
   return &val_compute_motion;
 }
-#undef HPOS
-#undef VPOS
 
 
 /* Return the column of position POS in window W's buffer,
@@ -608,7 +604,7 @@ vmotion (from, vtarget, width, hscroll, window)
 	    prevline = find_next_newline (prevline - 1, -1);
 	  pos = *compute_motion (prevline, 0,
 				 lmargin + (prevline == 1 ? start_hpos : 0),
-				 from, 10000, 10000,
+				 from, 1 << (INTBITS - 2), 0,
 				 width, hscroll, 0);
 	}
       else
@@ -617,7 +613,7 @@ vmotion (from, vtarget, width, hscroll, window)
 	  pos.vpos = 0;
 	}
       return compute_motion (from, vpos, pos.hpos,
-			     ZV, vtarget, - (1 << (SHORTBITS - 1)),
+			     ZV, vtarget, - (1 << (INTBITS - 2)),
 			     width, hscroll, pos.vpos * width);
     }
 
@@ -639,7 +635,7 @@ vmotion (from, vtarget, width, hscroll, window)
 	}
       pos = *compute_motion (prevline, 0,
 			     lmargin + (prevline == 1 ? start_hpos : 0),
-			     from, 10000, 10000,
+			     from, 1 << (INTBITS - 2), 0,
 			     width, hscroll, 0);
       vpos -= pos.vpos;
       first = 0;
