@@ -273,6 +273,9 @@ If the face already exists, it is unmodified."
 	;; when making a face after frames already exist
 	(if (eq window-system 'x)
 	    (make-face-x-resource-internal face))
+	;; add to menu
+	(if (fboundp 'facemenu-add-new-face)
+	    (facemenu-add-new-face name))
 	face))
   name)
 
