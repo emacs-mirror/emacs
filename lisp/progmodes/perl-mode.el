@@ -250,6 +250,11 @@ This is in addition to `perl-continued-statement-offset'."
   "*Offset of Perl label lines relative to usual indentation."
   :type 'integer
   :group 'perl)
+(defcustom perl-indent-continued-arguments nil
+  "*If non-nil offset of argument lines relative to usual indentation.
+If nil, continued arguments are aligned with the first argument."
+  :type '(choice integer (const nil))
+  :group 'perl)
 
 (defcustom perl-tab-always-indent t
   "*Non-nil means TAB in Perl mode always indents the current line.
@@ -283,32 +288,34 @@ Paragraphs are separated by blank lines only.
 Delete converts tabs to spaces as it moves back.
 \\{perl-mode-map}
 Variables controlling indentation style:
- perl-tab-always-indent
+ `perl-tab-always-indent'
     Non-nil means TAB in Perl mode should always indent the current line,
     regardless of where in the line point is when the TAB command is used.
- perl-tab-to-comment
+ `perl-tab-to-comment'
     Non-nil means that for lines which don't need indenting, TAB will
     either delete an empty comment, indent an existing comment, move 
     to end-of-line, or if at end-of-line already, create a new comment.
- perl-nochange
+ `perl-nochange'
     Lines starting with this regular expression are not auto-indented.
- perl-indent-level
+ `perl-indent-level'
     Indentation of Perl statements within surrounding block.
     The surrounding block's indentation is the indentation
     of the line on which the open-brace appears.
- perl-continued-statement-offset
+ `perl-continued-statement-offset'
     Extra indentation given to a substatement, such as the
     then-clause of an if or body of a while.
- perl-continued-brace-offset
+ `perl-continued-brace-offset'
     Extra indentation given to a brace that starts a substatement.
     This is in addition to `perl-continued-statement-offset'.
- perl-brace-offset
+ `perl-brace-offset'
     Extra indentation for line if it starts with an open brace.
- perl-brace-imaginary-offset
+ `perl-brace-imaginary-offset'
     An open brace following other text is treated as if it were
     this far to the right of the start of its line.
- perl-label-offset
+ `perl-label-offset'
     Extra indentation for line that is a label.
+ `perl-indent-continued-arguments'
+    Offset of argument lines relative to usual indentation.
 
 Various indentation styles:       K&R  BSD  BLK  GNU  LW
   perl-indent-level                5    8    0    2    4
@@ -423,23 +430,22 @@ possible action from the following list:
     (if (and (not perl-tab-always-indent)
 	     (> (current-column) (current-indentation)))
 	(insert-tab)
-      (let (bof lsexp delta (oldpnt (point)))
-	(beginning-of-line) 
-	(setq lsexp (point))
-	(setq bof (perl-beginning-of-function))
-	(goto-char oldpnt)
-	(setq delta (perl-indent-line "\f\\|;?#" bof))
+      (let* ((oldpnt (point))
+	     (lsexp (progn (beginning-of-line) (point)))
+	     (bof (perl-beginning-of-function))
+	     (delta (progn
+		      (goto-char oldpnt)
+		      (perl-indent-line "\f\\|;?#" bof))))
 	(and perl-tab-to-comment
 	     (= oldpnt (point))		; done if point moved
 	     (if (listp delta)		; if line starts in a quoted string
 		 (setq lsexp (or (nth 2 delta) bof))
 	       (= delta 0))		; done if indenting occurred
-	     (let (eol state)
-	       (end-of-line) 
-	       (setq eol (point))
+	     (let ((eol (progn (end-of-line) (point)))
+		   state)
 	       (if (= (char-after bof) ?=)
 		   (if (= oldpnt eol)
-		       (message "In a format statement"))     
+		       (message "In a format statement"))
 		 (setq state (parse-partial-sexp lsexp eol))
 		 (if (nth 3 state)
 		     (if (= oldpnt eol)	; already at eol in a string
@@ -538,7 +544,6 @@ Returns (parse-state) if line starts inside a string."
 		  (> indent-point (save-excursion (forward-sexp 1) (point))))
 	(perl-beginning-of-function))
       (while (< (point) indent-point)	;repeat until right sexp
-	(setq parse-start (point))
 	(setq state (parse-partial-sexp (point) indent-point 0))
 ; state = (depth_in_parens innermost_containing_list last_complete_sexp
 ;          string_terminator_or_nil inside_commentp following_quotep
@@ -559,8 +564,10 @@ Returns (parse-state) if line starts inside a string."
 	     ;; line is expression, not statement:
 	     ;; indent to just after the surrounding open.
 	     (goto-char (1+ containing-sexp))
-	     (skip-chars-forward " \t")
-	     (current-column))
+	     (if perl-indent-continued-arguments
+		 (+ perl-indent-continued-arguments (current-indentation))
+	       (skip-chars-forward " \t")
+	       (current-column)))
 	    (t
 	     ;; Statement level.  Is it a continuation or a new statement?
 	     (if (perl-continuation-line-p containing-sexp)
@@ -633,19 +640,8 @@ Returns (parse-state) if line starts inside a string."
 
 (defun perl-backward-to-noncomment ()
   "Move point backward to after the first non-white-space, skipping comments."
-  (interactive)
-  (let (opoint stop)
-    (while (not stop)
-      (setq opoint (point))
-      (beginning-of-line)
-      (if (and comment-start-skip
-	       (re-search-forward comment-start-skip opoint 'move 1))
-	  (progn (goto-char (match-end 1))
-		 (skip-chars-forward ";")))
-      (skip-chars-backward " \t\f")
-      (setq stop (or (bobp)
-		     (not (bolp))
-		     (forward-char -1))))))
+  (interactive)				;why??  -stef
+  (forward-comment (- (point-max))))
 
 (defun perl-backward-to-start-of-continued-exp (lim)
   (if (= (preceding-char) ?\))
