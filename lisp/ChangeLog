@@ -1,6 +1,10 @@
 2000-03-17  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* emacs-lisp/cl-macs.el (cl-do-arglist): Don't add (setq :<key> ':<key>).
+	* mail/rmailsum.el (rmail-summary-font-lock-keywords): Make sure the
+	regexp for labels cannot span several lines.
+
+	* emacs-lisp/cl-macs.el (cl-do-arglist): Don't add useless
+	(setq :<key> ':<key>) to the macro expansion.
 
 2000-03-16  Dave Love  <fx@gnu.org>
 
