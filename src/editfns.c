@@ -246,10 +246,7 @@ clip_to_bounds (lower, num, upper)
 
 DEFUN ("goto-char", Fgoto_char, Sgoto_char, 1, 1, "NGoto char: ",
        doc: /* Set point to POSITION, a number or marker.
-Beginning of buffer is position (point-min), end is (point-max).
-If the position is in the middle of a multibyte form,
-the actual point is set at the head of the multibyte form
-except in the case that `enable-multibyte-characters' is nil.  */)
+Beginning of buffer is position (point-min), end is (point-max).  */)
      (position)
      register Lisp_Object position;
 {
