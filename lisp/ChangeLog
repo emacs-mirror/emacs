@@ -1,5 +1,8 @@
 2000-11-28  Miles Bader  <miles@gnu.org>
 
+	* cus-face.el (custom-face-attributes): Add post-filter function
+	for :box.  Make pre-filter function for :box handle all cases.
+
 	* wid-edit.el (widget-choose): Make sure pop-up window is large
 	enough to display all the choices, as there's no way to scroll it.
 
