@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!150.c(trunk.2) $
  summary = finalization and collection stats
  language = c
  link = testlib.o rankfmt.o
@@ -96,11 +96,11 @@ static void qpoll(mps_addr_t *ref, int faction) {
 static void process_stats(mps_message_t message) {
  report("collect", "true");
  report("collect_live", "%ld",
-  mps_message_collection_stats_live_size(space, message));
+  mps_message_gc_live_size(space, message));
  report("collect_condemned", "%ld",
-  mps_message_collection_stats_condemned_size(space, message));
+  mps_message_gc_condemned_size(space, message));
  report("collect_not_condemned", "%ld",
-  mps_message_collection_stats_not_condemned_size(space, message));
+  mps_message_gc_not_condemned_size(space, message));
  mps_message_discard(space, message);
 }
 
@@ -111,7 +111,7 @@ static void messagepoll(mps_addr_t *ref, int faction) {
   final_count -=1;
   process_mess(message, faction, ref);
  }
- if (mps_message_get(&message, space, mps_message_type_collection_stats())) {
+ if (mps_message_get(&message, space, mps_message_type_gc())) {
   process_stats(message);
  }
 }
@@ -170,7 +170,7 @@ static void test(void) {
   "create ap");
 
  mps_message_type_enable(space, mps_message_type_finalization());
- mps_message_type_enable(space, mps_message_type_collection_stats());
+ mps_message_type_enable(space, mps_message_type_gc());
 
 /* register loads of objects for finalization (1000*4) */
 
