@@ -265,7 +265,7 @@ if test "$with_app" == "yes"; then
   ## Copy Emacs application
   cp -r Emacs.app ${tempappdir}
   ## Delete any CVS files
-  find ${tempappdir} -name "CVS" -type d -execdir rm -rf {} \;
+  find ${tempappdir} -name "CVS" -type d -exec rm -rf {} \;
 
   ## Have application be a symlink to ${prefix}/bin/emacs
   if test "$app_symlink" == "yes"; then
