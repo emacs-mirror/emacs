@@ -485,7 +485,11 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
 	;; Don't do this if we failed to create the initial frame,
 	;; for instance due to a dense colormap.
-	(when frame-initial-frame
+	(when (or frame-initial-frame
+		  ;; If frame-initial-frame has no meaning, do this anyway.
+		  (not (and window-system
+			    (not noninteractive)
+			    (not (eq window-system 'pc)))))
 	  ;; Modify the initial frame based on what .emacs puts into
 	  ;; ...-frame-alist.
 	  (if (fboundp 'frame-notice-user-settings)
