@@ -18,8 +18,8 @@ s/\.h\.in/.h-in/
 /^CPPFLAGS *=/s/@[^@\n]*@//
 /^LDFLAGS *=/s/@[^@\n]*@//
 /^LIBS *=/s/@[^@\n]*@//
-/^LIBOBJS *=/s/@[^@\n]*@//
-/^GETLOADAVG_LIBS *=/s/@[^@\n]*@/getloadavg.o/
+/^LIBOBJS *=/s/@[^@\n]*@/getloadavg.o/
+/^GETLOADAVG_LIBS *=/s/@[^@\n]*@//
 /^LIBSOUND *=/s/@LIBSOUND@//
 /^LN_S *=/s/@[^@\n]*@/ln -s/
 /^M_FILE *=/s!@[^@\n]*@!m/intel386.h!
