@@ -97,24 +97,38 @@ change</code> to get it. </p></li>
 
 <li>
 
-  <p> Create a tarball containing the MPS sources: </p>
+  <p> Create a tarball containing the MPS sources, and open it for add: </p>
 
   <blockquote><code>
     cp -r version/VERSION mps-kit-RELEASE <br />
+    mkdir -p release/RELEASE<br />
     tar cf - mps-kit-RELEASE | gzip -c &gt; release/RELEASE/mps-kit-RELEASE.tar.gz <br />
-    rm -r mps-kit-RELEASE
+    rm -r mps-kit-RELEASE<br />
+    p4 add release/RELEASE/mps-kit-RELEASE.tar.gz
   </code></blockquote>
 
 </li>
 
-<li> <p> Add the tarball to Perforce with the comment "Adding the MPS Kit tarball for release RELEASE." </p> </li>
+<li>
+
+  <p> Add the readme.txt file to the release directory: </p>
+
+  <blockquote><code>
+    p4 integrate version/VERSION/readme.txt release/RELEASE/readme.txt
+  </code></blockquote>
+
+</li>
+
+<li> <p> Submit the tarball and the readme.txt file to Perforce with
+the comment "Adding the MPS Kit tarball and readme.txt file for
+release RELEASE." </p> </li>
 
 </ol>
 
 
 <h3><a id="section-2.3" name="section-2.3">2.3. MPS Kit Zip file</a></h3>
 
-<p> On a Window box: </p>
+<p> On a Microsoft Windows box: </p>
 
 <ol>
 
@@ -122,9 +136,9 @@ change</code> to get it. </p></li>
 
 <li> <p> Launch WinZip and create a new archive called "mps-kit-RELEASE.zip" in the directory "release/RELEASE".  Add the MPS sources by selecting "version/VERSION" and turning on "Include subfolders" option. </p> </li>
 
-<li> <p> Make a self-extracting archive called "mps-kit-RELEASE.exe" from "mps-kit-RELEASE.zip" (in the same directory), by selcting Actions &rarr; Make .EXE File.  Specify the default "unzip to" folder as "mps-kit-RELEASE". </p> </li>
+<li> <p> Make a self-extracting archive called "mps-kit-RELEASE.exe" from "mps-kit-RELEASE.zip" (in the same directory), by selcting Actions &rarr; Make .EXE File. </p> </li>
 
-<li> <p> Add the self-extracting archive to Perforce with the comment "Adding the MPS Kit zip file for release RELEASE." </p> </li>
+<li> <p> Add the self-extracting archive and the zip file to Perforce with the comment "Adding the MPS Kit zip file for release RELEASE." </p> </li>
 
 </ol>
 
@@ -190,6 +204,16 @@ href="mailto:mps-staff@ravenbrook.com">mps-staff@ravenbrook.com</a>. </p></li>
   <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
 
   <td>Created based on P4DTI procedure.</td>
+
+</tr>
+
+<tr valign="top">
+
+  <td>2002-06-19</td>
+
+  <td><a href="mailto:nb@ravenbrook.com">NB</a></td>
+
+  <td>Fixed up based on experience of release 1.100.0.</td>
 
 </tr>
 
