@@ -792,6 +792,10 @@ Summarize messages that have one or more of the specified recipients
 @item C-M-t @var{topic} @key{RET}
 Summarize messages that have a match for the specified regexp
 @var{topic} in their subjects (@code{rmail-summary-by-topic}).
+@item C-M-s @var{regexp}
+Summarize messages whose headers and the subject line match the
+specified regular expression @var{regexp}
+(@code{rmail-summary-by-regexp}).
 @end table
 
 @kindex h @r{(Rmail)}
@@ -820,6 +824,13 @@ addresses separated by commas.@refill
   @kbd{C-M-t @var{topic} @key{RET}} (@code{rmail-summary-by-topic})
 makes a partial summary mentioning only the messages whose subjects have
 a match for the regular expression @var{topic}.
+
+@kindex C-M-s @r{(Rmail)}
+@findex rmail-summary-by-regexp
+  @kbd{C-M-s @var{rgexp} @key{RET}} (@code{rmail-summary-by-regexp})
+makes a partial summary which mentions only the messages whose headers
+(including the date and the subject lines) match the regular
+expression @var{regexp}.
 
   Note that there is only one summary buffer for any Rmail file; making one
 kind of summary discards any previously made summary.
