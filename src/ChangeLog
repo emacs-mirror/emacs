@@ -1,5 +1,7 @@
 2004-11-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* .cvsignore: Add buildobj.lst.
+
 	* doc.c: New variable Vbuild_files.
 	(Fsnarf_documentation): If Vbuild_files is nil, populate it with
 	file names from buildobh.lst.  Only attach docstrings from files
