@@ -1,3 +1,8 @@
+2000-10-15  Miles Bader  <miles@gnu.org>
+
+	* font-lock.el (font-lock-comment-face): Change dark-background,
+	color, non-tty, default to `chocolate1'.
+
 2000-10-13  John Wiegley  <johnw@gnu.org>
 
 	* eshell/esh-util.el (require): Added a missing `require' form,
