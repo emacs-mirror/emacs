@@ -1,5 +1,8 @@
 2003-01-19  Jan D.  <jan.h.d@swipnet.se>
 
+	* xterm.c (handle_one_xevent): Surround popup_activated
+	with #ifdef:s for non-toolkit version.
+
 	* Makefile.in (XOBJ): Add gtkutil.o if USE_GTK
 	(gtkutil.o): New file.
 	(TOOLKIT_DEFINES): Set to -DUSE_GTK if HAVE_GTK.
