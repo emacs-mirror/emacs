@@ -1,3 +1,10 @@
+2004-02-13  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_face): Handle the case that repertory is a
+	char-table.
+	(find_font_encoding): Return nil for unknown encoding.
+	(Fset_fontset_font): Ignore a font of unknown encoding.
+
 2004-02-09  Kenichi Handa  <handa@m17n.org>
 
 	* keymap.c (describe_vector): Handle default value of a char

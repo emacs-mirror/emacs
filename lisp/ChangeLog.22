@@ -1,3 +1,8 @@
+2004-02-13  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (font-encoding-alist): Register
+	"iso10646-2" for unicode-sip.
+
 2004-02-12  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-conf.el (chinese-cns11643-15): New charset.
