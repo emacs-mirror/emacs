@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.42 2002/07/03 14:26:51 lektu Exp $
+;; $Id: vc-cvs.el,v 1.43 2002/10/04 18:38:53 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -367,6 +367,16 @@ This is only possible if CVS is responsible for FILE's directory."
     ;; a branch), remove the sticky tag.
     (if (and rev (not (vc-cvs-valid-symbolic-tag-name-p rev)))
 	(vc-cvs-command nil 0 file "update" "-A"))))
+
+(defun vc-cvs-find-version (file rev buffer)
+  (apply 'vc-cvs-command
+	 buffer 0 file
+	 "-Q"				; suppress diagnostic output
+	 "update"
+	 (and rev (not (string= rev ""))
+	      (concat "-r" rev))
+	 "-p"
+	 vc-checkout-switches))
 
 (defun vc-cvs-checkout (file &optional editable rev workfile)
   "Retrieve a revision of FILE into a WORKFILE.
