@@ -58,8 +58,6 @@ NOTE-END */
 
 #define INTEL386
 #define aix386
-#undef  SYSTEM_TYPE
-#define SYSTEM_TYPE "ibm-aix-386"
 
 #define IBMAIX
 
