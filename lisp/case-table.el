@@ -40,7 +40,7 @@
   (let ((description (make-char-table 'case-table)))
     (map-char-table
      (function (lambda (key value)
-		 (set-case-table-range
+		 (set-char-table-range
 		  description key
 		  (cond ((null key)
 			 "case-invariant")
