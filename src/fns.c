@@ -74,6 +74,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 Lisp_Object Qstring_lessp;
 
+static Lisp_Object internal_equal ();
+
 DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
   "Return the argument unchanged.")
   (arg)
@@ -483,8 +485,8 @@ DEFUN ("elt", Felt, Selt, 2, 2, 0,
     {
       if (XTYPE (seq) == Lisp_Cons || NULL (seq))
 	return Fcar (Fnthcdr (n, seq));
-      else if (XTYPE (seq) == Lisp_String ||
-	       XTYPE (seq) == Lisp_Vector)
+      else if (XTYPE (seq) == Lisp_String
+	       || XTYPE (seq) == Lisp_Vector)
 	return Faref (seq, n);
       else
 	seq = wrong_type_argument (Qsequencep, seq);
@@ -830,6 +832,16 @@ Numbers are compared by value.  Symbols must match exactly.")
   (o1, o2)
      register Lisp_Object o1, o2;
 {
+  return internal_equal (o1, o2, 0);
+}
+
+static Lisp_Object
+internal_equal (o1, o2, depth)
+     register Lisp_Object o1, o2;
+     int depth;
+{
+  if (depth > 200)
+    error ("Stack overflow in equal");
 do_cdr:
   QUIT;
   if (XTYPE (o1) != XTYPE (o2)) return Qnil;
@@ -837,7 +849,7 @@ do_cdr:
   if (XTYPE (o1) == Lisp_Cons)
     {
       Lisp_Object v1;
-      v1 = Fequal (Fcar (o1), Fcar (o2));
+      v1 = Fequal (Fcar (o1), Fcar (o2), depth + 1);
       if (NULL (v1))
 	return v1;
       o1 = Fcdr (o1), o2 = Fcdr (o2);
@@ -859,7 +871,7 @@ do_cdr:
 	  Lisp_Object v, v1, v2;
 	  v1 = XVECTOR (o1)->contents [index];
 	  v2 = XVECTOR (o2)->contents [index];
-	  v = Fequal (v1, v2);
+	  v = Fequal (v1, v2, depth + 1);
 	  if (NULL (v)) return v;
 	}
       return Qt;
