@@ -1,3 +1,12 @@
+2002-05-08  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/smtpmail.el (netrc-machine, netrc-get): Add autoloads.
+
+2002-05-08  Simon Marshall  <simon@gnu.org>
+
+	* msb.el (msb-menu-bar-update-buffers): Fixed frame menu to use
+	the frame name as the car of a menu entry, rather than the frame.
+
 2002-05-08  Juanma Barranquero  <lektu@terra.es>
 
 	* rfn-eshadow.el (read-file-name-electric-shadow-mode): Fix typos
