@@ -188,7 +188,7 @@ extern int (*read_socket_hook) ();
 /* Expedient hack: only provide the below definitions to files that
    are prepared to handle lispy things.  XINT is defined iff lisp.h
    has been included before this file.  */
-#ifdef XINT
+#ifdef CONSP
 
 enum event_kind
 {
