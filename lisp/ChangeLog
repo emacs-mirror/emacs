@@ -1,8 +1,158 @@
+2005-01-31  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-embed.el (calc-embedded-find-bounds): Set the formula
+	bound on the line with the formula.
+
+2005-01-31  Kim F. Storm  <storm@cua.dk>
+
+	* ses.el (ses-create-cell-variable-range)
+	(ses-destroy-cell-variable-range, ses-reset-header-string)
+	(ses-set-with-undo, ses-unset-with-undo, ses-aset-with-undo)
+	(ses-insert-row): Fix format of apply undo entries.
+
+2005-01-31  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-aent.el (math-read-token): Separate the TeX and LaTeX
+	parts.
+
+	* calc/calc-embed.el (calc-embedded-open-formula)
+	(calc-embedded-close-formula): Ignore matrix environments.
+
+	* calc/calc-ext.el (math-read-big-expr): Make LaTeX the default
+	TeX mode.
+
+	* calc/calc-lang.el (math-function-table, math-oper-table)
+	(math-variable-table): Adjust the LaTeX portions.
+
+	* calc/calc.el (math-tex-ignore-words): Remove LaTeX portion.
+	(math-latex-ignore-words): New constant.
+
+2005-01-31  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/ispell.el (ispell-local-dictionary-overridden): New var.
+	(ispell-local-dictionary): Doc fix.
+	(ispell-dictionary-alist): Don't include ispell-local-dictionary-alist.
+	Don't reinitialize at run time.  Don't defcustom.
+	All uses changed to append ispell-local-dictionary-alist,
+	or check it first.
+	(ispell-current-dictionary): New variable for dictionary in use.
+	(ispell-dictionary): Now used only for global default.
+	(ispell-start-process): Set ispell-current-dictionary,
+	not ispell-dictionary.
+	(ispell-change-dictionary): Use this only for setting
+	user preferences.
+	(ispell-internal-change-dictionary): New function
+	to change the current dictionary in use.
+	(ispell-region, ispell-process-line, ispell-buffer-local-dict):
+	Use ispell-current-dictionary.
+	Handle ispell-local-dictionary-overridden.
+	(ispell-buffer-local-dict): Call ispell-internal-change-dictionary.
+
+2005-01-31  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-aent.el (math-read-token): Add support for LaTeX.
+
+	* calc/calc-ext.el: Add calc-latex-language to autoloads.
+	(calc-mode-map): Add calc-latex-language.
+
+	* calc/calc-lang.el (calc-latex-language, math-latex-parse-frac)
+	(math-latex-print-frac): New functions.
+	(math-oper-table, math-function-table, math-variable-table)
+	(math-complex-format, math-input-filter): Add latex properties.
+	(calc-set-language): Set math-expr-special-function-mapping.
+
+	* calc/calc-prog.el (calc-edit-user-syntax, calc-fix-token-name)
+	(calc-write-parse-table-part):  Add LaTeX support.
+
+	* calc/calc.el (calc-language): Adjust docstring.
+	(calc-set-mode-line): Add LaTeX support.
+	(math-expr-special-function-mapping): New variable.
+	(math-tex-ignore-words): Add to list.
+
+	* calc/calccomp.el (math-compose-expr, math-compose-rows):
+	Add LaTeX support.
+	(math-compose-expr): Add support for special functions.
+
+	* calc/calc-help.el (calc-d-prefix-help): Add LaTeX.
+
+2005-01-31  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-memory-address)
+	(gdb-memory-repeat-count, gdb-memory-format, gdb-memory-unit)
+	(gdb-memory-mode-map, gdb-memory-format-keymap)
+	(gdb-memory-format-menu, gdb-memory-unit-keymap)
+	(gdb-memory-unit-menu): New variables for a buffer
+	that lets the user examine program memory.
+	(gdb-memory-set-address, gdb-memory-set-repeat-count)
+	(gdb-memory-format-binary, gdb-memory-format-octal)
+	(gdb-memory-format-unsigned, gdb-memory-format-signed)
+	(gdb-memory-format-hexadecimal, gdb-memory-format-menu)
+	(gdb-memory-format-menu-1, gdb-memory-unit-giant)
+	(gdb-memory-unit-word, gdb-memory-unit-halfword)
+	(gdb-memory-unit-byte, gdb-memory-unit-menu)
+	(gdb-memory-unit-menu-1, gdb-make-header-line-mouse-map)
+	(gdb-memory-mode, gdb-memory-buffer-name)
+	(gdb-display-memory-buffer, gdb-frame-memory-buffer):
+	New functions for above buffer.
+
+2005-01-30  Richard M. Stallman  <rms@gnu.org>
+
+	* cus-edit.el (custom-bury-buffer): Function deleted.
+	(custom-buffer-done-function): Option deleted.
+	(custom-buffer-done-kill): New (replacement option.
+	(Custom-buffer-done): Call quit-window.
+	(custom-buffer-create-internal): Update for above changes.
+
+2005-01-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* simple.el (undo-ask-before-discard): New var.
+	(undo-outer-limit-truncate): Implement it.
+	(undo-extra-outer-limit): Doc update.
+
+2005-01-29  Richard M. Stallman  <rms@gnu.org>
+
+	* ses.el (undo-more): defadvice deleted.
+	(ses-begin-change): Doc fix.
+
+	* dired.el (dired-mode-map): Remap `undo' and `advertised-undo'
+	instead of rebinding C-x u and C-_.
+
+	* files.el (normal-backup-enable-predicate): Return nil for files
+	in /tmp, regardless of temporary-file-directory.
+
+	* man.el (Man-getpage-in-background): Disable undo in Man buffer.
+
+	* rect.el (delete-rectangle-line, delete-extract-rectangle-line)
+	(open-rectangle, delete-whitespace-rectangle-line)
+	(clear-rectangle-line): If FILL, pass t instead of FILL
+	for move-to-column's 2nd arg.
+
+	* simple.el (undo): Fix the test for continuing a series of undos.
+	(undo-more): Set pending-undo-list to t when we reach end.
+	(pending-undo-list): defvar moved up.
+
+	* wid-edit.el (widget-button-click):
+	Shorten the range of the track-mouse binding.
+
+	* comint.el (comint-insert-input): Undo previous changes;
+	use last-input-event in interactive spec.
+
+2005-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/compile.el (compilation-start): Bind buffer-read-only
+	to nil before invoking call-process.  Reset buffer's modified flag
+	after fontifying it in the no-async branch.
+
+	* wid-edit.el (widget-specify-button): If mouse pointer shape
+	cannot be changed, use mouse face instead.
+
 2005-01-29  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom)
 	(gdb-goto-breakpoint): Make breakpoint handling work on template
-	functions in C++. Reported by Martin Reed <mjreed@essex.ac.uk>
+	functions in C++.  Reported by Martin Reed <mjreed@essex.ac.uk>
+	(gdb-assembler-custom): Update to recognise breakpoint information
+	added on 2005-01-19.
 
 2005-01-28  Eli Zaretskii  <eliz@gnu.org>
 

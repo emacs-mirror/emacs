@@ -48,11 +48,11 @@
 (defvar calc-embedded-some-active nil)
 (make-variable-buffer-local 'calc-embedded-some-active)
 
-(defvar calc-embedded-open-formula "\\`\\|^\n\\|\\$\\$?\\|\\\\\\[\\|^\\\\begin.*\n\\|^@.*\n\\|^\\.EQ.*\n\\|\\\\(\\|^%\n\\|^\\.\\\\\"\n"
+(defvar calc-embedded-open-formula "\\`\\|^\n\\|\\$\\$?\\|\\\\\\[\\|^\\\\begin[^{].*\n\\|^\\\\begin{.*[^x]}.*\n\\|^@.*\n\\|^\\.EQ.*\n\\|\\\\(\\|^%\n\\|^\\.\\\\\"\n"
   "*A regular expression for the opening delimiter of a formula used by
 calc-embedded.")
 
-(defvar calc-embedded-close-formula "\\'\\|\n$\\|\\$\\$?\\|\\\\]\\|^\\\\end.*\n\\|^@.*\n\\|^\\.EN.*\n\\|\\\\)\\|\n%\n\\|^\\.\\\\\"\n"
+(defvar calc-embedded-close-formula "\\'\\|\n$\\|\\$\\$?\\|\\\\]\\|^\\\\end[^{].*\n\\|^\\\\end{.*[^x]}.*\n\\|^@.*\n\\|^\\.EN.*\n\\|\\\\)\\|\n%\n\\|^\\.\\\\\"\n"
   "*A regular expression for the closing delimiter of a formula used by
 calc-embedded.")
 
@@ -417,6 +417,8 @@ With any prefix argument, marks only the formula itself."
 	 (forward-char -1))
     (setq calc-embed-outer-top (point))
     (goto-char (match-end 0))
+    (if (looking-at "[ \t]*$")
+        (end-of-line))
     (if (eq (following-char) ?\n)
 	(forward-char 1))
     (or (bolp)

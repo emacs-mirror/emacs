@@ -506,9 +506,9 @@ the full name, and what style to use, as in @code{mail-from-style}
 
   For completion purposes, the valid mailing addresses are taken to be
 the local users' names plus your personal mail aliases.  You can
-specify additional sources of valid addresses; look at the customization
-group @samp{mailalias} to see the options for this
-(@pxref{Customization Groups}).
+specify additional sources of valid addresses; see the customization
+group @samp{mailalias} to see the variables for customizing this
+feature (@pxref{Customization Groups}).
 
   If you type @kbd{M-@key{TAB}} in the body of the message,
 @code{mail-complete} invokes @code{ispell-complete-word}, as in Text

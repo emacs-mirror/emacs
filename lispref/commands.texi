@@ -1547,6 +1547,21 @@ The usual way to handle this event is by visiting these files.
 This kind of event is generated, at present, only on some kinds of
 systems.
 
+@cindex @code{help-echo} event
+@item help-echo
+This kind of event is generated when a mouse pointer moves onto a
+portion of buffer text which has a @code{help-echo} text property.
+The generated event has this form:
+
+@example
+ (help-echo @var{frame} @var{help} @var{window} @var{object} @var{pos})
+@end example
+
+@noindent
+The precise meaning of the event parameters and the way these
+parameters are used to display the help-echo text are described in
+@ref{Text help-echo}.
+
 @cindex @code{usr1-signal} event
 @cindex @code{usr2-signal} event
 @item usr1-signal

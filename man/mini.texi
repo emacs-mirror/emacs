@@ -392,7 +392,7 @@ indicate the places for completion; thus, @file{/u*/b*/f*} might
 complete to @file{/usr/bin/foo}.
 
   To enable this mode, use the command @kbd{M-x
-partial-completion-mode}, or customize the option
+partial-completion-mode}, or customize the variable
 @code{partial-completion-mode}.  This binds the partial completion
 commands to @key{TAB}, @key{SPC}, @key{RET}, and @kbd{?}.  The usual
 completion commands are available on @kbd{M-@key{TAB}},

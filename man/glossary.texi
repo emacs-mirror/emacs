@@ -434,6 +434,7 @@ such as font family and size, foreground and background colors,
 underline and strike-through, background stipple, etc.  Emacs provides
 features to associate specific faces with portions of buffer text, in
 order to display that text as specified by the face attributes.
+@xref{Faces}.
 
 @item File Locking
 Emacs uses file locking to notice when two different users
@@ -1223,8 +1224,9 @@ back the text that existed earlier in the editing session.
 @xref{Undo}.
 
 @item User Option
-A user option is a variable (q.v.@:) that exists so that you can customize
-Emacs by setting it to a new value.  @xref{Variables}.
+A user option is a face (q.v.@:) or a variable (q.v.@:) that exists so
+that you can customize Emacs by setting it to a new value.
+@xref{Easy Customization}.
 
 @item Variable
 A variable is an object in Lisp that can store an arbitrary value.

@@ -788,7 +788,9 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 
 (defun comint-insert-input (&optional event)
   "In a Comint buffer, set the current input to the previous input at point."
-  (interactive "e")
+  ;; This doesn't use "e" because it is supposed to work
+  ;; for events without parameters.
+  (interactive (list last-input-event))
   (if event (mouse-set-point event))
   (let ((pos (point)))
     (if (not (eq (get-char-property pos 'field) 'input))

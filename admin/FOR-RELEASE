@@ -208,7 +208,7 @@ man/misc.texi
 man/msdog.texi
 man/mule.texi       "Luc Teirlinck"
 man/m-x.texi        "Luc Teirlinck"
-man/picture.texi
+man/picture.texi    Joakim Verona <joakim@verona.se>
 man/programs.texi   "Stephen Eglen"
 man/regs.texi       "Luc Teirlinck"
 man/rmail.texi
