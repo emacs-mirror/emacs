@@ -32,6 +32,10 @@
 
 ;;; Code:
 
+;; Docstrings in this file should, where reasonable, follow the
+;; conventions described in bindings.el, so that they get put in the
+;; DOC file rather than in memory.
+
 (defvar Info-default-directory-list
   (let* ((start (list "/usr/local/lib/info/"
 		      ;; This comes second so that, if it is the same
@@ -80,9 +84,9 @@ for initializing `Info-directory-list' when Info is started.")
 	(t "inews"))
   "Program to post news.")
 
-(defvar gnus-default-nntp-server ""
-  ;; set this to your local server
-  "The name of the host running an NNTP server.
+;; set this to your local server
+(defvar gnus-default-nntp-server "" "\
+The name of the host running an NNTP server.
 The null string means use the local host as the server site.")
 
 (defvar gnus-nntp-service "nntp"
@@ -90,16 +94,16 @@ The null string means use the local host as the server site.")
 Go to a local news spool if its value is nil, in which case `gnus-nntp-server'
 should be set to `(system-name)'.")
 
-(defvar gnus-local-organization nil
-  "*The name of your organization, as a string.
+(defvar gnus-local-organization nil "\
+*The name of your organization, as a string.
 The `ORGANIZATION' environment variable is used instead if defined.")
 
-(defvar gnus-startup-file "~/.newsrc"
-  "The file listing groups to which user is subscribed.
+(defvar gnus-startup-file "~/.newsrc" "\
+The file listing groups to which user is subscribed.
 Will use `gnus-startup-file'-SERVER instead if exists.")
 
-(defvar rmail-file-name "~/RMAIL"
-  "Name of user's primary mail file.")
+(defvar rmail-file-name "~/RMAIL" "\
+Name of user's primary mail file.")
 
 (defconst rmail-spool-directory
   (cond ((string-match "^[^-]+-[^-]+-sco3.2v4" system-configuration)
@@ -152,8 +156,8 @@ Its name should end with a slash.")
    ((file-exists-p "/usr/bin/rsh") "/usr/bin/rsh")
    (t "rsh")))
 
-(defconst term-file-prefix (if (eq system-type 'vax-vms) "[.term]" "term/")
-  "If non-nil, Emacs startup does (load (concat term-file-prefix (getenv \"TERM\")))
+(defconst term-file-prefix (if (eq system-type 'vax-vms) "[.term]" "term/") "\
+If non-nil, Emacs startup does (load (concat term-file-prefix (getenv \"TERM\")))
 You may set this variable to nil in your `.emacs' file if you do not wish
 the terminal-initialization file to be loaded.")
 
