@@ -534,7 +534,7 @@ x_set_frame_parameters (f, alist)
       if (f->display.x->left_pos < 0)
 	left = Fcons (Qplus, Fcons (make_number (f->display.x->left_pos), Qnil));
       else
-	XSET (left, Lisp_Int, f->display.x->left_pos);
+	XSETINT (left, f->display.x->left_pos);
     }
   if (EQ (top, Qunbound))
     {
@@ -542,14 +542,14 @@ x_set_frame_parameters (f, alist)
       if (f->display.x->top_pos < 0)
 	top = Fcons (Qplus, Fcons (make_number (f->display.x->top_pos), Qnil));
       else
-	XSET (top, Lisp_Int, f->display.x->top_pos);
+	XSETINT (top, f->display.x->top_pos);
     }
 
   /* Don't die if just one of these was set.  */
   if (EQ (width, Qunbound))
-    XSET (width, Lisp_Int, FRAME_WIDTH (f));
+    XSETINT (width, FRAME_WIDTH (f));
   if (EQ (height, Qunbound))
-    XSET (height, Lisp_Int, FRAME_HEIGHT (f));
+    XSETINT (height, FRAME_HEIGHT (f));
 
   /* Don't set these parameters these unless they've been explicitly
      specified.  The window might be mapped or resized while we're in
@@ -564,7 +564,7 @@ x_set_frame_parameters (f, alist)
 
     check_frame_size (f, &height, &width);
 
-    XSET (frame, Lisp_Frame, f);
+    XSETFRAME (frame, f);
 
     if ((NUMBERP (width) && XINT (width) != FRAME_WIDTH (f))
 	|| (NUMBERP (height) && XINT (height) != FRAME_HEIGHT (f)))
@@ -1189,7 +1189,7 @@ x_set_visibility (f, value, oldval)
      Lisp_Object value, oldval;
 {
   Lisp_Object frame;
-  XSET (frame, Lisp_Frame, f);
+  XSETFRAME (frame, f);
 
   if (NILP (value))
     Fmake_frame_invisible (frame, Qt);
@@ -2343,7 +2343,7 @@ be shared by the new frame.")
       specbind (Qx_resource_name, name);
     }
 
-  XSET (frame, Lisp_Frame, f);
+  XSETFRAME (frame, f);
   GCPRO1 (frame);
 
   f->output_method = output_x_window;
@@ -2519,7 +2519,7 @@ x_get_focus_frame ()
   if (! x_focus_frame)
     return Qnil;
 
-  XSET (xfocus, Lisp_Frame, x_focus_frame);
+  XSETFRAME (xfocus, x_focus_frame);
   return xfocus;
 }
 
