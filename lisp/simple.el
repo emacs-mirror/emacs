@@ -1113,6 +1113,7 @@ to make one entry in the kill ring."
     ;; This should always barf, and give us the correct error.
     (if kill-read-only-ok
 	(message "Read only text copied to kill ring")
+      (setq this-command 'kill-region)
       (barf-if-buffer-read-only)))
 
    ;; In certain cases, we can arrange for the undo list and the kill
@@ -1132,12 +1133,12 @@ to make one entry in the kill ring."
 	(setq tail (cdr tail)))
       ;; Take the same string recorded for undo
       ;; and put it in the kill-ring.
-      (kill-new (car (car tail)))
-      (setq this-command 'kill-region)))
+      (kill-new (car (car tail)))))
 
    (t
     (copy-region-as-kill beg end)
-    (delete-region beg end))))
+    (delete-region beg end)))
+  (setq this-command 'kill-region))
 
 ;; copy-region-as-kill no longer sets this-command, because it's confusing
 ;; to get two copies of the text when the user accidentally types M-w and
