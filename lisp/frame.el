@@ -420,7 +420,7 @@ The optional second argument PARAMETERS specifies additional frame parameters."
 (defun make-frame-command ()
   "Make a new frame, and select it if the terminal displays only one frame."
   (interactive)
-  (if window-system
+  (if (and window-system (not (eq window-system 'pc)))
       (make-frame)
     (select-frame (make-frame))))
 
