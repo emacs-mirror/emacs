@@ -5038,6 +5038,12 @@ This function is internal use only.")
 /*** 8. Post-amble ***/
 
 void
+init_coding ()
+{
+  conversion_buffer = (char *) xmalloc (MINIMUM_CONVERSION_BUFFER_SIZE);
+}
+
+void
 init_coding_once ()
 {
   int i;
@@ -5079,7 +5085,6 @@ init_coding_once ()
   iso_code_class[ISO_CODE_CSI] = ISO_control_sequence_introducer;
 
   conversion_buffer_size = MINIMUM_CONVERSION_BUFFER_SIZE;
-  conversion_buffer = (char *) xmalloc (MINIMUM_CONVERSION_BUFFER_SIZE);
 
   setup_coding_system (Qnil, &keyboard_coding);
   setup_coding_system (Qnil, &terminal_coding);
