@@ -106,8 +106,8 @@ An argument of zero means repeat until error.")
     {
       defining_kbd_macro = 0;
       update_mode_lines++;
-      Vlast_kbd_macro = make_array (kbd_macro_end - kbd_macro_buffer,
-				    kbd_macro_buffer);
+      Vlast_kbd_macro = make_event_array (kbd_macro_end - kbd_macro_buffer,
+					  kbd_macro_buffer);
       message("Keyboard macro defined");
     }
 
