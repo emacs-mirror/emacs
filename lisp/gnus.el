@@ -13411,6 +13411,8 @@ If FORCE is non-nil, the .newsrc file is read."
 				 gnus-current-startup-file)))
 	     ;; Quickly loadable .newsrc.
 	     (set-buffer (get-buffer-create " *Gnus-newsrc*"))
+	     (make-local-variable 'version-control)
+	     (setq version-control 'never)
 	     (setq buffer-file-name (concat gnus-current-startup-file ".eld"))
 	     (gnus-add-current-to-buffer-list)
 	     (buffer-disable-undo (current-buffer))
@@ -13485,6 +13487,8 @@ If FORCE is non-nil, the .newsrc file is read."
 			(if ranges (insert ","))))))
 	      (insert "\n")))
 	(setq newsrc (cdr newsrc)))
+      (make-local-variable 'version-control)
+      (setq version-control 'never)
       ;; It has been reported that sometime the modtime on the .newsrc
       ;; file seems to be off. We really do want to overwrite it, so
       ;; we clear the modtime here before saving. It's a bit odd,
