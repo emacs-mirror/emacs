@@ -264,6 +264,19 @@ x_display_info_for_display (dpy)
 
   return 0;
 }
+
+#ifdef MULTI_PERDISPLAY
+/* Return the perdisplay struct corresponding to FRAME.  */
+#undef get_perdisplay
+
+PERDISPLAY *
+get_perdisplay(frame)
+     FRAME_PTR frame;
+{
+  return get_perdisplay_macro (frame);
+}
+#define get_perdisplay(frame) get_perdisplay_macro (frame)
+#endif
 
 /* Starting and ending updates.
 
