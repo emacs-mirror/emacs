@@ -112,6 +112,9 @@
 (define-key-after set-coding-system-map [set-buffer-file-coding-system]
   '("Buffer File" . set-buffer-file-coding-system)
   t)
+(define-key-after set-coding-system-map [universal-coding-system-argument]
+  '("Next Command" . universal-coding-system-argument)
+  t)
 (define-key-after set-coding-system-map [set-terminal-coding-system]
   '("Terminal" . set-terminal-coding-system)
   t)
