@@ -1,5 +1,7 @@
 2000-12-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (move_it_by_lines): Fix paren typo.
+
 	* xterm.c (x_load_font): Don't use the font's max_bounds for
 	computing the height of the font.  If max_bounds' ascent or
 	descent are greater than the font's ascent or descent, this means
