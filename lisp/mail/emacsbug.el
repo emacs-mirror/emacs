@@ -242,9 +242,9 @@ and send the mail again using \\[mail-send-and-exit].")))
     (let ((p (point)))
       (if (re-search-forward (concat "^In " (emacs-version)) nil t)
 	  (delete-region p (match-beginning 0))))
-    (re-search-forward "Please describe.+\n.+precise symptoms.+bug:\n*"
-                       (point-max) t)
-    (replace-match "Symptoms:\n")))
+    (if (re-search-forward "Please describe.+\n.+precise symptoms.+bug:\n*"
+			   (point-max) t)
+	(replace-match "Symptoms:\n"))))
 
 (provide 'emacsbug)
 
