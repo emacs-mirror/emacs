@@ -2145,9 +2145,10 @@ set_image_of_range_1 (work_area, start, end, translate)
 
   if (!RE_TRANSLATE_P (translate))
     {
+      EXTEND_RANGE_TABLE (work_area, 2);
       work_area->table[work_area->used++] = (start);
       work_area->table[work_area->used++] = (end);
-      return;
+      return -1;
     }
 
   eqv_table = XCHAR_TABLE (translate)->extras[2];
@@ -2253,12 +2254,14 @@ set_image_of_range_1 (work_area, start, end, translate)
 
 #endif /* emacs */
 
-/* We need to find the image of the range start..end when passed through
+/* Record the the image of the range start..end when passed through
    TRANSLATE.  This is not necessarily TRANSLATE(start)..TRANSLATE(end)
    and is not even necessarily contiguous.
-   We approximate it with the smallest contiguous range that contains
-   all the chars we need.  However, that is not good enough for Latin-1,
-   so we do a better job in that case.
+   Normally we approximate it with the smallest contiguous range that contains
+   all the chars we need.  However, for Latin-1 we go to extra effort
+   to do a better job.
+
+   This function is not called for ASCII ranges.
 
    Returns -1 if successful, REG_ESPACE if ran out of space.  */
 
@@ -2273,12 +2276,17 @@ set_image_of_range (work_area, start, end, translate)
 #ifdef emacs
   /* For Latin-1 ranges, use set_image_of_range_1
      to get proper handling of ranges that include letters and nonletters.
-     For ASCII, this is not necessary.
+     For a range that includes the whole of Latin-1, this is not necessary.
      For other character sets, we don't bother to get this right.  */
-  if (start < 04400 && end > 0200)
+  if (RE_TRANSLATE_P (translate) && start < 04400
+      && !(start < 04200 && end >= 04377))
     {
+      int newend;
       int tem;
-      tem = set_image_of_range_1 (work_area, start, end, translate);
+      newend = end;
+      if (newend > 04377)
+	newend = 04377;
+      tem = set_image_of_range_1 (work_area, start, newend, translate);
       if (tem > 0)
 	return tem;
 
@@ -2288,19 +2296,38 @@ set_image_of_range (work_area, start, end, translate)
     }
 #endif
 
-  cmin = TRANSLATE (start), cmax = TRANSLATE (end);
+  EXTEND_RANGE_TABLE (work_area, 2);
+  work_area->table[work_area->used++] = (start);
+  work_area->table[work_area->used++] = (end);
+
+  cmin = -1, cmax = -1;
 
   if (RE_TRANSLATE_P (translate))
-    for (; start <= end; start++)
-      {
-	re_wchar_t c = TRANSLATE (start);
-	cmin = MIN (cmin, c);
-	cmax = MAX (cmax, c);
-      }
+    {
+      int ch;
 
-  EXTEND_RANGE_TABLE (work_area, 2);
-  work_area->table[work_area->used++] = (cmin);
-  work_area->table[work_area->used++] = (cmax);
+      for (ch = start; ch <= end; ch++)
+	{
+	  re_wchar_t c = TRANSLATE (ch);
+	  if (! (start <= c && c <= end))
+	    {
+	      if (cmin == -1)
+		cmin = c, cmax = c;
+	      else
+		{
+		  cmin = MIN (cmin, c);
+		  cmax = MAX (cmax, c);
+		}
+	    }
+	}
+
+      if (cmin != -1)
+	{
+	  EXTEND_RANGE_TABLE (work_area, 2);
+	  work_area->table[work_area->used++] = (cmin);
+	  work_area->table[work_area->used++] = (cmax);
+	}
+    }
 
   return -1;
 }
