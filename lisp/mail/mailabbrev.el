@@ -372,7 +372,7 @@ non-address headers.")
 	 (_ (aref (standard-syntax-table) ?_))
 	 (w (aref (standard-syntax-table) ?w)))
     (while (>= i 0)
-      (if (= (aref tab i) _) (aset tab i w))
+      (if (equal (aref tab i) _) (aset tab i w))
       (setq i (1- i)))
     tab)
   "The syntax-table used for abbrev-expansion purposes; this is not actually
