@@ -4315,7 +4315,8 @@ x_bitmap_icon (f, file)
 }
 
 
-/* Make the x-window of frame F use a rectangle with text.  */
+/* Make the x-window of frame F use a rectangle with text.
+   Use ICON_NAME as the text.  */
 
 int
 x_text_icon (f, icon_name)
@@ -4325,16 +4326,23 @@ x_text_icon (f, icon_name)
   if (FRAME_X_WINDOW (f) == 0)
     return 1;
 
-  if (icon_name)
-    f->display.x->icon_label = icon_name;
-  else
-    if (! f->display.x->icon_label)
-      f->display.x->icon_label = " *emacs* ";
-
-#if 0
-  XSetIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		(char *) f->display.x->icon_label);
-#endif
+#ifdef HAVE_X11R4
+  {
+    XTextProperty text;
+    text.value = (unsigned char *) icon_name;
+    text.encoding = XA_STRING;
+    text.format = 8;
+    text.nitems = strlen (icon_name);
+#ifdef USE_X_TOOLKIT
+    XSetWMIconName (FRAME_X_DISPLAY (f), XtWindow (f->display.x->widget),
+		    &text);
+#else /* not USE_X_TOOLKIT */
+    XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &text);
+#endif /* not USE_X_TOOLKIT */
+  }
+#else /* not HAVE_X11R4 */
+  XSetIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), icon_name);
+#endif /* not HAVE_X11R4 */
 
   if (f->display.x->icon_bitmap > 0)
     x_destroy_bitmap (f, f->display.x->icon_bitmap);
