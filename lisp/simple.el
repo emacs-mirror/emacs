@@ -38,8 +38,6 @@
 
 (defgroup paren-matching nil
   "Highlight (un)matching of parens and expressions."
-  :prefix "paren-"
-  :prefix "blink-matching-"
   :group 'matching)
 
 
@@ -2878,32 +2876,37 @@ in the mode line."
 	  (> (prefix-numeric-value arg) 0)))
   (force-mode-line-update))
 
+(defgroup paren-blinking nil
+  "Blinking (un)matching of parens and expressions."
+  :prefix "blink-matching-"
+  :group 'paren-matching)
+
 (defcustom blink-matching-paren t
   "*Non-nil means show matching open-paren when close-paren is inserted."
   :type 'boolean
-  :group 'paren-matching)
+  :group 'paren-blinking)
 
 (defcustom blink-matching-paren-on-screen t
   "*Non-nil means show matching open-paren when it is on screen.
-nil means don't show it (but the open-paren can still be shown
-when it is off screen."
+If nil, means don't show it (but the open-paren can still be shown
+when it is off screen)."
   :type 'boolean
-  :group 'paren-matching)
+  :group 'paren-blinking)
 
-(defcustom blink-matching-paren-distance 12000
+(defcustom blink-matching-paren-distance (* 25 1024)
   "*If non-nil, is maximum distance to search for matching open-paren."
   :type 'integer
-  :group 'paren-matching)
+  :group 'paren-blinking)
 
 (defcustom blink-matching-delay 1
-  "*The number of seconds that `blink-matching-open' will delay at a match."
-  :type 'integer
-  :group 'paren-matching)
+  "*Time in seconds to delay after showing a matching paren."
+  :type 'number
+  :group 'paren-blinking)
 
 (defcustom blink-matching-paren-dont-ignore-comments nil
-  "*Non-nil means `blink-matching-paren' should not ignore comments."
+  "*Non-nil means `blink-matching-paren' will not ignore comments."
   :type 'boolean
-  :group 'paren-matching)
+  :group 'paren-blinking)
 
 (defun blink-matching-open ()
   "Move cursor momentarily to the beginning of the sexp before point."
