@@ -68,12 +68,16 @@ It is useful to set this variable in the site customization file.")
 
 ;;;###autoload
 (defvar rmail-ignored-headers "^via:\\|^mail-from:\\|^origin:\\|^status:\\|^received:\\|^x400-originator:\\|^x400-recipients:\\|^x400-received:\\|^x400-mts-identifier:\\|^x400-content-type:\\|^message-id:\\|^summary-line:" "\
-*Regexp to match Header fields that rmail should normally hide.")
+*Regexp to match Header fields that Rmail should normally hide.")
 
 ;;;###autoload
 (defvar rmail-highlighted-headers "^From:\\|^Subject:" "\
-*Regexp to match Header fields that rmail should normally highlight.
+*Regexp to match Header fields that Rmail should normally highlight.
 A value of nil means don't highlight.")
+
+;;;###autoload
+(defvar rmail-highlight-face nil "\
+*Face used by Rmail for highlighting headers.")
 
 ;;;###autoload
 (defvar rmail-delete-after-output nil "\
@@ -1428,8 +1432,9 @@ If summary buffer is currently displayed, update current message there also."
 		(inhibit-read-only t)
 		;; Highlight with boldface if that is available.
 		;; Otherwise use the `highlight' face.
-		(face (if (face-differs-from-default-p 'bold)
-			  'bold 'highlight))
+		(face (or rmail-highlight-face
+			  (if (face-differs-from-default-p 'bold)
+			      'bold 'highlight)))
 		;; List of overlays to reuse.
 		(overlays rmail-overlay-list))
 	    (goto-char (point-min))
