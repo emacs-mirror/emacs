@@ -154,6 +154,9 @@ actually occur.")
      (setq mail-mode-syntax-table (copy-syntax-table text-mode-syntax-table))
      (modify-syntax-entry ?% ". " mail-mode-syntax-table)))
 
+(defvar mail-send-hook nil
+  "Normal hook run before sending mail, in Mail mode.")
+
 (defun mail-setup (to subject in-reply-to cc replybuffer actions)
   (if (eq mail-aliases t)
       (progn
@@ -353,8 +356,8 @@ the user from the mailer."
 	(or (buffer-modified-p)
 	    (y-or-n-p "Message already sent; resend? ")))
       (progn
-	(message "Sending...")
 	(run-hooks 'mail-send-hook)
+	(message "Sending...")
 	(funcall send-mail-function)
 	;; Now perform actions on successful sending.
 	(while mail-send-actions
