@@ -1,3 +1,11 @@
+2001-12-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* mail/mailabbrev.el (mail-abbrevs-setup): Do not use make-local-hook.
+
+	* mail/rmail.el (rmail-fontify-buffer-function): Likewise.
+
+	* mail/rmailsum.el (rmail-summary-mode): Likewise.
+
 2001-12-13  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el (undo): Always set this-command to `undo',
