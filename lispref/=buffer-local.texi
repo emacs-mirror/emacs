@@ -1,0 +1,94 @@
+@c -*-texinfo-*-
+@setfilename ../info/locals
+@node Standard Buffer-Local Variables, Standard Keymaps, Standard Errors, Top
+@appendix Standard Buffer-Local Variables
+
+  The table below shows all of the variables that are automatically
+local (when set) in each buffer in Emacs Version 18 with the common
+packages loaded.
+
+@table @code
+@item abbrev-mode
+@xref{Abbrevs}.
+
+@item auto-fill-function
+@xref{Auto Filling}.
+
+@item buffer-auto-save-file-name
+@xref{Auto-Saving}.
+
+@item buffer-backed-up
+@xref{Backup Files}.
+
+@item buffer-display-table
+@xref{Active Display Table}.
+
+@item buffer-file-name
+@xref{Buffer File Name}.
+
+@item buffer-file-truename
+@xref{Buffer File Name}.
+
+@item buffer-read-only
+@xref{Read Only Buffers}.
+
+@item buffer-saved-size
+@xref{Point}.
+
+@item case-fold-search
+@xref{Searching and Case}.
+
+@item ctl-arrow
+@xref{Control Char Display}.
+
+@item default-directory
+@xref{System Environment}.
+
+@item fill-column
+@xref{Auto Filling}.
+
+@item left-margin
+@xref{Indentation}.
+
+@item list-buffers-directory
+@xref{Buffer File Name}.
+
+@item local-abbrev-table
+@xref{Abbrevs}.
+
+@item major-mode
+@xref{Mode Help}.
+
+@item mark-ring
+@xref{The Mark}.
+
+@item minor-modes
+@xref{Minor Modes}.
+
+@item mode-name
+@xref{Mode Line Variables}.
+
+@item overwrite-mode
+@xref{Insertion}.
+
+@item paragraph-separate
+@xref{Standard Regexps}.
+
+@item paragraph-start
+@xref{Standard Regexps}.
+
+@item require-final-newline
+@xref{Insertion}.
+
+@item selective-display
+@xref{Selective Display}.
+
+@item selective-display-ellipses
+@xref{Selective Display}.
+
+@item tab-width
+@xref{Control Char Display}.
+
+@item truncate-lines
+@xref{Truncation}.
+@end table
