@@ -1,3 +1,8 @@
+2002-07-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xterm.c (XTread_socket): Return a non_ascii_keystroke for
+	unknown keysyms.
+
 2002-07-09  Kenichi Handa  <handa@etl.go.jp>
 
 	* callproc.c (Fcall_process): If code detection is necessary,
