@@ -761,11 +761,9 @@ PATH-EXPRESSION to `speedbar-ignored-path-expressions'."
 				  (display-graphic-p)
 				window-system))
   "*Non-nil means to automatically update the display.
-When this is nil then speedbar will not follow the attached frame's path.
-When speedbar is active, use:
-
-\\<speedbar-key-map> `\\[speedbar-toggle-updates]'
-
+When this is nil then speedbar will not follow the attached
+frame's path.  Type \
+\\<speedbar-key-map>\\[speedbar-toggle-updates] in the speedbar \
 to toggle this value.")
 
 (defvar speedbar-syntax-table nil
@@ -1344,7 +1342,7 @@ Optional EVENT is currently not used."
     (if (equal (car pos) speedbar-frame)
 	(save-excursion
 	  (save-window-excursion
-	    (apply 'set-mouse-position pos)
+	    (apply 'set-mouse-position (list (car pos) (cadr pos) (cddr pos)))
 	    (speedbar-item-info))))))
 
 (defun speedbar-set-mode-line-format ()
