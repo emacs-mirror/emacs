@@ -1442,8 +1442,15 @@ This adds rules for comments and assignments."
 
 (defun sh-set-shell (shell &optional no-query-flag insert-flag)
   "Set this buffer's shell to SHELL (a string).
-Makes this script executable via `executable-set-magic', and sets up the
-proper starting #!-line, if INSERT-FLAG is non-nil.
+When used interactively, insert the proper starting #!-line,
+and make the visited file executable via `executable-set-magic',
+perhaps querying depending on the value of `executable-query'.
+
+When this function is called noninteractively, INSERT-FLAG (the third
+argument) controls whether to insert a #!-line and think about making
+the visited file executable, and NO-QUERY-FLAG (the second argument)
+controls whether to query about making the visited file executable.
+
 Calls the value of `sh-set-shell-hook' if set."
   (interactive (list (completing-read "Name or path of shell: "
 				      interpreter-mode-alist
