@@ -1,5 +1,9 @@
 2001-01-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* isearch.el (isearch-old-signal-hook): New variable.
+	(isearch-mode): Set signal-hook-function to isearch-done.
+	(isearch-done): Restore old signal-hook-function.
+
 	* info.el (Info-fontify-node): Mark one more char as intangible.
 
 2000-01-05  Kenichi Handa  <handa@etl.go.jp>
