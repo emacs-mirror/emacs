@@ -57,6 +57,10 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
+** The new command `ediff-backup' compares a file with its most recent
+backup using `ediff'.  If you specify the name of a backup file,
+`ediff-backup' compares it with the file of which it is a backup.
+
 +++
 ** The mode line position information now comes before the major mode.
 When the file is maintained under version control, that information
