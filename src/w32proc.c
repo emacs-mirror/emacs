@@ -49,6 +49,7 @@ extern BOOL WINAPI IsValidLocale(LCID, DWORD);
 #include "systime.h"
 #include "syswait.h"
 #include "process.h"
+#include "syssignal.h"
 #include "w32term.h"
 
 /* Control whether spawnve quotes arguments as necessary to ensure
