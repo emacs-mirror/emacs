@@ -1,5 +1,6 @@
 /* Synchronous subprocess invocation for GNU Emacs.
-   Copyright (C) 1985,86,87,88,93,94,95,99,2000 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,87,88,93,94,95,99, 2000, 2001
+   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -779,10 +780,13 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	      repeat_decoding:
 		size = decoding_buffer_size (&process_coding, nread);
 		decoding_buf = (char *) xmalloc (size);
+		
 		if (process_coding.cmp_data)
 		  process_coding.cmp_data->char_offset = PT;
+		
 		decode_coding (&process_coding, bufptr, decoding_buf,
 			       nread, size);
+		
 		if (display_on_the_fly
 		    && saved_coding.type == coding_type_undecided
 		    && process_coding.type != coding_type_undecided)
@@ -797,10 +801,70 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 		    carryover = nread;
 		    continue;
 		  }
+		
 		if (process_coding.produced > 0)
 		  insert_1_both (decoding_buf, process_coding.produced_char,
 				 process_coding.produced, 0, 1, 0);
 		xfree (decoding_buf);
+
+		if (process_coding.result == CODING_FINISH_INCONSISTENT_EOL)
+		  {
+		    Lisp_Object eol_type, coding;
+
+		    if (process_coding.eol_type == CODING_EOL_CR)
+		      {
+			/* CRs have been replaced with LFs.  Undo
+			   that in the text inserted above.  */
+			unsigned char *p;
+			
+			move_gap_both (PT, PT_BYTE);
+			
+			p = BYTE_POS_ADDR (pt_byte_orig);
+			for (; p < GPT_ADDR; ++p)
+			  if (*p == '\n')
+			    *p = '\r';
+		      }
+		    else if (process_coding.eol_type == CODING_EOL_CRLF)
+		      {
+			/* CR LFs have been replaced with LFs.  Undo
+			   that by inserting CRs in front of LFs in
+			   the text inserted above.  */
+			EMACS_INT bytepos, old_pt, old_pt_byte, nCR;
+
+			old_pt = PT;
+			old_pt_byte = PT_BYTE;
+			nCR = 0;
+			
+			for (bytepos = PT_BYTE - 1;
+			     bytepos >= pt_byte_orig;
+			     --bytepos)
+			  if (FETCH_BYTE (bytepos) == '\n')
+			    {
+			      EMACS_INT charpos = BYTE_TO_CHAR (bytepos);
+			      TEMP_SET_PT_BOTH (charpos, bytepos);
+			      insert_1_both ("\r", 1, 1, 0, 1, 0);
+			      ++nCR;
+			    }
+
+			TEMP_SET_PT_BOTH (old_pt + nCR, old_pt_byte + nCR);
+		      }
+
+		    /* Set the coding system symbol to that for
+		       Unix-like EOL.  */
+		    eol_type = Fget (saved_coding.symbol, Qeol_type);
+		    if (VECTORP (eol_type)
+			&& ASIZE (eol_type) == 3
+			&& SYMBOLP (AREF (eol_type, CODING_EOL_LF)))
+		      coding = AREF (eol_type, CODING_EOL_LF);
+		    else
+		      coding = saved_coding.symbol;
+		    
+		    process_coding.symbol = coding;
+		    process_coding.eol_type = CODING_EOL_LF;
+		    process_coding.mode
+		      &= ~CODING_MODE_INHIBIT_INCONSISTENT_EOL;
+		  }
+		
 		nread -= process_coding.consumed;
 		carryover = nread;
 		if (carryover > 0)
