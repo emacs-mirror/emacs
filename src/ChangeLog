@@ -1,3 +1,7 @@
+2002-04-10  Richard M. Stallman  <rms@gnu.org>
+
+	* puresize.h (BASE_PURESIZE): Reduce again to avoid big excess.
+
 2002-04-09  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* minibuf.c (read_minibuf): Use empty_string.

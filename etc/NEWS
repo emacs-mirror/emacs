@@ -305,6 +305,10 @@ too.  If you want to use just plain `*' as a wildcard, type `*""'; the
 doublequotes make no difference in the shell, but they prevent
 special treatment in `dired-do-shell-command'.
 
+** Dired's v command now runs external viewers to view certain
+types of files.  The variable `dired-view-command-alist' controls
+what external viewers to use and when.
+
 ** Unquoted `$' in file names do not signal an error any more when
 the corresponding environment variable does not exist.
 Instead, the `$ENVVAR' text is left as is, so that `$$' quoting

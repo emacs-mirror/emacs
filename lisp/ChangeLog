@@ -1,3 +1,19 @@
+2002-04-10  Richard M. Stallman  <rms@gnu.org>
+
+	* dired.el (dired-view-command-alist): New variable.
+	(dired-view-file): Use external viewers for some files names.
+
+	* mouse.el (mouse-drag-region-1): Display region highlight
+	only in the selected window.
+
+	* subr.el (remove-hook): When there are no more local hooks,
+	kill the buffer-local value.
+
+	* isearch.el (isearch-mode): Don't call make-frame-visible
+	if frame is already visible.
+
+	* cus-face.el (custom-face-attributes): Fix typo in `ultra-bold'.
+
 2002-04-09  Emmanuel Briot  <briot@act-europe.fr>
 
 	* progmodes/ada-prj.el: Add support for the new project file fields:
