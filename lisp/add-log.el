@@ -634,6 +634,11 @@ Has a preference of looking backwards."
 				   (and (bolp)
 					(looking-at "struct \\|union \\|class ")
 					(setq middle (point)))
+				   (goto-char end)
+				   (when (eq (preceding-char) ?=)
+				     (forward-char -1)
+				     (skip-chars-backward " \t")
+				     (setq end (point)))
 				   (buffer-substring middle end)))))))))
 		((memq major-mode add-log-tex-like-modes)
 		 (if (re-search-backward
