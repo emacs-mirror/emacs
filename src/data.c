@@ -776,8 +776,8 @@ SUBR must be a built-in function.  */)
 
 DEFUN ("interactive-form", Finteractive_form, Sinteractive_form, 1, 1, 0,
        doc: /* Return the interactive form of CMD or nil if none.
-CMD must be a command.  Value, if non-nil, is a list
-\(interactive SPEC).  */)
+If CMD is not a command, the return value is nil.
+Value, if non-nil, is a list \(interactive SPEC).  */)
      (cmd)
      Lisp_Object cmd;
 {

@@ -1131,6 +1131,9 @@ struct position val_compute_motion;
 
    WIDTH is the number of columns available to display text;
    compute_motion uses this to handle continuation lines and such.
+   If WIDTH is -1, use width of window's text area adjusted for
+   continuation glyph when needed.
+
    HSCROLL is the number of columns not being displayed at the left
    margin; this is usually taken from a window's hscroll member.
    TAB_OFFSET is the number of columns of the first tab that aren't
@@ -1228,6 +1231,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
   int prev_vpos = 0;
   int contin_hpos;		/* HPOS of last column of continued line.  */
   int prev_tab_offset;		/* Previous tab offset.  */
+  int continuation_glyph_width;
 
   XSETBUFFER (buffer, current_buffer);
   XSETWINDOW (window, win);
@@ -1244,6 +1248,23 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 
   if (tab_width <= 0 || tab_width > 1000)
     tab_width = 8;
+
+  /* Negative width means use all available text columns.  */
+  if (width < 0)
+    {
+      width = window_box_text_cols (win);
+      /* We must make room for continuation marks if we don't have fringes.  */
+#ifdef HAVE_WINDOW_SYSTEM
+      if (!FRAME_WINDOW_P (XFRAME (win->frame)))
+#endif
+	width -= 1;
+    }
+
+  continuation_glyph_width = 1;
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (XFRAME (win->frame)))
+    continuation_glyph_width = 0;  /* In the fringe.  */
+#endif
 
   immediate_quit = 1;
   QUIT;
@@ -1368,7 +1389,8 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	{
 	  if (hscroll
 	      || (truncate_partial_width_windows
-		  && width + 1 < FRAME_COLS (XFRAME (WINDOW_FRAME (win))))
+		  && ((width + continuation_glyph_width)
+		      < FRAME_COLS (XFRAME (WINDOW_FRAME (win)))))
 	      || !NILP (current_buffer->truncate_lines))
 	    {
 	      /* Truncating: skip to newline, unless we are already past
@@ -1652,7 +1674,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 		      hpos -= hscroll;
 		      /* Count the truncation glyph on column 0 */
 		      if (hscroll > 0)
-			hpos++;
+			hpos += continuation_glyph_width;
 		      tab_offset = 0;
 		    }
 		  contin_hpos = 0;
@@ -1737,12 +1759,14 @@ assuming it is at position FROMPOS--a cons of the form (HPOS . VPOS)--
 to position TO or position TOPOS--another cons of the form (HPOS . VPOS)--
 and return the ending buffer position and screen location.
 
+If TOPOS is nil, the actual width and height of the window's
+text area are used.
+
 There are three additional arguments:
 
 WIDTH is the number of columns available to display text;
-this affects handling of continuation lines.
-This is usually the value returned by `window-width', less one (to allow
-for the continuation glyph).
+this affects handling of continuation lines.  A value of nil
+corresponds to the actual number of available text columns.
 
 OFFSETS is either nil or a cons cell (HSCROLL . TAB-OFFSET).
 HSCROLL is the number of columns not being displayed at the left
@@ -1774,6 +1798,7 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
      Lisp_Object from, frompos, to, topos;
      Lisp_Object width, offsets, window;
 {
+  struct window *w;
   Lisp_Object bufpos, hpos, vpos, prevhpos;
   struct position *pos;
   int hscroll, tab_offset;
@@ -1783,10 +1808,15 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
   CHECK_NUMBER_CAR (frompos);
   CHECK_NUMBER_CDR (frompos);
   CHECK_NUMBER_COERCE_MARKER (to);
-  CHECK_CONS (topos);
-  CHECK_NUMBER_CAR (topos);
-  CHECK_NUMBER_CDR (topos);
-  CHECK_NUMBER (width);
+  if (!NILP (topos))
+    {
+      CHECK_CONS (topos);
+      CHECK_NUMBER_CAR (topos);
+      CHECK_NUMBER_CDR (topos);
+    }
+  if (!NILP (width))
+    CHECK_NUMBER (width);
+
   if (!NILP (offsets))
     {
       CHECK_CONS (offsets);
@@ -1802,6 +1832,7 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
     window = Fselected_window ();
   else
     CHECK_LIVE_WINDOW (window);
+  w = XWINDOW (window);
 
   if (XINT (from) < BEGV || XINT (from) > ZV)
     args_out_of_range_3 (from, make_number (BEGV), make_number (ZV));
@@ -1810,9 +1841,20 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
 
   pos = compute_motion (XINT (from), XINT (XCDR (frompos)),
 			XINT (XCAR (frompos)), 0,
-			XINT (to), XINT (XCDR (topos)),
-			XINT (XCAR (topos)),
-			XINT (width), hscroll, tab_offset,
+			XINT (to),
+			(NILP (topos)
+			 ? window_internal_height (w)
+			 : XINT (XCDR (topos))),
+			(NILP (topos)
+			 ? (window_box_text_cols (w)
+			    - (
+#ifdef HAVE_WINDOW_SYSTEM
+			       FRAME_WINDOW_P (XFRAME (w->frame)) ? 0 :
+#endif
+			       1))
+			 : XINT (XCAR (topos))),
+			(NILP (width) ? -1 : XINT (width)),
+			hscroll, tab_offset,
 			XWINDOW (window));
 
   XSETFASTINT (bufpos, pos->bufpos);
@@ -1837,7 +1879,6 @@ vmotion (from, vtarget, w)
      register int from, vtarget;
      struct window *w;
 {
-  int width = window_box_text_cols (w);
   int hscroll = XINT (w->hscroll);
   struct position pos;
   /* vpos is cumulative vertical position, changed as from is changed */
@@ -1857,12 +1898,6 @@ vmotion (from, vtarget, w)
   Lisp_Object text_prop_object;
 
   XSETWINDOW (window, w);
-
-  /* We must make room for continuation marks if we don't have fringes.  */
-#ifdef HAVE_WINDOW_SYSTEM
-  if (!FRAME_WINDOW_P (XFRAME (w->frame)))
-#endif
-    width -= 1;
 
   /* If the window contains this buffer, use it for getting text properties.
      Otherwise use the current buffer as arg for doing that.  */
@@ -1905,7 +1940,7 @@ vmotion (from, vtarget, w)
 				 1 << (BITS_PER_SHORT - 1),
 				 /* ... nor HPOS.  */
 				 1 << (BITS_PER_SHORT - 1),
-				 width, hscroll,
+				 -1, hscroll,
 				 /* This compensates for start_hpos
 				    so that a tab as first character
 				    still occupies 8 columns.  */
@@ -1964,7 +1999,7 @@ vmotion (from, vtarget, w)
 			     1 << (BITS_PER_SHORT - 1),
 			     /* ... nor HPOS.  */
 			     1 << (BITS_PER_SHORT - 1),
-			     width, hscroll,
+			     -1, hscroll,
 			     (XFASTINT (prevline) == BEG ? -start_hpos : 0),
 			     w);
       did_motion = 1;
@@ -1978,7 +2013,7 @@ vmotion (from, vtarget, w)
     }
   return compute_motion (from, vpos, pos.hpos, did_motion,
 			 ZV, vtarget, - (1 << (BITS_PER_SHORT - 1)),
-			 width, hscroll,
+			 -1, hscroll,
 			 pos.tab_offset - (from == BEG ? start_hpos : 0),
 			 w);
 }

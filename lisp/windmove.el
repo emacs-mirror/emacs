@@ -429,14 +429,12 @@ the return value from `windmove-coordinates-of-position' is (0 . 0)
 regardless of the where point is in the buffer and where the window
 is placed in the frame."
   (let* ((wind (if (null window) (selected-window) window))
-         (usable-width (1- (window-width wind))) ; 1- for cont. column
-         (usable-height (1- (window-height wind))) ; 1- for mode line
          (big-hairy-result (compute-motion
                             (window-start)
                             '(0 . 0)
                             pos
-                            (cons usable-width usable-height)
-                            usable-width
+                            nil ; (window-width window-height)
+                            nil ; window-width
                             (cons (window-hscroll)
                                   0)    ; why zero?
                             wind)))

@@ -11,22 +11,24 @@
 ;;;;;;  mh-beginning-of-word mh-complete-word mh-open-line mh-fully-kill-draft
 ;;;;;;  mh-yank-cur-msg mh-insert-letter mh-send-letter mh-insert-auto-fields
 ;;;;;;  mh-check-whom mh-insert-signature mh-to-fcc mh-to-field mh-fill-paragraph-function
-;;;;;;  mh-send-other-window mh-send mh-reply mh-redistribute mh-forward
-;;;;;;  mh-extract-rejected-mail mh-edit-again) "mh-comp" "mh-comp.el"
-;;;;;;  (16625 53169))
+;;;;;;  mh-get-header-field mh-send-other-window mh-send mh-reply
+;;;;;;  mh-redistribute mh-forward mh-extract-rejected-mail mh-edit-again)
+;;;;;;  "mh-comp" "mh-comp.el" (16665 53716))
 ;;; Generated autoloads from mh-comp.el
 
 (autoload (quote mh-edit-again) "mh-comp" "\
 Clean up a draft or a message MSG previously sent and make it resendable.
 Default is the current message.
 The variable `mh-new-draft-cleaned-headers' specifies the headers to remove.
-See also documentation for `\\[mh-send]' function." t nil)
+
+See also `mh-send'." t nil)
 
 (autoload (quote mh-extract-rejected-mail) "mh-comp" "\
 Extract message MSG returned by the mail system and make it resendable.
 Default is the current message.  The variable `mh-new-draft-cleaned-headers'
 gives the headers to clean out of the original message.
-See also documentation for `\\[mh-send]' function." t nil)
+
+See also `mh-send'." t nil)
 
 (autoload (quote mh-forward) "mh-comp" "\
 Forward messages to the recipients TO and CC.
@@ -36,7 +38,7 @@ Default is the displayed message.
 Check the documentation of `mh-interactive-range' to see how RANGE is read in
 interactive use.
 
-See also documentation for `\\[mh-send]' function." t nil)
+See also `mh-send'." t nil)
 
 (autoload (quote mh-redistribute) "mh-comp" "\
 Redistribute displayed message to recipients TO and CC.
@@ -55,11 +57,12 @@ to reply to:
 If optional prefix argument INCLUDEP provided, then include the message
 in the reply using filter `mhl.reply' in your MH directory.
 If the file named by `mh-repl-formfile' exists, it is used as a skeleton
-for the reply.  See also documentation for `\\[mh-send]' function." t nil)
+for the reply.
+
+See also `mh-send'." t nil)
 
 (autoload (quote mh-send) "mh-comp" "\
 Compose and send a letter.
-
 Do not call this function from outside MH-E; use \\[mh-smail] instead.
 
 The file named by `mh-comp-formfile' will be used as the form.
@@ -70,7 +73,6 @@ passed three arguments: TO, CC, and SUBJECT." t nil)
 
 (autoload (quote mh-send-other-window) "mh-comp" "\
 Compose and send a letter in another window.
-
 Do not call this function from outside MH-E; use \\[mh-smail-other-window]
 instead.
 
@@ -79,6 +81,11 @@ The letter is composed in `mh-letter-mode'; see its documentation for more
 details.
 If `mh-compose-letter-function' is defined, it is called on the draft and
 passed three arguments: TO, CC, and SUBJECT." t nil)
+
+(autoload (quote mh-get-header-field) "mh-comp" "\
+Find and return the body of FIELD in the mail header.
+Returns the empty string if the field is not in the header of the
+current buffer." nil nil)
 
 (autoload (quote mh-fill-paragraph-function) "mh-comp" "\
 Fill paragraph at or after point.
@@ -96,9 +103,12 @@ Insert an Fcc: FOLDER field in the current message.
 Prompt for the field name with a completion list of the current folders." t nil)
 
 (autoload (quote mh-insert-signature) "mh-comp" "\
-Insert the file named by `mh-signature-file-name' at point.
+Insert the signature specified by `mh-signature-file-name' or FILE at point.
+A signature separator (`-- ') will be added if the signature block does not
+contain one and `mh-signature-separator-flag' is on.
 The value of `mh-letter-insert-signature-hook' is a list of functions to be
-called, with no arguments, before the signature is actually inserted." t nil)
+called, with no arguments, after the signature is inserted.
+The signature can also be inserted with `mh-identity-list'." t nil)
 
 (autoload (quote mh-check-whom) "mh-comp" "\
 Verify recipients of the current letter, showing expansion of any aliases." t nil)
@@ -109,7 +119,9 @@ Sets buffer-local `mh-insert-auto-fields-done-local' when done and inserted
 something.  If NON-INTERACTIVE is non-nil, do not be verbose and only
 attempt matches if `mh-insert-auto-fields-done-local' is nil.
 
-An `identity' entry is skipped if one was already entered manually." t nil)
+An `identity' entry is skipped if one was already entered manually.
+
+Return t if fields added; otherwise return nil." t nil)
 
 (autoload (quote mh-send-letter) "mh-comp" "\
 Send the draft letter in the current buffer.
@@ -117,13 +129,12 @@ If optional prefix argument ARG is provided, monitor delivery.
 The value of `mh-before-send-letter-hook' is a list of functions to be called,
 with no arguments, before doing anything.
 Run `\\[mh-edit-mhn]' if mhn directives are present; otherwise
-run `\\[mh-mml-to-mime]' if mml directives are present.
-Insert X-Mailer field if variable `mh-insert-x-mailer-flag' is set.
-Insert X-Face field if the file specified by `mh-x-face-file' exists." t nil)
+run `\\[mh-mml-to-mime]' if mml directives are present." t nil)
 
 (autoload (quote mh-insert-letter) "mh-comp" "\
 Insert a message into the current letter.
-Removes the header fields according to the variable `mh-invisible-headers'.
+Removes the header fields according to the variable
+`mh-invisible-header-fields-compiled'.
 Prefixes each non-blank line with `mh-ins-buf-prefix', unless
 `mh-yank-from-start-of-msg' is set for supercite in which case supercite is
 used to format the message.
@@ -168,42 +179,11 @@ If we are at the first header field go to the start of the message body." t nil)
 
 ;;;***
 
-;;;### (autoloads (mh-customize) "mh-customize" "mh-customize.el"
-;;;;;;  (16625 53481))
-;;; Generated autoloads from mh-customize.el
-
-(autoload (quote mh-customize) "mh-customize" "\
-Customize MH-E variables.
-With optional argument DELETE-OTHER-WINDOWS-FLAG, other windows in the frame
-are removed." t nil)
-
-;;;***
-
-;;;### (autoloads (mh-goto-cur-msg mh-update-sequences mh-folder-line-matches-show-buffer-p)
-;;;;;;  "mh-e" "mh-e.el" (16627 22341))
-;;; Generated autoloads from mh-e.el
-
-(autoload (quote mh-folder-line-matches-show-buffer-p) "mh-e" "\
-Return t if the message under point in folder-mode is in the show buffer.
-Return nil in any other circumstance (no message under point, no show buffer,
-the message in the show buffer doesn't match." nil nil)
-
-(autoload (quote mh-update-sequences) "mh-e" "\
-Update MH's Unseen-Sequence and current folder and message.
-Flush MH-E's state out to MH. The message at the cursor becomes current." t nil)
-
-(autoload (quote mh-goto-cur-msg) "mh-e" "\
-Position the cursor at the current message.
-When optional argument MINIMAL-CHANGES-FLAG is non-nil, the function doesn't
-recenter the folder buffer." nil nil)
-
-;;;***
-
 ;;;### (autoloads (mh-prefix-help mh-help mh-ephem-message mh-store-buffer
-;;;;;;  mh-store-msg mh-undo-folder mh-sort-folder mh-print-msg mh-page-digest-backwards
+;;;;;;  mh-store-msg mh-undo-folder mh-sort-folder mh-page-digest-backwards
 ;;;;;;  mh-page-digest mh-pipe-msg mh-pack-folder mh-list-folders
 ;;;;;;  mh-kill-folder mh-copy-msg mh-burst-digest) "mh-funcs" "mh-funcs.el"
-;;;;;;  (16625 54011))
+;;;;;;  (16671 48788))
 ;;; Generated autoloads from mh-funcs.el
 
 (autoload (quote mh-burst-digest) "mh-funcs" "\
@@ -245,15 +225,6 @@ Advance displayed message to next digested message." t nil)
 (autoload (quote mh-page-digest-backwards) "mh-funcs" "\
 Back up displayed message to previous digested message." t nil)
 
-(autoload (quote mh-print-msg) "mh-funcs" "\
-Print RANGE on printer.
-
-Check the documentation of `mh-interactive-range' to see how RANGE is read in
-interactive use.
-
-The variable `mh-lpr-command-format' is used to generate the print command.
-The messages are formatted by mhl. See the variable `mhl-formfile'." t nil)
-
 (autoload (quote mh-sort-folder) "mh-funcs" "\
 Sort the messages in the current folder by date.
 Calls the MH program sortm to do the work.
@@ -261,8 +232,7 @@ The arguments in the list `mh-sortm-args' are passed to sortm if the optional
 argument EXTRA-ARGS is given." t nil)
 
 (autoload (quote mh-undo-folder) "mh-funcs" "\
-Undo all pending deletes and refiles in current folder.
-Argument IGNORE is deprecated." t nil)
+Undo all pending deletes and refiles in current folder." t nil)
 
 (autoload (quote mh-store-msg) "mh-funcs" "\
 Store the file(s) contained in the current message into DIRECTORY.
@@ -280,19 +250,24 @@ Default directory is the last directory used, or initially the value of
 Display STRING in the minibuffer momentarily." nil nil)
 
 (autoload (quote mh-help) "mh-funcs" "\
-Display cheat sheet for the MH-Folder commands in minibuffer." t nil)
+Display cheat sheet for the MH-E commands." t nil)
 
 (autoload (quote mh-prefix-help) "mh-funcs" "\
 Display cheat sheet for the commands of the current prefix in minibuffer." t nil)
 
 ;;;***
 
-;;;### (autoloads (mh-insert-identity mh-identity-list-set mh-identity-make-menu)
-;;;;;;  "mh-identity" "mh-identity.el" (16625 54171))
+;;;### (autoloads (mh-identity-handler-bottom mh-identity-handler-top
+;;;;;;  mh-identity-insert-attribution-verb mh-identity-handler-attribution-verb
+;;;;;;  mh-identity-handler-signature mh-identity-handler-gpg-identity
+;;;;;;  mh-insert-identity mh-identity-list-set mh-identity-make-menu)
+;;;;;;  "mh-identity" "mh-identity.el" (16671 57010))
 ;;; Generated autoloads from mh-identity.el
 
 (autoload (quote mh-identity-make-menu) "mh-identity" "\
-Build (or rebuild) the Identity menu (e.g. after the list is modified)." nil nil)
+Build the Identity menu.
+This should be called any time `mh-identity-list' or `mh-auto-fields-list'
+change." nil nil)
 
 (autoload (quote mh-identity-list-set) "mh-identity" "\
 Update the `mh-identity-list' variable, and rebuild the menu.
@@ -304,10 +279,35 @@ customization).  This is called after 'customize is used to alter
 Insert proper fields for given IDENTITY.
 Edit the `mh-identity-list' variable to define identity." t nil)
 
+(autoload (quote mh-identity-handler-gpg-identity) "mh-identity" "\
+For FIELD \"pgg-default-user-id\", process for ACTION 'remove or 'add.
+The buffer-local variable `mh-identity-pgg-default-user-id' is set to VALUE
+when action 'add is selected." nil nil)
+
+(autoload (quote mh-identity-handler-signature) "mh-identity" "\
+For FIELD \"signature\", process headers for ACTION 'remove or 'add.
+The VALUE is added." nil nil)
+
+(autoload (quote mh-identity-handler-attribution-verb) "mh-identity" "\
+For FIELD \"attribution_verb\", process headers for ACTION 'remove or 'add.
+The VALUE is added." nil nil)
+
+(autoload (quote mh-identity-insert-attribution-verb) "mh-identity" "\
+Insert VALUE as attribution verb, setting up delimiting markers.
+If VALUE is nil, use `mh-extract-from-attribution-verb'." nil nil)
+
+(autoload (quote mh-identity-handler-top) "mh-identity" "\
+For FIELD, process mh-identity headers for ACTION 'remove or 'add.
+If the field wasn't present, the VALUE is added at the top of the header." nil nil)
+
+(autoload (quote mh-identity-handler-bottom) "mh-identity" "\
+For FIELD, process mh-identity headers for ACTION 'remove or 'add.
+If the field wasn't present, the VALUE is added at the bottom of the header." nil nil)
+
 ;;;***
 
-;;;### (autoloads (mh-inc-spool-list-set) "mh-inc" "mh-inc.el" (16625
-;;;;;;  54212))
+;;;### (autoloads (mh-inc-spool-list-set) "mh-inc" "mh-inc.el" (16671
+;;;;;;  48848))
 ;;; Generated autoloads from mh-inc.el
 
 (autoload (quote mh-inc-spool-list-set) "mh-inc" "\
@@ -319,14 +319,14 @@ This is called after 'customize is used to alter `mh-inc-spool-list'." nil nil)
 
 ;;;### (autoloads (mh-index-choose mh-namazu-execute-search mh-swish++-execute-search
 ;;;;;;  mh-swish-execute-search mh-index-ticked-messages mh-index-new-messages
-;;;;;;  mh-index-sequenced-messages mh-glimpse-execute-search mh-index-delete-from-sequence
-;;;;;;  mh-index-add-to-sequence mh-index-execute-commands mh-index-update-unseen
-;;;;;;  mh-index-visit-folder mh-index-delete-folder-headers mh-index-group-by-folder
+;;;;;;  mh-index-sequenced-messages mh-index-delete-from-sequence
+;;;;;;  mh-index-add-to-sequence mh-index-execute-commands mh-index-visit-folder
+;;;;;;  mh-index-delete-folder-headers mh-index-group-by-folder mh-index-create-imenu-index
 ;;;;;;  mh-index-insert-folder-headers mh-index-previous-folder mh-index-next-folder
 ;;;;;;  mh-index-parse-search-regexp mh-index-do-search mh-index-p
 ;;;;;;  mh-index-read-data mh-index-search mh-index-create-sequences
 ;;;;;;  mh-create-sequence-map mh-index-update-maps) "mh-index" "mh-index.el"
-;;;;;;  (16625 54348))
+;;;;;;  (16665 53754))
 ;;; Generated autoloads from mh-index.el
 
 (autoload (quote mh-index-update-maps) "mh-index" "\
@@ -367,7 +367,6 @@ index for each program:
     - `mh-swish-execute-search'
     - `mh-mairix-execute-search'
     - `mh-namazu-execute-search'
-    - `mh-glimpse-execute-search'
 
 If none of these programs are present then we use pick. If desired grep can be
 used instead. Details about these methods can be found in:
@@ -411,6 +410,9 @@ Jump to the previous folder marker." t nil)
 (autoload (quote mh-index-insert-folder-headers) "mh-index" "\
 Annotate the search results with original folder names." nil nil)
 
+(autoload (quote mh-index-create-imenu-index) "mh-index" "\
+Create alist of folder names and positions in index folder buffers." nil nil)
+
 (autoload (quote mh-index-group-by-folder) "mh-index" "\
 Partition the messages based on source folder.
 Returns an alist with the the folder names in the car and the cdr being the
@@ -421,10 +423,6 @@ Delete the folder headers." nil nil)
 
 (autoload (quote mh-index-visit-folder) "mh-index" "\
 Visit original folder from where the message at point was found." t nil)
-
-(autoload (quote mh-index-update-unseen) "mh-index" "\
-Remove counterpart of MSG in source folder from `mh-unseen-seq'.
-Also `mh-update-unseen' is called in the original folder, if we have it open." nil nil)
 
 (autoload (quote mh-index-execute-commands) "mh-index" "\
 Delete/refile the actual messages.
@@ -442,62 +440,25 @@ Delete from SEQ the messages in MSGS.
 This function updates the source folder sequences. Also makes an attempt to
 update the source folder buffer if present." nil nil)
 
-(autoload (quote mh-glimpse-execute-search) "mh-index" "\
-Execute glimpse and read the results.
-
-In the examples below, replace /home/user/Mail with the path to your MH
-directory.
-
-First create the directory /home/user/Mail/.glimpse. Then create the file
-/home/user/Mail/.glimpse/.glimpse_exclude with the following contents:
-
-    */.*
-    */#*
-    */,*
-    */*~
-    ^/home/user/Mail/.glimpse
-    ^/home/user/Mail/mhe-index
-
-If there are any directories you would like to ignore, append lines like the
-following to .glimpse_exclude:
-
-    ^/home/user/Mail/scripts
-
-You do not want to index the folders that hold the results of your searches
-since they tend to be ephemeral and the original messages are indexed anyway.
-The configuration file above assumes that the results are found in sub-folders
-of `mh-index-folder' which is +mhe-index by default.
-
-Use the following command line to generate the glimpse index. Run this
-daily from cron:
-
-    glimpseindex -H /home/user/Mail/.glimpse /home/user/Mail
-
-FOLDER-PATH is the directory in which SEARCH-REGEXP is used to search." nil nil)
-
 (autoload (quote mh-index-sequenced-messages) "mh-index" "\
 Display messages from FOLDERS in SEQUENCE.
-By default the folders specified by `mh-index-new-messages-folders' are
-searched. With a prefix argument, enter a space-separated list of folders, or
-nothing to search all folders.
-
-Argument SEQUENCE defaults to `mh-unseen-seq' and is the sequence that the
-function searches for in each of the FOLDERS. With a prefix argument, enter a
-sequence to use." t nil)
+All messages in the sequence you provide from the folders in
+`mh-index-new-messages-folders' are listed. With a prefix argument, enter a
+space-separated list of folders, or nothing to search all folders." t nil)
 
 (autoload (quote mh-index-new-messages) "mh-index" "\
 Display unseen messages.
-All messages in the `unseen' sequence from FOLDERS are displayed.
-By default the folders specified by `mh-index-new-messages-folders'
-are searched. With a prefix argument, enter a space-separated list of
-folders, or nothing to search all folders." t nil)
+If you use a program such as `procmail' to use `rcvstore' to file your
+incoming mail automatically, you can display new, unseen, messages using this
+command. All messages in the `unseen' sequence from the folders in
+`mh-index-new-messages-folders' are listed. With a prefix argument, enter a
+space-separated list of FOLDERS, or nothing to search all folders." t nil)
 
 (autoload (quote mh-index-ticked-messages) "mh-index" "\
 Display ticked messages.
-All messages in the `tick' sequence from FOLDERS are displayed.
-By default the folders specified by `mh-index-ticked-messages-folders'
-are searched. With a prefix argument, enter a space-separated list of
-folders, or nothing to search all folders." t nil)
+All messages in `mh-tick-seq' from the folders in
+`mh-index-ticked-messages-folders' are listed. With a prefix argument, enter a
+space-separated list of FOLDERS, or nothing to search all folders." t nil)
 
 (autoload (quote mh-swish-execute-search) "mh-index" "\
 Execute swish-e and read the results.
@@ -620,54 +581,70 @@ system." nil nil)
 
 ;;;***
 
+;;;### (autoloads (mh-variants mh-variant-p mh-variant-set) "mh-init"
+;;;;;;  "mh-init.el" (16684 6777))
+;;; Generated autoloads from mh-init.el
+
+(autoload (quote mh-variant-set) "mh-init" "\
+Set the MH variant to VARIANT.
+Sets `mh-progs', `mh-lib', `mh-lib-progs' and `mh-flists-present-flag'.
+If the VARIANT is `autodetect', then first try nmh, then MH and finally
+GNU mailutils." t nil)
+
+(autoload (quote mh-variant-p) "mh-init" "\
+Return t if variant is any of VARIANTS.
+Currently known variants are 'MH, 'nmh, and 'mu-mh." nil nil)
+
+(autoload (quote mh-variants) "mh-init" "\
+Return a list of installed variants of MH on the system.
+This function looks for MH in `mh-sys-path', `mh-path' and
+`exec-path'. The format of the list of variants that is returned is described
+by the variable `mh-variants'." nil nil)
+
+;;;***
+
 ;;;### (autoloads (mh-junk-whitelist mh-junk-blacklist) "mh-junk"
-;;;;;;  "mh-junk.el" (16625 54386))
+;;;;;;  "mh-junk.el" (16671 48929))
 ;;; Generated autoloads from mh-junk.el
 
 (autoload (quote mh-junk-blacklist) "mh-junk" "\
 Blacklist RANGE as spam.
 
-Check the documentation of `mh-interactive-range' to see how RANGE is read in
-interactive use.
+This command trains the spam program in use (see the `mh-junk-program' option)
+with the content of the range (see `mh-interactive-range') and then handles
+the message(s) as specified by the `mh-junk-disposition' option.
 
-First the appropriate function is called depending on the value of
-`mh-junk-choice'. Then if `mh-junk-mail-folder' is a string then the message is
-refiled to that folder. If nil, the message is deleted.
+For more information about using your particular spam fighting program, see:
 
-To change the spam program being used, customize `mh-junk-program'. Directly
-setting `mh-junk-choice' is not recommended.
-
-The documentation for the following functions describes what setup is needed
-for the different spam fighting programs:
-
+  - `mh-spamassassin-blacklist'
   - `mh-bogofilter-blacklist'
-  - `mh-spamprobe-blacklist'
-  - `mh-spamassassin-blacklist'" t nil)
+  - `mh-spamprobe-blacklist'" t nil)
 
 (autoload (quote mh-junk-whitelist) "mh-junk" "\
-Whitelist RANGE incorrectly classified as spam.
+Whitelist RANGE as ham.
 
-Check the documentation of `mh-interactive-range' to see how RANGE is read in
-interactive use.
+This command reclassifies a range of messages (see `mh-interactive-range') as
+ham if it were incorrectly classified as spam. It then refiles the message
+into the `+inbox' folder.
 
-First the appropriate function is called depending on the value of
-`mh-junk-choice'. Then the message is refiled to `mh-inbox'.
-
-To change the spam program being used, customize `mh-junk-program'. Directly
-setting `mh-junk-choice' is not recommended." t nil)
+The `mh-junk-program' option specifies the spam program in use." t nil)
 
 ;;;***
 
-;;;### (autoloads (mh-mime-inline-part mh-mime-save-part mh-push-button
-;;;;;;  mh-press-button mh-mime-display mh-decode-message-header
-;;;;;;  mh-mime-save-parts mh-display-emphasis mh-display-smileys
-;;;;;;  mh-add-missing-mime-version-header mh-destroy-postponed-handles
-;;;;;;  mh-mime-cleanup mh-mml-directive-present-p mh-mml-secure-message-encrypt-pgpmime
-;;;;;;  mh-mml-secure-message-sign-pgpmime mh-mml-attach-file mh-mml-forward-message
+;;;### (autoloads (mh-display-with-external-viewer mh-mime-inline-part
+;;;;;;  mh-mime-save-part mh-push-button mh-press-button mh-mime-display
+;;;;;;  mh-decode-message-header mh-toggle-mh-decode-mime-flag mh-mime-save-parts
+;;;;;;  mh-display-emphasis mh-display-smileys mh-add-missing-mime-version-header
+;;;;;;  mh-destroy-postponed-handles mh-mime-cleanup mh-mml-directive-present-p
+;;;;;;  mh-mml-secure-message-signencrypt mh-mml-secure-message-encrypt
+;;;;;;  mh-mml-secure-message-sign mh-mml-unsecure-message mh-mml-attach-file
+;;;;;;  mh-mml-query-cryptographic-method mh-mml-forward-message
 ;;;;;;  mh-mml-to-mime mh-mhn-directive-present-p mh-revert-mhn-edit
-;;;;;;  mh-edit-mhn mh-mhn-compose-forw mh-mhn-compose-external-compressed-tar
-;;;;;;  mh-mhn-compose-anon-ftp mh-mhn-compose-insertion mh-compose-forward
-;;;;;;  mh-compose-insertion) "mh-mime" "mh-mime.el" (16625 54523))
+;;;;;;  mh-edit-mhn mh-mhn-compose-forw mh-mhn-compose-external-type
+;;;;;;  mh-mhn-compose-external-compressed-tar mh-mhn-compose-anon-ftp
+;;;;;;  mh-mhn-compose-insertion mh-file-mime-type mh-have-file-command
+;;;;;;  mh-compose-forward mh-compose-insertion) "mh-mime" "mh-mime.el"
+;;;;;;  (16684 7323))
 ;;; Generated autoloads from mh-mime.el
 
 (autoload (quote mh-compose-insertion) "mh-mime" "\
@@ -685,6 +662,14 @@ Optional argument FOLDER is the folder from which the forwarded message should
 come.
 Optional argument MESSAGE is the message to forward.
 If any of the optional arguments are absent, they are prompted for." t nil)
+
+(autoload (quote mh-have-file-command) "mh-mime" "\
+Return t if 'file' command is on the system.
+'file -i' is used to get MIME type of composition insertion." nil nil)
+
+(autoload (quote mh-file-mime-type) "mh-mime" "\
+Return MIME type of FILENAME from file command.
+Returns nil if file command not on system." nil nil)
 
 (autoload (quote mh-mhn-compose-insertion) "mh-mime" "\
 Add a directive to insert a MIME message part from a file.
@@ -715,6 +700,18 @@ include a reference to a message/external-body part.
 
 Arguments are HOST and FILENAME, which tell where to find the file, and
 DESCRIPTION, a line of text for the Content-description header.
+
+See also \\[mh-edit-mhn]." t nil)
+
+(autoload (quote mh-mhn-compose-external-type) "mh-mime" "\
+Add a directive to include a MIME reference to a remote file.
+The file should be available via anonymous ftp. This directive tells MH to
+include a reference to a message/external-body part.
+
+Arguments are ACCESS-TYPE, HOST and FILENAME, which tell where to find the
+file and TYPE which is the MIME Content-Type. Optional arguments include
+DESCRIPTION, a line of text for the Content-description header, ATTRIBUTES,
+EXTRA-PARAMS, and COMMENT.
 
 See also \\[mh-edit-mhn]." t nil)
 
@@ -758,7 +755,9 @@ Undo the effect of \\[mh-edit-mhn] by reverting to the backup file.
 Optional non-nil argument NOCONFIRM means don't ask for confirmation." t nil)
 
 (autoload (quote mh-mhn-directive-present-p) "mh-mime" "\
-Check if the current buffer has text which might be a MHN directive." nil nil)
+Check if the text between BEGIN and END might be a MHN directive.
+The optional argument BEGIN defaults to the beginning of the buffer, while END
+defaults to the the end of the buffer." nil nil)
 
 (autoload (quote mh-mml-to-mime) "mh-mime" "\
 Compose MIME message from mml directives.
@@ -769,6 +768,9 @@ function may be called manually before sending the draft as well." t nil)
 Forward a message as attachment.
 The function will prompt the user for a DESCRIPTION, a FOLDER and MESSAGE
 number." nil nil)
+
+(autoload (quote mh-mml-query-cryptographic-method) "mh-mime" "\
+Read the cryptographic method to use." nil nil)
 
 (autoload (quote mh-mml-attach-file) "mh-mime" "\
 Attach a file to the outgoing MIME message.
@@ -781,12 +783,18 @@ This is basically `mml-attach-file' from gnus, modified such that a prefix
 argument yields an `inline' disposition and Content-Type is determined
 automatically." nil nil)
 
-(autoload (quote mh-mml-secure-message-sign-pgpmime) "mh-mime" "\
-Add directive to encrypt/sign the entire message." t nil)
+(autoload (quote mh-mml-unsecure-message) "mh-mime" "\
+Remove any secure message directives.
+The IGNORE argument is not used." t nil)
 
-(autoload (quote mh-mml-secure-message-encrypt-pgpmime) "mh-mime" "\
-Add directive to encrypt and sign the entire message.
-If called with a prefix argument DONTSIGN, only encrypt (do NOT sign)." t nil)
+(autoload (quote mh-mml-secure-message-sign) "mh-mime" "\
+Add security directive to sign the entire message using METHOD." t nil)
+
+(autoload (quote mh-mml-secure-message-encrypt) "mh-mime" "\
+Add security directive to encrypt the entire message using METHOD." t nil)
+
+(autoload (quote mh-mml-secure-message-signencrypt) "mh-mime" "\
+Add security directive to encrypt and sign the entire message using METHOD." t nil)
 
 (autoload (quote mh-mml-directive-present-p) "mh-mime" "\
 Check if the current buffer has text which may be an MML directive." nil nil)
@@ -814,6 +822,9 @@ If ARG, prompt for directory, else use that specified by the variable
 mh_profile directives, since this function calls on mhstore or mhn to do the
 actual storing." t nil)
 
+(autoload (quote mh-toggle-mh-decode-mime-flag) "mh-mime" "\
+Toggle whether MH-E should decode MIME or not." t nil)
+
 (autoload (quote mh-decode-message-header) "mh-mime" "\
 Decode RFC2047 encoded message header fields." nil nil)
 
@@ -840,10 +851,13 @@ Save MIME part at point." t nil)
 (autoload (quote mh-mime-inline-part) "mh-mime" "\
 Toggle display of the raw MIME part." t nil)
 
+(autoload (quote mh-display-with-external-viewer) "mh-mime" "\
+View MIME PART-INDEX externally." t nil)
+
 ;;;***
 
-;;;### (autoloads (mh-do-search mh-pick-do-search mh-do-pick-search
-;;;;;;  mh-search-folder) "mh-pick" "mh-pick.el" (16625 54571))
+;;;### (autoloads (mh-do-search mh-pick-do-search mh-search-folder)
+;;;;;;  "mh-pick" "mh-pick.el" (16671 49140))
 ;;; Generated autoloads from mh-pick.el
 
 (autoload (quote mh-search-folder) "mh-pick" "\
@@ -852,13 +866,6 @@ This function uses the MH command `pick' to do the work.
 Add the messages found to the sequence named `search'.
 Argument WINDOW-CONFIG is the current window configuration and is used when
 the search folder is dismissed." t nil)
-
-(autoload (quote mh-do-pick-search) "mh-pick" "\
-Find messages that match the qualifications in the current pattern buffer.
-Messages are searched for in the folder named in `mh-searching-folder'.
-Add the messages found to the sequence named `search'.
-
-This is a deprecated function and `mh-pick-do-search' should be used instead." t nil)
 
 (autoload (quote mh-pick-do-search) "mh-pick" "\
 Find messages that match the qualifications in the current pattern buffer.
@@ -873,19 +880,62 @@ indexing program specified in `mh-index-program' is used." t nil)
 
 ;;;***
 
+;;;### (autoloads (mh-print-msg mh-ps-print-toggle-mime mh-ps-print-toggle-color
+;;;;;;  mh-ps-print-toggle-faces mh-ps-print-msg-show mh-ps-print-msg-file
+;;;;;;  mh-ps-print-msg) "mh-print" "mh-print.el" (16680 11171))
+;;; Generated autoloads from mh-print.el
+
+(autoload (quote mh-ps-print-msg) "mh-print" "\
+Print the messages in RANGE.
+
+Check the documentation of `mh-interactive-range' to see how RANGE is read in
+interactive use." t nil)
+
+(autoload (quote mh-ps-print-msg-file) "mh-print" "\
+Print to FILE the messages in RANGE.
+
+Check the documentation of `mh-interactive-range' to see how RANGE is read in
+interactive use." t nil)
+
+(autoload (quote mh-ps-print-msg-show) "mh-print" "\
+Print current show buffer to FILE." t nil)
+
+(autoload (quote mh-ps-print-toggle-faces) "mh-print" "\
+Toggle whether printing is done with faces or not." t nil)
+
+(autoload (quote mh-ps-print-toggle-color) "mh-print" "\
+Toggle whether color is used in printing messages." t nil)
+
+(autoload (quote mh-ps-print-toggle-mime) "mh-print" "\
+Cycle through available choices on how MIME parts should be printed.
+The available settings are:
+  1. Print only inline MIME parts.
+  2. Print all MIME parts.
+  3. Print no MIME parts." t nil)
+
+(autoload (quote mh-print-msg) "mh-print" "\
+Print RANGE on printer.
+
+Check the documentation of `mh-interactive-range' to see how RANGE is read in
+interactive use.
+
+The variable `mh-lpr-command-format' is used to generate the print command.
+The messages are formatted by mhl. See the variable `mhl-formfile'." t nil)
+
+;;;***
+
 ;;;### (autoloads (mh-narrow-to-tick mh-toggle-tick mh-thread-refile
 ;;;;;;  mh-thread-delete mh-thread-ancestor mh-thread-previous-sibling
 ;;;;;;  mh-thread-next-sibling mh-thread-forget-message mh-toggle-threads
 ;;;;;;  mh-thread-add-spaces mh-thread-update-scan-line-map mh-thread-inc
 ;;;;;;  mh-delete-subject-or-thread mh-delete-subject mh-narrow-to-range
 ;;;;;;  mh-narrow-to-to mh-narrow-to-cc mh-narrow-to-from mh-narrow-to-subject
-;;;;;;  mh-region-to-msg-list mh-interactive-range mh-range-to-msg-list
-;;;;;;  mh-iterate-on-range mh-iterate-on-messages-in-region mh-add-to-sequence
-;;;;;;  mh-notate-cur mh-notate-seq mh-map-to-seq-msgs mh-rename-seq
-;;;;;;  mh-translate-range mh-read-range mh-read-seq-default mh-notate-deleted-and-refiled
-;;;;;;  mh-widen mh-put-msg-in-seq mh-narrow-to-seq mh-msg-is-in-seq
-;;;;;;  mh-list-sequences mh-delete-seq) "mh-seq" "mh-seq.el" (16625
-;;;;;;  54690))
+;;;;;;  mh-interactive-range mh-range-to-msg-list mh-iterate-on-range
+;;;;;;  mh-iterate-on-messages-in-region mh-add-to-sequence mh-notate-cur
+;;;;;;  mh-rename-seq mh-translate-range mh-read-range mh-read-seq-default
+;;;;;;  mh-notate-deleted-and-refiled mh-widen mh-put-msg-in-seq
+;;;;;;  mh-narrow-to-seq mh-msg-is-in-seq mh-list-sequences mh-delete-seq)
+;;;;;;  "mh-seq" "mh-seq.el" (16671 65286))
 ;;; Generated autoloads from mh-seq.el
 
 (autoload (quote mh-delete-seq) "mh-seq" "\
@@ -895,8 +945,9 @@ Delete the SEQUENCE." t nil)
 List the sequences defined in the folder being visited." t nil)
 
 (autoload (quote mh-msg-is-in-seq) "mh-seq" "\
-Display the sequences that contain MESSAGE.
-Default is the displayed message." t nil)
+Display the sequences in which the current message appears.
+Use a prefix argument to display the sequences in which another MESSAGE
+appears." t nil)
 
 (autoload (quote mh-narrow-to-seq) "mh-seq" "\
 Restrict display of this folder to just messages in SEQUENCE.
@@ -909,10 +960,8 @@ Check the documentation of `mh-interactive-range' to see how RANGE is read in
 interactive use." t nil)
 
 (autoload (quote mh-widen) "mh-seq" "\
-Remove last restriction from current folder.
-If optional prefix argument ALL-FLAG is non-nil, then unwind to the beginning
-of the view stack thereby showing all messages that the buffer originally
-contained." t nil)
+Restore the previous limit.
+If optional prefix argument ALL-FLAG is non-nil, remove all limits." t nil)
 
 (autoload (quote mh-notate-deleted-and-refiled) "mh-seq" "\
 Notate messages marked for deletion or refiling.
@@ -965,16 +1014,6 @@ In FOLDER, translate the string EXPR to a list of messages numbers." nil nil)
 (autoload (quote mh-rename-seq) "mh-seq" "\
 Rename SEQUENCE to have NEW-NAME." t nil)
 
-(autoload (quote mh-map-to-seq-msgs) "mh-seq" "\
-Invoke the FUNC at each message in the SEQ.
-SEQ can either be a list of messages or a MH sequence. The remaining ARGS are
-passed as arguments to FUNC." nil nil)
-
-(autoload (quote mh-notate-seq) "mh-seq" "\
-Mark the scan listing.
-All messages in SEQ are marked with NOTATION at OFFSET from the beginning of
-the line." nil nil)
-
 (autoload (quote mh-notate-cur) "mh-seq" "\
 Mark the MH sequence cur.
 In addition to notating the current message with `mh-note-cur' the function
@@ -1019,37 +1058,44 @@ RANGE-PROMPT. A list of messages in that range is returned.
 If a MH range is given, say something like last:20, then a list containing
 the messages in that range is returned.
 
+If DEFAULT non-nil then it is returned.
+
 Otherwise, the message number at point is returned.
 
 This function is usually used with `mh-iterate-on-range' in order to provide
 a uniform interface to MH-E functions." nil nil)
 
-(autoload (quote mh-region-to-msg-list) "mh-seq" "\
-Return a list of messages within the region between BEGIN and END." nil nil)
-
 (autoload (quote mh-narrow-to-subject) "mh-seq" "\
-Narrow to a sequence containing all following messages with same subject." t nil)
+Limit to messages with same subject.
+With a prefix argument, edit PICK-EXPR.
+
+Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command." t nil)
 
 (autoload (quote mh-narrow-to-from) "mh-seq" "\
-Limit to messages with the same From header field as the message at point.
-With a prefix argument, prompt for the regular expression, REGEXP given to
-pick." t nil)
+Limit to messages with the same `From:' field.
+With a prefix argument, edit PICK-EXPR.
+
+Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command." t nil)
 
 (autoload (quote mh-narrow-to-cc) "mh-seq" "\
-Limit to messages with the same Cc header field as the message at point.
-With a prefix argument, prompt for the regular expression, REGEXP given to
-pick." t nil)
+Limit to messages with the same `Cc:' field.
+With a prefix argument, edit PICK-EXPR.
+
+Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command." t nil)
 
 (autoload (quote mh-narrow-to-to) "mh-seq" "\
-Limit to messages with the same To header field as the message at point.
-With a prefix argument, prompt for the regular expression, REGEXP given to
-pick." t nil)
+Limit to messages with the same `To:' field.
+With a prefix argument, edit PICK-EXPR.
+
+Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command." t nil)
 
 (autoload (quote mh-narrow-to-range) "mh-seq" "\
 Limit to messages in RANGE.
 
 Check the documentation of `mh-interactive-range' to see how RANGE is read in
-interactive use." t nil)
+interactive use.
+
+Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command." t nil)
 
 (autoload (quote mh-delete-subject) "mh-seq" "\
 Mark all following messages with same subject to be deleted.
@@ -1103,14 +1149,15 @@ Mark current message and all its children for refiling to FOLDER." t nil)
 Toggle tick mark of all messages in RANGE." t nil)
 
 (autoload (quote mh-narrow-to-tick) "mh-seq" "\
-Restrict display of this folder to just messages in `mh-tick-seq'.
+Limit to messages in `mh-tick-seq'.
+
 Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command." t nil)
 
 ;;;***
 
 ;;;### (autoloads (mh-speed-add-folder mh-speed-invalidate-map mh-speed-flists
 ;;;;;;  mh-speed-view mh-speed-toggle mh-folder-speedbar-buttons)
-;;;;;;  "mh-speed" "mh-speed.el" (16625 54721))
+;;;;;;  "mh-speed" "mh-speed.el" (16665 53793))
 ;;; Generated autoloads from mh-speed.el
 
 (autoload (quote mh-folder-speedbar-buttons) "mh-speed" "\
@@ -1145,31 +1192,24 @@ The function invalidates the latest ancestor that is present." nil nil)
 
 ;;;***
 
-;;;### (autoloads (mh-get-msg-num mh-goto-address-find-address-at-point)
-;;;;;;  "mh-utils" "mh-utils.el" (16625 54979))
-;;; Generated autoloads from mh-utils.el
-
-(autoload (quote mh-goto-address-find-address-at-point) "mh-utils" "\
-Find e-mail address around or before point.
-Then search backwards to beginning of line for the start of an e-mail
-address.  If no e-mail address found, return nil." nil nil)
-
-(autoload (quote mh-get-msg-num) "mh-utils" "\
-Return the message number of the displayed message.
-If the argument ERROR-IF-NO-MESSAGE is non-nil, then complain if the cursor is
-not pointing to a message." nil nil)
-
-;;;***
-
 ;;;### (autoloads (mh-alias-apropos mh-alias-add-address-under-point
-;;;;;;  mh-alias-grab-from-field mh-alias-add-alias mh-alias-from-has-no-alias-p
+;;;;;;  mh-alias-grab-from-field mh-alias-add-alias mh-alias-for-from-p
 ;;;;;;  mh-alias-address-to-alias mh-alias-letter-expand-alias mh-alias-minibuffer-confirm-address
 ;;;;;;  mh-read-address mh-alias-reload-maybe mh-alias-reload) "mh-alias"
-;;;;;;  "mh-alias.el" (16625 53006))
+;;;;;;  "mh-alias.el" (16671 49382))
 ;;; Generated autoloads from mh-alias.el
 
 (autoload (quote mh-alias-reload) "mh-alias" "\
-Load MH aliases into `mh-alias-alist'." t nil)
+Reload MH aliases.
+
+Since aliases are updated frequently, MH-E will reload aliases automatically
+whenever an alias lookup occurs if an alias source (a file listed in your
+`Aliasfile:' profile component and your password file if variable
+`mh-alias-local-users' is non-nil) has changed. However, you can reload your
+aliases manually by calling this command directly.
+
+The value of `mh-alias-reloaded-hook' is a list of functions to be called,
+with no arguments, after the aliases have been loaded." t nil)
 
 (autoload (quote mh-alias-reload-maybe) "mh-alias" "\
 Load new MH aliases." nil nil)
@@ -1186,26 +1226,25 @@ Expand mail alias before point." nil nil)
 (autoload (quote mh-alias-address-to-alias) "mh-alias" "\
 Return the ADDRESS alias if defined, or nil." nil nil)
 
-(autoload (quote mh-alias-from-has-no-alias-p) "mh-alias" "\
-Return t is From has no current alias set.
-In the exceptional situation where there isn't a From header in the message the
-function returns nil." nil nil)
+(autoload (quote mh-alias-for-from-p) "mh-alias" "\
+Return t if sender's address has a corresponding alias." nil nil)
 
 (autoload (quote mh-alias-add-alias) "mh-alias" "\
 *Add ALIAS for ADDRESS in personal alias file.
-Prompts for confirmation if the address already has an alias.
-If the alias is already is use, `mh-alias-add-alias-to-file' will prompt." t nil)
+This function prompts you for an alias and address. If the alias exists
+already, you will have the choice of inserting the new alias before or after
+the old alias. In the former case, this alias will be used when sending mail
+to this alias. In the latter case, the alias serves as an additional folder
+name hint when filing messages." t nil)
 
 (autoload (quote mh-alias-grab-from-field) "mh-alias" "\
-*Add ALIAS for ADDRESS in personal alias file.
-Prompts for confirmation if the alias is already in use or if the address
-already has an alias." t nil)
+*Add alias for the sender of the current message." t nil)
 
 (autoload (quote mh-alias-add-address-under-point) "mh-alias" "\
-Insert an alias for email address under point." t nil)
+Insert an alias for address under point." t nil)
 
 (autoload (quote mh-alias-apropos) "mh-alias" "\
-Show all aliases that match REGEXP either in name or content." t nil)
+Show all aliases or addresses that match REGEXP." t nil)
 
 ;;;***
 

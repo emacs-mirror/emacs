@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,1997,2001 Free Software Foundation, Inc.
+@c Copyright (C) 1985,86,87,93,94,95,1997,2001,2004 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
 @chapter Dealing with Common Problems
@@ -9,6 +9,10 @@ mysterious.  This chapter tells what you can do to cancel your mistake or
 recover from a mysterious situation.  Emacs bugs and system crashes are
 also considered.
 @end iftex
+
+@ifnottex
+@raisesections
+@end ifnottex
 
 @node Quitting, Lossage, Customization, Top
 @section Quitting and Aborting
@@ -1044,7 +1048,7 @@ you have not yet started work, it is useful to contact
 possible to suggest ways to make your extension fit in better with the
 rest of Emacs.
 
-@node Service, Command Arguments, Contributing, Top
+@node Service, Copying, Contributing, Top
 @section How To Get Help with GNU Emacs
 
 If you need help installing, using or changing GNU Emacs, there are two
@@ -1062,6 +1066,10 @@ Look in the service directory for someone who might help you for a fee.
 The service directory is found in the file named @file{etc/SERVICE} in the
 Emacs distribution.
 @end itemize
+
+@ifnottex
+@lowersections
+@end ifnottex
 
 @ignore
    arch-tag: c9cba76d-b2cb-4e0c-ae3f-19d5ef35817c

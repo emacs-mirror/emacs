@@ -23,8 +23,8 @@ in the larger process of developing and maintaining programs.
                           with different facilities for running
                           the Lisp programs.
 * Libraries: Lisp Libraries.      Creating Lisp programs to run in Emacs.
-* Interaction: Lisp Interaction.  Executing Lisp in an Emacs buffer.
 * Eval: Lisp Eval.      Executing a single Lisp expression in Emacs.
+* Interaction: Lisp Interaction.  Executing Lisp in an Emacs buffer.
 * External Lisp::         Communicating through Emacs with a separate Lisp.
 @end menu
 
@@ -203,6 +203,14 @@ message with @key{RET} or @kbd{Mouse-2}, subsequent @kbd{C-x `}
 commands advance from there.  When @kbd{C-x `} gets to the end of the
 buffer and finds no more error messages to visit, it fails and signals
 an Emacs error.
+
+  You don't have to be in the compilation buffer in order to use
+@code{next-error}.  If one window on the selected frame can be the
+target of the @code{next-error} call, it is used.  Else, if a buffer
+previously had @code{next-error} called on it, it is used.  Else,
+if the current buffer can be the target of @code{next-error}, it is
+used.  Else, all the buffers Emacs manages are tried for
+@code{next-error} support.
 
   @kbd{C-u C-x `} starts scanning from the beginning of the compilation
 buffer.  This is one way to process the same set of errors again.
@@ -644,7 +652,7 @@ to know GDB commands.
 @menu
 * Layout::               Control the number of displayed buffers.
 * Breakpoints Buffer::   A breakpoint control panel.
-* Stack Buffer::         Select a frame from the call stack. 
+* Stack Buffer::         Select a frame from the call stack.
 * Watch Expressions::    Monitor variable values in the speedbar.
 * Other Buffers::        Input/output, locals, registers and assembler buffers.
 @end menu
@@ -698,12 +706,12 @@ is the relevant buffer type e.g breakpoints.
 @node Breakpoints Buffer
 @subsubsection Breakpoints Buffer
 
-The breakpoints buffer shows the existing breakpoints and watchpoints 
+The breakpoints buffer shows the existing breakpoints and watchpoints
 (@pxref{Breakpoints,,, gdb, The GNU debugger}).  It has three special
 commands:
 
 @table @kbd
-@item @key{SPC} 
+@item @key{SPC}
 @kindex SPC @r{(GDB breakpoints buffer)}
 @findex gdb-toggle-breakpoint
 Enable/disable the breakpoint at the current line

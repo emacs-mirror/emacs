@@ -64,10 +64,12 @@ enum menu_separator
 typedef struct _widget_value
 {
   /* name of widget */
+  Lisp_Object   lname;
   char*		name;
   /* value (meaning depend on widget type) */
   char*		value;
   /* keyboard equivalent. no implications for XtTranslations */
+  Lisp_Object   lkey;
   char*		key;
   /* Help string or nil if none.
      GC finds this string through the frame's menu_bar_vector

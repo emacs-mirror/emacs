@@ -198,7 +198,7 @@ This variable is buffer-local.")
 ;;; Completion stuff
 
 (defun ielm-tab nil
-  "Possibly indent the current line as lisp code."
+  "Possibly indent the current line as Lisp code."
   (interactive)
   (if (or (eq (preceding-char) ?\n)
 	  (eq (char-syntax (preceding-char)) ? ))
@@ -207,7 +207,7 @@ This variable is buffer-local.")
 	t)))
 
 (defun ielm-complete-symbol nil
-  "Complete the lisp symbol before point."
+  "Complete the Lisp symbol before point."
   ;; A wrapper for lisp-complete symbol that returns non-nil if
   ;; completion has occurred
   (let* ((btick (buffer-modified-tick))
@@ -528,7 +528,7 @@ Customized bindings may be defined in `ielm-map', which currently contains:
     (condition-case nil
 	(start-process "ielm" (current-buffer) "hexl")
       (file-error (start-process "ielm" (current-buffer) "cat")))
-    (process-kill-without-query (ielm-process))
+    (set-process-query-on-exit-flag (ielm-process) nil)
     (goto-char (point-max))
 
     ;; Lisp output can include raw characters that confuse comint's

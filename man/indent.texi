@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997, 2004 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Indentation, Text, Major Modes, Top
 @chapter Indentation
@@ -75,7 +75,7 @@ type @key{TAB}, it aligns the line as a whole.
   Normally, all of the above methods insert an optimal mix of tabs and
 spaces to align to the desired column.  @xref{Just Spaces}, for how to
 disable use of tabs.  However, @kbd{C-q @key{TAB}} always inserts a
-tab, even they are disabled for the indentation commands.
+tab, even when tabs are disabled for the indentation commands.
 
 @c   In Text mode, @key{TAB} runs the command @code{tab-to-tab-stop}, which
 @c indents to the next tab stop column.  You can set the tab stops with
@@ -95,7 +95,8 @@ tab, even they are disabled for the indentation commands.
 @findex back-to-indentation
   To move over the indentation on a line, do @kbd{M-m}
 (@code{back-to-indentation}).  This command, given anywhere on a line,
-positions point at the first nonblank character on the line.
+positions point at the first nonblank character on the line, if any,
+or else at the end of the line.
 
   To insert an indented line before the current line, do @kbd{C-a C-o
 @key{TAB}}.  To make an indented line after the current line, use
@@ -134,13 +135,13 @@ appears after the newline that is deleted.  @xref{Fill Prefix}.
 @findex indent-region
 @findex indent-rigidly
   There are also commands for changing the indentation of several lines
-at once.  @kbd{C-M-\} (@code{indent-region}) applies to all the lines
-that begin in the region; it indents each line in the ``usual'' way, as
-if you had typed @key{TAB} at the beginning of the line.  A numeric
-argument specifies the column to indent to, and each line is shifted
-left or right so that its first nonblank character appears in that
-column.  @kbd{C-x @key{TAB}} (@code{indent-rigidly}) moves all of the
-lines in the region right by its argument (left, for negative
+at once.  They apply to all the lines that begin in the region.
+@kbd{C-M-\} (@code{indent-region}) indents each line in the ``usual''
+way, as if you had typed @key{TAB} at the beginning of the line.  A
+numeric argument specifies the column to indent to, and each line is
+shifted left or right so that its first nonblank character appears in
+that column.  @kbd{C-x @key{TAB}} (@code{indent-rigidly}) moves all of
+the lines in the region right by its argument (left, for negative
 arguments).  The whole group of lines moves rigidly sideways, which is
 how the command gets its name.@refill
 
@@ -152,12 +153,10 @@ such as -1000.
 @findex indent-relative
   @kbd{M-x indent-relative} indents at point based on the previous line
 (actually, the last nonempty line).  It inserts whitespace at point, moving
-point, until it is underneath an indentation point in the previous line.
+point, until it is underneath the next indentation point in the previous line.
 An indentation point is the end of a sequence of whitespace or the end of
 the line.  If point is farther right than any indentation point in the
-previous line, the whitespace before point is deleted and the first
-indentation point then applicable is used.  If no indentation point is
-applicable even then, @code{indent-relative} runs @code{tab-to-tab-stop}
+previous line, @code{indent-relative} runs @code{tab-to-tab-stop}
 @ifinfo
 (@pxref{Tab Stops}),
 @end ifinfo
@@ -166,9 +165,6 @@ applicable even then, @code{indent-relative} runs @code{tab-to-tab-stop}
 @end iftex
 unless it is called with a numeric argument, in which case it does
 nothing.
-
-  @code{indent-relative} is the definition of @key{TAB} in Indented Text
-mode.  @xref{Text}.
 
   @xref{Format Indentation}, for another way of specifying the
 indentation for part of your text.
@@ -181,10 +177,9 @@ indentation for part of your text.
 @cindex tables, indentation for
 @kindex M-i
 @findex tab-to-tab-stop
-  For typing in tables, you can use Text mode's definition of @key{TAB},
-@code{tab-to-tab-stop}.  This command inserts indentation before point,
-enough to reach the next tab stop column.  If you are not in Text mode,
-this command can be found on the key @kbd{M-i}.
+  For typing in tables, you can use @kbd{M-i} (@code{tab-to-tab-stop}).
+This command inserts indentation before point, enough to reach the
+next tab stop column.
 
 @findex edit-tab-stops
 @findex edit-tab-stops-note-changes
@@ -198,10 +193,11 @@ increasing order.
 edit-tab-stops}, which creates and selects a buffer containing a
 description of the tab stop settings.  You can edit this buffer to
 specify different tab stops, and then type @kbd{C-c C-c} to make those
-new tab stops take effect.  @code{edit-tab-stops} records which buffer
-was current when you invoked it, and stores the tab stops back in that
-buffer; normally all buffers share the same tab stops and changing them
-in one buffer affects all, but if you happen to make
+new tab stops take effect.  The buffer uses Overwrite mode
+(@pxref{Minor Modes}).  @code{edit-tab-stops} records which buffer was
+current when you invoked it, and stores the tab stops back in that
+buffer; normally all buffers share the same tab stops and changing
+them in one buffer affects all, but if you happen to make
 @code{tab-stop-list} local in one buffer then @code{edit-tab-stops} in
 that buffer will edit the local settings.
 
@@ -242,7 +238,7 @@ that your file looks the same regardless of the tab width setting.
 @findex untabify
   There are also commands to convert tabs to spaces or vice versa, always
 preserving the columns of all nonblank text.  @kbd{M-x tabify} scans the
-region for sequences of spaces, and converts sequences of at least three
+region for sequences of spaces, and converts sequences of at least two
 spaces to tabs if that can be done without changing indentation.  @kbd{M-x
 untabify} changes all tabs in the region to appropriate numbers of spaces.
 

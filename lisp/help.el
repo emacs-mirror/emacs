@@ -237,32 +237,35 @@ C-w Display information on absence of warranty for GNU Emacs."
 (defun function-called-at-point ()
   "Return a function around point or else called by the list containing point.
 If that doesn't give a function, return nil."
-  (with-syntax-table emacs-lisp-mode-syntax-table
-    (or (condition-case ()
-	    (save-excursion
-	      (or (not (zerop (skip-syntax-backward "_w")))
-		  (eq (char-syntax (following-char)) ?w)
-		  (eq (char-syntax (following-char)) ?_)
-		  (forward-sexp -1))
-	      (skip-chars-forward "'")
-	      (let ((obj (read (current-buffer))))
-		(and (symbolp obj) (fboundp obj) obj)))
-	  (error nil))
-	(condition-case ()
-	    (save-excursion
-	      (save-restriction
-		(narrow-to-region (max (point-min)
-				       (- (point) 1000)) (point-max))
-		;; Move up to surrounding paren, then after the open.
-		(backward-up-list 1)
-		(forward-char 1)
-		;; If there is space here, this is probably something
-		;; other than a real Lisp function call, so ignore it.
-		(if (looking-at "[ \t]")
-		    (error "Probably not a Lisp function call"))
-		(let ((obj (read (current-buffer))))
-		  (and (symbolp obj) (fboundp obj) obj))))
-	  (error nil)))))
+  (or (with-syntax-table emacs-lisp-mode-syntax-table
+	(or (condition-case ()
+		(save-excursion
+		  (or (not (zerop (skip-syntax-backward "_w")))
+		      (eq (char-syntax (following-char)) ?w)
+		      (eq (char-syntax (following-char)) ?_)
+		      (forward-sexp -1))
+		  (skip-chars-forward "'")
+		  (let ((obj (read (current-buffer))))
+		    (and (symbolp obj) (fboundp obj) obj)))
+	      (error nil))
+	    (condition-case ()
+		(save-excursion
+		  (save-restriction
+		    (narrow-to-region (max (point-min)
+					   (- (point) 1000)) (point-max))
+		    ;; Move up to surrounding paren, then after the open.
+		    (backward-up-list 1)
+		    (forward-char 1)
+		    ;; If there is space here, this is probably something
+		    ;; other than a real Lisp function call, so ignore it.
+		    (if (looking-at "[ \t]")
+			(error "Probably not a Lisp function call"))
+		    (let ((obj (read (current-buffer))))
+		      (and (symbolp obj) (fboundp obj) obj))))
+	      (error nil))))
+      (let* ((str (find-tag-default))
+	     (obj (if str (read str))))
+	(and (symbolp obj) (fboundp obj) obj))))
 
 
 ;;; `User' help functions
@@ -428,7 +431,8 @@ We put that list in a buffer, and display the buffer.
 The optional argument PREFIX, if non-nil, should be a key sequence;
 then we display only bindings that start with that prefix.
 The optional argument BUFFER specifies which buffer's bindings
-to display (default, the current buffer)."
+to display (default, the current buffer).  BUFFER can be a buffer
+or a buffer name."
   (interactive)
   (or buffer (setq buffer (current-buffer)))
   (help-setup-xref (list #'describe-bindings prefix buffer) (interactive-p))

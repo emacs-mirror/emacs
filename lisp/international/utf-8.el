@@ -273,7 +273,7 @@ The value nil means that the tables are not yet loaded.")
       (utf-translate-cjk-load-tables))
   (gethash code-point
 	   (get 'utf-subst-table-for-decode 'translation-hash-table)))
-  
+
 
 (defun utf-lookup-subst-table-for-encode (char)
   (if (and utf-translate-cjk-mode
@@ -282,9 +282,11 @@ The value nil means that the tables are not yet loaded.")
       (utf-translate-cjk-load-tables))
   (gethash char
 	   (get 'utf-subst-table-for-encode 'translation-hash-table)))
-  
+
 (define-minor-mode utf-translate-cjk-mode
-  "Whether the UTF based coding systems should decode/encode CJK characters.
+  "Toggle whether UTF based coding systems de/encode CJK characters.
+If ARG is an integer, enable if ARG is positive and disable if
+zero or negative.  This is a minor mode.
 Enabling this allows the coding systems mule-utf-8,
 mule-utf-16le and mule-utf-16be to encode characters in the charsets
 `korean-ksc5601', `chinese-gb2312', `chinese-big5-1',
@@ -296,9 +298,10 @@ according to the language environment in effect when this option is
 turned on: ksc5601 for Korean, gb2312 for Chinese-GB, big5 for
 Chinese-Big5 and jisx for other environments.
 
-This option is on by default.  If you are not interested in CJK
+This mode is on by default.  If you are not interested in CJK
 characters and want to avoid some overhead on encoding/decoding
-by the above coding systems, you can customize this option to nil."
+by the above coding systems, you can customize the user option
+`utf-translate-cjk-mode' to nil."
   :init-value t
   :version "21.4"
   :type 'boolean
@@ -605,7 +608,7 @@ eight-bit-control and eight-bit-graphic characters.")
   ;; UTF-8 decoder generates an UTF-8 sequence represented by a
   ;; sequence eight-bit-control/graphic chars for an untranslatable
   ;; character and an invalid byte.
-  ;; 
+  ;;
   ;; This CCL parses that sequence (the first byte is already in r1),
   ;; writes out the original bytes of that sequence, and sets r5 to
   ;; -1.
@@ -624,7 +627,7 @@ eight-bit-control and eight-bit-graphic characters.")
      (read-multibyte-character r5 r6)
      (r0 = (r5 != ,(charset-id 'eight-bit-control)))
      (if ((r5 != ,(charset-id 'eight-bit-graphic)) & r0)
-	 ((write r1)			; invalid UTF-8 
+	 ((write r1)			; invalid UTF-8
 	  (r1 = -1)
 	  (end)))
 
@@ -641,7 +644,7 @@ eight-bit-control and eight-bit-graphic characters.")
      (r1 = -1)
      ;; Read the 3rd byte.
      (read-multibyte-character r5 r6)
-     (r0 = (r5 != ,(charset-id 'eight-bit-control)))	       
+     (r0 = (r5 != ,(charset-id 'eight-bit-control)))
      (if ((r5 != ,(charset-id 'eight-bit-graphic)) & r0)
 	 (end))				; invalid UTF-8
      (write r6)
@@ -651,7 +654,7 @@ eight-bit-control and eight-bit-graphic characters.")
 	  (end)))
      ;; Read the 4th byte.
      (read-multibyte-character r5 r6)
-     (r0 = (r5 != ,(charset-id 'eight-bit-control)))	       
+     (r0 = (r5 != ,(charset-id 'eight-bit-control)))
      (if ((r5 != ,(charset-id 'eight-bit-graphic)) & r0)
 	 (end))			; invalid UTF-8
      ;; 4-byte sequence for an untranslated character.
@@ -867,7 +870,9 @@ Also compose particular scripts if `utf-8-compose-scripts' is non-nil."
       ;; version of the string in the loop, since it's always loaded as
       ;; unibyte from a byte-compiled file.
       (let ((range (string-as-multibyte "^\xc0-\xc3\xe1-\xf7"))
+	    (buffer-multibyte enable-multibyte-characters)
 	    hash-table ch)
+	(set-buffer-multibyte t)
 	(when utf-translate-cjk-mode
 	  (if (not utf-translate-cjk-lang-env)
 	      ;; Check these characters:
@@ -890,7 +895,9 @@ Also compose particular scripts if `utf-8-compose-scripts' is non-nil."
 		(progn
 		  (insert ch)
 		  (delete-char 1))
-	      (forward-char 1)))))
+	      (forward-char 1))))
+	(or buffer-multibyte
+	    (set-buffer-multibyte nil)))
 
       (when (and utf-8-compose-scripts (> length 1))
 	;; These currently have definitions which cover the relevant

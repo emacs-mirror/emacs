@@ -198,7 +198,7 @@ If N is bigger than the length of LIST, return LIST."
     list))
 
 (defun butlast (list &optional n)
-  "Returns a copy of LIST with the last N elements removed."
+  "Return a copy of LIST with the last N elements removed."
   (if (and n (<= n 0)) list
     (nbutlast (copy-sequence list) n)))
 
@@ -566,7 +566,7 @@ The order of bindings in a keymap matters when it is used as a menu."
 (defmacro kbd (keys)
   "Convert KEYS to the internal Emacs key representation.
 KEYS should be a string constant in the format used for
-saving keyboard macros (see `insert-kbd-macro')."
+saving keyboard macros (see `edmacro-mode')."
   (read-kbd-macro keys))
 
 (put 'keyboard-translate-table 'char-table-extra-slots 0)
@@ -641,10 +641,14 @@ The normal global definition of the character C-x indirects to this keymap.")
 	   (get (car obj) 'event-symbol-elements))))
 
 (defun event-modifiers (event)
-  "Returns a list of symbols representing the modifier keys in event EVENT.
+  "Return a list of symbols representing the modifier keys in event EVENT.
 The elements of the list may include `meta', `control',
 `shift', `hyper', `super', `alt', `click', `double', `triple', `drag',
-and `down'."
+and `down'.
+EVENT may be an event or an event type.  If EVENT is a symbol
+that has never been used in an event that has been read as input
+in the current Emacs session, then this function can return nil,
+even when EVENT actually has modifiers."
   (let ((type event))
     (if (listp type)
 	(setq type (car type)))
@@ -670,8 +674,11 @@ and `down'."
 	list))))
 
 (defun event-basic-type (event)
-  "Returns the basic type of the given event (all modifiers removed).
-The value is a printing character (not upper case) or a symbol."
+  "Return the basic type of the given event (all modifiers removed).
+The value is a printing character (not upper case) or a symbol.
+EVENT may be an event or an event type.  If EVENT is a symbol
+that has never been used in an event that has been read as input
+in the current Emacs session, then this function may return nil."
   (if (consp event)
       (setq event (car event)))
   (if (symbolp event)
@@ -1189,7 +1196,7 @@ Optional args SENTINEL and FILTER specify the sentinel and filter
 
 (make-obsolete 'process-kill-without-query
                "use `process-query-on-exit-flag' or `set-process-query-on-exit-flag'."
-               "21.5")
+               "21.4")
 (defun process-kill-without-query (process &optional flag)
   "Say no query needed if PROCESS is running when Emacs is exited.
 Optional second argument if non-nil says to require a query.
@@ -1894,7 +1901,10 @@ See also `with-temp-file' and `with-output-to-string'."
 	 (kill-buffer nil)))))
 
 (defmacro with-local-quit (&rest body)
-  "Execute BODY with `inhibit-quit' temporarily bound to nil."
+  "Execute BODY, allowing quits to terminate BODY but not escape further.
+When a quit terminates BODY, `with-local-quit' requests another quit when
+it finishes.  That quit will be processed in turn, the next time quitting
+is again allowed."
   (declare (debug t) (indent 0))
   `(condition-case nil
        (let ((inhibit-quit nil))
@@ -1958,6 +1968,27 @@ Uses the `derived-mode-parent' property of the symbol to trace backwards."
     (while (and (not (memq parent modes))
 		(setq parent (get parent 'derived-mode-parent))))
     parent))
+
+(defun find-tag-default ()
+  "Determine default tag to search for, based on text at point.
+If there is no plausible default, return nil."
+  (save-excursion
+    (while (looking-at "\\sw\\|\\s_")
+      (forward-char 1))
+    (if (or (re-search-backward "\\sw\\|\\s_"
+				(save-excursion (beginning-of-line) (point))
+				t)
+	    (re-search-forward "\\(\\sw\\|\\s_\\)+"
+			       (save-excursion (end-of-line) (point))
+			       t))
+	(progn (goto-char (match-end 0))
+	       (buffer-substring-no-properties
+                (point)
+                (progn (forward-sexp -1)
+                       (while (looking-at "\\s'")
+                         (forward-char 1))
+                       (point))))
+      nil)))
 
 (defmacro with-syntax-table (table &rest body)
   "Evaluate BODY with syntax table of current buffer set to TABLE.
@@ -2294,13 +2325,13 @@ which in most cases is shared with all other buffers in the same major mode."
 
 (defun global-unset-key (key)
   "Remove global binding of KEY.
-KEY is a string representing a sequence of keystrokes."
+KEY is a string or vector representing a sequence of keystrokes."
   (interactive "kUnset key globally: ")
   (global-set-key key nil))
 
 (defun local-unset-key (key)
   "Remove local binding of KEY.
-KEY is a string representing a sequence of keystrokes."
+KEY is a string or vector representing a sequence of keystrokes."
   (interactive "kUnset key locally: ")
   (if (current-local-map)
       (local-set-key key nil))

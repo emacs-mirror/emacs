@@ -772,26 +772,6 @@ Assumes the tags table is the current buffer."
 	(all-completions string (tags-completion-table) predicate)
       (try-completion string (tags-completion-table) predicate))))
 
-;; Return a default tag to search for, based on the text at point.
-(defun find-tag-default ()
-  (save-excursion
-    (while (looking-at "\\sw\\|\\s_")
-      (forward-char 1))
-    (if (or (re-search-backward "\\sw\\|\\s_"
-				(save-excursion (beginning-of-line) (point))
-				t)
-	    (re-search-forward "\\(\\sw\\|\\s_\\)+"
-			       (save-excursion (end-of-line) (point))
-			       t))
-	(progn (goto-char (match-end 0))
-	       (buffer-substring-no-properties
-                (point)
-                (progn (forward-sexp -1)
-                       (while (looking-at "\\s'")
-                         (forward-char 1))
-                       (point))))
-      nil)))
-
 ;; Read a tag name from the minibuffer with defaulting and completion.
 (defun find-tag-tag (string)
   (let* ((completion-ignore-case (if (memq tags-case-fold-search '(t nil))
@@ -1453,53 +1433,58 @@ where they were found."
     (tags-with-face 'highlight (princ buffer-file-name))
     (princ "':\n\n"))
   (goto-char (point-min))
-  (while (re-search-forward string nil t)
-    (beginning-of-line)
+  (let ((point-max (/ (float (point-max)) 100.0)))
+    (while (re-search-forward string nil t)
+      (message "Making tags apropos buffer for `%s'...%d%%"
+	       string
+	       (/ (point) point-max))
+      (beginning-of-line)
 
-    (let* (;; Get the local value in the tags table
-	   ;; buffer before switching buffers.
-	   (goto-func goto-tag-location-function)
-	   (tag-info (save-excursion (funcall snarf-tag-function)))
-	   (tag (if (eq t (car tag-info)) nil (car tag-info)))
-	   (file-path (save-excursion (if tag (file-of-tag)
-					(save-excursion (next-line 1)
-							(file-of-tag)))))
-	   (file-label (if tag (file-of-tag t)
-			 (save-excursion (next-line 1)
-					 (file-of-tag t))))
-	   (pt (with-current-buffer standard-output (point))))
-      (if tag
-	  (progn
-	    (princ (format "[%s]: " file-label))
-	    (princ tag)
-	    (when (= (aref tag 0) ?\() (princ " ...)"))
-	    (with-current-buffer standard-output
-	      (make-text-button pt (point)
-				'tag-info tag-info
-				'file-path file-path
-				'goto-func goto-func
-				'action (lambda (button)
-					  (let ((tag-info (button-get button 'tag-info))
-						(goto-func (button-get button 'goto-func)))
-					    (tag-find-file-of-tag (button-get button 'file-path))
-					    (widen)
-					    (funcall goto-func tag-info)))
-				'face 'tags-tag-face
-				'type 'button)))
-	(princ (format "- %s" file-label))
-	(with-current-buffer standard-output
-	  (make-text-button pt (point)
-			    'file-path file-path
-			    'action (lambda (button)
-				      (tag-find-file-of-tag (button-get button 'file-path))
-				      ;; Get the local value in the tags table
-				      ;; buffer before switching buffers.
-				      (goto-char (point-min)))
-			    'face 'tags-tag-face
-			    'type 'button))
-	))
-    (terpri)
-    (forward-line 1))
+      (let* ( ;; Get the local value in the tags table
+	     ;; buffer before switching buffers.
+	     (goto-func goto-tag-location-function)
+	     (tag-info (save-excursion (funcall snarf-tag-function)))
+	     (tag (if (eq t (car tag-info)) nil (car tag-info)))
+	     (file-path (save-excursion (if tag (file-of-tag)
+					  (save-excursion (next-line 1)
+							  (file-of-tag)))))
+	     (file-label (if tag (file-of-tag t)
+			   (save-excursion (next-line 1)
+					   (file-of-tag t))))
+	     (pt (with-current-buffer standard-output (point))))
+	(if tag
+	    (progn
+	      (princ (format "[%s]: " file-label))
+	      (princ tag)
+	      (when (= (aref tag 0) ?\() (princ " ...)"))
+	      (with-current-buffer standard-output
+		(make-text-button pt (point)
+				  'tag-info tag-info
+				  'file-path file-path
+				  'goto-func goto-func
+				  'action (lambda (button)
+					    (let ((tag-info (button-get button 'tag-info))
+						  (goto-func (button-get button 'goto-func)))
+					      (tag-find-file-of-tag (button-get button 'file-path))
+					      (widen)
+					      (funcall goto-func tag-info)))
+				  'face 'tags-tag-face
+				  'type 'button)))
+	  (princ (format "- %s" file-label))
+	  (with-current-buffer standard-output
+	    (make-text-button pt (point)
+			      'file-path file-path
+			      'action (lambda (button)
+					(tag-find-file-of-tag (button-get button 'file-path))
+					;; Get the local value in the tags table
+					;; buffer before switching buffers.
+					(goto-char (point-min)))
+			      'face 'tags-tag-face
+			      'type 'button))
+	  ))
+      (terpri)
+      (forward-line 1))
+    (message nil))
   (when tags-apropos-verbose (princ "\n")))
 
 (defun etags-tags-table-files ()

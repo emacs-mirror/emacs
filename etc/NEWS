@@ -22,7 +22,11 @@ the supported image types and their associated dynamic libraries by
 setting the variable `image-library-alist'.
 
 ---
-** A Bulgarian translation of the Emacs Tutorial is available.
+** New translations of the Emacs Tutorial are available in the following
+   languages: Brasilian, Bulgarian, Chinese (both with simplified and
+   traditional characters), French, and Italian.  Type `C-u C-h t' to
+   choose one of them in case your language setup doesn't automatically
+   select the right one.
 
 ** You can build Emacs with Gtk+ widgets by specifying `--with-x-toolkit=gtk'
 when you run configure.  This requires Gtk+ 2.0 or newer.  This port
@@ -88,12 +92,17 @@ See the files mac/README and mac/INSTALL for build instructions.
 ** A French translation of the `Emacs Survival Guide' is available.
 
 ---
-** A French translation of the Emacs Tutorial is available.
 ** Building with -DENABLE_CHECKING does not automatically build with union
 types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 
 * Changes in Emacs 21.4
+
++++
+** `apply-macro-to-region-lines' now operates on all lines that begin
+in the region, rather than on all complete lines in the region.
+
+** global-whitespace-mode is a new alias for whitespace-global-mode.
 
 +++
 ** There are now two new regular expression operators, \_< and \_>,
@@ -188,6 +197,11 @@ the end of the buffer in that window.  This allows to tail a file:
 just put point at the end of the buffer and it stays there.  This
 rule applies to file buffers.  For non-file buffers, the behavior may
 be mode dependent.
+
+If you are sure that the file will only change by growing at the end,
+then you can tail the file more efficiently by using the new minor
+mode Auto Revert Tail mode.  The function `auto-revert-tail-mode'
+toggles this mode.
 
 ** Auto Revert mode is now more careful to avoid excessive reverts and
 other potential problems when deciding which non-file buffers to
@@ -514,6 +528,13 @@ mode toggling function instead.
 *** A numeric prefix argument of `info' selects an Info buffer
 with the number appended to the *info* buffer name.
 
+*** Regexp isearch (C-M-s and C-M-r) can search through multiple nodes.
+Failed isearch wraps to the top/final node.
+
+*** New search commands: `Info-search-case-sensitively' (bound to S),
+`Info-search-backward', and `Info-search-next' which repeats the last
+search without prompting for a new search string.
+
 *** New command `Info-history' (bound to L) displays a menu of visited nodes.
 
 *** New command `Info-toc' (bound to T) creates a node with table of contents
@@ -526,11 +547,6 @@ possible matches.
 *** New command `Info-copy-current-node-name' (bound to w) copies
 the current Info node name into the kill ring.  With a zero prefix
 arg, puts the node name inside the `info' function call.
-
-*** New command `Info-search-case-sensitively' (bound to S).
-
-*** New command `Info-search-next' (unbound) repeats the last search
-without prompting for a new search string.
 
 *** New face `info-xref-visited' distinguishes visited nodes from unvisited
 and a new option `Info-fontify-visited-nodes' to control this.
@@ -664,7 +680,7 @@ You can now put the init files .emacs and .emacs_SHELL under
 
 ** MH-E changes.
 
-Upgraded to MH-E version 7.4.4. There have been major changes since
+Upgraded to MH-E version 7.82. There have been major changes since
 version 5.0.2; see MH-E-NEWS for details.
 
 +++
@@ -1108,9 +1124,9 @@ Another method to grab a character is to enter the minibuffer by `M-e'
 and to type `C-f' at the end of the search string in the minibuffer.
 
 +++
-** M-% and C-M-% typed in isearch mode invoke `query-replace' and
-`query-replace-regexp' with the current search string inserted
-in the minibuffer as initial input for the string to replace.
+** M-% typed in isearch mode invokes `query-replace' or
+`query-replace-regexp' (depending on search mode) with the current
+search string used as the string to replace.
 
 +++
 ** Yanking text now discards certain text properties that can
@@ -1857,7 +1873,9 @@ This option allows you to specify environment variables for inferior
 compilation processes without affecting the environment that all
 subprocesses inherit.
 
-*** `next-error' now temporarily highlights the corresponding source line.
+*** New options `next-error-highlight' and `next-error-highlight-no-select'
+specify the method of highlighting of the corresponding source line
+in new face `next-error'.
 
 ** Grep has been decoupled from compilation mode setup.
 
@@ -1869,7 +1887,12 @@ subprocesses inherit.
 `grep-scroll-output' can be used to override the corresponding
 compilation mode settings for grep commands.
 
-*** Source line is temporarily highlighted when going to next match.
+*** New option `grep-highlight-matches' highlightes matches in *grep*
+buffer.  It uses a special feature of some grep programs which accept
+--color option to output markers around matches.  When going to the next
+match with `next-error' the exact match is highlighted in the source
+buffer.  Otherwise, if `grep-highlight-matches' is nil, the whole
+source line is highlighted.
 
 *** New key bindings in grep output window:
 SPC and DEL scrolls window up and down.  C-n and C-p moves to next and
@@ -1972,8 +1995,11 @@ source files.  See the Flymake's Info manual for more details.
 of hierarchical data as an outline.  For example, the tree-widget is
 well suited to display a hierarchy of directories and files.
 
-** The wdired.el package allows you to use normal editing commands on dired
+** The wdired.el package allows you to use normal editing commands on Dired
 buffers to change filenames, permissions, etc...
+
+** The thumbs.el package allows you to preview image files as thumbnails
+and can be invoked from a Dired buffer.
 
 ** The new python.el package is used to edit Python and Jython programs.
 
@@ -2192,6 +2218,15 @@ timing measurements of code (including the garbage collection component).
 configuration files.
 
 * Lisp Changes in Emacs 21.4
+
++++
+** Both the variable and the function `disabled-command-hook' have
+been renamed to `disabled-command-function'.  The variable
+`disabled-command-hook' has been kept as an obsolete alias.
+
+** Function `compute-motion' now calculates the usable window
+width if the WIDTH argument is nil.  If the TOPOS argument is nil,
+the usable window height and width is used.
 
 +++
 ** `visited-file-modtime' and `calendar-time-from-absolute' now return
@@ -3265,7 +3300,13 @@ and modify elements on this property list.
 The new low-level functions process-plist and set-process-plist are
 used to access and replace the entire property list of a process.
 
-???
+*** Function accept-process-output now has an optional fourth arg
+`just-this-one'.  If non-nil, only output from the specified process
+is handled, suspending output from other processes.  If value is an
+integer, also inhibit running timers.  This feature is generally not
+recommended, but may be necessary for specific applications, such as
+speech synthesis.
+
 *** Adaptive read buffering of subprocess output.
 
 On some systems, when emacs reads the output from a subprocess, the

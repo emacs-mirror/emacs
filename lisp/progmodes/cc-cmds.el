@@ -479,7 +479,11 @@ This function does various newline cleanups based on the value of
 	  ;; end up before it.
 	  (setq delete-temp-newline
 		(cons (save-excursion
-			(c-backward-syntactic-ws)
+			(end-of-line 0)
+			(if (eq (char-before) ?\\)
+			    ;; Ignore a line continuation.
+			    (backward-char))
+			(skip-chars-backward " \t")
 			(copy-marker (point) t))
 		      (point-marker))))
 	(unwind-protect
@@ -1971,8 +1975,7 @@ If `c-tab-always-indent' is t, always just indent the current line.
 If nil, indent the current line only if point is at the left margin or
 in the line's indentation; otherwise insert some whitespace[*].  If
 other than nil or t, then some whitespace[*] is inserted only within
-literals (comments and strings) and inside preprocessor directives,
-but the line is always reindented.
+literals (comments and strings), but the line is always reindented.
 
 If `c-syntactic-indentation' is t, indentation is done according to
 the syntactic context.  A numeric argument, regardless of its value,

@@ -281,6 +281,8 @@ x_window_to_frame (dpyinfo, wdesc)
   Lisp_Object tail, frame;
   struct frame *f;
 
+  if (wdesc == None) return 0;
+
   for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
     {
       frame = XCAR (tail);
@@ -329,6 +331,8 @@ x_any_window_to_frame (dpyinfo, wdesc)
   Lisp_Object tail, frame;
   struct frame *f, *found;
   struct x_output *x;
+
+  if (wdesc == None) return NULL;
 
   found = NULL;
   for (tail = Vframe_list; GC_CONSP (tail) && !found; tail = XCDR (tail))
@@ -384,6 +388,8 @@ x_non_menubar_window_to_frame (dpyinfo, wdesc)
   struct frame *f;
   struct x_output *x;
 
+  if (wdesc == None) return 0;
+
   for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
     {
       frame = XCAR (tail);
@@ -430,6 +436,8 @@ x_menubar_window_to_frame (dpyinfo, wdesc)
   struct frame *f;
   struct x_output *x;
 
+  if (wdesc == None) return 0;
+
   for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
     {
       frame = XCAR (tail);
@@ -474,6 +482,8 @@ x_top_window_to_frame (dpyinfo, wdesc)
   Lisp_Object tail, frame;
   struct frame *f;
   struct x_output *x;
+
+  if (wdesc == None) return 0;
 
   for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
     {
@@ -1550,6 +1560,90 @@ x_encode_text (string, coding_system, selectionp, text_bytes, stringp)
 }
 
 
+/* Set the WM name to NAME for frame F. Also set the icon name.
+   If the frame already has an icon name, use that, otherwise set the
+   icon name to NAME.  */
+
+static void
+x_set_name_internal (f, name)
+     FRAME_PTR f;
+     Lisp_Object name;
+{
+  if (FRAME_X_WINDOW (f))
+    {
+      BLOCK_INPUT;
+#ifdef HAVE_X11R4
+      {
+	XTextProperty text, icon;
+	int bytes, stringp;
+        int do_free_icon_value = 0, do_free_text_value = 0;
+	Lisp_Object coding_system;
+
+	coding_system = Qcompound_text;
+	/* Note: Encoding strategy
+
+	   We encode NAME by compound-text and use "COMPOUND-TEXT" in
+	   text.encoding.  But, there are non-internationalized window
+	   managers which don't support that encoding.  So, if NAME
+	   contains only ASCII and 8859-1 characters, encode it by
+	   iso-latin-1, and use "STRING" in text.encoding hoping that
+	   such window managers at least analyze this format correctly,
+	   i.e. treat 8-bit bytes as 8859-1 characters.
+
+	   We may also be able to use "UTF8_STRING" in text.encoding
+	   in the future which can encode all Unicode characters.
+	   But, for the moment, there's no way to know that the
+	   current window manager supports it or not.  */
+	text.value = x_encode_text (name, coding_system, 0, &bytes, &stringp);
+	text.encoding = (stringp ? XA_STRING
+			 : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
+	text.format = 8;
+	text.nitems = bytes;
+
+        /* Check early, because ENCODE_UTF_8 below may GC and name may be
+           relocated.  */
+        do_free_text_value = text.value != SDATA (name);
+
+	if (NILP (f->icon_name))
+	  {
+	    icon = text;
+	  }
+	else
+	  {
+	    /* See the above comment "Note: Encoding strategy".  */
+	    icon.value = x_encode_text (f->icon_name, coding_system, 0,
+					&bytes, &stringp);
+	    icon.encoding = (stringp ? XA_STRING
+			     : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
+	    icon.format = 8;
+	    icon.nitems = bytes;
+            do_free_icon_value = icon.value != SDATA (f->icon_name);
+	  }
+
+#ifdef USE_GTK
+        gtk_window_set_title (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+                              SDATA (ENCODE_UTF_8 (name)));
+#else /* not USE_GTK */
+	XSetWMName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &text);
+#endif /* not USE_GTK */
+
+	XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &icon);
+
+	if (do_free_icon_value)
+	  xfree (icon.value);
+	if (do_free_text_value)
+	  xfree (text.value);
+      }
+#else /* not HAVE_X11R4 */
+      XSetIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		    SDATA (name));
+      XStoreName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		  SDATA (name));
+#endif /* not HAVE_X11R4 */
+      UNBLOCK_INPUT;
+    }
+}
+
 /* Change the name of frame F to NAME.  If NAME is nil, set F's name to
        x_id_name.
 
@@ -1605,73 +1699,7 @@ x_set_name (f, name, explicit)
   if (! NILP (f->title))
     name = f->title;
 
-  if (FRAME_X_WINDOW (f))
-    {
-      BLOCK_INPUT;
-#ifdef HAVE_X11R4
-      {
-	XTextProperty text, icon;
-	int bytes, stringp;
-	Lisp_Object coding_system;
-
-	/* Note: Encoding strategy
-
-	   We encode NAME by compound-text and use "COMPOUND-TEXT" in
-	   text.encoding.  But, there are non-internationalized window
-	   managers which don't support that encoding.  So, if NAME
-	   contains only ASCII and 8859-1 characters, encode it by
-	   iso-latin-1, and use "STRING" in text.encoding hoping that
-	   such window managers at least analyze this format correctly,
-	   i.e. treat 8-bit bytes as 8859-1 characters.
-
-	   We may also be able to use "UTF8_STRING" in text.encoding
-	   in the future which can encode all Unicode characters.
-	   But, for the moment, there's no way to know that the
-	   current window manager supports it or not.  */
-	coding_system = Qcompound_text;
-	text.value = x_encode_text (name, coding_system, 0, &bytes, &stringp);
-	text.encoding = (stringp ? XA_STRING
-			 : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
-	text.format = 8;
-	text.nitems = bytes;
-
-	if (NILP (f->icon_name))
-	  {
-	    icon = text;
-	  }
-	else
-	  {
-	    /* See the above comment "Note: Encoding strategy".  */
-	    icon.value = x_encode_text (f->icon_name, coding_system, 0,
-					&bytes, &stringp);
-	    icon.encoding = (stringp ? XA_STRING
-			     : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
-	    icon.format = 8;
-	    icon.nitems = bytes;
-	  }
-#ifdef USE_GTK
-        gtk_window_set_title (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-                              SDATA (name));
-#else /* not USE_GTK */
-	XSetWMName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &text);
-#endif /* not USE_GTK */
-
-	XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &icon);
-
-	if (!NILP (f->icon_name)
-	    && icon.value != (unsigned char *) SDATA (f->icon_name))
-	  xfree (icon.value);
-	if (text.value != (unsigned char *) SDATA (name))
-	  xfree (text.value);
-      }
-#else /* not HAVE_X11R4 */
-      XSetIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    SDATA (name));
-      XStoreName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		  SDATA (name));
-#endif /* not HAVE_X11R4 */
-      UNBLOCK_INPUT;
-    }
+  x_set_name_internal (f, name);
 }
 
 /* This function should be called when the user's lisp code has
@@ -1725,62 +1753,7 @@ x_set_title (f, name, old_name)
   else
     CHECK_STRING (name);
 
-  if (FRAME_X_WINDOW (f))
-    {
-      BLOCK_INPUT;
-#ifdef HAVE_X11R4
-      {
-	XTextProperty text, icon;
-	int bytes, stringp;
-	Lisp_Object coding_system;
-
-	coding_system = Qcompound_text;
-	/* See the comment "Note: Encoding strategy" in x_set_name.  */
-	text.value = x_encode_text (name, coding_system, 0, &bytes, &stringp);
-	text.encoding = (stringp ? XA_STRING
-			 : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
-	text.format = 8;
-	text.nitems = bytes;
-
-	if (NILP (f->icon_name))
-	  {
-	    icon = text;
-	  }
-	else
-	  {
-	    /* See the comment "Note: Encoding strategy" in x_set_name.  */
-	    icon.value = x_encode_text (f->icon_name, coding_system, 0,
-					&bytes, &stringp);
-	    icon.encoding = (stringp ? XA_STRING
-			     : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
-	    icon.format = 8;
-	    icon.nitems = bytes;
-	  }
-
-#ifdef USE_GTK
-        gtk_window_set_title (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-                              SDATA (name));
-#else /* not USE_GTK */
-	XSetWMName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &text);
-#endif /* not USE_GTK */
-
-	XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-                        &icon);
-
-	if (!NILP (f->icon_name)
-	    && icon.value != (unsigned char *) SDATA (f->icon_name))
-	  xfree (icon.value);
-	if (text.value != (unsigned char *) SDATA (name))
-	  xfree (text.value);
-      }
-#else /* not HAVE_X11R4 */
-      XSetIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    SDATA (name));
-      XStoreName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		  SDATA (name));
-#endif /* not HAVE_X11R4 */
-      UNBLOCK_INPUT;
-    }
+  x_set_name_internal (f, name);
 }
 
 void
@@ -2633,6 +2606,28 @@ x_window (f)
 #endif /* not USE_GTK */
 #endif /* not USE_X_TOOLKIT */
 
+/* Verify that the icon position args for this window are valid.  */
+
+static void
+x_icon_verify (f, parms)
+     struct frame *f;
+     Lisp_Object parms;
+{
+  Lisp_Object icon_x, icon_y;
+
+  /* Set the position of the icon.  Note that twm groups all
+     icons in an icon window.  */
+  icon_x = x_frame_get_and_record_arg (f, parms, Qicon_left, 0, 0, RES_TYPE_NUMBER);
+  icon_y = x_frame_get_and_record_arg (f, parms, Qicon_top, 0, 0, RES_TYPE_NUMBER);
+  if (!EQ (icon_x, Qunbound) && !EQ (icon_y, Qunbound))
+    {
+      CHECK_NUMBER (icon_x);
+      CHECK_NUMBER (icon_y);
+    }
+  else if (!EQ (icon_x, Qunbound) || !EQ (icon_y, Qunbound))
+    error ("Both left and top icon corners of icon must be specified");
+}
+
 /* Handle the icon stuff for this window.  Perhaps later we might
    want an x_set_icon_position which can be called interactively as
    well.  */
@@ -3116,6 +3111,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   tem = x_get_arg (dpyinfo, parms, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
   f->no_split = minibuffer_only || EQ (tem, Qt);
+
+  x_icon_verify (f, parms);
 
   /* Create the X widget or window.  */
 #ifdef USE_X_TOOLKIT

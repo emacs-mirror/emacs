@@ -820,6 +820,9 @@ If timer is not set, then set it to scan the files in
       (setq whitespace-rescan-timer nil))))
 
 ;;;###autoload
+(defalias 'global-whitespace-mode 'whitespace-global-mode)
+
+;;;###autoload
 (define-minor-mode whitespace-global-mode
   "Toggle using Whitespace mode in new buffers.
 With ARG, turn the mode on iff ARG is positive.

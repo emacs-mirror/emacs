@@ -1,3 +1,317 @@
+2004-09-03  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (_widget_value): Added lname and lkey.
+	(digest_single_submenu): Set lname and lkey in widget_value
+	instead of name and key.
+	(update_submenu_strings): New function.
+	(set_frame_menubar): Remove call to inhibit_garbage_collection,
+	call update_submenu_strings.
+
+	* w32menu.c (globals_of_w32menu): Check for Unicode API.
+	(digest_single_submenu, w32_menu_show): Encode menu strings as
+	UTF-8 if Unicode API is available.
+	(utf8to16): New function.
+	(add_menu_item): Use it when calling Unicode API.
+	
+2004-09-03  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (set_cursor_from_row): Look for non-nil `cursor' property
+	in overlay or text-property strings; set cursor on corresponding
+	glyph rather than at end of the string.
+
+2004-09-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (x_real_positions): Save the current window port and
+	set a new one before obtaining the global coordinate.  Use
+	FRAME_MAC_WINDOW.
+	(x_set_name, x_set_title): Encode title to UTF8.  Use
+	SetWindowTitleWithCFString.
+	(Fx_server_version): Get correct OS version.
+
+	* macmenu.c (add_menu_item): Remove unused variable `i'.  Don't
+	let separator items destroy refence constants of other menu items.
+
+	* macterm.c (x_update_end): Move SetPortWindowPort to inside
+	BLOCK_INPUT.
+	(x_set_offset): Use FRAME_MAC_WINDOW.
+
+	* xdisp.c (note_mouse_highlight): Set the mouse pointer shape to
+	nontext_cursor if it is on a scroll bar.
+
+	* s/darwin.h (LIBS_CARBON): New define to specify libraries for
+	Carbon support.
+	(LD_SWITCH_SYSTEM_TEMACS): Don't link with unused libstdc++.  Use
+	LIBS_CARBON.
+
+2004-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (x_set_name_internal): New function.  Check if we shall call
+	xfree before ENCODE_UTF_8.
+	(x_set_name, x_set_title): Call x_set_name_internal.
+
+2004-08-31  NAKAMURA Toshikazu  <nr-tkz@nifty.com>  (tiny change)
+
+	* w32fns.c (w32_load_font): If a BDF font is already loaded, do not
+	reload it.
+
+2004-08-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* macmenu.c (_widget_value): Added lname and lkey.
+	(single_submenu): Set lname and lkey in widget_value
+	instead of name and key.
+	(update_submenu_strings): New function.
+	(set_frame_menubar): Remove call to inhibit_garbage_collection,
+	call update_submenu_strings.
+
+	* xmenu.c (digest_single_submenu): Set lname and lkey in widget_value
+	instead of name and key.
+	(update_submenu_strings): New function.
+	(set_frame_menubar): Remove call to inhibit_garbage_collection,
+	call update_submenu_strings.
+
+	* gtkutil.h (_widget_value): Added lname and lkey.
+
+2004-08-30  Steven Tamm  <steventamm@mac.com>
+
+	* macmenu.c (mac_menu_show): Remove shadowing of menu variable
+	by using different names for inner loop variables.
+
+2004-08-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (set_frame_menubar): Reintroduce inhibit_garbage_collection
+	from 1.233 so that strings from ENCODE_UTF_8 isn't GC:ed before used.
+
+	* gtkutil.c (xg_create_frame_widgets): Compensate for tool bar when
+	tool bar items is 0.
+
+2004-08-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macmenu.c (ENCODE_MENU_STRING): Added to handle multibyte
+	strings in menu items.
+	(single_submenu): Use ENCODE_MENU_STRING
+	(mac_menu_show): Use ENCODE_MENU_STRING.  Reset grabbed because
+	button release isn't passed to event loop
+	(add_menu_item): Use SetMenuItemWithCFString
+
+2004-08-26  Steven Tamm  <steventamm@mac.com>
+
+	* fileio.c (Fread_file_name): Call x_file_dialog on carbon on
+	tool-bar/menu click
+	* macfns.c (Fx_file_dialog): Implemented using NavServices
+
+2004-08-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_catch_errors_unwind): Do not XSync if display has closed.
+
+	* xfns.c (x_window_to_frame, x_any_window_to_frame)
+	(x_non_menubar_window_to_frame, x_menubar_window_to_frame)
+	(x_top_window_to_frame): Return 0 if wdesc is None.
+
+2004-08-22  Richard M. Stallman  <rms@gnu.org>
+
+	* process.c (process_send_signal) [SIGNALS_VIA_CHARACTERS,
+	HAVE_TERMIOS]: If there's no char for this signal, drop through
+	and use system calls.
+
+	* bytecode.c (Fbyte_code) <unwind-protect>: Cannot GC.
+
+2004-08-20  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (wait_reading_process_output): Rename from
+	wait_reading_process_input.  All uses changed.
+	(wait_reading_process_output_1): Rename from
+	wait_reading_process_input_1.  All uses changed.
+
+	* dispnew.c (Fsleep_for): Remove obsolete code.
+
+2004-08-20  Kenichi Handa  <handa@m17n.org>
+
+	* syntax.c (skip_chars): Fix for unibyte case.
+
+2004-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (char_quoted): Mixup byte/char pos.
+	(back_comment): Fixup globals in all cases.
+
+2004-08-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (x_set_name, x_set_title): Encode title to UTF8 before
+	passing it to gtk_window_set_title.
+
+2004-08-19  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (wait_reading_process_input): Clean up.
+	Add wait_for_cell, wait_proc, and just_wait_proc args
+	to avoid overloading `read_kbd' and `do_display' args.
+	Change read_kbd arg to int.  All callers changed.
+
+	* process.c (process_send_signal): Use CDISABLE.
+
+	* sysdep.c (child_setup_tty, init_sys_modes): Use CDISABLE.
+
+2004-08-18  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (Faccept_process_output): Add arg JUST-THIS-ONE;
+	forward to wait_reading_process_input via DO_DISPLAY arg.
+	(wait_reading_process_input): If DO_DISPLAY < 0 for a process
+	object, only process output from that process; also inhibit
+	running timers if DO_DISPLAY==-2.
+
+2004-08-17  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (process_send_signal): Fix last change--use
+	_POSIX_VDISABLE instead of CVDISABLE when available.
+
+2004-08-16  Richard M. Stallman  <rms@gnu.org>
+
+	* sysdep.c (child_setup_tty) [SIGNALS_VIA_CHARACTERS]:
+	Set VQUIT and VINTR chars to the standard ones if they are unset.
+	[AIX]: Don't do that here.  And don't force VINTR to standard
+	when SIGNALS_VIA_CHARACTERS.
+
+	* process.c (process_send_signal)
+	[SIGNALS_VIA_CHARACTERS, HAVE_TERMIOS]:	Clean up.
+	Do nothing if the character is CVDISABLE.
+
+	* xfaces.c (merge_face_ref): Specifying `unspecified' is a no-op.
+
+	* intervals.c (move_if_not_intangible):
+	Force POSITION to be between BEGV and ZV.
+
+2004-08-14  John Paul Wallington  <jpw@gnu.org>
+
+	* buffer.c (Frestore_buffer_modified_p): Doc fix.
+
+	* fileio.c (Fread_file_name): Doc fix.
+
+	* minibuf.c (syms_of_minibuf) <completion-ignore-case>: Doc fix.
+
+2004-08-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keymap.c (Fmake_keymap, Fmap_keymap, Fwhere_is_internal): Doc fixes.
+
+2004-08-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keyboard.c: Declare Qdisabled_command_function instead of
+	Qdisabled_command_hook.
+	(Fcommand_execute): Use Qdisabled_command_function instead of
+	Qdisabled_command_hook.
+	(syms_of_keyboard): Ditto.
+
+2004-08-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keymap.c (Flocal_key_binding, Fglobal_key_binding)
+	(syms_of_keymap) <key-translation-map>: Doc fixes.
+
+2004-08-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (window_list_1): YAILOM.
+
+	* fileio.c (make_temp_name): Handle multibyte prefixes.
+
+2004-08-06  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keyboard.c (syms_of_keyboard) <overriding-terminal-local-map>:
+	Doc fix.
+
+2004-08-03  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_string): Adjust coding->consumed, and
+	etc. with shrinked_bytes.
+
+2004-08-03  Kim F. Storm  <storm@cua.dk>
+
+	* indent.c (compute_motion): Fix check for full width window
+	in non-window case.  Do not count left truncation glyph on
+	window systems.
+
+2004-08-02  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* data.c (Finteractive_form): Doc fix.
+
+2004-08-02  Kim F. Storm  <storm@cua.dk>
+
+	* indent.c (compute_motion): Use actual window width if WIDTH is -1,
+	properly accounting for continuation glyph on non-window systems.
+	(Fcompute_motion): Use actual window width if WIDTH is nil, and
+	actual window width/height if TOPOS is nil, properly accounting for
+	continuation glyphs on non-window systems, and optional header lines.
+	(vmotion): Let compute_motion calculate actual window width.
+
+	* window.c (window_scroll_line_based): Let compute_motion
+	calculate actual window width.
+
+2004-08-02  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (read_process_output): Use whole read buffer.
+	Don't trigger adaptive read buffering on errors.
+
+2004-07-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keymap.c (Fset_keymap_parent, Fdefine_prefix_command): Doc fixes.
+
+	* keyboard.c (syms_of_keyboard) <disable-point-adjustment>:  Doc fix.
+
+	* callint.c (Fcall_interactively): Doc fix.
+
+2004-07-30  Richard M. Stallman  <rms@gnu.org>
+
+	* abbrev.c (Fexpand_abbrev): Undo previous change.
+
+2004-07-30  Kim F. Storm  <storm@cua.dk>
+
+	* editfns.c (Fformat): Allocate extra (dummy) element in info.
+
+2004-07-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* eval.c (Fdefvar, Fdefconst): Doc fixes.
+
+2004-07-27  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (move_it_in_display_line_to): Check BUFFER_POS_REACHED_P after
+	we have ensured that the glyph fits on the current line (or returned
+	MOVE_LINE_CONTINUED otherwise).
+
+2004-07-26  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (move_it_in_display_line_to): If overflow-newline-into-fringe
+	is enabled, return MOVE_LINE_CONTINUED rather than MOVE_POS_MATCH_OR_ZV
+	if target position is at end of display line but char is not a newline.
+
+2004-07-25  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (coordinates_in_window): Return ON_SCROLL_BAR
+	instead of ON_VERTICAL_BORDER, when on scroll bar.
+	(Fcoordinates_in_window_p): Handle ON_SCROLL_BAR--return nil.
+
+	* dispextern.h (enum window_part): Add ON_SCROLL_BAR.
+
+	* window.c (Fcoordinates_in_window_p):
+	Take account of FRAME_INTERNAL_BORDER_WIDTH.
+
+	* alloc.c (check_cons_list): New function (contents commented out).
+
+2004-07-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* xfaces.c (Fcolor_supported_p): Doc fix.
+
+	* frame.c (Fselect_frame, Fset_frame_selected_window)
+	(Fframe_visible_p, Fraise_frame): Doc fixes.
+
+2004-07-24  Richard M. Stallman  <rms@gnu.org>
+
+	* keyboard.h (not_single_kboard_state): Declared.
+
+	* fileio.c (Fwrite_region): Doc fix.
+
+	* window.c (Fwindow_at): Take account of FRAME_INTERNAL_BORDER_WIDTH.
+
+	* abbrev.c (Fexpand_abbrev): Run Qpre_abbrev_expand_hook
+	only when a real abbrev is present.
+
+	* xfns.c (x_icon_verify): New function.
+	(Fx_create_frame): Use it.
+
 2004-07-22  Barry Fishman <barry_fishman@att.net>  (tiny change)
 
 	* s/gnu-linux.h: Use GC_MARK_STACK if __amd64__ is defined.

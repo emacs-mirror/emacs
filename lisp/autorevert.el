@@ -1,6 +1,6 @@
 ;;; autorevert.el --- revert buffers when files on disk change
 
-;; Copyright (C) 1997, 1998, 1999, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2001, 2004 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren <andersl@andersl.com>
 ;; Keywords: convenience
@@ -421,7 +421,8 @@ This is an internal function used by Auto-Revert Mode."
 	   'no-mini t))
 	(if auto-revert-tail-mode
 	    (auto-revert-tail-handler)
-	  (revert-buffer 'ignore-auto 'dont-ask 'preserve-modes))
+	  (let ((buffer-read-only buffer-read-only))
+	    (revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)))
 	(when buffer-file-name
 	  (when eob (goto-char (point-max)))
 	  (dolist (window eoblist)

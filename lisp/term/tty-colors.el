@@ -864,15 +864,10 @@ of gray, thus the name."
     (if (< mag 1) 0 (acos (/ (+ r g b) mag)))))
 
 (defun tty-color-approximate (rgb &optional frame)
-  "Given a list of 3 rgb values in RGB, find the color in `tty-color-alist'
-which is the best approximation in the 3-dimensional RGB space,
-and return its description.
-
-Value is a list of the form \(NAME INDEX R G B\).  Note that the returned
-NAME is not necessarily the same string as the argument COLOR, because
-the latter might need to be approximated if it is not supported directly.
-
-Each value of the RGB triplet should be in the range 0..65535 range.
+  "Find the color in `tty-color-alist' that best approximates RGB.
+Value is a list of the form \(NAME INDEX R G B\).
+The argument RGB should be an rgb value, that is, a list of three
+integers in the 0..65535 range.
 FRAME defaults to the selected frame."
   (let* ((color-list (tty-color-alist frame))
 	 (candidate (car color-list))

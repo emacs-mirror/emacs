@@ -158,8 +158,8 @@ Fundamental Editing Commands
 
 Important Text-Changing Commands
 * Mark::	        The mark: how to delimit a ``region'' of text.
-* Killing::	        Killing text.
-* Yanking::	        Recovering killed text.  Moving text.
+* Killing::	        Killing (cutting) text.
+* Yanking::	        Recovering killed text.  Moving text. (Pasting.)
 * Accumulating Text::   Other ways of copying text.
 * Rectangles::	        Operating on the text inside a rectangle on the screen.
 * Registers::	        Saving a text string or a location in the buffer.
@@ -901,7 +901,7 @@ all GNU Emacs features.  We don't try to describe VMS usage in this
 manual.  @xref{MS-DOS}, for information about using Emacs on MS-DOS.
 @end iftex
 
-@node Distrib, Copying, Top, Top
+@node Distrib, Intro, Top, Top
 @unnumbered Distribution
 
 GNU Emacs is @dfn{free software}; this means that everyone is free to
@@ -955,9 +955,9 @@ company policy is unsympathetic to the idea of donating to charity, you
 might instead suggest ordering a CD-ROM from the Foundation
 occasionally, or subscribing to periodic updates.
 
-@ifnotinfo
-@node Acknowledgments, Copying, Distrib, Top
-@section Acknowledgments
+@iftex
+@node Acknowledgments, Intro, Distrib, Top
+@unnumberedsec Acknowledgments
 
 Contributors to GNU Emacs include Per Abrahamsen, Jay K. Adams, Joe
 Arceneaux, Boaz Ben-Zvi, Jim Blandy, Terrence Brannon, Frank Bresz,
@@ -1000,10 +1000,102 @@ Warsaw, Morten Welinder, Joseph Brian Wells, Rodney Whitby, Ed
 Wilkinson, Mike Williams, Steven A. Wood, Dale R. Worley, Felix
 S. T. Wu, Tom Wurgler, Eli Zaretskii, Jamie Zawinski, Ian T. Zimmermann,
 Reto Zimmermann, and Neal Ziring.
-@end ifnotinfo
+@end iftex
 
-@node Copying, GNU Free Documentation License, Distrib, Top
-@unnumbered GNU GENERAL PUBLIC LICENSE
+@node Intro, Glossary, Distrib, Top
+@unnumbered Introduction
+
+  You are reading about GNU Emacs, the GNU incarnation of the advanced,
+self-documenting, customizable, extensible real-time display editor Emacs.
+(The `G' in `GNU' is not silent.)
+
+  We say that Emacs is a @dfn{display} editor because normally the text
+being edited is visible on the screen and is updated automatically as you
+type your commands.  @xref{Screen,Display}.
+
+  We call it a @dfn{real-time} editor because the display is updated very
+frequently, usually after each character or pair of characters you
+type.  This minimizes the amount of information you must keep in your
+head as you edit.  @xref{Basic,Real-time,Basic Editing}.
+
+  We call Emacs advanced because it provides facilities that go beyond
+simple insertion and deletion: controlling subprocesses; automatic
+indentation of programs; viewing two or more files at once; editing
+formatted text; and dealing in terms of characters, words, lines,
+sentences, paragraphs, and pages, as well as expressions and comments in
+several different programming languages.
+
+  @dfn{Self-documenting} means that at any time you can type a special
+character, @kbd{Control-h}, to find out what your options are.  You can
+also use it to find out what any command does, or to find all the commands
+that pertain to a topic.  @xref{Help}.
+
+  @dfn{Customizable} means that you can change the definitions of Emacs
+commands in little ways.  For example, if you use a programming language in
+which comments start with @samp{<**} and end with @samp{**>}, you can tell
+the Emacs comment manipulation commands to use those strings
+(@pxref{Comments}).  Another sort of customization is rearrangement of the
+command set.  For example, if you prefer the four basic cursor motion
+commands (up, down, left and right) on keys in a diamond pattern on the
+keyboard, you can rebind the keys that way.  @xref{Customization}.
+
+  @dfn{Extensible} means that you can go beyond simple customization and
+write entirely new commands, programs in the Lisp language to be run by
+Emacs's own Lisp interpreter.  Emacs is an ``on-line extensible''
+system, which means that it is divided into many functions that call
+each other, any of which can be redefined in the middle of an editing
+session.  Almost any part of Emacs can be replaced without making a
+separate copy of all of Emacs.  Most of the editing commands of Emacs
+are written in Lisp; the few exceptions could have been written
+in Lisp but are written in C for efficiency.  Although only a programmer
+can write an extension, anybody can use it afterward.  If you want to
+learn Emacs Lisp programming, we recommend the @cite{Introduction to
+Emacs Lisp} by Robert J. Chassell, also published by the Free Software
+Foundation.
+
+   When run under the X Window System, Emacs provides its own menus and
+convenient bindings to mouse buttons.  But Emacs can provide many of the
+benefits of a window system on a text-only terminal.  For instance, you
+can look at or edit several files at once, move text between files, and
+edit files while running shell commands.
+
+@include screen.texi
+@include commands.texi
+@include entering.texi
+@include basic.texi
+@include mini.texi
+@include m-x.texi
+@include help.texi
+@include mark.texi
+@include killing.texi
+@include regs.texi
+@include display.texi
+@include search.texi
+@include fixit.texi
+@include kmacro.texi
+@include files.texi
+@include buffers.texi
+@include windows.texi
+@include frames.texi
+@include mule.texi
+@include major.texi
+@include indent.texi
+@include text.texi
+@include programs.texi
+@include building.texi
+@include maintaining.texi
+@include abbrevs.texi
+@include picture.texi
+@include sending.texi
+@include rmail.texi
+@include dired.texi
+@include calendar.texi
+@include misc.texi
+@include custom.texi
+@include trouble.texi
+
+@node Copying, GNU Free Documentation License, Service, Top
+@appendix GNU GENERAL PUBLIC LICENSE
 @center Version 2, June 1991
 
 @display
@@ -1399,98 +1491,6 @@ library.  If this is what you want to do, use the GNU Library General
 Public License instead of this License.
 
 @include doclicense.texi
-
-@node Intro, Glossary, GNU Free Documentation License, Top
-@unnumbered Introduction
-
-  You are reading about GNU Emacs, the GNU incarnation of the advanced,
-self-documenting, customizable, extensible real-time display editor Emacs.
-(The `G' in `GNU' is not silent.)
-
-  We say that Emacs is a @dfn{display} editor because normally the text
-being edited is visible on the screen and is updated automatically as you
-type your commands.  @xref{Screen,Display}.
-
-  We call it a @dfn{real-time} editor because the display is updated very
-frequently, usually after each character or pair of characters you
-type.  This minimizes the amount of information you must keep in your
-head as you edit.  @xref{Basic,Real-time,Basic Editing}.
-
-  We call Emacs advanced because it provides facilities that go beyond
-simple insertion and deletion: controlling subprocesses; automatic
-indentation of programs; viewing two or more files at once; editing
-formatted text; and dealing in terms of characters, words, lines,
-sentences, paragraphs, and pages, as well as expressions and comments in
-several different programming languages.
-
-  @dfn{Self-documenting} means that at any time you can type a special
-character, @kbd{Control-h}, to find out what your options are.  You can
-also use it to find out what any command does, or to find all the commands
-that pertain to a topic.  @xref{Help}.
-
-  @dfn{Customizable} means that you can change the definitions of Emacs
-commands in little ways.  For example, if you use a programming language in
-which comments start with @samp{<**} and end with @samp{**>}, you can tell
-the Emacs comment manipulation commands to use those strings
-(@pxref{Comments}).  Another sort of customization is rearrangement of the
-command set.  For example, if you prefer the four basic cursor motion
-commands (up, down, left and right) on keys in a diamond pattern on the
-keyboard, you can rebind the keys that way.  @xref{Customization}.
-
-  @dfn{Extensible} means that you can go beyond simple customization and
-write entirely new commands, programs in the Lisp language to be run by
-Emacs's own Lisp interpreter.  Emacs is an ``on-line extensible''
-system, which means that it is divided into many functions that call
-each other, any of which can be redefined in the middle of an editing
-session.  Almost any part of Emacs can be replaced without making a
-separate copy of all of Emacs.  Most of the editing commands of Emacs
-are written in Lisp; the few exceptions could have been written
-in Lisp but are written in C for efficiency.  Although only a programmer
-can write an extension, anybody can use it afterward.  If you want to
-learn Emacs Lisp programming, we recommend the @cite{Introduction to
-Emacs Lisp} by Robert J. Chassell, also published by the Free Software
-Foundation.
-
-   When run under the X Window System, Emacs provides its own menus and
-convenient bindings to mouse buttons.  But Emacs can provide many of the
-benefits of a window system on a text-only terminal.  For instance, you
-can look at or edit several files at once, move text between files, and
-edit files while running shell commands.
-
-@include screen.texi
-@include commands.texi
-@include entering.texi
-@include basic.texi
-@include mini.texi
-@include m-x.texi
-@include help.texi
-@include mark.texi
-@include killing.texi
-@include regs.texi
-@include display.texi
-@include search.texi
-@include fixit.texi
-@include kmacro.texi
-@include files.texi
-@include buffers.texi
-@include windows.texi
-@include frames.texi
-@include mule.texi
-@include major.texi
-@include indent.texi
-@include text.texi
-@include programs.texi
-@include building.texi
-@include maintaining.texi
-@include abbrevs.texi
-@include picture.texi
-@include sending.texi
-@include rmail.texi
-@include dired.texi
-@include calendar.texi
-@include misc.texi
-@include custom.texi
-@include trouble.texi
 @include cmdargs.texi
 @include xresources.texi
 

@@ -1,6 +1,7 @@
 ;;; imenu.el --- framework for mode-specific buffer indexes
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 2003, 2004
+;;           Free Software Foundation, Inc.
 
 ;; Author: Ake Stenhoff <etxaksf@aom.ericsson.se>
 ;;         Lars Lindberg <lli@sypro.cap.se>
@@ -210,8 +211,6 @@ menu.  See the info section on Regexps for more information.
 INDEX points to the substring in REGEXP that contains the name (of the
 function, variable or type) that is to appear in the menu.
 
-The variable is buffer-local.
-
 The variable `imenu-case-fold-search' determines whether or not the
 regexp matches are case sensitive, and `imenu-syntax-alist' can be
 used to alter the syntax table for the search.
@@ -239,9 +238,7 @@ A nested sub-alist element looks like (INDEX-NAME SUB-ALIST).
 The function `imenu--subalist-p' tests an element and returns t
 if it is a sub-alist.
 
-This function is called within a `save-excursion'.
-
-The variable is buffer-local.")
+This function is called within a `save-excursion'.")
 ;;;###autoload
 (make-variable-buffer-local 'imenu-create-index-function)
 
@@ -255,9 +252,7 @@ to a function that will find the next index, looking backwards in the
 file.
 
 The function should leave point at the place to be connected to the
-index and it should return nil when it doesn't find another index.
-
-This variable is local in all buffers.")
+index and it should return nil when it doesn't find another index.")
 ;;;###autoload
 (make-variable-buffer-local 'imenu-prev-index-position-function)
 
@@ -267,9 +262,7 @@ This variable is local in all buffers.")
 
 This function is called after `imenu-prev-index-position-function'
 finds a position for an index item, with point at that position.
-It should return the name for that index item.
-
-This variable is local in all buffers.")
+It should return the name for that index item.")
 ;;;###autoload
 (make-variable-buffer-local 'imenu-extract-index-name-function)
 
@@ -283,9 +276,7 @@ non-nil if they match.
 If nil, comparison is done with `string='.
 Set this to some other function for more advanced comparisons,
 such as \"begins with\" or \"name matches and number of
-arguments match\".
-
-This variable is local in all buffers.")
+arguments match\".")
 ;;;###autoload
 (make-variable-buffer-local 'imenu-name-lookup-function)
 
@@ -453,9 +444,7 @@ The function in this variable is called when selecting a normal index-item.")
   "The buffer index computed for this buffer in Imenu.
 Simple elements in the alist look like (INDEX-NAME . INDEX-POSITION).
 Special elements look like (INDEX-NAME INDEX-POSITION FUNCTION ARGUMENTS...).
-A nested sub-alist element looks like (INDEX-NAME SUB-ALIST).
-
-This variable is local in all buffers, once set.")
+A nested sub-alist element looks like (INDEX-NAME SUB-ALIST).")
 
 (make-variable-buffer-local 'imenu--index-alist)
 
@@ -984,8 +973,7 @@ A trivial interface to `imenu-add-to-menubar' suitable for use in a hook."
 (defvar imenu-buffer-menubar nil)
 
 (defvar imenu-menubar-modified-tick 0
-  "The value of (buffer-modified-tick) as of last call to `imenu-update-menubar'.
-This value becomes local in every buffer when it is set.")
+  "The value of (buffer-modified-tick) as of last call to `imenu-update-menubar'.")
 (make-variable-buffer-local 'imenu-menubar-modified-tick)
 
 (defun imenu-update-menubar ()

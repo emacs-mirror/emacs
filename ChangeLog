@@ -1,3 +1,11 @@
+2004-08-06  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (install-arch-indep, uninstall): Add flymake.
+
+2004-07-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Update URLs in the comments.
+
 2004-08-02  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* Makefile.in (install-arch-indep): Added pgg and sieve.

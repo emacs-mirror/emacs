@@ -1544,6 +1544,7 @@ DEFUN ("color-supported-p", Fcolor_supported_p,
        Scolor_supported_p, 1, 3, 0,
        doc: /* Return non-nil if COLOR can be displayed on FRAME.
 BACKGROUND-P non-nil means COLOR is used as a background.
+Otherwise, this function tells whether it can be used as a foreground.
 If FRAME is nil or omitted, use the selected frame.
 COLOR must be a valid color name.  */)
      (color, frame, background_p)
@@ -3625,7 +3626,10 @@ merge_face_ref (f, face_ref, to, err_msgs, named_merge_points)
 	      Lisp_Object value = XCAR (XCDR (face_ref));
 	      int err = 0;
 
-	      if (EQ (keyword, QCfamily))
+	      /* Specifying `unspecified' is a no-op.  */
+	      if (EQ (value, Qunspecified))
+		;
+	      else if (EQ (keyword, QCfamily))
 		{
 		  if (STRINGP (value))
 		    to[LFACE_FAMILY_INDEX] = value;

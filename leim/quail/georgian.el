@@ -34,7 +34,7 @@
 (quail-define-package
  "georgian" "Georgian" "გ" t
  "A common Georgian transliteration (using Unicode)"
- nil t nil nil nil nil nil nil nil nil t)
+ nil t nil nil t nil nil nil nil nil t)
 
 (quail-define-rules
  ("a" ?ა)

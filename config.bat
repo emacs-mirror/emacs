@@ -24,17 +24,15 @@ rem   ----------------------------------------------------------------------
 rem   YOU'LL NEED THE FOLLOWING UTILITIES TO MAKE EMACS:
 rem
 rem   + msdos version 3 or better.
-rem   + djgpp version 1.12maint1 or later (version 2.0 or later recommended).
+rem   + DJGPP version 1.12maint1 or later (version 2.03 or later recommended).
 rem   + make utility that allows breaking of the 128 chars limit on
 rem     command lines.  ndmake (as of version 4.5) won't work due to a
-rem     line length limit.  The make that comes with djgpp does work.
+rem     line length limit.  The make that comes with DJGPP does work.
 rem   + rm and mv (from GNU file utilities).
 rem   + sed (you can use the port that comes with DJGPP).
 rem
-rem   You should be able to get all the above utilities from any SimTel
-rem   repository, e.g. ftp.simtel.net, in the directory
-rem   "pub/simtelnet/gnu/djgpp/v2gnu".  As usual, please use your local
-rem   mirroring site to reduce trans-Atlantic traffic.
+rem   You should be able to get all the above utilities from the DJGPP FTP
+rem   site, ftp.delorie.com, in the directory "pub/djgpp/current/v2gnu".
 rem   ----------------------------------------------------------------------
 set X11=
 set nodebug=

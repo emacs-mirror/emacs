@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1999
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1999, 2004
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/abbrevs
@@ -288,7 +288,7 @@ expansion.
 @end defopt
 
 @defvar abbrev-start-location
-The value of this variable is a marker pointing to the buffer position
+The value of this variable is a buffer position (an integer or a marker)
 for @code{expand-abbrev} to use as the start of the next abbrev to be
 expanded.  The value can also be @code{nil}, which means to use the
 word before point instead.  @code{abbrev-start-location} is set to
@@ -331,31 +331,42 @@ hook, the hook functions receive no arguments.  However, they can find
 the abbrev to be expanded by looking in the buffer before point.
 Running the hook is the first thing that @code{expand-abbrev} does, and
 so a hook function can be used to change the current abbrev table before
-abbrev lookup happens.
+abbrev lookup happens.  (Although you have to do this carefully.  See
+the example below.)
 @end defvar
 
   The following sample code shows a simple use of
-@code{pre-abbrev-expand-hook}.  If the user terminates an abbrev with
-a punctuation character, the hook function asks for confirmation.  It
-aborts expansion if the user does not confirm.
+@code{pre-abbrev-expand-hook}.  It assumes that @code{foo-mode} is a
+mode for editing certain files in which lines that start with @samp{#}
+are comments.  You want to use Text mode abbrevs for those lines.  The
+regular local abbrev table, @code{foo-mode-abbrev-table} is
+appropriate for all other lines.  Then you can put the following code
+in your @file{.emacs} file.  @xref{Standard Abbrev Tables}, for the
+definitions of @code{local-abbrev-table} and @code{text-mode-abbrev-table}.
 
 @smallexample
-(add-hook 'pre-abbrev-expand-hook 'query-if-not-space)
+(defun foo-mode-pre-abbrev-expand ()
+  (when (save-excursion (forward-line 0) (eq (char-after) ?#))
+    (let ((local-abbrev-table text-mode-abbrev-table)
+	  ;; Avoid infinite loop.
+	  (pre-abbrev-expand-hook nil))
+      (expand-abbrev))
+    ;; We have already called `expand-abbrev' in this hook.
+    ;; Hence we want the "actual" call following this hook to be a no-op.
+    (setq abbrev-start-location (point-max)
+	  abbrev-start-location-buffer (current-buffer))))
 
-;; @r{This is the function invoked by @code{pre-abbrev-expand-hook}.}
-
-;; @r{If the user terminated the abbrev with a space, the function does}
-;; @r{nothing (that is, it returns so that the abbrev can expand).  If the}
-;; @r{user entered some other character, this function asks whether}
-;; @r{expansion should continue.}
-
-;; @r{The function's return value makes no difference.}
-
-(defun query-if-not-space ()
-  (if (/= ?\s last-command-char)
-      (if (not (y-or-n-p "Do you want to expand this abbrev? "))
-          (error "Not expanding this abbrev"))))
+(add-hook 'foo-mode-hook
+	  #'(lambda ()
+	      (add-hook 'pre-abbrev-expand-hook
+			'foo-mode-pre-abbrev-expand
+			nil t)))
 @end smallexample
+
+Note that @code{foo-mode-pre-abbrex-expand} just returns @code{nil}
+without doing anything for lines not starting with @samp{#}.  Hence
+abbrevs expand normally using @code{foo-mode-abbrev-table} as local
+abbrev table for such lines.
 
 @node Standard Abbrev Tables,  , Abbrev Expansion, Abbrevs
 @comment  node-name,  next,  previous,  up

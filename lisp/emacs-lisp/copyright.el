@@ -54,6 +54,13 @@ The second \\( \\) construct must match the years."
   :group 'copyright
   :type 'regexp)
 
+(defcustom copyright-years-regexp
+ "\\(\\s *\\)\\([1-9]\\([-0-9, ';/*%#\n\t]\\|\\s<\\|\\s>\\)*[0-9]+\\)"
+  "*Match additional copyright notice years.
+The second \\( \\) construct must match the years."
+  :group 'copyright
+  :type 'regexp)
+
 
 (defcustom copyright-query 'function
   "*If non-nil, ask user before changing copyright.
@@ -77,6 +84,23 @@ When this is `function', only ask when called non-interactively."
 
 (defun copyright-update-year (replace noquery)
   (when (re-search-forward copyright-regexp (+ (point) copyright-limit) t)
+    ;; If the years are continued onto multiple lined
+    ;; that are marked as comments, skip to the end of the years anyway.
+    (while (save-excursion
+	     (and (eq (following-char) ?,)
+		  (progn (forward-char 1) t)
+		  (progn (skip-chars-forward " \t") (eolp))
+		  comment-start-skip
+		  (save-match-data
+		    (forward-line 1)
+		    (and (looking-at comment-start-skip)
+			 (goto-char (match-end 0))))
+		  (save-match-data
+		    (looking-at copyright-years-regexp))))
+      (forward-line 1)
+      (re-search-forward comment-start-skip)
+      (re-search-forward copyright-years-regexp))
+
     ;; Note that `current-time-string' isn't locale-sensitive.
     (setq copyright-current-year (substring (current-time-string) -4))
     (unless (string= (buffer-substring (- (match-end 2) 2) (match-end 2))
@@ -100,26 +124,6 @@ When this is `function', only ask when called non-interactively."
 			   (eq (char-after (+ (point) size -2)) ?-)))
 		  ;; This is a range so just replace the end part.
 		  (delete-char size)
-		;; Detect if this is using the following shorthand:
-		;; (C) 1993, 94, 95, 1998, 2000, 01, 02, 2003
-		(if (and
-		     ;; Check that the last year was 4-chars and same century.
-		     (eq size -4)
-		     (equal (buffer-substring (- (point) 4) (- (point) 2))
-			    (substring copyright-current-year 0 2))
-		     ;; Check that there are 2-char years as well.
-		     (save-excursion
-		       (re-search-backward "[^0-9][0-9][0-9][^0-9]"
-					   (line-beginning-position) t))
-		     ;; Make sure we don't remove the first century marker.
-		     (save-excursion
-		       (forward-char size)
-		       (re-search-backward
-			(concat (buffer-substring (point) (+ (point) 2))
-				"[0-9][0-9]")
-			(line-beginning-position) t)))
-		    ;; Remove the century marker of the last entry.
-		    (delete-region (- (point) 4) (- (point) 2)))
 		;; Insert a comma with the preferred number of spaces.
 		(insert
 		 (save-excursion

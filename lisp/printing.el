@@ -974,7 +974,7 @@ Please send all bug fixes and enhancements to
 
 
 (and (string< ps-print-version "6.6.4")
-     (error "`printing' requires `ps-print' package version 6.6.4 or later."))
+     (error "`printing' requires `ps-print' package version 6.6.4 or later"))
 
 
 (eval-and-compile
@@ -4254,7 +4254,7 @@ are both set to t."
     (pr-ps-buffer-ps-print
      (if (integerp n-up)
 	 (min (max n-up 1) 100)
-       (error "n-up must be an integer greater than zero."))
+       (error "n-up must be an integer greater than zero"))
      filename)))
 
 
@@ -5031,7 +5031,7 @@ non-nil."
   (let ((item (cdr (assq value pr-ps-utility-alist))))
     (or item
 	(error
-	 "Invalid PostScript utility name `%s' for variable `pr-ps-utility'."
+	 "Invalid PostScript utility name `%s' for variable `pr-ps-utility'"
 	 value))
     (setq pr-ps-utility value)
     (pr-eval-alist (nthcdr 9 item)))
@@ -5042,7 +5042,7 @@ non-nil."
   (let ((ps (cdr (assq value pr-ps-printer-alist))))
     (or ps
 	(error
-	 "Invalid PostScript printer name `%s' for variable `pr-ps-name'."
+	 "Invalid PostScript printer name `%s' for variable `pr-ps-name'"
 	 value))
     (setq pr-ps-name           value
 	  pr-ps-command        (pr-dosify-file-name (nth 0 ps))
@@ -5068,7 +5068,7 @@ non-nil."
 (defun pr-txt-set-printer (value)
   (let ((txt (cdr (assq value pr-txt-printer-alist))))
     (or txt
-	(error "Invalid text printer name `%s' for variable `pr-txt-name'."
+	(error "Invalid text printer name `%s' for variable `pr-txt-name'"
 	       value))
     (setq pr-txt-name     value
 	  pr-txt-command  (pr-dosify-file-name (nth 0 txt))
@@ -5121,7 +5121,7 @@ non-nil."
 		  (setq global nil)))
 	   (and inherits
 		(if (memq inherits old)
-		    (error "Circular inheritance for `%S'." inherits)
+		    (error "Circular inheritance for `%S'" inherits)
 		  (setq local-list
 			(pr-eval-setting-alist inherits global
 					       (cons inherits old)))))
@@ -5349,7 +5349,7 @@ non-nil."
 
 (defun pr-switches (switches mess)
   (or (listp switches)
-      (error "%S should have a list of strings." mess))
+      (error "%S should have a list of strings" mess))
   (ps-flatten-list			; dynamic evaluation
    (mapcar 'ps-eval-switch switches)))
 

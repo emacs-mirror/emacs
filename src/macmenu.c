@@ -90,10 +90,12 @@ enum button_type
 typedef struct _widget_value
 {
   /* name of widget */
+  Lisp_Object   lname;
   char*		name;
   /* value (meaning depend on widget type) */
   char*		value;
   /* keyboard equivalent. no implications for XtTranslations */
+  Lisp_Object   lkey;
   char*		key;
   /* Help string or nil if none.
      GC finds this string through the frame's menu_bar_vector
@@ -162,6 +164,12 @@ extern Lisp_Object Voverriding_local_map_menu_flag;
 extern Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 
 extern Lisp_Object Qmenu_bar_update_hook;
+
+#if TARGET_API_MAC_CARBON
+#define ENCODE_MENU_STRING(str) ENCODE_UTF_8 (str)
+#else
+#define ENCODE_MENU_STRING(str) ENCODE_SYSTEM (str)
+#endif
 
 void set_frame_menubar ();
 
@@ -1215,12 +1223,9 @@ single_submenu (item_key, item_name, maps)
 		save_wv->next = wv;
 	      else
 		first_wv->contents = wv;
-	      wv->name = pane_string;
-	      /* Ignore the @ that means "separate pane".
-		 This is a kludge, but this isn't worth more time.  */
-	      if (!NILP (prefix) && wv->name[0] == '@')
-		wv->name++;
-	      wv->value = 0;
+	      wv->lname = pane_name;
+              /* Set value to 1 so update_submenu_strings can handle '@'  */
+	      wv->value = (char *)1;
 	      wv->enabled = 1;
 	      wv->button_type = BUTTON_TYPE_NONE;
 	      wv->help = Qnil;
@@ -1246,13 +1251,13 @@ single_submenu (item_key, item_name, maps)
 #ifndef HAVE_MULTILINGUAL_MENU
 	  if (STRING_MULTIBYTE (item_name))
 	    {
-	      item_name = ENCODE_SYSTEM (item_name);
+	      item_name = ENCODE_MENU_STRING (item_name);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_NAME) = item_name;
 	    }
 
 	  if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
 	    {
-	      descrip = ENCODE_SYSTEM (descrip);
+	      descrip = ENCODE_MENU_STRING (descrip);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY) = descrip;
 	    }
 #endif /* not HAVE_MULTILINGUAL_MENU */
@@ -1263,9 +1268,9 @@ single_submenu (item_key, item_name, maps)
 	  else
 	    save_wv->contents = wv;
 
-	  wv->name = (char *) SDATA (item_name);
+	  wv->lname = item_name;
 	  if (!NILP (descrip))
-	    wv->key = (char *) SDATA (descrip);
+	    wv->lkey = descrip;
 	  wv->value = 0;
 	  /* The EMACS_INT cast avoids a warning.  There's no problem
 	     as long as pointers have enough bits to hold small integers.  */
@@ -1304,6 +1309,41 @@ single_submenu (item_key, item_name, maps)
 
   return first_wv;
 }
+/* Walk through the widget_value tree starting at FIRST_WV and update
+   the char * pointers from the corresponding lisp values.
+   We do this after building the whole tree, since GC may happen while the
+   tree is constructed, and small strings are relocated.  So we must wait
+   until no GC can happen before storing pointers into lisp values.  */
+static void
+update_submenu_strings (first_wv)
+     widget_value *first_wv;
+{
+  widget_value *wv;
+
+  for (wv = first_wv; wv; wv = wv->next)
+    {
+      if (wv->lname && ! NILP (wv->lname))
+        {
+          wv->name = SDATA (wv->lname);
+
+          /* Ignore the @ that means "separate pane".
+             This is a kludge, but this isn't worth more time.  */
+          if (wv->value == (char *)1)
+            {
+              if (wv->name[0] == '@')
+		wv->name++;
+              wv->value = 0;
+            }
+        }
+
+      if (wv->lkey && ! NILP (wv->lkey))
+        wv->key = SDATA (wv->lkey);
+
+      if (wv->contents)
+        update_submenu_strings (wv->contents);
+    }
+}
+
 
 /* Set the contents of the menubar widgets of frame F.
    The argument FIRST_TIME is currently ignored;
@@ -1382,8 +1422,6 @@ set_frame_menubar (f, first_time, deep_p)
 
       items = FRAME_MENU_BAR_ITEMS (f);
 
-      inhibit_garbage_collection ();
-
       /* Save the frame's previous menu bar contents data.  */
       if (previous_menu_items_used)
 	bcopy (XVECTOR (f->menu_bar_vector)->contents, previous_items,
@@ -1448,6 +1486,7 @@ set_frame_menubar (f, first_time, deep_p)
 	  if (NILP (string))
 	    break;
 	  wv->name = (char *) SDATA (string);
+          update_submenu_strings (wv->contents);
 	  wv = wv->next;
 	}
 
@@ -1705,12 +1744,12 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 #ifndef HAVE_MULTILINGUAL_MENU
           if (STRINGP (item_name) && STRING_MULTIBYTE (item_name))
 	    {
-	      item_name = ENCODE_SYSTEM (item_name);
+	      item_name = ENCODE_MENU_STRING (item_name);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_NAME) = item_name;
 	    }
           if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
             {
-	      descrip = ENCODE_SYSTEM (descrip);
+	      descrip = ENCODE_MENU_STRING (descrip);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY) = descrip;
 	    }
 #endif /* not HAVE_MULTILINGUAL_MENU */
@@ -1764,7 +1803,7 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 
 #ifndef HAVE_MULTILINGUAL_MENU
       if (STRING_MULTIBYTE (title))
-	title = ENCODE_SYSTEM (title);
+	title = ENCODE_MENU_STRING (title);
 #endif
       wv_title->name = (char *) SDATA (title);
       wv_title->enabled = TRUE;
@@ -1801,9 +1840,9 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   /* Get the refcon to find the correct item*/
   if (menu_item_selection)
     {
-      menu = GetMenuHandle (HiWord (menu_item_choice));
-      if (menu) {
-	GetMenuItemRefCon (menu, menu_item_selection, &refcon);
+      MenuHandle sel_menu = GetMenuHandle (HiWord (menu_item_choice));
+      if (sel_menu) {
+	GetMenuItemRefCon (sel_menu, menu_item_selection, &refcon);
       }
     }
 
@@ -1813,6 +1852,10 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   discard_mouse_events ();
 #endif
 
+  /* Must reset this manually because the button release event is not
+     passed to Emacs event loop. */
+  FRAME_MAC_DISPLAY_INFO (f)->grabbed = 0;
+
   /* Free the widget_value objects we used to specify the
      contents.  */
   free_menubar_widget_value_tree (first_wv);
@@ -1821,11 +1864,11 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   {
     int i = MIN_POPUP_SUBMENU_ID;
     MenuHandle submenu = GetMenuHandle (i);
-    while (menu != NULL)
+    while (submenu != NULL)
       {
 	DeleteMenu (i);
-	DisposeMenu (menu);
-	menu = GetMenuHandle (++i);
+	DisposeMenu (submenu);
+	submenu = GetMenuHandle (++i);
       }
   }
 
@@ -2197,7 +2240,7 @@ add_menu_item (MenuHandle menu, widget_value *wv, int submenu,
 	       int force_disable)
 {
   Str255 item_name;
-  int pos, i;
+  int pos;
 
   if (name_is_separator (wv->name))
     AppendMenu (menu, "\p-");
@@ -2219,8 +2262,18 @@ add_menu_item (MenuHandle menu, widget_value *wv, int submenu,
 	  strncat (item_name, wv->key, 255);
 	}
       item_name[255] = 0;
+#if TARGET_API_MAC_CARBON
+      {
+	CFStringRef string =
+	  CFStringCreateWithCString (NULL, item_name, kCFStringEncodingUTF8);
+
+	SetMenuItemTextWithCFString (menu, pos, string);
+	CFRelease (string);
+      }
+#else
       c2pstr (item_name);
       SetMenuItemText (menu, pos, item_name);
+#endif
 
       if (wv->enabled && !force_disable)
 #if TARGET_API_MAC_CARBON
@@ -2243,9 +2296,9 @@ add_menu_item (MenuHandle menu, widget_value *wv, int submenu,
       else
 	SetItemMark (menu, pos, noMark);
       }
-    }
 
-  SetMenuItemRefCon (menu, pos, (UInt32) wv->call_data);
+      SetMenuItemRefCon (menu, pos, (UInt32) wv->call_data);
+    }
 
   if (submenu != NULL)
     SetMenuItemHierarchicalID (menu, pos, submenu);

@@ -579,6 +579,8 @@ display margins, fringes, header line, and/or mode line.  */)
    if it is on the window's modeline, return ON_MODE_LINE;
    if it is on the border between the window and its right sibling,
       return ON_VERTICAL_BORDER.
+   if it is on a scroll bar,
+      return ON_SCROLL_BAR.
    if it is on the window's top line, return ON_HEADER_LINE;
    if it is in left or right fringe of the window,
       return ON_LEFT_FRINGE or ON_RIGHT_FRINGE, and convert *X and *Y
@@ -673,7 +675,7 @@ coordinates_in_window (w, x, y)
 
   /* Outside any interesting column?  */
   if (*x < left_x || *x > right_x)
-    return ON_VERTICAL_BORDER;
+    return ON_SCROLL_BAR;
 
   lmargin_width = window_box_width (w, LEFT_MARGIN_AREA);
   rmargin_width = window_box_width (w, RIGHT_MARGIN_AREA);
@@ -783,8 +785,8 @@ If they are in the windows's left or right marginal areas, `left-margin'\n\
   ly = Fcdr (coordinates);
   CHECK_NUMBER_OR_FLOAT (lx);
   CHECK_NUMBER_OR_FLOAT (ly);
-  x = FRAME_PIXEL_X_FROM_CANON_X (f, lx);
-  y = FRAME_PIXEL_Y_FROM_CANON_Y (f, ly);
+  x = FRAME_PIXEL_X_FROM_CANON_X (f, lx) + FRAME_INTERNAL_BORDER_WIDTH (f);
+  y = FRAME_PIXEL_Y_FROM_CANON_Y (f, ly) + FRAME_INTERNAL_BORDER_WIDTH (f);
 
   switch (coordinates_in_window (w, &x, &y))
     {
@@ -817,6 +819,10 @@ If they are in the windows's left or right marginal areas, `left-margin'\n\
 
     case ON_RIGHT_MARGIN:
       return Qright_margin;
+
+    case ON_SCROLL_BAR:
+      /* Historically we are supposed to return nil in this case.  */
+      return Qnil;
 
     default:
       abort ();
@@ -938,8 +944,10 @@ column 0.  */)
   CHECK_NUMBER_OR_FLOAT (y);
 
   return window_from_coordinates (f,
-				  FRAME_PIXEL_X_FROM_CANON_X (f, x),
-				  FRAME_PIXEL_Y_FROM_CANON_Y (f, y),
+				  (FRAME_PIXEL_X_FROM_CANON_X (f, x)
+				   + FRAME_INTERNAL_BORDER_WIDTH (f)),
+				  (FRAME_PIXEL_Y_FROM_CANON_Y (f, y)
+				   + FRAME_INTERNAL_BORDER_WIDTH (f)),
 				  0, 0, 0, 0);
 }
 
@@ -1820,7 +1828,7 @@ window_list_1 (window, minibuf, all_frames)
   rest = Fmemq (window, list);
   if (!NILP (rest) && !EQ (rest, list))
     {
-      for (tail = list; XCDR (tail) != rest; tail = XCDR (tail))
+      for (tail = list; !EQ (XCDR (tail), rest); tail = XCDR (tail))
 	;
       XSETCDR (tail, Qnil);
       list = nconc2 (rest, list);
@@ -4699,7 +4707,7 @@ window_scroll_line_based (window, n, whole, noerror)
 
   posit = *compute_motion (startpos, 0, 0, 0,
 			   PT, ht, 0,
-			   window_box_text_cols (w), XINT (w->hscroll),
+			   -1, XINT (w->hscroll),
 			   0, w);
   original_vpos = posit.vpos;
 

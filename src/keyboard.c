@@ -131,8 +131,8 @@ KBOARD the_only_kboard;
 #endif
 
 /* Non-nil disable property on a command means
-   do not execute it; call disabled-command-hook's value instead.  */
-Lisp_Object Qdisabled, Qdisabled_command_hook;
+   do not execute it; call disabled-command-function's value instead.  */
+Lisp_Object Qdisabled, Qdisabled_command_function;
 
 #define NUM_RECENT_KEYS (100)
 int recent_keys_index;	/* Index for storing next element into recent_keys */
@@ -3899,10 +3899,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	break;
 #endif
       {
-	Lisp_Object minus_one;
-
-	XSETINT (minus_one, -1);
-	wait_reading_process_input (0, 0, minus_one, 1);
+	wait_reading_process_output (0, 0, -1, 1, Qnil, NULL, 0);
 
 	if (!interrupt_input && kbd_fetch_ptr == kbd_store_ptr)
 	  /* Pass 1 for EXPECT since we just waited to have input.  */
@@ -9665,9 +9662,9 @@ a special event, so ignore the prefix argument and don't clear it.  */)
       tem = Fget (cmd, Qdisabled);
       if (!NILP (tem) && !NILP (Vrun_hooks))
 	{
-	  tem = Fsymbol_value (Qdisabled_command_hook);
+	  tem = Fsymbol_value (Qdisabled_command_function);
 	  if (!NILP (tem))
-	    return call1 (Vrun_hooks, Qdisabled_command_hook);
+	    return call1 (Vrun_hooks, Qdisabled_command_function);
 	}
     }
 
@@ -9920,7 +9917,7 @@ clear_input_pending ()
 }
 
 /* Return nonzero if there are pending requeued events.
-   This isn't used yet.  The hope is to make wait_reading_process_input
+   This isn't used yet.  The hope is to make wait_reading_process_output
    call it, and return if it runs Lisp code that unreads something.
    The problem is, kbd_buffer_get_event needs to be fixed to know what
    to do in that case.  It isn't trivial.  */
@@ -10782,8 +10779,8 @@ syms_of_keyboard ()
   Qtimer_event_handler = intern ("timer-event-handler");
   staticpro (&Qtimer_event_handler);
 
-  Qdisabled_command_hook = intern ("disabled-command-hook");
-  staticpro (&Qdisabled_command_hook);
+  Qdisabled_command_function = intern ("disabled-command-function");
+  staticpro (&Qdisabled_command_function);
 
   Qself_insert_command = intern ("self-insert-command");
   staticpro (&Qself_insert_command);
@@ -11280,6 +11277,7 @@ The elements of the list are event types that may have menu bar bindings.  */);
 		 doc: /* Per-terminal keymap that overrides all other local keymaps.
 If this variable is non-nil, it is used as a keymap instead of the
 buffer's local map, and the minor mode keymaps and text property keymaps.
+It also overrides `overriding-local-map'.
 This variable is intended to let commands such as `universal-argument'
 set up a different keymap for reading the next command.  */);
 
@@ -11371,8 +11369,8 @@ It's called with one argument, the help string to display.  */);
 
 After a command is executed, if point is moved into a region that has
 special properties (e.g. composition, display), we adjust point to
-the boundary of the region.  But, several special commands sets this
-variable to non-nil, then we suppress the point adjustment.
+the boundary of the region.  But, when a command sets this variable to
+non-nil, we suppress the point adjustment.
 
 This variable is set to nil before reading a command, and is checked
 just after executing the command.  */);

@@ -213,53 +213,6 @@ Any other value is treated as nil."
 		 (const bdf-font-except-latin) (const :tag "nil" nil))
   :group 'ps-print-font)
 
-
-(eval-and-compile
-  ;; For Emacs 20.2 and the earlier version.
-  (if (and (boundp 'mule-version)
-	   (not (string< (symbol-value 'mule-version) "4.0")))
-      ;; mule package is loaded
-      (progn
-	(defalias 'ps-mule-next-point '1+)
-	(defalias 'ps-mule-chars-in-string 'length)
-	(defalias 'ps-mule-string-char 'aref)
-	(defsubst ps-mule-next-index (str i) (1+ i)))
-    ;; mule package isn't loaded or mule version lesser than 4.0
-    (defun ps-mule-next-point (arg)
-      (save-excursion (goto-char arg) (forward-char 1) (point)))
-    (defun ps-mule-chars-in-string (string)
-      (/ (length string)
-	 (charset-bytes (char-charset (string-to-char string)))))
-    (defun ps-mule-string-char (string idx)
-      (string-to-char (substring string idx)))
-    (defun ps-mule-next-index (string i)
-      (+ i (charset-bytes (char-charset (string-to-char string)))))
-    )
-  ;; For Emacs 20.4 and the earlier version.
-  (if (and (boundp 'mule-version)
-	   (string< (symbol-value 'mule-version) "5.0"))
-      ;; mule package is loaded and mule version is lesser than 5.0
-      (progn
-	(defun encode-composition-rule (rule)
-	  (if (= (car rule) 4) (setcar rule 10))
-	  (if (= (cdr rule) 4) (setcdr rule 10))
-	  (+ (* (car rule) 12) (cdr rule)))
-	(defun find-composition (pos &rest ignore)
-	  (let ((ch (char-after pos)))
-	    (and ch (eq (char-charset ch) 'composition)
-		 (let ((components (decompose-composite-char ch 'vector t)))
-		   (list pos (ps-mule-next-point pos) components
-			 (integerp (aref components 1)) nil
-			 (char-width ch)))))))
-    ;; mule package isn't loaded
-    (or (fboundp 'encode-composition-rule)
-	(defun encode-composition-rule (rule)
-	  130))
-    (or (fboundp 'find-composition)
-	(defun find-composition (pos &rest ignore)
-	  nil))
-    ))
-
 (defvar ps-mule-font-info-database
   nil
   "Alist of charsets with the corresponding font information.
@@ -273,7 +226,7 @@ CHARSET is a charset (symbol) for this font family,
 
 FONT-TYPE is a font type: normal, bold, italic, or bold-italic.
 
-FONT-SRC is a font source: builtin, ps-bdf, vflib, or nil.
+FONT-SRC is a font source: builtin, bdf, vflib, or nil.
 
   If FONT-SRC is builtin, FONT-NAME is a built-in PostScript font name.
 
@@ -847,7 +800,7 @@ the sequence."
 		run-width)))
     ;; We assume that all characters in this range have the same width.
     (setq char-width (* char-width (charset-width ps-mule-current-charset)))
-    (let ((run-width (* (chars-in-region from to) char-width)))
+    (let ((run-width (* (abs (- from to)) char-width)))
       (if (> run-width ps-width-remaining)
 	  (cons (min to
 		     (save-excursion

@@ -455,6 +455,11 @@ non-nil means return old filename."
 		  (setq file-new (substitute-in-file-name file-new))
 		  (if wdired-use-interactive-rename
 		      (wdired-search-and-rename file-ori file-new)
+                    ;; If dired-rename-file autoloads dired-aux while
+                    ;; dired-backup-overwrite is locally bound,
+                    ;; dired-backup-overwrite won't be initialized.
+                    ;; So we must ensure dired-aux is loaded.
+                    (require 'dired-aux)
 		    (condition-case err
 			(let ((dired-backup-overwrite nil))
 			  (dired-rename-file file-ori file-new

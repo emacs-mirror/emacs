@@ -1,3 +1,17 @@
+2004-08-21  David Kastrup  <dak@gnu.org>
+
+	* quail/greek.el ("greek-babel"): Add accent/breathing/uppercase
+	combinations.
+
+2004-08-16  Kenichi Handa  <handa@m17n.org>
+
+	* quail/georgian.el ("georgian"): Call quail-define-package with
+	the show-layout arg t.
+
+2004-08-06  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (install): Remove .arch-inventory files.
+
 2004-07-01  David Kastrup  <dak@gnu.org>
 
 	* quail/greek.el ("((") ("))"): add quotation mark shorthands.
@@ -95,7 +109,7 @@
 	(clean, mostlyclean): Don't delete *.elc distributed with tarball.
 	(maintainer-clean): Delete files that are not in CVS repository.
 
-2004-02-16  J,bi(Br,bt(Bme Marant  <jmarant@nerim.net>  (tiny change)
+2004-02-16  J,Ai(Br,At(Bme Marant  <jmarant@nerim.net>  (tiny change)
 
 	* Makefile.in (distclean maintainer-clean): Depend on clean.
 
@@ -233,7 +247,7 @@
 	("cyrillic-ukrainian"): Fix `q', `Q', `W', `w' bindings.
 	("ukrainian-computer", "belarusian", "bulgarian-bds")
 	("russian-computer"): New.
-	("bulgarian-phonetic"): Rename from bulgarian-pho.  Add ,A'(B, $,1uV(B, ,LN(B.
+	("bulgarian-phonetic"): Rename from bulgarian-pho.  Add ,A'(B, $,1uV(B, $,1(N(B.
 	("russian-typewriter"): Rename from cyrillic-jcuken.
 
 2002-06-20  Dave Love  <fx@gnu.org>

@@ -929,6 +929,16 @@ process and only then specify its buffer or filter function; no output
 can arrive before you finish, if the code in between does not call any
 primitive that waits.
 
+@defvar process-adaptive-read-buffering
+On some systems, when Emacs reads the output from a subprocess, the
+output data is read in very small blocks, potentially resulting in
+very poor performance.  This behaviour can be remedied to some extent
+by setting the variable @var{process-adaptive-read-buffering} to a
+non-nil value (the default), as it will automatically delay reading
+from such processes, thus allowing them to produce more output before
+Emacs tries to read it.
+@end defvar
+
   It is impossible to separate the standard output and standard error
 streams of the subprocess, because Emacs normally spawns the subprocess
 inside a pseudo-TTY, and a pseudo-TTY has only one output channel.  If
@@ -1240,7 +1250,7 @@ or terminal input.  Occasionally it is useful in a Lisp program to
 explicitly permit output to arrive at a specific point, or even to wait
 until output arrives from a process.
 
-@defun accept-process-output &optional process seconds millisec
+@defun accept-process-output &optional process seconds millisec just-this-one
 This function allows Emacs to read pending output from processes.  The
 output is inserted in the associated buffers or given to their filter
 functions.  If @var{process} is non-@code{nil} then this function does
@@ -1262,6 +1272,15 @@ Some systems support only a whole number of seconds; on these systems,
 Not all operating systems support waiting periods other than multiples
 of a second; on those that do not, you get an error if you specify
 nonzero @var{millisec}.
+
+@c Emacs 21.4 feature
+If @var{process} is a process, and the argument @var{just-this-one} is
+non-nil, only output from that process is handled, suspending output
+from other processes until some output has been received from that
+process or the timeout expires.  If @var{just-this-one} is an integer,
+also inhibit running timers.  This feature is generally not
+recommended, but may be necessary for specific applications, such as
+speech synthesis.
 
 The function @code{accept-process-output} returns non-@code{nil} if it
 did get some output, or @code{nil} if the timeout expired before output
@@ -1664,7 +1683,7 @@ meaning ask the system to allocate an unused port to listen on.
 @end defun
 
 @node Datagrams
-@section Datagrams 
+@section Datagrams
 @cindex datagrams
 
   A datagram connection communicates with individual packets rather
@@ -1951,7 +1970,7 @@ the port number.
 
 @example
 (featurep 'make-network-process '(@var{keyword} @var{value}))
-@end example 
+@end example
 
 @noindent
 The result of the first form is @code{t} if it works to specify
@@ -1977,7 +1996,7 @@ Non-@code{nil} if the system can select the port for a server.
 
 @example
 (featurep 'make-network-process '@var{keyword})
-@end example 
+@end example
 
 Here are some of the option @var{keyword}s you can test in
 this way.

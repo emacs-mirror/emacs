@@ -886,7 +886,7 @@ make_temp_name (prefix, base64_p)
      int base64_p;
 {
   Lisp_Object val;
-  int len;
+  int len, clen;
   int pid;
   unsigned char *p, *data;
   char pidbuf[20];
@@ -921,8 +921,10 @@ make_temp_name (prefix, base64_p)
 #endif
     }
 
-  len = SCHARS (prefix);
-  val = make_uninit_string (len + 3 + pidlen);
+  len = SBYTES (prefix); clen = SCHARS (prefix);
+  val = make_uninit_multibyte_string (clen + 3 + pidlen, len + 3 + pidlen);
+  if (!STRING_MULTIBYTE (prefix))
+    STRING_SET_UNIBYTE (val);
   data = SDATA (val);
   bcopy(SDATA (prefix), data, len);
   p = data + len;
@@ -4866,7 +4868,7 @@ instead of any buffer contents; END is ignored.
 Optional fourth argument APPEND if non-nil means
   append to existing file contents (if any).  If it is an integer,
   seek to that offset in the file before writing.
-Optional fifth argument VISIT if t means
+Optional fifth argument VISIT, if t or a string, means
   set the last-save-file-modtime of buffer to this file's modtime
   and mark buffer not modified.
 If VISIT is a string, it is a second file name;
@@ -6191,7 +6193,10 @@ DIR should be an absolute directory name.  It defaults to the value of
 
 If this command was invoked with the mouse, use a file dialog box if
 `use-dialog-box' is non-nil, and the window system or X toolkit in use
-provides a file dialog box.  */)
+provides a file dialog box.
+
+See also `read-file-name-completion-ignore-case'
+and `read-file-name-function'.  */)
      (prompt, dir, default_filename, mustmatch, initial, predicate)
      Lisp_Object prompt, dir, default_filename, mustmatch, initial, predicate;
 {
@@ -6299,7 +6304,7 @@ provides a file dialog box.  */)
 
   GCPRO2 (insdef, default_filename);
 
-#if defined (USE_MOTIF) || defined (HAVE_NTGUI) || defined (USE_GTK)
+#if defined (USE_MOTIF) || defined (HAVE_NTGUI) || defined (USE_GTK) || defined (TARGET_API_MAC_CARBON)
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
       && use_dialog_box
       && use_file_dialog
