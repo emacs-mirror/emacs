@@ -435,8 +435,9 @@ redisplay ()
   if (((!NILP (Vtransient_mark_mode)
 	&& !NILP (XBUFFER (w->buffer)->mark_active))
        != !NILP (w->region_showing))
-      || !EQ (w->region_showing,
-	      Fmarker_position (XBUFFER (w->buffer)->mark)))
+      || (!NILP (w->region_showing)
+	  && !EQ (w->region_showing,
+		  Fmarker_position (XBUFFER (w->buffer)->mark))))
     this_line_bufpos = -1;
 
   tlbufpos = this_line_bufpos;
