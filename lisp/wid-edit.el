@@ -1002,19 +1002,20 @@ This is much faster, but doesn't work reliably on Emacs 19.34.")
   "Move point to the ARG next field or button.
 ARG may be negative to move backward."
   (or (bobp) (> arg 0) (backward-char))
-  (let ((pos (point))
+  (let ((wrapped 0)
 	(number arg)
 	(old (widget-tabable-at))
 	new)
     ;; Forward.
     (while (> arg 0)
       (cond ((eobp)
-	     (goto-char (point-min)))
+	     (goto-char (point-min))
+	     (setq wrapped (1+ wrapped)))
 	    (widget-use-overlay-change
 	     (goto-char (next-overlay-change (point))))
 	    (t
 	     (forward-char 1)))
-      (and (eq pos (point))
+      (and (= wrapped 2)
 	   (eq arg number)
 	   (error "No buttons or fields found"))
       (let ((new (widget-tabable-at)))
@@ -1025,12 +1026,13 @@ ARG may be negative to move backward."
     ;; Backward.
     (while (< arg 0)
       (cond ((bobp)
-	     (goto-char (point-max)))
+	     (goto-char (point-max))
+	     (setq wrapped (1+ wrapped)))
 	    (widget-use-overlay-change
 	     (goto-char (previous-overlay-change (point))))
 	    (t
 	     (backward-char 1)))
-      (and (eq pos (point))
+      (and (= wrapped 2)
 	   (eq arg number)
 	   (error "No buttons or fields found"))
       (let ((new (widget-tabable-at)))
