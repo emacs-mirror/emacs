@@ -8603,7 +8603,7 @@ x_scroll_bar_to_input_event (event, ievent)
 
 /* Scroll bar callback for Motif scroll bars.  WIDGET is the scroll
    bar widget.  CLIENT_DATA is a pointer to the scroll_bar structure.
-   CALL_DATA is a pointer a a XmScrollBarCallbackStruct.  */
+   CALL_DATA is a pointer to a XmScrollBarCallbackStruct.  */
 
 static void
 xm_scroll_callback (widget, client_data, call_data)

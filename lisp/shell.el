@@ -31,9 +31,9 @@
 ;;     - Olin Shivers (shivers@cs.cmu.edu)
 ;;     - Simon Marshall (simon@gnu.org)
 
-;; This file defines a a shell-in-a-buffer package (shell mode) built
-;; on top of comint mode.  This is actually cmushell with things
-;; renamed to replace its counterpart in Emacs 18.  cmushell is more
+;; This file defines a shell-in-a-buffer package (shell mode) built on
+;; top of comint mode.  This is actually cmushell with things renamed
+;; to replace its counterpart in Emacs 18.  cmushell is more
 ;; featureful, robust, and uniform than the Emacs 18 version.
 
 ;; Since this mode is built on top of the general command-interpreter-in-

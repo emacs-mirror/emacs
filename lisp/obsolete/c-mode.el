@@ -1120,7 +1120,7 @@ Otherwise return nil and don't move point."
 	      (setq done 'succeed)
 	    ;; Otherwise, if we skipped a semicolon, we lose.
 	    ;; (Exception: we can skip one semicolon before getting
-	    ;; to a the last token of the statement, unless that token
+	    ;; to the last token of the statement, unless that token
 	    ;; is a close brace.)
 	    (if (save-excursion
 		  (forward-sexp 1)

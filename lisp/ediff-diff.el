@@ -1287,7 +1287,7 @@ arguments to `skip-chars-forward'."
      (setq diff-string (buffer-substring-no-properties beg end))
 
      (set-buffer out-buffer)
-     ;; Make sure that temp buff syntax table is the same a the original buf
+     ;; Make sure that temp buff syntax table is the same as the original buf
      ;; syntax tbl, because we use ediff-forward-word in both and
      ;; ediff-forward-word depends on the syntax classes of characters.
      (set-syntax-table inbuf-syntax-tbl)
