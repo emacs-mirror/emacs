@@ -213,15 +213,18 @@ encode_coding_XXX (coding, source, destination, src_bytes, dst_bytes)
 
 /* Decode one ASCII character C.  */
 
-#define DECODE_CHARACTER_ASCII(c)				\
-  do {								\
-    if (COMPOSING_P (coding->composing))			\
-      *dst++ = 0xA0, *dst++ = (c) | 0x80;			\
-    else							\
-      {								\
-	*dst++ = (c);						\
-	coding->produced_char++;				\
-      }								\
+#define DECODE_CHARACTER_ASCII(c)		\
+  do {						\
+    if (COMPOSING_P (coding->composing))	\
+      {						\
+	*dst++ = 0xA0, *dst++ = (c) | 0x80;	\
+	coding->composed_chars++;		\
+      }						\
+    else					\
+      {						\
+	*dst++ = (c);				\
+	coding->produced_char++;		\
+      }						\
   } while (0)
 
 /* Decode one DIMENSION1 character whose charset is CHARSET and whose
@@ -231,7 +234,10 @@ encode_coding_XXX (coding, source, destination, src_bytes, dst_bytes)
   do {									\
     unsigned char leading_code = CHARSET_LEADING_CODE_BASE (charset);	\
     if (COMPOSING_P (coding->composing))				\
-      *dst++ = leading_code + 0x20;					\
+      {									\
+	*dst++ = leading_code + 0x20;					\
+	coding->composed_chars++;					\
+      }									\
     else								\
       {									\
 	*dst++ = leading_code;						\
@@ -997,9 +1003,7 @@ check_composing_code (coding, src, src_end)
 	    invalid_code_found = 1;
 	}
     }
-  return (invalid_code_found
-	  ? src - src_start
-	  : (coding->mode & CODING_MODE_LAST_BLOCK ? 0 : -1));
+  return (invalid_code_found ? src - src_start : -1);
 }
 
 /* See the above "GENERAL NOTES on `decode_coding_XXX ()' functions".  */
@@ -1030,6 +1034,7 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
     translation_table = Vstandard_translation_table_for_decode;
 
   coding->produced_char = 0;
+  coding->composed_chars = 0;
   coding->fake_multibyte = 0;
   while (src < src_end && (dst_bytes
 			   ? (dst < adjusted_dst_end)
@@ -1243,7 +1248,7 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 		    coding->composing = (c1 == '0'
 					 ? COMPOSING_NO_RULE_HEAD
 					 : COMPOSING_WITH_RULE_HEAD);
-		    coding->produced_char++;
+		    coding->composed_chars = 0;
 		  }
 		else if (result1 > 0)
 		  {
@@ -1253,6 +1258,7 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 			src += result1;
 			dst += result1 + 2;
 			coding->produced_char += result1 + 2;
+			coding->fake_multibyte = 1;
 		      }
 		    else
 		      {
@@ -1266,6 +1272,28 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 	      break;
 
 	    case '1':		/* end composing */
+	      if (coding->composed_chars > 0)
+		{
+		  if (coding->composed_chars == 1)
+		    {
+		      unsigned char *this_char_start = dst;
+		      int this_bytes;
+
+		      /* Only one character is in the composing
+			 sequence.  Make it a normal character.  */
+		      while (*--this_char_start != LEADING_CODE_COMPOSITION);
+		      dst = (this_char_start
+			     + (coding->composing == COMPOSING_NO_RULE_TAIL
+				? 1 : 2));
+		      *dst -= 0x20;
+		      if (*dst == 0x80)
+			*++dst &= 0x7F;
+		      this_bytes = BYTES_BY_CHAR_HEAD (*dst);
+		      while (this_bytes--) *this_char_start++ = *dst++;
+		      dst = this_char_start;
+		    }
+		  coding->produced_char++;
+		}
 	      coding->composing = COMPOSING_NO;
 	      break;
 
@@ -3938,30 +3966,45 @@ shrink_decoding_region (beg, end, coding, str)
 
 	case CODING_CATEGORY_IDX_ISO_7:
 	case CODING_CATEGORY_IDX_ISO_7_TIGHT:
-	  /* We can skip all charactes at the tail except for ESC and
-             the following 2-byte at the tail.  */
-	  if (eol_conversion)
-	    while (begp < endp
-		   && (c = endp[-1]) != ISO_CODE_ESC && c != '\r')
-	      endp--;
-	  else
-	    while (begp < endp
-		   && (c = endp[-1]) != ISO_CODE_ESC)
-	      endp--;
-	  /* Do not consider LF as ascii if preceded by CR, since that
-             confuses eol decoding. */
-	  if (begp < endp && endp < endp_orig && endp[-1] == '\r' && endp[0] == '\n')
-	    endp++;
-	  if (begp < endp && endp[-1] == ISO_CODE_ESC)
-	    {
-	      if (endp + 1 < endp_orig && end[0] == '(' && end[1] == 'B')
-		/* This is an ASCII designation sequence.  We can
-                    surely skip the tail.  */
-		endp += 2;
-	      else
-		/* Hmmm, we can't skip the tail.  */
-		endp = endp_orig;
-	    }
+	  {
+	    /* We can skip all charactes at the tail except for 8-bit
+	       codes and ESC and the following 2-byte at the tail.  */
+	    unsigned char *eight_bit = NULL;
+
+	    if (eol_conversion)
+	      while (begp < endp
+		     && (c = endp[-1]) != ISO_CODE_ESC && c != '\r')
+		{
+		  if (!eight_bit && c & 0x80) eight_bit = endp;
+		  endp--;
+		}
+	    else
+	      while (begp < endp
+		     && (c = endp[-1]) != ISO_CODE_ESC)
+		{
+		  if (!eight_bit && c & 0x80) eight_bit = endp;
+		  endp--;
+		}
+	    /* Do not consider LF as ascii if preceded by CR, since that
+	       confuses eol decoding. */
+	    if (begp < endp && endp < endp_orig
+		&& endp[-1] == '\r' && endp[0] == '\n')
+	      endp++;
+	    if (begp < endp && endp[-1] == ISO_CODE_ESC)
+	      {
+		if (endp + 1 < endp_orig && end[0] == '(' && end[1] == 'B')
+		  /* This is an ASCII designation sequence.  We can
+		     surely skip the tail.  But, if we have
+		     encountered an 8-bit code, skip only the codes
+		     after that.  */
+		  endp = eight_bit ? eight_bit : endp + 2;
+		else
+		  /* Hmmm, we can't skip the tail.  */
+		  endp = endp_orig;
+	      }
+	    else if (eight_bit)
+	      endp = eight_bit;
+	  }
 	}
     }
   *beg += begp - begp_orig;
@@ -4524,9 +4567,7 @@ code_convert_string (str, coding, encodep, nocopy)
       else
 	shrink_decoding_region (&from, &to_byte, coding, XSTRING (str)->data);
     }
-  if (from == to_byte
-      && ! (coding->mode & CODING_MODE_LAST_BLOCK
-	    && CODING_REQUIRE_FLUSHING (coding)))
+  if (from == to_byte)
     return (nocopy ? str : Fcopy_sequence (str));
 
   if (encodep)
