@@ -460,9 +460,11 @@ extern void re_set_registers
   _RE_ARGS ((struct re_pattern_buffer *buffer, struct re_registers *regs,
              unsigned num_regs, regoff_t *starts, regoff_t *ends));
 
+#ifdef _REGEX_RE_COMP
 /* 4.2 bsd compatibility.  */
 extern char *re_comp _RE_ARGS ((const char *));
 extern int re_exec _RE_ARGS ((const char *));
+#endif
 
 /* POSIX compatibility.  */
 extern int regcomp _RE_ARGS ((regex_t *preg, const char *pattern, int cflags));
