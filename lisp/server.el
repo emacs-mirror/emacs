@@ -136,7 +136,7 @@ by the programs that invoke the emacs server.")
   "Allow this Emacs process to be a server for client processes.
 This starts a server communications subprocess through which
 client \"editors\" can send your editing commands to this Emacs job.
-To use the server, set up the program `etc/emacsclient' in the
+To use the server, set up the program `emacsclient' in the
 Emacs distribution as your standard \"editor\".
 
 Prefix arg means just kill any existing server communications subprocess."
