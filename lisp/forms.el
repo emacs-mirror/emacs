@@ -285,7 +285,7 @@
 (defconst forms-version (substring "$Revision: 2.14 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.14 1995/04/16 14:02:14 jv Exp $")
+  $Id: forms.el,v 2.14 1995/04/25 17:44:28 rms Exp rms $")
 
 (defvar forms-mode-hooks nil
   "Hook functions to be run upon entering Forms mode.")
@@ -1234,7 +1234,6 @@ Commands:                        Equivalent keys in read-only mode:
   (define-key forms-mode-map "\C-x" 'forms-exit)
   (define-key forms-mode-map "<" 'forms-first-record)
   (define-key forms-mode-map ">" 'forms-last-record)
-  (define-key forms-mode-map "?" 'describe-mode)
   (define-key forms-mode-map "\C-?" 'forms-prev-record)
 
   ;; `forms-mode-ro-map' replaces the local map when in read-only mode.
