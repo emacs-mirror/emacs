@@ -34,6 +34,11 @@
 #include <assert.h>
 #include "getopt.h"
 
+/* The SunOS compiler doesn't have SEEK_END.  */
+#ifndef SEEK_END
+#define SEEK_END 2
+#endif
+
 /* Conditionalize function prototypes.  */
 
 #ifdef PROTOTYPES		/* From config.h.  */
