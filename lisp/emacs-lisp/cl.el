@@ -472,20 +472,6 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 ;;    (while (consp (cdr x)) (pop x))
 ;;    x))
 
-(defun butlast (x &optional n)
-  "Returns a copy of LIST with the last N elements removed."
-  (if (and n (<= n 0)) x
-    (nbutlast (copy-sequence x) n)))
-
-(defun nbutlast (x &optional n)
-  "Modifies LIST to remove the last N elements."
-  (let ((m (length x)))
-    (or n (setq n 1))
-    (and (< n m)
-	 (progn
-	   (if (> n 0) (setcdr (nthcdr (- (1- m) n) x) nil))
-	   x))))
-
 (defun list* (arg &rest rest)   ; See compiler macro in cl-macs.el
   "Return a new list with specified args as elements, cons'd to last arg.
 Thus, `(list* A B C D)' is equivalent to `(nconc (list A B C) D)', or to
