@@ -1,5 +1,10 @@
 2003-07-31  Kenichi Handa  <handa@m17n.org>
 
+	* process.c (read_process_output): Return the actually read bytes
+	instead of the result of decoding.
+
+2003-07-31  Kenichi Handa  <handa@m17n.org>
+
 	* xterm.h (struct x_bitmap_record): New member have_mask.
 
 	* xfns.c (x_create_bitmap_from_data): Initialize have_mask member
