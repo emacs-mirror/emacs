@@ -558,9 +558,6 @@ This filter may simply queue output for a later time."
     ("field-end" gdb-field-end)
     ) "An assoc mapping annotation tags to functions which process them.")
 
-(defun gdb-ignore-annotation (args)
-  nil)
-
 (defconst gdb-source-spec-regexp
   "\\(.*\\):\\([0-9]*\\):[0-9]*:[a-z]*:\\(0x[a-f0-9]*\\)")
 
@@ -2002,11 +1999,6 @@ the source buffer."
 
 ;;; Shared keymap initialization:
 
-(define-key gud-menu-map [gdb-many-windows]
-  (menu-bar-make-toggle gdb-many-windows gdb-many-windows
-			"Display other windows" "Many Windows %s"
-			"Display locals, stack and breakpoint information"))
-
 (let ((menu (make-sparse-keymap "GDB-Frames")))
   (define-key gud-menu-map [frames]
     `(menu-item "GDB-Frames" ,menu :visible (eq gud-minor-mode 'gdba)))
@@ -2034,7 +2026,8 @@ the source buffer."
 )
 
 (let ((menu (make-sparse-keymap "View")))
-   (define-key gud-menu-map [view] `(menu-item "View" ,menu))
+   (define-key gud-menu-map [view] 
+     `(menu-item "View" ,menu :visible (eq gud-minor-mode 'gdba)))
 ;  (define-key menu [both] '(menu-item "Both" gdb-view-both
 ;	       :help "Display both source and assembler"
 ;	       :button (:radio . (eq gdb-selected-view 'both))))
@@ -2044,6 +2037,16 @@ the source buffer."
    (define-key menu [source] '(menu-item "Source" gdb-view-source-function
 	       :help "Display source only"
 	       :button (:radio . (eq gdb-selected-view 'source)))))
+
+(let ((menu (make-sparse-keymap "GDB-UI")))
+  (define-key gud-menu-map [ui]
+    `(menu-item "GDB-UI" ,menu :visible (eq gud-minor-mode 'gdba)))
+  (define-key menu [gdb-restore-windows]
+    '("Restore window layout" . gdb-restore-windows))
+  (define-key menu [gdb-many-windows]
+    (menu-bar-make-toggle gdb-many-windows gdb-many-windows
+			  "Display other windows" "Many Windows %s"
+			  "Display locals, stack and breakpoint information")))
 
 (defun gdb-frame-gdb-buffer ()
   (interactive)
@@ -2091,7 +2094,8 @@ the source buffer."
   (other-window 1)
   (switch-to-buffer (gdb-locals-buffer-name))
   (other-window 1)
-  (if gdb-view-source
+  (if (and gdb-view-source 
+	   (eq gdb-selected-view 'source))
       (switch-to-buffer
        (if gud-last-last-frame
 	   (gud-find-file (car gud-last-last-frame))
@@ -2136,7 +2140,8 @@ This arrangement depends on the value of `gdb-many-windows'."
     (delete-other-windows)
     (split-window)
     (other-window 1)
-    (if gdb-view-source
+    (if (and gdb-view-source 
+	   (eq gdb-selected-view 'source))
 	(switch-to-buffer
 	 (if gud-last-last-frame
 	     (gud-find-file (car gud-last-last-frame))
