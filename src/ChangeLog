@@ -1,3 +1,8 @@
+2000-04-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_produce_glyphs) <ASCII chars>: Take into account 
+	that the per-character metrics may be null.
+
 2000-04-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* buffer.c (clone_per_buffer_values): New function.
