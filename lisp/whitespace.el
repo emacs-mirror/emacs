@@ -5,7 +5,7 @@
 ;; Author: Rajesh Vaidheeswarran <rv@gnu.org>
 ;; Keywords: convenience
 
-;; $Id: whitespace.el,v 1.22 2002/12/03 00:10:40 schwab Exp $
+;; $Id: whitespace.el,v 1.23 2003/05/13 14:30:58 rv Exp $
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -24,42 +24,42 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
-
-;; Whitespace.el URL: http://www.dsmit.com/lisp/
-
+;;
+;; URL: http://www.dsmit.com/lisp/
+;;
 ;; The whitespace library is intended to find and help fix five different types
 ;; of whitespace problems that commonly exist in source code.
-
+;;
 ;; 1. Leading space (empty lines at the top of a file).
 ;; 2. Trailing space (empty lines at the end of a file).
 ;; 3. Indentation space (8 or more spaces at beginning of line, that should be
 ;; 		      replaced with TABS).
 ;; 4. Spaces followed by a TAB.  (Almost always, we never want that).
 ;; 5. Spaces or TABS at the end of a line.
-
+;;
 ;; Whitespace errors are reported in a buffer, and on the modeline.
-
+;;
 ;; Modeline will show a W:<x>!<y> to denote a particular type of whitespace,
 ;; where `x' and `y' can be one (or more) of:
-
+;;
 ;; e - End-of-Line whitespace.
 ;; i - Indentation whitespace.
 ;; l - Leading whitespace.
 ;; s - Space followed by Tab.
 ;; t - Trailing whitespace.
-
+;;
 ;; If any of the whitespace checks is turned off, the modeline will display a
 ;; !<y>.
-
+;;
 ;;     (since (3) is the most controversial one, here is the rationale: Most
 ;;     terminal drivers and printer drivers have TAB configured or even
 ;;     hardcoded to be 8 spaces.  (Some of them allow configuration, but almost
 ;;     always they default to 8.)
-
+;;
 ;;     Changing `tab-width' to other than 8 and editing will cause your code to
 ;;     look different from within Emacs, and say, if you cat it or more it, or
 ;;     even print it.
-
+;;
 ;;     Almost all the popular programming modes let you define an offset (like
 ;;     c-basic-offset or perl-indent-level) to configure the offset, so you
 ;;     should never have to set your `tab-width' to be other than 8 in all
@@ -68,16 +68,16 @@
 ;;     your office complain, tell them to use vim, which distinguishes between
 ;;     tabstop and shiftwidth (vi equivalent of our offsets), and also ask them
 ;;     to set smarttab.)
-
+;;
 ;; All the above have caused (and will cause) unwanted codeline integration and
 ;; merge problems.
-
+;;
 ;; whitespace.el will complain if it detects whitespaces on opening a file, and
 ;; warn you on closing a file also (in case you had inserted any
 ;; whitespaces during the process of your editing).
-
+;;
 ;; Exported functions:
-
+;;
 ;; `whitespace-buffer' - To check the current buffer for whitespace problems.
 ;; `whitespace-cleanup' - To cleanup all whitespaces in the current buffer.
 ;; `whitespace-region' - To check between point and mark for whitespace
@@ -87,7 +87,7 @@
 
 ;;; Code:
 
-(defvar whitespace-version "3.2" "Version of the whitespace library.")
+(defvar whitespace-version "3.3" "Version of the whitespace library.")
 
 (defvar whitespace-all-buffer-files nil
   "An associated list of buffers and files checked for whitespace cleanliness.
@@ -172,10 +172,12 @@ don't define defcustom"
   "Check for and fix five different types of whitespaces in source code."
   ;; Since XEmacs doesn't have a 'convenience group, use the next best group
   ;; which is 'editing?
+  :link '(emacs-commentary-link "whitespace.el")
   :group 'editing)
 (defgroup whitespace nil
   "Check for and fix five different types of whitespaces in source code."
   :version "21.1"
+  :link '(emacs-commentary-link "whitespace.el")
   :group 'convenience))
 
 (defcustom whitespace-check-leading-whitespace t
@@ -818,7 +820,6 @@ With ARG, turn the mode on if and only iff ARG is positive.
 When this mode is active, `whitespace-buffer' is added to
 `find-file-hook' and `kill-buffer-hook'."
   :global t
-  :link '(emacs-commentary-link :tag "Commentary" "whitespace.el")
   :group 'whitespace
   (if whitespace-global-mode
       (progn

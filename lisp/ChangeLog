@@ -1,3 +1,10 @@
+2003-06-10  Rajesh Vaidheeswarran  <rv@gnu.org>
+
+	* whitespace.el (whitespace-version): bump to 3.3
+	* whitespace.el: Remove :tag in commentary :link. Remove empty
+	lines in comment, since commentary seems to have a problem with that.
+	
+
 2003-06-09  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* bindings.el (global-map): Bind `kill-whole-line' to
