@@ -1,3 +1,14 @@
+2003-01-05  Dave Love  <fx@gnu.org>
+
+	* buff-menu.el (Buffer-menu-execute): Fix for effect of header
+	line.
+
+	* international/mule-diag.el (non-iso-charset-alist): Add
+	vietnamese-tcvn.
+
+	* international/mule-cmds.el (locale-language-names): Use
+	Croatian, Swedish.
+
 2003-01-05  Andreas Schwab  <schwab@suse.de>
 
 	* buff-menu.el (Buffer-menu-buffer+size): Don't clobber buffer
