@@ -31,6 +31,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  Then comes the documentation for that function or variable.
  */
 
+#define NO_SHORTNAMES   /* Tell config not to load remap.h */
+#include <../src/config.h>
+
 #include <stdio.h>
 #ifdef MSDOS
 #include <fcntl.h>
@@ -84,11 +87,11 @@ fatal (s1, s2)
 
 /* Like malloc but get fatal error if memory is exhausted.  */
 
-char *
+long *
 xmalloc (size)
      unsigned int size;
 {
-  char *result = (char *) malloc (size);
+  long *result = (long *) malloc (size);
   if (result == NULL)
     fatal ("virtual memory exhausted", 0);
   return result;
