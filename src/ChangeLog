@@ -1,5 +1,13 @@
 2001-12-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (notice_overwritten_cursor): Don't depend on
+	output_cursor and updated_area.  Compare pixel coordinates with
+	window's cursor pixel coordinates.
+	(x_draw_glyphs, x_clear_end_of_line, show_mouse_face): Call
+	notice_overwritten_cursor with new arg list.
+	(show_mouse_face): Fix bug setting a row's mouse_face_p flag
+	unconditionally.
+	
 	* xdisp.c (try_scrolling) <PT below scroll margin>: Add the
 	height of the cursor line to the amount to scroll.
 
