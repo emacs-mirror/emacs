@@ -2990,6 +2990,12 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 (defvar auto-save-hook nil
   "Normal hook run just before auto-saving.")
 
+(defcustom before-save-hook nil
+  "Normal hook that is run before a buffer is saved to its file."
+  :options '(copyright-update)
+  :type 'hook
+  :group 'files)
+
 (defcustom after-save-hook nil
   "Normal hook that is run after a buffer is saved to its file."
   :options '(executable-make-buffer-file-executable-if-script-p)
@@ -3012,7 +3018,8 @@ in such cases.")
 The hooks `write-contents-functions' and `write-file-functions' get a chance
 to do the job of saving; if they do not, then the buffer is saved in
 the visited file file in the usual way.
-After saving the buffer, this function runs `after-save-hook'."
+Before and after saving the buffer, this function runs
+`before-save-hook' and `after-save-hook', respectively."
   (interactive)
   (save-current-buffer
     ;; In an indirect buffer, save its base buffer instead.
@@ -3068,6 +3075,7 @@ After saving the buffer, this function runs `after-save-hook'."
 		     (insert ?\n))))
 	    ;; Support VC version backups.
 	    (vc-before-save)
+	    (run-hooks 'before-save-hook)
 	    (or (run-hook-with-args-until-success 'write-contents-functions)
 		(run-hook-with-args-until-success 'local-write-file-hooks)
 		(run-hook-with-args-until-success 'write-file-functions)
