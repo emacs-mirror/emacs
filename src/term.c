@@ -1904,7 +1904,7 @@ produce_special_glyphs (it, what)
 	  && GLYPH_CHAR_VALID_P (XINT (DISP_CONTINUE_GLYPH (it->dp))))
 	{
 	  temp_it.c = FAST_GLYPH_CHAR (XINT (DISP_CONTINUE_GLYPH (it->dp)));
-	  temp_it.len = CHAR_LEN (temp_it.c);
+	  temp_it.len = CHAR_BYTES (temp_it.c);
 	}
       else
 	temp_it.c = '\\';
@@ -1921,7 +1921,7 @@ produce_special_glyphs (it, what)
 	  && GLYPH_CHAR_VALID_P (XINT (DISP_TRUNC_GLYPH (it->dp))))
 	{
 	  temp_it.c = FAST_GLYPH_CHAR (XINT (DISP_TRUNC_GLYPH (it->dp)));
-	  temp_it.len = CHAR_LEN (temp_it.c);
+	  temp_it.len = CHAR_BYTES (temp_it.c);
 	}
       else
 	temp_it.c = '$';
