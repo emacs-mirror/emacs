@@ -182,6 +182,11 @@ The variables are saved only when they really are local.")
   :type 'regexp
   :group 'desktop)
 
+(defcustom desktop-modes-not-to-save nil
+  "List of major modes whose buffers should not be saved."
+  :type '(repeat symbol)
+  :group 'desktop)
+
 (defcustom desktop-buffer-major-mode nil
   "When desktop creates a buffer, this holds the desired Major mode."
   :type 'symbol
@@ -427,16 +432,17 @@ which means to truncate VAR's value to at most MAX-SIZE elements
 FILENAME is the visited file name, BUFNAME is the buffer name, and
 MODE is the major mode."
   (let ((case-fold-search nil))
-    (or (and filename
-	     (not (string-match desktop-buffers-not-to-save bufname))
-	     (not (string-match desktop-files-not-to-save filename)))
-	(and (eq mode 'dired-mode)
-	     (save-excursion
-	       (set-buffer (get-buffer bufname))
-	       (not (string-match desktop-files-not-to-save
-				  default-directory))))
-	(and (null filename)
-	     (memq mode '(Info-mode rmail-mode))))))
+    (and (not (string-match desktop-buffers-not-to-save bufname))
+	 (not (memq mode desktop-modes-not-to-save))
+	 (or (and filename
+		  (not (string-match desktop-files-not-to-save filename)))
+	     (and (eq mode 'dired-mode)
+		  (save-excursion
+		    (set-buffer (get-buffer bufname))
+		    (not (string-match desktop-files-not-to-save
+				       default-directory))))
+	     (and (null filename)
+		  (memq mode '(Info-mode rmail-mode)))))))
 ;; ----------------------------------------------------------------------------
 (defun desktop-save (dirname)
   "Save the Desktop file.  Parameter DIRNAME specifies where to save desktop."
@@ -616,7 +622,10 @@ to provide correct modes for autoloaded files."
 		   (y-or-n-p (format
 			      "File \"%s\" no longer exists. Re-create? "
 			      desktop-buffer-file-name))))
-	  (progn (find-file desktop-buffer-file-name) (current-buffer))
+	  (let ((buf (find-file-noselect desktop-buffer-file-name)))
+	    (condition-case nil
+		(switch-to-buffer buf)
+	      (error (pop-to-buffer buf))))
 	'ignored)))
 ;; ----------------------------------------------------------------------------
 ;; Create a buffer, load its file, set is mode, ...;  called from Desktop file
@@ -687,4 +696,4 @@ to provide correct modes for autoloaded files."
 
 (provide 'desktop)
 
-;; desktop.el ends here.
+;;; desktop.el ends here
