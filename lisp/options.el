@@ -53,7 +53,10 @@
 	  (princ (substitute-command-keys 
 		  (documentation-property sym 'variable-documentation)))
 	  (princ "\n;;\n"))
-	(setq vars (cdr vars))))))
+	(setq vars (cdr vars)))))
+  (save-excursion
+    (set-buffer "*List Options*")
+    (setq buffer-read-only t)))
 
 ;;;###autoload
 (defun edit-options ()
@@ -119,7 +122,7 @@ For convenience, the characters \\[backward-paragraph] and \\[forward-paragraph]
 
 (defun Edit-options-modify (modfun)
   (save-excursion
-   (let (var pos)
+   (let ((buffer-read-only nil) var pos)
      (re-search-backward "^;; \\|\\`")
      (forward-char 3)
      (setq pos (point))
