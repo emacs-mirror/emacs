@@ -273,7 +273,8 @@ file the tag was in."
 		;; This table is not in core yet.  Insert a placeholder
 		;; saying we must read it into core to check for included
 		;; tables before searching the next table in the list.
-		(setq computed (cons t computed))))
+		(setq computed (cons t computed)))
+	      (setq tables (cdr tables)))
 	    (setq computed (nreverse computed))
 	    ;; COMPUTED now contains the list of included tables (and
 	    ;; tables included by them, etc.).  Now splice this into the
