@@ -488,7 +488,7 @@ changed by, or (parse-state) if line starts in a quoted string."
 		((looking-at (or nochange perl-nochange)) 0)
 		(t
 		 (skip-chars-forward " \t\f")
-		 (cond ((looking-at "\\(\\w\\|\\s_\\)+:")
+		 (cond ((looking-at "\\(\\w\\|\\s_\\)+:[^:]")
 			(setq indent (max 1 (+ indent perl-label-offset))))
 		       ((= (following-char) ?})
 			(setq indent (- indent perl-indent-level)))
