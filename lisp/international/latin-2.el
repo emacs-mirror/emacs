@@ -33,7 +33,8 @@
 
 (require 'case-table)
 
-(let ((tbl (standard-case-table)))
+(let ((tbl (standard-case-table))
+      (set-case-syntax-charset 'iso-8859-2))
   (set-case-syntax 160 " " tbl)		;no-break space
   (set-case-syntax-pair 161 177 tbl)	;latin letter a with ogonek
   (set-case-syntax 162 "w" tbl)		;breve
@@ -90,11 +91,6 @@
   (set-case-syntax 223 "w" tbl)		;latin small letter sharp s
   (set-case-syntax 247 "_" tbl)		;division sign
   (set-case-syntax 255 "w" tbl))	;dot above
-
-;; When preloading this file, don't provide the feature.
-;; Explicit `require' is used to load this for 8-bit characters.
-(or set-case-syntax-set-multibyte
-    (provide 'latin-2))
 
 ;;; Don't compile this file: src/Makefile.in instructs make-docfile
 ;;; to look at the .el file!
