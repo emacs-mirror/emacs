@@ -171,7 +171,7 @@ pointer looks like an int) but not on all machines.
 
 #ifndef CANNOT_DUMP  /* all rest of file!  */
 
-#ifdef COFF
+#if defined(COFF) && defined(HAVE_COFF_H)
 #include <coff.h>
 #ifdef MSDOS
 #if __DJGPP__ > 1
