@@ -46,7 +46,8 @@
 (message "Using load-path %s" load-path)
 
 ;; We don't want to have any undo records in the dumped Emacs.
-(buffer-disable-undo "*scratch*")
+(set-buffer "*scratch*")
+(setq buffer-undo-list t)
 
 (load "emacs-lisp/byte-run")
 (load "emacs-lisp/backquote")
