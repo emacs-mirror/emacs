@@ -1,3 +1,10 @@
+2002-12-26  Markus Rost  <rost@math.ohio-state.edu>
+
+	* cus-edit.el (customize-group-other-window): Use pop-to-buffer in
+	the same way as `custom-buffer-create-other-window'.
+	(customize-variable-other-window, customize-option-other-window):
+	Definitions moved up.
+
 2002-12-26  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* net/tramp*.el: Sync with upstream version 2.0.28.  Bugfixes.
