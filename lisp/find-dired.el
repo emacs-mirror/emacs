@@ -38,7 +38,11 @@ gives the option (or options) to `find' that produce the desired output.
 LS-SWITCHES is a list of `ls' switches to tell dired how to parse the output.")
 
 ;;;###autoload
-(defvar find-grep-options (if (eq system-type 'berkeley-unix) "-s" "-q")
+(defvar find-grep-options
+  (if (or (eq system-type 'berkeley-unix)
+	  (string-match "solaris2" system-configuration)
+	  (string-match "irix" system-configuration))
+      "-s" "-q")
   "*Option to grep to be as silent as possible.
 On Berkeley systems, this is `-s'; on Posix, and with GNU grep, `-q' does it.
 On other systems, the closest you can come is to use `-l'.")
