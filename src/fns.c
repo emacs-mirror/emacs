@@ -326,9 +326,9 @@ If string STR1 is greater, the value is a positive number N;\n\
 	 past the character that we are comparing;
 	 hence we don't add or subtract 1 here.  */
       if (c1 < c2)
-	return make_number (- i1);
+	return make_number (- i1 + XINT (start1));
       else
-	return make_number (i1);
+	return make_number (i1 - XINT (start1));
     }
 
   if (i1 < end1_char)
