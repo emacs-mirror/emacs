@@ -493,7 +493,7 @@ and use this command with a prefix argument (the value does not matter)."
 	  (t
 	   (if (not (dired-check-process (concat "Compressing " file)
 					 "compress" "-f" file))
-	       (concat name ".Z"))))))
+	       (concat file ".Z"))))))
 
 (defun dired-mark-confirm (op-symbol arg)
   ;; Request confirmation from the user that the operation described
