@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 1 February 1997
+@set lastupdate 19 March 1997
 @c %**end of header
 
 @setchapternewpage off
@@ -53,8 +53,21 @@ tools or programming languages, we have a comparative shortage of
 applications useful for non-programmer users.  Therefore, we ask you to
 consider writing such a program.
 
-In general, a new program that does a completely new job advances the
-GNU project more than an improvement to an existing program.
+Typically, a new program that does a completely new job advances
+the GNU project, and the free software community, more than an
+improvement to an existing program.
+
+Typically, new features or new programs advance the free software
+community more, in the long run, than porting existing programs.  One
+reason is that portable new features and programs benefit people on many
+platforms, not just one.  At the same time, there tend to be many
+volunteers for porting---so your help will be more valuable in other
+areas, where volunteers are more scarce.
+
+Typically, it is more useful to extend a program in functionality than
+to improve performance.  Users who use the new functionality will
+appreciate it very much, if they use it; but even when they benefit from
+a performance improvement, they may not consider it very important.
 
 @node Documentation
 @chapter Documentation
