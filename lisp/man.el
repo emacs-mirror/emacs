@@ -3,8 +3,8 @@
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author:		Barry A. Warsaw <bwarsaw@cen.com>
-;; Last-Modified:	$Date: 1994/10/24 15:34:50 $
-;; Version:		$Revision: 1.55 $
+;; Last-Modified:	$Date: 1994/10/27 19:08:03 $
+;; Version:		$Revision: 1.56 $
 ;; Keywords:		help
 ;; Adapted-By:		ESR, pot
 
@@ -83,9 +83,8 @@
 ;;   headers, and after the page footer.  But it is possible to compute
 ;;   the number of blank lines before the page footer by euristhics
 ;;   only.  Is it worth doing?
-;; - Allow the Man-reuse-okay-flag to be set to 'always, meaning that all
-;;   the manpages should go in the same buffer, where they can be browsed
-;;   with M-n and M-p.
+;; - Allow a user option to mean that all the manpages should go in
+;;   the same buffer, where they can be browsed with M-n and M-p.
 ;; - Allow completion on the manpage name when calling man.  This
 ;;   requires a reliable list of places where manpages can be found.  The
 ;;   drawback would be that if the list is not complete, the user might
@@ -144,13 +143,6 @@ Any other value of `Man-notify-method' is equivalent to `meek'.")
 
 (defvar Man-frame-parameters nil
   "*Frame parameter list for creating a new frame for a manual page.")
-
-(defvar Man-reuse-okay-flag t
-  "*Reuse a manpage buffer if possible.
-If non-nil, and a manpage buffer already exists with the same
-invocation, man just indicates the manpage is ready according to the
-value of `Man-notify-method'.  When nil, it always fires off a
-background process,putting the results in a uniquely named buffer.")
 
 (defvar Man-downcase-section-letters-flag t
   "*Letters in sections are converted to lower case.
@@ -503,31 +495,25 @@ default section number is selected from `Man-auto-section-alist'."
 (defalias 'manual-entry 'man)
 
 ;;;###autoload
-(defun man (man-args prefix-arg)
+(defun man (man-args)
   "Get a Un*x manual page and put it in a buffer.
 This command is the top-level command in the man package.  It runs a Un*x
 command to retrieve and clean a manpage in the background and places the
 results in a Man mode (manpage browsing) buffer.  See variable
 `Man-notify-method' for what happens when the buffer is ready.
-Normally, if a buffer already exists for this man page, it will display
-immediately; either a prefix argument or a nil value to `Man-reuse-okay-flag'
-overrides this and forces the man page to be regenerated."
+If a buffer already exists for this man page, it will display immediately."
   (interactive
-   (list
-    ;; first argument
-    (let* ((default-entry (Man-default-man-entry))
-	   (input (read-string
-		   (format "Manual entry%s: "
-			   (if (string= default-entry "")
-			       ""
-			     (format " (default %s)" default-entry))))))
-      (if (string= input "")
-	  (if (string= default-entry "")
-	      (error "No man args given")
-	    default-entry)
-	input))
-    ;; second argument
-    current-prefix-arg))
+   (list (let* ((default-entry (Man-default-man-entry))
+		(input (read-string
+			(format "Manual entry%s: "
+				(if (string= default-entry "")
+				    ""
+				  (format " (default %s)" default-entry))))))
+	   (if (string= input "")
+	       (if (string= default-entry "")
+		   (error "No man args given")
+		 default-entry)
+	     input))))
 
   ;; Init the man package variables, if not already done.
   (Man-init-defvars)
@@ -536,20 +522,15 @@ overrides this and forces the man page to be regenerated."
   ;; "section subject" syntax and possibly downcase the section.
   (setq man-args (Man-translate-references man-args))
 
-  (Man-getpage-in-background man-args (consp prefix-arg)))
+  (Man-getpage-in-background man-args))
 
 
-(defun Man-getpage-in-background (topic &optional override-reuse-p)
-  "Uses TOPIC to build and fire off the manpage and cleaning command.
-Optional OVERRIDE-REUSE-P, when non-nil, means to
-start a background process even if a buffer already exists and
-`Man-reuse-okay-flag' is non-nil."
+(defun Man-getpage-in-background (topic)
+  "Uses TOPIC to build and fire off the manpage and cleaning command."
   (let* ((man-args topic)
 	 (bufname (concat "*Man " man-args "*"))
 	 (buffer  (get-buffer bufname)))
-    (if (and Man-reuse-okay-flag
-	     (not override-reuse-p)
-	     buffer)
+    (if buffer
 	(Man-notify-when-ready buffer)
       (require 'env)
       (message "Invoking %s %s in the background" manual-program man-args)
@@ -564,8 +545,7 @@ start a background process even if a buffer already exists and
 	(set-process-sentinel
 	 (start-process manual-program buffer "sh" "-c"
 			(format (Man-build-man-command) man-args))
-	 'Man-bgproc-sentinel))
-      )))
+	 'Man-bgproc-sentinel)))))
 
 (defun Man-notify-when-ready (man-buffer)
   "Notify the user when MAN-BUFFER is ready.
@@ -744,7 +724,6 @@ The following variables may be of some use. Try
 \"\\[describe-variable] <variable-name> RET\" for more information:
 
 Man-notify-method               What happens when manpage formatting is done.
-Man-reuse-okay-flag             Reuse already formatted buffer.
 Man-downcase-section-letters-flag  Force section letters to lower case.
 Man-circular-pages-flag         Treat multiple manpage list as circular.
 Man-auto-section-alist          List of major modes and their section numbers.
