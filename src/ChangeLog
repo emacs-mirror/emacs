@@ -1,3 +1,8 @@
+2005-02-05  Andreas Schwab  <schwab@suse.de>
+
+	* sysdep.c (sys_subshell): Properly terminate execlp argument
+	list.
+
 2005-02-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xselect.c (Fx_send_client_event, x_handle_dnd_message): Handle
