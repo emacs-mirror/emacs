@@ -267,6 +267,7 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_SETRLIMIT
 #undef HAVE_SETPGID
 #undef HAVE_GETCWD
+#undef HAVE_GETWD
 #undef HAVE_SHUTDOWN
 #undef HAVE_STRFTIME
 #undef HAVE_GETADDRINFO
@@ -311,6 +312,14 @@ Boston, MA 02111-1307, USA.  */
 #else
 #define INLINE
 #endif
+
+/* Define this if you don't have struct exception in math.h.  */
+#undef NO_MATHERR
+
+/* Define as `void' if your compiler accepts `void *'; otherwise
+   define as `char'.  */
+#undef POINTER_TYPE
+#define PTR POINTER_TYPE *	/* For strftime.c.  */
 
 #undef EMACS_CONFIGURATION
 
@@ -405,9 +414,6 @@ Boston, MA 02111-1307, USA.  */
 #define SIGTYPE RETSIGTYPE
 #endif
 
-/* Define this if you don't have struct exception in math.h.  */
-#undef NO_MATHERR
-
 #ifdef emacs /* Don't do this for lib-src.  */
 /* Tell regex.c to use a type compatible with Emacs.  */
 #define RE_TRANSLATE_TYPE Lisp_Object
@@ -470,11 +476,6 @@ extern char *getenv ();
 #define BITS_PER_LONG 32
 #endif
 #endif
-
-/* Define as `void' if your compiler accepts `void *'; otherwise
-   define as `char'.  */
-#undef POINTER_TYPE
-#define PTR POINTER_TYPE *	/* For strftime.c.  */
 
 /* Define if the compiler supports function prototypes.  It may do so
    but not define __STDC__ (e.g. DEC C by default) or may define it as
