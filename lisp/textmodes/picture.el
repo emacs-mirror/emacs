@@ -1,4 +1,5 @@
-;; "Picture mode" -- editing using quarter-plane screen model.
+;;; picture.el --- "Picture mode" -- editing using quarter-plane screen model.
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 ;; Principal author K. Shane Hartman
 
@@ -559,3 +560,4 @@ With no argument strips whitespace from end of every line in Picture buffer
 
 (provide 'picture)
 
+;;; picture.el ends here

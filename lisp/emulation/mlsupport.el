@@ -1,4 +1,5 @@
-;; Run-time support for mocklisp code.
+;;; mlsupport.el --- run-time support for mocklisp code.
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -404,3 +405,4 @@
 
 (provide 'mlsupport)
 
+;;; mlsupport.el ends here

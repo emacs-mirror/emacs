@@ -1,4 +1,5 @@
-;; Outline mode commands for Emacs
+;;; outline.el --- outline mode commands for Emacs
+
 ;; Copyright (C) 1986 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -395,3 +396,4 @@ and return that position or nil if it cannot be found."
 	nil
         (point))))
 
+;;; outline.el ends here

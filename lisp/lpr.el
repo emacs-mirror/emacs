@@ -1,4 +1,5 @@
-;; Print Emacs buffer on line printer.
+;;; lpr.el --- print Emacs buffer on line printer.
+
 ;; Copyright (C) 1985, 1988, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -94,3 +95,5 @@ See definition of `print-region-1' for calling conventions.")
 	(widen) (erase-buffer)
 	(insert-buffer-substring oldbuf start end)
 	(setq start (point-min) end (point-max)))))
+
+;;; lpr.el ends here

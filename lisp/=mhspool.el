@@ -1,4 +1,5 @@
-;;; MH folder access using NNTP for GNU Emacs
+;;; mhspool.el --- MH folder access using NNTP for GNU Emacs
+
 ;; Copyright (C) 1988, 1989 Fujitsu Laboratories LTD.
 ;; Copyright (C) 1988, 1989, 1990 Masanobu UMEDA
 ;; $Header: mhspool.el,v 1.5 90/03/23 13:25:23 umerin Locked $
@@ -403,3 +404,5 @@ If the stream is opened, return T, otherwise return NIL."
     ))
 
 (provide 'mhspool)
+
+;;; mhspool.el ends here

@@ -1,4 +1,5 @@
-;; Non-primitive commands for keyboard macros.
+;;; macros.el --- non-primitive commands for keyboard macros.
+
 ;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -173,3 +174,5 @@ and then select the region of un-tablified names and use
 
 ;;;###autoload
 (define-key ctl-x-map "q" 'kbd-macro-query)
+
+;;; macros.el ends here

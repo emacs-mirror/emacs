@@ -1,4 +1,5 @@
-;; Syntax checker for Mim (MDL).
+;;; mim-syntax.el --- syntax checker for Mim (MDL).
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 ;; Principal author K. Shane Hartman
 
@@ -87,5 +88,4 @@ Answers correct or incorrect, cannot point out the error context."
 	  (message "Syntax correct")
 	(error "Syntax incorrect")))))
 
-
-	
+;;; mim-syntax.el ends here

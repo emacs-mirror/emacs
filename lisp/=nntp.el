@@ -1,4 +1,5 @@
-;;; NNTP (RFC977) Interface for GNU Emacs
+;;; nntp.el --- NNTP (RFC977) Interface for GNU Emacs
+
 ;; Copyright (C) 1987, 1988, 1989 Fujitsu Laboratories LTD.
 ;; Copyright (C) 1987, 1988, 1989, 1990 Masanobu UMEDA
 ;; $Header: nntp.el,v 3.10 90/03/23 13:25:27 umerin Locked $
@@ -666,3 +667,4 @@ defining this function as macro."
 
 (provide 'nntp)
 
+;;; nntp.el ends here

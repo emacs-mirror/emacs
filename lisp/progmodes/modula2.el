@@ -1,4 +1,5 @@
-; Modula-2 editing support package
+;;; modula2.el --- Modula-2 editing support package
+
 ; Author Mick Jordan
 ; amended Peter Robinson
 ; ported to GNU Michael Schmidt
@@ -437,3 +438,5 @@ FROM SysStreams IMPORT sysIn, sysOut, sysErr;
 	((string-equal (substring (buffer-name) -3) ".md")
 	 (find-file-other-window
 	  (concat (substring (buffer-name) 0 -3)  ".mi")))))
+
+;;; modula2.el ends here

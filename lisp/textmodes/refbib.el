@@ -1,4 +1,5 @@
-;; Convert refer-style bibliographic entries to ones usable by latex bib
+;;; refbib.el --- convert refer-style references to ones usable by Latex bib
+
 ;; Copyright (C) 1989 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -709,3 +710,5 @@ To see this message again, perform
 (message "r2b loaded")
 
 (provide 'refer-to-bibtex)
+
+;;; refbib.el ends here

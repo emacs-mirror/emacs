@@ -1,4 +1,5 @@
-;; Page motion commands for emacs.
+;;; page.el --- page motion commands for emacs.
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -89,6 +90,7 @@ thus showing a page other than the one point was originally in."
 			(if (and (eolp) (not (bobp)))
 			    (forward-line 1))
 			(point)))))
+(put 'narrow-to-page 'disabled t)
 
 (defun count-lines-page ()
   "Report number of lines on current page, and how many are before or after point."
@@ -123,3 +125,5 @@ thus showing a page other than the one point was originally in."
 	(message "Page %d, line %d"
 		 count
 		 (1+ (count-lines (point) opoint)))))))
+
+;;; page.el ends here

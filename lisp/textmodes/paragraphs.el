@@ -1,4 +1,5 @@
-;; Paragraph and sentence parsing.
+;;; paragraphs.el --- paragraph and sentence parsing.
+
 ;; Copyright (C) 1985-1991 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -228,3 +229,5 @@ With arg, repeat, or kill forward to Nth end of sentence if negative arg -N."
   "Interchange this (next) and previous sentence."
   (interactive "*p")
   (transpose-subr 'forward-sentence arg))
+
+;;; paragraphs.el ends here

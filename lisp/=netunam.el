@@ -1,4 +1,5 @@
-;; HP-UX RFA Commands
+;;; netunam.el --- HP-UX RFA Commands
+
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -150,3 +151,5 @@ NODE is the network node for the remote machine."
   (delete-char -1)
   (setq rfa-password-accumulator
 	(substring rfa-password-accumulator 0 -1)))
+
+;;; netunam.el ends here

@@ -1,4 +1,5 @@
-;; Conway's `Life' for GNU Emacs
+;;; life.el --- John Horton Conway's `Life' game for GNU Emacs
+
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 ;; Contributed by Kyle Jones, talos!kjones@uunet.uu.net
 
@@ -273,3 +274,4 @@ generations (this defaults to 1)."
 
 (provide 'life)
 
+;;; life.el ends here

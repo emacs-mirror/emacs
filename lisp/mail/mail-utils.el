@@ -1,4 +1,5 @@
-;; Utility functions used both by rmail and rnews
+;;; mail-utils.el --- utility functions used both by rmail and rnews
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -200,3 +201,4 @@ If third arg ALL is non-nil, concatenate all such fields with commas between."
 
 (provide 'mail-utils)
 
+;;; mail-utils.el ends here

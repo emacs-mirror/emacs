@@ -1,4 +1,5 @@
-;; Emacs side of ledit interface
+;;; ledit.el --- Emacs side of ledit interface
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -141,3 +142,5 @@ do (setq lisp-mode-hook 'ledit-from-lisp-mode)"
   (setq mode-name "Ledit")
   (setq major-mode 'ledit-mode)
   (run-hooks 'ledit-mode-hook))
+
+;;; ledit.el ends here

@@ -1,4 +1,5 @@
-;; Lisp mode, and its idiosyncratic commands.
+;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands.
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -614,3 +615,4 @@ means don't indent that line."
 
 (provide 'lisp-mode)
 
+;;; lisp-mode.el ends here

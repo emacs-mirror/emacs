@@ -1,4 +1,4 @@
-;; GNU Emacs major mode for editing nroff source
+;;; nroff-mode.el --- GNU Emacs major mode for editing nroff source
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -17,8 +17,6 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-
-
 (defvar nroff-mode-abbrev-table nil
   "Abbrev table used while in nroff mode.")
 
@@ -34,6 +32,7 @@
       (define-key nroff-mode-map "\en" 'forward-text-line)
       (define-key nroff-mode-map "\ep" 'backward-text-line)))
 
+;;;###autoload
 (defun nroff-mode ()
   "Major mode for editing text intended for nroff to format.
 \\{nroff-mode-map}
@@ -200,3 +199,4 @@ turns it on iff arg is positive, otherwise off."
 	(cond ((null arg) (null nroff-electric-mode))
 	      (t (> (prefix-numeric-value arg) 0)))))
 
+;;; nroff-mode.el ends here

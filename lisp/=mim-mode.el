@@ -1,4 +1,5 @@
-;; Mim (MDL in MDL) mode.
+;;; mim-mode.el --- Mim (MDL in MDL) mode.
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 ;; Principal author K. Shane Hartman
 
@@ -840,3 +841,4 @@ You need type only enough of the name to be unambiguous."
 
 (provide 'mim-mode)
 
+;;; mim-mode.el ends here

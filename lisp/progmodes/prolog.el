@@ -1,4 +1,5 @@
-;; Major mode for editing Prolog, and for running Prolog under Emacs
+;;; prolog.el --- major mode for editing and running Prolog under Emacs
+
 ;; Copyright (C) 1986, 1987 Free Software Foundation, Inc.
 ;; Author Masanobu UMEDA (umerin@flab.flab.fujitsu.junet)
 
@@ -256,3 +257,5 @@ If COMPILE (prefix arg) is not nil, use compile mode rather than consult mode."
   (interactive "P\nr")
   (prolog-consult-region compile beg end)
   (switch-to-buffer "*prolog*"))
+
+;;; prolog.el ends here

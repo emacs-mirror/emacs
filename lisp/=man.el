@@ -1,4 +1,5 @@
-;; Read in and display parts of Unix manual.
+;;; man.el --- read in and display parts of Unix manual.
+
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -165,3 +166,5 @@ where SECTION is the desired section of the manual, as in \"tty(4)\"."
     (if (equal (substring name -2) ".z")
 	(call-process "pcat" nil t nil name)
       (insert-file-contents name))))
+
+;;; man.el ends here

@@ -1,4 +1,5 @@
-;; Rectangle functions for GNU Emacs.
+;;; rect.el --- rectangle functions for GNU Emacs.
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -210,3 +211,5 @@ When called from a program, requires two args which specify the corners."
     (delete-char -1)
     (indent-to aftercol)
     (backward-char (- aftercol column))))
+
+;;; rect.el ends here

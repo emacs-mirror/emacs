@@ -1,4 +1,5 @@
-;;; Window system-independent mouse support.
+;;; mouse.el --- window system-independent mouse support.
+
 ;;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;;; This file is part of GNU Emacs.
@@ -455,3 +456,4 @@ This does not delete the region; it acts like \\[kill-ring-save]."
 
 (provide 'mouse)
 
+;;; mouse.el ends here

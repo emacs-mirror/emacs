@@ -1,4 +1,5 @@
-;;; Spool access using NNTP for GNU Emacs
+;;; nnspool.el --- spool access using NNTP for GNU Emacs
+
 ;; Copyright (C) 1988, 1989 Fujitsu Laboratories LTD.
 ;; Copyright (C) 1988, 1989, 1990 Masanobu UMEDA
 ;; $Header: nnspool.el,v 1.10 90/03/23 13:25:25 umerin Locked $
@@ -373,3 +374,5 @@ If the stream is opened, return T, otherwise return NIL."
     ))
 
 (provide 'nnspool)
+
+;;; nnspool.el ends here

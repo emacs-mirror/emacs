@@ -1,4 +1,5 @@
-;; Expand mailing address aliases defined in ~/.mailrc.
+;;; mailalias.el --- expand mailing address aliases defined in ~/.mailrc.
+
 ;; Copyright (C) 1985, 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -167,3 +168,5 @@ DEFINITION can be one or more mail addresses separated by commas."
     (if tem
 	(rplacd tem definition)
       (setq mail-aliases (cons (cons name definition) mail-aliases)))))
+
+;;; mailalias.el ends here

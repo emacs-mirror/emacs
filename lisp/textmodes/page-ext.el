@@ -1,6 +1,5 @@
-;;;; page-ext.el
+;;; page-ext.el --- page handling commands
 
-;;; Page handling commands
 ;;; by Robert J. Chassell
 
 ;;; You may use these commands to handle an address list or other
@@ -742,4 +741,5 @@ to the same line in the pages buffer."
   (make-local-variable 'pages-pos-list)
   (make-local-variable 'pages-directory-buffer-narrowing-p))
 
-;;;;;;;;;;;;;;;; end of page-ext.el ;;;;;;;;;;;;;;;;
+;;; page-ext.el ends here
+

@@ -1,4 +1,5 @@
-;; Convert buffer of Mocklisp code to real lisp.
+;;; mlconvert.el --- convert buffer of Mocklisp code to real lisp.
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -271,3 +272,4 @@
 
 ;Variable pause-writes-files
 
+;;; mlconvert.el ends here

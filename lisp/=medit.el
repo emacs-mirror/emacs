@@ -1,4 +1,6 @@
-;; Lisp interface between GNU Emacs and MEDIT package. Emacs under MDL.
+;;; medit.el --- Lisp interface between GNU Emacs and MEDIT package.
+
+;; Emacs under MDL.
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 ;; Principal author K. Shane Hartman
 
@@ -113,4 +115,4 @@ Like Mim mode, plus these special commands:
 
 (mim-mode)
 
-
+;;; medit.el ends here

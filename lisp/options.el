@@ -1,4 +1,5 @@
-;; Edit Options command for Emacs.
+;;; options.el --- edit Options command for Emacs.
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -123,3 +124,4 @@ For convenience, the characters \\[backward-paragraph] and \\[forward-paragraph]
      (kill-sexp 1)
      (prin1 (symbol-value var) (current-buffer)))))
 
+;;; options.el ends here

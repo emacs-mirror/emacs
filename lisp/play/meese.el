@@ -1,3 +1,5 @@
+;; meese.el --- protect the impressionable young minds of America...NOT!
+
 (defun protect-innocence-hook ()
   (if (and (equal (file-name-nondirectory buffer-file-name) "sex.6")
 	   (not (y-or-n-p "Are you over 18? ")))
@@ -12,3 +14,5 @@
 
 (or (memq 'protect-innocence-hook find-file-hooks)
     (setq find-file-hooks (cons 'protect-innocence-hook find-file-hooks)))
+
+;;; meese.el ends here

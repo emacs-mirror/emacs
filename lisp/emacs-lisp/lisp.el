@@ -1,4 +1,5 @@
-;; Lisp editing commands for Emacs
+;;; lisp.el --- Lisp editing commands for Emacs
+
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -260,3 +261,5 @@ function definitions, values or properties are considered."
 	     (with-output-to-temp-buffer " *Completions*"
 	       (display-completion-list list)))
 	   (message "Making completion list...%s" "done")))))
+
+;;; lisp.el ends here

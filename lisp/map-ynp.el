@@ -1,4 +1,5 @@
-;;; map-ynp.el -- General-purpose boolean question-asker.
+;;; map-ynp.el --- General-purpose boolean question-asker.
+
 ;;; Copyright (C) 1991, 1992 Free Software Foundation, Inc.
 ;;; Written by Roland McGrath.
 ;;;
@@ -149,3 +150,5 @@ Returns the number of actions taken."
     (message "")
     ;; Return the number of actions that were taken.
     actions))
+
+;;; map-ynp.el ends here

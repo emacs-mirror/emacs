@@ -1,4 +1,5 @@
-;; Define pathnames for use by various Emacs commands.
+;;; paths.el --- define pathnames for use by various Emacs commands.
+
 ;; Copyright (C) 1986, 1988 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -165,3 +166,5 @@ Append a section-number or section-name to get a directory name.")
       "~/abbrev.def"
     "~/.abbrev_defs")
   "*Default name of file to read abbrevs from.")
+
+;;; paths.el ends here

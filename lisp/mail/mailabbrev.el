@@ -1,4 +1,5 @@
-;;; Abbrev-expansion of mail aliases.
+;;; mailabbrev.el --- abbrev-expansion of mail aliases.
+
 ;;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 ;;; Created: 19 oct 90, Jamie Zawinski <jwz@lucid.com>
 ;;; Modified: 5 apr 92, Roland McGrath <roland@gnu.ai.mit.edu>
@@ -613,3 +614,5 @@ end of line."
 
       (t ; v19
        (fmakunbound 'expand-mail-aliases)))
+
+;;; mailabbrev.el ends here

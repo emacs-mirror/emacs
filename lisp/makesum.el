@@ -1,4 +1,5 @@
-;; Generate key binding summary for Emacs
+;;; makesum.el --- generate key binding summary for Emacs
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -99,3 +100,5 @@ Previous contents of that buffer are killed first."
 	(forward-line 1)
 	(setq lines (cdr lines))))
     (goto-char (- (point-max) from-end))))
+
+;;; makesum.el ends here

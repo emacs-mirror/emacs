@@ -1,4 +1,5 @@
-;;; Multiplication puzzle for GNU Emacs
+;;; mpuz.el --- multiplication puzzle for GNU Emacs
+
 ;;; by Philippe Schnoebelen <phs@lifia.imag.fr>
 ;;; Last modified on 11 Nov 1990
 ;;; Copyright (C) 1990 Free Software Foundation, Inc.
@@ -444,5 +445,4 @@ You may abort a game by hitting \\[keyboard-quit]."
 	  (setq list (cons digit list))))
     (mapcar 'mpuz-correct-guess list)))
 
-;;; End of mult-puzzle
-
+;;; mpuz.el ends here

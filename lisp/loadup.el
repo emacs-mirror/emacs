@@ -1,4 +1,5 @@
-;;Load up standardly loaded Lisp files for Emacs.
+;;; loadup.el --- load up standardly loaded Lisp files for Emacs.
+
 ;; This is loaded into a bare Emacs to make a dumpable one.
 ;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
 
@@ -147,3 +148,5 @@
 
 (or (fboundp 'dump-emacs)
     (eval top-level))
+
+;;; loadup.el ends here

@@ -1,4 +1,5 @@
-;; Handling of disabled commands ("novice mode") for Emacs.
+;;; novice.el --- handling of disabled commands ("novice mode") for Emacs.
+
 ;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -109,3 +110,4 @@ to future sessions."
    (insert "(put '" (symbol-name command) " 'disabled t)\n")
    (save-buffer)))
 
+;;; novice.el ends here

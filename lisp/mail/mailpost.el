@@ -1,6 +1,5 @@
-;;
-;; P O S T . E L
-;;
+;;; post.el --- RMAIL coupler to /usr/uci/post mailer
+
 ;; Yet another mail interface.  this for the rmail system to provide
 ;;  the missing sendmail interface on systems without /usr/lib/sendmail,
 ;;   but with /usr/uci/post.
@@ -90,3 +89,5 @@ site-init."
       (kill-buffer tembuf)
       (if (bufferp errbuf)
 	  (switch-to-buffer errbuf)))))
+
+;;; mailpost.el ends here
