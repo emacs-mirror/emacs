@@ -97,8 +97,8 @@ return the feature \(symbol\)."
 			   nil t)))
 
 (defvar loadhist-hook-functions
-  '(after-change-function after-change-functions
-after-insert-file-functions auto-fill-function before-change-function
+  '(after-change-functions
+after-insert-file-functions auto-fill-function
 before-change-functions blink-paren-function
 buffer-access-fontify-functions command-line-functions
 comment-indent-function kill-buffer-query-functions
@@ -161,11 +161,13 @@ is nil, raise an error."
               ;; Remove any feature names that this file provided.
               (if (eq (car x) 'provide)
                   (setq features (delq (cdr x) features))))
-             ((boundp x) (makunbound x))
-             ((fboundp x)
-              (fmakunbound x)
-              (let ((aload (get x 'autoload)))
-                (if aload (fset x (cons 'autoload aload)))))))
+	     (t
+	      (when (boundp x)
+		(makunbound x))
+	      (when (fboundp x)
+		(fmakunbound x)
+		(let ((aload (get x 'autoload)))
+		  (if aload (fset x (cons 'autoload aload))))))))
      (cdr flist))
     ;; Delete the load-history element for this file.
     (let ((elt (assoc file load-history)))
