@@ -477,11 +477,9 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
 	    (key-desc (key-description key)))
 	(if (or (null defn) (integerp defn))
 	    (princ (format "%s is undefined" key-desc))
-	  (princ (format (if insert
-			     "`%s' (`%s')"
-			   (if (windowp window)
-			       "%s at that spot runs the command %s"
-			     "%s runs the command %s"))
+	  (princ (format (if (windowp window)
+			     "%s at that spot runs the command %s"
+			   "%s runs the command %s")
 			 key-desc
 			 (if (symbolp defn) defn (prin1-to-string defn)))))))))
 
