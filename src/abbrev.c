@@ -555,6 +555,7 @@ for any particular abbrev defined in both.");
     "The abbrev table of mode-specific abbrevs for Fundamental Mode.");
   Vfundamental_mode_abbrev_table = Fmake_abbrev_table ();
   current_buffer->abbrev_table = Vfundamental_mode_abbrev_table;
+  buffer_defaults.abbrev_table = Vfundamental_mode_abbrev_table;
 
   DEFVAR_LISP ("last-abbrev", &Vlast_abbrev,
     "The abbrev-symbol of the last abbrev expanded.  See `abbrev-symbol'.");
