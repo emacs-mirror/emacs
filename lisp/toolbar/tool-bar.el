@@ -208,8 +208,13 @@ MAP must contain appropriate binding for `[menu-bar]' which holds a keymap."
 	      (append (cdr defn) (list :image image) props))
 	  (setq defn (cdr defn))
 	  (define-key-after in-map (vector key)
-	    (append `(menu-item ,(car defn) ,(cdr defn))
-		    (list :image image) props)))))))
+	    (let ((rest (cdr defn)))
+	      ;; If the rest of the definition starts
+	      ;; with a list of menu cache info, get rid of that.
+	      (if (and (consp rest) (consp (car rest)))
+		  (setq rest (cdr rest)))
+	      (append `(menu-item ,(car defn) ,rest)
+		      (list :image image) props))))))))
 
 ;;; Set up some global items.  Additions/deletions up for grabs.
 
