@@ -1,3 +1,9 @@
+2000-01-09  Gerd Moellmann  <gerd@gnu.org>
+
+	* sendmail.el (toplevel): Provide `sendmail' when compiling
+	before `require'ing rmail and mailalias to prevent infinite 
+	recursion.
+
 2000-01-08  Dave Love  <fx@gnu.org>
 
 	* backquote.el: Remove inappropriate customization (allowing
