@@ -28,6 +28,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <stdio.h>
 #endif
 
+/* This makes the fields of a Display accessible, in Xlib header files.  */
+#define XLIB_ILLEGAL_ACCESS
+
 #include "lisp.h"
 #include "xterm.h"
 #include "frame.h"
