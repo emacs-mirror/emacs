@@ -147,8 +147,9 @@
 
 ;; Handle the geometry option
 (defun x-handle-geometry (switch)
-  (setq initial-frame-alist (append initial-frame-alist
-				     (x-geometry (car x-invocation-args)))
+  (setq initial-frame-alist
+	(append initial-frame-alist
+		(x-parse-geometry (car x-invocation-args)))
 	x-invocation-args (cdr x-invocation-args)))
 
 (defvar x-display-name nil
@@ -418,7 +419,7 @@ This returns ARGS with the arguments that have been processed removed."
     (while all-colors
       (setq this-color (car all-colors)
 	    all-colors (cdr all-colors))
-      (and (x-defined-color this-color)
+      (and (x-color-defined-p this-color)
 	   (setq defined-colors (cons this-color defined-colors))))
     defined-colors))
 
