@@ -47,6 +47,8 @@
 
 <li> <a href="#section-3">3. Reference</a> </li>
 
+<li> <a href="#section-4">4. Undocumented Symbols</a> </li>
+
 <li> <a href="#section-A">A. References</a> </li>
 
 <li> <a href="#section-B">B. Document History</a> </li>
@@ -57,6 +59,14 @@
 
 
 <h2> <a id="section-1" name="section-1">1. Introduction</a> </h2>
+
+<p>This is the reference manual for the Memory Pool System.</p>
+
+<p><strong>This document is quite incomplete.  At present it consists
+simply of reference descriptions of a number of MPS symbols (<a
+href="#section-3">section 3</a>).  Many MPS symbols are not described
+here (see <a href="#section-4">section 4</a> for a list).  There are
+also no overview or protocol-oriented sections.</strong></p>
 
 
 <h2> <a id="section-2" name="section-2">2. Overview</a> </h2>
@@ -9834,6 +9844,160 @@ href="#mps_telemetry_control">mps_telemetry_control</a></code>,
 <code><a
 href="#mps_stack_scan_ambig">mps_stack_scan_ambig</a></code></p>
 
+
+<h2> <a id="section-4" name="section-4">4. Undocumented Symbols</a> </h2>
+
+<p>The following MPS symbols are used or defined in MPS header files,
+and intended for client use, but are not yet documented in this
+reference manual.</p>
+
+<pre>
+mps_arena_t
+mps_pool_t
+mps_chain_t
+mps_root_t
+mps_ap_t
+mps_ld_t
+mps_ss_t
+mps_alloc_pattern_t
+mps_frame_t
+mps_word_t
+mps_shift_t
+mps_rm_t
+MPS_RES_OK
+MPS_RES_FAIL
+MPS_RES_RESOURCE
+MPS_RES_UNIMPL
+MPS_RES_IO
+MPS_RES_COMMIT_LIMIT
+mps_ap_s
+mps_sac_freelist_block_s
+mps_sac_s
+mps_ld_s
+mps_ss_s
+mps_fmt_fixed_s
+MPS_BEGIN
+MPS_END
+mps_arena_step
+mps_arena_destroy
+mps_arena_reserved
+mps_arena_has_addr
+mps_arena_extend
+mps_arena_retract
+mps_fmt_create_fixed
+mps_fmt_destroy
+mps_pool_create
+mps_pool_create_v
+mps_pool_destroy
+mps_gen_param_s
+mps_chain_create
+mps_chain_destroy
+mps_alloc_v
+mps_ap_create
+mps_ap_create_v
+mps_ap_destroy
+mps_reserve
+mps_commit
+mps_ap_fill
+mps_ap_fill_with_reservoir_permit
+mps_ap_trip
+MPS_SAC_ALLOC
+MPS_SAC_FREE
+mps_reservoir_limit_set
+mps_reservoir_limit
+mps_reservoir_available
+mps_reserve_with_reservoir_permit
+MPS_RESERVE_BLOCK
+MPS_RESERVE_WITH_RESERVOIRf_PERMIT_BLOCK
+mps_root_destroy
+mps_tramp_t
+mps_tramp
+mps_thread_reg
+mps_thread_dereg
+mps_ld_reset
+mps_ld_add
+mps_ld_merge
+mps_ld_isstale
+mps_collections
+mps_definalize
+mps_pool_check_free_space
+mps_lib_get_EOF
+mps_lib_stream_s
+mps_lib_get_stderr
+mps_lib_get_stdout
+mps_lib_fputc
+mps_lib_fputs
+mps_lib_assert_fail
+mps_clock_t
+mps_clock
+mps_class_amcz
+mps_class_ams
+mps_class_ams_debug
+mps_class_awl
+mps_class_lo
+mps_mv_free_size
+mps_mv_size
+mps_class_mv
+mps_class_mv_debug
+mps_mvt_free_size
+mps_mvt_size
+mps_mvff_free_size
+mps_mvff_size
+mps_class_mvff_debug
+mps_SEH_filter
+mps_SEH_handler
+mps_io_t
+mps_io_create
+mps_io_destroy
+mps_io_write
+mps_io_flush
+MPS_PF_STRING
+MPS_PF_ALIGN
+MPS_ARCH_60
+MPS_ARCH_I3
+MPS_ARCH_I4
+MPS_ARCH_M2
+MPS_ARCH_M4
+MPS_ARCH_PP
+MPS_ARCH_S8
+MPS_ARCH_S9
+MPS_BUILD_AC
+MPS_BUILD_CC
+MPS_BUILD_GC
+MPS_BUILD_LC
+MPS_BUILD_MV
+MPS_BUILD_MW
+MPS_BUILD_SC
+MPS_OS_FR
+MPS_OS_I5
+MPS_OS_IA
+MPS_OS_LI
+MPS_OS_O1
+MPS_OS_S7
+MPS_OS_SO
+MPS_OS_SU
+MPS_OS_W3
+MPS_OS_XC
+MPS_PF_FRI4GC
+MPS_PF_I5M2CC
+MPS_PF_IAM4CC
+MPS_PF_LII4GC
+MPS_PF_LIPPGC
+MPS_PF_O1ALCC
+MPS_PF_O1ALGC
+MPS_PF_S760AC
+MPS_PF_S760MW
+MPS_PF_S7PPAC
+MPS_PF_S7PPMW
+MPS_PF_SOS8GC
+MPS_PF_SOS9SC
+MPS_PF_SUS8GC
+MPS_PF_SUS8LC
+MPS_PF_W3ALMV
+MPS_PF_W3I3MV
+MPS_PF_W3PPMV
+MPS_PF_XCPPGC
+</pre>
 
 <h2><a id="section-A" name="section-A">A. References</a></h2>
 
