@@ -639,7 +639,18 @@ remains active.  Otherwise, it remains until the next input event."
 If DIR is positive skip forward; if negative, skip backward."
   (let* ((char (following-char))
 	 (syntax (char-to-string (char-syntax char))))
-    (cond ((or (string= syntax "w") (string= syntax " "))
+    (cond ((string= syntax "w")
+	   ;; Here, we can't use skip-syntax-forward/backward because
+	   ;; they don't pay attention to word-separating-categories,
+	   ;; and thus they will skip over a true word boundary.  So,
+	   ;; we simularte the original behaviour by using
+	   ;; forward-word.
+	   (if (< dir 0)
+	       (if (not (looking-at "\\<"))
+		   (forward-word -1))
+	     (if (or (looking-at "\\<") (not (looking-at "\\>")))
+		 (forward-word 1))))
+	  ((string= syntax " ")
 	   (if (< dir 0)
 	       (skip-syntax-backward syntax)
 	     (skip-syntax-forward syntax)))
