@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:options(trunk.22) $
+# $HopeName: MMQA_harness!script:options(trunk.23) $
 #
 
 # global options for qa commands
@@ -21,15 +21,15 @@ sub platform_detect {
    $platform_class = "nt_dunno";
   }
   $platform_phylum = "pc";
- } elsif (($ENV{"OSTYPE"} || "") eq "Linux") {
- # it's Linux. We'll assume they're all the same!
-  $platform_class = "linux";
-  $platform_phylum = "unix";
  } else {
   # it's unix by default
-  $platform_class = `class`;
-  chop($platform_class);
-  $platform_phylum = "unix";
+     local $os = `uname`;
+     local $osrel = `uname -r`;
+     local $processor = `uname -p`;
+     chop($os); chop($osrel); chop($processor);
+     $platform_class = $os."_".$osrel."_".$processor;
+     $platform_class =~ s/ /_/g;
+     $platform_phylum = "unix";
  }
  $qa_defaults{"PLATFORM"} = $platform_class."__".$platform_phylum;
 }
