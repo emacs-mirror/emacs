@@ -1333,27 +1333,29 @@ xg_separator_p (char *label)
   return 0;
 }
 
-GtkWidget *xg_did_tearoff;
+static int xg_detached_menus;
 
-/* Callback invoked when a detached menu window is removed.  Here we
-   delete the popup menu.
-   WIDGET is the top level window that is removed (the parent of the menu).
-   EVENT is the event that triggers the window removal.
-   CLIENT_DATA points to the menu that is detached.
-
-   Returns TRUE to tell GTK to stop processing this event.  */
-static gboolean
-tearoff_remove (widget, event, client_data)
-     GtkWidget *widget;
-     GdkEvent *event;
-     gpointer client_data;
+/* Returns non-zero if there are detached menus.  */
+int
+xg_have_tear_offs ()
 {
-  gtk_widget_destroy (GTK_WIDGET (client_data));
-  return TRUE;
+  return xg_detached_menus > 0;
 }
 
-/* Callback invoked when a menu is detached.  It sets the xg_did_tearoff
-   variable.
+/* Callback invoked when a detached menu window is removed.  Here we
+   decrease the xg_detached_menus count.
+   WIDGET is the top level window that is removed (the parent of the menu).
+   CLIENT_DATA is not used.  */
+static void
+tearoff_remove (widget, client_data)
+     GtkWidget *widget;
+     gpointer client_data;
+{
+  if (xg_detached_menus > 0) --xg_detached_menus;
+}
+
+/* Callback invoked when a menu is detached.  It increases the
+   xg_detached_menus count.
    WIDGET is the GtkTearoffMenuItem.
    CLIENT_DATA is not used.  */
 static void
@@ -1362,31 +1364,15 @@ tearoff_activate (widget, client_data)
      gpointer client_data;
 {
   GtkWidget *menu = gtk_widget_get_parent (widget);
-  if (! gtk_menu_get_tearoff_state (GTK_MENU (menu)))
-    return;
-
-  xg_did_tearoff = menu;
+  if (gtk_menu_get_tearoff_state (GTK_MENU (menu)))
+    {
+      ++xg_detached_menus;
+      g_signal_connect (G_OBJECT (gtk_widget_get_toplevel (widget)),
+                        "destroy",
+                        G_CALLBACK (tearoff_remove), 0);
+    }
 }
 
-/* If a detach of a popup menu is done, this function should be called
-   to keep the menu around until the detached window is removed.
-   MENU is the top level menu for the popup,
-   SUBMENU is the menu that got detached (that is MENU or a
-   submenu of MENU), see the xg_did_tearoff variable.  */
-void
-xg_keep_popup (menu, submenu)
-     GtkWidget *menu;
-     GtkWidget *submenu;
-{
-  GtkWidget *p;
-
-  /* Find the top widget for the detached menu.  */
-  p = gtk_widget_get_toplevel (submenu);
-
-  /* Delay destroying the menu until the detached menu is removed.  */
-  g_signal_connect (G_OBJECT (p), "unmap_event",
-                    G_CALLBACK (tearoff_remove), menu);
-}
 
 /* Create a menu item widget, and connect the callbacks.
    ITEM decribes the menu item.
@@ -1585,7 +1571,7 @@ create_menus (data, f, select_cb, deactivate_cb, highlight_cb,
                                                  highlight_cb,
                                                  0,
                                                  0,
-                                                 1,
+                                                 add_tearoff_p,
                                                  0,
                                                  cl_data,
                                                  0);
@@ -1626,6 +1612,9 @@ xg_create_widget (type, name, f, val,
      GCallback highlight_cb;
 {
   GtkWidget *w = 0;
+  int menu_bar_p = strcmp (type, "menubar") == 0;
+  int pop_up_p = strcmp (type, "popup") == 0;
+
   if (strcmp (type, "dialog") == 0)
     {
       w = create_dialog (val, select_cb, deactivate_cb);
@@ -1636,23 +1625,23 @@ xg_create_widget (type, name, f, val,
       if (w)
         gtk_widget_set_name (w, "emacs-dialog");
     }
-  else if (strcmp (type, "menubar") == 0 || strcmp (type, "popup") == 0)
+  else if (menu_bar_p || pop_up_p)
     {
       w = create_menus (val->contents,
                         f,
                         select_cb,
                         deactivate_cb,
                         highlight_cb,
-                        strcmp (type, "popup") == 0,
-                        strcmp (type, "menubar") == 0,
-                        1,
+                        pop_up_p,
+                        menu_bar_p,
+                        menu_bar_p,
                         0,
                         0,
                         name);
 
       /* Set the cursor to an arrow for popup menus when they are mapped.
          This is done by default for menu bar menus.  */
-      if (strcmp (type, "popup") == 0)
+      if (pop_up_p)
         {
           /* Must realize so the GdkWindow inside the widget is created.  */
           gtk_widget_realize (w);
@@ -1834,8 +1823,15 @@ xg_update_menubar (menubar, f, list, iter, pos, val,
               is up to date when leaving the minibuffer.  */
           GtkLabel *wlabel = GTK_LABEL (gtk_bin_get_child (GTK_BIN (witem)));
           char *utf8_label = get_utf8_string (val->name);
+          GtkWidget *submenu = gtk_menu_item_get_submenu (witem);
 
           gtk_label_set_text (wlabel, utf8_label);
+
+          /* If this item has a submenu that has been detached, change
+             the title in the WM decorations also.  */
+          if (submenu && gtk_menu_get_tearoff_state (GTK_MENU (submenu)))
+            /* Set the title of the detached window.  */
+            gtk_menu_set_title (GTK_MENU (submenu), utf8_label);
 
           iter = g_list_next (iter);
           val = val->next;
@@ -2222,18 +2218,15 @@ xg_modify_menubar_widgets (menubar, f, val, deep_p,
   cl_data = (xg_menu_cb_data*) g_object_get_data (G_OBJECT (menubar),
                                                   XG_FRAME_DATA);
 
-  if (! deep_p)
-    {
-      widget_value *cur = val->contents;
-      xg_update_menubar (menubar, f, &list, list, 0, cur,
-                         select_cb, highlight_cb, cl_data);
-    }
-  else
+  xg_update_menubar (menubar, f, &list, list, 0, val->contents,
+                     select_cb, highlight_cb, cl_data);
+
+  if (deep_p);
     {
       widget_value *cur;
 
       /* Update all sub menus.
-         We must keep the submenu names (GTK menu item widgets) since the
+         We must keep the submenus (GTK menu item widgets) since the
          X Window in the XEvent that activates the menu are those widgets.  */
 
       /* Update cl_data, menu_item things in F may have changed.  */
@@ -2269,7 +2262,6 @@ xg_modify_menubar_widgets (menubar, f, val, deep_p,
              newly created sub menu under witem.  */
           if (newsub != sub)
             gtk_menu_item_set_submenu (witem, newsub);
-
         }
     }
 
@@ -3250,8 +3242,7 @@ xg_initialize ()
 {
   xg_ignore_gtk_scrollbar = 0;
   xg_left_ptr_cursor = 0;
-  xg_did_tearoff = 0;
-
+  xg_detached_menus = 0;
   xg_menu_cb_list.prev = xg_menu_cb_list.next =
     xg_menu_item_cb_list.prev = xg_menu_item_cb_list.next = 0;
 

@@ -1,3 +1,30 @@
+2003-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.h: Declare xg_have_tear_offs, remove xg_keep_popup
+	and xg_did_tearoff.
+
+	* gtkutil.c: Remove variable xg_did_tearoff.
+	(xg_have_tear_offs): New function.
+	(tearoff_remove): Just decrease xg_detached_menus.
+	(tearoff_activate): Increase xg_detached_menus and call
+	tearoff_remove when tearoff is removed.
+	(xg_keep_popup): Removed function.
+	(create_menus): Give add_tearoff_p as argument to recursive
+	call to create_menus.
+	(xg_create_widget): Use variables instead of multiple
+	strcmp.  Tell create_menus to create tear off only for
+	menu bar menus.
+	(xg_update_menubar): Change title for a detached menu also.
+	(xg_modify_menubar_widgets): Always call xg_update_menubar, regardless
+	of deep_p.
+	(xg_initialize): Initialize xg_detached_menus, remove
+	initialization of xg_did_tearoff.
+
+	* xmenu.c (set_frame_menubar): For GTK, set deep_p if
+	xg_have_tear_offs returns non-zero.
+	(create_and_show_popup_menu): Remove setting of xg_did_tearoff and
+	call to xg_keep_popup.
+
 2003-11-01  Andrew Choi  <akochoi@shaw.ca>
 
 	* macterm.c (XTread_socket): Handle menubar selection and grow
