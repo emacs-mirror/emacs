@@ -1629,9 +1629,7 @@ the first three examples, above, using vectors:
 
 @example
 (global-set-key [?\C-z] 'shell)
-
 (global-set-key [?\C-x ?l] 'make-symbolic-link)
-
 (global-set-key [?\C-x ?\t] 'indent-rigidly)
 @end example
 
@@ -2156,7 +2154,7 @@ keys which send non-ASCII characters.
 @code{nil} stands for `false'.
 
 @item Other Lisp objects:
-Write a single-quote (') followed by the Lisp object you want.
+Write a single-quote (@code{'}) followed by the Lisp object you want.
 @end table
 
 @node Init Examples
@@ -2275,8 +2273,8 @@ Here an absolute file name is used, so no searching is done.
 @cindex loading Lisp libraries automatically
 @cindex autoload Lisp libraries
 Tell Emacs to automatically load a Lisp library named @file{mypackage}
-(i.e.@: a file @file{mypackage.elc} or @file{mypackage.el}) when you
-the function @code{myfunction} in that library is called:
+(i.e.@: a file @file{mypackage.elc} or @file{mypackage.el}) when the
+function @code{myfunction} in that library is called:
 
 @example
 (autoload 'myfunction "mypackage" "Do what I say." t)

@@ -317,7 +317,7 @@ its memory reserve automatically when it sees sufficient free space
 available, in case you run out of memory another time.
 
   Do not use @kbd{M-x buffer-menu} to save or kill buffers when you run
-out of memory, because the buffer menu needs a fair amount memory
+out of memory, because the buffer menu needs a fair amount of memory
 itself, and the reserve supply may not be enough.
 
 @node After a Crash
