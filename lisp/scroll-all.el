@@ -46,7 +46,7 @@
   "Control/track scroll locking.
 
 Setting this variable directly does not take effect;
-use either M-x customize or the function `scroll-all-mode'."
+use either \\[customize] or the function `scroll-all-mode'."
   :set (lambda (symbol value) (scroll-all-mode (if value 1 0)))
   :initialize 'custom-initialize-default
   :require 'scroll-all
@@ -59,81 +59,50 @@ use either M-x customize or the function `scroll-all-mode'."
       (setq minor-mode-alist
 	    (cons '(scroll-all-mode " *SL*") minor-mode-alist))))
 
-(defun scroll-all-scroll-down-all (arg)
-  "Scroll down all visible windows."
-  (interactive "P")
+(defun scroll-all-function-all (func arg)
+  "Apply function FUNC with argument ARG to all visible windows."
   (let ((num-windows (count-windows))
 	(count 1))
     (when (> num-windows 1)
       (other-window 1)
       (while (< count num-windows)
-	(if (not (eq (point) (point-max)))
-	    (call-interactively 'next-line))
+	(condition-case nil
+	    (funcall func arg)
+	  ;; Ignore beginning- or end-of-buffer error in other windows.
+	  (error nil)
+	  )
 	(other-window 1)
 	(setq count (1+ count))))))
 
+(defun scroll-all-scroll-down-all (arg)
+  "Scroll down in all visible windows."
+  (interactive "p")
+  (scroll-all-function-all 'next-line arg))
+
 (defun scroll-all-scroll-up-all (arg)
-  "Scroll up all visible windows."
-  (interactive "P")
-  (let ((num-windows (count-windows))
-	(count 1))
-    (when (> num-windows 1)
-      (other-window 1)
-      (while (< count num-windows)
-	(if (not (eq (point) (point-min)))
-	    (call-interactively 'previous-line))
-	(other-window 1)
-	(setq count (1+ count))))))
+  "Scroll up in all visible windows."
+  (interactive "p")
+  (scroll-all-function-all 'previous-line arg))
 
 (defun scroll-all-page-down-all (arg)
   "Page down in all visible windows."
   (interactive "P")
-  (let ((num-windows (count-windows))
-	(count 1))
-    (when (> num-windows 1)
-      (other-window 1)
-      (while (< count num-windows)
-	(condition-case nil
-	    (call-interactively 'scroll-up) (end-of-buffer nil))
-	(other-window 1)
-	(setq count (1+ count))))))
+  (scroll-all-function-all 'scroll-up arg))
 
 (defun scroll-all-page-up-all (arg)
   "Page up in all visible windows."
   (interactive "P")
-  (let ((num-windows (count-windows))
-	(count 1))
-    (when (> num-windows 1)
-      (other-window 1)
-      (while (< count num-windows)
-	(condition-case nil
-	    (call-interactively 'scroll-down) (beginning-of-buffer nil))
-	(other-window 1)
-	(setq count (1+ count))))))
+  (scroll-all-function-all 'scroll-down arg))
 
 (defun scroll-all-beginning-of-buffer-all (arg)
   "Go to the beginning of the buffer in all visible windows."
   (interactive "P")
-  (let ((num-windows (count-windows))
-	(count 1))
-    (when (> num-windows 1)
-      (other-window 1)
-      (while (< count num-windows)
-	(call-interactively 'beginning-of-buffer)
-	(other-window 1)
-	(setq count (1+ count))))))
+  (scroll-all-function-all 'beginning-of-buffer arg))
 
 (defun scroll-all-end-of-buffer-all (arg)
   "Go to the end of the buffer in all visible windows."
   (interactive "P")
-  (let ((num-windows (count-windows))
-	(count 1))
-    (when (> num-windows 1)
-      (other-window 1)
-      (while (< count num-windows)
-	(call-interactively 'end-of-buffer)
-	(other-window 1)
-	(setq count (1+ count))))))
+  (scroll-all-function-all 'end-of-buffer arg))
 
 
 (defun scroll-all-check-to-scroll ()
