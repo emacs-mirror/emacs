@@ -1,3 +1,8 @@
+2001-08-24  Simon Josefsson  <jas@extundo.com>
+
+	* hl-line.el (hl-line-mode): Don't be a global mode.
+	(global-hl-line-mode): New function.
+
 2001-08-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* gs.el (gs-load-image): Wait for GHOSTVIEW window property
