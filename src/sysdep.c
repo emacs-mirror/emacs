@@ -64,6 +64,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/stat.h>
 #include <errno.h>
 
+#ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida, MW Aug 1993 */
+#include <dos.h>
+#include "dosfns.h"
+#include "msdos.h"
+#include <sys/param.h>
+#endif
+
 extern int errno;
 #ifndef VMS
 extern char *sys_errlist[];
@@ -113,7 +120,9 @@ extern char *sys_errlist[];
 #undef FASYNC
 #endif
 
+#ifndef MSDOS
 #include <sys/ioctl.h>
+#endif
 #include "systty.h"
 #include "syswait.h"
 
@@ -217,8 +226,13 @@ discard_tty_input ()
     ioctl (input_fd, TIOCFLUSH, &zero);
   }
 #else /* not Apollo */
+#ifdef MSDOS	/* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
+  while (dos_keyread () != -1)
+  	;
+#else /* not MSDOS */
   EMACS_GET_TTY (input_fd, &buf);
   EMACS_SET_TTY (input_fd, &buf, 0);
+#endif /* not MSDOS */
 #endif /* not Apollo */
 #endif /* not VMS */
 }
@@ -247,6 +261,9 @@ init_baud_rate ()
     ospeed = 0;
   else
     {
+#ifdef MSDOS
+    ospeed = 15;
+#else
 #ifdef VMS
       struct sensemode sg;
 
@@ -281,6 +298,7 @@ init_baud_rate ()
 #endif /* not HAVE_TERMIO */
 #endif /* not HAVE_TERMIOS */
 #endif /* not VMS */
+#endif /* not MSDOS */
     }
    
   baud_rate = (ospeed < sizeof baud_convert / sizeof baud_convert[0]
@@ -441,6 +459,7 @@ flush_pending_output (channel)
 child_setup_tty (out)
      int out;
 {
+#ifndef MSDOS
   struct emacs_tty s;
 
   EMACS_GET_TTY (out, &s);
@@ -524,6 +543,7 @@ child_setup_tty (out)
     ioctl (out, FIOASYNC, &zero);
   }
 #endif /* RTU */
+#endif /* not MSDOS */
 }
 #endif /* not VMS */
 
@@ -547,6 +567,10 @@ struct save_signal
 
 sys_suspend ()
 {
+#ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida */
+  int st;
+  char oldwd[MAXPATHLEN+1]; /* Fixed length is safe on MSDOS.  */
+#endif
 #ifdef VMS
   /* "Foster" parentage allows emacs to return to a subprocess that attached
      to the current emacs as a cheaper than starting a whole new process.  This
@@ -588,7 +612,7 @@ sys_suspend ()
     }
   return -1;
 #else
-#ifdef SIGTSTP
+#if defined(SIGTSTP) && !defined(MSDOS)
 
   {
     int pgrp = EMACS_GETPGRP (0);
@@ -624,9 +648,13 @@ sys_suspend ()
     {
       char *sh;
 
+#ifdef MSDOS	/* MW, Aug 1993 */
+      getwd (oldwd);
+#endif
       sh = (char *) egetenv ("SHELL");
       if (sh == 0)
 	sh = "sh";
+
       /* Use our buffer's default directory for the subshell.  */
       {
 	Lisp_Object dir;
@@ -637,7 +665,7 @@ sys_suspend ()
 	   which somehow wedges the hp compiler.  So instead... */
 
 	dir = intern ("default-directory");
-	/* Can't use NULL */
+	/* Can't use NILP */
 	if (XFASTINT (Fboundp (dir)) == XFASTINT (Qnil))
 	  goto xyzzy;
 	dir = Fsymbol_value (dir);
@@ -665,9 +693,16 @@ sys_suspend ()
       }
 #endif
 
+#ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida */
+      st = system (sh);
+      chdir (oldwd);
+      if (st)
+        report_file_error ("Can't execute subshell", Fcons (build_string (sh), Qnil));
+#else /* not MSDOS */
       execlp (sh, sh, 0);
       write (1, "Can't execute subshell", 22);
       _exit (1);
+#endif /* not MSDOS */
     }
 
   save_signal_handlers (saved_handlers);
@@ -852,10 +887,11 @@ emacs_get_tty (fd, settings)
     return -1;
 
 #else
+#ifndef MSDOS
   /* I give up - I hope you have the BSD ioctls.  */
   if (ioctl (fd, TIOCGETP, &settings->main) < 0)
     return -1;
-
+#endif /* not MSDOS */
 #endif
 #endif
 #endif
@@ -943,9 +979,11 @@ emacs_set_tty (fd, settings, waitp)
     return -1;
 
 #else
+#ifndef MSDOS
   /* I give up - I hope you have the BSD ioctls.  */
   if (ioctl (fd, (waitp) ? TIOCSETP : TIOCSETN, &settings->main) < 0)
     return -1;
+#endif /* not MSDOS */
 
 #endif
 #endif
@@ -1154,10 +1192,12 @@ init_sys_modes ()
 	tty.main.tt_char &= ~TT$M_TTSYNC;
       tty.main.tt2_char |= TT2$M_PASTHRU | TT2$M_XON;
 #else /* not VMS (BSD, that is) */
+#ifndef MSDOS
       tty.main.sg_flags &= ~(ECHO | CRMOD | XTABS);
       if (meta_key)
 	tty.main.sg_flags |= ANYP;
       tty.main.sg_flags |= interrupt_input ? RAW : CBREAK;
+#endif
 #endif /* not VMS (BSD, that is) */
 #endif /* not HAVE_TERMIO */
 
@@ -1195,6 +1235,10 @@ init_sys_modes ()
 #ifdef HAVE_LTCHARS
       tty.ltchars = new_ltchars;
 #endif /* HAVE_LTCHARS */
+#ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida, MW Aug 1993 */
+      internal_terminal_init ();
+      dos_ttraw ();
+#endif
 
       EMACS_SET_TTY (input_fd, &tty, 0);
 
@@ -1336,10 +1380,14 @@ get_frame_size (widthp, heightp)
   *widthp = tty.scr_wid;
   *heightp = tty.scr_len;
 
+#else
+#ifdef MSDOS
+  *widthp = ScreenCols ();
+  *heightp = ScreenRows ();
 #else /* system doesn't know size */
-
   *widthp = 0;
   *heightp = 0;
+#endif
 
 #endif /* not VMS */
 #endif /* not SunOS-style */
@@ -1402,6 +1450,10 @@ reset_sys_modes ()
 
   while (EMACS_SET_TTY (input_fd, &old_tty, 0) < 0 && errno == EINTR)
     ;
+
+#ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida */
+  dos_ttcooked ();
+#endif
 
 #ifdef AIX
   hft_reset ();
@@ -2031,6 +2083,9 @@ select (nfds, rfds, wfds, efds, timeout)
 #ifdef FIONREAD
 		      status = ioctl (fd, FIONREAD, &avail);
 #else /* no FIONREAD */
+#ifdef MSDOS
+		      abort (); /* I don't think we need it.  */
+#else /* not MSDOS */
 		      /* Hoping it will return -1 if nothing available
 			 or 0 if all 0 chars requested are read.  */
 		      if (proc_buffered_char[fd] >= 0)
@@ -2041,6 +2096,7 @@ select (nfds, rfds, wfds, efds, timeout)
 			  if (avail > 0)
 			    proc_buffered_char[fd] = buf;
 			}
+#endif /* not MSDOS */
 #endif /* no FIONREAD */
 		    }
 		  if (status >= 0 && avail > 0)
@@ -2061,6 +2117,10 @@ select (nfds, rfds, wfds, efds, timeout)
       while (select_alarmed == 0 && *local_timeout != 0
 	     && process_tick == update_tick)
 	{
+#ifdef MSDOS
+	  sleep_or_kbd_hit (SELECT_PAUSE, (orfds & 1) != 0);
+	  select_alarm ();
+#else /* not MSDOS */
 	  /* If we are interested in terminal input,
 	     wait by reading the terminal.
 	     That makes instant wakeup for terminal input at least.  */
@@ -2072,6 +2132,7 @@ select (nfds, rfds, wfds, efds, timeout)
 	    }
 	  else
 	    pause ();
+#endif /* not MSDOS */
 	}
       (*local_timeout) -= SELECT_PAUSE;
       /* Reset the old alarm if there was one */
@@ -3276,17 +3337,17 @@ rmdir (dpath)
 	  dup2 (fd, 1);
 	  dup2 (fd, 2);
         }
-      execl ("/bin/rmdir", "rmdir", dpath, (char *) 0);
-      _exit (-1);		/* Can't exec /bin/mkdir */
-
-    default:			/* Parent process */
       wait_for_termination (cpid);
+  if (synch_process_death != 0 || synch_process_retcode != 0)
+      return -1;		/* /bin/rmdir failed */
+    default:			/* Parent process */
+      while (cpid != wait (&status));	/* Wait for kid to finish */
     }
 
-  if (synch_process_death != 0 || synch_process_retcode != 0)
+  if (WIFSIGNALED (status) || WEXITSTATUS (status) != 0)
     {
       errno = EIO;		/* We don't know why, but */
-      return -1;		/* /bin/rmdir failed */
+      return -1;		/* /bin/mkdir failed */
     }
 
   return 0;
