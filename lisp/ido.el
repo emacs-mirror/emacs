@@ -3619,8 +3619,6 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 (defun ido-read-file-name (prompt &optional dir default-filename mustmatch initial predicate)
   "Read file name, prompting with PROMPT and completing in directory DIR.
 See `read-file-name' for additional parameters."
-  (message "%S %S %S %S" this-command ido-read-file-name-non-ido 
-	   predicate (memq this-command ido-read-file-name-non-ido))
   (cond
   ((or (eq predicate 'file-directory-p)
        (memq this-command ido-read-file-name-as-directory-commands))
