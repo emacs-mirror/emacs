@@ -3,6 +3,9 @@
 ;; Copyright (C) 1995, 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 ;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H13PRO009
 
 ;; Keywords: multibyte character, character set, syntax, category
 
@@ -112,7 +115,16 @@
 		  arabic-2-column)))
   (while charsets
 ;;     (modify-syntax-entry (make-char (car charsets)) "w")
-    (modify-category-entry (make-char (car charsets)) ?b)
+    (map-charset-chars
+     #'(lambda (char ignore)
+	 (if (consp char)
+	     (let ((from (car char))
+		   (to (cdr char)))
+	       (while (<= from to)
+		 (modify-category-entry from ?b)
+		 (setq from (1+ from))))
+	   (modify-category-entry char ?b)))
+     (car charsets))
     (setq charsets (cdr charsets))))
 (let ((ch #x600))
   (while (<= ch #x6ff)
@@ -130,9 +142,9 @@
 ;; Chinese character set (GB2312)
 
 ;; (modify-syntax-entry (make-char 'chinese-gb2312) "w")
-(modify-syntax-entry (make-char 'chinese-gb2312 33) "_")
-(modify-syntax-entry (make-char 'chinese-gb2312 34) "_")
-(modify-syntax-entry (make-char 'chinese-gb2312 41) "_")
+;; (modify-syntax-entry (make-char 'chinese-gb2312 33) "_")
+;; (modify-syntax-entry (make-char 'chinese-gb2312 34) "_")
+;; (modify-syntax-entry (make-char 'chinese-gb2312 41) "_")
 (modify-syntax-entry ?\$A!2(B "($A!3(B")
 (modify-syntax-entry ?\$A!4(B "($A!5(B")
 (modify-syntax-entry ?\$A!6(B "($A!7(B")
@@ -163,58 +175,56 @@
 (modify-syntax-entry ?\$,2=W(B ")$,2=V(B")
 (modify-syntax-entry ?\$,2=Q(B ")$,2=P(B")
 
-(modify-category-entry (make-char 'chinese-gb2312) ?c)
-(modify-category-entry (make-char 'chinese-gb2312) ?\|)
-(modify-category-entry (make-char 'chinese-gb2312 35) ?A)
-(modify-category-entry (make-char 'chinese-gb2312 36) ?H)
-(modify-category-entry (make-char 'chinese-gb2312 37) ?K)
-(modify-category-entry (make-char 'chinese-gb2312 38) ?G)
-(modify-category-entry (make-char 'chinese-gb2312 39) ?Y)
-(let ((row 48))
-  (while (< row 127)
-    (modify-category-entry (make-char 'chinese-gb2312 row) ?C)
-    (setq row (1+ row))))
+;; (modify-category-entry (make-char 'chinese-gb2312) ?c)
+;; (modify-category-entry (make-char 'chinese-gb2312) ?\|)
+;; (modify-category-entry (make-char 'chinese-gb2312 35) ?A)
+;; (modify-category-entry (make-char 'chinese-gb2312 36) ?H)
+;; (modify-category-entry (make-char 'chinese-gb2312 37) ?K)
+;; (modify-category-entry (make-char 'chinese-gb2312 38) ?G)
+;; (modify-category-entry (make-char 'chinese-gb2312 39) ?Y)
+;; (let ((row 48))
+;;   (while (< row 127)
+;;     (modify-category-entry (make-char 'chinese-gb2312 row) ?C)
+;;     (setq row (1+ row))))
 
 ;; Chinese character set (BIG5)
 
-(let ((generic-big5-1-char (make-char 'chinese-big5-1))
-      (generic-big5-2-char (make-char 'chinese-big5-2)))
+;; (let ((generic-big5-1-char (make-char 'chinese-big5-1))
+;;       (generic-big5-2-char (make-char 'chinese-big5-2)))
 ;;   (modify-syntax-entry generic-big5-1-char "w")
 ;;   (modify-syntax-entry generic-big5-2-char "w")
 
-  (modify-category-entry generic-big5-1-char ?c)
-  (modify-category-entry generic-big5-2-char ?c)
+;;   (modify-category-entry generic-big5-1-char ?c)
+;;   (modify-category-entry generic-big5-2-char ?c)
 
-  (modify-category-entry generic-big5-1-char ?C)
-  (modify-category-entry generic-big5-2-char ?C)
+;;   (modify-category-entry generic-big5-1-char ?C)
+;;   (modify-category-entry generic-big5-2-char ?C)
 
-  (modify-category-entry generic-big5-1-char ?\|)
-  (modify-category-entry generic-big5-2-char ?\|))
+;;   (modify-category-entry generic-big5-1-char ?\|)
+;;   (modify-category-entry generic-big5-2-char ?\|))
 
 
 ;; Chinese character set (CNS11643)
 
-(let ((cns-list '(chinese-cns11643-1
-		  chinese-cns11643-2
-		  chinese-cns11643-3
-		  chinese-cns11643-4
-		  chinese-cns11643-5
-		  chinese-cns11643-6
-		  chinese-cns11643-7))
-      generic-char)
-  (while cns-list
-    (setq generic-char (make-char (car cns-list)))
+;; (let ((cns-list '(chinese-cns11643-1
+;; 		  chinese-cns11643-2
+;; 		  chinese-cns11643-3
+;; 		  chinese-cns11643-4
+;; 		  chinese-cns11643-5
+;; 		  chinese-cns11643-6
+;; 		  chinese-cns11643-7))
+;;       generic-char)
+;;   (while cns-list
+;;     (setq generic-char (make-char (car cns-list)))
 ;;     (modify-syntax-entry generic-char "w")
-    (modify-category-entry generic-char ?c)
-    (modify-category-entry generic-char ?C)
-    (modify-category-entry generic-char ?|)
-    (setq cns-list (cdr cns-list))))
+;;     (modify-category-entry generic-char ?c)
+;;     (modify-category-entry generic-char ?C)
+;;     (modify-category-entry generic-char ?|)
+;;     (setq cns-list (cdr cns-list))))
 
 ;; Cyrillic character set (ISO-8859-5)
 
-(modify-category-entry (make-char 'cyrillic-iso8859-5) ?y)
-
-(modify-syntax-entry (make-char 'cyrillic-iso8859-5 160) " ")
+(modify-syntax-entry (decode-char 'iso-8859-5 160) " ")
 (modify-syntax-entry ?,L-(B ".")
 (modify-syntax-entry ?,Lp(B ".")
 (modify-syntax-entry ?,L}(B ".")
@@ -354,7 +364,7 @@
 
 ;; Ethiopic character set
 
-(modify-category-entry (make-char 'ethiopic) ?e)
+;; (modify-category-entry (make-char 'ethiopic) ?e)
 ;; (modify-syntax-entry (make-char 'ethiopic) "w")
 (dotimes (i (1+ (- #x137c #x1200)))
   (modify-category-entry (decode-char 'ucs (+ #x1200 i)) ?e))
@@ -367,7 +377,7 @@
 
 ;; Greek character set (ISO-8859-7)
 
-(modify-category-entry (make-char 'greek-iso8859-7) ?g)
+;; (modify-category-entry (make-char 'greek-iso8859-7) ?g)
 (let ((c #x370))
   (while (<= c #x3ff)
     (modify-category-entry (decode-char 'ucs c) ?g)
@@ -378,9 +388,9 @@
 ;;     (modify-syntax-entry (make-char 'greek-iso8859-7 c) "w")
 ;;     (setq c (1+ c))))
 ;; (modify-syntax-entry (make-char 'greek-iso8859-7 160) "w") ; NBSP
-(modify-syntax-entry ?,F7(B ".")
-(modify-syntax-entry ?,F;(B ".")
-(modify-syntax-entry ?,F=(B ".")
+;; (modify-syntax-entry ?,F7(B ".")
+;; (modify-syntax-entry ?,F;(B ".")
+;; (modify-syntax-entry ?,F=(B ".")
 (let ((tbl (standard-case-table)))
   ;; Fixme: non-letter syntax copied from latin-1, but that's dubious
   ;; in several cases.
@@ -468,14 +478,14 @@
 
 ;; Hebrew character set (ISO-8859-8)
 
-(modify-category-entry (make-char 'hebrew-iso8859-8) ?w)
+;; (modify-category-entry (make-char 'hebrew-iso8859-8) ?w)
 (let ((c #x591))
   (while (<= c #x5f4)
     (modify-category-entry (decode-char 'ucs c) ?w)
     (setq c (1+ c))))
 
-(modify-syntax-entry (make-char 'hebrew-iso8859-8 208) ".") ; PASEQ
-(modify-syntax-entry (make-char 'hebrew-iso8859-8 211) ".") ; SOF PASUQ
+;; (modify-syntax-entry (make-char 'hebrew-iso8859-8 208) ".") ; PASEQ
+;; (modify-syntax-entry (make-char 'hebrew-iso8859-8 211) ".") ; SOF PASUQ
 (modify-syntax-entry (decode-char 'ucs #x5be) ".") ; MAQAF
 (modify-syntax-entry (decode-char 'ucs #x5c0) ".") ; PASEQ
 (modify-syntax-entry (decode-char 'ucs #x5c3) ".") ; SOF PASUQ
@@ -490,9 +500,9 @@
 
 ;; Indian character set (IS 13194 and other Emacs original Indian charsets)
 
-(modify-category-entry (make-char 'indian-is13194) ?i)
-(modify-category-entry (make-char 'indian-2-column) ?I)
-(modify-category-entry (make-char 'indian-glyph) ?I)
+;; (modify-category-entry (make-char 'indian-is13194) ?i)
+;; (modify-category-entry (make-char 'indian-2-column) ?I)
+;; (modify-category-entry (make-char 'indian-glyph) ?I)
 ;; Unicode Devanagari block
 (let ((c #x901))
   (while (<= c #x970)
@@ -534,14 +544,40 @@
 
 ;; Japanese character set (JISX0201-kana, JISX0201-roman, JISX0208, JISX0212)
 
-(modify-category-entry (make-char 'katakana-jisx0201) ?k)
-(modify-category-entry (make-char 'katakana-jisx0201) ?j)
-(modify-category-entry (make-char 'latin-jisx0201) ?r)
-(modify-category-entry (make-char 'japanese-jisx0208) ?j)
-(modify-category-entry (make-char 'japanese-jisx0212) ?j)
-(modify-category-entry (make-char 'katakana-jisx0201) ?\|)
-(modify-category-entry (make-char 'japanese-jisx0208) ?\|)
-(modify-category-entry (make-char 'japanese-jisx0212) ?\|)
+(map-charset-chars
+ #'(lambda (char ignore)
+     (if (consp char)
+	 (let ((from (car char))
+	       (to (car char)))
+	   (while (<= from to)
+	     (modify-category-entry from ?k)
+	     (setq from (1+ from))))
+       (modify-category-entry char ?k)))
+ 'katakana-jisx0201)
+
+(map-charset-chars
+ #'(lambda (char ignore)
+     (if (consp char)
+	 (let ((from (car char))
+	       (to (cdr char)))
+	   (while (<= from to)
+	     (modify-category-entry from ?r)
+	     (setq from (1+ from))))
+       (modify-category-entry char ?r)))
+ 'latin-jisx0201)
+(dolist (l '(katakana-jisx0201 japanese-jisx0208 japanese-jisx0212))
+  (map-charset-chars
+   #'(lambda (char ignore)
+       (if (consp char)
+	   (let ((from (car char))
+		 (to (cdr char)))
+	     (while (<= from to)
+	       (modify-category-entry from ?j)
+	       (modify-category-entry from ?\|)
+	       (setq from (1+ from))))
+	 (modify-category-entry char ?j)
+	 (modify-category-entry char ?\|)))
+   l))
 
 ;; Unicode equivalents of JISX0201-kana
 (let ((c #xff61))
@@ -571,13 +607,18 @@
 
 ;; JISX0208
 ;; (modify-syntax-entry (make-char 'japanese-jisx0208) "w")
-(modify-syntax-entry (make-char 'japanese-jisx0208 33) "_")
-(modify-syntax-entry (make-char 'japanese-jisx0208 34) "_")
-(modify-syntax-entry (make-char 'japanese-jisx0208 40) "_")
+;; (modify-syntax-entry (make-char 'japanese-jisx0208 33) "_")
+;; (modify-syntax-entry (make-char 'japanese-jisx0208 34) "_")
+;; (modify-syntax-entry (make-char 'japanese-jisx0208 40) "_")
 ;; (let ((chars '(?$B!<(B ?$B!+(B ?$B!,(B ?$B!3(B ?$B!4(B ?$B!5(B ?$B!6(B ?$B!7(B ?$B!8(B ?$B!9(B ?$B!:(B ?$B!;(B)))
 ;;   (while chars
 ;;     (modify-syntax-entry (car chars) "w")
 ;;     (setq chars (cdr chars))))
+
+(modify-syntax-entry (cons (decode-char 'japanese-jisx0208 #x2121)
+			   (decode-char 'japanese-jisx0208 #x227E)) "_")
+(modify-syntax-entry (cons (decode-char 'japanese-jisx0208 #x2821)
+			   (decode-char 'japanese-jisx0208 #x287E)) "_")
 (modify-syntax-entry ?\$B!J(B "($B!K(B")
 (modify-syntax-entry ?\$B!N(B "($B!O(B")
 (modify-syntax-entry ?\$B!P(B "($B!Q(B")
@@ -589,15 +630,15 @@
 (modify-syntax-entry ?\$B!W(B ")$B!V(B")
 (modify-syntax-entry ?\$B!Y(B ")$B!X(B")
 
-(modify-category-entry (make-char 'japanese-jisx0208 35) ?A)
-(modify-category-entry (make-char 'japanese-jisx0208 36) ?H)
-(modify-category-entry (make-char 'japanese-jisx0208 37) ?K)
-(modify-category-entry (make-char 'japanese-jisx0208 38) ?G)
-(modify-category-entry (make-char 'japanese-jisx0208 39) ?Y)
-(let ((row 48))
-  (while (< row 127)
-    (modify-category-entry (make-char 'japanese-jisx0208 row) ?C)
-    (setq row (1+ row))))
+;; (modify-category-entry (make-char 'japanese-jisx0208 35) ?A)
+;; (modify-category-entry (make-char 'japanese-jisx0208 36) ?H)
+;; (modify-category-entry (make-char 'japanese-jisx0208 37) ?K)
+;; (modify-category-entry (make-char 'japanese-jisx0208 38) ?G)
+;; (modify-category-entry (make-char 'japanese-jisx0208 39) ?Y)
+;; (let ((row 48))
+;;   (while (< row 127)
+;;     (modify-category-entry (make-char 'japanese-jisx0208 row) ?C)
+;;     (setq row (1+ row))))
 (modify-category-entry ?$B!<(B ?K)
 (let ((chars '(?$B!+(B ?$B!,(B)))
   (while chars
@@ -611,11 +652,13 @@
 
 ;; JISX0212
 ;; (modify-syntax-entry (make-char 'japanese-jisx0212) "w")
-(modify-syntax-entry (make-char 'japanese-jisx0212 33) "_")
-(modify-syntax-entry (make-char 'japanese-jisx0212 34) "_")
-(modify-syntax-entry (make-char 'japanese-jisx0212 35) "_")
-
-(modify-category-entry (make-char 'japanese-jisx0212 ) ?C)
+;; (modify-syntax-entry (make-char 'japanese-jisx0212 33) "_")
+;; (modify-syntax-entry (make-char 'japanese-jisx0212 34) "_")
+;; (modify-syntax-entry (make-char 'japanese-jisx0212 35) "_")
+ 
+(modify-syntax-entry (cons (decode-char 'japanese-jisx0212 #x2121)
+			   (decode-char 'japanese-jisx0212 #x237E))
+		     "_")
 
 ;; JISX0201-Kana
 ;; (modify-syntax-entry (make-char 'katakana-jisx0201) "w")
@@ -632,41 +675,41 @@
 ;; Korean character set (KSC5601)
 
 ;; (modify-syntax-entry (make-char 'korean-ksc5601) "w")
-(modify-syntax-entry (make-char 'korean-ksc5601 33) "_")
-(modify-syntax-entry (make-char 'korean-ksc5601 34) "_")
-(modify-syntax-entry (make-char 'korean-ksc5601 38) "_")
-(modify-syntax-entry (make-char 'korean-ksc5601 39) "_")
-(modify-syntax-entry (make-char 'korean-ksc5601 40) "_")
-(modify-syntax-entry (make-char 'korean-ksc5601 41) "_")
+;; (modify-syntax-entry (make-char 'korean-ksc5601 33) "_")
+;; (modify-syntax-entry (make-char 'korean-ksc5601 34) "_")
+;; (modify-syntax-entry (make-char 'korean-ksc5601 38) "_")
+;; (modify-syntax-entry (make-char 'korean-ksc5601 39) "_")
+;; (modify-syntax-entry (make-char 'korean-ksc5601 40) "_")
+;; (modify-syntax-entry (make-char 'korean-ksc5601 41) "_")
 
-(modify-category-entry (make-char 'korean-ksc5601) ?h)
-(modify-category-entry (make-char 'korean-ksc5601 35) ?A)
-(modify-category-entry (make-char 'korean-ksc5601 37) ?G)
-(modify-category-entry (make-char 'korean-ksc5601 42) ?H)
-(modify-category-entry (make-char 'korean-ksc5601 43) ?K)
-(modify-category-entry (make-char 'korean-ksc5601 44) ?Y)
+;; (modify-category-entry (make-char 'korean-ksc5601) ?h)
+;; (modify-category-entry (make-char 'korean-ksc5601 35) ?A)
+;; (modify-category-entry (make-char 'korean-ksc5601 37) ?G)
+;; (modify-category-entry (make-char 'korean-ksc5601 42) ?H)
+;; (modify-category-entry (make-char 'korean-ksc5601 43) ?K)
+;; (modify-category-entry (make-char 'korean-ksc5601 44) ?Y)
 
 ;; Latin character set (latin-1,2,3,4,5,8,9)
 
-(modify-category-entry (make-char 'latin-iso8859-1) ?l)
-(modify-category-entry (make-char 'latin-iso8859-2) ?l)
-(modify-category-entry (make-char 'latin-iso8859-3) ?l)
-(modify-category-entry (make-char 'latin-iso8859-4) ?l)
-(modify-category-entry (make-char 'latin-iso8859-9) ?l)
-(modify-category-entry (make-char 'latin-iso8859-14) ?l)
-(modify-category-entry (make-char 'latin-iso8859-15) ?l)
+;; (modify-category-entry (make-char 'latin-iso8859-1) ?l)
+;; (modify-category-entry (make-char 'latin-iso8859-2) ?l)
+;; (modify-category-entry (make-char 'latin-iso8859-3) ?l)
+;; (modify-category-entry (make-char 'latin-iso8859-4) ?l)
+;; (modify-category-entry (make-char 'latin-iso8859-9) ?l)
+;; (modify-category-entry (make-char 'latin-iso8859-14) ?l)
+;; (modify-category-entry (make-char 'latin-iso8859-15) ?l)
 
-(modify-category-entry (make-char 'latin-iso8859-1 160) ?\ )
-(modify-category-entry (make-char 'latin-iso8859-2 160) ?\ )
-(modify-category-entry (make-char 'latin-iso8859-3 160) ?\ )
-(modify-category-entry (make-char 'latin-iso8859-4 160) ?\ )
-(modify-category-entry (make-char 'latin-iso8859-9 160) ?\ )
-(modify-category-entry (make-char 'latin-iso8859-14 160) ?\ )
-(modify-category-entry (make-char 'latin-iso8859-15 160) ?\ )
+;; (modify-category-entry (make-char 'latin-iso8859-1 160) ?\ )
+;; (modify-category-entry (make-char 'latin-iso8859-2 160) ?\ )
+;; (modify-category-entry (make-char 'latin-iso8859-3 160) ?\ )
+;; (modify-category-entry (make-char 'latin-iso8859-4 160) ?\ )
+;; (modify-category-entry (make-char 'latin-iso8859-9 160) ?\ )
+;; (modify-category-entry (make-char 'latin-iso8859-14 160) ?\ )
+;; (modify-category-entry (make-char 'latin-iso8859-15 160) ?\ )
 
 ;; Lao character set
 
-(modify-category-entry (make-char 'lao) ?o)
+;; (modify-category-entry (make-char 'lao) ?o)
 (dotimes (i (1+ (- #xeff #xe80)))
   (modify-category-entry (decode-char 'ucs (+ i #xe80)) ?o))
 
@@ -713,7 +756,7 @@
 
 ;; Thai character set (TIS620)
 
-(modify-category-entry (make-char 'thai-tis620) ?t)
+;; (modify-category-entry (make-char 'thai-tis620) ?t)
 (dotimes (i (1+ (- #xe7f #xe00)))
   (modify-category-entry (decode-char 'ucs (+ i #xe00)) ?t))
 
@@ -758,8 +801,8 @@
 
 ;; Tibetan character set
 
-(modify-category-entry (make-char 'tibetan) ?q)
-(modify-category-entry (make-char 'tibetan-1-column) ?q)
+;; (modify-category-entry (make-char 'tibetan) ?q)
+;; (modify-category-entry (make-char 'tibetan-1-column) ?q)
 (dotimes (i (1+ (- #xfff #xf00)))
   (modify-category-entry (decode-char 'ucs (+ i #xf00)) ?q))
 
@@ -815,22 +858,23 @@
 
 ;; Vietnamese character set
 
-(let ((lower (make-char 'vietnamese-viscii-lower))
-      (upper (make-char 'vietnamese-viscii-upper)))
+;; (let ((lower (make-char 'vietnamese-viscii-lower))
+;;      (upper (make-char 'vietnamese-viscii-upper)))
 ;;   (modify-syntax-entry lower "w")
 ;;   (modify-syntax-entry upper "w")
-  (modify-category-entry lower ?v)
-  (modify-category-entry upper ?v)
-  (modify-category-entry lower ?l)	; To make a word with
-  (modify-category-entry upper ?l)	; latin characters.
-  )
+;;  (modify-category-entry lower ?v)
+;;  (modify-category-entry upper ?v)
+;;  (modify-category-entry lower ?l)	; To make a word with
+;;  (modify-category-entry upper ?l)	; latin characters.
+;;  )
 
 (let ((tbl (standard-case-table))
       (i 32))
   (while (< i 128)
-    (set-case-syntax-pair (make-char 'vietnamese-viscii-upper i)
-			  (make-char 'vietnamese-viscii-lower i)
-			  tbl)
+    (let ((char (decode-char 'vietnamese-viscii-upper i)))
+      (if char
+	  (set-case-syntax-pair char (decode-char 'vietnamese-viscii-lower i)
+				tbl)))
     (setq i (1+ i))))
 
 ;; Unicode (mule-unicode-0100-24ff)
@@ -1166,7 +1210,6 @@
 	   (vietnamese-viscii-upper . vietnamese-viscii)
 	   (arabic-digit	. iso-2022-7bit)
 	   (arabic-1-column	. iso-2022-7bit)
-	   (ascii-right-to-left	. iso-2022-7bit)
 	   (lao			. lao)
 	   (arabic-2-column	. iso-2022-7bit)
 	   (indian-is13194	. devanagari)
@@ -1194,9 +1237,14 @@
 	   japanese-jisx0208 japanese-jisx0212
 	   chinese-gb2312 chinese-big5-1 chinese-big5-2)))
   (while l
-    (aset auto-fill-chars (make-char (car l)) t)
+    ;;(aset auto-fill-chars (make-char (car l)) t)
     (put-charset-property (car l) 'nospace-between-words t)
     (setq l (cdr l))))
+ 
+
+(set-char-table-range printable-chars '(0 . 31) nil)
+(set-char-table-range printable-chars  '(127 . 159) nil)
+
 
 ;;; Local Variables:
 ;;; coding: iso-2022-7bit
