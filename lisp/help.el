@@ -58,6 +58,7 @@
 (define-key help-map "\C-m" 'view-order-manuals)
 (define-key help-map "\C-n" 'view-emacs-news)
 (define-key help-map "\C-p" 'describe-project)
+(define-key help-map "\C-t" 'view-todo)
 (define-key help-map "\C-w" 'describe-no-warranty)
 
 ;; This does not fit the pattern, but it is natural given the C-\ command.
@@ -173,7 +174,7 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
 
 (defalias 'help 'help-for-help)
 (make-help-screen help-for-help
-  "a b c C e f F C-f i I k C-k l L m p s t v w C-c C-d C-n C-p C-w or ? :"
+  "a b c C e f F i I k C-k l L m p s t v w C-c C-d C-f C-n C-p C-t C-w or ? :"
   "You have typed %THIS-KEY%, the help character.  Type a Help option:
 \(Use SPC or DEL to scroll through this text.  Type \\<help-map>\\[help-quit] to exit the Help command.)
 
@@ -221,6 +222,7 @@ C-f Display the Emacs FAQ.
 C-m Display how to order printed Emacs manuals.
 C-n Display news of recent Emacs changes.
 C-p Display information about the GNU project.
+C-t Display the Emacs TODO list.
 C-w Display information on absence of warranty for GNU Emacs."
   help-map)
 
@@ -318,6 +320,11 @@ With numeric argument, display information on correspondingly older changes."
     (if file
 	(view-file (expand-file-name file data-directory))
       (error "No such old news"))))
+
+(defun view-todo (&optional arg)
+  "Display the Emacs TODO list."
+  (interactive "P")
+  (view-file (expand-file-name "TODO" data-directory)))
 
 (defun view-echo-area-messages ()
   "View the log of recent echo-area messages: the `*Messages*' buffer.
