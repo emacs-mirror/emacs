@@ -726,8 +726,8 @@ Meaningful values for KEY include
 
   documentation      value is documentation of what this language environment
 			is meant for, and how to use it.
-  charset	     value is a list of the character sets used by this
-			language environment.
+  charset	     value is a list of the character sets mainly used
+			by this language environment.
   sample-text	     value is an expression which is evalled to generate
                         a line of text written using characters appropriate
                         for this language environment.
@@ -744,10 +744,9 @@ Meaningful values for KEY include
 			This is used to set up the coding system priority
 			list when you switch to this language environment.
   nonascii-translation
-		     value is a translation table to be set in the
-			variable `nonascii-translation-table' in this
-			language environment, or a character set from
-			which `nonascii-insert-offset' is calculated.
+		     value is a charset of dimension one to use for
+			converting a unibyte character to multibyte
+			and vice versa.
   input-method       value is a default input method for this language
 			environment.
   features           value is a list of features requested in this
@@ -1362,9 +1361,7 @@ The default status is as follows:
 ;;;  (set-terminal-coding-system-internal nil)
 ;;;  (set-keyboard-coding-system-internal nil)
 
-  (setq nonascii-translation-table nil
-	nonascii-insert-offset 0)
-  (set-primary-charset 'iso-8859-1))
+  (set-unibyte-charset 'iso-8859-1))
 
 (reset-language-environment)
 
@@ -1418,14 +1415,17 @@ specifies the character set for the major languages of Western Europe."
 		(cons input-method
 		      (delete input-method input-method-history))))))
 
+  (apply 'set-charset-priority  (get-language-info language-name 'charset))
+
   ;; Note: For DOS, we assumed that the charset cpXXX is already
   ;; defined.
   (let ((nonascii (get-language-info language-name 'nonascii-translation)))
     (if (eq window-system 'pc)
 	(setq nonascii (intern "cp%d" dos-codepage)))
-    (or (charsetp nonascii)
+    (or (and (charsetp nonascii)
+	     (= (charset-dimension nonascii) 1))
 	(setq nonascii 'iso-8859-1))
-    (set-primary-charset nonascii))
+    (set-unibyte-charset nonascii))
 
   ;; Unibyte setups if necessary.
   (unless default-enable-multibyte-characters
@@ -2057,5 +2057,9 @@ If CODING-SYSTEM can't safely encode CHAR, return nil."
   "Obsolete."
   :group 'mule
   :global t)
+
+(defvar nonascii-insert-offset 0 "This variable is obsolete.")
+(defvar nonascii-translation-table nil "This variable is obsolete.")
+
 
 ;;; mule-cmds.el ends here
