@@ -80,7 +80,8 @@
     (tcsh . csh)
     (wksh . ksh88)
     (wsh . sh)
-    (zsh . ksh88))
+    (zsh . ksh88)
+    (rpm . sh))
   "*Alist showing the direct ancestor of various shells.
 This is the basis for `sh-feature'.  See also `sh-alias-alist'.
 By default we have the following three hierarchies:
@@ -634,7 +635,11 @@ See `sh-feature'.")
     (shell eval sh-append executable-font-lock-keywords
 	   '("\\\\[^A-Za-z0-9]" 0 font-lock-string-face)
 	   '("\\${?\\([A-Za-z_][A-Za-z0-9_]*\\|[0-9]+\\|[$*_]\\)" 1
-	     font-lock-variable-name-face)))
+	     font-lock-variable-name-face))
+    (rpm eval sh-append rpm2
+	 '("%{?\\(\\sw+\\)"  1 font-lock-keyword-face))
+    (rpm2 eval sh-append shell
+	  '("^\\(\\sw+\\):"  1 font-lock-variable-name-face)))
   "Default expressions to highlight in Shell Script modes.  See `sh-feature'.")
 
 (defvar sh-font-lock-keywords-1
@@ -768,8 +773,10 @@ with your script for an edit-interpret-debug cycle."
   (let ((interpreter
 	 (save-excursion
 	   (goto-char (point-min))
-	   (if (looking-at "#![ \t]?\\([^ \t\n]*/bin/env[ \t]\\)?\\([^ \t\n]+\\)")
-	       (match-string 2)))))
+	   (cond ((looking-at "#![ \t]?\\([^ \t\n]*/bin/env[ \t]\\)?\\([^ \t\n]+\\)")
+		 (match-string 2))
+		 ((string-match "\\.m?spec$" buffer-file-name)
+		  "rpm")))))
     (if interpreter
 	(sh-set-shell interpreter nil nil)
       (progn
