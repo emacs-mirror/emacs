@@ -594,6 +594,15 @@ You may also type up to 3 octal digits, to insert a character with that code"
     nil
     (setq hexl-mode-map (make-sparse-keymap))
 
+    (define-key hexl-mode-map [left] 'hexl-backward-char)
+    (define-key hexl-mode-map [right] 'hexl-forward-char)
+    (define-key hexl-mode-map [up] 'hexl-previous-line)
+    (define-key hexl-mode-map [down] 'hexl-next-line)
+    (define-key hexl-mode-map [M-left] 'hexl-backward-short)
+    (define-key hexl-mode-map [M-right] 'hexl-forward-short)
+    (define-key hexl-mode-map [next] 'hexl-scroll-up)
+    (define-key hexl-mode-map [prev] 'hexl-scroll-down)
+
     (define-key hexl-mode-map "\C-a" 'hexl-beginning-of-line)
     (define-key hexl-mode-map "\C-b" 'hexl-backward-char)
     (define-key hexl-mode-map "\C-d" 'undefined)
