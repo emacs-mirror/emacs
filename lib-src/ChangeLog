@@ -1,3 +1,7 @@
+2001-12-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* makefile.nt, makefile.w32-in: Remove mocklisp files.
+
 2001-12-19  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* emacsserver.c: Conditionally include config.h.

@@ -269,6 +269,10 @@ SQL buffer.
 
 * Lisp Changes in Emacs 21.3
 
+** Support for Mocklisp has been removed.
+
+** The function insert-string is now obsolete.
+
 ** The precedence of file-name-handlers has been changed.
 Instead of blindly choosing the first handler that matches,
 find-file-name-handler now gives precedence to a file-name handler

@@ -1,4 +1,4 @@
-2001-12-22  Pavel Janík  <Pavel@Janik.cz>
+2001-12-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* cw5-mcp.xml, cw6-mcp.xml, makefile.MPW: Remove mocklisp files.
 
@@ -7,7 +7,7 @@
 	* src/macfns.c (x_report_frame_params): Make the scroll-bar-width
 	frame parameter have a numeric value all the time.
 
-2001-12-08  Pavel Janík  <Pavel@Janik.cz>
+2001-12-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* COPYING: New file.
 
@@ -25,7 +25,7 @@
 	* src/macterm.c: Merged changes from xterm.c.
 	* src/macfns.c: Merged changes from xfns.c.
 
-2001-11-16  Pavel Janík  <Pavel@Janik.cz>
+2001-11-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* src/macterm.c (waiting_for_input): Remove unnecessary declaration.
 
@@ -129,7 +129,7 @@
 
 	* inc/macterm.h (x_display_list): Declare extern.
 
-2001-07-20  Pavel Janík  <Pavel@Janik.cz>
+2001-07-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* src/macterm.c (xim_open_dpy): Fix typo.
 
@@ -318,6 +318,10 @@
 	* src/macmenu.c: New file.
 
 	* src/macterm.c: New file.
+
+;; Local Variables:
+;; coding: iso-2022-7bit-unix
+;; End:
 
     Copyright (C) 2001 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,

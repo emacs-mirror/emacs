@@ -1,3 +1,33 @@
+2001-12-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+ 	The following changes remove mocklisp support:
+
+	* mocklisp.h, mocklisp.c: Files removed.
+
+	* lisp.h: Remove declarations of variables `Vmocklisp_arguments',
+	`Qmocklisp' and `Qmocklisp_arguments'.
+	Remove prototype of syms_of_mocklisp.
+
+	* makefile.nt, makefile.w32-in, Makefile.in: Remove mocklisp
+	files.
+
+	* callint.c: Do not include mocklisp.h.
+	(Fcall_interactively): Do not test for mocklisp case.
+
+	* eval.c: Remove variables `Qmocklisp_arguments',
+	`Vmocklisp_arguments' and `Qmocklisp'.  Remove prototype of
+	ml_apply.
+	(Fprogn, Fwhile, Fcommandp, Feval, Ffuncall, funcall_lambda): Do
+	not test for mocklisp case.
+	(Fwhile): Remove unused variable `tem'.
+	(syms_of_eval): Remove variable `moclisp-arguments'.
+
+	* data.c (wrong_type_argument): Remove mocklisp case.
+
+	* doc.c (Fdocumentation): Remove mocklisp case.
+
+	* emacs.c (main): Do not call syms_of_mocklisp.
+
 2001-12-21  Richard M. Stallman  <rms@gnu.org>
 
 	* xfns.c (compute_tip_xy): If tooltip won't fit on the screen

@@ -6,6 +6,10 @@
 	* subr.el (insert-string): Moved from mocklisp.c, reimplemented in
 	Lisp.  Obsoleted.
 
+	* emulation/mlconvert.el: File removed.
+
+	* emulation/mlsupport.el: Moved to obsolete.
+
 	* obsolete/mlsupport.el: Moved there from lisp/emulation.
 
 	* emacs-lisp/find-gc.el (source-files): Remove mocklisp.c.
