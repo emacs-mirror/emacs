@@ -2249,10 +2249,12 @@ a completion with the mouse."
 ;;; override these, so this shouldn't interfere with any existing
 ;;; bindings.
 
+;; Also tell read-char how to handle these keys.
 (mapcar
  (lambda (keypad-normal)
    (let ((keypad (nth 0 keypad-normal))
 	 (normal (nth 1 keypad-normal)))
+     (put keypad 'ascii-character normal)
      (define-key function-key-map (vector keypad) (vector normal))))
  '((kp-0 ?0) (kp-1 ?1) (kp-2 ?2) (kp-3 ?3) (kp-4 ?4)
    (kp-5 ?5) (kp-6 ?6) (kp-7 ?7) (kp-8 ?8) (kp-9 ?9)
@@ -2266,5 +2268,15 @@ a completion with the mouse."
    (kp-decimal ?.)
    (kp-divide ?/)
    (kp-equal ?=)))
+
+;; These tell read-char how to convert
+;; these special chars to ASCII.
+(put 'backspace 'ascii-character 127)
+(put 'delete 'ascii-character 127)
+(put 'tab 'ascii-character ?\t)
+(put 'linefeed 'ascii-character ?\n)
+(put 'clear 'ascii-character 12)
+(put 'return 'ascii-character 13)
+(put 'escape 'ascii-character ?\e)
 
 ;;; simple.el ends here
