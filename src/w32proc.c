@@ -51,6 +51,17 @@ Boston, MA 02111-1307, USA.
    conditional (off by default). */
 Lisp_Object Vwin32_quote_process_args;
 
+/* Time to sleep before reading from a subprocess output pipe - this
+   avoids the inefficiency of frequently reading small amounts of data.
+   This is primarily necessary for handling DOS processes on Windows 95,
+   but is useful for Win32 processes on both Win95 and NT as well.  */
+Lisp_Object Vwin32_pipe_read_delay;
+
+/* Keep track of whether we have already started a DOS program, and
+   whether we can run them in the first place. */
+BOOL can_run_dos_process;
+BOOL dos_process_running;
+
 #ifndef SYS_SIGLIST_DECLARED
 extern char *sys_siglist[];
 #endif
@@ -367,6 +378,11 @@ reap_subprocess (child_process *cp)
       cp->procinfo.hProcess = NULL;
       CloseHandle (cp->procinfo.hThread);
       cp->procinfo.hThread = NULL;
+
+      /* If this was a DOS process, indicate that it is now safe to
+	 start a new one. */
+      if (cp->is_dos_process)
+	dos_process_running = FALSE;
     }
 
   /* For asynchronous children, the child_proc resources will be freed
@@ -504,6 +520,54 @@ sys_wait (int *status)
   return pid;
 }
 
+int
+win32_is_dos_binary (char * filename)
+{
+  IMAGE_DOS_HEADER dos_header;
+  DWORD signature;
+  int fd;
+  int is_dos_binary = FALSE;
+
+  fd = open (filename, O_RDONLY | O_BINARY, 0);
+  if (fd >= 0)
+    {
+      char * p = strrchr (filename, '.');
+
+      /* We can only identify DOS .com programs from the extension. */
+      if (p && stricmp (p, ".com") == 0)
+	is_dos_binary = TRUE;
+      else if (p && stricmp (p, ".bat") == 0)
+	{
+	  /* A DOS shell script - it appears that CreateProcess is happy
+	     to accept this (somewhat surprisingly); presumably it looks
+	     at COMSPEC to determine what executable to actually invoke.
+	     Therefore, we have to do the same here as well. */
+	  p = getenv ("COMSPEC");
+	  if (p)
+	    is_dos_binary = win32_is_dos_binary (p);
+	}
+      else
+	{
+	  /* Look for DOS .exe signature - if found, we must also check
+	     that it isn't really a 16- or 32-bit Windows exe, since
+	     both formats start with a DOS program stub.  Note that
+	     16-bit Windows executables use the OS/2 1.x format. */
+	  if (read (fd, &dos_header, sizeof (dos_header)) == sizeof (dos_header)
+	      && dos_header.e_magic == IMAGE_DOS_SIGNATURE
+	      && lseek (fd, dos_header.e_lfanew, SEEK_SET) != -1)
+	    {
+	      if (read (fd, &signature, sizeof (signature)) != sizeof (signature)
+		  || (signature != IMAGE_NT_SIGNATURE &&
+		      LOWORD (signature) != IMAGE_OS2_SIGNATURE))
+		is_dos_binary = TRUE;
+	    }
+	}
+      close (fd);
+    }
+
+  return is_dos_binary;
+}
+
 /* We pass our process ID to our children by setting up an environment
    variable in their environment.  */
 char ppid_env_var_buffer[64];
@@ -518,6 +582,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
   int arglen;
   int pid;
   child_process *cp;
+  int is_dos_binary;
   
   /* We don't care about the other modes */
   if (mode != _P_NOWAIT)
@@ -549,6 +614,15 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
   strcpy (cmdname = alloca (strlen (cmdname) + 1), argv[0]);
   unixtodos_filename (cmdname);
   argv[0] = cmdname;
+
+  /* Check if program is a DOS executable, and if so whether we are
+     allowed to start it. */
+  is_dos_binary = win32_is_dos_binary (cmdname);
+  if (is_dos_binary && (!can_run_dos_process || dos_process_running))
+    {
+      errno = (can_run_dos_process) ? EAGAIN : EINVAL;
+      return -1;
+    }
   
   /* we have to do some conjuring here to put argv and envp into the
      form CreateProcess wants...  argv needs to be a space separated/null
@@ -678,6 +752,12 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       delete_child (cp);
       errno = ENOEXEC;
       return -1;
+    }
+
+  if (is_dos_binary)
+    {
+      cp->is_dos_process = TRUE;
+      dos_process_running = TRUE;
     }
   
   return pid;
@@ -1086,5 +1166,16 @@ However, the argument list to call-process is not always correctly\n\
 constructed (or arguments have already been quoted), so enabling this\n\
 option may cause unexpected behavior.");
   Vwin32_quote_process_args = Qnil;
+
+  DEFVAR_INT ("win32-pipe-read-delay", &Vwin32_pipe_read_delay,
+    "Forced delay before reading subprocess output.\n\
+This is done to improve the buffering of subprocess output, by\n\
+avoiding the inefficiency of frequently reading small amounts of data.\n\
+\n\
+If positive, the value is the number of milliseconds to sleep before\n\
+reading the subprocess output.  If negative, the magnitude is the number\n\
+of time slices to wait (effectively boosting the priority of the child\n\
+process temporarily).  A value of zero disables waiting entirely.");
+  Vwin32_pipe_read_delay = 50;
 }
 /* end of ntproc.c */
