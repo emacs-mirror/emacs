@@ -7988,6 +7988,15 @@ follow_key (key, nmaps, current, defs, next)
   return first_binding;
 }
 
+/* Structure used to keep track of partial application of key remapping
+   such as Vfunction_key_map and Vkey_translation_map.  */
+typedef struct keyremap
+{
+  Lisp_Object map;
+  int start, end;
+} keyremap;
+
+
 /* Read a sequence of keys that ends with a non prefix character,
    storing it in KEYBUF, a buffer of size BUFSIZE.
    Prompt with PROMPT.
@@ -8075,7 +8084,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
      defs[i] is non-nil.  */
   volatile int first_binding;
   /* Index of the first key that has no binding.
-     It is useless to try fkey_start larger than that.  */
+     It is useless to try fkey.start larger than that.  */
   volatile int first_unbound;
 
   /* If t < mock_input, then KEYBUF[t] should be read as the next
@@ -8094,19 +8103,17 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   volatile int mock_input = 0;
 
   /* If the sequence is unbound in submaps[], then
-     keybuf[fkey_start..fkey_end-1] is a prefix in Vfunction_key_map,
-     and fkey_map is its binding.
+     keybuf[fkey.start..fkey.end-1] is a prefix in Vfunction_key_map,
+     and fkey.map is its binding.
 
      These might be > t, indicating that all function key scanning
      should hold off until t reaches them.  We do this when we've just
      recognized a function key, to avoid searching for the function
      key's again in Vfunction_key_map.  */
-  volatile int fkey_start = 0, fkey_end = 0;
-  volatile Lisp_Object fkey_map;
+  volatile keyremap fkey;
 
   /* Likewise, for key_translation_map.  */
-  volatile int keytran_start = 0, keytran_end = 0;
-  volatile Lisp_Object keytran_map;
+  volatile keyremap keytran;
 
   /* If we receive a ``switch-frame'' event in the middle of a key sequence,
      we put it off for later.  While we're reading, we keep the event here.  */
@@ -8140,16 +8147,11 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   last_nonmenu_event = Qnil;
 
   delayed_switch_frame = Qnil;
-  fkey_map = Vfunction_key_map;
-  keytran_map = Vkey_translation_map;
-
-  /* If there is no function-key-map, turn off function key scanning.  */
-  if (!KEYMAPP (Vfunction_key_map))
-    fkey_start = fkey_end = bufsize + 1;
-
-  /* If there is no key-translation-map, turn off scanning.  */
-  if (!KEYMAPP (Vkey_translation_map))
-    keytran_start = keytran_end = bufsize + 1;
+  fkey.map = Vfunction_key_map;
+  keytran.map = Vkey_translation_map;
+  /* If there is no translation-map, turn off scanning.  */
+  fkey.start = fkey.end = KEYMAPP (fkey.map) ? 0 : bufsize + 1;
+  keytran.start = keytran.end = KEYMAPP (keytran.map) ? 0 : bufsize + 1;
 
   if (INTERACTIVE)
     {
@@ -8259,15 +8261,15 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   /* If the best binding for the current key sequence is a keymap, or
      we may be looking at a function key's escape sequence, keep on
      reading.  */
-  while ((first_binding < nmaps && ! NILP (submaps[first_binding]))
-	 || (first_binding >= nmaps && fkey_start < t)
-	 || (first_binding >= nmaps && keytran_start < t)
+  while (first_binding < nmaps
+	 /* Keep reading as long as there's a prefix binding.  */
+	 ? !NILP (submaps[first_binding])
 	 /* Don't return in the middle of a possible function key sequence,
 	    if the only bindings we found were via case conversion.
 	    Thus, if ESC O a has a function-key-map translation
 	    and ESC o has a binding, don't return after ESC O,
 	    so that we can translate ESC O plus the next character.  */
-	 )
+	 : (fkey.start < t || keytran.start < t))
     {
       Lisp_Object key;
       int used_mouse_menu = 0;
@@ -8286,9 +8288,9 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
       volatile int echo_local_start, keys_local_start, local_first_binding;
 
       /* key-translation-map is applied *after* function-key-map.  */
-      eassert (keytran_end <= fkey_start);
+      eassert (keytran.end <= fkey.start);
 
-      if (first_unbound < fkey_start && first_unbound < keytran_start)
+      if (first_unbound < fkey.start && first_unbound < keytran.start)
 	{ /* The prefix upto first_unbound has no binding and has
 	     no translation left to do either, so we know it's unbound.
 	     If we don't stop now, we risk staying here indefinitely
@@ -8298,10 +8300,10 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  for (i = first_unbound + 1; i < t; i++)
 	    keybuf[i - first_unbound - 1] = keybuf[i];
 	  mock_input = t - first_unbound - 1;
-	  fkey_end = fkey_start -= first_unbound + 1;
-	  fkey_map = Vfunction_key_map;
-	  keytran_end = keytran_start -= first_unbound + 1;
-	  keytran_map = Vkey_translation_map;
+	  fkey.end = fkey.start -= first_unbound + 1;
+	  fkey.map = Vfunction_key_map;
+	  keytran.end = keytran.start -= first_unbound + 1;
+	  keytran.map = Vkey_translation_map;
 	  goto replay_sequence;
 	}
 
@@ -8704,15 +8706,15 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	/* This is needed for the following scenario:
 	   event 0: a down-event that gets dropped by calling replay_key.
 	   event 1: some normal prefix like C-h.
-	   After event 0, first_unbound is 0, after event 1 fkey_start
-	   and keytran_start are both 1, so when we see that C-h is bound,
+	   After event 0, first_unbound is 0, after event 1 fkey.start
+	   and keytran.start are both 1, so when we see that C-h is bound,
 	   we need to update first_unbound.  */
 	first_unbound = max (t + 1, first_unbound);
       else
 	{
 	  Lisp_Object head;
 	  
-	  /* Remember the position to put an upper bound on fkey_start.  */
+	  /* Remember the position to put an upper bound on fkey.start.  */
 	  first_unbound = min (t, first_unbound);
 
 	  head = EVENT_HEAD (key);
@@ -8851,214 +8853,210 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	   to go over the sequence before we return (since we keep the
 	   invariant that keytran.end <= fkey.start).  */
 	{
-	  if (fkey_start < t)
-	    (fkey_start = fkey_end = t, fkey_map = Vfunction_key_map);
+	  if (fkey.start < t)
+	    (fkey.start = fkey.end = t, fkey.map = Vfunction_key_map);
 	}
       else
 	/* If the sequence is unbound, see if we can hang a function key
 	   off the end of it.  */
 	{
-	  Lisp_Object fkey_next;
+	  Lisp_Object next;
 
-	  /* Continue scan from fkey_end until we find a bound suffix.
-	     If we fail, increment fkey_start and start over from there.  */
-	  while (fkey_end < t)
+	  /* Continue scan from fkey.end until we find a bound suffix.
+	     If we fail, increment fkey.start and start over from there.  */
+	  while (fkey.end < t)
 	    {
 	      Lisp_Object key;
 
-	      key = keybuf[fkey_end++];
-	      fkey_next = access_keymap (fkey_map, key, 1, 0, 1);
+	      key = keybuf[fkey.end++];
+	      next = access_keymap (fkey.map, key, 1, 0, 1);
 
 	      /* Handle symbol with autoload definition.  */
-	      if (SYMBOLP (fkey_next) && ! NILP (Ffboundp (fkey_next))
-		  && CONSP (XSYMBOL (fkey_next)->function)
-		  && EQ (XCAR (XSYMBOL (fkey_next)->function), Qautoload))
-		do_autoload (XSYMBOL (fkey_next)->function,
-			     fkey_next);
+	      if (SYMBOLP (next) && ! NILP (Ffboundp (next))
+		  && CONSP (XSYMBOL (next)->function)
+		  && EQ (XCAR (XSYMBOL (next)->function), Qautoload))
+		do_autoload (XSYMBOL (next)->function, next);
 
 	      /* Handle a symbol whose function definition is a keymap
 		 or an array.  */
-	      if (SYMBOLP (fkey_next) && ! NILP (Ffboundp (fkey_next))
-		  && (!NILP (Farrayp (XSYMBOL (fkey_next)->function))
-		      || KEYMAPP (XSYMBOL (fkey_next)->function)))
-		fkey_next = XSYMBOL (fkey_next)->function;
+	      if (SYMBOLP (next) && ! NILP (Ffboundp (next))
+		  && (!NILP (Farrayp (XSYMBOL (next)->function))
+		      || KEYMAPP (XSYMBOL (next)->function)))
+		next = XSYMBOL (next)->function;
 
 #if 0 /* I didn't turn this on, because it might cause trouble
 	 for the mapping of return into C-m and tab into C-i.  */
 	      /* Optionally don't map function keys into other things.
 		 This enables the user to redefine kp- keys easily.  */
 	      if (SYMBOLP (key) && !NILP (Vinhibit_function_key_mapping))
-		fkey_next = Qnil;
+		next = Qnil;
 #endif
 
 	      /* If the function key map gives a function, not an
 		 array, then call the function with no args and use
 		 its value instead.  */
-	      if (SYMBOLP (fkey_next) && ! NILP (Ffboundp (fkey_next))
+	      if (SYMBOLP (next) && ! NILP (Ffboundp (next))
 		  /* If there's a binding (i.e. first_binding >= nmaps)
 		     we don't want to apply this function-key-mapping.  */
-		  && fkey_end == t && first_binding >= nmaps)
+		  && fkey.end == t && first_binding >= nmaps)
 		{
 		  struct gcpro gcpro1, gcpro2, gcpro3;
 		  Lisp_Object tem;
-		  tem = fkey_next;
+		  tem = next;
 
-		  GCPRO3 (fkey_map, keytran_map, delayed_switch_frame);
-		  fkey_next = call1 (fkey_next, prompt);
+		  GCPRO3 (fkey.map, keytran.map, delayed_switch_frame);
+		  next = call1 (next, prompt);
 		  UNGCPRO;
 		  /* If the function returned something invalid,
 		     barf--don't ignore it.
 		     (To ignore it safely, we would need to gcpro a bunch of
 		     other variables.)  */
-		  if (! (VECTORP (fkey_next) || STRINGP (fkey_next)))
+		  if (! (VECTORP (next) || STRINGP (next)))
 		    error ("Function in key-translation-map returns invalid key sequence");
 		}
 
-	      /* If keybuf[fkey_start..fkey_end] is bound in the
+	      /* If keybuf[fkey.start..fkey.end] is bound in the
 		 function key map and it's a suffix of the current
-		 sequence (i.e. fkey_end == t), replace it with
-		 the binding and restart with fkey_start at the end. */
-	      if ((VECTORP (fkey_next) || STRINGP (fkey_next))
+		 sequence (i.e. fkey.end == t), replace it with
+		 the binding and restart with fkey.start at the end. */
+	      if ((VECTORP (next) || STRINGP (next))
 		  /* If there's a binding (i.e. first_binding >= nmaps)
 		     we don't want to apply this function-key-mapping.  */
-		  && fkey_end == t && first_binding >= nmaps)
+		  && fkey.end == t && first_binding >= nmaps)
 		{
-		  int len = XFASTINT (Flength (fkey_next));
+		  int len = XFASTINT (Flength (next));
 
-		  t = fkey_start + len;
+		  t = fkey.start + len;
 		  if (t >= bufsize)
 		    error ("Key sequence too long");
 
-		  if (VECTORP (fkey_next))
-		    bcopy (XVECTOR (fkey_next)->contents,
-			   keybuf + fkey_start,
-			   (t - fkey_start) * sizeof (keybuf[0]));
-		  else if (STRINGP (fkey_next))
+		  if (VECTORP (next))
+		    bcopy (XVECTOR (next)->contents,
+			   keybuf + fkey.start,
+			   (t - fkey.start) * sizeof (keybuf[0]));
+		  else if (STRINGP (next))
 		    {
 		      int i;
 
 		      for (i = 0; i < len; i++)
-			XSETFASTINT (keybuf[fkey_start + i],
-				     SREF (fkey_next, i));
+			XSETFASTINT (keybuf[fkey.start + i], SREF (next, i));
 		    }
 
 		  mock_input = t;
-		  fkey_start = fkey_end = t;
-		  fkey_map = Vfunction_key_map;
+		  fkey.start = fkey.end = t;
+		  fkey.map = Vfunction_key_map;
 
 		  /* Do pass the results through key-translation-map.
 		     But don't retranslate what key-translation-map
 		     has already translated.  */
-		  keytran_end = keytran_start;
-		  keytran_map = Vkey_translation_map;
+		  keytran.end = keytran.start;
+		  keytran.map = Vkey_translation_map;
 
 		  goto replay_sequence;
 		}
 
-	      fkey_map = get_keymap (fkey_next, 0, 1);
+	      fkey.map = get_keymap (next, 0, 1);
 
 	      /* If we no longer have a bound suffix, try a new positions for
-		 fkey_start.  */
-	      if (!CONSP (fkey_map))
+		 fkey.start.  */
+	      if (!CONSP (fkey.map))
 		{
-		  fkey_end = ++fkey_start;
-		  fkey_map = Vfunction_key_map;
+		  fkey.end = ++fkey.start;
+		  fkey.map = Vfunction_key_map;
 		}
 	    }
 	}
 
       /* Look for this sequence in key-translation-map.  */
       {
-	Lisp_Object keytran_next;
+	Lisp_Object next;
 
-	/* Scan from keytran_end until we find a bound suffix.  */
-	while (keytran_end < fkey_start)
+	/* Scan from keytran.end until we find a bound suffix.  */
+	while (keytran.end < fkey.start)
 	  {
 	    Lisp_Object key;
 
-	    key = keybuf[keytran_end++];
-	    keytran_next
-	      = access_keymap (keytran_map, key, 1, 0, 1);
+	    key = keybuf[keytran.end++];
+	    next = access_keymap (keytran.map, key, 1, 0, 1);
 
 	    /* Handle symbol with autoload definition.  */
-	    if (SYMBOLP (keytran_next) && ! NILP (Ffboundp (keytran_next))
-		&& CONSP (XSYMBOL (keytran_next)->function)
-		&& EQ (XCAR (XSYMBOL (keytran_next)->function), Qautoload))
-	      do_autoload (XSYMBOL (keytran_next)->function,
-			   keytran_next);
+	    if (SYMBOLP (next) && ! NILP (Ffboundp (next))
+		&& CONSP (XSYMBOL (next)->function)
+		&& EQ (XCAR (XSYMBOL (next)->function), Qautoload))
+	      do_autoload (XSYMBOL (next)->function, next);
 
 	    /* Handle a symbol whose function definition is a keymap
 	       or an array.  */
-	    if (SYMBOLP (keytran_next) && ! NILP (Ffboundp (keytran_next))
-		&& (!NILP (Farrayp (XSYMBOL (keytran_next)->function))
-		    || KEYMAPP (XSYMBOL (keytran_next)->function)))
-	      keytran_next = XSYMBOL (keytran_next)->function;
+	    if (SYMBOLP (next) && ! NILP (Ffboundp (next))
+		&& (!NILP (Farrayp (XSYMBOL (next)->function))
+		    || KEYMAPP (XSYMBOL (next)->function)))
+	      next = XSYMBOL (next)->function;
 	    
 	    /* If the key translation map gives a function, not an
 	       array, then call the function with one arg and use
 	       its value instead.  */
-	    if (SYMBOLP (keytran_next) && ! NILP (Ffboundp (keytran_next)))
+	    if (SYMBOLP (next) && ! NILP (Ffboundp (next)))
 	      {
 		struct gcpro gcpro1, gcpro2, gcpro3;
 		Lisp_Object tem;
-		tem = keytran_next;
+		tem = next;
 
-		GCPRO3 (fkey_map, keytran_map, delayed_switch_frame);
-		keytran_next = call1 (keytran_next, prompt);
+		GCPRO3 (fkey.map, keytran.map, delayed_switch_frame);
+		next = call1 (next, prompt);
 		UNGCPRO;
 		/* If the function returned something invalid,
 		   barf--don't ignore it.
 		   (To ignore it safely, we would need to gcpro a bunch of
 		   other variables.)  */
-		if (! (VECTORP (keytran_next) || STRINGP (keytran_next)))
+		if (! (VECTORP (next) || STRINGP (next)))
 		  error ("Function in key-translation-map returns invalid key sequence");
 	      }
 
-	    /* If keybuf[keytran_start..keytran_end] is bound in the
+	    /* If keybuf[keytran.start..keytran.end] is bound in the
 	       key translation map and it's a suffix of the current
-	       sequence (i.e. keytran_end == t), replace it with
-	       the binding and restart with keytran_start at the end. */
-	    if ((VECTORP (keytran_next) || STRINGP (keytran_next)))
+	       sequence (i.e. keytran.end == t), replace it with
+	       the binding and restart with keytran.start at the end. */
+	    if ((VECTORP (next) || STRINGP (next)))
 	      {
-		int len = XFASTINT (Flength (keytran_next));
-		int i, diff = len - (keytran_end - keytran_start);
+		int len = XFASTINT (Flength (next));
+		int i, diff = len - (keytran.end - keytran.start);
 
 		mock_input = max (t, mock_input);
 		if (mock_input + diff >= bufsize)
 		  error ("Key sequence too long");
 
-		/* Shift the keys that are after keytran_end.  */
+		/* Shift the keys that are after keytran.end.  */
 		if (diff < 0)
-		  for (i = keytran_end; i < mock_input; i++)
+		  for (i = keytran.end; i < mock_input; i++)
 		    keybuf[i + diff] = keybuf[i];
 		else if (diff > 0)
-		  for (i = mock_input - 1; i >= keytran_end; i--)
+		  for (i = mock_input - 1; i >= keytran.end; i--)
 		    keybuf[i + diff] = keybuf[i];
-		/* Replace the keys between keytran_start and keytran_end
-		   with those from keytran_next.  */
+		/* Replace the keys between keytran.start and keytran.end
+		   with those from next.  */
 		for (i = 0; i < len; i++)
-		  keybuf[keytran_start + i]
-		    = Faref (keytran_next, make_number (i));
+		  keybuf[keytran.start + i]
+		    = Faref (next, make_number (i));
 
 		mock_input += diff;
-		keytran_start = keytran_end += diff;
-		keytran_map = Vkey_translation_map;
+		keytran.start = keytran.end += diff;
+		keytran.map = Vkey_translation_map;
 
 		/* Adjust the function-key-map counters.  */
-		fkey_start += diff;
-		fkey_end += diff;
+		fkey.start += diff;
+		fkey.end += diff;
 
 		goto replay_sequence;
 	      }
 
-	    keytran_map = get_keymap (keytran_next, 0, 1);
+	    keytran.map = get_keymap (next, 0, 1);
 
 	    /* If we no longer have a bound suffix, try a new positions for
-	       keytran_start.  */
-	    if (!CONSP (keytran_map))
+	       keytran.start.  */
+	    if (!CONSP (keytran.map))
 	      {
-		keytran_end = ++keytran_start;
-		keytran_map = Vkey_translation_map;
+		keytran.end = ++keytran.start;
+		keytran.map = Vkey_translation_map;
 	      }
 	  }
       }
@@ -9068,7 +9066,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	 and is an upper case letter
 	 use the corresponding lower-case letter instead.  */
       if (first_binding >= nmaps
-	  && fkey_start >= t && keytran_start >= t
+	  && fkey.start >= t && keytran.start >= t
 	  && INTEGERP (key)
 	  && ((((XINT (key) & 0x3ffff)
 		< XCHAR_TABLE (current_buffer->downcase_table)->size)
@@ -9099,7 +9097,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	 and is a shifted function key,
 	 use the corresponding unshifted function key instead.  */
       if (first_binding >= nmaps
-	  && fkey_start >= t && keytran_start >= t
+	  && fkey.start >= t && keytran.start >= t
 	  && SYMBOLP (key))
 	{
 	  Lisp_Object breakdown;
