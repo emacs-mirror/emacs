@@ -47,6 +47,12 @@ description of aspects specific to the Mac.
 
 * Changes in Emacs 21.1
 
++++
+** The environment variable `EMACSLOCKDIR' is no longer used on MS-Windows.
+This environment variable was used when creating lock files.  Emacs on
+MS-Windows does not use this variable anymore.  This change was made
+before Emacs 21.1, but wasn't documented until now.
+
 ** Flyspell mode has various new options.  See the `flyspell' Custom
 group.
 
