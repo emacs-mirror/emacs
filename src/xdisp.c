@@ -11892,7 +11892,7 @@ try_window_id (w)
 
 #if GLYPH_DEBUG
 
-void dump_glyph_row P_ ((struct glyph_matrix *, int, int));
+void dump_glyph_row P_ ((struct glyph_row *, int, int));
 void dump_glyph_matrix P_ ((struct glyph_matrix *, int));
 void dump_glyph P_ ((struct glyph_row *, struct glyph *, int));
 
@@ -11910,7 +11910,7 @@ dump_glyph_matrix (matrix, glyphs)
 {
   int i;
   for (i = 0; i < matrix->nrows; ++i)
-    dump_glyph_row (matrix, i, glyphs);
+    dump_glyph_row (MATRIX_ROW (matrix, i), i, glyphs);
 }
 
 
@@ -11991,17 +11991,10 @@ dump_glyph (row, glyph, area)
    GLYPHS > 1 means show glyphs in long form.  */
 
 void
-dump_glyph_row (matrix, vpos, glyphs)
-     struct glyph_matrix *matrix;
+dump_glyph_row (row, vpos, glyphs)
+     struct glyph_row *row;
      int vpos, glyphs;
 {
-  struct glyph_row *row;
-  
-  if (vpos < 0 || vpos >= matrix->nrows)
-    return;
-
-  row = MATRIX_ROW (matrix, vpos);
-
   if (glyphs != 1)
     {
       fprintf (stderr, "Row Start   End Used oEI><O\\CTZFesm     X    Y    W    H    V    A    P\n");
@@ -12009,7 +12002,7 @@ dump_glyph_row (matrix, vpos, glyphs)
   
       fprintf (stderr, "%3d %5d %5d %4d %1.1d%1.1d%1.1d%1.1d%1.1d%1.1d\
 %1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d  %4d %4d %4d %4d %4d %4d %4d\n",
-	       row - matrix->rows,
+	       vpos,
 	       MATRIX_ROW_START_CHARPOS (row),
 	       MATRIX_ROW_END_CHARPOS (row),
 	       row->used[TEXT_AREA],
@@ -12122,10 +12115,16 @@ GLYPH > 1 or omitted means dump glyphs in long form.")
   (row, glyphs)
      Lisp_Object row, glyphs;
 {
+  struct glyph_matrix *matrix;
+  int vpos;
+  
   CHECK_NUMBER (row, 0);
-  dump_glyph_row (XWINDOW (selected_window)->current_matrix,
-		  XINT (row),
-		  INTEGERP (glyphs) ? XINT (glyphs) : 2);
+  matrix = XWINDOW (selected_window)->current_matrix;
+  vpos = XINT (row);
+  if (vpos >= 0 && vpos < matrix->nrows)
+    dump_glyph_row (MATRIX_ROW (matrix, vpos),
+		    vpos,
+		    INTEGERP (glyphs) ? XINT (glyphs) : 2);
   return Qnil;
 }
 
@@ -12139,8 +12138,14 @@ GLYPH > 1 or omitted means dump glyphs in long form.")
      Lisp_Object row, glyphs;
 {
   struct frame *sf = SELECTED_FRAME ();
-  struct glyph_matrix *m = (XWINDOW (sf->tool_bar_window)->current_matrix);
-  dump_glyph_row (m, XINT (row), INTEGERP (glyphs) ? XINT (glyphs) : 2);
+  struct glyph_matrix *m = XWINDOW (sf->tool_bar_window)->current_matrix;
+  int vpos;
+  
+  CHECK_NUMBER (row, 0);
+  vpos = XINT (row);
+  if (vpos >= 0 && vpos < m->nrows)
+    dump_glyph_row (MATRIX_ROW (m, vpos), vpos,
+		    INTEGERP (glyphs) ? XINT (glyphs) : 2);
   return Qnil;
 }
 
@@ -13378,15 +13383,20 @@ display_mode_element (it, depth, field_width, precision, elt)
 		   is length of string.  Don't output more than
 		   PRECISION allows us.  */
 		--this;
-		prec = strwidth (last, this - last);
+
+		prec = chars_in_text (last, this - last);
 		if (precision > 0 && prec > precision - n)
 		  prec = precision - n;
 		
 		if (frame_title_ptr)
 		  n += store_frame_title (last, 0, prec);
 		else
-		  n += display_string (NULL, elt, Qnil, 0, last - lisp_string,
-				       it, 0, prec, 0, -1);
+		  {
+		    int bytepos = last - lisp_string;
+		    int charpos = string_byte_to_char (elt, bytepos);
+		    n += display_string (NULL, elt, Qnil, 0, charpos,
+					 it, 0, prec, 0, -1);
+		  }
 	      }
 	    else /* c == '%' */
 	      {
@@ -13419,8 +13429,10 @@ display_mode_element (it, depth, field_width, precision, elt)
 		      {
 			int nglyphs_before
 			  = it->glyph_row->used[TEXT_AREA];
-			int charpos
+			int bytepos
 			  = percent_position - XSTRING (elt)->data;
+			int charpos
+			  = string_byte_to_char (elt, bytepos);
 			int nwritten
 			  = display_string (spec, Qnil, elt, charpos, 0, it,
 					    field, prec, 0, -1);
