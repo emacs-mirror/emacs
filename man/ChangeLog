@@ -1,5 +1,10 @@
 2004-12-05  Richard M. Stallman  <rms@gnu.org>
 
+	* Makefile.in (org.dvi, ../info/org): New targets.
+	(INFO_TARGETS): Add ../info/org.
+	(DVI_TARGETS): Add org.dvi.
+	(maintainer-clean): Remove the info files in the info dir.
+
 	* misc.texi (Term Mode): Correcty describe C-c.
 
 	* custom.texi (Easy Customization): Move up to section level,
