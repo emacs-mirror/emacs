@@ -1929,7 +1929,7 @@ LIST should have been created by calling `match-data' previously.")
 
 /* If non-zero the match data have been saved in saved_search_regs
    during the execution of a sentinel or filter. */
-static int search_regs_saved = 0;
+static int search_regs_saved;
 static struct re_registers saved_search_regs;
 
 /* Called from Flooking_at, Fstring_match, search_buffer, Fstore_match_data
