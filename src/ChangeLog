@@ -1,5 +1,8 @@
 2004-10-13  Kim F. Storm  <storm@cua.dk>
 
+	* callproc.c (Fcall_process): Simplify handling of display arg.
+	Resume `display_on_the_fly' once a coding system is determined.
+
 	* xdisp.c (redisplay_preserve_echo_area): Fix last change.
 
 2004-10-12  Kim F. Storm  <storm@cua.dk>
