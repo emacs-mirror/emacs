@@ -9253,10 +9253,16 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
       {
 	int area_width = FRAME_SCROLL_BAR_COLS (f) * CANON_X_UNIT (f);
 	int rest = area_width - sb_width;
-	if (rest > 0)
-	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			left + area_width -  rest, top,
-			rest, max (height, 1), False);
+	if (rest > 0 && height > 0)
+	  {
+	    if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f))
+	      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			    left + area_width -  rest, top,
+			    rest, height, False);
+	    else
+	      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			    left, top, rest, height, False);
+	  }
       }
       
       /* Move/size the scroll bar window.  */
