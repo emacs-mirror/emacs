@@ -1136,6 +1136,7 @@ or by the previous use of this command."
   (if coding-system
       (setq default-keyboard-coding-system coding-system))
   (set-keyboard-coding-system-internal coding-system)
+  (setq keyboard-coding-system coding-system)
   (encoded-kbd-mode (if coding-system 1 0)))
 
 (defcustom keyboard-coding-system nil
