@@ -465,7 +465,7 @@ there.")
     (buffer-disable-undo (current-buffer))
     (erase-buffer)
     (condition-case ()
-	(call-process "grep" nil t nil id nnspool-history-file)
+	(call-process "grep" nil t nil (regexp-quote id) nnspool-history-file)
       (error nil))
     (goto-char (point-min))
     (prog1

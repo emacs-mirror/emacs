@@ -139,6 +139,7 @@ isn't bound, the message will be used unconditionally.")
 	       (nnmail-time-since (nnmail-date-to-time date))
 	       (nnmail-days-to-time gnus-nocem-expiry-wait)))
       (gnus-request-article-this-buffer (mail-header-number header) group)
+      (goto-char (point-min))
       ;; The article has to have proper NoCeM headers.
       (when (and (setq b (search-forward "\n@@BEGIN NCM HEADERS\n" nil t))
 		 (setq e (search-forward "\n@@BEGIN NCM BODY\n" nil t)))

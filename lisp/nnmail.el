@@ -382,9 +382,9 @@ parameter.  It should return nil, `warn' or `delete'.")
 			     (substring inbox (+ popmail 3))))))
 	    (message "Getting mail from post office ..."))
 	(when (or (and (file-exists-p tofile)
-		       (/= 0 (nth 7 (file-attributes tofile))))
+		       (/= 0 (nnheader-file-size tofile)))
 		  (and (file-exists-p inbox)
-		       (/= 0 (nth 7 (file-attributes inbox)))))
+		       (/= 0 (nnheader-file-size inbox))))
 	  (message "Getting mail from %s..." inbox)))
       ;; Set TOFILE if have not already done so, and
       ;; rename or copy the file INBOX to TOFILE if and as appropriate.
@@ -923,8 +923,8 @@ See the documentation for the variable `nnmail-split-fancy' for documentation."
 			    nnmail-procmail-suffix "$") t)))
 	   (p procmails)
 	   (crash (when (and (file-exists-p nnmail-crash-box)
-			     (> (nth 7 (file-attributes
-					(file-truename nnmail-crash-box))) 0))
+			     (> (nnheader-file-size
+				 (file-truename nnmail-crash-box)) 0))
 		    (list nnmail-crash-box))))
       ;; Remove any directories that inadvertantly match the procmail
       ;; suffix, which might happen if the suffix is "". 
@@ -937,8 +937,12 @@ See the documentation for the variable `nnmail-split-fancy' for documentation."
        crash
        (cond ((and group
 		   (or (eq nnmail-spool-file 'procmail)
-		       nnmail-use-procmail))
+		       nnmail-use-procmail)
+		   procmails)
 	      procmails)
+	     ((and group
+		   (eq nnmail-spool-file 'procmail))
+	      nil)
 	     ((listp nnmail-spool-file)
 	      (append nnmail-spool-file procmails))
 	     ((stringp nnmail-spool-file)
@@ -1107,7 +1111,7 @@ See the documentation for the variable `nnmail-split-fancy' for documentation."
 	;; existance of POPped mail.
 	(when (or (string-match "^po:" spool)
 		  (and (file-exists-p spool)
-		       (> (nth 7 (file-attributes (file-truename spool))) 0)))
+		       (> (nnheader-file-size (file-truename spool)) 0)))
 	  (nnheader-message 3 "%s: Reading incoming mail..." method)
 	  (when (and (nnmail-move-inbox spool)
 		     (file-exists-p nnmail-crash-box))

@@ -157,6 +157,8 @@
 	(nnheader-report 'nnmh "Selected group %s" group)
 	t)
        (t
+	;; Re-scan the directory if it's on a foreign system.
+	(nnheader-re-read-dir pathname)
 	(setq dir 
 	      (sort
 	       (mapcar (lambda (name) (string-to-int name))

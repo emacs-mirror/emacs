@@ -570,6 +570,40 @@ without formatting."
     (while (re-search-forward "\r$" nil t)
       (delete-backward-char 1))))
 
+(defun nnheader-file-size (file)
+  "Return the file size of FILE or 0."
+  (or (nth 7 (file-attributes file)) 0))
+
+(defun nnheader-find-etc-directory (package)
+  "Go through the path and find the \".../etc/PACKAGE\" directory."
+  (let ((path load-path)
+	dir result)
+    ;; We try to find the dir by looking at the load path,
+    ;; stripping away the last component and adding "etc/".
+    (while path
+      (if (and (car path)
+	       (file-exists-p
+		(setq dir (concat
+			   (file-name-directory
+			    (directory-file-name (car path)))
+			   "etc/" package "/")))
+	       (file-directory-p dir))
+	  (setq result dir
+		path nil)
+	(setq path (cdr path))))
+    result))
+
+(defvar ange-ftp-path-format)
+(defvar efs-path-regexp)
+(defun nnheader-re-read-dir (path)
+  "Re-read directory PATH if PATH is on a remote system."
+  (if (boundp 'ange-ftp-path-format)
+      (when (string-match (car ange-ftp-path-format) path)
+	(ange-ftp-re-read-dir path))
+    (if (boundp 'efs-path-regexp)
+	(when (string-match efs-path-regexp path)
+	  (efs-re-read-dir path)))))
+
 (fset 'nnheader-run-at-time 'run-at-time)
 (fset 'nnheader-cancel-timer 'cancel-timer)
 (fset 'nnheader-find-file-noselect 'find-file-noselect)

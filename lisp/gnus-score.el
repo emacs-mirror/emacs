@@ -551,7 +551,7 @@ If optional argument `SILENT' is nil, show effect of score entry."
 	((eq type 'f)
 	 (setq match (gnus-simplify-subject-fuzzy match))))
   (let ((score (gnus-score-default score))
-	(header (downcase header))
+	(header (format "%s" (downcase header)))
 	new)
     (and prompt (setq match (read-string 
 			     (format "Match %s on %s, %s: " 
@@ -565,6 +565,9 @@ If optional argument `SILENT' is nil, show effect of score entry."
 			     (if (numberp match)
 				 (int-to-string match)
 			       match))))
+
+    ;; Get rid of string props.
+    (setq match (format "%s" match))
 
     ;; If this is an integer comparison, we transform from string to int. 
     (and (eq (nth 2 (assoc header gnus-header-index)) 'gnus-score-integer)
@@ -720,11 +723,11 @@ SCORE is the score to add."
   (setq score (gnus-score-default score))
   (when (gnus-buffer-live-p gnus-summary-buffer)
     (save-excursion
-      (set-buffer gnus-summary-buffer)
       (save-restriction
 	(goto-char (point-min))
 	(let ((id (mail-fetch-field "message-id")))
 	  (when id
+	    (set-buffer gnus-summary-buffer)
 	    (gnus-summary-score-entry
 	     "references" (concat id "[ \t]*$") 'r
 	     score (current-time-string) nil t)))))))
@@ -735,11 +738,11 @@ SCORE is the score to add."
   (setq score (gnus-score-default score))
   (when (gnus-buffer-live-p gnus-summary-buffer)
     (save-excursion
-      (set-buffer gnus-summary-buffer)
       (save-restriction
 	(goto-char (point-min))
 	(let ((id (mail-fetch-field "message-id")))
 	  (when id
+	    (set-buffer gnus-summary-buffer)
 	    (gnus-summary-score-entry
 	     "references" id 's
 	     score (current-time-string))))))))

@@ -66,7 +66,10 @@ variable to \"^nnml\".")
 
 (defun gnus-cache-open ()
   "Initialize the cache."
-  (gnus-cache-read-active))
+  (when (or (file-exists-p gnus-cache-directory)
+	    (and gnus-use-cache
+		 (not (eq gnus-use-cache 'passive))))
+    (gnus-cache-read-active)))
 
 (gnus-add-shutdown 'gnus-cache-close 'gnus)
 

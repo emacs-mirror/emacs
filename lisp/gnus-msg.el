@@ -55,20 +55,6 @@ message in, you can set this variable to a function that checks the
 current newsgroup name and then returns a suitable group name (or list
 of names).")
 
-(defvar gnus-message-archive-group
-  '((if (message-news-p) "misc-news" "misc-mail"))
-  "*Name of the group in which to save the messages you've written.
-This can either be a string, a list of strings; or an alist
-of regexps/functions/forms to be evaluated to return a string (or a list
-of strings).  The functions are called with the name of the current
-group (or nil) as a parameter.
-
-Normally the group names returned by this variable should be
-unprefixed -- which implictly means \"store on the archive server\".
-However, you may wish to store the message on some other server.  In
-that case, just return a fully prefixed name of the group --
-\"nnml+private:mail.misc\", for instance.")
-
 (defvar gnus-mailing-list-groups nil
   "*Regexp matching groups that are really mailing lists.
 This is useful when you're reading a mailing list that has been
@@ -668,10 +654,9 @@ If YANK is non-nil, include the original article."
 	  (save-excursion (re-search-backward "[ \t\n]" nil t) (1+ (point)))
 	  (save-excursion (re-search-forward "[ \t\n]" nil t) (1- (point))))))
     (when address
-      (switch-to-buffer gnus-summary-buffer)
       (message-reply address)
       (when yank
-	(gnus-inews-yank-articles yank)))))
+	(gnus-inews-yank-articles (list (cdr gnus-article-current)))))))
 
 (defun gnus-bug ()
   "Send a bug report to the Gnus maintainers."

@@ -670,8 +670,9 @@ time saver for large mailboxes.")
 	(let ((delim (concat "^" message-unix-mail-delimiter))
 	      (marker (concat "\n" nnfolder-article-marker))
 	      (number "[0-9]+")
-	      (active (cadr (assoc nnfolder-current-group 
-				   nnfolder-group-alist)))
+	      (active (or (cadr (assoc nnfolder-current-group 
+				       nnfolder-group-alist))
+			  (cons 1 0)))
 	      (scantime (assoc nnfolder-current-group nnfolder-scantime-alist))
 	      (minid (lsh -1 -1))
 	      maxid start end newscantime)

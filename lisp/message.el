@@ -40,7 +40,6 @@
     (require 'mail-abbrevs)
   (require 'mailabbrev))
 
-;;;###autoload
 (defvar message-directory "~/Mail/"
   "*Directory from which all other mail file variables are derived.")
 
@@ -164,9 +163,8 @@ If t, use `message-user-organization-file'.")
 (defvar message-user-organization-file "/usr/lib/news/organization"
   "*Local news organization file.")
 
-;;;###autoload
-(defvar message-autosave-directory
-  (concat (file-name-as-directory message-directory) "drafts/")
+(defvar message-autosave-directory "~/"
+  ; (concat (file-name-as-directory message-directory) "drafts/")
   "*Directory where message autosaves buffers.
 If nil, message won't autosave.")
 
@@ -1095,6 +1093,8 @@ Puts point before the text and mark after.
 Normally indents each nonblank line ARG spaces (default 3).  However,
 if `message-yank-prefix' is non-nil, insert that prefix on each line.
 
+This function uses `message-cite-function' to do the actual citing.
+
 Just \\[universal-argument] as argument means don't indent, insert no
 prefix, and don't delete any headers."
   (interactive "P")
@@ -1531,8 +1531,9 @@ the user from the mailer."
 	;; Check "Shoot me".
 	(or (message-check-element 'shoot)
 	    (save-excursion
-	      (if (search-forward
-		   ".i-have-a-misconfigured-system-so-shoot-me" nil t)
+	      (if (re-search-forward
+		   "Message-ID.*.i-have-a-misconfigured-system-so-shoot-me"
+		   nil t)
 		  (y-or-n-p
 		   "You appear to have a misconfigured system.  Really post? ")
 		t)))
@@ -2489,7 +2490,9 @@ Headers already prepared in the buffer are not modified."
 		    follow-to)))))
       (widen))
 
-    (message-pop-to-buffer (message-buffer-name "reply" from))
+    (message-pop-to-buffer (message-buffer-name
+			    (if wide "wide reply" "reply") from
+			    (if wide to-address nil)))
 
     (setq message-reply-headers
 	  (vector 0 subject from date message-id references 0 0 ""))

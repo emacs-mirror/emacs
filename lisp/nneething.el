@@ -95,7 +95,7 @@ If this variable is nil, no files will be excluded.")
 
 	  (when (and (file-exists-p file)
 		     (or (file-directory-p file)
-			 (not (zerop (nth 7 (file-attributes file))))))
+			 (not (zerop (nnheader-file-size file)))))
 	    (insert (format "221 %d Article retrieved.\n" article))
 	    (nneething-insert-head file)
 	    (insert ".\n"))
