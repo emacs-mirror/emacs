@@ -207,13 +207,15 @@ struct window
 
 /* Return the frame column before which the text in window W ends.
    This is different from WINDOW_RIGHT_EDGE because it does not include
-   a right-hand scroll bar if any.  */
+   a scroll bar or window-separating line on the right edge.  */
 
-#define WINDOW_RIGHT_MARGIN(W) \
-     (WINDOW_RIGHT_EDGE (W) \
-      - (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (XFRAME (WINDOW_FRAME (W))) \
-	 ? FRAME_SCROLL_BAR_COLS (XFRAME (WINDOW_FRAME (W))) \
-	 : 0))
+#define WINDOW_RIGHT_MARGIN(W)						    \
+  (WINDOW_RIGHT_EDGE (W)						    \
+   - (! FRAME_HAS_VERTICAL_SCROLL_BARS (XFRAME (WINDOW_FRAME (W)))	    \
+      ? 1								    \
+      : FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (XFRAME (WINDOW_FRAME (W))) \
+      ? FRAME_SCROLL_BAR_COLS (XFRAME (WINDOW_FRAME (W)))		    \
+      : 0))
 
 /* 1 if window W takes up the full width of its frame.  */ 
 
