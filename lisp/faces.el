@@ -923,13 +923,14 @@ of a global face.  Value is the new attribute value."
 	       ;; Terminal frames can support colors that don't appear
 	       ;; explicitly in VALID, using color approximation code
 	       ;; in tty-colors.el.
-	       (if (and (memq attribute '(:foreground :background))
-			(not (memq window-system '(x w32 mac)))
-			(not (member new-value
-				     '("unspecified"
-				       "unspecified-fg" "unspecified-bg"))))
+	       (when (and (memq attribute '(:foreground :background))
+			  (not (memq window-system '(x w32 mac)))
+			  (not (member new-value
+				       '("unspecified"
+					 "unspecified-fg" "unspecified-bg"))))
 		   (setq new-value (car (tty-color-desc new-value frame))))
-	       (setq new-value (cdr (assoc new-value valid))))))
+	       (when (assoc new-value valid)
+		 (setq new-value (cdr (assoc new-value valid)))))))
 	  ((eq valid 'integerp)
 	   (setq new-value (face-read-integer face old-value attribute-name)))
 	  (t (error "Internal error")))
