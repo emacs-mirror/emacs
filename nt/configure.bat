@@ -179,17 +179,21 @@ if not exist junk.o goto nocompiler
 del junk.o
 
 :checkgcc
-if (%nocygwin%) == (Y) goto checkw32api
+Rem WARNING -- COMMAND.COM on some systems only looks at the first
+Rem            8 characters of a lable.  So do NOT be tempted to change
+Rem            chkapi* into something fancier like checkw32api
+Rem You HAVE been warned!
+if (%nocygwin%) == (Y) goto chkapi
 echo Checking whether gcc requires '-mno-cygwin'...
 echo #include "cygwin/version.h" >junk.c
 echo main(){} >>junk.c
 gcc -c junk.c
-if not exist junk.o goto checkw32api
+if not exist junk.o goto chkapi
 gcc -mno-cygwin -c junk.c
 if exist junk.o set nocygwin=Y
 rm -f junk.c junk.o
 
-:checkw32api
+:chk32api
 rem ----------------------------------------------------------------------
 rem   Older versions of the Windows API headers either don't have any of
 rem   the IMAGE_xxx definitions (the headers that come with Cygwin b20.1
@@ -202,12 +206,12 @@ echo Checking whether W32 API headers are too old...
 echo #include "windows.h" >junk.c
 echo test(PIMAGE_NT_HEADERS pHeader) >>junk.c
 echo {PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader);} >>junk.c
-if (%nocygwin%) == (Y) goto checkw32api1
+if (%nocygwin%) == (Y) goto chkapi1
 set cf=%usercflags%
-goto checkw32api2
-:checkw32api1
+goto chkapi2
+:chkapi1
 set cf=%usercflags% -mno-cygwin
-:checkw32api2
+:chkapi2
 echo on
 gcc %cf% -c junk.c
 echo off
