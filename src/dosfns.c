@@ -20,7 +20,6 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-
 #include <config.h>
 
 #ifdef MSDOS
@@ -68,7 +67,7 @@ REGISTERS should be a vector produced by `make-register' and
   CHECK_NUMBER (interrupt);
   no = (unsigned long) XINT (interrupt);
   CHECK_VECTOR (registers);
-  if (no < 0 || no > 0xff || XVECTOR (registers)-> size != 8) 
+  if (no < 0 || no > 0xff || XVECTOR (registers)-> size != 8)
     return Qnil;
   for (i = 0; i < 8; i++)
     CHECK_NUMBER (XVECTOR (registers)->contents[i]);
@@ -111,11 +110,11 @@ Return the updated VECTOR.  */)
   offs = (unsigned long) XINT (address);
   CHECK_VECTOR (vector);
   len = XVECTOR (vector)-> size;
-  if (len < 1 || len > 2048 || address < 0 || address > 0xfffff - len) 
+  if (len < 1 || len > 2048 || address < 0 || address > 0xfffff - len)
     return Qnil;
   buf = alloca (len);
   dosmemget (offs, len, buf);
-  
+
   for (i = 0; i < len; i++)
     XVECTOR (vector)->contents[i] = make_number (buf[i]);
 
@@ -136,7 +135,7 @@ DEFUN ("msdos-memput", Fdos_memput, Sdos_memput, 2, 2, 0,
   offs = (unsigned long) XINT (address);
   CHECK_VECTOR (vector);
   len = XVECTOR (vector)-> size;
-  if (len < 1 || len > 2048 || address < 0 || address > 0xfffff - len) 
+  if (len < 1 || len > 2048 || address < 0 || address > 0xfffff - len)
     return Qnil;
   buf = alloca (len);
 
@@ -179,7 +178,6 @@ DEFUN ("msdos-mouse-p", Fmsdos_mouse_p, Smsdos_mouse_p, 0, 0, 0,
 }
 #endif
 
-
 DEFUN ("msdos-mouse-init", Fmsdos_mouse_init, Smsdos_mouse_init, 0, 0, "",
        doc: /* Initialize and enable mouse if available.  */)
      ()
@@ -220,12 +218,11 @@ Return nil if startup screen is not available.  */)
      ()
 {
   char *s;
-  int rows, cols;
-  int i, j;
-  
+  int rows, cols, i, j;
+
   if (!dos_get_saved_screen (&s, &rows, &cols))
     return Qnil;
-  
+
   for (i = 0; i < rows; i++)
     {
       for (j = 0; j < cols; j++)
@@ -285,7 +282,7 @@ restore_parent_vm_title (void)
   delay (50);
 }
 #endif /* !HAVE_X_WINDOWS */
-  
+
 void
 init_dosfns ()
 {
@@ -324,7 +321,7 @@ init_dosfns ()
   intdos (&regs, &regs);
   if (regs.x.cflag)
     /* Estimate code page from country code */
-    switch (dos_country_code) 
+    switch (dos_country_code)
       {
       case 45: /* Denmark */
       case 47: /* Norway */
@@ -590,7 +587,7 @@ The following are known:
   DEFVAR_INT ("dos-timezone-offset", &dos_timezone_offset,
 	      doc: /* The current timezone offset to UTC in minutes.
 Implicitly modified when the TZ variable is changed.  */);
-  
+
   DEFVAR_LISP ("dos-version", &Vdos_version,
 	       doc: /* The (MAJOR . MINOR) Dos version (subject to modification with setver).  */);
 
@@ -606,17 +603,17 @@ corner of the display (typically at the end of the mode line).
 The output format is: scan code:char code*modifiers.  */);
 
   Vdos_display_scancodes = Qnil;
-  
+
   DEFVAR_INT ("dos-hyper-key", &dos_hyper_key,
 	      doc: /* *If set to 1, use right ALT key as hyper key.
 If set to 2, use right CTRL key as hyper key.  */);
   dos_hyper_key = 0;
-  
+
   DEFVAR_INT ("dos-super-key", &dos_super_key,
 	      doc: /* *If set to 1, use right ALT key as super key.
 If set to 2, use right CTRL key as super key.  */);
   dos_super_key = 0;
-  
+
   DEFVAR_INT ("dos-keypad-mode", &dos_keypad_mode,
 	      doc: /* *Controls what key code is returned by a key in the numeric keypad.
 The `numlock ON' action is only taken if no modifier keys are pressed.
@@ -640,12 +637,12 @@ The value is an integer constructed by adding the following bits together:
 
   0x200	ALT-0..ALT-9 in top-row produces shifted codes.  */);
   dos_keypad_mode = 0x75;
-  
+
   DEFVAR_INT ("dos-keyboard-layout", &dos_keyboard_layout,
 	      doc: /* Contains the country code for the current keyboard layout.
 Use msdos-set-keyboard to select another keyboard layout.  */);
   dos_keyboard_layout = 1;	/* US */
-  
+
   DEFVAR_INT ("dos-decimal-point", &dos_decimal_point,
 	      doc: /* The character to produce when kp-decimal key is pressed.
 If non-zero, this variable contains the character to be returned when the
