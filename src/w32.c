@@ -763,7 +763,6 @@ map_win32_filename (const char * name, const char ** pPath)
   static char shortname[MAX_PATH];
   char * str = shortname;
   char c;
-  const char * orig_name = name;
   char * path;
 
   if (is_fat_volume (name, &path)) /* truncate to 8.3 */
@@ -841,14 +840,17 @@ map_win32_filename (const char * name, const char ** pPath)
 	    }
 	}
       *str = '\0';
-
-      name = shortname;
+    }
+  else
+    {
+      strcpy (shortname, name);
+      unixtodos_filename (shortname);
     }
 
   if (pPath)
-    *pPath = name + (path - orig_name);
+    *pPath = shortname + (path - name);
 
-  return name;
+  return shortname;
 }
 
 
