@@ -74,6 +74,13 @@ extern struct servent *hes_getservbyname (/* char *, char * */);
 #include <stdio.h>
 #ifdef STDC_HEADERS
 #include <string.h>
+#define index strchr
+#endif
+#ifdef STDC_HEADERS
+#include <stdlib.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
 #endif
 
 #ifdef KERBEROS
@@ -106,13 +113,6 @@ extern struct servent *hes_getservbyname (/* char *, char * */);
 #  include <com_err.h>
 # endif
 #endif /* KERBEROS */
-
-
-extern char *getenv (/* char * */);
-extern char *getlogin (/* void */);
-extern char *getpass (/* char * */);
-extern char *strerror (/* int */);
-extern char *index ();
 
 #ifdef KERBEROS
 #ifndef KERBEROS5
