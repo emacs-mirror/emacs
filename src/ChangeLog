@@ -1,3 +1,30 @@
+2004-09-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+	
+	* term/mac-win.el: Add ASCII equivalents for some function keys.
+	(mode-line-frame-identification): Sync with x-win.el.
+
+	* macfns.c (x_real_positions): Save the current window port and
+	set a new one before obtaining the global coordinate.  Use
+	FRAME_MAC_WINDOW.
+	(x_set_name, x_set_title): Encode title to UTF8.  Use
+	SetWindowTitleWithCFString.
+	(Fx_server_version): Get correct OS version.
+
+	* macmenu.c (add_menu_item): Remove unused variable `i'.  Don't
+	let separator items destroy refence constants of other menu items.
+
+	* macterm.c (x_update_end): Move SetPortWindowPort to inside
+	BLOCK_INPUT.
+	(x_set_offset): Use FRAME_MAC_WINDOW.
+
+	* xdisp.c (note_mouse_highlight): Set the mouse pointer shape to
+	nontext_cursor if it is on a scroll bar.
+
+	* s/darwin.h (LIBS_CARBON): New define to specify libraries for
+	Carbon support.
+	(LD_SWITCH_SYSTEM_TEMACS): Don't link with unused libstdc++.  Use
+	LIBS_CARBON.
+
 2004-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xfns.c (x_set_name_internal): New function.  Check if we shall call
