@@ -36,7 +36,7 @@
 
 ;;; Code:
 
-(require 'cookie)
+(require 'cookie1)
 
 ; Variables
 (defvar spook-phrases-file (concat data-directory "spook.lines")
@@ -56,6 +56,6 @@
    "Checking authorization...Approved"))
 
 ;; Note: the implementation that used to take up most of this file has
-;; been cleaned up and generalized and now resides in cookie.el.
+;; been cleaned up and generalized and now resides in cookie1.el.
 
 ;;; spook.el ends here

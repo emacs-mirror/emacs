@@ -25,13 +25,13 @@
 
 ;; Important pinheaddery for GNU Emacs.
 ;;
-;; See cookie.el for implementation.  Note --- the `n' argument of yow
+;; See cookie1.el for implementation.  Note --- the `n' argument of yow
 ;; from the 18.xx implementation is no longer; we only support *random*
 ;; random access now.
 
 ;;; Code:
 
-(require 'cookie)
+(require 'cookie1)
 
 (defvar yow-file (concat data-directory "yow.lines")
    "Pertinent pinhead phrases.")
