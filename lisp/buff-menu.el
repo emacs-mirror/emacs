@@ -557,9 +557,33 @@ For more information, see the function `buffer-menu'."
   (let* ((old-buffer (current-buffer))
 	 (standard-output standard-output)
 	 (mode-end (make-string (- Buffer-menu-mode-width 2) ? ))
-	 (header (concat "CRM " (Buffer-menu-buffer+size "Buffer" "Size")
+	 (header (concat (propertize "CRM " 'face 'fixed-pitch)
+			 (Buffer-menu-buffer+size "Buffer" "Size")
 			 "  Mode" mode-end "File\n"))
 	 list desired-point name file mode)
+    (when Buffer-menu-use-header-line
+      (let ((spaces
+	     ;; FIXME: This is using the settings of the current frame rather
+	     ;; than the frame into which the buffer will be displayed.
+	     (/ (+ 0.0 (or (frame-parameter nil 'left-fringe) 0)
+		   (or (if (eq (frame-parameter nil 'vertical-scroll-bars)
+			       'left)
+			   (frame-parameter nil 'scroll-bar-width))
+		       0))
+		(frame-char-width)))
+	    (pos 0))
+	;; Turn spaces in the header into stretch specs so they work
+	;; regardless of the header-line face.
+	(while (string-match "[ \t]+" header pos)
+	  (setq pos (match-end 0))
+	  (put-text-property (match-beginning 0) pos 'display
+			     ;; Assume fixed-size chars
+			     (list 'space :align-to (+ spaces pos))
+			     header))
+	;; Add the leading space
+	(setq header (concat (propertize (make-string (floor spaces) ? )
+					 'display (list 'space :width spaces))
+			     header))))
     (save-excursion
       (set-buffer (get-buffer-create "*Buffer List*"))
       (setq buffer-read-only nil)
@@ -639,16 +663,7 @@ For more information, see the function `buffer-menu'."
 	(princ "\n"))
       (Buffer-menu-mode)
       (when Buffer-menu-use-header-line
-	(let ((spaces
-	       (/ (+ (or (frame-parameter nil 'left-fringe) 0)
-		     (or (if (eq (frame-parameter nil 'vertical-scroll-bars)
-				 'left)
-			     (frame-parameter nil 'scroll-bar-width))
-			 0))
-		  (frame-char-width))))
-	  (set (make-local-variable 'Buffer-menu-header-line)
-	       (concat (make-string spaces ? ) header)))
-	(setq header-line-format 'Buffer-menu-header-line))
+	(setq header-line-format header))
       ;; DESIRED-POINT doesn't have to be set; it is not when the
       ;; current buffer is not displayed for some reason.
       (and desired-point
