@@ -74,6 +74,7 @@ Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
 Lisp_Object Qchar_or_string_p, Qmarkerp, Qinteger_or_marker_p, Qvectorp;
 Lisp_Object Qbuffer_or_string_p;
 Lisp_Object Qboundp, Qfboundp;
+Lisp_Object Qchar_table_p;
 
 Lisp_Object Qcdr;
 Lisp_Object Qad_advice_info, Qad_activate;
@@ -314,6 +315,24 @@ DEFUN ("stringp", Fstringp, Sstringp, 1, 1, 0, "T if OBJECT is a string.")
   return Qnil;
 }
 
+DEFUN ("char-table-p", Fchar_table_p, Schar_table_p, 1, 1, 0, "T if OBJECT is a char-table.")
+  (object)
+     Lisp_Object object;
+{
+  if (CHAR_TABLE_P (object))
+    return Qt;
+  return Qnil;
+}
+
+DEFUN ("bool-vector-p", Fbool_vector_p, Sbool_vector_p, 1, 1, 0, "T if OBJECT is a bool-vector.")
+  (object)
+     Lisp_Object object;
+{
+  if (BOOL_VECTOR_P (object))
+    return Qt;
+  return Qnil;
+}
+
 DEFUN ("arrayp", Farrayp, Sarrayp, 1, 1, 0, "T if OBJECT is an array (string or vector).")
   (object)
      Lisp_Object object;
@@ -328,7 +347,8 @@ DEFUN ("sequencep", Fsequencep, Ssequencep, 1, 1, 0,
   (object)
      register Lisp_Object object;
 {
-  if (CONSP (object) || NILP (object) || VECTORP (object) || STRINGP (object))
+  if (CONSP (object) || NILP (object) || VECTORP (object) || STRINGP (object)
+      || CHAR_TABLE_P (object) || BOOL_VECTOR_P (object))
     return Qt;
   return Qnil;
 }
@@ -1480,7 +1500,8 @@ function chain of symbols.")
 
 DEFUN ("aref", Faref, Saref, 2, 2, 0,
   "Return the element of ARRAY at index INDEX.\n\
-ARRAY may be a vector or a string, or a byte-code object.  INDEX starts at 0.")
+ARRAY may be a vector, a string, a char-table, a bool-vector,\n\
+or a byte-code object.  INDEX starts at 0.")
   (array, idx)
      register Lisp_Object array;
      Lisp_Object idx;
@@ -1496,6 +1517,75 @@ ARRAY may be a vector or a string, or a byte-code object.  INDEX starts at 0.")
 	args_out_of_range (array, idx);
       XSETFASTINT (val, (unsigned char) XSTRING (array)->data[idxval]);
       return val;
+    }
+  else if (BOOL_VECTOR_P (array))
+    {
+      int val;
+      int bits_per_char = INTBITS / sizeof (int);
+
+      if (idxval < 0 || idxval >= XBOOL_VECTOR (array)->size)
+	args_out_of_range (array, idx);
+
+      val = (unsigned char) XBOOL_VECTOR (array)->data[idxval / bits_per_char];
+      return (val & (1 << (idxval % bits_per_char)) ? Qt : Qnil);
+    }
+  else if (CHAR_TABLE_P (array))
+    {
+      Lisp_Object val;
+
+      if (idxval < 0)
+	args_out_of_range (array, idx);
+#if 1
+      if ((unsigned) idxval >= CHAR_TABLE_ORDINARY_SLOTS)
+	args_out_of_range (array, idx);
+      return val = XCHAR_TABLE (array)->contents[idxval];
+#else /* 0 */
+      if ((unsigned) idxval < CHAR_TABLE_ORDINARY_SLOTS)
+	val = XCHAR_TABLE (array)->data[idxval];
+      else
+	{
+	  int charset;
+	  unsigned char c1, c2;
+	  Lisp_Object val, temp;
+
+	  BREAKUP_NON_ASCII_CHAR (idxval, charset, c1, c2);
+
+	try_parent_char_table:
+	  val = XCHAR_TABLE (array)->contents[charset];
+	  if (c1 == 0 || !CHAR_TABLE_P (val))
+	    return val;
+
+	  temp = XCHAR_TABLE (val)->contents[c1];
+	  if (NILP (temp))
+	    val = XCHAR_TABLE (val)->defalt;
+	  else
+	    val = temp;
+
+	  if (NILP (val) && !NILP (XCHAR_TABLE (array)->parent))
+	    {
+	      array = XCHAR_TABLE (array)->parent;
+	      goto try_parent_char_table;
+
+	    }
+
+	  if (c2 == 0 || !CHAR_TABLE_P (val))
+	    return val;
+
+	  temp = XCHAR_TABLE (val)->contents[c2];
+	  if (NILP (temp))
+	    val = XCHAR_TABLE (val)->defalt;
+	  else
+	    val = temp;
+
+	  if (NILP (val) && !NILP (XCHAR_TABLE (array)->parent))
+	    {
+	      array = XCHAR_TABLE (array)->parent;
+	      goto try_parent_char_table;
+	    }
+
+	  return val;
+	}
+#endif /* 0 */
     }
   else
     {
@@ -1524,7 +1614,8 @@ ARRAY may be a vector or a string.  IDX starts at 0.")
 
   CHECK_NUMBER (idx, 1);
   idxval = XINT (idx);
-  if (!VECTORP (array) && !STRINGP (array))
+  if (!VECTORP (array) && !STRINGP (array) && !BOOL_VECTOR_P (array)
+      && ! CHAR_TABLE_P (array))
     array = wrong_type_argument (Qarrayp, array);
   CHECK_IMPURE (array);
 
@@ -1533,6 +1624,64 @@ ARRAY may be a vector or a string.  IDX starts at 0.")
       if (idxval < 0 || idxval >= XVECTOR (array)->size)
 	args_out_of_range (array, idx);
       XVECTOR (array)->contents[idxval] = newelt;
+    }
+  else if (BOOL_VECTOR_P (array))
+    {
+      int val;
+      int bits_per_char = INTBITS / sizeof (int);
+
+      if (idxval < 0 || idxval >= XBOOL_VECTOR (array)->size)
+	args_out_of_range (array, idx);
+
+      val = (unsigned char) XBOOL_VECTOR (array)->data[idxval / bits_per_char];
+
+      if (! NILP (newelt))
+	val |= 1 << (idxval % bits_per_char);
+      else
+	val &= ~(1 << (idxval % bits_per_char));
+      XBOOL_VECTOR (array)->data[idxval / bits_per_char] = val;
+    }
+  else if (CHAR_TABLE_P (array))
+    {
+      Lisp_Object val;
+
+      if (idxval < 0)
+	args_out_of_range (array, idx);
+#if 1
+      if (idxval >= CHAR_TABLE_ORDINARY_SLOTS)
+	args_out_of_range (array, idx);
+      XCHAR_TABLE (array)->contents[idxval] = newelt;
+      return newelt;
+#else /* 0 */
+      if (idxval < CHAR_TABLE_ORDINARY_SLOTS)
+	val = XCHAR_TABLE (array)->contents[idxval];
+      else
+	{
+	  int charset;
+	  unsigned char c1, c2;
+	  Lisp_Object val, val2;
+
+	  BREAKUP_NON_ASCII_CHAR (idxval, charset, c1, c2);
+
+	  if (c1 == 0)
+	    return XCHAR_TABLE (array)->contents[charset] = newelt;
+
+	  val = XCHAR_TABLE (array)->contents[charset];
+	  if (!CHAR_TABLE_P (val))
+	    XCHAR_TABLE (array)->contents[charset]
+	      = val = Fmake_char_table (Qnil);
+
+	  if (c2 == 0)
+	    return XCHAR_TABLE (val)->contents[c1] = newelt;
+
+	  val2 = XCHAR_TABLE (val)->contents[c2];
+	  if (!CHAR_TABLE_P (val2))
+	    XCHAR_TABLE (val)->contents[charset]
+	      = val2 = Fmake_char_table (Qnil);
+
+	  return XCHAR_TABLE (val2)->contents[c2] = newelt;
+	}
+#endif /* 0 */
     }
   else
     {
@@ -2232,6 +2381,8 @@ syms_of_data ()
   Qnumber_or_marker_p = intern ("number-or-marker-p");
 #endif /* LISP_FLOAT_TYPE */
 
+  Qchar_table_p = intern ("char-table-p");
+
   Qcdr = intern ("cdr");
 
   /* Handle automatic advice activation */
@@ -2416,6 +2567,7 @@ syms_of_data ()
   staticpro (&Qnumberp);
   staticpro (&Qnumber_or_marker_p);
 #endif /* LISP_FLOAT_TYPE */
+  staticpro (&Qchar_table_p);
 
   staticpro (&Qboundp);
   staticpro (&Qfboundp);
@@ -2474,6 +2626,8 @@ syms_of_data ()
   defsubr (&Ssymbolp);
   defsubr (&Sstringp);
   defsubr (&Svectorp);
+  defsubr (&Schar_table_p);
+  defsubr (&Sbool_vector_p);
   defsubr (&Sarrayp);
   defsubr (&Ssequencep);
   defsubr (&Sbufferp);
