@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.86 $")
+(defconst byte-compile-version "$Revision: 2.87 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -813,59 +813,48 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 (defconst byte-compile-last-warned-form nil)
 (defconst byte-compile-last-logged-file nil)
 
+(defvar byte-compile-last-line nil
+  "Last known line number in the input.")
+
+
+(defun byte-compile-display-log-head-p ()
+  (and (not (eq byte-compile-current-form :end))
+       (or (and byte-compile-current-file
+		(not (equal byte-compile-current-file
+			    byte-compile-last-logged-file)))
+	   (and byte-compile-last-warned-form
+		(not (eq byte-compile-current-form
+			 byte-compile-last-warned-form))))))
+
+
 ;; Log a message STRING in *Compile-Log*.
 ;; Also log the current function and file if not already done.
 (defun byte-compile-log-1 (string &optional fill)
-  (cond (noninteractive
-	 (if (or (and byte-compile-current-file
-		      (not (equal byte-compile-current-file
-				  byte-compile-last-logged-file)))
-		 (and byte-compile-last-warned-form
-		      (not (eq byte-compile-current-form
-			       byte-compile-last-warned-form))))
-	     (message "While compiling %s%s:"
-		      (or byte-compile-current-form "toplevel forms")
-		      (if byte-compile-current-file
-			  (if (stringp byte-compile-current-file)
-			      (concat " in file " byte-compile-current-file)
-			    (concat " in buffer "
-				    (buffer-name byte-compile-current-file)))
-			"")))
-	 (message "  %s" string))
-	(t
-	 (save-excursion
-	   (set-buffer (get-buffer-create "*Compile-Log*"))
-	   (goto-char (point-max))
-	   (cond ((or (and byte-compile-current-file
-			   (not (equal byte-compile-current-file
-				       byte-compile-last-logged-file)))
-		      (and byte-compile-last-warned-form
-			   (not (eq byte-compile-current-form
-				    byte-compile-last-warned-form))))
-		  ;; This is redundant, since it is given at the start of the
-		  ;; file, and the extra clutter gets in the way -- rms.
-		  ;; (if (and byte-compile-current-file
-		  ;; 	   (not (equal byte-compile-current-file
-		  ;; 		       byte-compile-last-logged-file)))
-		  ;;     (insert "\n\^L\n" (current-time-string) "\n"))
-		  (insert "\nWhile compiling "
-			  (if byte-compile-current-form
-			      (format "%s" byte-compile-current-form)
-			    "toplevel forms"))
-		  ;; This is redundant, since it is given at the start of the file,
-		  ;; and the extra clutter gets in the way -- rms.
-		  ;; (if byte-compile-current-file
-		  ;;     (if (stringp byte-compile-current-file)
-		  ;; 	  (insert " in file " byte-compile-current-file)
-		  ;; 	(insert " in buffer "
-		  ;; 		(buffer-name byte-compile-current-file))))
-		  (insert ":\n")))
-	   (insert "  " string "\n")
-	   (if (and fill (not (string-match "\n" string)))
-	       (let ((fill-prefix "     ")
-		     (fill-column 78))
-		 (fill-paragraph nil)))
-	   )))
+  (let* ((file (cond ((stringp byte-compile-current-file)
+		      (format "%s:" byte-compile-current-file))
+		     ((bufferp byte-compile-current-file)
+		      (format "Buffer %s:" 
+			      (buffer-name byte-compile-current-file)))
+		     (t "")))
+	 (pos (if (and byte-compile-current-file 
+		       (integerp byte-compile-last-line))
+		  (format "%d:" byte-compile-last-line)
+		""))
+	 (form (or byte-compile-current-form "toplevel form")))
+    (cond (noninteractive
+	   (when (byte-compile-display-log-head-p)
+	     (message "%s In %s" file form))
+	   (message "%s%s %s" file pos string))
+	  (t
+	   (save-excursion
+	     (set-buffer (get-buffer-create "*Compile-Log*"))
+	     (goto-char (point-max))
+	     (when (byte-compile-display-log-head-p)
+	       (insert (format "\nIn %s" form)))
+	     (insert (format "\n%s%s\n%s\n" file pos string))
+	     (when (and fill (not (string-match "\n" string)))
+	       (let ((fill-prefix "     ") (fill-column 78))
+		 (fill-paragraph nil)))))))
   (setq byte-compile-last-logged-file byte-compile-current-file
 	byte-compile-last-warned-form byte-compile-current-form))
 
@@ -889,7 +878,7 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
   (setq format (apply 'format format args))
   (if byte-compile-error-on-warn
       (error "%s" format)		; byte-compile-file catches and logs it
-    (byte-compile-log-1 (concat "** " format) t)
+    (byte-compile-log-1 (concat "warning: " format) t)
     ;; It is useless to flash warnings too fast to be read.
     ;; Besides, they will all be shown at the end.
     ;; (or noninteractive  ; already written on stdout.
@@ -901,9 +890,9 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 (defun byte-compile-report-error (error-info)
   (setq byte-compiler-error-flag t)
   (byte-compile-log-1
-   (concat "!! "
+   (concat "error: "
 	   (format (if (cdr error-info) "%s (%s)" "%s")
-		   (get (car error-info) 'error-message)
+		   (downcase (get (car error-info) 'error-message))
 		   (prin1-to-string (cdr error-info))))))
 
 ;;; Used by make-obsolete.
@@ -1127,28 +1116,32 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
       )))
 
 (defun byte-compile-print-syms (str1 strn syms)
-  (cond
-   ((cdr syms)
-    (let* ((str strn)
-	   (L (length str))
-	   s)
-      (while syms
-	(setq s (symbol-name (pop syms))
-	      L (+ L (length s) 2))
-	(if (< L (1- fill-column))
-	    (setq str (concat str " " s (and syms ",")))
-	  (setq str (concat str "\n    " s (and syms ","))
-		L (+ (length s) 4))))
-      (byte-compile-warn "%s" str)))
-   (syms
-    (byte-compile-warn str1 (car syms)))))
+  (cond ((and (cdr syms) (not noninteractive))
+	 (let* ((str strn)
+		(L (length str))
+		s)
+	   (while syms
+	     (setq s (symbol-name (pop syms))
+		   L (+ L (length s) 2))
+	     (if (< L (1- fill-column))
+		 (setq str (concat str " " s (and syms ",")))
+	       (setq str (concat str "\n    " s (and syms ","))
+		     L (+ (length s) 4))))
+	   (byte-compile-warn "%s" str)))
+	((cdr syms)
+	 (byte-compile-warn "%s %s" 
+			    strn
+			    (mapconcat #'symbol-name syms ", ")))
+
+	(syms
+	 (byte-compile-warn str1 (car syms)))))
 
 ;; If we have compiled any calls to functions which are not known to be 
 ;; defined, issue a warning enumerating them.
 ;; `unresolved' in the list `byte-compile-warnings' disables this.
 (defun byte-compile-warn-about-unresolved-functions ()
   (when (memq 'unresolved byte-compile-warnings)
-    (let ((byte-compile-current-form "the end of the data")
+    (let ((byte-compile-current-form :end)
 	  (noruntime nil)
 	  (unresolved nil))
       ;; Separate the functions that will not be available at runtime
@@ -1158,13 +1151,13 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 	(if (fboundp f) (push f noruntime) (push f unresolved)))
       ;; Complain about the no-run-time functions
       (byte-compile-print-syms
-       "The function `%s' might not be defined at runtime."
-       "The following functions might not be defined at runtime:"
+       "the function `%s' might not be defined at runtime."
+       "the following functions might not be defined at runtime:"
        noruntime)
       ;; Complain about the unresolved functions
       (byte-compile-print-syms
-       "The function `%s' is not known to be defined."
-       "The following functions are not known to be defined:"
+       "the function `%s' is not known to be defined."
+       "the following functions are not known to be defined:"
        unresolved)))
   nil)
 
@@ -1213,34 +1206,32 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 
 (defvar byte-compile-warnings-point-max nil)
 (defmacro displaying-byte-compile-warnings (&rest body)
-  (list 'let
-	'((byte-compile-warnings-point-max byte-compile-warnings-point-max))
+  `(let ((byte-compile-warnings-point-max byte-compile-warnings-point-max))
      ;; Log the file name.
-     '(byte-compile-log-file)
+     (byte-compile-log-file)
      ;; Record how much is logged now.
      ;; We will display the log buffer if anything more is logged
      ;; before the end of BODY.
-     '(or byte-compile-warnings-point-max
-	  (save-excursion
-	    (set-buffer (get-buffer-create "*Compile-Log*"))
-	    (setq byte-compile-warnings-point-max (point-max))))
-     (list 'unwind-protect
-	   (list 'condition-case 'error-info
-		 (cons 'progn body)
-	       '(error
-		 (byte-compile-report-error error-info)))
-       '(save-excursion
-	  ;; If there were compilation warnings, display them.
-	  (set-buffer "*Compile-Log*")
-	  (if (= byte-compile-warnings-point-max (point-max))
-	      nil
-	    (select-window
-	     (prog1 (selected-window)
-	       (select-window (display-buffer (current-buffer)))
-	       (goto-char byte-compile-warnings-point-max)
-	       (beginning-of-line)
-	       (forward-line -1)
-	       (recenter 0))))))))
+     (unless byte-compile-warnings-point-max
+       (save-excursion
+	 (set-buffer (get-buffer-create "*Compile-Log*"))
+	 (setq byte-compile-warnings-point-max (point-max))))
+     (unwind-protect
+	 (condition-case error-info
+	     (progn ,@body)
+	   (error (byte-compile-report-error error-info)))
+       (save-excursion
+	 ;; If there were compilation warnings, display them.
+	 (set-buffer "*Compile-Log*")
+	 (if (= byte-compile-warnings-point-max (point-max))
+	     nil
+	   (select-window
+	    (prog1 (selected-window)
+	      (select-window (display-buffer (current-buffer)))
+	      (goto-char byte-compile-warnings-point-max)
+	      (beginning-of-line)
+	      (forward-line -1)
+	      (recenter 0))))))))
 
 
 ;;;###autoload
@@ -1537,7 +1528,8 @@ With argument, insert value in current buffer after the form."
 			       (looking-at ";"))
 		   (forward-line 1))
 		 (not (eobp)))
-	  (byte-compile-file-form (read inbuffer)))
+	  (let ((byte-compile-last-line (count-lines (point-min) (point))))
+	    (byte-compile-file-form (read inbuffer))))
 
 	;; Compile pending forms at end of file.
 	(byte-compile-flush-pending)
@@ -1971,7 +1963,7 @@ list that represents a doc string reference.
 	       (symbolp (car-safe (cdr-safe body)))
 	       (car-safe (cdr-safe body))
 	       (stringp (car-safe (cdr-safe (cdr-safe body)))))
-	  (byte-compile-warn "Probable `\"' without `\\' in doc string of %s"
+	  (byte-compile-warn "probable `\"' without `\\' in doc string of %s"
 			     (nth 1 form))))
     (let* ((new-one (byte-compile-lambda (cons 'lambda (nthcdr 2 form))))
 	   (code (byte-compile-byte-code-maker new-one)))
@@ -2410,8 +2402,8 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 (defun byte-compile-variable-ref (base-op var)
   (if (or (not (symbolp var)) (byte-compile-const-symbol-p var))
       (byte-compile-warn (if (eq base-op 'byte-varbind)
-			     "Attempt to let-bind %s %s"
-			   "Variable reference to %s %s")
+			     "attempt to let-bind %s %s"
+			   "variable reference to %s %s")
 			 (if (symbolp var) "constant" "nonvariable")
 			 (prin1-to-string var))
     (if (and (get var 'byte-obsolete-variable)
@@ -3264,7 +3256,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	`(push ',var current-load-list))
       (when (> (length form) 3)
 	(when (and string (not (stringp string)))
-	  (byte-compile-warn "Third arg to %s %s is not a string: %s"
+	  (byte-compile-warn "third arg to %s %s is not a string: %s"
 			     fun var string))
 	`(put ',var 'variable-documentation ,string))
       (if (cdr (cdr form))		; `value' provided
@@ -3550,7 +3542,6 @@ For example, invoke \"emacs -batch -f batch-byte-compile $emacs/ ~/*.el\""
 	(if (null (batch-byte-compile-file (car command-line-args-left)))
 	    (setq error t)))
       (setq command-line-args-left (cdr command-line-args-left)))
-    (message "Done")
     (kill-emacs (if error 1 0))))
 
 (defun batch-byte-compile-file (file)
