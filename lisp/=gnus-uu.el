@@ -6,7 +6,7 @@
 ;; Created: 2 Oct 1993
 ;; Version: v2.8
 ;; Last Modified: 1994/06/01
-;; Keyword: news
+;; Keywords: news
 
 ;; This file is part of GNU Emacs.
 
