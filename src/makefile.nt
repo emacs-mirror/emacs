@@ -137,6 +137,7 @@ OBJ2 =  $(BLD)\w32.obj           \
 	$(BLD)\frame.obj        \
 	$(BLD)\gmalloc.obj      \
 	$(BLD)\intervals.obj    \
+	$(BLD)\composite.obj    \
 	$(BLD)\ralloc.obj       \
 	$(BLD)\textprop.obj     \
 	$(BLD)\vm-limit.obj	\
@@ -250,7 +251,7 @@ $(TLIBW32):	$(WIN32OBJ)
 # the end of Emacs' data section portably across compilers and systems.
 #
 $(TLASTLIB):	$(BLD)\lastfile.obj
-  		@- $(AR) -out:$@ $**
+		@- $(AR) -out:$@ $**
 
 #
 # Assuming INSTALL_DIR is defined, build and install emacs in it.
@@ -302,6 +303,7 @@ $(BLD)\alloc.obj : \
 	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
 	$(SRC)\intervals.h \
+	$(SRC)\composite.h \
 	$(SRC)\puresize.h \
 	$(SRC)\buffer.h \
 	$(SRC)\window.h \
@@ -328,6 +330,7 @@ $(BLD)\buffer.obj : \
 	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
 	$(SRC)\intervals.h \
+	$(SRC)\composite.h \
 	$(SRC)\window.h \
 	$(SRC)\commands.h \
 	$(SRC)\buffer.h \
@@ -455,7 +458,8 @@ $(BLD)\dispnew.obj : \
 	$(SRC)\w32term.h \
 	$(SRC)\xterm.h \
 	$(SRC)\vmstime.h \
-	$(SRC)\systime.h
+	$(SRC)\systime.h \
+	$(SRC)\composite.h
 
 $(BLD)\doc.obj : \
 	$(SRC)\doc.c \
@@ -497,6 +501,7 @@ $(BLD)\editfns.obj : \
 	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
 	$(SRC)\intervals.h \
+	$(SRC)\composite.h \
 	$(SRC)\buffer.h \
 	$(SRC)\window.h \
 	$(SRC)\vmstime.h \
@@ -511,6 +516,7 @@ $(BLD)\emacs.obj : \
 	$(SRC)\commands.h \
 	$(SRC)\dispextern.h \
 	$(SRC)\intervals.h \
+	$(SRC)\composite.h \
 	$(EMACS_ROOT)\nt\inc\sys\ioctl.h \
 	$(EMACS_ROOT)\nt\inc\sys\file.h \
 	$(SRC)\systty.h \
@@ -541,6 +547,7 @@ $(BLD)\fileio.obj : \
 	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
 	$(SRC)\intervals.h \
+	$(SRC)\composite.h \
 	$(SRC)\buffer.h \
 	$(SRC)\window.h \
 	$(EMACS_ROOT)\nt\inc\sys\file.h \
@@ -595,7 +602,8 @@ $(BLD)\fns.obj : \
 	$(SRC)\buffer.h \
 	$(SRC)\keyboard.h \
 	$(SRC)\dispextern.h \
-	$(SRC)\intervals.h
+	$(SRC)\intervals.h \
+	$(SRC)\composite.h
 
 $(BLD)\frame.obj : \
 	$(SRC)\frame.c \
@@ -652,7 +660,8 @@ $(BLD)\indent.obj : \
 	$(SRC)\disptab.h \
 	$(SRC)\dispextern.h \
 	$(SRC)\intervals.h \
-	$(SRC)\region-cache.h
+	$(SRC)\region-cache.h \
+	$(SRC)\composite.h
 
 $(BLD)\insdel.obj : \
 	$(SRC)\insdel.c \
@@ -662,6 +671,7 @@ $(BLD)\insdel.obj : \
 	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
 	$(SRC)\intervals.h \
+	$(SRC)\composite.h \
 	$(SRC)\buffer.h \
 	$(SRC)\window.h \
 	$(SRC)\blockinput.h
@@ -696,6 +706,7 @@ $(BLD)\keyboard.obj : \
 	$(SRC)\keyboard.h \
 	$(SRC)\dispextern.h \
 	$(SRC)\intervals.h \
+	$(SRC)\composite.h \
 	$(SRC)\blockinput.h \
 	$(SRC)\msdos.h \
 	$(SRC)\syssignal.h \
@@ -845,7 +856,8 @@ $(BLD)\print.obj : \
 	$(SRC)\process.h \
 	$(SRC)\termchar.h \
 	$(SRC)\dispextern.h \
-	$(SRC)\intervals.h
+	$(SRC)\intervals.h \
+	$(SRC)\composite.h
 
 $(BLD)\process.obj : \
 	$(SRC)\process.c \
@@ -867,7 +879,8 @@ $(BLD)\process.obj : \
 	$(SRC)\lisp.h \
 	$(SRC)\vmstime.h \
 	$(SRC)\systime.h \
-	$(SRC)\termopts.h
+	$(SRC)\termopts.h \
+	$(SRC)\composite.h
 
 $(BLD)\ralloc.obj : \
 	$(SRC)\ralloc.c \
@@ -924,7 +937,8 @@ $(BLD)\search.obj : \
 	$(SRC)\commands.h \
 	$(SRC)\blockinput.h \
 	$(SRC)\regex.h \
-	$(SRC)\region-cache.h
+	$(SRC)\region-cache.h \
+	$(SRC)\composite.h
 
 $(BLD)\strftime.obj : \
 	$(SRC)\strftime.c \
@@ -950,7 +964,8 @@ $(BLD)\syntax.obj : \
 	$(SRC)\lisp.h \
 	$(SRC)\commands.h \
 	$(SRC)\buffer.h \
-	$(SRC)\syntax.h
+	$(SRC)\syntax.h \
+	$(SRC)\composite.h
 
 $(BLD)\sysdep.obj : \
 	$(SRC)\sysdep.c \
@@ -1017,8 +1032,30 @@ $(BLD)\textprop.obj : \
 	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
 	$(SRC)\intervals.h \
+	$(SRC)\composite.h \
 	$(SRC)\buffer.h \
 	$(SRC)\window.h
+
+$(BLD)\intervals.obj : \
+	$(SRC)\intervals.c \
+	$(SRC)\buffer.h \
+	$(SRC)\intervals.h \
+	$(SRC)\composite.h \
+	$(SRC)\keyboard.h \
+	$(SRC)\puresize.h \
+	$(EMACS_ROOT)\src\s\ms-w32.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
+	$(EMACS_ROOT)\src\config.h
+
+$(BLD)\composite.obj : \
+	$(SRC)\composite.c \
+	$(SRC)\buffer.h \
+	$(SRC)\charset.h \
+	$(SRC)\intervals.h \
+	$(SRC)\composite.h \
+	$(EMACS_ROOT)\src\s\ms-w32.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
+	$(EMACS_ROOT)\src\config.h
 
 $(BLD)\tparam.obj : \
 	$(SRC)\tparam.c \
@@ -1074,7 +1111,8 @@ $(BLD)\window.obj : \
 	$(SRC)\indent.h \
 	$(SRC)\termchar.h \
 	$(SRC)\disptab.h \
-	$(SRC)\keyboard.h
+	$(SRC)\keyboard.h \
+	$(SRC)\composite.h
 
 $(BLD)\xdisp.obj : \
 	$(SRC)\xdisp.c \
@@ -1092,7 +1130,8 @@ $(BLD)\xdisp.obj : \
 	$(SRC)\disptab.h \
 	$(SRC)\termhooks.h \
 	$(SRC)\dispextern.h \
-	$(SRC)\intervals.h
+	$(SRC)\intervals.h \
+	$(SRC)\composite.h
 
 $(BLD)\w32faces.obj: \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
@@ -1106,8 +1145,9 @@ $(BLD)\w32faces.obj: \
 	$(SRC)\dispextern.h \
 	$(SRC)\frame.h \
 	$(SRC)\blockinput.h \
-  	$(SRC)\window.h \
-	$(SRC)\intervals.h
+	$(SRC)\window.h \
+	$(SRC)\intervals.h \
+	$(SRC)\composite.h
 
 $(BLD)\w32fns.obj: \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
@@ -1119,7 +1159,7 @@ $(BLD)\w32fns.obj: \
 	$(SRC)\w32term.h \
 	$(SRC)\w32gui.h \
 	$(SRC)\frame.h \
-  	$(SRC)\window.h \
+	$(SRC)\window.h \
 	$(SRC)\buffer.h \
 	$(SRC)\dispextern.h \
 	$(SRC)\keyboard.h \
@@ -1136,7 +1176,7 @@ $(BLD)\w32menu.obj: \
 	$(SRC)\lisp.h \
 	$(SRC)\termhooks.h \
 	$(SRC)\frame.h \
-  	$(SRC)\window.h \
+	$(SRC)\window.h \
 	$(SRC)\keyboard.h \
 	$(SRC)\blockinput.h \
 	$(SRC)\buffer.h
@@ -1161,9 +1201,10 @@ $(BLD)\w32term.obj: \
 	$(SRC)\gnu.h \
 	$(SRC)\disptab.h \
 	$(SRC)\buffer.h \
-  	$(SRC)\window.h \
+	$(SRC)\window.h \
 	$(SRC)\keyboard.h \
-	$(SRC)\intervals.h
+	$(SRC)\intervals.h \
+	$(SRC)\composite.h
 
 $(BLD)\w32select.obj: \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
