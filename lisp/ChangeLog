@@ -1,3 +1,8 @@
+2001-11-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* calendar/timeclock.el (timeclock-out): Signal an error if
+	timeclock-last-event is nil.
+
 2001-11-01  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (find-backup-file-name): Use make-backup-file-name.
