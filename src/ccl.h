@@ -19,8 +19,8 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#ifndef _CCL_H
-#define _CCL_H
+#ifndef EMACS_CCL_H
+#define EMACS_CCL_H
 
 /* Macros for exit status of CCL program.  */
 #define CCL_STAT_SUCCESS	0 /* Terminated successfully.  */
@@ -81,4 +81,4 @@ extern Lisp_Object Vccl_program_table;
    is an index for Vccl_protram_table. */
 extern Lisp_Object Qccl_program_idx;
 
-#endif /* _CCL_H */
+#endif /* EMACS_CCL_H */
