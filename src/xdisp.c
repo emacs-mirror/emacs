@@ -3018,6 +3018,10 @@ decode_mode_spec (w, c, maxwidth)
 #endif
       break;
 
+    case 'c':
+      sprintf (decode_mode_spec_buf, "%d", current_column ());
+      return decode_mode_spec_buf;
+
     case 'l':
       {
 	int startpos = marker_position (w->start);
