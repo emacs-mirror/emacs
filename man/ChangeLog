@@ -1,3 +1,7 @@
+2005-01-13  Richard M. Stallman  <rms@gnu.org>
+
+	* commands.texi (Commands): Clarification.
+
 2005-01-11  Richard M. Stallman  <rms@gnu.org>
 
 	* programs.texi (Multi-line Indent): Fix previous change.

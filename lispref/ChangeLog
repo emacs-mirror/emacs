@@ -1,3 +1,10 @@
+2005-01-13  Richard M. Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Active Keymaps): Rewrite the text, and update the
+	descriptions of overriding-local-map and overriding-terminal-local-map.
+
+	* text.texi (Links and Mouse-1): Clarify text.
+
 2005-01-13  Kim F. Storm  <storm@cua.dk>
 
 	* modes.texi (Emulating Mode Line): Update format-mode-line entry.
