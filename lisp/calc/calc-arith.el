@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-arith.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -34,27 +34,23 @@
 (defun calc-min (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-binary-op "min" 'calcFunc-min arg '(var inf var-inf)))
-)
+   (calc-binary-op "min" 'calcFunc-min arg '(var inf var-inf))))
 
 (defun calc-max (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-binary-op "max" 'calcFunc-max arg '(neg (var inf var-inf))))
-)
+   (calc-binary-op "max" 'calcFunc-max arg '(neg (var inf var-inf)))))
 
 (defun calc-abs (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-unary-op "abs" 'calcFunc-abs arg))
-)
+   (calc-unary-op "abs" 'calcFunc-abs arg)))
 
 
 (defun calc-idiv (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-binary-op "\\" 'calcFunc-idiv arg 1))
-)
+   (calc-binary-op "\\" 'calcFunc-idiv arg 1)))
 
 
 (defun calc-floor (arg)
@@ -66,14 +62,12 @@
 	 (calc-unary-op "ceil" 'calcFunc-ceil arg))
      (if (calc-is-hyperbolic)
 	 (calc-unary-op "flor" 'calcFunc-ffloor arg)
-       (calc-unary-op "flor" 'calcFunc-floor arg))))
-)
+       (calc-unary-op "flor" 'calcFunc-floor arg)))))
 
 (defun calc-ceiling (arg)
   (interactive "P")
   (calc-invert-func)
-  (calc-floor arg)
-)
+  (calc-floor arg))
 
 (defun calc-round (arg)
   (interactive "P")
@@ -84,56 +78,47 @@
 	 (calc-unary-op "trnc" 'calcFunc-trunc arg))
      (if (calc-is-hyperbolic)
 	 (calc-unary-op "rond" 'calcFunc-fround arg)
-       (calc-unary-op "rond" 'calcFunc-round arg))))
-)
+       (calc-unary-op "rond" 'calcFunc-round arg)))))
 
 (defun calc-trunc (arg)
   (interactive "P")
   (calc-invert-func)
-  (calc-round arg)
-)
+  (calc-round arg))
 
 (defun calc-mant-part (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-unary-op "mant" 'calcFunc-mant arg))
-)
+   (calc-unary-op "mant" 'calcFunc-mant arg)))
 
 (defun calc-xpon-part (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-unary-op "xpon" 'calcFunc-xpon arg))
-)
+   (calc-unary-op "xpon" 'calcFunc-xpon arg)))
 
 (defun calc-scale-float (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-binary-op "scal" 'calcFunc-scf arg))
-)
+   (calc-binary-op "scal" 'calcFunc-scf arg)))
 
 (defun calc-abssqr (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-unary-op "absq" 'calcFunc-abssqr arg))
-)
+   (calc-unary-op "absq" 'calcFunc-abssqr arg)))
 
 (defun calc-sign (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-unary-op "sign" 'calcFunc-sign arg))
-)
+   (calc-unary-op "sign" 'calcFunc-sign arg)))
 
 (defun calc-increment (arg)
   (interactive "p")
   (calc-wrapper
-   (calc-enter-result 1 "incr" (list 'calcFunc-incr (calc-top-n 1) arg)))
-)
+   (calc-enter-result 1 "incr" (list 'calcFunc-incr (calc-top-n 1) arg))))
 
 (defun calc-decrement (arg)
   (interactive "p")
   (calc-wrapper
-   (calc-enter-result 1 "decr" (list 'calcFunc-decr (calc-top-n 1) arg)))
-)
+   (calc-enter-result 1 "decr" (list 'calcFunc-decr (calc-top-n 1) arg))))
 
 
 (defun math-abs-approx (a)
@@ -155,12 +140,10 @@
 	 (math-reduce-vec 'math-add-abs-approx a))
 	((eq (car a) 'calcFunc-abs)
 	 (car a))
-	(t a))
-)
+	(t a)))
 
 (defun math-add-abs-approx (a b)
-  (math-add (math-abs-approx a) (math-abs-approx b))
-)
+  (math-add (math-abs-approx a) (math-abs-approx b)))
 
 
 ;;;; Declarations.
@@ -223,23 +206,20 @@
 						  type)
 					    math-decls-cache)))))
 		      (error nil)))))
-	(setq math-decls-all (assq 'var-All math-decls-cache))))
-)
+	(setq math-decls-all (assq 'var-All math-decls-cache)))))
 
 (defvar math-super-types
-  '( ( int     numint rat real number )
-     ( numint  real number )
-     ( frac    rat real number )
-     ( rat     real number )
-     ( float   real number )
-     ( real    number )
-     ( number  )
-     ( scalar  )
-     ( matrix  vector )
-     ( vector )
-     ( const )
-))
-
+  '((int numint rat real number)
+    (numint real number)
+    (frac rat real number)
+    (rat real number)
+    (float real number)
+    (real number)
+    (number)
+    (scalar)
+    (matrix vector)
+    (vector)
+    (const)))
 
 (defun math-known-scalarp (a &optional assume-scalar)
   (math-setup-declarations)
@@ -247,13 +227,11 @@
 	  (eq calc-matrix-mode 'scalar)
 	assume-scalar)
       (not (math-check-known-matrixp a))
-    (math-check-known-scalarp a))
-)
+    (math-check-known-scalarp a)))
 
 (defun math-known-matrixp (a)
   (and (not (Math-scalarp a))
-       (not (math-known-scalarp a t)))
-)
+       (not (math-known-scalarp a t))))
 
 ;;; Try to prove that A is a scalar (i.e., a non-vector).
 (defun math-check-known-scalarp (a)
@@ -274,8 +252,7 @@
 			 (or (assq (nth 2 a) math-decls-cache)
 			     math-decls-all)
 		       (assq (car a) math-decls-cache))))
-	   (memq 'scalar (nth 1 decl)))))
-)
+	   (memq 'scalar (nth 1 decl))))))
 
 ;;; Try to prove that A is *not* a scalar.
 (defun math-check-known-matrixp (a)
@@ -294,39 +271,32 @@
 			 (or (assq (nth 2 a) math-decls-cache)
 			     math-decls-all)
 		       (assq (car a) math-decls-cache))))
-	   (memq 'vector (nth 1 decl)))))
-)
+	   (memq 'vector (nth 1 decl))))))
 
 
 ;;; Try to prove that A is a real (i.e., not complex).
 (defun math-known-realp (a)
-  (< (math-possible-signs a) 8)
-)
+  (< (math-possible-signs a) 8))
 
 ;;; Try to prove that A is real and positive.
 (defun math-known-posp (a)
-  (eq (math-possible-signs a) 4)
-)
+  (eq (math-possible-signs a) 4))
 
 ;;; Try to prove that A is real and negative.
 (defun math-known-negp (a)
-  (eq (math-possible-signs a) 1)
-)
+  (eq (math-possible-signs a) 1))
 
 ;;; Try to prove that A is real and nonnegative.
 (defun math-known-nonnegp (a)
-  (memq (math-possible-signs a) '(2 4 6))
-)
+  (memq (math-possible-signs a) '(2 4 6)))
 
 ;;; Try to prove that A is real and nonpositive.
 (defun math-known-nonposp (a)
-  (memq (math-possible-signs a) '(1 2 3))
-)
+  (memq (math-possible-signs a) '(1 2 3)))
 
 ;;; Try to prove that A is nonzero.
 (defun math-known-nonzerop (a)
-  (memq (math-possible-signs a) '(1 4 5 8 9 12 13))
-)
+  (memq (math-possible-signs a) '(1 4 5 8 9 12 13)))
 
 ;;; Return true if A is negative, or looks negative but we don't know.
 (defun math-guess-if-neg (a)
@@ -335,8 +305,7 @@
 	t
       (if (memq sgn '(2 4 6))
 	  nil
-	(math-looks-negp a))))
-)
+	(math-looks-negp a)))))
 
 ;;; Find the possible signs of A, assuming A is a number of some kind.
 ;;; Returns an integer with bits:  1  may be negative,
@@ -524,30 +493,25 @@
 			    (math-possible-signs (nth 2 decl) origin)
 			  (if (memq 'real (nth 1 decl))
 			      7
-			    15)))))))))
-)
+			    15))))))))))
 
 (defun math-neg-signs (s1)
   (if (>= s1 8)
       (+ 8 (math-neg-signs (- s1 8)))
     (+ (if (memq s1 '(1 3 5 7)) 4 0)
        (if (memq s1 '(2 3 6 7)) 2 0)
-       (if (memq s1 '(4 5 6 7)) 1 0)))
-)
+       (if (memq s1 '(4 5 6 7)) 1 0))))
 
 
 ;;; Try to prove that A is an integer.
 (defun math-known-integerp (a)
-  (eq (math-possible-types a) 1)
-)
+  (eq (math-possible-types a) 1))
 
 (defun math-known-num-integerp (a)
-  (<= (math-possible-types a t) 3)
-)
+  (<= (math-possible-types a t) 3))
 
 (defun math-known-imagp (a)
-  (= (math-possible-types a) 16)
-)
+  (= (math-possible-types a) 16))
 
 
 ;;; Find the possible types of A.
@@ -705,8 +669,7 @@
 		  (math-possible-types (nth 2 decl)))
 		 ((memq 'real (nth 1 decl))
 		  15)
-		 (t 63)))))
-)
+		 (t 63))))))
 
 (defun math-known-evenp (a)
   (cond ((Math-integerp a)
@@ -725,8 +688,7 @@
 	     (and (math-known-oddp (nth 1 a))
 		  (math-known-oddp (nth 2 a)))))
 	((eq (car a) 'neg)
-	 (math-known-evenp (nth 1 a))))
-)
+	 (math-known-evenp (nth 1 a)))))
 
 (defun math-known-oddp (a)
   (cond ((Math-integerp a)
@@ -740,72 +702,62 @@
 	     (and (math-known-oddp (nth 1 a))
 		  (math-known-evenp (nth 2 a)))))
 	((eq (car a) 'neg)
-	 (math-known-oddp (nth 1 a))))
-)
+	 (math-known-oddp (nth 1 a)))))
 
 
 (defun calcFunc-dreal (expr)
   (let ((types (math-possible-types expr)))
     (if (< types 16) 1
       (if (= (logand types 15) 0) 0
-	(math-reject-arg expr 'realp 'quiet))))
-)
+	(math-reject-arg expr 'realp 'quiet)))))
 
 (defun calcFunc-dimag (expr)
   (let ((types (math-possible-types expr)))
     (if (= types 16) 1
       (if (= (logand types 16) 0) 0
-	(math-reject-arg expr "Expected an imaginary number"))))
-)
+	(math-reject-arg expr "Expected an imaginary number")))))
 
 (defun calcFunc-dpos (expr)
   (let ((signs (math-possible-signs expr)))
     (if (eq signs 4) 1
       (if (memq signs '(1 2 3)) 0
-	(math-reject-arg expr 'posp 'quiet))))
-)
+	(math-reject-arg expr 'posp 'quiet)))))
 
 (defun calcFunc-dneg (expr)
   (let ((signs (math-possible-signs expr)))
     (if (eq signs 1) 1
       (if (memq signs '(2 4 6)) 0
-	(math-reject-arg expr 'negp 'quiet))))
-)
+	(math-reject-arg expr 'negp 'quiet)))))
 
 (defun calcFunc-dnonneg (expr)
   (let ((signs (math-possible-signs expr)))
     (if (memq signs '(2 4 6)) 1
       (if (eq signs 1) 0
-	(math-reject-arg expr 'posp 'quiet))))
-)
+	(math-reject-arg expr 'posp 'quiet)))))
 
 (defun calcFunc-dnonzero (expr)
   (let ((signs (math-possible-signs expr)))
     (if (memq signs '(1 4 5 8 9 12 13)) 1
       (if (eq signs 2) 0
-	(math-reject-arg expr 'nonzerop 'quiet))))
-)
+	(math-reject-arg expr 'nonzerop 'quiet)))))
 
 (defun calcFunc-dint (expr)
   (let ((types (math-possible-types expr)))
     (if (= types 1) 1
       (if (= (logand types 1) 0) 0
-	(math-reject-arg expr 'integerp 'quiet))))
-)
+	(math-reject-arg expr 'integerp 'quiet)))))
 
 (defun calcFunc-dnumint (expr)
   (let ((types (math-possible-types expr t)))
     (if (<= types 3) 1
       (if (= (logand types 3) 0) 0
-	(math-reject-arg expr 'integerp 'quiet))))
-)
+	(math-reject-arg expr 'integerp 'quiet)))))
 
 (defun calcFunc-dnatnum (expr)
   (let ((res (calcFunc-dint expr)))
     (if (eq res 1)
 	(calcFunc-dnonneg expr)
-      res))
-)
+      res)))
 
 (defun calcFunc-deven (expr)
   (if (math-known-evenp expr)
@@ -813,8 +765,7 @@
     (if (or (math-known-oddp expr)
 	    (= (logand (math-possible-types expr) 3) 0))
 	0
-      (math-reject-arg expr "Can't tell if expression is odd or even")))
-)
+      (math-reject-arg expr "Can't tell if expression is odd or even"))))
 
 (defun calcFunc-dodd (expr)
   (if (math-known-oddp expr)
@@ -822,15 +773,13 @@
     (if (or (math-known-evenp expr)
 	    (= (logand (math-possible-types expr) 3) 0))
 	0
-      (math-reject-arg expr "Can't tell if expression is odd or even")))
-)
+      (math-reject-arg expr "Can't tell if expression is odd or even"))))
 
 (defun calcFunc-drat (expr)
   (let ((types (math-possible-types expr)))
     (if (memq types '(1 4 5)) 1
       (if (= (logand types 5) 0) 0
-	(math-reject-arg expr "Rational number expected"))))
-)
+	(math-reject-arg expr "Rational number expected")))))
 
 (defun calcFunc-drange (expr)
   (math-setup-declarations)
@@ -856,14 +805,12 @@
 			  (intv 1 0 (var inf var-inf)))
 		     (intv 3 0 (var inf var-inf))
 		     (intv 3 (neg (var inf var-inf)) (var inf var-inf))] range)
-	    (math-reject-arg expr 'realp 'quiet))))))
-)
+	    (math-reject-arg expr 'realp 'quiet)))))))
 
 (defun calcFunc-dscalar (a)
   (if (math-known-scalarp a) 1
     (if (math-known-matrixp a) 0
-      (math-reject-arg a 'objectp 'quiet)))
-)
+      (math-reject-arg a 'objectp 'quiet))))
 
 
 ;;; The following lists are not exhaustive.
@@ -871,16 +818,14 @@
 				calcFunc-cnorm calcFunc-rnorm
 				calcFunc-vlen calcFunc-vcount
 				calcFunc-vsum calcFunc-vprod
-				calcFunc-vmin calcFunc-vmax
-))
+				calcFunc-vmin calcFunc-vmax))
 
 (defvar math-nonscalar-functions '(vec calcFunc-idn calcFunc-diag
 				       calcFunc-cvec calcFunc-index
 				       calcFunc-trn
 				       | calcFunc-append
 				       calcFunc-cons calcFunc-rcons
-				       calcFunc-tail calcFunc-rhead
-))
+				       calcFunc-tail calcFunc-rhead))
 
 (defvar math-scalar-if-args-functions '(+ - * / neg))
 
@@ -891,15 +836,12 @@
 			      calcFunc-rounde calcFunc-roundu
 			      calcFunc-ffloor calcFunc-fceil
 			      calcFunc-ftrunc calcFunc-fround
-			      calcFunc-frounde calcFunc-froundu
-))
+			      calcFunc-frounde calcFunc-froundu))
 
-(defvar math-positive-functions '(
-))
+(defvar math-positive-functions '())
 
 (defvar math-nonnegative-functions '(calcFunc-cnorm calcFunc-rnorm
-				     calcFunc-vlen calcFunc-vcount
-))
+				     calcFunc-vlen calcFunc-vcount))
 
 (defvar math-real-scalar-functions '(% calcFunc-idiv calcFunc-abs
 				       calcFunc-choose calcFunc-perm
@@ -907,47 +849,39 @@
 				       calcFunc-lt calcFunc-gt
 				       calcFunc-leq calcFunc-geq
 				       calcFunc-lnot
-				       calcFunc-max calcFunc-min
-))
+				       calcFunc-max calcFunc-min))
 
 (defvar math-real-if-arg-functions '(calcFunc-sin calcFunc-cos
 				     calcFunc-tan calcFunc-arctan
 				     calcFunc-sinh calcFunc-cosh
 				     calcFunc-tanh calcFunc-exp
-				     calcFunc-gamma calcFunc-fact
-))
+				     calcFunc-gamma calcFunc-fact))
 
 (defvar math-integer-functions '(calcFunc-idiv
 				 calcFunc-isqrt calcFunc-ilog
-				 calcFunc-vlen calcFunc-vcount
-))
+				 calcFunc-vlen calcFunc-vcount))
 
-(defvar math-num-integer-functions '(
-))
+(defvar math-num-integer-functions '())
 
 (defvar math-rounding-functions '(calcFunc-floor
 				  calcFunc-ceil
 				  calcFunc-round calcFunc-trunc
-				  calcFunc-rounde calcFunc-roundu
-))
+				  calcFunc-rounde calcFunc-roundu))
 
 (defvar math-float-rounding-functions '(calcFunc-ffloor
 					calcFunc-fceil
 					calcFunc-fround calcFunc-ftrunc
-					calcFunc-frounde calcFunc-froundu
-))
+					calcFunc-frounde calcFunc-froundu))
 
 (defvar math-integer-if-args-functions '(+ - * % neg calcFunc-abs
 					   calcFunc-min calcFunc-max
-					   calcFunc-choose calcFunc-perm
-))
+					   calcFunc-choose calcFunc-perm))
 
 
 ;;;; Arithmetic.
 
 (defun calcFunc-neg (a)
-  (math-normalize (list 'neg a))
-)
+  (math-normalize (list 'neg a)))
 
 (defun math-neg-fancy (a)
   (cond ((eq (car a) 'polar)
@@ -993,17 +927,14 @@
 	 a)
 	((eq (car a) 'neg)
 	 (nth 1 a))
-	(t (list 'neg a)))
-)
+	(t (list 'neg a))))
 
 (defun math-okay-neg (a)
   (or (math-looks-negp a)
-      (eq (car-safe a) '-))
-)
+      (eq (car-safe a) '-)))
 
 (defun math-neg-float (a)
-  (list 'float (Math-integer-neg (nth 1 a)) (nth 2 a))
-)
+  (list 'float (Math-integer-neg (nth 1 a)) (nth 2 a)))
 
 
 (defun calcFunc-add (&rest rest)
@@ -1012,8 +943,7 @@
 	(while (setq rest (cdr rest))
 	  (setq a (list '+ a (car rest))))
 	(math-normalize a))
-    0)
-)
+    0))
 
 (defun calcFunc-sub (&rest rest)
   (if rest
@@ -1021,8 +951,7 @@
 	(while (setq rest (cdr rest))
 	  (setq a (list '- a (car rest))))
 	(math-normalize a))
-    0)
-)
+    0))
 
 (defun math-add-objects-fancy (a b)
   (cond ((and (Math-numberp a) (Math-numberp b))
@@ -1130,8 +1059,7 @@
 		     (m (math-add (nth 2 a) (nth 2 b)))
 		     (h (math-add (nth 1 a) (nth 1 b))))
 		(list 'hms h m s))))))
-	(t (calc-record-why "*Incompatible arguments for +" a b)))
-)
+	(t (calc-record-why "*Incompatible arguments for +" a b))))
 
 (defun math-add-symb-fancy (a b)
   (or (and math-simplify-only
@@ -1210,8 +1138,7 @@
 		    (math-add a (math-mimic-ident (nth 1 b) a)))
 	       (and (math-known-scalarp a)
 		    (math-add a (nth 1 b)))))
-      (list '+ a b))
-)
+      (list '+ a b)))
 
 
 (defun calcFunc-mul (&rest rest)
@@ -1220,8 +1147,7 @@
 	(while (setq rest (cdr rest))
 	  (setq a (list '* a (car rest))))
 	(math-normalize a))
-    1)
-)
+    1))
 
 (defun math-mul-objects-fancy (a b)
   (cond ((and (Math-numberp a) (Math-numberp b))
@@ -1320,19 +1246,16 @@
 	   (math-to-hms (math-mul (math-from-hms a 'deg) b) 'deg)))
 	((and (eq (car-safe b) 'hms) (Math-realp a))
 	 (math-mul b a))
-	(t (calc-record-why "*Incompatible arguments for *" a b)))
-)
+	(t (calc-record-why "*Incompatible arguments for *" a b))))
 
 ;;; Fast function to multiply floating-point numbers.
 (defun math-mul-float (a b)   ; [F F F]
   (math-make-float (math-mul (nth 1 a) (nth 1 b))
-		   (+ (nth 2 a) (nth 2 b)))
-)
+		   (+ (nth 2 a) (nth 2 b))))
 
 (defun math-sqr-float (a)   ; [F F]
   (math-make-float (math-mul (nth 1 a) (nth 1 a))
-		   (+ (nth 2 a) (nth 2 a)))
-)
+		   (+ (nth 2 a) (nth 2 a))))
 
 (defun math-intv-constp (a &optional finite)
   (and (or (Math-anglep (nth 2 a))
@@ -1342,8 +1265,7 @@
        (or (Math-anglep (nth 3 a))
 	   (and (equal (nth 3 a) '(var inf var-inf))
 		(or (not finite)
-		    (memq (nth 1 a) '(0 2))))))
-)
+		    (memq (nth 1 a) '(0 2)))))))
 
 (defun math-mul-zero (a b)
   (if (math-known-matrixp b)
@@ -1371,8 +1293,7 @@
 	      (if (math-negp a)
 		  (math-neg (list 'intv 3 (or aa 0) (or bb 0)))
 		'(var nan var-nan)))
-	  (if (or (math-floatp a) (math-floatp b)) '(float 0 0) 0)))))
-)
+	  (if (or (math-floatp a) (math-floatp b)) '(float 0 0) 0))))))
 
 
 (defun math-mul-symb-fancy (a b)
@@ -1484,16 +1405,14 @@
 		    (list '* (list 'polar 1 (nth 2 a)) b)))))
       (and (equal a '(var inf var-inf))
 	   (math-mul b a))
-      (list '* a b))
-)
+      (list '* a b)))
 
 
 (defun calcFunc-div (a &rest rest)
   (while rest
     (setq a (list '/ a (car rest))
 	  rest (cdr rest)))
-  (math-normalize a)
-)
+  (math-normalize a))
 
 (defun math-div-objects-fancy (a b)
   (cond ((and (Math-numberp a) (Math-numberp b))
@@ -1640,8 +1559,7 @@
 			 (math-from-hms b 'deg)))
 	   (math-with-extra-prec 2
 	     (math-to-hms (math-div (math-from-hms a 'deg) b) 'deg))))
-	(t (calc-record-why "*Incompatible arguments for /" a b)))
-)
+	(t (calc-record-why "*Incompatible arguments for /" a b))))
 
 (defun math-div-by-zero (a b)
   (if (math-infinitep a)
@@ -1660,8 +1578,7 @@
 	      (if (eq (car-safe a) 'intv)
 		  '(intv 3 (neg (var inf var-inf)) (var inf var-inf))
 		'(var uinf var-uinf)))))
-      (math-reject-arg a "*Division by zero")))
-)
+      (math-reject-arg a "*Division by zero"))))
 
 (defun math-div-zero (a b)
   (if (math-known-matrixp b)
@@ -1681,8 +1598,7 @@
 			     (memq calc-infinite-mode '(1 -1)))
 			(nth 3 b) '(var inf var-inf)))
 	    (math-reject-arg b "*Division by zero"))
-	a)))
-)
+	a))))
 
 (defun math-div-symb-fancy (a b)
   (or (and math-simplify-only
@@ -1788,13 +1704,11 @@
 	       b
 	     (let ((calc-infinite-mode 1))
 	       (math-mul-zero b a))))
-      (list '/ a b))
-)
+      (list '/ a b)))
 
 
 (defun calcFunc-mod (a b)
-  (math-normalize (list '% a b))
-)
+  (math-normalize (list '% a b)))
 
 (defun math-mod-fancy (a b)
   (cond ((equal b '(var inf var-inf))
@@ -1815,13 +1729,11 @@
 	 (if (Math-anglep a)
 	     (calc-record-why 'anglep b)
 	   (calc-record-why 'anglep a))
-	 (list '% a b)))
-)
+	 (list '% a b))))
 
 
 (defun calcFunc-pow (a b)
-  (math-normalize (list '^ a b))
-)
+  (math-normalize (list '^ a b)))
 
 (defun math-pow-of-zero (a b)
   (if (Math-zerop b)
@@ -1840,8 +1752,7 @@
 	      '(intv 3 (neg (var inf var-inf)) (var inf var-inf))
 	    (if (math-objectp b)
 		(list '^ a b)
-	      a))))))
-)
+	      a)))))))
 
 (defun math-pow-zero (a b)
   (if (eq (car-safe a) 'mod)
@@ -1855,8 +1766,7 @@
 		     (not (math-intv-constp a t))))
 	    '(intv 3 (neg (var inf var-inf)) (var inf var-inf))
 	  (if (or (math-floatp a) (math-floatp b))
-	      '(float 1 0) 1)))))
-)
+	      '(float 1 0) 1))))))
 
 (defun math-pow-fancy (a b)
   (cond ((and (Math-numberp a) (Math-numberp b))
@@ -2063,8 +1973,7 @@
 	((not (Math-numberp a))
 	 (math-reject-arg a 'numberp))
 	(t
-	 (math-reject-arg b 'numberp)))
-)
+	 (math-reject-arg b 'numberp))))
 
 (defun math-quarter-integer (x)
   (if (Math-integerp x)
@@ -2092,8 +2001,7 @@
 		      (setq x (nth 1 x)
 			    x (% (if (consp x) (nth 1 x) x) 100))
 		      (if (= x 25) 1
-			(if (= x 75) 3))))))))))
-)
+			(if (= x 75) 3)))))))))))
 
 ;;; This assumes A < M and M > 0.
 (defun math-pow-mod (a b m)   ; [R R R R]
@@ -2103,8 +2011,7 @@
 	(if (eq m 1)
 	    0
 	  (math-pow-mod-step a b m)))
-    (math-mod (math-pow a b) m))
-)
+    (math-mod (math-pow a b) m)))
 
 (defun math-pow-mod-step (a n m)   ; [I I I I]
   (math-working "pow" a)
@@ -2120,8 +2027,7 @@
 		     rest
 		   (math-mod (math-mul a rest) m)))))))
     (math-working "pow" val)
-    val)
-)
+    val))
 
 
 ;;; Compute the minimum of two real numbers.  [R R R] [Public]
@@ -2150,8 +2056,7 @@
 	    b
 	  (if (= res 2)
 	      '(var nan var-nan)
-	    a)))))
-)
+	    a))))))
 
 (defun calcFunc-min (&optional a &rest b)
   (if (not a)
@@ -2160,8 +2065,7 @@
 		 (and (eq (car a) 'intv) (math-intv-constp a))
 		 (math-infinitep a)))
 	(math-reject-arg a 'anglep))
-    (math-min-list a b))
-)
+    (math-min-list a b)))
 
 (defun math-min-list (a b)
   (if b
@@ -2170,8 +2074,7 @@
 	      (math-infinitep (car b)))
 	  (math-min-list (math-min a (car b)) (cdr b))
 	(math-reject-arg (car b) 'anglep))
-    a)
-)
+    a))
 
 ;;; Compute the maximum of two real numbers.  [R R R] [Public]
 (defun math-max (a b)
@@ -2183,8 +2086,7 @@
 	  b
 	(if (= res 2)
 	      '(var nan var-nan)
-	  a))))
-)
+	  a)))))
 
 (defun calcFunc-max (&optional a &rest b)
   (if (not a)
@@ -2193,8 +2095,7 @@
 		 (and (eq (car a) 'intv) (math-intv-constp a))
 		 (math-infinitep a)))
 	(math-reject-arg a 'anglep))
-    (math-max-list a b))
-)
+    (math-max-list a b)))
 
 (defun math-max-list (a b)
   (if b
@@ -2203,8 +2104,7 @@
 	      (math-infinitep (car b)))
 	  (math-max-list (math-max a (car b)) (cdr b))
 	(math-reject-arg (car b) 'anglep))
-    a)
-)
+    a))
 
 
 ;;; Compute the absolute value of A.  [O O; r r] [Public]
@@ -2250,10 +2150,9 @@
 		    inf
 		  '(var inf var-inf)))))
 	(t (calc-record-why 'numvecp a)
-	   (list 'calcFunc-abs a)))
-)
-(fset 'calcFunc-abs (symbol-function 'math-abs))
+	   (list 'calcFunc-abs a))))
 
+(defalias 'calcFunc-abs 'math-abs)
 
 (defun math-float-fancy (a)
   (cond ((eq (car a) 'intv)
@@ -2276,10 +2175,9 @@
 				     (calcFunc-rounde . calcFunc-frounde)
 				     (calcFunc-roundu . calcFunc-froundu)))))
 	   (and func (cons (cdr func) (cdr a)))))
-	(t (math-reject-arg a 'objectp)))
-)
-(fset 'calcFunc-float (symbol-function 'math-float))
+	(t (math-reject-arg a 'objectp))))
 
+(defalias 'calcFunc-float 'math-float)
 
 (defun math-trunc-fancy (a)
   (cond ((eq (car a) 'frac) (math-quotient (nth 1 a) (nth 2 a)))
@@ -2316,8 +2214,7 @@
 	     a
 	   '(var nan var-nan)))
 	((math-to-integer a))
-	(t (math-reject-arg a 'numberp)))
-)
+	(t (math-reject-arg a 'numberp))))
 
 (defun math-trunc-special (a prec)
   (if (Math-messy-integerp prec)
@@ -2329,8 +2226,7 @@
       a
     (calcFunc-scf (math-trunc (let ((calc-prefer-frac t))
 				(calcFunc-scf a prec)))
-		  (- prec)))
-)
+		  (- prec))))
 
 (defun math-to-integer (a)
   (let ((func (assq (car-safe a) '((calcFunc-ffloor  . calcFunc-floor)
@@ -2340,16 +2236,14 @@
 				   (calcFunc-frounde . calcFunc-rounde)
 				   (calcFunc-froundu . calcFunc-roundu)))))
     (and func (= (length a) 2)
-	 (cons (cdr func) (cdr a))))
-)
+	 (cons (cdr func) (cdr a)))))
 
 (defun calcFunc-ftrunc (a &optional prec)
   (if (and (Math-messy-integerp a)
 	   (or (not prec) (and (integerp prec)
 			       (<= prec 0))))
       a
-    (math-float (math-trunc a prec)))
-)
+    (math-float (math-trunc a prec))))
 
 (defun math-floor-fancy (a)
   (cond ((math-provably-integerp a) a)
@@ -2379,8 +2273,7 @@
 	     a
 	   '(var nan var-nan)))
 	((math-to-integer a))
-	(t (math-reject-arg a 'anglep)))
-)
+	(t (math-reject-arg a 'anglep))))
 
 (defun math-floor-special (a prec)
   (if (Math-messy-integerp prec)
@@ -2392,16 +2285,14 @@
       a
     (calcFunc-scf (math-floor (let ((calc-prefer-frac t))
 				(calcFunc-scf a prec)))
-		  (- prec)))
-)
+		  (- prec))))
 
 (defun calcFunc-ffloor (a &optional prec)
   (if (and (Math-messy-integerp a)
 	   (or (not prec) (and (integerp prec)
 			       (<= prec 0))))
       a
-    (math-float (math-floor a prec)))
-)
+    (math-float (math-floor a prec))))
 
 ;;; Coerce A to be an integer (by truncation toward plus infinity).  [I N]
 (defun math-ceiling (a &optional prec)   ;  [Public]
@@ -2449,17 +2340,16 @@
 	     a
 	   '(var nan var-nan)))
 	((math-to-integer a))
-	(t (math-reject-arg a 'anglep)))
-)
-(fset 'calcFunc-ceil (symbol-function 'math-ceiling))
+	(t (math-reject-arg a 'anglep))))
+
+(defalias 'calcFunc-ceil 'math-ceiling)
 
 (defun calcFunc-fceil (a &optional prec)
   (if (and (Math-messy-integerp a)
 	   (or (not prec) (and (integerp prec)
 			       (<= prec 0))))
       a
-    (math-float (math-ceiling a prec)))
-)
+    (math-float (math-ceiling a prec))))
 
 (setq math-rounding-mode nil)
 
@@ -2503,38 +2393,32 @@
 	     a
 	   '(var nan var-nan)))
 	((math-to-integer a))
-	(t (math-reject-arg a 'anglep)))
-)
-(fset 'calcFunc-round (symbol-function 'math-round))
+	(t (math-reject-arg a 'anglep))))
 
-(defun calcFunc-rounde (a &optional prec)
+(defalias 'calcFunc-round 'math-round)
+
+(defsubst calcFunc-rounde (a &optional prec)
   (let ((math-rounding-mode 'even))
-    (math-round a prec))
-)
+    (math-round a prec)))
 
-(defun calcFunc-roundu (a &optional prec)
+(defsubst calcFunc-roundu (a &optional prec)
   (let ((math-rounding-mode 'up))
-    (math-round a prec))
-)
+    (math-round a prec)))
 
 (defun calcFunc-fround (a &optional prec)
   (if (and (Math-messy-integerp a)
 	   (or (not prec) (and (integerp prec)
 			       (<= prec 0))))
       a
-    (math-float (math-round a prec)))
-)
+    (math-float (math-round a prec))))
 
-(defun calcFunc-frounde (a &optional prec)
+(defsubst calcFunc-frounde (a &optional prec)
   (let ((math-rounding-mode 'even))
-    (calcFunc-fround a prec))
-)
+    (calcFunc-fround a prec)))
 
-(defun calcFunc-froundu (a &optional prec)
+(defsubst calcFunc-froundu (a &optional prec)
   (let ((math-rounding-mode 'up))
-    (calcFunc-fround a prec))
-)
-
+    (calcFunc-fround a prec)))
 
 ;;; Pull floating-point values apart into mantissa and exponent.
 (defun calcFunc-mant (x)
@@ -2544,8 +2428,7 @@
 	  x
 	(list 'float (nth 1 x) (- 1 (math-numdigs (nth 1 x)))))
     (calc-record-why 'realp x)
-    (list 'calcFunc-mant x))
-)
+    (list 'calcFunc-mant x)))
 
 (defun calcFunc-xpon (x)
   (if (Math-realp x)
@@ -2554,8 +2437,7 @@
 	  0
 	(math-normalize (+ (nth 2 x) (1- (math-numdigs (nth 1 x))))))
     (calc-record-why 'realp x)
-    (list 'calcFunc-xpon x))
-)
+    (list 'calcFunc-xpon x)))
 
 (defun calcFunc-scf (x n)
   (if (integerp n)
@@ -2601,8 +2483,7 @@
       (if (math-integerp n)
 	  (math-overflow n)
 	(calc-record-why 'integerp n)
-	(list 'calcFunc-scf x n))))
-)
+	(list 'calcFunc-scf x n)))))
 
 
 (defun calcFunc-incr (x &optional step relative-to)
@@ -2626,28 +2507,21 @@
 	     (math-add x step)
 	   (math-add x (list 'hms 0 0 step))))
 	(t
-	 (math-reject-arg x 'realp)))
-)
+	 (math-reject-arg x 'realp))))
 
-(defun calcFunc-decr (x &optional step relative-to)
-  (calcFunc-incr x (math-neg (or step 1)) relative-to)
-)
-
+(defsubst calcFunc-decr (x &optional step relative-to)
+  (calcFunc-incr x (math-neg (or step 1)) relative-to))
 
 (defun calcFunc-percent (x)
   (if (math-objectp x)
       (let ((calc-prefer-frac nil))
 	(math-div x 100))
-    (list 'calcFunc-percent x))
-)
+    (list 'calcFunc-percent x)))
 
 (defun calcFunc-relch (x y)
   (if (and (math-objectp x) (math-objectp y))
       (math-div (math-sub y x) x)
-    (list 'calcFunc-relch x y))
-)
-
-
+    (list 'calcFunc-relch x y)))
 
 ;;; Compute the absolute value squared of A.  [F N] [Public]
 (defun calcFunc-abssqr (a)
@@ -2668,12 +2542,10 @@
 	   (and inf
 		(math-mul (calcFunc-abssqr (math-infinite-dir a inf)) inf))))
 	(t (calc-record-why 'numvecp a)
-	   (list 'calcFunc-abssqr a)))
-)
-(defun math-sqr (a)
-  (math-mul a a)
-)
+	   (list 'calcFunc-abssqr a))))
 
+(defsubst math-sqr (a)
+  (math-mul a a))
 
 ;;;; Number theory.
 
@@ -2696,8 +2568,7 @@
 	((or (math-infinitep a)
 	     (math-infinitep b))
 	 (math-div a b))
-	(t (math-reject-arg a 'anglep)))
-)
+	(t (math-reject-arg a 'anglep))))
 
 
 ;;; Combine two terms being added, if possible.
@@ -2740,16 +2611,14 @@
 	     (if nega (setq amult (math-neg amult)))
 	     (if negb (setq bmult (math-neg bmult)))
 	     (setq amult (math-add amult bmult))
-	     (math-mul amult a)))))
-)
+	     (math-mul amult a))))))
 
 (defun math-add-or-sub (a b aneg bneg)
   (if aneg (setq a (math-neg a)))
   (if bneg (setq b (math-neg b)))
   (if (or (Math-vectorp a) (Math-vectorp b))
       (math-normalize (list '+ a b))
-    (math-add a b))
-)
+    (math-add a b)))
 
 ;;; The following is expanded out four ways for speed.
 (defun math-combine-prod (a b inva invb scalar-okay)
@@ -2864,8 +2733,7 @@
 			(setq a (math-mul a b))
 			(condition-case err
 			    (math-pow a apow)
-			  (inexact-result (list '^ a apow))))))))))
-)
+			  (inexact-result (list '^ a apow)))))))))))
 (setq math-combine-prod-e '(var e var-e))
 
 (defun math-mul-or-div (a b ainv binv)
@@ -2884,8 +2752,7 @@
 	  (math-div b a))
       (if binv
 	  (math-div a b)
-	(math-mul a b))))
-)
+	(math-mul a b)))))
 
 (defun math-commutative-equal (a b)
   (if (memq (car-safe a) '(+ -))
@@ -2906,8 +2773,7 @@
 		      (setq bterms (delq (car p) bterms)
 			    aterms (cdr aterms)))
 		    (not aterms)))))
-    (equal a b))
-)
+    (equal a b)))
 
 (defun math-commutative-collect (b neg)
   (if (eq (car-safe b) '+)
@@ -2918,7 +2784,6 @@
 	(progn
 	  (math-commutative-collect (nth 1 b) neg)
 	  (math-commutative-collect (nth 2 b) (not neg)))
-      (setq bterms (cons (if neg (math-neg b) b) bterms))))
-)
+      (setq bterms (cons (if neg (math-neg b) b) bterms)))))
 
-
+;;; calc-arith.el ends here
