@@ -1,3 +1,14 @@
+2000-11-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* newcomment.el (comment-indent-default): Stick \s<\s< to the left
+	when it follows non-comment text on the line.
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables):
+	Set font-lock-defaults.
+	(lisp-mode-shared-map): Init inside the defvar.
+	(emacs-lisp-mode, lisp-mode, lisp-interaction-mode):
+	Use define-derived-mode.
+
 2000-11-14  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* faces.el (header-line): Use `:box nil' for color/gs displays too.
