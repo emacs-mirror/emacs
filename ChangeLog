@@ -1,5 +1,7 @@
 2000-11-20  Dave Love  <fx@gnu.org>
 
+	* configure.in: Fix last change.
+
 	* GETTING.GNU.SOFTWARE: Deleted.
 	* FTP: new file to replace it.
 	* make-dist: Add FTP, remove GETTING.GNU.SOFTWARE.

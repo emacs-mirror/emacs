@@ -9305,6 +9305,13 @@ sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/^/ /' -e 's/  *$//' \
 echo creating src/epaths.h
 make epaths-force
 
+# As of 2000-11-19, newest development versions of GNU cpp preprocess
+# `..' to `. .'  unless invoked with -traditional
+
+if test "x$GCC" = xyes && test "x$NON_GNU_CPP" = x; then
+  CPPFLAGS="$CPPFLAGS -traditional"
+fi
+
 echo creating lib-src/Makefile
 ( cd lib-src
   rm -f junk.c junk1.c junk2.c
