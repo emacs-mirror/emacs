@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.4 $
+;; Version: $Revision: 1.5 $
 
 ;; This file is part of GNU Emacs.
 
@@ -33,10 +33,10 @@
 ;;   (setq auto-mode-alist (append '(("\\.tcl$" . tcl-mode)) auto-mode-alist))
 ;;
 ;; If you plan to use the interface to the TclX help files, you must
-;; set the variable tcl-help-directory to point to the topmost
-;; directory containing the TclX help files.  Eg:
+;; set the variable tcl-help-directory-list to point to the topmost
+;; directories containing the TclX help files.  Eg:
 ;;
-;;   (setq tcl-help-directory "/usr/local/lib/tclx/help")
+;;   (setq tcl-help-directory-list '("/usr/local/lib/tclx/help"))
 ;;
 ;; Also you will want to add the following to your .emacs:
 ;;
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1994/04/07 00:23:36 $|$Revision: 1.4 $|~/modes/tcl.el.Z|
+;; $Date: 1994/04/07 17:11:03 $|$Revision: 1.5 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -64,6 +64,8 @@
 ;; according to context.
 
 ;; Change log:
+;; $Log$
+;;
 ;; 18-Mar-1994		Tom Tromey	Fourth beta release.
 ;;    Added {un,}comment-region to menu.  Idea from
 ;;    Mike Scheidler <c23mts@kocrsv01.delcoelect.com>
@@ -177,6 +179,10 @@
 ;; * Trailing \ will eat blank lines.  Should deal with this.
 ;;   (this would help catch some potential bugs).
 ;; * Inferior should display in half the screen, not the whole screen.
+;; * M-; should do the right thing about putting a ";" at the end of a line.
+;; * Indentation should deal with "switch".
+;; * Consider writing code to find help files automatically (for
+;;   common cases).
 
 
 
@@ -227,8 +233,8 @@ made depending on the number of hashes inserted; or nil, meaning that
 no quoting should be done.  Any other value for this variable is
 taken to mean 'smart.  The default is 'smart.")
 
-(defvar tcl-help-directory nil
-  "*Name of topmost directory containing TclX help files")
+(defvar tcl-help-directory-list nil
+  "*List of topmost directories containing TclX help files")
 
 (defvar tcl-use-smart-word-finder t
   "*If not nil, use a better way of finding the current word when
@@ -297,6 +303,7 @@ quoted for Tcl.")
   (define-key tcl-mode-map "\e\C-q" 'indent-tcl-exp)
   (define-key tcl-mode-map "\177" 'backward-delete-char-untabify)
   (define-key tcl-mode-map "\t" 'tcl-indent-command)
+  (define-key tcl-mode-map "\M-;" 'tcl-indent-for-comment)
   (define-key tcl-mode-map "\M-\C-x" 'tcl-eval-defun)
   (and (fboundp 'comment-region)
        (define-key tcl-mode-map "\C-c\C-c" 'comment-region))
@@ -802,7 +809,7 @@ from the following list to take place:
   (interactive "p")
   (cond
    ((not tcl-tab-always-indent)
-    ;; Indent if in identation area, otherwise insert TAB.
+    ;; Indent if in indentation area, otherwise insert TAB.
     (if (<= (current-column) (current-indentation))
 	(tcl-indent-line)
       (self-insert-command arg)))
@@ -846,17 +853,8 @@ from the following list to take place:
 	(goto-char eolpoint)
 	(tcl-indent-line))
        ((not comment-p)
-	;; Create an empty comment (since there isn't one on this
-	;; line).  If line is not blank, make sure we insert a ";"
-	;; first.
-	(beginning-of-line)
-	(if (/= (point) eolpoint)
-	    (progn
-	      (goto-char eolpoint)
-	      (or (tcl-real-command-p)
-		  (insert ";"))))
 	(tcl-indent-line)
-	(indent-for-comment))
+	(tcl-indent-for-comment))
        (t
 	;; Go to start of comment.  We don't leave point where it is
 	;; because we want to skip comment-start-skip.
@@ -1156,6 +1154,8 @@ Returns nil if line starts inside a string, t if in a comment."
 ;;
 ;; Interfaces to other packages.
 ;;
+
+(autoload 'imenu-progress-message "imenu" "" nil 'macro)
 
 (defun tcl-imenu-create-index-function ()
   "Generate alist of indices for imenu."
@@ -1468,42 +1468,43 @@ of comment."
 ;; Help-related code.
 ;;
 
-(defvar tcl-help-saved-dir nil
-  "Saved help directory.  If `tcl-help-directory' changes, this allows
-tcl-help-on-word to update the alist")
+(defvar tcl-help-saved-dirs nil
+  "Saved help directories.
+If `tcl-help-directory-list' changes, this allows `tcl-help-on-word'
+to update the alist.")
 
 (defvar tcl-help-alist nil
   "Alist with command names as keys and filenames as values.")
 
-(defun tcl-help-snarf-commands (dir)
-  "Build alist of commands and filenames.  There is probably a much
-better implementation of this, but I'm too tired to think of it right
-now."
-  (let ((files (directory-files dir t)))
-    (while files
-      (if (and (file-directory-p (car files))
-	       (not
-		(let ((fpart (file-name-nondirectory (car files))))
-		  (or (equal fpart ".")
-		      (equal fpart "..")))))
-	  (let ((matches (directory-files (car files) t)))
-	    (while matches
-	      (or (file-directory-p (car matches))
-		  (setq tcl-help-alist
-			(cons
-			 (cons (file-name-nondirectory (car matches))
-			       (car matches))
-			 tcl-help-alist)))
-	      (setq matches (cdr matches)))))
-      (setq files (cdr files)))))
+(defun tcl-help-snarf-commands (dirlist)
+  "Build alist of commands and filenames."
+  (while dirlist
+    (let ((files (directory-files (car dirlist) t)))
+      (while files
+	(if (and (file-directory-p (car files))
+		 (not
+		  (let ((fpart (file-name-nondirectory (car files))))
+		    (or (equal fpart ".")
+			(equal fpart "..")))))
+	    (let ((matches (directory-files (car files) t)))
+	      (while matches
+		(or (file-directory-p (car matches))
+		    (setq tcl-help-alist
+			  (cons
+			   (cons (file-name-nondirectory (car matches))
+				 (car matches))
+			   tcl-help-alist)))
+		(setq matches (cdr matches)))))
+	(setq files (cdr files))))
+    (setq dirlist (cdr dirlist))))
 
 (defun tcl-reread-help-files ()
   "Set up to re-read files, and then do it."
   (interactive)
   (message "Building Tcl help file index...")
-  (setq tcl-help-saved-dir tcl-help-directory)
+  (setq tcl-help-saved-dirs tcl-help-directory-list)
   (setq tcl-help-alist nil)
-  (tcl-help-snarf-commands tcl-help-directory)
+  (tcl-help-snarf-commands tcl-help-directory-list)
   (message "Building Tcl help file index...done"))
 
 (defun tcl-current-word (flag)
@@ -1530,7 +1531,7 @@ Prefix argument means invert sense of `tcl-use-smart-word-finder'."
   (interactive
    (list
     (progn
-      (if (not (string= tcl-help-directory tcl-help-saved-dir))
+      (if (not (equal tcl-help-directory-list tcl-help-saved-dirs))
 	  (tcl-reread-help-files))
       (let ((word (tcl-current-word
 		   (if current-prefix-arg
@@ -1542,7 +1543,7 @@ Prefix argument means invert sense of `tcl-use-smart-word-finder'."
 	   (format "Help on Tcl command (default %s): " word))
 	 tcl-help-alist nil t)))
     current-prefix-arg))
-  (if (not (string= tcl-help-directory tcl-help-saved-dir))
+  (if (not (equal tcl-help-directory-list tcl-help-saved-dirs))
       (tcl-reread-help-files))
   (if (string= command "")
       (setq command (tcl-current-word
@@ -1716,12 +1717,57 @@ styles."
 	      (insert "\\"))
 	  (forward-char))))))
 
+(defun tcl-indent-for-comment ()
+  "Indent this line's comment to comment column, or insert an empty comment.
+Is smart about syntax of Tcl comments.
+Parts of this were taken from indent-for-comment (simple.el)."
+  (interactive "*")
+  (end-of-line)
+  (or (tcl-in-comment)
+      (progn
+	;; Not in a comment, so we have to insert one.  Create an
+	;; empty comment (since there isn't one on this line).  If
+	;; line is not blank, make sure we insert a ";" first.
+	(skip-chars-backward " \t")
+	(let ((eolpoint (point)))
+	  (beginning-of-line)
+	  (if (/= (point) eolpoint)
+	      (progn
+		(goto-char eolpoint)
+		(or (tcl-real-command-p)
+		    (progn
+		      (insert ";# ")
+		      (backward-char))))))))
+  ;; Point is just after the "#" starting a comment.  Move it as
+  ;; appropriate.
+  (let* ((indent (if comment-indent-hook
+		     (funcall comment-indent-hook)
+		   (funcall comment-indent-function)))
+	 (begpos (progn
+		   (backward-char)
+		   (point))))
+    (if (/= begpos indent)
+	(progn
+	  (skip-chars-backward " \t" (save-excursion
+				       (beginning-of-line)
+				       (point)))
+	  (delete-region (point) begpos)
+	  (indent-to indent)))
+    (looking-at comment-start-skip)	; Always true.
+    (goto-char (match-end 0))
+    ;; I don't like the effect of the next two.
+    ;;(skip-chars-backward " \t" (match-beginning 0))
+    ;;(skip-chars-backward "^ \t" (match-beginning 0))
+    ))
+
 ;; The following was inspired by the Tcl editing mode written by
 ;; Gregor Schmid <schmid@fb3-s7.math.TU-Berlin.DE>.  His version also
 ;; attempts to snarf the command line options from the command line,
 ;; but I didn't think that would really be that helpful (doesn't seem
 ;; like it owould be right enough.  His version also looks for the
 ;; "#!/bin/csh ... exec" hack, but that seemed even less useful.
+;; FIXME should make sure that the application mentioned actually
+;; exists.
 (defun tcl-guess-application ()
   "Attempt to guess Tcl application by looking at first line.
 The first line is assumed to look like \"#!.../program ...\"."
