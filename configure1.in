@@ -382,7 +382,7 @@ case "${configuration}" in
 
   ## Appallings - I mean, Apollos - running Domain
   m68*-apollo* )
-    machine=apollo opsysfile=bsd4-2.h
+    machine=apollo opsys=bsd4-2
   ;;
 
   ## AT&T 3b2, 3b5, 3b15, 3b20
@@ -798,25 +798,25 @@ opsysfile="s/${opsys}.h"
 
 ]
 AC_PREPARE(lisp)
+AC_CONFIG_HEADER(src/config.h)
 [
 
 #### Choose a compiler.
-DEFS=-g
 case ${with_gcc} in
   "yes" ) CC="gcc" GCC=1 ;;
   "no"  ) CC="cc"        ;;
   * )
-]
-AC_PROG_CC
-[
+    ] AC_PROG_CC [
 esac
 
-if [ "${GCC}" != "" ]; then
-  DEFS="${DEFS} -O"
+CFLAGS='-g'
+if test -n "${GCC}"; then
+  CFLAGS='-g -O'
 fi
 
 #### Some other nice autoconf tests.
 ]
+AC_LN_S
 AC_PROG_CPP
 AC_HAVE_HEADERS(sys/timeb.h sys/time.h)
 AC_RETSIGTYPE
@@ -979,19 +979,23 @@ if [ ! "${version}" ]; then
 fi
 
 
-#### Specify what sort of things we'll be editing into our Makefiles.
+#### Specify what sort of things we'll be editing into Makefile and config.h.
 ]
 AC_SUBST(configuration)
 AC_SUBST(version)
 AC_SUBST(srcdir)
 AC_SUBST(c_switch_system)
 AC_SUBST(libsrc_libs)
-AC_SUBST(machfile)
-AC_SUBST(opsysfile)
 AC_SUBST(rip_paths)
 AC_SUBST(inst_paths)
 AC_SUBST(LD_SWITCH_X_SITE)
 AC_SUBST(C_SWITCH_X_SITE)
+AC_SUBST(CFLAGS)
+
+AC_DEFINE(config_machfile,  \"${machfile}\")
+AC_DEFINE(config_opsysfile, \"${opsysfile}\")
+AC_DEFINE(LD_SWITCH_X_SITE, ${LD_SWITCH_X_SITE})
+AC_DEFINE(C_SWITCH_X_SITE,  ${C_SWITCH_X_SITE})
 [
 if [ "${HAVE_X_WINDOWS}" = "yes" ] ; then
   ] AC_DEFINE(HAVE_X_WINDOWS) [
@@ -1023,7 +1027,7 @@ Configured for \`${configuration}'.
 
   What operating system and machine description files should Emacs use?
         \`${opsysfile}' and \`${machfile}'
-  What compiler should emacs be built with?               ${CC} -g
+  What compiler should emacs be built with?               ${CC} ${CFLAGS}
   Should Emacs use the GNU version of malloc?             ${GNU_MALLOC}${GNU_MALLOC_reason}
   Should Emacs use the relocating allocator for buffers?  ${REL_ALLOC}
   What window system should Emacs use?                    ${window_system}${x_includes+
@@ -1036,13 +1040,4 @@ Configured for \`${configuration}'.
 ### in the config.status file.
 set - ${arguments}
 ]
-AC_OUTPUT(Makefile src/config.h)
-[
-
-### Autoconf likes to add a Makefile comment to the top of
-### src/config.h.  Do you have a better idea?
-(cd src
- sed < config.h > conftemp.$$ '1d'
- mv conftemp.$$ config.h)
-
-]
+AC_OUTPUT(Makefile)
