@@ -214,9 +214,9 @@ display_malloc_warning ()
 }
 
 #ifdef DOUG_LEA_MALLOC
-  #define BYTES_USED (mallinfo ().arena)
+#  define BYTES_USED (mallinfo ().arena)
 #else
-  #define BYTES_USED _bytes_used
+#  define BYTES_USED _bytes_used
 #endif
 
 /* Called if malloc returns zero */
@@ -374,11 +374,11 @@ emacs_blocked_malloc (size)
 
   BLOCK_INPUT;
   __malloc_hook = old_malloc_hook;
-  #ifdef DOUG_LEA_MALLOC
+#ifdef DOUG_LEA_MALLOC
     mallopt (M_TOP_PAD, malloc_hysteresis * 4096);
-  #else
+#else
     __malloc_extra_blocks = malloc_hysteresis;
-  #endif
+#endif
   value = (void *) malloc (size);
   __malloc_hook = emacs_blocked_malloc;
   UNBLOCK_INPUT;
