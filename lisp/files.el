@@ -597,7 +597,8 @@ Type \\[describe-variable] directory-abbrev-alist RET for more information."
 	     ;; If the home dir is just /, don't change it.
 	     (not (and (= (match-end 0) 1)
 		       (= (aref filename 0) ?/)))
-	     (not (and (eq system-type 'ms-dos)
+	     (not (and (or (eq system-type 'ms-dos) 
+			   (eq system-type 'windows-nt))
 		       (save-match-data
 			 (string-match "^[a-zA-Z]:/$" filename)))))
 	(setq filename
