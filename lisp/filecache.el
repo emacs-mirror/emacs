@@ -5,7 +5,7 @@
 ;; Keywords: convenience
 ;; Time-stamp: <2000-08-31 19:44:13 pbreton>
 ;;
-;; Copyright (C) 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2000 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -446,7 +446,7 @@ or the optional REGEXP argument."
       (error "No directory found for key %s" file))
      ;; Multiple elements
      (t
-      (let* ((minibuffer-dir (file-name-directory (buffer-string)))
+      (let* ((minibuffer-dir (file-name-directory (minibuffer-contents)))
 	     (dir-list       (member minibuffer-dir directory-list))
 	     )
 	(setq directory
@@ -503,7 +503,7 @@ the name is considered already unique; only the second substitution
       (
        (completion-ignore-case file-cache-completion-ignore-case)
        (case-fold-search       file-cache-case-fold-search)
-       (string                 (file-name-nondirectory (buffer-string)))
+       (string                 (file-name-nondirectory (minibuffer-contents)))
        (completion-string      (try-completion string file-cache-alist))
        (completion-list)
        (len)
@@ -513,9 +513,9 @@ the name is considered already unique; only the second substitution
      ;; If it's the only match, replace the original contents
      ((or arg (eq completion-string t))
       (setq file-cache-string (file-cache-file-name string))
-      (if (string= file-cache-string (buffer-string))
+      (if (string= file-cache-string (minibuffer-contents))
 	  (file-cache-temp-minibuffer-message file-cache-sole-match-message)
-	(delete-region (minibuffer-prompt-end) (point-max))
+	(delete-minibuffer-contents)
 	(insert-string file-cache-string)
 	(if file-cache-multiple-directory-message
 	    (file-cache-temp-minibuffer-message
@@ -531,7 +531,7 @@ the name is considered already unique; only the second substitution
 	  (if (and (eq last-command this-command)
 		   (string= file-cache-last-completion completion-string))
 	      (progn
-		(delete-region (minibuffer-prompt-end) (point-max))
+		(delete-minibuffer-contents)
 		(insert-string (file-cache-file-name completion-string))
 		(setq file-cache-last-completion nil)
 		)
@@ -557,10 +557,10 @@ the name is considered already unique; only the second substitution
 		)
 	      )
 	  (setq file-cache-string (file-cache-file-name completion-string))
-	  (if (string= file-cache-string (buffer-string))
+	  (if (string= file-cache-string (minibuffer-contents))
 	      (file-cache-temp-minibuffer-message
 	       file-cache-sole-match-message)
-	    (delete-region (minibuffer-prompt-end) (point-max))
+	    (delete-minibuffer-contents)
 	    (insert-string file-cache-string)
 	    (if file-cache-multiple-directory-message
 		(file-cache-temp-minibuffer-message
