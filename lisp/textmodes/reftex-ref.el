@@ -1,5 +1,5 @@
 ;;; reftex-ref.el --- code to create labels and references with RefTeX
-;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Version: 4.18
@@ -396,7 +396,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
   ;; check for active recursive edits
   (reftex-check-recursive-edit)
 
-  ;; Ensure access to scanning info and rescan buffer if prefix are is '(4)
+  ;; Ensure access to scanning info and rescan buffer if prefix arg is '(4)
   (reftex-access-scan-info current-prefix-arg)
 
   (unless type
