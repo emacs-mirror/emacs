@@ -1,3 +1,13 @@
+2000-03-31  Dave Love  <fx@gnu.org>
+
+	* textmodes/ooutline.el (outline-font-lock-keywords): Use :upper:
+	and :alpha: char classes.
+
+	* mail/supercite.el: Defvar curline when compiling.
+	(sc-citation-root-regexp, sc-citation-nonnested-root-regexp)
+	(sc-get-address, sc-attribs-extract-namestring): Use [:alnum:]
+	rather than a-zA-Z0-9 to allow non-ASCII characters.
+
 2000-03-31  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/byte-opt.el: Fix byte-compiler warnings format.
