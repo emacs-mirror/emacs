@@ -1,9 +1,15 @@
+2002-06-11  Dave Love  <fx@gnu.org>
+
+	* language/cyril-util.el (cyrillic-encode-koi8-r-char)
+	(cyrillic-encode-alternativnyj-char): Fixed.
+	(standard-display-cyrillic-translit): Remove redundant unicodes.
+
 2002-06-10  Dave Love  <fx@gnu.org>
 
 	* language/cyrillic.el ("Tajik", "Bulgarian", "Belarusian"): New
 	environments.
 
-	* international/mule-conf.el (control-1): News charset.
+	* international/mule-conf.el (control-1): New charset.
 	(eight-bit-control, eight-bit-graphic): Redefined to use raw-bytes
 	space.
 	(korean-ksc5601): Redefine to use code-offset and unify-map.
@@ -322,7 +328,6 @@
 	(cp1257, next, iso-latin-7, iso-8859-13, latin-7): New coding
 	systems.
 	("Latin-7", "Lithuanian", "Latvian"): Don't require code-pages.
-	(iso-latin-7):
 
 	* language/greek.el (windows-1253, cp1253): New coding systems.
 

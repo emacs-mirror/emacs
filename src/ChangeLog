@@ -1,3 +1,12 @@
+2002-06-11  Dave Love  <fx@gnu.org>
+
+	* fns.c (count_combining): Comment out (unused).
+	(Flocale_codeset): New.
+	(syms_of_fns): Defsubr it.
+
+	* config.in (HAVE_PTY_H, HAVE_SIZE_T, HAVE_LANGINFO_CODESET): New.
+	(size_t): Removed.
+	
 2002-06-06  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (chartab.o): Depend on charset.h

@@ -1,0 +1,78 @@
+                                                                   -*-text-*-
+
+Problems, fixmes and other issues in the emacs-unicode branch
+
+Notes by fx to record a few things.  handa needs to check them --
+don't take too seriously, especially with regard to completeness.
+
+Do take seriously that you don't want this CVS branch unless you're
+actually working on it.  If you just want to edit Unicode and/or unify
+iso-8859 et al, see the existing support and the extra stuff at
+<URL:ftp://dlpx1.dl.ac.uk/fx/emacs/Mule>.  Editing support is mostly
+orthogonal to the internal representation.
+
+ * SINGLE_BYTE_CHAR_P returns true for Latin-1 characters.
+
+ * Grok UTF-8 surrogates.
+
+ * Rationalize character syntax and its relationship to the Unicode
+   database.  Specifically, the latin-N.el files aren't consistent for
+   common characters.
+
+ * Fontset handling and customization needs work.
+
+ * Likewise for charset and coding system priorities.
+
+ * The relevant bits of latin1-disp.el need porting (and probably
+   re-naming/updating).  See also cyril-util.el.
+
+ * Quail files need work now the encoding is irrelevant.  E.g. make
+   unified Latin pre- and post- methods.
+
+ * What to do with the old coding categories stuff?
+
+ * Something's wrong with categories, e.g. the result of C-u C-x e on
+   Lao in HELLO.
+
+ * Syntax for symbols &c in characters needs looking at.
+
+ * The preferred-coding-system property of charsets should probably be
+   junked unless it can be made more useful now.
+
+ * find-coding-systems-for-charsets needs re-writing.
+
+ * find-multibyte-characters needs looking at.
+
+ * Implement Korean cp949/UHC and any other important missing
+   charsets.
+
+ * Check up on tcvn and alternativnj.
+
+ * Lazy-load tables for unify-charset somehow?
+
+ * Should translation tables for {en,de}code and input work now or be
+   scrapped?
+
+ * Defining CCL coding systems currently doesn't work.
+
+ * iso-2022 charsets get unified on i/o.
+
+ * Revisit locale processing: look at treating the language and
+   charset parts separately.  (Language should affect things like
+   speling and calendar, but that's not a Unicode issue.)
+
+ * Handle Unicode combining characters usefully, e.g. diacritics, and
+   handle more scripts specifically (á la Devanagari).  There are
+   issues with canonicalization.
+
+ * Bidi is a separate issue.
+
+ * DTRT with X keysyms.  We should get the right unicode for a given
+   keysym, not decode raw bytes in some ill-defined coding system.
+   (fx has some data on keysyms v. unicodes.)
+
+ * We need tabular input methods, e.g. for maths symbols.  (Not
+   specific to Unicode.)
+
+ * Need multibyte text in menus, e.g. for the above.  (Not specific to
+   Unicode.)

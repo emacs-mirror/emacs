@@ -1,3 +1,9 @@
+2002-06-11  Dave Love  <fx@gnu.org>
+
+	* configure.in: Check for pty.h.  Check for correct libungif.
+	Test for usable nl_langinfo.
+	(AC_SIZE_T): Replaced by AC_CHECK_TYPES.
+
 2002-02-18  Paul Eggert  <eggert@twinsun.com>
 
 	* make-dist: Port to POSIX 1003.1-2001, which doesn't allow "head -1".
