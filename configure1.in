@@ -449,7 +449,7 @@ done
 #### names of the m/*.h and s/*.h files we should use.
 
 ### Canonicalize the configuration name.
-echo "Checking the configuration name."
+echo "Checking the configuration name"
 if canonical=`${srcdir}/config.sub "${configuration}"` ; then : ; else
   exit $?
 fi
@@ -1201,7 +1201,7 @@ dnl other checks for UNIX variants
 [
 
 #### Choose a window system.
-echo "Checking window system."
+echo "checking for specified window system"
 
 window_system=''
 case "${with_x}" in
@@ -1333,9 +1333,9 @@ esac
 
 #### Extract some information from the operating system and machine files.
 
-echo "Examining the machine- and system-dependent files to find out"
+echo "examining the machine- and system-dependent files to find out"
 echo " - which libraries the lib-src programs will want, and"
-echo " - whether the GNU malloc routines are usable."
+echo " - whether the GNU malloc routines are usable"
 
 ### First figure out CFLAGS (which we use for running the compiler here)
 ### and REAL_CFLAGS (which we use for real compilation).
@@ -1500,6 +1500,18 @@ fail;
 ],
 		   AC_DEFINE(HAVE_X11XTR6))
 fi
+
+# If netdb.h doesn't declare h_errno, we must declare it by hand.
+AC_COMPILE_CHECK(declaration of h_errno in netdb.h,
+		 [#include <netdb.h>],
+		 [
+int
+foo ()
+{
+  return h_errno;
+}
+],
+		 AC_DEFINE(HAVE_H_ERRNO))
 
 AC_ALLOCA
 
