@@ -169,7 +169,7 @@ synkey (frommap, fromchar, tomap, tochar)
 DEFUN ("keymapp", Fkeymapp, Skeymapp, 1, 1, 0,
   "Return t if ARG is a keymap.\n\
 \n\
-A keymap is list (keymap . ALIST), a list (keymap VECTOR . ALIST),\n\
+A keymap is a list (keymap . ALIST), a list (keymap VECTOR . ALIST),\n\
 or a symbol whose function definition is a keymap is itself a keymap.\n\
 ALIST elements look like (CHAR . DEFN) or (SYMBOL . DEFN);\n\
 VECTOR is a 128-element vector of bindings for ASCII characters.")
