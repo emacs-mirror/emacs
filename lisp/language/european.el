@@ -78,7 +78,8 @@
   "Set up multilingual environment (MULE) for European Latin-1 users."
   (interactive)
   (setup-8-bit-environment "Latin-1" 'latin-iso8859-1 'iso-latin-1
-			   "latin-1-prefix"))
+			   "latin-1-prefix")
+  (aset special-microsoft-code-table ?\222 t))
 
 (set-language-info-alist
  "Latin-1" '((setup-function . (setup-latin1-environment
