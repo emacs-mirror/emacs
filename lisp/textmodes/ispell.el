@@ -532,7 +532,7 @@ for language-specific arguments."
      "[---'^`\"]" t nil "~tex")
     ("dansk"				; dansk.aff
      "[A-Z\306\330\305a-z\346\370\345]" "[^A-Z\306\330\305a-z\346\370\345]"
-     "" nil ("-C") nil)
+      "[']" nil ("-C") nil)
     ))
 
 
