@@ -377,6 +377,7 @@ by `lisp-body-indent'."
 (let ((l '((block 1)
 	   (case        (4 &rest (&whole 2 &rest 1)))
 	   (ccase . case) (ecase . case)
+	   (condition-case ((1 4) (&whole 2 ((0 1) (1 3) (2 &body)))))
 	   (typecase . case) (etypecase . case) (ctypecase . case)
 	   (catch 1)
 	   (cond        (&rest (&whole 2 &rest 1)))
@@ -386,10 +387,6 @@ by `lisp-body-indent'."
 	   (defconstant . defvar)
            (defcustom   (4 2 2 2))
 	   (defparameter . defvar)
-	   (define-condition ((1 6)
-			      (2 6 ((&whole 1)))
-			      (3 4 ((&whole 1)))
-			      (4 &body)))
 	   (define-modify-macro
 			(4 &body))
 	   (defsetf     (4 &lambda 4 &body))
