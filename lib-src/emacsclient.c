@@ -169,14 +169,15 @@ Report bugs to bug-gnu-emacs@gnu.org.\n", progname);
   exit (0);
 }
 
-/* Return a copy of NAME, inserting a &
+/* Inserting a &
    before each &, each space, each newline, and any initial -.
    Change spaces to underscores, too, so that the
    return value never contains a space.  */
 
-char *
-quote_file_name (name)
+void
+quote_file_name (name, stream)
      char *name;
+     FILE *stream;
 {
   char *copy = (char *) malloc (strlen (name) * 2 + 1);
   char *p, *q;
@@ -206,7 +207,9 @@ quote_file_name (name)
     }
   *q++ = 0;
 
-  return copy;
+  fprintf (stream, copy);
+
+  free (copy);
 }
 
 /* Like malloc but get fatal error if memory is exhausted.  */
@@ -310,7 +313,7 @@ main (argc, argv)
   /* Process options.  */
   decode_options (argc, argv);
 
-  if (argc - optind < 1)
+  if ((argc - optind < 1) && !eval)
     {
       fprintf (stderr, "%s: file name or argument required\n", progname);
       fprintf (stderr, "Try `%s --help' for more information\n", progname);
@@ -476,24 +479,47 @@ To start the server in Emacs, type \"M-x server-start\".\n",
     fprintf (out, "-eval ");
 
   if (display)
-    fprintf (out, "-display %s ", quote_file_name (display));
-
-  for (i = optind; i < argc; i++)
     {
-      if (eval)
-	; /* Don't prepend any cwd or anything like that.  */
-      else if (*argv[i] == '+')
-	{
-	  char *p = argv[i] + 1;
-	  while (isdigit ((unsigned char) *p) || *p == ':') p++;
-	  if (*p != 0)
-	    fprintf (out, "%s/", quote_file_name (cwd));
-	}
-      else if (*argv[i] != '/')
-	fprintf (out, "%s/", quote_file_name (cwd));
-
-      fprintf (out, "%s ", quote_file_name (argv[i]));
+      fprintf (out, "-display ");
+      quote_file_name (display, out);
+      fprintf (out, " ");
     }
+
+  if ((argc - optind > 0))
+    {
+      for (i = optind; i < argc; i++)
+	{
+	  if (eval)
+	    ; /* Don't prepend any cwd or anything like that.  */
+	  else if (*argv[i] == '+')
+	    {
+	      char *p = argv[i] + 1;
+	      while (isdigit ((unsigned char) *p) || *p == ':') p++;
+	      if (*p != 0)
+		{
+		  quote_file_name (cwd, out);
+		  fprintf (out, "/");
+		}
+	    }
+	  else if (*argv[i] != '/')
+	    {
+	      quote_file_name (cwd, out);
+	      fprintf (out, "/");
+	    }
+
+	  quote_file_name (argv[i], out);
+	  fprintf (out, " ");
+	}
+    }
+  else
+    {
+      while ((str = fgets (string, BUFSIZ, stdin)))
+	{
+	  quote_file_name (str, out);
+	}
+      fprintf (out, " ");
+    }
+  
   fprintf (out, "\n");
   fflush (out);
 
