@@ -1,3 +1,11 @@
+2002-05-20  Simon Josefsson  <jas@extundo.com>
+
+	* fringe.el: New file.
+
+	* menu-bar.el (menu-bar-options-save): Add fringe-mode.
+	(menu-bar-showhide-fringe-menu): New menu.
+	(menu-bar-showhide-menu): Add Fringe sub-menu.
+
 2002-05-23  Colin Walters  <walters@verbum.org>
 
 	* replace.el (occur-engine): Include all text properties except
