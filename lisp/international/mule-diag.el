@@ -160,9 +160,7 @@ SORT-KEY should be `name' or `iso-spec' (default `name')."
     (setq charset-info-list (sort charset-info-list sort-func))
 
     ;; Insert information of character sets.
-    (while charset-info-list
-      (setq elt (car charset-info-list)
-	    charset-info-list (cdr charset-info-list))
+    (dolist (elt charset-info-list)
       (insert-text-button (symbol-name (car elt))
 			  :type 'list-charset-chars
 			  'help-args (list (car elt)))
@@ -383,30 +381,22 @@ PC `codepages' and other coded character sets."
   (interactive (list (read-charset "Charset: ")))
   (or (charsetp charset)
       (error "Invalid charset: %S" charset))
-  (let ((info (charset-info charset)))
-    (help-setup-xref (list #'describe-character-set charset) (interactive-p))
-    (with-output-to-temp-buffer (help-buffer)
-      (with-current-buffer standard-output
-	(insert "Character set: " (symbol-name charset)
-		(format " (ID:%d)\n\n" (aref info 0)))
-	(insert (aref info 13) "\n\n")	; description
-	(insert "Number of contained characters: "
-		(if (= (aref info 2) 1)
-		    (format "%d\n" (aref info 3))
-		  (format "%dx%d\n" (aref info 3) (aref info 3))))
-	(insert "Final char of ISO2022 designation sequence: ")
-	(if (>= (aref info 8) 0)
-	    (insert (format "`%c'\n" (aref info 8)))
-	  (insert "not assigned\n"))
-	(insert (format "Width (how many columns on screen): %d\n"
-			(aref info 4)))
-	(insert (format "Internal multibyte sequence: %s\n"
-			(charset-multibyte-form-string charset)))
-	(let ((coding (plist-get (aref info 14) 'preferred-coding-system)))
-	  (when coding
-	    (insert (format "Preferred coding system: %s\n" coding))
-	    (search-backward (symbol-name coding))
-	    (help-xref-button 0 'help-coding-system coding)))))))
+  (help-setup-xref (list #'describe-character-set charset) (interactive-p))
+  (with-output-to-temp-buffer (help-buffer)
+    (with-current-buffer standard-output
+      (insert "Character set: " (symbol-name charset) ?\n)
+      (insert (charset-description charset) "\n\n")
+      (insert "Number of contained characters: "
+	      (if (= (charset-dimension charset) 1)
+		  (format "%d\n" (charset-chars charset))
+		(format "%dx%d\n" (charset-chars charset)
+			(charset-chars charset))))
+      (insert "Final char of ISO2022 designation sequence: ")
+      (if (> (charset-iso-final-char charset) 0)
+	  (insert (format "`%c'\n" (charset-iso-final-char charset)))
+	(insert "not assigned\n"))
+      (insert (format "Width (how many columns on screen): %d\n"
+		      (aref char-width-table (make-char charset)))))))
 
 ;;;###autoload
 (defun describe-char-after (&optional pos)
