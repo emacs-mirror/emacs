@@ -1861,9 +1861,10 @@ host specified in ``ange-ftp-gateway-host''."
 (defun ange-ftp-normal-login (host user pass account proc)
   "Connect to the FTP-server on HOST as USER using PASSWORD and ACCOUNT.
 PROC is the process to the FTP-client."
-  (let ((result (ange-ftp-raw-send-cmd
+  (let* ((nshost (ange-ftp-nslookup-host host))
+	 (result (ange-ftp-raw-send-cmd
 		 proc
-		 (format "open %s" (ange-ftp-nslookup-host host))
+		 (format "open %s" nshost)
 		 (format "Opening FTP connection to %s" host))))
     (or (car result)
 	(ange-ftp-error host user
@@ -1871,7 +1872,9 @@ PROC is the process to the FTP-client."
 				(cdr result))))
     (setq result (ange-ftp-raw-send-cmd
 		  proc
-		  (format "user \"%s\" %s %s" user pass account)
+		  (if (ange-ftp-use-smart-gateway-p host)
+		      (format "user \"%s\"@%s %s %s" user nshost pass account)
+		    (format "user \"%s\" %s %s" user pass account))
 		  (format "Logging in as user %s@%s" user host)))
     (or (car result)
 	(progn
