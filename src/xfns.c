@@ -647,6 +647,7 @@ x_set_cursor_color (f, arg, oldval)
       if (f->display.x->cursor_pixel == fore_pixel)
 	fore_pixel = f->display.x->background_pixel;
     }
+  f->display.x->cursor_foreground_pixel = fore_pixel;
 
   if (FRAME_X_WINDOW (f) != 0)
     {
