@@ -81,6 +81,11 @@ int inhibit_window_system;
    priority; Those functions have their own extern declaration.  */
 int emacs_priority;
 
+#ifdef BSD
+/* See sysdep.c.  */
+extern int inherited_pgroup;
+#endif
+
 #ifdef HAVE_X_WINDOWS
 /* If non-zero, -d was specified, meaning we're using some window system. */
 int display_arg;
@@ -292,17 +297,18 @@ main (argc, argv, envp)
 #endif
 
   clearerr (stdin);
-#if 0 /* Without EMACS_SET_TTY_PGRP, this causes Emacs to hang
-	 when run under a non-job-control shell.
-	 EMACS_SET_TTY_PGRP seems correct, but breaks even more.  */
+
 #ifdef BSD
   {
-    int pid = getpid ();
-    setpgrp (0, pid);
-    EMACS_SET_TTY_PGRP (0, &pid);
+#ifdef GETPGRP_NO_ARG
+    inherited_pgroup = getpgrp (0);
+#else /* THISSENTENCE_NO_VERB */
+    inherited_pgroup = getpgrp (0);
+#endif
+    setpgrp (0, getpid ());
   }
 #endif
-#endif
+
 
 #ifdef APOLLO
 #ifndef APOLLO_SR10
