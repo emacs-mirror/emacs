@@ -2192,8 +2192,12 @@ x_set_name (f, name, explicit)
       {
 	XTextProperty text, icon;
 	int bytes, stringp;
+	Lisp_Object coding_system;
 
-	text.value = x_encode_text (name, Qcompound_text, &bytes, &stringp);
+	coding_system = Vlocale_coding_system;
+	if (NILP (coding_system))
+	  coding_system = Qcompound_text;
+	text.value = x_encode_text (name, coding_system, &bytes, &stringp);
 	text.encoding = (stringp ? XA_STRING
 			 : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
 	text.format = 8;
@@ -2205,7 +2209,7 @@ x_set_name (f, name, explicit)
 	  }
 	else
 	  {
-	    icon.value = x_encode_text (f->icon_name, Qcompound_text,
+	    icon.value = x_encode_text (f->icon_name, coding_system,
 					&bytes, &stringp);
 	    icon.encoding = (stringp ? XA_STRING
 			     : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
@@ -2295,8 +2299,12 @@ x_set_title (f, name, old_name)
       {
 	XTextProperty text, icon;
 	int bytes, stringp;
+	Lisp_Object coding_system;
 
-	text.value = x_encode_text (name, Qcompound_text, &bytes, &stringp);
+	coding_system = Vlocale_coding_system;
+	if (NILP (coding_system))
+	  coding_system = Qcompound_text;
+	text.value = x_encode_text (name, coding_system, &bytes, &stringp);
 	text.encoding = (stringp ? XA_STRING
 			 : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
 	text.format = 8;
@@ -2308,7 +2316,7 @@ x_set_title (f, name, old_name)
 	  }
 	else
 	  {
-	    icon.value = x_encode_text (f->icon_name, Qcompound_text,
+	    icon.value = x_encode_text (f->icon_name, coding_system,
 					&bytes, &stringp);
 	    icon.encoding = (stringp ? XA_STRING
 			     : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);

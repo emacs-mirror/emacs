@@ -1648,17 +1648,17 @@ lisp_data_to_selection_data (display, obj,
     {
       /* Since we are now handling multilingual text, we must consider
 	 sending back compound text.  */
-      int latin1_p;
+      int stringp;
 
       if (NILP (Vnext_selection_coding_system))
 	Vnext_selection_coding_system = Vselection_coding_system;
 
       *format_ret = 8;
       *data_ret = x_encode_text (obj, Vnext_selection_coding_system,
-				 (int *) size_ret, &latin1_p);
+				 (int *) size_ret, &stringp);
       *nofree_ret = (*data_ret == XSTRING (obj)->data);
       if (NILP (type))
-	type = (latin1_p ? QSTRING : QCOMPOUND_TEXT);
+	type = (stringp ? QSTRING : QCOMPOUND_TEXT);
       Vlast_coding_system_used = (*nofree_ret
 				  ? Qraw_text
 				  : Vnext_selection_coding_system);

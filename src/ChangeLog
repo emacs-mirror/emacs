@@ -1,3 +1,13 @@
+2000-07-21  Kenichi Handa  <handa@etl.go.jp>
+
+	* xfns.c (x_encode_text): New function.
+	(x_set_name): Use x_encode_text.
+	(x_set_title): Likewise.
+
+	* xselect.c (lisp_data_to_selection_data): Use x_encode_text.
+
+	* xterm.h (x_encode_text): Add prototype.
+
 2000-07-20  Dave Love  <fx@gnu.org>
 
 	* ccl.c (Fccl_execute_on_string): Don't check xmalloc return.  Use
