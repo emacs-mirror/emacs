@@ -1,3 +1,9 @@
+2004-07-14  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/which-func.el (which-func-keymap): New var.
+	(which-func-face): New face.
+	(which-func-format): Use them.
+
 2004-07-16  Stephan Stahl  <stahl@eos.franken.de>  (tiny change)
 
 	* buff-menu.el (list-buffers-noselect): Append the buffer's
