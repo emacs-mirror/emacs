@@ -43,6 +43,7 @@ MAKE = make  # BSD doesn't have it as a default.
 CC=@CC@
 DEFS=@DEFS@
 C_SWITCH_SYSTEM=@c_switch_system@
+ALLOCA=@ALLOCA@
 
 ### These help us choose version- and architecture-specific directories
 ### to install files in.
@@ -103,60 +104,67 @@ infodir=${prefix}/info
 # expected to be in ${srcdir}/src, and the source code for Emacs's
 # utility programs is expected to be in ${srcdir}/lib-src.  This is
 # set by the configure script's `--srcdir' option.
-srcdir=.
+srcdir=@srcdir@
 
 # ==================== Emacs-specific directories ====================
 
 # These variables hold the values Emacs will actually use.  They are
 # based on the values of the standard Make variables above.
 
-# Where to install the lisp files distributed with Emacs.  This
-# includes the Emacs version, so that the lisp files for different
-# versions of Emacs will install themselves in separate directories.
-lispdir=${datadir}/emacs/${version}/lisp
+@inst_paths@# Where to install the lisp files distributed with
+@inst_paths@# Emacs.  This includes the Emacs version, so that the
+@inst_paths@# lisp files for different versions of Emacs will install
+@inst_paths@# themselves in separate directories.
+@inst_paths@lispdir=${datadir}/emacs/${version}/lisp
 
-# Where to install the lisp files which are distributed with Emacs
-# but not maintained by the FSF.  This includes the Emacs version, so
-# that the lisp files for different versions of Emacs will install
-# themselves in separate directories.
-externallispdir=${datadir}/emacs/${version}/external-lisp
+@inst_paths@# Where to install the lisp files which are distributed
+@inst_paths@# with Emacs but not maintained by the FSF.  This
+@inst_paths@# includes the Emacs version, so that the lisp files for
+@inst_paths@# different versions of Emacs will install themselves in
+@inst_paths@# separate directories.
+@inst_paths@externallispdir=${datadir}/emacs/${version}/external-lisp
 
-# Directories Emacs should search for lisp files specific to this
-# site (i.e. customizations), before consulting ${lispdir}.  This
+@inst_paths@# Directories Emacs should search for lisp files specific
+@inst_paths@# to this site (i.e. customizations), before consulting
+@inst_paths@# ${lispdir}.  This should be a colon-separated list of
+@inst_paths@# directories.
+@inst_paths@locallisppath=${datadir}/emacs/site-lisp
+
+# Where Emacs will search to find its lisp files.  Before
+# changing this, check to see if your purpose wouldn't
+# better be served by changing locallisppath.  This
 # should be a colon-separated list of directories.
-locallisppath=${datadir}/emacs/site-lisp
-
-# Where Emacs will search to find its lisp files.  Before changing
-# this, check to see if your purpose wouldn't better be served by
-# changing locallisppath.  This should be a colon-separated list of
-# directories.
 lisppath=${locallisppath}:${lispdir}
 
-# Where Emacs will search for its lisp files while building.  This is
-# only used during the process of compiling Emacs, to help Emacs find
-# its lisp files before they've been installed in their final
-# location.  It's usually identical to lisppath, except that the entry
-# for the directory containing the installed lisp files has been
-# replaced with ../lisp.  This should be a colon-separated list of
-# directories.
+# Where Emacs will search for its lisp files while
+# building.  This is only used during the process of
+# compiling Emacs, to help Emacs find its lisp files
+# before they've been installed in their final location.
+# It's usually identical to lisppath, except that the
+# entry for the directory containing the installed lisp
+# files has been replaced with ../lisp.  This should be a
+# colon-separated list of directories.
 buildlisppath=../lisp
 
-# Where to install the other architecture-independent data files
-# distributed with Emacs (like the tutorial, the cookie recipes and
-# the Zippy database).	This path usually contains the Emacs version
-# number, so the data files for multiple versions of Emacs may be
-# installed at once.
-etcdir=${datadir}/emacs/${version}/etc
+@inst_paths@# Where to install the other architecture-independent
+@inst_paths@# data files distributed with Emacs (like the tutorial,
+@inst_paths@# the cookie recipes and the Zippy database). This path
+@inst_paths@# usually contains the Emacs version number, so the data
+@inst_paths@# files for multiple versions of Emacs may be installed
+@inst_paths@# at once.
+@inst_paths@etcdir=${datadir}/emacs/${version}/etc
 
-# Where to create and expect the locking directory, where the Emacs
-# locking code keeps track of which files are currently being edited.
-lockdir=${statedir}/emacs/lock
+@inst_paths@# Where to create and expect the locking directory, where
+@inst_paths@# the Emacs locking code keeps track of which files are
+@inst_paths@# currently being edited.
+@inst_paths@lockdir=${statedir}/emacs/lock
 
-# Where to put executables to be run by Emacs rather than the user.
-# This path usually includes the Emacs version and configuration name,
-# so that multiple configurations for multiple versions of Emacs may
-# be installed at once.
-archlibdir=${libdir}/emacs/${version}/${configuration}
+@inst_paths@# Where to put executables to be run by Emacs rather than
+@inst_paths@# the user.  This path usually includes the Emacs version
+@inst_paths@# and configuration name, so that multiple configurations
+@inst_paths@# for multiple versions of Emacs may be installed at
+@inst_paths@# once.
+@inst_paths@archlibdir=${libdir}/emacs/${version}/${configuration}
 
 # ====================== Developer's configuration =======================
 
@@ -165,14 +173,14 @@ archlibdir=${libdir}/emacs/${version}/${configuration}
 # directories in the source tree to show up immediately in your working
 # environment.  It saves a great deal of disk space by not duplicating the
 # lisp and etc directories.
-#
-# lispdir=${srcdir}/lisp
-# externallispdir=${srcdir}/externallisp
-# locallisppath=${srcdir}/site-lisp
-# etcdir=${srcdir}/etc
-# lockdir=${srcdir}/lock
-# archlibdir=${srcdir}/bin
-# infodir=${srcdir}/info
+
+@rip_paths@lispdir=${srcdir}/lisp
+@rip_paths@externallispdir=${srcdir}/externallisp
+@rip_paths@locallisppath=${datadir}/emacs/site-lisp
+@rip_paths@etcdir=${srcdir}/etc
+@rip_paths@lockdir=${srcdir}/lock
+@rip_paths@archlibdir=${srcdir}/lib-src
+@rip_paths@infodir=${srcdir}/info
 
 # ==================== Utility Programs for the Build ====================
 
@@ -256,6 +264,7 @@ lib-src/Makefile: ${srcdir}/lib-src/Makefile.in Makefile
 	  -e 's|^\(libdir *=\).*$$|\1'"${libdir}"'|'			\
 	  -e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'|'			\
 	  -e 's|^\(archlibdir *=\).*$$|\1'"${archlibdir}"'|'		\
+	  -e 's|^\(ALLOCA *=\).*$$|\1'"${ALLOCA}"'|'			\
 	  -e 's|^CC *=.*$$|CC='"${CC}"'|'				\
 	  -e 's|^DEFS *=.*$$|DEFS='"${DEFS}"'|' \
 	  -e 's|^C_SWITCH_SYSTEM *=.*$$|C_SWITCH_SYSTEM='"${C_SWITCH_SYSTEM}"'|' \
@@ -294,20 +303,28 @@ Makefile:
 ## If we let lib-src do its own installation, that means we
 ## don't have to duplicate the list of utilities to install in
 ## this Makefile as well.
+
+## We delete each directory in ${COPYDESTS} before we copy into it;
+## that way, we can reinstall over directories that have been put in
+## place with their files read-only (perhaps because they are checked
+## into RCS).  In order to make this safe, we make sure that the
+## source exists and is distinct from the destination.
 install: all mkdir
 	(cd lib-src; $(MAKE) install ${MFLAGS} bindir=${bindir} libdir=${libdir})
 	-set ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \
 	   dest=$$1 ; shift ; \
-	   if [ `(cd $${dir}; /bin/pwd)` != `(cd $${dest}; /bin/pwd)` ]; then \
-	     (cd $${dir}; tar cf - . ) | (cd $${dest}; umask 0; tar xf - ) ; \
-	     for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
-	       rm -rf $${subdir}/RCS ; \
-	       rm -rf $${subdir}/CVS ; \
-	       rm -f  $${subdir}/\#* ; \
-	       rm -f  $${subdir}/*~ ; \
-	     done ; \
-	   fi ; \
+	   [ -d $${dir} ] \
+           && [ `(cd $${dir}; /bin/pwd)` != `(cd $${dest}; /bin/pwd)` ] \
+           && (echo "Copying $${dir}..." ; \
+	       rm -rf $${dest} ; mkdir $${dest} ; \
+	       (cd $${dir}; tar cf - . ) | (cd $${dest}; umask 0; tar xf - ); \
+	       for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
+		 rm -rf $${subdir}/RCS ; \
+		 rm -rf $${subdir}/CVS ; \
+		 rm -f  $${subdir}/\#* ; \
+		 rm -f  $${subdir}/*~ ; \
+	       done) ; \
 	 done
 	-(cd info ; \
 	  if [ ! -f ${infodir}/dir ]; then \
@@ -335,15 +352,16 @@ install.sysv: all mkdir
 	-set ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \
 	   dest=$$1 ; shift ; \
-	   if [ `/bin/pwd`/$${dir} != `(cd $${dest}; /bin/pwd)` ] ; then \
-	     (cd $${dir}; find . -print | cpio -pdum $${dest} ) ; \
-	     for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
-	       rm -rf $${subdir}/RCS ; \
-	       rm -rf $${subdir}/CVS ; \
-	       rm -f  $${subdir}/\#* ; \
-	       rm -f  $${subdir}/*~ ; \
-	     done ; \
-	   fi ; \
+	   [ -d $${dir} ] \
+           && [ `(cd $${dir}; /bin/pwd)` != `(cd $${dest}; /bin/pwd)` ] \
+           && (rm -rf $${dest} ; mkdir $${dest} ; \
+	       (cd $${dir}; find . -print | cpio -pdum $${dest} ) ; \
+	       for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
+		 rm -rf $${subdir}/RCS ; \
+		 rm -rf $${subdir}/CVS ; \
+		 rm -f  $${subdir}/\#* ; \
+		 rm -f  $${subdir}/*~ ; \
+	       done) ; \
 	 done
 	-(cd info ; \
 	  if [ ! -f ${infodir}/dir ]; then \
@@ -369,15 +387,16 @@ install.xenix: all mkdir
 	-set ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \
 	   dest=$$1 ; shift ; \
-	   if [ `/bin/pwd`/$${dir} != `(cd $${dest}; /bin/pwd)` ] ; then \
-	     (cd $${dir}; tar cf - . ) | (cd $${dest}; umask 0; tar xpf - ) ; \
-	     for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
-	       rm -rf $${subdir}/RCS ; \
-	       rm -rf $${subdir}/CVS ; \
-	       rm -f  $${subdir}/\#* ; \
-	       rm -f  $${subdir}/*~ ; \
-	     done ; \
-	   fi ; \
+	   [ -d $${dir} ] \
+           && [ `(cd $${dir}; /bin/pwd)` != `(cd $${dest}; /bin/pwd)` ] \
+           && (rm -rf $${dest} ; mkdir $${dest} ; \
+	       (cd $${dir}; tar cf - . ) | (cd $${dest}; umask 0; tar xpf - );\
+	       for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
+		 rm -rf $${subdir}/RCS ; \
+		 rm -rf $${subdir}/CVS ; \
+		 rm -f  $${subdir}/\#* ; \
+		 rm -f  $${subdir}/*~ ; \
+	       done) ; \
 	 done
 	-(cd info ; \
 	  if [ ! -f ${infodir}/dir ]; then \
@@ -408,15 +427,16 @@ install.aix: all mkdir
 	-set ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \
 	   dest=$$1 ; shift ; \
-	   if [ `/bin/pwd`/$${dir} != `(cd $${dest}; /bin/pwd)` ] ; then \
-	     (cd $${dir}; tar cf - . ) | (cd $${dest}; umask 0; tar xBf - ) ; \
-	     for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
-	       rm -rf $${subdir}/RCS ; \
-	       rm -rf $${subdir}/CVS ; \
-	       rm -f  $${subdir}/\#* ; \
-	       rm -f  $${subdir}/*~ ; \
-	     done ; \
-	   fi ; \
+	   [ -d $${dir} ] \
+           && [ `(cd $${dir}; /bin/pwd)` != `(cd $${dest}; /bin/pwd)` ] \
+           && (rm -rf $${dest} ; mkdir $${dest} ; \
+	       (cd $${dir}; tar cf - . ) | (cd $${dest}; umask 0; tar xBf - );\
+	       for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
+		 rm -rf $${subdir}/RCS ; \
+		 rm -rf $${subdir}/CVS ; \
+		 rm -f  $${subdir}/\#* ; \
+		 rm -f  $${subdir}/*~ ; \
+	       done) ; \
 	 done
 	-(cd info ; \
 	  if [ ! -f ${infodir}/dir ]; then \
