@@ -409,7 +409,7 @@ All output done by BODY is inserted in that buffer by default.\n\
 The buffer is displayed in another window, but not selected.\n\
 The value of the last form in BODY is returned.\n\
 If BODY does not finish normally, the buffer BUFNAME is not displayed.\n\n\
-If variable `temp-buffer-show-hook' is non-nil, call it at the end\n\
+If variable `temp-buffer-show-function' is non-nil, call it at the end\n\
 to get the buffer displayed.  It gets one argument, the buffer to display.")
   (args)
      Lisp_Object args;
