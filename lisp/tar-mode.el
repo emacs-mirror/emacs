@@ -1,6 +1,6 @@
 ;;; tar-mode.el --- simple editing of tar files from GNU emacs
 
-;;; Copyright (C) 1990, 1991 Free Software Foundation, Inc.
+;;; Copyright (C) 1990, 1991, 1993 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;; Created: 04 Apr 1990
@@ -203,8 +203,9 @@ the file never exists on disk.")
 (defconst tar-end-offset (+ tar-dmin-offset 8))
 
 (defun tokenize-tar-header-block (string)
-  "Returns a 'tar-header' structure (a list of name, mode, uid, gid, size, 
-write-date, checksum, link-type, and link-name)."
+  "Return a `tar-header' structure.
+This is a list of name, mode, uid, gid, size, 
+write-date, checksum, link-type, and link-name."
   (cond ((< (length string) 512) nil)
 	(;(some 'plusp string)		 ; <-- oops, massive cycle hog!
 	 (or (not (= 0 (aref string 0))) ; This will do.
@@ -247,7 +248,6 @@ write-date, checksum, link-type, and link-name)."
 
 
 (defun tar-parse-octal-integer (string &optional start end)
-  "deletes all your files, and then reboots."
   (if (null start) (setq start 0))
   (if (null end) (setq end (length string)))
   (if (= (aref string start) 0)
@@ -270,7 +270,7 @@ write-date, checksum, link-type, and link-name)."
 
 
 (defun checksum-tar-header-block (string)
-  "Computes and returns a tar-acceptable checksum for this block."
+  "Compute and return a tar-acceptable checksum for this block."
   (let* ((chk-field-start tar-chk-offset)
 	 (chk-field-end (+ chk-field-start 8))
 	 (sum 0)
@@ -318,7 +318,7 @@ write-date, checksum, link-type, and link-name)."
   string)
 
 (defun summarize-tar-header-block (tar-hblock &optional mod-p)
-  "Returns a line similar to the output of 'tar -vtf'."
+  "Returns a line similar to the output of `tar -vtf'."
   (let ((name (tar-header-name tar-hblock))
 	(mode (tar-header-mode tar-hblock))
 	(uid (tar-header-uid tar-hblock))
@@ -373,8 +373,9 @@ write-date, checksum, link-type, and link-name)."
 
 
 (defun tar-summarize-buffer ()
-  "Parse the contents of the tar file in the current buffer, and place a
-dired-like listing on the front; then narrow to it, so that only that listing
+  "Parse the contents of the tar file in the current buffer.
+Place a dired-like listing on the front;
+then narrow to it, so that only that listing
 is visible (and the real data of the buffer is hidden)."
   (message "parsing tar file...")
   (let* ((result '())
@@ -429,8 +430,7 @@ is visible (and the real data of the buffer is hidden)."
       (narrow-to-region 1 tar-header-offset)
       (set-buffer-modified-p nil)))
   (message "parsing tar file...done."))
-
-
+
 (defvar tar-mode-map nil "*Local keymap for tar-mode listings.")
 
 (if tar-mode-map
@@ -461,7 +461,50 @@ is visible (and the real data of the buffer is hidden)."
   (define-key tar-mode-map "G" 'tar-chgrp-entry)
   (define-key tar-mode-map "O" 'tar-chown-entry)
   )
+
+;; Make menu bar items.
 
+;; Get rid of the Edit menu bar item to save space.
+(define-key tar-mode-map [menu-bar edit] 'undefined)
+
+(define-key tar-mode-map [menu-bar immediate]
+  (cons "Immediate" (make-sparse-keymap "Immediate")))
+
+(define-key tar-mode-map [menu-bar immediate view]
+  '("View This File" . tar-view))
+(define-key tar-mode-map [menu-bar immediate display]
+  '("Display in Other Window" . tar-display-file))
+(define-key tar-mode-map [menu-bar immediate find-file-other-window]
+  '("Find in Other Window" . tar-extract-other-window))
+(define-key tar-mode-map [menu-bar immediate find-file]
+  '("Find This File" . tar-extract))
+
+(define-key tar-mode-map [menu-bar mark]
+  (cons "Mark" (make-sparse-keymap "Mark")))
+
+(define-key tar-mode-map [menu-bar mark unmark-all]
+  '("Unmark All" . tar-clear-modification-flags))
+(define-key tar-mode-map [menu-bar mark deletion]
+  '("Flag" . tar-flag-deleted))
+(define-key tar-mode-map [menu-bar mark unmark]
+  '("Unflag" . tar-unflag))
+
+(define-key tar-mode-map [menu-bar operate]
+  (cons "Operate" (make-sparse-keymap "Operate")))
+
+(define-key tar-mode-map [menu-bar operate chown]
+  '("Change Owner..." . tar-chown-entry))
+(define-key tar-mode-map [menu-bar operate chgrp]
+  '("Change Group..." . tar-chgrp-entry))
+(define-key tar-mode-map [menu-bar operate chmod]
+  '("Change Mode..." . tar-chmod-entry))
+(define-key tar-mode-map [menu-bar operate rename]
+  '("Rename to..." . tar-rename-entry))
+(define-key tar-mode-map [menu-bar operate copy]
+  '("Copy to..." . tar-copy))
+(define-key tar-mode-map [menu-bar operate expunge]
+  '("Expunge marked files" . tar-expunge))
+
 ;; tar mode is suitable only for specially formatted data.
 (put 'tar-mode 'mode-class 'special)
 (put 'tar-subfile-mode 'mode-class 'special)
@@ -471,15 +514,15 @@ is visible (and the real data of the buffer is hidden)."
   "Major mode for viewing a tar file as a dired-like listing of its contents.
 You can move around using the usual cursor motion commands. 
 Letters no longer insert themselves.
-Type 'e' to pull a file out of the tar file and into its own buffer.
-Type 'c' to copy an entry from the tar file into another file on disk.
+Type `e' to pull a file out of the tar file and into its own buffer.
+Type `c' to copy an entry from the tar file into another file on disk.
 
-If you edit a sub-file of this archive (as with the 'e' command) and 
-save it with Control-X Control-S, the contents of that buffer will be 
+If you edit a sub-file of this archive (as with the `e' command) and 
+save it with Control-x Control-s, the contents of that buffer will be 
 saved back into the tar-file buffer; in this way you can edit a file 
 inside of a tar archive without extracting it and re-archiving it.
 
-See also: variables tar-update-datestamp and tar-anal-blocksize.
+See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
 \\{tar-mode-map}"
   ;; this is not interactive because you shouldn't be turning this
   ;; mode on and off.  You can corrupt things that way.
@@ -515,7 +558,7 @@ associated tar-file buffer.  You must save that buffer to actually
 save your changes to disk."
   (interactive "P")
   (or (and (boundp 'tar-superior-buffer) tar-superior-buffer)
-      (error "This buffer is not an element of a tar file."))
+      (error "This buffer is not an element of a tar file"))
   (or (assq 'tar-subfile-mode minor-mode-alist)
       (setq minor-mode-alist (append minor-mode-alist
 				     (list '(tar-subfile-mode
@@ -526,23 +569,18 @@ save your changes to disk."
 	    (not tar-subfile-mode)
 	    (> (prefix-numeric-value p) 0)))
   (cond (tar-subfile-mode
-	 ;; copy the local keymap so that we don't accidentally
-	 ;; alter a keymap like 'lisp-mode-map' which is shared
-	 ;; by all buffers in that mode.
-	 (let ((m (current-local-map)))
-	   (if m (use-local-map (copy-keymap m))))
-	 (local-set-key "\C-X\C-S" 'tar-subfile-save-buffer)
+	 (make-local-variable 'local-write-file-hooks)
+	 (setq local-write-file-hooks '(tar-subfile-save-buffer))
 	 ;; turn off auto-save.
 	 (auto-save-mode nil)
 	 (setq buffer-auto-save-file-name nil)
 	 (run-hooks 'tar-subfile-mode-hook))
-	(t (local-set-key "\C-X\C-S" 'save-buffer)))
-  )
+	(t
+	 (kill-local-variable 'local-write-file-hooks))))
 
 
+;; Revert the buffer and recompute the dired-like listing.
 (defun tar-mode-revert (&optional no-autosave no-confirm)
-  "Revert this buffer and turn on tar mode again, to re-compute the
-directory listing."
   (setq tar-header-offset nil)
   (let ((revert-buffer-function nil))
     (revert-buffer t no-confirm)
@@ -560,7 +598,7 @@ directory listing."
   (tar-next-line (- p)))
 
 (defun tar-current-descriptor (&optional noerror)
-  "Returns the tar-descriptor of the current line, or signals an error."
+  "Return the tar-descriptor of the current line, or signals an error."
   ;; I wish lines had plists, like in ZMACS...
   (or (nth (count-lines (point-min)
 			(save-excursion (beginning-of-line) (point)))
@@ -571,7 +609,7 @@ directory listing."
 
 
 (defun tar-extract (&optional other-window-p)
-  "*In tar-mode, extract this entry of the tar file into its own buffer."
+  "*In Tar mode, extract this entry of the tar file into its own buffer."
   (interactive)
   (let* ((view-p (eq other-window-p 'view))
 	 (descriptor (tar-current-descriptor))
@@ -629,25 +667,31 @@ directory listing."
 	    (view-buffer buffer)
 	    (and just-created
 		 (setq view-exit-action 'kill-buffer)))
-	(if other-window-p
-	    (switch-to-buffer-other-window buffer)
-	  (switch-to-buffer buffer))))))
+	(if (eq other-window-p 'display)
+	    (display-buffer buffer)
+	  (if other-window-p
+	      (switch-to-buffer-other-window buffer)
+	    (switch-to-buffer buffer)))))))
 
 
 (defun tar-extract-other-window ()
-  "*In tar-mode, extract this entry of the tar file into its own buffer."
+  "*In Tar mode, find this entry of the tar file in another window."
   (interactive)
   (tar-extract t))
 
+(defun tar-display-other-window ()
+  "*In Tar mode, display this entry of the tar file in another window."
+  (interactive)
+  (tar-extract 'display))
+
 (defun tar-view ()
-  "*In tar-mode, view the tar file entry on this line."
+  "*In Tar mode, view the tar file entry on this line."
   (interactive)
   (tar-extract 'view))
 
 
 (defun tar-read-file-name (&optional prompt)
-  "Calls read-file-name, with the default being the file of the current
-tar-file descriptor."
+  "Read a file name with this line's entry as the default."
   (or prompt (setq prompt "Copy to: "))
   (let* ((default-file (expand-file-name
 			(tar-header-name (tar-desc-tokens
@@ -667,7 +711,7 @@ tar-file descriptor."
 
 
 (defun tar-copy (&optional to-file)
-  "*In tar-mode, extract this entry of the tar file into a file on disk.
+  "*In Tar mode, extract this entry of the tar file into a file on disk.
 If TO-FILE is not supplied, it is prompted for, defaulting to the name of
 the current tar-entry."
   (interactive (list (tar-read-file-name)))
@@ -699,7 +743,7 @@ the current tar-entry."
 
 
 (defun tar-flag-deleted (p &optional unflag)
-  "*In tar mode, mark this sub-file to be deleted from the tar file.
+  "*In Tar mode, mark this sub-file to be deleted from the tar file.
 With a prefix argument, mark that many files."
   (interactive "p")
   (beginning-of-line)
@@ -712,13 +756,13 @@ With a prefix argument, mark that many files."
   (if (eobp) nil (forward-char 36)))
 
 (defun tar-unflag (p)
-  "*In tar mode, un-mark this sub-file if it is marked to be deleted.
+  "*In Tar mode, un-mark this sub-file if it is marked to be deleted.
 With a prefix argument, un-mark that many files forward."
   (interactive "p")
   (tar-flag-deleted p t))
 
 (defun tar-unflag-backwards (p)
-  "*In tar mode, un-mark this sub-file if it is marked to be deleted.
+  "*In Tar mode, un-mark this sub-file if it is marked to be deleted.
 With a prefix argument, un-mark that many files backward."
   (interactive "p")
   (tar-flag-deleted (- p) t))
@@ -769,7 +813,7 @@ With a prefix argument, un-mark that many files backward."
 
 
 (defun tar-expunge (&optional noconfirm)
-  "*In tar-mode, delete all the archived files flagged for deletion.
+  "*In Tar mode, delete all the archived files flagged for deletion.
 This does not modify the disk image; you must save the tar file itself
 for this to be permanent."
   (interactive)
@@ -793,7 +837,7 @@ for this to be permanent."
 
 
 (defun tar-clear-modification-flags ()
-  "remove the stars at the beginning of each line."
+  "Remove the stars at the beginning of each line."
   (save-excursion
     (goto-char 0)
     (while (< (point) tar-header-offset)
@@ -935,8 +979,8 @@ for this to be permanent."
 		    ))))
 
 (defun tar-subfile-save-buffer ()
-  "In tar subfile mode, write this buffer back into its parent tar-file buffer.
-This doesn't write anything to disk - you must save the parent tar-file buffer
+  "In tar subfile mode, save this buffer into its parent tar-file buffer.
+This doesn't write anything to disk; you must save the parent tar-file buffer
 to make your changes permanent."
   (interactive)
   (if (not (and (boundp 'tar-superior-buffer) tar-superior-buffer))
@@ -1026,7 +1070,8 @@ to make your changes permanent."
     (set-buffer-modified-p nil) ; mark the tar subfile as unmodified
     (message "saved into tar-buffer \"%s\" - remember to save that buffer!"
 	     (buffer-name tar-superior-buffer))
-    )))
+    ;; Prevent ordinary saving from happening.
+    t)))
 
 
 (defun tar-pad-to-blocksize ()
@@ -1060,7 +1105,7 @@ Leaves the region wide."
 (defun maybe-write-tar-file ()
   "Used as a write-file-hook to write tar-files out correctly."
   ;;
-  ;; If the current buffer is in tar-mode and has its header-offset set,
+  ;; If the current buffer is in Tar mode and has its header-offset set,
   ;; only write out the part of the file after the header-offset.
   ;;
   (if (and (eq major-mode 'tar-mode)
