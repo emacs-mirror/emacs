@@ -1,6 +1,6 @@
 /* XPM */
-static char * tb_left_arrow_xpm[] = {
-"24 25 42 1",
+static char * left_arrow_xpm[] = {
+"24 24 42 1",
 " 	c None",
 ".	c #000000",
 "+	c #C6D7C3",
@@ -62,7 +62,6 @@ static char * tb_left_arrow_xpm[] = {
 "            ..0ab.      ",
 "              ..c.      ",
 "                ..      ",
-"                        ",
 "                        ",
 "                        ",
 "                        ",
