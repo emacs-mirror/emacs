@@ -6,8 +6,8 @@
 ;;	   Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Keywords: unix
 
-(defconst find-dired-version (substring "$Revision: 1.19 $" 11 -2)
-  "$Id: find-dired.el,v 1.19 1995/03/06 19:55:47 roland Exp rms $")
+(defconst find-dired-version (substring "$Revision: 1.20 $" 11 -2)
+  "$Id: find-dired.el,v 1.20 1995/03/16 04:27:11 rms Exp kwzh $")
 
 ;;; This program is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -188,8 +188,7 @@ Thus ARG can also contain additional grep options."
 	      ;; process is dead, we can delete it now.  Otherwise it
 	      ;; will stay around until M-x list-processes.
 	      (delete-process proc)
-	      ;; Force mode line redisplay soon.
-	      (set-buffer-modified-p (buffer-modified-p))))
+	      (force-mode-line-update)))
 	  (message "find-dired %s finished." (current-buffer))))))
 
 (provide 'find-dired)
