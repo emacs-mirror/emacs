@@ -1522,10 +1522,9 @@ mark_object (objptr)
       }
       break;
 
-    case Lisp_Vector:
+    case Lisp_Vectorlike:
     case Lisp_Window:
     case Lisp_Process:
-    case Lisp_Window_Configuration:
       {
 	register struct Lisp_Vector *ptr = XVECTOR (obj);
 	register EMACS_INT size = ptr->size;
@@ -1538,9 +1537,11 @@ mark_object (objptr)
 	struct Lisp_Vector *volatile ptr1 = ptr;
 	register int i;
 
-	if (size & ARRAY_MARK_FLAG) break;   /* Already marked */
+	if (size & ARRAY_MARK_FLAG) break; /* Already marked */
 	ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
-	for (i = 0; i < size; i++)     /* and then mark its elements */
+	if (size & PSEUDOVECTOR_FLAG)
+	  size &= PSEUDOVECTOR_SIZE_MASK;
+	for (i = 0; i < size; i++) /* and then mark its elements */
 	  mark_object (&ptr1->contents[i]);
       }
       break;
