@@ -201,6 +201,9 @@ this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
 	       (x-popup-menu nil (cdr (cdr (car submap)))))
 	  (setq submap (cdr submap))))))
 
+(defconst iso-8859-1-locale-regexp "iso[-_]?8859[-_]1"
+  "Use ISO 8859-1 character set by default if this regexp matches LC_CTYPE.")
+
 (defun command-line ()
   (setq command-line-default-directory default-directory)
 
@@ -217,8 +220,7 @@ this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
 	       (string= vc "simple"))
 	   (setq version-control 'never))))
 
-  (if (or (string-equal (getenv "LC_CTYPE") "iso_8859_1")
-	  (string-equal (getenv "LC_CTYPE") "iso-8859-1"))
+  (if (string-match iso-8859-1-locale-regexp (getenv "LC_CTYPE"))
       (progn 
 	(standard-display-european t)
 	(require 'iso-syntax)))
