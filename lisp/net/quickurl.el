@@ -1,6 +1,6 @@
 ;;; quickurl.el --- Insert an URL based on text at point in buffer.
 
-;; Copyright (C) 1999,2000 Free Software Foundation, Inc.
+;; Copyright (C) 1999,2000,2001 Free Software Foundation, Inc.
 
 ;; Author: Dave Pearson <davep@davep.org>
 ;; Maintainer: Dave Pearson <davep@davep.org>
@@ -59,7 +59,7 @@
 ;; (("GNU"    . "http://www.gnu.org/")
 ;;  ("FSF"      "http://www.fsf.org/" "The Free Software Foundation")
 ;;  ("emacs"  . "http://www.emacs.org/")
-;;  ("hagbard"  "http://www.hagbard.demon.co.uk" "Hagbard's World"))
+;;  ("davep"    "http://www.davep.org/" "Dave's homepage"))
 ;;
 ;; In case you're wondering about the mixture of cons cells and lists,
 ;; quickurl started life using just the cons cells, there were no comments.
@@ -105,7 +105,7 @@
   :group  'abbrev
   :prefix "quickurl-")
 
-(defcustom quickurl-url-file "~/.quickurls"
+(defcustom quickurl-url-file (convert-standard-filename "~/.quickurls")
   "*File that contains the URL list."
   :type  'file
   :group 'quickurl)
@@ -482,8 +482,9 @@ The key bindings for `quickurl-list-mode' are:
             do (let ((start (point)))
                  (insert (format fmt (quickurl-url-description url)
                                  (quickurl-url-url url)))
-                 (put-text-property start (1- (point))
-                                    'mouse-face 'highlight)))
+                 (add-text-properties start (1- (point))
+                                    '(mouse-face highlight
+				      help-echo "mouse-2: insert this URL"))))
       (setf (point) (point-min)))))
 
 (defun quickurl-list-add-url (word url comment)
