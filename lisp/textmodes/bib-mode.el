@@ -51,8 +51,6 @@
 (define-key bib-mode-map "\C-c\C-u" 'unread-bib)
 (define-key bib-mode-map "\C-c\C-@" 'mark-bib)
 (define-key bib-mode-map "\e`" 'abbrev-mode)
-(defvar bib-mode-abbrev-table nil
-   "Abbrev table used in Bib mode")
 
 (defun addbib ()
    "Set up editor to add to troff bibliography file specified 
@@ -63,7 +61,7 @@ by global variable `bib-file'.  See description of `bib-mode'."
    (bib-mode)
    )
    
-(defun bib-mode ()
+(define-derived-mode bib-mode text-mode "Bib"
    "Mode for editing `lookbib' style bibliographies.  
 Hit RETURN to get next % field key.
 If you want to ignore this field, just hit RETURN again.
@@ -94,45 +92,33 @@ Hook can be stored in `bib-mode-hook'.
 Field keys given by variable `bib-assoc'.
 
 Commands:
-\\{bib-mode-map}
-"
-   (interactive)
-   (text-mode)
-   (use-local-map bib-mode-map)
-   (setq mode-name "Bib")
-   (setq major-mode 'bib-mode)
-   (define-abbrev-table 'bib-mode-abbrev-table ())
-   (setq local-abbrev-table bib-mode-abbrev-table)
-   (abbrev-mode 1)
-   (run-hooks 'bib-mode-hook)
-   )
+\\{bib-mode-map}"
+   (abbrev-mode 1))
 
-(defconst bib-assoc '(
-		   (" *$" . "%A ")
-		   ("%A ." . "%A ")
-		   ("%A $" . "%T ")
-		   ("%T " . "%D ")
-		   ("%D " . "%J ")
-		   ("%J ." . "%V ")
-		   ("%V " . "%N ")
-		   ("%N " . "%P ")
-		   ("%P " . "%K ")
-		   ("%K " . "%W ")
-		   ("%W " . "%X ")
-		   ("%X " . "")
-		   ("%J $" . "%B ")
-		   ("%B ." . "%E ")
-		   ("%E ." . "%E ")
-		   ("%E $" . "%I ")
-		   ("%I " . "%C ")
-		   ("%C " . "%P ")
-		   ("%B $" . "%R ")
-		   ("%R " . "%I ")
-		   )
-		   
-"Describes bibliographic database format.  A line beginning with
-the car of an entry is followed by one beginning with the cdr.
-")
+(defconst bib-assoc
+  '((" *$" . "%A ")
+    ("%A ." . "%A ")
+    ("%A $" . "%T ")
+    ("%T " . "%D ")
+    ("%D " . "%J ")
+    ("%J ." . "%V ")
+    ("%V " . "%N ")
+    ("%N " . "%P ")
+    ("%P " . "%K ")
+    ("%K " . "%W ")
+    ("%W " . "%X ")
+    ("%X " . "")
+    ("%J $" . "%B ")
+    ("%B ." . "%E ")
+    ("%E ." . "%E ")
+    ("%E $" . "%I ")
+    ("%I " . "%C ")
+    ("%C " . "%P ")
+    ("%B $" . "%R ")
+    ("%R " . "%I "))
+  "Describes bibliographic database format.
+A line beginning with the car of an entry is followed by one beginning
+with the cdr.")
 
 (defun bib-find-key (slots)
    (cond
