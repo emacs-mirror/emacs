@@ -7,7 +7,7 @@
 	* xterm.c (note_mouse_movement): Put code for
 	x_autoselect_window_p in #if 0.
 
-	* lread.c (Fload): Don't assume that message_with_ntring uses the
+	* lread.c (Fload): Don't assume that message_with_string uses the
 	string it is given like a C string.
 
 2002-03-10  Jan D.  <Jan.Djarv@mbox200.swipnet.se>
