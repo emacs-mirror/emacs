@@ -332,26 +332,51 @@ x_set_frame_parameters (f, alist)
   /* Same here.  */
   Lisp_Object left, top;
 
-  width = height = top = left = Qnil;
+  /* Record in these vectors all the parms specified.  */
+  Lisp_Object *parms;
+  Lisp_Object *values;
+  int i;
+  
+  i = 0;
+  for (tail = alist; CONSP (tail); tail = Fcdr (tail))
+    i++;
 
+  parms = (Lisp_Object *) alloca (i * sizeof (Lisp_Object));
+  values = (Lisp_Object *) alloca (i * sizeof (Lisp_Object));
+
+  /* Extract parm names and values into those vectors.  */
+
+  i = 0;
   for (tail = alist; CONSP (tail); tail = Fcdr (tail))
     {
       Lisp_Object elt, prop, val;
 
       elt = Fcar (tail);
-      prop = Fcar (elt);
-      val = Fcdr (elt);
+      parms[i] = Fcar (elt);
+      values[i] = Fcdr (elt);
+      i++;
+    }
 
-      /* Ignore all but the first set presented.  You're supposed to
-	 be able to append two parameter lists and have the first
-	 shadow the second.  */
-      if (EQ (prop, Qwidth) && NILP (width))
+  XSET (width,  Lisp_Int, FRAME_WIDTH  (f));
+  XSET (height, Lisp_Int, FRAME_HEIGHT (f));
+  XSET (top, Lisp_Int, f->display.x->top_pos);
+  XSET (left, Lisp_Int, f->display.x->left_pos);
+
+  /* Now process them in reverse of specified order.  */
+  for (i--; i >= 0; i--)
+    {
+      Lisp_Object prop, val;
+
+      prop = parms[i];
+      val = values[i];
+
+      if (EQ (prop, Qwidth))
 	width = val;
-      else if (EQ (prop, Qheight) && NILP (height))
+      else if (EQ (prop, Qheight))
 	height = val;
-      else if (EQ (prop, Qtop) && NILP (top))
+      else if (EQ (prop, Qtop))
 	top = val;
-      else if (EQ (prop, Qleft) && NILP (left))
+      else if (EQ (prop, Qleft))
 	left = val;
       else
 	{
@@ -371,12 +396,6 @@ x_set_frame_parameters (f, alist)
      exist yet.  */
   {
     Lisp_Object frame;
-
-    if (NILP (width))  XSET (width,  Lisp_Int, FRAME_WIDTH  (f));
-    if (NILP (height)) XSET (height, Lisp_Int, FRAME_HEIGHT (f));
-
-    if (NILP (top))    XSET (top, Lisp_Int, f->display.x->top_pos);
-    if (NILP (left))   XSET (left, Lisp_Int, f->display.x->left_pos);
 
     XSET (frame, Lisp_Frame, f);
     if (XINT (width) != FRAME_WIDTH (f)
