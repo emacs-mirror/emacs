@@ -49,13 +49,13 @@
 (defconst yow-after-load-message "I have SEEN the CONSING!!")
 
 ;;;###autoload
-(defun yow (&optional insert)
+(defun yow (&optional insert display)
   "Return or display a random Zippy quotation.  With prefix arg, insert it."
-  (interactive "P")
+  (interactive "P\np")
   (let ((yow (cookie yow-file yow-load-message yow-after-load-message)))
     (cond (insert
 	   (insert yow))
-	  ((not (interactive-p))
+	  ((not display)
 	   yow)
 	  (t
 	   (message "%s" yow)))))
