@@ -164,16 +164,19 @@ is sensitive to blank lines.")
 (defun vc-find-binary (name)
   "Look for a command anywhere on the subprocess-command search path."
   (or (cdr (assoc name vc-binary-assoc))
-      (let ((full nil))
-	(catch 'found
-	  (mapcar
-	   (function (lambda (s)
-	      (if (and s (file-exists-p (setq full (concat s "/" name))))
-		  (throw 'found nil))))
-	  exec-path))
-	(if full
-	    (setq vc-binary-assoc (cons (cons name full) vc-binary-assoc)))
-	full)))
+      (catch 'found
+	(mapcar
+	 (function 
+	  (lambda (s)
+	    (if s
+		(let ((full (concat s "/" name)))
+		  (if (file-executable-p full)
+		      (progn
+			(setq vc-binary-assoc
+			      (cons (cons name full) vc-binary-assoc))
+			(throw 'found full)))))))
+	 exec-path)
+	nil)))
 
 (defun vc-do-command (okstatus command file &rest flags)
   "Execute a version-control command, notifying user and checking for errors.
