@@ -105,7 +105,6 @@ This is suitable as an entry on `find-file-hook' or appropriate mode hooks."
 		(move-overlay elide-head-overlay (point-marker) end)
 	      (setq elide-head-overlay (make-overlay (point-marker) end)))
 	    (overlay-put elide-head-overlay 'invisible t)
-	    (overlay-put elide-head-overlay 'intangible t)
 	    (overlay-put elide-head-overlay 'evaporate t)
 	    (overlay-put elide-head-overlay 'after-string "...")))))))
 
