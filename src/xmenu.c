@@ -70,6 +70,7 @@ extern Display *x_current_display;
 #define	ButtonReleaseMask ButtonReleased
 #endif /* not HAVE_X11 */
 
+Lisp_Object Qmenu_enable;
 Lisp_Object xmenu_show ();
 extern int x_error_handler ();
 
@@ -399,6 +400,9 @@ xmenu_show (parent, startx, starty, line_list, pane_list, line_cnt,
 
 syms_of_xmenu ()
 {
+  Qmenu_enable = intern ("menu-enable");
+
+  staticpro (&Qmenu_enable);
   defsubr (&Sx_popup_menu);
 }
 
@@ -516,12 +520,24 @@ single_keymap_panes (keymap, panes, vector, names, items,
 	      item2 = XCONS (item1)->car;
 	      if (XTYPE (item2) == Lisp_String)
 		{
-		  Lisp_Object tem;
-		  tem = Fkeymapp (Fcdr (item1));
+		  Lisp_Object def, tem;
+		  Lisp_Object enabled;
+
+		  def = Fcdr (item1);
+		  enabled = Qt;
+		  if (XTYPE (def) == Lisp_Symbol)
+		    {
+		      /* No property, or nil, means enable.
+			 Otherwise, enable if value is not nil.  */
+		      tem = Fget (def, Qmenu_enable);
+		      if (!NILP (tem))
+			enabled = Feval (tem);
+		    }
+		  tem = Fkeymapp (def);
 		  if (XSTRING (item2)->data[0] == '@' && !NILP (tem))
-		    pending_maps = Fcons (Fcons (Fcdr (item1), item2),
+		    pending_maps = Fcons (Fcons (def, item2),
 					  pending_maps);
-		  else
+		  else if (!NILP (enabled))
 		    {
 		      (*names)[*p_ptr][i] = (char *) XSTRING (item2)->data;
 		      /* The menu item "value" is the key bound here.  */
@@ -547,11 +563,25 @@ single_keymap_panes (keymap, panes, vector, names, items,
 		  if (XTYPE (item2) == Lisp_String)
 		    {
 		      Lisp_Object tem;
-		      tem = Fkeymapp (Fcdr (item1));
+		      Lisp_Object def;
+		      Lisp_Object enabled;
+
+		      def = Fcdr (item1);
+		      enabled = Qt;
+		      if (XTYPE (def) == Lisp_Symbol)
+			{
+			  tem = Fget (def, Qmenu_enable);
+			  /* No property, or nil, means enable.
+			     Otherwise, enable if value is not nil.  */
+			  if (!NILP (tem))
+			    enabled = Feval (tem);
+			}
+
+		      tem = Fkeymapp (def);
 		      if (XSTRING (item2)->data[0] == '@' && !NILP (tem))
-			pending_maps = Fcons (Fcons (Fcdr (item1), item2),
+			pending_maps = Fcons (Fcons (def, item2),
 					      pending_maps);
-		      else
+		      else if (!NILP (enabled))
 			{
 			  (*names)[*p_ptr][i] = (char *) XSTRING (item2)->data;
 			  /* The menu item "value" is the key bound here.  */
