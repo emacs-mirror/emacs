@@ -27,36 +27,58 @@
 ;; Print all arguments with single space separator in one line.
 (defun print-list (&rest args)
   (while (cdr args)
-    (if (car args)
-	(progn (princ (car args)) (princ " ")))
+    (when (car args)
+      (princ (car args))
+      (princ " "))
     (setq args (cdr args)))
   (princ (car args))
   (princ "\n"))
 
+;; Re-order the elements of charset-list.
+(defun sort-charset-list ()
+  (setq charset-list
+	(sort charset-list
+	      (function (lambda (x y) (< (charset-id x) (charset-id y)))))))
+
 ;;; CHARSET
 
 ;;;###autoload
-(defun list-character-sets ()
-  "Display a list of all charsets."
-  (interactive)
+(defun list-character-sets (&optional arg)
+  "Display a list of all character sets.
+
+The ID column contains a charset identification number for internal use.
+The B column contains a number of bytes occupied in a buffer.
+The W column contains a number of columns occupied in a screen.
+
+With prefix arg, the output format gets more cryptic
+but contains full information about each character sets."
+  (interactive "P")
+  (sort-charset-list)
   (with-output-to-temp-buffer "*Help*"
-    (print-character-sets)
     (save-excursion
       (set-buffer standard-output)
-      (help-mode))))
-
-(defvar charset-other-info-func nil)
-  
-(defun print-character-sets ()
-  "Print information on all charsets in a machine readable format."
-  (princ "\
+      (let ((l charset-list)
+	    charset)
+	(if (null arg)
+	    (progn
+	      (insert "ID  Name		    B W Description\n")
+	      (insert "--  ----		    - - -----------\n")
+	      (while l
+		(setq charset (car l) l (cdr l))
+		(insert (format "%03d %s" (charset-id charset) charset))
+		(indent-to 28)
+		(insert (format "%d %d %s\n"
+				(charset-bytes charset)
+				(charset-width charset)
+				(charset-description charset)))))
+	  (insert "\
 #########################
 ## LIST OF CHARSETS
 ## Each line corresponds to one charset.
 ## The following attributes are listed in this order
 ## separated by a colon `:' in one line.
-##	CHARSET-SYMBOL-NAME,
 ##	CHARSET-ID,
+##	CHARSET-SYMBOL-NAME,
 ##	DIMENSION (1 or 2)
 ##	CHARS (94 or 96)
 ##	BYTES (of multibyte form: 1, 2, 3, or 4),
@@ -66,23 +88,21 @@
 ##	ISO-GRAPHIC-PLANE (ISO-2022's graphic plane, 0:GL, 1:GR)
 ##	DESCRIPTION (describing string of the charset)
 ")
-  (let ((charsets charset-list)
-	charset)
-    (while charsets
-      (setq charset (car charsets))
-      (princ (format "%s:%03d:%d:%d:%d:%d:%d:%d:%d:%s\n" 
-		     charset
-		     (charset-id charset)
-		     (charset-dimension charset)
-		     (charset-chars charset)
-		     (charset-bytes charset)
-		     (charset-width charset)
-		     (charset-direction charset)
-		     (charset-iso-final-char charset)
-		     (charset-iso-graphic-plane charset)
-		     (charset-description charset)))
-      (setq charsets (cdr charsets)))))
-
+	  (while l
+	    (setq charset (car l) l (cdr l))
+	    (princ (format "%03d:%s:%d:%d:%d:%d:%d:%d:%d:%s\n" 
+			   (charset-id charset)
+			   charset
+			   (charset-dimension charset)
+			   (charset-chars charset)
+			   (charset-bytes charset)
+			   (charset-width charset)
+			   (charset-direction charset)
+			   (charset-iso-final-char charset)
+			   (charset-iso-graphic-plane charset)
+			   (charset-description charset))))))
+      (help-mode)
+      (setq truncate-lines t))))
 
 ;;; CODING-SYSTEM
 
@@ -112,19 +132,18 @@
 		       "no initial designation, and used by the followings:"))
 		    (t
 		     "invalid designation information"))))
-      (if (listp charset)
-	  (progn
-	    (setq charset (cdr charset))
-	    (while charset
-	      (cond ((eq (car charset) t)
-		     (princ "\tany other charsets\n"))
-		    ((charsetp (car charset))
-		     (princ (format "\t%s:%s\n"
-				    (car charset)
-				    (charset-description (car charset)))))
-		    (t
-		     "invalid designation information"))		   
-	      (setq charset (cdr charset)))))
+      (when (listp charset)
+	(setq charset (cdr charset))
+	(while charset
+	  (cond ((eq (car charset) t)
+		 (princ "\tany other charsets\n"))
+		((charsetp (car charset))
+		 (princ (format "\t%s:%s\n"
+				(car charset)
+				(charset-description (car charset)))))
+		(t
+		 "invalid designation information"))		   
+	  (setq charset (cdr charset))))
       (setq graphic-register (1+ graphic-register)))))
 
 ;;;###autoload
@@ -286,10 +305,9 @@ at the place of `..':
 	(while l
 	  (setq coding (symbol-value (car l)))
 	  (princ (format "  %d. %s" i coding))
-	  (if (setq aliases (get coding 'alias-coding-systems))
-	      (progn
-		(princ " ")
-		(princ (cons 'alias: aliases))))
+	  (when (setq aliases (get coding 'alias-coding-systems))
+	    (princ " ")
+	    (princ (cons 'alias: aliases)))
 	  (terpri)
 	  (setq l (cdr l) i (1+ i))))
       (princ "\n  Other coding systems cannot be distinguished automatically
@@ -316,11 +334,10 @@ at the place of `..':
 		(while codings
 		  (setq pos (point))
 		  (insert (format " %s" (car codings)))
-		  (if (> (current-column) max-col)
-		      (progn
-		       (goto-char pos)
-		       (insert "\n   ")
-		       (goto-char (point-max))))
+		  (when (> (current-column) max-col)
+		    (goto-char pos)
+		    (insert "\n   ")
+		    (goto-char (point-max)))
 		  (setq codings (cdr codings)))
 		(insert "\n\n")))
 	  (setq categories (cdr categories))))
@@ -356,10 +373,9 @@ at the place of `..':
 	(princ (format "%s (alias of %s)\n" coding-system base))
       (princ coding-system)
       (while aliases
-	(progn
-	  (princ ",")
-	  (princ (car aliases))
-	  (setq aliases (cdr aliases))))
+	(princ ",")
+	(princ (car aliases))
+	(setq aliases (cdr aliases)))
       (princ (format ":%s:%c:%d:"
 		     type
 		     (coding-system-mnemonic coding-system)
@@ -408,16 +424,15 @@ at the place of `..':
       (princ "\n"))))
 
 ;;;###autoload
-(defun list-coding-systems ()
-  "Print information of all base coding systems.
-If called interactive, it prints name, mnemonic letter, and doc-string
-of each coding system.
-If not, it prints whole information of each coding system
-with the format which is more suitable for being read by a machine,
-in addition, it prints list of coding category ordered by priority."
-  (interactive)
+(defun list-coding-systems (&optional arg)
+  "Display a list of all coding systems.
+It prints mnemonic letter, name, and description of each coding systems.
+
+With prefix arg, the output format gets more cryptic,
+but contains full information about each coding systems."
+  (interactive "P")
   (with-output-to-temp-buffer "*Help*"
-    (if (interactive-p)
+    (if (null arg)
 	(princ "\
 ###############################################
 # List of coding systems in the following format:
@@ -456,20 +471,22 @@ in addition, it prints list of coding category ordered by priority."
 	(if (interactive-p)
 	    (print-coding-system-briefly coding-system 'doc-string)
 	  (print-coding-system coding-system))
-	(setq bases (cdr bases))))
-    (if (interactive-p)
-	nil
-      (princ "\
+	(setq bases (cdr bases))))))
+
+;;;###automatic
+(defun list-coding-categories ()
+  "Display a list of all coding categories."
+  (with-output-to-temp-buffer "*Help*"
+    (princ "\
 ############################
 ## LIST OF CODING CATEGORIES (ordered by priority)
 ## CATEGORY:CODING-SYSTEM
 ##
 ")
-      (let ((l coding-category-list))
-	(while l
-	  (princ (format "%s:%s\n" (car l) (symbol-value (car l))))
-	  (setq l (cdr l)))))
-    ))
+    (let ((l coding-category-list))
+      (while l
+	(princ (format "%s:%s\n" (car l) (symbol-value (car l))))
+	(setq l (cdr l))))))
 
 ;;; FONT
 
@@ -497,41 +514,117 @@ in addition, it prints list of coding category ordered by priority."
       (with-output-to-temp-buffer "*Help*"
 	(describe-font-internal font-info 'verbose)))))
 
-;; Print information in FONTINFO of a fontset named FONTSET.
-(defun describe-fontset-internal (fontset fontset-info)
-  (print-list "Fontset:" fontset)
-  (let ((size (aref fontset-info 0)))
-    (print-list "  size:" (format "%d" size)
-		(if (= size 0) "... which means not yet used" "")))
-  (print-list "  height:" (format "%d" (aref fontset-info 1)))
-  (print-list "  fonts: (charset : font name)")
-  (let* ((fonts (aref fontset-info 2))
-	 elt charset requested opened)
-    (while fonts
-      (setq elt (car fonts)
-	    charset (car elt)
-	    requested (nth 1 elt)
-	    opened (nth 2 elt))
-      (print-list "   " charset ":" requested)
-      (if (stringp opened)
-	  (print-list "      Opened as: " opened)
-	(if (null opened) "      -- open failed --"))
-      (setq fonts (cdr fonts)))))
+;; Print information of FONTSET.  If optional arg PRINT-FONTS is
+;; non-nil, print also names of all fonts in FONTSET.  This function
+;; actually INSERT such information in the current buffer.
+(defun print-fontset (fontset &optional print-fonts)
+  (let* ((fontset-info (fontset-info fontset))
+	 (size (aref fontset-info 0))
+	 (height (aref fontset-info 1))
+	 (fonts (and print-fonts (aref fontset-info 2)))
+	 (xlfd-fields (x-decompose-font-name fontset))
+	 (weight (aref xlfd-fields xlfd-regexp-weight-subnum))
+	 (slant  (aref xlfd-fields xlfd-regexp-slant-subnum))
+	 style)
+    (if (string-match "^bold$\\|^demibold$" weight)
+	(setq style (concat weight " "))
+      (setq style "medium "))
+    (cond ((string-match "^i$" slant)
+	   (setq style (concat style "italic")))
+	  ((string-match "^o$" slant)
+	   (setq style (concat style "slant")))
+	  ((string-match "^ri$" slant)
+	   (setq style (concat style "reverse italic")))
+	  ((string-match "^ro$" slant)
+	   (setq style (concat style "reverse slant"))))
+    (beginning-of-line)
+    (insert fontset)
+    (indent-to 56)
+    (insert (if (> size 0) (format "%dx%d" size height) "  ?"))
+    (indent-to 62)
+    (insert style "\n")
+    (when print-fonts
+      (insert "  O Charset / Fontname\n"
+	      "  - -------\n")
+      (sort-charset-list)
+      (let ((l charset-list)
+	    charset font-info opened fontname)
+	(while l
+	  (setq charset (car l) l (cdr l))
+	  (setq font-info (assq charset fonts))
+	  (if (null font-info)
+	      (setq opened ?? fontname "not specified")
+	    (if (nth 2 font-info)
+		(if (stringp (nth 2 font-info))
+		    (setq opened ?o fontname (nth 2 font-info))
+		  (setq opened ?- fontname (nth 1 font-info)))
+	      (setq opened ?x fontname (nth 1 font-info))))
+	  (insert (format "  %c %s\n    %s\n"
+			  opened charset fontname)))))))
 
 ;;;###autoload
 (defun describe-fontset (fontset)
-  "Display information about FONTSET."
+  "Display information of FONTSET.
+
+It prints name, size, and style of FONTSET, and lists up fonts
+contained in FONTSET.
+
+The format of Size column is WIDTHxHEIGHT, where WIDTH and HEIGHT is
+the character sizes (pixels) of each fontset (i.e. those of ASCII font
+in the fontset).  The letter `?' in this column means that the
+corresponding fontset is not yet used in any frame.
+
+The O column of each font contains one of the following letters.
+ o -- the font already opened
+ - -- the font not yet opened
+ x -- the font can't be opened
+ ? -- no font specified in FONTSET
+
+The Charset column of each font contains a name of character set
+displayed by the font."
   (interactive
    (if (not window-system)
        (error "No window system being used")
-     (let ((fontset-list (mapcar '(lambda (x) (list x)) (fontset-list))))
-       (list (completing-read "Fontset: " fontset-list)))))
-  (setq fontset (query-fontset fontset))
-  (if (null fontset)
-      (error "No matching fontset")
-    (let ((fontset-info (fontset-info fontset)))
-      (with-output-to-temp-buffer "*Help*"
-	(describe-fontset-internal fontset fontset-info)))))
+     (let ((fontset-list (mapcar '(lambda (x) (list x)) (fontset-list)))
+	   (completion-ignore-case t))
+       (list (completing-read
+	      "Fontset (default, used by the current frame): "
+	      fontset-list nil t)))))
+  (if (= (length fontset) 0)
+      (setq fontset (cdr (assq 'font (frame-parameters)))))
+  (if (not (query-fontset fontset))
+      (error "Current frame is using font, not fontset"))
+  (let ((fontset-info (fontset-info fontset)))
+    (with-output-to-temp-buffer "*Help*"
+      (save-excursion
+	(set-buffer standard-output)
+	(insert "Fontset-Name\t\t\t\t\t\tSize  Style\n")
+	(insert "------------\t\t\t\t\t\t----  -----\n")
+	(print-fontset fontset t)))))
+
+;;;###autoload
+(defun list-fontsets (arg)
+  "Display a list of all fontsets.
+
+It prints name, size, and style of each fontset.
+
+The format of Size column is WIDTHxHEIGHT, where WIDHT and HEIGHT is
+the character sizes (pixels) of each fontset (i.e. those of ASCII font
+in the fontset).  The letter `?' in this column means that the
+corresponding fontset is not yet used in any frame.
+
+With prefix arg, it also lists up fonts contained in each fontset.
+See the function `describe-fontset' for the format of the list."
+  (interactive "P")
+  (with-output-to-temp-buffer "*Help*"
+    (save-excursion
+      (set-buffer standard-output)
+      (insert "Fontset-Name\t\t\t\t\t\tSize Style\n")
+      (insert "------------\t\t\t\t\t\t---- -----\n")
+      (let ((fontsets (fontset-list)))
+	(while fontsets
+	  (print-fontset (car fontsets) arg)
+	  (setq fontsets (cdr fontsets)))))))
 
 ;;;###autoload
 (defun list-input-methods ()
@@ -547,11 +640,10 @@ in addition, it prints list of coding category ordered by priority."
 	  language elt)
       (while l
 	(setq elt (car l) l (cdr l))
-	(if (not (equal language (nth 1 elt)))
-	    (progn
-	      (setq language (nth 1 elt))
-	      (princ language)
-	      (terpri)))
+	(when (not (equal language (nth 1 elt)))
+	  (setq language (nth 1 elt))
+	  (princ language)
+	  (terpri))
 	(princ (format "  %s (`%s' in mode line)\n    %s\n"
 		       (car elt) (nth 3 elt)
 		       (let ((title (nth 4 elt)))
@@ -560,26 +652,24 @@ in addition, it prints list of coding category ordered by priority."
 
 ;;; DIAGNOSIS
 
-(defun insert-list (args)
-  (while (cdr args)
-    (insert (or (car args) "nil") " ")
-    (setq args (cdr args)))
-  (if args (insert (or (car args) "nil")))
-  (insert "\n"))
-
-(defun insert-section (sec title)
+;; Insert a header of a section with SECTION-NUMBER and TITLE.
+(defun insert-section (section-number title)
   (insert "########################################\n"
-	  "# Section " (format "%d" sec) ".  " title "\n"
+	  "# Section " (format "%d" section-number) ".  " title "\n"
 	  "########################################\n\n"))
 
 ;;;###autoload
 (defun mule-diag ()
-  "Show diagnosis of the running Mule."
+  "Display diagnosis of the multilingual environment (MULE).
+
+It prints various information related to the current multilingual
+environment, including lists of input methods, coding systems,
+character sets, and fontsets (if Emacs running under some window
+system)."
   (interactive)
-  (let ((buf (get-buffer-create "*Diagnosis*")))
+  (with-output-to-temp-buffer "*Mule-Diagnosis*"
     (save-excursion
-      (set-buffer buf)
-      (erase-buffer)
+      (set-buffer standard-output)
       (insert "\t###############################\n"
 	      "\t### Diagnosis of your Emacs ###\n"
 	      "\t###############################\n\n"
@@ -587,9 +677,9 @@ in addition, it prints list of coding category ordered by priority."
 	      "          Section 2.  Display\n"
 	      "          Section 3.  Input methods\n"
 	      "          Section 4.  Coding systems\n"
-	      "          Section 5.  Charsets\n")
+	      "          Section 5.  Character sets\n")
       (if window-system
-	  (insert "          Section 6.  Fontset list\n"))
+	  (insert "          Section 6.  Fontsets\n"))
       (insert "\n")
 
       (insert-section 1 "General Information")
@@ -615,59 +705,79 @@ in addition, it prints list of coding category ordered by priority."
 
       (insert-section 3 "Input methods")
       (save-excursion (list-input-methods))
-      (insert-buffer "*Help*")
-      (goto-char (point-max))
+      (insert-buffer-substring "*Help*")
       (insert "\n")
       (if default-input-method
 	  (insert "Default input method: %s\n" default-input-method)
 	(insert "No default input method is specified.\n"))
 
       (insert-section 4 "Coding systems")
-      (save-excursion (list-coding-systems))
-      (insert-buffer "*Help*")
-      (goto-char (point-max))
+      (save-excursion (list-coding-systems t))
+      (insert-buffer-substring "*Help*")
+      (list-coding-categories)
+      (insert-buffer-substring "*Help*")
       (insert "\n")
 
-      (insert-section 5 "Charsets")
-      (save-excursion (list-character-sets))
-      (insert-buffer "*Help*")
-      (goto-char (point-max))
+      (insert-section 5 "Character sets")
+      (list-character-sets t)
+      (insert-buffer-substring "*Help*")
       (insert "\n")
 
-      (if window-system
-	  (let ((fontsets (fontset-list)))
-	    (insert-section 6 "Fontset list")
-	    (while fontsets
-	      (describe-fontset (car fontsets))
-	      (insert-buffer "*Help*")
-	      (setq fontsets (cdr fontsets)))))
-
-      (set-buffer-modified-p nil)
-      )
-    (let ((win (display-buffer buf)))
-      (set-window-point win 1)
-      (set-window-start win 1))
-    ))
+      (when window-system
+	(insert-section 6 "Fontsets")
+	(list-fontsets t)
+	(insert-buffer-substring "*Help*"))
+      (help-mode))))
 
 
 ;;; DUMP DATA FILE
 
 ;;;###autoload
 (defun dump-charsets ()
-  "Dump information of all charsets into the file \"charsets.dat\"."
-  (list-character-sets)
-  (set-buffer (get-buffer "*Help*"))
-  (let (make-backup-files)
-    (write-region (point-min) (point-max) "charsets.dat"))
-  (kill-emacs))
+  "Dump information of all charsets into the file \"CHARSETS\".
+The file is saved in the directory `data-directory'."
+  (let ((file (expand-file-name "CHARSETS" data-directory))
+	buf)
+    (or (file-writable-p file)
+	(error "Can't write to file %s" file))
+    (setq buf (find-file-noselect file))
+    (save-window-excursion
+      (save-excursion
+	(set-buffer buf)
+	(setq buffer-read-only nil)
+	(erase-buffer)
+	(list-character-sets t)
+	(insert-buffer-substring "*Help*")
+	(let (make-backup-files
+	      coding-system-for-write)
+	  (save-buffer))))
+    (kill-buffer buf))
+  (if noninteractive
+      (kill-emacs)))
 
 ;;;###autoload
 (defun dump-codings ()
-  "Dump information of all coding systems into the file \"codings.dat\"."
-  (list-coding-systems)
-  (set-buffer (get-buffer "*Help*"))
-  (let (make-backup-files)
-    (write-region (point-min) (point-max) "codings.dat"))
-  (kill-emacs))
+  "Dump information of all coding systems into the file \"CODINGS\".
+The file is saved in the directory `data-directory'."
+  (let ((file (expand-file-name "CODINGS" data-directory))
+	buf)
+    (or (file-writable-p file)
+	(error "Can't write to file %s" file))
+    (setq buf (find-file-noselect file))
+    (save-window-excursion
+      (save-excursion
+	(set-buffer buf)
+	(setq buffer-read-only nil)
+	(erase-buffer)
+	(list-coding-systems t)
+	(insert-buffer-substring "*Help*")
+	(list-coding-categories)
+	(insert-buffer-substring "*Help*")
+	(let (make-backup-files
+	      coding-system-for-write)
+	  (save-buffer))))
+    (kill-buffer buf))
+  (if noninteractive
+      (kill-emacs)))
 
 ;;; mule-diag.el ends here
