@@ -2,13 +2,13 @@
 
 ;; Copyright (C) 1994, 1995, 1997 Free Software Foundation, Inc.
 
-;; Author: Noah Friedman <friedman@prep.ai.mit.edu>
-;; Maintainer: friedman@prep.ai.mit.edu
+;; Author: Noah Friedman
+;; Maintainer: Noah Friedman <friedman@splode.com>
 ;; Keywords: extensions, timers
 ;; Status: Works in GNU Emacs 19.25 or later, some versions of XEmacs
 ;; Created: 1994-07-13
 
-;; $Id: type-break.el,v 1.17 1998/05/15 05:20:58 rms Exp $
+;; $Id: type-break.el,v 1.18 1998/09/11 01:38:30 friedman Exp $
 
 ;; This file is part of GNU Emacs.
 
