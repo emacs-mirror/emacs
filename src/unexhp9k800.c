@@ -32,9 +32,9 @@
   conjunction with this routine, the following code must executed when
   the new process starts up.
   
-  void _sigreturn();
+  void _sigreturn ();
   ...
-  sigsetreturn(_sigreturn);
+  sigsetreturn (_sigreturn);
 */
 
 #include <stdio.h>
@@ -43,14 +43,13 @@
 
 #include <a.out.h>
 
-#define NBPG 2048
-#define roundup(x,n) ( ( (x)+(n-1) ) & ~(n-1) )  /* n is power of 2 */
-#define min(x,y)  ( ((x)<(y))?(x):(y) )
+#define roundup(x,n) (((x) + ((n) - 1)) & ~((n) - 1))  /* n is power of 2 */
+#define min(x,y)  (((x) < (y)) ? (x) : (y))
 
 
 /* Create a new a.out file, same as old but with current data space */
 
-unexec(new_name, old_name, new_end_of_text, dummy1, dummy2)
+unexec (new_name, old_name, new_end_of_text, dummy1, dummy2)
      char new_name[];		/* name of the new a.out file to be created */
      char old_name[];		/* name of the old a.out file */
      char *new_end_of_text;	/* ptr to new edata/etext; NOT USED YET */
@@ -70,15 +69,15 @@ unexec(new_name, old_name, new_end_of_text, dummy1, dummy2)
      intact.  NOT implemented.  */
   
   /* Open the input and output a.out files */
-  old = open(old_name, O_RDONLY);
+  old = open (old_name, O_RDONLY);
   if (old < 0)
-    { perror(old_name); exit(1); }
-  new = open(new_name, O_CREAT|O_RDWR|O_TRUNC, 0777);
+    { perror (old_name); exit (1); }
+  new = open (new_name, O_CREAT|O_RDWR|O_TRUNC, 0777);
   if (new < 0)
-    { perror(new_name); exit(1); }
+    { perror (new_name); exit (1); }
   
   /* Read the old headers */
-  read_header(old, &hdr, &auxhdr);
+  read_header (old, &hdr, &auxhdr);
   
   /* Decide how large the new and old data areas are */
   old_size = auxhdr.exec_dsize;
@@ -88,39 +87,39 @@ unexec(new_name, old_name, new_end_of_text, dummy1, dummy2)
   new_size = i - auxhdr.exec_dmem;
   
   /* Copy the old file to the new, up to the data space */
-  lseek(old, 0, 0);
-  copy_file(old, new, auxhdr.exec_dfile);
+  lseek (old, 0, 0);
+  copy_file (old, new, auxhdr.exec_dfile);
   
   /* Skip the old data segment and write a new one */
-  lseek(old, old_size, 1);
-  save_data_space(new, &hdr, &auxhdr, new_size);
+  lseek (old, old_size, 1);
+  save_data_space (new, &hdr, &auxhdr, new_size);
   
   /* Copy the rest of the file */
-  copy_rest(old, new);
+  copy_rest (old, new);
   
   /* Update file pointers since we probably changed size of data area */
-  update_file_ptrs(new, &hdr, &auxhdr, auxhdr.exec_dfile, new_size-old_size);
+  update_file_ptrs (new, &hdr, &auxhdr, auxhdr.exec_dfile, new_size-old_size);
   
   /* Save the modified header */
-  write_header(new, &hdr, &auxhdr);
+  write_header (new, &hdr, &auxhdr);
   
   /* Close the binary file */
-  close(old);
-  close(new);
+  close (old);
+  close (new);
   return 0;
 }
 
 /* Save current data space in the file, update header.  */
 
-save_data_space(file, hdr, auxhdr, size)
+save_data_space (file, hdr, auxhdr, size)
      int file;
      struct header *hdr;
      struct som_exec_auxhdr *auxhdr;
      int size;
 {
   /* Write the entire data space out to the file */
-  if (write(file, auxhdr->exec_dmem, size) != size)
-    { perror("Can't save new data space"); exit(1); }
+  if (write (file, auxhdr->exec_dmem, size) != size)
+    { perror ("Can't save new data space"); exit (1); }
   
   /* Update the header to reflect the new data size */
   auxhdr->exec_dsize = size;
@@ -129,7 +128,7 @@ save_data_space(file, hdr, auxhdr, size)
 
 /* Update the values of file pointers when something is inserted.  */
 
-update_file_ptrs(file, hdr, auxhdr, location, offset)
+update_file_ptrs (file, hdr, auxhdr, location, offset)
      int file;
      struct header *hdr;
      struct som_exec_auxhdr *auxhdr;
@@ -144,32 +143,32 @@ update_file_ptrs(file, hdr, auxhdr, location, offset)
   
   /* Update the various file pointers in the header */
 #define update(ptr) if (ptr > location) ptr = ptr + offset
-  update(hdr->aux_header_location);
-  update(hdr->space_strings_location);
-  update(hdr->init_array_location);
-  update(hdr->compiler_location);
-  update(hdr->symbol_location);
-  update(hdr->fixup_request_location);
-  update(hdr->symbol_strings_location);
-  update(hdr->unloadable_sp_location);
-  update(auxhdr->exec_tfile);
-  update(auxhdr->exec_dfile);
+  update (hdr->aux_header_location);
+  update (hdr->space_strings_location);
+  update (hdr->init_array_location);
+  update (hdr->compiler_location);
+  update (hdr->symbol_location);
+  update (hdr->fixup_request_location);
+  update (hdr->symbol_strings_location);
+  update (hdr->unloadable_sp_location);
+  update (auxhdr->exec_tfile);
+  update (auxhdr->exec_dfile);
   
   /* Do for each subspace dictionary entry */
-  lseek(file, hdr->subspace_location, 0);
+  lseek (file, hdr->subspace_location, 0);
   for (i = 0; i < hdr->subspace_total; i++)
     {
-      if (read(file, &subspace, sizeof(subspace)) != sizeof(subspace))
-	{ perror("Can't read subspace record"); exit(1); }
+      if (read (file, &subspace, sizeof (subspace)) != sizeof (subspace))
+	{ perror ("Can't read subspace record"); exit (1); }
       
       /* If subspace has a file location, update it */
       if (subspace.initialization_length > 0 
 	  && subspace.file_loc_init_value > location)
 	{
 	  subspace.file_loc_init_value += offset;
-	  lseek(file, -sizeof(subspace), 1);
-	  if (write(file, &subspace, sizeof(subspace)) != sizeof(subspace))
-	    { perror("Can't update subspace record"); exit(1); }
+	  lseek (file, -sizeof (subspace), 1);
+	  if (write (file, &subspace, sizeof (subspace)) != sizeof (subspace))
+	    { perror ("Can't update subspace record"); exit (1); }
 	}
     } 
   
@@ -180,69 +179,69 @@ update_file_ptrs(file, hdr, auxhdr, location, offset)
 
 /* Read in the header records from an a.out file.  */
 
-read_header(file, hdr, auxhdr)
+read_header (file, hdr, auxhdr)
      int file;
      struct header *hdr;
      struct som_exec_auxhdr *auxhdr;
 {
   
   /* Read the header in */
-  lseek(file, 0, 0);
-  if (read(file, hdr, sizeof(*hdr)) != sizeof(*hdr))
-    { perror("Couldn't read header from a.out file"); exit(1); }
+  lseek (file, 0, 0);
+  if (read (file, hdr, sizeof (*hdr)) != sizeof (*hdr))
+    { perror ("Couldn't read header from a.out file"); exit (1); }
   
   if (hdr->a_magic != EXEC_MAGIC && hdr->a_magic != SHARE_MAGIC
       &&  hdr->a_magic != DEMAND_MAGIC)
     {
-      fprintf(stderr, "a.out file doesn't have legal magic number\n"); 
-      exit(1);  
+      fprintf (stderr, "a.out file doesn't have legal magic number\n"); 
+      exit (1);  
     }
   
-  lseek(file, hdr->aux_header_location, 0);
-  if (read(file, auxhdr, sizeof(*auxhdr)) != sizeof(*auxhdr))
+  lseek (file, hdr->aux_header_location, 0);
+  if (read (file, auxhdr, sizeof (*auxhdr)) != sizeof (*auxhdr))
     {
-      perror("Couldn't read auxiliary header from a.out file");
-      exit(1);
+      perror ("Couldn't read auxiliary header from a.out file");
+      exit (1);
     }  
 }
 
 /* Write out the header records into an a.out file.  */
 
-write_header(file, hdr, auxhdr)
+write_header (file, hdr, auxhdr)
      int file;
      struct header *hdr;
      struct som_exec_auxhdr *auxhdr;
 {
   /* Update the checksum */
-  hdr->checksum = calculate_checksum(hdr);
+  hdr->checksum = calculate_checksum (hdr);
   
   /* Write the header back into the a.out file */
-  lseek(file, 0, 0);
-  if (write(file, hdr, sizeof(*hdr)) != sizeof(*hdr))
-    { perror("Couldn't write header to a.out file"); exit(1); }
-  lseek(file, hdr->aux_header_location, 0);
-  if (write(file, auxhdr, sizeof(*auxhdr)) != sizeof(*auxhdr))
-    { perror("Couldn't write auxiliary header to a.out file"); exit(1); }
+  lseek (file, 0, 0);
+  if (write (file, hdr, sizeof (*hdr)) != sizeof (*hdr))
+    { perror ("Couldn't write header to a.out file"); exit (1); }
+  lseek (file, hdr->aux_header_location, 0);
+  if (write (file, auxhdr, sizeof (*auxhdr)) != sizeof (*auxhdr))
+    { perror ("Couldn't write auxiliary header to a.out file"); exit (1); }
 }
 
 /* Calculate the checksum of a SOM header record. */
 
-calculate_checksum(hdr)
+calculate_checksum (hdr)
      struct header *hdr;
 {
   int checksum, i, *ptr;
   
   checksum = 0;  ptr = (int *) hdr;
   
-  for (i=0; i<sizeof(*hdr)/sizeof(int)-1; i++)
+  for (i = 0; i < sizeof (*hdr) / sizeof (int) - 1; i++)
     checksum ^= ptr[i];
   
-  return(checksum);
+  return (checksum);
 }
 
 /* Copy size bytes from the old file to the new one.  */
 
-copy_file(old, new, size)
+copy_file (old, new, size)
      int new, old;
      int size;
 {
@@ -251,47 +250,47 @@ copy_file(old, new, size)
   
   for (; size > 0; size -= len)
     {
-      len = min(size, sizeof(buffer));
-      if (read(old, buffer, len) != len)
-	{ perror("Read failure on a.out file"); exit(1); }
-      if (write(new, buffer, len) != len)
-	{ perror("Write failure in a.out file"); exit(1); }
+      len = min (size, sizeof (buffer));
+      if (read (old, buffer, len) != len)
+	{ perror ("Read failure on a.out file"); exit (1); }
+      if (write (new, buffer, len) != len)
+	{ perror ("Write failure in a.out file"); exit (1); }
     }
 }
 
 /* Copy the rest of the file, up to EOF.  */
 
-copy_rest(old, new)
+copy_rest (old, new)
      int new, old;
 {
   int buffer[4096];
   int len;
   
   /* Copy bytes until end of file or error */
-  while ( (len = read(old, buffer, sizeof(buffer))) > 0)
-    if (write(new, buffer, len) != len) break;
+  while ((len = read (old, buffer, sizeof (buffer))) > 0)
+    if (write (new, buffer, len) != len) break;
   
   if (len != 0)
-    { perror("Unable to copy the rest of the file"); exit(1); }
+    { perror ("Unable to copy the rest of the file"); exit (1); }
 }
 
 #ifdef	DEBUG
-display_header(hdr, auxhdr)
+display_header (hdr, auxhdr)
      struct header *hdr;
      struct som_exec_auxhdr *auxhdr;
 {
   /* Display the header information (debug) */
-  printf("\n\nFILE HEADER\n");
-  printf("magic number %d \n", hdr->a_magic); 
-  printf("text loc %.8x   size %d \n", auxhdr->exec_tmem, auxhdr->exec_tsize);
-  printf("data loc %.8x   size %d \n", auxhdr->exec_dmem, auxhdr->exec_dsize);
-  printf("entry     %x \n",   auxhdr->exec_entry);
-  printf("Bss  segment size %u\n", auxhdr->exec_bsize);
-  printf("\n");
-  printf("data file loc %d    size %d\n",
-	 auxhdr->exec_dfile, auxhdr->exec_dsize);
-  printf("som_length %d\n", hdr->som_length);
-  printf("unloadable sploc %d    size %d\n",
-	 hdr->unloadable_sp_location, hdr->unloadable_sp_size);
+  printf ("\n\nFILE HEADER\n");
+  printf ("magic number %d \n", hdr->a_magic); 
+  printf ("text loc %.8x   size %d \n", auxhdr->exec_tmem, auxhdr->exec_tsize);
+  printf ("data loc %.8x   size %d \n", auxhdr->exec_dmem, auxhdr->exec_dsize);
+  printf ("entry     %x \n",   auxhdr->exec_entry);
+  printf ("Bss  segment size %u\n", auxhdr->exec_bsize);
+  printf ("\n");
+  printf ("data file loc %d    size %d\n",
+	  auxhdr->exec_dfile, auxhdr->exec_dsize);
+  printf ("som_length %d\n", hdr->som_length);
+  printf ("unloadable sploc %d    size %d\n",
+	  hdr->unloadable_sp_location, hdr->unloadable_sp_size);
 }
 #endif /* DEBUG */
