@@ -1,6 +1,6 @@
-;;; latin-2.el --- set up case-conversion and syntax tables for ISO 8859-2
-;;;                   (ISO latin2, i.e. Eastern European character sets)
-;; Copyright (C) 1995 Free Software Foundation, Inc.
+;;; latin-2.el --- set up case-conversion and syntax tables for ISO Latin-2
+
+;; Copyright (C) 1995,1997 Free Software Foundation, Inc.
 
 ;; Author: Michael Gschwind (mike@vlsivie.tuwien.ac.at)
 ;; Maintainer: FSF
@@ -27,73 +27,73 @@
 ;;; Commentary:
 
 ;; Written by Michael Gschwind.  See case-table.el for details.
+;; Updated by Erik Naggum.
 
 ;;; Code:
 
 (require 'case-table)
 
-(let ((downcase (standard-case-table))
+(let ((tbl (standard-case-table))
       (set-case-syntax-offset
        (if set-case-syntax-set-multibyte
 	   (- (make-char 'latin-iso8859-2) 128)
 	 0)))
-  (set-case-syntax 160 " " downcase)	  ; NBSP (no-break space)
-  (set-case-syntax-pair 161 177 downcase) ; A with hook
-  (set-case-syntax 162 "w" downcase)	  ; u accent
-  (set-case-syntax-pair 163 179 downcase) ; L with slash
-  (set-case-syntax 164 "w" downcase)	  ; general currency sign
-  (set-case-syntax-pair 165 181 downcase) ; L with v
-  (set-case-syntax-pair 166 182 downcase) ; S with acute accent
-  (set-case-syntax 167 "." downcase)	  ; section sign
-  (set-case-syntax 168 "w" downcase)	  ; diaeresis
-  (set-case-syntax-pair 169 185 downcase) ; S with v
-  (set-case-syntax-pair 170 186 downcase) ; S with cedilla
-  (set-case-syntax-pair 171 187 downcase) ; T with v
-  (set-case-syntax-pair 172 188 downcase) ; Z with acute accent
-  (set-case-syntax 173 "_" downcase)	  ; soft hyphen
-  (set-case-syntax-pair 174 190 downcase) ; Z with v
-  (set-case-syntax-pair 175 191 downcase) ; Z with dot
-  (set-case-syntax 176 "_" downcase)	; degree sign
-  (set-case-syntax 178 "w" downcase)	; hook accent
-  (set-case-syntax 180 "w" downcase)	; acute accent
-  (set-case-syntax 183 "_" downcase)	; v accent
-  (set-case-syntax 184 "w" downcase)	; cedilla
-  (set-case-syntax 189 "w" downcase)	; Hungarian '' accent
-  (set-case-syntax-pair 192 224 downcase) ; R with acute accent
-  (set-case-syntax-pair 193 225 downcase) ; A with acute accent
-  (set-case-syntax-pair 194 226 downcase) ; A with circumflex accent
-  (set-case-syntax-pair 195 227 downcase) ; A with u accent
-  (set-case-syntax-pair 196 228 downcase) ; A with diaeresis or umlaut mark
-  (set-case-syntax-pair 197 229 downcase) ; L with acute accent
-  (set-case-syntax-pair 198 230 downcase) ; C with acute accent
-  (set-case-syntax-pair 199 231 downcase) ; C with cedilla
-  (set-case-syntax-pair 200 232 downcase) ; C with v accent
-  (set-case-syntax-pair 201 233 downcase) ; E with acute accent
-  (set-case-syntax-pair 202 234 downcase) ; E with hook
-  (set-case-syntax-pair 203 235 downcase) ; E with diaeresis 
-  (set-case-syntax-pair 204 236 downcase) ; E with v accent
-  (set-case-syntax-pair 205 237 downcase) ; I with acute accent
-  (set-case-syntax-pair 206 238 downcase) ; I with circumflex accent
-  (set-case-syntax-pair 207 239 downcase) ; D with v accent
-  (set-case-syntax-pair 208 240 downcase) ; D with stroke
-  (set-case-syntax-pair 209 241 downcase) ; N with acute accent
-  (set-case-syntax-pair 210 242 downcase) ; N with v accent
-  (set-case-syntax-pair 211 243 downcase) ; O with acute accent
-  (set-case-syntax-pair 212 244 downcase) ; O with circumflex accent
-  (set-case-syntax-pair 213 245 downcase) ; O with Hungarian accent
-  (set-case-syntax-pair 214 246 downcase) ; O with diaeresis or umlaut mark
-  (set-case-syntax 215 "_" downcase)	; multiplication sign
-  (set-case-syntax-pair 216 248 downcase) ; R with v accent
-  (set-case-syntax-pair 217 249 downcase) ; U with ring
-  (set-case-syntax-pair 218 250 downcase) ; U with acute accent
-  (set-case-syntax-pair 219 251 downcase) ; U with Hungaraian accent
-  (set-case-syntax-pair 220 252 downcase) ; U with diaeresis or umlaut mark
-  (set-case-syntax-pair 221 253 downcase) ; Y with acute accent
-  (set-case-syntax-pair 222 254 downcase) ; T with hook
-  (set-case-syntax 223 "w" downcase)	; small sharp s, German
-  (set-case-syntax 247 "_" downcase)	; division sign
-  (set-case-syntax 255 "w" downcase)	; dot accent
-)
+  (set-case-syntax 160 " " tbl)		;no-break space
+  (set-case-syntax-pair 161 177 tbl)	;latin letter a with ogonek
+  (set-case-syntax 162 "w" tbl)		;breve
+  (set-case-syntax-pair 163 179 tbl)	;latin letter l with stroke
+  (set-case-syntax 164 "w" tbl)		;currency sign
+  (set-case-syntax-pair 165 181 tbl)	;latin letter l with caron
+  (set-case-syntax-pair 166 182 tbl)	;latin letter s with acute
+  (set-case-syntax 167 "." tbl)		;section sign
+  (set-case-syntax 168 "w" tbl)		;diaeresis
+  (set-case-syntax-pair 169 185 tbl)	;latin letter s with caron
+  (set-case-syntax-pair 170 186 tbl)	;latin letter s with cedilla
+  (set-case-syntax-pair 171 187 tbl)	;latin letter t with caron
+  (set-case-syntax-pair 172 188 tbl)	;latin letter z with acute
+  (set-case-syntax 173 "w" tbl)		;soft hyphen
+  (set-case-syntax-pair 174 190 tbl)	;latin letter z with caron
+  (set-case-syntax-pair 175 191 tbl)	;latin letter z with dot above
+  (set-case-syntax 176 "_" tbl)		;degree sign
+  (set-case-syntax 178 "w" tbl)		;ogonek
+  (set-case-syntax 180 "w" tbl)		;acute accent
+  (set-case-syntax 183 "_" tbl)		;caron
+  (set-case-syntax 184 "w" tbl)		;cedilla
+  (set-case-syntax 189 "w" tbl)		;double acute accent
+  (set-case-syntax-pair 192 224 tbl)	;latin letter r with acute
+  (set-case-syntax-pair 193 225 tbl)	;latin letter a with acute
+  (set-case-syntax-pair 194 226 tbl)	;latin letter a with circumflex
+  (set-case-syntax-pair 195 227 tbl)	;latin letter a with breve
+  (set-case-syntax-pair 196 228 tbl)	;latin letter a with diaeresis
+  (set-case-syntax-pair 197 229 tbl)	;latin letter l with acute
+  (set-case-syntax-pair 198 230 tbl)	;latin letter c with acute
+  (set-case-syntax-pair 199 231 tbl)	;latin letter c with cedilla
+  (set-case-syntax-pair 200 232 tbl)	;latin letter c with caron
+  (set-case-syntax-pair 201 233 tbl)	;latin letter e with acute
+  (set-case-syntax-pair 202 234 tbl)	;latin letter e with ogonek
+  (set-case-syntax-pair 203 235 tbl)	;latin letter e with diaeresis
+  (set-case-syntax-pair 204 236 tbl)	;latin letter e with caron
+  (set-case-syntax-pair 205 237 tbl)	;latin letter i with acute
+  (set-case-syntax-pair 206 238 tbl)	;latin letter i with circumflex
+  (set-case-syntax-pair 207 239 tbl)	;latin letter d with caron
+  (set-case-syntax-pair 208 240 tbl)	;latin letter d with stroke
+  (set-case-syntax-pair 209 241 tbl)	;latin letter n with acute
+  (set-case-syntax-pair 210 242 tbl)	;latin letter n with caron
+  (set-case-syntax-pair 211 243 tbl)	;latin letter o with acute
+  (set-case-syntax-pair 212 244 tbl)	;latin letter o with circumflex
+  (set-case-syntax-pair 213 245 tbl)	;latin letter o with double acute
+  (set-case-syntax-pair 214 246 tbl)	;latin letter o with diaeresis
+  (set-case-syntax 215 "_" tbl)		;multiplication sign
+  (set-case-syntax-pair 216 248 tbl)	;latin letter r with caron
+  (set-case-syntax-pair 217 249 tbl)	;latin letter u with ring above
+  (set-case-syntax-pair 218 250 tbl)	;latin letter u with acute
+  (set-case-syntax-pair 219 251 tbl)	;latin letter u with double acute
+  (set-case-syntax-pair 220 252 tbl)	;latin letter u with diaeresis
+  (set-case-syntax-pair 221 253 tbl)	;latin letter y with acute
+  (set-case-syntax-pair 222 254 tbl)	;latin letter t with cedilla
+  (set-case-syntax 223 "w" tbl)		;latin small letter sharp s
+  (set-case-syntax 247 "_" tbl)		;division sign
+  (set-case-syntax 255 "w" tbl))	;dot above
 
 ;; When preloading this file, don't provide the feature.
 ;; Explicit `require' is used to load this for 8-bit characters.
