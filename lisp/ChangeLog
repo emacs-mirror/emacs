@@ -1,3 +1,9 @@
+2003-04-26  John Paul Wallington  <jpw@gnu.org>
+
+	* ibuffer.el (ibuffer-name-map, ibuffer-mode-name-map)
+	(ibuffer-mode-filter-group-map): Initialize in `defvar'.
+	(ibuffer-do-view-1): Use `make-frame' instead of `new-frame'.
+
 2003-04-25  Karl Berry  <karl@gnu.org>
 
 	Installed this change:
