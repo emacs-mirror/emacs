@@ -492,11 +492,13 @@ of the special key bindings of Shell mode:
 @item @key{RET}
 @kindex RET @r{(Shell mode)}
 @findex comint-send-input
+@vindex comint-use-prompt-regexp-instead-of-fields
+@cindex prompt, shell
 At end of buffer send line as input; otherwise, copy current line to end
 of buffer and send it (@code{comint-send-input}).  When a line is
-copied, any text at the beginning of the line that matches the variable
-@code{shell-prompt-pattern} is left out; this variable's value should be
-a regexp string that matches the prompts that your shell uses.
+copied, any prompt is left out (where the prompt is the part of the line
+that was not input by the user; see also
+@code{comint-use-prompt-regexp-instead-of-fields}).
 
 @item @key{TAB}
 @kindex TAB @r{(Shell mode)}
@@ -677,9 +679,8 @@ command plus the output that follows it in the buffer.
   Shell mode is a derivative of Comint mode, a general-purpose mode for
 communicating with interactive subprocesses.  Most of the features of
 Shell mode actually come from Comint mode, as you can see from the
-command names listed above.  The special features of Shell mode in
-particular include the choice of regular expression for detecting
-prompts, the directory tracking feature, and a few user commands.
+command names listed above.  The special features of Shell mode include
+the directory tracking feature, and a few user commands.
 
   Other Emacs features that use variants of Comint mode include GUD
 (@pxref{Debuggers}) and @kbd{M-x run-lisp} (@pxref{External Lisp}).
@@ -822,12 +823,17 @@ then resubmit the command to the shell by typing @key{RET}.
 
 @vindex shell-prompt-pattern
 @vindex comint-prompt-regexp
+@vindex comint-use-prompt-regexp-instead-of-fields
+@cindex prompt, shell
   History references take effect only following a shell prompt.  The
+prompt is defined to be any text not input by the user, unless the
+variable @code{comint-use-prompt-regexp-instead-of-fields} is
+non-@code{nil} (the default value is @code{nil}).  When
+@code{comint-use-prompt-regexp-instead-of-fields} is non-@code{nil}, the
 variable @code{shell-prompt-pattern} specifies how to recognize a shell
-prompt.  Comint modes in general use the variable
-@code{comint-prompt-regexp} to specify how to find a prompt; Shell mode
-uses @code{shell-prompt-pattern} to set up the local value of
-@code{comint-prompt-regexp}.
+prompt, and comint modes in general use the variable
+@code{comint-prompt-regexp} (shell mode uses @code{shell-prompt-pattern}
+to set up the local value of @code{comint-prompt-regexp}).
 
 @vindex comint-input-autoexpand
   Shell mode can optionally expand history references in the buffer when
