@@ -321,6 +321,9 @@ Lisp_Object Vlatin_extra_code_table;
 /* Flag to inhibit code conversion of end-of-line format.  */
 int inhibit_eol_conversion;
 
+/* Flag to make buffer-file-coding-system inherit from process-coding.  */
+int inherit_process_coding_system;
+
 /* Coding system to be used to encode text for terminal display.  */
 struct coding_system terminal_coding;
 
@@ -5189,6 +5192,12 @@ There are three such tables, `file-coding-system-alist',\n\
   DEFVAR_BOOL ("inhibit-eol-conversion", &inhibit_eol_conversion,
     "*Non-nil inhibit code conversion of end-of-line format in any cases.");
   inhibit_eol_conversion = 0;
+
+  DEFVAR_BOOL ("inherit-process-coding-system", &inherit_process_coding_system,
+    "Non-nil means process buffer inherits coding system of process output.\n\
+Bind it to t if the process output is to be treated as if it were a file\n\
+read from some filesystem.");
+  inherit_process_coding_system = 0;
 
   DEFVAR_LISP ("file-coding-system-alist", &Vfile_coding_system_alist,
     "Alist to decide a coding system to use for a file I/O operation.\n\
