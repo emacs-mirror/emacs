@@ -18,6 +18,7 @@ obj
 profile
 sorted-doc
 test-distrib
+update-game-score
 yow
 Makefile
 *-spd
