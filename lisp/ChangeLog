@@ -17,6 +17,11 @@
 	* emulation/tpu-extras.el (tpu-forward-line): Use
 	forward-visible-line.
 	
+2000-11-30  Edward M. Reingold  <reingold@emr.cs.uiuc.edu>
+
+	* calendar/diary-lib.el (diary-entry-time): Anchor pattern correctly
+	and skip whitespace and newlines.
+	
 2000-11-30  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/cl.el (third...tenth): Really undo change of 2000-08-05.
