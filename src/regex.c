@@ -3856,8 +3856,10 @@ re_search_2 (bufp, string1, size1, string2, size2, startpos, range, regs, stop)
 	  /* Update STARTPOS to the next character boundary.  */
 	  if (multibyte)
 	    {
-	      const unsigned char *p = POS_ADDR_VSTRING (startpos);
-	      const unsigned char *pend = STOP_ADDR_VSTRING (startpos);
+	      const unsigned char *p
+		= (const unsigned char *) POS_ADDR_VSTRING (startpos);
+	      const unsigned char *pend
+		= (const unsigned char *) STOP_ADDR_VSTRING (startpos);
 	      int len = MULTIBYTE_FORM_LENGTH (p, pend - p);
 
 	      range -= len;
@@ -3867,9 +3869,9 @@ re_search_2 (bufp, string1, size1, string2, size2, startpos, range, regs, stop)
 	    }
 	  else
 	    {
-	  range--;
-	  startpos++;
-	}
+	      range--;
+	      startpos++;
+	    }
 	}
       else
 	{
@@ -3879,7 +3881,8 @@ re_search_2 (bufp, string1, size1, string2, size2, startpos, range, regs, stop)
 	  /* Update STARTPOS to the previous character boundary.  */
 	  if (multibyte)
 	    {
-	      const unsigned char *p = POS_ADDR_VSTRING (startpos);
+	      const unsigned char *p
+		= (const unsigned char *) POS_ADDR_VSTRING (startpos);
 	      int len = 0;
 
 	      /* Find the head of multibyte form.  */
