@@ -1,3 +1,8 @@
+2004-04-23  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-util.el (char-displayable-p): Simplified by
+	using internal-char-font.
+
 2004-04-23  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in: Add "-*- makefile -*-" mode tag.

@@ -1,3 +1,8 @@
+2004-04-23  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (Finternal_char_font): If POSITION is nil, return
+	font for displaying CH with the default face.
+
 2004-04-23  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in: Add "-*- makefile -*-" mode tag.
