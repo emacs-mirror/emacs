@@ -452,6 +452,8 @@ subexpression.")
   '(
     ;; Matches lines printed by the `-w' option of GNU Make.
     (".*: Entering directory `\\(.*\\)'$" 1)
+    ;; Matches lines made by Emacs byte compiler.
+    ("^Entering directory `\\(.*\\)'$" 1)
     )
   "Alist specifying how to match lines that indicate a new current directory.
 Note that the match is done at the beginning of lines.
@@ -464,6 +466,8 @@ The default value matches lines printed by the `-w' option of GNU Make.")
   '(
     ;; Matches lines printed by the `-w' option of GNU Make.
     (".*: Leaving directory `\\(.*\\)'$" 1)
+    ;; Matches lines made by Emacs byte compiler.
+    ("^Leaving directory `\\(.*\\)'$" 1)
     )
 "Alist specifying how to match lines that indicate restoring current directory.
 Note that the match is done at the beginning of lines.
