@@ -1035,7 +1035,7 @@ Prompt with PROMPT.  */)
 DEFUN ("read-variable", Fread_variable, Sread_variable, 1, 2, 0,
        doc: /* Read the name of a user variable and return it as a symbol.
 Prompt with PROMPT.  By default, return DEFAULT-VALUE.
-A user variable is one whose documentation starts with a `*' character.  */)
+A user variable is one for which `user-variable-p' returns non-nil.  */)
      (prompt, default_value)
      Lisp_Object prompt, default_value;
 {
