@@ -121,6 +121,9 @@ man1dir=$(mandir)/man1
 # system, it is inappropriate to imply that it is part of Emacs.
 infodir=@infodir@
 
+# Directory for local state files for all programs.
+localstatedir=@localstatedir@
+
 # Where to look for bitmap files.
 bitmapdir=@bitmapdir@
 
@@ -190,6 +193,9 @@ archlibdir=@archlibdir@
 # Where to put the docstring file.
 docdir=@docdir@
 
+# Where to install Emacs game score files.
+gamedir=@gamedir@
+
 # ==================== Utility Programs for the Build ====================
 
 # Allow the user to specify the install program.
@@ -238,6 +244,7 @@ epaths-force: FRC
 	@(lisppath=`echo ${lisppath} | ${removenullpaths}` ;		\
 	  buildlisppath=`echo ${buildlisppath} | ${removenullpaths}` ;	\
 	  x_default_search_path=`echo ${x_default_search_path}`; \
+	  gamedir=`echo ${gamedir}`; \
 	  sed < ${srcdir}/src/epaths.in > epaths.h.$$$$		\
 	  -e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "'$${lisppath}'";'	\
 	  -e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "'$${buildlisppath}'";' \
@@ -246,6 +253,7 @@ epaths-force: FRC
 	  -e 's;\(#.*PATH_DATA\).*$$;\1 "${etcdir}";'			\
 	  -e 's;\(#.*PATH_BITMAPS\).*$$;\1 "${bitmapdir}";'		\
 	  -e 's;\(#.*PATH_X_DEFAULTS\).*$$;\1 "${x_default_search_path}";' \
+	  -e 's;\(#.*PATH_GAME\).*$$;\1 "${gamedir}";' \
 	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";') &&		\
 	${srcdir}/move-if-change epaths.h.$$$$ src/epaths.h
 
