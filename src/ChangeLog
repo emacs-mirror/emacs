@@ -1,3 +1,17 @@
+2000-06-20  Kenichi Handa  <handa@etl.go.jp>
+
+	* xfaces.c (font_list): Handle the case that REGISTRY doesn't
+	contain information about ENCODING.
+
+	* fontset.c (FONTSET_ASCII): Use the first element of char table
+	for an ASCII font, not defalt slot.
+	(fontset_ref_via_base): If FONTSET doesn't contain information for
+	C, try the default fontset.
+	(make_fontset): Don't copy the default fontset.
+	(fontset_font_pattern): Likewise.
+	(accumulate_font_info): If ELT is nil, use the corresponding
+	element in the default fontset.
+
 2000-06-19  Dave Love  <fx@gnu.org>
 
 	* syntax.c (Fparse_partial_sexp): Doc fix.
