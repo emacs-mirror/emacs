@@ -15,7 +15,7 @@
 ;; editing a text file in some arcane syntax is user hostile in the
 ;; extreme, and to most users emacs lisp definitely count as arcane.
 ;;
-;; The intension is that authors of emacs lisp packages declare the
+;; The intent is that authors of emacs lisp packages declare the
 ;; variables intended for user customization with `custom-declare'.
 ;; Custom can then automatically generate a customization buffer with
 ;; `custom-buffer-create' where the user can edit the package
@@ -46,7 +46,7 @@
 ;; - Make it possible to declare default value and type for a single
 ;;   variable, storing the data in a symbol property.
 ;; - Syntactic sugar for CUSTOM declarations.
-;; - Use W3 for variable documenation.
+;; - Use W3 for variable documentation.
 
 ;;; Code:
 
@@ -244,12 +244,12 @@ If called interactively, prompts for a face and face attributes."
 				       (> emacs-minor-version 28))))
 			 (setq intangible 'intangible)
 		       (setq intangible 'intangible-if-it-had-been-working))
-  "The symbol making text intangible")
+  "The symbol making text intangible.")
 
 (defconst rear-nonsticky (if (string-match "XEmacs" emacs-version)
 			     'end-open
 			   'rear-nonsticky)
-  "The symbol making text proeprties non-sticky in the rear end.")
+  "The symbol making text properties non-sticky in the rear end.")
 
 (defconst front-sticky (if (string-match "XEmacs" emacs-version)
 			   'front-closed
@@ -394,14 +394,14 @@ If called interactively, prompts for a face and face attributes."
 ;; The following functions are part of the public interface to the
 ;; CUSTOM datastructure.  Each CUSTOM describes a group of variables,
 ;; a single variable, or a component of a structured variable.  The
-;; CUSTOM instances are part of two hiearachies, the first is the
+;; CUSTOM instances are part of two hierarchies, the first is the
 ;; `part-of' hierarchy in which each CUSTOM is a component of another
 ;; CUSTOM, except for the top level CUSTOM which is contained in
-;; `custom-data'.  The second hiearachy is a `is-a' type hierarchy
+;; `custom-data'.  The second hierarchy is a `is-a' type hierarchy
 ;; where each CUSTOM is a leaf in the hierarchy defined by the `type'
 ;; property and `custom-type-properties'.
 
-(defvar custom-file "~/.custom.el"
+(defvar custom-file (convert-standard-filename "~/.custom.el")
   "Name of file with customization information.")
 
 (defconst custom-data
@@ -729,7 +729,7 @@ Entries in this list take precedence over `custom-type-properties'.")
     (cdr entry)))
 
 (defun custom-property-set (custom property value)
-  "Set CUSTOM PROPERY to VALUE by side effect.
+  "Set CUSTOM PROPERTY to VALUE by side effect.
 CUSTOM must have at least one property already."
   (let ((entry (assq property custom)))
     (if entry
@@ -878,7 +878,7 @@ position of the error, and the cdr is a text describing the error."
 ;; FIELD datatype.  The FIELD instance hold information about a
 ;; specific editing field in the customization buffer.
 ;;
-;; Each FIELD can be seen as an instanciation of a CUSTOM.
+;; Each FIELD can be seen as an instantiation of a CUSTOM.
 
 (defvar custom-field-last nil)
 ;; Last field containing point.
@@ -937,7 +937,7 @@ START and END are markers to the start and end of the field."
 
 (defun custom-field-accept (field value &optional original)
   "Store a new value into field FIELD, taking it from VALUE.
-If optional ORIGINAL is non-nil, concider VALUE for the original value."
+If optional ORIGINAL is non-nil, consider VALUE for the original value."
   (let ((inhibit-point-motion-hooks t))
     (funcall (custom-property (custom-field-custom field) 'accept) 
 	     field value original)))
@@ -1100,7 +1100,7 @@ If optional ORIGINAL is non-nil, concider VALUE for the original value."
     (cons (nreverse matches) values)))
 
 (defun custom-repeat-extract (custom field)
-  "Extract list of childrens values."
+  "Extract list of children's values."
   (let ((values (custom-field-value field))
 	(data (custom-data custom))
 	result)
@@ -1147,7 +1147,7 @@ If optional ORIGINAL is non-nil, concider VALUE for the original value."
     (custom-default-quote custom value)))
 
 (defun custom-pair-extract (custom field)
-  "Extract cons of childrens values."
+  "Extract cons of children's values."
   (let ((values (custom-field-value field))
 	(data (custom-data custom))
 	result)
@@ -1168,7 +1168,7 @@ If optional ORIGINAL is non-nil, concider VALUE for the original value."
     (custom-default-quote custom value)))
 
 (defun custom-list-extract (custom field)
-  "Extract list of childrens values."
+  "Extract list of children's values."
   (let ((values (custom-field-value field))
 	(data (custom-data custom))
 	result)
@@ -1373,12 +1373,12 @@ If optional ORIGINAL is non-nil, concider VALUE for the original value."
       (custom-field-move field from end))))
 
 (defun custom-choice-extract (custom field)
-  "Extract childs value."
+  "Extract child's value."
   (let ((value (custom-field-value field)))
     (custom-field-extract (custom-field-custom value) value)))
 
 (defun custom-choice-validate (custom field)
-  "Validate childs value."
+  "Validate child's value."
   (let ((value (custom-field-value field))
 	(custom (custom-field-custom field)))
     (if (or (eq value custom-nil)
@@ -1666,7 +1666,7 @@ FG BG STIPPLE BOLD ITALIC UNDERLINE"
     (cond ((eq value custom-nil)
 	   (cons start "Uninitialized field"))
 	  ((and (consp value) (eq (car value) custom-invalid))
-	   (cons start "Unparseable field content"))
+	   (cons start "Unparsable field content"))
 	  ((custom-valid custom value)
 	   nil)
 	  (t
@@ -1830,7 +1830,7 @@ If the optional argument SAVE is non-nil, use that for saving changes."
 ;; The Customization major mode and interactive commands. 
 
 (defvar custom-mode-map nil
-  "Keymap for Custum Mode.")
+  "Keymap for Custom Mode.")
 (if custom-mode-map
     nil
   (setq custom-mode-map (make-sparse-keymap))
