@@ -612,7 +612,7 @@ level to check it in under.  COMMENT, if specified, is the checkin comment."
   (vc-backend-steal file version)
   (if (get-file-buffer file)
       (save-excursion
-	(set-buffer (get-buffer-file file))
+	(set-buffer (get-file-buffer file))
 	(vc-resynch-window file t t))))
 
 (defun vc-checkin (file &optional rev comment)
