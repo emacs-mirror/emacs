@@ -1,5 +1,8 @@
 2000-05-22  Kenichi Handa  <handa@etl.go.jp>
 
+	* keyboard.c (read_char): Allow character codes 128..255 to be
+	handled by input-method-function.
+
 	* insdel.c (adjust_markers_for_replace): Fix previous change.
 	(adjust_after_replace): If PREV_TEXT is nil, call
 	adjust_markers_for_insert, not adjust_markers_for_replace.
