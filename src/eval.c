@@ -1836,11 +1836,7 @@ To make a hook variable buffer-local, use `make-local-hook', not\n\
   Lisp_Object sym, val;
 
   sym = args[0];
-  CHECK_SYMBOL (sym, 0);
-  val = XSYMBOL (sym)->value;
-  if (BUFFER_LOCAL_VALUEP (val)
-      || SOME_BUFFER_LOCAL_VALUEP (val))
-    val = swap_in_symval_forwarding (sym, val);
+  val = find_symbol_value (sym);
   if (EQ (val, Qunbound) || NILP (val))
     return Qnil;
   else if (!CONSP (val) || EQ (XCONS (val)->car, Qlambda))
