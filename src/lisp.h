@@ -1803,6 +1803,7 @@ extern void init_display P_ ((void));
 extern void syms_of_display P_ ((void));
 
 /* Defined in xdisp.c */
+extern Lisp_Object Qinhibit_redisplay;
 extern Lisp_Object Vmessage_log_max;
 extern int message_enable_multibyte;
 extern void message P_ ((/* char *, ... */));
