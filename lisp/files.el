@@ -1438,7 +1438,7 @@ Remember to delete the initial contents of the minibuffer
 if you wish to pass an empty string as the argument.
 
 The optional second argument NO-QUERY, if non-nil, inhibits asking for
-confirmation in the case where the file FILENAME already exists."
+confirmation in the case where another buffer is already visiting FILENAME."
   (interactive "FSet visited file name: ")
   (if (buffer-base-buffer)
       (error "An indirect buffer cannot visit a file"))
@@ -1553,7 +1553,7 @@ Interactively, confirmation is required unless you supply a prefix argument."
 	     (file-exists-p filename)
 	     (or (y-or-n-p (format "File `%s' exists; overwrite? " filename))
 		 (error "Canceled")))
-	(set-visited-file-name filename)))
+	(set-visited-file-name filename (not confirm))))
   (set-buffer-modified-p t)
   (save-buffer))
 
