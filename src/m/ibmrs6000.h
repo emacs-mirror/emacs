@@ -131,6 +131,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef NEED_PTEM_H
 
 #define ORDINARY_LINK
+/* sfreed@unm.edu says add -bI:/usr/lpp/X11/bin/smt.exp for AIX 3.2.4.  */
 #define LD_SWITCH_MACHINE -Wl,-bnso,-bnodelcsect,-bI:/lib/syscalls.exp,-bI:/usr/lpp/X11/bin/smt.exp
 
 /* AIX supposedly doesn't use this interface, but on thr RS/6000
