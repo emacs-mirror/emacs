@@ -96,6 +96,8 @@ from the locale.
 You can now put the init files .emacs and .emacs_SHELL under
 ~/.emacs.d or directly under ~.  Emacs will find them in either place.
 
+** partial-completion-mode now does partial completion on directory names.
+
 ** MH-E changes.
 
 Upgraded to MH-E version 7.2. There have been major changes since
@@ -311,11 +313,14 @@ gives the fraction of the window's width to scroll the window.
 The variable `automatic-hscrolling' was renamed to
 `auto-hscroll-mode'.  The old name is still available as an alias.
 
+** TeX:
 +++
-** The user option `tex-start-options-string' has been replaced
+*** The user option `tex-start-options-string' has been replaced
 by two new user options: `tex-start-options', which should hold
 command-line options to feed to TeX, and `tex-start-commands' which should hold
 TeX commands to use at startup.
+*** verbatim environments are now highlighted in courier by font-lock
+and super/sub-scripts are made into super/sub-scripts.
 
 +++
 ** New display feature: focus follows the mouse from one Emacs window
@@ -1963,6 +1968,9 @@ or `bg:COLOR' has been removed.  Lisp programs should use the
 ** The new function `run-mode-hooks' and the new macro `delay-mode-hooks'
 are used by define-derived-mode to make sure the mode hook for the
 parent mode is run at the end of the child mode.
+
+** define-minor-mode now accepts arbitrary additional keyword arguments
+and simply passes them to defcustom, if applicable.
 
 ** define-derived-mode by default creates a new empty abbrev table.
 It does not copy abbrevs from the parent mode's abbrev table.
