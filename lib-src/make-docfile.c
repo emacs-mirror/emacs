@@ -144,37 +144,48 @@ write_c_args (out, buf, minargs, maxargs)
      int minargs, maxargs;
 {
   register char *p;
-  int space = 0;
+  int in_ident = 0;
+  int just_spaced = 0;
 
   fprintf (out, "arguments: ");
 
   for (p = buf; *p; p++)
     {
-      if (*p == ',' || p == buf)
+      char c = *p;
+
+      /* Notice when we start printing a new identifier.  */
+      if ((('A' <= c && c <= 'Z')
+	   || ('a' <= c && c <= 'z')
+	   || ('0' <= c && c <= '9')
+	   || c == '_')
+	  != in_ident)
 	{
-	  if (!space)
-	    putc (' ', out);
-	  if (minargs == 0 && maxargs > 0)
-	    fprintf (out, "&optional ");
-	  space = 1;
+	  if (!in_ident)
+	    {
+	      in_ident = 1;
 
-	  minargs--;
-	  maxargs--;
+	      if (minargs == 0 && maxargs > 0)
+		fprintf (out, "&optional ");
+	      just_spaced = 1;
 
-	  continue;
+	      minargs--;
+	      maxargs--;
+	    }
+	  else
+	    in_ident = 0;
 	}
-      else if (*p == ' ' && space)
-	continue;
-      space = (*p == ' ');
 
-      /* Print the C arguments as they would appear in Elisp;
-	 print underscores as hyphens.  */
-      if (*p == '_')
-	putc ('-', out);
-      else
-	putc (*p, out);
+      /* Print the C argument list as it would appear in lisp:
+	 print underscores as hyphens, and print commas as spaces.
+	 Collapse adjacent spaces into one.  */
+      if (c == '_') c = '-';
+      if (c == ',') c = ' ';
+
+      if (c != ' ' || ! just_spaced)
+	putc (c, out);
+
+      just_spaced = (c == ' ');
     }
-  putc ('\n', out);
 }
 
 /* Read through a c file.  If a .o file is named,
