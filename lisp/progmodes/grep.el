@@ -533,7 +533,8 @@ those sub directories of DIR."
 	  (files
 	   (read-string (concat "Search for \"" regexp "\" in files (default "   grep-tree-last-files  "): ")))
 	  (dir
-	   (read-directory-name "Base directory: " nil default-directory t)))
+	   (file-name-as-directory
+	    (read-directory-name "Base directory: " nil default-directory t))))
      (list regexp files dir)))
   (unless grep-tree-command
     (grep-compute-defaults))

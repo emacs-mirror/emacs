@@ -1,3 +1,93 @@
+2004-05-24  Nick Roberts  <nickrob@gnu.org>
+
+	* progmodes/gdb-ui.el (gdb-breakpoints-mode, gdb-frames-mode) 
+	(gdb-locals-mode): Check gud-minor-mode in gud-comint-buffer.
+
+2004-05-24  Yoichi NAKAYAMA  <yoichi@geiin.org>  (tiny change)
+
+	* net/browse-url.el (browse-url-interactive-arg): Enable user to
+	explicitly select the text to be taken as URL.
+
+2004-05-23  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-index-nodes): New var and fun.
+	(Info-goto-index, Info-index, info-apropos)
+	(Info-find-emacs-command-nodes): Rewrite to use Info-index-nodes.
+	(Info-index): Fix docstring.  Store and restore Info-history-list.
+	(Info-complete-nodes): New var.
+	(Info-complete-menu-item): Use it.
+	(Info-index-node): New fun.
+	(Info-final-node, Info-forward-node, Info-backward-node)
+	(Info-build-toc, Info-try-follow-nearest-node, Info-fontify-node):
+	Use Info-index-node.
+	(Info-extract-menu-item, Info-extract-menu-counting): Set second
+	arg of `Info-extract-menu-node-name' to non-nil for index nodes.
+	(Info-find-node-2): If a node with period in its name not found,
+	try to find a node without the name part after period.
+	(Info-select-node): Call Info-fontify-node only if
+	Info-fontify-maximum-menu-size is not nil.
+	(info-apropos): Set Info-fontify-maximum-menu-size to nil.
+	(Info-find-emacs-command-nodes, Info-goto-emacs-command-node):
+	Preserve Info-history-list.
+	(Info-toc): Set Info-current-file.
+	(Info-build-toc): Move point to the beginning of the buffer.
+	Add main-file variable.
+	(Info-dir-remove-duplicates, Info-history, Info-toc, info-apropos):
+	Use backslashed representation of the control character ^_.
+
+	* textmodes/texinfmt.el (texinfo-print-index): Print index line
+	numbers in the new Texinfo 4.7 format.
+
+	* add-log.el (change-log-font-lock-keywords): Remove `:' from
+	regexps for function and variable names.
+
+	* descr-text.el (describe-property-list): Add [show] button for
+	`syntax-table' property with action to pp to a separate buffer.
+	(describe-char): Replace search-forward by re-search-forward with
+	whitespace regexp after "character:" to not fail in too narrow
+	windows.
+
+	* simple.el (next-error-find-buffer): Add a rule to return
+	next-error capable buffer if one window on the selected frame
+	displays such buffer.
+
+2004-05-23  Nick Roberts  <nickrob@gnu.org>
+
+	* progmodes/gdb-ui.el (gdb-server-prefix): New variable.
+	(gud-watch, gdb-send-item, gdb-breakpoints-mode, gdb-frames-mode)
+	(gdb-locals-mode, gdb-send-item, gdb-toggle-breakpoint)
+	(gdb-delete-breakpoint, gdb-frames-select, gdb-threads-buffer)
+	(gdb-registers-buffer, gdb-reset, gdb-assembler-buffer): Handle
+	new value for gud-minor-mode (gdbmi).
+	(gdb-buffer-type, gdb-input-queue, gdb-prompting)
+	(gdb-output-sink, gdb-current-item, gdb-pending-triggers): Change
+	from local to global gdb variable set.
+	(gdb-ann3): Initialise above gdb variable set.
+	(gdb-var-update, gdb-var-update-handler, gdb-enqueue-input)
+	(gdb-dequeue-input, gdb-source, gdb-pre-prompt, gdb-prompt)
+	(gdb-subprompt, gdb-starting, gdb-stopping, gdb-frame-begin)
+	(gdb-stopped, gdb-post-prompt, gdb-concat-output)
+	(def-gdb-auto-update-trigger, def-gdb-auto-update-handler)
+	(gdb-info-locals-handler, gdb-invalidate-assembler)
+	(gdb-get-current-frame, gdb-frame-handler): Handle gdb variable
+	set as global variables.
+	(gdb-get-create-buffer): Don't make gud-comint buffer-local.
+	Handle gdbmi.
+	(gdb-info-breakpoints-custom): Fix regexp.
+	(def-gdb-var): Delete.
+
+	* progmodes/gud.el (gud-menu-map, gud-speedbar-menu-items)
+	(gud-speedbar-buttons, gud-sentinel, gud-display-line)
+	(gud-basic-call): Handle new value for gud-minor-mode (gdbmi) for
+	a new mode.  The file (gdb-mi.el) for this mode will be included
+	with the GDB distribution (6.2 onwards) and will use GDB/MI as its
+	primary interface.
+
+2004-05-23  Jesper Harder  <harder@ifa.au.dk>
+
+	* progmodes/grep.el (grep-tree): Ensure that DIR argument is
+	interpreted as a directory.
+
 2004-05-22  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/paragraphs.el (sentence-end): Match unicode curly quotes
@@ -5,9 +95,9 @@
 
 	* textmodes/bibtex.el: Use assoc-string, not assoc-ignore-case.
 
-	* progmodes/idlw-shell.el (idlwave-shell-get-object-class): 
+	* progmodes/idlw-shell.el (idlwave-shell-get-object-class):
 	Use assoc-string, not assoc-ignore-case.
-	
+
 	* progmodes/ada-mode.el: Use assoc-string, not assoc-ignore-case.
 
 	* emacs-lisp/lisp.el (mark-defun, narrow-to-defun):
@@ -2757,7 +2847,7 @@
 
 2004-03-21  Andre Spiegel  <spiegel@gnu.org>
 
-	* vc.el Add new optional BUFFER argument to vc-BACKEND-print-log
+	* vc.el: Add new optional BUFFER argument to vc-BACKEND-print-log
 	and vc-BACKEND-diff.
 	(vc-print-log): If the print-log implementation supports it, use
 	the new BUFFER argument to direct output to *vc-change-log*, not *vc*.

@@ -863,9 +863,17 @@ a case-insensitive match is tried."
 	      (let ((pos (Info-find-node-in-buffer regexp)))
 		(when pos
 		  (goto-char pos)
-		  (throw 'foo t))
-                ;; No such anchor in tag table or node in tag table or file
-		(error "No such node or anchor: %s" nodename)))
+		  (throw 'foo t)))
+
+              (when (string-match "\\([^.]+\\)\\." nodename)
+                (let (Info-point-loc)
+                  (Info-find-node-2
+                   filename (match-string 1 nodename) no-going-back))
+                (widen)
+                (throw 'foo t))
+
+              ;; No such anchor in tag table or node in tag table or file
+              (error "No such node or anchor: %s" nodename))
 
 	    (Info-select-node)
 	    (goto-char (point-min))
@@ -1075,7 +1083,7 @@ a case-insensitive match is tried."
     (goto-char (point-min))
     ;; Remove duplicate headings in the same menu.
     (while (search-forward "\n* Menu:" nil t)
-      (setq limit (save-excursion (search-forward "\n" nil t)))
+      (setq limit (save-excursion (search-forward "\n\^_" nil t)))
       ;; Look for the next heading to unify.
       (while (re-search-forward "^\\(\\w.*\\)\n\\*" limit t)
 	(let ((name (match-string 1))
@@ -1286,7 +1294,8 @@ any double quotes or backslashes must be escaped (\\\",\\\\)."
 	(let ((new-history (list Info-current-file Info-current-node)))
 	  (setq Info-history-list
 		(cons new-history (delete new-history Info-history-list))))
-	(Info-fontify-node)
+	(if (not (eq Info-fontify-maximum-menu-size nil))
+            (Info-fontify-node))
 	(Info-display-images-node)
 	(Info-hide-cookies-node)
 	(run-hooks 'Info-selection-hook)))))
@@ -1646,7 +1655,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
       (let ((inhibit-read-only t))
         (erase-buffer)
         (goto-char (point-min))
-        (insert "\n\nFile: history Node: Top, Up: (dir)\n\n")
+        (insert "\n\^_\nFile: history Node: Top, Up: (dir)\n\n")
         (insert "Recently Visited Nodes\n**********************\n\n")
         (insert "* Menu:\n\n")
         (let ((hl (delete '("history" "Top") Info-history-list)))
@@ -1673,7 +1682,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
             (node-list (Info-build-toc curr-file)))
         (erase-buffer)
         (goto-char (point-min))
-        (insert "\n\nFile: toc Node: Top, Up: (dir)\n\n")
+        (insert "\n\^_\nFile: toc Node: Top, Up: (dir)\n\n")
         (insert "Table of Contents\n*****************\n\n")
         (insert "*Note Top::\n")
         (Info-insert-toc
@@ -1682,7 +1691,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
       (if (not (bobp))
           (let ((Info-hide-note-references 'hide)
                 (Info-fontify-visited-nodes nil))
-            (setq Info-current-node "Top")
+            (setq Info-current-file "toc" Info-current-node "Top")
             (Info-fontify-node)))
       (goto-char (point-min))
       (if (setq p (search-forward (concat "*Note " curr-node ":") nil t))
@@ -1707,16 +1716,18 @@ If SAME-FILE is non-nil, do not move to a different Info file."
   (if (equal file "dir")
       (error "Table of contents for Info directory is not supported yet"))
   (with-temp-buffer
-    (let ((default-directory (or (and (stringp file)
-                                      (file-name-directory
-                                       (setq file (Info-find-file file))))
-                                 default-directory))
-          (sections '(("Top" "Top")))
-          nodes subfiles)
-      (while (or file subfiles)
-        (or file (message "Searching subfile %s..." (car subfiles)))
+    (let* ((default-directory (or (and (stringp file)
+                                       (file-name-directory
+                                        (setq file (Info-find-file file))))
+                                  default-directory))
+           (main-file file)
+           (sections '(("Top" "Top")))
+           nodes subfiles)
+      (while (or main-file subfiles)
+        (or main-file (message "Searching subfile %s..." (car subfiles)))
         (erase-buffer)
-        (info-insert-file-contents (or file (car subfiles)))
+        (info-insert-file-contents (or main-file (car subfiles)))
+        (goto-char (point-min))
         (while (and (search-forward "\n\^_\nFile:" nil 'move)
                     (search-forward "Node: " nil 'move))
           (let ((nodename (substring-no-properties (Info-following-node-name)))
@@ -1724,7 +1735,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
                               (point-max)) 2))
                 (section "Top")
                 menu-items)
-            (when (and (not (string-match "\\<index\\>" nodename))
+            (when (and (not (Info-index-node nodename file))
                        (re-search-forward "^\\* Menu:" bound t))
               (forward-line 1)
               (beginning-of-line)
@@ -1756,7 +1767,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
                                     (nreverse menu-items))
                               nodes))
             (goto-char bound)))
-        (if file
+        (if main-file
             (save-excursion
               (goto-char (point-min))
               (if (search-forward "\n\^_\nIndirect:" nil t)
@@ -1765,7 +1776,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
                       (setq subfiles (cons (match-string-no-properties 1)
                                            subfiles)))))
               (setq subfiles (nreverse subfiles)
-                    file nil))
+                    main-file nil))
           (setq subfiles (cdr subfiles))))
       (message "")
       (nreverse nodes))))
@@ -1907,6 +1918,7 @@ Because of ambiguities, this should be concatenated with something like
 
 (defvar Info-complete-menu-buffer)
 (defvar Info-complete-next-re nil)
+(defvar Info-complete-nodes nil)
 (defvar Info-complete-cache nil)
 
 (defconst Info-node-spec-re
@@ -1920,6 +1932,9 @@ Because of ambiguities, this should be concatenated with something like
   ;; - `Info-complete-next-re' which, if non-nil, indicates that we should
   ;; also look for menu items in subsequent nodes as long as those
   ;; nodes' names match `Info-complete-next-re'.  This feature is currently
+  ;; not used.
+  ;; - `Info-complete-nodes' which, if non-nil, indicates that we should
+  ;; also look for menu items in these nodes.  This feature is currently
   ;; only used for completion in Info-index.
 
   ;; Note that `Info-complete-menu-buffer' could be current already,
@@ -1943,6 +1958,7 @@ Because of ambiguities, this should be concatenated with something like
 	  (if (and (equal (nth 0 Info-complete-cache) Info-current-file)
 		   (equal (nth 1 Info-complete-cache) Info-current-node)
 		   (equal (nth 2 Info-complete-cache) Info-complete-next-re)
+		   (equal (nth 5 Info-complete-cache) Info-complete-nodes)
 		   (let ((prev (nth 3 Info-complete-cache)))
 		     (eq t (compare-strings string 0 (length prev)
 					    prev 0 nil t))))
@@ -1955,9 +1971,12 @@ Because of ambiguities, this should be concatenated with something like
 		    (push (match-string-no-properties 1)
 			  completions))
 		  ;; Check subsequent nodes if applicable.
-		  (and Info-complete-next-re
-		       (setq nextnode (Info-extract-pointer "next" t))
-		       (string-match Info-complete-next-re nextnode)))
+		  (or (and Info-complete-next-re
+		           (setq nextnode (Info-extract-pointer "next" t))
+		           (string-match Info-complete-next-re nextnode))
+		      (and Info-complete-nodes
+		           (setq Info-complete-nodes (cdr Info-complete-nodes)
+		                 nextnode (car Info-complete-nodes)))))
 	      (Info-goto-node nextnode))
 	    ;; Go back to the start node (for the next completion).
 	    (unless (equal Info-current-node orignode)
@@ -1965,7 +1984,8 @@ Because of ambiguities, this should be concatenated with something like
 	    ;; Update the cache.
 	    (set (make-local-variable 'Info-complete-cache)
 		 (list Info-current-file Info-current-node
-		       Info-complete-next-re string completions)))
+		       Info-complete-next-re string completions
+		       Info-complete-nodes)))
 	  (if action
 	      (all-completions string completions predicate)
 	    (try-completion string completions predicate)))))))
@@ -2034,7 +2054,7 @@ new buffer."
 	    (error "No such item in menu"))
 	(beginning-of-line)
 	(forward-char 2)
-	(Info-extract-menu-node-name)))))
+	(Info-extract-menu-node-name nil (Info-index-node))))))
 
 ;; If COUNT is nil, use the last item in the menu.
 (defun Info-extract-menu-counting (count)
@@ -2049,7 +2069,7 @@ new buffer."
 		(error "Too few items in menu"))
 	  (while (search-forward "\n* " nil t)
 	    nil))
-	(Info-extract-menu-node-name)))))
+	(Info-extract-menu-node-name nil (Info-index-node))))))
 
 (defun Info-nth-menu-item ()
   "Go to the node of the Nth menu item.
@@ -2076,7 +2096,7 @@ N is the digit argument used to invoke this command."
     ;; move forward until we can't go any farther.
     (while (Info-forward-node t t) nil)
     ;; Then keep moving down to last subnode, unless we reach an index.
-    (while (and (not (string-match "\\<index\\>" Info-current-node))
+    (while (and (not (Info-index-node))
 		(save-excursion (search-forward "\n* Menu:" nil t)))
       (Info-goto-node (Info-extract-menu-counting nil)))))
 
@@ -2092,7 +2112,7 @@ N is the digit argument used to invoke this command."
     ;;     3. next node is up and next
     (cond ((and (not not-down)
 		(save-excursion (search-forward "\n* menu:" nil t))
-		(not (string-match "\\<index\\>" Info-current-node)))
+		(not (Info-index-node)))
 	   (Info-goto-node (Info-extract-menu-counting 1))
 	   t)
 	  ((save-excursion (search-backward "next:" nil t))
@@ -2130,7 +2150,7 @@ N is the digit argument used to invoke this command."
 	   ;; go down to find the last subnode*.
 	   (Info-prev)
 	   (let (Info-history)
-	     (while (and (not (string-match "\\<index\\>" Info-current-node))
+	     (while (and (not (Info-index-node))
 			 (save-excursion (search-forward "\n* Menu:" nil t)))
 	       (Info-goto-node (Info-extract-menu-counting nil)))))
 	  (t
@@ -2321,24 +2341,96 @@ parent node."
 	(if recur
 	    (error "No cross references in this node")
 	  (Info-prev-reference t)))))
+
+(defvar Info-index-nodes nil
+  "Alist of cached index node names of visited Info files.
+Each element has the form (INFO-FILE INDEX-NODE-NAMES-LIST).")
+
+(defun Info-index-nodes (&optional file)
+  "Return a list of names of all index nodes in Info FILE.
+If FILE is omitted, it defaults to the current Info file.
+First look in a list of cached index node names.  Then scan Info file
+and its subfiles for nodes with index cookie.  Then try index nodes
+starting from the first node in the top level menu whose name
+contains the word \"Index\", plus any immediately following nodes
+whose names also contain the word \"Index\"."
+  (or file (setq file Info-current-file))
+  (or (assoc file Info-index-nodes)
+      ;; Skip virtual Info files
+      (member file '("dir" "history" "toc" "apropos"))
+      ;; Find nodes with index cookie
+      (let* ((default-directory (or (and (stringp file)
+                                         (file-name-directory
+                                          (setq file (Info-find-file file))))
+                                    default-directory))
+             (main-file file)
+             (Info-fontify-maximum-menu-size nil)
+             subfiles nodes node Info-history Info-history-list)
+        (with-temp-buffer
+          (while (or main-file subfiles)
+            (erase-buffer)
+            (info-insert-file-contents (or main-file (car subfiles)))
+            (goto-char (point-min))
+            (while (search-forward "\0\10[index\0\10]" nil 'move)
+              (save-excursion
+                (re-search-backward "^\^_")
+                (search-forward "Node: ")
+                (setq nodes (cons (Info-following-node-name) nodes))))
+            (if main-file
+                (save-excursion
+                  (goto-char (point-min))
+                  (if (search-forward "\n\^_\nIndirect:" nil t)
+                      (let ((bound (save-excursion (search-forward "\n\^_" nil t))))
+                        (while (re-search-forward "^\\(.*\\): [0-9]+$" bound t)
+                          (setq subfiles (cons (match-string-no-properties 1)
+                                               subfiles)))))
+                  (setq subfiles (nreverse subfiles)
+                        main-file nil))
+              (setq subfiles (cdr subfiles)))))
+        (if nodes
+            (setq nodes (nreverse nodes)
+                  Info-index-nodes (cons (cons file nodes) Info-index-nodes)))
+        nodes)
+      ;; Find nodes with string "Index" in node names
+      (let ((Info-fontify-maximum-menu-size nil)
+            (case-fold-search t)
+            nodes node Info-history Info-history-list)
+        (with-temp-buffer
+          (Info-mode)
+          (Info-find-node file "Top")
+          (when (and (search-forward "\n* menu:" nil t)
+                     (re-search-forward "\n\\* \\(.*\\<Index\\>\\)" nil t))
+            (goto-char (match-beginning 1))
+            (setq nodes (list (Info-extract-menu-node-name)))
+            (Info-goto-node (car nodes))
+            (while (and (setq node (Info-extract-pointer "next" t))
+                        (string-match "\\<Index\\>" node))
+              (setq nodes (cons node nodes))
+              (Info-goto-node node))))
+        (if nodes
+            (setq nodes (nreverse nodes)
+                  Info-index-nodes (cons (cons file nodes) Info-index-nodes)))
+        nodes)
+      ;; Info file has no index nodes
+      (setq Info-index-nodes (cons (cons file nil)
+                                   Info-index-nodes)))
+  (cdr (assoc file Info-index-nodes)))
+
+(defun Info-index-node (&optional node file)
+  "Return non-nil value if NODE is an index node.
+If NODE is nil, check the current Info node.
+If FILE is nil, check the current Info file."
+  (member (or node Info-current-node) (Info-index-nodes file)))
 
 (defun Info-goto-index ()
-  (Info-goto-node "Top")
-  (or (search-forward "\n* menu:" nil t)
-      (error "No index"))
-  (or (re-search-forward "\n\\* \\(.*\\<Index\\>\\)" nil t)
-      (error "No index"))
-  (goto-char (match-beginning 1))
-  ;; Protect Info-history so that the current node (Top) is not added to it.
-  (let ((Info-history nil))
-    (Info-goto-node (Info-extract-menu-node-name))))
+  "Go to the first index node."
+  (let ((node (car (Info-index-nodes))))
+    (or node (error "No index"))
+    (Info-goto-node node)))
 
 ;;;###autoload
 (defun Info-index (topic)
   "Look up a string TOPIC in the index for this file.
-The index is defined as the first node in the top level menu whose
-name contains the word \"Index\", plus any immediately following
-nodes whose names also contain the word \"Index\".
 If there are no exact matches to the specified topic, this chooses
 the first match which is a case-insensitive substring of a topic.
 Use the \\<Info-mode-map>\\[Info-index-next] command to see the other matches.
@@ -2346,7 +2438,8 @@ Give a blank topic name to go to the Index node itself."
   (interactive
    (list
     (let ((Info-complete-menu-buffer (clone-buffer))
-	  (Info-complete-next-re "\\<Index\\>"))
+	  (Info-complete-nodes (Info-index-nodes))
+	  (Info-history-list nil))
       (if (equal Info-current-file "dir")
 	  (error "The Info directory node has no index; use m to select a manual"))
       (unwind-protect
@@ -2359,7 +2452,8 @@ Give a blank topic name to go to the Index node itself."
   (let ((orignode Info-current-node)
 	(pattern (format "\n\\* +\\([^\n]*%s[^\n]*\\):[ \t]+\\([^\n]*\\)\\.\\(?:[ \t\n]*(line +\\([0-9]+\\))\\)?"
 			 (regexp-quote topic)))
-	node
+	node (nodes (Info-index-nodes))
+	(ohist-list Info-history-list)
 	(case-fold-search t))
     (Info-goto-index)
     (or (equal topic "")
@@ -2381,8 +2475,7 @@ Give a blank topic name to go to the Index node itself."
 			      (string-to-number (concat "0"
 							(match-string 3))))
 			matches))
-		(and (setq node (Info-extract-pointer "next" t))
-		     (string-match "\\<Index\\>" node)))
+		(setq nodes (cdr nodes) node (car nodes)))
 	    (Info-goto-node node))
 	  (or matches
 	      (progn
@@ -2392,6 +2485,7 @@ Give a blank topic name to go to the Index node itself."
 	  (while (setq found (assoc topic matches))
 	    (setq exact (cons found exact)
 		  matches (delq found matches)))
+          (setq Info-history-list ohist-list)
 	  (setq Info-index-alternatives (nconc exact (nreverse matches)))
 	  (Info-index-next 0)))))
 
@@ -2454,10 +2548,8 @@ Build a menu of the possible matches."
 	  (ohist-list Info-history-list)
 	  (current-node Info-current-node)
 	  (current-file Info-current-file)
-	  manuals matches node)
-      (let ((Info-fontify-maximum-menu-size 0)
-	    Info-use-header-lines
-	    Info-hide-note-references)
+	  manuals matches node nodes)
+      (let ((Info-fontify-maximum-menu-size nil))
 	(Info-directory)
 	(message "Searching indices...")
 	(goto-char (point-min))
@@ -2466,25 +2558,22 @@ Build a menu of the possible matches."
 	  (add-to-list 'manuals (match-string 1)))
 	(dolist (manual manuals)
 	  (message "Searching %s" manual)
-	  (condition-case nil
-	      (save-excursion
-		(Info-find-node manual "Top")
-		(when (re-search-forward "\n\\* \\(.*\\<Index\\>\\)" nil t)
-		  (goto-char (match-beginning 1))
-		  (Info-goto-node (Info-extract-menu-node-name))
-		  (while
-		      (progn
-			(goto-char (point-min))
-			(while (re-search-forward pattern nil t)
-			  (add-to-list 'matches
-				       (list manual
-					     (match-string-no-properties 1)
-					     (match-string-no-properties 2)
-					     (match-string-no-properties 3))))
-			(and (setq node (Info-extract-pointer "next" t))
-			     (string-match "\\<Index\\>" node)))
-		    (Info-goto-node node))))
-	    (error nil))))
+	  (if (setq nodes (Info-index-nodes (Info-find-file manual)))
+              (condition-case nil
+                  (save-excursion
+                    (Info-find-node manual (car nodes))
+                    (while
+                        (progn
+                          (goto-char (point-min))
+                          (while (re-search-forward pattern nil t)
+                            (add-to-list 'matches
+                                         (list manual
+                                               (match-string-no-properties 1)
+                                               (match-string-no-properties 2)
+                                               (match-string-no-properties 3))))
+                          (setq nodes (cdr nodes) node (car nodes)))
+                      (Info-goto-node node)))
+                (error nil)))))
       (Info-goto-node (concat "(" current-file ")" current-node))
       (setq Info-history ohist
 	    Info-history-list ohist-list)
@@ -2493,7 +2582,7 @@ Build a menu of the possible matches."
 	  (message "No matches found")
 	(with-current-buffer (get-buffer-create " *info-apropos*")
 	  (erase-buffer)
-	  (insert "\n\nFile: apropos, Node: Index, Up: (dir)\n")
+	  (insert "\n\^_\nFile: apropos, Node: Index, Up: (dir)\n")
 	  (insert "* Menu: \nNodes whose indices contain \"" string "\"\n\n")
 	  (dolist (entry matches)
 	    (insert
@@ -2629,8 +2718,7 @@ if point is in a menu item description, follow that menu item."
      ((Info-get-token (point) "\\* +" "\\* +\\(.*\\): ")
       (beginning-of-line)
       (forward-char 2)
-      (setq node (Info-extract-menu-node-name
-                  nil (string-match "\\<index\\>" Info-current-node)))
+      (setq node (Info-extract-menu-node-name nil (Info-index-node)))
       (Info-goto-node node fork))
      ((setq node (Info-get-token (point) "Up: " "Up: \\([^,\n\t]*\\)"))
       (Info-goto-node node fork))
@@ -3072,8 +3160,9 @@ The locations are of the format used in `Info-history', i.e.
     ;; Bind Info-history to nil, to prevent the index nodes from
     ;; getting into the node history.
     (let ((Info-history nil)
-	  node)
-      (Info-goto-node (Info-extract-menu-node-name))
+          (Info-history-list nil)
+	  node (nodes (Info-index-nodes)))
+      (Info-goto-node (car nodes))
       (while
 	  (progn
 	    (goto-char (point-min))
@@ -3083,8 +3172,7 @@ The locations are of the format used in `Info-history', i.e.
 				(match-string-no-properties 2)
 				0)
 			  where)))
-	    (and (setq node (Info-extract-pointer "next" t))
-		 (string-match "\\<Index\\>" node)))
+	    (and (setq nodes (cdr nodes) node (car nodes))))
 	(Info-goto-node node)))
     where))
 
@@ -3111,7 +3199,7 @@ COMMAND must be a symbol or string."
 	  ;; Bind Info-history to nil, to prevent the last Index node
 	  ;; visited by Info-find-emacs-command-nodes from being
 	  ;; pushed onto the history.
-	  (let ((Info-history nil))
+	  (let ((Info-history nil) (Info-history-list nil))
 	    (Info-find-node (car (car where))
 			    (car (cdr (car where)))))
 	  (if (> num-matches 1)
@@ -3448,7 +3536,7 @@ Preserve text properties."
       (goto-char (point-min))
       (when (and (or not-fontified-p fontify-visited-p)
                  (search-forward "\n* Menu:" nil t)
-                 (not (string-match "\\<Index\\>" Info-current-node))
+                 (not (Info-index-node))
                  ;; Don't take time to annotate huge menus
                  (< (- (point-max) (point)) Info-fontify-maximum-menu-size))
         (let ((n 0)
@@ -3537,7 +3625,7 @@ Preserve text properties."
 
       ;; Hide index line numbers
       (goto-char (point-min))
-      (when (and not-fontified-p (string-match "\\<Index\\>" Info-current-node))
+      (when (and not-fontified-p (Info-index-node))
         (while (re-search-forward "[ \t\n]*(line +[0-9]+)" nil t)
           (put-text-property (match-beginning 0) (match-end 0)
                              'invisible t)))
