@@ -3,8 +3,8 @@
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author:		Barry A. Warsaw <bwarsaw@cen.com>
-;; Last-Modified:	$Date: 1994/10/24 12:37:01 $
-;; Version:		$Revision: 1.54 $
+;; Last-Modified:	$Date: 1994/10/24 15:34:50 $
+;; Version:		$Revision: 1.55 $
 ;; Keywords:		help
 ;; Adapted-By:		ESR, pot
 
@@ -106,7 +106,6 @@
 (defvar Man-filter-list)
 (defvar Man-original-frame)
 (defvar Man-arguments)
-(defvar Man-fontify-manpage-flag)
 (defvar Man-sections-alist)
 (defvar Man-refpages-alist)
 (defvar Man-uses-untabify-flag)
@@ -116,8 +115,14 @@
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ;; user variables
 
-(defvar manual-program "man"
-  "The name of the program that produces man pages.")
+(defvar Man-fontify-manpage-flag t
+  "*Make up the manpage with fonts.")
+
+(defvar Man-overstrike-face 'bold
+  "*Face to use when fontifying overstrike.")
+
+(defvar Man-underline-face 'underline
+  "*Face to use when fontifying underlinining.")
 
 ;; Use the value of the obsolete user option Man-notify, if set.
 (defvar Man-notify-method (if (boundp 'Man-notify) Man-notify 'friendly)
@@ -171,17 +176,91 @@ their references which Un*x `man' does not recognize.  This
 association list is used to translate those sections, when found, to
 the associated section number.")
 
+(defvar manual-program "man"
+  "The name of the program that produces man pages.")
+
 (defvar Man-untabify-command "pr"
-  "*Command used for untabifying.")
+  "Command used for untabifying.")
 
 (defvar Man-untabify-command-args (list "-t" "-e")
-  "*List of arguments to be passed to Man-untabify-command (which see).")
+  "List of arguments to be passed to Man-untabify-command (which see).")
 
 (defvar Man-sed-command "sed"
-  "*Command used for processing sed scripts.")
+  "Command used for processing sed scripts.")
 
 (defvar Man-awk-command "awk"
-  "*Command used for processing awk scripts.")
+  "Command used for processing awk scripts.")
+
+(defvar Man-mode-line-format
+  '("" mode-line-modified
+       mode-line-buffer-identification "  "
+       global-mode-string
+       " " Man-page-mode-string
+       "  %[(" mode-name mode-line-process minor-mode-alist ")%]----"
+       (-3 . "%p") "-%-")
+  "Mode line format for manual mode buffer.")
+
+(defvar Man-mode-map nil
+  "Keymap for Man mode.")
+
+(defvar Man-mode-hook nil
+  "Hook run when Man mode is enabled.")
+
+(defvar Man-cooked-hook nil
+  "Hook run after removing backspaces but before Man-mode processing.")
+
+(defvar Man-name-regexp "[-a-zA-Z0-9_][-a-zA-Z0-9_.]*"
+  "Regular expression describing the name of a manpage (without section).")
+
+(defvar Man-section-regexp "[0-9][a-zA-Z+]*\\|[LNln]"
+  "Regular expression describing a manpage section within parentheses.")
+
+(defvar Man-page-header-regexp
+  (concat "^[ \t]*\\(" Man-name-regexp
+	  "(\\(" Man-section-regexp "\\))\\).*\\1")
+  "Regular expression describing the heading of a page.")
+
+(defvar Man-heading-regexp "^\\([A-Z][A-Z ]+\\)$"
+  "Regular expression describing a manpage heading entry.")
+
+(defvar Man-see-also-regexp "SEE ALSO"
+  "Regular expression for SEE ALSO heading (or your equivalent).
+This regexp should not start with a `^' character.")
+
+(defvar Man-first-heading-regexp "^[ \t]*NAME$\\|^[ \t]*No manual entry fo.*$"
+  "Regular expression describing first heading on a manpage.
+This regular expression should start with a `^' character.")
+
+(defvar Man-reference-regexp
+  (concat "\\(" Man-name-regexp "\\)(\\(" Man-section-regexp "\\))")
+  "Regular expression describing a reference in the SEE ALSO section.")
+
+(defvar Man-switches ""
+  "Switches passed to the man command, as a single string.")
+
+(defvar Man-specified-section-option
+  (if (string-match "-solaris[0-9.]*$" system-configuration)
+      "-s"
+    "")
+  "Option that indicates a specified a manual section name.")
+
+;; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+;; end user variables
+
+;; other variables and keymap initializations
+(make-variable-buffer-local 'Man-sections-alist)
+(make-variable-buffer-local 'Man-refpages-alist)
+(make-variable-buffer-local 'Man-page-list)
+(make-variable-buffer-local 'Man-current-page)
+(make-variable-buffer-local 'Man-page-mode-string)
+(make-variable-buffer-local 'Man-original-frame)
+(make-variable-buffer-local 'Man-arguments)
+
+(setq-default Man-sections-alist nil)
+(setq-default Man-refpages-alist nil)
+(setq-default Man-page-list nil)
+(setq-default Man-current-page 0)
+(setq-default Man-page-mode-string "1 of 1")
 
 (defconst Man-sysv-sed-script "\
 /\b/ {	s/_\b//g
@@ -204,80 +283,6 @@ the associated section number.")
 	}\\
 /\e\\[[0-9][0-9]*m/ s///g"
   "Script for berkeley-like sed to nuke backspaces and ANSI codes from manpages.")
-
-(defvar Man-mode-line-format
-  '("" mode-line-modified
-       mode-line-buffer-identification "  "
-       global-mode-string
-       " " Man-page-mode-string
-       "  %[(" mode-name mode-line-process minor-mode-alist ")%]----"
-       (-3 . "%p") "-%-")
-  "*Mode line format for manual mode buffer.")
-
-(defvar Man-mode-map nil
-  "*Keymap for Man mode.")
-
-(defvar Man-mode-hook nil
-  "*Hook run when Man mode is enabled.")
-
-(defvar Man-cooked-hook nil
-  "*Hook run after removing backspaces but before Man-mode processing.")
-
-(defvar Man-name-regexp "[-a-zA-Z0-9_][-a-zA-Z0-9_.]*"
-  "*Regular expression describing the name of a manpage (without section).")
-
-(defvar Man-section-regexp "[0-9][a-zA-Z+]*\\|[LNln]"
-  "*Regular expression describing a manpage section within parentheses.")
-
-(defvar Man-page-header-regexp
-  (concat "^[ \t]*\\(" Man-name-regexp
-	  "(\\(" Man-section-regexp "\\))\\).*\\1")
-  "*Regular expression describing the heading of a page.")
-
-(defvar Man-heading-regexp "^\\([A-Z][A-Z ]+\\)$"
-  "*Regular expression describing a manpage heading entry.")
-
-(defvar Man-see-also-regexp "SEE ALSO"
-  "*Regular expression for SEE ALSO heading (or your equivalent).
-This regexp should not start with a `^' character.")
-
-(defvar Man-first-heading-regexp "^[ \t]*NAME$\\|^[ \t]*No manual entry fo.*$"
-  "*Regular expression describing first heading on a manpage.
-This regular expression should start with a `^' character.")
-
-(defvar Man-reference-regexp
-  (concat "\\(" Man-name-regexp "\\)(\\(" Man-section-regexp "\\))")
-  "*Regular expression describing a reference in the SEE ALSO section.")
-
-(defvar Man-switches ""
-  "*Switches passed to the man command, as a single string.")
-
-;; Would someone like to provide a good test for being on Solaris?
-;; We could give it its own value of system-type, but that has drawbacks;
-;; it would require changes in lots of places that test system-type.
-(defvar Man-specified-section-option
-  (if (string-match "-solaris[0-9.]*$" system-configuration)
-      "-s"
-    "")
-  "*Option that indicates a specified a manual section name.")
-
-;; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-;; end user variables
-
-;; other variables and keymap initializations
-(make-variable-buffer-local 'Man-sections-alist)
-(make-variable-buffer-local 'Man-refpages-alist)
-(make-variable-buffer-local 'Man-page-list)
-(make-variable-buffer-local 'Man-current-page)
-(make-variable-buffer-local 'Man-page-mode-string)
-(make-variable-buffer-local 'Man-original-frame)
-(make-variable-buffer-local 'Man-arguments)
-
-(setq-default Man-sections-alist nil)
-(setq-default Man-refpages-alist nil)
-(setq-default Man-page-list nil)
-(setq-default Man-current-page 0)
-(setq-default Man-page-mode-string "1 of 1")
 
 (if Man-mode-map
     nil
@@ -310,8 +315,6 @@ This regular expression should start with a `^' character.")
   "Used for initialising variables based on the value of window-system.
 This is necessary if one wants to dump man.el with emacs."
 
-  (defvar Man-fontify-manpage-flag t
-    "*Make up the manpage with fonts.")
   ;; The following is necessary until fonts are implemented on
   ;; terminals.
   (setq Man-fontify-manpage-flag (and Man-fontify-manpage-flag
@@ -619,19 +622,19 @@ Same for the ANSI bold and normal escape sequences."
 		       (progn (if (search-forward "\e[0m" nil 'move)
 				  (delete-backward-char 4))
 			      (point))
-		       'face 'bold))
+		       'face Man-overstrike-face))
   (goto-char (point-min))
   (while (search-forward "_\b" nil t)
     (backward-delete-char 2)
-    (put-text-property (point) (1+ (point)) 'face 'underline))
+    (put-text-property (point) (1+ (point)) 'face Man-underline-face))
   (goto-char (point-min))
   (while (search-forward "\b_" nil t)
     (backward-delete-char 2)
-    (put-text-property (1- (point)) (point) 'face 'underline))
+    (put-text-property (1- (point)) (point) 'face Man-underline-face))
   (goto-char (point-min))
   (while (re-search-forward "\\(.\\)\\(\b\\1\\)+" nil t)
     (replace-match "\\1")
-    (put-text-property (1- (point)) (point) 'face 'bold))
+    (put-text-property (1- (point)) (point) 'face Man-overstrike-face))
   (goto-char (point-min))
   (while (search-forward "o\b+" nil t)
     (backward-delete-char 2)
