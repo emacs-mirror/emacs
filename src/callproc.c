@@ -527,7 +527,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 #else /* not MSDOS */
   char **env;
 
-  register int pid = getpid ();
+  int pid = getpid ();
 
   {
     extern int emacs_priority;
