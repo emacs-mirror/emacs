@@ -596,6 +596,17 @@ Note that the style variables are always made local to the buffer."
 ;; doing this on load.  That since `add-to-list' prepends the value
 ;; which could cause it to clobber user settings.  Later emacsen have
 ;; an append option, but it's not safe to use.
+
+;; The the extension ".C" is associated to C++ while the lowercase
+;; variant goes to C.  On case insensitive file systems, this means
+;; that ".c" files also might open C++ mode if the C++ entry comes
+;; first on `auto-mode-alist'.  Thus we try to ensure that ".C" comes
+;; after ".c", and since `add-to-list' adds the entry first we have to
+;; add the ".C" entry first.
+;;;###autoload (add-to-list 'auto-mode-alist '("\\.\\(cc\\|hh\\)\\'" . c++-mode))
+;;;###autoload (add-to-list 'auto-mode-alist '("\\.[ch]\\(pp\\|xx\\|\\+\\+\\)\\'" . c++-mode))
+;;;###autoload (add-to-list 'auto-mode-alist '("\\.\\(CC?\\|HH?\\)\\'" . c++-mode))
+
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.[ch]\\'" . c-mode))
 
 ;; NB: The following two associate yacc and lex files to C Mode, which
@@ -613,7 +624,7 @@ Note that the style variables are always made local to the buffer."
 To submit a problem report, enter `\\[c-submit-bug-report]' from a
 c-mode buffer.  This automatically sets up a mail buffer with version
 information already added.  You just need to add a description of the
-problem, including a reproducible test case and send the message.
+problem, including a reproducible test case, and send the message.
 
 To see what version of CC Mode you are running, enter `\\[c-version]'.
 
@@ -669,10 +680,6 @@ Key bindings:
 
 (easy-menu-define c-c++-menu c++-mode-map "C++ Mode Commands"
 		  (cons "C++" (c-lang-const c-mode-menu c++)))
-
-;;;###autoload (add-to-list 'auto-mode-alist '("\\.\\(cc\\|hh\\)\\'" . c++-mode))
-;;;###autoload (add-to-list 'auto-mode-alist '("\\.[ch]\\(pp\\|xx\\|\\+\\+\\)\\'" . c++-mode))
-;;;###autoload (add-to-list 'auto-mode-alist '("\\.\\(CC?\\|HH?\\)\\'" . c++-mode))
 
 ;;;###autoload
 (defun c++-mode ()
@@ -816,7 +823,7 @@ Key bindings:
 To submit a problem report, enter `\\[c-submit-bug-report]' from a
 java-mode buffer.  This automatically sets up a mail buffer with
 version information already added.  You just need to add a description
-of the problem, including a reproducible test case and send the
+of the problem, including a reproducible test case, and send the
 message.
 
 To see what version of CC Mode you are running, enter `\\[c-version]'.
@@ -929,8 +936,8 @@ Key bindings:
 (easy-menu-define c-pike-menu pike-mode-map "Pike Mode Commands"
 		  (cons "Pike" (c-lang-const c-mode-menu pike)))
 
-;;;###autoload (add-to-list 'auto-mode-alist '("\\.\\(pike\\|pmod\\(.in\\)?\\)\\'" . pike-mode))
-;;;###autoload (add-to-list 'interpreter-mode-alist '(("pike" . pike-mode)))
+;;;###autoload (add-to-list 'auto-mode-alist '("\\.\\(u?lpc\\|pike\\|pmod\\(.in\\)?\\)\\'" . pike-mode))
+;;;###autoload (add-to-list 'interpreter-mode-alist '("pike" . pike-mode))
 
 ;;;###autoload
 (defun pike-mode ()
@@ -969,18 +976,19 @@ Key bindings:
 ;; Support for awk.  This is purposely disabled for older (X)Emacsen which
 ;; don't support syntax-table properties.
 
+;;;###autoload (add-to-list 'auto-mode-alist '("\\.awk\\'" . awk-mode))
+;;;###autoload (add-to-list 'interpreter-mode-alist '("awk" . awk-mode))
+;;;###autoload (add-to-list 'interpreter-mode-alist '("mawk" . awk-mode))
+;;;###autoload (add-to-list 'interpreter-mode-alist '("nawk" . awk-mode))
+;;;###autoload (add-to-list 'interpreter-mode-alist '("gawk" . awk-mode))
+
+;;; Autoload directives must be on the top level, so we construct an
+;;; autoload form instead.
+;;;###autoload (autoload 'awk-mode "cc-mode" "Major mode for editing AWK code.")
+
 (if (not (memq 'syntax-properties c-emacs-features))
-    (autoload 'awk-mode "awk-mode.el" "Major mode for editing AWK code.
-To submit a problem report, enter `\\[c-submit-bug-report]' from an
-awk-mode buffer.  This automatically sets up a mail buffer with version
-information already added.  You just need to add a description of the
-problem, including a reproducible test case and send the message.
+    (autoload 'awk-mode "awk-mode" "Major mode for editing AWK code."  t)
 
-To see what version of CC Mode you are running, enter `\\[c-version]'.
-
-The hook `c-mode-common-hook' is run with no args at mode
-initialization, then `awk-mode-hook'.
-"  t)
   (defvar awk-mode-abbrev-table nil
     "Abbreviation table used in awk-mode buffers.")
   (c-define-abbrev-table 'awk-mode-abbrev-table
@@ -1007,18 +1015,12 @@ initialization, then `awk-mode-hook'.
   (easy-menu-define c-awk-menu awk-mode-map "AWK Mode Commands"
     (cons "AWK" (c-lang-const c-mode-menu awk)))
 
-;; In XEmacs >= 21.5 modes should add their own entries to
-;; `auto-mode-alist' and `interpreter-mode-alist'.
-;;;###autoload (add-to-list 'auto-mode-alist '("\\.awk\\'" . awk-mode))
-;;;###autoload (add-to-list 'interpreter-mode-alist '(("awk" . awk-mode) ("mawk" . awk-mode) ("nawk" . awk-mode) ("gawk" . awk-mode)))
-
-;;;###autoload
   (defun awk-mode ()
     "Major mode for editing AWK code.
 To submit a problem report, enter `\\[c-submit-bug-report]' from an
 awk-mode buffer.  This automatically sets up a mail buffer with version
 information already added.  You just need to add a description of the
-problem, including a reproducible test case and send the message.
+problem, including a reproducible test case, and send the message.
 
 To see what version of CC Mode you are running, enter `\\[c-version]'.
 
