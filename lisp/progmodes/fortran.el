@@ -108,11 +108,12 @@ with a character in column 6."
 (defcustom fortran-comment-indent-style 'fixed
   "*How to indent comments.
 nil forces comment lines not to be touched,
-'fixed makes fixed comment indentation to `fortran-comment-line-extra-indent'
-columns beyond `fortran-minimum-statement-indent-fixed' (for
-`indent-tabs-mode' of nil) or `fortran-minimum-statement-indent-tab' (for
-`indent-tabs-mode' of t), and 'relative indents to current
-Fortran indentation plus `fortran-comment-line-extra-indent'."
+`fixed' makes fixed comment indentation to `fortran-comment-line-extra-indent'
+  columns beyond `fortran-minimum-statement-indent-fixed' (for
+  `indent-tabs-mode' of nil) or `fortran-minimum-statement-indent-tab' (for
+  `indent-tabs-mode' of t), and
+`relative' indents to current Fortran indentation plus
+  `fortran-comment-line-extra-indent'."
   :type '(radio (const :tag "Untouched" nil) (const fixed) (const relative))
   :group 'fortran-indent)
 
@@ -637,8 +638,13 @@ with no args, if that value is non-nil."
   (setq indent-line-function 'fortran-indent-line)
   (make-local-variable 'comment-indent-function)
   (setq comment-indent-function 'fortran-comment-indent)
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip "![ \t]*")
+  (set (make-local-variable 'comment-start-skip)
+       ;; We can't reuse `fortran-comment-line-start-skip' directly because
+       ;; it contains backrefs whereas we need submatch-1 to end at the
+       ;; beginning of the comment delimiter.
+       ;; (concat "\\(\\)\\(![ \t]*\\|" fortran-comment-line-start-skip "\\)")
+       "\\(\\)\\(?:^[CcDd*]\\|!\\)\\(?:\\([^ \t\n]\\)\\2+\\)?[ \t]*")
+  (set (make-local-variable 'comment-padding) "$$$")
   (make-local-variable 'comment-start)
   (setq comment-start fortran-comment-line-start)
   (make-local-variable 'require-final-newline)
@@ -681,35 +687,34 @@ with no args, if that value is non-nil."
 
 (defsubst fortran-comment-indent ()
   (save-excursion
-    (skip-chars-backward " \t")
-    (max (+ 1 (current-column))
-	 comment-column)))
+    (if (looking-at fortran-comment-line-start-skip) 0
+      (skip-chars-backward " \t")
+      (max (+ 1 (current-column))
+	   comment-column))))
 
 (defun fortran-indent-comment ()
   "Align or create comment on current line.
 Existing comments of all types are recognized and aligned.
 If the line has no comment, a side-by-side comment is inserted and aligned
-if the value of  `comment-start'  is not nil.
+if the value of `comment-start' is not nil and allows such comments.
 Otherwise, a separate-line comment is inserted, on this line
 or on a new line inserted before this line if this line is not blank."
   (interactive)
   (beginning-of-line)
   ;; Recognize existing comments of either kind.
-  (cond ((looking-at fortran-comment-line-start-skip)
-	 (fortran-indent-line))
-	((fortran-find-comment-start-skip) ; catches any inline comment and
-					; leaves point after comment-start-skip
-	 (if comment-start-skip
-	     (progn (goto-char (match-beginning 0))
-		    (if (not (= (current-column)
-				(fortran-comment-indent)))
-			(progn (delete-horizontal-space)
-			       (indent-to (fortran-comment-indent)))))
-	   (end-of-line)))        ; otherwise goto end of line or sth else?
+  (cond ((fortran-find-comment-start-skip 'all)
+	 (goto-char (match-beginning 0))
+	 (if (bolp)
+	     (fortran-indent-line)
+	   (if (not (= (current-column)
+		       (fortran-comment-indent)))
+	       (progn (delete-horizontal-space)
+		      (indent-to (fortran-comment-indent))))))
 	;; No existing comment.
 	;; If side-by-side comments are defined, insert one,
 	;; unless line is now blank.
-	((and comment-start (not (looking-at "^[ \t]*$")))
+	((and comment-start (not (looking-at "[ \t]*$"))
+	      (string-match comment-start-skip (concat " " comment-start)))
 	 (end-of-line)
 	 (delete-horizontal-space)
 	 (indent-to (fortran-comment-indent))
@@ -841,7 +846,7 @@ See also `fortran-window-create'."
   (if (save-excursion
 	(beginning-of-line)
 	(looking-at fortran-comment-line-start-skip))
-      (insert ?\n fortran-comment-line-start ? )
+      (insert ?\n (match-string 0))
     (if indent-tabs-mode
 	(insert ?\n ?\t (fortran-numerical-continuation-char))
       (insert "\n " fortran-continuation-string))) ; Space after \n important
@@ -1237,8 +1242,7 @@ Return point or nil."
 		   (not (fortran-line-number-indented-correctly-p))))
 	  (fortran-indent-to-column cfi)
 	(beginning-of-line)
-	(if (and (not (looking-at fortran-comment-line-start-skip))
-		 (fortran-find-comment-start-skip))
+	(if (fortran-find-comment-start-skip)
 	    (fortran-indent-comment))))
     ;; Never leave point in left margin.
     (if (< (current-column) cfi)
@@ -1265,8 +1269,7 @@ Return point or nil."
 		       (not (fortran-line-number-indented-correctly-p))))
 	      (fortran-indent-to-column cfi)
 	    (beginning-of-line)
-	    (if (and (not (looking-at fortran-comment-line-start-skip))
-		     (fortran-find-comment-start-skip))
+	    (if (fortran-find-comment-start-skip)
 		(fortran-indent-comment))))
 	(fortran-fill)
 	;; Never leave point in left margin.
@@ -1465,11 +1468,9 @@ notes: 1) A non-zero/non-blank character in column 5 indicates a continuation
       (delete-horizontal-space)
       (indent-to col)
       ;; Indent any comment following code on the same line.
-      (if (and comment-start-skip
-	       (fortran-find-comment-start-skip))
+      (if (fortran-find-comment-start-skip)
 	  (progn (goto-char (match-beginning 0))
-		 (if (not (= (current-column)
-			     (fortran-comment-indent)))
+		 (if (not (= (current-column) (fortran-comment-indent)))
 		     (progn (delete-horizontal-space)
 			    (indent-to (fortran-comment-indent)))))))))
 
@@ -1513,27 +1514,28 @@ Otherwise return nil."
 		      (concat "^[ \t0-9]*do[ \t]*0*"
 			      charnum))))))))))
 
-(defun fortran-find-comment-start-skip ()
+(defun fortran-find-comment-start-skip (&optional all)
   "Move to past `comment-start-skip' found on current line.
-Return t if `comment-start-skip' found, nil if not."
-  ;; In order to move point only if comment-start-skip is found, this
-  ;; one uses a lot of save-excursions.  Note that re-search-forward
-  ;; moves point even if comment-start-skip is inside a string-constant.
-  ;; Some code expects certain values for match-beginning and end.
+Return non-nil if `comment-start-skip' found, nil if not.
+If ALL is nil, only match comments that start in column > 0."
   (interactive)
-  (if (and comment-start-skip
-	   (save-excursion
-	     (re-search-forward comment-start-skip (line-end-position) t)))
-      (let ((save-match-beginning (match-beginning 0))
-	    (save-match-end (match-end 0)))
-	(if (fortran-is-in-string-p (match-beginning 0))
-	    (save-excursion
-	      (goto-char save-match-end)
-	      (fortran-find-comment-start-skip)) ; recurse for rest of line
-	  (goto-char save-match-beginning)
-	  (re-search-forward comment-start-skip (line-end-position) t)
-	  (goto-char (match-end 0))
-	  t))))
+  ;; Hopefully at some point we can just use the line below!  -stef
+  ;; (comment-search-forward (line-end-position) t))
+  (when (or all comment-start-skip)
+    (let ((pos (point))
+	  (css (if comment-start-skip
+		   (concat fortran-comment-line-start-skip
+			   "\\|" comment-start-skip)
+		 fortran-comment-line-start-skip)))
+      (when (re-search-forward css (line-end-position) t)
+	(if (and (or all (> (match-beginning 0) (line-beginning-position)))
+		 (or (save-match-data
+		       (not (fortran-is-in-string-p (match-beginning 0))))
+		     ;; Recurse for rest of line.
+		     (fortran-find-comment-start-skip all)))
+	    (point)
+	  (goto-char pos)
+	  nil)))))
 
 ;;From: ralf@up3aud1.gwdg.de (Ralf Fassel)
 ;; Test if TAB format continuation lines work.
@@ -1649,40 +1651,35 @@ Return t if `comment-start-skip' found, nil if not."
     ;;
     ;; Need to use fortran-find-comment-start-skip to make sure that quoted !'s
     ;; don't prevent a break.
-    (if (not (or (save-excursion
-		   (if (and comment-start-skip
-			    (re-search-backward comment-start-skip bol t)
-			    (not (fortran-is-in-string-p (point))))
-		       (progn
-			 (skip-chars-backward " \t")
-			 (< (current-column) (1+ fill-column)))))
-		 (save-excursion
-		   (goto-char fill-point)
-		   (bolp))))
-	(when (> (save-excursion
-		   (goto-char opoint)
-		   (current-column))
-		 (min (1+ fill-column)
-		      (+ (fortran-calculate-indent)
-			 fortran-continuation-indent)))
-	  (goto-char fill-point)
-	  (fortran-break-line)
-	  (end-of-line)))))
+    (when (and (save-excursion
+		 (beginning-of-line)
+		 (when (fortran-find-comment-start-skip)
+		   (goto-char (match-beginning 0))
+		   (>= (point) fill-point)))
+	       (save-excursion
+		 (goto-char fill-point)
+		 (not (bolp)))
+	       (> (save-excursion
+		    (goto-char opoint)
+		    (current-column))
+		  (min (1+ fill-column)
+		       (+ (fortran-calculate-indent)
+			  fortran-continuation-indent))))
+      (goto-char fill-point)
+      (fortran-break-line)
+      (end-of-line))))
 
 (defun fortran-break-line ()
   (let ((opoint (point))
 	(bol (line-beginning-position))
-	(eol (line-end-position))
-	(comment-string nil))
-    (save-excursion
-      (if (and comment-start-skip (fortran-find-comment-start-skip))
-	  (progn
-	    (re-search-backward comment-start-skip bol t)
-	    (setq comment-string (buffer-substring (point) eol))
-	    (delete-region (point) eol))))
+	(comment-string
+	 (save-excursion
+	   (if (fortran-find-comment-start-skip)
+	       (delete-and-extract-region
+		(match-beginning 0) (line-end-position))))))
     ;; Forward line 1 really needs to go to next non white line
     (if (save-excursion (forward-line)
-			(or (looking-at " \\{5\\}[^ 0\n]\\|\t[1-9]")))
+			(looking-at " \\{5\\}[^ 0\n]\\|\t[1-9]"))
 	(progn
 	  (end-of-line)
 	  (delete-region (point) (match-end 0))
@@ -1775,8 +1772,7 @@ Intended as the value of `fill-paragraph-function'."
 	       (or (looking-at "[ \t]*$")
 		   (looking-at fortran-comment-line-start-skip)
 		   (and comment-start-skip
-			(looking-at (concat "[ \t]*"
-					    comment-start-skip))))))
+			(looking-at (concat "[ \t]*" comment-start-skip))))))
 	(save-excursion
 	  ;; Find beginning of statement.
 	  (fortran-next-statement)
