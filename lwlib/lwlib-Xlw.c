@@ -30,6 +30,34 @@ Boston, MA 02111-1307, USA.  */
 #include <X11/Shell.h>
 #include "xlwmenu.h"
 
+#if 0
+
+#include <stdio.h>
+
+/* Print the complete X resource name of widget WIDGET to stderr.
+   This is sometimes handy to have available.  */
+
+void
+x_print_complete_resource_name (widget)
+     Widget widget;
+{
+  int i;
+  String names[100];
+
+  for (i = 0; i < 100 && widget != NULL; ++i)
+    {
+      names[i] = XtName (widget);
+      widget = XtParent (widget);
+    }
+
+  for (--i; i >= 1; --i)
+    fprintf (stderr, "%s.", names[i]);
+  fprintf (stderr, "%s\n", names[0]);
+}
+
+#endif /* 0 */
+
+
 /* Menu callbacks */
 
 /* Callback XtNhighlightCallback for Lucid menus.  W is the menu
