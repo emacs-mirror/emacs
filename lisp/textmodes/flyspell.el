@@ -344,8 +344,8 @@ flyspell-buffer checks the whole buffer."
   ;; improvement).
   (add-hook 'kill-buffer-hook
 	    '(lambda ()
-	       (if flyspell-mode
-		   (flyspell-mode-off))))
+	       (if (and flyspell-multi-language-p ispell-process)
+		   (ispell-kill-ispell t))))
   ;; we end with the flyspell hooks
   (run-hooks 'flyspell-mode-hook))
 
