@@ -1348,7 +1348,7 @@ and only used if a buffer is displayed."
 				   1)))
 			 ;; Don't use the echo area if the output buffer is
 			 ;; already dispayed in the selected frame.
-			 (not (get-buffer-window buffer)))
+			 (not (get-buffer-window (current-buffer))))
 		    ;; Echo area
 		    (goto-char (point-max))
 		    (when (bolp)
