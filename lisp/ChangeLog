@@ -1,14 +1,18 @@
-1999-11-15  Markus Rost  <rost@ias.edu>
+1998-09-14  Michael Ernst  <mernst@alum.mit.edu>
+
+	* uniquify.el: Use new backquote syntax.
+
+1999-11-14  Markus Rost  <rost@ias.edu>
 
 	* ispell.el (ispell-dictionary-alist): Fix type by adding koi8-r
 	as in ispell-local-dictionary-alist.
 
-1999-11-15  Alex Schroeder  <alex@gnu.org>
+1999-11-14  Alex Schroeder  <alex@gnu.org>
 
 	* ansi-color.el (ansi-color-apply): Updated regexps to include
 	highlighted face.
 	
-1999-01-15  Johan Vromans  <jvromans@squirrel.nl>
+1999-01-14  Johan Vromans  <jvromans@squirrel.nl>
 
 	* forms.el (forms--make-format-elt-using-text-properties): 
 	Treat `intangible' differently.
