@@ -1,6 +1,6 @@
 /* impl.c.poolsnc: STACK NO CHECKING POOL CLASS
  *
- * $HopeName: MMsrc!poolsnc.c(trunk.9) $
+ * $HopeName: MMsrc!poolsnc.c(trunk.10) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
@@ -26,7 +26,7 @@
 #include "mpm.h"
 
 
-SRCID(poolsnc, "$HopeName: MMsrc!poolsnc.c(trunk.9) $");
+SRCID(poolsnc, "$HopeName: MMsrc!poolsnc.c(trunk.10) $");
 
 
 #define SNCSig  ((Sig)0x519b754c)       /* SIGPooLSNC */
@@ -50,9 +50,11 @@ typedef struct SNCStruct {
   PARENT(SNCStruct, poolStruct, (pool))
 
 
+/* Forward declarations */
 
+extern SegClass EnsureSNCSegClass(void);
+extern BufferClass EnsureSNCBufClass(void);
 static Bool SNCCheck(SNC snc);
-
 static void sncPopPartialSegChain(SNC snc, Buffer buf, Seg upTo);
 
 
