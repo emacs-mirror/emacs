@@ -22,7 +22,6 @@
 
 (require 'ediff-init)
 
-
 (defvar ediff-default-variant 'default-A
   "*The variant to be used as a default for buffer C in merging.
 Valid values are the symbols `default-A', `default-B', and `combined'.")
@@ -62,7 +61,11 @@ skiped over. Nil means show all regions.")
   (let ((regA (ediff-get-region-contents n 'A ctl-buf))
 	(regB (ediff-get-region-contents n 'B ctl-buf))
 	(regC (ediff-get-region-contents n 'C ctl-buf)))
-    (cond ((string= regA regB)
+    (cond ((and (string= regA regB) (string= regA  regC))
+	   (ediff-set-state-of-diff n 'A "=diff(B)")
+	   (ediff-set-state-of-diff n 'B "=diff(C)")
+	   (ediff-set-state-of-diff n 'C "=diff(A)"))
+	  ((string= regA regB)
 	   (ediff-set-state-of-diff n 'A "=diff(B)")
 	   (ediff-set-state-of-diff n 'B "=diff(A)")
 	   (ediff-set-state-of-diff n 'C nil))
@@ -82,6 +85,11 @@ skiped over. Nil means show all regions.")
 	     (ediff-set-state-of-diff n 'B nil)
 	     (ediff-set-state-of-diff n 'C nil)))
     ))
+    
+(defun ediff-set-merge-mode ()
+  ;; by Stig@hackvan.com
+  (normal-mode t)
+  (remove-hook 'local-write-file-hooks 'ediff-set-merge-mode))
 	
 ;; Go over all diffs starting with DIFF-NUM and copy regions into buffer C
 ;; according to the state of the difference.
@@ -90,19 +98,14 @@ skiped over. Nil means show all regions.")
 ;;
 ;; If re-merging, change state of merge in all diffs starting with
 ;; DIFF-NUM, except those where the state is prefer-* or where it is
-;; default-* but the region appears to be modified with respect to its
-;; original form.
-;; Also, prevent copying when there is a danger of overriding a modified
-;; region in buffer C.
+;; `default-*' or `combined' but the buf C region appears to be modified
+;; since last set by default.
 (defun ediff-do-merge (diff-num &optional remerging)
   (if (< diff-num 0) (setq diff-num 0))
   (let ((n diff-num)
 	(default-state-of-merge (format "%S" ediff-default-variant))
-	do-not-copy
-	state-of-merge)
-      
+	do-not-copy state-of-merge)
     (while (< n ediff-number-of-differences)
-    
       (if (= (mod n 10) 0)
 	  (message "%s buffers A & B into C ... region %d of %d"
 		   (if remerging "Re-merging" "Merging")
@@ -117,28 +120,29 @@ skiped over. Nil means show all regions.")
 		(reg-B (ediff-get-region-contents n 'B ediff-control-buffer))
 		(reg-C (ediff-get-region-contents n 'C ediff-control-buffer)))
 		
-	    (if (or 
-		 ;; has been edited since it was first set by default
-		 (and (string= state-of-merge "default-A")
+		    ;;; was edited since first set by default
+	    (if (or (and (string= state-of-merge "default-A")
 		      (not (string= reg-A reg-C)))
-		 ;; has been edited since first set by default
-		 (and (string= state-of-merge "default-B")
-		      (not (string= reg-B reg-C)))
-		 ;; was prefered--ignore
-		 (string-match "prefer" state-of-merge)
-		 ;; was combined--ignore
-		 (string= state-of-merge "combined"))
-		
+		    ;; was edited since first set by default
+		    (and (string= state-of-merge "default-B")
+			 (not (string= reg-B reg-C)))
+		    ;; was edited since first set by default
+		    (and (string= state-of-merge "combined")
+			 (not (string=
+			       (ediff-make-combined-diff reg-A reg-B) reg-C)))
+		    ;; was prefered--ignore
+		    (string-match "prefer" state-of-merge))
 		(setq do-not-copy t))
 		
 	    ;; change state of merge for this diff, if necessary
-	    (if (and (string-match "default" state-of-merge) (not do-not-copy))
+	    (if (and (string-match "\\(default\\|combined\\)" state-of-merge)
+		     (not do-not-copy))
 		(ediff-set-state-of-merge
 		 n (format "%S" ediff-default-variant)))
 	    ))
 	  
       ;; state-of-merge may have changed via ediff-set-state-of-merge, so
-      ;; check it out again
+      ;; check it once again
       (setq state-of-merge (ediff-get-state-of-merge n))
       
       (or do-not-copy
@@ -146,10 +150,8 @@ skiped over. Nil means show all regions.")
 	      ;; use n+1 because ediff-combine-diffs works via user numbering
 	      ;; of diffs, which is 1+ to what ediff uses internally
 	      (ediff-combine-diffs (1+ n) 'batch)
-	    (ediff-copy-diff n
-			     (if (string-match "-A" state-of-merge) 'A 'B)
-			     'C
-			     'batch)))
+	    (ediff-copy-diff 
+	     n (if (string-match "-A" state-of-merge) 'A 'B) 'C 'batch)))
       (setq n (1+ n)))
     (message "Merging buffers A & B into C ... Done")
     ))
@@ -209,16 +211,17 @@ Combining is done using the list in variable `ediff-combination-pattern'."
     (setq regA (ediff-get-region-contents n 'A ediff-control-buffer)
 	  regB (ediff-get-region-contents n 'B ediff-control-buffer))
     
-    (setq reg-combined (concat (nth 0 ediff-combination-pattern) "\n"
-			       regA
-			       (nth 1 ediff-combination-pattern) "\n"
-			       regB
-			       (nth 2 ediff-combination-pattern) "\n"))
+    (setq reg-combined (ediff-make-combined-diff regA regB))
     
     (ediff-copy-diff n nil 'C batch-invocation reg-combined))
+    (or batch-invocation (ediff-recenter)))
     
-    (or batch-invocation
-	(ediff-recenter 'no-rehighlight)))
+(defsubst ediff-make-combined-diff (regA regB)
+  (concat (nth 0 ediff-combination-pattern) "\n"
+	  regA
+	  (nth 1 ediff-combination-pattern) "\n"
+	  regB
+	  (nth 2 ediff-combination-pattern) "\n"))
 
 
 ;; Checks if the region in buff C looks like a combination of the regions
