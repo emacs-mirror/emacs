@@ -94,6 +94,15 @@ such as `edebug-defun' to work with such inputs."
   :type 'hook
   :group 'ielm)
 
+(defvar * nil
+  "Most recent value evaluated in IELM.")
+
+(defvar ** nil
+  "Second-most-recent value evaluated in IELM.")
+
+(defvar *** nil
+  "Third-most-recent value evaluated in IELM.")
+  
 ;;; System variables
 
 (defvar ielm-working-buffer nil
@@ -347,7 +356,7 @@ simply inserts a newline."
 		(if ielm-noisy (ding))
 		(setq ielm-output (concat ielm-output "*** " ielm-error-type " ***  "))
 		(setq ielm-output (concat ielm-output ielm-result)))
-	    ;; There was no error, so shift the ::: values
+	    ;; There was no error, so shift the *** values
 	    (setq *** **)
 	    (setq ** *)
 	    (setq * ielm-result))
