@@ -1039,7 +1039,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 	(set-cursor-color color))
     (if (and type
 	     (symbolp type)
-	     (not (eq type (frame-parameter nil 'cursor-type))))
+	     (not (eq type default-cursor-type)))
 	(setq default-cursor-type type))))
 
 
