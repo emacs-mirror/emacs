@@ -1,3 +1,7 @@
+2001-11-23  Francesco Potorti`  <pot@gnu.org>
+
+	* generic-x.el (mailrc-generic-mode): Highlight the `source' keyword.
+
 2001-11-22  Colin Walters  <walters@debian.org>
 
 	* calc/calc-misc.el (report-calc-bug): Use `reporter-prompt-for-summary-p'.
@@ -6,7 +10,7 @@
 
 2001-11-22  Miles Bader  <miles@gnu.org>
 
-	* emacs-lisp/re-builder.el (reb-match-0, reb-match-1) 
+	* emacs-lisp/re-builder.el (reb-match-0, reb-match-1)
 	(reb-match-2, reb-match-3): Add dark-background variants.
 
 2001-11-22  Colin Walters  <walters@debian.org>
@@ -14,7 +18,7 @@
 	* calc/calc-misc.el (calc-info): Don't perform voodoo, just
 	(info "Calc").
 	(report-calc-bug): Use reporter.el.
-	
+
 	* mail/reporter.el (reporter-submit-bug-report): Doc fixes.
 
 2001-11-21  Richard M. Stallman  <rms@gnu.org>
@@ -25,7 +29,7 @@
 	(which-func-update): Handle all visible windows.
 	(which-func-update-1): New subroutine broken out of which-func-update.
 
-	* files.el (temporary-file-directory, null-device) 
+	* files.el (temporary-file-directory, null-device)
 	(small-temporary-file-directory): Definitions moved up.
 
 	* progmodes/cperl-mode.el (cperl-problems, cperl-tips)
