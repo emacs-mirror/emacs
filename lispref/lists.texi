@@ -457,8 +457,16 @@ objects, but most often @var{object2} is a list.
 
 @cindex consing
 @code{cons} is often used to add a single element to the front of a
-list.  This is called @dfn{consing the element onto the list}.  For
-example:
+list.  This is called @dfn{consing the element onto the list}.
+@footnote{There is no strictly equivalent way to add an element to
+the end of a list.  You can use @code{(append @var{listname} (list
+@var{newelt}))}, which creates a whole new list by copying @var{listname}
+and adding @var{newelt} to its end.  Or you can use @code{(nconc
+@var{listname} (list @var{newelt}))}, which modifies @var{listname}
+by following all the @sc{cdr}s and then replacing the terminating
+@code{nil}.  Compare this to adding an element to the beginning of a
+list with @code{cons}, which neither copies nor modifies the list.}
+For example:
 
 @example
 (setq list (cons newelt list))
