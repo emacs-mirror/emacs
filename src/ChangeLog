@@ -1,3 +1,8 @@
+2003-05-31  John Paul Wallington  <jpw@gnu.org>
+
+	* Makefile.in (lisp, shortlisp): byte-run, float-sup, map-ynp, and
+	timer are in lisp/emacs-lisp.
+
 2003-05-31  Kenichi Handa  <handa@m17n.org>
 
 	* charset.h (VALID_LEADING_CODE_P): New macro.
