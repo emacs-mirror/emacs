@@ -88,6 +88,7 @@ and this notice must be preserved on all copies.  */
 #undef HAVE_DUP2
 #undef HAVE_RENAME
 #undef HAVE_TM_ZONE
+#undef HAVE_TZNAME
 #undef TM_IN_SYS_TIME
 #undef STDC_HEADERS
 #undef TIME_WITH_SYS_TIME
