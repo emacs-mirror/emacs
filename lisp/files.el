@@ -1576,32 +1576,31 @@ If the optional argument JUST-FROM-FILE-NAME is non-nil,
 then we do not set anything but the major mode,
 and we don't even do that unless it would come from the file name."
   ;; Look for -*-MODENAME-*- or -*- ... mode: MODENAME; ... -*-
-  (let (beg end done modes)
+  (let (end done modes)
     (save-excursion
       (goto-char (point-min))
       (skip-chars-forward " \t\n")
       (and enable-local-variables
 	   (setq end (set-auto-mode-1))
-	   (progn
-	     (if (save-excursion (search-forward ":" end t))
-		 ;; Find all specifications for the `mode:' variable
-		 ;; and execute them left to right.
-		 (while (let ((case-fold-search t))
-			  (or (and (looking-at "mode:")
-				   (goto-char (match-end 0)))
-			      (re-search-forward "[ \t;]mode:" end t)))
-		   (skip-chars-forward " \t")
-		   (setq beg (point))
+	   (if (save-excursion (search-forward ":" end t))
+	       ;; Find all specifications for the `mode:' variable
+	       ;; and execute them left to right.
+	       (while (let ((case-fold-search t))
+			(or (and (looking-at "mode:")
+				 (goto-char (match-end 0)))
+			    (re-search-forward "[ \t;]mode:" end t)))
+		 (skip-chars-forward " \t")
+		 (let ((beg (point)))
 		   (if (search-forward ";" end t)
 		       (forward-char -1)
 		     (goto-char end))
 		   (skip-chars-backward " \t")
 		   (push (intern (concat (downcase (buffer-substring beg (point))) "-mode"))
-			 modes))
-	       ;; Simple -*-MODE-*- case.
-	       (push (intern (concat (downcase (buffer-substring beg end))
-				     "-mode"))
-		     modes)))))
+			 modes)))
+	     ;; Simple -*-MODE-*- case.
+	     (push (intern (concat (downcase (buffer-substring (point) end))
+				   "-mode"))
+		   modes))))
     ;; If we found modes to use, invoke them now,
     ;; outside the save-excursion.
     (unless just-from-file-name
