@@ -1,3 +1,12 @@
+2000-03-07  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/cl.el: Remove expt, delete, rassoc from autoloads
+	lists.
+
+	* files.el (auto-mode-alist): Add configure.in.
+
+	* progmodes/autoconf.el: New file.
+
 2000-03-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* mail/mh-e.el: Change maintainer to `none'.
