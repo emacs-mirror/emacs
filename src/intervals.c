@@ -173,29 +173,25 @@ static int icount;
 static int idepth;
 static int zero_length;
 
-static int depth;
-
 /* Traverse an interval tree TREE, performing FUNCTION on each node.
 
    Perhaps we should pass the depth as an argument. */
 
 void
-traverse_intervals (tree, position, function)
+traverse_intervals (tree, position, depth, function)
      INTERVAL tree;
-     int position;
+     int position, depth;
      void (* function) ();
 {
   if (NULL_INTERVAL_P (tree))
     return;
 
-  depth++;
-  traverse_intervals (tree->left, position, function);
+  traverse_intervals (tree->left, position, depth + 1, function);
   position += LEFT_TOTAL_LENGTH (tree);
   tree->position = position;
   (*function) (tree);
   position += LENGTH (tree);
-  traverse_intervals (tree->right, position, function);
-  depth--;
+  traverse_intervals (tree->right, position, depth + 1,  function);
 }
 
 #if 0
@@ -221,7 +217,7 @@ search_for_interval (i, tree)
   icount = 0;
   search_interval = i;
   found_interval = NULL_INTERVAL;
-  traverse_intervals (tree, 1, &check_for_interval);
+  traverse_intervals (tree, 1, 0, &check_for_interval);
   return found_interval;
 }
 
@@ -243,7 +239,7 @@ count_intervals (i)
   icount = 0;
   idepth = 0;
   zero_length = 0;
-  traverse_intervals (i, 1, &inc_interval_count);
+  traverse_intervals (i, 1, 0, &inc_interval_count);
 
   return icount;
 }
