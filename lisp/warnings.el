@@ -62,7 +62,7 @@ Level :debug is ignored by default (see `warning-minimum-level').")
     (alarm . :emergency))
   "Alist of aliases for severity levels for `display-warning'.
 Each element looks like (ALIAS . LEVEL) and defines
-ALIAS as equivalent to LEVEL.   LEVEL must be defined in `warning-levels';
+ALIAS as equivalent to LEVEL.  LEVEL must be defined in `warning-levels';
 it may not itself be an alias.")
 
 (defcustom warning-minimum-level :warning
