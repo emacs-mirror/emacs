@@ -1,6 +1,6 @@
 ;;; hexl.el --- edit a file in a hex dump format using the hexl filter.
 
-;; Copyright (C) 1989 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1994 Free Software Foundation, Inc.
 
 ;; Author: Keith Gabryelski <ag@wheaties.ai.mit.edu>
 ;; Maintainer: FSF

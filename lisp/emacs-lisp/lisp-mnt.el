@@ -1,11 +1,11 @@
 ;;; lisp-mnt.el --- minor mode for Emacs Lisp maintainers
 
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Created: 14 Jul 1992
-;; Version: $Id: lisp-mnt.el,v 1.6 1993/12/26 07:56:21 rms Exp rms $
+;; Version: $Id: lisp-mnt.el,v 1.7 1993/12/26 08:02:10 rms Exp kwzh $
 ;; Keywords: docs
 ;; X-Bogus-Bureaucratic-Cruft: Gruad will get you if you don't watch out!
 

@@ -2,7 +2,7 @@
 
 ;; Keywords: internal
 
-;; Copyright (c) 1993 Free Software Foundation, Inc.
+;; Copyright (c) 1993, 1994 Free Software Foundation, Inc.
 ;; Based partially on earlier release by Lucid.
 
 ;; This file is part of GNU Emacs.

@@ -3,7 +3,7 @@
 ;; You may use these commands to handle an address list or other
 ;; small data base.
 
-;; Copyright (C) 1990, 1991, 1993 Free Software Foundation
+;; Copyright (C) 1990, 1991, 1993, 1994 Free Software Foundation
 
 ;; Maintainer: Robert J. Chassell <bob@gnu.ai.mit.edu>
 

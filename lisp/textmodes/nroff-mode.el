@@ -1,6 +1,6 @@
 ;;; nroff-mode.el --- GNU Emacs major mode for editing nroff source
 
-;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1994 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp

@@ -1,6 +1,6 @@
 ;;; apropos.el --- faster apropos commands.
 
-;; Copyright (C) 1989 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1994 Free Software Foundation, Inc.
 
 ;; Author: Joe Wells <jbw@bigbird.bu.edu>
 ;; Keywords: help

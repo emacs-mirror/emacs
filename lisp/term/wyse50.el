@@ -1,6 +1,6 @@
 ;;; wyse50.el --- terminal support code for Wyse 50
 
-;; Copyright (C) 1989, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfieffer <pfieffer@cix.cict.fr> January 1991
 ;;	Jim Blandy <jimb@occs.cs.oberlin.edu>

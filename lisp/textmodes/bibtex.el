@@ -1,6 +1,6 @@
 ;;; bibtex.el --- BibTeX mode for GNU Emacs
 
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994 Free Software Foundation, Inc.
 
 ;; Author: Bengt Martensson <ubrinf!mond!bengt>
 ;;	Mark Shapiro <shapiro@corto.inria.fr>

@@ -1,6 +1,6 @@
 ;;; window.el --- GNU Emacs window commands aside from those written in C.
 
-;;; Copyright (C) 1985, 1989, 1992, 1993 Free Software Foundation, Inc.
+;;; Copyright (C) 1985, 1989, 1992, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 

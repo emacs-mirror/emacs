@@ -1,8 +1,8 @@
 ;;; GNUS: an NNTP-based News Reader for GNU Emacs
-;; Copyright (C) 1987, 1988, 1989, 1990, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1987,88,89,90,93,94 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Header: /home/fsf/rms/e19/lisp/RCS/gnus.el,v 1.35 1994/04/30 04:22:22 rms Exp rms $
+;; Version: $Header: /gd/gnu/emacs/19.0/lisp/RCS/gnus.el,v 1.36 1994/04/30 20:15:08 rms Exp kwzh $
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.

@@ -1,14 +1,14 @@
 ;;; find-dired.el --- run a `find' command and dired the output
 
-;;; Copyright (C) 1992 Free Software Foundation, Inc.
+;;; Copyright (C) 1992, 1994 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.ai.mit.edu>,
 ;;	   Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Maintainer: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Keywords: unix
 
-(defconst find-dired-version (substring "$Revision: 1.14 $" 11 -2)
-  "$Id: find-dired.el,v 1.14 1994/01/06 04:39:00 rms Exp rms $")
+(defconst find-dired-version (substring "$Revision: 1.15 $" 11 -2)
+  "$Id: find-dired.el,v 1.15 1994/04/24 08:15:55 rms Exp kwzh $")
 
 ;;; This program is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 ;;    find-dired|Roland McGrath, Sebastian Kremer
 ;;    |roland@gnu.ai.mit.edu, sk@thp.uni-koeln.de
 ;;    |Run a `find' command and dired the output
-;;    |$Date: 1994/01/06 04:39:00 $|$Revision: 1.14 $|
+;;    |$Date: 1994/04/24 08:15:55 $|$Revision: 1.15 $|
 
 ;; INSTALLATION ======================================================
 

@@ -3,7 +3,7 @@
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Keywords: unix
 
-;; Copyright (C) 1992 by Sebastian Kremer <sk@thp.uni-koeln.de>
+;; Copyright (C) 1992, 1994 by Sebastian Kremer <sk@thp.uni-koeln.de>
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

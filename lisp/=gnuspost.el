@@ -1,6 +1,6 @@
 ;;; gnuspost.el --- post news commands for GNUS newsreader
 
-;; Copyright (C) 1989, 1990, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1990, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Keywords: news

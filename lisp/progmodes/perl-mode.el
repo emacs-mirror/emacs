@@ -1,6 +1,6 @@
 ;;; perl-mode.el --- Perl code editing commands for GNU Emacs
 
-;; Copyright (C) 1990  Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1994  Free Software Foundation, Inc.
 
 ;; Author: William F. Mann
 ;; Adapted-By: ESR

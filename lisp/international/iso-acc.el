@@ -1,5 +1,5 @@
 ;;; iso-acc.el -- minor mode providing electric accent keys
-;;; Copyright (C) 1993 Free Software Foundation, Inc.
+;;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans <jv@mh.nl>
 ;; Version: 1.7 (modified)

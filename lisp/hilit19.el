@@ -1,5 +1,5 @@
 ;; hilit19.el (Release 2.19) -- customizable highlighting for Emacs19.
-;; Copyright (c) 1993 Free Software Foundation, Inc.
+;; Copyright (c) 1993, 1994 Free Software Foundation, Inc.
 ;;
 ;; Author:   Jonathan Stigelman <Stig@netcom.com>
 ;; Keywords: faces

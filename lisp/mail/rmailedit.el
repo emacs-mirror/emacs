@@ -1,6 +1,6 @@
 ;;; rmailedit.el --- "RMAIL edit mode"  Edit the current message.
 
-;; Copyright (C) 1985 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail

@@ -1,6 +1,6 @@
 ;;; edt.el --- EDT emulation in Emacs
 
-;; Copyright (C) 1986 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1994 Free Software Foundation, Inc.
 
 ;; Author: Mike Clarkson <mike@yetti.UUCP>
 ;; Maintainer: FSF

@@ -1,6 +1,6 @@
 ;;; diary.el --- diary functions.
 
-;; Copyright (C) 1989, 1990, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1990, 1992, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Keywords: calendar

@@ -1,6 +1,6 @@
 ;;; bookmark.el --- set bookmarks, jump to them later.
 
-;; Copyright (C) 1993 Free Software Foundation
+;; Copyright (C) 1993, 1994 Free Software Foundation
 
 ;; Author: Karl Fogel <kfogel@cs.oberlin.edu>
 ;; Maintainer: Karl Fogel <kfogel@cs.oberlin.edu>

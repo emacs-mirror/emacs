@@ -3,7 +3,7 @@
 ;;; Author: Boris Goldowsky <boris@cs.rochester.edu>
 ;;; Keywords: comm
 
-;;; Copyright (c) 1993 Free Software Foundation
+;;; Copyright (c) 1993, 1994 Free Software Foundation
 ;;;
 ;;; This program is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 ;;; LCD Archive Entry:
 ;;; shadowfile|Boris Goldowsky|boris@cs.rochester.edu|
 ;;; Helps you keep identical copies of files in multiple places.|
-;;; $Date: 1993/11/23 06:17:27 $ |$Revision: 1.1 $|~/misc/shadowfile.el.Z|
+;;; $Date: 1993/12/23 03:45:09 $ |$Revision: 1.2 $|~/misc/shadowfile.el.Z|
 
 ;;; Commentary:
 ;;;
