@@ -6,6 +6,372 @@
 	* mail/sendmail.el (sendmail-send-it): Don't parse Resent-*
 	headers.  Always invoke sendmail with option -t.
 
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* Release of cc-mode 5.28.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-mode.el, cc-vars.el (c-common-init, c-default-style):
+	Removed the hardcoded switch to "java" style in Java mode.
+	It's instead taken care of by the default value for
+	c-default-style.
+
+	* cc-mode.texi: Updated the mentions of the "java" style
+	special case for Java mode.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-align.el (c-lineup-math): Fix bug where lineup was
+	triggered by equal signs in string literals.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-fill-paragraph): Fixed bug in the paragraph
+	limit detection when at the ends of the buffer.
+
+	* cc-engine.el (c-guess-basic-syntax): Removed bogus check for
+	"for" statement clause in case 7F; a better one is done
+	earlier in case 7D anyway.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-guess-fill-prefix): Improved the heuristics
+	somewhat more and did a small optimization.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-beginning-of-statement, c-end-of-statement):
+	Use the limit argument only to limit the syntactic context
+	search, not to limit the actual movement.
+
+	* cc-cmds.el (c-beginning-of-statement): Move by sentence
+	inside multiline strings, just like in comments.  Also various
+	fixes to the paragraph and comment prefix recognition, block
+	comment ender handling etc.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-fill-paragraph): Take more care to preserve
+	the relative position of the point.
+
+	* cc-cmds.el (c-electric-continued-statement): New function to
+	use as abbrev hook to reindent for keywords such as "else"
+	that continues an earlier statement.
+
+	* cc-menus.el (cc-imenu-c++-generic-expression): Treat structs
+	like classes.
+
+	* cc-mode.el (c-mode, c++-mode, java-mode, objc-mode)
+	(pike-mode): Populate the default abbrev tables to reindent for
+	keywords such as "else" that can continue earlier statements.
+	Abbrev mode is therefore turned on by default now.  (Note that
+	this doesn't apply to idl-mode, since IDL afaik doesn't have
+	statements at all.)
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-engine.el (c-inside-bracelist-p): Fix for handling
+	bracelists where the declaration contains template arguments.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-comment-indent): Use
+	`c-get-syntactic-indentation' to correctly calculate the
+	syntactic indentation.  Fixes bug with lineup functions that
+	return vectors.
+
+	* cc-engine.el (c-get-syntactic-indentation): Split the
+	indentation sum calculation from `c-indent-line' to a separate
+	function.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-beginning-of-statement, c-comment-indent):
+	Fixed places where it was assumed that preprocessor directives
+	have to start in column zero.
+
+	* cc-engine.el (c-beginning-of-member-init-list): Handle C++
+	template arguments after a class identifier properly.
+
+	* cc-engine.el (c-guess-basic-syntax): Treat initializer brace
+	lists for `new Foo[]' constructs in Java as expressions and
+	not top level definition brace lists on the top level, so that
+	they'll get indented consistently with the same type of
+	expression in a normal block.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-fill-paragraph): The kludge that checks
+	whether the adaptive filling package fails to keep the comment
+	prefix is now kludged further to check for filladapt-mode
+	which doesn't have that problem. This is really icky, but it's
+	the only way that works with the current misfeatures/bugs in
+	both adaptive-fill-mode and filladapt-mode.
+
+	* cc-cmds.el (c-fill-paragraph): Made the way the paragraph
+	around point is recognized more robust.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el, cc-engine.el, cc-lobotomy.el (c-state-cache)
+	(c-in-literal-cache, c-auto-fill-prefix, c-lit-limits)
+	(c-lit-type): Fixed all internal variables used dynamically so
+	that they are always bound.
+
+	* cc-cmds.el, cc-engine.el: Improved recovery of syntactic
+	errors:
+
+	(c-indent-region): Fixed reporting of syntactic errors so that
+	the region is fully reindented even when an error occurs.  The
+	last syntactic error is printed afterwards.  Also cleanup up a
+	whole lot of code that tried to optimize indentation of whole
+	sexps but in reality accomplishes nothing.
+
+	(c-indent-sexp): Use c-indent-region.
+
+	(c-parsing-error): Changed this variable to hold the message
+	for any syntactic error that is discovered.
+
+	(c-parse-state): Search backward from point instead of the bod
+	position when the latter is invalid.  This makes CC Mode
+	recover faster when there are unbalanced close braces.
+
+	(c-backward-to-start-of-if): Use c-parsing-error to report
+	dangling "else" clauses instead of throwing an error, and fall
+	back to a reasonable position.
+
+	(c-indent-line): Added argument to avoid reporting syntactic
+	errors.
+
+	(c-show-syntactic-information): Don't report any syntactic
+	errors.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-beginning-of-statement): Fixed bugs with
+	paragraph recognition when moving by sentence in literals.
+
+	* cc-langs.el (c-Java-javadoc-paragraph-start): Modified
+	paragraph start regexp for javadoc to recognize javadoc markup
+	in general instead of a specific set of keywords, to be more
+	future-safe.
+
+	(c-Pike-pikedoc-paragraph-start)
+	(c-Pike-pikedoc-paragraph-separate): New regexps to recognize
+	pikedoc markup.
+
+	* cc-mode.el: Fixed initialization and use of
+	c-current-comment-prefix.
+
+	(pike-mode): Initialize paragraph settings pikedoc
+	recognition.
+
+	* cc-vars.el (c-default-style): Made a nicer Customize widget.
+
+	(c-comment-prefix-regexp): Made it possible to use an
+	association list on this to specify mode specific regexps.
+	The default value now use a special regexp in Pike mode to
+	recognize pikedoc markup.
+
+	(c-current-comment-prefix): New variable containing the actual
+	regexp from c-comment-prefix-regexp for the current buffer.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-electric-brace): Fixed check for special brace
+	lists: We can't look at the syntax, since a brace list can get
+	recognized as a plain statement-cont.
+
+	* cc-engine.el (c-guess-basic-syntax): Fixed bug where a
+	special brace list opener broken over two lines got recognized
+	as a statement on the second line.  Case 9A changed.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-electric-brace): Fixed bug in c-state-cache
+	adjustment after line is reindented.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-defs.el (c-point): Added optional argument for position
+	to use instead of the current point.
+
+	* cc-defs.el, cc-engine.el (c-add-class-syntax): Do not add
+	the in-expression block symbols when the construct starts at
+	boi, to avoid the extra level of indentation in that case.
+	Cases 4, 16A and 17E affected.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el: Use `indent-according-to-mode' instead of direct
+	calls to `c-indent-line', to adhere better to Emacs
+	conventions.
+
+	* cc-engine.el (c-indent-line): Use the syntax already bound
+	to `c-syntactic-context', if there is any.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-engine.el (c-get-offset): Fixed bug where the indentation
+	wasn't added up correctly when a lineup function returned nil.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-engine.el (c-collect-line-comments): Fixed bug where
+	empty lines were ignored when collecting line comments
+	backwards.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-align.el (c-lineup-dont-change): Return an absolute
+	indentation column to work correctly in the case when several
+	syntactic elements are processed for the same line.
+
+	* cc-engine.el, cc-styles.el, cc-vars.el (c-evaluate-offset)
+	(c-get-offset, c-indent-line, c-valid-offset, c-read-offset)
+	(c-set-offset): Added absolute indentation column settings by
+	using the vector type.
+
+	* cc-mode.texi: Documented the new vector setting for offsets.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el, cc-vars.el (c-electric-paren, c-cleanup-list):
+	Implemented two new cleanups `space-before-funcall' and
+	`compact-empty-funcall'.
+
+	* cc-mode.texi: Documented the two new cleanups
+	space-before-funcall and compact-empty-funcall on
+	c-cleanup-list.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-defs.el (c-paren-re, c-identifier-re): Two new macros for
+	helping building regexps.
+
+	* cc-engine.el (c-on-identifier): New function for detecting
+	identifiers.  It takes keywords into account.
+
+	* cc-langs.el, cc-mode.el: Added regexps for complete keyword
+	lists.  `c-keywords' is set to a regexp matching all keywords
+	in the current language.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-engine.el (c-beginning-of-statement-1): Added '#' to the
+	list of characters to skip backwards over at the beginning of
+	a statement, since it can precede string literals in Pike.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-guess-fill-prefix): Fixed bug with prefix
+	recognition when standing on the last line in a C++ comment
+	with nothing but whitespace after the prefix.
+
+	* cc-engine.el (c-backward-to-start-of-if): Fixed bug when
+	given no limit argument.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-engine.el (c-inside-bracelist-p): Fixed brace list
+	recognition for the `[]= operator symbol in Pike.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-bytecomp.el (cc-eval-when-compile): New macro that works
+	around a bug in `eval-when-compile' in the byte compiler.
+
+	* cc-engine.el (c-forward-token-1): Fixed bug with return
+	value when count is zero and there's no token start within the
+	limit.
+
+	(c-guess-basic-syntax): Don't add 'comment-intro to lines with
+	"prefix comments", i.e. comments which are followed by code on
+	the same line.
+
+	* cc-mode-19.el: Fixes so that checks that must be done at
+	compile time also are done then.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-defs.el: Make sure cc-mode-19 is loaded both at compile
+	time and at runtime, and only when it's needed.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	Major cleanup for less error prone and more warning free
+	compilation, including some fixes for bugs due to different
+	compilation orders. Thanks to Martin Buchholz for providing
+	the basis for all this.
+
+	* cc-bytecomp.el: New file that provides some byte compilation
+	features: It ensures that files always are loaded from the
+	current source directory during compilation, and it provides a
+	set of macros to turn off specific compiler warnings for
+	specific symbols.  (It's not CC Mode specific in any way.)
+
+	Fixed a nearly acyclic dependency tree (both runtime and
+	compile-time) between all files.
+
+	* cc-defs.el: Separated all macros before the inline functions,
+	to ensure correct compilation.
+
+	* cc-defs.el, cc-engine.el: Moved c-beginning-of-macro to from
+	cc-defs.el to cc-engine.el and made it a function instead.
+
+	* cc-mode-19.el: Patch the byte compiler in Emacs 19 not to warn
+	about char-after.
+
+	* cc-vars.el: Cope even when there isn't a custom package
+	containing defcustom available.
+
+	* cc-make.el: Removed since it's no longer necessary.
+
+	README: Updated installation instructions.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el, cc-langs.el, cc-mode.el: Moved around things to
+	improve the modularity: Moved all mode init stuff from
+	cc-langs.el to cc-mode.el, including the keymap
+	initialization; cc-langs now only contains the various
+	variables for configuring the language syntax.
+
+	* cc-engine.el, cc-styles.el (c-evaluate-offset,
+	c-get-offset): Moved from cc-styles to cc-engine since file
+	dependency analysis suggests they belong there (which also
+	makes more sense).  Thanks to Martin Buchholz for doing the
+	analysis.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-fn-region-is-active-p): New function that
+	wraps the corresponding macro, for use in places that aren't
+	compiled.  Thanks to Martin Buchholz for pointing out this.
+
+	* cc-langs.el (c-mode-menu): Use c-fn-region-is-active-p. 
+
+	* cc-mode.el (c-prepare-bug-report-hooks): Hook variable to
+	add things to the bug report.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-guess-fill-prefix): Fixed bug where the
+	returned prefix could contain a newline when the search for a
+	good prefix line failed.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-cmds.el (c-toggle-auto-state, c-toggle-hungry-state)
+	(c-toggle-auto-hungry-state): Made the argument optional, as
+	the documentation says it is.
+
+2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-engine.el (c-guess-basic-syntax): Don't treat the Pike
+	multiline string syntax, #"...", as a cpp macro.
+
 2001-03-21  Paul Eggert  <eggert@twinsun.com>
 
 	* international/mule-cmds.el (set-locale-environment): Set
