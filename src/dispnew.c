@@ -265,9 +265,13 @@ make_frame_glyphs (frame, empty)
       /* Make the buffer used by decode_mode_spec.  This buffer is also
          used as temporary storage when updating the frame.  See scroll.c. */
       unsigned int total_glyphs = (width + 2) * sizeof (GLYPH);
+      unsigned int total_charstarts = (width + 2) * sizeof (int);
 
       new->total_contents = (GLYPH *) xmalloc (total_glyphs);
       bzero (new->total_contents, total_glyphs);
+
+      new->total_charstarts = (int *) xmalloc (total_charstarts);
+      bzero (new->total_charstarts, total_glyphs);
     }
   else
     {
@@ -595,13 +599,14 @@ rotate_vector (vector, size, distance)
    Returns nonzero if done, zero if terminal cannot scroll them.  */
 
 int
-scroll_frame_lines (frame, from, end, amount, pos_adjust)
+scroll_frame_lines (frame, from, end, amount, newpos)
      register FRAME_PTR frame;
-     int from, end, amount, pos_adjust;
+     int from, end, amount, newpos;
 {
   register int i;
   register struct frame_glyphs *current_frame
     = FRAME_CURRENT_GLYPHS (frame);
+  int pos_adjust;
 
   if (!line_ins_del_ok)
     return 0;
@@ -623,24 +628,28 @@ scroll_frame_lines (frame, from, end, amount, pos_adjust)
 		     amount * sizeof (GLYPH *));
 
       rotate_vector (current_frame->charstarts + from,
-		     sizeof (GLYPH *) * (end + amount - from),
-		     amount * sizeof (GLYPH *));
+		     sizeof (int *) * (end + amount - from),
+		     amount * sizeof (int *));
+
+      /* Adjust the lines by an amount
+	 that puts the first of them at NEWPOS.  */
+      pos_adjust = newpos - current_frame->charstarts[i][0];
 
       /* Offset each char position in the charstarts lines we moved
 	 by pos_adjust.  */
       for (i = from + amount; i < end; i++)
 	{
-	  int *line = current_frame->charstarts[from];
+	  int *line = current_frame->charstarts[i];
 	  int col;
-	  for (col = 0; col < current_frame->used[from]; col++)
+	  for (col = 0; col < current_frame->used[i]; col++)
 	    line[col] += pos_adjust;
 	}
       for (i = from; i <= from + amount; i++)
 	{
-	  int *line = current_frame->charstarts[from];
+	  int *line = current_frame->charstarts[i];
 	  int col;
 	  line[0] = -1;
-	  for (col = 0; col < current_frame->used[from]; col++)
+	  for (col = 0; col < current_frame->used[i]; col++)
 	    line[col] = 0;
 	}
 
@@ -714,24 +723,28 @@ scroll_frame_lines (frame, from, end, amount, pos_adjust)
 		     amount * sizeof (GLYPH *));
 
       rotate_vector (current_frame->charstarts + from + amount,
-		     sizeof (GLYPH *) * (end - from - amount),
-		     amount * sizeof (GLYPH *));
+		     sizeof (int *) * (end - from - amount),
+		     amount * sizeof (int *));
+
+      /* Adjust the lines by an amount
+	 that puts the first of them at NEWPOS.  */
+      pos_adjust = newpos - current_frame->charstarts[i][0];
 
       /* Offset each char position in the charstarts lines we moved
 	 by pos_adjust.  */
       for (i = from + amount; i < end + amount; i++)
 	{
-	  int *line = current_frame->charstarts[from];
+	  int *line = current_frame->charstarts[i];
 	  int col;
-	  for (col = 0; col < current_frame->used[from]; col++)
+	  for (col = 0; col < current_frame->used[i]; col++)
 	    line[col] += pos_adjust;
 	}
       for (i = end + amount; i <= end; i++)
 	{
-	  int *line = current_frame->charstarts[from];
+	  int *line = current_frame->charstarts[i];
 	  int col;
 	  line[0] = -1;
-	  for (col = 0; col < current_frame->used[from]; col++)
+	  for (col = 0; col < current_frame->used[i]; col++)
 	    line[col] = 0;
 	}
 
