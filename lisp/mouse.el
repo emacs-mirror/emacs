@@ -1048,7 +1048,7 @@ The text is saved in the kill ring, as with \\[kill-region]."
 (defun mouse-yank-at-click (click arg)
   "Insert the last stretch of killed text at the position clicked on.
 Also move point to one end of the text thus inserted (normally the end),
-and set mark at the beginning..
+and set mark at the beginning.
 Prefix arguments are interpreted as with \\[yank].
 If `mouse-yank-at-point' is non-nil, insert at point
 regardless of where you click."
