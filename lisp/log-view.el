@@ -191,8 +191,10 @@
   "Get the diff for several revisions.
 If the point is the same as the mark, get the diff for this revision.
 Otherwise, get the diff between the revisions
- were the region starts and ends."
-  (interactive "r")
+were the region starts and ends."
+  (interactive
+   (list (if mark-active (region-beginning) (point))
+         (if mark-active (region-end) (point))))
   (let ((fr (log-view-current-tag beg))
         (to (log-view-current-tag end)))
     (when (string-equal fr to)
