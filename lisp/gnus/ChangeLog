@@ -1,3 +1,11 @@
+2002-04-12  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* pop3.el (pop3-munge-message-separator): Work if no date.
+	Trivial patch from Marius Vollmer <mvo@zagadka.ping.de>.
+
+	* pop3.el (pop3-munge-message-separator): Only use valid date.
+	Trivial patch from Michael Welsh Duggan <md5i@cs.cmu.edu>.
+	
 2002-04-11  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* gnus-sum.el (gnus-update-summary-mark-positions)

@@ -1,6 +1,6 @@
 ;;; pop3.el --- Post Office Protocol (RFC 1460) interface
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Richard L. Pieri <ratinox@peorth.gweep.net>
@@ -244,18 +244,23 @@ If NOW, use that time instead."
 		   (looking-at "\001\001\001\001\n") ; MMDF
 		   (looking-at "BABYL OPTIONS:") ; Babyl
 		   ))
-	  (let ((from (mail-strip-quoted-names (mail-fetch-field "From")))
-		(date (split-string (or (mail-fetch-field "Date")
-					(pop3-make-date))
-				    " "))
-		(From_))
+	  (let* ((from (mail-strip-quoted-names (mail-fetch-field "From")))
+		 (tdate (mail-fetch-field "Date"))
+		 (date (split-string (or (and tdate
+					      (not (string= "" tdate))
+					      tdate)
+					 (pop3-make-date))
+				     " "))
+		 (From_))
 	    ;; sample date formats I have seen
 	    ;; Date: Tue, 9 Jul 1996 09:04:21 -0400 (EDT)
 	    ;; Date: 08 Jul 1996 23:22:24 -0400
 	    ;; should be
 	    ;; Tue Jul 9 09:04:21 1996
 	    (setq date
-		  (cond ((string-match "[A-Z]" (nth 0 date))
+		  (cond ((not date)
+                        "Tue Jan 1 00:00:0 1900")
+			((string-match "[A-Z]" (nth 0 date))
 			 (format "%s %s %s %s %s"
 				 (nth 0 date) (nth 2 date) (nth 1 date)
 				 (nth 4 date) (nth 3 date)))
