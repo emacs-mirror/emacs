@@ -1,3 +1,8 @@
+2001-09-17  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-annotate): Use current workfile version explicitly as
+	a default, suggested by Gustav H,Ae(Bllberg <gustav@virtutech.se>.
+
 2001-09-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* ps-bdf.el (bdf-cache-file) <ms-dos>: Use _bdfcache.el, since
