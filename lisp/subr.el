@@ -1967,4 +1967,25 @@ clone should be incorporated in the clone."
     (overlay-put ol2 'evaporate t)
     (overlay-put ol2 'text-clones dups)))
 
+(defun play-sound (sound)
+  "SOUND is a list of the form `(sound KEYWORD VALUE...)'.
+The following keywords are recognized:
+
+  :file FILE - read sound data from FILE.  If FILE isn't an
+absolute file name, it is searched in `data-directory'.
+
+  :data DATA - read sound data from string DATA.
+
+Exactly one of :file or :data must be present.
+
+  :volume VOL - set volume to VOL.  VOL must an integer in the
+range 0..100 or a float in the range 0..1.0.  If not specified,
+don't change the volume setting of the sound device.
+
+  :device DEVICE - play sound on DEVICE.  If not specified,
+a system-dependent default device name is used."
+  (unless (fboundp 'play-sound-internal)
+    (error "This Emacs binary lacks sound support"))
+  (play-sound-internal sound))
+
 ;;; subr.el ends here
