@@ -119,6 +119,12 @@ setwins=subdirs=`find $$wd -type d -print`; \
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done
+nonobsolete_setwins=subdirs=`find $$wd -type d -print`; \
+	for file in $$subdirs; do \
+	   case $$file in */Old | */RCS | */CVS | */CVS/* | */=* | */obsolete ) ;; \
+		*) wins="$$wins $$file" ;; \
+	   esac; \
+        done
 
 doit:
 
@@ -132,7 +138,7 @@ custom-deps: cus-load.el doit
 finder-inf.el:
 	echo "(provide 'finder-inf)" >> $@
 finder-data: finder-inf.el doit
-	wd=$(lisp); $(setwins); \
+	wd=$(lisp); $(nonobsolete_setwins); \
 	echo Directories: $$wins; \
 	$(EMACS) $(EMACSOPT) -l finder -f finder-compile-keywords-make-dist $$wins
 
