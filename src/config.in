@@ -110,6 +110,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the <com_err.h> header file. */
 #undef HAVE_COM_ERR_H
 
+/* Define to 1 if you have /usr/lib/crti.o. */
+#undef HAVE_CRTIN
+
 /* Define to 1 if you have the declaration of `sys_siglist', and to 0 if you
    don't. */
 #undef HAVE_DECL_SYS_SIGLIST
@@ -298,6 +301,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `ncurses' library (-lncurses). */
 #undef HAVE_LIBNCURSES
 
+/* Define to 1 if you have the <libpng/png.h> header file. */
+#undef HAVE_LIBPNG_PNG_H
+
 /* Define to 1 if you have the `pthreads' library (-lpthreads). */
 #undef HAVE_LIBPTHREADS
 
@@ -398,6 +404,12 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if you have the png library (-lpng). */
 #undef HAVE_PNG
+
+/* Define to 1 if you have the <png.h> header file. */
+#undef HAVE_PNG_H
+
+/* Define to 1 if you have the `posix_memalign' function. */
+#undef HAVE_POSIX_MEMALIGN
 
 /* Define to 1 if you have the `pstat_getdynamic' function. */
 #undef HAVE_PSTAT_GETDYNAMIC
@@ -803,8 +815,6 @@ Boston, MA 02111-1307, USA.  */
    code using `volatile' can become incorrect without. Disable with care. */
 #undef volatile
 
-/* Define if we should use crti.o and crtn.o.  */
-#undef HAVE_CRTIN
 
 /* If we're using any sort of window system, define some consequences.  */
 #ifdef HAVE_X_WINDOWS
@@ -859,7 +869,7 @@ Boston, MA 02111-1307, USA.  */
 /* Don't try to switch on inline handling as detected by AC_C_INLINE
    generally, because even if non-gcc compilers accept `inline', they
    may reject `extern inline'.  */
-#if defined (__GNUC__) && defined (OPTIMIZE)
+#ifdef __GNUC__
 #define INLINE __inline__
 #else
 #define INLINE
