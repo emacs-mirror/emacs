@@ -1,11 +1,11 @@
-;;; log-view.el --- Major mode for browsing CVS log output
+;;; log-view.el --- Major mode for browsing RCS/CVS/SCCS log output
 
 ;; Copyright (C) 1999-2000  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
-;; Keywords: pcl-cvs cvs log
+;; Keywords: rcs sccs cvs log version-control
 ;; Version: $Name:  $
-;; Revision: $Id: log-view.el,v 1.2 2000/03/22 01:10:09 monnier Exp $
+;; Revision: $Id: log-view.el,v 1.3 2000/05/10 22:22:21 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -30,16 +30,16 @@
 
 ;; - add compatibility with cvs-log.el
 ;; - add ability to modify a log-entry (via cvs-mode-admin ;-)
+;; - remove references to cvs-*
 
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-;;(require 'pcvs-defs)
 (require 'pcvs-util)
 
 
 (defgroup log-view nil
-  "Major mode for browsing log output for PCL-CVS."
+  "Major mode for browsing log output of RCS/CVS/SCCS."
   :group 'pcl-cvs
   :prefix "log-view-")
 
@@ -52,7 +52,9 @@
     ("M-p" . log-view-file-prev))
   "Log-View's keymap."
   :group 'log-view
-  :inherit 'cvs-mode-map)
+  ;; Here I really need either buffer-local keymap-inheritance
+  ;; or a minor-mode-map with lower precedence than the local map.
+  :inherit (if (boundp 'cvs-mode-map) cvs-mode-map))
 
 (defvar log-view-mode-hook nil
   "Hook run at the end of `log-view-mode'.")
@@ -82,9 +84,9 @@
 
 (defconst log-view-font-lock-keywords
   `((,log-view-file-re
-     (2 'cvs-filename-face nil t)
-     (3 'cvs-filename-face nil t)
-     (0 'log-view-file-face append))
+     (2 (if (boundp 'cvs-filename-face) cvs-filename-face) nil t)
+     (3 (if (boundp 'cvs-filename-face) cvs-filename-face) nil t)
+     (0 log-view-file-face append))
     (,log-view-message-re . log-view-message-face)))
 (defconst log-view-font-lock-defaults
   '(log-view-font-lock-keywords t nil nil nil))
@@ -128,7 +130,8 @@
     (let* ((file (or (match-string 2) (match-string 3)))
 	   (cvsdir (and (re-search-backward log-view-dir-re nil t)
 			(match-string 1)))
-	   (pcldir (and (re-search-backward cvs-pcl-cvs-dirchange-re nil t)
+	   (pcldir (and (boundp 'cvs-pcl-cvs-dirchange-re)
+			(re-search-backward cvs-pcl-cvs-dirchange-re nil t)
 			(match-string 1)))
 	   (dir ""))
       (let ((default-directory ""))
@@ -169,6 +172,10 @@
 
 ;;; Change Log:
 ;; $Log: log-view.el,v $
+;; Revision 1.3  2000/05/10 22:22:21  monnier
+;; (log-view-goto-rev): New function for the new VC.
+;; (log-view-minor-wrap): Use mark-active.
+;;
 ;; Revision 1.2  2000/03/22 01:10:09  monnier
 ;; (log-view-(msg|file)-(prev|next)): Rename from
 ;; log-view-*-(message|file) and use easy-mmode-define-navigation.
