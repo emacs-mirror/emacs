@@ -184,7 +184,7 @@ to which the end of the previous line belongs, or the end of the buffer."
 	    paragraph-separate))
 	 ;; This is used for searching.
 	 (sp-paragraph-start (concat "^[ \t]*\\(" paragraph-start "\\)"))
-	 start)
+	 start found-start)
     (while (and (< arg 0) (not (bobp)))
       (if (and (not (looking-at paragraph-separate))
 	       (re-search-backward "^\n" (max (1- (point)) (point-min)) t)
@@ -223,18 +223,21 @@ to which the end of the previous line belongs, or the end of the buffer."
 ;;;			 (forward-line 1))
 		    (not (bobp)))
 		(while (and (re-search-backward sp-paragraph-start nil 1)
+			    (setq found-start t)
 			    ;; Found a candidate, but need to check if it is a
 			    ;; REAL paragraph-start.
-			    (not (bobp))
 			    (progn (setq start (point))
 				   (move-to-left-margin)
 				   (not (looking-at paragraph-separate)))
-			    (or (not (looking-at paragraph-start))
-				(and use-hard-newlines
-				     (not (get-text-property (1- start)
-							     'hard)))))
+			    (not (and (looking-at paragraph-start)
+				      (not
+				       (and use-hard-newlines
+					    (not (bobp))
+					    (not (get-text-property (1- start)
+								    'hard)))))))
+		  (setq found-start nil)
 		  (goto-char start))
-		(> (point) (point-min)))
+		found-start)
 	      ;; Found one.
 	      (progn
 		;; Move forward over paragraph separators.
