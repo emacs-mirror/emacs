@@ -3,6 +3,7 @@
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
+;; Maintainer: bugs@gnus.org
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -218,6 +219,15 @@ to:
 ;; Content-Type value for a body part is changed from "text/plain" to
 ;; "message/rfc822".
 (defvar mm-dissect-default-type "text/plain")
+
+(defvar mm-viewer-completion-map
+  (let ((map (make-sparse-keymap 'mm-viewer-completion-map)))
+    (set-keymap-parent map minibuffer-local-completion-map)
+    map)
+  "Keymap for input viewer with completion.")
+
+;; Should we bind other key to minibuffer-complete-word?
+(define-key mm-viewer-completion-map " " 'self-insert-command) 
 
 ;;; The functions.
 
@@ -710,7 +720,9 @@ external if displayed external."
 	 (methods
 	  (mapcar (lambda (i) (list (cdr (assoc 'viewer i))))
 		  (mailcap-mime-info type 'all)))
-	 (method (completing-read "Viewer: " methods)))
+	 (method (let ((minibuffer-local-completion-map
+			mm-viewer-completion-map))
+		   (completing-read "Viewer: " methods))))
     (when (string= method "")
       (error "No method given"))
     (if (string-match "^[^% \t]+$" method) 
@@ -828,8 +840,7 @@ external if displayed external."
 
 (defun mm-valid-and-fit-image-p (format handle)
   "Say whether FORMAT can be displayed natively and HANDLE fits the window."
-  (and (display-graphic-p)
-       (mm-valid-image-format-p format)
+  (and (mm-valid-image-format-p format)
        (mm-image-fit-p handle)))
 
 (provide 'mm-decode)
