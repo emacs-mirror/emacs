@@ -1621,14 +1621,14 @@ If INITIAL is non-nil, it specifies the initial input string."
 		 (edit (eq ido-exit 'edit))
 		 (d ido-current-directory)
 		 (f ido-text-init)
-		 (path t))
+		 (new t))
 	    (setq ido-text-init "")
-	    (while path
-	      (setq path (if edit
+	    (while new
+	      (setq new (if edit
 			     (read-file-name (concat prompt "[EDIT] ") d (concat d f) nil f)
 			   f)
-		    d (or (file-name-directory path) "/")
-		    f (file-name-nondirectory path)
+		    d (or (file-name-directory new) "/")
+		    f (file-name-nondirectory new)
 		    edit t)
 	      (if (or 
 		   (file-directory-p d)
@@ -1642,7 +1642,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 		  (progn
 		    (ido-set-current-directory d nil (eq ido-exit 'chdir))
 		    (setq ido-text-init f
-			  path nil))))))
+			  new nil))))))
 	 (t
 	  (setq ido-text-init (read-string (concat prompt "[EDIT] ") ido-final-text))))
 	nil)
@@ -1868,13 +1868,13 @@ If INITIAL is non-nil, it specifies the initial input string."
        ((memq method '(dired list-directory))
 	(if (equal filename ".")
 	    (setq filename ""))
-	(let* ((path (ido-final-slash (concat ido-current-directory filename) t))
-	       (file (substring path 0 -1)))
+	(let* ((dirname (ido-final-slash (concat ido-current-directory filename) t))
+	       (file (substring dirname 0 -1)))
 	  (cond
-	   ((file-directory-p path)
-	    (ido-record-command method path)
-	    (ido-record-work-directory path)
-	    (funcall method path))
+	   ((file-directory-p dirname)
+	    (ido-record-command method dirname)
+	    (ido-record-work-directory dirname)
+	    (funcall method dirname))
 	   ((file-directory-p ido-current-directory)
 	    (cond
 	     ((file-exists-p file)
@@ -1884,18 +1884,18 @@ If INITIAL is non-nil, it specifies the initial input string."
 	      (if (eq method 'dired)
 		  (dired-goto-file (expand-file-name file))))
 	     ((string-match "[[*?]" filename)
-	      (setq path (concat ido-current-directory filename))
-	      (ido-record-command method path)
+	      (setq dirname (concat ido-current-directory filename))
+	      (ido-record-command method dirname)
 	      (ido-record-work-directory)
-	      (funcall method path))
+	      (funcall method dirname))
 	     ((y-or-n-p (format "Directory %s does not exist. Create it " filename))
-	      (ido-record-command method path)
-	      (ido-record-work-directory path)
-	      (make-directory-internal path)
-	      (funcall method path))
+	      (ido-record-command method dirname)
+	      (ido-record-work-directory dirname)
+	      (make-directory-internal dirname)
+	      (funcall method dirname))
 	     (t
 	      ;; put make-directory command on history
-	      (ido-record-command 'make-directory path))))
+	      (ido-record-command 'make-directory dirname))))
 	   (t (error "No such directory")))))
 
        ((eq method 'write)
@@ -2305,12 +2305,12 @@ If no buffer or file exactly matching the prompt exists, maybe create a new one.
   "Insert file name of current buffer.
 If repeated, insert text from buffer instead."
   (interactive "P")
-  (let* ((path (buffer-file-name ido-entry-buffer))
-	 (name (and path (file-name-nondirectory path))))
+  (let* ((bfname (buffer-file-name ido-entry-buffer))
+	 (name (and bfname (file-name-nondirectory bfname))))
     (when name
       (setq ido-text-init 
 	    (if (or all 
-		    (not (equal (file-name-directory path) ido-current-directory))
+		    (not (equal (file-name-directory bfname) ido-current-directory))
 		    (not (string-match "\\.[^.]*\\'" name)))
 		name
 	    (substring name 0 (1+ (match-beginning 0)))))
@@ -2477,19 +2477,19 @@ for first matching file."
 
 (defun ido-wide-find-dirs-or-files (dir file &optional prefix finddir)
   ;; As ido-run-find-command, but returns a list of cons pairs ("file" . "dir")
-  (let ((paths 
+  (let ((filenames 
 	 (split-string 
 	  (shell-command-to-string
 	   (concat "find " dir " -name \"" (if prefix "" "*") file "*\" -type " (if finddir "d" "f") " -print"))))
-	path d f
+	filename d f
 	res)
-    (while paths
-      (setq path (car paths)
-	    paths (cdr paths))
-      (if (and (string-match "^/" path)
-	       (file-exists-p path))
-	  (setq d (file-name-directory path)
-		f (file-name-nondirectory path)
+    (while filenames
+      (setq filename (car filenames)
+	    filenames (cdr filenames))
+      (if (and (string-match "^/" filename)
+	       (file-exists-p filename))
+	  (setq d (file-name-directory filename)
+		f (file-name-nondirectory filename)
 		res (cons (cons (if finddir (ido-final-slash f t) f) d) res))))
     res))
 
