@@ -82,7 +82,7 @@
 
 (require 'pp)
 
-(defconst bookmark-version "2.6.3"
+(defconst bookmark-version "2.6.4"
   "Version number of bookmark.el.  This is not related to the version
 of Emacs bookmark comes with; it is used solely by bookmark's
 maintainers to avoid version confusion.")
@@ -1167,7 +1167,7 @@ minibuffer history list `bookmark-history'."
   (or no-history (bookmark-maybe-historicize-string bookmark))
   (insert (bookmark-location bookmark)))
 
-;;; old name for above:
+;;;###autoload
 (defalias 'bookmark-locate 'bookmark-insert-location)
 
 (defun bookmark-location (bookmark)
@@ -1428,9 +1428,11 @@ explicitly."
   (define-key bookmark-bmenu-mode-map "2" 'bookmark-bmenu-2-window)
   (define-key bookmark-bmenu-mode-map "1" 'bookmark-bmenu-1-window)
   (define-key bookmark-bmenu-mode-map "j" 'bookmark-bmenu-this-window)
+  (define-key bookmark-bmenu-mode-map "\C-c\C-c" 'bookmark-bmenu-this-window)
   (define-key bookmark-bmenu-mode-map "f" 'bookmark-bmenu-this-window)
   (define-key bookmark-bmenu-mode-map "o" 'bookmark-bmenu-other-window)
-  (define-key bookmark-bmenu-mode-map "\C-o" 'bookmark-bmenu-switch-other-window)
+  (define-key bookmark-bmenu-mode-map "\C-o"
+    'bookmark-bmenu-switch-other-window)
   (define-key bookmark-bmenu-mode-map "s" 'bookmark-bmenu-save)
   (define-key bookmark-bmenu-mode-map "k" 'bookmark-bmenu-delete)
   (define-key bookmark-bmenu-mode-map "\C-d" 'bookmark-bmenu-delete-backwards)
