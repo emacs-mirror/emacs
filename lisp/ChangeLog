@@ -1,3 +1,7 @@
+2001-11-15  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* menu-bar.el (menu-bar-edit-menu) <copy>: Put an explicit key binding.
+
 2001-11-15  Richard M. Stallman  <rms@gnu.org>
 
 	* dired.el (dired-undo): Display a message to explain
@@ -5,11 +9,11 @@
 
 2001-11-15  David Kastrup  <David.Kastrup@t-online.de>
 
-        * mouse-drag.el: (mouse-drag-throw) Push back non-drag events
-        into `unread-command-events' instead of trying keymap
-        lookups ourselves.  This makes mouse-clicks do the right
-        thing even when keymaps of overlays are involved.
-        (mouse-drag-drag) Likewise.
+	* mouse-drag.el (mouse-drag-throw): Push back non-drag events
+	into `unread-command-events' instead of trying keymap
+	lookups ourselves.  This makes mouse-clicks do the right
+	thing even when keymaps of overlays are involved.
+	(mouse-drag-drag): Likewise.
 
 2001-11-15  Andreas Schwab  <schwab@suse.de>
 
