@@ -1525,6 +1525,11 @@ Ispell.  (Ispell can only spell-check one language at a time, because
 it uses a single dictionary.)  Make sure that the text you are
 spelling and the dictionary used by Ispell conform to each other.
 
+If your spell-checking program is Aspell, it has been reported that if
+you have a personal configuration file (normally ~/.aspell.conf), it
+can cause this error.  Remove that file, execute `ispell-kill-ispell'
+in Emacs, and then try spell-checking again.
+
 * On Linux-based GNU systems using libc versions 5.4.19 through
 5.4.22, Emacs crashes at startup with a segmentation fault.
 
