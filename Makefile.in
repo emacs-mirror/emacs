@@ -274,7 +274,7 @@ leim/Makefile: leim/Makefile.in config.status
 ## source exists and is distinct from the destination.
 ### We do install-arch-indep first because
 ### the executable needs the Lisp files and DOC file to work properly.
-install: all install-arch-indep install-arch-dep blessmail
+install: all install-arch-indep install-arch-dep blessmail install-leim
 	@true
 
 ### Install the executables that were compiled specifically for this machine.
@@ -294,11 +294,11 @@ install-arch-dep: mkdir
 ### Install the files that are machine-independent.
 ### Most of them come straight from the distribution;
 ### the exception is the DOC-* files, which are copied
-### from the build directory.
+## from the build directory.
 
-### Note that we copy DOC* and then delete DOC
-### as a workaround for a bug in tar on Ultrix 4.2.
-install-arch-indep: mkdir
+## Note that we copy DOC* and then delete DOC
+## as a workaround for a bug in tar on Ultrix 4.2.
+nstall-arch-indep: mkdir
 	-set ${COPYDESTS} ; \
 	for dir in ${COPYDIR} ; do \
 	  if [ `(cd $$1 && /bin/pwd)` != `(cd $${dir} && /bin/pwd)` ] ; then \
@@ -367,6 +367,13 @@ install-arch-indep: mkdir
 	   ${INSTALL_DATA} ${srcdir}/etc/$${page}.1 ${man1dir}/$${page}${manext}; \
 	   chmod a+r ${man1dir}/$${page}${manext}); \
 	done
+
+### Install LEIM files.  Although they are machine-independent, we
+### have separate target here instead of including it in
+### `install-arch-indep'.  People who extracted LEIM files after they
+### insalled Emacs itself can install only LEIM files by this target.
+install-leim: leim/Makefile
+       cd leim; $(MAKE) install
 
 ### Build Emacs and install it, stripping binaries while installing them.
 install-strip:
