@@ -2714,7 +2714,7 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 		      symbol)
 		     buttons)
 	     (push (widget-create-child-and-convert 
-		    widget 'group-visibility
+		    widget 'custom-group-visibility
 		    :help-echo "Show members of this group."
 		    :action 'custom-toggle-parent
 		    (not (eq state 'hidden)))
