@@ -1311,6 +1311,7 @@ a list and @code{symbolp} to check for a symbol.
         ((listp x)
          ;; If X is a list, add its elements to LIST.
          (setq list (append x list)))
+@need 3000
         (t
          ;; We only handle symbols and lists.
          (error "Invalid argument %s in add-on" x))))

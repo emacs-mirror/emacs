@@ -1089,7 +1089,7 @@ change group at which this size is exceeded is the last one kept.
 This is the upper limit for the acceptable size of an undo list.  The
 change group at which this size is exceeded is discarded itself (along
 with all older change groups).  There is one exception: the very latest
-change group is never discarded separate no matter how big it is.
+change group is never discarded no matter how big it is.
 @end defvar
 
 @node Filling
@@ -1335,7 +1335,7 @@ becomes buffer-local when set in any fashion.
 @cindex Auto Fill mode
 
   Auto Fill mode is a minor mode that fills lines automatically as text
-as inserted.  This section describes the hook used by Auto Fill mode.
+is inserted.  This section describes the hook used by Auto Fill mode.
 For a description of functions that you can call explicitly to fill and
 justify existing text, see @ref{Filling}.
 

@@ -756,6 +756,7 @@ x1
 @end group
 @end example
 
+@need 4000
   Here is the result in box notation:
 
 @example

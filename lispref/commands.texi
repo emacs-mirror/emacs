@@ -1276,7 +1276,7 @@ The standard definition of the @code{delete-frame} event is to delete @var{frame
 @item (iconify-frame (@var{frame}))
 This kind of event indicates that the user iconified @var{frame} using
 the window manager.  Its standard definition is @code{ignore}; since
-the frame has already been iconified, Emacs has no work to do.
+the frame has already been deiconified, Emacs has no work to do.
 The purpose of this event type is so that you can keep track of such
 events if you want to.
 

@@ -157,11 +157,13 @@ Here is an example of code you can place in a @file{.emacs} file to add
 several directories to the front of your default @code{load-path}:
 
 @smallexample
+@group
 (setq load-path
       (append (list nil "/user/bil/emacs"
                     "/usr/local/lisplib"
                     (expand-file-name "~/emacs"))
               load-path))
+@end group
 @end smallexample
 
 @c Wordy to rid us of an overfull hbox.  --rjc 15mar92
@@ -251,6 +253,13 @@ Specify @var{type} as @code{keymap} if @var{function} is really a
 keymap.  Various parts of Emacs need to know this information without
 loading the real definition.
 
+An autoloaded keymap loads automatically during key lookup when a prefix
+key's binding is the symbol @var{function}.  Autoloading does not occur
+for other kinds of access to the keymap.  In particular, it does not
+happen when a Lisp program gets the keymap from the value of a variable
+and calls @code{define-key}; not even if the variable name is the same
+symbol @var{function}.
+
 @cindex function cell in autoload
 If @var{function} already has a non-void function definition that is not
 an autoload object, @code{autoload} does nothing and returns @code{nil}.
@@ -264,8 +273,10 @@ object, then it is defined as an autoload object like this:
 For example, 
 
 @example
+@group
 (symbol-function 'run-prolog)
      @result{} (autoload "prolog" 169681 t nil)
+@end group
 @end example
 
 @noindent

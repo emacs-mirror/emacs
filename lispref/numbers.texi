@@ -478,8 +478,10 @@ If you divide by 0, an @code{arith-error} error is signaled.
 (@xref{Errors}.)
 
 @example
+@group
 (/ 6 2)
      @result{} 3
+@end group
 (/ 5 2)
      @result{} 2
 (/ 25 3 2)
@@ -541,16 +543,26 @@ quotient to compute the remainder.
 An @code{arith-error} results if @var{divisor} is 0.
 
 @example
+@group
 (mod 9 4)
      @result{} 1
+@end group
+@group
 (mod -9 4)
      @result{} 3
+@end group
+@group
 (mod 9 -4)
      @result{} -3
+@end group
+@group
 (mod -9 -4)
      @result{} -1
+@end group
+@group
 (mod 5.5 2.5)
      @result{} .5
+@end group
 @end example
 
 For any two numbers @var{dividend} and @var{divisor},

@@ -1027,7 +1027,7 @@ items of calendrical data into a time value.  For the meanings of the
 arguments, see the table above under @code{decode-time}.
 
 Year numbers less than 100 are treated just like other year numbers.  If
-you them to stand for years above 1900, you must alter them yourself
+you want them to stand for years above 1900, you must alter them yourself
 before you call @code{encode-time}.
 
 The optional argument @var{zone} defaults to the current time zone and
@@ -1321,6 +1321,7 @@ the event that follows.  For example, here's how to define @kbd{C-c h}
 to turn the character that follows into a Hyper character:
 
 @example
+@group
 (defun hyperify (prompt)
   (let ((e (read-event)))
     (vector (if (numberp e)
@@ -1333,11 +1334,14 @@ to turn the character that follows into a Hyper character:
   (let ((symbol (if (symbolp e) e (car e))))
     (setq symbol (intern (concat string
                                  (symbol-name symbol))))
+@end group
+@group
     (if (symbolp e)
         symbol
       (cons symbol (cdr e)))))
 
 (define-key function-key-map "\C-ch" 'hyperify)
+@end group
 @end example
 
 @pindex iso-transl

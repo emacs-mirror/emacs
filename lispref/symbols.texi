@@ -311,12 +311,18 @@ value of the global variable @code{obarray} is used.
      @result{} nil
 (make-symbol "frazzle")        ; @r{Create an uninterned one.}
      @result{} frazzle
+@group
 (intern-soft "frazzle")        ; @r{That one cannot be found.}
      @result{} nil
+@end group
+@group
 (setq sym (intern "frazzle"))  ; @r{Create an interned one.}
      @result{} frazzle
+@end group
+@group
 (intern-soft "frazzle")        ; @r{That one can be found!}
      @result{} frazzle
+@end group
 @group
 (eq sym 'frazzle)              ; @r{And it is the same one.}
      @result{} t

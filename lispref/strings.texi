@@ -251,6 +251,7 @@ description of @code{mapconcat} in @ref{Mapping Functions},
 Lists}.
 @end defun
 
+@need 2000
 @node Text Comparison
 @section Comparison of Characters and Strings
 @cindex string equality

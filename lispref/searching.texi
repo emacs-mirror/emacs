@@ -850,9 +850,9 @@ The argument @var{replacements} specifies what to replace occurrences
 with.  If it is a string, that string is used.  It can also be a list of
 strings, to be used in cyclic order.
 
-If @var{repeat-count} is non-@code{nil}, it should be an integer, the
-number of occurrences to consider.  In this case, @code{perform-replace}
-returns after considering that many occurrences.
+If @var{repeat-count} is non-@code{nil}, it should be an integer.  Then
+it specifies how many times to use each of the strings in the
+@var{replacements} list before advancing cyclicly to the next one.
 
 Normally, the keymap @code{query-replace-map} defines the possible user
 responses for queries.  The argument @var{map}, if non-@code{nil}, is a

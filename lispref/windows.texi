@@ -224,6 +224,7 @@ Next, the top window is split horizontally:
 @end group
 @end smallexample
 
+@need 3000
 Now, the screen looks like this:
 
 @smallexample
@@ -1611,6 +1612,7 @@ If you omit @var{frame}, the selected frame is used.
 This function checks whether a particular frame position falls within
 the window @var{window}.
 
+@need 3000
 The argument @var{coordinates} is a cons cell of this form:
 
 @example
