@@ -909,7 +909,8 @@ However, there does not need to be a title field."
       ;; Only insert detailed master menu if there is one....
       (if (car (car master-menu-list))
           (progn (setq master-menu-inserted-p t)
-                 (insert (concat "\n@detailmenu" texinfo-master-menu-header))))
+                 (insert (concat "\n@detailmenu\n"
+				 texinfo-master-menu-header))))
 
       ;; @detailmenu added 5 Sept 1996 to `texinfo-master-menu-header'
       ;; at Karl Berry's request to avert a bug in `makeinfo';
