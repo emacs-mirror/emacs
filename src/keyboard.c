@@ -6581,13 +6581,17 @@ read_avail_input (expected)
      int expected;
 {
   struct input_event *buf = read_avail_input_buf;
+  struct input_event tmp_buf[KBD_BUFFER_SIZE];
   register int i;
   int nread;
 
   /* Trivial hack to make read_avail_input re-entrant.  */
-  if (in_read_avail_input)
-    return 0;
-  in_read_avail_input = 1;
+  if (in_read_avail_input++)
+    {
+      buf = tmp_buf;
+      for (i = 0; i < KBD_BUFFER_SIZE; i++)
+	EVENT_INIT (buf[i]);
+    }
 
   if (read_socket_hook)
     /* No need for FIONREAD or fcntl; just say don't wait.  */
@@ -6602,12 +6606,16 @@ read_avail_input (expected)
 
       /* Determine how many characters we should *try* to read.  */
 #ifdef WINDOWSNT
-      return (in_read_avail_input = 0);
+      --in_read_avail_input;
+      return 0;
 #else /* not WINDOWSNT */
 #ifdef MSDOS
       n_to_read = dos_keysns ();
       if (n_to_read == 0)
-	return (in_read_avail_input = 0);
+	{
+	  --in_read_avail_input;
+	  return 0;
+	}
 #else /* not MSDOS */
 #ifdef FIONREAD
       /* Find out how much input is available.  */
@@ -6625,7 +6633,10 @@ read_avail_input (expected)
 	    n_to_read = 0;
 	}
       if (n_to_read == 0)
-	return (in_read_avail_input = 0);
+	{
+	  --in_read_avail_input;
+	  return 0;
+	}
       if (n_to_read > sizeof cbuf)
 	n_to_read = sizeof cbuf;
 #else /* no FIONREAD */
@@ -6717,10 +6728,10 @@ read_avail_input (expected)
     }
 
   /* Clear used events */
-  for (i = 0; i < nread; i++)
-    EVENT_INIT (buf[i]);
+  if (--in_read_avail_input == 0)
+    for (i = 0; i < nread; i++)
+      EVENT_INIT (buf[i]);
 
-  in_read_avail_input = 0;
   return nread;
 }
 #endif /* not VMS */
