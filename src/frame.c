@@ -876,6 +876,21 @@ but if the second optional argument FORCE is non-nil, you may do so.")
   Vframe_list = Fdelq (frame, Vframe_list);
   FRAME_SET_VISIBLE (f, 0);
 
+  if (FRAME_CURRENT_GLYPHS (f))
+    free_frame_glyphs (f, FRAME_CURRENT_GLYPHS (f));
+  if (FRAME_DESIRED_GLYPHS (f))
+    free_frame_glyphs (f, FRAME_DESIRED_GLYPHS (f));
+  if (FRAME_TEMP_GLYPHS (f))
+    free_frame_glyphs (f, FRAME_TEMP_GLYPHS (f));
+  if (FRAME_INSERT_COST (f))
+    free (FRAME_INSERT_COST (f));
+  if (FRAME_DELETEN_COST (f))
+    FRAME_DELETEN_COST (f);
+  if (FRAME_INSERTN_COST (f))
+    FRAME_INSERTN_COST (f);
+  if (FRAME_DELETE_COST (f))
+    FRAME_DELETE_COST (f);
+
   /* Since some events are handled at the interrupt level, we may get
      an event for f at any time; if we zero out the frame's display
      now, then we may trip up the event-handling code.  Instead, we'll
