@@ -1,5 +1,7 @@
 2002-04-29  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* textprop.c (remove_properties): Don't use XCAR without CONSP.
+
 	* xterm.c (XTread_socket): Disable the Xutf8LookupString code.
 
 2002-04-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
