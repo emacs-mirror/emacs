@@ -1411,7 +1411,7 @@ The redirection lasts until `redirect-frame-focus' is called to change it.")
 #endif
 
   if (frame_rehighlight_hook)
-    (*frame_rehighlight_hook) (XFRAME (focus_frame));
+    (*frame_rehighlight_hook) (XFRAME (frame));
   
   return Qnil;
 }
