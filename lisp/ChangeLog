@@ -1,3 +1,13 @@
+2002-05-01  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-beginning-of-decl-1): Better way
+	to handle protection labels, one which doesn't get confused by
+	inherit colons.
+
+	* progmodes/cc-engine.el (c-end-of-decl-1): Don't treat
+	functions that have "class" or "struct" in the return type as
+	classes or structs.
+
 2002-04-30  Kim F. Storm  <storm@cua.dk>
 
 	* menu-bar.el (menu-bar-custom-menu): Change "Recently Changed
