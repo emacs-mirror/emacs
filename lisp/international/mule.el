@@ -31,8 +31,8 @@ Version number and name of this version of MULE (multilingual environment).")
 Distribution date of this version of MULE (multilingual environment).")
 
 (defun load-with-code-conversion (fullname file &optional noerror nomessage)
-  "Execute a file of Lisp code named FILE whose absolute path is FULLNAME.
-The FILE is decoded before evaluation if necessary.
+  "Execute a file of Lisp code named FILE whose absolute name is FULLNAME.
+The file contents are decoded before evaluation if necessary.
 If optional second arg NOERROR is non-nil,
  report no error if FILE doesn't exist.
 Print messages at start and end of loading unless
@@ -67,7 +67,7 @@ Return t if file exists."
 	      (insert-file-contents fullname)
 	      ;; Make `kill-buffer' quiet.
 	      (set-buffer-modified-p nil))
-	    ;; Eval in the original buffer.
+	    ;; Have the original buffer current while we eval.
 	    (eval-buffer buffer nil file))
 	(let (kill-buffer-hook kill-buffer-query-functions)
 	  (kill-buffer buffer)))
