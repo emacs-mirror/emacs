@@ -1,3 +1,20 @@
+2001-12-11  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/ispell.el (ispell-buffer-local-parsing):
+	Match xml like sgml.
+
+	* emacs-lisp/advice.el (ad-compile-function): 
+	Byte compile the function under another (uninterned) name.
+
+	* gud.el (gdb): Define and bind gud-jump.
+
+	* font-lock.el (font-lock-mode): 
+	Put our function at the end of after-change-functions.
+
+	* ediff-diff.el (ediff-cmp-options): Doc fix.
+
+	* comint.el (comint-password-prompt-regexp): Match "UNIX Password".
+
 2001-12-10  Richard M. Stallman  <rms@gnu.org>
 
 	* isearch.el (isearch-yank-word-or-char): New function.

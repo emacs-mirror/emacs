@@ -1,3 +1,12 @@
+2001-12-11  Richard M. Stallman  <rms@gnu.org>
+
+	* m/hp800.h: Split the __hpux conditional into the parts
+	that are right for GNU/Linux too and the parts that are not.
+	Use the former if GNU_LINUX.
+	(HAVE_ALLOCA, LOAD_AVE_TYPE, LOAD_AVE_CVT): New defs for GNU/Linux.
+
+	* s/gnu-linux.h (GNU_LINUX): Defined.
+
 2001-12-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* macros.c, msdos.c, w16select.c: Change doc-string comments to

@@ -1,3 +1,7 @@
+2001-12-11  Richard M. Stallman  <rms@gnu.org>
+
+	* configure.in (hppa*-*-linux-gnu*): New alternative.
+
 2001-12-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* make-dist: Copy COPYING to leim/, lwlib/, mac/ and nt/ when
