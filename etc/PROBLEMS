@@ -4,10 +4,13 @@ in compiling, installing and running GNU Emacs.
 * Improving performance with slow X connections
 
 If you don't need X Input Methods (XIM) for entering text in some
-language you use, you can improve performance on WANs by configuring
-Emacs with option `--without-xim'.  Configuring Emacs without XIM does
-not affect the use of Emacs' own input methods, which are part of the
-Leim package.
+language you use, you can improve performance on WAN links by
+configuring Emacs with option `--without-xim'.  Configuring Emacs
+without XIM does not affect the use of Emacs' own input methods, which
+are part of the Leim package.
+
+If the connection is very slow, you might also want to consider
+switching off scroll bars, menu bar, and tool bar.
 
 * Getting a Meta key on the FreeBSD console
 

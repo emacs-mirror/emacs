@@ -1,3 +1,11 @@
+2001-08-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* fileio.c (Finsert_file_contents): If VISIT is non-nil, and
+	coding.type is coding_type_no_conversion or coding_type_raw_text,
+	use Fset_buffer_multibyte to make the buffer unibyte if REPLACE is
+	non-nil instead of just setting enable_multibyte_characters in the
+	buffer to nil.
+
 2001-08-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* dispextern.h (struct face_cache): Add member
