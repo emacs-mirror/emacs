@@ -1,3 +1,11 @@
+2001-12-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* play/blackbox.el (bb-member): Remove, use member instead.
+	(bb-delete): Remove, use delete instead.
+	Update copyright notice.  Defvar for bb-board, bb-x, bb-y,
+	bb-score, bb-detour-count and bb-balls-placed.
+	Propertize results of rays.
+
 2001-12-19  Karl Fogel  <kfogel@red-bean.com>
 
 	* isearch.el (isearch-forward, isearch-edit-string): Make doc
