@@ -5911,16 +5911,20 @@ as nil.  */)
 
 DEFUN ("set-window-fringes", Fset_window_fringes, Sset_window_fringes,
        2, 4, 0,
-       doc: /* Set width of fringes of window WINDOW.
+       doc: /* Set the fringe widths of window WINDOW.
 
-If window is nil, set fringes of the currently selected window.
-Second parameter LEFT-WIDTH specifies the number of pixels to reserve
-for the left fringe.  Third parameter RIGHT-WIDTH does the same for
-the right fringe.  Fourth parameter OUTSIDE-MARGINS non-nil specifies
-that fringes are drawn outside of the display margins; by default, fringes
-are drawn between display marginal areas and the text area.
-A nil width parameter means to use the frame's default fringe width;
-default fringe widths can be set with the command `set-fringe-style'. */)
+If WINDOW is nil, set the fringe widths of the currently selected
+window.
+
+The second parameter LEFT-WIDTH specifies the number of pixels to
+reserve for the left fringe.  The third parameter RIGHT-WIDTH
+specifies the right fringe width.  If a fringe width parameter is nil,
+that means to use the frame's default fringe width.  Default fringe
+widths can be set with the command `set-fringe-style'.
+
+If the fourth parameter OUTSIDE-MARGINS is non-nil, draw the fringes
+outside of the display margins.  By default, fringes are drawn between
+display marginal areas and the text area.  */)
      (window, left, right, outside_margins)
      Lisp_Object window, left, right, outside_margins;
 {
