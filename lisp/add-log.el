@@ -67,10 +67,20 @@ This defaults to the value of `user-mail-address'.")
 ;;;###autoload
 (defun prompt-for-change-log-name ()
   "Prompt for a change log name."
-  (let ((default (change-log-name)))
-    (expand-file-name
-     (read-file-name (format "Log file (default %s): " default)
-		     nil default))))
+  (let* ((default (change-log-name))
+	 (name (expand-file-name
+		(read-file-name (format "Log file (default %s): " default)
+				nil default))))
+    ;; Handle something that is syntactically a directory name.
+    ;; Look for ChangeLog or whatever in that directory.
+    (if (string= (file-name-nondirectory name) "")
+	(expand-file-name (file-name-nondirectory default)
+			  name)
+      ;; Handle specifying a file that is a directory.
+      (if (file-directory-p name)
+	  (expand-file-name (file-name-nondirectory default)
+			    (file-name-as-directory name))
+	name))))
 
 ;;;###autoload
 (defun find-change-log (&optional file-name)
