@@ -55,8 +55,6 @@ NOTE-END  */
    just delete the definition.  */
 #define LIBS_MACHINE -ldnet
 
-#if 0 /* mcc@timessqr.gc.cuny.edu says it is /vmunix on Ultrix 4.2a.  */
-/* dob@tis.inel.gov says this is needed.  */
+/* mcc@timessqr.gc.cuny.edu says it is /vmunix on Ultrix 4.2a.  */
 #undef KERNEL_FILE
-#define KERNEL_FILE "/unix"
-#endif
+#define KERNEL_FILE "/vmunix"
