@@ -81,7 +81,9 @@ NOTE-END  */
    in the file alloca.s should be used.  */
 
 #define HAVE_ALLOCA
+#if __GNUC__ >= 2 /* Modern versions of GCC handle alloca directly.  */
 #include <alloca.h>
+#endif
 
 /* Must use the system's termcap, if we use any termcap.
    It does special things.  */
