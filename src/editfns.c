@@ -936,6 +936,17 @@ If TZ is nil, use implementation-defined default time zone information.")
   return Qnil;
 }
 
+/* These two values are known to load tz files in buggy implementations.
+   Their values shouldn't matter in non-buggy implementations.
+   We don't use string literals for these strings, 
+   since if a string in the environment is in readonly
+   storage, it runs afoul of bugs in SVR4 and Solaris 2.3.
+   See Sun bugs 1113095 and 1114114, ``Timezone routines
+   improperly modify environment''.  */
+
+static char set_time_zone_rule_tz1[] = "TZ=GMT0";
+static char set_time_zone_rule_tz2[] = "TZ=GMT1";
+
 /* Set the local time zone rule to TZSTRING.
    This allocates memory into `environ', which it is the caller's
    responsibility to free.  */
@@ -986,17 +997,13 @@ set_time_zone_rule (tzstring)
        not load a tz file, tzset can dump core (see Sun bug#1225179).
        The following code works around these bugs.  */
 
-    /* These two values are known to load tz files in buggy implementations.
-       Their values shouldn't matter in non-buggy implementations.  */
-    char *tz1 = "TZ=GMT0";
-    char *tz2 = "TZ=GMT1";
-
     if (tzstring)
       {
 	/* Temporarily set TZ to a value that loads a tz file
 	   and that differs from tzstring.  */
 	char *tz = *newenv;
-	*newenv = strcmp (tzstring, tz1 + 3) == 0 ? tz2 : tz1;
+	*newenv = (strcmp (tzstring, set_time_zone_rule_tz1 + 3) == 0
+		   ? set_time_zone_rule_tz2 : set_time_zone_rule_tz1);
 	tzset ();
 	*newenv = tz;
       }
@@ -1004,10 +1011,10 @@ set_time_zone_rule (tzstring)
       {
 	/* The implied tzstring is unknown, so temporarily set TZ to
 	   two different values that each load a tz file.  */
-	*to = tz1;
+	*to = set_time_zone_rule_tz1;
 	to[1] = 0;
 	tzset ();
-	*to = tz2;
+	*to = set_time_zone_rule_tz2;
 	tzset ();
 	*to = 0;
       }
