@@ -247,8 +247,9 @@ Kludgy feature: if FROM is a string, the string is the target text,
 and TO is ignored."
   (let ((charset-list (if (stringp from) (find-charset-string from)
 			(find-charset-region from to))))
-    (if (and (= (length charset-list) 1)
-	     (eq 'ascii (car charset-list)))
+    (if (or (null charset-list)
+	    (and (= (length charset-list) 1)
+		 (eq 'ascii (car charset-list))))
 	'(undecided)
       (let ((l coding-system-list)
 	    (prefered-codings
@@ -280,18 +281,16 @@ and TO is ignored."
 	))))
 
 (defun select-safe-coding-system (from to &optional default-coding-system)
-  "Return a coding system which can encode a text between FROM and TO.
+  "Ask a user to select a safe coding system from candidates.
+The candidates of coding systems which can safely encode a text
+between FROM and TO are shown in a popup window.
 
 Optional arg DEFAULT-CODING-SYSTEM specifies a coding system to be
 checked at first.  If omitted, buffer-file-coding-system of the
 current buffer is used.
 
-If the text contains some multibyte characters and
-DEFAULT-CODING-SYSTEM can't encode them, ask a user to select one from
-a list of coding systems which can encode the text, and return the
-selected one.
-
-In other cases, return DEFAULT-CODING-SYSTEM.
+If the text can be encoded safely by DEFAULT-CODING-SYSTEM, it is
+returned without any user interaction.
 
 Kludgy feature: if FROM is a string, the string is the target text,
 and TO is ignored."
