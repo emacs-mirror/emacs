@@ -2321,7 +2321,7 @@ text-based tables.  Here is an example of such a table:
   Table Mode allows the contents of the table such as this one to be
 easily manipulated by inserting or deleting characters inside a cell.
 A cell is effectively a localized rectangular edit region and edits to
-a cell do not affect the contets of the surrounding cells.  If the
+a cell do not affect the contents of the surrounding cells.  If the
 contents do not fit into a cell, then the cell is automatically
 expanded in the vertical and/or horizontal directions and the rest of
 the table is restructured and reformatted in accordance with the
@@ -2405,9 +2405,9 @@ From left to right:
 @item
 Nested cells are not allowed.
 @item
-Overlapped cells or nonrectangular cells are not allowed.
+Overlapped cells or non-rectangular cells are not allowed.
 @item
-The border must be rectanglular.
+The border must be rectangular.
 @item
 Cells must have a minimum width/height of one character.
 @item
@@ -2450,7 +2450,7 @@ for table editing.  The converse command, @code{table-unrecognize}, is
 used to remove the special text properties and revert the buffer back
 to plain text.
 
-  An optional numeric prefix argument can preceed the
+  An optional numeric prefix argument can precede the
 @code{table-recognize} command.  If the argument is negative, tables
 in the buffer become inactive.  This is equivalent to invoking
 @code{table-unrecognize}.
@@ -2560,7 +2560,7 @@ to justify: a cell,a column, or a row.  If you select cell
 justification, this command sets the justification only to the current
 cell.  Selecting column or row justification set the justification to
 all the cells within a column or row respectively.  The command then
-requsts the user to enter which justification to apply: @code{left},
+requests the user to enter which justification to apply: @code{left},
 @code{center}, @code{right}, @code{top}, @code{middle}, @code{bottom},
 or @code{none}.  The options @code{left}, @code{center}, and
 @code{right} specify horizontal justification while the options
@@ -2709,7 +2709,7 @@ delimiter regexp, creates a table with a single cell like the
 following one.
 
 @c The first line's right-hand frame in the following two examples
-@c sticks out to accomodate for the removal of @samp in the
+@c sticks out to accommodate for the removal of @samp in the
 @c produced output!!
 @example
 +-----------------------------------------------------------------+
