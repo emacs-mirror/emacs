@@ -4258,15 +4258,14 @@ decode_coding_charset (coding)
   int *charbuf_end = charbuf + coding->charbuf_size;
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
-  struct charset *charset;
-  Lisp_Object attrs, eol_type, charset_list;
+  Lisp_Object attrs, eol_type, charset_list, valids;
 
   CODING_GET_INFO (coding, attrs, eol_type, charset_list);
-  charset = CHARSET_FROM_ID (XINT (XCAR (charset_list)));
+  valids = AREF (attrs, coding_attr_charset_valids);
 
   while (1)
     {
-      int c, c1;
+      int c;
 
       src_base = src;
       consumed_chars_base = consumed_chars;
@@ -4274,14 +4273,13 @@ decode_coding_charset (coding)
       if (charbuf >= charbuf_end)
 	break;
 
-      ONE_MORE_BYTE (c1);
+      ONE_MORE_BYTE (c);
       if (c == '\r')
 	{
 	  if (EQ (eol_type, Qdos))
 	    {
-	      if (src == src_end)
-		goto no_more_source;
-	      if (*src == '\n')
+	      if (src < src_end
+		  && *src == '\n')
 		ONE_MORE_BYTE (c);
 	    }
 	  else if (EQ (eol_type, Qmac))
@@ -4289,7 +4287,30 @@ decode_coding_charset (coding)
 	}
       else
 	{
-	  CODING_DECODE_CHAR (coding, src, src_base, src_end, charset, c1, c);
+	  Lisp_Object val;
+	  struct charset *charset;
+	  int c1;
+
+	  val = AREF (valids, c);
+	  if (NILP (val))
+	    goto invalid_code;
+	  charset = CHARSET_FROM_ID (XFASTINT (val));
+	  if (CHARSET_DIMENSION (charset) > 1)
+	    {
+	      ONE_MORE_BYTE (c1);
+	      c = (c << 8) | c1;
+	      if (CHARSET_DIMENSION (charset) > 2)
+		{
+		  ONE_MORE_BYTE (c1);
+		  c = (c << 8) | c1;
+		  if (CHARSET_DIMENSION (charset) > 3)
+		    {
+		      ONE_MORE_BYTE (c1);
+		      c = (c << 8) | c1;
+		    }
+		}
+	    }
+	  CODING_DECODE_CHAR (coding, src, src_base, src_end, charset, c, c);
 	  if (c < 0)
 	    goto invalid_code;
 	}
@@ -4327,22 +4348,35 @@ encode_coding_charset (coding)
   int c;
 
   CODING_GET_INFO (coding, attrs, eol_type, charset_list);
-  charset = CHARSET_FROM_ID (XINT (XCAR (charset_list)));
   ascii_compatible = ! NILP (CODING_ATTR_ASCII_COMPAT (attrs));
 
   while (charbuf < charbuf_end)
     {
+      struct charset *charset;
       unsigned code;
       
       ASSURE_DESTINATION (safe_room);
       c = *charbuf++;
       if (ascii_compatible && ASCII_CHAR_P (c))
 	EMIT_ONE_ASCII_BYTE (c);
-      else if ((code = ENCODE_CHAR (charset, c))
-	       != CHARSET_INVALID_CODE (charset))
-	EMIT_ONE_BYTE (code);
       else
-	EMIT_ONE_BYTE (coding->default_char);
+	{
+	  charset = char_charset (c, charset_list, &code);
+	  if (charset)
+	    {
+	      if (CHARSET_DIMENSION (charset) == 1)
+		EMIT_ONE_BYTE (code);
+	      else if (CHARSET_DIMENSION (charset) == 2)
+		EMIT_TWO_BYTES (code >> 8, code & 0xFF);
+	      else if (CHARSET_DIMENSION (charset) == 3)
+		EMIT_THREE_BYTES (code >> 16, (code >> 8) & 0xFF, code & 0xFF);
+	      else
+		EMIT_FOUR_BYTES (code >> 24, (code >> 16) & 0xFF,
+				 (code >> 8) & 0xFF, code & 0xFF);
+	    }
+	  else
+	    EMIT_ONE_BYTE (coding->default_char);
+	}
     }
 
   coding->result = CODING_RESULT_SUCCESS;
