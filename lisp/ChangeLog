@@ -2,6 +2,11 @@
 
 	* md5.el: Removed.  There's a built-in function, now.
 
+2000-11-30  Markus Rost  <rost@math.ohio-state.edu>
+
+	* mail/rmail.el (rmail-set-message-counters): Don't use "D"
+	as dummy 0-th char of rmail-deleted-vector.
+
 2000-11-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* ps-print.el (ps-end-job): Bind case-fold-search only after
