@@ -1,3 +1,7 @@
+2004-07-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (with-selected-window): Doc fix.
+
 2004-07-11  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* subr.el (get-buffer-window-list): Doc fix.
