@@ -2818,6 +2818,7 @@ xg_tool_bar_callback (w, client_data)
   FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (w), XG_FRAME_DATA);
   Lisp_Object key, frame;
   struct input_event event;
+  EVENT_INIT (event);
 
   if (! f || ! f->n_tool_bar_items || NILP (f->tool_bar_items))
     return;
