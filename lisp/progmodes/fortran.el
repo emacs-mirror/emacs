@@ -195,7 +195,7 @@ This variable used in TAB format mode.")
      ;; Fontify comments and strings.  We assume that strings cannot be quoted.
      (cons (concat "^[" comment-chars "].*") 'font-lock-comment-face)
      '(fortran-match-!-comment . font-lock-comment-face)
-     (list (concat "^[^" comment-chars "\t]" (make-string 71 ?.) "\\(.*\\)")
+     (list (concat "^[^" comment-chars "\t\n]" (make-string 71 ?.) "\\(.*\\)")
            '(1 font-lock-comment-face))
      '("'[^'\n]*'?" . font-lock-string-face)
      ;;
