@@ -2389,9 +2389,10 @@ away in the internal cache."
 ;;;; ------------------------------------------------------------
 
 (defconst ange-ftp-date-regexp
-  (concat
-   " \\(Jan\\|Feb\\|Mar\\|Apr\\|May\\|Jun\\|Jul\\|Aug\\|Sep\\|Oct"
-   "\\|Nov\\|Dec\\) +[0-3]?[0-9] "))
+  " [A-Za-z\xa0-\xff][A-Za-z\xa0-\xff][A-Za-z\xa0-\xff] [0-3 ][0-9] "
+  "Regular expression to recognize the date in a directory listing.
+This regular expression is designed to recognize month names
+regardless of the language.")
 
 (defvar ange-ftp-add-file-entry-alist nil
   "Alist saying how to add file entries on certain OS types.
