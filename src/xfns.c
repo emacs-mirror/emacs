@@ -1986,18 +1986,23 @@ x_set_scroll_bar_width (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
+  int wid = FONT_WIDTH (f->output_data.x->font);
+
   if (NILP (arg))
     {
+      /* Make the actual width at least 14 pixels
+	 and a multiple of a character width.  */
+      FRAME_SCROLL_BAR_COLS (f) = (14 + wid - 1) / wid;
+      /* Use all of that space (aside from required margins)
+	 for the scroll bar.  */
       FRAME_SCROLL_BAR_PIXEL_WIDTH (f) = 0;
-      FRAME_SCROLL_BAR_COLS (f) = 3;
+
       if (FRAME_X_WINDOW (f))
         x_set_window_size (f, 0, FRAME_WIDTH (f), FRAME_HEIGHT (f));
     }
   else if (INTEGERP (arg) && XINT (arg) > 0
 	   && XFASTINT (arg) != FRAME_SCROLL_BAR_PIXEL_WIDTH (f))
     {
-      int wid = FONT_WIDTH (f->output_data.x->font);
-
       if (XFASTINT (arg) <= 2 * VERTICAL_SCROLL_BAR_WIDTH_TRIM)
 	XSETINT (arg, 2 * VERTICAL_SCROLL_BAR_WIDTH_TRIM + 1);
 
