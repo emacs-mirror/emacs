@@ -20,6 +20,8 @@
 #ifndef SIG_BLOCK
 #define SIG_BLOCK 0
 #endif
-#define sigblock(sig) (sigprocmask (SIG_BLOCK, SIGEMPTYMASK | sig, NULL))
+#define sigblock(sig)					\
+     (sigprocmask_set = SIGEMPTYMASK | (sig),		\
+      sigprocmask (SIG_BLOCK, &sigprocmask_set, NULL))
 #endif
 #endif /* not POSIX_SIGNALS */

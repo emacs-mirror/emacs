@@ -132,7 +132,9 @@ Boston, MA 02111-1307, USA.  */
 /* SCO Unix has Posix signals, but in 3.2.5 something broken that causes
  * all keyboard-quit signals to be lost after the first one. */
 #undef POSIX_SIGNALS
-#define sigblock(sig) (sigprocmask (SIG_BLOCK, SIGEMPTYMASK | sig, NULL))
+#define sigblock(sig)					\
+     (sigprocmask_set = SIGEMPTYMASK | (sig),		\
+      sigprocmask (SIG_BLOCK, &sigprocmask_set, NULL))
 
 #ifndef PENDING_OUTPUT_COUNT
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->__ptr - (FILE)->__base)
