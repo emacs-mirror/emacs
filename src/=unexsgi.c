@@ -491,6 +491,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   Elf32_Word old_bss_size, new_data2_size;
   Elf32_Off  new_data2_offset;
   Elf32_Addr new_data2_addr;
+  Elf32_Addr new_offsets_shift;
 
   int n, nn, old_bss_index, old_data_index, new_data2_index;
   int old_mdebug_index;
@@ -536,10 +537,9 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	break;
     }
   if (old_mdebug_index == old_file_h->e_shnum)
-    old_mdebug_index = -1; /* just means no such section was present */
+    old_mdebug_index = -1;	/* just means no such section was present */
 
-  /* Find the old .bss section.  Figure out parameters of the new
-     data2 and bss sections.  */
+  /* Find the old .bss section. */
 
   for (old_bss_index = 1; old_bss_index < old_file_h->e_shnum; old_bss_index++)
     {
@@ -554,6 +554,24 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   if (old_bss_index == old_file_h->e_shnum)
     fatal ("Can't find .bss in %s.\n", old_name, 0);
 
+  /* Find the old .data section.  Figure out parameters of
+     the new data2 and bss sections.  */
+
+  for (old_data_index = 1;
+       old_data_index < old_file_h->e_shnum;
+       old_data_index++)
+    {
+#ifdef DEBUG
+      fprintf (stderr, "Looking for .data - found %s\n",
+	       old_section_names + OLD_SECTION_H(old_data_index).sh_name);
+#endif
+      if (!strcmp (old_section_names + OLD_SECTION_H(old_data_index).sh_name,
+		   ".data"))
+	break;
+    }
+  if (old_data_index == old_file_h->e_shnum)
+    fatal ("Can't find .data in %s.\n", old_name, 0);
+
   old_bss_addr = OLD_SECTION_H (old_bss_index).sh_addr;
   old_bss_size = OLD_SECTION_H (old_bss_index).sh_size;
 #if defined(emacs) || !defined(DEBUG)
@@ -564,7 +582,10 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 #endif
   new_data2_addr = old_bss_addr;
   new_data2_size = new_bss_addr - old_bss_addr;
-  new_data2_offset = OLD_SECTION_H (old_bss_index).sh_offset;
+  new_data2_offset  = OLD_SECTION_H (old_data_index).sh_offset +
+    (new_data2_addr - OLD_SECTION_H (old_data_index).sh_addr);
+  new_offsets_shift = new_bss_addr -
+    ((old_bss_addr & ~0xfff) + ((old_bss_addr & 0xfff) ? 0x1000 : 0));
 
 #ifdef DEBUG
   fprintf (stderr, "old_bss_index %d\n", old_bss_index);
@@ -574,6 +595,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   fprintf (stderr, "new_data2_addr %x\n", new_data2_addr);
   fprintf (stderr, "new_data2_size %x\n", new_data2_size);
   fprintf (stderr, "new_data2_offset %x\n", new_data2_offset);
+  fprintf (stderr, "new_offsets_shift %x\n", new_offsets_shift);
 #endif
 
   if ((unsigned) new_bss_addr < (unsigned) old_bss_addr + old_bss_size)
@@ -587,7 +609,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   if (new_file < 0)
     fatal ("Can't creat (%s): errno %d\n", new_name, errno);
 
-  new_file_size = stat_buf.st_size + old_file_h->e_shentsize + new_data2_size;
+  new_file_size = stat_buf.st_size + old_file_h->e_shentsize + new_offsets_shift; 
 
   if (ftruncate (new_file, new_file_size))
     fatal ("Can't ftruncate (%s): errno %d\n", new_name, errno);
@@ -602,7 +624,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   new_program_h = (Elf32_Phdr *) ((byte *) new_base + old_file_h->e_phoff);
   new_section_h
     = (Elf32_Shdr *) ((byte *) new_base + old_file_h->e_shoff
-		      + new_data2_size);
+		      + new_offsets_shift);
 
   /* Make our new file, program and section headers as copies of the
      originals.  */
@@ -617,7 +639,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   /* Fix up file header.  We'll add one section.  Section header is
      further away now.  */
 
-  new_file_h->e_shoff += new_data2_size;
+  new_file_h->e_shoff += new_offsets_shift;
   new_file_h->e_shnum += 1;
 
 #ifdef DEBUG
@@ -657,18 +679,18 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   if (n < 0)
     fatal ("Couldn't find segment next to .bss in %s\n", old_name, 0);
 
-  NEW_PROGRAM_H (n).p_filesz += new_data2_size;
+  NEW_PROGRAM_H (n).p_filesz += new_offsets_shift;
   NEW_PROGRAM_H (n).p_memsz = NEW_PROGRAM_H (n).p_filesz;
 
-#if 1 /* Maybe allow section after data2 - does this ever happen?  */
+#if 1				/* Maybe allow section after data2 - does this ever happen?  */
   for (n = new_file_h->e_phnum - 1; n >= 0; n--)
     {
       if (NEW_PROGRAM_H (n).p_vaddr
 	  && NEW_PROGRAM_H (n).p_vaddr >= new_data2_addr)
-	NEW_PROGRAM_H (n).p_vaddr += new_data2_size - old_bss_size;
+	NEW_PROGRAM_H (n).p_vaddr += new_offsets_shift - old_bss_size;
 
       if (NEW_PROGRAM_H (n).p_offset >= new_data2_offset)
-	NEW_PROGRAM_H (n).p_offset += new_data2_size;
+	NEW_PROGRAM_H (n).p_offset += new_offsets_shift;
     }
 #endif
 
@@ -690,9 +712,17 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   for (n = 1, nn = 1; n < old_file_h->e_shnum; n++, nn++)
     {
       caddr_t src;
-      /* If it is bss section, insert the new data2 section before it.  */
-      if (n == old_bss_index)
+
+      if (n < old_bss_index)
 	{
+	  memcpy (&NEW_SECTION_H (nn), &OLD_SECTION_H (n), 
+		  old_file_h->e_shentsize);
+	  
+	}
+      else if (n == old_bss_index)
+	{
+	  
+	  /* If it is bss section, insert the new data2 section before it.  */
 	  /* Steal the data section header for this data2 section.  */
 	  memcpy (&NEW_SECTION_H (nn), &OLD_SECTION_H (old_data_index),
 		  new_file_h->e_shentsize);
@@ -710,28 +740,32 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 		  (caddr_t) OLD_SECTION_H (n).sh_addr, 
 		  new_data2_size);
 	  nn++;
-	}
+	  memcpy (&NEW_SECTION_H (nn), &OLD_SECTION_H (n), 
+		  old_file_h->e_shentsize);
       
-      memcpy (&NEW_SECTION_H (nn), &OLD_SECTION_H (n), 
-	      old_file_h->e_shentsize);
-      
-      /* The new bss section's size is zero, and its file offset and virtual
-	 address should be off by NEW_DATA2_SIZE.  */
-      if (n == old_bss_index)
-	{
-	  /* NN should be `old_bss_index + 1' at this point. */
-	  NEW_SECTION_H (nn).sh_offset += new_data2_size;
-	  NEW_SECTION_H (nn).sh_addr += new_data2_size;
+	  /* The new bss section's size is zero, and its file offset and virtual
+	     address should be off by NEW_OFFSETS_SHIFT.  */
+	  NEW_SECTION_H (nn).sh_offset += new_offsets_shift;
+	  NEW_SECTION_H (nn).sh_addr	= new_bss_addr;
 	  /* Let the new bss section address alignment be the same as the
 	     section address alignment followed the old bss section, so 
 	     this section will be placed in exactly the same place.  */
 	  NEW_SECTION_H (nn).sh_addralign = OLD_SECTION_H (nn).sh_addralign;
 	  NEW_SECTION_H (nn).sh_size = 0;
 	}
-      /* Any section that was original placed AFTER the bss section should now
-	 be off by NEW_DATA2_SIZE.  */
-      else if (NEW_SECTION_H (nn).sh_offset >= new_data2_offset)
-	NEW_SECTION_H (nn).sh_offset += new_data2_size;
+      else			/* n > old_bss_index */
+	{
+	  
+	  memcpy (&NEW_SECTION_H (nn), &OLD_SECTION_H (n), 
+		  old_file_h->e_shentsize);
+      
+	}
+
+      /* Any section that was original placed AFTER the bss
+	 section must now be adjusted by NEW_OFFSETS_SHIFT.  */
+
+      if (NEW_SECTION_H (nn).sh_offset >= new_data2_offset)
+	NEW_SECTION_H (nn).sh_offset += new_offsets_shift;
       
       /* If any section hdr refers to the section after the new .data
 	 section, make it refer to next one because we have inserted 
@@ -753,8 +787,8 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	 ".data" in the strings table) get copied from the current process
 	 instead of the old file.  */
       if (!strcmp (old_section_names + NEW_SECTION_H (n).sh_name, ".data")
-	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
-		      ".data1"))
+	  || !strcmp (old_section_names + NEW_SECTION_H (n).sh_name, ".data1")
+	  || !strcmp (old_section_names + NEW_SECTION_H (n).sh_name, ".got"))
 	src = (caddr_t) OLD_SECTION_H (n).sh_addr;
       else
 	src = old_base + OLD_SECTION_H (n).sh_offset;
@@ -778,42 +812,42 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
       n_phdrr->__fileaddr += movement;		\
     }
 
-	HDRR * o_phdrr = (HDRR *)((byte *)old_base + OLD_SECTION_H (n).sh_offset);
-	HDRR * n_phdrr = (HDRR *)((byte *)new_base + NEW_SECTION_H (nn).sh_offset);
-	unsigned movement = new_data2_size;
+	  HDRR * o_phdrr = (HDRR *)((byte *)old_base + OLD_SECTION_H (n).sh_offset);
+	  HDRR * n_phdrr = (HDRR *)((byte *)new_base + NEW_SECTION_H (nn).sh_offset);
+	  unsigned movement = new_offsets_shift;
 
-	MDEBUGADJUST (idnMax, cbDnOffset);
-	MDEBUGADJUST (ipdMax, cbPdOffset);
-	MDEBUGADJUST (isymMax, cbSymOffset);
-	MDEBUGADJUST (ioptMax, cbOptOffset);
-	MDEBUGADJUST (iauxMax, cbAuxOffset);
-	MDEBUGADJUST (issMax, cbSsOffset);
-	MDEBUGADJUST (issExtMax, cbSsExtOffset);
-	MDEBUGADJUST (ifdMax, cbFdOffset);
-	MDEBUGADJUST (crfd, cbRfdOffset);
-	MDEBUGADJUST (iextMax, cbExtOffset);
-	/* The Line Section, being possible off in a hole of the object,
-	   requires special handling.  */
-	if (n_phdrr->cbLine > 0)
-	  {
-	    if (o_phdrr->cbLineOffset > (OLD_SECTION_H (n).sh_offset
-					 + OLD_SECTION_H (n).sh_size))
-	      {
-		/* line data is in a hole in elf. do special copy and adjust
-		   for this ld mistake.
-		   */
-		n_phdrr->cbLineOffset += movement;
+	  MDEBUGADJUST (idnMax, cbDnOffset);
+	  MDEBUGADJUST (ipdMax, cbPdOffset);
+	  MDEBUGADJUST (isymMax, cbSymOffset);
+	  MDEBUGADJUST (ioptMax, cbOptOffset);
+	  MDEBUGADJUST (iauxMax, cbAuxOffset);
+	  MDEBUGADJUST (issMax, cbSsOffset);
+	  MDEBUGADJUST (issExtMax, cbSsExtOffset);
+	  MDEBUGADJUST (ifdMax, cbFdOffset);
+	  MDEBUGADJUST (crfd, cbRfdOffset);
+	  MDEBUGADJUST (iextMax, cbExtOffset);
+	  /* The Line Section, being possible off in a hole of the object,
+	     requires special handling.  */
+	  if (n_phdrr->cbLine > 0)
+	    {
+	      if (o_phdrr->cbLineOffset > (OLD_SECTION_H (n).sh_offset
+					   + OLD_SECTION_H (n).sh_size))
+		{
+		  /* line data is in a hole in elf. do special copy and adjust
+		     for this ld mistake.
+		     */
+		  n_phdrr->cbLineOffset += movement;
 
-		memcpy (n_phdrr->cbLineOffset + new_base,
-			o_phdrr->cbLineOffset + old_base, n_phdrr->cbLine);
-	      }
-	    else
-	      {
-		/* somehow line data is in .mdebug as it is supposed to be.  */
-		MDEBUGADJUST (cbLine, cbLineOffset);
-	      }
-	  }
-      }
+		  memcpy (n_phdrr->cbLineOffset + new_base,
+			  o_phdrr->cbLineOffset + old_base, n_phdrr->cbLine);
+		}
+	      else
+		{
+		  /* somehow line data is in .mdebug as it is supposed to be.  */
+		  MDEBUGADJUST (cbLine, cbLineOffset);
+		}
+	    }
+	}
 
       /* If it is the symbol table, its st_shndx field needs to be patched. */
       if (NEW_SECTION_H (nn).sh_type == SHT_SYMTAB
