@@ -213,6 +213,9 @@ extern struct w32_display_info *w32_term_init ();
 
 struct w32_output
 {
+  /* Menubar "widget" handle.  */
+  HMENU menubar_widget;
+
   /* Original palette (used to deselect real palette after drawing) */
   HPALETTE old_palette;
 
@@ -312,6 +315,13 @@ struct w32_output
 
   /* Nonzero means tried already to make this frame visible.  */
   char asked_for_visible;
+
+  /* Nonzero means menubar is currently active.  */
+  char menubar_active;
+
+  /* Nonzero means menubar is about to become active, but should be
+     brought up to date first.  */
+  volatile char pending_menu_activation;
 };
 
 /* Get at the computed faces of an X window frame.  */
@@ -462,11 +472,12 @@ struct scroll_bar {
    inset the handle boundaries from the scroll bar edges.  */
 #define VERTICAL_SCROLL_BAR_LEFT_BORDER (0)
 #define VERTICAL_SCROLL_BAR_RIGHT_BORDER (0)
-#define VERTICAL_SCROLL_BAR_TOP_BORDER (0)
-#define VERTICAL_SCROLL_BAR_BOTTOM_BORDER (0)
+#define VERTICAL_SCROLL_BAR_TOP_BORDER (vertical_scroll_bar_top_border)
+#define VERTICAL_SCROLL_BAR_BOTTOM_BORDER (vertical_scroll_bar_bottom_border)
 
 /* Minimum lengths for scroll bar handles, in pixels.  */
-#define VERTICAL_SCROLL_BAR_MIN_HANDLE (0)
+#define VERTICAL_SCROLL_BAR_MIN_HANDLE (vertical_scroll_bar_min_handle)
+
 
 
 /* Manipulating pixel sizes and character sizes.
@@ -577,6 +588,11 @@ w32_fill_area (f,hdc,f->output_data.w32->background_pixel,x,y,nx,ny)
 extern XFontStruct *w32_load_font ();
 extern void w32_unload_font ();
 
+/* Define for earlier versions of Visual C */
+#ifndef WM_MOUSEWHEEL
+#define WM_MOUSEWHEEL                  (0x020A)
+#endif /* WM_MOUSEWHEEL */
+
 #define WM_EMACS_START                 (WM_USER + 1)
 #define WM_EMACS_KILL                  (WM_EMACS_START + 0x00)
 #define WM_EMACS_CREATEWINDOW          (WM_EMACS_START + 0x01)
@@ -585,22 +601,17 @@ extern void w32_unload_font ();
 #define WM_EMACS_SHOWWINDOW            (WM_EMACS_START + 0x04)
 #define WM_EMACS_SETWINDOWPOS          (WM_EMACS_START + 0x05)
 #define WM_EMACS_DESTROYWINDOW         (WM_EMACS_START + 0x06)
+#define WM_EMACS_TRACKPOPUPMENU        (WM_EMACS_START + 0x07)
+#define WM_EMACS_SETFOCUS              (WM_EMACS_START + 0x08)
 #define WM_EMACS_END                   (WM_EMACS_START + 0x10)
 
-typedef struct {
-  HWND hwndAfter;
-  int x;
-  int y;
-  int cx;
-  int cy;
-  int flags;
-} W32WindowPos;
+#define WND_FONTWIDTH_INDEX    (0) 
+#define WND_LINEHEIGHT_INDEX   (4) 
+#define WND_BORDER_INDEX       (8) 
+#define WND_SCROLLBAR_INDEX    (12) 
+#define WND_BACKGROUND_INDEX   (16) 
+#define WND_LAST_INDEX         (20)
 
-#define WND_X_UNITS_INDEX      (0) 
-#define WND_Y_UNITS_INDEX      (4) 
-#define WND_BACKGROUND_INDEX   (8) 
-
-#define WND_LAST_INDEX      (16)
 #define WND_EXTRA_BYTES     (WND_LAST_INDEX)
 
 extern DWORD dwWindowsThreadId;
@@ -613,6 +624,17 @@ typedef struct W32Msg {
     DWORD dwModifiers;
     RECT rect;
 } W32Msg;
+
+/* Structure for recording message when input thread must return a
+   result that depends on lisp thread to compute.  Lisp thread can
+   complete deferred messages out of order.  */
+typedef struct deferred_msg
+{
+  struct deferred_msg * next;
+  W32Msg                w32msg;
+  LRESULT               result;
+  int                   completed;
+} deferred_msg;
 
 extern CRITICAL_SECTION critsect;
 
@@ -629,6 +651,7 @@ extern int release_frame_dc (struct frame * f, HDC hDC);
 
 extern BOOL get_next_msg ();
 extern BOOL post_msg ();
+extern void complete_deferred_msg (HWND hwnd, UINT msg, LRESULT result);
 extern void wait_for_sync ();
 
 extern BOOL parse_button ();
