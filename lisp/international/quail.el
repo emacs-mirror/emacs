@@ -585,7 +585,7 @@ standard layout defined in `quail-keyboard-layout-standard'.  This
 function tells Quail system the layout of your keyboard so that what
 you type is correctly handled."
   (interactive
-   (let* ((completing-ignore-case t)
+   (let* ((completion-ignore-case t)
 	  (type (completing-read "Keyboard type: "
 				 quail-keyboard-layout-alist)))
      (list type)))
