@@ -1,6 +1,6 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(trunk.17) $
+# $HopeName: MMsrc!nti3mv.nmk(trunk.18) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -21,7 +21,7 @@ TESTLIB = <testlib>
 
 # ==== ALMOST GENERIC PRODUCT BUILD FOR NMAKE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(trunk.17) $
+# $HopeName: MMsrc!nti3mv.nmk(trunk.18) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -233,16 +233,17 @@ TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 # %%TARGET: Add the target  to the all dependencies
 
 all: mpmss.exe amcss.exe dwstress.exe lockutnt.exe lockcov.exe \
-     stdcover.exe poolncv.exe locv.exe qs.exe std.lib mpm.lib
+     stdcover.exe mpsicv.exe poolncv.exe locv.exe qs.exe std.lib mpm.lib
 
 # Convenience targets
 # %%TARGET: Add a pseudo-target for the new part
 
 dwstress.exe amcss.exe lockutnt.exe lockcov.exe stdcover.exe \
-	mpmss.exe protcv.exe poolncv.exe locv.exe qs.exe std.lib mpm.lib:
+     mpmss.exe protcv.exe mpsicv.exe poolncv.exe locv.exe qs.exe \
+     std.lib mpm.lib:
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ target
 
-amcss.cov:
+mpsicv.cov:
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ VARIETY=cover variety
 
 # "clean" removes the directory containing the build results for the platform
@@ -299,6 +300,9 @@ $(PFM)\$(VARIETY)\qs.exe:  $(PFM)\$(VARIETY)\qs.obj \
 	$(AMCOBJ) $(MPMOBJ) $(STDOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amcss.exe:  $(PFM)\$(VARIETY)\amcss.obj \
+	$(MPMOBJ) $(STDOBJ) $(AMCOBJ) $(DWOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\mpsicv.exe:  $(PFM)\$(VARIETY)\mpsicv.obj \
 	$(MPMOBJ) $(STDOBJ) $(AMCOBJ) $(DWOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\dwstress.exe:  $(PFM)\$(VARIETY)\dwstress.obj \
