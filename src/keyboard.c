@@ -5810,6 +5810,9 @@ syms_of_keyboard ()
   func_key_syms = Qnil;
   staticpro (&func_key_syms);
 
+  system_key_syms = Qnil;
+  staticpro (&system_key_syms);
+
   mouse_syms = Qnil;
   staticpro (&mouse_syms);
 
