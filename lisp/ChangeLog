@@ -1,3 +1,8 @@
+2004-09-17  Romain Francoise  <romain@orebokech.com>
+
+	* ibuf-ext.el (define-ibuffer-filter filename): Expand
+	dired-directory since buffer-file-name is absolute.
+
 2004-09-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* ediff-init.el (ediff-current-diff-face-A)
