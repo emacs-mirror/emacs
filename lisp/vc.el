@@ -1138,7 +1138,7 @@ on a buffer attached to the file named in the current Dired buffer line."
    (t
     (if x (setq x (concat "(" x ")")))
     (if (re-search-forward "\\([0-9]+ \\).................\\( .*\\)" nil 0)
-       (let ((rep (substring (concat x "                 ") 0 9)))
+       (let ((rep (substring (concat x "                 ") 0 10)))
          (replace-match (concat "\\1" rep "\\2") t)))
     )))
 
