@@ -58,9 +58,9 @@ TLASTLIB	= $(BLD)\lastfile.lib
 # see comments in allocate_heap in w32heap.c before changing any of the
 # -stack, -heap, or -base settings.
 !if "$(BUILD_TYPE)" == "spd"
-LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x00800000 -heap:0x00100000 -base:0x01000000 -debug:full -pdb:$(BLD)\temacs.pdb -machine:$(ARCH) -subsystem:$(SUBSYSTEM) -entry:_start -map:$(BLD)\temacs.map
+LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x00800000 -heap:0x00100000 -base:0x01000000 -debug:full -pdb:$(BLD)\temacs.pdb -machine:$(ARCH) -subsystem:$(SUBSYSTEM) -entry:_start -map:$(BLD)\temacs.map -swaprun:net -swaprun:cd
 !else
-LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x00800000 -heap:0x00100000 -base:0x01000000 -debug:full -pdb:$(BLD)\temacs.pdb -machine:$(ARCH) -subsystem:$(SUBSYSTEM) -entry:_start -map:$(BLD)\temacs.map
+LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x00800000 -heap:0x00100000 -base:0x01000000 -debug:full -pdb:none -machine:$(ARCH) -subsystem:$(SUBSYSTEM) -entry:_start -map:$(BLD)\temacs.map -swaprun:net -swaprun:cd
 !endif
 
 #
