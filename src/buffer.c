@@ -1925,7 +1925,7 @@ A string is printed verbatim in the mode line except for %-constructs:\n\
    or when it is found in a cons-cell or a list)\n\
   %b -- print buffer name.      %f -- print visited file name.\n\
   %* -- print *, % or hyphen.   %m -- print value of mode-name (obsolete).\n\
-  %s -- print process status.   %M -- print value of global-mode-string. (obs)\n\
+  %s -- print process status.   %l -- print the current line number.\n\
   %p -- print percent of buffer above top of window, or top, bot or all.\n\
   %n -- print Narrow if appropriate.\n\
   %[ -- print one [ for each recursive editing level.  %] similar.\n\
