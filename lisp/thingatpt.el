@@ -106,6 +106,14 @@ bounds-of-thing-at-point."
 
 ;;=== Special cases =======================================================
 
+;;--- Lines ---
+
+;; bolp will be false when you click on the last line in the buffer
+;; and it has no final newline.
+
+(put 'line 'beginning-op
+     (function (lambda () (if (bolp) (forward-line -1) (beginning-of-line)))))
+
 ;;--- Sexps ---
 
 (defun in-string-p ()
