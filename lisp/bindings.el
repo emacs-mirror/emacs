@@ -303,7 +303,7 @@ Keymap to display on minor modes.")
      `(:propertize ("" mode-name)
 		   help-echo "mouse-2: help for current major mode"
 		   local-map ,mode-line-major-mode-keymap)
-     `(:propertize ("" mode-line-process))
+     '("" mode-line-process)
      `(:propertize ("" minor-mode-alist)
 		   help-echo "mouse-2: help for minor modes, mouse-3: minor mode menu"
 		   local-map ,mode-line-minor-mode-keymap)
@@ -313,7 +313,7 @@ Keymap to display on minor modes.")
      (propertize ")%]--" 'help-echo help-echo)))
 
   (setq-default mode-line-position
-    `((-3 . ,(propertize "%p" 'help-echo help-echo))
+    `((-3 ,(propertize "%p" 'help-echo help-echo))
       (size-indication-mode 
        (8 ,(propertize " of %I" 'help-echo help-echo)))
       (line-number-mode
