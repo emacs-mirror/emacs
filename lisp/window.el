@@ -157,7 +157,7 @@ Negative arg means select the size of the lowermost window instead.
 With no argument, split equally or close to it.
 Both windows display the same buffer now current.
 
-If the variable split-window-keep-point is non-nil, both new windows
+If the variable `split-window-keep-point' is non-nil, both new windows
 will get the same value of point as the current window.  This is often
 more convenient for editing.
 
