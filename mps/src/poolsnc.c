@@ -1,6 +1,6 @@
 /* impl.c.poolsnc: STACK NO CHECKING POOL CLASS
  *
- * $HopeName: MMsrc!poolsnc.c(trunk.7) $
+ * $HopeName: MMsrc!poolsnc.c(trunk.8) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
@@ -26,7 +26,7 @@
 #include "mpm.h"
 
 
-SRCID(poolsnc, "$HopeName: MMsrc!poolsnc.c(trunk.7) $");
+SRCID(poolsnc, "$HopeName: MMsrc!poolsnc.c(trunk.8) $");
 
 
 #define SNCSig  ((Sig)0x519b754c)       /* SIGPooLSNC */
@@ -133,13 +133,16 @@ static void sncBufferSetTopSeg(Buffer buffer, Seg seg)
 static Res SNCBufInit (Buffer buffer, Pool pool, va_list args)
 {
   SNCBuf sncbuf;
+  Res res;
   BufferClass superclass = EnsureRankBufClass();
 
   AVERT(Buffer, buffer);
   AVERT(Pool, pool);
 
   /* call next method */
-  (*superclass->init)(buffer, pool, args);
+  res = (*superclass->init)(buffer, pool, args);
+  if (res != ResOK)
+    return res;
 
   sncbuf = BufferSNCBuf(buffer);
   sncbuf->topseg = NULL;
@@ -223,7 +226,8 @@ static Bool SNCSegCheck(SNCSeg sncseg)
   return TRUE;
 }
 
-/* awlSegInit -- Init method for AWL segments */
+
+/* sncSegInit -- Init method for SNC segments */
 
 static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size, 
                       Bool reservoirPermit, va_list args)
@@ -256,6 +260,7 @@ static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size,
 DEFINE_SEG_CLASS(SNCSegClass, class)
 {
   INHERIT_CLASS(class, GCSegClass);
+  SegClassMixInNoSplitMerge(class);  /* no support for this (yet) */
   class->name = "SNCSEG";
   class->size = sizeof(SNCSegStruct);
   class->init = sncSegInit;
