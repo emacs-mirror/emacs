@@ -1232,6 +1232,8 @@ DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
 	    window = XWINDOW (window)->vchild;
 	  else break;
 	}
+
+      QUIT;
     }
   /* Which windows are acceptable?
      Exit the loop and accept this window if
