@@ -232,9 +232,9 @@ struct window
     /* Where the cursor actually is.  */
     struct cursor_pos phys_cursor;
     
-    /* Cursor type last drawn on the window.  Used for X frames; -1
-       initially.  */
-    int phys_cursor_type;
+    /* Cursor type and width of last cursor drawn on the window.  
+       Used for X and w32 frames; -1 initially.  */
+    int phys_cursor_type, phys_cursor_width;
 
     /* This is handy for undrawing the cursor.  */
     int phys_cursor_ascent, phys_cursor_height;
