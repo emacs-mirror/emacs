@@ -133,7 +133,7 @@ extern int errno;
 #ifndef MEMORY_IN_STRING_H
 #include <memory.h>
 #endif
-#ifdef TIOCGWINSZ
+#if defined (TIOCGWINSZ) || defined (ISC4_0)
 #ifdef NEED_SIOCTL
 #include <sys/sioctl.h>
 #endif
@@ -141,7 +141,7 @@ extern int errno;
 #include <sys/stream.h>
 #include <sys/ptem.h>
 #endif
-#endif /* TIOCGWINSZ */
+#endif /* TIOCGWINSZ or ISC4_0 */
 #endif /* USG */
 
 extern int quit_char;
