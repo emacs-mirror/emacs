@@ -2,7 +2,7 @@
  *
  *                         NULL POOL
  *
- *  $HopeName: MMsrc/!pooln.c(trunk.1)$
+ *  $HopeName: MMsrc/!pooln.c(trunk.2)$
  *
  *  Copyright(C) 1995 Harlequin Group, all rights reserved
  *
@@ -178,7 +178,7 @@ static void free_(Pool pool, Addr old, Size size)
 {
   AVER(ISVALID(Pool, pool));
   AVER(pool->class == &PoolClassNStruct);
-  AVER(old != NULL);
+  AVER(old != (Addr)0);
   AVER(size > 0);
 #ifndef DEBUG_ASSERT
   UNUSED(pool);
