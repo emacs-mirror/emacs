@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.28) $
+ * $HopeName: MMsrc!poolamc.c(trunk.29) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -9,7 +9,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.28) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.29) $");
 
 
 /* Binary i/f used by ASG (drj 1998-06-11) */
@@ -141,6 +141,7 @@ static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size,
 DEFINE_SEG_CLASS(AMCSegClass, class)
 {
   INHERIT_CLASS(class, GCSegClass);
+  SegClassMixInNoSplitMerge(class);  /* no support for this (yet) */
   class->name = "AMCSEG";
   class->size = sizeof(AMCSegStruct);
   class->init = AMCSegInit;
@@ -345,6 +346,7 @@ static Res AMCBufInit(Buffer buffer, Pool pool, va_list args)
   AMC amc;
   AMCBuf amcbuf;
   BufferClass superclass = EnsureSegBufClass();
+  Res res;
 
   AVERT(Buffer, buffer);
   AVERT(Pool, pool);
@@ -352,7 +354,9 @@ static Res AMCBufInit(Buffer buffer, Pool pool, va_list args)
   AVERT(AMC, amc);
 
   /* call next method */
-  (*superclass->init)(buffer, pool, args);
+  res = (*superclass->init)(buffer, pool, args);
+  if (res != ResOK)
+    return res;
 
   /* Set up the buffer to be allocating in the nursery. */
   amcbuf = BufferAMCBuf(buffer);
