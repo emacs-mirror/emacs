@@ -9999,6 +9999,38 @@ xbm_read_bitmap_data (contents, end, width, height, data)
 #undef expect_ident
 }
 
+static void convert_mono_to_color_image (f, img, foreground, background)
+     struct frame *f;
+     struct image *img;
+     COLORREF foreground, background;
+{
+  HDC hdc, old_img_dc, new_img_dc;
+  HGDIOBJ old_prev, new_prev;
+  HBITMAP new_pixmap;
+
+  hdc = get_frame_dc (f);
+  old_img_dc = CreateCompatibleDC (hdc);
+  new_img_dc = CreateCompatibleDC (hdc);
+  new_pixmap = CreateCompatibleBitmap (hdc, img->width, img->height);
+  release_frame_dc (f, hdc);
+  old_prev = SelectObject (old_img_dc, img->pixmap);
+  new_prev = SelectObject (new_img_dc, new_pixmap);
+  SetTextColor (new_img_dc, foreground);
+  SetBkColor (new_img_dc, background);
+
+  BitBlt (new_img_dc, 0, 0, img->width, img->height, old_img_dc,
+	  0, 0, SRCCOPY);
+
+  SelectObject (old_img_dc, old_prev);
+  SelectObject (new_img_dc, new_prev);	  
+  DeleteDC (old_img_dc);
+  DeleteDC (new_img_dc);
+  DeleteObject (img->pixmap);
+  if (new_pixmap == 0)
+    fprintf (stderr, "Failed to convert image to color.\n");
+  else
+    img->pixmap = new_pixmap;
+}
 
 /* Load XBM image IMG which will be displayed on frame F from buffer
    CONTENTS.  END is the end of the buffer. Value is non-zero if
@@ -10019,6 +10051,7 @@ xbm_load_image (f, img, contents, end)
     {
       unsigned long foreground = FRAME_FOREGROUND_PIXEL (f);
       unsigned long background = FRAME_BACKGROUND_PIXEL (f);
+      int non_default_colors = 0;
       Lisp_Object value;
 
       xassert (img->width > 0 && img->height > 0);
@@ -10026,16 +10059,24 @@ xbm_load_image (f, img, contents, end)
       /* Get foreground and background colors, maybe allocate colors.  */
       value = image_spec_value (img->spec, QCforeground, NULL);
       if (!NILP (value))
-	foreground = x_alloc_image_color (f, img, value, foreground);
+	{
+	  foreground = x_alloc_image_color (f, img, value, foreground);
+	  non_default_colors = 1;
+	}
       value = image_spec_value (img->spec, QCbackground, NULL);
       if (!NILP (value))
 	{
 	  background = x_alloc_image_color (f, img, value, background);
 	  img->background = background;
 	  img->background_valid = 1;
+	  non_default_colors = 1;
 	}
       img->pixmap
 	= w32_create_pixmap_from_bitmap_data (img->width, img->height, data);
+
+      /* If colors were specified, transfer the bitmap to a color one.  */
+      if (non_default_colors)
+	convert_mono_to_color_image (f, img, foreground, background);
 
       xfree (data);
 
@@ -10117,6 +10158,7 @@ xbm_load (f, img)
       Lisp_Object data;
       unsigned long foreground = FRAME_FOREGROUND_PIXEL (f);
       unsigned long background = FRAME_BACKGROUND_PIXEL (f);
+      int non_default_colors = 0;
       char *bits;
       int parsed_p;
       int in_memory_file_p = 0;
@@ -10141,12 +10183,19 @@ xbm_load (f, img)
       /* Get foreground and background colors, maybe allocate colors.  */
       if (fmt[XBM_FOREGROUND].count
 	  && STRINGP (fmt[XBM_FOREGROUND].value))
-	foreground = x_alloc_image_color (f, img, fmt[XBM_FOREGROUND].value,
-					  foreground);
+	{
+	  foreground = x_alloc_image_color (f, img, fmt[XBM_FOREGROUND].value,
+					    foreground);
+	  non_default_colors = 1;
+	}
+
       if (fmt[XBM_BACKGROUND].count
 	  && STRINGP (fmt[XBM_BACKGROUND].value))
-	background = x_alloc_image_color (f, img, fmt[XBM_BACKGROUND].value,
-					  background);
+	{
+	  background = x_alloc_image_color (f, img, fmt[XBM_BACKGROUND].value,
+					    background);
+	  non_default_colors = 1;
+	}
 
       if (in_memory_file_p)
 	success_p = xbm_load_image (f, img, SDATA (data),
@@ -10179,6 +10228,10 @@ xbm_load (f, img)
 	  img->pixmap
 	    = w32_create_pixmap_from_bitmap_data (img->width, img->height,
 						  bits);
+
+	  /* If colors were specified, transfer the bitmap to a color one.  */
+	  if (non_default_colors)
+	    convert_mono_to_color_image (f, img, foreground, background);
 
 	  if (img->pixmap)
 	    success_p = 1;
