@@ -1,5 +1,11 @@
 2003-11-23  Kim F. Storm  <storm@cua.dk>
 
+	* window.c (enum window_loop): Add REDISPLAY_BUFFER_WINDOWS.
+	(window_loop): Handle REDISPLAY_BUFFER_WINDOWS.
+	(Fforce_window_update): New defun.
+	(syms_of_window): Defsubr it.
+	(Fset_window_margins, Fset_window_fringes): Doc fix.
+
 	* print.c (Fredirect_debugging_output): New defun.
 	(syms_of_print): Defsubr it.
 

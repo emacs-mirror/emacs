@@ -1,5 +1,51 @@
 2003-11-23  Kim F. Storm  <storm@cua.dk>
 
+	* progmodes/compile.el (grep-command, grep-use-null-device)
+	(grep-find-command, grep-tree-command, grep-tree-files-aliases)
+	(grep-tree-ignore-case, grep-tree-ignore-CVS-directories)
+	(grep-regexp-alist, grep-program, find-program)
+	(grep-find-use-xargs, grep-history, grep-find-history)
+	(grep-process-setup, grep-compute-defaults)
+	(grep-default-command, grep, grep-tag-default, grep-find)
+	(grep-expand-command-macros, grep-tree-last-regexp)
+	(grep-tree-last-files, grep-tree): Move grep variables, functions
+	and commands to new file grep.el.
+	(compilation-mode-map): Remove grep commands from Compile sub-menu.
+	(compilation-process-setup-function): Doc fix.
+	(compilation-highlight-regexp, compilation-highlight-overlay): New
+	defvars used for highlighting current compile error in source buffer.
+	(compile-internal): New optional args HIGHLIGHT-REGEXP and
+	LOCAL-MAP which overrides compilation-highlight-regexp and
+	compilation-mode-map for this compilation.
+	Delay calling compilation-set-window-height until after running
+	compilation-process-setup-function so it can buffer-local override
+	compilation-window-height.
+	Check buffer-local value of compilation-scroll-output.
+	(compilation-set-window-height): Use buffer-local value of
+	compilation-window-height.
+	(compilation-revert-buffer): Don't pass (undefined)
+	preserve-modes arg to revert-buffer.
+	(next-error-no-select, previous-error-no-select): New commands.
+	(compilation-goto-locus): Temporarily highlight current match in
+	source buffer using compilation-highlight-regexp.
+
+	* progmodes/grep.el: New file with grep code from compile.el.
+	(grep): New defcustom group.
+	(grep-window-height): New defcustom, like compilation-window-height.
+	(grep-auto-highlight): New defcustom, like compile-auto-highlight.
+	(grep-scroll-output): New defcustom, like compilation-scroll-output.
+	(grep-command, grep-use-null-device, grep-find-command)
+	(grep-tree-files-aliases, grep-tree-ignore-case)
+	(grep-tree-ignore-CVS-directories): Move to grep custom group.
+	(grep-setup-hook): New hook variable.
+	(grep-mode-map): New keymap for grep commands.  Add Grep menu.
+	(grep-use-compilation-buffer): New defcustom.
+	(grep-last-buffer): New defvar, override compilation-last-buffer.
+	(grep): Add optional arg HIGHLIGHT-REGEXP.  Doc fix.
+	Call compile-internal with args highlight-regexp and grep-mode-map.
+
+2003-11-23  Kim F. Storm  <storm@cua.dk>
+
 	* subr.el (event-start, event-end): Doc fix.
 	(posn-window, posn-x-y, posn-timestamp): Simplify doc.
 	(posn-area, posn-actual-col-row, posn-object): New defuns.
