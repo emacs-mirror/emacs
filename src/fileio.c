@@ -2229,7 +2229,7 @@ A prefix arg makes KEEP-TIME non-nil.")
      copyable by us. */
   input_file_statable_p = (fstat (ifd, &st) >= 0);
 
-#if !defined (MSDOS) || __DJGPP__ > 1
+#if !defined (DOS_NT) || __DJGPP__ > 1
   if (out_st.st_mode != 0
       && st.st_dev == out_st.st_dev && st.st_ino == out_st.st_ino)
     {
