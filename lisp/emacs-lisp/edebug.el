@@ -2423,45 +2423,48 @@ MSG is printed after `::::} '."
 
 
 (defun edebug-debugger (edebug-offset-index edebug-arg-mode edebug-value)
-  ;; Check breakpoints and pending input.
-  ;; If edebug display should be updated, call edebug-display.
-  ;; Return edebug-value.
-  (let* (;; This needs to be here since breakpoints may be changed.
-	 (edebug-breakpoints (car (cdr edebug-data))) ; list of breakpoints
-	 (edebug-break-data (assq edebug-offset-index edebug-breakpoints))
-	 (edebug-break-condition (car (cdr edebug-break-data)))
-	 (edebug-global-break
-	  (if edebug-global-break-condition
-	      (condition-case nil
-		  (setq edebug-global-break-result
-			(eval edebug-global-break-condition))
-		(error nil))))
-	 (edebug-break))
+  (if inhibit-redisplay
+      ;; Don't really try to enter edebug within an eval from redisplay.
+      edebug-value
+    ;; Check breakpoints and pending input.
+    ;; If edebug display should be updated, call edebug-display.
+    ;; Return edebug-value.
+    (let* ( ;; This needs to be here since breakpoints may be changed.
+	   (edebug-breakpoints (car (cdr edebug-data)))	; list of breakpoints
+	   (edebug-break-data (assq edebug-offset-index edebug-breakpoints))
+	   (edebug-break-condition (car (cdr edebug-break-data)))
+	   (edebug-global-break
+	    (if edebug-global-break-condition
+		(condition-case nil
+		    (setq edebug-global-break-result
+			  (eval edebug-global-break-condition))
+		  (error nil))))
+	   (edebug-break))
 
 ;;;    (edebug-trace "exp: %s" edebug-value)
-    ;; Test whether we should break.
-    (setq edebug-break 
-	  (or edebug-global-break
-	      (and edebug-break-data
-		   (or (not edebug-break-condition)
-		       (setq edebug-break-result
-			     (eval edebug-break-condition))))))
-    (if (and edebug-break
-	     (nth 2 edebug-break-data)) ; is it temporary?
-	;; Delete the breakpoint.
-	(setcdr edebug-data
-		(cons (delq edebug-break-data edebug-breakpoints)
-		      (cdr (cdr edebug-data)))))
+      ;; Test whether we should break.
+      (setq edebug-break 
+	    (or edebug-global-break
+		(and edebug-break-data
+		     (or (not edebug-break-condition)
+			 (setq edebug-break-result
+			       (eval edebug-break-condition))))))
+      (if (and edebug-break
+	       (nth 2 edebug-break-data)) ; is it temporary?
+	  ;; Delete the breakpoint.
+	  (setcdr edebug-data
+		  (cons (delq edebug-break-data edebug-breakpoints)
+			(cdr (cdr edebug-data)))))
 
-    ;; Display if mode is not go, continue, or Continue-fast
-    ;; or break, or input is pending, 
-    (if (or (not (memq edebug-execution-mode '(go continue Continue-fast)))
-	    edebug-break
-	    (edebug-input-pending-p))
-	(edebug-display))   ; <--------------- display
+      ;; Display if mode is not go, continue, or Continue-fast
+      ;; or break, or input is pending, 
+      (if (or (not (memq edebug-execution-mode '(go continue Continue-fast)))
+	      edebug-break
+	      (edebug-input-pending-p))
+	  (edebug-display))		; <--------------- display
     
-    edebug-value
-    ))
+      edebug-value
+      )))
 
 
 ;; window-start now stored with each function.
