@@ -4147,9 +4147,11 @@ window_scroll_pixel_based (window, n, whole, noerror)
   else
     move_it_by_lines (&it, n, 1);
 
-  /* End if we end up at ZV or BEGV.  */
+  /* We failed if we find ZV is already on the screen (scrolling up,
+     means there's nothing past the end), or if we can't start any
+     earlier (scrolling down, means there's nothing past the top).  */
   if ((n > 0 && IT_CHARPOS (it) == ZV)
-      || (n < 0 && IT_CHARPOS (it) == BEGV))
+      || (n < 0 && IT_CHARPOS (it) == CHARPOS (start)))
     {
       if (IT_CHARPOS (it) == ZV)
 	{
