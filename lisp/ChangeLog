@@ -1,5 +1,10 @@
 2005-02-01  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* emacs-lisp/lisp-mode.el (lisp-indent-function): Fix bug:
+	When delegating, order args in the funcall correctly.
+
+2005-02-01  Thien-Thi Nguyen  <ttn@gnu.org>
+
 	* emacs-lisp/lisp-mode.el (lisp-indent-function): Doc fix.
 
 2005-02-01  Carsten Dominik  <dominik@science.uva.nl>
