@@ -65,6 +65,7 @@ extern char **environ;
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
 Lisp_Object Vexec_path, Vexec_directory, Vdata_directory;
+Lisp_Object Vconfigure_info_directory;
 
 Lisp_Object Vshell_file_name;
 
@@ -703,6 +704,13 @@ especially executable programs intended for Emacs to invoke.");
   DEFVAR_LISP ("data-directory", &Vdata_directory,
     "Directory of architecture-independent files that come with GNU Emacs,\n\
 intended for Emacs to use.");
+
+  DEFVAR_LISP ("configure-info-directory", &Vconfigure_info_directory,
+    "For internal use by the build procedure only.\n\
+This is the name of the directory in which the build procedure installed\n\
+Emacs's info files; the default value for Info-default-directory-list\n\
+includes this.");
+  Vconfigure_info_directory = build_string (PATH_INFO);
 
   DEFVAR_LISP ("process-environment", &Vprocess_environment,
     "List of environment variables for subprocesses to inherit.\n\

@@ -27,3 +27,9 @@
    should be writable by everyone.  THE STRING MUST END WITH A
    SLASH!!!  */
 #define PATH_LOCK "/usr/local/lib/emacs/lock/"
+
+/* Where the configuration process believes the info tree lives.  The
+   lisp variable configure-info-directory gets its value from this
+   macro, and is then used to set the Info-default-directory-list.  */
+#define PATH_INFO "/usr/local/info"
+
