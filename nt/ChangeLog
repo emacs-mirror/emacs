@@ -1,3 +1,7 @@
+2001-11-20  Jason Rumney  <jasonr@gnu.org>
+
+	* TODO, _emacs, emacs.bat.in, debug.bat.in: Removed.
+
 2001-11-17  Jason Rumney  <jasonr@gnu.org>
 
 	* nmake.defs (SYS_LDFLAGS): Add setargv.obj for wildcard
