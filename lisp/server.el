@@ -207,7 +207,8 @@ Prefix arg means just kill any existing server communications subprocess."
 		    ;; ARG is a file name.
 		    ;; Collapse multiple slashes to single slashes,
 		    ;; since in Emacs a multiple slash is not equiv to one.
-		    (while (string-match "//+" arg)
+		    ;; However, don't do this at the start of the file name.
+		    (while (string-match "//+" arg 1)
 		      (setq arg (replace-match "/" t t arg)))
 		    (setq files
 			  (cons (list arg lineno)
