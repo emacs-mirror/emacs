@@ -1,3 +1,31 @@
+2000-10-05  Dave Love  <fx@gnu.org>
+
+	* rfc1843.el: Require cl when compiling.
+
+	* qp.el (mm-decode-coding-region, mm-encode-coding-region):
+	Autoload.
+	(quoted-printable-decode-region):  Rename arg which confused
+	charset with coding-system.  Don't use nonascii-insert-offset.
+	Coding-system encode the region initially.  Don't recognize `=='
+	as valid QP.  Coding-system decode the region finally.
+	(quoted-printable-decode-string): Rename arg which confused
+	charset with coding-system.
+
+	* mm-bodies.el: Require mm-uu, Don't require qp, uudecode.
+	(mm-encode-body): Apply mm-charset-to-coding-system to arg of
+	mm-encode-coding-region.
+	(mm-decode-body, mm-decode-string): Rename variables which
+	confused charset with coding-system.
+	(binhex-decode-region): Don't autoload.
+	(mm-body-encoding): Require message.
+	(mm-decode-content-transfer-encoding): Require mm-uu in relevant
+	cond branches.
+
+	* gnus-art.el (article-de-quoted-unreadable)
+	(article-de-base64-unreadable): Fold search case
+	rather than downcasing string.  Apply mm-charset-to-coding-system
+	to arg of quoted-printable-decode-region.
+
 2000-10-05  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* nnfolder.el (nnfolder-ignore-active-file): Typos.
