@@ -443,7 +443,8 @@ which will run faster and do exactly what you probably want."
 		(message "Query replacing %s with %s: " from-string next-replacement)
 		(setq char (read-event))
 		(if (and (numberp char) (= char ??))
-		    (setq unread-command-event help-char char help-char))))
+		    (setq unread-command-events (list help-char)
+			  char help-char))))
 	    ;; Restore the match data while we process the command.
 	    (store-match-data real-match-data)
 	    (cond ((or (= char ?\e)
@@ -498,7 +499,7 @@ which will run faster and do exactly what you probably want."
 		   (setq replaced t))
 		  (t
 		   (setq keep-going nil)
-		   (setq unread-command-event char)
+		   (setq unread-command-events (list char))
 		   (setq done t))))
 	  ;; Record previous position for ^ when we move on.
 	  ;; Change markers to numbers in the match data

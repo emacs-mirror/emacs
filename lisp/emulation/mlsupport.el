@@ -80,7 +80,7 @@
   (fset (intern name) defn))
 
 (defun push-back-character (char)
-  (setq unread-command-event char))
+  (setq unread-command-events (list char)))
 
 (defun to-col (column)
   (indent-to column 0))
