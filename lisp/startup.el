@@ -1623,7 +1623,7 @@ normal otherwise."
                                 "-funcall"
                                 "-e"))  ; what the source used to say
                  (setq tem (intern (or argval (pop command-line-args-left))))
-                 (if (arrayp (symbol-function tem))
+                 (if (commandp tem)
                      (command-execute tem)
                    (funcall tem)))
 
