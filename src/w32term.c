@@ -171,7 +171,6 @@ int x_stretch_cursor_p;
 #define CP_DEFAULT 1004
 
 extern unsigned int msh_mousewheel;
-extern int inhibit_busy_cursor;
 
 extern void free_frame_menubar ();
 
@@ -7739,9 +7738,6 @@ w32_read_socket (sd, bufp, numchars, expected)
 	      bufp++;
 	      numchars--;
 	      count++;
-              if (display_busy_cursor_p)
-                if (bufp->code != VK_RETURN || minibuf_level == 0)
-                  inhibit_busy_cursor = 2;
 	    }
 	  break;
 
@@ -7762,9 +7758,6 @@ w32_read_socket (sd, bufp, numchars, expected)
 	      bufp++;
 	      numchars--;
 	      count++;
-              if (display_busy_cursor_p)
-                if (bufp->code != VK_RETURN || minibuf_level == 0)
-                  inhibit_busy_cursor = 2;
 	    }
 	  break;
 
@@ -7882,8 +7875,6 @@ w32_read_socket (sd, bufp, numchars, expected)
 
                 if (!tool_bar_p)
                   last_tool_bar_item = -1;
-                if (display_busy_cursor_p)
-                  inhibit_busy_cursor = 2;
 	      }
 	    break;
 	  }
@@ -8631,7 +8622,9 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
       if (w != XWINDOW (selected_window)
           || f != FRAME_W32_DISPLAY_INFO (f)->w32_highlight_frame)
         {
-          if (MINI_WINDOW_P (w))
+	  extern int cursor_in_non_selected_windows;
+
+          if (MINI_WINDOW_P (w) || !cursor_in_non_selected_windows)
             new_cursor_type = NO_CURSOR;
           else
             new_cursor_type = HOLLOW_BOX_CURSOR;
