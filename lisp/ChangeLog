@@ -1,3 +1,8 @@
+2001-10-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* emulation/tpu-edt.el: Make messages match original TPU/edt
+	editor. From riepel@Stanford.EDU (Rob Riepel).
+
 2001-10-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* rect.el: Update maintainer's email address.

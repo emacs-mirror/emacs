@@ -752,9 +752,10 @@ This is useful for inserting control characters."
   (if (eobp)
       (message "You are at the End of Buffer.  The last line is %d."
 	       (count-lines 1 (point-max)))
-    (message "Line %d of %d"
-	     (count-lines 1 (1+ (point)))
-	     (count-lines 1 (point-max)))))
+    (let* ((cur (count-lines 1 (1+ (point))))
+	   (max (count-lines 1 (point-max)))
+	   (pct (/ (* 100 (+ cur (/ max 200))) max)))
+      (message "You are on line %d out of %d (%d%%)." cur max pct))))
 
 (defun tpu-exit nil
   "Exit the way TPU does, save current buffer and ask about others."
@@ -814,6 +815,10 @@ This is useful for inserting control characters."
 ;; So it is really necessary to redefine this.
 (fset 'help 'tpu-help)
 (fset 'HELP 'tpu-help)
+
+;; Real TPU error messages end in periods.
+;; Define this to avoid openly flouting Emacs coding standards.
+(defalias 'tpu-error 'error)
 
 (fset 'set\ cursor\ free 'tpu-set-cursor-free)
 (fset 'SET\ CURSOR\ FREE 'tpu-set-cursor-free)
@@ -1071,7 +1076,7 @@ kills modified buffers without asking."
   (interactive)
   (let ((list (tpu-make-file-buffer-list (buffer-list))))
     (setq list (delq (current-buffer) list))
-    (if (not list) (error "No other buffers"))
+    (if (not list) (tpu-error "No other buffers."))
     (switch-to-buffer (car (reverse list)))))
 
 (defun tpu-make-file-buffer-list (buffer-list)
@@ -1343,7 +1348,7 @@ The text is saved for the tpu-paste command."
 	   (delete-region beg end)
 	   (tpu-unset-match)))
 	(t
-	 (error "No selection active"))))
+	 (tpu-error "No selection active."))))
 
 (defun tpu-store-text nil
   "Copy the selected region to the cut buffer without deleting it.
@@ -1365,7 +1370,7 @@ The text is saved for the tpu-paste command."
 	       (buffer-substring (tpu-match-beginning) (tpu-match-end)))
 	 (tpu-unset-match))
 	(t
-	 (error "No selection active"))))
+	 (tpu-error "No selection active."))))
 
 (defun tpu-cut (arg)
   "Copy selected region to the cut buffer.  In the absence of an
@@ -1392,7 +1397,7 @@ argument, delete the selected region too."
 	   (if (not arg) (delete-region beg end))
 	   (tpu-unset-match)))
 	(t
-	 (error "No selection active"))))
+	 (tpu-error "No selection active."))))
 
 (defun tpu-delete-current-line (num)
   "Delete one or specified number of lines after point.
@@ -1532,7 +1537,7 @@ With argument reinserts the character that many times."
 			  (not case-replace) (not tpu-regexp-p))
 	   (tpu-unset-match)))
 	(t
-	 (error "No selection active"))))
+	 (tpu-error "No selection active."))))
 
 (defun tpu-substitute (num)
   "Replace the selected region with the contents of the cut buffer, and
@@ -1548,7 +1553,7 @@ A negative argument means replace all occurrences of the search string."
 	       (tpu-search-internal-core tpu-search-last-string)))
 	   (setq num (1- num))))
 	(t
-	 (error "No selection active"))))
+	 (tpu-error "No selection active."))))
 
 (defun tpu-lm-replace (from to)
   "Interactively search for OLD-string and substitute NEW-string."
@@ -1558,7 +1563,7 @@ A negative argument means replace all occurrences of the search string."
   (let ((doit t) (strings 0))
 
     ;; Can't replace null strings
-    (if (string= "" from) (error "No string to replace"))
+    (if (string= "" from) (tpu-error "No string to replace."))
 
     ;; Find the first occurrence
     (tpu-set-search)
@@ -1631,7 +1636,7 @@ are performed without asking.  Only works in forward direction."
 or each line in the entire buffer if no region is selected."
   (interactive
    (list (tpu-string-prompt "String to add: " 'tpu-add-at-bol-hist)))
-  (if (string= "" text) (error "No string specified"))
+  (if (string= "" text) (tpu-error "No string specified."))
   (cond ((tpu-mark)
 	 (save-excursion
 	   (if (> (point) (tpu-mark)) (exchange-point-and-mark))
@@ -1649,7 +1654,7 @@ or each line in the entire buffer if no region is selected."
 or each line of the entire buffer if no region is selected."
   (interactive
    (list (tpu-string-prompt "String to add: " 'tpu-add-at-eol-hist)))
-  (if (string= "" text) (error "No string specified"))
+  (if (string= "" text) (tpu-error "No string specified."))
   (cond ((tpu-mark)
 	 (save-excursion
 	   (if (> (point) (tpu-mark)) (exchange-point-and-mark))
@@ -1954,7 +1959,7 @@ Accepts a prefix argument for the number of tpu-pan-columns to scroll."
   "Move point to ARG percentage of the buffer."
   (interactive "NGoto-percentage: ")
   (if (or (> perc 100) (< perc 0))
-      (error "Percentage %d out of range 0 < percent < 100" perc)
+      (tpu-error "Percentage %d out of range 0 < percent < 100." perc)
     (goto-char (/ (* (point-max) perc) 100))))
 
 (defun tpu-beginning-of-window nil
@@ -2468,7 +2473,7 @@ If FILE is nil, try to load a default file.  The default file names are
     (and (tpu-y-or-n-p "Copy key definitions to the new file now? ")
 	 (condition-case conditions
              (copy-file oldname newname)
-	   (error (message "Sorry, couldn't copy - %s" (cdr conditions)))))
+	   (tpu-error (message "Sorry, couldn't copy - %s." (cdr conditions)))))
     (kill-buffer "*TPU-Notice*")))
 
 
