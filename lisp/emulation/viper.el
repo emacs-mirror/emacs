@@ -3,9 +3,11 @@
 ;;		 and a venomous VI PERil.
 ;;		 Viper Is also a Package for Emacs Rebels.
 ;;
-;;  Version:  2.76
 ;;  Keywords: emulations
 ;;  Author: Michael Kifer <kifer@cs.sunysb.edu>
+
+(defconst viper-version "2.80 of July 7, 1995"
+  "The current version of Viper")
 
 ;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 
@@ -24,9 +26,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-
-(defconst viper-version "2.76 of June 9, 1995"
-  "The current version of Viper")
 
 ;;; Commentary:
 
@@ -102,28 +101,8 @@
 ;;; Acknowledgements:
 ;;  -----------------
 ;;  Bug reports and ideas contributed by the following users
-;;  have helped improve Viper and the various versions of VIP: 
-;;
-;;  jjm@hplb.hpl.hp.com (Jean-Jacques Moreau), jl@cse.ogi.edu (John
-;;  Launchbury), rxga@ulysses.att.com, jamesm@bga.com (D.J. Miller II),
-;;  ascott@fws214.intel.com (Andy Scott), toma@convex.convex.com,
-;;  gvr@cs.brown.edu, dave@hellgate.utah.edu, cook@biostat.wisc.edu
-;;  (Tom Cook), lindstro@biostat.wisc.edu (Mary Lindstrom),
-;;  edmonds@edmonds.home.cs.ubc.ca (Brian Edmonds), mveiga@dit.upm.es
-;;  (Marcelino Veiga Tuimil), dwight@toolucky.llnl.gov (Dwight Shih),
-;;  phil_brooks@MENTORG.COM (Phil Brooks), kin@isi.com (Kin Cho),
-;;  ahg@panix.com (Al Gelders), dwallach@cs.princeton.edu (Dan Wallach),
-;;  hpz@ibmhpz.aug.ipp-garching.mpg.de (Hans-Peter Zehrfeld),
-;;  simonb@prl.philips.co.uk (Simon Blanchard), Mark.Bordas@East.Sun.COM
-;;  (Mark Bordas), gviswana@cs.wisc.edu (Guhan Viswanathan),
-;;  meyering@comco.com (Jim Meyering), pfister@cs.sunysb.edu (Hanspeter
-;;  Pfister)
-;;
-;; Special thanks to Marcelino Veiga Tuimil <mveiga@dit.upm.es> for
-;; suggesting a way of intercepting ESC sequences on dumb terminals. Due to
-;; this, Viper can now handle arrow keys, F-keys, etc., in Xterm windows
-;; and on dumb terminals. This also made it possible to implement Vi-style
-;; timeout macros.
+;;  have helped improve Viper and the various versions of VIP.
+;;  See the on-line manual for a complete list of contributors. 
 ;;
 ;;
 ;;; Notes:
@@ -468,7 +447,8 @@ it better fits your working style.")
 
 ;; Replace mode and changing text
 
-;; Viper's own after/before change functions, which get add-hook'ed to Emacs'
+;; Viper's own after/before change functions, which get vip-add-hook'ed to
+;; Emacs's
 (vip-deflocalvar vip-after-change-functions nil "")
 (vip-deflocalvar vip-before-change-functions nil "")
 (vip-deflocalvar vip-post-command-hooks nil "")
@@ -832,9 +812,6 @@ These buffers can be cycled through via :R and :P commands.")
   "Viper customisation file.
 This variable must be set _before_ loading Viper.")
 
-(defvar vip-info-file-name "viper"
-  "The name prefix for Viper Info files.")
-
 (defvar vip-spell-function 'ispell-region
   "Spell function used by #s<move> command to spell.")
 
@@ -967,9 +944,9 @@ shell-mode, this is undesirable and must be set to nil. See vip-set-hooks.")
   (remove-hook 'pre-command-hook 'vip-pre-command-sentinel)
   (add-hook 'pre-command-hook 'vip-pre-command-sentinel t)
   ;; These hooks will be added back if switching to insert/replace mode
-  (remove-hook 'vip-post-command-hooks
+  (vip-remove-hook 'vip-post-command-hooks
 	       'vip-insert-state-post-command-sentinel)
-  (remove-hook 'vip-pre-command-hooks
+  (vip-remove-hook 'vip-pre-command-hooks
 	       'vip-insert-state-pre-command-sentinel)
   (cond ((eq new-state 'vi-state)
 	 (cond ((member vip-current-state '(insert-state replace-state))
@@ -1010,15 +987,14 @@ shell-mode, this is undesirable and must be set to nil. See vip-set-hooks.")
 	 (if (memq vip-current-state '(emacs-state vi-state))
 	     (vip-move-marker-locally 'vip-insert-point (point)))
 	 (vip-move-marker-locally 'vip-last-posn-while-in-insert-state (point))
-	 (add-hook 'vip-post-command-hooks
+	 (vip-add-hook 'vip-post-command-hooks
 		   'vip-insert-state-post-command-sentinel t)
-	 (add-hook 'vip-pre-command-hooks
-		   'vip-insert-state-pre-command-sentinel t)
-	 )
+	 (vip-add-hook 'vip-pre-command-hooks
+		   'vip-insert-state-pre-command-sentinel t))
 	) ; outermost cond
   
   ;; Nothing needs to be done to switch to emacs mode! Just set some
-  ;; variables, which is done in vip-change-state-to-emacs!
+  ;; variables, which is already done in vip-change-state-to-emacs!
 
   (setq vip-current-state new-state)
   (vip-normalize-minor-mode-map-alist)
@@ -1064,7 +1040,7 @@ shell-mode, this is undesirable and must be set to nil. See vip-set-hooks.")
 ;; Normalizes minor-mode-map-alist by putting Viper keymaps first.
 ;; This ensures that Viper bindings are in effect, regardless of which minor
 ;; modes were turned on by the user or by other packages.
-(defun  vip-normalize-minor-mode-map-alist ()
+(defun vip-normalize-minor-mode-map-alist ()
   (setq minor-mode-map-alist 
 	(vip-append-filter-alist
 	 (list
@@ -1313,7 +1289,10 @@ This startup message appears whenever you load Viper, unless you type `y' now."
     (if (and auto-fill-function (> (current-column) fill-column))
 	(funcall auto-fill-function))
     ;; don't leave whitespace lines around
-    (if (and (memq last-command '(vip-autoindent vip-open-line vip-Open-line))
+    (if (and (memq last-command
+		   '(vip-autoindent
+		     vip-open-line vip-Open-line
+		     vip-replace-state-exit-cmd))
 	     (vip-over-whitespace-line))
 	(indent-to-left-margin))
     (vip-add-newline-at-eob-if-necessary)
@@ -1527,27 +1506,14 @@ behaves as in Emacs, any number of multiple escapes is allowed."
 	(progn 
 	  (if (vip-fast-keysequence-p)
 	      (progn
-		(let ((vip-vi-intercept-minor-mode nil)
-		      (vip-insert-intercept-minor-mode nil)
-		      (vip-emacs-intercept-minor-mode nil)
-		      (vip-vi-state-modifier-minor-mode  nil)
-		      (vip-vi-global-user-minor-mode  nil)
-		      (vip-vi-local-user-minor-mode  nil)
-		      (vip-replace-minor-mode nil) ; actually unnecessary
-		      (vip-insert-state-modifier-minor-mode  nil)
-		      (vip-insert-global-user-minor-mode  nil)
-		      (vip-insert-local-user-minor-mode  nil)
-		      (vip-emacs-state-modifier-minor-mode  nil)
-		      (vip-emacs-global-user-minor-mode  nil)
-		      (vip-emacs-local-user-minor-mode  nil)
-		      )
+		(let (minor-mode-map-alist)
 		  (vip-set-unread-command-events event)
 		  (setq keyseq
 			(funcall
 			 (ad-get-orig-definition 'read-key-sequence) nil))
 		  ) ; let
 		;; If keyseq translates into something that still has ESC
-		;; in the beginning, separate ESC from the rest of the seq.
+		;; at the beginning, separate ESC from the rest of the seq.
 		;; In XEmacs we check for events that are keypress meta-key
 		;; and convert them into [escape key]
 		;;
@@ -1561,7 +1527,7 @@ behaves as in Emacs, any number of multiple escapes is allowed."
 		;; which would translate the escape-sequence generated by
 		;; f11 in an xterm window into the symbolic key f11.
 		;;
-		;; If first-key is not an ESC event, we make it into the
+		;; If `first-key' is not an ESC event, we make it into the
 		;; last-command-event in order to pretend that this key was
 		;; pressed. This is needed to allow arrow keys to be bound to
 		;; macros. Otherwise, vip-exec-mapped-kbd-macro will think that
@@ -2400,7 +2366,7 @@ Undo previous insertion and inserts new."
 
     ;; Make sure the minibufer overlay is kept up-to-date. In XEmacs also
     ;; guards against the possibility of detaching this overlay.
-    (add-hook 'vip-post-command-hooks 'vip-move-minibuffer-overlay)
+    (vip-add-hook 'vip-post-command-hooks 'vip-move-minibuffer-overlay)
     ))
   
 ;; Interpret last event in the local map
@@ -2706,15 +2672,17 @@ Undo previous insertion and inserts new."
 	vip-sitting-in-replace t
 	vip-replace-chars-to-delete 0
 	vip-replace-chars-deleted 0)
-  (add-hook 'vip-after-change-functions 'vip-replace-mode-spy-after t)
-  (add-hook 'vip-before-change-functions 'vip-replace-mode-spy-before t)
+  (vip-add-hook 'vip-after-change-functions 'vip-replace-mode-spy-after t)
+  (vip-add-hook 'vip-before-change-functions 'vip-replace-mode-spy-before t)
   ;; this will get added repeatedly, but no harm
   (add-hook 'after-change-functions 'vip-after-change-sentinel t)
   (add-hook 'before-change-functions 'vip-before-change-sentinel t)
   (vip-move-marker-locally 'vip-last-posn-in-replace-region
 			   (vip-replace-start))
-  (add-hook 'vip-post-command-hooks 'vip-replace-state-post-command-sentinel t)
-  (add-hook 'vip-pre-command-hooks 'vip-replace-state-pre-command-sentinel t)
+  (vip-add-hook
+   'vip-post-command-hooks 'vip-replace-state-post-command-sentinel t)
+  (vip-add-hook
+   'vip-pre-command-hooks 'vip-replace-state-pre-command-sentinel t)
   )
   
 ;; Runs vip-after-change-functions inside after-change-functions
@@ -2731,15 +2699,15 @@ Undo previous insertion and inserts new."
       (funcall (car list) beg end)
       (setq list (cdr list)))))
 
-(defun vip-post-command-sentinel ()
+(defsubst vip-post-command-sentinel ()
   (run-hooks 'vip-post-command-hooks))
   
-(defun vip-pre-command-sentinel ()
+(defsubst vip-pre-command-sentinel ()
   (run-hooks 'vip-pre-command-hooks))
   
 ;; Needed so that Viper will be able to figure the last inserted
 ;; chunk of text with reasonable accuracy.
-(defun vip-insert-state-post-command-sentinel ()
+(defsubst vip-insert-state-post-command-sentinel ()
   (if (and (memq vip-current-state '(insert-state replace-state))
 	   vip-insert-point
 	   (>= (point) vip-insert-point))
@@ -2750,13 +2718,13 @@ Undo previous insertion and inserts new."
       (move-marker vip-insert-point vip-pre-command-point))
   )
   
-(defun vip-insert-state-pre-command-sentinel ()
+(defsubst vip-insert-state-pre-command-sentinel ()
   (if (and (eq this-command 'dabbrev-expand)
 	   (markerp vip-insert-point)
 	   (marker-position vip-insert-point))
       (setq vip-pre-command-point (marker-position vip-insert-point))))
 	
-(defun vip-R-state-post-command-sentinel ()
+(defsubst vip-R-state-post-command-sentinel ()
   ;; Restoring cursor color is needed despite
   ;; vip-replace-state-pre-command-sentinel: When you jump to another buffer in
   ;; another frame, the pre-command hook won't change cursor color to default
@@ -2771,7 +2739,7 @@ Undo previous insertion and inserts new."
 
 ;; to speed up, don't change cursor color before self-insert
 ;; and common move commands
-(defun vip-replace-state-pre-command-sentinel ()
+(defsubst vip-replace-state-pre-command-sentinel ()
   (or (memq this-command '(self-insert-command))
       (memq (vip-event-key last-command-event)
 	    '(up down left right (meta f) (meta b)
@@ -2784,8 +2752,13 @@ Undo previous insertion and inserts new."
   ;; in another frame, the pre-command hook won't change cursor color to
   ;; default in that other frame.  So, if the second frame cursor was red and
   ;; we set the point outside the replacement region, then the cursor color
-  ;; will remain red. Restoring the default, below, prevents this.
-  (vip-restore-cursor-color)
+  ;; will remain red. Restoring the default, below, fixes this problem.
+  ;;
+  ;; We optimize for self-insert-command's here, since they either don't change
+  ;; cursor color or, if they terminate replace mode, the color will be changed
+  ;; in vip-finish-change
+  (or (memq this-command '(self-insert-command))
+      (vip-restore-cursor-color))
   (cond 
    ((eq vip-current-state 'replace-state)
     ;; delete characters to compensate for inserted chars.
@@ -2896,11 +2869,12 @@ Undo previous insertion and inserts new."
 ;; Delete stuff between posn and the end of vip-replace-overlay-marker, if
 ;; posn is within the overlay.
 (defun vip-finish-change (posn)
-  (remove-hook 'vip-after-change-functions 'vip-replace-mode-spy-after)
-  (remove-hook 'vip-before-change-functions 'vip-replace-mode-spy-before)
-  (remove-hook 'vip-post-command-hooks
-	       'vip-replace-state-post-command-sentinel) 
-  (remove-hook 'vip-pre-command-hooks 'vip-replace-state-pre-command-sentinel) 
+  (vip-remove-hook 'vip-after-change-functions 'vip-replace-mode-spy-after)
+  (vip-remove-hook 'vip-before-change-functions 'vip-replace-mode-spy-before)
+  (vip-remove-hook 'vip-post-command-hooks
+		   'vip-replace-state-post-command-sentinel) 
+  (vip-remove-hook
+   'vip-pre-command-hooks 'vip-replace-state-pre-command-sentinel) 
   (vip-restore-cursor-color)
   (setq vip-sitting-in-replace nil) ; just in case we'll need to know it
   (save-excursion
@@ -2928,15 +2902,18 @@ Undo previous insertion and inserts new."
   (setq kill-ring-yank-pointer kill-ring))
 
 (defun vip-finish-R-mode ()
-  (remove-hook 'vip-post-command-hooks 'vip-R-state-post-command-sentinel)
-  (remove-hook 'vip-pre-command-hooks 'vip-replace-state-pre-command-sentinel)
+  (vip-remove-hook 'vip-post-command-hooks 'vip-R-state-post-command-sentinel)
+  (vip-remove-hook
+   'vip-pre-command-hooks 'vip-replace-state-pre-command-sentinel)
   (vip-downgrade-to-insert))
   
 (defun vip-start-R-mode ()
   ;; Leave arg as 1, not t: XEmacs insists that it must be a pos number
   (overwrite-mode 1)
-  (add-hook 'vip-post-command-hooks 'vip-R-state-post-command-sentinel t)
-  (add-hook 'vip-pre-command-hooks 'vip-replace-state-pre-command-sentinel t)
+  (vip-add-hook
+   'vip-post-command-hooks 'vip-R-state-post-command-sentinel t)
+  (vip-add-hook
+   'vip-pre-command-hooks 'vip-replace-state-pre-command-sentinel t)
   )
 
 
@@ -3028,7 +3005,7 @@ These keys are ESC, RET, and LineFeed"
 (defun vip-replace-char (arg)
   "Replace the following ARG chars by the character read."
   (interactive "P")
-  (if (and (eolp) (bolp)) (error "I see no character to replace here"))
+  (if (and (eolp) (bolp)) (error "No character to replace here"))
   (let ((val (vip-p-val arg))
 	(com (vip-getcom arg)))
     (vip-replace-char-subr (if (equal com ?r) vip-d-char (read-char)) val)
@@ -4665,7 +4642,7 @@ One can use `` and '' to temporarily jump 1 step back."
 	        (text-marker (get-register reg)))
 	   (if com (vip-move-marker-locally 'vip-com-point (point)))
 	   (if (not (vip-valid-marker text-marker))
-	      (error (format vip-EmptyTextmarker char)))
+	       (error (format vip-EmptyTextmarker char)))
 	   (if (and (vip-same-line (point) vip-last-jump)
 		    (= (point) vip-last-jump-ignore))
 	       (push-mark vip-last-jump t) 
@@ -4754,7 +4731,10 @@ One can use `` and '' to temporarily jump 1 step back."
 	(setq vip-current-indent col)
       (setq vip-preserve-indent nil))
     ;; don't leave whitespace lines around
-    (if (memq last-command '(vip-autoindent vip-open-line vip-Open-line))
+    (if (memq last-command
+	      '(vip-autoindent
+		vip-open-line vip-Open-line
+		vip-replace-state-exit-cmd))
 	(indent-to-left-margin))
     (newline 1)
     (if vip-auto-indent
@@ -5269,10 +5249,22 @@ Mail anyway (y or n)? ")
 	    ((eventp arg)  (list arg))
 	    ((stringp arg) (mapcar 'character-to-event arg))
 	    ((vectorp arg) (append arg nil)) ; turn into list
-	    ((listp arg) arg)
+	    ((listp arg) (vip-eventify-list-xemacs arg))
 	    (t (error
 		"vip-set-unread-command-events: Invalid argument, %S" arg)))
       unread-command-events))))
+
+;; list is assumed to be a list of events of characters
+(defun vip-eventify-list-xemacs (lis)
+  (mapcar
+   (function (lambda (elt)
+	       (cond ((numberp elt) (character-to-event elt))
+		     ((eventp elt)  elt)
+		     (t (error
+			 "vip-eventify-list-xemacs: can't convert to event, %S"
+			 elt)))))
+   lis))
+  
   
 
 ;;; Bring in the rest of the files
@@ -5370,7 +5362,7 @@ Mail anyway (y or n)? ")
       (vip-change-state-to-vi)))
   
   ;; passwd.el sets up its own buffer, which turns up in Vi mode,
-  ;; overriding the local map. Noone needs Vi mode here.
+  ;; thus overriding the local map. We don't need Vi mode here.
   (vip-eval-after-load
    "passwd"
    '(defadvice read-passwd-1 (before vip-passwd-ad activate)
