@@ -113,8 +113,6 @@ Lisp_Object Qlast_nonmenu_event;
    Qt nor Qnil but is instead a cons cell (HOSTNAME PORTNUM).  */
 
 #ifdef HAVE_SOCKETS
-static Lisp_Object stream_process;
-
 #define NETCONN_P(p) (GC_CONSP (XPROCESS (p)->childp))
 #else
 #define NETCONN_P(p) 0
@@ -3747,9 +3745,6 @@ init_process ()
 
 syms_of_process ()
 {
-#ifdef HAVE_SOCKETS
-  stream_process = intern ("stream");
-#endif
   Qprocessp = intern ("processp");
   staticpro (&Qprocessp);
   Qrun = intern ("run");
