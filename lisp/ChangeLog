@@ -1,3 +1,8 @@
+2005-01-24  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-store.el (calc-declare-variable): Use calc-var-name to
+	display variable name.
+
 2005-01-24  Kenichi Handa  <handa@m17n.org>
 
 	* international/encoded-kb.el (encoded-kbd-iso2022-single-shift):
