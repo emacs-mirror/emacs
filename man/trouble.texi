@@ -596,6 +596,19 @@ terminal-dependent bug without access to a terminal of the type that
 stimulates the bug.@refill
 
 @item
+If non-ASCII text or internationalization is relevant, the locale that
+was current when you started Emacs.  You can use this shell command to
+view the relevant values:
+
+@example
+echo LC_ALL=$LC_ALL LC_CTYPE=$LC_CTYPE LANG=$LANG
+@end example
+
+You can use the @kbd{M-!} command to execute the shell command from
+Emacs, and then copy the output from the @samp{*Messages*} buffer into
+the bug report.
+
+@item
 A description of what behavior you observe that you believe is
 incorrect.  For example, ``The Emacs process gets a fatal signal,'' or,
 ``The resulting text is as follows, which I think is wrong.''
