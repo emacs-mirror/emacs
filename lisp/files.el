@@ -2909,9 +2909,9 @@ on a DOS/Windows machine, it returns FILENAME on expanded form."
 		 (string-match re directory)
 		 (substring directory 0 (match-end 0))))))))
 	  filename
-        (unless (eq (aref filename 0) ?/)
+        (unless (file-name-absolute-p filename)
 	  (setq filename (concat "/" filename)))
-        (unless (eq (aref directory 0) ?/)
+        (unless (file-name-absolute-p directory)
 	  (setq directory (concat "/" directory)))
         (let ((ancestor ".")
 	      (filename-dir (file-name-as-directory filename)))

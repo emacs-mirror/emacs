@@ -1,3 +1,8 @@
+2003-04-25  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	* files.el (file-relative-name): Recognize "c:/foo" as absolute
+	file name.  Tiny change from David PONCE <david.ponce@wanadoo.fr>.
+
 2003-04-24  Sam Steingold  <sds@gnu.org>
 
 	* calendar/diary-lib.el (fancy-diary-display-mode): Bind "q" to
