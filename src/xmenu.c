@@ -1191,6 +1191,8 @@ menu_highlight_callback (widget, id, call_data)
   f = menubar_id_to_frame (id);
   if (f)
     {
+      Fx_hide_tip ();
+
       XSETFRAME (frame, f);
       kbd_buffer_store_help_event (frame, help);
     }
