@@ -1,3 +1,7 @@
+2000-05-16  Dave Love  <fx@gnu.org>
+
+	* m/iris5d.h: Deleted -- unused.
+
 2000-05-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c, w32.c, print.c, msdos.c, emacs.c: Use the term
