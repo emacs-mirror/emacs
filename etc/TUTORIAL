@@ -618,6 +618,7 @@ There are many C-x commands.  Here is a list of the ones you have learned:
 	C-x C-s		Save file.
 	C-x C-b		List buffers.
 	C-x C-c		Quit Emacs.
+	C-x 1		Delete all but one window.
 	C-x u		Undo.
 
 Named eXtended commands are commands which are used even less
@@ -661,15 +662,15 @@ data.
 * ECHO AREA
 -----------
 
-If Emacs sees that you are typing commands slowly it shows them to you
-at the bottom of the screen in an area called the "echo area".  The echo
-area contains the bottom line of the screen.
+If Emacs sees that you are typing multicharacter commands slowly, it
+shows them to you at the bottom of the screen in an area called the
+"echo area".  The echo area contains the bottom line of the screen.
 
 
 * MODE LINE
 -----------
 
-The line immediately above the echo area it is called the "mode line".
+The line immediately above the echo area is called the "mode line".
 The mode line says something like this:
 
 --:**  TUTORIAL          (Fundamental)--L670--58%----------------
@@ -711,7 +712,7 @@ If you are going to be editing English text, such as this file, you
 should probably use Text Mode.
 >> Type M-x text mode<Return>.
 
-Don't worry, none of the commands you have learned changes Emacs in
+Don't worry, none of the  Emacs commands you have learned changes in
 any great way.  But you can observe that M-f and M-b now treat
 apostrophes as part of words.  Previously, in Fundamental mode,
 M-f and M-b treated apostrophes as word-separators.
@@ -757,7 +758,7 @@ as a numeric argument.
    characters with it.  Then set the margin back to 70 using
    C-x f again.
 
-If you makes changes in the middle of a paragraph, Auto Fill mode
+If you make changes in the middle of a paragraph, Auto Fill mode
 does not re-fill it for you.
 To re-fill the paragraph, type M-q (Meta-q) with the cursor inside
 that paragraph.
