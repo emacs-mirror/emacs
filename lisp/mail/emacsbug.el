@@ -47,6 +47,10 @@
   "The automatically-created initial text of bug report.")
 
 ;;;###autoload
+(defvar report-emacs-bug-run-tersely nil
+  "*If non-nil, suppress confirmations for novice users.")
+
+;;;###autoload
 (defun report-emacs-bug (topic &optional recent-keys)
   "Report a bug in GNU Emacs.
 Prompts for bug subject.  Leaves you in a mail buffer."
@@ -68,6 +72,17 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 	;; if the user was asked to confirm and said no.
 	(goto-char (point-min))
 	(re-search-forward (concat "^" (regexp-quote mail-header-separator) "\n"))
+	;; Insert warnings for novice users.
+	(insert "This mail is sent to Free Software Foundation, ")
+	(let ((pos (point)))
+	  (insert "NOT TO YOUR SITE MANAGERS!!")
+	  (put-text-property pos (point) 'face 'highlight))
+	(insert "\nPlease write in ")
+	(let ((pos (point)))
+	  (insert "ENGLISH ONLY")
+	  (put-text-property pos (point) 'face 'highlight))
+	(insert ", recipients are not yet fully multilingualized.\n\n")
+
 	(insert "In " (emacs-version) "\n")
 	(if (and system-configuration-options
 		 (not (equal system-configuration-options "")))
@@ -123,6 +138,8 @@ Type SPC to scroll through this section and its subsections.")))
 	;; Make it less likely people will send empty messages.
 	(make-local-variable 'mail-send-hook)
 	(add-hook 'mail-send-hook 'report-emacs-bug-hook)
+	;; Discourage users to write non-English text.
+	(setq enable-multibyte-characters nil)
 	(save-excursion
 	  (goto-char (point-max))
 	  (skip-chars-backward " \t\n")
@@ -147,7 +164,47 @@ Type SPC to scroll through this section and its subsections.")))
 		(length report-emacs-bug-orig-text))
 	     (equal (buffer-substring (point-min) (point))
 		    report-emacs-bug-orig-text))
-	(error "No text entered in bug report"))))
+	(error "No text entered in bug report"))
+
+    ;; Check the buffer contents and reject non-English letters.
+    (let ((charsets (delq 'ascii
+			  (find-charset-region (point-min) (point-max)))))
+      (if charsets
+	  (if (or report-emacs-bug-run-tersely
+		  (y-or-n-p "Convert Non-English letters to hexadecimal? "))
+	      (save-excursion
+		(goto-char (point-min))
+		(let ((enable-multibyte-characters nil)
+		      (pattern (format "[%c-%c]" 128 255))
+		      ch)
+		  (while (re-search-forward pattern nil t)
+		    (setq ch (preceding-char))
+		    (delete-char -1)
+		    (insert (format "=%02x" ch)))))
+	    (error "Please delete non-English chars by yourself"))))
+
+    ;; The last warning for novice users.
+    (if (or report-emacs-bug-run-tersely
+	    (yes-or-no-p
+	     "Do you surely send this mail to Free Software Foundation? "))
+	;; Just send the current mail.
+	nil
+      (goto-char (point-min))
+      (if (search-forward "To: ")
+	  (let ((pos (point)))
+	    (end-of-line)
+	    (delete-region pos (point))))
+      (kill-local-variable 'mail-send-hook)
+      (with-output-to-temp-buffer "*Bug Help*"
+	(princ (substitute-command-keys "\
+You invoked the command report-emacs-bug (\\[report-emacs-bug]),
+but refused to send an e-mail report to Free Software Foundation.
+
+If you want to send the mail to someone else,
+please insert the actual e-mail address after \"To: \",
+and send the mail again by \\[mail-send-and-exit].")))
+      (error "Report-emacs-bug was cancelled, please read *Bug Help* buffer"))
+    ))
 
 (provide 'emacsbug)
 
