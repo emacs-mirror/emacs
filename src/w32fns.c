@@ -276,7 +276,7 @@ Lisp_Object Qw32_charset_ansi;
 Lisp_Object Qw32_charset_default;
 Lisp_Object Qw32_charset_symbol;
 Lisp_Object Qw32_charset_shiftjis;
-Lisp_Object Qw32_charset_hangul;
+Lisp_Object Qw32_charset_hangeul;
 Lisp_Object Qw32_charset_gb2312;
 Lisp_Object Qw32_charset_chinesebig5;
 Lisp_Object Qw32_charset_oem;
@@ -292,6 +292,7 @@ Lisp_Object Qw32_charset_russian;
 Lisp_Object Qw32_charset_arabic;
 Lisp_Object Qw32_charset_greek;
 Lisp_Object Qw32_charset_hebrew;
+Lisp_Object Qw32_charset_vietnamese;
 Lisp_Object Qw32_charset_thai;
 Lisp_Object Qw32_charset_johab;
 Lisp_Object Qw32_charset_mac;
@@ -427,7 +428,7 @@ x_window_to_frame (dpyinfo, wdesc)
       if (f->output_data.w32->busy_window == wdesc)
         return f;
 
-      /* NTEMACS_TODO: Check tooltips when supported.  */
+      /* TODO: Check tooltips when supported.  */
       if (FRAME_W32_WINDOW (f) == wdesc)
         return f;
     }
@@ -557,7 +558,7 @@ x_create_bitmap_from_file (f, file)
      Lisp_Object file;
 {
   return -1;
-#if 0 /* NTEMACS_TODO : bitmap support */
+#if 0 /* TODO : bitmap support */
   struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
   unsigned int width, height;
   HBITMAP bitmap;
@@ -611,7 +612,7 @@ x_create_bitmap_from_file (f, file)
   strcpy (dpyinfo->bitmaps[id - 1].file, XSTRING (file)->data);
 
   return id;
-#endif  /* NTEMACS_TODO */
+#endif  /* TODO */
 }
 
 /* Remove reference to bitmap with id number ID.  */
@@ -690,7 +691,7 @@ struct x_frame_parm_table
   void (*setter) P_ ((struct frame *, Lisp_Object, Lisp_Object));
 };
 
-/* NTEMACS_TODO: Native Input Method support; see x_create_im.  */
+/* TODO: Native Input Method support; see x_create_im.  */
 void x_set_foreground_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
 static void x_set_line_spacing P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_background_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
@@ -2036,7 +2037,7 @@ x_set_mouse_color (f, arg, oldval)
 	&& mask_color == FRAME_BACKGROUND_PIXEL (f))
     f->output_data.w32->mouse_pixel = FRAME_FOREGROUND_PIXEL (f);
 
-#if 0 /* NTEMACS_TODO : cursor changes */
+#if 0 /* TODO : cursor changes */
   BLOCK_INPUT;
 
   /* It's not okay to crash if the user selects a screwy cursor.  */
@@ -2152,7 +2153,7 @@ x_set_mouse_color (f, arg, oldval)
   UNBLOCK_INPUT;
 
   update_face_from_frame_parameter (f, Qmouse_color, arg);
-#endif /* NTEMACS_TODO */
+#endif /* TODO */
 }
 
 void
@@ -5360,8 +5361,28 @@ DEFUN ("w32-focus-frame", Fw32_focus_frame, Sw32_focus_frame, 1, 1, 0,
 }
 
 
+/* Return the charset portion of a font name.  */
+char * xlfd_charset_of_font (char * fontname)
+{
+  char *charset, *encoding;
+
+  encoding = strrchr(fontname, '-');
+  if (!encoding)
+    return NULL;
+
+  *encoding = 0;
+  charset = strrchr(fontname, '-');
+  *encoding = '-';
+
+  if (!charset || strcmp(charset, "-*-*") == 0)
+    return NULL;
+
+  return charset + 1;
+}
+
 struct font_info *w32_load_bdf_font (struct frame *f, char *fontname,
                                      int size, char* filename);
+BOOL w32_to_x_font (LOGFONT * lplf, char * lpxstr, int len, char * charset);
 
 struct font_info *
 w32_load_system_font (f,fontname,size)
@@ -5411,7 +5432,7 @@ w32_load_system_font (f,fontname,size)
 
   /* Load the font and add it to the table. */
   {
-    char *full_name, *encoding;
+    char *full_name, *encoding, *charset;
     XFontStruct *font;
     struct font_info *fontp;
     LOGFONT lf;
@@ -5504,9 +5525,11 @@ w32_load_system_font (f,fontname,size)
     fontp->name = (char *) xmalloc (strlen (fontname) + 1);
     bcopy (fontname, fontp->name, strlen (fontname) + 1);
 
+    charset = xlfd_charset_of_font (fontname);
+
     /* Work out the font's full name.  */
     full_name = (char *)xmalloc (100);
-    if (full_name && w32_to_x_font (&lf, full_name, 100))
+    if (full_name && w32_to_x_font (&lf, full_name, 100, charset))
         fontp->full_name = full_name;
     else
       {
@@ -5668,63 +5691,68 @@ LONG
 x_to_w32_charset (lpcs)
     char * lpcs;
 {
-  Lisp_Object rest;
+  Lisp_Object this_entry, w32_charset;
 
   /* Look through w32-charset-info-alist for the character set.
      Format of each entry is
        (CHARSET_NAME . (WINDOWS_CHARSET . CODEPAGE)).
   */
-  for (rest = Vw32_charset_info_alist; CONSP (rest); rest = XCDR (rest))
-    {
-      Lisp_Object this_entry = XCAR (rest);
-      char * x_charset = XSTRING (XCAR (this_entry))->data;
+  this_entry = Fassoc (build_string(lpcs), Vw32_charset_info_alist);
 
-      if (strnicmp (lpcs, x_charset, strlen(x_charset)) == 0)
-        {
-          Lisp_Object w32_charset = XCAR (XCDR (this_entry));
-          // Translate Lisp symbol to number.
-          if (w32_charset == Qw32_charset_ansi)
-            return ANSI_CHARSET;
-          if (w32_charset == Qw32_charset_symbol)
-            return SYMBOL_CHARSET;
-          if (w32_charset == Qw32_charset_shiftjis)
-            return SHIFTJIS_CHARSET;
-          if (w32_charset == Qw32_charset_hangul)
-            return HANGEUL_CHARSET;
-          if (w32_charset == Qw32_charset_chinesebig5)
-            return CHINESEBIG5_CHARSET;
-          if (w32_charset == Qw32_charset_gb2312)
-            return GB2312_CHARSET;
-          if (w32_charset == Qw32_charset_oem)
-            return OEM_CHARSET;
+  if (NILP(this_entry))
+    {
+      /* At startup, we want iso8859-1 fonts to come up properly. */
+      if (stricmp(lpcs, "iso8859-1") == 0)
+        return ANSI_CHARSET;
+      else
+        return DEFAULT_CHARSET;
+    }
+
+  w32_charset = Fcar (Fcdr (this_entry));
+
+  // Translate Lisp symbol to number.
+  if (w32_charset == Qw32_charset_ansi)
+    return ANSI_CHARSET;
+  if (w32_charset == Qw32_charset_symbol)
+    return SYMBOL_CHARSET;
+  if (w32_charset == Qw32_charset_shiftjis)
+    return SHIFTJIS_CHARSET;
+  if (w32_charset == Qw32_charset_hangeul)
+    return HANGEUL_CHARSET;
+  if (w32_charset == Qw32_charset_chinesebig5)
+    return CHINESEBIG5_CHARSET;
+  if (w32_charset == Qw32_charset_gb2312)
+    return GB2312_CHARSET;
+  if (w32_charset == Qw32_charset_oem)
+    return OEM_CHARSET;
 #ifdef JOHAB_CHARSET
-          if (w32_charset == Qw32_charset_johab)
-            return JOHAB_CHARSET;
-          if (w32_charset == Qw32_charset_easteurope)
-            return EASTEUROPE_CHARSET;
-          if (w32_charset == Qw32_charset_turkish)
-            return TURKISH_CHARSET;
-          if (w32_charset == Qw32_charset_baltic)
-            return BALTIC_CHARSET;
-          if (w32_charset == Qw32_charset_russian)
-            return RUSSIAN_CHARSET;
-          if (w32_charset == Qw32_charset_arabic)
-            return ARABIC_CHARSET;
-          if (w32_charset == Qw32_charset_greek)
-            return GREEK_CHARSET;
-          if (w32_charset == Qw32_charset_hebrew)
-            return HEBREW_CHARSET;
-          if (w32_charset == Qw32_charset_thai)
-            return THAI_CHARSET;
-          if (w32_charset == Qw32_charset_mac)
-            return MAC_CHARSET;
+  if (w32_charset == Qw32_charset_johab)
+    return JOHAB_CHARSET;
+  if (w32_charset == Qw32_charset_easteurope)
+    return EASTEUROPE_CHARSET;
+  if (w32_charset == Qw32_charset_turkish)
+    return TURKISH_CHARSET;
+  if (w32_charset == Qw32_charset_baltic)
+    return BALTIC_CHARSET;
+  if (w32_charset == Qw32_charset_russian)
+    return RUSSIAN_CHARSET;
+  if (w32_charset == Qw32_charset_arabic)
+    return ARABIC_CHARSET;
+  if (w32_charset == Qw32_charset_greek)
+    return GREEK_CHARSET;
+  if (w32_charset == Qw32_charset_hebrew)
+    return HEBREW_CHARSET;
+  if (w32_charset == Qw32_charset_vietnamese)
+    return VIETNAMESE_CHARSET;
+  if (w32_charset == Qw32_charset_thai)
+    return THAI_CHARSET;
+  if (w32_charset == Qw32_charset_mac)
+    return MAC_CHARSET;
 #endif /* JOHAB_CHARSET */
 #ifdef UNICODE_CHARSET
-          if (w32_charset == Qw32_charset_unicode)
-            return UNICODE_CHARSET;
+  if (w32_charset == Qw32_charset_unicode)
+    return UNICODE_CHARSET;
 #endif
-        }
-    }
 
   return DEFAULT_CHARSET;
 }
@@ -5735,54 +5763,156 @@ w32_to_x_charset (fncharset)
     int fncharset;
 {
   static char buf[16];
+  Lisp_Object charset_type;
 
-  /* NTEMACS_TODO: use w32-charset-info-alist. Multiple matches
-     are possible, so this will require more than just a rewrite of
-     this function. w32_to_x_font is the only user of this function,
-     and that will require rewriting too, and its users. */
   switch (fncharset)
     {
-      /* ansi is considered iso8859-1, as most modern ansi fonts are.  */
-    case ANSI_CHARSET:        return "iso8859-1";
-    case DEFAULT_CHARSET:     return "ascii-*";
-    case SYMBOL_CHARSET:      return "ms-symbol";
-    case SHIFTJIS_CHARSET:    return "jisx0208-sjis";
-    case HANGEUL_CHARSET:     return "ksc5601.1987-*";
-    case GB2312_CHARSET:      return "gb2312-*";
-    case CHINESEBIG5_CHARSET: return "big5-*";
-    case OEM_CHARSET:         return "ms-oem";
+    case ANSI_CHARSET:
+      /* Handle startup case of w32-charset-info-alist not
+         being set up yet. */
+      if (NILP(Vw32_charset_info_alist))
+        return "iso8859-1";
+      charset_type = Qw32_charset_ansi;
+      break;
+    case DEFAULT_CHARSET:
+      charset_type = Qw32_charset_default;
+      break;
+    case SYMBOL_CHARSET:
+      charset_type = Qw32_charset_symbol;
+      break;
+    case SHIFTJIS_CHARSET:
+      charset_type = Qw32_charset_shiftjis;
+      break;
+    case HANGEUL_CHARSET:
+      charset_type = Qw32_charset_hangeul;
+      break;
+    case GB2312_CHARSET:
+      charset_type = Qw32_charset_gb2312;
+      break;
+    case CHINESEBIG5_CHARSET:
+      charset_type = Qw32_charset_chinesebig5;
+      break;
+    case OEM_CHARSET:
+      charset_type = Qw32_charset_oem;
+      break;
 
       /* More recent versions of Windows (95 and NT4.0) define more
          character sets.  */
 #ifdef EASTEUROPE_CHARSET
-    case EASTEUROPE_CHARSET: return "iso8859-2";
-    case TURKISH_CHARSET:    return "iso8859-9";
-    case BALTIC_CHARSET:     return "iso8859-4";
-
-      /* W95 with international support but not IE4 often has the
-         KOI8-R codepage but not ISO8859-5.  */
+    case EASTEUROPE_CHARSET:
+      charset_type = Qw32_charset_easteurope;
+      break;
+    case TURKISH_CHARSET:
+      charset_type = Qw32_charset_turkish;
+      break;
+    case BALTIC_CHARSET:
+      charset_type = Qw32_charset_baltic;
+      break;
     case RUSSIAN_CHARSET:
-      if (!IsValidCodePage(28595) && IsValidCodePage(20886))
-        return "koi8-r";
-      else
-        return "iso8859-5";
-    case ARABIC_CHARSET:     return "iso8859-6";
-    case GREEK_CHARSET:      return "iso8859-7";
-    case HEBREW_CHARSET:     return "iso8859-8";
-    case VIETNAMESE_CHARSET: return "viscii1.1-*";
-    case THAI_CHARSET:       return "tis620-*";
-    case MAC_CHARSET:        return "mac-*";
-    case JOHAB_CHARSET:      return "ksc5601.1992-*";
-
+      charset_type = Qw32_charset_russian;
+      break;
+    case ARABIC_CHARSET:
+      charset_type = Qw32_charset_arabic;
+      break;
+    case GREEK_CHARSET:
+      charset_type = Qw32_charset_greek;
+      break;
+    case HEBREW_CHARSET:
+      charset_type = Qw32_charset_hebrew;
+      break;
+    case VIETNAMESE_CHARSET:
+      charset_type = Qw32_charset_vietnamese;
+      break;
+    case THAI_CHARSET:
+      charset_type = Qw32_charset_thai;
+      break;
+    case MAC_CHARSET:
+      charset_type = Qw32_charset_mac;
+      break;
+    case JOHAB_CHARSET:
+      charset_type = Qw32_charset_johab;
+      break;
 #endif
 
 #ifdef UNICODE_CHARSET
-    case UNICODE_CHARSET:  return "iso10646-unicode";
+    case UNICODE_CHARSET:
+      charset_type = Qw32_charset_unicode;
+      break;
 #endif
+    default:
+      /* Encode numerical value of unknown charset.  */
+      sprintf (buf, "*-#%u", fncharset);
+      return buf;
     }
-  /* Encode numerical value of unknown charset.  */
-  sprintf (buf, "*-#%u", fncharset);
-  return buf;
+  
+  {
+    Lisp_Object rest;
+    char * best_match = NULL;
+
+    /* Look through w32-charset-info-alist for the character set.
+       Prefer ISO codepages, and prefer lower numbers in the ISO
+       range. Only return charsets for codepages which are installed.
+
+       Format of each entry is
+         (CHARSET_NAME . (WINDOWS_CHARSET . CODEPAGE)).
+    */
+    for (rest = Vw32_charset_info_alist; CONSP (rest); rest = XCDR (rest))
+      {
+        char * x_charset;
+        Lisp_Object w32_charset;
+        Lisp_Object codepage;
+
+        Lisp_Object this_entry = XCAR (rest);
+
+        /* Skip invalid entries in alist. */
+        if (!CONSP (this_entry) || !STRINGP (XCAR (this_entry))
+            || !CONSP (XCDR (this_entry))
+            || !SYMBOLP (XCAR (XCDR (this_entry))))
+          continue;
+
+        x_charset = XSTRING (XCAR (this_entry))->data;
+        w32_charset = XCAR (XCDR (this_entry));
+        codepage = XCDR (XCDR (this_entry));
+
+        /* Look for Same charset and a valid codepage (or non-int
+           which means ignore).  */
+        if (w32_charset == charset_type
+            && (!INTEGERP (codepage) || codepage == CP_DEFAULT
+                || IsValidCodePage (XINT (codepage))))
+          {
+            /* If we don't have a match already, then this is the
+               best.  */
+            if (!best_match)
+              best_match = x_charset;
+            /* If this is an ISO codepage, and the best so far isn't,
+               then this is better.  */
+            else if (stricmp (best_match, "iso") != 0
+                     && stricmp (x_charset, "iso") == 0)
+              best_match = x_charset;
+            /* If both are ISO8859 codepages, choose the one with the
+               lowest number in the encoding field.  */
+            else if (stricmp (best_match, "iso8859-") == 0
+                     && stricmp (x_charset, "iso8859-") == 0)
+              {
+                int best_enc = atoi (best_match + 8);
+                int this_enc = atoi (x_charset + 8);
+                if (this_enc > 0 && this_enc < best_enc)
+                  best_match = x_charset;
+              }                
+          }
+      }
+
+    /* If no match, encode the numeric value. */
+    if (!best_match)
+      {
+        sprintf (buf, "*-#%u", fncharset);
+        return buf;
+      }
+
+    strncpy(buf, best_match, 15);
+    buf[15] = '\0';
+    return buf;
+  }
 }
 
 
@@ -5792,14 +5922,20 @@ w32_to_x_charset (fncharset)
 int 
 w32_codepage_for_font (char *fontname)
 {
-  Lisp_Object codepage;
-  char charset_str[20], *charset, *end;
+  Lisp_Object codepage, entry;
+  char *charset_str, *charset, *end;
+
+  if (NILP (Vw32_charset_info_alist))
+    return CP_DEFAULT;
 
   /* Extract charset part of font string.  */
-  if (sscanf (fontname,
-              "-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%19s",
-              charset_str) < 1)
-    return CP_DEFAULT;
+  charset = xlfd_charset_of_font (fontname);
+
+  if (!charset)
+    return CP_INVALID;
+
+  charset_str = (char *) alloca (strlen (charset));
+  strcpy (charset_str, charset);
 
   /* Remove leading "*-".  */
   if (strncmp ("*-", charset_str, 2) == 0)
@@ -5815,20 +5951,29 @@ w32_codepage_for_font (char *fontname)
         *end = '\0';
       }
 
-  codepage = Fcdr (Fcdr (Fassoc (build_string(charset),
-                                 Vw32_charset_info_alist)));
-  if (INTEGERP (codepage))
+  entry = Fassoc (build_string(charset), Vw32_charset_info_alist);
+  if (NILP (entry))
+    return CP_INVALID;
+
+  codepage = Fcdr (Fcdr (entry));
+
+  if (NILP (codepage))
+    return CP_8BIT;
+  else if (XFASTINT (codepage) == XFASTINT (Qt))
+    return CP_UNICODE;
+  else if (INTEGERP (codepage))
     return XINT (codepage);
   else
-    return CP_DEFAULT;
+    return CP_INVALID;
 }
 
 
 BOOL 
-w32_to_x_font (lplogfont, lpxstr, len)
+w32_to_x_font (lplogfont, lpxstr, len, specific_charset)
      LOGFONT * lplogfont;
      char * lpxstr;
      int len;
+     char * specific_charset;
 {
   char* fonttype;
   char *fontname;
@@ -5902,8 +6047,9 @@ w32_to_x_font (lplogfont, lpxstr, len)
 	     ((lplogfont->lfPitchAndFamily & 0x3) == VARIABLE_PITCH)
              ? 'p' : 'c',                            /* spacing */
 	     width_pixels,                           /* avg width */
-	     w32_to_x_charset (lplogfont->lfCharSet) /* charset registry
-                                                        and encoding*/
+	     specific_charset ? specific_charset
+             : w32_to_x_charset (lplogfont->lfCharSet) 
+             /* charset registry and encoding */
 	     );
 
   lpxstr[len - 1] = 0;		/* just to be sure */
@@ -6121,7 +6267,7 @@ int xlfd_strip_height (char *fontname)
                   *write_to = '-';
                   write_to++;
                 }
-              /* If the pixel height field is at the end (partial xfld),
+              /* If the pixel height field is at the end (partial xlfd),
                  return now.  */
               else
                 return pixel_height;
@@ -6288,6 +6434,7 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
   {
     char buf[100];
     Lisp_Object width = Qnil;
+    char *charset = NULL;
 
     /* Truetype fonts do not report their true metrics until loaded */
     if (FontType != RASTER_FONTTYPE)
@@ -6317,7 +6464,18 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
           lplf->elfLogFont.lfHeight = -lplf->elfLogFont.lfHeight;
       }
 
-    if (!w32_to_x_font (&(lplf->elfLogFont), buf, 100))
+    if (!NILP (*(lpef->pattern)))
+      {
+        charset = xlfd_charset_of_font (XSTRING(*(lpef->pattern))->data);
+
+        /* Ensure that charset is valid for this font. */
+        if (charset
+            && (x_to_w32_charset (charset) != lplf->elfLogFont.lfCharSet))
+          charset = NULL;
+      }
+
+    /* TODO: List all relevant charsets if charset not specified. */
+    if (!w32_to_x_font (&(lplf->elfLogFont), buf, 100, charset))
       return (0);
 
     if (NILP (*(lpef->pattern))
@@ -6439,8 +6597,19 @@ w32_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames )
   for (; CONSP (patterns); patterns = XCDR (patterns))
     {
       enumfont_t ef;
+      int codepage;
 
       tpat = XCAR (patterns);
+
+      if (!STRINGP (tpat))
+        continue;
+
+      /* Avoid expensive EnumFontFamilies functions if we are not
+         going to be able to output one of these anyway. */
+      codepage = w32_codepage_for_font (XSTRING (tpat)->data);
+      if (codepage != CP_8BIT && codepage != CP_UNICODE
+          && codepage != CP_DEFAULT && !IsValidCodePage(codepage))
+        continue;
 
       /* See if we cached the result for this particular query.
          The cache is an alist of the form:
@@ -6464,8 +6633,7 @@ w32_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames )
       /* Use EnumFontFamiliesEx where it is available, as it knows
          about character sets.  Fall back to EnumFontFamilies for
          older versions of NT that don't support the 'Ex function.  */
-      x_to_w32_font (STRINGP (tpat) ? XSTRING (tpat)->data :
-                     NULL, &ef.logfont);
+      x_to_w32_font (XSTRING (tpat)->data, &ef.logfont);
       {
         LOGFONT font_match_pattern;
         HMODULE gdi32 = GetModuleHandle ("gdi32.dll");
@@ -6726,7 +6894,7 @@ w32_find_ccl_program (fontp)
 DEFUN ("w32-find-bdf-fonts", Fw32_find_bdf_fonts, Sw32_find_bdf_fonts,
        1, 1, 0,
        "Return a list of BDF fonts in DIR, suitable for appending to\n\
-w32-bdf-filename-alist.  Fonts which do not contain an xfld description\n\
+w32-bdf-filename-alist.  Fonts which do not contain an xlfd description\n\
 will not be included in the list. DIR may be a list of directories.")
      (directory)
      Lisp_Object directory;
@@ -7731,7 +7899,7 @@ x_clear_image (f, img)
      struct frame *f;
      struct image *img;
 {
-#if 0 /* NTEMACS_TODO: W32 image support  */
+#if 0 /* TODO: W32 image support  */
 
   if (img->pixmap)
     {
@@ -7779,7 +7947,7 @@ x_alloc_image_color (f, img, color_name, dflt)
      Lisp_Object color_name;
      unsigned long dflt;
 {
-#if 0 /* NTEMACS_TODO: allocing colors.  */
+#if 0 /* TODO: allocing colors.  */
   XColor color;
   unsigned long result;
 
@@ -8092,7 +8260,7 @@ forall_images_in_image_cache (f, fn)
 			    W32 support code
  ***********************************************************************/
 
-#if 0 /* NTEMACS_TODO: W32 specific image code.  */
+#if 0 /* TODO: W32 specific image code.  */
 
 static int x_create_x_image_and_pixmap P_ ((struct frame *, int, int, int,
                                             XImage **, Pixmap *));
@@ -8113,7 +8281,7 @@ x_create_x_image_and_pixmap (f, width, height, depth, ximg, pixmap)
      XImage **ximg;
      Pixmap *pixmap;
 {
-#if 0 /* NTEMACS_TODO: Image support for W32 */
+#if 0 /* TODO: Image support for W32 */
   Display *display = FRAME_W32_DISPLAY (f);
   Screen *screen = FRAME_X_SCREEN (f);
   Window window = FRAME_W32_WINDOW (f);
@@ -8681,7 +8849,7 @@ xbm_load_image_from_file (f, img, specified_file)
       if (!NILP (value))
 	background = x_alloc_image_color (f, img, value, background);
 
-#if 0 /* NTEMACS_TODO : Port image display to W32 */
+#if 0 /* TODO : Port image display to W32 */
       BLOCK_INPUT;
       img->pixmap
 	= XCreatePixmapFromBitmapData (FRAME_W32_DISPLAY (f),
@@ -8784,7 +8952,7 @@ xbm_load (f, img)
       else
 	bits = XBOOL_VECTOR (data)->data;
 
-#if 0 /* NTEMACS_TODO : W32 XPM code */
+#if 0 /* TODO : W32 XPM code */
       /* Create the pixmap.  */
       depth = DefaultDepthOfScreen (FRAME_X_SCREEN (f));
       img->pixmap
@@ -8794,7 +8962,7 @@ xbm_load (f, img)
 				       img->width, img->height,
 				       foreground, background,
 				       depth);
-#endif /* NTEMACS_TODO */
+#endif /* TODO */
 
       if (img->pixmap)
 	success_p = 1;
@@ -9057,7 +9225,7 @@ xpm_load (f, img)
 #endif /* HAVE_XPM != 0 */
 
 
-#if 0 /* NTEMACS_TODO : Color tables on W32.  */
+#if 0 /* TODO : Color tables on W32.  */
 /***********************************************************************
 			     Color table
  ***********************************************************************/
@@ -9249,14 +9417,14 @@ colors_in_color_table (n)
   return colors;
 }
 
-#endif /* NTEMACS_TODO */
+#endif /* TODO */
 
 
 /***********************************************************************
 			      Algorithms
  ***********************************************************************/
 
-#if 0 /* NTEMACS_TODO : W32 versions of low level algorithms */
+#if 0 /* TODO : W32 versions of low level algorithms */
 static void x_laplace_write_row P_ ((struct frame *, long *,
 				     int, XImage *, int));
 static void x_laplace_read_row P_ ((struct frame *, Colormap,
@@ -9313,7 +9481,7 @@ x_laplace (f, img)
      struct frame *f;
      struct image *img;
 {
-#if 0 /* NTEMACS_TODO : W32 version */
+#if 0 /* TODO : W32 version */
   Colormap cmap = DefaultColormapOfScreen (FRAME_X_SCREEN (f));
   XImage *ximg, *oimg;
   XColor *in[3];
@@ -9391,7 +9559,7 @@ x_laplace (f, img)
   free_color_table ();
 
   UNBLOCK_INPUT;
-#endif /* NTEMACS_TODO */
+#endif /* TODO */
 }
 
 
@@ -9408,7 +9576,7 @@ x_build_heuristic_mask (f, img, how)
      struct image *img;
      Lisp_Object how;
 {
-#if 0 /* NTEMACS_TODO : W32 version */
+#if 0 /* TODO : W32 version */
   Display *dpy = FRAME_W32_DISPLAY (f);
   XImage *ximg, *mask_img;
   int x, y, rc, look_at_corners_p;
@@ -9500,7 +9668,7 @@ x_build_heuristic_mask (f, img, how)
   XDestroyImage (ximg);
   
   UNBLOCK_INPUT;
-#endif /* NTEMACS_TODO */
+#endif /* TODO */
 
   return 1;
 }
@@ -11626,7 +11794,7 @@ selected frame.  Value is VALUE.")
   (prop, value, frame)
      Lisp_Object frame, prop, value;
 {
-#if 0 /* NTEMACS_TODO : port window properties to W32 */
+#if 0 /* TODO : port window properties to W32 */
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
 
@@ -11643,7 +11811,7 @@ selected frame.  Value is VALUE.")
   XFlush (FRAME_W32_DISPLAY (f));
   UNBLOCK_INPUT;
 
-#endif /* NTEMACS_TODO */
+#endif /* TODO */
 
   return value;
 }
@@ -11656,7 +11824,7 @@ FRAME nil or omitted means use the selected frame.  Value is PROP.")
   (prop, frame)
      Lisp_Object prop, frame;
 {
-#if 0 /* NTEMACS_TODO : port window properties to W32 */
+#if 0 /* TODO : port window properties to W32 */
 
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
@@ -11669,7 +11837,7 @@ FRAME nil or omitted means use the selected frame.  Value is PROP.")
   /* Make sure the property is removed when we return.  */
   XFlush (FRAME_W32_DISPLAY (f));
   UNBLOCK_INPUT;
-#endif  /* NTEMACS_TODO */
+#endif  /* TODO */
 
   return prop;
 }
@@ -11684,7 +11852,7 @@ value.")
   (prop, frame)
      Lisp_Object prop, frame;
 {
-#if 0 /* NTEMACS_TODO : port window properties to W32 */
+#if 0 /* TODO : port window properties to W32 */
 
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
@@ -11725,7 +11893,7 @@ value.")
 
   return prop_value;
 
-#endif /* NTEMACS_TODO */
+#endif /* TODO */
   return Qnil;
 }
 
@@ -11764,7 +11932,7 @@ static void hide_busy_cursor P_ ((void));
 void
 start_busy_cursor ()
 {
-#if 0 /* NTEMACS_TODO: cursor shape changes.  */
+#if 0 /* TODO: cursor shape changes.  */
   EMACS_TIME delay;
   int secs, usecs = 0;
   
@@ -11820,7 +11988,7 @@ static void
 show_busy_cursor (timer)
      struct atimer *timer;
 {
-#if 0  /* NTEMACS_TODO: cursor shape changes.  */
+#if 0  /* TODO: cursor shape changes.  */
   /* The timer implementation will cancel this timer automatically
      after this function has run.  Set busy_cursor_atimer to null
      so that we know the timer doesn't have to be canceled.  */
@@ -11871,7 +12039,7 @@ show_busy_cursor (timer)
 static void
 hide_busy_cursor ()
 {
-#if 0 /* NTEMACS_TODO: cursor shape changes.  */
+#if 0 /* TODO: cursor shape changes.  */
   if (busy_cursor_shown_p)
     {
       Lisp_Object rest, frame;
@@ -11926,7 +12094,7 @@ x_create_tip_frame (dpyinfo, parms)
      struct w32_display_info *dpyinfo;
      Lisp_Object parms;
 {
-#if 0 /* NTEMACS_TODO : w32 version */
+#if 0 /* TODO : w32 version */
   struct frame *f;
   Lisp_Object frame, tem;
   Lisp_Object name;
@@ -12152,11 +12320,11 @@ x_create_tip_frame (dpyinfo, parms)
   FRAME_W32_DISPLAY_INFO (f)->reference_count++;
 
   return unbind_to (count, frame);
-#endif /* NTEMACS_TODO */
+#endif /* TODO */
   return Qnil;
 }
 
-
+#ifdef TODO /* Tooltip support not complete.  */
 DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   "Show STRING in a \"tooltip\" window on frame FRAME.\n\
 A tooltip window is a small X window displaying a string.\n\
@@ -12296,7 +12464,7 @@ DY added (default is -5).")
   
   /* Move the tooltip window where the mouse pointer is.  Resize and
      show it.  */
-#if 0 /* NTEMACS_TODO : W32 specifics */
+#if 0 /* TODO : W32 specifics */
   BLOCK_INPUT;
   XQueryPointer (FRAME_X_DISPLAY (f), FRAME_X_DISPLAY_INFO (f)->root_window,
 		 &root, &child, &root_x, &root_y, &win_x, &win_y, &pmask);
@@ -12315,7 +12483,7 @@ DY added (default is -5).")
 		     root_x, root_y - height, width, height);
   XMapRaised (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
   UNBLOCK_INPUT;
-#endif /* NTEMACS_TODO */
+#endif /* TODO */
 
   /* Draw into the window.  */
   w->must_be_updated_p = 1;
@@ -12362,6 +12530,7 @@ Value is t is tooltip was open, nil otherwise.")
 
   return unbind_to (count, deleted_p ? Qt : Qnil);
 }
+#endif
 
 
 
@@ -12551,7 +12720,7 @@ DEFUN ("w32-select-font", Fw32_select_font, Sw32_select_font, 0, 1, 0,
   SelectObject (hdc, oldobj);
   ReleaseDC (FRAME_W32_WINDOW (f), hdc);
 
-  if (!ChooseFont (&cf) || !w32_to_x_font (&lf, buf, 100))
+  if (!ChooseFont (&cf) || !w32_to_x_font (&lf, buf, 100, NULL))
       return Qnil;
 
   return build_string (buf);
@@ -13178,7 +13347,7 @@ and codepages. Each entry should be of the form:\n\
 where CHARSET_NAME is a string used in font names to identify the charset,\n\
 WINDOWS_CHARSET is a symbol that can be one of:\n\
 w32-charset-ansi, w32-charset-default, w32-charset-symbol,\n\
-w32-charset-shiftjis, w32-charset-hangul, w32-charset-gb2312,\n\
+w32-charset-shiftjis, w32-charset-hangeul, w32-charset-gb2312,\n\
 w32-charset-chinesebig5, "
 #ifdef JOHAB_CHARSET
 "w32-charset-johab, w32-charset-hebrew,\n\
@@ -13202,8 +13371,8 @@ versions of Windows) characters.");
   Qw32_charset_symbol = intern ("w32-charset-symbol");
   staticpro (&Qw32_charset_shiftjis);
   Qw32_charset_shiftjis = intern ("w32-charset-shiftjis");
-  staticpro (&Qw32_charset_hangul);
-  Qw32_charset_hangul = intern ("w32-charset-hangul");
+  staticpro (&Qw32_charset_hangeul);
+  Qw32_charset_hangeul = intern ("w32-charset-hangeul");
   staticpro (&Qw32_charset_chinesebig5);
   Qw32_charset_chinesebig5 = intern ("w32-charset-chinesebig5");
   staticpro (&Qw32_charset_gb2312);
@@ -13214,7 +13383,7 @@ versions of Windows) characters.");
 #ifdef JOHAB_CHARSET
   {
     static int w32_extra_charsets_defined = 1;
-    DEFVAR_BOOL ("w32-extra-charsets-defined", w32_extra_charsets_defined, "");
+    DEFVAR_BOOL ("w32-extra-charsets-defined", &w32_extra_charsets_defined, "");
 
     staticpro (&Qw32_charset_johab);
     Qw32_charset_johab = intern ("w32-charset-johab");
@@ -13232,6 +13401,8 @@ versions of Windows) characters.");
     Qw32_charset_greek = intern ("w32-charset-greek");
     staticpro (&Qw32_charset_hebrew);
     Qw32_charset_hebrew = intern ("w32-charset-hebrew");
+    staticpro (&Qw32_charset_vietnamese);
+    Qw32_charset_vietnamese = intern ("w32-charset-vietnamese");
     staticpro (&Qw32_charset_thai);
     Qw32_charset_thai = intern ("w32-charset-thai");
     staticpro (&Qw32_charset_mac);
@@ -13243,14 +13414,14 @@ versions of Windows) characters.");
   {
     static int w32_unicode_charset_defined = 1;
     DEFVAR_BOOL ("w32-unicode-charset-defined",
-                 w32_unicode_charset_defined, "");
+                 &w32_unicode_charset_defined, "");
 
     staticpro (&Qw32_charset_unicode);
     Qw32_charset_unicode = intern ("w32-charset-unicode");
 #endif
 
   defsubr (&Sx_get_resource);
-#if 0 /* NTEMACS_TODO: Port to W32 */
+#if 0 /* TODO: Port to W32 */
   defsubr (&Sx_change_window_property);
   defsubr (&Sx_delete_window_property);
   defsubr (&Sx_window_property);
@@ -13309,7 +13480,7 @@ versions of Windows) characters.");
   set_frame_fontset_func = x_set_font;
   check_window_system_func = check_w32;
 
-#if 0 /* NTEMACS_TODO Image support for W32 */
+#if 0 /* TODO Image support for W32 */
   /* Images.  */
   Qxbm = intern ("xbm");
   staticpro (&Qxbm);
@@ -13373,13 +13544,14 @@ versions of Windows) characters.");
   defsubr (&Simagep);
   defsubr (&Slookup_image);
 #endif
-#endif /* NTEMACS_TODO */
+#endif /* TODO */
 
   busy_cursor_atimer = NULL;
   busy_cursor_shown_p = 0;
-
+#ifdef TODO /* Tooltip support not complete.  */
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
+#endif
   staticpro (&tip_timer);
   tip_timer = Qnil;
 
@@ -13393,7 +13565,7 @@ init_xfns ()
   image_types = NULL;
   Vimage_types = Qnil;
 
-#if 0 /* NTEMACS_TODO : Image support for W32 */
+#if 0 /* TODO : Image support for W32 */
   define_image_type (&xbm_type);
   define_image_type (&gs_type);
   define_image_type (&pbm_type);
@@ -13417,7 +13589,7 @@ init_xfns ()
 #if HAVE_PNG
   define_image_type (&png_type);
 #endif
-#endif /* NTEMACS_TODO */
+#endif /* TODO */
 }
 
 #undef abort
