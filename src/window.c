@@ -882,9 +882,6 @@ unshow_buffer (w)
   if (b != XMARKER (w->pointm)->buffer)
     abort ();
 
-  if (w == XWINDOW (b->last_selected_window))
-    b->last_selected_window = Qnil;
-
 #if 0
   if (w == XWINDOW (selected_window)
       || ! EQ (buf, XWINDOW (selected_window)->buffer))
@@ -903,7 +900,10 @@ unshow_buffer (w)
   /* Point in the selected window's buffer
      is actually stored in that buffer, and the window's pointm isn't used.
      So don't clobber point in that buffer.  */
-  if (! EQ (buf, XWINDOW (selected_window)->buffer))
+  if (! EQ (buf, XWINDOW (selected_window)->buffer)
+      /* This line helps to fix Horsley's testbug.el bug.  */
+      && !(w != XWINDOW (b->last_selected_window)
+	   && EQ (buf, XWINDOW (b->last_selected_window)->buffer)))
     temp_set_point_both (b,
 			 clip_to_bounds (BUF_BEGV (b),
 					 XMARKER (w->pointm)->charpos,
@@ -911,6 +911,9 @@ unshow_buffer (w)
 			 clip_to_bounds (BUF_BEGV_BYTE (b),
 					 marker_byte_position (w->pointm),
 					 BUF_ZV_BYTE (b)));
+  
+  if (w == XWINDOW (b->last_selected_window))
+    b->last_selected_window = Qnil;
 }
 
 /* Put replacement into the window structure in place of old. */
@@ -2476,13 +2479,16 @@ selects the buffer of the selected window before each command.")
   return select_window_1 (window, 1);
 }
 
+/* Note that selected_window can be nil
+   when this is called from Fset_window_configuration.  */
+ 
 static Lisp_Object
 select_window_1 (window, recordflag)
      register Lisp_Object window;
      int recordflag;
 {
   register struct window *w;
-  register struct window *ow = XWINDOW (selected_window);
+  register struct window *ow;
   struct frame *sf;
 
   CHECK_LIVE_WINDOW (window, 0);
@@ -2496,10 +2502,14 @@ select_window_1 (window, recordflag)
   if (EQ (window, selected_window))
     return window;
 
-  if (! NILP (ow->buffer))
-    set_marker_both (ow->pointm, ow->buffer,
-		     BUF_PT (XBUFFER (ow->buffer)),
-		     BUF_PT_BYTE (XBUFFER (ow->buffer)));
+  if (!NILP (selected_window))
+    {
+      ow = XWINDOW (selected_window);
+      if (! NILP (ow->buffer))
+	set_marker_both (ow->pointm, ow->buffer,
+			 BUF_PT (XBUFFER (ow->buffer)),
+			 BUF_PT_BYTE (XBUFFER (ow->buffer)));
+    }
 
   selected_window = window;
   sf = SELECTED_FRAME ();
@@ -4383,6 +4393,10 @@ the return value is nil.  Otherwise the value is t.")
 #endif
 #endif
 
+      /* "Swap out" point from the selected window
+	 into its buffer.  We do this now, before
+	 restoring the window contents, and prevent it from
+	 being done later on when we select a new window.  */
       if (! NILP (XWINDOW (selected_window)->buffer))
 	{
 	  w = XWINDOW (selected_window);
@@ -4518,6 +4532,11 @@ the return value is nil.  Otherwise the value is t.")
 	}
 
       FRAME_ROOT_WINDOW (f) = data->root_window;
+      /* Prevent "swapping out point" in the old selected window
+	 using the buffer that has been restored into it.
+	 That swapping out has already been done,
+	 near the beginning of this function.  */
+      selected_window = Qnil;
       Fselect_window (data->current_window);
       XBUFFER (XWINDOW (selected_window)->buffer)->last_selected_window
 	= selected_window;
