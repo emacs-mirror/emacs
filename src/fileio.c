@@ -4922,7 +4922,7 @@ DEFUN ("read-file-name", Fread_file_name, Sread_file_name, 1, 5, 0,
   val = Fcompleting_read (prompt, intern ("read-file-name-internal"),
 			  dir, mustmatch,
 			  insert_default_directory ? insdef : Qnil,
-			  Qfile_name_history);
+			  Qfile_name_history, Qnil);
 
 #ifdef VMS
   unbind_to (count, Qnil);
