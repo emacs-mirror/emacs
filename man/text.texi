@@ -50,6 +50,10 @@ Then the formatting appears on the screen in Emacs while you edit.
 @xref{Formatted Text}.
 @end iftex
 
+@cindex skeletons
+@cindex templates
+@cindex autotyping
+@cindex automatic typing
   The ``automatic typing'' features may be useful when writing text.
 @xref{Top,, Autotyping, autotype, Features for Automatic Typing}.
 
