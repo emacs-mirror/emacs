@@ -1,6 +1,6 @@
 /* impl.c.amsss: POOL CLASS AMS STRESS TEST
  *
- * $HopeName: MMsrc!amsss.c(trunk.8) $
+ * $HopeName: MMsrc!amsss.c(trunk.9) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .design: Adapted from amcss.c, but not counting collections, just
@@ -17,10 +17,6 @@
 #include "mpsw3.h"
 #endif
 #include "mps.h"
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
-#include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <math.h>
@@ -71,8 +67,8 @@ static void *test(void *arg, size_t s)
   mps_arena_t arena;
   mps_fmt_t format;
   mps_root_t exactRoot, ambigRoot;
-  size_t lastStep = 0;
-  size_t objs, i, r;
+  size_t lastStep = 0, i, r;
+  unsigned long objs;
   mps_ap_t busy_ap;
   mps_addr_t busy_init;
 
@@ -168,6 +164,7 @@ int main(void)
   mps_thread_dereg(thread);
   mps_arena_destroy(arena);
 
+  fflush(stdout); /* synchronize */
   fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
   return 0;
 }
