@@ -102,6 +102,11 @@
   :type 'boolean
   :group 'rmail-retrieve)
 
+(defvar rmail-pop-password-error "invalid usercode or password"
+  "Regular expression matching incorrect-password POP server error messages.
+If you get an incorrect-password error that this expression does not match,
+please report it with \\[report-emacs-bug].")
+
 (defcustom rmail-preserve-inbox nil
   "*Non-nil if incoming mail should be left in the user's inbox,
 rather than deleted, after it is retrieved."
@@ -1183,7 +1188,7 @@ It returns t if it got any new messages."
   (or (memq (file-locked-p buffer-file-name) '(nil t))
       (error "RMAIL file %s is locked"
 	     (file-name-nondirectory buffer-file-name)))
-  (let (file tofile delete-files movemail popmail)
+  (let (file tofile delete-files movemail popmail got-password)
     (while files
       (setq file (file-truename
 		  (expand-file-name (substitute-in-file-name (car files))))
@@ -1222,7 +1227,8 @@ It returns t if it got any new messages."
 		 (setq rmail-pop-password
 		       (rmail-read-passwd
 			(format "Password for %s: "
-				(substring file (+ popmail 3))))))
+				(substring file (+ popmail 3))))
+		       got-password t))
 	     (if (eq system-type 'windows-nt)
 		 ;; cannot have "po:" in file name
 		 (setq tofile
@@ -1297,6 +1303,13 @@ It returns t if it got any new messages."
 		       (message "movemail: %s"
 				(buffer-substring (point-min)
 						  (point-max)))
+
+		       (if (or got-password
+			       ;; If the error was  for an incorrect password,
+			       ;; arrange to try again to read the password.
+			       (re-search-forward rmail-pop-password-error
+						  nil t))
+			   (setq rmail-pop-password nil))
 		       (sit-for 3)
 		       nil))
 		 (if errors (kill-buffer errors))))))
