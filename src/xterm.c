@@ -119,7 +119,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define min(a,b) ((a)<(b) ? (a) : (b))
 #define max(a,b) ((a)>(b) ? (a) : (b))
-
+
 /* Nonzero means we must reprint all windows
    because 1) we received an ExposeWindow event
    or 2) we received too many ExposeRegion events to record.
@@ -137,7 +137,7 @@ static int expose_all_icons;
 
 static struct event_queue x_expose_queue;
 
-/* ButtonPressed and ButtonReleased events, when received,
+/* ButtonPress and ButtonReleased events, when received,
    are copied into this queue for later processing.  */
 
 struct event_queue x_mouse_queue;
@@ -214,6 +214,50 @@ static int highlight;
 
 static int curs_x;
 static int curs_y;
+
+/* Mouse movement.
+
+   In order to avoid asking for motion events and then throwing most
+   of them away or busy-polling the server for mouse positions, we ask
+   the server for pointer motion hints.  This means that we get only
+   one event per group of mouse movements.  "Groups" are delimited by
+   other kinds of events (focus changes and button clicks, for
+   example), or by XQueryPointer calls; when one of these happens, we
+   get another MotionNotify event the next time the mouse moves.  This
+   is at least as efficient as getting motion events when mouse
+   tracking is on, and I suspect only negligibly worse when tracking
+   is off.
+
+   The silly O'Reilly & Associates Nutshell guides barely document
+   pointer motion hints at all (I think you have to infer how they
+   work from an example), and the description of XQueryPointer doesn't
+   mention that calling it causes you to get another motion hint from
+   the server, which is very important.  */
+
+/* Where the mouse was last time we reported a mouse event.  */
+static FRAME_PTR last_mouse_frame;
+static XRectangle last_mouse_glyph;
+
+/* The scroll bar in which the last X motion event occurred.
+
+   If the last X motion event occurred in a scroll bar, we set this
+   so XTmouse_position can know whether to report a scroll bar motion or
+   an ordinary motion.
+
+   If the last X motion event didn't occur in a scroll bar, we set this
+   to Qnil, to tell XTmouse_position to return an ordinary motion event.  */
+static Lisp_Object last_mouse_scroll_bar;
+
+/* Record which buttons are currently pressed. */
+unsigned int x_mouse_grabbed;
+
+/* This is a hack.  We would really prefer that XTmouse_position would
+   return the time associated with the position it returns, but there
+   doesn't seem to be any way to wrest the timestamp from the server
+   along with the position query.  So, we just keep track of the time
+   of the last movement we received, and return that in hopes that
+   it's somewhat accurate.  */
+static Time last_mouse_movement_time;
 
 #ifdef HAVE_X11
 /* `t' if a mouse button is depressed. */
@@ -1593,14 +1637,24 @@ x_is_vendor_fkey (sym)
 
 /* Given a pixel position (PIX_X, PIX_Y) on the frame F, return
    glyph co-ordinates in (*X, *Y).  Set *BOUNDS to the rectangle
-   that the glyph at X, Y occupies, if BOUNDS != 0.  */
+   that the glyph at X, Y occupies, if BOUNDS != 0.
+   If NOCLIP is nonzero, do not force the value into range.  */
+
 static void
-pixel_to_glyph_coords (f, pix_x, pix_y, x, y, bounds)
+pixel_to_glyph_coords (f, pix_x, pix_y, x, y, bounds, noclip)
      FRAME_PTR f;
-     register unsigned int pix_x, pix_y;
+     register int pix_x, pix_y;
      register int *x, *y;
      XRectangle *bounds;
+     int noclip;
 {
+  /* Arrange for the division in PIXEL_TO_CHAR_COL etc. to round down
+     even for negative values.  */
+  if (pix_x < 0)
+    pix_x -= FONT_WIDTH ((f)->display.x->font) - 1;
+  if (pix_y < 0)
+    pix_y -= FONT_HEIGHT ((f)->display.x->font) - 1;
+
   pix_x = PIXEL_TO_CHAR_COL (f, pix_x);
   pix_y = PIXEL_TO_CHAR_ROW (f, pix_y);
 
@@ -1612,18 +1666,22 @@ pixel_to_glyph_coords (f, pix_x, pix_y, x, y, bounds)
       bounds->y = CHAR_TO_PIXEL_ROW (f, pix_y);
     }
 
-  if (pix_x < 0) pix_x = 0;
-  else if (pix_x > f->width) pix_x = f->width;
+  if (!noclip)
+    {
+      if (pix_x < 0)
+	pix_x = 0;
+      else if (pix_x > f->width)
+	pix_x = f->width;
 
-  if (pix_y < 0) pix_y = 0;
-  else if (pix_y > f->height) pix_y = f->height;
+      if (pix_y < 0)
+	pix_y = 0;
+      else if (pix_y > f->height)
+	pix_y = f->height;
+    }
 
   *x = pix_x;
   *y = pix_y;
 }
-
-/* Any buttons grabbed. */
-unsigned int x_mouse_grabbed;
 
 /* Prepare a mouse-event in *RESULT for placement in the input queue.
 
@@ -1639,7 +1697,7 @@ construct_mouse_click (result, event, f)
   /* Make the event type no_event; we'll change that when we decide
      otherwise.  */
   result->kind = mouse_click;
-  XSET (result->code, Lisp_Int, event->button - Button1);
+  result->code = event->button - Button1;
   result->timestamp = event->time;
   result->modifiers = (x_x_to_emacs_modifiers (event->state)
 		       | (event->type == ButtonRelease
@@ -1652,6 +1710,7 @@ construct_mouse_click (result, event, f)
       if (! x_mouse_grabbed)
 	Vmouse_depressed = Qt;
       x_mouse_grabbed |= (1 << event->button);
+      last_mouse_frame = f;
     }
   else if (event->type == ButtonRelease)
     {
@@ -1663,55 +1722,13 @@ construct_mouse_click (result, event, f)
   {
     int row, column;
 
-    pixel_to_glyph_coords (f, event->x, event->y, &column, &row, NULL);
+    pixel_to_glyph_coords (f, event->x, event->y, &column, &row, NULL, 0);
     XFASTINT (result->x) = column;
     XFASTINT (result->y) = row;
     XSET (result->frame_or_window, Lisp_Frame, f);
   }
 }
-
-
-/* Mouse movement.  Rah.
-
-   In order to avoid asking for motion events and then throwing most
-   of them away or busy-polling the server for mouse positions, we ask
-   the server for pointer motion hints.  This means that we get only
-   one event per group of mouse movements.  "Groups" are delimited by
-   other kinds of events (focus changes and button clicks, for
-   example), or by XQueryPointer calls; when one of these happens, we
-   get another MotionNotify event the next time the mouse moves.  This
-   is at least as efficient as getting motion events when mouse
-   tracking is on, and I suspect only negligibly worse when tracking
-   is off.
-
-   The silly O'Reilly & Associates Nutshell guides barely document
-   pointer motion hints at all (I think you have to infer how they
-   work from an example), and the description of XQueryPointer doesn't
-   mention that calling it causes you to get another motion hint from
-   the server, which is very important.  */
-
-/* Where the mouse was last time we reported a mouse event.  */
-static FRAME_PTR last_mouse_frame;
-static XRectangle last_mouse_glyph;
-
-/* The scroll bar in which the last X motion event occurred.
-
-   If the last X motion event occurred in a scroll bar, we set this
-   so XTmouse_position can know whether to report a scroll bar motion or
-   an ordinary motion.
-
-   If the last X motion event didn't occur in a scroll bar, we set this
-   to Qnil, to tell XTmouse_position to return an ordinary motion event.  */
-static Lisp_Object last_mouse_scroll_bar;
-
-/* This is a hack.  We would really prefer that XTmouse_position would
-   return the time associated with the position it returns, but there
-   doesn't seem to be any way to wrest the timestamp from the server
-   along with the position query.  So, we just keep track of the time
-   of the last movement we received, and return that in hopes that
-   it's somewhat accurate.  */
-static Time last_mouse_movement_time;
-
+
 /* Function to report a mouse movement to the mainstream Emacs code.
    The input handler calls this.
 
@@ -1828,40 +1845,60 @@ XTmouse_position (f, bar_window, part, x, y, time)
 	int parent_x, parent_y;
 
 	win = root;
-	for (;;)
+
+	if (x_mouse_grabbed)
 	  {
+	    /* If mouse was grabbed on a frame, give coords for that frame
+	       even if the mouse is now outside it.  */
 	    XTranslateCoordinates (x_current_display,
-			       
+
 				   /* From-window, to-window.  */
-				   root, win,
+				   root, FRAME_X_WINDOW (last_mouse_frame),
 
 				   /* From-position, to-position.  */
 				   root_x, root_y, &win_x, &win_y,
 
 				   /* Child of win.  */
 				   &child);
-
-	    if (child == None)
-	      break;
-
-	    win = child;
-	    parent_x = win_x;
-	    parent_y = win_y;
+	    f1 = last_mouse_frame;
 	  }
+	else
+	  {
+	    while (1)
+	      {
+		XTranslateCoordinates (x_current_display,
 
-	/* Now we know that:
-	   win is the innermost window containing the pointer
-	   (XTC says it has no child containing the pointer),
-	   win_x and win_y are the pointer's position in it
-	   (XTC did this the last time through), and
-	   parent_x and parent_y are the pointer's position in win's parent.
-	   (They are what win_x and win_y were when win was child.
-	   If win is the root window, it has no parent, and
-	   parent_{x,y} are invalid, but that's okay, because we'll
-	   never use them in that case.)  */
+				       /* From-window, to-window.  */
+				       root, win,
 
-	/* Is win one of our frames?  */
-	f1 = x_window_to_frame (win);
+				       /* From-position, to-position.  */
+				       root_x, root_y, &win_x, &win_y,
+
+				       /* Child of win.  */
+				       &child);
+
+		if (child == None)
+		  break;
+
+		win = child;
+		parent_x = win_x;
+		parent_y = win_y;
+	      }
+
+	    /* Now we know that:
+	       win is the innermost window containing the pointer
+	       (XTC says it has no child containing the pointer),
+	       win_x and win_y are the pointer's position in it
+	       (XTC did this the last time through), and
+	       parent_x and parent_y are the pointer's position in win's parent.
+	       (They are what win_x and win_y were when win was child.
+	       If win is the root window, it has no parent, and
+	       parent_{x,y} are invalid, but that's okay, because we'll
+	       never use them in that case.)  */
+
+	    /* Is win one of our frames?  */
+	    f1 = x_window_to_frame (win);
+	  }
       
 	/* If not, is it one of our scroll bars?  */
 	if (! f1)
@@ -1882,7 +1919,7 @@ XTmouse_position (f, bar_window, part, x, y, time)
 	       and store all the values.  */
 
 	    pixel_to_glyph_coords (f1, win_x, win_y, &win_x, &win_y,
-				   &last_mouse_glyph);
+				   &last_mouse_glyph, x_mouse_grabbed);
 
 	    *bar_window = Qnil;
 	    *part = 0;
@@ -2361,7 +2398,7 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
     abort ();
 
   emacs_event->kind = scroll_bar_click;
-  XSET (emacs_event->code, Lisp_Int, event->xbutton.button - Button1);
+  emacs_event->code = event->xbutton.button - Button1;
   emacs_event->modifiers =
     (x_x_to_emacs_modifiers (event->xbutton.state)
      | (event->type == ButtonRelease
@@ -2989,6 +3026,45 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		       || ((unsigned) (keysym) >= XK_Select
 			   && (unsigned)(keysym) < XK_KP_Space)
 #endif
+#ifdef XK_dead_circumflex
+		       || orig_keysym == XK_dead_circumflex
+#endif
+#ifdef XK_dead_grave
+		       || orig_keysym == XK_dead_grave
+#endif
+#ifdef XK_dead_tilde
+		       || orig_keysym == XK_dead_tilde
+#endif
+#ifdef XK_dead_diaeresis
+		       || orig_keysym == XK_dead_diaeresis
+#endif
+#ifdef XK_dead_macron
+		       || orig_keysym == XK_dead_macron
+#endif
+#ifdef XK_dead_degree
+		       || orig_keysym == XK_dead_degree
+#endif
+#ifdef XK_dead_acute
+		       || orig_keysym == XK_dead_acute
+#endif
+#ifdef XK_dead_cedilla
+		       || orig_keysym == XK_dead_cedilla
+#endif
+#ifdef XK_dead_breve
+		       || orig_keysym == XK_dead_breve
+#endif
+#ifdef XK_dead_ogonek
+		       || orig_keysym == XK_dead_ogonek
+#endif
+#ifdef XK_dead_caron
+		       || orig_keysym == XK_dead_caron
+#endif
+#ifdef XK_dead_doubleacute
+		       || orig_keysym == XK_dead_doubleacute
+#endif
+#ifdef XK_dead_abovedot
+		       || orig_keysym == XK_dead_abovedot
+#endif
 		       || IsKeypadKey (keysym) /* 0xff80 <= x < 0xffbe */
 		       || IsFunctionKey (keysym) /* 0xffbe <= x < 0xffe1 */
 		       || x_is_vendor_fkey (orig_keysym))
@@ -3007,7 +3083,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			temp_index = 0;
 		      temp_buffer[temp_index++] = keysym;
 		      bufp->kind = non_ascii_keystroke;
-		      XSET (bufp->code, Lisp_Int, (unsigned) keysym - 0xff00);
+		      bufp->code = keysym;
 		      XSET (bufp->frame_or_window, Lisp_Frame, f);
 		      bufp->modifiers = x_x_to_emacs_modifiers (modifiers);
 		      bufp->timestamp = event.xkey.time;
@@ -3025,7 +3101,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			    temp_index = 0;
 			  temp_buffer[temp_index++] = copy_buffer[i];
 			  bufp->kind = ascii_keystroke;
-			  XSET (bufp->code, Lisp_Int, copy_buffer[i]);
+			  bufp->code = copy_buffer[i];
 			  XSET (bufp->frame_or_window, Lisp_Frame, f);
 			  bufp->modifiers = x_x_to_emacs_modifiers (modifiers);
 			  bufp->timestamp = event.xkey.time;
@@ -3079,7 +3155,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		for (i = 0; i < nbytes; i++)
 		  {
 		    bufp->kind = ascii_keystroke;
-		    XSET (bufp->code, Lisp_Int, where_mapping[i]);
+		    bufp->code = where_mapping[i];
 		    XSET (bufp->time, Lisp_Int, event.xkey.time);
 		    XSET (bufp->frame_or_window, Lisp_Frame, f);
 		    bufp++;
@@ -3194,13 +3270,16 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 #ifdef HAVE_X11
 	case MotionNotify:
 	  {
-	    f = x_window_to_frame (event.xmotion.window);
+	    if (x_mouse_grabbed)
+	      f = last_mouse_frame;
+	    else
+	      f = x_window_to_frame (event.xmotion.window);
 	    if (f)
 	      note_mouse_movement (f, &event.xmotion);
 	    else
 	      {
-		struct scroll_bar *bar =
-		  x_window_to_scroll_bar (event.xmotion.window);
+		struct scroll_bar *bar
+		  = x_window_to_scroll_bar (event.xmotion.window);
 
 		if (bar)
 		  x_scroll_bar_note_movement (bar, &event);
@@ -3273,8 +3352,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    if (f)
 	      {
 		if (!x_focus_frame || (f == x_focus_frame))
-		  construct_mouse_click (&emacs_event,
-					 &event, f);
+		  construct_mouse_click (&emacs_event, &event, f);
 	      }
 	    else
 	      {
@@ -3319,13 +3397,13 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	  if (numchars >= 2)
 	    {
 	      bufp->kind = ascii_keystroke;
-	      bufp->code = (char) 'X' & 037; /* C-x */
+	      bufp->code = 'X' & 037; /* C-x */
 	      XSET (bufp->frame_or_window, Lisp_Frame, f);
 	      XSET (bufp->time, Lisp_Int, event.xkey.time);
 	      bufp++;
 
 	      bufp->kind = ascii_keystroke;
-	      bufp->code = (char) 0; /* C-@ */
+	      bufp->code = 0; /* C-@ */
 	      XSET (bufp->frame_or_window, Lisp_Frame, f);
 	      XSET (bufp->time, Lisp_Int, event.xkey.time);
 	      bufp++;
@@ -4210,13 +4288,13 @@ x_calc_absolute_position (f)
      position that fits on the screen.  */
   if (f->display.x->left_pos < 0)
     f->display.x->left_pos = (x_screen_width 
-			      - f->display.x->border_width - win_x
+			      - 2 * f->display.x->border_width - win_x
 			      - PIXEL_WIDTH (f)
 			      + f->display.x->left_pos);
 
   if (f->display.x->top_pos < 0)
     f->display.x->top_pos = (x_screen_height
-			     - f->display.x->border_width - win_y
+			     - 2 * f->display.x->border_width - win_y
 			     - PIXEL_HEIGHT (f)
 			     + f->display.x->top_pos);
 
@@ -4617,7 +4695,7 @@ x_destroy_window (f)
    of certain kinds into our private queues.
 
    All ExposeRegion events are put in x_expose_queue.
-   All ButtonPressed and ButtonReleased events are put in x_mouse_queue.  */
+   All ButtonPress and ButtonRelease events are put in x_mouse_queue.  */
 
 
 /* Write the event *P_XREP into the event queue *QUEUE.
