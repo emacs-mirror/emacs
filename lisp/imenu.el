@@ -207,7 +207,7 @@ The variable `imenu-case-fold-search' determines whether or not the
 regexp matches are case sensitive, and `imenu-syntax-alist' can be
 used to alter the syntax table for the search.
 
-For example, see the value of `lisp-imenu-generic-expression' used by
+For example, see the value of `fortran-imenu-generic-expression' used by
 `fortran-mode' with `imenu-syntax-alist' set locally to give the
 characters which normally have \"symbol\" syntax \"word\" syntax
 during matching.")
@@ -517,20 +517,14 @@ This variable is local in all buffers, once set.")
 	(setq keep-at-top (cons imenu--rescan-item nil)
 	      menulist (delq imenu--rescan-item menulist)))
     (setq tail menulist)
-    (while tail
-      (if (imenu--subalist-p (car tail))
-	  (setq keep-at-top (cons (car tail) keep-at-top)
-		menulist (delq (car tail) menulist)))
-      (setq tail (cdr tail)))
+    (dolist (item tail)
+      (if (imenu--subalist-p item)
+	  (setq keep-at-top (cons item keep-at-top)
+		menulist (delq item menulist))))
     (if imenu-sort-function
 	(setq menulist
 	      (sort
-	       (let ((res nil)
-		     (oldlist menulist))
-		 ;; Copy list method from the cl package `copy-list'
-		 (while (consp oldlist) (push (pop oldlist) res))
-		 (if res		; in case, e.g. no functions defined
-		     (prog1 (nreverse res) (setcdr res oldlist))))
+	       (copy-sequence menulist)
 	       imenu-sort-function)))
     (if (> (length menulist) imenu-max-items)
 	(let ((count 0))
@@ -631,35 +625,19 @@ as a way for the user to ask to recalculate the buffer's index alist."
 	alist)
        t))
 
-(defun imenu--create-keymap-2 (alist counter &optional commands)
-  (let ((map nil))
-    (mapcar
-     (lambda (item)
-       (cond
-	((imenu--subalist-p item)
-	 (nconc (list (setq counter (1+ counter))
-		      (car item) 'keymap (car item))
-		(imenu--create-keymap-2 (cdr item) (+ counter 10) commands)))
-	(t
-	 (let ((end (if commands `(lambda ()
-				    (interactive)
-				    (imenu--menubar-select ',item))
-		      (cons '(nil) item))))
-	   (cons (car item)
-		 (cons (car item) end)
-		 ;; Fixme: Using this (to speded up menus), instead of
-		 ;; the line above, breaks the case where `imenu' is
-		 ;; bound to a mouse key.  The code in imenu needs
-		 ;; fixing somehow to cope.
-		 ;; (list 'menu-item (car item) end :key-sequence nil)
-		 )))))
-     alist)))
-
-;; If COMMANDS is non-nil, make a real keymap
-;; with a real command used as the definition.
-;; If it is nil, make something suitable for x-popup-menu.
-(defun imenu--create-keymap-1 (title alist &optional commands)
-  (cons 'keymap (cons title (imenu--create-keymap-2 alist 0 commands))))
+(defun imenu--create-keymap-1 (title alist)
+  (let ((counter 0))
+    (list* 'keymap title
+	   (mapcar
+	    (lambda (item)
+	      (list* (car item) (car item)
+		     (cond
+		      ((imenu--subalist-p item)
+		       (imenu--create-keymap-1 (car item) (cdr item)))
+		      (t
+		       `(lambda () (interactive)
+			  (imenu--menubar-select ',item))))))
+	    alist))))
 
 (defun imenu--in-alist (str alist)
   "Check whether the string STR is contained in multi-level ALIST."
@@ -686,7 +664,7 @@ as a way for the user to ask to recalculate the buffer's index alist."
     res))
 
 (defvar imenu-syntax-alist nil
-  "Alist of syntax table modifiers to use while executing `imenu--generic-function'.
+  "Alist of syntax table modifiers to use while in `imenu--generic-function'.
 
 The car of the assocs may be either a character or a string and the
 cdr is a syntax description appropriate fo `modify-syntax-entry'.  For
@@ -757,7 +735,7 @@ Their results are gathered into an index alist."
 (defvar imenu-case-fold-search t
   "Defines whether `imenu--generic-function' should fold case when matching.
 
-This buffer-local variable should be set (only) by initialization code
+This variable should be set (only) by initialization code
 for modes which use `imenu--generic-function'.  If it is not set, that
 function will use the current value of `case-fold-search' to match
 patterns.")
@@ -797,14 +775,12 @@ PATTERNS."
         (table (copy-syntax-table (syntax-table)))
         (slist imenu-syntax-alist))
     ;; Modify the syntax table used while matching regexps.
-    (while slist
+    (dolist (syn slist)
       ;; The character(s) to modify may be a single char or a string.
-      (if (numberp (caar slist))
-	  (modify-syntax-entry (caar slist) (cdar slist) table)
-	(mapc (lambda (c)
-		(modify-syntax-entry c (cdar slist) table))
-	      (caar slist)))
-      (setq slist (cdr slist)))
+      (if (numberp (car syn))
+	  (modify-syntax-entry (car syn) (cdr syn) table)
+	(dolist (c (car syn))
+	  (modify-syntax-entry c (cdr syn) table))))
     (goto-char (point-max))
     (imenu-progress-message prev-pos 0 t)
     (unwind-protect			; for syntax table
@@ -812,49 +788,44 @@ PATTERNS."
 	  (set-syntax-table table)
 	  ;; map over the elements of imenu-generic-expression
 	  ;; (typically functions, variables ...)
-	  (mapc
-	   (lambda (pat)
-	     (let ((menu-title (car pat))
-		   (regexp (nth 1 pat))
-		   (index (nth 2 pat))
-		   (function (nth 3 pat))
-		   (rest (nthcdr 4 pat)))
-	       ;; Go backwards for convenience of adding items in order.
-	       (goto-char (point-max))
-	       (while (re-search-backward regexp nil t)
-		 (imenu-progress-message prev-pos nil t)
-		 (setq beg (match-beginning index))
-		 ;; Add this sort of submenu only when we've found an
-		 ;; item for it, avoiding empty, duff menus.
-		 (unless (assoc menu-title index-alist)
-		   (push (list menu-title) index-alist))
-		 (if imenu-use-markers
-		     (setq beg (copy-marker beg)))
-		 (let ((item
-			(if function
-			    (nconc (list (match-string-no-properties index)
-					 beg function)
-				   rest)
-			  (cons (match-string-no-properties index)
-				beg)))
-		       ;; This is the desired submenu,
-		       ;; starting with its title (or nil).
-		       (menu (assoc menu-title index-alist)))
-		   ;; Insert the item unless it is already present.
-		   (unless (member item (cdr menu))
-		     (setcdr menu
-			     (cons item (cdr menu))))))))
-	   patterns)
+	  (dolist (pat patterns)
+	    (let ((menu-title (car pat))
+		  (regexp (nth 1 pat))
+		  (index (nth 2 pat))
+		  (function (nth 3 pat))
+		  (rest (nthcdr 4 pat)))
+	      ;; Go backwards for convenience of adding items in order.
+	      (goto-char (point-max))
+	      (while (re-search-backward regexp nil t)
+		(imenu-progress-message prev-pos nil t)
+		(setq beg (match-beginning index))
+		;; Add this sort of submenu only when we've found an
+		;; item for it, avoiding empty, duff menus.
+		(unless (assoc menu-title index-alist)
+		  (push (list menu-title) index-alist))
+		(if imenu-use-markers
+		    (setq beg (copy-marker beg)))
+		(let ((item
+		       (if function
+			   (nconc (list (match-string-no-properties index)
+					beg function)
+				  rest)
+			 (cons (match-string-no-properties index)
+			       beg)))
+		      ;; This is the desired submenu,
+		      ;; starting with its title (or nil).
+		      (menu (assoc menu-title index-alist)))
+		  ;; Insert the item unless it is already present.
+		  (unless (member item (cdr menu))
+		    (setcdr menu
+			    (cons item (cdr menu))))))))
 	  (set-syntax-table old-table)))
     (imenu-progress-message prev-pos 100 t)
     ;; Sort each submenu by position.
     ;; This is in case one submenu gets items from two different regexps.
-    (let ((tail index-alist))
-      (while tail
-	(if (listp (car tail))
-	    (setcdr (car tail)
-		    (sort (cdr (car tail)) 'imenu--sort-by-position)))
-	(setq tail (cdr tail))))
+    (dolist (item index-alist)
+      (when (listp item)
+	(setcdr item (sort (cdr item) 'imenu--sort-by-position))))
     (let ((main-element (assq nil index-alist)))
       (nconc (delq main-element (delq 'dummy index-alist))
 	     (cdr main-element)))))
@@ -864,6 +835,19 @@ PATTERNS."
 ;;; The main functions for this package!
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; See also info-lookup-find-item
+(defun imenu-find-default (guess completions)
+  "Fuzzily find an item based on GUESS inside the alist COMPLETIONS."
+  (catch 'found
+    (let ((case-fold-search t))
+      (if (assoc guess completions) guess
+	(dolist (re (list (concat "\\`" (regexp-quote guess) "\\'")
+			  (concat "\\`" (regexp-quote guess))
+			  (concat (regexp-quote guess) "\\'")
+			  (regexp-quote guess)))
+	  (dolist (x completions)
+	    (if (string-match re (car x)) (throw 'found (car x)))))))))
 
 (defun imenu--completion-buffer (index-alist &optional prompt)
   "Let the user select from INDEX-ALIST in a completion buffer with PROMPT.
@@ -879,6 +863,8 @@ Returns t for rescan and otherwise a position number."
 					(car item))
 		  (cdr item)))
 	  index-alist)))
+    (when (stringp name)
+      (setq name (or (imenu-find-default name prepared-index-alist) name)))
     (cond (prompt)
 	  ((and name (imenu--in-alist name prepared-index-alist))
 	   (setq prompt (format "Index item (default %s): " name)))
@@ -896,17 +882,14 @@ Returns t for rescan and otherwise a position number."
 	       (function
 		(lambda ()
 		  (let ((buffer (current-buffer)))
-		    (save-excursion
-		      (set-buffer "*Completions*")
+		    (with-current-buffer "*Completions*"
 		      (setq completion-reference-buffer buffer)))))))
 	  ;; Make a completion question
 	  (setq name (completing-read prompt
 				      prepared-index-alist
 				      nil t nil 'imenu--history-list name)))))
-    (cond ((not (stringp name))
-	   nil)
-	  ((string= name (car imenu--rescan-item))
-	   t)
+    (cond ((not (stringp name)) nil)
+	  ((string= name (car imenu--rescan-item)) t)
 	  (t
 	   (setq choice (assoc name prepared-index-alist))
 	   (if (imenu--subalist-p choice)
@@ -920,43 +903,12 @@ INDEX-ALIST is the buffer index and EVENT is a mouse event.
 
 Returns t for rescan and otherwise an element or subelement of INDEX-ALIST."
   (setq index-alist (imenu--split-submenus index-alist))
-  (let* ((menu 	(imenu--split-menu index-alist
-				   (or title (buffer-name))))
-	position)
-    (setq menu (imenu--create-keymap-1 (car menu)
-				       (if (< 1 (length (cdr menu)))
-					   (cdr menu)
-					 (cdr (car (cdr menu))))))
-    (setq position (x-popup-menu event menu))
-    (cond ((eq position nil)
-	   position)
-	  ;; If one call to x-popup-menu handled the nested menus,
-	  ;; find the result by looking down the menus here.
-	  ((and (listp position)
-		(numberp (car position))
-		(stringp (nth (1- (length position)) position)))
-	   (let ((final menu))
-	     (while position
-	       (setq final (assq (car position) final))
-	       (setq position (cdr position)))
-             (or (string= (car final) (car imenu--rescan-item))
-                 (nthcdr 3 final))))
-	  ;; If x-popup-menu went just one level and found a leaf item,
-	  ;; return the INDEX-ALIST element for that.
-	  ((and (consp position)
-		(stringp (car position))
-		(null (cdr position)))
-	   (or (string= (car position) (car imenu--rescan-item))
-	       (assq (car position) index-alist)))
-	  ;; If x-popup-menu went just one level
-	  ;; and found a non-leaf item (a submenu),
-	  ;; recurse to handle the rest.
-	  ((listp position)
-	   (imenu--mouse-menu position event
-			      (if title
-				  (concat title imenu-level-separator
-					  (car (rassq position index-alist)))
-				(car (rassq position index-alist))))))))
+  (let* ((menu (imenu--split-menu index-alist (or title (buffer-name))))
+	 (map (imenu--create-keymap-1 (car menu)
+				      (if (< 1 (length (cdr menu)))
+					  (cdr menu)
+					(cdr (car (cdr menu)))))))
+    (popup-menu map event)))
 
 (defun imenu-choose-buffer-index (&optional prompt alist)
   "Let the user select from a buffer index and return the chosen index.
@@ -978,7 +930,7 @@ not.
 The returned value is of the form (INDEX-NAME . INDEX-POSITION)."
   (let (index-alist
 	(mouse-triggered (listp last-nonmenu-event))
-	(result t) )
+	(result t))
     ;; If selected by mouse, see to that the window where the mouse is
     ;; really is selected.
     (and mouse-triggered
@@ -1040,22 +992,23 @@ A trivial interface to `imenu-add-to-menubar' suitable for use in a hook."
 	       (setq index-alist (imenu--split-submenus index-alist))
 	       (setq menu (imenu--split-menu index-alist
                                              (buffer-name)))
-	       (setq menu1 (imenu--create-keymap-1 (car menu) 
+	       (setq menu1 (imenu--create-keymap-1 (car menu)
                                                    (if (< 1 (length (cdr menu)))
                                                        (cdr menu)
-						     (cdr (car (cdr menu))))
-                                                   t))
+						     (cdr (car (cdr menu))))))
 	       (setq old (lookup-key (current-local-map) [menu-bar index]))
 	       (setcdr old (cdr menu1)))))))
 
 (defun imenu--menubar-select (item)
-  "Use Imenu to select the function or variable named in this menu item."
+  "Use Imenu to select the function or variable named in this menu ITEM."
   (if (equal item imenu--rescan-item)
       (progn
 	(imenu--cleanup)
 	(setq imenu--index-alist nil)
-	(imenu-update-menubar))
-    (imenu item)))
+	(imenu-update-menubar)
+	t)
+    (imenu item)
+    nil))
 
 (defun imenu-default-goto-function (name position &optional rest)
   "Move the point to the given position.
@@ -1078,20 +1031,17 @@ for more information."
   ;; Convert a string to an alist element.
   (if (stringp index-item)
       (setq index-item (assoc index-item (imenu--make-index-alist))))
-  (and index-item
-       (progn
-	 (push-mark)
-	 ;; Fixme: sort this out so that we can use menu-item with
-	 ;; :key-sequence in imenu--create-keymap-2.
-	 (let* ((is-special-item (listp (cdr index-item)))
-		(function
-		 (if is-special-item
-		     (nth 2 index-item) imenu-default-goto-function))
-	       (position (if is-special-item
-			     (cadr index-item) (cdr index-item)))
-	       (rest (if is-special-item (cddr index-item))))
-	   (apply function (car index-item) position rest))))
-  (run-hooks 'imenu-after-jump-hook))
+  (when index-item
+    (push-mark)
+    (let* ((is-special-item (listp (cdr index-item)))
+	   (function
+	    (if is-special-item
+		(nth 2 index-item) imenu-default-goto-function))
+	   (position (if is-special-item
+			 (cadr index-item) (cdr index-item)))
+	   (rest (if is-special-item (cddr index-item))))
+      (apply function (car index-item) position rest))
+    (run-hooks 'imenu-after-jump-hook)))
 
 (dolist (mess
 	 '("^No items suitable for an index found in this buffer$"
