@@ -937,7 +937,29 @@ that."
                         "\\<M-x\\s-+\\(\\sw\\(\\sw\\|\\s_\\)+\\)" nil t)
                   (let ((sym (intern-soft (match-string 1))))
                     (if (fboundp sym)
-                        (help-xref-button 1 #'describe-function sym))))))
+                        (help-xref-button 1 #'describe-function sym)))))
+              ;; Look for commands in whole keymap substitutions:
+              (save-excursion
+                ;; Find a header and the column at which the command
+                ;; name will be found.
+                (while (re-search-forward "^key +binding\n\\(-+ +\\)-+\n\n" 
+                                          nil t)
+                  (let ((col (- (match-end 1) (match-beginning 1))))
+                    (while
+                        ;; Ignore single blank lines in table, but not
+                        ;; double ones, which should terminate it.
+                        (and (looking-at "^\n?[^\n]")
+                             (progn
+                               (if (and (> (move-to-column col) 0)
+                                        (looking-at "\\(\\sw\\|\\s_\\)+$"))
+                                   ;; 
+                                   (let ((sym (intern-soft (match-string 0))))
+                                     (if (fboundp sym)
+                                         (help-xref-button 
+                                          0 #'describe-function sym))))
+                               t)
+                             (zerop (forward-line))
+                             (move-to-column 0)))))))
           (set-syntax-table stab))
         ;; Make a back-reference in this buffer if appropriate.
         (when help-xref-stack
@@ -951,6 +973,7 @@ that."
       (set (make-local-variable 'minor-mode-overriding-map-alist)
            (list (cons 'view-mode
                        (let ((map (make-sparse-keymap)))
+                         (set-keymap-parent map view-mode-map)
                          (define-key map "\r" 'help-follow)
                          map))))
       (set-buffer-modified-p old-modified))))
@@ -962,19 +985,17 @@ MATCH-NUMBER is the subexpression of interest in the last matched
 regexp.  FUNCTION is a function to invoke when the button is
 activated, applied to DATA.  DATA may be a single value or a list.
 See `help-make-xrefs'."
-  (put-text-property (match-beginning match-number)
+  (add-text-properties (match-beginning match-number)
                      (match-end match-number)
-                     'mouse-face 'highlight)
-  (if help-highlight-p
-      (put-text-property (match-beginning match-number)
-                         (match-end match-number)
-                         'face help-highlight-face))
-  (put-text-property (match-beginning match-number)
-                     (match-end match-number)
+                       (list 'mouse-face 'highlight  
                      'help-xref (cons function
                                       (if (listp data)
                                           data
                                         (list data)))))
+  (if help-highlight-p
+      (put-text-property (match-beginning match-number)
+                         (match-end match-number)
+                         'face help-highlight-face)))
 
 
 ;; Additional functions for (re-)creating types of help buffers.
@@ -1048,8 +1069,8 @@ For the cross-reference format, see `help-make-xrefs'."
   (let (pos)
     (while (not pos) 
       (if (get-text-property (point) 'help-xref) ; move off reference
-	  (or (goto-char (next-single-property-change (point) 'help-xref))
-              (point)))
+	   (goto-char (or (next-single-property-change (point) 'help-xref)
+                          (point))))
       (cond ((setq pos (next-single-property-change (point) 'help-xref))
 	     (if pos (goto-char pos)))
 	    ((bobp)
