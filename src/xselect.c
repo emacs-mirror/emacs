@@ -29,7 +29,6 @@ Boston, MA 02111-1307, USA.  */
 #include "frame.h"	/* Need this to get the X window of selected_frame */
 #include "blockinput.h"
 #include "buffer.h"
-#include "charset.h"
 #include "coding.h"
 #include "process.h"
 #include "composite.h"
@@ -1634,29 +1633,22 @@ selection_data_to_lisp_data (display, data, size, type, format)
 	}
       else
 	{
-	  int bufsize;
-	  unsigned char *buf;
 	  struct coding_system coding;
 
-	  if (NILP (Vnext_selection_coding_system))
-	    Vnext_selection_coding_system = Vselection_coding_system;
-	  setup_coding_system
-	    (Fcheck_coding_system(Vnext_selection_coding_system), &coding);
-	  coding.src_multibyte = 0;
-	  coding.dst_multibyte = 1;
-	  Vnext_selection_coding_system = Qnil;
+  	  if (NILP (Vnext_selection_coding_system))
+  	    Vnext_selection_coding_system = Vselection_coding_system;
+	  if (! CODING_SYSTEM_P (Vnext_selection_coding_system))
+	    {
+	      Vnext_selection_coding_system = Vselection_coding_system;
+	      if (! CODING_SYSTEM_P (Vnext_selection_coding_system))
+		Vnext_selection_coding_system = Qraw_text;
+	    }
+	  setup_coding_system (Vnext_selection_coding_system, &coding);
           coding.mode |= CODING_MODE_LAST_BLOCK;
-	  bufsize = decoding_buffer_size (&coding, size);
-	  buf = (unsigned char *) xmalloc (bufsize);
-	  decode_coding (&coding, data, buf, size, bufsize);
-	  str = make_string_from_bytes ((char *) buf,
-					coding.produced_char, coding.produced);
-	  xfree (buf);
-
-	  if (SYMBOLP (coding.post_read_conversion)
-	      && !NILP (Ffboundp (coding.post_read_conversion)))
-	    str = run_pre_post_conversion_on_str (str, &coding, 0);
-	  Vlast_coding_system_used = coding.symbol;
+	  decode_coding_c_string (&coding, data, size, Qt);
+	  str = coding.dst_object;
+	  Vlast_coding_system_used = Vnext_selection_coding_system;
+	  Vnext_selection_coding_system = Qnil;
 	}
       compose_chars_in_text (0, XSTRING (str)->size, str);
       return str;
