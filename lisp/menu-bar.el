@@ -162,6 +162,10 @@
 (define-key global-map [f20] 'clipboard-kill-region)
 (define-key global-map [f16] 'clipboard-kill-ring-save)
 (define-key global-map [f18] 'clipboard-yank)
+;; X11R6 versions
+(define-key global-map [cut] 'clipboard-kill-region)
+(define-key global-map [copy] 'clipboard-kill-ring-save)
+(define-key global-map [paste] 'clipboard-yank)
 
 (define-key menu-bar-help-menu [emacs-version]
   '("Show Version" . emacs-version))
