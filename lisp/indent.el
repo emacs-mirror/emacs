@@ -268,8 +268,8 @@ line, but does not move past any whitespace that was explicitly inserted
       (skip-chars-forward " \t")))
 
 (defvar indent-region-function nil
-  "Function which is short cut to indent region using indent-according-to-mode.
-A value of nil means really run indent-according-to-mode on each line.")
+  "Short cut function to indent region using `indent-according-to-mode'.
+A value of nil means really run `indent-according-to-mode' on each line.")
 
 (defun indent-region (start end column)
   "Indent each nonblank line in the region.
