@@ -275,13 +275,6 @@
 		  ("$(5!3(B-$(5!X(B"	"w"	?0) ; consonant
 		  ("$(5!Z(B-$(5!g(B"	"w"	?8) ; matra
 		  ("$(5!q(B-$(5!z(B"	"w"	?6) ; digit
-		  ;; Unicode equivalents
-		  ("$,15A5B5C(B"	"w"	?7) ; vowel-modifying diacritical mark
-					    ; chandrabindu, anuswar, visarga
-		  ("$,15E(B-$,15M(B"	"w"	?1) ; independent vowel
-		  ("$,15U(B-$,15y(B"	"w"	?0) ; consonant
-		  ("$,15~(B-$,16)(B"	"w"	?8) ; matra
-		  ("$,16F(B-$,16O(B"	"w"	?6) ; digit
 		  ))
       elm chars len syntax category to ch i)
   (while deflist
@@ -379,6 +372,10 @@
 (modify-category-entry (make-char 'indian-is13194) ?i)
 (modify-category-entry (make-char 'indian-2-column) ?I)
 (modify-category-entry (make-char 'indian-1-column) ?I)
+(let ((c #x901))			; Unicode Devanagari range
+  (while (<= c #x970)
+    (modify-category-entry (decode-char 'ucs c) ?i)
+    (setq c (1+ c))))
 
 (let ((deflist	
 	'(;; chars	syntax	category
@@ -388,6 +385,13 @@
 	  ("(53(B-(5X(B"	"w"	?0) ; consonant
 	  ("(5Z(B-(5g(B"	"w"	?8) ; matra
 	  ("(5q(B-(5z(B"	"w"	?6) ; digit
+	  ;; Unicode equivalents (ranges somewhat extended from the above)
+	  ("$,15A5B5C(B"	"w"	?7) ; vowel-modifying diacritical mark
+				    ; chandrabindu, anuswar, visarga
+	  ("$,15E(B-$,15T(B"	"w"	?1) ; independent vowel
+	  ("$,15U(B-$,15y(B"	"w"	?0) ; consonant
+	  ("$,15~(B-$,16,(B"	"w"	?8) ; matra
+	  ("$,16F(B-$,16O(B"	"w"	?6) ; digit
 	  ))
       elm chars len syntax category to ch i)
   (while deflist
