@@ -2125,7 +2125,10 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 			  && src + 1 < src_end
 			  && src[0] == '%'
 			  && src[1] == '@')
-			break;
+			{
+			  src += 2;
+			  break;
+			}
 		      d += CHAR_STRING (c1, d), produced_chars++;
 		    }
 		  if (d + 3 > (dst_bytes ? dst_end : src))
