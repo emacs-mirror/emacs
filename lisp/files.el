@@ -1424,7 +1424,8 @@ unless NOMODES is non-nil."
     (setq buffer-read-only t))
   ;; When a file is marked read-only,
   ;; make the buffer read-only even if root is looking at it.
-  (when (zerop (logand (file-modes (buffer-file-name)) #o222))
+  (when (and (file-modes (buffer-file-name))
+	     (zerop (logand (file-modes (buffer-file-name)) #o222)))
     (setq buffer-read-only t))
   (unless nomodes
     (when (and view-read-only view-mode)
