@@ -48,6 +48,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 
 extern void malloc_warning ();
+extern void set_time_zone_rule ();
 extern char *index ();
 extern char *strerror ();
 
@@ -314,6 +315,12 @@ extern noshare char **environ;
 #endif /* SHARABLE_LIB_BUG */
 #endif /* LINK_CRTL_SHARE */
 #endif /* VMS */
+
+#ifdef HAVE_TZSET
+/* A valid but unlikely value for the TZ environment value.
+   It is OK (though a bit slower) if the user actually chooses this value.  */
+static char dump_tz[] = "UtC0";
+#endif
 
 #ifndef ORDINARY_LINK
 /* We don't include crtbegin.o and crtend.o in the link,
@@ -940,6 +947,23 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
       XSETFASTINT (Vmessage_log_max, 0);
       message_dolog ("", 0, 1);
       Vmessage_log_max = old_log_max;
+
+#ifdef HAVE_TZSET
+      {
+	/* If the execution TZ happens to be the same as the dump TZ,
+	   change it to some other value and then change it back,
+	   to force the underlying implementation to reload the TZ info.
+	   This is needed on implementations that load TZ info from files,
+	   since the TZ file contents may differ between dump and execution.  */
+	char *tz = getenv ("TZ");
+	if (tz && !strcmp (tz, dump_tz))
+	  {
+	    ++*tz;
+	    tzset ();
+	    --*tz;
+	  }
+      }
+#endif
     }
 
   initialized = 1;
@@ -1328,6 +1352,14 @@ and announce itself normally when it is run.")
 
   tem = Vpurify_flag;
   Vpurify_flag = Qnil;
+
+#ifdef HAVE_TZSET
+  set_time_zone_rule (dump_tz);
+#ifndef LOCALTIME_CACHE
+  /* Force a tz reload, since set_time_zone_rule doesn't.  */
+  tzset ();
+#endif
+#endif
 
   fflush (stdout);
 #ifdef VMS
