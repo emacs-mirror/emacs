@@ -1857,11 +1857,11 @@ buffer.")
 	  o_beg = OVERLAY_POSITION (o_beg);
 	  o_end = OVERLAY_POSITION (o_end);
 
-	  redisplay_region (b, XINT (o_beg), XINT (o_end));
+	  redisplay_region (ob, XINT (o_beg), XINT (o_end));
 	}
 
       /* Redisplay where the overlay is going to be.  */
-      redisplay_region (ob, XINT (beg), XINT (end));
+      redisplay_region (b, XINT (beg), XINT (end));
 
       /* Don't limit redisplay to the selected window.  */
       windows_or_buffers_changed = 1;
