@@ -1,3 +1,8 @@
+2000-10-25  Stephen Gildea  <gildea@alum.mit.edu>
+
+	* time-stamp.el (time-stamp-string-preprocess): Fix a wrong
+	type argument error.
+
 2000-10-25  Miles Bader  <miles@gnu.org>
 
 	* recentf.el (recentf-mode): Variable removed.
