@@ -50,7 +50,7 @@ Then the formatting appears on the screen in Emacs while you edit.
 @xref{Formatted Text}.
 @end iftex
 
-  The `automatic typing' features may be useful when writing text.
+  The ``automatic typing'' features may be useful when writing text.
 @xref{Top, Autotyping, autotype, Features for Automatic Typing}.
 
 @menu
@@ -388,11 +388,11 @@ Text}).
 
 @menu
 * Auto Fill::	        Auto Fill mode breaks long lines automatically.
+* Refill::              Keeping paragraphs filled.
 * Fill Commands::       Commands to refill paragraphs and center lines.
 * Fill Prefix::	        Filling paragraphs that are indented
                           or in a comment, etc.
 * Adaptive Fill::       How Emacs can determine the fill prefix automatically.
-* Refill::              Keeping paragraphs filled.
 @end menu
 
 @node Auto Fill
@@ -452,6 +452,25 @@ paragraph properly filled again is usually with the explicit fill commands.
   Many users like Auto Fill mode and want to use it in all text files.
 The section on init files says how to arrange this permanently for yourself.
 @xref{Init File}.
+
+@node Refill
+@subsection Refill Mode
+@cindex refilling text, word processor style
+@cindex modes, Refill
+@cindex Refill minor mode
+
+  Refill minor mode provides support for keeping paragraphs filled as
+you type or modify them in other ways.  It provides an effect similar
+to typical word processor behaviour.  This works by running a
+paragraph-filling command at suitable times.
+
+  When you are typing text, only characters which normally trigger
+auto filling, like the space character, will trigger refilling.  This
+is to avoid making it too slow.  Apart from self-inserting characters,
+other commands which modify the text cause refilling.
+
+  The current implementation is preliminary and probably not robust.
+We expect to improve on it.
 
 @node Fill Commands
 @subsection Explicit Fill Commands
@@ -534,10 +553,10 @@ two spaces for the end of a sentence, as explained above.  @xref{Sentences}.
 fill commands put two spaces after a colon.
 
 @vindex sentence-end-without-period
-The variable @code{sentence-end-without-period} can be set
-non-@code{nil} to indicate that a sentence will end without a period.
-For example, a sentence in Thai text ends with double space but without
-a period.
+  Some languages do not use period to indicate end of sentence.  For
+example, a sentence in Thai text ends with double space but without a
+period.  Set the variable @code{sentence-end-without-period} to
+@code{t} to tell the sentence commands that a period is not necessary.
 
 @node Fill Prefix
 @subsection The Fill Prefix
@@ -698,25 +717,6 @@ function.  This function is called with point after the left margin of a
 line, and it should return the appropriate fill prefix based on that
 line.  If it returns @code{nil}, that means it sees no fill prefix in
 that line.
-
-@node Refill
-@subsection Refill Mode
-@cindex refilling text, word processor style
-@cindex modes, Refill
-@cindex Refill minor mode
-
-Refill minor mode provides support for keeping paragraphs filled as you
-type or modify them in other ways.  It provides an effect similar to
-typical word processor behaviour.  This works by running a
-paragraph-filling command at suitable times.
-
-When you are typing text, only characters which normally trigger auto
-filling, like the space character, will trigger refilling.  This is to
-avoid making it too slow.  Apart from self-inserting characters, other
-commands which modify the text cause refilling.
-
-The current implementation is preliminary and probably not robust.  We
-expect to improve on it.
 
 @node Case
 @section Case Conversion Commands
@@ -962,12 +962,12 @@ so that Outline mode will know that sections are contained in chapters.
 This works as long as no other command starts with @samp{@@chap}.
 
 @vindex outline-level
-  It is possible to change the rule for calculating the level of a
-heading line by setting the variable @code{outline-level}.  The value of
+  You can change the rule for calculating the level of a heading line
+by setting the variable @code{outline-level}.  The value of
 @code{outline-level} should be a function that takes no arguments and
 returns the level of the current heading.  Some major modes such as C,
-Nroff, and Emacs Lisp mode set this variable and/or
-@code{outline-regexp} in order to work with Outline minor mode.
+Nroff, and Emacs Lisp mode set this variable and @code{outline-regexp}
+in order to work with Outline minor mode.
 
 @node Outline Motion
 @subsection Outline Motion Commands
@@ -1149,28 +1149,23 @@ want more than two views on the same outline, create additional indirect
 buffers.
 
 @node Foldout
-@subsection Folding editing
+@subsection Folding Editing
 
 @cindex folding editing
-The Foldout package provides folding editor extensions for Outline mode
-and Outline minor mode.  It may be used by putting in your @file{.emacs}
+  The Foldout package extends Outline mode and Outline minor mode with
+``folding'' commands.  The idea of folding is that you zoom in on a
+nested portion of the outline, while hiding its relatives at higher
+levels.
 
-@example
-(eval-after-load "outline" '(require 'foldout))
-@end example
-
-@noindent
-Folding editing works as follows.
-
-Consider an Outline mode buffer all the text and subheadings under
+  Consider an Outline mode buffer all the text and subheadings under
 level-1 headings hidden.  To look at what is hidden under one of these
-headings normally you would use @kbd{C-c C-e} (@kbd{M-x show-entry}) to
-expose the body or @kbd{C-c C-i} to expose the child (level-2) headings.
+headings, you could use @kbd{C-c C-e} (@kbd{M-x show-entry}) to expose
+the body, or @kbd{C-c C-i} to expose the child (level-2) headings.
 
 @kindex C-c C-z
 @findex foldout-zoom-subtree
-With Foldout, you use @kbd{C-c C-z} (@kbd{M-x foldout-zoom-subtree}).
-This exposes the body and child subheadings and narrows the buffer so
+  With Foldout, you use @kbd{C-c C-z} (@kbd{M-x foldout-zoom-subtree}).
+This exposes the body and child subheadings, and narrows the buffer so
 that only the level-1 heading, the body and the level-2 headings are
 visible.  Now to look under one of the level-2 headings, position the
 cursor on it and use @kbd{C-c C-z} again.  This exposes the level-2 body
@@ -1178,7 +1173,7 @@ and its level-3 child subheadings and narrows the buffer again.  Zooming
 in on successive subheadings can be done as much as you like.  A string
 in the modeline shows how deep you've gone.
 
-When zooming in on a heading, to see only the child subheadings specify
+  When zooming in on a heading, to see only the child subheadings specify
 a numeric argument: @kbd{C-u C-c C-z}.  The number of levels of children
 can be specified too (compare @kbd{M-x show-children}), e.g.@: @kbd{M-2
 C-c C-z} exposes two levels of child subheadings.  Alternatively, the
@@ -1186,65 +1181,76 @@ body can be spcified with a negative argument: @kbd{M-- C-c C-z}.  The
 whole subtree can be expanded, similarly to @kbd{C-c C-s} (@kbd{M-x
 show-subtree}), by specifying a zero argument: @kbd{M-0 C-c C-z}.
 
-While you're zoomed in you can still use outline-mode's exposure and
+  While you're zoomed in, you can still use Outline mode's exposure and
 hiding functions without disturbing Foldout.  Also, since the buffer is
-narrowed, `global' editing actions will only affect text under the
+narrowed, ``global'' editing actions will only affect text under the
 zoomed-in heading.  This is useful for restricting changes to a
 particular chapter or section of your document.
 
 @kindex C-c C-x
 @findex foldout-exit-fold
-Unzoom (exit) a fold using @kbd{C-c C-x} (@kbd{M-x foldout-exit-fold}).
+  To unzoom (exit) a fold, use @kbd{C-c C-x} (@kbd{M-x foldout-exit-fold}).
 This hides all the text and subheadings under the top-level heading and
 returns you to the previous view of the buffer.  Specifying a numeric
-argument exits that many folds.  Specifying a zero argument exits all
+argument exits that many levels of folds.  Specifying a zero argument exits all
 folds.
 
-You might want to exit a fold without hiding the text and subheadings,
-specify a negative argument.  For example, @kbd{M--2 C-c C-x} exits two
-folds and leaves the text and subheadings exposed.
+  To cancel the narrowing of a fold without hiding the text and
+subheadings, specify a negative argument.  For example, @kbd{M--2 C-c
+C-x} exits two folds and leaves the text and subheadings exposed.
 
-Foldout provides mouse bindings for entering and exiting folds and for
-showing and hiding text as follows:
+  Foldout mode also provides mouse commands for entering and exiting
+folds, and for showing and hiding text:
+
 @table @asis
-@item @kbd{M-C-mouse-1} zooms in on the heading clicked on
+@item @kbd{M-C-Mouse-1} zooms in on the heading clicked on
 @table @asis
 @item single click
-expose body
+expose body.
 @item double click
-expose subheadings
+expose subheadings.
 @item triple click
-expose body and subheadings
+expose body and subheadings.
 @item quad click
-expose entire subtree
+expose entire subtree.
 @end table
-@item @kbd{M-C-mouse-2} exposes text under the heading clicked on
+@item @kbd{M-C-Mouse-2} exposes text under the heading clicked on
 @table @r
 @item single click
-expose body
+expose body.
 @item double click
-expose subheadings
+expose subheadings.
 @item triple click
-expose body and subheadings
+expose body and subheadings.
 @item quad click
-expose entire subtree
+expose entire subtree.
 @end table
-@item @kbd{M-C-mouse-3} hides text under the heading clicked on or exits fold
+@item @kbd{M-C-Mouse-3} hides text under the heading clicked on or exits fold
 @table @r
 @item single click
-hide subtree
+hide subtree.
 @item double click
-exit fold and hide text
+exit fold and hide text.
 @item triple click
-exit fold without hiding text
+exit fold without hiding text.
 @item quad click
-exit all folds and hide text
+exit all folds and hide text.
 @end table
 @end table
 
 @vindex foldout-mouse-modifiers
-You can change the modifier keys used by setting
-@code{foldout-mouse-modifiers}.
+  You can specify different modifier keys (instead of
+@kbd{Control-Meta-}) by setting @code{foldout-mouse-modifiers}; but if
+you have already loaded the @file{foldout.el} library, you must reload
+it in order for this to take effect.
+
+  To use the Foldout package, you can type @kbd{M-x load-library
+@key{RET} foldout @key{RET}}; or you can arrange for to do that
+automatically by putting this in your @file{.emacs} file:
+
+@example
+(eval-after-load "outline" '(require 'foldout))
+@end example
 
 @node TeX Mode, Nroff Mode, Outline Mode, Text
 @section @TeX{} Mode
@@ -1285,61 +1291,11 @@ If the contents are insufficient to determine this, the variable
 slitex-mode} to select explicitly the particular variants of @TeX{}
 mode.
 
-@vindex tex-shell-hook
-@vindex tex-mode-hook
-@vindex latex-mode-hook
-@vindex slitex-mode-hook
-@vindex plain-tex-mode-hook
-  Entering any kind of @TeX{} mode runs the hooks @code{text-mode-hook}
-and @code{tex-mode-hook}.  Then it runs either
-@code{plain-tex-mode-hook} or @code{latex-mode-hook}, whichever is
-appropriate.  For Sli@TeX{} files, it calls @code{slitex-mode-hook}.
-Starting the @TeX{} shell runs the hook @code{tex-shell-hook}.
-@xref{Hooks}.
-
-@findex iso-iso2tex
-@findex iso-tex2iso
-@findex iso-iso2gtex
-@findex iso-gtex2iso
-@cindex Latin-1 @TeX{} encoding
-@TeX{} encoding
-@vindex format-alist
-@findex format-find-file
-The commands @kbd{M-x iso-iso2tex}, @kbd{M-x iso-tex2iso}, @kbd{M-x
-iso-iso2gtex} and @kbd{M-x iso-gtex2iso} can be used to convert between
-Latin-1 encoded files and @TeX{}-encoded equivalents.  They are included
-by default in the @code{format-alist} variable, and so an be used with
-@kbd{M-x format-find-file}, for instance.
-
-@findex tildify-buffer
-@findex tildify-region
-@cindex ties, @TeX{}, inserting
-@cindex hard spaces, @TeX{}, inserting
-@cindex SGML
-@cindex HTML
-The commands @kbd{M-x tildify-buffer} and @kbd{M-x tildify-region} can
-be used to insert missing @samp{~} @dfn{tie} characters which should be
-present in the file to represent `hard spaces'.  This is set up for
-Czech---customize the group @samp{tildify} for other languages or for
-other sorts of markup; there is support for SGML (HTML).
-
-@cindex RefTeX package
-@cindex references, La@TeX{}
-@cindex La@TeX{} references
-  For managing all kinds of references for La@TeX{}, you can use
-Ref@TeX{}.  @xref{Top, , RefTeX, reftex}.
-
-@cindex Bib@TeX{} mode
-@cindex mode, Bib@TeX{}
-@pindex bibtex
-@findex bibtex-mode
-There is also a mode for editing files for the Bib@TeX{} bibliography
-program often used with La@TeX{}.
-
 @menu
 * Editing: TeX Editing.   Special commands for editing in TeX mode.
 * LaTeX: LaTeX Editing.   Additional commands for LaTeX input files.
 * Printing: TeX Print.    Commands for printing part of a file with TeX.
+* Misc: TeX Misc.         Customization of TeX mode, and related features.
 @end menu
 
 @node TeX Editing
@@ -1630,6 +1586,57 @@ current buffer's file.  Generally, you need to do @kbd{C-c C-f}
 @kbd{C-c TAB} (@code{tex-bibtex-file}), and then repeat @kbd{C-c C-f}
 (@code{tex-file}) twice more to get the cross-references correct.
 
+@node TeX Misc
+@subsection @TeX{} Mode Miscellany
+
+@vindex tex-shell-hook
+@vindex tex-mode-hook
+@vindex latex-mode-hook
+@vindex slitex-mode-hook
+@vindex plain-tex-mode-hook
+  Entering any variant of @TeX{} mode runs the hooks
+@code{text-mode-hook} and @code{tex-mode-hook}.  Then it runs either
+@code{plain-tex-mode-hook}, @code{latex-mode-hook}, or
+@code{slitex-mode-hook}, whichever is appropriate.  Starting the
+@TeX{} shell runs the hook @code{tex-shell-hook}.  @xref{Hooks}.
+
+@findex iso-iso2tex
+@findex iso-tex2iso
+@findex iso-iso2gtex
+@findex iso-gtex2iso
+@cindex Latin-1 @TeX{} encoding
+@TeX{} encoding
+@vindex format-alist
+@findex format-find-file
+  The commands @kbd{M-x iso-iso2tex}, @kbd{M-x iso-tex2iso}, @kbd{M-x
+iso-iso2gtex} and @kbd{M-x iso-gtex2iso} can be used to convert
+between Latin-1 encoded files and @TeX{}-encoded equivalents.
+@ignore
+@c Too cryptic to be useful, too cryptic for me to make it better -- rms.
+  They
+are included by default in the @code{format-alist} variable, so they
+can be used with @kbd{M-x format-find-file}, for instance.
+@end ignore
+
+@ignore  @c Not worth documenting if it is only for Czech -- rms.
+@findex tildify-buffer
+@findex tildify-region
+@cindex ties, @TeX{}, inserting
+@cindex hard spaces, @TeX{}, inserting
+@cindex SGML
+@cindex HTML
+  The commands @kbd{M-x tildify-buffer} and @kbd{M-x tildify-region}
+insert @samp{~} (@dfn{tie}) characters where they are conventionally
+required.  This is set up for Czech---customize the group
+@samp{tildify} for other languages or for other sorts of markup.
+@end ignore
+
+@cindex Ref@TeX{} package
+@cindex references, La@TeX{}
+@cindex La@TeX{} references
+  For managing all kinds of references for La@TeX{}, you can use
+Ref@TeX{}.  @xref{Top, , RefTeX, reftex}.
+
 @node Nroff Mode
 @section Nroff Mode
 
@@ -1805,7 +1812,7 @@ text file: with keyboard commands, and with the mouse.
 
   The easiest way to add properties to your document is by using the Text
 Properties menu.  You can get to this menu in two ways: from the Edit
-menu in the menu bar, or with @kbd{C-mouse-2} (hold the @key{CTRL} key
+menu in the menu bar, or with @kbd{C-Mouse-2} (hold the @key{CTRL} key
 and press the middle mouse button).
 
   Most of the items in the Text Properties menu lead to other submenus.
