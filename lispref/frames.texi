@@ -1699,6 +1699,7 @@ quickly.
 @tindex display-planes
 This function returns the number of planes the display supports.
 This is typically the number of bits per pixel.
+For a tty display, it is log to base two of the number of colours supported.
 @end defun
 
 @defun display-visual-class &optional display
