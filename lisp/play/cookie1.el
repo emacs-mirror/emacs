@@ -129,6 +129,6 @@ subsequent calls on the same file won't go to disk."
       (setq i (1+ i))))
   vector)
 
-(provide 'cookie)
+(provide 'cookie1)
 
 ;;; cookie.el ends here
