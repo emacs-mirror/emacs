@@ -200,22 +200,22 @@ extern char syntax_code_spec[16];
 
 #define UPDATE_SYNTAX_TABLE_FORWARD(pos)		\
   ((pos) >= gl_state.e_property - gl_state.offset	\
-   ? (update_syntax_table ((pos) + gl_state.offset, 1, 0), 1) : 0)
+   ? (update_syntax_table ((pos) + gl_state.offset, 1, 0, Qnil), 1) : 0)
 
 /* Make syntax table state (gl_state) good for POS, assuming it is
    currently good for a position after POS.  */
 
 #define UPDATE_SYNTAX_TABLE_BACKWARD(pos)		\
   ((pos) <= gl_state.b_property - gl_state.offset	\
-   ? (update_syntax_table ((pos) + gl_state.offset, -1, 0), 1) : 0)
+   ? (update_syntax_table ((pos) + gl_state.offset, -1, 0, Qnil), 1) : 0)
 
 /* Make syntax table good for POS.  */
 
 #define UPDATE_SYNTAX_TABLE(pos)					\
   ((pos) <= gl_state.b_property - gl_state.offset			\
-   ? (update_syntax_table ((pos) + gl_state.offset, -1, 0), 1)		\
+   ? (update_syntax_table ((pos) + gl_state.offset, -1, 0, Qnil), 1)	\
    : ((pos) >= gl_state.e_property - gl_state.offset			\
-      ? (update_syntax_table ((pos) + gl_state.offset, 1, 0), 1) : 0))
+      ? (update_syntax_table ((pos) + gl_state.offset, 1, 0, Qnil), 1) : 0))
 
 /* This macro should be called with FROM at the start of forward
    search, or after the last position of the backward search.  It
