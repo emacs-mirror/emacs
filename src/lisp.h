@@ -1135,7 +1135,7 @@ extern Lisp_Object save_excursion_restore (), save_restriction_restore ();
 extern Lisp_Object Fchar_to_string ();
 
 /* defined in buffer.c */
-extern Lisp_Object Vbuffer_alist;
+extern Lisp_Object Vbuffer_alist, Vinhibit_read_only;
 extern Lisp_Object Fget_buffer (), Fget_buffer_create (), Fset_buffer ();
 extern Lisp_Object Fbarf_if_buffer_read_only ();
 extern Lisp_Object Fcurrent_buffer (), Fswitch_to_buffer (), Fpop_to_buffer ();
@@ -1295,7 +1295,6 @@ extern int immediate_quit;	    /* Nonzero means ^G can quit instantly */
 
 extern void debugger ();
 
-extern void *malloc (), *realloc ();
 extern char *getenv (), *ctime (), *getwd ();
 extern long *xmalloc (), *xrealloc ();
 extern void xfree ();
