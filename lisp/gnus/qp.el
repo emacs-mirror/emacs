@@ -85,10 +85,13 @@ the form expected by `skip-chars-forward'.
 If `mm-use-ultra-safe-encoding' is set, fold lines unconditionally and
 encode lines starting with \"From\"."
   (interactive "r")
-  (if (delq 'eight-bit-graphic
-	    (delq 'eight-bit-control
-		  (delq 'ascii (mm-find-charset-region from to))))
-      (error "Multibyte character in QP encoding region"))
+  ;; Fixme: what should this do in XEmacs/Mule?
+  (if (fboundp 'find-charset-region)	; else XEmacs, non-Mule
+      (if (delq 'unknown		; Emacs 20 unibyte
+		(delq 'eight-bit-graphic ; Emacs 21
+		      (delq 'eight-bit-control
+			    (delq 'ascii (find-charset-region from to)))))
+	  (error "Multibyte character in QP encoding region")))
   (unless class
     (setq class "^\000-\007\013\015-\037\200-\377="))
   (if (fboundp 'string-as-multibyte)
