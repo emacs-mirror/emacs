@@ -122,8 +122,6 @@
 	ada-make-subprogram-body): Rewritten to benefit from the gnatstub
 	external program
 
-	* ada-support.el: New file
-
 1999-10-07  Dave Love  <fx@gnu.org>
 
 	* bindings.el (bound-and-true-p): New macro.
