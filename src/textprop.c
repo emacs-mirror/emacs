@@ -83,9 +83,10 @@ Lisp_Object interval_insert_in_front_hooks;
    to capture that error in GDB by putting a breakpoint on it.  */
 
 static void
-text_read_only ()
+text_read_only (propval)
+     Lisp_Object propval;
 {
-  Fsignal (Qtext_read_only, Qnil);
+  Fsignal (Qtext_read_only, STRINGP (propval) ? Fcons (propval, Qnil) : Qnil);
 }
 
 
@@ -604,7 +605,7 @@ If POSITION is at the end of OBJECT, the value is nil.  */)
   return textget (Ftext_properties_at (position, object), prop);
 }
 
-/* Return the value of POSITION's property PROP, in OBJECT.
+/* Return the value of char's property PROP, in OBJECT at POSITION.
    OBJECT is optional and defaults to the current buffer.
    If OVERLAY is non-0, then in the case that the returned property is from
    an overlay, the overlay found is returned in *OVERLAY, otherwise nil is
@@ -638,7 +639,6 @@ get_char_property_and_overlay (position, prop, object, overlay)
       int posn = XINT (position);
       int noverlays;
       Lisp_Object *overlay_vec, tem;
-      int next_overlay;
       int len;
       struct buffer *obuf = current_buffer;
 
@@ -649,7 +649,7 @@ get_char_property_and_overlay (position, prop, object, overlay)
       overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
 
       noverlays = overlays_at (posn, 0, &overlay_vec, &len,
-			       &next_overlay, NULL, 0);
+			       NULL, NULL, 0);
 
       /* If there are more than 40,
 	 make enough space for all, and try again.  */
@@ -658,7 +658,7 @@ get_char_property_and_overlay (position, prop, object, overlay)
 	  len = noverlays;
 	  overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
 	  noverlays = overlays_at (posn, 0, &overlay_vec, &len,
-				   &next_overlay, NULL, 0);
+				   NULL, NULL, 0);
 	}
       noverlays = sort_overlays (overlay_vec, noverlays, w);
 
@@ -2051,7 +2051,7 @@ verify_interval_modification (buf, start, end)
 		      if (TMEM (Qread_only, tem)
 			  || (NILP (Fplist_get (i->plist, Qread_only))
 			      && TMEM (Qcategory, tem)))
-			text_read_only ();
+			text_read_only (after);
 		    }
 		}
 
@@ -2071,7 +2071,7 @@ verify_interval_modification (buf, start, end)
 		      if (! TMEM (Qread_only, tem)
 			  && (! NILP (Fplist_get (prev->plist,Qread_only))
 			      || ! TMEM (Qcategory, tem)))
-			text_read_only ();
+			text_read_only (before);
 		    }
 		}
 	    }
@@ -2090,13 +2090,13 @@ verify_interval_modification (buf, start, end)
 		  if (TMEM (Qread_only, tem)
 		      || (NILP (Fplist_get (i->plist, Qread_only))
 			  && TMEM (Qcategory, tem)))
-		    text_read_only ();
+		    text_read_only (after);
 
 		  tem = textget (prev->plist, Qrear_nonsticky);
 		  if (! TMEM (Qread_only, tem)
 		      && (! NILP (Fplist_get (prev->plist, Qread_only))
 			  || ! TMEM (Qcategory, tem)))
-		    text_read_only ();
+		    text_read_only (after);
 		}
 	    }
 	}
@@ -2118,7 +2118,7 @@ verify_interval_modification (buf, start, end)
       do
 	{
 	  if (! INTERVAL_WRITABLE_P (i))
-	    text_read_only ();
+	    text_read_only (textget (i->plist, Qread_only));
 
 	  if (!inhibit_modification_hooks)
 	    {
