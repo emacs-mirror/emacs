@@ -2294,7 +2294,6 @@ Start discarding off end if gets this big."
   (interactive)
   (if (null (mark t))
       (error "No mark set in this buffer")
-    (setq this-command 'pop-to-mark-command)
     (goto-char (mark t))
     (pop-mark)))
 
@@ -2325,12 +2324,16 @@ purposes.  See the documentation of `set-mark' for more information."
       (setq transient-mark-mode nil))
   (cond
    ((not (eq this-command 'set-mark-command))
-    (push-mark-command t))
+    (if arg
+	(pop-to-mark-command)
+      (push-mark-command t)))
    ((eq last-command 'pop-to-mark-command)
     (if (and (consp arg) (> (prefix-numeric-value arg) 4))
 	(push-mark-command nil)
+      (setq this-command 'pop-to-mark-command)
       (pop-to-mark-command)))
    (arg
+    (setq this-command 'pop-to-mark-command)
     (pop-to-mark-command))
    ((and (eq last-command 'set-mark-command)
 	 mark-active (null transient-mark-mode))
