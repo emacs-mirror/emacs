@@ -213,3 +213,21 @@ extern Lisp_Object Vhighlight_wrong_size_font;
 extern Lisp_Object Vclip_large_size_font;
 
 #endif /* _FONTSET_H */
+extern int font_idx_temp;
+
+/* Load a font named FONTNAME for displaying CHARSET on frame F.
+   All fonts for frame F is stored in a table pointed by FONT_TABLE.
+   Return a pointer to the struct font_info of the loaded font.
+   If loading fails, return 0;
+   If FONTNAME is NULL, the name is taken from the information of FONTSET.
+   If FONTSET is given, try to load a font whose size matches that of
+   FONTSET, and, the font index is stored in the table for FONTSET.  */
+
+#define FS_LOAD_FONT(f, font_table, charset, fontname, fontset)		  \
+  (fontset >= 0 && fontset < FRAME_FONTSET_DATA (f)->n_fontsets		  \
+   && (font_idx_temp = (FRAME_FONTSET_DATA (f)				  \
+			->fontset_table[fontset]->font_indexes[charset]), \
+       font_idx_temp >= 0)						  \
+   ? font_table + font_idx_temp						  \
+   : fs_load_font (f, font_table, charset, fontname, fontset))
+
