@@ -86,14 +86,6 @@ reads the sentence before point, and prints the Doctor's answer."
   (insert "\n"))
 
 (defun make-doctor-variables ()
-  (make-local-variable 'monosyllables)
-  (setq monosyllables
-	"
-     Your attitude at the end of the session was wholly unacceptable.
-     Please try to come back next time with a willingness to speak more
-     freely. If you continue to refuse to talk openly, there is little
-     I can do to help!
-")
   (make-local-variable 'typos)
   (setq typos
 	(mapcar (function (lambda (x)
@@ -347,12 +339,6 @@ reads the sentence before point, and prints the Doctor's answer."
 	  (($ please) allow me to do the questioning \.)
 	  (i have asked myself that question many times \.)
 	  (($ please) try to answer that question yourself \.)))
-  (make-local-variable 'elist)
-  (setq elist
-	'((($ please) try to calm yourself \.)
-	  (you seem very excited \. relax \. ($ please) ($ describe) ($ things)
-	       \.)
-	  (you\'re being very emotional \. calm down \.)))
   (make-local-variable 'foullst)
   (setq foullst
 	'((($ please) watch your tongue!)
