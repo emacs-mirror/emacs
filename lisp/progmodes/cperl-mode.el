@@ -451,8 +451,19 @@ Before reporting (non-)problems look in the problem section on what I
 know about them.")
 
 (defvar cperl-problems 'please-ignore-this-line
-"Emacs had a _very_ restricted syntax parsing engine (until RMS's Emacs 
-20.1). 
+"Some faces will not be shown on some versions of Emacs unless you
+install choose-color.el, available from
+   ftp://ftp.math.ohio-state.edu/pub/users/ilya/emacs/
+
+Emacs had a _very_ restricted syntax parsing engine until RMS's Emacs
+20.1.  Most problems below are corrected starting from this version of
+Emacs, and all of them should go with (future) RMS's version 20.3.
+
+Note that even with newer Emacsen interaction of `font-lock' and
+syntaxification is not cleaned up.  You may get slightly different
+colors basing on the order of fontification and syntaxification.  This
+might be corrected by setting `cperl-syntaxify-by-font-lock' to t, but
+the corresponding code is still extremely buggy.
 
 Even with older Emacsen CPerl mode tries to corrects some Emacs
 misunderstandings, however, for efficiency reasons the degree of
@@ -532,9 +543,9 @@ To speed up coloring the following compromises exist:
 Imenu in 19.31 is broken.  Set `imenu-use-keymap-menu' to t, and remove
 `car' before `imenu-choose-buffer-index' in `imenu'.
 `imenu-add-to-menubar' in 20.2 is broken.  
-Most things on XEmacs are broken too, judging by bug reports I recieve.  
-Note that some releases of XEmacs are better than the others as far as bugs
-reports I see are concerned.")
+A lot of things on XEmacs may be broken too, judging by bug reports I
+recieve.  Note that some releases of XEmacs are better than the others
+as far as bugs reports I see are concerned.")
 
 (defvar cperl-praise 'please-ignore-this-line
   "RMS asked me to list good things about CPerl.  Here they go:
@@ -546,7 +557,7 @@ mode - but the latter number may have improved too in last years) even
 without `syntax-table' property; When using this property, it should 
 handle 99.995% of lines correct - or somesuch.
 
-2) It is generally belived to be \"the most user-friendly Emacs
+2) It is generally believed to be \"the most user-friendly Emacs
 package\" whatever it may mean (I doubt that the people who say similar
 things tried _all_ the rest of Emacs ;-), but this was not a lonely
 voice);
@@ -1302,7 +1313,8 @@ or as help on variables `cperl-tips', `cperl-problems',
   (if cperl-pod-here-scan 
       (or (and (boundp 'font-lock-mode)
 	       (eval 'font-lock-mode)	; Avoid warning
-	       (boundp 'font-lock-hot-pass)) ; Newer font-lock
+	       (boundp 'font-lock-hot-pass) ; Newer font-lock
+	       cperl-syntaxify-by-font-lock)
 	  (cperl-find-pods-heres))))
 
 ;; Fix for perldb - make default reasonable
@@ -1496,7 +1508,14 @@ char is \"{\", insert extra newline before only if
 	   (skip-chars-backward "$")
 	   (looking-at "\\(\\$\\$\\)*\\$\\([^\\$]\\|$\\)"))
 	 (insert ?\ ))
-    (if (cperl-after-expr-p nil "{;)") nil (setq cperl-auto-newline nil))
+    ;; Check whether we are in comment
+    (if (and 
+	 (save-excursion
+	   (beginning-of-line)
+	   (not (looking-at "[ \t]*#")))
+	 (cperl-after-expr-p nil "{;)"))
+	nil
+      (setq cperl-auto-newline nil))
     (cperl-electric-brace arg)
     (and (cperl-val 'cperl-electric-parens)
 	 (eq last-command-char ?{)
@@ -3157,7 +3176,8 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 	(progn
 	  (forward-sexp -1)
 	  (cperl-backward-to-noncomment lim)
-	  (or (eq (preceding-char) ?\) ) ; if () {}    sub f () {}
+	  (or (eq (point) lim)
+	      (eq (preceding-char) ?\) ) ; if () {}    sub f () {}
 	      (if (eq (char-syntax (preceding-char)) ?w) ; else {}
 		  (save-excursion
 		    (forward-sexp -1)
@@ -3190,7 +3210,8 @@ CHARS is a string that contains good characters to have before us (however,
 	  (skip-chars-backward " \t")
 	  (if (< p (point)) (goto-char p))
 	  (setq stop t)))
-      (or (bobp)
+      (or (bobp)			; ???? Needed
+	  (eq (point) lim)
 	  (progn
 	    (if test (eval test)
 	      (or (memq (preceding-char) (append (or chars "{;") nil))
@@ -3213,6 +3234,7 @@ CHARS is a string that contains good characters to have before us (however,
      (forward-sexp -1)
      (cperl-backward-to-noncomment (point-min))
      (or (bobp)
+	 (eq (point) lim)
 	 (not (= (char-syntax (preceding-char)) ?w))
 	 (progn
 	   (forward-sexp -1)
@@ -3435,6 +3457,7 @@ conditional/loop constructs."
 				 (current-column))
 	    new-comm-indent old-comm-indent)
       (goto-char start)
+      (setq end (set-marker (make-marker) end))	; indentation changes pos
       (or (bolp) (beginning-of-line 2))
       (or (fboundp 'imenu-progress-message)
 	  (message "Indenting... For feedback load `imenu'..."))
@@ -4255,6 +4278,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
 (defconst cperl-styles-entries
   '(cperl-indent-level cperl-brace-offset cperl-continued-brace-offset     
     cperl-label-offset cperl-extra-newline-before-brace 
+    cperl-merge-trailing-else
     cperl-continued-statement-offset))
 
 (defconst cperl-style-alist
@@ -4264,6 +4288,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
      (cperl-continued-brace-offset     .  0)
      (cperl-label-offset               . -2)
      (cperl-extra-newline-before-brace .  nil)
+     (cperl-merge-trailing-else	       .  t)
      (cperl-continued-statement-offset .  2))
     ("PerlStyle" ; CPerl with 4 as indent
      (cperl-indent-level               .  4)
@@ -4271,6 +4296,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
      (cperl-continued-brace-offset     .  0)
      (cperl-label-offset               . -4)
      (cperl-extra-newline-before-brace .  nil)
+     (cperl-merge-trailing-else	       .  t)
      (cperl-continued-statement-offset .  4))
     ("GNU"
      (cperl-indent-level               .  2)
@@ -4278,6 +4304,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
      (cperl-continued-brace-offset     .  0)
      (cperl-label-offset               . -2)
      (cperl-extra-newline-before-brace .  t)
+     (cperl-merge-trailing-else	       .  nil)
      (cperl-continued-statement-offset .  2))
     ("K&R"
      (cperl-indent-level               .  5)
@@ -4285,6 +4312,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
      (cperl-continued-brace-offset     . -5)
      (cperl-label-offset               . -5)
      ;;(cperl-extra-newline-before-brace .  nil) ; ???
+     (cperl-merge-trailing-else	       .  nil)
      (cperl-continued-statement-offset .  5))
     ("BSD"
      (cperl-indent-level               .  4)
@@ -4299,6 +4327,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
      (cperl-continued-brace-offset     . -4)
      (cperl-label-offset               . -4)
      (cperl-continued-statement-offset .  4)
+     (cperl-merge-trailing-else	       .  nil)
      (cperl-extra-newline-before-brace .  t))
     ("Current")
     ("Whitesmith"
