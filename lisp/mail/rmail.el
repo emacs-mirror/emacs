@@ -187,9 +187,9 @@ and the value of the environment variable MAIL overrides it)."
   ;; Don't use backquote here, because we don't want to need it
   ;; at load time.
   :type (list 'choice '(const :tag "Default" nil)
-	      (list 'repeat ':value (or (getenv "MAIL")
-					(concat "/var/spool/mail/"
-						(getenv "USER")))
+	      (list 'repeat ':value (list (or (getenv "MAIL")
+					      (concat "/var/spool/mail/"
+						      (getenv "USER"))))
 		    'file))
   :group 'rmail-retrieve
   :group 'rmail-files)
