@@ -200,6 +200,7 @@ scan_c_file (filename)
   register int c;
   register int commas;
   register int defunflag;
+  register int defvarperbufferflag;
   register int defvarflag;
   int minargs, maxargs;
 
@@ -239,8 +240,22 @@ scan_c_file (filename)
 	  c = getc (infile);
 	  if (c != 'V')
 	    continue;
+	  c = getc (infile);
+	  if (c != 'A')
+	    continue;
+	  c = getc (infile);
+	  if (c != 'R')
+	    continue;
+	  c = getc (infile);
+	  if (c != '_')
+	    continue;
+
 	  defvarflag = 1;
 	  defunflag = 0;
+
+	  c = getc (infile);
+	  defvarperbufferflag = (c == 'P');
+
 	  c = getc (infile);
 	}
       else if (c == 'D')
@@ -271,6 +286,8 @@ scan_c_file (filename)
 
       if (defunflag)
 	commas = 5;
+      else if (defvarperbufferflag)
+	commas = 2;
       else if (defvarflag)
 	commas = 1;
       else  /* For DEFSIMPLE and DEFPRED */
