@@ -1095,6 +1095,26 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	  int pos_here = pos;
 	  int newpos;
 
+	  /* Don't skip invisible if we are already at the margin.  */
+	  if (vpos > tovpos || vpos == tovpos && hpos >= tohpos)
+	    {
+	      if (contin_hpos && prev_hpos == 0
+		  && hpos > tohpos
+		  && (contin_hpos == width || wide_column_end_hpos > width))
+		{ /* Line breaks because we can't put the character at the
+		     previous line any more.  It is not the multi-column
+		     character continued in middle.  Go back to previous
+		     buffer position, screen position, and set tab offset
+		     to previous value.  It's the beginning of the
+		     line.  */
+		  pos = prev_pos;
+		  pos_byte = prev_pos_byte;
+		  hpos = prev_hpos;
+		  tab_offset = prev_tab_offset;
+		}
+	      break;
+	    }
+
 	  /* If the caller says that the screen position came from an earlier
 	     call to compute_motion, then we've already accounted for the
 	     overlay strings at point.  This is only true the first time
