@@ -85,6 +85,8 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
 (defun rmail-edit-current-message ()
   "Edit the contents of this message."
   (interactive)
+  (if (= rmail-total-messages 0)
+      (error "No messages in this file"))
   (make-local-variable 'rmail-old-pruned)
   (setq rmail-old-pruned (rmail-msg-is-pruned))
   (make-local-variable 'rmail-edit-saved-coding-system)
