@@ -1,5 +1,11 @@
 2004-06-04  Miles Bader  <miles@gnu.org>
 
+	* faces.el (face-differs-from-default-p): Use a different
+	implementation, so we can really check whether FACE displays
+	differently or not.
+
+2004-06-04  Miles Bader  <miles@gnu.org>
+
 	* faces.el (display-supports-face-attributes-p): Implement a
 	`different from default' check for non-tty displays.
 

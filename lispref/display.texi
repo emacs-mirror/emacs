@@ -2288,10 +2288,8 @@ same attributes for display.
 @end defun
 
 @defun face-differs-from-default-p face &optional frame
-This returns @code{t} if the face @var{face} displays differently from
-the default face.  A face is considered to be ``the same'' as the
-default face if each attribute is either the same as that of the default
-face, or unspecified (meaning to inherit from the default).
+This returns non-@code{nil} if the face @var{face} displays
+differently from the default face.
 @end defun
 
 @node Auto Faces
