@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.18) $
+ * $HopeName: MMsrc!arena.c(trunk.19) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: Any MPS developer
@@ -40,7 +40,7 @@
 /* finalization */
 #include "poolmrg.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.18) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.19) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -1134,7 +1134,7 @@ Res ArenaFinalize(Arena arena, Addr obj)
 
 /* Peek / Poke */
 
-Word ArenaPeek(Arena arena, Addr addr)
+Ref ArenaPeek(Arena arena, Addr addr)
 {
   Seg seg;
   Bool b;
@@ -1145,45 +1145,47 @@ Word ArenaPeek(Arena arena, Addr addr)
   if(b) {
     return ArenaPeekSeg(arena, seg, addr);
   } else {
-    Word w;
-    w = *(Word *)addr;
-    return w;
+    Ref ref;
+    ref = *(Ref *)addr;
+    return ref;
   }
 }
 
-Word ArenaPeekSeg(Arena arena, Seg seg, Addr addr)
+Ref ArenaPeekSeg(Arena arena, Seg seg, Addr addr)
 {
-  Word w;
+  Ref ref;
 
   AVERT(Arena, arena);
   AVERT(Seg, seg);
 
   AVER(SegBase(seg) <= addr);
   AVER(addr < SegLimit(seg));
+  /* Consider checking addr's alignment using seg->pool->alignment */
 
   ShieldExpose(arena, seg);
-  w = *(Word *)addr;
+  ref = *(Ref *)addr;
   ShieldCover(arena, seg);
-  return w;
+  return ref;
 }
 
-void ArenaPoke(Arena arena, Addr addr, Word word)
+void ArenaPoke(Arena arena, Addr addr, Ref ref)
 {
   Seg seg;
   Bool b;
 
   AVERT(Arena, arena);
-  /* can't check word, will check addr shortly */
+  /* Can't check addr as it is arbitrary */
+  /* Can't check ref as it is arbitrary */
 
   b = SegOfAddr(&seg, arena, addr);
   if(b) {
-    ArenaPokeSeg(arena, seg, addr, word);
+    ArenaPokeSeg(arena, seg, addr, ref);
   } else {
-    *(Word *)addr = word;
+    *(Ref *)addr = ref;
   }
 }
 
-void ArenaPokeSeg(Arena arena, Seg seg, Addr addr, Word word)
+void ArenaPokeSeg(Arena arena, Seg seg, Addr addr, Ref ref)
 {
   RefSet summary;
 
@@ -1191,12 +1193,13 @@ void ArenaPokeSeg(Arena arena, Seg seg, Addr addr, Word word)
   AVERT(Seg, seg);
   AVER(SegBase(seg) <= addr);
   AVER(addr < SegLimit(seg));
-  /* word is arbitrary and can't be checked */
+  /* Consider checking addr's alignment using seg->pool->alignment */
+  /* ref is arbitrary and can't be checked */
 
   ShieldExpose(arena, seg);
-  *(Word *)addr = word;
+  *(Ref *)addr = ref;
   summary = SegSummary(seg);
-  summary = RefSetAdd(arena, summary, (Addr)word);
+  summary = RefSetAdd(arena, summary, (Addr)ref);
   SegSetSummary(seg, summary);
   ShieldCover(arena, seg);
 }
@@ -1204,7 +1207,7 @@ void ArenaPokeSeg(Arena arena, Seg seg, Addr addr, Word word)
 /* Read.  This forms part of a software barrier.  It provides
  * fine-grain access to single words of segments */
 
-Word ArenaRead(Arena arena, Addr addr)
+Ref ArenaRead(Arena arena, Addr addr)
 {
   Bool b;
   Seg seg;
@@ -1215,11 +1218,10 @@ Word ArenaRead(Arena arena, Addr addr)
   b = SegOfAddr(&seg, arena, addr);
   AVER(b == TRUE);
 
-  /* @@@@ The following should scan for just the flipped traces */
-  /* and not all the busy traces. */
-  /* @@@@ Should scan at rank phase-of-trace, not RankEXACT which is */
-  /* conservative */
-  res = TraceScanSingleRef(arena->busyTraces,
+  /* .read.conservative: @@@@ Should scan at rank phase-of-trace, */
+  /* not RankEXACT which is conservative.  See also */
+  /* impl.c.trace.scan.conservative for a similar nasty. */
+  res = TraceScanSingleRef(arena->flippedTraces,
                            arena, seg,
 			   RankEXACT, (Ref *)addr);
   AVER(res == ResOK);    /* @@@@ We shouldn't assume that this succeeds */
