@@ -5091,6 +5091,7 @@ w32_draw_window_cursor (w, glyph_row, x, y, cursor_type, cursor_width, on_p, act
 	 and speech synthesizers can follow the cursor.  */
       if (active_p)
 	{
+	  struct frame *f = XFRAME (WINDOW_FRAME (w));
 	  HWND hwnd = FRAME_W32_WINDOW (f);
 
 	  w32_system_caret_x
