@@ -1,3 +1,16 @@
+2003-01-31  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (SKIP_GLYPHS): New macro.
+	(set_cursor_from_row): Pay attention to string display properties.
+
+	* category.c (copy_category_entry): Fix for the case that RANGE
+	is an integer.
+
+	* xterm.c (x_encode_char): Call ccl_driver with the last arg Qnil.
+
+	* w32term.c (w32_encode_char): Call ccl_driver with the last arg
+	Qnil.
+
 2003-01-30  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (Fcharset_id_internal): New function.
