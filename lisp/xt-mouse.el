@@ -36,15 +36,6 @@
 
 ;;; Code: 
 
-;; Emacs only generates down events when needed. 
-;; This is too hard to emulate, so we cheat instead.
-(or (lookup-key global-map [ down-mouse-1 ])
-    (define-key global-map [ down-mouse-1 ] 'ignore))
-(or (lookup-key global-map [ down-mouse-2 ])
-    (define-key global-map [ down-mouse-2 ] 'ignore))
-(or (lookup-key global-map [ down-mouse-3 ])
-    (define-key global-map [ down-mouse-3 ] 'ignore))
-
 (define-key function-key-map "\e[M" 'xterm-mouse-translate)
 
 (defun xterm-mouse-translate (event)
@@ -53,23 +44,56 @@
     (save-window-excursion
       (deactivate-mark)
       (let* ((last)
-	     (down (xterm-mouse-event)))
+	     (down (xterm-mouse-event))
+	     (down-command (nth 0 down))
+	     (down-data (nth 1 down))
+	     (down-where (nth 1 down-data))
+	     (down-binding (key-binding (if (symbolp down-where)
+					    (vector down-where down-command)
+					  (vector down-command)))))
 	(or (and (eq (read-char) ?\e)
 		 (eq (read-char) ?\[)
 		 (eq (read-char) ?M))
 	    (error "Unexpected escape sequence from XTerm"))
-	(let ((click (xterm-mouse-event)))
-	  (setq unread-command-events
-		(append unread-command-events
-			(if (eq (nth 1 (nth 1 down)) (nth 1 (nth 1 click)))
-			    (list click)
-			  (list
-			   ;; Generate move event to cheat `mouse-drag-region'.
-			   (list 'mouse-movement (nth 1 click))
-			   ;; Generate a drag event.
-			   (list (intern (concat "drag-mouse-" (+ 1 last)))
-				 (nth 1 down) (nth 1 click)))))))
-	(vector down)))))
+	(let* ((click (xterm-mouse-event))
+	       (click-command (nth 0 click))
+	       (click-data (nth 1 click))
+	       (click-where (nth 1 click-data)))
+	  (if (memq down-binding '(nil ignore))
+	      (if (and (symbolp click-where)
+		       (not (eq 'menu-bar click-where)))
+		  (vector (list click-where click-data) click)
+		(vector click))
+	    (setq unread-command-events
+		  (if (eq down-where click-where)
+		      (list click)
+		    (list
+		     ;; Cheat `mouse-drag-region' with move event.
+		     (list 'mouse-movement click-data)
+		     ;; Generate a drag event.
+		     (if (symbolp down-where)
+			 0
+		       (list (intern (concat "drag-mouse-" (+ 1 last)))
+			     down-data click-data))
+		     )))
+	    (if (and (symbolp down-where)
+		     (not (eq 'menu-bar down-where)))
+		(vector (list down-where down-data) down)
+	      (vector down))))))))
+
+(defvar xterm-mouse-x 0
+  "Position of last xterm mouse event relative to the frame.")
+
+(defvar xterm-mouse-y 0
+  "Position of last xterm mouse event relative to the frame.")
+
+(defadvice mouse-position (around xterm-mouse activate)
+  "Use last key from xterm-mouse-mode if available."
+  (let ((answer ad-do-it))
+    (setq ad-return-value
+	  (if xterm-mouse-mode
+	      (cons (car answer) (cons xterm-mouse-x xterm-mouse-y))
+	    answer))))
 
 (defun xterm-mouse-event ()
   ;; Convert XTerm mouse event to Emacs mouse event.
@@ -78,7 +102,9 @@
 	 (y (- (read-char) ?  1))
 	 (point (cons x y))
 	 (window (window-at x y))
-	 (where (coordinates-in-window-p point window))
+	 (where (if window 
+		    (coordinates-in-window-p point window)
+		  'menu-bar))
 	 (pos (if (consp where)
 		  (progn
 		    (select-window window)
@@ -92,6 +118,8 @@
 			    (concat "mouse-" (+ 1 last))
 			  (setq last type)
 			  (concat "down-mouse-" (+ 1 type))))))
+    (setq xterm-mouse-x x
+	  xterm-mouse-y y)
     (list mouse
 	  (list window pos point
 		(/ (nth 2 (current-time)) 1000)))))
