@@ -4540,22 +4540,21 @@ set_window_cursor_after_update (w)
 	  int yb = window_text_bottom_y (w);
 
 	  last_row = NULL;
-	  for (row = MATRIX_ROW (w->current_matrix, 0);
-	       row->enabled_p;
-	       ++row)
+	  row = w->current_matrix->rows;
+	  while (row->enabled_p
+		 && (last_row == NULL
+		     || MATRIX_ROW_BOTTOM_Y (row) <= yb))
 	    {
 	      if (row->used[TEXT_AREA]
 		  && row->glyphs[TEXT_AREA][0].charpos >= 0)
 		last_row = row;
-
-	      if (MATRIX_ROW_BOTTOM_Y (row) >= yb)
-		break;
+	      ++row;
 	    }
 	  
 	  if (last_row)
 	    {
-	      struct glyph *start = row->glyphs[TEXT_AREA];
-	      struct glyph *last = start + row->used[TEXT_AREA] - 1;
+	      struct glyph *start = last_row->glyphs[TEXT_AREA];
+	      struct glyph *last = start + last_row->used[TEXT_AREA] - 1;
 
 	      while (last > start && last->charpos < 0)
 		--last;
