@@ -231,20 +231,22 @@ ignored."
 
 
 ;;;###autoload
-(defun skeleton-insert (skeleton &optional skeleton-regions str)
+(defun skeleton-insert (skeleton &optional regions str)
   "Insert the complex statement skeleton SKELETON describes very concisely.
 
-With optional third REGIONS wrap first interesting point (`_') in skeleton
-around next REGIONS words, if REGIONS is positive.  If REGIONS is negative,
-wrap REGIONS preceding interregions into first REGIONS interesting positions
-\(successive `_'s) in skeleton.  An interregion is the stretch of text between
-two contiguous marked points.  If you marked A B C [] (where [] is the cursor)
-in alphabetical order, the 3 interregions are simply the last 3 regions.  But
-if you marked B A [] C, the interregions are B-A, A-[], []-C.
+With optional second argument REGIONS, wrap first interesting point
+\(`_') in skeleton around next REGIONS words, if REGIONS is positive.
+If REGIONS is negative, wrap REGIONS preceding interregions into first
+REGIONS interesting positions \(successive `_'s) in skeleton.
 
-Optional fourth STR is the value for the variable `str' within the skeleton.
-When this is non-`nil' the interactor gets ignored, and this should be a valid
-skeleton element.
+An interregion is the stretch of text between two contiguous marked
+points.  If you marked A B C [] (where [] is the cursor) in
+alphabetical order, the 3 interregions are simply the last 3 regions.
+But if you marked B A [] C, the interregions are B-A, A-[], []-C.
+
+The optional third argument STR, if specified, is the value for the
+variable `str' within the skeleton.  When this is non-nil, the
+interactor gets ignored, and this should be a valid skeleton element.
 
 SKELETON is made up as (INTERACTOR ELEMENT ...).  INTERACTOR may be nil if
 not needed, a prompt-string or an expression for complex read functions.
@@ -268,10 +270,10 @@ different inputs.  The SKELETON is processed as often as the user enters a
 non-empty string.  \\[keyboard-quit] terminates skeleton insertion, but
 continues after `resume:' and positions at `_' if any.  If INTERACTOR in such
 a subskeleton is a prompt-string which contains a \".. %s ..\" it is
-formatted with `skeleton-subprompt'.  Such an INTERACTOR may also a list of
+formatted with `skeleton-subprompt'.  Such an INTERACTOR may also be a list of
 strings with the subskeleton being repeated once for each string.
 
-Quoted Lisp expressions are evaluated evaluated for their side-effect.
+Quoted Lisp expressions are evaluated for their side-effects.
 Other Lisp expressions are evaluated and the value treated as above.
 Note that expressions may not return `t' since this implies an
 endless loop.  Modes can define other symbols by locally setting them
@@ -286,39 +288,40 @@ available:
 
 When done with skeleton, but before going back to `_'-point call
 `skeleton-end-hook' if that is non-`nil'."
-  (and skeleton-regions
-       (setq skeleton-regions
-	     (if (> skeleton-regions 0)
-		 (list (point-marker)
-		       (save-excursion (forward-word skeleton-regions)
-				       (point-marker)))
-	       (setq skeleton-regions (- skeleton-regions))
-	       ;; copy skeleton-regions - 1 elements from `mark-ring'
-	       (let ((l1 (cons (mark-marker) mark-ring))
-		     (l2 (list (point-marker))))
-		 (while (and l1 (> skeleton-regions 0))
-		   (setq l2 (cons (car l1) l2)
-			 skeleton-regions (1- skeleton-regions)
-			 l1 (cdr l1)))
-		 (sort l2 '<))))
-       (goto-char (car skeleton-regions))
-       (setq skeleton-regions (cdr skeleton-regions)))
-  (let ((beg (point))
-	skeleton-modified skeleton-point resume: help input v1 v2)
-    (setq skeleton-positions nil)
-    (unwind-protect
-	(eval `(let ,skeleton-further-elements
-		 (skeleton-internal-list skeleton str)))
-      (run-hooks 'skeleton-end-hook)
-      (sit-for 0)
-      (or (pos-visible-in-window-p beg)
-	  (progn
-	    (goto-char beg)
-	    (recenter 0)))
-      (if skeleton-point
-	  (goto-char skeleton-point)))))
+  (let ((skeleton-regions regions))
+    (and skeleton-regions
+	 (setq skeleton-regions
+	       (if (> skeleton-regions 0)
+		   (list (point-marker)
+			 (save-excursion (forward-word skeleton-regions)
+					 (point-marker)))
+		 (setq skeleton-regions (- skeleton-regions))
+		 ;; copy skeleton-regions - 1 elements from `mark-ring'
+		 (let ((l1 (cons (mark-marker) mark-ring))
+		       (l2 (list (point-marker))))
+		   (while (and l1 (> skeleton-regions 0))
+		     (setq l2 (cons (car l1) l2)
+			   skeleton-regions (1- skeleton-regions)
+			   l1 (cdr l1)))
+		   (sort l2 '<))))
+	 (goto-char (car skeleton-regions))
+	 (setq skeleton-regions (cdr skeleton-regions)))
+    (let ((beg (point))
+	  skeleton-modified skeleton-point resume: help input v1 v2)
+      (setq skeleton-positions nil)
+      (unwind-protect
+	  (eval `(let ,skeleton-further-elements
+		   (skeleton-internal-list skeleton str)))
+	(run-hooks 'skeleton-end-hook)
+	(sit-for 0)
+	(or (pos-visible-in-window-p beg)
+	    (progn
+	      (goto-char beg)
+	      (recenter 0)))
+	(if skeleton-point
+	    (goto-char skeleton-point))))))
 
-(defun skeleton-read (str &optional initial-input recursive)
+(defun skeleton-read (PROMPT &optional initial-input recursive)
   "Function for reading a string from the minibuffer within skeletons.
 PROMPT may contain a `%s' which will be replaced by `skeleton-subprompt'.
 If non-`nil' second arg INITIAL-INPUT or variable `input' is a string or
@@ -326,7 +329,7 @@ cons with index to insert before reading.  If third arg RECURSIVE is non-`nil'
 i.e. we are handling the iterator of a subskeleton, returns empty string if
 user didn't modify input.
 While reading, the value of `minibuffer-help-form' is variable `help' if that
-is non-`nil' or a default string."
+is non-nil or a default string."
   (let ((minibuffer-help-form (or (if (boundp 'help) (symbol-value 'help))
 				  (if recursive "\
 As long as you provide input you will insert another subskeleton.
@@ -337,7 +340,7 @@ left, and the current one is removed as far as it has been entered.
 If you quit, the current subskeleton is removed as far as it has been
 entered.  No more of the skeleton will be inserted, except maybe for a
 syntactically necessary termination."
-					 "\
+				    "\
 You are inserting a skeleton.  Standard text gets inserted into the buffer
 automatically, and you are prompted to fill in the variable parts.")))
 	(eolp (eolp)))
@@ -345,19 +348,19 @@ automatically, and you are prompted to fill in the variable parts.")))
     (or eolp
 	(open-line 1))
     (unwind-protect
-	(setq str (if (stringp str)
-		      (read-string (format str skeleton-subprompt)
-				   (setq initial-input
-					 (or initial-input
-					     (symbol-value 'input))))
-		    (eval str)))
+	(setq prompt (if (stringp prompt)
+			 (read-string (format prompt skeleton-subprompt)
+				      (setq initial-input
+					    (or initial-input
+						(symbol-value 'input))))
+		       (eval prompt)))
       (or eolp
 	  (delete-char 1))))
   (if (and recursive
-	   (or (null str)
-	       (string= str "")
-	       (equal str initial-input)
-	       (equal str (car-safe initial-input))))
+	   (or (null prompt)
+	       (string= prompt "")
+	       (equal prompt initial-input)
+	       (equal prompt (car-safe initial-input))))
       (signal 'quit t)
     str))
 
