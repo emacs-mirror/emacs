@@ -1,3 +1,8 @@
+2004-11-10  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* ebuff-menu.el: Doc fixes throughout.
+	(electric-buffer-menu-mode-hook): New defvar.
+
 2004-11-10  Nick Roberts  <nickrob@snap.net.nz>
 
 	* tooltip.el: Don't require cl, comint, gud, gdb-ui for
