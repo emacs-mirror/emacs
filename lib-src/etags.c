@@ -139,7 +139,7 @@ char *savenstr (), *savestr ();
 char *etags_strchr (), *etags_strrchr ();
 char *etags_getcwd ();
 char *relative_filename (), *absolute_filename (), *absolute_dirname ();
-char *xmalloc (), *xrealloc ();
+long *xmalloc (), *xrealloc ();
 
 typedef void Lang_function ();
 #if FALSE				/* many compilers barf on this */
@@ -2068,8 +2068,9 @@ C_entries (c_ext, inf)
 			      while (token_name.size < strsize)
 				{
 				  token_name.size *= 2;
-				  token_name.buffer=xrealloc(token_name.buffer,
-							     token_name.size);
+				  token_name.buffer
+				    = (char *) xrealloc (token_name.buffer,
+							 token_name.size);
 				}
 			      strcpy (token_name.buffer, structtag);
 			      strcat (token_name.buffer, "::");
@@ -2082,8 +2083,9 @@ C_entries (c_ext, inf)
 			      while (token_name.size < toklen + 1)
 				{
 				  token_name.size *= 2;
-				  token_name.buffer=xrealloc(token_name.buffer,
-							      token_name.size);
+				  token_name.buffer
+				    = (char *) xrealloc (token_name.buffer,
+							 token_name.size);
 				}
 			      strncpy (token_name.buffer,
 				       newlb.buffer+tokoff, toklen);
@@ -3814,22 +3816,22 @@ absolute_dirname (file, cwd)
 }
 
 /* Like malloc but get fatal error if memory is exhausted.  */
-char *
+long *
 xmalloc (size)
      unsigned int size;
 {
-  char *result = (char *) malloc (size);
+  long *result = (long *) malloc (size);
   if (result == NULL)
     fatal ("virtual memory exhausted", 0);
   return result;
 }
 
-char *
+long *
 xrealloc (ptr, size)
      char *ptr;
      unsigned int size;
 {
-  char *result = (char *) realloc (ptr, size);
+  long *result = (long *) realloc (ptr, size);
   if (result == NULL)
     fatal ("virtual memory exhausted");
   return result;
