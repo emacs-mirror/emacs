@@ -1522,7 +1522,7 @@ Garbage collection happens automatically if you cons more than\n\
 
   gc_in_progress = 1;
 
-/*  clear_marks ();  */
+  /* clear_marks (); */
 
   /* In each "large string", set the MARKBIT of the size field.
      That enables mark_object to recognize them.  */
@@ -1603,7 +1603,7 @@ Garbage collection happens automatically if you cons more than\n\
   XUNMARK (buffer_defaults.name);
   XUNMARK (buffer_local_symbols.name);
 
-/*  clear_marks (); */
+  /* clear_marks (); */
   gc_in_progress = 0;
 
   consing_since_gc = 0;
