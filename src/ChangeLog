@@ -1,3 +1,19 @@
+2000-02-01  Dave Love  <fx@gnu.org>
+
+	* editfns.c (Fpropertize): Doc fix.
+
+	* process.c (Fstart_process): Doc fix.
+
+	* eval.c: Fix various doc strings not to duplicate information
+	from help-manyarg-func-alist.
+
+	* window.c (Fset_window_margins): Don't make interactive.  Doc
+	fix.
+
+	* doc.c (Vhelp_manyarg_func_alist): New variable.
+	(Fdocumentation): Use it.
+	(syms_of_doc): Define it.
+
 2000-01-31  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (xim_open_dpy): Remove unused local variable.
