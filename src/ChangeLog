@@ -1,3 +1,7 @@
+2001-01-29  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* textprop.c (Fset_text_properties): Doc fix.
+
 2001-01-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (forward_to_next_line_start): Remove xassert.

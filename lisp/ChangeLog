@@ -1,5 +1,7 @@
 2001-01-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* files.el (confirm-kill-emacs): Doc fix.
+
 	* frame.el (frame-initialize): Doc fix.
 
 	* time-stamp.el (time-stamp-string): Doc fix.
