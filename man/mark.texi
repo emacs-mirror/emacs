@@ -126,7 +126,7 @@ region.  But normally it does not.  Why not?
 Emacs, because once you have set a mark, there is @emph{always} a
 region (in that buffer).  And highlighting the region all the time
 would be a nuisance.  So normally Emacs highlights the region only
-immediately after you have selected it with the mouse.
+immediately after you have selected one with the mouse.
 
   You can turn on region highlighting by enabling Transient Mark mode.
 This is a more rigid mode of operation in which the region ``lasts''

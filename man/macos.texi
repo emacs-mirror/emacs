@@ -217,7 +217,7 @@ the name @samp{-ETL-fixed-*-iso8859-1}.
 
 
 @node Mac Functions
-@section Mac Specific Lisp Functions
+@section Mac-Specific Lisp Functions
 @cindex Lisp functions on the Mac OS
 
 @findex do-applescript
