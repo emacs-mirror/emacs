@@ -467,7 +467,7 @@ supported list, along with the values for this variable:
  Emacs 19:                   (1-bit)
 
 Infodock (based on XEmacs) has an additional symbol on this list:
-'infodock.")
+`infodock'.")
 
 
 
