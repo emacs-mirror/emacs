@@ -1,3 +1,14 @@
+2004-09-13  Hovav Shacham  <hovav@sha1.stanford.edu>
+
+	* windmove.el (windmove-frame-edges): Report coordinates of
+	outside edges of frame, not inside edges.
+	(windmove-coordinates-of-position): Convert into wrapper to new
+	function `windmove-coordinates-of-window-position';
+	`compute-motion' always applies to selected window.
+	(windmove-coordinates-of-position): Update documentation to refer
+	to Emacs 21 Lisp Reference Manual.
+	(windmove-find-other-window): Fix off-by-one errors for max x,y.
+
 2004-09-13  Kim F. Storm  <storm@cua.dk>
 
 	* isearch.el (isearch-resume-in-command-history): Rename from
