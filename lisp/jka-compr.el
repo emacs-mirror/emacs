@@ -667,8 +667,9 @@ There should be no more than seven characters after the final `/'")
 	(inhibit-file-name-operation operation))
     (apply operation args)))
 
-(defun toggle-auto-compression (arg)
-  "Toggle automatic file compression and decompression.
+;;;###autoload
+(defun auto-compression-mode (arg)
+  "Toggle automatic file compression and uncompression.
 With prefix argument ARG, turn auto compression on if positive, else off.
 Returns the new status of auto compression (non-nil means on)."
   (interactive "P")
@@ -695,7 +696,7 @@ Returns the new status of auto compression (non-nil means on)."
 	   (message "Automatic file (de)compression is now OFF.")))
 
     flag))
-
+(defalias 'toggle-auto-compression 'auto-compression-mode)
 
 (defun jka-compr-build-file-regexp ()
   (concat
