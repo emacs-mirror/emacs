@@ -69,15 +69,17 @@
 
 (make-coding-system
  'chinese-iso-8bit 2 ?c
- "ISO 2022 based EUC encoding for Chinese GB2312 (MIME:CN-GB-2312)"
+ "ISO 2022 based EUC encoding for Chinese GB2312 (MIME:CN-GB)"
  '(ascii chinese-gb2312 nil nil
    nil ascii-eol ascii-cntl nil nil nil nil)
  '((safe-charsets ascii chinese-gb2312)
-   (mime-charset . cn-gb-2312)))
+   (mime-charset . cn-gb)))
 
 (define-coding-system-alias 'cn-gb-2312 'chinese-iso-8bit)
 (define-coding-system-alias 'euc-china 'chinese-iso-8bit)
 (define-coding-system-alias 'euc-cn 'chinese-iso-8bit)
+(define-coding-system-alias 'cn-gb 'chinese-iso-8bit)
+(define-coding-system-alias 'gb2312 'chinese-iso-8bit)
 
 (make-coding-system
  'chinese-hz 0 ?z
