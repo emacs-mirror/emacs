@@ -413,7 +413,7 @@ The value is never nil.  */)
   reset_buffer_local_variables (b, 1);
 
   b->mark = Fmake_marker ();
-  BUF_MARKERS (b) = Qnil;
+  BUF_MARKERS (b) = NULL;
   b->name = name;
 
   /* Put this in the alist of all live buffers.  */
@@ -1408,28 +1408,26 @@ with SIGHUP.  */)
       /* Unchain all markers that belong to this indirect buffer.
 	 Don't unchain the markers that belong to the base buffer
 	 or its other indirect buffers.  */
-      for (tem = BUF_MARKERS (b); !NILP (tem); )
+      for (m = BUF_MARKERS (b); m; )
 	{
-	  Lisp_Object next;
-	  m = XMARKER (tem);
-	  next = m->chain;
+	  struct Lisp_Marker *next = m->next;
 	  if (m->buffer == b)
-	    unchain_marker (tem);
-	  tem = next;
+	    unchain_marker (m);
+	  m = next;
 	}
     }
   else
     {
       /* Unchain all markers of this buffer and its indirect buffers.
 	 and leave them pointing nowhere.  */
-      for (tem = BUF_MARKERS (b); !NILP (tem); )
+      for (m = BUF_MARKERS (b); m; )
 	{
-	  m = XMARKER (tem);
+	  struct Lisp_Marker *next = m->next;
 	  m->buffer = 0;
-	  tem = m->chain;
-	  m->chain = Qnil;
+	  m->next = NULL;
+	  m = next;
 	}
-      BUF_MARKERS (b) = Qnil;
+      BUF_MARKERS (b) = NULL;
       BUF_INTERVALS (b) = NULL_INTERVAL;
 
       /* Perhaps we should explicitly free the interval tree here... */
@@ -1773,7 +1771,7 @@ set_buffer_internal_1 (b)
   /* Look down buffer's list of local Lisp variables
      to find and update any that forward into C variables. */
 
-  for (tail = b->local_var_alist; !NILP (tail); tail = XCDR (tail))
+  for (tail = b->local_var_alist; CONSP (tail); tail = XCDR (tail))
     {
       valcontents = SYMBOL_VALUE (XCAR (XCAR (tail)));
       if ((BUFFER_LOCAL_VALUEP (valcontents)
@@ -1788,7 +1786,7 @@ set_buffer_internal_1 (b)
   /* Do the same with any others that were local to the previous buffer */
 
   if (old_buf)
-    for (tail = old_buf->local_var_alist; !NILP (tail); tail = XCDR (tail))
+    for (tail = old_buf->local_var_alist; CONSP (tail); tail = XCDR (tail))
       {
 	valcontents = SYMBOL_VALUE (XCAR (XCAR (tail)));
 	if ((BUFFER_LOCAL_VALUEP (valcontents)
@@ -2046,7 +2044,7 @@ but the contents viewed as characters do change.  */)
      (flag)
      Lisp_Object flag;
 {
-  Lisp_Object tail, markers;
+  struct Lisp_Marker *tail, *markers;
   struct buffer *other;
   int undo_enabled_p = !EQ (current_buffer->undo_list, Qt);
   int begv, zv;
@@ -2093,12 +2091,9 @@ but the contents viewed as characters do change.  */)
       GPT = GPT_BYTE;
       TEMP_SET_PT_BOTH (PT_BYTE, PT_BYTE);
 
-      tail = BUF_MARKERS (current_buffer);
-      while (! NILP (tail))
-	{
-	  XMARKER (tail)->charpos = XMARKER (tail)->bytepos;
-	  tail = XMARKER (tail)->chain;
-	}
+      
+      for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
+	tail->charpos = tail->bytepos;
 
       /* Convert multibyte form of 8-bit characters to unibyte.  */
       pos = BEG;
@@ -2246,20 +2241,17 @@ but the contents viewed as characters do change.  */)
       /* This prevents BYTE_TO_CHAR (that is, buf_bytepos_to_charpos) from
 	 getting confused by the markers that have not yet been updated.
 	 It is also a signal that it should never create a marker.  */
-      BUF_MARKERS (current_buffer) = Qnil;
+      BUF_MARKERS (current_buffer) = NULL;
 
-      while (! NILP (tail))
+      for (; tail; tail = tail->next)
 	{
-	  XMARKER (tail)->bytepos
-	    = advance_to_char_boundary (XMARKER (tail)->bytepos);
-	  XMARKER (tail)->charpos = BYTE_TO_CHAR (XMARKER (tail)->bytepos);
-
-	  tail = XMARKER (tail)->chain;
+	  tail->bytepos = advance_to_char_boundary (tail->bytepos);
+	  tail->charpos = BYTE_TO_CHAR (tail->bytepos);
 	}
 
       /* Make sure no markers were put on the chain
 	 while the chain value was incorrect.  */
-      if (! EQ (BUF_MARKERS (current_buffer), Qnil))
+      if (BUF_MARKERS (current_buffer))
 	abort ();
 
       BUF_MARKERS (current_buffer) = markers;
