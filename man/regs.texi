@@ -196,7 +196,7 @@ numeric argument stores zero in the register.
 
 @node RegFiles
 @section Keeping File Names in Registers
-@cindex saving fuile name in a register
+@cindex saving file name in a register
 
   If you visit certain file names frequently, you can visit them more
 conveniently if you put their names in registers.  Here's the Lisp code

@@ -896,7 +896,7 @@ asynchronous subprocesses on VMS.
 
 @item
 Marko Rahamaa wrote @file{latin-3.el}, code which sets up
-case-conversion and syntax tables for the ISO Latin-3 charact set.
+case-conversion and syntax tables for the ISO Latin-3 character set.
 
 @item
 Ashwin Ram wrote @file{refer.el}, commands to look up references in
