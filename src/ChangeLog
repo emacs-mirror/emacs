@@ -1,3 +1,14 @@
+2001-10-31  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (realize_x_face): If C is not a single-byte character,
+	set the face's colors_copied_bitwise_p instead of the defaulted_p
+	members which have a different meaning.
+	(free_face_colors): Do nothing for a face whose colors have been
+	copied bitwise.
+
+	* dispextern.h (struct face) <colors_copied_bitwise_p>: New
+	member.
+
 2001-10-31  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* marker.c: Change doc-string comments to `new style' [w/`doc:'
