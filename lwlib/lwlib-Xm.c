@@ -266,7 +266,7 @@ xm_arm_callback (w, client_data, call_data)
   widget_instance *instance;
 
   /* Get the id of the menu bar or popup menu this widget is in.  */
-  while (w != None)
+  while (w != NULL)
     {
       if (XmIsRowColumn (w))
 	{
@@ -280,7 +280,7 @@ xm_arm_callback (w, client_data, call_data)
       w = XtParent (w);
     }
 
-  if (w != None)
+  if (w != NULL)
     {
       instance = lw_get_widget_instance (w);
       if (instance && instance->info->highlight_cb)
