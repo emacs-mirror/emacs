@@ -1,3 +1,10 @@
+2000-12-05  Jason Rumney  <jasonr@gnu.org>
+
+	* md5.h: Remove underscores from function declarations.
+	(__attribute__, __alignof__) [!__GNUC__]: Define.
+
+	* md5.c: Delay include of md5.h until after namespace cleaning.
+
 2000-12-05  Jason Rumney  <jasonr@altavista.net>
 
 	* w32term.c (expose_area): Complete last change.
