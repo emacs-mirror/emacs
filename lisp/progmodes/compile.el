@@ -175,16 +175,19 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; parens around the line number, but that caused confusion for
     ;; GNU-style error messages.
     ;; This used to reject spaces and dashes in file names,
-    ;; but they are valudnow; so I made it more strict about the error
+    ;; but they are valid now; so I made it more strict about the error
     ;; message that follows.
     ("\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) \
 : \\(error\\|warning\\) C[0-9]+:" 1 3)
 
-    ;; Borland C++:
+    ;; Borland C++, C++Builder:
     ;;  Error ping.c 15: Unable to open include file 'sys/types.h'
     ;;  Warning ping.c 68: Call to function 'func' with no prototype
-    ("\\(Error\\|Warning\\) \\([a-zA-Z]?:?[^:( \t\n]+\\)\
- \\([0-9]+\\)\\([) \t]\\|:[^0-9\n]\\)" 2 3)
+    ;;  Error E2010 ping.c 15: Unable to open include file 'sys/types.h'
+    ;;  Warning W1022 ping.c 68: Call to function 'func' with no prototype
+    ("\\(Error\\|Warning\\) \\(\\([FEW][0-9]+\\) \\)?\
+\\([a-zA-Z]?:?[^:( \t\n]+\\)\
+ \\([0-9]+\\)\\([) \t]\\|:[^0-9\n]\\)" 4 5)
 
     ;; 4.3BSD lint pass 2
     ;; 	strcmp: variable # of args. llib-lc(359)  ::  /usr/src/foo/foo.c(8)
