@@ -24,6 +24,7 @@ Boston, MA 02111-1307, USA.  */
 #include <../src/config.h>
 #undef signal
 
+#include <ctype.h> 
 #include <stdio.h>
 #include <getopt.h>
 #ifdef HAVE_UNISTD_H
@@ -115,7 +116,7 @@ void
 print_help_and_exit ()
 {
   fprintf (stderr,
-	   "Usage: %s [-a ALTERNATE-EDITOR] [-n] [--no-wait] [+LINENUMBER] FILENAME\n",
+	   "Usage: %s [-a ALTERNATE-EDITOR] [-n] [--no-wait] [+LINE[:COLUMN]] FILENAME\n",
 	   progname);
   fprintf (stderr,
 	   "Or %s --version\n",
@@ -424,7 +425,7 @@ main (argc, argv)
       if (*argv[i] == '+')
 	{
 	  char *p = argv[i] + 1;
-	  while (*p >= '0' && *p <= '9') p++;
+	  while (isdigit (*p) || *p == ':') p++;
 	  if (*p != 0)
 	    fprintf (out, "%s/", quote_file_name (cwd));
 	}
@@ -567,7 +568,8 @@ main (argc, argv)
       if (*modified_arg == '+')
 	{
 	  char *p = modified_arg + 1;
-	  while (*p >= '0' && *p <= '9') p++;
+	  while (isdigit (*p) || *p == ':')
+	    p++;
 	  if (*p != 0)
 	    need_cwd = 1;
 	}
