@@ -1,5 +1,14 @@
 2000-06-05  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* emacs-lisp/autoload.el (make-autoload): Simplify docstring.
+	Make use of symbol-property doc-string-elt.
+	Use memq rather than a sequence of eq.
+	(doc-string-elt): Fix the wrong or missing previously unused values.
+	(autoload-print-form): New function extracted from
+	generate-file-autoloads to allow recursion when handling progn
+	so that defvar's and defun's docstrings are properly printed.
+	(generate-file-autoloads): Use it.
+
 	* emacs-lisp/easy-mmode.el (easy-mmode-define-global-mode): Autoload.
 	Use find-file-hooks in the minor-mode function.
 	Be careful not to loop indefinitely in the post-command-hook function.
