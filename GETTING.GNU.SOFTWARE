@@ -36,7 +36,7 @@ some funds to us to help in our efforts, you can order one from the
 Free Software Foundation.  See `/pub/gnu/GNUinfo/DISTRIB' and
 `/pub/gnu/GNUinfo/ORDERS'.
 
-* What format are the *.z files in?
+* What format are the *.gz files in?
 
 Because the unix `compress' utility is patented (by two separate
 patents, in fact), we cannot use it; it's not free software.
@@ -46,11 +46,11 @@ Therefore, the GNU Project has chosen a new compression utility,
 compress better anyway.  As of March 1993, all compressed files in the
 GNU anonymous FTP area, `prep.ai.mit.edu:/pub/gnu', have been
 converted to the new format.  Files compressed with this new
-compression program end in `.z' (as opposed to `compress'-compressed
+compression program end in `.gz' (as opposed to `compress'-compressed
 files, which end in `.Z').
 
 Gzip can uncompress `compress'-compressed files and `pack' files
-(which also end in `.z').  This is possible because the various
+(which end in `.z').  This is possible because the various
 decompression algorithms are not patented---only compression is.
 
 The gzip program is available from any GNU mirror site in shar, tar,
