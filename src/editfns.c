@@ -814,7 +814,7 @@ If you want them to stand for years in this century, you must do that yourself."
 {
   time_t time;
   struct tm tm;
-  Lisp_Object zone = (nargs > 6)? args[nargs - 1] : Qnil;
+  Lisp_Object zone = (nargs > 6 ? args[nargs - 1] : Qnil);
 
   CHECK_NUMBER (args[0], 0);	/* second */
   CHECK_NUMBER (args[1], 1);	/* minute */
