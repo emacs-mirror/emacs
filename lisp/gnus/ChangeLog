@@ -1,10 +1,13 @@
-2002-06-15  ShengHuo ZHU  <zsh@cs.rochester.edu>
+2002-06-21  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* nnheader.el (nnheader-file-name-translation-alist): Set the
 	default value for MS Windows systems.
 
 	* gnus-ems.el (nnheader-file-name-translation-alist): Removed.
 
+	* nndoc.el (nndoc-mime-digest-type-p): Set proper file-end. 
+	* nndoc.el: Add several new types.
+	
 2002-05-16  Juanma Barranquero  <lektu@terra.es>
 
 	* gnus-art.el (gnus-mime-copy-part): Fix typo.

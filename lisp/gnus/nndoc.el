@@ -1,9 +1,9 @@
 ;;; nndoc.el --- single file access for Gnus
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
-;; 	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
+;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -25,6 +25,8 @@
 
 ;;; Commentary:
 
+;; For Outlook mail boxes format, see http://mbx2mbox.sourceforge.net/
+
 ;;; Code:
 
 (require 'nnheader)
@@ -41,7 +43,8 @@
   "*Type of the file.
 One of `mbox', `babyl', `digest', `news', `rnews', `mmdf', `forward',
 `rfc934', `rfc822-forward', `mime-parts', `standard-digest',
-`slack-digest', `clari-briefs', `nsmail' or `guess'.")
+`slack-digest', `clari-briefs', `nsmail', `outlook', `oe-dbx',
+`mailman', `exim-bounce', or `guess'.")
 
 (defvoo nndoc-post-type 'mail
   "*Whether the nndoc group is `mail' or `post'.")
@@ -55,6 +58,9 @@ from the document.")
   `((mmdf
      (article-begin .  "^\^A\^A\^A\^A\n")
      (body-end .  "^\^A\^A\^A\^A\n"))
+    (exim-bounce
+     (article-begin . "^------ This is a copy of the message, including all the headers. ------\n\n")
+     (body-end-function . nndoc-exim-bounce-body-end-function))
     (nsmail
      (article-begin .  "^From - "))
     (news
@@ -70,13 +76,13 @@ from the document.")
      (body-end . "\^_")
      (body-begin-function . nndoc-babyl-body-begin)
      (head-begin-function . nndoc-babyl-head-begin))
-    (forward
-     (article-begin . "^-+ \\(Start of \\)?forwarded message.*\n+")
-     (body-end . "^-+ End \\(of \\)?forwarded message.*$")
-     (prepare-body-function . nndoc-unquote-dashes))
     (rfc934
      (article-begin . "^--.*\n+")
      (body-end . "^--.*$")
+     (prepare-body-function . nndoc-unquote-dashes))
+    (mailman
+     (article-begin . "^--__--__--\n\nMessage:")
+     (body-end . "^--__--__--$")
      (prepare-body-function . nndoc-unquote-dashes))
     (clari-briefs
      (article-begin . "^ \\*")
@@ -117,8 +123,8 @@ from the document.")
      (head-begin . "^Paper.*:")
      (head-end   . "\\(^\\\\\\\\.*\n\\|-----------------\\)")
      (body-begin . "")
-     (body-end   . "-------------------------------------------------")
-     (file-end   . "^Title: Recent Seminal")
+     (body-end   . "\\(-------------------------------------------------\\|%-%-%-%-%-%-%-%-%-%-%-%-%-%-\\|%%--%%--%%--%%--%%--%%--%%--%%--\\|%%%---%%%---%%%---%%%---\\)")
+     (file-end   . "\\(^Title: Recent Seminal\\|%%%---%%%---%%%---%%%---\\)")
      (generate-head-function . nndoc-generate-lanl-gov-head)
      (article-transform-function . nndoc-transform-lanl-gov-announce)
      (subtype preprints guess))
@@ -128,6 +134,16 @@ from the document.")
     (outlook
      (article-begin-function . nndoc-outlook-article-begin)
      (body-end .  "\0"))
+    (oe-dbx  ;; Outlook Express DBX format
+     (dissection-function . nndoc-oe-dbx-dissection)
+     (generate-head-function . nndoc-oe-dbx-generate-head)
+     (generate-article-function . nndoc-oe-dbx-generate-article))
+    (forward
+     (article-begin . "^-+ \\(Start of \\)?forwarded message.*\n+")
+     (body-end . "^-+ End \\(of \\)?forwarded message.*$")
+     (prepare-body-function . nndoc-unquote-dashes))
+    (mail-in-mail ;; Wild guess on mailer daemon's messages or others
+     (article-begin-function . nndoc-mail-in-mail-article-begin))
     (guess
      (guess . t)
      (subtype nil))
@@ -137,6 +153,9 @@ from the document.")
     (preprints
      (guess . t)
      (subtype nil))))
+
+(defvar nndoc-binary-file-names ".[Dd][Bb][Xx]$"
+  "Regexp for binary nndoc file names.")
 
 
 (defvoo nndoc-file-begin nil)
@@ -163,6 +182,8 @@ from the document.")
 (defvoo nndoc-generate-head-function nil)
 (defvoo nndoc-article-transform-function nil)
 (defvoo nndoc-article-begin-function nil)
+(defvoo nndoc-generate-article-function nil)
+(defvoo nndoc-dissection-function nil)
 
 (defvoo nndoc-status-string "")
 (defvoo nndoc-group-alist nil)
@@ -213,8 +234,11 @@ from the document.")
       (set-buffer buffer)
       (erase-buffer)
       (when entry
-	(if (stringp article)
-	    nil
+	(cond
+	 ((stringp article) nil)
+	 (nndoc-generate-article-function
+	  (funcall nndoc-generate-article-function article))
+	 (t
 	  (insert-buffer-substring
 	   nndoc-current-buffer (car entry) (nth 1 entry))
 	  (insert "\n")
@@ -226,7 +250,7 @@ from the document.")
 	    (funcall nndoc-prepare-body-function))
 	  (when nndoc-article-transform-function
 	    (funcall nndoc-article-transform-function article))
-	  t)))))
+	  t))))))
 
 (deffoo nndoc-request-group (group &optional server dont-check)
   "Select news GROUP."
@@ -246,8 +270,8 @@ from the document.")
 
 (deffoo nndoc-request-type (group &optional article)
   (cond ((not article) 'unknown)
-        (nndoc-post-type nndoc-post-type)
-        (t 'unknown)))
+	(nndoc-post-type nndoc-post-type)
+	(t 'unknown)))
 
 (deffoo nndoc-close-group (group &optional server)
   (nndoc-possibly-change-buffer group server)
@@ -299,10 +323,14 @@ from the document.")
       (save-excursion
 	(set-buffer nndoc-current-buffer)
 	(erase-buffer)
-	(if (stringp nndoc-address)
-	    (nnheader-insert-file-contents nndoc-address)
-	  (insert-buffer-substring nndoc-address))
-	(run-hooks 'nndoc-open-document-hook))))
+	(if (and (stringp nndoc-address)
+		 (string-match nndoc-binary-file-names nndoc-address))
+	    (let ((coding-system-for-read 'binary))
+	      (mm-insert-file-contents nndoc-address))
+	  (if (stringp nndoc-address)
+	      (nnheader-insert-file-contents nndoc-address)
+	    (insert-buffer-substring nndoc-address))
+	  (run-hooks 'nndoc-open-document-hook)))))
     ;; Initialize the nndoc structures according to this new document.
     (when (and nndoc-current-buffer
 	       (not nndoc-dissection-alist))
@@ -331,7 +359,9 @@ from the document.")
 		nndoc-body-begin nndoc-body-end-function nndoc-body-end
 		nndoc-prepare-body-function nndoc-article-transform-function
 		nndoc-generate-head-function nndoc-body-begin-function
-		nndoc-head-begin-function)))
+		nndoc-head-begin-function
+		nndoc-generate-article-function
+		nndoc-dissection-function)))
     (while vars
       (set (pop vars) nil)))
   (let (defs)
@@ -436,11 +466,9 @@ from the document.")
     t))
 
 (defun nndoc-forward-type-p ()
-  (when (and (re-search-forward "^-+ \\(Start of \\)?forwarded message.*\n+" 
+  (when (and (re-search-forward "^-+ \\(Start of \\)?forwarded message.*\n+"
 				nil t)
-	     (not (re-search-forward "^Subject:.*digest" nil t))
-	     (not (re-search-backward "^From:" nil t 2))
-	     (not (re-search-forward "^From:" nil t 2)))
+	     (looking-at "[\r\n]*[a-zA-Z][a-zA-Z0-9-]*:"))
     t))
 
 (defun nndoc-rfc934-type-p ()
@@ -448,6 +476,10 @@ from the document.")
 	     (not (re-search-forward "^Subject:.*digest" nil t))
 	     (not (re-search-backward "^From:" nil t 2))
 	     (not (re-search-forward "^From:" nil t 2)))
+    t))
+
+(defun nndoc-mailman-type-p ()
+  (when (re-search-forward "^--__--__--\n+" nil t)
     t))
 
 (defun nndoc-rfc822-forward-type-p ()
@@ -520,6 +552,13 @@ from the document.")
     (insert "From: " "clari@clari.net (" (or from "unknown") ")"
 	    "\nSubject: " (or subject "(no subject)") "\n")))
 
+(defun nndoc-exim-bounce-type-p ()
+  (and (re-search-forward "^------ This is a copy of the message, including all the headers. ------" nil t)
+       t))
+
+(defun nndoc-exim-bounce-body-end-function ()
+  (goto-char (point-max)))
+
 
 (defun nndoc-mime-digest-type-p ()
   (let ((case-fold-search t)
@@ -540,7 +579,7 @@ from the document.")
 	       (cons 'body-begin "^ ?\n")
 	       (cons 'article-begin b-delimiter)
 	       (cons 'body-end-function 'nndoc-digest-body-end)
-	       (cons 'file-end (concat "\n--" boundary-id "--[ \t]*$"))))
+	       (cons 'file-end (concat "^--" boundary-id "--[ \t]*$"))))
       t)))
 
 (defun nndoc-standard-digest-type-p ()
@@ -558,35 +597,54 @@ from the document.")
 
 (defun nndoc-lanl-gov-announce-type-p ()
   (when (let ((case-fold-search nil))
-	  (re-search-forward "^\\\\\\\\\nPaper: [a-z-]+/[0-9]+" nil t))
+	  (re-search-forward "^\\\\\\\\\nPaper\\( (\\*cross-listing\\*)\\)?: [a-zA-Z-\\.]+/[0-9]+" nil t))
     t))
 
 (defun nndoc-transform-lanl-gov-announce (article)
   (goto-char (point-max))
-  (when (re-search-backward "^\\\\\\\\ +(\\([^ ]*\\) , *\\([^ ]*\\))" nil t)
-    (replace-match "\n\nGet it at \\1 (\\2)" t nil)))
+  (when (re-search-backward "^\\\\\\\\ +( *\\([^ ]*\\) , *\\([^ ]*\\))" nil t)
+    (replace-match "\n\nGet it at \\1 (\\2)" t nil))
+  (goto-char (point-min))
+  (while (re-search-forward "^\\\\\\\\$" nil t)
+    (replace-match "" t nil))
+  (goto-char (point-min))
+  (when (re-search-forward "^replaced with revised version +\\(.*[^ ]\\) +" nil t)
+    (replace-match "Date: \\1 (revised) " t nil))
+  (goto-char (point-min))
+  (unless (re-search-forward "^From" nil t)
+    (goto-char (point-min))
+    (when (re-search-forward "^Authors?: \\(.*\\)" nil t)
+      (goto-char (point-min))
+      (insert "From: " (match-string 1) "\n"))))
 
 (defun nndoc-generate-lanl-gov-head (article)
   (let ((entry (cdr (assq article nndoc-dissection-alist)))
- 	(e-mail "no address given")
- 	subject from)
+	(from "<no address given>")
+	subject date)
     (save-excursion
       (set-buffer nndoc-current-buffer)
       (save-restriction
- 	(narrow-to-region (car entry) (nth 1 entry))
- 	(goto-char (point-min))
- 	(when (looking-at "^Paper.*: \\([a-z-]+/[0-9]+\\)")
- 	  (setq subject (concat " (" (match-string 1) ")"))
- 	  (when (re-search-forward "^From: \\([^ ]+\\)" nil t)
- 	    (setq e-mail (match-string 1)))
- 	  (when (re-search-forward "^Title: \\([^\f]*\\)\nAuthors?: \\(.*\\)"
- 				   nil t)
- 	    (setq subject (concat (match-string 1) subject))
- 	    (setq from (concat (match-string 2) " <" e-mail ">"))))))
+	(narrow-to-region (car entry) (nth 1 entry))
+	(goto-char (point-min))
+	(when (looking-at "^Paper.*: \\([a-zA-Z-\\.]+/[0-9]+\\)")
+	  (setq subject (concat " (" (match-string 1) ")"))
+	  (when (re-search-forward "^From: \\(.*\\)" nil t)
+	    (setq from (concat "<"
+			       (cadr (funcall gnus-extract-address-components 
+					      (match-string 1))) ">")))
+	  (if (re-search-forward "^Date: +\\([^(]*\\)" nil t)
+	      (setq date (match-string 1))
+	    (when (re-search-forward "^replaced with revised version +\\([^(]*\\)" nil t)
+	      (setq date (match-string 1))))
+	  (when (re-search-forward "^Title: \\([^\f]*\\)\nAuthors?: \\(.*\\)"
+				   nil t)
+	    (setq subject (concat (match-string 1) subject))
+	    (setq from (concat (match-string 2) " " from))))))
     (while (and from (string-match "(\[^)\]*)" from))
       (setq from (replace-match "" t t from)))
     (insert "From: "  (or from "unknown")
- 	    "\nSubject: " (or subject "(no subject)") "\n")))
+	    "\nSubject: " (or subject "(no subject)") "\n")
+    (if date (insert "Date: " date))))
 
 (defun nndoc-nsmail-type-p ()
   (when (looking-at "From - ")
@@ -600,9 +658,105 @@ from the document.")
   ;; FIXME: Is JMF the magic of outlook mailbox? -- ShengHuo.
   (looking-at "JMF"))
 
+(defun nndoc-oe-dbx-type-p ()
+  (looking-at (mm-string-as-multibyte "\317\255\022\376")))
+
+(defun nndoc-read-little-endian ()
+  (+ (prog1 (char-after) (forward-char 1))
+     (lsh (prog1 (char-after) (forward-char 1)) 8)
+     (lsh (prog1 (char-after) (forward-char 1)) 16)
+     (lsh (prog1 (char-after) (forward-char 1)) 24)))
+
+(defun nndoc-oe-dbx-decode-block ()
+  (list
+   (nndoc-read-little-endian)   ;; this address
+   (nndoc-read-little-endian)   ;; next address offset
+   (nndoc-read-little-endian)   ;; blocksize
+   (nndoc-read-little-endian))) ;; next address
+
+(defun nndoc-oe-dbx-dissection ()
+  (let ((i 0) blk p tp)
+    (goto-char 60117) ;; 0x0000EAD4+1
+    (setq p (point))
+    (unless (eobp)
+      (setq blk (nndoc-oe-dbx-decode-block)))
+    (while (and blk (> (car blk) 0) (or (zerop (nth 3 blk))
+					(> (nth 3 blk) p)))
+      (push (list (incf i) p nil nil nil 0) nndoc-dissection-alist)
+      (while (and (> (car blk) 0) (> (nth 3 blk) p))
+	(goto-char (1+ (nth 3 blk)))
+	(setq blk (nndoc-oe-dbx-decode-block)))
+      (if (or (<= (car blk) p)
+	      (<= (nth 1 blk) 0)
+	      (not (zerop (nth 3 blk))))
+	  (setq blk nil)
+	(setq tp (+ (car blk) (nth 1 blk) 17))
+	(if (or (<= tp p) (>= tp (point-max)))
+	    (setq blk nil)
+	  (goto-char tp)
+	  (setq p tp
+		blk (nndoc-oe-dbx-decode-block)))))))
+
+(defun nndoc-oe-dbx-generate-article (article &optional head)
+  (let ((entry (cdr (assq article nndoc-dissection-alist)))
+	(cur (current-buffer))
+	(begin (point))
+	blk p)
+    (with-current-buffer nndoc-current-buffer
+      (setq p (car entry))
+      (while (> p (point-min))
+	(goto-char p)
+	(setq blk (nndoc-oe-dbx-decode-block))
+	(setq p (point))
+	(with-current-buffer cur
+	  (insert-buffer-substring nndoc-current-buffer p (+ p (nth 2 blk))))
+	(setq p (1+ (nth 3 blk)))))
+    (goto-char begin)
+    (while (re-search-forward "\r$" nil t)
+      (delete-backward-char 1))
+    (when head
+      (goto-char begin)
+      (when (search-forward "\n\n" nil t)
+	(setcar (cddddr entry) (count-lines (point) (point-max)))
+	(delete-region (1- (point)) (point-max))))
+    t))
+
+(defun nndoc-oe-dbx-generate-head (article)
+  (nndoc-oe-dbx-generate-article article 'head))
+
+(defun nndoc-mail-in-mail-type-p ()
+  (let (found)
+    (save-excursion
+      (catch 'done
+	(while (re-search-forward "\n\n[-A-Za-z0-9]+:" nil t)
+	  (setq found 0)
+	  (forward-line)
+	  (while (looking-at "[ \t]\\|[-A-Za-z0-9]+:")
+	    (if (looking-at "[-A-Za-z0-9]+:")
+		(setq found (1+ found)))
+	    (forward-line))
+	  (if (and (> found 0) (looking-at "\n"))
+	      (throw 'done 9999)))
+	nil))))
+
+(defun nndoc-mail-in-mail-article-begin ()
+  (let (point found)
+    (if (catch 'done
+	  (while (re-search-forward "\n\n\\([-A-Za-z0-9]+:\\)" nil t)
+	    (setq found 0)
+	    (setq point (match-beginning 1))
+	    (forward-line)
+	    (while (looking-at "[ \t]\\|[-A-Za-z0-9]+:")
+	      (if (looking-at "[-A-Za-z0-9]+:")
+		  (setq found (1+ found)))
+	      (forward-line))
+	    (if (and (> found 0) (looking-at "\n"))
+		(throw 'done t)))
+	  nil)
+	(goto-char point))))
+
 (deffoo nndoc-request-accept-article (group &optional server last)
   nil)
-
 
 ;;;
 ;;; Functions for dissecting the documents
@@ -625,43 +779,45 @@ from the document.")
       ;; Remove blank lines.
       (while (eq (following-char) ?\n)
 	(delete-char 1))
-      ;; Find the beginning of the file.
-      (when nndoc-file-begin
-	(nndoc-search nndoc-file-begin))
-      ;; Go through the file.
-      (while (if (and first nndoc-first-article)
-		 (nndoc-search nndoc-first-article)
-	       (nndoc-article-begin))
-	(setq first nil)
-	(cond (nndoc-head-begin-function
-	       (funcall nndoc-head-begin-function))
-	      (nndoc-head-begin
-	       (nndoc-search nndoc-head-begin)))
- 	(if (or (eobp)
-		(and nndoc-file-end
-		     (looking-at nndoc-file-end)))
-	    (goto-char (point-max))
-	  (setq head-begin (point))
-	  (nndoc-search (or nndoc-head-end "^$"))
-	  (setq head-end (point))
-	  (if nndoc-body-begin-function
-	      (funcall nndoc-body-begin-function)
-	    (nndoc-search (or nndoc-body-begin "^\n")))
-	  (setq body-begin (point))
-	  (or (and nndoc-body-end-function
-		   (funcall nndoc-body-end-function))
-	      (and nndoc-body-end
-		   (nndoc-search nndoc-body-end))
-	      (nndoc-article-begin)
-	      (progn
-		(goto-char (point-max))
-		(when nndoc-file-end
-		  (and (re-search-backward nndoc-file-end nil t)
-		       (beginning-of-line)))))
-	  (setq body-end (point))
-	  (push (list (incf i) head-begin head-end body-begin body-end
-		      (count-lines body-begin body-end))
-		nndoc-dissection-alist))))))
+      (if nndoc-dissection-function
+	  (funcall nndoc-dissection-function)
+	;; Find the beginning of the file.
+	(when nndoc-file-begin
+	  (nndoc-search nndoc-file-begin))
+	;; Go through the file.
+	(while (if (and first nndoc-first-article)
+		   (nndoc-search nndoc-first-article)
+		 (nndoc-article-begin))
+	  (setq first nil)
+	  (cond (nndoc-head-begin-function
+		 (funcall nndoc-head-begin-function))
+		(nndoc-head-begin
+		 (nndoc-search nndoc-head-begin)))
+	  (if (or (eobp)
+		  (and nndoc-file-end
+		       (looking-at nndoc-file-end)))
+	      (goto-char (point-max))
+	    (setq head-begin (point))
+	    (nndoc-search (or nndoc-head-end "^$"))
+	    (setq head-end (point))
+	    (if nndoc-body-begin-function
+		(funcall nndoc-body-begin-function)
+	      (nndoc-search (or nndoc-body-begin "^\n")))
+	    (setq body-begin (point))
+	    (or (and nndoc-body-end-function
+		     (funcall nndoc-body-end-function))
+		(and nndoc-body-end
+		     (nndoc-search nndoc-body-end))
+		(nndoc-article-begin)
+		(progn
+		  (goto-char (point-max))
+		  (when nndoc-file-end
+		    (and (re-search-backward nndoc-file-end nil t)
+			 (beginning-of-line)))))
+	    (setq body-end (point))
+	    (push (list (incf i) head-begin head-end body-begin body-end
+			(count-lines body-begin body-end))
+		  nndoc-dissection-alist)))))))
 
 (defun nndoc-article-begin ()
   (if nndoc-article-begin-function
@@ -736,6 +892,10 @@ PARENT is the message-ID of the parent summary line, or nil for none."
     (unless article-insert
       (setq article-insert (buffer-substring (point-min) (point-max))
 	    head-end head-begin))
+    ;; Fix MIME-Version
+    (unless (string-match "MIME-Version:" article-insert)
+      (setq article-insert
+	    (concat article-insert "MIME-Version: 1.0\n")))
     (setq summary-insert article-insert)
     ;; - summary Subject.
     (setq summary-insert
