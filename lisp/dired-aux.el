@@ -926,9 +926,13 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 
 ;;; Copy, move/rename, making hard and symbolic links
 
-(defvar dired-backup-overwrite nil
+(defcustom dired-backup-overwrite nil
   "*Non-nil if Dired should ask about making backups before overwriting files.
-Special value `always' suppresses confirmation.")
+Special value `always' suppresses confirmation."
+  :type '(choice (const :tag "off" nil)
+		 (const :tag "suppress" always)
+		 (sexp :tag "ask" :format "%t\n" t))
+  :group 'dired)
 
 (defvar dired-overwrite-confirmed)
 
