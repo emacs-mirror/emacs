@@ -100,15 +100,13 @@
       (set-buffer-modified-p buffer-modified-p))))
 
 (defun pre-write-encode-hz (from to)
-  (let ((buf (current-buffer))
-	(work (get-buffer-create " *pre-write-encoding-work*")))
-    (set-buffer work)
-    (erase-buffer)
-    (if (stringp from)
-	(insert from)
-      (insert-buffer-substring buf from to))
-    (let (last-coding-system-used)
-      (encode-hz-region 1 (point-max)))
+  (let ((buf (current-buffer)))
+    (with-temp-buffer
+      (if (stringp from)
+	  (insert from)
+	(insert-buffer-substring buf from to))
+      (let (last-coding-system-used)
+	(encode-hz-region 1 (point-max))))
     nil))
 
 (set-language-info-alist
