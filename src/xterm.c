@@ -11288,7 +11288,10 @@ x_connection_closed (dpy, error_message)
      in OpenWindows.  I don't know how to cicumvent it here.  */
   
 #ifdef USE_X_TOOLKIT
-  XtCloseDisplay (dpy);
+  /* If DPYINFO is null, this means we didn't open the display
+     in the first place, so don't try to close it.  */
+  if (dpyinfo)
+    XtCloseDisplay (dpy);
 #endif
 
   /* Indicate that this display is dead.  */
