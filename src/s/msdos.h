@@ -58,7 +58,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 
 #define SYSTEM_TYPE "ms-dos"
 
-#define SYMS_SYSTEM syms_of_dosfns();syms_of_msdos()
+#define SYMS_SYSTEM syms_of_dosfns();syms_of_msdos();syms_of_win16select()
 
 /* NOMULTIPLEJOBS should be defined if your system's shell
  does not have "job control" (the ability to stop a program,
