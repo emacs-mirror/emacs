@@ -541,7 +541,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
   register int *reg = ccl->reg;
   register int ic = ccl->ic;
   register int code, field1, field2;
-  register int *ccl_prog = ccl->prog;
+  register Lisp_Object *ccl_prog = ccl->prog;
   unsigned char *src = source, *src_end = src + src_bytes;
   unsigned char *dst = destination, *dst_end = dst + dst_bytes;
   int jump_address;
