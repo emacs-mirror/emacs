@@ -1,3 +1,8 @@
+2001-12-10  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (w32_free_submenu_strings): Clear menu item struct
+	before using.
+
 2001-12-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* dosfns.c: Change doc-string comments to `new style' [w/`doc:'
