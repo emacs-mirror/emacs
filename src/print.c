@@ -1434,12 +1434,7 @@ print_object (obj, printcharfun, escapeflag)
 	  {
 	    /* Here, we must convert each multi-byte form to the
 	       corresponding character code before handing it to PRINTCHAR.  */
-
-	    if (STRING_MULTIBYTE (name))
-	      FETCH_STRING_CHAR_ADVANCE (c, name, i, i_byte);
-	    else
-	      c = XSTRING (name)->data[i_byte++];
-
+	    FETCH_STRING_CHAR_ADVANCE (c, name, i, i_byte);
 	    QUIT;
 
 	    if (escapeflag)
