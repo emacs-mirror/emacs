@@ -651,6 +651,11 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 ;;; Find all buffers that are considered "friends" according to the
 ;;; function pointed out by dabbrev-friend-buffer-function.
 (defun dabbrev--select-buffers ()
+  "Return a list of all buffers that should be searched for a possible abbrev.
+
+This function makes a list of all the buffers returned by `buffer-list', and
+then filters out every buffer for which `dabbrev-friend-buffer-function',
+if it is bound, returns nil.  The resulting partial list is returned."
   (save-excursion
     (and (window-minibuffer-p (selected-window))
 	 (set-buffer (dabbrev--minibuffer-origin)))
