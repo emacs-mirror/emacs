@@ -453,7 +453,7 @@ Point is moved to just past the fill prefix on the first line."
     (canonically-space-region (or squeeze-after (point)) to)
     ;; Remove trailing whitespace.
     ;; Maybe canonically-space-region should do that.
-    (goto-char to) (delete-horizontal-space))
+    (goto-char to) (delete-char (- (skip-chars-backward " \t"))))
   (goto-char from))
 
 (defun fill-move-to-break-point (linebeg)
