@@ -1197,16 +1197,6 @@ is treated as a character."
   :eol-type 'unix
   :mnemonic ?=)
   
-(define-coding-system 'undecided
-  "No conversion on encoding, automatic conversion on decoding."
-  :coding-type 'undecided
-  :mnemonic ?-
-  :charset-list '(ascii))
-
-(define-coding-system-alias 'unix 'undecided-unix)
-(define-coding-system-alias 'dos 'undecided-dos)
-(define-coding-system-alias 'mac 'undecided-mac)
-
 (define-coding-system 'iso-latin-1
   "ISO 2022 based 8-bit encoding for Latin-1 (MIME:ISO-8859-1)."
   :coding-type 'charset
