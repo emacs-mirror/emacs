@@ -10088,17 +10088,25 @@ void
 start_busy_cursor ()
 {
   EMACS_TIME delay;
-  int secs;
+  int secs, usecs = 0;
   
   cancel_busy_cursor ();
 
   if (INTEGERP (Vbusy_cursor_delay)
       && XINT (Vbusy_cursor_delay) > 0)
     secs = XFASTINT (Vbusy_cursor_delay);
+  else if (FLOATP (Vbusy_cursor_delay)
+	   && XFLOAT_DATA (Vbusy_cursor_delay) > 0)
+    {
+      Lisp_Object tem;
+      tem = Ftruncate (Vbusy_cursor_delay, Qnil);
+      secs = XFASTINT (tem);
+      usecs = (XFLOAT_DATA (Vbusy_cursor_delay) - secs) * 1000000;
+    }
   else
     secs = DEFAULT_BUSY_CURSOR_DELAY;
   
-  EMACS_SET_SECS_USECS (delay, secs, 0);
+  EMACS_SET_SECS_USECS (delay, secs, usecs);
   busy_cursor_atimer = start_atimer (ATIMER_RELATIVE, delay,
 				     show_busy_cursor, NULL);
 }
@@ -10994,7 +11002,7 @@ or when you set the mouse color.");
   
   DEFVAR_LISP ("busy-cursor-delay", &Vbusy_cursor_delay,
      "*Seconds to wait before displaying a busy-cursor.\n\
-Value must be an integer.");
+Value must be an integer or float.");
   Vbusy_cursor_delay = make_number (DEFAULT_BUSY_CURSOR_DELAY);
 
 #if 0 /* This doesn't really do anything.  */
