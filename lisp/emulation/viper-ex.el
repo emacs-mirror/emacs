@@ -524,8 +524,8 @@ reversed."
     
 
 ;; Read Ex commands 
-(defun viper-ex (&optional string)
-  (interactive)
+(defun viper-ex (arg &optional string)
+  (interactive "P")
   (or string
       (setq ex-g-flag nil
 	    ex-g-variant nil))
@@ -533,16 +533,40 @@ reversed."
 	 (address nil)
 	 (cont t)
 	 (dot (point))
+	 reg-beg-line reg-end-line
+	 reg-beg reg-end
+	 initial-str
 	 prev-token-type com-str)
-	 
     (viper-add-keymap viper-ex-cmd-map map)
+
+    (if arg
+	(progn
+	  (viper-enlarge-region (mark t) (point))
+	  (if (> (point) (mark t))
+	      (setq reg-beg (mark t)
+		    reg-end (point))
+	    (setq reg-end (mark t)
+		  reg-beg (point)))
+	  (save-excursion
+	    (goto-char reg-beg)
+	    (setq reg-beg-line (1+ (count-lines (point-min) (point)))
+		  reg-end-line
+		  (+ reg-beg-line (count-lines reg-beg reg-end) -1)))))
+    (if reg-beg-line
+	(setq initial-str (format "%d,%d" reg-beg-line reg-end-line)))
     
-    (setq com-str (or string (viper-read-string-with-history
-			      ":" 
-			      nil
-			      'viper-ex-history
-			      (car viper-ex-history)
-			      map)))
+    (setq com-str 
+	  (or string (viper-read-string-with-history
+		      ":" 
+		      initial-str
+		      'viper-ex-history
+		      ;; no default when working on region
+		      (if initial-str
+			  "none"
+			(car viper-ex-history))
+		      map
+		      (if initial-str
+			  " [Type command to execute on current region]"))))
     (save-window-excursion
       ;; just a precaution
       (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name)) 

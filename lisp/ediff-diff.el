@@ -133,14 +133,24 @@ Use `setq-default' if setting it in .emacs")
 ;;; General
 
 (defvar ediff-diff-ok-lines-regexp  
-  "^\\([0-9,]+[acd][0-9,]+$\\|[<>] \\|---\\|.*Warning *:\\|.*No +newline\\|.*missing +newline\\|^\C-m$\\)"
+  (concat
+   "^\\("
+   "[0-9,]+[acd][0-9,]+\C-m?$"
+   "\\|[<>] "
+   "\\|---"
+   "\\|.*Warning *:"
+   "\\|.*No +newline"
+   "\\|.*missing +newline"
+   "\\|^\C-m?$"
+   "\\)")
   "Regexp that matches normal output lines from `ediff-diff-program'.
 This is mostly lifted from Emerge, except that Ediff also considers
 warnings and `Missing newline'-type messages to be normal output.
 Lines that do not match are assumed to be error messages.")
 
-(defvar ediff-match-diff-line (let ((x "\\([0-9]+\\)\\(\\|,\\([0-9]+\\)\\)"))
-				(concat "^" x "\\([acd]\\)" x "$"))
+(defvar ediff-match-diff-line
+  (let ((x "\\([0-9]+\\)\\(\\|,\\([0-9]+\\)\\)"))
+    (concat "^" x "\\([acd]\\)" x "\C-m?$"))
   "Pattern to match lines produced by diff that describe differences.")
 
 (ediff-defvar-local ediff-setup-diff-regions-function nil

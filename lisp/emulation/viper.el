@@ -8,7 +8,7 @@
 
 ;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
-(defconst viper-version "3.002 (Polyglot) of October 23, 1997"
+(defconst viper-version "3.004 (Polyglot) of November 11, 1997"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
@@ -531,7 +531,7 @@ remains buffer-local."
    (viper-standard-value
     'mode-line-buffer-identification viper-saved-non-viper-variables)
    global-mode-string
-   (viper-standard-value 'global-mode-string viper-saved-non-viper-variables))
+   (delq 'viper-mode-string global-mode-string))
 
   (if viper-emacs-p
       (setq-default
@@ -576,6 +576,9 @@ remains buffer-local."
   (viper-delocalize-var 'viper-emacs-global-user-minor-mode)
   (viper-delocalize-var 'viper-emacs-state-modifier-minor-mode)
 
+  (viper-delocalize-var 'viper-current-state)
+  (viper-delocalize-var 'viper-mode-string)
+
   (setq-default viper-vi-minibuffer-minor-mode	       nil
 		viper-insert-minibuffer-minor-mode     nil
 		viper-vi-intercept-minor-mode	       nil
@@ -602,6 +605,9 @@ remains buffer-local."
 		viper-emacs-kbd-minor-mode             nil
 		viper-emacs-global-user-minor-mode     nil
 		viper-emacs-state-modifier-minor-mode  nil
+
+		viper-current-state		       'emacs-state
+		viper-mode-string		       viper-emacs-state-id
 		)
 
   ;; remove all hooks set by viper
@@ -1218,18 +1224,17 @@ These two lines must come in the order given.
   viper-insert-intercept-map "\C-c\\" 'viper-escape-to-vi)
 
 (if viper-mode
-    (progn
-      (setq viper-emacs-intercept-minor-mode t
-	    viper-emacs-local-user-minor-mode t
-	    viper-emacs-global-user-minor-mode t
-	    viper-emacs-kbd-minor-mode t
-	    viper-emacs-state-modifier-minor-mode t)
-      (setq-default viper-emacs-intercept-minor-mode t
-		    viper-emacs-local-user-minor-mode t
-		    viper-emacs-global-user-minor-mode t
-		    viper-emacs-kbd-minor-mode t
-		    viper-emacs-state-modifier-minor-mode t)
-      ))
+    (setq-default viper-emacs-intercept-minor-mode t
+		  viper-emacs-local-user-minor-mode t
+		  viper-emacs-global-user-minor-mode t
+		  viper-emacs-kbd-minor-mode t
+		  viper-emacs-state-modifier-minor-mode t))
+(if (and viper-mode (eq viper-current-state 'emacs-state))
+    (setq viper-emacs-intercept-minor-mode t
+	  viper-emacs-local-user-minor-mode t
+	  viper-emacs-global-user-minor-mode t
+	  viper-emacs-kbd-minor-mode t
+	  viper-emacs-state-modifier-minor-mode t))
 
 
 (if (and viper-mode

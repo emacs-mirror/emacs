@@ -1720,21 +1720,32 @@ Undo previous insertion and inserts new."
 
 ;; Quote region by each line with a user supplied string.
 (defun viper-quote-region ()
-  (setq viper-quote-string
-	(viper-read-string-with-history
-	 "Quote string: "
-	 nil
-	 'viper-quote-region-history
-	 viper-quote-string))
-  (viper-enlarge-region (point) (mark t))
-  (if (> (point) (mark t)) (exchange-point-and-mark))
-  (insert viper-quote-string)
-  (beginning-of-line)
-  (forward-line 1)
-  (while (and (< (point) (mark t)) (bolp))
-    (insert viper-quote-string)
+  (let ((quote-str viper-quote-string)
+	(donot-change-dafault t))
+    (setq quote-str
+	  (viper-read-string-with-history
+	   "Quote string: "
+	   nil
+	   'viper-quote-region-history
+	   (cond ((string-match "tex.*-mode" (symbol-name major-mode)) "%%")
+		 ((string-match "java.*-mode" (symbol-name major-mode)) "//")
+		 ((string-match "perl.*-mode" (symbol-name major-mode)) "#")
+		 ((string-match "lisp.*-mode" (symbol-name major-mode)) ";;")
+		 ((memq major-mode '(c-mode cc-mode c++-mode)) "//")
+		 ((memq major-mode '(sh-mode shell-mode)) "#")
+		 (t (setq donot-change-dafault nil)
+		    quote-str))))
+    (or donot-change-dafault
+	(setq viper-quote-string quote-str))
+    (viper-enlarge-region (point) (mark t))
+    (if (> (point) (mark t)) (exchange-point-and-mark))
+    (insert quote-str)
     (beginning-of-line)
-    (forward-line 1)))
+    (forward-line 1)
+    (while (and (< (point) (mark t)) (bolp))
+      (insert quote-str)
+      (beginning-of-line)
+      (forward-line 1))))
 
 ;;  Tells whether BEG is on the same line as END.
 ;;  If one of the args is nil, it'll return nil.
@@ -1870,15 +1881,21 @@ problems."
 ;;; Reading string with history  
     
 (defun viper-read-string-with-history (prompt &optional initial 
-					    history-var default keymap)
+					      history-var default keymap
+					      init-message)
   ;; Read string, prompting with PROMPT and inserting the INITIAL
   ;; value. Uses HISTORY-VAR. DEFAULT is the default value to accept if the
-  ;; input is an empty string. Use KEYMAP, if given, or the
-  ;; minibuffer-local-map.
+  ;; input is an empty string.
   ;; Default value is displayed until the user types something in the
   ;; minibuffer. 
+  ;; KEYMAP is used, if given, instead of minibuffer-local-map.
+  ;; INIT-MESSAGE is the message temporarily displayed after entering the
+  ;; minibuffer.
   (let ((minibuffer-setup-hook 
-	 '(lambda ()
+	 (function
+	  (lambda ()
+	    (if (stringp init-message)
+		(viper-tmp-insert-at-eob init-message))
 	    (if (stringp initial)
 		(progn
 		  ;; don't wait if we have unread events or in kbd macro
@@ -1887,7 +1904,7 @@ problems."
 		      (sit-for 840))
 		  (erase-buffer)
 		  (insert initial)))
-	    (viper-minibuffer-setup-sentinel)))
+	    (viper-minibuffer-setup-sentinel))))
 	(val "")
 	(padding "")
 	temp-msg)

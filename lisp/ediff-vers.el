@@ -337,6 +337,8 @@
 	 (type (cvs-fileinfo->type fileinfo))
 	 (tmp-file
 	  (cvs-retrieve-revision-to-tmpfile fileinfo))
+	 (default-directory
+ 	   (file-name-as-directory (cvs-fileinfo->dir fileinfo)))
 	 ancestor-file)
     
     (or (memq type '(MERGED CONFLICT MODIFIED))
@@ -356,11 +358,11 @@
 	    nil ; startup-hooks
 	    'ediff-merge-revisions-with-ancestor))
 	  ((eq type 'MODIFIED)
-	   (ediff-merge-buffers
+	   (ediff-buffers
 	    (find-file-noselect tmp-file)
 	    (find-file-noselect (cvs-fileinfo->full-path fileinfo))
 	    nil ; startup-hooks
-	    'ediff-merge-revisions)))
+	    'ediff-revisions)))
     (if (stringp tmp-file) (delete-file tmp-file))
     (if (stringp ancestor-file) (delete-file ancestor-file))))
 

@@ -1048,12 +1048,13 @@ DO NOT CHANGE this variable. Instead, use the customization
 widget to customize the actual face object `ediff-fine-diff-face-A'
 this variable represents.")
 (ediff-hide-face 'ediff-fine-diff-face-A)
-;; Until custom.el for XEmacs starts supporting :stipple we do this.
-;; This means that some use customization may be trashed.
-(if (and ediff-xemacs-p
-	 (ediff-has-face-support-p)
-	 (not (ediff-color-display-p))) 
-    (ediff-set-face-pixmap 'ediff-fine-diff-face-A "gray3"))
+
+;;;; Until custom.el for XEmacs starts supporting :stipple we do this.
+;;;; This means that some user customization may be trashed.
+;;(if (and ediff-xemacs-p
+;;	 (ediff-has-face-support-p)
+;;	 (not (ediff-color-display-p))) 
+;;    (ediff-set-face-pixmap 'ediff-fine-diff-face-A "gray3"))
 
 ;;(defvar ediff-fine-diff-face-B
 ;;  (if (ediff-has-face-support-p)
@@ -1084,12 +1085,13 @@ DO NOT CHANGE this variable. Instead, use the customization
 widget to customize the actual face object `ediff-fine-diff-face-B'
 this variable represents.")
 (ediff-hide-face 'ediff-fine-diff-face-B)
-;; Until custom.el for XEmacs starts supporting :stipple we do this.
-;; This means that some use customization may be trashed.
-(if (and ediff-xemacs-p
-	 (ediff-has-face-support-p)
-	 (not (ediff-color-display-p))) 
-    (ediff-set-face-pixmap 'ediff-fine-diff-face-B "gray3"))
+
+;;;; Until custom.el for XEmacs starts supporting :stipple we do this.
+;;;; This means that some user customization may be trashed.
+;;(if (and ediff-xemacs-p
+;;	 (ediff-has-face-support-p)
+;;	 (not (ediff-color-display-p))) 
+;;    (ediff-set-face-pixmap 'ediff-fine-diff-face-B "gray3"))
     
 ;;(defvar ediff-fine-diff-face-C
 ;;  (if (ediff-has-face-support-p)
@@ -1121,12 +1123,13 @@ DO NOT CHANGE this variable. Instead, use the customization
 widget to customize the actual face object `ediff-fine-diff-face-C'
 this variable represents.")
 (ediff-hide-face 'ediff-fine-diff-face-C)
-;; Until custom.el for XEmacs starts supporting :stipple we do this.
-;; This means that some use customization may be trashed.
-(if (and ediff-xemacs-p
-	 (ediff-has-face-support-p)
-	 (not (ediff-color-display-p))) 
-    (ediff-set-face-pixmap 'ediff-fine-diff-face-C "gray3"))
+
+;;;; Until custom.el for XEmacs starts supporting :stipple we do this.
+;;;; This means that some user customization may be trashed.
+;;(if (and ediff-xemacs-p
+;;	 (ediff-has-face-support-p)
+;;	 (not (ediff-color-display-p))) 
+;;    (ediff-set-face-pixmap 'ediff-fine-diff-face-C "gray3"))
 
 ;;(defvar ediff-fine-diff-face-Ancestor
 ;;  (if (ediff-has-face-support-p)
@@ -1159,13 +1162,13 @@ DO NOT CHANGE this variable. Instead, use the customization
 widget to customize the actual face object `ediff-fine-diff-face-Ancestor'
 this variable represents.")
 (ediff-hide-face 'ediff-fine-diff-face-Ancestor)
-;; Until custom.el for XEmacs starts supporting :stipple we do this.
-;; This means that some use customization may be trashed.
-(if (and ediff-xemacs-p
-	 (ediff-has-face-support-p)
-	 (not (ediff-color-display-p))) 
-    (ediff-set-face-pixmap
-     'ediff-fine-diff-face-Ancestor "gray3"))
+
+;;;; Until custom.el for XEmacs starts supporting :stipple we do this.
+;;;; This means that some user customization may be trashed.
+;;(if (and ediff-xemacs-p
+;;	 (ediff-has-face-support-p)
+;;	 (not (ediff-color-display-p))) 
+;;    (ediff-set-face-pixmap 'ediff-fine-diff-face-Ancestor "gray3"))
     
 ;;(defvar ediff-even-diff-face-A
 ;;  (if (ediff-has-face-support-p)
@@ -1198,12 +1201,13 @@ DO NOT CHANGE this variable. Instead, use the customization
 widget to customize the actual face object `ediff-even-diff-face-A'
 this variable represents.")
 (ediff-hide-face 'ediff-even-diff-face-A)
-;; Until custom.el for XEmacs starts supporting :stipple we do this.
-;; This means that some use customization may be trashed.
-(if (and ediff-xemacs-p
-	 (ediff-has-face-support-p)
-	 (not (ediff-color-display-p))) 
-    (ediff-set-face-pixmap 'ediff-even-diff-face-A "Stipple"))
+
+;;;; Until custom.el for XEmacs starts supporting :stipple we do this.
+;;;; This means that some user customization may be trashed.
+;;(if (and ediff-xemacs-p
+;;	 (ediff-has-face-support-p)
+;;	 (not (ediff-color-display-p))) 
+;;    (ediff-set-face-pixmap 'ediff-even-diff-face-A "Stipple"))
       
 ;;(defvar ediff-even-diff-face-B
 ;;  (if (ediff-has-face-support-p)
@@ -1236,12 +1240,13 @@ DO NOT CHANGE this variable. Instead, use the customization
 widget to customize the actual face object `ediff-even-diff-face-B'
 this variable represents.")
 (ediff-hide-face 'ediff-even-diff-face-B)
-;; Until custom.el for XEmacs starts supporting :stipple we do this.
-;; This means that some use customization may be trashed.
-(if (and ediff-xemacs-p
-	 (ediff-has-face-support-p)
-	 (not (ediff-color-display-p))) 
-    (ediff-set-face-pixmap 'ediff-even-diff-face-B "Stipple"))
+
+;;;; Until custom.el for XEmacs starts supporting :stipple we do this.
+;;;; This means that some user customization may be trashed.
+;;(if (and ediff-xemacs-p
+;;	 (ediff-has-face-support-p)
+;;	 (not (ediff-color-display-p))) 
+;;    (ediff-set-face-pixmap 'ediff-even-diff-face-B "Stipple"))
     
 ;;(defvar ediff-even-diff-face-C
 ;;  (if (ediff-has-face-support-p)
@@ -1269,12 +1274,13 @@ DO NOT CHANGE this variable. Instead, use the customization
 widget to customize the actual face object `ediff-even-diff-face-C'
 this variable represents.")
 (ediff-hide-face 'ediff-even-diff-face-C)
-;; Until custom.el for XEmacs starts supporting :stipple we do this.
-;; This means that some use customization may be trashed.
-(if (and ediff-xemacs-p
-	 (ediff-has-face-support-p)
-	 (not (ediff-color-display-p))) 
-    (ediff-set-face-pixmap 'ediff-even-diff-face-C "Stipple"))
+
+;;;; Until custom.el for XEmacs starts supporting :stipple we do this.
+;;;; This means that some user customization may be trashed.
+;;(if (and ediff-xemacs-p
+;;	 (ediff-has-face-support-p)
+;;	 (not (ediff-color-display-p))) 
+;;    (ediff-set-face-pixmap 'ediff-even-diff-face-C "Stipple"))
 
 ;;(defvar ediff-even-diff-face-Ancestor
 ;;  (if (ediff-has-face-support-p)
@@ -1303,13 +1309,13 @@ DO NOT CHANGE this variable. Instead, use the customization
 widget to customize the actual face object `ediff-even-diff-face-Ancestor'
 this variable represents.")
 (ediff-hide-face 'ediff-even-diff-face-Ancestor)
-;; Until custom.el for XEmacs starts supporting :stipple we do this.
-;; This means that some use customization may be trashed.
-(if (and ediff-xemacs-p
-	 (ediff-has-face-support-p)
-	 (not (ediff-color-display-p))) 
-    (ediff-set-face-pixmap
-     'ediff-even-diff-face-Ancestor "Stipple"))
+
+;;;; Until custom.el for XEmacs starts supporting :stipple we do this.
+;;;; This means that some user customization may be trashed.
+;;(if (and ediff-xemacs-p
+;;	 (ediff-has-face-support-p)
+;;	 (not (ediff-color-display-p))) 
+;;    (ediff-set-face-pixmap 'ediff-even-diff-face-Ancestor "Stipple"))
 
 ;; Association between buffer types and even-diff-face symbols
 (defconst ediff-even-diff-face-alist
@@ -1349,12 +1355,13 @@ DO NOT CHANGE this variable. Instead, use the customization
 widget to customize the actual face object `ediff-odd-diff-face-A'
 this variable represents.")
 (ediff-hide-face 'ediff-odd-diff-face-A)
-;; Until custom.el for XEmacs starts supporting :stipple we do this.
-;; This means that some use customization may be trashed.
-(if (and ediff-xemacs-p
-	 (ediff-has-face-support-p)
-	 (not (ediff-color-display-p))) 
-    (ediff-set-face-pixmap 'ediff-odd-diff-face-A "gray1"))
+
+;;;; Until custom.el for XEmacs starts supporting :stipple we do this.
+;;;; This means that some user customization may be trashed.
+;;(if (and ediff-xemacs-p
+;;	 (ediff-has-face-support-p)
+;;	 (not (ediff-color-display-p))) 
+;;    (ediff-set-face-pixmap 'ediff-odd-diff-face-A "gray1"))
       
 ;;(defvar ediff-odd-diff-face-B
 ;;  (if (ediff-has-face-support-p)
@@ -1388,12 +1395,13 @@ DO NOT CHANGE this variable. Instead, use the customization
 widget to customize the actual face object `ediff-odd-diff-face-B'
 this variable represents.")
 (ediff-hide-face 'ediff-odd-diff-face-B)
-;; Until custom.el for XEmacs starts supporting :stipple we do this.
-;; This means that some use customization may be trashed.
-(if (and ediff-xemacs-p
-	 (ediff-has-face-support-p)
-	 (not (ediff-color-display-p))) 
-    (ediff-set-face-pixmap 'ediff-odd-diff-face-B "gray1"))
+
+;;;; Until custom.el for XEmacs starts supporting :stipple we do this.
+;;;; This means that some user customization may be trashed.
+;;(if (and ediff-xemacs-p
+;;	 (ediff-has-face-support-p)
+;;	 (not (ediff-color-display-p))) 
+;;    (ediff-set-face-pixmap 'ediff-odd-diff-face-B "gray1"))
     
 ;;(defvar ediff-odd-diff-face-C
 ;;  (if (ediff-has-face-support-p)
@@ -1420,12 +1428,13 @@ DO NOT CHANGE this variable. Instead, use the customization
 widget to customize the actual face object `ediff-odd-diff-face-C'
 this variable represents.")
 (ediff-hide-face 'ediff-odd-diff-face-C)
-;; Until custom.el for XEmacs starts supporting :stipple we do this.
-;; This means that some use customization may be trashed.
-(if (and ediff-xemacs-p
-	 (ediff-has-face-support-p)
-	 (not (ediff-color-display-p))) 
-    (ediff-set-face-pixmap 'ediff-odd-diff-face-C "gray1"))
+
+;;;; Until custom.el for XEmacs starts supporting :stipple we do this.
+;;;; This means that some user customization may be trashed.
+;;(if (and ediff-xemacs-p
+;;	 (ediff-has-face-support-p)
+;;	 (not (ediff-color-display-p))) 
+;;    (ediff-set-face-pixmap 'ediff-odd-diff-face-C "gray1"))
 
 ;;(defvar ediff-odd-diff-face-Ancestor 
 ;;  (if (ediff-has-face-support-p)
@@ -1452,12 +1461,13 @@ DO NOT CHANGE this variable. Instead, use the customization
 widget to customize the actual face object `ediff-odd-diff-face-Ancestor'
 this variable represents.")
 (ediff-hide-face 'ediff-odd-diff-face-Ancestor)
-;; Until custom.el for XEmacs starts supporting :stipple we do this.
-;; This means that some use customization may be trashed.
-(if (and ediff-xemacs-p
-	 (ediff-has-face-support-p)
-	 (not (ediff-color-display-p))) 
-    (ediff-set-face-pixmap 'ediff-odd-diff-face-Ancestor "gray1"))
+
+;;;; Until custom.el for XEmacs starts supporting :stipple we do this.
+;;;; This means that some user customization may be trashed.
+;;(if (and ediff-xemacs-p
+;;	 (ediff-has-face-support-p)
+;;	 (not (ediff-color-display-p))) 
+;;    (ediff-set-face-pixmap 'ediff-odd-diff-face-Ancestor "gray1"))
 
 ;; Association between buffer types and odd-diff-face symbols
 (defconst ediff-odd-diff-face-alist

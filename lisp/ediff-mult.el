@@ -1456,7 +1456,7 @@ all marked sessions must be active."
 	 ;; ediff-get-meta-info gives error if meta-buf or pos are invalid
 	 (info (ediff-get-meta-info meta-buf pos))
 	 (session-buf (ediff-get-session-buffer info))
-	 (session-number (ediff-get-session-number-at-pos pos))
+	 (session-number (ediff-get-session-number-at-pos pos meta-buf))
 	 merge-autostore-dir file1 file2 file3 regexp)
 
     (setq file1 (ediff-get-session-objA-name info)
@@ -1897,9 +1897,13 @@ If this is a session registry buffer then just bury it."
 	      overl (car overl-list)))
       overl)))
 
-(defsubst ediff-get-session-number-at-pos (point)
-  (ediff-overlay-get
-   (ediff-get-meta-overlay-at-pos point) 'ediff-meta-session-number))
+(defsubst ediff-get-session-number-at-pos (point &optional meta-buffer)
+  (setq meta-buffer (if (ediff-buffer-live-p meta-buffer)
+			meta-buffer
+		      (current-buffer)))
+  (ediff-with-current-buffer meta-buffer
+    (ediff-overlay-get
+     (ediff-get-meta-overlay-at-pos point) 'ediff-meta-session-number)))
 
 
 ;; Return location of the next meta overlay after point
