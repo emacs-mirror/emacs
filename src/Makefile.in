@@ -559,7 +559,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o xmenu.o window.o \
 	eval.o floatfns.o fns.o print.o lread.o \
 	abbrev.o syntax.o UNEXEC mocklisp.o bytecode.o \
 	process.o callproc.o \
-	region-cache.o sound.o \
+	region-cache.o sound.o atimer.o \
 	doprnt.o strftime.o MKTIME_OBJ GETLOADAVG_OBJ MSDOS_OBJ
 
 /* Object files used on some machine or other.
@@ -1146,6 +1146,7 @@ xselect.o: xselect.c dispextern.h frame.h xterm.h blockinput.h charset.h \
 xrdb.o: xrdb.c $(config_h) epaths.h
 hftctl.o: hftctl.c $(config_h)
 sound.o: sound.c dispextern.h $(config_h)
+atimer.o: atimer.h systime.h $(config_h)
 
 /* The files of Lisp proper */
 
