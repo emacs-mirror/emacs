@@ -1854,11 +1854,15 @@ Give a blank topic name to go to the Index node itself."
    (list
     (let ((Info-complete-menu-buffer (clone-buffer))
 	  (Info-complete-next-re "\\<Index\\>"))
+      (if (equal Info-current-file "dir")
+	  (error "The Info directory node has no index; use m to select a manual"))
       (unwind-protect
 	  (with-current-buffer Info-complete-menu-buffer
 	    (Info-goto-index)
 	    (completing-read "Index topic: " 'Info-complete-menu-item))
 	(kill-buffer Info-complete-menu-buffer)))))
+  (if (equal Info-current-file "dir")
+      (error "The Info directory node has no index; use m to select a manual"))
   (let ((orignode Info-current-node)
 	(rnode nil)
 	(pattern (format "\n\\* +\\([^\n:]*%s[^\n:]*\\):[ \t]*\\([^.\n]*\\)\\.[ \t]*\\([0-9]*\\)"
