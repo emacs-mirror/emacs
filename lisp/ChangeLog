@@ -1,5 +1,10 @@
 2000-10-02  Gerd Moellmann  <gerd@gnu.org>
 
+	* isearch.el (isearch-lazy-highlight-update): Don't put a lazy
+	highlighting overlay with a different face over the overlay
+	isearch uses to highlight the current match because that can lead
+	to bad face combinations.
+
 	* loadup.el (toplevel): Load faces before isearch.
 
 	* isearch.el (isearch-faces): New custom group.
