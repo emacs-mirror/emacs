@@ -10586,7 +10586,7 @@ suppressed only after special commands that set\n\
 `disable-point-adjustment' (which see) to non-nil.");
   Vglobal_disable_point_adjustment = Qnil;
 
-  DEFVAR_LISP ("update-menu-bindings", &update_menu_bindings,
+  DEFVAR_BOOL ("update-menu-bindings", &update_menu_bindings,
     "Non-nil means updating menu bindings is allowed.\n\
 A value of nil means menu bindings should not be updated.\n\
 Used during Emacs' startup.");
