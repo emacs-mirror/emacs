@@ -606,9 +606,7 @@ struct scroll_bar {
   ((width) \
    - VERTICAL_SCROLL_BAR_LEFT_BORDER \
    - VERTICAL_SCROLL_BAR_RIGHT_BORDER \
-   - (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f) \
-      ? LEFT_VERTICAL_SCROLL_BAR_WIDTH_TRIM \
-      : 0))
+   - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2)
 
 /* Return the length of the rectangle within which the top of the
    handle must stay.  This isn't equivalent to the inside height,
@@ -645,9 +643,9 @@ struct scroll_bar {
 /* Minimum lengths for scroll bar handles, in pixels.  */
 #define VERTICAL_SCROLL_BAR_MIN_HANDLE (5)
 
-/* For a left-side scroll bar, trimming off a few pixels prevents
+/* Trimming off a few pixels from each side prevents
    text from glomming up against the scroll bar */
-#define LEFT_VERTICAL_SCROLL_BAR_WIDTH_TRIM (2)
+#define VERTICAL_SCROLL_BAR_WIDTH_TRIM (2)
 
 
 /* Manipulating pixel sizes and character sizes.
