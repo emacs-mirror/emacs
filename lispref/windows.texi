@@ -972,7 +972,7 @@ Its value should be a function of no arguments.  When
 function, which should return a frame.  The default value of the
 variable is a function that creates a frame using parameters from
 @code{pop-up-frame-alist}.
-@end defvar
+@end defopt
 
 @defopt pop-up-frame-alist
 This variable holds an alist specifying frame parameters used when

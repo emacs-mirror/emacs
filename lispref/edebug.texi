@@ -311,7 +311,7 @@ several times from one command.
 @defopt edebug-sit-for-seconds
 This option specifies how many seconds to wait between execution steps
 in trace mode.  The default is 1 second.
-@end defvar
+@end defopt
 
 @node Jumping
 @subsection Jumping
