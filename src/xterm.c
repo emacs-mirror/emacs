@@ -5389,7 +5389,8 @@ x_make_frame_visible (f)
       if (! EQ (Vx_no_window_manager, Qt))
 	x_wm_set_window_state (f, NormalState);
 #ifdef USE_X_TOOLKIT
-      XtPopup (f->display.x->widget, XtGrabNone);
+      /* This was XtPopup, but that did nothing for an iconified frame.  */
+      XtMapWidget (f->display.x->widget);
 #else /* not USE_X_TOOLKIT */
       XMapWindow (XDISPLAY FRAME_X_WINDOW (f));
 #endif /* not USE_X_TOOLKIT */
