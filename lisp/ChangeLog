@@ -1,5 +1,8 @@
 1999-12-02  Gerd Moellmann  <gerd@gnu.org>
 
+	* vc.el (vc-update-change-log): Look for rcs2log under
+	exec-directory.
+
 	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Change
 	outline-regexp, add outline-level.
 	(lisp-outline-level): New.
