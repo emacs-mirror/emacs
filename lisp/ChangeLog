@@ -1,5 +1,11 @@
 2000-06-23  Gerd Moellmann  <gerd@gnu.org>
 
+	* cus-edit.el (custom-button-face, custom-button-pressed-face): 
+	Specify foreground color.
+
+	* faces.el (tool-bar, mode-line, header-line): Specify foreground
+	color.
+
 	* Makefile.in (DONTCOMPILE): Add eshell/esh-maint.el.
 
 	* eshell/esh-cmd.el (eshell-rewrite-for-command): Use cdr and
