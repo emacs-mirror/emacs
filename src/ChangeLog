@@ -75,16 +75,20 @@
 
 	* xterm.h (image_ascent): Remove prototype.
 
+2004-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fkey_description): Fix the usual int/Lisp_Object mixup.
+
 2004-04-20  John Paul Wallington  <jpw@gnu.org>
 
 	* fns.c (Fassoc, Feql): Fix indentation.
 
-	* fontset.c (regularize_fontname): Renamed from	regulalize_fontname.
+	* fontset.c (regularize_fontname): Rename from regulalize_fontname.
 
 2004-04-19  John Paul Wallington  <jpw@gnu.org>
 
 	* fns.c (Feql): New function.
-	(syms_of_fns): defsubr it.
+	(syms_of_fns): Defsubr it.
 
 2004-04-18  Jason Rumney  <jasonr@gnu.org>
 

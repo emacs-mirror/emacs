@@ -7,6 +7,17 @@
 	* image.el (insert-image): Add optional SLICE arg.
 	(insert-sliced-image): New defun.
 
+2004-04-20  Lawrence Mitchell  <wence@gmx.li>  (tiny change)
+
+	* subr.el (read-number): Check whether `default' is nil.
+
+2004-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-error-properties):
+	Split into two.
+	(compilation-internal-error-properties): New one.
+	(compilation-compat-error-properties): Use it. Fix the non-marker case.
+
 2004-04-20  Richard M. Stallman  <rms@gnu.org>
 
 	* window.el (split-window-save-restore-data):
@@ -67,7 +78,7 @@
 
 2004-04-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* x-dnd.el (x-dnd-open-local-file, x-dnd-open-file): Improved error
+	* x-dnd.el (x-dnd-open-local-file, x-dnd-open-file): Improve error
 	messages.
 
 2004-04-19  Stephen Eglen  <stephen@gnu.org>
@@ -108,8 +119,8 @@
 	* textmodes/paragraphs.el (forward-sentence):
 	* textmodes/fill.el (canonically-space-region, fill-nobreak-p)
 	(fill-delete-newlines):
-	* progmodes/cc-cmds.el (c-beginning-of-statement): Use
-	function `sentence-end' instead of variable `sentence-end'.
+	* progmodes/cc-cmds.el (c-beginning-of-statement):
+	Use function `sentence-end' instead of variable `sentence-end'.
 
 2004-04-18  Andreas Schwab  <schwab@suse.de>
 
@@ -118,7 +129,7 @@
 
 2004-04-18  John Wiegley  <johnw@newartisans.com>
 
-	* iswitchb.el (iswitchb-completions): Removed dependency on cl.
+	* iswitchb.el (iswitchb-completions): Remove dependency on cl.
 
 2004-04-18  Nick Roberts  <nick@nick.uklinux.net>
 
@@ -131,7 +142,7 @@
 
 2004-04-17  John Wiegley  <johnw@newartisans.com>
 
-	* iswitchb.el (iswitchb-max-to-show): Added a new config variable
+	* iswitchb.el (iswitchb-max-to-show): Add a new config variable
 	which limits the number of names shown in the minibuffer.  Off by
 	default.
 	(iswitchb-completions): Use `iswitchb-max-to-show'.  This speeds
