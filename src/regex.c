@@ -875,17 +875,20 @@ static const char *re_error_msg[] =
 
 /* Avoiding alloca during matching, to placate r_alloc.  */
 
-/* Define MATCH_SHOULD_NOT_ALLOCA if we need to make sure that the
+/* Define MATCH_MAY_ALLOCATE if we need to make sure that the
    searching and matching functions should not call alloca.  On some
    systems, alloca is implemented in terms of malloc, and if we're
    using the relocating allocator routines, then malloc could cause a
    relocation, which might (if the strings being searched are in the
    ralloc heap) shift the data out from underneath the regexp
    routines.  */
-#if defined (REL_ALLOC)
-#if defined (C_ALLOCA)
-#define MATCH_SHOULD_NOT_ALLOCA
-#endif
+
+/* Normally, this is fine.  */
+#define MATCH_MAY_ALLOCATE
+
+/* But under some circumstances, it's not.  */
+#if defined (REL_ALLOC) && defined (C_ALLOCA)
+#undef MATCH_MAY_ALLOCATE
 #endif
 
 
@@ -924,7 +927,7 @@ typedef struct
 
 /* Initialize `fail_stack'.  Do `return -2' if the alloc fails.  */
 
-#ifndef MATCH_SHOULD_NOT_ALLOCA
+#ifdef MATCH_MAY_ALLOCATE
 #define INIT_FAIL_STACK()						\
   do {									\
     fail_stack.stack = (fail_stack_elt_t *)				\
@@ -1227,10 +1230,10 @@ typedef union
 
 
 
-/* How do we implement MATCH_SHOULD_NOT_ALLOCA?
+/* How do we implement a missing MATCH_MAY_ALLOCATE?
    We make the fail stack a global thing, and then grow it to
    re_max_failures when we compile.  */
-#ifdef MATCH_SHOULD_NOT_ALLOCA
+#ifndef MATCH_MAY_ALLOCATE
 static fail_stack_type fail_stack;
 
 static const char **     regstart, **     regend;
@@ -2457,7 +2460,7 @@ regex_compile (pattern, size, syntax, bufp)
     }
 #endif /* DEBUG */
 
-#ifdef MATCH_SHOULD_NOT_ALLOCA
+#ifndef MATCH_MAY_ALLOCATE
   /* Initialize the failure stack to the largest possible stack.  This
      isn't necessary unless we're trying to avoid calling alloca in
      the search and match routines.  */
@@ -2698,7 +2701,7 @@ re_compile_fastmap (bufp)
      struct re_pattern_buffer *bufp;
 {
   int j, k;
-#ifndef MATCH_SHOULD_NOT_ALLOCA
+#ifdef MATCH_MAY_ALLOCATE
   fail_stack_type fail_stack;
 #endif
 #ifndef REGEX_MALLOC
@@ -3209,9 +3212,7 @@ static boolean alt_match_null_string_p (),
 
 
 /* Free everything we malloc.  */
-#ifdef MATCH_SHOULD_NOT_ALLOCA
-#define FREE_VARIABLES() /* Do nothing!  */
-#else
+#ifdef MATCH_MAY_ALLOCATE
 #ifdef REGEX_MALLOC
 #define FREE_VAR(var) if (var) free (var); var = NULL
 #define FREE_VARIABLES()						\
@@ -3231,7 +3232,9 @@ static boolean alt_match_null_string_p (),
 /* Some MIPS systems (at least) want this to free alloca'd storage.  */
 #define FREE_VARIABLES() alloca (0)
 #endif /* not REGEX_MALLOC */
-#endif /* not MATCH_SHOULD_NOT_ALLOCA */
+#else
+#define FREE_VARIABLES() /* Do nothing!  */
+#endif /* not MATCH_MAY_ALLOCATE */
 
 /* These values must meet several constraints.  They must not be valid
    register values; since we have a limit of 255 registers (because
@@ -3312,7 +3315,7 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
      scanning the strings.  If the latter is zero, the failure point is
      a ``dummy''; if a failure happens and the failure point is a dummy,
      it gets discarded and the next next one is tried.  */
-#ifndef MATCH_SHOULD_NOT_ALLOCA /* otherwise, this is global.  */
+#ifdef MATCH_MAY_ALLOCATE /* otherwise, this is global.  */
   fail_stack_type fail_stack;
 #endif
 #ifdef DEBUG
@@ -3336,7 +3339,7 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
      matching and the regnum-th regend points to right after where we
      stopped matching the regnum-th subexpression.  (The zeroth register
      keeps track of what the whole pattern matches.)  */
-#ifndef MATCH_SHOULD_NOT_ALLOCA /* otherwise, these are global.  */
+#ifdef MATCH_MAY_ALLOCATE /* otherwise, these are global.  */
   const char **regstart, **regend;
 #endif
 
@@ -3345,7 +3348,7 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
      restored because it will have been set to wherever in the string we
      are when we last see its open-group operator.  Similarly for a
      register's end.  */
-#ifndef MATCH_SHOULD_NOT_ALLOCA /* otherwise, these are global.  */
+#ifdef MATCH_MAY_ALLOCATE /* otherwise, these are global.  */
   const char **old_regstart, **old_regend;
 #endif
 
@@ -3355,7 +3358,7 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
      matched any of the pattern so far this time through the reg_num-th
      subexpression.  These two fields get reset each time through any
      loop their register is in.  */
-#ifndef MATCH_SHOULD_NOT_ALLOCA /* otherwise, this is global.  */
+#ifdef MATCH_MAY_ALLOCATE /* otherwise, this is global.  */
   register_info_type *reg_info; 
 #endif
 
@@ -3364,7 +3367,7 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
      This happens as we backtrack through the failure points, which in
      turn happens only if we have not yet matched the entire string. */
   unsigned best_regs_set = false;
-#ifndef MATCH_SHOULD_NOT_ALLOCA /* otherwise, these are global.  */
+#ifdef MATCH_MAY_ALLOCATE /* otherwise, these are global.  */
   const char **best_regstart, **best_regend;
 #endif
   
@@ -3379,7 +3382,7 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
   const char *match_end = NULL;
 
   /* Used when we pop values we don't care about.  */
-#ifndef MATCH_SHOULD_NOT_ALLOCA /* otherwise, these are global.  */
+#ifdef MATCH_MAY_ALLOCATE /* otherwise, these are global.  */
   const char **reg_dummy;
   register_info_type *reg_info_dummy;
 #endif
@@ -3393,7 +3396,7 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
   
   INIT_FAIL_STACK ();
   
-#ifndef MATCH_SHOULD_NOT_ALLOCA
+#ifdef MATCH_MAY_ALLOCATE
   /* Do not bother to initialize all the register variables if there are
      no groups in the pattern, as it takes a fair amount of time.  If
      there are groups, we include space for register 0 (the whole
@@ -3428,7 +3431,7 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
       reg_info = reg_info_dummy = (register_info_type *) NULL;
     }
 #endif /* REGEX_MALLOC */
-#endif /* MATCH_SHOULD_NOT_ALLOCA */
+#endif /* MATCH_MAY_ALLOCATE */
 
   /* The starting position is bogus.  */
   if (pos < 0 || pos > size1 + size2)
