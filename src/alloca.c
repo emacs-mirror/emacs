@@ -51,9 +51,7 @@
    in order to make unexec workable
    */
 #ifndef STACK_DIRECTION
-you
-lose
--- must know STACK_DIRECTION at compile-time
+  #error "Must know STACK_DIRECTION at compile-time"
 #endif /* STACK_DIRECTION undefined */
 #endif /* static */
 #endif /* emacs */
@@ -68,11 +66,16 @@ long i00afunc ();
 #define ADDRESS_FUNCTION(arg) &(arg)
 #endif
 
+#ifdef POINTER_TYPE
+typedef POINTER_TYPE *pointer;
+#else
 #if __STDC__
 typedef void *pointer;
 #else
 typedef char *pointer;
-#endif
+#endif /*__STDC__*/
+#endif /*POINTER_TYPE*/
+
 
 #ifndef NULL
 #define	NULL	0
