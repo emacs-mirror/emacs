@@ -138,7 +138,9 @@ MODIFY, if non-nil, means the TO-FN wants to modify the region.  If nil,
         TO-FN will not make any changes but will instead return a list of
         annotations.
 
-MODE-FN, if specified, is called when visiting a file with that format.")
+MODE-FN, if specified, is called when visiting a file with that format.
+         It is called with a single positive argument, on the assumption
+         that it turns on some Emacs mode.")
 
 ;;; Basic Functions (called from Lisp)
 
