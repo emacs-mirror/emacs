@@ -195,13 +195,14 @@ on your screen using the command @code{ps-print-buffer-with-faces}.
 @cindex mode, Font Lock
 @cindex syntax highlighting and coloring
 
-  Font Lock mode is a minor mode, always local to a particular
-buffer, which highlights (or ``fontifies'') using various faces
-according to the syntax of the text you are editing.  It can
-recognize comments and strings in most languages; in several
-languages, it can also recognize and properly highlight various other
-important constructs---for example, names of functions being defined
-or reserved keywords.
+  Font Lock mode is a minor mode, always local to a particular buffer,
+which highlights (or ``fontifies'') using various faces according to
+the syntax of the text you are editing.  It can recognize comments and
+strings in most languages; in several languages, it can also recognize
+and properly highlight various other important constructs---for
+example, names of functions being defined or reserved keywords.
+Some special modes, such as Occur mode and Info mode, have completely
+specialized ways of assigning fonts for Font Lock mode.
 
 @findex font-lock-mode
 @findex turn-on-font-lock
