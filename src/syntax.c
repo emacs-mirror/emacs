@@ -2022,7 +2022,7 @@ between them, return t; otherwise return nil.")
 }
 
 /* Return syntax code of character C if C is a single byte character
-   or `multibyte_symbol_p' is zero.  Otherwise, retrun Ssymbol.  */
+   or `multibyte_symbol_p' is zero.  Otherwise, return Ssymbol.  */
 
 #define SYNTAX_WITH_MULTIBYTE_CHECK(c)			\
   ((SINGLE_BYTE_CHAR_P (c) || !multibyte_symbol_p)	\
