@@ -27,7 +27,7 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/mman.h>
 #include <stdio.h>
 #include <varargs.h>
-#ifndef __NetBSD__
+#if !defined (__NetBSD__) && !defined (__OpenBSD__)
 #include <filehdr.h>
 #include <aouthdr.h>
 #include <scnhdr.h>
@@ -36,7 +36,7 @@ Boston, MA 02111-1307, USA.  */
 # include <reloc.h>
 # include <elf_abi.h>
 #endif
-#else /* __NetBSD__ */
+#else /* __NetBSD__ or __OpenBSD__ */
 /*
  * NetBSD/Alpha does not have 'normal' user-land ECOFF support because
  * there's no desire to support ECOFF as the executable format in the
@@ -51,7 +51,11 @@ Boston, MA 02111-1307, USA.  */
 #define	HDRR		struct ecoff_symhdr
 #define	pHDRR		HDRR *
 #define	cbHDRR		sizeof(HDRR)
+#ifdef __OpenBSD__
+#define	ALPHAMAGIC	ECOFF_MAGIC_NATIVE_ALPHA
+#else
 #define	ALPHAMAGIC	ECOFF_MAGIC_NETBSD_ALPHA
+#endif
 #define	ZMAGIC		ECOFF_ZMAGIC
 
 /* Misc. constants that NetBSD doesn't define at all. */
@@ -71,7 +75,7 @@ Boston, MA 02111-1307, USA.  */
 #define	_RDATA		".rdata"
 #define	_SDATA		".sdata"
 #define	_SBSS		".sbss"
-#endif /* __NetBSD__ */
+#endif /* __NetBSD__ || __OpenBSD__ */
 
 static void fatal_unexec ();
 static void mark_x ();
@@ -422,7 +426,7 @@ update_dynamic_symbols (old, new_name, new, aout)
      int new;			/* File descriptor for new executable */
      struct aouthdr aout;	/* a.out info from the file header */
 {
-#if !defined (__linux__) && !defined (__NetBSD__)
+#if !defined (__linux__) && !defined (__NetBSD__) && !defined (__OpenBSD__)
 
   typedef struct dynrel_info {
     char * addr;
@@ -492,7 +496,7 @@ update_dynamic_symbols (old, new_name, new, aout)
 
   }
 
-#endif /* not __linux__ and not __NetBSD__ */
+#endif /* not __linux__ and not __NetBSD__ and not __OpenBSD__ */
 }
 
 

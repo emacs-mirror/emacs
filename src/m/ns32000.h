@@ -88,7 +88,7 @@ Boston, MA 02111-1307, USA.  */
    in the file alloca.s should be used.  */
 
 /* #define C_ALLOCA */
-#ifdef __NetBSD__
+#if defined (__NetBSD__) || defined (__OpenBSD__)
 #define HAVE_ALLOCA
 #endif
 
@@ -103,7 +103,7 @@ Boston, MA 02111-1307, USA.  */
 
 #define STACK_DIRECTION -1
 
-#ifndef __NetBSD__
+#if !defined (__NetBSD__) && !defined (__OpenBSD__)
 #define EXEC_MAGIC 0410
 
 #define PURESIZE 140000
