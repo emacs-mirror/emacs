@@ -1133,7 +1133,7 @@ Interactively, empty argument means use same regexp used last time."
 	    (prefix-numeric-value current-prefix-arg))))
   (or n (setq n 1))
   (message "%sRmail search for %s..."
-	   (if reversep "Reverse " "")
+	   (if (< n 0) "Reverse " "")
 	   regexp)
   (rmail-maybe-set-message-counters)
   (let ((omin (point-min))
@@ -1156,7 +1156,7 @@ Interactively, empty argument means use same regexp used last time."
 	      (while (and (null win) (< msg rmail-total-messages))
 		(goto-char (rmail-msgbeg (setq msg (1+ msg))))
 		(setq win (re-search-forward regexp (rmail-msgend msg) t))))
-	    (setq n (+ n (if (< n 0) -1 1)))))
+	    (setq n (+ n (if reversep 1 -1)))))
       (if win
 	  (progn
 	    ;; If this is a reverse search and we found a message,
@@ -1183,7 +1183,7 @@ Prefix argument gives repeat count; negative argument means search
 forward (through later messages).
 Interactively, empty argument means use same regexp used last time."
   (interactive
-    (let* ((reversep (< (prefix-numeric-value current-prefix-arg) 0))
+    (let* ((reversep (>= (prefix-numeric-value current-prefix-arg) 0))
 	   (prompt
 	    (concat (if reversep "Reverse " "") "Rmail search (regexp): "))
 	   regexp)
