@@ -5,7 +5,7 @@
 ;; Author: Ake Stenhoff <etxaksf@aom.ericsson.se>
 ;;         Lars Lindberg <lli@sypro.cap.se>
 ;; Created: 8 Feb 1994
-;; Version: 1.11
+;; Version: 1.12
 ;; Keywords: tools
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -42,51 +42,11 @@
 ;;   function for jumping to the chosen index position is also
 ;;   supplied.
 
-;;; Change Log:
-;;    v1.11 Jul 26 1994 Ake Stenhoff
-;;      Fixed bugs in 'imenu-add-to-menubar'.
-;;    v1.10 Jul 21 1994 Ake Stenhoff
-;;      Added support for markers.
-;;      Changed the examples to use
-;;      markers.
-;;      Thanks [alon].
-;;    v1.9 Jun 14 1994 Ake Stenhoff
-;;      Added 'imenu-add-to-menubar'.
-;;    v1.7 Apr 12 1994 Ake Stenhoff
-;;	Changed doc strings refering to symbols.
-;;      Require 'cl' when compiling only.
-;;	Only uses 'cl' macros.
-;;    v1.6 Feb 28 1994 Ake Stenhoff
-;;      Added alist as an optional argument to 
-;;     'imenu-choose-buffer-index'.
-;;      Thanks [dean].
-;;    v1.5 Feb 25 1994 Ake Stenhoff
-;;      Added code to parse DEFSTRUCT, DEFCLASS, DEFTYPE,
-;;      DEFINE-CONDITION in the lisp example function.
-;;      Thanks [simon].
-;;    v1.4 Feb 18 1994 Ake Stenhoff
-;;	Added 'imenu-create-submenu-name' for creating a submenu name.
-;;	This is for getting a general look of submenu names.
-;;	Added variable 'imenu-submenu-name-format' used by 
-;;      'imenu-create-submenu-name'.
-;;    v1.3 Feb 17 1994 Lars Lindberg
-;;      Added 'imenu--flatten-index-alist' for flatten nexted index
-;;      alists.
-;;      New examples for lisp mode that utilizes the features better.
-;;      Added the variable 'imenu-space-replacement'.
-;;      The completion-buffer version of the index menu now replaces
-;;      spaces in the index-names to make tokens of them.
-;;    v1.2 Feb 14 1994 Ake Stenhoff & Lars Lindberg
-;;	Now handles nested index lists.
-;;    v1.1 Feb 9 1994 Ake Stenhoff & Lars Lindberg
-;;       Better comments (?).
-;;    v1.0 Feb 8 1994 Ake Stenhoff & Lars Lindberg
-;;       Based on func-menu.el 3.5.
-
 ;;; Thanks goes to
 ;;  [simon] - Simon Leinen simon@lia.di.epfl.ch
 ;;  [dean] - Dean Andrews ada@unison.com
 ;;  [alon] - Alon Albert al@mercury.co.il 
+;;  [greg] - Greg Thompson gregt@porsche.visix.COM
 
 ;;; Code
 (eval-when-compile (require 'cl))
@@ -305,7 +265,7 @@ This function is called after the function pointed out by
   ;; point nowhere.
   ;; if alist is provided use that list.
   (and imenu--index-alist
-       (mapc 
+       (mapcar
 	(function
 	 (lambda (item)
 	   (cond
