@@ -606,7 +606,10 @@ locally (@pxref{File Variables}).
 @vindex backup-by-copying
 @vindex backup-by-copying-when-linked
 @vindex backup-by-copying-when-mismatch
-  The choice of renaming or copying is controlled by three variables.
+@vindex backup-by-copying-when-privileged-mismatch
+@cindex file ownership, and backup
+@cindex backup, and user's uid
+  The choice of renaming or copying is controlled by four variables.
 Renaming is the default choice.  If the variable
 @code{backup-by-copying} is non-@code{nil}, copying is used.  Otherwise,
 if the variable @code{backup-by-copying-when-linked} is non-@code{nil},
@@ -615,7 +618,12 @@ may still be used when the file being edited has only one name.  If the
 variable @code{backup-by-copying-when-mismatch} is non-@code{nil}, then
 copying is used if renaming would cause the file's owner or group to
 change.  @code{backup-by-copying-when-mismatch} is @code{t} by default
-if you start Emacs as the superuser.
+if you start Emacs as the superuser.  The fourth variable,
+@code{backup-by-copying-when-privileged-mismatch}, gives the highest
+numeric user id for which @code{backup-by-copying-when-mismatch} will be
+forced on.  This is useful when low-numbered uid's are assigned to
+special system users, such as @code{root}, @code{bin}, @code{daemon},
+etc., which must maintain ownership of files.
 
   When a file is managed with a version control system (@pxref{Version
 Control}), Emacs does not normally make backups in the usual way for
