@@ -89,7 +89,7 @@ Echo To configure 'Emacs' you need to have 'gcc'!
 rm -f junk.c
 Goto End
 :gccOk
-rm -f junk.c junk.o
+rm -f junk.c junk.o junk junk.exe
 Echo Checking what version of DJGPP is installed...
 If Not "%DJGPP%" == "" goto djgppOk
 Echo To compile 'Emacs' under MS-DOS you MUST have DJGPP installed!
@@ -105,7 +105,8 @@ echo #else               >>junk.c
 echo {return 0;}         >>junk.c
 echo #endif              >>junk.c
 echo #endif              >>junk.c
-gcc -o junk.exe junk.c
+gcc -o junk junk.c
+if not exist junk.exe coff2exe junk
 junk
 If ErrorLevel 10 Goto go32Ok
 rm -f junk.c junk junk.exe
