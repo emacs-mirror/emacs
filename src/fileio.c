@@ -3475,11 +3475,10 @@ auto_save_1 ()
 }
 
 static Lisp_Object
-do_auto_save_unwind (stream)  /* used as unwind-protect function */
-     Lisp_Object stream;
+do_auto_save_unwind (desc)  /* used as unwind-protect function */
+     Lisp_Object desc;
 {
-  close (*(int *)XPNTR (stream));
-  xfree (XPNTR (stream));
+  close (XINT (desc));
   return Qnil;
 }
 
@@ -3536,15 +3535,10 @@ Non-nil second argument means save only current buffer.")
     }
   else
     listdesc = -1;
-
-  /* We may not be able to store STREAM itself as a Lisp_Object pointer
-     since that is guaranteed to work only for data that has been malloc'd.
-     So malloc a full-size pointer, and record the address of that pointer.  */
-  ptr = (int *) xmalloc (sizeof (int));
-  *ptr = listdesc;
-  XSET (lispstream, Lisp_Internal_Stream, (int) ptr);
   
-  record_unwind_protect (do_auto_save_unwind, lispstream);
+  /* Arrange to close that file whether or not we get an error.  */
+  if (listdesc >= 0)
+    record_unwind_protect (do_auto_save_unwind, make_number (listdesc));
 
   /* First, save all files which don't have handlers.  If Emacs is
      crashing, the handlers may tweak what is causing Emacs to crash
