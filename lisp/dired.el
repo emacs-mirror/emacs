@@ -1425,14 +1425,25 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
 	 (not default-file-name-coding-system)
 	 (setq file (encode-coding-string file buffer-file-coding-system)))
     (cond
+     ((null file)
+      nil)
      ((eq localp 'verbatim)
       file)
      ((and (eq localp 'no-dir) already-absolute)
       (file-name-nondirectory file))
-     ((or already-absolute (eq localp 'no-dir))
+     (already-absolute
+      (if (find-file-name-handler file nil)
+	  (concat "/:" file)
+	file))
+     ((eq localp 'no-dir)
       file)
+     ((equal (dired-current-directory) "/")
+      (setq file (concat (dired-current-directory localp) file))
+      (if (find-file-name-handler file nil)
+	  (concat "/:" file)
+	file))
      (t
-      (and file (concat (dired-current-directory localp) file))))))
+      (concat (dired-current-directory localp) file)))))
 
 (defun dired-string-replace-match (regexp string newtext
 					  &optional literal global)
