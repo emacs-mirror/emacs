@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.62) $
+ * $HopeName: MMsrc!arena.c(trunk.63) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.62) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.63) $");
 
 
 /* Forward declarations */
@@ -1426,12 +1426,21 @@ Size ArenaCommitLimit(Arena arena)
 
 Res ArenaSetCommitLimit(Arena arena, Size limit)
 {
+  Size committed;
+
   AVERT(Arena, arena);
   AVER(ArenaCommitted(arena) <= arena->commitLimit);
 
-  if(limit < ArenaCommitted(arena)) {
+  committed = ArenaCommitted(arena);
+  if(limit < committed) {
     /* Attempt to set the limit below current committed */
-    return ResFAIL;
+    if (limit >= committed - arena->spareCommitted) {
+      /* could set the limit by flushing any spare committed memory */
+      arena->class->spareCommitExceeded(arena);
+      AVER(limit >= ArenaCommitted(arena));
+    } else {
+      return ResFAIL;
+    }
   }
   arena->commitLimit = limit;
   return ResOK;
