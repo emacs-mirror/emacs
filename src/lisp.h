@@ -1527,12 +1527,13 @@ EXFUN (Findirect_function, 1);
 EXFUN (Ffset, 2);
 EXFUN (Fsetplist, 2);
 EXFUN (Fsymbol_value, 1);
-EXFUN (find_symbol_value, 1);
+extern Lisp_Object find_symbol_value P_ ((Lisp_Object));
 EXFUN (Fset, 2);
 EXFUN (Fdefault_value, 1);
 EXFUN (Fset_default, 2);
 EXFUN (Fdefault_boundp, 1);
 EXFUN (Fmake_local_variable, 1);
+EXFUN (Flocal_variable_p, 2);
 EXFUN (Flocal_variable_if_set_p, 2);
 
 EXFUN (Faref, 2);
@@ -1582,7 +1583,7 @@ EXFUN (Fcoding_system_p, 1);
 EXFUN (Fcheck_coding_system, 1);
 EXFUN (Fread_coding_system, 1);
 EXFUN (Fread_non_nil_coding_system, 1);
-EXFUN (Ffind_coding_system, MANY);
+EXFUN (Ffind_operation_coding_system, MANY);
 
 /* Defined in syntax.c */
 EXFUN (Fforward_word, 1);
