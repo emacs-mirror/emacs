@@ -471,50 +471,66 @@ These special properties include `invisible', `intangible' and `read-only'."
       col)))
 
 ;;;###autoload
-(defun list-colors-display (&optional list)
+(defun list-colors-display (&optional list buffer-name)
   "Display names of defined colors, and show what they look like.
 If the optional argument LIST is non-nil, it should be a list of
-colors to display.  Otherwise, this command computes a list
-of colors that the current display can handle."
+colors to display.  Otherwise, this command computes a list of
+colors that the current display can handle.  If the optional
+argument BUFFER-NAME is nil, it defaults to *Colors*."
   (interactive)
   (when (and (null list) (> (display-color-cells) 0))
-    (setq list (defined-colors))
-    ;; Delete duplicate colors.
-
-    ;; Identify duplicate colors by the name rather than the color
-    ;; value.  For example, on MS-Windows, logical colors are added to
-    ;; the list that might have the same value but have different
-    ;; names and meanings.  For example, `SystemMenuText' (the color
-    ;; w32 uses for the text in menu entries) and `SystemWindowText'
-    ;; (the default color w32 uses for the text in windows and
-    ;; dialogs) may be the same display color and be adjacent in the
-    ;; list.  Detecting duplicates by name insures that both of these
-    ;; colors remain despite identical color values.
-    (let ((l list))
-      (while (cdr l)
-	(if (facemenu-color-name-equal (car l) (car (cdr l)))
-	    (setcdr l (cdr (cdr l)))
-	  (setq l (cdr l)))))
+    (setq list (list-colors-duplicates (defined-colors)))
     (when (memq (display-visual-class) '(gray-scale pseudo-color direct-color))
       ;; Don't show more than what the display can handle.
       (let ((lc (nthcdr (1- (display-color-cells)) list)))
 	(if lc
 	    (setcdr lc nil)))))
-  (with-output-to-temp-buffer "*Colors*"
+  (with-output-to-temp-buffer (or buffer-name "*Colors*")
     (save-excursion
       (set-buffer standard-output)
-      (let (s)
-	(while list
-	  (setq s (point))
-	  (insert (car list))
-	  (indent-to 20)
-	  (put-text-property s (point) 'face
-			     (cons 'background-color (car list)))
-	  (setq s (point))
-	  (insert "  " (car list) "\n")
-	  (put-text-property s (point) 'face
-			     (cons 'foreground-color (car list)))
-	  (setq list (cdr list)))))))
+      (setq truncate-lines t)
+      (dolist (color list)
+	(if (consp color)
+	    (if (cdr color)
+		(setq color (sort color (lambda (a b)
+					  (string< (downcase a)
+						   (downcase b))))))
+	  (setq color (list color)))
+	(put-text-property
+	 (prog1 (point)
+	   (insert (car color))
+	   (indent-to 22))
+	 (point)
+	 'face (cons 'background-color (car color)))
+	(put-text-property
+	 (prog1 (point)
+	   (insert "  " (if (cdr color)
+			    (mapconcat 'identity (cdr color) ", ")
+			  (car color))
+		   "\n"))
+	 (point)
+	 'face (cons 'foreground-color (car color)))))))
+
+(defun list-colors-duplicates (&optional list)
+  "Return a list of colors with grouped duplicate colors.
+If a color has no duplicates, then the element of the returned list
+has the form '(COLOR-NAME).  The element of the returned list with
+duplicate colors has the form '(COLOR-NAME DUPLICATE-COLOR-NAME ...).
+This function uses the predicate `facemenu-color-equal' to compare
+color names.  If the optional argument LIST is non-nil, it should
+be a list of colors to display.  Otherwise, this function uses
+a list of colors that the current display can handle."
+  (let* ((list (mapcar 'list (or list (defined-colors))))
+	 (l list))
+    (while (cdr l)
+      (if (and (facemenu-color-equal (car (car l)) (car (car (cdr l))))
+	       (not (and (boundp 'w32-default-color-map)
+			 (not (assoc (car (car l)) w32-default-color-map)))))
+	  (progn
+	    (setcdr (car l) (cons (car (car (cdr l))) (cdr (car l))))
+	    (setcdr l (cdr (cdr l))))
+	(setq l (cdr l))))
+    list))
 
 (defun facemenu-color-equal (a b)
   "Return t if colors A and B are the same color.
@@ -524,22 +540,6 @@ names mean.  It returns nil if the colors differ or if it can't
 determine the correct answer."
   (cond ((equal a b) t)
 	((equal (color-values a) (color-values b)))))
-
-(defun facemenu-color-name-equal (a b)
-  "Return t if colors A and B are the same color.
-A and B should be strings naming colors.  These names are
-downcased, stripped of spaces and the string `grey' is turned
-into `gray'.  This accommodates alternative spellings of colors
-found commonly in the list.  It returns nil if the colors differ."
-  (progn
-    (setq a (replace-regexp-in-string "grey" "gray"
-            (replace-regexp-in-string " " ""
-             (downcase a)))
-         b (replace-regexp-in-string "grey" "gray"
-            (replace-regexp-in-string " " ""
-             (downcase b))))
-
-    (equal a b)))
 
 (defun facemenu-add-face (face &optional start end)
   "Add FACE to text between START and END.
