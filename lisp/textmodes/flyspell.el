@@ -1357,6 +1357,13 @@ Word syntax described by `ispell-dictionary-alist' (which see)."
 (defun flyspell-region (beg end)
   "Flyspell text between BEG and END."
   (interactive "r")
+  (unless (boundp 'flyspell-local-mouse-map)
+    (set (make-local-variable 'flyspell-local-mouse-map)
+	 (let ((map (copy-keymap flyspell-mouse-map)))
+	   (if (eq flyspell-emacs 'xemacs)
+	       (set-keymap-parents (list (current-local-map)))
+	     (set-keymap-parent map (current-local-map)))
+	   map)))
   (if (= beg end)
       ()
     (save-excursion
