@@ -1,3 +1,8 @@
+2003-07-06  Markus Rost  <rost@math.ohio-state.edu>
+
+	* advice.texi (Activation of Advice): Note that ad-start-advice is
+	turned on by default.
+
 2003-06-22  Andreas Schwab  <schwab@suse.de>
 
 	* objects.texi (Symbol Type): Fix description of examples.
