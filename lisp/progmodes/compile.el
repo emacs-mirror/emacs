@@ -897,6 +897,11 @@ Does NOT find the source line like \\[next-error]."
     (or (compilation-buffer-p (current-buffer))
 	(error "Not in a compilation buffer."))
     (setq compilation-last-buffer (current-buffer))
+    ;; `compile-reinitialize-errors' needs to see the complete filename
+    ;; on the line where they clicked the mouse.  Since it only looks
+    ;; upto point, moving point to eol makes sure the filename is
+    ;; visible to `compile-reinitialize-errors'.
+    (end-of-line)
     (compile-reinitialize-errors nil (point))
 
     ;; Move to bol; the marker for the error on this line will point there.
