@@ -31,6 +31,7 @@
   (setup-english-environment)
 
   (setq coding-category-iso-8-2 'japanese-iso-8bit)
+  (setq coding-category-iso-8-else 'japanese-iso-8bit)
 
   (set-coding-priority
    '(coding-category-iso-7
