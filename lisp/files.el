@@ -1105,11 +1105,15 @@ If `enable-local-variables' is nil, this function does not check for a
   "Variables to be ignored in a file's local variable spec.")
 
 ;; Get confirmation before setting these variables as locals in a file.
+(put 'enable-local-eval 'risky-local-variable t)
 (put 'eval 'risky-local-variable t)
 (put 'file-name-handler-alist 'risky-local-variable t)
 (put 'minor-mode-map-alist 'risky-local-variable t)
 (put 'after-load-alist 'risky-local-variable t)
-	    
+(put 'buffer-file-name 'risky-local-variable t)
+(put 'buffer-auto-save-file-name 'risky-local-variable t)
+(put 'buffer-file-truename 'risky-local-variable t)
+
 (defun hack-one-local-variable-quotep (exp)
   (and (consp exp) (eq (car exp) 'quote) (consp (cdr exp))))
 
