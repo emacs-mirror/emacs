@@ -31,7 +31,7 @@
 (require 'quail)
 
 (quail-define-package
- "latin-1-prefix" "Latin-1" "1" t
+ "latin-1-prefix" "Latin-1" "1>" t
  "Latin-1 characters input method with prefix modifiers
 
     effect   | prefix | examples
@@ -128,7 +128,7 @@
 )
 
 (quail-define-package
- "catalan-prefix" "Latin-1" "CA" t
+ "catalan-prefix" "Latin-1" "CA>" t
  "Catalan and Spanish input method with prefix modifiers
 
     effect   | prefix | examples
@@ -177,7 +177,7 @@
 )
 
 (quail-define-package
- "esperanto-prefix" "Latin-1" "EO" t
+ "esperanto-prefix" "Latin-1" "EO>" t
  "Esperanto input method with prefix modifiers
 Key translation rules are:
  ^H -> ?,A&(B, ^J -> ?,A,(B, ^h -> ?,A6(B, ^j -> ?,A<(B, ^C -> ?,AF(B, ^G -> ?,AX(B,
@@ -203,7 +203,7 @@ Key translation rules are:
 )
 
 (quail-define-package
- "french-prefix" "Latin-1" "FR" t
+ "french-prefix" "Latin-1" "FR>" t
  "French (Fran,Ag(Bais) input method with prefix modifiers
 
     effect   | prefix | examples
@@ -256,7 +256,7 @@ Key translation rules are:
 )
 
 (quail-define-package
- "german-prefix" "Latin-1" "DE" t
+ "german-prefix" "Latin-1" "DE>" t
  "German (Deutsch) input method with prefix modifiers
 Key translation rules are:
  \"A -> ,AD(B -> \"O -> ,AV(B, \"U -> ,A\(B, \"s -> ?,A_(B
@@ -274,7 +274,7 @@ Key translation rules are:
 )
 
 (quail-define-package
- "irish-prefix" "Latin-1" "GA" t
+ "irish-prefix" "Latin-1" "GA>" t
  "Irish input method with prefix modifiers
 Key translation rules are:
  'A -> ,AA(B, 'E -> ,AI(B, 'I -> ,AM(B, 'O -> ,AS(B, 'U -> ,AZ(B
@@ -295,7 +295,7 @@ Key translation rules are:
 )
 
 (quail-define-package
- "portuguese-prefix" "Latin-1" "PT" t
+ "portuguese-prefix" "Latin-1" "PT>" t
  "Portuguese input method with prefix modifiers
 
     effect   | prefix | examples
@@ -346,7 +346,7 @@ Key translation rules are:
 )
 
 (quail-define-package
- "spanish-prefix" "Latin-1" "ES" t
+ "spanish-prefix" "Latin-1" "ES>" t
  "Spanish (Espa,Aq(Bol) input method with prefix modifiers
 
     effect   | prefix | examples
@@ -382,7 +382,7 @@ Key translation rules are:
 )
 
 (quail-define-package
- "latin-2-prefix" "Latin-2" "2" t
+ "latin-2-prefix" "Latin-2" "2>" t
  "Latin-2 characters input method with prefix modifiers
 
     effect   | prefix | examples
@@ -491,7 +491,7 @@ Key translation rules are:
 )
 
 (quail-define-package
- "latin-3-prefix" "Latin-3" "3" t
+ "latin-3-prefix" "Latin-3" "3>" t
  "Latin-3 characters input method with prefix modifiers
 
     effect   | prefix | examples

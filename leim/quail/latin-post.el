@@ -27,7 +27,7 @@
 (require 'quail)
 
 (quail-define-package
- "latin-1-postfix" "Latin-1" "1+" t
+ "latin-1-postfix" "Latin-1" "1<" t
  "Latin-1 characters input method with postfix modifiers
 
     effect   | postfix | examples
@@ -121,7 +121,7 @@
  (">>" ?,A;(B))
 
 (quail-define-package
- "latin-2-postfix" "Latin-2" "2+" t
+ "latin-2-postfix" "Latin-2" "2<" t
  "Latin-2 characters input method with postfix modifiers
 
     effect   | postfix | examples
@@ -225,7 +225,7 @@
  )
 
 (quail-define-package
- "latin-3-postfix" "Latin-3" "3+" t
+ "latin-3-postfix" "Latin-3" "3<" t
  "Latin-3 characters input method with postfix modifiers
 
     effect   | postfix | examples
@@ -317,7 +317,7 @@
  )
 
 (quail-define-package
- "latin-4-postfix" "Latin-4" "4+" t
+ "latin-4-postfix" "Latin-4" "4<" t
  "Latin-4 characters input method with postfix modifiers
 
     effect   | postfix | examples
@@ -422,7 +422,7 @@
  )
 
 (quail-define-package
- "latin-5-postfix" "Latin-5" "5+" t
+ "latin-5-postfix" "Latin-5" "5<" t
  "Latin-5 characters input method with postfix modifiers
 
     effect   | postfix | examples
@@ -505,7 +505,7 @@
  )
 
 (quail-define-package
- "danish-postfix" "Latin-1" "DA+" t
+ "danish-postfix" "Latin-1" "DA<" t
  "Danish input method (rule: AE -> ,AF(B, OE -> ,AX(B, AA -> ,AE(B, E' -> ,AI(B)"
  nil t)
 
@@ -524,7 +524,7 @@
  )
 
 (quail-define-package
- "esperanto-postfix" "Latin-3" "EO+" t
+ "esperanto-postfix" "Latin-3" "EO<" t
  "Esperanto input method with postfix modifiers
 
 Preceding ^ or following x will produce accented characters,
@@ -566,7 +566,7 @@ e.g. ^C -> ,CF(B, Gx -> ,CX(B.
  )
 
 (quail-define-package
- "finnish-postfix" "Latin-1" "FI+" t
+ "finnish-postfix" "Latin-1" "FI<" t
  "Finnish (Suomi) input method (rule: AE -> ,AD(B, OE -> ,AV(B)"
  nil t)
 
@@ -579,7 +579,7 @@ e.g. ^C -> ,CF(B, Gx -> ,CX(B.
  )
 
 (quail-define-package
- "french-postfix" "Latin-1" "FR+" t
+ "french-postfix" "Latin-1" "FR<" t
  "French (Fran,Ag(Bais) input method with postfix modifiers
 
 ` pour grave, ' pour aigu, ^ pour circonflexe, et \" pour tr,Ai(Bma.
@@ -628,7 +628,7 @@ Par exemple A` -> ,A@(B, E' -> ,AI(B.
  )
 
 (quail-define-package
- "german-postfix" "Latin-1" "DE+" t
+ "german-postfix" "Latin-1" "DE<" t
  "German (Deutsch) input method (rule: AE -> ,AD(B, OE -> ,AV(B, UE -> ,A\(B, sz -> ,A_(B)
 
 ,A_(B can also be input by 'ss' followed by M-n."
@@ -649,7 +649,7 @@ Par exemple A` -> ,A@(B, E' -> ,AI(B.
  )
 
 (quail-define-package
- "icelandic-postfix" "Latin-1" "IS+" t
+ "icelandic-postfix" "Latin-1" "IS<" t
  "Icelandic (,AM(Bslenska) input method with postfix modifiers
 
 A' -> ,AA(B
@@ -697,7 +697,7 @@ T/ -> ,A^(B (thorn)"
  )
 
 (quail-define-package
- "italian-postfix" "Latin-1" "IT+" t
+ "italian-postfix" "Latin-1" "IT<" t
  "Italian (Italiano) input method with postfix modifiers
 
 A` -> ,A@(B
@@ -725,7 +725,7 @@ U` -> ,AY(B
  )
 
 (quail-define-package
- "norwegian-postfix" "Latin-1" "NO+" t
+ "norwegian-postfix" "Latin-1" "NO<" t
  "Norwegian (Norsk) input method (rule: AE->,AF(B, OE->,AX(B, AA->,AE(B, E'->,AI(B)"
  nil t)
 
@@ -744,7 +744,7 @@ U` -> ,AY(B
  )
 
 (quail-define-package
- "scandinavian-postfix" "Latin-1" "SC+" t
+ "scandinavian-postfix" "Latin-1" "SC<" t
  "Scandinavian input method (rule: AE->,AD(B/,AF(B, OE->,AV(B/,AX(B, AA->,AE(B, E'->,AI(B)
 
 Supported languages are Swidish, Norwegian, Danish, and Finnish.
@@ -768,7 +768,7 @@ when the character is underlined.
  )
 
 (quail-define-package
- "spanish-postfix" "Latin-1" "ES+" t
+ "spanish-postfix" "Latin-1" "ES<" t
  "Spanish (Espa,Aq(Bol) input method with postfix modifiers
 
 A' -> ,AA(B
@@ -805,7 +805,7 @@ N~ -> ,AQ(B
  )
 
 (quail-define-package
- "swedish-postfix" "Latin-1" "SV" t
+ "swedish-postfix" "Latin-1" "SV<" t
  "Swedish (Svenska) input method (rule: AA -> ,AE(B, AE -> ,AD(B, OE -> ,AV(B, E' -> ,AI(B)"
  nil t)
 
@@ -824,7 +824,7 @@ N~ -> ,AQ(B
  )
 
 (quail-define-package
- "turkish-postfix" "Latin-3" "TR" t
+ "turkish-postfix" "Latin-3" "TR<" t
  "Turkish (T,C|(Brk,Cg(Be) input method with postfix modifiers
 
 Note for I, ,C9(B, ,C)(B, i.
@@ -869,7 +869,7 @@ U^ -> ,C[(B
  )
 
 (quail-define-package
- "british" "Latin-1" ",A#(B" t
+ "british" "Latin-1" ",A#(B@" t
  "British English input method with Latin-1 character ,A#(B (# -> ,A#(B)"
  nil t)
 
@@ -897,7 +897,7 @@ U^ -> ,C[(B
 
 ;;
 (quail-define-package
- "french-keyboard" "Latin-1" "Fr" t
+ "french-keyboard" "Latin-1" "FR@" t
  "French (Fran,Ag(Bais) input method simulating some French keyboard
 <e dans l'o> n'est pas disponible." nil t t t t)
 
@@ -939,7 +939,7 @@ U^ -> ,C[(B
 
 ;;
 (quail-define-package
- "french-azerty" "Latin-1" "AZERTY" t
+ "french-azerty" "Latin-1" "AZ@" t
  "French (Fran,Ag(Bais) input method simulating Azerty keyboard
 
 Similaire au clavier fran,Ag(Bais de SUN.
@@ -1061,7 +1061,7 @@ pr,Ai(Bfixes:  ^ pour circonflexe,  ,A((B pour tr,Ai(Bma.
 
 ;;
 (quail-define-package
- "icelandic-keyboard" "Latin-1" "Is" t
+ "icelandic-keyboard" "Latin-1" "IS@" t
  "Icelandic (,AM(Bslenska) input method simulating some Icelandic keyboard
 
 Dead accent is right to ,Af(B." nil t t t t)
@@ -1109,7 +1109,7 @@ Dead accent is right to ,Af(B." nil t t t t)
 
 ;;
 (quail-define-package
- "danish-keyboard" "Latin-1" "Da" t
+ "danish-keyboard" "Latin-1" "DA@" t
  "Danish input method simulating SUN Danish keyboard"
  nil t t t t)
 
@@ -1151,7 +1151,7 @@ Dead accent is right to ,Af(B." nil t t t t)
 
 ;;
 (quail-define-package
- "norwegian-keyboard" "Latin-1" "No" t
+ "norwegian-keyboard" "Latin-1" "NO@" t
  "Norwegian (Norsk) input method simulating SUN Norwegian keyboard"
  nil t t t t)
 
@@ -1194,7 +1194,7 @@ Dead accent is right to ,Af(B." nil t t t t)
 
 ;;
 (quail-define-package
- "swedish-keyboard" "Latin-1" "Sv" t
+ "swedish-keyboard" "Latin-1" "SV@" t
  "Swedish (Svenska) input method simulating SUN Swedish/Finnish keyboard"
  nil t t t t)
 
@@ -1236,7 +1236,7 @@ Dead accent is right to ,Af(B." nil t t t t)
 
 ;;
 (quail-define-package
- "finish-keyboard" "Latin-1" "Fi" t
+ "finish-keyboard" "Latin-1" "FI@" t
  "Finish input method simulating SUN Finnish/Swedish keyboard"
  nil t t t t)
 
@@ -1278,7 +1278,7 @@ Dead accent is right to ,Af(B." nil t t t t)
 
 ;;
 (quail-define-package
- "german" "Latin-1" "De" t
+ "german" "Latin-1" "DE@" t
  "German (Deutsch) input method simulating SUN German keyboard"
  nil t t t t)
 
@@ -1320,7 +1320,7 @@ Dead accent is right to ,Af(B." nil t t t t)
 
 ;;
 (quail-define-package
- "italian-keyboard" "Latin-1" "It" t
+ "italian-keyboard" "Latin-1" "IT@" t
  "Italian (Italiano) input method simulating SUN Italian keyboard"
  nil t t t t)
 
@@ -1361,7 +1361,7 @@ Dead accent is right to ,Af(B." nil t t t t)
 
 ;;
 (quail-define-package
- "spanish-keyboard" "Latin-1" "Es" t
+ "spanish-keyboard" "Latin-1" "ES@" t
  "Spanish (Espa,Aq(Bol) input method simulating SUN Spanish keyboard"
  nil t t t t)
 
@@ -1403,7 +1403,7 @@ Dead accent is right to ,Af(B." nil t t t t)
 
 ;;
 (quail-define-package
- "english-dvorak" "English" "DV" t
+ "english-dvorak" "English" "DV@" t
  "English (ASCII) input method simulating Dvorak keyboard"
  nil t t t t)
 
