@@ -1,3 +1,23 @@
+2004-03-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buff-menu.el (Buffer-menu-revert-function): Make it suitable for
+	Auto Revert mode.
+	(Buffer-menu-files-only): New variable.
+	(Buffer-menu-toggle-files-only): New function.
+	(Buffer-menu-mode-map): Bind it to `T'.
+	(Buffer-menu-mode): Mention `T' in docstring.
+	Set buffer-stale-function.
+	(list-buffers-noselect): Mark buffer non-modified and set
+	Buffer-menu-files-only.
+
+	* dired.el (buffer-stale-function): Remove no longer needed defvar.
+
+	* autorevert.el (auto-revert-handler): Print revert message
+	before, rather than after, reverting.
+	(buffer-stale-function): Move to files.el.
+
+	* files.el (buffer-stale-function): Moved here from autorevert.el.
+
 2004-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc.el (vc-maybe-resolve-conflicts): Don't prompt the user.
