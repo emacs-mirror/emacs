@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs-info.el,v 1.2 2000/03/22 02:56:52 monnier Exp $
+;; Revision: $Id: pcvs-info.el,v 1.3 2000/06/12 04:37:50 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -130,6 +130,7 @@ to confuse some users sometimes."
 
 (defvar cvs-fi-up-to-date-face 'cvs-handled-face)
 (defvar cvs-fi-unknown-face 'cvs-unknown-face)
+(defvar cvs-fi-conflict-face 'font-lock-warning-face)
 
 ;; There is normally no need to alter the following variable, but if
 ;; your site has installed CVS in a non-standard way you might have
