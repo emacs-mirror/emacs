@@ -5087,11 +5087,12 @@ get_next_display_element (it)
 		 display.  Then, set IT->dpvec to these glyphs.  */
 	      GLYPH g;
 	      int ctl_len;
-	      int face_id, lface_id;
+	      int face_id, lface_id = 0 ;
 	      GLYPH escape_glyph;
 
 	      if (it->c < 128 && it->ctl_arrow_p)
 		{
+		  g = '^';	     /* default glyph for Control */
 		  /* Set IT->ctl_chars[0] to the glyph for `^'.  */
 		  if (it->dp
 		      && INTEGERP (DISP_CTRL_GLYPH (it->dp))
@@ -5099,19 +5100,18 @@ get_next_display_element (it)
 		    {
 		      g = XINT (DISP_CTRL_GLYPH (it->dp));
 		      lface_id = FAST_GLYPH_FACE (g);
-		      if (lface_id)
-			{
-			  g = FAST_GLYPH_CHAR (g);
-			  face_id = merge_faces (it->f, Qt, lface_id,
-						 it->face_id);
-			}
+		    }
+		  if (lface_id)
+		    {
+		       g = FAST_GLYPH_CHAR (g);
+		       face_id = merge_faces (it->f, Qt, lface_id,
+					      it->face_id);
 		    }
 		  else
 		    {
 		      /* Merge the escape-glyph face into the current face.  */
 		      face_id = merge_faces (it->f, Qescape_glyph, 0,
 					     it->face_id);
-		      g = '^';
 		    }
 
 		  XSETINT (it->ctl_chars[0], g);
@@ -5121,25 +5121,25 @@ get_next_display_element (it)
 		  goto display_control;
 		}
 
+	      escape_glyph = '\\';    /* default for Octal display */
 	      if (it->dp
 		  && INTEGERP (DISP_ESCAPE_GLYPH (it->dp))
 		  && GLYPH_CHAR_VALID_P (XFASTINT (DISP_ESCAPE_GLYPH (it->dp))))
 		{
 		  escape_glyph = XFASTINT (DISP_ESCAPE_GLYPH (it->dp));
 		  lface_id = FAST_GLYPH_FACE (escape_glyph);
-		  if (lface_id)
-		    {
-		      escape_glyph = FAST_GLYPH_CHAR (escape_glyph);
-		      face_id = merge_faces (it->f, Qt, lface_id,
-					     it->face_id);
-		    }
+		}
+	      if (lface_id)
+		{
+		  escape_glyph = FAST_GLYPH_CHAR (escape_glyph);
+		  face_id = merge_faces (it->f, Qt, lface_id,
+					 it->face_id);
 		}
 	      else
 		{
 		  /* Merge the escape-glyph face into the current face.  */
 		  face_id = merge_faces (it->f, Qescape_glyph, 0,
 					 it->face_id);
-		  escape_glyph = '\\';
 		}
 
 	      if (it->c == 0x8a0 || it->c == 0x8ad)
