@@ -5,6 +5,8 @@
 ;; Author: Masatake YAMATO<jet@gyve.org>
 ;; Keywords: languages, faces
 
+;; This file is part of GNU Emacs.
+
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2, or (at your option)
@@ -20,7 +22,11 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;;; Codes:
+;;; Commentary:
+
+;; Major mode for editing GNU linker (ld) scripts.
+
+;;; Code:
 
 ;; Custom
 (defgroup ld-script nil
@@ -35,7 +41,7 @@
   :group 'ld-script)
 
 ;; Syntax rules
-(defvar ld-script-mode-syntax-table 
+(defvar ld-script-mode-syntax-table
   (let ((st (make-syntax-table)))
     (modify-syntax-entry ?\  "-"   st)
     (modify-syntax-entry ?{ "(}" st)
@@ -67,12 +73,12 @@
   "Syntax table used while in `ld-script-mode'.")
 
 ;; Font lock keywords
-(defvar ld-script-keywords 
-  '("ENTRY" "INCLUDE" "INPUT" "GROUP" 
+(defvar ld-script-keywords
+  '("ENTRY" "INCLUDE" "INPUT" "GROUP"
     "OUTPUT" "SEARCH_DIR" "STARTUP"
     "OUTPUT_FORMAT" "TARGET"
     "ASSERT" "EXTERN" "FORCE_COMMON_ALLOCATION" "NOCROSSREFS" "OUTPUT_ARCH"
-    "PROVIDE" 
+    "PROVIDE"
     "SECTIONS" "SORT" "COMMON" "KEEP"
     "BYTE" "SHORT" "LONG" "QUAD" "SQAD"
     "FILL"
@@ -86,8 +92,8 @@
     "VERSION")
   "Keywords used of GNU ld script.")
 
-(defvar ld-script-builtins 
-  '("ABSOLUTE" 
+(defvar ld-script-builtins
+  '("ABSOLUTE"
     "ADDR"
     "ALIGN"
     "BLOCK"
@@ -110,7 +116,7 @@
     ("##\\|#[^#\n]+$"  . font-lock-preprocessor-face)
     ("\\W\\(\\.\\)\\W" 1 ld-script-location-counter-face)
     )
-  "Default font-lock-keywords for `ld-script mode'.")
+  "Default font-lock-keywords for `ld-script-mode'.")
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.lds" . ld-script-mode))
@@ -122,6 +128,8 @@
   (set (make-local-variable 'comment-end)   " */")
   (set (make-local-variable 'indent-line-function) #'indent-relative)
   (set (make-local-variable 'font-lock-defaults) '(ld-script-font-lock-keywords nil)))
+
+(provide 'ld-script)
 
 ;;; arch-tag: 83280b6b-e6fc-4d00-a630-922d7aec5593
 ;;; ld-script.el ends here
