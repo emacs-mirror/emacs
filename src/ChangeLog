@@ -1,3 +1,8 @@
+2000-04-28  Kenichi Handa  <handa@etl.go.jp>
+
+	* xfaces.c (realize_x_face): Fix the argument of the second
+	xassert.  BASE_FACE may not be a face for ASCII.
+
 2000-04-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* print.c (print_object): Treat print-length < 0 as nil.
