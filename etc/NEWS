@@ -428,7 +428,7 @@ on terminals.
 ** Sound support
 
 Emacs supports playing sound files on GNU/Linux and FreeBSD (Voxware
-driver and native BSD driver, aka as Luigi's driver).  Currently
+driver and native BSD driver, a.k.a. Luigi's driver).  Currently
 supported file formats are RIFF-WAVE (*.wav) and Sun Audio (*.au).
 
 ** A new variable, backup-by-copying-when-privileged-mismatch, gives
