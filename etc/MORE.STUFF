@@ -65,8 +65,6 @@ You might find bug-fixes or enhancements in these places.
  * Eldoc, Rlogin and Rsz-mini:
    <URL:ftp://ftp.splode.com/pub/users/friedman/packages/>
 
- * Elint: <URL:http://www.lysator.liu.se/%7Epetli/elisp/elint.tar.gz>
-
  * Expand: <URL:http://w3.teaser.fr/%7Eflepied/expand.el.gz>
 
  * Etags: <URL:ftp://fly.cnuce.cnr.it/pub/>
