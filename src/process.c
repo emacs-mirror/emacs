@@ -3260,7 +3260,6 @@ send_process (proc, buf, len, object)
 {
   /* Use volatile to protect variables from being clobbered by longjmp.  */
   int rv;
-  volatile unsigned char *procname = XSTRING (XPROCESS (proc)->name)->data;
   struct coding_system *coding;
   struct gcpro gcpro1;
   int carryover = XINT (XPROCESS (proc)->encoding_carryover);
@@ -3275,9 +3274,11 @@ send_process (proc, buf, len, object)
   if (! NILP (XPROCESS (proc)->raw_status_low))
     update_status (XPROCESS (proc));
   if (! EQ (XPROCESS (proc)->status, Qrun))
-    error ("Process %s not running", procname);
+    error ("Process %s not running",
+	   XSTRING (XPROCESS (proc)->name)->data);
   if (XINT (XPROCESS (proc)->outfd) < 0)
-    error ("Output file descriptor of %s is closed", procname);
+    error ("Output file descriptor of %s is closed",
+	   XSTRING (XPROCESS (proc)->name)->data);
 
   coding = proc_encode_coding_system[XINT (XPROCESS (proc)->outfd)];
   Vlast_coding_system_used = coding->symbol;
@@ -3490,9 +3491,11 @@ send_process (proc, buf, len, object)
       XSETINT (XPROCESS (proc)->tick, ++process_tick);
       deactivate_process (proc);
 #ifdef VMS
-      error ("Error writing to process %s; closed it", procname);
+      error ("Error writing to process %s; closed it", 
+	     XSTRING (XPROCESS (proc)->name)->data);
 #else
-      error ("SIGPIPE raised on process %s; closed it", procname);
+      error ("SIGPIPE raised on process %s; closed it",
+	     XSTRING (XPROCESS (proc)->name)->data);
 #endif
     }
 
