@@ -282,6 +282,9 @@ Emacs tries to open fonts in this order."
 	      (cons (list fontname style-ignored size-ignored both-ignored)
 		    alternate-fontname-alist))))))
 
+;; Just to avoid compiler waring.  The gloval value is never used.
+(defvar resolved-ascii-font nil)
+
 (defun x-complement-fontset-spec (xlfd-fields fontlist)
   "Complement FONTLIST for all charsets based on XLFD-FIELDS and return it.
 XLFD-FIELDS is a vector of XLFD (X Logical Font Description) fields.
@@ -289,7 +292,10 @@ FONTLIST is an alist of charsets vs the corresponding font names.
 
 Font names for charsets not listed in FONTLIST are generated from
 XLFD-FIELDS and a property of x-charset-registry of each charset
-automatically."
+automatically.
+
+By side effect, this sets `resolved-ascii-font' to the resolved name
+of ASCII font."
   (let ((charsets charset-list)
 	(xlfd-fields-non-ascii (copy-sequence xlfd-fields))
 	(new-fontlist nil))
@@ -330,14 +336,16 @@ automatically."
 	    ;; on x-charset-registry in the previous code.
 	    (while l
 	      (if (string-match (car (car l)) ascii-font)
-		  (let ((charsets (cdr (car l))))
+		  (let ((charsets (cdr (car l)))
+			slot2)
 		    (while charsets
 		      (if (and (not (eq (car charsets) 'ascii))
-			       (setq slot (assq (car charsets) new-fontlist)))
-			  (setcdr slot ascii-font))
+			       (setq slot2 (assq (car charsets) new-fontlist)))
+			  (setcdr slot2 (cdr slot)))
 		      (setq charsets (cdr charsets)))
 		    (setq l nil))
 		(setq l (cdr l))))
+	    (setq resolved-ascii-font ascii-font)
 	    (append fontlist new-fontlist))))))
 
 (defun fontset-name-p (fontset)
@@ -494,7 +502,6 @@ It returns a name of the created fontset."
 	      (or (rassoc alias fontset-alias-alist)
 		  (setq fontset-alias-alist
 			(cons (cons name alias) fontset-alias-alist)))))
-	(setq resolved-ascii-font (cdr (assq 'ascii full-fontlist)))
 	(setq fontset-alias-alist
 	      (cons (cons name resolved-ascii-font)
 		    fontset-alias-alist))
