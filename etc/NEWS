@@ -20,6 +20,11 @@ Emacs to not use X Input Methods (XIM), if they these are available.
 
 * Changes in Emacs 21.1
 
+** The <delete> function key is now bound to `delete-char' by default.
+Note that this takes effect only on window systems.  On TTYs, Emacs
+will receive ASCII 127 when the DEL key is pressed.  This
+character is still bound as before.
+
 ** Item Save Options on the Options menu allows saving options set
 using that menu.
 

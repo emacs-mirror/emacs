@@ -1,3 +1,22 @@
+2000-07-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* doc.c (Fsubstitute_command_keys): Handle case that a GC
+	in Fwhere_is_internal or get_keymap_1 relocates string contents.
+
+	* dispnew.c (direct_output_forward_char): Give up if currently
+	displaying a message instead of the minibuffer contents.
+
+	* xterm.c (x_update_window_begin): No need to turn off the mouse
+	highlight here.
+	(show_mouse_face): Set the mouse_face_p flag of glyph rows
+	depending on whether they contain glyphs highlighted in
+	mouse-face.
+
+	* dispnew.c (row_equal_p): Add parameter MOUSE_FACE_P.  If set,
+	compare the mouse_face_p flags of both rows.
+
+	* dispextern.h (struct glyph_row): Add flag mouse_face_p.
+
 2000-07-11  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* keyboard.c (show_help_echo): Accept additional parameter
