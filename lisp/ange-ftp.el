@@ -1,6 +1,6 @@
 ;;; ange-ftp.el --- transparent FTP support for GNU Emacs
 
-;; Copyright (C) 1989,90,91,92,93,94,95,96  Free Software Foundation, Inc.
+;; Copyright (C) 1989,90,91,92,93,94,95,96,98  Free Software Foundation, Inc.
 
 ;; Author: Andy Norman (ange@hplb.hpl.hp.com)
 ;; Maintainer: FSF
@@ -621,6 +621,11 @@
 ;;; Code:
 
 (require 'comint)
+;; Silence compiler:
+(eval-when-compile
+  (defvar comint-last-output-start nil)
+  (defvar comint-last-input-start nil)
+  (defvar comint-last-input-end nil))
 
 ;;;; ------------------------------------------------------------
 ;;;; User customization variables.
@@ -4111,6 +4116,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 (put 'vc-registered 'ange-ftp 'null)
 
 (put 'dired-call-process 'ange-ftp 'ange-ftp-dired-call-process)
+(put 'shell-command 'ange-ftp 'ange-ftp-shell-command)
 
 ;;; Define ways of getting at unmodified Emacs primitives,
 ;;; turning off our handler.
@@ -4226,15 +4232,14 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
     (if func (funcall func file keep-backup-version)
       (ange-ftp-real-file-name-sans-versions file keep-backup-version))))
 
-;;; This doesn't work yet; a new hook needs to be created.
-;;; Maybe the new hook should be in call-process.
-(defun ange-ftp-shell-command (command)
+;; This is the handler for shell-command.
+(defun ange-ftp-shell-command (command &optional output-buffer)
   (let* ((parsed (ange-ftp-ftp-name default-directory))
 	 (host (nth 0 parsed))
 	 (user (nth 1 parsed))
 	 (name (nth 2 parsed)))
     (if (not parsed)
-	(ange-ftp-real-shell-command command)
+	(ange-ftp-real-shell-command command output-buffer)
       (if (> (length name) 0)		; else it's $HOME
 	  (setq command (concat "cd " name "; " command)))
       (setq command
@@ -4245,7 +4250,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
       ;; Cannot call ange-ftp-real-dired-run-shell-command here as it
       ;; would prepend "cd default-directory" --- which bombs because
       ;; default-directory is in ange-ftp syntax for remote file names.
-      (ange-ftp-real-shell-command command))))
+      (ange-ftp-real-shell-command command output-buffer))))
 
 ;;; This is the handler for call-process.
 (defun ange-ftp-dired-call-process (program discard &rest arguments)
