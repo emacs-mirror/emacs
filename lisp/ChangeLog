@@ -1,3 +1,10 @@
+2001-03-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/advice.el (ad-make-advised-definition): Call
+	interactive-form to obtain the interactive spec of subrs.
+
+	* subr.el (interactive-form): New function.
+
 2001-03-29  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-sccs.el (vc-sccs-register): Use relative file names.
