@@ -148,6 +148,13 @@ You can now put the init files .emacs and .emacs_SHELL under
 
 ** partial-completion-mode now does partial completion on directory names.
 
+** skeleton.el now supports using - to mark the skeleton-point without
+   interregion interaction.  @ has reverted to only setting
+   skeleton-positions and no longer sets skeleton-point.  Skeletons
+   which used @ to mark skeleton-point independent of _ should now use -
+   instead.  The updated skeleton-insert docstring explains these new
+   features along with other details of skeleton construction.
+
 ** MH-E changes.
 
 Upgraded to MH-E version 7.3. There have been major changes since

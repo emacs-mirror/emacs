@@ -1,3 +1,60 @@
+2003-05-28  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/refill.el (refill-fill-paragraph-at):
+	Avoid refilling the following paragraph.
+	(refill-doit): Doc fix.
+
+	* emulation/vip.el (ctl-x-map): Don't bind C-x C-i or C-x 3.
+	(global-map): Don't bind C-z.
+	(vip-setup): New function to rebind C-x 7 and C-z.
+
+	* emacs-lisp/lisp-mode.el (last-sexp-toggle-display):
+	Undo previous change (don't check for eob).  Widen at the beginning.
+
+	* map-ynp.el (map-y-or-n-p): No special handling for exit-prefix.
+	In help string, mention C-g but not ESC.
+
+	* jka-compr.el (jka-compr-insert-file-contents):
+	When REPLACE, delete the proper range of text.
+
+	* info.el (Info-index): Add autoload cookie.
+
+	* forms.el (forms-mode): Use write-file-functions instead
+	of local-write-file-hooks.  Use make-local-variable to make it local.
+
+	* descr-text.el (describe-char-unicode-data): New dummy definition.
+	(unicode-data): Commented out since we can't use UnicodeData.txt as is.
+	(describe-char-unicodedata-file): Variable renamed and commented out.
+
+	* faces.el (set-face-attribute): Set face-modified prop to t
+	when we change the new-frame defaults.
+	(face-spec-set): Set face-modified prop to nil
+	when we change the new-frame defaults.
+
+	* cus-edit.el (custom-face-state-set): non-nil `face-modified'
+	means face was set outside of Custom.
+	
+2003-05-28  Richard M. Stallman  <rms@gnu.org>
+
+	* byte-run.el (with-no-warnings): New function.
+
+	* emacs-lisp/bytecomp.el (byte-compile-no-warnings): New function.
+	(with-no-warnings): Set up compile handler.
+
+	* startup.el (command-line-1): Use with-no-warnings.
+
+	* type-break.el (type-break-cancel-function-timers):
+	Use with-no-warnings.
+
+2003-05-28  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+        * env.el (substitute-env-vars): Fix typo.
+
+2003-05-28  Walter C. Pelissero  <walter@pelissero.de>  (tiny change)
+
+	* net/browse-url.el (browse-url-mozilla): Correct the conditionals
+	for using ,new-window.
+
 2003-05-27  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/sh-script.el (sh-here-document-word): Document

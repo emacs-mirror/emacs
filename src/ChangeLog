@@ -1,6 +1,8 @@
-2003-05-28  Dave Love  <fx@gnu.org>
+2003-05-28  Richard M. Stallman  <rms@gnu.org>
 
-	* eval.c (unbind_to): Fix last change for K&R.  From rms.
+	* print.c (syms_of_print) <print-escape-nonascii>: Doc fix.
+
+	* eval.c (unbind_to): Move init of this_binding to separate statement.
 
 2003-05-28  Kim F. Storm  <storm@cua.dk>
 

@@ -1,3 +1,7 @@
+2003-05-28  Richard M. Stallman  <rms@gnu.org>
+
+	* strings.texi (Creating Strings): Clarify split-string.
+
 2003-05-22  Stephen J. Turnbull  <stephen@xemacs.org>
 
 	* strings.texi (Creating Strings): Update split-string specification

@@ -1,3 +1,7 @@
+2003-05-28  Richard M. Stallman  <rms@gnu.org>
+
+	* indent.texi (Indentation): Condense, simplify, clarify prev change.
+
 2003-05-28  Nick Roberts  <nick@nick.uklinux.net>
 
 	* building.texi (GDB Graphical Interface): New node.
