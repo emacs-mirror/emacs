@@ -1,26 +1,28 @@
 /*  impl.c.cbstest: COALESCING BLOCK STRUCTURE TEST
  *
- *  $HopeName: MMsrc!cbstest.c(trunk.5) $
+ *  $HopeName: MMsrc!cbstest.c(trunk.6) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  */
 
+#include "cbs.h"
+#include "mpm.h"
+#include "mpsaan.h" /* ANSI arena for BTCreate and BTDestroy */
+#include "mps.h"
+#include "testlib.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <time.h>
 
-#include "mpm.h"
-#include "mps.h"
-#include "mpsaan.h" /* ANSI arena for BTCreate and BTDestroy */
-#include "testlib.h"
+SRCID(cbstest, "$HopeName: MMsrc!cbstest.c(trunk.6) $");
 
-SRCID(cbstest, "$HopeName: MMsrc!cbstest.c(trunk.5) $");
 
 #define ArraySize ((Size)123456)
 #define NOperations ((Size)125000)
 #define MinSize ((Size)120) /* Arbitrary size */
 #define Alignment ((Align)sizeof(void *))
+
 
 static Count NAllocateTried, NAllocateSucceeded, NDeallocateTried,
   NDeallocateSucceeded, NNewBlocks, NDeleteBlocks, NGrowBlocks,
@@ -41,12 +43,14 @@ static CallbackPredictionStruct CallbackDelete;
 static CallbackPredictionStruct CallbackGrow;
 static CallbackPredictionStruct CallbackShrink;
 
+
 typedef struct CheckCBSClosureStruct {
   BT allocTable;
   Addr base;
   Addr limit;
   Addr oldLimit;
 } CheckCBSClosureStruct, *CheckCBSClosure;
+
 
 static Addr (AddrOfIndex)(Addr block, Index i) {
   return AddrAdd(block, (i * Alignment));
@@ -55,6 +59,7 @@ static Addr (AddrOfIndex)(Addr block, Index i) {
 static Index (IndexOfAddr)(Addr block, Addr a) {
   return (Index)(AddrOffset(block, a) / Alignment);
 }
+
 
 /* This function encapsulates the common tests for the callbacks. */
 static void testCallback(CBS cbs, CBSBlock cbsBlock,
@@ -77,6 +82,7 @@ static void testCallback(CBS cbs, CBSBlock cbsBlock,
 
   prediction->shouldBeCalled = FALSE;
 }
+
 
 static void cbsNewCallback(CBS cbs, CBSBlock cbsBlock, 
                            Size oldSize, Size newSize) {
@@ -291,6 +297,7 @@ static void checkExpectations(void) {
   AVER(!CallbackShrink.shouldBeCalled);
 }  
 
+
 static void allocate(CBS cbs, Addr block, BT allocTable, 
                      Addr base, Addr limit) {
   Res res;
@@ -366,6 +373,7 @@ static void allocate(CBS cbs, Addr block, BT allocTable,
     checkExpectations();
   }
 }
+
 
 static void deallocate(CBS cbs, Addr block, BT allocTable,
                        Addr base, Addr limit) {
@@ -454,6 +462,7 @@ static void deallocate(CBS cbs, Addr block, BT allocTable,
   }
 }
 
+
 static void find(CBS cbs, void *block, BT alloc, Size size, Bool high,
                  CBSFindDelete findDelete) 
 {
@@ -465,8 +474,8 @@ static void find(CBS cbs, void *block, BT alloc, Size size, Bool high,
   checkExpectations();
 
   expected = (high ? BTFindLongResRangeHigh : BTFindLongResRange)
-      (&expectedBase, &expectedLimit, alloc, 
-       (Index)0, (Index)ArraySize, (unsigned long)size);
+               (&expectedBase, &expectedLimit, alloc, 
+                (Index)0, (Index)ArraySize, (unsigned long)size);
 
   if(expected) {
     oldSize = (expectedLimit - expectedBase) * Alignment;
@@ -523,6 +532,7 @@ static void find(CBS cbs, void *block, BT alloc, Size size, Bool high,
   return;
 }
 
+
 extern int main(int argc, char *argv[])
 {
   int i;
@@ -547,19 +557,18 @@ extern int main(int argc, char *argv[])
 
   clearExpectations();
 
-  die((mps_res_t)mps_arena_create(&mpsArena,
-                                  mps_arena_class_an()),
+  die((mps_res_t)mps_arena_create(&mpsArena, mps_arena_class_an()),
       "Failed to create arena");
   arena = (Arena)mpsArena; /* avoid pun */
 
   die((mps_res_t)BTCreate(&allocTable, arena, ArraySize), 
       "failed to create alloc table");
 
-  die((mps_res_t)CBSInit(arena, &cbsStruct, &cbsNewCallback, 
+  die((mps_res_t)CBSInit(arena, &cbsStruct, NULL, &cbsNewCallback, 
                          &cbsDeleteCallback, &cbsGrowCallback,
                          &cbsShrinkCallback, MinSize, 
                          Alignment, TRUE, TRUE),
-    "failed to initialise CBS");
+      "failed to initialise CBS");
   cbs = &cbsStruct;
 
   BTSetRange(allocTable, 0, ArraySize); /* Initially all allocated */
@@ -576,27 +585,27 @@ extern int main(int argc, char *argv[])
   checkCBS(cbs, allocTable, dummyBlock);
   for(i = 0; i < NOperations; i++) {
     switch(random(3)) {
-      case 0: {
-        randomRange(&base, &limit, allocTable, dummyBlock);
-        allocate(cbs, dummyBlock, allocTable, base, limit);
-      } break;
-      case 1: {
-        randomRange(&base, &limit, allocTable, dummyBlock);
-        deallocate(cbs, dummyBlock, allocTable, base, limit);
-      } break;
-      case 2: {
-        size = random(ArraySize / 10) + 1;
-        high = random(2) ? TRUE : FALSE;
-        switch(random(6)) {
-        case 0:
-        case 1:
-        case 2: findDelete = CBSFindDeleteNONE; break;
-        case 3: findDelete = CBSFindDeleteLOW; break;
-        case 4: findDelete = CBSFindDeleteHIGH; break;
-        case 5: findDelete = CBSFindDeleteENTIRE; break;
-        }
-        find(cbs, dummyBlock, allocTable, size, high, findDelete);
-      } break;
+    case 0: {
+      randomRange(&base, &limit, allocTable, dummyBlock);
+      allocate(cbs, dummyBlock, allocTable, base, limit);
+    } break;
+    case 1: {
+      randomRange(&base, &limit, allocTable, dummyBlock);
+      deallocate(cbs, dummyBlock, allocTable, base, limit);
+    } break;
+    case 2: {
+      size = random(ArraySize / 10) + 1;
+      high = random(2) ? TRUE : FALSE;
+      switch(random(6)) {
+      case 0:
+      case 1:
+      case 2: findDelete = CBSFindDeleteNONE; break;
+      case 3: findDelete = CBSFindDeleteLOW; break;
+      case 4: findDelete = CBSFindDeleteHIGH; break;
+      case 5: findDelete = CBSFindDeleteENTIRE; break;
+      }
+      find(cbs, dummyBlock, allocTable, size, high, findDelete);
+    } break;
     }
     if(i % 5000 == 0)
       checkCBS(cbs, allocTable, dummyBlock);
