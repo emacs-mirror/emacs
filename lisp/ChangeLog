@@ -1,12 +1,32 @@
+2003-04-17  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* files.el (view-read-only): Don't declare a second time.
+	(find-file-read-only, find-file-read-only-other-window)
+	(find-file-read-only-other-frame): Check that file does exist.
+	(large-file-warning-threshold): New custom.
+	(find-file-noselect): Use it.
+	(report-errors): New macro.
+	(normal-mode): Use it.
+	(toggle-read-only): Really toggle, even if view-mode is on.
+	(parse-colon-path): Remove unused `cd-prefix' var.
+	(make-backup-file-name-1): Remove unused `failed' var.
+	(basic-save-buffer): Remove unused `tempsetmodes' var.
+	(basic-save-buffer-2): Remove unused `temp' var.
+	(insert-directory): Remove unused `available' var.
+
 2003-04-17  John Paul Wallington  <jpw@gnu.org>
 
 	* hexl.el (hexl-find-file): Bind `default-major-mode' to
 	`fundamental-mode'.
 
+2003-04-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* reveal.el (reveal-post-command): Use overlay-get for overlays.
+
 2003-04-16  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el (describe-language-environment): At
-	first, require all necessary features.
+	* international/mule-cmds.el (describe-language-environment):
+	At first, require all necessary features.
 
 2003-04-16  Dave Love  <fx@gnu.org>
 
@@ -19,11 +39,11 @@
 	(f90-comment-region, f90-indent-line, f90-indent-region)
 	(f90-find-breakpoint, f90-block-match): Trivial simplifications.
 	(f90-looking-at-do, f90-looking-at-select-case)
-	(f90-looking-at-if-then, f90-looking-at-where-or-forall): Drop
-	XEmacs 19 support and simplify.
+	(f90-looking-at-if-then, f90-looking-at-where-or-forall):
+	Drop XEmacs 19 support and simplify.
 	(f90-indent-new-line): No need for case-fold-search.  Simplify.
 	(f90-fill-region): Make marker nil when done.  Simplify.
-	
+
 	* progmodes/fortran.el (fortran-column-ruler): Minor doc change.
 
 2003-04-16  Richard M. Stallman  <rms@gnu.org>
@@ -40,10 +60,10 @@
 	(fortran-comment-indent-style, fortran-blink-matching-if)
 	(fortran-continuation-string, fortran-electric-line-number)
 	(fortran-break-before-delimiters, fortran-mode-hook)
-	(fortran-end-prog-re, fortran-imenu-generic-expression): Minor
-	doc changes.
+	(fortran-end-prog-re, fortran-imenu-generic-expression):
+	Minor doc changes.
+	(fortran-tab-mode-minor-mode-string): New variable.
 	(fortran-tab-mode-string): Now customization is meaningful.
-	Change default value.
 	(fortran-column-ruler-fixed, fortran-column-ruler-tab)
 	(fortran-analyze-depth): Use defcustom.
 	(fortran-if-start-re, fortran-end-prog-re1, fortran-fill)
@@ -55,12 +75,12 @@
 	(fortran-font-lock-keywords-3): Initialize in defvar.  Use 1+ now
 	depth of fortran-type-types has changed.  Remove extra and.
 	(fortran-mode-menu): Minor re-organization.  Use lookup-key.
-	(fortran-mode): Doc changes.  Some re-organization.  Use
-	mode-line-process (rather than minor-mode-alist) for tab format.
+	(fortran-mode): Doc changes.  Some re-organization.
+	Use fortran-tab-mode-minor-mode-string.
 	(fortran-comment-indent): Add doc string.  Move save-excursion.
 	Use 1+.
-	(fortran-indent-comment, fortran-fill-statement): Change
-	interactive spec.  Use unless.
+	(fortran-indent-comment, fortran-fill-statement):
+	Change interactive spec.  Use unless.
 	(fortran-comment-region): Doc change.  Reverse logic of arg
 	test.  Use zerop.
 	(fortran-abbrev-start, fortran-split-line)
@@ -70,20 +90,19 @@
 	(fortran-numerical-continuation-char): Doc change.  Use 1+.
 	(fortran-previous-statement, fortran-next-statement)
 	(fortran-beginning-do, fortran-calculate-indent)
-	(fortran-end-do, fortran-end-if, fortran-beginning-if): Use
-	zerop, 1+, 1-.	
+	(fortran-end-do, fortran-end-if, fortran-beginning-if):
+	Use zerop, 1+, 1-.
 	(fortran-blink-match, fortran-check-for-matching-do): Use when.
 	(fortran-indent-line): Change interactive spec.  Remove un-needed
 	if.  Use when.
 	(fortran-indent-to-column): Doc change.  Use when, unless.
 	(fortran-find-comment-start-skip): No longer interactive.
-	(fortran-analyze-file-format): Minor doc change.  Remove
-	un-needed setq.  Return fortran-tab-mode-default if no match.
+	(fortran-analyze-file-format): Minor doc change.
+	Remove un-needed setq.
 	(minor-mode-alist): Use add-to-list.
 	(fortran-fill-paragraph): Change interactive spec, doc string.
-	
-	* progmodes/f90.el: Whitespace changes, trivial commentary
-	changes.
+
+	* progmodes/f90.el: Whitespace changes, trivial commentary changes.
 	(f90, f90-indent, f90-program-indent, f90-continuation-indent)
 	(f90-indented-comment-re, f90-imenu-generic-expression)
 	(f90-mark-subprogram, f90-join-lines): Minor doc changes.
@@ -96,11 +115,42 @@
 	(f90-break-line, f90-do-auto-fill, f90-insert-end)
 	(f90-upcase-keywords, f90-capitalize-keywords)
 	(f90-downcase-keywords): Change interactive spec.
-	
+
+2003-04-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* font-lock.el (font-lock-multiline, font-lock-fontified)
+	(font-lock-set-defaults): Move back from font-core.el and merge
+	it back with font-lock-set-defaults-1.
+	(font-lock-mode-internal): New function (basically the body of
+	the old font-lock-mode minor mode).
+
+	* font-core.el (font-lock-maximum-size, font-lock-verbose): Remove.
+	(font-lock-multiline, font-lock-fontified, font-lock-set-defaults):
+	Move back to font-lock.el
+	(font-lock-default-function): Use font-lock-mode-internal.
+
+	* files.el (auto-mode-alist): Add entries for *.ins and *.dtx.
+	(recover-file): Abbreviate file name in messages.
+
+	* textmodes/tex-mode.el (latex-mode-map): Bind latex-split-block.
+	(tex-font-lock-keywords-2): Comment out unused var `type'.
+	(tex-guess-mode): New name for old `tex-mode'.
+	(tex-mode): Make it a derived mode of text-mode.
+	(plain-tex-mode, latex-mode): Change parent from text-mode to tex-mode.
+	(tex-common-initialization): Don't setup syntax-table any more.
+	(tex-validate-buffer): Remove unused var `oend'.
+	Use with-current-buffer and line-beginning-position.
+	(tex-recenter-output-buffer): Remove unused var `old-buffer'.
+	(latex-indent): Return `noindent' if no indentation can happen.
+	(doctex-font-lock-^^A, doctex-font-lock-syntactic-face-function)
+	(doctex-font-lock-syntactic-keywords, doctex-font-lock-keywords)
+	(doctex-mode): New funs for DocTeX mode, derived from LaTeX mode.
+
+	* font-lock.el (font-lock-preprocessor-face): New var and face.
+
 2003-04-14  Andrew Choi  <akochoi@shaw.ca>
 
-	* term/mac-win.el: Unconditionally set process-connection-type to
-	nil.
+	* term/mac-win.el: Unconditionally set process-connection-type to nil.
 
 2003-04-14  Richard M. Stallman  <rms@gnu.org>
 
@@ -140,10 +190,10 @@
 2003-04-13  Masatake YAMATO  <jet@gyve.org>
 
 	* bindings.el (toplevel): Don't change the face
-	of major-mode on the mode line. Setting the face on 
+	of major-mode on the mode line. Setting the face on
 	the mode line code is installed by my mistake in
 	my last change.
-	
+
 2003-04-12  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* add-log.el (change-log-version-number-search): Fix old bug.
