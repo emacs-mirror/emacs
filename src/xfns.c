@@ -1949,7 +1949,7 @@ xic_create_xfontset (f, base_fontname)
      char *base_fontname;
 {
   XFontSet xfs = NULL;
-  char **missing_list;
+  char **missing_list = NULL;
   int missing_count;
   char *def_string;
   Lisp_Object rest, frame;
@@ -1968,12 +1968,14 @@ xic_create_xfontset (f, base_fontname)
     }
 
   if (!xfs)
-    /* New fontset.  */
-    xfs = XCreateFontSet (FRAME_X_DISPLAY (f),
-                          base_fontname, &missing_list,
-                          &missing_count, &def_string);
-  if (missing_list)
-    XFreeStringList (missing_list);
+    {
+      /* New fontset.  */
+      xfs = XCreateFontSet (FRAME_X_DISPLAY (f),
+                            base_fontname, &missing_list,
+                            &missing_count, &def_string);
+      if (missing_list)
+        XFreeStringList (missing_list);
+    }
 
   if (FRAME_XIC_BASE_FONTNAME (f))
     xfree (FRAME_XIC_BASE_FONTNAME (f));
