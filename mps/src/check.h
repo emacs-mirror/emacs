@@ -1,6 +1,6 @@
 /* impl.h.check: ASSERTION INTERFACE
  *
- * $HopeName: MMsrc!check.h(trunk.7) $
+ * $HopeName: MMsrc!check.h(trunk.8) $
  *
  * This header defines a family of AVER and NOTREACHED macros. The
  * macros should be used to instrument and annotate code with
@@ -26,7 +26,7 @@
 /* AVER, AVERT -- MPM assertions
  *
  * AVER and AVERT are used to assert conditions within the MPM.
- * In white-hot varieites, all assertions compile away to nothing.
+ * In white-hot varieties, all assertions compile away to nothing.
  */
 
 #if defined(MPS_HOT_WHITE)
@@ -190,6 +190,32 @@ extern void AssertFail(const char *cond, const char *id,
 #else
 #error "No heat defined."
 #endif
+
+
+/* CHECKLVALUE &c -- type compatibility checking
+ *
+ * .check.macros: The CHECK* macros use some C trickery to attempt to
+ * verify that certain types and fields are equivalent.  They do not
+ * do a complete job.  This trickery is justified by the security gained
+ * in knowing that impl.h.mps matches the MPM.  See also
+ * mail.richard.1996-08-07.09-49.  [This paragraph is intended to
+ * satisfy rule.impl.trick.]
+ */
+
+#define CHECKLVALUE(lv1, lv2) \
+  ((void)sizeof((lv1) = (lv2)), (void)sizeof((lv2) = (lv1)), TRUE)
+
+#define CHECKTYPE(t1, t2) \
+  (sizeof(t1) == sizeof(t2) && \
+   CHECKLVALUE(*((t1 *)0), *((t2 *)0)))
+
+#define CHECKFIELDAPPROX(s1, f1, s2, f2) \
+  (sizeof(((s1 *)0)->f1) == sizeof(((s2 *)0)->f2) && \
+   offsetof(s1, f1) == offsetof(s2, f2))
+
+#define CHECKFIELD(s1, f1, s2, f2) \
+  (CHECKFIELDAPPROX(s1, f1, s2, f2) && \
+   CHECKLVALUE(((s1 *)0)->f1, ((s2 *)0)->f2))
 
 
 #endif /* check_h */
