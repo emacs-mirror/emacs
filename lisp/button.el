@@ -86,6 +86,9 @@ Mode-specific keymaps may want to use this as their parent keymap.")
 ;; they inherit this.
 (put 'default-button 'button t)
 
+;; A `category-symbol' property for the default button type
+(put 'button 'button-category-symbol 'default-button)
+
 
 ;; Button types (which can be used to hold default properties for buttons)
 
@@ -117,7 +120,9 @@ NAME inherits its default property values \(however, the inheritance
 happens only when NAME is defined; subsequent changes to a supertype are
 not reflected in its subtypes)."
   (let* ((catsym (make-symbol (concat (symbol-name name) "-button")))
-	 (supertype (plist-get properties 'supertype))
+	 (supertype
+	  (or (plist-get properties 'supertype)
+	      (plist-get properties :supertype)))
 	 (super-catsym
 	  (if supertype (button-category-symbol supertype) 'default-button)))
     ;; Provide a link so that it's easy to find the real symbol.
@@ -131,7 +136,10 @@ not reflected in its subtypes)."
     (put catsym 'type name)
     ;; Add the properties in PROPERTIES to the real symbol.
     (while properties
-      (put catsym (pop properties) (pop properties)))
+      (let ((prop (pop properties)))
+	(when (eq prop :supertype)
+	  (setq prop 'supertype))
+	(put catsym prop (pop properties))))
     name))
 
 (defun button-type-put (type prop val)
@@ -178,7 +186,7 @@ not reflected in its subtypes)."
 (defun button-put (button prop val)
   "Set BUTTON's PROP property to VAL."
   ;; Treat some properties specially.
-  (cond ((eq prop 'type)
+  (cond ((memq prop '(type :type))
 	 ;; We translate a `type' property a `category' property, since
 	 ;; that's what's actually used by overlays/text-properties for
 	 ;; inheriting properties.
@@ -210,6 +218,9 @@ the normal action is used instead."
 (defun button-label (button)
   "Return BUTTON's text label."
   (buffer-substring-no-properties (button-start button) (button-end button)))
+
+(defsubst button-type (button)
+  (button-get button 'type))
 
 (defun button-has-type-p (button type)
   "Return t if BUTTON has button-type TYPE, or one of TYPE's subtypes."
@@ -277,7 +288,7 @@ Also see `insert-text-button'."
       ;; Note that all the following code is basically equivalent to
       ;; `button-put', but we can do it much more efficiently since we
       ;; already have BEG and END.
-      (cond ((eq prop 'type)
+      (cond ((memq prop '(type :type))
 	     ;; We translate a `type' property into a `category'
 	     ;; property, since that's what's actually used by
 	     ;; text-properties for inheritance.

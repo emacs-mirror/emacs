@@ -1,3 +1,12 @@
+2001-10-14  Miles Bader  <miles@gnu.org>
+
+	* button.el (define-button-type): Allow supertype property to be
+	specified with a keyword `:supertype' too.
+	(button-put, make-text-button): Allow button type property to be
+	specified using the keyword `:type' too.
+	(button-type): New function.
+	(button): Add `button-category-symbol' property.
+
 2001-10-13  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/refill.el (refill-mode):
