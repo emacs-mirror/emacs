@@ -1,3 +1,8 @@
+2002-08-26  Kim F. Storm  <storm@cua.dk>
+
+	* frame.c (make_terminal_frame) [CANNOT_DUMP]: Initialize
+	foreground and background colors. From Joe Buehler (tiny change).
+
 2002-08-20  Kenichi Handa  <handa@etl.go.jp>
 
 	* abbrev.c (Fexpand_abbrev): Fix for the multibyte case.
