@@ -12,6 +12,17 @@
 
 2000-12-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (next_element_from_ellipsis): Save face before selective
+	display in saved_face_id, and set face_before_selective_p.
+	(reseat_1): Reset face_before_selective_p.
+	(append_space, extend_face_to_end_of_line): If iterator's
+	face_before_selective_p is set, use the face from saved_face_id.
+	(extend_face_to_end_of_line): For tty frames, make sure to
+	use the right face id when producing spaces at the end of
+	the line.
+
+	* dispextern.h (struct it): Add face_before_selective_p.
+
 	* keyboard.c (record_char): Don't record identical help-echo
 	events in recent_keys.
 
