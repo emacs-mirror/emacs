@@ -230,6 +230,10 @@ if that value is non-nil."
   (setq indent-region-function 'c-indent-region)
   (make-local-variable 'require-final-newline)
   (setq require-final-newline t)
+  (make-local-variable 'outline-regexp)
+  (setq outline-regexp "[^#\n\^M]")
+  (make-local-variable 'outline-level)
+  (setq outline-level 'c-outline-level)
   (make-local-variable 'comment-start)
   (setq comment-start "/* ")
   (make-local-variable 'comment-end)
@@ -243,6 +247,11 @@ if that value is non-nil."
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments t)
   (run-hooks 'c-mode-hook))
+
+(defun c-outline-level ()
+  (save-excursion
+    (skip-chars-forward "\t ")
+    (current-column)))
 
 ;; This is used by indent-for-comment
 ;; to decide how much to indent a comment in C code
