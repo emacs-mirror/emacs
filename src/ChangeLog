@@ -1,3 +1,7 @@
+2003-10-03  John Paul Wallington  <jpw@gnu.org>
+
+	* keymap.c (map_keymap): Don't abort when binding is a vector.
+
 2003-10-02  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (emacs.o, coding.o, bytecode.o): Sync
