@@ -166,7 +166,13 @@ static heap_ptr first_heap, last_heap;
 /* These structures are allocated in the malloc arena.
    The linked list is kept in order of increasing '.data' members.
    The data blocks abut each other; if b->next is non-nil, then
-   b->data + b->size == b->next->data.  */
+   b->data + b->size == b->next->data.  
+
+   An element with variable==NIL denotes a freed block, which has not yet
+   been collected.  They may only appear while r_alloc_freeze > 0, and will be
+   freed when the arena is thawed.  Currently, these blocs are not reusable,
+   while the arena is frozen.  Very inefficent.  */
+
 typedef struct bp
 {
   struct bp *next;
@@ -175,8 +181,7 @@ typedef struct bp
   POINTER data;
   SIZE size;
   POINTER new_data;		/* tmporarily used for relocation */
-  /* Heap this bloc is in.  */
-  struct heap *heap;
+  struct heap *heap; 		/* Heap this bloc is in.  */
 } *bloc_ptr;
 
 #define NIL_BLOC ((bloc_ptr) 0)
@@ -184,6 +189,11 @@ typedef struct bp
 
 /* Head and tail of the list of relocatable blocs.  */
 static bloc_ptr first_bloc, last_bloc;
+
+static int use_relocatable_buffers;
+
+/* If >0, no relocation whatsoever takes place.  */
+static int r_alloc_freeze_level;
 
 
 /* Functions to get and return memory from the system.  */
@@ -451,6 +461,10 @@ relocate_blocs (bloc, heap, address)
 {
   register bloc_ptr b = bloc;
 
+  /* No need to ever call this if arena is frozen, bug somewhere!  */
+  if (r_alloc_freeze_level) 
+    abort();
+
   while (b)
     {
       /* If bloc B won't fit within HEAP,
@@ -473,7 +487,9 @@ relocate_blocs (bloc, heap, address)
 	  /* Add up the size of all the following blocs.  */
 	  while (tb != NIL_BLOC)
 	    {
-	      s += tb->size;
+	      if (tb->variable) 
+		s += tb->size;
+
 	      tb = tb->next;
 	    }
 
@@ -488,7 +504,8 @@ relocate_blocs (bloc, heap, address)
       /* Record the new address of this bloc
 	 and update where the next bloc can start.  */
       b->new_data = address;
-      address += b->size;
+      if (b->variable) 
+	address += b->size;
       b = b->next;
     }
 
@@ -602,6 +619,10 @@ resize_bloc (bloc, size)
   POINTER address;
   SIZE old_size;
 
+  /* No need to ever call this if arena is frozen, bug somewhere!  */
+  if (r_alloc_freeze_level) 
+    abort();
+
   if (bloc == NIL_BLOC || size == bloc->size)
     return 1;
 
@@ -637,19 +658,43 @@ resize_bloc (bloc, size)
     {
       for (b = last_bloc; b != bloc; b = b->prev)
 	{
-	  safe_bcopy (b->data, b->new_data, b->size);
-	  *b->variable = b->data = b->new_data;
+	  if (!b->variable)
+	    {
+	      b->size = 0;
+	      b->data = b->new_data;
+            } 
+	  else 
+	    {
+	      safe_bcopy (b->data, b->new_data, b->size);
+	      *b->variable = b->data = b->new_data;
+            }
 	}
-      safe_bcopy (bloc->data, bloc->new_data, old_size);
-      bzero (bloc->new_data + old_size, size - old_size);
-      *bloc->variable = bloc->data = bloc->new_data;
+      if (!bloc->variable)
+	{
+	  bloc->size = 0;
+	  bloc->data = bloc->new_data;
+	}
+      else
+	{
+	  safe_bcopy (bloc->data, bloc->new_data, old_size);
+	  bzero (bloc->new_data + old_size, size - old_size);
+	  *bloc->variable = bloc->data = bloc->new_data;
+	}
     }
   else
     {
       for (b = bloc; b != NIL_BLOC; b = b->next)
 	{
-	  safe_bcopy (b->data, b->new_data, b->size);
-	  *b->variable = b->data = b->new_data;
+	  if (!b->variable)
+	    {
+	      b->size = 0;
+	      b->data = b->new_data;
+            } 
+	  else 
+	    {
+	      safe_bcopy (b->data, b->new_data, b->size);
+	      *b->variable = b->data = b->new_data;
+	    }
 	}
     }
 
@@ -669,6 +714,12 @@ free_bloc (bloc)
 {
   heap_ptr heap = bloc->heap;
 
+  if (r_alloc_freeze_level)
+    {
+      bloc->variable = (POINTER *) NIL;
+      return;
+    }
+  
   resize_bloc (bloc, 0);
 
   if (bloc == first_bloc && bloc == last_bloc)
@@ -712,9 +763,6 @@ free_bloc (bloc)
 }
 
 /* Interface routines.  */
-
-static int use_relocatable_buffers;
-static int r_alloc_freeze_level;
 
 /* Obtain SIZE bytes of storage from the free pool, or the system, as
    necessary.  If relocatable blocs are in use, this means relocating
@@ -768,7 +816,7 @@ r_alloc_sbrk (size)
 	{
 	  get += extra_bytes + page_size;
 
-	  if (r_alloc_freeze_level > 0 || ! obtain (address, get))
+	  if (! obtain (address, get))
 	    return 0;
 
 	  if (first_heap == last_heap)
@@ -782,9 +830,16 @@ r_alloc_sbrk (size)
 
       if (first_heap->bloc_start < new_bloc_start)
 	{
+	  /* This is no clean solution - no idea how to do it better.  */
+	  if (r_alloc_freeze_level) 
+	    return NIL;
+
+	  /* There is a bug here: if the above obtain call succeeded, but the
+	     relocate_blocs call below does not succeed, we need to free
+	     the memory that we got with obtain.  */
+
 	  /* Move all blocs upward.  */
-	  if (r_alloc_freeze_level > 0
-	      || ! relocate_blocs (first_bloc, h, new_bloc_start))
+	  if (! relocate_blocs (first_bloc, h, new_bloc_start))
 	    return 0;
 
 	  /* Note that (POINTER)(h+1) <= new_bloc_start since
@@ -800,7 +855,6 @@ r_alloc_sbrk (size)
 
 	  update_heap_bloc_correspondence (first_bloc, h);
 	}
-
       if (h != first_heap)
 	{
 	  /* Give up managing heaps below the one the new
@@ -865,6 +919,10 @@ r_alloc_sbrk (size)
    the data is returned in *PTR.  PTR is thus the address of some variable
    which will use the data area.
 
+   The allocation of 0 bytes is valid.
+   In case r_alloc_freeze is set, a best fit of unused blocs could be done
+   before allocating a new area.  Not yet done.
+
    If we can't allocate the necessary memory, set *PTR to zero, and
    return zero.  */
 
@@ -919,6 +977,10 @@ r_alloc_free (ptr)
    SIZE is less than or equal to the current bloc size, in which case
    do nothing.
 
+   In case r_alloc_freeze is set, a new bloc is allocated, and the
+   memory copied to it.  Not very efficent.  We could traverse the
+   bloc_list for a best fit of free blocs first.
+
    Change *PTR to reflect the new bloc, and return this value.
 
    If more memory cannot be allocated, then leave *PTR unchanged, and
@@ -934,17 +996,51 @@ r_re_alloc (ptr, size)
   if (! r_alloc_initialized)
     r_alloc_init ();
 
+  if (!*ptr)
+    return r_alloc (ptr, size);
+  if (!size) 
+    {
+      r_alloc_free (ptr);
+      return r_alloc (ptr, 0);
+    }
+
   bloc = find_bloc (ptr);
   if (bloc == NIL_BLOC)
     abort ();
 
-  if (size <= bloc->size)
-    /* Wouldn't it be useful to actually resize the bloc here?  */
-    return *ptr;
-
-  if (! resize_bloc (bloc, MEM_ROUNDUP (size)))
-    return 0;
-
+  if (size < bloc->size) 
+    {
+      /* Wouldn't it be useful to actually resize the bloc here?  */
+      /* I think so too, but not if it's too expensive...  */
+      if ((bloc->size - MEM_ROUNDUP (size) >= page_size) 
+          && r_alloc_freeze_level == 0) 
+	{
+	  resize_bloc (bloc, MEM_ROUNDUP (size));
+	  /* Never mind if this fails, just do nothing...  */
+	  /* It *should* be infallible!  */
+	}
+    }
+  else if (size > bloc->size)
+    {
+      if (r_alloc_freeze_level)
+	{
+	  bloc_ptr new_bloc;
+	  new_bloc = get_bloc (MEM_ROUNDUP (size));
+	  if (new_bloc)
+	    {
+	      new_bloc->variable = ptr;
+	      *ptr = new_bloc->data;
+	      bloc->variable = (POINTER *) NIL;
+	    }
+          else
+	    return NIL;
+	}
+      else 
+	{
+	  if (! resize_bloc (bloc, MEM_ROUNDUP (size)))
+	    return NIL;
+        }
+    }
   return *ptr;
 }
 
@@ -974,9 +1070,27 @@ r_alloc_freeze (size)
 void
 r_alloc_thaw ()
 {
+
+  if (! r_alloc_initialized) 
+    r_alloc_init ();
+
   if (--r_alloc_freeze_level < 0)
     abort ();
+
+  /* This frees all unused blocs.  It is not too inefficent, as the resize 
+     and bcopy is done only once.  Afterwards, all unreferenced blocs are 
+     already shrunk to zero size.  */
+  if (!r_alloc_freeze_level) 
+    {
+      bloc_ptr *b = &first_bloc;
+      while (*b) 
+	if (!(*b)->variable) 
+	  free_bloc (*b); 
+	else 
+	  b = &(*b)->next;
+    }
 }
+
 
 /* The hook `malloc' uses for the function which gets more space
    from the system.  */
