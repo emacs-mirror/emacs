@@ -1,3 +1,43 @@
+2005-02-06  Richard M. Stallman  <rms@gnu.org>
+
+	* regs.texi (Registers): Registers can hold numbers, too.
+
+	* killing.texi (Other Kill Commands): Cleanup.
+	Delete redundant explanation of kill in read-only buffer.
+	(Yanking): Mention term "copying".
+	(Accumulating Text): Fix typo.
+
+	* entering.texi (Entering Emacs): Update rationale at start.
+	(Exiting): Treat iconifying on a par with suspension.
+
+	* custom.texi (Minor Modes): Fix typo.
+	(Easy Customization): Fix menu style.
+	(Variables): Add xref.
+	(Examining): Setting for future sessions works through .emacs.
+	(Keymaps): "Text terminals", not "Many".
+	(Init Rebinding): Explain \C-.  Show example of \M-.
+	Fix minor wording errors.
+	(Function Keys): Explain vector syntax just once.
+	(Named ASCII Chars): Clarify history of TAB/C-i connection.
+	(Init File): Mention .emacs.d directory.
+	(Init Examples): Add xref.
+	(Find Init): Mention .emacs.d directory.
+
+	* cmdargs.texi (Emacs Invocation): +LINENUM is also an option.
+	(Action Arguments): Explain which kinds of -l args are found how.
+	(Initial Options): --batch does not inhibit site-start.
+	Add xrefs.
+	(Command Example): Use --batch, not -batch.
+
+	* basic.texi (Inserting Text): Cleanup wording.
+	(Moving Point): Doc PRIOR, PAGEUP, NEXT, PAGEDOWN more systematically.
+	C-n is not error at end of buffer.
+	(Undo): Doc C-/ like C-_.  Add xrefs.
+	(Arguments): META key may be labeled ALT.
+	Peculiar arg meanings are explained in doc strings.
+
+	* abbrevs.texi (Expanding Abbrevs): Clarify.
+
 2005-02-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* frames.texi (Frame Parameters): Add an xref to the description

@@ -2041,8 +2041,11 @@ whose names begin with space are omitted.
 
 +++
 ** You can now customize fill-nobreak-predicate to control where
-filling can break lines.  We provide two sample predicates,
-fill-single-word-nobreak-p and fill-french-nobreak-p.
+filling can break lines.  The value is now normally a list of
+functions, but it can also be a single function, for compatibility.
+
+We provide two sample predicates, fill-single-word-nobreak-p and
+fill-french-nobreak-p, for use in the value of fill-nobreak-predicate.
 
 +++
 ** New user option `add-log-always-start-new-record'.

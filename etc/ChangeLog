@@ -1,3 +1,7 @@
+2005-02-06  Richard M. Stallman  <rms@gnu.org>
+
+	* DEBUG: Minor clarification.
+
 2005-02-05  Frederik Fouvry  <fouvry@CoLi.Uni-SB.DE>
 
 	* emacs.bash: Update the name of the socket of the Emacs server.

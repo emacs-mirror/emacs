@@ -178,26 +178,26 @@ people who have checked it.
 
 SECTION             READERS
 -----------------------------
-man/abbrevs.texi
+man/abbrevs.texi    Chong Yidong
 man/anti.texi
-man/basic.texi      "Luc Teirlinck"
+man/basic.texi      "Luc Teirlinck"  Chong Yidong
 man/buffers.texi    "Luc Teirlinck"  Chong Yidong
 man/building.texi   "Ted Zlatanov" <tzz@lifelogs.com>
 man/calendar.texi    Joakim Verona <joakim@verona.se>
-man/cmdargs.texi
+man/cmdargs.texi    Chong Yidong
 man/commands.texi   "Luc Teirlinck"
-man/custom.texi
+man/custom.texi     Chong Yidong
 man/dired.texi
 man/display.texi    "Luc Teirlinck"
 man/emacs.texi      "Luc Teirlinck"
-man/entering.texi   "Luc Teirlinck"
+man/entering.texi   "Luc Teirlinck"  Chong Yidong
 man/files.texi      "Luc Teirlinck"  Chong Yidong
 man/fixit.texi      "Luc Teirlinck"
 man/frames.texi     "Luc Teirlinck"  Chong Yidong
 man/glossary.texi
 man/help.texi       "Luc Teirlinck"
 man/indent.texi     "Luc Teirlinck"
-man/killing.texi    "Luc Teirlinck"
+man/killing.texi    "Luc Teirlinck"  Chong Yidong
 man/kmacro.texi     "Luc Teirlinck"
 man/macos.texi
 man/maintaining.texi
@@ -210,7 +210,7 @@ man/mule.texi       "Luc Teirlinck"
 man/m-x.texi        "Luc Teirlinck"
 man/picture.texi    Joakim Verona <joakim@verona.se>
 man/programs.texi   "Stephen Eglen"
-man/regs.texi       "Luc Teirlinck"
+man/regs.texi       "Luc Teirlinck"   Chong Yidong
 man/rmail.texi
 man/screen.texi     "Luc Teirlinck"
 man/search.texi     "Luc Teirlinck"
@@ -261,17 +261,17 @@ lispref/macros.texi      "Luc Teirlinck"
 lispref/maps.texi
 lispref/markers.texi     "Luc Teirlinck"
 lispref/minibuf.texi     "Luc Teirlinck"
-lispref/modes.texi
+lispref/modes.texi	 Chong Yidong
 lispref/nonascii.texi    "Luc Teirlinck"
 lispref/numbers.texi	 "Luc Teirlinck"
 lispref/objects.texi	 "Luc Teirlinck"
 lispref/os.texi		 "Luc Teirlinck"
-lispref/positions.texi	 "Luc Teirlinck"
+lispref/positions.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/processes.texi
 lispref/searching.texi	 "Luc Teirlinck"
 lispref/sequences.texi	 "Luc Teirlinck"
 lispref/streams.texi	 "Luc Teirlinck"
-lispref/strings.texi	 "Luc Teirlinck"
+lispref/strings.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/symbols.texi	 "Luc Teirlinck"
 lispref/syntax.texi	 "Luc Teirlinck"
 lispref/text.texi        Chong Yidong

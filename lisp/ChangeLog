@@ -1,3 +1,7 @@
+2005-02-06  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/lisp.el (buffer-end): Doc fix.
+
 2005-02-05  Arne_J,Ax(Brgensen  <arne@arnested.dk>  (tiny change)
 
 	* net/ldap.el (ldap-search-internal): Support attributes with
