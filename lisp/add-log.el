@@ -145,40 +145,87 @@ Note: The search is conducted only within 10%, at the beginning of the file."
   :type '(repeat regexp)
   :group 'change-log)
 
+(defface change-log-date-face
+  '((t (:inherit font-lock-string-face)))
+  "Face used to highlight dates in date lines."
+  :version "21.1"
+  :group 'change-log)
+
+(defface change-log-name-face
+  '((t (:inherit font-lock-constant-face)))
+  "Face for highlighting author names."
+  :version "21.1"
+  :group 'change-log)
+
+(defface change-log-email-face
+  '((t (:inherit font-lock-variable-name-face)))
+  "Face for highlighting author email addresses."
+  :version "21.1"
+  :group 'change-log)
+
+(defface change-log-file-face
+  '((t (:inherit font-lock-function-name-face)))
+  "Face for highlighting file names."
+  :version "21.1"
+  :group 'change-log)
+
+(defface change-log-list-face
+  '((t (:inherit font-lock-keyword-face)))
+  "Face for highlighting parenthesized lists of functions or variables."
+  :version "21.1"
+  :group 'change-log)
+  
+(defface change-log-conditionals-face
+  '((t (:inherit font-lock-variable-name-face)))
+  "Face for highlighting conditionals of the form `[...]'."
+  :version "21.1"
+  :group 'change-log)
+
+(defface change-log-function-face
+  '((t (:inherit font-lock-variable-name-face)))
+  "Face for highlighting items of the form `<....>'."
+  :version "21.1"
+  :group 'change-log)
+
+(defface change-log-acknowledgement-face
+  '((t (:inherit font-lock-comment-face)))
+  "Face for highlighting acknowledgments."
+  :version "21.1"
+  :group 'change-log)
 
 (defvar change-log-font-lock-keywords
   '(;;
     ;; Date lines, new and old styles.
     ("^\\sw.........[0-9:+ ]*"
-     (0 font-lock-string-face)
+     (0 'change-log-date-face)
      ;; Name and e-mail; some people put e-mail in parens, not angles.
      ("\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.-]+@[A-Za-z0-9_.-]+\\)[>)]" nil nil
-      (1 font-lock-constant-face)
-      (2 font-lock-variable-name-face)))
+      (1 'change-log-name-face)
+      (2 'change-log-email-face)))
     ;;
     ;; File names.
     ("^\t\\* \\([^ ,:([\n]+\\)"
-     (1 font-lock-function-name-face)
+     (1 'change-log-file-face)
      ;; Possibly further names in a list:
-     ("\\=, \\([^ ,:([\n]+\\)" nil nil (1 font-lock-function-name-face))
+     ("\\=, \\([^ ,:([\n]+\\)" nil nil (1 'change-log-file-face))
      ;; Possibly a parenthesized list of names:
-     ("\\= (\\([^) ,:\n]+\\)" nil nil (1 font-lock-keyword-face))
-     ("\\=, *\\([^) ,:\n]+\\)" nil nil (1 font-lock-keyword-face)))
+     ("\\= (\\([^) ,:\n]+\\)" nil nil (1 'change-log-list-face))
+     ("\\=, *\\([^) ,:\n]+\\)" nil nil (1 'change-log-list-face)))
     ;;
     ;; Function or variable names.
     ("^\t(\\([^) ,:\n]+\\)"
-     (1 font-lock-keyword-face)
-     ("\\=, *\\([^) ,:\n]+\\)" nil nil (1 font-lock-keyword-face)))
+     (1 'change-log-list-face)
+     ("\\=, *\\([^) ,:\n]+\\)" nil nil (1 'change-log-list-face)))
     ;;
     ;; Conditionals.
-    ("\\[!?\\([^]\n]+\\)\\]\\(:\\| (\\)" (1 font-lock-variable-name-face))
+    ("\\[!?\\([^]\n]+\\)\\]\\(:\\| (\\)" (1 'change-log-conditionals-face))
     ;;
     ;; Function of change.
-    ("<\\([^>\n]+\\)>\\(:\\| (\\)" (1 font-lock-variable-name-face))
+    ("<\\([^>\n]+\\)>\\(:\\| (\\)" (1 'change-log-function-face))
     ;;
     ;; Acknowledgements.
     ("\\(^\t\\|  \\)\\(From\\|Patch\\(es\\)? by\\|Report\\(ed by\\| from\\)\\|Suggest\\(ed by\\|ion from\\)\\)"
-     2 font-lock-comment-face))
+     2 'change-log-acknowledgement-face))
   "Additional expressions to highlight in Change Log mode.")
 
 (defvar change-log-mode-map (make-sparse-keymap)
