@@ -1656,10 +1656,6 @@ adjust_after_replace (from, from_byte, prev_text, len, len_byte)
   if (BUF_INTERVALS (current_buffer) != 0)
     {
       offset_intervals (current_buffer, from, len - nchars_del);
-      if (len - nchars_del > 0)
-	Fset_text_properties (make_number (from),
-			      make_number (from + len - nchars_del),
-			      Qnil, Qnil);
     }
 #endif
 
