@@ -197,8 +197,8 @@ Understands the following styles:
     (when year
       (setq year (match-string year date))
       ;; Guess ambiguous years.  Assume years < 69 don't predate the
-      ;; Unix Epoch, so are 2000+.  Three-digit years -- do they ever
-      ;; occur? -- are (arbitrarily) assumed to be 21st century.
+      ;; Unix Epoch, so are 2000+.  Three-digit years are assumed to
+      ;; be relative to 1900.
       (if (< (length year) 4)
 	  (let ((y (string-to-int year)))
 	    (if (< y 69)
@@ -310,9 +310,11 @@ If LOCAL is nil, it is assumed to be GMT.
 If TIMEZONE is nil, use the local time zone."
   (let* ((date   (timezone-parse-date date))
 	 (year   (string-to-int (aref date 0)))
-	 (year	 (cond ((< year 50)
+	 (year	 (cond ((< year 69)
 			(+ year 2000))
 		       ((< year 100)
+			(+ year 1900))
+		       ((< year 1000)	; possible 3-digit years.
 			(+ year 1900))
 		       (t year)))
 	 (month  (string-to-int (aref date 1)))
