@@ -217,8 +217,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Variables
 
-(eval-when-compile (require 'dired)
-		   (require 'thingatpt)
+(eval-when-compile (require 'thingatpt)
                    (require 'term))
 
 (defgroup browse-url nil
@@ -456,17 +455,11 @@ down (this *won't* always work)."
   :version "20.3"
   :group 'browse-url)
 
-(defcustom browse-url-lynx-input-attempts 10
-  "*How many times to try to move down from a series of lynx input fields."
-  :version "20.3"
-  :type 'integer
-  :group 'browse-url)
+(defvar browse-url-lynx-input-attempts 10
+  "*How many times to try to move down from a series of lynx input fields.")
 
 (defcustom browse-url-lynx-input-delay 0.2
-  "How many seconds to wait for lynx between moves down from an input field."
-  :version "20.3"
-  :type 'number
-  :group 'browse-url)
+  "How many seconds to wait for lynx between moves down from an input field.")
 
 (defvar browse-url-temp-file-list '())
 
@@ -769,7 +762,7 @@ When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-p'."
   (interactive (browse-url-interactive-arg "Mosaic URL: "))
   (let ((pidfile (expand-file-name "~/.mosaicpid"))
-	pid pidbuf)
+	pid)
     (if (file-readable-p pidfile)
 	(save-excursion
 	  (find-file pidfile)
@@ -818,11 +811,14 @@ variable `browse-url-grail'."
     (set-buffer (get-buffer-create " *Shell Command Output*"))
     (erase-buffer)
     ;; don't worry about this failing.
-    (call-process browse-url-grail nil 0 nil url)
+    (if new-window
+	(call-process browse-url-grail nil 0 nil "-b" url)
+      (call-process browse-url-grail nil 0 nil url))
     (message "Sending URL to Grail... done")))
 
 ;; --- Mosaic using CCI ---
 
+;;;###autoload
 (defun browse-url-cci (url &optional new-window)
   "Ask the XMosaic WWW browser to load URL.
 Default to the URL around or before point.
