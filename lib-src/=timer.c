@@ -127,7 +127,7 @@ notify ()
   /* If an alarm timer runs out while this function is executing,
      it could get called recursively.  This would be bad, because
      it's not re-entrant.  So we must try to suspend the signal. */
-#ifdef sigmask
+#if 0   /* This function isn't right for BSD.  Fix it later.  */
   sighold(SIGIO);
 #endif
 
@@ -162,7 +162,7 @@ notify ()
   if (num_events > 0)
     alarm (waitfor);
 
-#ifdef sigmask
+#if 0  /* This function isn't right for BSD.  */
   sigrelse(SIGIO);
 #endif
 }
