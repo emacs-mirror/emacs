@@ -428,7 +428,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   ;; Menu bars:
   ;; completion:
   (define-key comint-mode-map [menu-bar completion] 
-    (cons "Completion" (make-sparse-keymap "Completion")))
+    (cons "Complete" (make-sparse-keymap "Complete")))
   (define-key comint-mode-map [menu-bar completion complete-expand]
     '("Expand File Name" . comint-replace-by-expanded-filename))
   (define-key comint-mode-map [menu-bar completion complete-listing]
@@ -445,11 +445,25 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
     '("Complete Before Point" . comint-dynamic-complete))
   ;; Input history:
   (define-key comint-mode-map [menu-bar input] 
-    (cons "Input" (make-sparse-keymap "Input")))
+    (cons "In/Out" (make-sparse-keymap "In/Out")))
+  (define-key comint-mode-map [menu-bar input kill-output]
+    '("Kill Current Output Group" . comint-kill-output))
+  (define-key comint-mode-map [menu-bar input next-prompt]
+    '("Forward Output Group" . comint-next-prompt))
+  (define-key comint-mode-map [menu-bar input previous-prompt]
+    '("Backward Output Group" . comint-previous-prompt))
+  (define-key comint-mode-map [menu-bar input show-maximum-output]
+    '("Show Maximum Output" . comint-show-maximum-output))
+  (define-key comint-mode-map [menu-bar input show-output]
+    '("Show Current Output Group" . comint-show-output))
   (define-key comint-mode-map [menu-bar input kill-input]
     '("Kill Current Input" . comint-kill-input))
   (define-key comint-mode-map [menu-bar input copy-input]
     '("Copy Old Input" . comint-copy-old-input))
+  (define-key comint-mode-map [menu-bar input forward-matching-history]
+    '("Forward Matching Input..." . comint-forward-matching-input))
+  (define-key comint-mode-map [menu-bar input backward-matching-history]
+    '("Backward Matching Input..." . comint-backward-matching-input))
   (define-key comint-mode-map [menu-bar input next-matching-history]
     '("Next Matching Input..." . comint-next-matching-input))
   (define-key comint-mode-map [menu-bar input previous-matching-history]
@@ -466,23 +480,6 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
     '("List Input History" . comint-dynamic-list-input-ring))
   (define-key comint-mode-map [menu-bar input expand-history]
     '("Expand History Before Point" . comint-replace-by-expanded-history))
-  ;; Output:
-  (define-key comint-mode-map [menu-bar output] 
-    (cons "Output" (make-sparse-keymap "Output")))
-  (define-key comint-mode-map [menu-bar output kill-output]
-    '("Kill Current Output Group" . comint-kill-output))
-  (define-key comint-mode-map [menu-bar input forward-matching-history]
-    '("Forward Matching Input..." . comint-forward-matching-input))
-  (define-key comint-mode-map [menu-bar input backward-matching-history]
-    '("Backward Matching Input..." . comint-backward-matching-input))
-  (define-key comint-mode-map [menu-bar output next-prompt]
-    '("Forward Output Group" . comint-next-prompt))
-  (define-key comint-mode-map [menu-bar output previous-prompt]
-    '("Backward Output Group" . comint-previous-prompt))
-  (define-key comint-mode-map [menu-bar output show-maximum-output]
-    '("Show Maximum Output" . comint-show-maximum-output))
-  (define-key comint-mode-map [menu-bar output show-output]
-    '("Show Current Output Group" . comint-show-output))
   ;; Signals
   (define-key comint-mode-map [menu-bar signals]
     (cons "Signals" (make-sparse-keymap "Signals")))
