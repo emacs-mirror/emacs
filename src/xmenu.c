@@ -2488,24 +2488,7 @@ static void
 menu_help_callback (help_string)
      char *help_string;
 {
-  Lisp_Object msg;
-  extern Lisp_Object Vshow_help_function;
-  struct gcpro gcpro1;
-
-  msg = help_string ? build_string (help_string) : Qnil;
-  GCPRO1 (msg);
-  
-  if (!NILP (Vshow_help_function))
-    call1 (Vshow_help_function, msg);
-  else if (!MINI_WINDOW_P (XWINDOW (selected_window)))
-    {
-      if (STRINGP (msg))
-	message3_nolog (msg, XSTRING (msg)->size, STRING_MULTIBYTE (msg));
-      else
-	message (0);
-    }
-
-  UNGCPRO;
+  show_help_echo (help_string ? build_string (help_string) : Qnil);
 }
 
 

@@ -2158,9 +2158,6 @@ w32_menu_display_help (HMENU menu, UINT item, UINT flags)
 
   if (get_menu_item_info)
     {
-      struct gcpro gcpro1;
-      extern Lisp_Object Vshow_help_function;
-      Lisp_Object msg;
       MENUITEMINFO info;
 
       bzero (&info, sizeof (info));
@@ -2168,19 +2165,8 @@ w32_menu_display_help (HMENU menu, UINT item, UINT flags)
       info.fMask = MIIM_DATA;
       get_menu_item_info (menu, item, FALSE, &info);
 
-      msg = info.dwItemData ? build_string ((char *) info.dwItemData) : Qnil;
-      GCPRO1 (msg);
-
-      if (!NILP (Vshow_help_function))
-        call1 (Vshow_help_function, msg);
-      else if (!MINI_WINDOW_P (XWINDOW (selected_window)))
-        {
-          if (STRINGP(msg))
-            message3_nolog (msg, XSTRING (msg)->size, STRING_MULTIBYTE (msg));
-          else
-            message (0);
-        }
-      UNGCPRO;
+      show_help_echo (info.dwItemData ?
+		      build_string ((char *) info.dwItemData) : Qnil);
     }
 }
 
