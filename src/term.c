@@ -31,6 +31,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "termhooks.h"
 #include "keyboard.h"
 
+extern Lisp_Object Fmake_sparse_keymap ();
+
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
