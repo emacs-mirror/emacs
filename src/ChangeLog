@@ -1,5 +1,7 @@
 2005-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* dired.c (Ffile_attributes): Add a missing gcpro.
+
 	* alloc.c (make_number): The arg can be bigger than `int'.
 	* lisp.h (make_number): Make prototype more precise.
 
