@@ -36,6 +36,9 @@ Boston, MA 02111-1307, USA.  */
 #include "w32gui.h"
 #endif
 
+#ifdef macintosh
+#include "macterm.h"
+#endif
 
 /* Structure forward declarations.  Some are here because function
    prototypes below reference structure types before their definition
