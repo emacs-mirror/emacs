@@ -516,7 +516,7 @@ make_fontset_for_ascii_face (f, base_fontset_id)
     base_fontset = Vdefault_fontset;
 
   fontset = make_fontset (frame, Qnil, base_fontset);
-  return FONTSET_ID (fontset);
+  return XINT (FONTSET_ID (fontset));
 }
 
 
@@ -1032,7 +1032,7 @@ of a font for CHAR.")
 
   CHECK_STRING (fontname, 2);
   fontname = Fdowncase (fontname);
-  if (fontset == Vdefault_fontset)
+  if (EQ (fontset, Vdefault_fontset))
     {
       if (!check_registry_encoding (fontname))
 	error ("Invalid registry and encoding name: %s",
