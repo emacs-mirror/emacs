@@ -1364,6 +1364,8 @@ They default to the beginning and the end of BUFFER.")
   if (NILP (buffer))
     nsberror (buf);
   bp = XBUFFER (buffer);
+  if (NILP (bp->name))
+    error ("Selecting deleted buffer");
 
   if (NILP (start))
     b = BUF_BEGV (bp);
@@ -1424,6 +1426,8 @@ determines whether case is significant or ignored.")
       if (NILP (buf1))
 	nsberror (buffer1);
       bp1 = XBUFFER (buf1);
+      if (NILP (bp1->name))
+	error ("Selecting deleted buffer");
     }
 
   if (NILP (start1))
@@ -1460,6 +1464,8 @@ determines whether case is significant or ignored.")
       if (NILP (buf2))
 	nsberror (buffer2);
       bp2 = XBUFFER (buf2);
+      if (NILP (bp2->name))
+	error ("Selecting deleted buffer");
     }
 
   if (NILP (start2))
