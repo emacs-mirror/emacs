@@ -95,32 +95,32 @@ Boston, MA 02111-1307, USA.  */
 
    The former is a hash table in which keys are COMPONENTS-VECs and
    values are the corresponding COMPOSITION-IDs.  This hash table is
-   weak, but as each key (COMPONENTS-VEC) is also kept as a value of
+   weak, but as each key (COMPONENTS-VEC) is also kept as a value of the
    `composition' property, it won't be collected as garbage until all
-   text that have the same COMPONENTS-VEC are deleted.
+   bits of text that have the same COMPONENTS-VEC are deleted.
 
    The latter is a table of pointers to `struct composition' indexed
-   by COMPOSITION-ID.  This structure keep the other information (see
+   by COMPOSITION-ID.  This structure keeps the other information (see
    composite.h).
 
    In general, a text property holds information about individual
    characters.  But, a `composition' property holds information about
-   a sequence of characters (in this sense, it is like `intangible'
+   a sequence of characters (in this sense, it is like the `intangible'
    property).  That means that we should not share the property value
-   in adjacent compositions we can't distinguish them if they have the
+   in adjacent compositions -- we can't distinguish them if they have the
    same property.  So, after any changes, we call
    `update_compositions' and change a property of one of adjacent
    compositions to a copy of it.  This function also runs a proper
    composition modification function to make a composition that gets
    invalid by the change valid again.
 
-   As a value of `composition' property holds information about a
+   As the value of the `composition' property holds information about a
    specific range of text, the value gets invalid if we change the
-   text in the range.  We treat `composition' property always
+   text in the range.  We treat the `composition' property as always
    rear-nonsticky (currently by setting default-text-properties to
    (rear-nonsticky (composition))) and we never make properties of
    adjacent compositions identical.  Thus, any such changes make the
-   range just shorter.  So, we can check the validity of `composition'
+   range just shorter.  So, we can check the validity of the `composition'
    property by comparing LENGTH information with the actual length of
    the composition.
 
@@ -467,7 +467,7 @@ run_composition_function (from, to, prop)
    CHECK_MASK is bitwise `or' of mask bits defined by macros
    CHECK_XXX (see the comment in composite.h).
 
-   It also reset the text-property `auto-composed' on a proper region
+   It also resets the text-property `auto-composed' to a proper region
    so that automatic character composition works correctly later while
    displaying the region.
  
@@ -616,7 +616,7 @@ DEFUN ("compose-region-internal", Fcompose_region_internal,
 
 Compose text in the region between START and END.
 Optional 3rd and 4th arguments are COMPONENTS and MODIFICATION-FUNC
-for the composition.   See `compose-region' for more detial. */)
+for the composition.  See `compose-region' for more detail.  */)
      (start, end, components, mod_func)
      Lisp_Object start, end, components, mod_func;
 {
@@ -637,7 +637,7 @@ DEFUN ("compose-string-internal", Fcompose_string_internal,
 
 Compose text between indices START and END of STRING.
 Optional 4th and 5th arguments are COMPONENTS and MODIFICATION-FUNC
-for the composition.   See `compose-string' for more detial.  */)
+for the composition.  See `compose-string' for more detail.  */)
      (string, start, end, components, mod_func)
      Lisp_Object string, start, end, components, mod_func;
 {
