@@ -3,6 +3,10 @@
 	* replace.el (occur-find-match): New function.
 	(occur-next, occur-prev): Use it.
 
+	* progmodes/sh-script.el (sh-mark-init): Don't set `occur-buffer'.
+	(sh-mark-line): Likewise. Use 'occur-target and 'occur-match
+	instead of 'occur and 'occur-point.
+
 2002-09-23  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/quail.el (quail-completion): Be sure to scroll
