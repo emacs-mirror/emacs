@@ -1,5 +1,7 @@
 2001-01-31  Kenichi Handa  <handa@etl.go.jp>
 
+	* international/mule.el (charset-info): Fix docstring.
+
 	* international/mule-diag.el (describe-character-set): Check final
 	char valid before printing it.
 
