@@ -1,5 +1,10 @@
 2005-01-01  Richard M. Stallman  <rms@gnu.org>
 
+	* replace.el (occur-1): If the output buffer is also an input,
+	don't kill it, rename it.
+
+	* faces.el (set-face-background, set-face-foreground): Doc fix.
+
 	* cus-face.el (custom-face-attributes): Fix :help-echo strings
 	for :foreground and :background.
 
