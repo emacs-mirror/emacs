@@ -918,14 +918,14 @@ The solution is to switch the antivirus software to a less aggressive
 mode (e.g., disable the ``auto-protect'' feature), or even uninstall
 or disable it entirely.
 
-* On Windows 95/98/ME, subprocesses do not terminate properly.
+* On MS-Windows 95/98/ME, subprocesses do not terminate properly.
 
 This is a limitation of the Operating System, and can cause problems
 when shutting down Windows. Ensure that all subprocesses are exited
 cleanly before exiting Emacs. For more details, see the FAQ at
 http://www.gnu.org/software/emacs/windows/.
 
-* Windows 95/98/ME crashes when Emacs invokes non-existent programs.
+* MS-Windows 95/98/ME crashes when Emacs invokes non-existent programs.
 
 When a program you are trying to run is not found on the PATH,
 Windows might respond by crashing or locking up your system.  In
@@ -1343,7 +1343,7 @@ This problem happens if libc defines the symbol __malloc_initialized.
 One known solution is to upgrade to a newer libc version.  5.4.33 is
 known to work.
 
-* On Windows, you cannot use the right-hand ALT key and the left-hand
+* On MS-Windows, you cannot use the right-hand ALT key and the left-hand
 CTRL key together to type a Control-Meta character.
 
 This is a consequence of a misfeature beyond Emacs's control.
@@ -1360,7 +1360,7 @@ to nil to tell Emacs that AltGr is really Ctrl and Alt.
 If you are using Exceed 6.1, upgrade to a later version.  This was
 reported to prevent the crashes.
 
-* Under some Windows X-servers, Emacs' display is incorrect
+* Under some X-servers running on MS-Windows, Emacs' display is incorrect
 
 The symptoms are that Emacs does not completely erase blank areas of the
 screen during scrolling or some other screen operations (e.g., selective
@@ -1598,7 +1598,7 @@ suspects that the bug was fixed by one of these more recent patches:
 106222-01  OpenWindows 3.6: filemgr (ff.core) fixes
 105284-12  Motif 1.2.7: sparc Runtime library patch
 
-* Problems running Perl under Emacs on Windows NT/95.
+* Problems running Perl under Emacs on MS-Windows NT/95.
 
 `perl -de 0' just hangs when executed in an Emacs subshell.
 The fault lies with Perl (indirectly with Windows NT/95).
@@ -1674,7 +1674,7 @@ subdirectory: `is_exec.c' and `sigaction.c'.  Compile them and link
 them into the Emacs executable `temacs'; then they will replace the
 incorrect library functions.
 
-* When compiling with DJGPP on Windows NT, "config msdos" fails.
+* When compiling with DJGPP on MS-Windows NT, "config msdos" fails.
 
 If the error message is "VDM has been already loaded", this is because
 Windows has a program called `redir.exe' that is incompatible with a
@@ -1682,7 +1682,7 @@ program by the same name supplied with DJGPP, which is used by
 config.bat.  To resolve this, move the DJGPP's `bin' subdirectory to
 the front of your PATH environment variable.
 
-* When compiling with DJGPP on Windows 95, Make fails for some targets
+* When compiling with DJGPP on MS-Windows 95, Make fails for some targets
 like make-docfile.
 
 This can happen if long file name support (the setting of environment
@@ -1732,12 +1732,12 @@ undefined when Emacs runs.  The best way to do that is to add an
 `TERM'; this way, only Emacs gets the empty value, while the rest of
 your system works as before.
 
-* On Windows 95, Alt-f6 does not get through to Emacs.
+* On MS-Windows 95, Alt-f6 does not get through to Emacs.
 
 This character seems to be trapped by the kernel in Windows 95.
 You can enter M-f6 by typing ESC f6.
 
-* Typing Alt-Shift has strange effects on Windows.
+* Typing Alt-Shift has strange effects on MS-Windows.
 
 This combination of keys is a command to change keyboard layout.  If
 you proceed to type another non-modifier key before you let go of Alt
@@ -1931,7 +1931,7 @@ the Sun compiler, but not when he recompiled with GCC 2.7.0.
 We do not know whether something in Emacs is partly to blame for this.
 
 * Emacs exits with "X protocol error" when run with an X server for
-Windows.
+MS-Windows.
 
 A certain X server for Windows had a bug which caused this.
 Supposedly the newer 32-bit version of this server doesn't have the
