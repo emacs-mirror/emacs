@@ -5,7 +5,7 @@
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 17 1996
 ;; Keywords: processes
-;; Time-stamp: <1998-03-14 09:24:38 pbreton>
+;; Time-stamp: <1999-02-16 20:48:21 pbreton>
 
 ;; This file is part of GNU Emacs.
 
@@ -258,9 +258,9 @@ forward ones."
 (defun dirtrack (input)
   (if (null dirtrackp)
       nil
-    (let ((prompt-path)
+    (let (prompt-path
+	  matched
 	  (current-dir default-directory)
-	  (matched)
 	  (dirtrack-regexp    (nth 0 dirtrack-list))
 	  (match-num	      (nth 1 dirtrack-list))
 	  (multi-line	      (nth 2 dirtrack-list))
@@ -269,16 +269,7 @@ forward ones."
       (if (eq (point) (point-min))
 	  nil
 	(save-excursion
-	  (goto-char (point-max))
-	  ;; Look for the prompt
-	  (if multi-line
-	      (setq matched 
-		    (re-search-backward 
-		     dirtrack-regexp 
-		     comint-last-output-start
-		     t))
-	    (beginning-of-line)
-	    (setq matched (looking-at dirtrack-regexp)))
+	  (setq matched (string-match dirtrack-regexp input)))
 	  ;; No match
 	  (if (null matched)
 	      (and dirtrack-debug
@@ -287,7 +278,7 @@ forward ones."
 		     "Input `%s' failed to match regexp: %s" 
 		    input dirtrack-regexp)))
 	    (setq prompt-path 
-		  (buffer-substring-no-properties
+		  (substring input
 		   (match-beginning match-num) (match-end match-num)))
 	    ;; Empty string
 	    (if (not (> (length prompt-path) 0))
@@ -320,7 +311,7 @@ forward ones."
 			 (dirtrack-debug-message 
 			  (format "Changing directory to %s" prompt-path)))
 		  (error "Directory %s does not exist" prompt-path)))
-	      )))))))
+	      ))))))
 
 (provide 'dirtrack)
 
