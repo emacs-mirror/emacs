@@ -219,7 +219,7 @@ whether to blink the matching beginning."
 
 (defcustom f90-break-before-delimiters t
   "*Non-nil causes `f90-do-auto-fill' to break lines before delimiters."
-  :type 'regexp
+  :type 'boolean
   :group 'f90)
 
 (defcustom f90-auto-keyword-case nil
