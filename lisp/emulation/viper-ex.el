@@ -151,7 +151,7 @@
 	   "\\)")
 	  shell-file-name)))
   "Is the user using a unix-type shell under a non-OS?"
-  :type 'string
+  :type 'boolean
   :group 'viper-ex)
 
 (defcustom ex-unix-type-shell-options
