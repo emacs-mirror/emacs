@@ -253,8 +253,8 @@ This is relative to `smtpmail-queue-dir'.")
 		(error "Sending failed; no recipients"))
 	    (let* ((file-data (concat 
 			       smtpmail-queue-dir
-			       (time-stamp-strftime 
-				"%02y%02m%02d-%02H%02M%02S")))
+			       (concat (time-stamp-yyyy-mm-dd)
+				       "_" (time-stamp-hh:mm:ss))))
 		   (file-elisp (concat file-data ".el"))
 		   (buffer-data (create-file-buffer file-data))
 		   (buffer-elisp (create-file-buffer file-elisp))
