@@ -38,7 +38,8 @@ Boston, MA 02111-1307, USA.  */
    definitions of some of the macros and `the convex' does too.
    HAVE_SYS_WAIT_H probably won't be defined on them if they still get
    used, but for safety...  -- fx */
-#if (defined (HPUX) && !defined (HPUX8)) || defined (convex)
+/* ISC 4.1 doesn't have wait3, but does have sys/wait.h.  */
+#if (defined(HPUX) && !defined(HPUX8)) || defined(convex) || defined(ISC4_1)
 #undef HAVE_SYS_WAIT_H
 #endif
 
