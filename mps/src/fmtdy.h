@@ -17,6 +17,7 @@ extern mps_fmt_B_s *dylan_fmt_B_weak(void);
 extern mps_res_t dylan_fmt(mps_fmt_t *, mps_arena_t);
 extern mps_res_t dylan_fmt_weak(mps_fmt_t *, mps_arena_t);
 
+extern mps_addr_t dylan_weak_dependent(mps_addr_t);
 
 /* Used only for debugging / testing */
 extern mps_res_t dylan_init(mps_addr_t addr, size_t size,

@@ -71,6 +71,9 @@ typedef struct AWLStatTotalStruct {
   Count declined;      /* number of declined single accesses */
 } AWLStatTotalStruct, *AWLStatTotal;
 
+/* the type of a function to find an object's dependent object */
+
+typedef Addr (*FindDependentMethod)(Addr object);
 
 /* design.mps.poolawl.poolstruct */
 typedef struct AWLStruct {
@@ -81,6 +84,7 @@ typedef struct AWLStruct {
   Serial gen;               /* associated generation (for SegAlloc) */
   Sig sig;
   Count succAccesses;       /* number of successive single accesses */
+  FindDependentMethod findDependent; /*  to find a dependent object */
   AWLStatTotalStruct stats;
 } AWLStruct, *AWL;
 
@@ -486,6 +490,7 @@ static Res AWLInit(Pool pool, va_list arg)
 {
   AWL awl;
   Format format;
+  FindDependentMethod findDependent;
 
   /* weak check, as half way through initialization */
   AVER(pool != NULL);
@@ -496,6 +501,11 @@ static Res AWLInit(Pool pool, va_list arg)
 
   AVERT(Format, format);
   pool->format = format;
+
+  findDependent = va_arg(arg, FindDependentMethod);
+  AVER(FUNCHECK(findDependent));
+  awl->findDependent = findDependent;
+
   awl->alignShift = SizeLog2(pool->alignment);
   ActionInit(&awl->actionStruct, pool);
   awl->lastCollected = ArenaMutatorAllocSize(PoolArena(pool));
@@ -756,43 +766,7 @@ static void AWLBlacken(Pool pool, TraceSet traceSet, Seg seg)
 }
 
 
-/* Returns the linked object (or possibly there is none) */
-/* see design.mps.poolawl.fun.dependent-object, and */
-/* analysis.mps.poolawl.improve.dependent.abstract */
-static Bool AWLDependentObject(Addr *objReturn, Addr parent)
-{
-  Word *object;
-  Word *wrapper;
-  Word fword;
-  Word fl;
-  Word ff;
-
-  AVER(objReturn != NULL);
-  AVER(parent != (Addr)0);
-
-  object = (Word *)parent;
-  wrapper = (Word *)object[0];
-  AVER(wrapper != NULL);
-  /* check wrapper wrapper is non-NULL */
-  AVER(wrapper[0] != 0);
-  /* check wrapper wrapper is wrapper wrapper wrapper */
-  AVER(wrapper[0] == ((Word *)wrapper[0])[0]);
-  fword = wrapper[3];
-  ff = fword & 3;
-  /* Traceable Fixed part */
-  AVER(ff == 1);
-  fl = fword & ~3uL;
-  /* At least one fixed field */
-  AVER(fl >= 1);
-  if(object[1] == 0) {
-    return FALSE;
-  }
-  *objReturn = (Addr)object[1];
-  return TRUE;
-}
-
-
-static Res awlScanObject(Arena arena, ScanState ss,
+static Res awlScanObject(Arena arena, AWL awl, ScanState ss,
                          FormatScanMethod scan, Addr base, Addr limit)
 {
   Res res;
@@ -801,23 +775,19 @@ static Res awlScanObject(Arena arena, ScanState ss,
   Seg dependentSeg = NULL; /* segment of dependent object */
 
   AVERT(Arena, arena);
+  AVERT(AWL, awl);
   AVERT(ScanState, ss);
   AVER(FUNCHECK(scan));
   AVER(base != 0);
   AVER(base < limit);
 
-  if(AWLDependentObject(&dependentObject, base) &&
-     SegOfAddr(&dependentSeg, arena, dependentObject)) {
-    dependent = TRUE;
-  } else {
-    dependent = FALSE;
-  }
-
-  if(dependent) {
-    /* design.mps.poolawl.fun.scan.pass.repeat.object.dependent.expose */
-    ShieldExpose(arena, dependentSeg);
-    /* design.mps.poolawl.fun.scan.pass.repeat.object.dependent.summary */
-    SegSetSummary(dependentSeg, RefSetUNIV);
+  dependentObject = awl->findDependent(base);
+  dependent = SegOfAddr(&dependentSeg, arena, dependentObject);
+  if (dependent) {
+      /* design.mps.poolawl.fun.scan.pass.object.dependent.expose */
+      ShieldExpose(arena, dependentSeg);
+      /* design.mps.poolawl.fun.scan.pass.object.dependent.summary */
+      SegSetSummary(dependentSeg, RefSetUNIV);
   }
 
   res = (*scan)(ss, base, limit);
@@ -882,7 +852,7 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
     /* design.mps.poolawl.fun.scan.scan */
     if(scanAllObjects ||
          (BTGet(awlseg->mark, i) && !BTGet(awlseg->scanned, i))) {
-      Res res = awlScanObject(arena, ss, pool->format->scan,
+      Res res = awlScanObject(arena, awl, ss, pool->format->scan,
                               p, objectLimit);
       if(res != ResOK) {
         return res;
@@ -1265,5 +1235,6 @@ static Bool AWLCheck(AWL awl)
 
   /* 30 is just a sanity check really, not a constraint */
   CHECKL(0 <= awl->gen && awl->gen <= 30);
+  CHECKL(FUNCHECK(awl->findDependent));
   return TRUE;
 }
