@@ -3967,6 +3967,9 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
   unsigned char *src, *dst;
   Lisp_Object deletion = Qnil;
 
+  if (from < PT && PT < to)
+    SET_PT_BOTH (from, from_byte);
+
   if (replace)
     {
       int saved_from = from;
