@@ -50,7 +50,12 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long."
 	  ;; Also not if flag is true (it would fill wrong line);
 	  ;; there is no need to since we're at BOL.
 	  (auto-fill-function (if (or arg flag) nil auto-fill-function)))
-      (self-insert-command (prefix-numeric-value arg)))
+      (unwind-protect
+	  (self-insert-command (prefix-numeric-value arg))
+	;; If we get an error in self-insert-command, put point at right place.
+	(if flag (forward-char 1))))
+    ;; If we did *not* get an error, cancel that forward-char.
+    (if flag (backward-char 1))
     ;; Mark the newline(s) `hard'.
     (if use-hard-newlines
 	(let* ((from (- (point) (if arg (prefix-numeric-value arg) 1)))
