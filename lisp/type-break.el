@@ -278,7 +278,6 @@ as per the function `type-break-schedule'."
   (type-break-schedule))
 
 
-;;;###autoload
 (defun type-break-schedule (&optional time)
   "Schedule a typing break for TIME seconds from now.
 If time is not specified, default to `type-break-interval'."
@@ -313,61 +312,50 @@ type-break-mode."
 This may be the case either because the scheduled time has come \(and the
 minimum keystroke threshold has been reached\) or because the maximum
 keystroke threshold has been exceeded."
-  (cond
-   (type-break-mode
-    (let* ((threshold-pair (and (consp type-break-keystroke-threshold)
-                                type-break-keystroke-threshold))
-           (min-threshold (car threshold-pair))
-           (max-threshold (cdr threshold-pair)))
+  (and type-break-mode
+       (let* ((min-threshold (car type-break-keystroke-threshold))
+              (max-threshold (cdr type-break-keystroke-threshold)))
+         (and type-break-good-rest-interval
+              (progn
+                (and (> (type-break-time-difference 
+                         type-break-time-last-command (current-time))
+                        type-break-good-rest-interval)
+                     (progn
+                       (setq type-break-keystroke-count 0)
+                       (setq type-break-time-last-break (current-time))
+                       (type-break-schedule)))
+                (setq type-break-time-last-command (current-time))))
 
-      ;; Reset schedule and keystroke count if user has been idle longer
-      ;; than a normal resting period.
-      (cond
-       (type-break-good-rest-interval
-         (and (> (type-break-time-difference type-break-time-last-command
-                                            (current-time))
-                type-break-good-rest-interval)
-             (progn
-               (setq type-break-keystroke-count 0)
-               (setq type-break-time-last-break (current-time))
-               (type-break-schedule)))
-        (setq type-break-time-last-command (current-time))))
+         (and type-break-keystroke-threshold
+              (setq type-break-keystroke-count
+                    (+ type-break-keystroke-count (length (this-command-keys)))))
 
-      (and threshold-pair
-           (setq type-break-keystroke-count
-                 (+ type-break-keystroke-count (length (this-command-keys)))))
-
-      (cond
-       ((input-pending-p))
-       ((eq (selected-window) (minibuffer-window)))
-       (type-break-alarm-p
-        (cond
-         ((and min-threshold
-               (< type-break-keystroke-count min-threshold))
-          (type-break-schedule))
-         (t
-          ;; If the keystroke count is within min-threshold characters of
-          ;; the maximum threshold, set the count to min-threshold.  That
-          ;; way, if the count was really close the threshold and the user
-          ;; doesn't choose to take a break now, s/he won't be pestered
-          ;; almost immediately after saying "no"; that's what the query
-          ;; interval delay is for.
-          ;; On the other hand, don't set it too small (make it at least
-          ;; min-threshold); that way we can be sure the user will be asked
-          ;; again to take a break after the query interval has elapsed.
-          ;; If the user chooses to take a break now, the break function
-          ;; will reset the keystroke count anyway.
-          (and max-threshold
-               min-threshold
-               (< (- max-threshold type-break-keystroke-count) min-threshold)
-               (setq type-break-keystroke-count min-threshold))
-          (type-break-query))))
-       ((and max-threshold
-             (> type-break-keystroke-count max-threshold))
-        ;; Set it to the min threshold if possible, to be sure the user
-        ;; will be pestered again in at least a minute.
-        (setq type-break-keystroke-count (or min-threshold 0))
-        (type-break-query)))))))
+         ;; This has been optimized for speed; calls to input-pending-p and
+         ;; checking for the minibuffer window are only done if it would
+         ;; matter for the sake of querying user.
+         (cond
+          (type-break-alarm-p
+           (cond
+            ((input-pending-p))
+            ((eq (selected-window) (minibuffer-window)))
+            ((and min-threshold
+                  (< type-break-keystroke-count min-threshold))
+             (type-break-schedule))
+            (t
+             ;; If keystroke count is within min-threshold of
+             ;; max-threshold, lower it to reduce the liklihood of an
+             ;; immediate subsequent query.
+             (and max-threshold
+                  min-threshold
+                  (< (- max-threshold type-break-keystroke-count) min-threshold)
+                  (setq type-break-keystroke-count min-threshold))
+             (type-break-query))))
+          ((and max-threshold
+                (> type-break-keystroke-count max-threshold)
+                (not (input-pending-p))
+                (not (eq (selected-window) (minibuffer-window))))
+           (setq type-break-keystroke-count (or min-threshold 0))
+           (type-break-query))))))
 
 (defun type-break-query ()
   (condition-case ()
