@@ -7,7 +7,7 @@
 
 	* emacs.c (USAGE3): Delete --horizontal-scroll-bars, -hb.
 
-	* xdisp.c (back_to_previous_visible_line_start): 
+	* xdisp.c (back_to_previous_visible_line_start):
 	Subtract 1 from pos when checking previous newline for invisibility.
 
 	* window.c (window_scroll_pixel_based): Update preserve_y
@@ -21,10 +21,10 @@
 
 	* eval.c (Feval): Abort if INPUT_BLOCKED_P.
 
-2004-11-02  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>  (tiny change)
+2004-11-02  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>
 
 	* w32fns.c (w32_font_match): Use fast_string_match_ignore_case for
-	comapring font names.
+	comparing font names.
 
 2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -483,7 +483,7 @@
 	compositions to encode.
 	(encode_coding_string): Likewise.  Free composition data.
 
-2004-09-30  Florian Weimer <fw@deneb.enyo.de>	(tiny change)
+2004-09-30  Florian Weimer <fw@deneb.enyo.de>
 
 	* coding.c (code_convert_region): Free composition data.
 
@@ -1057,7 +1057,7 @@
 	(Fsave_window_excursion, Fset_window_vscroll)
 	(syms_of_window) <window-size-fixed>: Doc fixes.
 
-2004-07-19  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>  (tiny change)
+2004-07-19  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>
 
 	* w32fns.c (Fx_file_dialog): Use ENCODE_FILE instead of
 	ENCODE_SYSTEM for filenames.
@@ -1116,7 +1116,7 @@
 
 	* buffer.c (syms_of_buffer) <transient-mark-mode>: Doc fix.
 
-2004-07-15  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>  (tiny change)
+2004-07-15  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>
 
 	* w32fns.c (Fx_file_dialog): Encode strings in system coding
 	system before passing them to OS functions for display.
@@ -1780,7 +1780,7 @@
 	before actually accepting connection in case it has already been
 	accepted due to recursion.
 
-2004-05-23  K,Ba(Broly L,Bu(Brentey  <lorentey@elte.hu>  (tiny change)
+2004-05-23  K,Ba(Broly L,Bu(Brentey  <lorentey@elte.hu>
 
 	* coding.c (Fset_safe_terminal_coding_system_internal):
 	Set suppress_error in safe_terminal_coding, not terminal_coding.
@@ -2094,7 +2094,7 @@
 	* w32fns.c (Vw32_ansi_code_page): New Lisp variable.
 	(globals_of_w32fns): Set it.
 
-2004-05-09  Piet van Oostrum  <piet@cs.uu.nl>  (tiny change)
+2004-05-09  Piet van Oostrum  <piet@cs.uu.nl>
 
 	* data.c (Fquo): Simplify.
 
@@ -2143,7 +2143,7 @@
 
 	* emacs.c (main) [VMS]: Fix var ref.
 
-2004-05-06  Romain Francoise  <romain@orebokech.com>  (tiny change)
+2004-05-06  Romain Francoise  <romain@orebokech.com>
 
 	* data.c (Fsetq_default): Fix docstring.
 
@@ -2183,7 +2183,7 @@
 
 	* Makefile.in (region-cache.o): Depend on config.h.
 
-2004-05-02  Romain Francoise  <romain@orebokech.com>  (tiny change)
+2004-05-02  Romain Francoise  <romain@orebokech.com>
 
 	* indent.c (compute_motion): Save vpos in prev_vpos when dealing
 	with continuation lines, too.
@@ -3426,7 +3426,7 @@
 	entries that were used before we return.
 	(init_keyboard): Initialize read_avail_input_buf here.
 
-2004-02-16  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+2004-02-16  Jesper Harder  <harder@ifa.au.dk>
 
 	* cmds.c (Fend_of_line): Doc fix.
 
@@ -4094,7 +4094,7 @@
 	to the definition of `signal' in the Elisp manual.
 	* eval.c (Fsignal): Ditto.
 
-2003-12-29  James Clark  <jjc@jclark.com>  (tiny change)
+2003-12-29  James Clark  <jjc@jclark.com>
 
 	* fns.c (internal_equal): Return t for two NaN arguments.
 
@@ -5154,7 +5154,7 @@
 	* fileio.c (Fwrite_region): Fix conditional expression to issue
 	the right message.
 
-2003-08-16  Juri Linkov  <juri@jurta.org>  (tiny change)
+2003-08-16  Juri Linkov  <juri@jurta.org>
 
 	* syntax.c (Fforward_word): Argument changed to optional.
 	Set default value to 1.
@@ -5213,7 +5213,7 @@
 	* fns.c (Fclear_string): New function.
 	(syms_of_fns): defsubr it.
 
-2003-07-28  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp> (tiny change)
+2003-07-28  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>
 
 	* xfns.c (xic_set_preeditarea): Add the left fringe width to spot.x.
 
@@ -5441,7 +5441,7 @@
 
 	* alloc.c (Fgarbage_collect): Doc fix.
 
-2003-07-07  Nozomu Ando  <nand@mac.com>  (tiny change)
+2003-07-07  Nozomu Ando  <nand@mac.com>
 
 	* buffer.c (Fkill_buffer): Clear charpos cache if necessary.
 
@@ -6651,7 +6651,7 @@
 	* alloc.c (Fgarbage_collect): Cast pointers into specpdl
 	to avoid GCC warning.
 
-2003-05-16  Ralph Schleicher  <rs@nunatak.allgaeu.org>  (tiny change)
+2003-05-16  Ralph Schleicher  <rs@nunatak.allgaeu.org>
 
 	* fileio.c (Fdelete_file): Handle symlinks pointing to directories.
 
@@ -8374,7 +8374,7 @@
 	(w32_init_class): Use it.
 	(x_put_x_image): Declare all args.
 
-2003-01-21  Richard Dawe  <rich@phekda.freeserve.co.uk>  (tiny change)
+2003-01-21  Richard Dawe  <rich@phekda.freeserve.co.uk>
 
 	* Makefile.in (ALL_CFLAGS): Include MYCPPFLAGS, not MYCPPFLAG.
 
@@ -8746,7 +8746,7 @@
 	in direct action cases for Qforward_char and Qbackward_char.
 	Set already_adjusted so it won't be done twice.
 
-2002-12-30  Richard Dawe  <rich@phekda.freeserve.co.uk>  (tiny change)
+2002-12-30  Richard Dawe  <rich@phekda.freeserve.co.uk>
 
 	* src/config.in (!HAVE_SIZE_T): Fix order of arguments in
 	type definition of size_t.
@@ -8844,7 +8844,7 @@
 	* dired.c (file_name_completion): Fix that change.
 	Delete special quit-handling code; just use QUIT.
 
-2002-12-21  Tak Ota  <Takaaki.Ota@am.sony.com>  (tiny change)
+2002-12-21  Tak Ota  <Takaaki.Ota@am.sony.com>
 
 	* dired.c (file_name_completion): Close directory on error
 	just as in directory_files_internal.
@@ -10184,8 +10184,8 @@
 
 2002-08-26  Kim F. Storm  <storm@cua.dk>
 
-	* frame.c (make_terminal_frame) [CANNOT_DUMP]: Initialize foreground
-	and background colors.  From Joe Buehler (tiny change).
+	* frame.c (make_terminal_frame) [CANNOT_DUMP]: Initialize
+	foreground and background colors.  From Joe Buehler.
 
 2002-08-26  Miles Bader  <miles@gnu.org>
 
