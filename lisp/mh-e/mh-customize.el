@@ -78,6 +78,13 @@
 (when mh-xemacs-flag
   (require 'mh-xemacs))
 
+;; XXX: Functions autoloaded from the following files are used to initialize
+;;  customizable variables. They are require'd here, since otherwise the
+;;  corresponding .elc would be loaded at compile time.
+(eval-when-compile
+  (require 'mh-init)
+  (require 'mh-identity))
+
 (defun mh-customize (&optional delete-other-windows-flag)
   "Customize MH-E variables.
 If optional argument DELETE-OTHER-WINDOWS-FLAG is non-nil, other windows in

@@ -363,7 +363,7 @@ if that value is non-nil."
     (when (stringp default)
       (if (string-match ":+" default)
           (substring default (match-end 0))
-          default))))
+	default))))
 
 ;; Used in old LispM code.
 (defalias 'common-lisp-mode 'lisp-mode)
@@ -459,21 +459,37 @@ alternative printed representations that can be displayed."
 If CHAR is not a character, return nil."
   (and (integerp char)
        (eventp char)
-       (let ((c (event-basic-type char)))
-	 (concat
-	  "?"
-	  (mapconcat
-	   (lambda (modif)
-	     (cond ((eq modif 'super) "\\s-")
-		   (t (string ?\\ (upcase (aref (symbol-name modif) 0)) ?-))))
-	   (event-modifiers char) "")
-	  (cond
-	   ((memq c '(?\; ?\( ?\) ?\{ ?\} ?\[ ?\] ?\" ?\' ?\\)) (string ?\\ c))
-	   ((eq c 127) "\\C-?")
-	   (t
-	    (condition-case nil
-		(string c)
-	      (error nil))))))))
+       (let ((c (event-basic-type char))
+	     (mods (event-modifiers char))
+	     string)
+	 ;; Prevent ?A from turning into ?\S-a.
+	 (if (and (memq 'shift mods)
+		  (zerop (logand char ?\S-\^@))
+		  (not (let ((case-fold-search nil))
+			 (char-equal c (upcase c)))))
+	     (setq c (upcase c) mods nil))
+	 ;; What string are we considering using?
+	 (condition-case nil
+	     (setq string
+		   (concat
+		    "?"
+		    (mapconcat
+		     (lambda (modif)
+		       (cond ((eq modif 'super) "\\s-")
+			     (t (string ?\\ (upcase (aref (symbol-name modif) 0)) ?-))))
+		     mods "")
+		    (cond
+		     ((memq c '(?\; ?\( ?\) ?\{ ?\} ?\[ ?\] ?\" ?\' ?\\)) (string ?\\ c))
+		     ((eq c 127) "\\C-?")
+		     (t
+		      (string c)))))
+	   (error nil))
+	 ;; Verify the string reads a CHAR, not to some other character.
+	 ;; If it doesn't, return nil instead.
+	 (and string
+	      (= (car (read-from-string string)) char)
+	      string))))
+	 
 
 (defun eval-last-sexp-1 (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in minibuffer.

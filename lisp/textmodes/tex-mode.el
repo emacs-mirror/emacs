@@ -1141,10 +1141,14 @@ on the line for the invalidity you want to see."
 					 'occur-target tem)))))
 	    (goto-char prev-end))))
       (with-current-buffer standard-output
-	(if (eq num-matches 0)
-	    (insert "None!\n"))
-	(if (interactive-p)
-	    (message "%d mismatches found" num-matches))))))
+	(let ((no-matches (zerop num-matches)))
+	  (if no-matches
+	      (insert "None!\n"))
+	  (if (interactive-p)
+	      (message (cond (no-matches "No mismatches found")
+			     ((= num-matches 1) "1 mismatch found")
+			     (t "%d mismatches found"))
+		       num-matches)))))))
 
 (defun tex-validate-region (start end)
   "Check for mismatched braces or $'s in region.
@@ -1459,7 +1463,7 @@ Mark is left at original location."
        nil)
     (let ((proc (get-process "tex-shell")))
       (set-process-sentinel proc 'tex-shell-sentinel)
-      (process-kill-without-query proc)
+      (set-process-query-on-exit-flag proc nil)
       (tex-shell)
       (while (zerop (buffer-size))
 	(sleep-for 1)))))
@@ -1928,7 +1932,7 @@ for the error messages."
 		(re-search-forward
 		 "^l\\.\\([0-9]+\\) \\(\\.\\.\\.\\)?\\(.*\\)$" nil 'move))
       (let* ((this-error (copy-marker begin-of-error))
-	     (linenum (string-to-int (match-string 1)))
+	     (linenum (string-to-number (match-string 1)))
 	     (error-text (regexp-quote (match-string 3)))
 	     (filename
 	      (save-excursion

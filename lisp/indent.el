@@ -442,8 +442,8 @@ This should be a list of integers, ordered from smallest to largest."
   "Keymap used in `edit-tab-stops'.")
 
 (defvar edit-tab-stops-buffer nil
-  "Buffer whose tab stops are being edited--in case
-the variable `tab-stop-list' is local in that buffer.")
+  "Buffer whose tab stops are being edited.
+This matters if the variable `tab-stop-list' is local in that buffer.")
 
 (defun edit-tab-stops ()
   "Edit the tab stops used by `tab-to-tab-stop'.

@@ -194,6 +194,11 @@ just put point at the end of the buffer and it stays there.  This
 rule applies to file buffers.  For non-file buffers, the behavior may
 be mode dependent.
 
+If you are sure that the file will only change by growing at the end,
+then you can tail the file more efficiently by using the new minor
+mode Auto Revert Tail mode.  The function `auto-revert-tail-mode'
+toggles this mode.
+
 ** Auto Revert mode is now more careful to avoid excessive reverts and
 other potential problems when deciding which non-file buffers to
 revert.  This matters especially if Global Auto Revert mode is enabled
@@ -660,7 +665,7 @@ You can now put the init files .emacs and .emacs_SHELL under
 
 ** MH-E changes.
 
-Upgraded to MH-E version 7.81. There have been major changes since
+Upgraded to MH-E version 7.82. There have been major changes since
 version 5.0.2; see MH-E-NEWS for details.
 
 +++

@@ -1,9 +1,76 @@
+2004-08-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* indent.texi: Various minor changes in addition to:
+	(Indentation Commands): Correct description of `indent-relative'.
+	(Tab Stops): <TAB> is no longer bound to `tab-to-tab-stop' in Text
+	mode.  The *Tab Stops* buffer uses Overwrite Mode.
+	(Just Spaces): `untabify' converts sequences of at least two
+	spaces to tabs.
+
+2004-08-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* faq.texi (Emacs for MS-DOS): Update URLs for the MS-DOS port of
+	Emacs and related programs.
+
+2004-08-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frames.texi (Secondary Selection): Setting the secondary
+	selection with M-Drag-Mouse-1 does not alter the kill ring,
+	setting it with M-Mouse-1 and M-Mouse-3 does.
+	(Mode Line Mouse): C-Mouse-2 on scroll bar now also works for
+	toolkit scroll bars.
+	(Scroll Bars): Ditto.
+
+	* windows.texi (Basic Window): When using a window system, the value
+	of point in a non-selected window is indicated by a hollow box.
+	(Split Window): Side by side windows are separated by a scroll bar,
+	if scroll bars are used.
+	C-Mouse-2 on scroll bar now also works for toolkit scroll bars.
+	(Change Window): Correct Mouse-2 vs Mouse-3 mess-up.
+	(Window Convenience): Update bindings for `winner-undo' and
+	`winner-redo'.
+
+	* ack.texi (Acknowledgments): Use `@unnumbered'.
+	* misc.texi : Adapt sectioning in Info to the node structure.
+	(Invoking emacsclient): Make "Invoking emacsclient" a subsection
+	of "Using Emacs as a Server".
+	* building.texi (Building): Interchange nodes (for correct numbering).
+	* programs.texi (Programs): Interchange nodes (for correct numbering).
+	* killing.texi, entering.texi, commands.texi: Adapt sectioning in
+	Info to the node structure.
+	* emacs.texi: Make "GNU GENERAL PUBLIC LICENSE" an appendix.
+	Rearrange order of nodes and sections such that both "GNU GENERAL
+	PUBLIC LICENSE" and "GNU Free Documentation License" appear at the
+	end, as appropriate for appendices.
+	(Acknowledgments): Put inside @iftex instead of @ifnotinfo.
+	Use `@unnumberedsec'.
+	* trouble.texi: Adapt sectioning in Info to the node structure.
+	Adapt node pointers to change in emacs.texi.
+	* cmdargs.texi, doclicense.texi: Adapt node pointers.
+
+2004-08-27  Richard M. Stallman  <rms@gnu.org>
+
+	* faq.texi: Fix texinfo usage, esp. doublequotes.
+	(Difference between Emacs and XEmacs): Some clarification.
+
+	* faq.texi (Difference between Emacs and XEmacs):
+	Explain not to contrast XEmacs with GNU Emacs.
+
+2004-08-26  Richard M. Stallman  <rms@gnu.org>
+
+	* faq.texi (Difference between Emacs and XEmacs): Rewrite.
+
+2004-08-25  Kenichi Handa  <handa@m17n.org>
+
+	* custom.texi (Non-ASCII Rebinding): Fix and simplify the
+	description for unibyte mode.
+
 2004-08-23  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* display.texi (Font Lock): Correct invalid @xref.
+	* display.texi (Font Lock): Correct invalid (for hardcopy) @xref.
 
-	* search.texi (Regexps): Correct cryptic @ref.
-	(Configuring Scrolling): Correct invalid @xref.
+	* search.texi (Regexps): Correct cryptic (in hardcopy) @ref.
+	(Configuring Scrolling): Correct invalid (for hardcopy) @xref.
 	(Regexp Replace): Standardize reference to hardcopy Elisp Manual
 	in @pxref.
 

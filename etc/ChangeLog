@@ -1,3 +1,7 @@
+2004-08-24  Bill Wohler  <wohler@newt.com>
+
+	* NEWS, MH-E-NEWS: Upgraded to MH-E version 7.82.
+
 2004-08-22  David Kastrup  <dak@gnu.org>
 
 	* PROBLEMS, MAILINGLISTS: Update AUCTeX information.

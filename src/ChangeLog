@@ -1,3 +1,48 @@
+2004-08-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* macmenu.c (_widget_value): Added lname and lkey.
+	(single_submenu): Set lname and lkey in widget_value
+	instead of name and key.
+	(update_submenu_strings): New function.
+	(set_frame_menubar): Remove call to inhibit_garbage_collection,
+	call update_submenu_strings.
+
+	* xmenu.c (digest_single_submenu): Set lname and lkey in widget_value
+	instead of name and key.
+	(update_submenu_strings): New function.
+	(set_frame_menubar): Remove call to inhibit_garbage_collection,
+	call update_submenu_strings.
+
+	* gtkutil.h (_widget_value): Added lname and lkey.
+
+2004-08-30  Steven Tamm  <steventamm@mac.com>
+
+	* macmenu.c (mac_menu_show): Remove shadowing of menu variable
+	by using different names for inner loop variables.
+
+2004-08-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (set_frame_menubar): Reintroduce inhibit_garbage_collection
+	from 1.233 so that strings from ENCODE_UTF_8 isn't GC:ed before used.
+
+	* gtkutil.c (xg_create_frame_widgets): Compensate for tool bar when
+	tool bar items is 0.
+
+2004-08-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macmenu.c (ENCODE_MENU_STRING): Added to handle multibyte
+	strings in menu items.
+	(single_submenu): Use ENCODE_MENU_STRING
+	(mac_menu_show): Use ENCODE_MENU_STRING.  Reset grabbed because
+	button release isn't passed to event loop
+	(add_menu_item): Use SetMenuItemWithCFString
+
+2004-08-26  Steven Tamm  <steventamm@mac.com>
+
+	* fileio.c (Fread_file_name): Call x_file_dialog on carbon on
+	tool-bar/menu click
+	* macfns.c (Fx_file_dialog): Implemented using NavServices
+
 2004-08-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_catch_errors_unwind): Do not XSync if display has closed.
