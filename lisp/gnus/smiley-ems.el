@@ -52,9 +52,9 @@ This is in addition to the normal image search path."
 ;; The XEmacs version has a baroque, if not rococo, set of these.
 (defcustom smiley-regexp-alist
   ;; Perhaps :-) should be distinct -- it does appear in the Jargon File.
-  '(("\\([:;]-?)\\)\\W" 1 "smile.pbm")
-    ("\\(:-[/\\]\\)\\W" 1 "wry.pbm")
-    ("\\(:-[({]\\)\\W" 1 "frown.pbm"))
+  '(("\\([:;]-?)\\)\\(\\W\\|\\'\\)" 1 "smile.pbm")
+    ("\\(:-[/\\]\\)\\(\\W\\|\\'\\)" 1 "wry.pbm")
+    ("\\(:-[({]\\)\\(\\W\\|\\'\\)" 1 "frown.pbm"))
   "*A list of regexps to map smilies to images.
 The elements are (REGEXP MATCH FILE), where MATCH is the submatch in
 rgexp to replace with IMAGE.  IMAGE is the name of a PBM file in
@@ -123,7 +123,8 @@ which smileys to operate on and which images to use for them."
 	      (overlay-put overlay 'smiley t)
 	      (overlay-put overlay
 			   'help-echo "mouse-2: toggle smilies in buffer")
-	      (overlay-put overlay 'keymap smiley-mouse-map))))))
+	      (overlay-put overlay 'keymap smiley-mouse-map)
+	      (goto-char (match-end group)))))))
         (setq smiley-active t)))
 
 (defun smiley-toggle-buffer (&optional arg)
