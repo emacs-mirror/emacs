@@ -470,7 +470,9 @@ overall glyph is updated as follows:
       (format "\240%c" (+ ch 128))
     (let ((str (string-as-unibyte (char-to-string ch))))
       (if (cmpcharp ch)
-	  (substring str (if (= (aref str 1) ?\xFF) 2 1))
+	  (if (= (aref str 1) ?\xFF)
+	      (error "Can't compose a rule-based composition character")
+	    (substring str (if (= (aref str 1) ?\xFF) 2 1)))
 	(aset str 0 (+ (aref str 0) ?\x20))
 	str))))
 
@@ -493,12 +495,17 @@ See the documentation of `reference-point-alist' for more detail."
     (let* ((with-rule (consp (car args)))
 	   (str (if with-rule (concat (vector leading-code-composition ?\xFF))
 		  (char-to-string leading-code-composition))))
+      (if (and with-rule
+	       (cmpcharp first-component))
+	  (error "Can't compose an already composed character"))
       (setq str (concat str (compose-chars-component first-component)))
       (while args
 	(if with-rule
 	    (progn
 	      (if (not (consp (car args)))
 		  (error "Invalid composition rule: %s" (car args)))
+	      (if (cmpcharp (car (cdr args)))
+		  (error "Can't compose an already composed character"))
 	      (setq str (concat str (compose-chars-rule (car args))
 				(compose-chars-component (car (cdr args))))
 		    args (cdr (cdr args))))
