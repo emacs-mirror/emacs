@@ -903,11 +903,11 @@ The returned value is a Quail map specific to KEY."
 	(while quail-translating
 	  (let* ((echo-keystrokes 0)
 		 (keyseq (read-key-sequence nil))
-		 (events (listify-key-sequence keyseq))
+		 (events (this-single-command-keys))
 		 (cmd (lookup-key translation-keymap keyseq)))
 	    (if (commandp cmd)
 		(progn
-		  (setq last-command-event (car (last events))
+		  (setq last-command-event (aref events (1- (length events)))
 			last-command this-command
 			this-command cmd)
 		  (condition-case err
@@ -915,7 +915,7 @@ The returned value is a Quail map specific to KEY."
 		    (quail-error (message "%s" (cdr err)) (beep))))
 	      ;; KEYSEQ is not defined in the translation keymap.
 	      ;; Let's return the event(s) to the caller.
-	      (setq generated-events events
+	      (setq generated-events (string-to-list events)
 		    quail-translating nil))))
 	(if (overlay-start quail-overlay)
 	    (setq generated-events
@@ -951,11 +951,11 @@ The returned value is a Quail map specific to KEY."
 		(quail-setup-overlays nil)))
 	  (let* ((echo-keystrokes 0)
 		 (keyseq (read-key-sequence nil))
-		 (events (listify-key-sequence keyseq))
+		 (events (this-single-command-keys))
 		 (cmd (lookup-key conversion-keymap keyseq)))
 	    (if (commandp cmd)
 		(progn
-		  (setq last-command-event (car (last events))
+		  (setq last-command-event (aref events (1- (length events)))
 			last-command this-command
 			this-command cmd)
 		  (condition-case err
@@ -963,7 +963,7 @@ The returned value is a Quail map specific to KEY."
 		    (quail-error (message "%s" (cdr err)) (beep))))
 	      ;; KEYSEQ is not defined in the conversion keymap.
 	      ;; Let's return the event(s) to the caller.
-	      (setq generated-events events
+	      (setq generated-events (string-to-list events)
 		    quail-converting nil))))
 	(if (overlay-start quail-conv-overlay)
 	    (setq generated-events
