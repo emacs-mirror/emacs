@@ -86,7 +86,7 @@ otherwise)."
 
 (defface show-paren-mismatch-face
   '((((class color)) (:foreground "white" :background "purple"))
-    (t (:reverse-video t)))
+    (t (:inverse-video t)))
   "Show Paren mode face used for a mismatching paren."
   :group 'faces
   :group 'paren-showing)
