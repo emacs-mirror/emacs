@@ -147,6 +147,10 @@
 	(custom-variable-reset-standard, custom-face-set)
 	(custom-face-save): Use it.
 
+1999-09-27  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* faces.el (region): Doc fix.
+
 1999-09-27  Dave Love  <fx@gnu.org>
 
 	* isearch.el (isearch): Add :links in defgroup.
