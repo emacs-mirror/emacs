@@ -1,3 +1,10 @@
+2004-05-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (find-file-noselect-1): Limit the scope of the
+	`inhibit-read-only' binding.  Make sure that `inhibit-read-only'
+	is, by default, nil during the execution of
+	`find-file-not-found-functions' and `find-file-hook'.
+
 2004-05-20  Michael Mauger  <mmaug@yahoo.com>
 
 	* facemenu.el (facemenu-color-name-equal): New function.
