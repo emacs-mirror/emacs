@@ -24,6 +24,14 @@ Boston, MA 02111-1307, USA.  */
 
 #include <config.h>
 #include <stdio.h>      /* termhooks.h needs this */
+
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #include "lisp.h"
 #include "xterm.h"	/* for all of the X includes */
 #include "dispextern.h"	/* frame.h seems to want this */
@@ -174,7 +182,8 @@ static Lisp_Object x_get_window_property_as_lisp_data ();
 
 
 
-/* Define a queue to save up SelectionRequest events for later handling.  */
+/* Define a queue to save up SELECTION_REQUEST_EVENT events for later
+   handling.  */
 
 struct selection_event_queue
   {
@@ -184,11 +193,11 @@ struct selection_event_queue
 
 static struct selection_event_queue *selection_queue;
 
-/* Nonzero means queue up certain events--don't process them yet.  */
+/* Nonzero means queue up SELECTION_REQUEST_EVENT events.  */
 
 static int x_queue_selection_requests;
 
-/* Queue up an X event *EVENT, to be processed later.  */
+/* Queue up an SELECTION_REQUEST_EVENT *EVENT, to be processed later.  */
 
 static void
 x_queue_event (event)
@@ -196,12 +205,14 @@ x_queue_event (event)
 {
   struct selection_event_queue *queue_tmp;
 
-  /* Don't queue repeated requests */
+  /* Don't queue repeated requests.
+     This only happens for large requests which uses the incremental protocol.  */
   for (queue_tmp = selection_queue; queue_tmp; queue_tmp = queue_tmp->next)
     {
       if (!bcmp (&queue_tmp->event, event, sizeof (*event)))
 	{
-	  TRACE1 ("IGNORE DUP SELECTION EVENT %08x", (unsigned long)queue_tmp);
+	  TRACE1 ("DECLINE DUP SELECTION EVENT %08lx", (unsigned long)queue_tmp);
+	  x_decline_selection_request (event);
 	  return;
 	}
     }
@@ -211,14 +222,14 @@ x_queue_event (event)
 
   if (queue_tmp != NULL)
     {
-      TRACE1 ("QUEUE SELECTION EVENT %08x", (unsigned long)queue_tmp);
+      TRACE1 ("QUEUE SELECTION EVENT %08lx", (unsigned long)queue_tmp);
       queue_tmp->event = *event;
       queue_tmp->next = selection_queue;
       selection_queue = queue_tmp;
     }
 }
 
-/* Start queuing SelectionRequest events.  */
+/* Start queuing SELECTION_REQUEST_EVENT events.  */
 
 static void
 x_start_queuing_selection_requests ()
@@ -230,7 +241,7 @@ x_start_queuing_selection_requests ()
   TRACE1 ("x_start_queuing_selection_requests %d", x_queue_selection_requests);
 }
 
-/* Stop queuing SelectionRequest events.  */
+/* Stop queuing SELECTION_REQUEST_EVENT events.  */
 
 static void
 x_stop_queuing_selection_requests ()
@@ -244,7 +255,7 @@ x_stop_queuing_selection_requests ()
   while (selection_queue != NULL)
     {
       struct selection_event_queue *queue_tmp = selection_queue;
-      TRACE1 ("RESTORE SELECTION EVENT %08x", (unsigned long)queue_tmp);
+      TRACE1 ("RESTORE SELECTION EVENT %08lx", (unsigned long)queue_tmp);
       kbd_buffer_unget_event (&queue_tmp->event);
       selection_queue = queue_tmp->next;
       xfree ((char *)queue_tmp);
@@ -869,7 +880,9 @@ x_handle_selection_request (event)
   struct x_display_info *dpyinfo
     = x_display_info_for_display (SELECTION_EVENT_DISPLAY (event));
 
-  TRACE0 ("x_handle_selection_request");
+  TRACE2 ("x_handle_selection_request, from=0x%08lx time=%lu",
+	  (unsigned long) SELECTION_EVENT_REQUESTOR (event),
+	  (unsigned long) SELECTION_EVENT_TIME (event));
 
   local_selection_data = Qnil;
   target_symbol = Qnil;
