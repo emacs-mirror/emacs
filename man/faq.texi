@@ -3626,17 +3626,17 @@ Windows (3.X, 9X, ME, NT, and 2000) and supports long file names under
 Windows 9X, Windows ME, and Windows 2000.  More information is available
 from
 
-@uref{http://www.simtel.net/pub/djgpp/v2gnu/emacs.README}
+@uref{ftp://ftp.delorie.com/pub/djgpp/current/v2gnu/emacs.README}
 
 The binary itself is available in the files @file{em*.zip} in the
 directory
 
-@uref{http://www.simtel.net/pub/djgpp/v2gnu/}
+@uref{ftp://ftp.delorie.com/pub/djgpp/current/v2gnu/}
 
 If you prefer to compile Emacs for yourself, you can do so with the
 current distribution directly.  You will need a 386 (or
 better) processor, and to be running MS-DOS 3.0 or later.  According to
-@email{eliz@@is.elta.co.il, Eli Zaretskii} and
+@email{eliz@@gnu.org, Eli Zaretskii} and
 @email{hankedr@@dms.auburn.edu, Darrel Hankerson}, you will need the
 following:
 
@@ -3650,7 +3650,7 @@ long file names on Windows 9X/ME/2K.
 You can get the latest release of DJGPP by retrieving all of
 the files in
 
-@uref{http://www.simtel.net/pub/gnu/djgpp/v2*}
+@uref{ftp://ftp.delorie.com/pub/djgpp/current/v2*}
 
 @item Unpacking program
 The easiest way is to use @code{djtar} which comes with DJGPP v2.x,
@@ -3669,7 +3669,7 @@ actually prevent Emacs from building successfully!
 @item make, mv, sed, and rm
 All of these utilities are available at
 
-@uref{http://www.simtel.net/pub/gnu/djgpp/v2gnu}
+@uref{ftp://ftp.delorie.com/pub/djgpp/current/v2gnu}
 
 16-bit utilities can be found in GNUish, at
 
