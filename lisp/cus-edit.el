@@ -1295,7 +1295,16 @@ Un-customize all values in this buffer.  They get their standard settings."
   (widget-insert "   ")
   (widget-create 'push-button
 		 :tag "Finish"
-		 :help-echo "Bury or kill the buffer."
+		 :help-echo
+		 (lambda (&rest ignore)
+		   (concat (cond
+			    ((eq custom-buffer-done-function
+				 'custom-bury-buffer)
+			     "Bury")
+			    ((eq custom-buffer-done-function 'kill-buffer)
+			     "Kill")
+			    (t "Finish with"))		    
+			   " the buffer."))
 		 :action #'Custom-buffer-done)
   (widget-insert "\n\n")
   (message "Creating customization items...")
