@@ -402,7 +402,7 @@
 ;; Note that jisx0213 contains characters not in Unicode (3.2?).  It's
 ;; arguable whether it should have a unify-map.
 (define-charset 'japanese-jisx0213-1
-  "JISX0213 Plane 1 (Japanese)"
+  "JISX0213.2000 Plane 1 (Japanese)"
   :short-name "JISX0213-1"
   :iso-final-char ?O
   :emacs-mule-id  151
@@ -411,13 +411,27 @@
   :code-offset #x14C000)
 
 (define-charset 'japanese-jisx0213-2
-  "JISX0213 Plane 2 (Japanese)"
+  "JISX0213.2000 Plane 2 (Japanese)"
   :short-name "JISX0213-2"
   :iso-final-char ?P
   :emacs-mule-id 254
   :unify-map "JISX2132"
   :code-space [33 126 33 126]
   :code-offset #x150000)
+
+(define-charset 'japanese-jisx0213-a
+  "JISX0213.2004 adds these characters to JISX0213.2000."
+  :short-name "JISX0213A"
+  :dimension 2
+  :code-space [33 126 33 126]
+  :supplementary-p t
+  :map "JISX213A")
+
+(define-charset 'japanese-jisx0213.2004-1
+  "JISX0213.2004 Plane1 (Japanese)"
+  :short-name "JISX0213.2004-1"
+  :iso-final-char ?Q
+  :superset '(japanese-jisx0213-a japanese-jisx0213-1))
 
 (define-charset 'katakana-sjis
   "Katakana part of Shift-JIS"
