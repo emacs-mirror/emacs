@@ -1,3 +1,14 @@
+2000-08-28  Peter Breton  <pbreton@ne.mediaone.net>
+
+	* filecache.el (file-cache-case-fold-search): New variable 
+	(file-cache-assoc-function): New variable
+	(file-cache-minibuffer-complete): Use file-cache-assoc-function.
+	Use file-cache-case-fold-search variable
+	(file-cache-add-file): Use file-cache-assoc-function
+	(file-cache-delete-file): likewise
+	(file-cache-directory-name): likewise
+	(file-cache-debug-read-from-minibuffer): likewise
+
 2000-08-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* abbrev.el (list-abbrevs): Add optional parameter LOCAL.
