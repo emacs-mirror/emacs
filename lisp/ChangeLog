@@ -1,3 +1,14 @@
+2000-10-02  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-registered): If FILE used to be registered under
+	a certain backend, try that one first.
+
+	* vc.el (vc-responsible-backend): Undo the previous change in the 
+	argument list.  Handle multiple backends correctly.
+	(vc-find-new-backend): Function removed.
+	(vc-register): Use vc-responsible-backend, as before.
+	(vc-next-action-on-file): Do use vc-registered, not vc-backend.
+
 2000-10-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (fancy-splash-head): Change message below the
