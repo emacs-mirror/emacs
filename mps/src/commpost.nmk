@@ -1,6 +1,6 @@
 # ==== SECOND COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpost.nmk(trunk.6) $
+# $HopeName: MMsrc!commpost.nmk(trunk.7) $
 # Copyright(C) 1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -13,7 +13,7 @@
 # "all" builds all the varieties of all targets
 # %%TARGET: Add the target  to the all dependencies
 
-all: mpmss.exe amcss.exe dwstress.exe lockutw3.exe lockcov.exe \
+all: mpmss.exe amcss.exe lockutw3.exe lockcov.exe \
      mpsicv.exe poolncv.exe locv.exe qs.exe mpm.lib weakcv.exe \
      mpmconft.exe finalcv.exe awlut.exe
 
