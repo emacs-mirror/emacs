@@ -836,6 +836,119 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 If this is nil, no message will be displayed."
   :type 'string)
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Fancy splash screen
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defvar fancy-splash-text
+  '((:face 'variable-pitch
+	   "The menu bar and scroll bar are sufficient \
+for basic editing with the mouse.\n\n"
+	   :face '(variable-pitch :weight bold)
+	   "Useful Files menu items:\n"
+	   :face 'variable-pitch "\
+Exit Emacs		(or type Control-x followed by Control-c)
+Recover Session		recover files you were editing before a crash
+
+
+"
+	   )
+  (:face 'variable-pitch
+	   "The menu bar and scroll bar are sufficient \
+for basic editing with the mouse.\n\n"
+	   :face '(variable-pitch :weight bold)
+	   "Important Help menu items:\n"
+	   :face 'variable-pitch "\
+Emacs Tutorial		Learn-by-doing tutorial for using Emacs efficiently.
+Emacs FAQ		Frequently asked questions and answers
+\(Non)Warranty		GNU Emacs comes with "
+	   :face '(variable-pitch :slant oblique)
+	   "ABSOLUTELY NO WARRANTY\n"
+	   :face `variable-pitch
+	   "Copying Conditions	Conditions for redistributing and \
+changing Emacs\n"))
+  "A list of texts to show in the middle part of splash screens.
+Each element in the list should be a list of strings or pairs
+`:face FACE', like `fancy-splash-insert' accepts them.")
+
+
+(defcustom fancy-splash-delay 5
+  "Delay in seconds between splash screens."
+  :group 'splash-screen
+  :type 'integer)
+
+
+(defcustom fancy-splash-image "splash.xpm"
+  "The image to show in the splash screens."
+  :group 'splash-screen
+  :type 'file)
+
+
+(defun fancy-splash-insert (&rest args)
+  "Insert text into the current buffer, with faces.
+Arguments from ARGS should be either strings or pairs `:face FACE',
+where FACE is a valid face specification, as it can be used with
+`put-text-properties'."
+  (let ((current-face nil))
+    (while args
+      (if (eq (car args) :face)
+	  (setq args (cdr args) current-face (car args))
+	(insert (propertize (car args) 'face current-face)))
+      (setq args (cdr args)))))
+
+
+(defun fancy-splash-head ()
+  "Insert the head part of the splash screen into the current buffer."
+  (let* ((img (create-image fancy-splash-image))
+	 (image-width (and img (car (image-size img))))
+	 (window-width (window-width (selected-window))))
+    (when img
+      (when (> window-width image-width)
+	(let ((pos (/ (- window-width image-width) 2)))
+	  (insert (propertize " " 'display `(space :align-to ,pos))))
+	(insert-image img)
+	(insert "\n"))))
+  (when (eq system-type 'gnu/linux)
+    (fancy-splash-insert
+     :face '(variable-pitch :foreground "red")
+     "GNU Emacs is one component of a Linux-based GNU system."))
+  (insert "\n"))
+
+
+(defun fancy-splash-tail ()
+  "Insert the tail part of the splash screen into the current buffer."
+  (fancy-splash-insert
+   :face '(variable-pitch :foreground "darkblue")
+   "\nThis is "
+   (emacs-version)
+   "\n"
+   :face '(variable-pitch :height 0.5)
+   "Copyright (C) 2000 Free Software Foundation, Inc."))
+
+
+(defun fancy-splash-screens ()
+  (let* ((old-cursor-type cursor-type)
+	 stop)
+    (unwind-protect
+	(progn
+	  (setq cursor-type nil)
+	  (while (not stop)
+	    (let ((texts fancy-splash-text))
+	      (while (and texts (not stop))
+		(erase-buffer)
+		(fancy-splash-head)
+		(apply #'fancy-splash-insert (car texts))
+		(fancy-splash-tail)
+		(goto-char (point-min))
+		(set-buffer-modified-p nil)
+		(force-mode-line-update)
+		(setq texts (cdr texts))
+		(setq stop (not (sit-for fancy-splash-delay)))))))
+      (setq cursor-type old-cursor-type))
+    (erase-buffer)))
+
+
 (defun command-line-1 (command-line-args-left)
   (or noninteractive (input-pending-p) init-file-had-error
       (and inhibit-startup-echo-area-message
@@ -910,8 +1023,11 @@ If this is nil, no message will be displayed."
 			   (insert ", one component of a Linux-based GNU system."))
 		       (insert "\n")
 		       (if (assq 'display (frame-parameters))
-			   (progn
-			     (insert "\
+			   (if (and (display-color-p)
+				    (image-type-available-p 'xpm))
+			       (fancy-splash-screens)
+			     (progn
+			       (insert "\
 The menu bar and scroll bar are sufficient for basic editing with the mouse.
 
 Useful Files menu items:
@@ -925,9 +1041,9 @@ Emacs FAQ		Frequently asked questions and answers
 Copying Conditions	Conditions for redistributing and changing Emacs.
 Getting New Versions	How to obtain the latest version of Emacs.
 ")
-			     (insert "\n\n" (emacs-version)
+			       (insert "\n\n" (emacs-version)
 				     "
-Copyright (C) 2000 Free Software Foundation, Inc."))
+Copyright (C) 2000 Free Software Foundation, Inc.")))
 			 ;; If keys have their default meanings,
 			 ;; use precomputed string to save lots of time.
 			 (if (and (eq (key-binding "\C-h") 'help-command)
