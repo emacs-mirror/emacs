@@ -28,6 +28,16 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <X/Xlib.h>
 #endif /* HAVE_X11 */
 
+#ifdef USE_X_TOOLKIT
+#include <X11/StringDefs.h>
+#include <X11/IntrinsicP.h>	/* CoreP.h needs this */
+#include <X11/CoreP.h>		/* foul, but we need this to use our own
+				   window inside a widget instead of one 
+				   that Xt creates... */
+#include <X11/StringDefs.h>
+#include <X11/Xaw/Box.h>
+#endif
+
 /* Define a queue for X-events.  One such queue is used for mouse clicks.
    Another is used for expose events.  */
 
@@ -182,6 +192,10 @@ extern Display *x_current_display;
 
 extern struct frame *x_window_to_frame ();
 
+#ifdef USE_X_TOOLKIT
+extern struct frame *x_any_window_to_frame ();
+#endif
+
 /* The frame (if any) which has the X window that has keyboard focus.
    Zero if none.  This is examined by Ffocus_frame in xfns.c */
 
@@ -272,6 +286,18 @@ struct x_display
   /* The X window that is the parent of this X window.
      Usually but not always RootWindow.  */
   Window parent_desc;
+
+#ifdef USE_X_TOOLKIT
+  /* The widget of this screen.  This is the window of a "shell" widget.  */
+  Widget widget;
+  /* The XmPanedWindows...  */
+  Widget column_widget;
+  /* The widget of the edit portion of this screen; the window in
+     "window_desc" is inside of this.  */
+  Widget edit_widget;
+
+  Widget menubar_widget;
+#endif
 
   /* 1 for bitmap icon, 0 for text icon.  */
   int icon_bitmap_flag;
