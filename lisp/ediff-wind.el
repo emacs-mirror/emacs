@@ -905,7 +905,7 @@ into icons, regardless of the window manager."
 			(make-frame ediff-control-frame-parameters))
 	    ediff-control-frame ctl-frame)
       ;; protect against undefined face-attribute
-      (condition-case nill
+      (condition-case nil
 	  (when (and ediff-emacs-p (face-attribute 'mode-line :box))
 	    (set-face-attribute 'mode-line ctl-frame :box nil))
 	(error))

@@ -1256,11 +1256,15 @@ arguments to `skip-chars-forward'."
 
 
 (defun ediff-wordify (beg end in-buffer out-buffer &optional control-buf)
-  (let (inbuf-syntax-tbl sv-point string)
+  (let (inbuf-syntax-tbl sv-point diff-string)
     (save-excursion
      (set-buffer in-buffer)
-     (setq inbuf-syntax-tbl (syntax-table))
-     (setq string (buffer-substring-no-properties beg end))
+     (setq inbuf-syntax-tbl
+	   (if control-buf
+	       (ediff-with-current-buffer control-buf
+		 ediff-syntax-table)
+	     (syntax-table)))
+     (setq diff-string (buffer-substring-no-properties beg end))
 
      (set-buffer out-buffer)
      ;; Make sure that temp buff syntax table is the same a the original buf
@@ -1268,18 +1272,18 @@ arguments to `skip-chars-forward'."
      ;; ediff-forward-word depends on the syntax classes of characters.
      (set-syntax-table inbuf-syntax-tbl)
      (erase-buffer)
-     (insert string)
+     (insert diff-string)
      (goto-char (point-min))
      (skip-chars-forward ediff-whitespace)
      (delete-region (point-min) (point))
      
      (while (not (eobp))
-       ;; eval incontrol buf to let user create local versions for
+       ;; eval in control buf to let user create local versions for
        ;; different invocations
        (if control-buf
 	   (funcall 
-	    (ediff-with-current-buffer 
-		control-buf ediff-forward-word-function))
+	    (ediff-with-current-buffer control-buf
+	      ediff-forward-word-function))
 	 (funcall ediff-forward-word-function))
        (setq sv-point (point))
        (skip-chars-forward ediff-whitespace)
@@ -1300,16 +1304,17 @@ arguments to `skip-chars-forward'."
 
 
 ;; goto word #n starting at current position in buffer `buf'
-;; For ediff, a word is either a string of a-z,A-Z, incl `-' and `_';
-;; or a string of other non-blanks. A blank is a \n\t\f
+;; For ediff, a word is determined by ediff-forward-word-function
 ;; If `flag' is non-nil, goto the end of the n-th word.
 (defun ediff-goto-word (n buf &optional flag)
   ;; remember val ediff-forward-word-function has in ctl buf
-  (let ((fwd-word-fun ediff-forward-word-function))
+  (let ((fwd-word-fun ediff-forward-word-function)
+	(syntax-tbl ediff-syntax-table))
     (ediff-with-current-buffer buf
       (skip-chars-forward ediff-whitespace)
       (while (> n 1)
-	(funcall fwd-word-fun)
+	(ediff-with-syntax-table syntax-tbl
+	    (funcall fwd-word-fun))
 	(skip-chars-forward ediff-whitespace)
 	(setq n (1- n)))
       (if (and flag (> n 0))

@@ -1,3 +1,7 @@
+2001-03-17  Michael Kifer  <kifer@cs.sunysb.edu>
+	
+	* viper.texi: Added credits.
+
 2001-03-13  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* programs.texi: Update hideshow key bindings.

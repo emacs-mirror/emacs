@@ -334,7 +334,6 @@
 (defun viper-append-filter-alist (lis1 lis2)
   (let ((temp lis1)
 	elt)
-  
     ;;filter-append the second list
     (while temp
       ;; delete all occurrences
@@ -343,6 +342,7 @@
       (setq temp (cdr temp)))
     
     (nconc lis1 lis2)))
+
 
 
 ;;; Support for :e, :r, :w file globbing

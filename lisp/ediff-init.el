@@ -519,6 +519,11 @@ See the documentation string of `ediff-focus-on-regexp-matches' for details.")
 ;; where some buffer-objects may be missing.
 (ediff-defvar-local ediff-killed-diffs-alist nil "")
 
+;; Syntax table to use in ediff-forward-word-function
+;; This is chosen by a heuristic. The important thing is for all buffers to
+;; have the same syntax table. Which is not too important.
+(ediff-defvar-local ediff-syntax-table nil "")
+
 
 ;; Highlighting
 (defcustom ediff-before-flag-bol (if ediff-xemacs-p (make-glyph "->>") "->>")
@@ -1747,6 +1752,24 @@ Unless optional argument INPLACE is non-nil, return a new string."
   (if (fboundp 'convert-standard-filename)
       (convert-standard-filename fname)
     fname))
+
+
+(if (fboundp 'with-syntax-table)
+    (fset 'ediff-with-syntax-table 'with-syntax-table)
+  ;; stolen from subr.el in emacs 21
+  (defmacro ediff-with-syntax-table (table &rest body)
+    (let ((old-table (make-symbol "table"))
+	  (old-buffer (make-symbol "buffer")))
+      `(let ((,old-table (syntax-table))
+	     (,old-buffer (current-buffer)))
+	 (unwind-protect
+	     (progn
+	       (set-syntax-table (copy-syntax-table ,table))
+	       ,@body)
+	   (save-current-buffer
+	     (set-buffer ,old-buffer)
+	     (set-syntax-table ,old-table)))))))
+
 
 
 ;;; Local Variables:

@@ -1,13 +1,13 @@
 ;;; ediff.el --- a comprehensive visual interface to diff & patch
 
-;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 ;; Created: February 2, 1994
 ;; Keywords: comparing, merging, patching, tools, unix
 
 (defconst ediff-version "2.75" "The current version of Ediff")
-(defconst ediff-date "January 19, 2001" "Date of last update")  
+(defconst ediff-date "March 5, 2001" "Date of last update")  
 
 
 ;; This file is part of GNU Emacs.

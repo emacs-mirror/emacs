@@ -1,3 +1,28 @@
+2001-03-17  Michael Kifer  <kifer@cs.sunysb.edu>
+	
+	* ediff-util.el: Copyright years.
+	(ediff-choose-syntax-table): New function.
+	(ediff-setup): Use ediff-choose-syntax-table.
+	
+	* ediff-init.el (ediff-with-syntax-table): New macro, uses
+	with-syntax-table.
+	
+	* ediff.el: Date of last update, copyright years.
+	
+	* ediff-wind (ediff-setup-control-frame): Nill->nil.
+	
+	* viper-ex.el (ex-token-list,ex-cmd-execute): Revamped, courtesy
+	of Scott Bronson.
+	(ex-cmd-assoc,ex-cmd-one-letr): New functions.
+	(viper-check-sub,viper-get-ex-command,viper-execute-ex-command):
+	Deleted functions.
+	(viper-get-ex-com-subr,viper-ex,ex-mark): Changed to use the new
+	ex-token-list.
+	
+	* viper-util.el: Spaces, indentation.
+	
+	* viper.el: Changed version, modification time.
+	
 2001-03-16  John Wiegley  <johnw@gnu.org>
 	
 	* (timeclock-workday-remaining): Check whether `discrep' is

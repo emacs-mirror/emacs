@@ -6,9 +6,9 @@
 ;;  Keywords: emulations
 ;;  Author: Michael Kifer <kifer@cs.sunysb.edu>
 
-;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01 Free Software Foundation, Inc.
 
-(defconst viper-version "3.09 of January 19, 2001"
+(defconst viper-version "3.10 of March 3, 2001"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
@@ -402,7 +402,8 @@ widget."
     completion-list-mode
     diff-mode
     
-    perl-mode cperl-mode
+    perl-mode
+    cperl-mode
     javascript-mode
     tcl-mode
     python-mode

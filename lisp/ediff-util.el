@@ -1,6 +1,6 @@
 ;;; ediff-util.el --- the core commands and utilities of ediff
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 
@@ -354,6 +354,8 @@ to invocation.")
 	    ediff-buffer-B buffer-B
 	    ediff-buffer-C buffer-C
 	    ediff-control-buffer control-buffer)
+
+      (ediff-choose-syntax-table)
 	   
       (setq ediff-control-buffer-suffix
 	    (if (string-match "<[0-9]*>" control-buffer-name)
@@ -3692,7 +3694,26 @@ Mail anyway? (y or n) ")
 	  (ediff-with-current-buffer ctl-buf
 	    (ediff-recenter 'no-rehighlight))))
     ))
-			     
+
+
+;; Find an appropriate syntax table for everyone to use
+;; If buffer B is not fundamental or text mode, use its syntax table
+;; Otherwise, use buffer B's.
+;; The syntax mode is used in ediff-forward-word-function
+;; The important thing is that every buffer should use the same syntax table
+;; during the refinement operation
+(defun ediff-choose-syntax-table ()
+  (setq ediff-syntax-table
+	(ediff-with-current-buffer ediff-buffer-A
+	  (if (not (memq major-mode 
+			 '(fundamental-mode text-mode indented-text-mode)))
+	      (syntax-table))))
+  (if (not ediff-syntax-table)
+      (setq ediff-syntax-table 
+	    (ediff-with-current-buffer ediff-buffer-B
+	      (syntax-table))))
+  )
+
        
 (defun ediff-deactivate-mark ()
   (if ediff-xemacs-p
