@@ -25,7 +25,6 @@
    - replace succeed_n + jump_n with a combined operation so that the counter
      can simply be decremented when popping the failure_point without having
      to stack up failure_count entries.
-   - get rid of `newline_anchor'.
  */
 
 /* AIX requires this to be the first thing in the file. */
@@ -45,6 +44,38 @@
 #else
 /* We need this for `regex.h', and perhaps for the Emacs include files.  */
 # include <sys/types.h>
+#endif
+
+#ifdef _LIBC
+/* We have to keep the namespace clean.  */
+# define regfree(preg) __regfree (preg)
+# define regexec(pr, st, nm, pm, ef) __regexec (pr, st, nm, pm, ef)
+# define regcomp(preg, pattern, cflags) __regcomp (preg, pattern, cflags)
+# define regerror(errcode, preg, errbuf, errbuf_size) \
+	__regerror(errcode, preg, errbuf, errbuf_size)
+# define re_set_registers(bu, re, nu, st, en) \
+	__re_set_registers (bu, re, nu, st, en)
+# define re_match_2(bufp, string1, size1, string2, size2, pos, regs, stop) \
+	__re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
+# define re_match(bufp, string, size, pos, regs) \
+	__re_match (bufp, string, size, pos, regs)
+# define re_search(bufp, string, size, startpos, range, regs) \
+	__re_search (bufp, string, size, startpos, range, regs)
+# define re_compile_pattern(pattern, length, bufp) \
+	__re_compile_pattern (pattern, length, bufp)
+# define re_set_syntax(syntax) __re_set_syntax (syntax)
+# define re_search_2(bufp, st1, s1, st2, s2, startpos, range, regs, stop) \
+	__re_search_2 (bufp, st1, s1, st2, s2, startpos, range, regs, stop)
+# define re_compile_fastmap(bufp) __re_compile_fastmap (bufp)
+
+# define WEAK_ALIAS(a,b) weak_alias (a, b)
+
+/* We are also using some library internals.  */
+# include <locale/localeinfo.h>
+# include <locale/elem-hash.h>
+# include <langinfo.h>
+#else
+# define WEAK_ALIAS(a,b)
 #endif
 
 /* This is for other GNU distributions with internationalized messages.  */
@@ -1108,7 +1139,6 @@ print_compiled_pattern (bufp)
   printf ("re_nsub: %d\t", bufp->re_nsub);
   printf ("regs_alloc: %d\t", bufp->regs_allocated);
   printf ("can_be_null: %d\t", bufp->can_be_null);
-  printf ("newline_anchor: %d\n", bufp->newline_anchor);
   printf ("no_sub: %d\t", bufp->no_sub);
   printf ("not_bol: %d\t", bufp->not_bol);
   printf ("not_eol: %d\t", bufp->not_eol);
@@ -1184,6 +1214,7 @@ re_set_syntax (syntax)
   re_syntax_options = syntax;
   return ret;
 }
+WEAK_ALIAS (__re_set_syntax, re_set_syntax)
 
 /* This table gives an error message for each of the error codes listed
    in regex.h.  Obviously the order here has to be same as there.
@@ -1264,21 +1295,22 @@ static const char *re_error_msgid[] =
 /* Roughly the maximum number of failure points on the stack.  Would be
    exactly that if always used TYPICAL_FAILURE_SIZE items each time we failed.
    This is a variable only so users of regex can assign to it; we never
-   change it ourselves.	 */
-#if defined MATCH_MAY_ALLOCATE
-/* Note that 4400 is enough to cause a crash on Alpha OSF/1,
+   change it ourselves.  */
+# if defined MATCH_MAY_ALLOCATE
+/* Note that 4400 was enough to cause a crash on Alpha OSF/1,
    whose default stack limit is 2mb.  In order for a larger
    value to work reliably, you have to try to make it accord
    with the process stack limit.  */
-int re_max_failures = 40000;
-#else
-int re_max_failures = 4000;
-#endif
+size_t re_max_failures = 40000;
+# else
+size_t re_max_failures = 4000;
+# endif
 
 union fail_stack_elt
 {
-   const unsigned char *pointer;
-  unsigned int integer;
+  const unsigned char *pointer;
+  /* This should be the biggest `int' that's no bigger than a pointer.  */
+  long integer;
 };
 
 typedef union fail_stack_elt fail_stack_elt_t;
@@ -1286,9 +1318,9 @@ typedef union fail_stack_elt fail_stack_elt_t;
 typedef struct
 {
   fail_stack_elt_t *stack;
-  unsigned size;
-  unsigned avail;		/* Offset of next open position.  */
-  unsigned frame;		/* Offset of the cur constructed frame.  */
+  size_t size;
+  size_t avail;	/* Offset of next open position.  */
+  size_t frame;	/* Offset of the cur constructed frame.  */
 } fail_stack_type;
 
 #define PATTERN_STACK_EMPTY()     (fail_stack.avail == 0)
@@ -1963,8 +1995,7 @@ static boolean group_in_compile_stack _RE_ARGS ((compile_stack_type
      `re_nsub' is the number of subexpressions in PATTERN;
      `not_bol' and `not_eol' are zero;
 
-   The `fastmap' and `newline_anchor' fields are neither
-   examined nor set.  */
+   The `fastmap' field is neither examined nor set.  */
 
 /* Insert the `jump' from the end of last alternative to "here".
    The space for the jump has already been allocated. */
@@ -2126,7 +2157,7 @@ regex_compile (pattern, size, syntax, bufp)
 		|| syntax & RE_CONTEXT_INDEP_ANCHORS
 		   /* Otherwise, depends on what's come before.	 */
 		|| at_begline_loc_p (pattern, p, syntax))
-	      BUF_PUSH (begline);
+	      BUF_PUSH ((syntax & RE_NO_NEWLINE_ANCHOR) ? begbuf : begline);
 	    else
 	      goto normal_char;
 	  }
@@ -2141,7 +2172,7 @@ regex_compile (pattern, size, syntax, bufp)
 		|| syntax & RE_CONTEXT_INDEP_ANCHORS
 		   /* Otherwise, depends on what's next.  */
 		|| at_endline_loc_p (p, pend, syntax))
-	       BUF_PUSH (endline);
+	       BUF_PUSH ((syntax & RE_NO_NEWLINE_ANCHOR) ? endbuf : endline);
 	     else
 	       goto normal_char;
 	   }
@@ -3399,7 +3430,6 @@ analyse_first (p, pend, fastmap, multibyte)
      so that `p' is monotonically increasing.  More to the point, we
      never set `p' (or push) anything `<= p1'.  */
 
-  /* If can_be_null is set, then the fastmap will not be used anyway.  */
   while (1)
     {
       /* `p1' is used as a marker of how far back a `on_failure_jump'
@@ -3689,9 +3719,9 @@ re_compile_fastmap (bufp)
 
   analysis = analyse_first (bufp->buffer, bufp->buffer + bufp->used,
 			    fastmap, RE_MULTIBYTE_P (bufp));
+  bufp->can_be_null = (analysis != 0);
   if (analysis < -1)
     return analysis;
-  bufp->can_be_null = (analysis != 0);
   return 0;
 } /* re_compile_fastmap */
 
@@ -3729,6 +3759,7 @@ re_set_registers (bufp, regs, num_regs, starts, ends)
       regs->start = regs->end = (regoff_t *) 0;
     }
 }
+WEAK_ALIAS (__re_set_registers, re_set_registers)
 
 /* Searching routines.	*/
 
@@ -3745,6 +3776,7 @@ re_search (bufp, string, size, startpos, range, regs)
   return re_search_2 (bufp, NULL, 0, string, size, startpos, range,
 		      regs, size);
 }
+WEAK_ALIAS (__re_search, re_search)
 
 /* End address of virtual concatenation of string.  */
 #define STOP_ADDR_VSTRING(P)				\
@@ -3792,7 +3824,7 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
   register RE_TRANSLATE_TYPE translate = bufp->translate;
   int total_size = size1 + size2;
   int endpos = startpos + range;
-  int anchored_start = 0;
+  boolean anchored_start;
 
   /* Nonzero if we have to concern multibyte character.	 */
   const boolean multibyte = RE_MULTIBYTE_P (bufp);
@@ -3836,8 +3868,7 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
       return -2;
 
   /* See whether the pattern is anchored.  */
-  if (bufp->buffer[0] == begline)
-    anchored_start = 1;
+  anchored_start = (bufp->buffer[0] == begline);
 
 #ifdef emacs
   gl_state.object = re_match_object;
@@ -3857,10 +3888,9 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
 	 because that case doesn't repeat.  */
       if (anchored_start && startpos > 0)
 	{
-	  if (! (bufp->newline_anchor
-		 && ((startpos <= size1 ? string1[startpos - 1]
-		      : string2[startpos - size1 - 1])
-		     == '\n')))
+	  if (! ((startpos <= size1 ? string1[startpos - 1]
+		  : string2[startpos - size1 - 1])
+		 == '\n'))
 	    goto advance;
 	}
 
@@ -4009,6 +4039,7 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
     }
   return -1;
 } /* re_search_2 */
+WEAK_ALIAS (__re_search_2, re_search_2)
 
 /* Declarations and macros for re_match_2.  */
 
@@ -4213,9 +4244,6 @@ mutually_exclusive_p (bufp, p1, p2)
       break;
       
     case endline:
-      if (!bufp->newline_anchor)
-	break;
-      /* Fallthrough */
     case exactn:
       {
 	register unsigned int c
@@ -4377,6 +4405,7 @@ re_match (bufp, string, size, pos, regs)
 # endif
   return result;
 }
+WEAK_ALIAS (__re_match, re_match)
 #endif /* not emacs */
 
 #ifdef emacs
@@ -4424,6 +4453,7 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
 #endif
   return result;
 }
+WEAK_ALIAS (__re_match_2, re_match_2)
 
 /* This is a separate function so that we can force an alloca cleanup
    afterwards.	*/
@@ -5089,8 +5119,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 
 
 	/* begline matches the empty string at the beginning of the string
-	   (unless `not_bol' is set in `bufp'), and, if
-	   `newline_anchor' is set, after newlines.  */
+	   (unless `not_bol' is set in `bufp'), and after newlines.  */
 	case begline:
 	  DEBUG_PRINT1 ("EXECUTING begline.\n");
 
@@ -5102,7 +5131,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	    {
 	      unsigned char c;
 	      GET_CHAR_BEFORE_2 (c, d, string1, end1, string2, end2);
-	      if (c == '\n' && bufp->newline_anchor)
+	      if (c == '\n')
 		break;
 	    }
 	  /* In all other cases, we fail.  */
@@ -5120,7 +5149,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	  else
 	    {
 	      PREFETCH_NOLIMIT ();
-	      if (*d == '\n' && bufp->newline_anchor)
+	      if (*d == '\n')
 		break;
 	    }
 	  goto fail;
@@ -5645,15 +5674,13 @@ re_compile_pattern (pattern, length, bufp)
      setting no_sub.  */
   bufp->no_sub = 0;
 
-  /* Match anchors at newline.  */
-  bufp->newline_anchor = 1;
-
   ret = regex_compile ((re_char*) pattern, length, re_syntax_options, bufp);
 
   if (!ret)
     return NULL;
   return gettext (re_error_msgid[(int) ret]);
 }
+WEAK_ALIAS (__re_compile_pattern, re_compile_pattern)
 
 /* Entry points compatible with 4.2 BSD regex library.  We don't define
    them unless specifically requested.  */
@@ -5700,9 +5727,6 @@ re_comp (s)
   /* Since `re_exec' always passes NULL for the `regs' argument, we
      don't need to initialize the pattern buffer fields which affect it.  */
 
-  /* Match anchors at newlines.  */
-  re_comp_buf.newline_anchor = 1;
-
   ret = regex_compile (s, strlen (s), re_syntax_options, &re_comp_buf);
 
   if (!ret)
@@ -5740,8 +5764,8 @@ re_exec (s)
      `syntax' to RE_SYNTAX_POSIX_EXTENDED if the
        REG_EXTENDED bit in CFLAGS is set; otherwise, to
        RE_SYNTAX_POSIX_BASIC;
-     `newline_anchor' to REG_NEWLINE being set in CFLAGS;
-     `fastmap' and `fastmap_accurate' to zero;
+     `fastmap' to an allocated space for the fastmap;
+     `fastmap_accurate' to zero;
      `re_nsub' to the number of subexpressions in PATTERN.
 
    PATTERN is the address of the pattern string.
@@ -5780,11 +5804,8 @@ regcomp (preg, pattern, cflags)
   preg->allocated = 0;
   preg->used = 0;
 
-  /* Don't bother to use a fastmap when searching.  This simplifies the
-     REG_NEWLINE case: if we used a fastmap, we'd have to put all the
-     characters after newlines into the fastmap.  This way, we just try
-     every character.  */
-  preg->fastmap = 0;
+  /* Try to allocate space for the fastmap.  */
+  preg->fastmap = (char *) malloc (1 << BYTEWIDTH);
 
   if (cflags & REG_ICASE)
     {
@@ -5808,11 +5829,9 @@ regcomp (preg, pattern, cflags)
     { /* REG_NEWLINE implies neither . nor [^...] match newline.  */
       syntax &= ~RE_DOT_NEWLINE;
       syntax |= RE_HAT_LISTS_NOT_NEWLINE;
-      /* It also changes the matching behavior.  */
-      preg->newline_anchor = 1;
     }
   else
-    preg->newline_anchor = 0;
+    syntax |= RE_NO_NEWLINE_ANCHOR;
 
   preg->no_sub = !!(cflags & REG_NOSUB);
 
@@ -5822,10 +5841,22 @@ regcomp (preg, pattern, cflags)
 
   /* POSIX doesn't distinguish between an unmatched open-group and an
      unmatched close-group: both are REG_EPAREN.  */
-  if (ret == REG_ERPAREN) ret = REG_EPAREN;
+  if (ret == REG_ERPAREN)
+    ret = REG_EPAREN;
 
+  if (ret == REG_NOERROR && preg->fastmap)
+    { /* Compute the fastmap now, since regexec cannot modify the pattern
+	 buffer.  */
+      re_compile_fastmap (preg);
+      if (preg->can_be_null)
+	{ /* The fastmap can't be used anyway.  */
+	  free (preg->fastmap);
+	  preg->fastmap = NULL;
+	}
+    }
   return (int) ret;
 }
+WEAK_ALIAS (__regcomp, regcomp)
 
 
 /* regexec searches for a given pattern, specified by PREG, in the
@@ -5854,7 +5885,7 @@ regexec (preg, string, nmatch, pmatch, eflags)
   struct re_registers regs;
   regex_t private_preg;
   int len = strlen (string);
-  boolean want_reg_info = !preg->no_sub && nmatch > 0;
+  boolean want_reg_info = !preg->no_sub && nmatch > 0 && pmatch;
 
   private_preg = *preg;
 
@@ -5874,6 +5905,15 @@ regexec (preg, string, nmatch, pmatch, eflags)
 	return (int) REG_NOMATCH;
       regs.end = regs.start + nmatch;
     }
+
+  /* Instead of using not_eol to implement REG_NOTEOL, we could simply
+     pass (&private_preg, string, len + 1, 0, len, ...) pretending the string
+     was a little bit longer but still only matching the real part.
+     This works because the `endline' will check for a '\n' and will find a
+     '\0', correctly deciding that this is not the end of a line.
+     But it doesn't work out so nicely for REG_NOTBOL, since we don't have
+     a convenient '\0' there.  For all we know, the string could be preceded
+     by '\n' which would throw things off.  */
 
   /* Perform the searching operation.  */
   ret = re_search (&private_preg, string, len,
@@ -5901,6 +5941,7 @@ regexec (preg, string, nmatch, pmatch, eflags)
   /* We want zero return to mean success, unlike `re_search'.  */
   return ret >= 0 ? (int) REG_NOERROR : (int) REG_NOMATCH;
 }
+WEAK_ALIAS (__regexec, regexec)
 
 
 /* Returns a message corresponding to an error code, ERRCODE, returned
@@ -5941,6 +5982,7 @@ regerror (errcode, preg, errbuf, errbuf_size)
 
   return msg_size;
 }
+WEAK_ALIAS (__regerror, regerror)
 
 
 /* Free dynamically allocated space used by PREG.  */
@@ -5965,5 +6007,6 @@ regfree (preg)
     free (preg->translate);
   preg->translate = NULL;
 }
+WEAK_ALIAS (__regfree, regfree)
 
 #endif /* not emacs  */

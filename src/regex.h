@@ -150,6 +150,17 @@ typedef unsigned long int reg_syntax_t;
 /* If this bit is set, then (?:...) is treated as a shy group.  */
 #define RE_SHY_GROUPS (RE_FRUGAL << 1)
 
+/* If this bit is set, ^ and $ only match at beg/end of buffer.  */
+#define RE_NO_NEWLINE_ANCHOR (RE_SHY_GROUPS << 1)
+
+/* If this bit is set, turn on internal regex debugging.
+   If not set, and debugging was on, turn it off.
+   This only works if regex.c is compiled -DDEBUG.
+   We define this bit always, so that all that's needed to turn on
+   debugging is to recompile regex.c; the calling code can always have
+   this bit set, and it won't affect anything in the normal case. */
+#define RE_DEBUG (RE_NO_NEWLINE_ANCHOR << 1)
+
 /* This global variable defines the particular regexp syntax to use (for
    some interfaces).  When a regexp is compiled, the syntax used is
    stored in the pattern buffer, so changing this does not affect
@@ -378,9 +389,6 @@ struct re_pattern_buffer
 
         /* Similarly for an end-of-line anchor.  */
   unsigned not_eol : 1;
-
-        /* If true, an anchor at a newline matches.  */
-  unsigned newline_anchor : 1;
 
 #ifdef emacs
   /* If true, multi-byte form in the `buffer' should be recognized as a

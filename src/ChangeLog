@@ -1,3 +1,17 @@
+2000-08-31  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* regex.h (RE_NO_NEWLINE_ANCHOR): New syntax flag.
+	(struct re_pattern_buffer): Remove newline_anchor.
+	* regex.c: Keep namespace clean for GNU libc by renaming <fun>
+	to __<fun> and using `weak_alias (__<fun>, <fun>)'.
+	(re_max_failures, fail_stack): Use size_t rather than unsigned.
+	(regex_compile): For ^ and $, choose between buffer and line (beg|end)
+	depending on the new RE_NO_NEWLINE_ANCHOR syntax flag.
+	(print_compiled_pattern, re_search_2, mutually_exclusive_p)
+	(re_match_2_internal, re_compile_pattern, re_comp, regcomp):
+	Get rid of references to newline_anchor.
+	(regcomp): Allocate and precompute a fastmap.
+
 2000-08-31  Gerd Moellmann  <gerd@gnu.org>
 
 	* lread.c (openp): GCPRO local variable `filename'.
