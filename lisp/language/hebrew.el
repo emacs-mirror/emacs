@@ -31,7 +31,7 @@
 (make-coding-system
  'hebrew-iso-8bit 2 ?8
  "ISO 2022 based 8-bit encoding for Hebrew (MIME:ISO-8859-8)"
- '((ascii t) (hebrew-iso8859-8 t) nil nil
+ '(ascii hebrew-iso8859-8 nil nil
    nil ascii-eol ascii-cntl nil nil nil nil nil t)
  '((safe-charsets ascii hebrew-iso8859-8)
    (mime-charset . iso-8859-8)))
