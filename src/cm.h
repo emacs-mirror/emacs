@@ -101,7 +101,7 @@ struct cm
 extern struct cm Wcm;		/* Terminal capabilities */
 extern char PC;			/* Pad character */
 
-#if defined (HAVE_TERMIOS_H) || defined (LINUX)
+#if defined (HAVE_TERMIOS_H) && defined (LINUX)
 #include <termios.h>
 /* HJL's version of libc is said to need this on the Alpha.
    On the other hand, DEC OSF1 on the Alpha needs ospeed to be a short.  */

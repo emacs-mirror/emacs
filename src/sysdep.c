@@ -27,10 +27,6 @@ Boston, MA 02111-1307, USA.  */
 #include "blockinput.h"
 #undef NULL
 
-#ifdef HAVE_TERMIOS_H
-#include <termios.h>
-#endif
-
 #define min(x,y) ((x) > (y) ? (y) : (x))
 
 /* In this file, open, read and write refer to the system calls,
@@ -230,7 +226,8 @@ static int baud_convert[] =
   };
 #endif
 
-#if defined (HAVE_TERMIOS_H) || defined (LINUX)
+#if defined (HAVE_TERMIOS_H) && defined (LINUX)
+#include <termios.h>
 /* HJL's version of libc is said to need this on the Alpha.
    On the other hand, DEC OSF1 on the Alpha needs ospeed to be a short.  */
 extern speed_t ospeed;
