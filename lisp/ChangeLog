@@ -1,3 +1,8 @@
+2004-09-15  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* vc.el (annotate-time): Document point handling.
+	(vc-annotate-display-autoscale): Doc fix.
+
 2004-09-15  Miles Bader  <miles@gnu.org>
 
 	* generic.el (generic-make-keywords-list): Use symbol rather than
