@@ -18,10 +18,6 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-/* This is the main entry point to mocklisp execution.
- When eval sees a mocklisp function being called, it calls here
- with the unevaluated argument list */
-
 extern Lisp_Object ml_apply ();
 extern Lisp_Object Fml_if ();
 extern Lisp_Object Fml_nargs ();
