@@ -735,7 +735,7 @@ If nil, that means no input method is activated now.")
 This is the input method activated automatically by the command
 `toggle-input-method' (\\[toggle-input-method])."
   :group 'mule
-  :type 'string)
+  :type '(choice (const nil) string))
 
 (defvar input-method-history nil
   "History list for some commands that read input methods.")
