@@ -68,8 +68,8 @@
   (= 0 (car (cdr ring))))
 
 (defun ring-index (index head ringlen veclen)
-  (setq index (ring-mod index ringlen))
-  (ring-mod (1- (+ head (- ringlen index))) veclen))
+  (setq index (mod index ringlen))
+  (mod (1- (+ head (- ringlen index))) veclen))
 
 (defun ring-insert (ring item)
   "Insert a new item onto the ring. If the ring is full, dump the oldest
@@ -79,7 +79,7 @@ item to make room."
 	 (hd (car ring))
 	 (ln (car (cdr ring))))
     (prog1
-	(aset vec (ring-mod (+ hd ln) veclen) item)
+	(aset vec (mod (+ hd ln) veclen) item)
       (if (= ln veclen)
 	  (setcar ring (ring-plus1 hd veclen))
 	(setcar (cdr ring) (1+ ln))))))
@@ -94,7 +94,7 @@ numeric, remove the element indexed."
 	  (ln (car (cdr ring)))
 	  (vec (cdr (cdr ring)))
 	  (veclen (length vec))
-	  (tl (ring-mod (1- (+ hd ln)) veclen))
+	  (tl (mod (1- (+ hd ln)) veclen))
 	  oldelt)
       (if (null index)
 	  (setq index (1- ln)))
@@ -106,14 +106,6 @@ numeric, remove the element indexed."
       (aset vec tl nil)
       (setcar (cdr ring) (1- ln))
       oldelt)))
-
-(defun ring-mod (n m)
-  "Returns N mod M.  M is positive.
-Answer is guaranteed to be non-negative, and less than m."
-  (let ((n (% n m)))
-    (if (>= n 0) n
-	(+ n
-	   (if (>= m 0) m (- m)))))) ; (abs m)
 
 (defun ring-ref (ring index)
   "Returns RING's INDEX element.
