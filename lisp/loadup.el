@@ -202,9 +202,9 @@
     (Snarf-documentation "DOC"))
 (message "Finding pointers to doc strings...done")
 
-;Note: You can cause additional libraries to be preloaded
-;by writing a site-init.el that loads them.
-;See also "site-load" above.
+;;;Note: You can cause additional libraries to be preloaded
+;;;by writing a site-init.el that loads them.
+;;;See also "site-load" above.
 (load "site-init" t)
 (setq current-load-list nil)
 (garbage-collect)
@@ -233,7 +233,7 @@
       ;; We used to dump under the name xemacs, but that occasionally
       ;; confused people installing Emacs (they'd install the file
       ;; under the name `xemacs'), and it's inconsistent with every
-      ;; other GNU product's build process.
+      ;; other GNU program's build process.
       (dump-emacs "emacs" "temacs")
       (message "%d pure bytes used" pure-bytes-used)
       ;; Recompute NAME now, so that it isn't set when we dump.
