@@ -1,5 +1,9 @@
 2000-12-12  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (setup_echo_area_for_printing, with_echo_area_buffer): 
+	Bind `inhibit-read-only' to t.
+	(unwind_with_echo_area_buffer): Use AREF.
+
 	* xfns.c (Fx_hide_tip): Simplified.
 
 	* s/freebsd.h, s/netbsd.h (GC_MARK_STACK): Use

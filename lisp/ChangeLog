@@ -1,3 +1,9 @@
+2000-12-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* replace.el (perform-replace): Don't use an empty match adjacent
+	to a non-empty match when computing the next match before the
+	replacement is performed.
+
 2000-12-12  Milan Zamazal  <pdm@freesoft.cz>
 
 	* progmodes/glasses.el: Use `define-minor-mode' for the minor mode
