@@ -33,10 +33,11 @@ Boston, MA 02111-1307, USA.  */
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <pwd.h>
 #include <ctype.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-// #include "config.h"
+#include <config.h>
 
 #define MAX_ATTEMPTS 5
 #define SCORE_FILE_PREFIX "/var/games/emacs/"
@@ -60,6 +61,7 @@ unlock_file(const char *filename, void *state);
 struct score_entry
 {
   long score;
+  char *username;
   char *data;
 };
 
@@ -68,12 +70,30 @@ read_scores(const char *filename, struct score_entry **scores,
 	    int *count);
 int
 push_score(struct score_entry **scores, int *count,
-	   int newscore, char *newdata);
+	   int newscore, char *username, char *newdata);
 void
 sort_scores(struct score_entry *scores, int count, int reverse);
 int
 write_scores(const char *filename, const struct score_entry *scores,
 	     int count);
+
+char *
+get_user_id()
+{
+  char *name;
+  struct passwd *buf = getpwuid(getuid());
+  if (!buf)
+    {
+      int count = 1;
+      int uid = (int) getuid();
+      while (uid /= 10)
+	count++;
+      name = malloc(count+1);
+      sprintf(name, "%d", uid);
+      return name;
+    }
+  return buf->pw_name;
+}
 
 int
 main(int argc, char **argv)
@@ -106,7 +126,7 @@ main(int argc, char **argv)
 
   if (optind+3 != argc)
     usage(1);
-  scorefile = malloc(strlen(SCORE_FILE_PREFIX) + strlen(argv[optind]) + 20);
+  scorefile = malloc(strlen(SCORE_FILE_PREFIX) + strlen(argv[optind]) + 1);
   if (!scorefile)
     {
       fprintf(stderr, "Couldn't create score file name: %s\n",
@@ -136,7 +156,7 @@ main(int argc, char **argv)
 	      scorefile, strerror(errno));
       goto fail_unlock;
     }
-  push_score(&scores, &scorecount, newscore, newdata);
+  push_score(&scores, &scorecount, newscore, get_user_id(), newdata);
   sort_scores(scores, scorecount, reverse);
   if (write_scores(scorefile, scores, scorecount) < 0)
     {
@@ -159,10 +179,43 @@ read_score(FILE *f, struct score_entry *score)
   if (feof(f))
     return 1;
   while ((c = getc(f)) != EOF
-	 && isdigit(c)) {
-    score->score *= 10;
-    score->score += (c-48);
+	 && isdigit(c))
+    {
+      score->score *= 10;
+      score->score += (c-48);
+    }
+  while ((c = getc(f)) != EOF
+	 && isspace(c))
+    ;
+  if (c == EOF)
+    return -1;
+#ifdef HAVE_GETDELIM
+  {
+    int count = 0;
+    if (getdelim(&score->username, &count, ' ', f) < 1
+	|| score->username == NULL)
+      return -1;
   }
+#else
+  {
+    int unameread = 0;
+    int unamelen = 30;
+    char *username;
+    
+    while ((c = getc(f)) != EOF
+	   && !isspace(c))
+      {
+	if (unameread == unamelen)
+	  {
+	    if (!(username = realloc(username, unamelen *= 2)))
+	      return -1;
+	  }
+	username[unameread] = c;
+	unameread++;
+      }
+    score->username = username;
+  }
+#endif
 #ifdef HAVE_GETLINE
   score->data = NULL;
   errno = ESUCCES;
@@ -172,12 +225,25 @@ read_score(FILE *f, struct score_entry *score)
       return -1;
   }
 #else
-  /* We should probably just copy the getline code into here from
-     glibc, instead of this halfassed solution. */
-  score->data = malloc(122);
-  score->data[0] = '\0';
-  if (!fgets(score->data, 120, f))
-    return -1;
+  {
+    int cur = 0;
+    int len = 16;
+    char *buf = malloc(len);
+    if (!buf)
+      return -1;
+    while ((c = getc(f)) != EOF)
+      {
+	if (cur >= len-1)
+	  {
+	    if (!(buf = realloc(buf, len *= 2)))
+	      return -1;
+	  }
+	buf[cur] = c;
+	cur++;
+      }
+    score->data = buf;
+    score->data[cur+1] = '\0';
+  }
 #endif
   /* Trim the newline */
   score->data[strlen(score->data)-1] = '\0';
@@ -234,13 +300,14 @@ score_compare_reverse(const void *a, const void *b)
 
 int
 push_score(struct score_entry **scores, int *count,
-	   int newscore, char *newdata) 
+	   int newscore, char *username, char *newdata) 
 {
  struct score_entry *newscores = realloc(*scores,
 					 sizeof(struct score_entry) * ((*count) + 1));
   if (!newscores)
     return -1;
   newscores[*count].score = newscore;
+  newscores[*count].username = username;
   newscores[*count].data = newdata;
   (*count) += 1;
   *scores = newscores;
@@ -269,7 +336,8 @@ write_scores(const char *filename, const struct score_entry *scores,
       || !(f = fopen(tempfile, "w")))
     return -1;
   for (i = 0; i < count; i++)
-    if (fprintf(f, "%ld %s\n", scores[i].score, scores[i].data) < 0)
+    if (fprintf(f, "%ld %s %s\n", scores[i].score, scores[i].username,
+		scores[i].data) < 0)
       return -1;
   fclose(f);
   rename(tempfile, filename);
