@@ -1,3 +1,13 @@
+2002-03-11  Colin Walters  <walters@verbum.org>
+
+	* shell.el (toplevel): Revert previous change to use pcomplete.
+	(shell-mode): Ditto.
+	(shell-pcomplete-setup-done): Remove.
+	(shell-pcomplete): Ditto.
+	(shell-pcomplete-reverse): Ditto.
+
+	* comint.el: Remove documentation on setting up pcomplete.
+
 2002-03-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* font-lock.el (java-font-lock-extra-types): Add "URL" as separate
@@ -77,7 +87,6 @@
 	(ibuffer-clear-summary-columns): New function.
 
 	* ibuf-ext.el (ibuffer-filter-format-alist): Add type and group.
-	(ibuffer-toggle-sorting-mode): Ditto.
 	
 2002-03-07  Gerd Moellmann  <gerd@gnu.org>
 
