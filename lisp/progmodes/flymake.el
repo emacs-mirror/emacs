@@ -49,17 +49,17 @@
       (if test (make-hash-table :test test) (make-hash-table))
     (makehash test)))
 
-(defun flymake-float-time ()
-  (if (featurep 'xemacs)
-      (let ((tm (current-time)))
-	(multiple-value-bind (s0 s1 s2) (current-time)
-			     (+ (* (float (ash 1 16)) s0) (float s1) (* 0.0000001 s2))))
-    (float-time)))
+(defalias 'flymake-float-time
+  (if (fboundp 'float-time)
+      'float-time
+    (lambda ()
+      (multiple-value-bind (s0 s1 s2) (current-time)
+	(+ (* (float (ash 1 16)) s0) (float s1) (* 0.0000001 s2))))))
 
 (defsubst flymake-replace-regexp-in-string (regexp rep str)
-  (if (featurep 'xemacs)
-      (replace-in-string str regexp rep)
-    (replace-regexp-in-string regexp rep str)))
+  (if (fboundp 'replace-regexp-in-string)
+      (replace-regexp-in-string regexp rep str)
+    (replace-in-string str regexp rep)))
 
 (defun flymake-split-string (str pattern)
   "Split, then remove first and/or last in case it's empty."
@@ -71,22 +71,22 @@
     splitted))
 
 (defsubst flymake-get-temp-dir ()
-  (if (featurep 'xemacs)
+  (if (fboundp 'temp-directory)
       (temp-directory)
     temporary-file-directory))
 
-(defun flymake-line-beginning-position ()
-  (save-excursion
-    (beginning-of-line)
-    (point)))
+(defalias 'flymake-line-beginning-position
+  (if (fboundp 'line-beginning-position)
+      'line-beginning-position
+    (lambda (&optional arg) (save-excursion (beginning-of-line arg) (point)))))
 
-(defun flymake-line-end-position ()
-  (save-excursion
-    (end-of-line)
-    (point)))
+(defalias 'flymake-line-end-position
+  (if (fboundp 'line-end-position)
+      'line-end-position
+    (lambda (&optional arg) (save-excursion (end-of-line arg) (point)))))
 
 (defun flymake-popup-menu (pos menu-data)
-  (if (featurep 'xemacs)
+  (if (and (fboundp 'popup-menu) (fboundp 'make-event))
       (let* ((x-pos       (nth 0 (nth 0 pos)))
 	     (y-pos       (nth 1 (nth 0 pos)))
 	     (fake-event-props  '(button 1 x 1 y 1)))
@@ -104,9 +104,9 @@
 				menu-items))
     (list menu-title (cons "" menu-commands))))
 
-(defun flymake-nop ())
-
 (if (featurep 'xemacs) (progn
+
+(defun flymake-nop ())
 
 (defun flymake-make-xemacs-menu (menu-data)
   (let* ((menu-title     (nth 0 menu-data))
@@ -134,19 +134,19 @@
 
 (defun flymake-current-row ()
   "Return current row number in current frame."
-  (if (featurep 'xemacs)
-      (count-lines (window-start) (point))
-    (+ (car (cdr (window-edges))) (count-lines (window-start) (point)))))
+  (if (fboundp 'window-edges)
+      (+ (car (cdr (window-edges))) (count-lines (window-start) (point)))
+    (count-lines (window-start) (point))))
 
 (defun flymake-selected-frame ()
-  (if (featurep 'xemacs)
-      (selected-window)
-    (selected-frame)))
+  (if (fboundp 'window-edges)
+      (selected-frame)
+    (selected-window)))
 
 ;;;; ]]
 
 (defcustom flymake-log-level -1
-  "Logging level, only messages with level > flymake-log-level will not be logged
+  "Logging level, only messages with level lower or equal will be logged.
 -1 = NONE, 0 = ERROR, 1 = WARNING, 2 = INFO, 3 = DEBUG"
   :group 'flymake
   :type 'integer)
@@ -199,8 +199,7 @@
 
   (if (eq buffer (current-buffer))
       (symbol-value var-name)
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (symbol-value var-name))))
 
 (defun flymake-set-buffer-var (buffer var-name var-value)
@@ -210,8 +209,7 @@
 
   (if (eq buffer (current-buffer))
       (set var-name var-value)
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (set var-name var-value))))
 
 (defvar flymake-buffer-data (flymake-makehash)
@@ -537,8 +535,7 @@ instead of reading master file from disk."
 (defun flymake-read-file-to-temp-buffer (file-name)
   "Insert contents of FILE-NAME into newly created temp buffer."
   (let* ((temp-buffer (get-buffer-create (generate-new-buffer-name (concat "flymake:" (file-name-nondirectory file-name))))))
-    (save-excursion
-      (set-buffer temp-buffer)
+    (with-current-buffer temp-buffer
       (insert-file-contents file-name))
     temp-buffer))
 
@@ -546,8 +543,7 @@ instead of reading master file from disk."
   "Copy contents of BUFFER into newly created temp buffer."
   (let ((contents     nil)
 	(temp-buffer  nil))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (setq contents (buffer-string))
 
       (setq temp-buffer (get-buffer-create (generate-new-buffer-name (concat "flymake:" (buffer-name buffer)))))
@@ -618,9 +614,8 @@ Find master file, patch and save it."
 (defun flymake-save-buffer-in-file (buffer file-name)
   (or buffer
       (error "Invalid buffer"))
-  (save-excursion
+  (with-current-buffer buffer
     (save-restriction
-      (set-buffer buffer)
       (widen)
       (make-directory (file-name-directory file-name) 1)
       (write-region (point-min) (point-max) file-name nil 566)))
@@ -665,8 +660,7 @@ It's flymake process filter."
 	      (delete-process process)
 
 	      (when source-buffer
-		(save-excursion
-		  (set-buffer source-buffer)
+		(with-current-buffer source-buffer
 
 		  (flymake-parse-residual source-buffer)
 		  (flymake-post-syntax-check source-buffer exit-status command)
@@ -706,8 +700,7 @@ It's flymake process filter."
 
 (defun flymake-parse-output-and-residual (source-buffer output)
   "Split OUTPUT into lines, merge in residual if necessary."
-  (save-excursion
-    (set-buffer source-buffer)
+  (with-current-buffer source-buffer
     (let* ((buffer-residual     (flymake-get-buffer-output-residual source-buffer))
 	   (total-output        (if buffer-residual (concat buffer-residual output) output))
 	   (lines-and-residual  (flymake-split-output total-output))
@@ -721,8 +714,7 @@ It's flymake process filter."
 
 (defun flymake-parse-residual (source-buffer)
   "Parse residual if it's non empty."
-  (save-excursion
-    (set-buffer source-buffer)
+  (with-current-buffer source-buffer
     (when (flymake-get-buffer-output-residual source-buffer)
       (flymake-set-buffer-new-err-info source-buffer (flymake-parse-err-lines
 						      (flymake-get-buffer-new-err-info source-buffer)
@@ -846,8 +838,7 @@ line number outside the file being compiled."
 
 (defun flymake-highlight-err-lines (buffer err-info-list)
   "Highlight error lines in BUFFER using info from ERR-INFO-LIST."
-  (save-excursion
-    (set-buffer buffer)
+  (with-current-buffer buffer
     (let* ((idx    0)
 	   (count  (length err-info-list)))
       (while (< idx count)
@@ -873,8 +864,7 @@ line number outside the file being compiled."
 
 (defun flymake-delete-own-overlays (buffer)
   "Delete all flymake overlays in BUFFER."
-  (save-excursion
-    (set-buffer buffer)
+  (with-current-buffer buffer
     (let ((ov (overlays-in (point-min) (point-max))))
       (while (consp ov)
 	(when (flymake-overlay-p (car ov))
@@ -891,7 +881,8 @@ Return t if it has at least one flymake overlay, nil if no overlay."
     (while (consp ov)
       (when (flymake-overlay-p (car ov))
 	(setq has-flymake-overlays t))
-      (setq ov (cdr ov)))))
+      (setq ov (cdr ov)))
+    has-flymake-overlays))
 
 (defface flymake-errline-face
   ;;+   '((((class color)) (:foreground "OrangeRed" :bold t :underline t))
@@ -986,21 +977,18 @@ Returns ((LINES) RESIDUAL)."
   "Grab error line patterns from ORIGINAL-LIST in compile.el format.
 Convert it to flymake internal format."
   (let* ((converted-list '()))
-    (mapcar
-     (lambda (item)
-       (setq item (cdr item))
-       (let ((regexp (nth 0 item))
-	     (file (nth 1 item))
-	     (line (nth 2 item))
-	     (col (nth 3 item))
-	     end-line)
-	 (if (consp file)	(setq file (car file)))
-	 (if (consp line)	(setq end-line (cdr line) line (car line)))
-	 (if (consp col)	(setq col (car col)))
-
-	 (when (not (functionp line))
-	   (setq converted-list (cons (list regexp file line col) converted-list)))))
-     original-list)
+    (dolist (item original-list)
+      (setq item (cdr item))
+      (let ((regexp (nth 0 item))
+	    (file (nth 1 item))
+	    (line (nth 2 item))
+	    (col (nth 3 item)))
+	(if (consp file)	(setq file (car file)))
+	(if (consp line)	(setq line (car line)))
+	(if (consp col)	(setq col (car col)))
+	
+	(when (not (functionp line))
+	  (setq converted-list (cons (list regexp file line col) converted-list)))))
     converted-list))
 
 (eval-when-compile
@@ -1211,9 +1199,8 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
 (defun flymake-get-program-dir (buffer)
   "Get dir to start program in."
   (unless (bufferp buffer)
-    (error "Invlid buffer"))
-  (save-excursion
-    (set-buffer buffer)
+    (error "Invalid buffer"))
+  (with-current-buffer buffer
     default-directory))
 
 (defun flymake-safe-delete-file (file-name)
@@ -1238,8 +1225,7 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
   "Start syntax checking for buffer BUFFER."
   (unless (bufferp buffer)
     (error "Expected a buffer"))
-  (save-excursion
-    (set-buffer buffer)
+  (with-current-buffer buffer
     (flymake-log 3 "flymake is running: %s" (flymake-get-buffer-is-running buffer))
     (when (and (not (flymake-get-buffer-is-running buffer))
 	       (flymake-can-syntax-check-file (buffer-file-name buffer)))
@@ -1385,8 +1371,7 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
   "Start a syntax check for buffer BUFFER if necessary."
   ;;+(flymake-log 3 "timer: running=%s, time=%s, cur-time=%s" (flymake-get-buffer-is-running buffer) (flymake-get-buffer-last-change-time buffer) (flymake-float-time))
   (when (and (bufferp buffer) (not (flymake-get-buffer-is-running buffer)))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (when (and (flymake-get-buffer-last-change-time buffer)
 		 (> (flymake-float-time) (+ flymake-no-changes-timeout (flymake-get-buffer-last-change-time buffer))))
 	(flymake-set-buffer-last-change-time buffer nil)
@@ -1405,18 +1390,9 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
 	(end  (if (= (point) (point-max)) (point) (1+ (point)))))
     (count-lines beg end)))
 
-(defun flymake-get-line-count (buffer)
-  "Return number of lines in buffer BUFFER."
-  (unless (bufferp buffer)
-    (error "Invalid buffer"))
-  (save-excursion
-    (set-buffer buffer)
-    (count-lines (point-min) (point-max))))
-
 (defun flymake-count-lines (buffer)
   "Return number of lines in buffer BUFFER."
-  (save-excursion
-    (set-buffer buffer)
+  (with-current-buffer buffer
     (count-lines (point-min) (point-max))))
 
 (defun flymake-get-point-pixel-pos ()
@@ -1443,7 +1419,6 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
 	 (menu-data           (flymake-make-err-menu-data line-no line-err-info-list))
 	 (choice              nil)
 	 (mouse-pos           (flymake-get-point-pixel-pos))
-	 (moved-mouse-pos     (list (car mouse-pos) (+ 10 (car (cdr mouse-pos)))))
 	 (menu-pos            (list (flymake-get-point-pixel-pos) (selected-window))))
     (if menu-data
 	(progn
@@ -1525,8 +1500,7 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
 (defun flymake-report-status (buffer e-w &optional status)
   "Show status in mode line."
   (when (bufferp buffer)
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (when e-w
 	(flymake-set-buffer-mode-line-e-w buffer e-w)
 	)
@@ -1553,8 +1527,7 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
   (when flymake-gui-warnings-enabled
     (flymake-display-warning (format "Flymake: %s. Flymake will be switched OFF" warning))
     )
-  (save-excursion
-    (set-buffer buffer)
+  (with-current-buffer buffer
     (flymake-mode 0)
     (flymake-log 0 "switched OFF Flymake mode for buffer %s due to fatal status %s, warning %s"
 		 (buffer-name buffer) status warning)))
