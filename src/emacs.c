@@ -63,6 +63,10 @@ Lisp_Object Vinvocation_name;
 /* The directory name from which Emacs was invoked.  */
 Lisp_Object Vinvocation_directory;
 
+/* The directory name in which to find subdirs such as lisp and etc.
+   nil means get them only from PATH_LOADSEARCH.  */
+Lisp_Object Vinstallation_directory;
+
 /* Hook run by `kill-emacs' before it does really anything.  */
 Lisp_Object Vkill_emacs_hook;
 
@@ -179,6 +183,7 @@ init_cmdargs (argc, argv, skip_args)
      int skip_args;
 {
   register int i;
+  Lisp_Object name, dir;
 
   Vinvocation_name = Ffile_name_nondirectory (build_string (argv[0]));
   Vinvocation_directory = Ffile_name_directory (build_string (argv[0]));
@@ -191,6 +196,81 @@ init_cmdargs (argc, argv, skip_args)
 		       EXEC_SUFFIXES, &found, 1);
       if (yes == 1)
 	Vinvocation_directory = Ffile_name_directory (found);
+    }
+
+  Vinstallation_directory = Qnil;
+
+  if (!NILP (Vinvocation_directory))
+    {
+      dir = Vinvocation_directory;
+      name = Fexpand_file_name (Vinvocation_name, dir);
+      while (1)
+	{
+	  Lisp_Object tem, lisp_exists, lib_src_exists;
+	  Lisp_Object etc_exists, info_exists;
+
+	  /* See if dir contains subdirs for use by Emacs.  */
+	  tem = Fexpand_file_name (build_string ("lisp"), dir);
+	  lisp_exists = Ffile_exists_p (tem);
+	  if (!NILP (lisp_exists))
+	    {
+	      tem = Fexpand_file_name (build_string ("lib-src"), dir);
+	      lib_src_exists = Ffile_exists_p (tem);
+	      if (!NILP (lib_src_exists))
+		{
+		  tem = Fexpand_file_name (build_string ("etc"), dir);
+		  etc_exists = Ffile_exists_p (tem);
+		  if (!NILP (etc_exists))
+		    {
+		      tem = Fexpand_file_name (build_string ("info"), dir);
+		      info_exists = Ffile_exists_p (tem);
+		      if (!NILP (info_exists))
+			{
+			  Vinstallation_directory
+			    = Ffile_name_as_directory (dir);
+			  break;
+			}
+		    }
+		}
+	    }
+
+	  /* See if dir's parent contains those subdirs.  */
+	  tem = Fexpand_file_name (build_string ("../lisp"), dir);
+	  lisp_exists = Ffile_exists_p (tem);
+	  if (!NILP (lisp_exists))
+	    {
+	      tem = Fexpand_file_name (build_string ("../lib-src"), dir);
+	      lib_src_exists = Ffile_exists_p (tem);
+	      if (!NILP (lib_src_exists))
+		{
+		  tem = Fexpand_file_name (build_string ("../etc"), dir);
+		  etc_exists = Ffile_exists_p (tem);
+		  if (!NILP (etc_exists))
+		    {
+		      tem = Fexpand_file_name (build_string ("../info"), dir);
+		      info_exists = Ffile_exists_p (tem);
+		      if (!NILP (info_exists))
+			{
+			  tem = Fexpand_file_name (build_string (".."), dir);
+			  Vinstallation_directory
+			    = Ffile_name_as_directory (tem);
+			  break;
+			}
+		    }
+		}
+	    }
+
+	  /* If the Emacs executable is actually a link,
+	     next try the dir that the link points into.  */
+	  tem = Ffile_symlink_p (name);
+	  if (!NILP (tem))
+	    {
+	      name = tem;
+	      dir = Ffile_name_directory (name);
+	    }
+	  else
+	    break;
+	}
     }
 
   Vcommand_line_args = Qnil;
@@ -962,6 +1042,8 @@ and only if the Emacs executable is installed with setuid to permit\n\
 it to change priority.  (Emacs sets its uid back to the real uid.)");
   emacs_priority = 0;
 
+  staticpro (&Vinstallation_directory);
+  Vinstallation_directory = Qnil;
   staticpro (&Vinvocation_name);
   Vinvocation_name = Qnil;
   staticpro (&Vinvocation_directory);
