@@ -357,15 +357,23 @@ for that command.  Standard input for the command comes from the null
 device.  If the shell command produces any output, the output appears
 either in the echo area (if it is short), or in an Emacs buffer named
 @samp{*Shell Command Output*}, which is displayed in another window
-but not selected (if the output is long).  A numeric argument, as in
-@kbd{M-1 M-!}, directs this command to insert any output into the
-current buffer instead.  In that case, point is left before the output
-and the mark is set after the output.
+but not selected (if the output is long).
+
+  For instance, one way to decompress a file @file{foo.gz} from Emacs
+is to type @kbd{M-! gunzip foo.gz @key{RET}}.  That shell command
+normally creates the file @file{foo} and produces no terminal output.
+
+  A numeric argument, as in @kbd{M-1 M-!}, says to insert terminal
+output into the current buffer instead of a separate buffer.  It puts
+point before the output, and sets the mark after the output.  For
+instance, @kbd{M-1 M-!  gunzip < foo.gz @key{RET}} would insert the
+uncompressed equivalent of @file{foo.gz} into the current buffer.
 
   If the shell command line ends in @samp{&}, it runs asynchronously.
 For a synchronous shell command, @code{shell-command} returns the
 command's exit status (0 means success), when it is called from a Lisp
-program.
+program.  You do not get any status information for an asynchronous
+command, since it hasn't finished yet.
 
 @kindex M-|
 @findex shell-command-on-region
@@ -375,6 +383,13 @@ command, instead of no input.  If a numeric argument is used, meaning
 insert the output in the current buffer, then the old region is deleted
 first and the output replaces it as the contents of the region.  It
 returns the command's exit status when it is called from a Lisp program.
+
+  One use for @kbd{M-|} is to run @code{uudecode}.  For instance, if
+the buffer contains uuencoded text, type @kbd{C-x h M-| uudecode
+@key{RET}} to feed the entire buffer contents to the @code{uudecode}
+program.  That program will ignore everything except the encoded text,
+and will store the decoded output into the file whose name is
+specified in the encoded text.
 
 @vindex shell-file-name
 @cindex environment
