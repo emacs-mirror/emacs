@@ -1,3 +1,9 @@
+2003-05-16  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+
+	* hl-line.el (hl-line-highlight, global-hl-line-highlight): Use
+	`line-beginning-position' to determine the beginning of the next
+	line.
+
 2003-05-16  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (mule-menu-keymap): Enable the menu
@@ -465,7 +471,7 @@
 	* help-fns.el (help-add-fundoc-usage): Use t for "no arglist".
 	* emacs-lisp/advice.el (ad-make-advised-docstring): Adjust usage.
 
-2003-05-06  Lute Kamstra  <lute@occarina.pna.cwi.nl>
+2003-05-06  Lute Kamstra  <Lute.Kamstra@cwi.nl>
 
 	* hl-line.el: Removed an erroneous comment.
 	(hl-line-mode): Use buffer local hooks.
