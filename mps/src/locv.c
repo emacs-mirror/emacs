@@ -2,7 +2,7 @@
  *
  *            Leaf Object Pool Class Coverage Test
  *
- *  $HopeName: MMsrc!locv.c(trunk.4) $
+ *  $HopeName: MMsrc!locv.c(trunk.5) $
  *
  *  Copyright (C) 1996 Harlequin Group, all rights reserved
  *
@@ -10,9 +10,9 @@
  *  pool (PoolClassLO).
  */
 
+#include "testlib.h"
 #include "mps.h"
 #include "mpsclo.h"
-#include "testlib.h"
 
 #include <assert.h>
 
