@@ -1,23 +1,24 @@
-;;; speedbar --- quick access to files and tags
+;;; speedbar --- quick access to files and tags in a frame
 
 ;;; Copyright (C) 1996, 97, 98 Free Software Foundation
-;;
-;; Author: Eric M. Ludlam <zappo@gnu.ai.mit.edu>
-;; Version: 0.6.2
-;; Keywords: file, tags, tools, convenience
-;;
+
+;; Author: Eric M. Ludlam <zappo@gnu.org>
+;; Version: 0.7
+;; Keywords: file, tags, tools
+;; X-RCS: $Id: speedbar.el,v 1.112 1998/06/16 12:53:18 kwzh Exp kwzh $
+
 ;; This file is part of GNU Emacs.
-;;
+
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
-;;
+
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;;
+
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
@@ -32,8 +33,7 @@
 ;; Starting Speedbar:
 ;;
 ;;   If speedbar came to you as a part of Emacs, simply type
-;; `M-x speedbar', and it will be autoloaded for you. A "Speedbar"
-;; submenu will be added under "Tools".
+;; `M-x speedbar', and it will be autoloaded for you.
 ;;
 ;;   If speedbar is not a part of your distribution, then add
 ;; this to your .emacs file:
@@ -41,7 +41,7 @@
 ;;   (autoload 'speedbar-frame-mode "speedbar" "Popup a speedbar frame" t)
 ;;   (autoload 'speedbar-get-focus "speedbar" "Jump to speedbar frame" t)
 ;;
-;;   If you want to choose it from a menu, you can do this:
+;;   If you want to choose it from a menu, such as "Tools", you can do this:
 ;;
 ;;   Emacs:
 ;;   (define-key-after (lookup-key global-map [menu-bar tools])
@@ -88,7 +88,7 @@
 ;; done before speedbar is loaded.
 ;;
 ;;   To add new file types to imenu, see the documentation in the
-;; file imenu.el that comes with emacs.  To add new file types which
+;; file imenu.el that comes with Emacs.  To add new file types which
 ;; etags supports, you need to modify the variable
 ;; `speedbar-fetch-etags-parse-list'.
 ;;
@@ -101,7 +101,16 @@
 ;; The delay time before this happens is in
 ;; `speedbar-navigating-speed', and defaults to 10 seconds.
 ;;
-;;    Users XEmacs previous to 20 may want to change the default
+;;    To enable mouse tracking with information in the minibuffer of
+;; the attached frame, use the variable `speedbar-track-mouse-flag'.
+;;
+;;    Tag layout can be modified through `speedbar-tag-hierarchy-method',
+;; which controls how tags are layed out.  It is actually a list of
+;; functions that filter the data.  The default groups large tag lists
+;; into sub-lists.  A long flat list can be used instead if needed.
+;; Other filters could be easily added.
+;;
+;;    Users of XEmacs previous to 20 may want to change the default
 ;; timeouts for `speedbar-update-speed' to something longer as XEmacs
 ;; doesn't have idle timers, the speedbar timer keeps going off
 ;; arbitrarily while you're typing.  It's quite pesky.
@@ -111,10 +120,6 @@
 ;; display after changing directories.  Remember, do not interrupt the
 ;; stealthy updates or your display may not be completely refreshed.
 ;;
-;;    See optional file `speedbspec.el' for additional configurations
-;; which allow speedbar to create specialized lists for special modes
-;; that are not file-related.
-;;
 ;;    AUC-TEX users: The imenu tags for AUC-TEX mode don't work very
 ;; well.  Use the imenu keywords from tex-mode.el for better results.
 ;;
@@ -122,211 +127,90 @@
 ;; and the package custom (for easy configuration of speedbar)
 ;;     http://www.dina.kvl.dk/~abraham/custom/
 ;;
-;; If you do not have custom installed, you can still get face colors
-;; by modifying the faces directly in your .emacs file, or setting
-;; them in your .Xdefaults file.
-;; Here is an example .Xdefaults for a dark background:
+;;; Developing for speedbar
 ;;
-;; emacs*speedbar-button-face.attributeForeground:	Aquamarine
-;; emacs*speedbar-selected-face.attributeForeground:	red
-;; emacs*speedbar-selected-face.attributeUnderline:	true
-;; emacs*speedbar-directory-face.attributeForeground:	magenta
-;; emacs*speedbar-file-face.attributeForeground:	green3
-;; emacs*speedbar-highlight-face.attributeBackground:	sea green
-;; emacs*speedbar-tag-face.attributeForeground:		yellow
-
-;;; Speedbar updates can be found at:
-;; ftp://ftp.ultranet.com/pub/zappo/speedbar*.tar.gz
+;; Adding a speedbar specialized display mode:
 ;;
-
-;;; Change log:
-;; 0.1   Initial Revision
-;; 0.2   Fixed problem with x-pointer-shape causing future frames not
-;;         to be created.
-;;       Fixed annoying habit of `speedbar-update-contents' to make
-;;         it possible to accidentally kill the speedbar buffer.
-;;       Clicking directory names now only changes the contents of
-;;         the speedbar, and does not cause a dired mode to appear.
-;;         Clicking the <+> next to the directory does cause dired to
-;;         be run.
-;;       Added XEmacs support, which means timer support moved to a
-;;         platform independant call.
-;;       Added imenu support.  Now modes are supported by imenu
-;;         first, and etags only if the imenu call doesn't work.
-;;         Imenu is a little faster than etags, and is more emacs
-;;         friendly.
-;;       Added more user control variables described in the commentary.
-;;       Added smart recentering when nodes are opened and closed.
-;; 0.3   x-pointer-shape fixed for emacs 19.35, so I put that check in.
-;;       Added invisible codes to the beginning of each line.
-;;       Added list aproach to node expansion for easier addition of new
-;;         types of things to expand by
-;;       Added multi-level path name support
-;;       Added multi-level tag name support.
-;;       Only mouse-2 is now used for node expansion
-;;       Added keys e + - to edit expand, and contract node lines
-;;       Added longer legal file regexp for all those modes which support
-;;         imenu. (pascal, fortran90, ada, pearl)
-;;       Added pascal support to etags from Dave Penkler <dave_penkler@grenoble.hp.com>
-;;       Fixed centering algorithm
-;;       Tried to choose background independent colors.  Made more robust.
-;;       Rearranged code into a more logical order
-;; 0.3.1 Fixed doc & broken keybindings
-;;       Added mode hooks.
-;;       Improved color selection to be background mode smart
-;;       `nil' passed to `speedbar-frame-mode' now toggles the frame as
-;;         advertised in the doc string
-;; 0.4a  Added modified patch from Dan Schmidt <dfan@lglass.com> allowing a
-;;         directory cache to be maintained speeding up revisiting of files.
-;;       Default raise-lower behavior is now off by default.
-;;       Added some menu items for edit expand and contract.
-;;       Pre 19.31 emacsen can run without idle timers.
-;;       Added some patch information from Farzin Guilak <farzin@protocol.com>
-;;         adding xemacs specifics, and some etags upgrades.
-;;       Added ability to set a faces symbol-value to a string
-;;         representing the desired foreground color.  (idea from
-;;         Farzin Guilak, but implemented differently)
-;;       Fixed problem with 1 character buttons.
-;;       Added support for new Imenu marker technique.
-;;       Added `speedbar-load-hooks' for things to run only once on
-;;         load such as updating one of the many lists.
-;;       Added `speedbar-supported-extension-expressions' which is a
-;;         list of extensions that speedbar will tag.  This variable
-;;         should only be updated with `speedbar-add-supported-extension'
-;;       Moved configure dialog support to a separate file so
-;;         speedbar is not dependant on eieio to run
-;;       Fixed list-contraction problem when the item was at the end
-;;         of a sublist.
-;;       Fixed XEmacs multi-frame timer selecting bug problem.
-;;       Added `speedbar-ignored-modes' which is a list of major modes
-;;         speedbar will not follow when it is displayed in the selected frame
-;; 0.4   When the file being edited is not in the list, and is a file
-;;         that should be in the list, the speedbar cache is replaced.
-;;       Temp buffers are now shown in the attached frame not the
-;;         speedbar frame
-;;       New variables `speedbar-vc-*' and `speedbar-stealthy-function-list'
-;;         added.  `speedbar-update-current-file' is now a member of
-;;         the stealthy list.  New function `speedbar-check-vc' will
-;;         examine each file and mark it if it is checked out.  To
-;;         add new version control types, override the function
-;;         `speedbar-this-file-in-vc' and `speedbar-vc-check-dir-p'.
-;;         The stealth list is interruptible so that long operations
-;;         do not interrupt someones editing flow.  Other long
-;;         speedbar updates will be added to the stealthy list in the
-;;         future should interesting ones be needed.
-;;       Added many new functions including:
-;;         `speedbar-item-byte-compile' `speedbar-item-load'
-;;         `speedbar-item-copy' `speedbar-item-rename' `speedbar-item-delete'
-;;         and `speedbar-item-info'
-;;       If the user kills the speedbar buffer in some way, the frame will
-;;         be removed.
-;; 0.4.1 Bug fixes
-;;       <mark.jeffries@nomura.co.uk> added `speedbar-update-flag',
-;;         XEmacs fixes for menus, and tag sorting, and quit key.
-;;       Modeline now updates itself based on window-width.
-;;       Frame is cached when closed to make pulling it up again faster.
-;;       Speedbars window is now marked as dedicated.
-;;       Added bindings: <grossjoh@charly.informatik.uni-dortmund.de>
-;;       Long directories are now span multiple lines autmoatically
-;;       Added `speedbar-directory-button-trim-method' to specify how to
-;;         sorten the directory button to fit on the screen.
-;; 0.4.2 Add one level of full-text cache.
-;;       Add `speedbar-get-focus' to switchto/raise the speedbar frame.
-;;       Editing thing-on-line will auto-raise the attached frame.
-;;       Bound `U' to `speedbar-up-directory' command.
-;;       Refresh will now maintain all subdirectories that were open
-;;        when the refresh was requested.  (This does not include the
-;;        tags, only the directories)
-;; 0.4.3 Bug fixes
-;; 0.4.4 Added `speedbar-ignored-path-expressions' and friends.
-;;       Configuration menu items not displayed if dialog-mode not present
-;;       Speedbar buffer now starts with a space, and is not deleted
-;;        ewhen the speedbar frame is closed.  This prevents the invisible
-;;        frame from preventing buffer switches with other buffers.
-;;       Fixed very bad bug in the -add-[extension|path] functions.
-;;       Added `speedbar-find-file-in-frame' which will always pop up a frame
-;;        that is already display a buffer selected in the speedbar buffer.
-;;       Added S-mouse2 as "power click" for always poping up a new frame.
-;;        and always rescanning with imenu (ditching the imenu cache), and
-;;        always rescanning directories.
-;; 0.4.5 XEmacs bugfixes and enhancements.
-;;       Window Title simplified.
-;; 0.4.6 Fixed problems w/ dedicated minibuffer frame.
-;;       Fixed errors reported by checkdoc.
-;; 0.5   Mode-specific contents added.  Controlled w/ the variable
-;;         `speedbar-mode-specific-contents-flag'.  See speedbspec
-;;         for info on enabling this feature.
-;;       `speedbar-load-hook' name change and pointer check against
-;;         major-mode.  Suggested by Sam Steingold <sds@ptc.com>
-;;       Quit auto-selects the attached frame.
-;;       Ranamed `speedbar-do-updates' to `speedbar-update-flag'
-;;       Passes checkdoc.
-;; 0.5.1 Advice from ptype@dra.hmg.gb:
-;;          Use `post-command-idle-hook' in older emacsen
-;;         `speedbar-sort-tags' now works with imenu.
-;;          Unknown files (marked w/ ?) can now be operated on w/
-;;            file commands.
-;;       `speedbar-vc-*-hook's for easilly adding new version control systems.
-;;       Checkin/out w/ vc will reset the scanners and update the * marker.
-;;       Fixed ange-ftp require compile time problem.
-;;       Fixed XEmacs menu bar bug.
-;;       Added `speedbar-activity-change-focus-flag' to control if the
-;;         focus changes w/ mouse events.
-;;       Added `speedbar-sort-tags' toggle to the menubar.
-;;       Added `speedbar-smart-directory-expand-flag' to toggle how
-;;         new directories might be inserted into the speedbar hierarchy.
-;;       Added `speedbar-visiting-[tag|file]hook' which is called whenever
-;;         speedbar pulls up a file or tag in the attached frame.  Setting
-;;         this to `reposition-window' will do nice things to function tags.
-;;       Fixed text-cache default-directory bug.
-;;       Emacs 20 char= support.
-;; 0.5.2 Customization
-;;         For older emacsen, you will need to download the new defcustom
-;;         package to get nice faces for speedbar
-;;       mouse1 Double-click is now the same as middle click.
-;;       No mouse pointer shape stuff for XEmacs (is there any?)
-;; 0.5.3 Regressive support for non-custom enabled emacsen.
-;;       Fixed serious problem w/ 0.5.2 and ignored paths.
-;;       `condition-case' no longer used in timer fcn.
-;;       `speedbar-edit-line' is now smarter w/ special modes.
-;; 0.5.4 Fixed more problems for Emacs 20 so speedbar loads correctly.
-;;       Updated some documentation strings.
-;;       Added customization menu item, and customized some more variables.
-;; 0.5.5 Fixed so that there can be no ignored paths
-;;       Added .l & .lsp as lisp, suggested by: sshteingold@cctrading.com
-;;       You can now adjust height in `speedbar-frame-parameters'
-;;       XEmacs fix for use of `local-variable-p'
-;; 0.5.6 Folded in XEmacs suggestions from Hrvoje Niksic <hniksic@srce.hr>
-;;         Several custom changes (group definitions, trim-method & others)
-;;         Keymap changes, and ways to add menu items.
-;;         Timer use changes for XEmacs 20.4
-;;         Regular expression enhancements.
-;; 0.6   Fixed up some frame definition stuff, use more convenience fns.
-;;       Rehashed frame creation code for better compatibility.
-;;       Fixed setting of kill-buffer hook.
-;;       Default speedbar has no menubar, mouse-3 is popup menu,
-;;       XEmacs double-click capability (Hrvoje Niksic <hniksic@srce.hr>)
-;;       General documentation fixup.
-;; 0.6.1 Fixed button-3 menu for Emacs 20.
-;; 0.6.2 Added autoload tag to `speedbar-get-focus'
+;; Speedbar can be configured to create a special display for certain
+;; modes that do not display tradition file/tag data.  Rmail, Info,
+;; and the debugger are examples.  These modes can, however, benefit
+;; from a speedbar style display in their own way.
+;;
+;; If your `major-mode' is `foo-mode', the only requirement is to
+;; create a function called `foo-speedbar-buttons' which takes one
+;; argument, BUFFER.  BUFFER will be the buffer speedbar wants filled.
+;; In `foo-speedbar-buttons' there are several functions that make
+;; building a speedbar display easy.  See the documentation for
+;; `speedbar-with-writable' (needed because the buffer is usually
+;; read-only) `speedbar-make-tag-line', `speedbar-insert-button', and
+;; `speedbar-insert-generic-list'.  If you use
+;; `speedbar-insert-generic-list', also read the doc for
+;; `speedbar-tag-hierarchy-method' in case you wish to override it.
+;; The function `speedbar-with-attached-buffer' brings you back to the
+;; buffer speedbar is displaying for.
+;;
+;; For those functions that make buttons, the "function" should be a
+;; symbol that is the function to call when clicked on.  The "token"
+;; is extra data you can pass along.  The "function" must take three
+;; parameters.  They are (TEXT TOKEN INDENT).  TEXT is the text of the
+;; button clicked on.  TOKEN is the data passed in when you create the
+;; button.  INDENT is an indentation level, or 0.  You can store
+;; indentation levels with `speedbar-make-tag-line' which creates a
+;; line with an expander (eg.  [+]) and a text button.
+;;
+;; Some useful functions when writing expand functions, and click
+;; functions are `speedbar-change-expand-button-char',
+;; `speedbar-delete-subblock', and `speedbar-center-buffer-smartly'.
+;; The variable `speedbar-power-click' is set to t in your functions
+;; when the user shift-clicks.  This indications anything from
+;; refreshing cached data to making a buffer appear in a new frame.
+;;
+;; If you wish to add to the default speedbar menu for the case of
+;; `foo-mode', create a variable `foo-speedbar-menu-items'.  This
+;; should be a list compatible with the `easymenu' package.  It will
+;; be spliced into the main menu.  (Available with click-mouse-3).  If
+;; you wish to have extra key bindings in your special mode, create a
+;; variable `foo-speedbar-key-map'.  Instead of using `make-keymap',
+;; or `make-sparse-keymap', use the function
+;; `speedbar-make-specialized-keymap'.  This lets you inherit all of
+;; speedbar's default bindings with low overhead.
+;;
+;; Adding a speedbar top-level display mode:
+;;
+;; Unlike the specialized modes, there are no name requirements,
+;; however the methods for writing a button display, menu, and keymap
+;; are the same.  Once you create these items, you can call the
+;; function `speedbar-add-expansion-list'.  It takes one parameter
+;; which is a list element of the form (NAME MENU KEYMAP &rest
+;; BUTTON-FUNCTIONS).  NAME is a string that will show up in the
+;; Displays menu item.  MENU is a symbol containing the menu items to
+;; splice in.  KEYMAP is a symbol holding the keymap to use, and
+;; BUTTON-FUNCTIONS are the function names to call, in order, to create
+;; the display.
 
 ;;; TODO:
 ;; - More functions to create buttons and options
-;; - filtering algorithms to reduce the number of tags/files displayed.
 ;; - Timeout directories we haven't visited in a while.
 ;; - Remeber tags when refreshing the display.  (Refresh tags too?)
 ;; - More 'special mode support.
-;; - C- Mouse 3 menu too much indirection
 
 (require 'assoc)
 (require 'easymenu)
+
+(defvar speedbar-xemacsp (string-match "XEmacs" emacs-version)
+  "Non-nil if we are running in the XEmacs environment.")
+(defvar speedbar-xemacs20p (and speedbar-xemacsp
+				(= emacs-major-version 20)))
 
 ;; From custom web page for compatibility between versions of custom:
 (eval-and-compile
   (condition-case ()
       (require 'custom)
     (error nil))
-  (if (and (featurep 'custom) (fboundp 'custom-declare-variable))
+  (if (and (featurep 'custom) (fboundp 'custom-declare-variable)
+	   ;; Some XEmacsen w/ custom don't have :set keyword.
+	   ;; This protects them against custom.
+	   (fboundp 'custom-initialize-set))
       nil ;; We've got what we needed
     ;; We have the old custom-library, hack around it!
     (defmacro defgroup (&rest args)
@@ -361,23 +245,51 @@
   :group 'speedbar)
 
 ;;; Code:
-(defvar speedbar-xemacsp (string-match "XEmacs" emacs-version)
-  "Non-nil if we are running in the XEmacs environment.")
-(defvar speedbar-xemacs20p (and speedbar-xemacsp (= emacs-major-version 20)))
+(defvar speedbar-initial-expansion-mode-alist
+  '(("buffers" speedbar-buffer-easymenu-definition speedbar-buffers-key-map
+     speedbar-buffer-buttons)
+    ("quick buffers" speedbar-buffer-easymenu-definition speedbar-buffers-key-map
+     speedbar-buffer-buttons-temp)
+    ;; Files last, means first in the Displays menu
+    ("files" speedbar-easymenu-definition-special speedbar-file-key-map
+     speedbar-directory-buttons speedbar-default-directory-list)
+    )
+  "List of named expansion elements for filling the speedbar frame.
+These expansion lists are only valid for regular files.  Special modes
+still get to override this list on a mode-by-mode basis.  This list of
+lists is of the form (NAME MENU KEYMAP FN1 FN2 ...).  NAME is a string
+representing the types of things to be displayed.  MENU is an easymenu
+structure used when in this mode.  KEYMAP is a local keymap to install
+over the regular speedbar keymap.  FN1 ...  are functions that will be
+called in order.  These functions will always get the default
+directory to use passed in as the first parameter, and a 0 as the
+second parameter.  The 0 indicates the uppermost indentation level.
+They must assume that the cursor is at the position where they start
+inserting buttons.")
 
-(defvar speedbar-initial-expansion-list
-  '(speedbar-directory-buttons speedbar-default-directory-list)
-  "List of functions to call to fill in the speedbar buffer.
-Whenever a top level update is issued all functions in this list are
-run.  These functions will always get the default directory to use
-passed in as the first parameter, and a 0 as the second parameter.
-The 0 indicates the uppermost indentation level.  They must assume
-that the cursor is at the position where they start inserting
-buttons.")
+(defcustom speedbar-initial-expansion-list-name "files"
+  "A symbol name representing the expansion list to use.
+The expansion list `speedbar-initial-expansion-mode-alist' contains
+the names and associated functions to use for buttons in speedbar."
+  :group 'speedbar
+  :type '(radio (const :tag "File Directorys" file)
+	       ))
+
+(defvar speedbar-previously-used-expansion-list-name "files"
+  "Save the last expansion list method.
+This is used for returning to a previous expansion list method when
+the user is done with the current expansion list.")
 
 (defvar speedbar-stealthy-function-list
-  '(speedbar-update-current-file speedbar-check-vc)
+  '(("files"
+     speedbar-update-current-file speedbar-check-vc speedbar-check-objects)
+    )
   "List of functions to periodically call stealthily.
+This list is of the form:
+ '( (\"NAME\" FUNCTION ...)
+    ...)
+where NAME is the name of the major display mode these functions are
+for, and the remaining elements FUNCTION are functions to call in order.
 Each function must return nil if interrupted, or t if completed.
 Stealthy functions which have a single operation should always return
 t.  Functions which take a long time should maintain a state (where
@@ -392,16 +304,16 @@ frame."
   :type 'boolean)
 
 (defvar speedbar-special-mode-expansion-list nil
-  "Mode specific list of functions to call to fill in speedbar.
-Some modes, such as Info or RMAIL, do not relate quite as easily into
-a simple list of files.  When this variable is non-nil and buffer-local,
-then these functions are used, creating specialized contents.  These
-functions are called each time the speedbar timer is called.  This
-allows a mode to update its contents regularly.
+  "Default function list for creating specialized button lists.
+This list is set by modes that wish to have special speedbar displays.
+The list is of function names.  Each function is called with one
+parameter BUFFER, the originating buffer.  The current buffer is the
+speedbar buffer.")
 
-  Each function is called with the default and frame belonging to
-speedbar, and with one parameter; the buffer requesting
-the speedbar display.")
+(defvar speedbar-special-mode-key-map nil
+  "Default keymap used when identifying a specialized display mode.
+This keymap is local to each buffer that wants to define special keybindings
+effective when it's display is shown.")
 
 (defcustom speedbar-visiting-file-hook nil
   "Hooks run when speedbar visits a file in the selected frame."
@@ -436,7 +348,10 @@ relevant to the buffer you are currently editing."
   :group 'speedbar
   :type 'integer)
 
-(defcustom speedbar-navigating-speed 10
+;; When I moved to a repeating timer, I had the horrible missfortune
+;; of loosing the ability for adaptive speed choice.  This update
+;; speed currently causes long delays when it should have been turned off.
+(defcustom speedbar-navigating-speed speedbar-update-speed
   "*Idle time to wait after navigation commands in speedbar are executed.
 Navigation commands included expanding/contracting nodes, and moving
 between different directories."
@@ -483,10 +398,50 @@ use etags instead.  Etags support is not as robust as imenu support."
   :group 'speedbar
   :type 'boolean)
 
-(defcustom speedbar-sort-tags nil
-  "*If Non-nil, sort tags in the speedbar display."
+(defcustom speedbar-track-mouse-flag t
+  "*Non-nil means to display info about the line under the mouse."
   :group 'speedbar
   :type 'boolean)
+
+(defcustom speedbar-sort-tags nil
+  "*If Non-nil, sort tags in the speedbar display.  *Obsolete*."
+  :group 'speedbar
+  :type 'boolean)
+
+(defcustom speedbar-tag-hierarchy-method
+  '(prefix-group trim-words)
+  "*List of methods which speedbar will use to organize tags into groups.
+Groups are defined as expandable meta-tags.  Imenu supports such
+things in some languages, such as separating variables from functions.
+Available methods are:
+  sort         - Sort tags.  (sometimes unnecessary)
+  trim-words   - Trim all tags by a common prefix, broken @ word sections.
+  prefix-group - Try to guess groups by prefix.
+  simple-group - If imenu already returned some meta groups, stick all
+                 tags that are not in a group into a sub-group."
+  :group 'speedbar
+  :type '(repeat
+	  (radio
+	   (const :tag "Sort the tags." sort)
+	   (const :tag "Trim words to common prefix." trim-words)
+	   (const :tag "Create groups from common prefixes." prefix-group)
+	   (const :tag "Group loose tags into their own group." simple-group))
+	  ))
+
+(defcustom speedbar-tag-split-minimum-length 20
+  "*Minimum length before we stop trying to create sub-lists in tags.
+This is used by all tag-hierarchy methods that break large lists into
+sub-lists."
+  :group 'speedbar
+  :type 'integer)
+
+(defcustom speedbar-tag-regroup-maximum-length 10
+  "*Maximum length of submenus that are regrouped.
+If the regrouping option is used, then if two or more short subgroups
+are next to each other, then they are combined until this number of
+items is reached."
+  :group 'speedbar
+  :type 'integer)
 
 (defcustom speedbar-activity-change-focus-flag nil
   "*Non-nil means the selected frame will change based on activity.
@@ -518,6 +473,9 @@ hierarchy would be replaced with the new directory."
   :group 'speedbar
   :type 'boolean)
 
+(defvar speedbar-hide-button-brackets-flag nil
+  "*Non-nil means speedbar will hide the brackets around the + or -.")
+
 (defcustom speedbar-before-popup-hook nil
   "*Hooks called before popping up the speedbar frame."
   :group 'speedbar
@@ -545,24 +503,20 @@ verbosity."
   :group 'speedbar
   :type 'integer)
 
+(defvar speedbar-indicator-separator " "
+  "String separating file text from indicator characters.")
+
 (defcustom speedbar-vc-do-check t
   "*Non-nil check all files in speedbar to see if they have been checked out.
 Any file checked out is marked with `speedbar-vc-indicator'"
   :group 'speedbar-vc
   :type 'boolean)
 
-(defvar speedbar-vc-indicator " *"
+(defvar speedbar-vc-indicator "*"
   "Text used to mark files which are currently checked out.
 Currently only RCS is supported.  Other version control systems can be
 added by examining the function `speedbar-this-file-in-vc' and
 `speedbar-vc-check-dir-p'")
-
-(defcustom speedbar-scanner-reset-hook nil
-  "*Hook called whenever generic scanners are reset.
-Set this to implement your own scanning / rescan safe functions with
-state data."
-  :group 'speedbar
-  :type 'hook)
 
 (defcustom speedbar-vc-path-enable-hook nil
   "*Return non-nil if the current path should be checked for Version Control.
@@ -581,13 +535,56 @@ current file, and the FILENAME of the file being checked."
 (defvar speedbar-vc-to-do-point nil
   "Local variable maintaining the current version control check position.")
 
+(defcustom speedbar-obj-do-check t
+  "*Non-nil check all files in speedbar to see if they have an object file.
+Any file checked out is marked with `speedbar-obj-indicator', and the
+marking is based on  `speedbar-obj-alist'"
+  :group 'speedbar-vc
+  :type 'boolean)
+
+(defvar speedbar-obj-to-do-point nil
+  "Local variable maintaining the current version control check position.")
+
+(defvar speedbar-obj-indicator '("#" . "!")
+  "Text used to mark files that have a corresponding hidden object file.
+The car is for an up-to-date object.  The cdr is for an out of date object.
+The expression `speedbar-obj-alist' defines who gets tagged.")
+
+(defvar speedbar-obj-alist
+  '(("\\.\\([cpC]\\|cpp\\|cc\\)$" . ".o")
+    ("\\.el$" . ".elc")
+    ("\\.java$" . ".class")
+    ("\\.f\\(or\\|90\\|77\\)?$" . ".o")
+    ("\\.tex$" . ".dvi")
+    ("\\.texi$" . ".info"))
+  "Alist of file extensions, and their corresponding object file type.")
+
+(defvar speedbar-indicator-regex
+  (concat (regexp-quote speedbar-indicator-separator)
+	  "\\("
+	  (regexp-quote speedbar-vc-indicator)
+	  "\\|"
+	  (regexp-quote (car speedbar-obj-indicator))
+	  "\\|"
+	  (regexp-quote (cdr speedbar-obj-indicator))
+	  "\\)*")
+  "Regular expression used when identifying files.
+Permits stripping of indicator characters from a line.")
+
+(defcustom speedbar-scanner-reset-hook nil
+  "*Hook called whenever generic scanners are reset.
+Set this to implement your own scanning / rescan safe functions with
+state data."
+  :group 'speedbar
+  :type 'hook)
+
 (defvar speedbar-ignored-modes nil
   "*List of major modes which speedbar will not switch directories for.")
 
 (defun speedbar-extension-list-to-regex (extlist)
   "Takes EXTLIST, a list of extensions and transforms it into regexp.
-All the preceding . are stripped for an optimized expression starting
-with . followed by extensions, followed by full-filenames."
+All the preceding `.' are stripped for an optimized expression starting
+with `.' followed by extensions, followed by full-filenames."
   (let ((regex1 nil) (regex2 nil))
     (while extlist
       (if (= (string-to-char (car extlist)) ?.)
@@ -625,6 +622,13 @@ before speedbar has been loaded."
 	       speedbar-ignored-path-regexp
 	       (speedbar-extension-list-to-regex val))))
 
+(defcustom speedbar-directory-unshown-regexp "^\\(CVS\\|RCS\\|SCCS\\)\\'"
+  "*Regular expression matching directories not to show in speedbar.
+They should include commonly existing directories which are not
+useful, such as version control."
+  :group 'speedbar
+  :type 'string)
+
 (defvar speedbar-file-unshown-regexp
   (let ((nstr "") (noext completion-ignored-extensions))
     (while noext
@@ -638,10 +642,13 @@ It is generated from the variable `completion-ignored-extensions'")
 ;; this is dangerous to customize, because the defaults will probably
 ;; change in the future.
 (defcustom speedbar-supported-extension-expressions
-  (append '(".[CcHh]\\(\\+\\+\\|pp\\|c\\|h\\)?" ".tex\\(i\\(nfo\\)?\\)?"
-	    ".el" ".emacs" ".l" ".lsp" ".p" ".java")
+  (append '(".[ch]\\(\\+\\+\\|pp\\|c\\|h\\|xx\\)?" ".tex\\(i\\(nfo\\)?\\)?"
+	    ".el" ".emacs" ".l" ".lsp" ".p" ".java" ".f\\(90\\|77\\|or\\)?")
 	  (if speedbar-use-imenu-flag
-	      '(".f90" ".ada" ".pl" ".tcl" ".m"
+	      '(".ada" ".pl" ".tcl" ".m" ".scm" ".pm" ".py"
+		;; html is not supported by default, but an imenu tags package
+		;; is available.  Also, html files are nice to be able to see.
+		".s?html"
 		"Makefile\\(\\.in\\)?")))
   "*List of regular expressions which will match files supported by tagging.
 Do not prefix the `.' char with a double \\ to quote it, as the period
@@ -670,6 +677,7 @@ This should start with a `.' if it is not a complete file name, and
 the dot should NOT be quoted in with \\.  Other regular expression
 matchers are allowed however.  EXTENSION may be a single string or a
 list of strings."
+  (interactive "sExtionsion: ")
   (if (not (listp extension)) (setq extension (list extension)))
   (while extension
     (if (member (car extension) speedbar-supported-extension-expressions)
@@ -684,6 +692,7 @@ list of strings."
   "Add PATH-EXPRESSION as a new ignored path for speedbar tracking.
 This function will modify `speedbar-ignored-path-regexp' and add
 PATH-EXPRESSION to `speedbar-ignored-path-expressions'."
+  (interactive "sPath regex: ")
   (if (not (listp path-expression))
       (setq path-expression (list path-expression)))
   (while path-expression
@@ -702,9 +711,11 @@ PATH-EXPRESSION to `speedbar-ignored-path-expressions'."
 	  speedbar-ignored-path-regexp (speedbar-extension-list-to-regex
 					speedbar-ignored-path-expressions)))
 
-(defvar speedbar-update-flag (or (fboundp 'run-with-idle-timer)
-				 (fboundp 'start-itimer)
-				 (boundp 'post-command-idle-hook))
+(defvar speedbar-update-flag (and
+			      (or (fboundp 'run-with-idle-timer)
+				  (fboundp 'start-itimer)
+				  (boundp 'post-command-idle-hook))
+			      window-system)
   "*Non-nil means to automatically update the display.
 When this is nil then speedbar will not follow the attached frame's path.
 When speedbar is active, use:
@@ -727,7 +738,6 @@ to toggle this value.")
   (modify-syntax-entry ?[ " " speedbar-syntax-table)
   (modify-syntax-entry ?] " " speedbar-syntax-table))
 
-
 (defvar speedbar-key-map nil
   "Keymap used in speedbar buffer.")
 
@@ -737,37 +747,49 @@ to toggle this value.")
   (suppress-keymap speedbar-key-map t)
 
   ;; control
-  (define-key speedbar-key-map "e" 'speedbar-edit-line)
-  (define-key speedbar-key-map "\C-m" 'speedbar-edit-line)
-  (define-key speedbar-key-map "+" 'speedbar-expand-line)
-  (define-key speedbar-key-map "-" 'speedbar-contract-line)
   (define-key speedbar-key-map "g" 'speedbar-refresh)
   (define-key speedbar-key-map "t" 'speedbar-toggle-updates)
   (define-key speedbar-key-map "q" 'speedbar-close-frame)
-  (define-key speedbar-key-map "U" 'speedbar-up-directory)
 
   ;; navigation
   (define-key speedbar-key-map "n" 'speedbar-next)
   (define-key speedbar-key-map "p" 'speedbar-prev)
+  (define-key speedbar-key-map "\M-n" 'speedbar-restricted-next)
+  (define-key speedbar-key-map "\M-p" 'speedbar-restricted-prev)
+  (define-key speedbar-key-map "\C-\M-n" 'speedbar-forward-list)
+  (define-key speedbar-key-map "\C-\M-p" 'speedbar-backward-list)
   (define-key speedbar-key-map " " 'speedbar-scroll-up)
   (define-key speedbar-key-map [delete] 'speedbar-scroll-down)
 
-  ;; After much use, I suddenly desired in my heart to perform dired
-  ;; style operations since the directory was RIGHT THERE!
-  (define-key speedbar-key-map "I" 'speedbar-item-info)
-  (define-key speedbar-key-map "B" 'speedbar-item-byte-compile)
-  (define-key speedbar-key-map "L" 'speedbar-item-load)
-  (define-key speedbar-key-map "C" 'speedbar-item-copy)
-  (define-key speedbar-key-map "D" 'speedbar-item-delete)
-  (define-key speedbar-key-map "R" 'speedbar-item-rename)
+  ;; Short cuts I happen to find useful
+  (define-key speedbar-key-map "r"
+    (lambda () (interactive)
+      (speedbar-change-initial-expansion-list
+       speedbar-previously-used-expansion-list-name)))
+  (define-key speedbar-key-map "b"
+    (lambda () (interactive)
+      (speedbar-change-initial-expansion-list "quick buffers")))
+  (define-key speedbar-key-map "f"
+    (lambda () (interactive)
+      (speedbar-change-initial-expansion-list "files")))
+
+  ;; Overrides
+  (substitute-key-definition 'switch-to-buffer
+			     'speedbar-switch-buffer-attached-frame
+			     speedbar-key-map global-map)
 
   (if speedbar-xemacsp
       (progn
 	;; mouse bindings so we can manipulate the items on each line
 	(define-key speedbar-key-map 'button2 'speedbar-click)
 	(define-key speedbar-key-map '(shift button2) 'speedbar-power-click)
-	(define-key speedbar-key-map 'button3 'speedbar-xemacs-popup-kludge)
-	(define-key speedbar-key-map '(meta button3) 'speedbar-mouse-item-info))
+	;; Info doc fix from Bob Weiner
+	(if (featurep 'infodoc)
+	    nil
+	  (define-key speedbar-key-map 'button3 'speedbar-xemacs-popup-kludge))
+	(define-key speedbar-key-map '(meta button3) 'speedbar-mouse-item-info)
+	)
+
     ;; mouse bindings so we can manipulate the items on each line
     (define-key speedbar-key-map [down-mouse-1] 'speedbar-double-click)
     (define-key speedbar-key-map [mouse-2] 'speedbar-click)
@@ -779,21 +801,47 @@ to toggle this value.")
 
     (define-key speedbar-key-map [down-mouse-3] 'speedbar-emacs-popup-kludge)
 
-    ;;***** Disable disabling: Remove menubar completely.
-    ;; disable all menus - we don't have a lot of space to play with
-    ;; in such a skinny frame.  This will cleverly find and nuke some
-    ;; user-defined menus as well if they are there.  Too bad it
-    ;; rely's on the structure of a keymap to work.
-;    (let ((k (lookup-key global-map [menu-bar])))
-;      (while k
-;        (if (and (listp (car k)) (listp (cdr (car k))))
-;	    (define-key speedbar-key-map (vector 'menu-bar (car (car k)))
-;	      'undefined))
-;	(setq k (cdr k))))
-
     ;; This lets the user scroll as if we had a scrollbar... well maybe not
     (define-key speedbar-key-map [mode-line mouse-2] 'speedbar-mouse-hscroll)
-    ))
+    ;; another handy place users might click to get our menu.
+    (define-key speedbar-key-map [mode-line down-mouse-1]
+      'speedbar-emacs-popup-kludge)
+
+    ;; Lastly, we want to track the mouse.  Play here
+    (define-key speedbar-key-map [mouse-movement] 'speedbar-track-mouse)
+   ))
+
+(defun speedbar-make-specialized-keymap ()
+  "Create a keymap for use w/ a speedbar major or minor display mode.
+This basically creates a sparse keymap, and makes it's parent be
+`speedbar-key-map'."
+  (let ((k (make-sparse-keymap)))
+    (set-keymap-parent k speedbar-key-map)
+    k))
+
+(defvar speedbar-file-key-map nil
+  "Keymap used in speedbar buffer while files are displayed.")
+
+(if speedbar-file-key-map
+    nil
+  (setq speedbar-file-key-map (speedbar-make-specialized-keymap))
+
+  ;; Basic tree features
+  (define-key speedbar-file-key-map "e" 'speedbar-edit-line)
+  (define-key speedbar-file-key-map "\C-m" 'speedbar-edit-line)
+  (define-key speedbar-file-key-map "+" 'speedbar-expand-line)
+  (define-key speedbar-file-key-map "-" 'speedbar-contract-line)
+
+  ;; file based commands
+  (define-key speedbar-file-key-map "U" 'speedbar-up-directory)
+  (define-key speedbar-file-key-map "I" 'speedbar-item-info)
+  (define-key speedbar-file-key-map "B" 'speedbar-item-byte-compile)
+  (define-key speedbar-file-key-map "L" 'speedbar-item-load)
+  (define-key speedbar-file-key-map "C" 'speedbar-item-copy)
+  (define-key speedbar-file-key-map "D" 'speedbar-item-delete)
+  (define-key speedbar-file-key-map "O" 'speedbar-item-object-delete)
+  (define-key speedbar-file-key-map "R" 'speedbar-item-rename)
+  )
 
 (defvar speedbar-easymenu-definition-base
   '("Speedbar"
@@ -807,39 +855,41 @@ to toggle this value.")
   '(["Edit Item On Line" speedbar-edit-line t]
     ["Show All Files" speedbar-toggle-show-all-files
      :style toggle :selected speedbar-show-unknown-files]
-    ["Expand Item" speedbar-expand-line
+    ["Expand File Tags" speedbar-expand-line
      (save-excursion (beginning-of-line)
 		     (looking-at "[0-9]+: *.\\+. "))]
-    ["Contract Item" speedbar-contract-line
+    ["Contract File Tags" speedbar-contract-line
      (save-excursion (beginning-of-line)
 		     (looking-at "[0-9]+: *.-. "))]
-    ["Sort Tags" speedbar-toggle-sorting
-     :style toggle :selected speedbar-sort-tags]
+;    ["Sort Tags" speedbar-toggle-sorting
+;     :style toggle :selected speedbar-sort-tags]
     "----"
-    ["Item Information" speedbar-item-info t]
+    ["File/Tag Information" speedbar-item-info t]
     ["Load Lisp File" speedbar-item-load
      (save-excursion
        (beginning-of-line)
-       (looking-at "[0-9]+: *\\[[+-]\\] .+\\(\\.el\\)\\( \\*\\)?$"))]
+       (looking-at "[0-9]+: *\\[[+-]\\] .+\\(\\.el\\)\\( \\|$\\)"))]
     ["Byte Compile File" speedbar-item-byte-compile
      (save-excursion
        (beginning-of-line)
-       (looking-at "[0-9]+: *\\[[+-]\\] .+\\(\\.el\\)\\( \\*\\)?$"))]
-    ["Copy Item" speedbar-item-copy
+       (looking-at "[0-9]+: *\\[[+-]\\] .+\\(\\.el\\)\\( \\|$\\)"))]
+    ["Copy File" speedbar-item-copy
      (save-excursion (beginning-of-line) (looking-at "[0-9]+: *\\["))]
-    ["Rename Item" speedbar-item-rename
+    ["Rename File" speedbar-item-rename
      (save-excursion (beginning-of-line) (looking-at "[0-9]+: *[[<]"))]
-    ["Delete Item" speedbar-item-delete
-     (save-excursion (beginning-of-line) (looking-at "[0-9]+: *[[<]"))])
+    ["Delete File" speedbar-item-delete
+     (save-excursion (beginning-of-line) (looking-at "[0-9]+: *[[<]"))]
+    ["Delete Object" speedbar-item-object-delete
+     (save-excursion (beginning-of-line)
+		     (looking-at "[0-9]+: *\\[[+-]\\] [^ \n]+ \\*?[!#]$"))]
+    )
   "Additional menu items while in file-mode.")
  
 (defvar speedbar-easymenu-definition-trailer
-  (if (and (featurep 'custom) (fboundp 'custom-declare-variable))
-      '("----"
-	["Customize..." speedbar-customize t]
-	["Close" speedbar-close-frame t])
-    '("----"
-      ["Close" speedbar-close-frame t]))
+  (list
+   (if (and (featurep 'custom) (fboundp 'custom-declare-variable))
+       ["Customize..." speedbar-customize t])
+   ["Close" speedbar-close-frame t])
   "Menu items appearing at the end of the speedbar menu.")
 
 (defvar speedbar-desired-buffer nil
@@ -890,21 +940,6 @@ supported at a time.
 `speedbar-before-popup-hook' is called before popping up the speedbar frame.
 `speedbar-before-delete-hook' is called before the frame is deleted."
   (interactive "P")
-  (if (if (and speedbar-xemacsp (fboundp 'console-on-window-system-p))
-	  (not (console-on-window-system-p))
-	(not (symbol-value 'window-system)))
-      (error "Speedbar is not useful outside of a windowing environment"))
-;;; RMS says this should not modify the menu.
-;  (if speedbar-xemacsp
-;      (add-menu-button '("Tools")
-;		       ["Speedbar" speedbar-frame-mode
-;			:style toggle
-;			:selected (and (boundp 'speedbar-frame)
-;				       (frame-live-p speedbar-frame)
-;				       (frame-visible-p speedbar-frame))]
-;		       "--")
-;    (define-key-after (lookup-key global-map [menu-bar tools])
-;      [speedbar] '("Speedbar" . speedbar-frame-mode) [calendar]))
   ;; toggle frame on and off.
   (if (not arg) (if (and (frame-live-p speedbar-frame)
 			 (frame-visible-p speedbar-frame))
@@ -956,7 +991,8 @@ supported at a time.
 					      (if speedbar-xemacsp
 						  (speedbar-needed-height)
 						(+ mh (frame-height))))))))
-		  (if (< emacs-major-version 20);;a bug is fixed in v20 & later
+		  (if (or (< emacs-major-version 20);;a bug is fixed in v20
+			  (not (eq window-system 'x)))
 		      (make-frame params)
 		    (let ((x-pointer-shape x-pointer-top-left-arrow)
 			  (x-sensitive-text-pointer-shape x-pointer-hand2))
@@ -981,10 +1017,15 @@ selected.  If the speedbar frame is active, then select the attached frame."
   (if (eq (selected-frame) speedbar-frame)
       (if (frame-live-p speedbar-attached-frame)
 	  (select-frame speedbar-attached-frame))
+    ;; If updates are off, then refresh the frame (they want it now...)
+    (if (not speedbar-update-flag)
+	(let ((speedbar-update-flag t))
+	  (speedbar-timer-fn)))
     ;; make sure we have a frame
     (if (not (frame-live-p speedbar-frame)) (speedbar-frame-mode 1))
     ;; go there
-    (select-frame speedbar-frame))
+    (select-frame speedbar-frame)
+    )
   (other-frame 0))
 
 (defun speedbar-close-frame ()
@@ -993,6 +1034,18 @@ selected.  If the speedbar frame is active, then select the attached frame."
   (speedbar-frame-mode -1)
   (select-frame speedbar-attached-frame)
   (other-frame 0))
+
+(defun speedbar-switch-buffer-attached-frame (&optional buffer)
+  "Switch to BUFFER in speedbar's attached frame, and raise that frame.
+This overrides the default behavior of `switch-to-buffer' which is
+broken because of the dedicated speedbar frame."
+  (interactive)
+  ;; Assume we are in the speedbar frame.
+  (speedbar-get-focus)
+  ;; Now switch buffers
+  (if buffer
+      (switch-to-buffer buffer)
+    (call-interactively 'switch-to-buffer nil nil)))
 
 (defmacro speedbar-frame-width ()
   "Return the width of the speedbar frame in characters.
@@ -1032,6 +1085,11 @@ version control system.  (currently only RCS is supported.)  New
 version control systems can be added by examining the documentation
 for `speedbar-this-file-in-vc' and `speedbar-vc-check-dir-p'
 
+Files with a `#' or `!' character after them are source files that
+have an object file associated with them.  The `!' indicates that the
+files is out of date.   You can control what source/object associations
+exist through the variable `speedbar-obj-alist'.
+
 Click on the [+] to display a list of tags from that file.  Click on
 the [-] to retract the list.  Click on the file name to edit the file
 in the attached frame.
@@ -1048,17 +1106,22 @@ in the selected file.
     (kill-all-local-variables)
     (setq major-mode 'speedbar-mode)
     (setq mode-name "Speedbar")
-    (use-local-map speedbar-key-map)
     (set-syntax-table speedbar-syntax-table)
     (setq font-lock-keywords nil) ;; no font-locking please
     (setq truncate-lines t)
     (make-local-variable 'frame-title-format)
     (setq frame-title-format "Speedbar")
     ;; Set this up special just for the speedbar buffer
-    (if (null default-minibuffer-frame)
+    ;; Terminal minibuffer stuff does not require this.
+    (if (and window-system (null default-minibuffer-frame))
 	(progn
 	  (make-local-variable 'default-minibuffer-frame)
 	  (setq default-minibuffer-frame speedbar-attached-frame)))
+    ;; Correct use of `temp-buffer-show-function': Bob Weiner
+    (if (and (boundp 'temp-buffer-show-hook)
+	     (boundp 'temp-buffer-show-function))
+	(progn (make-local-variable 'temp-buffer-show-hook)
+	       (setq temp-buffer-show-hook temp-buffer-show-function)))
     (make-local-variable 'temp-buffer-show-function)
     (setq temp-buffer-show-function 'speedbar-temp-buffer-show-function)
     (if speedbar-xemacsp
@@ -1088,11 +1151,28 @@ in the selected file.
 						   (speedbar-frame-mode -1)))))
 	      t t)
     (speedbar-set-mode-line-format)
-    (if (not speedbar-xemacsp)
-	(setq auto-show-mode nil))	;no auto-show for Emacs
+    (if speedbar-xemacsp
+	(progn
+	  (make-local-variable 'mouse-motion-handler)
+	  (setq mouse-motion-handler 'speedbar-track-mouse-xemacs))
+      (if speedbar-track-mouse-flag
+	  (progn
+	    (make-local-variable 'track-mouse)
+	    (setq track-mouse t)))	;this could be messy.
+      (setq auto-show-mode nil))	;no auto-show for Emacs
     (run-hooks 'speedbar-mode-hook))
   (speedbar-update-contents)
   speedbar-buffer)
+
+(defun speedbar-show-info-under-mouse (&optional event)
+  "Call the info function for the line under the mouse.
+Optional EVENT is currently not used."
+  (let ((pos (mouse-position)))  ; we ignore event until I use it later.
+    (if (equal (car pos) speedbar-frame)
+	(save-excursion
+	  (save-window-excursion
+	    (apply 'set-mouse-position pos)
+	    (speedbar-item-info))))))
 
 (defun speedbar-set-mode-line-format ()
   "Set the format of the mode line based on the current speedbar environment.
@@ -1132,34 +1212,71 @@ redirected into a window on the attached frame."
   (if speedbar-attached-frame (select-frame speedbar-attached-frame))
   (pop-to-buffer buffer nil)
   (other-window -1)
-  (run-hooks 'temp-buffer-show-hook))
+  ;; Fix for using this hook: Bob Weiner
+  (cond ((fboundp 'run-hook-with-args)
+	 (run-hook-with-args 'temp-buffer-show-hook buffer))
+	((and (boundp 'temp-buffer-show-hook)
+	      (listp temp-buffer-show-hook))
+	 (mapcar (function (lambda (hook) (funcall hook buffer)))
+		 temp-buffer-show-hook))))
 
-(defun speedbar-reconfigure-menubar ()
+(defun speedbar-reconfigure-keymaps ()
   "Reconfigure the menu-bar in a speedbar frame.
 Different menu items are displayed depending on the current display mode
 and the existence of packages."
-  (let ((md (append speedbar-easymenu-definition-base
-		    (if speedbar-shown-directories
-			;; file display mode version
-			speedbar-easymenu-definition-special
-		      (save-excursion
-			(select-frame speedbar-attached-frame)
-			(if (local-variable-p
-			     'speedbar-easymenu-definition-special
-			     (current-buffer))
-			    ;; If bound locally, we can use it
-			    speedbar-easymenu-definition-special)))
-		    ;; The trailer
-		    speedbar-easymenu-definition-trailer)))
-    (easy-menu-define speedbar-menu-map speedbar-key-map "Speedbar menu" md)
-    (if speedbar-xemacsp
-	(save-excursion
-	  (set-buffer speedbar-buffer)
-	  ;; For the benefit of button3
-	  (if (and (not (assoc "Speedbar" mode-popup-menu)))
-	      (easy-menu-add md))
-	  (set-buffer-menubar (list md)))
-      (easy-menu-add md))))
+  (let ((md (append
+	     speedbar-easymenu-definition-base
+	     (if speedbar-shown-directories
+		 ;; file display mode version
+		 (speedbar-initial-menu)
+	       (save-excursion
+		 (select-frame speedbar-attached-frame)
+		 (if (local-variable-p
+		      'speedbar-easymenu-definition-special
+		      (current-buffer))
+		     ;; If bound locally, we can use it
+		     speedbar-easymenu-definition-special)))
+	     ;; Dynamic menu stuff
+	     '("-")
+	    (list (cons "Displays"
+			(let ((displays nil)
+			      (alist speedbar-initial-expansion-mode-alist))
+			  (while alist
+			    (setq displays
+				  (cons
+				   (vector
+				    (capitalize (car (car alist)))
+				    (list
+				     'speedbar-change-initial-expansion-list
+				     (car (car alist)))
+				    t)
+				   displays))
+			    (setq alist (cdr alist)))
+			  displays)))
+	    ;; The trailer
+	    speedbar-easymenu-definition-trailer))
+	(localmap (save-excursion
+		    (let ((cf (selected-frame)))
+		      (prog2
+			  (select-frame speedbar-attached-frame)
+			  (if (local-variable-p
+			       'speedbar-special-mode-key-map
+			       (current-buffer))
+			      speedbar-special-mode-key-map)
+			(select-frame cf))))))
+    (save-excursion
+      (set-buffer speedbar-buffer)
+      (use-local-map (or localmap
+			 (speedbar-initial-keymap)
+			 ;; This creates a small keymap we can glom the
+			 ;; menu adjustments into.
+			 (speedbar-make-specialized-keymap)))
+      (if (not speedbar-xemacsp)
+	  (easy-menu-define speedbar-menu-map (current-local-map)
+			    "Speedbar menu" md)
+	(if (and (not (assoc "Speedbar" mode-popup-menu)))
+	    (easy-menu-add md (current-local-map)))
+	(set-buffer-menubar (list md))))))
 
 
 ;;; User Input stuff
@@ -1195,6 +1312,34 @@ mode-line.  This is only useful for non-XEmacs"
     (select-frame sf))
   (speedbar-maybee-jump-to-attached-frame))
 
+(defun speedbar-track-mouse (event)
+  "For motion EVENT, display info about the current line."
+  (interactive "e")
+  (if (not speedbar-track-mouse-flag)
+      nil
+    (save-excursion
+      (let ((char (nth 1 (car (cdr event)))))
+	(if (not (numberp char))
+	    (message nil)
+	  (goto-char char)
+	  ;; (message "%S" event)
+	  (speedbar-item-info)
+	  )))))
+
+(defun speedbar-track-mouse-xemacs (event)
+  "For motion EVENT, display info about the current line."
+  (if (functionp (default-value 'mouse-motion-handler))
+      (funcall (default-value 'mouse-motion-handler) event))
+  (if speedbar-track-mouse-flag
+      (save-excursion
+	(save-window-excursion
+	  (condition-case ()
+	      (progn (mouse-set-point event)
+		     ;; Prevent focus-related bugs.
+		     (if (eq major-mode 'speedbar-mode)
+			 (speedbar-item-info)))
+	    (error nil))))))
+
 ;; In XEmacs, we make popup menus work on the item over mouse (as
 ;; opposed to where the point happens to be.)  We attain this by
 ;; temporarily moving the point to that place.
@@ -1203,6 +1348,7 @@ mode-line.  This is only useful for non-XEmacs"
   "Pop up a menu related to the clicked on item.
 Must be bound to EVENT."
   (interactive "e")
+  (select-frame speedbar-frame)
   (save-excursion
     (goto-char (event-closest-point event))
     (beginning-of-line)
@@ -1241,6 +1387,82 @@ Must be bound to event E."
   (interactive "p")
   (speedbar-next (if arg (- arg) -1)))
 
+(defun speedbar-restricted-move (arg)
+  "Move to the next ARGth line in a speedbar buffer at the same depth.
+This means that movement is restricted to a subnode, and that siblings
+of intermediate nodes are skipped."
+  (if (not (numberp arg)) (signal 'wrong-type-argument (list arg 'numberp)))
+  ;; First find the extent for which we are allowed to move.
+  (let ((depth (save-excursion (beginning-of-line)
+			       (if (looking-at "[0-9]+:")
+				   (string-to-int (match-string 0))
+				 0)))
+	(crement (if (< arg 0) 1 -1)) ; decrement or increment
+	(lastmatch (point)))
+    (while (/= arg 0)
+      (forward-line (- crement))
+      (let ((subdepth (save-excursion (beginning-of-line)
+			       (if (looking-at "[0-9]+:")
+				   (string-to-int (match-string 0))
+				 0))))
+	(cond ((or (< subdepth depth)
+		   (progn (end-of-line) (eobp))
+		   (progn (beginning-of-line) (bobp)))
+	       ;; We have reached the end of this block.
+	       (goto-char lastmatch)
+	       (setq arg 0)
+	       (error "End of sub-list"))
+	      ((= subdepth depth)
+	       (setq lastmatch (point)
+		     arg (+ arg crement))))))
+    (speedbar-position-cursor-on-line)))
+
+(defun speedbar-restricted-next (arg)
+  "Move to the next ARGth line in a speedbar buffer at the same depth.
+This means that movement is restricted to a subnode, and that siblings
+of intermediate nodes are skipped."
+  (interactive "p")
+  (speedbar-restricted-move (or arg 1))
+  (speedbar-item-info))
+
+
+(defun speedbar-restricted-prev (arg)
+  "Move to the previous ARGth line in a speedbar buffer at the same depth.
+This means that movement is restricted to a subnode, and that siblings
+of intermediate nodes are skipped."
+  (interactive "p")
+  (speedbar-restricted-move (if arg (- arg) -1))
+  (speedbar-item-info))
+
+(defun speedbar-navigate-list (arg)
+  "Move across ARG groups of similarly typed items in speedbar.
+Stop on the first line of the next type of item, or on the last or first item
+if we reach a buffer boundary."
+  (interactive "p")
+  (beginning-of-line)
+  (if (looking-at "[0-9]+: *[[<{][-+?][]>}] ")
+      (let ((str (regexp-quote (match-string 0))))
+	(while (looking-at str)
+	  (speedbar-restricted-move arg)
+	  (beginning-of-line))))
+  (speedbar-position-cursor-on-line))
+
+(defun speedbar-forward-list ()
+  "Move forward over the current list.
+A LIST in speedbar is a group of similarly typed items, such as directories,
+files, or the directory button."
+  (interactive)
+  (speedbar-navigate-list 1)
+  (speedbar-item-info))
+
+(defun speedbar-backward-list ()
+  "Move backward over the current list.
+A LIST in speedbar is a group of similarly typed items, such as directories,
+files, or the directory button."
+  (interactive)
+  (speedbar-navigate-list -1)
+  (speedbar-item-info))
+
 (defun speedbar-scroll-up (&optional arg)
   "Page down one screen-full of the speedbar, or ARG lines."
   (interactive "P")
@@ -1274,10 +1496,14 @@ Assumes that the current buffer is the speedbar buffer"
   (speedbar-stealthy-updates)
   ;; Reset the timer in case it got really hosed for some reason...
   (speedbar-set-timer speedbar-update-speed)
-  (if (<= 1 speedbar-verbosity-level) (message "Refreshing speedbar...done")))
+  (if (<= 1 speedbar-verbosity-level)
+      (progn
+	(message "Refreshing speedbar...done")
+	(sit-for 0)
+	(message nil))))
 
 (defun speedbar-item-load ()
-  "Load the item under the cursor or mouse if it is a lisp file."
+  "Load the item under the cursor or mouse if it is a Lisp file."
   (interactive)
   (let ((f (speedbar-line-file)))
     (if (and (file-exists-p f) (string-match "\\.el\\'" f))
@@ -1286,10 +1512,10 @@ Assumes that the current buffer is the speedbar buffer"
 	    ;; If the compiled version exists, load that instead...
 	    (load-file (concat f "c"))
 	  (load-file f))
-      (error "Not a loadable file..."))))
+      (error "Not a loadable file"))))
 
 (defun speedbar-item-byte-compile ()
-  "Byte compile the item under the cursor or mouse if it is a lisp file."
+  "Byte compile the item under the cursor or mouse if it is a Lisp file."
   (interactive)
   (let ((f (speedbar-line-file))
 	(sf (selected-frame)))
@@ -1297,7 +1523,8 @@ Assumes that the current buffer is the speedbar buffer"
 	(progn
 	  (select-frame speedbar-attached-frame)
 	  (byte-compile-file f nil)
-	  (select-frame sf)))
+	  (select-frame sf)
+	  (speedbar-reset-scanners)))
     ))
 
 (defun speedbar-mouse-item-info (event)
@@ -1307,36 +1534,55 @@ This should be bound to a mouse EVENT."
   (mouse-set-point event)
   (speedbar-item-info))
 
+(defun speedbar-generic-item-info ()
+  "Attempt to derive, and then display information about thils line item.
+File style information is displayed with `speedbar-item-info'."
+  (save-excursion
+    (beginning-of-line)
+    ;; Skip invisible number info.
+    (if (looking-at "\\([0-9]+\\):") (goto-char (match-end 0)))
+    ;; Skip items in "folder" type text characters.
+    (if (looking-at "\\s-*[[<({].[]>)}] ") (goto-char (match-end 0)))
+    ;; Get the text
+    (message "Text: %s" (buffer-substring-no-properties
+			 (point) (progn (end-of-line) (point))))))
+
 (defun speedbar-item-info ()
   "Display info in the mini-buffer about the button the mouse is over."
   (interactive)
   (if (not speedbar-shown-directories)
-      nil
+      (speedbar-generic-item-info)
     (let* ((item (speedbar-line-file))
 	   (attr (if item (file-attributes item) nil)))
-      (if item (message "%s %d %s" (nth 8 attr) (nth 7 attr) item)
+      (if (and item attr) (message "%s %-6d %s" (nth 8 attr) (nth 7 attr) item)
 	(save-excursion
 	  (beginning-of-line)
-	  (looking-at "\\([0-9]+\\):")
-	  (setq item (speedbar-line-path (string-to-int (match-string 1))))
-	  (if (re-search-forward "> \\([^ ]+\\)$"
-				 (save-excursion(end-of-line)(point)) t)
-	      (progn
-		(setq attr (get-text-property (match-beginning 1)
-					      'speedbar-token))
-		(message "Tag %s in %s at position %s"
-			 (match-string 1) item (if attr attr 0)))
-	    (message "No special info for this line.")))
-	))))
+	  (if (not (looking-at "\\([0-9]+\\):"))
+	      (speedbar-generic-item-info)
+	    (setq item (speedbar-line-path (string-to-int (match-string 1))))
+	    (if (re-search-forward "> \\([^ ]+\\)$"
+				   (save-excursion(end-of-line)(point)) t)
+		(progn
+		  (setq attr (get-text-property (match-beginning 1)
+						'speedbar-token))
+		  (message "Tag: %s  in %s @ %s"
+			   (match-string 1) item
+			   (if attr
+			       (if (markerp attr) (marker-position attr) attr)
+			     0)))
+	      (if (re-search-forward "{[+-]} \\([^\n]+\\)$"
+				     (save-excursion(end-of-line)(point)) t)
+		  (message "Group of tags \"%s\"" (match-string 1))
+		(speedbar-generic-item-info)))))))))
 
 (defun speedbar-item-copy ()
   "Copy the item under the cursor.
 Files can be copied to new names or places."
   (interactive)
   (let ((f (speedbar-line-file)))
-    (if (not f)	(error "Not a file."))
+    (if (not f)	(error "Not a file"))
     (if (file-directory-p f)
-	(error "Cannot copy directory.")
+	(error "Cannot copy directory")
       (let* ((rt (read-file-name (format "Copy %s to: "
 					 (file-name-nondirectory f))
 				 (file-name-directory f)))
@@ -1387,13 +1633,13 @@ Files can be renamed to new names or moved to new directories."
 		      (speedbar-refresh)
 		      (speedbar-goto-this-file rt)
 		      )))))
-      (error "Not a file."))))
+      (error "Not a file"))))
 
 (defun speedbar-item-delete ()
   "Delete the item under the cursor.  Files are removed from disk."
   (interactive)
   (let ((f (speedbar-line-file)))
-    (if (not f) (error "Not a file."))
+    (if (not f) (error "Not a file"))
     (if (y-or-n-p (format "Delete %s? " f))
 	(progn
 	  (if (file-directory-p f)
@@ -1405,6 +1651,24 @@ Files can be renamed to new names or moved to new directories."
 	    (goto-char p))
 	  ))
     ))
+
+(defun speedbar-item-object-delete ()
+  "Delete the object associated from the item under the cursor.
+The file is removed from disk.  The object is determined from the
+variable `speedbar-obj-alist'."
+  (interactive)
+  (let* ((f (speedbar-line-file))
+	 (obj nil)
+	 (oa speedbar-obj-alist))
+    (if (not f) (error "Not a file"))
+    (while (and oa (not (string-match (car (car oa)) f)))
+      (setq oa (cdr oa)))
+    (setq obj (concat (file-name-sans-extension f) (cdr (car oa))))
+    (if (and oa (file-exists-p obj)
+	     (y-or-n-p (format "Delete %s? " obj)))
+	(progn
+	  (delete-file obj)
+	  (speedbar-reset-scanners)))))
 
 (defun speedbar-enable-update ()
   "Enable automatic updating in speedbar via timers."
@@ -1501,12 +1765,12 @@ to track file check ins, and will change the mode line to match
 (put 'speedbar-with-writable 'lisp-indent-function 0)
 
 (defun speedbar-select-window (buffer)
-  "Select a window in which BUFFER is show.
+  "Select a window in which BUFFER is shown.
 If it is not shown, force it to appear in the default window."
   (let ((win (get-buffer-window buffer speedbar-attached-frame)))
     (if win
 	(select-window win)
-      (show-buffer (selected-window) buffer))))
+      (set-window-buffer (selected-window) buffer))))
 
 (defmacro speedbar-with-attached-buffer (&rest forms)
   "Execute FORMS in the attached frame's special buffer.
@@ -1550,13 +1814,121 @@ specialized speedbar displays."
 (defun speedbar-make-button (start end face mouse function &optional token)
   "Create a button from START to END, with FACE as the display face.
 MOUSE is the mouse face.  When this button is clicked on FUNCTION
-will be run with the TOKEN parameter (any lisp object)"
+will be run with the TOKEN parameter (any Lisp object)"
   (put-text-property start end 'face face)
   (put-text-property start end 'mouse-face mouse)
   (put-text-property start end 'invisible nil)
   (if function (put-text-property start end 'speedbar-function function))
   (if token (put-text-property start end 'speedbar-token token))
   )
+
+;;; Initial Expansion list management
+;;
+(defun speedbar-initial-expansion-list ()
+  "Return the current default expansion list.
+This is based on `speedbar-initial-expansion-list-name' referencing
+`speedbar-initial-expansion-mode-alist'."
+  ;; cdr1 - name, cdr2 - menu
+  (cdr (cdr (cdr (assoc speedbar-initial-expansion-list-name
+			speedbar-initial-expansion-mode-alist)))))
+
+(defun speedbar-initial-menu ()
+  "Return the current default menu data.
+This is based on `speedbar-initial-expansion-list-name' referencing
+`speedbar-initial-expansion-mode-alist'."
+  (symbol-value
+   (car (cdr (assoc speedbar-initial-expansion-list-name
+		    speedbar-initial-expansion-mode-alist)))))
+
+(defun speedbar-initial-keymap ()
+  "Return the current default menu data.
+This is based on `speedbar-initial-expansion-list-name' referencing
+`speedbar-initial-expansion-mode-alist'."
+  (symbol-value
+   (car (cdr (cdr (assoc speedbar-initial-expansion-list-name
+			 speedbar-initial-expansion-mode-alist))))))
+
+(defun speedbar-initial-stealthy-functions ()
+  "Return a list of functions to call stealthily.
+This is based on `speedbar-initial-expansion-list-name' referencing
+`speedbar-stealthy-function-list'."
+  (cdr (assoc speedbar-initial-expansion-list-name
+	      speedbar-stealthy-function-list)))
+
+(defun speedbar-add-expansion-list (new-list)
+  "Add NEW-LIST to the list of expansion lists."
+  (add-to-list 'speedbar-initial-expansion-mode-alist new-list))
+
+(defun speedbar-change-initial-expansion-list (new-default)
+  "Change speedbar's default expansion list to NEW-DEFAULT."
+  (interactive
+   (list
+    (completing-read (format "Speedbar Mode (default %s): "
+			     speedbar-previously-used-expansion-list-name)
+		     speedbar-initial-expansion-mode-alist
+		     nil t "" nil
+		     speedbar-previously-used-expansion-list-name)))
+  (setq speedbar-previously-used-expansion-list-name
+	speedbar-initial-expansion-list-name
+	speedbar-initial-expansion-list-name new-default)
+  (speedbar-refresh)
+  (speedbar-reconfigure-keymaps))
+
+
+;;; Special speedbar display management
+;;
+(defun speedbar-maybe-add-localized-support (buffer)
+  "Quick check function called on BUFFERs by the speedbar timer function.
+Maintains the value of local variables which control speedbars use
+of the special mode functions."
+  (or speedbar-special-mode-expansion-list
+      (speedbar-add-localized-speedbar-support buffer)))
+
+(defun speedbar-add-localized-speedbar-support (buffer)
+  "Add localized speedbar support to BUFFER's mode if it is available."
+  (interactive "bBuffer: ")
+  (if (stringp buffer) (setq buffer (get-buffer buffer)))
+  (if (not (buffer-live-p buffer))
+      nil
+    (save-excursion
+      (set-buffer buffer)
+      (save-match-data
+	(let ((ms (symbol-name major-mode)) v)
+	  (if (not (string-match "-mode$" ms))
+	      nil ;; do nothing to broken mode
+	    (setq ms (substring ms 0 (match-beginning 0)))
+	    (setq v (intern-soft (concat ms "-speedbar-buttons")))
+	    (make-local-variable 'speedbar-special-mode-expansion-list)
+	    (if (not v)
+		(setq speedbar-special-mode-expansion-list t)
+	      ;; If it is autoloaded, we need to load it now so that
+	      ;; we have access to the varialbe -speedbar-menu-items.
+	      ;; Is this XEmacs safe?
+	      (let ((sf (symbol-function v)))
+		(if (and (listp sf) (eq (car sf) 'autoload))
+		    (load-library (car (cdr sf)))))
+	      (setq speedbar-special-mode-expansion-list (list v))
+	      (setq v (intern-soft (concat ms "-speedbar-key-map")))
+	      (if (not v)
+		  nil ;; don't add special keymap
+		(make-local-variable 'speedbar-special-mode-key-map)
+		(setq speedbar-special-mode-key-map
+		      (symbol-value v)))
+	      (setq v (intern-soft (concat ms "-speedbar-menu-items")))
+	      (if (not v)
+		  nil ;; don't add special menus
+		(make-local-variable 'speedbar-easymenu-definition-special)
+		(setq speedbar-easymenu-definition-special
+		      (symbol-value v)))
+	      )))))))
+
+(defun speedbar-remove-localized-speedbar-support (buffer)
+  "Remove any traces that BUFFER supports speedbar in a specialized way."
+  (save-excursion
+    (set-buffer buffer)
+    (kill-local-variable 'speedbar-special-mode-expansion-list)
+    (kill-local-variable 'speedbar-special-mode-key-map)
+    (kill-local-variable 'speedbar-easymenu-definition-special)))
 
 ;;; File button management
 ;;
@@ -1578,7 +1950,9 @@ the file-system"
 	    (dirs nil)
 	    (files nil))
 	(while dir
-	  (if (not (string-match speedbar-file-unshown-regexp (car dir)))
+	  (if (not
+	       (or (string-match speedbar-file-unshown-regexp (car dir))
+		   (string-match speedbar-directory-unshown-regexp (car dir))))
 	      (if (file-directory-p (car dir))
 		  (setq dirs (cons (car dir) dirs))
 		(setq files (cons (car dir) files))))
@@ -1696,6 +2070,10 @@ position to insert a new item, and that the new item will end with a CR"
 	 (mf (if exp-button-function 'speedbar-highlight-face nil))
 	 )
     (speedbar-make-button start end bf mf exp-button-function exp-button-data)
+    (if speedbar-hide-button-brackets-flag
+	(progn
+	  (put-text-property start (1+ start) 'invisible t)
+	  (put-text-property end (1- end) 'invisible t)))
     )
   (insert-char ?  1 nil)
   (put-text-property (1- (point)) (point) 'invisible nil)
@@ -1717,7 +2095,8 @@ position to insert a new item, and that the new item will end with a CR"
 	(speedbar-with-writable
 	  (goto-char (match-beginning 1))
 	  (delete-char 1)
-	  (insert-char char 1 t)))))
+	  (insert-char char 1 t)
+	  (put-text-property (point) (1- (point)) 'invisible nil)))))
 
 
 ;;; Build button lists
@@ -1726,7 +2105,7 @@ position to insert a new item, and that the new item will end with a CR"
   "Insert list of FILES starting at point, and indenting all files to LEVEL.
 Tag expandable items with a +, otherwise a ?.  Don't highlight ? as we
 don't know how to manage them.  The input parameter FILES is a cons
-cell of the form ( 'DIRLIST . 'FILELIST )"
+cell of the form ( 'DIRLIST .  'FILELIST )"
   ;; Start inserting all the directories
   (let ((dirs (car files)))
     (while dirs
@@ -1734,7 +2113,8 @@ cell of the form ( 'DIRLIST . 'FILELIST )"
 			      (car dirs) 'speedbar-dir-follow nil
 			      'speedbar-directory-face level)
       (setq dirs (cdr dirs))))
-  (let ((lst (car (cdr files))))
+  (let ((lst (car (cdr files)))
+	(case-fold-search t))
     (while lst
       (let* ((known (string-match speedbar-file-regexp (car lst)))
 	     (expchar (if known ?+ ??))
@@ -1770,6 +2150,185 @@ cell of the form ( 'DIRLIST . 'FILELIST )"
 		(setq sf (cdr sf)))))
 	)))
 
+(defun speedbar-apply-one-tag-hierarchy-method (lst method)
+  "Adjust the tag hierarchy LST by METHOD."
+  (cond
+   ((eq method 'sort)
+    (sort (copy-alist lst)
+	  (lambda (a b) (string< (car a) (car b)))))
+   ((eq method 'prefix-group)
+    (let ((newlst nil)
+	  (sublst nil)
+ 	  (work-list nil)
+	  (junk-list nil)
+	  (short-group-list nil)
+	  (short-start-name nil)
+	  (short-end-name nil)
+	  (num-shorts-grouped 0)
+	  (bins (make-vector 256 nil))
+	  (diff-idx 0))
+      ;; Break out sub-lists
+      (while lst
+	(if (listp (cdr-safe (car-safe lst)))
+	    (setq newlst (cons (car lst) newlst))
+	  (setq sublst (cons (car lst) sublst)))
+	(setq lst (cdr lst)))
+      ;; Now, first find out how long our list is.  Never let a
+      ;; list get-shorter than our minimum.
+      (if (<= (length sublst) speedbar-tag-split-minimum-length)
+	  (setq work-list (nreverse sublst))
+	(setq diff-idx (length (try-completion "" sublst)))
+	;; Sort the whole list into bins.
+	(while sublst
+	  (let ((e (car sublst))
+		(s (car (car sublst))))
+	    (cond ((<= (length s) diff-idx)
+		   ;; 0 storage bin for shorty.
+		   (aset bins 0 (cons e (aref bins 0))))
+		  (t
+		   ;; stuff into a bin based on ascii value at diff
+		   (aset bins (aref s diff-idx)
+			 (cons e (aref bins (aref s diff-idx)))))))
+	  (setq sublst (cdr sublst)))
+	;; Go through all our bins  Stick singles into our
+	;; junk-list, everything else as sublsts in work-list.
+	;; If two neighboring lists are both small, make a grouped
+	;; group combinding those two sub-lists.
+	(setq diff-idx 0)
+	(while (> 256 diff-idx)
+	  (let ((l (aref bins diff-idx)))
+	    (if l
+		(let ((tmp (cons (try-completion "" l) l)))
+		  (if (or (> (length l) speedbar-tag-regroup-maximum-length)
+			  (> (+ (length l) (length short-group-list))
+			     speedbar-tag-split-minimum-length))
+		      (progn
+			;; We have reached a longer list, so we
+			;; must finish off a grouped group.
+			(cond
+			 ((and short-group-list
+			       (= (length short-group-list)
+				  num-shorts-grouped))
+			  ;; All singles?  Junk list
+			  (setq junk-list (append short-group-list
+						  junk-list)))
+			 ((= num-shorts-grouped 1)
+			  ;; Only one short group?  Just stick it in
+			  ;; there by itself.
+			  (setq work-list
+				(cons (cons (try-completion
+					     "" short-group-list)
+					    (nreverse short-group-list))
+				      work-list)))
+			 (short-group-list
+			  ;; Multiple groups to be named in a special
+			  ;; way by displaying the range over which we
+			  ;; have grouped them.
+			  (setq work-list
+				(cons (cons (concat short-start-name
+						    " to "
+						    short-end-name)
+					    (nreverse short-group-list))
+				      work-list))))
+			;; Reset short group list information every time.
+			(setq short-group-list nil
+			      short-start-name nil
+			      short-end-name nil
+				num-shorts-grouped 0)))
+		  ;; Ok, now that we cleaned up the short-group-list,
+		  ;; we can deal with this new list, to decide if it
+		  ;; should go on one of these sub-lists or not.
+		  (if (< (length l) speedbar-tag-regroup-maximum-length)
+		      (setq short-group-list (append short-group-list l)
+			    num-shorts-grouped (1+ num-shorts-grouped)
+			    short-end-name (car tmp)
+			    short-start-name (if short-start-name
+						 short-start-name
+					       (car tmp)))
+		    (setq work-list (cons tmp work-list))))))
+	  (setq diff-idx (1+ diff-idx))))
+      ;; Did we run out of things?  Drop our new list onto the end.
+      (cond
+       ((and short-group-list (= (length short-group-list) num-shorts-grouped))
+	;; All singles?  Junk list
+	(setq junk-list (append short-group-list junk-list)))
+       ((= num-shorts-grouped 1)
+	;; Only one short group?  Just stick it in
+	;; there by itself.
+	(setq work-list
+	      (cons (cons (try-completion "" short-group-list)
+			  (nreverse short-group-list))
+		    work-list)))
+       (short-group-list
+	;; Multiple groups to be named in a special
+	;; way by displaying the range over which we
+	;; have grouped them.
+	(setq work-list
+	      (cons (cons (concat short-start-name " to " short-end-name)
+			  (nreverse short-group-list))
+		    work-list))))
+      ;; Now, stick our new list onto the end of
+      (if work-list
+	  (if junk-list
+	      (append (nreverse newlst)
+		      (nreverse work-list)
+		      junk-list)
+	    (append (nreverse newlst)
+		    (nreverse work-list)))
+	(append (nreverse newlst) junk-list))))
+   ((eq method 'trim-words)
+    (let ((newlst nil)
+	  (sublst nil)
+	  (trim-prefix nil)
+	  (trim-chars 0)
+	  (trimlst nil))
+      (while lst
+	(if (listp (cdr-safe (car-safe lst)))
+	    (setq newlst (cons (car lst) newlst))
+	  (setq sublst (cons (car lst) sublst)))
+	(setq lst (cdr lst)))
+      ;; Get the prefix to trim by.  Make sure that we don't trim
+      ;; off silly pieces, only complete understandable words.
+      (setq trim-prefix (try-completion "" sublst))
+      (if (or (= (length sublst) 1)
+	      (not trim-prefix)
+	      (not (string-match "\\(\\w+\\W+\\)+" trim-prefix)))
+	  (append (nreverse newlst) (nreverse sublst))
+	(setq trim-prefix (substring trim-prefix (match-beginning 0)
+				     (match-end 0)))
+	(setq trim-chars (length trim-prefix))
+	(while sublst
+	  (setq trimlst (cons
+			 (cons (substring (car (car sublst)) trim-chars)
+			       (cdr (car sublst)))
+			 trimlst)
+		sublst (cdr sublst)))
+	;; Put the lists together
+	(append (nreverse newlst) trimlst))))
+   ((eq method 'simple-group)
+    (let ((newlst nil)
+	  (sublst nil))
+      (while lst
+	(if (listp (cdr-safe (car-safe lst)))
+	    (setq newlst (cons (car lst) newlst))
+	  (setq sublst (cons (car lst) sublst)))
+	(setq lst (cdr lst)))
+      (if (not newlst)
+	  (nreverse sublst)
+	(setq newlst (cons (cons "Tags" (nreverse sublst)) newlst))
+	(nreverse newlst))))
+   (t lst)))
+
+(defun speedbar-create-tag-hierarchy (lst)
+  "Adjust the tag hierarchy in LST, and return it.
+This uses `speedbar-tag-hierarchy-method' to determine how to adjust
+the list.  See it's value for details."
+  (let ((methods speedbar-tag-hierarchy-method))
+    (while methods
+      (setq lst (speedbar-apply-one-tag-hierarchy-method lst (car methods))
+	    methods (cdr methods)))
+    lst))
+
 (defun speedbar-insert-generic-list (level lst expand-fun find-fun)
   "At LEVEL, insert a generic multi-level alist LST.
 Associations with lists get {+} tags (to expand into more nodes) and
@@ -1779,6 +2338,8 @@ name will have the function FIND-FUN and not token."
   ;; Remove imenu rescan button
   (if (string= (car (car lst)) "*Rescan*")
       (setq lst (cdr lst)))
+  ;; Adjust the list.
+  (setq lst (speedbar-create-tag-hierarchy lst))
   ;; insert the parts
   (while lst
     (cond ((null (car-safe lst)) nil)	;this would be a separator
@@ -1805,7 +2366,11 @@ name will have the function FIND-FUN and not token."
   (interactive)
   ;; Set the current special buffer
   (setq speedbar-desired-buffer nil)
+  ;; Check for special modes
+  (speedbar-maybe-add-localized-support (current-buffer))
+  ;; Choose the correct method of doodling.
   (if (and speedbar-mode-specific-contents-flag
+	   (listp speedbar-special-mode-expansion-list)
 	   speedbar-special-mode-expansion-list
 	   (local-variable-p
 	    'speedbar-special-mode-expansion-list
@@ -1818,7 +2383,7 @@ name will have the function FIND-FUN and not token."
   "Update the contents of the speedbar buffer based on the current directory."
   (let ((cbd (expand-file-name default-directory))
 	cbd-parent
-	(funclst speedbar-initial-expansion-list)
+	(funclst (speedbar-initial-expansion-list))
 	(cache speedbar-full-text-cache)
 	;; disable stealth during update
 	(speedbar-stealthy-function-list nil)
@@ -1832,7 +2397,12 @@ name will have the function FIND-FUN and not token."
       ;; really a request to update existing contents, so we must be
       ;; careful with our text cache!
       (if (member cbd speedbar-shown-directories)
-	  (setq cache nil)
+	  (progn
+	    (setq cache nil)
+	    ;; If the current directory is not the last element in the dir
+	    ;; list, then we ALSO need to zap the list of expanded directories
+	    (if (/= (length (member cbd speedbar-shown-directories)) 1)
+		(setq speedbar-shown-directories (list cbd))))
 
 	;; Build cbd-parent, and see if THAT is in the current shown
 	;; directories.  First, go through pains to get the parent directory
@@ -1840,7 +2410,8 @@ name will have the function FIND-FUN and not token."
 		 (save-match-data
 		   (setq cbd-parent cbd)
 		   (if (string-match "/$" cbd-parent)
-		       (setq cbd-parent (substring cbd-parent 0 (match-beginning 0))))
+		       (setq cbd-parent (substring cbd-parent 0
+						   (match-beginning 0))))
 		   (setq cbd-parent (file-name-directory cbd-parent)))
 		 (member cbd-parent speedbar-shown-directories))
 	    (setq expand-local t)
@@ -1883,7 +2454,7 @@ name will have the function FIND-FUN and not token."
 		   (funcall (car funclst) cbd 0)
 		   (setq funclst (cdr funclst))))))
 	(goto-char (point-min)))))
-  (speedbar-reconfigure-menubar))
+  (speedbar-reconfigure-keymaps))
 
 (defun speedbar-update-special-contents ()
   "Used the mode-specific variable to fill in the speedbar buffer.
@@ -1910,10 +2481,10 @@ This should only be used by modes classified as special."
 	  (funcall (car funclst) specialbuff)
 	  (setq funclst (cdr funclst))))
       (goto-char (point-min))))
-  (speedbar-reconfigure-menubar))
+  (speedbar-reconfigure-keymaps))
 
 (defun speedbar-timer-fn ()
-  "Run whenever emacs is idle to update the speedbar item."
+  "Run whenever Emacs is idle to update the speedbar item."
   (if (not (and (frame-live-p speedbar-frame)
 		(frame-live-p speedbar-attached-frame)))
       (speedbar-set-timer nil)
@@ -1927,8 +2498,11 @@ This should only be used by modes classified as special."
 	      ;; get a good directory from
 	      (if (string-match "\\*Minibuf-[0-9]+\\*" (buffer-name))
 		  (other-window 1))
+	      ;; Check for special modes
+	      (speedbar-maybe-add-localized-support (current-buffer))
 	      ;; Update for special mode all the time!
 	      (if (and speedbar-mode-specific-contents-flag
+		       (listp speedbar-special-mode-expansion-list)
 		       speedbar-special-mode-expansion-list
 		       (local-variable-p
 			'speedbar-special-mode-expansion-list
@@ -1962,28 +2536,36 @@ This should only be used by modes classified as special."
 			       default-directory))))
 	      (select-frame af))
 	    ;; Now run stealthy updates of time-consuming items
-	    (speedbar-stealthy-updates)))))
+	    (speedbar-stealthy-updates)))
+      ;; Now run the mouse tracking system
+      (speedbar-show-info-under-mouse)))
   (run-hooks 'speedbar-timer-hook))
 
 
 ;;; Stealthy activities
 ;;
+(defvar speedbar-stealthy-update-recurse nil
+  "Recursion avoidance variable for stealthy update.")
+
 (defun speedbar-stealthy-updates ()
   "For a given speedbar, run all items in the stealthy function list.
 Each item returns t if it completes successfully, or nil if
 interrupted by the user."
-  (let ((l speedbar-stealthy-function-list))
-    (unwind-protect
-	(while (and l (funcall (car l)))
-	  (sit-for 0)
-	  (setq l (cdr l)))
-      ;(message "Exit with %S" (car l))
-      )))
+  (if (not speedbar-stealthy-update-recurse)
+      (let ((l (speedbar-initial-stealthy-functions))
+	    (speedbar-stealthy-update-recurse t))
+	(unwind-protect
+	    (while (and l (funcall (car l)))
+	      ;(sit-for 0)
+	      (setq l (cdr l)))
+	  ;;(message "Exit with %S" (car l))
+	  ))))
 
 (defun speedbar-reset-scanners ()
   "Reset any variables used by functions in the stealthy list as state.
 If new functions are added, their state needs to be updated here."
-  (setq speedbar-vc-to-do-point t)
+  (setq speedbar-vc-to-do-point t
+	speedbar-obj-to-do-point t)
   (run-hooks 'speedbar-scanner-reset-hook)
   )
 
@@ -1998,8 +2580,7 @@ If new functions are added, their state needs to be updated here."
 	       speedbar-last-selected-file
 	       (re-search-forward
 		(concat " \\(" (regexp-quote speedbar-last-selected-file)
-			"\\)\\(" (regexp-quote speedbar-vc-indicator)
-			"\\)?\n")
+			"\\)\\(" speedbar-indicator-regex "\\)?\n")
 		nil t))
 	      (put-text-property (match-beginning 1)
 				 (match-end 1)
@@ -2021,7 +2602,8 @@ updated."
 		     rf)))
 	 (newcf (if newcfd (file-name-nondirectory newcfd)))
 	 (lastb (current-buffer))
-	 (sucf-recursive (boundp 'sucf-recursive)))
+	 (sucf-recursive (boundp 'sucf-recursive))
+	 (case-fold-search t))
     (if (and newcf
 	     ;; check here, that way we won't refresh to newcf until
 	     ;; its been written, thus saving ourselves some time
@@ -2040,8 +2622,7 @@ updated."
 	    (goto-char (point-min))
 	    (if (re-search-forward
 		 (concat " \\(" (regexp-quote newcf) "\\)\\("
-			 (regexp-quote speedbar-vc-indicator)
-			 "\\)?\n") nil t)
+			 speedbar-indicator-regex "\\)?$") nil t)
 		  ;; put the property on it
 		  (put-text-property (match-beginning 1)
 				     (match-end 1)
@@ -2065,18 +2646,43 @@ updated."
 		))
 	    (setq speedbar-last-selected-file newcf))
 	  (if (not sucf-recursive)
-	      (progn
-		(forward-line -1)
-		(speedbar-position-cursor-on-line)))
+	      (speedbar-position-cursor-on-line))
 	  (set-buffer lastb)
 	  (select-frame lastf)
 	  )))
   ;; return that we are done with this activity.
   t)
 
-;; Load ange-ftp only if compiling to remove errors.
+(defun speedbar-add-indicator (indicator-string &optional replace-this)
+  "Add INDICATOR-STRING to the end of this speedbar line.
+If INDICATOR-STRING is space, and REPLACE-THIS is a character, then
+an the existing indicator is removed.  If there is already an
+indicator, then do not add a space."
+  (beginning-of-line)
+  ;; The nature of the beast: Assume we are in "the right place"
+  (end-of-line)
+  (skip-chars-backward (concat " " speedbar-vc-indicator
+			       (car speedbar-obj-indicator)
+			       (cdr speedbar-obj-indicator)))
+  (if (and (not (looking-at speedbar-indicator-regex))
+	   (not (string= indicator-string " ")))
+      (insert speedbar-indicator-separator))
+  (speedbar-with-writable
+    (save-excursion
+      (if (and replace-this
+	       (re-search-forward replace-this (save-excursion (end-of-line)
+							       (point))
+				  t))
+	  (delete-region (match-beginning 0) (match-end 0))))
+    (end-of-line)
+    (if (not (string= " " indicator-string))
+	(insert indicator-string))))
+
+;; Load efs/ange-ftp only if compiling to remove byte-compiler warnings.
 ;; Steven L Baur <steve@xemacs.org> said this was important:
-(eval-when-compile (or (featurep 'xemacs) (require 'ange-ftp)))
+(eval-when-compile (or (featurep 'xemacs)
+		       (condition-case () (require 'efs)
+			 (error (require 'ange-ftp)))))
 
 (defun speedbar-check-vc ()
   "Scan all files in a directory, and for each see if it's checked out.
@@ -2088,12 +2694,17 @@ to add more types of version control systems."
     (set-buffer speedbar-buffer)
     (if (and speedbar-vc-do-check (eq speedbar-vc-to-do-point t)
 	     (speedbar-vc-check-dir-p default-directory)
-	     (not (and (featurep 'ange-ftp)
-		       (string-match (car
-				      (if speedbar-xemacsp
-					  ange-ftp-path-format
-					ange-ftp-name-format))
-				     (expand-file-name default-directory)))))
+	     (not (or (and (featurep 'ange-ftp)
+			   (string-match
+			    (car (if speedbar-xemacsp
+				     ange-ftp-path-format
+				   ange-ftp-name-format))
+			    (expand-file-name default-directory)))
+		      ;; efs support: Bob Weiner
+		      (and (featurep 'efs)
+			   (string-match
+			    (car efs-path-regexp)
+			    (expand-file-name default-directory))))))
 	(setq speedbar-vc-to-do-point 0))
     (if (numberp speedbar-vc-to-do-point)
 	(progn
@@ -2103,11 +2714,10 @@ to add more types of version control systems."
 					 nil t))
 	    (setq speedbar-vc-to-do-point (point))
 	    (if (speedbar-check-vc-this-line (match-string 1))
-		(if (not (looking-at (regexp-quote speedbar-vc-indicator)))
-		    (speedbar-with-writable (insert speedbar-vc-indicator)))
-	      (if (looking-at (regexp-quote speedbar-vc-indicator))
-		  (speedbar-with-writable
-		    (delete-region (match-beginning 0) (match-end 0))))))
+		(speedbar-add-indicator speedbar-vc-indicator
+					(regexp-quote speedbar-vc-indicator))
+	      (speedbar-add-indicator " "
+				      (regexp-quote speedbar-vc-indicator))))
 	  (if (input-pending-p)
 	      ;; return that we are incomplete
 	      nil
@@ -2171,6 +2781,72 @@ that will occur on your system."
    ;; User extension
    (run-hook-with-args 'speedbar-vc-in-control-hook path name)
    ))
+
+;; Objet File scanning
+(defun speedbar-check-objects ()
+  "Scan all files in a directory, and for each see if there is an object.
+See `speedbar-check-obj-this-line' and `speedbar-obj-alist' for how
+to add more object types."
+  ;; Check for to-do to be reset.  If reset but no RCS is available
+  ;; then set to nil (do nothing) otherwise, start at the beginning
+  (save-excursion
+    (set-buffer speedbar-buffer)
+    (if (and speedbar-obj-do-check (eq speedbar-obj-to-do-point t))
+	(setq speedbar-obj-to-do-point 0))
+    (if (numberp speedbar-obj-to-do-point)
+	(progn
+	  (goto-char speedbar-obj-to-do-point)
+	  (while (and (not (input-pending-p))
+		      (re-search-forward "^\\([0-9]+\\):\\s-*\\[[+-]\\] "
+					 nil t))
+	    (setq speedbar-obj-to-do-point (point))
+	    (let ((ind (speedbar-check-obj-this-line (match-string 1))))
+	      (if (not ind) (setq ind " "))
+	      (speedbar-add-indicator ind (concat
+					   (car speedbar-obj-indicator)
+					   "\\|"
+					   (cdr speedbar-obj-indicator)))))
+	  (if (input-pending-p)
+	      ;; return that we are incomplete
+	      nil
+	    ;; we are done, set to-do to nil
+	    (setq speedbar-obj-to-do-point nil)
+	    ;; and return t
+	    t))
+      t)))
+
+(defun speedbar-check-obj-this-line (depth)
+  "Return t if the file on this line has an associated object.
+Parameter DEPTH is a string with the current depth of indentation of
+the file being checked."
+  (let* ((d (string-to-int depth))
+	 (f (speedbar-line-path d))
+	 (fn (buffer-substring-no-properties
+	      ;; Skip-chars: thanks ptype@dra.hmg.gb
+	      (point) (progn
+			(skip-chars-forward "^ "
+					    (save-excursion (end-of-line)
+							    (point)))
+			(point))))
+	 (fulln (concat f fn)))
+    (if (<= 2 speedbar-verbosity-level)
+	(message "Speedbar obj check...%s" fulln))
+    (let ((oa speedbar-obj-alist))
+      (while (and oa (not (string-match (car (car oa)) fulln)))
+	(setq oa (cdr oa)))
+      (if (not (and oa (file-exists-p (concat (file-name-sans-extension fulln)
+					      (cdr (car oa))))))
+	  nil
+	;; Find out if the object is out of date or not.
+	(let ((date1 (nth 5 (file-attributes fulln)))
+	      (date2 (nth 5 (file-attributes (concat
+					      (file-name-sans-extension fulln)
+                                              (cdr (car oa)))))))
+	  (if (or (< (car date1) (car date2))
+		  (and (= (car date1) (car date2))
+		       (< (nth 1 date1) (nth 1 date2))))
+	      (car speedbar-obj-indicator)
+	    (cdr speedbar-obj-indicator)))))))
 
 ;;; Clicking Activity
 ;;
@@ -2219,7 +2895,7 @@ This should be bound to mouse event E."
 	((eq (car e) 'mouse-1)
 	 (speedbar-quick-mouse e))
 	((or (eq (car e) 'double-down-mouse-1)
-	     (eq (car e) 'tripple-down-mouse-1))
+	     (eq (car e) 'triple-down-mouse-1))
 	 (mouse-set-point e)
 	 (speedbar-do-function-pointer)
 	 (speedbar-quick-mouse e))))
@@ -2260,8 +2936,7 @@ directory, then it is the directory name."
       (beginning-of-line)
       (if (looking-at (concat
 		       "\\([0-9]+\\): *[[<][-+?][]>] \\([^ \n]+\\)\\("
-		       (regexp-quote speedbar-vc-indicator)
-		       "\\)?"))
+		       speedbar-indicator-regex "\\)?"))
 	  (let* ((depth (string-to-int (match-string 1)))
 		 (path (speedbar-line-path depth))
 		 (f (match-string 2)))
@@ -2298,7 +2973,7 @@ Otherwise do not move and return nil."
 	(let ((nd (file-name-nondirectory file)))
 	  (if (re-search-forward
 	       (concat "] \\(" (regexp-quote nd)
-		       "\\)\\(" (regexp-quote speedbar-vc-indicator) "\\)?$")
+		       "\\)\\(" speedbar-indicator-regex "\\)$")
 	       nil t)
 	      (progn
 		(speedbar-position-cursor-on-line)
@@ -2310,28 +2985,34 @@ Otherwise do not move and return nil."
   "Retrieve the pathname associated with the current line.
 This may require traversing backwards from DEPTH and combining the default
 directory with these items."
-  (save-excursion
-    (save-match-data
-      (let ((path nil))
-	(setq depth (1- depth))
-	(while (/= depth -1)
-	  (if (not (re-search-backward (format "^%d:" depth) nil t))
-	      (error "Error building path of tag")
-	    (cond ((looking-at "[0-9]+:\\s-*<->\\s-+\\([^\n]+\\)$")
-		   (setq path (concat (buffer-substring-no-properties
-				       (match-beginning 1) (match-end 1))
-				      "/"
-				      path)))
-		  ((looking-at "[0-9]+:\\s-*[-]\\s-+\\([^\n]+\\)$")
-		   ;; This is the start of our path.
-		   (setq path (buffer-substring-no-properties
-			       (match-beginning 1) (match-end 1))))))
-	  (setq depth (1- depth)))
-	(if (and path
-		 (string-match (concat (regexp-quote speedbar-vc-indicator) "$")
-			       path))
-	    (setq path (substring path 0 (match-beginning 0))))
-	(concat default-directory path)))))
+  (cond
+   ((string= speedbar-initial-expansion-list-name "files")
+    (save-excursion
+      (save-match-data
+	(let ((path nil))
+	  (setq depth (1- depth))
+	  (while (/= depth -1)
+	    (if (not (re-search-backward (format "^%d:" depth) nil t))
+		(error "Error building path of tag")
+	      (cond ((looking-at "[0-9]+:\\s-*<->\\s-+\\([^\n]+\\)$")
+		     (setq path (concat (buffer-substring-no-properties
+					 (match-beginning 1) (match-end 1))
+					"/"
+					path)))
+		    ((looking-at "[0-9]+:\\s-*[-]\\s-+\\([^\n]+\\)$")
+		     ;; This is the start of our path.
+		     (setq path (buffer-substring-no-properties
+				 (match-beginning 1) (match-end 1))))))
+	    (setq depth (1- depth)))
+	  (if (and path
+		   (string-match (concat speedbar-indicator-regex "$")
+				 path))
+	      (setq path (substring path 0 (match-beginning 0))))
+	  (concat default-directory path)))))
+   (t
+    ;; If we aren't in file mode, then return an empty string to make
+    ;; sure that we can still get some stuff done.
+    "")))
 
 (defun speedbar-path-line (path)
   "Position the cursor on the line specified by PATH."
@@ -2342,12 +3023,12 @@ directory with these items."
 	  (fname (file-name-nondirectory path))
 	  (pname (file-name-directory path)))
       (if (not (member pname speedbar-shown-directories))
-	  (error "Internal Error: File %s not shown in speedbar." path))
+	  (error "Internal Error: File %s not shown in speedbar" path))
       (goto-char (point-min))
       (while (and nomatch
 		  (re-search-forward
 		   (concat "[]>] \\(" (regexp-quote fname)
-			   "\\)\\(" (regexp-quote speedbar-vc-indicator) "\\)?$")
+			   "\\)\\(" speedbar-indicator-regex "\\)?$")
 		   nil t))
 	(beginning-of-line)
 	(looking-at "\\([0-9]+\\):")
@@ -2431,8 +3112,10 @@ subdirectory chosen will be at INDENT level."
 		"/"))
   ;; Because we leave speedbar as the current buffer,
   ;; update contents will change directory without
-  ;; having to touch the attached frame.
-  (speedbar-update-contents)
+  ;; having to touch the attached frame.  Turn off smart expand just
+  ;; in case.
+  (let ((speedbar-smart-directory-expand-flag nil))
+    (speedbar-update-contents))
   (speedbar-set-timer speedbar-navigating-speed)
   (setq speedbar-last-selected-file nil)
   (speedbar-stealthy-updates))
@@ -2484,7 +3167,7 @@ expanded.  INDENT is the current indentation level."
 	 (speedbar-change-expand-button-char ?+)
 	 (speedbar-delete-subblock indent)
 	 )
-	(t (error "Ooops... not sure what to do.")))
+	(t (error "Ooops...  not sure what to do")))
   (speedbar-center-buffer-smartly)
   (setq speedbar-last-selected-file nil)
   (save-excursion (speedbar-stealthy-updates)))
@@ -2493,7 +3176,9 @@ expanded.  INDENT is the current indentation level."
   "Speedbar click handler for default directory buttons.
 TEXT is the button clicked on.  TOKEN is the directory to follow.
 INDENT is the current indentation level and is unused."
-  (setq default-directory token)
+  (if (string-match "^[A-Z]:$" token)
+      (setq default-directory (concat token "\\"))
+    (setq default-directory token))
   ;; Because we leave speedbar as the current buffer,
   ;; update contents will change directory without
   ;; having to touch the attached frame.
@@ -2527,7 +3212,7 @@ indentation level."
 	((string-match "-" text)	;we have to contract this node
 	 (speedbar-change-expand-button-char ?+)
 	 (speedbar-delete-subblock indent))
-	(t (error "Ooops... not sure what to do.")))
+	(t (error "Ooops...  not sure what to do")))
   (speedbar-center-buffer-smartly))
 
 (defun speedbar-tag-find (text token indent)
@@ -2556,13 +3241,12 @@ level."
 	 (speedbar-with-writable
 	   (save-excursion
 	     (end-of-line) (forward-char 1)
-	     (speedbar-insert-generic-list indent
-					   token 'speedbar-tag-expand
+	     (speedbar-insert-generic-list indent token 'speedbar-tag-expand
 					   'speedbar-tag-find))))
 	((string-match "-" text)	;we have to contract this node
 	 (speedbar-change-expand-button-char ?+)
 	 (speedbar-delete-subblock indent))
-	(t (error "Ooops... not sure what to do.")))
+	(t (error "Ooops...  not sure what to do")))
   (speedbar-center-buffer-smartly))
 
 ;;; Loading files into the attached frame.
@@ -2581,7 +3265,7 @@ frame instead."
 	  (let ((pop-up-frames t)) (select-window (display-buffer buff)))
 	(select-frame speedbar-attached-frame)
 	(switch-to-buffer buff))))
-  )
+ )
 
 ;;; Centering Utility
 ;;
@@ -2678,6 +3362,8 @@ Returns the tag list, or t for an error."
      speedbar-parse-c-or-c++tag)
     ("^\\.emacs$\\|.\\(el\\|l\\|lsp\\)\\'" .
      "def[^i]+\\s-+\\(\\(\\w\\|[-_]\\)+\\)\\s-*\C-?")
+;    ("\\.\\([fF]\\|for\\|FOR\\|77\\|90\\)\\'" .
+;      speedbar-parse-fortran77-tag)
     ("\\.tex\\'" . speedbar-parse-tex-string)
     ("\\.p\\'" .
      "\\(\\(FUNCTION\\|function\\|PROCEDURE\\|procedure\\)\\s-+\\([a-zA-Z0-9_.:]+\\)\\)\\s-*(?^?")
@@ -2781,7 +3467,7 @@ Each symbol will be associated with its line position in FILE."
 ;      (delete-region (match-beginning 1) (match-end 1)))))
 
 (defun speedbar-extract-one-symbol (expr)
-  "At point, return nil, or one alist in the form: ( symbol . position )
+  "At point, return nil, or one alist in the form: (SYMBOL .  POSITION)
 The line should contain output from etags.  Parse the output using the
 regular expression EXPR"
   (let* ((sym (if (stringp expr)
@@ -2830,6 +3516,143 @@ regular expression EXPR"
 	     (buffer-substring-no-properties (match-beginning 0)
 					     (match-end 0)))
 	    (t nil)))))
+
+
+;;; BUFFER DISPLAY mode.
+;;
+(defvar speedbar-buffers-key-map nil
+  "Keymap used when in the buffers display mode.")
+
+(if speedbar-buffers-key-map
+    nil
+  (setq speedbar-buffers-key-map (speedbar-make-specialized-keymap))
+
+  ;; Basic tree features
+  (define-key speedbar-buffers-key-map "e" 'speedbar-edit-line)
+  (define-key speedbar-buffers-key-map "\C-m" 'speedbar-edit-line)
+  (define-key speedbar-buffers-key-map "+" 'speedbar-expand-line)
+  (define-key speedbar-buffers-key-map "-" 'speedbar-contract-line)
+
+  ;; Buffer specific keybindings
+  (define-key speedbar-buffers-key-map "k" 'speedbar-buffer-kill-buffer)
+  (define-key speedbar-buffers-key-map "r" 'speedbar-buffer-revert-buffer)
+
+  )
+
+(defvar speedbar-buffer-easymenu-definition
+  '(["Jump to buffer" speedbar-edit-line t]
+    ["Expand File Tags" speedbar-expand-line
+     (save-excursion (beginning-of-line)
+		     (looking-at "[0-9]+: *.\\+. "))]
+    ["Contract File Tags" speedbar-contract-line
+     (save-excursion (beginning-of-line)
+		     (looking-at "[0-9]+: *.-. "))]
+    )
+  "Menu item elements shown when displaying a buffer list.")
+
+(defun speedbar-buffer-buttons (directory zero)
+  "Create speedbar buttons based on the buffers currently loaded.
+DIRECTORY is the path to the currently active buffer, and ZERO is 0."
+  (speedbar-buffer-buttons-engine nil))
+
+(defun speedbar-buffer-buttons-temp (directory zero)
+  "Create speedbar buttons based on the buffers currently loaded.
+DIRECTORY is the path to the currently active buffer, and ZERO is 0."
+  (speedbar-buffer-buttons-engine t))
+
+(defun speedbar-buffer-buttons-engine (temp)
+  "Create speedbar buffer buttons.
+If TEMP is non-nil, then clicking on a buffer restores the previous display."
+  (insert "Active Buffers:\n")
+  (let ((bl (buffer-list)))
+    (while bl
+      (if (string-match "^[ *]" (buffer-name (car bl)))
+	  nil
+	(let* ((known (string-match speedbar-file-regexp
+				    (buffer-name (car bl))))
+	       (expchar (if known ?+ ??))
+	       (fn (if known 'speedbar-tag-file nil))
+	       (fname (save-excursion (set-buffer (car bl))
+				      (buffer-file-name))))
+	  (speedbar-make-tag-line 'bracket expchar fn fname
+				  (buffer-name (car bl))
+				  'speedbar-buffer-click temp
+				  'speedbar-file-face 0)))
+      (setq bl (cdr bl)))
+    (setq bl (buffer-list))
+    (insert "Scratch Buffers:\n")
+    (while bl
+      (if (not (string-match "^\\*" (buffer-name (car bl))))
+	  nil
+	(if (eq (car bl) speedbar-buffer)
+	    nil
+	  (speedbar-make-tag-line 'bracket ?? nil nil
+				  (buffer-name (car bl))
+				  'speedbar-buffer-click temp
+				  'speedbar-file-face 0)))
+      (setq bl (cdr bl)))
+    (setq bl (buffer-list))
+    (insert "Hidden Buffers:\n")
+    (while bl
+      (if (not (string-match "^ " (buffer-name (car bl))))
+	  nil
+	(if (eq (car bl) speedbar-buffer)
+	    nil
+	  (speedbar-make-tag-line 'bracket ?? nil nil
+				  (buffer-name (car bl))
+				  'speedbar-buffer-click temp
+				  'speedbar-file-face 0)))
+      (setq bl (cdr bl)))))
+
+(defun speedbar-buffer-click (text token indent)
+  "When the users clicks on a buffer-button in speedbar.
+TEXT is the buffer's name, TOKEN and INDENT are unused."
+  (if speedbar-power-click
+      (let ((pop-up-frames t)) (select-window (display-buffer text)))
+    (select-frame speedbar-attached-frame)
+    (switch-to-buffer text)
+    (if token (speedbar-change-initial-expansion-list
+	       speedbar-previously-used-expansion-list-name))))
+
+(defun speedbar-buffer-kill-buffer ()
+  "Kill the buffer the cursor is on in the speedbar buffer."
+  (interactive)
+  (or (save-excursion
+	(beginning-of-line)
+	;; If this fails, then it is a non-standard click, and as such,
+	;; perfectly allowed.
+	(if (re-search-forward "[]>}] [a-zA-Z0-9]"
+			       (save-excursion (end-of-line) (point))
+			       t)
+	    (let ((text (progn
+			  (forward-char -1)
+			  (buffer-substring (point) (save-excursion
+						      (end-of-line)
+						      (point))))))
+	      (if (and (get-buffer text)
+		       (y-or-n-p (format "Kill buffer %s? " text)))
+		  (kill-buffer text)))))))
+
+(defun speedbar-buffer-revert-buffer ()
+  "Revert the buffer the cursor is on in the speedbar buffer."
+  (interactive)
+  (save-excursion
+    (beginning-of-line)
+    ;; If this fails, then it is a non-standard click, and as such,
+    ;; perfectly allowed
+    (if (re-search-forward "[]>}] [a-zA-Z0-9]"
+			   (save-excursion (end-of-line) (point))
+			   t)
+	(let ((text (progn
+		      (forward-char -1)
+		      (buffer-substring (point) (save-excursion
+						  (end-of-line)
+						  (point))))))
+	  (if (get-buffer text)
+	      (progn
+		(set-buffer text)
+		(revert-buffer t)))))))
+
 
 
 ;;; Color loading section  This is messy *Blech!*
