@@ -5440,7 +5440,7 @@ produce_chars (coding)
 	      produced_chars++;
 	    }
 	  else
-	    /* This is an annotation data.  */
+	    /* This is an annotation datum.  */
 	    buf -= c + 1;
 	}
     }
@@ -5816,7 +5816,7 @@ decode_coding (coding)
 }
 
 
-/* Extract an annotation data from a composition starting at POS and
+/* Extract an annotation datum from a composition starting at POS and
    ending before LIMIT of CODING->src_object (buffer or string), store
    the data in BUF, set *STOP to a starting position of the next
    composition (if any) or to LIMIT, and return the address of the
@@ -5902,7 +5902,7 @@ handle_composition_annotation (pos, limit, coding, buf, stop)
 }
 
 
-/* Extract an annotation data from a text property `charset' at POS of
+/* Extract an annotation datum from a text property `charset' at POS of
    CODING->src_object (buffer of string), store the data in BUF, set
    *STOP to the position where the value of `charset' property changes
    (limiting by LIMIT), and return the address of the next element of
@@ -6900,12 +6900,12 @@ DEFUN ("find-coding-systems-region-internal",
       if (XINT (end) - XINT (start) == end_byte - start_byte)
 	return Qt;
 
-      if (start < GPT && end > GPT)
+      if (XINT (start) < GPT && XINT (end) > GPT)
 	{
-	  if ((GPT - start) < (end - GPT))
-	    move_gap_both (start, start_byte);
+	  if ((GPT - XINT (start)) < (XINT (end) - GPT))
+	    move_gap_both (XINT (start), start_byte);
 	  else
-	    move_gap_both (end, end_byte);
+	    move_gap_both (XINT (end), end_byte);
 	}
     }
 
@@ -7031,14 +7031,14 @@ buffer positions.  END is ignored.  */)
       if (XINT (end) - XINT (start) == end_byte - start_byte)
 	return Qt;
 
-      if (start < GPT && end > GPT)
+      if (XINT (start) < GPT && XINT (end) > GPT)
 	{
-	  if ((GPT - start) < (end - GPT))
-	    move_gap_both (start, start_byte);
+	  if ((GPT - XINT (start)) < (XINT (end) - GPT))
+	    move_gap_both (XINT (start), start_byte);
 	  else
-	    move_gap_both (end, end_byte);
+	    move_gap_both (XINT (end), end_byte);
 	}
-      pos = start;
+      pos = XINT (start);
     }
 
   list = Qnil;
@@ -8187,7 +8187,7 @@ usage: (define-coding-system-internal ...)  */)
 }
 
 /* Fixme: should this record the alias relationships for
-   diagnostics?  */
+   diagnostics?  Should it update coding-system-list?  */
 DEFUN ("define-coding-system-alias", Fdefine_coding_system_alias,
        Sdefine_coding_system_alias, 2, 2, 0,
        doc: /* Define ALIAS as an alias for CODING-SYSTEM.  */)
