@@ -1,13 +1,16 @@
 2004-09-30  Kenichi Handa  <handa@m17n.org>
 
-	* process.c (send_process): Be sure to free composition data.
+	* process.c (send_process): Free composition data.
 
-	* fileio.c (Finsert_file_contents): Be sure to free composition
-	data.
+	* fileio.c (Finsert_file_contents): Free composition data.
 
 	* coding.c (code_convert_region): Don't skip ASCIIs if there are
-	compositions to encode.  Be sure to free composition data.
-	(encode_coding_string): Likewise.
+	compositions to encode.
+	(encode_coding_string): Likewise.  Free composition data.
+
+2004-09-30  Florian Weimer <fw@deneb.enyo.de>	
+
+	* coding.c (code_convert_region): Free composition data.
 
 2004-09-29  Kim F. Storm  <storm@cua.dk>
 
