@@ -518,6 +518,101 @@ buffer_memory_full ()
 
 /* Like malloc but check for no memory and block interrupt input..  */
 
+#ifdef XMALLOC_OVERRUN_CHECK
+
+#define XMALLOC_OVERRUN_CHECK_SIZE 16
+static char xmalloc_overrun_check_header[XMALLOC_OVERRUN_CHECK_SIZE-4] =
+  { 0x9a, 0x9b, 0xae, 0xaf,
+    0xbf, 0xbe, 0xce, 0xcf,
+    0xea, 0xeb, 0xec, 0xed };
+
+static char xmalloc_overrun_check_trailer[XMALLOC_OVERRUN_CHECK_SIZE] =
+  { 0xaa, 0xab, 0xac, 0xad,
+    0xba, 0xbb, 0xbc, 0xbd,
+    0xca, 0xcb, 0xcc, 0xcd,
+    0xda, 0xdb, 0xdc, 0xdd };
+
+POINTER_TYPE *
+overrun_check_malloc (size)
+     size_t size;
+{
+  register char *val;
+
+  val = (char *) malloc (size + XMALLOC_OVERRUN_CHECK_SIZE*2);
+  if (val)
+    {
+      bcopy (xmalloc_overrun_check_header, val, XMALLOC_OVERRUN_CHECK_SIZE - 4);
+      bcopy (&size, val + XMALLOC_OVERRUN_CHECK_SIZE - 4, sizeof (size));
+      val += XMALLOC_OVERRUN_CHECK_SIZE;
+      bcopy (xmalloc_overrun_check_trailer, val + size, XMALLOC_OVERRUN_CHECK_SIZE);
+    }
+  return (POINTER_TYPE *)val;
+}
+
+POINTER_TYPE *
+overrun_check_realloc (block, size)
+     POINTER_TYPE *block;
+     size_t size;
+{
+  register char *val = (char *)block;
+
+  if (val
+      && bcmp (xmalloc_overrun_check_header,
+	       val - XMALLOC_OVERRUN_CHECK_SIZE,
+	       XMALLOC_OVERRUN_CHECK_SIZE - 4) == 0)
+    {
+      size_t osize;
+      bcopy (val - 4, &osize, sizeof (osize));
+      if (bcmp (xmalloc_overrun_check_trailer,
+		val + osize,
+		XMALLOC_OVERRUN_CHECK_SIZE))
+	abort ();
+      val -= XMALLOC_OVERRUN_CHECK_SIZE;
+    }
+
+  val = (char *) realloc ((POINTER_TYPE *)val, size + XMALLOC_OVERRUN_CHECK_SIZE*2);
+
+  if (val)
+    {
+      bcopy (xmalloc_overrun_check_header, val, XMALLOC_OVERRUN_CHECK_SIZE - 4);
+      bcopy (&size, val + XMALLOC_OVERRUN_CHECK_SIZE - 4, sizeof (size));
+      val += XMALLOC_OVERRUN_CHECK_SIZE;
+      bcopy (xmalloc_overrun_check_trailer, val + size, XMALLOC_OVERRUN_CHECK_SIZE);
+    }
+  return (POINTER_TYPE *)val;
+}
+
+void
+overrun_check_free (block)
+     POINTER_TYPE *block;
+{
+  char *val = (char *)block;
+
+  if (val
+      && bcmp (xmalloc_overrun_check_header,
+	       val - XMALLOC_OVERRUN_CHECK_SIZE,
+	       XMALLOC_OVERRUN_CHECK_SIZE - 4) == 0)
+    {
+      size_t osize;
+      bcopy (val - 4, &osize, sizeof (osize));
+      if (bcmp (xmalloc_overrun_check_trailer,
+		val + osize,
+		XMALLOC_OVERRUN_CHECK_SIZE))
+	abort ();
+      val -= XMALLOC_OVERRUN_CHECK_SIZE;
+    }
+
+  free (val);
+}
+
+#undef malloc
+#undef realloc
+#undef free
+#define malloc overrun_check_malloc
+#define realloc overrun_check_realloc
+#define free overrun_check_free
+#endif
+
 POINTER_TYPE *
 xmalloc (size)
      size_t size;
@@ -602,7 +697,9 @@ safe_alloca_unwind (arg)
    number of bytes to allocate, TYPE describes the intended use of the
    allcated memory block (for strings, for conses, ...).  */
 
+#ifndef USE_LSB_TAG
 static void *lisp_malloc_loser;
+#endif
 
 static POINTER_TYPE *
 lisp_malloc (nbytes, type)
@@ -1428,6 +1525,14 @@ static int total_string_size;
 
 #endif /* not GC_CHECK_STRING_BYTES */
 
+
+#ifdef GC_CHECK_STRING_OVERRUN
+#define GC_STRING_EXTRA	4
+static char string_overrun_pattern[GC_STRING_EXTRA] = { 0xde, 0xad, 0xbe, 0xef };
+#else
+#define GC_STRING_EXTRA 0
+#endif
+
 /* Value is the size of an sdata structure large enough to hold NBYTES
    bytes of string data.  The value returned includes a terminating
    NUL byte, the size of the sdata structure, and padding.  */
@@ -1515,7 +1620,7 @@ check_sblock (b)
 	nbytes = SDATA_NBYTES (from);
 
       nbytes = SDATA_SIZE (nbytes);
-      from_end = (struct sdata *) ((char *) from + nbytes);
+      from_end = (struct sdata *) ((char *) from + nbytes + GC_STRING_EXTRA);
     }
 }
 
@@ -1548,6 +1653,25 @@ check_string_bytes (all_p)
 
 #endif /* GC_CHECK_STRING_BYTES */
 
+#ifdef GC_CHECK_STRING_FREE_LIST
+
+static void
+check_string_free_list ()
+{
+  struct Lisp_String *s;
+
+  /* Pop a Lisp_String off the free-list.  */
+  s = string_free_list;
+  while (s != NULL)
+    {
+      if ((unsigned)s < 1024)
+	abort();
+      s = NEXT_FREE_LISP_STRING (s);
+    }
+}
+#else
+#define check_string_free_list()
+#endif
 
 /* Return a new Lisp_String.  */
 
@@ -1578,6 +1702,8 @@ allocate_string ()
 
       total_free_strings += STRING_BLOCK_SIZE;
     }
+
+  check_string_free_list();
 
   /* Pop a Lisp_String off the free-list.  */
   s = string_free_list;
@@ -1648,7 +1774,7 @@ allocate_string_data (s, nchars, nbytes)
       mallopt (M_MMAP_MAX, 0);
 #endif
 
-      b = (struct sblock *) lisp_malloc (size, MEM_TYPE_NON_LISP);
+      b = (struct sblock *) lisp_malloc (size + GC_STRING_EXTRA, MEM_TYPE_NON_LISP);
 
 #ifdef DOUG_LEA_MALLOC
       /* Back to a reasonable maximum of mmap'ed areas. */
@@ -1663,7 +1789,7 @@ allocate_string_data (s, nchars, nbytes)
   else if (current_sblock == NULL
 	   || (((char *) current_sblock + SBLOCK_SIZE
 		- (char *) current_sblock->next_free)
-	       < needed))
+	       < (needed + GC_STRING_EXTRA)))
     {
       /* Not enough room in the current sblock.  */
       b = (struct sblock *) lisp_malloc (SBLOCK_SIZE, MEM_TYPE_NON_LISP);
@@ -1692,7 +1818,10 @@ allocate_string_data (s, nchars, nbytes)
   s->size = nchars;
   s->size_byte = nbytes;
   s->data[nbytes] = '\0';
-  b->next_free = (struct sdata *) ((char *) data + needed);
+#ifdef GC_CHECK_STRING_OVERRUN
+  bcopy(string_overrun_pattern, (char *) data + needed, GC_STRING_EXTRA);
+#endif
+  b->next_free = (struct sdata *) ((char *) data + needed + GC_STRING_EXTRA);
 
   /* If S had already data assigned, mark that as free by setting its
      string back-pointer to null, and recording the size of the data
@@ -1797,9 +1926,13 @@ sweep_strings ()
 	}
     }
 
+  check_string_free_list();
+
   string_blocks = live_blocks;
   free_large_strings ();
   compact_small_strings ();
+
+  check_string_free_list();
 }
 
 
@@ -1871,28 +2004,38 @@ compact_small_strings ()
 	  else
 	    nbytes = SDATA_NBYTES (from);
 
+#ifdef GC_CHECK_STRING_BYTES
+	  if (nbytes > LARGE_STRING_BYTES)
+	    abort ();
+#endif
+
 	  nbytes = SDATA_SIZE (nbytes);
-	  from_end = (struct sdata *) ((char *) from + nbytes);
+	  from_end = (struct sdata *) ((char *) from + nbytes + GC_STRING_EXTRA);
+
+#ifdef GC_CHECK_STRING_OVERRUN
+	  if (bcmp(string_overrun_pattern, ((char *) from_end) - GC_STRING_EXTRA, GC_STRING_EXTRA))
+	    abort ();
+#endif
 
 	  /* FROM->string non-null means it's alive.  Copy its data.  */
 	  if (from->string)
 	    {
 	      /* If TB is full, proceed with the next sblock.  */
-	      to_end = (struct sdata *) ((char *) to + nbytes);
+	      to_end = (struct sdata *) ((char *) to + nbytes + GC_STRING_EXTRA);
 	      if (to_end > tb_end)
 		{
 		  tb->next_free = to;
 		  tb = tb->next;
 		  tb_end = (struct sdata *) ((char *) tb + SBLOCK_SIZE);
 		  to = &tb->first_data;
-		  to_end = (struct sdata *) ((char *) to + nbytes);
+		  to_end = (struct sdata *) ((char *) to + nbytes + GC_STRING_EXTRA);
 		}
 
 	      /* Copy, and update the string's `data' pointer.  */
 	      if (from != to)
 		{
 		  xassert (tb != b || to <= from);
-		  safe_bcopy ((char *) from, (char *) to, nbytes);
+		  safe_bcopy ((char *) from, (char *) to, nbytes + GC_STRING_EXTRA);
 		  to->string->data = SDATA_DATA (to);
 		}
 
@@ -2402,9 +2545,9 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
 void
 check_cons_list ()
 {
+#ifdef GC_CHECK_CONS_LIST
   struct Lisp_Cons *tail = cons_free_list;
 
-#if 0
   while (tail)
     tail = *(struct Lisp_Cons **)&tail->cdr;
 #endif
