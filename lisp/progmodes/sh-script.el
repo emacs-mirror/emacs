@@ -1,6 +1,7 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs
 
-;; Copyright (C) 1993, 94, 95, 96, 97, 1999 by Free Software Foundation, Inc.
+;; Copyright (C) 1993, 94, 95, 96, 97, 1999, 2001
+;;  Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Version: 2.0f
@@ -2437,7 +2438,7 @@ If INFO is supplied it is used, else it is calculated from current line."
 	nil)))))
 
 
-(defun sh-indent-line ()
+(defun sh-indent-line (&optional prefix-arg)
   "Indent the current line."
   (interactive)
   (sh-must-be-shell-mode)
