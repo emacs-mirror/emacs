@@ -76,7 +76,11 @@
 
 /* this silences a few compilation warnings */
 #undef BSD
+#if __FreeBSD__ == 1
 #define BSD 199103
+#elif __FreeBSD__ == 2
+#define BSD 199306
+#endif
 
 #define WAITTYPE int
 /* get this since it won't be included if WAITTYPE is defined */
