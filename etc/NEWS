@@ -431,6 +431,7 @@ highlighting when entering new text, trailing whitespace is not
 displayed if point is at the end of the line containing the
 whitespace.
 
++++
 ** Busy-cursor.
 
 Emacs can optionally display a busy-cursor under X.  You can turn the
