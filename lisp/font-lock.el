@@ -597,6 +597,39 @@ This is normally set via `font-lock-defaults'.")
 (defvar font-lock-mode-hook nil
   "Function or functions to run on entry to Font Lock mode.")
 
+;; Originally these variable values were face names such as `bold' etc.
+;; Now we create our own faces, but we keep these variables for compatibility
+;; and they give users another mechanism for changing face appearance.
+;; We now allow a FACENAME in `font-lock-keywords' to be any expression that
+;; returns a face.  So the easiest thing is to continue using these variables,
+;; rather than sometimes evaling FACENAME and sometimes not.  sm.
+(defvar font-lock-comment-face		'font-lock-comment-face
+  "Face name to use for comments.")
+
+(defvar font-lock-string-face		'font-lock-string-face
+  "Face name to use for strings.")
+
+(defvar font-lock-keyword-face		'font-lock-keyword-face
+  "Face name to use for keywords.")
+
+(defvar font-lock-builtin-face		'font-lock-builtin-face
+  "Face name to use for builtins.")
+
+(defvar font-lock-function-name-face	'font-lock-function-name-face
+  "Face name to use for function names.")
+
+(defvar font-lock-variable-name-face	'font-lock-variable-name-face
+  "Face name to use for variable names.")
+
+(defvar font-lock-type-face		'font-lock-type-face
+  "Face name to use for type names.")
+
+(defvar font-lock-reference-face	'font-lock-reference-face
+  "Face name to use for reference names.")
+
+(defvar font-lock-warning-face		'font-lock-warning-face
+  "Face name to use for things that should stand out.")
+
 ;; Font Lock mode.
 
 (eval-when-compile
@@ -802,6 +835,8 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 ;; would also be contrary to the Principle of Least Surprise.  sm.
 
 (defvar font-lock-buffers nil)		; For remembering buffers.
+
+(defvar global-font-lock-mode)		;Prevent warnings in defun below.
 
 ;;;###autoload
 (defun global-font-lock-mode (&optional arg message)
@@ -1581,38 +1616,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 
 ;;; Colour etc. support.
 
-;; Originally these variable values were face names such as `bold' etc.
-;; Now we create our own faces, but we keep these variables for compatibility
-;; and they give users another mechanism for changing face appearance.
-;; We now allow a FACENAME in `font-lock-keywords' to be any expression that
-;; returns a face.  So the easiest thing is to continue using these variables,
-;; rather than sometimes evaling FACENAME and sometimes not.  sm.
-(defvar font-lock-comment-face		'font-lock-comment-face
-  "Face name to use for comments.")
-
-(defvar font-lock-string-face		'font-lock-string-face
-  "Face name to use for strings.")
-
-(defvar font-lock-keyword-face		'font-lock-keyword-face
-  "Face name to use for keywords.")
-
-(defvar font-lock-builtin-face		'font-lock-builtin-face
-  "Face name to use for builtins.")
-
-(defvar font-lock-function-name-face	'font-lock-function-name-face
-  "Face name to use for function names.")
-
-(defvar font-lock-variable-name-face	'font-lock-variable-name-face
-  "Face name to use for variable names.")
-
-(defvar font-lock-type-face		'font-lock-type-face
-  "Face name to use for type names.")
-
-(defvar font-lock-reference-face	'font-lock-reference-face
-  "Face name to use for reference names.")
-
-(defvar font-lock-warning-face		'font-lock-warning-face
-  "Face name to use for things that should stand out.")
+(defvar font-lock-face-attributes)	;Avoid compiler warnings below.
 
 ;; Originally face attributes were specified via `font-lock-face-attributes'.
 ;; Users then changed the default face attributes by setting that variable.
