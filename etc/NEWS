@@ -596,6 +596,27 @@ command is bound to M-o. A new command dired-mark-omitted, bound to M-O,
 marks omitted files. The variable dired-omit-files-p is obsoleted, use the
 mode toggling function instead.
 
++++
+** find-file-read-only visits multiple files in read-only mode,
+when the file name contains wildcard characters.
+
++++
+** find-alternate-file replaces the current file with multiple files,
+when the file name contains wildcard characters.
+
+** FFAP
+
++++
+*** New ffap commands and keybindings: C-x C-r (`ffap-read-only'),
+C-x C-v (`ffap-alternate-file'), C-x C-d (`ffap-list-directory'),
+C-x 4 r (`ffap-read-only-other-window'), C-x 4 d (`ffap-dired-other-window'),
+C-x 5 r (`ffap-read-only-other-frame'), C-x 5 d (`ffap-dired-other-frame').
+
+---
+*** FFAP accepts wildcards in a file name by default.  C-x C-f passes
+it to `find-file' with non-nil WILDCARDS argument, which visits
+multiple files, and C-x d passes it to `dired'.
+
 ** Info mode:
 
 *** A numeric prefix argument of `info' selects an Info buffer
