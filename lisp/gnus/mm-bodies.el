@@ -56,8 +56,8 @@ Valid encodings are `7bit', `8bit', `quoted-printable' and `base64'."
 (defun mm-encode-body ()
   "Encode a body.
 Should be called narrowed to the body that is to be encoded.
-If there is more than one non-ASCII MULE charset, then list of found
-MULE charsets are returned.
+If there is more than one non-ASCII Mule charset, then list of found
+Mule charsets are returned.
 If successful, the MIME charset is returned.
 If no encoding was done, nil is returned."
   (if (not (mm-multibyte-p))
@@ -73,8 +73,7 @@ If no encoding was done, nil is returned."
 	  nil))
     (save-excursion
       (goto-char (point-min))
-      (let ((charsets (mm-find-mime-charset-region (point-min) (point-max)))
-	    charset)
+      (let ((charsets (mm-find-mime-charset-region (point-min) (point-max))))
 	(cond
 	 ;; No encoding.
 	 ((null charsets)
@@ -84,29 +83,10 @@ If no encoding was done, nil is returned."
 	  charsets)
 	 ;; We encode.
 	 (t
-	  (let ((charset (car charsets))
-		start)
-	    (when (or t
-		      ;; We always decode.
-		      (not (mm-coding-system-equal
-			    charset buffer-file-coding-system)))
-	      (while (not (eobp))
-		(if (eq (mm-charset-after) 'ascii)
-		    (when start
-		      (save-restriction
-			(narrow-to-region start (point))
-			(mm-encode-coding-region
-			 start (point) (mm-charset-to-coding-system charset))
-			(goto-char (point-max)))
-		      (setq start nil))
-		  (unless start
-		    (setq start (point))))
-		(forward-char 1))
-	      (when start
-		(mm-encode-coding-region start (point)
-					 (mm-charset-to-coding-system charset))
-		(setq start nil)))
-	    charset)))))))
+	  (mm-encode-coding-region (point-min) (point-max)
+				   (mm-charset-to-coding-system
+				    (car charsets)))
+	  (car charsets)))))))
 
 (eval-when-compile (defvar message-posting-charset))
 
@@ -133,27 +113,12 @@ If no encoding was done, nil is returned."
 
 (defun mm-body-7-or-8 ()
   "Say whether the body is 7bit or 8bit."
-  (cond
-   ((not (featurep 'mule))
-    (if (save-excursion
-	  (goto-char (point-min))
-	  (skip-chars-forward mm-7bit-chars)
-	  (eobp))
-	'7bit
-      '8bit))
-   (t
-    ;; Mule version
-    (if (and (null (delq 'ascii
-			 (mm-find-charset-region (point-min) (point-max))))
-	     ;;!!!The following is necessary because the function
-	     ;;!!!above seems to return the wrong result under
-	     ;;!!!Emacs 20.3.  Sometimes.
-	     (save-excursion
-	       (goto-char (point-min))
-	       (skip-chars-forward mm-7bit-chars)
-	       (eobp)))
-	'7bit
-      '8bit))))
+  (if (save-excursion
+	(goto-char (point-min))
+	(skip-chars-forward mm-7bit-chars)
+	(eobp))
+      '7bit
+    '8bit))
 
 ;;;
 ;;; Functions for decoding
