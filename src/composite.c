@@ -562,9 +562,17 @@ update_compositions (from, to, check_mask)
 	}
     }
   if (min_pos < max_pos)
-    Fremove_list_of_text_properties (make_number (min_pos),
-				     make_number (max_pos),
-				     Fcons (Qauto_composed, Qnil), Qnil);
+    {
+      int count = SPECPDL_INDEX ();
+
+      specbind (Qinhibit_read_only, Qt);
+      specbind (Qinhibit_modification_hooks, Qt);
+      specbind (Qinhibit_point_motion_hooks, Qt);
+      Fremove_list_of_text_properties (make_number (min_pos),
+				       make_number (max_pos),
+				       Fcons (Qauto_composed, Qnil), Qnil);
+      unbind_to (count, Qnil);
+    }
 }
 
 
