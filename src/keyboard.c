@@ -1,5 +1,5 @@
 /* Keyboard and mouse input; editor command loop.
-   Copyright (C) 1985,86,87,88,89,93,94,95,96,97,99, 2000, 2001
+   Copyright (C) 1985,86,87,88,89,93,94,95,96,97,99, 2000, 01, 02
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -3368,7 +3368,7 @@ kbd_buffer_store_event (event)
 
       if (c == quit_char)
 	{
-	  static SIGTYPE interrupt_signal (int);
+	  static SIGTYPE interrupt_signal P_ ((int));
 #ifdef MULTI_KBOARD
 	  KBOARD *kb;
 	  struct input_event *sp;
