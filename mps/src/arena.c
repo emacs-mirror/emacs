@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.49) $
+ * $HopeName: MMsrc!arena.c(trunk.50) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,14 +36,12 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.49) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.50) $");
 
 
 /* Forward declarations */
 
 typedef struct NSEGStruct *NSEG;
-
-void SegRealloc(Seg seg, Pool newpool);
 
 static Bool NSEGCheck(NSEG nseg);
 
@@ -265,7 +263,8 @@ static Res ArenaAllocSegFromReservoir(Seg *segReturn, Arena arena,
     Size segSize = SegSize(seg);
     if (segSize >= size) {
       arena->reservoirSize -= segSize;
-      SegRealloc(seg, pool);
+      SegFinish(seg);
+      SegInit(seg, pool);
       AVER(ArenaReservoirIsConsistent(arena));
       *segReturn = seg;
       return ResOK;
@@ -293,7 +292,8 @@ static void ArenaReturnSegToReservoir(Arena arena, Seg seg)
     (*arena->class->segFree)(seg);
   } else {
     /* Reassign the segment to the reservoir pool */
-    SegRealloc(seg, reservoir);
+    SegFinish(seg);
+    SegInit(seg, reservoir);
     arena->reservoirSize += new; 
   }
   AVER(ArenaReservoirIsConsistent(arena));
@@ -1170,19 +1170,6 @@ void ArenaFree(Arena arena, void* base, size_t size)
 }
 
 
-/* SegRealloc -- Reallocate a segment from one pool to another
- *
- * The segment appears as a freshly initialized segment in the new pool.
- */
-
-void SegRealloc(Seg seg, Pool newpool)
-{
-  AVERT(Seg, seg);
-  AVER(seg->_pool != newpool);
-  SegFinish(seg);
-  SegInit(seg, newpool);
-}
-
 /* SegAlloc -- allocate a segment from the arena */
 
 Res SegAlloc(Seg *segReturn, SegPref pref, Size size, Pool pool,
@@ -1218,6 +1205,7 @@ Res SegAlloc(Seg *segReturn, SegPref pref, Size size, Pool pool,
     if(res == ResOK)
       goto goodAlloc;
   }
+  EVENT_PWP(SegAllocFail, arena, size, pool);
   return res;
 
 goodAlloc:
