@@ -625,7 +625,7 @@
 ;;;; ------------------------------------------------------------
 
 (defvar ange-ftp-name-format
-  '("^/\\(\\([^@/:]*\\)@\\)?\\([^@/:]*\\):\\(.*\\)" . (3 2 4))
+  '("^/\\(\\([^@/:]*\\)@\\)?\\([^@/:]*[^@/:.]\\):\\(.*\\)" . (3 2 4))
   "*Format of a fully expanded remote file name.
 This is a list of the form \(REGEXP HOST USER NAME\),
 where REGEXP is a regular expression matching
