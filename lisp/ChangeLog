@@ -1,3 +1,29 @@
+2000-10-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-editable-p): Minor optimization.
+	(edit-vc-file, vc-next-action-on-file): Don't use find-file.
+	(vc-find-new-backend): New function split from vc-responsible-backend.
+	(vc-register): Use it.
+	(vc-responsible-backend): Remove REGISTER arg and add BACKENDS arg.
+	(vc-unregister): Drop BACKEND arg (it doesn't work anyway).
+	(vc-default-unregister, vc-revert-buffer): Docstring fix.
+	(vc-clear-headers): Don't use find-file.
+	(vc-revert-buffer): Use `and' again (must have been a braino).
+	(vc-switch-backend): Only prompt if requested.
+	Short circuit if nothing is to be done.
+	Don't use vc-resynch-buffer which could lose unsaved editing.
+	(vc-default-receive-file): Update call to vc-unregister.
+	(with-vc-file, vc-next-action-on-file):
+	Use vc-backend rather than vc-registered.
+	(vc-next-action-on-file): Use intern-soft.
+	Deal with read-only *vc-diff* buffer.
+	(vc-transfer-file): Docstring fix.
+
+	* vc-rcs.el (vc-rcs-unregister): Keep a backup of the master file.
+	(vc-rcs-receive-file): Avoid with-vc-properties.
+	Update call to vc-unregister.
+	Use constant `RCS' rather than (dynamically bound) var `backend'.
+
 2000-10-01  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-next-action-on-file): Update mode line only if file 
