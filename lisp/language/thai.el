@@ -39,6 +39,7 @@
 
 (define-coding-system-alias 'th-tis620 'thai-tis620)
 (define-coding-system-alias 'tis620 'thai-tis620)
+(define-coding-system-alias 'tis-620 'thai-tis620)
 
 (set-language-info-alist
  "Thai" '((tutorial . "TUTORIAL.th")
