@@ -160,7 +160,7 @@
 
 /* GCC 2.7.2.1, gcc -E -dM -traditional-cpp and <URL:http://developer.apple.c
  * om/techpubs/macosx/System/Documentation/Developer/YellowBox/Reference/DevT
- * ools/Preprocessor/Preprocessor.[ef].html> 
+ * ools/Preprocessor/Preprocessor.[ef].html>
  */
 
 #elif defined(__APPLE__) && defined(__ppc__) && defined(__MACH__) && defined(__GNUC__)
@@ -290,6 +290,20 @@
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    8 /* @@@@ not tested */
+
+/* GCC 2.95.3, gcc -E -dM
+ */
+
+#elif defined(__FreeBSD__) && defined (__i386__) && defined (__GNUC__)
+#define MPS_PF_FRI4GC
+#define MPS_PF_STRING   "fri4gc"
+#define MPS_OS_FR
+#define MPS_ARCH_I4
+#define MPS_BUILD_GC
+#define MPS_T_WORD      unsigned long
+#define MPS_WORD_WIDTH  32
+#define MPS_WORD_SHIFT  5
+#define MPS_PF_ALIGN    4
 
 #else
 #error "Unable to detect target platform"
