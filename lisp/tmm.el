@@ -184,20 +184,21 @@ Its value should be an event that has a binding in MENU."
 	     (setq history (append history history history history))
 	     (setq tmm-c-prompt (nth (- history-len 1 index-of-default) history))
 	     (add-hook 'minibuffer-setup-hook 'tmm-add-prompt)
-	     (unwind-protect
-		 (setq out
-		       (completing-read
-			(concat gl-str " (up/down to change, PgUp to menu): ")
-			tmm-km-list nil t nil
-			(cons 'history (- (* 2 history-len) index-of-default))))
-	       (save-excursion
-		 (remove-hook 'minibuffer-setup-hook 'tmm-add-prompt)
-		 (if (get-buffer "*Completions*")
-		     (progn
-		       (set-buffer "*Completions*")
-		       (use-local-map tmm-old-comp-map)
-		       (bury-buffer (current-buffer)))))
-	       )))
+	     (save-excursion
+	       (unwind-protect
+		   (setq out
+			 (completing-read
+			  (concat gl-str " (up/down to change, PgUp to menu): ")
+			  tmm-km-list nil t nil
+			  (cons 'history (- (* 2 history-len) index-of-default))))
+		 (save-excursion
+		   (remove-hook 'minibuffer-setup-hook 'tmm-add-prompt)
+		   (if (get-buffer "*Completions*")
+		       (progn
+			 (set-buffer "*Completions*")
+			 (use-local-map tmm-old-comp-map)
+			 (bury-buffer (current-buffer)))))
+		 ))))
       (setq choice (cdr (assoc out tmm-km-list)))
       (and (null choice)
 	   (> (length out) (length tmm-c-prompt))
@@ -323,21 +324,17 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
         (remove-hook 'completion-setup-hook 'tmm-completion-delete-prompt))
       (if tmm-completion-prompt
           (progn
-      (set-buffer "*Completions*")
-      (goto-char 1)
+	    (set-buffer "*Completions*")
+	    (goto-char 1)
             (insert tmm-completion-prompt)))
       )
-    (save-excursion
+    (save-selected-window
       (other-window 1)			; Electric-pop-up-window does
 					; not work in minibuffer
-      (set-buffer (window-buffer (Electric-pop-up-window "*Completions*")))
+      (Electric-pop-up-window "*Completions*")
+      (with-current-buffer "*Completions*"
+	(setq tmm-old-comp-map (tmm-define-keys nil))))
 
-      (setq tmm-old-comp-map (tmm-define-keys nil))
-
-      (select-window win)		; Cannot use
-					; save-window-excursion, since
-					; it restores the size
-      )
     (insert tmm-c-prompt)))
 
 (defun tmm-delete-map ()
