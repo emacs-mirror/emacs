@@ -292,7 +292,6 @@ If this is nil, the major mode's syntax table is used.")
 	(progn
 	  (if font-lock-syntax-table
 	      (set-syntax-table font-lock-syntax-table))
-	  (recursive-edit)
 	  (while rest
 	    (setq first (car rest) rest (cdr rest))
 	    (goto-char start)
