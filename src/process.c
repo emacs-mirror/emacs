@@ -1696,7 +1696,8 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 #endif
       host_info.h_addr = (char*)(&numeric_addr);
       addr_list[1] = 0;
-      host_info.h_length = strlen (addr_list[0]);
+      /* numeric_addr isn't null-terminated; it has fixed length.  */
+      host_info.h_length = sizeof (numeric_addr);
     }
 
   bzero (&address, sizeof address);
