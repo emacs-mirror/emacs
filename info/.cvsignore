@@ -48,3 +48,4 @@ tramp-[1-9]*
 ses
 smtpmail
 flymake
+emacs-xtra
