@@ -489,17 +489,21 @@ unlike `file-truename'."
       (setq count (1- count)))
     newname))
 
-(defun switch-to-buffer-other-window (buffer)
-  "Select buffer BUFFER in another window."
+(defun switch-to-buffer-other-window (buffer &optional norecord)
+  "Select buffer BUFFER in another window.
+Optional second arg NORECORD non-nil means
+do not put this buffer at the front of the list of recently selected ones."
   (interactive "BSwitch to buffer in other window: ")
   (let ((pop-up-windows t))
-    (pop-to-buffer buffer t)))
+    (pop-to-buffer buffer t norecord)))
 
-(defun switch-to-buffer-other-frame (buffer)
-  "Switch to buffer BUFFER in another frame."
+(defun switch-to-buffer-other-frame (buffer &optional norecord)
+  "Switch to buffer BUFFER in another frame.
+Optional second arg NORECORD non-nil means
+do not put this buffer at the front of the list of recently selected ones."
   (interactive "BSwitch to buffer in other frame: ")
   (let ((pop-up-frames t))
-    (pop-to-buffer buffer t)
+    (pop-to-buffer buffer t norecord)
     (raise-frame (window-frame (selected-window)))))
 
 (defun find-file (filename)
