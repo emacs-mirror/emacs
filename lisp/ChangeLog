@@ -1,3 +1,7 @@
+2002-07-16  Dave Love  <fx@gnu.org>
+  
+	* international/utf-8.el (ccl-decode-mule-utf-8): Fix >= #xfe case.
+  
 2002-07-16  Juanma Barranquero  <lektu@terra.es>
 
 	* timer.el (timer-set-time, timer-set-time-with-usecs): Fix docstring.

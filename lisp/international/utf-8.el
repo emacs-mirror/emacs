@@ -254,7 +254,7 @@
 				   (write-multibyte-character r5 r1))
 			       (write-multibyte-character r6 r1)))))))
 		;; else invalid byte >= #xfe
-		(write r0))))))
+		(write-multibyte-character r6 r0))))))
       (repeat))))
 
   "CCL program to decode UTF-8.
