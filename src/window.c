@@ -3148,9 +3148,8 @@ redirection (see `redirect-frame-focus').")
     }
 
   n_windows = count_windows (XWINDOW (FRAME_ROOT_WINDOW (f)));
-  data = (struct save_window_data *)
-           XVECTOR (Fmake_vector (make_number (SAVE_WINDOW_DATA_SIZE),
-				  Qnil));
+  data = ((struct save_window_data *)
+	  XVECTOR (Fmake_vector (make_number (SAVE_WINDOW_DATA_SIZE), Qnil)));
   XSETFASTINT (data->frame_width, FRAME_WIDTH (f));
   XSETFASTINT (data->frame_height, FRAME_HEIGHT (f));
   XSETFASTINT (data->frame_menu_bar_lines, FRAME_MENU_BAR_LINES (f));
