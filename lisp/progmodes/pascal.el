@@ -46,7 +46,7 @@
 ;;;       pascal-start-keywords     '("begin" "end" "function" "procedure"
 ;;; 				      "repeat" "until" "while" "read" "readln"
 ;;; 				      "reset" "rewrite" "write" "writeln")
-;;;       pascal-seperator-keywords '("downto" "else" "mod" "div" "then"))
+;;;       pascal-separator-keywords '("downto" "else" "mod" "div" "then"))
 
 ;;; KNOWN BUGS / BUGREPORTS
 ;;; =======================
@@ -175,7 +175,7 @@ will be completed runtime, and should not be added to this list.")
 \(eg. begin, repeat, until, readln.)
 The procedures and variables defined within the Pascal program
 will be completed runtime and should not be added to this list.")
-(defvar pascal-seperator-keywords
+(defvar pascal-separator-keywords
   '("downto" "else" "mod" "div" "then")
   "*Keywords to complete when NOT standing at the first word of a statement.
 \(eg. downto, else, mod, then.) 
@@ -258,7 +258,7 @@ Variables controlling indentation/edit style:
     functions. The name of the function or case will be set between the braces.
 
 See also the user variables pascal-type-keywords, pascal-start-keywords and
-pascal-seperator-keywords.
+pascal-separator-keywords.
 
 Turning on Pascal mode calls the value of the variable pascal-mode-hook with
 no args, if that value is non-nil."
@@ -567,7 +567,6 @@ area.  See also `pascal-comment-area'."
 ;;;
 ;;; Other functions
 ;;;
-
 (defun pascal-set-auto-comments ()
   "Insert `{ case }' or `{ NAME }' on this line if appropriate.
 Insert `{ case }' if there is an `end' on the line which
@@ -580,39 +579,41 @@ on the line which ends a function or procedure named NAME."
 	     (not (save-excursion
 		    (end-of-line)
 		    (search-backward "{" (pascal-get-beg-of-line) t))))
-	(progn
-	  (if (eq (car (pascal-calculate-indent)) 'case)
-	      ;; This is a case block
-	      (progn
-		(end-of-line)
-		(delete-horizontal-space)
-		(insert " { case }"))
-	    (let ((nest 1))
-	      ;; Check if this is the end of a function
-	      (save-excursion
-		(while (not (or (looking-at pascal-defun-re) (bobp)))
-		  (backward-sexp 1)
-		  (cond ((looking-at pascal-beg-block-re)
-			 (setq nest (1- nest)))
-			((looking-at pascal-end-block-re)
-			 (setq nest (1+ nest)))))
-		(if (bobp)
-		    (setq nest 1)))
-	      (if (zerop nest)
-		  (progn
-		    (end-of-line)
-		    (delete-horizontal-space)
-		    (insert " { ")
-		    (let (b e)
-		      (save-excursion
-			(setq b (progn (pascal-beg-of-defun)
-				       (skip-chars-forward "^ \t")
-				       (skip-chars-forward " \t")
-				       (point))
-			      e (progn (skip-chars-forward "a-zA-Z0-9_")
-				       (point))))
-		      (insert-buffer-substring (current-buffer) b e))
-		    (insert " }")))))))))
+	(let ((type (car (pascal-calculate-indent))))
+	  (if (eq type 'declaration)
+	      ()
+	    (if (eq type 'case)
+		;; This is a case block
+		(progn
+		  (end-of-line)
+		  (delete-horizontal-space)
+		  (insert " { case }"))
+	      (let ((nest 1))
+		;; Check if this is the end of a function
+		(save-excursion
+		  (while (not (or (looking-at pascal-defun-re) (bobp)))
+		    (backward-sexp 1)
+		    (cond ((looking-at pascal-beg-block-re)
+			   (setq nest (1- nest)))
+			  ((looking-at pascal-end-block-re)
+			   (setq nest (1+ nest)))))
+		  (if (bobp)
+		      (setq nest 1)))
+		(if (zerop nest)
+		    (progn
+		      (end-of-line)
+		      (delete-horizontal-space)
+		      (insert " { ")
+		      (let (b e)
+			(save-excursion
+			  (setq b (progn (pascal-beg-of-defun)
+					 (skip-chars-forward "^ \t")
+					 (skip-chars-forward " \t")
+					 (point))
+				e (progn (skip-chars-forward "a-zA-Z0-9_")
+					 (point))))
+			(insert-buffer-substring (current-buffer) b e))
+		      (insert " }"))))))))))
 
 
 
@@ -761,15 +762,18 @@ column number the line should be indented to."
 (defun pascal-indent-case ()
   "Indent within case statements."
   (skip-chars-forward ": \t")
-  (let ((end (prog1 (point-marker)
+  (let ((end (prog2
+		 (end-of-line)
+		 (point-marker)
 	       (re-search-backward "\\<case\\>" nil t)))
 	(beg (point))
 	(ind 0))
     ;; Get right indent
     (while (< (point) (marker-position end))
-      (if (re-search-forward "^[ \t]*\\([^ \t]+\\)[ \t]*:"
-			 (marker-position end) 'move)
-	  (goto-char (match-end 1)))
+      (if (re-search-forward 
+	   "^[ \t]*[^ \t,:]+[ \t]*\\(,[ \t]*[^ \t,:]+[ \t]*\\)*:"
+	   (marker-position end) 'move)
+	  (forward-char -1))
       (delete-horizontal-space)
       (if (> (current-column) ind)
 	  (setq ind (current-column)))
@@ -777,8 +781,9 @@ column number the line should be indented to."
     (goto-char beg)
     ;; Indent all case statements
     (while (< (point) (marker-position end))
-      (if (re-search-forward "^[ \t]*[^ \t]+[ \t]*:"
-			     (marker-position end) 'move)
+      (if (re-search-forward
+	   "^[ \t]*[^ \t,:]+[ \t]*\\(,[ \t]*[^ \t,:]+[ \t]*\\)*:"
+	   (marker-position end) 'move)
 	  (forward-char -1))
       (indent-to (1+ ind))
       (if (/= (following-char) ?:)
@@ -876,11 +881,12 @@ indent of the current line in parameterlist."
 	    ;; Skip record blocks
 	    (if (match-beginning 1)
 		(pascal-declaration-end)
-	      (save-excursion
+	      (progn
 		(goto-char (match-beginning 0))
 		(skip-chars-backward " \t")
 		(if (> (current-column) ind)
-		    (setq ind (current-column)))))))
+		    (setq ind (current-column)))
+		(end-of-line)))))
       ;; In case no lineup was found
       (if (> ind 0)
 	  (1+ ind)
@@ -1055,7 +1061,7 @@ indent of the current line in parameterlist."
 	      (t;--Anywhere else
 	       (save-excursion (pascal-var-completion))
 	       (pascal-func-completion 'function)
-	       (pascal-keyword-completion pascal-seperator-keywords))))
+	       (pascal-keyword-completion pascal-separator-keywords))))
 
       ;; Now we have built a list of all matches. Give response to caller
       (pascal-completion-response))))
@@ -1102,7 +1108,7 @@ indent of the current line in parameterlist."
 (defun pascal-complete-word ()
   "Complete word at current point.
 \(See also `pascal-toggle-completions', `pascal-type-keywords',
-`pascal-start-keywords' and `pascal-seperator-keywords'.)"
+`pascal-start-keywords' and `pascal-separator-keywords'.)"
   (interactive)
   (let* ((b (save-excursion (skip-chars-backward "a-zA-Z0-9_") (point)))
 	 (e (save-excursion (skip-chars-forward "a-zA-Z0-9_") (point)))
