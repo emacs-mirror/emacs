@@ -656,6 +656,7 @@ Instead, these commands are available:
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults
    '(rmail-font-lock-keywords t nil nil nil
+     (font-lock-maximum-size . nil)
      (font-lock-fontify-buffer-function . rmail-fontify-buffer-function)
      (font-lock-unfontify-buffer-function . rmail-unfontify-buffer-function)
      (font-lock-inhibit-thing-lock . (lazy-lock-mode fast-lock-mode))))
