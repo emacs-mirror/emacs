@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.337 2002/10/03 22:43:01 monnier Exp $
+;; $Id: vc.el,v 1.338 2002/10/05 03:00:47 rost Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -654,6 +654,7 @@ and that its contents match what the master file says."
 ;; Initialization code, to be done just once at load-time
 (defvar vc-log-mode-map
   (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map text-mode-map)
     (define-key map "\M-n" 'vc-next-comment)
     (define-key map "\M-p" 'vc-previous-comment)
     (define-key map "\M-r" 'vc-comment-search-reverse)
@@ -2033,11 +2034,9 @@ See Info node `Merging'."
 (defun vc-maybe-resolve-conflicts (file status &optional name-A name-B)
   (vc-resynch-buffer file t (not (buffer-modified-p)))
   (if (zerop status) (message "Merge successful")
-    (if (fboundp 'smerge-mode) (smerge-mode 1))
+    (smerge-mode 1)
     (if (y-or-n-p "Conflicts detected.  Resolve them now? ")
-	(if (fboundp 'smerge-ediff)
-	    (smerge-ediff)
-	  (vc-resolve-conflicts name-A name-B))
+	(smerge-ediff name-A name-B)
       (message "File contains conflict markers"))))
 
 (defvar vc-ediff-windows)
@@ -2474,7 +2473,7 @@ allowed and simply skipped)."
     (vc-call print-log file)
     (set-buffer "*vc*")
     (pop-to-buffer (current-buffer))
-    (if (fboundp 'log-view-mode) (log-view-mode))
+    (log-view-mode)
     (vc-exec-after
      `(let ((inhibit-read-only t))
 	(goto-char (point-max)) (forward-line -1)
@@ -2492,8 +2491,7 @@ allowed and simply skipped)."
         (set-buffer-modified-p nil)))))
 
 (defun vc-default-show-log-entry (backend rev)
-  (if (fboundp 'log-view-goto-rev)
-      (log-view-goto-rev rev)))
+  (log-view-goto-rev rev))
 
 (defun vc-default-comment-history (backend file)
   "Return a string with all log entries stored in BACKEND for FILE."
@@ -3239,78 +3237,17 @@ This function is obsolete, and has been replaced by
 
 ;; Set up key bindings for use while editing log messages
 
-(define-derived-mode vc-log-mode text-mode "VC-Log"
-  "Major mode for editing VC log entries.
-These bindings are added to the global keymap when you enter this mode:
-\\[vc-next-action]		perform next logical version-control operation on current file
-\\[vc-register]		register current file
-\\[vc-insert-headers]		insert version-control headers in current file
-\\[vc-print-log]		display change history of current file
-\\[vc-revert-buffer]		revert buffer to latest version
-\\[vc-cancel-version]		undo latest checkin
-\\[vc-diff]		show diffs between file versions
-\\[vc-version-other-window]		visit old version in another window
-\\[vc-directory]		show all files locked by any user in or below .
-\\[vc-annotate]		colorful display of the cvs annotate command
-\\[vc-update-change-log]		add change log entry from recent checkins
-
-While you are entering a change log message for a version, the following
-additional bindings will be in effect.
-
-\\[vc-finish-logentry]	proceed with check in, ending log message entry
-
-Whenever you do a checkin, your log comment is added to a ring of
-saved comments.  These can be recalled as follows:
-
-\\[vc-next-comment]	replace region with next message in comment ring
-\\[vc-previous-comment]	replace region with previous message in comment ring
-\\[vc-comment-search-reverse]	search backward for regexp in the comment ring
-\\[vc-comment-search-forward]	search backward for regexp in the comment ring
-
-Entry to the change-log submode calls the value of `text-mode-hook', then
-the value of `vc-log-mode-hook'.
-
-Global user options:
-	`vc-initial-comment'	If non-nil, require user to enter a change
-				comment upon first checkin of the file.
-
-	`vc-keep-workfiles'	Non-nil value prevents workfiles from being
-				deleted when changes are checked in
-
-        `vc-suppress-confirm'	Suppresses some confirmation prompts.
-
-	vc-BACKEND-header	Which keywords to insert when adding headers
-				with \\[vc-insert-headers].  Defaults to
-				'(\"\%\W\%\") under SCCS, '(\"\$Id\$\") under
-				RCS and CVS.
-
-	`vc-static-header-alist' By default, version headers inserted in C files
-				get stuffed in a static string area so that
-				ident(RCS/CVS) or what(SCCS) can see them in
-				the compiled object code.  You can override
-				this by setting this variable to nil, or change
-				the header template by changing it.
-
-	`vc-command-messages'	if non-nil, display run messages from the
-				actual version-control utilities (this is
-				intended primarily for people hacking vc
-				itself)."
-  (make-local-variable 'vc-comment-ring-index))
-
 (defun vc-log-edit (file)
-  "Set up `log-edit' for use with VC on FILE.
-If `log-edit' is not available, resort to `vc-log-mode'."
+  "Set up `log-edit' for use with VC on FILE."
   (setq default-directory
 	(if file (file-name-directory file)
 	  (with-current-buffer vc-parent-buffer default-directory)))
-  (if (fboundp 'log-edit)
-      (log-edit 'vc-finish-logentry nil
-		(if file `(lambda () ',(list (file-name-nondirectory file)))
-		  ;; If FILE is nil, we were called from vc-dired.
-		  (lambda ()
-		    (with-current-buffer vc-parent-buffer
-		      (dired-get-marked-files t)))))
-    (vc-log-mode))
+  (log-edit 'vc-finish-logentry nil
+	    (if file `(lambda () ',(list (file-name-nondirectory file)))
+	      ;; If FILE is nil, we were called from vc-dired.
+	      (lambda ()
+		(with-current-buffer vc-parent-buffer
+		  (dired-get-marked-files t)))))
   (set (make-local-variable 'vc-log-file) file)
   (make-local-variable 'vc-log-version)
   (set-buffer-modified-p nil)
