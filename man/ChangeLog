@@ -1,3 +1,11 @@
+2004-10-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* text.texi (Text Based Tables, Table Definition)
+	(Table Creation, Table Recognition, Cell Commands)
+	(Cell Justification, Row Commands, Column Commands)
+	(Fixed Width Mode, Table Conversion, Measuring Tables)
+	(Table Misc): New nodes, documenting the Table Mode.
+
 2004-10-21  Jay Belanger  <belanger@truman.edu>
 	* calc.texi (Algebraic-Style Calculations): Removed a comment.
 
