@@ -243,13 +243,10 @@ following the containing message."
 			"^- -" "-" (buffer-substring beg end))))
 		((and (re-search-forward "^\\(> ?\\)[a-zA-Z-]+: .*\n" nil t)
 		      (setq beg (match-beginning 0))
-		      (setq prefix (match-string 1))
+		      (setq prefix (match-string-no-properties 1))
 		      (goto-char beg)
 		      (looking-at (concat "\\(" prefix ".+\n\\)*"
-					  prefix "Date: .+\n"
-					  "\\(" prefix ".+\n\\)*"
-					  "\\(> ?\\)?\n" prefix))
-		      (goto-char beg)
+					  prefix "Date: ."))
 		      (looking-at (concat "\\(" prefix ".+\n\\)*"
 					  prefix "From: .+\n"
 					  "\\(" prefix ".+\n\\)*"
