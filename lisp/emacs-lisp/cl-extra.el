@@ -371,8 +371,8 @@ If so, return the true (non-nil) value returned by PREDICATE."
 (defun isqrt (a)
   "Return the integer square root of the argument."
   (if (and (integerp a) (> a 0))
-      (let ((g (cond ((>= a 1000000) 10000) ((>= a 10000) 1000)
-		     ((>= a 100) 100) (t 10)))
+      (let ((g (cond ((<= a 100) 10) ((<= a 10000) 100)
+		     ((<= a 1000000) 1000) (t a)))
 	    g2)
 	(while (< (setq g2 (/ (+ g (/ a g)) 2)) g)
 	  (setq g g2))
@@ -381,7 +381,7 @@ If so, return the true (non-nil) value returned by PREDICATE."
 
 (defun cl-expt (x y)
   "Return X raised to the power of Y.  Works only for integer arguments."
-  (if (<= y 0) (if (= y 0) 1 (if (memq x '(-1 1)) x 0))
+  (if (<= y 0) (if (= y 0) 1 (if (memq x '(-1 1)) (cl-expt x (- y)) 0))
     (* (if (= (% y 2) 0) 1 x) (cl-expt (* x x) (/ y 2)))))
 (or (and (fboundp 'expt) (subrp (symbol-function 'expt)))
     (defalias 'expt 'cl-expt))
@@ -890,7 +890,10 @@ This also does some trivial optimizations to make the form prettier."
 					     cl-closure-vars)
 				     '((quote --cl-rest--)))))))
 		 (list (car form) (list* 'lambda (cadadr form) body))))
-	   form))
+	   (let ((found (assq (cadr form) env)))
+	     (if (eq (cadr (caddr found)) 'cl-labels-args)
+		 (cl-macroexpand-all (cadr (caddr (cadddr found))) env)
+	       form))))
 	((memq (car form) '(defun defmacro))
 	 (list* (car form) (nth 1 form) (cl-macroexpand-body (cddr form) env)))
 	((and (eq (car form) 'progn) (not (cddr form)))
