@@ -1,3 +1,20 @@
+2000-09-01  Didier Verna  <didier@xemacs.org>
+
+	* rect.el (replace-rectangle): New function.
+
+2000-03-09  Dave Love  <fx@gnu.org>
+
+	* progmodes/fortran.el (fortran-comment-line-start): Define as
+	"C".
+	(fortran-comment-line-start-skip): Don't match cpp stuff.
+	(font-lock-keywords): Add * to comment-chars.  Grok cpp stuff.
+	(fortran-mode-map): Remove over-eager custom-menu-create for now.
+	(fortran-mode): Don't set fortran-comment-line-start-skip,
+	fortran-comment-line-start here.  Set comment-start,
+	add-log-current-defun.
+	(fortran-fill-paragraph): Adjust to try to DTRT with cpp stuff.
+	(fortran-current-defun): New function.
+
 2000-03-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/re-builder.el: New file.
