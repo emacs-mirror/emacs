@@ -2395,6 +2395,7 @@ extern void buffer_memory_full P_ ((void));
 extern int survives_gc_p P_ ((Lisp_Object));
 extern void mark_object P_ ((Lisp_Object *));
 extern Lisp_Object Vpurify_flag;
+extern Lisp_Object Vmemory_full;
 EXFUN (Fcons, 2);
 EXFUN (list2, 2);
 EXFUN (list3, 3);
@@ -2832,9 +2833,9 @@ EXFUN (Fvertical_motion, 2);
 EXFUN (Findent_to, 2);
 EXFUN (Fcurrent_column, 0);
 EXFUN (Fmove_to_column, 2);
-extern float current_column P_ ((void));
+extern double current_column P_ ((void));
 extern void invalidate_current_column P_ ((void));
-extern int indented_beyond_p P_ ((int, int, float));
+extern int indented_beyond_p P_ ((int, int, double));
 extern void syms_of_indent P_ ((void));
 
 /* defined in window.c */
