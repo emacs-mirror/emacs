@@ -1474,9 +1474,9 @@ term_init (terminal_type)
   if (status < 0)
     {
 #ifdef TERMINFO
-      fatal ("Cannot open terminfo database file.\n");
+      fatal ("Cannot open terminfo database file");
 #else
-      fatal ("Cannot open termcap database file.\n");
+      fatal ("Cannot open termcap database file");
 #endif
     }
   if (status == 0)
@@ -1486,14 +1486,14 @@ term_init (terminal_type)
 If that is not the actual type of terminal you have,\n\
 use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 `setenv TERM ...') to specify the correct type.  It may be necessary\n\
-to do `unset TERMINFO' (C-shell: `unsetenv TERMINFO') as well.\n",
+to do `unset TERMINFO' (C-shell: `unsetenv TERMINFO') as well.",
 	     terminal_type);
 #else
       fatal ("Terminal type %s is not defined.\n\
 If that is not the actual type of terminal you have,\n\
 use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 `setenv TERM ...') to specify the correct type.  It may be necessary\n\
-to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.\n",
+to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 	     terminal_type);
 #endif
     }
@@ -1602,7 +1602,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.\n",
   
   if (FRAME_HEIGHT (selected_frame) < 3
       || FRAME_WIDTH (selected_frame) < 3)
-    fatal ("Screen size %dx%d is too small.\n",
+    fatal ("Screen size %dx%d is too small",
 	   FRAME_HEIGHT (selected_frame), FRAME_WIDTH (selected_frame));
 
   min_padding_speed = tgetnum ("pb");
@@ -1726,7 +1726,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.\n",
 It lacks the ability to position the cursor.\n\
 If that is not the actual type of terminal you have, use either the\n\
 DCL command `SET TERMINAL/DEVICE= ...' for DEC-compatible terminals,\n\
-or `define EMACS_TERM \"terminal type\"' for non-DEC terminals.\n",
+or `define EMACS_TERM \"terminal type\"' for non-DEC terminals.",
            terminal_type);
 #else /* not VMS */
 # ifdef TERMINFO
@@ -1735,7 +1735,7 @@ It lacks the ability to position the cursor.\n\
 If that is not the actual type of terminal you have,\n\
 use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 `setenv TERM ...') to specify the correct type.  It may be necessary\n\
-to do `unset TERMINFO' (C-shell: `unsetenv TERMINFO') as well.\n",
+to do `unset TERMINFO' (C-shell: `unsetenv TERMINFO') as well.",
 	   terminal_type);
 # else /* TERMCAP */
     fatal ("Terminal type \"%s\" is not powerful enough to run Emacs.\n\
@@ -1743,13 +1743,13 @@ It lacks the ability to position the cursor.\n\
 If that is not the actual type of terminal you have,\n\
 use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 `setenv TERM ...') to specify the correct type.  It may be necessary\n\
-to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.\n",
+to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 	   terminal_type);
 # endif /* TERMINFO */
 #endif /*VMS */
   if (FRAME_HEIGHT (selected_frame) <= 0
       || FRAME_WIDTH (selected_frame) <= 0)
-    fatal ("The frame size has not been specified.");
+    fatal ("The frame size has not been specified");
 
   delete_in_insert_mode
     = TS_delete_mode && TS_insert_mode
@@ -1795,6 +1795,7 @@ fatal (str, arg1, arg2)
 {
   fprintf (stderr, "emacs: ");
   fprintf (stderr, str, arg1, arg2);
+  fprintf (stderr, "\n");
   fflush (stderr);
   exit (1);
 }
