@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.119 $")
+(defconst byte-compile-version "$Revision: 2.120 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -2073,6 +2073,19 @@ list that represents a doc string reference.
   (if (memq 'free-vars byte-compile-warnings)
       (setq byte-compile-bound-variables
 	    (cons (nth 1 (nth 1 form)) byte-compile-bound-variables)))
+  (let ((tail (nthcdr 4 form)))
+    (while tail
+      ;; If there are any (function (lambda ...)) expressions, compile
+      ;; those functions.
+      (if (and (consp (car tail))
+	       (eq (car (car tail)) 'function)
+	       (consp (nth 1 (car tail))))
+	  (setcar tail (byte-compile-lambda (nth 1 (car tail))))
+	;; Likewise for a bare lambda.
+	(if (and (consp (car tail))
+		 (eq (car (car tail)) 'lambda))
+	    (setcar tail (byte-compile-lambda (car tail)))))
+      (setq tail (cdr tail))))
   form)
 
 (put 'require 'byte-hunk-handler 'byte-compile-file-form-eval-boundary)
