@@ -550,9 +550,16 @@ like an underlying face would be, with higher priority than underlying faces."
   (cond ((null frame)
 	 ;; Change face on all frames.
 	 (dolist (frame (frame-list))
-	   (apply #'set-face-attribute face frame args))
+	   (let ((list args))
+	     (while list
+	       (internal-set-lisp-face-attribute face (car list)
+						 (cadr list) frame)
+	       (setq list (cdr (cdr list))))))
 	 ;; Record that as a default for new frames.
-	 (apply #'set-face-attribute face t args))
+	 (while args
+	   (internal-set-lisp-face-attribute face (car args)
+					     (cadr args) t)
+	   (setq args (cdr (cdr args)))))
 	(t
 	 (while args
 	   (internal-set-lisp-face-attribute face (car args)
@@ -1168,21 +1175,19 @@ If FRAME is nil, the current FRAME is used."
 
 (defun face-spec-reset-face (face &optional frame)
   "Reset all attributes of FACE on FRAME to unspecified."
-  (let ((attrs face-attribute-name-alist)
-	params)
+  (let ((attrs face-attribute-name-alist))
     (while attrs
       (let ((attr-and-name (car attrs)))
-	(setq params (cons (car attr-and-name) (cons 'unspecified params))))
-      (setq attrs (cdr attrs)))
-    (apply #'set-face-attribute face frame params)))
+	(set-face-attribute face frame (car attr-and-name) 'unspecified))
+      (setq attrs (cdr attrs)))))
 
 
 (defun face-spec-set (face spec &optional frame)
   "Set FACE's attributes according to the first matching entry in SPEC.
 FRAME is the frame whose frame-local face is set.  FRAME nil means
 do it on all frames.  See `defface' for information about SPEC."
-  (let ((attrs (face-spec-choose spec frame))
-	params)
+  (let ((attrs (face-spec-choose spec frame)))
+    (face-spec-reset-face face frame)
     (while attrs
       (let ((attribute (car attrs))
 	    (value (car (cdr attrs))))
@@ -1193,10 +1198,8 @@ do it on all frames.  See `defface' for information about SPEC."
 	  (t (unless (assq attribute face-x-resources)
 	       (setq attribute nil))))
 	(when attribute
-	  (setq params (cons attribute (cons value params)))))
-      (setq attrs (cdr (cdr attrs))))
-    (face-spec-reset-face face frame)
-    (apply #'set-face-attribute face frame params)))
+	  (set-face-attribute face frame attribute value)))
+      (setq attrs (cdr (cdr attrs))))))
 
 
 (defun face-attr-match-p (face attrs &optional frame)
