@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
-;; Version: 1.9924
+;; Version: 1.9929
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -439,6 +439,15 @@ later with `widget-put'."
 	     (setq missing nil))))
     value))
 
+(defun widget-get-indirect (widget property)
+  "In WIDGET, get the value of PROPERTY.
+If the value is a symbol, return its binding.  
+Otherwise, just return the value."
+  (let ((value (widget-get widget property)))
+    (if (symbolp value)
+	(symbol-value value)
+      value)))
+
 (defun widget-member (widget property)
   "Non-nil iff there is a definition in WIDGET for PROPERTY."
   (cond ((widget-plist-member (cdr widget) property)
@@ -666,14 +675,6 @@ glyphs used when the widget is pushed and inactive, respectively."
   "String used as suffix for buttons."
   :type 'string
   :group 'widget-button)
-
-(defun widget-button-insert-indirect (widget key)
-  "Insert value of WIDGET's KEY property."
-  (let ((val (widget-get widget key)))
-    (while (and val (symbolp val))
-      (setq val (symbol-value val)))
-    (when val 
-      (insert val))))
 
 ;;; Creating Widgets.
 
@@ -1185,13 +1186,13 @@ Unlike (get-char-property POS 'field) this, works with empty fields too."
 	  (setq found field))))
     found))
 
-;; This is how, for example, a variable changes its state to "set"
-;; when it is being edited.
 (defun widget-before-change (from &rest ignore)
+  ;; This is how, for example, a variable changes its state to `modified'.
+  ;; when it is being edited.
   (condition-case nil
       (let ((field (widget-field-find from)))
 	(widget-apply field :notify field))
-    (error (debug "After Change"))))
+    (error (debug "Before Change"))))
 
 (defun widget-after-change (from to old)
   ;; Adjust field size and text properties.
@@ -1236,7 +1237,8 @@ Unlike (get-char-property POS 'field) this, works with empty fields too."
 		    (unless (eq old secret)
 		      (subst-char-in-region begin (1+ begin) old secret)
 		      (put-text-property begin (1+ begin) 'secret old))
-		    (setq begin (1+ begin)))))))))
+		    (setq begin (1+ begin)))))))
+	  (widget-apply field :notify field)))
     (error (debug "After Change"))))
 
 ;;; Widget Functions
@@ -1337,9 +1339,9 @@ If that does not exists, call the value of `widget-complete-field'."
 		(insert "%"))
 	       ((eq escape ?\[)
 		(setq button-begin (point))
-		(widget-button-insert-indirect widget :button-prefix))
+		(insert (widget-get-indirect widget :button-prefix)))
 	       ((eq escape ?\])
-		(widget-button-insert-indirect widget :button-suffix)
+		(insert (widget-get-indirect widget :button-suffix))
 		(setq button-end (point)))
 	       ((eq escape ?\{)
 		(setq sample-begin (point)))
@@ -1648,22 +1650,6 @@ If END is omitted, it defaults to the length of LIST."
 (defun widget-info-link-action (widget &optional event)
   "Open the info node specified by WIDGET."
   (Info-goto-node (widget-value widget)))
-
-;;; The `group-link' Widget.
-
-(define-widget 'group-link 'link
-  "A link to a customization group."
-  :create 'widget-group-link-create
-  :action 'widget-group-link-action)
-
-(defun widget-group-link-create (widget)
-  (let ((state (widget-get (widget-get widget :parent) :custom-state)))
-    (if (eq state 'hidden)
-	(widget-default-create widget))))
-
-(defun widget-group-link-action (widget &optional event)
-  "Open the info node specified by WIDGET."
-  (customize-group (widget-value widget)))
 
 ;;; The `url-link' Widget.
 
@@ -2634,24 +2620,6 @@ when he invoked the menu."
     (if (widget-value widget)
 	(widget-glyph-insert widget on "down" "down-pushed")
       (widget-glyph-insert widget off "right" "right-pushed"))))
-
-(define-widget 'group-visibility 'item
-  "An indicator and manipulator for hidden group contents."
-  :format "%[%v%]"
-  :create 'widget-group-visibility-create
-  :button-prefix ""
-  :button-suffix ""
-  :on "Hide"
-  :off "Show"
-  :value-create 'widget-visibility-value-create
-  :action 'widget-toggle-action
-  :match (lambda (widget value) t))
-
-(defun widget-group-visibility-create (widget)
-  (let ((visible (widget-value widget)))
-    (if visible
-	(insert "--------")))
-  (widget-default-create widget))
 
 ;;; The `documentation-link' Widget.
 ;;
