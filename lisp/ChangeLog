@@ -1,3 +1,11 @@
+2002-11-19  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/bytecomp.el (maphash, map-char-table): Use
+	byte-compile-funarg.
+
+	* emacs-lisp/byte-opt.el (side-effect-free-fns): Several
+	additions.
+
 2002-11-19   Markus Rost  <rost@math.ohio-state.edu>
 
 	* progmodes/vhdl-mode.el (defgroup vhdl-related): Declare the
