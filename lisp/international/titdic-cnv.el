@@ -51,6 +51,9 @@
 ;;
 ;; See the manual page of `tit2cit' of cxterm distribution for more
 ;; detail.
+;;
+;; At the tail of this file, we also have another tools to convert
+;; miscellaneous dictionaries.
 
 ;;; Code:
 
@@ -150,47 +153,6 @@ method `chinese-qj-b5'.
 The input method `chinese-py' and `chinese-tonepy' are also Pinyin
 based, but for the character set GB2312 (`chinese-gb2312').")
 
-    ("chinese-py" "$AF4(BG"
-     "Pinyin base input method for Chinese charset GB2312
-\(`chinese-gb2312').
-
-Pinyin is the standared roman transliteration method for Chinese.
-Pinyin uses a sequence of Latin alphabetic characters for each Chinese
-character.  The sequence is made by the combination of the initials
-\(the beginning sounds) and finals \(the ending sounds).
-
-  initials: b p m f d t n l z c s zh ch sh r j q x g k h
-  finals: a o e i er ai ei oa ou an en ang eng ong i ia iao ie iu ian in
-          iang ing iong u ua uo uai ui uan un uan ueng yu yue yuan yun
-
-  (Note: In the correct Pinyin writing, the sequence \"yu\" in the last
-   four finals should be written by the character u-umlaut `$A(9(B'.)
-
-With this input method, you enter a Chinese character by first
-entering its pinyin spelling.
-
-\\<quail-translation-docstring>
-
-For instance, to input $ADc(B, you type \"n i C-n 3\".  The first \"n i\"
-is a Pinyin, \"C-n\" selects the next group of candidates (each group
-contains at most 10 characters), \"3\" select the third character in
-that group.
-
-This input method supports only Han characters.  The related input
-method `chinese-py-punct' is the combination of this method and
-`chinese-punct'; it supports both Han characters and punctuation
-characters.
-
-For double-width GB2312 characters corresponding to ASCII, use the
-input method `chinese-qj'.
-
-The correct Pinyin system specifies tones by diacritical marks, but
-this input method doesn't use them, which results in easy (you don't
-have to know the exact tones), but verbose (many characters are assigned
-to the same key sequence) input.  You may also want to try the input
-method `chinese-tonepy' with which you must specify tones by digits
-\(1..5).")
-
     ("chinese-qj-b5" "$(0)A(BB")
 
     ("chinese-qj" "$AH+(BG")
@@ -231,50 +193,6 @@ the third character from the candidate list.
 
 For double-width GB2312 characters correponding to ASCII, use the
 input method `chinese-qj'.")
-
-    ("chinese-ziranma" "$AK+F4(B"
-"Pinyin base input method for Chinese GB2312 characters (`chinese-gb2312').
-
-Pinyin is the standard roman transliteration method for Chinese.
-For the details of Pinyin system, see the documentation of the input
-method `chinese-py'.
-
-unlike the standard spelling of Pinyin, in this input method all
-initials and finals are assigned to single keys (see the above table).
-For instance, the initial \"ch\" is assigned to the key `i', the final
-\"iu\" is assigned to the key `q', and tones 1, 2, 3, 4, and $AGaIy(B are
-assigned to the keys `q', `w', `e', `r', `t' respectively.
-
-\\<quail-translation-docstring>
-
-To input one-letter words, you type 4 keys, the first two for the
-Pinyin of the letter, next one for tone, and the last one is always a
-quote (').  For instance, \"vsq'1\" input $AVP(B.  Exceptions are these
-letters.  You can input them just by typing a single key.
-
-	Character: $A04(B $A2;(B $A4N(B $A5D(B $A6~(B $A7"(B $A8v(B $A:M(B $A3v(B $A<0(B $A?I(B $AAK(B $AC;(B
-	Key:	   a  b  c  d  e  f  g  h  i  j  k  l  m
-	Character: $ADc(B $AE7(B $AF,(B $AF_(B $AHK(B $AH}(B $AK{(B $AJG(B $AWE(B $ANR(B $AP!(B $AR;(B $ATZ(B
-	Key:	   n  o  p  q  r  s  t  u  v  w  x  y  z
-
-To input two-letter words, you have two ways.  One way is to type 4
-keys, two for the first Pinyin, two for the second Pinyin.  For
-instance, \"vsgo\" inputs $AVP9z(B.  Another way is to type 3 keys: 2
-initials of two letters, and quote (').  For instance, \"vg'\" also
-inputs $AVP9z(B.
-
-To input three-letter words, you type 4 keys: initials of three
-letters, and the last is quote (').  For instance, \"bjy'2\" inputs $A11(B
-$A>)Q<(B (the last `2' is to select one of the candidates).
-
-To input words of more than three letters, you type 4 keys, initials
-of the first three letters and the last letter.  For instance,
-\"bjdt\" inputs $A11>)5gJSL((B.
-
-To input symbols and punctuations, type `/' followed by one of `a' to
-`z', then select one of the candidates.
-
-")
 
     ("chinese-zozy" "$(0I\0D(B"
 "Zhuyin base input method for Chinese Big5 characters (`chinese-big5-1',
@@ -637,6 +555,482 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 	(setq command-line-args-left (cdr command-line-args-left)))
       (message "Byte-compile the created files by:")
       (message "  %% emacs -batch -f batch-byte-compile XXX.el")))
+  (kill-emacs 0))
+
+
+;;; Converter of miscellaneous dictionaries other than TIT format.
+
+;; Alist of input method names and the corresponding information.
+;; Each element has this form:
+;;   (INPUT-METHOD-NAME		;; Name of the input method.
+;;    INPUT-METHOD-TITLE	;; Title string of the input method 
+;;    DICFILE			;; Name of the source dictionary file.
+;;    CODING			;; Coding system of the dictionary file.
+;;    QUAILFILE			;; Name of the Quail package file.
+;;    CONVERTER			;; Function to generate the Quail package.
+;;    COPYRIGHT-NOTICE		;; Copyright notice of the source dictionary.
+;;    )
+
+(defvar quail-misc-package-ext-info
+  '(("chinese-b5-tsangchi" "$(06A(BB"
+     "cangjie-table.b5" big5 "tsang-b5.el" 
+     tsang-b5-converter
+     "\
+;; # Copyright 2001 Christian Wittern <wittern@iis.sinica.edu.tw>
+;; #
+;; # Permission to copy and distribute both modified and
+;; # unmodified versions is granted without royalty provided
+;; # this notice is preserved.")
+
+    ("chinese-b5-quick" "$(0X|(BB"
+     "cangjie-table.b5" big5 "quick-b5.el" 
+     quick-b5-converter
+     "\
+;; # Copyright 2001 Christian Wittern <wittern@iis.sinica.edu.tw>
+;; #
+;; # Permission to copy and distribute both modified and
+;; # unmodified versions is granted without royalty provided
+;; # this notice is preserved.")
+
+    ("chinese-cns-tsangchi" "$(GT?(BC"
+     "cangjie-table.cns" iso-2022-cn-ext "tsang-cns.el"
+     tsang-cns-converter
+     "\
+;; # Copyright 2001 Christian Wittern <wittern@iis.sinica.edu.tw>
+;; #
+;; # Permission to copy and distribute both modified and
+;; # unmodified versions is granted without royalty provided
+;; # this notice is preserved.")
+
+    ("chinese-cns-quick" "$(Gv|(BC"
+     "cangjie-table.cns" iso-2022-cn-ext "quick-cns.el"
+     quick-cns-converter
+     "\
+;; # Copyright 2001 Christian Wittern <wittern@iis.sinica.edu.tw>
+;; #
+;; # Permission to copy and distribute both modified and
+;; # unmodified versions is granted without royalty provided
+;; # this notice is preserved.")
+
+    ("chinese-py" "$AF4(BG"
+     "pinyin.map" cn-gb-2312 "PY.el"
+     py-converter
+     "\
+;; \"pinyin.map\" is included in a free package called CCE.  It is
+;; available at:
+;;	http://ftp.debian.org/debian/dists/potato/main
+;;		/source/utils/cce_0.36.orig.tar.gz
+;; This package contains the following copyright notice.
+;;
+;;
+;;             Copyright (C) 1999, Rui He, herui@cs.duke.edu
+;;                           
+;; 
+;;                  CCE(Console Chinese Environment) 0.32
+;;        
+;; CCE is free software; you can redistribute it and/or modify it under the 
+;; terms of the GNU General Public License as published by the Free Software 
+;; Foundation; either version 1, or (at your option) any later version.  
+;; 
+;; CCE is distributed in the hope that it will be useful, but WITHOUT ANY 
+;; WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+;; FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
+;; details.  
+;; 
+;; You should have received a copy of the GNU General Public License along with
+;; CCE; see the file COPYING.  If not, write to the Free Software Foundation, 
+;; 675 Mass Ave, Cambridge, MA 02139, USA.")
+
+    ("chinese-ziranma" "$AWTH;(B"
+     "ziranma.cin" cn-gb-2312 "ZIRANMA.el"
+     ziranma-converter
+     "\
+;; \"ziranma.cin\" is included in a free package called CCE.  It is
+;; available at:
+;;	http://ftp.debian.org/debian/dists/potato/main
+;;		/source/utils/cce_0.36.orig.tar.gz
+;; This package contains the following copyright notice.
+;;
+;;
+;;             Copyright (C) 1999, Rui He, herui@cs.duke.edu
+;;                           
+;; 
+;;                  CCE(Console Chinese Environment) 0.32
+;;        
+;; CCE is free software; you can redistribute it and/or modify it under the 
+;; terms of the GNU General Public License as published by the Free Software 
+;; Foundation; either version 1, or (at your option) any later version.  
+;; 
+;; CCE is distributed in the hope that it will be useful, but WITHOUT ANY 
+;; WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+;; FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
+;; details.  
+;; 
+;; You should have received a copy of the GNU General Public License along with
+;; CCE; see the file COPYING.  If not, write to the Free Software Foundation, 
+;; 675 Mass Ave, Cambridge, MA 02139, USA.")
+    ))
+
+;; Generate a code of a Quail package in the current buffer from Tsang
+;; dictionary in the buffer DICBUF.  The input method name of the
+;; Quail package is NAME, and the title string is TITLE.
+
+;; TSANG-P is non-nil, genereate $(06AQo(B input method.  Otherwise
+;; generate $(0X|/y(B (simple version of $(06AQo(B).  If BIG5-P is non-nil, the
+;; input method is for inputting Big5 characters.  Otherwise the input
+;; method is for inputting CNS characters.
+
+(defun tsang-quick-converter (dicbuf name title tsang-p big5-p)
+  (let ((fulltitle (if tsang-p (if big5-p "$(06AQo(B" "$(GT?on(B")
+		     (if big5-p "$(0X|/y(B" "$(Gv|Mx(B")))
+	dic)
+    (goto-char (point-max))
+    (if big5-p
+	(insert (format "\"$(0&d'GTT&,!J(B%s$(0!K(BBIG5
+
+	$(0KHM$(B%s$(0TT&,WoOu(B
+
+   [Q $(0'D(B] [W $(0(q(B] [E $(0'V(B] [R $(0&H(B] [T $(0'>(B] [Y $(0&4(B] [U $(0&U(B] [I $(0'B(B] [O $(0&*(B] [P $(0'A(B]
+
+    [A $(0'K(B] [S $(0&T(B] [D $(0'N(B] [F $(0'W(B] [G $(0&I(B] [H $(0*M(B] [J $(0&3(B] [L $(0&d(B]
+	
+      [Z  ] [X $(0[E(B] [C $(01[(B] [V $(0&M(B] [B $(0'M(B] [N $(0&_(B] [M $(0&"(B]
+
+\\\\<quail-translation-docstring>\"\n"
+			fulltitle fulltitle))
+      (insert (format "\"$(GDcEFrSD+!J(B%s$(G!K(BCNS
+
+	$(GiGk#(B%s$(GrSD+uomu(B
+
+   [Q $(GEC(B] [W $(GFp(B] [E $(GEU(B] [R $(GDG(B] [T $(GE=(B] [Y $(GD3(B] [U $(GDT(B] [I $(GEA(B] [O $(GD)(B] [P $(GE@(B]
+
+    [A $(GEJ(B] [S $(GDS(B] [D $(GEM(B] [F $(GEV(B] [G $(GDH(B] [H $(GHL(B] [J $(GD2(B] [L $(GDc(B]
+	
+      [Z  ] [X $(GyE(B] [C $(GOZ(B] [V $(GDL(B] [B $(GEL(B] [N $(GD^(B] [M $(GD!(B] 
+
+\\\\<quail-translation-docstring>\"\n"
+		      fulltitle fulltitle)))
+    (insert "  '((\".\" . quail-next-translation-block)
+   (\",\" . quail-prev-translation-block))
+  nil nil)\n\n")
+    (insert "(quail-define-rules\n")
+    (save-excursion
+      (set-buffer dicbuf)
+      (goto-char (point-min))
+      (search-forward "A440")
+      (beginning-of-line)
+      (let ((table (make-hash-table :test 'equal))
+	    val)
+	(while (not (eobp))
+	  (forward-char 5)
+	  (let ((trans (char-to-string (following-char)))
+		key slot)
+	    (re-search-forward "[A-Z]+$" nil t)
+	    (setq key (downcase
+		       (if (or tsang-p
+			       (<= (- (match-end 0) (match-beginning 0)) 1))
+			   (match-string 0)
+			 (string (char-after (match-beginning 0))
+				 (char-after (1- (match-end 0)))))))
+	    (setq val (gethash key table))
+	    (if val (setq trans (concat val trans)))
+	    (puthash key trans table)
+	    (forward-line 1)))
+	(maphash #'(lambda (key val) (setq dic (cons (cons key val) dic)))
+		 table)))
+    (setq dic (sort dic (function (lambda (x y) (string< (car x ) (car y))))))
+    (dolist (elt dic)
+      (insert (format "(%S\t%S)\n" (car elt) (cdr elt))))
+    (let ((punctuations '((";" "$(0!'!2!"!#!.!/(B" "$(G!'!2!"!#!.!/(B")
+			  (":" "$(0!(!+!3!%!$!&!0!1(B" "$(G!(!+!3!%!$!&!0!1(B")
+			  ("'" "$(0!e!d(B" "$(G!e!d(B")
+			  ("\"" "$(0!g!f!h!i!q(B" "$(G!g!f!h!i!q(B")
+			  ("\\" "$(0"`"b#M(B" "$(G"`"b#M(B")
+			  ("|" "$(0!6!8!:"^(B" "$(G!6!8!:"^(B")
+			  ("/" "$(0"_"a#L(B" "$(G"_"a#L(B")
+			  ("?" "$(0!)!4(B" "$(G!)!4(B")
+			  ("<" "$(0!R"6"A!T"H(B" "$(G!R"6"A!T"H(B")
+			  (">" "$(0!S"7"B!U(B" "$(G!S"7"B!U(B")
+			  ("[" "$(0!F!J!b!H!L!V!Z!X!\(B" "$(G!F!J!b!H!L!V!Z!X!\(B")
+			  ("]" "$(0!G!K!c!I!M!W![!Y!](B" "$(G!G!K!c!I!M!W![!Y!](B")
+			  ("{" "$(0!B!`!D(B " "$(G!B!`!D(B ")
+			  ("}" "$(0!C!a!E(B" "$(G!C!a!E(B")
+			  ("`" "$(0!j!k(B" "$(G!j!k(B")
+			  ("~" "$(0"D"+",!<!=(B" "$(G"D"+",!<!=(B")
+			  ("!" "$(0!*!5(B" "$(G!*!5(B")
+			  ("@" "$(0"i"n(B" "$(G"i"n(B")
+			  ("#" "$(0!l"-(B" "$(G!l"-(B")
+			  ("$" "$(0"c"l(B" "$(G"c"l(B")
+			  ("%" "$(0"h"m(B" "$(G"h"m(B")
+			  ("&" "$(0!m".(B" "$(G!m".(B")
+			  ("*" "$(0!n"/!o!w!x(B" "$(G!n"/!o!w!x(B")
+			  ("(" "$(0!>!^!@(B" "$(G!>!^!@(B")
+			  (")" "$(0!?!_!A(B" "$(G!?!_!A(B")
+			  ("-" "$(0!7!9"#"$"1"@(B" "$(G!7!9"#"$"1"@(B")
+			  ("_" "$(0"%"&(B" "$(G"%"&(B")
+			  ("=" "$(0"8"C(B" "$(G"8"C(B")
+			  ("+" "$(0"0"?(B" "$(G"0"?(B"))))
+    (dolist (elt punctuations)
+      (insert (format "(%S %S)\n" (concat "z" (car elt))
+		      (if big5-p (nth 1 elt) (nth 2 elt))))))
+    (insert ")\n")))
+
+(defun tsang-b5-converter (dicbuf name title)
+  (tsang-quick-converter dicbuf name title t t))
+
+(defun quick-b5-converter (dicbuf name title)
+  (tsang-quick-converter dicbuf name title nil t))
+
+(defun tsang-cns-converter (dicbuf name title)
+  (tsang-quick-converter dicbuf name title t nil))
+
+(defun quick-cns-converter (dicbuf name title)
+  (tsang-quick-converter dicbuf name title nil nil))
+
+;; Generate a code of a Quail package in the current buffer from
+;; Pinyin dictionary in the buffer DICBUF.  The input method name of
+;; the Quail package is NAME, and the title string is TITLE.
+
+(defun py-converter (dicbuf name title)
+  (goto-char (point-max))
+  (insert (format "%S\n" "$A::WVJdHk!KF4Rt!K(B
+
+	$AF4Rt7=08(B
+
+ $AP!P4S"NDWVD84z1m!8F4Rt!97{:E#,(B \"u(yu) $ATrSC(B u: $A1mJ>!C(B
+
+Pinyin base input method for Chinese charset GB2312 (`chinese-gb2312').
+
+Pinyin is the standared roman transliteration method for Chinese.
+Pinyin uses a sequence of Latin alphabetic characters for each Chinese
+character.  The sequence is made by the combination of the initials
+\(the beginning sounds) and finals (the ending sounds).
+
+  initials: b p m f d t n l z c s zh ch sh r j q x g k h
+  finals: a o e i er ai ei oa ou an en ang eng ong i ia iao ie iu ian in
+          iang ing iong u ua uo uai ui uan un uan ueng yu yue yuan yun
+
+  (Note: In the correct Pinyin writing, the sequence \"yu\" in the last
+   four finals should be written by the character u-umlaut `$A(9(B'.)
+
+With this input method, you enter a Chinese character by first
+entering its pinyin spelling.
+
+\\<quail-translation-docstring>
+
+For instance, to input $ADc(B, you type \"n i C-n 3\".  The first \"n i\"
+is a Pinyin, \"C-n\" selects the next group of candidates (each group
+contains at most 10 characters), \"3\" select the third character in
+that group.
+
+This input method supports only Han characters.  The related input
+method `chinese-py-punct' is the combination of this method and
+`chinese-punct'; it supports both Han characters and punctuation
+characters.
+
+For double-width GB2312 characters corresponding to ASCII, use the
+input method `chinese-qj'.
+
+The correct Pinyin system specifies tones by diacritical marks, but
+this input method doesn't use them, which results in easy (you don't
+have to know the exact tones), but verbose (many characters are assigned
+to the same key sequence) input.  You may also want to try the input
+method `chinese-tonepy' with which you must specify tones by digits
+\(1..5)."))
+  (insert "  '((\"\C-?\" . quail-delete-last-char)
+   (\".\" . quail-next-translation)
+   (\">\" . quail-next-translation)
+   (\",\" . quail-prev-translation)
+   (\"<\" . quail-prev-translation))
+  nil nil nil nil)\n\n")
+  (insert "(quail-define-rules\n")
+  (let ((pos (point)))
+    (insert-buffer-substring dicbuf)
+    (goto-char pos)
+    (while (not (eobp))
+      (insert "(\"")
+      (skip-chars-forward "a-z")
+      (insert "\" \"")
+      (delete-char 1)
+      (end-of-line)
+      (insert "\")")
+      (forward-line 1)))
+  (insert ")\n"))
+
+;; Generate a code of a Quail package in the current buffer from
+;; Ziranma dictionary in the buffer DICBUF.  The input method name of
+;; the Quail package is NAME, and the title string is TITLE.
+
+(defun ziranma-converter (dicbuf name title)
+  (let (dic)
+    (save-excursion
+      (set-buffer dicbuf)
+      (goto-char (point-min))
+      (search-forward "%keyname end\n")
+      (let ((table (make-hash-table :test 'equal))
+	    elt pos key trans val)
+	(while (not (eobp))
+	  (setq pos (point))
+	  (skip-chars-forward "^ \t")
+	  (setq key (buffer-substring pos (point)))
+	  (skip-chars-forward " \t")
+	  (setq trans (vector (buffer-substring (point) (line-end-position))))
+	  (setq val (gethash key table))
+	  (if val (setq trans (vconcat val trans)))
+	  (puthash key trans table)
+	  (forward-line 1))
+	(maphash #'(lambda (key trans)
+		     (let ((len (length trans))
+			   i)
+		       (if (and (= len 1) (= (length (aref trans 0)) 1))
+			   (setq trans (aref trans 0))
+			 (setq i 0)
+			 (while (and (< i len)
+				     (= (length (aref trans i)) 1))
+			   (setq i (1+ i)))
+			 (if (= i len)
+			     (setq trans (mapconcat 'identity trans "")))))
+		     (setq dic (cons (cons key trans) dic)))
+		 table)))
+    (setq dic (sort dic (function (lambda (x y) (string< (car x) (car y))))))
+    (goto-char (point-max))
+    (insert (format "%S\n" "$A::WVJdHk!K!>WTH;!?!K(B
+
+                            $A<|EL6TUU1m(B:
+ $A)3)%)%)W)%)%)W)%)%)W)%)%)W)%)%)W)%)%)W)%)%)W)%)%)W)%)%)W)%)%)7(B
+ $A)'#Q(B  $A)'#W(B  $A)'#E(B  $A)'#R(B  $A)'#T(B  $A)'#Y(B  $A)'#U(Bsh$A)'#I(Bch$A)'#O(B  $A)'#P(B  $A)'(B
+ $A)'(B  iu$A)'(B  ua$A)'(B   e$A)'(B uan$A)'(B  ue$A)'(B uai$A)'(B   u$A)'(B   i$A)'(B   o$A)'(B  un$A)'(B
+ $A)'(B    $A)'(B  ia$A)'(B    $A)'(B van$A)'(B  ve$A)'(B ing$A)'(B    $A)'(B    $A)'(B  uo$A)'(B  vn$A)'(B
+ $A);)W)%)_)W)%)_)W)%)_)W)%)_)W)%)_)W)%)_)W)%)_)W)%)_)W)%)_)W)%)?(B
+   $A)'#A(B  $A)'#S(B  $A)'#D(B  $A)'#F(B  $A)'#G(B  $A)'#H(B  $A)'#J(B  $A)'#K(B  $A)'#L(B  $A)'(B
+   $A)'(B   a$A)'(Biong$A)'(Buang$A)'(B  en$A)'(B eng$A)'(B ang$A)'(B  an$A)'(B  ao$A)'(B  ai$A)'(B
+   $A)'(B    $A)'(B ong$A)'(Biang$A)'(B    $A)'(B  ng$A)'(B    $A)'(B    $A)'(B    $A)'(B    $A)'(B
+   $A);)W)%)_)W)%)_)W)%)_)W)%)_)W)%)_)W)%)_)W)%)_)W)%)_)W)%)_)W)%)%)7(B
+     $A)'#Z(B  $A)'#X(B  $A)'#C(B  $A)'#V(Bzh$A)'#B(B  $A)'#N(B  $A)'#M(B  $A)'#,(B  $A)'#.(B  $A)'(B $A#/(B $A)'(B
+     $A)'(B  ei$A)'(B  ie$A)'(B iao$A)'(B  ui$A)'(B  ou$A)'(B  in$A)'(B ian$A)'G0R3)':sR3)'7{:E)'(B
+     $A)'(B    $A)'(B    $A)'(B    $A)'(B   v$A)'(B    $A)'(B    $A)'(B    $A)'(B    $A)'(B    $A)'(B    $A)'(B
+     $A);)%)%)_)%)%)_)%)%)_)%)%)_)%)%)_)%)%)_)%)%)_)%)%)_)%)%)_)%)%)?(B
+
+
+Pinyin base input method for Chinese GB2312 characters (`chinese-gb2312').
+
+Pinyin is the standard roman transliteration method for Chinese.
+For the details of Pinyin system, see the documentation of the input
+method `chinese-py'.
+
+Unlike the standard spelling of Pinyin, in this input method all
+initials and finals are assigned to single keys (see the above table).
+For instance, the initial \"ch\" is assigned to the key `i', the final
+\"iu\" is assigned to the key `q', and tones 1, 2, 3, 4, and $AGaIy(B are
+assigned to the keys `q', `w', `e', `r', `t' respectively.
+
+\\<quail-translation-docstring>
+
+To input one-letter words, you type 4 keys, the first two for the
+Pinyin of the letter, next one for tone, and the last one is always a
+quote (').  For instance, \"vsq'\" input $AVP(B.  Exceptions are these
+letters.  You can input them just by typing a single key.
+
+	Character: $A04(B $A2;(B $A4N(B $A5D(B $A6~(B $A7"(B $A8v(B $A:M(B $A3v(B $A<0(B $A?I(B $AAK(B $AC;(B
+	Key:	   a  b  c  d  e  f  g  h  i  j  k  l  m
+	Character: $ADc(B $AE7(B $AF,(B $AF_(B $AHK(B $AH}(B $AK{(B $AJG(B $AWE(B $ANR(B $AP!(B $AR;(B $ATZ(B
+	Key:	   n  o  p  q  r  s  t  u  v  w  x  y  z
+
+To input two-letter words, you have two ways.  One way is to type 4
+keys, two for the first Pinyin, two for the second Pinyin.  For
+instance, \"vsgo\" inputs $AVP9z(B.  Another way is to type 3 keys: 2
+initials of two letters, and quote (').  For instance, \"vg'\" also
+inputs $AVP9z(B.
+
+To input three-letter words, you type 4 keys: initials of three
+letters, and the last is quote (').  For instance, \"bjy'2\" inputs $A11(B
+$A>)Q<(B (the last `2' is to select one of the candidates).
+
+To input words of more than three letters, you type 4 keys, initials
+of the first three letters and the last letter.  For instance,
+\"bjdt\" inputs $A11>)5gJSL((B.
+
+To input symbols and punctuations, type `/' followed by one of `a' to
+`z', then select one of the candidates."))
+    (insert "  '((\"\C-?\" . quail-delete-last-char)
+   (\".\" . quail-next-translation)
+   (\"[\" . quail-next-translation)
+   (\",\" . quail-prev-translation)
+   (\"]\" . quail-prev-translation))
+  nil nil nil nil)\n\n")
+    (insert "(quail-define-rules\n")
+    (dolist (elt dic)
+      (insert (format "(%S %S)\n" (car elt) (cdr elt))))
+    (insert ")\n")))
+
+(defun miscdic-convert (filename &optional dirname)
+  "Convert a dictionary file FILENAME into a Quail package. 
+Optional argument DIRNAME if specified is the directory name under which
+the generated Quail package is saved."
+  (interactive "FInput method dictionary file: ")
+  (or (file-readable-p filename)
+      (error "%s does not exist" filename))
+  (let ((tail quail-misc-package-ext-info)
+	(default-buffer-file-coding-system 'iso-2022-7bit)
+	slot
+	name title dicfile coding quailfile converter copyright
+	dicbuf)
+    (while tail
+      (when (string-match (nth 2 (car tail)) filename)
+	(setq slot (car tail)
+	      name (car slot)
+	      title (nth 1 slot)
+	      dicfile (nth 2 slot)
+	      coding (nth 3 slot)
+	      quailfile (nth 4 slot)
+	      converter (nth 5 slot)
+	      copyright (nth 6 slot))
+	(message "Converting %s to %s..." dicfile quailfile)
+	(with-temp-file (expand-file-name quailfile dirname)
+	  (set-buffer-file-coding-system 'iso-2022-7bit)
+	  (insert ";; Quail package `" name "' -*- coding:iso-2022-7bit; -*-\n")
+	  (insert ";;   Generated by the command `miscdic-convert'\n")
+	  (insert ";;   Date: " (current-time-string) "\n")
+	  (insert ";;   Source dictionary file: " dicfile "\n")
+	  (insert ";;   Copyright notice of the source file\n")
+	  (insert ";;------------------------------------------------------\n")
+	  (insert copyright "\n")
+	  (insert ";;------------------------------------------------------\n")
+	  (insert "\n")
+	  (insert ";;; Code:\n\n")
+	  (insert "(require 'quail)\n")
+	  (insert "(quail-define-package \"" name "\" \""
+		  (if (eq coding 'big5) "Chiense-BIG5" "Chienge-CNS")
+		  "\" \"" title "\" t\n")
+	  (let* ((coding-system-for-read coding)
+		 (dicbuf (find-file-noselect filename)))
+	    (funcall converter dicbuf name title)
+	    (kill-buffer dicbuf)))
+	(message "Converting %s to %s...done" dicfile quailfile))
+      (setq tail (cdr tail)))))
+
+(defun batch-miscdic-convert ()
+  "Run `miscdic-convert' on the files remaing on the command line.
+Use this from the command line, with `-batch';
+it won't work in an interactive Emacs.
+If there's an argument \"-dir\", the next argument specifies a directory
+to store generated Quail packages."
+  (defvar command-line-args-left)	; Avoid compiler warning.
+  (if (not noninteractive)
+      (error "`batch-miscdic-convert' should be used only with -batch"))
+  (let ((dir default-directory)
+	filename)
+    (while command-line-args-left
+      (if (string= (car command-line-args-left) "-dir")
+	  (progn
+	    (setq command-line-args-left (cdr command-line-args-left))
+	    (setq dir (car command-line-args-left))))
+      (setq filename (car command-line-args-left)
+	    command-line-args-left (cdr command-line-args-left))
+      (if (file-directory-p filename)
+	  (dolist (file (directory-files filename t nil t))
+	    (miscdic-convert file dir))
+	(miscdic-convert filename dir))))
   (kill-emacs 0))
 
 ;;; titdic-cnv.el ends here
