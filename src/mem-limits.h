@@ -102,7 +102,7 @@ extern char etext;
 static POINTER data_space_start;
 
 /* Number of bytes of writable memory we can expect to be able to get */
-static unsigned int lim_data;
+static unsigned long lim_data;
 
 #ifdef NO_LIM_DATA
 static void
