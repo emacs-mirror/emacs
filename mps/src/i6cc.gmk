@@ -1,0 +1,36 @@
+# impl.gmk.ic: GNUMAKEFILE FRAGMENT FOR IRIX 6 CC (N32 or N64 ABI)
+#
+# $HopeName: MMsrc!i6cc.gmk(MMdevel_sw_eq.1) $
+# Copyright (C) 1996 Harlequin Group, all rights reserved
+#
+# This file is included by platform makefiles that use the IRIX 6 CC
+# compiler.  It defines the compiler specific variables that the
+# common makefile fragment (impl.gmk.comm) requires.
+
+CC = cc
+
+# can't use -pedantic because Irix header files have #ident
+
+# suppress remark(1209): 
+#   'controlling expression is constant'
+#   because it occurs in 'while(0)' and statically determined checks
+#
+# suppress remark(1174):
+#   'parameter|variable|function} "foo" was declared but never referenced'
+#   (e.g. PoolTriv and PoolNo methods, and for RO parameters used in assert)
+# 
+# suppress remark(1552):
+#   'variable "foo" was set but never used'
+#   (e.g. variables only used in asserts)
+#
+#   Where there are no uses at all, we should use UNUSED. Where uses are only
+#   in asserts, we need a mechanism like 'USED_IN_ASSERTS(foo)', akin to
+#   UNUSED. There doesn't seem to be anything we can do with AVER(&c), as
+#   e.g. CodeWarrior generates code for things like '(void)(x>10)'
+
+CFLAGSDEBUG = -g
+CFLAGSCOMPILER = $(CFLAGS_ABI_HACK) -ansi -fullwarn \
+                -diag_suppress 1209,1174,1552
+CFLAGSOPTIMIZE = -O
+
+include comm.gmk
