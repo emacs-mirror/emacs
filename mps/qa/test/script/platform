@@ -40,9 +40,9 @@ sub platform_settings {
 sub settings_nt {
  $dirsep = "\\";
  $cc_command = "cl";
- $cc_opts = "/nologo /DWIN32 /D_WINDOWS /W3 /Zi /Oy- /DMMQA_VERS_$MPS_INTERFACE_VERSION /DMMQA_PROD_$MPS_PRODUCT";
+ $cc_opts = "/nologo /DWIN32 /D_WINDOWS /W3 /Zi /Oy- /MD /DMMQA_VERS_$MPS_INTERFACE_VERSION /DMMQA_PROD_$MPS_PRODUCT";
  $cc_link = "$obj_dir/platform.obj";
- $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /debugtype:both /pdb:none /debug:full";
+ $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:LIBC /NODEFAULTLIB:MSVCRTD /DEFAULTLIB:MSVCRT /debugtype:both /pdb:none /debug:full";
  $cc_include = "/I$testlib_dir /I$MPS_INCLUDE_DIR";
  $cc_def = "/D";
  $cc_defeq = "=";
@@ -67,11 +67,11 @@ sub settings_nt {
 sub settings_nt_cap {
  $cc_opts = "$cc_opts /Gh";
  $cc_link = "$cc_link CAP.lib";
- $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /debugtype:coff /debug:mapped,partial";
+ $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:LIBC /NODEFAULTLIB:MSVCRTD /DEFAULTLIB:MSVCRT /debugtype:coff /debug:mapped,partial";
 }
 
 sub settings_nt_coff {
- $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /debugtype:coff /debug:full";
+ $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:LIBC /NODEFAULTLIB:MSVCRTD /DEFAULTLIB:MSVCRT /debugtype:coff /debug:full";
 }
 
 sub settings_unix {
