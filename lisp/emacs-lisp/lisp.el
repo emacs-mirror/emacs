@@ -32,6 +32,7 @@
   "*Non-nil => regexp to ignore, before the character that starts a defun.
 This is only necessary if the opening paren or brace is not in column 0.
 See `beginning-of-defun'.")
+(make-variable-buffer-local 'defun-prompt-regexp)
 
 (defvar parens-require-spaces t
   "Non-nil => `insert-parentheses' should insert whitespace as needed.")
