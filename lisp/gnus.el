@@ -4259,7 +4259,9 @@ ADDRESS."
 (defun gnus-group-make-help-group ()
   "Create the Gnus documentation group."
   (interactive)
-  (let ((path (cons (concat installation-directory "etc/") load-path))
+  (let ((path (if installation-directory
+		  (cons (concat installation-directory "etc/") load-path)
+	        (cons data-directory load-path)))
 	(name (gnus-group-prefixed-name "gnus-help" '(nndoc "gnus-help")))
 	file)
     (and (gnus-gethash name gnus-newsrc-hashtb)
