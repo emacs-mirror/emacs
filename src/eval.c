@@ -595,17 +595,15 @@ interactive_p (exclude_subrs_p)
     btp = btp->next;
 
   /* If we're running an Emacs 18-style byte-compiled function, there
-     may be a frame for Fbytecode.  Now, given the strictest
-     definition, this function isn't really being called
-     interactively, but because that's the way Emacs 18 always builds
-     byte-compiled functions, we'll accept it for now.  */
-  if (EQ (*btp->function, Qbytecode))
-    btp = btp->next;
+     may be a frame for Fbytecode at the top level.  In any version of
+     Emacs there can be Fbytecode frames for subexpressions evaluated
+     inside catch and condition-case.  Skip past them.
 
-  /* If this isn't a byte-compiled function, then we may now be
+     If this isn't a byte-compiled function, then we may now be
      looking at several frames for special forms.  Skip past them.  */
-  while (btp && 
-	 btp->nargs == UNEVALLED)
+  while (btp
+	 && (EQ (*btp->function, Qbytecode)
+	     || btp->nargs == UNEVALLED))
     btp = btp->next;
 
   /* btp now points at the frame of the innermost function that isn't
