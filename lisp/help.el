@@ -519,7 +519,9 @@ C-w Display information on absence of warranty for GNU Emacs."
   (if function
       (with-output-to-temp-buffer "*Help*"
 	(prin1 function)
-	(princ ": ")
+	;; Use " is " instead of a colon so that
+	;; it is easier to get out the function name using forward-sexp.
+	(princ " is ")
 	(let* ((def (symbol-function function))
 	       file-name
 	       (beg (if (commandp def) "an interactive " "a ")))
