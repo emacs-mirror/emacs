@@ -255,8 +255,9 @@ which more-or-less shadow
   (let* ((map-name (derived-mode-map-name mode))
 	 (new-map (eval map-name))
 	 (old-map (current-local-map)))
-    (if (get map-name 'derived-mode-unmerged)
-	(derived-mode-merge-keymaps old-map new-map))
+    (and old-map
+	 (get map-name 'derived-mode-unmerged)
+	 (derived-mode-merge-keymaps old-map new-map))
     (put map-name 'derived-mode-unmerged nil)
     (use-local-map new-map)))
 
