@@ -634,7 +634,9 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     int total_read = 0;
     int carryover = 0;
     int display_on_the_fly = !NILP (display) && INTERACTIVE;
-    struct coding_system saved_coding = process_coding;
+    struct coding_system saved_coding;
+
+    saved_coding = process_coding;
 
     while (1)
       {
