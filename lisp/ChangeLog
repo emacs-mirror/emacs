@@ -5,6 +5,8 @@
 
 	* thumbs.el (group thumbs): Add :version keyword.
 
+	* textmodes/bibtex.el (bibtex-make-field): Fix typo.
+
 2004-11-01  Richard M. Stallman  <rms@gnu.org>
 
 	* allout.el (allout group): Add :version.
