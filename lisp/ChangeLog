@@ -1,3 +1,7 @@
+2001-01-24  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* diff-mode.el (diff-mode): Disable preliminary support for `compile'.
+
 2001-01-24  Sam Steingold  <sds@gnu.org>
 
 	* dired.el (dired-replace-in-string): Removed.

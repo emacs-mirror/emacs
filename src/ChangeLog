@@ -1,3 +1,8 @@
+2001-01-24  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* regex.c (mutually_exclusive_p): Don't blindly handle `charset_not'
+	as if it was a `charset'.
+
 2001-01-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* keymap.c (Fwhere_is_internal): Don't nreverse the cached
