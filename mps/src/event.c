@@ -1,6 +1,6 @@
 /* impl.c.event: EVENT LOGGING
  *
- * $HopeName: MMsrc!event.c(trunk.4) $
+ * $HopeName: MMsrc!event.c(trunk.5) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
  *
  * .readership: MPS developers.
@@ -26,7 +26,7 @@
 #include "event.h"
 #include "mpsio.h"
 
-SRCID(event, "$HopeName: MMsrc!event.c(trunk.4) $");
+SRCID(event, "$HopeName: MMsrc!event.c(trunk.5) $");
 
 #ifdef EVENT /* .trans.ifdef */
 
@@ -34,11 +34,10 @@ static Bool eventInited = FALSE;
 static mps_io_t eventIO;
 static char eventBuffer[EVENT_BUFFER_SIZE];
 static Count eventUserCount;
-static Word EventKindControlBuffer[BTSize(EventKindNumber)]; 
 
 EventUnion Event; /* Used by macros in impl.h.event */
 char *EventNext, *EventLimit; /* Used by macros in impl.h.event */
-BT EventKindControl; /* Used to control output. */
+Word EventKindControl; /* Bit set used to control output. */
 
 Res EventFlush(void)
 {
@@ -67,10 +66,9 @@ Res (EventInit)(void)
     if(res != ResOK) return res;
     EventNext = eventBuffer;
     EventLimit = &eventBuffer[EVENT_BUFFER_SIZE];
-    eventUserCount = 0;
+    eventUserCount = (Count)0;
     eventInited = TRUE;
-    EventKindControl = (BT)EventKindControlBuffer;
-    BTSetRange(EventKindControl, 0, EventKindNumber);
+    EventKindControl = (Word)mps_lib_telemetry_control();
   }
 
   ++eventUserCount;
@@ -89,6 +87,30 @@ void (EventFinish)(void)
   --eventUserCount;
 }
 
+/* EventControl -- Change or read control word
+ *
+ * Resets the bits specified in resetMask, and flips those in
+ * flipMask.  Returns old value.
+ *
+ * Operations can be implemented as follows:
+ *   Set(M)   EventControl(M,M)
+ *   Reset(M) EventControl(M,0)
+ *   Flip(M)  EventControl(0,M)
+ *   Read()   EventControl(0,0)
+ */
+   
+Word EventControl(Word resetMask, Word flipMask)
+{
+  Word oldValue = EventKindControl;
+      
+  /* EventKindControl = (EventKindControl & ~resetMask) ^ flipMask */
+  EventKindControl =
+    BS_SYM_DIFF(BS_DIFF(EventKindControl, resetMask), flipMask);
+       
+  return oldValue;
+}
+
+
 #else /* EVENT, not */
 
 Res (EventInit)(void)
@@ -99,6 +121,11 @@ Res (EventInit)(void)
 void (EventFinish)(void)
 {
   NOOP;
+}
+
+Word EventControl(Word resetMask, Word flipMask)
+{
+  return (Word)0;
 }
 
 #endif /* EVENT */
