@@ -225,7 +225,7 @@ Don't use this function in a Lisp program; use `define-abbrev' instead."
 
 (defun add-abbrev (table type arg)
   (let ((exp (and (>= arg 0)
-		  (buffer-substring
+		  (buffer-substring-no-properties
 		   (point)
 		   (if (= arg 0) (mark)
 		     (save-excursion (forward-word (- arg)) (point))))))
@@ -266,8 +266,8 @@ Expands the abbreviation after defining it."
   (let (name nameloc exp)
     (save-excursion
      (forward-word (- arg))
-     (setq name (buffer-substring (point) (progn (forward-word 1)
-					       (setq nameloc (point))))))
+     (setq name (buffer-substring-no-properties
+		 (point) (progn (forward-word 1) (setq nameloc (point))))))
     (set-text-properties 0 (length name) nil name)
     (setq exp (read-string (format "%s expansion for \"%s\": "
 				   type name) nil nil nil t))
@@ -306,7 +306,7 @@ If called from a Lisp program, arguments are START END &optional NOQUERY."
 			 (<= (setq pnt (point)) (- (point-max) lim))))
 	(if (abbrev-expansion
 	     (setq string
-		   (buffer-substring
+		   (buffer-substring-no-properties
 		    (save-excursion (forward-word -1) (point))
 		    pnt)))
 	    (if (or noquery (y-or-n-p (format "Expand `%s'? " string)))
