@@ -11732,7 +11732,8 @@ try_window_id (w)
 
 	  /* Set the cursor.  */
 	  row = row_containing_pos (w, PT, r0, NULL, 0);
-	  set_cursor_from_row (w, row, current_matrix, 0, 0, 0, 0);
+	  if (row)
+	    set_cursor_from_row (w, row, current_matrix, 0, 0, 0, 0);
 	  return 1;
 	}
     }
@@ -11770,7 +11771,8 @@ try_window_id (w)
 
 	  /* Set the cursor.  */
 	  row = row_containing_pos (w, PT, r0, NULL, 0);
-	  set_cursor_from_row (w, row, current_matrix, 0, 0, 0, 0);
+	  if (row)
+	    set_cursor_from_row (w, row, current_matrix, 0, 0, 0, 0);
 	  return 2;
 	}
     }
