@@ -1375,6 +1375,8 @@ window_loop (type, obj, mini, frames)
 	 the frame is visible, since Fnext_window skips non-visible frames
 	 if that is desired, under the control of frame_arg.  */
       if (! MINI_WINDOW_P (XWINDOW (w))
+	  /* For UNSHOW_BUFFER, we must always consider all windows.  */
+	  || type == UNSHOW_BUFFER
 	  || (mini && minibuf_level > 0))
 	switch (type)
 	  {
@@ -2394,9 +2396,7 @@ temp_output_buffer_show (buf)
 		  prev_window = selected_window;
 
 		  /* Select the window that was chosen, for running the hook.  */
-		  record_unwind_protect (Fset_window_configuration,
-					 Fcurrent_window_configuration (Qnil));
-
+		  record_unwind_protect (Fselect_window, prev_window);
 		  select_window_1 (window, 0);
 		  Fset_buffer (w->buffer);
 		  call1 (Vrun_hooks, Qtemp_buffer_show_hook);
