@@ -1,3 +1,15 @@
+2000-07-04  Kenichi Handa  <handa@etl.go.jp>
+
+	* composite.h (make_composition_value_copy): Extern it.
+
+	* composite.c (make_composition_value_copy): New function.
+
+	* editfns.c (Fformat): While copying text properties, make each
+	composition property value a copy.
+
+	* fns.c (concat): While copying text properties, make each
+	composition property value a copy.
+
 2000-07-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* m/macppc.h (LINKER, LD_SWITCH_MACHINE) [LINUX]: Define.
