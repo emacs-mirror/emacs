@@ -4,7 +4,7 @@
 ;; LCD Archive Entry:
 ;; isearch-mode|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |A minor mode replacement for isearch.el.
-;; |$Date: 1993/03/07 04:22:00 $|$Revision: 1.21 $|~/modes/isearch-mode.el
+;; |$Date: 1993/03/07 08:43:57 $|$Revision: 1.22 $|~/modes/isearch-mode.el
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -88,8 +88,11 @@
 ;;;====================================================================
 ;;; Change History
 
-;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch-mode.el,v 1.21 1993/03/07 04:22:00 rms Exp rms $
+;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch-mode.el,v 1.22 1993/03/07 08:43:57 rms Exp rms $
 ;;; $Log: isearch-mode.el,v $
+; Revision 1.22  1993/03/07  08:43:57  rms
+; (isearch-mode): Don't make a pre-command-hook.
+;
 ; Revision 1.21  1993/03/07  04:22:00  rms
 ; (isearch-unread): Find last list element by hand.
 ;
@@ -303,9 +306,6 @@ Default value, nil, means edit the string instead.")
     
       (define-key map "\C-q" 'isearch-quote-char)
 
-      ;;  (define-key map "\r" 'isearch-return-char)
-      ;; For version 19, RET (C-m) terminates search and LFD (C-j) matches eol.
-      ;; We could make this conditional.
       (define-key map "\r" 'isearch-exit)
       (define-key map "\C-j" 'isearch-printing-char)
       (define-key map "\t" 'isearch-printing-char)
@@ -313,6 +313,16 @@ Default value, nil, means edit the string instead.")
     
       (define-key map "\C-w" 'isearch-yank-word)
       (define-key map "\C-y" 'isearch-yank-line)
+
+      ;; Bind the ASCII-equivalent "function keys" explicitly
+      ;; if we bind their equivalents, 
+      ;; since otherwise the default binding would override.
+      ;; We bind [escape] below.
+      (define-key map [tab] 'isearch-printing-char)
+      (define-key map [delete] 'isearch-delete-char)
+      (define-key map [backspace] 'isearch-delete-char)
+      (define-key map [return] 'isearch-exit)
+      (define-key map [newline] 'isearch-printing-char)
 
       ;; Define keys for regexp chars * ? |.
       ;; Nothing special for + because it matches at least once.
@@ -336,13 +346,10 @@ Default value, nil, means edit the string instead.")
       ;; keys as well, one full keymap per char of the prefix key.  It
       ;; would be simpler to disable the global keymap, and/or have a
       ;; default local key binding for any key not otherwise bound.
-      (define-key map (char-to-string meta-prefix-char) (make-sparse-keymap))
+      (let ((meta-map (make-sparse-keymap)))
+	(define-key map (char-to-string meta-prefix-char) meta-map)
+	(define-key map [escape] meta-map))
       (define-key map (vector meta-prefix-char t) 'isearch-other-meta-char)
-;;;      (setq i 0)
-;;;      (while (< i 128)
-;;;	(define-key map (char-to-string (+ 128 i));; Needs to be generalized.
-;;;	  'isearch-other-meta-char)
-;;;	(setq i (1+ i)))
 
       (define-key map "\M-n" 'isearch-ring-advance)
       (define-key map "\M-p" 'isearch-ring-retreat)
@@ -1049,11 +1056,11 @@ and the meta character is unread so that it applies to editing the string."
   (interactive)
   (cond ((eq search-exit-option 'edit)
 	 (let ((key (this-command-keys)))
-	   (apply 'isearch-unread (append key nil)))
+	   (apply 'isearch-unread (listify-key-sequence key)))
 	 (isearch-edit-string))
 	(search-exit-option
 	 (let ((key (this-command-keys)))
-	   (apply 'isearch-unread (append key nil)))
+	   (apply 'isearch-unread (listify-key-sequence key)))
 	 (isearch-done))
 	(t;; otherwise nil
 	 (isearch-process-search-string (this-command-keys)
@@ -1443,10 +1450,10 @@ have special meaning in a regexp."
   (isearch-char-to-string c))
 
 (defun isearch-unread (&rest char-or-events)
-  (setq foo char-or-events)
   ;; General function to unread characters or events.
   (if isearch-gnu-emacs-events
-      (setq unread-command-events (listify-key-sequence char-or-events))
+      (setq unread-command-events
+	    (append char-or-events unread-command-events))
     (let ((char (if (cdr char-or-events)
 		    (progn
 		      (while (cdr char-or-events)
