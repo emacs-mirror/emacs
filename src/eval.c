@@ -2269,6 +2269,8 @@ DEFUN ("fetch-bytecode", Ffetch_bytecode, Sfetch_bytecode,
       && CONSP (XVECTOR (object)->contents[COMPILED_BYTECODE]))
     {
       tem = read_doc_string (XVECTOR (object)->contents[COMPILED_BYTECODE]);
+      if (!CONSP (tem))
+	error ("invalid byte code");
       XVECTOR (object)->contents[COMPILED_BYTECODE] = XCONS (tem)->car;
       XVECTOR (object)->contents[COMPILED_CONSTANTS] = XCONS (tem)->cdr;
     }
