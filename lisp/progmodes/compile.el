@@ -1245,8 +1245,11 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
   (run-hooks 'compilation-mode-hook))
 
 (defun compilation-revert-buffer (ignore-auto noconfirm)
-  (if (or noconfirm (yes-or-no-p (format "Restart compilation? ")))
-      (apply 'compile-internal compilation-arguments)))
+  (if buffer-file-name
+      (let (revert-buffer-function)
+	(revert-buffer ignore-auto noconfirm preserve-modes))
+    (if (or noconfirm (yes-or-no-p (format "Restart compilation? ")))
+	(apply 'compile-internal compilation-arguments))))
 
 (defun compilation-setup ()
   "Prepare the buffer for the compilation parsing commands to work."
