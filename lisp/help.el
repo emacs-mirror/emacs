@@ -220,13 +220,21 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
 		   ;; it's no use mentioning a command to scroll, so don't.
 		   (if (or (member (buffer-name standard-output)
 				   special-display-buffer-names)
+			   (assoc (buffer-name standard-output)
+				  special-display-buffer-names)
 			   (memq t (mapcar '(lambda (elt)
+					      (if (consp elt)
+						  (setq elt (car elt)))
 					      (string-match elt (buffer-name standard-output)))
 					   special-display-regexps)))
 		       nil
 		     (if (or (member (buffer-name standard-output)
 				     same-window-buffer-names)
+			     (assoc (buffer-name standard-output)
+				    same-window-buffer-names)
 			     (memq t (mapcar '(lambda (elt)
+						(if (consp elt)
+						    (setq elt (car elt)))
 						(string-match elt (buffer-name standard-output)))
 					     same-window-regexps)))
 			 ;; Say how to scroll this window.
