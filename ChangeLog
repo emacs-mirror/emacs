@@ -1,3 +1,7 @@
+2003-07-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* configure.in: Check for posix_memalign.
+
 2003-07-12  Richard M. Stallman  <rms@gnu.org>
 
 	* configure.in [netbsd systems]: Define HAVE_CRTIN properly.
@@ -17,8 +21,8 @@
 
 2003-06-23  Dave Love  <fx@gnu.org>
 
-	* configure.in: Check for sys/_mbstate_t.h.  Test
-	XRegisterIMInstantiateCallback prototype.
+	* configure.in: Check for sys/_mbstate_t.h.
+	Test XRegisterIMInstantiateCallback prototype.
 	(AH_BOTTOM): Define DO_BLOCK_INPUT, my_strftime.
 
 2003-06-06  Dave Love  <fx@gnu.org>
@@ -27,8 +31,8 @@
 
 2003-06-05  Dave Love  <fx@gnu.org>
 
-	* configure.in: Check for memcpy, mempcpy, mblen, mbrlen.  Use
-	AC_FUNC_STRFTIME, AC_STRUCT_TIMEZONE, AC_TYPE_MBSTATE_T.
+	* configure.in: Check for memcpy, mempcpy, mblen, mbrlen.
+	Use AC_FUNC_STRFTIME, AC_STRUCT_TIMEZONE, AC_TYPE_MBSTATE_T.
 	(NLIST_STRUCT): Don't define.
 	(AH_BOTTOM): Define my_strftime.
 
@@ -43,8 +47,7 @@
 
 2003-05-22  Dave Love  <fx@gnu.org>
 
-	* configure.in: Remove redundant test for term.h.  Test for
-	difftime.
+	* configure.in: Remove redundant test for term.h.  Test for difftime.
 
 2003-05-20  Dave Love  <fx@gnu.org>
 
@@ -145,7 +148,7 @@
 
 2003-01-14  Francesco Potort,Al(B  <pot@gnu.org>
 
-	* configure.in (m68k-motorola-sysv): Removed (obsolete).
+	* configure.in (m68k-motorola-sysv): Remove (obsolete).
 
 2003-01-07  Steven Tamm  <steventamm@mac.com>
 
@@ -161,8 +164,7 @@
 
 2003-01-06  David Kastrup  <dak@gnu.org>
 
-	* Makefile.in (INSTALL_INFO): Get install-info command from
-	configure.
+	* Makefile.in (INSTALL_INFO): Get install-info command from configure.
 
 	* configure.in: Add tests for install-info
 
@@ -182,8 +184,8 @@
 2002-11-27  Dave Love  <fx@gnu.org>
 
 	* configure.in: Use AC_CHECK_DECLS, not AC_DECL_SYS_SIGLIST.
-	Check for __sys_siglist too.  Check for memset.  Use
-	AC_FUNC_GETPGRP.  Add mipsel-*-linux-gnu* target.
+	Check for __sys_siglist too.  Check for memset.
+	Use AC_FUNC_GETPGRP.  Add mipsel-*-linux-gnu* target.
 
 2002-11-22  Juanma Barranquero  <lektu@terra.es>
 
@@ -195,12 +197,12 @@
 
 2002-11-15  Dave Love  <fx@gnu.org>
 
-	* configure.in: Tidy up various quoting issues throughout.  Use
-	AC_GNU_SOURCE.
+	* configure.in: Tidy up various quoting issues throughout.
+	Use AC_GNU_SOURCE.
 	(AH_BOTTOM): Fix #endif protecting config.h.  Maybe include
 	alloca.h.  Define GC_SETJMP_WORKS, GC_LISP_OBJECT_ALIGNMENT.
 	Maybe define bcopy, bzero, bcmp.
-	(powerpcle-*-solaris2.5*, powerpcle-*-solaris2*): Removed (use
+	(powerpcle-*-solaris2.5*, powerpcle-*-solaris2*): Remove (use
 	non-existent machine file).
 	(sys/vlimit.h, sys/resource.h, fsync, __restrict): Test for.
 	(term.h, X11/Xaw3d/Scrollbar.h): Avoid warning from test.
@@ -220,14 +222,13 @@
 
 2002-11-08  Dave Love  <fx@gnu.org>
 
-	* configure.in: Use AC_CONFIG_LIBOBJ_DIR and require autoconf
-	2.54.
+	* configure.in: Use AC_CONFIG_LIBOBJ_DIR and require autoconf 2.54.
 	(AH_BOTTOM) [!HAVE_SIZE_T]: Typedef size_t.
 
 2002-11-07  Miles Bader  <miles@gnu.org>
 
-	* Makefile.in (maybe_bootstrap): Fix shell variable usage.  Handle
-	separate-build-dir case.
+	* Makefile.in (maybe_bootstrap): Fix shell variable usage.
+	Handle separate-build-dir case.
 
 2002-11-06  Richard M. Stallman  <rms@gnu.org>
 
@@ -238,9 +239,8 @@
 
 	* configure.in:  Require autoconf 2.53.  Test for pty.h,
 	sys/mman.h, sys/param.h, mremap, memmove.
-	(AH_BOTTOM): Maybe include strings.h.  Add local variables for
-	mode.
-	(AC_PROG_YACC): Deleted.
+	(AH_BOTTOM): Maybe include strings.h.  Add local variables for mode.
+	(AC_PROG_YACC): Delete.
 	(size_t): Use AC_CHECK_TYPES.
 	(AH_TOP): Up-date copyright.
 
@@ -307,7 +307,7 @@
 	(epaths-force): Insert value of gamedir into PATH_GAME.
 
 	* configure.in (gamedir): Handle it like lispdir.
-	(--with-game-dir option): Deleted.
+	(--with-game-dir option): Delete.
 
 2002-06-21  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
@@ -523,7 +523,7 @@
 	* Makefile.in: bootstrap should not delete dumped executables.
 	(bootstrap-clean-before): New target.
 	(bootstrap): Use bootstrap-clean-before instead of clean.
-	(bootstrap-clean-after): Renamed from bootstrap-clean.  Calls changed.
+	(bootstrap-clean-after): Rename from bootstrap-clean.  Calls changed.
 
 2001-11-24  Eli Zaretskii  <eliz@is.elta.co.il>
 
