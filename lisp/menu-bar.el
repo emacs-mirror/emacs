@@ -109,7 +109,8 @@
 (put 'revert-buffer 'menu-enable
      '(or revert-buffer-function revert-buffer-insert-file-contents-function
 	  (and (buffer-file-name)
-	       (not (verify-visited-file-modtime (current-buffer))))))
+	       (or (buffer-modified-p)
+		   (not (verify-visited-file-modtime (current-buffer)))))))
 ;; Permit deleting frame if it would leave a visible or iconified frame.
 (put 'delete-frame 'menu-enable
      '(let ((frames (frame-list))
