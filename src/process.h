@@ -98,6 +98,12 @@ struct Lisp_Process
     /* Flag to set coding-system of the process buffer from the
        coding_system used to decode process output.  */
     Lisp_Object inherit_coding_system_flag;
+    /* Flat to decide the multibyteness of a string given to the
+       filter (if any).  It is initialized to the value of
+       `default-enable-multibyte-characters' when the process is
+       generated, and can be changed by the function
+       `set-process-fileter-multibyte'. */
+    Lisp_Object filter_multibyte;
 };
 
 /* Every field in the preceding structure except for the first two
