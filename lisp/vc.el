@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.234 1998/07/08 02:55:50 rms Exp rms $
+;; $Id: vc.el,v 1.235 1998/07/09 03:24:06 rms Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -2933,23 +2933,27 @@ THRESHOLD, nil otherwise"
              (vc-file-setprop file 'vc-workfile-version (match-string 1)))
          ;; get file status
 	 (if (re-search-forward 
-              (concat "^\\([CMU]\\) " 
-                      (regexp-quote (file-name-nondirectory file)))
+              (concat "^\\(\\([CMU]\\) \\)?" 
+                      (regexp-quote (file-name-nondirectory file))
+		      "\\( already contains the differences between \\)?")
               nil t)
              (cond 
               ;; Merge successful, we are in sync with repository now
-              ((string= (match-string 1) "U")
-               (vc-file-setprop file 'vc-locking-user 'none)
+              ((or (string= (match-string 2) "U")
+		   ;; Special case: file contents in sync with
+		   ;; repository anyhow:
+		   (match-string 3))
+	       (vc-file-setprop file 'vc-locking-user 'none)
                (vc-file-setprop file 'vc-checkout-time 
                                 (nth 5 (file-attributes file)))
                0) ;; indicate success to the caller
               ;; Merge successful, but our own changes are still in the file
-              ((string= (match-string 1) "M")
+              ((string= (match-string 2) "M")
                (vc-file-setprop file 'vc-locking-user (vc-file-owner file))
                (vc-file-setprop file 'vc-checkout-time 0)
                0) ;; indicate success to the caller
               ;; Conflicts detected!
-              ((string= (match-string 1) "C")
+              ((string= (match-string 2) "C")
                (vc-file-setprop file 'vc-locking-user (vc-file-owner file))
                (vc-file-setprop file 'vc-checkout-time 0)
                1) ;; signal the error to the caller
