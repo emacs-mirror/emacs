@@ -236,9 +236,15 @@ Returns nil if DIR contains no name starting with FILE.")
 {
   Lisp_Object handler;
 
-  /* If the file name has special constructs in it,
+  /* If the directory name has special constructs in it,
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (dirname, Qfile_name_completion);
+  if (!NILP (handler))
+    return call3 (handler, Qfile_name_completion, file, dirname);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = Ffind_file_name_handler (file, Qfile_name_completion);
   if (!NILP (handler))
     return call3 (handler, Qfile_name_completion, file, dirname);
 
@@ -254,9 +260,15 @@ These are all file names in directory DIR which begin with FILE.")
 {
   Lisp_Object handler;
 
-  /* If the file name has special constructs in it,
+  /* If the directory name has special constructs in it,
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (dirname, Qfile_name_all_completions);
+  if (!NILP (handler))
+    return call3 (handler, Qfile_name_all_completions, file, dirname);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = Ffind_file_name_handler (file, Qfile_name_all_completions);
   if (!NILP (handler))
     return call3 (handler, Qfile_name_all_completions, file, dirname);
 
