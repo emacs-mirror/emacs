@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.29) $
+ * $HopeName: MMsrc!mps.h(trunk.30) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
@@ -388,6 +388,11 @@ extern mps_res_t mps_fix(mps_ss_t, mps_addr_t *);
 #define MPS_FIX(ss, ref_io) \
   (MPS_FIX1(ss, *(ref_io)) ? \
    MPS_FIX2(ss, ref_io) : MPS_RES_OK)
+
+#define MPS_FIX_CALL(ss, call) \
+  MPS_BEGIN \
+    (call); _mps_w2 |= (ss)->w2; \
+  MPS_END
 
 #define MPS_SCAN_END(ss) \
    } \
