@@ -172,6 +172,7 @@ main (argc, argv)
 
   rewind (out); /* re-read the output */
   str = fgets (string, BUFSIZ, out); 
+  printf ("\n");
 
   /* Now, wait for an answer and print any messages.  */
   
@@ -325,7 +326,9 @@ main (argc, argv)
   msgrcv (s, msgp, BUFSIZ, getpid (), 0);	/* wait for anything back */
   strcpy (buf, msgp->mtext);
 
-  printf ("\n%s\n", buf);
+  printf ("\n");
+  if (*buf)
+    printf ("%s\n", buf);
   exit (0);
 }
 
