@@ -348,7 +348,7 @@ C-c C-v  mail-sent-via (add a Sent-via field for each To or CC)."
   (setq fill-paragraph-function 'mail-mode-fill-paragraph)
   (make-local-variable 'adaptive-fill-regexp)
   (setq adaptive-fill-regexp
-	(concat "[a-z0-9A-Z]*>+ *\\|" adaptive-fill-regexp))
+	(concat "[ \t]*[a-z0-9A-Z]*>+ *\\|" adaptive-fill-regexp))
   (make-local-variable 'adaptive-fill-first-line-regexp)
   (setq adaptive-fill-first-line-regexp adaptive-fill-regexp)
   ;; `-- ' precedes the signature.  `-----' appears at the start of the
@@ -356,7 +356,8 @@ C-c C-v  mail-sent-via (add a Sent-via field for each To or CC)."
   ;; Lines containing just >= 3 dashes, perhaps after whitespace,
   ;; are also sometimes used and should be separators.
   (setq paragraph-start (concat (regexp-quote mail-header-separator)
-				"$\\|[ \t]*$\\|" page-delimiter))
+				"$\\|[ \t]*[a-z0-9A-Z]*>+ *$\\|[ \t]*$\\|"
+				page-delimiter))
   (setq paragraph-separate paragraph-start)
   (run-hooks 'text-mode-hook 'mail-mode-hook))
 
